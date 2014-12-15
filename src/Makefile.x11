@@ -1,0 +1,31 @@
+
+CFLAGS= -DPX_PLATFORM_X11
+OUTDIR=../build/x11
+
+all: $(OUTDIR)/libpxCore.a 
+
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o
+		       mkdir -p $(OUTDIR)    
+	    ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o  pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o             
+          
+
+pxOffscreen.o: pxOffscreen.cpp
+	g++ -o pxOffscreen.o -Wall -I/usr/X11R6/include $(CFLAGS) -c pxOffscreen.cpp
+
+pxBufferNative.o: x11/pxBufferNative.cpp
+	g++ -o pxBufferNative.o -Wall -I/usr/X11R6/include $(CFLAGS) -c x11/pxBufferNative.cpp
+
+pxOffscreenNative.o: x11/pxOffscreenNative.cpp
+	g++ -o pxOffscreenNative.o -Wall -I/usr/X11R6/include $(CFLAGS) -c x11/pxOffscreenNative.cpp
+
+pxWindowNative.o: x11/pxWindowNative.cpp
+	g++ -o pxWindowNative.o -Wall -I/usr/X11R6/include $(CFLAGS) -c x11/pxWindowNative.cpp
+
+pxEventLoopNative.o: x11/pxEventLoopNative.cpp
+	g++ -o pxEventLoopNative.o -Wall -I/usr/X11R6/include $(CFLAGS) -c x11/pxEventLoopNative.cpp
+
+pxTimerNative.o: x11/pxTimerNative.cpp
+	g++ -o pxTimerNative.o -Wall -I/usr/X11R6/include $(CFLAGS) -c x11/pxTimerNative.cpp
+
+
+

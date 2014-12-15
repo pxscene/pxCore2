@@ -1,0 +1,195 @@
+// pxCore CopyRight 2007-2009 John Robinson
+// Portable Framebuffer and Windowing Library
+// pxWindowNative.h
+
+#ifndef PX_WINDOW_NATIVE_H
+#define PX_WINDOW_NATIVE_H
+
+#include <windows.h>
+#include "../pxRect.h"
+#include "pxOffscreenNative.h"
+
+typedef struct
+{
+    HWND    wnd;
+    UINT    msg;
+    WPARAM  wParam;
+    LPARAM  lParam;
+} pxEventNativeDesc;
+
+#ifndef WINCE
+#define PX_DEF_WINDOW_STYLE WS_OVERLAPPEDWINDOW
+#else
+#define PX_DEF_WINDOW_STYLE WS_VISIBLE
+#endif
+
+typedef pxEventNativeDesc& pxEventNative;
+
+
+class pxWindowNative
+{
+public:
+    pxWindowNative(): mWindow(NULL), mTimerId(NULL), mAnimationFPS(0), mTrackMouse(false) {}
+    virtual ~pxWindowNative();
+
+    pxError initNative(HWND parent, int left, int top, int width, int height, DWORD style = PX_DEF_WINDOW_STYLE, DWORD styleEx = 0);
+
+    pxError setAnimationFPS(long fps);
+
+    void sendSynchronizedMessage(char* messageName, void* p1);
+
+    void size(int& width, int& height);
+    // void frameSize(...);
+
+
+protected:
+    virtual void onCreate() = (0);
+
+    virtual void onCloseRequest() = 0;
+    virtual void onClose() = (0);
+
+    virtual void onSize(int w, int h) = 0;
+
+    virtual void onMouseDown(int x, int y, unsigned long flags) = (0);
+    virtual void onMouseUp(int x, int y, unsigned long flags) = (0);
+
+    virtual void onMouseMove(int x, int y) = (0);
+
+    virtual void onKeyDown(int keycode, unsigned long flags) = (0);
+    virtual void onKeyUp(int keycode, unsigned long flags) = (0);
+
+    virtual void onDraw(pxSurfaceNative surface) = (0);
+
+    virtual void onAnimationTimer() = (0);
+
+    // Windows only for now
+
+	virtual void onMouseLeave() {}
+    virtual void onSynchronizedMessage(char* messageName, void* p1) {}
+
+    // Windows only for now
+    // This method will get invoked before calling any of the other event
+    // handlers.  If consumed is set to true then no other event handlers will
+    // be called; otherwise they will be invoked as usual
+    virtual void onEvent(pxEventNative event, bool& consumed) {}
+
+    static LRESULT __stdcall windowProc(HWND hWnd, UINT msg, 
+            WPARAM wParam, LPARAM lParam);
+
+public: // Add accessors
+    HWND mWindow;
+    UINT_PTR mTimerId;
+    long mAnimationFPS;
+	bool mTrackMouse;
+};
+
+// Key Codes
+
+#define PX_KEY_ENTER        VK_RETURN
+#define PX_KEY_BACKSPACE    VK_BACK
+#define PX_KEY_TAB          VK_TAB
+#define PX_KEY_CANCEL       VK_CANCEL
+#define PX_KEY_CLEAR        VK_CLEAR
+#define PX_KEY_SHIFT        VK_SHIFT
+#define PX_KEY_CONTROL      VK_CONTROL
+#define PX_KEY_ALT          0x12
+#define PX_KEY_PAUSE        VK_PAUSE
+#define PX_KEY_CAPSLOCK     0x14
+#define PX_KEY_ESCAPE       VK_ESCAPE
+#define PX_KEY_SPACE        VK_SPACE
+#define PX_KEY_PAGEUP       VK_PRIOR
+#define PX_KEY_PAGEDOWN     VK_NEXT
+#define PX_KEY_END          VK_END
+#define PX_KEY_HOME         VK_HOME
+#define PX_KEY_LEFT         VK_LEFT
+#define PX_KEY_UP           VK_UP
+#define PX_KEY_RIGHT        VK_RIGHT
+#define PX_KEY_DOWN         VK_DOWN
+#define PX_KEY_COMMA        0xBC
+#define PX_KEY_PERIOD       0xBE
+#define PX_KEY_SLASH        '/'
+#define PX_KEY_ZERO         '0'
+#define PX_KEY_ONE          '1'
+#define PX_KEY_TWO          '2'
+#define PX_KEY_THREE        '3'
+#define PX_KEY_FOUR         '4'
+#define PX_KEY_FIVE         '5'
+#define PX_KEY_SIX          '6'
+#define PX_KEY_SEVEN        '7'
+#define PX_KEY_EIGHT        '8'
+#define PX_KEY_NINE         '9'
+#define PX_KEY_SEMICOLON    0xBA
+#define PX_KEY_EQUALS       0xBB
+#define PX_KEY_A            'A'
+#define PX_KEY_B            'B'
+#define PX_KEY_C            'C'
+#define PX_KEY_D            'D'
+#define PX_KEY_E            'E'
+#define PX_KEY_F            'F'
+#define PX_KEY_G            'G'
+#define PX_KEY_H            'H'
+#define PX_KEY_I            'I'
+#define PX_KEY_J            'J'
+#define PX_KEY_K            'K'
+#define PX_KEY_L            'L'
+#define PX_KEY_M            'M'
+#define PX_KEY_N            'N'
+#define PX_KEY_O            'O'
+#define PX_KEY_P            'P'
+#define PX_KEY_Q            'Q'
+#define PX_KEY_R            'R'
+#define PX_KEY_S            'S'
+#define PX_KEY_T            'T'
+#define PX_KEY_U            'U'
+#define PX_KEY_V            'V'
+#define PX_KEY_W            'W'
+#define PX_KEY_X            'X'
+#define PX_KEY_Y            'Y'
+#define PX_KEY_Z            'Z'
+#define PX_KEY_OPENBRACKET  0xDB
+#define PX_KEY_BACKSLASH    0xDC
+#define PX_KEY_CLOSEBRACKET 0xDD
+#define PX_KEY_NUMPAD0      VK_NUMPAD0
+#define PX_KEY_NUMPAD1      VK_NUMPAD1
+#define PX_KEY_NUMPAD2      VK_NUMPAD2
+#define PX_KEY_NUMPAD3      VK_NUMPAD3
+#define PX_KEY_NUMPAD4      VK_NUMPAD4
+#define PX_KEY_NUMPAD5      VK_NUMPAD5
+#define PX_KEY_NUMPAD6      VK_NUMPAD6
+#define PX_KEY_NUMPAD7      VK_NUMPAD7
+#define PX_KEY_NUMPAD8      VK_NUMPAD8
+#define PX_KEY_NUMPAD9      VK_NUMPAD9
+#define PX_KEY_MULTIPLY     VK_MULTIPLY
+#define PX_KEY_ADD          VK_ADD
+#define PX_KEY_SEPARATOR    0xBD
+#define PX_KEY_SUBTRACT     VK_SUBTRACT
+#define PX_KEY_DECIMAL      VK_DECIMAL
+#define PX_KEY_DIVIDE       VK_DIVIDE
+#define PX_KEY_F1           VK_F1
+#define PX_KEY_F2           VK_F2
+#define PX_KEY_F3           VK_F3
+#define PX_KEY_F4           VK_F4
+#define PX_KEY_F5           VK_F5
+#define PX_KEY_F6           VK_F6
+#define PX_KEY_F7           VK_F7
+#define PX_KEY_F8           VK_F8
+#define PX_KEY_F9           VK_F9
+#define PX_KEY_F10          VK_F10
+#define PX_KEY_F11          VK_F11
+#define PX_KEY_F12          VK_F12
+#define PX_KEY_DELETE       VK_DELETE
+#define PX_KEY_NUMLOCK      VK_NUMLOCK
+#define PX_KEY_SCROLLLOCK   VK_SCROLL
+#define PX_KEY_PRINTSCREEN  0x2C
+#define PX_KEY_INSERT       VK_INSERT
+#define PX_KEY_HELP         VK_HELP
+#define PX_KEY_BACKQUOTE    0xC0
+#define PX_KEY_QUOTE        0xDE
+
+typedef struct synchronizedMessage
+{
+    char* messageName;
+    void* p1;
+} synchronizedMessage;
+
+#endif

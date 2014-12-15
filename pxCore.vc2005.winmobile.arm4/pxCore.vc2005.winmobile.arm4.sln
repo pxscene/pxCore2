@@ -1,0 +1,99 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Animation", "Animation\Animation.vcproj", "{8A9FB955-8449-4FF0-B3B2-A4032A16A465}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FE337866-9196-429A-85D7-ECE04A4325AE} = {FE337866-9196-429A-85D7-ECE04A4325AE}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pxCore Static Library", "pxCore Static Library\pxCore Static Library.vcproj", "{FE337866-9196-429A-85D7-ECE04A4325AE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Mandelbrot", "Mandelbrot\Mandelbrot.vcproj", "{8036BC5F-9771-467A-8EC1-A1B5F775DED4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FE337866-9196-429A-85D7-ECE04A4325AE} = {FE337866-9196-429A-85D7-ECE04A4325AE}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KeyboardAndMouse", "KeyboardAndMouse\KeyboardAndMouse.vcproj", "{A64E45DD-F187-47EE-A07A-551C45B342AB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FE337866-9196-429A-85D7-ECE04A4325AE} = {FE337866-9196-429A-85D7-ECE04A4325AE}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Simple", "Simple\Simple.vcproj", "{F5A40768-B03D-44C6-948D-56386B89FF56}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FE337866-9196-429A-85D7-ECE04A4325AE} = {FE337866-9196-429A-85D7-ECE04A4325AE}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Timer", "Timer\Timer.vcproj", "{22315CC2-8668-496E-8068-76293297D57C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FE337866-9196-429A-85D7-ECE04A4325AE} = {FE337866-9196-429A-85D7-ECE04A4325AE}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NativeDrawing", "NativeDrawing\NativeDrawing.vcproj", "{21DCA4A4-507D-4B80-BC77-325DA18E31B7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FE337866-9196-429A-85D7-ECE04A4325AE} = {FE337866-9196-429A-85D7-ECE04A4325AE}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sprite", "Sprite\Sprite.vcproj", "{43A588C3-FC08-4550-BC44-BB2DB1099444}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FE337866-9196-429A-85D7-ECE04A4325AE} = {FE337866-9196-429A-85D7-ECE04A4325AE}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Pocket PC 2003 (ARMV4) = Debug|Pocket PC 2003 (ARMV4)
+		Release|Pocket PC 2003 (ARMV4) = Release|Pocket PC 2003 (ARMV4)
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8A9FB955-8449-4FF0-B3B2-A4032A16A465}.Debug|Pocket PC 2003 (ARMV4).ActiveCfg = Debug|Pocket PC 2003 (ARMV4)
+		{8A9FB955-8449-4FF0-B3B2-A4032A16A465}.Debug|Pocket PC 2003 (ARMV4).Build.0 = Debug|Pocket PC 2003 (ARMV4)
+		{8A9FB955-8449-4FF0-B3B2-A4032A16A465}.Debug|Pocket PC 2003 (ARMV4).Deploy.0 = Debug|Pocket PC 2003 (ARMV4)
+		{8A9FB955-8449-4FF0-B3B2-A4032A16A465}.Release|Pocket PC 2003 (ARMV4).ActiveCfg = Release|Pocket PC 2003 (ARMV4)
+		{8A9FB955-8449-4FF0-B3B2-A4032A16A465}.Release|Pocket PC 2003 (ARMV4).Build.0 = Release|Pocket PC 2003 (ARMV4)
+		{8A9FB955-8449-4FF0-B3B2-A4032A16A465}.Release|Pocket PC 2003 (ARMV4).Deploy.0 = Release|Pocket PC 2003 (ARMV4)
+		{FE337866-9196-429A-85D7-ECE04A4325AE}.Debug|Pocket PC 2003 (ARMV4).ActiveCfg = Debug|Pocket PC 2003 (ARMV4)
+		{FE337866-9196-429A-85D7-ECE04A4325AE}.Debug|Pocket PC 2003 (ARMV4).Build.0 = Debug|Pocket PC 2003 (ARMV4)
+		{FE337866-9196-429A-85D7-ECE04A4325AE}.Debug|Pocket PC 2003 (ARMV4).Deploy.0 = Debug|Pocket PC 2003 (ARMV4)
+		{FE337866-9196-429A-85D7-ECE04A4325AE}.Release|Pocket PC 2003 (ARMV4).ActiveCfg = Release|Pocket PC 2003 (ARMV4)
+		{FE337866-9196-429A-85D7-ECE04A4325AE}.Release|Pocket PC 2003 (ARMV4).Build.0 = Release|Pocket PC 2003 (ARMV4)
+		{FE337866-9196-429A-85D7-ECE04A4325AE}.Release|Pocket PC 2003 (ARMV4).Deploy.0 = Release|Pocket PC 2003 (ARMV4)
+		{8036BC5F-9771-467A-8EC1-A1B5F775DED4}.Debug|Pocket PC 2003 (ARMV4).ActiveCfg = Debug|Pocket PC 2003 (ARMV4)
+		{8036BC5F-9771-467A-8EC1-A1B5F775DED4}.Debug|Pocket PC 2003 (ARMV4).Build.0 = Debug|Pocket PC 2003 (ARMV4)
+		{8036BC5F-9771-467A-8EC1-A1B5F775DED4}.Debug|Pocket PC 2003 (ARMV4).Deploy.0 = Debug|Pocket PC 2003 (ARMV4)
+		{8036BC5F-9771-467A-8EC1-A1B5F775DED4}.Release|Pocket PC 2003 (ARMV4).ActiveCfg = Release|Pocket PC 2003 (ARMV4)
+		{8036BC5F-9771-467A-8EC1-A1B5F775DED4}.Release|Pocket PC 2003 (ARMV4).Build.0 = Release|Pocket PC 2003 (ARMV4)
+		{8036BC5F-9771-467A-8EC1-A1B5F775DED4}.Release|Pocket PC 2003 (ARMV4).Deploy.0 = Release|Pocket PC 2003 (ARMV4)
+		{A64E45DD-F187-47EE-A07A-551C45B342AB}.Debug|Pocket PC 2003 (ARMV4).ActiveCfg = Debug|Pocket PC 2003 (ARMV4)
+		{A64E45DD-F187-47EE-A07A-551C45B342AB}.Debug|Pocket PC 2003 (ARMV4).Build.0 = Debug|Pocket PC 2003 (ARMV4)
+		{A64E45DD-F187-47EE-A07A-551C45B342AB}.Debug|Pocket PC 2003 (ARMV4).Deploy.0 = Debug|Pocket PC 2003 (ARMV4)
+		{A64E45DD-F187-47EE-A07A-551C45B342AB}.Release|Pocket PC 2003 (ARMV4).ActiveCfg = Release|Pocket PC 2003 (ARMV4)
+		{A64E45DD-F187-47EE-A07A-551C45B342AB}.Release|Pocket PC 2003 (ARMV4).Build.0 = Release|Pocket PC 2003 (ARMV4)
+		{A64E45DD-F187-47EE-A07A-551C45B342AB}.Release|Pocket PC 2003 (ARMV4).Deploy.0 = Release|Pocket PC 2003 (ARMV4)
+		{F5A40768-B03D-44C6-948D-56386B89FF56}.Debug|Pocket PC 2003 (ARMV4).ActiveCfg = Debug|Pocket PC 2003 (ARMV4)
+		{F5A40768-B03D-44C6-948D-56386B89FF56}.Debug|Pocket PC 2003 (ARMV4).Build.0 = Debug|Pocket PC 2003 (ARMV4)
+		{F5A40768-B03D-44C6-948D-56386B89FF56}.Debug|Pocket PC 2003 (ARMV4).Deploy.0 = Debug|Pocket PC 2003 (ARMV4)
+		{F5A40768-B03D-44C6-948D-56386B89FF56}.Release|Pocket PC 2003 (ARMV4).ActiveCfg = Release|Pocket PC 2003 (ARMV4)
+		{F5A40768-B03D-44C6-948D-56386B89FF56}.Release|Pocket PC 2003 (ARMV4).Build.0 = Release|Pocket PC 2003 (ARMV4)
+		{F5A40768-B03D-44C6-948D-56386B89FF56}.Release|Pocket PC 2003 (ARMV4).Deploy.0 = Release|Pocket PC 2003 (ARMV4)
+		{22315CC2-8668-496E-8068-76293297D57C}.Debug|Pocket PC 2003 (ARMV4).ActiveCfg = Debug|Pocket PC 2003 (ARMV4)
+		{22315CC2-8668-496E-8068-76293297D57C}.Debug|Pocket PC 2003 (ARMV4).Build.0 = Debug|Pocket PC 2003 (ARMV4)
+		{22315CC2-8668-496E-8068-76293297D57C}.Debug|Pocket PC 2003 (ARMV4).Deploy.0 = Debug|Pocket PC 2003 (ARMV4)
+		{22315CC2-8668-496E-8068-76293297D57C}.Release|Pocket PC 2003 (ARMV4).ActiveCfg = Release|Pocket PC 2003 (ARMV4)
+		{22315CC2-8668-496E-8068-76293297D57C}.Release|Pocket PC 2003 (ARMV4).Build.0 = Release|Pocket PC 2003 (ARMV4)
+		{22315CC2-8668-496E-8068-76293297D57C}.Release|Pocket PC 2003 (ARMV4).Deploy.0 = Release|Pocket PC 2003 (ARMV4)
+		{21DCA4A4-507D-4B80-BC77-325DA18E31B7}.Debug|Pocket PC 2003 (ARMV4).ActiveCfg = Debug|Pocket PC 2003 (ARMV4)
+		{21DCA4A4-507D-4B80-BC77-325DA18E31B7}.Debug|Pocket PC 2003 (ARMV4).Build.0 = Debug|Pocket PC 2003 (ARMV4)
+		{21DCA4A4-507D-4B80-BC77-325DA18E31B7}.Debug|Pocket PC 2003 (ARMV4).Deploy.0 = Debug|Pocket PC 2003 (ARMV4)
+		{21DCA4A4-507D-4B80-BC77-325DA18E31B7}.Release|Pocket PC 2003 (ARMV4).ActiveCfg = Release|Pocket PC 2003 (ARMV4)
+		{21DCA4A4-507D-4B80-BC77-325DA18E31B7}.Release|Pocket PC 2003 (ARMV4).Build.0 = Release|Pocket PC 2003 (ARMV4)
+		{21DCA4A4-507D-4B80-BC77-325DA18E31B7}.Release|Pocket PC 2003 (ARMV4).Deploy.0 = Release|Pocket PC 2003 (ARMV4)
+		{43A588C3-FC08-4550-BC44-BB2DB1099444}.Debug|Pocket PC 2003 (ARMV4).ActiveCfg = Debug|Pocket PC 2003 (ARMV4)
+		{43A588C3-FC08-4550-BC44-BB2DB1099444}.Debug|Pocket PC 2003 (ARMV4).Build.0 = Debug|Pocket PC 2003 (ARMV4)
+		{43A588C3-FC08-4550-BC44-BB2DB1099444}.Debug|Pocket PC 2003 (ARMV4).Deploy.0 = Debug|Pocket PC 2003 (ARMV4)
+		{43A588C3-FC08-4550-BC44-BB2DB1099444}.Release|Pocket PC 2003 (ARMV4).ActiveCfg = Release|Pocket PC 2003 (ARMV4)
+		{43A588C3-FC08-4550-BC44-BB2DB1099444}.Release|Pocket PC 2003 (ARMV4).Build.0 = Release|Pocket PC 2003 (ARMV4)
+		{43A588C3-FC08-4550-BC44-BB2DB1099444}.Release|Pocket PC 2003 (ARMV4).Deploy.0 = Release|Pocket PC 2003 (ARMV4)
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,13 @@
+# pxCore FrameBuffer Library
+# Simple Example
+
+CFLAGS= -I../../src -DPX_PLATFORM_X11 -Wno-write-strings
+OUTDIR=../../build/x11
+
+all: $(OUTDIR)/Simple
+
+$(OUTDIR)/Simple: Simple.cpp 
+	g++ -o $(OUTDIR)/Simple -Wall $(CFLAGS) Simple.cpp -L/usr/X11R6/lib -lX11 -L$(OUTDIR) -lpxCore
+
+
+

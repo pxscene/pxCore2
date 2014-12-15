@@ -1,0 +1,13 @@
+# pxCore FrameBuffer Library
+# Simple Example
+
+CFLAGS= -I../../src -DPX_PLATFORM_X11
+OUTDIR=../../build/x11
+
+all: $(OUTDIR)/Timer
+
+$(OUTDIR)/Timer: Timer.cpp
+	g++ -o $(OUTDIR)/Timer -Wall $(CFLAGS) Timer.cpp -L/usr/X11R6/lib -lX11 -L$(OUTDIR) -lpxCore
+
+
+

@@ -1,0 +1,14 @@
+
+# pxCore FrameBuffer Library
+# KeyboardAndMouse Example
+
+CFLAGS= -I../../src -DPX_PLATFORM_X11 -Wno-write-strings
+OUTDIR=../../build/x11
+
+all: $(OUTDIR)/KeyboardAndMouse
+
+$(OUTDIR)/KeyboardAndMouse: KeyboardAndMouse.cpp $(OUTDIR)/libpxCore.a
+	g++ -o $(OUTDIR)/KeyboardAndMouse -Wall $(CFLAGS) KeyboardAndMouse.cpp -L/usr/X11R6/lib -lX11 -L$(OUTDIR) -lpxCore
+
+
+
