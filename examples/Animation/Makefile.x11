@@ -7,7 +7,7 @@ OUTDIR=../../build/x11
 all: $(OUTDIR)/Animation
 
 $(OUTDIR)/Animation: Animation.cpp
-	g++ -o $(OUTDIR)/Animation -Wall $(CFLAGS) Animation.cpp -L/usr/X11R6/lib -lX11 -L$(OUTDIR) -lpxCore
+	g++ -o $(OUTDIR)/Animation -Wall $(CFLAGS) Animation.cpp -L/usr/X11R6/lib -lX11 -L$(OUTDIR) -lpxCore -lrt
 
 
 

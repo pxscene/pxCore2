@@ -25,7 +25,7 @@ void drawBackground(pxBuffer& b)
             p->r = pxClamp<int>(x+y, 255);
             p->g = pxClamp<int>(y,   255);
             p->b = pxClamp<int>(x,   255);
-	    p++;
+            p++;
         }
     }
 }
@@ -52,7 +52,7 @@ private:
     void onDraw(pxSurfaceNative s)
     {
         // Draw the texture into this window
-        mTexture.blit(s);
+	mTexture.blit(s);
     }
 
     pxOffscreen mTexture;

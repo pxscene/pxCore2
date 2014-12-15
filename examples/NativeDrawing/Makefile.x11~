@@ -7,7 +7,7 @@ OUTDIR=../../build/x11
 all: $(OUTDIR)/NativeDrawing
 
 $(OUTDIR)/NativeDrawing: NativeDrawing.cpp 
-	g++ -o $(OUTDIR)/NativeDrawing -Wall $(CFLAGS) NativeDrawing.cpp -L/usr/lib/x86_64/ -lX11 -L$(OUTDIR) -lpxCore -lrt
+	g++ -o $(OUTDIR)/NativeDrawing -Wall $(CFLAGS) NativeDrawing.cpp -L/usr/X11R6/lib -lX11 -L$(OUTDIR) -lpxCore
 
 
 

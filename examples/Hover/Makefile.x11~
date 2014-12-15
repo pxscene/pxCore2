@@ -7,7 +7,7 @@ OUTDIR=../../build/x11
 all: $(OUTDIR)/Hover
 
 $(OUTDIR)/Hover: Hover.cpp 
-	g++ -o $(OUTDIR)/Hover -Wall $(CFLAGS) Hover.cpp -L/usr/lib/x86_64/ -lX11 -L$(OUTDIR) -lpxCore -lrt
+	g++ -o $(OUTDIR)/Hover -Wall $(CFLAGS) Hover.cpp -L/usr/X11R6/lib -lX11 -L$(OUTDIR) -lpxCore
 
 
 

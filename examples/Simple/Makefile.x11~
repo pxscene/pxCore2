@@ -7,7 +7,7 @@ OUTDIR=../../build/x11
 all: $(OUTDIR)/Simple
 
 $(OUTDIR)/Simple: Simple.cpp 
-	g++ -o $(OUTDIR)/Simple -Wall $(CFLAGS) Simple.cpp -L/usr/lib/x86_64/ -lX11 -L$(OUTDIR) -lpxCore -lrt
+	g++ -o $(OUTDIR)/Simple -Wall $(CFLAGS) Simple.cpp -L/usr/X11R6/lib -lX11 -L$(OUTDIR) -lpxCore
 
 
 
