@@ -52,6 +52,8 @@ inline t pxAbs(t i)
 #include "mac/pxConfigNative.h"
 #elif defined(PX_PLATFORM_X11)
 #include "x11/pxConfigNative.h"
+#elif defined(PX_PLATFORM_WAYLAND)
+#include "wayland/pxConfigNative.h"
 #else
 #error "PX_PLATFORM NOT HANDLED"
 #endif
