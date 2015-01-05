@@ -1,0 +1,14 @@
+# pxCore FrameBuffer Library
+# NativeDrawing Example
+WAYLAND=`pkg-config wayland-client --cflags --libs`
+
+CFLAGS= -I../../src -DPX_PLATFORM_WAYLAND -Wno-write-strings -Wall -O3 -fvisibility=hidden -g
+OUTDIR=../../build/wayland
+
+all: $(OUTDIR)/NativeDrawing
+
+$(OUTDIR)/NativeDrawing: NativeDrawing.cpp 
+	g++ -o $(OUTDIR)/NativeDrawing -Wall $(CFLAGS) NativeDrawing.cpp -L$(OUTDIR) -lpxCore -lrt $(WAYLAND)
+
+
+
