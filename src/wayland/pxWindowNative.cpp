@@ -507,7 +507,7 @@ int pxWindowNative::create_tmpfile_cloexec(char *tmpname)
 
 int pxWindowNative::os_create_anonymous_file(off_t size)
 {
-    static const char templateFile[] = "/pxCore_shared";
+    static const char templateFile[] = "/pxcore-shared-XXXXXX";
     const char *path;
     char *name;
     int fd;
