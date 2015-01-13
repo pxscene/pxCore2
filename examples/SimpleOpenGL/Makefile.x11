@@ -1,0 +1,13 @@
+# pxCore FrameBuffer Library
+# Simple Egl Example
+
+CFLAGS= -I../../src -DPX_PLATFORM_X11 -Wno-write-strings
+OUTDIR=../../build/x11
+
+all: $(OUTDIR)/SimpleEgl
+
+$(OUTDIR)/SimpleEgl: SimpleEgl.cpp 
+	g++ -o $(OUTDIR)/SimpleEgl -Wall $(CFLAGS) SimpleEgl.cpp -L/usr/lib/x86_64/ -lX11 -L$(OUTDIR) -lpxCore -lrt
+
+
+

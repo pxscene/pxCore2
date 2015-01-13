@@ -54,6 +54,8 @@ inline t pxAbs(t i)
 #include "x11/pxConfigNative.h"
 #elif defined(PX_PLATFORM_WAYLAND)
 #include "wayland/pxConfigNative.h"
+#elif defined(PX_PLATFORM_WAYLAND_EGL)
+#include "wayland_egl/pxConfigNative.h"
 #else
 #error "PX_PLATFORM NOT HANDLED"
 #endif

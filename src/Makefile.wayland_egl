@@ -1,0 +1,32 @@
+
+WAYLAND=`pkg-config wayland-client wayland-egl --cflags --libs`
+CFLAGS= -DPX_PLATFORM_WAYLAND_EGL -Wall -O3 -fvisibility=hidden -g
+OUTDIR=../build/wayland_egl
+
+all: $(OUTDIR)/libpxCore.a 
+
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o
+		       mkdir -p $(OUTDIR)    
+	    ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o  pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o             
+          
+
+pxOffscreen.o: pxOffscreen.cpp
+	g++ -o pxOffscreen.o -Wall -I/usr/X11R6/include $(CFLAGS) $(WAYLAND) -c pxOffscreen.cpp
+
+pxBufferNative.o: wayland_egl/pxBufferNative.cpp
+	g++ -o pxBufferNative.o -Wall -I/usr/X11R6/include $(CFLAGS) $(WAYLAND) -c wayland_egl/pxBufferNative.cpp
+
+pxOffscreenNative.o: wayland_egl/pxOffscreenNative.cpp
+	g++ -o pxOffscreenNative.o -Wall -I/usr/X11R6/include $(CFLAGS) $(WAYLAND) -c wayland_egl/pxOffscreenNative.cpp
+
+pxWindowNative.o: wayland_egl/pxWindowNative.cpp
+	g++ -o pxWindowNative.o -Wall -I/usr/X11R6/include $(CFLAGS) $(WAYLAND) -c wayland_egl/pxWindowNative.cpp
+
+pxEventLoopNative.o: wayland_egl/pxEventLoopNative.cpp
+	g++ -o pxEventLoopNative.o -Wall -I/usr/X11R6/include $(CFLAGS) $(WAYLAND) -c wayland_egl/pxEventLoopNative.cpp
+
+pxTimerNative.o: wayland_egl/pxTimerNative.cpp
+	g++ -o pxTimerNative.o -Wall -I/usr/X11R6/include $(CFLAGS) $(WAYLAND) -c wayland_egl/pxTimerNative.cpp
+
+
+

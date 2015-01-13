@@ -9,8 +9,9 @@
 #elif defined(PX_PLATFORM_MAC)
 #elif defined(PX_PLATFORM_X11)
 #elif defined(PX_PLATFORM_WAYLAND)
+#elif defined(PX_PLATFORM_WAYLAND_EGL)
 #else
-#error "Must define one of PX_PLATFORM_WIN, PX_PLATFORM_MAC, PX_PLATFORM_X11, PX_PLATFORM_WAYLAND"
+#error "Must define one of PX_PLATFORM_WIN, PX_PLATFORM_MAC, PX_PLATFORM_X11, PX_PLATFORM_WAYLAND PX_PLATFORM_WAYLAND_EGL"
 #endif
 
 #endif
