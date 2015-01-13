@@ -6,6 +6,10 @@
 #define PX_PIXELS_H
 
 #include "pxCore.h"
+#include <inttypes.h>
+
+
+#pragma pack(push, 4)
 
 struct pxPixel {
 
@@ -24,7 +28,7 @@ struct pxPixel {
         b = _b;
         a = _a;
     }
-    pxPixel(unsigned long _u)
+    pxPixel(uint32_t _u)
     {
         u = _u;
     }
@@ -53,11 +57,13 @@ struct pxPixel {
             unsigned char b: 8;
 #endif
         };
-        unsigned long u;
+        uint32_t u;
     };
 };
 
 typedef pxPixel pxColor;
+
+#pragma pack(pop)
 
 #endif
 
