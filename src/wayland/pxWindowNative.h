@@ -22,7 +22,7 @@ using namespace std;
 typedef struct _waylandDisplay {
 
     _waylandDisplay() : display(NULL), registry(NULL), compositor(NULL), shm(NULL),
-        shell(NULL), seat(NULL), pointer(NULL) {}
+        shell(NULL), seat(NULL), pointer(NULL), mousePositionX(0), mousePositionY(0) {}
 
     struct wl_display *display;
     struct wl_registry *registry;
@@ -32,6 +32,8 @@ typedef struct _waylandDisplay {
     struct wl_seat *seat;
     struct wl_pointer *pointer;
     struct wl_keyboard *keyboard;
+    int mousePositionX;
+    int mousePositionY;
 } waylandDisplay;
 
 typedef struct _waylandBuffer {

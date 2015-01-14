@@ -19,9 +19,6 @@ struct wl_keyboard_listener displayRef::mWaylandKeyboardListener;
 int displayRef::mRefCount = 0;
 struct wl_shell_surface_listener pxWindowNative::mShellSurfaceListener;
 
-int lastMouseXPosition = 0;
-int lastMouseYPosition = 0;
-
 //begin wayland callbacks
 
 static void redraw(void *data, struct wl_callback *callback, uint32_t time)
@@ -87,8 +84,11 @@ static void
 pointer_handle_motion(void *data, struct wl_pointer *pointer,
               uint32_t time, wl_fixed_t sx, wl_fixed_t sy)
 {
-    lastMouseXPosition = wl_fixed_to_int(sx);
-    lastMouseYPosition = wl_fixed_to_int(sy);
+    int lastMouseXPosition = wl_fixed_to_int(sx);
+    int lastMouseYPosition = wl_fixed_to_int(sy);
+    displayRef dRef;
+    dRef.getDisplay()->mousePositionX = lastMouseXPosition;
+    dRef.getDisplay()->mousePositionY = lastMouseYPosition;
     vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
     vector<pxWindowNative*>::iterator i;
     for (i = windowVector.begin(); i < windowVector.end(); i++)
@@ -113,6 +113,10 @@ pointer_handle_button(void *data, struct wl_pointer *wl_pointer,
         default: flags = PX_LEFTBUTTON;
         break;
     }
+
+    displayRef dRef;
+    int lastMouseXPosition = dRef.getDisplay()->mousePositionX;
+    int lastMouseYPosition = dRef.getDisplay()->mousePositionY;
 
     vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
     vector<pxWindowNative*>::iterator i;
