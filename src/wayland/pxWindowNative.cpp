@@ -49,7 +49,7 @@ static void registry_handle_global(void *data, struct wl_registry *registry, uin
             &wl_seat_interface, version);
         dRef.getDisplay()->pointer = (struct wl_pointer*)wl_seat_get_pointer(dRef.getDisplay()->seat);
         wl_pointer_add_listener(dRef.getDisplay()->pointer, &displayRef::mWaylandPointerListener,
-            NULL);
+            dRef.getDisplay());
         dRef.getDisplay()->keyboard = (struct wl_keyboard*)wl_seat_get_keyboard(dRef.getDisplay()->seat);
         wl_keyboard_add_listener(dRef.getDisplay()->keyboard, &displayRef::mWaylandKeyboardListener,
             NULL);
@@ -86,9 +86,9 @@ pointer_handle_motion(void *data, struct wl_pointer *pointer,
 {
     int lastMouseXPosition = wl_fixed_to_int(sx);
     int lastMouseYPosition = wl_fixed_to_int(sy);
-    displayRef dRef;
-    dRef.getDisplay()->mousePositionX = lastMouseXPosition;
-    dRef.getDisplay()->mousePositionY = lastMouseYPosition;
+    waylandDisplay* wDisplay = (waylandDisplay*)data;
+    wDisplay->mousePositionX = lastMouseXPosition;
+    wDisplay->mousePositionY = lastMouseYPosition;
     vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
     vector<pxWindowNative*>::iterator i;
     for (i = windowVector.begin(); i < windowVector.end(); i++)
@@ -114,9 +114,9 @@ pointer_handle_button(void *data, struct wl_pointer *wl_pointer,
         break;
     }
 
-    displayRef dRef;
-    int lastMouseXPosition = dRef.getDisplay()->mousePositionX;
-    int lastMouseYPosition = dRef.getDisplay()->mousePositionY;
+    waylandDisplay* wDisplay = (waylandDisplay*)data;
+    int lastMouseXPosition = wDisplay->mousePositionX;
+    int lastMouseYPosition = wDisplay->mousePositionY;
 
     vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
     vector<pxWindowNative*>::iterator i;
