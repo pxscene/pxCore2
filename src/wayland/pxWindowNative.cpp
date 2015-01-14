@@ -324,8 +324,7 @@ void pxWindow::invalidateRect(pxRect *r)
 // when the event loop goes idle
 void pxWindowNative::invalidateRectInternal(pxRect *r)
 {
-    drawFrame(mFrameCallback);
-    //todo
+    drawFrame(mFrameCallback, r);
 }
 
 bool pxWindow::visibility()
@@ -604,7 +603,7 @@ waylandBuffer* pxWindowNative::nextBuffer()
     return buffer;
 }
 
-void pxWindowNative::drawFrame(wl_callback *callback)
+void pxWindowNative::drawFrame(wl_callback *callback, pxRect *rect)
 {
     displayRef dRef;
 
@@ -631,12 +630,25 @@ void pxWindowNative::drawFrame(wl_callback *callback)
     }
     d.pixelData = (uint32_t*)buffer->shm_data;
 
+    int left = 0;
+    int top = 0;
+    int width = mLastWidth;
+    int height = mLastHeight;
+
+    if (rect != NULL)
+    {
+        left = rect->left();
+        top = rect->top();
+        width = rect->width();
+        height = rect->height();
+    }
+
     onDraw(&d);
 
     //attach and bind buffer
     wl_surface_attach(d.surface, d.buffer, 0, 0);
     wl_surface_damage(d.surface,
-              0, 0, d.windowWidth, d.windowHeight);
+              left, top, width, height);
 
     if (callback)
         wl_callback_destroy(callback);
