@@ -654,32 +654,11 @@ void pxWindowNative::drawFrame(wl_callback *callback)
     displayRef dRef;
 
     waylandDisplay* wDisplay = dRef.getDisplay();
+    struct wl_surface * waylandSurface = (struct wl_surface *)wl_shell_surface_get_user_data(mWaylandSurface);
     pxSurfaceNativeDesc d;
-    d.display = wDisplay->display;
-    d.registry = wDisplay->registry;
-    d.compositor = wDisplay->compositor;
-    d.shm = wDisplay->shm;
-    d.shell = wDisplay->shell;
-    d.seat = wDisplay->seat;
-    d.pointer = wDisplay->pointer;
-    d.surface = (struct wl_surface *)wl_shell_surface_get_user_data(mWaylandSurface);
     d.windowWidth = mLastWidth;
     d.windowHeight = mLastHeight;
-    d.eglSurface = mEglSurface;
-    d.opaque = WAYLAND_EGL_BUFFER_OPAQUE;
-    d.egl.dpy = wDisplay->egl.dpy;
-    d.egl.ctx = wDisplay->egl.ctx;
-    d.egl.conf = wDisplay->egl.conf;
-    d.swap_buffers_with_damage = wDisplay->swap_buffers_with_damage;
     waylandBuffer *buffer = nextBuffer();
-    if (buffer != NULL)
-    {
-        d.buffer = buffer->buffer;
-    }
-    else
-    {
-        d.buffer = NULL;
-    }
     d.pixelData = (uint32_t*)buffer->shm_data;
 
     onDraw(&d);
@@ -690,30 +669,19 @@ void pxWindowNative::drawFrame(wl_callback *callback)
         wl_region_add(region, 0, 0,
                   mLastWidth,
                   mLastHeight);
-        wl_surface_set_opaque_region(d.surface, region);
+        wl_surface_set_opaque_region(waylandSurface, region);
         wl_region_destroy(region);
     } else {
-        wl_surface_set_opaque_region(d.surface, NULL);
+        wl_surface_set_opaque_region(waylandSurface, NULL);
     }
     eglSwapBuffers(wDisplay->egl.dpy, mEglSurface);
-
-    /* the below lines are for regular wayland and are not needed for EGL.
-     * leaving in for now to allow for one version in the
-     * future that will support both generic wayland and egl
-    //attach and bind buffer
-    wl_surface_attach(d.surface, d.buffer, 0, 0);
-    wl_surface_damage(d.surface,
-              0, 0, d.windowWidth, d.windowHeight);
-    */
 
     if (callback)
         wl_callback_destroy(callback);
 
-    mFrameCallback = wl_surface_frame(d.surface);
+    mFrameCallback = wl_surface_frame(waylandSurface);
     wl_callback_add_listener(mFrameCallback, &frame_listener, this);
-    wl_surface_commit(d.surface);
-
-    buffer->busy = 1;
+    wl_surface_commit(waylandSurface);
 }
 
 //egl methods

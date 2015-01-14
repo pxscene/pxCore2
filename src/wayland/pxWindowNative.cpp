@@ -605,29 +605,12 @@ waylandBuffer* pxWindowNative::nextBuffer()
 
 void pxWindowNative::drawFrame(wl_callback *callback, pxRect *rect)
 {
-    displayRef dRef;
-
-    waylandDisplay* wDisplay = dRef.getDisplay();
+    struct wl_surface * waylandSurface = (struct wl_surface *)wl_shell_surface_get_user_data(mWaylandSurface);
     pxSurfaceNativeDesc d;
-    d.display = wDisplay->display;
-    d.registry = wDisplay->registry;
-    d.compositor = wDisplay->compositor;
-    d.shm = wDisplay->shm;
-    d.shell = wDisplay->shell;
-    d.seat = wDisplay->seat;
-    d.pointer = wDisplay->pointer;
-    d.surface = (struct wl_surface *)wl_shell_surface_get_user_data(mWaylandSurface);
     d.windowWidth = mLastWidth;
     d.windowHeight = mLastHeight;
     waylandBuffer *buffer = nextBuffer();
-    if (buffer != NULL)
-    {
-        d.buffer = buffer->buffer;
-    }
-    else
-    {
-        d.buffer = NULL;
-    }
+    struct wl_buffer *waylandBuffer = buffer->buffer;
     d.pixelData = (uint32_t*)buffer->shm_data;
 
     int left = 0;
@@ -646,16 +629,16 @@ void pxWindowNative::drawFrame(wl_callback *callback, pxRect *rect)
     onDraw(&d);
 
     //attach and bind buffer
-    wl_surface_attach(d.surface, d.buffer, 0, 0);
-    wl_surface_damage(d.surface,
+    wl_surface_attach(waylandSurface, waylandBuffer, 0, 0);
+    wl_surface_damage(waylandSurface,
               left, top, width, height);
 
     if (callback)
         wl_callback_destroy(callback);
 
-    mFrameCallback = wl_surface_frame(d.surface);
+    mFrameCallback = wl_surface_frame(waylandSurface);
     wl_callback_add_listener(mFrameCallback, &frame_listener, this);
-    wl_surface_commit(d.surface);
+    wl_surface_commit(waylandSurface);
 
     buffer->busy = 1;
 }
