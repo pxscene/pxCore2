@@ -15,6 +15,7 @@
 
 #define WAYLAND_EGL_BUFFER_SIZE 32
 #define WAYLAND_EGL_BUFFER_OPAQUE 0
+#define WAYLAND_PX_CORE_FPS 30
 
 waylandDisplay* displayRef::mDisplay = NULL;
 struct wl_registry_listener displayRef::mWaylandRegistryListener;
@@ -24,16 +25,6 @@ int displayRef::mRefCount = 0;
 struct wl_shell_surface_listener pxWindowNative::mShellSurfaceListener;
 
 //begin wayland callbacks
-
-static void redraw(void *data, struct wl_callback *callback, uint32_t time)
-{
-    pxWindowNative* w = (pxWindowNative*)data;
-    w->drawFrame(callback);
-}
-
-static struct wl_callback_listener frame_listener = {
-    redraw
-};
 
 static void registry_handle_global(void *data, struct wl_registry *registry, uint32_t name, const char *interface, uint32_t version)
 {
@@ -340,8 +331,7 @@ void pxWindow::invalidateRect(pxRect *r)
 // when the event loop goes idle
 void pxWindowNative::invalidateRectInternal(pxRect *r)
 {
-    drawFrame(mFrameCallback);
-    //todo
+    drawFrame();
 }
 
 bool pxWindow::visibility()
@@ -390,6 +380,7 @@ void pxWindowNative::onAnimationTimerInternal()
 
 void pxWindowNative::runEventLoop()
 {
+    static float sleepTime = 1000.0 / (float)WAYLAND_PX_CORE_FPS;
     exitFlag = false;
 
     displayRef dRef;
@@ -404,7 +395,7 @@ void pxWindowNative::runEventLoop()
         for (i = mWindowVector.begin(); i < mWindowVector.end(); i++)
         {
             pxWindowNative* w = (*i);
-            w->drawFrame(w->mFrameCallback);
+            w->drawFrame();
 
             double animationDelta = currentAnimationTime-lastAnimationTime;
             if (w->mResizeFlag)
@@ -427,7 +418,7 @@ void pxWindowNative::runEventLoop()
             }
         }
         wl_display_dispatch(wDisplay->display);
-        pxSleepMS(10); // Breath
+        pxSleepMS(sleepTime); // Breath
     }
 }
 
@@ -493,12 +484,6 @@ void pxWindowNative::cleanupWaylandData()
     eglDestroySurface(display->egl.dpy, mEglSurface);
     wl_egl_window_destroy(mEglNativeWindow);
     //end egl stuff
-
-    if (mFrameCallback)
-    {
-        wl_callback_destroy(mFrameCallback);
-        mFrameCallback = NULL;
-    }
 
     if (mWaylandBuffer[0].buffer)
     {
@@ -653,7 +638,7 @@ waylandBuffer* pxWindowNative::nextBuffer()
     return buffer;
 }
 
-void pxWindowNative::drawFrame(wl_callback *callback)
+void pxWindowNative::drawFrame()
 {
     displayRef dRef;
 
@@ -680,11 +665,6 @@ void pxWindowNative::drawFrame(wl_callback *callback)
     }
     eglSwapBuffers(wDisplay->egl.dpy, mEglSurface);
 
-    if (callback)
-        wl_callback_destroy(callback);
-
-    mFrameCallback = wl_surface_frame(waylandSurface);
-    wl_callback_add_listener(mFrameCallback, &frame_listener, this);
     wl_surface_commit(waylandSurface);
 }
 

@@ -109,7 +109,7 @@ class pxWindowNative
 public:
 pxWindowNative(): mTimerFPS(0), mLastWidth(-1), mLastHeight(-1),
     mResizeFlag(false), mLastAnimationTime(0.0), mVisible(false),
-    mWaylandSurface(NULL), mWaylandBuffer(), waylandBufferIndex(0), mFrameCallback(NULL)
+    mWaylandSurface(NULL), mWaylandBuffer(), waylandBufferIndex(0)
     { }
     virtual ~pxWindowNative();
 
@@ -131,7 +131,7 @@ pxWindowNative(): mTimerFPS(0), mLastWidth(-1), mLastHeight(-1),
     virtual void onKeyDown(int keycode, unsigned long flags) = 0;
     virtual void onKeyUp(int keycode, unsigned long flags) = 0;
 
-    void drawFrame(wl_callback* callback);
+    void drawFrame();
     struct wl_egl_window* getWaylandNative();
 
 protected:
@@ -179,12 +179,9 @@ protected:
     waylandBuffer mWaylandBuffer[2];
     int waylandBufferIndex;
 
-    wl_callback* mFrameCallback;
-
     //egl content
     void initializeEgl();
     struct wl_egl_window *mEglNativeWindow;
-    struct wl_surface *mWaylandEglSurface;
     EGLSurface mEglSurface;
     //end egl content
 
