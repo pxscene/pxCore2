@@ -12,6 +12,8 @@
 #include <assert.h> //todo: remove when done with assert
 #include <unistd.h> //for close()
 #include <fcntl.h> //for files
+#include <unistd.h>
+#include <signal.h>
 
 #define WAYLAND_EGL_BUFFER_SIZE 32
 #define WAYLAND_EGL_BUFFER_OPAQUE 0
@@ -23,6 +25,38 @@ struct wl_pointer_listener displayRef::mWaylandPointerListener;
 struct wl_keyboard_listener displayRef::mWaylandKeyboardListener;
 int displayRef::mRefCount = 0;
 struct wl_shell_surface_listener pxWindowNative::mShellSurfaceListener;
+vector<pxWindowNative*> pxWindowNative::mWindowVector;
+bool pxWindowNative::mEventLoopTimerStarted = false;
+float pxWindowNative::mEventLoopInterval = 1000.0 / (float)WAYLAND_PX_CORE_FPS;
+timer_t pxWindowNative::mRenderTimerId;
+
+displayRef::displayRef()
+{
+    if (mRefCount == 0)
+    {
+        mRefCount++;
+        createWaylandDisplay();
+    }
+    else
+    {
+        mRefCount++;
+    }
+}
+
+displayRef::~displayRef()
+{
+    mRefCount--;
+    if (mRefCount == 0)
+    {
+        pxWindowNative::stopAndDeleteEventLoopTimer();
+        cleanupWaylandDisplay();
+    }
+}
+
+waylandDisplay* displayRef::getDisplay() const
+{
+    return mDisplay;
+}
 
 //begin wayland callbacks
 
@@ -223,6 +257,19 @@ static const struct wl_buffer_listener buffer_listener = {
 
 //end wayland callbacks
 
+static void onWindowTimerFired( int sig, siginfo_t *si, void *uc )
+{
+    waylandDisplay* wDisplay = (waylandDisplay*)si->si_value.sival_ptr;
+    vector<pxWindowNative*> windowVector = pxWindowNative::getNativeWindows();
+    vector<pxWindowNative*>::iterator i;
+    for (i = windowVector.begin(); i < windowVector.end(); i++)
+    {
+        pxWindowNative* w = (*i);
+        w->animateAndRender();
+    }
+    wl_display_dispatch(wDisplay->display);
+}
+
 pxError displayRef::createWaylandDisplay()
 {
     if (mDisplay == NULL)
@@ -281,8 +328,6 @@ void displayRef::cleanupWaylandDisplay()
     mDisplay = NULL;
 }
 
-vector<pxWindowNative*> pxWindowNative::mWindowVector;
-
 bool exitFlag = false;
 
 pxWindowNative::~pxWindowNative()
@@ -331,7 +376,8 @@ void pxWindow::invalidateRect(pxRect *r)
 // when the event loop goes idle
 void pxWindowNative::invalidateRectInternal(pxRect *r)
 {
-    drawFrame();
+    //rendering for egl is now handled inside of onWindowTimerFired()
+    //drawFrame();
 }
 
 bool pxWindow::visibility()
@@ -378,47 +424,67 @@ void pxWindowNative::onAnimationTimerInternal()
     if (mTimerFPS) onAnimationTimer();
 }
 
-void pxWindowNative::runEventLoop()
+int pxWindowNative::createAndStartEventLoopTimer(int timeoutInMilliseconds )
 {
-    static float sleepTime = 1000.0 / (float)WAYLAND_PX_CORE_FPS;
-    exitFlag = false;
-
+    struct sigevent         te;
+    struct itimerspec       its;
+    struct sigaction        sa;
+    int                     sigNo = SIGRTMIN;
+    
+    if (mEventLoopTimerStarted)
+    {
+        stopAndDeleteEventLoopTimer();
+    }
+    
     displayRef dRef;
-
     waylandDisplay* wDisplay = dRef.getDisplay();
 
-    double lastAnimationTime = pxMilliseconds();
+    //Set up signal handler
+    sa.sa_flags = SA_SIGINFO;
+    sa.sa_sigaction = onWindowTimerFired;
+    sigemptyset(&sa.sa_mask);
+    if (sigaction(sigNo, &sa, NULL) == -1)
+    {
+        fprintf(stderr, "Unable to setup signal handling for timer.\n");
+        return(-1);
+    }
+
+    //Set and enable alarm
+    te.sigev_notify = SIGEV_SIGNAL;
+    te.sigev_signo = sigNo;
+    te.sigev_value.sival_ptr = wDisplay;
+    timer_create(CLOCK_REALTIME, &te, &mRenderTimerId);
+    
+    its.it_value.tv_sec = 0;
+    its.it_value.tv_nsec = timeoutInMilliseconds * 1000000;
+    its.it_interval = its.it_value;
+    timer_settime(mRenderTimerId, 0, &its, NULL);
+    
+    mEventLoopTimerStarted = true;
+
+    return(0);
+}
+
+int pxWindowNative::stopAndDeleteEventLoopTimer()
+{
+    int returnValue = 0;
+    if (mEventLoopTimerStarted)
+    {
+        returnValue = timer_delete(mRenderTimerId);
+    }
+    mEventLoopTimerStarted = false;
+    return returnValue;
+}
+
+void pxWindowNative::runEventLoop()
+{
+    exitFlag = false;
+    
+    createAndStartEventLoopTimer((int)mEventLoopInterval);
+    
     while(!exitFlag)
     {
-        double currentAnimationTime = pxMilliseconds();
-        vector<pxWindowNative*>::iterator i;
-        for (i = mWindowVector.begin(); i < mWindowVector.end(); i++)
-        {
-            pxWindowNative* w = (*i);
-            w->drawFrame();
-
-            double animationDelta = currentAnimationTime-lastAnimationTime;
-            if (w->mResizeFlag)
-            {
-                w->mResizeFlag = false;
-                w->onSize((*i)->mLastWidth, (*i)->mLastHeight);
-                w->invalidateRectInternal(NULL);
-            }
-
-            if (w->mTimerFPS)
-            {
-                animationDelta = currentAnimationTime-
-                w->mLastAnimationTime;
-
-                if (animationDelta > (1000/w->mTimerFPS))
-                {
-                    w->onAnimationTimerInternal();
-                    w->mLastAnimationTime = currentAnimationTime;
-                }
-            }
-        }
-        wl_display_dispatch(wDisplay->display);
-        pxSleepMS(sleepTime); // Breath
+        pxSleepMS(1000); // Breath
     }
 }
 
@@ -636,6 +702,42 @@ waylandBuffer* pxWindowNative::nextBuffer()
     }
 
     return buffer;
+}
+
+void pxWindowNative::animateAndRender()
+{
+    static double lastAnimationTime = pxMilliseconds();
+    double currentAnimationTime = pxMilliseconds();
+    drawFrame(); 
+
+    double animationDelta = currentAnimationTime-lastAnimationTime;
+    if (mResizeFlag)
+    {
+        mResizeFlag = false;
+        onSize(mLastWidth, mLastHeight);
+        invalidateRectInternal(NULL);
+    }
+
+    if (mTimerFPS)
+    {
+        animationDelta = currentAnimationTime - getLastAnimationTime();
+
+        if (animationDelta > (1000/mTimerFPS))
+        {
+            onAnimationTimerInternal();
+            setLastAnimationTime(currentAnimationTime);
+        }
+    }
+}
+
+void pxWindowNative::setLastAnimationTime(double time)
+{
+    mLastAnimationTime = time;
+}
+
+double pxWindowNative::getLastAnimationTime()
+{
+    return mLastAnimationTime;
 }
 
 void pxWindowNative::drawFrame()

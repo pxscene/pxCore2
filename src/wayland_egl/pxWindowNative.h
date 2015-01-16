@@ -13,6 +13,7 @@
 #include <vector>
 #include <iostream>
 #include <linux/input.h>
+#include <time.h>
 
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
@@ -67,29 +68,10 @@ typedef struct _waylandBuffer {
 class displayRef
 {
 public:
-    displayRef()
-    {
-        if (mRefCount == 0)
-        {
-            mRefCount++;
-            createWaylandDisplay();
-        }
-        else
-        {
-            mRefCount++;
-        }
-    }
+    displayRef();
+    ~displayRef();
 
-    ~displayRef()
-    {
-        mRefCount--;
-        if (mRefCount == 0)
-        {
-            cleanupWaylandDisplay();
-        }
-    }
-
-    waylandDisplay* getDisplay() const { return mDisplay; }
+    waylandDisplay* getDisplay() const;
 
     static struct wl_registry_listener mWaylandRegistryListener;
     static struct wl_pointer_listener mWaylandPointerListener;
@@ -130,8 +112,12 @@ pxWindowNative(): mTimerFPS(0), mLastWidth(-1), mLastHeight(-1),
 
     virtual void onKeyDown(int keycode, unsigned long flags) = 0;
     virtual void onKeyUp(int keycode, unsigned long flags) = 0;
+    
+    //timer methods
+    static int createAndStartEventLoopTimer(int timeoutInMilliseconds);
+    static int stopAndDeleteEventLoopTimer();
 
-    void drawFrame();
+    void animateAndRender();
     struct wl_egl_window* getWaylandNative();
 
 protected:
@@ -149,6 +135,9 @@ protected:
     void onAnimationTimerInternal();
 
     void invalidateRectInternal(pxRect *r);
+    double getLastAnimationTime();
+    void setLastAnimationTime(double time);
+    void drawFrame();
 
 
     //wayland helper methods
@@ -169,6 +158,11 @@ protected:
     bool mResizeFlag;
     double mLastAnimationTime;
     bool mVisible;
+    
+    //timer variables
+    static bool mEventLoopTimerStarted;
+    static float mEventLoopInterval;
+    static timer_t mRenderTimerId;
 
     //wayland stuff
     struct wl_shell_surface *mWaylandSurface;
