@@ -20,3 +20,5 @@ In its design a few principles were followed:
 * Basic Animation Support - Support for a basic animation timer event (frames per second) is built into the windowing abstraction making it easy to write applications that animate their contents.
 * pxCore has been ported to Windows, pocketpc (arm4), linux(x11), OSX.
 
+Migrated from original (google code)[https://code.google.com/p/pxcore/] repo December 14, 2014
+
