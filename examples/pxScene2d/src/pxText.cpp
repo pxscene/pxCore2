@@ -8,10 +8,14 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else
+#ifdef PX_PLATFORM_WAYLAND_EGL
+#include <GLES2/gl2.h>
+#else
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
+#endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
 #include <math.h>

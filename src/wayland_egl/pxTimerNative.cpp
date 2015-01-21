@@ -7,11 +7,25 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+#define USE_CGT
+
+#ifndef USE_CGT
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+
 double  pxSeconds()
 {
+#ifndef USE_CGT
     timeval tv;
     gettimeofday(&tv, NULL);
-    return tv.tv_sec;
+    return tv.tv_sec + ((double)tv.tv_usec/1000000);
+#else
+    timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec + ((double)ts.tv_nsec/1000000000);
+#endif
 }
 
 double pxMilliseconds()

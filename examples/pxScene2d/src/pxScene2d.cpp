@@ -8,10 +8,15 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else
+#ifdef PX_PLATFORM_WAYLAND_EGL
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#else
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
+#endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
 #include <math.h>
@@ -216,6 +221,9 @@ double pxInterpLinear(double i) {
 }
 
 static const char *fShaderText =
+#ifdef PX_PLATFORM_WAYLAND_EGL
+  "precision mediump float;\n"
+#endif
   "uniform float u_alphatexture;\n"
   "uniform float u_alpha;\n"
   "uniform vec4 a_color;\n"
@@ -469,9 +477,18 @@ pxScene2d::pxScene2d():start(0),frameCount(0) {
 }
 
 void pxScene2d::draw() {
-    
   if (clip) {
+#ifdef PX_PLATFORM_WAYLAND_EGL
+    // todo: we need to keep track of attribute states ourselves
+    // since glPushAttrib() is not support by OpenGL ES 2.0. 
+    // This is not a problem because this is the only place the 
+    // scissor state is set
+    // We can get and store the scissor state with glIsEnabled(GL_SCISSOR_TEST)
+    // but we do not need it now.  We should keep all states internally
+    // for the best performance
+#else
     glPushAttrib(GL_SCISSOR_BIT);
+#endif //PX_PLATFORM_WAYLAND_EGL
     glEnable(GL_SCISSOR_TEST);
     glScissor(256,256,64,64);
     
@@ -487,7 +504,11 @@ void pxScene2d::draw() {
   
   if (clip) {
     glDisable(GL_SCISSOR_TEST);
+#ifdef PX_PLATFORM_WAYLAND_EGL
+    // todo: reload scissor state.  see note above.  not needed at the moment
+#else
     glPopAttrib();
+#endif //PX_PLATFORM_WAYLAND_EGL
   }
   
 }
@@ -543,13 +564,12 @@ pxObject* pxScene2d::getRoot() {
 }
 
 void initGL() {
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(PX_PLATFORM_WAYLAND_EGL)
   GLenum err = glewInit();
   if (err != GLEW_OK)
     exit(1); // or handle the error in a nicer way
   if (!GLEW_VERSION_2_1)  // check that the machine supports the 2.1 API.
     exit(1); // or handle the error in a nicer way
-  
 #endif
 
   glClearColor(0.4, 0.4, 0.4, 0.0);
