@@ -1,7 +1,7 @@
 pxCore: Portable Framebuffer and Windowing Library
-Copyright © 2007-2008 John Robinson
+Copyright Â© 2007-2015 John Robinson
 
-This software is provided ‘as-is’, without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
+This software is provided â€˜as-isâ€™, without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
 
 Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
 
@@ -12,5 +12,6 @@ Permission is granted to anyone to use this software for any purpose, including 
 3.  This notice may not be removed or altered from any source distribution. 
 
 John Robinson
-john@liquidthought.com
-www.liquidthought.com
+johnrobinsn@gmail.com
+
+
