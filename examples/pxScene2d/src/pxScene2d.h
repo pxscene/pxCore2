@@ -55,7 +55,7 @@ struct animation {
 
 class pxObject{
 public:
-  pxObject(): mRef(0), cx(0), cy(0), x(0), y(0), sx(1), sy(1), a(1.0), r(0) {}
+  pxObject(): mRef(0), cx(0), cy(0), x(0), y(0), a(1.0), r(0), sx(1), sy(1) {}
   virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ }
   virtual unsigned long AddRef() { return ++mRef; }
   virtual unsigned long Release() { if (--mRef == 0) delete this; return mRef; }
@@ -76,7 +76,6 @@ public:
   virtual void drawInternal(pxMatrix4f m);
   virtual void draw() {}
   bool hitTest(const pxPoint2f& pt);
-  float cx, cy, x, y, a, r, sx, sy, w, h;
   
   void animateTo(const char* prop, double to, double duration, 
 		 pxInterp interp=0, pxAnimationType at=stop, 
@@ -151,6 +150,7 @@ private:
   vector<rtRefT<pxObject> > mChildren;
   vector<animation> mAnimations;
   unsigned long mRef;
+  float cx, cy, x, y, a, r, sx, sy, w, h;
 };
 
 typedef rtRefT<pxObject> pxObjectRef;

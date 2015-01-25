@@ -62,10 +62,10 @@ version_info := 17:2:11
 
 # Variables needed for `freetype-config' and `freetype.pc'.
 #
-REQUIRES_PRIVATE   := zlib, libpng
+REQUIRES_PRIVATE   := 
 LIBS_PRIVATE       := 
-LIBS_CONFIG        := -lfreetype -lz -lpng12
-LIBSSTATIC_CONFIG  := -lfreetype -lz -lpng12 -lz -lm
+LIBS_CONFIG        := -lfreetype
+LIBSSTATIC_CONFIG  := -lfreetype
 build_libtool_libs := 
 ft_version         := 17.2.11
 
