@@ -11,9 +11,11 @@
 #include <assert.h>
 
 #ifdef PX_PLATFORM_X11
+#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <math.h>
+#include <sys/time.h>
 #else
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>

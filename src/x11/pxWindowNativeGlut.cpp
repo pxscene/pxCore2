@@ -123,7 +123,6 @@ displayRef::~displayRef()
     mRefCount--;
     if (mRefCount == 0)
     {
-        pxWindowNative::stopAndDeleteEventLoopTimer();
         cleanupGlutDisplay();
     }
 }

@@ -12,7 +12,11 @@
 #ifndef PX_NATIVE
 #include "pxBufferNative.h"
 #include "pxOffscreenNative.h"
+#ifdef ENABLE_GLUT
+#include "pxWindowNativeGlut.h"
+#else
 #include "pxWindowNative.h"
+#endif
 #endif
 
 #endif
