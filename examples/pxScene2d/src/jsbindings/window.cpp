@@ -1,6 +1,7 @@
 #include "px.h"
 
 #define PX_PLATFORM_X11
+#include <pxEventLoop.h>
 #include <pxWindow.h>
 #include <string>
 #include <pthread.h>
@@ -27,13 +28,28 @@ namespace
     eDraw = 11
   };
 
+  void* ProcessEventLoop(void* argp)
+  {
+    pxEventLoop* eventLoop = reinterpret_cast<pxEventLoop *>(argp);
+    eventLoop->run();
+    return 0;
+  }
+
   class jsWindow : public pxWindow
   {
   public:
-    jsWindow()
+    jsWindow(int x, int y, int w, int h)
     {
       m_callbacks = new Persistent<Function>[12];
+      m_eventLoop = new pxEventLoop();
       pthread_mutex_init(&m_mutex, 0);
+      init(x, y, w, h);
+      startEventProcessingThread();
+    }
+
+    void startEventProcessingThread()
+    {
+      pthread_create(&m_eventLoopThread, NULL, &ProcessEventLoop, m_eventLoop);
     }
 
     virtual ~jsWindow()
@@ -77,7 +93,8 @@ namespace
       px::JavaScriptCallback::New()
         ->AddArg(w)
         ->AddArg(h)
-        ->SetFunctionLookup(new FunctionLookup(this, eResize))
+        // ->SetFunctionLookup(new FunctionLookup(this, eResize))
+        ->SetFunction(&m_callbacks[eResize])
         ->Enqueue();
     }
 
@@ -87,14 +104,16 @@ namespace
         ->AddArg(x)
         ->AddArg(y)
         ->AddArg(flags)
-        ->SetFunctionLookup(new FunctionLookup(this, eMouseDown))
+        //->SetFunctionLookup(new FunctionLookup(this, eMouseDown))
+        ->SetFunction(&m_callbacks[eMouseDown])
         ->Enqueue();
     }
 
     virtual void onCloseRequest()
     {
       px::JavaScriptCallback::New()
-        ->SetFunctionLookup(new FunctionLookup(this, eCloseRequest))
+        //->SetFunctionLookup(new FunctionLookup(this, eCloseRequest))
+        ->SetFunction(&m_callbacks[eCloseRequest])
         ->Enqueue();
     }
 
@@ -104,14 +123,16 @@ namespace
         ->AddArg(x)
         ->AddArg(y)
         ->AddArg(flags)
-        ->SetFunctionLookup(new FunctionLookup(this, eMouseUp))
+        // ->SetFunctionLookup(new FunctionLookup(this, eMouseUp))
+        ->SetFunction(&m_callbacks[eMouseUp])
         ->Enqueue();
     }
 
     virtual void onMouseLeave()
     {
       px::JavaScriptCallback::New()
-        ->SetFunctionLookup(new FunctionLookup(this, eMouseLeave))
+        // ->SetFunctionLookup(new FunctionLookup(this, eMouseLeave))
+        ->SetFunction(&m_callbacks[eMouseLeave])
         ->Enqueue();
     }
 
@@ -120,7 +141,8 @@ namespace
       px::JavaScriptCallback::New()
         ->AddArg(x)
         ->AddArg(y)
-        ->SetFunctionLookup(new FunctionLookup(this, eMouseMove))
+        // ->SetFunctionLookup(new FunctionLookup(this, eMouseMove))
+        ->SetFunction(&m_callbacks[eMouseMove])
         ->Enqueue();
     }
 
@@ -129,7 +151,8 @@ namespace
       px::JavaScriptCallback::New()
         ->AddArg(keycode)
         ->AddArg(flags)
-        ->SetFunctionLookup(new FunctionLookup(this, eKeyDown))
+        //->SetFunctionLookup(new FunctionLookup(this, eKeyDown))
+        ->SetFunction(&m_callbacks[eKeyDown])
         ->Enqueue();
     }
 
@@ -138,12 +161,15 @@ namespace
       px::JavaScriptCallback::New()
         ->AddArg(keycode)
         ->AddArg(flags)
-        ->SetFunctionLookup(new FunctionLookup(this, eKeyUp))
+        // ->SetFunctionLookup(new FunctionLookup(this, eKeyUp))
+        ->SetFunction(&m_callbacks[eKeyUp])
         ->Enqueue();
     }
   private:
     Persistent<Function>* m_callbacks;
     pthread_mutex_t m_mutex;
+    pthread_t m_eventLoopThread;
+    pxEventLoop* m_eventLoop;
   };
 }
 
@@ -232,9 +258,7 @@ namespace px
     if (args.IsConstructCall())
     {
       Window* w = new Window();
-      PXPTR(w) = new jsWindow();
-      PXPTR(w)->init(toInt32(args, 0), toInt32(args, 1), toInt32(args, 2), toInt32(args, 3));
-
+      PXPTR(w) = new jsWindow(toInt32(args, 0), toInt32(args, 1), toInt32(args, 2), toInt32(args, 3));
       w->Wrap(args.This());
       return args.This();
     }
