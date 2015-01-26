@@ -145,12 +145,13 @@ public:
     to = m.multiply(from);
   }
 
+  float cx, cy, x, y, a, r, sx, sy, w, h;
+
 private:
   rtRefT<pxObject> mParent;
   vector<rtRefT<pxObject> > mChildren;
   vector<animation> mAnimations;
   unsigned long mRef;
-  float cx, cy, x, y, a, r, sx, sy, w, h;
 };
 
 typedef rtRefT<pxObject> pxObjectRef;
