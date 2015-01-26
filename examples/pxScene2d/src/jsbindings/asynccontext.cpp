@@ -2,70 +2,75 @@
 
 using namespace v8;
 
-namespace px
+namespace
 {
-  AsyncContext::AsyncContext()
+  Handle<Value> toJs(px::JavaScriptCallback::Argument::ArgType type,
+    px::JavaScriptCallback::Argument::ArgData data)
   {
-    Request.data = this;
-  }
-
-  AsyncContext::~AsyncContext()
-  {
-  }
-
-  void AsyncContext::EnqueueCallback()
-  {
-    if (!Callback) return;
-    if (Callback->IsEmpty()) return;
-    // TODO: Extensive error checking here
-    uv_queue_work(uv_default_loop(), &Request, &Work, &DoCallback);
-  }
-
-  void AsyncContext::Work(uv_work_t* req)
-  {
-    // empty
-  }
-
-  Handle<Value>* AsyncContext::MakeArgs()
-  {
-    Handle<Value>* args = new Handle<Value>[Args.size()];
-
-    for (size_t i = 0; i < Args.size(); ++i)
-      args[i] = Args[i].ToJavaScript();
-    return args;
-  }
-
-  void AsyncContext::DoCallback(uv_work_t* req, int status)
-  {
-    AsyncContext* ctx = reinterpret_cast<AsyncContext *>(req->data);
-
-    Handle<Value>* args = ctx->MakeArgs();
-
-    TryCatch tryCatch;
-    (*ctx->Callback)->Call(Context::GetCurrent()->Global(), 
-      static_cast<int>(ctx->Args.size()), args);
-
-    delete ctx;
-    delete [] args;
-  }
-
-  Handle<Value> AsyncContext::Argument::ToJavaScript()
-  {
-    switch (Type)
+    switch (type)
     {
-      case AT_I4:
-        return Number::New(Data.iVal);
+      case px::JavaScriptCallback::Argument::AT_I2:
+        return Integer::New(data.sVal);
         break;
-
-      case AT_UL:
-        return Integer::NewFromUnsigned(Data.ulVal);
+      case px::JavaScriptCallback::Argument::AT_I4:
+        return Integer::New(data.iVal);
         break;
-
+      case px::JavaScriptCallback::Argument::AT_UL:
+        return Integer::NewFromUnsigned(data.ulVal);
+        break;
       default:
         // TODO: FAIL
         assert(false);
         break;
     }
+  }
+}
+
+
+namespace px
+{
+  JavaScriptCallback::JavaScriptCallback()
+  {
+    m_req.data = this;
+  }
+
+  JavaScriptCallback::~JavaScriptCallback()
+  {
+  }
+
+  void JavaScriptCallback::Enqueue()
+  {
+    if (!m_func) return;
+    if (m_func->IsEmpty()) return;
+    // TODO: Extensive error checking here
+    uv_queue_work(uv_default_loop(), &m_req, &Work, &DoCallback);
+  }
+
+  void JavaScriptCallback::Work(uv_work_t* req)
+  {
+    // empty
+  }
+
+  Handle<Value>* JavaScriptCallback::MakeArgs()
+  {
+    Handle<Value>* args = new Handle<Value>[m_args.size()];
+    for (size_t i = 0; i < m_args.size(); ++i)
+      args[i] = toJs(m_args[i].Type, m_args[i].Data);
+    return args;
+  }
+
+  void JavaScriptCallback::DoCallback(uv_work_t* req, int status)
+  {
+    JavaScriptCallback* ctx = reinterpret_cast<JavaScriptCallback *>(req->data);
+
+    Handle<Value>* args = ctx->MakeArgs();
+
+    TryCatch tryCatch;
+    (*ctx->m_func)->Call(Context::GetCurrent()->Global(), 
+      static_cast<int>(ctx->m_args.size()), args);
+
+    delete ctx;
+    delete [] args;
   }
 }
 

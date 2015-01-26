@@ -1,6 +1,6 @@
 var px = require('./build/Release/px');
 var eventLoop = new px.EventLoop();
-var win = new px.Window(50, 50, 6480, 480);
+var win = new px.Window(50, 50, 640, 480);
 win.texture = new px.Offscreen();
 win.title = 'Hello World!';
 win.on('closerequest', function() { eventLoop.exit(); });

@@ -29,7 +29,6 @@ namespace
 
   class jsWindow : public pxWindow
   {
-    friend class px::Window;
   public:
     jsWindow()
     {
@@ -50,76 +49,75 @@ namespace
       pthread_mutex_unlock(&m_mutex);
     }
 
-
   protected:
     virtual void onSize(int w, int h)
     {
-      px::AsyncContext* ctx = new px::AsyncContext();
-      ctx->Args.push_back(w);
-      ctx->Args.push_back(h);
-      ctx->Callback = &m_callbacks[eResize];
-      ctx->EnqueueCallback();
+      px::JavaScriptCallback::New()
+        ->AddArg(w)
+        ->AddArg(h)
+        ->SetFunction(&m_callbacks[eResize])
+        ->Enqueue();
     }
 
     virtual void onMouseDown(int x, int y, unsigned long flags)
     {
-      px::AsyncContext* ctx = new px::AsyncContext();
-      ctx->Args.push_back(x);
-      ctx->Args.push_back(y);
-      ctx->Args.push_back(flags);
-      ctx->Callback = &m_callbacks[eMouseDown];
-      ctx->EnqueueCallback();
+      px::JavaScriptCallback::New()
+        ->AddArg(x)
+        ->AddArg(y)
+        ->AddArg(flags)
+        ->SetFunction(&m_callbacks[eMouseDown])
+        ->Enqueue();
     }
 
     virtual void onCloseRequest()
     {
-      px::AsyncContext* ctx = new px::AsyncContext();
-      ctx->Callback = &m_callbacks[eCloseRequest];
-      ctx->EnqueueCallback();
+      px::JavaScriptCallback::New()
+        ->SetFunction(&m_callbacks[eCloseRequest])
+        ->Enqueue();
     }
 
     virtual void onMouseUp(int x, int y, unsigned long flags)
     {
-      px::AsyncContext* ctx = new px::AsyncContext();
-      ctx->Args.push_back(x);
-      ctx->Args.push_back(y);
-      ctx->Args.push_back(flags);
-      ctx->Callback = &m_callbacks[eMouseUp];
-      ctx->EnqueueCallback();
+      px::JavaScriptCallback::New()
+        ->AddArg(x)
+        ->AddArg(y)
+        ->AddArg(flags)
+        ->SetFunction(&m_callbacks[eMouseUp])
+        ->Enqueue();
     }
 
     virtual void onMouseLeave()
     {
-      px::AsyncContext* ctx = new px::AsyncContext();
-      ctx->Callback = &m_callbacks[eMouseLeave];
-      ctx->EnqueueCallback();
+      px::JavaScriptCallback::New()
+        ->SetFunction(&m_callbacks[eMouseLeave])
+        ->Enqueue();
     }
 
     virtual void onMouseMove(int x, int y)
     {
-      px::AsyncContext* ctx = new px::AsyncContext();
-      ctx->Args.push_back(x);
-      ctx->Args.push_back(y);
-      ctx->Callback = &m_callbacks[eMouseMove];
-      ctx->EnqueueCallback();
+      px::JavaScriptCallback::New()
+        ->AddArg(x)
+        ->AddArg(y)
+        ->SetFunction(&m_callbacks[eMouseMove])
+        ->Enqueue();
     }
 
     virtual void onKeyDown(int keycode, unsigned long flags)
     {
-      px::AsyncContext* ctx = new px::AsyncContext();
-      ctx->Args.push_back(keycode);
-      ctx->Args.push_back(flags);
-      ctx->Callback = &m_callbacks[eKeyDown];
-      ctx->EnqueueCallback();
+      px::JavaScriptCallback::New()
+        ->AddArg(keycode)
+        ->AddArg(flags)
+        ->SetFunction(&m_callbacks[eKeyDown])
+        ->Enqueue();
     }
 
     virtual void onKeyUp(int keycode, unsigned long flags)
     {
-      px::AsyncContext* ctx = new px::AsyncContext();
-      ctx->Args.push_back(keycode);
-      ctx->Args.push_back(flags);
-      ctx->Callback = &m_callbacks[eKeyUp];
-      ctx->EnqueueCallback();
+      px::JavaScriptCallback::New()
+        ->AddArg(keycode)
+        ->AddArg(flags)
+        ->SetFunction(&m_callbacks[eKeyUp])
+        ->Enqueue();
     }
   private:
     Persistent<Function>* m_callbacks;
@@ -132,7 +130,7 @@ namespace px
   template<typename TWrapper, typename TPXObject> 
   Persistent<Function> WrapperObject<TWrapper, TPXObject>::m_ctor;
 
-  void Window::Build(Handle<Object> exports)
+  void Window::Export(Handle<Object> exports)
   {
     Local<FunctionTemplate> t = FunctionTemplate::New(New);
     t->SetClassName(String::NewSymbol(kClassName));
@@ -173,12 +171,7 @@ namespace px
     CHECK_ARGLENGTH(2);
 
     if (!args[1]->IsFunction())
-    {
-      char buff[256];
-      snprintf(buff, sizeof(buff), "Second argument is not callbable");
-      ThrowException(Exception::TypeError(String::New(buff)));
-      return scope.Close(Undefined());
-    }
+      PX_THROW(TypeError, "second argument is not callable");
 
     String::Utf8Value s(args[0]->ToString());
     std::string name(*s);
@@ -196,10 +189,7 @@ namespace px
     else if (name == "keydown")       index = eKeyDown;
     else if (name == "keyup")         index = eKeyUp;
     else {
-      char buff[256];
-      snprintf(buff, sizeof(buff), "Invalid event: %s", name.c_str());
-      ThrowException(Exception::TypeError(String::New(buff)));
-      return scope.Close(Undefined());
+      PX_THROW(RangeError, "invalid event: %s", name.c_str());
     }
 
     static_cast<jsWindow *>(unwrap(args))

@@ -16,7 +16,7 @@ namespace px
   template<typename TWrapper, typename TPXObject> 
   Persistent<Function> WrapperObject<TWrapper, TPXObject>::m_ctor;
 
-  void Offscreen::Build(Handle<Object> exports)
+  void Offscreen::Export(Handle<Object> exports)
   {
     Local<FunctionTemplate> t = FunctionTemplate::New(New);
     t->SetClassName(String::NewSymbol(kClassName));

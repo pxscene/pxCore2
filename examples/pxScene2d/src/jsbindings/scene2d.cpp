@@ -11,7 +11,7 @@ namespace scene
 {
   Persistent<Function> Scene2d::m_ctor;
 
-  void Scene2d::Build(Handle<Object> exports)
+  void Scene2d::Export(Handle<Object> exports)
   {
     Local<FunctionTemplate> tmpl = FunctionTemplate::New(New);
     tmpl->SetClassName(String::NewSymbol("Scene2d"));

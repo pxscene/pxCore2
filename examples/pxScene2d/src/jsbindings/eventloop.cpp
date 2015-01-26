@@ -23,7 +23,7 @@ namespace px
   template<typename TWrapper, typename TPXObject> 
   Persistent<Function> WrapperObject<TWrapper, TPXObject>::m_ctor;
 
-  void EventLoop::Build(Handle<Object> exports)
+  void EventLoop::Export(Handle<Object> exports)
   {
     Local<FunctionTemplate> t = FunctionTemplate::New(New);
     t->SetClassName(String::NewSymbol(kClassName));
