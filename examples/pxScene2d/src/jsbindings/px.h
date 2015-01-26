@@ -55,6 +55,12 @@ namespace px
     static v8::Persistent<v8::Function> m_ctor;
   };
 
+  struct IPersistentFunctionLookup
+  {
+    virtual ~IPersistentFunctionLookup() { }
+    virtual v8::Persistent<v8::Function> Lookup() = 0;
+  };
+
   struct JavaScriptCallback
   {
     struct Argument
@@ -87,8 +93,8 @@ namespace px
     JavaScriptCallback* AddArg(Argument arg)
       { m_args.push_back(arg); return this; }
 
-    JavaScriptCallback* SetFunction(v8::Persistent<v8::Function>* function)
-      { m_func = function; return this; }
+    JavaScriptCallback* SetFunctionLookup(IPersistentFunctionLookup* functionLookup)
+      { m_functionLookup = functionLookup; return this; }
 
     static void Work(uv_work_t* req);
     static void DoCallback(uv_work_t* req, int status);
@@ -96,9 +102,9 @@ namespace px
   private:
     std::vector<Argument> m_args;
     uv_work_t m_req;
-    v8::Persistent<v8::Function>* m_func;
+    IPersistentFunctionLookup* m_functionLookup;
 
-    JavaScriptCallback();
+    JavaScriptCallback(); 
     virtual ~JavaScriptCallback();
   };
 

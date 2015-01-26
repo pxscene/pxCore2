@@ -44,9 +44,31 @@ namespace
 
     void SetCallback(WindowCallback index, Persistent<Function> callback)
     {
-      pthread_mutex_lock(&m_mutex);
       m_callbacks[index] = callback;
-      pthread_mutex_unlock(&m_mutex);
+    }
+
+  private:
+    struct FunctionLookup : public px::IPersistentFunctionLookup
+    {
+      FunctionLookup(jsWindow* parent, WindowCallback index)
+        : m_parent(parent)
+        , m_index(index) { }
+
+      virtual Persistent<Function> Lookup()
+      {
+        return m_parent->GetCallback(m_index);
+      }
+    private:
+      jsWindow* m_parent;
+      WindowCallback m_index;
+    };
+
+    Persistent<Function> GetCallback(WindowCallback index)
+    {
+      Persistent<Function> func;
+      pthread_mutex_lock(&m_mutex);
+      func = m_callbacks[index];
+      return func;
     }
 
   protected:
@@ -55,7 +77,7 @@ namespace
       px::JavaScriptCallback::New()
         ->AddArg(w)
         ->AddArg(h)
-        ->SetFunction(&m_callbacks[eResize])
+        ->SetFunctionLookup(new FunctionLookup(this, eResize))
         ->Enqueue();
     }
 
@@ -65,14 +87,14 @@ namespace
         ->AddArg(x)
         ->AddArg(y)
         ->AddArg(flags)
-        ->SetFunction(&m_callbacks[eMouseDown])
+        ->SetFunctionLookup(new FunctionLookup(this, eMouseDown))
         ->Enqueue();
     }
 
     virtual void onCloseRequest()
     {
       px::JavaScriptCallback::New()
-        ->SetFunction(&m_callbacks[eCloseRequest])
+        ->SetFunctionLookup(new FunctionLookup(this, eCloseRequest))
         ->Enqueue();
     }
 
@@ -82,14 +104,14 @@ namespace
         ->AddArg(x)
         ->AddArg(y)
         ->AddArg(flags)
-        ->SetFunction(&m_callbacks[eMouseUp])
+        ->SetFunctionLookup(new FunctionLookup(this, eMouseUp))
         ->Enqueue();
     }
 
     virtual void onMouseLeave()
     {
       px::JavaScriptCallback::New()
-        ->SetFunction(&m_callbacks[eMouseLeave])
+        ->SetFunctionLookup(new FunctionLookup(this, eMouseLeave))
         ->Enqueue();
     }
 
@@ -98,7 +120,7 @@ namespace
       px::JavaScriptCallback::New()
         ->AddArg(x)
         ->AddArg(y)
-        ->SetFunction(&m_callbacks[eMouseMove])
+        ->SetFunctionLookup(new FunctionLookup(this, eMouseMove))
         ->Enqueue();
     }
 
@@ -107,7 +129,7 @@ namespace
       px::JavaScriptCallback::New()
         ->AddArg(keycode)
         ->AddArg(flags)
-        ->SetFunction(&m_callbacks[eKeyDown])
+        ->SetFunctionLookup(new FunctionLookup(this, eKeyDown))
         ->Enqueue();
     }
 
@@ -116,7 +138,7 @@ namespace
       px::JavaScriptCallback::New()
         ->AddArg(keycode)
         ->AddArg(flags)
-        ->SetFunction(&m_callbacks[eKeyUp])
+        ->SetFunctionLookup(new FunctionLookup(this, eKeyUp))
         ->Enqueue();
     }
   private:
