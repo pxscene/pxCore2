@@ -70,7 +70,6 @@ void rtValue::setInt32(int32_t v) {
 
 void rtValue::setUInt32(uint32_t v) {
   setEmpty();
-  printf("in setuint32\n");
   mType = RT_uint32_tType; mValue.uint32Value = v;
 }
 
@@ -80,7 +79,6 @@ void rtValue::setFloat(float v) {
 }
 
 void rtValue::setDouble(double v) {
-  rtLog("In setDouble\n");
   setEmpty();
   mType = RT_doubleType; mValue.doubleValue = v;
 }
@@ -91,7 +89,6 @@ void rtValue::setString(const rtString& v) {
 }
 
 void rtValue::setObject(const rtIObject* v) {
-  rtLog("In setObject\n");
   setEmpty();
   mType = RT_objectType; 
   mValue.objectValue = (rtIObject*)v;
@@ -99,7 +96,6 @@ void rtValue::setObject(const rtIObject* v) {
 }
 
 void rtValue::setObject(const rtObjectRef& v) {
-  rtLog("In setObject\n");
   setEmpty();
   mType = RT_objectType; 
   mValue.objectValue = v.getPtr();
@@ -107,7 +103,6 @@ void rtValue::setObject(const rtObjectRef& v) {
 }
 
 void rtValue::setFunction(const rtIFunction* v) {
-  rtLog("In setFunction\n");
   setEmpty();
   mType = RT_functionType;
   mValue.functionValue = (rtIFunction*)v;
@@ -208,7 +203,6 @@ rtError rtValue::getString(rtString& v) const {
 }
 
 rtError rtValue::getObject(rtObjectRef& v) const {
-  rtLog("In getObject\n");
   if (mType == RT_objectType) v = mValue.objectValue;
   else {
     rtValue t = *this;
@@ -241,7 +235,7 @@ rtError rtValue::getValue(rtValue& v) const {
 
 rtError rtValue::coerceType(rtType newType) {
   if (mType != newType) {
-    rtLog("In coerceType\n");
+    //    rtLog("In coerceType\n");
     switch(mType) {
     case RT_boolType:
       {
@@ -265,7 +259,6 @@ rtError rtValue::coerceType(rtType newType) {
     case RT_uint8_tType:
     case RT_int32_tType:
       {
-	printf("converting from int32\n");
 	switch(newType) {
 	case RT_boolType: setBool(mValue.int32Value?true:false); break;
 	case RT_int8_tType: setInt8((int8_t)mValue.int32Value); break;

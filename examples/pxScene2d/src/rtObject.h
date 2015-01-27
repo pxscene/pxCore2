@@ -116,6 +116,16 @@ public:
 	       const rtValue& arg3);
   rtError send(const rtValue& arg1, const rtValue& arg2, 
 	       const rtValue& arg3, const rtValue& arg4);
+  rtError send(const rtValue& arg1, const rtValue& arg2, 
+	       const rtValue& arg3, const rtValue& arg4,
+	       const rtValue& arg5);
+  rtError send(const rtValue& arg1, const rtValue& arg2, 
+	       const rtValue& arg3, const rtValue& arg4,
+	       const rtValue& arg5, const rtValue& arg6);
+  rtError send(const rtValue& arg1, const rtValue& arg2, 
+	       const rtValue& arg3, const rtValue& arg4,
+	       const rtValue& arg5, const rtValue& arg6,
+	       const rtValue& arg7);
   
   template <typename T> 
     rtError sendReturns(T& result);

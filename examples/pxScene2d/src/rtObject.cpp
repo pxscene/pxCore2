@@ -95,7 +95,6 @@ rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2,
   return Send(4, args, discardResult);
 }
 
-#if 0
 rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2, 
 			     const rtValue& arg3, const rtValue& arg4,
 			     const rtValue& arg5)
@@ -104,7 +103,26 @@ rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2,
   rtValue args[5] = {arg1, arg2, arg3, arg4, arg5};
   return Send(5, args, discardResult);
 }
-#endif
+
+rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2, 
+			     const rtValue& arg3, const rtValue& arg4,
+			     const rtValue& arg5, const rtValue& arg6)
+{
+  rtValue discardResult;
+  rtValue args[6] = {arg1, arg2, arg3, arg4, arg5, arg6};
+  return Send(6, args, discardResult);
+}
+
+rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2, 
+			     const rtValue& arg3, const rtValue& arg4,
+			     const rtValue& arg5, const rtValue& arg6,
+			     const rtValue& arg7)
+{
+  rtValue discardResult;
+  rtValue args[7] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7};
+  return Send(7, args, discardResult);
+}
+
 
 rtError rtObjectRef::Get(const char* name, rtValue* value) {
   return (*this)->Get(name, value);

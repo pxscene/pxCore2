@@ -35,112 +35,10 @@
 #include "pxImage.h"
 #include "pxText.h"
 
-pxScene2d scene;
+#include "testScene.h"
 
-void initGL();
+extern rtRefT<pxScene2d> gScene;
 
-#if 0
-void setupScene() {
-
-  rtString d;
-  rtGetCurrentDirectory(d);
-  d.append("/../images/grapes.png");
-
-  pxObjectRef root = scene.getRoot();
-  
-  int n = 3;
-  int nx = 100;
-  int ny = 200;
-  for (int i = 0; i < n; i++) {
-    pxObjectRef p;
-
-    if (i < 2) {
-      pxText* t = new pxText();
-      p = t;
-      char buffer[256];
-      sprintf(buffer, "Hello %d", i);
-      t->setText(buffer);
-    }
-    else {
-      pxImage* i = new pxImage();
-      p = i;
-      i->setURL(d.cString());
-      p->cx = i->width()/2;
-      p->cy = i->height()/2;
-    }
-
-    nx += 10;
-    if (nx > 1000) {
-      nx = 0;
-      ny += 10;
-    }
-    p->x = nx;
-    p->y = ny;
-
-    p->setParent(root);
-    
-    p->r = 45*i;
-    p->animateTo("r", 360+(90*i), 2.0, pxInterpLinear, seesaw);
-    p->animateTo("x", 800, 2.0, pxInterpLinear, seesaw);
-  }
-}
-
-#else
-void setupScene() {
-  rtString d;
-  rtGetCurrentDirectory(d);
-  d.append("/../images/banana.png");
-
-  pxObjectRef root = scene.getRoot();
-  
-  int n = 3;
-  int nx = 100;
-  int ny = 200;
-  for (int i = 0; i < n; i++) {
-    pxObjectRef p;
-
-    if (i == 0) {
-      rtRefT<rectangle9> r = new rectangle9();
-      float c1[4] = {1,0,0,1};
-      r->setFillColor(c1);
-      float c2[4] = {1,1,1,0.5};
-      r->setLineColor(c2);
-      r->setLineWidth(10);
-      r->w = 300;
-      r->h = 30;
-      p = r;
-      p->animateTo("h", 600, 0.2, pxInterpLinear, seesaw);
-    }
-    else if (i == 1) {
-      rtRefT<pxText> t = new pxText();
-      t->setText("Hello");
-      p = t;
-    }
-    else {
-      pxImage* i = new pxImage();
-      p = i;
-      i->setURL(d.cString());
-      p->cx = i->width()/2;
-      p->cy = i->height()/2;
-    }
-
-    nx += 10;
-    if (nx > 1000) {
-      nx = 0;
-      ny += 10;
-    }
-    p->x = nx;
-    p->y = ny;
-
-    p->setParent(root);
-    
-    p->animateTo("r", 360, 2.0, pxInterpLinear, loop);
-    p->animateTo("x", 800, 2.0, pxInterpLinear, seesaw);
-    p->animateTo("a", 0.5, 2.0, pxInterpLinear, seesaw);
-  }
-}
-
-#endif
 
 pxEventLoop eventLoop;
 
@@ -157,12 +55,12 @@ private:
 
     void onSize(int newWidth, int newHeight)
     {
-        scene.onSize(newWidth, newHeight);
+        gScene->onSize(newWidth, newHeight);
     }
 
     void onDraw(pxSurfaceNative s)
     {
-        scene.onDraw();
+        gScene->onDraw();
     }
     
     void onMouseDown(int x, int y, unsigned long flags)
@@ -192,7 +90,7 @@ private:
     void onMouseMove(int x, int y)
     {
         //printf("Mouse Move %d, %d\n", x, y);
-        scene.onMouseMove(x,y);
+        gScene->onMouseMove(x,y);
     }
 
     void onKeyDown(int c, unsigned long flags)
@@ -330,16 +228,18 @@ private:
 
 int pxMain()
 {
-    char title[] = { "TestGL" };
+    char title[] = { "pxCore!" };
 
     int width = 1280;
     int height = 720;
     myWindow win;
 
     win.init(10, 10, width, height);
-    setupScene();
-    initGL();
-    scene.onSize(width, height);
+    
+    testScene();
+    
+    //    initGL();
+    gScene->onSize(width, height);
     win.setTitle(title);
     win.setVisibility(true);
 

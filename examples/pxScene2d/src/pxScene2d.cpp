@@ -510,6 +510,51 @@ pxScene2d::pxScene2d():start(0),frameCount(0) {
   mRoot = new pxObject(); 
 }
 
+void pxScene2d::init() {
+#if !defined(__APPLE__) && !defined(PX_PLATFORM_WAYLAND_EGL)
+  GLenum err = glewInit();
+  if (err != GLEW_OK)
+    exit(1); // or handle the error in a nicer way
+  if (!GLEW_VERSION_2_1)  // check that the machine supports the 2.1 API.
+    exit(1); // or handle the error in a nicer way
+#endif
+
+  glClearColor(0.4, 0.4, 0.4, 0.0);
+
+  GLuint program = createShaderProgram(vShaderText, fShaderText);
+
+  u_resolution = glGetUniformLocation(program, "u_resolution");
+  u_texture = glGetUniformLocation(program, "s_texture");
+  u_matrix = glGetUniformLocation(program, "amymatrix");
+  u_alpha = glGetUniformLocation(program, "u_alpha");
+  u_color = glGetUniformLocation(program, "a_color");
+  u_alphatexture = glGetUniformLocation(program, "u_alphatexture");
+
+  glActiveTexture(GL_TEXTURE0);
+  glGenTextures(1, &textureId1);
+  glBindTexture(GL_TEXTURE_2D, textureId1);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  glActiveTexture(GL_TEXTURE1);
+  glGenTextures(1, &textureId2);
+  glBindTexture(GL_TEXTURE_2D, textureId2);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  
+  glEnable(GL_BLEND);
+
+  // assume non-premultiplied for now... 
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+
+  glUseProgram(program);
+
+}
+
 void pxScene2d::draw() {
   if (clip) {
 #ifdef PX_PLATFORM_WAYLAND_EGL
@@ -593,54 +638,14 @@ void pxScene2d::update(double t) {
     mRoot->update(t);
 }
 
-pxObject* pxScene2d::getRoot() { 
+pxObject* pxScene2d::getRoot() const { 
   return mRoot; 
 }
 
+#if 0
 void initGL() {
-#if !defined(__APPLE__) && !defined(PX_PLATFORM_WAYLAND_EGL)
-  GLenum err = glewInit();
-  if (err != GLEW_OK)
-    exit(1); // or handle the error in a nicer way
-  if (!GLEW_VERSION_2_1)  // check that the machine supports the 2.1 API.
-    exit(1); // or handle the error in a nicer way
-#endif
-
-  glClearColor(0.4, 0.4, 0.4, 0.0);
-
-  GLuint program = createShaderProgram(vShaderText, fShaderText);
-
-  u_resolution = glGetUniformLocation(program, "u_resolution");
-  u_texture = glGetUniformLocation(program, "s_texture");
-  u_matrix = glGetUniformLocation(program, "amymatrix");
-  u_alpha = glGetUniformLocation(program, "u_alpha");
-  u_color = glGetUniformLocation(program, "a_color");
-  u_alphatexture = glGetUniformLocation(program, "u_alphatexture");
-
-  glActiveTexture(GL_TEXTURE0);
-  glGenTextures(1, &textureId1);
-  glBindTexture(GL_TEXTURE_2D, textureId1);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-  glActiveTexture(GL_TEXTURE1);
-  glGenTextures(1, &textureId2);
-  glBindTexture(GL_TEXTURE_2D, textureId2);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  
-  glEnable(GL_BLEND);
-
-  // assume non-premultiplied for now... 
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
-
-  glUseProgram(program);
-
 }
+#endif
 
 int pxScene2d::width() {
   return mWidth;
@@ -690,3 +695,5 @@ void pxScene2d::onKeyDown(int keycode, unsigned long flags) {
 void pxScene2d::onKeyUp(int keycode, unsigned long flags) {
 }
 
+rtDefineObject(pxScene2d, rtObject);
+rtDefineProperty(pxScene2d, root);

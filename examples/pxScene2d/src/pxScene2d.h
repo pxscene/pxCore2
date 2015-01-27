@@ -99,7 +99,6 @@ public:
   rtError setParent(rtObjectRef parent) {
     void* p = parent.get<voidPtr>("_pxObject");
     if (p) {
-      printf("_pxObject %p\n", p);
       rtRefT<pxObject> p2 = (pxObject*)p;
       setParent(p2);
     }
@@ -108,12 +107,6 @@ public:
 
   void remove();
   
-#if 0
-  void set(const char* prop, float v);
-  float get(const char* prop) const;
-#endif
-  
-
   float x()             const { return mx; }
   rtError x(float& v)   const { v = mx; return RT_OK;   }
   rtError setX(float v)       { mx = v; return RT_OK;   }
@@ -158,10 +151,7 @@ public:
   void moveToBack();
   void moveForward();
   void moveBackward();
-#if 0
-  void animateTo(char* prop, pxInterp i, double duration, pxAnimationType t, 
-		 pxAnimationEnded e = 0, void* c = 0);
-#endif
+
   void tick(double t);
   virtual void drawInternal(pxMatrix4f m);
   virtual void draw() {}
@@ -369,10 +359,15 @@ private:
   float mLineWidth;
 };
 
-class pxScene2d {
+class pxScene2d: public rtObject {
 public:
+  rtDeclareObject(pxScene2d, rtObject);
+  rtReadOnlyProperty(root, root, rtObjectRef);
+
   pxScene2d();
   
+  void init();
+
   int width();
   int height();
   
@@ -398,7 +393,12 @@ public:
   
   void hitTest(pxPoint2f p, vector<rtRefT<pxObject> > hitList);
   
-  pxObject* getRoot();
+  pxObject* getRoot() const;
+
+  rtError root(rtObjectRef& v) const {
+    v = getRoot();
+    return RT_OK;
+  }
   
 private:
   void tick(double t);
