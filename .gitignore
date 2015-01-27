@@ -1,0 +1,12 @@
+*.so*
+examples/pxScene2d/external/freetype-2.5.3/objs/.libs/*
+*~
+*.o
+build/*
+gl2d
+apinames
+examples/pxScene2d/external/libpng-1.6.12/Makefile
+examples/pxScene2d/external/libpng-1.6.12/config.h
+examples/pxScene2d/external/libpng-1.6.12/config.status
+/examples/pxScene2d/external/freetype-2.5.3/builds/unix/freetype-config
+examples/pxScene2d/external/freetype-2.5.3/builds/unix/config.status
