@@ -415,4 +415,23 @@ private:
   int mHeight;
 };
 
+class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase
+{
+ public:
+  pxScene2dRef() {}
+  pxScene2dRef(pxScene2d* s) {
+    asn(s);
+  }
+
+  // operator= is not inherited
+  pxScene2dRef& operator=(pxScene2d* s) {
+    asn(s);
+  }
+
+ private:
+  virtual rtError Get(const char* name, rtValue* value);
+  virtual rtError Set(const char* name, const rtValue* value);
+
+};
+
 #endif

@@ -107,19 +107,10 @@ void draw9SliceRect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfl
   {
     glUniform1f(u_alphatexture, 0.0);
     glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-    //      glVertexAttribPointer(attr_color, 3, GL_FLOAT, GL_FALSE, 0, colors);
-    //    glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
     glEnableVertexAttribArray(attr_pos);
-    //      glEnableVertexAttribArray(attr_color);
-    //glEnableVertexAttribArray(attr_uv);
-    
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 22);
-    
     glDisableVertexAttribArray(attr_pos);
-    //      glDisableVertexAttribArray(attr_color);
-    //glDisableVertexAttribArray(attr_uv);
   }
-  
 }
 
 void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw) {
@@ -161,20 +152,10 @@ void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw) {
     glUniform1f(u_alphatexture, 0.0);
 
     glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-    //      glVertexAttribPointer(attr_color, 3, GL_FLOAT, GL_FALSE, 0, colors);
-    //    glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
     glEnableVertexAttribArray(attr_pos);
-    //      glEnableVertexAttribArray(attr_color);
-    //glEnableVertexAttribArray(attr_uv);
-    
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 10);
-    
     glDisableVertexAttribArray(attr_pos);
-    //      glDisableVertexAttribArray(attr_color);
-    //    glDisableVertexAttribArray(attr_uv);
   }
-  
-  
 }
 
 
@@ -697,3 +678,11 @@ void pxScene2d::onKeyUp(int keycode, unsigned long flags) {
 
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
+
+rtError pxScene2dRef::Get(const char* name, rtValue* value) {
+  return (*this)->Get(name, value);
+}
+ 
+rtError pxScene2dRef::Set(const char* name, const rtValue* value) {
+  return (*this)->Set(name, value);
+}

@@ -30,18 +30,18 @@
 
 #include "testScene.h"
 
-extern rtRefT<pxScene2d> gScene;
+extern pxScene2dRef scene;
 
 static int win = 0;
 
 /* new window size or exposure */
 static void reshape(int width, int height)
 {
-  gScene->onSize(width, height);
+  scene->onSize(width, height);
 }
 
 void display() {
-  gScene->onDraw();
+  scene->onDraw();
   glutSwapBuffers();
 }
 
@@ -69,11 +69,11 @@ void onMouse(int button, int state, int x, int y) {
   switch(state) {
   case GLUT_UP:
     printf("up, ");
-    gScene->onMouseUp(x, y, 0);
+    scene->onMouseUp(x, y, 0);
     break;
   case GLUT_DOWN:
     printf("down, ");
-    gScene->onMouseDown(x, y, 0);
+    scene->onMouseDown(x, y, 0);
     break;
   default:
     printf("unknown state, ");
@@ -86,12 +86,12 @@ void onMouse(int button, int state, int x, int y) {
 
 void onMouseMotion(int x, int y) {
   //  printf("onMouseMotion x: %d y: %d\n", x, y);
-  gScene->onMouseMove(x,y);
+  scene->onMouseMove(x,y);
 }
 
 void onMousePassiveMotion(int x, int y) {
   //printf("onMousePassiveMotion x: %d y: %d\n", x, y);
-  gScene->onMouseMove(x, y);
+  scene->onMouseMove(x, y);
 }
 
 void createGlutWindow() {

@@ -8,7 +8,7 @@
 #include "pxText.h"
 #include "pxImage.h"
 
-rtRefT<pxScene2d> gScene = new pxScene2d;
+pxScene2dRef scene = new pxScene2d;
 
 #if 0
 
@@ -21,9 +21,9 @@ void testScene() {
   rtGetCurrentDirectory(d);
   d.append("/../images/banana.png");
 
-  gScene.init();
+  scene->init();
 
-  pxObjectRef root = gScene.getRoot();
+  pxObjectRef root = scene->getRoot();
   
   int n = 3;
   int nx = 100;
@@ -84,9 +84,7 @@ void testScene() {
   rtGetCurrentDirectory(d);
   d.append("/../images/banana.png");
 
-  gScene->init();
-
-  rtObjectRef scene = gScene.getPtr();
+  scene->init();
 
   rtObjectRef root = scene.get<rtObjectRef>("root");  
   
@@ -103,9 +101,9 @@ void testScene() {
       p.set("h", 30);
       p.set("fillColor",0x00ff00ff);
       p.set("lineColor",0xffffff80);
-      p.set("lineWidth", 10);
+      p.set("lineWidth", 10);  
       p.send("animateTo", "h", 600, 0.2, 0, 0);
-    }
+  }
     else if (i == 1) {
       p = new pxText();
       p.set("text", "pxCore!");

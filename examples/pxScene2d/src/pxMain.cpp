@@ -37,7 +37,7 @@
 
 #include "testScene.h"
 
-extern rtRefT<pxScene2d> gScene;
+extern rtRefT<pxScene2d> scene;
 
 
 pxEventLoop eventLoop;
@@ -55,12 +55,12 @@ private:
 
     void onSize(int newWidth, int newHeight)
     {
-        gScene->onSize(newWidth, newHeight);
+        scene->onSize(newWidth, newHeight);
     }
 
     void onDraw(pxSurfaceNative s)
     {
-        gScene->onDraw();
+        scene->onDraw();
     }
     
     void onMouseDown(int x, int y, unsigned long flags)
@@ -90,7 +90,7 @@ private:
     void onMouseMove(int x, int y)
     {
         //printf("Mouse Move %d, %d\n", x, y);
-        gScene->onMouseMove(x,y);
+        scene->onMouseMove(x,y);
     }
 
     void onKeyDown(int c, unsigned long flags)
@@ -238,8 +238,7 @@ int pxMain()
     
     testScene();
     
-    //    initGL();
-    gScene->onSize(width, height);
+    scene->onSize(width, height);
     win.setTitle(title);
     win.setVisibility(true);
 
