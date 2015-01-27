@@ -161,6 +161,7 @@ class rtObjectRef: public rtRefT<rtIObject>, public rtObjectBase
   // operator= is not inherited
   rtObjectRef& operator=(rtIObject* o) {
     asn(o);
+    return *this;
   }
 
  private:
@@ -179,6 +180,7 @@ class rtFunctionRef: public rtRefT<rtIFunction>, public rtFunctionBase
   // operator= is not inherited
   rtFunctionRef& operator=(rtIFunction* f) {
     asn(f);
+    return *this;
   }
 
  private:
@@ -262,7 +264,7 @@ class rtObject: public rtIObject, public rtObjectBase
     {
       rtError hr = RT_PROP_NOT_FOUND;
       
-      bool found = false;
+      //bool found = false;
       
       rtMethodMap* m;
       m = getMap();
@@ -271,7 +273,7 @@ class rtObject: public rtIObject, public rtObjectBase
 	rtPropertyEntry* e = m->getFirstProperty();
 	while(e) {
 	  if (strcmp(name, e->mPropertyName) == 0) {
-	    found = true;
+	    //    found = true;
 	    rtGetPropertyThunk t = e->mGetThunk;
 	    hr = (*this.*t)(*value);
 	    return hr;
@@ -287,8 +289,8 @@ class rtObject: public rtIObject, public rtObjectBase
 	
 	rtLog("Looking for function as property: %s\n", name);
 	//if (!initialized) return RT_OBJECT_NOT_INITIALIZED;
-	rtError hr = RT_PROP_NOT_FOUND;
-	bool found = false;
+	//rtError hr = RT_PROP_NOT_FOUND;
+	//	bool found = false;
 	
 	rtMethodMap* m;
 	m = getMap();
@@ -300,7 +302,7 @@ class rtObject: public rtIObject, public rtObjectBase
 	      {
                 if (strcmp(name, e->mMethodName) == 0)
 		  {
-                    found = true;
+		    //      found = true;
 		    rtLog("found method\n");
 		    value->setFunction(new rtObjectFunction(this, e->mThunk));
 		    hr = RT_OK;
@@ -318,7 +320,7 @@ class rtObject: public rtIObject, public rtObjectBase
     virtual rtError Set(const char* name, const rtValue* value) 
     {
       rtError hr = RT_PROP_NOT_FOUND;
-      bool found = false;
+      //      bool found = false;
       
       rtMethodMap* m;
       m = getMap();
@@ -327,7 +329,7 @@ class rtObject: public rtIObject, public rtObjectBase
 	rtPropertyEntry* e = m->getFirstProperty();
 	while(e) {
 	  if (strcmp(name, e->mPropertyName) == 0) {
-	    found = true;
+	    //    found = true;
 	    if (e->mSetThunk) {
 	      rtSetPropertyThunk t = e->mSetThunk;
 	      hr = (*this.*t)(*value);

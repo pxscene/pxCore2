@@ -592,27 +592,29 @@ void pxScene2d::draw() {
   
 }
   
-void pxScene2d::getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m) {
+void pxScene2d::getMatrixFromObjectToScene(pxObject* /*o*/, pxMatrix4f& /*m*/) {
     
 }
   
-void pxScene2d::getMatrixFromSceneToObject(pxObject* o, pxMatrix4f& m) {
+void pxScene2d::getMatrixFromSceneToObject(pxObject* /*o*/, pxMatrix4f& /*m*/) {
     
 }
   
-void pxScene2d::getMatrixFromObjectToObject(pxObject* from, pxObject* to, pxMatrix4f& m) {
+void pxScene2d::getMatrixFromObjectToObject(pxObject* /*from*/, pxObject* /*to*/, pxMatrix4f& /*m*/) {
     
 }
   
-void pxScene2d::transformPointFromObjectToScene(pxObject* o, const pxPoint2f& from, pxPoint2f& to) {
+void pxScene2d::transformPointFromObjectToScene(pxObject* /*o*/, const pxPoint2f& /*from*/, pxPoint2f& /*to*/) 
+{
     
 }
   
-void pxScene2d::transformPointFromObjectToObject(pxObject* fromObject, pxObject* toObject, pxPoint2f& from, pxPoint2f& to) {
+void pxScene2d::transformPointFromObjectToObject(pxObject* /*fromObject*/, pxObject* /*toObject*/, 
+						 pxPoint2f& /*from*/, pxPoint2f& /*to*/) {
   
 }
   
-void pxScene2d::hitTest(pxPoint2f p, vector<rtRefT<pxObject> > hitList) {
+void pxScene2d::hitTest(pxPoint2f /*p*/, vector<rtRefT<pxObject> > /*hitList*/) {
     
 }
 
@@ -662,16 +664,16 @@ void pxScene2d::onSize(int w, int h) {
   mHeight = h;
 }
 
-void pxScene2d::onMouseDown(int x, int y, unsigned long flags) {
+void pxScene2d::onMouseDown(int /*x*/, int /*y*/, unsigned long /*flags*/) {
 }
 
-void pxScene2d::onMouseUp(int x, int y, unsigned long flags) {
+void pxScene2d::onMouseUp(int /*x*/, int /*y*/, unsigned long /*flags*/) {
 }
 
 void pxScene2d::onMouseLeave() {
 }
 
-void pxScene2d::onMouseMove(int x, int y) {
+void pxScene2d::onMouseMove(int /*x*/, int /*y*/) {
 #if 0
   rtLog("onMousePassiveMotion x: %d y: %d\n", x, y);
   
@@ -689,10 +691,10 @@ void pxScene2d::onMouseMove(int x, int y) {
 #endif
 }
 
-void pxScene2d::onKeyDown(int keycode, unsigned long flags) {
+void pxScene2d::onKeyDown(int /*keycode*/, unsigned long /*flags*/) {
 }
 
-void pxScene2d::onKeyUp(int keycode, unsigned long flags) {
+void pxScene2d::onKeyUp(int /*keycode*/, unsigned long /*flags*/) {
 }
 
 rtDefineObject(pxScene2d, rtObject);

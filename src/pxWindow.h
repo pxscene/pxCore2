@@ -50,24 +50,24 @@ protected:
    	// To enable this event call setAnimationFPS defined above
     virtual void onAnimationTimer() {}
 
-    virtual void onSize(int w, int h) {}
+    virtual void onSize(int /*w*/, int /*h*/) {}
 
     // See constants used for flags below
-    virtual void onMouseDown(int x, int y, unsigned long flags) {}
-    virtual void onMouseUp(int x, int y, unsigned long flags) {}
+    virtual void onMouseDown(int /*x*/, int /*y*/, unsigned long /*flags*/) {}
+    virtual void onMouseUp(int /*x*/, int /*y*/, unsigned long /*flags*/) {}
     virtual void onMouseLeave() {}
 
-    virtual void onMouseMove(int x, int y) {}
+    virtual void onMouseMove(int /*x*/, int /*y*/) {}
 
 	// See pxWindowNative.h for keycode constants
     // See constants used for flags below
-    virtual void onKeyDown(int keycode, unsigned long flags) {}
-    virtual void onKeyUp(int keycode, unsigned long flags) {}
+    virtual void onKeyDown(int /*keycode*/, unsigned long /*flags*/) {}
+    virtual void onKeyUp(int /*keycode*/, unsigned long /*flags*/) {}
 
 	// pxSurfaceNative abstracts a platform specific drawing surface
 	// to perform platform specific drawing please see pxWindowNative.h
 	// for the definition of this type
-    virtual void onDraw(pxSurfaceNative s) {}
+    virtual void onDraw(pxSurfaceNative /*s*/) {}
 
 };
 

@@ -8,6 +8,10 @@
 #include <math.h>
 #include <string.h>
 
+#ifndef UNUSED
+#define UNUSED(expr) (void)(expr)
+#endif
+
 #if 0
 #ifndef sincos
 
@@ -179,7 +183,10 @@ public:
     multiply(m, t);
   }
 #else
-  void scale(FloatT sx, FloatT sy, FloatT sz = 1.0) {
+void scale(FloatT sx, FloatT sy, FloatT sz = 1.0) {
+  
+  UNUSED(sz);
+
     FloatT *out = mValues;
     FloatT *a = mValues;
     
@@ -191,7 +198,7 @@ public:
     out[5] = a[5] * sy;
     out[6] = a[6] * sy;
     out[7] = a[7] * sy;
-#if 0
+#if 0 // optimize
     out[8] = a[8] * sz;
     out[9] = a[9] * sz;
     out[10] = a[10] * sz;
@@ -213,7 +220,7 @@ public:
     multiply(m, t);
   }
 #else
-  void translate(FloatT x, FloatT y, FloatT z = 0.0) {
+void translate(FloatT x, FloatT y, FloatT z = 0.0) {
     FloatT *m = mValues;
     
 #if 0
@@ -222,6 +229,7 @@ public:
     m[14] = m[2] * x + m[6] * y + m[10] * z + m[14];
     m[15] = m[3] * x + m[7] * y + m[11] * z + m[15];
 #else
+    UNUSED(z);
     m[12] = m[0] * x + m[4] * y + m[12];
     m[13] = m[1] * x + m[5] * y + m[13];
     m[14] = m[2] * x + m[6] * y + m[14];

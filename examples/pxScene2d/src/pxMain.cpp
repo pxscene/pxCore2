@@ -58,7 +58,7 @@ private:
         scene->onSize(newWidth, newHeight);
     }
 
-    void onDraw(pxSurfaceNative s)
+  void onDraw(pxSurfaceNative /*s*/)
     {
         scene->onDraw();
     }

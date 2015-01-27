@@ -50,19 +50,19 @@ class rtValue {
   rtValue(const rtValue& v);
   rtValue(voidPtr v);
 
-  finline rtValue& operator=(bool v)                { setBool(v);     }
-  finline rtValue& operator=(int8_t v)              { setInt8(v);     }
-  finline rtValue& operator=(uint8_t v)             { setUInt8(v);    }
-  finline rtValue& operator=(int32_t v)             { setInt32(v);    }
-  finline rtValue& operator=(uint32_t v)            { setUInt32(v);   }
-  finline rtValue& operator=(float v)               { setFloat(v);    }
-  finline rtValue& operator=(double v)              { setDouble(v);   }  
-  finline rtValue& operator=(rtIObject* v)          { setObject(v);   }
-  finline rtValue& operator=(const rtObjectRef& v)  { setObject(v);   }
-  finline rtValue& operator=(rtIFunction* v)        { setFunction(v); }
-  finline rtValue& operator=(const rtFunctionRef& v){ setFunction(v); }
-  finline rtValue& operator=(const rtValue& v)      { setValue(v);    }
-  finline rtValue& operator=(voidPtr v)             { setVoidPtr(v);  }
+  finline rtValue& operator=(bool v)                { setBool(v);     return *this; }
+  finline rtValue& operator=(int8_t v)              { setInt8(v);     return *this; }
+  finline rtValue& operator=(uint8_t v)             { setUInt8(v);    return *this; }
+  finline rtValue& operator=(int32_t v)             { setInt32(v);    return *this; }
+  finline rtValue& operator=(uint32_t v)            { setUInt32(v);   return *this; }
+  finline rtValue& operator=(float v)               { setFloat(v);    return *this; }
+  finline rtValue& operator=(double v)              { setDouble(v);   return *this; }  
+  finline rtValue& operator=(rtIObject* v)          { setObject(v);   return *this; }
+  finline rtValue& operator=(const rtObjectRef& v)  { setObject(v);   return *this; }
+  finline rtValue& operator=(rtIFunction* v)        { setFunction(v); return *this; }
+  finline rtValue& operator=(const rtFunctionRef& v){ setFunction(v); return *this; }
+  finline rtValue& operator=(const rtValue& v)      { setValue(v);    return *this; }
+  finline rtValue& operator=(voidPtr v)             { setVoidPtr(v);  return *this; }
 
   bool operator!=(const rtValue& rhs) const { return !(*this == rhs); }
   bool operator==(const rtValue& rhs) const;

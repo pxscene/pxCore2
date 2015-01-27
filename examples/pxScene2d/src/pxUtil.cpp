@@ -26,7 +26,7 @@ rt_error pxLoadPNGImage(const char* filename, pxOffscreen& o)
   
   png_structp png_ptr;
   png_infop info_ptr;
-  int number_of_passes;
+  //  int number_of_passes;
   png_bytep * row_pointers;
   
   /* open file and test for it being a png */
@@ -86,7 +86,7 @@ rt_error pxLoadPNGImage(const char* filename, pxOffscreen& o)
 	    
 	    o.init(width, height);
 
-	    number_of_passes = png_set_interlace_handling(png_ptr);
+	    //	    number_of_passes = png_set_interlace_handling(png_ptr);
 	    png_read_update_info(png_ptr, info_ptr);
 	    
 	    /* read file */
@@ -119,7 +119,7 @@ rt_error pxLoadPNGImage(const char* filename, pxOffscreen& o)
   return e;
 }
 
-rt_error pxStorePNGImage(const char* filename, pxBuffer& b, bool grayscale, bool alpha)
+rt_error pxStorePNGImage(const char* filename, pxBuffer& b, bool /*grayscale*/, bool /*alpha*/)
 {
   rt_error e = RT_FAIL;
 
@@ -197,10 +197,10 @@ rt_error pxStorePNGImage(const char* filename, pxBuffer& b, bool grayscale, bool
   return e;
 }
 
-rt_error pxLoadJPGImage(char* filename, pxOffscreen& o) {
+rt_error pxLoadJPGImage(char* /*filename*/, pxOffscreen& /*o*/) {
   return RT_FAIL;
 }
 
-rt_error pxStoreJPGImage(char* filename, pxBuffer& b) {
+rt_error pxStoreJPGImage(char* /*filename*/, pxBuffer& /*b*/) {
   return RT_FAIL;
 }
