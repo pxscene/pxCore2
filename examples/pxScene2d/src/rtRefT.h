@@ -5,8 +5,12 @@
 #ifndef RT_REFT_H
 #define RT_REFT_H
 
+#include <stdlib.h>
+
+#if 0
 #ifndef NULL
 #define NULL 0
+#endif
 #endif
 
 template <class T>
@@ -20,11 +24,17 @@ public:
     mRef->AddRef();
   }
   
+#if 1
   rtRefT(const rtRefT<T>& r): mRef(NULL) {
-    set(r.get());
+    asn(r.getPtr());
   }
+
+ rtRefT(const T* r): mRef(NULL) {
+    asn(r);
+  }
+#endif
   
-  ~rtRefT() {
+  virtual ~rtRefT() {
     if (mRef) {
       mRef->Release();
       mRef = NULL;
@@ -44,16 +54,16 @@ public:
   T* operator->() const {
     return mRef;
   }
-  
+
   operator T* () const { return mRef; }
   
-  T* get() const { return mRef; }
+  T* getPtr() const { return mRef; }
   
   T& operator*() const { return *mRef; }
   
   bool operator! () {return mRef == NULL; }
   
-  void set(T* p) {
+  void asn(T* p) {
     if (mRef != p) {
       if (mRef) {
         mRef->Release();
@@ -66,11 +76,17 @@ public:
     }
   }
   
-  const rtRefT<T>& operator =(const rtRefT<T>& r)
-  {set(r.mRef); return *this; }
-  
-  const rtRefT<T>& operator =(const T* p)
-  {set(const_cast<T*>(p)); return *this;}
+#if 1
+  rtRefT<T>& operator=(rtRefT<T>& r) {
+    asn(r.mRef); return *this; 
+  }
+#endif  
+
+#if 1
+  rtRefT<T>& operator= (T* p) {
+    asn(const_cast<T*>(p)); return *this;
+  }
+#endif
   
   inline friend bool operator==(const rtRefT<T>& lhs,
                                 const rtRefT<T>& rhs) {
@@ -102,7 +118,8 @@ public:
     return lhs != rhs.mRef;
   }
   
-private:
+  //private:
+ public:
   T* mRef;
 };
 

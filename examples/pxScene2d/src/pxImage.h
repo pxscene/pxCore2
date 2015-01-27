@@ -8,15 +8,20 @@
 
 class pxImage: public pxObject {
 public:
+  rtDeclareObject(pxImage, pxObject);
+  rtProperty(url, url, setURL, rtString);
+
   pxImage() {}
   
-  void url(rtString& s);
-  void setURL(const char* s);
+  rtError url(rtString& s) const;
+  rtError setURL(const char* s);
 
+#if 0
   int width()  { return mOffscreen.width();  }
   int height() { return mOffscreen.height(); } 
+#endif
 
-private:
+protected:
   virtual void draw();
   
   rtString mURL;

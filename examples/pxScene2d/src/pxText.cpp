@@ -120,11 +120,15 @@ pxText::pxText() {
   initFT();
 }
 
-void pxText::text(rtString& s) { s = mText; }
+rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
 
-void pxText::setText(const char* s) { mText = s; }
+rtError pxText::setText(const char* s) { mText = s; return RT_OK; }
 
 void pxText::draw() {
   renderText(mText, 0, 0, 1.0, 1.0);
 }
+
+rtDefineObject(pxText, pxObject);
+rtDefineProperty(pxText, text);
+
 

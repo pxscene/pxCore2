@@ -120,6 +120,10 @@ public:
   finline void rotateInDegrees(FloatT angle) {
     rotateInRadians(angle * M_PI/180.0, 0, 0, 1);
   }
+
+  void rotateInDegrees(FloatT angle, FloatT x, FloatT y, FloatT z) {
+    rotateInRadians(angle * M_PI/180.0, x, y, z);
+  }
   
   void rotateInRadians(FloatT angle, FloatT x, FloatT y, FloatT z) {
     FloatT* m = mValues;

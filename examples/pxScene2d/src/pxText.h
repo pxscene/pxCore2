@@ -10,12 +10,15 @@
 
 class pxText: public pxObject {
 public:
-  pxText();
-  void text(rtString& s);
-  void setText(const char* text);
- private:
-  virtual void draw();
+  rtDeclareObject(pxText, pxObject);
+  rtProperty(text, text, setText, rtString);
 
+  pxText();
+  rtError text(rtString& s) const;
+  rtError setText(const char* text);
+
+ protected:
+  virtual void draw();
   rtString mText;
 };
 

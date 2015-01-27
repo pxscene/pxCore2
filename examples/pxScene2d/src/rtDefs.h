@@ -1,12 +1,12 @@
-// rtCore CopyRight 2007-2015 John Robinson
-// rtDefs.h
-
 #ifndef _RT_DEFS
 #define _RT_DEFS
 
 #include <stdint.h>
 
-typedef enum {RT_OK, RT_FAIL} rt_error;
+#include "rtError.h"
+
+//typedef enum {RT_OK, RT_FAIL} rt_error;
+typedef unsigned long rt_error;
 
 #ifndef finline
 #define finline inline

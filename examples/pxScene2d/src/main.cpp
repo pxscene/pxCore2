@@ -117,52 +117,9 @@ void initGL();
 
 
 #if 0
-void setupScene() {
 
-  rtString d;
-  rtGetCurrentDirectory(d);
-  d.append("/../images/grapes.png");
+// Using C++ API... 
 
-  pxObjectRef root = scene.getRoot();
-  
-  int n = 3;
-  int nx = 100;
-  int ny = 200;
-  for (int i = 0; i < n; i++) {
-    pxObjectRef p;
-
-    if (i < 2) {
-      pxText* t = new pxText();
-      p = t;
-      char buffer[256];
-      sprintf(buffer, "Hello %d", i);
-      t->setText(buffer);
-    }
-    else {
-      pxImage* i = new pxImage();
-      p = i;
-      i->setURL(d.cString());
-      p->cx = i->width()/2;
-      p->cy = i->height()/2;
-    }
-
-    nx += 10;
-    if (nx > 1000) {
-      nx = 0;
-      ny += 10;
-    }
-    p->x = nx;
-    p->y = ny;
-
-    p->setParent(root);
-    
-    p->r = 45*i;
-    p->animateTo("r", 360+(90*i), 2.0, pxInterpLinear, seesaw);
-    p->animateTo("x", 800, 2.0, pxInterpLinear, seesaw);
-  }
-}
-
-#else
 void setupScene() {
   rtString d;
   rtGetCurrentDirectory(d);
@@ -183,8 +140,8 @@ void setupScene() {
       float c2[4] = {1,1,1,0.5};
       r->setLineColor(c2);
       r->setLineWidth(10);
-      r->w = 300;
-      r->h = 30;
+      r->setW(300);
+      r->setH(30);
       p = r;
       p->animateTo("h", 600, 0.2, pxInterpLinear, seesaw);
     }
@@ -197,8 +154,8 @@ void setupScene() {
       pxImage* i = new pxImage();
       p = i;
       i->setURL(d.cString());
-      p->cx = i->width()/2;
-      p->cy = i->height()/2;
+      p->setCX(i->w()/2);
+      p->setCY(i->h()/2);
     }
 
     nx += 10;
@@ -206,8 +163,12 @@ void setupScene() {
       nx = 0;
       ny += 10;
     }
-    p->x = nx;
-    p->y = ny;
+    p->setX(nx);
+    p->setY(ny);
+
+    p->setRX(1);
+    p->setRY(0);
+    p->setRZ(0);
 
     p->setParent(root);
     
@@ -216,7 +177,61 @@ void setupScene() {
     p->animateTo("a", 0.5, 2.0, pxInterpLinear, seesaw);
   }
 }
+#else
 
+// Using Dynamic RtObject API
+void setupScene() {
+  rtString d;
+  rtGetCurrentDirectory(d);
+  d.append("/../images/banana.png");
+
+  rtObjectRef root = scene.getRoot();
+  
+  int n = 3;
+  int nx = 100;
+  int ny = 200;
+  for (int i = 0; i < n; i++) {
+    
+    rtObjectRef p;
+
+    if (i == 0) {
+      p = new rectangle();
+      p.set("w", 300);
+      p.set("h", 30);
+      p.set("fillColor",0x00ff00ff);
+      p.set("lineColor",0xffffff80);
+      p.set("lineWidth", 10);
+      p.send("animateTo", "h", 600, 0.2, 0, 0);
+    }
+    else if (i == 1) {
+      p = new pxText();
+      p.set("text", "pxCore!");
+    }
+    else {
+      p = new pxImage();
+      p.set("url", d);
+      p.set("cx", p.get<float>("w")/2);
+      p.set("cy", p.get<float>("h")/2);
+    }
+
+    nx += 10;
+    if (nx > 1000) {
+      nx = 0;
+      ny += 10;
+    }
+
+    p.set("parent", root);
+    p.set("x", nx);
+    p.set("y", ny);
+    p.set("rx", 0);
+    p.set("ry", 1.0);
+    p.set("rz", 0);
+    p.send("animateTo", "r", 360, 2.0, 0, 0);
+    p.send("animateTo", "x", 800, 2.0, 0, 0);
+    p.send("animateTo", "a", 0.1, 2.0, 0, 0);
+
+  }
+}
 #endif
 
 int main (int argc, char **argv) {

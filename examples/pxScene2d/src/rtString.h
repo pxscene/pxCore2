@@ -31,10 +31,13 @@ public:
   int compare(const char* s) const;
   int32_t length();
 
+#if 0
   void subst(const char* before, const char* after) {
   }
+#endif
 
   char* cString() const;
+  operator const char* () const { return mData; }
 
   //uint32_t operator[](uint32_t i) const {}
   finline bool operator== (const char* s) const { return compare(s) == 0; }

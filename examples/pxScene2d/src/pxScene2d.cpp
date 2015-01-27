@@ -318,6 +318,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
   return program;
 }
 
+#if 0
 void pxObject::set(const char* prop, float v) {
   if (strcmp(prop, "x") == 0) x = v;
   else if (strcmp(prop, "y") == 0) y = v;
@@ -329,6 +330,9 @@ void pxObject::set(const char* prop, float v) {
   else if (strcmp(prop, "cy") == 0) cy = v;
   else if (strcmp(prop, "a") == 0) a = v;
   else if (strcmp(prop, "r") == 0) r = v;
+  else if (strcmp(prop, "rx") == 0) rx = v;
+  else if (strcmp(prop, "ry") == 0) ry = v;
+  else if (strcmp(prop, "rz") == 0) rz = v;
 }
 
 float pxObject::get(const char* prop) const {
@@ -342,19 +346,25 @@ float pxObject::get(const char* prop) const {
   else if (strcmp(prop, "cy") == 0) return cy;
   else if (strcmp(prop, "a") == 0) return a;
   else if (strcmp(prop, "r") == 0) return r;
+  else if (strcmp(prop, "rx") == 0) return rx;
+  else if (strcmp(prop, "ry") == 0) return ry;
+  else if (strcmp(prop, "rz") == 0) return rz;
   return 0;
 }
+#endif
 
 void pxObject::setParent(rtRefT<pxObject>& parent) {
   mParent = parent;
   parent->mChildren.push_back(this);
 }
 
-void pxObject::animateTo(const char* prop, double to, double duration, pxInterp interp,
- pxAnimationType at, pxAnimationEnded e, void* c) {
+void pxObject::animateTo(const char* prop, double to, double duration, 
+			 pxInterp interp, pxAnimationType at, 
+			 pxAnimationEnded e, void* c) 
+{
   animation a;
   a.prop = prop;
-  a.from = get(prop);
+  a.from = get<float>(prop);
   a.to = to;
   a.start = -1;
   a.duration = duration;
@@ -423,14 +433,15 @@ void pxObject::update(double t) {
 
 void pxObject::drawInternal(pxMatrix4f m) {
 
-  m.translate(x+cx, y+cy);
-  m.rotateInDegrees(r);
-  m.scale(sx, sy);
-  m.translate(-cx, -cy);
+  m.translate(mx+mcx, my+mcy);
+
+  m.rotateInDegrees(mr, mrx, mry, mrz);
+  m.scale(msx, msy);
+  m.translate(-mcx, -mcy);
   
   // set up uniforms
   glUniformMatrix4fv(u_matrix, 1, GL_FALSE,m.data());
-  glUniform1f(u_alpha, a);
+  glUniform1f(u_alpha, ma);
   
   draw();
   
@@ -439,6 +450,28 @@ void pxObject::drawInternal(pxMatrix4f m) {
   }
 }
 
+rtDefineObject(pxObject, rtObject);
+rtDefineProperty(pxObject, _pxObject);
+rtDefineProperty(pxObject, parent);
+rtDefineProperty(pxObject, x);
+rtDefineProperty(pxObject, y);
+rtDefineProperty(pxObject, w);
+rtDefineProperty(pxObject, h);
+rtDefineProperty(pxObject, cx);
+rtDefineProperty(pxObject, cy);
+rtDefineProperty(pxObject, sx);
+rtDefineProperty(pxObject, sy);
+rtDefineProperty(pxObject, a);
+rtDefineProperty(pxObject, r);
+rtDefineProperty(pxObject, rx);
+rtDefineProperty(pxObject, ry);
+rtDefineProperty(pxObject, rz);
+rtDefineMethod(pxObject, animateTo);
+
+rtDefineObject(rectangle, pxObject);
+rtDefineProperty(rectangle, fillColor);
+rtDefineProperty(rectangle, lineColor);
+rtDefineProperty(rectangle, lineWidth);
 
 void rectangle::draw() {
   //glLineWidth(mLineWidth);
@@ -446,13 +479,14 @@ void rectangle::draw() {
   
   glUniform4fv(u_color, 1, mFillColor);
   float half = mLineWidth/2;
-  //    drawRect(half, half, w-mLineWidth, h-mLineWidth);
+  draw9SliceRect(half, half, mw-mLineWidth, mh-mLineWidth, 10, 10, 10, 10);
+  //  drawRect(half, half, mw-mLineWidth, mh-mLineWidth);
   if (mLineWidth > 0) {
     //glEnable(GL_LINE_SMOOTH);
     //glEnable(GL_POINT_SMOOTH);
     //      glEnable(GL_POLYGON_SMOOTH);
     glUniform4fv(u_color, 1, mLineColor);
-    drawRectOutline(0, 0, w, h, mLineWidth);
+    drawRectOutline(0, 0, mw, mh, mLineWidth);
   }
 }
 
@@ -462,13 +496,13 @@ void rectangle9::draw() {
   
   glUniform4fv(u_color, 1, mFillColor);
   float half = mLineWidth/2;
-  draw9SliceRect(half, half, w-mLineWidth, h-mLineWidth, 10, 10, 10, 10);
+  draw9SliceRect(half, half, mw-mLineWidth, mh-mLineWidth, 10, 10, 10, 10);
   if (mLineWidth > 0) {
     //    glEnable(GL_LINE_SMOOTH);
     //glEnable(GL_POINT_SMOOTH);
     //      glEnable(GL_POLYGON_SMOOTH);
     glUniform4fv(u_color, 1, mLineColor);
-    drawRectOutline(0, 0, w, h, mLineWidth);
+    drawRectOutline(0, 0, mw, mh, mLineWidth);
   }
 }
   
