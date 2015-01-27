@@ -363,6 +363,9 @@ class pxScene2d: public rtObject {
 public:
   rtDeclareObject(pxScene2d, rtObject);
   rtReadOnlyProperty(root, root, rtObjectRef);
+  rtMethodNoArgAndReturn("createRectangle", createRectangle, rtObjectRef);
+  rtMethodNoArgAndReturn("createImage", createImage, rtObjectRef);
+  rtMethodNoArgAndReturn("createText", createText, rtObjectRef);
 
   pxScene2d();
   
@@ -370,6 +373,10 @@ public:
 
   int width();
   int height();
+
+  rtError createRectangle(rtObjectRef& o);
+  rtError createText(rtObjectRef& o);
+  rtError createImage(rtObjectRef& o);
   
   // The following methods are delegated to the view
   virtual void onSize(int w, int h);

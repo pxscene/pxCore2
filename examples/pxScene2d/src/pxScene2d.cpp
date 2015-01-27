@@ -31,6 +31,9 @@
 #include "pxUtil.h"
 #include "pxTimer.h"
 
+#include "pxText.h"
+#include "pxImage.h"
+
 GLuint textureId1, textureId2;
 
 GLint attribute_coord;
@@ -536,6 +539,22 @@ void pxScene2d::init() {
 
 }
 
+
+rtError pxScene2d::createRectangle(rtObjectRef& o) {
+  o = new rectangle;
+  return RT_OK;
+}
+
+rtError pxScene2d::createText(rtObjectRef& o) {
+  o = new pxText;
+  return RT_OK;
+}
+
+rtError pxScene2d::createImage(rtObjectRef& o) {
+  o = new pxImage;
+  return RT_OK;
+}
+
 void pxScene2d::draw() {
   if (clip) {
 #ifdef PX_PLATFORM_WAYLAND_EGL
@@ -678,6 +697,9 @@ void pxScene2d::onKeyUp(int keycode, unsigned long flags) {
 
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
+rtDefineMethod(pxScene2d, createRectangle);
+rtDefineMethod(pxScene2d, createText);
+rtDefineMethod(pxScene2d, createImage);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) {
   return (*this)->Get(name, value);

@@ -77,7 +77,7 @@ void testScene() {
 }
 #else
 
-// Using Dynamic RtObject API
+// Using Dynamic rtObject API
 void testScene() {
   
   rtString d;
@@ -96,7 +96,7 @@ void testScene() {
     rtObjectRef p;
 
     if (i == 0) {
-      p = new rectangle();
+      scene.sendReturns<rtObjectRef>("createRectangle", p);
       p.set("w", 300);
       p.set("h", 30);
       p.set("fillColor",0x00ff00ff);
@@ -105,11 +105,11 @@ void testScene() {
       p.send("animateTo", "h", 600, 0.2, 0, 0);
   }
     else if (i == 1) {
-      p = new pxText();
+      scene.sendReturns<rtObjectRef>("createText", p);
       p.set("text", "pxCore!");
     }
     else {
-      p = new pxImage();
+      scene.sendReturns<rtObjectRef>("createImage", p);
       p.set("url", d);
       p.set("cx", p.get<float>("w")/2);
       p.set("cy", p.get<float>("h")/2);
