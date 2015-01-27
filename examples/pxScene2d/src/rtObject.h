@@ -193,6 +193,7 @@ class rtObjectFunction: public rtIFunction, public rtFunctionBase {
     mObject = o;
     mThunk = t;
   }
+  virtual ~rtObjectFunction() {}
   
   virtual unsigned long AddRef() {
     return rtAtomicInc(&mRefCount);
@@ -321,7 +322,7 @@ class rtObject: public rtIObject, public rtObjectBase
     {
       rtError hr = RT_PROP_NOT_FOUND;
       //      bool found = false;
-      
+
       rtMethodMap* m;
       m = getMap();
       
