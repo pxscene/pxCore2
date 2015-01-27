@@ -10,9 +10,17 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#ifdef PX_PLATFORM_X11
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
+#include <math.h>
+#include <sys/time.h>
+#else
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#endif
 
 GLuint glRotationUniform;
 GLuint glPos;
@@ -29,7 +37,9 @@ static const char *vert_shader_text =
     "}\n";
 
 static const char *frag_shader_text =
+#ifndef PX_PLATFORM_X11
     "precision mediump float;\n"
+#endif
     "varying vec4 v_color;\n"
     "void main() {\n"
     "  gl_FragColor = v_color;\n"

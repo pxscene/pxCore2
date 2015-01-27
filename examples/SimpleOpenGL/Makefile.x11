@@ -4,10 +4,10 @@
 CFLAGS= -I../../src -DPX_PLATFORM_X11 -Wno-write-strings
 OUTDIR=../../build/x11
 
-all: $(OUTDIR)/SimpleEgl
+all: $(OUTDIR)/SimpleOpenGL
 
-$(OUTDIR)/SimpleEgl: SimpleEgl.cpp 
-	g++ -o $(OUTDIR)/SimpleEgl -Wall $(CFLAGS) SimpleEgl.cpp -L/usr/lib/x86_64/ -lX11 -L$(OUTDIR) -lpxCore -lrt
+$(OUTDIR)/SimpleOpenGL: SimpleOpenGL.cpp 
+	g++ -o $(OUTDIR)/SimpleOpenGL -Wall $(CFLAGS) SimpleOpenGL.cpp -L/usr/lib/x86_64/ -lX11 -L$(OUTDIR) -lpxCore -lGL -lglut -lGLEW -lrt -g
 
 
 

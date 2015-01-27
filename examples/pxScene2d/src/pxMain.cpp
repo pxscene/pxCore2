@@ -19,7 +19,13 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else
+#ifdef ENABLE_GLUT
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
+#else
 #include <GLES2/gl2.h>
+#endif
 #endif
 
 #include "rtLog.h"

@@ -61,6 +61,7 @@ struct animation {
 
 class pxObject: public rtObject {
 public:
+
   rtDeclareObject(pxObject, rtObject);
   rtReadOnlyProperty(_pxObject, _pxObject, voidPtr);
   rtProperty(parent, parent, setParent, rtObjectRef);
@@ -82,6 +83,7 @@ public:
 
  pxObject(): mRef(0), mcx(0), mcy(0), mx(0), my(0), msx(1), msy(1), ma(1.0), 
     mr(0), mrx(0), mry(0), mrz(1.0), mw(0), mh(0) {}
+
   virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ }
   virtual unsigned long AddRef() { return ++mRef; }
   virtual unsigned long Release() { if (--mRef == 0) delete this; return mRef; }

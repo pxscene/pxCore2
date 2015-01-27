@@ -1,12 +1,12 @@
 
-CFLAGS= -DPX_PLATFORM_X11 -fPIC
+CFLAGS= -DPX_PLATFORM_X11 -DENABLE_GLUT
 OUTDIR=../build/x11
 
 all: $(OUTDIR)/libpxCore.a 
 
-$(OUTDIR)/libpxCore.a: pxOffscreen.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNativeGlut.o pxTimerNative.o
 		       mkdir -p $(OUTDIR)    
-	    ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o  pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o             
+	    ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o  pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNativeGlut.o pxTimerNative.o             
           
 
 pxOffscreen.o: pxOffscreen.cpp
@@ -18,8 +18,8 @@ pxBufferNative.o: x11/pxBufferNative.cpp
 pxOffscreenNative.o: x11/pxOffscreenNative.cpp
 	g++ -o pxOffscreenNative.o -Wall -I/usr/X11R6/include $(CFLAGS) -c x11/pxOffscreenNative.cpp
 
-pxWindowNative.o: x11/pxWindowNative.cpp
-	g++ -o pxWindowNative.o -Wall -I/usr/X11R6/include $(CFLAGS) -c x11/pxWindowNative.cpp
+pxWindowNativeGlut.o: x11/pxWindowNativeGlut.cpp
+	g++ -o pxWindowNativeGlut.o -Wall -I/usr/X11R6/include $(CFLAGS) -c x11/pxWindowNativeGlut.cpp
 
 pxEventLoopNative.o: x11/pxEventLoopNative.cpp
 	g++ -o pxEventLoopNative.o -Wall -I/usr/X11R6/include $(CFLAGS) -c x11/pxEventLoopNative.cpp
