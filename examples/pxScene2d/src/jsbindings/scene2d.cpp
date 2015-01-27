@@ -1,6 +1,4 @@
 #include "px.h"
-
-#define PX_PLATFORM_X11
 #include <pxScene2d.h>
 
 using namespace v8;

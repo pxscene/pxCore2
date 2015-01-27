@@ -61,7 +61,6 @@ struct animation {
 
 class pxObject: public rtObject {
 public:
-
   rtDeclareObject(pxObject, rtObject);
   rtReadOnlyProperty(_pxObject, _pxObject, voidPtr);
   rtProperty(parent, parent, setParent, rtObjectRef);

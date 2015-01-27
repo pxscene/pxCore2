@@ -95,13 +95,13 @@ void draw9SliceRect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfl
     { 0, 1, 0 },
     { 0, 0, 1 }
   };
-#endif
   const GLfloat uv[22][2] = {
     { 0, 0 },
     { 1, 0 },
     { 0, 1 },
     { 1, 1 }
   };
+#endif
   
   
   {

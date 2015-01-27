@@ -1,6 +1,4 @@
 #include "px.h"
-
-#define PX_PLATFORM_X11
 #include <pxOffscreen.h>
 #include <string>
 

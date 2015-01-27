@@ -1,7 +1,6 @@
-var px = require('./build/Release/px');
+var px = require('./build/Debug/px');
 var win = new px.Window(50, 50, 640, 480);
 win.title = 'Hello World!';
-win.on('closerequest', function() { eventLoop.exit(); });
 win.on('keydown', function(code, flags) {
   console.log('code:' + code);
 });
