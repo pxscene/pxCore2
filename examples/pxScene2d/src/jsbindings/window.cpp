@@ -1,8 +1,8 @@
 #include "px.h"
-
-#define PX_PLATFORM_X11
 #include <pxEventLoop.h>
 #include <pxWindow.h>
+#include <pxScene2d.h>
+
 #include <string>
 #include <pthread.h>
 
@@ -39,11 +39,17 @@ namespace
   {
   public:
     jsWindow(int x, int y, int w, int h)
+      : m_callbacks(new Persistent<Function>[12])
+      , m_eventLoop(new pxEventLoop())
+      , m_scene(new pxScene2d())
     {
-      m_callbacks = new Persistent<Function>[12];
-      m_eventLoop = new pxEventLoop();
-      pthread_mutex_init(&m_mutex, 0);
+      pthread_mutexattr_t attr;
+      pthread_mutexattr_init(&attr);
+      pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+      pthread_mutex_init(&m_mutex, NULL); // &attr);
+
       init(x, y, w, h);
+      // initGL();
       startEventProcessingThread();
     }
 
@@ -84,6 +90,7 @@ namespace
       Persistent<Function> func;
       pthread_mutex_lock(&m_mutex);
       func = m_callbacks[index];
+      pthread_mutex_unlock(&m_mutex);
       return func;
     }
 
@@ -93,8 +100,7 @@ namespace
       px::JavaScriptCallback::New()
         ->AddArg(w)
         ->AddArg(h)
-        // ->SetFunctionLookup(new FunctionLookup(this, eResize))
-        ->SetFunction(&m_callbacks[eResize])
+        ->SetFunctionLookup(new FunctionLookup(this, eResize))
         ->Enqueue();
     }
 
@@ -104,16 +110,14 @@ namespace
         ->AddArg(x)
         ->AddArg(y)
         ->AddArg(flags)
-        //->SetFunctionLookup(new FunctionLookup(this, eMouseDown))
-        ->SetFunction(&m_callbacks[eMouseDown])
+        ->SetFunctionLookup(new FunctionLookup(this, eMouseDown))
         ->Enqueue();
     }
 
     virtual void onCloseRequest()
     {
       px::JavaScriptCallback::New()
-        //->SetFunctionLookup(new FunctionLookup(this, eCloseRequest))
-        ->SetFunction(&m_callbacks[eCloseRequest])
+        ->SetFunctionLookup(new FunctionLookup(this, eCloseRequest))
         ->Enqueue();
     }
 
@@ -123,16 +127,14 @@ namespace
         ->AddArg(x)
         ->AddArg(y)
         ->AddArg(flags)
-        // ->SetFunctionLookup(new FunctionLookup(this, eMouseUp))
-        ->SetFunction(&m_callbacks[eMouseUp])
+        ->SetFunctionLookup(new FunctionLookup(this, eMouseUp))
         ->Enqueue();
     }
 
     virtual void onMouseLeave()
     {
       px::JavaScriptCallback::New()
-        // ->SetFunctionLookup(new FunctionLookup(this, eMouseLeave))
-        ->SetFunction(&m_callbacks[eMouseLeave])
+        ->SetFunctionLookup(new FunctionLookup(this, eMouseLeave))
         ->Enqueue();
     }
 
@@ -141,8 +143,7 @@ namespace
       px::JavaScriptCallback::New()
         ->AddArg(x)
         ->AddArg(y)
-        // ->SetFunctionLookup(new FunctionLookup(this, eMouseMove))
-        ->SetFunction(&m_callbacks[eMouseMove])
+        ->SetFunctionLookup(new FunctionLookup(this, eMouseMove))
         ->Enqueue();
     }
 
@@ -151,8 +152,7 @@ namespace
       px::JavaScriptCallback::New()
         ->AddArg(keycode)
         ->AddArg(flags)
-        //->SetFunctionLookup(new FunctionLookup(this, eKeyDown))
-        ->SetFunction(&m_callbacks[eKeyDown])
+        ->SetFunctionLookup(new FunctionLookup(this, eKeyDown))
         ->Enqueue();
     }
 
@@ -161,15 +161,21 @@ namespace
       px::JavaScriptCallback::New()
         ->AddArg(keycode)
         ->AddArg(flags)
-        // ->SetFunctionLookup(new FunctionLookup(this, eKeyUp))
-        ->SetFunction(&m_callbacks[eKeyUp])
+        ->SetFunctionLookup(new FunctionLookup(this, eKeyUp))
         ->Enqueue();
     }
+
+    virtual void onDraw(pxSurfaceNative s)
+    {
+      // m_scene->onDraw();
+    }
+
   private:
     Persistent<Function>* m_callbacks;
     pthread_mutex_t m_mutex;
     pthread_t m_eventLoopThread;
     pxEventLoop* m_eventLoop;
+    pxScene2d* m_scene;
   };
 }
 

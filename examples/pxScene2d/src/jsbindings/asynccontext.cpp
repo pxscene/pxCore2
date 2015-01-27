@@ -32,10 +32,12 @@ namespace px
   JavaScriptCallback::JavaScriptCallback()
   {
     m_req.data = this;
+    m_functionLookup = NULL;
   }
 
   JavaScriptCallback::~JavaScriptCallback()
   {
+    delete m_functionLookup;
   }
 
   void JavaScriptCallback::Enqueue()
@@ -64,13 +66,9 @@ namespace px
     Handle<Value>* args = ctx->MakeArgs();
 
     // TODO: Should this be Local<Function>? 
-    //Persistent<Function> callbackFunction = ctx->m_functionLookup->Lookup();
-    Persistent<Function>* callbackFunction = ctx->m_callback;
-    if (!callbackFunction->IsEmpty())
-    {
-      TryCatch tryCatch;
-      (*callbackFunction)->Call(Context::GetCurrent()->Global(), static_cast<int>(ctx->m_args.size()), args);
-    }
+    Persistent<Function> callbackFunction = ctx->m_functionLookup->Lookup();
+    if (!callbackFunction.IsEmpty())
+      callbackFunction->Call(Context::GetCurrent()->Global(), static_cast<int>(ctx->m_args.size()), args);
 
     delete ctx;
     delete [] args;

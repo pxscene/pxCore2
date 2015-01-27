@@ -8,6 +8,9 @@
   node-gyp configure
   node-gyp build
 
+  NOTE: for debug builds run node-gyp --debug build. Then update hello.js
+        to reference ./build/Debug/px package.
+
 3. Run
 
   nodejs hello.js
