@@ -95,13 +95,13 @@ void draw9SliceRect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfl
     { 0, 1, 0 },
     { 0, 0, 1 }
   };
-#endif
   const GLfloat uv[22][2] = {
     { 0, 0 },
     { 1, 0 },
     { 0, 1 },
     { 1, 1 }
   };
+#endif
   
   
   {
@@ -445,7 +445,7 @@ void rectangle::draw() {
   //    glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
   
   glUniform4fv(u_color, 1, mFillColor);
-  float half = mLineWidth/2;
+  // float half = mLineWidth/2;
   //    drawRect(half, half, w-mLineWidth, h-mLineWidth);
   if (mLineWidth > 0) {
     //glEnable(GL_LINE_SMOOTH);

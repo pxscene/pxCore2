@@ -330,6 +330,8 @@ private:
 
 int pxMain()
 {
+    char title[] = { "TestGL" };
+
     int width = 1280;
     int height = 720;
     myWindow win;
@@ -338,7 +340,7 @@ int pxMain()
     setupScene();
     initGL();
     scene.onSize(width, height);
-    win.setTitle("TestGL");
+    win.setTitle(title);
     win.setVisibility(true);
 
     eventLoop.run();

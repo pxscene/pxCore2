@@ -55,7 +55,7 @@ struct animation {
 
 class pxObject{
 public:
-  pxObject(): mRef(0), cx(0), cy(0), x(0), y(0), a(1.0), r(0), sx(1), sy(1) {}
+  pxObject(): cx(0), cy(0), x(0), y(0), a(1.0), r(0), sx(1), sy(1), mRef(0) {}
   virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ }
   virtual unsigned long AddRef() { return ++mRef; }
   virtual unsigned long Release() { if (--mRef == 0) delete this; return mRef; }

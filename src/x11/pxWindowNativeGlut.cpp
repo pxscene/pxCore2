@@ -143,6 +143,7 @@ pxError displayRef::createGlutDisplay()
     glutInit(&argc, argv);
     
     //callbacks
+    // XXX: These have no affect glutGetWindow() == 0
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutMouseFunc(onMouse);
@@ -196,6 +197,9 @@ pxError pxWindow::init(int left, int top, int width, int height)
         mLastHeight = height;
         mResizeFlag = true;
         createGlutWindow(left,top,width,height);
+
+        // XXX: Need to register callbacks after window is created^M
+        glutReshapeFunc(reshape);
 
         registerWindow(this);
         this->onCreate();
