@@ -4,9 +4,11 @@
 #include "rtFile.h"
 //#include "pxCore.h"
 
+rt_error pxLoadImage(char* imageData, size_t imageDataSize, pxOffscreen& o);
 rt_error pxLoadImage(const char* filename, pxOffscreen& b);
 rt_error pxStoreImage(const char* filename, pxBuffer& b);
 
+rt_error pxLoadPNGImage(char* imageData, size_t imageDataSize, pxOffscreen& o);
 rt_error pxLoadPNGImage(const char* filename, pxOffscreen& o);
 rt_error pxStorePNGImage(const char* filename, pxBuffer& b, bool grayscale = false, bool alpha=true);
 

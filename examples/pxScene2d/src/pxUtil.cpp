@@ -12,6 +12,10 @@
 #include "pxOffscreen.h"
 #include "pxUtil.h"
 
+rt_error pxLoadImage(char* imageData, size_t imageDataSize, pxOffscreen& o) {
+  return pxLoadPNGImage(imageData, imageDataSize, o);
+}
+
 rt_error pxLoadImage(const char* filename, pxOffscreen& b) {
   return pxLoadPNGImage(filename, b);
 }
@@ -203,4 +207,102 @@ rt_error pxLoadJPGImage(char* /*filename*/, pxOffscreen& /*o*/) {
 
 rt_error pxStoreJPGImage(char* /*filename*/, pxBuffer& /*b*/) {
   return RT_FAIL;
+}
+
+struct PngStruct {
+    PngStruct(char* data, size_t dataSize)
+        : imageData(data), imageDataSize(dataSize), readPosition(0)
+    {
+    } 
+
+    char* imageData;
+    size_t imageDataSize;
+    int readPosition;
+};
+
+void readPngData(png_structp pngPtr, png_bytep data, png_size_t length) {
+    png_voidp a = png_get_io_ptr(pngPtr);
+    PngStruct* pngStruct = (PngStruct*)a;
+    memcpy ( (char*)data, pngStruct->imageData+pngStruct->readPosition, length );
+    pngStruct->readPosition += length;
+}
+
+
+rt_error pxLoadPNGImage(char* imageData, size_t imageDataSize, pxOffscreen& o)
+{
+  rt_error e = RT_FAIL;
+  
+  png_structp png_ptr;
+  png_infop info_ptr;
+  //  int number_of_passes;
+  png_bytep * row_pointers;
+  PngStruct pngStruct(imageData, imageDataSize);
+  
+  /* open file and test for it being a png */
+  if (imageData != NULL) {
+    unsigned char header[8];    // 8 is the maximum size that can be checked
+
+    memcpy(header, imageData, 8);
+    pngStruct.readPosition += 8;
+    if (png_sig_cmp(header, 0, 8) == 0) {
+      
+      /* initialize stuff */
+      png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+      
+      if (png_ptr) {
+	
+	info_ptr = png_create_info_struct(png_ptr);
+	if (info_ptr) {
+	  
+	  if (!setjmp(png_jmpbuf(png_ptr))) {
+	    
+	    png_set_read_fn(png_ptr,(png_voidp)&pngStruct, readPngData);
+	    png_set_sig_bytes(png_ptr, 8);
+	    
+	    png_read_info(png_ptr, info_ptr);
+	    
+	    int width = png_get_image_width(png_ptr, info_ptr);
+	    int height = png_get_image_height(png_ptr, info_ptr);
+	    png_byte color_type = png_get_color_type(png_ptr, info_ptr);
+	    //png_byte bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+
+	    if (color_type == PNG_COLOR_TYPE_PALETTE)
+	      png_set_palette_to_rgb(png_ptr);
+
+	    if (color_type == PNG_COLOR_TYPE_GRAY || 
+		color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+	      png_set_gray_to_rgb(png_ptr);
+	    
+	    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+	      png_set_tRNS_to_alpha(png_ptr);
+
+	    png_set_bgr(png_ptr);
+	    png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
+	    
+	    o.init(width, height);
+
+	    //	    number_of_passes = png_set_interlace_handling(png_ptr);
+	    png_read_update_info(png_ptr, info_ptr);
+	    
+	    /* read file */
+	    if (!setjmp(png_jmpbuf(png_ptr))) {
+	      
+	      row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
+	      if (row_pointers) {
+
+		for (int y = 0; y < height; y++) {
+		  row_pointers[y] = (png_byte*)o.scanline(y);
+		}
+	      
+		png_read_image(png_ptr, row_pointers);
+		free(row_pointers);
+	      }
+	      e = RT_OK;
+	    }
+	  }
+	}
+      }
+    }
+  }
+  return e;
 }

@@ -169,6 +169,8 @@ void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
 
     /* get it! */
     res = curl_easy_perform(curl_handle);
+    
+    downloadRequest->setDownloadStatusCode(res);
 
     /* check for errors */
     if (res != CURLE_OK) 
