@@ -265,8 +265,6 @@ class rtObject: public rtIObject, public rtObjectBase
     {
       rtError hr = RT_PROP_NOT_FOUND;
       
-      //bool found = false;
-      
       rtMethodMap* m;
       m = getMap();
       
@@ -289,9 +287,6 @@ class rtObject: public rtIObject, public rtObjectBase
       {
 	
 	rtLog("Looking for function as property: %s\n", name);
-	//if (!initialized) return RT_OBJECT_NOT_INITIALIZED;
-	//rtError hr = RT_PROP_NOT_FOUND;
-	//	bool found = false;
 	
 	rtMethodMap* m;
 	m = getMap();
@@ -303,7 +298,6 @@ class rtObject: public rtIObject, public rtObjectBase
 	      {
                 if (strcmp(name, e->mMethodName) == 0)
 		  {
-		    //      found = true;
 		    rtLog("found method\n");
 		    value->setFunction(new rtObjectFunction(this, e->mThunk));
 		    hr = RT_OK;

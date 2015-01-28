@@ -14,20 +14,6 @@
 #include "pxOffscreen.h"
 #include <stdio.h>
 
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#ifdef ENABLE_GLUT
-#include <GL/glew.h>
-#include <GL/gl.h>
-#include <GL/glext.h>
-#else
-#include <GLES2/gl2.h>
-#endif
-#endif
-
 #include "rtLog.h"
 #include "rtRefT.h"
 #include "rtPathUtils.h"
@@ -38,7 +24,6 @@
 #include "testScene.h"
 
 extern rtRefT<pxScene2d> scene;
-
 
 pxEventLoop eventLoop;
 

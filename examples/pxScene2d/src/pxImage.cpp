@@ -10,7 +10,11 @@
 
 #include "pxImage.h"
 
-void drawRect(float x, float y, float w, float h, pxOffscreen& o);
+#include "pxContext.h"
+
+extern pxContext context;
+
+//void drawRect(float x, float y, float w, float h, pxOffscreen& o);
 
 rtError pxImage::url(rtString& s) const { s = mURL; return RT_OK; }
 rtError pxImage::setURL(const char* s) { 
@@ -25,7 +29,8 @@ rtError pxImage::setURL(const char* s) {
 }
 
 void pxImage::draw() {
-  drawRect(0, 0, mOffscreen.width(), mOffscreen.height(), mOffscreen);
+  //drawRect(0, 0, mOffscreen.width(), mOffscreen.height(), mOffscreen);
+  context.drawImage(mOffscreen.width(), mOffscreen.height(), mOffscreen);
 }
 
 rtDefineObject(pxImage, pxObject);

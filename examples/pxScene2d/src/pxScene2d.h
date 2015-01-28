@@ -112,7 +112,7 @@ public:
   rtError setX(float v)       { mx = v; return RT_OK;   }
   float y()             const { return my; }
   rtError y(float& v)   const { v = my; return RT_OK;   }
-  rtError setY(float v)       { printf("in setY %f\n", v); my = v; return RT_OK;   }
+  rtError setY(float v)       { my = v; return RT_OK;   }
   float w()             const { return mw; }
   rtError w(float& v)   const { v = mw; return RT_OK;   }
   rtError setW(float v)       { mw = v; return RT_OK;   }

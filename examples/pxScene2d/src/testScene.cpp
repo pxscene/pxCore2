@@ -64,9 +64,11 @@ void testScene() {
     p->setX(nx);
     p->setY(ny);
 
-    p->setRX(1);
+
+
+    p->setRX(0);
     p->setRY(0);
-    p->setRZ(0);
+    p->setRZ(1);
 
     p->setParent(root);
     
@@ -88,31 +90,37 @@ void testScene() {
 
   rtObjectRef root = scene.get<rtObjectRef>("root");  
   
-  int n = 3;
+  int n = 10;
   int nx = 100;
-  int ny = 200;
+  int ny = 100;
   for (int i = 0; i < n; i++) {
     
     rtObjectRef p;
 
-    if (i == 0) {
+    if (i < 1) {
       scene.sendReturns<rtObjectRef>("createRectangle", p);
       p.set("w", 300);
       p.set("h", 30);
       p.set("fillColor",0x00ff00ff);
       p.set("lineColor",0xffffff80);
       p.set("lineWidth", 10);  
-      p.send("animateTo", "h", 600, 0.2, 0, 0);
+      p.send("animateTo", "h", 600, 0.5, 0, 0);
   }
-    else if (i == 1) {
-      scene.sendReturns<rtObjectRef>("createText", p);
-      p.set("text", "pxCore!");
-    }
-    else {
+    else if (i < n-1){
       scene.sendReturns<rtObjectRef>("createImage", p);
       p.set("url", d);
       p.set("cx", p.get<float>("w")/2);
       p.set("cy", p.get<float>("h")/2);
+      ny = 100;
+    }
+    else {
+      scene.sendReturns<rtObjectRef>("createText", p);
+      p.set("text", "pxCore!");
+      p.set("cx", 250);
+      p.send("animateTo", "sx", 2.0, 1.0, 0, 0);
+      p.send("animateTo", "sy", 2.0, 1.0, 0, 0);
+      nx = 400;
+      ny = 400;
     }
 
     nx += 10;
@@ -124,11 +132,15 @@ void testScene() {
     p.set("parent", root);
     p.set("x", nx);
     p.set("y", ny);
+
     p.set("rx", 0);
     p.set("ry", 1.0);
     p.set("rz", 0);
-    p.send("animateTo", "r", 360, 2.0, 0, 0);
-    p.send("animateTo", "x", 800, 2.0, 0, 0);
+
+    p.send("animateTo", "r", 360, 1.0+(i*0.3), 0, 0);
+    if (i < n-1) {
+      p.send("animateTo", "x", 800, 1.0+(i*0.3), 0, 0);
+    }
 
     // Demonstrate how to invoke same function with a rtFunctionRef
     rtFunctionRef f = p.get<rtFunctionRef>("animateTo");

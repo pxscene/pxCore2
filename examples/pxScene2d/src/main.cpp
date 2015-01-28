@@ -10,6 +10,7 @@
 #include <iostream>
 #include <fstream>
 
+#if 1
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #include <OpenGL/gl.h>
@@ -19,6 +20,7 @@
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
+#endif
 #endif
 
 #include "rtLog.h"

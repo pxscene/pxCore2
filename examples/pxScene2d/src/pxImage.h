@@ -16,11 +16,6 @@ public:
   rtError url(rtString& s) const;
   rtError setURL(const char* s);
 
-#if 0
-  int width()  { return mOffscreen.width();  }
-  int height() { return mOffscreen.height(); } 
-#endif
-
 protected:
   virtual void draw();
   
