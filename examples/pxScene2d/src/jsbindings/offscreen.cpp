@@ -11,8 +11,7 @@ namespace
 
 namespace px
 {
-  template<typename TWrapper, typename TPXObject> 
-  Persistent<Function> WrapperObject<TWrapper, TPXObject>::m_ctor;
+  Persistent<Function> Offscreen::m_ctor;
 
   void Offscreen::Export(Handle<Object> exports)
   {

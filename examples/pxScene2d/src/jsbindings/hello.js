@@ -9,4 +9,12 @@ win.on('resize', function(width, height) {
 });
 win.visible = true;
 
+var scene = win.scene;
+
+console.log('description:' + scene.get('description'));
+
+console.log('before');
+console.log(JSON.stringify(scene, null, 4));
+console.log('after');
+
 setTimeout(function() { console.log('quitting') }, 10000000);

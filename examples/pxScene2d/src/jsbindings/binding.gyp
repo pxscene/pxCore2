@@ -5,11 +5,17 @@
       "sources": [ 
         "asynccontext.cpp",
         "eventloop.cpp",
+        "function.cpp",
         "init.cpp",
         "object.cpp",
         "offscreen.cpp",
         "scene2d.cpp",
         "window.cpp",
+
+        "../rtObject.cpp",
+        "../rtLog.cpp",
+        "../rtString.cpp",
+        "../rtValue.cpp",
 
         # scene2d sources
         "../pxScene2d.cpp"
@@ -33,7 +39,8 @@
       ],
       "cflags": [
         "-DPX_PLATFORM_X11",
-        "-DENABLE_GLUT"
+        "-DENABLE_GLUT",
+        "-Wno-attributes"
       ]
     }
   ]

@@ -19,6 +19,7 @@
 
 class rtIObject {
  public:
+  virtual ~rtIObject() { }
   virtual unsigned long AddRef() = 0;
   virtual unsigned long Release() = 0;
   virtual rtError Get(const char* name, rtValue* value) = 0;
@@ -27,6 +28,7 @@ class rtIObject {
 
 class rtIFunction {
  public:
+  virtual ~rtIFunction() { }
   virtual unsigned long AddRef() = 0;
   virtual unsigned long Release() = 0;
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
@@ -212,8 +214,6 @@ class rtObjectFunction: public rtIFunction, public rtFunctionBase {
   rtMethodThunk mThunk;
   unsigned long mRefCount;
 };
-#endif
-
 
 class rtObject: public rtIObject, public rtObjectBase  
 {
@@ -487,5 +487,6 @@ rtError rtFunctionBase::sendReturns(const rtValue& arg1, const rtValue& arg2,
   return e;
 }
 
-
 #endif
+#endif
+

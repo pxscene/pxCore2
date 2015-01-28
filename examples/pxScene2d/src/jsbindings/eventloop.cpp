@@ -20,8 +20,7 @@ namespace
 
 namespace px
 {
-  template<typename TWrapper, typename TPXObject> 
-  Persistent<Function> WrapperObject<TWrapper, TPXObject>::m_ctor;
+  Persistent<Function> EventLoop::m_ctor;
 
   void EventLoop::Export(Handle<Object> exports)
   {
