@@ -18,7 +18,8 @@
         "../rtValue.cpp",
 
         # scene2d sources
-        "../pxScene2d.cpp"
+        "../pxScene2d.cpp",
+        "../pxImage.cpp"
        ],
       "include_dirs" : [
         "../../../../src/",

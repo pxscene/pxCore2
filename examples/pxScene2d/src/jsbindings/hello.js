@@ -11,7 +11,10 @@ win.visible = true;
 
 var scene = win.scene;
 
-console.log('description:' + scene.get('description'));
+var desc = scene.get('description');
+console.log('here:' + JSON.stringify(desc));
+console.log('there:' + desc);
+console.log('description:' + desc.call());
 
 console.log('before');
 console.log(JSON.stringify(scene, null, 4));

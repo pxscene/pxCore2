@@ -58,6 +58,12 @@ namespace rt
       case RT_functionType:
         return rt::Function::New(v.toFunction());
         break;
+      case RT_rtStringType:
+        {
+          rtString s = v.toString();
+          return v8::String::New(s.cString(), s.length());
+        }
+        break;
       default:
         // TODO: FAIL
         fprintf(stderr, "unsupported rt type: %c\n", v.getType());

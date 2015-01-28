@@ -77,3 +77,9 @@ int rtString::compare(const char* s) const {
 char* rtString::cString() const {
   return mData;
 }
+
+//HACK: missing symbol. Is this utf8?
+int32_t rtString::length() const {
+  return mData ? strlen(mData) : 0;
+}
+

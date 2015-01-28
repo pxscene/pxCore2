@@ -29,6 +29,12 @@ rtObjectRef rtValue::toObject() const  {
   return v; 
 }
 
+rtFunctionRef rtValue::toFunction() const {
+  rtFunctionRef f;
+  getFunction(f);
+  return f;
+}
+
 void rtValue::setEmpty() {
   if (mType == RT_objectType) {
     if (mValue.objectValue) {
