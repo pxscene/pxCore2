@@ -37,8 +37,6 @@
 
 #include "testScene.h"
 
-#include "pxThreadPool.h"
-#include "pxThreadTask.h"
 #include "pxImageDownloader.h"
 
 extern rtRefT<pxScene2d> scene;

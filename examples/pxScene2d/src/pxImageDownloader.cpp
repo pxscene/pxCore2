@@ -1,7 +1,7 @@
 #define XRELOG_NOCTRACE
 #include "pxImageDownloader.h"
-#include "pxThreadTask.h"
-#include "pxThreadPool.h"
+#include "rtThreadTask.h"
+#include "rtThreadPool.h"
 
 #include <curl/curl.h>
 #include <sstream>
@@ -233,9 +233,9 @@ void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
 
 void pxImageDownloader::downloadImageInBackground(pxImageDownloadRequest* downloadRequest)
 {
-    pxThreadPool* mainThreadPool = pxThreadPool::globalInstance();
+    rtThreadPool* mainThreadPool = rtThreadPool::globalInstance();
     
-    pxThreadTask* task = new pxThreadTask(startImageDownloadInBackground, (void*)downloadRequest);
+    rtThreadTask* task = new rtThreadTask(startImageDownloadInBackground, (void*)downloadRequest);
     
     mainThreadPool->executeTask(task);
 }
