@@ -113,11 +113,13 @@ void pxImageDownloader::startNextDownloadInBackground()
 
 void pxImageDownloader::raiseDownloadPriority(pxImageDownloadRequest* downloadRequest)
 {
+    (void)downloadRequest;
     //todo
 }
 
 void pxImageDownloader::removeDownloadRequest(pxImageDownloadRequest* downloadRequest)
 {
+    (void)downloadRequest;
     //todo
 }
 
