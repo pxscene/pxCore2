@@ -11,6 +11,8 @@
 #define RT_intType                '4'
 #define RT_int32_tType            '4'
 #define RT_uint32_tType           '5'
+#define RT_int64_tType            '6'
+#define RT_uint64_tType           '7'
 #define RT_floatType              'e'
 #define RT_doubleType             'd'
 #define RT_stringType             's'
@@ -29,6 +31,8 @@
 #define RT_intType2                "4"
 #define RT_int32_tType2            "4"
 #define RT_uint32_tType2           "5"
+#define RT_int64_tType2            "6"
+#define RT_uint64_tType2           "7"
 #define RT_floatType2              "e"
 #define RT_doubleType2             "d"
 #define RT_rtStringType2           "s"

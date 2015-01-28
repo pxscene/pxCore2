@@ -12,6 +12,8 @@ rtValue::rtValue(int8_t v)            :mType(0) { setInt8(v);   }
 rtValue::rtValue(uint8_t v)           :mType(0) { setUInt8(v);  }
 rtValue::rtValue(int32_t v)           :mType(0) { setInt32(v);  }
 rtValue::rtValue(uint32_t v)          :mType(0) { setUInt32(v); }
+rtValue::rtValue(int64_t v)           :mType(0) { setInt64(v);  }
+rtValue::rtValue(uint64_t v)          :mType(0) { setUInt64(v); }
 rtValue::rtValue(float v)             :mType(0) { setFloat(v);  }
 rtValue::rtValue(double v)            :mType(0) { setDouble(v); }
 rtValue::rtValue(const char* v)       :mType(0) { setString(v); }
@@ -25,6 +27,12 @@ rtObjectRef rtValue::toObject() const  {
   rtObjectRef v; 
   getObject(v); 
   return v; 
+}
+
+rtFunctionRef rtValue::toFunction() const {
+  rtFunctionRef f;
+  getFunction(f);
+  return f;
 }
 
 void rtValue::setEmpty() {
@@ -71,6 +79,16 @@ void rtValue::setInt32(int32_t v) {
 void rtValue::setUInt32(uint32_t v) {
   setEmpty();
   mType = RT_uint32_tType; mValue.uint32Value = v;
+}
+
+void rtValue::setInt64(int64_t v) {
+  setEmpty();
+  mType = RT_int64_tType; mValue.int64Value = v;
+}
+
+void rtValue::setUInt64(uint64_t v) {
+  setEmpty();
+  mType = RT_uint64_tType; mValue.uint64Value = v;
 }
 
 void rtValue::setFloat(float v) {
@@ -169,6 +187,26 @@ rtError rtValue::getUInt32(uint32_t& v) const {
   return RT_OK;
 }
 
+
+rtError rtValue::getInt64(int64_t& v) const {
+  if (mType == RT_int64_tType) v = mValue.int64Value;
+  else {
+    rtValue t = *this;
+    t.coerceType(RT_int64_tType);
+    v = t.mValue.int64Value;
+  }
+  return RT_OK;
+}
+
+rtError rtValue::getUInt64(uint64_t& v) const {
+  if (mType == RT_uint64_tType) v = mValue.uint64Value;
+  else {
+    rtValue t = *this;
+    t.coerceType(RT_uint64_tType);
+    v = t.mValue.int64Value;
+  }
+  return RT_OK;
+}
 rtError rtValue::getFloat(float& v) const {
   if (mType == RT_floatType) v = mValue.floatValue;
   else {

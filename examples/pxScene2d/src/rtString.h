@@ -29,7 +29,7 @@ public:
   void append(const char* s);
 
   int compare(const char* s) const;
-  int32_t length();
+  int32_t length() const;
 
 #if 0
   void subst(const char* before, const char* after) {

@@ -1,31 +1,7 @@
 #include "px.h"
+#include <rtObjectMacros.h>
 
 using namespace v8;
-
-namespace
-{
-  Handle<Value> toJs(px::JavaScriptCallback::Argument::ArgType type,
-    px::JavaScriptCallback::Argument::ArgData data)
-  {
-    switch (type)
-    {
-      case px::JavaScriptCallback::Argument::AT_I2:
-        return Integer::New(data.sVal);
-        break;
-      case px::JavaScriptCallback::Argument::AT_I4:
-        return Integer::New(data.iVal);
-        break;
-      case px::JavaScriptCallback::Argument::AT_UL:
-        return Integer::NewFromUnsigned(data.ulVal);
-        break;
-      default:
-        // TODO: FAIL
-        assert(false);
-        break;
-    }
-  }
-}
-
 
 namespace px
 {
@@ -55,7 +31,7 @@ namespace px
   {
     Handle<Value>* args = new Handle<Value>[m_args.size()];
     for (size_t i = 0; i < m_args.size(); ++i)
-      args[i] = toJs(m_args[i].Type, m_args[i].Data);
+      args[i] = rt::rt2js(m_args[i]);
     return args;
   }
 

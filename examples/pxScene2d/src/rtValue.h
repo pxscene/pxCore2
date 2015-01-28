@@ -22,6 +22,8 @@ union rtValue_ {
   int8_t      int8Value;
   uint8_t     uint8Value;
   int32_t     int32Value;
+  int64_t     int64Value;
+  uint64_t    uint64Value;
   uint32_t    uint32Value;
   float       floatValue;
   double      doubleValue;
@@ -41,6 +43,8 @@ class rtValue {
   rtValue(uint8_t v);
   rtValue(int32_t v);
   rtValue(uint32_t v);
+  rtValue(int64_t v);
+  rtValue(uint64_t v);
   rtValue(float v);
   rtValue(double v);
   rtValue(const char* v);
@@ -55,6 +59,8 @@ class rtValue {
   finline rtValue& operator=(uint8_t v)             { setUInt8(v);    return *this; }
   finline rtValue& operator=(int32_t v)             { setInt32(v);    return *this; }
   finline rtValue& operator=(uint32_t v)            { setUInt32(v);   return *this; }
+  finline rtValue& operator=(int64_t v)             { setInt64(v);    return *this; }
+  finline rtValue& operator=(uint64_t v)            { setUInt64(v);   return *this; }
   finline rtValue& operator=(float v)               { setFloat(v);    return *this; }
   finline rtValue& operator=(double v)              { setDouble(v);   return *this; }  
   finline rtValue& operator=(rtIObject* v)          { setObject(v);   return *this; }
@@ -73,6 +79,8 @@ class rtValue {
   void cvt(uint8_t& v)                const { getUInt8(v);    }
   void cvt(int32_t& v)                const { getInt32(v);    }
   void cvt(uint32_t& v)               const { getUInt32(v);   }
+  void cvt(int64_t& v)                const { getInt64(v);    }
+  void cvt(uint64_t& v)               const { getUInt64(v);   }
   void cvt(float& v)                  const { getFloat(v);    }
   void cvt(double& v)                 const { getDouble(v);   }
   void cvt(rtString& v)               const { getString(v);   }
@@ -86,7 +94,9 @@ class rtValue {
   void asn(uint8_t v)                       { setUInt8(v);    }
   void asn(int32_t v)                       { setInt32(v);    }
   void asn(uint32_t v)                      { setUInt32(v);   }
-  void asn(float v)                         { setFloat(v);   }
+  void asn(int64_t v)                       { setInt64(v);    }
+  void asn(uint64_t v)                      { setUInt64(v);   }
+  void asn(float v)                         { setFloat(v);    }
   void asn(double v)                        { setDouble(v);   }
   void asn(const char* v)                   { setString(v);   }
   void asn(const rtString& v)               { setString(v);   }
@@ -101,6 +111,8 @@ class rtValue {
   finline uint8_t    toUInt8()  const { uint8_t v;     getUInt8(v);  return v; }
   finline int32_t    toInt32()  const { int32_t v;     getInt32(v);  return v; }
   finline uint32_t   toUInt32() const { int32_t v;     getInt32(v);  return v; }
+  finline int64_t    toInt64()  const { int64_t v(0);  getInt64(v);  return v; }
+  finline uint64_t   toUInt64() const { uint64_t v(0); getUInt64(v); return v; }
   finline float      toFloat() const  { float v;       getFloat(v);  return v; }
   finline double     toDouble() const { double v;      getDouble(v); return v; }
   finline rtString   toString() const { rtString v;    getString(v); return v; }
@@ -128,6 +140,8 @@ class rtValue {
   void setUInt8(uint8_t v);
   void setInt32(int32_t v);
   void setUInt32(uint32_t v);
+  void setInt64(int64_t v);
+  void setUInt64(uint64_t v);
   void setFloat(float v);
   void setDouble(double v);
   void setString(const rtString& v);
@@ -142,6 +156,8 @@ class rtValue {
   rtError getInt8(int8_t& v)            const;
   rtError getUInt8(uint8_t& v)          const;
   rtError getInt32(int32_t& v)          const;
+  rtError getInt64(int64_t& v)          const;
+  rtError getUInt64(uint64_t& v)        const;
   rtError getUInt32(uint32_t& v)        const;
   rtError getFloat(float& v)            const;
   rtError getDouble(double& v)          const;

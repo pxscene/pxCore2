@@ -43,14 +43,15 @@ namespace
       , m_eventLoop(new pxEventLoop())
       , m_scene(new pxScene2d())
     {
-      pthread_mutexattr_t attr;
-      pthread_mutexattr_init(&attr);
-      pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-      pthread_mutex_init(&m_mutex, NULL); // &attr);
+      m_javaScene = Persistent<Object>::New(px::scene::Scene2d::New(m_scene));
 
       init(x, y, w, h);
-      // initGL();
       startEventProcessingThread();
+    }
+    
+    const Persistent<Object> scene() const
+    {
+        return m_javaScene;
     }
 
     void startEventProcessingThread()
@@ -60,7 +61,6 @@ namespace
 
     virtual ~jsWindow()
     { 
-      pthread_mutex_destroy(&m_mutex);
       delete [] m_callbacks;
     }
 
@@ -88,9 +88,7 @@ namespace
     Persistent<Function> GetCallback(WindowCallback index)
     {
       Persistent<Function> func;
-      pthread_mutex_lock(&m_mutex);
       func = m_callbacks[index];
-      pthread_mutex_unlock(&m_mutex);
       return func;
     }
 
@@ -167,38 +165,38 @@ namespace
 
     virtual void onDraw(pxSurfaceNative s)
     {
-      // m_scene->onDraw();
+      m_scene->onDraw();
     }
-
   private:
     Persistent<Function>* m_callbacks;
-    pthread_mutex_t m_mutex;
+    Persistent<Object> m_javaScene;
+
     pthread_t m_eventLoopThread;
     pxEventLoop* m_eventLoop;
-    pxScene2d* m_scene;
+    pxScene2dRef m_scene;
   };
 }
 
 namespace px
 {
-  template<typename TWrapper, typename TPXObject> 
-  Persistent<Function> WrapperObject<TWrapper, TPXObject>::m_ctor;
+  Persistent<Function> Window::m_ctor;
 
   void Window::Export(Handle<Object> exports)
   {
-    Local<FunctionTemplate> t = FunctionTemplate::New(New);
-    t->SetClassName(String::NewSymbol(kClassName));
-    t->InstanceTemplate()->SetInternalFieldCount(1);
+    Local<FunctionTemplate> tmpl = FunctionTemplate::New(New);
+    tmpl->SetClassName(String::NewSymbol(kClassName));
 
-    Local<Template> proto = t->PrototypeTemplate();
+    Local<Template> proto = tmpl->PrototypeTemplate();
     proto->Set(String::NewSymbol("close"), FunctionTemplate::New(Close)->GetFunction());
     proto->Set(String::NewSymbol("on"), FunctionTemplate::New(OnEvent)->GetFunction());
 
-    Local<ObjectTemplate> inst = t->InstanceTemplate();
+    Local<ObjectTemplate> inst = tmpl->InstanceTemplate();
+    inst->SetInternalFieldCount(1);
     inst->SetAccessor(String::New("visible"), Window::GetVisible, Window::SetVisible);
     inst->SetAccessor(String::New("title"), NULL, Window::SetTitle);
+    inst->SetAccessor(String::New("scene"), Window::GetScene, NULL);
 
-    m_ctor = Persistent<Function>::New(t->GetFunction());
+    m_ctor = Persistent<Function>::New(tmpl->GetFunction());
     exports->Set(String::NewSymbol(kClassName), m_ctor);
   }
 
@@ -211,6 +209,12 @@ namespace px
   v8::Handle<v8::Value> Window::GetVisible(Local<String> prop, const AccessorInfo& info)
   {
     return Boolean::New(unwrap(info)->visibility());
+  }
+
+  v8::Handle<v8::Value> Window::GetScene(Local<String> prop, const AccessorInfo& info)
+  {
+    jsWindow* win = static_cast<jsWindow *>(node::ObjectWrap::Unwrap<px::Window>(info.This())->m_obj);
+    return win->scene();
   }
 
   void Window::SetVisible(Local<String> prop, Local<Value> value, const AccessorInfo& info)

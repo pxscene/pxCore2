@@ -5,18 +5,23 @@
 #include <v8.h>
 #include <vector>
 
+#include <rtValue.h>
+#include <pxScene2d.h>
+#include <rtObject.h>
+
 class pxEventLoop;
 class pxObject;
 class pxOffscreen;
 class pxScene2d;
 class pxWindow;
 
+
 #define PX_DECL_PROPGET(NAME) static v8::Handle<v8::Value> Get ## NAME(v8::Local<v8::String> prop, const v8::AccessorInfo& info)
 #define PX_DECL_PROPSET(NAME) static void Set ## NAME(v8::Local<v8::String> prop, v8::Local<v8::Value> value, const v8::AccessorInfo& info)
 
 #define PX_DECL_FUNC(NAME) static v8::Handle<v8::Value> NAME(const v8::Arguments& args);
 
-#define PXPTR(P) (P)->m_pxObject
+#define PXPTR(P) (P)->m_obj
 
 
 #define CHECK_ARGLENGTH(N) \
@@ -35,26 +40,57 @@ if (args.Length() != (N)) { \
     return scope.Close(v8::Undefined()); \
   } while (0);
 
-namespace px
+template<typename WrapperType, typename PXObjectType> 
+class WrapperObject : public node::ObjectWrap
 {
-  template<typename TWrapper, typename TPXObject> 
-  class WrapperObject : public node::ObjectWrap
+protected:
+  WrapperObject(PXObjectType* obj) : m_obj(obj) { m_obj->AddRef(); }
+  virtual ~WrapperObject()  { m_obj->Release(); }
+
+  static PXObjectType* unwrap(const v8::AccessorInfo& info)
+    { return node::ObjectWrap::Unwrap<WrapperType>(info.This())->m_obj; }
+  static PXObjectType* unwrap(const v8::Arguments& args)
+    { return node::ObjectWrap::Unwrap<WrapperType>(args.This())->m_obj; }
+protected:
+  PXObjectType* m_obj;
+};
+
+
+namespace rt
+{
+  v8::Handle<v8::Value> rt2js(const rtValue& val, rtObject* rt = NULL, const v8::Handle<v8::Object>& js = v8::Handle<v8::Object>());
+  rtValue js2rt(const v8::Handle<v8::Value>& val);
+
+  class Object : public WrapperObject<Object, rtObject>
   {
-  protected:
-    static TPXObject* unwrap(const v8::AccessorInfo& info)
-    {
-      return node::ObjectWrap::Unwrap<TWrapper>(info.This())->m_pxObject;
-    }
-    static TPXObject* unwrap(const v8::Arguments& args)
-    {
-      return node::ObjectWrap::Unwrap<TWrapper>(args.This())->m_pxObject;
-    }
-  protected:
-    TPXObject* m_pxObject;
-  protected:
-    static v8::Persistent<v8::Function> m_ctor;
+  public:
+    Object(rtObject* obj) : WrapperObject<Object, rtObject>(obj) { }
+    virtual ~Object() { }
+  public:
+    static void Inherit(v8::Local<v8::FunctionTemplate> derived);
+  private:
+    PX_DECL_FUNC(Set);
+    PX_DECL_FUNC(Get);
   };
 
+  class Function : public WrapperObject<Function, rtIFunction>
+  {
+  public:
+    static v8::Handle<v8::Object> New(const rtFunctionRef& func);
+    static void Export(v8::Handle<v8::Object> exports);
+  private:
+    Function(rtIFunction* obj) : WrapperObject<Function, rtIFunction>(obj) { }
+    virtual ~Function() { }
+
+    PX_DECL_FUNC(New);
+    PX_DECL_FUNC(Invoke);
+  private:
+    static v8::Persistent<v8::Function> m_ctor;
+  };
+}
+
+namespace px
+{
   struct IPersistentFunctionLookup
   {
     virtual ~IPersistentFunctionLookup() { }
@@ -63,35 +99,13 @@ namespace px
 
   struct JavaScriptCallback
   {
-    struct Argument
-    {
-      enum ArgType {
-        AT_I2,
-        AT_I4,
-        AT_UL
-      };
-
-      union ArgData {
-        int32_t iVal;
-        unsigned long ulVal;
-        int16_t sVal;
-      };
-
-      ArgType Type;
-      ArgData Data;
-
-      Argument(int32_t i) : Type(AT_I4) { Data.iVal = i; }
-      Argument(int16_t s) : Type(AT_I2) { Data.sVal = s; }
-      Argument(unsigned long ul) : Type(AT_UL) { Data.ulVal = ul; }
-    };
-
     virtual v8::Handle<v8::Value>* MakeArgs();
     virtual void Enqueue();
 
     static JavaScriptCallback* New() { return new JavaScriptCallback(); }
 
-    JavaScriptCallback* AddArg(Argument arg)
-      { m_args.push_back(arg); return this; }
+    JavaScriptCallback* AddArg(const rtValue& val)
+      { m_args.push_back(val); return this; }
 
     JavaScriptCallback* SetFunctionLookup(IPersistentFunctionLookup* functionLookup)
       { m_functionLookup = functionLookup; return this; }
@@ -100,7 +114,7 @@ namespace px
     static void DoCallback(uv_work_t* req, int status);
 
   private:
-    std::vector<Argument> m_args;
+    std::vector<rtValue> m_args;
     uv_work_t m_req;
     IPersistentFunctionLookup* m_functionLookup;
 
@@ -108,10 +122,7 @@ namespace px
     virtual ~JavaScriptCallback();
   };
 
-
-
-
-  class Window : public WrapperObject<Window, pxWindow>
+  class Window : public node::ObjectWrap
   {
   public:
       static void Export(v8::Handle<v8::Object> exports);
@@ -123,9 +134,18 @@ namespace px
     PX_DECL_PROPGET(Visible);
     PX_DECL_PROPSET(Visible);
     PX_DECL_PROPSET(Title);
+    PX_DECL_PROPGET(Scene);
+  private:
+    static v8::Persistent<v8::Function> m_ctor;
+    static pxWindow* unwrap(const v8::AccessorInfo& info)
+    { return node::ObjectWrap::Unwrap<Window>(info.This())->m_obj; }
+    static pxWindow* unwrap(const v8::Arguments& args)
+    { return node::ObjectWrap::Unwrap<Window>(args.This())->m_obj; }
+  protected:
+    pxWindow* m_obj;
   };
 
-  class EventLoop : public WrapperObject<EventLoop, pxEventLoop>
+  class EventLoop : public node::ObjectWrap
   {
   public:
     static void Export(v8::Handle<v8::Object> exports);
@@ -133,9 +153,17 @@ namespace px
     PX_DECL_FUNC(New);
     PX_DECL_FUNC(Run);
     PX_DECL_FUNC(Exit);
+  private:
+    static v8::Persistent<v8::Function> m_ctor;
+    static pxEventLoop* unwrap(const v8::AccessorInfo& info)
+      { return node::ObjectWrap::Unwrap<EventLoop>(info.This())->m_obj; }
+    static pxEventLoop* unwrap(const v8::Arguments& args)
+      { return node::ObjectWrap::Unwrap<EventLoop>(args.This())->m_obj; }
+  private:
+    pxEventLoop* m_obj;
   };
 
-  class Offscreen : public WrapperObject<Offscreen, pxOffscreen>
+  class Offscreen : public node::ObjectWrap
   {
   public:
     static void Export(v8::Handle<v8::Object> exports);
@@ -143,30 +171,31 @@ namespace px
     PX_DECL_FUNC(New);
     PX_DECL_FUNC(Init);
     PX_DECL_FUNC(InitWithColor);
+  private:
+    static pxOffscreen* unwrap(const v8::AccessorInfo& info)
+      { return node::ObjectWrap::Unwrap<Offscreen>(info.This())->m_obj; }
+    static pxOffscreen* unwrap(const v8::Arguments& args)
+      { return node::ObjectWrap::Unwrap<Offscreen>(args.This())->m_obj; }
+    static v8::Persistent<v8::Function> m_ctor;
+  private:
+    pxOffscreen* m_obj;
   };
-
-
 
 
   namespace scene
   {
-    class BaseObject
-    {
-    public:
-      static void Inherit(v8::Local<v8::FunctionTemplate> child);
-    }; 
-
-    class Scene2d : public node::ObjectWrap
+    class Scene2d : public rt::Object
     {
       public:
+        static v8::Handle<v8::Object> New(const pxScene2dRef& scene);
         static void Export(v8::Handle<v8::Object> exports);
       private:
+        Scene2d(pxScene2d* s) : rt::Object(s) { }
+        virtual ~Scene2d() { }
         PX_DECL_FUNC(New);
         PX_DECL_FUNC(GetRoot);
       private:
         static v8::Persistent<v8::Function> m_ctor;
-      private:
-        pxScene2d* m_scene;
     };
   }
 
