@@ -14,6 +14,20 @@
 #include "pxOffscreen.h"
 #include <stdio.h>
 
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
+#ifdef ENABLE_GLUT
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
+#else
+#include <GLES2/gl2.h>
+#endif
+#endif
+
 #include "rtLog.h"
 #include "rtRefT.h"
 #include "rtPathUtils.h"
@@ -23,7 +37,12 @@
 
 #include "testScene.h"
 
+#include "pxThreadPool.h"
+#include "pxThreadTask.h"
+#include "pxImageDownloader.h"
+
 extern rtRefT<pxScene2d> scene;
+
 
 pxEventLoop eventLoop;
 
@@ -211,6 +230,22 @@ private:
     }
 };
 
+void imageDownloadComplete(int statusCode, pxImageDownloadRequest* imageDownloadRequest)
+{
+    if (statusCode == 0)
+    {
+        //if successful, save the image to disk for testing
+        char* downloadData = imageDownloadRequest->getDownloadedData();
+        size_t downloadSize = imageDownloadRequest->getDownloadedDataSize();
+        
+        FILE *file = fopen("image.jpg", "wb");
+        fwrite(downloadData, sizeof(char), downloadSize, file);
+        fclose(file);
+    }
+    
+    delete imageDownloadRequest;
+}
+
 int pxMain()
 {
     char title[] = { "pxCore!" };
@@ -226,7 +261,12 @@ int pxMain()
     scene->onSize(width, height);
     win.setTitle(title);
     win.setVisibility(true);
-
+    
+    
+    pxImageDownloadRequest* downloadRequest = new pxImageDownloadRequest("http://upload.wikimedia.org/wikipedia/commons/c/c9/Moon.jpg");
+    downloadRequest->setCallbackFunction(imageDownloadComplete);
+    pxImageDownloader::getInstance()->addToDownloadQueue(downloadRequest);
+    
     eventLoop.run();
 
     return 0;
