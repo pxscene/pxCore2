@@ -58,7 +58,7 @@ protected:
 
 namespace rt
 {
-  v8::Handle<v8::Value> rt2js(const rtValue& val, rtObject* rt = NULL, const v8::Handle<v8::Object>& js = v8::Handle<v8::Object>());
+  v8::Handle<v8::Value> rt2js(const rtValue& val);
   rtValue js2rt(const v8::Handle<v8::Value>& val);
 
   class Object : public WrapperObject<Object, rtObject>
@@ -71,6 +71,8 @@ namespace rt
   private:
     PX_DECL_FUNC(Set);
     PX_DECL_FUNC(Get);
+    PX_DECL_PROPSET(Property);
+    PX_DECL_PROPGET(Property);
   };
 
   class Function : public WrapperObject<Function, rtIFunction>

@@ -1,59 +1,110 @@
 #include "px.h"
 #include "pxScene2d.h"
 
-namespace rt
+using namespace v8;
+
+namespace
 {
-  void Object::Inherit(v8::Local<v8::FunctionTemplate> derived)
+  rtString toString(const v8::Handle<v8::Object>& obj)
   {
-    v8::Local<v8::Template> proto = derived->PrototypeTemplate();
-    proto->Set(v8::String::NewSymbol("get"), v8::FunctionTemplate::New(Get)->GetFunction());
+    v8::String::Utf8Value utf(obj->ToString());
+    return rtString(*utf);
   }
 
-  v8::Handle<v8::Value> Object::Get(const v8::Arguments& args)
+  rtString toString(const v8::Handle<v8::Value>& val)
   {
-    v8::HandleScope scope;
-    v8::Local<v8::Object> self = args.This();
-    v8::String::Utf8Value propertyName(args[0]->ToString());
+    v8::String::Utf8Value utf(val->ToString());
+    return rtString(*utf);
+  }
+
+  rtString toString(const v8::Local<v8::String>& s)
+  {
+    v8::String::Utf8Value utf(s);
+    return rtString(*utf);
+  }
+}
+
+namespace rt
+{
+  void rt::Object::Inherit(Local<FunctionTemplate> derived)
+  {
+    Local<Template> proto = derived->PrototypeTemplate();
+    proto->Set(String::NewSymbol("get"), FunctionTemplate::New(Get)->GetFunction());
+  }
+
+  Handle<Value> rt::Object::GetProperty(Local<String> name, const AccessorInfo& info)
+  {
+    rtString propertyName = toString(name);
+
+    rtValue value;
+    rtError err = unwrap(info)->Get(propertyName.cString(), &value);
+    if (err != RT_OK)
+      return Handle<Value>(Undefined());
+
+    return rt2js(value);
+  }
+
+  void rt::Object::SetProperty(Local<String> name, Local<Value> val, const AccessorInfo& info)
+  {
+    rtString propertyName = toString(name);
+
+    rtValue value = js2rt(val);
+    rtError err = unwrap(info)->Set(propertyName.cString(), &value);
+    if (err != RT_OK)
+    {
+      // TODO: throw
+    }
+  }
+
+  Handle<Value> rt::Object::Get(const Arguments& args)
+  {
+    HandleScope scope;
+    Local<v8::Object> self = args.This();
+    String::Utf8Value propertyName(args[0]->ToString());
 
     rt::Object* obj = node::ObjectWrap::Unwrap<rt::Object>(self);
 
     rtValue value(RT_OK);
     rtError err = obj->m_obj->Get(*propertyName, &value);
     if (err == RT_OK)
-      return scope.Close(rt2js(value, obj->m_obj, self));
+      return scope.Close(rt2js(value)); // , obj->m_obj, self));
       
-    return scope.Close(v8::Undefined());
+    return scope.Close(Undefined());
   }
 
-  v8::Handle<v8::Value> Object::Set(const v8::Arguments& args)
+  Handle<Value> rt::Object::Set(const Arguments& args)
   {
-    v8::HandleScope scope;
-    v8::Local<v8::Object> self = args.This();
-    v8::String::Utf8Value propertyName(args[0]->ToString());
+    HandleScope scope;
+    Local<v8::Object> self = args.This();
+    String::Utf8Value propertyName(args[0]->ToString());
 
     rt::Object* obj = node::ObjectWrap::Unwrap<rt::Object>(self);
     
     rtValue value = js2rt(args[1]);
     rtError err = obj->m_obj->Set(*propertyName, &value);
+    if (err != RT_OK)
+    {
+      // TODO: throw
+    }
 
-    return scope.Close(v8::Undefined());
+    return scope.Close(Undefined());
   }
 
-  v8::Handle<v8::Value> rt2js(const rtValue& v, rtObject* rt, const v8::Handle<v8::Object>& js)
+  Handle<Value> rt2js(const rtValue& v)
   {
     switch (v.getType())
     {
       case RT_int32_tType:
-        return v8::Integer::New(v.toInt32());
+        return Integer::New(v.toInt32());
         break;
       case RT_uint32_tType:
-        return v8::Integer::NewFromUnsigned(v.toUInt32());
+        return Integer::NewFromUnsigned(v.toUInt32());
         break;
       case RT_int64_tType:
-        return v8::Number::New(v.toDouble());
+        return Number::New(v.toDouble());
         break;
       case RT_uint64_tType:
-        return v8::Number::New(v.toDouble());
+        return Number::New(v.toDouble());
         break;
       case RT_functionType:
         return rt::Function::New(v.toFunction());
@@ -61,23 +112,34 @@ namespace rt
       case RT_rtStringType:
         {
           rtString s = v.toString();
-          return v8::String::New(s.cString(), s.length());
+          return String::New(s.cString(), s.length());
         }
         break;
       default:
-        // TODO: FAIL
-        fprintf(stderr, "unsupported rt type: %c\n", v.getType());
+        fprintf(stderr, "unsupported rtValue (%c)  to javascript conversion", v.getType());
         assert(false);
         break;
     }
 
-    return v8::Undefined();
+    return Undefined();
   }
 
-  rtValue js2rt(const v8::Handle<v8::Value>& val)
+  rtValue js2rt(const Handle<Value>& val)
   {
-    fprintf(stderr, "Implemente me: %s:%d\n", __FILE__, __LINE__);
+    if (val->IsUndefined()) { return rtValue((void *)0); }
+    if (val->IsNull())      { return rtValue((char *)0); }
+    if (val->IsString())    { return toString(val); }
+    if (val->IsFunction())  { assert(false); return rtValue(0); }
+    if (val->IsArray())     { assert(false); return rtValue(0); }
+    if (val->IsObject())    { assert(false); return rtValue(0); }
+    if (val->IsBoolean())   { return rtValue(val->BooleanValue()); }
+    if (val->IsNumber())    { return rtValue(val->NumberValue()); }
+    if (val->IsInt32())     { return rtValue(val->Int32Value()); }
+    if (val->IsUint32())    { return rtValue(val->Uint32Value()); }
+
+    fprintf(stderr, "unsupported javasciprt -> rtValue type conversion");
     assert(false);
+
     return rtValue(0);
   }
 }
