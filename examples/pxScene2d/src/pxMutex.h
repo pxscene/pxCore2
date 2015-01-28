@@ -1,7 +1,7 @@
 #ifndef PX_MUTEX_H
 #define PX_MUTEX_H
 
-#include "pxCore.h"
+#include "rtCore.h"
 
 class pxMutex : public pxMutexNative
 {

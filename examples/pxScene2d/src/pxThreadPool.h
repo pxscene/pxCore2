@@ -1,7 +1,7 @@
 #ifndef PX_THREAD_POOL_H
 #define PX_THREAD_POOL_H
 
-#include "pxCore.h"
+#include "rtCore.h"
 
 class pxThreadPool : public pxThreadPoolNative
 {
