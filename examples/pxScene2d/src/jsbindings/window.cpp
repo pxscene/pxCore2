@@ -229,7 +229,10 @@ namespace px
     CHECK_ARGLENGTH(2);
 
     if (!args[1]->IsFunction())
+    {
       PX_THROW(TypeError, "second argument is not callable");
+      return scope.Close(Undefined());
+    }
 
     String::Utf8Value s(args[0]->ToString());
     std::string name(*s);
@@ -248,6 +251,7 @@ namespace px
     else if (name == "keyup")         index = eKeyUp;
     else {
       PX_THROW(RangeError, "invalid event: %s", name.c_str());
+      return scope.Close(Undefined());
     }
 
     static_cast<jsWindow *>(unwrap(args))

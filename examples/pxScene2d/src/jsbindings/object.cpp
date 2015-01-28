@@ -51,23 +51,19 @@ namespace rt
     rtValue value = js2rt(val);
     rtError err = unwrap(info)->Set(propertyName.cString(), &value);
     if (err != RT_OK)
-    {
-      // TODO: throw
-    }
+      PX_THROW(Error, "failed to set property %s. %lu", propertyName.cString(), err);
   }
 
   Handle<Value> rt::Object::Get(const Arguments& args)
   {
     HandleScope scope;
-    Local<v8::Object> self = args.This();
-    String::Utf8Value propertyName(args[0]->ToString());
 
-    rt::Object* obj = node::ObjectWrap::Unwrap<rt::Object>(self);
+    rtString propertyName = toString(args[0]->ToString());
 
     rtValue value(RT_OK);
-    rtError err = obj->m_obj->Get(*propertyName, &value);
+    rtError err = unwrap(args)->Get(propertyName.cString(), &value);
     if (err == RT_OK)
-      return scope.Close(rt2js(value)); // , obj->m_obj, self));
+      return scope.Close(rt2js(value)); 
       
     return scope.Close(Undefined());
   }
@@ -75,17 +71,13 @@ namespace rt
   Handle<Value> rt::Object::Set(const Arguments& args)
   {
     HandleScope scope;
-    Local<v8::Object> self = args.This();
-    String::Utf8Value propertyName(args[0]->ToString());
 
-    rt::Object* obj = node::ObjectWrap::Unwrap<rt::Object>(self);
-    
+    rtString propertyName = toString(args[0]->ToString());
+
     rtValue value = js2rt(args[1]);
-    rtError err = obj->m_obj->Set(*propertyName, &value);
+    rtError err = unwrap(args)->Set(propertyName.cString(), &value);
     if (err != RT_OK)
-    {
-      // TODO: throw
-    }
+      PX_THROW(Error, "failed to set property %s. %lu", propertyName.cString(), err);
 
     return scope.Close(Undefined());
   }

@@ -37,7 +37,6 @@ if (args.Length() != (N)) { \
     char buff[256]; \
     snprintf(buff, sizeof(buff), format, ##__VA_ARGS__); \
     v8::ThrowException(v8::Exception::TYPE(v8::String::New(buff))); \
-    return scope.Close(v8::Undefined()); \
   } while (0);
 
 template<typename WrapperType, typename PXObjectType> 
