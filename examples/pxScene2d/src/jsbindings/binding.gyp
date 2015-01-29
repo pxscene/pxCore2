@@ -16,9 +16,11 @@
         "../rtLog.cpp",
         "../rtString.cpp",
         "../rtValue.cpp",
+        "../utf8.c",
 
         "../pxContextGL.cpp",
         "../pxImage.cpp",
+        "../pxImage9.cpp",
         "../pxScene2d.cpp",
         "../pxText.cpp",
         "../pxUtil.cpp"
