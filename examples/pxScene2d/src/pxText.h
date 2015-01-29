@@ -12,14 +12,29 @@ class pxText: public pxObject {
 public:
   rtDeclareObject(pxText, pxObject);
   rtProperty(text, text, setText, rtString);
+  rtProperty(textColor, textColor, setTextColor, uint32_t);
 
   pxText();
   rtError text(rtString& s) const;
   rtError setText(const char* text);
 
+  rtError textColor(uint32_t& /*c*/) const {
+    
+    return RT_OK;
+  }
+
+  rtError setTextColor(uint32_t c) {
+    mTextColor[0] = (float)((c>>24)&0xff)/255.0f;
+    mTextColor[1] = (float)((c>>16)&0xff)/255.0f;
+    mTextColor[2] = (float)((c>>8)&0xff)/255.0f;
+    mTextColor[3] = (float)((c>>0)&0xff)/255.0f;
+    return RT_OK;
+  }
+
  protected:
   virtual void draw();
   rtString mText;
+  float mTextColor[4];
 };
 
 #endif

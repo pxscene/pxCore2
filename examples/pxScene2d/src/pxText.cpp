@@ -33,8 +33,8 @@ void initFT() {
     return;
   }
   
-  //  if(FT_New_Face(ft, "FreeSans.ttf", 0, &face)) {
-  if(FT_New_Face(ft, "FontdinerSwanky.ttf", 0, &face)) {
+  if(FT_New_Face(ft, "FreeSans.ttf", 0, &face)) {
+  //    if(FT_New_Face(ft, "FontdinerSwanky.ttf", 0, &face)) {
     rtLog("Could not load font face: \n");
     return;
   }
@@ -48,7 +48,6 @@ void measureText(const char* text, float sx, float sy, float& w, float& h) {
   int i = 0;
   u_int32_t codePoint;
 
-  //  for(const char* p = text; *p; p++) {
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) {
 
     // TODO don't render glyph
@@ -65,15 +64,16 @@ void measureText(const char* text, float sx, float sy, float& w, float& h) {
 
 }
 
-void renderText(const char *text, float x, float y, float sx, float sy) {
+void renderText(const char *text, float x, float y, float sx, float sy, float* color) {
   if (!text) return;
   int i = 0;
   u_int32_t codePoint;
 
-  //  for(const char* p = text; *p; p++) {
+  //printf("renderText %s\n", text);
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) {
 
     if(FT_Load_Char(face, codePoint, FT_LOAD_RENDER)) {
+      //printf("xxx\n");
       rtLog("Could not load glyph: %d\n", codePoint);
       continue;
     }
@@ -85,7 +85,7 @@ void renderText(const char *text, float x, float y, float sx, float sy) {
     float w = g->bitmap.width * sx;
     float h = g->bitmap.rows * sy;
 
-    context.renderGlyph(x2, y2, w, h, g->bitmap.width, g->bitmap.rows, g->bitmap.buffer);
+    context.drawImageAlpha(x2, y2, w, h, g->bitmap.width, g->bitmap.rows, g->bitmap.buffer, color);
 
     x += (g->advance.x >> 6) * sx;
     y += (g->advance.y >> 6) * sy;
@@ -94,6 +94,8 @@ void renderText(const char *text, float x, float y, float sx, float sy) {
 
 pxText::pxText() {
   initFT();
+  float c[4] = {0, 0, 0, 1};
+  memcpy(mTextColor, c, sizeof(mTextColor));
 }
 
 rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
@@ -105,10 +107,10 @@ rtError pxText::setText(const char* s) {
 }
 
 void pxText::draw() {
-  renderText(mText, 0, 0, 1.0, 1.0);
+  renderText(mText, 0, 0, 1.0, 1.0, mTextColor);
 }
 
 rtDefineObject(pxText, pxObject);
 rtDefineProperty(pxText, text);
-
+rtDefineProperty(pxText, textColor);
 

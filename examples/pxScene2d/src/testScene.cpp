@@ -134,15 +134,18 @@ void testScene() {
       if (i == n-3) {
 	// utf8 test
 	p.set("text", "Iñtërnâtiônàližætiøn");
+	p.set("textColor", 0xffff00ff);
 	ny = 200;
       }
       else if (i == n-2) {
 	p.set("text", "pxCore!");
+	p.set("textColor", 0xff0000ff);
 	ny = 300;
       }
       else if (i == n-1) {
-	//utf8 test... This doesn't work yet
+	//utf8 test...
 	p.set("text", "Ādam");
+	p.set("textColor", 0x00ffffff);
 	ny = 400;
       }
       p.set("cx", p.get<float>("w")/2);
@@ -159,8 +162,8 @@ void testScene() {
     p.set("y", ny);
 
     p.set("rx", 0);
-    p.set("ry", 1);
-    p.set("rz", 0);
+    p.set("ry", 0);
+    p.set("rz", 1);
 
     p.send("animateTo", "r", 360, 1.0+(i*0.3), 0, 1);
     if (i < n-1) {

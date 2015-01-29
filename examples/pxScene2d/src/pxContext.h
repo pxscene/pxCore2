@@ -17,7 +17,7 @@ class pxContext {
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);
   void drawImage(float w, float h, pxOffscreen& o);
   void drawImage9(float w, float h, pxOffscreen& o);
-  void renderGlyph(float x, float y, float w, float h, int bw, int bh, void* buffer);
+  void drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color);
 };
 
 #endif

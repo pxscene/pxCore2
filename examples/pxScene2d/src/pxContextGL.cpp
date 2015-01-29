@@ -57,7 +57,7 @@ static const char *fShaderText =
   "gl_FragColor = texture2D(s_texture, v_uv);\n"
   "} else {\n"
   // text
-  "gl_FragColor = vec4(1, 1, 1, texture2D(s_texture, v_uv).a) * vec4(0, 0, 0, 1);"
+  "gl_FragColor = vec4(a_color.r, a_color.g, a_color.b, texture2D(s_texture, v_uv).a*a_color.a);"
   "}\n"
   "gl_FragColor.a *= u_alpha;"
   "}\n";
@@ -486,7 +486,7 @@ void pxContext::drawImage(float w, float h, pxOffscreen& o) {
   drawImage2(0, 0, w, h, o);
 }
 
-void pxContext::renderGlyph(float x, float y, float w, float h, int bw, int bh, void* buffer) {
+void pxContext::drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color) {
     glActiveTexture(GL_TEXTURE1);
     
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -520,6 +520,7 @@ void pxContext::renderGlyph(float x, float y, float w, float h, int bw, int bh, 
     };
     
     {
+      glUniform4fv(u_color, 1, color);
       glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
       glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
       glEnableVertexAttribArray(attr_pos);
