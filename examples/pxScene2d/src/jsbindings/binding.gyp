@@ -16,28 +16,34 @@
         "../rtLog.cpp",
         "../rtString.cpp",
         "../rtValue.cpp",
+        "../utf8.c",
 
-        # scene2d sources
         "../pxContextGL.cpp",
+        "../pxImage.cpp",
+        "../pxImage9.cpp",
         "../pxScene2d.cpp",
-        "../pxImage.cpp"
+        "../pxText.cpp",
+        "../pxUtil.cpp"
        ],
       "include_dirs" : [
-        "../../../../src/",
-        "../"
+        "../",
+        "../../external/png",
+        "../../external/ft/include",
+        "../../../../src"
       ],
       "libraries": [
-#        "-L../../../external/ft/objs/.libs/",
-#        "-L../../../external/png/.libs",
+        "-L../../../external/ft/objs/.libs/",
+        "-L../../../external/png/.libs",
         "../../../../../build/x11/libpxCore.a",
         "-lX11",
-#        "-lGL",
+        "-lfreetype",
         "-lglut",
         "-lGLEW",
+        "-lpng16",
+
+#        "-lGL",
 #        "-lrt",
-#        "-lpng16",
 #        "-lrt",
-#        "-lfreetype"
       ],
       "cflags": [
         "-DPX_PLATFORM_X11",

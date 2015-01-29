@@ -60,6 +60,7 @@ namespace rt
   {
     rtString propertyName = toString(name);
     rtLogDebug("getting property: %s", propertyName.cString());
+    rtLogDebug("\tData().IsArray(): %d", info.Data()->IsArray());
 
     rtValue value;
     rtError err = unwrap(info)->Get(propertyName.cString(), &value);
@@ -72,6 +73,8 @@ namespace rt
   Handle<Value> rt::Object::SetProperty(Local<String> name, Local<Value> val, const AccessorInfo& info)
   {
     rtString propertyName = toString(name);
+
+    rtLogDebug("setting property: %s", propertyName.cString());
 
     rtValue value = js2rt(val);
     rtError err = unwrap(info)->Set(propertyName.cString(), &value);
@@ -175,6 +178,12 @@ namespace rt
       case RT_int64_tType:
         return Number::New(v.toDouble());
         break;
+      case RT_floatType:
+        return Number::New(v.toFloat());
+        break;
+      case RT_doubleType:
+        return Number::New(v.toDouble());
+        break;
       case RT_uint64_tType:
         return Number::New(v.toDouble());
         break;
@@ -190,13 +199,22 @@ namespace rt
           return String::New(s.cString(), s.length());
         }
         break;
+      case 0: // This is really a value rtValue() will set mType to zero
+        return Handle<Value>();
+        break;
       default:
-        fprintf(stderr, "unsupported rtValue (%c)  to javascript conversion", v.getType());
-        assert(false);
+        rtLogFatal("unsupported rtValue [(char value(%c) int value(%d)] to javascript conversion",
+          v.getType(), v.getType());
         break;
     }
 
     return Undefined();
+  }
+
+  rtValue rt::Object::unwrapObject(const Local<v8::Object>& obj)
+  {
+    rt::Object* unwrapped = node::ObjectWrap::Unwrap<rt::Object>(obj);
+    return rtValue(rtObjectRef(unwrapped->m_obj));
   }
 
   rtValue js2rt(const Handle<Value>& val)
@@ -206,7 +224,7 @@ namespace rt
     if (val->IsString())    { return toString(val); }
     if (val->IsFunction())  { assert(false); return rtValue(0); }
     if (val->IsArray())     { assert(false); return rtValue(0); }
-    if (val->IsObject())    { assert(false); return rtValue(0); }
+    if (val->IsObject())    { return rt::Object::unwrapObject(val->ToObject()); }
     if (val->IsBoolean())   { return rtValue(val->BooleanValue()); }
     if (val->IsNumber())    { return rtValue(val->NumberValue()); }
     if (val->IsInt32())     { return rtValue(val->Int32Value()); }

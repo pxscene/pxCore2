@@ -43,7 +43,8 @@ namespace
       , m_eventLoop(new pxEventLoop())
       , m_scene(new pxScene2d())
     {
-      m_javaScene = Persistent<Object>::New(px::scene::Scene2d::New(m_scene));
+//      m_javaScene = Persistent<Object>::New(px::scene::Scene2d::New(m_scene));
+      m_javaScene = Persistent<Object>::New(rt::Object::New(m_scene.getPtr()));
 
       init(x, y, w, h);
       startEventProcessingThread();

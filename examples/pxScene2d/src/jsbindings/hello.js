@@ -1,4 +1,6 @@
 var px = require("./build/Debug/px");
+//var proc = require('process');
+
 var win = new px.Window(50, 50, 640, 480);
 win.title = "Hello World!";
 win.on("keydown", function(code, flags) {
@@ -21,7 +23,7 @@ function testScene()
 
   for (i = 0; i < n; ++i) {
     if (i < 1) {
-      p = scene.send("createRectangle");
+      p = scene.createRectangle();
       p.w = 300;
       p.h = 30;
       p.fillColor = 0x00ff00ff;
@@ -30,18 +32,18 @@ function testScene()
       p.animateTo("h", 600, 0.5, 0, 0);
     }
     else if (i < n-1) {
-      scene.sendReturns<rtObjectRef>("createImage", p);
-      p.url = d;
+      p = scene.createImage();
+      p.url = process.cwd() + "/../images/banana.jpg";
       p.cx = p.w/2;
       p.cy = p.h/2;
       ny = 100;
     }
     else {
-      scene.sendReturns<rtObjectRef>("createText", p);
+      p = scene.createText();
       p.text = "pxCore!";
       p.cx = 250;
-      p.send("animateTo", "sx", 2.0, 1.0, 0, 0);
-      p.send("animateTo", "sy", 2.0, 1.0, 0, 0);
+      p.animateTo("sx", 2.0, 1.0, 0, 0);
+      p.animateTo("sy", 2.0, 1.0, 0, 0);
       nx = 400;
       ny = 400;
     }
@@ -60,14 +62,12 @@ function testScene()
     p.ry = 1.0;
     p.rz = 0;
 
-    var f = p.animateTo;
-    f.send("animateTo", "r", 360, 1.0+(i*0.3), 0, 0);
+    p.animateTo("r", 360, 1.0+(i*0.3), 0, 0);
     if (i < n-1) {
-      f.send("animateTo", "x", 800, 1.0+(i*0.3), 0, 0);
+      p.animateTo("x", 800, 1.0+(i*0.3), 0, 0);
     }
 
-    var f = p.animateTo;
-    f.send("a", 0.1, 2.0, 0, 0);
+    p.animateTo("a", 0.1, 2.0, 0, 0);
   }
 }
 
