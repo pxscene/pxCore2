@@ -18,6 +18,7 @@
 
 #include "pxText.h"
 #include "pxImage.h"
+#include "pxImage9.h"
 
 #include "pxContext.h"
 
@@ -150,9 +151,11 @@ void rectangle::draw() {
   context.drawRect(mw, mh, mLineWidth, mFillColor, mLineColor);
 }
 
+#if 0
 void rectangle9::draw() {
   context.drawRect9(mw, mh, mLineWidth, mFillColor, mLineColor);  
 }
+#endif
   
 pxScene2d::pxScene2d():start(0),frameCount(0) { 
   mRoot = new pxObject(); 
@@ -175,6 +178,11 @@ rtError pxScene2d::createText(rtObjectRef& o) {
 
 rtError pxScene2d::createImage(rtObjectRef& o) {
   o = new pxImage;
+  return RT_OK;
+}
+
+rtError pxScene2d::createImage9(rtObjectRef& o) {
+  o = new pxImage9;
   return RT_OK;
 }
 
@@ -292,6 +300,7 @@ rtDefineProperty(pxScene2d, root);
 rtDefineMethod(pxScene2d, createRectangle);
 rtDefineMethod(pxScene2d, createText);
 rtDefineMethod(pxScene2d, createImage);
+rtDefineMethod(pxScene2d, createImage9);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) {
   return (*this)->Get(name, value);

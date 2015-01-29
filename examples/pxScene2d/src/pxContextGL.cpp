@@ -19,8 +19,6 @@
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
-
-
 GLuint textureId1, textureId2;
 
 GLint attribute_coord;
@@ -39,8 +37,6 @@ GLint u_texture = -1;
 GLint u_alphatexture = -1;
 GLint u_color = -1;
 GLint attr_pos = 0, attr_uv = 2;
-
-
 
 static const char *fShaderText =
 #ifdef PX_PLATFORM_WAYLAND_EGL
@@ -140,8 +136,6 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
   return program;
 }
 
-
-
 void draw9SliceRect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2) {
   
   float ox1 = x;
@@ -202,6 +196,25 @@ void draw9SliceRect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfl
   }
 }
 
+void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h) {
+  
+  const float verts[4][2] = {
+    { x,y },
+    {  x+w, y },
+    {  x,  y+h },
+    {  x+w, y+h }
+  };
+  
+  {
+    glUniform1f(u_alphatexture, 0.0);
+    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
+    glEnableVertexAttribArray(attr_pos);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDisableVertexAttribArray(attr_pos);
+  }
+}
+
+
 void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw) {
   
   float half = lw/2;
@@ -227,16 +240,6 @@ void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw) {
     { ix1,iy1 }
   };
   
-#if 0
-  const GLfloat uv[4][2] = {
-    { 0, 0 },
-    { 1, 0 },
-    { 0, 1 },
-    { 1, 1 }
-  };
-#endif
-  
-  
   {
     glUniform1f(u_alphatexture, 0.0);
 
@@ -258,7 +261,6 @@ void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen) {
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
   glActiveTexture(GL_TEXTURE0);
   glUniform1i(u_texture, 0);
-  //  glUniform1f(u_alphatexture, 1.0);
 
   const float verts[4][2] = {
     { x,y },
@@ -281,6 +283,125 @@ void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen) {
     glEnableVertexAttribArray(attr_pos);
     glEnableVertexAttribArray(attr_uv);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDisableVertexAttribArray(attr_pos);
+    glDisableVertexAttribArray(attr_uv);
+  }
+}
+
+void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2,
+		pxOffscreen& offscreen) {
+  
+  glActiveTexture(GL_TEXTURE0);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+	       offscreen.width(), offscreen.height(), 0, GL_BGRA_EXT,
+	       GL_UNSIGNED_BYTE, offscreen.base());
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+  glActiveTexture(GL_TEXTURE0);
+  glUniform1i(u_texture, 0);
+
+  float ox1 = x;
+  float ix1 = x+x1;
+  float ix2 = x+w-x2;
+  float ox2 = x+w;
+
+  float oy1 = y;
+  float iy1 = y+y1;
+  float iy2 = y+h-y2;
+  float oy2 = y+h;
+
+
+  
+  float w2 = offscreen.width();
+  float h2 = offscreen.height();
+
+  float ou1 = 0;
+  float iu1 = x1/w2;
+  float iu2 = (w2-x2)/w2;
+  float ou2 = 1;
+
+  float ov1 = 0;
+  float iv1 = y1/h2;
+  float iv2 = (h2-y2)/h2;
+  float ov2 = 1;
+
+#if 1 // sanitize values
+  iu1 = pxClamp<float>(iu1, 0, 1);
+  iu2 = pxClamp<float>(iu2, 0, 1);
+  iv1 = pxClamp<float>(iv1, 0, 1);
+  iv2 = pxClamp<float>(iv2, 0, 1);
+
+  float tmin, tmax;
+
+  tmin = pxMin<float>(iu1, iu2);
+  tmax = pxMax<float>(iu1, iu2);
+  iu1 = tmin;
+  iu2 = tmax;
+
+  tmin = pxMin<float>(iv1, iv2);
+  tmax = pxMax<float>(iv1, iv2);
+  iv1 = tmin;
+  iv2 = tmax;
+
+#endif
+
+  const GLfloat verts[22][2] = {
+    { ox1,oy1 },
+    { ix1,oy1 },
+    { ox1,iy1 },
+    { ix1,iy1 },
+    { ox1,iy2 },
+    { ix1,iy2 },
+    { ox1,oy2 },
+    { ix1,oy2 },
+    { ix2,oy2 },
+    { ix1,iy2 },
+    { ix2,iy2 },
+    { ix1,iy1 },
+    { ix2,iy1 },
+    { ix1,oy1 },
+    { ix2,oy1 },
+    { ox2,oy1 },
+    { ix2,iy1 },
+    { ox2,iy1 },
+    { ix2,iy2 },
+    { ox2,iy2 },
+    { ix2,oy2 },
+    { ox2,oy2 }
+  };
+
+  const GLfloat uv[22][2] = {
+    { ou1,ov1 },
+    { iu1,ov1 },
+    { ou1,iv1 },
+    { iu1,iv1 },
+    { ou1,iv2 },
+    { iu1,iv2 },
+    { ou1,ov2 },
+    { iu1,ov2 },
+    { iu2,ov2 },
+    { iu1,iv2 },
+    { iu2,iv2 },
+    { iu1,iv1 },
+    { iu2,iv1 },
+    { iu1,ov1 },
+    { iu2,ov1 },
+    { ou2,ov1 },
+    { iu2,iv1 },
+    { ou2,iv1 },
+    { iu2,iv2 },
+    { ou2,iv2 },
+    { iu2,ov2 },
+    { ou2,ov2 }
+  };
+
+  {
+    glUniform1f(u_alphatexture, 1.0);
+    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
+    glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
+    glEnableVertexAttribArray(attr_pos);
+    glEnableVertexAttribArray(attr_uv);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 22);
     glDisableVertexAttribArray(attr_pos);
     glDisableVertexAttribArray(attr_uv);
   }
@@ -350,22 +471,15 @@ void pxContext::setAlpha(float a) {
 void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor) {
   glUniform4fv(u_color, 1, fillColor);
   float half = lineWidth/2;
-  draw9SliceRect(half, half, w-lineWidth, h-lineWidth, 10, 10, 10, 10);
-  //  drawRect(half, half, mw-mLineWidth, mh-mLineWidth);
+  drawRect2(half, half, w-lineWidth, h-lineWidth);
   if (lineWidth > 0) {
     glUniform4fv(u_color, 1, lineColor);
     drawRectOutline(0, 0, w, h, lineWidth);
   }
 }
 
-void pxContext::drawRect9(float w, float h, float lineWidth, float* fillColor, float* lineColor) {
-  glUniform4fv(u_color, 1, fillColor);
-  float half = lineWidth/2;
-  draw9SliceRect(half, half, w-lineWidth, h-lineWidth, 10, 10, 10, 10);
-  if (lineWidth > 0) {
-    glUniform4fv(u_color, 1, lineColor);
-    drawRectOutline(0, 0, w, h, lineWidth);
-  }
+void pxContext::drawImage9(float w, float h, pxOffscreen& o) {
+  drawImage92(0, 0, w, h, 75,75,75,75, o);
 }
 
 void pxContext::drawImage(float w, float h, pxOffscreen& o) {

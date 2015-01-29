@@ -325,6 +325,7 @@ private:
   float mLineWidth;
 };
 
+#if 0
 class rectangle9: public pxObject {
 public:
   rectangle9() {
@@ -360,6 +361,7 @@ private:
   float mLineColor[4];
   float mLineWidth;
 };
+#endif
 
 class pxScene2d: public rtObject {
 public:
@@ -367,6 +369,7 @@ public:
   rtReadOnlyProperty(root, root, rtObjectRef);
   rtMethodNoArgAndReturn("createRectangle", createRectangle, rtObjectRef);
   rtMethodNoArgAndReturn("createImage", createImage, rtObjectRef);
+  rtMethodNoArgAndReturn("createImage9", createImage9, rtObjectRef);
   rtMethodNoArgAndReturn("createText", createText, rtObjectRef);
 
   pxScene2d();
@@ -379,7 +382,8 @@ public:
   rtError createRectangle(rtObjectRef& o);
   rtError createText(rtObjectRef& o);
   rtError createImage(rtObjectRef& o);
-  
+  rtError createImage9(rtObjectRef& o);
+
   // The following methods are delegated to the view
   virtual void onSize(int w, int h);
   virtual void onMouseDown(int x, int y, unsigned long flags);

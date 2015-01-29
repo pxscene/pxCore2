@@ -84,7 +84,9 @@ void testScene() {
   
   rtString d;
   rtGetCurrentDirectory(d);
+  rtString d2 = d;
   d.append("/../images/banana.png");
+  d2.append("/../images/curve_rectangle.png");
 
   scene->init();
 
@@ -106,6 +108,16 @@ void testScene() {
       p.set("lineWidth", 10);  
       p.send("animateTo", "h", 600, 0.5, 0, 0);
   }
+    else if (i < 2){
+      scene.sendReturns<rtObjectRef>("createImage9", p);
+      p.set("url", d2);
+      p.set("cx", p.get<float>("w")/2);
+      p.set("cy", p.get<float>("h")/2);
+      ny = 100;
+      p.send("animateTo", "h", 600, 0.5, 0, 0);
+      p.send("animateTo", "w", 600, 0.5, 0, 0);
+    }
+#if 1
     else if (i < n-1){
       scene.sendReturns<rtObjectRef>("createImage", p);
       p.set("url", d);
@@ -113,10 +125,11 @@ void testScene() {
       p.set("cy", p.get<float>("h")/2);
       ny = 100;
     }
+#endif
     else {
       scene.sendReturns<rtObjectRef>("createText", p);
       p.set("text", "pxCore!");
-      p.set("cx", 250);
+      p.set("cx", p.get<float>("w")/2);
       p.send("animateTo", "sx", 2.0, 1.0, 0, 0);
       p.send("animateTo", "sy", 2.0, 1.0, 0, 0);
       nx = 400;
@@ -134,10 +147,10 @@ void testScene() {
     p.set("y", ny);
 
     p.set("rx", 0);
-    p.set("ry", 1.0);
+    p.set("ry", 1);
     p.set("rz", 0);
 
-    p.send("animateTo", "r", 360, 1.0+(i*0.3), 0, 0);
+    p.send("animateTo", "r", 360, 1.0+(i*0.3), 0, 1);
     if (i < n-1) {
       p.send("animateTo", "x", 800, 1.0+(i*0.3), 0, 0);
     }
