@@ -63,15 +63,23 @@ namespace rt
   class Object : public WrapperObject<Object, rtObject>
   {
   public:
+    static void Export(v8::Handle<v8::Object> exports);
+    static void Inherit(v8::Local<v8::FunctionTemplate> derived);
+
+    static v8::Handle<v8::Object> New(const rtObjectRef& scene);
+  protected:
     Object(rtObject* obj) : WrapperObject<Object, rtObject>(obj) { }
     virtual ~Object() { }
-  public:
-    static void Inherit(v8::Local<v8::FunctionTemplate> derived);
   private:
+    PX_DECL_FUNC(New);
     PX_DECL_FUNC(Set);
     PX_DECL_FUNC(Get);
-    PX_DECL_PROPSET(Property);
-    PX_DECL_PROPGET(Property);
+    PX_DECL_FUNC(Send);
+
+    static v8::Handle<v8::Value> GetProperty(v8::Local<v8::String> prop, const v8::AccessorInfo& info);
+    static v8::Handle<v8::Value> SetProperty(v8::Local<v8::String> prop, v8::Local<v8::Value> val, const v8::AccessorInfo& info);
+  private:
+    static v8::Persistent<v8::Function> m_ctor;
   };
 
   class Function : public WrapperObject<Function, rtIFunction>

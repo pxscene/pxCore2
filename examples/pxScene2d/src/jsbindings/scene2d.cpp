@@ -47,7 +47,6 @@ namespace scene
     }
     else
     {
-      printf("here\n");
       // invoked as Scene2d()
       const int argc = 1;
 
