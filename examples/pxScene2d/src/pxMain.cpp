@@ -37,8 +37,6 @@
 
 #include "testScene.h"
 
-#include "pxThreadPool.h"
-#include "pxThreadTask.h"
 #include "pxImageDownloader.h"
 
 extern rtRefT<pxScene2d> scene;
@@ -230,9 +228,9 @@ private:
     }
 };
 
-void imageDownloadComplete(int statusCode, pxImageDownloadRequest* imageDownloadRequest)
+void imageDownloadComplete(pxImageDownloadRequest* imageDownloadRequest)
 {
-    if (statusCode == 0)
+    if (imageDownloadRequest != NULL && imageDownloadRequest->getDownloadStatusCode() == 0)
     {
         //if successful, save the image to disk for testing
         char* downloadData = imageDownloadRequest->getDownloadedData();
@@ -271,6 +269,3 @@ int pxMain()
 
     return 0;
 }
-
-
-

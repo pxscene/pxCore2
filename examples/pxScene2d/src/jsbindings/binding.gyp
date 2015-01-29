@@ -18,6 +18,7 @@
         "../rtValue.cpp",
 
         # scene2d sources
+        "../pxContextGL.cpp",
         "../pxScene2d.cpp",
         "../pxImage.cpp"
        ],

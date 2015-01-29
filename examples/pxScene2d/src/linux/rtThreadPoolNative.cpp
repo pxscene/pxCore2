@@ -1,23 +1,23 @@
-#include "pxThreadPoolNative.h"
+#include "rtThreadPoolNative.h"
 
 #include <iostream>
 using namespace std;
 
 void* launchThread(void* threadPool)
 {
-    pxThreadPoolNative* pool = (pxThreadPoolNative*) threadPool;
+    rtThreadPoolNative* pool = (rtThreadPoolNative*) threadPool;
     pool->startThread();
     return NULL;
 }
 
-pxThreadPoolNative::pxThreadPoolNative(int numberOfThreads) : 
+rtThreadPoolNative::rtThreadPoolNative(int numberOfThreads) : 
     mNumberOfThreads(numberOfThreads), mRunning(false), mThreadTaskMutex(),
     mThreadTaskCondition(), mThreads(), mThreadTasks()
 {
     initialize();
 }
 
-pxThreadPoolNative::~pxThreadPoolNative()
+rtThreadPoolNative::~rtThreadPoolNative()
 {
     if (mRunning)
     {
@@ -25,7 +25,7 @@ pxThreadPoolNative::~pxThreadPoolNative()
     }
 }
 
-bool pxThreadPoolNative::initialize()
+bool rtThreadPoolNative::initialize()
 {
     mRunning = true;
     for (int i = 0; i < mNumberOfThreads; i++)
@@ -42,7 +42,7 @@ bool pxThreadPoolNative::initialize()
     return true;
 }
 
-void pxThreadPoolNative::destroy()
+void rtThreadPoolNative::destroy()
 {
     mThreadTaskMutex.lock();
     mRunning = false; //mRunning is accessed by other threads
@@ -62,9 +62,9 @@ void pxThreadPoolNative::destroy()
     }
 }
 
-void pxThreadPoolNative::startThread()
+void rtThreadPoolNative::startThread()
 {
-    pxThreadTask* threadTask = NULL;
+    rtThreadTask* threadTask = NULL;
     while(true)
     {
         mThreadTaskMutex.lock();
@@ -90,7 +90,7 @@ void pxThreadPoolNative::startThread()
     }
 }
 
-void pxThreadPoolNative::executeTask(pxThreadTask* threadTask)
+void rtThreadPoolNative::executeTask(rtThreadTask* threadTask)
 {
     mThreadTaskMutex.lock();
     mThreadTasks.push_back(threadTask);

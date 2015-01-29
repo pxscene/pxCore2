@@ -37,7 +37,6 @@ if (args.Length() != (N)) { \
     char buff[256]; \
     snprintf(buff, sizeof(buff), format, ##__VA_ARGS__); \
     v8::ThrowException(v8::Exception::TYPE(v8::String::New(buff))); \
-    return scope.Close(v8::Undefined()); \
   } while (0);
 
 template<typename WrapperType, typename PXObjectType> 
@@ -58,19 +57,29 @@ protected:
 
 namespace rt
 {
-  v8::Handle<v8::Value> rt2js(const rtValue& val, rtObject* rt = NULL, const v8::Handle<v8::Object>& js = v8::Handle<v8::Object>());
+  v8::Handle<v8::Value> rt2js(const rtValue& val);
   rtValue js2rt(const v8::Handle<v8::Value>& val);
 
   class Object : public WrapperObject<Object, rtObject>
   {
   public:
+    static void Export(v8::Handle<v8::Object> exports);
+    static void Inherit(v8::Local<v8::FunctionTemplate> derived);
+
+    static v8::Handle<v8::Object> New(const rtObjectRef& scene);
+  protected:
     Object(rtObject* obj) : WrapperObject<Object, rtObject>(obj) { }
     virtual ~Object() { }
-  public:
-    static void Inherit(v8::Local<v8::FunctionTemplate> derived);
   private:
+    PX_DECL_FUNC(New);
     PX_DECL_FUNC(Set);
     PX_DECL_FUNC(Get);
+    PX_DECL_FUNC(Send);
+
+    static v8::Handle<v8::Value> GetProperty(v8::Local<v8::String> prop, const v8::AccessorInfo& info);
+    static v8::Handle<v8::Value> SetProperty(v8::Local<v8::String> prop, v8::Local<v8::Value> val, const v8::AccessorInfo& info);
+  private:
+    static v8::Persistent<v8::Function> m_ctor;
   };
 
   class Function : public WrapperObject<Function, rtIFunction>

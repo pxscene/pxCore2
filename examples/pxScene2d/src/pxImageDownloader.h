@@ -14,7 +14,8 @@ public:
     pxImageDownloadRequest(string imageUrl) 
         : mImageUrl(imageUrl), mProxyServer(),
             mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL),
-            mDownloadedData(0), mDownloadedDataSize(), mDecodeAfterDownload(false)
+            mDownloadedData(0), mDownloadedDataSize(), mDecodeAfterDownload(false),
+            mDownloadStatusCode(0)
         { } 
         
     ~pxImageDownloadRequest()
@@ -49,7 +50,7 @@ public:
         return mErrorString;
     }
     
-    void setCallbackFunction(void (*callbackFunction)(int, pxImageDownloadRequest*))
+    void setCallbackFunction(void (*callbackFunction)(pxImageDownloadRequest*))
     {
         mCallbackFunction = callbackFunction;
     }
@@ -64,9 +65,13 @@ public:
         mHttpStatusCode = statusCode;
     }
     
-    void executeCallback(int returnCode)
+    void executeCallback(int statusCode)
     {
-        (*mCallbackFunction)(returnCode, this);
+        mDownloadStatusCode = statusCode;
+        if (mCallbackFunction != NULL)
+        {
+            (*mCallbackFunction)(this);
+        }
     }
     
     void setDownloadedData(char* data, size_t size)
@@ -100,16 +105,27 @@ public:
     {
         return mDecodeAfterDownload;
     }
+    
+    void setDownloadStatusCode(int statusCode)
+    {
+        mDownloadStatusCode = statusCode;
+    }
+    
+    int getDownloadStatusCode()
+    {
+        return mDownloadStatusCode;
+    }
 
 private:
     string mImageUrl;
     string mProxyServer;
     string mErrorString;
     long mHttpStatusCode;
-    void (*mCallbackFunction)(int, pxImageDownloadRequest*);
+    void (*mCallbackFunction)(pxImageDownloadRequest*);
     char* mDownloadedData;
     size_t mDownloadedDataSize;
     bool mDecodeAfterDownload;
+    int mDownloadStatusCode;
 };
 
 class pxImageDownloader

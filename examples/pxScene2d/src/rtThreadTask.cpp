@@ -1,19 +1,19 @@
-#include "pxThreadTask.h"
+#include "rtThreadTask.h"
 
 #include <stddef.h>
 
-pxThreadTask::pxThreadTask(void (*functionPointer)(void*), void* data) : 
+rtThreadTask::rtThreadTask(void (*functionPointer)(void*), void* data) : 
     mFunctionPointer(functionPointer), mData(data)
 {
 }
 
-pxThreadTask::~pxThreadTask()
+rtThreadTask::~rtThreadTask()
 {
     mFunctionPointer = NULL;
     mData = NULL;
 }
 
-void pxThreadTask::execute()
+void rtThreadTask::execute()
 {
     if (mFunctionPointer != NULL)
     {

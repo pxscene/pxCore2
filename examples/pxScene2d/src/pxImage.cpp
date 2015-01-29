@@ -12,12 +12,39 @@
 
 #include "pxContext.h"
 
+#include "pxImageDownloader.h"
+
 extern pxContext context;
 
 rtError pxImage::url(rtString& s) const { s = mURL; return RT_OK; }
 rtError pxImage::setURL(const char* s) { 
   mURL = s;
-  if (pxLoadImage(s, mOffscreen) != RT_OK)
+  //todo - make case insensitive
+  const char *result = strstr(s, "http");
+  int position = result - s;
+  if (position == 0 && strlen(s) > 0)
+  {
+      pxImageDownloadRequest downloadRequest(s);
+      //todo - use addToDownloadQueue and thread pool.  this currently downloads in the main thread.
+      // moving to addToDownloadQueue() will download the image on a background thread
+      pxImageDownloader::getInstance()->downloadImage(&downloadRequest);
+      if (downloadRequest.getDownloadStatusCode() == 0)
+      {
+          if (pxLoadImage(downloadRequest.getDownloadedData(),
+                  downloadRequest.getDownloadedDataSize(), mOffscreen) != RT_OK)
+          {
+            printf("image load failed\n");
+          }
+          else
+          {
+            printf("image %d, %d\n", mOffscreen.width(), mOffscreen.height());
+          }
+      }
+      {
+          printf("image download failed\n");
+      }
+  }
+  else if (pxLoadImage(s, mOffscreen) != RT_OK)
     printf("image load failed\n");
   else
     printf("image %d, %d\n", mOffscreen.width(), mOffscreen.height());

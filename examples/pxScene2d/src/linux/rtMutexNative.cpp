@@ -1,58 +1,58 @@
-#include "pxMutexNative.h"
+#include "rtMutexNative.h"
 
 
-pxMutexNative::pxMutexNative() : mLock(), mIsLocked(false)
+rtMutexNative::rtMutexNative() : mLock(), mIsLocked(false)
 {
     pthread_mutex_init(&mLock, NULL);
 }
 
-pxMutexNative::~pxMutexNative()
+rtMutexNative::~rtMutexNative()
 {
     while(mIsLocked);
     unlock();
     pthread_mutex_destroy(&mLock);
 }
 
-void pxMutexNative::lock()
+void rtMutexNative::lock()
 {
     pthread_mutex_lock(&mLock);
     mIsLocked = true;
 }
 
-void pxMutexNative::unlock()
+void rtMutexNative::unlock()
 {
     mIsLocked = false;
     pthread_mutex_unlock(&mLock);
 }
 
-pxMutexNativeDesc pxMutexNative::getNativeMutexDescription()
+rtMutexNativeDesc rtMutexNative::getNativeMutexDescription()
 {
-    pxMutexNativeDesc desc;
+    rtMutexNativeDesc desc;
     desc.nativeMutexPointer = &mLock;
     return desc;
 }
 
-pxThreadConditionNative::pxThreadConditionNative() : mCondition()
+rtThreadConditionNative::rtThreadConditionNative() : mCondition()
 {
     pthread_cond_init(&mCondition, NULL);
 }
 
-pxThreadConditionNative::~pxThreadConditionNative()
+rtThreadConditionNative::~rtThreadConditionNative()
 {
     pthread_cond_destroy(&mCondition);
 }
 
-void pxThreadConditionNative::wait(pxMutexNativeDesc mutexNativeDesc)
+void rtThreadConditionNative::wait(rtMutexNativeDesc mutexNativeDesc)
 {
     pthread_cond_wait(&mCondition, mutexNativeDesc.nativeMutexPointer);
 }
 
-void pxThreadConditionNative::signal()
+void rtThreadConditionNative::signal()
 {
     pthread_cond_signal(&mCondition);
 }
 
-void pxThreadConditionNative::broadcast()
+void rtThreadConditionNative::broadcast()
 {
     pthread_cond_broadcast(&mCondition);
 }
