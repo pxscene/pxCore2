@@ -32,22 +32,39 @@ void initFT() {
   
   //  if(FT_New_Face(ft, "FreeSans.ttf", 0, &face)) {
   if(FT_New_Face(ft, "FontdinerSwanky.ttf", 0, &face)) {
-    fprintf(stderr, "Could not open font\n");
+    rtLog("Could not load font face: \n");
     return;
   }
   
   FT_Set_Pixel_Sizes(face, 0, 128);
 }
 
+void measureText(const char* text, float sx, float sy, float& w, float& h) {
+  w = 0; h = 0;
+  if (!text) return;
+  
+  for(const char* p = text; *p; p++) {
+
+    if(FT_Load_Char(face, *p, FT_LOAD_RENDER)) {
+      rtLog("Could not load glyph: %d\n", *p);
+      continue;
+    }
+    
+    FT_GlyphSlot g = face->glyph;
+
+    w += (g->advance.x >> 6) * sx;
+    h = pxMax<float>((g->advance.y >> 6) * sy, h);
+  }
+
+}
+
 void renderText(const char *text, float x, float y, float sx, float sy) {
   if (!text) return;
 
-  const char *p;
-
-  for(p = text; *p; p++) {
+  for(const char* p = text; *p; p++) {
 
     if(FT_Load_Char(face, *p, FT_LOAD_RENDER)) {
-      printf("danger will robinson\n");
+      rtLog("Could not load glyph: %d\n", *p);
       continue;
     }
     
@@ -58,53 +75,8 @@ void renderText(const char *text, float x, float y, float sx, float sy) {
     float w = g->bitmap.width * sx;
     float h = g->bitmap.rows * sy;
 
-
-    
-#if 0
-    glActiveTexture(GL_TEXTURE1);
-    
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(
-      GL_TEXTURE_2D,
-      0,
-      GL_ALPHA,
-      g->bitmap.width,
-      g->bitmap.rows,
-      0,
-      GL_ALPHA,
-      GL_UNSIGNED_BYTE,
-      g->bitmap.buffer
-    );
-    
-    glUniform1i(u_texture, 1);
-    glUniform1f(u_alphatexture, 2.0);
-    
-    const GLfloat verts[4][2] = {
-      { x2,y2 },
-      {  x2+w, y2 },
-      {  x2,  y2+h },
-      {  x2+w, y2+h }
-    };
-    
-    const GLfloat uv[4][2] = {
-      { 0, 0 },
-      { 1, 0 },
-      { 0, 1 },
-      { 1, 1 }
-    };
-    
-    {
-      glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-      glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
-      glEnableVertexAttribArray(attr_pos);
-      glEnableVertexAttribArray(attr_uv);
-      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-      glDisableVertexAttribArray(attr_pos);
-      glDisableVertexAttribArray(attr_uv);
-    }
-#else
     context.renderGlyph(x2, y2, w, h, g->bitmap.width, g->bitmap.rows, g->bitmap.buffer);
-#endif
+
     x += (g->advance.x >> 6) * sx;
     y += (g->advance.y >> 6) * sy;
   }
@@ -116,7 +88,11 @@ pxText::pxText() {
 
 rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
 
-rtError pxText::setText(const char* s) { mText = s; return RT_OK; }
+rtError pxText::setText(const char* s) { 
+  mText = s; 
+  measureText(s, 1.0, 1.0, mw, mh);
+  return RT_OK; 
+}
 
 void pxText::draw() {
   renderText(mText, 0, 0, 1.0, 1.0);
