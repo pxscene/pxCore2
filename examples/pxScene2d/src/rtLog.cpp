@@ -2,6 +2,7 @@
 //#include "stdafx.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 //#include "windows.h"
 #include <stdarg.h>
 #include <string.h>
@@ -79,5 +80,10 @@ void rtLog2(rtLogLevel level, const char* file, int line, const char* format, ..
   va_end(ptr);
 
   printf("\n");
+  
+  if (level == RT_LOG_FATAL)
+  {
+    abort();
+  }
 }
 

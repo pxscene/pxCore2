@@ -74,7 +74,7 @@ void renderText(const char *text, float x, float y, float sx, float sy) {
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) {
 
     if(FT_Load_Char(face, codePoint, FT_LOAD_RENDER)) {
-      rtLog("Could not load glyph: %d\n", codePoint);
+      rtLogError("Could not load glyph: %d\n", codePoint);
       continue;
     }
     

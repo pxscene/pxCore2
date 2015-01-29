@@ -20,6 +20,7 @@ namespace rt
 
     v8::Local<v8::ObjectTemplate> inst = tmpl->InstanceTemplate();
     inst->SetInternalFieldCount(1);
+    inst->SetCallAsFunctionHandler(Invoke);
 
     m_ctor = v8::Persistent<v8::Function>::New(tmpl->GetFunction());
     exports->Set(v8::String::NewSymbol(kClassName), m_ctor);
@@ -41,12 +42,14 @@ namespace rt
     for (int i = 0; i < args.Length(); ++i)
       argList.push_back(js2rt(args[i]));
 
+    rtLogDebug("Invoking function");
+
     rtValue result;
     rtError err = unwrap(args)->Send(args.Length(), &argList[0], &result);
     if (err != RT_OK)
     {
-      printf("failed!\n");
-      // TODO:
+      rtLogFatal("failed to invoke function: %d", err);
+      abort();
     }
 
     return scope.Close(rt2js(result));
