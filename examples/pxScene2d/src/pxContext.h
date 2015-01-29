@@ -4,6 +4,7 @@
 #include "pxCore.h"
 #include "pxOffscreen.h"
 #include "pxMatrix4T.h"
+#include "pxSnapshot.h"
 
 class pxContext {
  public:
@@ -17,6 +18,7 @@ class pxContext {
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);
   void drawImage(float w, float h, pxOffscreen& o);
   void drawImage9(float w, float h, pxOffscreen& o);
+  void drawSnapshot(float w, float h, pxSnapshot& snapShot);
   void drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color);
 };
 

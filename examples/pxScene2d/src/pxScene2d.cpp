@@ -116,12 +116,41 @@ void pxObject::drawInternal(pxMatrix4f m) {
   
   context.setMatrix(m);
   context.setAlpha(ma);
-
-  draw();
   
-  for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it) {
-    (*it)->drawInternal(m);
+  if (mPaint)
+  {
+    draw();
+
+    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it) {
+      (*it)->drawInternal(m);
+    }
   }
+  else
+  {
+    if (!mSnapshot.isInitialized())
+    {
+      createSnapshot();
+    }
+    context.drawSnapshot(mSnapshot.getWidth(),mSnapshot.getHeight(), mSnapshot);
+  }
+}
+
+void pxObject::createSnapshot()
+{
+  pxMatrix4f m;
+  context.setMatrix(m);
+  context.setAlpha(ma);
+  mSnapshot.initialize(mw,mh);
+  if (mSnapshot.beginSnapshotPainting() == PX_OK)
+  {
+    draw();
+  
+    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      (*it)->drawInternal(m);
+    }
+  }
+  mSnapshot.endSnapshotPainting();
 }
 
 rtDefineObject(pxObject, rtObject);

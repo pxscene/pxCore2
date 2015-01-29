@@ -250,6 +250,44 @@ void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw) {
   }
 }
 
+void drawSnapshot2(float x, float y, float w, float h, pxSnapshot& snapShot)
+{
+  if (!snapShot.isInitialized())
+  {
+    return;
+  }
+  
+  glActiveTexture(GL_TEXTURE0);
+  snapShot.prepareForDrawing();
+  glUniform1i(u_texture, 0);
+
+  const float verts[4][2] = {
+    { x,y },
+    {  x+w, y },
+    {  x,  y+h },
+    {  x+w, y+h }
+  };
+
+  const float uv[4][2] = {
+    { 0, 0 },
+    { 1, 0 },
+    { 0, 1 },
+    { 1, 1 }
+  };
+  
+  {
+    glUniform1f(u_alphatexture, 1.0);
+    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
+    glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
+    glEnableVertexAttribArray(attr_pos);
+    glEnableVertexAttribArray(attr_uv);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDisableVertexAttribArray(attr_pos);
+    glDisableVertexAttribArray(attr_uv);
+  }
+  
+  glBindTexture(GL_TEXTURE_2D, textureId1); //bind back to original texture
+}
 
 void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen) {
   
@@ -484,6 +522,11 @@ void pxContext::drawImage9(float w, float h, pxOffscreen& o) {
 
 void pxContext::drawImage(float w, float h, pxOffscreen& o) {
   drawImage2(0, 0, w, h, o);
+}
+
+void pxContext::drawSnapshot(float w, float h, pxSnapshot& snapShot)
+{
+  drawSnapshot2(0, 0, w, h, snapShot);
 }
 
 void pxContext::drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color) {
