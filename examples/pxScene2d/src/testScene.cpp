@@ -118,7 +118,7 @@ void testScene() {
       p.send("animateTo", "w", 600, 0.5, 0, 0);
     }
 #if 1
-    else if (i < n-1){
+    else if (i < n-3){
       scene.sendReturns<rtObjectRef>("createImage", p);
       p.set("url", d);
       p.set("cx", p.get<float>("w")/2);
@@ -128,12 +128,24 @@ void testScene() {
 #endif
     else {
       scene.sendReturns<rtObjectRef>("createText", p);
-      p.set("text", "pxCore!");
-      p.set("cx", p.get<float>("w")/2);
       p.send("animateTo", "sx", 2.0, 1.0, 0, 0);
       p.send("animateTo", "sy", 2.0, 1.0, 0, 0);
-      nx = 400;
-      ny = 400;
+      nx = 200;
+      if (i == n-3) {
+	// utf8 test
+	p.set("text", "Iñtërnâtiônàližætiøn");
+	ny = 200;
+      }
+      else if (i == n-2) {
+	p.set("text", "pxCore!");
+	ny = 300;
+      }
+      else if (i == n-1) {
+	//utf8 test... This doesn't work yet
+	p.set("text", "Ādam");
+	ny = 400;
+      }
+      p.set("cx", p.get<float>("w")/2);
     }
 
     nx += 10;
@@ -152,7 +164,7 @@ void testScene() {
 
     p.send("animateTo", "r", 360, 1.0+(i*0.3), 0, 1);
     if (i < n-1) {
-      p.send("animateTo", "x", 800, 1.0+(i*0.3), 0, 0);
+      p.send("animateTo", "x", 600, 1.0+(i*0.3), 0, 0);
     }
 
     // Demonstrate how to invoke same function with a rtFunctionRef

@@ -12,6 +12,9 @@
 
 extern pxContext context;
 
+extern "C" {
+#include "utf8.h"
+}
 
 #if 0
 <link href='http://fonts.googleapis.com/css?family=Fontdiner+Swanky' rel='stylesheet' type='text/css'>
@@ -36,17 +39,21 @@ void initFT() {
     return;
   }
   
-  FT_Set_Pixel_Sizes(face, 0, 128);
+  FT_Set_Pixel_Sizes(face, 0, 64);
 }
 
 void measureText(const char* text, float sx, float sy, float& w, float& h) {
   w = 0; h = 0;
   if (!text) return;
-  
-  for(const char* p = text; *p; p++) {
+  int i = 0;
+  u_int32_t codePoint;
 
-    if(FT_Load_Char(face, *p, FT_LOAD_RENDER)) {
-      rtLog("Could not load glyph: %d\n", *p);
+  //  for(const char* p = text; *p; p++) {
+  while((codePoint = u8_nextchar((char*)text, &i)) != 0) {
+
+    // TODO don't render glyph
+    if(FT_Load_Char(face, codePoint, FT_LOAD_RENDER)) {
+      rtLog("Could not load glyph: %d\n", codePoint);
       continue;
     }
     
@@ -60,11 +67,14 @@ void measureText(const char* text, float sx, float sy, float& w, float& h) {
 
 void renderText(const char *text, float x, float y, float sx, float sy) {
   if (!text) return;
+  int i = 0;
+  u_int32_t codePoint;
 
-  for(const char* p = text; *p; p++) {
+  //  for(const char* p = text; *p; p++) {
+  while((codePoint = u8_nextchar((char*)text, &i)) != 0) {
 
-    if(FT_Load_Char(face, *p, FT_LOAD_RENDER)) {
-      rtLog("Could not load glyph: %d\n", *p);
+    if(FT_Load_Char(face, codePoint, FT_LOAD_RENDER)) {
+      rtLog("Could not load glyph: %d\n", codePoint);
       continue;
     }
     
