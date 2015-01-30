@@ -13,6 +13,7 @@ struct jsIFunctionLookup
 {
   virtual ~jsIFunctionLookup() { }
   virtual Persistent<Function> lookup() = 0;
+  virtual Handle<Object> self() = 0;
 };
 
 struct jsCallback

@@ -6,10 +6,10 @@
 2. Build. You only need to run configure when you add/remove source files.
 
   node-gyp configure
-  node-gyp build
+  node-gyp --debug build
 
-  NOTE: for debug builds run node-gyp --debug build. Then update hello.js
-        to reference ./build/Debug/px package.
+  NOTE: for Release builds drop the --debug Then update hello.js
+        to reference ./build/Release/px package.
 
 3. Run
 

@@ -9,7 +9,6 @@
         "rtWrapperUtils.cpp",
         "rtFunctionWrapper.cpp",
         "rtObjectWrapper.cpp",
-        "rtWindowWrapper.cpp",
 
         "../rtObject.cpp",
         "../rtLog.cpp",

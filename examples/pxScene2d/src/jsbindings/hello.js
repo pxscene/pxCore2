@@ -1,16 +1,11 @@
 var px = require("./build/Debug/px");
 
-var win = new px.Window(0, 0, 648, 480);
-win.title = "Hello World!";
-win.on("keydown", function(code, flags) {
-  console.log("code:" + code);
-});
-win.on("resize", function(width, height) {
-  console.log("resize: " + width + "x" + height);
-});
-win.visible = true;
+var scene = px.getScene();
 
-var scene = win.scene;
+// currently non-functional
+//scene.on('resize', function(width, height) {
+//  console.log('resize:' + width + ' height:' + height);
+//});
 
 function testScene() 
 {

@@ -69,7 +69,7 @@ rtValue js2rt(const Handle<Value>& val)
   if (val->IsUndefined()) { return rtValue((void *)0); }
   if (val->IsNull())      { return rtValue((char *)0); }
   if (val->IsString())    { return toString(val); }
-  if (val->IsFunction())  { assert(false); return rtValue(0); }
+  if (val->IsFunction())  { assert(false); return rtValue(0); } // TODO
   if (val->IsArray())     { assert(false); return rtValue(0); }
   if (val->IsObject())    { return rtObjectWrapper::unwrapObject(val->ToObject()); }
   if (val->IsBoolean())   { return rtValue(val->BooleanValue()); }
