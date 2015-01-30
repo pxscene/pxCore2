@@ -36,7 +36,7 @@ rt_error pxLoadPNGImage(const char* filename, pxOffscreen& o)
   //  int number_of_passes;
   png_bytep * row_pointers;
 
-  /* open file and test for it being a png */
+  // open file and test for it being a png
   FILE *fp = fopen(filename, "rb");
 
   if (fp)
@@ -46,7 +46,7 @@ rt_error pxLoadPNGImage(const char* filename, pxOffscreen& o)
     fread(header, 1, 8, fp);
     if (png_sig_cmp(header, 0, 8) == 0) {
 
-      /* initialize stuff */
+      // initialize stuff
       png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
       if (png_ptr)
@@ -101,7 +101,7 @@ rt_error pxLoadPNGImage(const char* filename, pxOffscreen& o)
             //	    number_of_passes = png_set_interlace_handling(png_ptr);
             png_read_update_info(png_ptr, info_ptr);
 
-            /* read file */
+            // read file
             if (!setjmp(png_jmpbuf(png_ptr)))
             {
               row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
@@ -206,7 +206,7 @@ rt_error pxStorePNGImage(const char* filename, pxBuffer& b, bool /*grayscale*/, 
       }
     }
 #if 0
-    /* cleanup heap allocation */
+    // cleanup heap allocation
     for (y=0; y<height; y++)
     {
       free(row_pointers[y]);
