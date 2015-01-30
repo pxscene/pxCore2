@@ -24,59 +24,72 @@
 
 pxContext context;
 
-double pxInterpLinear(double i) {
+double pxInterpLinear(double i)
+{
   return pxClamp<double>(i, 0, 1);
 }
 
-void pxObject::setParent(rtRefT<pxObject>& parent) {
+void pxObject::setParent(rtRefT<pxObject>& parent)
+{
   mParent = parent;
   parent->mChildren.push_back(this);
 }
 
 void pxObject::animateTo(const char* prop, double to, double duration, 
-			 pxInterp interp, pxAnimationType at, 
-			 pxAnimationEnded e, void* c) 
+                         pxInterp interp, pxAnimationType at,
+                         pxAnimationEnded e, void* c)
 {
   animation a;
-  a.prop = prop;
-  a.from = get<float>(prop);
-  a.to = to;
-  a.start = -1;
+
+  a.prop     = prop;
+  a.from     = get<float>(prop);
+  a.to       = to;
+  a.start    = -1;
   a.duration = duration;
-  a.interp = interp?interp:pxInterpLinear;
-  a.at = at;
-  a.ended = e;
-  a.ctx = c;
+  a.interp   = interp?interp:pxInterpLinear;
+  a.at       = at;
+  a.ended    = e;
+  a.ctx      = c;
   
   animation b;
   b = a;
   mAnimations.push_back(a);
 }
 
-void pxObject::update(double t) {
+void pxObject::update(double t)
+{
   // Update animations
   vector<animation>::iterator it = mAnimations.begin();
-  while (it != mAnimations.end()) {
+
+  while (it != mAnimations.end())
+  {
     animation& a = (*it);
     if (a.start < 0) a.start = t;
     double end = a.start + a.duration;
     
     // if duration has elapsed
-    if (t >= end) {
+    if (t >= end)
+    {
       set(a.prop, a.to);
-      if (a.at == stop) {
-	if (a.ended)
-	  a.ended(a.ctx);
-	it = mAnimations.erase(it);
-	continue;
+
+      if (a.at == stop)
+      {
+        if (a.ended)
+        {
+          a.ended(a.ctx);
+        }
+
+        it = mAnimations.erase(it);
+        continue;
       }
 #if 0
-      else if (a.at == seesaw) {
-	// flip
-	double t;
-	t = a.from;
-	a.from = a.to;
-	a.to = t;
+      else if (a.at == seesaw)
+      {
+        // flip
+        double t;
+        t = a.from;
+        a.from = a.to;
+        a.to = t;
       }
 #endif
     }
@@ -88,25 +101,29 @@ void pxObject::update(double t) {
     float from, to;
     from = a.from;
     to = a.to;
-    if (a.at == seesaw) {
-      if (fmod(t2,2) != 0) {  // perf chk ?
-	from = a.to;
-	to = a.from;
+    if (a.at == seesaw)
+    {
+      if (fmod(t2,2) != 0)   // perf chk ?
+      {
+        from = a.to;
+        to   = a.from;
       }
     }
     
     float v = from + (to - from) * d;
-      set(a.prop, v);
-      ++it;
+    set(a.prop, v);
+    ++it;
   }
   
   // Recursively update children
-  for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it) {
+  for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  {
     (*it)->update(t);
   }
 }
 
-void pxObject::drawInternal(pxMatrix4f m) {
+void pxObject::drawInternal(pxMatrix4f m)
+{
 
   m.translate(mx+mcx, my+mcy);
 
@@ -121,7 +138,8 @@ void pxObject::drawInternal(pxMatrix4f m) {
   {
     draw();
 
-    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it) {
+    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
       (*it)->drawInternal(m);
     }
   }
@@ -138,16 +156,20 @@ void pxObject::drawInternal(pxMatrix4f m) {
 void pxObject::createSnapshot()
 {
   pxMatrix4f m;
+
   context.setMatrix(m);
   context.setAlpha(ma);
+
   //cleanup old snapshot (if it exists) before creating a new one
   deleteSnapshot();
+
   mContextSurfaceSnapshot = new pxContextSurfaceNativeDesc();
   context.createContextSurface(mContextSurfaceSnapshot, mw, mh);
+
   if (context.setRenderSurface(mContextSurfaceSnapshot) == PX_OK)
   {
     draw();
-  
+
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       (*it)->drawInternal(m);
@@ -189,131 +211,166 @@ rtDefineProperty(rectangle, fillColor);
 rtDefineProperty(rectangle, lineColor);
 rtDefineProperty(rectangle, lineWidth);
 
-void rectangle::draw() {
+void rectangle::draw()
+{
   context.drawRect(mw, mh, mLineWidth, mFillColor, mLineColor);
 }
 
 #if 0
-void rectangle9::draw() {
-  context.drawRect9(mw, mh, mLineWidth, mFillColor, mLineColor);  
+void rectangle9::draw()
+{
+  context.drawRect9(mw, mh, mLineWidth, mFillColor, mLineColor);
 }
 #endif
-  
-pxScene2d::pxScene2d():start(0),frameCount(0) { 
-  mRoot = new pxObject(); 
+
+pxScene2d::pxScene2d()
+  : start(0),frameCount(0)
+{
+  mRoot = new pxObject();
 }
 
-void pxScene2d::init() {
+void pxScene2d::init()
+{
   context.init();
 }
 
 
-rtError pxScene2d::createRectangle(rtObjectRef& o) {
+rtError pxScene2d::createRectangle(rtObjectRef& o)
+{
   o = new rectangle;
+
   return RT_OK;
 }
 
-rtError pxScene2d::createText(rtObjectRef& o) {
+rtError pxScene2d::createText(rtObjectRef& o)
+{
   o = new pxText;
+
   return RT_OK;
 }
 
-rtError pxScene2d::createImage(rtObjectRef& o) {
+rtError pxScene2d::createImage(rtObjectRef& o)
+{
   o = new pxImage;
+
   return RT_OK;
 }
 
-rtError pxScene2d::createImage9(rtObjectRef& o) {
+rtError pxScene2d::createImage9(rtObjectRef& o)
+{
   o = new pxImage9;
+
   return RT_OK;
 }
 
-void pxScene2d::draw() {
+void pxScene2d::draw()
+{
   context.clear(mWidth, mHeight);
   
-  if (mRoot) {
+  if (mRoot)
+  {
     pxMatrix4f m;
     mRoot->drawInternal(m);
   }
 }
-  
+
 void pxScene2d::getMatrixFromObjectToScene(pxObject* /*o*/, pxMatrix4f& /*m*/) {
-    
-}
-  
-void pxScene2d::getMatrixFromSceneToObject(pxObject* /*o*/, pxMatrix4f& /*m*/) {
-    
-}
-  
-void pxScene2d::getMatrixFromObjectToObject(pxObject* /*from*/, pxObject* /*to*/, pxMatrix4f& /*m*/) {
-    
-}
-  
-void pxScene2d::transformPointFromObjectToScene(pxObject* /*o*/, const pxPoint2f& /*from*/, pxPoint2f& /*to*/) 
-{
-    
-}
-  
-void pxScene2d::transformPointFromObjectToObject(pxObject* /*fromObject*/, pxObject* /*toObject*/, 
-						 pxPoint2f& /*from*/, pxPoint2f& /*to*/) {
-  
-}
-  
-void pxScene2d::hitTest(pxPoint2f /*p*/, vector<rtRefT<pxObject> > /*hitList*/) {
-    
+
 }
 
-void pxScene2d::onDraw() {
+void pxScene2d::getMatrixFromSceneToObject(pxObject* /*o*/, pxMatrix4f& /*m*/) {
+
+}
+
+void pxScene2d::getMatrixFromObjectToObject(pxObject* /*from*/, pxObject* /*to*/, pxMatrix4f& /*m*/) {
+
+}
+
+void pxScene2d::transformPointFromObjectToScene(pxObject* /*o*/, const pxPoint2f& /*from*/, pxPoint2f& /*to*/) 
+{
+
+}
+
+void pxScene2d::transformPointFromObjectToObject(pxObject* /*fromObject*/, pxObject* /*toObject*/, 
+                                                 pxPoint2f& /*from*/, pxPoint2f& /*to*/) {
+  
+}
+
+void pxScene2d::hitTest(pxPoint2f /*p*/, vector<rtRefT<pxObject> > /*hitList*/) {
+
+}
+
+void pxScene2d::onDraw()
+{
   if (start == 0)
+  {
     start = pxSeconds();
+  }
   
   update(pxSeconds());
   draw();
-  if (frameCount >= 60) {
+
+  if (frameCount >= 60)
+  {
     end2 = pxSeconds();
+
     rtLog("elapsed no clip %g", (double)frameCount/(end2-start));
+
     start = end2;
     frameCount = 0;
   }
+
   frameCount++;
 }
 
 // Does not draw updates scene to time t
 // t is assumed to be monotonically increasing
-void pxScene2d::update(double t) {
+void pxScene2d::update(double t)
+{
   if (mRoot)
+  {
     mRoot->update(t);
+  }
 }
 
-pxObject* pxScene2d::getRoot() const { 
-  return mRoot; 
+pxObject* pxScene2d::getRoot() const
+{
+  return mRoot;
 }
 
-int pxScene2d::width() {
+int pxScene2d::width()
+{
   return mWidth;
 }
 
-int pxScene2d::height() {
+int pxScene2d::height()
+{
   return mHeight;
 }
 
-void pxScene2d::onSize(int w, int h) {
+void pxScene2d::onSize(int w, int h)
+{
   //  glViewport(0, 0, (GLint)w, (GLint)h);
   context.setSize(w, h);
-  mWidth = w;
+
+  mWidth  = w;
   mHeight = h;
 }
 
-void pxScene2d::onMouseDown(int /*x*/, int /*y*/, unsigned long /*flags*/) {
+void pxScene2d::onMouseDown(int /*x*/, int /*y*/, unsigned long /*flags*/)
+{
 }
 
-void pxScene2d::onMouseUp(int /*x*/, int /*y*/, unsigned long /*flags*/) {
+void pxScene2d::onMouseUp(int /*x*/, int /*y*/, unsigned long /*flags*/)
+{
 }
 
-void pxScene2d::onMouseLeave() {
+void pxScene2d::onMouseLeave()
+{
 }
 
-void pxScene2d::onMouseMove(int /*x*/, int /*y*/) {
+void pxScene2d::onMouseMove(int /*x*/, int /*y*/)
+{
 #if 0
   rtLog("onMousePassiveMotion x: %d y: %d\n", x, y);
   
@@ -331,10 +388,12 @@ void pxScene2d::onMouseMove(int /*x*/, int /*y*/) {
 #endif
 }
 
-void pxScene2d::onKeyDown(int /*keycode*/, unsigned long /*flags*/) {
+void pxScene2d::onKeyDown(int /*keycode*/, unsigned long /*flags*/)
+{
 }
 
-void pxScene2d::onKeyUp(int /*keycode*/, unsigned long /*flags*/) {
+void pxScene2d::onKeyUp(int /*keycode*/, unsigned long /*flags*/)
+{
 }
 
 rtDefineObject(pxScene2d, rtObject);
@@ -344,10 +403,12 @@ rtDefineMethod(pxScene2d, createText);
 rtDefineMethod(pxScene2d, createImage);
 rtDefineMethod(pxScene2d, createImage9);
 
-rtError pxScene2dRef::Get(const char* name, rtValue* value) {
+rtError pxScene2dRef::Get(const char* name, rtValue* value)
+{
   return (*this)->Get(name, value);
 }
- 
-rtError pxScene2dRef::Set(const char* name, const rtValue* value) {
+
+rtError pxScene2dRef::Set(const char* name, const rtValue* value)
+{
   return (*this)->Set(name, value);
 }
