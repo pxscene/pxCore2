@@ -1,7 +1,11 @@
 // pxCore CopyRight 2007-2015 John Robinson
 // pxInterpolators.cpp
 
-double easeOutElastic_helper(double t, double b, double c, double d, double a, double p) {
+#include "pxInterpolators.h"
+
+#include <math.h>
+
+double easeOutElastic_helper(double t, double /*b*/, double c, double /*d*/, double a, double p) {
   if (t <= 0) return 0;
   if (t >= 1) return 1;
   double s;
