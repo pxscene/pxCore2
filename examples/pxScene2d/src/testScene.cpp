@@ -8,6 +8,8 @@
 #include "pxText.h"
 #include "pxImage.h"
 
+#include "pxInterpolators.h"
+
 pxScene2dRef scene = new pxScene2d;
 
 #if 0
@@ -77,7 +79,7 @@ void testScene() {
     p->animateTo("a", 0.5, 2.0, pxInterpLinear, seesaw);
   }
 }
-#else
+#elseif 0
 
 // Using Dynamic rtObject API
 void testScene() {
@@ -176,5 +178,190 @@ void testScene() {
 
   }
 }
+
+
+#else
+
+#if 1
+void fancy(void* ctx);
+void x1(void* ctx);
+void x2(void* ctx);
+void y1(void* ctx);
+void y2(void* ctx);
+void rotate1(void* ctx);
+void scale1(void* ctx);
+void scale2(void* ctx);
+void scale3(void* ctx);
+
+void fancy(void* ctx) {
+  rtRefT<pxObject> p = (pxObject*)ctx;
+  x1((void*)p);
+  y1((void*)p);
+  rotate1((void*)p);
+  scale1((void*)p);
+}
+void x1(void*ctx) {
+  rtRefT<pxObject> p = (pxObject*)ctx;
+  p->animateTo("x", 50, 1.0, pxInterpLinear, stop, x2, (void*)p);
+}
+
+void x2(void*ctx) {
+  rtRefT<pxObject> p = (pxObject*)ctx;
+  p->animateTo("x", 450, 2.0, easeOutElastic, stop, fancy, (void*)p);
+}
+
+void y1(void*ctx) {
+  rtRefT<pxObject> p = (pxObject*)ctx;
+  p->setY(100);
+  p->animateTo("y", 350, 1.0, easeOutBounce, stop, y2, (void*)p);
+}
+
+void y2(void*ctx) {
+  rtRefT<pxObject> p = (pxObject*)ctx;
+  p->animateTo("y", 150, 1.0, easeOutElastic, stop);
+}
+
+void rotate1(void*ctx) {
+  rtRefT<pxObject> p = (pxObject*)ctx;
+  p->setR(0);
+  p->animateTo("r", -360, 2.5, easeOutElastic, stop);
+}
+
+void scale1(void*ctx) {
+  rtRefT<pxObject> p = (pxObject*)ctx;
+  p->animateTo("sx", 0.2, 1, pxInterpLinear, stop, scale2, (void*)p);
+  p->animateTo("sy", 0.2, 1, pxInterpLinear, stop);
+}
+
+void scale2(void*ctx) {
+  rtRefT<pxObject> p = (pxObject*)ctx;
+  p->animateTo("sx", 2.0, 0.5, exp2, stop, scale3, (void*)p);
+  p->animateTo("sy", 2.0, 0.5, exp2, stop);
+}
+
+void scale3(void*ctx) {
+  rtRefT<pxObject> p = (pxObject*)ctx;
+  p->animateTo("sx", 1.0, 1.0, easeOutElastic, stop);
+  p->animateTo("sy", 1.0, 1.0, easeOutElastic, stop);
+}
+#endif
+
+void ballScene() 
+{
+  
+  rtString d;
+  rtGetCurrentDirectory(d);
+  rtString d2 = d;
+  rtString d3 = d;
+  d.append("/../images/skulls.png");
+  d2.append("/../images/radial_gradient.png");
+  d3.append("/../images/ball.png");
+
+  scene->init();
+
+  rtObjectRef root = scene.get<rtObjectRef>("root");  
+
+  rtObjectRef bg;
+  scene.sendReturns<rtObjectRef>("createImage", bg);
+  bg.set("url", d);
+  bg.set("xStretch", 2);
+  bg.set("yStretch", 2);
+  bg.set("parent", root);
+  bg.set("w", scene->width());
+  bg.set("h", scene->height());
+  scene.sendReturns<rtObjectRef>("createImage", bg);
+  bg.set("url", d2);
+  bg.set("xStretch", 1);
+  bg.set("yStretch", 1);
+  bg.set("parent", root);
+  bg.set("w", scene->width());
+  bg.set("h", scene->height());
+
+  rtRefT<pxImage> p = new pxImage();
+  p->setURL(d3);
+  p->setParent(root);
+  p->setX(450);
+  p->setY(350);
+  fancy((pxObject*)p);
+}
+
+rtObjectRef picture;
+rtString bananaURL;
+rtString ballURL;
+
+rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* /*context*/)
+{
+  if (numArgs >0)
+  {
+    rtLogDebug("key %d", args[1].toInt32());
+    switch(args[0].toInt32()) {
+      // '1'
+    case 49:
+      picture.set("url", bananaURL);
+      break;
+      // '2'
+    case 50:
+      picture.set("url", ballURL);
+      break;
+    default:
+      rtLogWarn("unhandled key\n");
+      break;
+    }
+  }
+  return RT_OK;
+}
+
+void testScene()
+{
+  rtString d;
+  rtGetCurrentDirectory(d);
+  bananaURL = d;
+  ballURL = d;
+  bananaURL.append("/../images/banana.png");
+  ballURL.append("/../images/ball.png");
+
+  scene->init();
+
+  rtObjectRef root = scene.get<rtObjectRef>("root");  
+
+  scene.send("on", "keyDown", new rtFunctionCallback(onKeyDownCB));
+
+  rtObjectRef bg;
+  rtString bgURL;
+  scene.sendReturns<rtObjectRef>("createImage", bg);
+  bgURL = d;
+  bgURL.append("/../images/skulls.png");
+  bg.set("url", bgURL);
+  bg.set("xStretch", 2);
+  bg.set("yStretch", 2);
+  bg.set("parent", root);
+  bg.set("w", scene->width());
+  bg.set("h", scene->height());
+  scene.sendReturns<rtObjectRef>("createImage", bg);
+  bgURL = d;
+  bgURL.append("/../images/radial_gradient.png");
+  bg.set("url", bgURL);
+  bg.set("xStretch", 1);
+  bg.set("yStretch", 1);
+  bg.set("parent", root);
+  bg.set("w", scene->width());
+  bg.set("h", scene->height());
+
+  rtObjectRef t;
+  scene.sendReturns<rtObjectRef>("createText", t);
+  t.set("text", "Choose Picture:\n"
+        "1. Banana!\n"
+        "2. Ball!\n");
+  t.set("x", 100);
+  t.set("y", 100);
+  t.set("parent", root);
+
+  scene.sendReturns<rtObjectRef>("createImage", picture);
+  picture.set("x", 400);
+  picture.set("y", 400);
+  picture.send("animateTo", "r", 360, 0.5, 0, 1);
+  picture.set("parent", root);
+}
+
 #endif
 
