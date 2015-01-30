@@ -54,12 +54,12 @@ private:
     // so we need to explicitly tell the event loop to exit
     eventLoop.exit();
   }
-  
+
   void onSize(int newWidth, int newHeight)
   {
     scene->onSize(newWidth, newHeight);
   }
-  
+
   void onDraw(pxSurfaceNative /*s*/)
   {
     scene->onDraw();
@@ -232,16 +232,15 @@ private:
 void imageDownloadComplete(pxImageDownloadRequest* imageDownloadRequest)
 {
   if (imageDownloadRequest != NULL && imageDownloadRequest->getDownloadStatusCode() == 0)
-    {
-      //if successful, save the image to disk for testing
-      char* downloadData = imageDownloadRequest->getDownloadedData();
-      size_t downloadSize = imageDownloadRequest->getDownloadedDataSize();
-        
-      FILE *file = fopen("image.jpg", "wb");
-      fwrite(downloadData, sizeof(char), downloadSize, file);
-      fclose(file);
-    }
-    
+  {
+    //if successful, save the image to disk for testing
+    char*  downloadData = imageDownloadRequest->getDownloadedData();
+    size_t downloadSize = imageDownloadRequest->getDownloadedDataSize();
+
+    FILE *file = fopen("image.jpg", "wb");
+    fwrite(downloadData, sizeof(char), downloadSize, file);
+    fclose(file);
+  }
   delete imageDownloadRequest;
 }
 
@@ -263,7 +262,6 @@ int pxMain()
     
   win.setTitle(title);
   win.setVisibility(true);
-    
     
   pxImageDownloadRequest* downloadRequest = new pxImageDownloadRequest("http://upload.wikimedia.org/wikipedia/commons/c/c9/Moon.jpg");
   downloadRequest->setCallbackFunction(imageDownloadComplete);

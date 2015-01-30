@@ -1,7 +1,6 @@
 var px = require("./build/Debug/px");
-//var proc = require('process');
 
-var win = new px.Window(50, 50, 640, 480);
+var win = new px.Window(0, 0, 648, 480);
 win.title = "Hello World!";
 win.on("keydown", function(code, flags) {
   console.log("code:" + code);
@@ -31,21 +30,43 @@ function testScene()
       p.lineWidth = 10;  
       p.animateTo("h", 600, 0.5, 0, 0);
     }
-    else if (i < n-1) {
+    else if (i < 2) {
+      p = scene.createImage9();
+      p.url = process.cwd() + "/../../images/curve_rectangle.png";
+      p.cx = p.w/2;
+      p.cy = p.h/2;
+      ny = 100;
+      p.animateTo("h", 600, 0.5, 0, 0);
+      p.animateTo("w", 600, 0.5, 0, 0);
+    }
+    else if (i < n-3) {
       p = scene.createImage();
-      p.url = process.cwd() + "/../images/banana.jpg";
+      p.url = process.cwd() + "/../../images/banana.png";
       p.cx = p.w/2;
       p.cy = p.h/2;
       ny = 100;
     }
     else {
       p = scene.createText();
-      p.text = "pxCore!";
-      p.cx = 250;
       p.animateTo("sx", 2.0, 1.0, 0, 0);
       p.animateTo("sy", 2.0, 1.0, 0, 0);
-      nx = 400;
-      ny = 400;
+      nx = 200;
+      if (i == n-3) {
+        p.text = "Iñtërnâtiônàližætiøn";
+        p.textColor = 0xffff00ff;
+        ny = 200;
+      }
+      else if (i == n-2) {
+        p.text = "pxCore!";
+        p.textColor = 0xff0000ff;
+        ny = 300;
+      }
+      else if (i == n-1) {
+        p.text = "Ādam";
+        p.textColor = 0x00ffffff;
+        ny = 400;
+      }
+      p.cx = p.w/2;
     }
     
     nx += 10;
@@ -62,9 +83,9 @@ function testScene()
     p.ry = 1.0;
     p.rz = 0;
 
-    p.animateTo("r", 360, 1.0+(i*0.3), 0, 0);
+    p.animateTo("r", 360, 1.0+(i*0.3), 0, 1);
     if (i < n-1) {
-      p.animateTo("x", 800, 1.0+(i*0.3), 0, 0);
+      p.animateTo("x", 600, 1.0+(i*0.3), 0, 0);
     }
 
     p.animateTo("a", 0.1, 2.0, 0, 0);

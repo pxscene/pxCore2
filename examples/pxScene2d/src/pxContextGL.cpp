@@ -89,7 +89,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
   glCompileShader(fragShader);
   glGetShaderiv(fragShader, GL_COMPILE_STATUS, &stat);
   if (!stat) {
-    rtLog("Error: fragment shader did not compile!\n");
+    rtLogError("Error: fragment shader did not compile: ", glGetError());
     
     GLint maxLength = 0;
     glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &maxLength);
@@ -110,7 +110,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
   glCompileShader(vertShader);
   glGetShaderiv(vertShader, GL_COMPILE_STATUS, &stat);
   if (!stat) {
-    rtLog("Error: vertex shader did not compile!\n");
+    rtLogError("vertex shader did not compile: %d", glGetError());
     exit(1);
   }
   
@@ -124,7 +124,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
     char log[1000];
     GLsizei len;
     glGetProgramInfoLog(program, 1000, &len, log);
-    rtLog("Error: linking:\n%s\n", log);
+    rtLogError("faild to link:%s", log);
     exit(1);
   }
   
@@ -250,15 +250,15 @@ void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw) {
   }
 }
 
-void drawSnapshot2(float x, float y, float w, float h, pxSnapshot& snapShot)
+void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNativeDesc* contextSurface)
 {
-  if (!snapShot.isInitialized())
+  if ((contextSurface == NULL) || (contextSurface->texture == 0))
   {
     return;
   }
   
   glActiveTexture(GL_TEXTURE0);
-  snapShot.prepareForDrawing();
+  glBindTexture(GL_TEXTURE_2D, contextSurface->texture);
   glUniform1i(u_texture, 0);
 
   const float verts[4][2] = {
@@ -491,9 +491,15 @@ void pxContext::init() {
 #if !defined(__APPLE__) && !defined(PX_PLATFORM_WAYLAND_EGL)
   GLenum err = glewInit();
   if (err != GLEW_OK)
+  {
+    rtLogError("failed to initialize glew");
     exit(1); // or handle the error in a nicer way
+  }
   if (!GLEW_VERSION_2_1)  // check that the machine supports the 2.1 API.
+  {
+    rtLogError("invalid glew version");
     exit(1); // or handle the error in a nicer way
+  }
 #endif
 
   glClearColor(0.4, 0.4, 0.4, 0.0);
@@ -555,6 +561,79 @@ void pxContext::setAlpha(float a) {
   glUniform1f(u_alpha, a); 
 }
 
+pxError pxContext::createContextSurface(pxContextSurfaceNativeDesc* contextSurface, int width, int height)
+{
+  if (contextSurface == NULL)
+  {
+    rtLog("cannot create context surface because contextSurface is NULL");
+    return PX_FAIL;
+  }
+  deleteContextSurface(contextSurface);
+  contextSurface->width = width;
+  contextSurface->height = height;
+  
+  glGenFramebuffers(1, &contextSurface->framebuffer);
+  glGenTextures(1, &contextSurface->texture);
+  glBindTexture(GL_TEXTURE_2D, contextSurface->texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+	       width, height, 0, GL_BGRA_EXT,
+	       GL_UNSIGNED_BYTE, NULL);
+  
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  
+  return PX_OK;
+}
+pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
+{
+  if (contextSurface == NULL)
+  {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    return PX_OK;
+  }
+  
+  if ((contextSurface->framebuffer == 0) || (contextSurface->texture == 0))
+  {
+    rtLog("render surface is not initialized\n");
+    return PX_NOTINITIALIZED;
+  }
+  
+  glBindFramebuffer(GL_FRAMEBUFFER, contextSurface->framebuffer);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
+                          GL_TEXTURE_2D, contextSurface->texture, 0);
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+  {
+    rtLog("error setting the render surface\n");
+    return PX_FAIL;
+  }
+  
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glClear(GL_COLOR_BUFFER_BIT);
+  
+  return PX_OK;
+}
+
+pxError pxContext::deleteContextSurface(pxContextSurfaceNativeDesc* contextSurface)
+{
+  if (contextSurface == NULL)
+  {
+    return PX_OK;
+  }
+  if (contextSurface->framebuffer != 0)
+  {
+    glDeleteFramebuffers(1, &contextSurface->framebuffer);
+    contextSurface->framebuffer = 0;
+  }
+  if (contextSurface->texture != 0)
+  {
+    glDeleteTextures(1, &contextSurface->texture);
+    contextSurface->texture = 0;
+  }
+  return PX_OK;
+}
+
 void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor) {
   glUniform4fv(u_color, 1, fillColor);
   float half = lineWidth/2;
@@ -574,9 +653,9 @@ void pxContext::drawImage(float w, float h, pxOffscreen& o,
   drawImage2(0, 0, w, h, o, xStretch, yStretch);
 }
 
-void pxContext::drawSnapshot(float w, float h, pxSnapshot& snapShot)
+void pxContext::drawSurface(float w, float h, pxContextSurfaceNativeDesc* contextSurface)
 {
-  drawSnapshot2(0, 0, w, h, snapShot);
+  drawSurface2(0, 0, w, h, contextSurface);
 }
 
 void pxContext::drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color) {

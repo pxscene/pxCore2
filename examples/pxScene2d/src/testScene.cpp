@@ -83,6 +83,7 @@ void testScene() {
 
 // Using Dynamic rtObject API
 void testScene() {
+      printf("create new banana!\n");
   
   rtString d;
   rtGetCurrentDirectory(d);
@@ -134,21 +135,21 @@ void testScene() {
       p.send("animateTo", "sy", 2.0, 1.0, 0, 0);
       nx = 200;
       if (i == n-3) {
-	// utf8 test
-	p.set("text", "Iñtërnâtiônàližætiøn");
-	p.set("textColor", 0xffff00ff);
-	ny = 200;
+        // utf8 test
+        p.set("text", "Iñtërnâtiônàližætiøn");
+        p.set("textColor", 0xffff00ff);
+        ny = 200;
       }
       else if (i == n-2) {
-	p.set("text", "pxCore!");
-	p.set("textColor", 0xff0000ff);
-	ny = 300;
+        p.set("text", "pxCore!");
+        p.set("textColor", 0xff0000ff);
+        ny = 300;
       }
       else if (i == n-1) {
-	//utf8 test...
-	p.set("text", "Ādam");
-	p.set("textColor", 0x00ffffff);
-	ny = 400;
+        //utf8 test...
+        p.set("text", "Ādam");
+        p.set("textColor", 0x00ffffff);
+        ny = 400;
       }
       p.set("cx", p.get<float>("w")/2);
     }

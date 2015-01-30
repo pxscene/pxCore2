@@ -22,10 +22,13 @@ enum rtLogLevel
   RT_LOG_FATAL = 4
 };
 
-void rtLog(const char* format, ...);
+typedef void (*rtLogHandler)(rtLogLevel level, const char* file, int line, int threadId, char* message);
 
 void rtLog2(rtLogLevel level, const char* file, int line, const char* format, ...);
+void rtLog2SetLevel(rtLogLevel l);
+void rtLog2SetLogHandler(rtLogHandler logHandler);
 
+#define rtLog(FORMAT, ...) rtLogInfo(FORMAT, ## __VA_ARGS__)
 #define rtLogger(LEVEL, FORMAT, ...) do { rtLog2(RT_LOG_ ## LEVEL, __FILE__, __LINE__, FORMAT, ## __VA_ARGS__); } while (0)
 #define rtLogDebug(FORMAT, ...) rtLogger(DEBUG, FORMAT, ## __VA_ARGS__)
 #define rtLogInfo(FORMAT, ...) rtLogger(INFO, FORMAT, ## __VA_ARGS__)

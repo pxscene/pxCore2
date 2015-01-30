@@ -3,14 +3,13 @@
     {
       "target_name": "px",
       "sources": [ 
-        "asynccontext.cpp",
-        "eventloop.cpp",
-        "function.cpp",
-        "init.cpp",
-        "object.cpp",
-        "offscreen.cpp",
-        "scene2d.cpp",
-        "window.cpp",
+
+        "jsCallback.cpp",
+        "rtWrapperInit.cpp",
+        "rtWrapperUtils.cpp",
+        "rtFunctionWrapper.cpp",
+        "rtObjectWrapper.cpp",
+        "rtWindowWrapper.cpp",
 
         "../rtObject.cpp",
         "../rtLog.cpp",
@@ -25,12 +24,14 @@
         "../pxText.cpp",
         "../pxUtil.cpp"
        ],
+
       "include_dirs" : [
         "../",
         "../../external/png",
         "../../external/ft/include",
         "../../../../src"
       ],
+
       "libraries": [
         "-L../../../external/ft/objs/.libs/",
         "-L../../../external/png/.libs",
@@ -43,10 +44,11 @@
 
 #        "-lGL",
 #        "-lrt",
-#        "-lrt",
       ],
+
       "cflags": [
         "-DPX_PLATFORM_X11",
+        "-DRT_PLATFORM_LINUX",
         "-DENABLE_GLUT",
         "-Wno-attributes"
       ]

@@ -285,11 +285,11 @@ class rtObject: public rtIObject, public rtObjectBase
 	  
 	m = m->parentsMap;
       }
-      rtLog("key not found\n");
+      rtLogDebug("key: %s not found", name);
       
       {
 	
-	rtLog("Looking for function as property: %s\n", name);
+	rtLogDebug("Looking for function as property: %s", name);
 	
 	rtMethodMap* m;
 	m = getMap();
@@ -301,7 +301,7 @@ class rtObject: public rtIObject, public rtObjectBase
 	      {
                 if (strcmp(name, e->mMethodName) == 0)
 		  {
-		    rtLog("found method\n");
+		    rtLogDebug("found method: %s", name);
 		    value->setFunction(new rtObjectFunction(this, e->mThunk));
 		    hr = RT_OK;
                     return hr;
