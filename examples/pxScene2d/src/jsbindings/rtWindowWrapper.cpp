@@ -8,6 +8,8 @@
 #include <pxWindow.h>
 #include <pxScene2d.h>
 
+#include <unistd.h>
+
 static const char* kClassName = "Window";
 static Persistent<Function> ctor;
 
@@ -51,6 +53,7 @@ public:
     mScene->init();
 
     startEventProcessingThread();
+    sleep(1);
   }
 
   const Persistent<Object> scene() const

@@ -15,7 +15,7 @@ struct LogLevelSetter
   LogLevelSetter()
   {
     const char* s = getenv("RT_LOG_LEVEL");
-    if (s)
+    if (s && strlen(s))
     {
       rtLogLevel level = RT_LOG_ERROR;
       if      (strcasecmp(s, "debug") == 0) level = RT_LOG_DEBUG;
