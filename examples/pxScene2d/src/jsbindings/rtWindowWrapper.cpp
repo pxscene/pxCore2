@@ -8,8 +8,6 @@
 #include <pxWindow.h>
 #include <pxScene2d.h>
 
-#include <unistd.h>
-
 static const char* kClassName = "Window";
 static Persistent<Function> ctor;
 
@@ -29,15 +27,17 @@ enum WindowCallback
   eDraw = 11
 };
 
+struct EventLoopContext
+{
+  pxEventLoop* eventLoop;
+};
+
 static void* ProcessEventLoop(void* argp)
 {
-  pxEventLoop* eventLoop = reinterpret_cast<pxEventLoop *>(argp);
-  eventLoop->run();
+  EventLoopContext* ctx = reinterpret_cast<EventLoopContext *>(argp);
+  ctx->eventLoop->run();
   return 0;
 }
-
-
-
 
 class jsWindow : public pxWindow
 {
@@ -53,7 +53,6 @@ public:
     mScene->init();
 
     startEventProcessingThread();
-    sleep(1);
   }
 
   const Persistent<Object> scene() const
@@ -63,7 +62,9 @@ public:
 
   void startEventProcessingThread()
   {
-    pthread_create(&mEventLoopThread, NULL, &ProcessEventLoop, mEventLoop);
+    EventLoopContext* ctx = new EventLoopContext();
+    ctx->eventLoop = mEventLoop;
+    pthread_create(&mEventLoopThread, NULL, &ProcessEventLoop, ctx);
   }
 
   virtual ~jsWindow()
@@ -100,6 +101,7 @@ private:
 protected:
   virtual void onSize(int w, int h)
   {
+    mScene->onSize(w, h);
     jsCallback::create()
       ->addArg(w)
       ->addArg(h)
@@ -143,6 +145,7 @@ protected:
 
   virtual void onMouseMove(int x, int y)
   {
+    mScene->onMouseMove(x, y);
     jsCallback::create()
       ->addArg(x)
       ->addArg(y)
@@ -170,7 +173,9 @@ protected:
 
   virtual void onDraw(pxSurfaceNative s)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onDraw();
+    rtWrapperSceneUpdateExit();
   }
 private:
   Persistent<Function>* mCallbacks;
@@ -285,3 +290,4 @@ Handle<Value> rtWindowWrapper::create(const Arguments& args)
     return scope.Close(ctor->NewInstance(argc, argv));
   }
 }
+

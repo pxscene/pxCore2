@@ -64,6 +64,10 @@ rtValue js2rt(const v8::Handle<v8::Value>& val);
 v8::Handle<v8::Value> rt2js(const rtValue& val);
 
 
+void rtWrapperSceneUpdateEnter();
+void rtWrapperSceneUpdateExit();
+
+
 
 #endif
 

@@ -17,17 +17,17 @@ rtFunctionWrapper::~rtFunctionWrapper()
 
 void rtFunctionWrapper::exportPrototype(Handle<Object> exports)
 {
-    Local<FunctionTemplate> tmpl = FunctionTemplate::New(create);
-    tmpl->SetClassName(String::NewSymbol(kClassName));
+  Local<FunctionTemplate> tmpl = FunctionTemplate::New(create);
+  tmpl->SetClassName(String::NewSymbol(kClassName));
 
-    // Local<Template> proto = tmpl->PrototypeTemplate();
+  // Local<Template> proto = tmpl->PrototypeTemplate();
 
-    Local<ObjectTemplate> inst = tmpl->InstanceTemplate();
-    inst->SetInternalFieldCount(1);
-    inst->SetCallAsFunctionHandler(call);
+  Local<ObjectTemplate> inst = tmpl->InstanceTemplate();
+  inst->SetInternalFieldCount(1);
+  inst->SetCallAsFunctionHandler(call);
 
-    ctor = Persistent<Function>::New(tmpl->GetFunction());
-    exports->Set(String::NewSymbol(kClassName), ctor);
+  ctor = Persistent<Function>::New(tmpl->GetFunction());
+  exports->Set(String::NewSymbol(kClassName), ctor);
 }
 
 Handle<Value> rtFunctionWrapper::create(const Arguments& args)
@@ -43,8 +43,8 @@ Handle<Value> rtFunctionWrapper::create(const Arguments& args)
   {
     const int argc = 1;
 
-    v8::HandleScope scope;
-    v8::Local<v8::Value> argv[argc] = { args[0] };
+    HandleScope scope;
+    Local<Value> argv[argc] = { args[0] };
     return scope.Close(ctor->NewInstance(argc, argv));
   }
 }
@@ -68,7 +68,9 @@ Handle<Value> rtFunctionWrapper::call(const Arguments& args)
   rtLogDebug("Invoking function");
 
   rtValue result;
+  rtWrapperSceneUpdateEnter();
   rtError err = unwrap(args)->Send(args.Length(), &argList[0], &result);
+  rtWrapperSceneUpdateExit();
   if (err != RT_OK)
   {
     rtLogFatal("failed to invoke function: %d", err);

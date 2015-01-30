@@ -33,7 +33,7 @@ void rtObjectWrapper::exportPrototype(Handle<Object> exports)
   inst->SetInternalFieldCount(1);
   inst->SetNamedPropertyHandler(&getProperty, &setProperty);
 
-  ctor = Persistent<v8::Function>::New(tmpl->GetFunction());
+  ctor = Persistent<Function>::New(tmpl->GetFunction());
   exports->Set(String::NewSymbol(kClassName), ctor);
 }
 
@@ -58,7 +58,9 @@ Handle<Value> rtObjectWrapper::getProperty(
   rtLogDebug("getting property: %s", propertyName.cString());
 
   rtValue value;
+  rtWrapperSceneUpdateEnter();
   rtError err = unwrap(info)->Get(propertyName.cString(), &value);
+  rtWrapperSceneUpdateExit();
   if (err != RT_OK)
     return Handle<Value>(Undefined());
 
@@ -70,11 +72,14 @@ Handle<Value> rtObjectWrapper::setProperty(
     Local<Value> val,
     const AccessorInfo& info)
 {
-  rtString propertyName = toString(prop);
-  rtLogDebug("setting property: %s", propertyName.cString());
-
+  rtString name = toString(prop);
   rtValue value = js2rt(val);
-  rtError err = unwrap(info)->Set(propertyName.cString(), &value);
+
+  rtLogDebug("set %s=%s", name.cString(), value.toString().cString());
+
+  rtWrapperSceneUpdateEnter();
+  rtError err = unwrap(info)->Set(name.cString(), &value);
+  rtWrapperSceneUpdateExit();
   return err == RT_OK
     ? val
     : Handle<Value>();

@@ -2,6 +2,20 @@
 #include "rtObjectWrapper.h"
 #include "rtFunctionWrapper.h"
 
+// #include <rtMutex.h> // non-recusrive
+
+static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+
+void rtWrapperSceneUpdateEnter()
+{
+  pthread_mutex_lock(&sSceneLock);
+}
+
+void rtWrapperSceneUpdateExit()
+{
+  pthread_mutex_unlock(&sSceneLock);
+}
+
 using namespace v8;
 
 Handle<Value> rt2js(const rtValue& v)
