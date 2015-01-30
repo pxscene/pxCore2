@@ -117,7 +117,7 @@ void pxObject::drawInternal(pxMatrix4f m) {
   context.setMatrix(m);
   context.setAlpha(ma);
   
-  if (mPaint)
+  if (mPainting)
   {
     draw();
 

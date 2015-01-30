@@ -84,7 +84,7 @@ public:
 
  pxObject(): mRef(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0), 
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
-    mContextSurfaceSnapshot(NULL), mPaint(true) {}
+    mContextSurfaceSnapshot(NULL), mPainting(true) {}
 
   virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(); }
   virtual unsigned long AddRef() { return ++mRef; }
@@ -149,6 +149,9 @@ public:
   float rz()            const { return mrz;}
   rtError rz(float& v)  const { v = mrz; return RT_OK;  }
   rtError setRZ(float v)      { mrz = v; return RT_OK;  }
+  bool painting()            const { return mPainting;}
+  rtError painting(bool& v)  const { v = mPainting; return RT_OK;  }
+  rtError setPainting(bool v)      { mPainting = v; return RT_OK;  }
 
   void moveToFront();
   void moveToBack();
@@ -244,7 +247,7 @@ protected:
   unsigned long mRef;
   float mcx, mcy, mx, my, ma, mr, mrx, mry, mrz, msx, msy, mw, mh;
   pxContextSurfaceNativeDesc* mContextSurfaceSnapshot;
-  bool mPaint;
+  bool mPainting;
   
   void createSnapshot();
   void deleteSnapshot();
