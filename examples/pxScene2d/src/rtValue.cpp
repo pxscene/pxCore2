@@ -20,6 +20,7 @@ rtValue::rtValue(const char* v)       :mType(0) { setString(v); }
 rtValue::rtValue(const rtString& v)   :mType(0) { setString(v); }
 rtValue::rtValue(const rtIObject* v)  :mType(0) { setObject(v); }
 rtValue::rtValue(const rtObjectRef& v):mType(0) { setObject(v); }
+rtValue::rtValue(const rtFunctionRef& v): mType(0) { setFunction(v); }
 rtValue::rtValue(const rtValue& v)    :mType(0) { setValue(v);  }
 rtValue::rtValue(voidPtr v)           :mType(0) { setVoidPtr(v); }
 

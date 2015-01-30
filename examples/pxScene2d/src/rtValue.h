@@ -51,6 +51,7 @@ class rtValue {
   rtValue(const rtString& v);
   rtValue(const rtIObject* v);
   rtValue(const rtObjectRef& v);
+  rtValue(const rtFunctionRef& v);
   rtValue(const rtValue& v);
   rtValue(voidPtr v);
 
