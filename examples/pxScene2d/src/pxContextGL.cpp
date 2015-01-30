@@ -145,7 +145,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
 }
 
 
-void draw9SliceRect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
+static void draw9SliceRect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
 {
   float ox1 = x;
   float ix1 = x+x1;
@@ -209,7 +209,7 @@ void draw9SliceRect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfl
 }
 
 
-void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h)
+static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h)
 {
   const float verts[4][2] =
   {
@@ -229,7 +229,7 @@ void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h)
 }
 
 
-void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw)
+static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw)
 {
   float half = lw/2;
   float ox1  = x-half;
@@ -266,7 +266,7 @@ void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw)
 }
 
 
-void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNativeDesc* contextSurface)
+static void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNativeDesc* contextSurface)
 {
   if ((contextSurface == NULL) || (contextSurface->texture == 0))
   {
@@ -308,7 +308,7 @@ void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNativeDesc
 }
 
 
-void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen)
+static void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen)
 {
   glActiveTexture(GL_TEXTURE0);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
@@ -348,7 +348,7 @@ void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen)
 }
 
 
-void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2,
+static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2,
     pxOffscreen& offscreen)
 {
   glActiveTexture(GL_TEXTURE0);
