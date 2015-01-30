@@ -96,6 +96,18 @@ void onMousePassiveMotion(int x, int y) {
   scene->onMouseMove(x, y);
 }
 
+void onKeyboard(unsigned char key, int /*x*/, int /*y*/)
+{
+  // Ugh GLUT key support not so hot.. 
+  scene->onKeyDown(key, 0);
+  scene->onKeyUp(key, 0);
+}
+
+void onSpecial(int key, int /*x*/, int /*y*/)
+{
+  printf("onSpecial keycode: %d\n", key);
+}
+
 void createGlutWindow() {
   glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGBA  /*| GLUT_DEPTH | GLUT_ALPHA*/);
   glutInitWindowPosition (10, 10);
@@ -108,6 +120,8 @@ void createGlutCallbacks() {
   glutReshapeFunc(reshape);
   glutMouseFunc(onMouse);
   glutMotionFunc(onMouseMotion);
+  glutKeyboardFunc(onKeyboard);
+  glutSpecialFunc(onSpecial);
   glutPassiveMotionFunc(onMousePassiveMotion);
 }
 
