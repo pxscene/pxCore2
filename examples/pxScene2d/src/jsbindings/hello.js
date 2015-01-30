@@ -32,7 +32,7 @@ function testScene()
     }
     else if (i < n-1) {
       p = scene.createImage();
-      p.url = process.cwd() + "/../images/banana.jpg";
+      p.url = process.cwd() + "/../../images/banana.png";
       p.cx = p.w/2;
       p.cy = p.h/2;
       ny = 100;

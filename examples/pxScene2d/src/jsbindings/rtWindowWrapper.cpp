@@ -48,6 +48,8 @@ public:
     mJavaScene = Persistent<Object>::New(rtObjectWrapper::createFromObjectReference(mScene.getPtr()));
 
     init(x, y, w, h);
+    mScene->init();
+
     startEventProcessingThread();
   }
 

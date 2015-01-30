@@ -13,4 +13,12 @@
 
 3. Run
 
+  Because of the libraries linked in, you can either set LD_LIBRARY_PATH,
+  use the run.sh script.
+
+  export LD_LIBRARY_PATH=../../externa/png/.libs
   nodejs hello.js
+
+  or
+
+  ./run.sh
