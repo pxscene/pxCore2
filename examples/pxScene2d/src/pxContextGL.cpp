@@ -242,9 +242,9 @@ static void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNat
   glBindTexture(GL_TEXTURE_2D, textureId1); //bind back to original texture
 }
 
-void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen,
-                pxStretch xStretch, pxStretch yStretch) {
-  
+static void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen,
+                pxStretch xStretch, pxStretch yStretch)
+{
   glActiveTexture(GL_TEXTURE0);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
 	       offscreen.width(), offscreen.height(), 0, GL_BGRA_EXT,
@@ -542,8 +542,10 @@ pxError pxContext::createContextSurface(pxContextSurfaceNativeDesc* contextSurfa
     rtLog("cannot create context surface because contextSurface is NULL");
     return PX_FAIL;
   }
+
   deleteContextSurface(contextSurface);
-  contextSurface->width = width;
+
+  contextSurface->width  = width;
   contextSurface->height = height;
   
   glGenFramebuffers(1, &contextSurface->framebuffer);
