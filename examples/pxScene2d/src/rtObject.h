@@ -6,6 +6,9 @@
 
 #include <string.h>
 
+using namespace std;
+#include <vector>
+
 #include "rtLog.h"
 #include "rtAtomic.h"
 #include "rtError.h"
@@ -480,6 +483,147 @@ rtError rtFunctionBase::sendReturns(const rtValue& arg1, const rtValue& arg2,
   if (e == RT_OK) result = resultValue.convert<T>();
   return e;
 }
+
+
+struct _rtEmitEntry {
+  rtString n;
+  rtFunctionRef f;
+};
+
+typedef rtError (*rtFunctionCB)(int numArgs, const rtValue* args, rtValue* result, void* context);
+
+class rtFunctionCallback: rtIFunction {
+public:
+  rtFunctionCallback(rtFunctionCB cb, void* context = NULL) {
+    mCB = cb;
+    mContext = context;
+  }
+  
+  virtual ~rtFunctionCallback() {}
+
+  virtual unsigned long AddRef() {
+    return rtAtomicInc(&mRefCount);
+  }
+  
+  virtual unsigned long Release() {
+    long l = rtAtomicDec(&mRefCount);
+    if (l == 0) delete this;
+    return l;
+  }
+
+  
+private:  
+  virtual rtError Send(int numArgs, const rtValue* args, rtValue* result)
+  {
+    return mCB(numArgs, args, result, mContext);
+  }
+  rtFunctionCB mCB;
+  void* mContext;
+  rtAtomic mRefCount;
+};
+
+class rtEmit: public rtIFunction {
+
+public:
+rtEmit(): mRefCount(0) {}
+  virtual ~rtEmit() {}
+
+  virtual unsigned long AddRef() {
+    return rtAtomicInc(&mRefCount);
+  }
+  
+  virtual unsigned long Release() {
+    long l = rtAtomicDec(&mRefCount);
+    if (l == 0) delete this;
+    return l;
+  }
+
+  rtError addListener(const char* eventName, rtIFunction* f)
+  {
+    if (!f) return RT_ERROR;
+    // Only allow unique entries
+    bool found = false;
+    for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); it != mEntries.end(); it++)
+    {
+      _rtEmitEntry& e = (*it);
+      if (e.n == eventName && e.f.getPtr() == f)
+      {
+        found = true;
+        break;
+      }
+    }
+    if (!found)
+    {
+      _rtEmitEntry e;
+      e.n = eventName;
+      e.f = f;
+      mEntries.push_back(e);
+    }
+
+    return RT_OK;
+  }
+
+  rtError delListener(const char* eventName, rtIFunction* f)
+  {
+    for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); it != mEntries.end(); it++)
+    {
+      _rtEmitEntry& e = (*it);
+      if (e.n == eventName && e.f.getPtr() == f)
+      {
+        mEntries.erase(it);
+        // There can only be one
+        break;
+      }
+    }
+
+    return RT_OK;
+  }
+
+public:
+  virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) 
+  {
+    if (numArgs > 0)
+    {
+      rtString eventName = args[0].toString();
+      for(vector<_rtEmitEntry>::iterator it = mEntries.begin(); it != mEntries.end(); it++)
+      {
+        _rtEmitEntry& e = (*it);
+        if (e.n == eventName)
+        {
+          // have to invoke all no opportunity to return errors
+          e.f->Send(numArgs-1, args+1, result);
+          // TODO log error 
+        }
+      }
+    }
+    return RT_OK;
+  }
+    
+  vector<_rtEmitEntry> mEntries;
+  rtAtomic mRefCount;
+};
+
+class rtEmitRef: public rtRefT<rtEmit>, public rtFunctionBase
+{
+public:
+  rtEmitRef() {}
+  rtEmitRef(rtEmit* e) 
+  {
+    asn(e);
+  }
+
+  // operator= is not inherited
+  rtEmitRef& operator=(rtEmit* e) {
+    asn(e);
+    return *this;
+  }
+
+private:
+  virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) {
+    return (*this)->Send(numArgs, args, result);
+  }
+};
+
 
 #endif
 #endif
