@@ -127,11 +127,11 @@ void pxObject::drawInternal(pxMatrix4f m) {
   }
   else
   {
-    if (!mSnapshot.isInitialized())
+    if (mContextSurfaceSnapshot == NULL)
     {
       createSnapshot();
     }
-    context.drawSnapshot(mSnapshot.getWidth(),mSnapshot.getHeight(), mSnapshot);
+    context.drawSurface(mw,mh, mContextSurfaceSnapshot);
   }
 }
 
@@ -140,8 +140,11 @@ void pxObject::createSnapshot()
   pxMatrix4f m;
   context.setMatrix(m);
   context.setAlpha(ma);
-  mSnapshot.initialize(mw,mh);
-  if (mSnapshot.beginSnapshotPainting() == PX_OK)
+  //cleanup old snapshot (if it exists) before creating a new one
+  deleteSnapshot();
+  mContextSurfaceSnapshot = new pxContextSurfaceNativeDesc();
+  context.createContextSurface(mContextSurfaceSnapshot, mw, mh);
+  if (context.setRenderSurface(mContextSurfaceSnapshot) == PX_OK)
   {
     draw();
   
@@ -150,7 +153,17 @@ void pxObject::createSnapshot()
       (*it)->drawInternal(m);
     }
   }
-  mSnapshot.endSnapshotPainting();
+  context.setRenderSurface(mContextSurfaceSnapshot);
+}
+
+void pxObject::deleteSnapshot()
+{
+  if (mContextSurfaceSnapshot != NULL)
+  {
+    context.deleteContextSurface(mContextSurfaceSnapshot);
+    delete mContextSurfaceSnapshot;
+    mContextSurfaceSnapshot = NULL;
+  }
 }
 
 rtDefineObject(pxObject, rtObject);

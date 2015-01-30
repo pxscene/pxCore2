@@ -3,11 +3,8 @@
 
 #include "rtConfig.h"
 
-#ifdef ENABLE_GRAPHICS_OPENGL
-#include "pxSnapshotOpenGL.h"
-#else
-#include "pxSnapshotNoGraphics.h"
-#endif
+//todo - add support for DFB
+#include "pxContextDescGL.h"
 
 #if defined(RT_PLATFORM_LINUX)
 #include "linux/rtConfigNative.h"
