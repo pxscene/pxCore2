@@ -375,6 +375,8 @@ public:
   rtMethodNoArgAndReturn("createImage", createImage, rtObjectRef);
   rtMethodNoArgAndReturn("createImage9", createImage9, rtObjectRef);
   rtMethodNoArgAndReturn("createText", createText, rtObjectRef);
+  rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
+  rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
 
   pxScene2d();
   
@@ -388,6 +390,16 @@ public:
   rtError createImage(rtObjectRef& o);
   rtError createImage9(rtObjectRef& o);
 
+  rtError addListener(rtString eventName, const rtFunctionRef& f)
+  {
+    return mEmit->addListener(eventName, f);
+  }
+
+  rtError delListener(rtString  eventName, const rtFunctionRef& f)
+  {
+    return mEmit->delListener(eventName, f);
+  }
+
   // The following methods are delegated to the view
   virtual void onSize(int w, int h);
   virtual void onMouseDown(int x, int y, unsigned long flags);
@@ -395,6 +407,11 @@ public:
   virtual void onMouseLeave();
   virtual void onMouseMove(int x, int y);
   
+  // JR expect keycodes etc to change quite a bit
+  // not well supported in glut
+  // glut doesn't seem to support notion of key up vs down so both of these
+  // get fired on physical key down right now
+  // I want to normalize on "browser" key codes
   virtual void onKeyDown(int keycode, unsigned long flags);
   virtual void onKeyUp(int keycode, unsigned long flags);
   
@@ -430,6 +447,8 @@ private:
   int frameCount;
   int mWidth;
   int mHeight;
+
+  rtEmitRef mEmit;
 };
 
 class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase
@@ -445,7 +464,7 @@ class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase
     asn(s);
     return *this;
   }
-
+  
  private:
   virtual rtError Get(const char* name, rtValue* value);
   virtual rtError Set(const char* name, const rtValue* value);

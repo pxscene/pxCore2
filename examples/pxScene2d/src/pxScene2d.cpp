@@ -188,6 +188,7 @@ void rectangle9::draw() {
   
 pxScene2d::pxScene2d():start(0),frameCount(0) { 
   mRoot = new pxObject(); 
+  mEmit = new rtEmit();
 }
 
 void pxScene2d::init() {
@@ -318,7 +319,9 @@ void pxScene2d::onMouseMove(int /*x*/, int /*y*/) {
 #endif
 }
 
-void pxScene2d::onKeyDown(int /*keycode*/, unsigned long /*flags*/) {
+void pxScene2d::onKeyDown(int keycode, unsigned long flags) {
+//  printf("onKeyDown keycode: %d flags %lu\n", keycode, flags);
+  mEmit.send("keyDown", keycode, flags);
 }
 
 void pxScene2d::onKeyUp(int /*keycode*/, unsigned long /*flags*/) {
@@ -330,6 +333,8 @@ rtDefineMethod(pxScene2d, createRectangle);
 rtDefineMethod(pxScene2d, createText);
 rtDefineMethod(pxScene2d, createImage);
 rtDefineMethod(pxScene2d, createImage9);
+rtDefineMethod(pxScene2d, addListener);
+rtDefineMethod(pxScene2d, delListener);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) {
   return (*this)->Get(name, value);
