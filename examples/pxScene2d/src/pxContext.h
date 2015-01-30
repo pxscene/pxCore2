@@ -6,6 +6,8 @@
 #include "pxMatrix4T.h"
 #include "pxSnapshot.h"
 
+enum pxStretch { PX_NONE = 0, PX_STRETCH = 1, PX_REPEAT = 2 };
+
 class pxContext {
  public:
   void init();
@@ -16,7 +18,8 @@ class pxContext {
   void setAlpha(float a);
 
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);
-  void drawImage(float w, float h, pxOffscreen& o);
+  void drawImage(float w, float h, pxOffscreen& o, 
+                 pxStretch xStretch, pxStretch yStretch);
   void drawImage9(float w, float h, pxOffscreen& o);
   void drawSnapshot(float w, float h, pxSnapshot& snapShot);
   void drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color);

@@ -289,7 +289,8 @@ void drawSnapshot2(float x, float y, float w, float h, pxSnapshot& snapShot)
   glBindTexture(GL_TEXTURE_2D, textureId1); //bind back to original texture
 }
 
-void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen) {
+void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen,
+                pxStretch xStretch, pxStretch yStretch) {
   
   glActiveTexture(GL_TEXTURE0);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
@@ -300,6 +301,14 @@ void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen) {
   glActiveTexture(GL_TEXTURE0);
   glUniform1i(u_texture, 0);
 
+  float iw = offscreen.width();
+  float ih = offscreen.height();
+
+  if (xStretch == PX_NONE)
+    w = iw;
+  if (yStretch == PX_NONE)
+    h = ih;
+
   const float verts[4][2] = {
     { x,y },
     {  x+w, y },
@@ -307,14 +316,47 @@ void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen) {
     {  x+w, y+h }
   };
 
+#if 0
   const float uv[4][2] = {
     { 0, 0 },
     { 1, 0 },
     { 0, 1 },
     { 1, 1 }
   };
+#else
+  float tw;
+  switch(xStretch) {
+  case PX_NONE:
+  case PX_STRETCH:
+    tw = 1.0;
+    break;
+  case PX_REPEAT:
+    tw = w/iw;
+    break;
+  }
+
+  float th;
+  switch(yStretch) {
+  case PX_NONE:
+  case PX_STRETCH:
+    th = 1.0;
+    break;
+  case PX_REPEAT:
+    th = h/ih;
+    break;
+  }
+
+  const float uv[4][2] = {
+    { 0,  0 },
+    { tw, 0 },
+    { 0,  th },
+    { tw, th }
+  };
+#endif
   
   {
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glUniform1f(u_alphatexture, 1.0);
     glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
     glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
@@ -465,14 +507,21 @@ void pxContext::init() {
   u_color = glGetUniformLocation(program, "a_color");
   u_alphatexture = glGetUniformLocation(program, "u_alphatexture");
 
+  // Using for RGBA texture
   glActiveTexture(GL_TEXTURE0);
   glGenTextures(1, &textureId1);
   glBindTexture(GL_TEXTURE_2D, textureId1);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+#if 0
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#else
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+#endif
 
+  // Using for alpha only texture
   glActiveTexture(GL_TEXTURE1);
   glGenTextures(1, &textureId2);
   glBindTexture(GL_TEXTURE_2D, textureId2);
@@ -520,8 +569,9 @@ void pxContext::drawImage9(float w, float h, pxOffscreen& o) {
   drawImage92(0, 0, w, h, 75,75,75,75, o);
 }
 
-void pxContext::drawImage(float w, float h, pxOffscreen& o) {
-  drawImage2(0, 0, w, h, o);
+void pxContext::drawImage(float w, float h, pxOffscreen& o,
+                          pxStretch xStretch, pxStretch yStretch) {
+  drawImage2(0, 0, w, h, o, xStretch, yStretch);
 }
 
 void pxContext::drawSnapshot(float w, float h, pxSnapshot& snapShot)
