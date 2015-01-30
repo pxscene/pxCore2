@@ -89,7 +89,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
   glCompileShader(fragShader);
   glGetShaderiv(fragShader, GL_COMPILE_STATUS, &stat);
   if (!stat) {
-    rtLog("Error: fragment shader did not compile!\n");
+    rtLogError("Error: fragment shader did not compile: ", glGetError());
     
     GLint maxLength = 0;
     glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &maxLength);
@@ -102,6 +102,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
     rtLog("%s\n", &errorLog[0]);
     //Exit with failure.
     glDeleteShader(fragShader); //Don't leak the shader.
+
     exit(1);
   }
   
@@ -110,7 +111,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
   glCompileShader(vertShader);
   glGetShaderiv(vertShader, GL_COMPILE_STATUS, &stat);
   if (!stat) {
-    rtLog("Error: vertex shader did not compile!\n");
+    rtLogError("vertex shader did not compile: %d", glGetError());
     exit(1);
   }
   
@@ -124,7 +125,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
     char log[1000];
     GLsizei len;
     glGetProgramInfoLog(program, 1000, &len, log);
-    rtLog("Error: linking:\n%s\n", log);
+    rtLogError("faild to link:%s", log);
     exit(1);
   }
   
@@ -449,9 +450,16 @@ void pxContext::init() {
 #if !defined(__APPLE__) && !defined(PX_PLATFORM_WAYLAND_EGL)
   GLenum err = glewInit();
   if (err != GLEW_OK)
+  {
+    rtLogError("failed to initialize glew");
     exit(1); // or handle the error in a nicer way
+  }
+
   if (!GLEW_VERSION_2_1)  // check that the machine supports the 2.1 API.
+  {
+    rtLogError("invalid glew version");
     exit(1); // or handle the error in a nicer way
+  }
 #endif
 
   glClearColor(0.4, 0.4, 0.4, 0.0);

@@ -258,7 +258,7 @@ void pxScene2d::onDraw() {
   draw();
   if (frameCount >= 60) {
     end2 = pxSeconds();
-    rtLog("elapsed no clip %g\n", (double)frameCount/(end2-start));
+    rtLog("elapsed no clip %g", (double)frameCount/(end2-start));
     start = end2;
     frameCount = 0;
   }

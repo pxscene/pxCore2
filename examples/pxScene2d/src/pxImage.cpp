@@ -33,21 +33,21 @@ rtError pxImage::setURL(const char* s) {
           if (pxLoadImage(downloadRequest.getDownloadedData(),
                   downloadRequest.getDownloadedDataSize(), mOffscreen) != RT_OK)
           {
-            printf("image load failed\n");
+            rtLogWarn("image load failed"); // TODO: why?
           }
           else
           {
-            printf("image %d, %d\n", mOffscreen.width(), mOffscreen.height());
+            rtLogDebug("image %d, %d", mOffscreen.width(), mOffscreen.height());
           }
       }
       {
-          printf("image download failed\n");
+        rtLogWarn("image download failed"); // TODO: why? what happened?
       }
   }
   else if (pxLoadImage(s, mOffscreen) != RT_OK)
-    printf("image load failed\n");
+    rtLogWarn("image load failed"); // TODO: why?
   else
-    printf("image %d, %d\n", mOffscreen.width(), mOffscreen.height());
+    rtLogDebug("image %d, %d", mOffscreen.width(), mOffscreen.height());
   mw = mOffscreen.width();
   mh = mOffscreen.height();
   return RT_OK;

@@ -20,9 +20,9 @@ rtError pxImage9::url(rtString& s) const { s = mURL; return RT_OK; }
 rtError pxImage9::setURL(const char* s) { 
   mURL = s;
   if (pxLoadImage(s, mOffscreen) != RT_OK)
-    printf("image load failed\n");
+    rtLogWarn("image load failed");
   else
-    printf("image %d, %d\n", mOffscreen.width(), mOffscreen.height());
+    rtLogDebug("image %d, %d", mOffscreen.width(), mOffscreen.height());
   mw = mOffscreen.width();
   mh = mOffscreen.height();
   return RT_OK;

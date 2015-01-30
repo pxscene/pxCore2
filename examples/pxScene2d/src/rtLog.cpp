@@ -10,80 +10,108 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 
-void rtLog(const char* format, ...)
+struct LogLevelSetter
 {
-  // JRXXX
-#if 0
-    char buffer[1024];
-    buffer[0] = 0;
-    va_list ptr; va_start(ptr, format);
-    strcpy(buffer, RTLOGPREFIX);
-    if (_vsnprintf(buffer+strlen(RTLOGPREFIX), sizeof(buffer)-strlen(buffer)-1, format, ptr) < 1)
+  LogLevelSetter()
+  {
+    const char* s = getenv("RT_LOG_LEVEL");
+    if (s)
     {
-        strcpy(buffer, "rtLog buffer overflow\n");
+      rtLogLevel level = RT_LOG_ERROR;
+      if      (strcasecmp(s, "debug") == 0) level = RT_LOG_DEBUG;
+      else if (strcasecmp(s, "info") == 0)  level = RT_LOG_INFO;
+      else if (strcasecmp(s, "warn") == 0)  level = RT_LOG_WARN;
+      else if (strcasecmp(s, "error") == 0) level = RT_LOG_ERROR;
+      else if (strcasecmp(s, "fatal") == 0) level = RT_LOG_FATAL;
+      else
+      {
+        fprintf(stderr, "invalid RT_LOG_LEVEL set: %s", s);
+        abort();
+      }
+      rtLog2SetLevel(level);
     }
-    OutputDebugStringA(buffer);
-    va_end(ptr);
-#else
-    char buffer[1024];
-    buffer[0] = 0;
-    va_list ptr; va_start(ptr, format);
-    strcpy(buffer, RTLOGPREFIX);
-    if (vsnprintf(buffer+strlen(RTLOGPREFIX), sizeof(buffer)-strlen(buffer)-1, format, ptr) < 1)
-    {
-        strcpy(buffer, "rtLog buffer overflow\n");
-    }
-    //    OutputDebugStringA(buffer);
-    printf("%s", buffer);
-    va_end(ptr);
-#endif
+  }
+};
+
+static LogLevelSetter __logLevelSetter; // force RT_LOG_LEVEL to be read from env
+
+static const char* rtLogLevelStrings[] =
+{
+  "DEBUG",
+  "INFO",
+  "WARN",
+  "ERROR",
+  "FATAL"
+};
+
+static const char* rtLogLevelToString(rtLogLevel l)
+{
+  const char* s = "OUT-OF-BOUNDS";
+  if (l < sizeof(rtLogLevelStrings))
+    s = rtLogLevelStrings[l];
+  return s;
 }
 
-namespace
+static const char* rtTrimPath(const char* s)
 {
-  const char* rtLogLevelStrings[] = 
-  {
-    "DEBUG",
-    "INFO",
-    "WARN",
-    "ERROR",
-    "FATAL"
-  };
-
-  const char* rtLogLevelToString(rtLogLevel l)
-  {
-    const char* s = "OUT-OF-BOUNDS";
-    if (l < sizeof(rtLogLevelStrings))
-      s = rtLogLevelStrings[l];
+  if (!s)
     return s;
-  }
 
-  const char* rtTrimPath(const char* s)
-  {
-    if (!s)
-      return s;
+  const char* t = strrchr(s, (int) '/');
+  if (t) t++;
 
-    const char* t = strrchr(s, (int) '/');
-    if (t) t++;
+  return t;
+}
 
-    return t;
-  }
+static rtLogHandler sLogHandler = NULL;
+void rtLog2SetLogHandler(rtLogHandler logHandler)
+{
+  sLogHandler = logHandler;
+}
+
+static rtLogLevel sLevel = RT_LOG_INFO;
+void rtLog2SetLevel(rtLogLevel level)
+{
+  sLevel = level;
 }
 
 void rtLog2(rtLogLevel level, const char* file, int line, const char* format, ...)
 {
-  printf("rt:%5s %s:%d -- Thread-%lu: ", rtLogLevelToString(level), rtTrimPath(file), line, syscall(__NR_gettid));
+  if (level < sLevel)
+    return;
 
-  va_list ptr;
-  va_start(ptr, format);
-  vprintf(format, ptr);
-  va_end(ptr);
+  const char* logLevel = rtLogLevelToString(level);
+  const char* path = rtTrimPath(file);
+  const int   threadId = syscall(__NR_gettid);
 
-  printf("\n");
+  if (sLogHandler == NULL)
+  {
+    printf(RTLOGPREFIX "%5s %s:%d -- Thread-%d: ", logLevel, path, line, threadId);
+
+    va_list ptr;
+    va_start(ptr, format);
+    vprintf(format, ptr);
+    va_end(ptr);
+
+    printf("\n");
+  }
+  else
+  {
+    size_t n = 0;
+    char buff[1024];
+    va_list args;
+
+    va_start(args, format);
+    n = vsnprintf(buff, sizeof(buff), format, args);
+    va_end(args);
+
+    if (n >= sizeof(buff))
+      buff[sizeof(buff) - 1] = '\0';
+
+    sLogHandler(level, path, line, threadId, buff);
+  }
   
   if (level == RT_LOG_FATAL)
-  {
     abort();
-  }
 }
 
