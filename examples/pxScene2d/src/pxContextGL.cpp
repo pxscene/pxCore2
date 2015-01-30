@@ -23,7 +23,8 @@ GLuint textureId1, textureId2;
 
 GLint attribute_coord;
 
-struct point {
+struct point
+{
     GLfloat x;
     GLfloat y;
     GLfloat s;
@@ -79,8 +80,9 @@ static const char *vShaderText =
   "v_uv = uv;\n"
   "}\n";
 
-GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
 
+GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
+{
   GLuint fragShader, vertShader, program = 0;
   GLint stat;
   
@@ -88,7 +90,9 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
   glShaderSource(fragShader, 1, (const char **) &fShaderTxt, NULL);
   glCompileShader(fragShader);
   glGetShaderiv(fragShader, GL_COMPILE_STATUS, &stat);
-  if (!stat) {
+
+  if (!stat)
+  {
     rtLogError("Error: fragment shader did not compile: ", glGetError());
     
     GLint maxLength = 0;
@@ -102,6 +106,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
     rtLog("%s\n", &errorLog[0]);
     //Exit with failure.
     glDeleteShader(fragShader); //Don't leak the shader.
+
     exit(1);
   }
   
@@ -109,7 +114,9 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
   glShaderSource(vertShader, 1, (const char **) &vShaderTxt, NULL);
   glCompileShader(vertShader);
   glGetShaderiv(vertShader, GL_COMPILE_STATUS, &stat);
-  if (!stat) {
+
+  if (!stat)
+  {
     rtLogError("vertex shader did not compile: %d", glGetError());
     exit(1);
   }
@@ -120,7 +127,8 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
   glLinkProgram(program);
   
   glGetProgramiv(program, GL_LINK_STATUS, &stat);
-  if (!stat) {
+  if (!stat)
+  {
     char log[1000];
     GLsizei len;
     glGetProgramInfoLog(program, 1000, &len, log);
@@ -136,69 +144,10 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt) {
   return program;
 }
 
-void draw9SliceRect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2) {
-  
-  float ox1 = x;
-  float ix1 = x+x1;
-  float ox2 = x+w;
-  float ix2 = x+w-x2;
-  float oy1 = y;
-  float iy1 = y+y1;
-  float oy2 = y+h;
-  float iy2 = y+h-y2;
-  
-  const GLfloat verts[22][2] = {
-    { ox1,oy1 },
-    { ix1,oy1 },
-    { ox1,iy1 },
-    { ix1,iy1 },
-    { ox1,iy2 },
-    { ix1,iy2 },
-    { ox1,oy2 },
-    { ix1,oy2 },
-    { ix2,oy2 },
-    { ix1,iy2 },
-    { ix2,iy2 },
-    { ix1,iy1 },
-    { ix2,iy1 },
-    { ix1,oy1 },
-    { ix2,oy1 },
-    { ox2,oy1 },
-    { ix2,iy1 },
-    { ox2,iy1 },
-    { ix2,iy2 },
-    { ox2,iy2 },
-    { ix2,oy2 },
-    { ox2,oy2 }
-  };
-#if 0
-  const GLfloat colors[4][3] = {
-    { 1, 0, 0 },
-    { 0, 1, 0 },
-    { 0, 1, 0 },
-    { 0, 0, 1 }
-  };
-  const GLfloat uv[22][2] = {
-    { 0, 0 },
-    { 1, 0 },
-    { 0, 1 },
-    { 1, 1 }
-  };
-#endif
-  
-  
+static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h)
+{
+  const float verts[4][2] =
   {
-    glUniform1f(u_alphatexture, 0.0);
-    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-    glEnableVertexAttribArray(attr_pos);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 22);
-    glDisableVertexAttribArray(attr_pos);
-  }
-}
-
-void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h) {
-  
-  const float verts[4][2] = {
     { x,y },
     {  x+w, y },
     {  x,  y+h },
@@ -215,19 +164,20 @@ void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h) {
 }
 
 
-void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw) {
-  
+static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw)
+{
   float half = lw/2;
-  float ox1 = x-half;
-  float ix1 = x+half;
-  float ox2 = x+w+half;
-  float ix2 = x+w-half;
-  float oy1 = y-half;
-  float iy1 = y+half;
-  float oy2 = y+h+half;
-  float iy2 = y+h-half;
+  float ox1  = x-half;
+  float ix1  = x+half;
+  float ox2  = x+w+half;
+  float ix2  = x+w-half;
+  float oy1  = y-half;
+  float iy1  = y+half;
+  float oy2  = y+h+half;
+  float iy2  = y+h-half;
   
-  const GLfloat verts[10][2] = {
+  const GLfloat verts[10][2] =
+  {
     { ox1,oy1 },
     { ix1,iy1 },
     { ox2,oy1 },
@@ -250,7 +200,8 @@ void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw) {
   }
 }
 
-void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNativeDesc* contextSurface)
+
+static void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNativeDesc* contextSurface)
 {
   if ((contextSurface == NULL) || (contextSurface->texture == 0))
   {
@@ -261,14 +212,16 @@ void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNativeDesc
   glBindTexture(GL_TEXTURE_2D, contextSurface->texture);
   glUniform1i(u_texture, 0);
 
-  const float verts[4][2] = {
+  const float verts[4][2] =
+  {
     { x,y },
     {  x+w, y },
     {  x,  y+h },
     {  x+w, y+h }
   };
 
-  const float uv[4][2] = {
+  const float uv[4][2] =
+  {
     { 0, 0 },
     { 1, 0 },
     { 0, 1 },
@@ -309,7 +262,9 @@ void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen,
   if (yStretch == PX_NONE)
     h = ih;
 
-  const float verts[4][2] = {
+  const float verts[4][2] = 
+  {
+
     { x,y },
     {  x+w, y },
     {  x,  y+h },
@@ -317,7 +272,8 @@ void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen,
   };
 
 #if 0
-  const float uv[4][2] = {
+  const float uv[4][2] = 
+  {
     { 0, 0 },
     { 1, 0 },
     { 0, 1 },
@@ -368,9 +324,10 @@ void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen,
   }
 }
 
-void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2,
-		pxOffscreen& offscreen) {
-  
+
+static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2,
+    pxOffscreen& offscreen)
+{
   glActiveTexture(GL_TEXTURE0);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
 	       offscreen.width(), offscreen.height(), 0, GL_BGRA_EXT,
@@ -425,7 +382,8 @@ void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat
 
 #endif
 
-  const GLfloat verts[22][2] = {
+  const GLfloat verts[22][2] =
+  {
     { ox1,oy1 },
     { ix1,oy1 },
     { ox1,iy1 },
@@ -450,7 +408,8 @@ void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat
     { ox2,oy2 }
   };
 
-  const GLfloat uv[22][2] = {
+  const GLfloat uv[22][2] =
+  {
     { ou1,ov1 },
     { iu1,ov1 },
     { ou1,iv1 },
@@ -481,20 +440,26 @@ void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat
     glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
     glEnableVertexAttribArray(attr_pos);
     glEnableVertexAttribArray(attr_uv);
+
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 22);
+
     glDisableVertexAttribArray(attr_pos);
     glDisableVertexAttribArray(attr_uv);
   }
 }
 
-void pxContext::init() {
+void pxContext::init()
+{
 #if !defined(__APPLE__) && !defined(PX_PLATFORM_WAYLAND_EGL)
+
   GLenum err = glewInit();
+
   if (err != GLEW_OK)
   {
     rtLogError("failed to initialize glew");
     exit(1); // or handle the error in a nicer way
   }
+
   if (!GLEW_VERSION_2_1)  // check that the machine supports the 2.1 API.
   {
     rtLogError("invalid glew version");
@@ -506,11 +471,11 @@ void pxContext::init() {
 
   GLuint program = createShaderProgram(vShaderText, fShaderText);
 
-  u_resolution = glGetUniformLocation(program, "u_resolution");
-  u_texture = glGetUniformLocation(program, "s_texture");
-  u_matrix = glGetUniformLocation(program, "amymatrix");
-  u_alpha = glGetUniformLocation(program, "u_alpha");
-  u_color = glGetUniformLocation(program, "a_color");
+  u_resolution   = glGetUniformLocation(program, "u_resolution");
+  u_texture      = glGetUniformLocation(program, "s_texture");
+  u_matrix       = glGetUniformLocation(program, "amymatrix");
+  u_alpha        = glGetUniformLocation(program, "u_alpha");
+  u_color        = glGetUniformLocation(program, "a_color");
   u_alphatexture = glGetUniformLocation(program, "u_alphatexture");
 
   // Using for RGBA texture
@@ -544,22 +509,31 @@ void pxContext::init() {
   glUseProgram(program);
 }
 
-void pxContext::setSize(int w, int h) {
+
+void pxContext::setSize(int w, int h)
+{
   glViewport(0, 0, (GLint)w, (GLint)h);
 }
 
-void pxContext::clear(int w, int h) {
+
+void pxContext::clear(int w, int h)
+{
   glClear(GL_COLOR_BUFFER_BIT);
   glUniform2f(u_resolution, w, h);
 }
 
-void pxContext::setMatrix(pxMatrix4f& m) {
+
+void pxContext::setMatrix(pxMatrix4f& m)
+{
   glUniformMatrix4fv(u_matrix, 1, GL_FALSE, m.data());
 }
 
-void pxContext::setAlpha(float a) { 
+
+void pxContext::setAlpha(float a)
+{
   glUniform1f(u_alpha, a); 
 }
+
 
 pxError pxContext::createContextSurface(pxContextSurfaceNativeDesc* contextSurface, int width, int height)
 {
@@ -586,6 +560,8 @@ pxError pxContext::createContextSurface(pxContextSurfaceNativeDesc* contextSurfa
   
   return PX_OK;
 }
+
+
 pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
 {
   if (contextSurface == NULL)
@@ -602,7 +578,8 @@ pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
   
   glBindFramebuffer(GL_FRAMEBUFFER, contextSurface->framebuffer);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
-                          GL_TEXTURE_2D, contextSurface->texture, 0);
+                         GL_TEXTURE_2D, contextSurface->texture, 0);
+
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
   {
     rtLog("error setting the render surface\n");
@@ -615,50 +592,64 @@ pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
   return PX_OK;
 }
 
+
 pxError pxContext::deleteContextSurface(pxContextSurfaceNativeDesc* contextSurface)
 {
   if (contextSurface == NULL)
   {
     return PX_OK;
   }
+
   if (contextSurface->framebuffer != 0)
   {
     glDeleteFramebuffers(1, &contextSurface->framebuffer);
     contextSurface->framebuffer = 0;
   }
+
   if (contextSurface->texture != 0)
   {
     glDeleteTextures(1, &contextSurface->texture);
     contextSurface->texture = 0;
   }
+
   return PX_OK;
 }
 
-void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor) {
+void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor)
+{
   glUniform4fv(u_color, 1, fillColor);
   float half = lineWidth/2;
+
   drawRect2(half, half, w-lineWidth, h-lineWidth);
-  if (lineWidth > 0) {
+
+  if (lineWidth > 0)
+  {
     glUniform4fv(u_color, 1, lineColor);
     drawRectOutline(0, 0, w, h, lineWidth);
   }
 }
 
-void pxContext::drawImage9(float w, float h, pxOffscreen& o) {
+
+void pxContext::drawImage9(float w, float h, pxOffscreen& o)
+{
   drawImage92(0, 0, w, h, 75,75,75,75, o);
 }
 
 void pxContext::drawImage(float w, float h, pxOffscreen& o,
-                          pxStretch xStretch, pxStretch yStretch) {
+                          pxStretch xStretch, pxStretch yStretch) 
+{
   drawImage2(0, 0, w, h, o, xStretch, yStretch);
 }
+
 
 void pxContext::drawSurface(float w, float h, pxContextSurfaceNativeDesc* contextSurface)
 {
   drawSurface2(0, 0, w, h, contextSurface);
 }
 
-void pxContext::drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color) {
+
+void pxContext::drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color)
+{
     glActiveTexture(GL_TEXTURE1);
     
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -677,14 +668,16 @@ void pxContext::drawImageAlpha(float x, float y, float w, float h, int bw, int b
     glUniform1i(u_texture, 1);
     glUniform1f(u_alphatexture, 2.0);
     
-    const GLfloat verts[4][2] = {
+    const GLfloat verts[4][2] =
+    {
       { x,y },
       {  x+w, y },
       {  x,  y+h },
       {  x+w, y+h }
     };
     
-    const GLfloat uv[4][2] = {
+    const GLfloat uv[4][2] =
+    {
       { 0, 0 },
       { 1, 0 },
       { 0, 1 },
@@ -697,7 +690,9 @@ void pxContext::drawImageAlpha(float x, float y, float w, float h, int bw, int b
       glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
       glEnableVertexAttribArray(attr_pos);
       glEnableVertexAttribArray(attr_uv);
+
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
       glDisableVertexAttribArray(attr_pos);
       glDisableVertexAttribArray(attr_uv);
     }  
