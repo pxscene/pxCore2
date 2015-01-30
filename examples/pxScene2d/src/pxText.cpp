@@ -23,19 +23,20 @@ extern "C" {
 FT_Library ft;
 FT_Face face;
 
-void initFT() {
+void initFT() 
+{
   static bool init = false;
   if (init) return;
   init = true;
-
+  
   if(FT_Init_FreeType(&ft)) {
     fprintf(stderr, "Could not init freetype library\n");
     return;
   }
   
-  if(FT_New_Face(ft, "FreeSans.ttf", 0, &face)) {
-  //    if(FT_New_Face(ft, "FontdinerSwanky.ttf", 0, &face)) {
-    rtLog("Could not load font face: \n");
+//  if(FT_New_Face(ft, "FreeSans.ttf", 0, &face)) {
+  if(FT_New_Face(ft, "FontdinerSwanky.ttf", 0, &face)) {
+    rtLogError("Could not load font face: \n");
     return;
   }
   
@@ -84,10 +85,19 @@ void renderText(const char *text, float x, float y, float sx, float sy, float* c
     float w = g->bitmap.width * sx;
     float h = g->bitmap.rows * sy;
 
-    context.drawImageAlpha(x2, y2, w, h, g->bitmap.width, g->bitmap.rows, g->bitmap.buffer, color);
-
-    x += (g->advance.x >> 6) * sx;
-    y += (g->advance.y >> 6) * sy;
+    if (codePoint != '\n')
+    {
+      context.drawImageAlpha(x2, y2, w, h, g->bitmap.width, g->bitmap.rows, g->bitmap.buffer, color);
+      x += (g->advance.x >> 6) * sx;
+      // TODO not sure if this is right?  seems weird commenting out to see what happens
+      y += (g->advance.y >> 6) * sy;
+    }
+    else
+    {
+      x = 0;
+      // TODO not sure if this is right?
+      y += g->metrics.vertAdvance>>6;
+    }
   }
 }
 
