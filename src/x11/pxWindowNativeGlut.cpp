@@ -103,6 +103,20 @@ void onMousePassiveMotion(int x, int y)
     }
 }
 
+void onKeyboard(unsigned char key, int x, int y) 
+{
+  printf("pxCore onKeyboard\n");
+    vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+    vector<pxWindowNative*>::iterator i;
+    for (i = windowVector.begin(); i < windowVector.end(); i++)
+    {
+        pxWindowNative* w = (*i);
+        // JR Did I mention Glut keyboard support is not very good
+        w->onKeyDown(key, 0);
+        w->onKeyUp(key, 0);
+    }  
+}
+
 //end glut callbacks
 
 displayRef::displayRef()
@@ -144,12 +158,14 @@ pxError displayRef::createGlutDisplay()
     
     //callbacks
     // XXX: These have no affect glutGetWindow() == 0
+#if 0
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutMouseFunc(onMouse);
     glutMotionFunc(onMouseMotion);
     glutPassiveMotionFunc(onMousePassiveMotion);
-    
+    glutKeyboardFunc(onKeyboard);
+#endif    
     return PX_OK;
 }
 
@@ -200,7 +216,13 @@ pxError pxWindow::init(int left, int top, int width, int height)
 
         // XXX: Need to register callbacks after window is created^M
         glutReshapeFunc(reshape);
-
+//    glutDisplayFunc(display);
+//    glutReshapeFunc(reshape);
+        glutMouseFunc(onMouse);
+        glutMotionFunc(onMouseMotion);
+        glutPassiveMotionFunc(onMousePassiveMotion);
+        glutKeyboardFunc(onKeyboard);
+        
         registerWindow(this);
         this->onCreate();
         
