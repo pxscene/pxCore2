@@ -175,7 +175,7 @@ void pxObject::createSnapshot()
       (*it)->drawInternal(m);
     }
   }
-  context.setRenderSurface(mContextSurfaceSnapshot);
+  context.setRenderSurface(NULL);
 }
 
 void pxObject::deleteSnapshot()
@@ -204,6 +204,7 @@ rtDefineProperty(pxObject, r);
 rtDefineProperty(pxObject, rx);
 rtDefineProperty(pxObject, ry);
 rtDefineProperty(pxObject, rz);
+rtDefineProperty(pxObject, painting);
 rtDefineMethod(pxObject, animateTo);
 
 rtDefineObject(rectangle, pxObject);

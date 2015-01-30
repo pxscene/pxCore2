@@ -79,6 +79,7 @@ public:
   rtProperty(rx, rx, setRX, float);
   rtProperty(ry, ry, setRY, float);
   rtProperty(rz, rz, setRZ, float);
+  rtProperty(painting, painting, setPainting, bool);
   rtMethod5ArgAndNoReturn("animateTo", animateTo, rtString, double, double, 
 			  uint32_t, uint32_t);
 
