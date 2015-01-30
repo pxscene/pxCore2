@@ -48,6 +48,7 @@
 
       "cflags": [
         "-DPX_PLATFORM_X11",
+        "-DRT_PLATFORM_LINUX",
         "-DENABLE_GLUT",
         "-Wno-attributes"
       ]
