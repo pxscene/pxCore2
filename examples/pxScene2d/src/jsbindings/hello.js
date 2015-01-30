@@ -1,5 +1,4 @@
 var px = require("./build/Debug/px");
-//var proc = require('process');
 
 var win = new px.Window(50, 50, 640, 480);
 win.title = "Hello World!";
