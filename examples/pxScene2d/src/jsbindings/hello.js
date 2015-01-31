@@ -26,7 +26,7 @@ function testScene()
       p.fillColor = 0x00ff00ff;
       p.lineColor = 0xffffff80;
       p.lineWidth = 10;  
-      p.animateTo("h", 600, 0.5, 0, 0);
+      p.animateTo("h", 600, 0.5, 0, 1);
     }
     else if (i < 2) {
       p = scene.createImage9();
@@ -35,7 +35,7 @@ function testScene()
       p.cy = p.h/2;
       ny = 100;
       p.animateTo("h", 600, 0.5, 0, 0);
-      p.animateTo("w", 600, 0.5, 0, 0);
+      p.animateTo("w", 600, 0.5, 0, 1);
     }
     else if (i < n-3) {
       p = scene.createImage();
@@ -81,12 +81,12 @@ function testScene()
     p.ry = 1.0;
     p.rz = 0;
 
-    p.animateTo("r", 360, 1.0+(i*0.3), 0, 1);
+    p.animateTo("r", 360, 1.0+(i*0.3), 0, 2);
     if (i < n-1) {
-      p.animateTo("x", 600, 1.0+(i*0.3), 0, 0);
+      p.animateTo("x", 600, 1.0+(i*0.3), 0, 1);
     }
 
-    p.animateTo("a", 0.1, 2.0, 0, 0);
+    p.animateTo("a", 0.1, 2.0, 0, 1);
   }
 }
 
