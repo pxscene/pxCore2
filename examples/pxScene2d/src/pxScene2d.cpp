@@ -373,9 +373,10 @@ void pxScene2d::onMouseUp(int x, int y, unsigned long flags)
 
 void pxScene2d::onMouseLeave()
 {
+  mEmit.send("mouseleave");
 }
 
-void pxScene2d::onMouseMove(int /*x*/, int /*y*/)
+void pxScene2d::onMouseMove(int x, int y)
 {
 #if 0
   rtLog("onMousePassiveMotion x: %d y: %d\n", x, y);
@@ -392,6 +393,7 @@ void pxScene2d::onMouseMove(int /*x*/, int /*y*/)
   
   rtLog("in sceme coords x: %f y: %f\n", from.mX, from.mY);
 #endif
+  mEmit.send("mousemove", x, y);
 }
 
 void pxScene2d::onKeyDown(int keycode, unsigned long flags) 

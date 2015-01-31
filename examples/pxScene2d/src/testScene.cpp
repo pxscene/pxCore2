@@ -286,9 +286,25 @@ void ballScene()
   fancy((pxObject*)p);
 }
 
+rtObjectRef bg1;
+rtObjectRef bg2;
 rtObjectRef picture;
 rtString bananaURL;
 rtString ballURL;
+
+rtError onSizeCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* /*context*/)
+{
+  if (numArgs == 2)
+  {
+    int w = args[0].toInt32();
+    int h = args[1].toInt32();
+    bg1.set("w", w);
+    bg1.set("h", h);
+    bg2.set("w", w);
+    bg2.set("h", h);
+  }
+  return RT_OK;
+}
 
 rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* /*context*/)
 {
@@ -325,28 +341,29 @@ void testScene()
 
   rtObjectRef root = scene.get<rtObjectRef>("root");  
 
-  scene.send("on", "keyDown", new rtFunctionCallback(onKeyDownCB));
+  scene.send("on", "keydown", new rtFunctionCallback(onKeyDownCB));
+  scene.send("on", "resize", new rtFunctionCallback(onSizeCB));
 
-  rtObjectRef bg;
   rtString bgURL;
-  scene.sendReturns<rtObjectRef>("createImage", bg);
+  scene.sendReturns<rtObjectRef>("createImage", bg1);
   bgURL = d;
   bgURL.append("/../images/skulls.png");
-  bg.set("url", bgURL);
-  bg.set("xStretch", 2);
-  bg.set("yStretch", 2);
-  bg.set("parent", root);
-  bg.set("w", scene->width());
-  bg.set("h", scene->height());
-  scene.sendReturns<rtObjectRef>("createImage", bg);
+  bg1.set("url", bgURL);
+  bg1.set("xStretch", 2);
+  bg1.set("yStretch", 2);
+  bg1.set("parent", root);
+  bg1.set("w", scene->width());
+  bg1.set("h", scene->height());
+
+  scene.sendReturns<rtObjectRef>("createImage", bg2);
   bgURL = d;
   bgURL.append("/../images/radial_gradient.png");
-  bg.set("url", bgURL);
-  bg.set("xStretch", 1);
-  bg.set("yStretch", 1);
-  bg.set("parent", root);
-  bg.set("w", scene->width());
-  bg.set("h", scene->height());
+  bg2.set("url", bgURL);
+  bg2.set("xStretch", 1);
+  bg2.set("yStretch", 1);
+  bg2.set("parent", root);
+  bg2.set("w", scene->width());
+  bg2.set("h", scene->height());
 
   rtObjectRef t;
   scene.sendReturns<rtObjectRef>("createText", t);
