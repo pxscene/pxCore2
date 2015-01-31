@@ -212,13 +212,14 @@ u_int32_t u8_nextchar(char *s, int *i)
     u_int32_t ch = 0;
     int sz = 0;
 
+    // TODO Seems a bit buggy added an early out on null byte
+    if (!s[*i]) return ch;
     do {
         ch <<= 6;
         ch += (unsigned char)s[(*i)++];
         sz++;
     } while (s[*i] && !isutf(s[*i]));
     ch -= offsetsFromUTF8[sz-1];
-
     return ch;
 }
 
