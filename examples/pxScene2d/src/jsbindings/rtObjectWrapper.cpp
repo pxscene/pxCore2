@@ -1,4 +1,5 @@
 #include "rtObjectWrapper.h"
+#include "rtFunctionWrapper.h"
 #include "rtWrapperUtils.h"
 
 #include <rtLog.h>

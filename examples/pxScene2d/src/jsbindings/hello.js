@@ -2,10 +2,13 @@ var px = require("./build/Debug/px");
 
 var scene = px.getScene();
 
-// currently non-functional
-//scene.on('resize', function(width, height) {
-//  console.log('resize:' + width + ' height:' + height);
-//});
+scene.on('onresize', function(width, height) {
+  console.log('resize:' + width + ' height:' + height);
+});
+
+scene.on('onkeydown', function(code, flags) {
+  console.log("keydown:" + code);
+});
 
 function testScene() 
 {

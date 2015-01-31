@@ -69,15 +69,15 @@ rtValue js2rt(const Handle<Value>& val)
   if (val->IsUndefined()) { return rtValue((void *)0); }
   if (val->IsNull())      { return rtValue((char *)0); }
   if (val->IsString())    { return toString(val); }
-  if (val->IsFunction())  { assert(false); return rtValue(0); } // TODO
-  if (val->IsArray())     { assert(false); return rtValue(0); }
+  if (val->IsArray())     { assert(false); return rtValue(0); } // TODO: rtValue support collections
+  if (val->IsFunction())  { return rtValue(rtFunctionRef(new jsFunctionWrapper(val))); }
   if (val->IsObject())    { return rtObjectWrapper::unwrapObject(val->ToObject()); }
   if (val->IsBoolean())   { return rtValue(val->BooleanValue()); }
   if (val->IsNumber())    { return rtValue(val->NumberValue()); }
   if (val->IsInt32())     { return rtValue(val->Int32Value()); }
   if (val->IsUint32())    { return rtValue(val->Uint32Value()); }
 
-  fprintf(stderr, "unsupported javasciprt -> rtValue type conversion");
+  fprintf(stderr, "unsupported javascript -> rtValue type conversion");
   assert(false);
 
   return rtValue(0);

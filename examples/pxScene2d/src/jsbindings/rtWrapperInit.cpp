@@ -89,7 +89,7 @@ private:
 
     virtual Handle<Object> self()
     {
-      return mParent->getJavaScriptObject();
+      return mParent->scene();
     }
   private:
     jsWindow* mParent;
@@ -101,88 +101,45 @@ private:
     return mCallbacks[index];
   }
 
-  Handle<Object> getJavaScriptObject()
-  {
-    return Handle<Object>();
-  }
-
 protected:
   virtual void onSize(int w, int h)
   {
     mScene->onSize(w, h);
-    jsCallback::create()
-      ->addArg(w)
-      ->addArg(h)
-      ->setFunctionLookup(new FunctionLookup(this, eResize))
-      ->enqueue();
   }
 
   virtual void onMouseDown(int x, int y, unsigned long flags)
   {
     mScene->onMouseDown(x, y, flags);
-    jsCallback::create()
-      ->addArg(x)
-      ->addArg(y)
-      ->addArg(flags)
-      ->setFunctionLookup(new FunctionLookup(this, eMouseDown))
-      ->enqueue();
   }
 
   virtual void onCloseRequest()
   {
     // mScene->onCloseRequest();
-    jsCallback::create()
-      ->setFunctionLookup(new FunctionLookup(this, eCloseRequest))
-      ->enqueue();
   }
 
   virtual void onMouseUp(int x, int y, unsigned long flags)
   {
     mScene->onMouseUp(x, y, flags);
-    jsCallback::create()
-      ->addArg(x)
-      ->addArg(y)
-      ->addArg(flags)
-      ->setFunctionLookup(new FunctionLookup(this, eMouseUp))
-      ->enqueue();
   }
 
   virtual void onMouseLeave()
   {
     mScene->onMouseLeave();
-    jsCallback::create()
-      ->setFunctionLookup(new FunctionLookup(this, eMouseLeave))
-      ->enqueue();
   }
 
   virtual void onMouseMove(int x, int y)
   {
     mScene->onMouseMove(x, y);
-    jsCallback::create()
-      ->addArg(x)
-      ->addArg(y)
-      ->setFunctionLookup(new FunctionLookup(this, eMouseMove))
-      ->enqueue();
   }
 
   virtual void onKeyDown(int keycode, unsigned long flags)
   {
     mScene->onKeyDown(keycode, flags);
-    jsCallback::create()
-      ->addArg(keycode)
-      ->addArg(flags)
-      ->setFunctionLookup(new FunctionLookup(this, eKeyDown))
-      ->enqueue();
   }
 
   virtual void onKeyUp(int keycode, unsigned long flags)
   {
     mScene->onKeyUp(keycode, flags);
-    jsCallback::create()
-      ->addArg(keycode)
-      ->addArg(flags)
-      ->setFunctionLookup(new FunctionLookup(this, eKeyUp))
-      ->enqueue();
   }
 
   virtual void onDraw(pxSurfaceNative s)

@@ -1,5 +1,6 @@
 #include "rtFunctionWrapper.h"
 #include "rtWrapperUtils.h"
+#include "jsCallback.h"
 
 #include <vector>
 
@@ -79,4 +80,45 @@ Handle<Value> rtFunctionWrapper::call(const Arguments& args)
 
   return scope.Close(rt2js(result));
 }
+
+
+jsFunctionWrapper::jsFunctionWrapper(const Handle<Value>& val)
+  : mRefCount(0)
+{
+  assert(val->IsFunction());
+  mFunction = Persistent<Function>::New(Handle<Function>::Cast(val));
+}
+
+jsFunctionWrapper::~jsFunctionWrapper()
+{
+  mFunction.Dispose();
+}
+
+unsigned long jsFunctionWrapper::AddRef()
+{
+  return rtAtomicInc(&mRefCount);
+}
+
+unsigned long jsFunctionWrapper::Release()
+{
+  unsigned long l = rtAtomicDec(&mRefCount);
+  if (l == 0) delete this;
+  return l;
+}
+
+rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* result)
+{
+  jsCallback* callback = jsCallback::create();
+  for (int i = 0; i < numArgs; ++i)
+    callback->addArg(args[i]);
+  callback->setFunctionLookup(new FunctionLookup(this));
+  callback->enqueue();
+  return RT_OK;
+}
+
+Persistent<Function> jsFunctionWrapper::FunctionLookup::lookup()
+{
+  return mParent->mFunction;
+}
+
 

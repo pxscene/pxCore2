@@ -49,6 +49,8 @@ jsCallback* jsCallback::setFunctionLookup(jsIFunctionLookup* functionLookup)
 void jsCallback::doCallback(uv_work_t* req, int status)
 {
   jsCallback* ctx = reinterpret_cast<jsCallback *>(req->data);
+  assert(ctx != NULL);
+  assert(ctx->mFunctionLookup != NULL);
 
   Handle<Value>* args = ctx->makeArgs();
 
