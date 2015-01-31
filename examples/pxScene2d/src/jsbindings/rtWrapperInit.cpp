@@ -6,6 +6,8 @@
 #include <pxScene2d.h>
 #include <pxWindow.h>
 
+#include <node.h>
+
 using namespace v8;
 
 struct EventLoopContext
@@ -51,6 +53,11 @@ public:
     mScene->init();
 
     startEventProcessingThread();
+
+    // we start a timer in case there aren't any other evens to the keep the
+    // nodejs event loop alive. Fire a time repeatedly.
+    uv_timer_init(uv_default_loop(), &mTimer);
+    uv_timer_start(&mTimer, timerCallback, 1000, 1000);
   }
 
   const Persistent<Object> scene() const
@@ -102,6 +109,11 @@ private:
   }
 
 protected:
+  static void timerCallback(uv_timer_t* timer, int status)
+  {
+    rtLogDebug("Hello, from uv timer callback");
+  }
+
   virtual void onSize(int w, int h)
   {
     mScene->onSize(w, h);
@@ -114,6 +126,7 @@ protected:
 
   virtual void onCloseRequest()
   {
+    uv_timer_stop(&mTimer);
     // mScene->onCloseRequest();
   }
 
@@ -155,6 +168,7 @@ private:
   pthread_t mEventLoopThread;
   pxEventLoop* mEventLoop;
   pxScene2dRef mScene;
+  uv_timer_t mTimer;
 };
 
 static jsWindow* mainWindow = NULL;

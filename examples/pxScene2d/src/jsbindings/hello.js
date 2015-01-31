@@ -92,4 +92,3 @@ function testScene()
 
 testScene();
 
-setTimeout(function() { console.log("quitting") }, 10000000);
