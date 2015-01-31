@@ -25,6 +25,9 @@ using namespace std;
 
 #include "pxMatrix4T.h"
 
+#include "pxCore.h"
+#include "pxInterpolators.h"
+
 #include "rtCore.h"
 
 typedef double (*pxInterp)(double i);
@@ -32,7 +35,7 @@ typedef void (*pxAnimationEnded)(void* ctx);
 
 double pxInterpLinear(double i);
 
-enum pxAnimationType {seesaw, loop, stop};
+enum pxAnimationType {PX_STOP = 0, PX_SEESAW, PX_LOOP};
 
 struct pxPoint2f {
   float x, y;
@@ -46,6 +49,7 @@ struct pxAnimationTarget {
 typedef double (*pxInterp)(double i);
 typedef void (*pxAnimationEnded)(void* ctx);
 
+
 double pxInterpLinear(double i);
 
 struct animation {
@@ -57,8 +61,12 @@ struct animation {
   double duration;
   pxAnimationType at;
   pxInterp interp;
+#if 0
   pxAnimationEnded ended;
   void* ctx;
+#else
+  rtFunctionRef ended;
+#endif
 };
 
 class pxObject: public rtObject {
@@ -82,6 +90,10 @@ public:
   rtProperty(painting, painting, setPainting, bool);
   rtMethod5ArgAndNoReturn("animateTo", animateTo, rtString, double, double, 
 			  uint32_t, uint32_t);
+
+  // Until we can sort out how to do optional/default args
+  rtMethod6ArgAndNoReturn("animateTo2", animateTo2, rtString, double, double, 
+                          uint32_t, uint32_t, rtFunctionRef);
 
  pxObject(): mRef(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0), 
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
@@ -165,17 +177,27 @@ public:
   bool hitTest(const pxPoint2f& pt);
   
   rtError animateTo(const char* prop, double to, double duration, 
-		    uint32_t, uint32_t animationType) 
-  {
-    animateTo(prop, to, duration, pxInterpLinear, 
-	      (pxAnimationType)animationType);
-    return RT_OK;
-  }
+                    uint32_t interp, uint32_t animationType);
 
-
+  rtError animateTo2(const char* prop, double to, double duration, 
+                     uint32_t interp, uint32_t animationType, 
+                     rtFunctionRef onEnd);
+#if 0
   void animateTo(const char* prop, double to, double duration, 
 		 pxInterp interp=0, pxAnimationType at=stop, 
 		 pxAnimationEnded e = 0, void* c = 0);  
+#else
+  void animateTo(const char* prop, double to, double duration, 
+		 pxInterp interp, pxAnimationType at, 
+		 rtFunctionRef onEnd);  
+
+  void animateTo(const char* prop, double to, double duration, 
+		 pxInterp interp=0, pxAnimationType at=PX_STOP)
+  {
+    animateTo(prop, to, duration, interp, at, rtFunctionRef());
+  }  
+#endif
+
   void update(double t);
 
   static void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m) {

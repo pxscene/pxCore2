@@ -24,6 +24,16 @@
 
 pxContext context;
 
+pxInterp interps[] = 
+{
+  pxInterpLinear,
+  easeOutElastic,
+  easeOutBounce,
+  exp2,
+};
+int numInterps = sizeof(interps)/sizeof(interps[0]);
+
+
 double pxInterpLinear(double i)
 {
   return pxClamp<double>(i, 0, 1);
@@ -35,9 +45,35 @@ void pxObject::setParent(rtRefT<pxObject>& parent)
   parent->mChildren.push_back(this);
 }
 
+
+rtError pxObject::animateTo(const char* prop, double to, double duration, 
+                            uint32_t interp, uint32_t animationType) 
+{
+  interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
+  animateTo(prop, to, duration, interps[interp], 
+            (pxAnimationType)animationType);
+  return RT_OK;
+  }
+
+rtError pxObject::animateTo2(const char* prop, double to, double duration, 
+                             uint32_t interp, uint32_t animationType, 
+                             rtFunctionRef onEnd) 
+{
+  interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
+  animateTo(prop, to, duration, interps[interp], 
+            (pxAnimationType)animationType, onEnd);
+  return RT_OK;
+}
+
+#if 0
 void pxObject::animateTo(const char* prop, double to, double duration, 
                          pxInterp interp, pxAnimationType at,
                          pxAnimationEnded e, void* c)
+#else
+void pxObject::animateTo(const char* prop, double to, double duration, 
+                         pxInterp interp, pxAnimationType at,
+                         rtFunctionRef onEnd)
+#endif
 {
   animation a;
 
@@ -48,8 +84,12 @@ void pxObject::animateTo(const char* prop, double to, double duration,
   a.duration = duration;
   a.interp   = interp?interp:pxInterpLinear;
   a.at       = at;
+#if 0
   a.ended    = e;
   a.ctx      = c;
+#else
+  a.ended = onEnd;
+#endif
   
   animation b;
   b = a;
@@ -72,18 +112,22 @@ void pxObject::update(double t)
     {
       set(a.prop, a.to);
 
-      if (a.at == stop)
+      if (a.at == PX_STOP)
       {
         if (a.ended)
         {
+#if 0
           a.ended(a.ctx);
+#else
+          a.ended.send(this);
+#endif
         }
 
         it = mAnimations.erase(it);
         continue;
       }
 #if 0
-      else if (a.at == seesaw)
+      else if (a.at == PX_SEESAW)
       {
         // flip
         double t;
@@ -101,7 +145,7 @@ void pxObject::update(double t)
     float from, to;
     from = a.from;
     to = a.to;
-    if (a.at == seesaw)
+    if (a.at == PX_SEESAW)
     {
       if (fmod(t2,2) != 0)   // perf chk ?
       {
@@ -206,6 +250,7 @@ rtDefineProperty(pxObject, ry);
 rtDefineProperty(pxObject, rz);
 rtDefineProperty(pxObject, painting);
 rtDefineMethod(pxObject, animateTo);
+rtDefineMethod(pxObject, animateTo2);
 
 rtDefineObject(rectangle, pxObject);
 rtDefineProperty(rectangle, fillColor);

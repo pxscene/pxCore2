@@ -70,7 +70,6 @@ void renderText(const char *text, float x, float y, float sx, float sy, float* c
   int i = 0;
   u_int32_t codePoint;
 
-  //printf("renderText %s\n", text);
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) {
 
     if(FT_Load_Char(face, codePoint, FT_LOAD_RENDER)) {
