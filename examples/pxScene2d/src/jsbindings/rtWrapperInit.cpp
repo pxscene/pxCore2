@@ -177,7 +177,7 @@ static Handle<Value> getScene(const Arguments& args)
 {
   if (mainWindow == NULL)
   {
-    mainWindow = new jsWindow(0, 0, 640, 480);
+    mainWindow = new jsWindow(0, 0, 1280, 720);
 
     char title[]= { "pxScene from JavasScript!" };
     mainWindow->setTitle(title);
