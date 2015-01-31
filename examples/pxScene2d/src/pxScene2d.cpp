@@ -358,17 +358,17 @@ void pxScene2d::onSize(int w, int h)
   mWidth  = w;
   mHeight = h;
 
-  mEmit.send("onresize", w, h);
+  mEmit.send("resize", w, h);
 }
 
 void pxScene2d::onMouseDown(int x, int y, unsigned long flags)
 {
-  mEmit.send("onmousedown", x, y, flags);
+  mEmit.send("mousedown", x, y, flags);
 }
 
 void pxScene2d::onMouseUp(int x, int y, unsigned long flags)
 {
-  mEmit.send("onmouseup", x, y, flags);
+  mEmit.send("mouseup", x, y, flags);
 }
 
 void pxScene2d::onMouseLeave()
@@ -396,12 +396,12 @@ void pxScene2d::onMouseMove(int /*x*/, int /*y*/)
 
 void pxScene2d::onKeyDown(int keycode, unsigned long flags) 
 {
-  mEmit.send("onkeydown", keycode, flags);
+  mEmit.send("keydown", keycode, flags);
 }
 
 void pxScene2d::onKeyUp(int keycode, unsigned long flags)
 {
-  mEmit.send("onkeyup", keycode, flags);
+  mEmit.send("keyup", keycode, flags);
 }
 
 rtDefineObject(pxScene2d, rtObject);
