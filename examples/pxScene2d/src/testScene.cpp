@@ -183,7 +183,7 @@ void testScene() {
 
 #else
 
-#if 1
+#if 0
 void fancy(void* ctx);
 void x1(void* ctx);
 void x2(void* ctx);
@@ -283,7 +283,7 @@ void ballScene()
   p->setParent(root);
   p->setX(450);
   p->setY(350);
-  fancy((pxObject*)p);
+//  fancy((pxObject*)p);
 }
 
 rtObjectRef bg1;
