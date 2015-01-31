@@ -21,7 +21,8 @@
         "../pxImage9.cpp",
         "../pxScene2d.cpp",
         "../pxText.cpp",
-        "../pxUtil.cpp"
+        "../pxUtil.cpp",
+        "../pxInterpolators.cpp"
        ],
 
       "include_dirs" : [
