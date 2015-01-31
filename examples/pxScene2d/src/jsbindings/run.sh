@@ -7,4 +7,11 @@ export LD_LIBRARY_PATH=../../external/png/.libs/
 
 echo $LD_LIBRARY_PATH
 
-nodejs hello.js
+JSFILE=hello.js
+
+if [ "$1" != '' ]; then
+    JSFILE=$1
+fi
+
+echo Loading $JSFILE
+nodejs $JSFILE
