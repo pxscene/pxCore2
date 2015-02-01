@@ -27,4 +27,4 @@ class rtData {
   uint32_t m_length;
 };
 
-rt_error rtLoadFile(char* f, rtData& data);
+rtError rtLoadFile(const char* f, rtData& data);

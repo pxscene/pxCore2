@@ -14,6 +14,7 @@
         "../rtLog.cpp",
         "../rtString.cpp",
         "../rtValue.cpp",
+        "../rtFile.cpp",
         "../utf8.c",
 
         "../pxContextGL.cpp",
@@ -22,7 +23,8 @@
         "../pxScene2d.cpp",
         "../pxText.cpp",
         "../pxUtil.cpp",
-        "../pxInterpolators.cpp"
+        "../pxInterpolators.cpp",
+        "../pxImageDownloader.cpp"
        ],
 
       "include_dirs" : [
@@ -41,7 +43,8 @@
         "-lglut",
         "-lGLEW",
         "-lpng16",
-
+        "-ljpeg",
+        "-lcurl",
 #        "-lGL",
 #        "-lrt",
       ],

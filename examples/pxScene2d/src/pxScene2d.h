@@ -88,6 +88,11 @@ public:
   rtProperty(ry, ry, setRY, float);
   rtProperty(rz, rz, setRZ, float);
   rtProperty(painting, painting, setPainting, bool);
+  // would be nice to expose as collection to js
+  rtReadOnlyProperty(numChildren, numChildren, int32_t);
+  rtMethod1ArgAndReturn("getChild", getChild, int32_t, rtObjectRef);
+
+  rtMethodNoArgAndNoReturn("remove", remove);
   rtMethod5ArgAndNoReturn("animateTo", animateTo, rtString, double, double, 
 			  uint32_t, uint32_t);
 
@@ -103,6 +108,16 @@ public:
   virtual unsigned long AddRef() { return ++mRef; }
   virtual unsigned long Release() { if (--mRef == 0) delete this; return mRef; }
   
+  // TODO missing conversions in rtValue between uint32_t and int32_t
+  rtError numChildren(int32_t& v) const {
+    v = mChildren.size();
+    return RT_OK;
+  }
+
+  rtError getChild(int32_t i, rtObjectRef& r) const {
+    r = mChildren[i];
+    return RT_OK;
+  }
 
   // clean this up
   void setParent(rtRefT<pxObject>& parent);
@@ -121,7 +136,7 @@ public:
     return RT_OK;
   }
 
-  void remove();
+  rtError remove();
   
   float x()             const { return mx; }
   rtError x(float& v)   const { v = mx; return RT_OK;   }

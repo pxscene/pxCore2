@@ -4,15 +4,23 @@
 #include "rtFile.h"
 //#include "pxCore.h"
 
-rt_error pxLoadImage(char* imageData, size_t imageDataSize, pxOffscreen& o);
-rt_error pxLoadImage(const char* filename, pxOffscreen& b);
-rt_error pxStoreImage(const char* filename, pxBuffer& b);
+rtError pxLoadImage(const char* imageData, size_t imageDataSize, 
+                    pxOffscreen& o);
+rtError pxLoadImage(const char* filename, pxOffscreen& b);
+rtError pxStoreImage(const char* filename, pxBuffer& b);
 
-rt_error pxLoadPNGImage(char* imageData, size_t imageDataSize, pxOffscreen& o);
-rt_error pxLoadPNGImage(const char* filename, pxOffscreen& o);
-rt_error pxStorePNGImage(const char* filename, pxBuffer& b, bool grayscale = false, bool alpha=true);
+//bool pxIsPNGImage(const char* imageData, size_t imageDataSize);
+rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize, 
+                       pxOffscreen& o);
+rtError pxLoadPNGImage(const char* filename, pxOffscreen& o);
+rtError pxStorePNGImage(const char* filename, pxBuffer& b, 
+                        bool grayscale = false, bool alpha=true);
 
-rt_error pxLoadJPGImage(const char* filename, pxOffscreen& o);
-rt_error pxStoreJPGImage(const char* filename, pxBuffer& b);
-
+#if 0
+bool pxIsJPGImage(const char* imageData, size_t imageDataSize);
+rtError pxStoreJPGImage(const char* filename, pxBuffer& b);
+#endif
+rtError pxLoadJPGImage(const char* imageData, size_t imageDataSize, 
+                       pxOffscreen& o);
+rtError pxLoadJPGImage(const char* filename, pxOffscreen& o);
 

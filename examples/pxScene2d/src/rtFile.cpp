@@ -34,13 +34,11 @@ rt_error rtData::init(uint8_t* data, uint32_t length) {
 }
 
 rt_error rtData::term() { delete(m_data); m_length = 0; return RT_OK; }
-
-// getters
 uint8_t* rtData::data() { return m_data; }
 uint32_t rtData::length() { return m_length; }
 
-rt_error rtLoadFile(char* f, rtData& data) {
-  rt_error e = RT_FAIL;
+rtError rtLoadFile(const char* f, rtData& data) {
+  rtError e = RT_FAIL;
   struct stat st;
   int fd = open(f, O_RDONLY);
   if (fd >= 0) {
@@ -48,7 +46,7 @@ rt_error rtLoadFile(char* f, rtData& data) {
       if (st.st_size <= UINT32_MAX) {
 	uint32_t l = (uint32_t)st.st_size;
 	data.init(l);
-	if (read(fd, data.data(), l) == l)
+	if (read(fd, (void*)data.data(), l) == l)
 	  e = RT_OK;
       }
     }

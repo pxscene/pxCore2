@@ -47,7 +47,7 @@ void display() {
   glutSwapBuffers();
 }
 
-void onTimer(int v) {
+void onTimer(int /*v*/) {
   display();
   // schedule next timer event
   glutTimerFunc(16, onTimer, 0);

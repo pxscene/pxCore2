@@ -29,7 +29,8 @@ pxInterp interps[] =
   pxInterpLinear,
   easeOutElastic,
   easeOutBounce,
-  exp2,
+  pxExp,
+  pxStop,
 };
 int numInterps = sizeof(interps)/sizeof(interps[0]);
 
@@ -45,6 +46,22 @@ void pxObject::setParent(rtRefT<pxObject>& parent)
   parent->mChildren.push_back(this);
 }
 
+rtError pxObject::remove()
+{
+  if (mParent)
+  {
+    for(vector<rtRefT<pxObject> >::iterator it = mParent->mChildren.begin(); 
+        it != mParent->mChildren.end(); ++it)
+    {
+      if ((it)->getPtr() == this)
+      {
+        mParent->mChildren.erase(it);
+        return RT_OK;
+      }
+    }
+  }
+  return RT_OK;
+}
 
 rtError pxObject::animateTo(const char* prop, double to, double duration, 
                             uint32_t interp, uint32_t animationType) 
@@ -104,12 +121,14 @@ void pxObject::update(double t)
   while (it != mAnimations.end())
   {
     animation& a = (*it);
+
     if (a.start < 0) a.start = t;
     double end = a.start + a.duration;
     
     // if duration has elapsed
     if (t >= end)
     {
+
       set(a.prop, a.to);
 
       if (a.at == PX_STOP)
@@ -123,7 +142,8 @@ void pxObject::update(double t)
 #endif
         }
 
-        it = mAnimations.erase(it);
+        // Erase making sure to push the iterator forward before
+        it = mAnimations.erase(it++);
         continue;
       }
 #if 0
@@ -249,6 +269,9 @@ rtDefineProperty(pxObject, rx);
 rtDefineProperty(pxObject, ry);
 rtDefineProperty(pxObject, rz);
 rtDefineProperty(pxObject, painting);
+rtDefineProperty(pxObject, numChildren);
+rtDefineMethod(pxObject, getChild);
+rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, animateTo);
 rtDefineMethod(pxObject, animateTo2);
 
@@ -361,7 +384,7 @@ void pxScene2d::onDraw()
   {
     end2 = pxSeconds();
 
-    rtLog("elapsed no clip %g", (double)frameCount/(end2-start));
+    rtLog("%f fps", (double)frameCount/(end2-start));
 
     start = end2;
     frameCount = 0;

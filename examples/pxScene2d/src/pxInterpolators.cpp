@@ -5,6 +5,8 @@
 
 #include <math.h>
 
+
+
 double easeOutElastic_helper(double t, double /*b*/, double c, double /*d*/, double a, double p) {
   if (t <= 0) return 0;
   if (t >= 1) return 1;
@@ -46,8 +48,51 @@ double easeOutBounce(double t) {
   double a = 1.0;
   return easeOutBounce_helper(t, 1, a);
 }
-double exp2(double t) {
+
+double pxExp(double t) {
   return pow(t, 0.48);
 }
 
+// pxStop helpers
+static double PulseScale = 8;		// ratio of "tail" to "acceleration"
+static double PulseNormalize = 1;
 
+// viscous fluid with a pulse for part and decay for the rest
+static double Pulse_(double x)
+{
+	double val;
+
+	// test
+	x = x * PulseScale;
+	if (x < 1) {
+		val = x - (1 - exp(-x));
+	} else {
+		// the previous animation ended here:
+		double start = exp(-1);
+
+		// simple viscous drag
+		x -= 1;
+		double expx = 1 - exp(-x);
+		val = start + (expx * (1.0 - start));
+	}
+
+	return val * PulseNormalize;
+}
+
+static void ComputePulseScale()
+{
+	PulseNormalize = 1.0 / Pulse_(1);
+}
+
+// viscous fluid with a pulse for part and decay for the rest
+double pxStop(double x)
+{
+	if (x >= 1) return 1;
+	if (x <= 0) return 0;
+
+	if (PulseNormalize == 1) {
+		ComputePulseScale();
+	}
+
+	return Pulse_(x);
+}

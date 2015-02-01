@@ -585,6 +585,7 @@ public:
     if (numArgs > 0)
     {
       rtString eventName = args[0].toString();
+      rtLogDebug("rtEmit::Send %s\n", eventName.cString());
       for(vector<_rtEmitEntry>::iterator it = mEntries.begin(); it != mEntries.end(); it++)
       {
         _rtEmitEntry& e = (*it);
