@@ -31,12 +31,16 @@
         "../",
         "../../external/png",
         "../../external/ft/include",
+        "../../external/curl/include",
+        "../../external/jpg",
         "../../../../src"
       ],
 
       "libraries": [
         "-L../../../external/ft/objs/.libs/",
         "-L../../../external/png/.libs",
+        "-L../../../external/jpg/.libs",
+        "-L../../../external/curl/lib/.libs/",
         "../../../../../build/x11/libpxCore.a",
         "-lX11",
         "-lfreetype",
