@@ -23,6 +23,10 @@ GLuint textureId1, textureId2;
 
 GLint attribute_coord;
 
+int contextWidth = 0;
+int contextHeight = 0;
+GLfloat contextClearColor[4]; //todo - find a more permanent place
+
 struct point
 {
     GLfloat x;
@@ -520,6 +524,9 @@ void pxContext::clear(int w, int h)
 {
   glClear(GL_COLOR_BUFFER_BIT);
   glUniform2f(u_resolution, w, h);
+  contextWidth = w;
+  contextHeight = h;
+  glGetFloatv(GL_COLOR_CLEAR_VALUE, contextClearColor);
 }
 
 
@@ -568,6 +575,11 @@ pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
 {
   if (contextSurface == NULL)
   {
+    glViewport ( 0, 0, contextWidth, contextHeight);
+    glUniform2f(u_resolution, contextWidth, contextHeight);
+    glClearColor(contextClearColor[0],contextClearColor[1],
+            contextClearColor[2], contextClearColor[3]);
+    glBindTexture(GL_TEXTURE_2D, textureId1);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     return PX_OK;
   }
@@ -587,6 +599,9 @@ pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
     rtLog("error setting the render surface\n");
     return PX_FAIL;
   }
+  glBindTexture(GL_TEXTURE_2D, contextSurface->texture);
+  glViewport ( 0, 0, contextSurface->width, contextSurface->height);
+  glUniform2f(u_resolution, contextSurface->width, contextSurface->height);
   
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT);
