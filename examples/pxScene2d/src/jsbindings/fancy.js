@@ -30,7 +30,8 @@ ball.parent = root;
 var pxInterpLinear = 0;
 var easeOutElastic = 1;
 var easeOutBounce  = 2;
-var exp2 = 3;
+var pxExp = 3;
+var pxStop = 4;
 
 function fancy(p) {
   x1(p);
@@ -45,7 +46,7 @@ function x1(p) {
 }
 
 function x2(p) {
-  p.animateTo2("x", 450, 2.0, easeOutElastic, 0, fancy);
+  p.animateTo2("x", 450, 3.0, easeOutElastic, 0, fancy);
 }
 
 function y1(p) {
@@ -68,8 +69,8 @@ function scale1(p) {
 }
 
 function scale2(p) {
-  p.animateTo2("sx", 1.5, 0.5, easeOutElastic, 0, scale3);
-  p.animateTo("sy", 1.5, 0.5, easeOutElastic, 0);
+  p.animateTo2("sx", 2.0, 1.0, pxExp, 0, scale3);
+  p.animateTo("sy", 2.0, 1.0, pxExp, 0);
 }
 
 function scale3(p) {
