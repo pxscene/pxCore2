@@ -212,9 +212,9 @@ static void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNat
     return;
   }
   
-  glActiveTexture(GL_TEXTURE0);
+  glActiveTexture(GL_TEXTURE3);
   glBindTexture(GL_TEXTURE_2D, contextSurface->texture);
-  glUniform1i(u_texture, 0);
+  glUniform1i(u_texture, 3);
 
   const float verts[4][2] =
   {
@@ -557,6 +557,7 @@ pxError pxContext::createContextSurface(pxContextSurfaceNativeDesc* contextSurfa
   
   glGenFramebuffers(1, &contextSurface->framebuffer);
   glGenTextures(1, &contextSurface->texture);
+  glActiveTexture(GL_TEXTURE3);
   glBindTexture(GL_TEXTURE_2D, contextSurface->texture);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
 	       width, height, 0, GL_BGRA_EXT,
