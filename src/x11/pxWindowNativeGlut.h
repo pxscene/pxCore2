@@ -30,97 +30,100 @@ using namespace std;
 // Since the lifetime of the Display should include the lifetime of all windows
 // and eventloop that uses it - refcounting is utilized through this
 // wrapper class.
-typedef struct _glutDisplay {
-    _glutDisplay() {}
-} glutDisplay;
+typedef struct _glutDisplay
+{
+  _glutDisplay() {}
+}
+glutDisplay;
 
 class displayRef
 {
 public:
-    displayRef();
-    ~displayRef();
+  displayRef();
+  ~displayRef();
 
-    glutDisplay* getDisplay() const;
+  glutDisplay* getDisplay() const;
 
 private:
 
-    pxError createGlutDisplay();
-    void cleanupGlutDisplay();
+  pxError createGlutDisplay();
+  void cleanupGlutDisplay();
 
-    static glutDisplay* mDisplay;
-    static int mRefCount;
+  static glutDisplay* mDisplay;
+  static int mRefCount;
 };
 
 class pxWindowNative
 {
 public:
-pxWindowNative(): mTimerFPS(0), mLastWidth(-1), mLastHeight(-1),
-    mResizeFlag(false), mLastAnimationTime(0.0), mVisible(false), 
+  pxWindowNative(): mTimerFPS(0), mLastWidth(-1), mLastHeight(-1),
+    mResizeFlag(false), mLastAnimationTime(0.0), mVisible(false),
     mGlutWindowId(0)
-    { }
-    virtual ~pxWindowNative();
+  { }
 
-    // Contract between pxEventLoopNative and this class
-    static void runEventLoop();
-    static void exitEventLoop();
+  virtual ~pxWindowNative();
 
-    static struct wl_shell_surface_listener mShellSurfaceListener;
+  // Contract between pxEventLoopNative and this class
+  static void runEventLoop();
+  static void exitEventLoop();
 
-    static vector<pxWindowNative*> getNativeWindows(){return mWindowVector;}
+  static struct wl_shell_surface_listener mShellSurfaceListener;
 
-    virtual void onMouseDown(int x, int y, unsigned long flags) = 0;
-    virtual void onMouseUp(int x, int y, unsigned long flags) = 0;
+  static vector<pxWindowNative*> getNativeWindows(){return mWindowVector;}
 
-    virtual void onMouseMove(int x, int y) = 0;
+  virtual void onMouseDown(int x, int y, unsigned long flags) = 0;
+  virtual void onMouseUp(int x, int y, unsigned long flags) = 0;
 
-    virtual void onMouseLeave() = 0;
+  virtual void onMouseMove(int x, int y) = 0;
 
-    virtual void onKeyDown(int keycode, unsigned long flags) = 0;
-    virtual void onKeyUp(int keycode, unsigned long flags) = 0;
-    
-    virtual void onSize(int w, int h) = 0;
+  virtual void onMouseLeave() = 0;
 
-    void animateAndRender();
+  virtual void onKeyDown(int keycode, unsigned long flags) = 0;
+  virtual void onKeyUp(int keycode, unsigned long flags) = 0;
+
+  virtual void onSize(int w, int h) = 0;
+
+  void animateAndRender();
 
 protected:
-    virtual void onCreate() = 0;
+  virtual void onCreate() = 0;
 
-    virtual void onCloseRequest() = 0;
-    virtual void onClose() = 0;
+  virtual void onCloseRequest() = 0;
+  virtual void onClose() = 0;
 
-    virtual void onDraw(pxSurfaceNative surface) = 0;
+  virtual void onDraw(pxSurfaceNative surface) = 0;
 
-    virtual void onAnimationTimer() = 0;	
+  virtual void onAnimationTimer() = 0;
 
-    void onAnimationTimerInternal();
+  void onAnimationTimerInternal();
 
-    void invalidateRectInternal(pxRect *r);
-    double getLastAnimationTime();
-    void setLastAnimationTime(double time);
-    void drawFrame();
+  void invalidateRectInternal(pxRect *r);
+  double getLastAnimationTime();
+  void setLastAnimationTime(double time);
+  void drawFrame();
 
 
-    displayRef mDisplayRef;
+  displayRef mDisplayRef;
 
-    int mTimerFPS;
-    int mLastWidth, mLastHeight;
-    bool mResizeFlag;
-    double mLastAnimationTime;
-    bool mVisible;
-    
-    //timer variables
-    static bool mEventLoopTimerStarted;
-    static float mEventLoopInterval;
-    static timer_t mRenderTimerId;
-    
-    void createGlutWindow(int left, int top, int width, int height);
-    void cleanupGlutWindow();
-    
-    int mGlutWindowId;
+  int mTimerFPS;
+  int mLastWidth, mLastHeight;
+  bool mResizeFlag;
+  double mLastAnimationTime;
+  bool mVisible;
 
-    static void registerWindow(pxWindowNative* p);
-    static void unregisterWindow(pxWindowNative* p); //call this method somewhere
-    static vector<pxWindowNative*> mWindowVector;
+  //timer variables
+  static bool mEventLoopTimerStarted;
+  static float mEventLoopInterval;
+  static timer_t mRenderTimerId;
+
+  void createGlutWindow(int left, int top, int width, int height);
+  void cleanupGlutWindow();
+
+  int mGlutWindowId;
+
+  static void registerWindow(pxWindowNative* p);
+  static void unregisterWindow(pxWindowNative* p); //call this method somewhere
+  static vector<pxWindowNative*> mWindowVector;
 };
 
 // Key Codes

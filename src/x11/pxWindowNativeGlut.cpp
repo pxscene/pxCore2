@@ -25,28 +25,31 @@ timer_t pxWindowNative::mRenderTimerId;
 
 static void reshape(int width, int height)
 {
-    vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
-    vector<pxWindowNative*>::iterator i;
-    for (i = windowVector.begin(); i < windowVector.end(); i++)
-    {
-        pxWindowNative* w = (*i);
-        w->onSize(width, height);
-    }
+  vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  vector<pxWindowNative*>::iterator i;
+
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    w->onSize(width, height);
+  }
 }
 
 void display()
 {
-    vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
-    vector<pxWindowNative*>::iterator i;
-    for (i = windowVector.begin(); i < windowVector.end(); i++)
-    {
-        pxWindowNative* w = (*i);
-        w->animateAndRender();
-    }
-    glutSwapBuffers();
+  vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  vector<pxWindowNative*>::iterator i;
+
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    w->animateAndRender();
+  }
+  glutSwapBuffers();
 }
 
-void onTimer(int v) {
+void onTimer(int v)
+{
   display();
   // schedule next timer event
   glutTimerFunc(16, onTimer, 0);
@@ -54,334 +57,352 @@ void onTimer(int v) {
 
 void onMouse(int button, int state, int x, int y)
 {
-    unsigned long flags;
-    switch(button)
+  unsigned long flags;
+  switch(button)
+  {
+    case GLUT_MIDDLE_BUTTON: flags = PX_MIDDLEBUTTON;
+      break;
+    case GLUT_RIGHT_BUTTON:  flags = PX_RIGHTBUTTON;
+      break;
+    default: flags = PX_LEFTBUTTON;
+      break;
+  }
+
+  vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  vector<pxWindowNative*>::iterator i;
+
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    if (state == GLUT_DOWN)
     {
-        case GLUT_MIDDLE_BUTTON: flags = PX_MIDDLEBUTTON;
-        break;
-        case GLUT_RIGHT_BUTTON: flags = PX_RIGHTBUTTON;
-        break;
-        default: flags = PX_LEFTBUTTON;
-        break;
+      w->onMouseDown(x, y, flags);
     }
-    
-    vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
-    vector<pxWindowNative*>::iterator i;
-    for (i = windowVector.begin(); i < windowVector.end(); i++)
+    else
     {
-        pxWindowNative* w = (*i);
-        if (state == GLUT_DOWN)
-        {
-            w->onMouseDown(x, y, flags);
-        }
-        else
-        {
-            w->onMouseUp(x, y, flags);
-        }
+      w->onMouseUp(x, y, flags);
     }
+  }
 }
 
 void onMouseMotion(int x, int y)
 {
-    vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
-    vector<pxWindowNative*>::iterator i;
-    for (i = windowVector.begin(); i < windowVector.end(); i++)
-    {
-        pxWindowNative* w = (*i);
-        w->onMouseMove(x, y);
-    }
+  vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  vector<pxWindowNative*>::iterator i;
+
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    w->onMouseMove(x, y);
+  }
 }
 
 void onMousePassiveMotion(int x, int y)
 {
-    vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
-    vector<pxWindowNative*>::iterator i;
-    for (i = windowVector.begin(); i < windowVector.end(); i++)
-    {
-        pxWindowNative* w = (*i);
-        w->onMouseMove(x, y);
-    }
+  vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  vector<pxWindowNative*>::iterator i;
+
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    w->onMouseMove(x, y);
+  }
 }
 
 void onKeyboard(unsigned char key, int x, int y) 
 {
-    vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
-    vector<pxWindowNative*>::iterator i;
-    for (i = windowVector.begin(); i < windowVector.end(); i++)
-    {
-        pxWindowNative* w = (*i);
-        // JR Did I mention Glut keyboard support is not very good
-        w->onKeyDown(key, 0);
-        w->onKeyUp(key, 0);
-    }  
+  vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  vector<pxWindowNative*>::iterator i;
+
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    // JR Did I mention Glut keyboard support is not very good
+    w->onKeyDown(key, 0);
+    w->onKeyUp(key, 0);
+  }
 }
 
 //end glut callbacks
 
 displayRef::displayRef()
 {
-    if (mRefCount == 0)
-    {
-        mRefCount++;
-        createGlutDisplay();
-    }
-    else
-    {
-        mRefCount++;
-    }
+  if (mRefCount == 0)
+  {
+    mRefCount++;
+    createGlutDisplay();
+  }
+  else
+  {
+    mRefCount++;
+  }
 }
 
 displayRef::~displayRef()
 {
-    mRefCount--;
-    if (mRefCount == 0)
-    {
-        cleanupGlutDisplay();
-    }
+  mRefCount--;
+
+  if (mRefCount == 0)
+  {
+    cleanupGlutDisplay();
+  }
 }
 
 glutDisplay* displayRef::getDisplay() const
 {
-    return mDisplay;
+  return mDisplay;
 }
 
 pxError displayRef::createGlutDisplay()
 {
-    if (mDisplay == NULL)
-    {
-        mDisplay = new glutDisplay();
-    }
-    int argc = 0;
-    char **argv = NULL;
-    glutInit(&argc, argv);
-    
-    //callbacks
-    // XXX: These have no affect glutGetWindow() == 0
+  if (mDisplay == NULL)
+  {
+    mDisplay = new glutDisplay();
+  }
+
+  int argc = 0;
+  char **argv = NULL;
+
+  glutInit(&argc, argv);
+
+  //callbacks
+  // XXX: These have no affect glutGetWindow() == 0
 #if 0
-    glutDisplayFunc(display);
-    glutReshapeFunc(reshape);
-    glutMouseFunc(onMouse);
-    glutMotionFunc(onMouseMotion);
-    glutPassiveMotionFunc(onMousePassiveMotion);
-    glutKeyboardFunc(onKeyboard);
+  glutDisplayFunc(display);
+  glutReshapeFunc(reshape);
+  glutMouseFunc(onMouse);
+  glutMotionFunc(onMouseMotion);
+  glutPassiveMotionFunc(onMousePassiveMotion);
+  glutKeyboardFunc(onKeyboard);
 #endif    
-    return PX_OK;
+  return PX_OK;
 }
 
 void displayRef::cleanupGlutDisplay()
 {
-    
-    if (mDisplay != NULL)
-    {
-        delete mDisplay;
-    }
-    mDisplay = NULL;
+
+  if (mDisplay != NULL)
+  {
+    delete mDisplay;
+  }
+  mDisplay = NULL;
 }
 
 bool exitFlag = false;
 
 pxWindowNative::~pxWindowNative()
 {
-    cleanupGlutWindow();
+  cleanupGlutWindow();
 }
 
 void pxWindowNative::createGlutWindow(int left, int top, int width, int height)
 {
-    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGBA  /*| GLUT_DEPTH | GLUT_ALPHA*/);
-    glutInitWindowPosition (left, top);
-    glutInitWindowSize (width, height);
-    mGlutWindowId = glutCreateWindow ("pxWindow");
+  glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGBA  /*| GLUT_DEPTH | GLUT_ALPHA*/);
+  glutInitWindowPosition (left, top);
+  glutInitWindowSize (width, height);
+
+  mGlutWindowId = glutCreateWindow ("pxWindow");
 }
 
 void pxWindowNative::cleanupGlutWindow()
 {
-    glutDestroyWindow(mGlutWindowId);
+  glutDestroyWindow(mGlutWindowId);
 }
 
 pxError pxWindow::init(int left, int top, int width, int height)
 {
-    glutDisplay* display = mDisplayRef.getDisplay();
-    if (display == NULL)
-    {
-        cout << "Error initializing display\n" << endl;
-        return PX_FAIL;
-    }
-    else
-    {
-        mLastWidth = width;
-        mLastHeight = height;
-        mResizeFlag = true;
-        createGlutWindow(left,top,width,height);
+  glutDisplay* display = mDisplayRef.getDisplay();
 
-        // XXX: Need to register callbacks after window is created^M
-        glutReshapeFunc(reshape);
-//    glutDisplayFunc(display);
-//    glutReshapeFunc(reshape);
-        glutMouseFunc(onMouse);
-        glutMotionFunc(onMouseMotion);
-        glutPassiveMotionFunc(onMousePassiveMotion);
-        glutKeyboardFunc(onKeyboard);
-        
-        registerWindow(this);
-        this->onCreate();
-        
-        static bool glewInitialized = false;
-        
-        if (!glewInitialized)
-        {
-            GLenum err = glewInit();
-            if (err != GLEW_OK)
-            {
-                cout << "error with glewInit()\n";
-                exit(1); // or handle the error in a nicer way
-            }
-            glewInitialized = true;
-        }
+  if (display == NULL)
+  {
+    cout << "Error initializing display\n" << endl;
+    return PX_FAIL;
+  }
+  else
+  {
+    mLastWidth  = width;
+    mLastHeight = height;
+    mResizeFlag = true;
+
+    createGlutWindow(left,top,width,height);
+
+    // XXX: Need to register callbacks after window is created^M
+    glutReshapeFunc(reshape);
+    //    glutDisplayFunc(display);
+    //    glutReshapeFunc(reshape);
+
+    glutMouseFunc(onMouse);
+    glutMotionFunc(onMouseMotion);
+    glutPassiveMotionFunc(onMousePassiveMotion);
+    glutKeyboardFunc(onKeyboard);
+
+    registerWindow(this);
+    this->onCreate();
+
+    static bool glewInitialized = false;
+
+    if (!glewInitialized)
+    {
+      GLenum err = glewInit();
+
+      if (err != GLEW_OK)
+      {
+        cout << "error with glewInit()\n";
+        exit(1); // or handle the error in a nicer way
+      }
+      glewInitialized = true;
     }
-    return PX_OK;
+  }
+  return PX_OK;
 }
 
 pxError pxWindow::term()
 {
-    return PX_OK;
+  return PX_OK;
 }
 
 void pxWindow::invalidateRect(pxRect *r)
 {
-    invalidateRectInternal(r);
+  invalidateRectInternal(r);
 }
 
 // This can be improved by collecting the dirty regions and painting
 // when the event loop goes idle
 void pxWindowNative::invalidateRectInternal(pxRect *r)
 {
-    drawFrame();
+  drawFrame();
 }
 
 bool pxWindow::visibility()
 {
-    return mVisible;
+  return mVisible;
 }
 
 void pxWindow::setVisibility(bool visible)
 {
-    mVisible = visible;
-    if (mVisible)
-    {
-        glutShowWindow();
-    }
-    else
-    {
-        glutHideWindow();
-    }
+  mVisible = visible;
+
+  if (mVisible)
+  {
+    glutShowWindow();
+  }
+  else
+  {
+    glutHideWindow();
+  }
 }
 
 pxError pxWindow::setAnimationFPS(long fps)
 {
-    mTimerFPS = fps;
-    mLastAnimationTime = pxMilliseconds();
-    return PX_OK;
+  mTimerFPS = fps;
+  mLastAnimationTime = pxMilliseconds();
+
+  return PX_OK;
 }
 
 void pxWindow::setTitle(char* title)
 {
-    glutSetWindowTitle(title);
+  glutSetWindowTitle(title);
 }
 
 pxError pxWindow::beginNativeDrawing(pxSurfaceNative& s)
 {
-    //todo
+  //todo
 
-    return PX_OK;
+  return PX_OK;
 }
 
 pxError pxWindow::endNativeDrawing(pxSurfaceNative& s)
 {
-    //todo
+  //TODO
 
-    return PX_OK;
+  return PX_OK;
 }
 
 // pxWindowNative
 
 void pxWindowNative::onAnimationTimerInternal()
 {
-    if (mTimerFPS) onAnimationTimer();
+  if (mTimerFPS)
+  {
+    onAnimationTimer();
+  }
 }
 
 void pxWindowNative::runEventLoop()
 {
-    exitFlag = false;
-    
-    glutTimerFunc(32, onTimer, 0);  
-    glutMainLoop();
+  exitFlag = false;
+
+  glutTimerFunc(32, onTimer, 0);
+  glutMainLoop();
 }
 
 void pxWindowNative::exitEventLoop()
 {
-    exitFlag = true;
+  exitFlag = true;
 }
 
 void pxWindowNative::animateAndRender()
 {
-    static double lastAnimationTime = pxMilliseconds();
-    double currentAnimationTime = pxMilliseconds();
-    drawFrame(); 
+  static double lastAnimationTime = pxMilliseconds();
+  double currentAnimationTime = pxMilliseconds();
+  drawFrame();
 
-    double animationDelta = currentAnimationTime-lastAnimationTime;
-    if (mResizeFlag)
+  double animationDelta = currentAnimationTime - lastAnimationTime;
+
+  if (mResizeFlag)
+  {
+    mResizeFlag = false;
+    onSize(mLastWidth, mLastHeight);
+    invalidateRectInternal(NULL);
+  }
+
+  if (mTimerFPS)
+  {
+    animationDelta = currentAnimationTime - getLastAnimationTime();
+
+    if (animationDelta > (1000/mTimerFPS))
     {
-        mResizeFlag = false;
-        onSize(mLastWidth, mLastHeight);
-        invalidateRectInternal(NULL);
+      onAnimationTimerInternal();
+      setLastAnimationTime(currentAnimationTime);
     }
-
-    if (mTimerFPS)
-    {
-        animationDelta = currentAnimationTime - getLastAnimationTime();
-
-        if (animationDelta > (1000/mTimerFPS))
-        {
-            onAnimationTimerInternal();
-            setLastAnimationTime(currentAnimationTime);
-        }
-    }
+  }
 }
 
 void pxWindowNative::setLastAnimationTime(double time)
 {
-    mLastAnimationTime = time;
+  mLastAnimationTime = time;
 }
 
 double pxWindowNative::getLastAnimationTime()
 {
-    return mLastAnimationTime;
+  return mLastAnimationTime;
 }
 
 void pxWindowNative::drawFrame()
 {
-    pxSurfaceNativeDesc d;
-    d.windowWidth = mLastWidth;
-    d.windowHeight = mLastHeight;
+  pxSurfaceNativeDesc d;
+  d.windowWidth  = mLastWidth;
+  d.windowHeight = mLastHeight;
 
-    onDraw(&d);
+  onDraw(&d);
 }
 
 void pxWindowNative::registerWindow(pxWindowNative* p)
 {
-    mWindowVector.push_back(p);
+  mWindowVector.push_back(p);
 }
 
 void pxWindowNative::unregisterWindow(pxWindowNative* p)
 {
-    vector<pxWindowNative*>::iterator i;
+  vector<pxWindowNative*>::iterator i;
 
-    for (i = mWindowVector.begin(); i < mWindowVector.end(); i++)
+  for (i = mWindowVector.begin(); i < mWindowVector.end(); i++)
+  {
+    if ((*i) == p)
     {
-        if ((*i) == p)
-        {
-            mWindowVector.erase(i);
-            return;
-        }
+      mWindowVector.erase(i);
+      return;
     }
+  }
 }
