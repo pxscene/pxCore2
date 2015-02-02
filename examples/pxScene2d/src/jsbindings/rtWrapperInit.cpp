@@ -15,7 +15,7 @@ struct EventLoopContext
   pxEventLoop* eventLoop;
 };
 
-static void* ProcessEventLoop(void* argp)
+static void* processEventLoop(void* argp)
 {
   EventLoopContext* ctx = reinterpret_cast<EventLoopContext *>(argp);
   ctx->eventLoop->run();
@@ -43,8 +43,7 @@ class jsWindow : public pxWindow
 {
 public:
   jsWindow(int x, int y, int w, int h)
-    : mCallbacks(new Persistent<Function>[12])
-    , mEventLoop(new pxEventLoop())
+    : mEventLoop(new pxEventLoop())
     , mScene(new pxScene2d())
   {
     mJavaScene = Persistent<Object>::New(rtObjectWrapper::createFromObjectReference(mScene.getPtr()));
@@ -69,43 +68,12 @@ public:
   {
     EventLoopContext* ctx = new EventLoopContext();
     ctx->eventLoop = mEventLoop;
-    pthread_create(&mEventLoopThread, NULL, &ProcessEventLoop, ctx);
+    pthread_create(&mEventLoopThread, NULL, &processEventLoop, ctx);
   }
 
   virtual ~jsWindow()
   { 
-    delete [] mCallbacks;
-  }
-
-  void SetCallback(WindowCallback index, Persistent<Function> callback)
-  {
-    mCallbacks[index] = callback;
-  }
-
-private:
-  struct FunctionLookup : public jsIFunctionLookup
-  {
-    FunctionLookup(jsWindow* parent, WindowCallback index)
-      : mParent(parent)
-      , mIndex(index) { }
-
-    virtual Persistent<Function> lookup()
-    {
-      return mParent->getCallback(mIndex);
-    }
-
-    virtual Handle<Object> self()
-    {
-      return mParent->scene();
-    }
-  private:
-    jsWindow* mParent;
-    WindowCallback mIndex;
-  };
-
-  Persistent<Function> getCallback(WindowCallback index)
-  {
-    return mCallbacks[index];
+    // empty
   }
 
 protected:
@@ -162,7 +130,6 @@ protected:
     rtWrapperSceneUpdateExit();
   }
 private:
-  Persistent<Function>* mCallbacks;
   Persistent<Object> mJavaScene;
 
   pthread_t mEventLoopThread;
