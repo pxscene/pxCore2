@@ -11,11 +11,11 @@ using namespace std;
 class pxImageDownloadRequest
 {
 public:
-    pxImageDownloadRequest(string imageUrl) 
+    pxImageDownloadRequest(string imageUrl, void* callbackData) 
         : mImageUrl(imageUrl), mProxyServer(),
             mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL),
             mDownloadedData(0), mDownloadedDataSize(), mDecodeAfterDownload(false),
-            mDownloadStatusCode(0)
+            mDownloadStatusCode(0), mCallbackData(callbackData)
         { } 
         
     ~pxImageDownloadRequest()
@@ -115,6 +115,16 @@ public:
     {
         return mDownloadStatusCode;
     }
+    
+    void* getCallbackData()
+    {
+        return mCallbackData;
+    }
+    
+    void setCallbackData(void* callbackData)
+    {
+        mCallbackData = callbackData;
+    }
 
 private:
     string mImageUrl;
@@ -126,6 +136,7 @@ private:
     size_t mDownloadedDataSize;
     bool mDecodeAfterDownload;
     int mDownloadStatusCode;
+    void* mCallbackData;
 };
 
 class pxImageDownloader

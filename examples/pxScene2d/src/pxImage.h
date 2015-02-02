@@ -6,6 +6,9 @@
 
 #include "pxOffscreen.h"
 #include "pxContext.h"
+#include "rtMutex.h"
+
+class pxImageDownloadRequest;
 
 class pxImage: public pxObject {
 public:
@@ -14,7 +17,10 @@ public:
   rtProperty(xStretch, xStretch, setXStretch, int32_t);
   rtProperty(yStretch, yStretch, setYStretch, int32_t);
   
-pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE) {}
+pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), 
+        mWaitingForImageDownload(false),
+        mImageDownloadMutex(), mImageDownloadIsAvailable(false),
+        mImageDownloadRequest(NULL) {}
   
   rtError url(rtString& s) const;
   rtError setURL(const char* s);
@@ -33,13 +39,22 @@ pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE) {}
     return RT_OK;
   }
   
+  void onImageDownloadComplete(pxImageDownloadRequest* imageDownloadRequest);
+  
 protected:
   virtual void draw();
+  void checkForCompletedImageDownload();
+  void loadImage(rtString url);
   
   rtString mURL;
   pxOffscreen mOffscreen;
   pxStretch mXStretch;
   pxStretch mYStretch;
+  
+  bool mWaitingForImageDownload;
+  rtMutex mImageDownloadMutex;
+  bool mImageDownloadIsAvailable;
+  pxImageDownloadRequest* mImageDownloadRequest;
 };
 
 #endif

@@ -263,7 +263,7 @@ int pxMain()
   win.setTitle(title);
   win.setVisibility(true);
     
-  pxImageDownloadRequest* downloadRequest = new pxImageDownloadRequest("http://upload.wikimedia.org/wikipedia/commons/c/c9/Moon.jpg");
+  pxImageDownloadRequest* downloadRequest = new pxImageDownloadRequest("http://upload.wikimedia.org/wikipedia/commons/c/c9/Moon.jpg", NULL);
   downloadRequest->setCallbackFunction(imageDownloadComplete);
   pxImageDownloader::getInstance()->addToDownloadQueue(downloadRequest);
     
