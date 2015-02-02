@@ -148,6 +148,12 @@ static Handle<Value> getScene(const Arguments& args)
 {
   if (mainWindow == NULL)
   {
+    // This is somewhat experimental. There are concurrency issues with glut.
+    // There's no way to intergate glut eventloop with js threads. Once
+    // you enter the glut event loop, you don't come out. I'm putting this
+    // here to address stability issues with demo apps.
+    XInitThreads();
+
     int x = 0;
     int y = 0;
     int w = 960;
