@@ -212,6 +212,7 @@ static void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNat
     return;
   }
   
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
   glActiveTexture(GL_TEXTURE3);
   glBindTexture(GL_TEXTURE_2D, contextSurface->texture);
   glUniform1i(u_texture, 3);
@@ -226,10 +227,10 @@ static void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNat
 
   const float uv[4][2] =
   {
-    { 0, 0 },
-    { 1, 0 },
     { 0, 1 },
-    { 1, 1 }
+    { 1, 1 },
+    { 0, 0 },
+    { 1, 0 }
   };
   
   {
@@ -243,6 +244,7 @@ static void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNat
     glDisableVertexAttribArray(attr_uv);
   }
   
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, textureId1); //bind back to original texture
 }
 
@@ -250,6 +252,7 @@ static void drawImage2(float x, float y, float w, float h, pxOffscreen& offscree
                 pxStretch xStretch, pxStretch yStretch)
 {
   glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, textureId1);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
 	       offscreen.width(), offscreen.height(), 0, GL_BGRA_EXT,
 	       GL_UNSIGNED_BYTE, offscreen.base());
@@ -580,6 +583,7 @@ pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
     glUniform2f(u_resolution, contextWidth, contextHeight);
     glClearColor(contextClearColor[0],contextClearColor[1],
             contextClearColor[2], contextClearColor[3]);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId1);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     return PX_OK;
@@ -669,6 +673,7 @@ void pxContext::drawSurface(float w, float h, pxContextSurfaceNativeDesc* contex
 void pxContext::drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color)
 {
     glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, textureId2);
     
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(
