@@ -80,16 +80,6 @@ function scale3(p) {
 
 fancy(ball);
 
-scene.on('resize', function(width, height) {
-    console.log('resize:' + width + ' height:' + height);
-
-    bg.w = width;
-    bg.h = height;
-    bgShade.w = width;
-    bgShade.h = height;
-    txt1.y = height-10;
-});
-
 scene.on('keydown', function(code, flags) {
   console.log("keydown:" + code);
 });
@@ -98,3 +88,14 @@ scene.on("mousemove", function(x, y) {
     txt1.text = "" + x+ ", " + y;
 });
 
+function updateSize(w, h) {
+    bg.w = w;
+    bg.h = h;
+    bgShade.w = w;
+    bgShade.h = h;
+    txt1.y = h-10;
+}
+
+updateSize(scene.w, scene.h);
+
+scene.on("resize", updateSize);

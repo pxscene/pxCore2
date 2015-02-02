@@ -189,12 +189,23 @@ void pxObject::update(double t)
 void pxObject::drawInternal(pxMatrix4f m)
 {
 
+#if 1
+  // translate based on xy rotate/scale based on cx, cy
   m.translate(mx+mcx, my+mcy);
 
   m.rotateInDegrees(mr, mrx, mry, mrz);
   m.scale(msx, msy);
   m.translate(-mcx, -mcy);
   
+#else
+  // translate/rotate/scale based on cx, cy
+  m.translate(mx, my);
+
+  m.rotateInDegrees(mr, mrx, mry, mrz);
+  m.scale(msx, msy);
+  m.translate(-mcx, -mcy);
+
+#endif
   context.setMatrix(m);
   context.setAlpha(ma);
   
@@ -408,16 +419,6 @@ pxObject* pxScene2d::getRoot() const
   return mRoot;
 }
 
-int pxScene2d::width()
-{
-  return mWidth;
-}
-
-int pxScene2d::height()
-{
-  return mHeight;
-}
-
 void pxScene2d::onSize(int w, int h)
 {
   //  glViewport(0, 0, (GLint)w, (GLint)h);
@@ -476,6 +477,8 @@ void pxScene2d::onKeyUp(int keycode, unsigned long flags)
 
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
+rtDefineProperty(pxScene2d, w);
+rtDefineProperty(pxScene2d, h);
 rtDefineMethod(pxScene2d, createRectangle);
 rtDefineMethod(pxScene2d, createText);
 rtDefineMethod(pxScene2d, createImage);

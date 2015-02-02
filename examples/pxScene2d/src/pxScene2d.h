@@ -415,6 +415,8 @@ class pxScene2d: public rtObject {
 public:
   rtDeclareObject(pxScene2d, rtObject);
   rtReadOnlyProperty(root, root, rtObjectRef);
+  rtReadOnlyProperty(w, w, int32_t);
+  rtReadOnlyProperty(h, h, int32_t);
   rtMethodNoArgAndReturn("createRectangle", createRectangle, rtObjectRef);
   rtMethodNoArgAndReturn("createImage", createImage, rtObjectRef);
   rtMethodNoArgAndReturn("createImage9", createImage9, rtObjectRef);
@@ -426,8 +428,10 @@ public:
   
   void init();
 
-  int width();
-  int height();
+  int32_t w() const { return mWidth;  }
+  rtError w(int32_t& v) const { v = mWidth;  return RT_OK; }
+  int32_t h() const { return mHeight; }
+  rtError h(int32_t& v) const { v = mHeight; return RT_OK; }
 
   rtError createRectangle(rtObjectRef& o);
   rtError createText(rtObjectRef& o);

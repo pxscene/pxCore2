@@ -9,18 +9,6 @@ var bgShade = scene.createImage();
 
 var txt1 = scene.createText();
 
-// We have a race condition with registering for this event... We'll lose it
-// if we don't register the callback early enough.  We'll need something
-// more deterministic
-
-scene.on('resize', function(width, height) {
-    bg.w = width;
-    bg.h = height;
-    bgShade.w = width;
-    bgShade.h = height;
-    txt1.y = height-10;
-});
-
 bg.url = process.cwd() + "/../../images/skulls.png";
 bg.xStretch = 2;
 bg.yStretch = 2;
@@ -124,4 +112,18 @@ scene.on("mousemove", function(x, y) {
     txt1.text = "" + x+ ", " + y;
 });
 
+function updateSize(w, h) {
+    bg.w = w;
+    bg.h = h;
+    bgShade.w = w;
+    bgShade.h = h;
+    txt1.y = h-10;
+}
+
+updateSize(scene.w, scene.h);
+
+scene.on("resize", updateSize);
+
 doIt();
+
+
