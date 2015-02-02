@@ -268,15 +268,15 @@ void ballScene()
   bg.set("xStretch", 2);
   bg.set("yStretch", 2);
   bg.set("parent", root);
-  bg.set("w", scene->width());
-  bg.set("h", scene->height());
+  bg.set("w", scene->w());
+  bg.set("h", scene->h());
   scene.sendReturns<rtObjectRef>("createImage", bg);
   bg.set("url", d2);
   bg.set("xStretch", 1);
   bg.set("yStretch", 1);
   bg.set("parent", root);
-  bg.set("w", scene->width());
-  bg.set("h", scene->height());
+  bg.set("w", scene->w());
+  bg.set("h", scene->h());
 
   rtRefT<pxImage> p = new pxImage();
   p->setURL(d3);
@@ -352,8 +352,8 @@ void testScene()
   bg1.set("xStretch", 2);
   bg1.set("yStretch", 2);
   bg1.set("parent", root);
-  bg1.set("w", scene->width());
-  bg1.set("h", scene->height());
+  bg1.set("w", scene->w());
+  bg1.set("h", scene->h());
 
   scene.sendReturns<rtObjectRef>("createImage", bg2);
   bgURL = d;
@@ -362,8 +362,8 @@ void testScene()
   bg2.set("xStretch", 1);
   bg2.set("yStretch", 1);
   bg2.set("parent", root);
-  bg2.set("w", scene->width());
-  bg2.set("h", scene->height());
+  bg2.set("w", scene->w());
+  bg2.set("h", scene->h());
 
   rtObjectRef t;
   scene.sendReturns<rtObjectRef>("createText", t);
