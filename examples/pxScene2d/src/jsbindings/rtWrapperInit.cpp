@@ -48,9 +48,13 @@ public:
   {
     mJavaScene = Persistent<Object>::New(rtObjectWrapper::createFromObjectReference(mScene.getPtr()));
 
+    rtLogInfo("creating native with [%d, %d, %d, %d]", x, y, w, h);
     init(x, y, w, h);
+
+    rtLogInfo("initializing scene");
     mScene->init();
 
+    rtLogInfo("starting background thread for event loop processing");
     startEventProcessingThread();
 
     // we start a timer in case there aren't any other evens to the keep the
@@ -144,7 +148,20 @@ static Handle<Value> getScene(const Arguments& args)
 {
   if (mainWindow == NULL)
   {
-    mainWindow = new jsWindow(0, 0, 960, 540);
+    int x = 0;
+    int y = 0;
+    int w = 960;
+    int h = 640;
+
+    if (args.Length() == 4)
+    {
+      x = toInt32(args, 0, 0);
+      y = toInt32(args, 1, 0);
+      w = toInt32(args, 2, 960);
+      h = toInt32(args, 3, 640);
+    }
+
+    mainWindow = new jsWindow(x, y, w, h);
 
     char title[]= { "pxScene from JavasScript!" };
     mainWindow->setTitle(title);

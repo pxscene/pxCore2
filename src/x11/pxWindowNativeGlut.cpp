@@ -105,7 +105,7 @@ void onMousePassiveMotion(int x, int y)
 
 void onKeyboard(unsigned char key, int x, int y) 
 {
-  printf("pxCore onKeyboard\n");
+  rtLogDebug("onKeyboard: %u, %d, %d", key, x, y);
     vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
     vector<pxWindowNative*>::iterator i;
     for (i = windowVector.begin(); i < windowVector.end(); i++)
