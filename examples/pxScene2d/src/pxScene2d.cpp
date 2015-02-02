@@ -395,7 +395,7 @@ void pxScene2d::onDraw()
   {
     end2 = pxSeconds();
 
-    rtLog("%f fps", (double)frameCount/(end2-start));
+    rtLogDebug("%f fps", (double)frameCount/(end2-start));
 
     start = end2;
     frameCount = 0;

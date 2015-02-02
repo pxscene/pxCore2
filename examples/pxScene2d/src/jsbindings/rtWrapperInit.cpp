@@ -15,7 +15,7 @@ struct EventLoopContext
   pxEventLoop* eventLoop;
 };
 
-static void* ProcessEventLoop(void* argp)
+static void* processEventLoop(void* argp)
 {
   EventLoopContext* ctx = reinterpret_cast<EventLoopContext *>(argp);
   ctx->eventLoop->run();
@@ -43,15 +43,18 @@ class jsWindow : public pxWindow
 {
 public:
   jsWindow(int x, int y, int w, int h)
-    : mCallbacks(new Persistent<Function>[12])
-    , mEventLoop(new pxEventLoop())
+    : mEventLoop(new pxEventLoop())
     , mScene(new pxScene2d())
   {
     mJavaScene = Persistent<Object>::New(rtObjectWrapper::createFromObjectReference(mScene.getPtr()));
 
+    rtLogInfo("creating native with [%d, %d, %d, %d]", x, y, w, h);
     init(x, y, w, h);
+
+    rtLogInfo("initializing scene");
     mScene->init();
 
+    rtLogInfo("starting background thread for event loop processing");
     startEventProcessingThread();
 
     // we start a timer in case there aren't any other evens to the keep the
@@ -69,43 +72,12 @@ public:
   {
     EventLoopContext* ctx = new EventLoopContext();
     ctx->eventLoop = mEventLoop;
-    pthread_create(&mEventLoopThread, NULL, &ProcessEventLoop, ctx);
+    pthread_create(&mEventLoopThread, NULL, &processEventLoop, ctx);
   }
 
   virtual ~jsWindow()
   { 
-    delete [] mCallbacks;
-  }
-
-  void SetCallback(WindowCallback index, Persistent<Function> callback)
-  {
-    mCallbacks[index] = callback;
-  }
-
-private:
-  struct FunctionLookup : public jsIFunctionLookup
-  {
-    FunctionLookup(jsWindow* parent, WindowCallback index)
-      : mParent(parent)
-      , mIndex(index) { }
-
-    virtual Persistent<Function> lookup()
-    {
-      return mParent->getCallback(mIndex);
-    }
-
-    virtual Handle<Object> self()
-    {
-      return mParent->scene();
-    }
-  private:
-    jsWindow* mParent;
-    WindowCallback mIndex;
-  };
-
-  Persistent<Function> getCallback(WindowCallback index)
-  {
-    return mCallbacks[index];
+    // empty
   }
 
 protected:
@@ -162,7 +134,6 @@ protected:
     rtWrapperSceneUpdateExit();
   }
 private:
-  Persistent<Function>* mCallbacks;
   Persistent<Object> mJavaScene;
 
   pthread_t mEventLoopThread;
@@ -177,7 +148,26 @@ static Handle<Value> getScene(const Arguments& args)
 {
   if (mainWindow == NULL)
   {
-    mainWindow = new jsWindow(0, 0, 960, 540);
+    // This is somewhat experimental. There are concurrency issues with glut.
+    // There's no way to intergate glut eventloop with js threads. Once
+    // you enter the glut event loop, you don't come out. I'm putting this
+    // here to address stability issues with demo apps.
+    XInitThreads();
+
+    int x = 0;
+    int y = 0;
+    int w = 960;
+    int h = 640;
+
+    if (args.Length() == 4)
+    {
+      x = toInt32(args, 0, 0);
+      y = toInt32(args, 1, 0);
+      w = toInt32(args, 2, 960);
+      h = toInt32(args, 3, 640);
+    }
+
+    mainWindow = new jsWindow(x, y, w, h);
 
     char title[]= { "pxScene from JavasScript!" };
     mainWindow->setTitle(title);
