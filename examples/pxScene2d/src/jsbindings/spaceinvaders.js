@@ -5,6 +5,14 @@ var MAX_WIDTH = 640;
 
 var scene = px.getScene(0, 0, MAX_WIDTH, 480);
 var root = scene.root;
+var score = 0;
+
+//var scoreBoard = scene.createText();
+//scoreBoard.text = "10,000";
+//scoreBoard.textColor = 0xffff00ff;
+//scoreBoard.x = 10;
+//scoreBoard.y = 30;
+//scoreBoard.parent = root;
 
 function Invader(scene, image1, image2, padding) {
   this._scene = scene;
@@ -58,7 +66,7 @@ function Clan(scene) {
   this._speed = 5;
   this._restoreSpeed = this._speed;
   this._movingDown = false;
-  this._movingDownIndex = 54;
+  this._movingDownIndex = this._invaders.length - 1;
 
   var i = 0;
   var y = 10;
@@ -89,7 +97,7 @@ Clan.prototype.update = function() {
   if (this._movingDown && this._speed != 0) {
     this._restoreSpeed = this._speed;
     this._speed = 0;
-    this._movingDownIndex = 54;
+    this._movingDownIndex = this._invaders.length - 1;
   }
 
   if (this._movingDown) {
@@ -116,31 +124,35 @@ Clan.prototype.update = function() {
   }
 }
 
-var player = scene.createImage();
-player.url = process.cwd() + "/../../images/invaders/Playera.png";
-player.parent = root;
-player.x = MAX_WIDTH / 2;
-player.y = 430;
+function Player(scene, path) {
+  this._image = scene.createImage();
+  this._image.url = path;
+  this._image.parent = scene.root;
+  this._image.x = MAX_WIDTH / 2;
+  this._image.y = 430;
+}
 
+Player.prototype.moveBy = function(x, y) {
+  if ((x < 0 && this._image.x > 10) || (x > 0 && this._image.x < MAX_WIDTH - 70)) {
+    this._image.x += x;
+  }
+  // this._image.y += y;
+}
+
+Player.prototype.fireShot = function() {
+  console.log("TODO: fire shot");
+}
+
+var player = new Player(scene, process.cwd() + "/../../images/invaders/Playera.png");
 var clan = new Clan(scene);
 
 scene.on('keydown', function(code, flags) {
-  // x
-  if (code == 122) {
-    if (player.x > 10) {
-      player.x -= 5;
-    }
-  }
-
-  // z 
-  if (code == 120) {
-    if (player.x < MAX_WIDTH - 70)
-      player.x += 5;
-  }
+  if (code == 122) { player.moveBy(-5, 0); }
+  if (code == 120) { player.moveBy(5, 0); }
+  if (code == 109) { player.fireShot(); }
 });
 
-setInterval(function updateScene() {
-  clan.update();
-}, 400);
-
+setInterval(function () { 
+  clan.update(); 
+}, 100); 
 
