@@ -15,6 +15,7 @@
         "../rtString.cpp",
         "../rtValue.cpp",
         "../rtFile.cpp",
+        "../linux/rtMutexNative.cpp",
         "../utf8.c",
 
         "../pxContextGL.cpp",
