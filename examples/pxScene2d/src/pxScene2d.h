@@ -298,12 +298,67 @@ protected:
 
 typedef rtRefT<pxObject> pxObjectRef;
 
+
+class pxInnerScene: public pxObject {
+public:
+  rtDeclareObject(pxInnerScene, pxObject);
+  rtReadOnlyProperty(root, root, rtObjectRef);
+  rtMethodNoArgAndReturn("createRectangle", createRectangle, rtObjectRef);
+  rtMethodNoArgAndReturn("createImage", createImage, rtObjectRef);
+  rtMethodNoArgAndReturn("createImage9", createImage9, rtObjectRef);
+  rtMethodNoArgAndReturn("createText", createText, rtObjectRef);
+  rtMethodNoArgAndReturn("createScene", createScene, rtObjectRef);
+  
+  pxInnerScene()
+  {
+    mRoot = new pxObject;
+  }
+
+  rtError root(rtObjectRef& v) const
+  {
+    v = mRoot;
+    return RT_OK;
+  }
+
+  rtError createRectangle(rtObjectRef& o);
+  rtError createText(rtObjectRef& o);
+  rtError createImage(rtObjectRef& o);
+  rtError createImage9(rtObjectRef& o);
+  rtError createScene(rtObjectRef& o);
+
+  virtual void drawInternal(pxMatrix4f m) 
+  {
+    mRoot->drawInternal(m);
+  }
+
+private:
+  rtRefT<pxObject> mRoot;
+};
+
 // For now just child scene objects
 class pxScene: public pxObject {
 public:
   rtDeclareObject(pxScene, pxObject);
+  // we'd want to remove external access to this... 
+  rtReadOnlyProperty(innerScene, innerScene, rtObjectRef);
 
-  virtual void draw() {}
+
+  pxScene() { mInnerScene = new pxInnerScene; }
+
+  rtError innerScene(rtObjectRef& v) const
+  {
+     v = mInnerScene;
+    return RT_OK;
+  }
+
+  virtual void drawInternal(pxMatrix4f m)
+  {
+    mInnerScene->drawInternal(m);
+  }
+
+
+private:
+  rtRefT<pxInnerScene> mInnerScene;
 };
 
 class rectangle: public pxObject {

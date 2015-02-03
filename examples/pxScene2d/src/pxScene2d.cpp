@@ -506,6 +506,46 @@ rtDefineMethod(pxScene2d, delListener);
 
 
 rtDefineObject(pxScene, pxObject);
+rtDefineProperty(pxScene, innerScene);
+
+rtDefineObject(pxInnerScene, pxObject);
+rtDefineProperty(pxInnerScene, root);
+rtDefineMethod(pxInnerScene, createRectangle);
+rtDefineMethod(pxInnerScene, createText);
+rtDefineMethod(pxInnerScene, createImage);
+rtDefineMethod(pxInnerScene, createImage9);
+rtDefineMethod(pxInnerScene, createScene);
+
+
+rtError pxInnerScene::createRectangle(rtObjectRef& o)
+{
+  o = new rectangle;
+  return RT_OK;
+}
+
+rtError pxInnerScene::createText(rtObjectRef& o)
+{
+  o = new pxText;
+  return RT_OK;
+}
+
+rtError pxInnerScene::createImage(rtObjectRef& o)
+{
+  o = new pxImage;
+  return RT_OK;
+}
+
+rtError pxInnerScene::createImage9(rtObjectRef& o)
+{
+  o = new pxImage9;
+  return RT_OK;
+}
+
+rtError pxInnerScene::createScene(rtObjectRef& o)
+{
+  o = new pxScene();
+  return RT_OK;
+}
 
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value)
