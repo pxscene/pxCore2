@@ -76,8 +76,7 @@ void measureText(const char* text, float sx, float sy, float& w, float& h) {
 //    h = pxMax<float>((g->advance.y >> 6) * sy, h);
 //    h = pxMax<float>((metrics->height >> 6) * sy, h);
   }
-
-
+  h *= sy;
 }
 
 void renderText(const char *text, float x, float y, float sx, float sy, float* color, float mw) {
