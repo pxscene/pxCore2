@@ -198,7 +198,7 @@ public:
   void moveForward();
   void moveBackward();
 
-  void tick(double t);
+//  void tick(double t);
   virtual void drawInternal(pxMatrix4f m);
   virtual void draw() {}
   bool hitTest(const pxPoint2f& pt);
@@ -225,7 +225,7 @@ public:
   }  
 #endif
 
-  void update(double t);
+  virtual void update(double t);
 
   static void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m) {
     m.identity();
@@ -338,6 +338,11 @@ public:
   rtError createImage9(rtObjectRef& o);
   rtError createScene(rtObjectRef& o);
 
+  virtual void update(double t)
+  {
+    mRoot->update(t);
+  }
+  
   virtual void drawInternal(pxMatrix4f m) 
   {
     mRoot->drawInternal(m);
@@ -359,8 +364,13 @@ public:
 
   rtError innerScene(rtObjectRef& v) const
   {
-     v = mInnerScene;
+    v = mInnerScene;
     return RT_OK;
+  }
+
+  virtual void update(double t)
+  {
+    mInnerScene->update(t);
   }
 
   virtual void drawInternal(pxMatrix4f m)
@@ -564,7 +574,7 @@ public:
   }
   
 private:
-  void tick(double t);
+//  void tick(double t);
   void draw();
   // Does not draw updates scene to time t
   // t is assumed to be monotonically increasing
