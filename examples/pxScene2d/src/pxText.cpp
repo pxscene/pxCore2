@@ -49,6 +49,10 @@ void measureText(const char* text, float sx, float sy, float& w, float& h) {
   int i = 0;
   u_int32_t codePoint;
 
+  FT_Size_Metrics* metrics = &face->size->metrics;
+  h = metrics->height>>6;
+
+  float lw = 0;
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) {
 
     // TODO don't render glyph
@@ -58,17 +62,30 @@ void measureText(const char* text, float sx, float sy, float& w, float& h) {
     }
     
     FT_GlyphSlot g = face->glyph;
-
-    w += (g->advance.x >> 6) * sx;
-    h = pxMax<float>((g->advance.y >> 6) * sy, h);
+ 
+    if (codePoint != '\n')
+    {
+      lw += (g->advance.x >> 6) * sx;
+    }
+    else
+    {
+      h += metrics->height>>6;
+      lw = 0;
+    }
+    w = pxMax<float>(w, lw);
+//    h = pxMax<float>((g->advance.y >> 6) * sy, h);
+//    h = pxMax<float>((metrics->height >> 6) * sy, h);
   }
+
 
 }
 
-void renderText(const char *text, float x, float y, float sx, float sy, float* color) {
+void renderText(const char *text, float x, float y, float sx, float sy, float* color, float mw) {
   if (!text) return;
   int i = 0;
   u_int32_t codePoint;
+
+  FT_Size_Metrics* metrics = &face->size->metrics;
 
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) {
 
@@ -80,12 +97,18 @@ void renderText(const char *text, float x, float y, float sx, float sy, float* c
     FT_GlyphSlot g = face->glyph;
 
     float x2 = x + g->bitmap_left * sx;
-    float y2 = y - g->bitmap_top * sy;
+//    float y2 = y - g->bitmap_top * sy;
+    float y2 = (y - g->bitmap_top * sy) + (metrics->ascender>>6);
     float w = g->bitmap.width * sx;
     float h = g->bitmap.rows * sy;
 
     if (codePoint != '\n')
     {
+      if (x == 0) {
+        float c[4] = {0, 1, 0, 1};
+        context.drawDiagLine(0, y+(metrics->ascender>>6), mw, 
+                             y+(metrics->ascender>>6), c);
+      }
       context.drawImageAlpha(x2, y2, w, h, g->bitmap.width, g->bitmap.rows, g->bitmap.buffer, color);
       x += (g->advance.x >> 6) * sx;
       // TODO not sure if this is right?  seems weird commenting out to see what happens
@@ -111,11 +134,12 @@ rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
 rtError pxText::setText(const char* s) { 
   mText = s; 
   measureText(s, 1.0, 1.0, mw, mh);
+  rtLogInfo("pxText %s, w: %f h: %f\n", mText.cString(), mw, mh);
   return RT_OK; 
 }
 
 void pxText::draw() {
-  renderText(mText, 0, 0, 1.0, 1.0, mTextColor);
+  renderText(mText, 0, 0, 1.0, 1.0, mTextColor, mw);
 }
 
 rtDefineObject(pxText, pxObject);

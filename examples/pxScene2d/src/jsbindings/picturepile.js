@@ -20,6 +20,7 @@ bgShade.yStretch = 1;
 bgShade.parent = root;
 
 txt1.x = 10;
+txt1.text = ""; // Just so there is some height so that we can position
 txt1.parent = root;
 
 // clean up these names and expose as properties off of some object
@@ -43,7 +44,7 @@ function set(o, p) {
 }
 
 function getImageURL() {
-    if (true) {
+    if (false) {
         var urls = [
 	          "http://farm4.static.flickr.com/3307/5767175230_b5d2bf2312_z.jpg",
 	          "http://farm6.static.flickr.com/5263/5793867021_3e1d5d3aae_z.jpg",
@@ -117,12 +118,11 @@ function updateSize(w, h) {
     bg.h = h;
     bgShade.w = w;
     bgShade.h = h;
-    txt1.y = h-10;
+    txt1.y = h-txt1.h;
 }
 
-updateSize(scene.w, scene.h);
-
 scene.on("resize", updateSize);
+updateSize(scene.w, scene.h);
 
 doIt();
 

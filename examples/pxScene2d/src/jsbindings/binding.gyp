@@ -15,7 +15,10 @@
         "../rtString.cpp",
         "../rtValue.cpp",
         "../rtFile.cpp",
+        "../rtThreadPool.cpp",
+        "../rtThreadTask.cpp",
         "../linux/rtMutexNative.cpp",
+        "../linux/rtThreadPoolNative.cpp",
         "../utf8.c",
 
         "../pxContextGL.cpp",

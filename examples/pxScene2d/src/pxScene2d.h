@@ -298,6 +298,14 @@ protected:
 
 typedef rtRefT<pxObject> pxObjectRef;
 
+// For now just child scene objects
+class pxScene: public pxObject {
+public:
+  rtDeclareObject(pxScene, pxObject);
+
+  virtual void draw() {}
+};
+
 class rectangle: public pxObject {
 public:
   rtDeclareObject(rectangle, pxObject);
@@ -417,10 +425,12 @@ public:
   rtReadOnlyProperty(root, root, rtObjectRef);
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);
+  rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtMethodNoArgAndReturn("createRectangle", createRectangle, rtObjectRef);
   rtMethodNoArgAndReturn("createImage", createImage, rtObjectRef);
   rtMethodNoArgAndReturn("createImage9", createImage9, rtObjectRef);
   rtMethodNoArgAndReturn("createText", createText, rtObjectRef);
+  rtMethodNoArgAndReturn("createScene", createScene, rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
 
@@ -433,10 +443,14 @@ public:
   int32_t h() const { return mHeight; }
   rtError h(int32_t& v) const { v = mHeight; return RT_OK; }
 
+  rtError showOutlines(bool& v) const;
+  rtError setShowOutlines(bool v);
+
   rtError createRectangle(rtObjectRef& o);
   rtError createText(rtObjectRef& o);
   rtError createImage(rtObjectRef& o);
   rtError createImage9(rtObjectRef& o);
+  rtError createScene(rtObjectRef& o);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {

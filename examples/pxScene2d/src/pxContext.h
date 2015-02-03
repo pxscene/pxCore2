@@ -10,7 +10,14 @@ enum pxStretch { PX_NONE = 0, PX_STRETCH = 1, PX_REPEAT = 2 };
 
 class pxContext {
  public:
+
+  pxContext(): mShowOutlines(false) {}
+
   void init();
+  
+  bool showOutlines() { return mShowOutlines; }
+  void setShowOutlines(bool v) { mShowOutlines = v; }
+
   void setSize(int w, int h);
   void clear(int w, int h);
 
@@ -27,6 +34,15 @@ class pxContext {
   void drawImage9(float w, float h, pxOffscreen& o);
   void drawSurface(float w, float h, pxContextSurfaceNativeDesc* contextSurface);
   void drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color);
+
+// Only use for debug/diag purposes not for normal rendering
+  void drawDiagRect(float x, float y, float w, float h, float* color);
+  void drawDiagLine(float x1, float y1, float x2, float y2, float* color);
+
+private:
+  bool mShowOutlines;
+
 };
+
 
 #endif

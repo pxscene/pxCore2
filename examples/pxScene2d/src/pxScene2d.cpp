@@ -212,6 +212,8 @@ void pxObject::drawInternal(pxMatrix4f m)
   if (mPainting)
   {
     draw();
+    float c[4] = {1, 0, 0, 1};
+    context.drawDiagRect(0, 0, mw, mh, c);
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
@@ -319,28 +321,30 @@ void pxScene2d::init()
 rtError pxScene2d::createRectangle(rtObjectRef& o)
 {
   o = new rectangle;
-
   return RT_OK;
 }
 
 rtError pxScene2d::createText(rtObjectRef& o)
 {
   o = new pxText;
-
   return RT_OK;
 }
 
 rtError pxScene2d::createImage(rtObjectRef& o)
 {
   o = new pxImage;
-
   return RT_OK;
 }
 
 rtError pxScene2d::createImage9(rtObjectRef& o)
 {
   o = new pxImage9;
+  return RT_OK;
+}
 
+rtError pxScene2d::createScene(rtObjectRef& o)
+{
+  o = new pxScene();
   return RT_OK;
 }
 
@@ -475,16 +479,34 @@ void pxScene2d::onKeyUp(int keycode, unsigned long flags)
   mEmit.send("keyup", keycode, flags);
 }
 
+rtError pxScene2d::showOutlines(bool& v) const 
+{ 
+  v=context.showOutlines(); 
+  return RT_OK;
+}
+
+rtError pxScene2d::setShowOutlines(bool v) 
+{ 
+  context.setShowOutlines(v); 
+  return RT_OK; 
+}
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
+rtDefineProperty(pxScene2d, showOutlines);
 rtDefineMethod(pxScene2d, createRectangle);
 rtDefineMethod(pxScene2d, createText);
 rtDefineMethod(pxScene2d, createImage);
 rtDefineMethod(pxScene2d, createImage9);
+rtDefineMethod(pxScene2d, createScene);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
+
+
+rtDefineObject(pxScene, pxObject);
+
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value)
 {

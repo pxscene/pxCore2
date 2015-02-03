@@ -721,3 +721,43 @@ void pxContext::drawImageAlpha(float x, float y, float w, float h, int bw, int b
     }  
 }
 
+void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
+{
+  if (!mShowOutlines) return;
+
+  const float verts[4][2] =
+  {
+    { x,y },
+    {  x+w, y },
+    {  x+w, y+h },
+    {  x,  y+h },
+   };
+  
+  {
+    glUniform4fv(u_color, 1, color);
+    glUniform1f(u_alphatexture, 0.0);
+    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
+    glEnableVertexAttribArray(attr_pos);
+    glDrawArrays(GL_LINE_LOOP, 0, 4);
+    glDisableVertexAttribArray(attr_pos);
+  }
+}
+
+void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* color)
+{
+  if (!mShowOutlines) return;
+  const float verts[4][2] =
+  {
+    { x1, y1 },
+    { x2, y2 },
+   };
+  
+  {
+    glUniform4fv(u_color, 1, color);
+    glUniform1f(u_alphatexture, 0.0);
+    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
+    glEnableVertexAttribArray(attr_pos);
+    glDrawArrays(GL_LINES, 0, 2);
+    glDisableVertexAttribArray(attr_pos);
+  }
+}

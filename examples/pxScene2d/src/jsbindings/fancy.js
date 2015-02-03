@@ -16,6 +16,7 @@ bgShade.parent = root;
 
 var txt1 = scene.createText();
 txt1.x = 10;
+txt1.text = "";
 txt1.parent = root;
 
 var ball = scene.createImage();
@@ -93,9 +94,8 @@ function updateSize(w, h) {
     bg.h = h;
     bgShade.w = w;
     bgShade.h = h;
-    txt1.y = h-10;
+    txt1.y = h-txt1.h;
 }
 
-updateSize(scene.w, scene.h);
-
 scene.on("resize", updateSize);
+updateSize(scene.w, scene.h);
