@@ -17,7 +17,7 @@ Api.prototype.loadScriptForScene = function(scene, scriptFile) {
   });
   infile.on('end', function() {
     var vm = require('vm');
-    var sandbox = { scene: sceneForChild, runtime: apiForChild };
+      var sandbox = { console: console, scene: sceneForChild, runtime: apiForChild };
     var app = vm.runInNewContext(code, sandbox);
   });
 }
