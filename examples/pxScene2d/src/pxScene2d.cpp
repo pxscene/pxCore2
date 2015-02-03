@@ -252,7 +252,7 @@ void pxObject::createSnapshot()
       (*it)->drawInternal(m);
     }
   }
-  context.setRenderSurface(NULL);
+  context.unsetRenderSurface(mContextSurfaceSnapshot);
 }
 
 void pxObject::deleteSnapshot()
