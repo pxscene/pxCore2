@@ -179,7 +179,19 @@ public:
   rtError setRZ(float v)      { mrz = v; return RT_OK;  }
   bool painting()            const { return mPainting;}
   rtError painting(bool& v)  const { v = mPainting; return RT_OK;  }
-  rtError setPainting(bool v)      { mPainting = v; return RT_OK;  }
+  rtError setPainting(bool v)
+  { 
+      mPainting = v; 
+      if (!mPainting)
+      {
+          createSnapshot();
+      }
+      else
+      {
+          deleteSnapshot();
+      }
+      return RT_OK;
+  }
 
   void moveToFront();
   void moveToBack();

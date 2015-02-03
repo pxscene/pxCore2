@@ -538,11 +538,6 @@ void pxContext::clear(int w, int h)
     defaultContextSurface.width = w;
     defaultContextSurface.height = h;
   }
-  
-  if (currentContextSurface == NULL || currentContextSurface == &defaultContextSurface)
-  {
-    glGetFloatv(GL_COLOR_CLEAR_VALUE, contextClearColor);
-  }
 }
 
 
@@ -613,6 +608,11 @@ pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
           contextSurface != currentContextSurface)
   {
     contextSurface->previousContextSurface = currentContextSurface;
+  }
+  
+  if (currentContextSurface == NULL || currentContextSurface == &defaultContextSurface)
+  {
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, contextClearColor);
   }
   
   currentContextSurface = contextSurface;
