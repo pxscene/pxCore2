@@ -19,6 +19,7 @@ class pxContext {
   
   pxError createContextSurface(pxContextSurfaceNativeDesc* contextSurface, int width, int height);
   pxError setRenderSurface(pxContextSurfaceNativeDesc* contextSurface);
+  pxError unsetRenderSurface(pxContextSurfaceNativeDesc* contextSurface);
   pxError deleteContextSurface(pxContextSurfaceNativeDesc* contextSurface);
 
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);

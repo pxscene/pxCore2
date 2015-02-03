@@ -12,12 +12,15 @@
 
 #endif
 
-typedef struct
+typedef struct _pxContextSurfaceNativeDesc
 {
+    _pxContextSurfaceNativeDesc() : framebuffer(0), texture(0), 
+            width(0), height(0),previousContextSurface(NULL) {}
   GLuint framebuffer;
   GLuint texture;
   int width;
   int height;
+  _pxContextSurfaceNativeDesc* previousContextSurface;
 }
 pxContextSurfaceNativeDesc;
 

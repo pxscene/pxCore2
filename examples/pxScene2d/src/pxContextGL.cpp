@@ -23,8 +23,9 @@ GLuint textureId1, textureId2;
 
 GLint attribute_coord;
 
-int contextWidth = 0;
-int contextHeight = 0;
+pxContextSurfaceNativeDesc defaultContextSurface;
+pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
+
 GLfloat contextClearColor[4]; //todo - find a more permanent place
 
 struct point
@@ -527,9 +528,21 @@ void pxContext::clear(int w, int h)
 {
   glClear(GL_COLOR_BUFFER_BIT);
   glUniform2f(u_resolution, w, h);
-  contextWidth = w;
-  contextHeight = h;
-  glGetFloatv(GL_COLOR_CLEAR_VALUE, contextClearColor);
+  if (currentContextSurface != NULL)
+  {
+    currentContextSurface->width = w;
+    currentContextSurface->height = h;
+  }
+  else
+  {
+    defaultContextSurface.width = w;
+    defaultContextSurface.height = h;
+  }
+  
+  if (currentContextSurface == NULL || currentContextSurface == &defaultContextSurface)
+  {
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, contextClearColor);
+  }
 }
 
 
@@ -577,15 +590,16 @@ pxError pxContext::createContextSurface(pxContextSurfaceNativeDesc* contextSurfa
 
 pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
 {
-  if (contextSurface == NULL)
+  if (contextSurface == NULL || contextSurface == &defaultContextSurface)
   {
-    glViewport ( 0, 0, contextWidth, contextHeight);
-    glUniform2f(u_resolution, contextWidth, contextHeight);
+    glViewport ( 0, 0, defaultContextSurface.width, defaultContextSurface.height);
+    glUniform2f(u_resolution, defaultContextSurface.width, defaultContextSurface.height);
     glClearColor(contextClearColor[0],contextClearColor[1],
             contextClearColor[2], contextClearColor[3]);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId1);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    currentContextSurface = &defaultContextSurface;
     return PX_OK;
   }
   
@@ -594,6 +608,14 @@ pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
     rtLog("render surface is not initialized\n");
     return PX_NOTINITIALIZED;
   }
+  
+  if (contextSurface->previousContextSurface == NULL && 
+          contextSurface != currentContextSurface)
+  {
+    contextSurface->previousContextSurface = currentContextSurface;
+  }
+  
+  currentContextSurface = contextSurface;
   
   glBindFramebuffer(GL_FRAMEBUFFER, contextSurface->framebuffer);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
@@ -612,6 +634,15 @@ pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
   glClear(GL_COLOR_BUFFER_BIT);
   
   return PX_OK;
+}
+
+pxError pxContext::unsetRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
+{
+  if (contextSurface == NULL)
+  {
+    return setRenderSurface(NULL);
+  }
+  return setRenderSurface(contextSurface->previousContextSurface);
 }
 
 
