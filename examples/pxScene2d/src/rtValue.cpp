@@ -290,7 +290,7 @@ rtError rtValue::coerceType(rtType newType) {
 	case RT_objectType: setObject(NULL); break;
 	case RT_functionType: setFunction(NULL); break;
 	default:
-	  rtLog("missed conversion\n");
+    rtLogWarn("missed conversion");
 	break;
 	}
       }
@@ -316,7 +316,7 @@ rtError rtValue::coerceType(rtType newType) {
 	case RT_objectType: setObject(NULL); break;
 	case RT_functionType: setFunction(NULL); break;
 	default:
-	  rtLog("missed conversion\n");
+    rtLogWarn("missed conversion");
 	break;
 	}
       }
@@ -342,7 +342,7 @@ rtError rtValue::coerceType(rtType newType) {
 	case RT_objectType: setObject(NULL); break;
 	case RT_functionType: setFunction(NULL); break;
 	default:
-	  rtLog("missed conversion\n");
+    rtLogWarn("missed conversion");
 	break;
 	}
       }
@@ -367,7 +367,7 @@ rtError rtValue::coerceType(rtType newType) {
 	case RT_objectType: setObject(NULL); break;
 	case RT_functionType: setFunction(NULL); break;
 	default:
-	  rtLog("missed conversion\n");
+    rtLogWarn("missed conversion");
 	break;
 	}
       }

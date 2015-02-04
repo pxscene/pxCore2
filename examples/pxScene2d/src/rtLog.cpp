@@ -28,7 +28,7 @@ struct LogLevelSetter
         fprintf(stderr, "invalid RT_LOG_LEVEL set: %s", s);
         abort();
       }
-      rtLog2SetLevel(level);
+      rtLogSetLevel(level);
     }
   }
 };
@@ -64,18 +64,18 @@ static const char* rtTrimPath(const char* s)
 }
 
 static rtLogHandler sLogHandler = NULL;
-void rtLog2SetLogHandler(rtLogHandler logHandler)
+void rtLogSetLogHandler(rtLogHandler logHandler)
 {
   sLogHandler = logHandler;
 }
 
 static rtLogLevel sLevel = RT_LOG_INFO;
-void rtLog2SetLevel(rtLogLevel level)
+void rtLogSetLevel(rtLogLevel level)
 {
   sLevel = level;
 }
 
-void rtLog2(rtLogLevel level, const char* file, int line, const char* format, ...)
+void rtLogPrintf(rtLogLevel level, const char* file, int line, const char* format, ...)
 {
   if (level < sLevel)
     return;
