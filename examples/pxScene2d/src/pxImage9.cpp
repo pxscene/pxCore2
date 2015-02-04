@@ -7,14 +7,10 @@
 #include "pxOffscreen.h"
 #include "pxUtil.h"
 #include "pxScene2d.h"
-
 #include "pxImage9.h"
-
 #include "pxContext.h"
 
 extern pxContext context;
-
-//void drawRect(float x, float y, float w, float h, pxOffscreen& o);
 
 rtError pxImage9::url(rtString& s) const { s = mURL; return RT_OK; }
 rtError pxImage9::setURL(const char* s) { 
@@ -29,7 +25,7 @@ rtError pxImage9::setURL(const char* s) {
 }
 
 void pxImage9::draw() {
-  context.drawImage9(mw, mh, mOffscreen);
+  context.drawImage9(mw, mh, mx1, my1, mx2, my2, mOffscreen);
 }
 
 rtDefineObject(pxImage9, pxObject);

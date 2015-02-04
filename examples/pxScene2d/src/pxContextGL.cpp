@@ -683,9 +683,10 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
 }
 
 
-void pxContext::drawImage9(float w, float h, pxOffscreen& o)
+void pxContext::drawImage9(float w, float h, float x1, float y1,
+                           float x2, float y2, pxOffscreen& o)
 {
-  drawImage92(0, 0, w, h, 75,75,75,75, o);
+  drawImage92(0, 0, w, h, x1, y1, x2, y2, o);
 }
 
 void pxContext::drawImage(float w, float h, pxOffscreen& o,
