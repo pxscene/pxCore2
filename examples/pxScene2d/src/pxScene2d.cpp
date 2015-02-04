@@ -212,13 +212,24 @@ void pxObject::drawInternal(pxMatrix4f m)
   
   if (mPainting)
   {
-    draw();
-    float c[4] = {1, 0, 0, 1};
-    context.drawDiagRect(0, 0, mw, mh, c);
-
-    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    if (mClip)
     {
-      (*it)->drawInternal(m);
+      createSnapshot();
+      context.setMatrix(m);
+      context.setAlpha(ma);
+      context.drawSurface(mw,mh, mContextSurfaceSnapshot);
+      deleteSnapshot();
+    }
+    else
+    {
+      draw();
+      float c[4] = {1, 0, 0, 1};
+      context.drawDiagRect(0, 0, mw, mh, c);
+
+      for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+      {
+        (*it)->drawInternal(m);
+      }
     }
   }
   else
@@ -226,6 +237,7 @@ void pxObject::drawInternal(pxMatrix4f m)
     if (mContextSurfaceSnapshot == NULL)
     {
       createSnapshot();
+      context.setAlpha(ma);
     }
     context.drawSurface(mw,mh, mContextSurfaceSnapshot);
   }
@@ -236,7 +248,7 @@ void pxObject::createSnapshot()
   pxMatrix4f m;
 
   context.setMatrix(m);
-  context.setAlpha(ma);
+  context.setAlpha(1.0);
 
   //cleanup old snapshot (if it exists) before creating a new one
   deleteSnapshot();
@@ -283,6 +295,7 @@ rtDefineProperty(pxObject, rx);
 rtDefineProperty(pxObject, ry);
 rtDefineProperty(pxObject, rz);
 rtDefineProperty(pxObject, painting);
+rtDefineProperty(pxObject, clip);
 rtDefineProperty(pxObject, numChildren);
 rtDefineMethod(pxObject, getChild);
 rtDefineMethod(pxObject, remove);
