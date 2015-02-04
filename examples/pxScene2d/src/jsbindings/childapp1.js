@@ -8,8 +8,10 @@ text.parent = scene.root;
 text.animateTo("r", 360, 1.0, 0, 2);
 
 var child = scene.createScene();
+child.url = "childapp2.js";
 child.parent = scene.root;
-runtime.loadScriptForScene(child.innerScene, "childapp2.js");
+
+console.log("afterload childapp2");
 
 // Unfortunately this hangs the other child js context
 /*

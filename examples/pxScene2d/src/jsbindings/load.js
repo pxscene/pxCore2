@@ -30,7 +30,13 @@ scene.onScene = function(scene, url) {
     api.loadScriptForScene(scene, url);
 };
 
-var childScene = scene.createScene();
-childScene.url = "childapp1.js";
-childScene.parent = scene.root;
+var argv = process.argv;
+
+console.log("length", argv.length, argv[0], argv[2]);
+
+if (argv.length >= 3) {
+    var childScene = scene.createScene();
+    childScene.url = argv[2];
+    childScene.parent = scene.root;
+}
 

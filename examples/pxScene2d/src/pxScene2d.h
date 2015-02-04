@@ -30,6 +30,7 @@ using namespace std;
 
 #include "rtCore.h"
 
+
 typedef double (*pxInterp)(double i);
 typedef void (*pxAnimationEnded)(void* ctx);
 
@@ -357,16 +358,21 @@ class pxScene: public pxObject {
 public:
   rtDeclareObject(pxScene, pxObject);
   // we'd want to remove external access to this... 
-  rtReadOnlyProperty(innerScene, innerScene, rtObjectRef);
-
+//  rtReadOnlyProperty(innerScene, innerScene, rtObjectRef);
+  rtProperty(url, url, setURL, rtString);
 
   pxScene() { mInnerScene = new pxInnerScene; }
 
+#if 0
   rtError innerScene(rtObjectRef& v) const
   {
     v = mInnerScene;
     return RT_OK;
   }
+#endif
+
+  rtError url(rtString& v) const { v = mURL; return RT_OK; }
+  rtError setURL(rtString v);
 
   virtual void update(double t)
   {
@@ -381,6 +387,7 @@ public:
 
 private:
   rtRefT<pxInnerScene> mInnerScene;
+  rtString mURL;
 };
 
 class rectangle: public pxObject {
@@ -499,6 +506,7 @@ private:
 class pxScene2d: public rtObject {
 public:
   rtDeclareObject(pxScene2d, rtObject);
+  rtProperty(onScene, onScene, setOnScene, rtFunctionRef);
   rtReadOnlyProperty(root, root, rtObjectRef);
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);
@@ -514,6 +522,9 @@ public:
   pxScene2d();
   
   void init();
+
+  rtError onScene(rtFunctionRef& v) const;
+  rtError setOnScene(rtFunctionRef v);
 
   int32_t w() const { return mWidth;  }
   rtError w(int32_t& v) const { v = mWidth;  return RT_OK; }

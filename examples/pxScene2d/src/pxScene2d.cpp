@@ -23,6 +23,7 @@
 #include "pxContext.h"
 
 pxContext context;
+rtFunctionRef gOnScene;
 
 pxInterp interps[] = 
 {
@@ -491,8 +492,22 @@ rtError pxScene2d::setShowOutlines(bool v)
   return RT_OK; 
 }
 
+rtError pxScene2d::onScene(rtFunctionRef& v) const 
+{ 
+  v = gOnScene; 
+  return RT_OK; 
+}
+
+rtError pxScene2d::setOnScene(rtFunctionRef v) 
+{ 
+  gOnScene = v; 
+  return RT_OK; 
+}
+
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
+rtDefineProperty(pxScene2d, onScene);
 rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
@@ -505,8 +520,19 @@ rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
 
 
+rtError pxScene::setURL(rtString v) 
+{ 
+  mURL = v; 
+  if (gOnScene)
+    gOnScene.send(mInnerScene.getPtr(), mURL);
+  return RT_OK; 
+}
+
+
+
 rtDefineObject(pxScene, pxObject);
-rtDefineProperty(pxScene, innerScene);
+//rtDefineProperty(pxScene, innerScene);
+rtDefineProperty(pxScene, url);
 
 rtDefineObject(pxInnerScene, pxObject);
 rtDefineProperty(pxInnerScene, root);
