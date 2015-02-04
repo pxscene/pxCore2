@@ -1,8 +1,8 @@
 
-all: gl2d
+all: gl2d_glut
 clean:
 	rm -rf $(OBJDIR)
-	rm -f gl2d
+	rm -f gl2d_glut
 
 VPATH=linux
 
@@ -20,9 +20,9 @@ RT_SRCS=\
     utf8.c
     
 PX_SRCS=\
-    pxMain.cpp \
+    main.cpp \
     pxScene2d.cpp \
-		pxRectangle.cpp \
+    pxRectangle.cpp \
     pxText.cpp \
     pxImage.cpp \
     pxUtil.cpp \
@@ -68,6 +68,6 @@ $(OBJDIR)/%.o : %.c
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
 	$(CC) -c $(CXXFLAGS) $< -o $@
 
-gl2d: $(OBJS)
-	$(CXX) $(OBJS) $(LDFLAGS) -o gl2d
+gl2d_glut: $(OBJS)
+	$(CXX) $(OBJS) $(LDFLAGS) -o gl2d_glut
 

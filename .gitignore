@@ -3,7 +3,7 @@ examples/pxScene2d/external/freetype-2.5.3/objs/.libs/*
 *~
 *.o
 build/*
-gl2d
+gl2d*
 apinames
 examples/pxScene2d/external/libpng-1.6.12/Makefile
 examples/pxScene2d/external/libpng-1.6.12/config.h
