@@ -433,12 +433,12 @@ void pxScene2d::onSize(int w, int h)
 
 void pxScene2d::onMouseDown(int x, int y, unsigned long flags)
 {
-  mEmit.send("mousedown", x, y, flags);
+  mEmit.send("mousedown", x, y, (uint64_t)flags);
 }
 
 void pxScene2d::onMouseUp(int x, int y, unsigned long flags)
 {
-  mEmit.send("mouseup", x, y, flags);
+  mEmit.send("mouseup", x, y, (uint64_t)flags);
 }
 
 void pxScene2d::onMouseLeave()
@@ -468,12 +468,12 @@ void pxScene2d::onMouseMove(int x, int y)
 
 void pxScene2d::onKeyDown(int keycode, unsigned long flags) 
 {
-  mEmit.send("keydown", keycode, flags);
+  mEmit.send("keydown", keycode, (uint64_t)flags);
 }
 
 void pxScene2d::onKeyUp(int keycode, unsigned long flags)
 {
-  mEmit.send("keyup", keycode, flags);
+  mEmit.send("keyup", keycode, (uint64_t)flags);
 }
 
 rtError pxScene2d::showOutlines(bool& v) const 

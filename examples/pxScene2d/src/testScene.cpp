@@ -313,11 +313,11 @@ rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void*
     rtLogDebug("key %d", args[1].toInt32());
     switch(args[0].toInt32()) {
       // '1'
-    case 49:
+    case PX_KEY_ONE:
       picture.set("url", bananaURL);
       break;
       // '2'
-    case 50:
+    case PX_KEY_TWO:
       picture.set("url", ballURL);
       break;
     default:
