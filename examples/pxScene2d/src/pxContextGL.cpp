@@ -84,6 +84,97 @@ static const char *vShaderText =
   "}\n";
 
 
+class pxGLTextureRef : public pxTextureRef
+{
+public:
+  pxGLTextureRef() : mWidth(0), mHeight(0), mTextureId(0)
+  {
+    mTextureType = PX_TEXTURE_NATIVE;
+  }
+
+  ~pxGLTextureRef() {}
+
+  void createTexture(GLuint textureId, int width, int height)
+  {
+    mTextureId = textureId;
+    mWidth = width;
+    mHeight = height;
+  }
+
+  virtual pxError bindTexture()
+  {
+    if (mTextureId == 0)
+    {
+      return PX_NOTINITIALIZED;
+    }
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, mTextureId);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1i(u_texture, 0);
+    return PX_OK;
+  }
+
+  virtual float getWidth() { return mWidth; }
+  virtual float getHeight() { return mHeight; }
+
+private:
+  GLfloat mWidth;
+  GLfloat mHeight;
+  GLuint mTextureId;
+};
+
+class pxOffscreenTextureRef : public pxTextureRef
+{
+public:
+  pxOffscreenTextureRef() : mOffscreen(), initialized(false)
+  {
+    mTextureType = PX_TEXTURE_OFFSCREEN;
+  }
+
+  pxOffscreenTextureRef(pxOffscreen& o) : mOffscreen(), initialized(false)
+  {
+    mTextureType = PX_TEXTURE_OFFSCREEN;
+    createTexture(o);
+  }
+
+  ~pxOffscreenTextureRef() { };
+  
+  void createTexture(pxOffscreen& o)
+  {
+    mOffscreen = o;
+    initialized = true;
+  }
+
+  virtual pxError bindTexture()
+  {
+    if (!initialized)
+    {
+      return PX_NOTINITIALIZED;
+    }
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureId1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+           mOffscreen.width(), mOffscreen.height(), 0, GL_BGRA_EXT,
+           GL_UNSIGNED_BYTE, mOffscreen.base());
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1i(u_texture, 0);
+    
+    return PX_OK;
+  }
+
+  virtual float getWidth() { return mOffscreen.width(); }
+  virtual float getHeight() { return mOffscreen.height(); }
+  
+private:
+  pxOffscreen mOffscreen;
+  bool initialized;
+};
+
 GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
 {
   GLuint fragShader, vertShader, program = 0;
@@ -262,6 +353,81 @@ static void drawImage2(float x, float y, float w, float h, pxOffscreen& offscree
 
   float iw = offscreen.width();
   float ih = offscreen.height();
+
+  if (xStretch == PX_NONE)
+    w = iw;
+  if (yStretch == PX_NONE)
+    h = ih;
+
+  const float verts[4][2] = 
+  {
+
+    { x,y },
+    {  x+w, y },
+    {  x,  y+h },
+    {  x+w, y+h }
+  };
+
+#if 0
+  const float uv[4][2] = 
+  {
+    { 0, 0 },
+    { 1, 0 },
+    { 0, 1 },
+    { 1, 1 }
+  };
+#else
+  float tw;
+  switch(xStretch) {
+  case PX_NONE:
+  case PX_STRETCH:
+    tw = 1.0;
+    break;
+  case PX_REPEAT:
+    tw = w/iw;
+    break;
+  }
+
+  float th;
+  switch(yStretch) {
+  case PX_NONE:
+  case PX_STRETCH:
+    th = 1.0;
+    break;
+  case PX_REPEAT:
+    th = h/ih;
+    break;
+  }
+
+  const float uv[4][2] = {
+    { 0,  0 },
+    { tw, 0 },
+    { 0,  th },
+    { tw, th }
+  };
+#endif
+  
+  {
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glUniform1f(u_alphatexture, 1.0);
+    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
+    glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
+    glEnableVertexAttribArray(attr_pos);
+    glEnableVertexAttribArray(attr_uv);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDisableVertexAttribArray(attr_pos);
+    glDisableVertexAttribArray(attr_uv);
+  }
+}
+
+static void drawImageTexture(float x, float y, float w, float h, rtRefT<pxTextureRef> texture,
+                pxStretch xStretch, pxStretch yStretch)
+{
+  texture->bindTexture();
+
+  float iw = texture->getWidth();
+  float ih = texture->getHeight();
 
   if (xStretch == PX_NONE)
     w = iw;
@@ -685,6 +851,12 @@ void pxContext::drawImage(float w, float h, pxOffscreen& o,
   drawImage2(0, 0, w, h, o, xStretch, yStretch);
 }
 
+void pxContext::drawImage(float w, float h, rtRefT<pxTextureRef> t,
+                          pxStretch xStretch, pxStretch yStretch) 
+{
+  drawImageTexture(0, 0, w, h, t, xStretch, yStretch);
+}
+
 
 void pxContext::drawSurface(float w, float h, pxContextSurfaceNativeDesc* contextSurface)
 {
@@ -782,4 +954,10 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
     glDrawArrays(GL_LINES, 0, 2);
     glDisableVertexAttribArray(attr_pos);
   }
+}
+
+rtRefT<pxTextureRef> pxContext::createTexture(pxOffscreen o)
+{
+  pxOffscreenTextureRef* offscreenTexture = new pxOffscreenTextureRef(o);
+  return offscreenTexture;
 }
