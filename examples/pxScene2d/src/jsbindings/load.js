@@ -17,8 +17,9 @@ Api.prototype.loadScriptForScene = function(scene, scriptFile) {
   });
   infile.on('end', function() {
     var vm = require('vm');
-      var sandbox = { console: console, scene: sceneForChild, runtime: apiForChild };
-    var app = vm.runInNewContext(code, sandbox);
+      var sandbox = { console: console, scene: sceneForChild, 
+                      runtime: apiForChild, process: process};
+      var app = vm.runInNewContext(code, sandbox);
   });
 }
 
@@ -32,11 +33,19 @@ scene.onScene = function(scene, url) {
 
 var argv = process.argv;
 
-console.log("length", argv.length, argv[0], argv[2]);
-
 if (argv.length >= 3) {
+    console.log("Loading: ", argv[2]);
     var childScene = scene.createScene();
     childScene.url = argv[2];
     childScene.parent = scene.root;
-}
 
+    function updateSize(w, h) {
+        childScene.w = w;
+        childScene.h = h;
+    }
+    
+    scene.on("resize", updateSize);
+    updateSize(scene.w, scene.h);
+}
+else
+    console.log("Usage: ./load.sh <js file>");

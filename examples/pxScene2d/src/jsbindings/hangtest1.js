@@ -1,6 +1,3 @@
-var px = require("./build/Debug/px");
-
-var scene = px.getScene();
 var text = scene.createText();
 text.text = "This should be spinning";
 text.x = 50;

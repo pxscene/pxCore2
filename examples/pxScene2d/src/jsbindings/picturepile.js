@@ -1,7 +1,3 @@
-var px = require("./build/Debug/px");
-
-
-var scene = px.getScene();
 var root = scene.root;
 
 var bg = scene.createImage();
@@ -22,6 +18,7 @@ bgShade.parent = root;
 txt1.x = 10;
 txt1.text = ""; // Just so there is some height so that we can position
 txt1.parent = root;
+
 
 // clean up these names and expose as properties off of some object
 var pxInterpLinear = 0;
@@ -105,6 +102,7 @@ function doIt() {
 }
 
 
+
 scene.on('keydown', function(code, flags) {
   console.log("keydown:" + code);
 });
@@ -124,6 +122,6 @@ function updateSize(w, h) {
 scene.on("resize", updateSize);
 updateSize(scene.w, scene.h);
 
-doIt();
 
+doIt();
 

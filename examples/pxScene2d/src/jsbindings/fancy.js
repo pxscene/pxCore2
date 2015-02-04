@@ -1,6 +1,3 @@
-var px = require("./build/Debug/px");
-
-var scene = px.getScene();
 var root = scene.root;
 
 var bg = scene.createImage();

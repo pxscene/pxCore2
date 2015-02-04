@@ -1,14 +1,11 @@
-var px = require("./build/Debug/px");
-
-var scene = px.getScene();
-
-//scene.showOutlines = true;
+scene.showOutlines = true;
 
 var text = scene.createText();
 text.text = "One\nabcdefghijklmnopqrstuvwxyz\nThree";
 text.x = 50;
 text.rx = 1;
 text.rz = 0;
+text.cy = text.h;
 text.parent = scene.root;
 text.animateTo("r", 360, 1.0, 0, 2);
 
