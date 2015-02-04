@@ -133,7 +133,6 @@ rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
 rtError pxText::setText(const char* s) { 
   mText = s; 
   measureText(s, 1.0, 1.0, mw, mh);
-  rtLogInfo("pxText %s, w: %f h: %f", mText.cString(), mw, mh);
   return RT_OK; 
 }
 
