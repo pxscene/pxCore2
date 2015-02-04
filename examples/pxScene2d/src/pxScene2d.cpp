@@ -3,7 +3,6 @@
 
 #include "pxScene2d.h"
 
-
 #include <math.h>
 
 #include "rtLog.h"
@@ -16,12 +15,14 @@
 #include "pxUtil.h"
 #include "pxTimer.h"
 
+#include "pxRectangle.h"
 #include "pxText.h"
 #include "pxImage.h"
 #include "pxImage9.h"
 
 #include "pxContext.h"
 
+// TODO get rid of globals
 pxContext context;
 rtFunctionRef gOnScene;
 
@@ -34,7 +35,6 @@ pxInterp interps[] =
   pxStop,
 };
 int numInterps = sizeof(interps)/sizeof(interps[0]);
-
 
 double pxInterpLinear(double i)
 {
@@ -289,23 +289,6 @@ rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, animateTo);
 rtDefineMethod(pxObject, animateTo2);
 
-rtDefineObject(rectangle, pxObject);
-rtDefineProperty(rectangle, fillColor);
-rtDefineProperty(rectangle, lineColor);
-rtDefineProperty(rectangle, lineWidth);
-
-void rectangle::draw()
-{
-  context.drawRect(mw, mh, mLineWidth, mFillColor, mLineColor);
-}
-
-#if 0
-void rectangle9::draw()
-{
-  context.drawRect9(mw, mh, mLineWidth, mFillColor, mLineColor);
-}
-#endif
-  
 pxScene2d::pxScene2d()
  :start(0),frameCount(0) 
 { 
@@ -315,13 +298,13 @@ pxScene2d::pxScene2d()
 
 void pxScene2d::init()
 {
+  // TODO move this to the window
   context.init();
 }
 
-
 rtError pxScene2d::createRectangle(rtObjectRef& o)
 {
-  o = new rectangle;
+  o = new pxRectangle;
   return RT_OK;
 }
 
@@ -504,7 +487,6 @@ rtError pxScene2d::setOnScene(rtFunctionRef v)
   return RT_OK; 
 }
 
-
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, onScene);
@@ -519,7 +501,6 @@ rtDefineMethod(pxScene2d, createScene);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
 
-
 rtError pxScene::setURL(rtString v) 
 { 
   mURL = v; 
@@ -527,7 +508,6 @@ rtError pxScene::setURL(rtString v)
     gOnScene.send(mInnerScene.getPtr(), mURL);
   return RT_OK; 
 }
-
 
 
 rtDefineObject(pxScene, pxObject);
@@ -563,7 +543,7 @@ rtError pxInnerScene::setShowOutlines(bool v)
 
 rtError pxInnerScene::createRectangle(rtObjectRef& o)
 {
-  o = new rectangle;
+  o = new pxRectangle;
   return RT_OK;
 }
 
