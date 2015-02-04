@@ -533,15 +533,33 @@ rtError pxScene::setURL(rtString v)
 rtDefineObject(pxScene, pxObject);
 //rtDefineProperty(pxScene, innerScene);
 rtDefineProperty(pxScene, url);
+rtDefineProperty(pxScene, w);
+rtDefineProperty(pxScene, h);
 
 rtDefineObject(pxInnerScene, pxObject);
 rtDefineProperty(pxInnerScene, root);
+rtDefineProperty(pxInnerScene, w);
+rtDefineProperty(pxInnerScene, h);
+rtDefineProperty(pxInnerScene, showOutlines);
 rtDefineMethod(pxInnerScene, createRectangle);
 rtDefineMethod(pxInnerScene, createText);
 rtDefineMethod(pxInnerScene, createImage);
 rtDefineMethod(pxInnerScene, createImage9);
 rtDefineMethod(pxInnerScene, createScene);
+rtDefineMethod(pxInnerScene, addListener);
+rtDefineMethod(pxInnerScene, delListener);
 
+rtError pxInnerScene::showOutlines(bool& v) const 
+{ 
+  v=context.showOutlines(); 
+  return RT_OK;
+}
+
+rtError pxInnerScene::setShowOutlines(bool v) 
+{ 
+  context.setShowOutlines(v); 
+  return RT_OK; 
+}
 
 rtError pxInnerScene::createRectangle(rtObjectRef& o)
 {

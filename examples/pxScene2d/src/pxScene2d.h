@@ -316,15 +316,21 @@ class pxInnerScene: public pxObject {
 public:
   rtDeclareObject(pxInnerScene, pxObject);
   rtReadOnlyProperty(root, root, rtObjectRef);
+  rtReadOnlyProperty(w, w, float);
+  rtReadOnlyProperty(h, h, float);
+  rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtMethodNoArgAndReturn("createRectangle", createRectangle, rtObjectRef);
   rtMethodNoArgAndReturn("createImage", createImage, rtObjectRef);
   rtMethodNoArgAndReturn("createImage9", createImage9, rtObjectRef);
   rtMethodNoArgAndReturn("createText", createText, rtObjectRef);
   rtMethodNoArgAndReturn("createScene", createScene, rtObjectRef);
+  rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
+  rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
   
   pxInnerScene()
   {
     mRoot = new pxObject;
+    mEmit = new rtEmit;
   }
 
   rtError root(rtObjectRef& v) const
@@ -333,11 +339,43 @@ public:
     return RT_OK;
   }
 
+  float w() const { return mWidth;  }
+  rtError w(float& v) const { v = mWidth;  return RT_OK; }
+  float h() const { return mHeight; }
+  rtError h(float& v) const { v = mHeight; return RT_OK; }
+  rtError setW(float v) 
+  {
+    mWidth = v; 
+    mEmit.send("resize", mWidth, mHeight);
+    return RT_OK; 
+  }
+
+  rtError setH(float v) 
+  { 
+    mHeight = v; 
+    mEmit.send("resize", mWidth, mHeight);
+    return RT_OK; 
+  }
+
+  rtError showOutlines(bool& v) const;
+  rtError setShowOutlines(bool v);
+
   rtError createRectangle(rtObjectRef& o);
   rtError createText(rtObjectRef& o);
   rtError createImage(rtObjectRef& o);
   rtError createImage9(rtObjectRef& o);
   rtError createScene(rtObjectRef& o);
+
+  rtError addListener(rtString eventName, const rtFunctionRef& f)
+  {
+    return mEmit->addListener(eventName, f);
+  }
+
+  rtError delListener(rtString  eventName, const rtFunctionRef& f)
+  {
+    return mEmit->delListener(eventName, f);
+  }
+
 
   virtual void update(double t)
   {
@@ -351,28 +389,28 @@ public:
 
 private:
   rtRefT<pxObject> mRoot;
+  rtEmitRef mEmit;
+  float mWidth;
+  float mHeight;
 };
 
 // For now just child scene objects
 class pxScene: public pxObject {
 public:
   rtDeclareObject(pxScene, pxObject);
-  // we'd want to remove external access to this... 
-//  rtReadOnlyProperty(innerScene, innerScene, rtObjectRef);
   rtProperty(url, url, setURL, rtString);
+  rtProperty(w, w, setW, float);
+  rtProperty(h, h, setH, float);
 
   pxScene() { mInnerScene = new pxInnerScene; }
 
-#if 0
-  rtError innerScene(rtObjectRef& v) const
-  {
-    v = mInnerScene;
-    return RT_OK;
-  }
-#endif
-
   rtError url(rtString& v) const { v = mURL; return RT_OK; }
   rtError setURL(rtString v);
+
+  rtError w(float& v) const { v = mInnerScene->w(); return RT_OK; }
+  rtError setW(float v) { mInnerScene->setW(v); return RT_OK; }
+  rtError h(float& v) const { v = mInnerScene->h(); return RT_OK; }
+  rtError setH(float v) { mInnerScene->setH(v); return RT_OK; }
 
   virtual void update(double t)
   {
