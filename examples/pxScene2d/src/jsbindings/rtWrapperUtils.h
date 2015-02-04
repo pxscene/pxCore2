@@ -8,6 +8,58 @@
 #include <rtString.h>
 #include <rtValue.h>
 
+#include <string>
+
+// I don't think node/v8 addons support c++ exceptions. In cases where
+// a pending error might be set on a call stack, you can use this object
+// to pass around. If there's a pending error, simply use:
+// rtWrapperError error;
+// someFunction(arg1, arg2, &error);
+// if (error.hasError())
+//    v8::ThrowException(error.toTypeError());
+// use the correct flavor of javascript exception.
+class rtWrapperError
+{
+public:
+  rtWrapperError() { }
+  rtWrapperError(const char* errorMessage)
+    : mMessage(errorMessage) { }
+
+  inline bool hasError() const
+    { return !mMessage.empty(); }
+
+  v8::Local<v8::Value> toTypeError()
+  {
+    return v8::Exception::TypeError(v8::String::New(mMessage.c_str()));
+  }
+
+  v8::Local<v8::Value> toRangeError()
+  {
+    return v8::Exception::RangeError(v8::String::New(mMessage.c_str()));
+  }
+
+  v8::Local<v8::Value> toReferenceError()
+  {
+    return v8::Exception::ReferenceError(v8::String::New(mMessage.c_str()));
+  }
+
+  v8::Local<v8::Value> toSyntaxError()
+  {
+    return v8::Exception::SyntaxError(v8::String::New(mMessage.c_str()));
+  }
+
+  v8::Local<v8::Value> toGenericError()
+  {
+    return v8::Exception::Error(v8::String::New(mMessage.c_str()));
+  }
+
+  void setMessage(const char* errorMessage)
+    { mMessage = errorMessage; }
+
+private:
+  std::string mMessage;
+};
+
 inline rtString toString(const v8::Handle<v8::Object>& obj)
 {
   v8::String::Utf8Value utf(obj->ToString());
@@ -59,15 +111,13 @@ protected:
   TRef mWrappedObject;
 };
 
-rtValue js2rt(const v8::Handle<v8::Value>& val);
+rtValue js2rt(const v8::Handle<v8::Value>& val, rtWrapperError* error);
 
 v8::Handle<v8::Value> rt2js(const rtValue& val);
 
 
 void rtWrapperSceneUpdateEnter();
 void rtWrapperSceneUpdateExit();
-
-
 
 #endif
 

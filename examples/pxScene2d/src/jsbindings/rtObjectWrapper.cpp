@@ -74,7 +74,11 @@ Handle<Value> rtObjectWrapper::setProperty(
     const AccessorInfo& info)
 {
   rtString name = toString(prop);
-  rtValue value = js2rt(val);
+
+  rtWrapperError error;
+  rtValue value = js2rt(val, &error);
+  if (error.hasError())
+    return ThrowException(error.toTypeError());
 
   rtLogDebug("set %s=%s", name.cString(), value.toString().cString());
 

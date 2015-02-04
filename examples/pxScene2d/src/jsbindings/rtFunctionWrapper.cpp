@@ -62,21 +62,22 @@ Handle<Value> rtFunctionWrapper::call(const Arguments& args)
 {
   HandleScope scope;
 
+  rtWrapperError error;
+
   std::vector<rtValue> argList;
   for (int i = 0; i < args.Length(); ++i)
-    argList.push_back(js2rt(args[i]));
-
-  rtLogDebug("Invoking function");
+  {
+    argList.push_back(js2rt(args[i], &error));
+    if (error.hasError())
+      return ThrowException(error.toTypeError());
+  }
 
   rtValue result;
   rtWrapperSceneUpdateEnter();
   rtError err = unwrap(args)->Send(args.Length(), &argList[0], &result);
   rtWrapperSceneUpdateExit();
   if (err != RT_OK)
-  {
     rtLogFatal("failed to invoke function: %d", err);
-    abort();
-  }
 
   return scope.Close(rt2js(result));
 }
@@ -108,11 +109,44 @@ unsigned long jsFunctionWrapper::Release()
 
 rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* result)
 {
+  //
+  // TODO: Return values are not supported. This class is an rtFunction that wraps
+  // a javascript function. If everything is behaving normally, we're running in the
+  // context of a native/non-js thread. This is almost certainly the "render" thread.
+  // The function is "packed" up and sent off to a javascript thread via the
+  // enqueue() on the jsCallback. That means the called is queued with nodejs' event
+  // queue. This is required to prevent multiple threads from
+  // entering the JS engine. The problem is that the caller can't expect anything in
+  // return in the result (last parameter to this function.
+  // If you have the current thread wait and then return the result, you'd block this
+  // thread until the completion of the javascript function call.
+  //
+  // Here's an example of how you'd get into this situation. This is a contrived example.
+  // No known case exists right now.
+  //
+  // The closure function below will be wrapped and registered with the rt object layer.
+  // If the 'someEvent' is fired, excecution wll arrive here (this code). You'll never see
+  // the "return true" because this call returns and the function is run in another
+  // thread.
+  //
+  // This won't work!
+  //
+  // var foo = ...
+  // foo.on('someEvent', function(msg) {
+  //    console.log("I'm running in a javascript thread");
+  //    return true; // <-- Can't do this
+  // });
+  //
   jsCallback* callback = jsCallback::create();
   for (int i = 0; i < numArgs; ++i)
     callback->addArg(args[i]);
   callback->setFunctionLookup(new FunctionLookup(this));
   callback->enqueue();
+
+  // result is hard-coded
+  if (result)
+    *result = rtValue(true);
+
   return RT_OK;
 }
 
@@ -120,5 +154,4 @@ Persistent<Function> jsFunctionWrapper::FunctionLookup::lookup()
 {
   return mParent->mFunction;
 }
-
 
