@@ -108,7 +108,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
     glGetShaderInfoLog(fragShader, maxLength, &maxLength, &errorLog[0]);
     
     //Provide the infolog in whatever manor you deem best.
-    rtLog("%s\n", &errorLog[0]);
+    rtLogWarn("%s", &errorLog[0]);
     //Exit with failure.
     glDeleteShader(fragShader); //Don't leak the shader.
 
@@ -557,7 +557,7 @@ pxError pxContext::createContextSurface(pxContextSurfaceNativeDesc* contextSurfa
 {
   if (contextSurface == NULL)
   {
-    rtLog("cannot create context surface because contextSurface is NULL");
+    rtLogError("cannot create context surface because contextSurface is NULL");
     return PX_FAIL;
   }
 
@@ -600,7 +600,7 @@ pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
   
   if ((contextSurface->framebuffer == 0) || (contextSurface->texture == 0))
   {
-    rtLog("render surface is not initialized\n");
+    rtLogInfo("render surface is not initialized");
     return PX_NOTINITIALIZED;
   }
   
@@ -623,7 +623,7 @@ pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
   {
-    rtLog("error setting the render surface\n");
+    rtLogWarn("error setting the render surface");
     return PX_FAIL;
   }
   glBindTexture(GL_TEXTURE_2D, contextSurface->texture);

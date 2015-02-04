@@ -152,7 +152,9 @@ static Handle<Value> getScene(const Arguments& args)
     // There's no way to intergate glut eventloop with js threads. Once
     // you enter the glut event loop, you don't come out. I'm putting this
     // here to address stability issues with demo apps.
+    #if PX_PLATFORM_X11
     XInitThreads();
+    #endif
 
     int x = 0;
     int y = 0;

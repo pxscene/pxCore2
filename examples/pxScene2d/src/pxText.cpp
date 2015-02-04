@@ -36,7 +36,7 @@ void initFT()
   
 //  if(FT_New_Face(ft, "FreeSans.ttf", 0, &face)) {
   if(FT_New_Face(ft, "FontdinerSwanky.ttf", 0, &face)) {
-    rtLogError("Could not load font face: \n");
+    rtLogError("Could not load font face: ");
     return;
   }
   
@@ -57,7 +57,7 @@ void measureText(const char* text, float sx, float sy, float& w, float& h) {
 
     // TODO don't render glyph
     if(FT_Load_Char(face, codePoint, FT_LOAD_RENDER)) {
-      rtLog("Could not load glyph: %d\n", codePoint);
+      rtLogWarn("Could not load glyph: %d", codePoint);
       continue;
     }
     
@@ -89,7 +89,7 @@ void renderText(const char *text, float x, float y, float sx, float sy, float* c
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) {
 
     if(FT_Load_Char(face, codePoint, FT_LOAD_RENDER)) {
-      rtLogError("Could not load glyph: %d\n", codePoint);
+      rtLogError("Could not load glyph: %d", codePoint);
       continue;
     }
     
@@ -133,7 +133,7 @@ rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
 rtError pxText::setText(const char* s) { 
   mText = s; 
   measureText(s, 1.0, 1.0, mw, mh);
-  rtLogInfo("pxText %s, w: %f h: %f\n", mText.cString(), mw, mh);
+  rtLogInfo("pxText %s, w: %f h: %f", mText.cString(), mw, mh);
   return RT_OK; 
 }
 
