@@ -84,6 +84,7 @@ public:
   rtProperty(rz, rz, setRZ, float);
   rtProperty(painting, painting, setPainting, bool);
   rtProperty(clip, clip, setClip, bool);
+  rtProperty(mask, mask, setMask, rtString);
 
   rtReadOnlyProperty(numChildren, numChildren, int32_t);
   rtMethod1ArgAndReturn("getChild", getChild, int32_t, rtObjectRef);
@@ -99,7 +100,7 @@ public:
 
  pxObject(): mRef(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0), 
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
-    mTextureRef(), mPainting(true), mClip(false) {}
+    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef() {}
 
   virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(); }
   virtual unsigned long AddRef() { return ++mRef; }
@@ -200,6 +201,10 @@ public:
   bool clip()            const { return mClip;}
   rtError clip(bool& v)  const { v = mClip; return RT_OK;  }
   rtError setClip(bool v) { mClip = v; return RT_OK; }
+  
+  rtString mask()            const { return mMaskUrl;}
+  rtError mask(rtString& v)  const { v = mMaskUrl; return RT_OK;  }
+  rtError setMask(rtString v) { mMaskUrl = v; createMask(); return RT_OK; }
 
   void moveToFront();
   void moveToBack();
@@ -301,9 +306,14 @@ protected:
   pxTextureRef mTextureRef;
   bool mPainting;
   bool mClip;
+  rtString mMaskUrl;
+  pxTextureRef mMaskTextureRef;
+  
   
   void createSnapshot();
   void deleteSnapshot();
+  void createMask();
+  void deleteMask();
  private:
   rtError _pxObject(voidPtr& v) const {
     v = (void*)this;

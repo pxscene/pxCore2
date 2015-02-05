@@ -38,6 +38,8 @@ static GLint u_matrix = -1;
 static GLint u_alpha = -1;
 static GLint u_resolution = -1;
 GLint u_texture = -1;
+GLint u_mask = -1;
+GLint u_enablemask = 0;
 GLint u_alphatexture = -1;
 GLint u_color = -1;
 GLint attr_pos = 0, attr_uv = 2;
@@ -50,6 +52,8 @@ static const char *fShaderText =
   "uniform float u_alpha;\n"
   "uniform vec4 a_color;\n"
   "uniform sampler2D s_texture;\n"
+  "uniform sampler2D s_mask;\n"
+  "uniform int u_enablemask;\n"
   "varying vec2 v_uv;\n"
   "void main() {\n"
   "if (u_alphatexture < 1.0) {"
@@ -58,7 +62,12 @@ static const char *fShaderText =
   "} else "
   "if (u_alphatexture < 2.0) {\n"
   // image
-  "gl_FragColor = texture2D(s_texture, v_uv);\n"
+  "  vec4 textureColor = texture2D(s_texture, v_uv);\n"
+  "  if (u_enablemask > 0) {\n"
+  "    vec4 maskColor = texture2D(s_mask, v_uv);\n"
+  "    textureColor.a = textureColor.a * maskColor.a;\n" ////textureColor.a * maskColor.a;
+  "  }\n"
+  "  gl_FragColor = textureColor;\n"
   "} else {\n"
   // text
   "gl_FragColor = vec4(a_color.r, a_color.g, a_color.b, texture2D(s_texture, v_uv).a*a_color.a);"
@@ -255,7 +264,8 @@ public:
   
   void createTexture(pxOffscreen& o)
   {
-    mOffscreen = o;
+    mOffscreen.init(o.width(), o.height());
+    o.blit(mOffscreen);
     mInitialized = true;
   }
   
@@ -281,6 +291,64 @@ public:
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(u_texture, 0);
+    
+    return PX_OK;
+  }
+
+  virtual float getWidth() { return mOffscreen.width(); }
+  virtual float getHeight() { return mOffscreen.height(); }
+  
+private:
+  pxOffscreen mOffscreen;
+  bool mInitialized;
+};
+
+class pxTextureMask : public pxTexture
+{
+public:
+  pxTextureMask() : mOffscreen(), mInitialized(false)
+  {
+    mTextureType = PX_TEXTURE_ALPHA;
+  }
+
+  pxTextureMask(pxOffscreen& o) : mOffscreen(), mInitialized(false)
+  {
+    mTextureType = PX_TEXTURE_ALPHA;
+    createTexture(o);
+  }
+
+  ~pxTextureMask() { };
+  
+  void createTexture(pxOffscreen& o)
+  {
+    mOffscreen.init(o.width(), o.height());
+    o.blit(mOffscreen);
+    mInitialized = true;
+  }
+  
+  virtual pxError deleteTexture()
+  {
+    mInitialized = false;
+    return PX_OK;
+  }
+
+  virtual pxError bindTexture()
+  {
+    if (!mInitialized)
+    {
+      return PX_NOTINITIALIZED;
+    }
+    
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, textureId1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+           mOffscreen.width(), mOffscreen.height(), 0, GL_BGRA_EXT,
+           GL_UNSIGNED_BYTE, mOffscreen.base());
+    
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glUniform1i(u_mask, 2);
+    glUniform1i(u_enablemask, 1);
     
     return PX_OK;
   }
@@ -496,9 +564,14 @@ static void drawImage2(float x, float y, float w, float h, pxOffscreen& offscree
 }
 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
-                pxStretch xStretch, pxStretch yStretch)
+                pxTextureRef mask, pxStretch xStretch, pxStretch yStretch)
 {
   texture->bindTexture();
+  
+  if (mask.getPtr() != NULL && mask->getType() == PX_TEXTURE_ALPHA)
+  {
+    mask->bindTexture();
+  }
 
   float iw = texture->getWidth();
   float ih = texture->getHeight();
@@ -579,6 +652,8 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     glDisableVertexAttribArray(attr_pos);
     glDisableVertexAttribArray(attr_uv);
   }
+  
+  glUniform1i(u_enablemask, 0);
 }
 
 
@@ -730,6 +805,8 @@ void pxContext::init()
 
   u_resolution   = glGetUniformLocation(program, "u_resolution");
   u_texture      = glGetUniformLocation(program, "s_texture");
+  u_mask         = glGetUniformLocation(program, "s_mask");
+  u_enablemask   = glGetUniformLocation(program, "u_enablemask");
   u_matrix       = glGetUniformLocation(program, "amymatrix");
   u_alpha        = glGetUniformLocation(program, "u_alpha");
   u_color        = glGetUniformLocation(program, "a_color");
@@ -860,10 +937,10 @@ void pxContext::drawImage(float w, float h, pxOffscreen& o,
   drawImage2(0, 0, w, h, o, xStretch, yStretch);
 }
 
-void pxContext::drawImage(float w, float h, pxTextureRef t,
+void pxContext::drawImage(float w, float h, pxTextureRef t, pxTextureRef mask,
                           pxStretch xStretch, pxStretch yStretch) 
 {
-  drawImageTexture(0, 0, w, h, t, xStretch, yStretch);
+  drawImageTexture(0, 0, w, h, t, mask, xStretch, yStretch);
 }
 
 void pxContext::drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color)
@@ -958,8 +1035,14 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
   }
 }
 
-pxTextureRef pxContext::createTexture(pxOffscreen o)
+pxTextureRef pxContext::createTexture(pxOffscreen& o)
 {
   pxTextureOffscreen* offscreenTexture = new pxTextureOffscreen(o);
   return offscreenTexture;
+}
+
+pxTextureRef pxContext::createMask(pxOffscreen& o)
+{
+  pxTextureMask* maskTexture = new pxTextureMask(o);
+  return maskTexture;
 }
