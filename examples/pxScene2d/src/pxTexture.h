@@ -1,9 +1,10 @@
-#ifndef PX_TEXTURE_REF_H
-#define PX_TEXTURE_REF_H
+#ifndef PX_TEXTURE_H
+#define PX_TEXTURE_H
 
 #include "pxCore.h"
+#include "rtRefT.h"
 
-enum pxTextureRefType { 
+enum pxTextureType { 
   PX_TEXTURE_UNKNOWN = 0,
   PX_TEXTURE_OFFSCREEN = 1, 
   PX_TEXTURE_ALPHA = 2, 
@@ -11,11 +12,11 @@ enum pxTextureRefType {
   PX_TEXTURE_FRAME_BUFFER = 4
 };
 
-class pxTextureRef
+class pxTexture
 {
 public:
-  pxTextureRef() : mRef(0), mTextureType(PX_TEXTURE_UNKNOWN) {}
-  virtual ~pxTextureRef() {}
+  pxTexture() : mRef(0), mTextureType(PX_TEXTURE_UNKNOWN) {}
+  virtual ~pxTexture() {}
   virtual unsigned long AddRef() { return ++mRef; }
   virtual unsigned long Release() { if (--mRef == 0) delete this; return mRef; }
   
@@ -23,11 +24,14 @@ public:
   virtual pxError deleteTexture() = 0;
   virtual float getWidth() = 0;
   virtual float getHeight() = 0;
-  pxTextureRefType getType() { return mTextureType; }
+  pxTextureType getType() { return mTextureType; }
+  virtual pxError prepareForRendering() { return PX_OK; }
   
 protected:
   unsigned long mRef;
-  pxTextureRefType mTextureType;
+  pxTextureType mTextureType;
 };
 
-#endif //PX_TEXTURE_REF_H
+typedef rtRefT<pxTexture> pxTextureRef;
+
+#endif //PX_TEXTURE_H

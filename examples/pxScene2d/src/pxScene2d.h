@@ -27,6 +27,7 @@ using namespace std;
 #include "pxCore.h"
 #include "pxMatrix4T.h"
 #include "pxInterpolators.h"
+#include "pxTexture.h"
 
 typedef double (*pxInterp)(double i);
 typedef void (*pxAnimationEnded)(void* ctx);
@@ -98,7 +99,7 @@ public:
 
  pxObject(): mRef(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0), 
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
-    mContextSurfaceSnapshot(NULL), mPainting(true), mClip(false) {}
+    mTextureRef(), mPainting(true), mClip(false) {}
 
   virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(); }
   virtual unsigned long AddRef() { return ++mRef; }
@@ -297,7 +298,7 @@ protected:
   vector<animation> mAnimations;
   unsigned long mRef;
   float mcx, mcy, mx, my, ma, mr, mrx, mry, mrz, msx, msy, mw, mh;
-  pxContextSurfaceNativeDesc* mContextSurfaceSnapshot;
+  pxTextureRef mTextureRef;
   bool mPainting;
   bool mClip;
   

@@ -54,27 +54,42 @@ rtValue rtObjectWrapper::unwrapObject(const Local<Object>& obj)
 
 Handle<Array> rtObjectWrapper::enumProperties(const AccessorInfo& info)
 {
-  // TODO: Hook this up to rtObject
-  Local<Array> props = Array::New(5);
-  for (int i = 0; i < 5; ++i)
-  {
-    char buff[64];
-    snprintf(buff, sizeof(buff), "property%d", i);
-    props->Set(Number::New(i), String::New(buff));
-  }
+  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  if (!wrapper)
+    return Handle<Array>();
+
+  rtObjectRef ref = wrapper->mWrappedObject;
+  if (!ref)
+    return Handle<Array>();
+
+  rtObjectRef keys = ref.get<rtObjectRef>("allKeys");
+  if (!keys)
+    return Handle<Array>();
+
+  uint32_t length = keys.get<uint32_t>("length");
+  Local<Array> props = Array::New(length);
+
+  for (uint32_t i = 0; i < length; ++i)
+    props->Set(Number::New(i), String::New(keys.get<rtString>(i).cString()));
+
   return props;
 }
 
-Handle<Value> rtObjectWrapper::getProperty(
-    Local<String> prop,
-    const AccessorInfo& info)
+Handle<Value> rtObjectWrapper::getProperty(Local<String> prop, const AccessorInfo& info)
 {
-  rtString propertyName = toString(prop);
-  rtLogDebug("getting property: %s", propertyName.cString());
+  rtString name = toString(prop);
+
+  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  if (!wrapper)
+    return Handle<Value>(Undefined());
+
+  rtObjectRef ref = wrapper->mWrappedObject;
+  if (!ref)
+    return Handle<Value>(Undefined());
 
   rtValue value;
   rtWrapperSceneUpdateEnter();
-  rtError err = unwrap(info)->Get(propertyName.cString(), &value);
+  rtError err = ref->Get(name.cString(), &value);
   rtWrapperSceneUpdateExit();
 
   if (err != RT_OK)

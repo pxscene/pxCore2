@@ -33,7 +33,7 @@ rt_error rtData::init(uint8_t* data, uint32_t length) {
   return e;
 }
 
-rt_error rtData::term() { delete(m_data); m_length = 0; return RT_OK; }
+rt_error rtData::term() { delete [] m_data; m_length = 0; return RT_OK; }
 uint8_t* rtData::data() { return m_data; }
 uint32_t rtData::length() { return m_length; }
 

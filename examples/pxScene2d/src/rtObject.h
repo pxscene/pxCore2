@@ -544,6 +544,7 @@ public:
   rtFunctionCallback(rtFunctionCB cb, void* context = NULL) {
     mCB = cb;
     mContext = context;
+    mRefCount = 0;
   }
   
   virtual ~rtFunctionCallback() {}

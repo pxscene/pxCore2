@@ -50,6 +50,7 @@ void rtValue::setEmpty() {
     }
   }
   mType = 0;
+  mValue.uint64Value = 0;
 }
 
 void rtValue::setValue(const rtValue& v) {

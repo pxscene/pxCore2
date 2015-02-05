@@ -227,7 +227,7 @@ void pxObject::drawInternal(pxMatrix4f m)
       createSnapshot();
       context.setMatrix(m);
       context.setAlpha(ma);
-      context.drawSurface(mw,mh, mContextSurfaceSnapshot);
+      context.drawImage(mw,mh, mTextureRef, PX_NONE, PX_NONE);
       deleteSnapshot();
     }
     else
@@ -244,12 +244,7 @@ void pxObject::drawInternal(pxMatrix4f m)
   }
   else
   {
-    if (mContextSurfaceSnapshot == NULL)
-    {
-      createSnapshot();
-      context.setAlpha(ma);
-    }
-    context.drawSurface(mw,mh, mContextSurfaceSnapshot);
+    context.drawImage(mw,mh, mTextureRef, PX_NONE, PX_NONE);
   }
 }
 
@@ -263,10 +258,8 @@ void pxObject::createSnapshot()
   //cleanup old snapshot (if it exists) before creating a new one
   deleteSnapshot();
 
-  mContextSurfaceSnapshot = new pxContextSurfaceNativeDesc();
-  context.createContextSurface(mContextSurfaceSnapshot, mw, mh);
-
-  if (context.setRenderSurface(mContextSurfaceSnapshot) == PX_OK)
+  mTextureRef = context.createContextSurface(mw, mh);
+  if (context.setRenderSurface(mTextureRef) == PX_OK)
   {
     draw();
 
@@ -275,16 +268,15 @@ void pxObject::createSnapshot()
       (*it)->drawInternal(m);
     }
   }
-  context.unsetRenderSurface(mContextSurfaceSnapshot);
+  pxTextureRef nullTextureRef;
+  context.setRenderSurface(nullTextureRef);
 }
 
 void pxObject::deleteSnapshot()
 {
-  if (mContextSurfaceSnapshot != NULL)
+  if (mTextureRef.getPtr() != NULL)
   {
-    context.deleteContextSurface(mContextSurfaceSnapshot);
-    delete mContextSurfaceSnapshot;
-    mContextSurfaceSnapshot = NULL;
+    mTextureRef->deleteTexture();
   }
 }
 
