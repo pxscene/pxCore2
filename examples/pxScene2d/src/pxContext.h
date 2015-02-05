@@ -5,6 +5,8 @@
 #include "pxOffscreen.h"
 #include "pxMatrix4T.h"
 #include "rtCore.h"
+#include "rtRefT.h"
+#include "pxTextureRef.h"
 
 enum pxStretch { PX_NONE = 0, PX_STRETCH = 1, PX_REPEAT = 2 };
 
@@ -28,9 +30,17 @@ class pxContext {
   pxError setRenderSurface(pxContextSurfaceNativeDesc* contextSurface);
   pxError unsetRenderSurface(pxContextSurfaceNativeDesc* contextSurface);
   pxError deleteContextSurface(pxContextSurfaceNativeDesc* contextSurface);
+  
+  rtRefT<pxTextureRef> createContextSurface(int width, int height);
+  pxError setRenderSurface(rtRefT<pxTextureRef> texture);
+  pxError deleteContextSurface(rtRefT<pxTextureRef> texture);
+
+  rtRefT<pxTextureRef> createTexture(pxOffscreen o);
 
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);
   void drawImage(float w, float h, pxOffscreen& o, 
+                 pxStretch xStretch, pxStretch yStretch);
+  void drawImage(float w, float h, rtRefT<pxTextureRef> t,
                  pxStretch xStretch, pxStretch yStretch);
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxOffscreen& o);

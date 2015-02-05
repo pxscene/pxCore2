@@ -32,7 +32,8 @@ void rtObjectWrapper::exportPrototype(Handle<Object> exports)
 
   Local<ObjectTemplate> inst = tmpl->InstanceTemplate();
   inst->SetInternalFieldCount(1);
-  inst->SetNamedPropertyHandler(&getProperty, &setProperty);
+  inst->SetNamedPropertyHandler(&getProperty, &setProperty, NULL,
+    NULL, &enumProperties);
 
   ctor = Persistent<Function>::New(tmpl->GetFunction());
   exports->Set(String::NewSymbol(kClassName), ctor);
@@ -51,6 +52,19 @@ rtValue rtObjectWrapper::unwrapObject(const Local<Object>& obj)
   return rtValue(unwrap(obj));
 }
 
+Handle<Array> rtObjectWrapper::enumProperties(const AccessorInfo& info)
+{
+  // TODO: Hook this up to rtObject
+  Local<Array> props = Array::New(5);
+  for (int i = 0; i < 5; ++i)
+  {
+    char buff[64];
+    snprintf(buff, sizeof(buff), "property%d", i);
+    props->Set(Number::New(i), String::New(buff));
+  }
+  return props;
+}
+
 Handle<Value> rtObjectWrapper::getProperty(
     Local<String> prop,
     const AccessorInfo& info)
@@ -62,8 +76,14 @@ Handle<Value> rtObjectWrapper::getProperty(
   rtWrapperSceneUpdateEnter();
   rtError err = unwrap(info)->Get(propertyName.cString(), &value);
   rtWrapperSceneUpdateExit();
+
   if (err != RT_OK)
-    return Handle<Value>(Undefined());
+  {
+    if (err == RT_PROP_NOT_FOUND)
+      return Handle<Value>(Undefined());
+    else
+      return ThrowException(Exception::Error(String::New(rtStrError(err))));
+  }
 
   return rt2js(value);
 }

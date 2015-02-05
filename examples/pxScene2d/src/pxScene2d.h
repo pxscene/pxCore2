@@ -82,7 +82,8 @@ public:
   rtProperty(ry, ry, setRY, float);
   rtProperty(rz, rz, setRZ, float);
   rtProperty(painting, painting, setPainting, bool);
-  // TODO would be nice to expose as collection to js
+  rtProperty(clip, clip, setClip, bool);
+
   rtReadOnlyProperty(numChildren, numChildren, int32_t);
   rtMethod1ArgAndReturn("getChild", getChild, int32_t, rtObjectRef);
   rtReadOnlyProperty(children, children, rtObjectRef);
@@ -97,7 +98,7 @@ public:
 
  pxObject(): mRef(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0), 
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
-    mContextSurfaceSnapshot(NULL), mPainting(true) {}
+    mContextSurfaceSnapshot(NULL), mPainting(true), mClip(false) {}
 
   virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(); }
   virtual unsigned long AddRef() { return ++mRef; }
@@ -194,6 +195,10 @@ public:
       }
       return RT_OK;
   }
+
+  bool clip()            const { return mClip;}
+  rtError clip(bool& v)  const { v = mClip; return RT_OK;  }
+  rtError setClip(bool v) { mClip = v; return RT_OK; }
 
   void moveToFront();
   void moveToBack();
@@ -294,6 +299,7 @@ protected:
   float mcx, mcy, mx, my, ma, mr, mrx, mry, mrz, msx, msy, mw, mh;
   pxContextSurfaceNativeDesc* mContextSurfaceSnapshot;
   bool mPainting;
+  bool mClip;
   
   void createSnapshot();
   void deleteSnapshot();

@@ -22,6 +22,7 @@ private:
   static Handle<Value> create(const Arguments& args);
   static Handle<Value> getProperty(Local<String> prop, const AccessorInfo& info); 
   static Handle<Value> setProperty(Local<String> prop, Local<Value> val, const AccessorInfo& info);
+  static Handle<Array> enumProperties(const AccessorInfo& info);
 };
 
 #endif
