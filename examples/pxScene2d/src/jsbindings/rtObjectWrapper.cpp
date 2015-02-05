@@ -54,14 +54,14 @@ rtValue rtObjectWrapper::unwrapObject(const Local<Object>& obj)
 
 Handle<Array> rtObjectWrapper::enumProperties(const AccessorInfo& info)
 {
-  // TODO: Hook this up to rtObject
-  Local<Array> props = Array::New(5);
-  for (int i = 0; i < 5; ++i)
-  {
-    char buff[64];
-    snprintf(buff, sizeof(buff), "property%d", i);
-    props->Set(Number::New(i), String::New(buff));
-  }
+  rtObjectRef keys = unwrap(info).get<rtObjectRef>("allKeys");
+
+  uint32_t length = keys.get<uint32_t>("length");
+  Local<Array> props = Array::New(length);
+
+  for (uint32_t i = 0; i < length; ++i)
+    props->Set(Number::New(i), String::New(keys.get<rtString>(i).cString()));
+
   return props;
 }
 

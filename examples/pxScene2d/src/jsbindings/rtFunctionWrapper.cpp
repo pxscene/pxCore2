@@ -77,7 +77,7 @@ Handle<Value> rtFunctionWrapper::call(const Arguments& args)
   rtError err = unwrap(args)->Send(args.Length(), &argList[0], &result);
   rtWrapperSceneUpdateExit();
   if (err != RT_OK)
-    rtLogFatal("failed to invoke function: %d", err);
+    return throwRtError(err, "failed to invoke function");
 
   return scope.Close(rt2js(result));
 }
