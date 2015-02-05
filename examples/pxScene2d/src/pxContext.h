@@ -6,7 +6,7 @@
 #include "pxMatrix4T.h"
 #include "rtCore.h"
 #include "rtRefT.h"
-#include "pxTextureRef.h"
+#include "pxTexture.h"
 
 enum pxStretch { PX_NONE = 0, PX_STRETCH = 1, PX_REPEAT = 2 };
 
@@ -26,25 +26,19 @@ class pxContext {
   void setMatrix(pxMatrix4f& m);
   void setAlpha(float a);
   
-  pxError createContextSurface(pxContextSurfaceNativeDesc* contextSurface, int width, int height);
-  pxError setRenderSurface(pxContextSurfaceNativeDesc* contextSurface);
-  pxError unsetRenderSurface(pxContextSurfaceNativeDesc* contextSurface);
-  pxError deleteContextSurface(pxContextSurfaceNativeDesc* contextSurface);
-  
-  rtRefT<pxTextureRef> createContextSurface(int width, int height);
-  pxError setRenderSurface(rtRefT<pxTextureRef> texture);
-  pxError deleteContextSurface(rtRefT<pxTextureRef> texture);
+  pxTextureRef createContextSurface(int width, int height);
+  pxError setRenderSurface(pxTextureRef texture);
+  pxError deleteContextSurface(pxTextureRef texture);
 
-  rtRefT<pxTextureRef> createTexture(pxOffscreen o);
+  pxTextureRef createTexture(pxOffscreen o);
 
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);
   void drawImage(float w, float h, pxOffscreen& o, 
                  pxStretch xStretch, pxStretch yStretch);
-  void drawImage(float w, float h, rtRefT<pxTextureRef> t,
+  void drawImage(float w, float h, pxTextureRef t,
                  pxStretch xStretch, pxStretch yStretch);
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxOffscreen& o);
-  void drawSurface(float w, float h, pxContextSurfaceNativeDesc* contextSurface);
   void drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color);
 
 // Only use for debug/diag purposes not for normal rendering
