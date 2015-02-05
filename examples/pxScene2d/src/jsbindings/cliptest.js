@@ -1,3 +1,4 @@
+//scene.showOutlines = true;
 var root = scene.root;
 
 var bg = scene.createImage();
@@ -30,6 +31,11 @@ ball.clip = true;
 var childText = scene.createText();
 childText.text = "Hello There!!!";
 childText.parent = ball;
+childText.y = ball.h/2-childText.h/2;
+childText.x = ball.w/2-childText.w/2;
+childText.cx = childText.w/2;
+childText.cy = childText.h/2;
+childText.textColor = 0xff0000ff;
 childText.animateTo("r", 360, 1, 0, 2);
 
 // clean up these names and expose as properties off of some object
