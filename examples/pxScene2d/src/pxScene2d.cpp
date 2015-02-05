@@ -539,6 +539,7 @@ rtDefineProperty(pxInnerScene, showOutlines);
 rtDefineMethod(pxInnerScene, createRectangle);
 rtDefineMethod(pxInnerScene, createText);
 rtDefineMethod(pxInnerScene, createImage);
+rtDefineMethod(pxInnerScene, createImage2);
 rtDefineMethod(pxInnerScene, createImage9);
 rtDefineMethod(pxInnerScene, createScene);
 rtDefineMethod(pxInnerScene, addListener);

@@ -75,13 +75,22 @@ function doIt() {
     function newPicture() {
 
         var url = getImageURL();
-        var picture = scene.createImage();
-
-        set(picture, {parent: pictures, x: -1000, y: 
-                      randomInt(-200, 800), cx: 200, cy: 200, 
-                      sx: 2, sy: 2, 
-                      r: randomInt(-45,45), url:url});
-
+        var picture;
+        if (true) {
+            picture = scene.createImage2({parent: pictures, x: -1000, y: 
+                                          randomInt(-200, 800), cx: 200, 
+                                          cy: 200, sx: 2, sy: 2, 
+                                          r: randomInt(-45,45), url:url});
+            
+        }
+        else {
+            picture = scene.createImage();
+            set(picture, {parent: pictures, x: -1000, y: 
+                          randomInt(-200, 800), cx: 200, cy: 200, 
+                          sx: 2, sy: 2, 
+                          r: randomInt(-45,45), url:url});
+        }
+        
         picture.animateTo2("x", randomInt(100, 300), 1, pxStop, 0, function() {
             if (pictures.numChildren > 10) {
                 var f = pictures.getChild(0);
