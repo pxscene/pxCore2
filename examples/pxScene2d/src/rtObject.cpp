@@ -132,6 +132,14 @@ rtError rtObjectRef::Set(const char* name, const rtValue* value) {
   return (*this)->Set(name, value);
 }
 
+rtError rtObjectRef::Get(uint32_t i, rtValue* value) {
+  return (*this)->Get(i, value);
+}
+ 
+rtError rtObjectRef::Set(uint32_t i, const rtValue* value) {
+  return (*this)->Set(i, value);
+}
+
 rtError rtFunctionRef::Send(int numArgs, const rtValue* args, rtValue* result) {
   return (*this)->Send(numArgs, args, result);
 }
@@ -147,6 +155,43 @@ rtError rtObject::description(rtString& d) {
     return RT_OK;
 }
 
+rtError rtObject::allKeys(rtObjectRef& v) const
+{
+  rtRefT<rtArrayObject> keys = new rtArrayObject;
+
+  {
+    rtMethodMap* m = getMap();      
+    while(m) 
+    {
+      rtPropertyEntry* e = m->getFirstProperty();
+      while(e) 
+      {
+        keys->pushBack(e->mPropertyName);
+        e = e->mNext;
+      }
+      m = m->parentsMap;
+    }
+  }
+      
+  {
+    rtMethodMap* m = getMap();
+    while(m)
+	  {
+	    rtMethodEntry* e = m->getFirstMethod();
+      while(e)
+      {
+        keys->pushBack(e->mMethodName);
+        e = e->mNext;
+      }
+      m = m->parentsMap;
+    }
+	}
+
+  v = keys;
+  return RT_OK;
+}
+
+
 #if 0
 rtError rtAlloc(const char* objectName, rtObjectRef& object) {
   return RT_OK;
@@ -154,8 +199,8 @@ rtError rtAlloc(const char* objectName, rtObjectRef& object) {
 #endif
 
 rtDefineObjectPtr(rtObject, NULL);
-
 rtDefineMethod(rtObject, description);
+rtDefineProperty(rtObject, allKeys);
 rtDefineMethod(rtObject, init);
 
 

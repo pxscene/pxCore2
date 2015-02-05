@@ -26,7 +26,9 @@ class rtIObject {
   virtual unsigned long AddRef() = 0;
   virtual unsigned long Release() = 0;
   virtual rtError Get(const char* name, rtValue* value) = 0;
+  virtual rtError Get(uint32_t i, rtValue* value) = 0;
   virtual rtError Set(const char* name, const rtValue* value) = 0;
+  virtual rtError Set(uint32_t i, const rtValue* value) = 0;
 };
 
 class rtIFunction {
@@ -46,9 +48,17 @@ public:
     finline rtError get(const char* name, T& value);  
   template<typename T>
     finline T get(const char* name);
+  template<typename T>
+    finline rtError get(uint32_t i, T& value);  
+  template<typename T>
+    finline T get(uint32_t i);
 
   finline rtError set(const char* name, const rtValue& value) {
     return Set(name, &value);
+  }
+
+  finline rtError set(uint32_t i, const rtValue& value) {
+    return Set(i, &value);
   }
 
   // convenience methods
@@ -107,7 +117,9 @@ public:
 
  private:
   virtual rtError Get(const char* name, rtValue* value) = 0;
+  virtual rtError Get(uint32_t i, rtValue* value) = 0;
   virtual rtError Set(const char* name, const rtValue* value) = 0;
+  virtual rtError Set(uint32_t i, const rtValue* value) = 0;
 };
 
 // Mix-in providing convenience methods for rtIFunction(s)
@@ -171,7 +183,9 @@ class rtObjectRef: public rtRefT<rtIObject>, public rtObjectBase
 
  private:
   virtual rtError Get(const char* name, rtValue* value);
+  virtual rtError Get(uint32_t i, rtValue* value);
   virtual rtError Set(const char* name, const rtValue* value);
+  virtual rtError Set(uint32_t i, const rtValue* value);
 };
 
 class rtFunctionRef: public rtRefT<rtIFunction>, public rtFunctionBase
@@ -225,7 +239,9 @@ class rtObject: public rtIObject, public rtObjectBase
   
   // Define Dynamic API
   rtMethodNoArgAndNoReturn("init", init);
+  // TODO change this into a readonly property?
   rtMethodNoArgAndReturn("description", description, rtString);
+  rtReadOnlyProperty(allKeys, allKeys, rtObjectRef);
   
   // TODO prefix members with m
  rtObject(): mInitialized(false), mRefCount(0) { }
@@ -251,6 +267,7 @@ class rtObject: public rtIObject, public rtObjectBase
     }
 
     rtError description(rtString& d);
+    rtError allKeys(rtObjectRef& v) const;
 
 #if 0
     void dump()
@@ -264,55 +281,64 @@ class rtObject: public rtIObject, public rtObjectBase
     }
 #endif
 
+    virtual rtError Get(uint32_t /*i*/, rtValue* /*value*/)
+    {
+      return RT_PROP_NOT_FOUND;
+    }
+
     virtual rtError Get(const char* name, rtValue* value)
     {
       rtError hr = RT_PROP_NOT_FOUND;
+      rtMethodMap* m = getMap();
       
-      rtMethodMap* m;
-      m = getMap();
-      
-      while(m) {
-	rtPropertyEntry* e = m->getFirstProperty();
-	while(e) {
-	  if (strcmp(name, e->mPropertyName) == 0) {
-	    //    found = true;
-	    rtGetPropertyThunk t = e->mGetThunk;
-	    hr = (*this.*t)(*value);
-	    return hr;
-	  }
-	  e = e->mNext;
-	}
-	  
-	m = m->parentsMap;
+      while(m) 
+      {
+        rtPropertyEntry* e = m->getFirstProperty();
+        while(e) 
+        {
+          if (strcmp(name, e->mPropertyName) == 0) 
+          {
+            //    found = true;
+            rtGetPropertyThunk t = e->mGetThunk;
+            hr = (*this.*t)(*value);
+            return hr;
+          }
+          e = e->mNext;
+        }
+        m = m->parentsMap;
       }
       rtLogDebug("key: %s not found", name);
       
       {
+        rtLogDebug("Looking for function as property: %s", name);
 	
-	rtLogDebug("Looking for function as property: %s", name);
+        rtMethodMap* m;
+        m = getMap();
 	
-	rtMethodMap* m;
-	m = getMap();
-	
-	while(m)
-	  {
-	    rtMethodEntry* e = m->getFirstMethod();
-            while(e)
-	      {
-                if (strcmp(name, e->mMethodName) == 0)
-		  {
-		    rtLogDebug("found method: %s", name);
-		    value->setFunction(new rtObjectFunction(this, e->mThunk));
-		    hr = RT_OK;
-                    return hr;
-		  }
-                e = e->mNext;
-	      }
+        while(m)
+        {
+          rtMethodEntry* e = m->getFirstMethod();
+          while(e)
+          {
+            if (strcmp(name, e->mMethodName) == 0)
+            {
+              rtLogDebug("found method: %s", name);
+              value->setFunction(new rtObjectFunction(this, e->mThunk));
+              hr = RT_OK;
+              return hr;
+            }
+            e = e->mNext;
+          }
             
-            m = m->parentsMap;
-	    }
-	}
-        return hr;
+          m = m->parentsMap;
+        }
+      }
+      return hr;
+    }
+
+    virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/)
+    {
+      return RT_PROP_NOT_FOUND;
     }
 
     virtual rtError Set(const char* name, const rtValue* value) 
@@ -358,22 +384,43 @@ rtError rtAlloc(const char* objectName, rtObjectRef& object);
 // TODO move out to another file
 
 template<typename T>
-finline rtError rtObjectBase::get(const char* name, T& value) 
+rtError rtObjectBase::get(const char* name, T& value) 
 {
   rtValue v;
   rtError e = Get(name, &v);
-  if (e == RT_OK) {
+  if (e == RT_OK) 
+  {
     value = v.convert<T>();
   }
   return e;
 }
 
 template<typename T>
-finline T rtObjectBase::get(const char* name) 
+T rtObjectBase::get(const char* name) 
 {
   rtValue v;
   Get(name, &v);
   return v.convert<T>();
+}
+
+template<typename T>
+T rtObjectBase::get(uint32_t i) 
+{
+  rtValue v;
+  Get(i, &v);
+  return v.convert<T>();
+}
+
+template<typename T>
+rtError rtObjectBase::get(uint32_t i, T& value) 
+{
+  rtValue v;
+  rtError e = Get(i, &v);
+  if (e == RT_OK) 
+  {
+    value = v.convert<T>();
+  }
+  return e;
 }
 
 template <typename T> 
@@ -625,6 +672,64 @@ private:
   }
 };
 
+class rtArrayObject: public rtObject {
+public:
+  rtArrayObject() {}
+
+  void empty()
+  {
+    mElements.empty();
+  }
+
+  void pushBack(rtValue v)
+  {
+    mElements.push_back(v);
+  }
+
+  virtual rtError Get(const char* name, rtValue* value)
+  {
+    if (!value) return RT_FAIL;
+    if (!strcmp(name, "length"))
+    {
+      value->setUInt32(mElements.size());
+      return RT_OK;
+    }
+    else
+      return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Get(uint32_t i, rtValue* value)
+  {
+    if (!value) return RT_FAIL;
+    if (i < mElements.size())
+    {
+      *value = mElements[i];
+      return RT_OK;
+    }
+    else
+      return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Set(const char* /*name*/, const rtValue* /*value*/)
+  {
+    return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Set(uint32_t i, const rtValue* value)
+  {
+    if (!value) return RT_FAIL;
+    if (i < mElements.size())
+    {
+      mElements[i] = *value;
+      return RT_OK;
+    }
+    else
+      return RT_PROP_NOT_FOUND;
+  }
+
+private:
+  vector<rtValue> mElements;
+};
 
 #endif
 #endif

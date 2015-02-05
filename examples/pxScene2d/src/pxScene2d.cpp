@@ -47,6 +47,13 @@ void pxObject::setParent(rtRefT<pxObject>& parent)
   parent->mChildren.push_back(this);
 }
 
+rtError pxObject::children(rtObjectRef& v) const
+{
+  v = new pxObjectChildren(const_cast<pxObject*>(this));
+  return RT_OK;
+}
+
+
 rtError pxObject::remove()
 {
   if (mParent)
@@ -189,6 +196,8 @@ void pxObject::update(double t)
 
 void pxObject::drawInternal(pxMatrix4f m)
 {
+  // TODO not propogating parent alpha
+  // TODO cull when alpha is near zero
 
 #if 1
   // translate based on xy rotate/scale based on cx, cy
@@ -207,6 +216,7 @@ void pxObject::drawInternal(pxMatrix4f m)
   m.translate(-mcx, -mcy);
 
 #endif
+
   context.setMatrix(m);
   context.setAlpha(ma);
   
@@ -216,7 +226,8 @@ void pxObject::drawInternal(pxMatrix4f m)
     float c[4] = {1, 0, 0, 1};
     context.drawDiagRect(0, 0, mw, mh, c);
 
-    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); 
+        it != mChildren.end(); ++it)
     {
       (*it)->drawInternal(m);
     }
@@ -269,6 +280,7 @@ void pxObject::deleteSnapshot()
 rtDefineObject(pxObject, rtObject);
 rtDefineProperty(pxObject, _pxObject);
 rtDefineProperty(pxObject, parent);
+rtDefineProperty(pxObject, children);
 rtDefineProperty(pxObject, x);
 rtDefineProperty(pxObject, y);
 rtDefineProperty(pxObject, w);
@@ -509,7 +521,6 @@ rtError pxScene::setURL(rtString v)
   return RT_OK; 
 }
 
-
 rtDefineObject(pxScene, pxObject);
 //rtDefineProperty(pxScene, innerScene);
 rtDefineProperty(pxScene, url);
@@ -571,13 +582,22 @@ rtError pxInnerScene::createScene(rtObjectRef& o)
   return RT_OK;
 }
 
-
 rtError pxScene2dRef::Get(const char* name, rtValue* value)
 {
   return (*this)->Get(name, value);
 }
 
+rtError pxScene2dRef::Get(uint32_t i, rtValue* value)
+{
+  return (*this)->Get(i, value);
+}
+
 rtError pxScene2dRef::Set(const char* name, const rtValue* value)
 {
   return (*this)->Set(name, value);
+}
+
+rtError pxScene2dRef::Set(uint32_t i, const rtValue* value)
+{
+  return (*this)->Set(i, value);
 }

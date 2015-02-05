@@ -18,18 +18,15 @@ using namespace std;
 #include "rtString.h"
 
 #include "rtDefs.h"
+#include "rtCore.h"
 #include "rtError.h"
 #include "rtValue.h"
 #include "rtObject.h"
 #include "rtObjectMacros.h"
 
-#include "pxMatrix4T.h"
-
 #include "pxCore.h"
+#include "pxMatrix4T.h"
 #include "pxInterpolators.h"
-
-#include "rtCore.h"
-
 
 typedef double (*pxInterp)(double i);
 typedef void (*pxAnimationEnded)(void* ctx);
@@ -50,7 +47,6 @@ struct pxAnimationTarget {
 typedef double (*pxInterp)(double i);
 typedef void (*pxAnimationEnded)(void* ctx);
 
-
 double pxInterpLinear(double i);
 
 struct animation {
@@ -62,13 +58,10 @@ struct animation {
   double duration;
   pxAnimationType at;
   pxInterp interp;
-#if 0
-  pxAnimationEnded ended;
-  void* ctx;
-#else
   rtFunctionRef ended;
-#endif
 };
+
+class pxObject;
 
 class pxObject: public rtObject {
 public:
@@ -89,15 +82,16 @@ public:
   rtProperty(ry, ry, setRY, float);
   rtProperty(rz, rz, setRZ, float);
   rtProperty(painting, painting, setPainting, bool);
-  // would be nice to expose as collection to js
+  // TODO would be nice to expose as collection to js
   rtReadOnlyProperty(numChildren, numChildren, int32_t);
   rtMethod1ArgAndReturn("getChild", getChild, int32_t, rtObjectRef);
+  rtReadOnlyProperty(children, children, rtObjectRef);
 
   rtMethodNoArgAndNoReturn("remove", remove);
   rtMethod5ArgAndNoReturn("animateTo", animateTo, rtString, double, double, 
 			  uint32_t, uint32_t);
 
-  // Until we can sort out how to do optional/default args
+  // TODO Until we can sort out how to do optional/default args
   rtMethod6ArgAndNoReturn("animateTo2", animateTo2, rtString, double, double, 
                           uint32_t, uint32_t, rtFunctionRef);
 
@@ -110,25 +104,32 @@ public:
   virtual unsigned long Release() { if (--mRef == 0) delete this; return mRef; }
   
   // TODO missing conversions in rtValue between uint32_t and int32_t
-  rtError numChildren(int32_t& v) const {
+  uint32_t numChildren() const { return mChildren.size(); }
+  rtError numChildren(int32_t& v) const 
+  {
     v = mChildren.size();
     return RT_OK;
   }
 
-  rtError getChild(int32_t i, rtObjectRef& r) const {
+  rtError getChild(int32_t i, rtObjectRef& r) const 
+  {
     r = mChildren[i];
     return RT_OK;
   }
 
-  // clean this up
+  rtError children(rtObjectRef& v) const;
+
+  // TODO clean this up
   void setParent(rtRefT<pxObject>& parent);
 
-  rtError parent(rtObjectRef& v) const {
+  rtError parent(rtObjectRef& v) const 
+  {
     v = mParent.getPtr();
     return RT_OK;
   }
 
-  rtError setParent(rtObjectRef parent) {
+  rtError setParent(rtObjectRef parent) 
+  {
     void* p = parent.get<voidPtr>("_pxObject");
     if (p) {
       rtRefT<pxObject> p2 = (pxObject*)p;
@@ -199,7 +200,6 @@ public:
   void moveForward();
   void moveBackward();
 
-//  void tick(double t);
   virtual void drawInternal(pxMatrix4f m);
   virtual void draw() {}
   bool hitTest(const pxPoint2f& pt);
@@ -210,11 +210,7 @@ public:
   rtError animateTo2(const char* prop, double to, double duration, 
                      uint32_t interp, uint32_t animationType, 
                      rtFunctionRef onEnd);
-#if 0
-  void animateTo(const char* prop, double to, double duration, 
-		 pxInterp interp=0, pxAnimationType at=stop, 
-		 pxAnimationEnded e = 0, void* c = 0);  
-#else
+
   void animateTo(const char* prop, double to, double duration, 
 		 pxInterp interp, pxAnimationType at, 
 		 rtFunctionRef onEnd);  
@@ -224,7 +220,6 @@ public:
   {
     animateTo(prop, to, duration, interp, at, rtFunctionRef());
   }  
-#endif
 
   virtual void update(double t);
 
@@ -310,6 +305,57 @@ protected:
 };
 
 typedef rtRefT<pxObject> pxObjectRef;
+
+
+class pxObjectChildren: public rtObject {
+public:
+  pxObjectChildren(pxObject* o)
+  {
+    mObject = o;
+  }
+
+  virtual rtError Get(const char* name, rtValue* value)
+  {
+    if (!value) return RT_FAIL;
+    if (!strcmp(name, "length"))
+    {
+      value->setUInt32(mObject->numChildren());
+      return RT_OK;
+    }
+    else
+      return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Get(uint32_t i, rtValue* value)
+  {
+    if (!value) return RT_FAIL;
+    if (i < mObject->numChildren())
+    {
+      rtObjectRef o;
+      rtError e = mObject->getChild(i, o);
+      *value = o;
+      return e;
+    }
+    else
+      return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Set(const char* /*name*/, const rtValue* /*value*/)
+  {
+    // readonly property
+    return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/)
+  {
+    // readonly property
+    return RT_PROP_NOT_FOUND;
+  }
+
+private:
+  rtRefT<pxObject> mObject;
+};
+
 
 
 class pxInnerScene: public pxObject {
@@ -428,6 +474,19 @@ private:
   rtString mURL;
 };
 
+#if 0
+class pxChildren: public rtObject {
+public:
+  pxChildren(pxObject* o)
+  {
+  }
+
+  
+
+private:
+  pxObjectRef mObject;
+};
+#endif
 
 class pxScene2d: public rtObject {
 public:
@@ -504,20 +563,18 @@ public:
   void hitTest(pxPoint2f p, vector<rtRefT<pxObject> > hitList);
   
   pxObject* getRoot() const;
-
-  rtError root(rtObjectRef& v) const {
+  rtError root(rtObjectRef& v) const 
+  {
     v = getRoot();
     return RT_OK;
   }
   
 private:
-//  void tick(double t);
   void draw();
   // Does not draw updates scene to time t
   // t is assumed to be monotonically increasing
   void update(double t);
   
-
   rtRefT<pxObject> mRoot;
   double start, end2;
   int frameCount;
@@ -531,20 +588,16 @@ class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase
 {
  public:
   pxScene2dRef() {}
-  pxScene2dRef(pxScene2d* s) {
-    asn(s);
-  }
+  pxScene2dRef(pxScene2d* s) { asn(s); }
 
   // operator= is not inherited
-  pxScene2dRef& operator=(pxScene2d* s) {
-    asn(s);
-    return *this;
-  }
+  pxScene2dRef& operator=(pxScene2d* s) { asn(s); return *this; }
   
  private:
   virtual rtError Get(const char* name, rtValue* value);
+  virtual rtError Get(uint32_t i, rtValue* value);
   virtual rtError Set(const char* name, const rtValue* value);
-
+  virtual rtError Set(uint32_t i, const rtValue* value);
 };
 
 #endif

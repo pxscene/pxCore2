@@ -355,6 +355,14 @@ void testScene()
   bg1.set("w", scene->w());
   bg1.set("h", scene->h());
 
+  printf("Try enumerating properties on image.\n");
+  rtObjectRef keys = bg1.get<rtObjectRef>("allKeys");
+  uint32_t length = keys.get<uint32_t>("length");
+  for (uint32_t i = 0; i < length; i++)
+  {
+    printf("i: %d key: %s\n", i, keys.get<rtString>(i).cString());
+  }
+
   scene.sendReturns<rtObjectRef>("createImage", bg2);
   bgURL = d;
   bgURL.append("/../images/radial_gradient.png");
@@ -379,6 +387,17 @@ void testScene()
   picture.set("y", 400);
   picture.send("animateTo", "r", 360, 0.5, 0, 1);
   picture.set("parent", root);
+
+  printf("Enumerate children of root object\n");
+  rtObjectRef c = root.get<rtObjectRef>("children");
+  uint32_t l = c.get<uint32_t>("length");
+  for (uint32_t i = 0; i < l; i++)
+  {
+    rtObjectRef o = c.get<rtObjectRef>(i);
+    rtString s;
+    o.sendReturns<rtString>("description", s);
+    printf("class description: %s\n", s.cString());
+  }
 }
 
 #endif

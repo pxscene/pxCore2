@@ -80,21 +80,21 @@ typedef rtPropertyEntry* (*fnPropHead)(rtPropertyEntry* p);
 
 typedef struct rtMethodMap
 {
-    const char* className;
-    fnhead firstMethod;
-    fnPropHead firstProperty;
-    
-    //unsigned long numEntries;
-    rtMethodMap* parentsMap;
-
-    rtMethodEntry* getFirstMethod()
-    {
-        return firstMethod(NULL);
-    }
-    rtPropertyEntry* getFirstProperty()
-    {
-        return firstProperty(NULL);
-    }
+  const char* className;
+  fnhead firstMethod;
+  fnPropHead firstProperty;
+  
+  //unsigned long numEntries;
+  rtMethodMap* parentsMap;
+  
+  rtMethodEntry* getFirstMethod()
+  {
+    return firstMethod(NULL);
+  }
+  rtPropertyEntry* getFirstProperty()
+  {
+    return firstProperty(NULL);
+  }
 } rtMethodMap;
 
 #if 0
@@ -147,7 +147,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
 
 
 #define rtDeclareObject(CLASSNAME__, PARENT__)                           \
-    rtDeclareObjectPtr(CLASSNAME__, PARENT__::head()) \
+  rtDeclareObjectPtr(CLASSNAME__, PARENT__::head());                    \
 	typedef CLASSNAME__ PARENTTYPE__;
 
 
