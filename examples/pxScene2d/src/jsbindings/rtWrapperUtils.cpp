@@ -111,8 +111,9 @@ rtValue js2rt(const Handle<Value>& val, rtWrapperError* error)
     }
     else
     {
-      error->setMessage("can't convert regular javascript object to pxObject");
-      return rtValue();
+      // this is a regular JS object. i.e. one that does not wrap an rtObject.
+      // in this case, we'll provide the necessary adapter.
+      return rtValue(new jsObjectWrapper(obj->ToObject()));
     }
   }
 

@@ -145,3 +145,106 @@ Handle<Value> rtObjectWrapper::create(const Arguments& args)
   }
 }
 
+jsObjectWrapper::jsObjectWrapper(const Handle<Value>& obj)
+  : mRefCount(0)
+{
+  assert(obj->IsObject());
+  mObject = Persistent<Object>::New(Handle<Object>::Cast(obj));
+}
+
+jsObjectWrapper::~jsObjectWrapper()
+{
+  mObject.Dispose();
+}
+
+unsigned long jsObjectWrapper::AddRef()
+{
+  return rtAtomicInc(&mRefCount);
+}
+
+unsigned long jsObjectWrapper::Release()
+{
+  unsigned long l = rtAtomicDec(&mRefCount);
+  if (l == 0) delete this;
+  return l;
+}
+
+rtError jsObjectWrapper::getAllKeys(rtValue* value)
+{
+  Local<Array> names = mObject->GetPropertyNames();
+
+  rtRefT<rtArrayObject> result(new rtArrayObject);
+  for (int i = 0, n = names->Length(); i < n; ++i)
+  {
+    rtWrapperError error;
+    rtValue val = js2rt(names->Get(i), &error);
+    if (error.hasError())
+      return RT_FAIL;
+    else
+      result->pushBack(val);
+  }
+
+  *value = rtValue(result);
+  return RT_OK;
+}
+
+rtError jsObjectWrapper::Get(const char* name, rtValue* value)
+{
+  if (!value)
+    return RT_ERROR_INVALID_ARG;
+  if (!name)
+    return RT_ERROR_INVALID_ARG;
+
+  if (strcmp(name, "allKeys") == 0)
+    return getAllKeys(value);
+
+  rtWrapperError error;
+
+  Local<String> s = String::New(name);
+  if (mObject->Has(s))
+    *value = js2rt(mObject->Get(s), &error);
+  else
+    error.setMessage("missing field");
+
+  return error.hasError() ? RT_FAIL : RT_OK;
+}
+
+rtError jsObjectWrapper::Get(uint32_t i, rtValue* value)
+{
+  if (!value)
+    return RT_ERROR_INVALID_ARG;
+
+  rtWrapperError error;
+  if (mObject->Has(i))
+    *value = js2rt(mObject->Get(i), &error);
+  else
+    *value = rtValue();
+
+  return error.hasError() ? RT_FAIL : RT_OK;
+}
+
+rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
+{
+  if (!value) return RT_ERROR_INVALID_ARG;
+  if (!name)  return RT_ERROR_INVALID_ARG;
+
+  if (!mObject->Set(String::New(name), rt2js(*value)))
+    return RT_FAIL;
+
+  return RT_OK;
+}
+
+rtError jsObjectWrapper::Set(uint32_t i, const rtValue* value)
+{
+  if (!value)
+    return RT_ERROR_INVALID_ARG;
+
+  if (!mObject->Set(i, rt2js(*value)))
+    return RT_FAIL;
+
+  return RT_OK;
+}
+
+
+
+

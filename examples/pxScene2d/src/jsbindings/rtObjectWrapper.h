@@ -25,6 +25,30 @@ private:
   static Handle<Array> enumProperties(const AccessorInfo& info);
 };
 
+class jsObjectWrapper : public rtIObject
+{
+public:
+  jsObjectWrapper(const Handle<Value>& val);
+  ~jsObjectWrapper();
+
+  virtual unsigned long AddRef();
+  virtual unsigned long Release();
+
+  virtual rtError Get(const char* name, rtValue* value);
+  virtual rtError Get(uint32_t i, rtValue* value);
+  virtual rtError Set(const char* name, const rtValue* value);
+  virtual rtError Set(uint32_t i, const rtValue* value);
+
+private:
+  rtError getAllKeys(rtValue* value);
+
+private:
+  unsigned long mRefCount;
+  Persistent<Object> mObject;
+};
+
+
+
 #endif
 #ifndef RT_WRAPPER_UTILS
 #define RT_WRAPPER_UTILS
