@@ -7,6 +7,9 @@
 using namespace v8;
 
 static const char* kClassName = "Object";
+static const char* kFuncAllKeys = "allKeys";
+static const char* kPropLength = "length";
+
 static Persistent<Function> ctor;
 
 rtObjectWrapper::rtObjectWrapper(const rtObjectRef& ref)
@@ -62,11 +65,11 @@ Handle<Array> rtObjectWrapper::enumProperties(const AccessorInfo& info)
   if (!ref)
     return Handle<Array>();
 
-  rtObjectRef keys = ref.get<rtObjectRef>("allKeys");
+  rtObjectRef keys = ref.get<rtObjectRef>(kFuncAllKeys);
   if (!keys)
     return Handle<Array>();
 
-  uint32_t length = keys.get<uint32_t>("length");
+  uint32_t length = keys.get<uint32_t>(kPropLength);
   Local<Array> props = Array::New(length);
 
   for (uint32_t i = 0; i < length; ++i)
@@ -114,8 +117,6 @@ Handle<Value> rtObjectWrapper::setProperty(
   rtValue value = js2rt(val, &error);
   if (error.hasError())
     return ThrowException(error.toTypeError());
-
-  rtLogDebug("set %s=%s", name.cString(), value.toString().cString());
 
   rtWrapperSceneUpdateEnter();
   rtError err = unwrap(info)->Set(name.cString(), &value);
@@ -195,18 +196,19 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value)
   if (!name)
     return RT_ERROR_INVALID_ARG;
 
-  if (strcmp(name, "allKeys") == 0)
+  if (strcmp(name, kFuncAllKeys) == 0)
     return getAllKeys(value);
 
-  rtWrapperError error;
-
   Local<String> s = String::New(name);
-  if (mObject->Has(s))
-    *value = js2rt(mObject->Get(s), &error);
-  else
-    error.setMessage("missing field");
+  if (!mObject->Has(s))
+    return RT_PROPERTY_NOT_FOUND;
 
-  return error.hasError() ? RT_FAIL : RT_OK;
+  rtWrapperError error;
+  *value = js2rt(mObject->Get(s), &error);
+  if (error.hasError())
+    return RT_ERROR_INVALID_ARG;
+
+  return RT_OK;
 }
 
 rtError jsObjectWrapper::Get(uint32_t i, rtValue* value)
@@ -214,19 +216,23 @@ rtError jsObjectWrapper::Get(uint32_t i, rtValue* value)
   if (!value)
     return RT_ERROR_INVALID_ARG;
 
-  rtWrapperError error;
-  if (mObject->Has(i))
-    *value = js2rt(mObject->Get(i), &error);
-  else
-    *value = rtValue();
+  if (!mObject->Has(i))
+    return RT_PROPERTY_NOT_FOUND;
 
-  return error.hasError() ? RT_FAIL : RT_OK;
+  rtWrapperError error;
+  *value = js2rt(mObject->Get(i), &error);
+  if (error.hasError())
+    return RT_ERROR_INVALID_ARG;
+
+  return RT_OK;
 }
 
 rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
 {
-  if (!value) return RT_ERROR_INVALID_ARG;
-  if (!name)  return RT_ERROR_INVALID_ARG;
+  if (!value)
+    return RT_ERROR_INVALID_ARG;
+  if (!name)
+    return RT_ERROR_INVALID_ARG;
 
   if (!mObject->Set(String::New(name), rt2js(*value)))
     return RT_FAIL;
@@ -244,7 +250,4 @@ rtError jsObjectWrapper::Set(uint32_t i, const rtValue* value)
 
   return RT_OK;
 }
-
-
-
 

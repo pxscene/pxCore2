@@ -112,14 +112,15 @@ protected:
 
   static v8::Handle<v8::Value> throwRtError(rtError err, const char* format, ...) RT_PRINTF_FORMAT(2, 3)
   {
-    char buff[256];
+    const int kBuffSize = 256;
+    char buff[kBuffSize];
 
     va_list ptr;
     va_start(ptr, format);
     int n = vsnprintf(buff, sizeof(buff), format, ptr);
-    if (n >= sizeof(buff))
+    if (n >= kBuffSize)
     {
-      buff[sizeof(buff) - 1] = '\0';
+      buff[kBuffSize - 1] = '\0';
     }
     else
     {
