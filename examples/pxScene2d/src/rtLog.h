@@ -13,6 +13,13 @@
 #define RTLOGPREFIX "rt:"
 #endif
 
+#ifdef __GNUC__
+#define RT_PRINTF_FORMAT(IDX, FIRST) __attribute__ ((format (printf, IDX, FIRST)))
+#else
+#define RT_PRINTF_FORMAT(IDX, FIRST)
+#endif
+
+
 enum rtLogLevel
 {
   RT_LOG_DEBUG = 0,
@@ -24,7 +31,7 @@ enum rtLogLevel
 
 typedef void (*rtLogHandler)(rtLogLevel level, const char* file, int line, int threadId, char* message);
 
-void rtLogPrintf(rtLogLevel level, const char* file, int line, const char* format, ...);
+void rtLogPrintf(rtLogLevel level, const char* file, int line, const char* format, ...) RT_PRINTF_FORMAT(4, 5);
 void rtLogSetLevel(rtLogLevel l);
 void rtLogSetLogHandler(rtLogHandler logHandler);
 
