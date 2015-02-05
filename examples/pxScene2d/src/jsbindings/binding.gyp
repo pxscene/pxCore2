@@ -10,6 +10,7 @@
         "rtFunctionWrapper.cpp",
         "rtObjectWrapper.cpp",
 
+        "../rtError.cpp",
         "../rtObject.cpp",
         "../rtLog.cpp",
         "../rtString.cpp",

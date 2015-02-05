@@ -18,4 +18,6 @@
 
 typedef unsigned long rtError;
 
+const char* rtStrError(rtError e);
+
 #endif

@@ -7,6 +7,7 @@ clean:
 VPATH=linux
 
 RT_SRCS=\
+    rtError.cpp\
     rtFile.cpp \
     rtLog.cpp \
     rtPathUtils.cpp \
