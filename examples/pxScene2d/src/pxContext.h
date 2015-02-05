@@ -30,6 +30,10 @@ class pxContext {
   pxError setRenderSurface(pxContextSurfaceNativeDesc* contextSurface);
   pxError unsetRenderSurface(pxContextSurfaceNativeDesc* contextSurface);
   pxError deleteContextSurface(pxContextSurfaceNativeDesc* contextSurface);
+  
+  rtRefT<pxTextureRef> createContextSurface(int width, int height);
+  pxError setRenderSurface(rtRefT<pxTextureRef> texture);
+  pxError deleteContextSurface(rtRefT<pxTextureRef> texture);
 
   rtRefT<pxTextureRef> createTexture(pxOffscreen o);
 

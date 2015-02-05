@@ -7,7 +7,8 @@ enum pxTextureRefType {
   PX_TEXTURE_UNKNOWN = 0,
   PX_TEXTURE_OFFSCREEN = 1, 
   PX_TEXTURE_ALPHA = 2, 
-  PX_TEXTURE_NATIVE = 3
+  PX_TEXTURE_NATIVE = 3,
+  PX_TEXTURE_FRAME_BUFFER = 4
 };
 
 class pxTextureRef
@@ -19,6 +20,7 @@ public:
   virtual unsigned long Release() { if (--mRef == 0) delete this; return mRef; }
   
   virtual pxError bindTexture() = 0;
+  virtual pxError deleteTexture() = 0;
   virtual float getWidth() = 0;
   virtual float getHeight() = 0;
   pxTextureRefType getType() { return mTextureType; }
