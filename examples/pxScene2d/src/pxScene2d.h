@@ -384,6 +384,8 @@ public:
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtMethodNoArgAndReturn("createRectangle", createRectangle, rtObjectRef);
   rtMethodNoArgAndReturn("createImage", createImage, rtObjectRef);
+  rtMethod1ArgAndReturn("createImage2", createImage2, rtObjectRef,
+                        rtObjectRef);
   rtMethodNoArgAndReturn("createImage9", createImage9, rtObjectRef);
   rtMethodNoArgAndReturn("createText", createText, rtObjectRef);
   rtMethodNoArgAndReturn("createScene", createScene, rtObjectRef);
@@ -424,6 +426,18 @@ public:
   rtError setShowOutlines(bool v);
 
   rtError createRectangle(rtObjectRef& o);
+  rtError createImage2(rtObjectRef p, rtObjectRef& o)
+  {
+    printf("In createImage2\n");
+    rtError e = createImage(o);
+    rtObjectRef keys = p.get<rtObjectRef>("allKeys");
+    uint32_t len = keys.get<uint32_t>("length");
+    for (uint32_t i = 0; i < len; i++)
+    {
+      printf("key: %s\n", keys.get<rtString>(i).cString());
+    }
+    return e;
+  }
   rtError createText(rtObjectRef& o);
   rtError createImage(rtObjectRef& o);
   rtError createImage9(rtObjectRef& o);

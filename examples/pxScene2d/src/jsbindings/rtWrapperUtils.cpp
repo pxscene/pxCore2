@@ -23,22 +23,40 @@ Handle<Value> rt2js(const rtValue& v)
   switch (v.getType())
   {
     case RT_int32_tType:
-      return Integer::New(v.toInt32());
+      {
+        int32_t i = v.toInt32();
+        return Integer::New(i);
+      }
       break;
     case RT_uint32_tType:
-      return Integer::NewFromUnsigned(v.toUInt32());
+      {
+        uint32_t u = v.toUInt32();
+        return Integer::NewFromUnsigned(u);
+      }
       break;
     case RT_int64_tType:
-      return Number::New(v.toDouble());
+      {
+        double d = v.toDouble();
+        return Number::New(d);
+      }
       break;
     case RT_floatType:
-      return Number::New(v.toFloat());
+      {
+        float f = v.toFloat();
+        return Number::New(f);
+      }
       break;
     case RT_doubleType:
-      return Number::New(v.toDouble());
+      {
+        double d = v.toDouble();
+        return Number::New(d);
+      }
       break;
     case RT_uint64_tType:
-      return Number::New(v.toDouble());
+      {
+        double d = v.toDouble();
+        return Number::New(d);
+      }
       break;
     case RT_functionType:
       return rtFunctionWrapper::createFromFunctionReference(v.toFunction());
@@ -46,11 +64,18 @@ Handle<Value> rt2js(const rtValue& v)
     case RT_rtObjectRefType:
       return rtObjectWrapper::createFromObjectReference(v.toObject());
       break;
+    case RT_boolType:
+      return Boolean::New(v.toBool());
+      break;
     case RT_rtStringType:
       {
         rtString s = v.toString();
         return String::New(s.cString(), s.length());
       }
+      break;
+    case RT_voidPtrType:
+      rtLogWarn("attempt to convert from void* to JS object");
+      return Handle<Value>(); // TODO
       break;
     case 0: // This is really a value rtValue() will set mType to zero
       return Handle<Value>();
@@ -86,8 +111,9 @@ rtValue js2rt(const Handle<Value>& val, rtWrapperError* error)
     }
     else
     {
-      error->setMessage("can't convert regular javascript object to pxObject");
-      return rtValue();
+      // this is a regular JS object. i.e. one that does not wrap an rtObject.
+      // in this case, we'll provide the necessary adapter.
+      return rtValue(new jsObjectWrapper(obj->ToObject()));
     }
   }
 

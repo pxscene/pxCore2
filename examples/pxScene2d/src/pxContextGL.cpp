@@ -373,7 +373,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
 
   if (!stat)
   {
-    rtLogError("Error: fragment shader did not compile: ", glGetError());
+    rtLogError("Error: fragment shader did not compile: %s\n", glGetError());
     
     GLint maxLength = 0;
     glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &maxLength);

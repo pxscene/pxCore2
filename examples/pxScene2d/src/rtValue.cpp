@@ -50,6 +50,7 @@ void rtValue::setEmpty() {
     }
   }
   mType = 0;
+  mValue.uint64Value = 0;
 }
 
 void rtValue::setValue(const rtValue& v) {
@@ -277,110 +278,111 @@ rtError rtValue::coerceType(rtType newType) {
     //    rtLog("In coerceType\n");
     switch(mType) {
     case RT_boolType:
-      {
-	switch(newType) {
-	case RT_boolType: setBool(mValue.boolValue); break;
-	case RT_int8_tType: setInt8(mValue.boolValue?0:1); break;
-	case RT_uint8_tType: setUInt8(mValue.boolValue?0:1); break;
-	case RT_int32_tType: setInt32(mValue.boolValue?0:1); break;
-	case RT_uint32_tType: setUInt32(mValue.boolValue?0:1); break;
-	case RT_floatType: setFloat(mValue.boolValue?0.0f:1.0f); break;
-	case RT_doubleType: setDouble(mValue.boolValue?0.0:1.0); break;
-	case RT_stringType: setString(mValue.boolValue?"true":"false"); break;
-	case RT_objectType: setObject(NULL); break;
-	case RT_functionType: setFunction(NULL); break;
-	default:
-    rtLogWarn("missed conversion");
-	break;
-	}
+    {
+      switch(newType) {
+      case RT_boolType: setBool(mValue.boolValue); break;
+      case RT_int8_tType: setInt8(mValue.boolValue?0:1); break;
+      case RT_uint8_tType: setUInt8(mValue.boolValue?0:1); break;
+      case RT_int32_tType: setInt32(mValue.boolValue?0:1); break;
+      case RT_uint32_tType: setUInt32(mValue.boolValue?0:1); break;
+      case RT_floatType: setFloat(mValue.boolValue?0.0f:1.0f); break;
+      case RT_doubleType: setDouble(mValue.boolValue?0.0:1.0); break;
+      case RT_stringType: setString(mValue.boolValue?"true":"false"); break;
+      case RT_objectType: setObject(NULL); break;
+      case RT_functionType: setFunction(NULL); break;
+      default:
+        rtLogWarn("missed conversion");
+        break;
       }
+    }
     case RT_int8_tType:
     case RT_uint8_tType:
     case RT_int32_tType:
+    {
+      switch(newType) {
+      case RT_boolType: setBool(mValue.int32Value?true:false); break;
+      case RT_int8_tType: setInt8((int8_t)mValue.int32Value); break;
+      case RT_uint8_tType: setUInt8((uint8_t)mValue.int32Value); break;
+      case RT_int32_tType: setInt32((int32_t)mValue.int32Value); break;
+      case RT_uint32_tType: setUInt32((uint32_t)mValue.int32Value); break;
+      case RT_floatType: setFloat((float)mValue.int32Value); break;
+      case RT_doubleType: setDouble((double)mValue.int32Value); break;
+      case RT_stringType: 
       {
-	switch(newType) {
-	case RT_boolType: setBool(mValue.int32Value?true:false); break;
-	case RT_int8_tType: setInt8((int8_t)mValue.int32Value); break;
-	case RT_uint8_tType: setUInt8((uint8_t)mValue.int32Value); break;
-	case RT_int32_tType: setInt32((int32_t)mValue.int32Value); break;
-	case RT_uint32_tType: setUInt32((uint32_t)mValue.int32Value); break;
-	case RT_floatType: setFloat((float)mValue.int32Value); break;
-	case RT_doubleType: setDouble((double)mValue.int32Value); break;
-	case RT_stringType: 
-	{
-	  char buffer[256];
-	  sprintf(buffer, "%d", mValue.int32Value);
-	  setString(buffer);
-	}
-	break;
-	case RT_objectType: setObject(NULL); break;
-	case RT_functionType: setFunction(NULL); break;
-	default:
-    rtLogWarn("missed conversion");
-	break;
-	}
+        char buffer[256];
+        sprintf(buffer, "%d", mValue.int32Value);
+        setString(buffer);
       }
       break;
+      case RT_objectType: setObject(NULL); break;
+      case RT_functionType: setFunction(NULL); break;
+      default:
+        rtLogWarn("missed conversion");
+        break;
+      }
+    }
+    break;
     case RT_uint32_tType:
     case RT_floatType:
+    {
+      switch(newType) {
+      case RT_boolType: setBool((mValue.floatValue==0.0)?false:true); break;
+      case RT_int8_tType: setInt8((int8_t)mValue.floatValue); break;
+      case RT_uint8_tType: setUInt8((uint8_t)mValue.floatValue); break;
+      case RT_int32_tType: setInt32((int32_t)mValue.floatValue); break;
+      case RT_uint32_tType: setUInt32((uint32_t)mValue.floatValue); break;
+      case RT_floatType: setFloat((float)mValue.floatValue); break;
+      case RT_doubleType: setDouble((double)mValue.floatValue); break;
+      case RT_stringType: 
       {
-	switch(newType) {
-	case RT_boolType: setBool((mValue.floatValue==0.0)?false:true); break;
-	case RT_int8_tType: setInt8((int8_t)mValue.floatValue); break;
-	case RT_uint8_tType: setUInt8((uint8_t)mValue.floatValue); break;
-	case RT_int32_tType: setInt32((int32_t)mValue.floatValue); break;
-	case RT_uint32_tType: setUInt32((uint32_t)mValue.floatValue); break;
-	case RT_floatType: setFloat((float)mValue.floatValue); break;
-	case RT_doubleType: setDouble((double)mValue.floatValue); break;
-	case RT_stringType: 
-	{
-	  char buffer[256];
-	  sprintf(buffer, "%f", mValue.floatValue);
-	  setString(buffer);
-	}
-	break;
-	case RT_objectType: setObject(NULL); break;
-	case RT_functionType: setFunction(NULL); break;
-	default:
-    rtLogWarn("missed conversion");
-	break;
-	}
+        char buffer[256];
+        sprintf(buffer, "%f", mValue.floatValue);
+        setString(buffer);
       }
       break;
+      case RT_objectType: setObject(NULL); break;
+      case RT_functionType: setFunction(NULL); break;
+      default:
+        rtLogWarn("missed conversion");
+        break;
+      }
+    }
+    break;
     case RT_doubleType: 
+    {
+      switch(newType) {
+      case RT_boolType: setBool((mValue.doubleValue==0.0)?false:true); break;
+      case RT_int8_tType: setInt8((int8_t)mValue.doubleValue); break;
+      case RT_uint8_tType: setUInt8((uint8_t)mValue.doubleValue); break;
+      case RT_int32_tType: setInt32((int32_t)mValue.doubleValue); break;
+      case RT_uint32_tType: setUInt32((uint32_t)mValue.doubleValue); break;
+      case RT_floatType: setFloat((float)mValue.doubleValue); break;
+      case RT_doubleType: setDouble((double)mValue.doubleValue); break;
+      case RT_stringType: 
       {
-	switch(newType) {
-	case RT_boolType: setBool((mValue.doubleValue==0.0)?false:true); break;
-	case RT_int8_tType: setInt8((int8_t)mValue.doubleValue); break;
-	case RT_uint8_tType: setUInt8((uint8_t)mValue.doubleValue); break;
-	case RT_int32_tType: setInt32((int32_t)mValue.doubleValue); break;
-	case RT_uint32_tType: setUInt32((uint32_t)mValue.doubleValue); break;
-	case RT_floatType: setFloat((float)mValue.doubleValue); break;
-	case RT_doubleType: setDouble((double)mValue.doubleValue); break;
-	case RT_stringType: 
-	{
-	  char buffer[256];
-	  sprintf(buffer, "%lf", mValue.doubleValue);
-	  setString(buffer);
-	}
-	break;
-	case RT_objectType: setObject(NULL); break;
-	case RT_functionType: setFunction(NULL); break;
-	default:
-    rtLogWarn("missed conversion");
-	break;
-	}
+        char buffer[256];
+        sprintf(buffer, "%lf", mValue.doubleValue);
+        setString(buffer);
       }
       break;
+      case RT_objectType: setObject(NULL); break;
+      case RT_functionType: setFunction(NULL); break;
+      default:
+        rtLogWarn("missed conversion");
+        break;
+      }
+      }
+    break;
     case RT_stringType:
-      {
-      }
-      break;
+    {
+    }
+    break;
     case RT_objectType:
-      {
-      }
-      break;
+    {
+    }
+    break;
     }
   }
   return RT_OK;
 }
+

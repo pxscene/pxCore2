@@ -1,0 +1,32 @@
+
+CFLAGS= -DPX_PLATFORM_X11 -DENABLE_DFB -fPIC -g
+OUTDIR=../build/x11
+
+INCDIR=-I/usr/X11R6/include -I/usr/include/directfb 
+all: $(OUTDIR)/libpxCore.a 
+
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxBufferNativeDfb.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o
+		       mkdir -p $(OUTDIR)    
+	    ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o  pxBufferNativeDfb.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o             
+          
+
+pxOffscreen.o: pxOffscreen.cpp
+	g++ -o pxOffscreen.o -Wall $(INCDIR) $(CFLAGS) -c pxOffscreen.cpp
+
+pxBufferNativeDfb.o: x11/pxBufferNativeDfb.cpp
+	g++ -o pxBufferNativeDfb.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxBufferNativeDfb.cpp
+
+pxOffscreenNative.o: x11/pxOffscreenNative.cpp
+	g++ -o pxOffscreenNative.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxOffscreenNative.cpp
+
+pxWindowNativeDfb.o: x11/pxWindowNativeDfb.cpp
+	g++ -o pxWindowNativeDfb.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxWindowNativeDfb.cpp
+
+pxEventLoopNative.o: x11/pxEventLoopNative.cpp
+	g++ -o pxEventLoopNative.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxEventLoopNative.cpp
+
+pxTimerNative.o: x11/pxTimerNative.cpp
+	g++ -o pxTimerNative.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxTimerNative.cpp
+
+
+

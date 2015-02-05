@@ -4,10 +4,12 @@
 #include <node.h>
 #include <v8.h>
 
+#include <rtError.h>
 #include <rtObject.h>
 #include <rtString.h>
 #include <rtValue.h>
 
+#include <stdarg.h>
 #include <string>
 
 // I don't think node/v8 addons support c++ exceptions. In cases where
@@ -106,6 +108,27 @@ protected:
   static TRef unwrap(const v8::AccessorInfo& info)
   {
     return node::ObjectWrap::Unwrap<TWrapper>(info.This())->mWrappedObject;
+  }
+
+  static v8::Handle<v8::Value> throwRtError(rtError err, const char* format, ...) RT_PRINTF_FORMAT(2, 3)
+  {
+    char buff[256];
+
+    va_list ptr;
+    va_start(ptr, format);
+    int n = vsnprintf(buff, sizeof(buff), format, ptr);
+    if (n >= sizeof(buff))
+    {
+      buff[sizeof(buff) - 1] = '\0';
+    }
+    else
+    {
+      strcat(buff, ": ");
+      strcat(buff, rtStrError(err));
+    }
+    va_end(ptr);
+
+    return v8::ThrowException(v8::Exception::Error(v8::String::New(buff)));
   }
 
   TRef mWrappedObject;
