@@ -1,0 +1,14 @@
+# pxCore FrameBuffer Library
+# Sprite Example
+
+CFLAGS= -g -I../../src -I/usr/include/directfb -DPX_PLATFORM_X11 -DENABLE_DFB -Wno-write-strings
+OUTDIR=../../build/x11
+LIBDIR= -L/usr/lib/x86_64-linux-gnu -L/usr/local/lib/
+
+all: $(OUTDIR)/Sprite
+
+$(OUTDIR)/Sprite: Sprite.cpp 
+	g++ -o $(OUTDIR)/Sprite_dfb -Wall $(CFLAGS) Sprite.cpp -L$(LIBDIR) -L$(OUTDIR) -lX11 -lpxCore -lrt -ldirectfb
+
+
+

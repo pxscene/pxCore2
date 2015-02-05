@@ -222,12 +222,12 @@ void pxObject::drawInternal(pxMatrix4f m)
   
   if (mPainting)
   {
-    if (mClip)
+    if (mClip || mMaskUrl.length() > 0)
     {
       createSnapshot();
       context.setMatrix(m);
       context.setAlpha(ma);
-      context.drawImage(mw,mh, mTextureRef, PX_NONE, PX_NONE);
+      context.drawImage(mw,mh, mTextureRef, mMaskTextureRef, PX_NONE, PX_NONE);
       deleteSnapshot();
     }
     else
@@ -244,7 +244,7 @@ void pxObject::drawInternal(pxMatrix4f m)
   }
   else
   {
-    context.drawImage(mw,mh, mTextureRef, PX_NONE, PX_NONE);
+    context.drawImage(mw,mh, mTextureRef, mMaskTextureRef, PX_NONE, PX_NONE);
   }
 }
 
@@ -280,6 +280,26 @@ void pxObject::deleteSnapshot()
   }
 }
 
+void pxObject::createMask()
+{
+  deleteMask();
+  
+  if (mMaskUrl.length() > 0)
+  {
+    pxImage image;
+    image.setURL(mMaskUrl.cString());
+    mMaskTextureRef = context.createMask(image.getOffscreen());
+  }
+}
+
+void pxObject::deleteMask()
+{
+  if (mMaskTextureRef.getPtr() != NULL)
+  {
+    mMaskTextureRef->deleteTexture();
+  }
+}
+
 rtDefineObject(pxObject, rtObject);
 rtDefineProperty(pxObject, _pxObject);
 rtDefineProperty(pxObject, parent);
@@ -299,6 +319,7 @@ rtDefineProperty(pxObject, ry);
 rtDefineProperty(pxObject, rz);
 rtDefineProperty(pxObject, painting);
 rtDefineProperty(pxObject, clip);
+rtDefineProperty(pxObject, mask);
 rtDefineProperty(pxObject, numChildren);
 rtDefineMethod(pxObject, getChild);
 rtDefineMethod(pxObject, remove);

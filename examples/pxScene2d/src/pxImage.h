@@ -39,6 +39,11 @@ pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE),
     return RT_OK;
   }
   
+  pxOffscreen& getOffscreen()
+  {
+    return mOffscreen;
+  }
+  
   void onImageDownloadComplete(pxImageDownloadRequest* imageDownloadRequest);
   
 protected:
@@ -50,6 +55,7 @@ protected:
   pxOffscreen mOffscreen;
   pxStretch mXStretch;
   pxStretch mYStretch;
+  pxTextureRef mTexture;
   
   bool mWaitingForImageDownload;
   rtMutex mImageDownloadMutex;
