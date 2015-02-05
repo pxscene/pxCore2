@@ -194,6 +194,8 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
 #define rtThunk9ArgAndNoReturn(method, arg1type, arg2type, arg3type, arg4type, arg5type, arg6type, arg7type, arg8type, arg9type) \
     rtError method##_thunk(int numArgs, const rtValue* args, rtValue&){ if (numArgs < 9) return RT_ERROR_NOT_ENOUGH_ARGS; return method(args[0].convert<arg1type>(), args[1].convert<arg2type>(), args[2].convert<arg3type>(), args[3].convert<arg4type>(), args[4].convert<arg5type>(), args[5].convert<arg6type>(), args[6].convert<arg7type>(), args[7].convert<arg8type>(), args[8].convert<arg9type>()); }
 
+#define rtGA(i) ((i<numArgs)?args[i]:rtValue())
+
 ///////////////////////////////////////////////////////////////////////////////
 // Internally used thunk macros
 // thunks for functions returning a value
@@ -201,7 +203,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
     rtError method##_thunk(int /*numArgs*/, const rtValue* /*args*/, rtValue& r){ returntype rv; rtError e =  method(rv); r.assign<returntype>(rv); return e;}
 
 #define rtThunk1ArgAndReturn(method, arg1type, returntype) \
-    rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){ if (numArgs < 1) return RT_ERROR_NOT_ENOUGH_ARGS; returntype rv; rtError e =  method(args[0].convert<arg1type>(), rv); r.assign<returntype>(rv); return e;}
+  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){ /*if (numArgs < 1) return RT_ERROR_NOT_ENOUGH_ARGS;*/ returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rv); r.assign<returntype>(rv); return e;}
 
 #define rtThunk2ArgAndReturn(method, arg1type, arg2type, returntype) \
     rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){ if (numArgs < 2) return RT_ERROR_NOT_ENOUGH_ARGS; returntype rv; rtError e =  method(args[0].convert<arg1type>(), args[1].convert<arg2type>(), rv); r.assign<returntype>(rv); return e;}

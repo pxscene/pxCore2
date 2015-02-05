@@ -372,13 +372,16 @@ public:
   rtReadOnlyProperty(w, w, float);
   rtReadOnlyProperty(h, h, float);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
-  rtMethodNoArgAndReturn("createRectangle", createRectangle, rtObjectRef);
-  rtMethodNoArgAndReturn("createImage", createImage, rtObjectRef);
-  rtMethod1ArgAndReturn("createImage2", createImage2, rtObjectRef,
+  rtMethod1ArgAndReturn("createRectangle", createRectangle, rtObjectRef,
                         rtObjectRef);
-  rtMethodNoArgAndReturn("createImage9", createImage9, rtObjectRef);
-  rtMethodNoArgAndReturn("createText", createText, rtObjectRef);
-  rtMethodNoArgAndReturn("createScene", createScene, rtObjectRef);
+  rtMethod1ArgAndReturn("createImage", createImage, rtObjectRef,
+                        rtObjectRef);
+  rtMethod1ArgAndReturn("createImage9", createImage9, rtObjectRef, 
+                        rtObjectRef);
+  rtMethod1ArgAndReturn("createText", createText, rtObjectRef, 
+                        rtObjectRef);
+  rtMethod1ArgAndReturn("createScene", createScene, rtObjectRef, 
+                        rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
   
@@ -415,23 +418,11 @@ public:
   rtError showOutlines(bool& v) const;
   rtError setShowOutlines(bool v);
 
-  rtError createRectangle(rtObjectRef& o);
-  rtError createImage2(rtObjectRef p, rtObjectRef& o)
-  {
-    printf("In createImage2\n");
-    rtError e = createImage(o);
-    rtObjectRef keys = p.get<rtObjectRef>("allKeys");
-    uint32_t len = keys.get<uint32_t>("length");
-    for (uint32_t i = 0; i < len; i++)
-    {
-      printf("key: %s\n", keys.get<rtString>(i).cString());
-    }
-    return e;
-  }
-  rtError createText(rtObjectRef& o);
-  rtError createImage(rtObjectRef& o);
-  rtError createImage9(rtObjectRef& o);
-  rtError createScene(rtObjectRef& o);
+  rtError createRectangle(rtObjectRef p, rtObjectRef& o);
+  rtError createText(rtObjectRef p, rtObjectRef& o);
+  rtError createImage(rtObjectRef p, rtObjectRef& o);
+  rtError createImage9(rtObjectRef p, rtObjectRef& o);
+  rtError createScene(rtObjectRef p,rtObjectRef& o);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {

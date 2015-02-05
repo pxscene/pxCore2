@@ -39,6 +39,8 @@ class rtIFunction {
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
 };
 
+class rtObjectRef;
+
 // Mix-in providing convenience methods for rtIObject(s)
 class rtObjectBase
 {
@@ -52,6 +54,8 @@ public:
     finline rtError get(uint32_t i, T& value);  
   template<typename T>
     finline T get(uint32_t i);
+
+  void set(rtObjectRef o);
 
   finline rtError set(const char* name, const rtValue& value) {
     return Set(name, &value);

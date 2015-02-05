@@ -539,7 +539,6 @@ rtDefineProperty(pxInnerScene, showOutlines);
 rtDefineMethod(pxInnerScene, createRectangle);
 rtDefineMethod(pxInnerScene, createText);
 rtDefineMethod(pxInnerScene, createImage);
-rtDefineMethod(pxInnerScene, createImage2);
 rtDefineMethod(pxInnerScene, createImage9);
 rtDefineMethod(pxInnerScene, createScene);
 rtDefineMethod(pxInnerScene, addListener);
@@ -557,33 +556,38 @@ rtError pxInnerScene::setShowOutlines(bool v)
   return RT_OK; 
 }
 
-rtError pxInnerScene::createRectangle(rtObjectRef& o)
+rtError pxInnerScene::createRectangle(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxRectangle;
+  o.set(p);
   return RT_OK;
 }
 
-rtError pxInnerScene::createText(rtObjectRef& o)
+rtError pxInnerScene::createText(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxText;
+  o.set(p);
   return RT_OK;
 }
 
-rtError pxInnerScene::createImage(rtObjectRef& o)
+rtError pxInnerScene::createImage(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImage;
+  o.set(p);
   return RT_OK;
 }
 
-rtError pxInnerScene::createImage9(rtObjectRef& o)
+rtError pxInnerScene::createImage9(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImage9;
+  o.set(p);
   return RT_OK;
 }
 
-rtError pxInnerScene::createScene(rtObjectRef& o)
+rtError pxInnerScene::createScene(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxScene();
+  o.set(p);
   return RT_OK;
 }
 

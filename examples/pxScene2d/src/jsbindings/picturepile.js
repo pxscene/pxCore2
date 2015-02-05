@@ -76,8 +76,8 @@ function doIt() {
 
         var url = getImageURL();
         var picture;
-        if (true) {
-            picture = scene.createImage2({parent: pictures, x: -1000, y: 
+        if (false) {
+            picture = scene.createImage({parent: pictures, x: -1000, y: 
                                           randomInt(-200, 800), cx: 200, 
                                           cy: 200, sx: 2, sy: 2, 
                                           r: randomInt(-45,45), url:url});
@@ -133,4 +133,6 @@ updateSize(scene.w, scene.h);
 
 
 doIt();
+
+
 
