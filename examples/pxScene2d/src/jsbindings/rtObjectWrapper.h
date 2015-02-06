@@ -28,6 +28,15 @@ private:
   static Handle<Value> getPropertyByIndex(uint32_t index, const AccessorInfo& info);
   static Handle<Value> setPropertyByIndex(uint32_t index, Local<Value> val, const AccessorInfo& info);
   static Handle<Array> getEnumerablePropertyIndecies(const AccessorInfo& info);
+
+  template<typename T>
+  static Handle<Value> getProperty(const T& prop, const AccessorInfo& info);
+
+  template<typename T>
+  static Handle<Value> setProperty(const T& prop, Local<Value> val, const AccessorInfo& info);
+
+  typedef Handle<Value> (*enumerable_item_creator_t)(rtObjectRef& keys, uint32_t index);
+  static Handle<Array> getEnumerable(const AccessorInfo& info, enumerable_item_creator_t create);
 };
 
 class jsObjectWrapper : public rtIObject

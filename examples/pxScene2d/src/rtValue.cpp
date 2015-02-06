@@ -416,7 +416,7 @@ rtError rtValue::coerceType(rtType newType) {
       // Do Nothing
     break;
     default:
-      rtLogError("XMissing conversion in coerceType: %c, %d\n", mType, mType);
+      rtLogError("XMissing conversion in coerceType: %c, %d", mType, mType);
       break;
     }
   }
