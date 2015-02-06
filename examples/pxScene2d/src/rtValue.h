@@ -9,6 +9,47 @@
 #include "rtDefs.h"
 #include "rtString.h"
 
+
+#define RT_voidType               '\0'
+#define RT_valueType              'v'
+#define RT_rtValueType            'v'
+#define RT_boolType               'b'
+#define RT_int8_tType             '1'
+#define RT_uint8_tType            '2'
+#define RT_intType                '4'
+#define RT_int32_tType            '4'
+#define RT_uint32_tType           '5'
+#define RT_int64_tType            '6'
+#define RT_uint64_tType           '7'
+#define RT_floatType              'e'
+#define RT_doubleType             'd'
+#define RT_stringType             's'
+#define RT_rtStringType           's'
+#define RT_objectType             'o'
+#define RT_rtObjectRefType        'o'
+#define RT_functionType           'f'
+#define RT_rtFunctionRefType      'f'
+#define RT_voidPtrType            'z'
+
+// JR Hack Only needed for reflection... method signature
+#define RT_voidType2               "\0"
+#define RT_valueType2              "v"
+#define RT_rtValueType2            "v"
+#define RT_boolType2               "b"
+#define RT_int8_tType2             "1"
+#define RT_uint8_tType2            "2"
+#define RT_intType2                "4"
+#define RT_int32_tType2            "4"
+#define RT_uint32_tType2           "5"
+#define RT_int64_tType2            "6"
+#define RT_uint64_tType2           "7"
+#define RT_floatType2              "e"
+#define RT_doubleType2             "d"
+#define RT_rtStringType2           "s"
+#define RT_rtObjectRefType2        "o"
+#define RT_rtFunctionRefType2      "f"
+#define RT_voidPtrType2            "z"
+
 class rtIObject;
 class rtIFunction;
 class rtObject;
@@ -173,5 +214,9 @@ class rtValue {
   rtType mType;
   rtValue_ mValue;
 };
+
+#define RT_TYPE_CASE(t) case t: s = # t; break;
+
+const char* rtStrType(char t);
 
 #endif

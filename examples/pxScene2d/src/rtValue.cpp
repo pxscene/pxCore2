@@ -148,9 +148,28 @@ void rtValue::setVoidPtr(voidPtr v) {
 rtError rtValue::getBool(bool& v) const {
   if (mType == RT_boolType) v = mValue.boolValue;
   else {
-    rtValue t = *this;
-    t.coerceType(RT_boolType);
-    v = t.mValue.boolValue;
+    v = false; // normalize to default
+    switch(mType)
+    {
+    case RT_boolType: break;
+    case RT_int8_tType: v = (mValue.int8Value==0)?false:true; break;
+    case RT_uint8_tType: v = (mValue.uint8Value==0)?false:true; break;
+    case RT_int32_tType: v = (mValue.int32Value==0)?false:true; break;
+    case RT_uint32_tType: v = (mValue.uint32Value==0)?false:true; break;
+    case RT_floatType: v = (mValue.floatValue==0.0f)?false:true; break;
+    case RT_doubleType: v = (mValue.doubleValue==0.0)?false:true; break;
+    case RT_stringType: 
+    {
+      if (mValue.stringValue)
+        v = (*mValue.stringValue=="false")?false:true; break;
+    }
+    break;
+    case RT_objectType: v = mValue.objectValue?true:false; break;
+    case RT_functionType: v = mValue.functionValue?true:false; break;
+    default:
+      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      break;
+    }
   }
   return RT_OK;
 }
@@ -158,9 +177,29 @@ rtError rtValue::getBool(bool& v) const {
 rtError rtValue::getInt8(int8_t& v)  const {
   if (mType == RT_int8_tType) v = mValue.int8Value;
   else {
-    rtValue t = *this;
-    t.coerceType(RT_int8_tType);
-    v = t.mValue.int8Value;
+    v = 0; // normalize to default
+    switch(mType)
+    {
+    case RT_boolType: v = (int8_t)mValue.boolValue?1:0; break;
+    case RT_int8_tType: v = (int8_t)mValue.int8Value; break;
+    case RT_uint8_tType: v = (int8_t)mValue.uint8Value; break;
+    case RT_int32_tType: v = (int8_t)mValue.int32Value; break;
+    case RT_uint32_tType: v = (int8_t)mValue.uint32Value; break;
+// TODO look at faster float to fixed conversion
+    case RT_floatType: v = (int8_t)mValue.floatValue; break;
+    case RT_doubleType: v = (int8_t)mValue.doubleValue; break;
+    case RT_stringType: 
+    {
+      if (mValue.stringValue)
+        v = (int8_t)atol(mValue.stringValue->cString());
+    }
+    break;
+    case RT_objectType: /* Leave as default */ break;
+    case RT_functionType: /* Leave as default */ break;
+    default:
+      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      break;
+    }
   }
   return RT_OK;
 }
@@ -168,9 +207,29 @@ rtError rtValue::getInt8(int8_t& v)  const {
 rtError rtValue::getUInt8(uint8_t& v) const {
   if (mType == RT_uint8_tType) v = mValue.uint8Value;
   else {
-    rtValue t = *this;
-    t.coerceType(RT_uint8_tType);
-    v = t.mValue.uint8Value;
+    v = 0; // normalize to default
+    switch(mType)
+    {
+    case RT_boolType: v = (uint8_t)mValue.boolValue?1:0; break;
+    case RT_int8_tType: v = (uint8_t)mValue.int8Value; break;
+    case RT_uint8_tType: v = (uint8_t)mValue.uint8Value; break;
+    case RT_int32_tType: v = (uint8_t)mValue.int32Value; break;
+    case RT_uint32_tType: v = (uint8_t)mValue.uint32Value; break;
+// TODO look at faster float to fixed conversion
+    case RT_floatType: v = (uint8_t)mValue.floatValue; break;
+    case RT_doubleType: v = (uint8_t)mValue.doubleValue; break;
+    case RT_stringType: 
+    {
+      if (mValue.stringValue)
+        v = (uint8_t)atol(mValue.stringValue->cString());
+    }
+    break;
+    case RT_objectType: /* Leave as default */ break;
+    case RT_functionType: /* Leave as default */ break;
+    default:
+      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      break;
+    }
   }
   return RT_OK;
 }
@@ -178,9 +237,29 @@ rtError rtValue::getUInt8(uint8_t& v) const {
 rtError rtValue::getInt32(int32_t& v) const {
   if (mType == RT_int32_tType) v = mValue.int32Value;
   else {
-    rtValue t = *this;
-    t.coerceType(RT_int32_tType);
-    v = t.mValue.int32Value;
+    v = 0; // normalize to default
+    switch(mType)
+    {
+    case RT_boolType: v = (int32_t)mValue.boolValue?1:0; break;
+    case RT_int8_tType: v = (int32_t)mValue.int8Value; break;
+    case RT_uint8_tType: v = (int32_t)mValue.uint8Value; break;
+    case RT_int32_tType: v = (int32_t)mValue.int32Value; break;
+    case RT_uint32_tType: v = (int32_t)mValue.uint32Value; break;
+// TODO look at faster float to fixed conversion
+    case RT_floatType: v = (int32_t)mValue.floatValue; break;
+    case RT_doubleType: v = (int32_t)mValue.doubleValue; break;
+    case RT_stringType: 
+    {
+      if (mValue.stringValue)
+        v = (int32_t)atol(mValue.stringValue->cString());
+    }
+    break;
+    case RT_objectType: /* Leave as default */ break;
+    case RT_functionType: /* Leave as default */ break;
+    default:
+      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      break;
+    }
   }
   return RT_OK;
 }
@@ -188,9 +267,29 @@ rtError rtValue::getInt32(int32_t& v) const {
 rtError rtValue::getUInt32(uint32_t& v) const {
   if (mType == RT_uint32_tType) v = mValue.uint32Value;
   else {
-    rtValue t = *this;
-    t.coerceType(RT_uint32_tType);
-    v = t.mValue.uint32Value;
+    v = 0; // normalize to default
+    switch(mType)
+    {
+    case RT_boolType: v = (uint32_t)mValue.boolValue?1:0; break;
+    case RT_int8_tType: v = (uint32_t)mValue.int8Value; break;
+    case RT_uint8_tType: v = (uint32_t)mValue.uint8Value; break;
+    case RT_int32_tType: v = (uint32_t)mValue.int32Value; break;
+    case RT_uint32_tType: v = (uint32_t)mValue.uint32Value; break;
+// TODO look at faster float to fixed conversion
+    case RT_floatType: v = (uint32_t)mValue.floatValue; break;
+    case RT_doubleType: v = (uint32_t)mValue.doubleValue; break;
+    case RT_stringType: 
+    {
+      if (mValue.stringValue)
+        v = (uint32_t)atol(mValue.stringValue->cString());
+    }
+    break;
+    case RT_objectType: /* Leave as default */ break;
+    case RT_functionType: /* Leave as default */ break;
+    default:
+      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      break;
+    }
   }
   return RT_OK;
 }
@@ -199,9 +298,29 @@ rtError rtValue::getUInt32(uint32_t& v) const {
 rtError rtValue::getInt64(int64_t& v) const {
   if (mType == RT_int64_tType) v = mValue.int64Value;
   else {
-    rtValue t = *this;
-    t.coerceType(RT_int64_tType);
-    v = t.mValue.int64Value;
+    v = 0; // normalize to default
+    switch(mType)
+    {
+    case RT_boolType: v = (int64_t)mValue.boolValue?1:0; break;
+    case RT_int8_tType: v = (int64_t)mValue.int8Value; break;
+    case RT_uint8_tType: v = (int64_t)mValue.uint8Value; break;
+    case RT_int32_tType: v = (int64_t)mValue.int32Value; break;
+    case RT_uint32_tType: v = (int64_t)mValue.uint32Value; break;
+// TODO look at faster float to fixed conversion
+    case RT_floatType: v = (int64_t)mValue.floatValue; break;
+    case RT_doubleType: v = (int64_t)mValue.doubleValue; break;
+    case RT_stringType: 
+    {
+      if (mValue.stringValue)
+        v = (int64_t)atoll(mValue.stringValue->cString());
+    }
+    break;
+    case RT_objectType: /* Leave as default */ break;
+    case RT_functionType: /* Leave as default */ break;
+    default:
+      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      break;
+    }
   }
   return RT_OK;
 }
@@ -209,18 +328,57 @@ rtError rtValue::getInt64(int64_t& v) const {
 rtError rtValue::getUInt64(uint64_t& v) const {
   if (mType == RT_uint64_tType) v = mValue.uint64Value;
   else {
-    rtValue t = *this;
-    t.coerceType(RT_uint64_tType);
-    v = t.mValue.int64Value;
+    v = 0; // normalize to default
+    switch(mType)
+    {
+    case RT_boolType: v = (uint64_t)mValue.boolValue?1:0; break;
+    case RT_int8_tType: v = (uint64_t)mValue.int8Value; break;
+    case RT_uint8_tType: v = (uint64_t)mValue.uint8Value; break;
+    case RT_int32_tType: v = (uint64_t)mValue.int32Value; break;
+    case RT_uint32_tType: v = (uint64_t)mValue.uint32Value; break;
+// TODO look at faster float to fixed conversion
+    case RT_floatType: v = (uint64_t)mValue.floatValue; break;
+    case RT_doubleType: v = (uint64_t)mValue.doubleValue; break;
+    case RT_stringType: 
+    {
+      if (mValue.stringValue)
+        v = (uint64_t)atoll(mValue.stringValue->cString());
+    }
+    break;
+    case RT_objectType: /* Leave as default */ break;
+    case RT_functionType: /* Leave as default */ break;
+    default:
+      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      break;
+    }
   }
   return RT_OK;
 }
 rtError rtValue::getFloat(float& v) const {
   if (mType == RT_floatType) v = mValue.floatValue;
   else {
-    rtValue t = *this;
-    t.coerceType(RT_floatType);
-    v = t.mValue.floatValue;
+    v = 0.0f; // normalize to default
+    switch(mType)
+    {
+    case RT_boolType: v = mValue.boolValue?1.0f:0.0f; break;
+    case RT_int8_tType: v = (float)mValue.int8Value; break;
+    case RT_uint8_tType: v = (float)mValue.uint8Value; break;
+    case RT_int32_tType: v = (float)mValue.int32Value; break;
+    case RT_uint32_tType: v = (float)mValue.uint32Value; break;
+//    case RT_floatType: break;
+    case RT_doubleType: v = (float)mValue.doubleValue; break;
+    case RT_stringType: 
+    {
+      if (mValue.stringValue)
+        v = (float)atof(mValue.stringValue->cString());
+    }
+    break;
+    case RT_objectType: /* Leave as default */ break;
+    case RT_functionType: /* Leave as default */ break;
+    default:
+      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      break;
+    }
   }
   return RT_OK;
 }
@@ -228,49 +386,86 @@ rtError rtValue::getFloat(float& v) const {
 rtError rtValue::getDouble(double& v) const {
   if (mType == RT_doubleType) v = mValue.doubleValue;
   else {
-    rtValue t = *this;
-    t.coerceType(RT_doubleType);
-    v = t.mValue.doubleValue;
+    v = 0; // normalize to default
+    switch(mType)
+    {
+    case RT_boolType: v = mValue.boolValue?1.0:0.0; break;
+    case RT_int8_tType: v = (double)mValue.int8Value; break;
+    case RT_uint8_tType: v = (double)mValue.uint8Value; break;
+    case RT_int32_tType: v = (double)mValue.int32Value; break;
+    case RT_uint32_tType: v = (double)mValue.uint32Value; break;
+    case RT_floatType: v = (double)mValue.floatValue; break;
+//    case RT_doubleType: break;
+    case RT_stringType: 
+    {
+      if (mValue.stringValue)
+        v = atof(mValue.stringValue->cString());
+    }
+    break;
+    case RT_objectType: /* Leave as default */ break;
+    case RT_functionType: /* Leave as default */ break;
+    default:
+      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      break;
+    }
   }
   return RT_OK;
 }
 
 rtError rtValue::getString(rtString& v) const {
-#if 1
   if (mType == RT_stringType && mValue.stringValue) 
     v = *mValue.stringValue;
   else {
-    rtValue t = *this;
-    t.coerceType(RT_stringType);
-    v = *t.mValue.stringValue;
+    // TODO EVIL buffer on stack
+    char buffer[256]; buffer[0] = 0;
+    switch(mType)
+    {
+    case RT_boolType: sprintf(buffer, "%s", mValue.boolValue?"true":"false"); break;
+    case RT_int8_tType: sprintf(buffer, "%d", mValue.int8Value); break;
+    case RT_uint8_tType: sprintf(buffer, "%u", mValue.uint8Value); break;
+    case RT_int32_tType: sprintf(buffer, "%d", mValue.int32Value); break;
+    case RT_uint32_tType: sprintf(buffer, "%u", mValue.uint32Value); break;
+    case RT_floatType: sprintf(buffer, "%f", mValue.floatValue); break;
+    case RT_doubleType: sprintf(buffer, "%f", mValue.doubleValue); break;
+      //case RT_stringType: break;
+      // TODO call toString or description on object
+    case RT_objectType: break;
+    case RT_functionType: break;
+    default:
+      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      break;
+    }
+    v = buffer;
   }
-#endif
   return RT_OK;
 }
 
 rtError rtValue::getObject(rtObjectRef& v) const {
   if (mType == RT_objectType) v = mValue.objectValue;
   else {
-    rtValue t = *this;
-    t.coerceType(RT_objectType);
-    v = t.mValue.objectValue;
+    // No other types are convertable to object
+    v = NULL;
   }
   return RT_OK;
 }
 
 rtError rtValue::getFunction(rtFunctionRef& v) const {
   if (mType == RT_functionType) v = mValue.functionValue;
-  else {
-    rtValue t = *this;
-    t.coerceType(RT_functionType);
-    v = t.mValue.functionValue;
+  else 
+  {
+    // No other types are convertable to function
+    v = NULL;
   }
   return RT_OK;
 }
 
 rtError rtValue::getVoidPtr(voidPtr& v) const {
   if (mType == RT_voidPtrType) v = mValue.voidPtrValue;
-  else v = NULL;
+  else 
+  {
+    // No other types are convertable
+    v = NULL;
+  }
   return RT_OK;
 }
 
@@ -279,147 +474,27 @@ rtError rtValue::getValue(rtValue& v) const {
   return RT_OK;
 }
 
-rtError rtValue::coerceType(rtType newType) {
-  if (mType != newType) {
-    //    rtLog("In coerceType\n");
-    switch(mType) {
-    case RT_boolType:
-    {
-      switch(newType) {
-      case RT_boolType: setBool(mValue.boolValue); break;
-      case RT_int8_tType: setInt8(mValue.boolValue?0:1); break;
-      case RT_uint8_tType: setUInt8(mValue.boolValue?0:1); break;
-      case RT_int32_tType: setInt32(mValue.boolValue?0:1); break;
-      case RT_uint32_tType: setUInt32(mValue.boolValue?0:1); break;
-      case RT_floatType: setFloat(mValue.boolValue?0.0f:1.0f); break;
-      case RT_doubleType: setDouble(mValue.boolValue?0.0:1.0); break;
-      case RT_stringType: setString(mValue.boolValue?"true":"false"); break;
-      case RT_objectType: setObject(NULL); break;
-      case RT_functionType: setFunction(NULL); break;
-      default:
-        rtLogWarn("missed conversion");
-        break;
-      }
-    }
-//    case RT_int8_tType:
-//    case RT_uint8_tType:
-    case RT_int32_tType:
-    {
-      switch(newType) {
-      case RT_boolType: setBool(mValue.int32Value?true:false); break;
-      case RT_int8_tType: setInt8((int8_t)mValue.int32Value); break;
-      case RT_uint8_tType: setUInt8((uint8_t)mValue.int32Value); break;
-      case RT_int32_tType: setInt32((int32_t)mValue.int32Value); break;
-      case RT_uint32_tType: setUInt32((uint32_t)mValue.int32Value); break;
-      case RT_floatType: setFloat((float)mValue.int32Value); break;
-      case RT_doubleType: setDouble((double)mValue.int32Value); break;
-      case RT_stringType: 
-      {
-        char buffer[256];
-        sprintf(buffer, "%d", mValue.int32Value);
-        setString(buffer);
-      }
-      break;
-      case RT_objectType: setObject(NULL); break;
-      case RT_functionType: setFunction(NULL); break;
-      default:
-        rtLogWarn("missed conversion");
-        break;
-      }
-    }
-    break;
-    case RT_uint32_tType:
-    {
-      switch(newType) {
-      case RT_boolType: setBool(mValue.uint32Value?true:false); break;
-      case RT_int8_tType: setInt8((int8_t)mValue.uint32Value); break;
-      case RT_uint8_tType: setUInt8((uint8_t)mValue.uint32Value); break;
-      case RT_int32_tType: setInt32((int32_t)mValue.uint32Value); break;
-      case RT_uint32_tType: setUInt32((uint32_t)mValue.uint32Value); break;
-      case RT_floatType: setFloat((float)mValue.uint32Value); break;
-      case RT_doubleType: setDouble((double)mValue.uint32Value); break;
-      case RT_stringType: 
-      {
-        char buffer[256];
-        sprintf(buffer, "%d", mValue.int32Value);
-        setString(buffer);
-      }
-      break;
-      case RT_objectType: setObject(NULL); break;
-      case RT_functionType: setFunction(NULL); break;
-      default:
-        rtLogWarn("missed conversion");
-        break;
-      }
-    }
-    break;
-    case RT_floatType:
-    {
-      switch(newType) {
-      case RT_boolType: setBool((mValue.floatValue==0.0)?false:true); break;
-      case RT_int8_tType: setInt8((int8_t)mValue.floatValue); break;
-      case RT_uint8_tType: setUInt8((uint8_t)mValue.floatValue); break;
-      case RT_int32_tType: setInt32((int32_t)mValue.floatValue); break;
-      case RT_uint32_tType: setUInt32((uint32_t)mValue.floatValue); break;
-      case RT_floatType: setFloat((float)mValue.floatValue); break;
-      case RT_doubleType: setDouble((double)mValue.floatValue); break;
-      case RT_stringType: 
-      {
-        char buffer[256];
-        sprintf(buffer, "%f", mValue.floatValue);
-        setString(buffer);
-      }
-      break;
-      case RT_objectType: setObject(NULL); break;
-      case RT_functionType: setFunction(NULL); break;
-      default:
-        rtLogWarn("missed conversion");
-        break;
-      }
-    }
-    break;
-    case RT_doubleType: 
-    {
-      switch(newType) {
-      case RT_boolType: setBool((mValue.doubleValue==0.0)?false:true); break;
-      case RT_int8_tType: setInt8((int8_t)mValue.doubleValue); break;
-      case RT_uint8_tType: setUInt8((uint8_t)mValue.doubleValue); break;
-      case RT_int32_tType: setInt32((int32_t)mValue.doubleValue); break;
-      case RT_uint32_tType: setUInt32((uint32_t)mValue.doubleValue); break;
-      case RT_floatType: setFloat((float)mValue.doubleValue); break;
-      case RT_doubleType: setDouble((double)mValue.doubleValue); break;
-      case RT_stringType: 
-      {
-        char buffer[256];
-        sprintf(buffer, "%lf", mValue.doubleValue);
-        setString(buffer);
-      }
-      break;
-      case RT_objectType: setObject(NULL); break;
-      case RT_functionType: setFunction(NULL); break;
-      default:
-        rtLogWarn("missed conversion");
-        break;
-      }
-      }
-    break;
-
-    case RT_stringType:
-    {
-    }
-    break;
-    case RT_objectType:
-    {
-    }
-    break;
-    case 0:
-      // Do Nothing
-    break;
+const char* rtStrType(char t)
+{
+  const char* s = "UNKNOWN";
+  switch(t)
+  {
+    RT_TYPE_CASE(RT_voidType);
+    RT_TYPE_CASE(RT_boolType);
+    RT_TYPE_CASE(RT_int8_tType);
+    RT_TYPE_CASE(RT_uint8_tType);
+    RT_TYPE_CASE(RT_int32_tType);
+    RT_TYPE_CASE(RT_uint32_tType);
+    RT_TYPE_CASE(RT_int64_tType);
+    RT_TYPE_CASE(RT_uint64_tType);
+    RT_TYPE_CASE(RT_floatType);
+    RT_TYPE_CASE(RT_doubleType);
+    RT_TYPE_CASE(RT_stringType);
+    RT_TYPE_CASE(RT_objectType);
+    RT_TYPE_CASE(RT_functionType);
+    RT_TYPE_CASE(RT_voidPtrType);
     default:
-      rtLogError("XMissing conversion in coerceType: %c, %d\n", mType, mType);
-      break;
-    }
+    break;
   }
-  return RT_OK;
+  return s;
 }
-
