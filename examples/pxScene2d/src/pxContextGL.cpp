@@ -138,9 +138,16 @@ public:
     glUniform1i(u_texture, 0);
     return PX_OK;
   }
+  
+  virtual pxError getOffscreen(pxOffscreen& o)
+  {
+    (void)o;
+    // TODO
+    return PX_FAIL;
+  }
 
-  virtual float getWidth() { return mWidth; }
-  virtual float getHeight() { return mHeight; }
+  virtual float width() { return mWidth; }
+  virtual float height() { return mHeight; }
 
 private:
   GLfloat mWidth;
@@ -235,9 +242,16 @@ public:
     
     return PX_OK;
   }
+  
+  virtual pxError getOffscreen(pxOffscreen& o)
+  {
+    (void)o;
+    // TODO
+    return PX_FAIL;
+  }
 
-  virtual float getWidth() { return mWidth; }
-  virtual float getHeight() { return mHeight; }
+  virtual float width() { return mWidth; }
+  virtual float height() { return mHeight; }
 
 private:
   GLfloat mWidth;
@@ -294,9 +308,20 @@ public:
     
     return PX_OK;
   }
+  
+  virtual pxError getOffscreen(pxOffscreen& o)
+  {
+    if (!mInitialized)
+    {
+      return PX_NOTINITIALIZED;
+    }
+    o.init(mOffscreen.width(), mOffscreen.height());
+    mOffscreen.blit(o);
+    return PX_OK;
+  }
 
-  virtual float getWidth() { return mOffscreen.width(); }
-  virtual float getHeight() { return mOffscreen.height(); }
+  virtual float width() { return mOffscreen.width(); }
+  virtual float height() { return mOffscreen.height(); }
   
 private:
   pxOffscreen mOffscreen;
@@ -315,6 +340,15 @@ public:
   {
     mTextureType = PX_TEXTURE_ALPHA;
     createTexture(o);
+  }
+  
+  pxTextureMask(pxTextureRef texture) : mOffscreen(), mInitialized(false)
+  {
+    mTextureType = PX_TEXTURE_ALPHA;
+    if (texture.getPtr() != NULL && texture->getOffscreen(mOffscreen) == PX_OK)
+    {
+      mInitialized = true;
+    }
   }
 
   ~pxTextureMask() { };
@@ -352,9 +386,20 @@ public:
     
     return PX_OK;
   }
+  
+  virtual pxError getOffscreen(pxOffscreen& o)
+  {
+    if (!mInitialized)
+    {
+      return PX_NOTINITIALIZED;
+    }
+    o.init(mOffscreen.width(), mOffscreen.height());
+    mOffscreen.blit(o);
+    return PX_OK;
+  }
 
-  virtual float getWidth() { return mOffscreen.width(); }
-  virtual float getHeight() { return mOffscreen.height(); }
+  virtual float width() { return mOffscreen.width(); }
+  virtual float height() { return mOffscreen.height(); }
   
 private:
   pxOffscreen mOffscreen;
@@ -373,7 +418,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
 
   if (!stat)
   {
-    rtLogError("Error: fragment shader did not compile: %s\n", glGetError());
+    rtLogError("Error: fragment shader did not compile: %d\n", glGetError());
     
     GLint maxLength = 0;
     glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &maxLength);
@@ -566,6 +611,10 @@ static void drawImage2(float x, float y, float w, float h, pxOffscreen& offscree
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
                 pxTextureRef mask, pxStretch xStretch, pxStretch yStretch)
 {
+  if (texture.getPtr() == NULL)
+  {
+    return;
+  }
   texture->bindTexture();
   
   if (mask.getPtr() != NULL && mask->getType() == PX_TEXTURE_ALPHA)
@@ -573,8 +622,8 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     mask->bindTexture();
   }
 
-  float iw = texture->getWidth();
-  float ih = texture->getHeight();
+  float iw = texture->width();
+  float ih = texture->height();
   
   if (xStretch == PX_NONE)
     w = iw;
@@ -1041,8 +1090,8 @@ pxTextureRef pxContext::createTexture(pxOffscreen& o)
   return offscreenTexture;
 }
 
-pxTextureRef pxContext::createMask(pxOffscreen& o)
+pxTextureRef pxContext::createMask(pxTextureRef t)
 {
-  pxTextureMask* maskTexture = new pxTextureMask(o);
+  pxTextureMask* maskTexture = new pxTextureMask(t);
   return maskTexture;
 }

@@ -4,9 +4,9 @@
 #ifndef PX_IMAGE_H
 #define PX_IMAGE_H
 
-#include "pxOffscreen.h"
 #include "pxContext.h"
 #include "rtMutex.h"
+#include "pxTexture.h"
 
 class pxImageDownloadRequest;
 
@@ -17,7 +17,7 @@ public:
   rtProperty(xStretch, xStretch, setXStretch, int32_t);
   rtProperty(yStretch, yStretch, setYStretch, int32_t);
   
-pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), 
+pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(),
         mWaitingForImageDownload(false),
         mImageDownloadMutex(), mImageDownloadIsAvailable(false),
         mImageDownloadRequest(NULL) {}
@@ -39,9 +39,9 @@ pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE),
     return RT_OK;
   }
   
-  pxOffscreen& getOffscreen()
+  pxTextureRef getTexture()
   {
-    return mOffscreen;
+    return mTexture;
   }
   
   void onImageDownloadComplete(pxImageDownloadRequest* imageDownloadRequest);
@@ -52,7 +52,6 @@ protected:
   void loadImage(rtString url);
   
   rtString mURL;
-  pxOffscreen mOffscreen;
   pxStretch mXStretch;
   pxStretch mYStretch;
   pxTextureRef mTexture;
