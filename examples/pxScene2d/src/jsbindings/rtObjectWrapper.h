@@ -20,9 +20,14 @@ public:
 
 private:
   static Handle<Value> create(const Arguments& args);
-  static Handle<Value> getProperty(Local<String> prop, const AccessorInfo& info); 
-  static Handle<Value> setProperty(Local<String> prop, Local<Value> val, const AccessorInfo& info);
-  static Handle<Array> enumProperties(const AccessorInfo& info);
+
+  static Handle<Value> getPropertyByName(Local<String> prop, const AccessorInfo& info);
+  static Handle<Value> setPropertyByName(Local<String> prop, Local<Value> val, const AccessorInfo& info);
+  static Handle<Array> getEnumerablePropertyNames(const AccessorInfo& info);
+
+  static Handle<Value> getPropertyByIndex(uint32_t index, const AccessorInfo& info);
+  static Handle<Value> setPropertyByIndex(uint32_t index, Local<Value> val, const AccessorInfo& info);
+  static Handle<Array> getEnumerablePropertyIndecies(const AccessorInfo& info);
 };
 
 class jsObjectWrapper : public rtIObject

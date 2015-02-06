@@ -28,15 +28,21 @@ void rtObjectWrapper::exportPrototype(Handle<Object> exports)
   Local<FunctionTemplate> tmpl = FunctionTemplate::New(create);
   tmpl->SetClassName(String::NewSymbol(kClassName));
 
-  // Local<Template> proto = tmpl->PrototypeTemplate();
-  // proto->Set(String::NewSymbol("get"), FunctionTemplate::New(Get)->GetFunction());
-  // proto->Set(String::NewSymbol("set"), FunctionTemplate::New(Set)->GetFunction());
-  // proto->Set(String::NewSymbol("send"), FunctionTemplate::New(Send)->GetFunction());
-
   Local<ObjectTemplate> inst = tmpl->InstanceTemplate();
   inst->SetInternalFieldCount(1);
-  inst->SetNamedPropertyHandler(&getProperty, &setProperty, NULL,
-    NULL, &enumProperties);
+  inst->SetNamedPropertyHandler(
+    &getPropertyByName,
+    &setPropertyByName,
+    NULL,
+    NULL,
+    &getEnumerablePropertyNames);
+
+  inst->SetIndexedPropertyHandler(
+    &getPropertyByIndex,
+    &setPropertyByIndex,
+    NULL,
+    NULL,
+    &getEnumerablePropertyIndecies);
 
   ctor = Persistent<Function>::New(tmpl->GetFunction());
   exports->Set(String::NewSymbol(kClassName), ctor);
@@ -55,7 +61,7 @@ rtValue rtObjectWrapper::unwrapObject(const Local<Object>& obj)
   return rtValue(unwrap(obj));
 }
 
-Handle<Array> rtObjectWrapper::enumProperties(const AccessorInfo& info)
+Handle<Array> rtObjectWrapper::getEnumerablePropertyNames(const AccessorInfo& info)
 {
   rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
@@ -78,7 +84,31 @@ Handle<Array> rtObjectWrapper::enumProperties(const AccessorInfo& info)
   return props;
 }
 
-Handle<Value> rtObjectWrapper::getProperty(Local<String> prop, const AccessorInfo& info)
+
+Handle<Array> rtObjectWrapper::getEnumerablePropertyIndecies(const AccessorInfo& info)
+{
+  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  if (!wrapper)
+    return Handle<Array>();
+
+  rtObjectRef ref = wrapper->mWrappedObject;
+  if (!ref)
+    return Handle<Array>();
+
+  rtObjectRef keys = ref.get<rtObjectRef>(kFuncAllKeys);
+  if (!keys)
+    return Handle<Array>();
+
+  uint32_t length = keys.get<uint32_t>(kPropLength);
+  Local<Array> props = Array::New(length);
+
+  for (uint32_t i = 0; i < length; ++i)
+    props->Set(Number::New(i), Number::New(i));
+
+  return props;
+}
+
+Handle<Value> rtObjectWrapper::getPropertyByName(Local<String> prop, const AccessorInfo& info)
 {
   rtString name = toString(prop);
 
@@ -106,10 +136,35 @@ Handle<Value> rtObjectWrapper::getProperty(Local<String> prop, const AccessorInf
   return rt2js(value);
 }
 
-Handle<Value> rtObjectWrapper::setProperty(
-    Local<String> prop,
-    Local<Value> val,
-    const AccessorInfo& info)
+
+Handle<Value> rtObjectWrapper::getPropertyByIndex(uint32_t index, const AccessorInfo& info)
+{
+  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  if (!wrapper)
+    return Handle<Value>(Undefined());
+
+  rtObjectRef ref = wrapper->mWrappedObject;
+  if (!ref)
+    return Handle<Value>(Undefined());
+
+  rtValue value;
+  rtWrapperSceneUpdateEnter();
+  rtError err = ref->Get(index, &value);
+  rtWrapperSceneUpdateExit();
+
+  if (err != RT_OK)
+  {
+    if (err == RT_PROP_NOT_FOUND)
+      return Handle<Value>(Undefined());
+    else
+      return ThrowException(Exception::Error(String::New(rtStrError(err))));
+  }
+
+  return rt2js(value);
+
+}
+
+Handle<Value> rtObjectWrapper::setPropertyByName(Local<String> prop, Local<Value> val, const AccessorInfo& info)
 {
   rtString name = toString(prop);
 
@@ -120,6 +175,21 @@ Handle<Value> rtObjectWrapper::setProperty(
 
   rtWrapperSceneUpdateEnter();
   rtError err = unwrap(info)->Set(name.cString(), &value);
+  rtWrapperSceneUpdateExit();
+  return err == RT_OK
+    ? val
+    : Handle<Value>();
+}
+
+Handle<Value> rtObjectWrapper::setPropertyByIndex(uint32_t index, Local<Value> val, const AccessorInfo& info)
+{
+  rtWrapperError error;
+  rtValue value = js2rt(val, &error);
+  if (error.hasError())
+    return ThrowException(error.toTypeError());
+
+  rtWrapperSceneUpdateEnter();
+  rtError err = unwrap(info)->Set(index, &value);
   rtWrapperSceneUpdateExit();
   return err == RT_OK
     ? val
