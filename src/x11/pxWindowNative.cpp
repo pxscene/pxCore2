@@ -6,6 +6,7 @@
 #include "../pxWindow.h"
 #include "pxWindowNative.h"
 #include "../pxTimer.h"
+#include "../pxWindowUtil.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -290,7 +291,7 @@ void pxWindowNative::runEventLoop()
 		    flags |= (ke->state & ShiftMask)?PX_MOD_SHIFT:0;
 		    flags |= (ke->state & ControlMask)?PX_MOD_CONTROL:0;
 		    flags |= (ke->state & Mod1Mask)?PX_MOD_ALT:0;
-		    w->onKeyDown(keySym, flags);
+        w->onKeyDown(keycodeFromNative(keySym), flags);
 		}
 		break;
 

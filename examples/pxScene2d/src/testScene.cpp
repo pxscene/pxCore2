@@ -7,6 +7,7 @@
 #include "pxScene2d.h"
 #include "pxText.h"
 #include "pxImage.h"
+#include "pxKeycodes.h"
 
 #include "pxInterpolators.h"
 

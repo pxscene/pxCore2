@@ -6,6 +6,7 @@
 #include "../pxWindow.h"
 #include "pxWindowNative.h"
 #include "../pxTimer.h"
+#include "../pxWindowUtil.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -199,7 +200,7 @@ keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
     for (i = windowVector.begin(); i < windowVector.end(); i++)
     {
         pxWindowNative* w = (*i);
-        w->onKeyDown(key,flags);
+        w->onKeyDown(keycodeFromNative(key),flags);
     }
 }
 

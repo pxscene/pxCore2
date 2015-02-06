@@ -4,6 +4,7 @@
 
 #include "pxWindow.h"
 #include "pxWindowNative.h"
+#include "../pxWindowUtil.h"
 
 // pxWindow
 
@@ -238,7 +239,7 @@ pascal OSStatus pxWindowNative::doKeyDown (EventHandlerCallRef nextHandler, Even
 	if (modifier & optionKey) flags |= PX_MOD_ALT;
 	if (modifier & controlKey) flags |= PX_MOD_CONTROL;
 
-	w->onKeyDown(kc, flags);
+	w->onKeyDown(keycodeFromNative(kc), flags);
 
 	return CallNextEventHandler (nextHandler, theEvent);
 }
@@ -268,7 +269,7 @@ pascal OSStatus pxWindowNative::doKeyUp (EventHandlerCallRef nextHandler, EventR
 	if (modifier & optionKey) flags |= PX_MOD_ALT;
 	if (modifier & controlKey) flags |= PX_MOD_CONTROL;
 
-	w->onKeyUp(kc, flags);
+	w->onKeyUp(keycodeFromNative(kc), flags);
 
 	return CallNextEventHandler (nextHandler, theEvent);
 }
@@ -281,17 +282,17 @@ pascal OSStatus pxWindowNative::doKeyModifierChanged (EventHandlerCallRef nextHa
 
 	pxWindowNative* w = (pxWindowNative*)userData;
 
-	if (!(w->mLastModifierState & shiftKey) && (modifier & shiftKey)) w->onKeyDown(PX_KEY_SHIFT, 0); 
-	else if ((w->mLastModifierState & shiftKey) && !(modifier & shiftKey)) w->onKeyUp(PX_KEY_SHIFT, 0);
+	if (!(w->mLastModifierState & shiftKey) && (modifier & shiftKey)) w->onKeyDown(keycodeFromNative(PX_KEY_NATIVE_SHIFT), 0); 
+	else if ((w->mLastModifierState & shiftKey) && !(modifier & shiftKey)) w->onKeyUp(keycodeFromNative(PX_KEY_NATIVE_SHIFT), 0);
 	
-	if (!(w->mLastModifierState & optionKey) && (modifier & optionKey)) w->onKeyDown(PX_KEY_ALT, 0); 
-	else if ((w->mLastModifierState & optionKey) && !(modifier & optionKey)) w->onKeyUp(PX_KEY_ALT, 0);
+	if (!(w->mLastModifierState & optionKey) && (modifier & optionKey)) w->onKeyDown(keycodeFromNative(PX_KEY_NATIVE_ALT), 0); 
+	else if ((w->mLastModifierState & optionKey) && !(modifier & optionKey)) w->onKeyUp(keycodeFromNative(PX_KEY_NATIVE_ALT), 0);
 	
-	if (!(w->mLastModifierState & controlKey) && (modifier & controlKey)) w->onKeyDown(PX_KEY_CONTROL, 0); 
-	else if ((w->mLastModifierState & controlKey) && !(modifier & controlKey)) w->onKeyUp(PX_KEY_CONTROL, 0);
+	if (!(w->mLastModifierState & controlKey) && (modifier & controlKey)) w->onKeyDown(keycodeFromNative(PX_KEY_NATIVE_CONTROL), 0); 
+	else if ((w->mLastModifierState & controlKey) && !(modifier & controlKey)) w->onKeyUp(keycodeFromNative(PX_KEY_NATIVE_CONTROL), 0);
 	
-	if (!(w->mLastModifierState & alphaLock) && (modifier & alphaLock)) w->onKeyDown(PX_KEY_CAPSLOCK, 0); 
-	else if ((w->mLastModifierState & alphaLock) && !(modifier & alphaLock)) w->onKeyUp(PX_KEY_CAPSLOCK, 0);
+	if (!(w->mLastModifierState & alphaLock) && (modifier & alphaLock)) w->onKeyDown(keycodeFromNative(PX_KEY_NATIVE_CAPSLOCK), 0); 
+	else if ((w->mLastModifierState & alphaLock) && !(modifier & alphaLock)) w->onKeyUp(keycodeFromNative(PX_KEY_NATIVE_CAPSLOCK), 0);
 	
 	w->mLastModifierState = modifier;
 
