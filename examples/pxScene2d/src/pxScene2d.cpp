@@ -72,6 +72,7 @@ rtError pxObject::remove()
   return RT_OK;
 }
 
+#if 0
 rtError pxObject::animateTo(const char* prop, double to, double duration, 
                             uint32_t interp, uint32_t animationType) 
 {
@@ -80,6 +81,7 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
             (pxAnimationType)animationType);
   return RT_OK;
   }
+#endif
 
 rtError pxObject::animateTo2(const char* prop, double to, double duration, 
                              uint32_t interp, uint32_t animationType, 
@@ -324,7 +326,7 @@ rtDefineProperty(pxObject, mask);
 rtDefineProperty(pxObject, numChildren);
 rtDefineMethod(pxObject, getChild);
 rtDefineMethod(pxObject, remove);
-rtDefineMethod(pxObject, animateTo);
+//rtDefineMethod(pxObject, animateTo);
 rtDefineMethod(pxObject, animateTo2);
 
 pxScene2d::pxScene2d()

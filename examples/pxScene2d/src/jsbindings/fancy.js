@@ -39,17 +39,16 @@ function fancy(p) {
 }
 
 function x1(p) {
-// animateTo2 ugliness until I can figure out default/optional args
-  p.animateTo2("x", 50, 1.0, pxInterpLinear, 0, x2);
+  p.animateTo("x", 50, 1.0, pxInterpLinear, 0, x2);
 }
 
 function x2(p) {
-  p.animateTo2("x", 450, 3.0, easeOutElastic, 0, fancy);
+  p.animateTo("x", 450, 3.0, easeOutElastic, 0, fancy);
 }
 
 function y1(p) {
   p.y = 100;
-  p.animateTo2("y", 350, 1.0, easeOutBounce, 0, y2);
+  p.animateTo("y", 350, 1.0, easeOutBounce, 0, y2);
 }
 
 function y2(p) {
@@ -62,12 +61,12 @@ function rotate1(p) {
 }
 
 function scale1(p) {
-  p.animateTo2("sx", 0.2, 1, pxInterpLinear, 0, scale2);
+  p.animateTo("sx", 0.2, 1, pxInterpLinear, 0, scale2);
   p.animateTo("sy", 0.2, 1, pxInterpLinear, 0);
 }
 
 function scale2(p) {
-  p.animateTo2("sx", 2.0, 1.0, pxExp, 0, scale3);
+  p.animateTo("sx", 2.0, 1.0, pxExp, 0, scale3);
   p.animateTo("sy", 2.0, 1.0, pxExp, 0);
 }
 

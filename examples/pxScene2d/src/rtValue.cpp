@@ -6,23 +6,23 @@
 #include "rtObject.h"
 #include "rtValue.h"
 
-rtValue::rtValue()                    :mType(0) { setEmpty();   }
-rtValue::rtValue(bool v)              :mType(0) { setBool(v);   }
-rtValue::rtValue(int8_t v)            :mType(0) { setInt8(v);   }
-rtValue::rtValue(uint8_t v)           :mType(0) { setUInt8(v);  }
-rtValue::rtValue(int32_t v)           :mType(0) { setInt32(v);  }
-rtValue::rtValue(uint32_t v)          :mType(0) { setUInt32(v); }
-rtValue::rtValue(int64_t v)           :mType(0) { setInt64(v);  }
-rtValue::rtValue(uint64_t v)          :mType(0) { setUInt64(v); }
-rtValue::rtValue(float v)             :mType(0) { setFloat(v);  }
-rtValue::rtValue(double v)            :mType(0) { setDouble(v); }
-rtValue::rtValue(const char* v)       :mType(0) { setString(v); }
-rtValue::rtValue(const rtString& v)   :mType(0) { setString(v); }
-rtValue::rtValue(const rtIObject* v)  :mType(0) { setObject(v); }
-rtValue::rtValue(const rtObjectRef& v):mType(0) { setObject(v); }
-rtValue::rtValue(const rtFunctionRef& v): mType(0) { setFunction(v); }
-rtValue::rtValue(const rtValue& v)    :mType(0) { setValue(v);  }
-rtValue::rtValue(voidPtr v)           :mType(0) { setVoidPtr(v); }
+rtValue::rtValue()                      :mType(0) { setEmpty();   }
+rtValue::rtValue(bool v)                :mType(0) { setBool(v);   }
+rtValue::rtValue(int8_t v)              :mType(0) { setInt8(v);   }
+rtValue::rtValue(uint8_t v)             :mType(0) { setUInt8(v);  }
+rtValue::rtValue(int32_t v)             :mType(0) { setInt32(v);  }
+rtValue::rtValue(uint32_t v)            :mType(0) { setUInt32(v); }
+rtValue::rtValue(int64_t v)             :mType(0) { setInt64(v);  }
+rtValue::rtValue(uint64_t v)            :mType(0) { setUInt64(v); }
+rtValue::rtValue(float v)               :mType(0) { setFloat(v);  }
+rtValue::rtValue(double v)              :mType(0) { setDouble(v); }
+rtValue::rtValue(const char* v)         :mType(0) { setString(v); }
+rtValue::rtValue(const rtString& v)     :mType(0) { setString(v); }
+rtValue::rtValue(const rtIObject* v)    :mType(0) { setObject(v); }
+rtValue::rtValue(const rtObjectRef& v)  :mType(0) { setObject(v); }
+rtValue::rtValue(const rtFunctionRef& v):mType(0) { setFunction(v); }
+rtValue::rtValue(const rtValue& v)      :mType(0) { setValue(v);  }
+rtValue::rtValue(voidPtr v)             :mType(0) { setVoidPtr(v); }
 
 rtObjectRef rtValue::toObject() const  { 
   rtObjectRef v; 
@@ -37,19 +37,25 @@ rtFunctionRef rtValue::toFunction() const {
 }
 
 void rtValue::setEmpty() {
-  if (mType == RT_objectType) {
-    if (mValue.objectValue) {
+  if (mType == RT_objectType) 
+  {
+    if (mValue.objectValue) 
+    {
       mValue.objectValue->Release();
       mValue.objectValue = NULL;
     }
-    else if (mType == RT_stringType) {
-      if (mValue.stringValue) {
-	delete mValue.stringValue;
-	mValue.stringValue = NULL;
+    else if (mType == RT_stringType) 
+    {
+      if (mValue.stringValue) 
+      {
+        delete mValue.stringValue;
+        mValue.stringValue = NULL;
       }
     }
   }
+  // TODO setting this to '0' makes node wrappers unhappy
   mType = 0;
+  // TODO do we really need thi
   mValue.uint64Value = 0;
 }
 
@@ -397,7 +403,7 @@ rtError rtValue::coerceType(rtType newType) {
       }
       }
     break;
-/*
+
     case RT_stringType:
     {
     }
@@ -406,9 +412,11 @@ rtError rtValue::coerceType(rtType newType) {
     {
     }
     break;
-*/
+    case 0:
+      // Do Nothing
+    break;
     default:
-      rtLogError("Missing conversion in coerceType\n");
+      rtLogError("XMissing conversion in coerceType: %c, %d\n", mType, mType);
       break;
     }
   }

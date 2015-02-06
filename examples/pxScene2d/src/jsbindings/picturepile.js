@@ -91,12 +91,12 @@ function doIt() {
                           r: randomInt(-45,45), url:url});
         }
         
-        picture.animateTo2("x", randomInt(100, 300), 1, pxStop, 0, function() {
+        picture.animateTo("x", randomInt(100, 300), 1, pxStop, 0, function() {
             if (false) {
                 if (pictures.numChildren > 10) {
                     var f = pictures.getChild(0);
                     
-                    f.animateTo2("a", 0, 0.75, 0, 0, function(f) {
+                    f.animateTo("a", 0, 0.75, 0, 0, function(f) {
                         f.remove();
                     });
                 }
@@ -106,7 +106,7 @@ function doIt() {
                 if (pictures.children.length > 1) {
                     var f = pictures.children[0];
                     
-                    f.animateTo2("a", 0, 0.75, 0, 0, function(f) {
+                    f.animateTo("a", 0, 0.75, 0, 0, function(f) {
                         f.remove();
                     });
                 }

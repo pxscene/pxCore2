@@ -91,12 +91,14 @@ public:
   rtReadOnlyProperty(children, children, rtObjectRef);
 
   rtMethodNoArgAndNoReturn("remove", remove);
-  rtMethod5ArgAndNoReturn("animateTo", animateTo, rtString, double, double, 
-			  uint32_t, uint32_t);
+  rtMethod6ArgAndNoReturn("animateTo", animateTo2, rtString, double, double, 
+                          uint32_t, uint32_t, rtFunctionRef);
 
+#if 0
   // TODO Until we can sort out how to do optional/default args
   rtMethod6ArgAndNoReturn("animateTo2", animateTo2, rtString, double, double, 
                           uint32_t, uint32_t, rtFunctionRef);
+#endif
 
  pxObject(): mRef(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0), 
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
@@ -215,8 +217,10 @@ public:
   virtual void draw() {}
   bool hitTest(const pxPoint2f& pt);
   
+#if 0
   rtError animateTo(const char* prop, double to, double duration, 
                     uint32_t interp, uint32_t animationType);
+#endif
 
   rtError animateTo2(const char* prop, double to, double duration, 
                      uint32_t interp, uint32_t animationType, 
