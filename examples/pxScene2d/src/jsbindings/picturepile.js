@@ -76,7 +76,7 @@ function doIt() {
 
         var url = getImageURL();
         var picture;
-        if (false) {
+        if (true) {
             picture = scene.createImage({parent: pictures, x: -1000, y: 
                                           randomInt(-200, 800), cx: 200, 
                                           cy: 200, sx: 2, sy: 2, 
@@ -92,12 +92,24 @@ function doIt() {
         }
         
         picture.animateTo2("x", randomInt(100, 300), 1, pxStop, 0, function() {
-            if (pictures.numChildren > 10) {
-                var f = pictures.getChild(0);
-   
-                f.animateTo2("a", 0, 0.75, 0, 0, function(f) {
-                    f.remove();
-                });
+            if (false) {
+                if (pictures.numChildren > 10) {
+                    var f = pictures.getChild(0);
+                    
+                    f.animateTo2("a", 0, 0.75, 0, 0, function(f) {
+                        f.remove();
+                    });
+                }
+            }
+            else {
+                console.log(pictures.children.length);
+                if (pictures.children.length > 1) {
+                    var f = pictures.children[0];
+                    
+                    f.animateTo2("a", 0, 0.75, 0, 0, function(f) {
+                        f.remove();
+                    });
+                }
             }
             newPicture();
         });

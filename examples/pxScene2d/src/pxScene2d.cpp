@@ -49,6 +49,7 @@ void pxObject::setParent(rtRefT<pxObject>& parent)
 
 rtError pxObject::children(rtObjectRef& v) const
 {
+  printf("in children\n");
   v = new pxObjectChildren(const_cast<pxObject*>(this));
   return RT_OK;
 }

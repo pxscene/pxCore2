@@ -295,8 +295,8 @@ rtError rtValue::coerceType(rtType newType) {
         break;
       }
     }
-    case RT_int8_tType:
-    case RT_uint8_tType:
+//    case RT_int8_tType:
+//    case RT_uint8_tType:
     case RT_int32_tType:
     {
       switch(newType) {
@@ -323,6 +323,30 @@ rtError rtValue::coerceType(rtType newType) {
     }
     break;
     case RT_uint32_tType:
+    {
+      switch(newType) {
+      case RT_boolType: setBool(mValue.uint32Value?true:false); break;
+      case RT_int8_tType: setInt8((int8_t)mValue.uint32Value); break;
+      case RT_uint8_tType: setUInt8((uint8_t)mValue.uint32Value); break;
+      case RT_int32_tType: setInt32((int32_t)mValue.uint32Value); break;
+      case RT_uint32_tType: setUInt32((uint32_t)mValue.uint32Value); break;
+      case RT_floatType: setFloat((float)mValue.uint32Value); break;
+      case RT_doubleType: setDouble((double)mValue.uint32Value); break;
+      case RT_stringType: 
+      {
+        char buffer[256];
+        sprintf(buffer, "%d", mValue.int32Value);
+        setString(buffer);
+      }
+      break;
+      case RT_objectType: setObject(NULL); break;
+      case RT_functionType: setFunction(NULL); break;
+      default:
+        rtLogWarn("missed conversion");
+        break;
+      }
+    }
+    break;
     case RT_floatType:
     {
       switch(newType) {
@@ -373,6 +397,7 @@ rtError rtValue::coerceType(rtType newType) {
       }
       }
     break;
+/*
     case RT_stringType:
     {
     }
@@ -381,6 +406,10 @@ rtError rtValue::coerceType(rtType newType) {
     {
     }
     break;
+*/
+    default:
+      rtLogError("Missing conversion in coerceType\n");
+      break;
     }
   }
   return RT_OK;

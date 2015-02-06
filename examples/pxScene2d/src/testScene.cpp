@@ -391,6 +391,7 @@ void testScene()
   printf("Enumerate children of root object\n");
   rtObjectRef c = root.get<rtObjectRef>("children");
   uint32_t l = c.get<uint32_t>("length");
+#if 1
   for (uint32_t i = 0; i < l; i++)
   {
     rtObjectRef o = c.get<rtObjectRef>(i);
@@ -398,6 +399,7 @@ void testScene()
     o.sendReturns<rtString>("description", s);
     printf("class description: %s\n", s.cString());
   }
+#endif
 }
 
 #endif
