@@ -202,8 +202,6 @@ ProcessInputEvent(DFBInputEvent *ievt)
   if( ievt->modifiers == DIMM_CONTROL ) mods |= PX_MOD_CONTROL;
   if( ievt->modifiers == DIMM_META )    mods |= PX_MOD_ALT;
 
-  printf("ProcessInputEvent:  ievt->modifiers = %d  >>  mods = 0x%08X\n", mods);
-
   switch (ievt->type)
   {
     case DIET_AXISMOTION:
