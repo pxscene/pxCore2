@@ -3,6 +3,7 @@
 
 #include "pxCore.h"
 #include "rtRefT.h"
+#include "pxOffscreen.h"
 
 enum pxTextureType { 
   PX_TEXTURE_UNKNOWN = 0,
@@ -22,8 +23,9 @@ public:
   
   virtual pxError bindTexture() = 0;
   virtual pxError deleteTexture() = 0;
-  virtual float getWidth() = 0;
-  virtual float getHeight() = 0;
+  virtual float width() = 0;
+  virtual float height() = 0;
+  virtual pxError getOffscreen(pxOffscreen& o) = 0;
   pxTextureType getType() { return mTextureType; }
   virtual pxError prepareForRendering() { return PX_OK; }
   

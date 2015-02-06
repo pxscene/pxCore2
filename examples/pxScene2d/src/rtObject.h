@@ -543,7 +543,7 @@ struct _rtEmitEntry {
 
 typedef rtError (*rtFunctionCB)(int numArgs, const rtValue* args, rtValue* result, void* context);
 
-class rtFunctionCallback: rtIFunction {
+class rtFunctionCallback: public rtIFunction {
 public:
   rtFunctionCallback(rtFunctionCB cb, void* context = NULL) {
     mCB = cb;
@@ -563,12 +563,12 @@ public:
     return l;
   }
 
-  
-private:  
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result)
   {
     return mCB(numArgs, args, result, mContext);
   }
+
+private:  
   rtFunctionCB mCB;
   void* mContext;
   rtAtomic mRefCount;
@@ -637,7 +637,7 @@ public:
     if (numArgs > 0)
     {
       rtString eventName = args[0].toString();
-      rtLogDebug("rtEmit::Send %s", eventName.cString());
+      rtLogDebug("rtEmit::Send %s\n", eventName.cString());
       for(vector<_rtEmitEntry>::iterator it = mEntries.begin(); it != mEntries.end(); it++)
       {
         _rtEmitEntry& e = (*it);

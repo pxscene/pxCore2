@@ -19,7 +19,8 @@ typedef struct
     GC gc;
     int windowWidth;
     int windowHeight;
-} pxSurfaceNativeDesc;
+}
+pxSurfaceNativeDesc;
 
 typedef pxSurfaceNativeDesc* pxSurfaceNative;
 

@@ -49,7 +49,6 @@ void pxObject::setParent(rtRefT<pxObject>& parent)
 
 rtError pxObject::children(rtObjectRef& v) const
 {
-  printf("in children\n");
   v = new pxObjectChildren(const_cast<pxObject*>(this));
   return RT_OK;
 }
@@ -293,7 +292,7 @@ void pxObject::createMask()
   {
     pxImage image;
     image.setURL(mMaskUrl.cString());
-    mMaskTextureRef = context.createMask(image.getOffscreen());
+    mMaskTextureRef = context.createMask(image.getTexture());
   }
 }
 

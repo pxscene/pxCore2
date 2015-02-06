@@ -2,8 +2,8 @@
 // Portable Framebuffer and Windowing Library
 // pxWindowNativeGlut.h
 
-#ifndef PX_WINDOW_NATIVE_H
-#define PX_WINDOW_NATIVE_H
+#ifndef PX_WINDOW_NATIVE_GLUT_H
+#define PX_WINDOW_NATIVE_GLUT_H
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -228,4 +228,4 @@ protected:
 #define PX_KEY_BACKQUOTE    XK_quoteleft
 #define PX_KEY_QUOTE        XK_quoteright
 
-#endif
+#endif // PX_WINDOW_NATIVE_GLUT_H

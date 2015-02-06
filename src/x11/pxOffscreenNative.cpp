@@ -9,36 +9,36 @@
 
 pxError pxOffscreen::init(int width, int height)
 {
-    term();
+  term();
 
-    pxError e = PX_FAIL;
+  pxError e = PX_FAIL;
 
-    data = (char*) new unsigned char[width * height * 4];
+  data = (char*) new unsigned char[width * height * 4];
 
-    if (data)
-    {
-	setBase(data);
-	setWidth(width);
-	setHeight(height);
-	setStride(width*4);
-	setUpsideDown(false);
-	e = PX_OK;
-    }
+  if (data)
+  {
+    setBase(data);
+    setWidth(width);
+    setHeight(height);
+    setStride(width*4);
+    setUpsideDown(false);
+    e = PX_OK;
+  }
 
-    return e;
+  return e;
 }
 
 pxError pxOffscreen::term()
 {
-    return pxOffscreenNative::term();
+  return pxOffscreenNative::term();
 }
 
 pxError pxOffscreenNative::term()
 {
-    delete [] data;
-    data = NULL;
-    
-    return PX_OK;
+  delete [] data;
+  data = NULL;
+
+  return PX_OK;
 }
 
 

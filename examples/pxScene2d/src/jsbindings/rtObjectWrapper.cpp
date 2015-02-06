@@ -7,6 +7,19 @@
 using namespace v8;
 
 static const char* kClassName = "Object";
+static const char* kFuncAllKeys = "allKeys";
+static const char* kPropLength = "length";
+
+static Handle<Value> makeStringFromKey(rtObjectRef& keys, uint32_t index)
+{
+  return String::New(keys.get<rtString>(index).cString());
+}
+
+static Handle<Value> makeIntegerFromKey(rtObjectRef& keys, uint32_t index)
+{
+  return Number::New(index);
+}
+
 static Persistent<Function> ctor;
 
 rtObjectWrapper::rtObjectWrapper(const rtObjectRef& ref)
@@ -25,15 +38,21 @@ void rtObjectWrapper::exportPrototype(Handle<Object> exports)
   Local<FunctionTemplate> tmpl = FunctionTemplate::New(create);
   tmpl->SetClassName(String::NewSymbol(kClassName));
 
-  // Local<Template> proto = tmpl->PrototypeTemplate();
-  // proto->Set(String::NewSymbol("get"), FunctionTemplate::New(Get)->GetFunction());
-  // proto->Set(String::NewSymbol("set"), FunctionTemplate::New(Set)->GetFunction());
-  // proto->Set(String::NewSymbol("send"), FunctionTemplate::New(Send)->GetFunction());
-
   Local<ObjectTemplate> inst = tmpl->InstanceTemplate();
   inst->SetInternalFieldCount(1);
-  inst->SetNamedPropertyHandler(&getProperty, &setProperty, NULL,
-    NULL, &enumProperties);
+  inst->SetNamedPropertyHandler(
+    &getPropertyByName,
+    &setPropertyByName,
+    NULL,
+    NULL,
+    &getEnumerablePropertyNames);
+
+  inst->SetIndexedPropertyHandler(
+    &getPropertyByIndex,
+    &setPropertyByIndex,
+    NULL,
+    NULL,
+    &getEnumerablePropertyIndecies);
 
   ctor = Persistent<Function>::New(tmpl->GetFunction());
   exports->Set(String::NewSymbol(kClassName), ctor);
@@ -52,33 +71,9 @@ rtValue rtObjectWrapper::unwrapObject(const Local<Object>& obj)
   return rtValue(unwrap(obj));
 }
 
-Handle<Array> rtObjectWrapper::enumProperties(const AccessorInfo& info)
+template<typename T>
+Handle<Value> rtObjectWrapper::getProperty(const T& prop, const AccessorInfo& info)
 {
-  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
-  if (!wrapper)
-    return Handle<Array>();
-
-  rtObjectRef ref = wrapper->mWrappedObject;
-  if (!ref)
-    return Handle<Array>();
-
-  rtObjectRef keys = ref.get<rtObjectRef>("allKeys");
-  if (!keys)
-    return Handle<Array>();
-
-  uint32_t length = keys.get<uint32_t>("length");
-  Local<Array> props = Array::New(length);
-
-  for (uint32_t i = 0; i < length; ++i)
-    props->Set(Number::New(i), String::New(keys.get<rtString>(i).cString()));
-
-  return props;
-}
-
-Handle<Value> rtObjectWrapper::getProperty(Local<String> prop, const AccessorInfo& info)
-{
-  rtString name = toString(prop);
-
   rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
     return Handle<Value>(Undefined());
@@ -89,7 +84,7 @@ Handle<Value> rtObjectWrapper::getProperty(Local<String> prop, const AccessorInf
 
   rtValue value;
   rtWrapperSceneUpdateEnter();
-  rtError err = ref->Get(name.cString(), &value);
+  rtError err = ref->Get(prop, &value);
   rtWrapperSceneUpdateExit();
 
   if (err != RT_OK)
@@ -101,28 +96,78 @@ Handle<Value> rtObjectWrapper::getProperty(Local<String> prop, const AccessorInf
   }
 
   return rt2js(value);
+
 }
 
-Handle<Value> rtObjectWrapper::setProperty(
-    Local<String> prop,
-    Local<Value> val,
-    const AccessorInfo& info)
+template<typename T>
+Handle<Value> rtObjectWrapper::setProperty(const T& prop, Local<Value> val, const AccessorInfo& info)
 {
-  rtString name = toString(prop);
-
   rtWrapperError error;
   rtValue value = js2rt(val, &error);
   if (error.hasError())
     return ThrowException(error.toTypeError());
 
-  rtLogDebug("set %s=%s", name.cString(), value.toString().cString());
-
   rtWrapperSceneUpdateEnter();
-  rtError err = unwrap(info)->Set(name.cString(), &value);
+  rtError err = unwrap(info)->Set(prop, &value);
   rtWrapperSceneUpdateExit();
   return err == RT_OK
     ? val
     : Handle<Value>();
+}
+
+Handle<Array> rtObjectWrapper::getEnumerable(const AccessorInfo& info, enumerable_item_creator_t create)
+{
+  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  if (!wrapper)
+    return Handle<Array>();
+
+  rtObjectRef ref = wrapper->mWrappedObject;
+  if (!ref)
+    return Handle<Array>();
+
+  rtObjectRef keys = ref.get<rtObjectRef>(kFuncAllKeys);
+  if (!keys)
+    return Handle<Array>();
+
+  uint32_t length = keys.get<uint32_t>(kPropLength);
+  Local<Array> props = Array::New(length);
+
+  for (uint32_t i = 0; i < length; ++i)
+    props->Set(Number::New(i), create(keys, i));
+
+  return props;
+}
+
+Handle<Array> rtObjectWrapper::getEnumerablePropertyNames(const AccessorInfo& info)
+{
+  return getEnumerable(info, makeStringFromKey);
+}
+
+Handle<Array> rtObjectWrapper::getEnumerablePropertyIndecies(const AccessorInfo& info)
+{
+  return getEnumerable(info, makeIntegerFromKey);
+}
+
+Handle<Value> rtObjectWrapper::getPropertyByName(Local<String> prop, const AccessorInfo& info)
+{
+  rtString name = toString(prop);
+  return getProperty(name.cString(), info);
+}
+
+Handle<Value> rtObjectWrapper::getPropertyByIndex(uint32_t index, const AccessorInfo& info)
+{
+  return getProperty(index, info);
+}
+
+Handle<Value> rtObjectWrapper::setPropertyByName(Local<String> prop, Local<Value> val, const AccessorInfo& info)
+{
+  rtString name = toString(prop);
+  return setProperty(name.cString(), val, info);
+}
+
+Handle<Value> rtObjectWrapper::setPropertyByIndex(uint32_t index, Local<Value> val, const AccessorInfo& info)
+{
+  return setProperty(index, val, info);
 }
 
 Handle<Value> rtObjectWrapper::create(const Arguments& args)
@@ -195,18 +240,19 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value)
   if (!name)
     return RT_ERROR_INVALID_ARG;
 
-  if (strcmp(name, "allKeys") == 0)
+  if (strcmp(name, kFuncAllKeys) == 0)
     return getAllKeys(value);
 
-  rtWrapperError error;
-
   Local<String> s = String::New(name);
-  if (mObject->Has(s))
-    *value = js2rt(mObject->Get(s), &error);
-  else
-    error.setMessage("missing field");
+  if (!mObject->Has(s))
+    return RT_PROPERTY_NOT_FOUND;
 
-  return error.hasError() ? RT_FAIL : RT_OK;
+  rtWrapperError error;
+  *value = js2rt(mObject->Get(s), &error);
+  if (error.hasError())
+    return RT_ERROR_INVALID_ARG;
+
+  return RT_OK;
 }
 
 rtError jsObjectWrapper::Get(uint32_t i, rtValue* value)
@@ -214,19 +260,23 @@ rtError jsObjectWrapper::Get(uint32_t i, rtValue* value)
   if (!value)
     return RT_ERROR_INVALID_ARG;
 
-  rtWrapperError error;
-  if (mObject->Has(i))
-    *value = js2rt(mObject->Get(i), &error);
-  else
-    *value = rtValue();
+  if (!mObject->Has(i))
+    return RT_PROPERTY_NOT_FOUND;
 
-  return error.hasError() ? RT_FAIL : RT_OK;
+  rtWrapperError error;
+  *value = js2rt(mObject->Get(i), &error);
+  if (error.hasError())
+    return RT_ERROR_INVALID_ARG;
+
+  return RT_OK;
 }
 
 rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
 {
-  if (!value) return RT_ERROR_INVALID_ARG;
-  if (!name)  return RT_ERROR_INVALID_ARG;
+  if (!value)
+    return RT_ERROR_INVALID_ARG;
+  if (!name)
+    return RT_ERROR_INVALID_ARG;
 
   if (!mObject->Set(String::New(name), rt2js(*value)))
     return RT_FAIL;
@@ -244,7 +294,4 @@ rtError jsObjectWrapper::Set(uint32_t i, const rtValue* value)
 
   return RT_OK;
 }
-
-
-
 

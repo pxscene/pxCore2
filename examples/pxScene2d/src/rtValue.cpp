@@ -20,6 +20,7 @@ rtValue::rtValue(const char* v)         :mType(0) { setString(v); }
 rtValue::rtValue(const rtString& v)     :mType(0) { setString(v); }
 rtValue::rtValue(const rtIObject* v)    :mType(0) { setObject(v); }
 rtValue::rtValue(const rtObjectRef& v)  :mType(0) { setObject(v); }
+rtValue::rtValue(const rtIFunction* v)  :mType(0) { setFunction(v); }
 rtValue::rtValue(const rtFunctionRef& v):mType(0) { setFunction(v); }
 rtValue::rtValue(const rtValue& v)      :mType(0) { setValue(v);  }
 rtValue::rtValue(voidPtr v)             :mType(0) { setVoidPtr(v); }
@@ -167,7 +168,7 @@ rtError rtValue::getBool(bool& v) const {
     case RT_objectType: v = mValue.objectValue?true:false; break;
     case RT_functionType: v = mValue.functionValue?true:false; break;
     default:
-      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      rtLogError("No conversion from %s to bool.\n", rtStrType(mType));
       break;
     }
   }
@@ -197,7 +198,7 @@ rtError rtValue::getInt8(int8_t& v)  const {
     case RT_objectType: /* Leave as default */ break;
     case RT_functionType: /* Leave as default */ break;
     default:
-      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      rtLogError("No conversion from %s to int8_t.\n", rtStrType(mType));
       break;
     }
   }
@@ -227,7 +228,7 @@ rtError rtValue::getUInt8(uint8_t& v) const {
     case RT_objectType: /* Leave as default */ break;
     case RT_functionType: /* Leave as default */ break;
     default:
-      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      rtLogError("No conversion from %s to uint8_t.\n", rtStrType(mType));
       break;
     }
   }
@@ -245,6 +246,8 @@ rtError rtValue::getInt32(int32_t& v) const {
     case RT_uint8_tType: v = (int32_t)mValue.uint8Value; break;
     case RT_int32_tType: v = (int32_t)mValue.int32Value; break;
     case RT_uint32_tType: v = (int32_t)mValue.uint32Value; break;
+    case RT_int64_tType: v = (int32_t)mValue.int64Value; break;
+    case RT_uint64_tType: v = (int32_t)mValue.uint64Value; break;
 // TODO look at faster float to fixed conversion
     case RT_floatType: v = (int32_t)mValue.floatValue; break;
     case RT_doubleType: v = (int32_t)mValue.doubleValue; break;
@@ -257,7 +260,7 @@ rtError rtValue::getInt32(int32_t& v) const {
     case RT_objectType: /* Leave as default */ break;
     case RT_functionType: /* Leave as default */ break;
     default:
-      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      rtLogError("No conversion from %s to int32_t.\n", rtStrType(mType));
       break;
     }
   }
@@ -287,7 +290,7 @@ rtError rtValue::getUInt32(uint32_t& v) const {
     case RT_objectType: /* Leave as default */ break;
     case RT_functionType: /* Leave as default */ break;
     default:
-      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      rtLogError("No conversion from %s to uint32_t.\n", rtStrType(mType));
       break;
     }
   }
@@ -318,7 +321,7 @@ rtError rtValue::getInt64(int64_t& v) const {
     case RT_objectType: /* Leave as default */ break;
     case RT_functionType: /* Leave as default */ break;
     default:
-      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      rtLogError("No conversion from %s to int64.\n", rtStrType(mType));
       break;
     }
   }
@@ -348,7 +351,7 @@ rtError rtValue::getUInt64(uint64_t& v) const {
     case RT_objectType: /* Leave as default */ break;
     case RT_functionType: /* Leave as default */ break;
     default:
-      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      rtLogError("No conversion from %s to uint64_t.\n", rtStrType(mType));
       break;
     }
   }
@@ -376,7 +379,7 @@ rtError rtValue::getFloat(float& v) const {
     case RT_objectType: /* Leave as default */ break;
     case RT_functionType: /* Leave as default */ break;
     default:
-      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      rtLogError("No conversion from %s to float.\n", rtStrType(mType));
       break;
     }
   }
@@ -405,7 +408,7 @@ rtError rtValue::getDouble(double& v) const {
     case RT_objectType: /* Leave as default */ break;
     case RT_functionType: /* Leave as default */ break;
     default:
-      rtLogError("No conversion from %s to string.", rtStrType(mType));
+      rtLogError("No conversion from %s to double.\n", rtStrType(mType));
       break;
     }
   }
@@ -425,9 +428,10 @@ rtError rtValue::getString(rtString& v) const {
     case RT_uint8_tType: sprintf(buffer, "%u", mValue.uint8Value); break;
     case RT_int32_tType: sprintf(buffer, "%d", mValue.int32Value); break;
     case RT_uint32_tType: sprintf(buffer, "%u", mValue.uint32Value); break;
+    case RT_int64_tType: sprintf(buffer, "%lld", (long long int)mValue.int64Value); break;
+    case RT_uint64_tType: sprintf(buffer, "%llu", (unsigned long long int)mValue.uint64Value); break;
     case RT_floatType: sprintf(buffer, "%f", mValue.floatValue); break;
     case RT_doubleType: sprintf(buffer, "%f", mValue.doubleValue); break;
-      //case RT_stringType: break;
       // TODO call toString or description on object
     case RT_objectType: break;
     case RT_functionType: break;

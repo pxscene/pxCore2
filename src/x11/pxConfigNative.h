@@ -10,14 +10,29 @@
 #define PX_LITTLEENDIAN_PIXELS
 
 #ifndef PX_NATIVE
-#include "pxBufferNative.h"
-#include "pxOffscreenNative.h"
-#ifdef ENABLE_GLUT
-#include "pxWindowNativeGlut.h"
+
+
+#if defined(ENABLE_GLUT)
+
+  #include "pxBufferNative.h"
+  #include "pxOffscreenNative.h"
+  #include "pxWindowNativeGlut.h"
+
+#elif defined(ENABLE_DFB)
+
+  #include "pxBufferNativeDfb.h"
+  #include "pxOffscreenNativeDfb.h"
+  #include "pxWindowNativeDfb.h"
+
 #else
-#include "pxWindowNative.h"
-#endif
-#endif
+
+  #include "pxBufferNative.h"
+  #include "pxOffscreenNative.h"
+  #include "pxWindowNative.h"
 
 #endif
+
+#endif // PX_NATIVE
+
+#endif // PX_CONFIGNATIVE_H
 

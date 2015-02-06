@@ -7,6 +7,7 @@
 #include "pxOffscreen.h"
 #include "pxUtil.h"
 #include "pxScene2d.h"
+#include "pxOffscreen.h"
 
 #include "pxImage.h"
 
@@ -55,14 +56,16 @@ void pxImage::checkForCompletedImageDownload()
       {
         if (mImageDownloadRequest != NULL && mImageDownloadRequest->getDownloadStatusCode() == 0)
         {
+          pxOffscreen imageOffscreen;
           if (pxLoadImage(mImageDownloadRequest->getDownloadedData(),
-                          mImageDownloadRequest->getDownloadedDataSize(), mOffscreen) != RT_OK)
+                          mImageDownloadRequest->getDownloadedDataSize(), imageOffscreen) != RT_OK)
           {
             rtLogWarn("image load failed"); // TODO: why?
           }
           else
           {
-            rtLogDebug("image %d, %d", mOffscreen.width(), mOffscreen.height());
+            mTexture = context.createTexture(imageOffscreen);
+            rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
           }
         }
         else
@@ -74,8 +77,8 @@ void pxImage::checkForCompletedImageDownload()
         mImageDownloadRequest = NULL;
         mImageDownloadIsAvailable = false;
         mWaitingForImageDownload = false;
-        mw = mOffscreen.width();
-        mh = mOffscreen.height();
+        mw = mTexture->width();
+        mh = mTexture->height();
       }
       mImageDownloadMutex.unlock();
     }
@@ -97,20 +100,25 @@ void pxImage::loadImage(rtString url)
   }
   else 
   {
-    if (pxLoadImage(s, mOffscreen) != RT_OK)
+    pxOffscreen imageOffscreen;
+    if (pxLoadImage(s, imageOffscreen) != RT_OK)
       rtLogWarn("image load failed"); // TODO: why?
     else
-      rtLogDebug("image %d, %d", mOffscreen.width(), mOffscreen.height());
+    {
+      mTexture = context.createTexture(imageOffscreen);
+      rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
+    }
   }
 
-  mw = mOffscreen.width();
-  mh = mOffscreen.height();
+  mw = mTexture->width();
+  mh = mTexture->height();
 }
 
 void pxImage::draw() {
     
   checkForCompletedImageDownload();
-  context.drawImage(mw, mh, mOffscreen, mXStretch, mYStretch);
+  static pxTextureRef nullMaskRef;
+  context.drawImage(mw, mh, mTexture, nullMaskRef, mXStretch, mYStretch);
 }
 
 rtDefineObject(pxImage, pxObject);

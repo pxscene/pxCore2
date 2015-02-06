@@ -30,7 +30,7 @@ class pxContext {
   pxError setRenderSurface(pxTextureRef texture);
   pxError deleteContextSurface(pxTextureRef texture);
 
-  pxTextureRef createMask(pxOffscreen& o);
+  pxTextureRef createMask(pxTextureRef t);
   pxTextureRef createTexture(pxOffscreen& o);
 
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);

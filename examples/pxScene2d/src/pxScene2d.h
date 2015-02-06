@@ -361,7 +361,6 @@ public:
     if (!value) return RT_FAIL;
     if (i < mObject->numChildren())
     {
-      printf("here");
       rtObjectRef o;
       rtError e = mObject->getChild(i, o);
       *value = o;
