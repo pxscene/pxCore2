@@ -4,22 +4,53 @@ function Api(scene) {
   this._scene = scene;
 }
 
-Api.prototype.loadScriptForScene = function(scene, scriptFile) {
-  var sceneForChild = scene;
-  var apiForChild = this;
-
+Api.prototype.loadScriptContents = function(uri, closure) {
   var fs = require('fs');
+  var url = require('url');
 
   var code = '';
-  var infile = fs.createReadStream(scriptFile);
-  infile.on('data', function(data) {
-    code += data;
-  });
-  infile.on('end', function() {
+
+  if (uri.substring(0, 4) == "http") {
+    console.log("loading javascript from url:" + uri);
+    var options = url.parse(uri);
+    if (uri.substring(0, 5) == "https") {
+      // TODO
+    }
+    else {
+      http.get(options, function(res) {
+        res.on('data', function(data) {
+          code += data;
+        });
+        res.on('end', function() {
+          closure(code);
+        });
+      });
+    }
+  }
+  else {
+    console.log("loading javascript from file:" + uri);
+    var infile = fs.createReadStream(uri);
+    infile.on('data', function(data) {
+        code += data;
+    });
+    infile.on('end', function() {
+      closure(code);
+    });
+  }
+}
+
+Api.prototype.loadScriptForScene = function(scene, uri) {
+  var sceneForChild = scene;
+  var apiForChild = this;
+  var code = this.loadScriptContents(uri, function(code) {
     var vm = require('vm');
-      var sandbox = { console: console, scene: sceneForChild, 
-                      runtime: apiForChild, process: process};
-      var app = vm.runInNewContext(code, sandbox);
+    var sandbox = {
+      console   : console,
+      scene     : sceneForChild,
+      runtime   : apiForChild,
+      process   : process
+    };
+    var app = vm.runInNewContext(code, sandbox);
   });
 }
 
