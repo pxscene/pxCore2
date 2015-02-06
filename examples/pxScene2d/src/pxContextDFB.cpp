@@ -7,8 +7,9 @@
 /* Place holder for a dfb implementation of pxContext */
 
 
-static IDirectFB        *dfb     = NULL;
-static IDirectFBSurface *primary = NULL;
+extern IDirectFB        *dfb;
+extern IDirectFBSurface *primary;
+extern IDirectFBWindow  *window;
 
 #define DFBCHECK(x...)              \
 {                                   \
@@ -25,56 +26,56 @@ static IDirectFBSurface *primary = NULL;
 
 static void draw9SliceRect(float x, float y, float w, float h, float x1, float y1, float x2, float y2)
 {
-//  float ox1 = x;
-//  float ix1 = x+x1;
-//  float ox2 = x+w;
-//  float ix2 = x+w-x2;
-//  float oy1 = y;
-//  float iy1 = y+y1;
-//  float oy2 = y+h;
-//  float iy2 = y+h-y2;
+  float ox1 = x;
+  float ix1 = x+x1;
+  float ox2 = x+w;
+  float ix2 = x+w-x2;
+  float oy1 = y;
+  float iy1 = y+y1;
+  float oy2 = y+h;
+  float iy2 = y+h-y2;
 
-//  const float verts[22][2] =
-//  {
-//    { ox1,oy1 },
-//    { ix1,oy1 },
-//    { ox1,iy1 },
-//    { ix1,iy1 },
-//    { ox1,iy2 },
-//    { ix1,iy2 },
-//    { ox1,oy2 },
-//    { ix1,oy2 },
-//    { ix2,oy2 },
-//    { ix1,iy2 },
-//    { ix2,iy2 },
-//    { ix1,iy1 },
-//    { ix2,iy1 },
-//    { ix1,oy1 },
-//    { ix2,oy1 },
-//    { ox2,oy1 },
-//    { ix2,iy1 },
-//    { ox2,iy1 },
-//    { ix2,iy2 },
-//    { ox2,iy2 },
-//    { ix2,oy2 },
-//    { ox2,oy2 }
-//  };
-//#if 0
-//  const float colors[4][3] =
-//  {
-//    { 1, 0, 0 },
-//    { 0, 1, 0 },
-//    { 0, 1, 0 },
-//    { 0, 0, 1 }
-//  };
-//  const float uv[22][2] =
-//  {
-//    { 0, 0 },
-//    { 1, 0 },
-//    { 0, 1 },
-//    { 1, 1 }
-//  };
-//#endif
+  const float verts[22][2] =
+  {
+    { ox1,oy1 },
+    { ix1,oy1 },
+    { ox1,iy1 },
+    { ix1,iy1 },
+    { ox1,iy2 },
+    { ix1,iy2 },
+    { ox1,oy2 },
+    { ix1,oy2 },
+    { ix2,oy2 },
+    { ix1,iy2 },
+    { ix2,iy2 },
+    { ix1,iy1 },
+    { ix2,iy1 },
+    { ix1,oy1 },
+    { ix2,oy1 },
+    { ox2,oy1 },
+    { ix2,iy1 },
+    { ox2,iy1 },
+    { ix2,iy2 },
+    { ox2,iy2 },
+    { ix2,oy2 },
+    { ox2,oy2 }
+  };
+#if 0
+  const float colors[4][3] =
+  {
+    { 1, 0, 0 },
+    { 0, 1, 0 },
+    { 0, 1, 0 },
+    { 0, 0, 1 }
+  };
+  const float uv[22][2] =
+  {
+    { 0, 0 },
+    { 1, 0 },
+    { 0, 1 },
+    { 1, 1 }
+  };
+#endif
 
 
 //  {
@@ -147,10 +148,10 @@ static void drawRectOutline(float x, float y, float w, float h, float lw)
 
 static void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNativeDesc* contextSurface)
 {
-//  if ((contextSurface == NULL) || (contextSurface->texture == 0))
-//  {
-//    return;
-//  }
+  if ((contextSurface == NULL) || (contextSurface->texture == 0))
+  {
+    return;
+  }
 
 //  glActiveTexture(GL_TEXTURE0);
 //  glBindTexture(GL_TEXTURE_2D, contextSurface->texture);
@@ -354,18 +355,8 @@ static void drawImage92(float x, float y, float w, float h, float x1, float y1, 
 
 void pxContext::init()
 {
-  DFBSurfaceDescription screen;
-
-//  DFBCHECK (DirectFBInit (&argc, &argv));
-  DFBCHECK (DirectFBCreate (&dfb));
-
-  //  DFBCHECK (dfb->SetCooperativeLevel (dfb, DFSCL_FULLSCREEN));
-  DFBCHECK (dfb->SetCooperativeLevel (dfb, DFSCL_NORMAL));
-
-  screen.flags = (DFBSurfaceDescriptionFlags)(DSDESC_CAPS);// | DSDESC_WIDTH | DSDESC_HEIGHT);
-  screen.caps  = (DFBSurfaceCapabilities)(DSCAPS_PRIMARY | DSCAPS_FLIPPING);
+ // TODO
 }
-
 
 void pxContext::setSize(int w, int h)
 {
@@ -397,6 +388,7 @@ void pxContext::setMatrix(pxMatrix4f& m)
 void pxContext::setAlpha(float a)
 {
 //  glUniform1f(u_alpha, a);
+  window->SetOpacity(window, a);
 }
 
 
@@ -421,7 +413,6 @@ pxError pxContext::createContextSurface(pxContextSurfaceNativeDesc* contextSurfa
 
   contextSurface->width  = width;
   contextSurface->height = height;
-
 
   DFBCHECK (dfb->CreateSurface( dfb, &contextSurface->dsc, &contextSurface->surface ));
 
