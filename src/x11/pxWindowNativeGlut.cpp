@@ -14,11 +14,13 @@
 
 #define GLUT_PX_CORE_FPS 30
 
-glutDisplay* displayRef::mDisplay = NULL;
-int displayRef::mRefCount = 0;
+glutDisplay* displayRef::mDisplay  = NULL;
+int          displayRef::mRefCount = 0;
+
 vector<pxWindowNative*> pxWindowNative::mWindowVector;
-bool pxWindowNative::mEventLoopTimerStarted = false;
-float pxWindowNative::mEventLoopInterval = 1000.0 / (float)GLUT_PX_CORE_FPS;
+
+bool    pxWindowNative::mEventLoopTimerStarted = false;
+float   pxWindowNative::mEventLoopInterval = 1000.0 / (float)GLUT_PX_CORE_FPS;
 timer_t pxWindowNative::mRenderTimerId;
 
 //start glut callbacks
@@ -307,7 +309,7 @@ void pxWindow::setTitle(char* title)
 
 pxError pxWindow::beginNativeDrawing(pxSurfaceNative& s)
 {
-  //todo
+  //TODO
 
   return PX_OK;
 }

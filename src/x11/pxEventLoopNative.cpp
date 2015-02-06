@@ -9,7 +9,14 @@
 #include <X11/keysymdef.h>
 
 #include "../pxOffscreen.h"
-#include "pxWindowNative.h"
+
+#if defined(ENABLE_GLUT)
+  #include "pxWindowNativeGlut.h"
+#elif defined(ENABLE_DFB)
+  #include "pxWindowNativeDfb.h"
+#else
+  #include "pxWindowNative.h"
+#endif
 
 void pxEventLoop::run()
 {
