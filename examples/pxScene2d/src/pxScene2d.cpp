@@ -417,14 +417,17 @@ void pxScene2d::onDraw()
     start = pxSeconds();
   }
   
+#if 1
   update(pxSeconds());
   draw();
+#endif
 
   if (frameCount >= 60)
   {
     end2 = pxSeconds();
 
-    rtLogDebug("%f fps", (double)frameCount/(end2-start));
+    // I want this always on for now
+    printf("%f fps\n", (double)frameCount/(end2-start));
 
     start = end2;
     frameCount = 0;

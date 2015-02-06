@@ -68,8 +68,8 @@ function testScene()
     p.y = ny;
     
     p.rx = 0;
-    p.ry = 1.0;
-    p.rz = 0;
+    p.ry = 0.0;
+    p.rz = 1.0;
 
       p.animateTo({r:360}, 1.0+(i*0.3), 0, 2);
     if (i < n-1) {
