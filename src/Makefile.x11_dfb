@@ -5,9 +5,9 @@ OUTDIR=../build/x11
 INCDIR=-I/usr/X11R6/include -I/usr/include/directfb 
 all: $(OUTDIR)/libpxCore.a 
 
-$(OUTDIR)/libpxCore.a: pxOffscreen.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o
 		       mkdir -p $(OUTDIR)    
-	    ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o  pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o             
+	    ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o             
           
 
 pxOffscreen.o: pxOffscreen.cpp
@@ -28,5 +28,6 @@ pxEventLoopNative.o: x11/pxEventLoopNative.cpp
 pxTimerNative.o: x11/pxTimerNative.cpp
 	g++ -o pxTimerNative.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxTimerNative.cpp
 
-
+pxWindowUtil.o: pxWindowUtil.cpp
+	g++ -o pxWindowUtil.o -Wall -I/usr/X11R6/include $(CFLAGS) -c pxWindowUtil.cpp
 
