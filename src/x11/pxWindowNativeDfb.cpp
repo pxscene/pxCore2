@@ -52,7 +52,13 @@ float   pxWindowNative::mEventLoopInterval = 1000.0 / (float)DFB_PX_CORE_FPS;
 timer_t pxWindowNative::mRenderTimerId;
 
 //start dfb callbacks
-//drawFrame();
+
+void onKeyboardDown(int key, unsigned long mods);
+void onKeyboardUp(int key, unsigned long mods);
+void onKeyboard(int key, unsigned long mods, bool down);
+
+void onMouseMotion(int x, int y);
+void onMouse(int button, int state, int x, int y);
 
 static void reshape(int width, int height)
 {
@@ -81,12 +87,11 @@ void display()
 
 
 
-//#define EPRINTF(f_, ...) printf((f_), __VA_ARGS__)
+//#define EPRINTF(...) printf(__VA_ARGS__)
 #define EPRINTF(f_, ...)
 
 static void
-ProcessWindowEvent(//_THIS, DFB_WindowData * p, Uint32 flags,
-                   DFBWindowEvent * evt)
+ProcessWindowEvent(DFBWindowEvent * evt)
 {
   if (evt->clazz == DFEC_WINDOW)
   {
@@ -110,6 +115,11 @@ ProcessWindowEvent(//_THIS, DFB_WindowData * p, Uint32 flags,
         // Send to MOUSE - BUTTON MOTION
 
         break;
+
+      case DWET_WHEEL:
+        // TODO
+        break;
+
       case DWET_KEYDOWN:
         EPRINTF("\n DWET_KEYDOWN");
 
@@ -179,30 +189,71 @@ ProcessWindowEvent(//_THIS, DFB_WindowData * p, Uint32 flags,
   }
 }
 
+// TODO ... probably better per window.
+static int cursor_x =0;
+static int cursor_y =0;
+
 static void
-ProcessInputEvent(/*_THIS, Sint32 grabbed_window,*/ DFBInputEvent * ievt)
+ProcessInputEvent(DFBInputEvent *ievt)
 {
+  unsigned long mods = 0;
+
+  if( ievt->modifiers == DIMM_SHIFT )   mods |= PX_MOD_SHIFT;
+  if( ievt->modifiers == DIMM_CONTROL ) mods |= PX_MOD_CONTROL;
+  if( ievt->modifiers == DIMM_META )    mods |= PX_MOD_ALT;
+
   switch (ievt->type)
   {
     case DIET_AXISMOTION:
       // EPRINTF("\n DIET_AXISMOTION");
+      if (ievt->flags & DIEF_AXISABS)
+      {
+        if (ievt->axis == DIAI_X)
+        {
+          cursor_x = ievt->axisabs;
+        }
+        else if (ievt->axis == DIAI_Y)
+        {
+          cursor_y = ievt->axisabs;
+        }
+      }
+      if (ievt->flags & DIEF_AXISREL)
+      {
+        if (ievt->axis == DIAI_X)
+        {
+          cursor_x += ievt->axisrel;
+        }
+        else if (ievt->axis == DIAI_Y)
+        {
+          cursor_y += ievt->axisrel;
+        }
+      }
 
+      onMouseMotion(cursor_x, cursor_y);
       break;
 
     case DIET_KEYPRESS:
       EPRINTF("\n DIET_KEYPRESS");
 
+      onKeyboardDown(ievt->key_id, mods);
       break;
+
     case DIET_KEYRELEASE:
       EPRINTF("\n DIET_KEYRELEASE");
 
+      onKeyboardUp(ievt->key_id, mods);
       break;
+
     case DIET_BUTTONPRESS:
       EPRINTF("\n DIET_BUTTONPRESS");
 
+      onMouse(ievt->buttons, DIET_BUTTONPRESS,  cursor_x, cursor_y);
       break;
+
     case DIET_BUTTONRELEASE:
       EPRINTF("\n DIET_BUTTONRELEASE");
+
+      onMouse(ievt->buttons, DIET_BUTTONRELEASE,  cursor_x, cursor_y);
 
       break;
     default:
@@ -253,15 +304,35 @@ void onTimer(int v)
 
 void onMouse(int button, int state, int x, int y)
 {
-  unsigned long flags;
-  switch(button)
+  unsigned long flags = 0;
+
+  // Allow for multiple buttons
+  if( (button & DIBM_LEFT) &&
+      (button & DIBM_RIGHT) )
   {
-    case DIBI_MIDDLE: flags = PX_MIDDLEBUTTON;
-      break;
-    case DIBI_RIGHT:  flags = PX_RIGHTBUTTON;
-      break;
-    default: flags = PX_LEFTBUTTON;
-      break;
+    flags = PX_LEFTBUTTON | PX_RIGHTBUTTON;
+  }
+  else
+  if( (button & DIBM_LEFT)   &&
+      (button & DIBM_MIDDLE) &&
+      (button & DIBM_RIGHT) )
+  {
+    flags = PX_LEFTBUTTON | PX_MIDDLEBUTTON | PX_RIGHTBUTTON;
+  }
+  else
+  if(button & DIBM_LEFT)
+  {
+    flags = PX_LEFTBUTTON;
+  }
+  else
+  if(button & DIBM_MIDDLE)
+  {
+    flags = PX_MIDDLEBUTTON;
+  }
+  else
+  if(button & DIBM_RIGHT)
+  {
+    flags = PX_RIGHTBUTTON;
   }
 
   vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
@@ -270,15 +341,20 @@ void onMouse(int button, int state, int x, int y)
   for (i = windowVector.begin(); i < windowVector.end(); i++)
   {
     pxWindowNative* w = (*i);
-    if (state == DIBS_DOWN)
+
+    if (state == DIET_BUTTONPRESS)
     {
       w->onMouseDown(x, y, flags);
     }
-    else
+    else if(state == DIET_BUTTONRELEASE)
     {
       w->onMouseUp(x, y, flags);
     }
-  }
+    else
+    {
+      w->onMouseMove(x, y);
+    }
+  }//FOR
 }
 
 void onMouseMotion(int x, int y)
@@ -305,7 +381,17 @@ void onMousePassiveMotion(int x, int y)
   }
 }
 
-void onKeyboard(unsigned char key, int x, int y)
+void onKeyboardDown(int key, unsigned long mods)
+{
+  onKeyboard(key, mods, true);
+}
+
+void onKeyboardUp(int key, unsigned long mods)
+{
+  onKeyboard(key, mods, false);
+}
+
+void onKeyboard(int key, unsigned long mods, bool down)
 {
   vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
   vector<pxWindowNative*>::iterator i;
@@ -313,9 +399,15 @@ void onKeyboard(unsigned char key, int x, int y)
   for (i = windowVector.begin(); i < windowVector.end(); i++)
   {
     pxWindowNative* w = (*i);
-    // JR Did I mention Glut keyboard support is not very good
-    w->onKeyDown(key, 0);
-    w->onKeyUp(key, 0);
+
+    if(down)
+    {
+      w->onKeyDown(key, mods);
+    }
+    else
+    {
+      w->onKeyUp(key, mods);
+    }
   }
 }
 
