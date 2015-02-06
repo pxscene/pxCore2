@@ -91,14 +91,9 @@ public:
   rtReadOnlyProperty(children, children, rtObjectRef);
 
   rtMethodNoArgAndNoReturn("remove", remove);
-  rtMethod6ArgAndNoReturn("animateTo", animateTo2, rtString, double, double, 
-                          uint32_t, uint32_t, rtFunctionRef);
 
-#if 0
-  // TODO Until we can sort out how to do optional/default args
-  rtMethod6ArgAndNoReturn("animateTo2", animateTo2, rtString, double, double, 
+  rtMethod5ArgAndNoReturn("animateTo", animateTo2, rtObjectRef, double, 
                           uint32_t, uint32_t, rtFunctionRef);
-#endif
 
  pxObject(): mRef(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0), 
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
@@ -217,14 +212,28 @@ public:
   virtual void draw() {}
   bool hitTest(const pxPoint2f& pt);
   
-#if 0
   rtError animateTo(const char* prop, double to, double duration, 
-                    uint32_t interp, uint32_t animationType);
-#endif
-
-  rtError animateTo2(const char* prop, double to, double duration, 
                      uint32_t interp, uint32_t animationType, 
                      rtFunctionRef onEnd);
+
+  rtError animateTo2(rtObjectRef props, double duration, 
+                     uint32_t interp, uint32_t animationType, 
+                     rtFunctionRef onEnd)
+  {
+    if (!props) return RT_FAIL;
+    rtObjectRef keys = props.get<rtObjectRef>("allKeys");
+    if (keys)
+    {
+      uint32_t len = keys.get<uint32_t>("length");
+      for (uint32_t i = 0; i < len; i++)
+      {
+        rtString key = keys.get<rtString>(i);
+        animateTo(key, props.get<float>(key), duration, interp, animationType, 
+                  (i==0)?onEnd:rtFunctionRef());
+      }
+    }
+    return RT_OK;
+  }
 
   void animateTo(const char* prop, double to, double duration, 
 		 pxInterp interp, pxAnimationType at, 
@@ -500,20 +509,6 @@ private:
   rtRefT<pxInnerScene> mInnerScene;
   rtString mURL;
 };
-
-#if 0
-class pxChildren: public rtObject {
-public:
-  pxChildren(pxObject* o)
-  {
-  }
-
-  
-
-private:
-  pxObjectRef mObject;
-};
-#endif
 
 class pxScene2d: public rtObject {
 public:

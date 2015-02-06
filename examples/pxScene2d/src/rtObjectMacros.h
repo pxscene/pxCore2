@@ -4,42 +4,6 @@
 #ifndef RT_OBJECT_MACROS_H
 #define RT_OBJECT_MACROS_H
 
-#define RT_voidType               '0'
-#define RT_boolType               'b'
-#define RT_int8_tType             '1'
-#define RT_uint8_tType            '2'
-#define RT_intType                '4'
-#define RT_int32_tType            '4'
-#define RT_uint32_tType           '5'
-#define RT_int64_tType            '6'
-#define RT_uint64_tType           '7'
-#define RT_floatType              'e'
-#define RT_doubleType             'd'
-#define RT_stringType             's'
-#define RT_rtStringType           's'
-#define RT_objectType             'o'
-#define RT_rtObjectRefType        'o'
-#define RT_functionType           'f'
-#define RT_rtFunctionRefType      'f'
-#define RT_voidPtrType            'z'
-
-// JR Hack Only needed for reflection... method signature
-#define RT_voidType2               "0"
-#define RT_boolType2               "b"
-#define RT_int8_tType2             "1"
-#define RT_uint8_tType2            "2"
-#define RT_intType2                "4"
-#define RT_int32_tType2            "4"
-#define RT_uint32_tType2           "5"
-#define RT_int64_tType2            "6"
-#define RT_uint64_tType2           "7"
-#define RT_floatType2              "e"
-#define RT_doubleType2             "d"
-#define RT_rtStringType2           "s"
-#define RT_rtObjectRefType2        "o"
-#define RT_rtFunctionRefType2      "f"
-#define RT_voidPtrType2            "z"
-
 class rtObject;
 class rtValue;
 typedef rtError (rtObject::*rtMethodThunk)(int numArgs, const rtValue* args, rtValue& result);
@@ -182,7 +146,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
     rtError method##_thunk(int numArgs, const rtValue* args, rtValue&){ if (numArgs < 4) return RT_ERROR_NOT_ENOUGH_ARGS; return method(args[0].convert<arg1type>(), args[1].convert<arg2type>(), args[2].convert<arg3type>(), args[3].convert<arg4type>()); }
 
 #define rtThunk5ArgAndNoReturn(method, arg1type, arg2type, arg3type, arg4type, arg5type) \
-    rtError method##_thunk(int numArgs, const rtValue* args, rtValue&){ if (numArgs < 5) return RT_ERROR_NOT_ENOUGH_ARGS; return method(args[0].convert<arg1type>(), args[1].convert<arg2type>(), args[2].convert<arg3type>(), args[3].convert<arg4type>(), args[4].convert<arg5type>()); }
+  rtError method##_thunk(int numArgs, const rtValue* args, rtValue&){ /*if (numArgs < 5) return RT_ERROR_NOT_ENOUGH_ARGS;*/ return method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>()); }
 
 #define rtThunk6ArgAndNoReturn(method, arg1type, arg2type, arg3type, arg4type, arg5type, arg6type) \
   rtError method##_thunk(int numArgs, const rtValue* args, rtValue&){ /*if (numArgs < 6) return RT_ERROR_NOT_ENOUGH_ARGS;*/ return method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rtGA(5).convert<arg6type>()); }

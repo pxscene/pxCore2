@@ -83,7 +83,8 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
   }
 #endif
 
-rtError pxObject::animateTo2(const char* prop, double to, double duration, 
+#if 1
+rtError pxObject::animateTo(const char* prop, double to, double duration, 
                              uint32_t interp, uint32_t animationType, 
                              rtFunctionRef onEnd) 
 {
@@ -92,6 +93,7 @@ rtError pxObject::animateTo2(const char* prop, double to, double duration,
             (pxAnimationType)animationType, onEnd);
   return RT_OK;
 }
+#endif
 
 #if 0
 void pxObject::animateTo(const char* prop, double to, double duration, 

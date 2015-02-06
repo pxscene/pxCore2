@@ -1,15 +1,6 @@
-var text = scene.createText();
-text.text = 'Hello from context1!';
-text.x = 50;
-text.y = 100;
-text.rx = 1;
-text.rz = 0;
-text.parent = scene.root;
-text.animateTo("r", 360, 1.0, 0, 2);
-
-var child = scene.createScene();
-child.url = "childapp2.js";
-child.parent = scene.root;
+var text = scene.createText({text:'Hello from context1!',x:50,y:100,rx:1,rz:0,parent:scene.root});
+text.animateTo({"r": 360}, 1.0, 0, 2);
+scene.createScene({url:"childapp2.js",parent:scene.root});
 
 console.log("afterload childapp2");
 

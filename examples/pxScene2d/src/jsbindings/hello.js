@@ -1,7 +1,3 @@
-var px = require("./build/Debug/px");
-
-var scene = px.getScene();
-
 scene.on('resize', function(width, height) {
   console.log('resize:' + width + ' height:' + height);
 });
@@ -20,51 +16,45 @@ function testScene()
 
   for (i = 0; i < n; ++i) {
     if (i < 1) {
-      p = scene.createRectangle();
-      p.w = 300;
-      p.h = 30;
-      p.fillColor = 0x00ff00ff;
-      p.lineColor = 0xffffff80;
-      p.lineWidth = 10;  
-      p.animateTo("h", 600, 0.5, 0, 1);
+        p = scene.createRectangle({w:300,h:30,fillColor:0x00ff00ff,lineColor:0xffffff80,lineWidth:10});
+        p.animateTo({h:600}, 0.5, 0, 1);
     }
     else if (i < 2) {
-      p = scene.createImage9();
-      p.url = process.cwd() + "/../../images/curve_rectangle.png";
-      p.cx = p.w/2;
-      p.cy = p.h/2;
-      ny = 100;
-      p.animateTo("h", 600, 0.5, 0, 0);
-      p.animateTo("w", 600, 0.5, 0, 1);
+      var url = process.cwd() + "/../../images/curve_rectangle.png";
+        p = scene.createImage9({url:url});
+        p.cx = p.w/2;
+        p.cy = p.h/2;
+        ny = 100;
+        p.animateTo({h:600}, 0.5, 0, 0);
+        p.animateTo({w:600}, 0.5, 0, 1);
     }
     else if (i < n-3) {
-      p = scene.createImage();
-      p.url = process.cwd() + "/../../images/banana.png";
-      p.cx = p.w/2;
-      p.cy = p.h/2;
-      ny = 100;
+        var url = process.cwd() + "/../../images/banana.png";
+        p = scene.createImage({url:url});
+        p.cx = p.w/2;
+        p.cy = p.h/2;
+        ny = 100;
     }
     else {
       p = scene.createText();
-      p.animateTo("sx", 2.0, 1.0, 0, 0);
-      p.animateTo("sy", 2.0, 1.0, 0, 0);
-      nx = 200;
-      if (i == n-3) {
-        p.text = "Iñtërnâtiônàližætiøn";
-        p.textColor = 0xffff00ff;
-        ny = 200;
-      }
-      else if (i == n-2) {
-        p.text = "pxCore!";
-        p.textColor = 0xff0000ff;
-        ny = 300;
-      }
-      else if (i == n-1) {
-        p.text = "Ādam";
-        p.textColor = 0x00ffffff;
-        ny = 400;
-      }
-      p.cx = p.w/2;
+        p.animateTo({sx:2,sy:2}, 1.0, 0, 0);
+        nx = 200;
+        if (i == n-3) {
+            p.text = "Iñtërnâtiônàližætiøn";
+            p.textColor = 0xffff00ff;
+            ny = 200;
+        }
+        else if (i == n-2) {
+            p.text = "pxCore!";
+            p.textColor = 0xff0000ff;
+            ny = 300;
+        }
+        else if (i == n-1) {
+            p.text = "Ādam";
+            p.textColor = 0x00ffffff;
+            ny = 400;
+        }
+        p.cx = p.w/2;
     }
     
     nx += 10;
@@ -81,12 +71,12 @@ function testScene()
     p.ry = 1.0;
     p.rz = 0;
 
-    p.animateTo("r", 360, 1.0+(i*0.3), 0, 2);
+      p.animateTo({r:360}, 1.0+(i*0.3), 0, 2);
     if (i < n-1) {
-      p.animateTo("x", 600, 1.0+(i*0.3), 0, 1);
+        p.animateTo({x:600}, 1.0+(i*0.3), 0, 1);
     }
 
-    p.animateTo("a", 0.1, 2.0, 0, 1);
+      p.animateTo({a:0.1}, 2.0, 0, 1);
   }
 }
 

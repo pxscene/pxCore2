@@ -76,27 +76,17 @@ function doIt() {
 
         var url = getImageURL();
         var picture;
-        if (true) {
             picture = scene.createImage({parent: pictures, x: -1000, y: 
                                           randomInt(-200, 800), cx: 200, 
                                           cy: 200, sx: 2, sy: 2, 
                                           r: randomInt(-45,45), url:url});
             
-        }
-        else {
-            picture = scene.createImage();
-            set(picture, {parent: pictures, x: -1000, y: 
-                          randomInt(-200, 800), cx: 200, cy: 200, 
-                          sx: 2, sy: 2, 
-                          r: randomInt(-45,45), url:url});
-        }
-        
-        picture.animateTo("x", randomInt(100, 300), 1, pxStop, 0, function() {
-            if (false) {
+        picture.animateTo({x:randomInt(100, 300)}, 1, pxStop, 0, function() {
+            if (true) {
                 if (pictures.numChildren > 10) {
                     var f = pictures.getChild(0);
                     
-                    f.animateTo("a", 0, 0.75, 0, 0, function(f) {
+                    f.animateTo({a: 0}, 0.75, 0, 0, function(f) {
                         f.remove();
                     });
                 }
@@ -106,17 +96,15 @@ function doIt() {
                 if (pictures.children.length > 1) {
                     var f = pictures.children[0];
                     
-                    f.animateTo("a", 0, 0.75, 0, 0, function(f) {
+                    f.animateTo({a:0}, 0.75, 0, 0, function(f) {
                         f.remove();
                     });
                 }
             }
             newPicture();
         });
-        picture.animateTo("y", randomInt(0, 100), 1, pxStop, 0);
-        picture.animateTo("r", randomInt(-15, 15), 1, pxStop, 0);
-        picture.animateTo("sx", 0.75, 1, pxStop, 0);
-        picture.animateTo("sy", 0.75, 1, pxStop, 0);
+
+        picture.animateTo({y:randomInt(0,100),r:randomInt(-15,15),sx:0.75,sy:0.75}, 1, pxStop, 0);
     }
 
     newPicture();
