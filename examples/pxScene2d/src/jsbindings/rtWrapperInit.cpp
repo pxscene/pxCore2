@@ -5,6 +5,7 @@
 #include <pxEventLoop.h>
 #include <pxScene2d.h>
 #include <pxWindow.h>
+#include <pxWindowUtil.h>
 
 #include <node.h>
 
@@ -119,12 +120,12 @@ protected:
 
   virtual void onKeyDown(int keycode, unsigned long flags)
   {
-    mScene->onKeyDown(keycode, flags);
+    mScene->onKeyDown(keycodeFromNative(keycode), flags);
   }
 
   virtual void onKeyUp(int keycode, unsigned long flags)
   {
-    mScene->onKeyUp(keycode, flags);
+    mScene->onKeyUp(keycodeFromNative(keycode), flags);
   }
 
   virtual void onDraw(pxSurfaceNative s)

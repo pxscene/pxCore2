@@ -14,6 +14,7 @@
 #include "pxOffscreen.h"
 #include "pxUtil.h"
 #include "pxTimer.h"
+#include "pxWindowUtil.h"
 
 #include "pxRectangle.h"
 #include "pxText.h"
@@ -496,12 +497,12 @@ void pxScene2d::onMouseMove(int x, int y)
 
 void pxScene2d::onKeyDown(int keycode, unsigned long flags) 
 {
-  mEmit.send("keydown", keycode, (uint64_t)flags);
+  mEmit.send("keydown", keycodeFromNative(keycode), (uint64_t)flags);
 }
 
 void pxScene2d::onKeyUp(int keycode, unsigned long flags)
 {
-  mEmit.send("keyup", keycode, (uint64_t)flags);
+  mEmit.send("keyup", keycodeFromNative(keycode), (uint64_t)flags);
 }
 
 rtError pxScene2d::showOutlines(bool& v) const 
