@@ -6,6 +6,7 @@
 #include "pxOffscreenNative.h"
 #include "pxWindowNative.h"
 #include "../pxWindow.h"
+#include "../pxWindowUtil.h"
 
 #ifndef WINCE
 #include <tchar.h>
@@ -395,7 +396,7 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
                     flags |= PX_MOD_ALT;
                 }
 
-                w->onKeyDown((int)wParam, flags);
+                w->onKeyDown(keycodeFromNative((int)wParam), flags);
             }
             break;
 
@@ -417,7 +418,7 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
                     flags |= PX_MOD_ALT;
                 }
 
-                w->onKeyUp((int)wParam, flags);
+                w->onKeyUp(keycodeFromNative((int)wParam), flags);
             }
             break;
         case WM_PAINT:

@@ -6,6 +6,7 @@
 #include "../pxWindow.h"
 #include "pxWindowNativeGlut.h"
 #include "../pxTimer.h"
+#include "../pxWindowUtil.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -120,8 +121,8 @@ void onKeyboard(unsigned char key, int x, int y)
   {
     pxWindowNative* w = (*i);
     // JR Did I mention Glut keyboard support is not very good
-    w->onKeyDown(key, 0);
-    w->onKeyUp(key, 0);
+    w->onKeyDown(keycodeFromNative(key), 0);
+    w->onKeyUp(keycodeFromNative(key), 0);
   }
 }
 
