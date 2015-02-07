@@ -85,7 +85,7 @@ static const char *vShaderText =
   "attribute vec2 uv;\n"
   "varying vec2 v_uv;\n"
   "void main() {\n"
-  // map to "pixel coordinates"
+  // map from "pixel coordinates"
   " vec4 p = amymatrix * vec4(pos, 0, 1);\n"
   " vec4 zeroToOne = p / vec4(u_resolution, u_resolution.x, 1);\n"
   " vec4 zeroToTwo = zeroToOne * vec4(2.0, 2.0, 1, 1);\n"

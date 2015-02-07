@@ -82,6 +82,7 @@ public:
   rtProperty(rx, rx, setRX, float);
   rtProperty(ry, ry, setRY, float);
   rtProperty(rz, rz, setRZ, float);
+  rtProperty(id, id, setId, rtString);
   rtProperty(painting, painting, setPainting, bool);
   rtProperty(clip, clip, setClip, bool);
   rtProperty(mask, mask, setMask, rtString);
@@ -140,6 +141,10 @@ public:
 
   rtError remove();
   
+  rtString id() { return mId; }
+  rtError id(rtString& v) const { v = mId; return RT_OK; }
+  rtError setId(const rtString& v) { mId = v; return RT_OK; }
+
   float x()             const { return mx; }
   rtError x(float& v)   const { v = mx; return RT_OK;   }
   rtError setX(float v)       { mx = v; return RT_OK;   }
@@ -311,6 +316,7 @@ public:
   }
 
 protected:
+  // TODO getting freaking huge... 
   rtRefT<pxObject> mParent;
   vector<rtRefT<pxObject> > mChildren;
   vector<animation> mAnimations;
@@ -321,6 +327,7 @@ protected:
   bool mClip;
   rtString mMaskUrl;
   pxTextureRef mMaskTextureRef;
+  rtString mId;
   
   
   pxTextureRef createSnapshot();
@@ -502,10 +509,11 @@ public:
   rtError url(rtString& v) const { v = mURL; return RT_OK; }
   rtError setURL(rtString v);
 
+  // TODO probably just keep w, h in scene and have innerscene use that
   rtError w(float& v) const { v = mInnerScene->w(); return RT_OK; }
-  rtError setW(float v) { mInnerScene->setW(v); return RT_OK; }
+  rtError setW(float v) { mw = v; mInnerScene->setW(v); return RT_OK; }
   rtError h(float& v) const { v = mInnerScene->h(); return RT_OK; }
-  rtError setH(float v) { mInnerScene->setH(v); return RT_OK; }
+  rtError setH(float v) { mh = v; mInnerScene->setH(v); return RT_OK; }
 
 #if 0
   virtual void update(double t)
@@ -557,7 +565,6 @@ public:
   rtMethodNoArgAndReturn("createScene", createScene, rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
-
   pxScene2d();
   
   void init();

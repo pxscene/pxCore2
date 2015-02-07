@@ -1,5 +1,5 @@
 var root = scene.root;
-scene.showOutlines = true;
+//scene.showOutlines = true;
 
 var appURLs = ["hello.js", "fancy.js", "picturepile.js", "cliptest.js", "masktest.js"];
 var url;
@@ -17,7 +17,7 @@ var apps = scene.createImage({parent:root, sx:0.25, sy:0.25, w:1280, h:720});
 
 for (var i = 0; i < appURLs.length; i++) {
     scene.createScene({url:appURLs[i], parent:apps, 
-                       w:childAppWidth, h:childAppHeight, clip:false,
+                       w:childAppWidth, h:childAppHeight, clip:true,
                        x:((i%2)*(childAppWidth+childPad))+childPad, 
                        y:(Math.floor(i/2)*(childAppHeight+childPad))+childPad});
 }

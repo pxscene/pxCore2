@@ -204,14 +204,20 @@ void pxObject::drawInternal(pxMatrix4f m)
   // TODO not propogating parent alpha
   // TODO cull when alpha is near zero
 
+
 #if 1
   // translate based on xy rotate/scale based on cx, cy
   m.translate(mx+mcx, my+mcy);
 
+
   m.rotateInDegrees(mr, mrx, mry, mrz);
   m.scale(msx, msy);
+  //?  apply perspective
+  
   m.translate(-mcx, -mcy);
   
+//  m.mValues[14] = m.mValues[10];
+//  m.mValues[15] = m.mValues[10];
 #else
   // translate/rotate/scale based on cx, cy
   m.translate(mx, my);
@@ -219,7 +225,30 @@ void pxObject::drawInternal(pxMatrix4f m)
   m.rotateInDegrees(mr, mrx, mry, mrz);
   m.scale(msx, msy);
   m.translate(-mcx, -mcy);
+#endif
 
+#if 0
+
+  printf("drawInternal: %s\n", mId.cString());
+  m.dump();
+
+  pxVector4f v1(mx+mw, my, 0, 1);
+  printf("Print vector top\n");
+  v1.dump();
+
+  pxVector4f result1 = m.multiply(v1);
+  printf("Print vector top after\n");
+  result1.dump();
+
+
+  pxVector4f v2(mx+mw, my+mh, 0, 1);
+  printf("Print vector bottom\n");
+  v2.dump();
+
+  pxVector4f result2 = m.multiply(v2);
+  printf("Print vector bottom after\n");
+  result2.dump();
+  
 #endif
 
   context.setMatrix(m);
@@ -322,6 +351,7 @@ rtDefineProperty(pxObject, r);
 rtDefineProperty(pxObject, rx);
 rtDefineProperty(pxObject, ry);
 rtDefineProperty(pxObject, rz);
+rtDefineProperty(pxObject, id);
 rtDefineProperty(pxObject, painting);
 rtDefineProperty(pxObject, clip);
 rtDefineProperty(pxObject, mask);

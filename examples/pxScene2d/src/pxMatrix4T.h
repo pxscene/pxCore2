@@ -39,6 +39,13 @@ public:
   pxVector4f(float x, float y, float z = 0, float w = 1) {
     mX = x; mY = y, mZ = z; mW = w;
   }
+
+  void dump()
+  {
+    printf("Dumping pxVector4f\n");
+    printf("[ %f, %f, %f, %f]\n", mX, mY, mZ, mW);
+  }
+  
   float mX, mY, mZ, mW;
 };
 
@@ -380,8 +387,21 @@ void translate(FloatT x, FloatT y, FloatT z = 0.0) {
     
     memcpy(m, tmp, sizeof(tmp));
   }
+
+
+void dump()
+{
+  FloatT* p = mValues;
+  printf("Dump 4x4 Matrix\n");
+  for (int i = 0; i < 4; i++)
+  {
+    printf("[ %f, %f, %f, %f]\n", p[0], p[1], p[2], p[3]);
+    p +=4;
+  }
+}
   
-private:
+//private:
+public:
   FloatT mValues[16];
 };
 
