@@ -26,6 +26,9 @@ GLint attribute_coord;
 pxContextSurfaceNativeDesc defaultContextSurface;
 pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
 
+pxTextureRef defaultRenderSurface;
+pxTextureRef currentRenderSurface = defaultRenderSurface;
+
 struct point
 {
     GLfloat x;
@@ -935,6 +938,11 @@ pxTextureRef pxContext::createContextSurface(int width, int height)
   return texture;
 }
 
+pxTextureRef pxContext::getCurrentRenderSurface()
+{
+  return currentRenderSurface;
+}
+
 pxError pxContext::setRenderSurface(pxTextureRef texture)
 {
   if (texture.getPtr() == NULL)
@@ -944,9 +952,11 @@ pxError pxContext::setRenderSurface(pxTextureRef texture)
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId1);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    currentRenderSurface = defaultRenderSurface;
     return PX_OK;
   }
   
+  currentRenderSurface = texture;
   return texture->prepareForRendering();
 }
 

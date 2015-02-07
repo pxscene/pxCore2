@@ -28,6 +28,7 @@ class pxContext {
   
   pxTextureRef createContextSurface(int width, int height);
   pxError setRenderSurface(pxTextureRef texture);
+  pxTextureRef getCurrentRenderSurface();
   pxError deleteContextSurface(pxTextureRef texture);
 
   pxTextureRef createMask(pxTextureRef t);

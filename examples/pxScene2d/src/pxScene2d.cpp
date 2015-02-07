@@ -265,6 +265,7 @@ void pxObject::createSnapshot()
   deleteSnapshot();
 
   mTextureRef = context.createContextSurface(mw, mh);
+  pxTextureRef previousRenderSurface = context.getCurrentRenderSurface();
   if (context.setRenderSurface(mTextureRef) == PX_OK)
   {
     draw();
@@ -274,8 +275,7 @@ void pxObject::createSnapshot()
       (*it)->drawInternal(m);
     }
   }
-  pxTextureRef nullTextureRef;
-  context.setRenderSurface(nullTextureRef);
+  context.setRenderSurface(previousRenderSurface);
 }
 
 void pxObject::deleteSnapshot()
