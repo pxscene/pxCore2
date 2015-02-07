@@ -388,9 +388,9 @@ private:
 
 
 
-class pxInnerScene: public pxObject {
+class pxInnerScene: public rtObject {
 public:
-  rtDeclareObject(pxInnerScene, pxObject);
+  rtDeclareObject(pxInnerScene, rtObject);
   rtReadOnlyProperty(root, root, rtObjectRef);
   rtReadOnlyProperty(w, w, float);
   rtReadOnlyProperty(h, h, float);
@@ -408,9 +408,9 @@ public:
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
   
-  pxInnerScene()
+  pxInnerScene(rtRefT<pxObject> root)
   {
-    mRoot = new pxObject;
+    mRoot = root;
     mEmit = new rtEmit;
   }
 
@@ -463,7 +463,7 @@ public:
   }
 
 
-#if 1
+#if 0
   virtual void update(double t)
   {
     mRoot->update(t);
@@ -492,7 +492,12 @@ public:
   rtProperty(w, w, setW, float);
   rtProperty(h, h, setH, float);
 
-  pxScene() { mInnerScene = new pxInnerScene;}
+  pxScene() 
+  { 
+    rtRefT<pxObject> newRoot  = new pxObject;
+    mChildren.push_back(newRoot);
+    mInnerScene = new pxInnerScene(newRoot); 
+  }
 
   rtError url(rtString& v) const { v = mURL; return RT_OK; }
   rtError setURL(rtString v);
@@ -502,7 +507,7 @@ public:
   rtError h(float& v) const { v = mInnerScene->h(); return RT_OK; }
   rtError setH(float v) { mInnerScene->setH(v); return RT_OK; }
 
-#if 1
+#if 0
   virtual void update(double t)
   {
     mInnerScene->update(t);

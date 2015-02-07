@@ -225,6 +225,9 @@ void pxObject::drawInternal(pxMatrix4f m)
   context.setMatrix(m);
   context.setAlpha(ma);
   
+  float c[4] = {1, 0, 0, 1};
+  context.drawDiagRect(0, 0, mw, mh, c);
+
   if (mPainting)
   {
     if (mClip || mMaskUrl.length() > 0)
@@ -238,8 +241,6 @@ void pxObject::drawInternal(pxMatrix4f m)
     else
     {
       draw();
-      float c[4] = {1, 0, 0, 1};
-      context.drawDiagRect(0, 0, mw, mh, c);
 
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
       {
@@ -549,8 +550,10 @@ rtDefineMethod(pxScene2d, delListener);
 rtError pxScene::setURL(rtString v) 
 { 
   mURL = v; 
+#if 1
   if (gOnScene)
     gOnScene.send(mInnerScene.getPtr(), mURL);
+#endif
   return RT_OK; 
 }
 
@@ -560,7 +563,7 @@ rtDefineProperty(pxScene, url);
 rtDefineProperty(pxScene, w);
 rtDefineProperty(pxScene, h);
 
-rtDefineObject(pxInnerScene, pxObject);
+rtDefineObject(pxInnerScene, rtObject);
 rtDefineProperty(pxInnerScene, root);
 rtDefineProperty(pxInnerScene, w);
 rtDefineProperty(pxInnerScene, h);
