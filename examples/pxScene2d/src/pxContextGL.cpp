@@ -277,7 +277,7 @@ public:
     createTexture(o);
   }
 
-  ~pxTextureOffscreen() { };
+  ~pxTextureOffscreen() { deleteTexture(); };
   
   void createTexture(pxOffscreen& o)
   {
@@ -354,7 +354,7 @@ public:
     }
   }
 
-  ~pxTextureMask() { };
+  ~pxTextureMask() { deleteTexture(); };
   
   void createTexture(pxOffscreen& o)
   {

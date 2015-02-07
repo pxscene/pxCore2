@@ -232,11 +232,11 @@ void pxObject::drawInternal(pxMatrix4f m)
   {
     if (mClip || mMaskUrl.length() > 0)
     {
-      createSnapshot();
+      pxTextureRef snapshot = createSnapshot();
       context.setMatrix(m);
       context.setAlpha(ma);
-      context.drawImage(mw,mh, mTextureRef, mMaskTextureRef, PX_NONE, PX_NONE);
-      deleteSnapshot();
+      context.drawImage(mw,mh, snapshot, mMaskTextureRef, PX_NONE, PX_NONE);
+      deleteSnapshot(snapshot);
     }
     else
     {
@@ -254,19 +254,16 @@ void pxObject::drawInternal(pxMatrix4f m)
   }
 }
 
-void pxObject::createSnapshot()
+pxTextureRef pxObject::createSnapshot()
 {
   pxMatrix4f m;
 
   context.setMatrix(m);
   context.setAlpha(1.0);
 
-  //cleanup old snapshot (if it exists) before creating a new one
-  deleteSnapshot();
-
-  mTextureRef = context.createContextSurface(mw, mh);
+  pxTextureRef texture = context.createContextSurface(mw, mh);
   pxTextureRef previousRenderSurface = context.getCurrentRenderSurface();
-  if (context.setRenderSurface(mTextureRef) == PX_OK)
+  if (context.setRenderSurface(texture) == PX_OK)
   {
     draw();
 
@@ -276,13 +273,15 @@ void pxObject::createSnapshot()
     }
   }
   context.setRenderSurface(previousRenderSurface);
+  
+  return texture;
 }
 
-void pxObject::deleteSnapshot()
+void pxObject::deleteSnapshot(pxTextureRef texture)
 {
-  if (mTextureRef.getPtr() != NULL)
+  if (texture.getPtr() != NULL)
   {
-    mTextureRef->deleteTexture();
+    texture->deleteTexture();
   }
 }
 

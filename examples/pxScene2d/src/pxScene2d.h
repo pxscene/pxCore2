@@ -99,7 +99,7 @@ public:
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef() {}
 
-  virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(); }
+  virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(mTextureRef); }
   virtual unsigned long AddRef() { return ++mRef; }
   virtual unsigned long Release() { if (--mRef == 0) delete this; return mRef; }
   
@@ -186,11 +186,11 @@ public:
       mPainting = v; 
       if (!mPainting)
       {
-          createSnapshot();
+          mTextureRef = createSnapshot();
       }
       else
       {
-          deleteSnapshot();
+          deleteSnapshot(mTextureRef);
       }
       return RT_OK;
   }
@@ -323,8 +323,8 @@ protected:
   pxTextureRef mMaskTextureRef;
   
   
-  void createSnapshot();
-  void deleteSnapshot();
+  pxTextureRef createSnapshot();
+  void deleteSnapshot(pxTextureRef texture);
   void createMask();
   void deleteMask();
  private:
