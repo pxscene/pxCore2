@@ -6,6 +6,31 @@ function Api(scene) {
   this._scene = scene;
 }
 
+Api.prototype.destroyNodeFromScene = function(scene, node) {
+  if (node) {
+    if (node.children) {
+      var n = node.children.length;
+      for (var i = 0; i < n; ++i) {
+        console.log("remove: " + i);
+        this.destroyNodeFromScene(scene, node.getChild(i));
+      }
+    }
+    console.log("remove:" + typeof(node));
+    // for some reason, some objects don't have a remove()
+    if (node.remove) {
+      console.log("is pxobject");
+      node.remove();
+    }
+  }
+}
+
+Api.prototype.destroyScene = function(scene) {
+  if (scene) {
+    this.destroyNodeFromScene(scene, scene.root);
+    scene.parent = null;
+  }
+}
+
 Api.prototype.loadScriptContents = function(uri, closure) {
   var fs = require('fs');
   var url = require('url');
@@ -34,6 +59,11 @@ Api.prototype.loadScriptContents = function(uri, closure) {
 }
 
 Api.prototype.loadScriptForScene = function(scene, uri) {
+
+  if (uri == null) {
+    this.destroyScene(scene);
+  }
+
   var sceneForChild = scene;
   var apiForChild = this;
 
@@ -61,12 +91,15 @@ Api.prototype.loadScriptForScene = function(scene, uri) {
           app = vm.runInNewContext(code, sandbox);
         }
         catch (err) {
-          console.log('dumping contetx');
-
+          // console.log('dumping context');
           // sanbox was turned into a context via vm.runInNewContext(...);
-          console.log(util.inspect(sandbox));
+          // console.log(util.inspect(sandbox.scene));
+
+          apiForChild.destroyScene(sandbox.scene);
+
           console.log("failed to run app:" + uri);
           console.log(err);
+
           // TODO: scene.onError(err); ???
           // TODO: at this point we need to destroy the child scene
         }
