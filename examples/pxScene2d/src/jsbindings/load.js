@@ -1,4 +1,5 @@
 var px = require("./build/Debug/px");
+var http = require('http');
 
 function Api(scene) {
   this._scene = scene;
@@ -11,47 +12,66 @@ Api.prototype.loadScriptContents = function(uri, closure) {
   var code = '';
 
   if (uri.substring(0, 4) == "http") {
-    console.log("loading javascript from url:" + uri);
     var options = url.parse(uri);
     if (uri.substring(0, 5) == "https") {
-      // TODO
+      throw 'not supported'
     }
     else {
-      http.get(options, function(res) {
-        res.on('data', function(data) {
-          code += data;
-        });
-        res.on('end', function() {
-          closure(code);
-        });
+      var req = http.get(options, function(res) {
+        res.on('data',  function(data)  { code += data; });
+        res.on('end',   function()      { closure(code, nil); });
       });
+      req.on('error',   function(err)   { closure('', err); });
     }
   }
   else {
-    console.log("loading javascript from file:" + uri);
     var infile = fs.createReadStream(uri);
-    infile.on('data', function(data) {
-        code += data;
-    });
-    infile.on('end', function() {
-      closure(code);
-    });
+    infile.on('data',  function(data)   { code += data; });
+    infile.on('end',   function()       { closure(code, null); });
+    infile.on('error', function(err)    { closure('', err); });
   }
 }
 
 Api.prototype.loadScriptForScene = function(scene, uri) {
   var sceneForChild = scene;
   var apiForChild = this;
-  var code = this.loadScriptContents(uri, function(code) {
-    var vm = require('vm');
-    var sandbox = {
-      console   : console,
-      scene     : sceneForChild,
-      runtime   : apiForChild,
-      process   : process
-    };
-    var app = vm.runInNewContext(code, sandbox);
-  });
+
+  var code;
+
+  try {
+    code = this.loadScriptContents(uri, function(code, err) {
+      var vm = require('vm');
+      var sandbox = {
+        console   : console,
+        scene     : sceneForChild,
+        runtime   : apiForChild,
+        process   : process
+      };
+
+      if (err) {
+        console.log("failed to load script:" + uri);
+        console.log(err);
+        // TODO: scene.onError(err); ???
+      }
+      else {
+        var app;
+        try {
+          app = vm.runInNewContext(code, sandbox);
+        }
+        catch (err) {
+          console.log("failed to run app:" + uri);
+          console.log(err);
+          // TODO: scene.onError(err); ???
+          // TODO: at this point we need to destroy the child scene
+        }
+      }
+    });
+  }
+  catch (err) {
+    console.log("failed to load script:" + uri);
+    console.log(err);
+    // TODO: scene.onError(err); ???
+  }
 }
 
 var scene = px.getScene(0, 0, 800, 400);
@@ -65,7 +85,6 @@ scene.onScene = function(scene, url) {
 var argv = process.argv;
 
 if (argv.length >= 3) {
-    console.log("Loading: ", argv[2]);
     var childScene = scene.createScene();
     childScene.url = argv[2];
     childScene.parent = scene.root;

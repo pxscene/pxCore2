@@ -1,18 +1,5 @@
-
-var px = require('./build/Debug/px');
-
-var MAX_WIDTH = 640;
-
-var scene = px.getScene(0, 0, MAX_WIDTH, 480);
 var root = scene.root;
 var score = 0;
-
-//var scoreBoard = scene.createText();
-//scoreBoard.text = "10,000";
-//scoreBoard.textColor = 0xffff00ff;
-//scoreBoard.x = 10;
-//scoreBoard.y = 30;
-//scoreBoard.parent = root;
 
 function Invader(scene, image1, image2, padding) {
   this._scene = scene;
@@ -128,12 +115,12 @@ function Player(scene, path) {
   this._image = scene.createImage();
   this._image.url = path;
   this._image.parent = scene.root;
-  this._image.x = MAX_WIDTH / 2;
+  this._image.x = scene.w / 2;
   this._image.y = 430;
 }
 
 Player.prototype.moveBy = function(x, y) {
-  if ((x < 0 && this._image.x > 10) || (x > 0 && this._image.x < MAX_WIDTH - 70)) {
+  if ((x < 0 && this._image.x > 10) || (x > 0 && this._image.x < scene.w - 70)) {
     this._image.x += x;
   }
   // this._image.y += y;
