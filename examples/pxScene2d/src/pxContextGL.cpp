@@ -829,7 +829,8 @@ void pxContext::init()
   }
 #endif
 
-  glClearColor(0.4, 0.4, 0.4, 0.0);
+//  glClearColor(0.4, 0.4, 0.4, 0.0);
+  glClearColor(0, 0, 0, 0);
 
   GLuint program = createShaderProgram(vShaderText, fShaderText);
 

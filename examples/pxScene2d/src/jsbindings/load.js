@@ -91,9 +91,9 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
 
             // TODO part of an experiment to eliminate intermediate rendering of the scene
             // while it is being set up
-            container.painting = true;
             container.a = 0;
-            container.animateTo({a:1}, 0.3, 0, 0);
+            container.painting = true;
+            container.animateTo({a:1}, 0.1, 0, 0);
         }
         catch (err) {
           // console.log('dumping context');
