@@ -605,7 +605,14 @@ rtError pxScene::setURL(rtString v)
     mInnerScene->setW(mw);
     mInnerScene->setH(mh);
     if (gOnScene)
-      gOnScene.send(mInnerScene.getPtr(), mURL);
+    {
+      // TODO experiment always set painting to false initially with the expectation that
+      // load.js will set painting = true after initial js has executed to reduce flicker and
+      // transition
+      setPainting(false);
+      //TODO double check can this hang on the js side
+      gOnScene.send((rtObject*)this, mInnerScene.getPtr(), mURL);
+    }
   }
   else
     rtLogDebug("pxScene::setURL, null url\n");

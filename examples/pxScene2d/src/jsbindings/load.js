@@ -54,7 +54,7 @@ Api.prototype.loadScriptContents = function(uri, closure) {
   }
 }
 
-Api.prototype.loadScriptForScene = function(scene, uri) {
+Api.prototype.loadScriptForScene = function(container, scene, uri) {
 
   if (uri == null) {
     this.destroyScene(scene);
@@ -88,6 +88,10 @@ Api.prototype.loadScriptForScene = function(scene, uri) {
           // TODO do the old scenes context get released when we reload a scenes url??
             
             scene.ctx = app;
+
+            // TODO part of an experiment to eliminate intermediate rendering of the scene
+            // while it is being set up
+            container.painting = true;
         }
         catch (err) {
           // console.log('dumping context');
@@ -117,8 +121,13 @@ var scene = px.getScene(0, 0, 800, 400);
 var api = new Api(scene);
 
 // register a "global" hook that gets invoked whenever a child scene is created
-scene.onScene = function(scene, url) {
-    api.loadScriptForScene(scene, url);
+scene.onScene = function(container, innerscene, url) {
+    // TODO part of an experiment to eliminate intermediate rendering of the scene
+    // while it is being set up
+    // container when returned here has it's painting property set to false.
+    // it won't start rendering until we set painting to true which we do 
+    // after the script has loaded
+    api.loadScriptForScene(container,innerscene, url);
 };
 
 var argv = process.argv;
