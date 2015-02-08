@@ -203,26 +203,27 @@ void pxObject::drawInternal(pxMatrix4f m)
 {
   // TODO not propogating parent alpha
   // TODO cull when alpha is near zero
-
+  // TODO what to do about multiple vanishing points in a given scene
+  // TODO consistent behavior between clipping and no clipping when z is in use
 
 #if 1
   // translate based on xy rotate/scale based on cx, cy
   m.translate(mx+mcx, my+mcy);
 
-
-  m.rotateInDegrees(mr, mrx, mry, mrz);
+//  Only allow z rotation until we can reconcile multiple vanishing point thoughts
+//  m.rotateInDegrees(mr, mrx, mry, mrz);
+  m.rotateInDegrees(mr, 0, 0, 1);
   m.scale(msx, msy);
-  //?  apply perspective
   
   m.translate(-mcx, -mcy);
-  
-//  m.mValues[14] = m.mValues[10];
-//  m.mValues[15] = m.mValues[10];
+
 #else
   // translate/rotate/scale based on cx, cy
   m.translate(mx, my);
 
-  m.rotateInDegrees(mr, mrx, mry, mrz);
+//  Only allow z rotation until we can reconcile multiple vanishing point thoughts
+//  m.rotateInDegrees(mr, mrx, mry, mrz);
+  m.rotateInDegrees(mr, 0, 0, 1);
   m.scale(msx, msy);
   m.translate(-mcx, -mcy);
 #endif
