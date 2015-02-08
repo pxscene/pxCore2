@@ -299,9 +299,15 @@ int keycodeFromNative(int nativeKeycode)
     case PX_KEY_NATIVE_INSERT:
       commonKeycode = PX_KEY_INSERT;
       break;
+
+#ifdef _WIN32
+	  #pragma message("WARNING: PX_KEY_NATIVE_HELP is not supported. Please fixe me!")
+#else
     case PX_KEY_NATIVE_HELP:
       commonKeycode = PX_KEY_NATIVE_HELP;
       break;
+#endif
+
     case PX_KEY_NATIVE_BACKQUOTE:
       commonKeycode = PX_KEY_GRAVEACCENT;
       break;

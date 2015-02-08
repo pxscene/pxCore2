@@ -11,7 +11,7 @@
 #ifndef WINCE
 #include <tchar.h>
 #define _ATL_NO_HOSTING
-#include <atlconv.h>
+//#include <atlconv.h>
 #endif
 
 #include "windowsx.h"

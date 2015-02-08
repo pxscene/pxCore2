@@ -9,13 +9,13 @@
 #include "../pxRect.h"
 #include "pxOffscreenNative.h"
 
-typedef struct
+struct pxEventNativeDesc
 {
     HWND    wnd;
     UINT    msg;
     WPARAM  wParam;
     LPARAM  lParam;
-} pxEventNativeDesc;
+};
 
 #ifndef WINCE
 #define PX_DEF_WINDOW_STYLE WS_OVERLAPPEDWINDOW
@@ -43,24 +43,24 @@ public:
 
 
 protected:
-    virtual void onCreate() = (0);
+    virtual void onCreate() = 0;
 
     virtual void onCloseRequest() = 0;
-    virtual void onClose() = (0);
+    virtual void onClose() = 0;
 
     virtual void onSize(int w, int h) = 0;
 
-    virtual void onMouseDown(int x, int y, unsigned long flags) = (0);
-    virtual void onMouseUp(int x, int y, unsigned long flags) = (0);
+    virtual void onMouseDown(int x, int y, unsigned long flags) = 0;
+    virtual void onMouseUp(int x, int y, unsigned long flags) = 0;
 
-    virtual void onMouseMove(int x, int y) = (0);
+    virtual void onMouseMove(int x, int y) = 0;
 
-    virtual void onKeyDown(int keycode, unsigned long flags) = (0);
-    virtual void onKeyUp(int keycode, unsigned long flags) = (0);
+    virtual void onKeyDown(int keycode, unsigned long flags) = 0;
+    virtual void onKeyUp(int keycode, unsigned long flags) = 0;
 
-    virtual void onDraw(pxSurfaceNative surface) = (0);
+    virtual void onDraw(pxSurfaceNative surface) = 0;
 
-    virtual void onAnimationTimer() = (0);
+    virtual void onAnimationTimer() = 0;
 
     // Windows only for now
 
@@ -186,10 +186,9 @@ public: // Add accessors
 #define PX_KEY_NATIVE_BACKQUOTE    0xC0
 #define PX_KEY_NATIVE_QUOTE        0xDE
 
-typedef struct synchronizedMessage
+struct synchronizedMessage
 {
-    char* messageName;
-    void* p1;
-} synchronizedMessage;
-
+	char* messageName;
+	void* p1;
+};
 #endif
