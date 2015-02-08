@@ -93,7 +93,7 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
             // while it is being set up
             container.a = 0;
             container.painting = true;
-            container.animateTo({a:1}, 0.1, 0, 0);
+            container.animateTo({a:1}, 0.2, 0, 0);
         }
         catch (err) {
           // console.log('dumping context');

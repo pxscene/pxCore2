@@ -205,12 +205,16 @@ void pxObject::update(double t)
   }
 }
 
+const float alphaEpsilon = (1.0f/255.0f);
+
 void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
 {
-  // TODO not propogating parent alpha
-  // TODO cull when alpha is near zero
   // TODO what to do about multiple vanishing points in a given scene
   // TODO consistent behavior between clipping and no clipping when z is in use
+
+  parentAlpha = parentAlpha * ma;
+  if (parentAlpha < alphaEpsilon)
+    return;  // trivial reject for objects that are transparent
 
 #if 1
   // translate based on xy rotate/scale based on cx, cy
@@ -258,7 +262,6 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
   
 #endif
 
-  parentAlpha = parentAlpha * ma;
 
   context.setMatrix(m);
   context.setAlpha(parentAlpha);
@@ -272,7 +275,7 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
     {
       pxTextureRef snapshot = createSnapshot();
       context.setMatrix(m);
-      context.setAlpha(ma);
+      context.setAlpha(parentAlpha);
       context.drawImage(mw,mh, snapshot, mMaskTextureRef, PX_NONE, PX_NONE);
       deleteSnapshot(snapshot);
     }
