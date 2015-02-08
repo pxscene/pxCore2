@@ -224,8 +224,6 @@ public:
     glBindTexture(GL_TEXTURE_2D, mTextureId);
     glViewport ( 0, 0, mWidth, mHeight);
     glUniform2f(u_resolution, mWidth, mHeight);
-
-    glClear(GL_COLOR_BUFFER_BIT);
     
     return PX_OK;
   }
