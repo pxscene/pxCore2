@@ -45,6 +45,10 @@ rtString& rtString::operator=(const char* s) {
   return *this;
 }
 
+bool rtString::isEmpty()
+{
+  return (!mData || !(*mData));
+}
 
 rtString::~rtString() { term(); }
 
