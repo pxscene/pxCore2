@@ -85,6 +85,9 @@ Api.prototype.loadScriptForScene = function(scene, uri) {
         var app;
         try {
           app = vm.runInNewContext(code, sandbox);
+          // TODO do the old scenes context get released when we reload a scenes url??
+            
+            scene.ctx = app;
         }
         catch (err) {
           // console.log('dumping context');
@@ -98,6 +101,7 @@ Api.prototype.loadScriptForScene = function(scene, uri) {
 
           // TODO: scene.onError(err); ???
           // TODO: at this point we need to destroy the child scene
+          scene.url = "";  
         }
       }
     });
@@ -131,6 +135,10 @@ if (argv.length >= 3) {
 
     scene.on("keydown", function(code, flags) {
         console.log("keydown:", code, ", ", flags);
+        if (code == 48)
+            childScene.url = "gallery.js";
+        else if (code == 57)
+            childScene.url = "fancy.js";
     });
     scene.on("resize", updateSize);
     updateSize(scene.w, scene.h);
