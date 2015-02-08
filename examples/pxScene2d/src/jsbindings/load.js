@@ -11,14 +11,10 @@ Api.prototype.destroyNodeFromScene = function(scene, node) {
     if (node.children) {
       var n = node.children.length;
       for (var i = 0; i < n; ++i) {
-        console.log("remove: " + i);
-        this.destroyNodeFromScene(scene, node.getChild(i));
+        this.destroyNodeFromScene(scene, node.getChild(0));
       }
     }
-    console.log("remove:" + typeof(node));
-    // for some reason, some objects don't have a remove()
     if (node.remove) {
-      console.log("is pxobject");
       node.remove();
     }
   }
