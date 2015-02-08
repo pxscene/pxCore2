@@ -314,6 +314,11 @@ int keycodeFromNative(int nativeKeycode)
     case PX_KEY_NATIVE_QUOTE:
       commonKeycode = PX_KEY_SINGLEQUOTE;
       break;
+    default:
+      //TODO move rtLog support to pxCore so we can use here
+      printf("pxWindowUtils: Unhandled keycode %d\n", commonKeycode);
+      break;
   }
   return commonKeycode;
 }
+
