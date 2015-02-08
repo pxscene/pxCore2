@@ -31,6 +31,9 @@ public:
 
   virtual unsigned long AddRef();
   virtual unsigned long Release();
+  virtual unsigned long getRefCount() const {
+    return mRefCount;
+  }
 
 private:
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);

@@ -96,14 +96,12 @@ public:
   rtMethod5ArgAndNoReturn("animateTo", animateTo2, rtObjectRef, double, 
                           uint32_t, uint32_t, rtFunctionRef);
 
- pxObject(): mRef(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0), 
+ pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef() {}
 
   virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(mTextureRef); }
-  virtual unsigned long AddRef() { return ++mRef; }
-  virtual unsigned long Release() { if (--mRef == 0) delete this; return mRef; }
-  
+
   // TODO missing conversions in rtValue between uint32_t and int32_t
   uint32_t numChildren() const { return mChildren.size(); }
   rtError numChildren(int32_t& v) const 
@@ -321,7 +319,6 @@ protected:
   rtRefT<pxObject> mParent;
   vector<rtRefT<pxObject> > mChildren;
   vector<animation> mAnimations;
-  unsigned long mRef;
   float mcx, mcy, mx, my, ma, mr, mrx, mry, mrz, msx, msy, mw, mh;
   pxTextureRef mTextureRef;
   bool mPainting;
@@ -488,7 +485,7 @@ public:
   rtProperty(w, w, setW, float);
   rtProperty(h, h, setH, float);
 
-  pxScene() 
+  pxScene() : pxObject()
   { 
   }
 

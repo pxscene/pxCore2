@@ -25,6 +25,7 @@ class rtIObject {
   virtual ~rtIObject() { }
   virtual unsigned long AddRef() = 0;
   virtual unsigned long Release() = 0;
+  virtual unsigned long getRefCount() const = 0;
   virtual rtError Get(const char* name, rtValue* value) = 0;
   virtual rtError Get(uint32_t i, rtValue* value) = 0;
   virtual rtError Set(const char* name, const rtValue* value) = 0;
@@ -36,6 +37,7 @@ class rtIFunction {
   virtual ~rtIFunction() { }
   virtual unsigned long AddRef() = 0;
   virtual unsigned long Release() = 0;
+  virtual unsigned long getRefCount() const = 0;
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
 };
 
@@ -228,6 +230,10 @@ class rtObjectFunction: public rtIFunction, public rtFunctionBase {
     return l;
   }
 
+  virtual unsigned long getRefCount() const {
+    return mRefCount;
+  }
+
  private:
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
 
@@ -254,6 +260,10 @@ class rtObject: public rtIObject, public rtObjectBase
   
   virtual unsigned long /*__stdcall*/ AddRef() {
     return rtAtomicInc(&mRefCount);
+  }
+
+  virtual unsigned long getRefCount() const {
+    return mRefCount;
   }
   
   virtual unsigned long /*__stdcall*/ Release() {
@@ -563,6 +573,10 @@ public:
     return l;
   }
 
+  virtual unsigned long getRefCount() const {
+    return mRefCount;
+  }
+
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result)
   {
     return mCB(numArgs, args, result, mContext);
@@ -588,6 +602,10 @@ rtEmit(): mRefCount(0) {}
     long l = rtAtomicDec(&mRefCount);
     if (l == 0) delete this;
     return l;
+  }
+
+  virtual unsigned long getRefCount() const {
+    return mRefCount;
   }
 
   rtError addListener(const char* eventName, rtIFunction* f)

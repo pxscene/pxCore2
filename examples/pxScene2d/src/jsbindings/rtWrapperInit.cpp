@@ -145,6 +145,23 @@ private:
 
 static jsWindow* mainWindow = NULL;
 
+static Handle<Value> disposeNode(const Arguments& args)
+{
+  if (args.Length() < 1)
+    return Undefined();
+
+  if (!args[0]->IsObject())
+    return Undefined();
+
+  Local<Object> obj = args[0]->ToObject();
+
+  rtObjectWrapper* wrapper = static_cast<rtObjectWrapper *>(obj->GetPointerFromInternalField(0));
+  if (wrapper)
+    wrapper->dispose();
+
+  return Undefined();
+}
+
 static Handle<Value> getScene(const Arguments& args)
 {
   if (mainWindow == NULL)
@@ -185,6 +202,7 @@ void ModuleInit(Handle<Object> exports)
   rtFunctionWrapper::exportPrototype(exports);
   rtObjectWrapper::exportPrototype(exports);
   exports->Set(String::NewSymbol("getScene"), FunctionTemplate::New(getScene)->GetFunction());
+  exports->Set(String::NewSymbol("dispose"), FunctionTemplate::New(disposeNode)->GetFunction());
 }
 
 NODE_MODULE(px, ModuleInit)
