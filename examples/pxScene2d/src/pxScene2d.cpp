@@ -294,7 +294,7 @@ pxTextureRef pxObject::createSnapshot()
   pxTextureRef previousRenderSurface = context.getCurrentRenderSurface();
   if (context.setRenderSurface(texture) == PX_OK)
   {
-    glClear(GL_COLOR_BUFFER_BIT); //TODO - will cleanup and move to pxContext
+    context.clear(mw, mh);
     draw();
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
