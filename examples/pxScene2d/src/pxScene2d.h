@@ -140,6 +140,7 @@ public:
   }
 
   rtError remove();
+  rtError removeAll();
   
   rtString id() { return mId; }
   rtError id(rtString& v) const { v = mId; return RT_OK; }
@@ -414,7 +415,8 @@ public:
                         rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
-  
+  rtProperty(ctx, ctx, setCtx, rtValue);
+
   pxInnerScene(rtRefT<pxObject> root)
   {
     mRoot = root;
@@ -469,11 +471,15 @@ public:
     return mEmit->delListener(eventName, f);
   }
 
+  rtError ctx(rtValue& v) const { v = mContext; return RT_OK; }
+  rtError setCtx(const rtValue& v) { mContext = v; return RT_OK; }
+
 private:
   rtRefT<pxObject> mRoot;
   rtEmitRef mEmit;
   float mWidth;
   float mHeight;
+  rtValue mContext;
 };
 
 // For now just child scene objects
@@ -486,9 +492,6 @@ public:
 
   pxScene() 
   { 
-    rtRefT<pxObject> newRoot  = new pxObject;
-    mChildren.push_back(newRoot);
-    mInnerScene = new pxInnerScene(newRoot); 
   }
 
   rtError url(rtString& v) const { v = mURL; return RT_OK; }

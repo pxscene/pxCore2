@@ -72,6 +72,12 @@ rtError pxObject::remove()
   return RT_OK;
 }
 
+rtError pxObject::removeAll()
+{
+  mChildren.clear();
+  return RT_OK;
+}
+
 #if 0
 rtError pxObject::animateTo(const char* prop, double to, double duration, 
                             uint32_t interp, uint32_t animationType) 
@@ -532,6 +538,7 @@ void pxScene2d::onMouseMove(int x, int y)
 
 void pxScene2d::onKeyDown(int keycode, unsigned long flags) 
 {
+  printf("pxScene2d::onKeyDown %d\n", keycode);
   mEmit.send("keydown", keycodeFromNative(keycode), (uint64_t)flags);
 }
 
@@ -580,7 +587,20 @@ rtDefineMethod(pxScene2d, delListener);
 
 rtError pxScene::setURL(rtString v) 
 { 
+  // Release old root from parent scene perspective
+  removeAll();
+  // Add new root into scene
+  rtRefT<pxObject> newRoot  = new pxObject;
+  mChildren.push_back(newRoot);
+  mInnerScene = new pxInnerScene(newRoot); 
+  
+  // TODO.. should we be able to do if (mURL)?
+  if (mURL.isEmpty())
+    rtLogDebug("pxScene::setURL(), Unloading scene %s\n", mURL.cString());
   mURL = v; 
+  if (mURL.isEmpty())
+    rtLogDebug("pxScene::setURL(), Loading scene %s\n", mURL.cString());
+
 #if 1
   if (gOnScene)
     gOnScene.send(mInnerScene.getPtr(), mURL);
@@ -606,6 +626,7 @@ rtDefineMethod(pxInnerScene, createImage9);
 rtDefineMethod(pxInnerScene, createScene);
 rtDefineMethod(pxInnerScene, addListener);
 rtDefineMethod(pxInnerScene, delListener);
+rtDefineProperty(pxInnerScene, ctx);
 
 rtError pxInnerScene::showOutlines(bool& v) const 
 { 
