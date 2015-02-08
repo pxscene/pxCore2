@@ -1,5 +1,6 @@
 var px = require("./build/Debug/px");
 var http = require('http');
+var util = require('util');
 
 function Api(scene) {
   this._scene = scene;
@@ -19,7 +20,7 @@ Api.prototype.loadScriptContents = function(uri, closure) {
     else {
       var req = http.get(options, function(res) {
         res.on('data',  function(data)  { code += data; });
-        res.on('end',   function()      { closure(code, nil); });
+        res.on('end',   function()      { closure(code, null); });
       });
       req.on('error',   function(err)   { closure('', err); });
     }
@@ -54,11 +55,16 @@ Api.prototype.loadScriptForScene = function(scene, uri) {
         // TODO: scene.onError(err); ???
       }
       else {
+
         var app;
         try {
           app = vm.runInNewContext(code, sandbox);
         }
         catch (err) {
+          console.log('dumping contetx');
+
+          // sanbox was turned into a context via vm.runInNewContext(...);
+          console.log(util.inspect(sandbox));
           console.log("failed to run app:" + uri);
           console.log(err);
           // TODO: scene.onError(err); ???
