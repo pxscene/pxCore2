@@ -469,21 +469,6 @@ public:
     return mEmit->delListener(eventName, f);
   }
 
-
-#if 0
-  virtual void update(double t)
-  {
-    mRoot->update(t);
-  }
-  
-  virtual void drawInternal(pxMatrix4f m) 
-  {
-
-
-    mRoot->drawInternal(m);
-  }
-#endif
-
 private:
   rtRefT<pxObject> mRoot;
   rtEmitRef mEmit;
@@ -514,36 +499,6 @@ public:
   rtError setW(float v) { mw = v; mInnerScene->setW(v); return RT_OK; }
   rtError h(float& v) const { v = mInnerScene->h(); return RT_OK; }
   rtError setH(float v) { mh = v; mInnerScene->setH(v); return RT_OK; }
-
-#if 0
-  virtual void update(double t)
-  {
-    mInnerScene->update(t);
-  }
-
-  virtual void drawInternal(pxMatrix4f m)
-  {
-#if 1
-  // translate based on xy rotate/scale based on cx, cy
-  m.translate(mx+mcx, my+mcy);
-
-  m.rotateInDegrees(mr, mrx, mry, mrz);
-  m.scale(msx, msy);
-  m.translate(-mcx, -mcy);
-  
-#else
-  // translate/rotate/scale based on cx, cy
-  m.translate(mx, my);
-
-  m.rotateInDegrees(mr, mrx, mry, mrz);
-  m.scale(msx, msy);
-  m.translate(-mcx, -mcy);
-
-#endif
-    mInnerScene->drawInternal(m);
-  }
-#endif
-
 
 private:
   rtRefT<pxInnerScene> mInnerScene;

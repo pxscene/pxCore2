@@ -91,6 +91,7 @@ static const char *vShaderText =
   " vec4 zeroToTwo = zeroToOne * vec4(2.0, 2.0, 1, 1);\n"
   " vec4 clipSpace = zeroToTwo - vec4(1.0, 1.0, 0, 0);\n"
   " clipSpace.w = 1.0+clipSpace.z;\n"
+  //" clipSpace = clipSpace/vec4(1.0+clipSpace.z, 1.0+clipSpace.z, 1, 1);\n"
   " gl_Position =  clipSpace * vec4(1, -1, 1, 1);\n"
   "v_uv = uv;\n"
   "}\n";
@@ -556,15 +557,6 @@ static void drawImage2(float x, float y, float w, float h, pxOffscreen& offscree
     {  x+w, y+h }
   };
 
-#if 0
-  const float uv[4][2] = 
-  {
-    { 0, 0 },
-    { 1, 0 },
-    { 0, 1 },
-    { 1, 1 }
-  };
-#else
   float tw;
   switch(xStretch) {
   case PX_NONE:
@@ -593,11 +585,10 @@ static void drawImage2(float x, float y, float w, float h, pxOffscreen& offscree
     { 0,  th },
     { tw, th }
   };
-#endif
   
   {
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glUniform1f(u_alphatexture, 1.0);
     glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
     glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
@@ -640,15 +631,6 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     {  x+w, y+h }
   };
 
-#if 0
-  const float uv[4][2] = 
-  {
-    { 0, 0 },
-    { 1, 0 },
-    { 0, 1 },
-    { 1, 1 }
-  };
-#else
   float tw;
   switch(xStretch) {
   case PX_NONE:
@@ -688,11 +670,10 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     { 0,  secondTextureY },
     { tw, secondTextureY }
   };
-#endif
-  
+
   {
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glUniform1f(u_alphatexture, 1.0);
     glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
     glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
@@ -706,9 +687,8 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   glUniform1i(u_enablemask, 0);
 }
 
-
-static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2,
-    pxOffscreen& offscreen)
+static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, 
+                        GLfloat y2, pxOffscreen& offscreen)
 {
   glActiveTexture(GL_TEXTURE0);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
@@ -903,6 +883,9 @@ void pxContext::setSize(int w, int h)
 void pxContext::clear(int w, int h)
 {
   glClear(GL_COLOR_BUFFER_BIT);
+  //w = 150;
+  //h = 100;
+  // glViewport(0, 0, (GLint)w, (GLint)h);
   glUniform2f(u_resolution, w, h);
   if (currentContextSurface != NULL)
   {
