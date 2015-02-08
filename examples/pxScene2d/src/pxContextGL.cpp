@@ -877,26 +877,18 @@ void pxContext::init()
 void pxContext::setSize(int w, int h)
 {
   glViewport(0, 0, (GLint)w, (GLint)h);
+  glUniform2f(u_resolution, w, h);
+  if (currentRenderSurface == defaultRenderSurface)
+  {
+    defaultContextSurface.width = w;
+    defaultContextSurface.height = h;
+  }
 }
 
 
 void pxContext::clear(int w, int h)
 {
   glClear(GL_COLOR_BUFFER_BIT);
-  //w = 150;
-  //h = 100;
-  // glViewport(0, 0, (GLint)w, (GLint)h);
-  glUniform2f(u_resolution, w, h);
-  if (currentContextSurface != NULL)
-  {
-    currentContextSurface->width = w;
-    currentContextSurface->height = h;
-  }
-  else
-  {
-    defaultContextSurface.width = w;
-    defaultContextSurface.height = h;
-  }
 }
 
 
