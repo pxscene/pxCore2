@@ -101,7 +101,7 @@ Api.prototype.loadScriptForScene = function(scene, uri) {
 
           // TODO: scene.onError(err); ???
           // TODO: at this point we need to destroy the child scene
-          scene.url = "";  
+          scene.url = "";  // This destroys the child scene and releases scene.ctx
         }
       }
     });
@@ -125,8 +125,10 @@ var argv = process.argv;
 
 if (argv.length >= 3) {
     var childScene = scene.createScene();
-    childScene.url = argv[2];
+    var originalURL = argv[2];
+    childScene.url = originalURL;
     childScene.parent = scene.root;
+    
 
     function updateSize(w, h) {
         childScene.w = w;
@@ -135,10 +137,14 @@ if (argv.length >= 3) {
 
     scene.on("keydown", function(code, flags) {
         console.log("keydown:", code, ", ", flags);
-        if (code == 48)
+        if (code == 48)      //'0'
             childScene.url = "gallery.js";
-        else if (code == 57)
+        else if (code == 57) //'9'
             childScene.url = "fancy.js";
+        else if (code == 49) {  //'1'
+            console.log("Reloading url: ", originalURL);
+            childScene.url = originalURL;
+        }
     });
     scene.on("resize", updateSize);
     updateSize(scene.w, scene.h);

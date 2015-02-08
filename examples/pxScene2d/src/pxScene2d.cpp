@@ -593,20 +593,22 @@ rtError pxScene::setURL(rtString v)
   
   // TODO.. should we be able to do if (mURL)?
   if (!mURL.isEmpty())
-    rtLogDebug("pxScene::setURL(), Unloading scene %s\n", mURL.cString());
+    rtLogInfo("pxScene::setURL(), Unloading scene %s\n", mURL.cString());
   mURL = v; 
   if (!mURL.isEmpty())
   {
-    rtLogDebug("pxScene::setURL(), Loading scene %s\n", mURL.cString());
+    rtLogInfo("pxScene::setURL(), Loading scene %s\n", mURL.cString());
     // Add new root into scene
     rtRefT<pxObject> newRoot  = new pxObject;
     mChildren.push_back(newRoot);
     mInnerScene = new pxInnerScene(newRoot); 
+    mInnerScene->setW(mw);
+    mInnerScene->setH(mh);
     if (gOnScene)
       gOnScene.send(mInnerScene.getPtr(), mURL);
   }
   else
-    rtLogDebug("pxScene::setURL, Empty scene\n");
+    rtLogDebug("pxScene::setURL, null url\n");
   return RT_OK; 
 }
 
