@@ -128,7 +128,10 @@ if (argv.length >= 3) {
         childScene.w = w;
         childScene.h = h;
     }
-    
+
+    scene.on("keydown", function(code, flags) {
+        console.log("keydown:", code, ", ", flags);
+    });
     scene.on("resize", updateSize);
     updateSize(scene.w, scene.h);
 }
