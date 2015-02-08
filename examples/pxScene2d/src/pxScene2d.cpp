@@ -205,7 +205,7 @@ void pxObject::update(double t)
   }
 }
 
-void pxObject::drawInternal(pxMatrix4f m)
+void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
 {
   // TODO not propogating parent alpha
   // TODO cull when alpha is near zero
@@ -258,8 +258,10 @@ void pxObject::drawInternal(pxMatrix4f m)
   
 #endif
 
+  parentAlpha = parentAlpha * ma;
+
   context.setMatrix(m);
-  context.setAlpha(ma);
+  context.setAlpha(parentAlpha);
   
   float c[4] = {1, 0, 0, 1};
   context.drawDiagRect(0, 0, mw, mh, c);
@@ -280,7 +282,7 @@ void pxObject::drawInternal(pxMatrix4f m)
 
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
       {
-        (*it)->drawInternal(m);
+        (*it)->drawInternal(m, parentAlpha);
       }
     }
   }
@@ -294,8 +296,10 @@ pxTextureRef pxObject::createSnapshot()
 {
   pxMatrix4f m;
 
+  float parentAlpha = ma;
+
   context.setMatrix(m);
-  context.setAlpha(1.0);
+  context.setAlpha(parentAlpha);
 
   pxTextureRef texture = context.createContextSurface(mw, mh);
   pxTextureRef previousRenderSurface = context.getCurrentRenderSurface();
@@ -306,7 +310,7 @@ pxTextureRef pxObject::createSnapshot()
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      (*it)->drawInternal(m);
+      (*it)->drawInternal(m, parentAlpha);
     }
   }
   context.setRenderSurface(previousRenderSurface);
@@ -419,7 +423,7 @@ void pxScene2d::draw()
   if (mRoot)
   {
     pxMatrix4f m;
-    mRoot->drawInternal(m);
+    mRoot->drawInternal(m, 1.0);
   }
 }
 

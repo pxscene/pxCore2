@@ -214,7 +214,7 @@ public:
   void moveForward();
   void moveBackward();
 
-  virtual void drawInternal(pxMatrix4f m);
+  virtual void drawInternal(pxMatrix4f m, float parentAlpha);
   virtual void draw() {}
   bool hitTest(const pxPoint2f& pt);
   
@@ -393,8 +393,6 @@ public:
 private:
   rtRefT<pxObject> mObject;
 };
-
-
 
 class pxInnerScene: public rtObject {
 public:

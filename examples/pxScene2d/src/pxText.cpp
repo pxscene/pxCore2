@@ -34,8 +34,8 @@ void initFT()
     return;
   }
   
-//  if(FT_New_Face(ft, "FreeSans.ttf", 0, &face)) {
-  if(FT_New_Face(ft, "FontdinerSwanky.ttf", 0, &face)) {
+  if(FT_New_Face(ft, "FreeSans.ttf", 0, &face)) {
+//  if(FT_New_Face(ft, "FontdinerSwanky.ttf", 0, &face)) {
     rtLogError("Could not load font face: ");
     return;
   }
