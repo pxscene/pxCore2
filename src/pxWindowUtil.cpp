@@ -1,3 +1,4 @@
+#include <stdio.h>
 
 #include "pxWindowUtil.h"
 #include "pxCore.h"
