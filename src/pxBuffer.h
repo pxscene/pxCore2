@@ -9,6 +9,8 @@
 #include "pxRect.h"
 #include "pxCore.h"
 
+#include <stdlib.h>
+
 // This class is used to point to and describe a 32bpp framebuffer
 // The memory for this framebuffer is allocated and managed external
 // to this class.

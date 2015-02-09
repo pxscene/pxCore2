@@ -5,6 +5,8 @@
 #ifndef PX_RECT_H
 #define PX_RECT_H
 
+#include "pxCore.h"
+
 // A class used to describe a rectangle using integer coordinates
 class pxRect
 {

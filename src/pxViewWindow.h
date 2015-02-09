@@ -18,7 +18,7 @@ protected:
 
     virtual void onClose();
 
-    virtual void __stdcall invalidateRect(pxRect* r);
+    virtual void RT_STDCALL invalidateRect(pxRect* r);
 
     // The following methods are delegated to the view
     virtual void onSize(int w, int h);
