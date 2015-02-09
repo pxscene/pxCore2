@@ -330,7 +330,7 @@ rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void*
       picture.set("url", ballURL);
       break;
     default:
-      rtLogWarn("unhandled key\n");
+      rtLogWarn("unhandled key");
       break;
     }
   }

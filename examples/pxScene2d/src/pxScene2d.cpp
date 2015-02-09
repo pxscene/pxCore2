@@ -526,7 +526,7 @@ void pxScene2d::onMouseLeave()
 void pxScene2d::onMouseMove(int x, int y)
 {
 #if 0
-  rtLog("onMousePassiveMotion x: %d y: %d\n", x, y);
+  rtLog("onMousePassiveMotion x: %d y: %d", x, y);
   
   //  pxMatrix4f m1, m2;
   pxVector4f from(x, y);
@@ -534,11 +534,11 @@ void pxScene2d::onMouseMove(int x, int y)
   
   pxObject::transformPointFromSceneToObject(target, from, to);
   
-  rtLog("in target coords x: %f y: %f\n", to.mX, to.mY);
+  rtLog("in target coords x: %f y: %f", to.mX, to.mY);
   
   pxObject::transformPointFromObjectToScene(target, to, from);
   
-  rtLog("in sceme coords x: %f y: %f\n", from.mX, from.mY);
+  rtLog("in sceme coords x: %f y: %f", from.mX, from.mY);
 #endif
   mEmit.send("mousemove", x, y);
 }
@@ -600,11 +600,11 @@ rtError pxScene::setURL(rtString v)
   
   // TODO.. should we be able to do if (mURL)?
   if (!mURL.isEmpty())
-    rtLogInfo("pxScene::setURL(), Unloading scene %s\n", mURL.cString());
+    rtLogInfo("pxScene::setURL(), Unloading scene %s", mURL.cString());
   mURL = v; 
   if (!mURL.isEmpty())
   {
-    rtLogInfo("pxScene::setURL(), Loading scene %s\n", mURL.cString());
+    rtLogInfo("pxScene::setURL(), Loading scene %s", mURL.cString());
     // Add new root into scene
     rtRefT<pxObject> newRoot  = new pxObject;
     mChildren.push_back(newRoot);
@@ -622,7 +622,7 @@ rtError pxScene::setURL(rtString v)
     }
   }
   else
-    rtLogDebug("pxScene::setURL, null url\n");
+    rtLogDebug("pxScene::setURL, null url");
   return RT_OK; 
 }
 
