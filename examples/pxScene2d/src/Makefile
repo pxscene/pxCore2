@@ -18,6 +18,7 @@ RT_SRCS=\
     linux/rtThreadPoolNative.cpp \
     rtThreadPool.cpp \
     rtThreadTask.cpp \
+    rtLibrary.cpp \
     utf8.c
     
 PX_SRCS=\
@@ -52,7 +53,7 @@ LDJPG   = -L$(EXTDIR)/jpg/.libs -ljpeg
 LDFT    = -L$(EXTDIR)/ft/objs/.libs -lfreetype
 LDCURL  = -L$(EXTDIR)/curl/lib/.libs -lcurl
 LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL)
-LDFLAGS = -L$(PXLIBS) -lpxCore -pthread -lglut -lGL -lGLEW $(LDEXT)
+LDFLAGS = -L$(PXLIBS) -lpxCore -pthread -lglut -lGL -lGLEW $(LDEXT) -ldl
 
 OBJDIR=obj
 SRCS=$(PX_SRCS) $(RT_SRCS) testScene.cpp
