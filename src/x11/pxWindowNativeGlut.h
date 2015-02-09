@@ -25,8 +25,6 @@
 
 using namespace std;
 
-
-
 // Since the lifetime of the Display should include the lifetime of all windows
 // and eventloop that uses it - refcounting is utilized through this
 // wrapper class.

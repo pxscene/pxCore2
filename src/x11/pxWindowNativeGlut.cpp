@@ -24,6 +24,8 @@ bool    pxWindowNative::mEventLoopTimerStarted = false;
 float   pxWindowNative::mEventLoopInterval = 1000.0 / (float)GLUT_PX_CORE_FPS;
 timer_t pxWindowNative::mRenderTimerId;
 
+int getRawNativeKeycodeFromGlut(int key, int modifiers);
+
 //start glut callbacks
 
 static void reshape(int width, int height)
@@ -116,13 +118,20 @@ void onKeyboard(unsigned char key, int x, int y)
 {
   vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
   vector<pxWindowNative*>::iterator i;
+  
+  key = getRawNativeKeycodeFromGlut((int)key, glutGetModifiers());
+  
+  unsigned long flags = 0;
+  flags |= (glutGetModifiers() & GLUT_ACTIVE_SHIFT)?PX_MOD_SHIFT:0;
+  flags |= (glutGetModifiers() & GLUT_ACTIVE_CTRL)?PX_MOD_CONTROL:0;
+  flags |= (glutGetModifiers() & GLUT_ACTIVE_ALT)?PX_MOD_ALT:0;
 
   for (i = windowVector.begin(); i < windowVector.end(); i++)
   {
     pxWindowNative* w = (*i);
     // JR Did I mention Glut keyboard support is not very good
-    w->onKeyDown(keycodeFromNative((int)key), 0);
-    w->onKeyUp(keycodeFromNative((int)key), 0);
+    w->onKeyDown(keycodeFromNative((int)key), flags);
+    w->onKeyUp(keycodeFromNative((int)key), flags);
   }
 }
 
@@ -492,4 +501,103 @@ void pxWindowNative::unregisterWindow(pxWindowNative* p)
       return;
     }
   }
+}
+
+int getRawNativeKeycodeFromGlut(int key, int modifiers)
+{
+  //glut doesn't support keycodes. we do some mappings here
+  key = tolower(key);
+  
+  //bool shiftPressed = (glutGetModifiers() & GLUT_ACTIVE_SHIFT);
+  bool ctrlPressed = (glutGetModifiers() & GLUT_ACTIVE_CTRL);
+  //bool altPressed = (glutGetModifiers() & GLUT_ACTIVE_ALT);
+  
+  int rawKeycode = key;
+  
+  if (ctrlPressed)
+  {
+    switch (rawKeycode)
+    {
+      case 1:
+        rawKeycode = 'a';
+        break;
+      case 2:
+        rawKeycode = 'b';
+        break;
+      case 3:
+        rawKeycode = 'c';
+        break;
+      case 4:
+        rawKeycode = 'd';
+        break;
+      case 5:
+        rawKeycode = 'e';
+        break;
+      case 6:
+        rawKeycode = 'f';
+        break;
+      case 7:
+        rawKeycode = 'g';
+        break;
+      case 8:
+        rawKeycode = 'h';
+        break;
+      case 9:
+        rawKeycode = 'i';
+        break;
+      case 10:
+        rawKeycode = 'j';
+        break;
+      case 11:
+        rawKeycode = 'k';
+        break;
+      case 12:
+        rawKeycode = 'l';
+        break;
+      case 13:
+        rawKeycode = 'm';
+        break;
+      case 14:
+        rawKeycode = 'n';
+        break;
+      case 15:
+        rawKeycode = 'o';
+        break;
+      case 16:
+        rawKeycode = 'p';
+        break;
+      case 17:
+        rawKeycode = 'q';
+        break;
+      case 18:
+        rawKeycode = 'r';
+        break;
+      case 19:
+        rawKeycode = 's';
+        break;
+      case 20:
+        rawKeycode = 't';
+        break;
+      case 21:
+        rawKeycode = 'u';
+        break;
+      case 22:
+        rawKeycode = 'v';
+        break;
+      case 23:
+        rawKeycode = 'w';
+        break;
+      case 24:
+        rawKeycode = 'x';
+        break;
+      case 25:
+        rawKeycode = 'y';
+        break;
+      case 26:
+        rawKeycode = 'z';
+        break;
+    }
+  }
+  
+  return rawKeycode;
 }

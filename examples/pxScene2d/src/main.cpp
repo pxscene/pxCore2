@@ -100,8 +100,13 @@ void onMousePassiveMotion(int x, int y) {
 void onKeyboard(unsigned char key, int /*x*/, int /*y*/)
 {
   // Ugh GLUT key support not so hot.. 
-  scene->onKeyDown(keycodeFromNative((int)key), 0);
-  scene->onKeyUp(keycodeFromNative((int)key), 0);
+  key = tolower(key);
+  unsigned long flags = 0;
+  flags |= (glutGetModifiers() & GLUT_ACTIVE_SHIFT)?8:0;
+  flags |= (glutGetModifiers() & GLUT_ACTIVE_CTRL)?16:0;
+  flags |= (glutGetModifiers() & GLUT_ACTIVE_ALT)?32:0;
+  scene->onKeyDown(keycodeFromNative((int)key), flags);
+  scene->onKeyUp(keycodeFromNative((int)key), flags);
 }
 
 void onSpecial(int key, int /*x*/, int /*y*/)
