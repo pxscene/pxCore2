@@ -1,15 +1,14 @@
 //scene.showOutlines = true;
 
-var text = scene.createText({text:"One\nabcdefghijklmnopqrstuvwxyz\nThree",parent:scene.root,r:30});
+var text = scene.createText({text:"CLICK ME!!",parent:scene.root});
 text.x = (scene.w-text.w)/2;
 text.y = (scene.h-text.h)/2;
 text.cx = text.w/2;
 text.cy = text.h/2;
 //text.animateTo({"r": -360}, 5.0, 0, 2);
 text.on("mousedown", function() {
-    text.animateTo({r:360}, 1.0, 0, 0, function(o) { o.r = 0; }); 
-    console.log("Yay!");
-});
+    text.animateTo({r:360}, 1.0, 4, 0, function(o) { o.r = 0; }); 
+1});
 
 scene.root.id="editorroot";
 text.id="editortext";

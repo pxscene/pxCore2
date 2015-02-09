@@ -1,7 +1,7 @@
 var root = scene.root;
 //scene.showOutlines = true;
 
-var appURLs = ["hello.js", "fancy.js", "picturepile.js", "cliptest.js", "masktest.js"];
+var appURLs = ["mousetest2.js","hello.js", "fancy.js", "picturepile.js", "cliptest.js", "masktest.js", "mousetest.js"];
 var url;
 url = process.cwd() + "/../../images/skulls.png";
 var bg = scene.createImage({url:url,xStretch:2,yStretch:2,parent:root});
@@ -21,7 +21,7 @@ for (var i = 0; i < appURLs.length; i++) {
                        x:((i%2)*(childAppWidth+childPad))+childPad, 
                        y:(Math.floor(i/2)*(childAppHeight+childPad))+childPad});
 }
-
+1
 //apps.painting=false;
 
 scene.on('keydown', function(code, flags) {

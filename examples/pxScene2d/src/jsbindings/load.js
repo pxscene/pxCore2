@@ -77,15 +77,20 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
       }
       else {
         try {
-          // sanbox gets turned into a context via vm.runInNewContext(...);
-          vm.runInNewContext(code, sandbox);
+          app = vm.runInNewContext(code, sandbox);
+          // TODO do the old scenes context get released when we reload a scenes url??
+            
+//            scene.ctx = app;
 
-          // TODO part of an experiment to eliminate intermediate rendering of the scene
-          // while it is being set up
-          container.a = 0;
-          container.painting = true;
-          container.animateTo({a:1}, 0.2, 0, 0);
-          // scene.ctx = sandbox;
+            // TODO part of an experiment to eliminate intermediate rendering of the scene
+            // while it is being set up
+            if (true) { // enable to fade scenes in
+                container.a = 0;
+                container.painting = true;
+                container.animateTo({a:1}, 0.2, 0, 0);
+            }
+            else
+                container.painting = true;
         }
         catch (err) {
           console.log("failed to run app:" + uri);

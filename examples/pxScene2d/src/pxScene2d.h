@@ -96,9 +96,15 @@ public:
   rtMethod5ArgAndNoReturn("animateTo", animateTo2, rtObjectRef, double, 
                           uint32_t, uint32_t, rtFunctionRef);
 
- pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
+  rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
+  rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
+
+  pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
-    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef() {}
+    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef() 
+  {
+    mEmit = new rtEmit;
+  }
 
   virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(mTextureRef); }
 
@@ -212,9 +218,12 @@ public:
   void moveForward();
   void moveBackward();
 
-  virtual void drawInternal(pxMatrix4f m, float parentAlpha);
+
+  void drawInternal(pxMatrix4f m, float parentAlpha);
   virtual void draw() {}
-  bool hitTest(const pxPoint2f& pt);
+
+  bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit);
+  virtual bool hitTest(pxPoint2f& pt);
   
   rtError animateTo(const char* prop, double to, double duration, 
                      uint32_t interp, uint32_t animationType, 
@@ -248,6 +257,16 @@ public:
   {
     animateTo(prop, to, duration, interp, at, rtFunctionRef());
   }  
+
+  rtError addListener(rtString eventName, const rtFunctionRef& f)
+  {
+    return mEmit->addListener(eventName, f);
+  }
+
+  rtError delListener(rtString  eventName, const rtFunctionRef& f)
+  {
+    return mEmit->delListener(eventName, f);
+  }
 
   virtual void update(double t);
 
@@ -314,6 +333,10 @@ public:
     to = m.multiply(from);
   }
 
+
+public:
+  rtEmitRef mEmit;
+
 protected:
   // TODO getting freaking huge... 
   rtRefT<pxObject> mParent;
@@ -332,6 +355,7 @@ protected:
   void deleteSnapshot(pxTextureRef texture);
   void createMask();
   void deleteMask();
+
  private:
   rtError _pxObject(voidPtr& v) const {
     v = (void*)this;
@@ -341,7 +365,7 @@ protected:
 
 typedef rtRefT<pxObject> pxObjectRef;
 
-
+// Small helper class that vends the children of a pxObject as a collection
 class pxObjectChildren: public rtObject {
 public:
   pxObjectChildren(pxObject* o)

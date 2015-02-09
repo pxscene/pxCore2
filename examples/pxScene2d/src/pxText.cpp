@@ -26,16 +26,21 @@ FT_Face face;
 void initFT() 
 {
   static bool init = false;
-  if (init) return;
+
+  if (init) 
+    return;
+
   init = true;
   
-  if(FT_Init_FreeType(&ft)) {
+  if(FT_Init_FreeType(&ft)) 
+  {
     fprintf(stderr, "Could not init freetype library\n");
     return;
   }
   
-  if(FT_New_Face(ft, "FreeSans.ttf", 0, &face)) {
-//  if(FT_New_Face(ft, "FontdinerSwanky.ttf", 0, &face)) {
+  if(FT_New_Face(ft, "FreeSans.ttf", 0, &face)) 
+  //if(FT_New_Face(ft, "FontdinerSwanky.ttf", 0, &face))
+  {
     rtLogError("Could not load font face: ");
     return;
   }
@@ -124,7 +129,7 @@ void renderText(const char *text, float x, float y, float sx, float sy, float* c
 
 pxText::pxText() {
   initFT();
-  float c[4] = {0, 0, 0, 1};
+  float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
 }
 

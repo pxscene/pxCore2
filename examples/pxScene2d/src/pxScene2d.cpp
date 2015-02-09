@@ -219,20 +219,16 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
 #if 1
   // translate based on xy rotate/scale based on cx, cy
   m.translate(mx+mcx, my+mcy);
-
-//  Only allow z rotation until we can reconcile multiple vanishing point thoughts
-//  m.rotateInDegrees(mr, mrx, mry, mrz);
+  //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
+  //  m.rotateInDegrees(mr, mrx, mry, mrz);
   m.rotateInDegrees(mr, 0, 0, 1);
   m.scale(msx, msy);
-  
   m.translate(-mcx, -mcy);
-
 #else
   // translate/rotate/scale based on cx, cy
   m.translate(mx, my);
-
-//  Only allow z rotation until we can reconcile multiple vanishing point thoughts
-//  m.rotateInDegrees(mr, mrx, mry, mrz);
+  //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
+  //  m.rotateInDegrees(mr, mrx, mry, mrz);
   m.rotateInDegrees(mr, 0, 0, 1);
   m.scale(msx, msy);
   m.translate(-mcx, -mcy);
@@ -294,6 +290,57 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
     context.drawImage(mw,mh, mTextureRef, mMaskTextureRef, PX_NONE, PX_NONE);
   }
 }
+
+
+bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit)
+{
+
+  // setup matrix
+  pxMatrix4f m2;
+  m2.translate(mx+mcx, my+mcy);
+//  m.rotateInDegrees(mr, mrx, mry, mrz);
+  m2.rotateInDegrees(mr, 0, 0, 1);
+  m2.scale(msx, msy);  
+  m2.translate(-mcx, -mcy);
+  m2.invert();
+  m2.multiply(m);
+
+  {
+    for(vector<rtRefT<pxObject> >::reverse_iterator it = mChildren.rbegin(); it != mChildren.rend(); ++it)
+    {
+      if ((*it)->hitTestInternal(m2, pt, hit))
+        return true;
+    }
+  }
+
+  {
+    // map pt to object coordinate space
+    pxVector4f v(pt.x, pt.y, 0, 1);
+    v = m2.multiply(v);
+    pxPoint2f newPt;
+    newPt.x = v.mX;
+    newPt.y = v.mY;
+    if (hitTest(newPt))
+    {
+      hit = this;
+      return true;
+    }
+    else
+      return false;
+  }
+}
+
+// TODO should we bother with pxPoint2f or just use pxVector4f
+// pt is in object coordinates
+bool pxObject::hitTest(pxPoint2f& pt)
+{
+  // default hitTest checks against object bounds (0, 0, w, h)
+  // Can override for more interesting hit tests like alpha
+//  printf("hitTest pt(x:%f,y%f) object(w:%f,h:%f)\n", v.mX, v.mY, mw, mh);
+  return (pt.x >= 0 && pt.y >= 0 && pt.x <= mw && pt.y <= mh);
+}
+
+
 
 pxTextureRef pxObject::createSnapshot()
 {
@@ -375,6 +422,8 @@ rtDefineMethod(pxObject, getChild);
 rtDefineMethod(pxObject, remove);
 //rtDefineMethod(pxObject, animateTo);
 rtDefineMethod(pxObject, animateTo2);
+rtDefineMethod(pxObject, addListener);
+rtDefineMethod(pxObject, delListener);
 
 pxScene2d::pxScene2d()
  :start(0),frameCount(0) 
@@ -385,6 +434,14 @@ pxScene2d::pxScene2d()
 
 void pxScene2d::init()
 {
+  rtLogInfo("Object Sizes\n");
+  rtLogInfo("============\n");
+  rtLogInfo("pxObject: %lu\n", sizeof(pxObject));
+  rtLogInfo("pxImage: %lu\n", sizeof(pxImage));
+  rtLogInfo("pxImage9: %lu\n", sizeof(pxImage9));
+  rtLogInfo("pxRectangle: %lu\n", sizeof(pxRectangle));
+  rtLogInfo("pxText: %lu\n", sizeof(pxText));
+
   // TODO move this to the window
   context.init();
 }
@@ -454,6 +511,7 @@ void pxScene2d::transformPointFromObjectToObject(pxObject* /*fromObject*/, pxObj
 
 void pxScene2d::hitTest(pxPoint2f /*p*/, vector<rtRefT<pxObject> > /*hitList*/) {
 
+  
 }
 
 void pxScene2d::onDraw()
@@ -511,6 +569,17 @@ void pxScene2d::onSize(int w, int h)
 void pxScene2d::onMouseDown(int x, int y, unsigned long flags)
 {
   mEmit.send("mousedown", x, y, (uint64_t)flags);
+
+  //Looking for an object
+  pxMatrix4f m;
+  pxPoint2f pt;
+  pt.x = x; pt.y = y;
+  rtRefT<pxObject> hit;
+
+  if (mRoot->hitTestInternal(m, pt, hit))
+  {
+    hit->mEmit.send("mousedown");
+  }
 }
 
 void pxScene2d::onMouseUp(int x, int y, unsigned long flags)
@@ -525,22 +594,22 @@ void pxScene2d::onMouseLeave()
 
 void pxScene2d::onMouseMove(int x, int y)
 {
-#if 0
-  rtLog("onMousePassiveMotion x: %d y: %d", x, y);
-  
-  //  pxMatrix4f m1, m2;
-  pxVector4f from(x, y);
-  pxVector4f to;
-  
-  pxObject::transformPointFromSceneToObject(target, from, to);
-  
-  rtLog("in target coords x: %f y: %f", to.mX, to.mY);
-  
-  pxObject::transformPointFromObjectToScene(target, to, from);
-  
-  rtLog("in sceme coords x: %f y: %f", from.mX, from.mY);
-#endif
   mEmit.send("mousemove", x, y);
+
+
+  //Looking for an object
+  pxMatrix4f m;
+  pxPoint2f pt;
+  pt.x = x; pt.y = y;
+  rtRefT<pxObject> hit;
+
+#if 0
+  if (mRoot->hitTestInternal(m, pt, hit))
+  {
+    rtString id = hit->get<rtString>("id");
+    printf("found object id: %s\n", id.isEmpty()?"none":id.cString());
+  }
+#endif
 }
 
 void pxScene2d::onKeyDown(int keycode, unsigned long flags) 

@@ -389,10 +389,10 @@ void translate(FloatT x, FloatT y, FloatT z = 0.0) {
   }
 
 
-void dump()
+void dump(const char* n = NULL)
 {
   FloatT* p = mValues;
-  printf("Dump 4x4 Matrix\n");
+  printf("Dump 4x4 Matrix: %s\n", n?n:"none");
   for (int i = 0; i < 4; i++)
   {
     printf("[ %f, %f, %f, %f]\n", p[0], p[1], p[2], p[3]);
