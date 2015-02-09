@@ -80,5 +80,9 @@ function testScene()
   }
 }
 
+scene.on("keydown", function(code, flags) {
+    console.log("keydown in child", code, flags);
+});
+
 testScene();
 

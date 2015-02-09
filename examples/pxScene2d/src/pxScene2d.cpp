@@ -217,12 +217,13 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
     return;  // trivial reject for objects that are transparent
 
 #if 1
+#if 1
   // translate based on xy rotate/scale based on cx, cy
   m.translate(mx+mcx, my+mcy);
   //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
   //  m.rotateInDegrees(mr, mrx, mry, mrz);
-  m.rotateInDegrees(mr, 0, 0, 1);
-  m.scale(msx, msy);
+  if (mr) m.rotateInDegrees(mr, 0, 0, 1);
+  if (msx != 1.0f || msy != 1.0f) m.scale(msx, msy);
   m.translate(-mcx, -mcy);
 #else
   // translate/rotate/scale based on cx, cy
@@ -232,6 +233,7 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
   m.rotateInDegrees(mr, 0, 0, 1);
   m.scale(msx, msy);
   m.translate(-mcx, -mcy);
+#endif
 #endif
 
 #if 0
@@ -424,6 +426,7 @@ rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, animateTo2);
 rtDefineMethod(pxObject, addListener);
 rtDefineMethod(pxObject, delListener);
+rtDefineProperty(pxObject, emit);
 
 pxScene2d::pxScene2d()
  :start(0),frameCount(0) 
@@ -699,6 +702,7 @@ rtDefineObject(pxScene, pxObject);
 rtDefineProperty(pxScene, url);
 rtDefineProperty(pxScene, w);
 rtDefineProperty(pxScene, h);
+rtDefineProperty(pxScene, emit);
 
 rtDefineObject(pxInnerScene, rtObject);
 rtDefineProperty(pxInnerScene, root);
@@ -713,6 +717,7 @@ rtDefineMethod(pxInnerScene, createScene);
 rtDefineMethod(pxInnerScene, addListener);
 rtDefineMethod(pxInnerScene, delListener);
 rtDefineProperty(pxInnerScene, ctx);
+rtDefineProperty(pxInnerScene, emit);
 
 rtError pxInnerScene::showOutlines(bool& v) const 
 { 

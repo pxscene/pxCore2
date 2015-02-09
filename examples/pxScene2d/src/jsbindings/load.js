@@ -151,9 +151,17 @@ if (argv.length >= 3) {
             childScene.url = "gallery.js";
         else if (code == 57) //'9'
             childScene.url = "fancy.js";
-        else if (code == 49) {  //'1'
+        else if (code == 82 && (flags | 16)) {  //'1'
             console.log("Reloading url: ", originalURL);
             childScene.url = originalURL;
+        }
+        else { 
+            // forward event
+// TODO would be nice if apply worked on rtFunctions so we could forward all arguments more automatically
+//            var args = ["keydown"];
+//            args.splice(0,0,[].slice.call(arguments));
+//            childScene.emit.apply(args);
+            childScene.emit("keydown", code, flags);
         }
     });
     scene.on("resize", updateSize);

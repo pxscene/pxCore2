@@ -99,6 +99,8 @@ public:
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
 
+  rtReadOnlyProperty(emit, emit, rtFunctionRef);
+
   pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef() 
@@ -333,6 +335,7 @@ public:
     to = m.multiply(from);
   }
 
+  rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
 
 public:
   rtEmitRef mEmit;
@@ -435,6 +438,7 @@ public:
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
   rtProperty(ctx, ctx, setCtx, rtValue);
+  rtReadOnlyProperty(emit, emit, rtFunctionRef);
 
   pxInnerScene(rtRefT<pxObject> root)
   {
@@ -493,6 +497,8 @@ public:
   rtError ctx(rtValue& v) const { v = mContext; return RT_OK; }
   rtError setCtx(const rtValue& v) { mContext = v; return RT_OK; }
 
+  rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
+
 private:
   rtRefT<pxObject> mRoot;
   rtEmitRef mEmit;
@@ -508,6 +514,7 @@ public:
   rtProperty(url, url, setURL, rtString);
   rtProperty(w, w, setW, float);
   rtProperty(h, h, setH, float);
+  rtReadOnlyProperty(emit, emit, rtFunctionRef);
 
   pxScene() : pxObject()
   { 
@@ -521,6 +528,8 @@ public:
   rtError setW(float v) { mw = v; mInnerScene->setW(v); return RT_OK; }
   rtError h(float& v) const { v = mInnerScene->h(); return RT_OK; }
   rtError setH(float v) { mh = v; mInnerScene->setH(v); return RT_OK; }
+
+  rtError emit(rtFunctionRef& v) const { return mInnerScene->get<rtFunctionRef>("emit", v); }
 
 private:
   rtRefT<pxInnerScene> mInnerScene;
