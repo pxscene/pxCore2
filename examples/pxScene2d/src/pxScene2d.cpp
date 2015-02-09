@@ -596,14 +596,13 @@ void pxScene2d::onMouseMove(int x, int y)
 {
   mEmit.send("mousemove", x, y);
 
-
+#if 0
   //Looking for an object
   pxMatrix4f m;
   pxPoint2f pt;
   pt.x = x; pt.y = y;
   rtRefT<pxObject> hit;
 
-#if 0
   if (mRoot->hitTestInternal(m, pt, hit))
   {
     rtString id = hit->get<rtString>("id");
