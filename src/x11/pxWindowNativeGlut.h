@@ -127,105 +127,105 @@ protected:
 };
 
 // Key Codes
-#define PX_KEY_NATIVE_ENTER        XK_Return
-#define PX_KEY_NATIVE_BACKSPACE    XK_BackSpace
-#define PX_KEY_NATIVE_TAB          XK_Tab
-#define PX_KEY_NATIVE_CANCEL       XK_Cancel
-#define PX_KEY_NATIVE_CLEAR        XK_Clear
-#define PX_KEY_NATIVE_SHIFT        XK_Shift_L
-#define PX_KEY_NATIVE_CONTROL      XK_Control_L
-#define PX_KEY_NATIVE_ALT          XK_Alt_L
-#define PX_KEY_NATIVE_PAUSE        XK_Pause
-#define PX_KEY_NATIVE_CAPSLOCK     XK_Caps_Lock
-#define PX_KEY_NATIVE_ESCAPE       XK_Escape
-#define PX_KEY_NATIVE_SPACE        XK_space
-#define PX_KEY_NATIVE_PAGEUP       XK_Page_Up
-#define PX_KEY_NATIVE_PAGEDOWN     XK_Page_Down
-#define PX_KEY_NATIVE_END          XK_End
-#define PX_KEY_NATIVE_HOME         XK_Home
-#define PX_KEY_NATIVE_LEFT         XK_Left
-#define PX_KEY_NATIVE_UP           XK_Up
-#define PX_KEY_NATIVE_RIGHT        XK_Right
-#define PX_KEY_NATIVE_DOWN         XK_Down
-#define PX_KEY_NATIVE_COMMA        XK_comma
-#define PX_KEY_NATIVE_PERIOD       XK_period
-#define PX_KEY_NATIVE_SLASH        XK_slash
-#define PX_KEY_NATIVE_ZERO         XK_0
-#define PX_KEY_NATIVE_ONE          XK_1
-#define PX_KEY_NATIVE_TWO          XK_2
-#define PX_KEY_NATIVE_THREE        XK_3
-#define PX_KEY_NATIVE_FOUR         XK_4
-#define PX_KEY_NATIVE_FIVE         XK_5
-#define PX_KEY_NATIVE_SIX          XK_6
-#define PX_KEY_NATIVE_SEVEN        XK_7
-#define PX_KEY_NATIVE_EIGHT        XK_8
-#define PX_KEY_NATIVE_NINE         XK_9
-#define PX_KEY_NATIVE_SEMICOLON    XK_semicolon
-#define PX_KEY_NATIVE_EQUALS       XK_equal
-#define PX_KEY_NATIVE_A            XK_A
-#define PX_KEY_NATIVE_B            XK_B
-#define PX_KEY_NATIVE_C            XK_C
-#define PX_KEY_NATIVE_D            XK_D
-#define PX_KEY_NATIVE_E            XK_E
-#define PX_KEY_NATIVE_F            XK_F
-#define PX_KEY_NATIVE_G            XK_G
-#define PX_KEY_NATIVE_H            XK_H
-#define PX_KEY_NATIVE_I            XK_I
-#define PX_KEY_NATIVE_J            XK_J
-#define PX_KEY_NATIVE_K            XK_K
-#define PX_KEY_NATIVE_L            XK_L
-#define PX_KEY_NATIVE_M            XK_M
-#define PX_KEY_NATIVE_N            XK_N
-#define PX_KEY_NATIVE_O            XK_O
-#define PX_KEY_NATIVE_P            XK_P
-#define PX_KEY_NATIVE_Q            XK_Q
-#define PX_KEY_NATIVE_R            XK_R
-#define PX_KEY_NATIVE_S            XK_S
-#define PX_KEY_NATIVE_T            XK_T
-#define PX_KEY_NATIVE_U            XK_U
-#define PX_KEY_NATIVE_V            XK_V
-#define PX_KEY_NATIVE_W            XK_W
-#define PX_KEY_NATIVE_X            XK_X
-#define PX_KEY_NATIVE_Y            XK_Y
-#define PX_KEY_NATIVE_Z            XK_Z
-#define PX_KEY_NATIVE_OPENBRACKET  XK_bracketleft
-#define PX_KEY_NATIVE_BACKSLASH    XK_backslash
-#define PX_KEY_NATIVE_CLOSEBRACKET XK_bracketright
-#define PX_KEY_NATIVE_NUMPAD0      XK_KP_0
-#define PX_KEY_NATIVE_NUMPAD1      XK_KP_1
-#define PX_KEY_NATIVE_NUMPAD2      XK_KP_2
-#define PX_KEY_NATIVE_NUMPAD3      XK_KP_3
-#define PX_KEY_NATIVE_NUMPAD4      XK_KP_4
-#define PX_KEY_NATIVE_NUMPAD5      XK_KP_5
-#define PX_KEY_NATIVE_NUMPAD6      XK_KP_6
-#define PX_KEY_NATIVE_NUMPAD7      XK_KP_7
-#define PX_KEY_NATIVE_NUMPAD8      XK_KP_8
-#define PX_KEY_NATIVE_NUMPAD9      XK_KP_9
-#define PX_KEY_NATIVE_MULTIPLY     XK_KP_Multiply
-#define PX_KEY_NATIVE_ADD          XK_KP_Add
-#define PX_KEY_NATIVE_SEPARATOR    XK_minus //XK_KP_Separator
-#define PX_KEY_NATIVE_SUBTRACT     XK_KP_Subtract
-#define PX_KEY_NATIVE_DECIMAL      XK_KP_Decimal
-#define PX_KEY_NATIVE_DIVIDE       XK_KP_Divide
-#define PX_KEY_NATIVE_F1           XK_F1
-#define PX_KEY_NATIVE_F2           XK_F2
-#define PX_KEY_NATIVE_F3           XK_F3
-#define PX_KEY_NATIVE_F4           XK_F4
-#define PX_KEY_NATIVE_F5           XK_F5
-#define PX_KEY_NATIVE_F6           XK_F6
-#define PX_KEY_NATIVE_F7           XK_F7
-#define PX_KEY_NATIVE_F8           XK_F8
-#define PX_KEY_NATIVE_F9           XK_F9
-#define PX_KEY_NATIVE_F10          XK_F10
-#define PX_KEY_NATIVE_F11          XK_F11
-#define PX_KEY_NATIVE_F12          XK_F12
-#define PX_KEY_NATIVE_DELETE       XK_Delete
-#define PX_KEY_NATIVE_NUMLOCK      XK_Num_Lock
-#define PX_KEY_NATIVE_SCROLLLOCK   XK_Scroll_Lock
+#define PX_KEY_NATIVE_ENTER        13
+#define PX_KEY_NATIVE_BACKSPACE    8
+#define PX_KEY_NATIVE_TAB          9
+#define PX_KEY_NATIVE_CANCEL       10001 //TODO
+#define PX_KEY_NATIVE_CLEAR        10002 //TODO
+#define PX_KEY_NATIVE_SHIFT        10030 //TODO - special
+#define PX_KEY_NATIVE_CONTROL      10031 //TODO - special
+#define PX_KEY_NATIVE_ALT          10032 //TODO - special
+#define PX_KEY_NATIVE_PAUSE        19
+#define PX_KEY_NATIVE_CAPSLOCK     20
+#define PX_KEY_NATIVE_ESCAPE       27
+#define PX_KEY_NATIVE_SPACE        32
+#define PX_KEY_NATIVE_PAGEUP       33
+#define PX_KEY_NATIVE_PAGEDOWN     34
+#define PX_KEY_NATIVE_END          35
+#define PX_KEY_NATIVE_HOME         36
+#define PX_KEY_NATIVE_LEFT         10020 //TODO - special
+#define PX_KEY_NATIVE_UP           10021 //TODO - special
+#define PX_KEY_NATIVE_RIGHT        10022 //TODO - special
+#define PX_KEY_NATIVE_DOWN         10023 //TODO - special
+#define PX_KEY_NATIVE_COMMA        44
+#define PX_KEY_NATIVE_PERIOD       46
+#define PX_KEY_NATIVE_SLASH        47
+#define PX_KEY_NATIVE_ZERO         48
+#define PX_KEY_NATIVE_ONE          49
+#define PX_KEY_NATIVE_TWO          50
+#define PX_KEY_NATIVE_THREE        51
+#define PX_KEY_NATIVE_FOUR         52
+#define PX_KEY_NATIVE_FIVE         53
+#define PX_KEY_NATIVE_SIX          54
+#define PX_KEY_NATIVE_SEVEN        55
+#define PX_KEY_NATIVE_EIGHT        56
+#define PX_KEY_NATIVE_NINE         57
+#define PX_KEY_NATIVE_SEMICOLON    59
+#define PX_KEY_NATIVE_EQUALS       61
+#define PX_KEY_NATIVE_A            65
+#define PX_KEY_NATIVE_B            66
+#define PX_KEY_NATIVE_C            67
+#define PX_KEY_NATIVE_D            68
+#define PX_KEY_NATIVE_E            69
+#define PX_KEY_NATIVE_F            70
+#define PX_KEY_NATIVE_G            71
+#define PX_KEY_NATIVE_H            72
+#define PX_KEY_NATIVE_I            73
+#define PX_KEY_NATIVE_J            74
+#define PX_KEY_NATIVE_K            75
+#define PX_KEY_NATIVE_L            76
+#define PX_KEY_NATIVE_M            77
+#define PX_KEY_NATIVE_N            78
+#define PX_KEY_NATIVE_O            79
+#define PX_KEY_NATIVE_P            80
+#define PX_KEY_NATIVE_Q            81
+#define PX_KEY_NATIVE_R            82
+#define PX_KEY_NATIVE_S            83
+#define PX_KEY_NATIVE_T            84
+#define PX_KEY_NATIVE_U            85
+#define PX_KEY_NATIVE_V            86
+#define PX_KEY_NATIVE_W            87
+#define PX_KEY_NATIVE_X            88
+#define PX_KEY_NATIVE_Y            89
+#define PX_KEY_NATIVE_Z            90
+#define PX_KEY_NATIVE_OPENBRACKET  91
+#define PX_KEY_NATIVE_BACKSLASH    92
+#define PX_KEY_NATIVE_CLOSEBRACKET 93
+#define PX_KEY_NATIVE_NUMPAD0      10003 //TODO
+#define PX_KEY_NATIVE_NUMPAD1      10004 //TODO
+#define PX_KEY_NATIVE_NUMPAD2      10005 //TODO
+#define PX_KEY_NATIVE_NUMPAD3      10006 //TODO
+#define PX_KEY_NATIVE_NUMPAD4      10007 //TODO
+#define PX_KEY_NATIVE_NUMPAD5      10008 //TODO
+#define PX_KEY_NATIVE_NUMPAD6      10009 //TODO
+#define PX_KEY_NATIVE_NUMPAD7      10010 //TODO
+#define PX_KEY_NATIVE_NUMPAD8      10011 //TODO
+#define PX_KEY_NATIVE_NUMPAD9      10012 //TODO
+#define PX_KEY_NATIVE_MULTIPLY     10013 //TODO
+#define PX_KEY_NATIVE_ADD          10014 //TODO
+#define PX_KEY_NATIVE_SEPARATOR    45 //XK_KP_Separator
+#define PX_KEY_NATIVE_SUBTRACT     10015 //TODO
+#define PX_KEY_NATIVE_DECIMAL      10016 //TODO
+#define PX_KEY_NATIVE_DIVIDE       10017 //TODO
+#define PX_KEY_NATIVE_F1           0x0001
+#define PX_KEY_NATIVE_F2           0x0002
+#define PX_KEY_NATIVE_F3           0x0003
+#define PX_KEY_NATIVE_F4           0x0004
+#define PX_KEY_NATIVE_F5           0x0005
+#define PX_KEY_NATIVE_F6           0x0006
+#define PX_KEY_NATIVE_F7           0x0007
+#define PX_KEY_NATIVE_F8           10040 //TODO - special
+#define PX_KEY_NATIVE_F9           10041 //TODO - special
+#define PX_KEY_NATIVE_F10          0x000A
+#define PX_KEY_NATIVE_F11          0x000B
+#define PX_KEY_NATIVE_F12          0x000C
+#define PX_KEY_NATIVE_DELETE       10050 //TODO - special
+#define PX_KEY_NATIVE_NUMLOCK      10051 //TODO - special
+#define PX_KEY_NATIVE_SCROLLLOCK   10018 //TODO
 #define PX_KEY_NATIVE_PRINTSCREEN  0xfd1d
-#define PX_KEY_NATIVE_INSERT       XK_Insert
-#define PX_KEY_NATIVE_HELP         XK_Help
-#define PX_KEY_NATIVE_BACKQUOTE    XK_quoteleft
-#define PX_KEY_NATIVE_QUOTE        XK_quoteright
+#define PX_KEY_NATIVE_INSERT       10052 //TODO - special
+#define PX_KEY_NATIVE_HELP         10019 //TODO
+#define PX_KEY_NATIVE_BACKQUOTE    96
+#define PX_KEY_NATIVE_QUOTE        39
 
 #endif // PX_WINDOW_NATIVE_GLUT_H

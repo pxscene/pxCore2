@@ -121,8 +121,8 @@ void onKeyboard(unsigned char key, int x, int y)
   {
     pxWindowNative* w = (*i);
     // JR Did I mention Glut keyboard support is not very good
-    w->onKeyDown(keycodeFromNative(key), 0);
-    w->onKeyUp(keycodeFromNative(key), 0);
+    w->onKeyDown(keycodeFromNative((int)key), 0);
+    w->onKeyUp(keycodeFromNative((int)key), 0);
   }
 }
 
