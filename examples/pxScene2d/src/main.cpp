@@ -29,6 +29,7 @@
 #include "pxScene2d.h"
 #include "pxImage.h"
 #include "pxText.h"
+#include "pxWindowUtil.h"
 
 #include "testScene.h"
 
@@ -99,13 +100,83 @@ void onMousePassiveMotion(int x, int y) {
 void onKeyboard(unsigned char key, int /*x*/, int /*y*/)
 {
   // Ugh GLUT key support not so hot.. 
-  scene->onKeyDown(key, 0);
-  scene->onKeyUp(key, 0);
+  scene->onKeyDown(keycodeFromNative((int)key), 0);
+  scene->onKeyUp(keycodeFromNative((int)key), 0);
 }
 
 void onSpecial(int key, int /*x*/, int /*y*/)
 {
-  printf("onSpecial keycode: %d\n", key);
+  int keycode = key;
+  switch (key)
+  {
+    case GLUT_KEY_F1:
+      keycode = PX_KEY_NATIVE_F1;
+      break;
+    case GLUT_KEY_F2:
+      keycode = PX_KEY_NATIVE_F2;
+      break;
+    case GLUT_KEY_F3:
+      keycode = PX_KEY_NATIVE_F3;
+      break;
+    case GLUT_KEY_F4:
+      keycode = PX_KEY_NATIVE_F4;
+      break;
+    case GLUT_KEY_F5:
+      keycode = PX_KEY_NATIVE_F5;
+      break;
+    case GLUT_KEY_F6:
+      keycode = PX_KEY_NATIVE_F6;
+      break;
+    case GLUT_KEY_F7:
+      keycode = PX_KEY_NATIVE_F7;
+      break;
+    case GLUT_KEY_F8:
+      keycode = PX_KEY_NATIVE_F8;
+      break;
+    case GLUT_KEY_F9:
+      keycode = PX_KEY_NATIVE_F9;
+      break;
+    case GLUT_KEY_F10:
+      keycode = PX_KEY_NATIVE_F10;
+      break;
+    case GLUT_KEY_F11:
+      keycode = PX_KEY_NATIVE_F11;
+      break;
+    case GLUT_KEY_F12:
+      keycode = PX_KEY_NATIVE_F12;
+      break;
+    case GLUT_KEY_LEFT:
+      keycode = PX_KEY_NATIVE_LEFT;
+      break;
+    case GLUT_KEY_UP:
+      keycode = PX_KEY_NATIVE_UP;
+      break;
+    case GLUT_KEY_RIGHT:
+      keycode = PX_KEY_NATIVE_RIGHT;
+      break;
+    case GLUT_KEY_DOWN:
+      keycode = PX_KEY_NATIVE_DOWN;
+      break;
+    case GLUT_KEY_PAGE_UP:
+      keycode = PX_KEY_NATIVE_PAGEUP;
+      break;
+    case GLUT_KEY_PAGE_DOWN:
+      keycode = PX_KEY_NATIVE_PAGEDOWN;
+      break;
+    case GLUT_KEY_HOME:
+      keycode = PX_KEY_NATIVE_HOME;
+      break;
+    case GLUT_KEY_END:
+      keycode = PX_KEY_NATIVE_END;
+      break;
+    case GLUT_KEY_INSERT:
+      keycode = PX_KEY_NATIVE_INSERT;
+      break;
+    default:
+      printf("unknown special key (in main): %d\n",key);
+  }
+  scene->onKeyDown(keycodeFromNative((int)keycode), 0);
+  scene->onKeyUp(keycodeFromNative((int)keycode), 0);
 }
 
 void createGlutWindow() {
