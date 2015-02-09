@@ -7,14 +7,13 @@
 //#include "rt.h"
 #include "rtRefPtr.h"
 
-
 // A pxIViewListener must unregister itself
 // upon being destroyed
 class pxIViewListener
 {
 public:    
     // In view coordinates on pixel boundaries
-    virtual void __stdcall invalidateRect(pxRect* r) = 0;
+    virtual void RT_STDCALL invalidateRect(pxRect* r) = 0;
 #if 0
     //virtual void __stdcall setCapture(bool capture) = 0;
     //  Like to eliminate these
@@ -30,29 +29,29 @@ public:
 class pxIView
 {
 public:
-    virtual unsigned long __stdcall AddRef() = 0;
-    virtual unsigned long __stdcall Release() = 0;
+  virtual unsigned long RT_STDCALL AddRef() = 0;
+  virtual unsigned long RT_STDCALL Release() = 0;
 
-    // should make them __stdcall if I want it to be a binary
-    // contract
+  // should make them RT_STDCALL if I want it to be a binary
+  // contract
 
-    virtual void __stdcall onSize(int x, int y) = 0;
+  virtual void RT_STDCALL onSize(int x, int y) = 0;
 
-    virtual void __stdcall onMouseDown(int x, int y, unsigned long flags) = 0;
-    virtual void __stdcall onMouseUp(int x, int y, unsigned long flags) = 0;
-	virtual void __stdcall onMouseMove(int x, int y) = 0;
-	virtual void __stdcall onMouseLeave() = 0;
+  virtual void RT_STDCALL onMouseDown(int x, int y, unsigned long flags) = 0;
+  virtual void RT_STDCALL onMouseUp(int x, int y, unsigned long flags) = 0;
+  virtual void RT_STDCALL onMouseMove(int x, int y) = 0;
+  virtual void RT_STDCALL onMouseLeave() = 0;
 
-    /* KEYS? */
+  /* KEYS? */
 
-    virtual void __stdcall onDraw(pxBuffer& b, pxRect* r) = 0;
-   // virtual void __stdcall handleDraw(HDC dc, RECT* r) = 0;
+  virtual void RT_STDCALL onDraw(pxBuffer& b, pxRect* r) = 0;
+  // virtual void RT_STDCALL handleDraw(HDC dc, RECT* r) = 0;
 
-    virtual void __stdcall addListener(pxIViewListener* listener) = 0;
-    virtual void __stdcall removeListener(pxIViewListener* listener) = 0;
+  virtual void RT_STDCALL addListener(pxIViewListener* listener) = 0;
+  virtual void RT_STDCALL removeListener(pxIViewListener* listener) = 0;
 #if 0
-    virtual rtError setBaseDirectory(const wchar_t* d) = 0;
-    virtual rtError __stdcall setSrc(const wchar_t* s) = 0;
+  virtual rtError setBaseDirectory(const wchar_t* d) = 0;
+  virtual rtError RT_STDCALL setSrc(const wchar_t* s) = 0;
 #endif
 };
 
