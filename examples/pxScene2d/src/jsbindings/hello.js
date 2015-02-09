@@ -21,12 +21,12 @@ function testScene()
     }
     else if (i < 2) {
       var url = process.cwd() + "/../../images/curve_rectangle.png";
-        p = scene.createImage9({url:url});
-        p.cx = p.w/2;
-        p.cy = p.h/2;
-        ny = 100;
-        p.animateTo({h:600}, 0.5, 0, 0);
-        p.animateTo({w:600}, 0.5, 0, 1);
+      p = scene.createImage9({url:url});
+      p.cx = p.w/2;
+      p.cy = p.h/2;
+      ny = 100;
+      p.animateTo({h:600}, 0.5, 0, 0);
+      p.animateTo({w:600}, 0.5, 0, 1);
     }
     else if (i < n-3) {
         var url = process.cwd() + "/../../images/banana.png";

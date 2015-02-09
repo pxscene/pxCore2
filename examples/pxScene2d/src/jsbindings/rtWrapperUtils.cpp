@@ -122,8 +122,6 @@ rtValue js2rt(const Handle<Value>& val, rtWrapperError* error)
   if (val->IsInt32())     { return rtValue(val->Int32Value()); }
   if (val->IsUint32())    { return rtValue(val->Uint32Value()); }
 
-  fprintf(stderr, "unsupported javascript -> rtValue type conversion");
-  assert(false);
-
+  rtLogFatal("unsupported javascript -> rtValue type conversion");
   return rtValue(0);
 }

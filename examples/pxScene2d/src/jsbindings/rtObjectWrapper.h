@@ -8,8 +8,12 @@ using namespace v8;
 class rtObjectWrapper : public rtWrapper<rtObjectRef, rtObjectWrapper>
 {
 public:
-  rtObjectWrapper(const rtObjectRef& obj);
+  rtObjectWrapper(const rtObjectRef& ref);
   virtual ~rtObjectWrapper(); 
+
+  void dispose()
+  {
+  }
 
 public:
   static void exportPrototype(Handle<Object> exports);
@@ -47,6 +51,8 @@ public:
 
   virtual unsigned long AddRef();
   virtual unsigned long Release();
+  virtual unsigned long getRefCount() const
+    { return mRefCount; }
 
   virtual rtError Get(const char* name, rtValue* value);
   virtual rtError Get(uint32_t i, rtValue* value);
@@ -99,31 +105,6 @@ inline int toInt32(const v8::Arguments& args, int which, int defaultValue = 0)
     i = args[which]->IntegerValue();
   return i;
 }
-
-template<typename TRef, typename TWrapper>
-class rtWrapper : public node::ObjectWrap
-{
-protected:
-  rtWrapper(const TRef& ref) : mWrappedObject(ref) { }
-  virtual ~rtWrapper(){ }
-
-  static TRef unwrap(const Local<Object>& obj)
-  {
-    return node::ObjectWrap::Unwrap<TWrapper>(args.This())->mWrappedObject;
-  }
-
-  static TRef unwrap(const v8::Arguments& args)
-  {
-    return node::ObjectWrap::Unwrap<TWrapper>(args.This())->mWrappedObject;
-  }
-
-  static TRef unwrap(const v8::AccessorInfo& info)
-  {
-    return node::ObjectWrap::Unwrap<TWrapper>(info.This())->mWrappedObject;
-  }
-
-  TRef mWrappedObject;
-};
 
 rtValue js2rt(const v8::Handle<v8::Value>& val);
 

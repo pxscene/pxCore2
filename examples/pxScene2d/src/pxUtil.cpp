@@ -30,7 +30,7 @@ rtError pxLoadImage(const char* imageData, size_t imageDataSize,
     return pxLoadJPGImage(imageData, imageDataSize, o);
   else
   {
-    rtLogWarn("Unsupported image file type\n");
+    rtLogWarn("Unsupported image file type");
     return RT_ERROR;
   }
 #endif
@@ -53,7 +53,7 @@ rtError pxLoadImage(const char* filename, pxOffscreen& b)
   if (e == RT_OK)
     return pxLoadImage((const char*)d.data(), d.length(), b);
   else
-    rtLogError("Could not load image file %s.\n", filename);
+    rtLogError("Could not load image file %s.", filename);
   return e;
 }
 
@@ -76,7 +76,7 @@ rtError pxLoadPNGImage(const char* filename, pxOffscreen& o)
     return pxLoadPNGImage((const char*)d.data(), d.length(), o);
   }
   else
-    rtLogError("Failed to load image file, %s.\n", filename);
+    rtLogError("Failed to load image file, %s.", filename);
 
   return RT_OK;
 }
@@ -492,7 +492,7 @@ rtError pxLoadJPGImage(const char* filename, pxOffscreen& o)
     return pxLoadJPGImage((const char*)d.data(), d.length(), o);
   }
   else
-    rtLogError("Could not load JPG file: %s\n", filename);
+    rtLogError("Could not load JPG file: %s", filename);
 
   return e;
 }
@@ -501,7 +501,7 @@ rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
 {
   if (!buf)
   {
-    rtLogError("NULL buffer passed into pxLoadJPGImage\n");
+    rtLogError("NULL buffer passed into pxLoadJPGImage");
     return RT_FAIL;
   }
 

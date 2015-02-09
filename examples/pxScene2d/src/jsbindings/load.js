@@ -8,21 +8,21 @@ function Api(scene) {
 
 Api.prototype.destroyNodeFromScene = function(scene, node) {
   if (node) {
-    if (node.children) {
-      var n = node.children.length;
+    var children = node.children;
+    if (children) {
+      var n = children.length;
       for (var i = 0; i < n; ++i) {
         this.destroyNodeFromScene(scene, node.getChild(0));
       }
     }
-    if (node.remove) {
-      node.remove();
-    }
+    node.remove();
   }
 }
 
 Api.prototype.destroyScene = function(scene) {
   if (scene) {
     this.destroyNodeFromScene(scene, scene.root);
+    scene.url = "";
     scene.parent = null;
   }
 }
@@ -55,11 +55,6 @@ Api.prototype.loadScriptContents = function(uri, closure) {
 }
 
 Api.prototype.loadScriptForScene = function(container, scene, uri) {
-
-  if (uri == null) {
-    this.destroyScene(scene);
-  }
-
   var sceneForChild = scene;
   var apiForChild = this;
 
@@ -81,33 +76,32 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
         // TODO: scene.onError(err); ???
       }
       else {
-
-        var app;
         try {
-          app = vm.runInNewContext(code, sandbox);
-          // TODO do the old scenes context get released when we reload a scenes url??
-            
-            scene.ctx = app;
+          // sanbox gets turned into a context via vm.runInNewContext(...);
+          vm.runInNewContext(code, sandbox);
 
-            // TODO part of an experiment to eliminate intermediate rendering of the scene
-            // while it is being set up
-            container.a = 0;
-            container.painting = true;
-            container.animateTo({a:1}, 0.2, 0, 0);
+          // TODO part of an experiment to eliminate intermediate rendering of the scene
+          // while it is being set up
+          container.a = 0;
+          container.painting = true;
+          container.animateTo({a:1}, 0.2, 0, 0);
+          // scene.ctx = sandbox;
         }
         catch (err) {
-          // console.log('dumping context');
-          // sanbox was turned into a context via vm.runInNewContext(...);
-          // console.log(util.inspect(sandbox.scene));
-
-          apiForChild.destroyScene(sandbox.scene);
-
           console.log("failed to run app:" + uri);
           console.log(err);
 
           // TODO: scene.onError(err); ???
           // TODO: at this point we need to destroy the child scene
           scene.url = "";  // This destroys the child scene and releases scene.ctx
+          apiForChild.destroyScene(sandbox.scene);
+
+          sandbox.console = null;
+          sandbox.scene = null;
+          sandbox.runtime = null;
+          sandbox.process = null;
+
+          // console.log(util.inspect(sandbox));
         }
       }
     });

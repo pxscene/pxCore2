@@ -92,7 +92,10 @@ template<typename TRef, typename TWrapper>
 class rtWrapper : public node::ObjectWrap
 {
 protected:
-  rtWrapper(const TRef& ref) : mWrappedObject(ref) { }
+  rtWrapper(const TRef& ref) : mWrappedObject(ref)
+  {
+  }
+
   virtual ~rtWrapper(){ }
 
   static TRef unwrap(const v8::Arguments& args)

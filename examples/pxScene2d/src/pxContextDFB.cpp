@@ -438,7 +438,7 @@ pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
 
 //  if ((contextSurface->framebuffer == 0) || (contextSurface->texture == 0))
 //  {
-//    rtLog("render surface is not initialized\n");
+//    rtLog("render surface is not initialized");
 //    return PX_NOTINITIALIZED;
 //  }
 
@@ -448,7 +448,7 @@ pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
 
 //  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 //  {
-//    rtLog("error setting the render surface\n");
+//    rtLog("error setting the render surface");
 //    return PX_FAIL;
 //  }
 

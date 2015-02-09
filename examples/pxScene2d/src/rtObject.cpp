@@ -159,7 +159,7 @@ rtError rtFunctionRef::Send(int numArgs, const rtValue* args, rtValue* result) {
 }
 
 rtError rtObjectFunction::Send(int numArgs, const rtValue* args, rtValue* result){  
-  rtLogDebug("rtObjectFunction::Send(%d,...)\n", numArgs);
+  rtLogDebug("rtObjectFunction::Send(%d,...)", numArgs);
   return (*mObject.*mThunk)(numArgs, args, *result);
 }
 

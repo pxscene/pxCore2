@@ -76,11 +76,11 @@ Handle<Value> rtObjectWrapper::getProperty(const T& prop, const AccessorInfo& in
 {
   rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
-    return Handle<Value>(Undefined());
+    return Undefined();
 
   rtObjectRef ref = wrapper->mWrappedObject;
   if (!ref)
-    return Handle<Value>(Undefined());
+    return Undefined();
 
   rtValue value;
   rtWrapperSceneUpdateEnter();
@@ -90,13 +90,12 @@ Handle<Value> rtObjectWrapper::getProperty(const T& prop, const AccessorInfo& in
   if (err != RT_OK)
   {
     if (err == RT_PROP_NOT_FOUND)
-      return Handle<Value>(Undefined());
+      return Undefined();
     else
       return ThrowException(Exception::Error(String::New(rtStrError(err))));
   }
 
   return rt2js(value);
-
 }
 
 template<typename T>
