@@ -2,6 +2,7 @@
 #include "pxWindowUtil.h"
 #include "pxCore.h"
 #include "pxKeycodes.h"
+#include <stdio.h>
 
 int keycodeFromNative(int nativeKeycode)
 {
