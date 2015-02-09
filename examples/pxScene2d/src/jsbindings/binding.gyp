@@ -18,6 +18,7 @@
         "../rtFile.cpp",
         "../rtThreadPool.cpp",
         "../rtThreadTask.cpp",
+        "../rtLibrary.cpp",
         "../linux/rtMutexNative.cpp",
         "../linux/rtThreadPoolNative.cpp",
         "../utf8.c",
@@ -55,6 +56,7 @@
         "-lpng16",
         "-ljpeg",
         "-lcurl",
+        "-ldl"
 #        "-lGL",
 #        "-lrt",
       ],
