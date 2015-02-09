@@ -1,3 +1,4 @@
+#include <stdio.h>
 
 #include "pxWindowUtil.h"
 #include "pxCore.h"
@@ -317,7 +318,7 @@ int keycodeFromNative(int nativeKeycode)
       break;
     default:
       //TODO move rtLog support to pxCore so we can use here
-      printf("pxWindowUtils: Unhandled keycode %d\n", commonKeycode);
+      printf("pxWindowUtils: Unhandled keycode %d\n", nativeKeycode);
       break;
   }
   return commonKeycode;

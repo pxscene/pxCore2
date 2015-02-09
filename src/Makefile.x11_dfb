@@ -29,5 +29,5 @@ pxTimerNative.o: x11/pxTimerNative.cpp
 	g++ -o pxTimerNative.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxTimerNative.cpp
 
 pxWindowUtil.o: pxWindowUtil.cpp
-	g++ -o pxWindowUtil.o -Wall -I/usr/X11R6/include $(CFLAGS) -c pxWindowUtil.cpp
+	g++ -o pxWindowUtil.o -Wall $(INCDIR) $(CFLAGS) -c pxWindowUtil.cpp
 

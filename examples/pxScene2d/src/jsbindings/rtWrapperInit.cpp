@@ -120,12 +120,12 @@ protected:
 
   virtual void onKeyDown(int keycode, unsigned long flags)
   {
-    mScene->onKeyDown(keycodeFromNative(keycode), flags);
+    mScene->onKeyDown(keycode, flags);
   }
 
   virtual void onKeyUp(int keycode, unsigned long flags)
   {
-    mScene->onKeyUp(keycodeFromNative(keycode), flags);
+    mScene->onKeyUp(keycode, flags);
   }
 
   virtual void onDraw(pxSurfaceNative s)

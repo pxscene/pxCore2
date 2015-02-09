@@ -218,7 +218,10 @@ public:
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
-      rtLogWarn("error setting the render surface");
+      if ((mWidth != 0) && (mHeight != 0))
+      {
+        rtLogWarn("error setting the render surface");
+      }
       return PX_FAIL;
     }
     glActiveTexture(GL_TEXTURE3);
