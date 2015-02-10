@@ -126,6 +126,14 @@ public:
     }
   }
 
+  virtual void addEventHandler(pxKeyEventHandler handler, void* argp)
+  {
+    RegisteredHandler reg;
+    reg.handler = handler;
+    reg.argp = argp;
+    mHandlers.push_back(reg);
+  }
+
   virtual bool next(uint32_t timeoutMillis)
   {
     mPollFds.fd = mFd;

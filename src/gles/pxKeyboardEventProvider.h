@@ -37,7 +37,7 @@ struct pxKeyboardEventProvider
   // call while (true) on this in a dedicated thread. The callbacks
   // get dispatched in the context of the calling thread.
   virtual bool next(uint32_t timeoutMillis) = 0;
-  virtual void addEventHandler(pxKeyEventHandler handler, void* argp);
+  virtual void addEventHandler(pxKeyEventHandler handler, void* argp) = 0;
 
   // use this to create your platform default handler. On linux it 
   // used /dev/input/...
