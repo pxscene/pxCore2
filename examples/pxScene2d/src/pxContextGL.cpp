@@ -59,6 +59,7 @@ static const char *fShaderText =
   "uniform int u_enablemask;\n"
   "varying vec2 v_uv;\n"
   "void main() {\n"
+#if 1
   "if (u_alphatexture < 1.0) {"
   // solid color
   " gl_FragColor = a_color;"
@@ -76,6 +77,9 @@ static const char *fShaderText =
   "gl_FragColor = vec4(a_color.r, a_color.g, a_color.b, texture2D(s_texture, v_uv).a*a_color.a);"
   "}\n"
   "gl_FragColor.a *= u_alpha;"
+#else
+  "gl_FragColor = vec4(1,1,1,1);"
+#endif
   "}\n";
 
 static const char *vShaderText =
@@ -303,10 +307,11 @@ public:
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId1);
+#if 1
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
            mOffscreen.width(), mOffscreen.height(), 0, GL_BGRA_EXT,
            GL_UNSIGNED_BYTE, mOffscreen.base());
-
+#endif
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(u_texture, 0);
@@ -800,8 +805,8 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
   };
 
   {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_NONE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_NONE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glUniform1f(u_alphatexture, 1.0);
     glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
     glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);

@@ -6,6 +6,8 @@ function randomInt(from, to) {
 }
 
 var bg = scene.createRectangle({fillColor:0xccccccff, parent:root});
+var back = scene.createImage({parent:bg});
+var front = scene.createImage({parent:bg});
 
 function updateSize(w, h) {
     bg.w = w;
@@ -38,54 +40,34 @@ scene.on("keydown", function(keycode, flags) {
     });
 });
 
-scene.on("mousemove", function(x, y) {
 
+function balloon(eventName, imageURL, textColor, offset, parent) {
+    return function(x, y) {
 
-    var textbg = scene.createImage9({url:process.cwd()+"/../../images/textballoon_red.png",
-                                    parent:root,r:randomInt(-10,10)});
-    textbg.x = x-textbg.w/2;
-    textbg.y = y-textbg.h
-    textbg.cx = textbg.w/2;
-    textbg.cy = textbg.h/2;
-    var text = scene.createText({text:"mousemove", parent:textbg, textColor:0x000000ff, sx:0.3, sy:0.3});
-    text.x = (textbg.w-text.w)/2;
-    text.y = (textbg.h-text.h-10)/2;
-    text.cx = text.w/2;
-    text.cy = text.h/2;
-    textbg.animateTo({y: textbg.y-10}, 0.3, 0, 0, function(t) {
-        t.animateTo({a:0}, 0.3, 4, 0, function(t) {
-            t.remove();
+        var textbg = scene.createImage9({url:imageURL,parent:parent,r:randomInt(-10,10)});
+        textbg.x = x-textbg.w/2;
+        textbg.y = y-textbg.h
+        textbg.cx = textbg.w/2;
+        textbg.cy = textbg.h/2;
+        var text = scene.createText({text:eventName, parent:textbg, textColor:textColor, sx:0.3, sy:0.3});
+        text.x = (textbg.w-text.w)/2;
+        text.y = (textbg.h-text.h-10)/2;
+        text.cx = text.w/2;
+        text.cy = text.h/2;
+        textbg.animateTo({y: textbg.y-10-offset}, 0.3, 0, 0, function(t) {
+            t.animateTo({a:0}, 0.3, 4, 0, function(t) {
+                t.remove();
+            });
         });
-    });
-});
+    }
+}
 
-scene.on("mousedown", function(x, y) {
-    var text = scene.createText({r:randomInt(-10,10),
-                                 text:"mousedown", parent:root});
-    text.x = (x-text.w/2);
-    text.y = y-text.h
-    text.cx = text.w/2;
-    text.cy = text.h/2;
-    text.animateTo({y: text.y-10}, 0.3, 0, 0, function(t) {
-        t.animateTo({a:0}, 0.3, 4, 0, function(t) {
-            t.remove();
-        });
-    });
-});
-
-scene.on("mouseup", function(x, y) {
-    var text = scene.createText({r:randomInt(-10,10),
-                                 text:"mouseup", parent:root});
-    text.x = (x-text.w/2);
-    text.y = y-text.h
-    text.cx = text.w/2;
-    text.cy = text.h/2;
-    text.animateTo({y: text.y-10}, 0.3, 0, 0, function(t) {
-        t.animateTo({a:0}, 0.3, 4, 0, function(t) {
-            t.remove();
-        });
-    });
-});
+scene.on("mousemove", balloon("mousemove", process.cwd()+"/../../images/textballoon_white.png", 0x000000ff,0,
+                              back));
+scene.on("mousedown", balloon("mousedown", process.cwd()+"/../../images/textballoon_blue.png", 0xffffffff,0,
+                             front));
+scene.on("mouseup",   balloon("mouseup",   process.cwd()+"/../../images/textballoon_red.png", 0xffffffff,25,
+                             front));
 
 function blah(eventname) {
     
