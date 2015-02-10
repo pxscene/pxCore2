@@ -292,6 +292,7 @@ void pxWindowNative::runEventLoop()
 		    flags |= (ke->state & ControlMask)?PX_MOD_CONTROL:0;
 		    flags |= (ke->state & Mod1Mask)?PX_MOD_ALT:0;
         w->onKeyDown(keycodeFromNative(keySym), flags);
+        w->onChar((char)keySym);
 		}
 		break;
 
