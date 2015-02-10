@@ -188,7 +188,7 @@ public:
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, mTextureId);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
-           width, height, 0, GL_BGRA_EXT,
+           width, height, 0, GL_RGBA,
            GL_UNSIGNED_BYTE, NULL);
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -269,6 +269,13 @@ private:
   GLuint mTextureId;
 };
 
+int getTextureUnit()
+{
+  static int t = 4;
+
+  return t++;
+}
+
 class pxTextureOffscreen : public pxTexture
 {
 public:
@@ -290,6 +297,30 @@ public:
     mOffscreen.init(o.width(), o.height());
     o.blit(mOffscreen);
     mInitialized = true;
+#if 0
+    mTextureUnit = getTextureUnit();
+    printf("===\n");
+    printf("max texture units %d\n", GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+    int texture_units;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_units);
+    printf("num texture units%d\n", texture_units);
+    printf("GL_TEXTURE0: %d\n", GL_TEXTURE0);
+    printf("texture unit%d\n", mTextureUnit);
+    glActiveTexture(GL_TEXTURE0+mTextureUnit);
+    glGenTextures(1, &mTextureName);
+    printf("texture name%d\n", mTextureName);
+    glBindTexture(GL_TEXTURE_2D, mTextureName);
+#if 1
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+#endif
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+           mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
+           GL_UNSIGNED_BYTE, mOffscreen.base());
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+#endif
   }
   
   virtual pxError deleteTexture()
@@ -305,17 +336,18 @@ public:
       return PX_NOTINITIALIZED;
     }
     
+#if 1
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId1);
-#if 1
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
-           mOffscreen.width(), mOffscreen.height(), 0, GL_BGRA_EXT,
-           GL_UNSIGNED_BYTE, mOffscreen.base());
-#endif
+                 mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, mOffscreen.base());
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-    glActiveTexture(GL_TEXTURE0);
     glUniform1i(u_texture, 0);
-    
+#else
+    glActiveTexture(mTextureUnit); // should we try to get rid of texture state changes during drawing
+    glUniform1i(u_texture, mTextureUnit);
+#endif
     return PX_OK;
   }
   
@@ -336,6 +368,8 @@ public:
 private:
   pxOffscreen mOffscreen;
   bool mInitialized;
+  GLuint mTextureName;
+  int mTextureUnit;
 };
 
 class pxTextureMask : public pxTexture
@@ -386,10 +420,8 @@ public:
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, textureId1);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
-           mOffscreen.width(), mOffscreen.height(), 0, GL_BGRA_EXT,
-           GL_UNSIGNED_BYTE, mOffscreen.base());
-    
-
+                 mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, mOffscreen.base());
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     glUniform1i(u_mask, 2);
     glUniform1i(u_enablemask, 1);
@@ -541,7 +573,7 @@ static void drawImage2(float x, float y, float w, float h, pxOffscreen& offscree
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, textureId1);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
-	       offscreen.width(), offscreen.height(), 0, GL_BGRA_EXT,
+	       offscreen.width(), offscreen.height(), 0, GL_RGBA,
 	       GL_UNSIGNED_BYTE, offscreen.base());
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
@@ -615,7 +647,9 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   {
     return;
   }
+#if 1
   texture->bindTexture();
+#endif
   
   if (mask.getPtr() != NULL && mask->getType() == PX_TEXTURE_ALPHA)
   {
@@ -700,7 +734,7 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
 {
   glActiveTexture(GL_TEXTURE0);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
-	       offscreen.width(), offscreen.height(), 0, GL_BGRA_EXT,
+	       offscreen.width(), offscreen.height(), 0, GL_RGBA,
 	       GL_UNSIGNED_BYTE, offscreen.base());
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);

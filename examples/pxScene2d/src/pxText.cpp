@@ -50,9 +50,20 @@ void initFT()
   FT_Set_Pixel_Sizes(face, 0, defaultFontSize);
 }
 
+
+uint32_t gSize = 0;
+void ftSetSize(uint32_t s)
+{
+  if (gSize != s)
+  {
+    FT_Set_Pixel_Sizes(face, 0, s);
+    gSize = s;
+  }
+}
+
 void measureText(const char* text, uint32_t size,  float sx, float sy, float& w, float& h) {
 
-  FT_Set_Pixel_Sizes(face, 0, size);
+  ftSetSize(size);
 
   w = 0; h = 0;
   if (!text) return;
@@ -95,7 +106,7 @@ void renderText(const char *text, uint32_t size, float x, float y, float sx, flo
   int i = 0;
   u_int32_t codePoint;
 
-  FT_Set_Pixel_Sizes(face, 0, size);
+  ftSetSize(size);
   FT_Size_Metrics* metrics = &face->size->metrics;
 
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) {

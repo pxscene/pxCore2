@@ -10,7 +10,7 @@ var bgShade = scene.createImage({id:"bg", url:url,xStretch:1,yStretch:1,parent:r
 var txt1 = scene.createText({x:10,text:"",parent:root});
 
 url = process.cwd() + "/../../images/ball.png"
-var ball = scene.createImage({id:"ball",url:url,x:450, y:350,parent:root});
+var ball = scene.createImage({id:"ball",url:url,x:450, y:150,parent:root});
 ball.cx = ball.w/2;
 ball.cy = ball.h/2;
 

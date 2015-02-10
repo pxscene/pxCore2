@@ -49,7 +49,11 @@ struct pxPixel {
         struct 
         {
 #ifdef PX_LITTLEENDIAN_PIXELS
+#ifdef PX_LITTLEENDIAN_RGBA_PIXELS
+          unsigned char r,g,b,a;
+#else
             unsigned char b, g, r, a;
+#endif
 #else
             unsigned char a: 8;
             unsigned char r: 8;

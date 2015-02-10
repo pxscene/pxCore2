@@ -765,7 +765,7 @@ rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize,
       png_set_tRNS_to_alpha(png_ptr);
     }
 
-    png_set_bgr(png_ptr);
+    //png_set_bgr(png_ptr);
     png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
 
     o.init(width, height);
