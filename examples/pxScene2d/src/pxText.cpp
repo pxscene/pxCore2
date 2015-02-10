@@ -23,6 +23,8 @@ extern "C" {
 FT_Library ft;
 FT_Face face;
 
+#define defaultFontSize 64
+
 void initFT() 
 {
   static bool init = false;
@@ -45,10 +47,13 @@ void initFT()
     return;
   }
   
-  FT_Set_Pixel_Sizes(face, 0, 64);
+  FT_Set_Pixel_Sizes(face, 0, defaultFontSize);
 }
 
-void measureText(const char* text, float sx, float sy, float& w, float& h) {
+void measureText(const char* text, uint32_t size,  float sx, float sy, float& w, float& h) {
+
+  FT_Set_Pixel_Sizes(face, 0, size);
+
   w = 0; h = 0;
   if (!text) return;
   int i = 0;
@@ -84,11 +89,13 @@ void measureText(const char* text, float sx, float sy, float& w, float& h) {
   h *= sy;
 }
 
-void renderText(const char *text, float x, float y, float sx, float sy, float* color, float mw) {
+void renderText(const char *text, uint32_t size, float x, float y, float sx, float sy, 
+                float* color, float mw) {
   if (!text) return;
   int i = 0;
   u_int32_t codePoint;
 
+  FT_Set_Pixel_Sizes(face, 0, size);
   FT_Size_Metrics* metrics = &face->size->metrics;
 
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) {
@@ -131,21 +138,28 @@ pxText::pxText() {
   initFT();
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
+  mPixelSize = 64;
 }
 
 rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
 
 rtError pxText::setText(const char* s) { 
   mText = s; 
-  measureText(s, 1.0, 1.0, mw, mh);
+  measureText(s, mPixelSize, 1.0, 1.0, mw, mh);
+  return RT_OK; 
+}
+
+rtError pxText::setPixelSize(uint32_t v) 
+{   
+  mPixelSize = v; 
   return RT_OK; 
 }
 
 void pxText::draw() {
-  renderText(mText, 0, 0, 1.0, 1.0, mTextColor, mw);
+  renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
 }
 
 rtDefineObject(pxText, pxObject);
 rtDefineProperty(pxText, text);
 rtDefineProperty(pxText, textColor);
-
+rtDefineProperty(pxText, pixelSize);

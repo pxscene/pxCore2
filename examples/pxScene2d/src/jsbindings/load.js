@@ -142,7 +142,8 @@ if (argv.length >= 3) {
     var fpsCounter = scene.createText();
     fpsCounter.parent = scene.root;
     fpsCounter.x = 20;
-    fpsCounter.textColor = 0x000000ff;
+    fpsCounter.textColor = 0x808080ff;
+    fpsCounter.pixelSize = 24;
     fpsCounter.a = 0;
 
     function updateSize(w, h) {

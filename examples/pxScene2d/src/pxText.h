@@ -13,6 +13,7 @@ public:
   rtDeclareObject(pxText, pxObject);
   rtProperty(text, text, setText, rtString);
   rtProperty(textColor, textColor, setTextColor, uint32_t);
+  rtProperty(pixelSize, pixelSize, setPixelSize, uint32_t);
 
   pxText();
   rtError text(rtString& s) const;
@@ -31,10 +32,14 @@ public:
     return RT_OK;
   }
 
+  rtError pixelSize(uint32_t& v) const { v = mPixelSize; return RT_OK; }
+  rtError setPixelSize(uint32_t v);
+
  protected:
   virtual void draw();
   rtString mText;
   float mTextColor[4];
+  uint32_t mPixelSize;
 };
 
 #endif
