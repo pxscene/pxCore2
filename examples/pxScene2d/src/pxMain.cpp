@@ -124,6 +124,11 @@ private:
 		printf("\n");
   }
   
+  void onChar(char c)
+  {
+     printf("onChar: %c\n", c);
+  }
+  
   const char * getKeyDescription( int keycode )
   {
     switch (keycode) {

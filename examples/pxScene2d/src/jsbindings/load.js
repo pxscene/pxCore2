@@ -180,6 +180,10 @@ if (argv.length >= 3) {
         
     });
 
+    scene.on("onchar", function(c) {
+        console.log("onchar:", String.fromCharCode(c));
+    });
+
     scene.on("mousedown", function(x, y) { childScene.emit("mousedown", x, y); });    
     scene.on("mouseup", function(x, y) { childScene.emit("mouseup", x, y); console.log("here");});    
     scene.on("mousemove", function(x, y) { childScene.emit("mousemove", x, y); });
