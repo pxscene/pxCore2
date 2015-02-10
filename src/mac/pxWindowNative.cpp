@@ -240,6 +240,7 @@ pascal OSStatus pxWindowNative::doKeyDown (EventHandlerCallRef nextHandler, Even
 	if (modifier & controlKey) flags |= PX_MOD_CONTROL;
 
 	w->onKeyDown(keycodeFromNative(kc), flags);
+  w->onChar((char)kc);
 
 	return CallNextEventHandler (nextHandler, theEvent);
 }

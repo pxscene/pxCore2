@@ -63,6 +63,7 @@ protected:
     // See constants used for flags below
     virtual void onKeyDown(int /*keycode*/, unsigned long /*flags*/) {}
     virtual void onKeyUp(int /*keycode*/, unsigned long /*flags*/) {}
+    virtual void onChar(char c /*character*/) {}
 
 	// pxSurfaceNative abstracts a platform specific drawing surface
 	// to perform platform specific drawing please see pxWindowNative.h

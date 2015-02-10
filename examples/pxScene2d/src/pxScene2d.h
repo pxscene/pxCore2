@@ -596,6 +596,7 @@ public:
   // I want to normalize on "browser" key codes
   virtual void onKeyDown(int keycode, unsigned long flags);
   virtual void onKeyUp(int keycode, unsigned long flags);
+  virtual void onChar(char c);
   
   virtual void onDraw();
   

@@ -119,6 +119,8 @@ void onKeyboard(unsigned char key, int x, int y)
   vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
   vector<pxWindowNative*>::iterator i;
   
+  char unmodifiedKey = (char)key;
+  
   key = getRawNativeKeycodeFromGlut((int)key, glutGetModifiers());
   
   unsigned long flags = 0;
@@ -130,6 +132,7 @@ void onKeyboard(unsigned char key, int x, int y)
   {
     pxWindowNative* w = (*i);
     // JR Did I mention Glut keyboard support is not very good
+    w->onChar(unmodifiedKey);
     w->onKeyDown(keycodeFromNative((int)key), flags);
     w->onKeyUp(keycodeFromNative((int)key), flags);
   }

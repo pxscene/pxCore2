@@ -626,6 +626,11 @@ void pxScene2d::onKeyUp(int keycode, unsigned long flags)
   mEmit.send("keyup", keycode, (int)flags);
 }
 
+void pxScene2d::onChar(char c)
+{
+  mEmit.send("onchar", c);
+}
+
 rtError pxScene2d::showOutlines(bool& v) const 
 { 
   v=context.showOutlines(); 

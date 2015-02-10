@@ -109,6 +109,7 @@ pxWindowNative(): mTimerFPS(0), mLastWidth(-1), mLastHeight(-1),
 
     virtual void onKeyDown(int keycode, unsigned long flags) = 0;
     virtual void onKeyUp(int keycode, unsigned long flags) = 0;
+    virtual void onChar(char c) = 0;
 
     void drawFrame(wl_callback* callback, pxRect *rect = NULL);
 

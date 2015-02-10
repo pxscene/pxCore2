@@ -201,6 +201,8 @@ keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
     {
         pxWindowNative* w = (*i);
         w->onKeyDown(keycodeFromNative(key),flags);
+        w->onKeyUp(keycodeFromNative(key),flags);
+        w->onChar((char)key);
     }
 }
 

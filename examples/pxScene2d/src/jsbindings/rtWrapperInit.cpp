@@ -127,6 +127,11 @@ protected:
   {
     mScene->onKeyUp(keycode, flags);
   }
+  
+  virtual void onChar(char c)
+  {
+    mScene->onChar(c);
+  }
 
   virtual void onDraw(pxSurfaceNative s)
   {

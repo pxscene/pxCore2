@@ -57,6 +57,7 @@ protected:
 
     virtual void onKeyDown(int keycode, unsigned long flags) = 0;
     virtual void onKeyUp(int keycode, unsigned long flags) = 0;
+    virtual void onChar(char c) = 0;
 
     virtual void onDraw(pxSurfaceNative surface) = 0;
 

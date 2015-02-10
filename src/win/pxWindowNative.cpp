@@ -397,6 +397,7 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
                 }
 
                 w->onKeyDown(keycodeFromNative((int)wParam), flags);
+                w->onChar((char)wParam);
             }
             break;
 
