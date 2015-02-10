@@ -28,9 +28,11 @@ scene.on('keydown', function(code, flags) {
   console.log("keydown:" + code);
 });
 
+/*
 scene.on("mousemove", function(x, y) {
     txt1.text = "" + x+ ", " + y;
 });
+*/
 
 function updateSize(w, h) {
     bg.w = w;

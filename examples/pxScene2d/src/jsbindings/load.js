@@ -134,24 +134,30 @@ scene.onScene = function(container, innerscene, url) {
 var argv = process.argv;
 
 if (argv.length >= 3) {
-    var childScene = scene.createScene();
     var originalURL = argv[2];
+    // TODO - WARNING root scene.create* doesn't allow passing in property bags
+    var childScene = scene.createScene();
     childScene.url = originalURL;
     childScene.parent = scene.root;
-    
+    var fpsCounter = scene.createText();
+    fpsCounter.parent = scene.root;
+    fpsCounter.x = 20;
+    fpsCounter.textColor = 0x000000ff;
+    fpsCounter.a = 0;
 
     function updateSize(w, h) {
         childScene.w = w;
         childScene.h = h;
     }
 
+    scene.on("fps", function(fps) { fpsCounter.text = ""+Math.floor(fps)+"fps"; });
+
     scene.on("keydown", function(code, flags) {
         console.log("keydown:", code, ", ", flags);
-        if (code == 48)      //'0'
-            childScene.url = "gallery.js";
-        else if (code == 57) //'9'
-            childScene.url = "fancy.js";
-        else if (code == 82 && (flags | 16)) {  //'1'
+        if (code == 89 && (flags | 48)) {  // ctrl-alt-y
+            fpsCounter.a = (fpsCounter.a==0)?1:0;
+        }
+        else if (code == 82 && (flags | 16)) {  // ctrl-r
             console.log("Reloading url: ", originalURL);
             childScene.url = originalURL;
         }
@@ -164,6 +170,22 @@ if (argv.length >= 3) {
             childScene.emit("keydown", code, flags);
         }
     });
+    scene.on("keyup", function(code, flags) {
+        console.log("keyup:", code, ", ", flags);
+        // eat the ones we handle here
+        if (code == 89 && (flags | 48));
+        else if (code == 82 && (flags | 16));
+        else
+            childScene.emit("keyup", code, flags);
+        
+    });
+
+    scene.on("mousedown", function(x, y) { childScene.emit("mousedown", x, y); });    
+    scene.on("mouseup", function(x, y) { childScene.emit("mouseup", x, y); console.log("here");});    
+    scene.on("mousemove", function(x, y) { childScene.emit("mousemove", x, y); });
+    scene.on("mouseenter", function() { childScene.emit("mouseenter"); });
+    scene.on("mouseleave", function() { childScene.emit("mouseleave"); });
+
     scene.on("resize", updateSize);
     updateSize(scene.w, scene.h);
 }

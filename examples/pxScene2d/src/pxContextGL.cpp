@@ -800,6 +800,8 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
   };
 
   {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_NONE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_NONE);
     glUniform1f(u_alphatexture, 1.0);
     glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
     glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);

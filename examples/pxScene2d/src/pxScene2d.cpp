@@ -534,7 +534,9 @@ void pxScene2d::onDraw()
     end2 = pxSeconds();
 
     // I want this always on for now
-    printf("%f fps\n", (double)frameCount/(end2-start));
+    double fps = (double)frameCount/(end2-start);
+    printf("%f fps\n", fps);
+    mEmit.send("fps", fps);
 
     start = end2;
     frameCount = 0;
@@ -616,7 +618,6 @@ void pxScene2d::onMouseMove(int x, int y)
 
 void pxScene2d::onKeyDown(int keycode, unsigned long flags) 
 {
-  printf("pxScene2d::onKeyDown %d\n", keycode);
   mEmit.send("keydown", keycode, (int)flags);
 }
 
