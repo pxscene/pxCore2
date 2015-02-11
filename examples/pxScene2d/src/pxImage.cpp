@@ -15,7 +15,14 @@
 
 #include "pxImageDownloader.h"
 
+#include <map>
+using namespace std;
+
 extern pxContext context;
+
+typedef map<rtString, pxTextureRef> TextureMap;
+TextureMap gTextureCache;
+
 
 void pxImageDownloadComplete(pxImageDownloadRequest* imageDownloadRequest)
 {
@@ -100,13 +107,23 @@ void pxImage::loadImage(rtString url)
   }
   else 
   {
-    pxOffscreen imageOffscreen;
-    if (pxLoadImage(s, imageOffscreen) != RT_OK)
-      rtLogWarn("image load failed"); // TODO: why?
+    TextureMap::iterator it = gTextureCache.find(url);
+    if (it != gTextureCache.end())
+    {
+      mTexture = it->second;
+      rtLogInfo("fetched texture from cache");
+    }
     else
     {
-      mTexture = context.createTexture(imageOffscreen);
-      rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
+      pxOffscreen imageOffscreen;
+      if (pxLoadImage(s, imageOffscreen) != RT_OK)
+        rtLogWarn("image load failed"); // TODO: why?
+      else
+      {
+        mTexture = context.createTexture(imageOffscreen);
+        gTextureCache.insert(pair<rtString,pxTextureRef>(s, mTexture));
+        rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
+      }
     }
   }
 

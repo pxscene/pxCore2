@@ -21,6 +21,8 @@ pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(),
         mWaitingForImageDownload(false),
         mImageDownloadMutex(), mImageDownloadIsAvailable(false),
         mImageDownloadRequest(NULL) {}
+
+  virtual ~pxImage() { rtLogInfo("~pxImage()"); }
   
   rtError url(rtString& s) const;
   rtError setURL(const char* s);
