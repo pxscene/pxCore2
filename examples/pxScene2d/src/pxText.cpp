@@ -131,7 +131,10 @@ void renderText(const char *text, uint32_t size, float x, float y, float sx, flo
         context.drawDiagLine(0, y+(metrics->ascender>>6), mw, 
                              y+(metrics->ascender>>6), c);
       }
-      context.drawImageAlpha(x2, y2, w, h, g->bitmap.width, g->bitmap.rows, g->bitmap.buffer, color);
+      //context.drawImageAlpha(x2, y2, w, h, g->bitmap.width, g->bitmap.rows, g->bitmap.buffer, color);
+      pxTextureRef texture = context.createTexture(w, h, g->bitmap.width, g->bitmap.rows, g->bitmap.buffer, color);
+      pxTextureRef nullImage;
+      context.drawImage(x2,y2, texture->width(), texture->height(), texture, nullImage, PX_NONE, PX_NONE);
       x += (g->advance.x >> 6) * sx;
       // TODO not sure if this is right?  seems weird commenting out to see what happens
       y += (g->advance.y >> 6) * sy;

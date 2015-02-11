@@ -33,17 +33,17 @@ class pxContext {
 
   pxTextureRef createMask(pxTextureRef t);
   pxTextureRef createTexture(pxOffscreen& o);
+  pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer, float* color);
 
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);
 #if 0
   void drawImage(float w, float h, pxOffscreen& o, 
                  pxStretch xStretch, pxStretch yStretch);
 #endif
-  void drawImage(float w, float h, pxTextureRef t, pxTextureRef mask,
+  void drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
                  pxStretch xStretch, pxStretch yStretch);
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxOffscreen& o);
-  void drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color);
 
 // Only use for debug/diag purposes not for normal rendering
   void drawDiagRect(float x, float y, float w, float h, float* color);

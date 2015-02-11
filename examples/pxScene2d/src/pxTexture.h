@@ -10,7 +10,8 @@ enum pxTextureType {
   PX_TEXTURE_OFFSCREEN = 1, 
   PX_TEXTURE_ALPHA = 2, 
   PX_TEXTURE_NATIVE = 3,
-  PX_TEXTURE_FRAME_BUFFER = 4
+  PX_TEXTURE_FRAME_BUFFER = 4,
+  PX_TEXTURE_MASK = 5
 };
 
 class pxTexture

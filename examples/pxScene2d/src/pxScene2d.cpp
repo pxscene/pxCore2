@@ -274,7 +274,7 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
       pxTextureRef snapshot = createSnapshot();
       context.setMatrix(m);
       context.setAlpha(parentAlpha);
-      context.drawImage(mw,mh, snapshot, mMaskTextureRef, PX_NONE, PX_NONE);
+      context.drawImage(0,0,mw,mh, snapshot, mMaskTextureRef, PX_NONE, PX_NONE);
       deleteSnapshot(snapshot);
     }
     else
@@ -289,7 +289,7 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
   }
   else
   {
-    context.drawImage(mw,mh, mTextureRef, mMaskTextureRef, PX_NONE, PX_NONE);
+    context.drawImage(0,0,mw,mh, mTextureRef, mMaskTextureRef, PX_NONE, PX_NONE);
   }
 }
 

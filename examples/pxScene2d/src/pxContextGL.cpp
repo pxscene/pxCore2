@@ -143,6 +143,7 @@ public:
     glBindTexture(GL_TEXTURE_2D, mTextureId);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     glUniform1i(u_texture, 0);
+    glUniform1f(u_alphatexture, 1.0);
     return PX_OK;
   }
   
@@ -194,6 +195,7 @@ public:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glUniform1f(u_alphatexture, 1.0);
   }
   
   virtual pxError deleteTexture()
@@ -247,6 +249,7 @@ public:
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     glUniform1i(u_texture, 3);
+    glUniform1f(u_alphatexture, 1.0);
     
     return PX_OK;
   }
@@ -334,6 +337,7 @@ public:
       glBindTexture(GL_TEXTURE_2D, mTextureName);    
 
     glUniform1i(u_texture, 0);
+    glUniform1f(u_alphatexture, 1.0);
     return PX_OK;
   }
   
@@ -364,18 +368,18 @@ class pxTextureMask : public pxTexture
 public:
   pxTextureMask() : mOffscreen(), mInitialized(false)
   {
-    mTextureType = PX_TEXTURE_ALPHA;
+    mTextureType = PX_TEXTURE_MASK;
   }
 
   pxTextureMask(pxOffscreen& o) : mOffscreen(), mInitialized(false)
   {
-    mTextureType = PX_TEXTURE_ALPHA;
+    mTextureType = PX_TEXTURE_MASK;
     createTexture(o);
   }
   
   pxTextureMask(pxTextureRef texture) : mOffscreen(), mInitialized(false)
   {
-    mTextureType = PX_TEXTURE_ALPHA;
+    mTextureType = PX_TEXTURE_MASK;
     if (texture.getPtr() != NULL && texture->getOffscreen(mOffscreen) == PX_OK)
     {
       mInitialized = true;
@@ -412,6 +416,7 @@ public:
                  GL_UNSIGNED_BYTE, mOffscreen.base());
     glUniform1i(u_mask, 2);
     glUniform1i(u_enablemask, 1);
+    glUniform1f(u_alphatexture, 1.0);
     
     return PX_OK;
   }
@@ -433,6 +438,119 @@ public:
 private:
   pxOffscreen mOffscreen;
   bool mInitialized;
+};
+
+class pxTextureAlpha : public pxTexture
+{
+public:
+  pxTextureAlpha() : mDrawWidth(0.0), mDrawHeight (0.0), mImageWidth(0.0),
+          mImageHeight(0.0), mTextureId(0), mInitialized(false)
+  {
+    mTextureType = PX_TEXTURE_ALPHA;
+  }
+
+  pxTextureAlpha(float w, float h, float iw, float ih, void* buffer, float* color) 
+    : mDrawWidth(w), mDrawHeight (h), mImageWidth(iw),
+          mImageHeight(ih), mTextureId(0), mInitialized(false)
+  {
+    mTextureType = PX_TEXTURE_ALPHA;
+    createTexture(w, h, iw, ih, buffer, color);
+  }
+
+  ~pxTextureAlpha() { deleteTexture(); };
+  
+  void createTexture(float w, float h, float iw, float ih, 
+          void* buffer, float* color)
+  {
+    
+    if (mTextureId != 0)
+    {
+      deleteTexture();
+    }
+    glGenTextures(1, &mTextureId);
+    
+    mDrawWidth = w;
+    mDrawHeight = h;
+    mImageWidth = iw;
+    mImageHeight = ih;
+    
+    if (color != NULL)
+    {
+      memcpy(mColor, color, 4*sizeof(float));  
+    }
+    
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, mTextureId);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(
+      GL_TEXTURE_2D,
+      0,
+      GL_ALPHA,
+      iw,
+      ih,
+      0,
+      GL_ALPHA,
+      GL_UNSIGNED_BYTE,
+      buffer
+    );
+    mBuffer = buffer;
+    mInitialized = true;
+  }
+  
+  virtual pxError deleteTexture()
+  {
+    if (mTextureId != 0)
+    {
+      glDeleteTextures(1, &mTextureId);
+      mTextureId = 0;
+    }
+    mInitialized = false;
+    return PX_OK;
+  }
+  
+  virtual pxError bindTexture()
+  {
+    if (!mInitialized)
+    {
+      return PX_NOTINITIALIZED;
+    }
+    
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, mTextureId);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    
+    glUniform1i(u_texture, 1);
+    glUniform1f(u_alphatexture, 2.0);
+    glUniform4fv(u_color, 1, mColor);
+    
+    return PX_OK;
+  }
+  
+  virtual pxError getOffscreen(pxOffscreen& o)
+  {
+    if (!mInitialized)
+    {
+      return PX_NOTINITIALIZED;
+    }
+    return PX_FAIL;
+  }
+
+  virtual float width() { return mDrawWidth; }
+  virtual float height() { return mDrawHeight; }
+  
+private:
+  float mDrawWidth;
+  float mDrawHeight;
+  float mImageWidth;
+  float mImageHeight;
+  GLuint mTextureId;
+  float mColor[4];
+  bool mInitialized;
+  void* mBuffer;
 };
 
 GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
@@ -565,7 +683,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   texture->bindTexture();
 #endif
   
-  if (mask.getPtr() != NULL && mask->getType() == PX_TEXTURE_ALPHA)
+  if (mask.getPtr() != NULL && mask->getType() == PX_TEXTURE_MASK)
   {
     mask->bindTexture();
   }
@@ -630,7 +748,6 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   {
     // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glUniform1f(u_alphatexture, 1.0);
     glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
     glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
     glEnableVertexAttribArray(attr_pos);
@@ -850,6 +967,8 @@ void pxContext::setSize(int w, int h)
 
 void pxContext::clear(int w, int h)
 {
+  (void)w;
+  (void)h;
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
@@ -925,61 +1044,10 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
   drawImage92(0, 0, w, h, x1, y1, x2, y2, o);
 }
 
-void pxContext::drawImage(float w, float h, pxTextureRef t, pxTextureRef mask,
+void pxContext::drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
                           pxStretch xStretch, pxStretch yStretch) 
 {
-  drawImageTexture(0, 0, w, h, t, mask, xStretch, yStretch);
-}
-
-void pxContext::drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color)
-{
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, textureId2);
-    
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(
-      GL_TEXTURE_2D,
-      0,
-      GL_ALPHA,
-      bw,
-      bh,
-      0,
-      GL_ALPHA,
-      GL_UNSIGNED_BYTE,
-      buffer
-    );
-    
-    glUniform1i(u_texture, 1);
-    glUniform1f(u_alphatexture, 2.0);
-    
-    const GLfloat verts[4][2] =
-    {
-      { x,y },
-      {  x+w, y },
-      {  x,  y+h },
-      {  x+w, y+h }
-    };
-    
-    const GLfloat uv[4][2] =
-    {
-      { 0, 0 },
-      { 1, 0 },
-      { 0, 1 },
-      { 1, 1 }
-    };
-    
-    {
-      glUniform4fv(u_color, 1, color);
-      glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-      glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
-      glEnableVertexAttribArray(attr_pos);
-      glEnableVertexAttribArray(attr_uv);
-
-      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-      glDisableVertexAttribArray(attr_pos);
-      glDisableVertexAttribArray(attr_uv);
-    }  
+  drawImageTexture(x, y, w, h, t, mask, xStretch, yStretch);
 }
 
 void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
@@ -1027,6 +1095,12 @@ pxTextureRef pxContext::createTexture(pxOffscreen& o)
 {
   pxTextureOffscreen* offscreenTexture = new pxTextureOffscreen(o);
   return offscreenTexture;
+}
+
+pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void* buffer, float* color)
+{
+  pxTextureAlpha* alphaTexture = new pxTextureAlpha(w,h,iw,ih,buffer,color);
+  return alphaTexture;
 }
 
 pxTextureRef pxContext::createMask(pxTextureRef t)
