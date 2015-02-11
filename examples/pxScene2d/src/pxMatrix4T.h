@@ -7,29 +7,24 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
 
 #ifndef UNUSED
 #define UNUSED(expr) (void)(expr)
 #endif
 
-#if 0
+#ifdef PX_PLATFORM_GENERIC_EGL
 #ifndef sincos
 
-void sincos(double x, double *s, double *c) {
-  *s = sin(x);
-  *c = cos(x);
-}
+void sincos(double x, double *s, double *c);
 
 #endif
 #endif
 
-#if 0
+#ifdef PX_PLATFORM_GENERIC_EGL
 #ifndef sincosf
 
-void sincosf(float x, float *s, float *c) {
-  *s = sin(x);
-  *c = cos(x);
-}
+void sincosf(float x, float *s, float *c);
 
 #endif
 #endif
@@ -123,12 +118,19 @@ public:
     memcpy(m, &tmp, sizeof tmp);
   }
   
-  
+#ifdef PX_PLATFORM_GENERIC_EGL
+  inline void rotateInRadians(FloatT angle) {
+#else
   finline void rotateInRadians(FloatT angle) {
+#endif
     rotateInRadians(angle, 0, 0, 1);
   }
   
+#ifdef PX_PLATFORM_GENERIC_EGL
+  inline void rotateInDegrees(FloatT angle) {
+#else
   finline void rotateInDegrees(FloatT angle) {
+#endif
     rotateInRadians(angle * M_PI/180.0, 0, 0, 1);
   }
 
