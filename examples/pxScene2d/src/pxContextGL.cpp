@@ -676,6 +676,8 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   }
   
   glUniform1i(u_enablemask, 0);
+  glUniform1f(u_alphatexture, 1.0);
+  
 }
 
 static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, 
