@@ -10,8 +10,7 @@ enum pxTextureType {
   PX_TEXTURE_OFFSCREEN = 1, 
   PX_TEXTURE_ALPHA = 2, 
   PX_TEXTURE_NATIVE = 3,
-  PX_TEXTURE_FRAME_BUFFER = 4,
-  PX_TEXTURE_MASK = 5
+  PX_TEXTURE_FRAME_BUFFER = 4
 };
 
 class pxTexture
@@ -23,6 +22,7 @@ public:
   virtual unsigned long Release() { if (--mRef == 0) delete this; return mRef; }
   
   virtual pxError bindTexture() = 0;
+  virtual pxError bindTextureAsMask() = 0;
   virtual pxError deleteTexture() = 0;
   virtual float width() = 0;
   virtual float height() = 0;

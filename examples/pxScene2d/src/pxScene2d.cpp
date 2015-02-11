@@ -386,7 +386,7 @@ void pxObject::createMask()
   {
     pxImage image;
     image.setURL(mMaskUrl.cString());
-    mMaskTextureRef = context.createMask(image.getTexture());
+    mMaskTextureRef = image.getTexture();
   }
 }
 
