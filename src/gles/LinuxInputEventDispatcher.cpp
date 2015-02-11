@@ -119,17 +119,17 @@ public:
 
     int n = poll(&mFds[0], static_cast<int>(mFds.size()), timeoutMillis);
 
-    if (n== 0) return false;
+    if (n == 0) return false;
     if (n < 0)
     {
       rtLogError("error processing events: %s", getSystemError(errno).c_str());
       return false;
     }
-  
+
     for (poll_list::iterator i = mFds.begin(); i != mFds.end(); ++i)
     {
       pollfd& pfd = (*i);
-    
+
       if (pfd.fd == -1) continue;
       if (!(pfd.revents & POLLIN)) continue;
 
@@ -209,7 +209,7 @@ private:
   static std::vector<std::string> getDevices(bool (*predicate)(const char* path))
   {
     std::vector<std::string> paths;
-    
+
     DIR* dir = opendir(kRootInputPath);
     if (!dir)
     {
@@ -219,7 +219,7 @@ private:
 
     dirent entry; // should be heap allocated @see map opendir_r for details
     dirent* result = NULL;
-   
+
     do
     {
       int ret = readdir_r(dir, &entry, &result);
@@ -273,7 +273,7 @@ private:
   {
     if (!devname)
       return false;
-    
+
     size_t n = strlen(devname);
     if (n < 11)
       return false;
@@ -318,7 +318,7 @@ private:
     pxKeyState state = getKeyState(e);
     pxKeyModifier modifier = getKeyModifier(e);
 
-    // for specific key modifiers we don't pass them off to the user, 
+    // for specific key modifiers we don't pass them off to the user,
     // we simpy record the current state in the mKeyModifers bit field.
     if (modifier != pxKeyModifierNone)
     {
@@ -417,7 +417,7 @@ void keyHandler(const pxKeyEvent& e, void* argp)
 
 int main(int argc, char* argv[])
 {
-  pxInputDeviceEventProvider* p = pxInputDeviceEventProvider::createDefaultProvider();  
+  pxInputDeviceEventProvider* p = pxInputDeviceEventProvider::createDefaultProvider();
   p->init();
   p->addMouseListener(mouseHandler, NULL);
   p->addKeyListener(keyHandler, NULL);
