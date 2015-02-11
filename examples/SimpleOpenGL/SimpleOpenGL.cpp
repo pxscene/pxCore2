@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
+#include <sys/time.h>
 
 #ifdef PX_PLATFORM_X11
 #include <GL/glew.h>

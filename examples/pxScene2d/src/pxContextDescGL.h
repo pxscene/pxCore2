@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#ifdef PX_PLATFORM_WAYLAND_EGL
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 
 #include <GLES2/gl2.h>
 

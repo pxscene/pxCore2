@@ -8,7 +8,7 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else
-#ifdef PX_PLATFORM_WAYLAND_EGL
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #else
@@ -48,7 +48,7 @@ GLint u_color = -1;
 GLint attr_pos = 0, attr_uv = 2;
 
 static const char *fShaderText =
-#ifdef PX_PLATFORM_WAYLAND_EGL
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   "precision mediump float;\n"
 #endif
   "uniform float u_alphatexture;\n"
@@ -856,7 +856,7 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
 
 void pxContext::init()
 {
-#if !defined(__APPLE__) && !defined(PX_PLATFORM_WAYLAND_EGL)
+#if !defined(__APPLE__) && !defined(PX_PLATFORM_WAYLAND_EGL) && !defined(PX_PLATFORM_GENERIC_EGL)
 
   GLenum err = glewInit();
 
