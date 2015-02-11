@@ -59,6 +59,7 @@ static const char* rtTrimPath(const char* s)
 
   const char* t = strrchr(s, (int) '/');
   if (t) t++;
+  if (!t) t = s;
 
   return t;
 }

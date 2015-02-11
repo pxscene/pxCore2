@@ -1,4 +1,4 @@
-#include "pxKeyboardEventProvider.h"
+#include "pxInputDeviceEventProvider.h"
 
 #include <linux/input.h>
 #include <assert.h>
@@ -12,21 +12,35 @@
 #include <dirent.h>
 #include <stdlib.h>
 
+#include <sstream>
 #include <string>
 #include <vector>
 
-struct RegisterdHandler
+#include "rtLog.h"
+
+static const char* kRootInputPath = "/dev/input/by-path/";
+
+template <typename T>
+struct Listener
 {
-  pxKeyEventHandler handler;
+  T callback;
   void* argp;
 };
 
-class LinuxInputEventDispatcher : public pxKeyboardEventProvider
+int eventCount = 0;
+
+typedef Listener<pxKeyListener> KeyboardListener;
+typedef Listener<pxMouseListener> MouseListener;
+
+class LinuxInputEventDispatcher : public pxInputDeviceEventProvider
 {
 public:
+
   LinuxInputEventDispatcher()
-    : mFd(-1)
-    , mKeyModifiers(pxKeyModifierNone)
+    : mMouseX(0)
+    , mMouseY(0)
+    , mMouseAccelerator(3)
+    , mMouseMoved(false)
   {
   }
 
@@ -37,64 +51,266 @@ public:
 
   virtual void init()
   {
-    std::string keyboardPath;
+    mFds.clear();
 
-    // enumerate all available input devices. If you plug in more than
-    // one keyboard, I'm going to get angry. Ideally you'd do something
-    // a bit more sophisticated. For example, this won't handle 
-    // hit-plugging keyboards
-    DIR* d = opendir("/dev/input/by-path");
-    if (!d)
+    registerDevices(getKeyboardDevices());
+    registerDevices(getMouseDevices());
+  }
+
+  virtual void setMousePosition(int x, int y)
+  {
+    mMouseX = x;
+    mMouseY = y;
+  }
+
+  virtual void setMouseAccelerator(int acc)
+  {
+    mMouseAccelerator = acc;
+  }
+
+  void registerDevices(const std::vector<std::string>& devices)
+  {
+    for (int i = 0; i < static_cast<int>(devices.size()); ++i)
     {
-      printf("failed to open input device path: %d", errno);
-      return;
-    }
-
-    dirent entry; // should be heap allocated
-    dirent* result = NULL;
-
-    while (true)
-    {
-      int ret = readdir_r(d, &entry, &result);
-      if (ret > 0)
-      {
-        printf("failed to read input device directory: %d\n", errno);
-        closedir(d);
-        return;
-      }
-
-      // This is going to quit after it finds one keyboard.
-      if (result && pathIsKeyboard(result->d_name))
-      {
-        keyboardPath = "/dev/input/by-path/";
-        keyboardPath += result->d_name;
-        break;
-      }
-
-      if (result == NULL)
-        break;
-    }
-
-    closedir(d);
-
-    // FYI: You can write to this device too :)
-    // http://rico-studio.com/linux/read-and-write-to-a-keyboard-device/
-    const char* inputDevice = keyboardPath.c_str();
-    mFd = open(inputDevice, O_RDONLY);
-    if (mFd == -1)
-    {
-      char buff[256];
-      char* s = strerror_r(errno, buff, sizeof(buff));
-      printf("failed to open %s. %s\n", inputDevice, s);
+      pollfd p;
+      p.fd = openDevice(devices[i]);
+      p.events = 0;
+      p.revents = 0;
+      mFds.push_back(p);
     }
   }
 
   void close()
   {
-    if (mFd != -1)
-      ::close(mFd);
-    mFd = -1;
+    for (poll_list::iterator i = mFds.begin(); i != mFds.end(); ++i)
+    {
+      if (i->fd != -1)
+        ::close(i->fd);
+      i->fd = -1;
+    }
+
+    mFds.clear();
   }
+
+  virtual void addKeyListener(pxKeyListener listener, void* argp)
+  {
+    KeyboardListener eventListener;
+    eventListener.callback = listener;
+    eventListener.argp = argp;
+    mKeyboardCallbacks.push_back(eventListener);
+  }
+
+  virtual void addMouseListener(pxMouseListener listener, void* argp)
+  {
+    MouseListener eventListener;
+    eventListener.callback = listener;
+    eventListener.argp = argp;
+    mMouseCallbacks.push_back(eventListener);
+  }
+
+  virtual bool next(uint32_t timeoutMillis)
+  {
+    // reset event state
+    for (poll_list::iterator i = mFds.begin(); i != mFds.end(); ++i)
+    {
+      i->events = POLLIN | POLLERR;
+      i->revents = 0;
+    }
+
+    int n = poll(&mFds[0], static_cast<int>(mFds.size()), timeoutMillis);
+
+    if (n== 0) return false;
+    if (n < 0)
+    {
+      rtLogError("error processing events: %s", getSystemError(errno).c_str());
+      return false;
+    }
+  
+    for (poll_list::iterator i = mFds.begin(); i != mFds.end(); ++i)
+    {
+      pollfd& pfd = (*i);
+    
+      if (pfd.fd == -1) continue;
+      if (!(pfd.revents & POLLIN)) continue;
+
+      input_event e;
+      int n = read(pfd.fd, &e, sizeof(input_event));
+
+      switch (e.type)
+      {
+        case EV_KEY:
+          switch (e.code)
+          {
+            case BTN_LEFT:
+            case BTN_RIGHT:
+            case BTN_MIDDLE:
+            case BTN_SIDE:
+            case BTN_EXTRA:
+            handleMouseEvent(e, true);
+            break;
+
+            default:
+            handleKeyboardEvent(e);
+            break;
+          }
+          break;
+
+        case EV_REL:
+          switch (e.code)
+          {
+            case REL_X:
+            mMouseX += (e.value * mMouseAccelerator);
+            mMouseMoved = true;
+            break;
+            case REL_Y:
+            mMouseY += (e.value * mMouseAccelerator);
+            mMouseMoved = true;
+            break;
+          }
+          break;
+
+        case EV_SYN:
+          if (mMouseMoved)
+            handleMouseEvent(e, false);
+          break;
+
+          // There are a bunch.
+          // https://www.kernel.org/doc/Documentation/input/event-codes.txt
+        default:
+          break;
+      }
+    }
+
+    return true;
+  }
+
+private:
+  static std::vector<std::string> getKeyboardDevices()
+  {
+    return getDevices(&pathIsKeyboard);
+  }
+
+  static std::vector<std::string> getMouseDevices()
+  {
+    return getDevices(&pathIsMouse);
+  }
+
+  static int openDevice(const std::string& path)
+  {
+    // FYI: You can write to this device too :)
+    // http://rico-studio.com/linux/read-and-write-to-a-keyboard-device/
+    const char* dev = path.c_str();
+    int fd = open(dev, O_RDONLY);
+    if (fd == -1)
+      rtLogError("failed to open: %s: %s", dev, getSystemError(errno).c_str());
+    return fd;
+  }
+
+  static std::vector<std::string> getDevices(bool (*predicate)(const char* path))
+  {
+    std::vector<std::string> paths;
+    
+    DIR* dir = opendir(kRootInputPath);
+    if (!dir)
+    {
+      rtLogError("failed to open %s: %s", kRootInputPath, getSystemError(errno).c_str());
+      return std::vector<std::string>();
+    }
+
+    dirent entry; // should be heap allocated @see map opendir_r for details
+    dirent* result = NULL;
+   
+    do
+    {
+      int ret = readdir_r(dir, &entry, &result);
+      if (ret > 0)
+      {
+        rtLogError("failed reading %s: %s", kRootInputPath, getSystemError(errno).c_str());
+        closedir(dir);
+        return paths;
+      }
+
+      if (result && predicate(result->d_name))
+      {
+        std::string path = kRootInputPath;
+        path += result->d_name;
+        paths.push_back(path);
+      }
+    }
+    while (result != NULL);
+
+    return paths;
+  }
+
+  static std::string getSystemError(int err)
+  {
+    char buff[256];
+    const char* s = strerror_r(err, buff, sizeof(buff));
+    if (s)
+      return std::string(s);
+
+    std::stringstream out;
+    out << "unknown error:" << err;
+    return out.str();
+  }
+
+
+  inline pxKeyState getKeyState(const input_event& e)
+  {
+    return static_cast<pxKeyState>(e.value);
+  }
+
+  static pxKeyModifier getKeyModifier(const input_event& e)
+  {
+    const int code = e.code;
+    if (code == KEY_LEFTCTRL || code == KEY_RIGHTCTRL)    return pxKeyModifierCtrl;
+    if (code == KEY_LEFTSHIFT || code == KEY_RIGHTSHIFT)  return pxKeyModifierShift;
+    if (code == KEY_LEFTALT || code == KEY_RIGHTALT)      return pxKeyModifierAlt;
+    return pxKeyModifierNone;
+  }
+
+  static bool pathIsMouse(const char* devname)
+  {
+    if (!devname)
+      return false;
+    
+    size_t n = strlen(devname);
+    if (n < 11)
+      return false;
+
+    return strncmp(devname + n - 11, "event-mouse", 11) == 0;
+  }
+
+  static bool pathIsKeyboard(const char* path)
+  {
+    if (!path)
+      return false;
+
+    size_t n = strlen(path);
+    if (n < 3)
+      return false;
+
+    return strncmp(path + n - 3, "kbd", 3) == 0;
+  }
+
+  static pxMouseButton getMouseButton(const input_event& e)
+  {
+    switch (e.code)
+    {
+      case BTN_LEFT:    return pxMouseButtonLeft; break;
+      case BTN_RIGHT:   return pxMouseButtonRight; break;
+      case BTN_MIDDLE:  return pxMouseButtonMiddle; break;
+      case BTN_SIDE:    return pxMouseButtonSide; break;
+      case BTN_EXTRA:   return pxMouseButtonExtra; break;
+      default:
+        assert(false);
+        break;
+    }
+    return pxMouseButtonMiddle;
+  }
+
+private:
+  typedef std::vector<pollfd> poll_list;
 
   void handleKeyboardEvent(const input_event& e)
   {
@@ -107,110 +323,109 @@ public:
     if (modifier != pxKeyModifierNone)
     {
       if (state == pxKeyStatePressed || state == pxKeyStateRepeat)
-        mKeyModifiers |= modifier;
+        mModifiers |= modifier;
       else
-        mKeyModifiers &= ~modifier;
+        mModifiers &= ~modifier;
     }
     else
     {
       pxKeyEvent evt;
       evt.state = state;
-      evt.modifiers = mKeyModifiers;
+      evt.modifiers = mModifiers;
       evt.code = e.code;
 
-      for (handlers_list_t::const_iterator i = mHandlers.begin(); i != mHandlers.end(); ++i)
+      // rtLogInfo("keyevent {state:%d modifiers:%d code:%d}", evt.state, evt.modifiers, evt.code);
+      for (keyboard_listeners::const_iterator i = mKeyboardCallbacks.begin(); i !=
+          mKeyboardCallbacks.end(); ++i)
       {
-        pxKeyEventHandler handler = i->handler;
-        handler(evt, i->argp);
+        pxKeyListener callback = i->callback;
+        callback(evt, i->argp);
       }
     }
   }
 
-  virtual void addEventHandler(pxKeyEventHandler handler, void* argp)
+  void handleMouseEvent(const input_event& e, bool isButtonPress)
   {
-    RegisteredHandler reg;
-    reg.handler = handler;
-    reg.argp = argp;
-    mHandlers.push_back(reg);
-  }
-
-  virtual bool next(uint32_t timeoutMillis)
-  {
-    mPollFds.fd = mFd;
-    mPollFds.events = POLLIN | POLLERR;
-    mPollFds.revents = 0;
-
-    int ret = poll(&mPollFds, 1, timeoutMillis);
-
-    if (ret == 0) return false;
-    if (ret < 0)
+    pxMouseEvent evt;
+    if (isButtonPress)
     {
-      printf("error processing events: %d\n", ret);
-      return false;
+      evt.type = pxMouseEventTypeButton;
+      evt.button.state = getKeyState(e);
+      evt.button.button = getMouseButton(e);
+    }
+    else
+    {
+      evt.type = pxMouseEventTypeMove;
+      evt.move.x = mMouseX;
+      evt.move.y = mMouseY;
     }
 
-    input_event e;
-    int n = read(mFd, &e, sizeof(input_event));
+    // rtLogInfo("mouse button {code:%d value:%d}", e.code, e.value);
 
-    switch (e.type)
+    for (mouse_listeners::const_iterator i = mMouseCallbacks.begin(); i !=
+      mMouseCallbacks.end(); ++i)
     {
-      case EV_KEY:
-        handleKeyboardEvent(e);
-        break;
-
-        // There are a bunch.
-        // https://www.kernel.org/doc/Documentation/input/event-codes.txt
-      default:
-        break;
+      pxMouseListener callback = i->callback;
+      callback(evt, i->argp);
     }
 
-    return true;
+    mMouseMoved = false;
   }
 
 private:
-  inline pxKeyState getKeyState(const input_event& e)
-  {
-    return static_cast<pxKeyState>(e.value);
-  }
+  poll_list mFds;
+  uint8_t mModifiers;
 
-  pxKeyModifier getKeyModifier(const input_event& e)
-  {
-    const int code = e.code;
-    if (code == KEY_LEFTCTRL || code == KEY_RIGHTCTRL)    return pxKeyModifierCtrl;
-    if (code == KEY_LEFTSHIFT || code == KEY_RIGHTSHIFT)  return pxKeyModifierShift;
-    if (code == KEY_LEFTALT || code == KEY_RIGHTALT)      return pxKeyModifierAlt;
-    return pxKeyModifierNone;
-  }
+  typedef std::vector<KeyboardListener> keyboard_listeners;
+  keyboard_listeners mKeyboardCallbacks;
 
-  bool pathIsKeyboard(const char* path)
-  {
-    if (!path)
-      return false;
+  typedef std::vector<MouseListener> mouse_listeners;
+  mouse_listeners mMouseCallbacks;
 
-    size_t n = strlen(path);
-    if (n < 3)
-      return false;
-
-    return strncmp(path + n - 3, "kbd", 3) == 0;
-  }
-
-private:
-  struct RegisteredHandler
-  {
-    pxKeyEventHandler handler;
-    void* argp;
-  };
-
-  int mFd;
-  pollfd mPollFds;
-  uint8_t mKeyModifiers;
-
-  typedef std::vector<RegisteredHandler> handlers_list_t;
-  handlers_list_t mHandlers;
+  int mMouseX;
+  int mMouseY;
+  int mMouseAccelerator;
+  bool mMouseMoved;
 };
 
-pxKeyboardEventProvider* pxKeyboardEventProvider::createDefaultProvider()
+pxInputDeviceEventProvider* pxInputDeviceEventProvider::createDefaultProvider()
 {
   return new LinuxInputEventDispatcher();
 }
 
+#if 0
+void mouseHandler(const pxMouseEvent& e, void* argp)
+{
+  if (e.type == pxMouseEventTypeButton)
+  {
+    printf("press: {state:%d button:%d}\n", e.button.state, e.button.button);
+  }
+  else if (e.type == pxMouseEventTypeMove)
+  {
+    printf("move : {x:%d y:%d}\n", e.move.x, e.move.y);
+  }
+  else
+  {
+    printf("unknown mouse event");
+  }
+}
+
+void keyHandler(const pxKeyEvent& e, void* argp)
+{
+  printf("key {code:%d state:%d modifiers:%d}\n", e.code, e.state, e.modifiers);
+}
+
+int main(int argc, char* argv[])
+{
+  pxInputDeviceEventProvider* p = pxInputDeviceEventProvider::createDefaultProvider();  
+  p->init();
+  p->addMouseListener(mouseHandler, NULL);
+  p->addKeyListener(keyHandler, NULL);
+  p->setMousePosition(640, 360); // .5 1280x720 (middle)
+  while (true)
+  {
+    p->next(1000);
+  }
+  return 0;
+}
+#endif
