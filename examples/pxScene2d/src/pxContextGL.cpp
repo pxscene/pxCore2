@@ -647,6 +647,7 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
                         GLfloat y2, pxOffscreen& offscreen)
 {
   glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, textureId1);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
                offscreen.width(), offscreen.height(), 0, GL_RGBA,
