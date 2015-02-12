@@ -442,7 +442,7 @@ public:
     
     glUniform1i(u_texture, 1);
     glUniform1f(u_alphatexture, 2.0);
-    glUniform4fv(u_color, 1, mColor);
+//    glUniform4fv(u_color, 1, mColor);
     
     glUniform1i(u_mask, 2);
     glUniform1i(u_enablemask, 1);
