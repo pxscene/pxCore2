@@ -14,7 +14,7 @@ var ball = scene.createImage({id:"ball",url:url,x:450, y:150,parent:root});
 ball.cx = ball.w/2;
 ball.cy = ball.h/2;
 
-var childText = scene.createText({id:"text", text:"CLICK ME!!!",parent:ball,textColor:0xff0000ff, r:30});
+var childText = scene.createText({id:"text", text:"CLICK ME!!!",parent:ball,textColor:0xff0000ff, r:30, pixelSize:64});
 childText.y = ball.h/2-childText.h/2;
 childText.x = ball.w/2-childText.w/2;
 childText.cx = childText.w/2;

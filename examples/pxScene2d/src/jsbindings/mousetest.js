@@ -1,6 +1,6 @@
 //scene.showOutlines = true;
 
-var text = scene.createText({text:"CLICK ME!!",parent:scene.root});
+var text = scene.createText({text:"CLICK ME!!",parent:scene.root,pixelSize:64});
 text.x = (scene.w-text.w)/2;
 text.y = (scene.h-text.h)/2;
 text.cx = text.w/2;

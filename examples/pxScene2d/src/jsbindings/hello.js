@@ -36,7 +36,7 @@ function testScene()
         ny = 100;
     }
     else {
-      p = scene.createText();
+        p = scene.createText({pixelSize:64});
         p.animateTo({sx:2,sy:2}, 1.0, 0, 0);
         nx = 200;
         if (i == n-3) {

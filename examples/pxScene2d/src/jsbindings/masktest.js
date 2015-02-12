@@ -7,14 +7,14 @@ var bg = scene.createImage({url:url,xStretch:2,yStretch:2,parent:root});
 url = process.cwd() + "/../../images/radial_gradient.png";
 var bgShade = scene.createImage({url:url,xStretch:1,yStretch:1,parent:root});
 
-var txt1 = scene.createText({x:10,text:"",parent:root});
+var txt1 = scene.createText({x:10,text:"",parent:root,pixelSize:24});
 
 url = process.cwd() + "/../../images/ball.png"
 var ball = scene.createImage({url:url,x:450,y:350,parent:root,clip:true,mask:url});
 ball.cx = ball.w/2;
 ball.cy = ball.h/2;
 
-var childText = scene.createText({text:"Hello There!!!",parent:ball,textColor:0xff0000ff});
+var childText = scene.createText({text:"Hello There!!!",parent:ball,textColor:0xff0000ff,pixelSize:64});
 childText.y = ball.h/2-childText.h/2;
 childText.x = ball.w/2-childText.w/2;
 childText.cx = childText.w/2;
