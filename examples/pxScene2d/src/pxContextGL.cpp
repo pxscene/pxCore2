@@ -101,68 +101,6 @@ static const char *vShaderText =
   "}\n";
 
 
-class pxTextureGL : public pxTexture
-{
-public:
-  pxTextureGL() : mWidth(0), mHeight(0), mTextureId(0)
-  {
-    mTextureType = PX_TEXTURE_NATIVE;
-  }
-
-  ~pxTextureGL() { deleteTexture(); }
-
-  void createTexture(int width, int height)
-  {
-    if (mTextureId != 0)
-    {
-      deleteTexture();
-    }
-    glGenTextures(1, &mTextureId);
-    mWidth = width;
-    mHeight = height;
-  }
-  
-  virtual pxError deleteTexture()
-  {
-    rtLogInfo("In pxTextureGL::deleteTexture()\n");
-    if (mTextureId != 0)
-    {
-      glDeleteTextures(1, &mTextureId);
-      mTextureId = 0;
-    }
-    return PX_OK;
-  }
-
-  virtual pxError bindTexture()
-  {
-    if (mTextureId == 0)
-    {
-      return PX_NOTINITIALIZED;
-    }
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, mTextureId);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-    glUniform1i(u_texture, 0);
-    glUniform1f(u_alphatexture, 1.0);
-    return PX_OK;
-  }
-  
-  virtual pxError getOffscreen(pxOffscreen& o)
-  {
-    (void)o;
-    // TODO
-    return PX_FAIL;
-  }
-
-  virtual float width() { return mWidth; }
-  virtual float height() { return mHeight; }
-
-private:
-  GLfloat mWidth;
-  GLfloat mHeight;
-  GLuint mTextureId;
-};
-
 class pxFBOTexture : public pxTexture
 {
 public:
@@ -254,6 +192,11 @@ public:
     return PX_OK;
   }
   
+  virtual pxError bindTextureAsMask()
+  {
+    return PX_FAIL;
+  }
+  
   virtual pxError getOffscreen(pxOffscreen& o)
   {
     (void)o;
@@ -341,6 +284,37 @@ public:
     return PX_OK;
   }
   
+  virtual pxError bindTextureAsMask()
+  {
+    if (!mInitialized)
+    {
+      return PX_NOTINITIALIZED;
+    }
+    
+    glActiveTexture(GL_TEXTURE2);
+    if (!mTextureUploaded)  
+    {
+      glGenTextures(1, &mTextureName);
+      glBindTexture(GL_TEXTURE_2D, mTextureName);    
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+                   mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
+                   GL_UNSIGNED_BYTE, mOffscreen.base());
+      mTextureUploaded = true;
+    }
+    else
+      glBindTexture(GL_TEXTURE_2D, mTextureName);    
+
+    glUniform1i(u_mask, 2);
+    glUniform1i(u_enablemask, 1);
+    
+    return PX_OK;
+  }
+  
   virtual pxError getOffscreen(pxOffscreen& o)
   {
     if (!mInitialized)
@@ -361,83 +335,6 @@ private:
   GLuint mTextureName;
   int mTextureUnit;
   bool mTextureUploaded;
-};
-
-class pxTextureMask : public pxTexture
-{
-public:
-  pxTextureMask() : mOffscreen(), mInitialized(false)
-  {
-    mTextureType = PX_TEXTURE_MASK;
-  }
-
-  pxTextureMask(pxOffscreen& o) : mOffscreen(), mInitialized(false)
-  {
-    mTextureType = PX_TEXTURE_MASK;
-    createTexture(o);
-  }
-  
-  pxTextureMask(pxTextureRef texture) : mOffscreen(), mInitialized(false)
-  {
-    mTextureType = PX_TEXTURE_MASK;
-    if (texture.getPtr() != NULL && texture->getOffscreen(mOffscreen) == PX_OK)
-    {
-      mInitialized = true;
-    }
-  }
-
-  ~pxTextureMask() { deleteTexture(); };
-  
-  void createTexture(pxOffscreen& o)
-  {
-    mOffscreen.init(o.width(), o.height());
-    o.blit(mOffscreen);
-    mInitialized = true;
-  }
-  
-  virtual pxError deleteTexture()
-  {
-    mInitialized = false;
-    return PX_OK;
-  }
-
-  virtual pxError bindTexture()
-  {
-    if (!mInitialized)
-    {
-      return PX_NOTINITIALIZED;
-    }
-    
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, textureId1);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
-                 mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, mOffscreen.base());
-    glUniform1i(u_mask, 2);
-    glUniform1i(u_enablemask, 1);
-    glUniform1f(u_alphatexture, 1.0);
-    
-    return PX_OK;
-  }
-  
-  virtual pxError getOffscreen(pxOffscreen& o)
-  {
-    if (!mInitialized)
-    {
-      return PX_NOTINITIALIZED;
-    }
-    o.init(mOffscreen.width(), mOffscreen.height());
-    mOffscreen.blit(o);
-    return PX_OK;
-  }
-
-  virtual float width() { return mOffscreen.width(); }
-  virtual float height() { return mOffscreen.height(); }
-  
-private:
-  pxOffscreen mOffscreen;
-  bool mInitialized;
 };
 
 class pxTextureAlpha : public pxTexture
@@ -528,6 +425,27 @@ public:
     glUniform1i(u_texture, 1);
 
     glUniform1f(u_alphatexture, 2.0);
+    
+    return PX_OK;
+  }
+  
+  virtual pxError bindTextureAsMask()
+  {
+    if (!mInitialized)
+    {
+      return PX_NOTINITIALIZED;
+    }
+    
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, mTextureId);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    
+    glUniform1i(u_texture, 1);
+    glUniform1f(u_alphatexture, 2.0);
+    glUniform4fv(u_color, 1, mColor);
+    
+    glUniform1i(u_mask, 2);
+    glUniform1i(u_enablemask, 1);
     
     return PX_OK;
   }
@@ -685,9 +603,9 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   texture->bindTexture();
 #endif
   
-  if (mask.getPtr() != NULL && mask->getType() == PX_TEXTURE_MASK)
+  if (mask.getPtr() != NULL)
   {
-    mask->bindTexture();
+    mask->bindTextureAsMask();
   }
 
   float iw = texture->width();
@@ -761,6 +679,8 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   }
   
   glUniform1i(u_enablemask, 0);
+  glUniform1f(u_alphatexture, 1.0);
+  
 }
 
 static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, 
@@ -1105,10 +1025,4 @@ pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void
 {
   pxTextureAlpha* alphaTexture = new pxTextureAlpha(w,h,iw,ih,buffer);
   return alphaTexture;
-}
-
-pxTextureRef pxContext::createMask(pxTextureRef t)
-{
-  pxTextureMask* maskTexture = new pxTextureMask(t);
-  return maskTexture;
 }

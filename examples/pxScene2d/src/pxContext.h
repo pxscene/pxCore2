@@ -31,7 +31,6 @@ class pxContext {
   pxTextureRef getCurrentRenderSurface();
   pxError deleteContextSurface(pxTextureRef texture);
 
-  pxTextureRef createMask(pxTextureRef t);
   pxTextureRef createTexture(pxOffscreen& o);
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer);
 
