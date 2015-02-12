@@ -139,24 +139,39 @@ if (argv.length >= 3) {
     var childScene = scene.createScene();
     childScene.url = originalURL;
     childScene.parent = scene.root;
+    var fpsBg = scene.createRectangle();
+    fpsBg.fillColor = 0x000000ff;
+    fpsBg.lineColor = 0xffff00ff;
+    fpsBg.lineWidth = 3;
+    fpsBg.x = fpsBg.y = 10;
+    fpsBg.a = 0;
+    fpsBg.parent = scene.root;
     var fpsCounter = scene.createText();
-    fpsCounter.parent = scene.root;
-    fpsCounter.x = 20;
-    fpsCounter.textColor = 0x808080ff;
+    fpsCounter.parent = fpsBg;
+    fpsCounter.x = 5;
+    fpsCounter.textColor = 0xffff00ff;
     fpsCounter.pixelSize = 24;
-    fpsCounter.a = 0;
+    fpsCounter.text = "0fps"
+    fpsBg.w = fpsCounter.w+16;
+    fpsBg.h = fpsCounter.h;
 
     function updateSize(w, h) {
         childScene.w = w;
         childScene.h = h;
     }
 
-    scene.on("fps", function(fps) { if(fpsCounter.a) fpsCounter.text = ""+Math.floor(fps)+"fps"; });
+    scene.on("fps", function(fps) { 
+        if(fpsBg.a) {
+            fpsCounter.text = ""+Math.floor(fps)+"fps"; 
+            fpsBg.w = fpsCounter.w+16;
+            fpsBg.h = fpsCounter.h;
+        }
+    });
 
     scene.on("keydown", function(code, flags) {
         console.log("keydown:", code, ", ", flags);
         if (code == 89 && (flags | 48)) {  // ctrl-alt-y
-            fpsCounter.a = (fpsCounter.a==0)?1:0;
+            fpsBg.a = (fpsBg.a==0)?0.6:0;
         }
         if (code == 79 && (flags | 48)) {  // ctrl-alt-o
             scene.showOutlines = !scene.showOutlines;
