@@ -334,6 +334,7 @@ pxError pxWindow::init(int left, int top, int width, int height)
     glutMotionFunc(onMouseMotion);
     glutPassiveMotionFunc(onMousePassiveMotion);
     glutKeyboardFunc(onKeyboard);
+    glutSpecialFunc(onKeyboardSpecial);
 
     registerWindow(this);
     this->onCreate();
