@@ -103,12 +103,13 @@ public:
 
   pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
-    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef() 
+    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef(),
+    mClipTextureRef()
   {
     mEmit = new rtEmit;
   }
 
-  virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(mTextureRef); }
+  virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(mTextureRef); deleteSnapshot(mClipTextureRef);}
 
   // TODO missing conversions in rtValue between uint32_t and int32_t
   uint32_t numChildren() const { return mChildren.size(); }
@@ -198,7 +199,7 @@ public:
       mPainting = v; 
       if (!mPainting)
       {
-          mTextureRef = createSnapshot();
+          mTextureRef = createSnapshot(mTextureRef);
       }
       else
       {
@@ -351,10 +352,11 @@ protected:
   bool mClip;
   rtString mMaskUrl;
   pxTextureRef mMaskTextureRef;
+  pxTextureRef mClipTextureRef;
   rtString mId;
   
   
-  pxTextureRef createSnapshot();
+  pxTextureRef createSnapshot(pxTextureRef texture);
   void deleteSnapshot(pxTextureRef texture);
   void createMask();
   void deleteMask();

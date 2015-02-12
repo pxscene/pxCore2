@@ -28,6 +28,7 @@ class pxContext {
   void setAlpha(float a);
   
   pxTextureRef createContextSurface(int width, int height);
+  pxError updateContextSurface(pxTextureRef texture, int width, int height);
   pxError setRenderSurface(pxTextureRef texture);
   pxTextureRef getCurrentRenderSurface();
   pxError deleteContextSurface(pxTextureRef texture);

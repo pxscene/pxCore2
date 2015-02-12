@@ -126,6 +126,28 @@ public:
     glUniform1f(u_alphatexture, 1.0);
   }
   
+  pxError resizeTexture(int width, int height)
+  { 
+    if (mWidth != width || mHeight != height || mFramebufferId == 0 || mTextureId == 0)
+    {
+      createTexture(width, height);
+      return PX_OK;
+    }
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, mTextureId);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 
+                 width, height, GL_RGBA,
+                 GL_UNSIGNED_BYTE, NULL);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glUniform1f(u_alphatexture, 1.0);
+    return PX_OK;
+  }
+  
   virtual pxError deleteTexture()
   {
     if (mFramebufferId!= 0)
@@ -435,6 +457,7 @@ public:
   
   virtual pxError getOffscreen(pxOffscreen& o)
   {
+    (void)o;
     if (!mInitialized)
     {
       return PX_NOTINITIALIZED;
@@ -881,6 +904,16 @@ pxTextureRef pxContext::createContextSurface(int width, int height)
   texture->createTexture(width, height);
   
   return texture;
+}
+
+pxError pxContext::updateContextSurface(pxTextureRef texture, int width, int height)
+{
+  if (texture.getPtr() == NULL)
+  {
+    return PX_FAIL;
+  }
+  
+  return texture->resizeTexture(width, height);
 }
 
 pxTextureRef pxContext::getCurrentRenderSurface()

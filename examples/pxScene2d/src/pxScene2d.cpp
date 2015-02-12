@@ -271,11 +271,10 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
   {
     if (mClip || mMaskUrl.length() > 0)
     {
-      pxTextureRef snapshot = createSnapshot();
+      mClipTextureRef = createSnapshot(mClipTextureRef);
       context.setMatrix(m);
       context.setAlpha(parentAlpha);
-      context.drawImage(0,0,mw,mh, snapshot, mMaskTextureRef, PX_NONE, PX_NONE);
-      deleteSnapshot(snapshot);
+      context.drawImage(0,0,mw,mh, mClipTextureRef, mMaskTextureRef, PX_NONE, PX_NONE);
     }
     else
     {
@@ -344,7 +343,7 @@ bool pxObject::hitTest(pxPoint2f& pt)
 
 
 
-pxTextureRef pxObject::createSnapshot()
+pxTextureRef pxObject::createSnapshot(pxTextureRef texture)
 {
   pxMatrix4f m;
 
@@ -353,7 +352,14 @@ pxTextureRef pxObject::createSnapshot()
   context.setMatrix(m);
   context.setAlpha(parentAlpha);
 
-  pxTextureRef texture = context.createContextSurface(mw, mh);
+  if (texture.getPtr() == NULL || texture->width() != mw || texture->height() != mh)
+  {
+    texture = context.createContextSurface(mw, mh);
+  }
+  else
+  {
+    context.updateContextSurface(texture, mw, mh);
+  }
   pxTextureRef previousRenderSurface = context.getCurrentRenderSurface();
   if (context.setRenderSurface(texture) == PX_OK)
   {
