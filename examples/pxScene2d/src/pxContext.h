@@ -17,6 +17,7 @@ class pxContext {
 
   void init();
   
+  // debugging outlines 
   bool showOutlines() { return mShowOutlines; }
   void setShowOutlines(bool v) { mShowOutlines = v; }
 
@@ -35,12 +36,10 @@ class pxContext {
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer);
 
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);
-#if 0
-  void drawImage(float w, float h, pxOffscreen& o, 
-                 pxStretch xStretch, pxStretch yStretch);
-#endif
+
   void drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
                  pxStretch xStretch, pxStretch yStretch, float* color = NULL);
+
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxOffscreen& o);
 

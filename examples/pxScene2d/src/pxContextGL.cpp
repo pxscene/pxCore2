@@ -19,23 +19,13 @@
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
-GLuint textureId1, textureId2;
-
-GLint attribute_coord;
+GLuint textureId1;
 
 pxContextSurfaceNativeDesc defaultContextSurface;
 pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
 
 pxTextureRef defaultRenderSurface;
 pxTextureRef currentRenderSurface = defaultRenderSurface;
-
-struct point
-{
-    GLfloat x;
-    GLfloat y;
-    GLfloat s;
-    GLfloat t;
-};
 
 static GLint u_matrix = -1;
 static GLint u_alpha = -1;
@@ -214,13 +204,6 @@ private:
   GLuint mTextureId;
 };
 
-int getTextureUnit()
-{
-  static int t = 4;
-
-  return t++;
-}
-
 class pxTextureOffscreen : public pxTexture
 {
 public:
@@ -261,7 +244,7 @@ public:
     
     glActiveTexture(GL_TEXTURE0); 
 
-// would be nice to do the upload in createTexture but right now it's getting called on wrong thread
+// TODO would be nice to do the upload in createTexture but right now it's getting called on wrong thread
     if (!mTextureUploaded)  
     {
       glGenTextures(1, &mTextureName);
@@ -856,17 +839,6 @@ void pxContext::init()
 #endif
 #endif
 
-#if 1
-  // Using for alpha only texture
-  glActiveTexture(GL_TEXTURE1);
-  glGenTextures(1, &textureId2);
-  glBindTexture(GL_TEXTURE_2D, textureId2);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  
-#endif
   glEnable(GL_BLEND);
 
   // assume non-premultiplied for now... 
@@ -874,7 +846,6 @@ void pxContext::init()
 
   glUseProgram(program);
 }
-
 
 void pxContext::setSize(int w, int h)
 {
@@ -887,7 +858,6 @@ void pxContext::setSize(int w, int h)
   }
 }
 
-
 void pxContext::clear(int w, int h)
 {
   (void)w;
@@ -895,12 +865,10 @@ void pxContext::clear(int w, int h)
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
-
 void pxContext::setMatrix(pxMatrix4f& m)
 {
   glUniformMatrix4fv(u_matrix, 1, GL_FALSE, m.data());
 }
-
 
 void pxContext::setAlpha(float a)
 {
