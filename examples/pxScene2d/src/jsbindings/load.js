@@ -151,7 +151,7 @@ if (argv.length >= 3) {
         childScene.h = h;
     }
 
-    scene.on("fps", function(fps) { fpsCounter.text = ""+Math.floor(fps)+"fps"; });
+    scene.on("fps", function(fps) { if(fpsCounter.a) fpsCounter.text = ""+Math.floor(fps)+"fps"; });
 
     scene.on("keydown", function(code, flags) {
         console.log("keydown:", code, ", ", flags);
@@ -186,7 +186,7 @@ if (argv.length >= 3) {
     });
 
     scene.on("mousedown", function(x, y) { childScene.emit("mousedown", x, y); });    
-    scene.on("mouseup", function(x, y) { childScene.emit("mouseup", x, y); console.log("here");});    
+    scene.on("mouseup", function(x, y) { childScene.emit("mouseup", x, y); });    
     scene.on("mousemove", function(x, y) { childScene.emit("mousemove", x, y); });
     scene.on("mouseenter", function() { childScene.emit("mouseenter"); });
     scene.on("mouseleave", function() { childScene.emit("mouseleave"); });

@@ -444,25 +444,33 @@ class pxTextureAlpha : public pxTexture
 {
 public:
   pxTextureAlpha() : mDrawWidth(0.0), mDrawHeight (0.0), mImageWidth(0.0),
-          mImageHeight(0.0), mTextureId(0), mInitialized(false)
+                     mImageHeight(0.0), mTextureId(0), mInitialized(false)
   {
     mTextureType = PX_TEXTURE_ALPHA;
   }
 
-  pxTextureAlpha(float w, float h, float iw, float ih, void* buffer, float* color) 
+  pxTextureAlpha(float w, float h, float iw, float ih, void* buffer) 
     : mDrawWidth(w), mDrawHeight (h), mImageWidth(iw),
-          mImageHeight(ih), mTextureId(0), mInitialized(false)
+      mImageHeight(ih), mTextureId(0), mInitialized(false), mBuffer(NULL)
   {
     mTextureType = PX_TEXTURE_ALPHA;
-    createTexture(w, h, iw, ih, buffer, color);
+    // copy the pixels
+    int bitmapSize = ih*iw;
+    mBuffer = malloc(bitmapSize);
+    memcpy(mBuffer, buffer, bitmapSize);
+// TODO Moved this to bindTexture because of more pain from JS thread calls
+//    createTexture(w, h, iw, ih);
   }
 
-  ~pxTextureAlpha() { deleteTexture(); };
+  ~pxTextureAlpha() 
+  { 
+    if(mBuffer) 
+      free(mBuffer);
+    deleteTexture(); 
+  }
   
-  void createTexture(float w, float h, float iw, float ih, 
-          void* buffer, float* color)
+  void createTexture(float w, float h, float iw, float ih)
   {
-    
     if (mTextureId != 0)
     {
       deleteTexture();
@@ -473,11 +481,6 @@ public:
     mDrawHeight = h;
     mImageWidth = iw;
     mImageHeight = ih;
-    
-    if (color != NULL)
-    {
-      memcpy(mColor, color, 4*sizeof(float));  
-    }
     
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, mTextureId);
@@ -495,9 +498,8 @@ public:
       0,
       GL_ALPHA,
       GL_UNSIGNED_BYTE,
-      buffer
+      mBuffer
     );
-    mBuffer = buffer;
     mInitialized = true;
   }
   
@@ -514,18 +516,18 @@ public:
   
   virtual pxError bindTexture()
   {
+    // TODO Moved to here because of js threading issues
+    if (!mInitialized) createTexture(mDrawWidth,mDrawHeight,mImageWidth,mImageHeight);
     if (!mInitialized)
     {
       return PX_NOTINITIALIZED;
     }
     
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, mTextureId);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    
+    glBindTexture(GL_TEXTURE_2D, mTextureId);    
     glUniform1i(u_texture, 1);
+
     glUniform1f(u_alphatexture, 2.0);
-    glUniform4fv(u_color, 1, mColor);
     
     return PX_OK;
   }
@@ -548,9 +550,9 @@ private:
   float mImageWidth;
   float mImageHeight;
   GLuint mTextureId;
-  float mColor[4];
   bool mInitialized;
   void* mBuffer;
+  bool mUploaded;
 };
 
 GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
@@ -673,7 +675,7 @@ static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat 
 }
 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
-                pxTextureRef mask, pxStretch xStretch, pxStretch yStretch)
+                             pxTextureRef mask, pxStretch xStretch, pxStretch yStretch, float* color)
 {
   if (texture.getPtr() == NULL)
   {
@@ -748,6 +750,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   {
     // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glUniform4fv(u_color, 1, color);
     glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
     glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
     glEnableVertexAttribArray(attr_pos);
@@ -1045,9 +1048,10 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
 }
 
 void pxContext::drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
-                          pxStretch xStretch, pxStretch yStretch) 
+                          pxStretch xStretch, pxStretch yStretch, float* color) 
 {
-  drawImageTexture(x, y, w, h, t, mask, xStretch, yStretch);
+  float black[4] = {0,0,0,1};
+  drawImageTexture(x, y, w, h, t, mask, xStretch, yStretch, color?color:black);
 }
 
 void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
@@ -1097,9 +1101,9 @@ pxTextureRef pxContext::createTexture(pxOffscreen& o)
   return offscreenTexture;
 }
 
-pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void* buffer, float* color)
+pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void* buffer)
 {
-  pxTextureAlpha* alphaTexture = new pxTextureAlpha(w,h,iw,ih,buffer,color);
+  pxTextureAlpha* alphaTexture = new pxTextureAlpha(w,h,iw,ih,buffer);
   return alphaTexture;
 }
 

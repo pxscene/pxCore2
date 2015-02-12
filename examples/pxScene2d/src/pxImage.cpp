@@ -111,10 +111,10 @@ void pxImage::loadImage(rtString url)
     if (it != gTextureCache.end())
     {
       mTexture = it->second;
-      rtLogInfo("fetched texture from cache");
     }
     else
     {
+      rtLogInfo("image texture cache miss");
       pxOffscreen imageOffscreen;
       if (pxLoadImage(s, imageOffscreen) != RT_OK)
         rtLogWarn("image load failed"); // TODO: why?

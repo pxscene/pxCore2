@@ -21,7 +21,7 @@ scene.on("keydown", function(keycode, flags) {
     var keytext = ""+Math.floor(keycode);
     var textbg = scene.createImage({a:0, x:randomInt(50,scene.w-150), y:scene.h+50, 
                                      url:process.cwd()+"/../../images/keybubble.png",
-                                    parent:root,sx:0.75, sy:0.75});
+                                    parent:back,sx:0.75, sy:0.75});
     textbg.cx = textbg.w/2;
     textbg.cy = textbg.h/2;
     var text = scene.createText({text:keytext, parent:textbg});

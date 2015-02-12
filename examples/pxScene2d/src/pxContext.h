@@ -33,7 +33,7 @@ class pxContext {
 
   pxTextureRef createMask(pxTextureRef t);
   pxTextureRef createTexture(pxOffscreen& o);
-  pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer, float* color);
+  pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer);
 
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);
 #if 0
@@ -41,7 +41,7 @@ class pxContext {
                  pxStretch xStretch, pxStretch yStretch);
 #endif
   void drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
-                 pxStretch xStretch, pxStretch yStretch);
+                 pxStretch xStretch, pxStretch yStretch, float* color = NULL);
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxOffscreen& o);
 
