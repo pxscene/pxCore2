@@ -25,7 +25,11 @@ class rtIObject {
   virtual ~rtIObject() { }
   virtual unsigned long AddRef() = 0;
   virtual unsigned long Release() = 0;
+#if 1
+  // Only for debugging purposes please
+  // Probably can get the same utility by AddRef followed by Release?
   virtual unsigned long getRefCount() const = 0;
+#endif
   virtual rtError Get(const char* name, rtValue* value) = 0;
   virtual rtError Get(uint32_t i, rtValue* value) = 0;
   virtual rtError Set(const char* name, const rtValue* value) = 0;
@@ -37,7 +41,10 @@ class rtIFunction {
   virtual ~rtIFunction() { }
   virtual unsigned long AddRef() = 0;
   virtual unsigned long Release() = 0;
+#if 1
+  // Only for debugging purposes please
   virtual unsigned long getRefCount() const = 0;
+#endif
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
 };
 
