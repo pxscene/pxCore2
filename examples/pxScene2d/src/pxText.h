@@ -4,9 +4,69 @@
 #ifndef PX_TEXT_H
 #define PX_TEXT_H
 
+// TODO it would be nice to push this back into implemention
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 #include "rtString.h"
 #include "rtRefT.h"
 #include "pxScene2d.h"
+
+#define defaultPixelSize 16
+#define defaultFace "FreeSans.ttf"
+
+class pxFace;
+typedef rtRefT<pxFace> pxFaceRef;
+
+struct GlyphCacheEntry
+{
+  int bitmap_left;
+  int bitmap_top;
+  int bitmapdotwidth;
+  int bitmapdotrows;
+  //void* bitmapdotbuffer;
+  int advancedotx;
+  int advancedoty;
+  int vertAdvance;
+
+  pxTextureRef mTexture;
+};
+
+class pxFace
+{
+public:
+  pxFace();
+  virtual ~pxFace();
+  
+  rtError init(const char* n);
+
+  virtual unsigned long AddRef() 
+  {
+    return rtAtomicInc(&mRefCount);
+  }
+  
+  virtual unsigned long Release() 
+  {
+    long l = rtAtomicDec(&mRefCount);
+    if (l == 0) delete this;
+    return l;
+  }
+    
+  void setPixelSize(uint32_t s);  
+  const GlyphCacheEntry* getGlyph(uint32_t codePoint);  
+  void measureText(const char* text, uint32_t size,  float sx, float sy, 
+                   float& w, float& h);
+  void renderText(const char *text, uint32_t size, float x, float y, 
+                  float sx, float sy, 
+                  float* color, float mw);
+
+private:
+  uint32_t mFaceId;
+  rtString mFaceName;
+  FT_Face mFace;
+  uint32_t mPixelSize;
+  rtAtomic mRefCount;
+};
 
 class pxText: public pxObject {
 public:
@@ -14,6 +74,7 @@ public:
   rtProperty(text, text, setText, rtString);
   rtProperty(textColor, textColor, setTextColor, uint32_t);
   rtProperty(pixelSize, pixelSize, setPixelSize, uint32_t);
+  rtProperty(faceURL, faceURL, setFaceURL, rtString);
 
   pxText();
   rtError text(rtString& s) const;
@@ -32,12 +93,18 @@ public:
     return RT_OK;
   }
 
+  rtError faceURL(rtString& v) const { v = mFaceURL; return RT_OK; }
+  rtError setFaceURL(const char* s);
+
   rtError pixelSize(uint32_t& v) const { v = mPixelSize; return RT_OK; }
   rtError setPixelSize(uint32_t v);
 
  protected:
   virtual void draw();
   rtString mText;
+// TODO should we just use a face object instead of urls
+  rtString mFaceURL;
+  pxFaceRef mFace;
   float mTextColor[4];
   uint32_t mPixelSize;
 };
