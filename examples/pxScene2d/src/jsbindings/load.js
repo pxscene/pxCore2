@@ -158,6 +158,9 @@ if (argv.length >= 3) {
         if (code == 89 && (flags | 48)) {  // ctrl-alt-y
             fpsCounter.a = (fpsCounter.a==0)?1:0;
         }
+        if (code == 79 && (flags | 48)) {  // ctrl-alt-o
+            scene.showOutlines = !scene.showOutlines;
+        }
         else if (code == 82 && (flags | 16)) {  // ctrl-r
             console.log("Reloading url: ", originalURL);
             childScene.url = originalURL;
@@ -174,7 +177,8 @@ if (argv.length >= 3) {
     scene.on("keyup", function(code, flags) {
         console.log("keyup:", code, ", ", flags);
         // eat the ones we handle here
-        if (code == 89 && (flags | 48));
+        if (code == 89 && (flags | 48)); // ctrl-alt-y
+        if (code == 79 && (flags | 48)); // ctrl-alt-o
         else if (code == 82 && (flags | 16));
         else
             childScene.emit("keyup", code, flags);
