@@ -389,7 +389,7 @@ void testScene()
 #endif
 
 
-#if 1
+#if 0
   scene.sendReturns<rtObjectRef>("createImage", bg2);
   bgURL = d;
   bgURL.append("/../images/radial_gradient.png");
