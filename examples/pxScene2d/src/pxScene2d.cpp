@@ -119,13 +119,10 @@ void pxObject::animateTo(const char* prop, double to, double duration,
   while (it != mAnimations.end())
   {
     animation& a = (*it);
-    printf("scanning for animation to cancel %s\n", a.prop.cString());
     if (a.prop == prop)
     {
-      printf("cancelling animation\n");
       if (a.at == PX_STOP)
       {
-        printf("fastforward animation\n");
         // fastforward
         set(prop, a.to);
         if (a.ended)
