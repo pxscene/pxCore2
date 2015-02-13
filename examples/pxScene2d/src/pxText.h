@@ -85,11 +85,12 @@ public:
     return RT_OK;
   }
 
-  rtError setTextColor(uint32_t c) {
-    mTextColor[0] = (float)((c>>24)&0xff)/255.0f;
-    mTextColor[1] = (float)((c>>16)&0xff)/255.0f;
-    mTextColor[2] = (float)((c>>8)&0xff)/255.0f;
-    mTextColor[3] = (float)((c>>0)&0xff)/255.0f;
+  rtError setTextColor(uint32_t c)
+  {
+    mTextColor[0] = (float)((c>>24) & 0xff) / 255.0f;
+    mTextColor[1] = (float)((c>>16) & 0xff) / 255.0f;
+    mTextColor[2] = (float)((c>> 8) & 0xff) / 255.0f;
+    mTextColor[3] = (float)((c>> 0) & 0xff) / 255.0f;
     return RT_OK;
   }
 

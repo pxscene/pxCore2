@@ -280,6 +280,7 @@ void ballScene()
   bg.set("parent", root);
   bg.set("w", scene->w());
   bg.set("h", scene->h());
+
   scene.sendReturns<rtObjectRef>("createImage", bg);
   bg.set("url", d2);
   bg.set("xStretch", 1);
@@ -308,26 +309,43 @@ rtError onSizeCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* /*
   {
     int w = args[0].toInt32();
     int h = args[1].toInt32();
-    bg1.set("w", w);
-    bg1.set("h", h);
-    bg2.set("w", w);
-    bg2.set("h", h);
+
+    if(bg1.getPtr())
+    {
+      bg1.set("w", w);
+      bg1.set("h", h);
+    }
+    if(bg2.getPtr())
+    {
+      bg2.set("w", w);
+      bg2.set("h", h);
+    }
   }
   return RT_OK;
 }
 
 rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* /*context*/)
 {
+
   if (numArgs >0)
   {
-    switch(args[0].toInt32()) {
-      // '1'
-    case PX_KEY_ONE:
+    printf("\n ####################### onKeyDownCB()  keyCode = %d",args[0].toInt32());
+
+    switch(args[0].toInt32())
+    {
+
+    case PX_KEY_NATIVE_ONE: //PX_KEY_ONE:  // '1'
       picture.set("url", bananaURL);
+
+      printf("\n ####################### bananaURL");
+
       break;
-      // '2'
-    case PX_KEY_TWO:
+
+    case PX_KEY_NATIVE_TWO: //PX_KEY_TWO: // '2'
       picture.set("url", ballURL);
+
+      printf("\n ####################### ballURL");
+
       break;
     default:
       rtLogWarn("unhandled key");
@@ -339,20 +357,25 @@ rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void*
 
 void testScene()
 {
+  rtLogSetLevel(RT_LOG_DEBUG);
+
   rtString d;
   rtGetCurrentDirectory(d);
   bananaURL = d;
-  ballURL = d;
+  ballURL   = d;
   bananaURL.append("/../images/banana.png");
   ballURL.append("/../images/ball.png");
+
 
   scene->init();
 
   rtObjectRef root = scene.get<rtObjectRef>("root");  
 
   scene.send("on", "keydown", new rtFunctionCallback(onKeyDownCB));
-  scene.send("on", "resize", new rtFunctionCallback(onSizeCB));
+//  scene.send("on", "resize", new rtFunctionCallback(onSizeCB));
 
+
+#if 1
   rtString bgURL;
   scene.sendReturns<rtObjectRef>("createImage", bg1);
   bgURL = d;
@@ -363,15 +386,10 @@ void testScene()
   bg1.set("parent", root);
   bg1.set("w", scene->w());
   bg1.set("h", scene->h());
+#endif
 
-  printf("Try enumerating properties on image.\n");
-  rtObjectRef keys = bg1.get<rtObjectRef>("allKeys");
-  uint32_t length = keys.get<uint32_t>("length");
-  for (uint32_t i = 0; i < length; i++)
-  {
-    printf("i: %d key: %s\n", i, keys.get<rtString>(i).cString());
-  }
 
+#if 1
   scene.sendReturns<rtObjectRef>("createImage", bg2);
   bgURL = d;
   bgURL.append("/../images/radial_gradient.png");
@@ -381,7 +399,30 @@ void testScene()
   bg2.set("parent", root);
   bg2.set("w", scene->w());
   bg2.set("h", scene->h());
+#endif
 
+#if 0
+  printf("Try enumerating properties on image.\n");
+
+
+  rtObjectRef keys = bg1.get<rtObjectRef>("allKeys");
+  uint32_t length = keys.get<uint32_t>("length");
+  for (uint32_t i = 0; i < length; i++)
+  {
+    printf("i: %d key: %s\n", i, keys.get<rtString>(i).cString());
+  }
+#endif
+
+
+  scene.sendReturns<rtObjectRef>("createImage", picture);
+  picture.set("x", 400);
+  picture.set("y", 400);
+  // TODO animateTo now takes a property bag of properties and targets too lazy to fix this call right now
+  //  picture.send("animateTo", "r", 360, 0.5, 0, 1);
+  picture.set("parent", root);
+
+
+#if 0
   rtObjectRef t;
   scene.sendReturns<rtObjectRef>("createText", t);
   t.set("text", "Choose Picture:\n"
@@ -391,16 +432,12 @@ void testScene()
   t.set("y", 100);
   t.set("parent", root);
 
-  scene.sendReturns<rtObjectRef>("createImage", picture);
-  picture.set("x", 400);
-  picture.set("y", 400);
-  // TODO animateTo now takes a property bag of properties and targets too lazy to fix this call right now
-  //  picture.send("animateTo", "r", 360, 0.5, 0, 1);
-  picture.set("parent", root);
+
 
   printf("Enumerate children of root object\n");
   rtObjectRef c = root.get<rtObjectRef>("children");
   uint32_t l = c.get<uint32_t>("length");
+
 #if 1
   for (uint32_t i = 0; i < l; i++)
   {
@@ -410,6 +447,9 @@ void testScene()
     printf("class description: %s\n", s.cString());
   }
 #endif
+
+#endif //00
+
 }
 
 #endif

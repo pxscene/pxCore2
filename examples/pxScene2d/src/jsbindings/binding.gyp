@@ -23,7 +23,7 @@
         "../linux/rtThreadPoolNative.cpp",
         "../utf8.c",
 
-        "../pxContextGL.cpp",
+        "../pxContextDFB.cpp",
         "../pxImage.cpp",
         "../pxImage9.cpp",
         "../pxScene2d.cpp",
@@ -40,10 +40,12 @@
         "../../external/ft/include",
         "../../external/curl/include",
         "../../external/jpg",
+        "/usr/local/include/directfb",
         "../../../../src"
       ],
 
       "libraries": [
+        "-L/usr/local/lib",
         "-L../../../external/ft/objs/.libs/",
         "-L../../../external/png/.libs",
         "-L../../../external/jpg/.libs",
@@ -56,7 +58,8 @@
         "-lpng16",
         "-ljpeg",
         "-lcurl",
-        "-ldl"
+        "-ldl",
+        "-ldirectfb"
 #        "-lGL",
 #        "-lrt",
       ],

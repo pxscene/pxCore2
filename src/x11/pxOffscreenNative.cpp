@@ -40,6 +40,3 @@ pxError pxOffscreenNative::term()
 
   return PX_OK;
 }
-
-
-

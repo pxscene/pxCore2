@@ -8,18 +8,16 @@
 #include "../pxCore.h"
 #include "../pxBuffer.h"
 
-#include <directfb.h>
 
 class pxOffscreenNative: public pxBuffer
 {
 public:
-    pxOffscreenNative(): image(NULL), data(NULL) {}
+    pxOffscreenNative(): data(NULL) {}
     virtual ~pxOffscreenNative() {}
 
     pxError term();
 
 protected:
-    IDirectFBSurface   *image;
     char* data;
 };
 

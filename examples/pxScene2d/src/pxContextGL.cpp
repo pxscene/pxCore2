@@ -38,57 +38,57 @@ GLint u_color = -1;
 GLint attr_pos = 0, attr_uv = 2;
 
 static const char *fShaderText =
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
-  "precision mediump float;\n"
-#endif
-  "uniform float u_alphatexture;\n"
-  "uniform float u_alpha;\n"
-  "uniform vec4 a_color;\n"
-  "uniform sampler2D s_texture;\n"
-  "uniform sampler2D s_mask;\n"
-  "uniform int u_enablemask;\n"
-  "varying vec2 v_uv;\n"
-  "void main() {\n"
-#if 1
-  "if (u_alphatexture < 1.0) {"
-  // solid color
-  " gl_FragColor = a_color;"
-  "} else "
-  "if (u_alphatexture < 2.0) {\n"
-  // image
-  "  vec4 textureColor = texture2D(s_texture, v_uv);\n"
-  "  if (u_enablemask > 0) {\n"
-  "    vec4 maskColor = texture2D(s_mask, v_uv);\n"
-  "    textureColor.a = textureColor.a * maskColor.a;\n" ////textureColor.a * maskColor.a;
-  "  }\n"
-  "  gl_FragColor = textureColor;\n"
-  "} else {\n"
-  // text
-  "gl_FragColor = vec4(a_color.r, a_color.g, a_color.b, texture2D(s_texture, v_uv).a*a_color.a);"
-  "}\n"
-  "gl_FragColor.a *= u_alpha;"
-#else
-  "gl_FragColor = vec4(1,1,1,1);"
-#endif
-  "}\n";
+    #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
+    "precision mediump float;\n"
+    #endif
+    "uniform float u_alphatexture;\n"
+    "uniform float u_alpha;\n"
+    "uniform vec4 a_color;\n"
+    "uniform sampler2D s_texture;\n"
+    "uniform sampler2D s_mask;\n"
+    "uniform int u_enablemask;\n"
+    "varying vec2 v_uv;\n"
+    "void main() {\n"
+    #if 1
+    "if (u_alphatexture < 1.0) {"
+    // solid color
+    " gl_FragColor = a_color;"
+    "} else "
+    "if (u_alphatexture < 2.0) {\n"
+    // image
+    "  vec4 textureColor = texture2D(s_texture, v_uv);\n"
+    "  if (u_enablemask > 0) {\n"
+    "    vec4 maskColor = texture2D(s_mask, v_uv);\n"
+    "    textureColor.a = textureColor.a * maskColor.a;\n" ////textureColor.a * maskColor.a;
+    "  }\n"
+    "  gl_FragColor = textureColor;\n"
+    "} else {\n"
+    // text
+    "gl_FragColor = vec4(a_color.r, a_color.g, a_color.b, texture2D(s_texture, v_uv).a*a_color.a);"
+    "}\n"
+    "gl_FragColor.a *= u_alpha;"
+    #else
+    "gl_FragColor = vec4(1,1,1,1);"
+    #endif
+    "}\n";
 
 static const char *vShaderText =
-  "uniform vec2 u_resolution;\n"
-  "uniform mat4 amymatrix;\n"
-  "attribute vec2 pos;\n"
-  "attribute vec2 uv;\n"
-  "varying vec2 v_uv;\n"
-  "void main() {\n"
-  // map from "pixel coordinates"
-  " vec4 p = amymatrix * vec4(pos, 0, 1);\n"
-  " vec4 zeroToOne = p / vec4(u_resolution, u_resolution.x, 1);\n"
-  " vec4 zeroToTwo = zeroToOne * vec4(2.0, 2.0, 1, 1);\n"
-  " vec4 clipSpace = zeroToTwo - vec4(1.0, 1.0, 0, 0);\n"
-  " clipSpace.w = 1.0+clipSpace.z;\n"
-  //" clipSpace = clipSpace/vec4(1.0+clipSpace.z, 1.0+clipSpace.z, 1, 1);\n"
-  " gl_Position =  clipSpace * vec4(1, -1, 1, 1);\n"
-  "v_uv = uv;\n"
-  "}\n";
+    "uniform vec2 u_resolution;\n"
+    "uniform mat4 amymatrix;\n"
+    "attribute vec2 pos;\n"
+    "attribute vec2 uv;\n"
+    "varying vec2 v_uv;\n"
+    "void main() {\n"
+    // map from "pixel coordinates"
+    " vec4 p = amymatrix * vec4(pos, 0, 1);\n"
+    " vec4 zeroToOne = p / vec4(u_resolution, u_resolution.x, 1);\n"
+    " vec4 zeroToTwo = zeroToOne * vec4(2.0, 2.0, 1, 1);\n"
+    " vec4 clipSpace = zeroToTwo - vec4(1.0, 1.0, 0, 0);\n"
+    " clipSpace.w = 1.0+clipSpace.z;\n"
+    //" clipSpace = clipSpace/vec4(1.0+clipSpace.z, 1.0+clipSpace.z, 1, 1);\n"
+    " gl_Position =  clipSpace * vec4(1, -1, 1, 1);\n"
+    "v_uv = uv;\n"
+    "}\n";
 
 
 class pxFBOTexture : public pxTexture
@@ -115,7 +115,7 @@ public:
     glGenTextures(1, &mTextureId);
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, mTextureId);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                  width, height, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, NULL);
     
@@ -127,7 +127,7 @@ public:
   }
   
   pxError resizeTexture(int width, int height)
-  { 
+  {
     if (mWidth != width || mHeight != height || mFramebufferId == 0 || mTextureId == 0)
     {
       createTexture(width, height);
@@ -136,9 +136,9 @@ public:
 
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, mTextureId);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 
-                 width, height, GL_RGBA,
-                 GL_UNSIGNED_BYTE, NULL);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+                    width, height, GL_RGBA,
+                    GL_UNSIGNED_BYTE, NULL);
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -168,7 +168,7 @@ public:
   virtual pxError prepareForRendering()
   {
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                            GL_TEXTURE_2D, mTextureId, 0);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -216,7 +216,7 @@ public:
     return PX_FAIL;
   }
 
-  virtual float width() { return mWidth; }
+  virtual float width()  { return mWidth;  }
   virtual float height() { return mHeight; }
 
 private:
@@ -264,25 +264,25 @@ public:
       return PX_NOTINITIALIZED;
     }
     
-    glActiveTexture(GL_TEXTURE0); 
+    glActiveTexture(GL_TEXTURE0);
 
-// TODO would be nice to do the upload in createTexture but right now it's getting called on wrong thread
-    if (!mTextureUploaded)  
+    // TODO would be nice to do the upload in createTexture but right now it's getting called on wrong thread
+    if (!mTextureUploaded)
     {
       glGenTextures(1, &mTextureName);
-      glBindTexture(GL_TEXTURE_2D, mTextureName);    
+      glBindTexture(GL_TEXTURE_2D, mTextureName);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
       glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                    mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
       mTextureUploaded = true;
     }
     else
-      glBindTexture(GL_TEXTURE_2D, mTextureName);    
+      glBindTexture(GL_TEXTURE_2D, mTextureName);
 
     glUniform1i(u_texture, 0);
     glUniform1f(u_alphatexture, 1.0);
@@ -297,22 +297,22 @@ public:
     }
     
     glActiveTexture(GL_TEXTURE2);
-    if (!mTextureUploaded)  
+    if (!mTextureUploaded)
     {
       glGenTextures(1, &mTextureName);
-      glBindTexture(GL_TEXTURE_2D, mTextureName);    
+      glBindTexture(GL_TEXTURE_2D, mTextureName);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
       glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                    mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
       mTextureUploaded = true;
     }
     else
-      glBindTexture(GL_TEXTURE_2D, mTextureName);    
+      glBindTexture(GL_TEXTURE_2D, mTextureName);
 
     glUniform1i(u_mask, 2);
     glUniform1i(u_enablemask, 1);
@@ -346,12 +346,12 @@ class pxTextureAlpha : public pxTexture
 {
 public:
   pxTextureAlpha() : mDrawWidth(0.0), mDrawHeight (0.0), mImageWidth(0.0),
-                     mImageHeight(0.0), mTextureId(0), mInitialized(false)
+    mImageHeight(0.0), mTextureId(0), mInitialized(false)
   {
     mTextureType = PX_TEXTURE_ALPHA;
   }
 
-  pxTextureAlpha(float w, float h, float iw, float ih, void* buffer) 
+  pxTextureAlpha(float w, float h, float iw, float ih, void* buffer)
     : mDrawWidth(w), mDrawHeight (h), mImageWidth(iw),
       mImageHeight(ih), mTextureId(0), mInitialized(false), mBuffer(NULL)
   {
@@ -360,15 +360,15 @@ public:
     int bitmapSize = ih*iw;
     mBuffer = malloc(bitmapSize);
     memcpy(mBuffer, buffer, bitmapSize);
-// TODO Moved this to bindTexture because of more pain from JS thread calls
-//    createTexture(w, h, iw, ih);
+    // TODO Moved this to bindTexture because of more pain from JS thread calls
+    //    createTexture(w, h, iw, ih);
   }
 
-  ~pxTextureAlpha() 
-  { 
-    if(mBuffer) 
+  ~pxTextureAlpha()
+  {
+    if(mBuffer)
       free(mBuffer);
-    deleteTexture(); 
+    deleteTexture();
   }
   
   void createTexture(float w, float h, float iw, float ih)
@@ -392,16 +392,16 @@ public:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(
-      GL_TEXTURE_2D,
-      0,
-      GL_ALPHA,
-      iw,
-      ih,
-      0,
-      GL_ALPHA,
-      GL_UNSIGNED_BYTE,
-      mBuffer
-    );
+          GL_TEXTURE_2D,
+          0,
+          GL_ALPHA,
+          iw,
+          ih,
+          0,
+          GL_ALPHA,
+          GL_UNSIGNED_BYTE,
+          mBuffer
+          );
     mInitialized = true;
   }
   
@@ -426,7 +426,7 @@ public:
     }
     
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, mTextureId);    
+    glBindTexture(GL_TEXTURE_2D, mTextureId);
     glUniform1i(u_texture, 1);
 
     glUniform1f(u_alphatexture, 2.0);
@@ -622,35 +622,34 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   if (yStretch == PX_NONE)
     h = ih;
 
-  const float verts[4][2] = 
+  const float verts[4][2] =
   {
-
-    { x,y },
-    {  x+w, y },
-    {  x,  y+h },
-    {  x+w, y+h }
+    { x,   y   },
+    { x+w, y   },
+    { x,   y+h },
+    { x+w, y+h }
   };
 
   float tw;
   switch(xStretch) {
-  case PX_NONE:
-  case PX_STRETCH:
-    tw = 1.0;
-    break;
-  case PX_REPEAT:
-    tw = w/iw;
-    break;
+    case PX_NONE:
+    case PX_STRETCH:
+      tw = 1.0;
+      break;
+    case PX_REPEAT:
+      tw = w/iw;
+      break;
   }
 
   float th;
   switch(yStretch) {
-  case PX_NONE:
-  case PX_STRETCH:
-    th = 1.0;
-    break;
-  case PX_REPEAT:
-    th = h/ih;
-    break;
+    case PX_NONE:
+    case PX_STRETCH:
+      th = 1.0;
+      break;
+    case PX_REPEAT:
+      th = h/ih;
+      break;
   }
   
   float firstTextureY = 0;
@@ -658,15 +657,15 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   
   if (texture->getType() == PX_TEXTURE_FRAME_BUFFER)
   {
-    //opengl renders to a framebuffer in reverse y coordinates than pxConext renders.  
+    //opengl renders to a framebuffer in reverse y coordinates than pxConext renders.
     //the texture y values need to be flipped
     firstTextureY = th;
     secondTextureY = 0;
   }
 
   const float uv[4][2] = {
-    { 0,  firstTextureY },
-    { tw, firstTextureY },
+    { 0,  firstTextureY  },
+    { tw, firstTextureY  },
     { 0,  secondTextureY },
     { tw, secondTextureY }
   };
@@ -695,7 +694,7 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, textureId1);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                offscreen.width(), offscreen.height(), 0, GL_RGBA,
                GL_UNSIGNED_BYTE, offscreen.base());
   glUniform1i(u_texture, 0);
@@ -864,8 +863,8 @@ void pxContext::init()
 
   glEnable(GL_BLEND);
 
-  // assume non-premultiplied for now... 
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+  // assume non-premultiplied for now...
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glUseProgram(program);
 }
@@ -895,7 +894,7 @@ void pxContext::setMatrix(pxMatrix4f& m)
 
 void pxContext::setAlpha(float a)
 {
-  glUniform1f(u_alpha, a); 
+  glUniform1f(u_alpha, a);
 }
 
 pxTextureRef pxContext::createContextSurface(int width, int height)
@@ -969,7 +968,7 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
 }
 
 void pxContext::drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
-                          pxStretch xStretch, pxStretch yStretch, float* color) 
+                          pxStretch xStretch, pxStretch yStretch, float* color)
 {
   float black[4] = {0,0,0,1};
   drawImageTexture(x, y, w, h, t, mask, xStretch, yStretch, color?color:black);
@@ -981,11 +980,11 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 
   const float verts[4][2] =
   {
-    { x,y },
-    {  x+w, y },
+    {  x,   y   },
+    {  x+w, y   },
     {  x+w, y+h },
-    {  x,  y+h },
-   };
+    {  x,   y+h },
+  };
   
   {
     glUniform4fv(u_color, 1, color);
@@ -1004,7 +1003,7 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
   {
     { x1, y1 },
     { x2, y2 },
-   };
+  };
   
   {
     glUniform4fv(u_color, 1, color);

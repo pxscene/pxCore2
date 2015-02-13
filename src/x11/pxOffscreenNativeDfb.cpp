@@ -36,10 +36,9 @@ pxError pxOffscreen::term()
 pxError pxOffscreenNative::term()
 {
   delete [] data;
+
   data = NULL;
 
   return PX_OK;
 }
-
-
 

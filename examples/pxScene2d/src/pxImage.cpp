@@ -134,8 +134,7 @@ void pxImage::loadImage(rtString url)
 void pxImage::draw() {
     
   checkForCompletedImageDownload();
-  static pxTextureRef nullMaskRef;
-  context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, mXStretch, mYStretch);
+  context.drawImage(0, 0, mw, mh, mTexture, mXStretch, mYStretch);
 }
 
 rtDefineObject(pxImage, pxObject);

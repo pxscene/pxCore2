@@ -8,20 +8,16 @@
 #include "../pxCore.h"
 #include "../pxBuffer.h"
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/keysymdef.h>
-
 class pxOffscreenNative: public pxBuffer
 {
 public:
-    pxOffscreenNative(): image(NULL), data(NULL) {}
+    pxOffscreenNative(): data(NULL) {}
     virtual ~pxOffscreenNative() {}
 
     pxError term();
 
 protected:
-    XImage* image;
+
     char* data;
 };
 

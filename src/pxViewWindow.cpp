@@ -1,6 +1,6 @@
 #include "pxViewWindow.h"
 
-#include "rtLog.h"
+//#include "rtLog.h"
 
 pxError pxViewWindow::view(pxViewRef& v)
 {

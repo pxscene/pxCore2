@@ -121,7 +121,7 @@ public:
 #ifdef PX_PLATFORM_GENERIC_EGL
   inline void rotateInRadians(FloatT angle) {
 #else
-  finline void rotateInRadians(FloatT angle) {
+  inline void rotateInRadians(FloatT angle) {
 #endif
     rotateInRadians(angle, 0, 0, 1);
   }
@@ -129,7 +129,7 @@ public:
 #ifdef PX_PLATFORM_GENERIC_EGL
   inline void rotateInDegrees(FloatT angle) {
 #else
-  finline void rotateInDegrees(FloatT angle) {
+  inline void rotateInDegrees(FloatT angle) {
 #endif
     rotateInRadians(angle * M_PI/180.0, 0, 0, 1);
   }

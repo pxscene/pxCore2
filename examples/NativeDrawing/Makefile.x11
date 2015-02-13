@@ -3,11 +3,12 @@
 
 CFLAGS= -I../../src -DPX_PLATFORM_X11 -Wno-write-strings
 OUTDIR=../../build/x11
+LIBDIR= -L/usr/lib/x86_64-linux-gnu
 
 all: $(OUTDIR)/NativeDrawing
 
 $(OUTDIR)/NativeDrawing: NativeDrawing.cpp 
-	g++ -o $(OUTDIR)/NativeDrawing -Wall $(CFLAGS) NativeDrawing.cpp -L/usr/lib/x86_64/ -lX11 -L$(OUTDIR) -lpxCore -lrt
+	g++ -o $(OUTDIR)/NativeDrawing -Wall $(CFLAGS) NativeDrawing.cpp -L$(LIBDIR) -lX11 -L$(OUTDIR) -lpxCore -lrt
 
 
 
