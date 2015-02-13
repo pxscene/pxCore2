@@ -18,7 +18,7 @@ var apps = scene.createImage({parent:root, sx:0.25, sy:0.25, w:1280, h:720});
 
 for (var i = 0; i < appURLs.length; i++) {
     scene.createScene({url:appURLs[i], parent:apps, 
-                       w:childAppWidth, h:childAppHeight, clip:(i<2),
+                       w:childAppWidth, h:childAppHeight, clip:true,
                        x:((i%childAcross)*(childAppWidth+childPad))+childPad, 
                        y:(Math.floor(i/childAcross)*(childAppHeight+childPad))+childPad});
 }
