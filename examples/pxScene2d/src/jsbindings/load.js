@@ -140,8 +140,8 @@ if (argv.length >= 3) {
     childScene.url = originalURL;
     childScene.parent = scene.root;
     var fpsBg = scene.createRectangle();
-    fpsBg.fillColor = 0x000000ff;
-    fpsBg.lineColor = 0xffff00ff;
+    fpsBg.fillColor = 0x00000030;
+    fpsBg.lineColor = 0xffff0030;
     fpsBg.lineWidth = 3;
     fpsBg.x = fpsBg.y = 10;
     fpsBg.a = 0;
@@ -170,13 +170,13 @@ if (argv.length >= 3) {
 
     scene.on("keydown", function(code, flags) {
         console.log("keydown:", code, ", ", flags);
-        if (code == 89 && (flags | 48)) {  // ctrl-alt-y
-            fpsBg.a = (fpsBg.a==0)?0.6:0;
+        if (code == 89 && (flags & 48)) {  // ctrl-alt-y
+            fpsBg.a = (fpsBg.a==0)?1.0:0;
         }
-        if (code == 79 && (flags | 48)) {  // ctrl-alt-o
+        if (code == 79 && (flags & 48)) {  // ctrl-alt-o
             scene.showOutlines = !scene.showOutlines;
         }
-        else if (code == 82 && (flags | 16)) {  // ctrl-r
+        else if (code == 82 && (flags & 16)) {  // ctrl-r
             console.log("Reloading url: ", originalURL);
             childScene.url = originalURL;
         }
@@ -192,8 +192,8 @@ if (argv.length >= 3) {
     scene.on("keyup", function(code, flags) {
         console.log("keyup:", code, ", ", flags);
         // eat the ones we handle here
-        if (code == 89 && (flags | 48)); // ctrl-alt-y
-        if (code == 79 && (flags | 48)); // ctrl-alt-o
+        if (code == 89 && (flags & 48)); // ctrl-alt-y
+        if (code == 79 && (flags & 48)); // ctrl-alt-o
         else if (code == 82 && (flags | 16));
         else
             childScene.emit("keyup", code, flags);
@@ -201,7 +201,10 @@ if (argv.length >= 3) {
     });
 
     scene.on("onchar", function(c) {
+        //TODO I think we'd like this function to get a string??
         console.log("onchar:", String.fromCharCode(c));
+        if (c>=32)
+            childScene.emit("onchar", String.fromCharCode(c));
     });
 
     scene.on("mousedown", function(x, y) { childScene.emit("mousedown", x, y); });    

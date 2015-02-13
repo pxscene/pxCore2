@@ -111,6 +111,37 @@ void pxObject::animateTo(const char* prop, double to, double duration,
                          rtFunctionRef onEnd)
 #endif
 {
+
+#if 1
+  // If an animation for this property is in progress we cancel it here
+  // we also fastforward the animation if it is of type PX_STOP
+  vector<animation>::iterator it = mAnimations.begin();
+  while (it != mAnimations.end())
+  {
+    animation& a = (*it);
+    printf("scanning for animation to cancel %s\n", a.prop.cString());
+    if (a.prop == prop)
+    {
+      printf("cancelling animation\n");
+      if (a.at == PX_STOP)
+      {
+        printf("fastforward animation\n");
+        // fastforward
+        set(prop, a.to);
+        if (a.ended)
+        {
+          a.ended.send(this);
+        }
+      }
+
+      it = mAnimations.erase(it++);
+      continue;
+    }
+    ++it;
+  }  
+#endif
+  
+  // schedule animation
   animation a;
 
   a.prop     = prop;
@@ -120,15 +151,8 @@ void pxObject::animateTo(const char* prop, double to, double duration,
   a.duration = duration;
   a.interp   = interp?interp:pxInterpLinear;
   a.at       = at;
-#if 0
-  a.ended    = e;
-  a.ctx      = c;
-#else
   a.ended = onEnd;
-#endif
-  
-  animation b;
-  b = a;
+
   mAnimations.push_back(a);
 }
 
@@ -154,11 +178,7 @@ void pxObject::update(double t)
       {
         if (a.ended)
         {
-#if 0
-          a.ended(a.ctx);
-#else
           a.ended.send(this);
-#endif
         }
 
         // Erase making sure to push the iterator forward before
@@ -278,7 +298,8 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
     }
     else
     {
-      draw();
+      if (mw>0.0f && mh>0.0f)
+        draw();
 
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
       {

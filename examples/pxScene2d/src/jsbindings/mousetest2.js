@@ -20,9 +20,13 @@ childText.x = ball.w/2-childText.w/2;
 childText.cx = childText.w/2;
 childText.cy = childText.h/2;
 //childText.animateTo({"r":360}, 1, 0, 2);
-childText.on("mousedown", function() {1
-    childText.animateTo({r:360}, 1.0, 4, 0, function(o) { o.r = 0; }); 
-1});
+var rTarget = 0;
+childText.on("mousedown", function() {
+    // TODO is there a better way to do this??
+    rTarget += 360;
+    childText.animateTo({r:rTarget}, 1.0, 4, 0); 
+//    childText.animateTo({r:360}, 5.0, 4, 0, function(o) { o.r = 0; }); 
+});
 
 // clean up these names and expose as properties off of some object
 var pxInterpLinear = 0;

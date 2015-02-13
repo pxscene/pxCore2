@@ -156,7 +156,7 @@ void pxFace::measureText(const char* text, uint32_t size,  float sx, float sy,
     else
     {
       //h += metrics->height>>6;
-      h += (metrics->height)>>6;
+      h += (metrics->height);
       lw = 0;
     }
     w = pxMax<float>(w, lw);
@@ -248,8 +248,8 @@ pxText::pxText() {
   initFT();
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
-  mPixelSize = defaultPixelSize;
   mFace = gFace;
+  mPixelSize = defaultPixelSize;
 }
 
 rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
