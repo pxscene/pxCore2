@@ -73,9 +73,9 @@ HEADERS += \
 contains(DEFINES,PX_PLATFORM_X11) {
 SOURCES += \
 #    src/x11/pxBufferNative.cpp \
-    src/x11/pxEventLoopNative.cpp \
+#    src/x11/pxEventLoopNative.cpp \
 #    src/x11/pxOffscreenNative.cpp \
-    src/x11/pxTimerNative.cpp \
+#    src/x11/pxTimerNative.cpp \
 #    src/x11/pxWindowNative.cpp
 
 HEADERS += \

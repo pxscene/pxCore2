@@ -115,11 +115,6 @@ unix {
     LIBS += -L./external/curl/lib/.libs -lcurl
 
     LIBS += -L/usr/local/lib -ldirectfb
-   # LIBS += -L../pxCore/build/x11 -lpxCore
+    LIBS += -L../pxCore/build/x11 -lpxCore
 }
 
-
-unix:!macx: LIBS += -L$$PWD/../../../build-pxCore-Desktop_Qt_5_2_1_GCC_64bit-Debug/ -lpxCore
-
-INCLUDEPATH += $$PWD/../../../build-pxCore-Desktop_Qt_5_2_1_GCC_64bit-Debug
-DEPENDPATH += $$PWD/../../../build-pxCore-Desktop_Qt_5_2_1_GCC_64bit-Debug

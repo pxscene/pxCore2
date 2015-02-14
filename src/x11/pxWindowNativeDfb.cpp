@@ -230,7 +230,7 @@ void eventLoop()
     DFBWindowEvent wEvent;
     DFBInputEvent  iEvent;
 
-    if(wbuffer->WaitForEventWithTimeout(wbuffer, 0, 33) == DFB_OK) // timeout in  Milisconds
+    if(wbuffer->WaitForEventWithTimeout(wbuffer, 0, 15) == DFB_FALSE) // 15 ms
     {
       // DFB_CHECK (wbuffer->WaitForEvent(wbuffer));
 
@@ -258,7 +258,7 @@ void eventLoop()
 }
 
 
-void onTimer(int /*v*/)
+void onTimer(int v)
 {
   display();
   // schedule next timer event
@@ -593,7 +593,7 @@ void pxWindow::invalidateRect(pxRect *r)
 
 // This can be improved by collecting the dirty regions and painting
 // when the event loop goes idle
-void pxWindowNative::invalidateRectInternal(pxRect * /*r*/)
+void pxWindowNative::invalidateRectInternal(pxRect *r)
 {
   drawFrame();
 }
@@ -605,8 +605,6 @@ bool pxWindow::visibility()
 
 void pxWindow::setVisibility(bool visible)
 {
-  visible = visible;
-
 #ifdef USE_DFB_WINDOW
   mVisible = visible;
   if (mVisible)
@@ -633,18 +631,17 @@ pxError pxWindow::setAnimationFPS(long fps)
 
 void pxWindow::setTitle(char* title)
 {
-  title = title;
   //glutSetWindowTitle(title);
 }
 
-pxError pxWindow::beginNativeDrawing(pxSurfaceNative& /*s*/)
+pxError pxWindow::beginNativeDrawing(pxSurfaceNative& s)
 {
   //TODO
 
   return PX_OK;
 }
 
-pxError pxWindow::endNativeDrawing(pxSurfaceNative& /*s*/)
+pxError pxWindow::endNativeDrawing(pxSurfaceNative& s)
 {
   //TODO
 
