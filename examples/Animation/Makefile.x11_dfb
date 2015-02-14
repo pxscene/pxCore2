@@ -1,10 +1,8 @@
 # pxCore FrameBuffer Library
 # Simple Example
 
-#CFLAGS= -g -I../../src -I/usr/include/directfb -DPX_PLATFORM_X11 -DENABLE_DFB -Wno-write-strings
-CFLAGS= -g -I../../src -I/usr/local/include/directfb -DPX_PLATFORM_X11 -DENABLE_DFB -Wno-write-strings
+CFLAGS= -g -I../../src -I/usr/include/directfb -DPX_PLATFORM_X11 -DENABLE_DFB -Wno-write-strings
 OUTDIR=../../build/x11
-#LIBDIR= -L/usr/lib/x86_64-linux-gnu -L/usr/local/lib/
 LIBDIR= -L/usr/lib/x86_64-linux-gnu -L/usr/local/lib/
 
 all: $(OUTDIR)/Animation

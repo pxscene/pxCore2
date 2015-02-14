@@ -49,21 +49,21 @@ void pxBuffer::blit(pxSurfaceNative s, int dstLeft, int dstTop,
     return;
   }
 
-  DFBSurfaceDescription dsc;
+  DFBSurfaceDescription dsc2;
 
-  dsc.width  = width();
-  dsc.height = height();
-  dsc.flags  = (DFBSurfaceDescriptionFlags) (DSDESC_HEIGHT | DSDESC_WIDTH | DSDESC_PREALLOCATED | DSDESC_PIXELFORMAT);
-  dsc.caps   = DSCAPS_NONE;
+  dsc2.width  = width();
+  dsc2.height = height();
+  dsc2.flags  = (DFBSurfaceDescriptionFlags) (DSDESC_HEIGHT | DSDESC_WIDTH | DSDESC_PREALLOCATED | DSDESC_PIXELFORMAT);
+  dsc2.caps   = DSCAPS_NONE;
 
-  dsc.pixelformat           = DSPF_ABGR;
-  dsc.preallocated[0].data  = base();      // Buffer is your data
-  dsc.preallocated[0].pitch = width()*4;
-  dsc.preallocated[1].data  = NULL;
-  dsc.preallocated[1].pitch = 0;
+  dsc2.pixelformat           = DSPF_ARGB;
+  dsc2.preallocated[0].data  = base();      // Buffer is your data
+  dsc2.preallocated[0].pitch = width()*4;
+  dsc2.preallocated[1].data  = NULL;
+  dsc2.preallocated[1].pitch = 0;
 
   IDirectFBSurface   *image;
-  DFB_CHECK (s->dfb->CreateSurface( s->dfb, &dsc, &image ));
+  DFB_CHECK (s->dfb->CreateSurface( s->dfb, &dsc2, &image ));
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -83,13 +83,11 @@ void pxBuffer::blit(pxSurfaceNative s, int dstLeft, int dstTop,
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
- // DFB_CHECK (s->surface->Blit(s->surface, image, NULL, dstLeft, dstTop));
-
-  printf("pxBuffer::blit()");
+  //  DFB_CHECK (s->surface->Blit(s->surface, s->, NULL, x, y));
 
   DFB_CHECK (s->surface->StretchBlit(s->surface, image, &rcSrc, &rcDst));
 
- // DFB_CHECK (s->surface->Flip(s->surface, NULL, DSFLIP_WAITFORSYNC));
+  DFB_CHECK (s->surface->Flip (s->surface, NULL, DSFLIP_WAITFORSYNC));
 
   if(image)
   {

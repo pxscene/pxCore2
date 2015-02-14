@@ -1,17 +1,14 @@
 # pxCore FrameBuffer Library
 # Simple Example
 
-CFLAGS= -g -I../../src  -DPX_PLATFORM_X11 -DENABLE_DFB -Wno-write-strings
+CFLAGS= -g -I../../src -I/usr/include/directfb -DPX_PLATFORM_X11 -DENABLE_DFB -Wno-write-strings
 OUTDIR=../../build/x11
-
-INCDIR= -I/usr/include/directfb
 LIBDIR= -L/usr/lib/x86_64-linux-gnu -L/usr/local/lib/
-
 
 all: $(OUTDIR)/Mandelbrot
 
 $(OUTDIR)/Mandelbrot: Mandelbrot.cpp
-	g++ -o $(OUTDIR)/Mandelbrot_dfb -Wall $(INCDIR) $(CFLAGS) Mandelbrot.cpp $(LIBDIR) -lX11 -L$(OUTDIR) -lpxCore -lrt -ldirectfb
+	g++ -o $(OUTDIR)/Mandelbrot_dfb -Wall $(CFLAGS) Mandelbrot.cpp -L$(LIBDIR) -lX11 -L$(OUTDIR) -lpxCore -lrt -ldirectfb
 
 
 

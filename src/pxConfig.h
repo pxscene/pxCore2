@@ -17,7 +17,7 @@
 
 
 #ifndef PX_PLATFORM_GENERIC_EGL
-#define RT_STDCALL // __stdcall
+#define RT_STDCALL __stdcall
 #else
 #define RT_STDCALL
 #endif

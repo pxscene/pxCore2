@@ -16,10 +16,6 @@
 // to this class.
 //
 
-
-enum pxPixelFormatType {PX_PIXEL_FMT_RGBA, PX_PIXEL_FMT_RGB16, PX_PIXEL_FMT_RGB24 , PX_PIXEL_FMT_ARGB, PX_PIXEL_FMT_ABGR };
-
-
 class pxBuffer
 {
 public:
@@ -111,56 +107,6 @@ public:
       }
     }
   }
-
-  pxError swizzleTo(pxPixelFormatType fmt)  // presumes RGBA source format
-  {
-    unsigned char a,r,g,b;
-
-    for (int i = 0; i < height(); i++)
-    {
-      pxPixel*p = scanline(i);
-
-      for (int j = 0; j < width(); j++)
-      {
-        // Read
-        r = p->r;  g = p->g;  b = p->b; a = p->a;
-
-        // Swizzle
-        switch(fmt)
-        {
-          case PX_PIXEL_FMT_RGBA:
-            return PX_FAIL;  // no-op ... native format is RGBA
-
-          case PX_PIXEL_FMT_RGB16:
-            return PX_FAIL;  // TODO: Implement if needed ?
-            break;
-
-          case PX_PIXEL_FMT_RGB24:
-            return PX_FAIL;  // TODO: Implement if needed ?
-            break;
-
-          case PX_PIXEL_FMT_ARGB:
-            p->r = a;  p->g = r; p->b = g; p->a = b;
-            break;
-
-          case PX_PIXEL_FMT_ABGR:
-            p->r = r;  p->g = g; p->b = b;  p->a = a;
-            break;
-
-          default:
-            return PX_FAIL;  // TODO: Implement if needed ?
-            break;
-          //
-        }//SWITCH
-
-        p++;
-      }//FOR - width
-    }// FOR - height
-
-    return PX_OK;
-  }
-
-
 
   void blit(pxSurfaceNative s, int dstLeft, int dstTop,
             int dstWidth, int dstHeight,
