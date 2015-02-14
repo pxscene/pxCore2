@@ -2,6 +2,14 @@
 #include "rtLog.h"
 #include "pxContext.h"
 
+//JUNK
+//#include "pxCore.h"
+//#include "pxOffscreen.h"
+//#include "pxUtil.h"
+//JUNK
+
+
+
 #include <directfb.h>
 
 /* Place holder for a dfb implementation of pxContext */
@@ -206,10 +214,53 @@ public:
     dsc.preallocated[1].data  = NULL;          // Not using a back buffer
     dsc.preallocated[1].pitch = 0;
 
+    //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+    //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+    //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+    //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+#if 0
+
+    pxOffscreen img;
+
+#if 0
+    rt_error retVal = pxLoadImage("logo.png", img);   // Replace
+
+    printf("\n############# pxLoadImage() retVal = %d", retVal);
+
+
+    printf("\n############# pxLoadImage() WxH: %d x %d", img.width(),img.height());
+#else
+    pxColor clr(255,0,0);  // RED
+
+    img.initWithColor(o.width(),o.height(), clr);
+//    img.init(o.width(),o.height());
+
+    printf("\n############# pxLoadImage() rWxH: %d x %d", o.width(),o.height());
+#endif
+
+    dsc.width                 = img.width();
+    dsc.height                = img.height();
+    dsc.flags                 = (DFBSurfaceDescriptionFlags)(DSDESC_HEIGHT | DSDESC_WIDTH | DSDESC_PREALLOCATED | DSDESC_PIXELFORMAT);
+    dsc.caps                  = DSCAPS_NONE;
+    dsc.pixelformat           = DSPF_ARGB;
+    dsc.preallocated[0].data  = img.base();      // Buffer is your data
+    dsc.preallocated[0].pitch = img.width()*4;
+    dsc.preallocated[1].data  = NULL;            // Not using a back buffer
+    dsc.preallocated[1].pitch = 0;
+
+#endif
+    //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+    //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+    //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+    //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+
+
+
     DFB_CHECK (dfb->CreateSurface( dfb, &dsc, &surface));
 
     printf("\n############# this: %p >>  createTexture()  wsurface: %p  surface: %p    WxH: %d x %d - DONE",
            this, wsurface, surface, dsc.width, dsc.height);
+
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -766,6 +817,36 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 //  DFB_CHECK( wsurface->Clear(         wsurface, 0x00, 0x00, 0x00, 0xFF ) );   // Clear to BLACK
 //  DFB_CHECK( wsurface->SetColor(      wsurface, 0x00, 0x00, 0xff, 0xff) );  // Rect in BLUE
 //  DFB_CHECK( wsurface->FillRectangle (wsurface, 0, 0, 55, 55)     );
+
+
+  //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+  //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+  //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+  //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+
+#if 0
+  static IDirectFBSurface *logo = NULL;
+
+  if(logo == NULL)
+  {
+     printf("\n#############  LOADING LOGO !!!");
+
+    DFBSurfaceDescription dsc;
+    IDirectFBImageProvider *provider;
+
+    DFB_CHECK (dfb->CreateImageProvider (dfb,"logo.png", &provider));
+    DFB_CHECK (dfb->CreateSurface( dfb, &dsc, &logo ));
+    DFB_CHECK (provider->RenderTo (provider, logo, NULL));
+    provider->Release (provider);
+  }
+
+  boundSurface = logo;
+#endif
+
+  //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+  //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+  //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+  //JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
 
  // DFB_CHECK( wsurface->Blit(wsurface, boundSurface, NULL, x, y));
 
