@@ -274,7 +274,7 @@ public:
     return mEmit->delListener(eventName, f);
   }
 
-  rtError onReady(rtFunctionRef& f) const
+  rtError onReady(rtFunctionRef& /*f*/) const
   {
     rtLogError("onReady get not implemented\n");
     return RT_OK;

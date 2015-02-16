@@ -304,10 +304,11 @@ rtString ballURL;
 
 rtError onSizeCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* /*context*/)
 {
-  if (numArgs == 2)
+  if (numArgs == 1)
   {
-    int w = args[0].toInt32();
-    int h = args[1].toInt32();
+    rtObjectRef e = args[0].toObject();
+    int w = e.get<uint32_t>("w");
+    int h = e.get<uint32_t>("h");
     bg1.set("w", w);
     bg1.set("h", h);
     bg2.set("w", w);
@@ -318,15 +319,21 @@ rtError onSizeCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* /*
 
 rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* /*context*/)
 {
-  if (numArgs >0)
+  printf("in keydowncb\n");
+  if (numArgs>0)
   {
-    switch(args[0].toInt32()) {
+    rtObjectRef e = args[0].toObject();
+    uint32_t keyCode = e.get<uint32_t>("keyCode");
+    printf("received keyCode %d\n", keyCode);
+    switch(keyCode) {
       // '1'
     case PX_KEY_ONE:
+      printf("banana\n");
       picture.set("url", bananaURL);
       break;
       // '2'
     case PX_KEY_TWO:
+      printf("ball\n");
       picture.set("url", ballURL);
       break;
     default:
@@ -350,8 +357,8 @@ void testScene()
 
   rtObjectRef root = scene.get<rtObjectRef>("root");  
 
-  scene.send("on", "keydown", new rtFunctionCallback(onKeyDownCB));
-  scene.send("on", "resize", new rtFunctionCallback(onSizeCB));
+  scene.send("on", "onKeyDown", new rtFunctionCallback(onKeyDownCB));
+  scene.send("on", "onResize", new rtFunctionCallback(onSizeCB));
 
   rtString bgURL;
   scene.sendReturns<rtObjectRef>("createImage", bg1);

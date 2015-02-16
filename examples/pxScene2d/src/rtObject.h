@@ -56,13 +56,13 @@ class rtObjectBase
 public:
 
   template<typename T>
-    finline rtError get(const char* name, T& value);  
+    rtError get(const char* name, T& value);  
   template<typename T>
-    finline T get(const char* name);
+    T get(const char* name);
   template<typename T>
-    finline rtError get(uint32_t i, T& value);  
+    rtError get(uint32_t i, T& value);  
   template<typename T>
-    finline T get(uint32_t i);
+    T get(uint32_t i);
 
   void set(rtObjectRef o);
 
@@ -861,12 +861,12 @@ class rtMapObject: public rtObject {
     return RT_PROP_NOT_FOUND;
   }
 
-  virtual rtError Get(uint32_t i, rtValue* value)
+  virtual rtError Get(uint32_t /*i*/, rtValue* /*value*/)
   {
     return RT_PROP_NOT_FOUND;
   }
 
-  virtual rtError Set(uint32_t i, const rtValue* value)
+  virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/)
   {
     return RT_PROP_NOT_FOUND;
   }

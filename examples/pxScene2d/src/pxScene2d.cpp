@@ -490,30 +490,35 @@ void pxScene2d::init()
 rtError pxScene2d::createRectangle(rtObjectRef& o)
 {
   o = new pxRectangle;
+  o.send("init");
   return RT_OK;
 }
 
 rtError pxScene2d::createText(rtObjectRef& o)
 {
   o = new pxText;
+  o.send("init");
   return RT_OK;
 }
 
 rtError pxScene2d::createImage(rtObjectRef& o)
 {
   o = new pxImage;
+  o.send("init");
   return RT_OK;
 }
 
 rtError pxScene2d::createImage9(rtObjectRef& o)
 {
   o = new pxImage9;
+  o.send("init");
   return RT_OK;
 }
 
 rtError pxScene2d::createScene(rtObjectRef& o)
 {
   o = new pxScene();
+  o.send("init");
   return RT_OK;
 }
 
