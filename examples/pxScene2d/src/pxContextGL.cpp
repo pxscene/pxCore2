@@ -64,7 +64,7 @@ static const char *fShaderText =
   "  gl_FragColor = textureColor;\n"
   "} else {\n"
   // text
-  "gl_FragColor = vec4(a_color.r, a_color.g, a_color.b, texture2D(s_texture, v_uv).a*a_color.a);"
+ "gl_FragColor = vec4(a_color.r, a_color.g, a_color.b, texture2D(s_texture, v_uv).a*a_color.a);"
   "}\n"
   "gl_FragColor.a *= u_alpha;"
 #else
@@ -672,8 +672,10 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   };
 
   {
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 
+		    (xStretch==PX_REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 
+		    (yStretch==PX_REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
     glUniform4fv(u_color, 1, color);
     glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
     glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);

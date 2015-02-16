@@ -630,7 +630,6 @@ void pxScene2d::onMouseDown(int x, int y, unsigned long flags)
     mEmit.send("onMouseDown", e);
   }
   {
-    printf("looking for hit\n");
     //Looking for an object
     pxMatrix4f m;
     pxPoint2f pt;
@@ -640,7 +639,6 @@ void pxScene2d::onMouseDown(int x, int y, unsigned long flags)
     if (mRoot->hitTestInternal(m, pt, hit))
     {
       rtString id = hit->get<rtString>("id");
-      printf("found hit %s\n", id.cString());
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseDown");
       e.set("x", 0);
