@@ -59,6 +59,8 @@ struct pxMouseEvent
     {
       pxMouseButton button;
       pxKeyState state;
+      int x;
+      int y;
     } button;
   };
 };
@@ -70,6 +72,9 @@ struct pxInputDeviceEventProvider
 {
   // call this first after instantiation
   virtual void init() = 0;
+
+  // This should break any thread from a call to next()
+  virtual void stop() = 0;
 
   // call while (true) on this in a dedicated thread. The callbacks
   // get dispatched in the context of the calling thread.

@@ -6,14 +6,12 @@
 
 struct pxEGLProvider
 {
+  virtual ~pxEGLProvider() { }
   virtual pxError initWithDefaults(int width, int height) = 0;
   virtual pxError init() = 0;
   virtual pxError createDisplay(EGLDisplay* display) = 0;
   virtual pxError createSurface(EGLDisplay display, const EGLConfig& config, EGLSurface* surface) = 0;
   virtual pxError createContext(EGLDisplay display, const EGLConfig& config, EGLContext* context) = 0;
 };
-
-pxEGLProvider* pxCreateEGLProvider();
-void pxDestroyEGLProvider(pxEGLProvider* provider);
 
 #endif
