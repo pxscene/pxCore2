@@ -416,14 +416,12 @@ void pxObject::createMask()
   
   if (mMaskUrl.length() > 0)
   {
-    printf("loading mask\n");
     // TODO add a pxTexture object and use that instead of pxImage
     // TODO This only works if the image load is synchronous
     rtRefT<pxImage> i = new pxImage;
     i->send("init");
     i->setURL(mMaskUrl.cString());
     mMaskTextureRef = i->getTexture();
-    printf("mask texture %p\n", mMaskTextureRef.getPtr());
   }
 }
 
@@ -628,10 +626,11 @@ void pxScene2d::onMouseDown(int x, int y, unsigned long flags)
     e.set("name", "onMouseDown");
     e.set("x", x);
     e.set("y", y);
-    e.set("flags", flags);
+    e.set("flags", (uint32_t)flags);
     mEmit.send("onMouseDown", e);
   }
   {
+    printf("looking for hit\n");
     //Looking for an object
     pxMatrix4f m;
     pxPoint2f pt;
@@ -640,6 +639,8 @@ void pxScene2d::onMouseDown(int x, int y, unsigned long flags)
     
     if (mRoot->hitTestInternal(m, pt, hit))
     {
+      rtString id = hit->get<rtString>("id");
+      printf("found hit %s\n", id.cString());
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseDown");
       e.set("x", 0);
