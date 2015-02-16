@@ -101,18 +101,16 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
 }
 #endif
 
-#if 0
-void pxObject::animateTo(const char* prop, double to, double duration, 
-                         pxInterp interp, pxAnimationType at,
-                         pxAnimationEnded e, void* c)
-#else
-void pxObject::animateTo(const char* prop, double to, double duration, 
-                         pxInterp interp, pxAnimationType at,
-                         rtFunctionRef onEnd)
-#endif
+// Dont fastforward when calling from set* methods since that will
+// recurse indefinitely and crash and we're going to change the value in
+// the set* method anyway.
+void pxObject::cancelAnimation(const char* prop, bool fastforward)
 {
+  // TODO we need to fix the threading issues so that we can call this from set*...
+  // a different thread
+  if (!fastforward)
+    return;
 
-#if 1
   // If an animation for this property is in progress we cancel it here
   // we also fastforward the animation if it is of type PX_STOP
   vector<animation>::iterator it = mAnimations.begin();
@@ -124,19 +122,26 @@ void pxObject::animateTo(const char* prop, double to, double duration,
       if (a.at == PX_STOP)
       {
         // fastforward
-        set(prop, a.to);
+        if (fastforward)
+	  set(prop, a.to);
         if (a.ended)
         {
           a.ended.send(this);
         }
       }
-
-      it = mAnimations.erase(it++);
-      continue;
+      it = mAnimations.erase(it);
     }
-    ++it;
+    else
+      ++it;
   }  
-#endif
+
+}
+
+void pxObject::animateTo(const char* prop, double to, double duration, 
+                         pxInterp interp, pxAnimationType at,
+                         rtFunctionRef onEnd)
+{
+  cancelAnimation(prop, true);
   
   // schedule animation
   animation a;
@@ -168,7 +173,8 @@ void pxObject::update(double t)
     // if duration has elapsed
     if (t >= end)
     {
-
+      // TODO this sort of blows since this triggers another
+      // animation traversal to cancel animations
       set(a.prop, a.to);
 
       if (a.at == PX_STOP)
@@ -179,7 +185,7 @@ void pxObject::update(double t)
         }
 
         // Erase making sure to push the iterator forward before
-        it = mAnimations.erase(it++);
+        it = mAnimations.erase(it);
         continue;
       }
 #if 0
@@ -230,9 +236,10 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
   // TODO consistent behavior between clipping and no clipping when z is in use
 
   parentAlpha = parentAlpha * ma;
+#if 0
   if (parentAlpha < alphaEpsilon)
     return;  // trivial reject for objects that are transparent
-
+#endif
 #if 1
 #if 1
   // translate based on xy rotate/scale based on cx, cy
@@ -295,7 +302,8 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
     }
     else
     {
-      if (mw>0.0f && mh>0.0f)
+
+      //      if (mw>0.0f && mh>0.0f)
         draw();
 
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -408,9 +416,14 @@ void pxObject::createMask()
   
   if (mMaskUrl.length() > 0)
   {
-    pxImage image;
-    image.setURL(mMaskUrl.cString());
-    mMaskTextureRef = image.getTexture();
+    printf("loading mask\n");
+    // TODO add a pxTexture object and use that instead of pxImage
+    // TODO This only works if the image load is synchronous
+    rtRefT<pxImage> i = new pxImage;
+    i->send("init");
+    i->setURL(mMaskUrl.cString());
+    mMaskTextureRef = i->getTexture();
+    printf("mask texture %p\n", mMaskTextureRef.getPtr());
   }
 }
 
@@ -451,6 +464,7 @@ rtDefineMethod(pxObject, animateTo2);
 rtDefineMethod(pxObject, addListener);
 rtDefineMethod(pxObject, delListener);
 rtDefineProperty(pxObject, emit);
+rtDefineProperty(pxObject, onReady);
 
 pxScene2d::pxScene2d()
  :start(0),frameCount(0) 
@@ -557,11 +571,14 @@ void pxScene2d::onDraw()
   {
     end2 = pxSeconds();
 
-    // I want this always on for now
     double fps = (double)frameCount/(end2-start);
     printf("%f fps\n", fps);
-    mEmit.send("fps", fps);
-
+    // TODO FUTURES... might be nice to have "struct" style object's that get copied
+    // at the interop layer so we don't get remoted calls back to the render thread
+    // for accessing the values (events would be the primary usecase)
+    rtObjectRef e = new rtMapObject;
+    e.set("fps", fps);
+    mEmit.send("onFPS", e);
     start = end2;
     frameCount = 0;
   }
@@ -586,19 +603,95 @@ pxObject* pxScene2d::getRoot() const
 
 void pxScene2d::onSize(int w, int h)
 {
-  //  glViewport(0, 0, (GLint)w, (GLint)h);
   context.setSize(w, h);
 
   mWidth  = w;
   mHeight = h;
 
-  mEmit.send("resize", w, h);
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onResize");
+  e.set("w", w);
+  e.set("h", h);
+  mEmit.send("onResize", e);
 }
 
 void pxScene2d::onMouseDown(int x, int y, unsigned long flags)
 {
-  mEmit.send("mousedown", x, y, (uint64_t)flags);
+  {
+    // Send to root scene in global window coordinates
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseDown");
+    e.set("x", x);
+    e.set("y", y);
+    e.set("flags", flags);
+    mEmit.send("onMouseDown", e);
+  }
+  {
+    //Looking for an object
+    pxMatrix4f m;
+    pxPoint2f pt;
+    pt.x = x; pt.y = y;
+    rtRefT<pxObject> hit;
+    
+    if (mRoot->hitTestInternal(m, pt, hit))
+    {
+      rtObjectRef e = new rtMapObject;
+      e.set("name", "onMouseDown");
+      e.set("x", 0);
+      e.set("y", 0);
+      hit->mEmit.send("onMouseDown", e);
+    }
+  }
+}
 
+void pxScene2d::onMouseUp(int x, int y, unsigned long flags)
+{
+  {
+    // Send to root scene in global window coordinates
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseUp");
+    e.set("x", x);
+    e.set("y", y);
+    e.set("flags", flags);
+    mEmit.send("onMouseUp", e);
+  }
+  {
+    //Looking for an object
+    pxMatrix4f m;
+    pxPoint2f pt;
+    pt.x = x; pt.y = y;
+    rtRefT<pxObject> hit;
+    
+    if (mRoot->hitTestInternal(m, pt, hit))
+    {
+      rtObjectRef e = new rtMapObject;
+      e.set("name", "onMouseUp");
+      e.set("x", 0);
+      e.set("y", 0);
+      hit->mEmit.send("onMouseUp", e);
+    }
+  }
+}
+
+void pxScene2d::onMouseLeave()
+{
+  mEmit.send("onMouseLeave");
+}
+
+void pxScene2d::onMouseMove(int x, int y)
+{
+  {
+  // Send to root scene in global window coordinates
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onMouseMove");
+  e.set("x", x);
+  e.set("y", y);
+  mEmit.send("onMouseMove", e);
+  }
+#if 0
+  // This probably won't stay ... we can probably send onMouseMove to the child scene level
+  // rather than the object... we can send objects enter/leave events
+  // and we can send drag events to objects that are being drug... 
   //Looking for an object
   pxMatrix4f m;
   pxPoint2f pt;
@@ -607,24 +700,12 @@ void pxScene2d::onMouseDown(int x, int y, unsigned long flags)
 
   if (mRoot->hitTestInternal(m, pt, hit))
   {
-    hit->mEmit.send("mousedown");
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseMove");
+    e.set("data", "hello");
+    hit->mEmit.send("onMouseMove",e);
   }
-}
-
-void pxScene2d::onMouseUp(int x, int y, unsigned long flags)
-{
-  mEmit.send("mouseup", x, y, (uint64_t)flags);
-}
-
-void pxScene2d::onMouseLeave()
-{
-  mEmit.send("mouseleave");
-}
-
-void pxScene2d::onMouseMove(int x, int y)
-{
-  mEmit.send("mousemove", x, y);
-
+#endif
 #if 0
   //Looking for an object
   pxMatrix4f m;
@@ -640,19 +721,34 @@ void pxScene2d::onMouseMove(int x, int y)
 #endif
 }
 
-void pxScene2d::onKeyDown(int keycode, unsigned long flags) 
+void pxScene2d::onKeyDown(int keyCode, unsigned long flags) 
 {
-  mEmit.send("keydown", keycode, (int)flags);
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onKeyDown");
+  e.set("keyCode", keyCode);
+  e.set("flags", (uint32_t)flags);
+  mEmit.send("onKeyDown",e);
 }
 
-void pxScene2d::onKeyUp(int keycode, unsigned long flags)
+void pxScene2d::onKeyUp(int keyCode, unsigned long flags)
 {
-  mEmit.send("keyup", keycode, (int)flags);
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onKeyUp");
+  e.set("keyCode", keyCode);
+  e.set("flags",(uint32_t)flags);
+  mEmit.send("onKeyUp",e);
 }
 
+//TODO not utf8 friendly
 void pxScene2d::onChar(char c)
 {
-  mEmit.send("onchar", c);
+  // char buffer[32];
+  //sprintf(buffer, "%c", c);
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onChar");
+  //e.set("char", buffer);
+  e.set("charCode", (uint32_t)c);
+  mEmit.send("onChar",e);
 }
 
 rtError pxScene2d::showOutlines(bool& v) const 
@@ -765,6 +861,7 @@ rtError pxInnerScene::createRectangle(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxRectangle;
   o.set(p);
+  o.send("init");
   return RT_OK;
 }
 
@@ -772,6 +869,7 @@ rtError pxInnerScene::createText(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxText;
   o.set(p);
+  o.send("init");
   return RT_OK;
 }
 
@@ -779,6 +877,7 @@ rtError pxInnerScene::createImage(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImage;
   o.set(p);
+  o.send("init");
   return RT_OK;
 }
 
@@ -786,6 +885,7 @@ rtError pxInnerScene::createImage9(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImage9;
   o.set(p);
+  o.send("init");
   return RT_OK;
 }
 
@@ -793,6 +893,7 @@ rtError pxInnerScene::createScene(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxScene();
   o.set(p);
+  o.send("init");
   return RT_OK;
 }
 

@@ -71,12 +71,12 @@ function scale3(p) {
 
 fancy(ball);
 
-scene.on('keydown', function(code, flags) {
-  console.log("keydown:" + code);
+scene.on('onKeyDown', function(e) {
+  console.log("keydown:" + e.keyCode);
 });
 
-scene.on("mousemove", function(x, y) {
-    txt1.text = "" + x+ ", " + y;
+scene.on("onMouseMove", function(e) {
+    txt1.text = "" + e.x+ ", " + e.y;
 });
 
 function updateSize(w, h) {
@@ -87,5 +87,5 @@ function updateSize(w, h) {
     txt1.y = h-txt1.h;
 }
 
-scene.on("resize", updateSize);
+scene.on("onResize", function(e){updateSize(e.w,e.h);});
 updateSize(scene.w, scene.h);

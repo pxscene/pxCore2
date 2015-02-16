@@ -26,8 +26,8 @@ for (var i = 0; i < appURLs.length; i++) {
 
 //apps.painting=false;
 
-scene.on('keydown', function(code, flags) {
-  console.log("keydown:" + code);
+scene.on('onKeydown', function(e) {
+  console.log("keydown:" + e.keyCode);
 });
 
 /*
@@ -43,5 +43,5 @@ function updateSize(w, h) {
     bgShade.h = h;
 }
 
-scene.on("resize", updateSize);
+scene.on("onResize", function(e){updateSize(e.w,e.h);});
 updateSize(scene.w, scene.h);

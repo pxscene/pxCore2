@@ -134,15 +134,15 @@ void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
     CURL *curl_handle = NULL;
     CURLcode res = CURLE_OK;
     
-    bool useProxy = !downloadRequest->getProxy().empty();
-    string proxyServer = downloadRequest->getProxy();
+    bool useProxy = !downloadRequest->getProxy().isEmpty();
+    rtString proxyServer = downloadRequest->getProxy();
 
     MemoryStruct chunk;
 
     curl_handle = curl_easy_init();
 
     /* specify URL to get */
-    curl_easy_setopt(curl_handle, CURLOPT_URL, downloadRequest->getImageUrl().c_str());
+    curl_easy_setopt(curl_handle, CURLOPT_URL, downloadRequest->getImageURL().cString());
     curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1); //when redirected, follow the redirections
     curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, HeaderCallback);
     curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)&chunk);
@@ -163,7 +163,7 @@ void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
     if (useProxy)
 
     {
-        curl_easy_setopt(curl_handle, CURLOPT_PROXY, proxyServer.c_str());
+        curl_easy_setopt(curl_handle, CURLOPT_PROXY, proxyServer.cString());
         curl_easy_setopt(curl_handle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
     }
 
@@ -175,7 +175,7 @@ void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
     /* check for errors */
     if (res != CURLE_OK) 
     {
-        stringstream errorStringStream;
+#if 0
         errorStringStream << "download error: " << res << 
                 " using proxy: ";
         if (useProxy)
@@ -186,7 +186,9 @@ void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
         {
             errorStringStream << "false";
         }
-        downloadRequest->setErrorString(errorStringStream.str());
+#endif
+        
+        downloadRequest->setErrorString("download error");
 
         curl_easy_cleanup(curl_handle);
         

@@ -77,7 +77,7 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
       }
       else {
         try {
-          app = vm.runInNewContext(code, sandbox);
+          app = vm.runInNewContext(code, sandbox,{displayErrors:true});
           // TODO do the old scenes context get released when we reload a scenes url??
             
 //            scene.ctx = app;
@@ -160,16 +160,18 @@ if (argv.length >= 3) {
         childScene.h = h;
     }
 
-    scene.on("fps", function(fps) { 
+    scene.on("onFPS", function(e) { 
         if(fpsBg.a) {
-            fpsCounter.text = ""+Math.floor(fps)+"fps"; 
+            fpsCounter.text = ""+Math.floor(e.fps)+"fps"; 
             fpsBg.w = fpsCounter.w+16;
             fpsBg.h = fpsCounter.h;
         }
     });
 
-    scene.on("keydown", function(code, flags) {
-        console.log("keydown:", code, ", ", flags);
+    scene.on("onKeyDown", function(e) {
+console.log("in onKeyDown");
+	var code = e.keyCode; var flags = e.flags;
+        console.log("onKeyDown:", code, ", ", flags);
         if (code == 89 && (flags & 48)) {  // ctrl-alt-y
             fpsBg.a = (fpsBg.a==0)?1.0:0;
         }
@@ -186,34 +188,42 @@ if (argv.length >= 3) {
 //            var args = ["keydown"];
 //            args.splice(0,0,[].slice.call(arguments));
 //            childScene.emit.apply(args);
-            childScene.emit("keydown", code, flags);
+            childScene.emit(e.name, e);
         }
     });
-    scene.on("keyup", function(code, flags) {
-        console.log("keyup:", code, ", ", flags);
+    scene.on("onKeyUp", function(e) {
+console.log("in onKeyUp");
+	var code = e.keyCode; var flags = e.flags;
+        console.log("onKeyUp:", code, ", ", flags);
         // eat the ones we handle here
         if (code == 89 && (flags & 48)); // ctrl-alt-y
         if (code == 79 && (flags & 48)); // ctrl-alt-o
         else if (code == 82 && (flags | 16));
         else
-            childScene.emit("keyup", code, flags);
+            childScene.emit(e.name,e);
         
     });
 
-    scene.on("onchar", function(c) {
+    scene.on("onChar", function(e) {
+console.log("in onchar");
+	var c = e.charCode;
         //TODO I think we'd like this function to get a string??
-        console.log("onchar:", String.fromCharCode(c));
+        console.log("onChar:", c);
+	// TODO eating some "undesired" chars for now... need to redo this
         if (c>=32)
-            childScene.emit("onchar", String.fromCharCode(c));
+            childScene.emit("onChar", String.fromCharCode(c));
     });
 
-    scene.on("mousedown", function(x, y) { childScene.emit("mousedown", x, y); });    
-    scene.on("mouseup", function(x, y) { childScene.emit("mouseup", x, y); });    
-    scene.on("mousemove", function(x, y) { childScene.emit("mousemove", x, y); });
-    scene.on("mouseenter", function() { childScene.emit("mouseenter"); });
-    scene.on("mouseleave", function() { childScene.emit("mouseleave"); });
+    // TODO we'll probably move all mouse event dispatching to the scenegraph??
+    // just something to play with for now... 
+    scene.on("onMouseDown",  function(e) { childScene.emit(e.name, e);});    
+    scene.on("onMouseUp",    function(e) { childScene.emit(e.name, e);});    
+    scene.on("onMouseMove",  function(e) { childScene.emit(e.name, e);});
+    scene.on("onMouseEnter", function(e) { childScene.emit(e.name, e);});
+    scene.on("onMouseLeave", function(e) { childScene.emit(e.name, e);});
 
-    scene.on("resize", updateSize);
+    // TODO if I log out event object e... there is extra stuff??
+    scene.on("onResize", function(e) { updateSize(e.w, e.h);});
     updateSize(scene.w, scene.h);
 }
 else

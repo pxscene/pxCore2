@@ -32,27 +32,20 @@ function randomInt(from, to) {
 	return Math.round(Math.random()*range + from);
 }
 
-function set(o, p) {
-    for (var name in p) {
-        if (p.hasOwnProperty(name)) {
-            o[name] = p[name];
-        }    
-    }
-}
-
 function getImageURL() {
-    if (false) {
+    if (true) {
         var urls = [
-	          "http://farm4.static.flickr.com/3307/5767175230_b5d2bf2312_z.jpg",
-	          "http://farm6.static.flickr.com/5263/5793867021_3e1d5d3aae_z.jpg",
-	          "http://farm3.static.flickr.com/2454/3594278573_500f415e39_z.jpg",
-	          "http://farm3.static.flickr.com/2415/2087329111_dd29709847.jpg"
+	    "http://farm4.static.flickr.com/3307/5767175230_b5d2bf2312_z.jpg",
+	    "http://farm6.static.flickr.com/5263/5793867021_3e1d5d3aae_z.jpg",
+	    "http://farm3.static.flickr.com/2454/3594278573_500f415e39_z.jpg",
+	    "http://farm3.static.flickr.com/2415/2087329111_dd29709847.jpg"
 	      ];
         return urls[randomInt(0,urls.length-1)];
     }
     else {
         var urls = [
-	          "flower1.jpg",
+	    	          "flower1.jpg",
+	    	          "flower1.jpg",
 	          "flower2.jpg",
 	          "flower3.jpg",
 	          "dolphin.jpg",
@@ -128,7 +121,7 @@ function updateSize(w, h) {
     txt1.y = h-txt1.h;
 }
 
-scene.on("resize", updateSize);
+scene.on("onResize", function(e){updateSize(e.w,e.h);});
 updateSize(scene.w, scene.h);
 
 

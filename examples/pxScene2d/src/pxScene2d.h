@@ -98,6 +98,7 @@ public:
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
+  rtProperty(onReady, onReady, setOnReady, rtFunctionRef);
 
   rtReadOnlyProperty(emit, emit, rtFunctionRef);
 
@@ -155,43 +156,43 @@ public:
 
   float x()             const { return mx; }
   rtError x(float& v)   const { v = mx; return RT_OK;   }
-  rtError setX(float v)       { mx = v; return RT_OK;   }
+  rtError setX(float v)       { cancelAnimation("x"); mx = v; return RT_OK;   }
   float y()             const { return my; }
   rtError y(float& v)   const { v = my; return RT_OK;   }
-  rtError setY(float v)       { my = v; return RT_OK;   }
+  rtError setY(float v)       { cancelAnimation("y"); my = v; return RT_OK;   }
   float w()             const { return mw; }
   rtError w(float& v)   const { v = mw; return RT_OK;   }
-  rtError setW(float v)       { mw = v; return RT_OK;   }
+  rtError setW(float v)       { cancelAnimation("w"); mw = v; return RT_OK;   }
   float h()             const { return mh; }
   rtError h(float& v)   const { v = mh; return RT_OK;   }
-  rtError setH(float v)       { mh = v; return RT_OK;   }
+  rtError setH(float v)       { cancelAnimation("h"); mh = v; return RT_OK;   }
   float cx()            const { return mcx;}
   rtError cx(float& v)  const { v = mcx; return RT_OK;  }
-  rtError setCX(float v)      { mcx = v; return RT_OK;  }
+  rtError setCX(float v)      { cancelAnimation("cx"); mcx = v; return RT_OK;  }
   float cy()            const { return mcy;}
   rtError cy(float& v)  const { v = mcy; return RT_OK;  }
-  rtError setCY(float v)      { mcy = v; return RT_OK;  }
+  rtError setCY(float v)      { cancelAnimation("cy"); mcy = v; return RT_OK;  }
   float sx()            const { return msx;}
   rtError sx(float& v)  const { v = msx; return RT_OK;  }
-  rtError setSX(float v)      { msx = v; return RT_OK;  }
+  rtError setSX(float v)      { cancelAnimation("sx"); msx = v; return RT_OK;  }
   float sy()            const { return msy;}
   rtError sy(float& v)  const { v = msx; return RT_OK;  } 
-  rtError setSY(float v)      { msy = v; return RT_OK;  }
+  rtError setSY(float v)      { cancelAnimation("sy"); msy = v; return RT_OK;  }
   float a()             const { return ma; }
   rtError a(float& v)   const { v = ma; return RT_OK;   }
-  rtError setA(float v)       { ma = v; return RT_OK;   }
+  rtError setA(float v)       { cancelAnimation("a"); ma = v; return RT_OK;   }
   float r()             const { return mr; }
   rtError r(float& v)   const { v = mr; return RT_OK;   }
-  rtError setR(float v)       { mr = v; return RT_OK;   }
+  rtError setR(float v)       { cancelAnimation("r"); mr = v; return RT_OK;   }
   float rx()            const { return mrx;}
   rtError rx(float& v)  const { v = mrx; return RT_OK;  }
-  rtError setRX(float v)      { mrx = v; return RT_OK;  }
+  rtError setRX(float v)      { cancelAnimation("rx"); mrx = v; return RT_OK;  }
   float ry()            const { return mry;}
   rtError ry(float& v)  const { v = mry; return RT_OK;  }
-  rtError setRY(float v)      { mry = v; return RT_OK;  }
+  rtError setRY(float v)      { cancelAnimation("ry"); mry = v; return RT_OK;  }
   float rz()            const { return mrz;}
   rtError rz(float& v)  const { v = mrz; return RT_OK;  }
-  rtError setRZ(float v)      { mrz = v; return RT_OK;  }
+  rtError setRZ(float v)      { cancelAnimation("rz"); mrz = v; return RT_OK;  }
   bool painting()            const { return mPainting;}
   rtError painting(bool& v)  const { v = mPainting; return RT_OK;  }
   rtError setPainting(bool v)
@@ -261,6 +262,8 @@ public:
     animateTo(prop, to, duration, interp, at, rtFunctionRef());
   }  
 
+  void cancelAnimation(const char* prop, bool fastforward = false);
+
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
     return mEmit->addListener(eventName, f);
@@ -269,6 +272,19 @@ public:
   rtError delListener(rtString  eventName, const rtFunctionRef& f)
   {
     return mEmit->delListener(eventName, f);
+  }
+
+  rtError onReady(rtFunctionRef& f) const
+  {
+    rtLogError("onReady get not implemented\n");
+    return RT_OK;
+  }
+
+  // TODO why does this have to be const
+  rtError setOnReady(const rtFunctionRef& f)
+  {
+    mEmit->setListener("onReady", f);
+    return RT_OK;
   }
 
   virtual void update(double t);
@@ -466,14 +482,22 @@ public:
   rtError setW(float v) 
   {
     mWidth = v; 
-    mEmit.send("resize", mWidth, mHeight);
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onResize");
+    e.set("w", mWidth);
+    e.set("h", mHeight);
+    mEmit.send("onResize", e);
     return RT_OK; 
   }
 
   rtError setH(float v) 
   { 
     mHeight = v; 
-    mEmit.send("resize", mWidth, mHeight);
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onResize");
+    e.set("w", mWidth);
+    e.set("h", mHeight);
+    mEmit.send("onResize", e);
     return RT_OK; 
   }
 

@@ -397,6 +397,8 @@ rtError rtValue::getDouble(double& v) const {
     case RT_uint8_tType: v = (double)mValue.uint8Value; break;
     case RT_int32_tType: v = (double)mValue.int32Value; break;
     case RT_uint32_tType: v = (double)mValue.uint32Value; break;
+    case RT_int64_tType: v = (double)mValue.int64Value; break;
+    case RT_uint64_tType: v = (double)mValue.uint64Value; break;
     case RT_floatType: v = (double)mValue.floatValue; break;
 //    case RT_doubleType: break;
     case RT_stringType: 

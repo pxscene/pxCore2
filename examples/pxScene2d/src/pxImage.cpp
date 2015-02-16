@@ -38,11 +38,21 @@ void pxImageDownloadComplete(pxImageDownloadRequest* imageDownloadRequest)
   }
 }
 
+void pxImage::onInit()
+{
+  setURL(mURL);
+}
+
 rtError pxImage::url(rtString& s) const { s = mURL; return RT_OK; }
 rtError pxImage::setURL(const char* s) 
 { 
   mURL = s;
-  loadImage(mURL);
+  if (!s) 
+    return RT_OK;
+  if (mInitialized)
+    loadImage(mURL);
+  else
+    rtLogDebug("Deferring image load until pxImage is initialized.");
   return RT_OK;
 }
 
@@ -61,31 +71,44 @@ void pxImage::checkForCompletedImageDownload()
       mImageDownloadMutex.lock();
       if (mImageDownloadIsAvailable)
       {
-        if (mImageDownloadRequest != NULL && mImageDownloadRequest->getDownloadStatusCode() == 0)
+        
+        if (mImageDownloadRequest != NULL && 
+            mImageDownloadRequest->getDownloadStatusCode() == 0)
         {
           pxOffscreen imageOffscreen;
           if (pxLoadImage(mImageDownloadRequest->getDownloadedData(),
-                          mImageDownloadRequest->getDownloadedDataSize(), imageOffscreen) != RT_OK)
+                          mImageDownloadRequest->getDownloadedDataSize(), 
+                          imageOffscreen) != RT_OK)
           {
             rtLogWarn("image load failed"); // TODO: why?
           }
           else
           {
             mTexture = context.createTexture(imageOffscreen);
+	    // TODO... tried to access url from mImageDownloadRequest and
+	    // it seemed to be coming back NULL.. switched to using mURL for now
+            gTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(), 
+                                                             mTexture));
             rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
           }
         }
         else
-        {
-            rtLogWarn("image download failed"); // TODO: why? what happened?
+          rtLogWarn("image download failed"); // TODO: why? what happened?
 
-        }
         delete mImageDownloadRequest;
         mImageDownloadRequest = NULL;
         mImageDownloadIsAvailable = false;
         mWaitingForImageDownload = false;
-        mw = mTexture->width();
-        mh = mTexture->height();
+        if (mAutoSize)
+        {
+          mw = mTexture->width();
+          mh = mTexture->height();
+        }
+        // send after width and height have been set
+	rtObjectRef e = new rtMapObject;
+	e.set("name", "onReady");
+	e.set("target", this);
+        mEmit.send("onReady", e);
       }
       mImageDownloadMutex.unlock();
     }
@@ -93,28 +116,36 @@ void pxImage::checkForCompletedImageDownload()
 
 void pxImage::loadImage(rtString url)
 {
-  //todo - make case insensitive
-  char* s = url.cString();
-  const char *result = strstr(s, "http");
-  int position = result - s;
-  if (position == 0 && strlen(s) > 0)
+  TextureMap::iterator it = gTextureCache.find(url);
+  if (it != gTextureCache.end())
   {
-    pxImageDownloadRequest* downloadRequest = new pxImageDownloadRequest(s, this);
-    downloadRequest->setCallbackFunction(pxImageDownloadComplete);
-    pxImageDownloader::getInstance()->addToDownloadQueue(downloadRequest);
-    
-    mWaitingForImageDownload = true;
-  }
-  else 
-  {
-    TextureMap::iterator it = gTextureCache.find(url);
-    if (it != gTextureCache.end())
+    mTexture = it->second;
+    if (mAutoSize)
     {
-      mTexture = it->second;
+      mw = mTexture->width();
+      mh = mTexture->height();
     }
-    else
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onReady");
+    e.set("target", this);
+    mEmit.send("onReady", e);
+  }
+  else
+  {
+    rtLogInfo("Image texture cache miss");
+    char* s = url.cString();
+    const char *result = strstr(s, "http");
+    int position = result - s;
+    if (position == 0 && strlen(s) > 0)
     {
-      rtLogInfo("image texture cache miss");
+      mWaitingForImageDownload = true;
+      pxImageDownloadRequest* downloadRequest = 
+        new pxImageDownloadRequest(s, this);
+      downloadRequest->setCallbackFunction(pxImageDownloadComplete);
+      pxImageDownloader::getInstance()->addToDownloadQueue(downloadRequest);
+    }
+    else 
+    {
       pxOffscreen imageOffscreen;
       if (pxLoadImage(s, imageOffscreen) != RT_OK)
         rtLogWarn("image load failed"); // TODO: why?
@@ -124,15 +155,22 @@ void pxImage::loadImage(rtString url)
         gTextureCache.insert(pair<rtString,pxTextureRef>(s, mTexture));
         rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
       }
+      if (mAutoSize)
+      {
+        mw = mTexture->width();
+        mh = mTexture->height();
+      }
+      rtObjectRef e = new rtMapObject;
+      e.set("name", "onReady");
+      e.set("target", this);
+      mEmit.send("onReady", e);
     }
   }
-
-  mw = mTexture->width();
-  mh = mTexture->height();
 }
 
 void pxImage::draw() {
-    
+  // TODO doing this check here prevents a couple of optimizations
+  // need to move this out to some global thread queue... 
   checkForCompletedImageDownload();
   static pxTextureRef nullMaskRef;
   context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, mXStretch, mYStretch);
@@ -142,4 +180,5 @@ rtDefineObject(pxImage, pxObject);
 rtDefineProperty(pxImage, url);
 rtDefineProperty(pxImage, xStretch);
 rtDefineProperty(pxImage, yStretch);
+rtDefineProperty(pxImage, autoSize);
 

@@ -6,7 +6,7 @@ function updateSize(w, h) {
     bg.h = h;
 }
 
-scene.on("resize", updateSize);
+scene.on("onResize", function(e){updateSize(e.w,e.h);});
 updateSize(scene.w, scene.h);
 
 // null or "" is the default face FreeSans.ttf
@@ -139,7 +139,8 @@ function updateText(s) {
 }
 
 var str = "";
-scene.on("keydown", function (keycode, flags) {
+scene.on("onKeyDown", function (e) {
+    var keycode = e.keyCode; var flags = e.flags;
     if (keycode == 38) scrollUp();
     else if (keycode == 40) scrollDn();
     else if (keycode == 8) {
@@ -148,7 +149,7 @@ scene.on("keydown", function (keycode, flags) {
     }
 });
 
-scene.on("onchar", function(c) {
+scene.on("onChar", function(c) {
     str += c;
     updateText(str);
 });

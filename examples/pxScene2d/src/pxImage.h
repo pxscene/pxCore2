@@ -16,13 +16,16 @@ public:
   rtProperty(url, url, setURL, rtString);
   rtProperty(xStretch, xStretch, setXStretch, int32_t);
   rtProperty(yStretch, yStretch, setYStretch, int32_t);
+  rtProperty(autoSize, autoSize, setAutoSize, bool);
   
 pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(),
-        mWaitingForImageDownload(false),
-        mImageDownloadMutex(), mImageDownloadIsAvailable(false),
-        mImageDownloadRequest(NULL) {}
+    mWaitingForImageDownload(false),
+    mImageDownloadMutex(), mImageDownloadIsAvailable(false),
+    mImageDownloadRequest(NULL), mAutoSize(true) {}
 
   virtual ~pxImage() { rtLogInfo("~pxImage()"); }
+
+  virtual void onInit();
   
   rtError url(rtString& s) const;
   rtError setURL(const char* s);
@@ -38,6 +41,18 @@ pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(),
   rtError setYStretch(int32_t v)
   {
     mYStretch = (pxStretch)v;
+    return RT_OK;
+  }
+
+  rtError autoSize(bool& v) const
+  {
+    v = mAutoSize;
+    return RT_OK;
+  }
+
+  rtError setAutoSize(bool v)
+  {
+    mAutoSize = v;
     return RT_OK;
   }
   
@@ -62,6 +77,7 @@ protected:
   rtMutex mImageDownloadMutex;
   bool mImageDownloadIsAvailable;
   pxImageDownloadRequest* mImageDownloadRequest;
+  bool mAutoSize;
 };
 
 #endif

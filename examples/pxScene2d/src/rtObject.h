@@ -281,9 +281,13 @@ class rtObject: public rtIObject, public rtObjectBase
 
 #if 1
 
+  // hook for doing "post construction" activities
+  virtual void onInit() {}
+
     rtError init()
     {
         mInitialized = true;
+	onInit();
         return RT_OK;
     }
 
@@ -390,7 +394,7 @@ class rtObject: public rtIObject, public rtObjectBase
       return RT_OK;
     }
 
-private:
+protected:
     bool mInitialized;
     rtAtomic mRefCount;
 };
@@ -556,6 +560,7 @@ rtError rtFunctionBase::sendReturns(const rtValue& arg1, const rtValue& arg2,
 struct _rtEmitEntry {
   rtString n;
   rtFunctionRef f;
+  bool isProp;
 };
 
 typedef rtError (*rtFunctionCB)(int numArgs, const rtValue* args, rtValue* result, void* context);
@@ -615,6 +620,31 @@ rtEmit(): mRefCount(0) {}
     return mRefCount;
   }
 
+  rtError setListener(const char* eventName, rtIFunction* f)
+  {
+    for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); 
+         it != mEntries.end(); it++)
+    {
+      _rtEmitEntry& e = (*it);
+      if (e.n == eventName && e.isProp)
+      {
+        mEntries.erase(it);
+        // There can only be one
+        break;
+      }
+    }
+    if (f)
+    {
+      _rtEmitEntry e;
+      e.n = eventName;
+      e.f = f;
+      e.isProp = true;
+      mEntries.push_back(e);      
+    }
+
+    return RT_OK;
+  }
+
   rtError addListener(const char* eventName, rtIFunction* f)
   {
     if (!f) return RT_ERROR;
@@ -623,7 +653,7 @@ rtEmit(): mRefCount(0) {}
     for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); it != mEntries.end(); it++)
     {
       _rtEmitEntry& e = (*it);
-      if (e.n == eventName && e.f.getPtr() == f)
+      if (e.n == eventName && e.f.getPtr() == f && !e.isProp)
       {
         found = true;
         break;
@@ -634,6 +664,7 @@ rtEmit(): mRefCount(0) {}
       _rtEmitEntry e;
       e.n = eventName;
       e.f = f;
+      e.isProp = false;
       mEntries.push_back(e);
     }
 
@@ -645,7 +676,7 @@ rtEmit(): mRefCount(0) {}
     for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); it != mEntries.end(); it++)
     {
       _rtEmitEntry& e = (*it);
-      if (e.n == eventName && e.f.getPtr() == f)
+      if (e.n == eventName && e.f.getPtr() == f && !e.isProp)
       {
         mEntries.erase(it);
         // There can only be one
@@ -701,6 +732,8 @@ private:
     return (*this)->Send(numArgs, args, result);
   }
 };
+
+
 
 class rtArrayObject: public rtObject {
 public:
@@ -759,6 +792,87 @@ public:
 
 private:
   vector<rtValue> mElements;
+};
+
+struct rtNamedValue
+{
+  rtString n;
+  rtValue v;
+};
+
+class rtMapObject: public rtObject {
+ public:
+
+  vector<rtNamedValue>::iterator find(const char* name)
+  {
+    vector<rtNamedValue>::iterator it = mProps.begin(); 
+    while(it != mProps.end())
+    {
+      if (it->n == name)
+	return it;
+      it++;
+    }
+    return it;
+  }
+
+  virtual rtError Get(const char* name, rtValue* value)
+  {
+    if (!value) return RT_FAIL;
+
+    vector<rtNamedValue>::iterator it = find(name);
+    if (it != mProps.end())
+    {
+      *value = it->v;
+      return RT_OK;
+    }
+    else if (!strcmp(name, "allKeys"))
+    {
+      rtRefT<rtArrayObject> keys = new rtArrayObject;
+      vector<rtNamedValue>::iterator it = mProps.begin();
+      while(it != mProps.end())
+      {
+	keys->pushBack(it->n);
+	it++;
+      }
+      *value = keys;
+      return RT_OK;
+    }
+    return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Set(const char* name, const rtValue* value)
+  {
+    if (!value) return RT_FAIL;
+
+    vector<rtNamedValue>::iterator it = find(name);
+    if (it != mProps.end())
+    {
+      it->v = *value;
+      return RT_OK;
+    }
+    else
+    {
+      rtNamedValue v;
+      v.n = name;
+      v.v = *value;
+      mProps.push_back(v);
+      return RT_OK;
+    }
+    return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Get(uint32_t i, rtValue* value)
+  {
+    return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Set(uint32_t i, const rtValue* value)
+  {
+    return RT_PROP_NOT_FOUND;
+  }
+
+ private:
+  vector<rtNamedValue> mProps;
 };
 
 #endif

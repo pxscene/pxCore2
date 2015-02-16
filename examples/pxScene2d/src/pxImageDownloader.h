@@ -2,141 +2,140 @@
 #define PX_IMAGE_DOWNLOADER_H
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
-#include <string>
+//#include <string>
+#include "rtString.h"
 
 using namespace std;
 
 class pxImageDownloadRequest
 {
 public:
-    pxImageDownloadRequest(string imageUrl, void* callbackData) 
-        : mImageUrl(imageUrl), mProxyServer(),
-            mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL),
-            mDownloadedData(0), mDownloadedDataSize(), mDecodeAfterDownload(false),
-            mDownloadStatusCode(0), mCallbackData(callbackData)
-        { } 
+    pxImageDownloadRequest(const char* imageUrl, void* callbackData) 
+      : mImageUrl(imageUrl), mProxyServer(),
+    mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL),
+    mDownloadedData(0), mDownloadedDataSize(), mDecodeAfterDownload(false),
+    mDownloadStatusCode(0), mCallbackData(callbackData)
+  {} 
         
-    ~pxImageDownloadRequest()
-    {
-        free(mDownloadedData);
-        mDownloadedData = NULL;
-    }
-
-    void setImageUrl(string imageUrl)
-        { mImageUrl = imageUrl; }
-
-    string getImageUrl() const
-        { return mImageUrl; }
+  ~pxImageDownloadRequest()
+  {
+    free(mDownloadedData);
+    mDownloadedData = NULL;
+  }
+  
+  void setImageURL(const char* imageUrl) { mImageUrl = imageUrl; }
+  rtString getImageURL() const { return mImageUrl; }
     
-    void setProxy(string proxyServer)
-    {
-        mProxyServer = proxyServer;
-    }
+  void setProxy(const char* proxyServer)
+  {
+    mProxyServer = proxyServer;
+  }
     
-    string getProxy() const
-    {
-        return mProxyServer;
-    }
+  rtString getProxy() const
+  {
+    return mProxyServer;
+  }
+  
+  void setErrorString(const char* errorString)
+  {
+    mErrorString = errorString;
+  }
     
-    void setErrorString(string errorString)
-    {
-        mErrorString = errorString;
-    }
+  rtString getErrorString()
+  {
+    return mErrorString;
+  }
+  
+  void setCallbackFunction(void (*callbackFunction)(pxImageDownloadRequest*))
+  {
+    mCallbackFunction = callbackFunction;
+  }
+  
+  long getHttpStatusCode()
+  {
+    return mHttpStatusCode;
+  }
+  
+  void setHttpStatusCode(long statusCode)
+  {
+    mHttpStatusCode = statusCode;
+  }
     
-    string getErrorString()
+  void executeCallback(int statusCode)
+  {
+    mDownloadStatusCode = statusCode;
+    if (mCallbackFunction != NULL)
     {
-        return mErrorString;
+      (*mCallbackFunction)(this);
     }
-    
-    void setCallbackFunction(void (*callbackFunction)(pxImageDownloadRequest*))
-    {
-        mCallbackFunction = callbackFunction;
-    }
-    
-    long getHttpStatusCode()
-    {
-        return mHttpStatusCode;
-    }
-    
-    void setHttpStatusCode(long statusCode)
-    {
-        mHttpStatusCode = statusCode;
-    }
-    
-    void executeCallback(int statusCode)
-    {
-        mDownloadStatusCode = statusCode;
-        if (mCallbackFunction != NULL)
-        {
-            (*mCallbackFunction)(this);
-        }
-    }
-    
-    void setDownloadedData(char* data, size_t size)
-    {
-        mDownloadedData = data;
-        mDownloadedDataSize = size;
-    }
-    
-    void getDownloadedData(char*& data, size_t& size)
-    {
-        data = mDownloadedData;
-        size = mDownloadedDataSize; 
-    }
-    
-    char* getDownloadedData()
-    {
-        return mDownloadedData;
-    }
-    
-    size_t getDownloadedDataSize()
-    {
-        return mDownloadedDataSize;
-    }
-    
-    void enableDecodeAfterDownload(bool enable)
-    {
-        mDecodeAfterDownload = enable;
-    }
-    
-    bool shouldDecodeAfterDownload()
-    {
-        return mDecodeAfterDownload;
-    }
-    
-    void setDownloadStatusCode(int statusCode)
-    {
-        mDownloadStatusCode = statusCode;
-    }
-    
-    int getDownloadStatusCode()
-    {
-        return mDownloadStatusCode;
-    }
-    
-    void* getCallbackData()
-    {
-        return mCallbackData;
-    }
-    
-    void setCallbackData(void* callbackData)
-    {
-        mCallbackData = callbackData;
-    }
-
+  }
+  
+  void setDownloadedData(char* data, size_t size)
+  {
+    mDownloadedData = data;
+    mDownloadedDataSize = size;
+  }
+  
+  void getDownloadedData(char*& data, size_t& size)
+  {
+    data = mDownloadedData;
+    size = mDownloadedDataSize; 
+  }
+  
+  char* getDownloadedData()
+  {
+    return mDownloadedData;
+  }
+  
+  size_t getDownloadedDataSize()
+  {
+    return mDownloadedDataSize;
+  }
+  
+  void enableDecodeAfterDownload(bool enable)
+  {
+    mDecodeAfterDownload = enable;
+  }
+  
+  bool shouldDecodeAfterDownload()
+  {
+    return mDecodeAfterDownload;
+  }
+  
+  void setDownloadStatusCode(int statusCode)
+  {
+    mDownloadStatusCode = statusCode;
+  }
+  
+  int getDownloadStatusCode()
+  {
+    return mDownloadStatusCode;
+  }
+  
+  void* getCallbackData()
+  {
+    return mCallbackData;
+  }
+  
+  void setCallbackData(void* callbackData)
+  {
+    mCallbackData = callbackData;
+  }
+  
 private:
-    string mImageUrl;
-    string mProxyServer;
-    string mErrorString;
-    long mHttpStatusCode;
-    void (*mCallbackFunction)(pxImageDownloadRequest*);
-    char* mDownloadedData;
-    size_t mDownloadedDataSize;
-    bool mDecodeAfterDownload;
-    int mDownloadStatusCode;
-    void* mCallbackData;
+  rtString mImageUrl;
+  rtString mProxyServer;
+  rtString mErrorString;
+  long mHttpStatusCode;
+  void (*mCallbackFunction)(pxImageDownloadRequest*);
+  char* mDownloadedData;
+  size_t mDownloadedDataSize;
+  bool mDecodeAfterDownload;
+  int mDownloadStatusCode;
+  void* mCallbackData;
 };
 
 class pxImageDownloader

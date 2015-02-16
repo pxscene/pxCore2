@@ -9,24 +9,28 @@ var bgShade = scene.createImage({id:"bg", url:url,xStretch:1,yStretch:1,parent:r
 
 var txt1 = scene.createText({x:10,text:"",parent:root});
 
+//var childText;
 url = process.cwd() + "/../../images/ball.png"
-var ball = scene.createImage({id:"ball",url:url,x:450, y:150,parent:root});
-ball.cx = ball.w/2;
-ball.cy = ball.h/2;
+scene.createImage({id:"ball",url:url,x:450,y:150,parent:root,onReady:function(e){
+    b = e.target;
+    b.cx = b.w/2;
+    b.cy = b.h/2;
+    childText = scene.createText({id:"text",text:"CLICK ME!!!",parent:b,textColor:0xff0000ff, 
+				  r:30, pixelSize:64});
+    childText.y = b.h/2-childText.h/2;
+    childText.x = b.w/2-childText.w/2;
+    childText.cx = childText.w/2;
+    childText.cy = childText.h/2;
+    childText.on("onMouseDown", function(e) {
+	// TODO is there a better way to do this??
+	rTarget += 360;
+	childText.animateTo({r:rTarget}, 1.0, 4, 0); 
+	//    childText.animateTo({r:360}, 5.0, 4, 0, function(o) { o.r = 0; }); 
+    });
+}});
 
-var childText = scene.createText({id:"text", text:"CLICK ME!!!",parent:ball,textColor:0xff0000ff, r:30, pixelSize:64});
-childText.y = ball.h/2-childText.h/2;
-childText.x = ball.w/2-childText.w/2;
-childText.cx = childText.w/2;
-childText.cy = childText.h/2;
-//childText.animateTo({"r":360}, 1, 0, 2);
 var rTarget = 0;
-childText.on("mousedown", function() {
-    // TODO is there a better way to do this??
-    rTarget += 360;
-    childText.animateTo({r:rTarget}, 1.0, 4, 0); 
-//    childText.animateTo({r:360}, 5.0, 4, 0, function(o) { o.r = 0; }); 
-});
+
 
 // clean up these names and expose as properties off of some object
 var pxInterpLinear = 0;
@@ -76,14 +80,12 @@ function scale3(p) {
     p.animateTo({sx:1.0,sy:1.0}, 1.0, easeOutElastic, 0);
 }
 
-//1fancy(ball);
-
-scene.on('keydown', function(code, flags) {
-  console.log("keydown:" + code);
+scene.on('onKeyDown', function(e) {
+  console.log("keydown:" + e.keyCode);
 });
 
-scene.on("mousemove", function(x, y) {
-    txt1.text = "" + x+ ", " + y;
+scene.on("onMouseMove", function(e) {
+    txt1.text = "" + e.x+ ", " + e.y;
 });
 
 function updateSize(w, h) {
@@ -94,5 +96,6 @@ function updateSize(w, h) {
     txt1.y = h-txt1.h;
 }
 
-scene.on("resize", updateSize);
+scene.on("onResize", function(e){updateSize(e.w,e.h);});
 updateSize(scene.w, scene.h);
+
