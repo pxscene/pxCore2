@@ -7,8 +7,6 @@
 #include <pxWindow.h>
 #include <pxWindowUtil.h>
 
-#include <node.h>
-
 using namespace v8;
 
 struct EventLoopContext

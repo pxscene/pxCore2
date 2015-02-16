@@ -1,9 +1,7 @@
 #ifndef RT_JAVA_SCRIPT_CALLBACK_H
 #define RT_JAVA_SCRIPT_CALLBACK_H
 
-#include <node.h>
-#include <v8.h>
-
+#include "node_headers.h"
 #include <rtValue.h>
 #include <vector>
 

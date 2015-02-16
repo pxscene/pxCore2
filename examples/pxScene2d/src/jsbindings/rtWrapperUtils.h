@@ -1,8 +1,7 @@
 #ifndef RT_WRAPPER_UTILS
 #define RT_WRAPPER_UTILS
 
-#include <node.h>
-#include <v8.h>
+#include "node_headers.h"
 
 #include <rtError.h>
 #include <rtObject.h>
