@@ -2,6 +2,7 @@
 
 #include <linux/input.h>
 #include <sys/inotify.h>
+#include <sys/stat.h>
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -24,6 +25,7 @@
 
 static const char* kDevInputByPath = "/dev/input/by-path/";
 static const char* kDevInput       = "/dev/input";
+static const int   kMaxOpendirTries = 3;
 
 template <typename T>
 struct Listener
@@ -34,6 +36,41 @@ struct Listener
 
 typedef Listener<pxKeyListener> KeyboardListener;
 typedef Listener<pxMouseListener> MouseListener;
+
+static bool deviceExists(const char* name)
+{
+  char path[256];
+  strcpy(path, kDevInput);
+  strcat(path, "/");
+  strcat(path, name);
+
+  struct stat buf;
+  return stat(path, &buf) == 0;
+}
+
+static bool waitForDevice(const char* devname)
+{
+  rtLogDebug("waiting for %s to be created", devname);
+
+  bool wait = false;
+  for (int i = 0; i < 5; ++i)
+  {
+    if (wait)
+      usleep(1000 * 200);
+
+    struct stat buf;
+    if (::stat(kDevInputByPath, &buf) == 0)
+    {
+      rtLogDebug("found: %s", devname);
+      return true;
+    }
+
+    rtLogDebug("%s doesn't exist, waiting", devname);
+    wait = true;
+  }
+
+  return false;
+}
 
 struct NotDescriptor
 {
@@ -76,6 +113,11 @@ public:
   ~LinuxInputEventDispatcher()
   {
     this->close(true);
+  }
+
+  virtual void stop()
+  {
+    rtLogWarn("implement me");
   }
 
   virtual void init()
@@ -262,8 +304,19 @@ public:
       if (e->len)
       {
         size_t n = strlen(e->name);
-        if (n > 4)
-          importantChange = (strncmp(e->name, "event", 5) == 0);
+        if ((n > 4) && (strncmp(e->name, "event", 5) == 0))
+        {
+          importantChange = true;
+          if (deviceExists(e->name))
+          {
+            rtLogInfo("%s added", e->name);
+            waitForDevice(kDevInputByPath);
+          }
+          else
+          {
+            rtLogInfo("device removed: %s", e->name);
+          }
+        }
       }
     }
     return importantChange;
@@ -353,7 +406,11 @@ private:
     DIR* dir = opendir(kDevInputByPath);
     if (!dir)
     {
-      rtLogError("failed to open %s: %s", kDevInputByPath, getSystemError(errno).c_str());
+      int err = errno;
+      rtLogLevel level = RT_LOG_DEBUG;
+      if (err != ENOENT)
+        level = RT_LOG_WARN;
+      rtLog(level, "failed to open %s: %s", kDevInputByPath, getSystemError(err).c_str());
       return std::vector<std::string>();
     }
 

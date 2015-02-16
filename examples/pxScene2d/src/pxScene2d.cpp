@@ -473,13 +473,13 @@ pxScene2d::pxScene2d()
 
 void pxScene2d::init()
 {
-  rtLogInfo("Object Sizes\n");
-  rtLogInfo("============\n");
-  rtLogInfo("pxObject: %lu\n", sizeof(pxObject));
-  rtLogInfo("pxImage: %lu\n", sizeof(pxImage));
-  rtLogInfo("pxImage9: %lu\n", sizeof(pxImage9));
-  rtLogInfo("pxRectangle: %lu\n", sizeof(pxRectangle));
-  rtLogInfo("pxText: %lu\n", sizeof(pxText));
+  rtLogInfo("Object Sizes");
+  rtLogInfo("============");
+  rtLogInfo("pxObject     : %zu", sizeof(pxObject));
+  rtLogInfo("pxImage      : %zu", sizeof(pxImage));
+  rtLogInfo("pxImage9     : %zu", sizeof(pxImage9));
+  rtLogInfo("pxRectangle  : %zu", sizeof(pxRectangle));
+  rtLogInfo("pxText       : %zu", sizeof(pxText));
 
   // TODO move this to the window
   context.init();
@@ -656,7 +656,7 @@ void pxScene2d::onMouseUp(int x, int y, unsigned long flags)
     e.set("name", "onMouseUp");
     e.set("x", x);
     e.set("y", y);
-    e.set("flags", flags);
+    e.set("flags", static_cast<uint32_t>(flags));
     mEmit.send("onMouseUp", e);
   }
   {

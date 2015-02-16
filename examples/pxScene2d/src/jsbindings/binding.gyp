@@ -61,11 +61,20 @@
 #        "-lrt",
       ],
 
+      "defines": [
+        "PX_PLATFORM_X11",
+        "RT_PLATFORM_LINUX",
+        "ENABLE_GLUT",
+      ],
+
+      'cflags!': [
+        "-Wno-unused-parameter"
+      ],
+
       "cflags": [
-        "-DPX_PLATFORM_X11",
-        "-DRT_PLATFORM_LINUX",
-        "-DENABLE_GLUT",
-        "-Wno-attributes"
+        "-Wno-attributes",
+        "-Wall",
+        "-Wextra"
       ]
     }
   ]

@@ -3,9 +3,11 @@
 #include "rtLog.h"
 #include "../pxCore.h"
 #include "../pxWindow.h"
+#include "../pxWindowUtil.h"
 #include "../pxTimer.h"
 
 #include <dlfcn.h>
+#include <errno.h>
 #include <vector>
 #include <unistd.h>
 #include <signal.h>
@@ -20,20 +22,24 @@ vector<pxWindowNative*> pxWindowNative::mWindowVector;
 bool pxWindowNative::mEventLoopTimerStarted = false;
 float pxWindowNative::mEventLoopInterval = 1000.0 / (float)EGL_PX_CORE_FPS;
 timer_t pxWindowNative::mRenderTimerId;
-pxEGLProvider* pxWindowNative::mEGLProvider = NULL;
+
+extern "C" pxEGLProvider* pxCreateEGLProvider();
+extern "C" void pxDestroyEGLProvider(pxEGLProvider* provider);
 
 bool exitFlag = false;
 
-/*static const char* kEglProviderName = "RT_EGL_PROVIDER";
+static const char* kEGLProviderName = "RT_EGL_PROVIDER";
 static const char* kEGLProviderCreate = "pxCreateEGLProvider";
 static const char* kEGLProviderDestroy = "pxDestroyEGLProvider";
-
 
 typedef pxEGLProvider* (*EGLProviderFunction)();
 typedef void (*EGLProviderDestroyFunction)(pxEGLProvider *);
 
-static EGLProviderFunction pxCreateEGLProvider = NULL;
-static EGLProviderDestroyFunction pxDestroyEGLProvider = NULL;
+static EGLProviderFunction createEGLProvider = NULL;
+static EGLProviderDestroyFunction destroyEGLProvider = NULL;
+
+extern "C" pxEGLProvider* pxCreateEGLProvider();
+extern "C" void pxDestroyEGLProvider(pxEGLProvider* provider);
 
 static void* findSymbol(const char* libname, const char* function)
 {
@@ -42,11 +48,9 @@ static void* findSymbol(const char* libname, const char* function)
   // be something people fight with
   void* lib = dlopen(libname, RTLD_NOW);
   if (!lib)
-    printf("failed to find %s", libname);
+    rtLogError("failed to find %s", libname);
 
   void* func = dlsym(lib, function);
-  if (!func)
-    printf("failed to function %s from %s", function, libname);
 
   dlclose(lib);
   return func;
@@ -54,39 +58,52 @@ static void* findSymbol(const char* libname, const char* function)
 
 static pxEGLProvider* createPlatformEGLProvider()
 {
-  if (!pxCreateEGLProvider)
+  if (!createEGLProvider)
   {
-    const char* name = getenv(kEglProviderName);
+    const char* name = getenv(kEGLProviderName);
     if (!name)
-      printf("%s unset. Please set like %s=libprovider.so", kEglProviderName,
-          kEglProviderName);
+      rtLogError("%s unset. Please set like %s=libprovider.so", kEGLProviderName,
+          kEGLProviderName);
 
-    pxCreateEGLProvider = (EGLProviderFunction) findSymbol(name, kEGLProviderCreate);
+    createEGLProvider = (EGLProviderFunction) findSymbol(name, kEGLProviderCreate);
+
+    if (!createEGLProvider)
+      createEGLProvider = &pxCreateEGLProvider;
+
+    if (!createEGLProvider)
+      rtLogFatal("failed to find symbol: %s in: %s", kEGLProviderCreate, name);
   }
 
-  return pxCreateEGLProvider();
+  return createEGLProvider();
 }
 
 static void destroyPlatformEGLProvider(pxEGLProvider* provider)
 {
-  if (!pxDestroyEGLProvider)
+  if (!destroyEGLProvider)
   {
-    const char* name = getenv(kEglProviderName);
+    const char* name = getenv(kEGLProviderName);
     if (!name)
-      printf("%s unset. Please set like %s=libprovider.so", kEglProviderName,
-        kEglProviderName);
+      rtLogError("%s unset. Please set like %s=libprovider.so", kEGLProviderName,
+        kEGLProviderName);
 
-    pxDestroyEGLProvider = (EGLProviderDestroyFunction) findSymbol(name, kEGLProviderDestroy);
+    destroyEGLProvider = (EGLProviderDestroyFunction) findSymbol(name, kEGLProviderDestroy);
+
+    if (!destroyEGLProvider)
+      destroyEGLProvider = &pxDestroyEGLProvider;
+
+    if (!destroyEGLProvider)
+      rtLogWarn("failed to find symbol: %s in %s", kEGLProviderDestroy, name);
   }
 
-  return pxDestroyEGLProvider(provider);
+  return destroyEGLProvider(provider);
 }
 
+#if 0
 static EGLConfig chooseEGLConfig(EGLDisplay display)
 {
   EGLint configCount = 0;
   if (!eglGetConfigs(display, 0, 0, &configCount) == EGL_TRUE)
-    printf("failed to get EGL configuration count");
+    rtLogError("failed to get EGL configuration count");
 
   typedef std::vector<EGLConfig> egl_config_list_t;
 
@@ -94,7 +111,7 @@ static EGLConfig chooseEGLConfig(EGLDisplay display)
   conf.resize(configCount);
 
   if (!eglGetConfigs(display, &conf[0], configCount, &configCount))
-    printf("failed to get EGL configuration list");
+    rtLogError("failed to get EGL configuration list");
 
   int chosenConfig = 0;
   for (int i = 0; i < static_cast<int>(conf.size()); ++i)
@@ -107,30 +124,31 @@ static EGLConfig chooseEGLConfig(EGLDisplay display)
     const EGLConfig& c = conf[i];
     
     if (!eglGetConfigAttrib(display, c, EGL_RED_SIZE, &depthRed))
-      printf("failed to get depth of red");
+      rtLogError("failed to get depth of red");
 
     if (!eglGetConfigAttrib(display, c, EGL_GREEN_SIZE, &depthGreen))
-      printf("failed to get depth of red");
+      rtLogError("failed to get depth of red");
 
     if (!eglGetConfigAttrib(display, c, EGL_BLUE_SIZE, &depthBlue))
-      printf("failed to get depth of red");
+      rtLogError("failed to get depth of red");
 
     if (!eglGetConfigAttrib(display, c, EGL_BLUE_SIZE, &depthAlpha))
-      printf("failed to get depth of red");
+      rtLogInfo("failed to get depth of red");
 
-    printf("egl config[%d]: rgba(%d, %d, %d, %d)", i, depthRed, depthGreen, depthBlue,
+    rtLogInfo("egl config[%d]: rgba(%d, %d, %d, %d)", i, depthRed, depthGreen, depthBlue,
         depthAlpha);
 
     if (depthRed == 8 && depthGreen == 8 && depthBlue == 8 && depthAlpha == 8)
     {
-      printf("choosing %d of %d EGL configurations", i, static_cast<int>(conf.size()));
+      rtLogError("choosing %d of %d EGL configurations", i, static_cast<int>(conf.size()));
       chosenConfig = i;
       break;
     }
   }
 
   return conf[chosenConfig];
-}*/
+}
+#endif
 
 static void onWindowTimerFired( int sig, siginfo_t *si, void *uc )
 {
@@ -146,35 +164,46 @@ static void onWindowTimerFired( int sig, siginfo_t *si, void *uc )
   }
 }
 
-pxWindowNative::pxWindowNative() : mTimerFPS (0), mLastWidth(0), mLastHeight(0),
-        mResizeFlag(false), mLastAnimationTime(0),
-        mVisible(false)
+pxWindowNative::pxWindowNative()
+  : mTimerFPS(0)
+  , mLastWidth(0)
+  , mLastHeight(0)
+  , mResizeFlag(false)
+  , mLastAnimationTime(0)
+  , mVisible(false)
 {
+  mEGLProvider = createPlatformEGLProvider();
+  if (!mEGLProvider)
+    rtLogFatal("failed to find EGL provider");
+
+  mInputProvider = pxInputDeviceEventProvider::createDefaultProvider();
+  mInputProvider->addMouseListener(&mouseEventListener, this);
+  mInputProvider->addKeyListener(&keyEventListener, this);
+  mInputProvider->init();
+
+  // TODO: rtThreadCreate
+  pthread_create(&mInputEventThread, NULL, &pxWindowNative::dispatchInput, this);
 }
 
 pxWindowNative::~pxWindowNative()
 {
   stopAndDeleteEventLoopTimer();
   unregisterWindow(this);
-  pxDestroyEGLProvider(mEGLProvider);
+
+  destroyPlatformEGLProvider(mEGLProvider);
+
 }
 
 pxError pxWindow::init(int left, int top, int width, int height)
 {
+
   (void)left;
   (void)top;
   mLastWidth = width;
   mLastHeight = height;
-  if (mEGLProvider == NULL)
-  {
-    mEGLProvider = pxCreateEGLProvider();
-    if (mEGLProvider->initWithDefaults(width,height) != PX_OK)
-    {
-      printf("error creating EGL window\n");
-      return PX_FAIL;
-    }
-  }
   mResizeFlag = true;
+
+  mEGLProvider->initWithDefaults(width, height);
   
   registerWindow(this);
   this->onCreate();
@@ -259,14 +288,16 @@ int pxWindowNative::createAndStartEventLoopTimer(int timeoutInMilliseconds )
       stopAndDeleteEventLoopTimer();
   }
 
+  rtLogInfo("starting event loop timer with delay: %d", timeoutInMilliseconds);
+
   //Set up signal handler
   sa.sa_flags = SA_SIGINFO;
   sa.sa_sigaction = onWindowTimerFired;
   sigemptyset(&sa.sa_mask);
   if (sigaction(sigNo, &sa, NULL) == -1)
   {
-      fprintf(stderr, "Unable to setup signal handling for timer.\n");
-      return(-1);
+    rtLogError("Unable to setup signal handling for timer: %d", errno);
+    return(-1);
   }
 
   //Set and enable alarm
@@ -290,7 +321,7 @@ int pxWindowNative::stopAndDeleteEventLoopTimer()
   int returnValue = 0;
   if (mEventLoopTimerStarted)
   {
-      returnValue = timer_delete(mRenderTimerId);
+    returnValue = timer_delete(mRenderTimerId);
   }
   mEventLoopTimerStarted = false;
   return returnValue;
@@ -386,3 +417,50 @@ void pxWindowNative::unregisterWindow(pxWindowNative* p)
       }
   }
 }
+void pxWindowNative::keyEventListener(const pxKeyEvent& evt, void* argp)
+{
+  pxWindowNative* p = reinterpret_cast<pxWindowNative *>(argp);
+  if (evt.state == pxKeyStatePressed)
+    p->onKeyDown(keycodeFromNative(evt.code), evt.modifiers);
+  else if (evt.state == pxKeyStateRelease)
+    p->onKeyUp(keycodeFromNative(evt.code), evt.modifiers);
+}
+
+void pxWindowNative::mouseEventListener(const pxMouseEvent& evt, void* argp)
+{
+  pxWindowNative* p = reinterpret_cast<pxWindowNative *>(argp);
+  if (evt.type == pxMouseEventTypeMove)
+  {
+    // rtLogInfo("move move: {x:%d y:%d}", evt.move.x, evt.move.y);
+    p->onMouseMove(evt.move.x, evt.move.y);
+  }
+  else if (evt.type == pxMouseEventTypeButton)
+  {
+    // rtLogInfo("mouse %s {x:%d y:%d}",
+    //   (evt.button.state == pxKeyStatePressed ? "press" : "release"), evt.button.x, evt.button.y);
+
+    // TODO: Is that 3rd arg supposed to be the current keyboard modifiers?
+    if (evt.button.state == pxKeyStatePressed)
+      p->onMouseDown(evt.button.x, evt.button.y, 0);
+    else if (evt.button.state == pxKeyStateRelease)
+      p->onMouseUp(evt.button.x, evt.button.y, 0);
+  }
+}
+
+void* pxWindowNative::dispatchInput(void* argp)
+{
+  pxWindowNative* p = reinterpret_cast<pxWindowNative *>(argp);
+  p->dispatchInputEvents();
+  return 0;
+}
+
+void pxWindowNative::dispatchInputEvents()
+{
+  // TODO: proper shutdown
+  while (true)
+  {
+    mInputProvider->next(1000);
+  }
+}
+
+
