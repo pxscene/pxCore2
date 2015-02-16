@@ -14,6 +14,8 @@ var childAppWidth = 1280;
 var childAppHeight = 720;
 var childAcross = 2;
 
+var paint = true;
+
 var apps = scene.createImage({parent:root, sx:0.25, sy:0.25, w:1280, h:720});
 
 for (var i = 0; i < appURLs.length; i++) {
@@ -26,8 +28,13 @@ for (var i = 0; i < appURLs.length; i++) {
 
 //apps.painting=false;
 
-scene.on('onKeydown', function(e) {
-  console.log("keydown:" + e.keyCode);
+scene.on('onKeyDown', function(e) {
+  console.log("***keydown:" + e.keyCode);
+  if (e.keyCode == 32) {
+      console.log("here");
+      paint = !paint;
+      root.painting = paint;
+  }
 });
 
 /*
@@ -41,6 +48,8 @@ function updateSize(w, h) {
     bg.h = h;
     bgShade.w = w;
     bgShade.h = h;
+    root.w = w;
+    root.h = h;
 }
 
 scene.on("onResize", function(e){updateSize(e.w,e.h);});
