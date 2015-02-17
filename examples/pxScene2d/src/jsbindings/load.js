@@ -80,7 +80,7 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
       }
       else {
         try {
-          // TODO: for some reason this doesn't work
+          // TODO: This form will not work until nodejs >= 0.12.x
           // var opts = { filename: fname, displayError: true };
           var script = new vm.Script(code, fname);
           script.runInNewContext(sandbox);
