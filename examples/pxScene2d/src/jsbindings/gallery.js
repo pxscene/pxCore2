@@ -1,7 +1,7 @@
 var root = scene.root;
 //scene.showOutlines = true;
 
-var appURLs = ["picturepile.js", "hello.js", "mousetest2.js", "fancy.js", "cliptest.js", "masktest.js", "mousetest.js"];
+var appURLs = ["picturepile.js", "dynamics.js", "hello.js", "mousetest2.js", "fancy.js", "cliptest.js", "masktest.js", "mousetest.js"];
 var url;
 url = process.cwd() + "/../../images/skulls.png";
 var bg = scene.createImage({url:url,xStretch:2,yStretch:2,parent:root});
@@ -29,9 +29,7 @@ for (var i = 0; i < appURLs.length; i++) {
 //apps.painting=false;
 
 scene.on('onKeyDown', function(e) {
-  console.log("***keydown:" + e.keyCode);
   if (e.keyCode == 32) {
-      console.log("here");
       paint = !paint;
       root.painting = paint;
   }

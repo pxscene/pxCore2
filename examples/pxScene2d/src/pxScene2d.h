@@ -37,6 +37,8 @@ double pxInterpLinear(double i);
 enum pxAnimationType {PX_STOP = 0, PX_SEESAW, PX_LOOP};
 
 struct pxPoint2f {
+  pxPoint2f() {}
+  pxPoint2f(float _x, float _y) { x = _x; y = _y; } 
   float x, y;
 };
 
@@ -226,7 +228,7 @@ public:
   void drawInternal(pxMatrix4f m, float parentAlpha);
   virtual void draw() {}
 
-  bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit);
+  bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit, pxPoint2f& hitPt);
   virtual bool hitTest(pxPoint2f& pt);
   
   rtError animateTo(const char* prop, double to, double duration, 

@@ -319,7 +319,8 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
 }
 
 
-bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit)
+bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit, 
+			       pxPoint2f& hitPt)
 {
 
   // setup matrix
@@ -335,7 +336,7 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hi
   {
     for(vector<rtRefT<pxObject> >::reverse_iterator it = mChildren.rbegin(); it != mChildren.rend(); ++it)
     {
-      if ((*it)->hitTestInternal(m2, pt, hit))
+      if ((*it)->hitTestInternal(m2, pt, hit, hitPt))
         return true;
     }
   }
@@ -350,6 +351,7 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hi
     if (hitTest(newPt))
     {
       hit = this;
+      hitPt = newPt;
       return true;
     }
     else
@@ -632,17 +634,17 @@ void pxScene2d::onMouseDown(int x, int y, unsigned long flags)
   {
     //Looking for an object
     pxMatrix4f m;
-    pxPoint2f pt;
-    pt.x = x; pt.y = y;
+    pxPoint2f pt(x,y), hitPt;
+    //    pt.x = x; pt.y = y;
     rtRefT<pxObject> hit;
     
-    if (mRoot->hitTestInternal(m, pt, hit))
+    if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
       rtString id = hit->get<rtString>("id");
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseDown");
-      e.set("x", 0);
-      e.set("y", 0);
+      e.set("x", hitPt.x);
+      e.set("y", hitPt.y);
       hit->mEmit.send("onMouseDown", e);
     }
   }
@@ -662,16 +664,16 @@ void pxScene2d::onMouseUp(int x, int y, unsigned long flags)
   {
     //Looking for an object
     pxMatrix4f m;
-    pxPoint2f pt;
+    pxPoint2f pt(x,y), hitPt;
     pt.x = x; pt.y = y;
     rtRefT<pxObject> hit;
     
-    if (mRoot->hitTestInternal(m, pt, hit))
+    if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseUp");
-      e.set("x", 0);
-      e.set("y", 0);
+      e.set("x", hitPt.x);
+      e.set("y", hitPt.y);
       hit->mEmit.send("onMouseUp", e);
     }
   }
