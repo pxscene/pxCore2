@@ -203,6 +203,7 @@ public:
       if (!mPainting)
       {
           mTextureRef = createSnapshot(mTextureRef);
+          mTextureRef->enablePremultipliedAlpha(true);
       }
       else
       {

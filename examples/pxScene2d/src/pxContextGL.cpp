@@ -33,6 +33,7 @@ static GLint u_resolution = -1;
 GLint u_texture = -1;
 GLint u_mask = -1;
 GLint u_enablemask = 0;
+GLint u_enablepremultipliedalpha = 0;
 GLint u_alphatexture = -1;
 GLint u_color = -1;
 GLint attr_pos = 0, attr_uv = 2;
@@ -47,6 +48,7 @@ static const char *fShaderText =
   "uniform sampler2D s_texture;\n"
   "uniform sampler2D s_mask;\n"
   "uniform int u_enablemask;\n"
+  "uniform int u_enablepremultipliedalpha;\n"
   "varying vec2 v_uv;\n"
   "void main() {\n"
 #if 1
@@ -66,7 +68,11 @@ static const char *fShaderText =
   // text
  "gl_FragColor = vec4(a_color.r, a_color.g, a_color.b, texture2D(s_texture, v_uv).a*a_color.a);"
   "}\n"
-  "gl_FragColor.a *= u_alpha;"
+  "if (u_enablepremultipliedalpha < 1) {\n"
+  "  gl_FragColor.a *= u_alpha;\n"
+  "}else {\n"
+  "  gl_FragColor.a = 1.0;\n"
+  "}\n"
 #else
   "gl_FragColor = vec4(1,1,1,1);"
 #endif
@@ -670,6 +676,11 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     { 0,  secondTextureY },
     { tw, secondTextureY }
   };
+  
+  if (texture->premultipliedAlpha())
+  {
+    glUniform1i(u_enablepremultipliedalpha, 1);
+  }
 
   {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 
@@ -688,6 +699,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   
   glUniform1i(u_enablemask, 0);
   glUniform1f(u_alphatexture, 1.0);
+  glUniform1i(u_enablepremultipliedalpha, 0);
   
 }
 
@@ -842,6 +854,7 @@ void pxContext::init()
   u_texture      = glGetUniformLocation(program, "s_texture");
   u_mask         = glGetUniformLocation(program, "s_mask");
   u_enablemask   = glGetUniformLocation(program, "u_enablemask");
+  u_enablepremultipliedalpha = glGetUniformLocation(program, "u_enablepremultipliedalpha");
   u_matrix       = glGetUniformLocation(program, "amymatrix");
   u_alpha        = glGetUniformLocation(program, "u_alpha");
   u_color        = glGetUniformLocation(program, "a_color");

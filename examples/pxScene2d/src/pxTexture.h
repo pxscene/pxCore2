@@ -16,7 +16,8 @@ enum pxTextureType {
 class pxTexture
 {
 public:
-  pxTexture() : mRef(0), mTextureType(PX_TEXTURE_UNKNOWN) {}
+  pxTexture() : mRef(0), mTextureType(PX_TEXTURE_UNKNOWN), mPremultipliedAlpha(false)
+  {}
   virtual ~pxTexture() {}
   virtual unsigned long AddRef() { return ++mRef; }
   virtual unsigned long Release() { if (--mRef == 0) delete this; return mRef; }
@@ -30,10 +31,13 @@ public:
   virtual pxError getOffscreen(pxOffscreen& o) = 0;
   pxTextureType getType() { return mTextureType; }
   virtual pxError prepareForRendering() { return PX_OK; }
+  bool premultipliedAlpha() { return mPremultipliedAlpha; }
+  void enablePremultipliedAlpha(bool enable) { mPremultipliedAlpha = enable; }
   
 protected:
   unsigned long mRef;
   pxTextureType mTextureType;
+  bool mPremultipliedAlpha;
 };
 
 typedef rtRefT<pxTexture> pxTextureRef;
