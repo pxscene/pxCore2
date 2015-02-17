@@ -1,6 +1,7 @@
 // TODO add support for relative urls
 //var baseURL = "http://johnrobinsn.github.io/pxScene2d/";
-var baseURL = "http://localhost/~johnrobinson/johnrobinsn.github.io/pxScene2d/";
+//var baseURL = "http://localhost/~johnrobinson/johnrobinsn.github.io/pxScene2d/";
+var baseURL = process.cwd()+"/../../";
 
 var root = scene.root;
 
