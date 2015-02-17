@@ -17,7 +17,7 @@ void jsCallback::enqueue()
   uv_queue_work(uv_default_loop(), &mReq, &work, &doCallback);
 }
 
-void jsCallback::work(uv_work_t* req)
+void jsCallback::work(uv_work_t* /* req */)
 {
 }
 
@@ -46,7 +46,7 @@ jsCallback* jsCallback::setFunctionLookup(jsIFunctionLookup* functionLookup)
   return this; 
 }
 
-void jsCallback::doCallback(uv_work_t* req, int status)
+void jsCallback::doCallback(uv_work_t* req, int /* status */)
 {
   jsCallback* ctx = reinterpret_cast<jsCallback *>(req->data);
   assert(ctx != NULL);
@@ -56,8 +56,16 @@ void jsCallback::doCallback(uv_work_t* req, int status)
 
   // TODO: Should this be Local<Function>? 
   Persistent<Function> callbackFunction = ctx->mFunctionLookup->lookup();
+
+  TryCatch tryCatch;
   if (!callbackFunction.IsEmpty())
     callbackFunction->Call(Context::GetCurrent()->Global(), static_cast<int>(ctx->mArgs.size()), args);
+
+  if (tryCatch.HasCaught())
+  {
+    String::Utf8Value trace(tryCatch.StackTrace());
+    rtLogWarn("%s", *trace);
+  }
 
   delete ctx;
   delete [] args;
