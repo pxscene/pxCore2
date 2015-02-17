@@ -400,7 +400,7 @@ char *u8_strchr(char *s, u_int32_t ch, int *charn)
 
 char *u8_memchr(char *s, u_int32_t ch, size_t sz, int *charn)
 {
-    int i = 0, lasti=0;
+    size_t i = 0, lasti=0;
     u_int32_t c;
     int csz;
 
