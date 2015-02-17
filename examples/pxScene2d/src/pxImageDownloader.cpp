@@ -175,20 +175,20 @@ void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
     /* check for errors */
     if (res != CURLE_OK) 
     {
-#if 0
-        errorStringStream << "download error: " << res << 
-                " using proxy: ";
+        stringstream errorStringStream;
+        
+        errorStringStream << "Download error for: " << downloadRequest->getImageURL().cString()
+                << ".  Error code : " << res << ".  Using proxy: ";
         if (useProxy)
         {
-            errorStringStream << "true";
+            errorStringStream << "true - " << proxyServer.cString();
         }
         else
         {
             errorStringStream << "false";
         }
-#endif
         
-        downloadRequest->setErrorString("download error");
+        downloadRequest->setErrorString(errorStringStream.str().c_str());
 
         curl_easy_cleanup(curl_handle);
         

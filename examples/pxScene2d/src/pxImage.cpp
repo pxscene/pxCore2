@@ -93,13 +93,13 @@ void pxImage::checkForCompletedImageDownload()
           }
         }
         else
-          rtLogWarn("image download failed"); // TODO: why? what happened?
+          rtLogWarn("image download failed.  Error: %s", mImageDownloadRequest->getErrorString().cString());
 
         delete mImageDownloadRequest;
         mImageDownloadRequest = NULL;
         mImageDownloadIsAvailable = false;
         mWaitingForImageDownload = false;
-        if (mAutoSize)
+        if (mAutoSize && mTexture.getPtr() != NULL)
         {
           mw = mTexture->width();
           mh = mTexture->height();
@@ -120,7 +120,7 @@ void pxImage::loadImage(rtString url)
   if (it != gTextureCache.end())
   {
     mTexture = it->second;
-    if (mAutoSize)
+    if (mAutoSize && mTexture.getPtr() != NULL)
     {
       mw = mTexture->width();
       mh = mTexture->height();
