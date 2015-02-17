@@ -57,8 +57,11 @@ Api.prototype.loadScriptContents = function(uri, closure) {
 Api.prototype.loadScriptForScene = function(container, scene, uri) {
   var sceneForChild = scene;
   var apiForChild = this;
-
   var code;
+
+  // TODO: This is the name that will show up in stack traces. We should
+  // resolve ./ to full paths (maybe).
+  var fname = uri;
 
   try {
     code = this.loadScriptContents(uri, function(code, err) {
@@ -77,20 +80,22 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
       }
       else {
         try {
-          app = vm.runInNewContext(code, sandbox,{displayErrors:true});
+          // TODO: for some reason this doesn't work
+          // var opts = { filename: fname, displayError: true };
+          var script = new vm.Script(code, fname);
+          script.runInNewContext(sandbox);
+
           // TODO do the old scenes context get released when we reload a scenes url??
             
-//            scene.ctx = app;
-
-            // TODO part of an experiment to eliminate intermediate rendering of the scene
-            // while it is being set up
-            if (true) { // enable to fade scenes in
-                container.a = 0;
-                container.painting = true;
-                container.animateTo({a:1}, 0.2, 0, 0);
-            }
-            else
-                container.painting = true;
+          // TODO part of an experiment to eliminate intermediate rendering of the scene
+          // while it is being set up
+          if (true) { // enable to fade scenes in
+            container.a = 0;
+            container.painting = true;
+            container.animateTo({a:1}, 0.2, 0, 0);
+          }
+          else
+            container.painting = true;
         }
         catch (err) {
           console.log("failed to run app:" + uri);
