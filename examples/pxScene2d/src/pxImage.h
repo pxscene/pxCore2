@@ -18,10 +18,7 @@ public:
   rtProperty(yStretch, yStretch, setYStretch, int32_t);
   rtProperty(autoSize, autoSize, setAutoSize, bool);
   
-pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(),
-    mWaitingForImageDownload(false),
-    mImageDownloadMutex(), mImageDownloadIsAvailable(false),
-    mImageDownloadRequest(NULL), mAutoSize(true) {}
+pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(), mAutoSize(true) {}
 
   virtual ~pxImage() { rtLogInfo("~pxImage()"); }
 
@@ -61,11 +58,10 @@ pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(),
     return mTexture;
   }
   
-  void onImageDownloadComplete(pxImageDownloadRequest* imageDownloadRequest);
+  void setTexture(pxTextureRef texture);
   
 protected:
   virtual void draw();
-  void checkForCompletedImageDownload();
   void loadImage(rtString url);
   
   rtString mURL;
@@ -73,10 +69,6 @@ protected:
   pxStretch mYStretch;
   pxTextureRef mTexture;
   
-  bool mWaitingForImageDownload;
-  rtMutex mImageDownloadMutex;
-  bool mImageDownloadIsAvailable;
-  pxImageDownloadRequest* mImageDownloadRequest;
   bool mAutoSize;
 };
 

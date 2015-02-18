@@ -679,6 +679,8 @@ public:
     return RT_OK;
   }
   
+  void checkForCompletedImageDownloads();
+  
 private:
   void draw();
   // Does not draw updates scene to time t

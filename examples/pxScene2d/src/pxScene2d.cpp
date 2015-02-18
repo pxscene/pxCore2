@@ -22,10 +22,29 @@
 #include "pxImage9.h"
 
 #include "pxContext.h"
+#include "pxImageDownloader.h"
+#include "rtMutex.h"
 
 // TODO get rid of globals
 pxContext context;
 rtFunctionRef gOnScene;
+
+int gImageDownloadsPending = 0; //must only be set in the main thread
+
+rtMutex imageDownloadMutex;
+bool imageDownloadsAvailable = false;
+vector<pxImageDownloadRequest*> completedImageDownloads;
+
+void pxImageDownloadComplete(pxImageDownloadRequest* imageDownloadRequest)
+{
+  if (imageDownloadRequest != NULL)
+  {
+    imageDownloadMutex.lock();
+    completedImageDownloads.push_back(imageDownloadRequest);
+    imageDownloadsAvailable = true;
+    imageDownloadMutex.unlock();
+  }
+}
 
 
 #if 0
@@ -495,6 +514,7 @@ rtDefineProperty(pxObject, onReady);
 pxScene2d::pxScene2d()
  :start(0),frameCount(0) 
 { 
+  pxImageDownloader::getInstance()->setDefaultCallbackFunction(pxImageDownloadComplete);
   mRoot = new pxObject(); 
   mEmit = new rtEmit();
 }
@@ -586,6 +606,51 @@ void pxScene2d::hitTest(pxPoint2f /*p*/, vector<rtRefT<pxObject> > /*hitList*/) 
   
 }
 
+void pxScene2d::checkForCompletedImageDownloads()
+{
+  if (gImageDownloadsPending > 0)
+  {
+    imageDownloadMutex.lock();
+    if (imageDownloadsAvailable)
+    {
+      for(vector<pxImageDownloadRequest*>::iterator it = completedImageDownloads.begin(); it != completedImageDownloads.end(); ++it)
+      {
+        pxImageDownloadRequest* imageDownloadRequest = (*it);
+
+        if (imageDownloadRequest != NULL && 
+            imageDownloadRequest->getDownloadStatusCode() == 0 && imageDownloadRequest->getDownloadedData() != NULL)
+        {
+          pxOffscreen imageOffscreen;
+          if (pxLoadImage(imageDownloadRequest->getDownloadedData(),
+                          imageDownloadRequest->getDownloadedDataSize(), 
+                          imageOffscreen) != RT_OK)
+          {
+            rtLogWarn("image load failed"); // TODO: why?
+          }
+          else
+          {
+            if (imageDownloadRequest->getCallbackData() != NULL)
+            {
+                pxImage* image = (pxImage*)imageDownloadRequest->getCallbackData();
+                pxTextureRef imageTexture =  context.createTexture(imageOffscreen);
+                image->setTexture(imageTexture);
+            }
+
+          }
+        }
+        else
+          rtLogWarn("image download failed.  Error: %s", imageDownloadRequest->getErrorString().cString());
+
+        delete imageDownloadRequest;
+        imageDownloadsAvailable = false;
+        gImageDownloadsPending--;
+      }
+      completedImageDownloads.clear();
+    }
+    imageDownloadMutex.unlock();
+  }
+}
+
 void pxScene2d::onDraw()
 {
   if (start == 0)
@@ -594,6 +659,7 @@ void pxScene2d::onDraw()
   }
   
 #if 1
+  checkForCompletedImageDownloads();
   update(pxSeconds());
   draw();
 #endif

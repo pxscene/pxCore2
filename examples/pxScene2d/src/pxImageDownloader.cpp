@@ -79,7 +79,7 @@ void startImageDownloadInBackground(void* data)
 pxImageDownloader* pxImageDownloader::mInstance = NULL;
 
 pxImageDownloader::pxImageDownloader() 
-    : mNumberOfCurrentDownloads(0)
+    : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL)
 {
 }
 
@@ -205,7 +205,18 @@ void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
             chunk.headerBuffer = NULL;
         }
         downloadRequest->setDownloadedData(NULL, 0);
-        downloadRequest->executeCallback(res);
+        if (!downloadRequest->executeCallback(res))
+        {
+          if (mDefaultCallbackFunction != NULL)
+          {
+            (*mDefaultCallbackFunction)(downloadRequest);
+          }
+          else
+          {
+            //no listeners, delete request
+            delete downloadRequest;
+          }
+        }
         return;
     }
 
@@ -232,7 +243,18 @@ void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
 
     //don't free the downloaded data (contentsBuffer) because it will be used later
     downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
-    downloadRequest->executeCallback(res);
+    if (!downloadRequest->executeCallback(res))
+    {
+      if (mDefaultCallbackFunction != NULL)
+      {
+        (*mDefaultCallbackFunction)(downloadRequest);
+      }
+      else
+      {
+        //no listeners, delete request
+        delete downloadRequest;
+      }
+    }
 }
 
 void pxImageDownloader::downloadImageInBackground(pxImageDownloadRequest* downloadRequest)
@@ -248,5 +270,10 @@ pxImageDownloadRequest* pxImageDownloader::getNextDownloadRequest()
 {
     //todo
     return NULL;
+}
+
+void pxImageDownloader::setDefaultCallbackFunction(void (*callbackFunction)(pxImageDownloadRequest*))
+{
+  mDefaultCallbackFunction = callbackFunction;
 }
 

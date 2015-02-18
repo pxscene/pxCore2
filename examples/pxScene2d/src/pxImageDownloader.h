@@ -64,13 +64,15 @@ public:
     mHttpStatusCode = statusCode;
   }
     
-  void executeCallback(int statusCode)
+  bool executeCallback(int statusCode)
   {
     mDownloadStatusCode = statusCode;
     if (mCallbackFunction != NULL)
     {
       (*mCallbackFunction)(this);
+      return true;
     }
+    return false;
   }
   
   void setDownloadedData(char* data, size_t size)
@@ -150,6 +152,7 @@ public:
 
     void clearImageCache();
     void downloadImage(pxImageDownloadRequest* downloadRequest);
+    void setDefaultCallbackFunction(void (*callbackFunction)(pxImageDownloadRequest*));
 
 private:
     pxImageDownloader();
@@ -165,6 +168,7 @@ private:
     //todo: list mActiveDownloads;
     unsigned int mNumberOfCurrentDownloads;
     //todo: hash m_priorityDownloads;
+    void (*mDefaultCallbackFunction)(pxImageDownloadRequest*);
     
     static pxImageDownloader* mInstance;
 };
