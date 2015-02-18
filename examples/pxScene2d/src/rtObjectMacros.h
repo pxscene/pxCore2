@@ -201,6 +201,8 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
 #define rtThunkReadOnlyProperty(getterMethod, propType) \
     rtError getterMethod##_PropGetterThunk(rtValue& v) const { propType pv;  rtError e = getterMethod(pv); v.assign<propType>(pv); return e;}
 
+#define rtThunkConstantProperty(getterMethod, k, propType)		\
+    rtError getterMethod##_PropGetterThunk(rtValue& v) const { v.assign<propType>(k); return RT_OK;}
 
 #define rtProperty(name, getMethod, setMethod, propType)\
     rtThunkProperty(getMethod, setMethod, propType); \
@@ -232,6 +234,24 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
             entry.mPropType = RT_##propType##Type; \
             entry.mSetThunk = (rtSetPropertyThunk)NULL; \
             entry.mGetThunk = (rtGetPropertyThunk)&PARENTTYPE__::getMethod##_PropGetterThunk; \
+            entry.mNext = tail; \
+        }\
+        rtPropertyEntry entry; \
+    };\
+    static name##PropEntry name##PropEntryInstance
+
+#define rtConstantProperty(name, k, propType)\
+    rtThunkConstantProperty(name, k, propType);		  \
+    class name##PropEntry \
+    { \
+    public: \
+        name##PropEntry() \
+        {\
+            rtPropertyEntry* tail = headProperty(&entry); \
+            entry.mPropertyName = "" #name ""; \
+            entry.mPropType = RT_##propType##Type; \
+            entry.mSetThunk = (rtSetPropertyThunk)NULL; \
+            entry.mGetThunk = (rtGetPropertyThunk)&PARENTTYPE__::name##_PropGetterThunk; \
             entry.mNext = tail; \
         }\
         rtPropertyEntry entry; \

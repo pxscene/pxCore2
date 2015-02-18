@@ -27,6 +27,8 @@
 pxContext context;
 rtFunctionRef gOnScene;
 
+
+#if 0
 pxInterp interps[] = 
 {
   pxInterpLinear,
@@ -36,6 +38,30 @@ pxInterp interps[] =
   pxStop,
 };
 int numInterps = sizeof(interps)/sizeof(interps[0]);
+#else
+
+struct _pxInterpEntry
+{
+  const char* n;
+  pxInterp i;
+};
+_pxInterpEntry interps[] = 
+{
+  {"PX_LINEAR", pxInterpLinear},
+  {"PX_EXP1", pxExp1},
+  {"PX_EXP2", pxExp2},
+  {"PX_EXP3", pxExp3},
+  {"PX_STOP", pxStop},
+  {"PX_INQUAD", pxInQuad},
+  {"PX_INCUBIC", pxInCubic},
+  {"PX_INBACK", pxInBack},
+  {"PX_EASEINELASTIC", pxEaseInElastic},
+  {"PX_EASEOUTELASTIC", pxEaseOutElastic},
+  {"PX_EASEOUTBOUNCE", pxEaseOutBounce},
+};
+int numInterps = sizeof(interps)/sizeof(interps[0]);
+
+#endif
 
 double pxInterpLinear(double i)
 {
@@ -83,7 +109,7 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
                             uint32_t interp, uint32_t animationType) 
 {
   interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
-  animateTo(prop, to, duration, interps[interp], 
+  animateTo(prop, to, duration, interps[interp].i, 
             (pxAnimationType)animationType);
   return RT_OK;
   }
@@ -95,7 +121,7 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
                              rtFunctionRef onEnd) 
 {
   interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
-  animateTo(prop, to, duration, interps[interp], 
+  animateTo(prop, to, duration, interps[interp].i, 
             (pxAnimationType)animationType, onEnd);
   return RT_OK;
 }
@@ -850,6 +876,18 @@ rtDefineMethod(pxInnerScene, addListener);
 rtDefineMethod(pxInnerScene, delListener);
 rtDefineProperty(pxInnerScene, ctx);
 rtDefineProperty(pxInnerScene, emit);
+rtDefineProperty(pxInnerScene, allInterpolators);
+rtDefineProperty(pxInnerScene, PX_LINEAR);
+rtDefineProperty(pxInnerScene, PX_EXP1);
+rtDefineProperty(pxInnerScene, PX_EXP2);
+rtDefineProperty(pxInnerScene, PX_EXP3);
+rtDefineProperty(pxInnerScene, PX_STOP);
+rtDefineProperty(pxInnerScene, PX_INQUAD);
+rtDefineProperty(pxInnerScene, PX_INCUBIC);
+rtDefineProperty(pxInnerScene, PX_INBACK);
+rtDefineProperty(pxInnerScene, PX_EASEINELASTIC);
+rtDefineProperty(pxInnerScene, PX_EASEOUTELASTIC);
+rtDefineProperty(pxInnerScene, PX_EASEOUTBOUNCE);
 
 rtError pxInnerScene::showOutlines(bool& v) const 
 { 
@@ -900,6 +938,18 @@ rtError pxInnerScene::createScene(rtObjectRef p, rtObjectRef& o)
   o = new pxScene();
   o.set(p);
   o.send("init");
+  return RT_OK;
+}
+
+rtError pxInnerScene::allInterpolators(rtObjectRef& v) const
+{
+  rtRefT<rtArrayObject> keys = new rtArrayObject;
+
+  for (int i = 0; i < numInterps; i++)
+  {
+    keys->pushBack(interps[i].n);
+  }
+  v = keys;
   return RT_OK;
 }
 

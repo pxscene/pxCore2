@@ -29,6 +29,18 @@ using namespace std;
 #include "pxInterpolators.h"
 #include "pxTexture.h"
 
+#define PX_LINEAR_         0
+#define PX_EXP1_           1 
+#define PX_EXP2_           2
+#define PX_EXP3_           3
+#define PX_STOP_           4
+#define PX_INQUAD_         5
+#define PX_INCUBIC_        6
+#define PX_INBACK_         7
+#define PX_EASEINELASTIC_  8
+#define PX_EASEOUTELASTIC_ 9
+#define PX_EASEOUTBOUNCE_  10
+
 typedef double (*pxInterp)(double i);
 typedef void (*pxAnimationEnded)(void* ctx);
 
@@ -460,6 +472,19 @@ public:
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
   rtProperty(ctx, ctx, setCtx, rtValue);
   rtReadOnlyProperty(emit, emit, rtFunctionRef);
+  rtConstantProperty(PX_LINEAR, PX_LINEAR_, uint32_t);
+  rtConstantProperty(PX_EXP1, PX_EXP1_, uint32_t);
+  rtConstantProperty(PX_EXP2, PX_EXP2_, uint32_t);
+  rtConstantProperty(PX_EXP3, PX_EXP3_, uint32_t);
+  rtConstantProperty(PX_STOP, PX_STOP_, uint32_t);
+  rtConstantProperty(PX_INQUAD, PX_INQUAD_, uint32_t);
+  rtConstantProperty(PX_INCUBIC, PX_INCUBIC_, uint32_t);
+  rtConstantProperty(PX_INBACK, PX_INBACK_, uint32_t);
+  rtConstantProperty(PX_EASEINELASTIC, PX_EASEINELASTIC_, uint32_t);
+  rtConstantProperty(PX_EASEOUTELASTIC, PX_EASEOUTELASTIC_, uint32_t);
+  rtConstantProperty(PX_EASEOUTBOUNCE, PX_EASEOUTBOUNCE_, uint32_t);
+
+  rtReadOnlyProperty(allInterpolators, allInterpolators, rtObjectRef);
 
   pxInnerScene(rtRefT<pxObject> root)
   {
@@ -527,6 +552,8 @@ public:
   rtError setCtx(const rtValue& v) { mContext = v; return RT_OK; }
 
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
+  
+  rtError allInterpolators(rtObjectRef& v) const;
 
 private:
   rtRefT<pxObject> mRoot;

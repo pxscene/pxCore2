@@ -7,6 +7,39 @@
 
 
 
+
+double easeInElastic_helper(double t, double b, double c, double d, double a, double p) 
+{
+  if (t == 0) 
+    return b;
+  double t_adj = t / d;
+  if (t_adj == 1) 
+    return b + c;
+
+  double s;
+  if (a < fabs(c)) {
+    a = c;
+    s = p / 4.0;
+  } else {
+    s = p / (2 * M_PI) * sin(c / a);
+  }
+
+  t_adj -= 1.0;
+
+  //    console.log(Math.pow(2.0,10*t_adj));
+  return -(a * pow(2.0, 10 * t_adj) * sin((t_adj * d - s) * (2 * M_PI) / p)) + b;
+}
+
+double pxEaseInElastic(double t) 
+{
+  double a = 0.8;
+  double p = 0.5;
+  double v = easeInElastic_helper(t, 0, 1, 1, a, p);
+  return v;
+}
+
+
+
 double easeOutElastic_helper(double t, double /*b*/, double c, double /*d*/, double a, double p) {
   if (t <= 0) return 0;
   if (t >= 1) return 1;
@@ -38,19 +71,47 @@ double easeOutBounce_helper(double t, double c, double a) {
   }
 }
 
-double easeOutElastic(double t) {
+double pxEaseOutElastic(double t) {
   double a = 0.8;
   double p = 0.5;
   return easeOutElastic_helper(t, 0, 1, 1, a, p);
 }
 
-double easeOutBounce(double t) {
+double pxEaseOutBounce(double t) 
+{
   double a = 1.0;
   return easeOutBounce_helper(t, 1, a);
 }
 
-double pxExp(double t) {
-  return pow(t, 0.48);
+double pxExp1(double t) 
+{
+  return t*t;
+}
+
+double pxExp2(double t)
+{
+  return pow(t,0.48); 
+}
+
+double pxExp3(double t)
+{
+  return pow(t,1.7);
+}
+
+double pxInQuad(double t)
+{
+  return pow(t,2);
+}
+
+double pxInCubic(double t)
+{
+  return pow(t,3);
+}
+
+double pxInBack(double t)
+{
+  double s = 1.70158;
+  return t*t*((s+1.0)*t-s);
 }
 
 // pxStop helpers

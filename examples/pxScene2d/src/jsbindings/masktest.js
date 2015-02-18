@@ -21,12 +21,6 @@ childText.cx = childText.w/2;
 childText.cy = childText.h/2;
 childText.animateTo({"r":360}, 1, 0, 2);
 
-// clean up these names and expose as properties off of some object
-var pxInterpLinear = 0;
-var easeOutElastic = 1;
-var easeOutBounce  = 2;
-var pxExp = 3;
-var pxStop = 4;
 
 function fancy(p) {
   x1(p);
@@ -36,37 +30,37 @@ function fancy(p) {
 }
 
 function x1(p) {
-    p.animateTo({x:50}, 1.0, pxInterpLinear, 0, x2);
+    p.animateTo({x:50}, 1.0, scene.PX_LINEAR, 0, x2);
 }
 
 function x2(p) {
-    p.animateTo({x:450}, 3.0, easeOutElastic, 0, fancy);
+    p.animateTo({x:450}, 3.0, scene.PX_EASEOUTELASTIC, 0, fancy);
 }
 
 function y1(p) {
     p.y = 100;
-    p.animateTo({y:350}, 1.0, easeOutBounce, 0, y2);
+    p.animateTo({y:350}, 1.0, scene.PX_EASEOUTBOUNCE, 0, y2);
 }
 
 function y2(p) {
-    p.animateTo({y:150}, 1.0, easeOutElastic, 0);
+    p.animateTo({y:150}, 1.0, scene.PX_EASEOUTELASTIC, 0);
 }
 
 function rotate1(p) {
     p.r = 0;
-    p.animateTo({r:-360}, 2.5, easeOutElastic, 0);
+    p.animateTo({r:-360}, 2.5, scene.PX_EASEOUTELASTIC, 0);
 }
 
 function scale1(p) {
-    p.animateTo({sx:0.2,sy:0.2}, 1, pxInterpLinear, 0, scale2);
+    p.animateTo({sx:0.2,sy:0.2}, 1, scene.PX_LINEAR, 0, scale2);
 }
 
 function scale2(p) {
-    p.animateTo({sx:2.0,sy:2.0}, 1.0, pxExp, 0, scale3);
+    p.animateTo({sx:2.0,sy:2.0}, 1.0, scene.PX_EXP1, 0, scale3);
 }
 
 function scale3(p) {
-    p.animateTo({sx:1.0,sy:1.0}, 1.0, easeOutElastic, 0);
+    p.animateTo({sx:1.0,sy:1.0}, 1.0, scene.PX_EASEOUTELASTIC, 0);
 }
 
 fancy(ball);
