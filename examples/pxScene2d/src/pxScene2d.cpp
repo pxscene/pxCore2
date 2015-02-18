@@ -646,6 +646,12 @@ void pxScene2d::checkForCompletedImageDownloads()
         gImageDownloadsPending--;
       }
       completedImageDownloads.clear();
+      if (gImageDownloadsPending < 0)
+      {
+        //this is a safety check (hopefully never used)
+        //to ensure downloads are still processed in the event of a gImageDownloadsPending bug in the future
+        gImageDownloadsPending = 0;
+      }
     }
     imageDownloadMutex.unlock();
   }
