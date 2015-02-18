@@ -31,37 +31,37 @@ function fancy(p) {
 }
 
 function x1(p) {
-    p.animateTo({x:50}, 1.0, scene.PX_LINEAR, 0, x2);
+    p.animateTo({x:50}, 1.0, scene.PX_LINEAR, scene.PX_END, x2);
 }
 
 function x2(p) {
-    p.animateTo({x:450}, 3.0, scene.PX_EASEOUTELASTIC, 0, fancy);
+    p.animateTo({x:450}, 3.0, scene.PX_EASEOUTELASTIC, scene.PX_END, fancy);
 }
 
 function y1(p) {
     p.y = 100;
-    p.animateTo({y:350}, 1.0, scene.PX_EASEOUTBOUNCE, 0, y2);
+    p.animateTo({y:350}, 1.0, scene.PX_EASEOUTBOUNCE, scene.PX_END, y2);
 }
 
 function y2(p) {
-    p.animateTo({y:150}, 1.0, scene.PX_EASEOUTELASTIC, 0);
+    p.animateTo({y:150}, 1.0, scene.PX_EASEOUTELASTIC, scene.PX_END);
 }
 
 function rotate1(p) {
     p.r = 0;
-    p.animateTo({r:-360}, 2.5, scene.PX_EASEOUTELASTIC, 0);
+    p.animateTo({r:-360}, 2.5, scene.PX_EASEOUTELASTIC, scene.PX_END);
 }
 
 function scale1(p) {
-    p.animateTo({sx:0.2,sy:0.2}, 1, scene.PX_LINEAR, 0, scale2);
+    p.animateTo({sx:0.2,sy:0.2}, 1, scene.PX_LINEAR, scene.PX_END, scale2);
 }
 
 function scale2(p) {
-    p.animateTo({sx:2.0,sy:2.0}, 1.0, scene.PX_EXP1, 0, scale3);
+    p.animateTo({sx:2.0,sy:2.0}, 1.0, scene.PX_EXP1, scene.PX_END, scale3);
 }
 
 function scale3(p) {
-    p.animateTo({sx:1.0,sy:1.0}, 1.0, scene.PX_EASEOUTELASTIC, 0);
+    p.animateTo({sx:1.0,sy:1.0}, 1.0, scene.PX_EASEOUTELASTIC, scene.PX_END);
 }
 
 fancy(ball);

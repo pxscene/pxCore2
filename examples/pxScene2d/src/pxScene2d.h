@@ -17,6 +17,7 @@ using namespace std;
 #include "rtRefT.h"
 #include "rtString.h"
 
+// TODO rtDefs vs rtCore.h
 #include "rtDefs.h"
 #include "rtCore.h"
 #include "rtError.h"
@@ -29,6 +30,7 @@ using namespace std;
 #include "pxInterpolators.h"
 #include "pxTexture.h"
 
+// Interpolator constants
 #define PX_LINEAR_         0
 #define PX_EXP1_           1 
 #define PX_EXP2_           2
@@ -46,7 +48,7 @@ typedef void (*pxAnimationEnded)(void* ctx);
 
 double pxInterpLinear(double i);
 
-enum pxAnimationType {PX_STOP = 0, PX_SEESAW, PX_LOOP};
+enum pxAnimationType {PX_END = 0, PX_SEESAW, PX_LOOP};
 
 struct pxPoint2f {
   pxPoint2f() {}
@@ -272,7 +274,7 @@ public:
 		 rtFunctionRef onEnd);  
 
   void animateTo(const char* prop, double to, double duration, 
-		 pxInterp interp=0, pxAnimationType at=PX_STOP)
+		 pxInterp interp=0, pxAnimationType at=PX_END)
   {
     animateTo(prop, to, duration, interp, at, rtFunctionRef());
   }  
@@ -483,6 +485,10 @@ public:
   rtConstantProperty(PX_EASEINELASTIC, PX_EASEINELASTIC_, uint32_t);
   rtConstantProperty(PX_EASEOUTELASTIC, PX_EASEOUTELASTIC_, uint32_t);
   rtConstantProperty(PX_EASEOUTBOUNCE, PX_EASEOUTBOUNCE_, uint32_t);
+  rtConstantProperty(PX_END, PX_END, uint32_t);
+  rtConstantProperty(PX_SEESAW, PX_SEESAW, uint32_t);
+  rtConstantProperty(PX_LOOP, PX_LOOP, uint32_t);
+  
 
   rtReadOnlyProperty(allInterpolators, allInterpolators, rtObjectRef);
 

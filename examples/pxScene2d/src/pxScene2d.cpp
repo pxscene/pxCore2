@@ -138,14 +138,14 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
     return;
 
   // If an animation for this property is in progress we cancel it here
-  // we also fastforward the animation if it is of type PX_STOP
+  // we also fastforward the animation if it is of type PX_END
   vector<animation>::iterator it = mAnimations.begin();
   while (it != mAnimations.end())
   {
     animation& a = (*it);
     if (a.prop == prop)
     {
-      if (a.at == PX_STOP)
+      if (a.at == PX_END)
       {
         // fastforward
         if (fastforward)
@@ -203,7 +203,7 @@ void pxObject::update(double t)
       // animation traversal to cancel animations
       set(a.prop, a.to);
 
-      if (a.at == PX_STOP)
+      if (a.at == PX_END)
       {
         if (a.ended)
         {
@@ -888,6 +888,10 @@ rtDefineProperty(pxInnerScene, PX_INBACK);
 rtDefineProperty(pxInnerScene, PX_EASEINELASTIC);
 rtDefineProperty(pxInnerScene, PX_EASEOUTELASTIC);
 rtDefineProperty(pxInnerScene, PX_EASEOUTBOUNCE);
+rtDefineProperty(pxInnerScene, PX_END);
+rtDefineProperty(pxInnerScene, PX_SEESAW);
+rtDefineProperty(pxInnerScene, PX_LOOP);
+
 
 rtError pxInnerScene::showOutlines(bool& v) const 
 { 

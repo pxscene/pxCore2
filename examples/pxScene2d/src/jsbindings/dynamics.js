@@ -19,7 +19,7 @@ for (var i = 0; i < interpolators.length; i++) {
     scene.createImage({url:baseURL+"images/blurredline.png",x:x,y:y+50,parent:root});
     scene.createText({text:interpolatorName,textColor:0x707070ff,pixelSize:14,x:x+5,y:y+18,parent:root});
     scene.createImage({url:baseURL+"images/ball2.png",a:0.5,x:x,y:y+8,parent:root})
-	.animateTo({x:600},1,scene[interpolatorName],1);
+	.animateTo({x:600},1,scene[interpolatorName],scene.PX_SEESAW);
 }
 
 function updateSize(w, h) {

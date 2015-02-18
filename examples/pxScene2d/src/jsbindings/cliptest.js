@@ -19,7 +19,7 @@ childText.y = ball.h/2-childText.h/2;
 childText.x = ball.w/2-childText.w/2;
 childText.cx = childText.w/2;
 childText.cy = childText.h/2;
-childText.animateTo({"r":360}, 1, 0, 2);
+childText.animateTo({"r":360}, 1, scene.PX_LINEAR, scene.PX_LOOP);
 
 function fancy(p) {
   x1(p);
