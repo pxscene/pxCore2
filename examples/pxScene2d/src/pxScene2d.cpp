@@ -281,10 +281,9 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
   // TODO consistent behavior between clipping and no clipping when z is in use
 
   parentAlpha = parentAlpha * ma;
-#if 0
   if (parentAlpha < alphaEpsilon)
     return;  // trivial reject for objects that are transparent
-#endif
+
 #if 1
 #if 1
   // translate based on xy rotate/scale based on cx, cy
@@ -348,7 +347,7 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
     else
     {
 
-      //      if (mw>0.0f && mh>0.0f)
+      if (mw>0.0f && mh>0.0f)
         draw();
 
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
