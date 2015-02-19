@@ -71,8 +71,9 @@ HorizontalMenu.prototype.moveSelection = function(menu, src, dest, xpos, width)
 
 HorizontalMenu.prototype.next = function() {
   var idx = this._selectedText + 1;
-  if (idx > this._items.lenght)
+  if (idx >= this._textItems.length) {
     idx = 0;
+  }
 
   this.moveSelection(this, this._selectedText, idx, this._textItems[idx].x,
       this.widthOfItem(idx));
@@ -80,8 +81,9 @@ HorizontalMenu.prototype.next = function() {
 
 HorizontalMenu.prototype.prev = function() {
   var idx = this._selectedText - 1;
-  if (idx < 0)
-    idx = this._items.length - 1;
+  if (idx < 0) {
+    idx = this._textItems.length - 1;
+  }
 
   this.moveSelection(this, this._selectedText, idx, this._textItems[idx].x,
       this.widthOfItem(idx));
