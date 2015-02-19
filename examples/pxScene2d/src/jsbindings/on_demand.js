@@ -55,15 +55,13 @@ HorizontalMenu.prototype.widthOfItem = function(i) {
 
 HorizontalMenu.prototype.moveSelection = function(menu, src, dest, xpos, width)
 {
-  console.log("src:" + src + " dest:" + dest + " xpos:" + xpos + " width:" + width);
-
+  menu._selectedText = dest;
   this._bottomSelectionLine.animateTo({w:width}, this._animationSpeed, scene.PX_STOP, 0);
   this._topSelectionLine.animateTo({w:width}, this._animationSpeed, scene.PX_STOP, 0);
 
   this._topSelectionLine.animateTo({x:xpos}, this._animationSpeed, scene.PX_STOP, 0);
   this._bottomSelectionLine.animateTo({x:xpos},  this._animationSpeed, scene.PX_STOP, 0, function(e) {
     // Is this a BUG? "this" doesn't appear to be HorizontalMenu
-    menu._selectedText = dest;
 
     // changing text color doesn't appear to work
     menu._textItems[dest].fillColor = menu._selectedColor;
