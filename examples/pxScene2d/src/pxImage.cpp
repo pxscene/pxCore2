@@ -61,7 +61,7 @@ void pxImage::loadImage(rtString url)
   }
   else
   {
-    rtLogInfo("Image texture cache miss");
+    rtLogDebug("Image texture cache miss");
     char* s = url.cString();
     const char *result = strstr(s, "http");
     int position = result - s;
@@ -81,7 +81,6 @@ void pxImage::loadImage(rtString url)
       {
         mTexture = context.createTexture(imageOffscreen);
         gTextureCache.insert(pair<rtString,pxTextureRef>(s, mTexture));
-        rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
       }
       if (mAutoSize)
       {

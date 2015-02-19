@@ -98,7 +98,7 @@ const GlyphCacheEntry* pxFace::getGlyph(uint32_t codePoint)
       return NULL;
     else
     {
-      rtLogInfo("glyph cache miss");
+      rtLogDebug("glyph cache miss");
       GlyphCacheEntry *entry = new GlyphCacheEntry;
       FT_GlyphSlot g = mFace->glyph;
       
@@ -114,12 +114,6 @@ const GlyphCacheEntry* pxFace::getGlyph(uint32_t codePoint)
                                               g->bitmap.width, g->bitmap.rows, 
                                               g->bitmap.buffer);
       
-#if 0
-      GlyphKey key;
-      key.mFaceId = mFaceId;
-      key.mPixelSize = mPixelSize;
-      key.mCodePoint = codePoint;
-#endif
       gGlyphCache.insert(make_pair(key,entry));
       return entry;
     }

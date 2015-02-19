@@ -617,14 +617,16 @@ void pxScene2d::checkForCompletedImageDownloads()
         pxImageDownloadRequest* imageDownloadRequest = (*it);
 
         if (imageDownloadRequest != NULL && 
-            imageDownloadRequest->getDownloadStatusCode() == 0 && imageDownloadRequest->getDownloadedData() != NULL)
+            imageDownloadRequest->getDownloadStatusCode() == 0 && 
+            imageDownloadRequest->getHttpStatusCode() == 200 &&
+            imageDownloadRequest->getDownloadedData() != NULL)
         {
           pxOffscreen imageOffscreen;
           if (pxLoadImage(imageDownloadRequest->getDownloadedData(),
                           imageDownloadRequest->getDownloadedDataSize(), 
                           imageOffscreen) != RT_OK)
           {
-            rtLogWarn("image load failed"); // TODO: why?
+            rtLogError("Image Decode Failed: %s", imageDownloadRequest->getImageURL().cString());
           }
           else
           {
@@ -638,7 +640,10 @@ void pxScene2d::checkForCompletedImageDownloads()
           }
         }
         else
-          rtLogWarn("image download failed.  Error: %s", imageDownloadRequest->getErrorString().cString());
+          rtLogWarn("Image Download Failed: %s Error: %s HTTP Status Code: %ld", 
+                    imageDownloadRequest->getImageURL().cString(),
+                    imageDownloadRequest->getErrorString().cString(),
+                    imageDownloadRequest->getHttpStatusCode());
 
         delete imageDownloadRequest;
         imageDownloadsAvailable = false;
@@ -962,6 +967,9 @@ rtDefineProperty(pxInnerScene, PX_EASEOUTBOUNCE);
 rtDefineProperty(pxInnerScene, PX_END);
 rtDefineProperty(pxInnerScene, PX_SEESAW);
 rtDefineProperty(pxInnerScene, PX_LOOP);
+rtDefineProperty(pxInnerScene, PX_NONE);
+rtDefineProperty(pxInnerScene, PX_STRETCH);
+rtDefineProperty(pxInnerScene, PX_REPEAT);
 
 
 rtError pxInnerScene::showOutlines(bool& v) const 

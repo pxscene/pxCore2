@@ -2,11 +2,13 @@ var root = scene.root;
 
 var url;
 url = process.cwd() + "/../../images/skulls.png";
-var bg = scene.createImage({url:url,xStretch:2,yStretch:2,parent:root});
+var bg = scene.createImage({url:url,xStretch:scene.PX_REPEAT,yStretch:scene.PX_REPEAT,
+                            parent:root});
 bg.animateTo({r:360},60.0,scene.PX_LINEAR,scene.PX_LOOP);
 
 url = process.cwd() + "/../../images/radial_gradient.png";
-var bgShade = scene.createImage({url:url,xStretch:1,yStretch:1,parent:root});
+var bgShade = scene.createImage({url:url,xStretch:scene.PX_STRETCH,yStretch:scene.PX_STRETCH,
+                                 parent:root});
 
 scene.createScene({url:process.cwd()+"/hello.js",parent:root});
 

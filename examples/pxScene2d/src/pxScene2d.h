@@ -43,6 +43,10 @@ using namespace std;
 #define PX_EASEOUTELASTIC_ 9
 #define PX_EASEOUTBOUNCE_  10
 
+#define PX_NONE_           0
+#define PX_STRETCH_        1
+#define PX_REPEAT_         2
+
 typedef double (*pxInterp)(double i);
 typedef void (*pxAnimationEnded)(void* ctx);
 
@@ -488,8 +492,10 @@ public:
   rtConstantProperty(PX_END, PX_END, uint32_t);
   rtConstantProperty(PX_SEESAW, PX_SEESAW, uint32_t);
   rtConstantProperty(PX_LOOP, PX_LOOP, uint32_t);
-  
-
+  rtConstantProperty(PX_NONE, PX_NONE_, uint32_t);
+  rtConstantProperty(PX_STRETCH, PX_STRETCH_, uint32_t);
+  rtConstantProperty(PX_REPEAT, PX_REPEAT_, uint32_t);
+ 
   rtReadOnlyProperty(allInterpolators, allInterpolators, rtObjectRef);
 
   pxInnerScene(rtRefT<pxObject> root)
