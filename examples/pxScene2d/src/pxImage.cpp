@@ -13,13 +13,13 @@
 
 #include "pxContext.h"
 
-#include "pxImageDownloader.h"
+#include "pxFileDownloader.h"
 
 #include <map>
 using namespace std;
 
 extern pxContext context;
-extern int gImageDownloadsPending;
+extern int gFileDownloadsPending;
 
 typedef map<rtString, pxTextureRef> TextureMap;
 TextureMap gTextureCache;
@@ -67,10 +67,10 @@ void pxImage::loadImage(rtString url)
     int position = result - s;
     if (position == 0 && strlen(s) > 0)
     {
-      pxImageDownloadRequest* downloadRequest = 
-        new pxImageDownloadRequest(s, this);
-      gImageDownloadsPending++;
-      pxImageDownloader::getInstance()->addToDownloadQueue(downloadRequest);
+      pxFileDownloadRequest* downloadRequest = 
+        new pxFileDownloadRequest(s, this);
+      gFileDownloadsPending++;
+      pxFileDownloader::getInstance()->addToDownloadQueue(downloadRequest);
     }
     else 
     {
@@ -104,7 +104,7 @@ void pxImage::draw() {
 
 void pxImage::setTexture(pxTextureRef texture)
 {
-  // TODO... tried to access url from mImageDownloadRequest and
+  // TODO... tried to access url from the download request and
   // it seemed to be coming back NULL.. switched to using mURL for now
   mTexture = texture;
   gTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(), 

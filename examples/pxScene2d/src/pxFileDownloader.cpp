@@ -1,5 +1,5 @@
 #define XRELOG_NOCTRACE
-#include "pxImageDownloader.h"
+#include "pxFileDownloader.h"
 #include "rtThreadTask.h"
 #include "rtThreadPool.h"
 
@@ -69,68 +69,67 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 }
 
 
-void startImageDownloadInBackground(void* data)
+void startFileDownloadInBackground(void* data)
 {
-    pxImageDownloadRequest* downloadRequest = (pxImageDownloadRequest*)data;
-    pxImageDownloader::getInstance()->downloadImage(downloadRequest);
+    pxFileDownloadRequest* downloadRequest = (pxFileDownloadRequest*)data;
+    pxFileDownloader::getInstance()->downloadFile(downloadRequest);
 }
 
 
-pxImageDownloader* pxImageDownloader::mInstance = NULL;
+pxFileDownloader* pxFileDownloader::mInstance = NULL;
 
-pxImageDownloader::pxImageDownloader() 
+pxFileDownloader::pxFileDownloader() 
     : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL)
 {
 }
 
-pxImageDownloader::~pxImageDownloader()
+pxFileDownloader::~pxFileDownloader()
 {
 }
 
-pxImageDownloader* pxImageDownloader::getInstance()
+pxFileDownloader* pxFileDownloader::getInstance()
 {
     if (mInstance == NULL)
     {
-        mInstance = new pxImageDownloader();
+        mInstance = new pxFileDownloader();
     }
     return mInstance;
 }
 
-bool pxImageDownloader::addToDownloadQueue(pxImageDownloadRequest* downloadRequest)
+bool pxFileDownloader::addToDownloadQueue(pxFileDownloadRequest* downloadRequest)
 {
     bool submitted = false;
     //todo: check the download queue before starting download
     submitted = true;
-    downloadImageInBackground(downloadRequest);
+    downloadFileInBackground(downloadRequest);
     //startNextDownloadInBackground();
     return submitted;
 }
 
-void pxImageDownloader::startNextDownloadInBackground()
+void pxFileDownloader::startNextDownloadInBackground()
 {
     //todo
 }
 
-void pxImageDownloader::raiseDownloadPriority(pxImageDownloadRequest* downloadRequest)
+void pxFileDownloader::raiseDownloadPriority(pxFileDownloadRequest* downloadRequest)
 {
     (void)downloadRequest;
     //todo
 }
 
-void pxImageDownloader::removeDownloadRequest(pxImageDownloadRequest* downloadRequest)
+void pxFileDownloader::removeDownloadRequest(pxFileDownloadRequest* downloadRequest)
 {
     (void)downloadRequest;
     //todo
 }
 
-void pxImageDownloader::clearImageCache()
+void pxFileDownloader::clearFileCache()
 {
     //todo
 }
 
-void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
+void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
 {
-    bool decode = downloadRequest->shouldDecodeAfterDownload();
     CURL *curl_handle = NULL;
     CURLcode res = CURLE_OK;
     
@@ -142,7 +141,7 @@ void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
     curl_handle = curl_easy_init();
 
     /* specify URL to get */
-    curl_easy_setopt(curl_handle, CURLOPT_URL, downloadRequest->getImageURL().cString());
+    curl_easy_setopt(curl_handle, CURLOPT_URL, downloadRequest->getFileURL().cString());
     curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1); //when redirected, follow the redirections
     curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, HeaderCallback);
     curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)&chunk);
@@ -177,7 +176,7 @@ void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
     {
         stringstream errorStringStream;
         
-        errorStringStream << "Download error for: " << downloadRequest->getImageURL().cString()
+        errorStringStream << "Download error for: " << downloadRequest->getFileURL().cString()
                 << ".  Error code : " << res << ".  Using proxy: ";
         if (useProxy)
         {
@@ -236,11 +235,6 @@ void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
         chunk.headerBuffer = NULL;
     }
 
-    if (decode)
-    {
-        //todo - decode
-    }
-
     //don't free the downloaded data (contentsBuffer) because it will be used later
     downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
     if (!downloadRequest->executeCallback(res))
@@ -257,22 +251,22 @@ void pxImageDownloader::downloadImage(pxImageDownloadRequest* downloadRequest)
     }
 }
 
-void pxImageDownloader::downloadImageInBackground(pxImageDownloadRequest* downloadRequest)
+void pxFileDownloader::downloadFileInBackground(pxFileDownloadRequest* downloadRequest)
 {
     rtThreadPool* mainThreadPool = rtThreadPool::globalInstance();
     
-    rtThreadTask* task = new rtThreadTask(startImageDownloadInBackground, (void*)downloadRequest);
+    rtThreadTask* task = new rtThreadTask(startFileDownloadInBackground, (void*)downloadRequest);
     
     mainThreadPool->executeTask(task);
 }
 
-pxImageDownloadRequest* pxImageDownloader::getNextDownloadRequest()
+pxFileDownloadRequest* pxFileDownloader::getNextDownloadRequest()
 {
     //todo
     return NULL;
 }
 
-void pxImageDownloader::setDefaultCallbackFunction(void (*callbackFunction)(pxImageDownloadRequest*))
+void pxFileDownloader::setDefaultCallbackFunction(void (*callbackFunction)(pxFileDownloadRequest*))
 {
   mDefaultCallbackFunction = callbackFunction;
 }

@@ -685,7 +685,7 @@ public:
     return RT_OK;
   }
   
-  void checkForCompletedImageDownloads();
+  void checkForCompletedFileDownloads();
   
 private:
   void draw();

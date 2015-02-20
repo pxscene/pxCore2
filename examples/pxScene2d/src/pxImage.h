@@ -8,8 +8,6 @@
 #include "rtMutex.h"
 #include "pxTexture.h"
 
-class pxImageDownloadRequest;
-
 class pxImage: public pxObject {
 public:
   rtDeclareObject(pxImage, pxObject);

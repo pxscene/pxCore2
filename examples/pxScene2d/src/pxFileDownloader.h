@@ -1,5 +1,5 @@
-#ifndef PX_IMAGE_DOWNLOADER_H
-#define PX_IMAGE_DOWNLOADER_H
+#ifndef PX_FILE_DOWNLOADER_H
+#define PX_FILE_DOWNLOADER_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -10,24 +10,24 @@
 
 using namespace std;
 
-class pxImageDownloadRequest
+class pxFileDownloadRequest
 {
 public:
-    pxImageDownloadRequest(const char* imageUrl, void* callbackData) 
-      : mImageUrl(imageUrl), mProxyServer(),
+    pxFileDownloadRequest(const char* imageUrl, void* callbackData) 
+      : mFileUrl(imageUrl), mProxyServer(),
     mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL),
-    mDownloadedData(0), mDownloadedDataSize(), mDecodeAfterDownload(false),
+    mDownloadedData(0), mDownloadedDataSize(),
     mDownloadStatusCode(0), mCallbackData(callbackData)
   {} 
         
-  ~pxImageDownloadRequest()
+  ~pxFileDownloadRequest()
   {
     free(mDownloadedData);
     mDownloadedData = NULL;
   }
   
-  void setImageURL(const char* imageUrl) { mImageUrl = imageUrl; }
-  rtString getImageURL() const { return mImageUrl; }
+  void setFileURL(const char* imageUrl) { mFileUrl = imageUrl; }
+  rtString getFileURL() const { return mFileUrl; }
     
   void setProxy(const char* proxyServer)
   {
@@ -49,7 +49,7 @@ public:
     return mErrorString;
   }
   
-  void setCallbackFunction(void (*callbackFunction)(pxImageDownloadRequest*))
+  void setCallbackFunction(void (*callbackFunction)(pxFileDownloadRequest*))
   {
     mCallbackFunction = callbackFunction;
   }
@@ -97,16 +97,6 @@ public:
     return mDownloadedDataSize;
   }
   
-  void enableDecodeAfterDownload(bool enable)
-  {
-    mDecodeAfterDownload = enable;
-  }
-  
-  bool shouldDecodeAfterDownload()
-  {
-    return mDecodeAfterDownload;
-  }
-  
   void setDownloadStatusCode(int statusCode)
   {
     mDownloadStatusCode = statusCode;
@@ -128,49 +118,48 @@ public:
   }
   
 private:
-  rtString mImageUrl;
+  rtString mFileUrl;
   rtString mProxyServer;
   rtString mErrorString;
   long mHttpStatusCode;
-  void (*mCallbackFunction)(pxImageDownloadRequest*);
+  void (*mCallbackFunction)(pxFileDownloadRequest*);
   char* mDownloadedData;
   size_t mDownloadedDataSize;
-  bool mDecodeAfterDownload;
   int mDownloadStatusCode;
   void* mCallbackData;
 };
 
-class pxImageDownloader
+class pxFileDownloader
 {
 public:
 
-    static pxImageDownloader* getInstance();
+    static pxFileDownloader* getInstance();
 
-    virtual bool addToDownloadQueue(pxImageDownloadRequest* downloadRequest);
-    virtual void raiseDownloadPriority(pxImageDownloadRequest* downloadRequest);
-    virtual void removeDownloadRequest(pxImageDownloadRequest* downloadRequest);
+    virtual bool addToDownloadQueue(pxFileDownloadRequest* downloadRequest);
+    virtual void raiseDownloadPriority(pxFileDownloadRequest* downloadRequest);
+    virtual void removeDownloadRequest(pxFileDownloadRequest* downloadRequest);
 
-    void clearImageCache();
-    void downloadImage(pxImageDownloadRequest* downloadRequest);
-    void setDefaultCallbackFunction(void (*callbackFunction)(pxImageDownloadRequest*));
+    void clearFileCache();
+    void downloadFile(pxFileDownloadRequest* downloadRequest);
+    void setDefaultCallbackFunction(void (*callbackFunction)(pxFileDownloadRequest*));
 
 private:
-    pxImageDownloader();
-    ~pxImageDownloader();
+    pxFileDownloader();
+    ~pxFileDownloader();
 
-    void startNextDownload(pxImageDownloadRequest* downloadRequest);
-    pxImageDownloadRequest* getNextDownloadRequest();
+    void startNextDownload(pxFileDownloadRequest* downloadRequest);
+    pxFileDownloadRequest* getNextDownloadRequest();
     void startNextDownloadInBackground();
-    void downloadImageInBackground(pxImageDownloadRequest* downloadRequest);
+    void downloadFileInBackground(pxFileDownloadRequest* downloadRequest);
     
     //todo: hash mPendingDownloadRequests;
     //todo: string list mPendingDownloadOrderList;
     //todo: list mActiveDownloads;
     unsigned int mNumberOfCurrentDownloads;
     //todo: hash m_priorityDownloads;
-    void (*mDefaultCallbackFunction)(pxImageDownloadRequest*);
+    void (*mDefaultCallbackFunction)(pxFileDownloadRequest*);
     
-    static pxImageDownloader* mInstance;
+    static pxFileDownloader* mInstance;
 };
 
-#endif //PX_IMAGE_DOWNLOADER_H
+#endif //PX_FILE_DOWNLOADER_H
