@@ -13,13 +13,13 @@
 
 #include "pxContext.h"
 
-#include "pxImageDownloader.h"
+#include "pxFileDownloader.h"
 
 #include <map>
 using namespace std;
 
 extern pxContext context;
-extern int gImageDownloadsPending;
+extern int gFileDownloadsPending;
 
 typedef map<rtString, pxTextureRef> TextureMap;
 TextureMap gTextureCache;
@@ -67,10 +67,10 @@ void pxImage::loadImage(rtString url)
     int position = result - s;
     if (position == 0 && strlen(s) > 0)
     {
-      pxImageDownloadRequest* downloadRequest = 
-        new pxImageDownloadRequest(s, this);
-      gImageDownloadsPending++;
-      pxImageDownloader::getInstance()->addToDownloadQueue(downloadRequest);
+      pxFileDownloadRequest* downloadRequest = 
+        new pxFileDownloadRequest(s, this);
+      gFileDownloadsPending++;
+      pxFileDownloader::getInstance()->addToDownloadQueue(downloadRequest);
     }
     else 
     {
@@ -102,24 +102,32 @@ void pxImage::draw() {
   context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, mXStretch, mYStretch);
 }
 
-void pxImage::setTexture(pxTextureRef texture)
+void pxImage::onFileDownloadComplete(pxFileDownloadRequest* downloadRequest)
 {
-  // TODO... tried to access url from mImageDownloadRequest and
-  // it seemed to be coming back NULL.. switched to using mURL for now
-  mTexture = texture;
-  gTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(), 
-                                                   mTexture));
-  rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
-  if (mAutoSize && mTexture.getPtr() != NULL)
+  pxOffscreen imageOffscreen;
+  if (pxLoadImage(downloadRequest->getDownloadedData(),
+                  downloadRequest->getDownloadedDataSize(), 
+                  imageOffscreen) != RT_OK)
   {
-    mw = mTexture->width();
-    mh = mTexture->height();
+    rtLogError("Image Decode Failed: %s", downloadRequest->getFileURL().cString());
   }
-  // send after width and height have been set
-  rtObjectRef e = new rtMapObject;
-  e.set("name", "onReady");
-  e.set("target", this);
-  mEmit.send("onReady", e);
+  else
+  {
+    mTexture = context.createTexture(imageOffscreen);
+    gTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(), 
+                                                    mTexture));
+    rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
+    if (mAutoSize && mTexture.getPtr() != NULL)
+    {
+      mw = mTexture->width();
+      mh = mTexture->height();
+    }
+    // send after width and height have been set
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onReady");
+    e.set("target", this);
+    mEmit.send("onReady", e);
+  }
 }
 
 rtDefineObject(pxImage, pxObject);

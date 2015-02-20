@@ -28,7 +28,7 @@ PX_SRCS=\
     pxUtil.cpp \
     pxContextGL.cpp \
     pxImage9.cpp \
-    pxImageDownloader.cpp \
+    pxFileDownloader.cpp \
     pxInterpolators.cpp
 
 EXTDIR=../external

@@ -22,27 +22,43 @@
 #include "pxImage9.h"
 
 #include "pxContext.h"
-#include "pxImageDownloader.h"
+#include "pxFileDownloader.h"
 #include "rtMutex.h"
 
 // TODO get rid of globals
 pxContext context;
 rtFunctionRef gOnScene;
 
-int gImageDownloadsPending = 0; //must only be set in the main thread
+int gFileDownloadsPending = 0; //must only be set in the main thread
+rtMutex fileDownloadMutex;
+bool fileDownloadsAvailable = false;
+vector<pxFileDownloadRequest*> completedFileDownloads;
 
-rtMutex imageDownloadMutex;
-bool imageDownloadsAvailable = false;
-vector<pxImageDownloadRequest*> completedImageDownloads;
+//for mask downloads - todo - combine with file downloads
+int gMaskDownloadsPending = 0; //must only be set in the main thread
+rtMutex maskDownloadMutex;
+bool maskDownloadsAvailable = false;
+vector<pxFileDownloadRequest*> completedMaskDownloads;
 
-void pxImageDownloadComplete(pxImageDownloadRequest* imageDownloadRequest)
+void pxFileDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
 {
-  if (imageDownloadRequest != NULL)
+  if (fileDownloadRequest != NULL)
   {
-    imageDownloadMutex.lock();
-    completedImageDownloads.push_back(imageDownloadRequest);
-    imageDownloadsAvailable = true;
-    imageDownloadMutex.unlock();
+    fileDownloadMutex.lock();
+    completedFileDownloads.push_back(fileDownloadRequest);
+    fileDownloadsAvailable = true;
+    fileDownloadMutex.unlock();
+  }
+}
+
+void pxMaskDownloadComplete(pxFileDownloadRequest* maskDownloadRequest)
+{
+  if (maskDownloadRequest != NULL)
+  {
+    maskDownloadMutex.lock();
+    completedMaskDownloads.push_back(maskDownloadRequest);
+    maskDownloadsAvailable = true;
+    maskDownloadMutex.unlock();
   }
 }
 
@@ -462,12 +478,26 @@ void pxObject::createMask()
   
   if (mMaskUrl.length() > 0)
   {
-    // TODO add a pxTexture object and use that instead of pxImage
-    // TODO This only works if the image load is synchronous
-    rtRefT<pxImage> i = new pxImage;
-    i->send("init");
-    i->setURL(mMaskUrl.cString());
-    mMaskTextureRef = i->getTexture();
+    char* s = mMaskUrl.cString();
+    const char *result = strstr(s, "http");
+    int position = result - s;
+    if (position == 0 && strlen(s) > 0)
+    {
+      pxFileDownloadRequest* downloadRequest = 
+        new pxFileDownloadRequest(s, this);
+      downloadRequest->setCallbackFunction(pxMaskDownloadComplete);
+      gMaskDownloadsPending++;
+      pxFileDownloader::getInstance()->addToDownloadQueue(downloadRequest);
+    }
+    else 
+    {
+      pxOffscreen imageOffscreen;
+      if (pxLoadImage(s, imageOffscreen) != RT_OK)
+        rtLogWarn("image load failed");
+      else
+        rtLogDebug("image %d, %d", imageOffscreen.width(), imageOffscreen.height());
+      mMaskTextureRef = context.createTexture(imageOffscreen);
+    }
   }
 }
 
@@ -513,7 +543,7 @@ rtDefineProperty(pxObject, onReady);
 pxScene2d::pxScene2d()
  :start(0),frameCount(0) 
 { 
-  pxImageDownloader::getInstance()->setDefaultCallbackFunction(pxImageDownloadComplete);
+  pxFileDownloader::getInstance()->setDefaultCallbackFunction(pxFileDownloadComplete);
   mRoot = new pxObject(); 
   mEmit = new rtEmit();
 }
@@ -605,59 +635,100 @@ void pxScene2d::hitTest(pxPoint2f /*p*/, vector<rtRefT<pxObject> > /*hitList*/) 
   
 }
 
-void pxScene2d::checkForCompletedImageDownloads()
+void pxScene2d::checkForCompletedFileDownloads()
 {
-  if (gImageDownloadsPending > 0)
+  if (gFileDownloadsPending > 0)
   {
-    imageDownloadMutex.lock();
-    if (imageDownloadsAvailable)
+    fileDownloadMutex.lock();
+    if (fileDownloadsAvailable)
     {
-      for(vector<pxImageDownloadRequest*>::iterator it = completedImageDownloads.begin(); it != completedImageDownloads.end(); ++it)
+      for(vector<pxFileDownloadRequest*>::iterator it = completedFileDownloads.begin(); it != completedFileDownloads.end(); ++it)
       {
-        pxImageDownloadRequest* imageDownloadRequest = (*it);
+        pxFileDownloadRequest* fileDownloadRequest = (*it);
 
-        if (imageDownloadRequest != NULL && 
-            imageDownloadRequest->getDownloadStatusCode() == 0 && 
-            imageDownloadRequest->getHttpStatusCode() == 200 &&
-            imageDownloadRequest->getDownloadedData() != NULL)
+        if (fileDownloadRequest != NULL && 
+            fileDownloadRequest->getDownloadStatusCode() == 0 && 
+            fileDownloadRequest->getHttpStatusCode() == 200 &&
+            fileDownloadRequest->getDownloadedData() != NULL)
         {
-          pxOffscreen imageOffscreen;
-          if (pxLoadImage(imageDownloadRequest->getDownloadedData(),
-                          imageDownloadRequest->getDownloadedDataSize(), 
-                          imageOffscreen) != RT_OK)
+          if (fileDownloadRequest->getCallbackData() != NULL)
           {
-            rtLogError("Image Decode Failed: %s", imageDownloadRequest->getImageURL().cString());
-          }
-          else
-          {
-            if (imageDownloadRequest->getCallbackData() != NULL)
-            {
-                pxImage* image = (pxImage*)imageDownloadRequest->getCallbackData();
-                pxTextureRef imageTexture =  context.createTexture(imageOffscreen);
-                image->setTexture(imageTexture);
-            }
-
+            pxObject* obj = (pxObject*)fileDownloadRequest->getCallbackData();
+            obj->onFileDownloadComplete(fileDownloadRequest);
           }
         }
         else
           rtLogWarn("Image Download Failed: %s Error: %s HTTP Status Code: %ld", 
-                    imageDownloadRequest->getImageURL().cString(),
-                    imageDownloadRequest->getErrorString().cString(),
-                    imageDownloadRequest->getHttpStatusCode());
+                    fileDownloadRequest->getFileURL().cString(),
+                    fileDownloadRequest->getErrorString().cString(),
+                    fileDownloadRequest->getHttpStatusCode());
 
-        delete imageDownloadRequest;
-        imageDownloadsAvailable = false;
-        gImageDownloadsPending--;
+        delete fileDownloadRequest;
+        fileDownloadsAvailable = false;
+        gFileDownloadsPending--;
       }
-      completedImageDownloads.clear();
-      if (gImageDownloadsPending < 0)
+      completedFileDownloads.clear();
+      if (gFileDownloadsPending < 0)
       {
         //this is a safety check (hopefully never used)
-        //to ensure downloads are still processed in the event of a gImageDownloadsPending bug in the future
-        gImageDownloadsPending = 0;
+        //to ensure downloads are still processed in the event of a gFileDownloadsPending bug in the future
+        gFileDownloadsPending = 0;
       }
     }
-    imageDownloadMutex.unlock();
+    fileDownloadMutex.unlock();
+  }
+  
+  //masks
+  if (gMaskDownloadsPending > 0)
+  {
+    maskDownloadMutex.lock();
+    if (maskDownloadsAvailable)
+    {
+      for(vector<pxFileDownloadRequest*>::iterator it = completedMaskDownloads.begin(); it != completedMaskDownloads.end(); ++it)
+      {
+        pxFileDownloadRequest* maskDownloadRequest = (*it);
+
+        if (maskDownloadRequest != NULL && 
+            maskDownloadRequest->getDownloadStatusCode() == 0 && 
+            maskDownloadRequest->getHttpStatusCode() == 200 &&
+            maskDownloadRequest->getDownloadedData() != NULL)
+        {
+          if (maskDownloadRequest->getCallbackData() != NULL)
+          {
+            pxOffscreen imageOffscreen;
+            if (pxLoadImage(maskDownloadRequest->getDownloadedData(),
+                            maskDownloadRequest->getDownloadedDataSize(), 
+                            imageOffscreen) != RT_OK)
+            {
+              rtLogError("Mask Decode Failed: %s", maskDownloadRequest->getFileURL().cString());
+            }
+            else
+            {
+              pxTextureRef maskTexture = context.createTexture(imageOffscreen);
+              pxObject* obj = (pxObject*)maskDownloadRequest->getCallbackData();
+              obj->setMask(maskTexture);
+            }
+          }
+        }
+        else
+          rtLogWarn("Mask Download Failed: %s Error: %s HTTP Status Code: %ld", 
+                    maskDownloadRequest->getFileURL().cString(),
+                    maskDownloadRequest->getErrorString().cString(),
+                    maskDownloadRequest->getHttpStatusCode());
+
+        delete maskDownloadRequest;
+        maskDownloadsAvailable = false;
+        gMaskDownloadsPending--;
+      }
+      completedMaskDownloads.clear();
+      if (gMaskDownloadsPending < 0)
+      {
+        //this is a safety check (hopefully never used)
+        //to ensure downloads are still processed in the event of a gMaskDownloadsPending bug in the future
+        gMaskDownloadsPending = 0;
+      }
+    }
+    maskDownloadMutex.unlock();
   }
 }
 
@@ -669,7 +740,7 @@ void pxScene2d::onDraw()
   }
   
 #if 1
-  checkForCompletedImageDownloads();
+  checkForCompletedFileDownloads();
   update(pxSeconds());
   draw();
 #endif

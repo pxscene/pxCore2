@@ -71,7 +71,9 @@ static const char *fShaderText =
   "if (u_enablepremultipliedalpha < 1) {\n"
   "  gl_FragColor.a *= u_alpha;\n"
   "}else {\n"
-  "  gl_FragColor = vec4(gl_FragColor.rgb/gl_FragColor.a, gl_FragColor.a);\n"
+  "  if (gl_FragColor.a > 0.0){\n"
+  "    gl_FragColor = vec4(gl_FragColor.rgb/gl_FragColor.a, gl_FragColor.a);\n"
+  "  }\n"
   "}\n"
 #else
   "gl_FragColor = vec4(1,1,1,1);"

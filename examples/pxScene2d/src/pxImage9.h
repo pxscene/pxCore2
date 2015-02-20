@@ -28,9 +28,12 @@ public:
   rtError setX2(float v) { mx2 = v; return RT_OK; }
   rtError y2(float& v) const { v = my2; return RT_OK; }
   rtError setY2(float v) { my2 = v; return RT_OK; }
+  
+  virtual void onFileDownloadComplete(pxFileDownloadRequest* downloadRequest);
 
 protected:
   virtual void draw();
+  void loadImage(rtString url);
   
   rtString mURL;
   pxOffscreen mOffscreen;

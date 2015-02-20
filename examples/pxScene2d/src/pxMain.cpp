@@ -37,7 +37,7 @@
 
 #include "testScene.h"
 
-#include "pxImageDownloader.h"
+#include "pxFileDownloader.h"
 
 extern rtRefT<pxScene2d> scene;
 
@@ -234,19 +234,19 @@ private:
   }
 };
 
-void imageDownloadComplete(pxImageDownloadRequest* imageDownloadRequest)
+void fileDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
 {
-  if (imageDownloadRequest != NULL && imageDownloadRequest->getDownloadStatusCode() == 0)
+  if (fileDownloadRequest != NULL && fileDownloadRequest->getDownloadStatusCode() == 0)
   {
     //if successful, save the image to disk for testing
-    char*  downloadData = imageDownloadRequest->getDownloadedData();
-    size_t downloadSize = imageDownloadRequest->getDownloadedDataSize();
+    char*  downloadData = fileDownloadRequest->getDownloadedData();
+    size_t downloadSize = filDownloadRequest->getDownloadedDataSize();
 
     FILE *file = fopen("image.jpg", "wb");
     fwrite(downloadData, sizeof(char), downloadSize, file);
     fclose(file);
   }
-  delete imageDownloadRequest;
+  delete fileDownloadRequest;
 }
 
 int pxMain()

@@ -8,8 +8,6 @@
 #include "rtMutex.h"
 #include "pxTexture.h"
 
-class pxImageDownloadRequest;
-
 class pxImage: public pxObject {
 public:
   rtDeclareObject(pxImage, pxObject);
@@ -58,7 +56,7 @@ pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(), mAutoSize(true) 
     return mTexture;
   }
   
-  void setTexture(pxTextureRef texture);
+  virtual void onFileDownloadComplete(pxFileDownloadRequest* downloadRequest);
   
 protected:
   virtual void draw();
