@@ -378,7 +378,8 @@ public:
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
   
   virtual void onFileDownloadComplete(pxFileDownloadRequest* downloadRequest) { (void)downloadRequest; }
-
+  void setMask(pxTextureRef maskTexture) { mMaskTextureRef = maskTexture; }
+  
 public:
   rtEmitRef mEmit;
 
