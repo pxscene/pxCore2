@@ -31,7 +31,7 @@ function updateSize(w, h) {
   bg.w = w;
   bg.h = h;
   container.x = (w-container.w)/2;
-  container.y = (h-container.h)/2;
+  container.y = 0;
 }
 
 scene.on("onResize", function(e) { updateSize(e.w,e.h); });
