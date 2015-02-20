@@ -82,6 +82,8 @@ struct animation {
   rtFunctionRef ended;
 };
 
+class pxFileDownloadRequest;
+
 class pxObject;
 
 class pxObject: public rtObject {
@@ -374,6 +376,8 @@ public:
   }
 
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
+  
+  virtual void onFileDownloadComplete(pxFileDownloadRequest* downloadRequest) { (void)downloadRequest; }
 
 public:
   rtEmitRef mEmit;

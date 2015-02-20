@@ -621,22 +621,10 @@ void pxScene2d::checkForCompletedFileDownloads()
             fileDownloadRequest->getHttpStatusCode() == 200 &&
             fileDownloadRequest->getDownloadedData() != NULL)
         {
-          pxOffscreen imageOffscreen;
-          if (pxLoadImage(fileDownloadRequest->getDownloadedData(),
-                          fileDownloadRequest->getDownloadedDataSize(), 
-                          imageOffscreen) != RT_OK)
+          if (fileDownloadRequest->getCallbackData() != NULL)
           {
-            rtLogError("Image Decode Failed: %s", fileDownloadRequest->getFileURL().cString());
-          }
-          else
-          {
-            if (fileDownloadRequest->getCallbackData() != NULL)
-            {
-                pxImage* image = (pxImage*)fileDownloadRequest->getCallbackData();
-                pxTextureRef imageTexture =  context.createTexture(imageOffscreen);
-                image->setTexture(imageTexture);
-            }
-
+            pxObject* obj = (pxObject*)fileDownloadRequest->getCallbackData();
+            obj->onFileDownloadComplete(fileDownloadRequest);
           }
         }
         else

@@ -102,24 +102,32 @@ void pxImage::draw() {
   context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, mXStretch, mYStretch);
 }
 
-void pxImage::setTexture(pxTextureRef texture)
+void pxImage::onFileDownloadComplete(pxFileDownloadRequest* downloadRequest)
 {
-  // TODO... tried to access url from the download request and
-  // it seemed to be coming back NULL.. switched to using mURL for now
-  mTexture = texture;
-  gTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(), 
-                                                   mTexture));
-  rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
-  if (mAutoSize && mTexture.getPtr() != NULL)
+  pxOffscreen imageOffscreen;
+  if (pxLoadImage(downloadRequest->getDownloadedData(),
+                  downloadRequest->getDownloadedDataSize(), 
+                  imageOffscreen) != RT_OK)
   {
-    mw = mTexture->width();
-    mh = mTexture->height();
+    rtLogError("Image Decode Failed: %s", downloadRequest->getFileURL().cString());
   }
-  // send after width and height have been set
-  rtObjectRef e = new rtMapObject;
-  e.set("name", "onReady");
-  e.set("target", this);
-  mEmit.send("onReady", e);
+  else
+  {
+    mTexture = context.createTexture(imageOffscreen);
+    gTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(), 
+                                                    mTexture));
+    rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
+    if (mAutoSize && mTexture.getPtr() != NULL)
+    {
+      mw = mTexture->width();
+      mh = mTexture->height();
+    }
+    // send after width and height have been set
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onReady");
+    e.set("target", this);
+    mEmit.send("onReady", e);
+  }
 }
 
 rtDefineObject(pxImage, pxObject);
