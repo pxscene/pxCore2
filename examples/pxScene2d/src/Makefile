@@ -1,4 +1,9 @@
 
+ifneq ($(ANALYZE),)
+  CXX=clang-3.5
+  CXXFLAGS+=--analyze
+endif
+
 all: gl2d
 clean:
 	rm -rf $(OBJDIR)
