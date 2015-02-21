@@ -1,4 +1,9 @@
 
+ifneq ($(ANALYZE),)
+  CXX=clang-3.5
+  CXXFLAGS+=--analyze
+endif
+
 all: gl2d
 clean:
 	rm -rf $(OBJDIR)
@@ -70,6 +75,11 @@ $(OBJDIR)/%.o : %.c
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
 	$(CC) -c $(CXXFLAGS) $< -o $@
 
+ifeq ($(ANALYZE),)
 gl2d: $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -o gl2d
+else
+gl2d: $(OBJS)
+	@echo "Static code analysis complete"
+endif
 

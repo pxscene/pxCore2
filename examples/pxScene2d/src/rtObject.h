@@ -496,7 +496,7 @@ rtError rtObjectBase::sendReturns(const char* messageName, const rtValue& arg1,
 				  const rtValue& arg2, const rtValue& arg3, 
 				  const rtValue& arg4, T& result)
 {
-  rtValue args[3] = {arg1, arg2, arg3, arg4};
+  rtValue args[] = {arg1, arg2, arg3, arg4};
   rtValue resultValue;
   rtError e = Send(messageName, 4, args, resultValue);
   if (e == RT_OK) result = resultValue.convert<T>();
@@ -549,7 +549,7 @@ rtError rtFunctionBase::sendReturns(const rtValue& arg1, const rtValue& arg2,
 				    const rtValue& arg3, const rtValue& arg4, 
 				    T& result)
 {
-  rtValue args[3] = {arg1, arg2, arg3, arg4};
+  rtValue args[] = {arg1, arg2, arg3, arg4};
   rtValue resultValue;
   rtError e = Send(4, args, resultValue);
   if (e == RT_OK) result = resultValue.convert<T>();
