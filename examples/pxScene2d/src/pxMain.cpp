@@ -240,7 +240,7 @@ void fileDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
   {
     //if successful, save the image to disk for testing
     char*  downloadData = fileDownloadRequest->getDownloadedData();
-    size_t downloadSize = filDownloadRequest->getDownloadedDataSize();
+    size_t downloadSize = fileDownloadRequest->getDownloadedDataSize();
 
     FILE *file = fopen("image.jpg", "wb");
     fwrite(downloadData, sizeof(char), downloadSize, file);
