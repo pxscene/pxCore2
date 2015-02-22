@@ -80,7 +80,7 @@ public:
   }
 
 protected:
-  static void timerCallback(uv_timer_t* timer, int status)
+  static void timerCallback(uv_timer_t* , int )
   {
     rtLogDebug("Hello, from uv timer callback");
   }
@@ -131,7 +131,7 @@ protected:
     mScene->onChar(c);
   }
 
-  virtual void onDraw(pxSurfaceNative s)
+  virtual void onDraw(pxSurfaceNative )
   {
     rtWrapperSceneUpdateEnter();
     mScene->onDraw();

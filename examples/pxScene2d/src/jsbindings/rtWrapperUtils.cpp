@@ -89,7 +89,7 @@ Handle<Value> rt2js(const rtValue& v)
   return Undefined();
 }
 
-rtValue js2rt(const Handle<Value>& val, rtWrapperError* error)
+rtValue js2rt(const Handle<Value>& val, rtWrapperError* )
 {
   if (val->IsUndefined()) { return rtValue((void *)0); }
   if (val->IsNull())      { return rtValue((char *)0); }

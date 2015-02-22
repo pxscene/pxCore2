@@ -15,7 +15,7 @@ static Handle<Value> makeStringFromKey(rtObjectRef& keys, uint32_t index)
   return String::New(keys.get<rtString>(index).cString());
 }
 
-static Handle<Value> makeIntegerFromKey(rtObjectRef& keys, uint32_t index)
+static Handle<Value> makeIntegerFromKey(rtObjectRef& , uint32_t index)
 {
   return Number::New(index);
 }
