@@ -4,6 +4,7 @@
 #include "pxCore.h"
 #include "rtRefT.h"
 #include "pxOffscreen.h"
+#include "rtAtomic.h"
 
 enum pxTextureType { 
   PX_TEXTURE_UNKNOWN = 0,
@@ -19,8 +20,19 @@ public:
   pxTexture() : mRef(0), mTextureType(PX_TEXTURE_UNKNOWN), mPremultipliedAlpha(false)
   {}
   virtual ~pxTexture() {}
-  virtual unsigned long AddRef() { return ++mRef; }
-  virtual unsigned long Release() { if (--mRef == 0) delete this; return mRef; }
+
+  virtual unsigned long AddRef()
+  {
+    return rtAtomicInc(&mRef);
+  }
+
+  virtual unsigned long Release()
+  {
+    unsigned long l = rtAtomicDec(&mRef);
+    if (l == 0)
+      delete this;
+    return l;
+  }
   
   virtual pxError bindTexture() = 0;
   virtual pxError bindTextureAsMask() = 0;
@@ -35,7 +47,7 @@ public:
   void enablePremultipliedAlpha(bool enable) { mPremultipliedAlpha = enable; }
   
 protected:
-  unsigned long mRef;
+  rtAtomic mRef;
   pxTextureType mTextureType;
   bool mPremultipliedAlpha;
 };
