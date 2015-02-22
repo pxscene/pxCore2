@@ -645,9 +645,10 @@ void pxScene2d::checkForCompletedFileDownloads()
       for(vector<pxFileDownloadRequest*>::iterator it = completedFileDownloads.begin(); it != completedFileDownloads.end(); ++it)
       {
         pxFileDownloadRequest* fileDownloadRequest = (*it);
+        if (!fileDownloadRequest)
+          continue;
 
-        if (fileDownloadRequest != NULL && 
-            fileDownloadRequest->getDownloadStatusCode() == 0 && 
+        if (fileDownloadRequest->getDownloadStatusCode() == 0 &&
             fileDownloadRequest->getHttpStatusCode() == 200 &&
             fileDownloadRequest->getDownloadedData() != NULL)
         {
@@ -658,10 +659,12 @@ void pxScene2d::checkForCompletedFileDownloads()
           }
         }
         else
+        {
           rtLogWarn("Image Download Failed: %s Error: %s HTTP Status Code: %ld", 
                     fileDownloadRequest->getFileURL().cString(),
                     fileDownloadRequest->getErrorString().cString(),
                     fileDownloadRequest->getHttpStatusCode());
+        }
 
         delete fileDownloadRequest;
         fileDownloadsAvailable = false;
@@ -687,9 +690,10 @@ void pxScene2d::checkForCompletedFileDownloads()
       for(vector<pxFileDownloadRequest*>::iterator it = completedMaskDownloads.begin(); it != completedMaskDownloads.end(); ++it)
       {
         pxFileDownloadRequest* maskDownloadRequest = (*it);
+        if (!maskDownloadRequest)
+          continue;
 
-        if (maskDownloadRequest != NULL && 
-            maskDownloadRequest->getDownloadStatusCode() == 0 && 
+        if (maskDownloadRequest->getDownloadStatusCode() == 0 &&
             maskDownloadRequest->getHttpStatusCode() == 200 &&
             maskDownloadRequest->getDownloadedData() != NULL)
         {
@@ -711,10 +715,12 @@ void pxScene2d::checkForCompletedFileDownloads()
           }
         }
         else
+        {
           rtLogWarn("Mask Download Failed: %s Error: %s HTTP Status Code: %ld", 
                     maskDownloadRequest->getFileURL().cString(),
                     maskDownloadRequest->getErrorString().cString(),
                     maskDownloadRequest->getHttpStatusCode());
+        }
 
         delete maskDownloadRequest;
         maskDownloadsAvailable = false;
