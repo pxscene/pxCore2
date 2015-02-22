@@ -1,9 +1,4 @@
 
-ifneq ($(ANALYZE),)
-  CXX=clang-3.5
-  CXXFLAGS+=--analyze
-endif
-
 all: gl2d
 clean:
 	rm -rf $(OBJDIR)
@@ -75,11 +70,33 @@ $(OBJDIR)/%.o : %.c
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
 	$(CC) -c $(CXXFLAGS) $< -o $@
 
-ifeq ($(ANALYZE),)
+
+# Enable these. There are already a bunch of things 
+# enabled by default. These are in addition to those.
+SCAN_CHECKS=\
+  alpha.core.BoolAssignment\
+  alpha.core.CastSize\
+  alpha.core.FixedAddr\
+  alpha.core.SizeofPtr\
+  alpha.core.TestAfterDivZero\
+  alpha.cplusplus.NewDeleteLeaks\
+  alpha.cplusplus.VirtualCall\
+  alpha.security.ArrayBoundV2\
+  alpha.security.MallocOverflow\
+  alpha.security.ReturnPtrRange\
+  alpha.unix.MallocWithAnnotations\
+  alpha.unix.PthreadLock\
+  alpha.unix.SimpleStream\
+  alpha.unix.cstring.NotNullTerminated\
+  alpha.unix.cstring.OutOfBounds\
+  security.insecureAPI.strcpy
+
+LLVM_CHECKS=$(patsubst %, -enable-checker %, $(SCAN_CHECKS))
+
+analyze:
+	$(MAKE) clean
+	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) gl2d
+
 gl2d: $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -o gl2d
-else
-gl2d: $(OBJS)
-	@echo "Static code analysis complete"
-endif
 
