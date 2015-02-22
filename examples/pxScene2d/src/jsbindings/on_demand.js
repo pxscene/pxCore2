@@ -56,17 +56,39 @@ HorizontalMenu.prototype.widthOfItem = function(i) {
 HorizontalMenu.prototype.moveSelection = function(menu, src, dest, xpos, width)
 {
   menu._selectedText = dest;
+
+  // does this move the selection off screen?
+
+  var xtxt = 0;
+  if ((xpos + width) > this._scene.w) {
+    var offset = (xpos + width) - this._scene.w;
+    xpos = xpos - offset;
+    xtxt = -offset;
+  }
+  else if (xpos < 0) {
+    xtxt = -xpos;
+    xpos = 0;
+  }
+
   this._bottomSelectionLine.animateTo({w:width}, this._animationSpeed, scene.PX_STOP, 0);
   this._topSelectionLine.animateTo({w:width}, this._animationSpeed, scene.PX_STOP, 0);
 
   this._topSelectionLine.animateTo({x:xpos}, this._animationSpeed, scene.PX_STOP, 0);
   this._bottomSelectionLine.animateTo({x:xpos},  this._animationSpeed, scene.PX_STOP, 0, function(e) {
+
     // Is this a BUG? "this" doesn't appear to be HorizontalMenu
 
     // changing text color doesn't appear to work
     menu._textItems[dest].fillColor = menu._selectedColor;
     menu._textItems[src].fillColor = 0xffffffff;
   });
+
+  if (xtxt != -1) {
+    for (i in this._textItems) {
+      var x = this._textItems[i].x + xtxt;
+      this._textItems[i].animateTo({x:x}, this._animationSpeed, scene.PX_STOP, 0);
+    }
+  }
 }
 
 HorizontalMenu.prototype.next = function() {
@@ -89,6 +111,12 @@ HorizontalMenu.prototype.prev = function() {
       this.widthOfItem(idx));
 }
 
+HorizontalMenu.prototype.resize = function(w, h) {
+  this._topLine.w = w;
+  this._bottomLine.w = w;
+}
+
+
 var menuItems =  ["Movies", "TV", "Kids", "Networks", "Music", "Latino",
   "StreamPix", "Sports & Fitness", "Multicultural", "Local", "Searchlight",
   "XFINITY Services"];
@@ -102,5 +130,9 @@ scene.on("onKeyDown", function(e) {
   else if (e.keyCode == 37) {
     menu.prev();
   }
+});
+
+scene.on("onResize", function(e) {
+  menu.resize(e.w, e.h);
 });
 
