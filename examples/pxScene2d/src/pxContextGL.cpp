@@ -60,7 +60,8 @@ static const char *fShaderText =
   // image
   "  vec4 textureColor = texture2D(s_texture, v_uv);\n"
   "  if (u_enablemask > 0) {\n"
-  "    vec4 maskColor = texture2D(s_mask, v_uv);\n"
+  "    vec2 maskCoords = vec2(v_uv.x, 1.0 - v_uv.y);\n"
+  "    vec4 maskColor = texture2D(s_mask, maskCoords);\n"
   "    textureColor.a = textureColor.a * maskColor.a;\n" ////textureColor.a * maskColor.a;
   "  }\n"
   "  gl_FragColor = textureColor;\n"
