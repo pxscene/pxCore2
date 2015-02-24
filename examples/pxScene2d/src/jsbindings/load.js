@@ -2,6 +2,13 @@ var px = require("./build/Debug/px");
 var http = require('http');
 var util = require('util');
 
+
+function secureRequire(pkg)
+{
+  // TODO: do whitelist/validate import here
+  return require(pkg);
+}
+
 function Api(scene) {
   this._scene = scene;
 }
@@ -70,7 +77,8 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
         console   : console,
         scene     : sceneForChild,
         runtime   : apiForChild,
-        process   : process
+        process   : process,
+        require   : secureRequire
       };
 
       if (err) {
