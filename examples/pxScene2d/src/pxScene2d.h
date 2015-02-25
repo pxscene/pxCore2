@@ -378,7 +378,6 @@ public:
 
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
   
-  virtual void onFileDownloadComplete(pxFileDownloadRequest* downloadRequest) { (void)downloadRequest; }
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
   
 public:
@@ -691,8 +690,6 @@ public:
     v = getRoot();
     return RT_OK;
   }
-  
-  void checkForCompletedFileDownloads();
   
 private:
   void draw();

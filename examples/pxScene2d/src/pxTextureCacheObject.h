@@ -38,6 +38,8 @@ public:
   rtError setURL(const char* s);
 
   void onFileDownloadComplete(pxFileDownloadRequest* downloadRequest);
+
+  static void checkForCompletedDownloads();
   
 protected:
   void loadImage(rtString url);

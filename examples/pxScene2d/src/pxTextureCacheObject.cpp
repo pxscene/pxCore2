@@ -13,7 +13,55 @@ using namespace std;
 typedef map<rtString, pxTextureRef> TextureMap;
 TextureMap gCompleteTextureCache;
 
-extern int gFileDownloadsPending;
+int gTextureDownloadsPending = 0; //must only be set in the main thread
+rtMutex textureDownloadMutex;
+bool textureDownloadsAvailable = false;
+vector<pxFileDownloadRequest*> completedTextureDownloads;
+
+void pxTextureDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
+{
+  if (fileDownloadRequest != NULL)
+  {
+    textureDownloadMutex.lock();
+    completedTextureDownloads.push_back(fileDownloadRequest);
+    textureDownloadsAvailable = true;
+    textureDownloadMutex.unlock();
+  }
+}
+
+void pxTextureCacheObject::checkForCompletedDownloads()
+{
+  if (gTextureDownloadsPending > 0)
+  {
+    textureDownloadMutex.lock();
+    if (textureDownloadsAvailable)
+    {
+      for(vector<pxFileDownloadRequest*>::iterator it = completedTextureDownloads.begin(); it != completedTextureDownloads.end(); ++it)
+      {
+        pxFileDownloadRequest* fileDownloadRequest = (*it);
+        if (!fileDownloadRequest)
+          continue;
+        if (fileDownloadRequest->getCallbackData() != NULL)
+        {
+          pxTextureCacheObject *textureCacheObject = (pxTextureCacheObject *) fileDownloadRequest->getCallbackData();
+          textureCacheObject->onFileDownloadComplete(fileDownloadRequest);
+        }
+
+        delete fileDownloadRequest;
+        textureDownloadsAvailable = false;
+        gTextureDownloadsPending--;
+      }
+      completedTextureDownloads.clear();
+      if (gTextureDownloadsPending < 0)
+      {
+        //this is a safety check (hopefully never used)
+        //to ensure downloads are still processed in the event of a gTextureDownloadsPending bug in the future
+        gTextureDownloadsPending = 0;
+      }
+    }
+    textureDownloadMutex.unlock();
+  }
+}
 
 void pxTextureCacheObject::onFileDownloadComplete(pxFileDownloadRequest* downloadRequest)
 {
@@ -103,7 +151,8 @@ void pxTextureCacheObject::loadImage(rtString url)
     {
       pxFileDownloadRequest* downloadRequest = 
         new pxFileDownloadRequest(s, this);
-      gFileDownloadsPending++;
+      gTextureDownloadsPending++;
+      downloadRequest->setCallbackFunction(pxTextureDownloadComplete);
       pxFileDownloader::getInstance()->addToDownloadQueue(downloadRequest);
     }
     else 
