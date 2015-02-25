@@ -7,6 +7,7 @@
 #include "pxContext.h"
 #include "rtMutex.h"
 #include "pxTexture.h"
+#include "pxTextureCacheObject.h"
 
 class pxImage: public pxObject {
 public:
@@ -16,7 +17,7 @@ public:
   rtProperty(yStretch, yStretch, setYStretch, int32_t);
   rtProperty(autoSize, autoSize, setAutoSize, bool);
   
-pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(), mAutoSize(true) {}
+pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(), mTextureCacheObject(), mAutoSize(true) { mTextureCacheObject.setParent(this);}
 
   virtual ~pxImage() { rtLogInfo("~pxImage()"); }
 
@@ -55,8 +56,8 @@ pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(), mAutoSize(true) 
   {
     return mTexture;
   }
-  
-  virtual void onFileDownloadComplete(pxFileDownloadRequest* downloadRequest);
+
+  virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
   
 protected:
   virtual void draw();
@@ -66,6 +67,7 @@ protected:
   pxStretch mXStretch;
   pxStretch mYStretch;
   pxTextureRef mTexture;
+  pxTextureCacheObject mTextureCacheObject;
   
   bool mAutoSize;
 };

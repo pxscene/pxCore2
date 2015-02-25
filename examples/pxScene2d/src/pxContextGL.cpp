@@ -38,6 +38,7 @@ GLint u_alphatexture = -1;
 GLint u_color = -1;
 GLint attr_pos = 0, attr_uv = 2;
 
+
 static const char *fShaderText =
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   "precision mediump float;\n"

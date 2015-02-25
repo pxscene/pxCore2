@@ -12,7 +12,6 @@
 #include "pxFileDownloader.h"
 
 extern pxContext context;
-extern int gFileDownloadsPending;
 
 rtError pxImage9::url(rtString& s) const { s = mURL; return RT_OK; }
 rtError pxImage9::setURL(const char* s) { 
@@ -27,40 +26,23 @@ void pxImage9::draw() {
 
 void pxImage9::loadImage(rtString url)
 {
-  char* s = url.cString();
-  const char *result = strstr(s, "http");
-  int position = result - s;
-  if (position == 0 && strlen(s) > 0)
-  {
-    pxFileDownloadRequest* downloadRequest = 
-      new pxFileDownloadRequest(s, this);
-    gFileDownloadsPending++;
-    pxFileDownloader::getInstance()->addToDownloadQueue(downloadRequest);
-  }
-  else 
-  {
-    if (pxLoadImage(s, mOffscreen) != RT_OK)
-      rtLogWarn("image load failed");
-    else
-      rtLogDebug("image %d, %d", mOffscreen.width(), mOffscreen.height());
-    mw = mOffscreen.width();
-    mh = mOffscreen.height();
-  }
+  mTextureCacheObject.setURL(url);
 }
 
-void pxImage9::onFileDownloadComplete(pxFileDownloadRequest* downloadRequest)
+bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status)
 {
-  if (pxLoadImage(downloadRequest->getDownloadedData(),
-                  downloadRequest->getDownloadedDataSize(), 
-                  mOffscreen) != RT_OK)
+  if (pxObject::onTextureReady(textureCacheObject, status))
   {
-    rtLogError("Image Decode Failed: %s", downloadRequest->getFileURL().cString());
+    return true;
   }
-  else
+  else if (textureCacheObject != NULL && status == RT_OK && textureCacheObject->getTexture().getPtr() != NULL)
   {
+    textureCacheObject->getTexture()->getOffscreen(mOffscreen);
     mw = mOffscreen.width();
     mh = mOffscreen.height();
+    return true;
   }
+  return false;
 }
 
 rtDefineObject(pxImage9, pxObject);
