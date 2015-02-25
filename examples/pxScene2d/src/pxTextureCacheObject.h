@@ -16,7 +16,7 @@ class pxTextureCacheObject
 public:
   pxTextureCacheObject() : mRef(0), mTexture(), mURL(),
         mImageDownloadRequest(NULL), mParent(NULL) {}
-  virtual ~pxTextureCacheObject() {}
+  virtual ~pxTextureCacheObject();
 
   virtual unsigned long AddRef()
   {

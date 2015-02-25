@@ -63,51 +63,61 @@ void pxTextureCacheObject::checkForCompletedDownloads()
   }
 }
 
+pxTextureCacheObject::~pxTextureCacheObject()
+{
+  if (mImageDownloadRequest != NULL)
+  {
+    // if there is a previous request pending then set the callback to NULL
+    // the previous request will not be processed and the memory will be freed when the download is complete
+    mImageDownloadRequest->setCallbackFunctionThreadSafe(NULL);
+  }
+}
+
 void pxTextureCacheObject::onFileDownloadComplete(pxFileDownloadRequest* downloadRequest)
 {
-    if (downloadRequest == NULL)
-    {
-        return;
-    }
-    if (downloadRequest->getDownloadStatusCode() == 0 &&
-            downloadRequest->getHttpStatusCode() == 200 &&
-            downloadRequest->getDownloadedData() != NULL)
-    {
-        pxOffscreen imageOffscreen;
-        if (pxLoadImage(downloadRequest->getDownloadedData(),
-                downloadRequest->getDownloadedDataSize(),
-                imageOffscreen) != RT_OK)
-        {
-            rtLogError("Image Decode Failed: %s", downloadRequest->getFileURL().cString());
-            if (mParent != NULL)
-            {
-              mParent->onTextureReady(this, RT_FAIL);
-            }
-        }
-        else
-        {
-            mTexture = context.createTexture(imageOffscreen);
-            gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(),
-                    mTexture));
-            rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
-            if (mParent != NULL)
-            {
-              mParent->onTextureReady(this, RT_OK);
-            }
-        }
-    }
-    else
-    {
-        rtLogWarn("Image Download Failed: %s Error: %s HTTP Status Code: %ld",
-                downloadRequest->getFileURL().cString(),
-                downloadRequest->getErrorString().cString(),
-                downloadRequest->getHttpStatusCode());
-        if (mParent != NULL)
-        {
-          mParent->onTextureReady(this, RT_FAIL);
-        }
-    }
-
+  mImageDownloadRequest = NULL;
+  if (downloadRequest == NULL)
+  {
+      return;
+  }
+  if (downloadRequest->getDownloadStatusCode() == 0 &&
+          downloadRequest->getHttpStatusCode() == 200 &&
+          downloadRequest->getDownloadedData() != NULL)
+  {
+      pxOffscreen imageOffscreen;
+      if (pxLoadImage(downloadRequest->getDownloadedData(),
+              downloadRequest->getDownloadedDataSize(),
+              imageOffscreen) != RT_OK)
+      {
+          rtLogError("Image Decode Failed: %s", downloadRequest->getFileURL().cString());
+          if (mParent != NULL)
+          {
+            mParent->onTextureReady(this, RT_FAIL);
+          }
+      }
+      else
+      {
+          mTexture = context.createTexture(imageOffscreen);
+          gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(),
+                  mTexture));
+          rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
+          if (mParent != NULL)
+          {
+            mParent->onTextureReady(this, RT_OK);
+          }
+      }
+  }
+  else
+  {
+      rtLogWarn("Image Download Failed: %s Error: %s HTTP Status Code: %ld",
+              downloadRequest->getFileURL().cString(),
+              downloadRequest->getErrorString().cString(),
+              downloadRequest->getHttpStatusCode());
+      if (mParent != NULL)
+      {
+        mParent->onTextureReady(this, RT_FAIL);
+      }
+  }
 }
 
 rtError pxTextureCacheObject::url(rtString& s) const
@@ -149,11 +159,17 @@ void pxTextureCacheObject::loadImage(rtString url)
     int position = result - s;
     if (position == 0 && strlen(s) > 0)
     {
-      pxFileDownloadRequest* downloadRequest = 
+      if (mImageDownloadRequest != NULL)
+      {
+        // if there is a previous request pending then set the callback to NULL
+        // the previous request will not be processed and the memory will be freed when the download is complete
+        mImageDownloadRequest->setCallbackFunctionThreadSafe(NULL);
+      }
+      mImageDownloadRequest =
         new pxFileDownloadRequest(s, this);
       gTextureDownloadsPending++;
-      downloadRequest->setCallbackFunction(pxTextureDownloadComplete);
-      pxFileDownloader::getInstance()->addToDownloadQueue(downloadRequest);
+      mImageDownloadRequest->setCallbackFunction(pxTextureDownloadComplete);
+      pxFileDownloader::getInstance()->addToDownloadQueue(mImageDownloadRequest);
     }
     else 
     {

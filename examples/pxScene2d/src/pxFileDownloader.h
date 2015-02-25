@@ -7,6 +7,7 @@
 
 //#include <string>
 #include "rtString.h"
+#include "rtCore.h"
 
 using namespace std;
 
@@ -17,7 +18,7 @@ public:
       : mFileUrl(imageUrl), mProxyServer(),
     mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL),
     mDownloadedData(0), mDownloadedDataSize(),
-    mDownloadStatusCode(0), mCallbackData(callbackData)
+    mDownloadStatusCode(0), mCallbackData(callbackData), mCallbackFunctionMutex()
   {} 
         
   ~pxFileDownloadRequest()
@@ -53,6 +54,13 @@ public:
   {
     mCallbackFunction = callbackFunction;
   }
+
+  void setCallbackFunctionThreadSafe(void (*callbackFunction)(pxFileDownloadRequest*))
+  {
+    mCallbackFunctionMutex.lock();
+    mCallbackFunction = callbackFunction;
+    mCallbackFunctionMutex.unlock();
+  }
   
   long getHttpStatusCode()
   {
@@ -67,11 +75,14 @@ public:
   bool executeCallback(int statusCode)
   {
     mDownloadStatusCode = statusCode;
+    mCallbackFunctionMutex.lock();
     if (mCallbackFunction != NULL)
     {
       (*mCallbackFunction)(this);
+      mCallbackFunctionMutex.unlock();
       return true;
     }
+    mCallbackFunctionMutex.unlock();
     return false;
   }
   
@@ -127,6 +138,7 @@ private:
   size_t mDownloadedDataSize;
   int mDownloadStatusCode;
   void* mCallbackData;
+  rtMutex mCallbackFunctionMutex;
 };
 
 class pxFileDownloader
