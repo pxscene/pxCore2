@@ -21,7 +21,7 @@ rtError pxImage9::setURL(const char* s) {
 }
 
 void pxImage9::draw() {
-  context.drawImage9(mw, mh, mx1, my1, mx2, my2, mOffscreen);
+  context.drawImage9(mw, mh, mx1, my1, mx2, my2, mTextureCacheObject.getTexture());
 }
 
 void pxImage9::loadImage(rtString url)
@@ -37,9 +37,8 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
   }
   else if (textureCacheObject != NULL && status == RT_OK && textureCacheObject->getTexture().getPtr() != NULL)
   {
-    textureCacheObject->getTexture()->getOffscreen(mOffscreen);
-    mw = mOffscreen.width();
-    mh = mOffscreen.height();
+    mw = textureCacheObject->getTexture()->width();
+    mh = textureCacheObject->getTexture()->height();
     return true;
   }
   return false;

@@ -42,7 +42,7 @@ class pxContext {
                  pxStretch xStretch, pxStretch yStretch, float* color = NULL);
 
   void drawImage9(float w, float h, float x1, float y1,
-                  float x2, float y2, pxOffscreen& o);
+                  float x2, float y2, pxTextureRef texture);
 
 // Only use for debug/diag purposes not for normal rendering
   void drawDiagRect(float x, float y, float w, float h, float* color);
