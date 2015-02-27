@@ -1,7 +1,8 @@
 #include "jsCallback.h"
 #include "rtWrapperUtils.h"
 
-jsCallback::jsCallback()
+jsCallback::jsCallback(v8::Isolate* isolate)
+  : mIsolate(isolate)
 {
   mReq.data = this;
   mFunctionLookup = NULL;
@@ -21,29 +22,29 @@ void jsCallback::work(uv_work_t* /* req */)
 {
 }
 
-jsCallback* jsCallback::create()
-{ 
-  return new jsCallback();
+jsCallback* jsCallback::create(v8::Isolate* isolate)
+{
+  return new jsCallback(isolate);
 }
 
 jsCallback* jsCallback::addArg(const rtValue& val)
-{ 
+{
   mArgs.push_back(val);
-  return this; 
+  return this;
 }
 
 Handle<Value>* jsCallback::makeArgs()
 {
   Handle<Value>* args = new Handle<Value>[mArgs.size()];
   for (size_t i = 0; i < mArgs.size(); ++i)
-    args[i] = rt2js(mArgs[i]);
+    args[i] = rt2js(mIsolate, mArgs[i]);
   return args;
 }
 
 jsCallback* jsCallback::setFunctionLookup(jsIFunctionLookup* functionLookup)
-{ 
+{
   mFunctionLookup = functionLookup;
-  return this; 
+  return this;
 }
 
 void jsCallback::doCallback(uv_work_t* req, int /* status */)
@@ -54,12 +55,13 @@ void jsCallback::doCallback(uv_work_t* req, int /* status */)
 
   Handle<Value>* args = ctx->makeArgs();
 
-  // TODO: Should this be Local<Function>? 
-  Persistent<Function> callbackFunction = ctx->mFunctionLookup->lookup();
+  // TODO: This context is almost certainly wrong!!!
+  Local<Function> func= ctx->mFunctionLookup->lookup();
+  Local<Context> context = func->CreationContext();
 
   TryCatch tryCatch;
-  if (!callbackFunction.IsEmpty())
-    callbackFunction->Call(Context::GetCurrent()->Global(), static_cast<int>(ctx->mArgs.size()), args);
+  if (!func.IsEmpty())
+    func->Call(context->Global(), static_cast<int>(ctx->mArgs.size()), args);
 
   if (tryCatch.HasCaught())
   {
