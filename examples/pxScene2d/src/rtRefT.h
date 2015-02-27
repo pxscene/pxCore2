@@ -109,11 +109,11 @@ public:
   }
   
   inline friend bool operator!=(const rtRefT<T>& lhs,
-                                const T* rhs) {
+                                T* rhs) {
     return lhs.mRef != rhs;
   }
   
-  inline friend bool operator!=(const T* lhs,
+  inline friend bool operator!=(T* lhs,
                                 const rtRefT<T>& rhs) {
     return lhs != rhs.mRef;
   }

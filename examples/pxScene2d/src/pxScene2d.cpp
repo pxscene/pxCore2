@@ -4,6 +4,7 @@
 #include "pxScene2d.h"
 
 #include <math.h>
+#include <assert.h>
 
 #include "rtLog.h"
 #include "rtRefT.h"
@@ -97,7 +98,6 @@ rtError pxObject::children(rtObjectRef& v) const
   return RT_OK;
 }
 
-
 rtError pxObject::remove()
 {
   if (mParent)
@@ -149,10 +149,12 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
 // the set* method anyway.
 void pxObject::cancelAnimation(const char* prop, bool fastforward)
 {
-  // TODO we need to fix the threading issues so that we can call this from set*...
-  // a different thread
-  if (!fastforward)
+  if (!mCancelInSet)
     return;
+
+  bool f = mCancelInSet;
+  // Do not reenter
+  mCancelInSet = false;
 
   // If an animation for this property is in progress we cancel it here
   // we also fastforward the animation if it is of type PX_END
@@ -160,24 +162,29 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
   while (it != mAnimations.end())
   {
     animation& a = (*it);
-    if (a.prop == prop)
+    if (!a.cancelled && a.prop == prop)
     {
       if (a.at == PX_END)
       {
         // fastforward
         if (fastforward)
-      set(prop, a.to);
-        if (a.ended)
-        {
-          a.ended.send(this);
-        }
-      }
-      it = mAnimations.erase(it);
-    }
-    else
-      ++it;
-  }  
+          set(prop, a.to);
 
+        if (a.ended)
+          a.ended.send(this);
+      }
+      else
+      {
+        // TODO experiment if we cancel non ending animations set back
+        // to beginning
+        if (fastforward)
+          set(prop, a.from);
+      }
+      a.cancelled = true;
+    }
+    ++it;
+  }  
+  mCancelInSet = f;
 }
 
 void pxObject::animateTo(const char* prop, double to, double duration, 
@@ -189,6 +196,7 @@ void pxObject::animateTo(const char* prop, double to, double duration,
   // schedule animation
   animation a;
 
+  a.cancelled = false;
   a.prop     = prop;
   a.from     = get<float>(prop);
   a.to       = to;
@@ -214,10 +222,13 @@ void pxObject::update(double t)
     double end = a.start + a.duration;
     
     // if duration has elapsed
-    if (t >= end)
+    if (t >= end && a.at == PX_END)
     {
       // TODO this sort of blows since this triggers another
       // animation traversal to cancel animations
+#if 1
+      cancelAnimation(a.prop, true);
+#else
       set(a.prop, a.to);
 
       if (a.at == PX_END)
@@ -231,6 +242,7 @@ void pxObject::update(double t)
         it = mAnimations.erase(it);
         continue;
       }
+#endif
 #if 0
       else if (a.at == PX_SEESAW)
       {
@@ -241,6 +253,11 @@ void pxObject::update(double t)
         a.to = t;
       }
 #endif
+    }
+    if (a.cancelled)
+    {
+      it = mAnimations.erase(it);
+      continue;
     }
     
     double t1 = (t-a.start)/a.duration; // Some of this could be pushed into the end handling
@@ -260,7 +277,10 @@ void pxObject::update(double t)
     }
     
     float v = from + (to - from) * d;
+    assert(mCancelInSet);
+    mCancelInSet = false;
     set(a.prop, v);
+    mCancelInSet = true;
     ++it;
   }
   
@@ -287,8 +307,8 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
   // translate based on xy rotate/scale based on cx, cy
   m.translate(mx+mcx, my+mcy);
   //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
-  //  m.rotateInDegrees(mr, mrx, mry, mrz);
-  if (mr) m.rotateInDegrees(mr, 0, 0, 1);
+  m.rotateInDegrees(mr, mrx, mry, mrz);
+  //if (mr) m.rotateInDegrees(mr, 0, 0, 1);
   if (msx != 1.0f || msy != 1.0f) m.scale(msx, msy);
   m.translate(-mcx, -mcy);
 #else
@@ -344,8 +364,8 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
     }
     else
     {
-
-      if (mw>0.0f && mh>0.0f)
+      // trivially reject things too small to be seen
+      if (mw>alphaEpsilon && mh>alphaEpsilon)
         draw();
 
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -728,7 +748,10 @@ void pxScene2d::onMouseDown(int x, int y, unsigned long flags)
     
     if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
-      rtString id = hit->get<rtString>("id");
+      mMouseDown = hit;
+      // scene coordinates
+      mMouseDownPt.x = x;
+      mMouseDownPt.y = y;
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseDown");
       e.set("x", hitPt.x);
@@ -753,51 +776,116 @@ void pxScene2d::onMouseUp(int x, int y, unsigned long flags)
     //Looking for an object
     pxMatrix4f m;
     pxPoint2f pt(x,y), hitPt;
-    pt.x = x; pt.y = y;
+//    pt.x = x; pt.y = y;
     rtRefT<pxObject> hit;
-    
+
+    // TODO optimization... we really only need to check mMouseDown
     if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
+      setMouseEntered(hit);
+
+      // Only send onMouseUp if this object got an onMouseDown
+      if (mMouseDown == hit)
+      {
+        rtObjectRef e = new rtMapObject;
+        e.set("name", "onMouseUp");
+        e.set("x", hitPt.x);
+        e.set("y", hitPt.y);
+        hit->mEmit.send("onMouseUp", e);
+      }
+    }
+    else
+    {
+      setMouseEntered(NULL);
+    }
+    mMouseDown = NULL;
+  }
+}
+
+// TODO rtRefT doesn't like non-const !=
+void pxScene2d::setMouseEntered(pxObject* o)
+{  
+  if (mMouseEntered != o)
+  {
+    // Tell old object we've left
+    if (mMouseEntered)
+    {
       rtObjectRef e = new rtMapObject;
-      e.set("name", "onMouseUp");
-      e.set("x", hitPt.x);
-      e.set("y", hitPt.y);
-      hit->mEmit.send("onMouseUp", e);
+      e.set("name", "onMouseLeave");
+      e.set("target", mMouseEntered.getPtr());
+      mMouseEntered->mEmit.send("onMouseLeave", e);
+    }
+
+    mMouseEntered = o;
+
+    // Tell new object we've entered
+    if (mMouseEntered)
+    {
+      rtObjectRef e = new rtMapObject;
+      e.set("name", "onMouseEnter");
+      e.set("target", mMouseEntered.getPtr());
+      mMouseEntered->mEmit.send("onMouseEnter", e);
     }
   }
 }
 
 void pxScene2d::onMouseLeave()
 {
-  mEmit.send("onMouseLeave");
+//  rtLogInfo("onMouseLeave();\n");
+  // top level scene event
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onMouseLeave");
+  mEmit.send("onMouseLeave", e);
+  
+  // event to last object entered
+  // Only send now if not dragging
+  if (!mMouseDown)
+    setMouseEntered(NULL);
 }
 
 void pxScene2d::onMouseMove(int x, int y)
 {
   {
-  // Send to root scene in global window coordinates
-  rtObjectRef e = new rtMapObject;
-  e.set("name", "onMouseMove");
-  e.set("x", x);
-  e.set("y", y);
-  mEmit.send("onMouseMove", e);
-  }
-#if 0
-  // This probably won't stay ... we can probably send onMouseMove to the child scene level
-  // rather than the object... we can send objects enter/leave events
-  // and we can send drag events to objects that are being drug... 
-  //Looking for an object
-  pxMatrix4f m;
-  pxPoint2f pt;
-  pt.x = x; pt.y = y;
-  rtRefT<pxObject> hit;
-
-  if (mRoot->hitTestInternal(m, pt, hit))
-  {
+    // Send to root scene in global window coordinates
     rtObjectRef e = new rtMapObject;
     e.set("name", "onMouseMove");
-    e.set("data", "hello");
-    hit->mEmit.send("onMouseMove",e);
+    e.set("x", x);
+    e.set("y", y);
+    mEmit.send("onMouseMove", e);
+  }
+#if 1
+  //Looking for an object
+  pxMatrix4f m;
+  pxPoint2f pt(x,y), hitPt;
+  rtRefT<pxObject> hit;
+
+  if (mMouseDown)
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseDrag");
+    e.set("target", mMouseDown.getPtr());
+    e.set("x", x);
+    e.set("y", y);
+    e.set("startX", mMouseDownPt.x);
+    e.set("startY", mMouseDownPt.y);
+    mMouseDown->mEmit.send("onMouseDrag", e);
+  }
+  else // Only send mouse leave/enter events if we're not dragging
+  {
+    if (mRoot->hitTestInternal(m, pt, hit, hitPt))
+    {
+      // This probably won't stay ... we can probably send onMouseMove to the child scene level
+      // rather than the object... we can send objects enter/leave events
+      // and we can send drag events to objects that are being drug... 
+#if 0
+      rtObjectRef e = new rtMapObject;
+      e.set("name", "onMouseMove");
+      e.set("data", "hello");
+      hit->mEmit.send("onMouseMove",e);
+#endif
+      
+      setMouseEntered(hit);
+    }
   }
 #endif
 #if 0

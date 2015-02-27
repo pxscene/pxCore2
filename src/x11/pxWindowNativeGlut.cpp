@@ -57,7 +57,7 @@ void onTimer(int v)
 {
   display();
   // schedule next timer event
-  glutTimerFunc(16, onTimer, 0);
+  glutTimerFunc(10, onTimer, 0);
 }
 
 void onMouse(int button, int state, int x, int y)
@@ -221,6 +221,21 @@ void onKeyboardSpecial(int key, int x, int y)
   }
 }
 
+
+void onEntry(int state)
+{
+  vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  vector<pxWindowNative*>::iterator i;
+
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    if (state == GLUT_LEFT)
+      w->onMouseLeave();
+  }
+
+}
+
 //end glut callbacks
 
 displayRef::displayRef()
@@ -335,6 +350,7 @@ pxError pxWindow::init(int left, int top, int width, int height)
     glutPassiveMotionFunc(onMousePassiveMotion);
     glutKeyboardFunc(onKeyboard);
     glutSpecialFunc(onKeyboardSpecial);
+    glutEntryFunc(onEntry);
 
     registerWindow(this);
     this->onCreate();

@@ -11,31 +11,31 @@
 
 #include "rtFile.h"
 
-rtData::rtData(): m_data(NULL), m_length(0) {}
+rtData::rtData(): mData(NULL), mLength(0) {}
 rtData::~rtData() { term(); }
 
-rt_error rtData::init(uint32_t length) {
+rtError rtData::init(uint32_t length) {
   term();
-  m_data = new uint8_t[length];
-  if (m_data) {
-    m_length = length;
+  mData = new uint8_t[length];
+  if (mData) {
+    mLength = length;
     return RT_OK;
   }
   else return RT_FAIL;
 }
 
-rt_error rtData::init(uint8_t* data, uint32_t length) {
-  rt_error e = RT_FAIL;
+rtError rtData::init(uint8_t* data, uint32_t length) {
+  rtError e = RT_FAIL;
   if (init(length) == RT_OK) {
-    memcpy(m_data, data, length);
+    memcpy(mData, data, length);
     e = RT_OK;
   }
   return e;
 }
 
-rt_error rtData::term() { delete [] m_data; m_length = 0; return RT_OK; }
-uint8_t* rtData::data() { return m_data; }
-uint32_t rtData::length() { return m_length; }
+rtError rtData::term() { delete [] mData; mLength = 0; return RT_OK; }
+uint8_t* rtData::data() { return mData; }
+uint32_t rtData::length() { return mLength; }
 
 rtError rtLoadFile(const char* f, rtData& data) {
   rtError e = RT_FAIL;

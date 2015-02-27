@@ -72,6 +72,7 @@ typedef void (*pxAnimationEnded)(void* ctx);
 double pxInterpLinear(double i);
 
 struct animation {
+  bool cancelled;
   rtString prop;
   float from;
   float to;
@@ -127,8 +128,8 @@ public:
 
   pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
-    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef(), mMaskTextureCacheObject(),
-    mClipTextureRef()
+    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef(), 
+    mMaskTextureCacheObject(),mClipTextureRef(),mCancelInSet(true)
   {
     mEmit = new rtEmit;
   }
@@ -398,6 +399,7 @@ protected:
   pxTextureCacheObject mMaskTextureCacheObject;
   pxTextureRef mClipTextureRef;
   rtString mId;
+  bool mCancelInSet;
   
   
   pxTextureRef createSnapshot(pxTextureRef texture);
@@ -657,20 +659,17 @@ public:
     return mEmit->delListener(eventName, f);
   }
 
+  void setMouseEntered(pxObject* o);
+
   // The following methods are delegated to the view
   virtual void onSize(int w, int h);
   virtual void onMouseDown(int x, int y, unsigned long flags);
   virtual void onMouseUp(int x, int y, unsigned long flags);
   virtual void onMouseLeave();
   virtual void onMouseMove(int x, int y);
-  
-  // JR expect keycodes etc to change quite a bit
-  // not well supported in glut
-  // glut doesn't seem to support notion of key up vs down so both of these
-  // get fired on physical key down right now
-  // I want to normalize on "browser" key codes
   virtual void onKeyDown(int keycode, unsigned long flags);
   virtual void onKeyUp(int keycode, unsigned long flags);
+  // TODO this should be a codepoint uint32_t or a utf8 encoded string.... probably going with a codepoint
   virtual void onChar(char c);
   
   virtual void onDraw();
@@ -705,8 +704,12 @@ private:
   int frameCount;
   int mWidth;
   int mHeight;
-
   rtEmitRef mEmit;
+
+// Top level scene only
+  rtRefT<pxObject> mMouseEntered;
+  rtRefT<pxObject> mMouseDown;
+  pxPoint2f mMouseDownPt;
 };
 
 class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase

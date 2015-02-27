@@ -4,6 +4,6 @@
 #include "rtDefs.h"
 #include "rtString.h"
 
-rt_error rtGetCurrentDirectory(rtString& d);
+rtError rtGetCurrentDirectory(rtString& d);
 
 #endif

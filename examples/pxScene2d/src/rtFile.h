@@ -14,17 +14,17 @@ class rtData {
   rtData();
   ~rtData();
   
-  rt_error init(uint32_t length);
-  rt_error init(uint8_t* data, uint32_t length);
+  rtError init(uint32_t length);
+  rtError init(uint8_t* data, uint32_t length);
 
-  rt_error term();
+  rtError term();
 
   uint8_t* data();
   uint32_t length();
 
  private:
-  uint8_t* m_data;
-  uint32_t m_length;
+  uint8_t* mData;
+  uint32_t mLength;
 };
 
 rtError rtLoadFile(const char* f, rtData& data);

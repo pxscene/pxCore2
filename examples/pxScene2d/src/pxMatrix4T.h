@@ -28,6 +28,7 @@ void sincosf(float x, float *s, float *c);
 
 #endif
 #endif
+
 class pxVector4f {
 public:
   pxVector4f(): mX(0), mY(0), mZ(0), mW(1) {}
@@ -97,9 +98,7 @@ public:
     out.mW = m[3] * x + m[7] * y + m[11] * z + m[15] * w;
     return out;
   }
-  
-  
-  
+    
   void multiply(FloatT* m, FloatT* n) {
     
     FloatT tmp[16];
@@ -192,32 +191,43 @@ public:
     multiply(m, t);
   }
 #else
-void scale(FloatT sx, FloatT sy, FloatT sz = 1.0) {
+void scale(FloatT sx, FloatT sy) 
+{  
+  FloatT *out = mValues;
+  FloatT *a = mValues;
   
-  UNUSED(sz);
+  out[0] = a[0] * sx;
+  out[1] = a[1] * sx;
+  out[2] = a[2] * sx;
+  out[3] = a[3] * sx;
+  out[4] = a[4] * sy;
+  out[5] = a[5] * sy;
+  out[6] = a[6] * sy;
+  out[7] = a[7] * sy;
+}
 
-    FloatT *out = mValues;
-    FloatT *a = mValues;
-    
-    out[0] = a[0] * sx;
-    out[1] = a[1] * sx;
-    out[2] = a[2] * sx;
-    out[3] = a[3] * sx;
-    out[4] = a[4] * sy;
-    out[5] = a[5] * sy;
-    out[6] = a[6] * sy;
-    out[7] = a[7] * sy;
-#if 0 // optimize
+void scale(FloatT sx, FloatT sy, FloatT sz) 
+{  
+  FloatT *out = mValues;
+  FloatT *a = mValues;
+  
+  out[0] = a[0] * sx;
+  out[1] = a[1] * sx;
+  out[2] = a[2] * sx;
+  out[3] = a[3] * sx;
+  out[4] = a[4] * sy;
+  out[5] = a[5] * sy;
+  out[6] = a[6] * sy;
+  out[7] = a[7] * sy;
+
+  if (sz != 1.0)
+  {
     out[8] = a[8] * sz;
     out[9] = a[9] * sz;
     out[10] = a[10] * sz;
     out[11] = a[11] * sz;
-    out[12] = a[12];
-    out[13] = a[13];
-    out[14] = a[14];
-    out[15] = a[15];
-#endif
   }
+}
 #endif
   
 #if 0
@@ -229,25 +239,41 @@ void scale(FloatT sx, FloatT sy, FloatT sz = 1.0) {
     multiply(m, t);
   }
 #else
-void translate(FloatT x, FloatT y, FloatT z = 0.0) {
+
+void translate(FloatT x, FloatT y) 
+{
+  FloatT *m = mValues;
+  
+  m[12] = m[0] * x + m[4] * y + m[12];
+  m[13] = m[1] * x + m[5] * y + m[13];
+  m[14] = m[2] * x + m[6] * y + m[14];
+  m[15] = m[3] * x + m[7] * y + m[15];
+}
+
+void translate(FloatT x, FloatT y, FloatT z) 
+{
     FloatT *m = mValues;
     
-#if 0
-    m[12] = m[0] * x + m[4] * y + m[8] * z + m[12];
-    m[13] = m[1] * x + m[5] * y + m[9] * z + m[13];
-    m[14] = m[2] * x + m[6] * y + m[10] * z + m[14];
-    m[15] = m[3] * x + m[7] * y + m[11] * z + m[15];
-#else
-    UNUSED(z);
-    m[12] = m[0] * x + m[4] * y + m[12];
-    m[13] = m[1] * x + m[5] * y + m[13];
-    m[14] = m[2] * x + m[6] * y + m[14];
-    m[15] = m[3] * x + m[7] * y + m[15];
-#endif
-  }
+    if (z != 0.0)
+    {
+      m[12] = m[0] * x + m[4] * y + m[8] * z + m[12];
+      m[13] = m[1] * x + m[5] * y + m[9] * z + m[13];
+      m[14] = m[2] * x + m[6] * y + m[10] * z + m[14];
+      m[15] = m[3] * x + m[7] * y + m[11] * z + m[15];
+    }
+    else
+    {
+      m[12] = m[0] * x + m[4] * y + m[12];
+      m[13] = m[1] * x + m[5] * y + m[13];
+      m[14] = m[2] * x + m[6] * y + m[14];
+      m[15] = m[3] * x + m[7] * y + m[15];
+    }
+}
+      
 #endif
   
-  void identity() {
+      void identity() 
+{
     FloatT* m = mValues;
     FloatT t[16] = {
       1.0, 0.0, 0.0, 0.0,

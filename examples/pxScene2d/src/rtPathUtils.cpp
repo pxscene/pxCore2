@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-rt_error rtGetCurrentDirectory(rtString& d) {
+rtError rtGetCurrentDirectory(rtString& d) {
   char* p = getcwd(NULL, 0);
 
   if (p) {

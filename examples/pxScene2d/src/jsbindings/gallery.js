@@ -1,7 +1,7 @@
 var root = scene.root;
 //scene.showOutlines = true;
 
-var appURLs = ["picturepile.js", "dynamics.js", "hello.js", "mousetest2.js", "fancy.js", "cliptest.js", "masktest.js", "mousetest.js"];
+var appURLs = ["hello.js","picturepile.js", "dynamics.js", "hello.js", "mousetest2.js", "fancy.js", "cliptest.js", "masktest.js", "mousetest.js"];
 var url;
 url = process.cwd() + "/../../images/skulls.png";
 var bg = scene.createImage({url:url,xStretch:2,yStretch:2,parent:root});

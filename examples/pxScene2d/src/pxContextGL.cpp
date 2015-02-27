@@ -38,8 +38,23 @@ GLint u_alphatexture = -1;
 GLint u_color = -1;
 GLint attr_pos = 0, attr_uv = 2;
 
+#if 0
+static const char *fSolidShaderText =
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
+  "precision mediump float;\n"
+#endif
+  "uniform float u_alpha;\n"
+  "uniform vec4 a_color;\n"
+  "void main()"
+  "{\n"
+  "vec4 c = a_color;"
+  "  gl_FragColor = vec4(c.rgb,c.a*u_alpha);"
+//  "  gl_FragColor.a *= u_alpha;\n"
+//  "gl_FragColor = vec4(1,1,1,1);"
+  "}\n";
+#endif
 
-static const char *fShaderText =
+static const char *fMondoShaderText =
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   "precision mediump float;\n"
 #endif
@@ -99,7 +114,6 @@ static const char *vShaderText =
   " gl_Position =  clipSpace * vec4(1, -1, 1, 1);\n"
   "v_uv = uv;\n"
   "}\n";
-
 
 class pxFBOTexture : public pxTexture
 {
@@ -852,7 +866,7 @@ void pxContext::init()
 
   glClearColor(0, 0, 0, 0);
 
-  GLuint program = createShaderProgram(vShaderText, fShaderText);
+  GLuint program = createShaderProgram(vShaderText, fMondoShaderText);
 
   u_resolution   = glGetUniformLocation(program, "u_resolution");
   u_texture      = glGetUniformLocation(program, "s_texture");
