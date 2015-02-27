@@ -30,6 +30,7 @@ PX_SRCS=\
     pxUtil.cpp \
     pxContextGL.cpp \
     pxImage9.cpp \
+    pxTextureCacheObject.cpp \
     pxFileDownloader.cpp \
     pxInterpolators.cpp
 

@@ -38,6 +38,7 @@ GLint u_alphatexture = -1;
 GLint u_color = -1;
 GLint attr_pos = 0, attr_uv = 2;
 
+
 static const char *fShaderText =
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   "precision mediump float;\n"
@@ -707,15 +708,14 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 }
 
 static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, 
-                        GLfloat y2, pxOffscreen& offscreen)
+                        GLfloat y2, pxTextureRef texture)
 {
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, textureId1);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
-               offscreen.width(), offscreen.height(), 0, GL_RGBA,
-               GL_UNSIGNED_BYTE, offscreen.base());
-  glUniform1i(u_texture, 0);
+  if (texture.getPtr() == NULL)
+  {
+    return;
+  }
+  texture->bindTexture();
+
 
   float ox1 = x;
   float ix1 = x+x1;
@@ -729,8 +729,8 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
 
 
   
-  float w2 = offscreen.width();
-  float h2 = offscreen.height();
+  float w2 = texture->width();
+  float h2 = texture->height();
 
   float ou1 = 0;
   float iu1 = x1/w2;
@@ -981,9 +981,11 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
 
 
 void pxContext::drawImage9(float w, float h, float x1, float y1,
-                           float x2, float y2, pxOffscreen& o)
+                           float x2, float y2, pxTextureRef texture)
 {
-  drawImage92(0, 0, w, h, x1, y1, x2, y2, o);
+  if (texture.getPtr() != NULL) {
+    drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
+  }
 }
 
 void pxContext::drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,

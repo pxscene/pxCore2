@@ -29,6 +29,7 @@ using namespace std;
 #include "pxMatrix4T.h"
 #include "pxInterpolators.h"
 #include "pxTexture.h"
+#include "pxTextureCacheObject.h"
 
 // Interpolator constants
 #define PX_LINEAR_         0
@@ -126,7 +127,7 @@ public:
 
   pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
-    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef(),
+    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef(), mMaskTextureCacheObject(),
     mClipTextureRef()
   {
     mEmit = new rtEmit;
@@ -377,8 +378,7 @@ public:
 
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
   
-  virtual void onFileDownloadComplete(pxFileDownloadRequest* downloadRequest) { (void)downloadRequest; }
-  void setMask(pxTextureRef maskTexture) { mMaskTextureRef = maskTexture; }
+  virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
   
 public:
   rtEmitRef mEmit;
@@ -394,6 +394,7 @@ protected:
   bool mClip;
   rtString mMaskUrl;
   pxTextureRef mMaskTextureRef;
+  pxTextureCacheObject mMaskTextureCacheObject;
   pxTextureRef mClipTextureRef;
   rtString mId;
   
@@ -689,8 +690,6 @@ public:
     v = getRoot();
     return RT_OK;
   }
-  
-  void checkForCompletedFileDownloads();
   
 private:
   void draw();

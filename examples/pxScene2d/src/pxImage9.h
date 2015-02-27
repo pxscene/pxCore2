@@ -5,6 +5,7 @@
 #define PX_IMAGE9_H
 
 #include "pxOffscreen.h"
+#include "pxTextureCacheObject.h"
 
 class pxImage9: public pxObject {
 public:
@@ -15,7 +16,7 @@ public:
   rtProperty(x2, x2, setX2, float);
   rtProperty(y2, y2, setY2, float);
 
- pxImage9(): mx1(0), my1(0), mx2(0), my2(0) {}
+ pxImage9(): mx1(0), my1(0), mx2(0), my2(0), mTextureCacheObject() { mTextureCacheObject.setParent(this); }
   
   rtError url(rtString& s) const;
   rtError setURL(const char* s);
@@ -28,16 +29,16 @@ public:
   rtError setX2(float v) { mx2 = v; return RT_OK; }
   rtError y2(float& v) const { v = my2; return RT_OK; }
   rtError setY2(float v) { my2 = v; return RT_OK; }
-  
-  virtual void onFileDownloadComplete(pxFileDownloadRequest* downloadRequest);
+
+  virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
 
 protected:
   virtual void draw();
   void loadImage(rtString url);
   
   rtString mURL;
-  pxOffscreen mOffscreen;
   float mx1, my1, mx2, my2;
+  pxTextureCacheObject mTextureCacheObject;
 };
 
 #endif

@@ -31,7 +31,8 @@
         "../pxText.cpp",
         "../pxUtil.cpp",
         "../pxInterpolators.cpp",
-        "../pxFileDownloader.cpp"
+        "../pxFileDownloader.cpp",
+        "../pxTextureCacheObject.cpp"
        ],
 
       "include_dirs" : [

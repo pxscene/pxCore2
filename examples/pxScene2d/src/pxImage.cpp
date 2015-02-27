@@ -19,11 +19,6 @@
 using namespace std;
 
 extern pxContext context;
-extern int gFileDownloadsPending;
-
-typedef map<rtString, pxTextureRef> TextureMap;
-TextureMap gTextureCache;
-
 
 void pxImage::onInit()
 {
@@ -45,54 +40,7 @@ rtError pxImage::setURL(const char* s)
 
 void pxImage::loadImage(rtString url)
 {
-  TextureMap::iterator it = gTextureCache.find(url);
-  if (it != gTextureCache.end())
-  {
-    mTexture = it->second;
-    if (mAutoSize && mTexture.getPtr() != NULL)
-    {
-      mw = mTexture->width();
-      mh = mTexture->height();
-    }
-    rtObjectRef e = new rtMapObject;
-    e.set("name", "onReady");
-    e.set("target", this);
-    mEmit.send("onReady", e);
-  }
-  else
-  {
-    rtLogDebug("Image texture cache miss");
-    char* s = url.cString();
-    const char *result = strstr(s, "http");
-    int position = result - s;
-    if (position == 0 && strlen(s) > 0)
-    {
-      pxFileDownloadRequest* downloadRequest = 
-        new pxFileDownloadRequest(s, this);
-      gFileDownloadsPending++;
-      pxFileDownloader::getInstance()->addToDownloadQueue(downloadRequest);
-    }
-    else 
-    {
-      pxOffscreen imageOffscreen;
-      if (pxLoadImage(s, imageOffscreen) != RT_OK)
-        rtLogWarn("image load failed"); // TODO: why?
-      else
-      {
-        mTexture = context.createTexture(imageOffscreen);
-        gTextureCache.insert(pair<rtString,pxTextureRef>(s, mTexture));
-      }
-      if (mAutoSize)
-      {
-        mw = mTexture->width();
-        mh = mTexture->height();
-      }
-      rtObjectRef e = new rtMapObject;
-      e.set("name", "onReady");
-      e.set("target", this);
-      mEmit.send("onReady", e);
-    }
-  }
+  mTextureCacheObject.setURL(url);
 }
 
 void pxImage::draw() {
@@ -102,21 +50,15 @@ void pxImage::draw() {
   context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, mXStretch, mYStretch);
 }
 
-void pxImage::onFileDownloadComplete(pxFileDownloadRequest* downloadRequest)
+bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status)
 {
-  pxOffscreen imageOffscreen;
-  if (pxLoadImage(downloadRequest->getDownloadedData(),
-                  downloadRequest->getDownloadedDataSize(), 
-                  imageOffscreen) != RT_OK)
+  if (pxObject::onTextureReady(textureCacheObject, status))
   {
-    rtLogError("Image Decode Failed: %s", downloadRequest->getFileURL().cString());
+    return true;
   }
-  else
+  else if (textureCacheObject != NULL && status == RT_OK)
   {
-    mTexture = context.createTexture(imageOffscreen);
-    gTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(), 
-                                                    mTexture));
-    rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
+    mTexture = textureCacheObject->getTexture();
     if (mAutoSize && mTexture.getPtr() != NULL)
     {
       mw = mTexture->width();
@@ -127,7 +69,9 @@ void pxImage::onFileDownloadComplete(pxFileDownloadRequest* downloadRequest)
     e.set("name", "onReady");
     e.set("target", this);
     mEmit.send("onReady", e);
+    return true;
   }
+  return false;
 }
 
 rtDefineObject(pxImage, pxObject);
