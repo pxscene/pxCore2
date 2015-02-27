@@ -37,7 +37,6 @@ protected:
   void loadImage(rtString url);
   
   rtString mURL;
-  pxOffscreen mOffscreen;
   float mx1, my1, mx2, my2;
   pxTextureCacheObject mTextureCacheObject;
 };

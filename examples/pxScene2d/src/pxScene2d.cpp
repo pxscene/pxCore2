@@ -30,22 +30,6 @@
 pxContext context;
 rtFunctionRef gOnScene;
 
-int gFileDownloadsPending = 0; //must only be set in the main thread
-rtMutex fileDownloadMutex;
-bool fileDownloadsAvailable = false;
-vector<pxFileDownloadRequest*> completedFileDownloads;
-
-void pxFileDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
-{
-  if (fileDownloadRequest != NULL)
-  {
-    fileDownloadMutex.lock();
-    completedFileDownloads.push_back(fileDownloadRequest);
-    fileDownloadsAvailable = true;
-    fileDownloadMutex.unlock();
-  }
-}
-
 #if 0
 pxInterp interps[] = 
 {
@@ -541,8 +525,7 @@ rtDefineProperty(pxObject, onReady);
 pxScene2d::pxScene2d()
  :start(0),frameCount(0) 
 { 
-  pxFileDownloader::getInstance()->setDefaultCallbackFunction(pxFileDownloadComplete);
-  mRoot = new pxObject(); 
+  mRoot = new pxObject();
   mEmit = new rtEmit();
 }
 
@@ -633,40 +616,6 @@ void pxScene2d::hitTest(pxPoint2f /*p*/, vector<rtRefT<pxObject> > /*hitList*/) 
   
 }
 
-void pxScene2d::checkForCompletedFileDownloads()
-{
-  if (gFileDownloadsPending > 0)
-  {
-    fileDownloadMutex.lock();
-    if (fileDownloadsAvailable)
-    {
-      for(vector<pxFileDownloadRequest*>::iterator it = completedFileDownloads.begin(); it != completedFileDownloads.end(); ++it)
-      {
-        pxFileDownloadRequest* fileDownloadRequest = (*it);
-        if (!fileDownloadRequest)
-          continue;
-        if (fileDownloadRequest->getCallbackData() != NULL)
-        {
-          pxTextureCacheObject *textureCacheObject = (pxTextureCacheObject *) fileDownloadRequest->getCallbackData();
-          textureCacheObject->onFileDownloadComplete(fileDownloadRequest);
-        }
-
-        delete fileDownloadRequest;
-        fileDownloadsAvailable = false;
-        gFileDownloadsPending--;
-      }
-      completedFileDownloads.clear();
-      if (gFileDownloadsPending < 0)
-      {
-        //this is a safety check (hopefully never used)
-        //to ensure downloads are still processed in the event of a gFileDownloadsPending bug in the future
-        gFileDownloadsPending = 0;
-      }
-    }
-    fileDownloadMutex.unlock();
-  }
-}
-
 void pxScene2d::onDraw()
 {
   if (start == 0)
@@ -675,7 +624,7 @@ void pxScene2d::onDraw()
   }
   
 #if 1
-  checkForCompletedFileDownloads();
+  pxTextureCacheObject::checkForCompletedDownloads();
   update(pxSeconds());
   draw();
 #endif
