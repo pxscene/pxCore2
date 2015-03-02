@@ -4,7 +4,7 @@
 
 // #include <rtMutex.h> // non-recusrive
 
-static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+static pthread_mutex_t sSceneLock = PTHREAD_MUTEX_INITIALIZER;
 
 void rtWrapperSceneUpdateEnter()
 {
