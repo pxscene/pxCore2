@@ -6,8 +6,8 @@
 
 #include <string.h>
 
-using namespace std;
 #include <vector>
+using namespace std;
 
 #include "rtLog.h"
 #include "rtAtomic.h"

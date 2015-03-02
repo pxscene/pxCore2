@@ -6,9 +6,9 @@
 
 #include <stdio.h>
 
-using namespace std;
 #include <vector>
 #include <list>
+using namespace std;
 
 #ifndef finline
 #define finline __attribute__((always_inline))

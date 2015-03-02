@@ -66,7 +66,7 @@ LDCURL  = -L$(EXTDIR)/curl/lib/.libs -lcurl
 LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL)
 
 ifeq ($(UNAME_S),Darwin)
-LDFLAGS = -L$(PXLIBS) -lpxCore -pthread $(LDEXT) -framework GLUT -framework OpenGL -ldl
+LDFLAGS = -L$(PXLIBS) -lpxCore $(LDEXT) -framework GLUT -framework OpenGL -ldl
 else
 LDFLAGS = -L$(PXLIBS) -lpxCore -pthread -lglut -lGL -lGLEW $(LDEXT) -ldl
 endif

@@ -363,7 +363,7 @@ private:
   pxOffscreen mOffscreen;
   bool mInitialized;
   GLuint mTextureName;
-  int mTextureUnit;
+//  int mTextureUnit;
   bool mTextureUploaded;
 };
 
@@ -501,7 +501,7 @@ private:
   GLuint mTextureId;
   bool mInitialized;
   void* mBuffer;
-  bool mUploaded;
+//  bool mUploaded;
 };
 
 static GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
