@@ -1,11 +1,11 @@
-// pxCore CopyRight 2007-2009 John Robinson
+// pxCore CopyRight 2007-2015 John Robinson
 // Portable Framebuffer and Windowing Library
 // pxBuffer.h
 
 #ifndef PX_BUFFER_H
 #define PX_BUFFER_H
 
-#include "pxColors.h"
+#include "pxColor.h"
 #include "pxRect.h"
 #include "pxCore.h"
 
@@ -20,38 +20,36 @@ class pxBuffer
 {
 public:
 
-  pxBuffer(): mBase(NULL), mWidth(0), mHeight(0), mStride(0), mUpsideDown(false)
-  {
-  }
+pxBuffer(): mBase(NULL), mWidth(0), mHeight(0), mStride(0), mUpsideDown(false) {}
 
   void* base() const { return mBase; }
   void setBase(void* p) { mBase = p; }
 
-  int width()  const { return mWidth; }
-  void setWidth(int width) { mWidth = width; }
-
-  int height() const { return mHeight; }
-  void setHeight(int height) { mHeight = height; }
-
-  int stride() const { return mStride; }
-  void setStride(int stride) { mStride = stride; }
-
+  int32_t width()  const { return mWidth; }
+  void setWidth(int32_t width) { mWidth = width; }
+  
+  int32_t height() const { return mHeight; }
+  void setHeight(int32_t height) { mHeight = height; }
+  
+  int32_t stride() const { return mStride; }
+  void setStride(int32_t stride) { mStride = stride; }
+  
   bool upsideDown() const { return mUpsideDown; }
   void setUpsideDown(bool upsideDown) { mUpsideDown = upsideDown; }
 
-  inline unsigned long *scanlineInt32(int line) const
+  inline uint32_t *scanlineInt32(uint32_t line) const
   {
-    return (unsigned long*)((unsigned char*)mBase +
-                            ((mUpsideDown?(mHeight-line-1):line) * mStride));
+    return (uint32_t*)((uint8_t*)mBase +
+                       ((mUpsideDown?(mHeight-line-1):line) * mStride));
   }
 
-  inline pxPixel *scanline(int line) const
+  inline pxPixel *scanline(int32_t line) const
   {
-    return (pxPixel*)((unsigned char*)mBase +
+    return (pxPixel*)((uint8_t*)mBase +
                       ((mUpsideDown?(mHeight-line-1):line) * mStride));
   }
 
-  inline pxPixel *pixel(int x, int y)
+  inline pxPixel *pixel(int32_t x, int32_t y)
   {
     return scanline(y) + x;
   }
@@ -72,7 +70,7 @@ public:
     pxRect c = bounds();
     c.intersect(r);
 
-    for (int i = c.top(); i < c.bottom(); i++)
+    for (int32_t i = c.top(); i < c.bottom(); i++)
     {
       pxPixel *p = pixel(c.left(), i);
       pxPixel *pe = p + c.width();
@@ -85,22 +83,22 @@ public:
 
   void fill(const pxColor& color)
   {
-    for (int i = 0; i < height(); i++)
+    for (int32_t i = 0; i < height(); i++)
     {
       pxPixel *p = scanline(i);
-      for (int j = 0; j < width(); j++)
+      for (int32_t j = 0; j < width(); j++)
       {
         *p++ = color;
       }
     }
   }
 
-  void fillAlpha(unsigned char alpha)
+  void fillAlpha(uint8_t alpha)
   {
-    for (int i = 0; i < height(); i++)
+    for (int32_t i = 0; i < height(); i++)
     {
       pxPixel*p = scanline(i);
-      for (int j = 0; j < width(); j++)
+      for (int32_t j = 0; j < width(); j++)
       {
         p->a = alpha;
         p++;
@@ -108,18 +106,18 @@ public:
     }
   }
 
-  void blit(pxSurfaceNative s, int dstLeft, int dstTop,
-            int dstWidth, int dstHeight,
-            int srcLeft, int srcTop);
+  void blit(pxSurfaceNative s, int32_t dstLeft, int32_t dstTop,
+            int32_t dstWidth, int32_t dstHeight,
+            int32_t srcLeft, int32_t srcTop);
 
   inline void blit(pxSurfaceNative s)
   {
     blit(s, 0, 0, width(), height(), 0, 0);
   }
 
-  inline void blit(pxBuffer& b, int dstLeft, int dstTop,
-                   int dstWidth, int dstHeight,
-                   int srcLeft, int srcTop)
+  inline void blit(pxBuffer& b, int32_t dstLeft, int32_t dstTop,
+                   int32_t dstWidth, int32_t dstHeight,
+                   int32_t srcLeft, int32_t srcTop)
   {
     pxRect srcBounds = bounds();
     pxRect dstBounds = b.bounds();
@@ -130,12 +128,12 @@ public:
     srcBounds.intersect(srcRect);
     dstBounds.intersect(dstRect);
 
-    int l = dstBounds.left() + (srcBounds.left() - srcLeft);
-    int t = dstBounds.top() + (srcBounds.top() - srcTop);
-    int w = pxMin<int>(srcBounds.width(), dstBounds.width());
-    int h = pxMin<int>(srcBounds.height(), dstBounds.height());
+    int32_t l = dstBounds.left() + (srcBounds.left() - srcLeft);
+    int32_t t = dstBounds.top() + (srcBounds.top() - srcTop);
+    int32_t w = pxMin<int>(srcBounds.width(), dstBounds.width());
+    int32_t h = pxMin<int>(srcBounds.height(), dstBounds.height());
 
-    for (int y = 0; y < h; y++)
+    for (int32_t y = 0; y < h; y++)
     {
       pxPixel *s = pixel(srcBounds.left(), y+srcBounds.top());
       pxPixel *se = s + w;
@@ -152,7 +150,7 @@ public:
     blit(b, 0, 0, width(), height(), 0, 0);
   }
 
-  inline void blit(pxBuffer& b, int x, int y)
+  inline void blit(pxBuffer& b, int32_t x, int32_t y)
   {
     blit(b, x, y, width(), height(), 0, 0);
   }
@@ -164,9 +162,9 @@ public:
 
 protected:
   void* mBase;
-  int mWidth;
-  int mHeight;
-  int mStride;
+  int32_t mWidth;
+  int32_t mHeight;
+  int32_t mStride;
   bool mUpsideDown;
 };
 

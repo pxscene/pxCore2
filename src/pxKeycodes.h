@@ -1,3 +1,7 @@
+// pxCore CopyRight 2007-2015 John Robinson
+// Portable Framebuffer and Windowing Library
+// pxKeycodes.h
+
 #ifndef PX_KEYCODES_H
 #define PX_KEYCODES_H
 

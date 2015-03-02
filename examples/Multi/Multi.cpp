@@ -103,14 +103,18 @@ private:
 
 int pxMain()
 {
-  myWindow win;
+  myWindow win1, win2;
 
-  win.init(10, 64, 640, 480);
-  win.setTitle("Hover");
-  win.setVisibility(true);
-
+  win1.init(10, 64, 640, 480);
+  win1.setTitle("Window 1");
+  win1.setVisibility(true);
+  
+  win2.init(60, 114, 640, 480);
+  win2.setTitle("Window 2");
+  win2.setVisibility(true);
+  
   eventLoop.run();
-
+  
   return 0;
 }
 

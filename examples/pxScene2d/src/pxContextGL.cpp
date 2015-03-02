@@ -19,7 +19,7 @@
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
-GLuint textureId1;
+static GLuint textureId1;
 
 pxContextSurfaceNativeDesc defaultContextSurface;
 pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
@@ -27,16 +27,17 @@ pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
 pxTextureRef defaultRenderSurface;
 pxTextureRef currentRenderSurface = defaultRenderSurface;
 
+// TODO get rid of this global crap
 static GLint u_matrix = -1;
 static GLint u_alpha = -1;
 static GLint u_resolution = -1;
-GLint u_texture = -1;
-GLint u_mask = -1;
-GLint u_enablemask = 0;
-GLint u_enablepremultipliedalpha = 0;
-GLint u_alphatexture = -1;
-GLint u_color = -1;
-GLint attr_pos = 0, attr_uv = 2;
+static GLint u_texture = -1;
+static GLint u_mask = -1;
+static GLint u_enablemask = 0;
+static GLint u_enablepremultipliedalpha = 0;
+static GLint u_alphatexture = -1;
+static GLint u_color = -1;
+static GLint attr_pos = 0, attr_uv = 2;
 
 #if 0
 static const char *fSolidShaderText =
@@ -503,7 +504,7 @@ private:
   bool mUploaded;
 };
 
-GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
+static GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
 {
   GLuint fragShader, vertShader, program = 0;
   GLint stat;
@@ -863,7 +864,7 @@ void pxContext::init()
   }
 #endif
 
-  glClearColor(0, 0, 0, 0);
+  glClearColor(0, 0, 0, 1);
 
   GLuint program = createShaderProgram(vShaderText, fMondoShaderText);
 

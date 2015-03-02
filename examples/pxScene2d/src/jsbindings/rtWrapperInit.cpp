@@ -85,12 +85,12 @@ protected:
     rtLogDebug("Hello, from uv timer callback");
   }
 
-  virtual void onSize(int w, int h)
+  virtual void onSize(int32_t w, int32_t h)
   {
     mScene->onSize(w, h);
   }
 
-  virtual void onMouseDown(int x, int y, unsigned long flags)
+  virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags)
   {
     mScene->onMouseDown(x, y, flags);
   }
@@ -101,7 +101,7 @@ protected:
     // mScene->onCloseRequest();
   }
 
-  virtual void onMouseUp(int x, int y, unsigned long flags)
+  virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)
   {
     mScene->onMouseUp(x, y, flags);
   }
@@ -111,22 +111,22 @@ protected:
     mScene->onMouseLeave();
   }
 
-  virtual void onMouseMove(int x, int y)
+  virtual void onMouseMove(int32_t x, int32_t y)
   {
     mScene->onMouseMove(x, y);
   }
 
-  virtual void onKeyDown(int keycode, unsigned long flags)
+  virtual void onKeyDown(uint32_t keycode, uint32_t flags)
   {
     mScene->onKeyDown(keycode, flags);
   }
 
-  virtual void onKeyUp(int keycode, unsigned long flags)
+  virtual void onKeyUp(uint32_t keycode, uint32_t flags)
   {
     mScene->onKeyUp(keycode, flags);
   }
   
-  virtual void onChar(char c)
+  virtual void onChar(uint32_t c)
   {
     mScene->onChar(c);
   }

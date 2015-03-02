@@ -1,0 +1,13 @@
+# pxCore FrameBuffer Library
+# Hover Example
+
+CFLAGS= -I../../src -DPX_PLATFORM_GLUT -framework GLUT -framework OpenGL
+OUTDIR=../../build/glut
+
+all: $(OUTDIR)/Multi
+
+$(OUTDIR)/Multi: Multi.cpp 
+	g++ -o $(OUTDIR)/Multi -Wall $(CFLAGS) Multi.cpp -L$(OUTDIR) -lpxCore
+
+
+

@@ -257,6 +257,7 @@ void scale3(void*ctx) {
 }
 #endif
 
+
 void ballScene() 
 {
   
@@ -293,6 +294,10 @@ void ballScene()
   p->setParent(root);
   p->setX(450);
   p->setY(350);
+  
+  printf("### before animation\n");
+
+  p->animateTo("r", 360.0, 1.0, pxInterpLinear, PX_LOOP);
 //  fancy((pxObject*)p);
 }
 
@@ -402,7 +407,9 @@ void testScene()
   picture.set("x", 400);
   picture.set("y", 400);
   // TODO animateTo now takes a property bag of properties and targets too lazy to fix this call right now
-  //  picture.send("animateTo", "r", 360, 0.5, 0, 1);
+  rtObjectRef props = new rtMapObject;
+  props.set("r",360.0);
+  picture.send("animateTo", props, 0.5, 0, 1);
   picture.set("parent", root);
 
   printf("Enumerate children of root object\n");

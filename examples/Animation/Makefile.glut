@@ -1,0 +1,13 @@
+# pxCore FrameBuffer Library
+# Animation Example
+
+CFLAGS= -I../../src -DPX_PLATFORM_GLUT
+OUTDIR=../../build/glut
+
+all: $(OUTDIR)/Animation
+
+$(OUTDIR)/Animation: Animation.cpp
+	g++ -o $(OUTDIR)/Animation -Wall $(CFLAGS) Animation.cpp -framework GLUT -framework OpenGL -L$(OUTDIR) -lpxCore
+
+
+

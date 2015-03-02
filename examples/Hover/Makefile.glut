@@ -1,0 +1,13 @@
+# pxCore FrameBuffer Library
+# Hover Example
+
+CFLAGS= -I../../src -DPX_PLATFORM_GLUT -framework GLUT -framework OpenGL
+OUTDIR=../../build/glut
+
+all: $(OUTDIR)/Hover
+
+$(OUTDIR)/Hover: Hover.cpp 
+	g++ -o $(OUTDIR)/Hover -Wall $(CFLAGS) Hover.cpp -L$(OUTDIR) -lpxCore
+
+
+

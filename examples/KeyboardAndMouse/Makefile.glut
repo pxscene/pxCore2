@@ -1,0 +1,20 @@
+# pxCore FrameBuffer Library
+# KeyboardAndMouse Example
+
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Darwin)
+     OSCFLAGS= -framework GLUT -framework OpenGL
+endif
+
+CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS)
+
+OUTDIR=../../build/glut
+
+all: $(OUTDIR)/KeyboardAndMouse
+
+$(OUTDIR)/KeyboardAndMouse: KeyboardAndMouse.cpp $(OUTDIR)/libpxCore.a
+	g++ -o $(OUTDIR)/KeyboardAndMouse -Wall $(CFLAGS) KeyboardAndMouse.cpp -L$(OUTDIR) -lpxCore
+
+
+

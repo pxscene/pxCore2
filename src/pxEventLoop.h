@@ -1,4 +1,4 @@
-// pxCore CopyRight 2007-2009 John Robinson
+// pxCore CopyRight 2007-2015 John Robinson
 // Portable Framebuffer and Windowing Library
 // pxEventLoop.h
 
@@ -13,8 +13,8 @@ int pxMain();
 class pxEventLoop
 {
 public:
-    void run();
-    void exit();
+  void run();
+  void exit();
 };
 
 #endif

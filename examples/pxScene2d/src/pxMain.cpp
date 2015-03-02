@@ -55,7 +55,7 @@ private:
     eventLoop.exit();
   }
 
-  void onSize(int newWidth, int newHeight)
+  void onSize(int32_t newWidth, int32_t newHeight)
   {
     scene->onSize(newWidth, newHeight);
   }
@@ -65,7 +65,13 @@ private:
     scene->onDraw();
   }
   
-  void onMouseDown(int x, int y, unsigned long flags)
+  void onAnimationTimer()
+  {
+//    scene->onDraw();
+    invalidateRect();
+  }
+
+  void onMouseDown(int32_t x, int32_t y, uint32_t flags)
   {
     printf("Mouse Down (%d %d) modifiers: [", x, y);
     if (flags & PX_LEFTBUTTON) printf("Left ");
@@ -77,7 +83,7 @@ private:
     printf("]\n");
   }
   
-  void onMouseUp(int x, int y, unsigned long flags)
+  void onMouseUp(int32_t x, int32_t y, uint32_t flags)
   {
     printf("Mouse Up (%d, %d) modifiers: [ ", x, y);
     if (flags & PX_LEFTBUTTON) printf("Left ");
@@ -89,13 +95,13 @@ private:
     printf("]\n");
   }
   
-  void onMouseMove(int x, int y)
+  void onMouseMove(int32_t x, int32_t y)
   {
     //  printf("Mouse Move %d, %d\n", x, y);
     scene->onMouseMove(x,y);
   }
   
-  void onKeyDown(int c, unsigned long flags)
+  void onKeyDown(uint32_t c, uint32_t flags)
   {
     scene->onKeyDown(c, flags);
     printf("Key Dn \"%s\" modifiers: [", getKeyDescription(c));
@@ -112,7 +118,7 @@ private:
 		printf("\n");
   }
   
-  void onKeyUp(int c, unsigned long flags)
+  void onKeyUp(uint32_t c, uint32_t flags)
   {
     scene->onKeyUp(c, flags);
     printf("Key Up \"%s\" modifiers: [", getKeyDescription(c));
@@ -124,7 +130,7 @@ private:
 		printf("\n");
   }
   
-  void onChar(char c)
+  void onChar(uint32_t c)
   {
      printf("onChar: %c\n", c);
   }

@@ -1,0 +1,13 @@
+# pxCore FrameBuffer Library
+# Mandelbrot Example
+
+CFLAGS= -I../../src -DPX_PLATFORM_GLUT -Wno-write-strings
+OUTDIR=../../build/glut
+
+all: $(OUTDIR)/Mandelbrot
+
+$(OUTDIR)/Mandelbrot: Mandelbrot.cpp
+	g++ -o $(OUTDIR)/Mandelbrot -Wall $(CFLAGS) Mandelbrot.cpp -L$(OUTDIR) -framework GLUT -framework OpenGL -lpxCore
+
+
+

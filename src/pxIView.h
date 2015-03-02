@@ -1,10 +1,13 @@
+// pxCore CopyRight 2007-2015 John Robinson
+// Portable Framebuffer and Windowing Library
+// pxIView.h
+
 #ifndef PXIVIEW_H
 #define PXIVIEW_H
 
 #include "pxCore.h"
 #include "pxRect.h"
 
-//#include "rt.h"
 #include "rtRefPtr.h"
 
 // A pxIViewListener must unregister itself
@@ -12,14 +15,14 @@
 class pxIViewListener
 {
 public:    
-    // In view coordinates on pixel boundaries
-    virtual void RT_STDCALL invalidateRect(pxRect* r) = 0;
+  // In view coordinates on pixel boundaries
+  virtual void RT_STDCALL invalidateRect(pxRect* r) = 0;
 #if 0
-    //virtual void __stdcall setCapture(bool capture) = 0;
-    //  Like to eliminate these
-    // since they are platform specific
-    virtual void __stdcall beginDrawing(HDC& dc) = 0;
-    virtual void __stdcall endDrawing(HDC& dc) = 0;
+  //virtual void __stdcall setCapture(bool capture) = 0;
+  //  Like to eliminate these
+  // since they are platform specific
+  virtual void __stdcall beginDrawing(HDC& dc) = 0;
+  virtual void __stdcall endDrawing(HDC& dc) = 0;
 #endif
 };
 
