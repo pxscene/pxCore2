@@ -14,6 +14,7 @@
 #include "pxOffscreen.h"
 #include <stdio.h>
 
+#if 0
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #include <OpenGL/gl.h>
@@ -25,6 +26,7 @@
 #include <GL/glext.h>
 #else
 #include <GLES2/gl2.h>
+#endif
 #endif
 #endif
 

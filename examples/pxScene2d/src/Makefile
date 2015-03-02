@@ -59,7 +59,7 @@ LDPNG   = -L$(EXTDIR)/png/.libs -lpng16
 ifeq ($(UNAME_S),Darwin)
 LDJPG    = $(EXTDIR)/jpg/.libs/libjpeg.a
 else
-LDJPG   = -L$(EXTDIR)/jpg/.libs -ljpeg.9
+LDJPG   = -L$(EXTDIR)/jpg/.libs -ljpeg
 endif
 LDFT    = -L$(EXTDIR)/ft/objs/.libs -lfreetype
 LDCURL  = -L$(EXTDIR)/curl/lib/.libs -lcurl
