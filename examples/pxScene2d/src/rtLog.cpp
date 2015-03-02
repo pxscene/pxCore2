@@ -86,16 +86,19 @@ void rtLogPrintf(rtLogLevel level, const char* file, int line, const char* forma
 
   const char* logLevel = rtLogLevelToString(level);
   const char* path = rtTrimPath(file);
-#if 0
-  const int   threadId = syscall(__NR_gettid);
-#else
+// TODO fix for real... 
+#ifdef __APPLE__
   uint64_t threadId;
   pthread_threadid_np(NULL, &threadId);
+  #define THREAD_ID_FORMAT PRIu64
+#else
+  const int   threadId = syscall(__NR_gettid);
+  #define THREAD_ID_FORMAT "d"
 #endif
 
   if (sLogHandler == NULL)
   {
-    printf(RTLOGPREFIX "%5s %s:%d -- Thread-%" PRIu64 ": ", logLevel, path, line, threadId);
+    printf(RTLOGPREFIX "%5s %s:%d -- Thread-%" THREAD_ID_FORMAT ": ", logLevel, path, line, threadId);
 
     va_list ptr;
     va_start(ptr, format);
