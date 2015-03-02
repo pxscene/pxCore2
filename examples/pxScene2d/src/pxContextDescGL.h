@@ -9,8 +9,21 @@
 
 #else
 
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#else
 #include <GL/glew.h>
+#include <GL/glut.h>
 #include <GL/gl.h>
+#include <GL/glext.h>
+#endif //PX_PLATFORM_WAYLAND_EGL
+#endif
 
 #endif
 

@@ -4,8 +4,13 @@ clean:
 	rm -rf $(OBJDIR)
 	rm -f gl2d
 
-VPATH=linux
 
+
+UNAME_S := $(shell uname -s)
+
+
+
+VPATH=linux
 RT_SRCS=\
     rtError.cpp\
     rtFile.cpp \
@@ -32,7 +37,8 @@ PX_SRCS=\
     pxImage9.cpp \
     pxTextureCacheObject.cpp \
     pxFileDownloader.cpp \
-    pxInterpolators.cpp
+    pxInterpolators.cpp \
+		pxMatrix4T.cpp
 
 EXTDIR=../external
 PXCOREDIR=../../..
@@ -47,14 +53,23 @@ SEARCH=\
   -I$(EXTDIR)/png \
   -I$(PXHDRS)
 
-CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DENABLE_GLUT -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT
+CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT
 
 LDPNG   = -L$(EXTDIR)/png/.libs -lpng16
-LDJPG   = -L$(EXTDIR)/jpg/.libs -ljpeg
+ifeq ($(UNAME_S),Darwin)
+LDJPG    = $(EXTDIR)/jpg/.libs/libjpeg.a
+else
+LDJPG   = -L$(EXTDIR)/jpg/.libs -ljpeg.9
+endif
 LDFT    = -L$(EXTDIR)/ft/objs/.libs -lfreetype
 LDCURL  = -L$(EXTDIR)/curl/lib/.libs -lcurl
 LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL)
+
+ifeq ($(UNAME_S),Darwin)
+LDFLAGS = -L$(PXLIBS) -lpxCore -pthread $(LDEXT) -framework GLUT -framework OpenGL -ldl
+else
 LDFLAGS = -L$(PXLIBS) -lpxCore -pthread -lglut -lGL -lGLEW $(LDEXT) -ldl
+endif
 
 OBJDIR=obj
 SRCS=$(PX_SRCS) $(RT_SRCS) testScene.cpp

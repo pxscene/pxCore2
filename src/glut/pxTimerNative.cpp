@@ -4,16 +4,16 @@
 
 #include "../pxTimer.h"
 
+#include "pxConfigNative.h"
+
 #include <stdlib.h>
 
-#define USE_CGT
 #ifndef USE_CGT
 #include <sys/time.h>
 #else
 #include <time.h>
 #endif
 
-#define USE_SELECT_FOR_SLEEP
 #ifdef USE_SELECT_FOR_SLEEP
 #include <sys/select.h>
 #else

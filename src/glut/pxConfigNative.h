@@ -10,6 +10,15 @@
 #define PX_LITTLEENDIAN_PIXELS
 #define PX_LITTLEENDIAN_RGBA_PIXELS
 
+#ifdef __APPLE__
+#define PX_USE_GLUT_ON_CLOSE
+#else
+#define PX_USE_SELECT_FOR_SLEEP
+#define PX_USE_CGT
+#define PX_USE_GLEW
+#endif
+
+
 #ifndef PX_NATIVE
 
 #include "pxBufferNative.h"

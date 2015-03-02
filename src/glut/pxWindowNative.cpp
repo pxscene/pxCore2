@@ -8,6 +8,8 @@
 #include "../pxTimer.h"
 #include "../pxWindowUtil.h"
 
+#include "pxConfigNative.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -544,13 +546,11 @@ pxError pxWindow::init(int left, int top, int width, int height)
     glutMotionFunc(onGlutMouseMotion);
     glutPassiveMotionFunc(onGlutMousePassiveMotion);
     glutKeyboardFunc(onGlutKeyboard);
-#if 0
-#if 1
-    glutCloseFunc(onGlutClose);
-#else
+
+#ifdef PX_USE_GLUT_ON_CLOSE
     glutWMCloseFunc(onGlutClose);
 #endif
-#endif
+
     glutSpecialFunc(onGlutKeyboardSpecial);
     glutEntryFunc(onGlutEntry);
 
@@ -561,7 +561,7 @@ pxError pxWindow::init(int left, int top, int width, int height)
 
     if (!glewInitialized)
     {
-#if 0
+#ifdef PX_USE_GLEW
       GLenum err = glewInit();
 
       if (err != GLEW_OK)
