@@ -37,7 +37,7 @@ PX_SRCS=\
 EXTDIR=../external
 PXCOREDIR=../../..
 PXHDRS=$(PXCOREDIR)/src
-PXLIBS=$(PXCOREDIR)/build/x11
+PXLIBS=$(PXCOREDIR)/build/glut
 
 SEARCH=\
   -Ilinux \
@@ -47,7 +47,7 @@ SEARCH=\
   -I$(EXTDIR)/png \
   -I$(PXHDRS)
 
-CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DENABLE_GLUT -DRT_PLATFORM_LINUX -DPX_PLATFORM_X11
+CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DENABLE_GLUT -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT
 
 LDPNG   = -L$(EXTDIR)/png/.libs -lpng16
 LDJPG   = -L$(EXTDIR)/jpg/.libs -ljpeg

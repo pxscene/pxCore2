@@ -544,7 +544,13 @@ pxError pxWindow::init(int left, int top, int width, int height)
     glutMotionFunc(onGlutMouseMotion);
     glutPassiveMotionFunc(onGlutMousePassiveMotion);
     glutKeyboardFunc(onGlutKeyboard);
+#if 0
+#if 1
+    glutCloseFunc(onGlutClose);
+#else
     glutWMCloseFunc(onGlutClose);
+#endif
+#endif
     glutSpecialFunc(onGlutKeyboardSpecial);
     glutEntryFunc(onGlutEntry);
 
@@ -728,10 +734,10 @@ void pxWindowNative::blit(pxBuffer& b, int32_t dstLeft, int32_t dstTop,
                           int32_t dstWidth, int32_t dstHeight,
                           int32_t srcLeft, int32_t srcTop)
 {
-  int32_t x = dstLeft;
-  int32_t y = dstTop;
-  int32_t w = dstWidth;
-  int32_t h = dstHeight;
+  float x = dstLeft;
+  float y = dstTop;
+  float w = dstWidth;
+  float h = dstHeight;
 
   const float verts[4][2] = 
   {

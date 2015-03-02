@@ -1,13 +1,21 @@
 # pxCore FrameBuffer Library
 # Sprite Example
 
-CFLAGS= -I../../src -DPX_PLATFORM_GLUT -Wno-write-strings
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Darwin)
+        OSCFLAGS= -framework GLUT -framework OpenGL
+else
+        OSCFLAGS= -lrt -lglut -lGL -lGLEW
+endif
+
+CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS)	
 OUTDIR=../../build/glut
 
 all: $(OUTDIR)/Sprite
 
 $(OUTDIR)/Sprite: Sprite.cpp 
-	g++ -o $(OUTDIR)/Sprite -Wall $(CFLAGS) Sprite.cpp -L$(OUTDIR) -framework GLUT -framework OpenGL -lpxCore
+	g++ -o $(OUTDIR)/Sprite -Wall Sprite.cpp -lpxCore $(CFLAGS) -L$(OUTDIR) 
 
 
 

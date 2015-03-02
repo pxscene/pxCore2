@@ -41,7 +41,7 @@ private:
     eventLoop.exit();
   }
 
-  void onSize(int newWidth, int newHeight)
+  void onSize(int32_t newWidth, int32_t newHeight)
   {
     // When ever the window resizes (re)allocate a buffer big
     // enough for the entire client area and draw our pattern into it

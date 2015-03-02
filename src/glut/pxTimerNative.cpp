@@ -6,14 +6,14 @@
 
 #include <stdlib.h>
 
-//#define USE_CGT
+#define USE_CGT
 #ifndef USE_CGT
 #include <sys/time.h>
 #else
 #include <time.h>
 #endif
 
-//#define USE_SELECT_FOR_SLEEP
+#define USE_SELECT_FOR_SLEEP
 #ifdef USE_SELECT_FOR_SLEEP
 #include <sys/select.h>
 #else
@@ -59,7 +59,7 @@ double  pxMicroseconds()
 #endif
 }
 
-void pxSleepMS(unsigned long msToSleep)
+void pxSleepMS(uint32_t msToSleep)
 {
 #ifdef USE_SELECT_FOR_SLEEP
   timeval tv;
