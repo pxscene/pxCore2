@@ -137,6 +137,11 @@ protected:
     mScene->onDraw();
     rtWrapperSceneUpdateExit();
   }
+
+  virtual void onAnimationTimer()
+  {
+    invalidateRect();
+  }
 private:
   Persistent<Object> mJavaScene;
 

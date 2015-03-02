@@ -71,8 +71,8 @@ pxWindowNative(): mTimerFPS(0),/*, mLastWidth(-1), mLastHeight(-1),
 
   static vector<pxWindowNative*> getNativeWindows(){return mWindowVector;}
 
-  virtual void onMouseDown(int32_t x, int y, uint32_t flags) = 0;
-  virtual void onMouseUp(int32_t x, int y, uint32_t flags) = 0;
+  virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags) = 0;
+  virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags) = 0;
 
   virtual void onMouseMove(int32_t x, int32_t y) = 0;
 

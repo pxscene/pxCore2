@@ -49,8 +49,8 @@
         "-L../../../external/png/.libs",
         "-L../../../external/jpg/.libs",
         "-L../../../external/curl/lib/.libs/",
-        "../../../../../build/x11/libpxCore.a",
-        "-lX11",
+        "../../../../../build/glut/libpxCore.a",
+#        "-lX11",
         "-lfreetype",
         "-lglut",
         "-lGLEW",
@@ -63,9 +63,9 @@
       ],
 
       "defines": [
-        "PX_PLATFORM_X11",
+        "PX_PLATFORM_GLUT",
         "RT_PLATFORM_LINUX",
-        "ENABLE_GLUT",
+#        "ENABLE_GLUT",
       ],
 
       'cflags!': [
