@@ -27,7 +27,7 @@
 #include <GLES2/gl2ext.h>
 #else
 #include <GL/glew.h>
-#include <GL/glut.h>
+#include <GL/freeglut.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
 #endif //PX_PLATFORM_WAYLAND_EGL
