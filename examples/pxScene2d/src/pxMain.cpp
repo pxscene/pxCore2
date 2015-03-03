@@ -23,7 +23,7 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
-#else
+#elif !defined(ENABLE_DFB)
 #include <GLES2/gl2.h>
 #endif
 #endif

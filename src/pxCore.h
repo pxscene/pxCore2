@@ -50,7 +50,7 @@ inline t pxAbs(t i)
 #include "win/pxConfigNative.h"
 #elif defined(PX_PLATFORM_MAC)
 #include "mac/pxConfigNative.h"
-#elif defined(PX_PLATFORM_X11)
+#elif defined(PX_PLATFORM_X11) || defined(PX_PLATFORM_GENERIC_DFB)
 #include "x11/pxConfigNative.h"
 #elif defined(PX_PLATFORM_WAYLAND)
 #include "wayland/pxConfigNative.h"

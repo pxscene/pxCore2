@@ -13,21 +13,21 @@
 #define UNUSED(expr) (void)(expr)
 #endif
 
-#ifdef PX_PLATFORM_GENERIC_EGL
+#if defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_GENERIC_DFB) 
 #ifndef sincos
 
 void sincos(double x, double *s, double *c);
 
 #endif
-#endif
+#endif //defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_GENERIC_DFB) 
 
-#ifdef PX_PLATFORM_GENERIC_EGL
+#if defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_GENERIC_DFB)
 #ifndef sincosf
 
 void sincosf(float x, float *s, float *c);
 
 #endif
-#endif
+#endif //defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_GENERIC_DFB)
 
 class pxVector4f {
 public:
