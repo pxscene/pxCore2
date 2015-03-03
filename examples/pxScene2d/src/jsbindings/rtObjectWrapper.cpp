@@ -10,14 +10,14 @@ static const char* kClassName = "Object";
 static const char* kFuncAllKeys = "allKeys";
 static const char* kPropLength = "length";
 
-static Handle<Value> makeStringFromKey(rtObjectRef& keys, uint32_t index)
+static Handle<Value> makeStringFromKey(Isolate* isolate, rtObjectRef& keys, uint32_t index)
 {
-  return String::New(keys.get<rtString>(index).cString());
+  return String::NewFromUtf8(isolate, keys.get<rtString>(index).cString());
 }
 
-static Handle<Value> makeIntegerFromKey(rtObjectRef& , uint32_t index)
+static Handle<Value> makeIntegerFromKey(Isolate* isolate, rtObjectRef& , uint32_t index)
 {
-  return Number::New(index);
+  return Number::New(isolate, index);
 }
 
 static Persistent<Function> ctor;
@@ -25,18 +25,16 @@ static Persistent<Function> ctor;
 rtObjectWrapper::rtObjectWrapper(const rtObjectRef& ref)
   : rtWrapper(ref)
 {
-
 }
 
 rtObjectWrapper::~rtObjectWrapper()
 {
-
 }
 
-void rtObjectWrapper::exportPrototype(Handle<Object> exports)
+void rtObjectWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports)
 {
-  Local<FunctionTemplate> tmpl = FunctionTemplate::New(create);
-  tmpl->SetClassName(String::NewSymbol(kClassName));
+  Local<FunctionTemplate> tmpl = FunctionTemplate::New(isolate, create);
+  tmpl->SetClassName(String::NewFromUtf8(isolate, kClassName));
 
   Local<ObjectTemplate> inst = tmpl->InstanceTemplate();
   inst->SetInternalFieldCount(1);
@@ -54,16 +52,19 @@ void rtObjectWrapper::exportPrototype(Handle<Object> exports)
     NULL,
     &getEnumerablePropertyIndecies);
 
-  ctor = Persistent<Function>::New(tmpl->GetFunction());
-  exports->Set(String::NewSymbol(kClassName), ctor);
+  ctor.Reset(isolate, tmpl->GetFunction());
+  exports->Set(String::NewFromUtf8(isolate, kClassName), tmpl->GetFunction());
 }
 
-Handle<Object> rtObjectWrapper::createFromObjectReference(const rtObjectRef& ref)
+Handle<Object> rtObjectWrapper::createFromObjectReference(Isolate* isolate, const rtObjectRef& ref)
 {
-  HandleScope scope;
-  Local<Value> argv[1] = { External::New(ref.getPtr()) };
-  Local<Object> obj = ctor->NewInstance(1, argv);
-  return scope.Close(obj);
+  EscapableHandleScope scope(isolate);
+  Local<Value> argv[1] = 
+  { 
+    External::New(isolate, ref.getPtr()) 
+  };
+  Local<Function> func = PersistentToLocal(isolate, ctor);
+  return scope.Escape(func->NewInstance(1, argv));
 }
 
 rtValue rtObjectWrapper::unwrapObject(const Local<Object>& obj)
@@ -72,15 +73,15 @@ rtValue rtObjectWrapper::unwrapObject(const Local<Object>& obj)
 }
 
 template<typename T>
-Handle<Value> rtObjectWrapper::getProperty(const T& prop, const AccessorInfo& info)
+void rtObjectWrapper::getProperty(const T& prop, const PropertyCallbackInfo<Value>& info)
 {
   rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
-    return Undefined();
+    return;
 
   rtObjectRef ref = wrapper->mWrappedObject;
   if (!ref)
-    return Undefined();
+    return;
 
   rtValue value;
   rtWrapperSceneUpdateEnter();
@@ -90,115 +91,106 @@ Handle<Value> rtObjectWrapper::getProperty(const T& prop, const AccessorInfo& in
   if (err != RT_OK)
   {
     if (err == RT_PROP_NOT_FOUND)
-      return Undefined();
+      return;
     else
-      return ThrowException(Exception::Error(String::New(rtStrError(err))));
+      info.GetIsolate()->ThrowException(Exception::Error(String::NewFromUtf8(info.GetIsolate(),
+        rtStrError(err))));
   }
 
-  return rt2js(value);
+  info.GetReturnValue().Set(rt2js(info.GetIsolate(), value));
 }
 
 template<typename T>
-Handle<Value> rtObjectWrapper::setProperty(const T& prop, Local<Value> val, const AccessorInfo& info)
+void rtObjectWrapper::setProperty(const T& prop, Local<Value> val, const PropertyCallbackInfo<Value>& info)
 {
+  Isolate* isolate = info.GetIsolate();
+
   rtWrapperError error;
-  rtValue value = js2rt(val, &error);
+  rtValue value = js2rt(isolate, val, &error);
   if (error.hasError())
-    return ThrowException(error.toTypeError());
+    isolate->ThrowException(error.toTypeError(isolate));
 
   rtWrapperSceneUpdateEnter();
   rtError err = unwrap(info)->Set(prop, &value);
   rtWrapperSceneUpdateExit();
-  return err == RT_OK
-    ? val
-    : Handle<Value>();
+  if (err == RT_OK)
+    info.GetReturnValue().Set(val);
 }
 
-Handle<Array> rtObjectWrapper::getEnumerable(const AccessorInfo& info, enumerable_item_creator_t create)
+void rtObjectWrapper::getEnumerable(const PropertyCallbackInfo<Array>& info, enumerable_item_creator_t create)
 {
   rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
-    return Handle<Array>();
+    return;
 
   rtObjectRef ref = wrapper->mWrappedObject;
   if (!ref)
-    return Handle<Array>();
+    return;
 
   rtObjectRef keys = ref.get<rtObjectRef>(kFuncAllKeys);
   if (!keys)
-    return Handle<Array>();
+    return;
 
   uint32_t length = keys.get<uint32_t>(kPropLength);
-  Local<Array> props = Array::New(length);
+  Local<Array> props = Array::New(info.GetIsolate(), length);
 
   for (uint32_t i = 0; i < length; ++i)
-    props->Set(Number::New(i), create(keys, i));
+    props->Set(Number::New(info.GetIsolate(), i), create(info.GetIsolate(), keys, i));
 
-  return props;
+  info.GetReturnValue().Set(props);
 }
 
-Handle<Array> rtObjectWrapper::getEnumerablePropertyNames(const AccessorInfo& info)
+void rtObjectWrapper::getEnumerablePropertyNames(const PropertyCallbackInfo<Array>& info)
 {
-  return getEnumerable(info, makeStringFromKey);
+  getEnumerable(info, makeStringFromKey);
 }
 
-Handle<Array> rtObjectWrapper::getEnumerablePropertyIndecies(const AccessorInfo& info)
+void rtObjectWrapper::getEnumerablePropertyIndecies(const PropertyCallbackInfo<Array>& info)
 {
-  return getEnumerable(info, makeIntegerFromKey);
+  getEnumerable(info, makeIntegerFromKey);
 }
 
-Handle<Value> rtObjectWrapper::getPropertyByName(Local<String> prop, const AccessorInfo& info)
-{
-  rtString name = toString(prop);
-  return getProperty(name.cString(), info);
-}
-
-Handle<Value> rtObjectWrapper::getPropertyByIndex(uint32_t index, const AccessorInfo& info)
-{
-  return getProperty(index, info);
-}
-
-Handle<Value> rtObjectWrapper::setPropertyByName(Local<String> prop, Local<Value> val, const AccessorInfo& info)
+void rtObjectWrapper::getPropertyByName(Local<String> prop, const PropertyCallbackInfo<Value>& info)
 {
   rtString name = toString(prop);
-  return setProperty(name.cString(), val, info);
+  getProperty(name.cString(), info);
 }
 
-Handle<Value> rtObjectWrapper::setPropertyByIndex(uint32_t index, Local<Value> val, const AccessorInfo& info)
+void rtObjectWrapper::getPropertyByIndex(uint32_t index, const PropertyCallbackInfo<Value>& info)
 {
-  return setProperty(index, val, info);
+  getProperty(index, info);
 }
 
-Handle<Value> rtObjectWrapper::create(const Arguments& args)
+void rtObjectWrapper::setPropertyByName(Local<String> prop, Local<Value> val, const PropertyCallbackInfo<Value>& info)
+{
+  rtString name = toString(prop);
+  setProperty(name.cString(), val, info);
+}
+
+void rtObjectWrapper::setPropertyByIndex(uint32_t index, Local<Value> val, const PropertyCallbackInfo<Value>& info)
+{
+  setProperty(index, val, info);
+}
+
+void rtObjectWrapper::create(const FunctionCallbackInfo<Value>& args)
 { 
-  if (args.IsConstructCall())
-  {
-    rtObject* obj = reinterpret_cast<rtObject*>(Local<External>::Cast(args[0])->Value());
-    rtObjectWrapper* wrapper = new rtObjectWrapper(obj);
-    wrapper->Wrap(args.This());
-    return args.This();
-  }
-  else
-  {
-    // invoked as rtObjectWrapper()
-    const int argc = 1;
+  assert(args.IsConstructCall());
 
-    HandleScope scope;
-    Local<Value> argv[argc] = { args[0] };
-    return scope.Close(ctor->NewInstance(argc, argv));
-  }
+  HandleScope scope(args.GetIsolate());
+  rtObject* obj = static_cast<rtObject*>(args[0].As<External>()->Value());
+  rtObjectWrapper* wrapper = new rtObjectWrapper(obj);
+  wrapper->Wrap(args.This());
 }
 
-jsObjectWrapper::jsObjectWrapper(const Handle<Value>& obj)
+jsObjectWrapper::jsObjectWrapper(Isolate* isolate, const Handle<Value>& obj)
   : mRefCount(0)
+  , mObject(isolate, Handle<Object>::Cast(obj))
+  , mIsolate(isolate)
 {
-  assert(obj->IsObject());
-  mObject = Persistent<Object>::New(Handle<Object>::Cast(obj));
 }
 
 jsObjectWrapper::~jsObjectWrapper()
 {
-  mObject.Dispose();
 }
 
 unsigned long jsObjectWrapper::AddRef()
@@ -213,15 +205,16 @@ unsigned long jsObjectWrapper::Release()
   return l;
 }
 
-rtError jsObjectWrapper::getAllKeys(rtValue* value)
+rtError jsObjectWrapper::getAllKeys(Isolate* isolate, rtValue* value)
 {
-  Local<Array> names = mObject->GetPropertyNames();
+  Local<Object> self = PersistentToLocal(isolate, mObject);
+  Local<Array> names = self->GetPropertyNames();
 
   rtRefT<rtArrayObject> result(new rtArrayObject);
   for (int i = 0, n = names->Length(); i < n; ++i)
   {
     rtWrapperError error;
-    rtValue val = js2rt(names->Get(i), &error);
+    rtValue val = js2rt(isolate, names->Get(i), &error);
     if (error.hasError())
       return RT_FAIL;
     else
@@ -240,14 +233,16 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value)
     return RT_ERROR_INVALID_ARG;
 
   if (strcmp(name, kFuncAllKeys) == 0)
-    return getAllKeys(value);
+    return getAllKeys(mIsolate, value);
 
-  Local<String> s = String::New(name);
-  if (!mObject->Has(s))
+  Local<String> s = String::NewFromUtf8(mIsolate, name);
+  Local<Object> self = PersistentToLocal(mIsolate, mObject);
+
+  if (!self->Has(s))
     return RT_PROPERTY_NOT_FOUND;
 
   rtWrapperError error;
-  *value = js2rt(mObject->Get(s), &error);
+  *value = js2rt(mIsolate, self->Get(s), &error);
   if (error.hasError())
     return RT_ERROR_INVALID_ARG;
 
@@ -259,11 +254,15 @@ rtError jsObjectWrapper::Get(uint32_t i, rtValue* value)
   if (!value)
     return RT_ERROR_INVALID_ARG;
 
-  if (!mObject->Has(i))
+  // TODO: This call will be coming from a non-js thread
+  // we probably need to lock the context
+
+  Local<Object> self = PersistentToLocal(mIsolate, mObject);
+  if (!self->Has(i))
     return RT_PROPERTY_NOT_FOUND;
 
   rtWrapperError error;
-  *value = js2rt(mObject->Get(i), &error);
+  *value = js2rt(mIsolate, self->Get(i), &error);
   if (error.hasError())
     return RT_ERROR_INVALID_ARG;
 
@@ -277,7 +276,8 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
   if (!name)
     return RT_ERROR_INVALID_ARG;
 
-  if (!mObject->Set(String::New(name), rt2js(*value)))
+  Local<Object> self = PersistentToLocal(mIsolate, mObject);
+  if (!self->Set(String::NewFromUtf8(mIsolate, name), rt2js(mIsolate, *value)))
     return RT_FAIL;
 
   return RT_OK;
@@ -288,7 +288,8 @@ rtError jsObjectWrapper::Set(uint32_t i, const rtValue* value)
   if (!value)
     return RT_ERROR_INVALID_ARG;
 
-  if (!mObject->Set(i, rt2js(*value)))
+  Local<Object> self = PersistentToLocal(mIsolate, mObject);
+  if (!self->Set(i, rt2js(mIsolate, *value)))
     return RT_FAIL;
 
   return RT_OK;
