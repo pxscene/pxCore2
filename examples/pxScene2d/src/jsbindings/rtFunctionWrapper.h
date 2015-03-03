@@ -14,19 +14,19 @@ public:
   virtual ~rtFunctionWrapper();
 
 public:
-  static void exportPrototype(Handle<Object> exports);
+  static void exportPrototype(v8::Isolate* isolate, Handle<Object> exports);
 
-  static v8::Handle<v8::Object> createFromFunctionReference(const rtFunctionRef& func);
+  static v8::Handle<v8::Object> createFromFunctionReference(v8::Isolate* isolate, const rtFunctionRef& func);
 
 private:
-  static Handle<Value> create(const Arguments& args);
-  static Handle<Value> call(const Arguments& args);
+  static void create(const FunctionCallbackInfo<Value>& args);
+  static void call(const FunctionCallbackInfo<Value>& args);
 };
 
 class jsFunctionWrapper : public rtIFunction
 {
 public:
-  jsFunctionWrapper(const Handle<Value>& val);
+  jsFunctionWrapper(v8::Isolate* isolate, const Handle<Value>& val);
   ~jsFunctionWrapper();
 
   virtual unsigned long AddRef();
@@ -42,7 +42,7 @@ private:
   {
   public:
     FunctionLookup(jsFunctionWrapper* parent) : mParent(parent) { }
-    virtual Persistent<Function> lookup();
+    virtual Local<Function> lookup();
   private:
     jsFunctionWrapper* mParent;
   };
@@ -52,6 +52,7 @@ private:
 private:
   unsigned long mRefCount;
   Persistent<Function> mFunction;
+  Isolate* mIsolate;
   vector<rtValue> mArgs;
 };
 

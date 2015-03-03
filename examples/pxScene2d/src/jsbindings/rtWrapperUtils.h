@@ -10,6 +10,29 @@
 
 #include <stdarg.h>
 #include <string>
+#include <memory>
+
+template <class TypeName>
+inline v8::Local<TypeName> StrongPersistentToLocal(const v8::Persistent<TypeName>& persistent) 
+{
+  return *reinterpret_cast<v8::Local<TypeName>*>(
+      const_cast<v8::Persistent<TypeName>*>(&persistent));
+}
+
+template <class TypeName>
+inline v8::Local<TypeName> WeakPersistentToLocal(v8::Isolate* isolate, const v8::Persistent<TypeName>& persistent) 
+{
+  return v8::Local<TypeName>::New(isolate, persistent);
+}
+
+template <class TypeName>
+inline v8::Local<TypeName> PersistentToLocal(v8::Isolate* isolate, const v8::Persistent<TypeName>& persistent) 
+{
+  if (persistent.IsWeak()) 
+    return WeakPersistentToLocal(isolate, persistent);
+  else 
+    return StrongPersistentToLocal(persistent);
+}
 
 // I don't think node/v8 addons support c++ exceptions. In cases where
 // a pending error might be set on a call stack, you can use this object
@@ -29,29 +52,29 @@ public:
   inline bool hasError() const
     { return !mMessage.empty(); }
 
-  v8::Local<v8::Value> toTypeError()
+  v8::Local<v8::Value> toTypeError(v8::Isolate* isolate)
   {
-    return v8::Exception::TypeError(v8::String::New(mMessage.c_str()));
+    return v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, mMessage.c_str()));
   }
 
-  v8::Local<v8::Value> toRangeError()
+  v8::Local<v8::Value> toRangeError(v8::Isolate* isolate)
   {
-    return v8::Exception::RangeError(v8::String::New(mMessage.c_str()));
+    return v8::Exception::RangeError(v8::String::NewFromUtf8(isolate, mMessage.c_str()));
   }
 
-  v8::Local<v8::Value> toReferenceError()
+  v8::Local<v8::Value> toReferenceError(v8::Isolate* isolate)
   {
-    return v8::Exception::ReferenceError(v8::String::New(mMessage.c_str()));
+    return v8::Exception::ReferenceError(v8::String::NewFromUtf8(isolate, mMessage.c_str()));
   }
 
-  v8::Local<v8::Value> toSyntaxError()
+  v8::Local<v8::Value> toSyntaxError(v8::Isolate* isolate)
   {
-    return v8::Exception::SyntaxError(v8::String::New(mMessage.c_str()));
+    return v8::Exception::SyntaxError(v8::String::NewFromUtf8(isolate, mMessage.c_str()));
   }
 
-  v8::Local<v8::Value> toGenericError()
+  v8::Local<v8::Value> toGenericError(v8::Isolate* isolate)
   {
-    return v8::Exception::Error(v8::String::New(mMessage.c_str()));
+    return v8::Exception::Error(v8::String::NewFromUtf8(isolate, mMessage.c_str()));
   }
 
   void setMessage(const char* errorMessage)
@@ -79,7 +102,7 @@ inline rtString toString(const v8::Local<v8::String>& s)
   return rtString(*utf);
 }
 
-inline int toInt32(const v8::Arguments& args, int which, int defaultValue = 0)
+inline int toInt32(const v8::FunctionCallbackInfo<v8::Value>& args, int which, int defaultValue = 0)
 {
   int i = defaultValue;
   if (!args[which]->IsUndefined())
@@ -97,7 +120,12 @@ protected:
 
   virtual ~rtWrapper(){ }
 
-  static TRef unwrap(const v8::Arguments& args)
+  static TRef unwrap(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    return node::ObjectWrap::Unwrap<TWrapper>(args.This())->mWrappedObject;
+  }
+
+  static TRef unwrap(const v8::PropertyCallbackInfo<v8::Value>& args)
   {
     return node::ObjectWrap::Unwrap<TWrapper>(args.This())->mWrappedObject;
   }
@@ -107,12 +135,8 @@ protected:
     return node::ObjectWrap::Unwrap<TWrapper>(obj)->mWrappedObject;
   }
 
-  static TRef unwrap(const v8::AccessorInfo& info)
-  {
-    return node::ObjectWrap::Unwrap<TWrapper>(info.This())->mWrappedObject;
-  }
-
-  static v8::Handle<v8::Value> throwRtError(rtError err, const char* format, ...) RT_PRINTF_FORMAT(2, 3)
+  static void throwRtError(v8::Isolate* isolate, rtError err, const char* format, ...)
+    RT_PRINTF_FORMAT(3, 4)
   {
     const int kBuffSize = 256;
     char buff[kBuffSize];
@@ -131,15 +155,15 @@ protected:
     }
     va_end(ptr);
 
-    return v8::ThrowException(v8::Exception::Error(v8::String::New(buff)));
+    isolate->ThrowException(v8::Exception::Error(v8::String::NewFromUtf8(isolate, buff)));
   }
 
   TRef mWrappedObject;
 };
 
-rtValue js2rt(const v8::Handle<v8::Value>& val, rtWrapperError* error);
+rtValue js2rt(v8::Isolate* isolate, const v8::Handle<v8::Value>& val, rtWrapperError* error);
 
-v8::Handle<v8::Value> rt2js(const rtValue& val);
+v8::Handle<v8::Value> rt2js(v8::Isolate* isolate, const rtValue& val);
 
 
 void rtWrapperSceneUpdateEnter();

@@ -16,60 +16,54 @@ rtFunctionWrapper::~rtFunctionWrapper()
 {
 }
 
-void rtFunctionWrapper::exportPrototype(Handle<Object> exports)
+void rtFunctionWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports)
 {
-  Local<FunctionTemplate> tmpl = FunctionTemplate::New(create);
-  tmpl->SetClassName(String::NewSymbol(kClassName));
-
-  // Local<Template> proto = tmpl->PrototypeTemplate();
+  Local<FunctionTemplate> tmpl = FunctionTemplate::New(isolate, create);
+  tmpl->SetClassName(String::NewFromUtf8(isolate, kClassName));
 
   Local<ObjectTemplate> inst = tmpl->InstanceTemplate();
   inst->SetInternalFieldCount(1);
   inst->SetCallAsFunctionHandler(call);
 
-  ctor = Persistent<Function>::New(tmpl->GetFunction());
-  exports->Set(String::NewSymbol(kClassName), ctor);
+  ctor.Reset(isolate, tmpl->GetFunction());
+  exports->Set(String::NewFromUtf8(isolate, kClassName), tmpl->GetFunction());
 }
 
-Handle<Value> rtFunctionWrapper::create(const Arguments& args)
+void rtFunctionWrapper::create(const FunctionCallbackInfo<Value>& args)
 { 
-  if (args.IsConstructCall())
-  {
-    rtIFunction* p = reinterpret_cast<rtIFunction *>(Local<External>::Cast(args[0])->Value());
-    rtFunctionWrapper* wrapper = new rtFunctionWrapper(p);
-    wrapper->Wrap(args.This());
-    return args.This();
-  }
-  else
-  {
-    const int argc = 1;
+  assert(args.IsConstructCall());
 
-    HandleScope scope;
-    Local<Value> argv[argc] = { args[0] };
-    return scope.Close(ctor->NewInstance(argc, argv));
-  }
+  HandleScope scope(args.GetIsolate());
+  rtIFunction* func = static_cast<rtIFunction *>(args[0].As<External>()->Value());
+  rtFunctionWrapper* wrapper = new rtFunctionWrapper(func);
+  wrapper->Wrap(args.This());
 }
 
-Handle<Object> rtFunctionWrapper::createFromFunctionReference(const rtFunctionRef& func)
+Handle<Object> rtFunctionWrapper::createFromFunctionReference(Isolate* isolate, const rtFunctionRef& func)
 {
-  HandleScope scope;
-  Local<Value> argv[1] = { External::New(func.getPtr()) };
-  Local<Object> obj = ctor->NewInstance(1, argv);
-  return scope.Close(obj);
+  EscapableHandleScope scope(isolate);
+  Local<Value> argv[1] = 
+  {
+    External::New(isolate, func.getPtr()) 
+  };
+  Local<Function> c = PersistentToLocal(isolate, ctor);
+  return scope.Escape(c->NewInstance(1, argv));
 }
 
-Handle<Value> rtFunctionWrapper::call(const Arguments& args)
+void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
 {
-  HandleScope scope;
+  Isolate* isolate = args.GetIsolate();
+
+  HandleScope scope(isolate);
 
   rtWrapperError error;
 
   std::vector<rtValue> argList;
   for (int i = 0; i < args.Length(); ++i)
   {
-    argList.push_back(js2rt(args[i], &error));
+    argList.push_back(js2rt(isolate, args[i], &error));
     if (error.hasError())
-      return ThrowException(error.toTypeError());
+      isolate->ThrowException(error.toTypeError(isolate));
   }
 
   rtValue result;
@@ -77,22 +71,23 @@ Handle<Value> rtFunctionWrapper::call(const Arguments& args)
   rtError err = unwrap(args)->Send(args.Length(), &argList[0], &result);
   rtWrapperSceneUpdateExit();
   if (err != RT_OK)
-    return throwRtError(err, "failed to invoke function");
+    return throwRtError(isolate, err, "failed to invoke function");
 
-  return scope.Close(rt2js(result));
+  args.GetReturnValue().Set(rt2js(isolate, result));
 }
 
 
-jsFunctionWrapper::jsFunctionWrapper(const Handle<Value>& val)
+jsFunctionWrapper::jsFunctionWrapper(Isolate* isolate, const Handle<Value>& val)
   : mRefCount(0)
+  , mFunction(isolate, Handle<Function>::Cast(val))
+  , mIsolate(isolate)
 {
   assert(val->IsFunction());
-  mFunction = Persistent<Function>::New(Handle<Function>::Cast(val));
 }
 
 jsFunctionWrapper::~jsFunctionWrapper()
 {
-  mFunction.Dispose();
+
 }
 
 unsigned long jsFunctionWrapper::AddRef()
@@ -137,7 +132,7 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
   //    return true; // <-- Can't do this
   // });
   //
-  jsCallback* callback = jsCallback::create();
+  jsCallback* callback = jsCallback::create(mIsolate);
   for (int i = 0; i < numArgs; ++i)
     callback->addArg(args[i]);
   callback->setFunctionLookup(new FunctionLookup(this));
@@ -150,8 +145,8 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
   return RT_OK;
 }
 
-Persistent<Function> jsFunctionWrapper::FunctionLookup::lookup()
+Local<Function> jsFunctionWrapper::FunctionLookup::lookup()
 {
-  return mParent->mFunction;
+  return PersistentToLocal(mParent->mIsolate, mParent->mFunction);
 }
 

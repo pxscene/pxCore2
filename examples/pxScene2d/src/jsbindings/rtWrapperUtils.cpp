@@ -18,59 +18,59 @@ void rtWrapperSceneUpdateExit()
 
 using namespace v8;
 
-Handle<Value> rt2js(const rtValue& v)
+Handle<Value> rt2js(Isolate* isolate, const rtValue& v)
 {
   switch (v.getType())
   {
     case RT_int32_tType:
       {
         int32_t i = v.toInt32();
-        return Integer::New(i);
+        return Integer::New(isolate, i);
       }
       break;
     case RT_uint32_tType:
       {
         uint32_t u = v.toUInt32();
-        return Integer::NewFromUnsigned(u);
+        return Integer::NewFromUnsigned(isolate, u);
       }
       break;
     case RT_int64_tType:
       {
         double d = v.toDouble();
-        return Number::New(d);
+        return Number::New(isolate, d);
       }
       break;
     case RT_floatType:
       {
         float f = v.toFloat();
-        return Number::New(f);
+        return Number::New(isolate, f);
       }
       break;
     case RT_doubleType:
       {
         double d = v.toDouble();
-        return Number::New(d);
+        return Number::New(isolate, d);
       }
       break;
     case RT_uint64_tType:
       {
         double d = v.toDouble();
-        return Number::New(d);
+        return Number::New(isolate, d);
       }
       break;
     case RT_functionType:
-      return rtFunctionWrapper::createFromFunctionReference(v.toFunction());
+      return rtFunctionWrapper::createFromFunctionReference(isolate, v.toFunction());
       break;
     case RT_rtObjectRefType:
-      return rtObjectWrapper::createFromObjectReference(v.toObject());
+      return rtObjectWrapper::createFromObjectReference(isolate, v.toObject());
       break;
     case RT_boolType:
-      return Boolean::New(v.toBool());
+      return Boolean::New(isolate, v.toBool());
       break;
     case RT_rtStringType:
       {
         rtString s = v.toString();
-        return String::New(s.cString(), s.length());
+        return String::NewFromUtf8(isolate, s.cString());
       }
       break;
     case RT_voidPtrType:
@@ -86,16 +86,16 @@ Handle<Value> rt2js(const rtValue& v)
       break;
   }
 
-  return Undefined();
+  return Undefined(isolate);
 }
 
-rtValue js2rt(const Handle<Value>& val, rtWrapperError* )
+rtValue js2rt(v8::Isolate* isolate, const Handle<Value>& val, rtWrapperError* )
 {
   if (val->IsUndefined()) { return rtValue((void *)0); }
   if (val->IsNull())      { return rtValue((char *)0); }
   if (val->IsString())    { return toString(val); }
   if (val->IsArray())     { assert(false); return rtValue(0); } // TODO: rtValue support collections
-  if (val->IsFunction())  { return rtValue(rtFunctionRef(new jsFunctionWrapper(val))); }
+  if (val->IsFunction())  { return rtValue(rtFunctionRef(new jsFunctionWrapper(isolate, val))); }
   if (val->IsObject())
   {
     // This is mostly a heuristic. We should probably set a second internal
@@ -113,7 +113,7 @@ rtValue js2rt(const Handle<Value>& val, rtWrapperError* )
     {
       // this is a regular JS object. i.e. one that does not wrap an rtObject.
       // in this case, we'll provide the necessary adapter.
-      return rtValue(new jsObjectWrapper(obj->ToObject()));
+      return rtValue(new jsObjectWrapper(isolate, obj->ToObject()));
     }
   }
 

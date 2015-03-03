@@ -41,11 +41,12 @@ enum WindowCallback
 class jsWindow : public pxWindow
 {
 public:
-  jsWindow(int x, int y, int w, int h)
-    : mEventLoop(new pxEventLoop())
+  jsWindow(Isolate* isolate, int x, int y, int w, int h)
+    : pxWindow()
     , mScene(new pxScene2d())
+    , mEventLoop(new pxEventLoop())
   {
-    mJavaScene = Persistent<Object>::New(rtObjectWrapper::createFromObjectReference(mScene.getPtr()));
+    mJavaScene.Reset(isolate, rtObjectWrapper::createFromObjectReference(isolate, mScene.getPtr()));
 
     rtLogInfo("creating native with [%d, %d, %d, %d]", x, y, w, h);
     init(x, y, w, h);
@@ -62,9 +63,9 @@ public:
     uv_timer_start(&mTimer, timerCallback, 1000, 1000);
   }
 
-  const Persistent<Object> scene() const
+  Local<Object> scene(Isolate* isolate) const
   {
-    return mJavaScene;
+    return PersistentToLocal(isolate, mJavaScene);
   }
 
   void startEventProcessingThread()
@@ -80,7 +81,7 @@ public:
   }
 
 protected:
-  static void timerCallback(uv_timer_t* , int )
+  static void timerCallback(uv_timer_t* )
   {
     rtLogDebug("Hello, from uv timer callback");
   }
@@ -143,35 +144,34 @@ protected:
     invalidateRect();
   }
 private:
+  pxScene2dRef mScene;
+  pxEventLoop* mEventLoop;
   Persistent<Object> mJavaScene;
 
   pthread_t mEventLoopThread;
-  pxEventLoop* mEventLoop;
-  pxScene2dRef mScene;
   uv_timer_t mTimer;
 };
 
 static jsWindow* mainWindow = NULL;
 
-static Handle<Value> disposeNode(const Arguments& args)
+static void disposeNode(const FunctionCallbackInfo<Value>& args)
 {
   if (args.Length() < 1)
-    return Undefined();
+    return;
 
   if (!args[0]->IsObject())
-    return Undefined();
+    return;
 
   Local<Object> obj = args[0]->ToObject();
 
-  rtObjectWrapper* wrapper = static_cast<rtObjectWrapper *>(obj->GetPointerFromInternalField(0));
+  rtObjectWrapper* wrapper = static_cast<rtObjectWrapper *>(obj->GetAlignedPointerFromInternalField(0));
   if (wrapper)
     wrapper->dispose();
-
-  return Undefined();
 }
 
-static Handle<Value> getScene(const Arguments& args)
+static void getScene(const FunctionCallbackInfo<Value>& args)
 {
+
   if (mainWindow == NULL)
   {
     // This is somewhat experimental. There are concurrency issues with glut.
@@ -195,23 +195,32 @@ static Handle<Value> getScene(const Arguments& args)
       h = toInt32(args, 3, 640);
     }
 
-    mainWindow = new jsWindow(x, y, w, h);
+    mainWindow = new jsWindow(args.GetIsolate(), x, y, w, h);
 
     char title[]= { "pxScene from JavasScript!" };
     mainWindow->setTitle(title);
     mainWindow->setVisibility(true);
   }
 
-  return mainWindow->scene();
+  EscapableHandleScope scope(args.GetIsolate());
+  args.GetReturnValue().Set(scope.Escape(mainWindow->scene(args.GetIsolate())));
 }
 
-void ModuleInit(Handle<Object> exports) 
+void ModuleInit(
+  Handle<Object>      target,
+  Handle<Value>     /* unused */,
+  Handle<Context>     context)
 {
-  rtFunctionWrapper::exportPrototype(exports);
-  rtObjectWrapper::exportPrototype(exports);
-  exports->Set(String::NewSymbol("getScene"), FunctionTemplate::New(getScene)->GetFunction());
-  exports->Set(String::NewSymbol("dispose"), FunctionTemplate::New(disposeNode)->GetFunction());
+  Isolate* isolate = context->GetIsolate();
+
+  rtFunctionWrapper::exportPrototype(isolate, target);
+  rtObjectWrapper::exportPrototype(isolate, target);
+
+  target->Set(String::NewFromUtf8(isolate, "getScene"),
+    FunctionTemplate::New(isolate, getScene)->GetFunction());
+
+  target->Set(String::NewFromUtf8(isolate, "dispose"),
+    FunctionTemplate::New(isolate, disposeNode)->GetFunction());
 }
 
-NODE_MODULE(px, ModuleInit)
-
+NODE_MODULE_CONTEXT_AWARE(px, ModuleInit);

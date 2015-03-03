@@ -10,7 +10,7 @@ using namespace v8;
 struct jsIFunctionLookup
 {
   virtual ~jsIFunctionLookup() { }
-  virtual Persistent<Function> lookup() = 0;
+  virtual Local<Function> lookup() = 0;
 };
 
 struct jsCallback
@@ -18,7 +18,7 @@ struct jsCallback
   virtual Handle<Value>* makeArgs();
   virtual void enqueue();
 
-  static jsCallback* create();
+  static jsCallback* create(v8::Isolate* isolate);
 
   jsCallback* addArg(const rtValue& val);
 
@@ -32,7 +32,10 @@ private:
   uv_work_t mReq;
   jsIFunctionLookup* mFunctionLookup;
 
-  jsCallback(); 
+  // TODO: Is it ok to hold this pointer here?
+  v8::Isolate* mIsolate;
+
+  jsCallback(v8::Isolate* isolate);
   virtual ~jsCallback();
 };
 

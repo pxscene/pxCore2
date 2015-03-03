@@ -4,9 +4,11 @@
 
 #include "../pxEventLoop.h"
 
+#ifdef PX_PLATFORM_X11
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysymdef.h>
+#endif //PX_PLATFORM_X11
 
 #include "../pxOffscreen.h"
 
