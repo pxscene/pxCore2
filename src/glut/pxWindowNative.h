@@ -69,6 +69,8 @@ pxWindowNative(): mTimerFPS(0),/*, mLastWidth(-1), mLastHeight(-1),
   static void runEventLoop();
   static void exitEventLoop();
 
+  static void runEventLoopOnce();
+
   static vector<pxWindowNative*> getNativeWindows(){return mWindowVector;}
 
   virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags) = 0;

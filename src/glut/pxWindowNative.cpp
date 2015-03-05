@@ -512,7 +512,7 @@ void pxWindowNative::createGlutWindow(int left, int top, int width, int height)
 
   mGlutWindowId = glutCreateWindow ("pxWindow");
 
-  doinit();
+  //doinit();
 
   glClearColor(0, 0, 0, 1);
 }
@@ -652,12 +652,36 @@ void pxWindowNative::onAnimationTimerInternal()
 }
 #endif
 
+// TODO this should be done better...
+static bool gTimerSet = false;
+
 void pxWindowNative::runEventLoop()
 {
   exitFlag = false;
 
-  glutTimerFunc(32, onGlutTimer, 0);
+  if (!gTimerSet)
+  {
+    glutTimerFunc(32, onGlutTimer, 0);
+    gTimerSet = true;
+  }
+  
   glutMainLoop();
+}
+
+void pxWindowNative::runEventLoopOnce()
+{
+  if (!gTimerSet)
+  {
+    glutTimerFunc(32, onGlutTimer, 0);
+    gTimerSet = true;
+  }
+
+  // Can't do this in plain old glut
+#ifdef __APPLE__
+  glutCheckLoop(); // OSX glut extension
+#else
+  glutMainLoopEvent(); // freeglut variant
+#endif
 }
 
 void pxWindowNative::exitEventLoop()
@@ -734,6 +758,7 @@ void pxWindowNative::blit(pxBuffer& b, int32_t dstLeft, int32_t dstTop,
                           int32_t dstWidth, int32_t dstHeight,
                           int32_t srcLeft, int32_t srcTop)
 {
+#if 0
   float x = dstLeft;
   float y = dstTop;
   float w = dstWidth;
@@ -778,6 +803,7 @@ void pxWindowNative::blit(pxBuffer& b, int32_t dstLeft, int32_t dstTop,
     glDisableVertexAttribArray(attr_pos);
     glDisableVertexAttribArray(attr_uv);
   }
+#endif
 }
 
 void pxWindowNative::registerWindow(pxWindowNative* p)

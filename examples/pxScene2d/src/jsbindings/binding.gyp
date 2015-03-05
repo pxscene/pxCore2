@@ -32,7 +32,8 @@
         "../pxUtil.cpp",
         "../pxInterpolators.cpp",
         "../pxFileDownloader.cpp",
-        "../pxTextureCacheObject.cpp"
+        "../pxTextureCacheObject.cpp",
+        "../pxMatrix4T.cpp",
        ],
 
       "include_dirs" : [
@@ -50,22 +51,30 @@
         "-L../../../external/jpg/.libs",
         "-L../../../external/curl/lib/.libs/",
         "../../../../../build/glut/libpxCore.a",
-#        "-lX11",
         "-lfreetype",
-        "-lglut",
-        "-lGLEW",
         "-lpng16",
-        "-ljpeg",
         "-lcurl",
         "-ldl"
-#        "-lGL",
 #        "-lrt",
       ],
+
+  "conditions": [
+    ['OS=="mac"', {'libraries': [
+            "-framework GLUT",
+            "-framework OpenGL",
+            "../../../external/jpg/.libs/libjpeg.a",
+            ]}],
+    ['OS!="mac"', {'libraries': [
+            "-lglut",
+            "-lGL",
+            "-lGLEW",
+            "-ljpeg",
+            ]}],
+            ],
 
       "defines": [
         "PX_PLATFORM_GLUT",
         "RT_PLATFORM_LINUX",
-#        "ENABLE_GLUT",
       ],
 
       'cflags!': [

@@ -14,12 +14,16 @@ struct EventLoopContext
   pxEventLoop* eventLoop;
 };
 
+// TODO on OSX run the windows event loop on the main thread and use
+// a timer to pump messages
+#ifndef __APPLE__
 static void* processEventLoop(void* argp)
 {
   EventLoopContext* ctx = reinterpret_cast<EventLoopContext *>(argp);
   ctx->eventLoop->run();
   return 0;
 }
+#endif
 
 enum WindowCallback
 {
@@ -37,6 +41,8 @@ enum WindowCallback
   eDraw = 11
 };
 
+
+pxEventLoop* gLoop = NULL;
 
 class jsWindow : public pxWindow
 {
@@ -60,7 +66,13 @@ public:
     // we start a timer in case there aren't any other evens to the keep the
     // nodejs event loop alive. Fire a time repeatedly.
     uv_timer_init(uv_default_loop(), &mTimer);
+    
+    // TODO experiment crank up the timers so we can pump cocoa messages on main thread
+    #ifdef __APPLE__
+    uv_timer_start(&mTimer, timerCallback, 0, 5);
+    #else
     uv_timer_start(&mTimer, timerCallback, 1000, 1000);
+    #endif
   }
 
   Local<Object> scene(Isolate* isolate) const
@@ -70,9 +82,13 @@ public:
 
   void startEventProcessingThread()
   {
+#ifdef __APPLE__
+    gLoop = mEventLoop;
+#else
     EventLoopContext* ctx = new EventLoopContext();
     ctx->eventLoop = mEventLoop;
     pthread_create(&mEventLoopThread, NULL, &processEventLoop, ctx);
+#endif
   }
 
   virtual ~jsWindow()
@@ -83,7 +99,14 @@ public:
 protected:
   static void timerCallback(uv_timer_t* )
   {
+
+    #ifdef __APPLE__
+    if (gLoop)
+      gLoop->runOnce();
+    #else
     rtLogDebug("Hello, from uv timer callback");
+    #endif
+
   }
 
   virtual void onSize(int32_t w, int32_t h)
@@ -148,7 +171,10 @@ private:
   pxEventLoop* mEventLoop;
   Persistent<Object> mJavaScene;
 
+#ifndef __APPLE__
   pthread_t mEventLoopThread;
+#endif
+
   uv_timer_t mTimer;
 };
 
@@ -189,10 +215,10 @@ static void getScene(const FunctionCallbackInfo<Value>& args)
 
     if (args.Length() == 4)
     {
-      x = toInt32(args, 0, 0);
-      y = toInt32(args, 1, 0);
-      w = toInt32(args, 2, 960);
-      h = toInt32(args, 3, 640);
+      x = toInt32(args, 0, x);
+      y = toInt32(args, 1, y);
+      w = toInt32(args, 2, w);
+      h = toInt32(args, 3, h);
     }
 
     mainWindow = new jsWindow(args.GetIsolate(), x, y, w, h);

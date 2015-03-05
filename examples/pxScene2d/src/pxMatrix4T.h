@@ -14,7 +14,7 @@
 #endif
 
 
-#if defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_GENERIC_DFB) 
+#if defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_GENERIC_DFB) || defined(__APPLE__)
 #ifndef sincos
 
 void sincos(double x, double *s, double *c);
@@ -22,7 +22,7 @@ void sincos(double x, double *s, double *c);
 #endif
 #endif //defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_GENERIC_DFB) 
 
-#if defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_GENERIC_DFB)
+#if defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_GENERIC_DFB) || defined(__APPLE__)
 #ifndef sincosf
 
 void sincosf(float x, float *s, float *c);

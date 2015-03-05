@@ -15,6 +15,8 @@ class pxEventLoop
 public:
   void run();
   void exit();
+
+  void runOnce();
 };
 
 #endif
