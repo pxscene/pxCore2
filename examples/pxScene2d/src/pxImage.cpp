@@ -44,10 +44,9 @@ void pxImage::loadImage(rtString url)
 }
 
 void pxImage::draw() {
-  // TODO doing this check here prevents a couple of optimizations
-  // need to move this out to some global thread queue... 
   static pxTextureRef nullMaskRef;
-  context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, mXStretch, mYStretch);
+  context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, 
+                    mXStretch, mYStretch);
 }
 
 bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status)

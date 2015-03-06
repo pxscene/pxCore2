@@ -153,14 +153,21 @@ public:
   
   pxError resizeTexture(int width, int height)
   { 
-    if (mWidth != width || mHeight != height || mFramebufferId == 0 || mTextureId == 0)
+    if (mWidth != width || mHeight != height || 
+        mFramebufferId == 0 || mTextureId == 0)
     {
       createTexture(width, height);
       return PX_OK;
     }
 
+    // TODO crashing in glTexSubImage2d in osx... 
+    #ifdef __APPLE__
+    return PX_OK;
+    #endif
+
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, mTextureId);
+
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 
                  width, height, GL_RGBA,
                  GL_UNSIGNED_BYTE, NULL);
@@ -241,12 +248,12 @@ public:
     return PX_FAIL;
   }
 
-  virtual float width() { return mWidth; }
-  virtual float height() { return mHeight; }
+  virtual int width() { return mWidth; }
+  virtual int height() { return mHeight; }
 
 private:
-  GLfloat mWidth;
-  GLfloat mHeight;
+  int mWidth;
+  int mHeight;
   GLuint mFramebufferId;
   GLuint mTextureId;
 };
@@ -254,12 +261,14 @@ private:
 class pxTextureOffscreen : public pxTexture
 {
 public:
-  pxTextureOffscreen() : mOffscreen(), mInitialized(false), mTextureUploaded(false)
+  pxTextureOffscreen() : mOffscreen(), mInitialized(false), 
+                         mTextureUploaded(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
   }
 
-  pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false)
+  pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false), 
+                                       mTextureUploaded(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     createTexture(o);
@@ -290,6 +299,7 @@ public:
     }
     
     glActiveTexture(GL_TEXTURE0); 
+
 
 // TODO would be nice to do the upload in createTexture but right now it's getting called on wrong thread
     if (!mTextureUploaded)  
@@ -356,8 +366,8 @@ public:
     return PX_OK;
   }
 
-  virtual float width() { return mOffscreen.width(); }
-  virtual float height() { return mOffscreen.height(); }
+  virtual int width() { return mOffscreen.width(); }
+  virtual int height() { return mOffscreen.height(); }
   
 private:
   pxOffscreen mOffscreen;
@@ -490,8 +500,8 @@ public:
     return PX_FAIL;
   }
 
-  virtual float width() { return mDrawWidth; }
-  virtual float height() { return mDrawHeight; }
+  virtual int width() { return mDrawWidth; }
+  virtual int height() { return mDrawHeight; }
   
 private:
   float mDrawWidth;

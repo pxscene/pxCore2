@@ -37,8 +37,8 @@ public:
   virtual pxError bindTexture() = 0;
   virtual pxError bindTextureAsMask() = 0;
   virtual pxError deleteTexture() = 0;
-  virtual float width() = 0;
-  virtual float height() = 0;
+  virtual int width() = 0;
+  virtual int height() = 0;
   virtual pxError resizeTexture(int w, int h) { (void)w; (void)h; return PX_FAIL; }
   virtual pxError getOffscreen(pxOffscreen& o) = 0;
   pxTextureType getType() { return mTextureType; }

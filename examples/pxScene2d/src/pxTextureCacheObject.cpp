@@ -100,7 +100,7 @@ void pxTextureCacheObject::onFileDownloadComplete(pxFileDownloadRequest* downloa
           mTexture = context.createTexture(imageOffscreen);
           gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(),
                   mTexture));
-          rtLogDebug("image %f, %f", mTexture->width(), mTexture->height());
+          rtLogDebug("image %d, %d", mTexture->width(), mTexture->height());
           if (mParent != NULL)
           {
             mParent->onTextureReady(this, RT_OK);
