@@ -21,4 +21,6 @@ In its design a few principles were followed:
 * pxCore has been ported to Windows, pocketpc (arm4), linux(x11), OSX.
 
 Migrated from original (google code)[https://code.google.com/p/pxcore/] repo December 14, 2014
+Google Code is going away. (Original Code Copied To Github)[https://github.com/johnrobinsn/pxcore.old]
+
 
