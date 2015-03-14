@@ -137,7 +137,7 @@ void pxWindow::setVisibility(bool visible)
     ShowWindow(mWindow, visible?SW_SHOW:SW_HIDE);
 }
 
-pxError pxWindow::setAnimationFPS(long fps)
+pxError pxWindow::setAnimationFPS(uint32_t fps)
 {
 #if 0
     if (mTimerId)
@@ -172,7 +172,7 @@ pxError pxWindowNative::setAnimationFPS(long fps)
     return PX_OK;
 }
 
-void pxWindow::setTitle(char* title)
+void pxWindow::setTitle(const char* title)
 {
 #if 0
 	USES_CONVERSION;
