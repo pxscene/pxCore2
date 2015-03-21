@@ -149,22 +149,13 @@ var argv = process.argv;
 if (argv.length >= 3) {
     var originalURL = argv[2];
     // TODO - WARNING root scene.create* doesn't allow passing in property bags
-    var childScene = scene.createScene();
+    var childScene = scene.createScene({url:originalURL,parent:scene.root});
+/*
     childScene.url = originalURL;
     childScene.parent = scene.root;
-    var fpsBg = scene.createRectangle();
-    fpsBg.fillColor = 0x00000080;
-    fpsBg.lineColor = 0xffff0080;
-    fpsBg.lineWidth = 3;
-    fpsBg.x = fpsBg.y = 10;
-    fpsBg.a = 0;
-    fpsBg.parent = scene.root;
-    var fpsCounter = scene.createText();
-    fpsCounter.parent = fpsBg;
-    fpsCounter.x = 5;
-    fpsCounter.textColor = 0xffffffff;
-    fpsCounter.pixelSize = 24;
-    fpsCounter.text = "0fps"
+*/
+    var fpsBg = scene.createRectangle({fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:0,parent:scene.root});
+    var fpsCounter = scene.createText({x:5,textColor:0xffffffff,pixelSize:24,text:"0fps",parent:fpsBg});
     fpsBg.w = fpsCounter.w+16;
     fpsBg.h = fpsCounter.h;
 
@@ -224,7 +215,7 @@ console.log("in onchar");
         console.log("onChar:", c);
 	// TODO eating some "undesired" chars for now... need to redo this
         if (c>=32)
-            childScene.emit("onChar", String.fromCharCode(c));
+            childScene.emit("onChar", e);
     });
 
     // TODO we'll probably move all mouse event dispatching to the scenegraph??

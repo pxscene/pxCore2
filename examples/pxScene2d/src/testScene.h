@@ -4,6 +4,8 @@
 #ifndef TEST_SCENE_H
 #define TEST_SCENE_H
 
-void testScene();
+#include "pxIView.h"
+
+pxViewRef testScene();
 
 #endif

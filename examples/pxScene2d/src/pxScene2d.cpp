@@ -26,6 +26,8 @@
 #include "pxFileDownloader.h"
 #include "rtMutex.h"
 
+#include "pxIView.h"
+
 // TODO get rid of globals
 pxContext context;
 rtFunctionRef gOnScene;
@@ -288,13 +290,17 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
 
 #if 1
 #if 1
+#if 0
   // translate based on xy rotate/scale based on cx, cy
   m.translate(mx+mcx, my+mcy);
   //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
-  m.rotateInDegrees(mr, mrx, mry, mrz);
+  if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
   //if (mr) m.rotateInDegrees(mr, 0, 0, 1);
   if (msx != 1.0f || msy != 1.0f) m.scale(msx, msy);
   m.translate(-mcx, -mcy);
+#else
+  applyMatrix(m);
+#endif
 #else
   // translate/rotate/scale based on cx, cy
   m.translate(mx, my);
@@ -371,11 +377,15 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hi
 
   // setup matrix
   pxMatrix4f m2;
+#if 0
   m2.translate(mx+mcx, my+mcy);
 //  m.rotateInDegrees(mr, mrx, mry, mrz);
   m2.rotateInDegrees(mr, 0, 0, 1);
   m2.scale(msx, msy);  
   m2.translate(-mcx, -mcy);
+#else
+  applyMatrix(m2);
+#endif
   m2.invert();
   m2.multiply(m);
 
@@ -411,7 +421,6 @@ bool pxObject::hitTest(pxPoint2f& pt)
 {
   // default hitTest checks against object bounds (0, 0, w, h)
   // Can override for more interesting hit tests like alpha
-//  printf("hitTest pt(x:%f,y%f) object(w:%f,h:%f)\n", v.mX, v.mY, mw, mh);
   return (pt.x >= 0 && pt.y >= 0 && pt.x <= mw && pt.y <= mh);
 }
 
@@ -522,11 +531,12 @@ rtDefineMethod(pxObject, delListener);
 rtDefineProperty(pxObject, emit);
 rtDefineProperty(pxObject, onReady);
 
-pxScene2d::pxScene2d()
+pxScene2d::pxScene2d(bool top)
  :start(0),frameCount(0) 
 { 
   mRoot = new pxObject();
   mEmit = new rtEmit();
+  mTop = top;
 }
 
 void pxScene2d::init()
@@ -543,77 +553,85 @@ void pxScene2d::init()
   context.init();
 }
 
-rtError pxScene2d::createRectangle(rtObjectRef& o)
+rtError pxScene2d::createRectangle(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxRectangle;
+  o.set(p);
   o.send("init");
   return RT_OK;
 }
 
-rtError pxScene2d::createText(rtObjectRef& o)
+rtError pxScene2d::createText(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxText;
+  o.set(p);
   o.send("init");
   return RT_OK;
 }
 
-rtError pxScene2d::createImage(rtObjectRef& o)
+rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImage;
+  o.set(p);
   o.send("init");
   return RT_OK;
 }
 
-rtError pxScene2d::createImage9(rtObjectRef& o)
+rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImage9;
+  o.set(p);
   o.send("init");
   return RT_OK;
 }
 
-rtError pxScene2d::createScene(rtObjectRef& o)
+rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
+#if 0
   o = new pxScene();
+  o.set(p);
   o.send("init");
+  return RT_OK;
+#else
+  o = new pxSceneContainer();
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+#endif
+}
+
+rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
+{
+  rtRefT<pxViewContainer> c = new pxViewContainer();
+  c->setView(new testView);
+  o = c.getPtr();
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+}
+
+rtError pxScene2d::allInterpolators(rtObjectRef& v) const
+{
+  rtRefT<rtArrayObject> keys = new rtArrayObject;
+
+  for (int i = 0; i < numInterps; i++)
+  {
+    keys->pushBack(interps[i].n);
+  }
+  v = keys;
   return RT_OK;
 }
 
 void pxScene2d::draw()
 {
-  context.clear(mWidth, mHeight);
+  if (mTop)
+    context.clear(mWidth, mHeight);
   
   if (mRoot)
   {
     pxMatrix4f m;
     mRoot->drawInternal(m, 1.0);
   }
-}
-
-void pxScene2d::getMatrixFromObjectToScene(pxObject* /*o*/, pxMatrix4f& /*m*/) {
-
-}
-
-void pxScene2d::getMatrixFromSceneToObject(pxObject* /*o*/, pxMatrix4f& /*m*/) {
-
-}
-
-void pxScene2d::getMatrixFromObjectToObject(pxObject* /*from*/, pxObject* /*to*/, pxMatrix4f& /*m*/) {
-
-}
-
-void pxScene2d::transformPointFromObjectToScene(pxObject* /*o*/, const pxPoint2f& /*from*/, pxPoint2f& /*to*/) 
-{
-
-}
-
-void pxScene2d::transformPointFromObjectToObject(pxObject* /*fromObject*/, pxObject* /*toObject*/, 
-                                                 pxPoint2f& /*from*/, pxPoint2f& /*to*/) {
-  
-}
-
-void pxScene2d::hitTest(pxPoint2f /*p*/, vector<rtRefT<pxObject> > /*hitList*/) {
-
-  
 }
 
 void pxScene2d::onDraw()
@@ -629,6 +647,9 @@ void pxScene2d::onDraw()
   draw();
 #endif
 
+  // TODO get rid of mTop somehow
+  if (mTop)
+  {
   if (frameCount >= 60)
   {
     end2 = pxSeconds();
@@ -646,6 +667,7 @@ void pxScene2d::onDraw()
   }
 
   frameCount++;
+  }
 }
 
 // Does not draw updates scene to time t
@@ -653,9 +675,7 @@ void pxScene2d::onDraw()
 void pxScene2d::update(double t)
 {
   if (mRoot)
-  {
     mRoot->update(t);
-  }
 }
 
 pxObject* pxScene2d::getRoot() const
@@ -663,9 +683,10 @@ pxObject* pxScene2d::getRoot() const
   return mRoot;
 }
 
-void pxScene2d::onSize(int w, int h)
+void pxScene2d::onSize(int32_t w, int32_t h)
 {
-  context.setSize(w, h);
+  if (mTop)
+    context.setSize(w, h);
 
   mWidth  = w;
   mHeight = h;
@@ -677,7 +698,7 @@ void pxScene2d::onSize(int w, int h)
   mEmit.send("onResize", e);
 }
 
-void pxScene2d::onMouseDown(int x, int y, unsigned long flags)
+void pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
 {
   {
     // Send to root scene in global window coordinates
@@ -705,12 +726,13 @@ void pxScene2d::onMouseDown(int x, int y, unsigned long flags)
       e.set("name", "onMouseDown");
       e.set("x", hitPt.x);
       e.set("y", hitPt.y);
+      e.set("flags", flags);
       hit->mEmit.send("onMouseDown", e);
     }
   }
 }
 
-void pxScene2d::onMouseUp(int x, int y, unsigned long flags)
+void pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
 {
   {
     // Send to root scene in global window coordinates
@@ -725,35 +747,37 @@ void pxScene2d::onMouseUp(int x, int y, unsigned long flags)
     //Looking for an object
     pxMatrix4f m;
     pxPoint2f pt(x,y), hitPt;
-//    pt.x = x; pt.y = y;
     rtRefT<pxObject> hit;
+    rtRefT<pxObject> tMouseDown = mMouseDown;
+    
+    mMouseDown = NULL;
 
     // TODO optimization... we really only need to check mMouseDown
     if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
-      setMouseEntered(hit);
+
 
       // Only send onMouseUp if this object got an onMouseDown
-      if (mMouseDown == hit)
+      if (tMouseDown == hit)
       {
         rtObjectRef e = new rtMapObject;
         e.set("name", "onMouseUp");
         e.set("x", hitPt.x);
         e.set("y", hitPt.y);
+        e.set("flags", flags);
         hit->mEmit.send("onMouseUp", e);
       }
+
+      setMouseEntered(hit);
     }
     else
-    {
       setMouseEntered(NULL);
-    }
-    mMouseDown = NULL;
   }
 }
 
 // TODO rtRefT doesn't like non-const !=
 void pxScene2d::setMouseEntered(pxObject* o)
-{  
+{
   if (mMouseEntered != o)
   {
     // Tell old object we've left
@@ -778,21 +802,22 @@ void pxScene2d::setMouseEntered(pxObject* o)
   }
 }
 
+void pxScene2d::onMouseEnter()
+{
+}
+
 void pxScene2d::onMouseLeave()
 {
-//  rtLogInfo("onMouseLeave();\n");
   // top level scene event
   rtObjectRef e = new rtMapObject;
   e.set("name", "onMouseLeave");
   mEmit.send("onMouseLeave", e);
   
-  // event to last object entered
-  // Only send now if not dragging
-  if (!mMouseDown)
-    setMouseEntered(NULL);
+  mMouseDown = NULL;
+  setMouseEntered(NULL);
 }
 
-void pxScene2d::onMouseMove(int x, int y)
+void pxScene2d::onMouseMove(int32_t x, int32_t y)
 {
   {
     // Send to root scene in global window coordinates
@@ -810,6 +835,44 @@ void pxScene2d::onMouseMove(int x, int y)
 
   if (mMouseDown)
   {
+    {
+      
+
+      pxVector4f from(x,y,0,1);
+      pxVector4f to;
+      pxObject::transformPointFromSceneToObject(mMouseDown, from, to);
+
+//      to.dump();
+      {
+        pxVector4f validate;
+        pxObject::transformPointFromObjectToScene(mMouseDown, to, validate);
+        if (fabs(validate.mX -(float)x)> 0.01 || 
+            fabs(validate.mY -(float)y) > 0.01) 
+        {
+          printf("Error in point transformation (%d,%d) != (%f,%f); (%f, %f)",
+                 x,y,validate.mX,validate.mY,to.mX,to.mY);
+        }
+      }
+
+      {
+        pxVector4f validate;
+        pxObject::transformPointFromObjectToObject(mMouseDown, mMouseDown, to, validate);
+        if (fabs(validate.mX -(float)to.mX)> 0.01 || 
+            fabs(validate.mY -(float)to.mY) > 0.01) 
+        {
+          printf("Error in point transformation (o2o) (%f,%f) != (%f,%f)",
+                 to.mX,to.mY,validate.mX,validate.mY);
+        }
+      }
+
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseMove");
+    e.set("target", mMouseDown.getPtr());
+    e.set("x", to.mX);
+    e.set("y", to.mY);
+    mMouseDown->mEmit.send("onMouseMove", e);
+    }
+    {
     rtObjectRef e = new rtMapObject;
     e.set("name", "onMouseDrag");
     e.set("target", mMouseDown.getPtr());
@@ -818,6 +881,7 @@ void pxScene2d::onMouseMove(int x, int y)
     e.set("startX", mMouseDownPt.x);
     e.set("startY", mMouseDownPt.y);
     mMouseDown->mEmit.send("onMouseDrag", e);
+    }
   }
   else // Only send mouse leave/enter events if we're not dragging
   {
@@ -826,15 +890,18 @@ void pxScene2d::onMouseMove(int x, int y)
       // This probably won't stay ... we can probably send onMouseMove to the child scene level
       // rather than the object... we can send objects enter/leave events
       // and we can send drag events to objects that are being drug... 
-#if 0
+#if 1
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseMove");
-      e.set("data", "hello");
+      e.set("x", hitPt.x);
+      e.set("y", hitPt.y);
       hit->mEmit.send("onMouseMove",e);
 #endif
       
       setMouseEntered(hit);
     }
+    else
+      setMouseEntered(NULL);
   }
 #endif
 #if 0
@@ -852,7 +919,7 @@ void pxScene2d::onMouseMove(int x, int y)
 #endif
 }
 
-void pxScene2d::onKeyDown(int keyCode, unsigned long flags) 
+void pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags) 
 {
   rtObjectRef e = new rtMapObject;
   e.set("name", "onKeyDown");
@@ -861,7 +928,7 @@ void pxScene2d::onKeyDown(int keyCode, unsigned long flags)
   mEmit.send("onKeyDown",e);
 }
 
-void pxScene2d::onKeyUp(int keyCode, unsigned long flags)
+void pxScene2d::onKeyUp(uint32_t keyCode, uint32_t flags)
 {
   rtObjectRef e = new rtMapObject;
   e.set("name", "onKeyUp");
@@ -871,7 +938,7 @@ void pxScene2d::onKeyUp(int keyCode, unsigned long flags)
 }
 
 //TODO not utf8 friendly
-void pxScene2d::onChar(char c)
+void pxScene2d::onChar(uint32_t c)
 {
   // char buffer[32];
   //sprintf(buffer, "%c", c);
@@ -917,8 +984,31 @@ rtDefineMethod(pxScene2d, createText);
 rtDefineMethod(pxScene2d, createImage);
 rtDefineMethod(pxScene2d, createImage9);
 rtDefineMethod(pxScene2d, createScene);
+rtDefineMethod(pxScene2d, createExternal);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
+rtDefineProperty(pxScene2d, ctx);
+rtDefineProperty(pxScene2d, emit);
+rtDefineProperty(pxScene2d, allInterpolators);
+rtDefineProperty(pxScene2d, PX_LINEAR);
+rtDefineProperty(pxScene2d, PX_EXP1);
+rtDefineProperty(pxScene2d, PX_EXP2);
+rtDefineProperty(pxScene2d, PX_EXP3);
+rtDefineProperty(pxScene2d, PX_STOP);
+rtDefineProperty(pxScene2d, PX_INQUAD);
+rtDefineProperty(pxScene2d, PX_INCUBIC);
+rtDefineProperty(pxScene2d, PX_INBACK);
+rtDefineProperty(pxScene2d, PX_EASEINELASTIC);
+rtDefineProperty(pxScene2d, PX_EASEOUTELASTIC);
+rtDefineProperty(pxScene2d, PX_EASEOUTBOUNCE);
+rtDefineProperty(pxScene2d, PX_END);
+rtDefineProperty(pxScene2d, PX_SEESAW);
+rtDefineProperty(pxScene2d, PX_LOOP);
+rtDefineProperty(pxScene2d, PX_NONE);
+rtDefineProperty(pxScene2d, PX_STRETCH);
+rtDefineProperty(pxScene2d, PX_REPEAT);
+
+#if 0
 
 rtError pxScene::setURL(rtString v) 
 { 
@@ -955,7 +1045,6 @@ rtError pxScene::setURL(rtString v)
 }
 
 rtDefineObject(pxScene, pxObject);
-//rtDefineProperty(pxScene, innerScene);
 rtDefineProperty(pxScene, url);
 rtDefineProperty(pxScene, w);
 rtDefineProperty(pxScene, h);
@@ -971,6 +1060,7 @@ rtDefineMethod(pxInnerScene, createText);
 rtDefineMethod(pxInnerScene, createImage);
 rtDefineMethod(pxInnerScene, createImage9);
 rtDefineMethod(pxInnerScene, createScene);
+rtDefineMethod(pxInnerScene, createExternal);
 rtDefineMethod(pxInnerScene, addListener);
 rtDefineMethod(pxInnerScene, delListener);
 rtDefineProperty(pxInnerScene, ctx);
@@ -1047,6 +1137,16 @@ rtError pxInnerScene::createScene(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
+rtError pxInnerScene::createExternal(rtObjectRef p, rtObjectRef& o)
+{
+  rtRefT<pxViewContainer> c = new pxViewContainer();
+  c->setView(new testView);
+  o = c.getPtr();
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+}
+
 rtError pxInnerScene::allInterpolators(rtObjectRef& v) const
 {
   rtRefT<rtArrayObject> keys = new rtArrayObject;
@@ -1058,6 +1158,7 @@ rtError pxInnerScene::allInterpolators(rtObjectRef& v) const
   v = keys;
   return RT_OK;
 }
+#endif
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value)
 {
@@ -1077,4 +1178,48 @@ rtError pxScene2dRef::Set(const char* name, const rtValue* value)
 rtError pxScene2dRef::Set(uint32_t i, const rtValue* value)
 {
   return (*this)->Set(i, value);
+}
+
+void RT_STDCALL testView::onDraw()
+{
+//  rtLogInfo("testView::onDraw()");
+  float white[] = {1,1,1,1};
+  float black[] = {0,0,0,1};
+  float red[]= {1,0,0,1};
+  float green[] = {0,1,0,1};
+  context.drawRect(mw, mh, 1, mEntered?green:red, white); 
+  context.drawDiagLine(0,mMouseY,mw,mMouseY,black);
+  context.drawDiagLine(mMouseX,0,mMouseX,mh,black);
+}
+ 
+ 
+
+rtDefineObject(pxViewContainer, pxObject);
+rtDefineProperty(pxViewContainer, w);
+rtDefineProperty(pxViewContainer, h);
+rtDefineMethod(pxViewContainer, onMouseDown);
+rtDefineMethod(pxViewContainer, onMouseUp);
+rtDefineMethod(pxViewContainer, onMouseMove);
+rtDefineMethod(pxViewContainer, onMouseEnter);
+rtDefineMethod(pxViewContainer, onMouseLeave);
+rtDefineMethod(pxViewContainer, onKeyDown);
+rtDefineMethod(pxViewContainer, onKeyUp);
+rtDefineMethod(pxViewContainer, onChar);
+
+rtDefineObject(pxSceneContainer, pxViewContainer);
+rtDefineProperty(pxSceneContainer, url);
+
+rtError pxSceneContainer::setURI(rtString v)
+{ 
+  rtRefT<pxScene2d> newScene = new pxScene2d(false);
+  setView(newScene);
+  mURI = v; 
+  if (gOnScene)
+  {
+    // TODO experiment to improve interstitial rendering at scene load time
+    // assuming that the script loading code restores painting at a "good" time
+    setPainting(false);
+    gOnScene.send((rtObject*)this, newScene.getPtr(), mURI);
+  }
+  return RT_OK; 
 }

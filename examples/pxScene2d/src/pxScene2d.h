@@ -26,10 +26,14 @@ using namespace std;
 #include "rtObjectMacros.h"
 
 #include "pxCore.h"
+#include "pxIView.h"
+
 #include "pxMatrix4T.h"
 #include "pxInterpolators.h"
 #include "pxTexture.h"
 #include "pxTextureCacheObject.h"
+
+
 
 // Interpolator constants
 #define PX_LINEAR_         0
@@ -314,16 +318,49 @@ public:
 
   virtual void update(double t);
 
+  // non-destructive applies transform on top of of provided matrix
+  virtual void applyMatrix(pxMatrix4f& m)
+  {
+#if 1
+    // translate based on xy rotate/scale based on cx, cy
+    m.translate(mx+mcx, my+mcy);
+    if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
+    if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);  
+    m.translate(-mcx, -mcy);    
+#else
+    // translate/rotate/scale based on cx, cy
+    m.translate(mx, my);
+    if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
+    if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
+    m.translate(-mcx, -mcy);
+#endif
+  }
+
   static void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m) {
+#if 1
     m.identity();
-    rtRefT<pxObject> t = o;
-    while(t) {
-      m.translate(t->mx, t->my);
-      m.scale(t->msx, t->msy);
-      m.rotateZInDegrees(t->mr);
-      m.translate(-t->mcx, -t->mcy);
-      t = t->mParent;
+    
+    while(o)
+    {
+//      rtRefT<pxObject> j = o;
+      pxMatrix4f m2;
+#if 0
+      m2.translate(j->mx+j->mcx, j->my+j->mcy);
+      if (j->mr) m2.rotateInDegrees(j->mr, j->mrx, j->mry, j->mrz);
+      if (j->msx != 1.0 || j->msy != 1.0) m2.scale(j->msx, j->msy);  
+      m2.translate(-j->mcx, -j->mcy);
+#else
+      o->applyMatrix(m2);
+#endif
+      // TODO adding a different operator here would eliminate the copy
+      m2.multiply(m);
+      m = m2;
+      o = o->mParent;
     }
+#else
+    getMatrixFromSceneToObject(o, m);
+    m.invert();
+#endif
   }
   
   static void getMatrixFromSceneToObject(pxObject* o, pxMatrix4f& m) {
@@ -338,12 +375,17 @@ public:
       t = t->mParent;
     }
     
-    for(vector<rtRefT<pxObject> >::reverse_iterator it = v.rbegin(); it != v.rend(); ++it) {
+    for(vector<rtRefT<pxObject> >::reverse_iterator it = v.rbegin(); it != v.rend(); ++it) 
+    {
       rtRefT<pxObject>& j = *it;;
-      m.translate(-j->cx, -j->cy);
-      m.rotateZInDegrees(-j->r);
-      m.scale(1/ j->sx, 1/ j->sy);
-      m.translate(-j->x, -j->y);
+      pxMatrix4f m2;
+      m2.translate(j->mx+j->mcx, j->my+j->mcy);
+      if (j->mr) m2.rotateInDegrees(j->mr, j->mrx, j->mry, j->mrz);
+      if (j->msx != 1.0 || j->msy != 1.0) m2.scale(j->msx, j->msy);  
+      m2.translate(-j->mcx, -j->mcy);
+      m2.invert();
+      m2.multiply(m);
+      m = m2;
     }
 #else
     getMatrixFromObjectToScene(o, m);
@@ -413,6 +455,267 @@ protected:
   }
 };
 
+
+class testView: public pxIView
+{
+public:
+  
+testView(): mContainer(NULL),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) {}
+  virtual ~testView() {}
+
+  virtual unsigned long AddRef() {
+    return rtAtomicInc(&mRefCount);
+  }
+  
+  virtual unsigned long Release() {
+    long l = rtAtomicDec(&mRefCount);
+    if (l == 0) delete this;
+    return l;
+  }
+
+  virtual void RT_STDCALL onSize(int32_t w, int32_t h)
+  {
+    rtLogInfo("testView::onSize(%d, %d)", w, h);
+    mw = w;
+    mh = h;
+  }
+
+  virtual void RT_STDCALL onMouseDown(int32_t x, int32_t y, uint32_t flags)
+  {
+    rtLogInfo("testView::onMouseDown(%d, %d, %u)", x, y, flags);
+  }
+
+  virtual void RT_STDCALL onMouseUp(int32_t x, int32_t y, uint32_t flags)
+  {
+    rtLogInfo("testView::onMouseUp(%d, %d, %u)", x, y, flags);
+  }
+
+  virtual void RT_STDCALL onMouseMove(int32_t x, int32_t y)
+  {
+    rtLogInfo("testView::onMouseMove(%d, %d)", x, y);
+    mMouseX = x;
+    mMouseY = y;
+  }
+
+  virtual void RT_STDCALL onMouseEnter()
+  {
+    rtLogInfo("testView::onMouseEnter()");
+    mEntered = true;
+  }
+
+  virtual void RT_STDCALL onMouseLeave()
+  {
+    rtLogInfo("testView::onMouseLeave()");
+    mEntered = false;
+  }
+
+  virtual void RT_STDCALL onKeyDown(uint32_t keycode, uint32_t flags)
+  {
+    rtLogInfo("testView::onKeyDown(%u, %u)", keycode, flags);
+  }
+
+  virtual void RT_STDCALL onKeyUp(uint32_t keycode, uint32_t flags)
+  {
+    rtLogInfo("testView::onKeyUp(%u, %u)", keycode, flags);
+  }
+
+  virtual void RT_STDCALL onChar(uint32_t codepoint)
+  {
+    rtLogInfo("testView::onChar(%u)", codepoint);
+  }
+
+  virtual void RT_STDCALL setViewContainer(pxIViewContainer* l)
+  {
+    rtLogInfo("testView::setViewContainer(%p)", l);
+  }
+
+  virtual void RT_STDCALL onDraw();
+
+
+#if 0
+  virtual rtError RT_STDCALL setURI(const char* s) = 0;
+#endif
+
+private:
+  pxIViewContainer *mContainer;
+  rtAtomic mRefCount;
+  float mw, mh;
+  bool mEntered;
+  int32_t mMouseX, mMouseY;
+};
+
+class pxViewContainer: public pxObject
+{
+public:
+  rtDeclareObject(pxViewContainer, pxObject);
+//  rtProperty(uri, uri, setURI, rtString);
+  rtProperty(w, w, setW, float);
+  rtProperty(h, h, setH, float);
+  rtMethod1ArgAndNoReturn("onMouseDown", onMouseDown, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onMouseUp", onMouseUp, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onMouseMove", onMouseMove, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onMouseEnter", onMouseEnter, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onMouseLeave", onMouseLeave, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onKeyDown", onKeyDown, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onKeyUp", onKeyUp, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onChar", onChar, rtObjectRef);
+
+  pxViewContainer()
+  {
+    addListener("onMouseDown", get<rtFunctionRef>("onMouseDown"));
+    addListener("onMouseUp", get<rtFunctionRef>("onMouseUp"));
+    addListener("onMouseMove", get<rtFunctionRef>("onMouseMove"));
+    addListener("onMouseEnter", get<rtFunctionRef>("onMouseEnter"));
+    addListener("onMouseLeave", get<rtFunctionRef>("onMouseLeave"));
+    addListener("onKeyDown", get<rtFunctionRef>("onKeyDown"));
+    addListener("onKeyUp", get<rtFunctionRef>("onKeyUp"));
+    addListener("onChar", get<rtFunctionRef>("onChar"));
+  }
+
+  virtual ~pxViewContainer() {}
+
+  rtError setView(pxIView* v)
+  {
+    mView = v;
+    if (mView)
+      mView->onSize(mw,mh);
+    return RT_OK;
+  }
+
+#if 0
+  rtError uri(rtString& v) const { v = mURI; return RT_OK; }
+  rtError setURI(rtString v) { mURI = v; return RT_OK; }
+#endif
+
+  rtError w(float& v) const { v = mw; return RT_OK; }
+  rtError setW(float v) 
+  { 
+    mw = v; 
+    if (mView)
+      mView->onSize(mw,mh); 
+    return RT_OK; 
+  }
+  
+  rtError h(float& v) const { v = mh; return RT_OK; }
+  rtError setH(float v) 
+  { 
+    mh = v; 
+    if (mView)
+      mView->onSize(mw,mh); 
+    return RT_OK; 
+  }
+
+  rtError onMouseDown(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onMouseDown");
+    if (mView)
+    {
+      float x = o.get<float>("x");
+      float y = o.get<float>("y");
+      uint32_t flags = o.get<uint32_t>("flags");
+      mView->onMouseDown(x,y,flags);
+    }
+    return RT_OK;
+  }
+
+  rtError onMouseUp(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onMouseUp");
+    if (mView)
+    {
+      float x = o.get<float>("x");
+      float y = o.get<float>("y");
+      uint32_t flags = o.get<uint32_t>("flags");
+      mView->onMouseUp(x,y,flags);
+    }
+    return RT_OK;
+  }
+
+  rtError onMouseMove(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onMouseMove");
+    if (mView)
+    {
+      float x = o.get<float>("x");
+      float y = o.get<float>("y");
+      mView->onMouseMove(x,y);
+    }
+    return RT_OK;
+  }
+
+  rtError onMouseEnter(rtObjectRef /*o*/)
+  {
+    if (mView)
+      mView->onMouseEnter();
+    return RT_OK;
+  }
+
+  rtError onMouseLeave(rtObjectRef /*o*/)
+  {
+    if (mView)
+      mView->onMouseLeave();
+    return RT_OK;
+  }
+
+  rtError onKeyDown(rtObjectRef o)
+  {
+    if (mView)
+    {
+      uint32_t keyCode = o.get<uint32_t>("keyCode");
+      uint32_t flags = o.get<uint32_t>("flags");
+      mView->onKeyDown(keyCode, flags);
+    }
+    return RT_OK;
+  }
+
+  rtError onKeyUp(rtObjectRef o)
+  {
+    if (mView)
+    {
+      uint32_t keyCode = o.get<uint32_t>("keyCode");
+      uint32_t flags = o.get<uint32_t>("flags");
+      mView->onKeyUp(keyCode, flags);
+    }
+    return RT_OK;
+  }
+
+  rtError onChar(rtObjectRef o)
+  {
+    if (mView)
+    {
+      uint32_t codePoint = o.get<uint32_t>("charCode");
+      mView->onChar(codePoint);
+    }
+    return RT_OK;
+  }
+
+  virtual void draw() 
+  {
+    if (mView)
+      mView->onDraw();
+  }
+
+  
+
+protected:
+  pxViewRef mView;
+  rtString mURI;
+};
+
+
+class pxSceneContainer: public pxViewContainer
+{
+public:
+  rtDeclareObject(pxSceneContainer, pxViewContainer);
+  rtProperty(url, uri, setURI, rtString);
+  
+  rtError uri(rtString& v) const { v = mURI; return RT_OK; }
+  rtError setURI(rtString v);
+private:
+  rtString mURI;
+};
+
+
 typedef rtRefT<pxObject> pxObjectRef;
 
 // Small helper class that vends the children of a pxObject as a collection
@@ -465,6 +768,7 @@ private:
   rtRefT<pxObject> mObject;
 };
 
+#if 0
 class pxInnerScene: public rtObject {
 public:
   rtDeclareObject(pxInnerScene, rtObject);
@@ -481,6 +785,8 @@ public:
   rtMethod1ArgAndReturn("createText", createText, rtObjectRef, 
                         rtObjectRef);
   rtMethod1ArgAndReturn("createScene", createScene, rtObjectRef, 
+                        rtObjectRef);
+  rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
@@ -557,6 +863,7 @@ public:
   rtError createImage(rtObjectRef p, rtObjectRef& o);
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
   rtError createScene(rtObjectRef p,rtObjectRef& o);
+  rtError createExternal(rtObjectRef p, rtObjectRef& o);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
@@ -612,7 +919,9 @@ private:
   rtString mURL;
 };
 
-class pxScene2d: public rtObject {
+#endif
+
+class pxScene2d: public rtObject, public pxIView {
 public:
   rtDeclareObject(pxScene2d, rtObject);
   rtProperty(onScene, onScene, setOnScene, rtFunctionRef);
@@ -620,15 +929,49 @@ public:
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
-  rtMethodNoArgAndReturn("createRectangle", createRectangle, rtObjectRef);
-  rtMethodNoArgAndReturn("createImage", createImage, rtObjectRef);
-  rtMethodNoArgAndReturn("createImage9", createImage9, rtObjectRef);
-  rtMethodNoArgAndReturn("createText", createText, rtObjectRef);
-  rtMethodNoArgAndReturn("createScene", createScene, rtObjectRef);
+  rtMethod1ArgAndReturn("createRectangle", createRectangle, rtObjectRef, rtObjectRef);
+  rtMethod1ArgAndReturn("createImage", createImage, rtObjectRef, rtObjectRef);
+  rtMethod1ArgAndReturn("createImage9", createImage9, rtObjectRef, rtObjectRef);
+  rtMethod1ArgAndReturn("createText", createText, rtObjectRef, rtObjectRef);
+  rtMethod1ArgAndReturn("createScene", createScene, rtObjectRef, rtObjectRef);
+  rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
+                        rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
-  pxScene2d();
+  rtProperty(ctx, ctx, setCtx, rtValue);
+  rtReadOnlyProperty(emit, emit, rtFunctionRef);
+  rtConstantProperty(PX_LINEAR, PX_LINEAR_, uint32_t);
+  rtConstantProperty(PX_EXP1, PX_EXP1_, uint32_t);
+  rtConstantProperty(PX_EXP2, PX_EXP2_, uint32_t);
+  rtConstantProperty(PX_EXP3, PX_EXP3_, uint32_t);
+  rtConstantProperty(PX_STOP, PX_STOP_, uint32_t);
+  rtConstantProperty(PX_INQUAD, PX_INQUAD_, uint32_t);
+  rtConstantProperty(PX_INCUBIC, PX_INCUBIC_, uint32_t);
+  rtConstantProperty(PX_INBACK, PX_INBACK_, uint32_t);
+  rtConstantProperty(PX_EASEINELASTIC, PX_EASEINELASTIC_, uint32_t);
+  rtConstantProperty(PX_EASEOUTELASTIC, PX_EASEOUTELASTIC_, uint32_t);
+  rtConstantProperty(PX_EASEOUTBOUNCE, PX_EASEOUTBOUNCE_, uint32_t);
+  rtConstantProperty(PX_END, PX_END, uint32_t);
+  rtConstantProperty(PX_SEESAW, PX_SEESAW, uint32_t);
+  rtConstantProperty(PX_LOOP, PX_LOOP, uint32_t);
+  rtConstantProperty(PX_NONE, PX_NONE_, uint32_t);
+  rtConstantProperty(PX_STRETCH, PX_STRETCH_, uint32_t);
+  rtConstantProperty(PX_REPEAT, PX_REPEAT_, uint32_t);
+ 
+  rtReadOnlyProperty(allInterpolators, allInterpolators, rtObjectRef);
+
+  pxScene2d(bool top = true);
   
+  virtual unsigned long AddRef() {
+    return rtAtomicInc(&mRefCount);
+  }
+  
+  virtual unsigned long Release() {
+    long l = rtAtomicDec(&mRefCount);
+    if (l == 0) delete this;
+    return l;
+  }
+
   void init();
 
   rtError onScene(rtFunctionRef& v) const;
@@ -642,11 +985,12 @@ public:
   rtError showOutlines(bool& v) const;
   rtError setShowOutlines(bool v);
 
-  rtError createRectangle(rtObjectRef& o);
-  rtError createText(rtObjectRef& o);
-  rtError createImage(rtObjectRef& o);
-  rtError createImage9(rtObjectRef& o);
-  rtError createScene(rtObjectRef& o);
+  rtError createRectangle(rtObjectRef p, rtObjectRef& o);
+  rtError createText(rtObjectRef p, rtObjectRef& o);
+  rtError createImage(rtObjectRef p, rtObjectRef& o);
+  rtError createImage9(rtObjectRef p, rtObjectRef& o);
+  rtError createScene(rtObjectRef p,rtObjectRef& o);
+  rtError createExternal(rtObjectRef p, rtObjectRef& o);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
@@ -658,26 +1002,38 @@ public:
     return mEmit->delListener(eventName, f);
   }
 
+  rtError ctx(rtValue& v) const { v = mContext; return RT_OK; }
+  rtError setCtx(const rtValue& v) { mContext = v; return RT_OK; }
+
+  rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
+  
+  rtError allInterpolators(rtObjectRef& v) const;
+
   void setMouseEntered(pxObject* o);
 
   // The following methods are delegated to the view
-  virtual void onSize(int w, int h);
-  virtual void onMouseDown(int x, int y, unsigned long flags);
-  virtual void onMouseUp(int x, int y, unsigned long flags);
+  virtual void onSize(int32_t w, int32_t h);
+
+  virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags);
+  virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags);
+  virtual void onMouseEnter();
   virtual void onMouseLeave();
-  virtual void onMouseMove(int x, int y);
-  virtual void onKeyDown(int keycode, unsigned long flags);
-  virtual void onKeyUp(int keycode, unsigned long flags);
-  // TODO this should be a codepoint uint32_t or a utf8 encoded string.... probably going with a codepoint
-  virtual void onChar(char c);
+  virtual void onMouseMove(int32_t x, int32_t y);
+
+  virtual void onKeyDown(uint32_t keycode, uint32_t flags);
+  virtual void onKeyUp(uint32_t keycode, uint32_t flags);
+  virtual void onChar(uint32_t codepoint);
   
   virtual void onDraw();
+
+  virtual void setViewContainer(pxIViewContainer* /*l*/) {}
   
   void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m);
   void getMatrixFromSceneToObject(pxObject* o, pxMatrix4f& m);
   void getMatrixFromObjectToObject(pxObject* from, pxObject* to, pxMatrix4f& m);
   void transformPointFromObjectToScene(pxObject* o, const pxPoint2f& from, 
 				       pxPoint2f& to);
+  void transformPointFromSceneToObject(pxObject* o, const pxPoint2f& from, pxPoint2f& to);
   void transformPointFromObjectToObject(pxObject* fromObject, pxObject* toObject,
 					pxPoint2f& from, pxPoint2f& to);
   
@@ -707,6 +1063,8 @@ private:
   rtRefT<pxObject> mMouseEntered;
   rtRefT<pxObject> mMouseDown;
   pxPoint2f mMouseDownPt;
+  rtValue mContext;
+  bool mTop;
 };
 
 class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase

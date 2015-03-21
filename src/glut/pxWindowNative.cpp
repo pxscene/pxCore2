@@ -304,10 +304,17 @@ void pxWindowNative::onGlutMouse(int button, int state, int x, int y)
   pxWindowNative* w = getWindowFromGlutID(glutGetWindow());
   if (w)
   {
+    w->mMouseDown = (state == GLUT_DOWN);
     if (state == GLUT_DOWN)
       w->onMouseDown(x, y, flags);
     else
+    {
       w->onMouseUp(x, y, flags);
+      if (!w->mMouseEntered)
+      {
+        w->onMouseLeave();
+      }
+    }
   }
 }
 
@@ -355,7 +362,12 @@ void pxWindowNative::onGlutEntry(int state)
   {
     w->mMouseEntered = (state != GLUT_LEFT);
     if (state == GLUT_LEFT)
-      w->onMouseLeave();
+    {
+      if (!w->mMouseDown) // Eat here if dragging
+        w->onMouseLeave();
+    }
+    else
+      w->onMouseEnter();
   }
 }
 

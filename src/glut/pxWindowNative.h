@@ -60,6 +60,7 @@ pxWindowNative(): mTimerFPS(0),/*, mLastWidth(-1), mLastHeight(-1),
                                   mResizeFlag(false), mLastAnimationTime(0.0),*/
     mVisible(false),
     mMouseEntered(false),
+    mMouseDown(false),
     mGlutWindowId(0)
   {}
 
@@ -78,6 +79,7 @@ pxWindowNative(): mTimerFPS(0),/*, mLastWidth(-1), mLastHeight(-1),
 
   virtual void onMouseMove(int32_t x, int32_t y) = 0;
 
+  virtual void onMouseEnter() = 0;
   virtual void onMouseLeave() = 0;
 
   virtual void onKeyDown(uint32_t keycode, uint32_t flags) = 0;
@@ -134,6 +136,7 @@ protected:
 #endif
   bool mVisible;
   bool mMouseEntered;
+  bool mMouseDown;
 
   //timer variables
 #if 0

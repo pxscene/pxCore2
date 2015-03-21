@@ -4,9 +4,12 @@ OUTDIR=../build/glut
 
 all: $(OUTDIR)/libpxCore.a 
 
-$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNativeGlut.o pxTimerNative.o
-		       mkdir -p $(OUTDIR)  
-		 ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNativeGlut.o pxTimerNative.o             
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNativeGlut.o pxTimerNative.o pxViewWindow.o
+		 mkdir -p $(OUTDIR)  
+		 ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNativeGlut.o pxTimerNative.o pxViewWindow.o
+
+pxViewWindow.o: pxViewWindow.cpp
+	g++ -o pxViewWindow.o -Wall $(CFLAGS) -c pxViewWindow.cpp
           
 pxOffscreen.o: pxOffscreen.cpp
 	g++ -o pxOffscreen.o -Wall $(CFLAGS) -c pxOffscreen.cpp

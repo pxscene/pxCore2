@@ -8,7 +8,7 @@
 #include "pxWindow.h"
 #include "pxIView.h"
 
-class pxViewWindow: public pxWindow, public pxIViewListener
+class pxViewWindow: public pxWindow, public pxIViewContainer
 {
 public:
 
@@ -22,25 +22,33 @@ protected:
 
   virtual void onClose();
 
-  virtual void RT_STDCALL invalidateRect(pxRect* r);
+  virtual void RT_STDCALL invalidateRect(pxRect* r)
+  {
+    pxWindow::invalidateRect(r);
+  }
+
+  void onAnimationTimer()
+  {
+    invalidateRect(NULL);
+  }
 
   // The following methods are delegated to the view
   virtual void onSize(int32_t w, int32_t h);
+
   virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags);
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags);
   virtual void onMouseLeave();
   virtual void onMouseMove(int32_t x, int32_t y);
 
-#if 0
-  virtual void onKeyDown(int32_t keycode, uint32_t flags);
-  virtual void onKeyUp(int32_t keycode, uint32_t flags);
-#endif
+  virtual void onKeyDown(uint32_t keycode, uint32_t flags);
+  virtual void onKeyUp(uint32_t keycode, uint32_t flags);
+  virtual void onChar(uint32_t codepoint);
 
   virtual void onDraw(pxSurfaceNative s);
 
 private:
   pxViewRef mView;
-  pxOffscreen mViewOffscreen;
+//  pxOffscreen mViewOffscreen;
 };
 
 #endif // PX_VIEWWINDOW_H

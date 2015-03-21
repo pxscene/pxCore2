@@ -34,6 +34,7 @@ GlyphCache gGlyphCache;
 
 extern pxContext context;
 
+// TODO can we eliminate direct utf8.h usage
 extern "C" {
 #include "utf8.h"
 }

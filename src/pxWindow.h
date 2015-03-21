@@ -25,7 +25,7 @@ public:
   bool visibility();
   void setVisibility(bool visible);
   
-  void PXCALL invalidateRect(pxRect* r = NULL);
+  virtual void RT_STDCALL invalidateRect(pxRect* r = NULL);
   
   void setTitle(const char* name);
   
@@ -54,6 +54,7 @@ public:
   // See constants used for flags below
   virtual void onMouseDown(int32_t /*x*/, int32_t /*y*/, uint32_t /*flags*/) {}
   virtual void onMouseUp(int32_t /*x*/, int32_t /*y*/, uint32_t /*flags*/) {}
+  virtual void onMouseEnter() {}
   virtual void onMouseLeave() {}
   
   virtual void onMouseMove(int32_t /*x*/, int32_t /*y*/) {}

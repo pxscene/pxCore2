@@ -924,10 +924,8 @@ void pxContext::setSize(int w, int h)
   }
 }
 
-void pxContext::clear(int w, int h)
+void pxContext::clear(int /*w*/, int /*h*/)
 {
-  (void)w;
-  (void)h;
   glClear(GL_COLOR_BUFFER_BIT);
 }
 

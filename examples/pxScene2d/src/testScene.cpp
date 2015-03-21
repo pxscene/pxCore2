@@ -11,7 +11,6 @@
 
 #include "pxInterpolators.h"
 
-pxScene2dRef scene = new pxScene2d;
 
 #if 0
 
@@ -258,6 +257,7 @@ void scale3(void*ctx) {
 #endif
 
 
+#if 0
 void ballScene() 
 {
   
@@ -300,6 +300,8 @@ void ballScene()
   p->animateTo("r", 360.0, 1.0, pxInterpLinear, PX_LOOP);
 //  fancy((pxObject*)p);
 }
+
+#endif
 
 rtObjectRef bg1;
 rtObjectRef bg2;
@@ -349,8 +351,10 @@ rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void*
   return RT_OK;
 }
 
-void testScene()
+pxViewRef testScene()
 {
+  pxScene2dRef scene = new pxScene2d;
+
   rtString d;
   rtGetCurrentDirectory(d);
   bananaURL = d;
@@ -424,6 +428,8 @@ void testScene()
     printf("class description: %s\n", s.cString());
   }
 #endif
+
+  return scene.getPtr();
 }
 
 #endif

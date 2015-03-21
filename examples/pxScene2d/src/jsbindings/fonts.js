@@ -149,8 +149,8 @@ scene.on("onKeyDown", function (e) {
     }
 });
 
-scene.on("onChar", function(c) {
-    str += c;
+scene.on("onChar", function(e) {
+    str += String.fromCharCode(e.charCode);
     updateText(str);
 });
 
