@@ -7,7 +7,7 @@ var bg = scene.createImage({url:url,xStretch:2,yStretch:2,parent:root});
 url = process.cwd() + "/../../images/radial_gradient.png";
 var bgShade = scene.createImage({url:url,xStretch:1,yStretch:1,parent:root});
 
-var txt1 = scene.createText({x:10,text:"",parent:root,pixelSize:24});
+var txt1 = scene.createText({x:10,text:"",parent:root,pixelSize:64});
 
 url = process.cwd() + "/../../images/ball.png"
 var ball = scene.createImage({url:url,parent:root,clip:true});
