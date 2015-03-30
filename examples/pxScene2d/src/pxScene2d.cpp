@@ -153,8 +153,10 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
       if (a.at == PX_END)
       {
         // fastforward
+#if 1
         if (fastforward)
           set(prop, a.to);
+#endif
 
         if (a.ended)
           a.ended.send(this);
@@ -404,7 +406,7 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hi
     pxPoint2f newPt;
     newPt.x = v.mX;
     newPt.y = v.mY;
-    if (hitTest(newPt))
+    if (mInteractive && hitTest(newPt))
     {
       hit = this;
       hitPt = newPt;
@@ -518,12 +520,14 @@ rtDefineProperty(pxObject, rx);
 rtDefineProperty(pxObject, ry);
 rtDefineProperty(pxObject, rz);
 rtDefineProperty(pxObject, id);
+rtDefineProperty(pxObject, interactive);
 rtDefineProperty(pxObject, painting);
 rtDefineProperty(pxObject, clip);
 rtDefineProperty(pxObject, mask);
 rtDefineProperty(pxObject, numChildren);
 rtDefineMethod(pxObject, getChild);
 rtDefineMethod(pxObject, remove);
+rtDefineMethod(pxObject, removeAll);
 //rtDefineMethod(pxObject, animateTo);
 rtDefineMethod(pxObject, animateTo2);
 rtDefineMethod(pxObject, addListener);
@@ -535,6 +539,7 @@ pxScene2d::pxScene2d(bool top)
  :start(0),frameCount(0) 
 { 
   mRoot = new pxObject();
+  mFocus = mRoot;
   mEmit = new rtEmit();
   mTop = top;
 }
@@ -587,17 +592,10 @@ rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
-#if 0
-  o = new pxScene();
-  o.set(p);
-  o.send("init");
-  return RT_OK;
-#else
   o = new pxSceneContainer();
   o.set(p);
   o.send("init");
   return RT_OK;
-#endif
 }
 
 rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
@@ -724,6 +722,7 @@ void pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
       mMouseDownPt.y = y;
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseDown");
+      e.set("target", (rtObject*)hit.getPtr());
       e.set("x", hitPt.x);
       e.set("y", hitPt.y);
       e.set("flags", flags);
@@ -926,6 +925,15 @@ void pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags)
   e.set("keyCode", keyCode);
   e.set("flags", (uint32_t)flags);
   mEmit.send("onKeyDown",e);
+
+  if (mFocus)
+  {
+    rtFunctionRef emit = mFocus.get<rtFunctionRef>("emit");
+    if (emit)
+    {
+      emit.send("onKeyDown",e);
+    }
+  }
 }
 
 void pxScene2d::onKeyUp(uint32_t keyCode, uint32_t flags)
@@ -935,6 +943,13 @@ void pxScene2d::onKeyUp(uint32_t keyCode, uint32_t flags)
   e.set("keyCode", keyCode);
   e.set("flags",(uint32_t)flags);
   mEmit.send("onKeyUp",e);
+
+  if (mFocus)
+  {
+    rtFunctionRef emit = mFocus.get<rtFunctionRef>("emit");
+    if (emit)
+      emit.send("onKeyUp",e);
+  }
 }
 
 //TODO not utf8 friendly
@@ -947,6 +962,13 @@ void pxScene2d::onChar(uint32_t c)
   //e.set("char", buffer);
   e.set("charCode", (uint32_t)c);
   mEmit.send("onChar",e);
+
+  if (mFocus)
+  {
+    rtFunctionRef emit = mFocus.get<rtFunctionRef>("emit");
+    if (emit)
+      emit.send("onChar",e);
+  }
 }
 
 rtError pxScene2d::showOutlines(bool& v) const 
@@ -987,6 +1009,7 @@ rtDefineMethod(pxScene2d, createScene);
 rtDefineMethod(pxScene2d, createExternal);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
+rtDefineMethod(pxScene2d, setFocus);
 rtDefineProperty(pxScene2d, ctx);
 rtDefineProperty(pxScene2d, emit);
 rtDefineProperty(pxScene2d, allInterpolators);
@@ -1007,158 +1030,6 @@ rtDefineProperty(pxScene2d, PX_LOOP);
 rtDefineProperty(pxScene2d, PX_NONE);
 rtDefineProperty(pxScene2d, PX_STRETCH);
 rtDefineProperty(pxScene2d, PX_REPEAT);
-
-#if 0
-
-rtError pxScene::setURL(rtString v) 
-{ 
-  // Release old root from parent scene perspective
-  removeAll();
-  mInnerScene = NULL;
-  
-  // TODO.. should we be able to do if (mURL)?
-  if (!mURL.isEmpty())
-    rtLogInfo("pxScene::setURL(), Unloading scene %s", mURL.cString());
-  mURL = v; 
-  if (!mURL.isEmpty())
-  {
-    rtLogInfo("pxScene::setURL(), Loading scene %s", mURL.cString());
-    // Add new root into scene
-    rtRefT<pxObject> newRoot  = new pxObject;
-    mChildren.push_back(newRoot);
-    mInnerScene = new pxInnerScene(newRoot); 
-    mInnerScene->setW(mw);
-    mInnerScene->setH(mh);
-    if (gOnScene)
-    {
-      // TODO experiment always set painting to false initially with the expectation that
-      // load.js will set painting = true after initial js has executed to reduce flicker and
-      // transition
-      setPainting(false);
-      //TODO double check can this hang on the js side
-      gOnScene.send((rtObject*)this, mInnerScene.getPtr(), mURL);
-    }
-  }
-  else
-    rtLogDebug("pxScene::setURL, null url");
-  return RT_OK; 
-}
-
-rtDefineObject(pxScene, pxObject);
-rtDefineProperty(pxScene, url);
-rtDefineProperty(pxScene, w);
-rtDefineProperty(pxScene, h);
-rtDefineProperty(pxScene, emit);
-
-rtDefineObject(pxInnerScene, rtObject);
-rtDefineProperty(pxInnerScene, root);
-rtDefineProperty(pxInnerScene, w);
-rtDefineProperty(pxInnerScene, h);
-rtDefineProperty(pxInnerScene, showOutlines);
-rtDefineMethod(pxInnerScene, createRectangle);
-rtDefineMethod(pxInnerScene, createText);
-rtDefineMethod(pxInnerScene, createImage);
-rtDefineMethod(pxInnerScene, createImage9);
-rtDefineMethod(pxInnerScene, createScene);
-rtDefineMethod(pxInnerScene, createExternal);
-rtDefineMethod(pxInnerScene, addListener);
-rtDefineMethod(pxInnerScene, delListener);
-rtDefineProperty(pxInnerScene, ctx);
-rtDefineProperty(pxInnerScene, emit);
-rtDefineProperty(pxInnerScene, allInterpolators);
-rtDefineProperty(pxInnerScene, PX_LINEAR);
-rtDefineProperty(pxInnerScene, PX_EXP1);
-rtDefineProperty(pxInnerScene, PX_EXP2);
-rtDefineProperty(pxInnerScene, PX_EXP3);
-rtDefineProperty(pxInnerScene, PX_STOP);
-rtDefineProperty(pxInnerScene, PX_INQUAD);
-rtDefineProperty(pxInnerScene, PX_INCUBIC);
-rtDefineProperty(pxInnerScene, PX_INBACK);
-rtDefineProperty(pxInnerScene, PX_EASEINELASTIC);
-rtDefineProperty(pxInnerScene, PX_EASEOUTELASTIC);
-rtDefineProperty(pxInnerScene, PX_EASEOUTBOUNCE);
-rtDefineProperty(pxInnerScene, PX_END);
-rtDefineProperty(pxInnerScene, PX_SEESAW);
-rtDefineProperty(pxInnerScene, PX_LOOP);
-rtDefineProperty(pxInnerScene, PX_NONE);
-rtDefineProperty(pxInnerScene, PX_STRETCH);
-rtDefineProperty(pxInnerScene, PX_REPEAT);
-
-
-rtError pxInnerScene::showOutlines(bool& v) const 
-{ 
-  v=context.showOutlines(); 
-  return RT_OK;
-}
-
-rtError pxInnerScene::setShowOutlines(bool v) 
-{ 
-  context.setShowOutlines(v); 
-  return RT_OK; 
-}
-
-rtError pxInnerScene::createRectangle(rtObjectRef p, rtObjectRef& o)
-{
-  o = new pxRectangle;
-  o.set(p);
-  o.send("init");
-  return RT_OK;
-}
-
-rtError pxInnerScene::createText(rtObjectRef p, rtObjectRef& o)
-{
-  o = new pxText;
-  o.set(p);
-  o.send("init");
-  return RT_OK;
-}
-
-rtError pxInnerScene::createImage(rtObjectRef p, rtObjectRef& o)
-{
-  o = new pxImage;
-  o.set(p);
-  o.send("init");
-  return RT_OK;
-}
-
-rtError pxInnerScene::createImage9(rtObjectRef p, rtObjectRef& o)
-{
-  o = new pxImage9;
-  o.set(p);
-  o.send("init");
-  return RT_OK;
-}
-
-rtError pxInnerScene::createScene(rtObjectRef p, rtObjectRef& o)
-{
-  o = new pxScene();
-  o.set(p);
-  o.send("init");
-  return RT_OK;
-}
-
-rtError pxInnerScene::createExternal(rtObjectRef p, rtObjectRef& o)
-{
-  rtRefT<pxViewContainer> c = new pxViewContainer();
-  c->setView(new testView);
-  o = c.getPtr();
-  o.set(p);
-  o.send("init");
-  return RT_OK;
-}
-
-rtError pxInnerScene::allInterpolators(rtObjectRef& v) const
-{
-  rtRefT<rtArrayObject> keys = new rtArrayObject;
-
-  for (int i = 0; i < numInterps; i++)
-  {
-    keys->pushBack(interps[i].n);
-  }
-  v = keys;
-  return RT_OK;
-}
-#endif
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value)
 {
@@ -1191,8 +1062,6 @@ void RT_STDCALL testView::onDraw()
   context.drawDiagLine(0,mMouseY,mw,mMouseY,black);
   context.drawDiagLine(mMouseX,0,mMouseX,mh,black);
 }
- 
- 
 
 rtDefineObject(pxViewContainer, pxObject);
 rtDefineProperty(pxViewContainer, w);

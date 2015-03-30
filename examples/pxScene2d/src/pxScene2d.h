@@ -111,6 +111,7 @@ public:
   rtProperty(ry, ry, setRY, float);
   rtProperty(rz, rz, setRZ, float);
   rtProperty(id, id, setId, rtString);
+  rtProperty(interactive, interactive, setInteractive, bool);
   rtProperty(painting, painting, setPainting, bool);
   rtProperty(clip, clip, setClip, bool);
   rtProperty(mask, mask, setMask, rtString);
@@ -120,6 +121,7 @@ public:
   rtReadOnlyProperty(children, children, rtObjectRef);
 
   rtMethodNoArgAndNoReturn("remove", remove);
+  rtMethodNoArgAndNoReturn("removeAll", removeAll);
 
   rtMethod5ArgAndNoReturn("animateTo", animateTo2, rtObjectRef, double, 
                           uint32_t, uint32_t, rtFunctionRef);
@@ -132,6 +134,7 @@ public:
 
   pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
+    mInteractive(true),
     mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef(), 
     mMaskTextureCacheObject(),mClipTextureRef(),mCancelInSet(true)
   {
@@ -181,6 +184,9 @@ public:
   rtString id() { return mId; }
   rtError id(rtString& v) const { v = mId; return RT_OK; }
   rtError setId(const rtString& v) { mId = v; return RT_OK; }
+
+  rtError interactive(bool& v) const { v = mInteractive; return RT_OK; }
+  rtError setInteractive(bool v) { mInteractive = v; return RT_OK; }
 
   float x()             const { return mx; }
   rtError x(float& v)   const { v = mx; return RT_OK;   }
@@ -432,6 +438,7 @@ protected:
   vector<rtRefT<pxObject> > mChildren;
   vector<animation> mAnimations;
   float mcx, mcy, mx, my, ma, mr, mrx, mry, mrz, msx, msy, mw, mh;
+  bool mInteractive;
   pxTextureRef mTextureRef;
   bool mPainting;
   bool mClip;
@@ -768,159 +775,6 @@ private:
   rtRefT<pxObject> mObject;
 };
 
-#if 0
-class pxInnerScene: public rtObject {
-public:
-  rtDeclareObject(pxInnerScene, rtObject);
-  rtReadOnlyProperty(root, root, rtObjectRef);
-  rtReadOnlyProperty(w, w, float);
-  rtReadOnlyProperty(h, h, float);
-  rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
-  rtMethod1ArgAndReturn("createRectangle", createRectangle, rtObjectRef,
-                        rtObjectRef);
-  rtMethod1ArgAndReturn("createImage", createImage, rtObjectRef,
-                        rtObjectRef);
-  rtMethod1ArgAndReturn("createImage9", createImage9, rtObjectRef, 
-                        rtObjectRef);
-  rtMethod1ArgAndReturn("createText", createText, rtObjectRef, 
-                        rtObjectRef);
-  rtMethod1ArgAndReturn("createScene", createScene, rtObjectRef, 
-                        rtObjectRef);
-  rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
-                        rtObjectRef);
-  rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
-  rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
-  rtProperty(ctx, ctx, setCtx, rtValue);
-  rtReadOnlyProperty(emit, emit, rtFunctionRef);
-  rtConstantProperty(PX_LINEAR, PX_LINEAR_, uint32_t);
-  rtConstantProperty(PX_EXP1, PX_EXP1_, uint32_t);
-  rtConstantProperty(PX_EXP2, PX_EXP2_, uint32_t);
-  rtConstantProperty(PX_EXP3, PX_EXP3_, uint32_t);
-  rtConstantProperty(PX_STOP, PX_STOP_, uint32_t);
-  rtConstantProperty(PX_INQUAD, PX_INQUAD_, uint32_t);
-  rtConstantProperty(PX_INCUBIC, PX_INCUBIC_, uint32_t);
-  rtConstantProperty(PX_INBACK, PX_INBACK_, uint32_t);
-  rtConstantProperty(PX_EASEINELASTIC, PX_EASEINELASTIC_, uint32_t);
-  rtConstantProperty(PX_EASEOUTELASTIC, PX_EASEOUTELASTIC_, uint32_t);
-  rtConstantProperty(PX_EASEOUTBOUNCE, PX_EASEOUTBOUNCE_, uint32_t);
-  rtConstantProperty(PX_END, PX_END, uint32_t);
-  rtConstantProperty(PX_SEESAW, PX_SEESAW, uint32_t);
-  rtConstantProperty(PX_LOOP, PX_LOOP, uint32_t);
-  rtConstantProperty(PX_NONE, PX_NONE_, uint32_t);
-  rtConstantProperty(PX_STRETCH, PX_STRETCH_, uint32_t);
-  rtConstantProperty(PX_REPEAT, PX_REPEAT_, uint32_t);
- 
-  rtReadOnlyProperty(allInterpolators, allInterpolators, rtObjectRef);
-
-  pxInnerScene(rtRefT<pxObject> root)
-  {
-    mRoot = root;
-    mEmit = new rtEmit;
-  }
-
-  rtRefT<pxObject> root()
-  {
-    return mRoot;
-  }
-
-  rtError root(rtObjectRef& v) const
-  {
-    v = mRoot;
-    return RT_OK;
-  }
-
-  float w() const { return mWidth;  }
-  rtError w(float& v) const { v = mWidth;  return RT_OK; }
-  float h() const { return mHeight; }
-  rtError h(float& v) const { v = mHeight; return RT_OK; }
-  rtError setW(float v) 
-  {
-    mWidth = v; 
-    rtObjectRef e = new rtMapObject;
-    e.set("name", "onResize");
-    e.set("w", mWidth);
-    e.set("h", mHeight);
-    mEmit.send("onResize", e);
-    return RT_OK; 
-  }
-
-  rtError setH(float v) 
-  { 
-    mHeight = v; 
-    rtObjectRef e = new rtMapObject;
-    e.set("name", "onResize");
-    e.set("w", mWidth);
-    e.set("h", mHeight);
-    mEmit.send("onResize", e);
-    return RT_OK; 
-  }
-
-  rtError showOutlines(bool& v) const;
-  rtError setShowOutlines(bool v);
-
-  rtError createRectangle(rtObjectRef p, rtObjectRef& o);
-  rtError createText(rtObjectRef p, rtObjectRef& o);
-  rtError createImage(rtObjectRef p, rtObjectRef& o);
-  rtError createImage9(rtObjectRef p, rtObjectRef& o);
-  rtError createScene(rtObjectRef p,rtObjectRef& o);
-  rtError createExternal(rtObjectRef p, rtObjectRef& o);
-
-  rtError addListener(rtString eventName, const rtFunctionRef& f)
-  {
-    return mEmit->addListener(eventName, f);
-  }
-
-  rtError delListener(rtString  eventName, const rtFunctionRef& f)
-  {
-    return mEmit->delListener(eventName, f);
-  }
-
-  rtError ctx(rtValue& v) const { v = mContext; return RT_OK; }
-  rtError setCtx(const rtValue& v) { mContext = v; return RT_OK; }
-
-  rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
-  
-  rtError allInterpolators(rtObjectRef& v) const;
-
-private:
-  rtRefT<pxObject> mRoot;
-  rtEmitRef mEmit;
-  float mWidth;
-  float mHeight;
-  rtValue mContext;
-};
-
-// For now just child scene objects
-class pxScene: public pxObject {
-public:
-  rtDeclareObject(pxScene, pxObject);
-  rtProperty(url, url, setURL, rtString);
-  rtProperty(w, w, setW, float);
-  rtProperty(h, h, setH, float);
-  rtReadOnlyProperty(emit, emit, rtFunctionRef);
-
-  pxScene() : pxObject()
-  { 
-  }
-
-  rtError url(rtString& v) const { v = mURL; return RT_OK; }
-  rtError setURL(rtString v);
-
-  // TODO probably just keep w, h in scene and have innerscene use that
-  rtError w(float& v) const { v = mInnerScene->w(); return RT_OK; }
-  rtError setW(float v) { mw = v; mInnerScene->setW(v); return RT_OK; }
-  rtError h(float& v) const { v = mInnerScene->h(); return RT_OK; }
-  rtError setH(float v) { mh = v; mInnerScene->setH(v); return RT_OK; }
-
-  rtError emit(rtFunctionRef& v) const { return mInnerScene->get<rtFunctionRef>("emit", v); }
-
-private:
-  rtRefT<pxInnerScene> mInnerScene;
-  rtString mURL;
-};
-
-#endif
-
 class pxScene2d: public rtObject, public pxIView {
 public:
   rtDeclareObject(pxScene2d, rtObject);
@@ -938,6 +792,7 @@ public:
                         rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
+  rtMethod1ArgAndNoReturn("setFocus", setFocus, rtObjectRef);
   rtProperty(ctx, ctx, setCtx, rtValue);
   rtReadOnlyProperty(emit, emit, rtFunctionRef);
   rtConstantProperty(PX_LINEAR, PX_LINEAR_, uint32_t);
@@ -1002,6 +857,23 @@ public:
     return mEmit->delListener(eventName, f);
   }
 
+  rtError focus(rtObjectRef& o)
+  {
+    o = mFocus;
+    return RT_OK;
+  }
+
+  rtError setFocus(rtObjectRef o)
+  {
+    
+    if (o) 
+      mFocus = o;
+    else
+      mFocus = getRoot();
+
+    return RT_OK;
+  }
+
   rtError ctx(rtValue& v) const { v = mContext; return RT_OK; }
   rtError setCtx(const rtValue& v) { mContext = v; return RT_OK; }
 
@@ -1053,6 +925,7 @@ private:
   void update(double t);
   
   rtRefT<pxObject> mRoot;
+  rtObjectRef mFocus;
   double start, end2;
   int frameCount;
   int mWidth;

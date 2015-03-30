@@ -85,7 +85,8 @@ for (var i=0; i < faces.length; i++)
                                textColor:0x000000ff, pixelSize:14, a:0.6});
     
     row.h = t.h+t2.h;
-    row.w = 100;
+    row.w = 800;
+  //row.painting = false;
     p += row.h;
 }
 var select = scene.createRectangle({parent:scrollContent, fillColor:0x000000, 
