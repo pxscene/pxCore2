@@ -783,6 +783,7 @@ public:
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
+  rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createRectangle", createRectangle, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createImage", createImage, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createImage9", createImage9, rtObjectRef, rtObjectRef);
@@ -840,6 +841,7 @@ public:
   rtError showOutlines(bool& v) const;
   rtError setShowOutlines(bool v);
 
+  rtError create(rtObjectRef p, rtObjectRef& o);
   rtError createRectangle(rtObjectRef p, rtObjectRef& o);
   rtError createText(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);

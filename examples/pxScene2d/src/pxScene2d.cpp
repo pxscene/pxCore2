@@ -558,6 +558,20 @@ void pxScene2d::init()
   context.init();
 }
 
+rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
+{
+  printf("In create\n");
+  rtObjectRef c = p.get<rtObjectRef>("c");
+  if (c)
+  {
+    printf("Found c\n");
+  }
+  else
+    printf("No c found\n");
+
+  return RT_OK;
+}
+
 rtError pxScene2d::createRectangle(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxRectangle;
@@ -1001,6 +1015,7 @@ rtDefineProperty(pxScene2d, onScene);
 rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
+rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, createRectangle);
 rtDefineMethod(pxScene2d, createText);
 rtDefineMethod(pxScene2d, createImage);

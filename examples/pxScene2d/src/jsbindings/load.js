@@ -205,7 +205,7 @@ console.log("in onKeyUp");
         else if (code == 82 && (flags | 16));
         else
             childScene.emit(e.name,e);
-        
+      
     });
 
     scene.on("onChar", function(e) {
@@ -217,14 +217,6 @@ console.log("in onchar");
         if (c>=32)
             childScene.emit("onChar", e);
     });
-
-    // TODO we'll probably move all mouse event dispatching to the scenegraph??
-    // just something to play with for now... 
-//    scene.on("onMouseDown",  function(e) { childScene.emit(e.name, e);});    
-//    scene.on("onMouseUp",    function(e) { childScene.emit(e.name, e);});    
-//    scene.on("onMouseMove",  function(e) { childScene.emit(e.name, e);});
-//    scene.on("onMouseEnter", function(e) { childScene.emit(e.name, e);});
-//    scene.on("onMouseLeave", function(e) { childScene.emit(e.name, e);});
 
     // TODO if I log out event object e... there is extra stuff??
     scene.on("onResize", function(e) { updateSize(e.w, e.h);});

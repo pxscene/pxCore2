@@ -10,7 +10,7 @@ url = process.cwd() + "/../../images/radial_gradient.png";
 var bgShade = scene.createImage({url:url,xStretch:scene.PX_STRETCH,yStretch:scene.PX_STRETCH,
                                  parent:root});
 
-scene.createScene({url:process.cwd()+"/hello.js",parent:root});
+scene.createScene({url:"hello.js",parent:root,w:1280,h:720});
 
 function updateSize(w, h) {
   //var d = Math.pow(Math.pow(w,2)+Math.pow(h,2),0.5);
