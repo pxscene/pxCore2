@@ -131,6 +131,7 @@ public:
   rtProperty(onReady, onReady, setOnReady, rtFunctionRef);
 
   rtReadOnlyProperty(emit, emit, rtFunctionRef);
+  rtMethod1ArgAndReturn("getObjectById",getObjectById,rtString,rtObjectRef);
 
   pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
@@ -427,6 +428,28 @@ public:
 
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
   
+  static pxObject* getObjectById(const char* id, pxObject* from)
+  {
+    // TODO fix rtString empty check
+    if (from->mId.cString() && !strcmp(id, from->mId.cString()))
+      return from;
+    
+    for(vector<rtRefT<pxObject> >::iterator it = from->mChildren.begin(); it != from->mChildren.end(); ++it)
+    {
+      pxObject* o = getObjectById(id, (*it).getPtr());
+      if (o)
+        return o;
+    }
+    
+    return NULL;
+  }
+
+  rtError getObjectById(const char* id, rtObjectRef& o)
+  {
+    o = getObjectById(id, this);
+    return RT_OK;
+  }
+
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
   
 public:
@@ -446,9 +469,8 @@ protected:
   pxTextureRef mMaskTextureRef;
   pxTextureCacheObject mMaskTextureCacheObject;
   pxTextureRef mClipTextureRef;
-  rtString mId;
   bool mCancelInSet;
-  
+  rtString mId;  
   
   pxTextureRef createSnapshot(pxTextureRef texture);
   void deleteSnapshot(pxTextureRef texture);
@@ -794,6 +816,7 @@ public:
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
   rtMethod1ArgAndNoReturn("setFocus", setFocus, rtObjectRef);
+
   rtProperty(ctx, ctx, setCtx, rtValue);
   rtReadOnlyProperty(emit, emit, rtFunctionRef);
   rtConstantProperty(PX_LINEAR, PX_LINEAR_, uint32_t);
@@ -875,6 +898,7 @@ public:
 
     return RT_OK;
   }
+
 
   rtError ctx(rtValue& v) const { v = mContext; return RT_OK; }
   rtError setCtx(const rtValue& v) { mContext = v; return RT_OK; }

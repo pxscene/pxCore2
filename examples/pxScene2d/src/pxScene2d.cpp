@@ -534,6 +534,7 @@ rtDefineMethod(pxObject, addListener);
 rtDefineMethod(pxObject, delListener);
 rtDefineProperty(pxObject, emit);
 rtDefineProperty(pxObject, onReady);
+rtDefineMethod(pxObject, getObjectById);
 
 pxScene2d::pxScene2d(bool top)
  :start(0),frameCount(0) 
@@ -560,16 +561,42 @@ void pxScene2d::init()
 
 rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
-  printf("In create\n");
+  rtError e = RT_OK;
+  rtString t = p.get<rtString>("t");
+
+  if (!strcmp("rect",t.cString()))
+    e = createRectangle(p,o);
+  else if (!strcmp("text",t.cString()))
+    e = createText(p,o);
+  else if (!strcmp("image",t.cString()))
+    e = createImage(p,o);
+  else if (!strcmp("image9",t.cString()))
+    e = createImage9(p,o);
+  else if (!strcmp("scene",t.cString()))
+    e = createScene(p,o);
+  else if (!strcmp("external",t.cString()))
+    e = createExternal(p,o);
+  else
+  {
+    rtLogError("Unknown object type, %s in scene.create.", t.cString());
+    return RT_FAIL;
+  }
+
   rtObjectRef c = p.get<rtObjectRef>("c");
   if (c)
   {
-    printf("Found c\n");
+    uint32_t l = c.get<uint32_t>("length");
+    for (uint32_t i = 0; i < l; i++)
+    {
+      rtObjectRef n;
+      if ((e = create(c.get<rtObjectRef>(i),n)) == RT_OK)
+        n.set("parent", o);
+      else
+        break;
+    }
   }
-  else
-    printf("No c found\n");
 
-  return RT_OK;
+  return e;
 }
 
 rtError pxScene2d::createRectangle(rtObjectRef p, rtObjectRef& o)

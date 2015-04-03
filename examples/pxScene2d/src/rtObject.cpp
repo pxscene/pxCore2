@@ -5,7 +5,9 @@
 
 void rtObjectBase::set(rtObjectRef o)
 {
-  if (!o) return;
+  if (!o) 
+    return;
+
   rtObjectRef keys = o.get<rtObjectRef>("allKeys");
   if (keys)
   {
