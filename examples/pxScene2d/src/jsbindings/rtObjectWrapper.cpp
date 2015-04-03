@@ -59,6 +59,26 @@ void rtObjectWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports)
 Handle<Object> rtObjectWrapper::createFromObjectReference(Isolate* isolate, const rtObjectRef& ref)
 {
   EscapableHandleScope scope(isolate);
+
+  // introspect for rtArrayValue
+  // TODO: not sure this is good. Any object can have a 'length' property
+  {
+    rtValue length;
+    if (ref && ref->Get("length", &length) != RT_PROP_NOT_FOUND)
+    {
+      const int n = length.toInt32();
+      Local<Array> arr = Array::New(isolate, n);
+      for (int i = 0; i < n; ++i)
+      {
+        rtValue item;
+        rtError err = ref->Get(i, &item);
+        if (err == RT_OK)
+          arr->Set(Number::New(isolate, i), rt2js(isolate, item));
+      }
+      return scope.Escape(arr);
+    }
+  }
+
   Local<Value> argv[1] = 
   { 
     External::New(isolate, ref.getPtr()) 
@@ -182,10 +202,11 @@ void rtObjectWrapper::create(const FunctionCallbackInfo<Value>& args)
   wrapper->Wrap(args.This());
 }
 
-jsObjectWrapper::jsObjectWrapper(Isolate* isolate, const Handle<Value>& obj)
+jsObjectWrapper::jsObjectWrapper(Isolate* isolate, const Handle<Value>& obj, bool isArray)
   : mRefCount(0)
   , mObject(isolate, Handle<Object>::Cast(obj))
   , mIsolate(isolate)
+  , mIsArray(isArray)
 {
 }
 
@@ -232,21 +253,37 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value)
   if (!name)
     return RT_ERROR_INVALID_ARG;
 
+  // TODO: does array support this?
   if (strcmp(name, kFuncAllKeys) == 0)
     return getAllKeys(mIsolate, value);
 
-  Local<String> s = String::NewFromUtf8(mIsolate, name);
+  rtError err = RT_OK;
+
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
+  Local<String> s = String::NewFromUtf8(mIsolate, name);
 
-  if (!self->Has(s))
-    return RT_PROPERTY_NOT_FOUND;
-
-  rtWrapperError error;
-  *value = js2rt(mIsolate, self->Get(s), &error);
-  if (error.hasError())
-    return RT_ERROR_INVALID_ARG;
-
-  return RT_OK;
+  if (mIsArray)
+  {
+    if (!strcmp(name, "length"))
+      *value = rtValue(Array::Cast(*self)->Length());
+    else
+      err = Get(s->ToArrayIndex()->Value(), value);
+  }
+  else
+  {
+    if (!self->Has(s))
+    {
+      err = RT_PROPERTY_NOT_FOUND;
+    }
+    else
+    {
+      rtWrapperError error;
+      *value = js2rt(mIsolate, self->Get(s), &error);
+      if (error.hasError())
+        err = RT_ERROR_INVALID_ARG;
+    }
+  }
+  return err;
 }
 
 rtError jsObjectWrapper::Get(uint32_t i, rtValue* value)
@@ -276,11 +313,25 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
   if (!name)
     return RT_ERROR_INVALID_ARG;
 
+  Local<String> s = String::NewFromUtf8(mIsolate, name);
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
-  if (!self->Set(String::NewFromUtf8(mIsolate, name), rt2js(mIsolate, *value)))
-    return RT_FAIL;
 
-  return RT_OK;
+  rtError err = RT_OK;
+
+  if (mIsArray)
+  {
+    Local<Uint32> idx = s->ToArrayIndex();
+    if (idx.IsEmpty())
+      err = RT_ERROR_INVALID_ARG;
+    else
+      err = Set(idx->Value(), value);
+  }
+  else
+  {
+    err = self->Set(s, rt2js(mIsolate, *value));
+  }
+
+  return err;
 }
 
 rtError jsObjectWrapper::Set(uint32_t i, const rtValue* value)

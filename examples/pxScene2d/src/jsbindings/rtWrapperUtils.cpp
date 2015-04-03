@@ -94,9 +94,8 @@ rtValue js2rt(v8::Isolate* isolate, const Handle<Value>& val, rtWrapperError* )
   if (val->IsUndefined()) { return rtValue((void *)0); }
   if (val->IsNull())      { return rtValue((char *)0); }
   if (val->IsString())    { return toString(val); }
-  if (val->IsArray())     { assert(false); return rtValue(0); } // TODO: rtValue support collections
   if (val->IsFunction())  { return rtValue(rtFunctionRef(new jsFunctionWrapper(isolate, val))); }
-  if (val->IsObject())
+  if (val->IsArray() || val->IsObject())
   {
     // This is mostly a heuristic. We should probably set a second internal
     // field and use a uuid as a magic number to ensure this is one of our
@@ -113,7 +112,7 @@ rtValue js2rt(v8::Isolate* isolate, const Handle<Value>& val, rtWrapperError* )
     {
       // this is a regular JS object. i.e. one that does not wrap an rtObject.
       // in this case, we'll provide the necessary adapter.
-      return rtValue(new jsObjectWrapper(isolate, obj->ToObject()));
+      return rtValue(new jsObjectWrapper(isolate, obj->ToObject(), val->IsArray()));
     }
   }
 

@@ -46,7 +46,7 @@ private:
 class jsObjectWrapper : public rtIObject
 {
 public:
-  jsObjectWrapper(v8::Isolate* isolate, const Handle<Value>& val);
+  jsObjectWrapper(v8::Isolate* isolate, const Handle<Value>& val, bool isArray);
   ~jsObjectWrapper();
 
   virtual unsigned long AddRef();
@@ -66,6 +66,7 @@ private:
   unsigned long mRefCount;
   Persistent<Object> mObject;
   Isolate* mIsolate;
+  bool mIsArray;
 };
 
 
