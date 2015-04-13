@@ -6,6 +6,14 @@
 
 static pthread_mutex_t sSceneLock = PTHREAD_MUTEX_INITIALIZER;
 
+static rtObjectRef createPromise(const rtValue& val, void* argp)
+{
+  Isolate* isolate = reinterpret_cast<Isolate *>(argp);
+  Local<Promise> promise = Promise::Resolver::New(isolate)
+    ->GetPromise();
+  return rtObjectRef(new jsObjectWrapper(isolate, promise, false));
+}
+
 void rtWrapperSceneUpdateEnter()
 {
   pthread_mutex_lock(&sSceneLock);
@@ -62,7 +70,9 @@ Handle<Value> rt2js(Isolate* isolate, const rtValue& v)
       return rtFunctionWrapper::createFromFunctionReference(isolate, v.toFunction());
       break;
     case RT_rtObjectRefType:
-      return rtObjectWrapper::createFromObjectReference(isolate, v.toObject());
+      return jsObjectWrapper::isJavaScriptObjectWrapper(v.toObject())
+        ? static_cast<jsObjectWrapper *>(v.toObject().getPtr())->getWrappedObject()
+        : rtObjectWrapper::createFromObjectReference(isolate, v.toObject());
       break;
     case RT_boolType:
       return Boolean::New(isolate, v.toBool());

@@ -8,4 +8,4 @@ export LD_LIBRARY_PATH=../../external/png/.libs/:../../external/jpg/.libs/:../..
 
 echo $LD_LIBRARY_PATH
 
-nodejs load.js $*
+node load.js $*

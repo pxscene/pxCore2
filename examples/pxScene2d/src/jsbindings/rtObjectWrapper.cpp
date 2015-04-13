@@ -10,6 +10,15 @@ static const char* kClassName = "Object";
 static const char* kFuncAllKeys = "allKeys";
 static const char* kPropLength = "length";
 
+const char* jsObjectWrapper::kIsJavaScriptObjectWrapper = "8907a0a6-ef86-4c3d-aea1-c40c0aa2f6f0";
+
+bool jsObjectWrapper::isJavaScriptObjectWrapper(const rtObjectRef& obj)
+{
+  rtValue value;
+  return obj && obj->Get(jsObjectWrapper::kIsJavaScriptObjectWrapper, &value) == RT_OK;
+}
+
+
 static Handle<Value> makeStringFromKey(Isolate* isolate, rtObjectRef& keys, uint32_t index)
 {
   return String::NewFromUtf8(isolate, keys.get<rtString>(index).cString());
@@ -253,6 +262,9 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value)
   if (!name)
     return RT_ERROR_INVALID_ARG;
 
+  if (strcmp(name, jsObjectWrapper::kIsJavaScriptObjectWrapper) == 0)
+    return RT_OK;
+
   // TODO: does array support this?
   if (strcmp(name, kFuncAllKeys) == 0)
     return getAllKeys(mIsolate, value);
@@ -344,5 +356,10 @@ rtError jsObjectWrapper::Set(uint32_t i, const rtValue* value)
     return RT_FAIL;
 
   return RT_OK;
+}
+
+Local<Object> jsObjectWrapper::getWrappedObject()
+{
+  return PersistentToLocal(mIsolate, mObject);
 }
 

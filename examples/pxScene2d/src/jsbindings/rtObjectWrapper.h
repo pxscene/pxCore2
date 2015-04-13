@@ -49,6 +49,9 @@ public:
   jsObjectWrapper(v8::Isolate* isolate, const Handle<Value>& val, bool isArray);
   ~jsObjectWrapper();
 
+  static const char* kIsJavaScriptObjectWrapper;
+  static bool isJavaScriptObjectWrapper(const rtObjectRef& obj);
+
   virtual unsigned long AddRef();
   virtual unsigned long Release();
   virtual unsigned long getRefCount() const
@@ -58,6 +61,8 @@ public:
   virtual rtError Get(uint32_t i, rtValue* value);
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t i, const rtValue* value);
+
+  Local<Object> getWrappedObject();
 
 private:
   rtError getAllKeys(Isolate* isolate, rtValue* value);
