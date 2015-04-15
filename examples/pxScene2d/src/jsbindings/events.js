@@ -17,7 +17,7 @@ function updateSize(w, h) {
 scene.on("onResize", function(e) {updateSize(e.w, e.h);});
 updateSize(scene.w, scene.h);
 
-scene.on("onKeyDown", function(e) {
+scene.root.on("onKeyDown", function(e) {
   var keycode = e.keyCode; var flags = e.flags;
   var keytext = ""+Math.floor(keycode);
   var textbg = scene.createImage({a:0, x:randomInt(50,scene.w-150), 

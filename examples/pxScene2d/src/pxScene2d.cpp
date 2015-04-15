@@ -72,6 +72,29 @@ double pxInterpLinear(double i)
   return pxClamp<double>(i, 0, 1);
 }
 
+rtError pxObject::animateToP2(rtObjectRef props, double duration, 
+                              uint32_t interp, uint32_t animationType, 
+                              rtObjectRef& promise)
+{
+
+  if (!props) return RT_FAIL;
+  rtObjectRef keys = props.get<rtObjectRef>("allKeys");
+  if (keys)
+  {
+    uint32_t len = keys.get<uint32_t>("length");
+    for (uint32_t i = 0; i < len; i++)
+    {
+      rtString key = keys.get<rtString>(i);
+      animateTo(key, props.get<float>(key), duration, interp, animationType, 
+                /*(i==0)?onEnd:*/rtFunctionRef());
+    }
+  }
+  
+  promise = new rtPromise;
+
+  return RT_OK;
+}
+
 void pxObject::setParent(rtRefT<pxObject>& parent)
 {
   mParent = parent;
@@ -502,6 +525,11 @@ bool pxObject::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
   return false;
 }
 
+rtDefineObject(rtPromise, rtObject);
+rtDefineMethod(rtPromise, then);
+rtDefineMethod(rtPromise, resolve);
+rtDefineMethod(rtPromise, reject);
+
 rtDefineObject(pxObject, rtObject);
 rtDefineProperty(pxObject, _pxObject);
 rtDefineProperty(pxObject, parent);
@@ -530,6 +558,7 @@ rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, removeAll);
 //rtDefineMethod(pxObject, animateTo);
 rtDefineMethod(pxObject, animateTo2);
+rtDefineMethod(pxObject, animateToP2);
 rtDefineMethod(pxObject, addListener);
 rtDefineMethod(pxObject, delListener);
 rtDefineProperty(pxObject, emit);
@@ -730,6 +759,9 @@ void pxScene2d::onSize(int32_t w, int32_t h)
   mWidth  = w;
   mHeight = h;
 
+  mRoot->set("w", w);
+  mRoot->set("h", h);
+
   rtObjectRef e = new rtMapObject;
   e.set("name", "onResize");
   e.set("w", w);
@@ -739,6 +771,7 @@ void pxScene2d::onSize(int32_t w, int32_t h)
 
 void pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
 {
+#if 1
   {
     // Send to root scene in global window coordinates
     rtObjectRef e = new rtMapObject;
@@ -748,6 +781,7 @@ void pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
     e.set("flags", (uint32_t)flags);
     mEmit.send("onMouseDown", e);
   }
+#endif
   {
     //Looking for an object
     pxMatrix4f m;
@@ -761,19 +795,25 @@ void pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
       // scene coordinates
       mMouseDownPt.x = x;
       mMouseDownPt.y = y;
+
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseDown");
       e.set("target", (rtObject*)hit.getPtr());
       e.set("x", hitPt.x);
       e.set("y", hitPt.y);
       e.set("flags", flags);
+      #if 0
       hit->mEmit.send("onMouseDown", e);
+      #else
+      bubbleEvent(e,hit,"onPreMouseDown","onMouseDown");
+      #endif
     }
   }
 }
 
 void pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
 {
+#if 1
   {
     // Send to root scene in global window coordinates
     rtObjectRef e = new rtMapObject;
@@ -783,6 +823,7 @@ void pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     e.set("flags", static_cast<uint32_t>(flags));
     mEmit.send("onMouseUp", e);
   }
+#endif
   {
     //Looking for an object
     pxMatrix4f m;
@@ -802,10 +843,15 @@ void pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
       {
         rtObjectRef e = new rtMapObject;
         e.set("name", "onMouseUp");
+        e.set("target",hit.getPtr());
         e.set("x", hitPt.x);
         e.set("y", hitPt.y);
         e.set("flags", flags);
+        #if 0
         hit->mEmit.send("onMouseUp", e);
+        #else
+        bubbleEvent(e,hit,"onPreMouseUp","onMouseUp");
+        #endif
       }
 
       setMouseEntered(hit);
@@ -826,9 +872,12 @@ void pxScene2d::setMouseEntered(pxObject* o)
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseLeave");
       e.set("target", mMouseEntered.getPtr());
+      #if 0
       mMouseEntered->mEmit.send("onMouseLeave", e);
+      #else
+      bubbleEvent(e,mMouseEntered,"onPreMouseLeave","onMouseLeave");
+      #endif
     }
-
     mMouseEntered = o;
 
     // Tell new object we've entered
@@ -837,7 +886,11 @@ void pxScene2d::setMouseEntered(pxObject* o)
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseEnter");
       e.set("target", mMouseEntered.getPtr());
+      #if 0
       mMouseEntered->mEmit.send("onMouseEnter", e);
+      #else
+      bubbleEvent(e,mMouseEntered,"onPreMouseEnter","onMouseEnter");
+      #endif
     }
   }
 }
@@ -857,8 +910,44 @@ void pxScene2d::onMouseLeave()
   setMouseEntered(NULL);
 }
 
+void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t, 
+                            const char* preEvent, const char* event) 
+{
+  if (e && t)
+  {
+    mStopPropagation = false;
+    e.set("stopPropagation", get<rtFunctionRef>("stopPropagation"));
+    
+    vector<rtRefT<pxObject> > l;
+    while(t)
+    {
+      l.push_back(t);
+      t = t->parent();
+    }
+
+    e.set("name", preEvent);
+    for (vector<rtRefT<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != l.rend();++it)
+    {
+      // TODO a bit messy
+      rtFunctionRef emit = (*it)->mEmit.getPtr();
+      if (emit)
+        emit.send(preEvent,e);
+    }
+
+    e.set("name", event);
+    for (vector<rtRefT<pxObject> >::iterator it = l.begin();!mStopPropagation && it != l.end();++it)
+    {
+      // TODO a bit messy
+      rtFunctionRef emit = (*it)->mEmit.getPtr();
+      if (emit)
+        emit.send(event,e);
+    }
+  }
+}
+
 void pxScene2d::onMouseMove(int32_t x, int32_t y)
 {
+#if 1
   {
     // Send to root scene in global window coordinates
     rtObjectRef e = new rtMapObject;
@@ -867,6 +956,8 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
     e.set("y", y);
     mEmit.send("onMouseMove", e);
   }
+#endif
+
 #if 1
   //Looking for an object
   pxMatrix4f m;
@@ -876,8 +967,6 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
   if (mMouseDown)
   {
     {
-      
-
       pxVector4f from(x,y,0,1);
       pxVector4f to;
       pxObject::transformPointFromSceneToObject(mMouseDown, from, to);
@@ -905,12 +994,21 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
         }
       }
 
+
+#if 0
     rtObjectRef e = new rtMapObject;
     e.set("name", "onMouseMove");
     e.set("target", mMouseDown.getPtr());
     e.set("x", to.mX);
     e.set("y", to.mY);
     mMouseDown->mEmit.send("onMouseMove", e);
+#else
+    rtObjectRef e = new rtMapObject;
+    e.set("target", mMouseDown.getPtr());
+    e.set("x", to.mX);
+    e.set("y", to.mY);
+    bubbleEvent(e, mMouseDown, "onPreMouseMove", "onMouseMove");
+#endif
     }
     {
     rtObjectRef e = new rtMapObject;
@@ -920,7 +1018,11 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
     e.set("y", y);
     e.set("startX", mMouseDownPt.x);
     e.set("startY", mMouseDownPt.y);
+#if 0
     mMouseDown->mEmit.send("onMouseDrag", e);
+#else
+    bubbleEvent(e,mMouseDown,"onPreMouseDrag","onMouseDrag");
+#endif
     }
   }
   else // Only send mouse leave/enter events if we're not dragging
@@ -932,10 +1034,14 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
       // and we can send drag events to objects that are being drug... 
 #if 1
       rtObjectRef e = new rtMapObject;
-      e.set("name", "onMouseMove");
+//      e.set("name", "onMouseMove");
       e.set("x", hitPt.x);
       e.set("y", hitPt.y);
+#if 0
       hit->mEmit.send("onMouseMove",e);
+#else
+      bubbleEvent(e, hit, "onPreMouseMove", "onMouseMove");
+#endif
 #endif
       
       setMouseEntered(hit);
@@ -961,54 +1067,39 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
 
 void pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags) 
 {
-  rtObjectRef e = new rtMapObject;
-  e.set("name", "onKeyDown");
-  e.set("keyCode", keyCode);
-  e.set("flags", (uint32_t)flags);
-  mEmit.send("onKeyDown",e);
-
   if (mFocus)
   {
-    rtFunctionRef emit = mFocus.get<rtFunctionRef>("emit");
-    if (emit)
-    {
-      emit.send("onKeyDown",e);
-    }
+    rtObjectRef e = new rtMapObject;
+    e.set("target",mFocus);
+    e.set("keyCode", keyCode);
+    e.set("flags", (uint32_t)flags);
+    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+    bubbleEvent(e, t, "onPreKeyDown", "onKeyDown");
   }
 }
 
 void pxScene2d::onKeyUp(uint32_t keyCode, uint32_t flags)
 {
-  rtObjectRef e = new rtMapObject;
-  e.set("name", "onKeyUp");
-  e.set("keyCode", keyCode);
-  e.set("flags",(uint32_t)flags);
-  mEmit.send("onKeyUp",e);
-
   if (mFocus)
   {
-    rtFunctionRef emit = mFocus.get<rtFunctionRef>("emit");
-    if (emit)
-      emit.send("onKeyUp",e);
+    rtObjectRef e = new rtMapObject;
+    e.set("target",mFocus);
+    e.set("keyCode", keyCode);
+    e.set("flags", (uint32_t)flags);
+    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+    bubbleEvent(e, t, "onPreKeyUp", "onKeyUp");
   }
 }
 
-//TODO not utf8 friendly
 void pxScene2d::onChar(uint32_t c)
 {
-  // char buffer[32];
-  //sprintf(buffer, "%c", c);
-  rtObjectRef e = new rtMapObject;
-  e.set("name", "onChar");
-  //e.set("char", buffer);
-  e.set("charCode", (uint32_t)c);
-  mEmit.send("onChar",e);
-
   if (mFocus)
   {
-    rtFunctionRef emit = mFocus.get<rtFunctionRef>("emit");
-    if (emit)
-      emit.send("onChar",e);
+    rtObjectRef e = new rtMapObject;
+    e.set("target",mFocus);
+    e.set("charCode", c);
+    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+    bubbleEvent(e, t, "onPreChar", "onChar");
   }
 }
 
@@ -1032,6 +1123,7 @@ rtError pxScene2d::onScene(rtFunctionRef& v) const
 
 rtError pxScene2d::setOnScene(rtFunctionRef v) 
 { 
+  printf("setOnScene\n");
   gOnScene = v; 
   return RT_OK; 
 }
@@ -1052,6 +1144,7 @@ rtDefineMethod(pxScene2d, createExternal);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
 rtDefineMethod(pxScene2d, setFocus);
+rtDefineMethod(pxScene2d, stopPropagation);
 rtDefineProperty(pxScene2d, ctx);
 rtDefineProperty(pxScene2d, emit);
 rtDefineProperty(pxScene2d, allInterpolators);
@@ -1134,3 +1227,18 @@ rtError pxSceneContainer::setURI(rtString v)
   }
   return RT_OK; 
 }
+
+#if 0
+void* gObjectFactoryContext = NULL;
+objectFactory gObjectFactory = NULL;
+void registerObjectFactory(objectFactory f, void* context)
+{
+  gObjectFactory = f;
+  gObjectFactoryContext = context;
+}
+
+rtError createObject2(const char* t, rtObjectRef& o)
+{
+  return gObjectFactory(gObjectFactoryContext, t, o);
+}
+#endif

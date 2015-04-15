@@ -1,6 +1,7 @@
 var root = scene.root;
 
-var appURLs = ["events.js","hello.js","picturepile.js","dynamics.js",
+var appURLs = [/*"play.js","play2.js","playmask.js","playmask_star.js","playmask_star2.js",*/
+               "dom.js","events.js","hello.js","picturepile.js","dynamics.js",
                "mousetest2.js","fancy.js","cliptest.js","masktest.js",
                "mousetest.js","external.js","fonts.js","drag.js"];
 
@@ -22,11 +23,17 @@ var apps = scene.createImage({parent:root, sx:0.25, sy:0.25, w:1280, h:720});
 
 for (var i = 0; i < appURLs.length; i++) {
   var c = scene.createScene({url:appURLs[i], parent:apps, 
-                             w:childAppWidth, h:childAppHeight, clip:true,
+                             w:childAppWidth, h:childAppHeight, clip:true
                             });
   
   c.on("onMouseDown", function(e){
     var c = e.target;
+    console.log("flags:", e.flags);
+    if (e.flags == 4) {  // ctrl-mousedown
+      c.cx = c.w/2;
+      c.cy = c.h/2;
+      c.animateTo({r:c.r+360},3,scene.PX_STOP,scene.PX_END);
+    }
     scene.setFocus(c);
     select.animateTo({x:(c.x-childPad)*0.25,y:(c.y-childPad)*0.25},
                      0.3,scene.PX_STOP,scene.PX_END);

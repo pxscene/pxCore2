@@ -33,6 +33,7 @@ using namespace std;
 #include "pxTexture.h"
 #include "pxTextureCacheObject.h"
 
+#include "pxTransform.h"
 
 
 // Interpolator constants
@@ -51,6 +52,13 @@ using namespace std;
 #define PX_NONE_           0
 #define PX_STRETCH_        1
 #define PX_REPEAT_         2
+
+
+#if 0
+typedef rtError (*objectFactory)(void* context, const char* t, rtObjectRef& o);
+void registerObjectFactory(objectFactory f, void* context);
+rtError createObject2(const char* t, rtObjectRef& o);
+#endif
 
 typedef double (*pxInterp)(double i);
 typedef void (*pxAnimationEnded)(void* ctx);
@@ -90,9 +98,108 @@ struct animation {
 
 class pxFileDownloadRequest;
 
+
+enum rtPromiseState {PENDING,FULFILLED,REJECTED};
+
+struct thenData
+{
+  rtFunctionRef mResolve;
+  rtFunctionRef mReject;
+  rtObjectRef mNextPromise;
+};
+
+class rtPromise: public rtObject
+{
+public:
+  rtDeclareObject(rtPromise,rtObject);
+
+  rtMethod2ArgAndReturn("then",then,rtFunctionRef,rtFunctionRef,rtObjectRef);
+
+  rtMethod1ArgAndNoReturn("resolve",resolve,rtValue);
+  rtMethod1ArgAndNoReturn("reject",reject,rtValue);
+
+  rtPromise():mState(PENDING) {}
+
+  rtError then(rtFunctionRef resolve, rtFunctionRef reject, 
+               rtObjectRef& newPromise)
+  {
+    if (mState == PENDING)
+    {
+      thenData d;
+      d.mResolve = resolve;
+      d.mReject = reject;
+      d.mNextPromise = new rtPromise;
+      mThenData.push_back(d);
+
+      newPromise = d.mNextPromise;
+    }
+    else if (mState == FULFILLED)
+    {
+      if (resolve)
+      {
+        resolve.send(mValue);
+        newPromise = new rtPromise;
+        newPromise.send("resolve",mValue);
+      }
+    }
+    else if (mState == REJECTED)
+    {
+      if (reject)
+      {
+        reject.send(mValue);
+        newPromise = new rtPromise;
+        newPromise.send("reject",mValue);
+      }
+    }
+    else
+      rtLogError("Invalid rtPromise state");
+    return RT_OK;
+  }
+
+  rtError resolve(const rtValue& v)
+  {
+    mState = FULFILLED;
+    mValue = v;
+    for (vector<thenData>::iterator it = mThenData.begin();
+         it != mThenData.end(); ++it)
+    {
+      if (it->mResolve)
+      {
+        it->mResolve.send(mValue);
+        it->mNextPromise.send("resolve",mValue);
+      }
+    }
+    mThenData.clear();
+    return RT_OK;
+  }
+
+  rtError reject(const rtValue& v)
+  {
+    mState = REJECTED;
+    mValue = v;
+    for (vector<thenData>::iterator it = mThenData.begin();
+         it != mThenData.end(); ++it)
+    {
+      if (it->mReject)
+      {
+        it->mReject.send(mValue);
+        it->mNextPromise.send("reject",mValue);
+      }
+    }
+    mThenData.clear();
+    return RT_OK;
+  }
+
+private:
+  rtPromiseState mState;
+  vector<thenData> mThenData;
+  rtValue mValue;
+};
+
 class pxObject;
 
-class pxObject: public rtObject {
+class pxObject: public rtObject 
+{
 public:
   rtDeclareObject(pxObject, rtObject);
   rtReadOnlyProperty(_pxObject, _pxObject, voidPtr);
@@ -125,6 +232,9 @@ public:
 
   rtMethod5ArgAndNoReturn("animateTo", animateTo2, rtObjectRef, double, 
                           uint32_t, uint32_t, rtFunctionRef);
+
+  rtMethod4ArgAndReturn("animateToP", animateToP2, rtObjectRef, double, 
+                        uint32_t, uint32_t, rtObjectRef);
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
@@ -162,6 +272,11 @@ public:
 
   // TODO clean this up
   void setParent(rtRefT<pxObject>& parent);
+
+  pxObject* parent() const
+  {
+    return mParent;
+  }
 
   rtError parent(rtObjectRef& v) const 
   {
@@ -288,6 +403,10 @@ public:
     return RT_OK;
   }
 
+  rtError animateToP2(rtObjectRef props, double duration, 
+                      uint32_t interp, uint32_t animationType, 
+                      rtObjectRef& promise);
+  
   void animateTo(const char* prop, double to, double duration, 
 		 pxInterp interp, pxAnimationType at, 
 		 rtFunctionRef onEnd);  
@@ -328,6 +447,52 @@ public:
   // non-destructive applies transform on top of of provided matrix
   virtual void applyMatrix(pxMatrix4f& m)
   {
+#if 0
+    rtRefT<pxTransform> t = new pxTransform;
+    rtObjectRef i = new rtMapObject();
+    i.set("x",0);
+    i.set("y",0);
+    i.set("cx",0);
+    i.set("cy",0);
+    i.set("sx",1);
+    i.set("sy",1);
+    i.set("r",0);
+    i.set("rx",0);
+    i.set("ry",0);
+    i.set("rz",1);
+
+    printf("before initTransform\n");
+    t->initTransform(i, 
+      "x cx + y cy + translateXY "
+      "r rx ry rz rotateInDegreesXYZ "
+      "sx sy scaleXY "
+      "cx -1 * cy -1 * translateXY "
+      );
+    printf("after initTransform\n");
+    pxTransformData* d = t->newData();
+    if (d)
+    {
+#if 1
+      pxMatrix4f m;
+      
+      d->set("x",100);
+      d->set("y",100);
+      
+      float v;
+      d->get("x", v);
+      d->get("cx", v);
+      
+      printf("Before applyMatrix\n");    
+      d->applyMatrix(m);
+      printf("After applyMatrix\n");    
+     
+#endif 
+      t->deleteData(d);
+      printf("After deleteData\n");
+    }
+    else
+      rtLogError("Could not allocate pxTransformData");
+#endif
 #if 1
     // translate based on xy rotate/scale based on cx, cy
     m.translate(mx+mcx, my+mcy);
@@ -815,7 +980,11 @@ public:
                         rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
+
+  // TODO make this a property
   rtMethod1ArgAndNoReturn("setFocus", setFocus, rtObjectRef);
+  
+  rtMethodNoArgAndNoReturn("stopPropagation",stopPropagation);
 
   rtProperty(ctx, ctx, setCtx, rtValue);
   rtReadOnlyProperty(emit, emit, rtFunctionRef);
@@ -899,6 +1068,12 @@ public:
     return RT_OK;
   }
 
+  rtError stopPropagation()
+  {
+    printf("stopPropagation()\n");
+    mStopPropagation = true;
+    return RT_OK;
+  }
 
   rtError ctx(rtValue& v) const { v = mContext; return RT_OK; }
   rtError setCtx(const rtValue& v) { mContext = v; return RT_OK; }
@@ -911,6 +1086,8 @@ public:
 
   // The following methods are delegated to the view
   virtual void onSize(int32_t w, int32_t h);
+
+
 
   virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags);
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags);
@@ -945,6 +1122,9 @@ public:
   }
   
 private:
+  void bubbleEvent(rtObjectRef e, rtRefT<pxObject> t, 
+                   const char* preEvent, const char* event) ;
+
   void draw();
   // Does not draw updates scene to time t
   // t is assumed to be monotonically increasing
@@ -964,6 +1144,7 @@ private:
   pxPoint2f mMouseDownPt;
   rtValue mContext;
   bool mTop;
+  bool mStopPropagation;
 };
 
 class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase
@@ -981,5 +1162,6 @@ class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t i, const rtValue* value);
 };
+
 
 #endif

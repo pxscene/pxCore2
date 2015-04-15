@@ -34,6 +34,7 @@
         "../pxFileDownloader.cpp",
         "../pxTextureCacheObject.cpp",
         "../pxMatrix4T.cpp",
+        "../pxTransform.cpp",
        ],
 
       "include_dirs" : [

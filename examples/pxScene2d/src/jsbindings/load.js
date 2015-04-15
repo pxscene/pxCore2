@@ -150,6 +150,7 @@ if (argv.length >= 3) {
     var originalURL = argv[2];
     // TODO - WARNING root scene.create* doesn't allow passing in property bags
     var childScene = scene.createScene({url:originalURL,parent:scene.root});
+  scene.setFocus(childScene);
 /*
     childScene.url = originalURL;
     childScene.parent = scene.root;
@@ -172,51 +173,48 @@ if (argv.length >= 3) {
         }
     });
 
-    scene.on("onKeyDown", function(e) {
-console.log("in onKeyDown");
-	var code = e.keyCode; var flags = e.flags;
-        console.log("onKeyDown:", code, ", ", flags);
-        if (code == 89 && (flags & 48)) {  // ctrl-alt-y
-            fpsBg.a = (fpsBg.a==0)?1.0:0;
-        }
-        if (code == 79 && (flags & 48)) {  // ctrl-alt-o
-            scene.showOutlines = !scene.showOutlines;
-        }
-        else if (code == 82 && (flags & 16)) {  // ctrl-r
-            console.log("Reloading url: ", originalURL);
-            childScene.url = originalURL;
-        }
-        else { 
-            // forward event
-// TODO would be nice if apply worked on rtFunctions so we could forward all arguments more automatically
-//            var args = ["keydown"];
-//            args.splice(0,0,[].slice.call(arguments));
-//            childScene.emit.apply(args);
-            childScene.emit(e.name, e);
-        }
+
+    scene.root.on("onPreKeyDown", function(e) {
+      console.log("in onKeyDown");
+	    var code = e.keyCode; var flags = e.flags;
+      console.log("onKeyDown:", code, ", ", flags);
+      if (code == 89 && (flags & 48)) {  // ctrl-alt-y
+        fpsBg.a = (fpsBg.a==0)?1.0:0;
+        e.stopPropagation();
+      }
+      if (code == 79 && (flags & 48)) {  // ctrl-alt-o
+        scene.showOutlines = !scene.showOutlines;
+        e.stopPropagation();
+      }
+      else if (code == 82 && (flags & 16)) {  // ctrl-r
+        console.log("Reloading url: ", originalURL);
+        childScene.url = originalURL;
+        e.stopPropagation();
+      }
     });
-    scene.on("onKeyUp", function(e) {
+    scene.root.on("onPreKeyUp", function(e) {
 console.log("in onKeyUp");
 	var code = e.keyCode; var flags = e.flags;
         console.log("onKeyUp:", code, ", ", flags);
         // eat the ones we handle here
-        if (code == 89 && (flags & 48)); // ctrl-alt-y
-        if (code == 79 && (flags & 48)); // ctrl-alt-o
-        else if (code == 82 && (flags | 16));
-        else
-            childScene.emit(e.name,e);
-      
+        if (code == 89 && (flags & 48)) e.stopPropagation(); // ctrl-alt-y
+        if (code == 79 && (flags & 48)) e.stopPropagation(); // ctrl-alt-o
+        else if (code == 82 && (flags | 16)) e.stopPropagation(); // ctrl-r
     });
 
-    scene.on("onChar", function(e) {
-console.log("in onchar");
-	var c = e.charCode;
-        //TODO I think we'd like this function to get a string??
-        console.log("onChar:", c);
-	// TODO eating some "undesired" chars for now... need to redo this
-        if (c>=32)
-            childScene.emit("onChar", e);
+
+    scene.root.on("onPreChar", function(e) {
+      console.log("in onchar");
+	    var c = e.charCode;
+      console.log("onChar:", c);
+	    // TODO eating some "undesired" chars for now... need to redo this
+      if (c<32) {
+        //            childScene.emit("onChar", e);
+        console.log("stop onChar");
+        e.stopPropagation()
+      }
     });
+
 
     // TODO if I log out event object e... there is extra stuff??
     scene.on("onResize", function(e) { updateSize(e.w, e.h);});

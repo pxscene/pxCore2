@@ -140,7 +140,7 @@ function updateText(s) {
 }
 
 var str = "";
-scene.on("onKeyDown", function (e) {
+scene.root.on("onKeyDown", function (e) {
     var keycode = e.keyCode; var flags = e.flags;
     if (keycode == 38) scrollUp();
     else if (keycode == 40) scrollDn();
@@ -150,9 +150,8 @@ scene.on("onKeyDown", function (e) {
     }
 });
 
-scene.on("onChar", function(e) {
+scene.root.on("onChar", function(e) {
     str += String.fromCharCode(e.charCode);
     updateText(str);
 });
 
-//root.painting = false;
