@@ -6,14 +6,6 @@
 
 static pthread_mutex_t sSceneLock = PTHREAD_MUTEX_INITIALIZER;
 
-static rtObjectRef createPromise(const rtValue& val, void* argp)
-{
-  Isolate* isolate = reinterpret_cast<Isolate *>(argp);
-  Local<Promise> promise = Promise::Resolver::New(isolate)
-    ->GetPromise();
-  return rtObjectRef(new jsObjectWrapper(isolate, promise, false));
-}
-
 void rtWrapperSceneUpdateEnter()
 {
   pthread_mutex_lock(&sSceneLock);

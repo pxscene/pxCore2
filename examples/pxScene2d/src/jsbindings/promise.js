@@ -6,11 +6,8 @@ var o = scene.create({t:"rect",fillColor:0xffffffff,w:300,h:300,parent:root,cx:1
   {t:"rect",fillColor:0x0000ffff,w:100,h:100,x:200,y:200},
 ]})
 
-var promise = o.animateToP({r:360},5,scene.PX_LINEAR,scene.PX_END);
-promise.then(function(v){console.log("promise completed",v);})
+o.animateToP({r:360},1,scene.PX_LINEAR,scene.PX_END)
+  .then(function(v){console.log("promise completed",v);})
   .then(function(v){console.log("next promise completed", v); });
-console.log(promise);
-console.log(promise.description());
-//promise.resolve("blah");
 o.children[1].animateTo({r:-360},1,scene.PX_LINEAR,scene.PX_LOOP);
 

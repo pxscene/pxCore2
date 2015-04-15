@@ -7,6 +7,29 @@
 
 using namespace v8;
 
+class rtAbstractFunction : public rtIFunction
+{
+public:
+  virtual unsigned long AddRef()
+  {
+    return rtAtomicInc(&mRefCount);
+  }
+
+  virtual unsigned long Release()
+  {
+    unsigned long l = rtAtomicDec(&mRefCount);
+    if (l == 0) delete this;
+    return l;
+  }
+
+  virtual unsigned long getRefCount() const
+  {
+    return mRefCount;
+  }
+private:
+  unsigned long mRefCount;
+};
+
 class rtFunctionWrapper : public rtWrapper<rtFunctionRef, rtFunctionWrapper>
 {
 public:

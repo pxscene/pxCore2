@@ -7,6 +7,83 @@
 static const char* kClassName = "Function";
 static Persistent<Function> ctor;
 
+class ResolverFunction : public rtAbstractFunction
+{
+public:
+  ResolverFunction(Isolate* isolate, Local<Promise::Resolver>& resolver)
+    : rtAbstractFunction()
+    , mResolver(isolate, Handle<Promise::Resolver>::Cast(resolver))
+    , mIsolate(isolate)
+  {
+  }
+
+  virtual ~ResolverFunction()
+  {
+  }
+
+protected:
+  Persistent<Promise::Resolver> mResolver;
+  Isolate* mIsolate;
+};
+
+class Resolve : public ResolverFunction
+{
+public:
+  Resolve(Isolate*isolate, Local<Promise::Resolver>& resolver)
+    : ResolverFunction(isolate, resolver) { }
+
+  virtual ~Resolve() { }
+
+  virtual rtError Send(int numArgs, const rtValue* args, rtValue* /*result*/)
+  {
+    rtLogInfo("resolving promise");
+    Handle<Value> arg;
+    if (numArgs && args)
+      arg = rt2js(mIsolate, args[0]);
+
+    Local<Promise::Resolver> resolver = PersistentToLocal(mIsolate, mResolver);
+    resolver->Resolve(arg);
+
+    return RT_OK;
+  }
+};
+
+class Reject : public ResolverFunction
+{
+public:
+  Reject(Isolate* isolate, Local<Promise::Resolver>& resolver)
+    : ResolverFunction(isolate, resolver) { }
+
+  virtual ~Reject() { }
+
+  virtual rtError Send(int numArgs, const rtValue* args, rtValue* /*result*/)
+  {
+    rtLogInfo("Rejecting promise");
+    Handle<Value> arg;
+    if (numArgs && args)
+      arg = rt2js(mIsolate, args[0]);
+
+    Local<Promise::Resolver> resolver = PersistentToLocal(mIsolate, mResolver);
+    resolver->Reject(arg);
+
+    return RT_OK;
+  }
+};
+
+static bool isPromise(const rtValue& v)
+{
+  if (v.getType() != RT_rtObjectRefType)
+    return false;
+
+  rtObjectRef ref = v.toObject();
+  if (!ref)
+    return false;
+
+  rtString desc;
+  rtError err = ref.sendReturns<rtString>("description", desc);
+  return err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0;
+}
+
 rtFunctionWrapper::rtFunctionWrapper(const rtFunctionRef& ref)
   : rtWrapper(ref)
 {
@@ -73,9 +150,26 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
   if (err != RT_OK)
     return throwRtError(isolate, err, "failed to invoke function");
 
-  args.GetReturnValue().Set(rt2js(isolate, result));
-}
+  if (isPromise(result))
+  {
+    Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
 
+    rtFunctionRef resolve(new Resolve(isolate, resolver));
+    rtFunctionRef reject(new Reject(isolate, resolver));
+    rtObjectRef newPromise;
+
+    rtObjectRef promise = result.toObject();
+    rtError err = promise.send("then", resolve, reject, newPromise);
+    if (err != RT_OK)
+      return throwRtError(isolate, err, "failed to register for promise callback");
+    else
+      args.GetReturnValue().Set(resolver->GetPromise());
+  }
+  else
+  {
+    args.GetReturnValue().Set(rt2js(isolate, result));
+  }
+}
 
 jsFunctionWrapper::jsFunctionWrapper(Isolate* isolate, const Handle<Value>& val)
   : mRefCount(0)
