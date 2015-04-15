@@ -10,6 +10,7 @@ var promise = o.animateToP({r:360},5,scene.PX_LINEAR,scene.PX_END);
 promise.then(function(v){console.log("promise completed",v);})
   .then(function(v){console.log("next promise completed", v); });
 console.log(promise);
+console.log(promise.description());
 promise.resolve("blah");
 o.children[1].animateTo({r:-360},1,scene.PX_LINEAR,scene.PX_LOOP);
 
