@@ -94,6 +94,7 @@ struct animation {
   pxAnimationType at;
   pxInterp interp;
   rtFunctionRef ended;
+  rtObjectRef promise;
 };
 
 class pxFileDownloadRequest;
@@ -383,6 +384,9 @@ public:
   rtError animateTo(const char* prop, double to, double duration, 
                      uint32_t interp, uint32_t animationType, 
                      rtFunctionRef onEnd);
+  rtError animateToP(const char* prop, double to, double duration, 
+                     uint32_t interp, uint32_t animationType, 
+                     rtObjectRef promise);
 
   rtError animateTo2(rtObjectRef props, double duration, 
                      uint32_t interp, uint32_t animationType, 
@@ -409,7 +413,11 @@ public:
   
   void animateTo(const char* prop, double to, double duration, 
 		 pxInterp interp, pxAnimationType at, 
-		 rtFunctionRef onEnd);  
+                 rtFunctionRef onEnd);  
+
+  void animateToP(const char* prop, double to, double duration, 
+		 pxInterp interp, pxAnimationType at, 
+                 rtObjectRef promise);  
 
   void animateTo(const char* prop, double to, double duration, 
 		 pxInterp interp=0, pxAnimationType at=PX_END)

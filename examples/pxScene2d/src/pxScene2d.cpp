@@ -78,6 +78,9 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
 {
 
   if (!props) return RT_FAIL;
+
+  promise = new rtPromise;
+
   rtObjectRef keys = props.get<rtObjectRef>("allKeys");
   if (keys)
   {
@@ -85,12 +88,10 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
     for (uint32_t i = 0; i < len; i++)
     {
       rtString key = keys.get<rtString>(i);
-      animateTo(key, props.get<float>(key), duration, interp, animationType, 
-                /*(i==0)?onEnd:*/rtFunctionRef());
+      animateToP(key, props.get<float>(key), duration, interp, animationType,(i==0)?promise:rtObjectRef());
     }
   }
-  
-  promise = new rtPromise;
+//  promise.send("resolve","hello");
 
   return RT_OK;
 }
@@ -144,13 +145,24 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
 #if 1
 rtError pxObject::animateTo(const char* prop, double to, double duration, 
                              uint32_t interp, uint32_t animationType, 
-                             rtFunctionRef onEnd) 
+                            rtFunctionRef onEnd) 
 {
   interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
   animateTo(prop, to, duration, interps[interp].i, 
             (pxAnimationType)animationType, onEnd);
   return RT_OK;
 }
+
+rtError pxObject::animateToP(const char* prop, double to, double duration, 
+                             uint32_t interp, uint32_t animationType, 
+                            rtObjectRef promise) 
+{
+  interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
+  animateToP(prop, to, duration, interps[interp].i, 
+            (pxAnimationType)animationType, promise);
+  return RT_OK;
+}
+
 #endif
 
 // Dont fastforward when calling from set* methods since that will
@@ -183,6 +195,9 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
 
         if (a.ended)
           a.ended.send(this);
+
+        if (a.promise)
+          a.promise.send("resolve","Hello");
       }
       else
       {
@@ -216,6 +231,30 @@ void pxObject::animateTo(const char* prop, double to, double duration,
   a.interp   = interp?interp:pxInterpLinear;
   a.at       = at;
   a.ended = onEnd;
+//  a.promise = promise;
+
+  mAnimations.push_back(a);
+}
+
+void pxObject::animateToP(const char* prop, double to, double duration, 
+                         pxInterp interp, pxAnimationType at,
+                         rtObjectRef promise)
+{
+  cancelAnimation(prop, true);
+  
+  // schedule animation
+  animation a;
+
+  a.cancelled = false;
+  a.prop     = prop;
+  a.from     = get<float>(prop);
+  a.to       = to;
+  a.start    = -1;
+  a.duration = duration;
+  a.interp   = interp?interp:pxInterpLinear;
+  a.at       = at;
+//  a.ended = onEnd;
+  a.promise = promise;
 
   mAnimations.push_back(a);
 }
@@ -245,9 +284,9 @@ void pxObject::update(double t)
       if (a.at == PX_END)
       {
         if (a.ended)
-        {
           a.ended.send(this);
-        }
+        if (a.promise)
+          a.promise.send("resolved","Hello");
 
         // Erase making sure to push the iterator forward before
         it = mAnimations.erase(it);
@@ -1123,7 +1162,6 @@ rtError pxScene2d::onScene(rtFunctionRef& v) const
 
 rtError pxScene2d::setOnScene(rtFunctionRef v) 
 { 
-  printf("setOnScene\n");
   gOnScene = v; 
   return RT_OK; 
 }
