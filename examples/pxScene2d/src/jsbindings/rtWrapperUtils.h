@@ -12,6 +12,13 @@
 #include <string>
 #include <memory>
 
+template<class T>
+inline std::string jsToString(T const& val)
+{
+  v8::String::Utf8Value v(val->ToString());
+  return std::string(*v);
+}
+
 template <class TypeName>
 inline v8::Local<TypeName> StrongPersistentToLocal(const v8::Persistent<TypeName>& persistent) 
 {

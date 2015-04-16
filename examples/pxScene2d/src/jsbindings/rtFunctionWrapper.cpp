@@ -10,64 +10,86 @@ static Persistent<Function> ctor;
 class ResolverFunction : public rtAbstractFunction
 {
 public:
-  ResolverFunction(Isolate* isolate, Local<Promise::Resolver>& resolver)
+  enum Disposition
+  {
+    DispositionResolve,
+    DispositionReject
+  };
+
+  ResolverFunction(Disposition disp, Isolate* isolate, Local<Promise::Resolver>& resolver)
     : rtAbstractFunction()
-    , mResolver(isolate, Handle<Promise::Resolver>::Cast(resolver))
+    , mDisposition(disp)
+    , mResolver(isolate, resolver)
     , mIsolate(isolate)
   {
   }
 
   virtual ~ResolverFunction()
   {
+    rtLogInfo("delete");
   }
 
-protected:
+  virtual rtError Send(int numArgs, const rtValue* args, rtValue* /*result*/)
+  {
+    AsyncContext* ctx = new AsyncContext();
+
+    // keep current object alive while we enqueue this request
+    ctx->resolverFunc = rtFunctionRef(this);
+
+    for (int i = 0; i < numArgs; ++i)
+      ctx->args.push_back(args[i]);
+
+    mReq.data = ctx;
+    uv_queue_work(uv_default_loop(), &mReq, &workCallback, &afterWorkCallback);
+    return RT_OK;
+  }
+
+private:
+  struct AsyncContext
+  {
+    rtFunctionRef resolverFunc;
+    std::vector<rtValue> args;
+  };
+
+  static void workCallback(uv_work_t* /*req */)
+  {
+    // empty
+  }
+
+  static void afterWorkCallback(uv_work_t* req, int /* status */)
+  {
+    AsyncContext* ctx = reinterpret_cast<AsyncContext*>(req->data);
+    ResolverFunction* resolverFunc = static_cast<ResolverFunction *>(ctx->resolverFunc.getPtr());
+
+    assert(ctx->args.size() < 2);
+
+    Handle<Value> value;
+    if (ctx->args.size() > 0)
+      value = rt2js(resolverFunc->mIsolate, ctx->args[0]);
+
+    Local<Promise::Resolver> resolver = PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mResolver);
+
+    TryCatch tryCatch;
+    if (resolverFunc->mDisposition == DispositionResolve)
+      resolver->Resolve(value);
+    else
+      resolver->Reject(value);
+
+    if (tryCatch.HasCaught())
+    {
+      String::Utf8Value trace(tryCatch.StackTrace());
+      rtLogWarn("Error resolving promise");
+      rtLogWarn("%s", *trace);
+    }
+
+    delete ctx;
+  }
+
+private:
+  Disposition mDisposition;
   Persistent<Promise::Resolver> mResolver;
   Isolate* mIsolate;
-};
-
-class Resolve : public ResolverFunction
-{
-public:
-  Resolve(Isolate*isolate, Local<Promise::Resolver>& resolver)
-    : ResolverFunction(isolate, resolver) { }
-
-  virtual ~Resolve() { }
-
-  virtual rtError Send(int numArgs, const rtValue* args, rtValue* /*result*/)
-  {
-    rtLogInfo("resolving promise");
-    Handle<Value> arg;
-    if (numArgs && args)
-      arg = rt2js(mIsolate, args[0]);
-
-    Local<Promise::Resolver> resolver = PersistentToLocal(mIsolate, mResolver);
-    resolver->Resolve(arg);
-
-    return RT_OK;
-  }
-};
-
-class Reject : public ResolverFunction
-{
-public:
-  Reject(Isolate* isolate, Local<Promise::Resolver>& resolver)
-    : ResolverFunction(isolate, resolver) { }
-
-  virtual ~Reject() { }
-
-  virtual rtError Send(int numArgs, const rtValue* args, rtValue* /*result*/)
-  {
-    rtLogInfo("Rejecting promise");
-    Handle<Value> arg;
-    if (numArgs && args)
-      arg = rt2js(mIsolate, args[0]);
-
-    Local<Promise::Resolver> resolver = PersistentToLocal(mIsolate, mResolver);
-    resolver->Reject(arg);
-
-    return RT_OK;
-  }
+  uv_work_t mReq;
 };
 
 static bool isPromise(const rtValue& v)
@@ -154,8 +176,8 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
   {
     Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
 
-    rtFunctionRef resolve(new Resolve(isolate, resolver));
-    rtFunctionRef reject(new Reject(isolate, resolver));
+    rtFunctionRef resolve(new ResolverFunction(ResolverFunction::DispositionResolve, isolate, resolver));
+    rtFunctionRef reject(new ResolverFunction(ResolverFunction::DispositionReject, isolate, resolver));
     rtObjectRef newPromise;
 
     rtObjectRef promise = result.toObject();
@@ -169,6 +191,7 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
   {
     args.GetReturnValue().Set(rt2js(isolate, result));
   }
+
 }
 
 jsFunctionWrapper::jsFunctionWrapper(Isolate* isolate, const Handle<Value>& val)

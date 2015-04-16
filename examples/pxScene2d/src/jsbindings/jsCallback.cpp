@@ -56,7 +56,17 @@ void jsCallback::doCallback(uv_work_t* req, int /* status */)
   Handle<Value>* args = ctx->makeArgs();
 
   // TODO: This context is almost certainly wrong!!!
-  Local<Function> func= ctx->mFunctionLookup->lookup();
+  Local<Function> func = ctx->mFunctionLookup->lookup();
+  assert(!func.IsEmpty());
+  assert(!func->IsUndefined());
+
+  // This is really nice debugging
+  #if 0
+  Local<String> s = func->ToString();
+  String::Utf8Value v(s);
+  rtLogInfo("FUNC: %s", *v);
+  #endif
+
   Local<Context> context = func->CreationContext();
 
   TryCatch tryCatch;
