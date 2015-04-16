@@ -62,6 +62,11 @@ private:
     ResolverFunction* resolverFunc = static_cast<ResolverFunction *>(ctx->resolverFunc.getPtr());
 
     assert(ctx->args.size() < 2);
+    assert(Isolate::GetCurrent() == resolverFunc->mIsolate);
+
+    // Locker locker(resolverFunc->mIsolate);
+    HandleScope scope(resolverFunc->mIsolate);
+    // Context::Scope contextScope(PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mContext));
 
     Handle<Value> value;
     if (ctx->args.size() > 0)
@@ -81,6 +86,8 @@ private:
       rtLogWarn("Error resolving promise");
       rtLogWarn("%s", *trace);
     }
+
+    resolverFunc->mIsolate->RunMicrotasks();
 
     delete ctx;
   }
@@ -191,7 +198,6 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
   {
     args.GetReturnValue().Set(rt2js(isolate, result));
   }
-
 }
 
 jsFunctionWrapper::jsFunctionWrapper(Isolate* isolate, const Handle<Value>& val)
