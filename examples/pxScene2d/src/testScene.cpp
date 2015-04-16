@@ -366,7 +366,7 @@ pxViewRef testScene()
 
   rtObjectRef root = scene.get<rtObjectRef>("root");  
 
-  scene.send("on", "onKeyDown", new rtFunctionCallback(onKeyDownCB));
+  root.send("on", "onKeyDown", new rtFunctionCallback(onKeyDownCB));
   scene.send("on", "onResize", new rtFunctionCallback(onSizeCB));
 
   rtString bgURL;
