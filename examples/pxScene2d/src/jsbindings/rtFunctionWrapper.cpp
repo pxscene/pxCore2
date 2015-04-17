@@ -175,9 +175,12 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
   rtValue result;
   rtWrapperSceneUpdateEnter();
   rtError err = unwrap(args)->Send(args.Length(), &argList[0], &result);
-  rtWrapperSceneUpdateExit();
+
   if (err != RT_OK)
+  {
+    rtWrapperSceneUpdateExit();
     return throwRtError(isolate, err, "failed to invoke function");
+  }
 
   if (isPromise(result))
   {
@@ -189,6 +192,11 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
 
     rtObjectRef promise = result.toObject();
     rtError err = promise.send("then", resolve, reject, newPromise);
+
+    // must hold this lock to prevent promise from resolving internally before we
+    // actually register our function callbacks.
+    rtWrapperSceneUpdateExit();
+
     if (err != RT_OK)
       return throwRtError(isolate, err, "failed to register for promise callback");
     else
@@ -196,6 +204,7 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
   }
   else
   {
+    rtWrapperSceneUpdateExit();
     args.GetReturnValue().Set(rt2js(isolate, result));
   }
 }
