@@ -125,8 +125,10 @@ void rtObjectWrapper::getProperty(const T& prop, const PropertyCallbackInfo<Valu
       info.GetIsolate()->ThrowException(Exception::Error(String::NewFromUtf8(info.GetIsolate(),
         rtStrError(err))));
   }
-
-  info.GetReturnValue().Set(rt2js(info.GetIsolate(), value));
+  else
+  {
+    info.GetReturnValue().Set(rt2js(info.GetIsolate(), value));
+  }
 }
 
 template<typename T>
