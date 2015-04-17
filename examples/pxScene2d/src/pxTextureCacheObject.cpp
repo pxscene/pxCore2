@@ -154,7 +154,7 @@ void pxTextureCacheObject::loadImage(rtString url)
   else
   {
     rtLogWarn("Image texture cache miss");
-    char* s = url.cString();
+    const char* s = url.cString();
     const char *result = strstr(s, "http");
     int position = result - s;
     if (position == 0 && strlen(s) > 0)

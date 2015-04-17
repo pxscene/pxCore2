@@ -537,7 +537,7 @@ void pxObject::createMask()
   
   if (mMaskUrl.length() > 0)
   {
-    char* s = mMaskUrl.cString();
+    const char* s = mMaskUrl.cString();
     mMaskTextureCacheObject.setParent(this);
     mMaskTextureCacheObject.setURL(s);
   }

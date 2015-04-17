@@ -36,7 +36,7 @@ public:
   }
 #endif
 
-  char* cString() const;
+  const char* cString() const;
   operator const char* () const { return mData; }
 
   //uint32_t operator[](uint32_t i) const {}

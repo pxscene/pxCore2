@@ -78,8 +78,9 @@ int rtString::compare(const char* s) const {
 }
 
 
-char* rtString::cString() const {
-  return mData;
+const char* rtString::cString() const {
+  // TODO const cast 
+  return mData?(const char*)mData:"";
 }
 
 //HACK: missing symbol. Is this utf8?
