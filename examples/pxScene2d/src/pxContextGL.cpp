@@ -34,6 +34,7 @@ static GLint u_resolution = -1;
 static GLint u_texture = -1;
 static GLint u_mask = -1;
 static GLint u_enablemask = 0;
+static GLint u_flipmaskcoords = 1;
 static GLint u_enablepremultipliedalpha = 0;
 static GLint u_alphatexture = -1;
 static GLint u_color = -1;
@@ -66,6 +67,7 @@ static const char *fMondoShaderText =
   "uniform sampler2D s_mask;\n"
   "uniform int u_enablemask;\n"
   "uniform int u_enablepremultipliedalpha;\n"
+  "uniform int u_flipmaskcoords;\n"
   "varying vec2 v_uv;\n"
   "void main() {\n"
 #if 1
@@ -77,7 +79,13 @@ static const char *fMondoShaderText =
   // image
   "  vec4 textureColor = texture2D(s_texture, v_uv);\n"
   "  if (u_enablemask > 0) {\n"
-  "    vec2 maskCoords = vec2(v_uv.x, 1.0 - v_uv.y);\n"
+  "    vec2 maskCoords;\n"
+  "    if (u_flipmaskcoords > 0) {\n"
+  "      maskCoords = vec2(v_uv.x, 1.0 - v_uv.y);\n"
+  "    }\n"
+  "    else {\n"
+  "      maskCoords = vec2(v_uv.x, v_uv.y);\n"
+  "    }\n"
   "    vec4 maskColor = texture2D(s_mask, maskCoords);\n"
   "    textureColor.a = textureColor.a * maskColor.a;\n" ////textureColor.a * maskColor.a;
   "  }\n"
@@ -238,7 +246,18 @@ public:
   
   virtual pxError bindTextureAsMask()
   {
-    return PX_FAIL;
+    if (mFramebufferId == 0 || mTextureId == 0)
+    {
+      return PX_NOTINITIALIZED;
+    }
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, mTextureId);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    glUniform1i(u_mask, 2);
+    glUniform1i(u_enablemask, 1);
+    return PX_OK;
   }
   
   virtual pxError getOffscreen(pxOffscreen& o)
@@ -699,6 +718,11 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     secondTextureY = 0;
   }
 
+  if (mask.getPtr() != NULL && mask->getType() == PX_TEXTURE_FRAME_BUFFER)
+  {
+    glUniform1i(u_flipmaskcoords, 0);
+  }
+
   const float uv[4][2] = {
     { 0,  firstTextureY },
     { tw, firstTextureY },
@@ -729,6 +753,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   glUniform1i(u_enablemask, 0);
   glUniform1f(u_alphatexture, 1.0);
   glUniform1i(u_enablepremultipliedalpha, 0);
+  glUniform1i(u_flipmaskcoords, 1);
   
 }
 
@@ -882,6 +907,7 @@ void pxContext::init()
   u_texture      = glGetUniformLocation(program, "s_texture");
   u_mask         = glGetUniformLocation(program, "s_mask");
   u_enablemask   = glGetUniformLocation(program, "u_enablemask");
+  u_flipmaskcoords = glGetUniformLocation(program, "u_flipmaskcoords");
   u_enablepremultipliedalpha = glGetUniformLocation(program, "u_enablepremultipliedalpha");
   u_matrix       = glGetUniformLocation(program, "amymatrix");
   u_alpha        = glGetUniformLocation(program, "u_alpha");
