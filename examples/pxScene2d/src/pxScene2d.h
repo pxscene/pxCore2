@@ -223,6 +223,9 @@ public:
   rtProperty(painting, painting, setPainting, bool);
   rtProperty(clip, clip, setClip, bool);
   rtProperty(mask, mask, setMask, rtString);
+  rtProperty(drawAsMask, drawAsMask, setDrawAsMask, bool);
+  rtProperty(draw, drawEnabled, setDrawEnabled, bool);
+  rtProperty(drawAsHitTest, drawAsHitTest, setDrawAsHitTest, bool);
 
   rtReadOnlyProperty(numChildren, numChildren, int32_t);
   rtMethod1ArgAndReturn("getChild", getChild, int32_t, rtObjectRef);
@@ -247,7 +250,7 @@ public:
   pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
-    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mMaskTextureRef(), 
+    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mMaskTextureRef(),
     mMaskTextureCacheObject(),mClipTextureRef(),mCancelInSet(true)
   {
     mEmit = new rtEmit;
@@ -369,13 +372,24 @@ public:
   rtError mask(rtString& v)  const { v = mMaskUrl; return RT_OK;  }
   rtError setMask(rtString v) { mMaskUrl = v; createMask(); return RT_OK; }
 
+  bool drawAsMask()            const { return mDrawAsMask;}
+  rtError drawAsMask(bool& v)  const { v = mDrawAsMask; return RT_OK;  }
+  rtError setDrawAsMask(bool v) { mDrawAsMask = v; return RT_OK; }
+
+  bool drawEnabled()            const { return mDraw;}
+  rtError drawEnabled(bool& v)  const { v = mDraw; return RT_OK;  }
+  rtError setDrawEnabled(bool v) { mDraw = v; return RT_OK; }
+
+  bool drawAsHitTest()            const { return mDrawAsHitTest;}
+  rtError drawAsHitTest(bool& v)  const { v = mDrawAsHitTest; return RT_OK;  }
+  rtError setDrawAsHitTest(bool v) { mDrawAsHitTest = v; return RT_OK; }
+
   void moveToFront();
   void moveToBack();
   void moveForward();
   void moveBackward();
 
-
-  void drawInternal(pxMatrix4f m, float parentAlpha);
+  void drawInternal(pxMatrix4f m, float parentAlpha, bool maskPass=false);
   virtual void draw() {}
 
   bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit, pxPoint2f& hitPt);
@@ -624,7 +638,7 @@ public:
   }
 
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
-  
+
 public:
   rtEmitRef mEmit;
 
@@ -639,13 +653,17 @@ protected:
   bool mPainting;
   bool mClip;
   rtString mMaskUrl;
+  bool mDrawAsMask;
+  bool mDraw;
+  bool mDrawAsHitTest;
   pxTextureRef mMaskTextureRef;
   pxTextureCacheObject mMaskTextureCacheObject;
   pxTextureRef mClipTextureRef;
   bool mCancelInSet;
-  rtString mId;  
-  
+  rtString mId;
+
   pxTextureRef createSnapshot(pxTextureRef texture);
+  void createSnapshotOfChildren(pxTextureRef drawableTexture, pxTextureRef maskTexture);
   void deleteSnapshot(pxTextureRef texture);
   void createMask();
   void deleteMask();

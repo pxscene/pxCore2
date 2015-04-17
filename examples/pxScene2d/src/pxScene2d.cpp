@@ -343,8 +343,12 @@ void pxObject::update(double t)
 
 const float alphaEpsilon = (1.0f/255.0f);
 
-void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
+void pxObject::drawInternal(pxMatrix4f m, float parentAlpha, bool maskPass)
 {
+  if (!drawEnabled() && !maskPass)
+  {
+    return;
+  }
   // TODO what to do about multiple vanishing points in a given scene
   // TODO consistent behavior between clipping and no clipping when z is in use
 
@@ -409,7 +413,30 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha)
 
   if (mPainting)
   {
-    if (mClip || mMaskUrl.length() > 0)
+    pxTextureRef maskTextureRef;
+    bool maskFound = false;
+    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      if ((*it)->drawAsMask())
+      {
+        maskFound = true;
+        break;
+      }
+    }
+    if (maskFound)
+    {
+      if (mw>alphaEpsilon && mh>alphaEpsilon)
+        draw();
+
+      pxTextureRef drawableSnapshot = context.createContextSurface(mw, mh);
+      pxTextureRef maskSnapshot = context.createContextSurface(mw, mh);
+      createSnapshotOfChildren(drawableSnapshot, maskSnapshot);
+      drawableSnapshot->enablePremultipliedAlpha(true);
+      maskSnapshot->enablePremultipliedAlpha(true);
+      context.setMatrix(m);
+      context.drawImage(0, 0, mw, mh, drawableSnapshot, maskSnapshot, PX_NONE, PX_NONE);
+    }
+    else if (mClip || mMaskUrl.length() > 0)
     {
       mClipTextureRef = createSnapshot(mClipTextureRef);
       context.setMatrix(m);
@@ -523,6 +550,64 @@ pxTextureRef pxObject::createSnapshot(pxTextureRef texture)
   return texture;
 }
 
+void pxObject::createSnapshotOfChildren(pxTextureRef drawableTexture, pxTextureRef maskTexture)
+{
+
+  pxMatrix4f m;
+  float parentAlpha = ma;
+
+  context.setMatrix(m);
+
+  context.setAlpha(parentAlpha);
+
+  if (drawableTexture.getPtr() == NULL || drawableTexture->width() != mw || drawableTexture->height() != mh)
+  {
+    drawableTexture = context.createContextSurface(mw, mh);
+  }
+  else
+  {
+    context.updateContextSurface(drawableTexture, mw, mh);
+  }
+
+  if (maskTexture.getPtr() == NULL || maskTexture->width() != mw || maskTexture->height() != mh)
+  {
+    maskTexture = context.createContextSurface(mw, mh);
+  }
+  else
+  {
+    context.updateContextSurface(maskTexture, mw, mh);
+  }
+
+  pxTextureRef previousRenderSurface = context.getCurrentRenderSurface();
+  if (context.setRenderSurface(maskTexture) == PX_OK)
+  {
+    context.clear(mw, mh);
+
+    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      if ((*it)->drawAsMask())
+      {
+        (*it)->drawInternal(m, parentAlpha, true);
+      }
+    }
+  }
+
+  if (context.setRenderSurface(drawableTexture) == PX_OK)
+  {
+    context.clear(mw, mh);
+
+    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      if ((*it)->drawEnabled())
+      {
+        (*it)->drawInternal(m, parentAlpha);
+      }
+    }
+  }
+
+  context.setRenderSurface(previousRenderSurface);
+}
+
 void pxObject::deleteSnapshot(pxTextureRef texture)
 {
   if (texture.getPtr() != NULL)
@@ -591,6 +676,9 @@ rtDefineProperty(pxObject, interactive);
 rtDefineProperty(pxObject, painting);
 rtDefineProperty(pxObject, clip);
 rtDefineProperty(pxObject, mask);
+rtDefineProperty(pxObject, drawAsMask);
+rtDefineProperty(pxObject, draw);
+rtDefineProperty(pxObject, drawAsHitTest);
 rtDefineProperty(pxObject, numChildren);
 rtDefineMethod(pxObject, getChild);
 rtDefineMethod(pxObject, remove);
