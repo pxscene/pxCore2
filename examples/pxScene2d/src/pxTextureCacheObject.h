@@ -11,6 +11,12 @@ class pxObject;
 
 class pxFileDownloadRequest;
 
+typedef struct _ImageDownloadRequest
+{
+  pxFileDownloadRequest* fileDownloadRequest;
+  pxTextureRef texture;
+} ImageDownloadRequest;
+
 class pxTextureCacheObject
 {
 public:
@@ -37,9 +43,9 @@ public:
   rtError url(rtString& s) const;
   rtError setURL(const char* s);
 
-  void onFileDownloadComplete(pxFileDownloadRequest* downloadRequest);
+  void onImageDownloadComplete(ImageDownloadRequest imageDownloadRequest);
 
-  static void checkForCompletedDownloads();
+  static void checkForCompletedDownloads(int maxTimeInMilliseconds=10);
   
 protected:
   void loadImage(rtString url);

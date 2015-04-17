@@ -4,6 +4,7 @@
 #include "pxContext.h"
 #include "pxFileDownloader.h"
 #include "pxScene2d.h"
+#include "pxTimer.h"
 
 extern pxContext context;
 
@@ -16,40 +17,64 @@ TextureMap gCompleteTextureCache;
 int gTextureDownloadsPending = 0; //must only be set in the main thread
 rtMutex textureDownloadMutex;
 bool textureDownloadsAvailable = false;
-vector<pxFileDownloadRequest*> completedTextureDownloads;
+vector<ImageDownloadRequest> completedTextureDownloads;
 
 void pxTextureDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
 {
   if (fileDownloadRequest != NULL)
   {
+    ImageDownloadRequest imageDownloadRequest;
+    imageDownloadRequest.fileDownloadRequest = fileDownloadRequest;
+    if (fileDownloadRequest->getDownloadStatusCode() == 0 &&
+        fileDownloadRequest->getHttpStatusCode() == 200 &&
+        fileDownloadRequest->getDownloadedData() != NULL)
+    {
+      pxOffscreen imageOffscreen;
+      if (pxLoadImage(fileDownloadRequest->getDownloadedData(),
+                      fileDownloadRequest->getDownloadedDataSize(),
+                      imageOffscreen) != RT_OK)
+      {
+        rtLogError("Image Decode Failed: %s", fileDownloadRequest->getFileURL().cString());
+      }
+      else
+      {
+        imageDownloadRequest.texture = context.createTexture(imageOffscreen);
+      }
+    }
     textureDownloadMutex.lock();
-    completedTextureDownloads.push_back(fileDownloadRequest);
+    completedTextureDownloads.push_back(imageDownloadRequest);
     textureDownloadsAvailable = true;
     textureDownloadMutex.unlock();
   }
 }
 
-void pxTextureCacheObject::checkForCompletedDownloads()
+void pxTextureCacheObject::checkForCompletedDownloads(int maxTimeInMilliseconds)
 {
+  double startTimeInMs = pxMilliseconds();
   if (gTextureDownloadsPending > 0)
   {
     textureDownloadMutex.lock();
     if (textureDownloadsAvailable)
     {
-      for(vector<pxFileDownloadRequest*>::iterator it = completedTextureDownloads.begin(); it != completedTextureDownloads.end(); ++it)
+      for(vector<ImageDownloadRequest>::iterator it = completedTextureDownloads.begin(); it != completedTextureDownloads.end(); ++it)
       {
-        pxFileDownloadRequest* fileDownloadRequest = (*it);
-        if (!fileDownloadRequest)
+        ImageDownloadRequest imageDownloadRequest = (*it);
+        if (!imageDownloadRequest.fileDownloadRequest)
           continue;
-        if (fileDownloadRequest->getCallbackData() != NULL)
+        if (imageDownloadRequest.fileDownloadRequest->getCallbackData() != NULL)
         {
-          pxTextureCacheObject *textureCacheObject = (pxTextureCacheObject *) fileDownloadRequest->getCallbackData();
-          textureCacheObject->onFileDownloadComplete(fileDownloadRequest);
+          pxTextureCacheObject *textureCacheObject = (pxTextureCacheObject *) imageDownloadRequest.fileDownloadRequest->getCallbackData();
+          textureCacheObject->onImageDownloadComplete(imageDownloadRequest);
         }
 
-        delete fileDownloadRequest;
+        delete imageDownloadRequest.fileDownloadRequest;
         textureDownloadsAvailable = false;
         gTextureDownloadsPending--;
+        double currentTimeInMs = pxMilliseconds();
+        if ((maxTimeInMilliseconds >= 0) && (currentTimeInMs - startTimeInMs > maxTimeInMilliseconds))
+        {
+          //todo
+        }
       }
       completedTextureDownloads.clear();
       if (gTextureDownloadsPending < 0)
@@ -73,23 +98,20 @@ pxTextureCacheObject::~pxTextureCacheObject()
   }
 }
 
-void pxTextureCacheObject::onFileDownloadComplete(pxFileDownloadRequest* downloadRequest)
+void pxTextureCacheObject::onImageDownloadComplete(ImageDownloadRequest imageDownloadRequest)
 {
   mImageDownloadRequest = NULL;
-  if (downloadRequest == NULL)
+  if (imageDownloadRequest.fileDownloadRequest == NULL)
   {
       return;
   }
-  if (downloadRequest->getDownloadStatusCode() == 0 &&
-          downloadRequest->getHttpStatusCode() == 200 &&
-          downloadRequest->getDownloadedData() != NULL)
+  if (imageDownloadRequest.fileDownloadRequest->getDownloadStatusCode() == 0 &&
+      imageDownloadRequest.fileDownloadRequest->getHttpStatusCode() == 200 &&
+      imageDownloadRequest.fileDownloadRequest->getDownloadedData() != NULL)
   {
-      pxOffscreen imageOffscreen;
-      if (pxLoadImage(downloadRequest->getDownloadedData(),
-              downloadRequest->getDownloadedDataSize(),
-              imageOffscreen) != RT_OK)
+      if (imageDownloadRequest.texture.getPtr() == NULL)
       {
-          rtLogError("Image Decode Failed: %s", downloadRequest->getFileURL().cString());
+          rtLogError("Image Decode Failed: %s", imageDownloadRequest.fileDownloadRequest->getFileURL().cString());
           if (mParent != NULL)
           {
             mParent->onTextureReady(this, RT_FAIL);
@@ -97,7 +119,7 @@ void pxTextureCacheObject::onFileDownloadComplete(pxFileDownloadRequest* downloa
       }
       else
       {
-          mTexture = context.createTexture(imageOffscreen);
+          mTexture = imageDownloadRequest.texture;
           gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(),
                   mTexture));
           rtLogDebug("image %d, %d", mTexture->width(), mTexture->height());
@@ -110,9 +132,9 @@ void pxTextureCacheObject::onFileDownloadComplete(pxFileDownloadRequest* downloa
   else
   {
       rtLogWarn("Image Download Failed: %s Error: %s HTTP Status Code: %ld",
-              downloadRequest->getFileURL().cString(),
-              downloadRequest->getErrorString().cString(),
-              downloadRequest->getHttpStatusCode());
+                imageDownloadRequest.fileDownloadRequest->getFileURL().cString(),
+                imageDownloadRequest.fileDownloadRequest->getErrorString().cString(),
+                imageDownloadRequest.fileDownloadRequest->getHttpStatusCode());
       if (mParent != NULL)
       {
         mParent->onTextureReady(this, RT_FAIL);
