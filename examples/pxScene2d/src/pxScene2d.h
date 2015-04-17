@@ -176,7 +176,6 @@ public:
 
   rtError reject(const rtValue& v)
   {
-    printf("reject\n");
     mState = REJECTED;
     mValue = v;
     for (vector<thenData>::iterator it = mThenData.begin();

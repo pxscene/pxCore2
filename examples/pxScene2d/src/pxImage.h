@@ -16,8 +16,14 @@ public:
   rtProperty(xStretch, xStretch, setXStretch, int32_t);
   rtProperty(yStretch, yStretch, setYStretch, int32_t);
   rtProperty(autoSize, autoSize, setAutoSize, bool);
+  rtReadOnlyProperty(ready, ready, rtObjectRef);
   
-pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(), mTextureCacheObject(), mAutoSize(true) { mTextureCacheObject.setParent(this);}
+  pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(), 
+    mTextureCacheObject(), mAutoSize(true) 
+  { 
+    mTextureCacheObject.setParent(this);
+    mReady = new rtPromise;
+  }
 
   virtual ~pxImage() { rtLogInfo("~pxImage()"); }
 
@@ -51,6 +57,12 @@ pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(), mTextureCacheObj
     mAutoSize = v;
     return RT_OK;
   }
+
+  rtError ready(rtObjectRef& v) const
+  {
+    v = mReady;
+    return RT_OK;
+  }
   
   pxTextureRef getTexture()
   {
@@ -68,8 +80,8 @@ protected:
   pxStretch mYStretch;
   pxTextureRef mTexture;
   pxTextureCacheObject mTextureCacheObject;
-  
   bool mAutoSize;
+  rtObjectRef mReady;
 };
 
 #endif

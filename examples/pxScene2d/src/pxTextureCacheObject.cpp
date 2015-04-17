@@ -175,7 +175,10 @@ void pxTextureCacheObject::loadImage(rtString url)
     {
       pxOffscreen imageOffscreen;
       if (pxLoadImage(s, imageOffscreen) != RT_OK)
+      {
         rtLogWarn("image load failed"); // TODO: why?
+        mParent->onTextureReady(this, RT_FAIL);
+      }
       else
       {
         mTexture = context.createTexture(imageOffscreen);

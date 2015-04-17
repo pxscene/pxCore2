@@ -78,7 +78,8 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
         scene     : sceneForChild,
         runtime   : apiForChild,
         process   : process,
-        require   : secureRequire
+        require   : secureRequire,
+        setTimeout: setTimeout,
       };
 
       if (err) {

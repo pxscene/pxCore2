@@ -47,7 +47,7 @@ var url = process.cwd() + "/../../images/select.png";
 select = scene.createImage9({parent:root,url:url,x1:16,y1:16,x2:16,y2:16,
                              w:1368*0.25,h:808*0.25,x:0,y:0,interactive:false});
 
-scene.on('onKeyDown', function(e) {
+scene.root.on('onKeyDown', function(e) {
   if (e.keyCode == 32) {
       root.painting = !root.painting;
   }

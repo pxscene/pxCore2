@@ -197,7 +197,7 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
           a.ended.send(this);
 
         if (a.promise)
-          a.promise.send("resolve","Hello");
+          a.promise.send("resolve",this);
       }
       else
       {
@@ -286,7 +286,7 @@ void pxObject::update(double t)
         if (a.ended)
           a.ended.send(this);
         if (a.promise)
-          a.promise.send("resolved","Hello");
+          a.promise.send("resolved",this);
 
         // Erase making sure to push the iterator forward before
         it = mAnimations.erase(it);

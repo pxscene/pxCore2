@@ -53,10 +53,12 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
 {
   if (pxObject::onTextureReady(textureCacheObject, status))
   {
+    mReady.send("resolve",this);
     return true;
   }
   else if (textureCacheObject != NULL && status == RT_OK)
   {
+    mReady.send("resolve",this);
     mTexture = textureCacheObject->getTexture();
     if (mAutoSize && mTexture.getPtr() != NULL)
     {
@@ -70,12 +72,15 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
     mEmit.send("onReady", e);
     return true;
   }
+  mReady.send("reject",this);
   return false;
 }
 
-rtDefineObject(pxImage, pxObject);
-rtDefineProperty(pxImage, url);
-rtDefineProperty(pxImage, xStretch);
-rtDefineProperty(pxImage, yStretch);
-rtDefineProperty(pxImage, autoSize);
+rtDefineObject(pxImage,pxObject);
+rtDefineProperty(pxImage,url);
+rtDefineProperty(pxImage,xStretch);
+rtDefineProperty(pxImage,yStretch);
+rtDefineProperty(pxImage,autoSize);
+rtDefineProperty(pxImage,ready);
+
 

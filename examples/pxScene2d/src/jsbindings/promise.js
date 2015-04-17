@@ -6,13 +6,26 @@ var o = scene.create({t:"rect",fillColor:0xffffffff,w:300,h:300,parent:root,cx:1
   {t:"rect",fillColor:0x0000ffff,w:100,h:100,x:200,y:200},
 ]})
 
-o.animateToP({r:360},1,scene.PX_LINEAR,scene.PX_END)
-  .then(function(v) {
-      console.log('Im finally here:' + v);
-    });
+var a1 = o.animateToP({r:360},1,scene.PX_LINEAR,scene.PX_END)
+  .then(function(z) {
+      console.log('Im finally here:'+z);
+    z.animateToP({sx:2.0,sy:2.0},1,scene.PX_LINEAR,scene.PX_END);
+    return z;
+    })
+  .then(function(z) {
+    console.log("chained promise",z);
+    return "test";
+  })
+.then(function(y) {
+  console.log("foo: ", y);
+});
 
-//
-//    console.log('promise completed with:' + v);
-//    o.children[1].animateTo({r:-360},1,scene.PX_LINEAR,scene.PX_LOOP)
-//  });
+
+var a2 = o.children[1].animateToP({r:-360},6,scene.PX_LINEAR,scene.PX_END)
+  .then(function() {
+    console.log("child animation done");
+});
+
+
+Promise.all([a1,a2]).then(function() {console.log("all animations complete");});
 
