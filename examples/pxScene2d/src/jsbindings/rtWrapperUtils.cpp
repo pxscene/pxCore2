@@ -2,9 +2,47 @@
 #include "rtObjectWrapper.h"
 #include "rtFunctionWrapper.h"
 
-// #include <rtMutex.h> // non-recusrive
+#include <rtMutex.h>
 
 static pthread_mutex_t sSceneLock = PTHREAD_MUTEX_INITIALIZER;
+static rtMutex objectMapMutex;
+
+typedef std::map< rtIObject*, Persistent<Object>* > maptype_rt2v8;
+
+maptype_rt2v8 objectMap_rt2v8;
+
+void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
+{
+  rtMutexLockGuard lock(objectMapMutex);
+  maptype_rt2v8::iterator itr = objectMap_rt2v8.find(data.GetParameter());
+  if (itr != objectMap_rt2v8.end())
+    objectMap_rt2v8.erase(itr);
+}
+
+void HandleMap::addWeakReference(Isolate* isolate, const rtObjectRef& from, Local<Object>& to)
+{
+  Persistent<Object>* h(new Persistent<Object>(isolate, to));
+  h->SetWeak(from.getPtr(), &weakCallback_rt2v8);
+
+  rtMutexLockGuard lock(objectMapMutex);
+  objectMap_rt2v8.insert(std::make_pair(from.getPtr(), h));
+}
+
+Local<Object> HandleMap::lookupSurrogate(v8::Isolate* isolate, const rtObjectRef& from)
+{
+  Local<Object> obj;
+
+  rtMutexLockGuard lock(objectMapMutex);
+  maptype_rt2v8::iterator itr = objectMap_rt2v8.find(from.getPtr());
+  if (itr != objectMap_rt2v8.end())
+  {
+    Persistent<Object>* p = itr->second;
+    if (p)
+      obj = PersistentToLocal(isolate, *p);
+  }
+
+  return obj;
+}
 
 void rtWrapperSceneUpdateEnter()
 {

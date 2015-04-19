@@ -88,12 +88,21 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(Isolate* isolate, cons
     }
   }
 
+  Local<Object> obj = HandleMap::lookupSurrogate(isolate, ref);
+  if (!obj.IsEmpty())
+    return scope.Escape(obj);
+
   Local<Value> argv[1] = 
   { 
     External::New(isolate, ref.getPtr()) 
   };
+
   Local<Function> func = PersistentToLocal(isolate, ctor);
-  return scope.Escape(func->NewInstance(1, argv));
+  obj = func->NewInstance(1, argv);
+
+  HandleMap::addWeakReference(isolate, ref, obj);
+
+  return scope.Escape(obj);
 }
 
 rtValue rtObjectWrapper::unwrapObject(const Local<Object>& obj)

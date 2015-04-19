@@ -10,6 +10,7 @@
 
 #include <stdarg.h>
 #include <string>
+#include <map>
 #include <memory>
 
 template<class T>
@@ -171,6 +172,14 @@ protected:
 rtValue js2rt(v8::Isolate* isolate, const v8::Handle<v8::Value>& val, rtWrapperError* error);
 
 v8::Handle<v8::Value> rt2js(v8::Isolate* isolate, const rtValue& val);
+
+
+class HandleMap
+{
+public:
+  static void addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, v8::Local<v8::Object>& to);
+  static v8::Local<v8::Object> lookupSurrogate(v8::Isolate* isolate, const rtObjectRef& from);
+};
 
 
 void rtWrapperSceneUpdateEnter();
