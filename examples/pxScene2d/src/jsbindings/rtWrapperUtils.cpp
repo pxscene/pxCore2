@@ -16,7 +16,16 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
   rtMutexLockGuard lock(objectMapMutex);
   maptype_rt2v8::iterator itr = objectMap_rt2v8.find(data.GetParameter());
   if (itr != objectMap_rt2v8.end())
+  {
+    Persistent<Object>* p = itr->second;
+    assert(p->IsWeak());
+    if (p)
+    {
+      p->Reset();
+      delete p;
+    }
     objectMap_rt2v8.erase(itr);
+  }
 }
 
 void HandleMap::addWeakReference(Isolate* isolate, const rtObjectRef& from, Local<Object>& to)
