@@ -52,7 +52,7 @@ function fancy(o) {
 
 fancy(ball);
 
-scene.root.on("onMouseMove", function(e) {
+scene.on("onMouseMove", function(e) {
   txt1.text = "" + e.x+ ", " + e.y;
 });
 

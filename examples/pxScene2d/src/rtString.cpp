@@ -85,6 +85,9 @@ const char* rtString::cString() const {
 
 //HACK: missing symbol. Is this utf8?
 int32_t rtString::length() const {
-  return mData ? strlen(mData) : 0;
+  return mData?u8_strlen(mData):0;
 }
 
+int32_t rtString::byteLength() const {
+  return mData?strlen(mData):0;
+}

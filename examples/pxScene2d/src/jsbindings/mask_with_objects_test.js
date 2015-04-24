@@ -18,14 +18,22 @@ url = process.cwd() + "/../../images/ball.png";
 var ball = scene.createImage({url:url,parent:rect,clip:false, draw:true});
 ball.x = 0;
 ball.y = 0;
+rect.w = ball.w;
+rect.h = ball.h;
 
 
-var childText = scene.createText({text:"Hello There!!!",parent:rect,textColor:0xff0000ff,pixelSize:64,drawAsMask:true,draw:false});
+url = process.cwd() + "/../../images/postermask2.png";
+var logo = scene.createImage({url:url,parent:rect,drawAsMask:true,draw:false});
+
+var childText = scene.createText({text:"Hello There!!!",parent:logo,textColor:0xff0000ff,pixelSize:64});
 childText.y = 0;
 childText.x = 0;
-childText.cx = childText.w/2;
-childText.cy = childText.h/2;
-childText.animateTo({"r":360}, 10, 0, 2);
+logo.x = (ball.w-logo.w)/2;
+logo.y = (ball.h-logo.h)/2
+logo.cx = logo.w/2;
+logo.cy = logo.h/2;
+logo.animateTo({r:360}, 10, 0, 2);
+
 
 function fancy(o) {
   var startX = 450;

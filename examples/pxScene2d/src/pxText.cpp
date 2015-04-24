@@ -245,6 +245,7 @@ pxText::pxText() {
   memcpy(mTextColor, c, sizeof(mTextColor));
   mFace = gFace;
   mPixelSize = defaultPixelSize;
+  mDirty = true;
 }
 
 rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }

@@ -7,7 +7,7 @@ var bg = scene.createImage({url:url,xStretch:2,yStretch:2,parent:root});
 url = process.cwd() + "/../../images/radial_gradient.png";
 var bgShade = scene.createImage({url:url,xStretch:1,yStretch:1,parent:root});
 
-var txt1 = scene.createText({x:10,text:"",parent:root});
+var txt1 = scene.createText({x:10,text:"",parent:root,pixelSize:64});
 
 url = process.cwd() + "/../../images/ball.png"
 var ball = scene.createImage({url:url,parent:root});
@@ -44,12 +44,8 @@ function fancy(o) {
 
 fancy(ball);
 
-scene.on('keydown', function(code, flags) {
-  console.log("keydown:" + code);
-});
-
-scene.on("mousemove", function(x, y) {
-    txt1.text = "" + x+ ", " + y;
+scene.on("onMouseMove", function(e) {
+    txt1.text = "" + e.x + ", " + e.y;
 });
 
 function updateSize(w, h) {

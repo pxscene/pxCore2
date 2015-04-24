@@ -69,16 +69,17 @@ function doIt() {
     
     var url = getImageURL();
     var picture;
-    picture = scene.createImage({parent: pictures, x: -1000, y: 
-                                 randomInt(-200, 800), cx: 200, 
-                                 cy: 200, sx: 2, sy: 2, 
+    picture = scene.createImage({parent: pictures, x:(randomInt(0,1)==0)?-1000:scene.w+2000, 
+                                 y:randomInt(-200, 800), cx: 200, 
+                                 cy:200, sx: 2, sy: 2, 
                                  r: randomInt(-45,45), url:url});
     
     picture.ready.then(function(){
-      picture.animateToP({x:randomInt(100, 300),y:randomInt(0,100),
-                          r:randomInt(-15,15),sx:0.75,sy:0.75}, 1, pxStop, 0)
+      picture.animateToP({x:randomInt(50,scene.w-picture.w-50),
+                          y:randomInt(50,scene.h-picture.h-50),
+                          r:randomInt(-15,15),sx:0.75,sy:0.75},1,pxStop,0)
         .then(function() {
-          if (pictures.numChildren > 10) {
+          if (pictures.numChildren > 30) {
             var f = pictures.getChild(0);
             f.animateToP({a: 0}, 0.75, 0, 0)
               .then(function(f){
