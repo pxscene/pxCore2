@@ -21,8 +21,16 @@
 #include <string>
 #include <vector>
 
+// TODO figure out what to do with rtLog
+#if 0
 #include "rtLog.h"
-
+#else
+#define rtLogWarn printf
+#define rtLogError printf
+#define rtLogFatal printf
+#define rtLogInfo printf
+#define rtLogDebug printf
+#endif
 static const char* kDevInputByPath = "/dev/input/by-path/";
 static const char* kDevInput       = "/dev/input";
 static const int   kMaxOpendirTries = 3;
@@ -406,11 +414,14 @@ private:
     DIR* dir = opendir(kDevInputByPath);
     if (!dir)
     {
+// TODO figure out what to do with rtLog
+#if 0
       int err = errno;
       rtLogLevel level = RT_LOG_DEBUG;
       if (err != ENOENT)
         level = RT_LOG_WARN;
       rtLog(level, "failed to open %s: %s", kDevInputByPath, getSystemError(err).c_str());
+#endif
       return std::vector<std::string>();
     }
 
@@ -460,6 +471,7 @@ private:
   static pxKeyModifier getKeyModifier(const input_event& e)
   {
     const int code = e.code;
+
     if (code == KEY_LEFTCTRL || code == KEY_RIGHTCTRL)    return pxKeyModifierCtrl;
     if (code == KEY_LEFTSHIFT || code == KEY_RIGHTSHIFT)  return pxKeyModifierShift;
     if (code == KEY_LEFTALT || code == KEY_RIGHTALT)      return pxKeyModifierAlt;
@@ -547,6 +559,8 @@ private:
       evt.type = pxMouseEventTypeButton;
       evt.button.state = getKeyState(e);
       evt.button.button = getMouseButton(e);
+      evt.button.x = mMouseX;
+      evt.button.y = mMouseY;
     }
     else
     {
@@ -555,7 +569,7 @@ private:
       evt.move.y = mMouseY;
     }
 
-    // rtLogDebug("mouse button {code:%d value:%d}", e.code, e.value);
+    //     rtLogDebug("mouse button {code:%d value:%d}", e.code, e.value);
     for (mouse_listeners::const_iterator i = mMouseCallbacks.begin(); i !=
       mMouseCallbacks.end(); ++i)
     {

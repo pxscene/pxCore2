@@ -7,16 +7,21 @@
 #include "../pxOffscreen.h"
 #include "pxWindowNative.h"
 
+void pxEventLoop::runOnce()
+{
+  pxWindowNative::runEventLoopOnce();
+}
+
 void pxEventLoop::run()
 {
-    // For now we delegate off to the x11 pxWindowNative class
-    pxWindowNative::runEventLoop();
+  // For now we delegate off to the x11 pxWindowNative class
+  pxWindowNative::runEventLoop();
 }
 
 void pxEventLoop::exit()
 {
-    // For now we delegate off to the x11 pxWindowNative class
-    pxWindowNative::exitEventLoop();
+  // For now we delegate off to the x11 pxWindowNative class
+  pxWindowNative::exitEventLoop();
 }
 
 

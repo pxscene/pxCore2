@@ -16,7 +16,7 @@ struct EventLoopContext
 
 // TODO on OSX run the windows event loop on the main thread and use
 // a timer to pump messages
-#ifndef __APPLE__
+#ifndef RUNINMAIN
 static void* processEventLoop(void* argp)
 {
   EventLoopContext* ctx = reinterpret_cast<EventLoopContext *>(argp);
@@ -68,7 +68,7 @@ public:
     uv_timer_init(uv_default_loop(), &mTimer);
     
     // TODO experiment crank up the timers so we can pump cocoa messages on main thread
-    #ifdef __APPLE__
+    #ifdef RUNINMAIN
     uv_timer_start(&mTimer, timerCallback, 0, 5);
     #else
     uv_timer_start(&mTimer, timerCallback, 1000, 1000);
@@ -82,7 +82,7 @@ public:
 
   void startEventProcessingThread()
   {
-#ifdef __APPLE__
+#ifdef RUNINMAIN
     gLoop = mEventLoop;
 #else
     EventLoopContext* ctx = new EventLoopContext();
@@ -100,7 +100,7 @@ protected:
   static void timerCallback(uv_timer_t* )
   {
 
-    #ifdef __APPLE__
+    #ifdef RUNINMAIN
     if (gLoop)
       gLoop->runOnce();
     #else
@@ -171,7 +171,7 @@ private:
   pxEventLoop* mEventLoop;
   Persistent<Object> mJavaScene;
 
-#ifndef __APPLE__
+#ifndef RUNINMAIN
   pthread_t mEventLoopThread;
 #endif
 

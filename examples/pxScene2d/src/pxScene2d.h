@@ -33,7 +33,7 @@ using namespace std;
 #include "pxTexture.h"
 #include "pxTextureCacheObject.h"
 
-#include "pxTransform.h"
+//#include "pxTransform.h"
 
 
 // Interpolator constants

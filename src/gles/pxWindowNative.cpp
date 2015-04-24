@@ -1,6 +1,5 @@
 #include "pxCore.h"
 #include "pxWindowNative.h"
-#include "rtLog.h"
 #include "../pxCore.h"
 #include "../pxWindow.h"
 #include "../pxWindowUtil.h"
@@ -16,6 +15,16 @@
 #include <stdio.h>
 #include <assert.h>
 
+// TODO figure out what to do with rtLog
+#if 0
+#include "rtLog.h"
+#else
+#define rtLogWarn printf
+#define rtLogError printf
+#define rtLogFatal printf
+#define rtLogInfo printf
+#endif
+
 #define EGL_PX_CORE_FPS 30
 
 vector<pxWindowNative*> pxWindowNative::mWindowVector;
@@ -23,8 +32,8 @@ bool pxWindowNative::mEventLoopTimerStarted = false;
 float pxWindowNative::mEventLoopInterval = 1000.0 / (float)EGL_PX_CORE_FPS;
 timer_t pxWindowNative::mRenderTimerId;
 
-extern "C" pxEGLProvider* pxCreateEGLProvider();
-extern "C" void pxDestroyEGLProvider(pxEGLProvider* provider);
+pxEGLProvider* pxCreateEGLProvider();
+void pxDestroyEGLProvider(pxEGLProvider* provider);
 
 bool exitFlag = false;
 
@@ -38,8 +47,8 @@ typedef void (*EGLProviderDestroyFunction)(pxEGLProvider *);
 static EGLProviderFunction createEGLProvider = NULL;
 static EGLProviderDestroyFunction destroyEGLProvider = NULL;
 
-extern "C" pxEGLProvider* pxCreateEGLProvider();
-extern "C" void pxDestroyEGLProvider(pxEGLProvider* provider);
+pxEGLProvider* pxCreateEGLProvider();
+void pxDestroyEGLProvider(pxEGLProvider* provider);
 
 static void* findSymbol(const char* libname, const char* function)
 {
@@ -240,16 +249,15 @@ void pxWindow::setVisibility(bool visible)
   mVisible = visible;
 }
 
-pxError pxWindow::setAnimationFPS(long fps)
+pxError pxWindow::setAnimationFPS(uint32_t fps)
 {
   mTimerFPS = fps;
   mLastAnimationTime = pxMilliseconds();
   return PX_OK;
 }
 
-void pxWindow::setTitle(char* title)
+void pxWindow::setTitle(const char* /*title*/)
 {
-  (void)title;
   //todo
 }
 
@@ -325,6 +333,18 @@ int pxWindowNative::stopAndDeleteEventLoopTimer()
   }
   mEventLoopTimerStarted = false;
   return returnValue;
+}
+
+void pxWindowNative::runEventLoopOnce()
+{
+    vector<pxWindowNative*> windowVector = pxWindowNative::getNativeWindows();
+  vector<pxWindowNative*>::iterator i;
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    w->animateAndRender();
+  }
+  usleep(1000); //TODO - find out why pxSleepMS causes a crash on xi3
 }
 
 void pxWindowNative::runEventLoop()

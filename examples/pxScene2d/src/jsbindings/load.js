@@ -175,6 +175,22 @@ if (argv.length >= 3) {
     });
 
 
+  // Cursor emulation mostly for egl targets right now.
+
+  // hacky raspberry pi detection
+  var os = require("os");
+  var hostname = os.hostname();
+  
+  if (hostname == "raspberrypi") {
+    var cursor = scene.createImage({url:"cursor.png",parent:scene.root,
+				                            interactive:false});
+    
+    scene.on("onMouseMove", function(e) {
+	    cursor.x = e.x-23;
+	    cursor.y = e.y-10;
+    });
+  }
+
     scene.root.on("onPreKeyDown", function(e) {
       console.log("in onKeyDown");
 	    var code = e.keyCode; var flags = e.flags;

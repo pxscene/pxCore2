@@ -1,0 +1,35 @@
+# pxCore FrameBuffer Library
+# Simple OpenGL Example
+
+OUTDIR=../../build/egl
+
+# egl supported targets
+# raspberry pi (rpi)
+
+# determine target
+UNAME := $(shell uname -s)
+HNAME := $(shell hostname) 
+
+ifeq ($(HNAME),raspberrypi )
+TARGET=rpi
+TARGETINCLUDE= -I/opt/vc/include \
+-I/opt/vc/include/interface/vcos/pthreads \
+-I/opt/vc/include/interface/vmcs_host/linux
+TARGETLIB=-lGLESv2 -lEGL -L/opt/vc/lib -lbcm_host -lvcos
+else
+$(error Unsupported Target)
+endif
+
+CFLAGS= -DPX_PLATFORM_GENERIC_EGL -Wall -O3 -g
+INCPATH= -I../../src $(TARGETINCLUDE)
+LIBS= $(SUBLIBS) -lpxCore -lrt -lm -ldl -lpthread $(TARGETLIB)
+
+all: $(OUTDIR)/SimpleOpenGL
+clean:
+	rm $(OUTDIR)/SimpleOpenGL
+
+$(OUTDIR)/SimpleOpenGL: SimpleOpenGL.cpp 
+	$(CXX) -o $(OUTDIR)/SimpleOpenGL $(CFLAGS) $(INCPATH) SimpleOpenGL.cpp -L$(OUTDIR) $(LIBS)
+
+
+

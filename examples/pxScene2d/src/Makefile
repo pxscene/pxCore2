@@ -4,11 +4,20 @@ clean:
 	rm -rf $(OBJDIR)
 	rm -f gl2d
 
-
-
 UNAME_S := $(shell uname -s)
+HNAME_S := $(shell hostname) 
 
-
+ifeq ($(HNAME_S),raspberrypi ) 
+PX_PLATFORM=PX_PLATFORM_GENERIC_EGL
+PXLIBS=$(PXCOREDIR)/build/egl
+TARGETINCLUDE= -I/opt/vc/include \
+  -I/opt/vc/include/interface/vcos/pthreads \
+  -I/opt/vc/include/interface/vmcs_host/linux
+else
+PX_PLATFORM=PX_PLATFORM_GLUT
+PXLIBS=$(PXCOREDIR)/build/glut
+TARGETINCLUDE=
+endif
 
 VPATH=linux
 RT_SRCS=\
@@ -43,7 +52,6 @@ PX_SRCS=\
 EXTDIR=../external
 PXCOREDIR=../../..
 PXHDRS=$(PXCOREDIR)/src
-PXLIBS=$(PXCOREDIR)/build/glut
 
 SEARCH=\
   -Ilinux \
@@ -51,9 +59,10 @@ SEARCH=\
   -I$(EXTDIR)/curl/include \
   -I$(EXTDIR)/ft/include \
   -I$(EXTDIR)/png \
-  -I$(PXHDRS)
+  -I$(PXHDRS) \
+	$(TARGETINCLUDE)
 
-CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT
+CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) 
 
 LDPNG   = -L$(EXTDIR)/png/.libs -lpng16
 ifeq ($(UNAME_S),Darwin)
@@ -68,7 +77,11 @@ LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL)
 ifeq ($(UNAME_S),Darwin)
 LDFLAGS = -L$(PXLIBS) -lpxCore $(LDEXT) -framework GLUT -framework OpenGL -ldl
 else
+ifeq ($(HNAME_S),raspberrypi )
+LDFLAGS = -L$(PXLIBS) -lpxCore -pthread -lGLESv2 $(LDEXT) -ldl -lEGL -lrt -L/opt/vc/lib -lvcos -lbcm_host
+else
 LDFLAGS = -L$(PXLIBS) -lpxCore -pthread -lglut -lGL -lGLEW $(LDEXT) -ldl
+endif
 endif
 
 OBJDIR=obj

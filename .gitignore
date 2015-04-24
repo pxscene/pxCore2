@@ -10,12 +10,19 @@ examples/pxScene2d/external/libpng-1.6.12/Makefile
 examples/pxScene2d/external/libpng-1.6.12/config.h
 examples/pxScene2d/external/libpng-1.6.12/config.status
 examples/pxScene2d/external/libpng-1.6.12/libtool/*
+examples/pxScene2d/external/libpng-1.6.12/libtool
+examples/pxScene2d/external/libpng-1.6.12/arm/*
+
 /examples/pxScene2d/external/freetype-2.5.3/builds/unix/freetype-config
 examples/pxScene2d/external/freetype-2.5.3/builds/unix/config.status
 examples/pxScene2d/external/freetype-2.5.3/builds/unix/libtool
 examples/pxScene2d/external/freetype-2.5.3/builds/unix/config.log
 examples/pxScene2d/external/freetype-2.5.3/builds/unix/unix-cc.mk
 examples/pxScene2d/external/freetype-2.5.3/builds/unix/unix-def.mk
+examples/pxScene2d/external/freetype-2.5.3/builds/unix/ftconfig.h
+
+examples/pxScene2d/external/jpeg-9a/jconfig.h
+
 
 examples/pxScene2d/external/curl-7.40.0/config.log
 examples/pxScene2d/external/curl-7.40.0/config.status
