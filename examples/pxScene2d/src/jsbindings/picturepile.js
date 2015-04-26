@@ -38,7 +38,10 @@ function getImageURL() {
 	    "http://farm4.static.flickr.com/3307/5767175230_b5d2bf2312_z.jpg",
 	    "http://farm6.static.flickr.com/5263/5793867021_3e1d5d3aae_z.jpg",
 	    "http://farm3.static.flickr.com/2454/3594278573_500f415e39_z.jpg",
-	    "http://farm3.static.flickr.com/2415/2087329111_dd29709847.jpg"
+	    "http://farm3.static.flickr.com/2415/2087329111_dd29709847.jpg",
+      "http://c2.staticflickr.com/4/3707/9393275293_a108ed698a_b.jpg",
+      "http://c2.staticflickr.com/8/7524/15571693270_9c5b3555b6_c.jpg",
+      "http://c1.staticflickr.com/3/2925/13963178756_980d79b8a6_z.jpg",
 	  ];
     return urls[randomInt(0,urls.length-1)];
   }
@@ -79,7 +82,7 @@ function doIt() {
                           y:randomInt(50,scene.h-picture.h-50),
                           r:randomInt(-15,15),sx:0.75,sy:0.75},1,pxStop,0)
         .then(function() {
-          if (pictures.numChildren > 30) {
+          if (pictures.numChildren > 15) {
             var f = pictures.getChild(0);
             f.animateToP({a: 0}, 0.75, 0, 0)
               .then(function(f){
