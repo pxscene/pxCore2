@@ -99,29 +99,7 @@ public:
   rtError pixelSize(uint32_t& v) const { v = mPixelSize; return RT_OK; }
   rtError setPixelSize(uint32_t v);
 
-  virtual void update(double t)
-  {
-    pxObject::update(t);
-    
-#if 1
-    if (mDirty)
-    {
-      // TODO magic number
-      if (mText.length() >= 5)
-      {
-        setPainting(true);
-        setPainting(false);
-      }
-      else
-        setPainting(true);
-
-      mDirty = false;
-    }
-#else
-    mDirty = false;
-#endif
-
-  }
+  virtual void update(double t);
 
   virtual rtError Set(const char* name, const rtValue* value)
   {
@@ -150,6 +128,7 @@ public:
   float mTextColor[4];
   uint32_t mPixelSize;
   bool mDirty;
+  pxTextureRef mCached;
 };
 
 #endif

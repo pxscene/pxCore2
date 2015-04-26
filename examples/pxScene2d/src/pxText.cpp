@@ -263,8 +263,60 @@ rtError pxText::setPixelSize(uint32_t v)
   return RT_OK; 
 }
 
+
+        
+void pxText::update(double t)
+{
+  pxObject::update(t);
+  
+#if 1
+  if (mDirty)
+  {
+#if 0
+    // TODO magic number
+    if (mText.length() >= 5)
+    {
+      setPainting(true);
+      setPainting(false);
+    }
+    else
+      setPainting(true);
+#else
+    if (mText.length() >= 5)
+    {
+      mCached = NULL;
+      pxTextureRef cached = context.createContextSurface(mw,mh);
+      if (cached.getPtr())
+      {
+        pxTextureRef previousSurface = context.getCurrentRenderSurface();
+        cached->enablePremultipliedAlpha(true);
+        context.setRenderSurface(cached);
+        pxMatrix4f m;
+        context.setMatrix(m);
+        context.setAlpha(ma);
+        context.clear(mw,mh);
+        draw();
+        context.setRenderSurface(previousSurface);
+        mCached = cached;
+      }
+    }
+    else mCached = NULL;
+    
+#endif
+    
+    mDirty = false;
+    }
+#else
+  mDirty = false;
+#endif
+  
+}
+
 void pxText::draw() {
-  mFace->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
+  if (mCached.getPtr())
+    context.drawImage(0,0,mw,mh,mCached,pxTextureRef(),PX_NONE,PX_NONE);
+  else
+    mFace->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
 }
 
 rtError pxText::setFaceURL(const char* s)
