@@ -6,9 +6,9 @@
 enum pxKeyModifier
 {
   pxKeyModifierNone   = 0,
-  pxKeyModifierAlt    = 1,
-  pxKeyModifierCtrl   = 2,
-  pxKeyModifierShift  = 4
+  pxKeyModifierCtrl   = 0x10,
+  pxKeyModifierAlt    = 0x20,
+  pxKeyModifierShift  = 0x30
 };
 
 enum pxKeyState

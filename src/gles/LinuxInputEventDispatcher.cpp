@@ -100,7 +100,8 @@ class LinuxInputEventDispatcher : public pxInputDeviceEventProvider
 public:
 
   LinuxInputEventDispatcher()
-    : mMouseX(0)
+    : mModifiers(0)
+    , mMouseX(0)
     , mMouseY(0)
     , mMouseAccelerator(3)
     , mMouseMoved(false)
