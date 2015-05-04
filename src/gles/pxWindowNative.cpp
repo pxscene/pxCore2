@@ -460,8 +460,6 @@ void pxWindowNative::mouseEventListener(const pxMouseEvent& evt, void* argp)
   {
     // rtLogInfo("mouse %s {x:%d y:%d}",
     //   (evt.button.state == pxKeyStatePressed ? "press" : "release"), evt.button.x, evt.button.y);
-
-    // TODO: Is that 3rd arg supposed to be the current keyboard modifiers?
     if (evt.button.state == pxKeyStatePressed)
       p->onMouseDown(evt.button.x, evt.button.y, evt.modifiers);
     else if (evt.button.state == pxKeyStateRelease)
