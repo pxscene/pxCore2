@@ -440,7 +440,7 @@ void pxWindowNative::unregisterWindow(pxWindowNative* p)
 void pxWindowNative::keyEventListener(const pxKeyEvent& evt, void* argp)
 {
   pxWindowNative* p = reinterpret_cast<pxWindowNative *>(argp);
-  if (evt.state == pxKeyStatePressed)
+  if (evt.state == pxKeyStatePressed || evt.state == pxKeyStateRepeat)
     p->onKeyDown(keycodeFromNative(evt.code), evt.modifiers);
   else if (evt.state == pxKeyStateRelease)
     p->onKeyUp(keycodeFromNative(evt.code), evt.modifiers);
