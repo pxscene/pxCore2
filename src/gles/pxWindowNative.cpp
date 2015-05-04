@@ -344,6 +344,8 @@ void pxWindowNative::runEventLoopOnce()
     pxWindowNative* w = (*i);
     w->animateAndRender();
   }
+
+  // TODO: Why are we sleeping? 
   usleep(1000); //TODO - find out why pxSleepMS causes a crash on xi3
 }
 
@@ -461,9 +463,9 @@ void pxWindowNative::mouseEventListener(const pxMouseEvent& evt, void* argp)
 
     // TODO: Is that 3rd arg supposed to be the current keyboard modifiers?
     if (evt.button.state == pxKeyStatePressed)
-      p->onMouseDown(evt.button.x, evt.button.y, 0);
+      p->onMouseDown(evt.button.x, evt.button.y, evt.modifiers);
     else if (evt.button.state == pxKeyStateRelease)
-      p->onMouseUp(evt.button.x, evt.button.y, 0);
+      p->onMouseUp(evt.button.x, evt.button.y, evt.modifiers);
   }
 }
 

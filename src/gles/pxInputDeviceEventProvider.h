@@ -11,6 +11,8 @@ enum pxKeyModifier
   pxKeyModifierAlt    = 0x20,
 };
 
+typedef uint8_t pxKeyModifierSet;
+
 enum pxKeyState
 {
   pxKeyStateRelease = 0,
@@ -34,7 +36,7 @@ struct pxKeyEvent
   pxKeyState state;
 
   // flags or'd together from pxKeyModifier
-  uint8_t modifiers;
+  pxKeyModifierSet modifiers;
 };
 
 enum pxMouseEventType
@@ -46,6 +48,7 @@ enum pxMouseEventType
 struct pxMouseEvent
 {
   pxMouseEventType type;
+  pxKeyModifierSet modifiers;
 
   union 
   {
