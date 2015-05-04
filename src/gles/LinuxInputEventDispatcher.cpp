@@ -558,6 +558,7 @@ private:
     if (isButtonPress)
     {
       evt.type = pxMouseEventTypeButton;
+      evt.modifiers = mModifiers;
       evt.button.state = getKeyState(e);
       evt.button.button = getMouseButton(e);
       evt.button.x = mMouseX;
