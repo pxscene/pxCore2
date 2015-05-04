@@ -18,7 +18,13 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
   if (itr != objectMap_rt2v8.end())
   {
     Persistent<Object>* p = itr->second;
-    assert(p->IsWeak());
+    // TODO: Removing this temproarily until we understand how this callback works. I
+    // would have assumed that this is a weak persistent since we called SetWeak() on it
+    // before inserting it into the objectMap_rt2v8 map.
+    // assert(p->IsWeak());
+    //
+    if (!p->IsWeak())
+      rtLogWarn("TODO: Why isn't this handle weak?");
     if (p)
     {
       p->Reset();
