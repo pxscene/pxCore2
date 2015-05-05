@@ -7,6 +7,7 @@
 
 #include <dlfcn.h>
 #include <errno.h>
+#include <algorithm>
 #include <vector>
 #include <unistd.h>
 #include <signal.h>
@@ -27,10 +28,24 @@
 
 #define EGL_PX_CORE_FPS 30
 
-vector<pxWindowNative*> pxWindowNative::mWindowVector;
 bool pxWindowNative::mEventLoopTimerStarted = false;
 float pxWindowNative::mEventLoopInterval = 1000.0 / (float)EGL_PX_CORE_FPS;
 timer_t pxWindowNative::mRenderTimerId;
+
+typedef std::vector<pxWindowNative *> window_vector_t;
+static window_vector_t sWindowVector;
+
+static void registerWindow(pxWindowNative* win)
+{
+  sWindowVector.push_back(win);
+}
+
+static void unregisterWindow(pxWindowNative* win)
+{
+  window_vector_t::iterator i = std::find(sWindowVector.begin(), sWindowVector.end(), win);
+  if (i != sWindowVector.end())
+    sWindowVector.erase(i);
+}
 
 pxEGLProvider* pxCreateEGLProvider();
 void pxDestroyEGLProvider(pxEGLProvider* provider);
@@ -159,17 +174,12 @@ static EGLConfig chooseEGLConfig(EGLDisplay display)
 }
 #endif
 
-static void onWindowTimerFired( int sig, siginfo_t *si, void *uc )
+static void onWindowTimerFired(int /*sig*/, siginfo_t* /*si*/, void* /*uc*/)
 {
-  (void)sig;
-  (void)si;
-  (void)uc;
-  vector<pxWindowNative*> windowVector = pxWindowNative::getNativeWindows();
-  vector<pxWindowNative*>::iterator i;
-  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  for (window_vector_t::iterator i = sWindowVector.begin(); i != sWindowVector.end(); ++i)
   {
-    pxWindowNative* w = (*i);
-    w->animateAndRender();
+    pxWindowNative* win = (*i);
+    win->animateAndRender();
   }
 }
 
@@ -200,12 +210,10 @@ pxWindowNative::~pxWindowNative()
   unregisterWindow(this);
 
   destroyPlatformEGLProvider(mEGLProvider);
-
 }
 
 pxError pxWindow::init(int left, int top, int width, int height)
 {
-
   (void)left;
   (void)top;
   mLastWidth = width;
@@ -337,12 +345,10 @@ int pxWindowNative::stopAndDeleteEventLoopTimer()
 
 void pxWindowNative::runEventLoopOnce()
 {
-    vector<pxWindowNative*> windowVector = pxWindowNative::getNativeWindows();
-  vector<pxWindowNative*>::iterator i;
-  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  for (window_vector_t::iterator i = sWindowVector.begin(); i != sWindowVector.end(); ++i)
   {
-    pxWindowNative* w = (*i);
-    w->animateAndRender();
+    pxWindowNative* win = (*i);
+    win->animateAndRender();
   }
 
   // TODO: Why are we sleeping? 
@@ -357,15 +363,12 @@ void pxWindowNative::runEventLoop()
 
   while(!exitFlag)
   {
-    vector<pxWindowNative*> windowVector = pxWindowNative::getNativeWindows();
-  vector<pxWindowNative*>::iterator i;
-  for (i = windowVector.begin(); i < windowVector.end(); i++)
-  {
-    pxWindowNative* w = (*i);
-    w->animateAndRender();
-  }
-  usleep(1000); //TODO - find out why pxSleepMS causes a crash on xi3
-      //pxSleepMS(32); // Breath
+    for (window_vector_t::iterator i = sWindowVector.begin(); i != sWindowVector.end(); ++i)
+      (*i)->animateAndRender();
+
+    // TODO: Why are we sleeping here? 
+    usleep(1000); //TODO - find out why pxSleepMS causes a crash on xi3
+    //pxSleepMS(32); // Breath
   }
 }
 
@@ -421,24 +424,6 @@ double pxWindowNative::getLastAnimationTime()
   return mLastAnimationTime;
 }
 
-void pxWindowNative::registerWindow(pxWindowNative* p)
-{
-  mWindowVector.push_back(p);
-}
-
-void pxWindowNative::unregisterWindow(pxWindowNative* p)
-{
-  vector<pxWindowNative*>::iterator i;
-
-  for (i = mWindowVector.begin(); i < mWindowVector.end(); i++)
-  {
-      if ((*i) == p)
-      {
-          mWindowVector.erase(i);
-          return;
-      }
-  }
-}
 void pxWindowNative::keyEventListener(const pxKeyEvent& evt, void* argp)
 {
   pxWindowNative* p = reinterpret_cast<pxWindowNative *>(argp);

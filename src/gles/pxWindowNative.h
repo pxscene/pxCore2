@@ -25,8 +25,6 @@ public:
 
   void animateAndRender();
   
-  static vector<pxWindowNative*> getNativeWindows(){return mWindowVector;}
-
 protected:
   virtual void onCreate() = 0;
   virtual void onCloseRequest() = 0;
@@ -49,10 +47,6 @@ protected:
   double getLastAnimationTime();
   void setLastAnimationTime(double time);
   void drawFrame();
-  
-  static void registerWindow(pxWindowNative* p);
-  static void unregisterWindow(pxWindowNative* p); //call this method somewhere
-  static vector<pxWindowNative*> mWindowVector;
   
   int mTimerFPS;
   int mLastWidth, mLastHeight;
@@ -84,7 +78,6 @@ private:
 
 protected:
   pxEGLProvider* mEGLProvider;
-
 };
 
 #include "LinuxKeyCodes.h"
