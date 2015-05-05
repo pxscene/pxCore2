@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include "pxCore.h"
+
 // TODO figure out what to do with rtLog
 #if 0
 #include "rtLog.h"
@@ -101,12 +103,11 @@ public:
 
   LinuxInputEventDispatcher()
     : mModifiers(0)
-    , mMouseX(0)
-    , mMouseY(0)
     , mMouseAccelerator(3)
     , mMouseMoved(false)
     , mInotifyFd(-1)
     , mWatchFd(-1)
+    , mMouseExtents(rtRect<int>::max())
   {
     long nameMax = pathconf(kDevInputByPath, _PC_NAME_MAX);
     if (nameMax == -1)
@@ -162,10 +163,14 @@ public:
     registerDevices(getMouseDevices());
   }
 
-  virtual void setMousePosition(int x, int y)
+  virtual void setMousePosition(const rtPoint<int>& pos)
   {
-    mMouseX = x;
-    mMouseY = y;
+    mMousePosition = pos;
+  }
+
+  virtual void setMouseBounds(const rtPoint<int>& upperLeft, const rtPoint<int>& lowerRight)
+  {
+    mMouseExtents = rtRect<int>(upperLeft, lowerRight);
   }
 
   virtual void setMouseAccelerator(int acc)
@@ -336,6 +341,8 @@ public:
     assert(pfd.fd != -1);
     assert(pfd.revents & POLLIN);
 
+    int i = 0;
+
     input_event e;
     int n = read(pfd.fd, &e, sizeof(input_event));
 
@@ -362,11 +369,15 @@ public:
         switch (e.code)
         {
           case REL_X:
-            mMouseX += (e.value * mMouseAccelerator);
+            i = pxClamp(mMousePosition.x() + (e.value * mMouseAccelerator), mMouseExtents.upperLeft().x(),
+              mMouseExtents.lowerRight().x());
+            mMousePosition.setX(i);
             mMouseMoved = true;
             break;
           case REL_Y:
-            mMouseY += (e.value * mMouseAccelerator);
+            i = pxClamp(mMousePosition.y() + (e.value * mMouseAccelerator), mMouseExtents.upperLeft().y(),
+              mMouseExtents.lowerRight().y());
+            mMousePosition.setY(i);
             mMouseMoved = true;
             break;
         }
@@ -561,14 +572,14 @@ private:
       evt.modifiers = mModifiers;
       evt.button.state = getKeyState(e);
       evt.button.button = getMouseButton(e);
-      evt.button.x = mMouseX;
-      evt.button.y = mMouseY;
+      evt.button.x = mMousePosition.x();
+      evt.button.y = mMousePosition.y();
     }
     else
     {
       evt.type = pxMouseEventTypeMove;
-      evt.move.x = mMouseX;
-      evt.move.y = mMouseY;
+      evt.move.x = mMousePosition.x();
+      evt.move.y = mMousePosition.y();
     }
 
     //     rtLogDebug("mouse button {code:%d value:%d}", e.code, e.value);
@@ -592,8 +603,6 @@ private:
   typedef std::vector<MouseListener> mouse_listeners;
   mouse_listeners mMouseCallbacks;
 
-  int mMouseX;
-  int mMouseY;
   int mMouseAccelerator;
   bool mMouseMoved;
 
@@ -602,6 +611,9 @@ private:
 
   int mInotifyFd;
   int mWatchFd;
+
+  rtPoint<int> mMousePosition;
+  rtRect<int> mMouseExtents;
 };
 
 pxInputDeviceEventProvider* pxInputDeviceEventProvider::createDefaultProvider()

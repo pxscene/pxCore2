@@ -212,10 +212,8 @@ pxWindowNative::~pxWindowNative()
   destroyPlatformEGLProvider(mEGLProvider);
 }
 
-pxError pxWindow::init(int left, int top, int width, int height)
+pxError pxWindow::init(int /*left*/, int /*top*/, int width, int height)
 {
-  (void)left;
-  (void)top;
   mLastWidth = width;
   mLastHeight = height;
   mResizeFlag = true;
@@ -387,6 +385,7 @@ void pxWindowNative::animateAndRender()
   if (mResizeFlag)
   {
     mResizeFlag = false;
+    mInputProvider->setMouseBounds(rtPoint<int>(0, 0), rtPoint<int>(mLastWidth, mLastHeight));
     onSize(mLastWidth, mLastHeight);
     invalidateRectInternal(NULL);
   }
