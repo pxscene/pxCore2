@@ -74,7 +74,7 @@ rtError pxStorePNGImage(const char* filename, pxBuffer& b, bool /*grayscale*/,
   png_bytep * row_pointers;
 
   // create file
-  FILE *fp = fopen(filename, "wb");
+  rtFilePointer fp(fopen(filename, "wb"));
 
   if (fp)
   {
@@ -97,7 +97,7 @@ rtError pxStorePNGImage(const char* filename, pxBuffer& b, bool /*grayscale*/,
 
     if (!setjmp(png_jmpbuf(png_ptr)))
     {
-      png_init_io(png_ptr, fp);
+      png_init_io(png_ptr, fp.getPtr());
 
       // write header
       if (!setjmp(png_jmpbuf(png_ptr)))
@@ -153,8 +153,6 @@ rtError pxStorePNGImage(const char* filename, pxBuffer& b, bool /*grayscale*/,
     }
 #endif
     //		free(row_pointers);
-
-    fclose(fp);
   }
   return RT_OK;
 }
