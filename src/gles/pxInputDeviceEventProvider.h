@@ -60,7 +60,10 @@ public:
 
   static rtRect<T> max()
   {
-    return rtRect(rtPoint<T>::min(), rtPoint<T>::max());
+    rtRect max;
+    max.mUpperLeft = rtPoint<T>::min();
+    max.mLowerRight = rtPoint<T>::max();
+    return max;
   }
 
   inline rtPoint<T> upperLeft() const { return mUpperLeft; }
