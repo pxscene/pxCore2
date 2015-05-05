@@ -91,6 +91,7 @@ rtError pxStorePNGImage(const char* filename, pxBuffer& b, bool /*grayscale*/,
 
     if(!info_ptr)
     {
+      png_destroy_write_struct(&png_ptr, NULL);
       rtLogError("FATAL: png_create_info_struct() - FAILED");
       return RT_FAIL;
     }
@@ -144,6 +145,7 @@ rtError pxStorePNGImage(const char* filename, pxBuffer& b, bool /*grayscale*/,
       }
     }
 
+    png_destroy_write_struct(&png_ptr, &info_ptr);
 
 #if 0
     // cleanup heap allocation
@@ -704,6 +706,7 @@ rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize,
 
   if(!info_ptr)
   {
+    png_destroy_read_struct(&png_ptr, NULL, NULL);
     rtLogError("FATAL: png_create_info_struct() - failed !");
     return e;
   }
@@ -763,6 +766,8 @@ rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize,
       e = RT_OK;
     }
   }
+
+  png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
   return e;
 }
