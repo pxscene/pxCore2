@@ -16,7 +16,10 @@ public:
   rtProperty(x2, x2, setX2, float);
   rtProperty(y2, y2, setY2, float);
 
- pxImage9(): mx1(0), my1(0), mx2(0), my2(0), mTextureCacheObject() { mTextureCacheObject.setParent(this); }
+  pxImage9(pxScene2d* scene) : pxObject(scene),mx1(0),my1(0),mx2(0),my2(0),mTextureCacheObject() 
+  { 
+    mTextureCacheObject.setParent(this); 
+  }
   
   rtError url(rtString& s) const;
   rtError setURL(const char* s);

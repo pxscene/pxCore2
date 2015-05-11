@@ -18,7 +18,7 @@ public:
   rtProperty(autoSize, autoSize, setAutoSize, bool);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
   
-  pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(), 
+  pxImage(pxScene2d* scene) : pxObject(scene),mXStretch(PX_NONE),mYStretch(PX_NONE),mTexture(), 
     mTextureCacheObject(), mAutoSize(true) 
   { 
     mTextureCacheObject.setParent(this);

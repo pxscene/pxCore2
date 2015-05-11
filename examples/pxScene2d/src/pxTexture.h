@@ -34,8 +34,8 @@ public:
     return l;
   }
   
-  virtual pxError bindTexture() = 0;
-  virtual pxError bindTextureAsMask() = 0;
+  virtual pxError bindTexture(int tLoc) = 0;
+  virtual pxError bindTextureAsMask(int mLoc) = 0;
   virtual pxError deleteTexture() = 0;
   virtual int width() = 0;
   virtual int height() = 0;

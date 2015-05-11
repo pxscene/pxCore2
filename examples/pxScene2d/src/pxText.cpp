@@ -239,7 +239,8 @@ void initFT()
 
 }
 
-pxText::pxText() {
+pxText::pxText(pxScene2d* scene):pxObject(scene) 
+{
   initFT();
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));

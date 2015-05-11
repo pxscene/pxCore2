@@ -76,7 +76,7 @@ public:
   rtProperty(pixelSize, pixelSize, setPixelSize, uint32_t);
   rtProperty(faceURL, faceURL, setFaceURL, rtString);
 
-  pxText();
+  pxText(pxScene2d* scene);
   rtError text(rtString& s) const;
   rtError setText(const char* text);
 

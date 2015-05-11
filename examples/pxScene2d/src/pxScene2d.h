@@ -198,6 +198,7 @@ private:
 };
 
 class pxObject;
+class pxScene2d;
 
 class pxObject: public rtObject 
 {
@@ -247,12 +248,13 @@ public:
   rtReadOnlyProperty(emit, emit, rtFunctionRef);
   rtMethod1ArgAndReturn("getObjectById",getObjectById,rtString,rtObjectRef);
 
-  pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
+  pxObject(pxScene2d* scene): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
     mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mMaskTextureRef(),
     mMaskTextureCacheObject(),mClipTextureRef(),mCancelInSet(true)
   {
+    mScene = scene;
     mEmit = new rtEmit;
   }
 
@@ -668,6 +670,8 @@ protected:
   void createMask();
   void deleteMask();
 
+  pxScene2d* mScene;
+
  private:
   rtError _pxObject(voidPtr& v) const {
     v = (void*)this;
@@ -780,7 +784,7 @@ public:
   rtMethod1ArgAndNoReturn("onKeyUp", onKeyUp, rtObjectRef);
   rtMethod1ArgAndNoReturn("onChar", onChar, rtObjectRef);
 
-  pxViewContainer()
+  pxViewContainer(pxScene2d* scene):pxObject(scene)
   {
     addListener("onMouseDown", get<rtFunctionRef>("onMouseDown"));
     addListener("onMouseUp", get<rtFunctionRef>("onMouseUp"));
@@ -929,6 +933,8 @@ public:
   rtDeclareObject(pxSceneContainer, pxViewContainer);
   rtProperty(url, uri, setURI, rtString);
   
+pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
+
   rtError uri(rtString& v) const { v = mURI; return RT_OK; }
   rtError setURI(rtString v);
 private:

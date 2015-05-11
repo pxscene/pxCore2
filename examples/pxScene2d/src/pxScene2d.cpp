@@ -695,7 +695,7 @@ rtDefineMethod(pxObject, getObjectById);
 pxScene2d::pxScene2d(bool top)
  :start(0),frameCount(0) 
 { 
-  mRoot = new pxObject();
+  mRoot = new pxObject(this);
   mFocus = mRoot;
   mEmit = new rtEmit();
   mTop = top;
@@ -757,7 +757,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createRectangle(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxRectangle;
+  o = new pxRectangle(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -765,7 +765,7 @@ rtError pxScene2d::createRectangle(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createText(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxText;
+  o = new pxText(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -773,7 +773,7 @@ rtError pxScene2d::createText(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxImage;
+  o = new pxImage(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -781,7 +781,7 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxImage9;
+  o = new pxImage9(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -789,7 +789,7 @@ rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxSceneContainer();
+  o = new pxSceneContainer(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -797,7 +797,7 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 {
-  rtRefT<pxViewContainer> c = new pxViewContainer();
+  rtRefT<pxViewContainer> c = new pxViewContainer(this);
   c->setView(new testView);
   o = c.getPtr();
   o.set(p);

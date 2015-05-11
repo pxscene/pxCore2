@@ -22,7 +22,9 @@
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
 
+#if 0
 static GLuint textureId1;
+#endif
 
 pxContextSurfaceNativeDesc defaultContextSurface;
 pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
@@ -31,19 +33,27 @@ pxTextureRef defaultRenderSurface;
 pxTextureRef currentRenderSurface = defaultRenderSurface;
 
 // TODO get rid of this global crap
+
+static GLuint gprogram;
+
 static GLint u_matrix = -1;
 static GLint u_alpha = -1;
 static GLint u_resolution = -1;
 static GLint u_texture = -1;
 static GLint u_mask = -1;
 static GLint u_enablemask = 0;
-static GLint u_flipmaskcoords = 1;
-static GLint u_enablepremultipliedalpha = 0;
 static GLint u_alphatexture = -1;
 static GLint u_color = -1;
 static GLint attr_pos = 0, attr_uv = 2;
 
-#if 0
+static int gResW, gResH;
+static pxMatrix4f gMatrix;
+static float gAlpha;
+
+int gAlphaTexture = 1;
+bool gEnableMask = false;
+
+// assume premultiplied
 static const char *fSolidShaderText =
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   "precision mediump float;\n"
@@ -52,13 +62,53 @@ static const char *fSolidShaderText =
   "uniform vec4 a_color;\n"
   "void main()"
   "{\n"
-  "vec4 c = a_color;"
-  "  gl_FragColor = vec4(c.rgb,c.a*u_alpha);"
-//  "  gl_FragColor.a *= u_alpha;\n"
-//  "gl_FragColor = vec4(1,1,1,1);"
+  "  gl_FragColor = a_color*u_alpha;"
   "}\n";
-#endif
 
+// assume premultiplied
+static const char *fTextureShaderText =
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
+  "precision mediump float;\n"
+#endif
+  "uniform sampler2D s_texture;\n"
+  "uniform float u_alpha;\n"
+  "varying vec2 v_uv;\n"
+  "void main()\n"
+  "{\n"
+  "  gl_FragColor = texture2D(s_texture, v_uv) * u_alpha;"
+  "}\n";
+
+// assume premultiplied
+static const char *fTextureMaskedShaderText =
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
+  "precision mediump float;\n"
+#endif
+  "uniform sampler2D s_texture;\n"
+  "uniform sampler2D s_mask;\n"
+  "uniform float u_alpha;\n"
+  "varying vec2 v_uv;\n"
+  "void main() {\n"
+  "  float a = u_alpha * texture2D(s_mask, v_uv).a;\n"
+  "  gl_FragColor = texture2D(s_texture, v_uv) * a;\n"
+  "}\n";
+
+// assume premultiplied
+static const char *fATextureShaderText =
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
+  "precision mediump float;\n"
+#endif
+  "uniform sampler2D s_texture;\n"
+  "uniform float u_alpha;\n"
+  "uniform vec4 a_color;\n"
+  "varying vec2 v_uv;\n"
+  "void main() {\n"
+  "  float a = u_alpha * texture2D(s_texture, v_uv).a;"
+  "  gl_FragColor = a_color*a;"
+  "}\n";
+
+//////////////////
+#if 1 
+// assume premultiplied
 static const char *fMondoShaderText =
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   "precision mediump float;\n"
@@ -69,8 +119,8 @@ static const char *fMondoShaderText =
   "uniform sampler2D s_texture;\n"
   "uniform sampler2D s_mask;\n"
   "uniform int u_enablemask;\n"
-  "uniform int u_enablepremultipliedalpha;\n"
-  "uniform int u_flipmaskcoords;\n"
+//  "uniform int u_enablepremultipliedalpha;\n"
+//  "uniform int u_flipmaskcoords;\n"
   "varying vec2 v_uv;\n"
   "void main() {\n"
 #if 1
@@ -82,33 +132,21 @@ static const char *fMondoShaderText =
   // image
   "  vec4 textureColor = texture2D(s_texture, v_uv);\n"
   "  if (u_enablemask > 0) {\n"
-  "    vec2 maskCoords;\n"
-  "    if (u_flipmaskcoords > 0) {\n"
-  "      maskCoords = vec2(v_uv.x, 1.0 - v_uv.y);\n"
-  "    }\n"
-  "    else {\n"
-  "      maskCoords = vec2(v_uv.x, v_uv.y);\n"
-  "    }\n"
-  "    vec4 maskColor = texture2D(s_mask, maskCoords);\n"
-  "    textureColor.a = textureColor.a * maskColor.a;\n" ////textureColor.a * maskColor.a;
+  "    vec4 maskColor = texture2D(s_mask, v_uv);\n"
+  "    textureColor *= maskColor.a;\n" 
   "  }\n"
   "  gl_FragColor = textureColor;\n"
   "} else {\n"
   // text
- "gl_FragColor = vec4(a_color.r, a_color.g, a_color.b, texture2D(s_texture, v_uv).a*a_color.a);"
+  "  gl_FragColor = a_color * texture2D(s_texture, v_uv).a;"
   "}\n"
-  "if (u_enablepremultipliedalpha < 1) {\n"
-  "  gl_FragColor.a *= u_alpha;\n"
-  "}else {\n"
-  "  gl_FragColor.a *= u_alpha;\n"
-  "  if (gl_FragColor.a > 0.0){\n"
-  "    gl_FragColor = vec4(gl_FragColor.rgb/gl_FragColor.a, gl_FragColor.a);\n"
-  "  }\n"
-  "}\n"
+  "gl_FragColor *= u_alpha;\n"
 #else
   "gl_FragColor = vec4(1,1,1,1);"
 #endif
   "}\n";
+#endif
+
 
 static const char *vShaderText =
   "uniform vec2 u_resolution;\n"
@@ -161,6 +199,7 @@ public:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glUniform1f(u_alphatexture, 1.0);
+    gAlphaTexture = 1;
   }
   
   pxError resizeTexture(int width, int height)
@@ -189,6 +228,7 @@ public:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glUniform1f(u_alphatexture, 1.0);
+    gAlphaTexture = 1;
     return PX_OK;
   }
   
@@ -226,12 +266,36 @@ public:
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, mTextureId);
     glViewport ( 0, 0, mWidth, mHeight);
-    glUniform2f(u_resolution, mWidth, mHeight);
+//    glUniform2f(u_resolution, mWidth, mHeight);
+    gResW = mWidth;
+    gResH = mHeight;
     
     return PX_OK;
   }
 
-  virtual pxError bindTexture()
+  // TODO get rid of pxError
+  // TODO get rid of bindTexture() and bindTextureAsMask()
+  virtual pxError bindTexture(int tLoc)
+  {
+    if (mFramebufferId == 0 || mTextureId == 0)
+    {
+      return PX_NOTINITIALIZED;
+    }
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, mTextureId);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+//    glUniform1i(u_texture, 3);
+    glUniform1i(tLoc,3);
+    glUniform1f(u_alphatexture, 1.0);
+    gAlphaTexture = 1;
+
+    return PX_OK;
+  }
+
+#if 0
+  virtual pxError getGLTextureName(GLuint& name)
   {
     if (mFramebufferId == 0 || mTextureId == 0)
     {
@@ -244,11 +308,13 @@ public:
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     glUniform1i(u_texture, 3);
     glUniform1f(u_alphatexture, 1.0);
-    
-    return PX_OK;
+    gAlphaTexture = 1;
+
+    return PX_OK;    
   }
+#endif
   
-  virtual pxError bindTextureAsMask()
+  virtual pxError bindTextureAsMask(int mLoc)
   {
     if (mFramebufferId == 0 || mTextureId == 0)
     {
@@ -259,17 +325,21 @@ public:
     glBindTexture(GL_TEXTURE_2D, mTextureId);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    glUniform1i(u_mask, 2);
+//    glUniform1i(u_mask, 2);
+    glUniform1i(mLoc, 2);
     glUniform1i(u_enablemask, 1);
+    gEnableMask = true;
     return PX_OK;
   }
   
+#if 1 // Do we need this?  maybe for some debugging use case??
   virtual pxError getOffscreen(pxOffscreen& o)
   {
     (void)o;
     // TODO
     return PX_FAIL;
   }
+#endif
 
   virtual int width() { return mWidth; }
   virtual int height() { return mHeight; }
@@ -302,7 +372,26 @@ public:
   void createTexture(pxOffscreen& o)
   {
     mOffscreen.init(o.width(), o.height());
+    // Flip the image data here so we match GL FBO layout
+    mOffscreen.setUpsideDown(true);
     o.blit(mOffscreen);
+    
+#if 1
+// premultiply
+for (int y = 0; y < mOffscreen.height(); y++)
+{
+  pxPixel* d = mOffscreen.scanline(y);
+  pxPixel* de = d + mOffscreen.width();
+  while (d < de)
+  {
+    d->r = (d->r * d->a)/255;
+    d->g = (d->g * d->a)/255;
+    d->b = (d->b * d->a)/255;
+    d++;
+  }
+}
+#endif
+
     mInitialized = true;
   }
   
@@ -314,13 +403,14 @@ public:
     return PX_OK;
   }
 
-  virtual pxError bindTexture()
+  virtual pxError bindTexture(int tLoc)
   {
     if (!mInitialized)
     {
       return PX_NOTINITIALIZED;
     }
     
+
     glActiveTexture(GL_TEXTURE0); 
 
 
@@ -342,12 +432,14 @@ public:
     else
       glBindTexture(GL_TEXTURE_2D, mTextureName);    
 
-    glUniform1i(u_texture, 0);
+//    glUniform1i(u_texture, 0);
+    glUniform1i(tLoc, 0);
     glUniform1f(u_alphatexture, 1.0);
+    gAlphaTexture = 1;
     return PX_OK;
   }
   
-  virtual pxError bindTextureAsMask()
+  virtual pxError bindTextureAsMask(int mLoc)
   {
     if (!mInitialized)
     {
@@ -355,6 +447,7 @@ public:
     }
     
     glActiveTexture(GL_TEXTURE2);
+
     if (!mTextureUploaded)  
     {
       glGenTextures(1, &mTextureName);
@@ -372,9 +465,10 @@ public:
     else
       glBindTexture(GL_TEXTURE_2D, mTextureName);    
 
-    glUniform1i(u_mask, 2);
+    glUniform1i(mLoc, 2);
     glUniform1i(u_enablemask, 1);
-    
+    gEnableMask = true;
+
     return PX_OK;
   }
   
@@ -417,7 +511,22 @@ public:
     // copy the pixels
     int bitmapSize = ih*iw;
     mBuffer = malloc(bitmapSize);
-    memcpy(mBuffer, buffer, bitmapSize);
+    
+    // TODO consider iw,ih as ints rather than floats... 
+    int32_t bw = (int32_t)iw;
+    int32_t bh = (int32_t)ih;
+
+    //memcpy(mBuffer, buffer, bitmapSize);
+    // Flip here so that we match FBO layout... 
+    for (int32_t i = 0; i < bh; i++)
+    {
+      uint8_t *s = (uint8_t*)buffer+(bw*i);
+      uint8_t *d = (uint8_t*)mBuffer+(bw*(bh-i-1));
+      uint8_t *de = d+bw;
+      while(d<de)
+        *d++ = *s++;
+    }
+
 // TODO Moved this to bindTexture because of more pain from JS thread calls
 //    createTexture(w, h, iw, ih);
   }
@@ -474,7 +583,7 @@ public:
     return PX_OK;
   }
   
-  virtual pxError bindTexture()
+  virtual pxError bindTexture(int tLoc)
   {
     // TODO Moved to here because of js threading issues
     if (!mInitialized) createTexture(mDrawWidth,mDrawHeight,mImageWidth,mImageHeight);
@@ -485,14 +594,15 @@ public:
     
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, mTextureId);    
-    glUniform1i(u_texture, 1);
+    glUniform1i(tLoc, 1);
 
     glUniform1f(u_alphatexture, 2.0);
-    
+    gAlphaTexture = 2;
+
     return PX_OK;
   }
   
-  virtual pxError bindTextureAsMask()
+  virtual pxError bindTextureAsMask(int mLoc)
   {
     if (!mInitialized)
     {
@@ -503,12 +613,16 @@ public:
     glBindTexture(GL_TEXTURE_2D, mTextureId);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     
+//TODO Hmmm this looks wrong
     glUniform1i(u_texture, 1);
     glUniform1f(u_alphatexture, 2.0);
+    gAlphaTexture = 2;
+
 //    glUniform4fv(u_color, 1, mColor);
     
-    glUniform1i(u_mask, 2);
+    glUniform1i(mLoc, 2);
     glUniform1i(u_enablemask, 1);
+    gEnableMask = true;
     
     return PX_OK;
   }
@@ -580,8 +694,17 @@ static GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt
   program = glCreateProgram();
   glAttachShader(program, fragShader);
   glAttachShader(program, vertShader);
-  glLinkProgram(program);
+
+
   
+  return program;
+}
+
+void linkShaderProgram(GLuint program)
+{
+  GLint stat;
+
+  glLinkProgram(program);  /* needed to put attribs into effect */
   glGetProgramiv(program, GL_LINK_STATUS, &stat);
   if (!stat)
   {
@@ -589,18 +712,309 @@ static GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt
     GLsizei len;
     glGetProgramInfoLog(program, 1000, &len, log);
     rtLogError("faild to link:%s", log);
+    // TODO purge all exit calls
     exit(1);
   }
-  
-  /* test setting attrib locations */
-  glBindAttribLocation(program, attr_pos, "pos");
-  glBindAttribLocation(program, attr_uv, "uv");
-  glLinkProgram(program);  /* needed to put attribs into effect */
-  
-  return program;
 }
 
-static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h)
+class shaderProgram
+{
+public:
+  virtual void init(const char* v, const char* f)
+  {
+    printf("shaderProgram\n");
+    mProgram = createShaderProgram(v, f);
+    prelink();
+    linkShaderProgram(mProgram);
+    postlink();
+  }
+
+  int getUniformLocation(const char* name)
+  {
+    int l = glGetUniformLocation(mProgram, name);
+    if (l == -1)
+      rtLogError("Shader does not define uniform %s.\n", name);
+    return l;
+  }
+  
+  
+  void use()
+  {
+    glUseProgram(mProgram);
+  }
+
+protected:
+  // Override to do uniform lookups
+  virtual void prelink() {}
+  virtual void postlink() {}
+
+  GLuint mProgram;
+};
+
+class solidShaderProgram: public shaderProgram
+{
+protected:
+  virtual void prelink()
+  {
+    printf("prelink\n");
+    mPosLoc = 0;
+    mUVLoc = 2;
+    glBindAttribLocation(mProgram, mPosLoc, "pos");
+    glBindAttribLocation(mProgram, mUVLoc, "uv");
+  }
+
+  virtual void postlink()
+  {
+    printf("postlink\n");
+    mResolutionLoc = getUniformLocation("u_resolution");
+    mMatrixLoc = getUniformLocation("amymatrix");
+    mColorLoc = getUniformLocation("a_color");
+    mAlphaLoc = getUniformLocation("u_alpha");
+  }
+
+public:
+  void draw(int resW, int resH, float* matrix, float alpha, 
+            GLenum mode,
+            const void* pos, 
+            int count,
+            const float* color)
+  {
+    use();
+    glUniform2f(mResolutionLoc, resW, resH);
+    glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1f(mAlphaLoc, alpha);
+    glUniform4fv(mColorLoc, 1, color);
+
+    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, pos);
+    glEnableVertexAttribArray(attr_pos);
+    glDrawArrays(mode, 0, count);
+    glDisableVertexAttribArray(attr_pos);
+    glUseProgram(gprogram);
+  }
+
+private:
+  GLint mResolutionLoc;
+  GLint mMatrixLoc;
+
+  GLint mPosLoc;
+  GLint mUVLoc;
+
+  GLint mColorLoc;
+  GLint mAlphaLoc;
+};
+
+
+solidShaderProgram *gSolidShader;
+
+class aTextureShaderProgram: public shaderProgram
+{
+protected:
+  virtual void prelink()
+  {
+    printf("prelink\n");
+    mPosLoc = 0;
+    mUVLoc = 2;
+    glBindAttribLocation(mProgram, mPosLoc, "pos");
+    glBindAttribLocation(mProgram, mUVLoc, "uv");
+  }
+
+  virtual void postlink()
+  {
+    printf("postlink\n");
+    mResolutionLoc = getUniformLocation("u_resolution");
+    mMatrixLoc = getUniformLocation("amymatrix");
+    mColorLoc = getUniformLocation("a_color");
+    mAlphaLoc = getUniformLocation("u_alpha");
+    mTextureLoc = getUniformLocation("s_texture");
+  }
+
+public:
+  void draw(int resW, int resH, float* matrix, float alpha, 
+            int count,
+            const void* pos, 
+            const void* uv,
+            pxTextureRef texture,
+            const float* color)
+  {
+    use();
+    glUniform2f(mResolutionLoc, resW, resH);
+    glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1f(mAlphaLoc, alpha);
+    glUniform4fv(mColorLoc, 1, color);
+    
+    texture->bindTexture(mTextureLoc);
+
+    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, pos);
+    glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
+    glEnableVertexAttribArray(attr_pos);
+    glEnableVertexAttribArray(attr_uv);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, count);
+    glDisableVertexAttribArray(attr_pos);
+    glDisableVertexAttribArray(attr_uv);
+    
+    // TODO this should go away
+    glUseProgram(gprogram);
+  }
+
+private:
+  GLint mResolutionLoc;
+  GLint mMatrixLoc;
+
+  GLint mPosLoc;
+  GLint mUVLoc;
+
+  GLint mColorLoc;
+  GLint mAlphaLoc;
+
+  GLint mTextureLoc;
+};
+
+
+aTextureShaderProgram *gATextureShader;
+
+class textureShaderProgram: public shaderProgram
+{
+protected:
+  virtual void prelink()
+  {
+    printf("prelink\n");
+    mPosLoc = 0;
+    mUVLoc = 2;
+    glBindAttribLocation(mProgram, mPosLoc, "pos");
+    glBindAttribLocation(mProgram, mUVLoc, "uv");
+  }
+
+  virtual void postlink()
+  {
+    printf("postlink\n");
+    mResolutionLoc = getUniformLocation("u_resolution");
+    mMatrixLoc = getUniformLocation("amymatrix");
+    mAlphaLoc = getUniformLocation("u_alpha");
+    mTextureLoc = getUniformLocation("s_texture");
+  }
+
+public:
+  void draw(int resW, int resH, float* matrix, float alpha, 
+            int count,            
+            const void* pos, const void* uv,
+            pxTextureRef texture,
+            int32_t xStretch, int32_t yStretch)
+  {
+    use();
+    glUniform2f(mResolutionLoc, resW, resH);
+    glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1f(mAlphaLoc, alpha);
+
+//    printf("mAlphaLoc %d, %f\n", mAlphaLoc, alpha);
+
+    texture->bindTexture(mTextureLoc);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 
+		    (xStretch==PX_REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 
+		    (yStretch==PX_REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+
+    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, pos);
+    glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
+    glEnableVertexAttribArray(attr_pos);
+    glEnableVertexAttribArray(attr_uv);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, count);
+    glDisableVertexAttribArray(attr_pos);
+    glDisableVertexAttribArray(attr_uv);
+
+    // TODO This should go away
+    glUseProgram(gprogram);
+  }
+
+private:
+  GLint mResolutionLoc;
+  GLint mMatrixLoc;
+
+  GLint mPosLoc;
+  GLint mUVLoc;
+
+  GLint mAlphaLoc;
+
+  GLint mTextureLoc;
+};
+
+
+textureShaderProgram *gTextureShader;
+
+class textureMaskedShaderProgram: public shaderProgram
+{
+protected:
+  virtual void prelink()
+  {
+    printf("prelink\n");
+    mPosLoc = 0;
+    mUVLoc = 2;
+    glBindAttribLocation(mProgram, mPosLoc, "pos");
+    glBindAttribLocation(mProgram, mUVLoc, "uv");
+  }
+
+  virtual void postlink()
+  {
+    printf("postlink\n");
+    mResolutionLoc = getUniformLocation("u_resolution");
+    mMatrixLoc = getUniformLocation("amymatrix");
+    mAlphaLoc = getUniformLocation("u_alpha");
+    mTextureLoc = getUniformLocation("s_texture");
+    mMaskLoc = getUniformLocation("s_mask");
+  }
+
+public:
+  void draw(int resW, int resH, float* matrix, float alpha, 
+            int count,            
+            const void* pos, 
+            const void* uv,
+            pxTextureRef texture,
+            pxTextureRef mask)
+  {
+    use();
+    glUniform2f(mResolutionLoc, resW, resH);
+    glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1f(mAlphaLoc, alpha);
+    
+#if 1
+  texture->bindTexture(mTextureLoc);
+#endif
+  
+  if (mask.getPtr() != NULL)
+  {
+    mask->bindTextureAsMask(mMaskLoc);
+  }
+
+
+    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, pos);
+    glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
+    glEnableVertexAttribArray(attr_pos);
+    glEnableVertexAttribArray(attr_uv);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, count);
+    glDisableVertexAttribArray(attr_pos);
+    glDisableVertexAttribArray(attr_uv);
+
+    // TODO This should go away
+    glUseProgram(gprogram);
+  }
+
+private:
+  GLint mResolutionLoc;
+  GLint mMatrixLoc;
+
+  GLint mPosLoc;
+  GLint mUVLoc;
+
+  GLint mColorLoc;
+  GLint mAlphaLoc;
+
+  GLint mTextureLoc;
+  GLint mMaskLoc;
+};
+
+textureMaskedShaderProgram *gTextureMaskedShader;
+
+static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const float* c)
 {
   const float verts[4][2] =
   {
@@ -610,17 +1024,17 @@ static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h)
     {  x+w, y+h }
   };
   
-  {
-    glUniform1f(u_alphatexture, 0.0);
-    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-    glEnableVertexAttribArray(attr_pos);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glDisableVertexAttribArray(attr_pos);
-  }
+  float colorPM[4];
+  memcpy(&colorPM, c, sizeof(colorPM));
+  colorPM[0] *= colorPM[3];
+  colorPM[1] *= colorPM[3];
+  colorPM[2] *= colorPM[3];
+  
+  gSolidShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLE_STRIP,verts,4,colorPM); 
 }
 
 
-static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw)
+static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw, const float* c)
 {
   float half = lw/2;
   float ox1  = x-half;
@@ -646,30 +1060,22 @@ static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat 
     { ix1,iy1 }
   };
   
-  {
-    glUniform1f(u_alphatexture, 0.0);
-
-    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-    glEnableVertexAttribArray(attr_pos);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 10);
-    glDisableVertexAttribArray(attr_pos);
-  }
+  float colorPM[4];
+  memcpy(&colorPM, c, sizeof(colorPM));
+  colorPM[0] *= colorPM[3];
+  colorPM[1] *= colorPM[3];
+  colorPM[2] *= colorPM[3];
+  
+  gSolidShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLE_STRIP,verts,10,colorPM); 
 }
 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
                              pxTextureRef mask, pxStretch xStretch, pxStretch yStretch, float* color)
 {
+
   if (texture.getPtr() == NULL)
   {
     return;
-  }
-#if 1
-  texture->bindTexture();
-#endif
-  
-  if (mask.getPtr() != NULL)
-  {
-    mask->bindTextureAsMask();
   }
 
   float iw = texture->width();
@@ -711,21 +1117,8 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     break;
   }
   
-  float firstTextureY = 0;
-  float secondTextureY = th;
-  
-  if (texture->getType() == PX_TEXTURE_FRAME_BUFFER)
-  {
-    //opengl renders to a framebuffer in reverse y coordinates than pxConext renders.  
-    //the texture y values need to be flipped
-    firstTextureY = th;
-    secondTextureY = 0;
-  }
-
-  if (mask.getPtr() != NULL && mask->getType() == PX_TEXTURE_FRAME_BUFFER)
-  {
-    glUniform1i(u_flipmaskcoords, 0);
-  }
+  float firstTextureY = th;
+  float secondTextureY = 0;
 
   const float uv[4][2] = {
     { 0,  firstTextureY },
@@ -734,41 +1127,39 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     { tw, secondTextureY }
   };
   
-  if (texture->premultipliedAlpha())
-  {
-    glUniform1i(u_enablepremultipliedalpha, 1);
-  }
+  float colorPM[4];
+  memcpy(&colorPM, color, sizeof(colorPM));
+  colorPM[0] *= colorPM[3];
+  colorPM[1] *= colorPM[3];
+  colorPM[2] *= colorPM[3];
 
+
+  if (mask.getPtr() == NULL && texture->getType() != PX_TEXTURE_ALPHA)
   {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 
-		    (xStretch==PX_REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 
-		    (yStretch==PX_REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
-    glUniform4fv(u_color, 1, color);
-    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-    glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
-    glEnableVertexAttribArray(attr_pos);
-    glEnableVertexAttribArray(attr_uv);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glDisableVertexAttribArray(attr_pos);
-    glDisableVertexAttribArray(attr_uv);
+    gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,xStretch,yStretch);
   }
-  
-  glUniform1i(u_enablemask, 0);
-  glUniform1f(u_alphatexture, 1.0);
-  glUniform1i(u_enablepremultipliedalpha, 0);
-  glUniform1i(u_flipmaskcoords, 1);
-  
+  else if (mask.getPtr() == NULL && texture->getType() == PX_TEXTURE_ALPHA)
+  {
+    gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,colorPM);
+  }
+  else if (mask.getPtr() != NULL)
+  {
+    gTextureMaskedShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,mask);
+  }
+  else
+  {
+    rtLogError("Unhandled case");
+  }
 }
 
 static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2, 
                         GLfloat y2, pxTextureRef texture)
 {
+
+
+  glUseProgram(gprogram);
   if (texture.getPtr() == NULL)
-  {
     return;
-  }
-  texture->bindTexture();
 
 
   float ox1 = x;
@@ -780,8 +1171,6 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
   float iy1 = y+y1;
   float iy2 = y+h-y2;
   float oy2 = y+h;
-
-
   
   float w2 = texture->width();
   float h2 = texture->height();
@@ -791,10 +1180,10 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
   float iu2 = (w2-x2)/w2;
   float ou2 = 1;
 
-  float ov1 = 0;
-  float iv1 = y1/h2;
-  float iv2 = (h2-y2)/h2;
-  float ov2 = 1;
+  float ov2 = 0;
+  float iv2 = y1/h2;
+  float iv1 = (h2-y2)/h2;
+  float ov1 = 1;
 
 #if 1 // sanitize values
   iu1 = pxClamp<float>(iu1, 0, 1);
@@ -811,8 +1200,8 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
 
   tmin = pxMin<float>(iv1, iv2);
   tmax = pxMax<float>(iv1, iv2);
-  iv1 = tmin;
-  iv2 = tmax;
+  iv1 = tmax;
+  iv2 = tmin;
 
 #endif
 
@@ -868,20 +1257,7 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
     { ou2,ov2 }
   };
 
-  {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glUniform1f(u_alphatexture, 1.0);
-    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-    glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
-    glEnableVertexAttribArray(attr_pos);
-    glEnableVertexAttribArray(attr_uv);
-
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 22);
-
-    glDisableVertexAttribArray(attr_pos);
-    glDisableVertexAttribArray(attr_uv);
-  }
+  gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,22,verts,uv,texture,PX_NONE,PX_NONE);
 }
 
 void pxContext::init()
@@ -905,48 +1281,59 @@ void pxContext::init()
 
   glClearColor(0, 0, 0, 0);
 
-  GLuint program = createShaderProgram(vShaderText, fMondoShaderText);
+  gSolidShader = new solidShaderProgram();
+  gSolidShader->init(vShaderText,fSolidShaderText);
 
+  gATextureShader = new aTextureShaderProgram();
+  gATextureShader->init(vShaderText,fATextureShaderText);
+
+  gTextureShader = new textureShaderProgram();
+  gTextureShader->init(vShaderText,fTextureShaderText);
+
+  gTextureMaskedShader = new textureMaskedShaderProgram();
+  gTextureMaskedShader->init(vShaderText,fTextureMaskedShaderText);
+
+  printf("before\n");
+  GLuint program = createShaderProgram(vShaderText, fMondoShaderText);
+  printf("after\n");
+
+  // has to happen prelink
+  glBindAttribLocation(program, attr_pos, "pos");
+  glBindAttribLocation(program, attr_uv, "uv");
+
+  linkShaderProgram(program);
+
+  // has to happen postlink
   u_resolution   = glGetUniformLocation(program, "u_resolution");
   u_texture      = glGetUniformLocation(program, "s_texture");
   u_mask         = glGetUniformLocation(program, "s_mask");
   u_enablemask   = glGetUniformLocation(program, "u_enablemask");
-  u_flipmaskcoords = glGetUniformLocation(program, "u_flipmaskcoords");
-  u_enablepremultipliedalpha = glGetUniformLocation(program, "u_enablepremultipliedalpha");
+//  u_flipmaskcoords = glGetUniformLocation(program, "u_flipmaskcoords");
+//  u_enablepremultipliedalpha = glGetUniformLocation(program, "u_enablepremultipliedalpha");
   u_matrix       = glGetUniformLocation(program, "amymatrix");
   u_alpha        = glGetUniformLocation(program, "u_alpha");
   u_color        = glGetUniformLocation(program, "a_color");
   u_alphatexture = glGetUniformLocation(program, "u_alphatexture");
 
-
-#if 1
-  // Using for RGBA texture
-  glActiveTexture(GL_TEXTURE0);
-  glGenTextures(1, &textureId1);
-  glBindTexture(GL_TEXTURE_2D, textureId1);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
-#if 0
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-#else
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-#endif
-#endif
-
   glEnable(GL_BLEND);
 
   // assume non-premultiplied for now... 
 //  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
-  glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+// non-premultiplied
+//  glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+//  glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
   glUseProgram(program);
+
+  gprogram = program;
 }
 
 void pxContext::setSize(int w, int h)
 {
   glViewport(0, 0, (GLint)w, (GLint)h);
-  glUniform2f(u_resolution, w, h);
+//  glUniform2f(u_resolution, w, h);
+  gResW = w;
+  gResH = h;
   if (currentRenderSurface == defaultRenderSurface)
   {
     defaultContextSurface.width = w;
@@ -961,12 +1348,16 @@ void pxContext::clear(int /*w*/, int /*h*/)
 
 void pxContext::setMatrix(pxMatrix4f& m)
 {
-  glUniformMatrix4fv(u_matrix, 1, GL_FALSE, m.data());
+//  glUseProgram(gprogram);
+//  glUniformMatrix4fv(u_matrix, 1, GL_FALSE, m.data());
+  gMatrix = m;
 }
 
 void pxContext::setAlpha(float a)
 {
-  glUniform1f(u_alpha, a); 
+//  glUseProgram(gprogram);
+//  glUniform1f(u_alpha, a); 
+  gAlpha = a;
 }
 
 pxTextureRef pxContext::createContextSurface(int width, int height)
@@ -996,10 +1387,16 @@ pxError pxContext::setRenderSurface(pxTextureRef texture)
 {
   if (texture.getPtr() == NULL)
   {
+    glUseProgram(gprogram);
     glViewport ( 0, 0, defaultContextSurface.width, defaultContextSurface.height);
-    glUniform2f(u_resolution, defaultContextSurface.width, defaultContextSurface.height);
+//    glUniform2f(u_resolution, defaultContextSurface.width, defaultContextSurface.height);
+    gResW = defaultContextSurface.width;
+    gResH = defaultContextSurface.height;
+#if 0
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId1);
+#endif
+    // TODO probably need to save off the original FBO handle rather than assuming zero
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     currentRenderSurface = defaultRenderSurface;
     return PX_OK;
@@ -1020,16 +1417,10 @@ pxError deleteContextSurface(pxTextureRef texture)
 
 void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor)
 {
-  glUniform4fv(u_color, 1, fillColor);
   float half = lineWidth/2;
-
-  drawRect2(half, half, w-lineWidth, h-lineWidth);
-
+  drawRect2(half, half, w-lineWidth, h-lineWidth, fillColor);
   if (lineWidth > 0)
-  {
-    glUniform4fv(u_color, 1, lineColor);
-    drawRectOutline(0, 0, w, h, lineWidth);
-  }
+    drawRectOutline(0, 0, w, h, lineWidth, lineColor);
 }
 
 
@@ -1060,14 +1451,14 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
     {  x,  y+h },
    };
   
-  {
-    glUniform4fv(u_color, 1, color);
-    glUniform1f(u_alphatexture, 0.0);
-    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-    glEnableVertexAttribArray(attr_pos);
-    glDrawArrays(GL_LINE_LOOP, 0, 4);
-    glDisableVertexAttribArray(attr_pos);
-  }
+
+  float colorPM[4];
+  memcpy(&colorPM, color, sizeof(colorPM));
+  colorPM[0] *= colorPM[3];
+  colorPM[1] *= colorPM[3];
+  colorPM[2] *= colorPM[3];
+  
+  gSolidShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_LINE_LOOP,verts,4,colorPM); 
 }
 
 void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* color)
@@ -1079,14 +1470,13 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
     { x2, y2 },
    };
   
-  {
-    glUniform4fv(u_color, 1, color);
-    glUniform1f(u_alphatexture, 0.0);
-    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-    glEnableVertexAttribArray(attr_pos);
-    glDrawArrays(GL_LINES, 0, 2);
-    glDisableVertexAttribArray(attr_pos);
-  }
+  float colorPM[4];
+  memcpy(&colorPM, color, sizeof(colorPM));
+  colorPM[0] *= colorPM[3];
+  colorPM[1] *= colorPM[3];
+  colorPM[2] *= colorPM[3];
+  
+  gSolidShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_LINES,verts,2,colorPM); 
 }
 
 pxTextureRef pxContext::createTexture(pxOffscreen& o)
