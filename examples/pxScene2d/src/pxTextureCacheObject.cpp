@@ -56,7 +56,7 @@ void pxTextureCacheObject::checkForCompletedDownloads(int maxTimeInMilliseconds)
     textureDownloadMutex.lock();
     if (textureDownloadsAvailable)
     {
-      for(vector<ImageDownloadRequest>::iterator it = completedTextureDownloads.begin(); it != completedTextureDownloads.end(); ++it)
+      for(vector<ImageDownloadRequest>::iterator it = completedTextureDownloads.begin(); it != completedTextureDownloads.end(); )
       {
         ImageDownloadRequest imageDownloadRequest = (*it);
         if (!imageDownloadRequest.fileDownloadRequest)
@@ -70,13 +70,14 @@ void pxTextureCacheObject::checkForCompletedDownloads(int maxTimeInMilliseconds)
         delete imageDownloadRequest.fileDownloadRequest;
         textureDownloadsAvailable = false;
         gTextureDownloadsPending--;
+        it = completedTextureDownloads.erase(it);
         double currentTimeInMs = pxMilliseconds();
         if ((maxTimeInMilliseconds >= 0) && (currentTimeInMs - startTimeInMs > maxTimeInMilliseconds))
         {
-          //todo
+          break;
         }
       }
-      completedTextureDownloads.clear();
+      //completedTextureDownloads.clear();
       if (gTextureDownloadsPending < 0)
       {
         //this is a safety check (hopefully never used)
