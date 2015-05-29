@@ -838,6 +838,7 @@ void pxScene2d::onDraw()
   
 #if 1
   pxTextureCacheObject::checkForCompletedDownloads();
+  pxText::checkForCompletedDownloads();
   update(pxSeconds());
   draw();
 #endif
