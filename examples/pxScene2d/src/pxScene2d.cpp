@@ -110,7 +110,6 @@ rtError pxObject::children(rtObjectRef& v) const
 
 rtError pxObject::remove()
 {
-  printf("pxObject::remove()\n");
   if (mParent)
   {
     for(vector<rtRefT<pxObject> >::iterator it = mParent->mChildren.begin(); 
@@ -119,7 +118,6 @@ rtError pxObject::remove()
       if ((it)->getPtr() == this)
       {
         mParent->mChildren.erase(it);
-        printf("pxObject::removing this()\n");
         return RT_OK;
       }
     }
@@ -1026,13 +1024,6 @@ void pxScene2d::setMouseEntered(pxObject* o)
 }
 rtError pxScene2d::setFocus(rtObjectRef o)
 {
-  printf("setFocus\n");
-  if( mFocus == o) {
-    printf("current focus and new focus objects are equal!\n");
-  }
-  else {
-    printf("New focus object will be different from previous.\n");
-  }
 
   if(mFocus) {
     rtObjectRef e = new rtMapObject;
@@ -1042,11 +1033,9 @@ rtError pxScene2d::setFocus(rtObjectRef o)
   }
 
   if (o) {
-    printf("setFocus o is not null\n");
     mFocus = o;
   }
   else {
-    printf("setFocus o is NULL.  Using ROOT!\n");
     mFocus = getRoot();
   }
   rtObjectRef e = new rtMapObject;
