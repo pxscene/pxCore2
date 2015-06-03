@@ -110,6 +110,7 @@ rtError pxObject::children(rtObjectRef& v) const
 
 rtError pxObject::remove()
 {
+  printf("pxObject::remove()\n");
   if (mParent)
   {
     for(vector<rtRefT<pxObject> >::iterator it = mParent->mChildren.begin(); 
@@ -118,6 +119,7 @@ rtError pxObject::remove()
       if ((it)->getPtr() == this)
       {
         mParent->mChildren.erase(it);
+        printf("pxObject::removing this()\n");
         return RT_OK;
       }
     }
@@ -838,7 +840,6 @@ void pxScene2d::onDraw()
   
 #if 1
   pxTextureCacheObject::checkForCompletedDownloads();
-  pxText::checkForCompletedDownloads();
   update(pxSeconds());
   draw();
 #endif
@@ -1022,7 +1023,38 @@ void pxScene2d::setMouseEntered(pxObject* o)
     }
   }
 }
+rtError pxScene2d::setFocus(rtObjectRef o)
+{
+  printf("setFocus\n");
+  if( mFocus == o) {
+    printf("current focus and new focus objects are equal!\n");
+  }
+  else {
+    printf("New focus object will be different from previous.\n");
+  }
 
+  if(mFocus) {
+    rtObjectRef e = new rtMapObject;
+    e.set("target",mFocus);
+    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+    t->mEmit.send("onBlur",e);
+  }
+
+  if (o) {
+    printf("setFocus o is not null\n");
+    mFocus = o;
+  }
+  else {
+    printf("setFocus o is NULL.  Using ROOT!\n");
+    mFocus = getRoot();
+  }
+  rtObjectRef e = new rtMapObject;
+  e.set("target",mFocus);
+  rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+  t->mEmit.send("onFocus",e);
+
+  return RT_OK;
+}
 void pxScene2d::onMouseEnter()
 {
 }
@@ -1036,6 +1068,23 @@ void pxScene2d::onMouseLeave()
   
   mMouseDown = NULL;
   setMouseEntered(NULL);
+}
+
+void pxScene2d::onFocus()
+{
+  // top level scene event
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onFocus");
+  mEmit.send("onFocus", e);
+
+}
+void pxScene2d::onBlur()
+{
+  // top level scene event
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onBlur");
+  mEmit.send("onBlur", e);
+
 }
 
 void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t, 
@@ -1333,6 +1382,8 @@ rtDefineMethod(pxViewContainer, onMouseUp);
 rtDefineMethod(pxViewContainer, onMouseMove);
 rtDefineMethod(pxViewContainer, onMouseEnter);
 rtDefineMethod(pxViewContainer, onMouseLeave);
+rtDefineMethod(pxViewContainer, onFocus);
+rtDefineMethod(pxViewContainer, onBlur);
 rtDefineMethod(pxViewContainer, onKeyDown);
 rtDefineMethod(pxViewContainer, onKeyUp);
 rtDefineMethod(pxViewContainer, onChar);

@@ -40,6 +40,9 @@ protected:
   virtual void onMouseLeave();
   virtual void onMouseMove(int32_t x, int32_t y);
 
+  virtual void onFocus();
+  virtual void onBlur();
+
   virtual void onKeyDown(uint32_t keycode, uint32_t flags);
   virtual void onKeyUp(uint32_t keycode, uint32_t flags);
   virtual void onChar(uint32_t codepoint);
