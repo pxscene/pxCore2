@@ -81,7 +81,6 @@ void pxViewWindow::onMouseMove(int32_t x, int32_t y)
 void pxViewWindow::onKeyDown(uint32_t keycode, uint32_t flags)
 {
   if (mView) {
-	  printf("pxViewWindow got and sending onKeyDown\n");
     mView->onKeyDown(keycode, flags);
   }
 }
