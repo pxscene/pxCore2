@@ -893,7 +893,6 @@ public:
   rtError onFocus(rtObjectRef /*o*/)
   {
     if (mView) {
-    	printf("pxScene2d got and sending onFocus\n");
       mView->onFocus();
     }
     return RT_OK;
@@ -901,7 +900,6 @@ public:
   rtError onBlur(rtObjectRef /*o*/)
   {
     if (mView) {
-    	printf("pxScene2d got and sending onBlur\n");
       mView->onBlur();
     }
     return RT_OK;
