@@ -233,9 +233,8 @@ static void getScene(const FunctionCallbackInfo<Value>& args)
     }
 
     mainWindow = new jsWindow(args.GetIsolate(), x, y, w, h);
-    printf("dimensions are %d %d %d %d\n",x, y, w, h );
 
-    char title[]= { "Connie's pxScene from JavasScript!" };
+    char title[]= { "pxScene from JavasScript!" };
     mainWindow->setTitle(title);
     mainWindow->setVisibility(true);
   }
