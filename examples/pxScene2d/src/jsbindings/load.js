@@ -132,6 +132,32 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
   }
 }
 
+function readConfigFile(argv)
+{
+  var fs = require('fs');
+  var path = require('path');
+  var configSettings = {};
+  var argvLength = argv.length;
+  for (var i = 0; i < argvLength; i++) {
+      if (argv[i].indexOf("-config=") > -1)
+      {
+        var configString = argv[i].split("-config=");
+        if (configString.length > 1)
+        {
+          var configFileName = argv[i].split("-config=")[1];
+          var configPath = path.join(__dirname, configFileName);
+          if (configFileName.length > 0 && fs.existsSync(configPath))
+          {
+            configSettings = JSON.parse(fs.readFileSync(configPath, { encoding: 'utf8' }));
+            break;
+          }
+        }
+      }
+  }
+  
+  return configSettings;
+}
+
 var scene = px.getScene(0, 0, 800, 400);
 var api = new Api(scene);
 
@@ -148,9 +174,12 @@ scene.onScene = function(container, innerscene, url) {
 var argv = process.argv;
 
 if (argv.length >= 3) {
+    var configJson = readConfigFile(argv);
     var originalURL = argv[2];
     // TODO - WARNING root scene.create* doesn't allow passing in property bags
-    var childScene = scene.createScene({url:originalURL,parent:scene.root});
+    configJson["parent"] = scene.root;
+    configJson["url"] = originalURL;
+    var childScene = scene.createScene(configJson);
   scene.setFocus(childScene);
 /*
     childScene.url = originalURL;
