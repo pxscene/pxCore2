@@ -15,8 +15,11 @@ public:
   rtProperty(y1, y1, setY1, float);
   rtProperty(x2, x2, setX2, float);
   rtProperty(y2, y2, setY2, float);
+  rtReadOnlyProperty(statusCode, statusCode, int32_t);
+  rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
 
- pxImage9(): mx1(0), my1(0), mx2(0), my2(0), mTextureCacheObject() { mTextureCacheObject.setParent(this); }
+ pxImage9(): mx1(0), my1(0), mx2(0), my2(0), mTextureCacheObject(), mStatusCode(0), mHttpStatusCode(0)
+ { mTextureCacheObject.setParent(this); }
   
   rtError url(rtString& s) const;
   rtError setURL(const char* s);
@@ -30,6 +33,18 @@ public:
   rtError y2(float& v) const { v = my2; return RT_OK; }
   rtError setY2(float v) { my2 = v; return RT_OK; }
 
+  rtError statusCode(int32_t& v) const
+  {
+    v = (int32_t)mStatusCode;
+    return RT_OK;
+  }
+
+  rtError httpStatusCode(int32_t& v) const
+  {
+    v = (int32_t)mHttpStatusCode;
+    return RT_OK;
+  }
+
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
 
 protected:
@@ -39,6 +54,8 @@ protected:
   rtString mURL;
   float mx1, my1, mx2, my2;
   pxTextureCacheObject mTextureCacheObject;
+  int mStatusCode;
+  int mHttpStatusCode;
 };
 
 #endif

@@ -38,7 +38,10 @@ rtError pxLoadImage(const char* filename, pxOffscreen& b)
   if (e == RT_OK)
     return pxLoadImage((const char*)d.data(), d.length(), b);
   else
+  {
+    e = RT_RESOURCE_NOT_FOUND;
     rtLogError("Could not load image file %s.", filename);
+  }
   return e;
 }
 

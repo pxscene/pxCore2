@@ -35,7 +35,14 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
   {
     return true;
   }
-  else if (textureCacheObject != NULL && status == RT_OK && textureCacheObject->getTexture().getPtr() != NULL)
+
+  if (textureCacheObject != NULL)
+  {
+    mStatusCode = textureCacheObject->getStatusCode();
+    mHttpStatusCode = textureCacheObject->getHttpStatusCode();
+  }
+
+  if (textureCacheObject != NULL && status == RT_OK && textureCacheObject->getTexture().getPtr() != NULL)
   {
     mw = textureCacheObject->getTexture()->width();
     mh = textureCacheObject->getTexture()->height();
@@ -50,3 +57,5 @@ rtDefineProperty(pxImage9, x1);
 rtDefineProperty(pxImage9, y1);
 rtDefineProperty(pxImage9, x2);
 rtDefineProperty(pxImage9, y2);
+rtDefineProperty(pxImage9,statusCode);
+rtDefineProperty(pxImage9,httpStatusCode);

@@ -56,7 +56,13 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
     mReady.send("resolve",this);
     return true;
   }
-  else if (textureCacheObject != NULL && status == RT_OK)
+
+  if (textureCacheObject != NULL)
+  {
+    mStatusCode = textureCacheObject->getStatusCode();
+    mHttpStatusCode = textureCacheObject->getHttpStatusCode();
+  }
+  if (textureCacheObject != NULL && status == RT_OK)
   {
     mReady.send("resolve",this);
     mTexture = textureCacheObject->getTexture();
@@ -82,5 +88,7 @@ rtDefineProperty(pxImage,xStretch);
 rtDefineProperty(pxImage,yStretch);
 rtDefineProperty(pxImage,autoSize);
 rtDefineProperty(pxImage,ready);
+rtDefineProperty(pxImage,statusCode);
+rtDefineProperty(pxImage,httpStatusCode);
 
 
