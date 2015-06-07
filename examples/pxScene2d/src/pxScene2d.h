@@ -247,11 +247,29 @@ public:
   rtReadOnlyProperty(emit, emit, rtFunctionRef);
   rtMethod1ArgAndReturn("getObjectById",getObjectById,rtString,rtObjectRef);
 
+  rtProperty(m11,m11,setM11,float);
+  rtProperty(m12,m12,setM12,float);
+  rtProperty(m13,m13,setM13,float);
+  rtProperty(m14,m14,setM14,float);
+  rtProperty(m21,m21,setM21,float);
+  rtProperty(m22,m22,setM22,float);
+  rtProperty(m23,m23,setM23,float);
+  rtProperty(m24,m24,setM24,float);
+  rtProperty(m31,m31,setM31,float);
+  rtProperty(m32,m32,setM32,float);
+  rtProperty(m33,m33,setM33,float);
+  rtProperty(m34,m34,setM34,float);
+  rtProperty(m41,m41,setM41,float);
+  rtProperty(m42,m42,setM42,float);
+  rtProperty(m43,m43,setM43,float);
+  rtProperty(m44,m44,setM44,float);
+  rtProperty(useMatrix,useMatrix,setUseMatrix,bool);
+
   pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
     mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mMaskTextureRef(),
-    mMaskTextureCacheObject(),mClipTextureRef(),mCancelInSet(true)
+    mMaskTextureCacheObject(),mClipTextureRef(),mCancelInSet(true),mUseMatrix(false)
   {
     mEmit = new rtEmit;
   }
@@ -515,19 +533,26 @@ public:
     else
       rtLogError("Could not allocate pxTransformData");
 #endif
+    if (!mUseMatrix)
+    {
 #if 1
-    // translate based on xy rotate/scale based on cx, cy
-    m.translate(mx+mcx, my+mcy);
-    if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
-    if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);  
-    m.translate(-mcx, -mcy);    
+      // translate based on xy rotate/scale based on cx, cy
+      m.translate(mx+mcx, my+mcy);
+      if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
+      if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);  
+      m.translate(-mcx, -mcy);    
 #else
-    // translate/rotate/scale based on cx, cy
-    m.translate(mx, my);
-    if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
-    if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
-    m.translate(-mcx, -mcy);
+      // translate/rotate/scale based on cx, cy
+      m.translate(mx, my);
+      if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
+      if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
+      m.translate(-mcx, -mcy);
 #endif
+    }
+    else
+    {
+      m.multiply(mMatrix);
+    }
   }
 
   static void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m) {
@@ -639,6 +664,43 @@ public:
 
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
 
+  rtError m11(float& v) const { v = mMatrix.constData(0); return RT_OK; }
+  rtError m12(float& v) const { v = mMatrix.constData(1); return RT_OK; }
+  rtError m13(float& v) const { v = mMatrix.constData(2); return RT_OK; }
+  rtError m14(float& v) const { v = mMatrix.constData(3); return RT_OK; }
+  rtError m21(float& v) const { v = mMatrix.constData(4); return RT_OK; }
+  rtError m22(float& v) const { v = mMatrix.constData(5); return RT_OK; }
+  rtError m23(float& v) const { v = mMatrix.constData(6); return RT_OK; }
+  rtError m24(float& v) const { v = mMatrix.constData(7); return RT_OK; }
+  rtError m31(float& v) const { v = mMatrix.constData(8); return RT_OK; }
+  rtError m32(float& v) const { v = mMatrix.constData(9); return RT_OK; }
+  rtError m33(float& v) const { v = mMatrix.constData(10); return RT_OK; }
+  rtError m34(float& v) const { v = mMatrix.constData(11); return RT_OK; }
+  rtError m41(float& v) const { v = mMatrix.constData(12); return RT_OK; }
+  rtError m42(float& v) const { v = mMatrix.constData(13); return RT_OK; }
+  rtError m43(float& v) const { v = mMatrix.constData(14); return RT_OK; }
+  rtError m44(float& v) const { v = mMatrix.constData(15); return RT_OK; }
+
+  rtError setM11(const float& v) { mMatrix.data()[0] = v; return RT_OK; }
+  rtError setM12(const float& v) { mMatrix.data()[1] = v; return RT_OK; }
+  rtError setM13(const float& v) { mMatrix.data()[2] = v; return RT_OK; }
+  rtError setM14(const float& v) { mMatrix.data()[3] = v; return RT_OK; }
+  rtError setM21(const float& v) { mMatrix.data()[4] = v; return RT_OK; }
+  rtError setM22(const float& v) { mMatrix.data()[5] = v; return RT_OK; }
+  rtError setM23(const float& v) { mMatrix.data()[6] = v; return RT_OK; }
+  rtError setM24(const float& v) { mMatrix.data()[7] = v; return RT_OK; }
+  rtError setM31(const float& v) { mMatrix.data()[8] = v; return RT_OK; }
+  rtError setM32(const float& v) { mMatrix.data()[9] = v; return RT_OK; }
+  rtError setM33(const float& v) { mMatrix.data()[10] = v; return RT_OK; }
+  rtError setM34(const float& v) { mMatrix.data()[11] = v; return RT_OK; }
+  rtError setM41(const float& v) { mMatrix.data()[12] = v; return RT_OK; }
+  rtError setM42(const float& v) { mMatrix.data()[13] = v; return RT_OK; }
+  rtError setM43(const float& v) { mMatrix.data()[14] = v; return RT_OK; }
+  rtError setM44(const float& v) { mMatrix.data()[15] = v; return RT_OK; }
+
+  rtError useMatrix(bool& v) const { v = mUseMatrix; return RT_OK; }
+  rtError setUseMatrix(const bool& v) { mUseMatrix = v; return RT_OK; }
+
 public:
   rtEmitRef mEmit;
 
@@ -661,6 +723,8 @@ protected:
   pxTextureRef mClipTextureRef;
   bool mCancelInSet;
   rtString mId;
+  pxMatrix4f mMatrix;
+  bool mUseMatrix;
 
   pxTextureRef createSnapshot(pxTextureRef texture);
   void createSnapshotOfChildren(pxTextureRef drawableTexture, pxTextureRef maskTexture);
