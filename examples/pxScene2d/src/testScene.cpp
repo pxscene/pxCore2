@@ -303,14 +303,23 @@ void ballScene()
 
 #endif
 
-rtObjectRef bg1;
-rtObjectRef bg2;
-rtObjectRef picture;
+
+struct callbackCtx
+{
+  rtObjectRef bg1;
+  rtObjectRef bg2;
+  rtObjectRef picture;
+};
+
 rtString bananaURL;
 rtString ballURL;
 
-rtError onSizeCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* /*context*/)
+rtError onSizeCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* context)
 {
+  callbackCtx* ctx = (callbackCtx*)context;
+  rtObjectRef& bg1 = ctx->bg1;
+  rtObjectRef& bg2 = ctx->bg2;
+
   if (numArgs == 1)
   {
     rtObjectRef e = args[0].toObject();
@@ -324,8 +333,11 @@ rtError onSizeCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* /*
   return RT_OK;
 }
 
-rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* /*context*/)
+rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* context)
 {
+  callbackCtx* ctx = (callbackCtx*)context;
+  rtObjectRef& picture = ctx->picture;
+
   printf("in keydowncb\n");
   if (numArgs>0)
   {
@@ -353,6 +365,11 @@ rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void*
 
 pxViewRef testScene()
 {
+  callbackCtx* ctx = new callbackCtx;
+  rtObjectRef& bg1 = ctx->bg1;
+  rtObjectRef& bg2 = ctx->bg2;
+  rtObjectRef& picture = ctx->picture;
+
   pxScene2dRef scene = new pxScene2d;
 
   rtString d;
@@ -366,8 +383,8 @@ pxViewRef testScene()
 
   rtObjectRef root = scene.get<rtObjectRef>("root");  
 
-  root.send("on", "onKeyDown", new rtFunctionCallback(onKeyDownCB));
-  scene.send("on", "onResize", new rtFunctionCallback(onSizeCB));
+  root.send("on", "onKeyDown", new rtFunctionCallback(onKeyDownCB,ctx));
+  scene.send("on", "onResize", new rtFunctionCallback(onSizeCB,ctx));
 
   rtString bgURL;
   scene.sendReturns<rtObjectRef>("createImage", bg1);
@@ -400,9 +417,13 @@ pxViewRef testScene()
 
   rtObjectRef t;
   scene.sendReturns<rtObjectRef>("createText", t);
-  t.set("text", "Choose Picture:\n"
-        "1. Banana!\n"
-        "2. Ball!\n");
+#if 1
+  t.set("text", "Select an image to display:\n\n"
+        "1: Banana\n"
+        "2: Ball");
+#else
+  t.set("text","hELLO\n");
+#endif
   t.set("x", 100);
   t.set("y", 100);
   t.set("parent", root);

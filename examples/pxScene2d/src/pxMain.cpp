@@ -24,7 +24,7 @@
 
 #include "pxFileDownloader.h"
 
-extern rtRefT<pxScene2d> scene;
+//extern rtRefT<pxScene2d> scene;
 
 pxEventLoop eventLoop;
 
@@ -43,15 +43,27 @@ int pxMain()
 {
   int width = 1280;
   int height = 720;
-  testWindow win;
 
+  testWindow win;
   win.init(10, 10, width, height);
 
   win.setTitle("pxCore!");
   win.setVisibility(true);
   win.setView(testScene());
   win.setAnimationFPS(60);
-  
+ 
+#if 1
+  testWindow win2;
+
+  win2.init(110, 110, width, height);
+
+  win2.setTitle("pxCore! 2");
+  win2.setVisibility(true);
+  win2.setView(testScene());
+  win2.setAnimationFPS(60);
+#endif
+
+
   eventLoop.run();
 
   return 0;

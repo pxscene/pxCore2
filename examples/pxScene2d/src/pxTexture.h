@@ -14,7 +14,16 @@ enum pxTextureType {
   PX_TEXTURE_FRAME_BUFFER = 4
 };
 
-class pxTexture
+
+class pxTextureNative
+{
+public:
+  virtual pxError bindGLTexture(int tLoc) = 0;
+  virtual pxError bindGLTextureAsMask(int mLoc) = 0;
+};
+
+
+class pxTexture: public pxTextureNative
 {
 public:
   pxTexture() : mRef(0), mTextureType(PX_TEXTURE_UNKNOWN), mPremultipliedAlpha(false)
@@ -34,8 +43,8 @@ public:
     return l;
   }
   
-  virtual pxError bindTexture(int tLoc) = 0;
-  virtual pxError bindTextureAsMask(int mLoc) = 0;
+  virtual pxError bindTexture() { return PX_FAIL; }
+  virtual pxError bindTextureAsMask() { return PX_FAIL; }
   virtual pxError deleteTexture() = 0;
   virtual int width() = 0;
   virtual int height() = 0;

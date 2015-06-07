@@ -29,7 +29,7 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <GL/gl.h>
-#include <GL/glext.h>
+//#include <GL/glext.h>
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
@@ -173,6 +173,7 @@ static void drawImageTexture(float x, float y, float w, float h/*, pxBuffer& b*/
 
 void doinit()
 {
+#if 1
 #if !defined(__APPLE__) && !defined(PX_PLATFORM_WAYLAND_EGL) && !defined(PX_PLATFORM_GENERIC_EGL)
 
   GLenum err = glewInit();
@@ -188,6 +189,7 @@ void doinit()
     rtLogError("invalid glew version");
     exit(1); // or handle the error in a nicer way
   }
+#endif
 #endif
 
   glClearColor(0, 0, 0, 1);
@@ -280,12 +282,27 @@ void pxWindowNative::onGlutClose()
 
 void pxWindowNative::onGlutTimer(int v)
 {
+
+#if 0
   pxWindowNative* w = getWindowFromGlutID(glutGetWindow());
   if (w)
   {
     w->onAnimationTimer();
     glutTimerFunc(16, onGlutTimer, 0);
   }
+#else
+  
+  vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  vector<pxWindowNative*>::iterator i;
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+
+    glutSetWindow(w->mGlutWindowId);
+    w->onAnimationTimer();
+  }
+  glutTimerFunc(16, onGlutTimer, 0);
+#endif
 }
 
 void pxWindowNative::onGlutMouse(int button, int state, int x, int y)
@@ -524,6 +541,7 @@ void pxWindowNative::createGlutWindow(int left, int top, int width, int height)
 
   mGlutWindowId = glutCreateWindow ("pxWindow");
 
+  glutSetOption(GLUT_RENDERING_CONTEXT ,GLUT_USE_CURRENT_CONTEXT );
   //doinit();
 
   glClearColor(0, 0, 0, 1);

@@ -516,12 +516,13 @@ bool pxObject::hitTest(pxPoint2f& pt)
 }
 
 
-
 pxTextureRef pxObject::createSnapshot(pxTextureRef texture)
 {
   pxMatrix4f m;
 
-  float parentAlpha = ma;
+//  float parentAlpha = ma;
+  
+  float parentAlpha = 1.0;
 
   context.setMatrix(m);
   context.setAlpha(parentAlpha);
@@ -692,6 +693,8 @@ rtDefineProperty(pxObject, emit);
 rtDefineProperty(pxObject, onReady);
 rtDefineMethod(pxObject, getObjectById);
 
+int gTag = 0;
+
 pxScene2d::pxScene2d(bool top)
  :start(0),frameCount(0) 
 { 
@@ -699,6 +702,7 @@ pxScene2d::pxScene2d(bool top)
   mFocus = mRoot;
   mEmit = new rtEmit();
   mTop = top;
+  mTag = gTag++;
 }
 
 void pxScene2d::init()
@@ -821,7 +825,7 @@ void pxScene2d::draw()
 {
   if (mTop)
     context.clear(mWidth, mHeight);
-  
+
   if (mRoot)
   {
     pxMatrix4f m;
@@ -831,6 +835,11 @@ void pxScene2d::draw()
 
 void pxScene2d::onDraw()
 {
+
+  if (mTop)
+    context.setSize(mWidth, mHeight);
+
+
   if (start == 0)
   {
     start = pxSeconds();
@@ -880,8 +889,10 @@ pxObject* pxScene2d::getRoot() const
 
 void pxScene2d::onSize(int32_t w, int32_t h)
 {
+#if 0
   if (mTop)
     context.setSize(w, h);
+#endif
 
   mWidth  = w;
   mHeight = h;

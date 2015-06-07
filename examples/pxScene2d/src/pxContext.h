@@ -26,12 +26,15 @@ class pxContext {
 
   void setMatrix(pxMatrix4f& m);
   void setAlpha(float a);
+
+  void pushState();
+  void popState();
   
   pxTextureRef createContextSurface(int width, int height);
   pxError updateContextSurface(pxTextureRef texture, int width, int height);
   pxError setRenderSurface(pxTextureRef texture);
   pxTextureRef getCurrentRenderSurface();
-  pxError deleteContextSurface(pxTextureRef texture);
+//  pxError deleteContextSurface(pxTextureRef texture);
 
   pxTextureRef createTexture(pxOffscreen& o);
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer);

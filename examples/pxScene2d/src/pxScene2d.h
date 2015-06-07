@@ -1119,8 +1119,6 @@ public:
   // The following methods are delegated to the view
   virtual void onSize(int32_t w, int32_t h);
 
-
-
   virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags);
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags);
   virtual void onMouseEnter();
@@ -1177,6 +1175,7 @@ private:
   rtValue mContext;
   bool mTop;
   bool mStopPropagation;
+  int mTag;
 };
 
 class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase

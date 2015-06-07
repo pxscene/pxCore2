@@ -283,7 +283,8 @@ void pxText::update(double t)
     else
       setPainting(true);
 #else
-    if (mText.length() >= 5)
+    // TODO make this configurable
+    if (mText.length() >= 10)
     {
       mCached = NULL;
       pxTextureRef cached = context.createContextSurface(mw,mh);
@@ -294,7 +295,7 @@ void pxText::update(double t)
         context.setRenderSurface(cached);
         pxMatrix4f m;
         context.setMatrix(m);
-        context.setAlpha(ma);
+        context.setAlpha(1.0);
         context.clear(mw,mh);
         draw();
         context.setRenderSurface(previousSurface);
