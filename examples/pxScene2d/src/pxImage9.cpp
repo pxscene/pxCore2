@@ -33,6 +33,7 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
 {
   if (pxObject::onTextureReady(textureCacheObject, status))
   {
+    mReady.send("resolve",this);
     return true;
   }
 
@@ -46,8 +47,10 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
   {
     mw = textureCacheObject->getTexture()->width();
     mh = textureCacheObject->getTexture()->height();
+    mReady.send("resolve",this);
     return true;
   }
+  mReady.send("reject",this);
   return false;
 }
 
