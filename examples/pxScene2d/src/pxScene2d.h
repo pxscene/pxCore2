@@ -226,6 +226,7 @@ public:
   rtProperty(drawAsMask, drawAsMask, setDrawAsMask, bool);
   rtProperty(draw, drawEnabled, setDrawEnabled, bool);
   rtProperty(drawAsHitTest, drawAsHitTest, setDrawAsHitTest, bool);
+  rtReadOnlyProperty(ready, ready, rtObjectRef);
 
   rtReadOnlyProperty(numChildren, numChildren, int32_t);
   rtMethod1ArgAndReturn("getChild", getChild, int32_t, rtObjectRef);
@@ -268,9 +269,10 @@ public:
   pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
-    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mMaskTextureRef(),
+    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mReady(), mMaskTextureRef(),
     mMaskTextureCacheObject(),mClipTextureRef(),mCancelInSet(true),mUseMatrix(false)
   {
+    mReady = new rtPromise;
     mEmit = new rtEmit;
   }
 
@@ -401,6 +403,12 @@ public:
   bool drawAsHitTest()            const { return mDrawAsHitTest;}
   rtError drawAsHitTest(bool& v)  const { v = mDrawAsHitTest; return RT_OK;  }
   rtError setDrawAsHitTest(bool v) { mDrawAsHitTest = v; return RT_OK; }
+
+  rtError ready(rtObjectRef& v) const
+  {
+    v = mReady;
+    return RT_OK;
+  }
 
   void moveToFront();
   void moveToBack();
@@ -718,6 +726,7 @@ protected:
   bool mDrawAsMask;
   bool mDraw;
   bool mDrawAsHitTest;
+  rtObjectRef mReady;
   pxTextureRef mMaskTextureRef;
   pxTextureCacheObject mMaskTextureCacheObject;
   pxTextureRef mClipTextureRef;

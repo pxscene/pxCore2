@@ -87,7 +87,6 @@ rtDefineProperty(pxImage,url);
 rtDefineProperty(pxImage,xStretch);
 rtDefineProperty(pxImage,yStretch);
 rtDefineProperty(pxImage,autoSize);
-rtDefineProperty(pxImage,ready);
 rtDefineProperty(pxImage,statusCode);
 rtDefineProperty(pxImage,httpStatusCode);
 

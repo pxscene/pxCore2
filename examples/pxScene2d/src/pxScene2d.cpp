@@ -679,6 +679,7 @@ rtDefineProperty(pxObject, mask);
 rtDefineProperty(pxObject, drawAsMask);
 rtDefineProperty(pxObject, draw);
 rtDefineProperty(pxObject, drawAsHitTest);
+rtDefineProperty(pxObject,ready);
 rtDefineProperty(pxObject, numChildren);
 rtDefineMethod(pxObject, getChild);
 rtDefineMethod(pxObject, remove);
