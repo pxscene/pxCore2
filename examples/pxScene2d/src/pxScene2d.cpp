@@ -750,6 +750,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createScene(p,o);
   else if (!strcmp("external",t.cString()))
     e = createExternal(p,o);
+  else if (!strcmp("object",t.cString()))
+    e = createObject(p,o);
   else
   {
     rtLogError("Unknown object type, %s in scene.create.", t.cString());
@@ -771,6 +773,14 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
   }
 
   return e;
+}
+
+rtError pxScene2d::createObject(rtObjectRef p, rtObjectRef& o)
+{
+  o = new pxObject;
+  o.set(p);
+  o.send("init");
+  return RT_OK;
 }
 
 rtError pxScene2d::createRectangle(rtObjectRef p, rtObjectRef& o)

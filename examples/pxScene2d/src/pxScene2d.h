@@ -1124,6 +1124,7 @@ public:
   rtError setShowOutlines(bool v);
 
   rtError create(rtObjectRef p, rtObjectRef& o);
+  rtError createObject(rtObjectRef p, rtObjectRef& o);
   rtError createRectangle(rtObjectRef p, rtObjectRef& o);
   rtError createText(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
