@@ -24,8 +24,8 @@ scene.createImage({id:"ball",url:url,x:450,y:150,parent:root,onReady:function(e)
     childText.on("onMouseDown", function(e) {
 	// TODO is there a better way to do this??
 	rTarget += 360;
-	childText.animateToF({r:rTarget}, 1.0, 4, 0); 
-	//    childText.animateToF({r:360}, 5.0, 4, 0, function(o) { o.r = 0; }); 
+	childText.animateTo({r:rTarget}, 1.0, 4, 0); 
+	//    childText.animateTo({r:360}, 5.0, 4, 0, function(o) { o.r = 0; }); 
     });
 }});
 
@@ -47,37 +47,37 @@ function fancy(p) {
 }
 
 function x1(p) {
-    p.animateToF({x:50}, 1.0, pxInterpLinear, 0, x2);
+    p.animateTo({x:50}, 1.0, pxInterpLinear, 0, x2);
 }
 
 function x2(p) {
-    p.animateToF({x:450}, 3.0, easeOutElastic, 0, fancy);
+    p.animateTo({x:450}, 3.0, easeOutElastic, 0, fancy);
 }
 
 function y1(p) {
     p.y = 100;
-    p.animateToF({y:350}, 1.0, easeOutBounce, 0, y2);
+    p.animateTo({y:350}, 1.0, easeOutBounce, 0, y2);
 }
 
 function y2(p) {
-    p.animateToF({y:150}, 1.0, easeOutElastic, 0);
+    p.animateTo({y:150}, 1.0, easeOutElastic, 0);
 }
 
 function rotate1(p) {
     p.r = 0;
-    p.animateToF({r:-360}, 2.5, easeOutElastic, 0);
+    p.animateTo({r:-360}, 2.5, easeOutElastic, 0);
 }
 
 function scale1(p) {
-    p.animateToF({sx:0.2,sy:0.2}, 1, pxInterpLinear, 0, scale2);
+    p.animateTo({sx:0.2,sy:0.2}, 1, pxInterpLinear, 0, scale2);
 }
 
 function scale2(p) {
-    p.animateToF({sx:2.0,sy:2.0}, 1.0, pxExp, 0, scale3);
+    p.animateTo({sx:2.0,sy:2.0}, 1.0, pxExp, 0, scale3);
 }
 
 function scale3(p) {
-    p.animateToF({sx:1.0,sy:1.0}, 1.0, easeOutElastic, 0);
+    p.animateTo({sx:1.0,sy:1.0}, 1.0, easeOutElastic, 0);
 }
 
 scene.on('onKeyDown', function(e) {

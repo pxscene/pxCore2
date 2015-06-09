@@ -101,7 +101,7 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
           if (true) { // enable to fade scenes in
             container.a = 0;
             container.painting = true;
-            container.animateToF({a:1}, 0.2, 0, 0);
+            container.animateTo({a:1}, 0.2, 0, 0);
           }
           else
             container.painting = true;
