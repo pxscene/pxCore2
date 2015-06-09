@@ -31,10 +31,10 @@ scene.root.on("onKeyDown", function(e) {
   text.y = (textbg.h-text.h)/2;
   text.cx = text.w/2;
   text.cy = text.h/2;
-  textbg.animateTo({a:1,y:randomInt(20,200),r:randomInt(-30,30)},0.2,scene.PX_STOP,0,function(t) { 
-    t.animateTo({r:randomInt(-15,15), y: t.y+50}, 0.6, 0, 0, function(t) {
-      t.animateTo({sx:1, sy: 1}, 0.01, 0, 0, function(t) {
-        t.animateTo({a:0,sx:0.25,sy:0.25}, 0.2, 0, 0, function(t) {
+  textbg.animateToF({a:1,y:randomInt(20,200),r:randomInt(-30,30)},0.2,scene.PX_STOP,0,function(t) { 
+    t.animateToF({r:randomInt(-15,15), y: t.y+50}, 0.6, 0, 0, function(t) {
+      t.animateToF({sx:1, sy: 1}, 0.01, 0, 0, function(t) {
+        t.animateToF({a:0,sx:0.25,sy:0.25}, 0.2, 0, 0, function(t) {
           t.remove();
         });
       });
@@ -58,8 +58,8 @@ function balloon(eventName, imageURL, textColor, offset, parent) {
     text.y = (textbg.h-text.h-10)/2;
     text.cx = text.w/2;
     text.cy = text.h/2;
-    textbg.animateTo({y: textbg.y-10-offset}, 0.3, 0, 0, function(t) {
-      t.animateTo({a:0}, 0.3, 4, 0, function(t) {
+    textbg.animateToF({y: textbg.y-10-offset}, 0.3, 0, 0, function(t) {
+      t.animateToF({a:0}, 0.3, 4, 0, function(t) {
         t.remove();
       });
     });
@@ -82,8 +82,8 @@ function blah(eventname) {
     text.y = scene.h-text.h/2;
     text.cx = text.w/2;
     text.cy = text.h/2;
-    text.animateTo({y: text.y-10}, 0.3, 0, 0, function(t) {
-      t.animateTo({a:0}, 0.3, 4, 0, function(t) {
+    text.animateToF({y: text.y-10}, 0.3, 0, 0, function(t) {
+      t.animateToF({a:0}, 0.3, 4, 0, function(t) {
         t.remove();
       });
     });

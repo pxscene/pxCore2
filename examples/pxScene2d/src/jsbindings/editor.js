@@ -5,9 +5,9 @@ text.x = (scene.w-text.w)/2;
 text.y = (scene.h-text.h)/2;
 text.cx = text.w/2;
 text.cy = text.h/2;
-//text.animateTo({"r": -360}, 5.0, 0, 2);
+//text.animateToF({"r": -360}, 5.0, 0, 2);
 text.on("mousedown", function() {
-    text.animateTo({r:360}, 1.0, 0, 0, function(o) { o.r = 0; }); 
+    text.animateToF({r:360}, 1.0, 0, 0, function(o) { o.r = 0; }); 
     console.log("Yay!");
 });
 

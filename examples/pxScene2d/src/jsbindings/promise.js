@@ -6,10 +6,10 @@ var o = scene.create({t:"rect",fillColor:0xffffffff,w:300,h:300,parent:root,cx:1
   {t:"rect",fillColor:0x0000ffff,w:100,h:100,x:200,y:200},
 ]})
 
-var a1 = o.animateToP({r:360},1,scene.PX_LINEAR,scene.PX_END)
+var a1 = o.animateTo({r:360},1,scene.PX_LINEAR,scene.PX_END)
   .then(function(z) {
       console.log('Im finally here:'+z);
-    z.animateToP({sx:2.0,sy:2.0},1,scene.PX_LINEAR,scene.PX_END);
+    z.animateTo({sx:2.0,sy:2.0},1,scene.PX_LINEAR,scene.PX_END);
     return z;
     })
   .then(function(z) {
@@ -21,7 +21,7 @@ var a1 = o.animateToP({r:360},1,scene.PX_LINEAR,scene.PX_END)
 });
 
 
-var a2 = o.children[1].animateToP({r:-360},6,scene.PX_LINEAR,scene.PX_END)
+var a2 = o.children[1].animateTo({r:-360},6,scene.PX_LINEAR,scene.PX_END)
   .then(function() {
     console.log("child animation done");
 });

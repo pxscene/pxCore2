@@ -10,6 +10,6 @@ for(var i = 1; i <= 209; i++) {
   var j = i-1;
 var maskurl = process.cwd()+"/../../images/postermask2.png";
   scene.createImage({x:j%across*w,y:Math.floor(j/across)*h,url:url,parent:root,cx:w/2,cy:h/2,mask:maskurl,ry:1,rz:0})
-    .animateTo({r:-360},1.0,scene.PX_LINEAR,scene.PX_LOOP);
+    .animateToF({r:-360},1.0,scene.PX_LINEAR,scene.PX_LOOP);
 } 
 }

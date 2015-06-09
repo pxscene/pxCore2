@@ -32,10 +32,10 @@ for (var i = 0; i < appURLs.length; i++) {
     if (e.flags == 4) {  // ctrl-mousedown
       c.cx = c.w/2;
       c.cy = c.h/2;
-      c.animateTo({r:c.r+360},3,scene.PX_STOP,scene.PX_END);
+      c.animateToF({r:c.r+360},3,scene.PX_STOP,scene.PX_END);
     }
     scene.setFocus(c);
-    select.animateTo({x:(c.x-childPad)*0.25,y:(c.y-childPad)*0.25},
+    select.animateToF({x:(c.x-childPad)*0.25,y:(c.y-childPad)*0.25},
                      0.3,scene.PX_STOP,scene.PX_END);
   });
   
@@ -56,7 +56,7 @@ scene.root.on('onKeyDown', function(e) {
 function positionApps() {
   for (var i = 0; i < apps.children.length; i++) {
     var c = apps.children[i];
-    c.animateTo({x:((i%childAcross)*(childAppWidth+childPad))+childPad,
+    c.animateToF({x:((i%childAcross)*(childAppWidth+childPad))+childPad,
     y:(Math.floor(i/childAcross)*(childAppHeight+childPad))+childPad},
                 0.3, scene.PX_STOP, scene.PX_END);
   }

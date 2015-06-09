@@ -70,11 +70,11 @@ HorizontalMenu.prototype.moveSelection = function(menu, src, dest, xpos, width)
     xpos = 0;
   }
 
-  this._bottomSelectionLine.animateTo({w:width}, this._animationSpeed, scene.PX_STOP, 0);
-  this._topSelectionLine.animateTo({w:width}, this._animationSpeed, scene.PX_STOP, 0);
+  this._bottomSelectionLine.animateToF({w:width}, this._animationSpeed, scene.PX_STOP, 0);
+  this._topSelectionLine.animateToF({w:width}, this._animationSpeed, scene.PX_STOP, 0);
 
-  this._topSelectionLine.animateTo({x:xpos}, this._animationSpeed, scene.PX_STOP, 0);
-  this._bottomSelectionLine.animateTo({x:xpos},  this._animationSpeed, scene.PX_STOP, 0, function(e) {
+  this._topSelectionLine.animateToF({x:xpos}, this._animationSpeed, scene.PX_STOP, 0);
+  this._bottomSelectionLine.animateToF({x:xpos},  this._animationSpeed, scene.PX_STOP, 0, function(e) {
 
     // Is this a BUG? "this" doesn't appear to be HorizontalMenu
 
@@ -86,7 +86,7 @@ HorizontalMenu.prototype.moveSelection = function(menu, src, dest, xpos, width)
   if (xtxt != -1) {
     for (i in this._textItems) {
       var x = this._textItems[i].x + xtxt;
-      this._textItems[i].animateTo({x:x}, this._animationSpeed, scene.PX_STOP, 0);
+      this._textItems[i].animateToF({x:x}, this._animationSpeed, scene.PX_STOP, 0);
     }
   }
 }
