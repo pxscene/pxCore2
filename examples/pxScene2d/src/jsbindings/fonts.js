@@ -102,18 +102,18 @@ var currentRow = 0;
 function selectRow(i) {
     currentRow = i;
     var row = rowcontainer.children[i];
-    select.animateToF({x:row.x,y:row.y,h:row.h},0.3,0,0);
+    select.animateTo({x:row.x,y:row.y,h:row.h},0.3,0,0);
     // animate to bring selection into view
     var t = -scrollContent.y;
     if (row.y < t) {
         t = -row.y
         console.log("one");
-        scrollContent.animateToF({y:t},0.3, 0, 0);
+        scrollContent.animateTo({y:t},0.3, 0, 0);
     }
     else if (row.y+row.h-scene.h > t) {
         t = -(row.y+row.h-scene.h);
         console.log("two");
-        scrollContent.animateToF({y:t},0.3, 0, 0);
+        scrollContent.animateTo({y:t},0.3, 0, 0);
     }
 }
 

@@ -142,7 +142,8 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
   }
 #endif
 
-#if 1
+#if 0
+//TODO - remove
 rtError pxObject::animateToF(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t animationType, 
                             rtFunctionRef onEnd) 
@@ -152,6 +153,7 @@ rtError pxObject::animateToF(const char* prop, double to, double duration,
             (pxAnimationType)animationType, onEnd);
   return RT_OK;
 }
+#endif
 
 rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t animationType, 
@@ -162,8 +164,6 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
             (pxAnimationType)animationType, promise);
   return RT_OK;
 }
-
-#endif
 
 // Dont fastforward when calling from set* methods since that will
 // recurse indefinitely and crash and we're going to change the value in
@@ -213,6 +213,8 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
   mCancelInSet = f;
 }
 
+#if 0
+//TODO - remove
 void pxObject::animateToF(const char* prop, double to, double duration,
                          pxInterp interp, pxAnimationType at,
                          rtFunctionRef onEnd)
@@ -235,6 +237,7 @@ void pxObject::animateToF(const char* prop, double to, double duration,
 
   mAnimations.push_back(a);
 }
+#endif
 
 void pxObject::animateTo(const char* prop, double to, double duration,
                          pxInterp interp, pxAnimationType at,
@@ -685,7 +688,10 @@ rtDefineMethod(pxObject, getChild);
 rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, removeAll);
 //rtDefineMethod(pxObject, animateTo);
+#if 0
+//TODO - remove
 rtDefineMethod(pxObject, animateToF2);
+#endif
 rtDefineMethod(pxObject, animateToP2);
 rtDefineMethod(pxObject, addListener);
 rtDefineMethod(pxObject, delListener);

@@ -235,8 +235,11 @@ public:
   rtMethodNoArgAndNoReturn("remove", remove);
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
 
+  #if 0
+  //TODO - remove
   rtMethod5ArgAndNoReturn("animateToF", animateToF2, rtObjectRef, double,
                           uint32_t, uint32_t, rtFunctionRef);
+  #endif
 
   rtMethod4ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
                         uint32_t, uint32_t, rtObjectRef);
@@ -420,16 +423,22 @@ public:
 
   bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit, pxPoint2f& hitPt);
   virtual bool hitTest(pxPoint2f& pt);
-  
+
+  #if 0
+  //TODO - remove
   rtError animateToF(const char* prop, double to, double duration,
                      uint32_t interp, uint32_t animationType, 
                      rtFunctionRef onEnd);
+  #endif
+
   rtError animateTo(const char* prop, double to, double duration,
                      uint32_t interp, uint32_t animationType, 
                      rtObjectRef promise);
 
+  #if 0
+  //TODO - REMOVE
   rtError animateToF2(rtObjectRef props, double duration,
-                     uint32_t interp, uint32_t animationType, 
+                     uint32_t interp, uint32_t animationType,
                      rtFunctionRef onEnd)
   {
     if (!props) return RT_FAIL;
@@ -446,24 +455,31 @@ public:
     }
     return RT_OK;
   }
+  #endif
 
   rtError animateToP2(rtObjectRef props, double duration, 
                       uint32_t interp, uint32_t animationType, 
                       rtObjectRef& promise);
-  
+
+  #if 0
+  //TODO - remove
   void animateToF(const char* prop, double to, double duration,
 		 pxInterp interp, pxAnimationType at, 
-                 rtFunctionRef onEnd);  
+                 rtFunctionRef onEnd);
+   #endif
 
   void animateTo(const char* prop, double to, double duration,
 		 pxInterp interp, pxAnimationType at, 
-                 rtObjectRef promise);  
+                 rtObjectRef promise);
 
+  #if 0
+  //TODO - remove
   void animateToF(const char* prop, double to, double duration,
 		 pxInterp interp=0, pxAnimationType at=PX_END)
   {
     animateToF(prop, to, duration, interp, at, rtFunctionRef());
-  }  
+  }
+  #endif
 
   void cancelAnimation(const char* prop, bool fastforward = false);
 
