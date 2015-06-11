@@ -818,6 +818,15 @@ testView(): mContainer(NULL),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) 
     mEntered = false;
   }
 
+  virtual void RT_STDCALL onFocus()
+  {
+    rtLogInfo("testView::onFocus()");
+  }
+  virtual void RT_STDCALL onBlur()
+  {
+    rtLogInfo("testView::onBlur()");
+
+  }
   virtual void RT_STDCALL onKeyDown(uint32_t keycode, uint32_t flags)
   {
     rtLogInfo("testView::onKeyDown(%u, %u)", keycode, flags);
@@ -865,6 +874,8 @@ public:
   rtMethod1ArgAndNoReturn("onMouseMove", onMouseMove, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseEnter", onMouseEnter, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseLeave", onMouseLeave, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onFocus", onFocus, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onBlur", onBlur, rtObjectRef);
   rtMethod1ArgAndNoReturn("onKeyDown", onKeyDown, rtObjectRef);
   rtMethod1ArgAndNoReturn("onKeyUp", onKeyUp, rtObjectRef);
   rtMethod1ArgAndNoReturn("onChar", onChar, rtObjectRef);
@@ -876,6 +887,8 @@ public:
     addListener("onMouseMove", get<rtFunctionRef>("onMouseMove"));
     addListener("onMouseEnter", get<rtFunctionRef>("onMouseEnter"));
     addListener("onMouseLeave", get<rtFunctionRef>("onMouseLeave"));
+    addListener("onFocus", get<rtFunctionRef>("onFocus"));
+    addListener("onBlur", get<rtFunctionRef>("onBlur"));
     addListener("onKeyDown", get<rtFunctionRef>("onKeyDown"));
     addListener("onKeyUp", get<rtFunctionRef>("onKeyUp"));
     addListener("onChar", get<rtFunctionRef>("onChar"));
@@ -966,6 +979,20 @@ public:
     return RT_OK;
   }
 
+  rtError onFocus(rtObjectRef /*o*/)
+  {
+    if (mView) {
+      mView->onFocus();
+    }
+    return RT_OK;
+  }
+  rtError onBlur(rtObjectRef /*o*/)
+  {
+    if (mView) {
+      mView->onBlur();
+    }
+    return RT_OK;
+  }
   rtError onKeyDown(rtObjectRef o)
   {
     if (mView)
@@ -1173,17 +1200,8 @@ public:
     return RT_OK;
   }
 
-  rtError setFocus(rtObjectRef o)
-  {
-    
-    if (o) 
-      mFocus = o;
-    else
-      mFocus = getRoot();
-
-    return RT_OK;
-  }
-
+  rtError setFocus(rtObjectRef o);
+ 
   rtError stopPropagation()
   {
     printf("stopPropagation()\n");
@@ -1210,6 +1228,9 @@ public:
   virtual void onMouseEnter();
   virtual void onMouseLeave();
   virtual void onMouseMove(int32_t x, int32_t y);
+
+  virtual void onFocus();
+  virtual void onBlur();
 
   virtual void onKeyDown(uint32_t keycode, uint32_t flags);
   virtual void onKeyUp(uint32_t keycode, uint32_t flags);

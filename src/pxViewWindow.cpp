@@ -59,6 +59,19 @@ void pxViewWindow::onMouseLeave()
     mView->onMouseLeave();
 }
 
+void pxViewWindow::onFocus()
+{
+  if (mView) {
+    mView->onFocus();
+  }
+}
+void pxViewWindow::onBlur()
+{
+  if (mView) {
+    mView->onBlur();
+  }
+}
+
 void pxViewWindow::onMouseMove(int32_t x, int32_t y)
 {
   if (mView)
