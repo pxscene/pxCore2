@@ -38,7 +38,9 @@ enum WindowCallback
   eMouseMove = 8,
   eKeyDown = 9,
   eKeyUp = 10,
-  eDraw = 11
+  eDraw = 11,
+  eFocus = 12,
+  eBlur = 13,
 };
 
 
@@ -140,6 +142,15 @@ protected:
     mScene->onMouseMove(x, y);
   }
 
+  virtual void onFocus()
+  {
+    mScene->onFocus();
+  }
+  virtual void onBlur()
+  {
+    mScene->onBlur();
+  }
+
   virtual void onKeyDown(uint32_t keycode, uint32_t flags)
   {
     mScene->onKeyDown(keycode, flags);
@@ -231,6 +242,7 @@ static void getScene(const FunctionCallbackInfo<Value>& args)
   EscapableHandleScope scope(args.GetIsolate());
   args.GetReturnValue().Set(scope.Escape(mainWindow->scene(args.GetIsolate())));
 }
+
 
 void ModuleInit(
   Handle<Object>      target,

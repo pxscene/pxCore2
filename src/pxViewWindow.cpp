@@ -59,6 +59,19 @@ void pxViewWindow::onMouseLeave()
     mView->onMouseLeave();
 }
 
+void pxViewWindow::onFocus()
+{
+  if (mView) {
+    mView->onFocus();
+  }
+}
+void pxViewWindow::onBlur()
+{
+  if (mView) {
+    mView->onBlur();
+  }
+}
+
 void pxViewWindow::onMouseMove(int32_t x, int32_t y)
 {
   if (mView)
@@ -67,8 +80,9 @@ void pxViewWindow::onMouseMove(int32_t x, int32_t y)
 
 void pxViewWindow::onKeyDown(uint32_t keycode, uint32_t flags)
 {
-  if (mView)
+  if (mView) {
     mView->onKeyDown(keycode, flags);
+  }
 }
 
 void pxViewWindow::onKeyUp(uint32_t keycode, uint32_t flags)
