@@ -226,6 +226,7 @@ public:
   rtProperty(drawAsMask, drawAsMask, setDrawAsMask, bool);
   rtProperty(draw, drawEnabled, setDrawEnabled, bool);
   rtProperty(drawAsHitTest, drawAsHitTest, setDrawAsHitTest, bool);
+  rtReadOnlyProperty(ready, ready, rtObjectRef);
 
   rtReadOnlyProperty(numChildren, numChildren, int32_t);
   rtMethod1ArgAndReturn("getChild", getChild, int32_t, rtObjectRef);
@@ -234,10 +235,13 @@ public:
   rtMethodNoArgAndNoReturn("remove", remove);
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
 
-  rtMethod5ArgAndNoReturn("animateTo", animateTo2, rtObjectRef, double, 
+  #if 0
+  //TODO - remove
+  rtMethod5ArgAndNoReturn("animateToF", animateToF2, rtObjectRef, double,
                           uint32_t, uint32_t, rtFunctionRef);
+  #endif
 
-  rtMethod4ArgAndReturn("animateToP", animateToP2, rtObjectRef, double, 
+  rtMethod4ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
                         uint32_t, uint32_t, rtObjectRef);
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
@@ -268,9 +272,10 @@ public:
   pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
-    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mMaskTextureRef(),
+    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mReady(), mMaskTextureRef(),
     mMaskTextureCacheObject(),mClipTextureRef(),mCancelInSet(true),mUseMatrix(false)
   {
+    mReady = new rtPromise;
     mEmit = new rtEmit;
   }
 
@@ -402,6 +407,12 @@ public:
   rtError drawAsHitTest(bool& v)  const { v = mDrawAsHitTest; return RT_OK;  }
   rtError setDrawAsHitTest(bool v) { mDrawAsHitTest = v; return RT_OK; }
 
+  rtError ready(rtObjectRef& v) const
+  {
+    v = mReady;
+    return RT_OK;
+  }
+
   void moveToFront();
   void moveToBack();
   void moveForward();
@@ -412,16 +423,22 @@ public:
 
   bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit, pxPoint2f& hitPt);
   virtual bool hitTest(pxPoint2f& pt);
-  
-  rtError animateTo(const char* prop, double to, double duration, 
+
+  #if 0
+  //TODO - remove
+  rtError animateToF(const char* prop, double to, double duration,
                      uint32_t interp, uint32_t animationType, 
                      rtFunctionRef onEnd);
-  rtError animateToP(const char* prop, double to, double duration, 
+  #endif
+
+  rtError animateTo(const char* prop, double to, double duration,
                      uint32_t interp, uint32_t animationType, 
                      rtObjectRef promise);
 
-  rtError animateTo2(rtObjectRef props, double duration, 
-                     uint32_t interp, uint32_t animationType, 
+  #if 0
+  //TODO - REMOVE
+  rtError animateToF2(rtObjectRef props, double duration,
+                     uint32_t interp, uint32_t animationType,
                      rtFunctionRef onEnd)
   {
     if (!props) return RT_FAIL;
@@ -432,30 +449,37 @@ public:
       for (uint32_t i = 0; i < len; i++)
       {
         rtString key = keys.get<rtString>(i);
-        animateTo(key, props.get<float>(key), duration, interp, animationType, 
+        animateToF(key, props.get<float>(key), duration, interp, animationType,
                   (i==0)?onEnd:rtFunctionRef());
       }
     }
     return RT_OK;
   }
+  #endif
 
   rtError animateToP2(rtObjectRef props, double duration, 
                       uint32_t interp, uint32_t animationType, 
                       rtObjectRef& promise);
-  
-  void animateTo(const char* prop, double to, double duration, 
-		 pxInterp interp, pxAnimationType at, 
-                 rtFunctionRef onEnd);  
 
-  void animateToP(const char* prop, double to, double duration, 
+  #if 0
+  //TODO - remove
+  void animateToF(const char* prop, double to, double duration,
 		 pxInterp interp, pxAnimationType at, 
-                 rtObjectRef promise);  
+                 rtFunctionRef onEnd);
+   #endif
 
-  void animateTo(const char* prop, double to, double duration, 
+  void animateTo(const char* prop, double to, double duration,
+		 pxInterp interp, pxAnimationType at, 
+                 rtObjectRef promise);
+
+  #if 0
+  //TODO - remove
+  void animateToF(const char* prop, double to, double duration,
 		 pxInterp interp=0, pxAnimationType at=PX_END)
   {
-    animateTo(prop, to, duration, interp, at, rtFunctionRef());
-  }  
+    animateToF(prop, to, duration, interp, at, rtFunctionRef());
+  }
+  #endif
 
   void cancelAnimation(const char* prop, bool fastforward = false);
 
@@ -718,6 +742,7 @@ protected:
   bool mDrawAsMask;
   bool mDraw;
   bool mDrawAsHitTest;
+  rtObjectRef mReady;
   pxTextureRef mMaskTextureRef;
   pxTextureCacheObject mMaskTextureCacheObject;
   pxTextureRef mClipTextureRef;

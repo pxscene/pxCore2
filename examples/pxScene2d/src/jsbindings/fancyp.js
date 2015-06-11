@@ -20,32 +20,32 @@ function fancy(o) {
 
   // animate x and restart the overall animation at end
   o.x = startX;
-  o.animateToP({x:50}, 1.0, scene.PX_LINEAR, scene.PX_END)
+  o.animateTo({x:50}, 1.0, scene.PX_LINEAR, scene.PX_END)
     .then(function(o){
-      return o.animateToP({x:startX},3.0,scene.PX_EASEOUTELASTIC,
+      return o.animateTo({x:startX},3.0,scene.PX_EASEOUTELASTIC,
                           scene.PX_END)})
     .then(function(){console.log("restart");fancy(o);});
 
   // animate y
   o.y = startY;
-  o.animateToP({y:350}, 1.0, scene.PX_EASEOUTBOUNCE, scene.PX_END)
+  o.animateTo({y:350}, 1.0, scene.PX_EASEOUTBOUNCE, scene.PX_END)
     .then(function(o) {
-      o.animateToP({y:startY}, 1.0, scene.PX_EASEOUTELASTIC, 
+      o.animateTo({y:startY}, 1.0, scene.PX_EASEOUTELASTIC, 
                   scene.PX_END);
     });
 
   // animate r
   o.r = 0;
-  o.animateToP({r:-360},2.5,scene.PX_EASEOUTELASTIC,scene.PX_END);
+  o.animateTo({r:-360},2.5,scene.PX_EASEOUTELASTIC,scene.PX_END);
 
   // animate sx, sy
-  o.animateToP({sx:0.2,sy:0.2},1,scene.PX_LINEAR,scene.PX_END)
+  o.animateTo({sx:0.2,sy:0.2},1,scene.PX_LINEAR,scene.PX_END)
     .then(function(o){
-      return o.animateToP({sx:2.0,sy:2.0},1.0,scene.PX_EXP1,
+      return o.animateTo({sx:2.0,sy:2.0},1.0,scene.PX_EXP1,
                          scene.PX_END);
     })
     .then(function(o) {
-      o.animateToP({sx:1.0,sy:1.0}, 1.0, scene.PX_EASEOUTELASTIC, 
+      o.animateTo({sx:1.0,sy:1.0}, 1.0, scene.PX_EASEOUTELASTIC, 
                   scene.PX_END);
     });
 }

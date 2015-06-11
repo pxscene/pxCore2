@@ -368,7 +368,10 @@ rtError pxText::setFaceURL(const char* s)
 
   FaceMap::iterator it = gFaceMap.find(s);
   if (it != gFaceMap.end())
+  {
+    mReady.send("resolve", this);
     mFace = it->second;
+  }
   else
   {
     const char *result = strstr(s, "http");
@@ -393,10 +396,14 @@ rtError pxText::setFaceURL(const char* s)
       if (e != RT_OK)
       {
         rtLogInfo("Could not load font face, %s, %s\n", "blah", s);
+        mReady.send("reject",this);
         return e;
       }
       else
+      {
+        mReady.send("resolve", this);
         mFace = f;
+      }
     }
   }
   mFaceURL = s;
@@ -452,6 +459,7 @@ void pxText::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
   mFontDownloadRequest = NULL;
   if (fontDownloadRequest.fileDownloadRequest == NULL)
   {
+    mReady.send("reject",this);
     return;
   }
   if (fontDownloadRequest.fileDownloadRequest->getDownloadStatusCode() == 0 &&
@@ -465,11 +473,11 @@ void pxText::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
     if (e != RT_OK)
     {
       rtLogInfo("Could not load font face, %s, %s\n", "blah", fontDownloadRequest.fileDownloadRequest->getFileURL().cString());
-      //TODO - send onReady error
+      mReady.send("reject",this);
     }
     else {
       mFace = f;
-      //TODO - send onReady success
+      mReady.send("resolve",this);
     }
   }
   else
@@ -480,7 +488,7 @@ void pxText::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
               fontDownloadRequest.fileDownloadRequest->getHttpStatusCode());
     if (mParent != NULL)
     {
-      //TODO - send onReady error
+      mReady.send("reject",this);
     }
   }
 }

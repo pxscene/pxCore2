@@ -88,7 +88,7 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
     for (uint32_t i = 0; i < len; i++)
     {
       rtString key = keys.get<rtString>(i);
-      animateToP(key, props.get<float>(key), duration, interp, animationType,(i==0)?promise:rtObjectRef());
+      animateTo(key, props.get<float>(key), duration, interp, animationType,(i==0)?promise:rtObjectRef());
     }
   }
 //  promise.send("resolve","hello");
@@ -142,28 +142,28 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
   }
 #endif
 
-#if 1
-rtError pxObject::animateTo(const char* prop, double to, double duration, 
+#if 0
+//TODO - remove
+rtError pxObject::animateToF(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t animationType, 
                             rtFunctionRef onEnd) 
 {
   interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
-  animateTo(prop, to, duration, interps[interp].i, 
+  animateToF(prop, to, duration, interps[interp].i,
             (pxAnimationType)animationType, onEnd);
   return RT_OK;
 }
+#endif
 
-rtError pxObject::animateToP(const char* prop, double to, double duration, 
+rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t animationType, 
                             rtObjectRef promise) 
 {
   interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
-  animateToP(prop, to, duration, interps[interp].i, 
+  animateTo(prop, to, duration, interps[interp].i,
             (pxAnimationType)animationType, promise);
   return RT_OK;
 }
-
-#endif
 
 // Dont fastforward when calling from set* methods since that will
 // recurse indefinitely and crash and we're going to change the value in
@@ -213,7 +213,9 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
   mCancelInSet = f;
 }
 
-void pxObject::animateTo(const char* prop, double to, double duration, 
+#if 0
+//TODO - remove
+void pxObject::animateToF(const char* prop, double to, double duration,
                          pxInterp interp, pxAnimationType at,
                          rtFunctionRef onEnd)
 {
@@ -235,8 +237,9 @@ void pxObject::animateTo(const char* prop, double to, double duration,
 
   mAnimations.push_back(a);
 }
+#endif
 
-void pxObject::animateToP(const char* prop, double to, double duration, 
+void pxObject::animateTo(const char* prop, double to, double duration,
                          pxInterp interp, pxAnimationType at,
                          rtObjectRef promise)
 {
@@ -679,12 +682,16 @@ rtDefineProperty(pxObject, mask);
 rtDefineProperty(pxObject, drawAsMask);
 rtDefineProperty(pxObject, draw);
 rtDefineProperty(pxObject, drawAsHitTest);
+rtDefineProperty(pxObject,ready);
 rtDefineProperty(pxObject, numChildren);
 rtDefineMethod(pxObject, getChild);
 rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, removeAll);
 //rtDefineMethod(pxObject, animateTo);
-rtDefineMethod(pxObject, animateTo2);
+#if 0
+//TODO - remove
+rtDefineMethod(pxObject, animateToF2);
+#endif
 rtDefineMethod(pxObject, animateToP2);
 rtDefineMethod(pxObject, addListener);
 rtDefineMethod(pxObject, delListener);

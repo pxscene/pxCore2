@@ -16,15 +16,13 @@ public:
   rtProperty(xStretch, xStretch, setXStretch, int32_t);
   rtProperty(yStretch, yStretch, setYStretch, int32_t);
   rtProperty(autoSize, autoSize, setAutoSize, bool);
-  rtReadOnlyProperty(ready, ready, rtObjectRef);
   rtReadOnlyProperty(statusCode, statusCode, int32_t);
   rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
   
   pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(), 
-    mTextureCacheObject(), mAutoSize(true), mReady(), mStatusCode(0), mHttpStatusCode(0)
+    mTextureCacheObject(), mAutoSize(true), mStatusCode(0), mHttpStatusCode(0)
   { 
     mTextureCacheObject.setParent(this);
-    mReady = new rtPromise;
   }
 
   virtual ~pxImage() { rtLogInfo("~pxImage()"); }
@@ -60,12 +58,6 @@ public:
     return RT_OK;
   }
 
-  rtError ready(rtObjectRef& v) const
-  {
-    v = mReady;
-    return RT_OK;
-  }
-
   rtError statusCode(int32_t& v) const
   {
     v = (int32_t)mStatusCode;
@@ -95,7 +87,6 @@ protected:
   pxTextureRef mTexture;
   pxTextureCacheObject mTextureCacheObject;
   bool mAutoSize;
-  rtObjectRef mReady;
   int mStatusCode;
   int mHttpStatusCode;
 };
