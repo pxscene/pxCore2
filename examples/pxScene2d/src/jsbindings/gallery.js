@@ -44,7 +44,7 @@ for (var i = 0; i < appURLs.length; i++) {
 }
 
 var url = process.cwd() + "/../../images/select.png";
-select = scene.createImage9({parent:root,url:url,x1:16,y1:16,x2:16,y2:16,
+select = scene.createImage9({parent:root,url:url,lInset:16,tInset:16,rInset:16,bInset:16,
                              w:1368*0.25,h:808*0.25,x:0,y:0,interactive:false});
 
 scene.root.on('onKeyDown', function(e) {
