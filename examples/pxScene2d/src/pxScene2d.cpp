@@ -131,6 +131,26 @@ rtError pxObject::removeAll()
   return RT_OK;
 }
 
+rtError pxObject::moveToFront()
+{
+  rtObjectRef rtChild;
+  pxObject* parent = this->parent();
+ 
+  if( parent != NULL) {
+	  // TO DO: Need split out to getIndexOfChild method?
+	  for(int32_t i = 0; i < (int32_t)parent->numChildren(); i++) {
+		  parent->getChild(i, rtChild);
+		  if( strncmp(((pxObject*)&rtChild)->id(),this->id(),this->id().length()) == 0) {
+				rtLogInfo("moveToFront: found child\n");
+				// Remove and add to end
+				this->remove();
+				this->setParent(parent);
+				break;
+			} 
+	  }
+  }
+  return RT_OK;
+}
 #if 0
 rtError pxObject::animateTo(const char* prop, double to, double duration, 
                             uint32_t interp, uint32_t animationType) 
@@ -687,6 +707,7 @@ rtDefineProperty(pxObject, numChildren);
 rtDefineMethod(pxObject, getChild);
 rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, removeAll);
+rtDefineMethod(pxObject, moveToFront);
 //rtDefineMethod(pxObject, animateTo);
 #if 0
 //TODO - remove

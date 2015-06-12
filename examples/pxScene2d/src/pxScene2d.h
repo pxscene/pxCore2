@@ -234,6 +234,7 @@ public:
 
   rtMethodNoArgAndNoReturn("remove", remove);
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
+  rtMethodNoArgAndNoReturn("moveToFront", moveToFront);
 
   #if 0
   //TODO - remove
@@ -299,7 +300,6 @@ public:
 
   // TODO clean this up
   void setParent(rtRefT<pxObject>& parent);
-
   pxObject* parent() const
   {
     return mParent;
@@ -413,7 +413,7 @@ public:
     return RT_OK;
   }
 
-  void moveToFront();
+  rtError moveToFront();
   void moveToBack();
   void moveForward();
   void moveBackward();
