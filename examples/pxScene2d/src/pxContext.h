@@ -7,6 +7,7 @@
 #include "rtCore.h"
 #include "rtRefT.h"
 #include "pxTexture.h"
+#include "pxContextFramebuffer.h"
 
 enum pxStretch { PX_NONE = 0, PX_STRETCH = 1, PX_REPEAT = 2 };
 
@@ -26,14 +27,15 @@ class pxContext {
 
   void setMatrix(pxMatrix4f& m);
   void setAlpha(float a);
+  float getAlpha();
 
   void pushState();
   void popState();
-  
-  pxTextureRef createContextSurface(int width, int height);
-  pxError updateContextSurface(pxTextureRef texture, int width, int height);
-  pxError setRenderSurface(pxTextureRef texture);
-  pxTextureRef getCurrentRenderSurface();
+
+  pxContextFramebufferRef createFramebuffer(int width, int height);
+  pxError updateFramebuffer(pxContextFramebufferRef fbo, int width, int height);
+  pxError setFramebuffer(pxContextFramebufferRef fbo);
+  pxContextFramebufferRef getCurrentFramebuffer();
 //  pxError deleteContextSurface(pxTextureRef texture);
 
   pxTextureRef createTexture(pxOffscreen& o);

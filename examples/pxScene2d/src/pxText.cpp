@@ -287,18 +287,17 @@ void pxText::update(double t)
     if (mText.length() >= 10)
     {
       mCached = NULL;
-      pxTextureRef cached = context.createContextSurface(mw,mh);
+      pxContextFramebufferRef cached = context.createFramebuffer(mw,mh);
       if (cached.getPtr())
       {
-        pxTextureRef previousSurface = context.getCurrentRenderSurface();
-        cached->enablePremultipliedAlpha(true);
-        context.setRenderSurface(cached);
+        pxContextFramebufferRef previousSurface = context.getCurrentFramebuffer();
+        context.setFramebuffer(cached);
         pxMatrix4f m;
         context.setMatrix(m);
         context.setAlpha(1.0);
         context.clear(mw,mh);
         draw();
-        context.setRenderSurface(previousSurface);
+        context.setFramebuffer(previousSurface);
         mCached = cached;
       }
     }
@@ -315,10 +314,14 @@ void pxText::update(double t)
 }
 
 void pxText::draw() {
-  if (mCached.getPtr())
-    context.drawImage(0,0,mw,mh,mCached,pxTextureRef(),PX_NONE,PX_NONE);
+  if (mCached.getPtr() && mCached->getTexture().getPtr())
+  {
+    context.drawImage(0, 0, mw, mh, mCached->getTexture(), pxTextureRef(), PX_NONE, PX_NONE);
+  }
   else
+  {
     mFace->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
+  }
 }
 
 rtError pxText::setFaceURL(const char* s)

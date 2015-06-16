@@ -23,14 +23,14 @@
 pxContextSurfaceNativeDesc defaultContextSurface;
 pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
 
-pxTextureRef defaultRenderSurface;
-pxTextureRef currentRenderSurface = defaultRenderSurface;
+pxContextFramebufferRef defaultFramebuffer(new pxContextFramebuffer());
+pxContextFramebufferRef currentFramebuffer = defaultFramebuffer;
 
 // TODO get rid of this global crap
 
 static int gResW, gResH;
 static pxMatrix4f gMatrix;
-static float gAlpha;
+static float gAlpha = 1.0;
 
 // assume premultiplied
 static const char *fSolidShaderText =
@@ -1161,7 +1161,7 @@ void pxContext::setSize(int w, int h)
   glViewport(0, 0, (GLint)w, (GLint)h);
   gResW = w;
   gResH = h;
-  if (currentRenderSurface == defaultRenderSurface)
+  if (currentFramebuffer == defaultFramebuffer)
   {
     defaultContextSurface.width = w;
     defaultContextSurface.height = h;
@@ -1175,40 +1175,48 @@ void pxContext::clear(int /*w*/, int /*h*/)
 
 void pxContext::setMatrix(pxMatrix4f& m)
 {
-  gMatrix = m;
+  gMatrix.multiply(m);
 }
 
 void pxContext::setAlpha(float a)
 {
-  gAlpha = a;
+  gAlpha *= a;
 }
 
-pxTextureRef pxContext::createContextSurface(int width, int height)
+float pxContext::getAlpha()
 {
+  return gAlpha;
+}
+
+pxContextFramebufferRef pxContext::createFramebuffer(int width, int height)
+{
+  pxContextFramebuffer* fbo = new pxContextFramebuffer();
   pxFBOTexture* texture = new pxFBOTexture();
   texture->createTexture(width, height);
+
+  fbo->setTexture(texture);
   
-  return texture;
+  return fbo;
 }
 
-pxError pxContext::updateContextSurface(pxTextureRef texture, int width, int height)
+pxError pxContext::updateFramebuffer(pxContextFramebufferRef fbo, int width, int height)
 {
-  if (texture.getPtr() == NULL)
+  if (fbo.getPtr() == NULL || fbo->getTexture().getPtr() == NULL)
   {
     return PX_FAIL;
   }
   
-  return texture->resizeTexture(width, height);
+  return fbo->getTexture()->resizeTexture(width, height);
 }
 
-pxTextureRef pxContext::getCurrentRenderSurface()
+pxContextFramebufferRef pxContext::getCurrentFramebuffer()
 {
-  return currentRenderSurface;
+  return currentFramebuffer;
 }
 
-pxError pxContext::setRenderSurface(pxTextureRef texture)
+pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 {
-  if (texture.getPtr() == NULL)
+  if (fbo.getPtr() == NULL || fbo->getTexture().getPtr() == NULL)
   {
     glViewport ( 0, 0, defaultContextSurface.width, defaultContextSurface.height);
     gResW = defaultContextSurface.width;
@@ -1216,12 +1224,20 @@ pxError pxContext::setRenderSurface(pxTextureRef texture)
 
     // TODO probably need to save off the original FBO handle rather than assuming zero
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    currentRenderSurface = defaultRenderSurface;
+    currentFramebuffer = defaultFramebuffer;
+    pxContextState contextState;
+    currentFramebuffer->currentState(contextState);
+    gAlpha = contextState.alpha;
+    gMatrix = contextState.matrix;
     return PX_OK;
   }
-  
-  currentRenderSurface = texture;
-  return texture->prepareForRendering();
+
+  currentFramebuffer = fbo;
+  pxContextState contextState;
+  currentFramebuffer->currentState(contextState);
+  gAlpha = contextState.alpha;
+  gMatrix = contextState.matrix;
+  return fbo->getTexture()->prepareForRendering();
 }
 
 #if 0
@@ -1303,4 +1319,23 @@ pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void
 {
   pxTextureAlpha* alphaTexture = new pxTextureAlpha(w,h,iw,ih,buffer);
   return alphaTexture;
+}
+
+void pxContext::pushState()
+{
+  pxContextState contextState;
+  contextState.matrix = gMatrix;
+  contextState.alpha = gAlpha;
+
+  currentFramebuffer->pushState(contextState);
+}
+
+void pxContext::popState()
+{
+  pxContextState contextState;
+  if (currentFramebuffer->popState(contextState) == PX_OK)
+  {
+    gAlpha = contextState.alpha;
+    gMatrix = contextState.matrix;
+  }
 }

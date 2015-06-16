@@ -32,6 +32,7 @@ using namespace std;
 #include "pxInterpolators.h"
 #include "pxTexture.h"
 #include "pxTextureCacheObject.h"
+#include "pxContextFramebuffer.h"
 
 //#include "pxTransform.h"
 
@@ -251,14 +252,14 @@ public:
   pxObject(pxScene2d* scene): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
-    mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mMaskTextureRef(),
-    mMaskTextureCacheObject(),mClipTextureRef(),mCancelInSet(true)
+    mSnapshotRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mMaskTextureRef(),
+    mMaskTextureCacheObject(),mClipSnapshotRef(),mCancelInSet(true)
   {
     mScene = scene;
     mEmit = new rtEmit;
   }
 
-  virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(mTextureRef); deleteSnapshot(mClipTextureRef);}
+  virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(mSnapshotRef); deleteSnapshot(mClipSnapshotRef);}
 
   // TODO missing conversions in rtValue between uint32_t and int32_t
   uint32_t numChildren() const { return mChildren.size(); }
@@ -356,12 +357,11 @@ public:
       mPainting = v; 
       if (!mPainting)
       {
-          mTextureRef = createSnapshot(mTextureRef);
-          mTextureRef->enablePremultipliedAlpha(true);
+        mSnapshotRef = createSnapshot(mSnapshotRef);
       }
       else
       {
-          deleteSnapshot(mTextureRef);
+          deleteSnapshot(mSnapshotRef);
       }
       return RT_OK;
   }
@@ -391,7 +391,7 @@ public:
   void moveForward();
   void moveBackward();
 
-  void drawInternal(pxMatrix4f m, float parentAlpha, bool maskPass=false);
+  void drawInternal(bool maskPass=false);
   virtual void draw() {}
 
   bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit, pxPoint2f& hitPt);
@@ -651,7 +651,7 @@ protected:
   vector<animation> mAnimations;
   float mcx, mcy, mx, my, ma, mr, mrx, mry, mrz, msx, msy, mw, mh;
   bool mInteractive;
-  pxTextureRef mTextureRef;
+  pxContextFramebufferRef mSnapshotRef;
   bool mPainting;
   bool mClip;
   rtString mMaskUrl;
@@ -660,13 +660,13 @@ protected:
   bool mDrawAsHitTest;
   pxTextureRef mMaskTextureRef;
   pxTextureCacheObject mMaskTextureCacheObject;
-  pxTextureRef mClipTextureRef;
+  pxContextFramebufferRef mClipSnapshotRef;
   bool mCancelInSet;
   rtString mId;
 
-  pxTextureRef createSnapshot(pxTextureRef texture);
-  void createSnapshotOfChildren(pxTextureRef drawableTexture, pxTextureRef maskTexture);
-  void deleteSnapshot(pxTextureRef texture);
+  pxContextFramebufferRef createSnapshot(pxContextFramebufferRef fbo);
+  void createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxContextFramebufferRef maskFbo);
+  void deleteSnapshot(pxContextFramebufferRef fbo);
   void createMask();
   void deleteMask();
 

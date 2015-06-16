@@ -343,7 +343,7 @@ void pxObject::update(double t)
 
 const float alphaEpsilon = (1.0f/255.0f);
 
-void pxObject::drawInternal(pxMatrix4f m, float parentAlpha, bool maskPass)
+void pxObject::drawInternal(bool maskPass)
 {
   if (!drawEnabled() && !maskPass)
   {
@@ -352,9 +352,10 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha, bool maskPass)
   // TODO what to do about multiple vanishing points in a given scene
   // TODO consistent behavior between clipping and no clipping when z is in use
 
-  parentAlpha = parentAlpha * ma;
-  if (parentAlpha < alphaEpsilon)
+  if (context.getAlpha() < alphaEpsilon)
     return;  // trivial reject for objects that are transparent
+
+  pxMatrix4f m;
 
 #if 1
 #if 1
@@ -406,7 +407,7 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha, bool maskPass)
 
 
   context.setMatrix(m);
-  context.setAlpha(parentAlpha);
+  context.setAlpha(ma);
   
   float c[4] = {1, 0, 0, 1};
   context.drawDiagRect(0, 0, mw, mh, c);
@@ -428,20 +429,18 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha, bool maskPass)
       if (mw>alphaEpsilon && mh>alphaEpsilon)
         draw();
 
-      pxTextureRef drawableSnapshot = context.createContextSurface(mw, mh);
-      pxTextureRef maskSnapshot = context.createContextSurface(mw, mh);
+      pxContextFramebufferRef drawableSnapshot = context.createFramebuffer(mw, mh);
+      pxContextFramebufferRef maskSnapshot = context.createFramebuffer(mw, mh);
       createSnapshotOfChildren(drawableSnapshot, maskSnapshot);
-      drawableSnapshot->enablePremultipliedAlpha(true);
-      maskSnapshot->enablePremultipliedAlpha(true);
       context.setMatrix(m);
-      context.drawImage(0, 0, mw, mh, drawableSnapshot, maskSnapshot, PX_NONE, PX_NONE);
+      context.drawImage(0, 0, mw, mh, drawableSnapshot->getTexture(), maskSnapshot->getTexture(), PX_NONE, PX_NONE);
     }
     else if (mClip || mMaskUrl.length() > 0)
     {
-      mClipTextureRef = createSnapshot(mClipTextureRef);
+      mClipSnapshotRef = createSnapshot(mClipSnapshotRef);
       context.setMatrix(m);
-      context.setAlpha(parentAlpha);
-      context.drawImage(0,0,mw,mh, mClipTextureRef, mMaskTextureRef, PX_NONE, PX_NONE);
+      context.setAlpha(ma);
+      context.drawImage(0,0,mw,mh, mClipSnapshotRef->getTexture(), mMaskTextureRef, PX_NONE, PX_NONE);
     }
     else
     {
@@ -451,13 +450,15 @@ void pxObject::drawInternal(pxMatrix4f m, float parentAlpha, bool maskPass)
 
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
       {
-        (*it)->drawInternal(m, parentAlpha);
+        context.pushState();
+        (*it)->drawInternal();
+        context.popState();
       }
     }
   }
   else
   {
-    context.drawImage(0,0,mw,mh, mTextureRef, mMaskTextureRef, PX_NONE, PX_NONE);
+    context.drawImage(0,0,mw,mh, mSnapshotRef->getTexture(), mMaskTextureRef, PX_NONE, PX_NONE);
   }
 }
 
@@ -516,7 +517,7 @@ bool pxObject::hitTest(pxPoint2f& pt)
 }
 
 
-pxTextureRef pxObject::createSnapshot(pxTextureRef texture)
+pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
 {
   pxMatrix4f m;
 
@@ -527,31 +528,33 @@ pxTextureRef pxObject::createSnapshot(pxTextureRef texture)
   context.setMatrix(m);
   context.setAlpha(parentAlpha);
 
-  if (texture.getPtr() == NULL || texture->width() != mw || texture->height() != mh)
+  if (fbo.getPtr() == NULL || fbo->width() != mw || fbo->height() != mh)
   {
-    texture = context.createContextSurface(mw, mh);
+    fbo = context.createFramebuffer(mw, mh);
   }
   else
   {
-    context.updateContextSurface(texture, mw, mh);
+    context.updateFramebuffer(fbo, mw, mh);
   }
-  pxTextureRef previousRenderSurface = context.getCurrentRenderSurface();
-  if (context.setRenderSurface(texture) == PX_OK)
+  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
+  if (context.setFramebuffer(fbo) == PX_OK)
   {
     context.clear(mw, mh);
     draw();
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      (*it)->drawInternal(m, parentAlpha);
+      context.pushState();
+      (*it)->drawInternal();
+      context.popState();
     }
   }
-  context.setRenderSurface(previousRenderSurface);
-  
-  return texture;
+  context.setFramebuffer(previousRenderSurface);
+
+  return fbo;
 }
 
-void pxObject::createSnapshotOfChildren(pxTextureRef drawableTexture, pxTextureRef maskTexture)
+void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxContextFramebufferRef maskFbo)
 {
 
   pxMatrix4f m;
@@ -561,26 +564,26 @@ void pxObject::createSnapshotOfChildren(pxTextureRef drawableTexture, pxTextureR
 
   context.setAlpha(parentAlpha);
 
-  if (drawableTexture.getPtr() == NULL || drawableTexture->width() != mw || drawableTexture->height() != mh)
+  if (drawableFbo.getPtr() == NULL || drawableFbo->width() != mw || drawableFbo->height() != mh)
   {
-    drawableTexture = context.createContextSurface(mw, mh);
+    drawableFbo = context.createFramebuffer(mw, mh);
   }
   else
   {
-    context.updateContextSurface(drawableTexture, mw, mh);
+    context.updateFramebuffer(drawableFbo, mw, mh);
   }
 
-  if (maskTexture.getPtr() == NULL || maskTexture->width() != mw || maskTexture->height() != mh)
+  if (maskFbo.getPtr() == NULL || maskFbo->width() != mw || maskFbo->height() != mh)
   {
-    maskTexture = context.createContextSurface(mw, mh);
+    maskFbo = context.createFramebuffer(mw, mh);
   }
   else
   {
-    context.updateContextSurface(maskTexture, mw, mh);
+    context.updateFramebuffer(maskFbo, mw, mh);
   }
 
-  pxTextureRef previousRenderSurface = context.getCurrentRenderSurface();
-  if (context.setRenderSurface(maskTexture) == PX_OK)
+  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
+  if (context.setFramebuffer(maskFbo) == PX_OK)
   {
     context.clear(mw, mh);
 
@@ -588,12 +591,14 @@ void pxObject::createSnapshotOfChildren(pxTextureRef drawableTexture, pxTextureR
     {
       if ((*it)->drawAsMask())
       {
-        (*it)->drawInternal(m, parentAlpha, true);
+        context.pushState();
+        (*it)->drawInternal(true);
+        context.popState();
       }
     }
   }
 
-  if (context.setRenderSurface(drawableTexture) == PX_OK)
+  if (context.setFramebuffer(drawableFbo) == PX_OK)
   {
     context.clear(mw, mh);
 
@@ -601,19 +606,21 @@ void pxObject::createSnapshotOfChildren(pxTextureRef drawableTexture, pxTextureR
     {
       if ((*it)->drawEnabled())
       {
-        (*it)->drawInternal(m, parentAlpha);
+        context.pushState();
+        (*it)->drawInternal();
+        context.popState();
       }
     }
   }
 
-  context.setRenderSurface(previousRenderSurface);
+  context.setFramebuffer(previousRenderSurface);
 }
 
-void pxObject::deleteSnapshot(pxTextureRef texture)
+void pxObject::deleteSnapshot(pxContextFramebufferRef fbo)
 {
-  if (texture.getPtr() != NULL)
+  if (fbo.getPtr() != NULL)
   {
-    texture->deleteTexture();
+    fbo->resetFbo();
   }
 }
 
@@ -829,7 +836,9 @@ void pxScene2d::draw()
   if (mRoot)
   {
     pxMatrix4f m;
-    mRoot->drawInternal(m, 1.0);
+    context.pushState();
+    mRoot->drawInternal(1.0);
+    context.popState();
   }
 }
 

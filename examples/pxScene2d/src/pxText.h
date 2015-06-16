@@ -128,7 +128,7 @@ public:
   float mTextColor[4];
   uint32_t mPixelSize;
   bool mDirty;
-  pxTextureRef mCached;
+  pxContextFramebufferRef mCached;
 };
 
 #endif
