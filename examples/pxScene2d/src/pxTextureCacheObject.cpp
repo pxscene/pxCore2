@@ -113,6 +113,7 @@ void pxTextureCacheObject::onImageDownloadComplete(ImageDownloadRequest imageDow
       if (imageDownloadRequest.texture.getPtr() == NULL)
       {
           rtLogError("Image Decode Failed: %s", imageDownloadRequest.fileDownloadRequest->getFileURL().cString());
+          setStatus(RT_TEXTURE_STATUS_DECODE_FAILURE);
           if (mParent != NULL)
           {
             mParent->onTextureReady(this, RT_FAIL);
@@ -124,6 +125,7 @@ void pxTextureCacheObject::onImageDownloadComplete(ImageDownloadRequest imageDow
           gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(),
                   mTexture));
           rtLogDebug("image %d, %d", mTexture->width(), mTexture->height());
+          setStatus(RT_TEXTURE_STATUS_OK);
           if (mParent != NULL)
           {
             mParent->onTextureReady(this, RT_OK);
@@ -136,6 +138,7 @@ void pxTextureCacheObject::onImageDownloadComplete(ImageDownloadRequest imageDow
                 imageDownloadRequest.fileDownloadRequest->getFileURL().cString(),
                 imageDownloadRequest.fileDownloadRequest->getErrorString().cString(),
                 imageDownloadRequest.fileDownloadRequest->getHttpStatusCode());
+      setStatus(RT_TEXTURE_STATUS_HTTP_ERROR, imageDownloadRequest.fileDownloadRequest->getHttpStatusCode());
       if (mParent != NULL)
       {
         mParent->onTextureReady(this, RT_FAIL);
@@ -169,6 +172,7 @@ void pxTextureCacheObject::loadImage(rtString url)
   if (it != gCompleteTextureCache.end())
   {
     mTexture = it->second;
+    setStatus(RT_TEXTURE_STATUS_OK);
     if (mParent != NULL)
     {
       mParent->onTextureReady(this, RT_OK);
@@ -191,21 +195,33 @@ void pxTextureCacheObject::loadImage(rtString url)
       mImageDownloadRequest =
         new pxFileDownloadRequest(s, this);
       gTextureDownloadsPending++;
+      setStatus(RT_TEXTURE_STATUS_DOWNLOADING);
       mImageDownloadRequest->setCallbackFunction(pxTextureDownloadComplete);
       pxFileDownloader::getInstance()->addToDownloadQueue(mImageDownloadRequest);
     }
     else 
     {
       pxOffscreen imageOffscreen;
-      if (pxLoadImage(s, imageOffscreen) != RT_OK)
+      rtError loadImageSuccess = pxLoadImage(s, imageOffscreen);
+      if ( loadImageSuccess != RT_OK)
       {
         rtLogWarn("image load failed"); // TODO: why?
-        mParent->onTextureReady(this, RT_FAIL);
+        int errorCode = RT_TEXTURE_STATUS_DECODE_FAILURE;
+        if (loadImageSuccess == RT_RESOURCE_NOT_FOUND)
+        {
+          errorCode = RT_TEXTURE_STATUS_FILE_NOT_FOUND;
+        }
+        setStatus(errorCode);
+        if (mParent != NULL)
+        {
+          mParent->onTextureReady(this, RT_FAIL);
+        }
       }
       else
       {
         mTexture = context.createTexture(imageOffscreen);
         gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(s, mTexture));
+        setStatus(RT_TEXTURE_STATUS_OK);
         if (mParent != NULL)
         {
           mParent->onTextureReady(this, RT_OK);
@@ -213,4 +229,20 @@ void pxTextureCacheObject::loadImage(rtString url)
       }
     }
   }
+}
+
+int pxTextureCacheObject::getStatusCode()
+{
+  return mStatusCode;
+}
+
+int pxTextureCacheObject::getHttpStatusCode()
+{
+  return mHttpStatusCode;
+}
+
+void pxTextureCacheObject::setStatus(int statusCode, int httpStatusCode)
+{
+  mStatusCode = statusCode;
+  mHttpStatusCode = httpStatusCode;
 }

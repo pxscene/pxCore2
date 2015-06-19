@@ -74,7 +74,8 @@ HorizontalMenu.prototype.moveSelection = function(menu, src, dest, xpos, width)
   this._topSelectionLine.animateTo({w:width}, this._animationSpeed, scene.PX_STOP, 0);
 
   this._topSelectionLine.animateTo({x:xpos}, this._animationSpeed, scene.PX_STOP, 0);
-  this._bottomSelectionLine.animateTo({x:xpos},  this._animationSpeed, scene.PX_STOP, 0, function(e) {
+  this._bottomSelectionLine.animateTo({x:xpos},  this._animationSpeed, scene.PX_STOP, 0)
+    .then(function(e) {
 
     // Is this a BUG? "this" doesn't appear to be HorizontalMenu
 

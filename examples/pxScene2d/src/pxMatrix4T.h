@@ -62,6 +62,10 @@ public:
   FloatT* data() {
     return mValues;
   }
+
+  FloatT constData(int i) const {
+    return mValues[i];
+  }
   
   void copy(const pxMatrix4T& m) {
     memcpy(mValues, m.mValues, sizeof(mValues));

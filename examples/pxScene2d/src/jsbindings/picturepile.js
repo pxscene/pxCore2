@@ -78,13 +78,13 @@ function doIt() {
                                  r: randomInt(-45,45), url:url});
     
     picture.ready.then(function(){
-      picture.animateToP({x:randomInt(50,scene.w-picture.w-50),
+      picture.animateTo({x:randomInt(50,scene.w-picture.w-50),
                           y:randomInt(50,scene.h-picture.h-50),
                           r:randomInt(-15,15),sx:0.75,sy:0.75},1,pxStop,0)
         .then(function() {
           if (pictures.numChildren > 15) {
             var f = pictures.getChild(0);
-            f.animateToP({a: 0}, 0.75, 0, 0)
+            f.animateTo({a: 0}, 0.75, 0, 0)
               .then(function(f){
                 f.remove();
               });

@@ -228,6 +228,7 @@ public:
   rtProperty(drawAsMask, drawAsMask, setDrawAsMask, bool);
   rtProperty(draw, drawEnabled, setDrawEnabled, bool);
   rtProperty(drawAsHitTest, drawAsHitTest, setDrawAsHitTest, bool);
+  rtReadOnlyProperty(ready, ready, rtObjectRef);
 
   rtReadOnlyProperty(numChildren, numChildren, int32_t);
   rtMethod1ArgAndReturn("getChild", getChild, int32_t, rtObjectRef);
@@ -236,10 +237,13 @@ public:
   rtMethodNoArgAndNoReturn("remove", remove);
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
 
-  rtMethod5ArgAndNoReturn("animateTo", animateTo2, rtObjectRef, double, 
+  #if 0
+  //TODO - remove
+  rtMethod5ArgAndNoReturn("animateToF", animateToF2, rtObjectRef, double,
                           uint32_t, uint32_t, rtFunctionRef);
+  #endif
 
-  rtMethod4ArgAndReturn("animateToP", animateToP2, rtObjectRef, double, 
+  rtMethod4ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
                         uint32_t, uint32_t, rtObjectRef);
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
@@ -249,13 +253,32 @@ public:
   rtReadOnlyProperty(emit, emit, rtFunctionRef);
   rtMethod1ArgAndReturn("getObjectById",getObjectById,rtString,rtObjectRef);
 
+  rtProperty(m11,m11,setM11,float);
+  rtProperty(m12,m12,setM12,float);
+  rtProperty(m13,m13,setM13,float);
+  rtProperty(m14,m14,setM14,float);
+  rtProperty(m21,m21,setM21,float);
+  rtProperty(m22,m22,setM22,float);
+  rtProperty(m23,m23,setM23,float);
+  rtProperty(m24,m24,setM24,float);
+  rtProperty(m31,m31,setM31,float);
+  rtProperty(m32,m32,setM32,float);
+  rtProperty(m33,m33,setM33,float);
+  rtProperty(m34,m34,setM34,float);
+  rtProperty(m41,m41,setM41,float);
+  rtProperty(m42,m42,setM42,float);
+  rtProperty(m43,m43,setM43,float);
+  rtProperty(m44,m44,setM44,float);
+  rtProperty(useMatrix,useMatrix,setUseMatrix,bool);
+
   pxObject(pxScene2d* scene): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
-    mSnapshotRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mMaskTextureRef(),
-    mMaskTextureCacheObject(),mClipSnapshotRef(),mCancelInSet(true)
+    mSnapshotRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mReady(), mMaskTextureRef(),
+    mMaskTextureCacheObject(),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false)
   {
     mScene = scene;
+    mReady = new rtPromise;
     mEmit = new rtEmit;
   }
 
@@ -386,6 +409,12 @@ public:
   rtError drawAsHitTest(bool& v)  const { v = mDrawAsHitTest; return RT_OK;  }
   rtError setDrawAsHitTest(bool v) { mDrawAsHitTest = v; return RT_OK; }
 
+  rtError ready(rtObjectRef& v) const
+  {
+    v = mReady;
+    return RT_OK;
+  }
+
   void moveToFront();
   void moveToBack();
   void moveForward();
@@ -396,16 +425,22 @@ public:
 
   bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit, pxPoint2f& hitPt);
   virtual bool hitTest(pxPoint2f& pt);
-  
-  rtError animateTo(const char* prop, double to, double duration, 
+
+  #if 0
+  //TODO - remove
+  rtError animateToF(const char* prop, double to, double duration,
                      uint32_t interp, uint32_t animationType, 
                      rtFunctionRef onEnd);
-  rtError animateToP(const char* prop, double to, double duration, 
+  #endif
+
+  rtError animateTo(const char* prop, double to, double duration,
                      uint32_t interp, uint32_t animationType, 
                      rtObjectRef promise);
 
-  rtError animateTo2(rtObjectRef props, double duration, 
-                     uint32_t interp, uint32_t animationType, 
+  #if 0
+  //TODO - REMOVE
+  rtError animateToF2(rtObjectRef props, double duration,
+                     uint32_t interp, uint32_t animationType,
                      rtFunctionRef onEnd)
   {
     if (!props) return RT_FAIL;
@@ -416,30 +451,37 @@ public:
       for (uint32_t i = 0; i < len; i++)
       {
         rtString key = keys.get<rtString>(i);
-        animateTo(key, props.get<float>(key), duration, interp, animationType, 
+        animateToF(key, props.get<float>(key), duration, interp, animationType,
                   (i==0)?onEnd:rtFunctionRef());
       }
     }
     return RT_OK;
   }
+  #endif
 
   rtError animateToP2(rtObjectRef props, double duration, 
                       uint32_t interp, uint32_t animationType, 
                       rtObjectRef& promise);
-  
-  void animateTo(const char* prop, double to, double duration, 
-		 pxInterp interp, pxAnimationType at, 
-                 rtFunctionRef onEnd);  
 
-  void animateToP(const char* prop, double to, double duration, 
+  #if 0
+  //TODO - remove
+  void animateToF(const char* prop, double to, double duration,
 		 pxInterp interp, pxAnimationType at, 
-                 rtObjectRef promise);  
+                 rtFunctionRef onEnd);
+   #endif
 
-  void animateTo(const char* prop, double to, double duration, 
+  void animateTo(const char* prop, double to, double duration,
+		 pxInterp interp, pxAnimationType at, 
+                 rtObjectRef promise);
+
+  #if 0
+  //TODO - remove
+  void animateToF(const char* prop, double to, double duration,
 		 pxInterp interp=0, pxAnimationType at=PX_END)
   {
-    animateTo(prop, to, duration, interp, at, rtFunctionRef());
-  }  
+    animateToF(prop, to, duration, interp, at, rtFunctionRef());
+  }
+  #endif
 
   void cancelAnimation(const char* prop, bool fastforward = false);
 
@@ -517,19 +559,26 @@ public:
     else
       rtLogError("Could not allocate pxTransformData");
 #endif
+    if (!mUseMatrix)
+    {
 #if 1
-    // translate based on xy rotate/scale based on cx, cy
-    m.translate(mx+mcx, my+mcy);
-    if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
-    if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);  
-    m.translate(-mcx, -mcy);    
+      // translate based on xy rotate/scale based on cx, cy
+      m.translate(mx+mcx, my+mcy);
+      if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
+      if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);  
+      m.translate(-mcx, -mcy);    
 #else
-    // translate/rotate/scale based on cx, cy
-    m.translate(mx, my);
-    if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
-    if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
-    m.translate(-mcx, -mcy);
+      // translate/rotate/scale based on cx, cy
+      m.translate(mx, my);
+      if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
+      if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
+      m.translate(-mcx, -mcy);
 #endif
+    }
+    else
+    {
+      m.multiply(mMatrix);
+    }
   }
 
   static void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m) {
@@ -641,6 +690,43 @@ public:
 
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
 
+  rtError m11(float& v) const { v = mMatrix.constData(0); return RT_OK; }
+  rtError m12(float& v) const { v = mMatrix.constData(1); return RT_OK; }
+  rtError m13(float& v) const { v = mMatrix.constData(2); return RT_OK; }
+  rtError m14(float& v) const { v = mMatrix.constData(3); return RT_OK; }
+  rtError m21(float& v) const { v = mMatrix.constData(4); return RT_OK; }
+  rtError m22(float& v) const { v = mMatrix.constData(5); return RT_OK; }
+  rtError m23(float& v) const { v = mMatrix.constData(6); return RT_OK; }
+  rtError m24(float& v) const { v = mMatrix.constData(7); return RT_OK; }
+  rtError m31(float& v) const { v = mMatrix.constData(8); return RT_OK; }
+  rtError m32(float& v) const { v = mMatrix.constData(9); return RT_OK; }
+  rtError m33(float& v) const { v = mMatrix.constData(10); return RT_OK; }
+  rtError m34(float& v) const { v = mMatrix.constData(11); return RT_OK; }
+  rtError m41(float& v) const { v = mMatrix.constData(12); return RT_OK; }
+  rtError m42(float& v) const { v = mMatrix.constData(13); return RT_OK; }
+  rtError m43(float& v) const { v = mMatrix.constData(14); return RT_OK; }
+  rtError m44(float& v) const { v = mMatrix.constData(15); return RT_OK; }
+
+  rtError setM11(const float& v) { mMatrix.data()[0] = v; return RT_OK; }
+  rtError setM12(const float& v) { mMatrix.data()[1] = v; return RT_OK; }
+  rtError setM13(const float& v) { mMatrix.data()[2] = v; return RT_OK; }
+  rtError setM14(const float& v) { mMatrix.data()[3] = v; return RT_OK; }
+  rtError setM21(const float& v) { mMatrix.data()[4] = v; return RT_OK; }
+  rtError setM22(const float& v) { mMatrix.data()[5] = v; return RT_OK; }
+  rtError setM23(const float& v) { mMatrix.data()[6] = v; return RT_OK; }
+  rtError setM24(const float& v) { mMatrix.data()[7] = v; return RT_OK; }
+  rtError setM31(const float& v) { mMatrix.data()[8] = v; return RT_OK; }
+  rtError setM32(const float& v) { mMatrix.data()[9] = v; return RT_OK; }
+  rtError setM33(const float& v) { mMatrix.data()[10] = v; return RT_OK; }
+  rtError setM34(const float& v) { mMatrix.data()[11] = v; return RT_OK; }
+  rtError setM41(const float& v) { mMatrix.data()[12] = v; return RT_OK; }
+  rtError setM42(const float& v) { mMatrix.data()[13] = v; return RT_OK; }
+  rtError setM43(const float& v) { mMatrix.data()[14] = v; return RT_OK; }
+  rtError setM44(const float& v) { mMatrix.data()[15] = v; return RT_OK; }
+
+  rtError useMatrix(bool& v) const { v = mUseMatrix; return RT_OK; }
+  rtError setUseMatrix(const bool& v) { mUseMatrix = v; return RT_OK; }
+
 public:
   rtEmitRef mEmit;
 
@@ -658,11 +744,14 @@ protected:
   bool mDrawAsMask;
   bool mDraw;
   bool mDrawAsHitTest;
+  rtObjectRef mReady;
   pxTextureRef mMaskTextureRef;
   pxTextureCacheObject mMaskTextureCacheObject;
   pxContextFramebufferRef mClipSnapshotRef;
   bool mCancelInSet;
   rtString mId;
+  pxMatrix4f mMatrix;
+  bool mUseMatrix;
 
   pxContextFramebufferRef createSnapshot(pxContextFramebufferRef fbo);
   void createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxContextFramebufferRef maskFbo);
@@ -1066,6 +1155,7 @@ public:
   rtError setShowOutlines(bool v);
 
   rtError create(rtObjectRef p, rtObjectRef& o);
+  rtError createObject(rtObjectRef p, rtObjectRef& o);
   rtError createRectangle(rtObjectRef p, rtObjectRef& o);
   rtError createText(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);

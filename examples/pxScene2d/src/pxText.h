@@ -18,6 +18,12 @@
 class pxFace;
 typedef rtRefT<pxFace> pxFaceRef;
 
+class pxFileDownloadRequest;
+typedef struct _FontDownloadRequest
+{
+  pxFileDownloadRequest* fileDownloadRequest;
+} FontDownloadRequest;
+
 struct GlyphCacheEntry
 {
   int bitmap_left;
@@ -39,6 +45,7 @@ public:
   virtual ~pxFace();
   
   rtError init(const char* n);
+  rtError init(const FT_Byte*  fontData, FT_Long size, const char* n);
 
   virtual unsigned long AddRef() 
   {
@@ -77,6 +84,7 @@ public:
   rtProperty(faceURL, faceURL, setFaceURL, rtString);
 
   pxText(pxScene2d* scene);
+  ~pxText();
   rtError text(rtString& s) const;
   rtError setText(const char* text);
 
@@ -119,6 +127,9 @@ public:
     return e;
   }
 
+  void onFontDownloadComplete(FontDownloadRequest fontDownloadRequest);
+  static void checkForCompletedDownloads(int maxTimeInMilliseconds=10);
+
  protected:
   virtual void draw();
   rtString mText;
@@ -129,6 +140,7 @@ public:
   uint32_t mPixelSize;
   bool mDirty;
   pxContextFramebufferRef mCached;
+  pxFileDownloadRequest* mFontDownloadRequest;
 };
 
 #endif
