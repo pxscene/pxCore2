@@ -1,0 +1,437 @@
+// pxCore CopyRight 2007-2015 John Robinson
+// pxText.cpp
+
+#include "pxText.h"
+#include "pxText2.h"
+#include "pxFileDownloader.h"
+#include "pxTimer.h"
+#include "pxContext.h"
+extern pxContext context;
+#include <math.h>
+#include <map>
+
+// TODO can we eliminate direct utf8.h usage
+extern "C" {
+#include "utf8.h"
+}
+
+
+pxText2::pxText2()
+{
+	
+}
+
+pxText2::~pxText2()
+{
+	 
+}
+
+/** 
+ * setText: for pxText2, setText sets the text value, but does not
+ * affect the dimensions of the object.  Dimensions are respected 
+ * and text is wrapped/truncated within those dimensions according
+ * to other properties.
+ * */
+rtError pxText2::setText(const char* s) { 
+
+  mText = s; 
+  
+  return RT_OK; 
+}
+
+rtError pxText2::setPixelSize(uint32_t v) 
+{   
+  mPixelSize = v; 
+  //mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+  return RT_OK; 
+}
+
+
+void pxText2::draw() {
+
+	if (mCached.getPtr()) {
+    context.drawImage(0,0,mw,mh,mCached,pxTextureRef(),PX_NONE,PX_NONE);
+	}
+	else {
+	  renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
+
+	}
+}
+
+void pxText2::renderText(const char *text, uint32_t size, float x, float y, 
+                  float sx, float sy, 
+                  float* color, float mw)
+{
+
+	if (!text) {
+		return;
+	}
+
+	int i = 0;
+	u_int32_t charToMeasure;
+	float charW, charH;
+	float tempX, tempY;
+	int lineNumber = 0;
+
+  if( mHorizontalAlign == H_LEFT) 
+  {
+    tempX = mXStartPos;
+  } 
+  else 
+  {
+    tempX = x;
+  }
+	tempY = y;
+
+
+	if( !mWordWrap) 
+  {
+    renderTextNoWordWrap(sx, sy, tempX, size, color);
+
+	} 
+	else 
+	{	
+    // Wordwrap is TRUE
+		rtString accString = "";
+		bool lastLine = false;
+		float lineWidth = mw;
+    // Read char by char to determine full line of text before rendering
+		while((charToMeasure = u8_nextchar((char*)text, &i)) != 0) 
+		{
+			char tempChar[2];
+			tempChar[0] = charToMeasure;
+			tempChar[1] = 0;
+			mFace->measureTextChar(charToMeasure, size,  sx, sy, charW, charH);
+			if( isNewline(charToMeasure))
+      {
+        // Render what we had so far in accString; since we are here, it will fit.
+        float xPos = mx; 
+        float charWTemp, charHTemp;
+        mFace->measureText(accString, size, sx, sy, charWTemp, charHTemp);       
+        if( mHorizontalAlign == H_CENTER) 
+        {
+          xPos = (lineWidth/2) - charWTemp/2;
+        } 
+        else if( mHorizontalAlign == H_RIGHT) 
+        {
+          xPos = lineWidth - charWTemp;
+        } 
+        else if( mHorizontalAlign == H_LEFT && lineNumber == 0) 
+        {
+          xPos = mXStartPos;
+        }
+        mFace->renderText(accString, size, xPos, tempY, 1.0, 1.0, color,lineWidth);	
+        accString = "";			
+				tempY += (mLeading*sy) + charH;
+
+				lineNumber++;
+				tempX = 0;
+				continue;
+			}
+		
+      // Check if text still fits on this line, or if wrap needs to occur
+			if( (tempX + charW) <= lineWidth) 
+      {
+				accString.append(tempChar);
+				tempX += charW;
+
+			} 
+			else 
+      {
+				// The text in hand will not fit on the current line, so prepare
+				// to render what we've got and skip to next line.
+				// Note: Last line will never be set when truncation is NONE.
+				if( lastLine) 
+        {
+					renderTextRowWithTruncation(accString, lineWidth, tempY, sx, sy, size, color);
+					// Clear accString because we've rendered it 
+					accString = "";	
+					break; // break out of reading mText
+
+				} 
+				else 
+        {  // If not lastLine
+					// Out of space on the current line; find and wrap at word boundary
+					char * tempStr = strdup(accString.cString()); // Should give a copy
+					// Need to free the duplicate string?
+					int length = accString.length();
+					int n = length-1;
+					
+					while(!isWordBoundary(tempStr[n]) && n >= 0) 
+          {
+						n--;
+					}
+					if( isWordBoundary(tempStr[n])) 
+          {
+						//printf("wordBoundary is at \"%c\"\n",tempStr[n]);
+						tempStr[n+1] = '\0';
+						//printf("rendering wrappingtext on word boundary %s\n", tempStr);
+						// write out entire string that will fit
+						// Use horizonal positioning
+						float xPos = mx; 
+						if( mHorizontalAlign == H_LEFT && lineNumber == 0) 
+            {
+              // Only respect xStartPos if H align is LEFT
+              xPos = mXStartPos;
+						} 
+            else {
+							if( mHorizontalAlign == H_CENTER ) 
+              { 
+								mFace->measureText(tempStr, size, sx, sy, charW, charH);
+								xPos = (lineWidth/2) - charW/2;
+							}
+							else if( mHorizontalAlign == H_RIGHT) 
+              {
+								mFace->measureText(tempStr, size, sx, sy, charW, charH);
+								xPos = lineWidth - charW;
+							}							
+						}
+						mFace->renderText(tempStr, size, xPos, tempY, sx, sy, color,lineWidth);
+						// Now reset accString to hold remaining text
+						tempStr = strdup(accString.cString());
+						n++;
+						if( strlen(tempStr+n) > 0) 
+            {
+							//printf("char at n is now \"%c\"\n",tempStr[n]);
+							if( isSpaceChar(tempStr[n])) 
+              {
+								accString = tempStr+n+1;
+							}
+							else 
+              {
+								accString = tempStr+n;
+							}
+						} 
+						else 
+            { 
+							accString = "";
+						}
+						if( !isSpaceChar(tempChar[0]) || (isSpaceChar(tempChar[0]) && accString.length() != 0)) 
+            {
+							accString.append(tempChar);
+						}
+						
+						//printf("New accString after truncate/wrap is \"%s\"\n",accString.cString());
+					}
+					// Now skip to next line
+					tempY += (mLeading*sy) + charH;
+					tempX = 0;
+					lineNumber++;
+					mFace->measureText(accString.cString(), size, sx, sy, charW, charH);
+					tempX += charW;			
+					
+					// If Truncation is NONE, we never want to set as last line; 
+					// just keep rendering...
+					if( mTruncation != NONE && tempY + ((mLeading*sy) + charH)*2 > this->h() && !lastLine) 
+          {
+						lastLine = true;
+						if(mXStopPos != 0 && mTruncation != NONE && mHorizontalAlign == H_LEFT) 
+            {
+                lineWidth = mXStopPos - this->x();
+						} 				
+					}
+				}
+
+			}
+
+		}
+		
+		if(accString.length() > 0) {
+		  mFace->renderText(accString.cString(), size, 0, tempY, sx, sy, color,this->w());
+		}	
+	}
+
+}
+
+void pxText2::renderTextNoWordWrap(float sx, float sy, float tempX, uint32_t pixelSize, float* color )
+{
+  float charW, charH;
+  float lineWidth = this->w();
+  float tempXStartPos = 0;
+  float tempXStopPos = 0;
+  
+  if( mHorizontalAlign == H_LEFT) {
+    tempXStartPos = mXStartPos;
+    tempXStopPos = mXStopPos;
+  }
+  // Adjust line width when start/stop pos are authored (and using H_LEFT)
+  if( mTruncation != NONE && tempXStopPos != 0 ) 
+  {
+    lineWidth = tempXStartPos - tempXStopPos;
+  }
+  
+  // Measure as single line since there's no word wrapping
+  mFace->measureText(mText, pixelSize, sx, sy, charW, charH);
+  
+  // Will it fit on one line OR is there no truncation, so we don't care...
+  if( (charW + tempXStartPos) <= lineWidth || mTruncation == NONE) 
+  {
+    // it fits and/or there's no truncation, so render it
+    if( mHorizontalAlign == H_CENTER) 
+    {
+      // Ignore xStartPos and xStopPos
+      tempX = (lineWidth/2) - (charW/2);
+    } 
+    else if( mHorizontalAlign == H_RIGHT) 
+    {
+      // Ignore xStartPos and xStopPos
+      tempX = lineWidth - charW;
+    } 
+    mFace->renderText(mText, pixelSize, tempX, my, sx, sy, color,lineWidth);
+    
+  } 
+  else 
+  {
+    // Check for truncation
+    if(mTruncation == TRUNCATE || mTruncation == TRUNCATE_AT_WORD) 
+    {
+      renderTextRowWithTruncation(mText, lineWidth, my, sx, sy, pixelSize, color);
+
+    }
+  
+  }
+}
+
+/**
+ * renderTextRowWithTruncation: Only to be called when truncation != NONE
+ * */
+void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempY, 
+                                          float sx, float sy, uint32_t pixelSize, float* color) 
+{
+	float charW, charH;
+	char * tempStr = strdup(accString.cString()); // Should give a copy
+	int length = accString.length();
+	float ellipsisW = 0;
+	if( mEllipsis) 
+  {
+		length -= ELLIPSIS_LEN;
+		mFace->measureText(ELLIPSIS_STR, pixelSize, sx, sy, ellipsisW, charH);
+		//printf("ellipsisW is %f\n",ellipsisW);
+	}
+  
+	for(int i = length; i > 0; i--) 
+  { 
+		tempStr[i] = '\0';
+		charW = 0;
+		charH = 0;
+		mFace->measureText(tempStr, pixelSize, sx, sy, charW, charH);
+		if( (charW + ellipsisW) <= lineWidth) 
+    {
+			float xPos = this->x(); 
+			if( mTruncation == TRUNCATE) 
+      {
+				// we're done; just render
+				//printf("rendering truncated text %s\n", tempStr);
+				// Ignore xStartPos and xStopPos if H align is not LEFT
+				if( mHorizontalAlign == H_CENTER )
+        { 
+					xPos = (lineWidth/2) - (charW/2);
+				}	
+        else if( mHorizontalAlign == H_RIGHT)
+        {
+          xPos =  lineWidth - charW - ellipsisW;
+        }			
+				mFace->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, color,lineWidth);
+				if( mEllipsis) 
+        {
+					//printf("rendering truncated text with ellipsis\n");
+					mFace->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
+				}
+				break;
+			} 
+			else 
+      {
+				// Look for word boundary on which to break
+				int n = 1;
+				while(!isWordBoundary(tempStr[i-n]) && n <= i) 
+        {
+					n++;
+				}
+										
+				if( isWordBoundary(tempStr[i-n])) 
+        {
+					tempStr[i-n+1] = '\0';
+					mFace->measureText(tempStr, pixelSize, sx, sy, charW, charH);
+
+          // Ignore xStartPos and xStopPos if H align is not LEFT
+					if( mHorizontalAlign == H_CENTER )
+          { 
+						xPos = (lineWidth/2) - (charW/2);
+					}	
+					else if( mHorizontalAlign == H_RIGHT) 
+          {
+						xPos = lineWidth - charW - ellipsisW;
+					}															
+					mFace->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, color,lineWidth);
+				}
+				if( mEllipsis) 
+        {
+					//printf("rendering  text on word boundary with ellipsis\n");
+					mFace->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
+				}
+				break;
+			}
+		}
+		
+	}	
+}
+
+bool pxText2::isWordBoundary( char ch )
+{
+    return (strchr(word_boundary_chars, ch) != NULL);
+}
+bool pxText2::isSpaceChar( char ch ) 
+{
+	return (strchr(space_chars, ch) != NULL);
+}
+/*-------------------------------------------------------------------------
+ * the following characters are considered as white-space 
+ * ' '  (0x20)  space (SPC)
+ * '\t' (0x09)  horizontal tab (TAB)
+ * '\n' (0x0a)  newline (LF)
+ * '\v' (0x0b)  vertical tab (VT)
+ * '\f' (0x0c)  feed (FF)
+ * '\r' (0x0d)  carriage return (CR)
+ -------------------------------------------------------------------------*/
+
+bool pxText2::isNewline( char ch )
+{
+    return (strchr(isnew_line_chars, ch) != 0);
+}
+/*
+#### getFontMetrics - returns information about the font face (font and size).  It does not convey information about the text of the font.  
+* See section 3.a in http://www.freetype.org/freetype2/docs/tutorial/step2.html .  
+* The returned object has the following properties:
+* height - float - the distance between baselines
+* ascent - float - the distance from the baseline to the font ascender (note that this is a hint, not a solid rule)
+* descent - float - the distance from the baseline to the font descender  (note that this is a hint, not a solid rule)
+*/
+rtError pxText2::getFontMetrics(rtObjectRef& o) {
+
+	float height, ascent, descent;
+	pxTextMetrics* metrics = new pxTextMetrics();
+
+	mFace->getMetrics(height, ascent, descent);
+	metrics->setHeight(height);
+	metrics->setAscent(ascent);
+	metrics->setDescent(descent);
+	o = metrics;
+  
+	return RT_OK;
+}
+rtDefineObject(pxTextMetrics, pxObject);
+rtDefineProperty(pxTextMetrics, height); 
+rtDefineProperty(pxTextMetrics, ascent);
+rtDefineProperty(pxTextMetrics, descent);
+
+
+rtDefineObject(pxText2, pxText);
+rtDefineProperty(pxText2, wordWrap);
+rtDefineProperty(pxText2, ellipsis);
+rtDefineProperty(pxText2, xStartPos); 
+rtDefineProperty(pxText2, xStopPos);
+rtDefineProperty(pxText2, truncation);
+rtDefineProperty(pxText2, verticalAlign);
+rtDefineProperty(pxText2, horizontalAlign);
+rtDefineProperty(pxText2, leading);
+rtDefineMethod(pxText2, getFontMetrics);
