@@ -7,18 +7,29 @@ var px = 0;
 var py = 0;
 var leading = 0;
 
-var text2 = scene.create({t:"text2",  text:longText, horizontalAlign:0, xStartPos:25,xStopPos:0,
+var text2 = scene.create({t:"text2",  text:longText, horizontalAlign:0, verticalAlign:0, xStartPos:25,xStopPos:0,
 						wordWrap:true, ellipsis:true, truncation:2,leading:-5, 
 						clip:false, w:400, h:400, parent:container, textColor:0xFFDDFFFF, 
 						pixelSize:20, x:px, y:py, rx:0, ry:1, rz:0});
 //var text2 = scene.createText2({wordWrap:true, ellipsis:true, truncation:0,leading:10, clip:false, w:400, h:400, parent:container, textColor:0xFFDDFFFF, pixelSize:20, x:px, y:py, rx:0, ry:1, rz:0});
 var metrics = null;
+var measurements = null;
 
-	console.log("inside text2.ready");
-	console.log("calling temp.getFontMetrics() inside ready");
+//text2.ready.then(function(text) {
+//	console.log("inside text2.ready");
+//	console.log("calling text2.getFontMetrics() inside ready");
 	metrics = text2.getFontMetrics();
 	console.log("metrics h="+metrics.height);
 	console.log("metrics a="+metrics.ascent);
 	console.log("metrics d="+metrics.descent);
 
-
+  measurements = text2.measureText();
+  console.log("measurements boundsX1="+measurements.bounds.x1);
+  console.log("measurements boundsY1="+measurements.bounds.y1);
+  console.log("measurements boundsX2="+measurements.bounds.x2);
+  console.log("measurements boundsY2="+measurements.bounds.y2);
+  console.log("measurements firstCharX="+measurements.firstChar.x);
+  console.log("measurements firstCharY="+measurements.firstChar.y);
+  console.log("measurements lastCharX="+measurements.lastChar.x);
+  console.log("measurements lastCharY="+measurements.lastChar.y);
+//});
