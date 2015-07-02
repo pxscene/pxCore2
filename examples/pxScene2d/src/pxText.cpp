@@ -198,8 +198,8 @@ void pxFace::measureText(const char* text, uint32_t size,  float sx, float sy,
     }
     else
     {
-      //h += metrics->height>>6;
-      h += (metrics->height);
+      h += metrics->height>>6;
+      //h += (metrics->height);
       lw = 0;
     }
     w = pxMax<float>(w, lw);
@@ -215,7 +215,7 @@ void pxFace::renderText(const char *text, uint32_t size, float x, float y,
 {
   if (!text) 
     return;
-
+  //printf("pxFace::renderText mw=%f\n",mw);
   int i = 0;
   u_int32_t codePoint;
 

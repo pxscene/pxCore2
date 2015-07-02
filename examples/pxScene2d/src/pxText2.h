@@ -37,15 +37,17 @@ enum PX_HORIZONTAL_ALIGN {
 	H_CENTER,
 	H_RIGHT
 };
-#define ELLIPSIS_STR "..."
+#define ELLIPSIS_STR "\u2026"
 #define ELLIPSIS_LEN (sizeof(ELLIPSIS_STR)-1)	
 static const char isnew_line_chars[] = "\n\v\f\r";
 static const char word_boundary_chars[] = " \t/:&,;.";
 static const char space_chars[] = " \t";
 
-//class pxTextMetrics;
-//typedef rtRefT<pxTextMetrics> pxTextMetricsRef;
-
+/**********************************************************************
+ * 
+ * pxTextMetrics
+ * 
+ **********************************************************************/
 class pxTextMetrics: public pxObject {
 
 public:
@@ -64,9 +66,9 @@ public:
 			return l;
 	}
 	rtDeclareObject(pxTextMetrics, pxObject);
-	rtProperty(height, height, setHeight, float); 
-	rtProperty(ascent, ascent, setAscent, float);
-	rtProperty(descent, descent, setDescent, float);
+	rtReadOnlyProperty(height, height, float); 
+	rtReadOnlyProperty(ascent, ascent, float);
+	rtReadOnlyProperty(descent, descent, float);
  
 	float height()             const { return mHeight; }
 	rtError height(float& v)   const { v = mHeight; return RT_OK;   }
@@ -87,6 +89,183 @@ public:
     float mDescent;
 };
 
+/**********************************************************************
+ * 
+ * pxTextPosition
+ * 
+ **********************************************************************/
+class pxCharPosition: public pxObject {
+
+public:
+	pxCharPosition():mRefCount(0) {  }
+	virtual ~pxCharPosition() {}
+
+	virtual unsigned long AddRef() 
+	{
+		return rtAtomicInc(&mRefCount);
+	}
+
+	virtual unsigned long Release() 
+	{
+		long l = rtAtomicDec(&mRefCount);
+		if (l == 0) delete this;
+			return l;
+	}
+  
+	rtDeclareObject(pxCharPosition, pxObject);
+	rtReadOnlyProperty(x, x, float);
+  rtReadOnlyProperty(y, y, float);
+
+	float x()             const { return mX; }
+	rtError x(float& v)   const { v = mX; return RT_OK;   }
+	rtError setX(float v)       { mX = v; return RT_OK;   }
+
+	float y()             const { return mY; }
+	rtError y(float& v)   const { v = mY; return RT_OK;   }
+	rtError setY(float v)       { mY = v; return RT_OK;   }
+
+  void clear() {
+    mX = 0;
+    mY = 0;
+  }
+      
+  private:
+    rtAtomic mRefCount;	
+    float mX;
+    float mY;
+    
+};
+
+/**********************************************************************
+ * 
+ * pxTextBounds
+ * 
+ **********************************************************************/
+class pxTextBounds: public pxObject {
+
+public:
+	pxTextBounds():mRefCount(0) {  }
+	virtual ~pxTextBounds() {}
+
+	virtual unsigned long AddRef() 
+	{
+		return rtAtomicInc(&mRefCount);
+	}
+
+	virtual unsigned long Release() 
+	{
+		long l = rtAtomicDec(&mRefCount);
+		if (l == 0) delete this;
+			return l;
+	}
+  
+	rtDeclareObject(pxTextBounds, pxObject);
+	rtReadOnlyProperty(x1, x1, float);
+  rtReadOnlyProperty(y1, y1, float);
+  rtReadOnlyProperty(x2, x2, float);
+  rtReadOnlyProperty(y2, y2, float);
+
+	float x1()             const { return mX1; }
+	rtError x1(float& v)   const { v = mX1; return RT_OK;   }
+	rtError setX1(float v)       { mX1 = v; return RT_OK;   }
+
+	float y1()             const { return mY1; }
+	rtError y1(float& v)   const { v = mY1; return RT_OK;   }
+	rtError setY1(float v)       { mY1 = v; return RT_OK;   }
+
+	float x2()             const { return mX2; }
+	rtError x2(float& v)   const { v = mX2; return RT_OK;   }
+	rtError setX2(float v)       { mX2 = v; return RT_OK;   }
+
+	float y2()             const { return mY2; }
+	rtError y2(float& v)   const { v = mY2; return RT_OK;   }
+	rtError setY2(float v)       { mY2 = v; return RT_OK;   }
+      
+  void clear() {
+    mX1 = 0;
+    mY1 = 0;
+    mX2 = 0;
+    mY2 = 0;
+  }    
+  private:
+    rtAtomic mRefCount;	
+    float mX1;
+    float mY1;
+    float mX2;
+    float mY2;  
+    
+};
+/**********************************************************************
+ * 
+ * pxTextMeasurements
+ * 
+ **********************************************************************/
+class pxTextMeasurements: public pxObject {
+
+public:
+	pxTextMeasurements():mRefCount(0) { 
+    mBounds = new pxTextBounds();
+    mFirstChar = new pxCharPosition();
+    mLastChar = new pxCharPosition();
+  }
+	virtual ~pxTextMeasurements() {}
+
+	virtual unsigned long AddRef() 
+	{
+		return rtAtomicInc(&mRefCount);
+	}
+
+	virtual unsigned long Release() 
+	{
+		long l = rtAtomicDec(&mRefCount);
+		if (l == 0) delete this;
+			return l;
+	}
+	rtDeclareObject(pxTextMeasurements, pxObject);
+  rtReadOnlyProperty(bounds, bounds, rtObjectRef);
+  rtReadOnlyProperty(firstChar, firstChar, rtObjectRef);
+  rtReadOnlyProperty(lastChar, lastChar, rtObjectRef);
+  
+  rtError bounds(rtObjectRef& v) const
+  {
+    v = mBounds;
+    return RT_OK;
+  }
+  rtError firstChar(rtObjectRef& v) const
+  {
+    v = mFirstChar;
+    return RT_OK;
+  }
+  rtError lastChar(rtObjectRef& v) const
+  {
+    v = mLastChar;
+    return RT_OK;
+  } 
+  
+  rtRefT<pxTextBounds> getBounds()      { return mBounds;}
+  rtRefT<pxCharPosition> getFirstChar() { return mFirstChar; }
+  rtRefT<pxCharPosition> getLastChar()  { return mLastChar; }
+  
+  void clear() {
+    mBounds->clear();
+    mFirstChar->clear();
+    mLastChar->clear();
+  }    
+      
+  private:
+    rtAtomic mRefCount;	
+    
+    rtRefT<pxTextBounds> mBounds;
+    rtRefT<pxCharPosition> mFirstChar;
+    rtRefT<pxCharPosition> mLastChar;
+    
+};
+
+/**********************************************************************
+ * 
+ * pxTex2
+ * 
+ **********************************************************************/
 class pxText2: public pxText {
 public:
   rtDeclareObject(pxText2, pxText);
@@ -142,13 +321,11 @@ public:
                   float* color, float mw);
   virtual void draw();
 
-  void renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempY, float sx, float sy, uint32_t pixelSize,float* color);
-  void renderTextNoWordWrap(float sx, float sy, float tempX, uint32_t pixelSize,float* color);
-  bool isNewline( char ch );
-  bool isWordBoundary( char ch );
-  bool isSpaceChar( char ch );
+ 
   rtMethodNoArgAndReturn("getFontMetrics", getFontMetrics, rtObjectRef);
   rtError getFontMetrics(rtObjectRef& o);
+  rtMethodNoArgAndReturn("measureText", measureText, rtObjectRef);
+  rtError measureText(rtObjectRef& o); 
 
   virtual rtError Set(const char* name, const rtValue* value)
   {
@@ -179,6 +356,23 @@ public:
 	float mLeading;
 	bool mWordWrap;
 	bool mEllipsis;
+  
+  rtRefT<pxTextMeasurements> measurements;
+  uint32_t lineNumber;
+  uint32_t lastLineNumber;
+  
+  bool isNewline( char ch );
+  bool isWordBoundary( char ch );
+  bool isSpaceChar( char ch );  
+  
+  void renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempY, float sx, float sy, uint32_t pixelSize,float* color);
+  void renderTextNoWordWrap(float sx, float sy, float tempX, uint32_t pixelSize,float* color);
+  void renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t pixelSize, float* color);
+  void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, float* color, uint32_t &lineNumber, bool render);
+  void renderOneLine(uint32_t lineNumber, const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float* color, float lineWidth, bool render );
+  
+  void setMeasurementBounds(float xPos, float width, float yPos, float height);
+  void setLastLineMeasurements(float xPos, float y);
 };
 
 #endif
