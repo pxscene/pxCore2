@@ -1,5 +1,6 @@
 var root = scene.root;
 
+
 var bg = scene.createRectangle({fillColor:0xccccccff, parent:root});
 function updateSize(w, h) {
     bg.w = w;
@@ -8,6 +9,7 @@ function updateSize(w, h) {
 
 scene.on("onResize", function(e){updateSize(e.w,e.h);});
 updateSize(scene.w, scene.h);
+
 
 // null or "" is the default face FreeSans.ttf
 var faces = ["",
@@ -50,7 +52,7 @@ for (var i=0; i < faces.length; i++)
                               faceURL:faces[i]});
     var t2 = scene.createText({text:faceName, 
                                parent:row,x:20,y:t.h,
-                               textColor:0x000000ff, pixelSize:14, a:0.6});
+                               textColor:0x000000ff, pixelSize:14,a:0.6});
     
     row.h = t.h+t2.h;
     row.w = 800;
@@ -113,13 +115,17 @@ scene.root.on("onKeyDown", function (e) {
     if (keycode == 38) scrollUp();
     else if (keycode == 40) scrollDn();
     else if (keycode == 8) {
-        str = str.substr(0,str.length-1);
-        updateText(str);
+//        str = str.substr(0,str.length-1);
+//        str = str.slice(0,str.length-2);
+      str = str.slice(0,-1);
+      updateText(str);
     }
 });
 
 scene.root.on("onChar", function(e) {
+  if (e.charCode != 8) {
     str += String.fromCharCode(e.charCode);
     updateText(str);
+  }
 });
 

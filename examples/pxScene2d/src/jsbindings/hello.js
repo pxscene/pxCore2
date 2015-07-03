@@ -21,7 +21,7 @@ function testScene()
     }
     else if (i < 2) {
       var url = process.cwd() + "/../../images/curve_rectangle.png";
-      p = scene.createImage9({url:url});
+      p = scene.createImage9({url:url,lInset:100,tInset:100,rInset:100,bInset:100});
       p.cx = p.w/2;
       p.cy = p.h/2;
       ny = 100;

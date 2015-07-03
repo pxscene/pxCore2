@@ -41,6 +41,9 @@ public:
   virtual void RT_STDCALL onMouseEnter() = 0;
   virtual void RT_STDCALL onMouseLeave() = 0;
 
+  virtual void RT_STDCALL onFocus() = 0;
+  virtual void RT_STDCALL onBlur() = 0;
+
   virtual void RT_STDCALL onKeyDown(uint32_t keycode, uint32_t flags) = 0;
   virtual void RT_STDCALL onKeyUp(uint32_t keycode, uint32_t flags) = 0;
   virtual void RT_STDCALL onChar(uint32_t codepoint) = 0;

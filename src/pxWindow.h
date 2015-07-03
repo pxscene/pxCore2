@@ -57,6 +57,9 @@ public:
   virtual void onMouseEnter() {}
   virtual void onMouseLeave() {}
   
+  virtual void onFocus() {}
+  virtual void onBlur() {}
+
   virtual void onMouseMove(int32_t /*x*/, int32_t /*y*/) {}
   
   // See pxWindowNative.h for keycode constants

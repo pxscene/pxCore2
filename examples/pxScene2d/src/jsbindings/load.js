@@ -158,7 +158,7 @@ function readConfigFile(argv)
   return configSettings;
 }
 
-var scene = px.getScene(0, 0, 800, 400);
+var scene = px.getScene(0, 0, 1280, 720);
 var api = new Api(scene);
 
 // register a "global" hook that gets invoked whenever a child scene is created
@@ -221,7 +221,6 @@ if (argv.length >= 3) {
   }
 
     scene.root.on("onPreKeyDown", function(e) {
-      console.log("in onKeyDown");
 	    var code = e.keyCode; var flags = e.flags;
       console.log("onKeyDown:", code, ", ", flags);
       if (code == 89 && (flags & 48)) {  // ctrl-alt-y
@@ -235,6 +234,12 @@ if (argv.length >= 3) {
       else if (code == 82 && (flags & 16)) {  // ctrl-r
         console.log("Reloading url: ", originalURL);
         childScene.url = originalURL;
+        e.stopPropagation();
+      }
+      else if (code == 72 && (flags & 48)) {  // ctrl-alt-h
+        var homeURL = "browser.js";
+        console.log("loading home url: ", homeURL);
+        childScene.url = homeURL;
         e.stopPropagation();
       }
     });

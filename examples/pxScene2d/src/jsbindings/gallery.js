@@ -9,7 +9,8 @@ var url;
 url = process.cwd() + "/../../images/skulls.png";
 var bg = scene.createRectangle({url:url,xStretch:2,yStretch:2,parent:root,fillColor:0xe0e0e0ff});
 
-url = process.cwd() + "/../../images/radial_gradient.png";
+//url = process.cwd() + "/../../images/radial_gradient.png";
+url = process.cwd() + "/status_bg.png";
 var bgShade = scene.createImage({url:url,xStretch:1,yStretch:1,parent:root});
 
 var childPad = 48;
@@ -44,7 +45,7 @@ for (var i = 0; i < appURLs.length; i++) {
 }
 
 var url = process.cwd() + "/../../images/select.png";
-select = scene.createImage9({parent:root,url:url,x1:16,y1:16,x2:16,y2:16,
+select = scene.createImage9({parent:root,url:url,lInset:16,tInset:16,rInset:16,bInset:16,
                              w:1368*0.25,h:808*0.25,x:0,y:0,interactive:false});
 
 scene.root.on('onKeyDown', function(e) {

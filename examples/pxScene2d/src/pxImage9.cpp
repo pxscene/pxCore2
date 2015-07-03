@@ -21,7 +21,7 @@ rtError pxImage9::setURL(const char* s) {
 }
 
 void pxImage9::draw() {
-  context.drawImage9(mw, mh, mx1, my1, mx2, my2, mTextureCacheObject.getTexture());
+  context.drawImage9(mw, mh, ml, mt, mr, mb, mTextureCacheObject.getTexture());
 }
 
 void pxImage9::loadImage(rtString url)
@@ -56,9 +56,9 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
 
 rtDefineObject(pxImage9, pxObject);
 rtDefineProperty(pxImage9, url);
-rtDefineProperty(pxImage9, x1);
-rtDefineProperty(pxImage9, y1);
-rtDefineProperty(pxImage9, x2);
-rtDefineProperty(pxImage9, y2);
+rtDefineProperty(pxImage9, lInset);
+rtDefineProperty(pxImage9, tInset);
+rtDefineProperty(pxImage9, rInset);
+rtDefineProperty(pxImage9, bInset);
 rtDefineProperty(pxImage9,statusCode);
 rtDefineProperty(pxImage9,httpStatusCode);

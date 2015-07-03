@@ -131,6 +131,26 @@ rtError pxObject::removeAll()
   return RT_OK;
 }
 
+rtError pxObject::moveToFront()
+{
+  rtObjectRef rtChild;
+  pxObject* parent = this->parent();
+ 
+  if( parent != NULL) {
+	  // TO DO: Need split out to getIndexOfChild method?
+	  for(int32_t i = 0; i < (int32_t)parent->numChildren(); i++) {
+		  parent->getChild(i, rtChild);
+		  if( strncmp(((pxObject*)&rtChild)->id(),this->id(),this->id().length()) == 0) {
+				rtLogInfo("moveToFront: found child\n");
+				// Remove and add to end
+				this->remove();
+				this->setParent(parent);
+				break;
+			} 
+	  }
+  }
+  return RT_OK;
+}
 #if 0
 rtError pxObject::animateTo(const char* prop, double to, double duration, 
                             uint32_t interp, uint32_t animationType) 
@@ -695,6 +715,7 @@ rtDefineProperty(pxObject, numChildren);
 rtDefineMethod(pxObject, getChild);
 rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, removeAll);
+rtDefineMethod(pxObject, moveToFront);
 //rtDefineMethod(pxObject, animateTo);
 #if 0
 //TODO - remove
@@ -1077,7 +1098,31 @@ void pxScene2d::setMouseEntered(pxObject* o)
     }
   }
 }
+rtError pxScene2d::setFocus(rtObjectRef o)
+{
 
+  if(mFocus) {
+	    rtObjectRef e = new rtMapObject;
+	    e.set("target",mFocus);
+	    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+	    //bubbleEvent(e, t, "onPreBlur", "onBlur");
+	    t->mEmit.send("onBlur",e);
+  }
+
+  if (o) {
+	  mFocus = o;
+  }
+  else {
+
+	  mFocus = getRoot();
+  }
+  rtObjectRef e = new rtMapObject;
+  e.set("target",mFocus);
+  rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+  t->mEmit.send("onFocus",e);
+
+  return RT_OK;
+}
 void pxScene2d::onMouseEnter()
 {
 }
@@ -1091,6 +1136,23 @@ void pxScene2d::onMouseLeave()
   
   mMouseDown = NULL;
   setMouseEntered(NULL);
+}
+
+void pxScene2d::onFocus()
+{
+  // top level scene event
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onFocus");
+  mEmit.send("onFocus", e);
+
+}
+void pxScene2d::onBlur()
+{
+  // top level scene event
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onBlur");
+  mEmit.send("onBlur", e);
+
 }
 
 void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t, 
@@ -1388,6 +1450,8 @@ rtDefineMethod(pxViewContainer, onMouseUp);
 rtDefineMethod(pxViewContainer, onMouseMove);
 rtDefineMethod(pxViewContainer, onMouseEnter);
 rtDefineMethod(pxViewContainer, onMouseLeave);
+rtDefineMethod(pxViewContainer, onFocus);
+rtDefineMethod(pxViewContainer, onBlur);
 rtDefineMethod(pxViewContainer, onKeyDown);
 rtDefineMethod(pxViewContainer, onKeyUp);
 rtDefineMethod(pxViewContainer, onChar);
