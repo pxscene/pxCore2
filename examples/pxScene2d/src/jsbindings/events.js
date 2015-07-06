@@ -5,7 +5,7 @@ function randomInt(from, to) {
 	return Math.round(Math.random()*range + from);
 }
 
-var bg = scene.createRectangle({fillColor:0xccccccff, parent:root});
+var bg = scene.createRectangle({fillColor:0xcccccc00, parent:root});
 var back = scene.createImage({parent:bg});
 var front = scene.createImage({parent:bg});
 

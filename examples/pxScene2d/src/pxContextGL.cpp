@@ -1339,3 +1339,9 @@ void pxContext::popState()
     gMatrix = contextState.matrix;
   }
 }
+
+void pxContext::snapshot(pxOffscreen& o)
+{
+  o.init(gResW,gResH);
+  glReadPixels(0,0,gResW,gResH,GL_RGBA,GL_UNSIGNED_BYTE,(void*)o.base());
+}

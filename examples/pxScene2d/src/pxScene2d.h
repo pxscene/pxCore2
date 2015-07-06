@@ -1048,12 +1048,16 @@ class pxSceneContainer: public pxViewContainer
 public:
   rtDeclareObject(pxSceneContainer, pxViewContainer);
   rtProperty(url, uri, setURI, rtString);
+  rtReadOnlyProperty(api, api, rtValue);
   
 pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
 
   rtError uri(rtString& v) const { v = mURI; return RT_OK; }
   rtError setURI(rtString v);
+
+  rtError api(rtValue& v) const;
 private:
+  rtRefT<pxScene2d> mScene;
   rtString mURI;
 };
 
@@ -1133,8 +1137,11 @@ public:
   rtMethod1ArgAndNoReturn("setFocus", setFocus, rtObjectRef);
   
   rtMethodNoArgAndNoReturn("stopPropagation",stopPropagation);
+  
+  rtMethodNoArgAndNoReturn("snapshot", snapshot);
 
   rtProperty(ctx, ctx, setCtx, rtValue);
+  rtProperty(api, api, setAPI, rtValue);
   rtReadOnlyProperty(emit, emit, rtFunctionRef);
   rtConstantProperty(PX_LINEAR, PX_LINEAR_, uint32_t);
   rtConstantProperty(PX_EXP1, PX_EXP1_, uint32_t);
@@ -1218,6 +1225,9 @@ public:
   rtError ctx(rtValue& v) const { v = mContext; return RT_OK; }
   rtError setCtx(const rtValue& v) { mContext = v; return RT_OK; }
 
+  rtError api(rtValue& v) const { v = mAPI; return RT_OK; }
+  rtError setAPI(const rtValue& v) { mAPI = v; return RT_OK; }
+
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
   
   rtError allInterpolators(rtObjectRef& v) const;
@@ -1270,6 +1280,8 @@ private:
   // Does not draw updates scene to time t
   // t is assumed to be monotonically increasing
   void update(double t);
+
+  rtError snapshot();
   
   rtRefT<pxObject> mRoot;
   rtObjectRef mFocus;
@@ -1284,6 +1296,7 @@ private:
   rtRefT<pxObject> mMouseDown;
   pxPoint2f mMouseDownPt;
   rtValue mContext;
+  rtValue mAPI;
   bool mTop;
   bool mStopPropagation;
   int mTag;

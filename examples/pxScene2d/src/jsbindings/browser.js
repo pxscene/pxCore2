@@ -9,6 +9,7 @@ var cursor = scene.create({t:"rect", w:2, h:inputbg.h-10, parent:inputbg,x:10,y:
 cursor.animateTo({a:0},0.5,scene.PX_LINEAR,scene.PX_SEESAW);
 
 
+var contentBG = scene.create({t:"rect",x:10,y:60,parent:bg,fillColor:0xffffffff,a:0.05,draw:false});
 var content = scene.createScene({x:10,y:60,parent:bg,clip:true});
 
 inputbg.on("onChar",function(e) {
@@ -26,6 +27,21 @@ inputbg.on("onKeyDown", function(e) {
   if (e.keyCode == 13) {
     content.url = url.text;
     scene.setFocus(content);
+    content.ready.then(function() {
+      contentBG.draw = true;
+/*
+      console.log("api after promise:"+content.api);
+      if (content.api) {
+        content.api.test("john");
+        content.api.middle.fillColor=0x000000ff;
+      }
+*/
+    },
+                       function() {
+                         contentBG.draw = false;
+                         console.log("scene load failed");
+                       }
+    );
   }
   else if (e.keyCode == 8) {
     var s = url.text.slice();
@@ -60,10 +76,14 @@ function updateSize(w,h) {
   inputbg.w = w-20;
   content.w = w-20;
   content.h = h-70;
+  contentBG.w = w-20;
+  contentBG.h = h-70;
 }
 
 scene.root.on("onPreKeyDown", function(e) {
   if (e.keyCode == 76 && e.flags == 16) { // ctrl-l
+    //console.log("api:"+content.api);
+//    if (content.api) content.api.test(32);
     scene.setFocus(inputbg);
     url.text = "";
     prompt.a = (url.text)?0:1;

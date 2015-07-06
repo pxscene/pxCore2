@@ -1,12 +1,13 @@
 var root = scene.root;
 
 var url;
+/*
 url = process.cwd() + "/../../images/skulls.png";
 var bg = scene.createImage({id:"bg2",url:url,xStretch:2,yStretch:2,parent:root});
 
 url = process.cwd() + "/../../images/radial_gradient.png";
 var bgShade = scene.createImage({id:"bg", url:url,xStretch:1,yStretch:1,parent:root});
-
+*/
 var txt1 = scene.createText({x:10,text:"",parent:root,pixelSize:64});
 
 //var childText;
@@ -89,10 +90,12 @@ scene.on("onMouseMove", function(e) {
 });
 
 function updateSize(w, h) {
+/*
     bg.w = w;
     bg.h = h;
     bgShade.w = w;
     bgShade.h = h;
+*/
     txt1.y = h-txt1.h;
 }
 

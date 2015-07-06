@@ -1,10 +1,11 @@
 var root = scene.root;
 
-var bg = scene.createImage();
-var bgShade = scene.createImage();
+//var bg = scene.createImage();
+//var bgShade = scene.createImage();
 
 var txt1 = scene.createText();
 
+/*
 bg.url = process.cwd() + "/../../images/skulls.png";
 bg.xStretch = 2;
 bg.yStretch = 2;
@@ -14,6 +15,7 @@ bgShade.url = process.cwd() + "/../../images/radial_gradient.png";
 bgShade.xStretch = 1;
 bgShade.yStretch = 1;
 bgShade.parent = root;
+*/
 
 txt1.x = 10;
 txt1.text = ""; // Just so there is some height so that we can position
@@ -109,10 +111,12 @@ scene.on("mousemove", function(x, y) {
 });
 
 function updateSize(w, h) {
+/*
   bg.w = w;
   bg.h = h;
   bgShade.w = w;
   bgShade.h = h;
+*/
   txt1.y = h-txt1.h;
 }
 

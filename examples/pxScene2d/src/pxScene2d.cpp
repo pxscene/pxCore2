@@ -1372,6 +1372,16 @@ rtError pxScene2d::setOnScene(rtFunctionRef v)
   return RT_OK; 
 }
 
+rtError pxScene2d::snapshot()
+{
+  pxOffscreen o;
+  context.snapshot(o);
+  o.setUpsideDown(true);
+  pxStorePNGImage("blah.png", o);
+  return RT_OK;
+}
+
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, onScene);
@@ -1389,7 +1399,9 @@ rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
 rtDefineMethod(pxScene2d, setFocus);
 rtDefineMethod(pxScene2d, stopPropagation);
+rtDefineMethod(pxScene2d, snapshot);
 rtDefineProperty(pxScene2d, ctx);
+rtDefineProperty(pxScene2d, api);
 rtDefineProperty(pxScene2d, emit);
 rtDefineProperty(pxScene2d, allInterpolators);
 rtDefineProperty(pxScene2d, PX_LINEAR);
@@ -1458,11 +1470,17 @@ rtDefineMethod(pxViewContainer, onChar);
 
 rtDefineObject(pxSceneContainer, pxViewContainer);
 rtDefineProperty(pxSceneContainer, url);
+rtDefineProperty(pxSceneContainer, api);
 
 rtError pxSceneContainer::setURI(rtString v)
 { 
+  // If old promise is still unfulfilled reject it
+  // and create a new promise for the context of this URI
+  mReady.send("reject", this); 
+  mReady = new rtPromise;  
   rtRefT<pxScene2d> newScene = new pxScene2d(false);
   setView(newScene);
+  mScene = newScene;
   mURI = v; 
   if (gOnScene)
   {
@@ -1470,8 +1488,14 @@ rtError pxSceneContainer::setURI(rtString v)
     // assuming that the script loading code restores painting at a "good" time
     setPainting(false);
     gOnScene.send((rtObject*)this, newScene.getPtr(), mURI);
+    //mReady.send("resolve",this);
   }
   return RT_OK; 
+}
+
+rtError pxSceneContainer::api(rtValue& v) const 
+{ 
+  return mScene->api(v); 
 }
 
 #if 0

@@ -308,31 +308,31 @@ void pxWindowNative::onGlutTimer(int v)
 void pxWindowNative::onGlutMouse(int button, int state, int x, int y)
 {
   unsigned long flags;
-  switch(button)
-  {
-    case GLUT_MIDDLE_BUTTON: flags = PX_MIDDLEBUTTON;
-      break;
-    case GLUT_RIGHT_BUTTON:  flags = PX_RIGHTBUTTON;
-      break;
-    default: flags = PX_LEFTBUTTON;
-      break;
-  }
 
-  pxWindowNative* w = getWindowFromGlutID(glutGetWindow());
-  if (w)
+  if (button == GLUT_LEFT_BUTTON || button == GLUT_RIGHT_BUTTON)
   {
-    w->mMouseDown = (state == GLUT_DOWN);
-    if (state == GLUT_DOWN)
-      w->onMouseDown(x, y, flags);
-    else
+    if (button == GLUT_LEFT_BUTTON)
+      flags = GLUT_LEFT_BUTTON;
+    if (button == GLUT_RIGHT_BUTTON)
+      flags = GLUT_RIGHT_BUTTON;
+
+    pxWindowNative* w = getWindowFromGlutID(glutGetWindow());
+    if (w)
     {
-      w->onMouseUp(x, y, flags);
-      if (!w->mMouseEntered)
+      w->mMouseDown = (state == GLUT_DOWN);
+      if (state == GLUT_DOWN)
+        w->onMouseDown(x, y, flags);
+      else
       {
-        w->onMouseLeave();
+        w->onMouseUp(x, y, flags);
+        if (!w->mMouseEntered)
+        {
+          w->onMouseLeave();
+        }
       }
     }
   }
+  // else some GLUT impls uses button 3,4 etc for mouse wheel
 }
 
 void pxWindowNative::onGlutMouseMotion(int x, int y)

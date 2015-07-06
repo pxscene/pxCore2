@@ -83,6 +83,7 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
       };
 
       if (err) {
+        container.ready.reject(container);
         console.log("failed to load script:" + uri);
         console.log(err);
         // TODO: scene.onError(err); ???
@@ -102,11 +103,13 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
             container.a = 0;
             container.painting = true;
             container.animateTo({a:1}, 0.2, 0, 0);
+            container.ready.resolve(container);
           }
           else
             container.painting = true;
         }
         catch (err) {
+          container.ready.reject(container);
           console.log("failed to run app:" + uri);
           console.log(err);
 
@@ -126,6 +129,7 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
     });
   }
   catch (err) {
+    container.ready.reject(container);
     console.log("failed to load script:" + uri);
     console.log(err);
     // TODO: scene.onError(err); ???
@@ -173,9 +177,13 @@ scene.onScene = function(container, innerscene, url) {
 
 var argv = process.argv;
 
-if (argv.length >= 3) {
+if (argv.length >= 2) {
+  
     var configJson = readConfigFile(argv);
     var originalURL = argv[2];
+    if (!originalURL)
+      originalURL = "browser.js";
+
     // TODO - WARNING root scene.create* doesn't allow passing in property bags
     configJson["parent"] = scene.root;
     configJson["url"] = originalURL;
@@ -204,9 +212,9 @@ if (argv.length >= 3) {
     });
 
 
-  // Cursor emulation mostly for egl targets right now.
+  // TODO Cursor emulation mostly for egl targets right now.
 
-  // hacky raspberry pi detection
+  // TODO hacky raspberry pi detection
   var os = require("os");
   var hostname = os.hostname();
   
@@ -241,6 +249,10 @@ if (argv.length >= 3) {
         console.log("loading home url: ", homeURL);
         childScene.url = homeURL;
         e.stopPropagation();
+      }
+      else if (code == 83 && (flags & 16)) { // ctrl-s
+        console.log("snapshotting");
+        scene.snapshot();
       }
     });
     scene.root.on("onPreKeyUp", function(e) {

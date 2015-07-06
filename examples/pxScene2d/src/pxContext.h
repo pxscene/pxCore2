@@ -41,6 +41,8 @@ class pxContext {
   pxTextureRef createTexture(pxOffscreen& o);
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer);
 
+  void snapshot(pxOffscreen& o);
+
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);
 
   void drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
