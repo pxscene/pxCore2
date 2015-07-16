@@ -114,7 +114,7 @@ void pxFace::setPixelSize(uint32_t s)
     mPixelSize = s;
   }
 }
-void pxFace::getMetrics(float& height, float& ascender, float& descender)
+void pxFace::getMetrics(float& height, float& ascender, float& descender, float& naturalLeading)
 {
 	printf("pxFace::getMetrics\n");
 	// is mFace ever not valid?
@@ -130,6 +130,8 @@ void pxFace::getMetrics(float& height, float& ascender, float& descender)
 	height = metrics->height>>6;
 	ascender = metrics->ascender * y_scale;
 	descender = metrics->descender * y_scale;
+  naturalLeading= height - (ascender + descender);
+
 }
   
 const GlyphCacheEntry* pxFace::getGlyph(uint32_t codePoint)

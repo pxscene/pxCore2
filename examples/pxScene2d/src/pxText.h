@@ -61,7 +61,7 @@ public:
     
   void setPixelSize(uint32_t s);  
   const GlyphCacheEntry* getGlyph(uint32_t codePoint);  
-  void getMetrics(float& height, float& ascender, float& descender);
+  void getMetrics(float& height, float& ascender, float& descender, float& naturalLeading);
   void measureText(const char* text, uint32_t size,  float sx, float sy, 
                    float& w, float& h);
   void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 

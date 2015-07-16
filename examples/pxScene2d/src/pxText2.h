@@ -69,6 +69,7 @@ public:
 	rtReadOnlyProperty(height, height, float); 
 	rtReadOnlyProperty(ascent, ascent, float);
 	rtReadOnlyProperty(descent, descent, float);
+  rtReadOnlyProperty(naturalLeading, naturalLeading, float);
  
 	float height()             const { return mHeight; }
 	rtError height(float& v)   const { v = mHeight; return RT_OK;   }
@@ -81,12 +82,17 @@ public:
 	float descent()             const { return mDescent; }
 	rtError descent(float& v)   const { v = mDescent; return RT_OK;   }
 	rtError setDescent(float v)       { mDescent = v; return RT_OK;   } 
-  
+ 
+ 	float naturalLeading()             const { return mNaturalLeading; }
+	rtError naturalLeading(float& v)   const { v = mNaturalLeading; return RT_OK;   }
+	rtError setNaturalLeading(float v)       { mNaturalLeading = v; return RT_OK;   } 
+   
   private:
     rtAtomic mRefCount;	
    	float mHeight;
     float mAscent;
     float mDescent;
+    float mNaturalLeading;
 };
 
 /**********************************************************************

@@ -72,7 +72,7 @@ void pxText2::renderText(const char *text, uint32_t size, float x, float y,
 	}
 
   // Prerender the text to determine dimensions and number of lines
-	float tempY = 0;
+//	float tempY = 0;
 //  uint32_t lineNumber = 0;  
   float tempX;
 
@@ -119,8 +119,8 @@ void pxText2::renderTextWithWordWrap(const char *text, float sx, float sy, float
   if( mVerticalAlign == V_BOTTOM || mVerticalAlign == V_CENTER) 
   {
     measureTextWithWrapOrNewLine( text, sx, sy, tempX, tempY, size, color, lineNumber, false);
-    float metricHeight, ascent, descent;
-    mFace->getMetrics(metricHeight, ascent, descent);
+    float metricHeight, ascent, descent, naturalLeading;
+    mFace->getMetrics(metricHeight, ascent, descent, naturalLeading);
     float textHeight =  ((lineNumber+1)*metricHeight) + ((lineNumber-1)* mLeading);
     if( mVerticalAlign == V_BOTTOM ) 
     {
@@ -334,8 +334,8 @@ void pxText2::setMeasurementBounds(float xPos, float width, float yPos, float he
   } 
   
   if( lineNumber == 0) {
-    float height, ascent, descent;
-    mFace->getMetrics(height, ascent, descent);
+    float height, ascent, descent, naturalLeading;
+    mFace->getMetrics(height, ascent, descent, naturalLeading);
 
     measurements->getFirstChar()->setX(xPos);
     measurements->getFirstChar()->setY(yPos + ascent);
@@ -344,8 +344,8 @@ void pxText2::setMeasurementBounds(float xPos, float width, float yPos, float he
 
 void pxText2::setLastLineMeasurements(float x, float y) 
 {
-  float height, ascent, descent;
-  mFace->getMetrics(height, ascent, descent);
+  float height, ascent, descent, naturalLeading;
+  mFace->getMetrics(height, ascent, descent, naturalLeading);
   measurements->getLastChar()->setX(x);
   measurements->getLastChar()->setY(y+ascent);
 }
@@ -383,8 +383,8 @@ void pxText2::renderTextNoWordWrap(float sx, float sy, float tempX, uint32_t pix
   // Will it fit on one line OR is there no truncation, so we don't care...
   if( (charW + tempXStartPos) <= lineWidth || mTruncation == NONE) 
   {
-    float metricHeight, ascent, descent;
-    mFace->getMetrics(metricHeight, ascent, descent);
+    float metricHeight, ascent, descent, naturalLeading;
+    mFace->getMetrics(metricHeight, ascent, descent, naturalLeading);
     printf("metric height is %f and charH is %f\n", metricHeight, charH);
     if( charH > metricHeight) {
 
@@ -560,13 +560,14 @@ bool pxText2::isNewline( char ch )
 */
 rtError pxText2::getFontMetrics(rtObjectRef& o) {
 
-	float height, ascent, descent;
+	float height, ascent, descent, naturalLeading;
 	pxTextMetrics* metrics = new pxTextMetrics();
 
-	mFace->getMetrics(height, ascent, descent);
+	mFace->getMetrics(height, ascent, descent, naturalLeading);
 	metrics->setHeight(height);
 	metrics->setAscent(ascent);
 	metrics->setDescent(descent);
+  metrics->setNaturalLeading(naturalLeading);
 	o = metrics;
   
 	return RT_OK;
@@ -594,6 +595,7 @@ rtDefineObject(pxTextMetrics, pxObject);
 rtDefineProperty(pxTextMetrics, height); 
 rtDefineProperty(pxTextMetrics, ascent);
 rtDefineProperty(pxTextMetrics, descent);
+rtDefineProperty(pxTextMetrics, naturalLeading);
 // pxTextBounds
 rtDefineObject(pxTextBounds, pxObject);
 rtDefineProperty(pxTextBounds, x1);
