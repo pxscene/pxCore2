@@ -1,7 +1,0 @@
-#!/bin/bash
-base=/Applications/XRE2.app
-outfile=/var/tmp/`date "+%Y-%m-%d"`.out
-echo "Installing..." >> $outfile
-echo "Copying $1/XRE.app to /Applications" >> $outfile
-cp -R "$1/XRE2.app" /Applications/.
-echo "$? ...install complete" >> $outfile

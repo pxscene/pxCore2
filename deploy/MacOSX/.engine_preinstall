@@ -1,3 +1,0 @@
-#!/bin/bash
-outfile=/var/tmp/`date "+%Y-%m-%d"`.out
-echo "preinstall" >> $outfile
