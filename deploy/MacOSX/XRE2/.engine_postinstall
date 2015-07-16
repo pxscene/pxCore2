@@ -1,0 +1,9 @@
+#!/bin/bash
+base=/Applications/XRE2.app
+outfile=/var/tmp/`date "+%Y-%m-%d"`.out
+echo "post install" >> $outfile
+echo "PRE OUTPUT -----" >> $outfile
+echo "$KS_PREINSTALL_OUT" >> $outfile
+echo "POST OUTPUT -------" >> $outfile
+echo "$KS_INSTALL_OUT" >> $outfile
+echo "$KS_Version" > $base/Contents/MacOS/about.txt
