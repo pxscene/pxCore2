@@ -9,10 +9,6 @@ if [ `uname` != "Darwin" ]; then
   exit
 fi
 
-# check for deploy/lib directory
-if [ ! -d "deploy" ] || [ ! -d "deploy/lib" ]; then
-  mkdir -p deploy/lib
-fi
 mkdir -p $logpath
 
 while [[ $# > 0 ]]
@@ -106,7 +102,6 @@ mkdir -p deploy/examples/pxScene2d/images
 mkdir -p deploy/examples/pxScene2d/external
 mkdir -p deploy/examples/pxScene2d/src/jsbindings/build/Debug
 # copy node
-cp -R deploy/lib/* examples/pxScene2d/external/.
 cp -R examples/pxScene2d/images/* deploy/examples/pxScene2d/images/.
 cp -R examples/pxScene2d/external/* deploy/examples/pxScene2d/external/.
 cp examples/pxScene2d/src/jsbindings/*.js deploy/examples/pxScene2d/src/jsbindings/.
