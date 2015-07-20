@@ -96,22 +96,26 @@ else
 fi
 
 cd $abs
+DMGTEMPLATE=deploy/MacOSX/Pxscene.temp.dmg
 # copy required binaries
 printf "Packing Binaries and examples..."
 mkdir -p deploy/examples/pxScene2d/images
 mkdir -p deploy/examples/pxScene2d/external
 mkdir -p deploy/examples/pxScene2d/src/jsbindings/build/Debug
+TEXT=`hdiutil attach -mountpoint . "${DMGTEMPLATE}"`
+VOLUME=`printf "${TEXT}"`
+echo "$VOLUME"
+exit
 cp -R examples/pxScene2d/images/* deploy/examples/pxScene2d/images/.
 cp -R examples/pxScene2d/external/* deploy/examples/pxScene2d/external/.
 cp examples/pxScene2d/src/jsbindings/*.js deploy/examples/pxScene2d/src/jsbindings/.
 cp examples/pxScene2d/src/jsbindings/*.ttf deploy/examples/pxScene2d/src/jsbindings/.
 cp examples/pxScene2d/src/jsbindings/*.sh deploy/examples/pxScene2d/src/jsbindings/.
 cp examples/pxScene2d/src/jsbindings/build/Debug/px.node deploy/examples/pxScene2d/src/jsbindings/build/Debug/.
-rm -rf deploy/MacOSX/XRE/XRE2.app/Contents/Resources/examples
-mv -f deploy/examples deploy/MacOSX/XRE/XRE2.app/Contents/Resources/.
+rm -rf deploy/MacOSX/Pxscene/Pxscene.app/Contents/Resources/examples
+mv -f deploy/examples deploy/MacOSX/Pxscene/Pxscene.app/Contents/Resources/.
 printf "done.\n"
 cd deploy/MacOSX
 printf "Creating dmg..."
-DIR=XRE2
-DISKIMAGENAME=XRE2
-hdiutil create -ov -imagekey zlib-level=9 -fs HFS+ -format UDZO -scrub -srcfolder $DIR $DISKIMAGENAME
+DISKIMAGENAME=Pxscene
+hdiutil convert "Pxscene.temp.dmg" -imagekey zlib-level=9 -layout SPUD -srcfolder -o "${DISKIMAGENAME}
