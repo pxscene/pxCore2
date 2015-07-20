@@ -2,7 +2,12 @@
 CFLAGS= -DPX_PLATFORM_GLUT -fPIC -Wno-deprecated
 OUTDIR=../build/glut
 
+
 all: $(OUTDIR)/libpxCore.a 
+
+clean:
+	rm $(OUTDIR)/*
+	rm *.o
 
 $(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNativeGlut.o pxTimerNative.o pxViewWindow.o
 		 mkdir -p $(OUTDIR)  
