@@ -28,6 +28,8 @@
 
 #include "pxIView.h"
 
+//static bool gDirty = true;
+
 // TODO get rid of globals
 pxContext context;
 rtFunctionRef gOnScene;
@@ -70,6 +72,13 @@ int numInterps = sizeof(interps)/sizeof(interps[0]);
 double pxInterpLinear(double i)
 {
   return pxClamp<double>(i, 0, 1);
+}
+
+
+rtError pxObject::Set(const char* name, const rtValue* value)
+{
+  mScene->mDirty = true;
+  return rtObject::Set(name, value);
 }
 
 rtError pxObject::animateToP2(rtObjectRef props, double duration, 
@@ -739,9 +748,9 @@ rtDefineProperty(pxObject,useMatrix);
 
 
 pxScene2d::pxScene2d(bool top)
- :start(0),frameCount(0) 
+  :start(0),frameCount(0), mContainer(NULL)
 { 
-  mRoot = new pxObject();
+  mRoot = new pxObject(this);
   mFocus = mRoot;
   mEmit = new rtEmit();
   mTop = top;
@@ -805,7 +814,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createObject(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxObject;
+  o = new pxObject(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -813,7 +822,7 @@ rtError pxScene2d::createObject(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createRectangle(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxRectangle;
+  o = new pxRectangle(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -821,7 +830,7 @@ rtError pxScene2d::createRectangle(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createText(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxText;
+  o = new pxText(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -829,7 +838,7 @@ rtError pxScene2d::createText(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxImage;
+  o = new pxImage(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -837,7 +846,7 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxImage9;
+  o = new pxImage9(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -845,7 +854,7 @@ rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxSceneContainer();
+  o = new pxSceneContainer(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -853,7 +862,7 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 {
-  rtRefT<pxViewContainer> c = new pxViewContainer();
+  rtRefT<pxViewContainer> c = new pxViewContainer(this);
   c->setView(new testView);
   o = c.getPtr();
   o.set(p);
@@ -885,20 +894,22 @@ void pxScene2d::draw()
   }
 }
 
-void pxScene2d::onDraw()
+
+void pxScene2d::onUpdate(double t)
 {
-  if (start == 0)
-  {
-    start = pxSeconds();
-  }
-  
-#if 1
   pxTextureCacheObject::checkForCompletedDownloads();
   pxText::checkForCompletedDownloads();
-  update(pxSeconds());
-  draw();
-#endif
 
+  if (start == 0)
+    start = pxSeconds();
+
+  update(t);
+  if (mDirty)
+  {
+    mDirty = false;
+    if (mContainer)
+      mContainer->invalidateRect(NULL);
+  }
   // TODO get rid of mTop somehow
   if (mTop)
   {
@@ -920,6 +931,18 @@ void pxScene2d::onDraw()
 
   frameCount++;
   }
+}
+
+void pxScene2d::onDraw()
+{
+//  printf("**** drawing \n");
+
+  if (mTop)
+    context.setSize(mWidth, mHeight);  
+#if 1
+    draw();
+#endif
+
 }
 
 // Does not draw updates scene to time t
@@ -1410,6 +1433,12 @@ rtError pxScene2dRef::Set(uint32_t i, const rtValue* value)
   return (*this)->Set(i, value);
 }
 
+void RT_STDCALL testView::onUpdate(double /*t*/)
+{
+  if (mContainer)
+    mContainer->invalidateRect(NULL);
+}
+
 void RT_STDCALL testView::onDraw()
 {
 //  rtLogInfo("testView::onDraw()");
@@ -1420,6 +1449,11 @@ void RT_STDCALL testView::onDraw()
   context.drawRect(mw, mh, 1, mEntered?green:red, white); 
   context.drawDiagLine(0,mMouseY,mw,mMouseY,black);
   context.drawDiagLine(mMouseX,0,mMouseX,mh,black);
+}
+
+void pxViewContainer::invalidateRect(pxRect* /*r*/)
+{
+  mScene->mDirty = true;
 }
 
 rtDefineObject(pxViewContainer, pxObject);

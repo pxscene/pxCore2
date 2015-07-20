@@ -6,6 +6,7 @@
 #include <pxScene2d.h>
 #include <pxWindow.h>
 #include <pxWindowUtil.h>
+#include <pxTimer.h>
 
 using namespace v8;
 
@@ -46,7 +47,7 @@ enum WindowCallback
 
 pxEventLoop* gLoop = NULL;
 
-class jsWindow : public pxWindow
+class jsWindow : public pxWindow, public pxIViewContainer
 {
 public:
   jsWindow(Isolate* isolate, int x, int y, int w, int h)
@@ -61,6 +62,7 @@ public:
 
     rtLogInfo("initializing scene");
     mScene->init();
+    mScene->setViewContainer(this);
 
     rtLogInfo("starting background thread for event loop processing");
     startEventProcessingThread();
@@ -91,12 +93,21 @@ public:
     ctx->eventLoop = mEventLoop;
     pthread_create(&mEventLoopThread, NULL, &processEventLoop, ctx);
 #endif
+
   }
 
   virtual ~jsWindow()
   { 
     // empty
   }
+
+#if 1
+  virtual void RT_STDCALL invalidateRect(pxRect* r)
+  {
+    pxWindow::invalidateRect(r);
+  }
+#endif
+
 
 protected:
   static void timerCallback(uv_timer_t* )
@@ -168,14 +179,18 @@ protected:
 
   virtual void onDraw(pxSurfaceNative )
   {
-    rtWrapperSceneUpdateEnter();
+    //  rtWrapperSceneUpdateEnter();
     mScene->onDraw();
-    rtWrapperSceneUpdateExit();
+    //rtWrapperSceneUpdateExit();
   }
 
   virtual void onAnimationTimer()
   {
-    invalidateRect();
+
+    rtWrapperSceneUpdateEnter();
+    mScene->onUpdate(pxSeconds());
+    rtWrapperSceneUpdateExit();
+//    invalidateRect(NULL);
   }
 private:
   pxScene2dRef mScene;

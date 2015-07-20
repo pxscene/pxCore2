@@ -173,13 +173,16 @@ scene.onScene = function(container, innerscene, url) {
 
 var argv = process.argv;
 
-if (argv.length >= 3) {
-    var configJson = readConfigFile(argv);
-    var originalURL = argv[2];
-    // TODO - WARNING root scene.create* doesn't allow passing in property bags
-    configJson["parent"] = scene.root;
-    configJson["url"] = originalURL;
-    var childScene = scene.createScene(configJson);
+if (argv.length >= 2) {
+  var configJson = readConfigFile(argv);
+  var originalURL = argv[2];
+  if (!originalURL)
+    originalURL = "browser.js";
+  
+  // TODO - WARNING root scene.create* doesn't allow passing in property bags
+  configJson["parent"] = scene.root;
+  configJson["url"] = originalURL;
+  var childScene = scene.createScene(configJson);
   scene.setFocus(childScene);
 /*
     childScene.url = originalURL;

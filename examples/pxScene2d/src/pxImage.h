@@ -19,7 +19,7 @@ public:
   rtReadOnlyProperty(statusCode, statusCode, int32_t);
   rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
   
-  pxImage() : mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(), 
+  pxImage(pxScene2d* s) : pxObject(s), mXStretch(PX_NONE), mYStretch(PX_NONE), mTexture(), 
     mTextureCacheObject(), mAutoSize(true), mStatusCode(0), mHttpStatusCode(0)
   { 
     mTextureCacheObject.setParent(this);

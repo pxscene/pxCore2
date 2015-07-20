@@ -270,7 +270,7 @@ void initFT()
 
 }
 
-pxText::pxText():mFontDownloadRequest(NULL)
+pxText::pxText(pxScene2d* s):pxObject(s), mFontDownloadRequest(NULL)
 {
   initFT();
   float c[4] = {1, 1, 1, 1};

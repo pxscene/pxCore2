@@ -75,7 +75,8 @@ private:
   rtAtomic mRefCount;
 };
 
-class pxText: public pxObject {
+class pxText: public pxObject 
+{
 public:
   rtDeclareObject(pxText, pxObject);
   rtProperty(text, text, setText, rtString);
@@ -83,7 +84,7 @@ public:
   rtProperty(pixelSize, pixelSize, setPixelSize, uint32_t);
   rtProperty(faceURL, faceURL, setFaceURL, rtString);
 
-  pxText();
+  pxText(pxScene2d* s);
   ~pxText();
   rtError text(rtString& s) const;
   rtError setText(const char* text);

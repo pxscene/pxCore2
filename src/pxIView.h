@@ -48,6 +48,7 @@ public:
   virtual void RT_STDCALL onKeyUp(uint32_t keycode, uint32_t flags) = 0;
   virtual void RT_STDCALL onChar(uint32_t codepoint) = 0;
 
+  virtual void RT_STDCALL onUpdate(double t) = 0;
   virtual void RT_STDCALL onDraw(/*pxBuffer& b, pxRect* r*/) = 0;
 
   virtual void RT_STDCALL setViewContainer(pxIViewContainer* l) = 0;

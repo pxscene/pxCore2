@@ -198,6 +198,7 @@ private:
 };
 
 class pxObject;
+class pxScene2d;
 
 class pxObject: public rtObject 
 {
@@ -270,7 +271,7 @@ public:
   rtProperty(m44,m44,setM44,float);
   rtProperty(useMatrix,useMatrix,setUseMatrix,bool);
 
-  pxObject(): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
+pxObject(pxScene2d* s): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
     mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mReady(), mMaskTextureRef(),
@@ -278,6 +279,7 @@ public:
   {
     mReady = new rtPromise;
     mEmit = new rtEmit;
+    mScene = s;
   }
 
   virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(mTextureRef); deleteSnapshot(mClipTextureRef);}
@@ -289,6 +291,8 @@ public:
     v = mChildren.size();
     return RT_OK;
   }
+
+  virtual rtError Set(const char* name, const rtValue* value);
 
   rtError getChild(int32_t i, rtObjectRef& r) const 
   {
@@ -757,6 +761,8 @@ protected:
   void createMask();
   void deleteMask();
 
+  pxScene2d *mScene;
+
  private:
   rtError _pxObject(voidPtr& v) const {
     v = (void*)this;
@@ -845,8 +851,10 @@ testView(): mContainer(NULL),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) 
   virtual void RT_STDCALL setViewContainer(pxIViewContainer* l)
   {
     rtLogInfo("testView::setViewContainer(%p)", l);
+    mContainer = l;
   }
 
+  virtual void RT_STDCALL onUpdate(double t);
   virtual void RT_STDCALL onDraw();
 
 
@@ -862,7 +870,7 @@ private:
   int32_t mMouseX, mMouseY;
 };
 
-class pxViewContainer: public pxObject
+class pxViewContainer: public pxObject, public pxIViewContainer
 {
 public:
   rtDeclareObject(pxViewContainer, pxObject);
@@ -880,7 +888,7 @@ public:
   rtMethod1ArgAndNoReturn("onKeyUp", onKeyUp, rtObjectRef);
   rtMethod1ArgAndNoReturn("onChar", onChar, rtObjectRef);
 
-  pxViewContainer()
+  pxViewContainer(pxScene2d* s): pxObject(s)
   {
     addListener("onMouseDown", get<rtFunctionRef>("onMouseDown"));
     addListener("onMouseUp", get<rtFunctionRef>("onMouseUp"));
@@ -900,9 +908,14 @@ public:
   {
     mView = v;
     if (mView)
+    {
       mView->onSize(mw,mh);
+      mView->setViewContainer(this);
+    }
     return RT_OK;
   }
+
+  void invalidateRect(pxRect* r);
 
 #if 0
   rtError uri(rtString& v) const { v = mURI; return RT_OK; }
@@ -1025,6 +1038,13 @@ public:
     return RT_OK;
   }
 
+  virtual void update(double t)
+  {
+    if (mView)
+      mView->onUpdate(t);
+    pxObject::update(t);
+  }
+
   virtual void draw() 
   {
     if (mView)
@@ -1047,6 +1067,8 @@ public:
   
   rtError uri(rtString& v) const { v = mURI; return RT_OK; }
   rtError setURI(rtString v);
+
+  pxSceneContainer(pxScene2d* s): pxViewContainer(s) {}
 private:
   rtString mURI;
 };
@@ -1236,9 +1258,13 @@ public:
   virtual void onKeyUp(uint32_t keycode, uint32_t flags);
   virtual void onChar(uint32_t codepoint);
   
+  virtual void onUpdate(double t);
   virtual void onDraw();
 
-  virtual void setViewContainer(pxIViewContainer* /*l*/) {}
+  virtual void setViewContainer(pxIViewContainer* l) 
+  {
+    mContainer = l;
+  }
   
   void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m);
   void getMatrixFromSceneToObject(pxObject* o, pxMatrix4f& m);
@@ -1282,6 +1308,10 @@ private:
   rtValue mContext;
   bool mTop;
   bool mStopPropagation;
+  int mTag;
+  pxIViewContainer *mContainer;
+public:
+  bool mDirty;
 };
 
 class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase

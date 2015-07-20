@@ -13,7 +13,7 @@ public:
   rtProperty(lineColor, lineColor, setLineColor, uint32_t);
   rtProperty(lineWidth, lineWidth, setLineWidth, float);
 
-  pxRectangle(): mLineWidth(0) 
+pxRectangle(pxScene2d* s): pxObject(s), mLineWidth(0)
   {
     float f[4] = {0,0,0,1};
     float l[4] = {1,1,1,1};
