@@ -117,4 +117,4 @@ cd deploy/MacOSX
 printf "Creating dmg..."
 DISKIMAGENAME=Pxscene
 hdiutil detach "${DMGMP}"
-hdiutil convert -format UDZO -o "${DISKIMAGENAME}" "${DMGTEMPLATE}"
+hdiutil convert -format UDZO -ov -o "${DISKIMAGENAME}" "${DMGTEMPLATE}"
