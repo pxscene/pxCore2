@@ -42,6 +42,8 @@ static GLint u_enablepremultipliedalpha = 0;
 static GLint u_alphatexture = -1;
 static GLint u_color = -1;
 static GLint attr_pos = 0, attr_uv = 2;
+static int gResW, gResH;
+static pxMatrix4f gMatrix;
 
 #if 0
 static const char *fSolidShaderText =
@@ -951,6 +953,8 @@ void pxContext::setSize(int w, int h)
   {
     defaultContextSurface.width = w;
     defaultContextSurface.height = h;
+    gResW = w;
+    gResH = h;
   }
 }
 
@@ -959,9 +963,26 @@ void pxContext::clear(int /*w*/, int /*h*/)
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void pxContext::clear(int left, int top, int right, int bottom)
+{
+  glEnable(GL_SCISSOR_TEST); //todo - not set each frame
+
+  //map form screen to window coordinates
+  glScissor(left, gResH-top-bottom, right, bottom);
+  glClear(GL_COLOR_BUFFER_BIT);
+}
+
 void pxContext::setMatrix(pxMatrix4f& m)
 {
   glUniformMatrix4fv(u_matrix, 1, GL_FALSE, m.data());
+  #ifdef PX_DIRTY_RECTANGLES
+  gMatrix.copy(m);
+  #endif //PX_DIRTY_RECTANGLES
+}
+
+pxMatrix4f pxContext::getMatrix()
+{
+  return gMatrix;
 }
 
 void pxContext::setAlpha(float a)
@@ -1099,4 +1120,22 @@ pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void
 {
   pxTextureAlpha* alphaTexture = new pxTextureAlpha(w,h,iw,ih,buffer);
   return alphaTexture;
+}
+
+void pxContext::mapToScreenCoordinates(float inX, float inY, int &outX, int &outY)
+{
+  pxVector4f positionVector(inX, inY, 0, 1);
+  pxVector4f positionCoords = gMatrix.multiply(positionVector);
+
+  outX = positionCoords.mX / positionCoords.mW;
+  outY = positionCoords.mY / positionCoords.mW;
+}
+
+void pxContext::mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int &outX, int &outY)
+{
+  pxVector4f positionVector(inX, inY, 0, 1);
+  pxVector4f positionCoords = m.multiply(positionVector);
+
+  outX = positionCoords.mX / positionCoords.mW;
+  outY = positionCoords.mY / positionCoords.mW;
 }

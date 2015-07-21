@@ -23,9 +23,13 @@ class pxContext {
 
   void setSize(int w, int h);
   void clear(int w, int h);
+  void clear(int left, int top, int width, int height);
 
   void setMatrix(pxMatrix4f& m);
+  pxMatrix4f getMatrix();
   void setAlpha(float a);
+  void mapToScreenCoordinates(float inX, float inY, int &outX, int &outY);
+ void mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int &outX, int &outY);
   
   pxTextureRef createContextSurface(int width, int height);
   pxError updateContextSurface(pxTextureRef texture, int width, int height);

@@ -276,6 +276,9 @@ pxObject(pxScene2d* s): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0)
     mInteractive(true),
     mTextureRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mReady(), mMaskTextureRef(),
     mMaskTextureCacheObject(),mClipTextureRef(),mCancelInSet(true),mUseMatrix(false)
+    #ifdef PX_DIRTY_RECTANGLES
+    , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
+    #endif //PX_DIRTY_RECTANGLES
   {
     mReady = new rtPromise;
     mEmit = new rtEmit;
@@ -754,12 +757,20 @@ protected:
   rtString mId;
   pxMatrix4f mMatrix;
   bool mUseMatrix;
+  #ifdef PX_DIRTY_RECTANGLES
+  bool mIsDirty;
+  pxMatrix4f mLastRenderMatrix;
+  pxRect mScreenCoordinates;
+  #endif //PX_DIRTY_RECTANGLES
 
   pxTextureRef createSnapshot(pxTextureRef texture);
   void createSnapshotOfChildren(pxTextureRef drawableTexture, pxTextureRef maskTexture);
   void deleteSnapshot(pxTextureRef texture);
   void createMask();
   void deleteMask();
+  #ifdef PX_DIRTY_RECTANGLES
+  pxRect getBoundingRectInScreenCoordinates();
+  #endif //PX_DIRTY_RECTANGLES
 
   pxScene2d *mScene;
 
@@ -1134,6 +1145,7 @@ public:
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
+  rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createRectangle", createRectangle, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createImage", createImage, rtObjectRef, rtObjectRef);
@@ -1196,6 +1208,9 @@ public:
 
   rtError showOutlines(bool& v) const;
   rtError setShowOutlines(bool v);
+
+  rtError showDirtyRect(bool& v) const;
+  rtError setShowDirtyRect(bool v);
 
   rtError create(rtObjectRef p, rtObjectRef& o);
   rtError createObject(rtObjectRef p, rtObjectRef& o);
@@ -1265,6 +1280,8 @@ public:
   {
     mContainer = l;
   }
+
+  void invalidateRect(pxRect* r);
   
   void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m);
   void getMatrixFromSceneToObject(pxObject* o, pxMatrix4f& m);
@@ -1310,8 +1327,12 @@ private:
   bool mStopPropagation;
   int mTag;
   pxIViewContainer *mContainer;
+  bool mShowDirtyRect;
 public:
   bool mDirty;
+  #ifdef PX_DIRTY_RECTANGLES
+  static pxRect mDirtyRect;
+  #endif //PX_DIRTY_RECTANGLES
 };
 
 class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase

@@ -245,6 +245,10 @@ if (argv.length >= 2) {
         childScene.url = homeURL;
         e.stopPropagation();
       }
+      if (code == 68 && (flags & 48)) {  // ctrl-alt-d
+        scene.showDirtyRect = !scene.showDirtyRect;
+        e.stopPropagation();
+      }
     });
     scene.root.on("onPreKeyUp", function(e) {
 console.log("in onKeyUp");
