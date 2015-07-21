@@ -1,6 +1,6 @@
 #!/bin/bash
 abs=`pwd`
-logpath=/var/tmp/xre2log
+logpath=/var/log/xre2log
 SKIPBUILD=false
 
 # check if we are on a Mac
