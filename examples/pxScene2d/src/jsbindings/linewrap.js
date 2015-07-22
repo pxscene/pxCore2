@@ -7,22 +7,27 @@ var px = 0;
 var py = 0;
 var leading = 0;
 
-var text2 = scene.create({t:"text2",  text:longText, horizontalAlign:0, verticalAlign:0, xStartPos:25,xStopPos:0,
-						wordWrap:true, ellipsis:true, truncation:2,leading:-16.424, 
+// Use fontUrl to load from web
+//var fontUrl = "http://localhost/XRE2/fonts/DancingScript-Bold.ttf";
+var text2 = scene.create({t:"text2",   text:longText,  faceURL:"DancingScript-Bold.ttf", horizontalAlign:0, verticalAlign:0, xStartPos:25,xStopPos:0,
+						wordWrap:true, ellipsis:true, truncation:2,leading:0, 
 						clip:false, w:400, h:400, parent:container, textColor:0xFFDDFFFF, 
 						pixelSize:20, x:px, y:py, rx:0, ry:1, rz:0});
+            
+
 //var text2 = scene.createText2({wordWrap:true, ellipsis:true, truncation:0,leading:10, clip:false, w:400, h:400, parent:container, textColor:0xFFDDFFFF, pixelSize:20, x:px, y:py, rx:0, ry:1, rz:0});
 var metrics = null;
 var measurements = null;
 
-//text2.ready.then(function(text) {
-//	console.log("inside text2.ready");
-//	console.log("calling text2.getFontMetrics() inside ready");
+text2.ready.then(function(text) {
+	console.log("inside text2.ready");
+
 	metrics = text2.getFontMetrics();
 	console.log("metrics h="+metrics.height);
 	console.log("metrics a="+metrics.ascent);
 	console.log("metrics d="+metrics.descent);
   console.log("metrics naturalLeading="+metrics.naturalLeading);
+  console.log("metrics baseline="+metrics.baseline);
 
   measurements = text2.measureText();
   console.log("measurements boundsX1="+measurements.bounds.x1);
@@ -33,4 +38,4 @@ var measurements = null;
   console.log("measurements firstCharY="+measurements.firstChar.y);
   console.log("measurements lastCharX="+measurements.lastChar.x);
   console.log("measurements lastCharY="+measurements.lastChar.y);
-//});
+});

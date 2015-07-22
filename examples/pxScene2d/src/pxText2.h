@@ -70,6 +70,7 @@ public:
 	rtReadOnlyProperty(ascent, ascent, float);
 	rtReadOnlyProperty(descent, descent, float);
   rtReadOnlyProperty(naturalLeading, naturalLeading, float);
+  rtReadOnlyProperty(baseline, baseline, float);
  
 	float height()             const { return mHeight; }
 	rtError height(float& v)   const { v = mHeight; return RT_OK;   }
@@ -86,6 +87,10 @@ public:
  	float naturalLeading()             const { return mNaturalLeading; }
 	rtError naturalLeading(float& v)   const { v = mNaturalLeading; return RT_OK;   }
 	rtError setNaturalLeading(float v)       { mNaturalLeading = v; return RT_OK;   } 
+  
+ 	float baseline()             const { return mBaseline; }
+	rtError baseline(float& v)   const { v = mBaseline; return RT_OK;   }
+	rtError setBaseline(float v)       { mBaseline = v; return RT_OK;   }   
    
   private:
     rtAtomic mRefCount;	
@@ -93,11 +98,12 @@ public:
     float mAscent;
     float mDescent;
     float mNaturalLeading;
+    float mBaseline;
 };
 
 /**********************************************************************
  * 
- * pxTextPosition
+ * pxCharPosition
  * 
  **********************************************************************/
 class pxCharPosition: public pxObject {
@@ -150,7 +156,7 @@ public:
 class pxTextBounds: public pxObject {
 
 public:
-	pxTextBounds():mRefCount(0) {  }
+	pxTextBounds():mRefCount(0) { clear(); }
 	virtual ~pxTextBounds() {}
 
 	virtual unsigned long AddRef() 
@@ -322,10 +328,11 @@ public:
   
   virtual rtError setText(const char* s); 
   virtual rtError setPixelSize(uint32_t v);
-  void renderText(const char *text, uint32_t size, float x, float y, 
-                  float sx, float sy, 
-                  float* color, float mw);
+  void renderText(bool render);
+  virtual void fontLoaded();
+  void determineMeasurementBounds();
   virtual void draw();
+  virtual void onInit();
 
  
   rtMethodNoArgAndReturn("getFontMetrics", getFontMetrics, rtObjectRef);
@@ -335,7 +342,7 @@ public:
 
   virtual rtError Set(const char* name, const rtValue* value)
   {
-	  printf("pxText2 Set for %s\n", name );
+	  //printf("pxText2 Set for %s\n", name );
 
     mDirty = mDirty || (!strcmp(name,"wordWrap") ||
               !strcmp(name,"ellipsis") ||
@@ -363,6 +370,9 @@ public:
 	bool mWordWrap;
 	bool mEllipsis;
   
+  bool mFontLoaded;
+  bool mInitialized;
+  
   rtRefT<pxTextMeasurements> measurements;
   uint32_t lineNumber;
   uint32_t lastLineNumber;
@@ -371,9 +381,9 @@ public:
   bool isWordBoundary( char ch );
   bool isSpaceChar( char ch );  
   
-  void renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempY, float sx, float sy, uint32_t pixelSize,float* color);
-  void renderTextNoWordWrap(float sx, float sy, float tempX, uint32_t pixelSize,float* color);
-  void renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t pixelSize, float* color);
+  void renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempY, float sx, float sy, uint32_t pixelSize,float* color, bool render);
+  void renderTextNoWordWrap(float sx, float sy, float tempX, bool render);
+  void renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t pixelSize, float* color, bool render);
   void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, float* color, uint32_t &lineNumber, bool render);
   void renderOneLine(uint32_t lineNumber, const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float* color, float lineWidth, bool render );
   

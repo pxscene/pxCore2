@@ -47,6 +47,7 @@ extern "C" {
 
 FT_Library ft;
 
+
 int fontDownloadsPending = 0; //must only be set in the main thread
 rtMutex fontDownloadMutex;
 bool fontDownloadsAvailable = false;
@@ -114,9 +115,18 @@ void pxFace::setPixelSize(uint32_t s)
     mPixelSize = s;
   }
 }
+void pxFace::getHeight(float& height)
+{
+ 	// is mFace ever not valid?
+	// TO DO:  check FT_IS_SCALABLE 
+	FT_Size_Metrics* metrics = &mFace->size->metrics;
+  	
+	height = metrics->height>>6; 
+}
+  
 void pxFace::getMetrics(float& height, float& ascender, float& descender, float& naturalLeading)
 {
-	printf("pxFace::getMetrics\n");
+//	printf("pxFace::getMetrics\n");
 	// is mFace ever not valid?
 	// TO DO:  check FT_IS_SCALABLE 
 	FT_Size_Metrics* metrics = &mFace->size->metrics;
@@ -130,7 +140,7 @@ void pxFace::getMetrics(float& height, float& ascender, float& descender, float&
 	height = metrics->height>>6;
 	ascender = metrics->ascender * y_scale;
 	descender = metrics->descender * y_scale;
-  naturalLeading= height - (ascender + descender);
+  naturalLeading = height - (ascender + descender);
 
 }
   
@@ -414,7 +424,9 @@ rtError pxText::setFaceURL(const char* s)
   FaceMap::iterator it = gFaceMap.find(s);
   if (it != gFaceMap.end())
   {
-    mReady.send("resolve", this);
+//    printf("pxText::setFaceURL sending ready\n");
+    fontLoaded();
+    //mReady.send("resolve", this);
     mFace = it->second;
   }
   else
@@ -446,7 +458,9 @@ rtError pxText::setFaceURL(const char* s)
       }
       else
       {
-        mReady.send("resolve", this);
+        //printf("pxText::setFaceURL sending ready 2\n");
+        fontLoaded();
+        //mReady.send("resolve", this);
         mFace = f;
       }
     }
@@ -501,6 +515,7 @@ void pxText::checkForCompletedDownloads(int maxTimeInMilliseconds)
 
 void pxText::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
 {
+//  printf("pxText::onFontDownloadComplete2\n");
   mFontDownloadRequest = NULL;
   if (fontDownloadRequest.fileDownloadRequest == NULL)
   {
@@ -522,7 +537,9 @@ void pxText::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
     }
     else {
       mFace = f;
-      mReady.send("resolve",this);
+      //printf("pxText::onFontDownloadComplete2 sending ready 2\n");
+      fontLoaded();
+      //mReady.send("resolve",this);
     }
   }
   else

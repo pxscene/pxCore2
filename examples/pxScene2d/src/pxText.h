@@ -62,6 +62,7 @@ public:
   void setPixelSize(uint32_t s);  
   const GlyphCacheEntry* getGlyph(uint32_t codePoint);  
   void getMetrics(float& height, float& ascender, float& descender, float& naturalLeading);
+  void getHeight(float& height);
   void measureText(const char* text, uint32_t size,  float sx, float sy, 
                    float& w, float& h);
   void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
@@ -132,6 +133,7 @@ public:
 
   void onFontDownloadComplete(FontDownloadRequest fontDownloadRequest);
   static void checkForCompletedDownloads(int maxTimeInMilliseconds=10);
+  virtual void fontLoaded() {printf("pxText::fontLoaded\n"); mReady.send("resolve", this);}
 
  protected:
   virtual void draw();

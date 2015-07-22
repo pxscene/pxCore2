@@ -134,22 +134,11 @@ rtError pxObject::removeAll()
 
 rtError pxObject::moveToFront()
 {
-  rtObjectRef rtChild;
   pxObject* parent = this->parent();
  
-  if( parent != NULL) {
-	  // TO DO: Need split out to getIndexOfChild method?
-	  for(int32_t i = 0; i < (int32_t)parent->numChildren(); i++) {
-		  parent->getChild(i, rtChild);
-		  if( strncmp(((pxObject*)&rtChild)->id(),this->id(),this->id().length()) == 0) {
-				rtLogInfo("moveToFront: found child\n");
-				// Remove and add to end
-				this->remove();
-				this->setParent(parent);
-				break;
-			} 
-	  }
-  }
+  remove();
+  setParent(parent);
+
   return RT_OK;
 }
 #if 0
