@@ -643,8 +643,8 @@ class solidShaderProgram: public shaderProgram
 protected:
   virtual void prelink()
   {
-    mPosLoc = 1;
-    mUVLoc = 2;
+    mPosLoc = 0;
+    mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
     glBindAttribLocation(mProgram, mUVLoc, "uv");
   }
@@ -695,8 +695,8 @@ class aTextureShaderProgram: public shaderProgram
 protected:
   virtual void prelink()
   {
-    mPosLoc = 1;
-    mUVLoc = 2;
+    mPosLoc = 0;
+    mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
     glBindAttribLocation(mProgram, mUVLoc, "uv");
   }
@@ -757,8 +757,8 @@ class textureShaderProgram: public shaderProgram
 protected:
   virtual void prelink()
   {
-    mPosLoc = 1;
-    mUVLoc = 2;
+    mPosLoc = 0;
+    mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
     glBindAttribLocation(mProgram, mUVLoc, "uv");
   }
@@ -820,8 +820,8 @@ class textureMaskedShaderProgram: public shaderProgram
 protected:
   virtual void prelink()
   {
-    mPosLoc = 1;
-    mUVLoc = 2;
+    mPosLoc = 0;
+    mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
     glBindAttribLocation(mProgram, mUVLoc, "uv");
   }

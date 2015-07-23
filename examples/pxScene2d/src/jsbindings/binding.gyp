@@ -60,7 +60,8 @@
       ],
 
   "conditions": [
-    ['OS=="mac"', {'libraries': [
+    ['OS=="mac"', {'defines':['RUNINMAIN'],
+                  'libraries': [
             "-framework GLUT",
             "-framework OpenGL",
             "../../../external/jpg/.libs/libjpeg.a",

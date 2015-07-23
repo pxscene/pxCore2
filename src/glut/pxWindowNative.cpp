@@ -541,7 +541,10 @@ void pxWindowNative::createGlutWindow(int left, int top, int width, int height)
 
   mGlutWindowId = glutCreateWindow ("pxWindow");
 
+  #ifndef __APPLE__
   glutSetOption(GLUT_RENDERING_CONTEXT ,GLUT_USE_CURRENT_CONTEXT );
+  #endif
+
   //doinit();
 
   glClearColor(0, 0, 0, 1);

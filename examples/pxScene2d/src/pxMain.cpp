@@ -52,7 +52,7 @@ int pxMain()
   win.setView(testScene());
   win.setAnimationFPS(60);
  
-#if 1
+#ifndef __APPLE__
   testWindow win2;
 
   win2.init(110, 110, width, height);
