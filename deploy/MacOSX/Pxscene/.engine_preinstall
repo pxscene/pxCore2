@@ -1,3 +1,3 @@
 #!/bin/bash
-outfile=/var/tmp/`date "+%Y-%m-%d"`.out
-echo "preinstall" >> $outfile
+outfile=/var/tmp/xre2log/installer.out 
+echo "preinstall" >> $outfile 2>&1

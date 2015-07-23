@@ -1,7 +1,14 @@
 #!/bin/bash
-base=/Applications/XRE2.app
-outfile=/var/tmp/`date "+%Y-%m-%d"`.out
-echo "Installing..." >> $outfile
-echo "Copying $1/XRE.app to /Applications" >> $outfile
-cp -R "$1/XRE2.app" /Applications/.
-echo "$? ...install complete" >> $outfile
+base=/Applications/Pxscene.app
+outfile=/var/tmp/xre2log/installer.out
+PX=`ps -Al | grep load.sh | grep -v grep`
+while [ -n "${PX}" ]; do
+   printf "Will not update while ${PX} is running...sleeping for 60.\n" >> $outfile 2>&1
+   sleep 5
+   PX=`ps -Al | grep load.sh | grep -v grep`
+done
+#do install
+printf "Installing new version...\n" >> $outfile 2>&1
+printf "  Copying $1/Pxscene.app to /Applications...\n" >> $outfile 2>&1
+cp -R "$1/Pxscene.app" /Applications/ >> $outfile 2>&1
+printf "install complete.\n" >> $outfile >> $outfile 2>&1 >> $outfile 2>&1

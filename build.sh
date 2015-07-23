@@ -1,7 +1,10 @@
 #!/bin/bash
 abs=`pwd`
-logpath=/var/log/xre2log
+logpath=/var/tmp/xre2log
 SKIPBUILD=false
+NODMG=false
+DMGTEMPLATE=~/Desktop/Pxscene.template.dmg
+DMGMP=/Volumes/Pxscene
 
 # check if we are on a Mac
 if [ `uname` != "Darwin" ]; then
@@ -9,7 +12,7 @@ if [ `uname` != "Darwin" ]; then
   exit
 fi
 
-mkdir -p $logpath
+mkdir -p ${logpath}
 
 while [[ $# > 0 ]]
   do
@@ -24,9 +27,9 @@ while [[ $# > 0 ]]
       SKIPBUILD=true
       # shift # past argument
       ;;
-      -l|--lib)
-      LIBPATH="$2"
-      shift # past argument
+      -n|--NODMG)
+      NODMG=true
+      # shift # past argument
       ;;
       --default)
       DEFAULT=YES
@@ -37,26 +40,25 @@ while [[ $# > 0 ]]
     esac
   shift # past argument or value
 done
-#echo "EXTENSION  = ${EXTENSION}"
-#echo "SKIP       = ${SKIPBUILD}"
-#echo "LIBRARY    = ${LIBPATH}"
-
 
 # Get node 0.12.7 - a dependency for xre2
-#printf "Getting node..."
-#if [ ! -d "deploy/lib/node-v0.12.7-darwin-x64" ]; then
-#  cd deploy/lib
-#  wget --no-check-certificate https://nodejs.org/dist/v0.12.7/node-v0.12.7-darwin-x64.tar.gz
-#  gunzip node-v0.12.7-darwin-x64.tar.gz
-#  tar xf node-v0.12.7-darwin-x64.tar
-#  ln -s node-v0.12.7-darwin-x64 node
-#  rm node-v0.12.7-darwin-x64.tar
-#  cd ../..
-#fi
-#printf "done.\n"
+if [ ! -d "${abs}/examples/pxScene2d/external/node" ]; then
+  printf "Node not found, getting node..."
+  cd /var/tmp
+  wget --no-check-certificate https://nodejs.org/dist/v0.12.7/node-v0.12.7-darwin-x64.tar.gz
+  gunzip node-v0.12.7-darwin-x64.tar.gz
+  tar xf node-v0.12.7-darwin-x64.tar
+  mv node-v0.12.7-darwin-x64 ${abs}/examples/pxScene2d/external/.
+  cd ${abs}/examples/pxScene2d/external
+  ln -s node-v0.12.7-darwin-x64 node
+  rm /var/tmp/node-v0.12.7-darwin-x64.tar
+  cd ../../..
+  printf "done.\n"
+else
+  printf "Node...found in ${abs}/examples/pxScene2d/external\n"
+fi
 
 export PATH=$abs/examples/pxScene2d/external/node/bin:$abs/examples/pxScene2d/external/node/lib/node_modules/npm/bin/node-gyp-bin:$PATH
-#git checkout installer
 
 # build external libraries - jpg, ft, curl, etc
 if [ "$SKIPBUILD" = false ]; then
@@ -96,10 +98,8 @@ else
 fi
 
 cd $abs
-DMGTEMPLATE=~/Desktop/Pxscene.template.dmg
-DMGMP=/Volumes/Pxscene
 # copy required binaries
-printf "Packing Binaries and examples..."
+printf "Creating directories for Binaries and examples..."
 mkdir -p deploy/examples/pxScene2d/images
 mkdir -p deploy/examples/pxScene2d/external
 mkdir -p deploy/examples/pxScene2d/src/jsbindings/build/Debug
@@ -109,12 +109,18 @@ cp examples/pxScene2d/src/jsbindings/*.js deploy/examples/pxScene2d/src/jsbindin
 cp examples/pxScene2d/src/jsbindings/*.ttf deploy/examples/pxScene2d/src/jsbindings/.
 cp examples/pxScene2d/src/jsbindings/*.sh deploy/examples/pxScene2d/src/jsbindings/.
 cp examples/pxScene2d/src/jsbindings/build/Debug/px.node deploy/examples/pxScene2d/src/jsbindings/build/Debug/.
-hdiutil attach -mountpoint "${DMGMP}" "${DMGTEMPLATE}"
-rm -rf ${DMGMP}/Pxscene.app/Contents/Resources/examples
-mv -f deploy/examples ${DMGMP}/Pxscene.app/Contents/Resources/.
 printf "done.\n"
-cd deploy/MacOSX
-printf "Creating dmg..."
-DISKIMAGENAME=Pxscene
-hdiutil detach "${DMGMP}"
-hdiutil convert -format UDZO -ov -o "${DISKIMAGENAME}" "${DMGTEMPLATE}"
+if [ "${NODMG}" = false ]; then
+  printf "Creating DMG...\n"
+  hdiutil attach -mountpoint "${DMGMP}" "${DMGTEMPLATE}"
+  rm -rf ${DMGMP}/Pxscene.app/Contents/Resources/examples
+  mv -f deploy/examples ${DMGMP}/Pxscene.app/Contents/Resources/.
+  printf "done.\n"
+  cd deploy/MacOSX
+  printf "Creating dmg..."
+  DISKIMAGENAME=Pxscene
+  hdiutil detach "${DMGMP}"
+  hdiutil convert -format UDZO -ov -o "${DISKIMAGENAME}" "${DMGTEMPLATE}"
+  printf "done.\n"
+fi
+printf "$0 done.\n"
