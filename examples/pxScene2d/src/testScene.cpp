@@ -398,6 +398,16 @@ pxViewRef testScene()
   bg2.set("w", scene->w());
   bg2.set("h", scene->h());
 
+  rtObjectRef r;
+  scene.sendReturns<rtObjectRef>("createRectangle", r);
+  if (r)
+  {
+    r.set("w", 300);
+    r.set("h", 300);
+    r.set("fillColor", 0xaaaaaaff);
+    r.set("parent", root);
+  }
+
   rtObjectRef t;
   scene.sendReturns<rtObjectRef>("createText", t);
   t.set("text", "Choose Picture:\n"
