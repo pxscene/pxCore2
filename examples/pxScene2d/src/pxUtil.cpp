@@ -69,6 +69,127 @@ rtError pxLoadPNGImage(const char* filename, pxOffscreen& o)
   return RT_OK;
 }
 
+
+/* structure to store PNG image bytes */
+struct mem_encode
+{
+  char *buffer;
+  size_t size;
+};
+
+
+// TODO change this to using rtData more directly
+void
+my_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
+{
+  /* with libpng15 next line causes pointer deference error; use libpng12 */
+  struct mem_encode* p=(struct mem_encode*)png_get_io_ptr(png_ptr); /* was png_ptr->io_ptr */
+  size_t nsize = p->size + length;
+
+  /* allocate or grow buffer */
+  if(p->buffer)
+    p->buffer = (char*)realloc(p->buffer, nsize);
+  else
+    p->buffer = (char*)malloc(nsize);
+
+  if(!p->buffer)
+    png_error(png_ptr, "Write Error");
+
+  /* copy new bytes to end of buffer */
+  memcpy(p->buffer + p->size, data, length);
+  p->size += length;
+}
+
+// TODO rewrite this... 
+rtError pxStorePNGImage(pxBuffer& b, rtData& pngData)
+{
+  png_structp png_ptr;
+  png_infop info_ptr;
+  png_bytep * row_pointers;
+
+  struct mem_encode state;
+  state.buffer = NULL;
+  state.size = 0;
+
+  {
+    // initialize stuff
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+
+    if(!png_ptr)
+    {
+      rtLogError("FATAL: png_create_write_struct() - FAILED");
+      return RT_FAIL;
+    }
+
+    info_ptr = png_create_info_struct(png_ptr);
+
+    if(!info_ptr)
+    {
+      png_destroy_write_struct(&png_ptr, NULL);
+      rtLogError("FATAL: png_create_info_struct() - FAILED");
+      return RT_FAIL;
+    }
+
+    if (!setjmp(png_jmpbuf(png_ptr)))
+    {
+      png_set_write_fn(png_ptr, &state, my_png_write_data, NULL);
+      // write header
+      if (!setjmp(png_jmpbuf(png_ptr)))
+      {
+#if 0
+        png_byte color_type = (grayscale?PNG_COLOR_MASK_ALPHA:0) |
+            (alpha?PNG_COLOR_MASK_ALPHA:0);
+#endif
+
+        png_set_IHDR(png_ptr, info_ptr, b.width(), b.height(),
+                     8, PNG_COLOR_TYPE_RGB_ALPHA, PNG_INTERLACE_NONE,
+                     PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+        png_write_info(png_ptr, info_ptr);
+
+
+        // setjmp() ... needed for 'libpng' error handling...
+
+        // write bytes
+        if (!setjmp(png_jmpbuf(png_ptr)))
+        {
+          row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * b.height());
+
+          if (row_pointers)
+          {
+            for (int y = 0; y < b.height(); y++)
+            {
+              row_pointers[y] = (png_byte*)b.scanline(y);
+            }
+
+            png_write_image(png_ptr, row_pointers);
+
+            // end write
+            if (!setjmp(png_jmpbuf(png_ptr)))
+            {
+              png_write_end(png_ptr, NULL);
+            }
+
+            free(row_pointers);
+
+          }//ENDIF - row_pointers
+        }
+      }
+    }
+
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+  }
+
+  pngData.init((uint8_t*)state.buffer, state.size);
+
+  if (state.buffer)
+    free(state.buffer);
+
+  return RT_OK;
+}
+
+
+
 rtError pxStorePNGImage(const char* filename, pxBuffer& b, bool /*grayscale*/, 
                         bool /*alpha*/)
 {

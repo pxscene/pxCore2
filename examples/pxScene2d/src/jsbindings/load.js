@@ -1,7 +1,7 @@
 var px = require("./build/Debug/px");
 var http = require('http');
 var util = require('util');
-
+var fs = require('fs');
 
 function secureRequire(pkg)
 {
@@ -251,8 +251,18 @@ if (argv.length >= 2) {
         e.stopPropagation();
       }
       else if (code == 83 && (flags & 16)) { // ctrl-s
-        console.log("snapshotting");
-        scene.snapshot();
+        // This returns a data URI string with the image data
+        var dataURI = scene.screenshot('image/png;base64');
+        // convert the data URI by stripping off the scheme and type information
+        // to a base64 encoded string with just the PNG image data
+        var base64PNGData = dataURI.slice(dataURI.indexOf(',')+1);
+        // decode the base64 data and write it to a file
+        fs.writeFile("screenshot.png", new Buffer(base64PNGData, 'base64'), function(err) {
+          if (err)
+            console.log("Error creating screenshot.png");
+          else
+            console.log("Created screenshot.png");
+        });
       }
     });
     scene.root.on("onPreKeyUp", function(e) {

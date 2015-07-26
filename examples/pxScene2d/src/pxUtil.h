@@ -16,6 +16,8 @@ rtError pxLoadPNGImage(const char* filename, pxOffscreen& o);
 rtError pxStorePNGImage(const char* filename, pxBuffer& b, 
                         bool grayscale = false, bool alpha=true);
 
+rtError pxStorePNGImage(pxBuffer& b, rtData& pngData);
+
 #if 0
 bool pxIsJPGImage(const char* imageData, size_t imageDataSize);
 rtError pxStoreJPGImage(const char* filename, pxBuffer& b);

@@ -29,6 +29,7 @@ class rtData {
 };
 
 rtError rtLoadFile(const char* f, rtData& data);
+rtError rtStoreFile(const char* f, rtData& data);
 
 class rtFilePointer
 {

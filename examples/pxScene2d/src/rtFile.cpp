@@ -37,7 +37,24 @@ rtError rtData::term() { delete [] mData; mLength = 0; return RT_OK; }
 uint8_t* rtData::data() { return mData; }
 uint32_t rtData::length() { return mLength; }
 
-rtError rtLoadFile(const char* f, rtData& data) {
+rtError rtStoreFile(const char* f, rtData& data)
+{
+  rtError e = RT_FAIL;
+
+  int fd = open(f, O_CREAT | O_TRUNC | O_WRONLY);
+  if (fd >= 0)
+  {
+    if (data.length() > 0)
+      e = (write(fd, (void*)data.data(), data.length()) == data.length())?RT_OK:RT_FAIL;
+    else
+      e = RT_OK;
+    close(fd);
+  }
+  return e;
+}
+
+rtError rtLoadFile(const char* f, rtData& data) 
+{
   rtError e = RT_FAIL;
   struct stat st;
   int fd = open(f, O_RDONLY);

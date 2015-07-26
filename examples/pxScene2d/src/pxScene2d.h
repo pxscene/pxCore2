@@ -1138,7 +1138,7 @@ public:
   
   rtMethodNoArgAndNoReturn("stopPropagation",stopPropagation);
   
-  rtMethodNoArgAndNoReturn("snapshot", snapshot);
+  rtMethod1ArgAndReturn("screenshot", screenshot, rtString, rtString);
 
   rtProperty(ctx, ctx, setCtx, rtValue);
   rtProperty(api, api, setAPI, rtValue);
@@ -1281,7 +1281,8 @@ private:
   // t is assumed to be monotonically increasing
   void update(double t);
 
-  rtError snapshot();
+  // Only type supported is "image/png;base64"
+  rtError screenshot(rtString type, rtString& pngData);
   
   rtRefT<pxObject> mRoot;
   rtObjectRef mFocus;
