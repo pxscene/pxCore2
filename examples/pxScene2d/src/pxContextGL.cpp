@@ -623,14 +623,23 @@ static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h)
 static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw)
 {
   float half = lw/2;
-  float ox1  = x-half;
-  float ix1  = x+half;
-  float ox2  = x+w+half;
-  float ix2  = x+w-half;
-  float oy1  = y-half;
-  float iy1  = y+half;
-  float oy2  = y+h+half;
-  float iy2  = y+h-half;
+  float ox1  = x;
+  float ix1  = x+lw;
+  float ox2  = x+w;
+  float ix2  = x+w-lw;
+  float oy1  = y;
+  float iy1  = y+lw;
+  float oy2  = y+h;
+  float iy2  = y+h-lw;
+  
+  //float ox1  = x-half;
+  //float ix1  = x+half;
+  //float ox2  = x+w+half;
+  //float ix2  = x+w-half;
+  //float oy1  = y-half;
+  //float iy1  = y+half;
+  //float oy2  = y+h+half;
+  //float iy2  = y+h-half;
   
   const GLfloat verts[10][2] =
   {
@@ -1020,6 +1029,7 @@ pxError deleteContextSurface(pxTextureRef texture)
 
 void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor)
 {
+  printf("pxContext- GL::drawRect\n");
   glUniform4fv(u_color, 1, fillColor);
   float half = lineWidth/2;
 
