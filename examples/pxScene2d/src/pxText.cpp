@@ -181,8 +181,7 @@ void pxFace::measureText(const char* text, uint32_t size,  float sx, float sy,
     }
     else
     {
-      //h += metrics->height>>6;
-      h += (metrics->height);
+      h += metrics->height>>6;
       lw = 0;
     }
     w = pxMax<float>(w, lw);
