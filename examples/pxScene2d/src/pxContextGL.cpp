@@ -1029,7 +1029,7 @@ pxError deleteContextSurface(pxTextureRef texture)
 
 void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor)
 {
-  printf("pxContext- GL::drawRect\n");
+ // printf("pxContext- GL::drawRect\n");
   glUniform4fv(u_color, 1, fillColor);
   float half = lineWidth/2;
 
