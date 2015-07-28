@@ -3,6 +3,8 @@
 
 jsCallback::jsCallback(v8::Isolate* isolate)
   : mIsolate(isolate)
+  , mCompletionFunc(NULL)
+  , mCompletionContext(NULL)
 {
   mReq.data = this;
   mFunctionLookup = NULL;
@@ -16,6 +18,12 @@ jsCallback::~jsCallback()
 void jsCallback::enqueue()
 {
   uv_queue_work(uv_default_loop(), &mReq, &work, &doCallback);
+}
+
+void jsCallback::registerForCompletion(jsCallbackCompletionFunc callback, void* argp)
+{
+  mCompletionFunc = callback;
+  mCompletionContext = argp;
 }
 
 void jsCallback::work(uv_work_t* /* req */)
@@ -53,10 +61,19 @@ void jsCallback::doCallback(uv_work_t* req, int /* status */)
   assert(ctx != NULL);
   assert(ctx->mFunctionLookup != NULL);
 
-  Handle<Value>* args = ctx->makeArgs();
+  rtValue ret  = ctx->run();
+  if (ctx->mCompletionFunc)
+    ctx->mCompletionFunc(ctx->mCompletionContext, ret);
+
+  delete ctx;
+}
+
+rtValue jsCallback::run()
+{
+  Handle<Value>* args = this->makeArgs();
 
   // TODO: This context is almost certainly wrong!!!
-  Local<Function> func = ctx->mFunctionLookup->lookup();
+  Local<Function> func = this->mFunctionLookup->lookup();
   assert(!func.IsEmpty());
   assert(!func->IsUndefined());
 
@@ -69,9 +86,11 @@ void jsCallback::doCallback(uv_work_t* req, int /* status */)
 
   Local<Context> context = func->CreationContext();
 
+  Local<Value> val;
+
   TryCatch tryCatch;
   if (!func.IsEmpty())
-    func->Call(context->Global(), static_cast<int>(ctx->mArgs.size()), args);
+    val = func->Call(context->Global(), static_cast<int>(this->mArgs.size()), args);
 
   if (tryCatch.HasCaught())
   {
@@ -79,7 +98,9 @@ void jsCallback::doCallback(uv_work_t* req, int /* status */)
     rtLogWarn("%s", *trace);
   }
 
-  delete ctx;
   delete [] args;
+
+  rtWrapperError error;
+  return js2rt(context->GetIsolate(), val, &error);
 }
 

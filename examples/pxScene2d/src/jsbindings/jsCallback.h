@@ -7,6 +7,8 @@
 
 using namespace v8;
 
+typedef void (*jsCallbackCompletionFunc)(void* argp, rtValue const& result);
+
 struct jsIFunctionLookup
 {
   virtual ~jsIFunctionLookup() { }
@@ -17,6 +19,9 @@ struct jsCallback
 {
   virtual Handle<Value>* makeArgs();
   virtual void enqueue();
+  void registerForCompletion(jsCallbackCompletionFunc callback, void* argp);
+  rtValue run();
+
 
   static jsCallback* create(v8::Isolate* isolate);
 
@@ -34,6 +39,8 @@ private:
 
   // TODO: Is it ok to hold this pointer here?
   v8::Isolate* mIsolate;
+  jsCallbackCompletionFunc mCompletionFunc;
+  void* mCompletionContext;
 
   jsCallback(v8::Isolate* isolate);
   virtual ~jsCallback();

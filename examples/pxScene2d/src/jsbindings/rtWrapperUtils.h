@@ -13,6 +13,8 @@
 #include <map>
 #include <memory>
 
+bool rtIsMainThread();
+
 template<class T>
 inline std::string jsToString(T const& val)
 {
@@ -182,8 +184,31 @@ public:
 };
 
 
+bool rtWrapperSceneUpdateHasLock();
 void rtWrapperSceneUpdateEnter();
 void rtWrapperSceneUpdateExit();
+
+class rtWrapperSceneUnlocker
+{
+public:
+  rtWrapperSceneUnlocker()
+    : m_hadLock(false)
+  {
+    if (rtWrapperSceneUpdateHasLock())
+    {
+      m_hadLock = true;
+      rtWrapperSceneUpdateExit();
+    }
+  }
+
+  ~rtWrapperSceneUnlocker()
+  {
+    if (m_hadLock)
+      rtWrapperSceneUpdateEnter();
+  }
+private:
+  bool m_hadLock;
+};
 
 #endif
 

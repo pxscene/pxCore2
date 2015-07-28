@@ -10,6 +10,12 @@
 
 using namespace v8;
 
+static pthread_t __rt_main_thread__;
+bool rtIsMainThread()
+{
+  return pthread_self() == __rt_main_thread__;
+}
+
 struct EventLoopContext
 {
   pxEventLoop* eventLoop;
@@ -223,7 +229,6 @@ static void disposeNode(const FunctionCallbackInfo<Value>& args)
 
 static void getScene(const FunctionCallbackInfo<Value>& args)
 {
-
   if (mainWindow == NULL)
   {
     // This is somewhat experimental. There are concurrency issues with glut.
@@ -263,6 +268,8 @@ void ModuleInit(
   Handle<Value>     /* unused */,
   Handle<Context>     context)
 {
+  __rt_main_thread__ = pthread_self();
+
   Isolate* isolate = context->GetIsolate();
 
   rtFunctionWrapper::exportPrototype(isolate, target);

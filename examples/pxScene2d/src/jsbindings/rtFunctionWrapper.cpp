@@ -7,6 +7,12 @@
 static const char* kClassName = "Function";
 static Persistent<Function> ctor;
 
+static void jsFunctionCompletionHandler(void* argp, rtValue const& result)
+{
+  jsFunctionWrapper* wrapper = reinterpret_cast<jsFunctionWrapper *>(argp);
+  wrapper->signal(result);
+}
+
 class ResolverFunction : public rtAbstractFunction
 {
 public:
@@ -213,13 +219,45 @@ jsFunctionWrapper::jsFunctionWrapper(Isolate* isolate, const Handle<Value>& val)
   : mRefCount(0)
   , mFunction(isolate, Handle<Function>::Cast(val))
   , mIsolate(isolate)
+  , mComplete(false)
+  , mTeardownThreadingPrimitives(false)
 {
   assert(val->IsFunction());
 }
 
 jsFunctionWrapper::~jsFunctionWrapper()
 {
+  if (mTeardownThreadingPrimitives)
+  {
+    pthread_mutex_destroy(&mMutex);
+    pthread_cond_destroy(&mCond);
+  }
+}
 
+void jsFunctionWrapper::setupSynchronousWait()
+{
+  mComplete = false;
+  mTeardownThreadingPrimitives = true;
+  pthread_mutex_init(&mMutex, NULL);
+  pthread_cond_init(&mCond, NULL);
+}
+
+void jsFunctionWrapper::signal(rtValue const& returnValue)
+{
+  pthread_mutex_lock(&mMutex);
+  mComplete = true;
+  mReturnValue = returnValue;
+  pthread_mutex_unlock(&mMutex);
+  pthread_cond_signal(&mCond);
+}
+
+rtValue jsFunctionWrapper::wait()
+{
+  pthread_mutex_lock(&mMutex);
+  while (!mComplete)
+    pthread_cond_wait(&mCond, &mMutex);
+  pthread_mutex_unlock(&mMutex);
+  return mReturnValue;
 }
 
 unsigned long jsFunctionWrapper::AddRef()
@@ -267,12 +305,31 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
   jsCallback* callback = jsCallback::create(mIsolate);
   for (int i = 0; i < numArgs; ++i)
     callback->addArg(args[i]);
-  callback->setFunctionLookup(new FunctionLookup(this));
-  callback->enqueue();
 
-  // result is hard-coded
-  if (result)
-    *result = rtValue(true);
+  callback->setFunctionLookup(new FunctionLookup(this));
+
+  if (result) // wants result run synchronously
+  {
+    if (rtIsMainThread()) // main thread run now
+    {
+      *result = callback->run();
+    }
+    else // queue and wait
+    {
+      setupSynchronousWait();
+      callback->registerForCompletion(jsFunctionCompletionHandler, this);
+      callback->enqueue();
+
+      // don't block render thread while waiting for callback to complete
+      rtWrapperSceneUnlocker unlocker;
+
+      *result = wait();
+    }
+  }
+  else // just queue
+  {
+    callback->enqueue();
+  }
 
   return RT_OK;
 }
