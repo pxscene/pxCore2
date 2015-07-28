@@ -125,8 +125,10 @@ public:
 			const rtValue& arg4, T& result);
 
   // General case
-  rtError Send(const char* messageName, int numArgs, const rtValue* args,
-	       rtValue& result); 
+  rtError Send(const char* messageName, int numArgs, const rtValue* args); 
+  rtError SendReturns(const char* messageName, int numArgs, 
+                      const rtValue* args,
+                      rtValue& result); 
 
  private:
   virtual rtError Get(const char* name, rtValue* value) = 0;
@@ -172,7 +174,14 @@ public:
 			const rtValue& arg3, const rtValue& arg4, 
 			T& result);
 
-  finline rtError Send(int numArgs, const rtValue* args, rtValue& result) {
+  finline rtError Send(int numArgs, const rtValue* args) 
+  {
+    return Send(numArgs, args, NULL);
+  }
+
+  finline rtError SendReturns(int numArgs, const rtValue* args, 
+                              rtValue& result) 
+  {
     return Send(numArgs, args, &result);
   }
 
@@ -452,7 +461,7 @@ template <typename T>
 rtError rtObjectBase::sendReturns(const char* messageName, T& result) 
 {
   rtValue resultValue;
-  rtError e = Send(messageName, 0, 0, resultValue);
+  rtError e = SendReturns(messageName, 0, 0, resultValue);
   if (e == RT_OK) result = resultValue.convert<T>();
   return e;
 }
@@ -463,7 +472,7 @@ rtError rtObjectBase::sendReturns(const char* messageName, const rtValue& arg1,
 {
   rtValue args[1] = {arg1};
   rtValue resultValue;
-  rtError e = Send(messageName, 1, args, resultValue);
+  rtError e = SendReturns(messageName, 1, args, resultValue);
   if (e == RT_OK) result = resultValue.convert<T>();
   return e;
 }
@@ -474,7 +483,7 @@ rtError rtObjectBase::sendReturns(const char* messageName, const rtValue& arg1,
 {
   rtValue args[2] = {arg1, arg2};
   rtValue resultValue;
-  rtError e = Send(messageName, 2, args, resultValue);
+  rtError e = SendReturns(messageName, 2, args, resultValue);
   if (e == RT_OK) result = resultValue.convert<T>();
   return e;
 }
@@ -486,7 +495,7 @@ rtError rtObjectBase::sendReturns(const char* messageName, const rtValue& arg1,
 {
   rtValue args[3] = {arg1, arg2, arg3};
   rtValue resultValue;
-  rtError e = Send(messageName, 3, args, resultValue);
+  rtError e = SendReturns(messageName, 3, args, resultValue);
   if (e == RT_OK) result = resultValue.convert<T>();
   return e;
 }
@@ -498,7 +507,7 @@ rtError rtObjectBase::sendReturns(const char* messageName, const rtValue& arg1,
 {
   rtValue args[] = {arg1, arg2, arg3, arg4};
   rtValue resultValue;
-  rtError e = Send(messageName, 4, args, resultValue);
+  rtError e = SendReturns(messageName, 4, args, resultValue);
   if (e == RT_OK) result = resultValue.convert<T>();
   return e;
 }
@@ -507,7 +516,7 @@ template <typename T>
 rtError rtFunctionBase::sendReturns(T& result)
 {
   rtValue resultValue;
-  rtError e = Send(0, 0, resultValue);
+  rtError e = SendReturns(0, 0, resultValue);
   if (e == RT_OK) result = resultValue.convert<T>();
   return e;
 }
@@ -517,7 +526,7 @@ rtError rtFunctionBase::sendReturns(const rtValue& arg1, T& result)
 {
   rtValue args[1] = {arg1};
   rtValue resultValue;
-  rtError e = Send(1, args, resultValue);
+  rtError e = SendReturns(1, args, resultValue);
   if (e == RT_OK) resultValue.cvt(result);
   return e;
 }
@@ -528,7 +537,7 @@ rtError rtFunctionBase::sendReturns(const rtValue& arg1, const rtValue& arg2,
 {
   rtValue args[2] = {arg1, arg2};
   rtValue resultValue;
-  rtError e = Send(2, args, resultValue);
+  rtError e = SendReturns(2, args, resultValue);
   if (e == RT_OK) result = resultValue.convert<T>();
   return e;
 }
@@ -539,7 +548,7 @@ rtError rtFunctionBase::sendReturns(const rtValue& arg1, const rtValue& arg2,
 {
   rtValue args[3] = {arg1, arg2, arg3};
   rtValue resultValue;
-  rtError e = Send(3, args, resultValue);
+  rtError e = SendReturns(3, args, resultValue);
   if (e == RT_OK) result = resultValue.convert<T>();
   return e;
 }
@@ -551,7 +560,7 @@ rtError rtFunctionBase::sendReturns(const rtValue& arg1, const rtValue& arg2,
 {
   rtValue args[] = {arg1, arg2, arg3, arg4};
   rtValue resultValue;
-  rtError e = Send(4, args, resultValue);
+  rtError e = SendReturns(4, args, resultValue);
   if (e == RT_OK) result = resultValue.convert<T>();
   return e;
 }
@@ -699,8 +708,15 @@ public:
         _rtEmitEntry& e = (*it);
         if (e.n == eventName)
         {
+          // Do this here to make interop synchronous
+          rtValue discard;
           // have to invoke all no opportunity to return errors
-          e.f->Send(numArgs-1, args+1, result);
+          // SYNC EVENTS
+          #if 0
+          e.f->Send(numArgs-1, args+1, &discard);
+          #else
+          e.f->Send(numArgs-1, args+1, NULL);
+          #endif
           // TODO log error 
         }
       }
