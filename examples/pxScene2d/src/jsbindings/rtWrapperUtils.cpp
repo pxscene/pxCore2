@@ -4,7 +4,7 @@
 
 #include <rtMutex.h>
 
-static pthread_mutex_t sSceneLock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static pthread_t sCurrentSceneThread;
 static rtMutex objectMapMutex;
 
