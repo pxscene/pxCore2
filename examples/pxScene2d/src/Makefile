@@ -40,6 +40,7 @@ PX_SRCS=\
     pxScene2d.cpp \
 		pxRectangle.cpp \
     pxText.cpp \
+    pxText2.cpp \
     pxImage.cpp \
     pxUtil.cpp \
     pxContextGL.cpp \

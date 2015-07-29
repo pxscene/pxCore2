@@ -61,8 +61,12 @@ public:
     
   void setPixelSize(uint32_t s);  
   const GlyphCacheEntry* getGlyph(uint32_t codePoint);  
+  void getMetrics(float& height, float& ascender, float& descender, float& naturalLeading);
+  void getHeight(float& height);
   void measureText(const char* text, uint32_t size,  float sx, float sy, 
                    float& w, float& h);
+  void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
+                         float& w, float& h);                   
   void renderText(const char *text, uint32_t size, float x, float y, 
                   float sx, float sy, 
                   float* color, float mw);
@@ -87,7 +91,7 @@ public:
   pxText(pxScene2d* s);
   ~pxText();
   rtError text(rtString& s) const;
-  rtError setText(const char* text);
+  virtual rtError setText(const char* text);
 
   rtError textColor(uint32_t& /*c*/) const {
     
@@ -106,7 +110,7 @@ public:
   rtError setFaceURL(const char* s);
 
   rtError pixelSize(uint32_t& v) const { v = mPixelSize; return RT_OK; }
-  rtError setPixelSize(uint32_t v);
+  virtual rtError setPixelSize(uint32_t v);
 
   virtual void update(double t);
 
@@ -116,8 +120,8 @@ public:
     mDirty = mDirty || (!strcmp(name,"w") ||
               !strcmp(name,"h") ||
               !strcmp(name,"text") ||
-              !strcmp(name,"pixelSize") |
-              !strcmp(name,"faceURL") |
+              !strcmp(name,"pixelSize") ||
+              !strcmp(name,"faceURL") ||
               !strcmp(name,"textColor"));
 #else
     mDirty = true;
@@ -130,6 +134,7 @@ public:
 
   void onFontDownloadComplete(FontDownloadRequest fontDownloadRequest);
   static void checkForCompletedDownloads(int maxTimeInMilliseconds=10);
+  virtual void fontLoaded() {printf("pxText::fontLoaded\n"); mReady.send("resolve", this);}
 
  protected:
   virtual void draw();

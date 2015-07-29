@@ -19,6 +19,7 @@
 
 #include "pxRectangle.h"
 #include "pxText.h"
+#include "pxText2.h"
 #include "pxImage.h"
 #include "pxImage9.h"
 
@@ -807,6 +808,11 @@ pxScene2d::pxScene2d(bool top)
   mFocus = mRoot;
   mEmit = new rtEmit();
   mTop = top;
+  // make sure that initial onFocus is sent
+  rtObjectRef e = new rtMapObject;
+  e.set("target",mFocus);
+  rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+  t->mEmit.send("onFocus",e);
 }
 
 void pxScene2d::init()
@@ -832,6 +838,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createRectangle(p,o);
   else if (!strcmp("text",t.cString()))
     e = createText(p,o);
+  else if (!strcmp("text2",t.cString()))
+    e = createText2(p,o);    
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
   else if (!strcmp("image9",t.cString()))
@@ -884,6 +892,14 @@ rtError pxScene2d::createRectangle(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createText(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxText(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+}
+
+rtError pxScene2d::createText2(rtObjectRef p, rtObjectRef& o)
+{
+  o = new pxText2(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -1202,7 +1218,6 @@ rtError pxScene2d::setFocus(rtObjectRef o)
 	    rtObjectRef e = new rtMapObject;
 	    e.set("target",mFocus);
 	    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
-	    //bubbleEvent(e, t, "onPreBlur", "onBlur");
 	    t->mEmit.send("onBlur",e);
   }
 
@@ -1491,6 +1506,7 @@ rtDefineProperty(pxScene2d, showDirtyRect);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, createRectangle);
 rtDefineMethod(pxScene2d, createText);
+rtDefineMethod(pxScene2d, createText2);
 rtDefineMethod(pxScene2d, createImage);
 rtDefineMethod(pxScene2d, createImage9);
 rtDefineMethod(pxScene2d, createScene);

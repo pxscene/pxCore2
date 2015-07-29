@@ -1151,6 +1151,7 @@ public:
   rtMethod1ArgAndReturn("createImage", createImage, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createImage9", createImage9, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createText", createText, rtObjectRef, rtObjectRef);
+  rtMethod1ArgAndReturn("createText2", createText2, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createScene", createScene, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
@@ -1216,6 +1217,7 @@ public:
   rtError createObject(rtObjectRef p, rtObjectRef& o);
   rtError createRectangle(rtObjectRef p, rtObjectRef& o);
   rtError createText(rtObjectRef p, rtObjectRef& o);
+  rtError createText2(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
   rtError createScene(rtObjectRef p,rtObjectRef& o);
