@@ -33,7 +33,7 @@ pxText2::~pxText2()
  */
 void pxText2::fontLoaded() 
 {
-  printf("pxText2::fontLoaded. Initialized=%d\n",mInitialized);
+  //printf("pxText2::fontLoaded. Initialized=%d\n",mInitialized);
   mFontLoaded = true;
   if( mInitialized) {
     renderText(false);
@@ -43,7 +43,6 @@ void pxText2::fontLoaded()
 
 void pxText2::onInit()
 {
-  printf("pxText2::onInit. mFontLoaded=%d\n", mFontLoaded);
   mInitialized = true;
   if( mFontLoaded) {
     renderText(false);
@@ -58,7 +57,6 @@ void pxText2::onInit()
  * to other properties.
  **/
 rtError pxText2::setText(const char* s) { 
-  printf("pxText2::setText\n");
   mText = s; 
   renderText(false);
 
@@ -136,16 +134,6 @@ void pxText2::renderText(bool render)
 
 	}
 
-/*
-  // Set the bounds for the text
-  printf("Measurements: boundsX2=%f, boundsX1=%f, boundsY2=%f, boundsY1=%f\n", 
-      measurements->getBounds()->x2(), measurements->getBounds()->x1(), 
-      measurements->getBounds()->y2(), measurements->getBounds()->y1());
-      
-  printf("First and last positions: firstCharX=%f, firstCharY=%f, lastCharX=%f, lastCharY=%f\n", 
-      measurements->getFirstChar()->x(), measurements->getFirstChar()->y(), 
-      measurements->getLastChar()->x(), measurements->getLastChar()->y());
-*/ 
 }
 
 void pxText2::renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t size, float* color, bool render)
@@ -172,9 +160,9 @@ void pxText2::renderTextWithWordWrap(const char *text, float sx, float sy, float
   {
     if( mXStopPos != 0) 
     {
-      // if this single line won't fit when it accounts for mXStopPos, 
+      // TODO: if this single line won't fit when it accounts for mXStopPos, 
       // need to wrap to a new line
-      printf("!CLF: HERE WE ARE!\n");
+
     }
   }
   lastLineNumber = lineNumber;
@@ -249,9 +237,8 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 					}
 					if( isWordBoundary(tempStr[n])) 
           {
-						//printf("wordBoundary is at \"%c\"\n",tempStr[n]);
+
 						tempStr[n+1] = '\0';
-						//printf("rendering wrappingtext on word boundary %s\n", tempStr);
 						// write out entire string that will fit
 						// Use horizonal positioning
             renderOneLine(lineNumber, tempStr, mx, tempY, sx, sy, size, color, lineWidth, render);
@@ -261,7 +248,6 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 						n++;
 						if( strlen(tempStr+n) > 0) 
             {
-							//printf("char at n is now \"%c\"\n",tempStr[n]);
 							if( isSpaceChar(tempStr[n])) 
               {
 								accString = tempStr+n+1;
@@ -279,8 +265,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
             {
 							accString.append(tempChar);
 						}
-						
-						//printf("New accString after truncate/wrap is \"%s\"\n",accString.cString());
+
 					}
 					// Now skip to next line
 					tempY += (mLeading*sy) + charH;
@@ -311,7 +296,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 		if(accString.length() > 0) {
       lastLineNumber = lineNumber;
       if( mTruncation == NONE && !mWordWrap && !clip()) {
-        printf("CLF! Sending tempX instead of this->w(): %f\n", tempX);
+        //printf("CLF! Sending tempX instead of this->w(): %f\n", tempX);
         renderOneLine(lineNumber, accString.cString(), 0, tempY, sx, sy, size, color, tempX, render);
       } else {
         renderOneLine(lineNumber, accString.cString(), 0, tempY, sx, sy, size, color, this->w(), render);
@@ -327,7 +312,6 @@ void pxText2::renderOneLine(uint32_t lineNumber, const char * tempStr, float tem
 
   float xPos = tempX; 
   mFace->measureText(tempStr, size, sx, sy, charW, charH);
-//  printf("pxText2::renderOneLine returned charW=%f for %s\n",charW, tempStr);
   if( mHorizontalAlign == H_LEFT && lineNumber == 0) 
   {
     // Only respect xStartPos if H align is LEFT
@@ -346,7 +330,6 @@ void pxText2::renderOneLine(uint32_t lineNumber, const char * tempStr, float tem
   
   setMeasurementBounds(xPos, charW, tempY, charH);
   
-//  printf("renderOneLine is testing lineNumber=%d and lastLineNumber=%d and render=%d\n",lineNumber, lastLineNumber,render);
   if( lineNumber == lastLineNumber) {
     setLastLineMeasurements(xPos+charW, tempY);
   }
