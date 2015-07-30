@@ -75,6 +75,7 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
       var vm = require('vm');
       var sandbox = {
         console   : console,
+        global    : global,
         scene     : sceneForChild,
         runtime   : apiForChild,
         process   : process,
