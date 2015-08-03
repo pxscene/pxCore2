@@ -36,6 +36,7 @@ void pxText2::fontLoaded()
   //printf("pxText2::fontLoaded. Initialized=%d\n",mInitialized);
   mFontLoaded = true;
   if( mInitialized) {
+    clearMeasurements();
     renderText(false);
     mReady.send("resolve", this);
   }
@@ -45,6 +46,7 @@ void pxText2::onInit()
 {
   mInitialized = true;
   if( mFontLoaded) {
+    clearMeasurements();
     renderText(false);
     mReady.send("resolve", this);   
   }
@@ -58,6 +60,7 @@ void pxText2::onInit()
  **/
 rtError pxText2::setText(const char* s) { 
   mText = s; 
+  clearMeasurements();
   renderText(false);
 
   return RT_OK; 
@@ -66,6 +69,7 @@ rtError pxText2::setText(const char* s) {
 rtError pxText2::setPixelSize(uint32_t v) 
 {   
   mPixelSize = v; 
+  clearMeasurements();
   renderText(false);
   return RT_OK; 
 }
@@ -90,6 +94,13 @@ void pxText2::determineMeasurementBounds()
 {
   
 }
+void pxText2::clearMeasurements()
+{
+    setMeasurementBounds(mx, 0, my, 0);
+    lastLineNumber = 0;
+    lineNumber = 0;
+    measurements->clear(); 
+}
 
 void pxText2::renderText(bool render)
 {
@@ -99,10 +110,11 @@ void pxText2::renderText(bool render)
   float sy = 1.0;
                   
 	if (!mText) {
-    setMeasurementBounds(mx, 0, my, 0);
-    lastLineNumber = 0;
-    lineNumber = 0;
-    measurements->clear();
+    clearMeasurements();
+    //setMeasurementBounds(mx, 0, my, 0);
+    //lastLineNumber = 0;
+    //lineNumber = 0;
+    //measurements->clear();
 		return;
 	}
 

@@ -387,6 +387,7 @@ public:
   void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, float* color, uint32_t &lineNumber, bool render);
   void renderOneLine(uint32_t lineNumber, const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float* color, float lineWidth, bool render );
   
+  void clearMeasurements();
   void setMeasurementBounds(float xPos, float width, float yPos, float height);
   void setLastLineMeasurements(float xPos, float y);
 };
