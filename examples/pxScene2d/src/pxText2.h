@@ -296,35 +296,35 @@ public:
   
   bool wordWrap()            const { return mWordWrap;}
   rtError wordWrap(bool& v)  const { v = mWordWrap; return RT_OK;  }
-  rtError setWordWrap(bool v) { mWordWrap = v; return RT_OK; }
+  rtError setWordWrap(bool v) { mWordWrap = v; recalc(); return RT_OK; }
   
   bool ellipsis()            const { return mEllipsis;}
   rtError ellipsis(bool& v)  const { v = mEllipsis; return RT_OK;  }
-  rtError setEllipsis(bool v) { mEllipsis = v; return RT_OK; }
+  rtError setEllipsis(bool v) { mEllipsis = v; recalc(); return RT_OK; }
   
   float xStartPos()             const { return mXStartPos; }
   rtError xStartPos(float& v)   const { v = mXStartPos; return RT_OK;   }
-  rtError setXStartPos(float v)       { mXStartPos = v; return RT_OK;   }
+  rtError setXStartPos(float v) { mXStartPos = v; recalc(); return RT_OK; }
   
   float xStopPos()             const { return mXStopPos; }
   rtError xStopPos(float& v)   const { v = mXStopPos; return RT_OK;   }
-  rtError setXStopPos(float v)       { mXStopPos = v; return RT_OK;   }
+  rtError setXStopPos(float v) { mXStopPos = v; recalc(); return RT_OK; }
     
   uint32_t truncation()             const { return mTruncation; }
   rtError truncation(uint32_t& v)   const { v = mTruncation; return RT_OK;   }
-  rtError setTruncation(uint32_t v)       { mTruncation = v; return RT_OK;   }
+  rtError setTruncation(uint32_t v)       { mTruncation = v; recalc(); return RT_OK;   }
 
   uint8_t verticalAlign()             const { return mVerticalAlign; }
   rtError verticalAlign(uint8_t& v)   const { v = mVerticalAlign; return RT_OK;   }
-  rtError setVerticalAlign(uint8_t v)       { mVerticalAlign = v; return RT_OK;   }
+  rtError setVerticalAlign(uint8_t v)       { mVerticalAlign = v; recalc(); return RT_OK;   }
   
   uint8_t horizontalAlign()             const { return mHorizontalAlign; }
   rtError horizontalAlign(uint8_t& v)   const { v = mHorizontalAlign; return RT_OK;   }
-  rtError setHorizontalAlign(uint8_t v)       { mHorizontalAlign = v; return RT_OK;   }
+  rtError setHorizontalAlign(uint8_t v)       { mHorizontalAlign = v; recalc(); return RT_OK;   }
   
   float leading()             const { return mLeading; }
   rtError leading(float& v)   const { v = mLeading; return RT_OK;   }
-  rtError setLeading(float v)       { mLeading = v; return RT_OK;   }  
+  rtError setLeading(float v)       { mLeading = v; recalc(); return RT_OK;   }  
   
   virtual rtError setText(const char* s); 
   virtual rtError setPixelSize(uint32_t v);
@@ -387,6 +387,7 @@ public:
   void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, float* color, uint32_t &lineNumber, bool render);
   void renderOneLine(uint32_t lineNumber, const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float* color, float lineWidth, bool render );
   
+  void recalc() {clearMeasurements(); renderText(false);}
   void clearMeasurements();
   void setMeasurementBounds(float xPos, float width, float yPos, float height);
   void setLastLineMeasurements(float xPos, float y);

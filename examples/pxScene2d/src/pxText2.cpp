@@ -36,8 +36,7 @@ void pxText2::fontLoaded()
   //printf("pxText2::fontLoaded. Initialized=%d\n",mInitialized);
   mFontLoaded = true;
   if( mInitialized) {
-    clearMeasurements();
-    renderText(false);
+    recalc();
     mReady.send("resolve", this);
   }
 }
@@ -46,8 +45,7 @@ void pxText2::onInit()
 {
   mInitialized = true;
   if( mFontLoaded) {
-    clearMeasurements();
-    renderText(false);
+    recalc();
     mReady.send("resolve", this);   
   }
 }
@@ -60,20 +58,16 @@ void pxText2::onInit()
  **/
 rtError pxText2::setText(const char* s) { 
   mText = s; 
-  clearMeasurements();
-  renderText(false);
-
+  recalc();
   return RT_OK; 
 }
 
 rtError pxText2::setPixelSize(uint32_t v) 
 {   
   mPixelSize = v; 
-  clearMeasurements();
-  renderText(false);
+  recalc();
   return RT_OK; 
 }
-
 
 void pxText2::draw() {
 
@@ -96,7 +90,6 @@ void pxText2::determineMeasurementBounds()
 }
 void pxText2::clearMeasurements()
 {
-    setMeasurementBounds(mx, 0, my, 0);
     lastLineNumber = 0;
     lineNumber = 0;
     measurements->clear(); 
@@ -110,12 +103,9 @@ void pxText2::renderText(bool render)
   float sy = 1.0;
                   
 	if (!mText) {
-    clearMeasurements();
-    //setMeasurementBounds(mx, 0, my, 0);
-    //lastLineNumber = 0;
-    //lineNumber = 0;
-    //measurements->clear();
-		return;
+       clearMeasurements();
+       setMeasurementBounds(mx, 0, my, 0);
+	   return;
 	}
 
   // Prerender the text to determine dimensions and number of lines
@@ -174,7 +164,6 @@ void pxText2::renderTextWithWordWrap(const char *text, float sx, float sy, float
     {
       // TODO: if this single line won't fit when it accounts for mXStopPos, 
       // need to wrap to a new line
-
     }
   }
   lastLineNumber = lineNumber;
@@ -189,7 +178,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 	int i = 0;
 	u_int32_t charToMeasure;
 	float charW, charH;
-      // Wordwrap is wraap
+      // Wordwrap is wrap
 		rtString accString = "";
 		bool lastLine = false;
 		float lineWidth = mw;
@@ -357,7 +346,7 @@ void pxText2::setMeasurementBounds(float xPos, float width, float yPos, float he
   if( bounds->x2() < (xPos + width) ) {
     bounds->setX2(xPos + width);
   } 
-  if( bounds->x1() > xPos) {
+  if( bounds->x1() ==0 || (bounds->x1() > xPos)) {
     bounds->setX1(xPos);
   }
   if( bounds->y2() < (yPos + height)) {
