@@ -452,6 +452,8 @@ rtError pxText::setFaceURL(const char* s)
       if (e != RT_OK)
       {
         rtLogInfo("Could not load font face, %s, %s\n", "blah", s);
+        fontLoaded(); // font is still loaded, it's just the default font because some 
+                      // error occurred.
         mReady.send("reject",this);
         return e;
       }
