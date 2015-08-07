@@ -25,7 +25,9 @@ pxText2::pxText2(pxScene2d* s):pxText(s)
 
 pxText2::~pxText2()
 {
-	 
+   printf("!CLF: pxText2::~pxText2()\n");
+	 delete measurements;
+   measurements = 0;
 }
 
 /** This signals that the font file loaded successfully; now we need to 
@@ -97,6 +99,11 @@ void pxText2::clearMeasurements()
 
 void pxText2::renderText(bool render)
 {
+  printf("pxText2::renderText render=%d initialized=%d\n",render,mInitialized);
+
+  if( !mInitialized) {
+    return;
+  }
 
   float x = 0;
   float sx = 1.0; 
@@ -296,7 +303,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 		
 		if(accString.length() > 0) {
       lastLineNumber = lineNumber;
-      if( mTruncation == NONE && !mWordWrap && !clip()) {
+      if( mTruncation == NONE && !mWordWrap ) {
         //printf("CLF! Sending tempX instead of this->w(): %f\n", tempX);
         renderOneLine(lineNumber, accString.cString(), 0, tempY, sx, sy, size, color, tempX, render);
       } else {
@@ -304,6 +311,19 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
       }
 		  
 		}	
+    
+    if( !render && !clip() && mTruncation == NONE) {
+      if(tempY > my+mh) {
+        mh = my + tempY;
+      }
+      if( !mWordWrap) {
+        // Allow text to overflow the boundaries
+        if( tempX > mx+mw) {
+          mw = mx + tempX;
+        }
+        
+      }
+    }
 }
 
 
@@ -333,9 +353,17 @@ void pxText2::renderOneLine(uint32_t lineNumber, const char * tempStr, float tem
   
   if( lineNumber == lastLineNumber) {
     setLastLineMeasurements(xPos+charW, tempY);
+    
+    if( !render && !clip() && mTruncation == NONE && !mWordWrap) {
+      // Allow text to overflow the boundaries
+      if( mx+mw < xPos+charW) {
+        mw = xPos+charW;
+      }
+    } 
   }
   // Now, render the text
   if( render) {mFace->renderText(tempStr, size, xPos, tempY, sx, sy, color,lineWidth);} 
+ 
 
 }
 
