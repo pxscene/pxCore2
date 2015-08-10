@@ -1,14 +1,16 @@
 #!/bin/bash
-base=/Applications/Pxscene.app
-outfile=/var/tmp/xre2log/installer.out
+BASE_DIR=/Applications/Pxscene.app
+LOG_DIR=/var/tmp/pxscene
+LOG_FILE=${LOG_DIR}/installer.out
 PX=`ps -Al | grep load.sh | grep -v grep`
+test -d "${LOG_DIR}" || mkdir "${LOG_DIR}"
 while [ -n "${PX}" ]; do
-   printf "Will not update while ${PX} is running...sleeping for 60.\n" >> $outfile 2>&1
+   printf "Will not update while ${PX} is running...sleeping for 60.\n" >> ${LOG_FILE} 2>&1
    sleep 5
    PX=`ps -Al | grep load.sh | grep -v grep`
 done
 #do install
-printf "Installing new version...\n" >> $outfile 2>&1
-printf "  Copying $1/Pxscene.app to /Applications...\n" >> $outfile 2>&1
-cp -R "$1/Pxscene.app" /Applications/ >> $outfile 2>&1
-printf "install complete.\n" >> $outfile >> $outfile 2>&1 >> $outfile 2>&1
+printf "Installing new version...\n" >> ${LOG_FILE} 2>&1
+printf "  Copying $1/Pxscene.app to /Applications...\n" >> ${LOG_FILE} 2>&1
+cp -R "$1/Pxscene.app" /Applications/ >> ${LOG_FILE} 2>&1
+printf "install complete.\n" >> ${LOG_FILE} 2>&1

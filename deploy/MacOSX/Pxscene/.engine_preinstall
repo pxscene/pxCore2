@@ -1,3 +1,2 @@
 #!/bin/bash
-outfile=/var/tmp/xre2log/installer.out 
-echo "preinstall" >> $outfile 2>&1
+#nothing to do for preinstall right now

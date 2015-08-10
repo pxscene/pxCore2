@@ -1,10 +1,10 @@
 #!/bin/bash
-base=/Applications/Pxscene.app
-outfile=/var/tmp/xre2log/installer.out
-printf "post install\n" >> $outfile 2>&1
-#echo "PRE OUTPUT -----" >> $outfile 2>&1
-#echo "$KS_PREINSTALL_OUT" >> $outfile 2>&1
-#echo "POST OUTPUT -------" >> $outfile 2>&1
-#echo "$KS_INSTALL_OUT" >> $outfile 2>&1
-printf "${KS_Version}\n" > $base/Contents/MacOS/version
-printf "The new version is ${KS_Version}\n" >> $outfile 2>&1
+BASE_DIR=/Applications/Pxscene.app
+LOG_FILE=/var/tmp/pxscene/installer.out
+printf "post install\n" >> ${LOG_FILE} 2>&1
+#echo "PRE OUTPUT -----" >> ${LOG_FILE} 2>&1
+#echo "$KS_PREINSTALL_OUT" >> ${LOG_FILE} 2>&1
+#echo "POST OUTPUT -------" >> ${LOG_FILE} 2>&1
+#echo "$KS_INSTALL_OUT" >> ${LOG_FILE} 2>&1
+printf "${KS_Version}\n" > ${BASE_DIR}/Contents/MacOS/version
+printf "The new version is ${KS_Version}\n" >> ${LOG_FILE} 2>&1

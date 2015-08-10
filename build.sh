@@ -7,18 +7,16 @@ DEPLOY_PATH=deploy/examples/pxScene2d
 BIN_SOURCE_PATH=examples/pxScene2d
 SKIPBUILD=false
 NODMG=false
-DMGTEMPLATE=~/Desktop/Pxscene.template.dmg
-DMGMP=/Volumes/Pxscene
 
 function usage() {
   printf "Build script for pxscene binaries.\n"
-  printf "Usage:  $(basename $0) options...\n" 
+  printf "Usage:  $(basename ${0}) options...\n" 
   printf "Options:\n"
-  printf "  --skipbuild/-s\n"
+  printf "  -s/--skipbuild\n"
   printf "      skips the compilation and building of binaries and only does packaging\n"
-  printf "  --nodmg/-n\n"
+  printf "  -n/--nodmg\n"
   printf "      skips creation of the dmg.\n"
-  printf "  -h, --help        display this help.\n"
+  printf "  -h/--help        display this help.\n"
   exit 0
 }
 
@@ -30,16 +28,16 @@ function osCheck() {
 }
 
 parseOptions() {
-  while [[ $# > 0 ]]
+  while [[ ${#} > 0 ]]
     do
-      key="$1"
+      key="${1}"
 
-      case $key in
+      case ${key} in
         -h|--help)
         usage
         ;;
         -e|--extension)
-        EXTENSION="$2"
+        EXTENSION="${2}"
         shift # past argument need shift for each arg the option takes
         ;;
         -s|--skipbuild)
@@ -61,6 +59,7 @@ parseOptions() {
 
 function getNode()  {
   # Get node 0.12.7 - a dependency for pxscene
+  printf "Getting node 0.12.7..."
   cd /var/tmp
   wget --no-check-certificate https://nodejs.org/dist/v0.12.7/node-v0.12.7-darwin-x64.tar.gz
   gunzip node-v0.12.7-darwin-x64.tar.gz
@@ -133,6 +132,8 @@ copyBinaries() {
 createDMG() {
 #need to update with new DMG method and args to function to support edge - see /var/tmp/createdmg.sh
 #template based code
+#  DMGTEMPLATE=~/Desktop/Pxscene.template.dmg
+#  DMGMP=/Volumes/Pxscene
 #  printf "Creating DMG...\n"
 #  hdiutil attach -mountpoint "${DMGMP}" "${DMGTEMPLATE}"
 #  rm -rf ${DMGMP}/Pxscene.app/Contents/Resources/examples
@@ -150,19 +151,20 @@ createDMG() {
   WINY=10	#opened DMG Y position
   WINW=470	#opened DMG width
   WINH=570	#opened DMG height
-  ICON_SIZE=128
+  ICON_SIZE=128	#DMG icon size
+  TEXT_SIZE=16	#DMG text size
+
   VOLUME_NAME=Pxscene	#mounted DMG name
-  VOLUME_ICON_FILE=${DMG_RES_DIR}/pxscenevolico.icns
-  BACKGROUND_FILE=${DMG_RES_DIR}/background.png
+  VOLUME_ICON_FILE=${DMG_RES_DIR}/pxscenevolico.icns	#DMG volume icon
+  BACKGROUND_FILE=${DMG_RES_DIR}/background.png		#DMG background image
   BACKGROUND_FILE_NAME="$(basename ${BACKGROUND_FILE})"
+  #applescript clauses to set icon positions within the dmg
   BACKGROUND_CLAUSE="set background picture of opts to file \".background:${BACKGROUND_FILE_NAME}\""
   REPOSITION_HIDDEN_FILES_CLAUSE="set position of every item to {theBottomRightX + 100, 100}"
   POSITION_CLAUSE="${POSITION_CLAUSE}set position of item \"Pxscene.app\" to {240, 140}"
-  APPLICATION_LINK=true
   APPLICATION_CLAUSE="set position of item \"Applications\" to {240, 390}"
-  TEXT_SIZE=16
 
-  DMG_FILE="Pxscene.dmg"
+  DMG_FILE="deploy/MacOSX/Pxscene.dmg"
   DMG_DIRNAME="$(dirname "${DMG_FILE}")"
   DMG_DIR="$(cd "${DMG_DIRNAME}" > /dev/null; pwd)"
   DMG_NAME="$(basename "${DMG_FILE}")"
@@ -205,11 +207,9 @@ createDMG() {
     cp "${BACKGROUND_FILE}" "${MOUNT_DIR}/.background/${BACKGROUND_FILE_NAME}"
   fi
 
-  if ! test -z "${APPLICATION_LINK}"; then
-    echo "making link to Applications dir"
-    echo ${MOUNT_DIR}
-    ln -s /Applications "${MOUNT_DIR}/Applications"
-  fi
+  echo "making link to Applications dir"
+  echo ${MOUNT_DIR}
+  ln -s /Applications "${MOUNT_DIR}/Applications"
 
   if ! test -z "${VOLUME_ICON_FILE}"; then
     echo "Copying volume icon file '${VOLUME_ICON_FILE}'..."
@@ -293,7 +293,7 @@ createDMG() {
 			delay 1
 			set waitTime to waitTime + 1
 			
-			if (do shell script "[ -f " & dsStore & " ]; echo $?") = "0" then set ejectMe to true
+			if (do shell script "[ -f " & dsStore & " ]; echo ${?}") = "0" then set ejectMe to true
 		end repeat
 		log "waited " & waitTime & " seconds for .DS_STORE to be created."
 	end tell
@@ -337,7 +337,7 @@ createDMG() {
 
 osCheck
 mkdir -p ${LOG_PATH}
-parseOptions $*
+parseOptions ${*}
 if [ ! -d "${NODE_PATH}" ]; then
   printf "Node not found, getting node..."
   getNode
@@ -347,7 +347,7 @@ fi
 printf "Setting node in PATH..."
 export PATH=${NODE_PATH}/bin:${NODE_PATH}/lib/node_modules/npm/bin/node-gyp-bin:${PATH}
 printf "done.\n"
-if [ "$SKIPBUILD" = false ]; then
+if [ "${SKIPBUILD}" = false ]; then
   buildExternalLibraries
 else
   printf "Skipping build of ft, jpg, png, curl, glut and jsbindings.\n"
@@ -356,4 +356,4 @@ copyBinaries
 if [ "${NODMG}" = false ]; then
   createDMG
 fi
-printf "$0 done.\n"
+printf "${0} done.\n"
