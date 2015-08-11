@@ -13,7 +13,7 @@ d=`date`
 printf "${d}: ${ER}\n" >> ${LOG_FILE} 2>&1
 if [ -z "${ER}" ]; then
    printf "Running EngineRunner (Update Engine)\n"
-   ${BASE_DIR}/MacOS/EngineRunner run -productid com.comcast.Pxscene -version ${PX_VERSION} -url ${UPDATE_URL} >> ${{LOG_FILE}} 2>&1 &
+   ${BASE_DIR}/MacOS/EngineRunner run -productid com.comcast.Pxscene -version ${PX_VERSION} -url ${UPDATE_URL} >> ${LOG_FILE} 2>&1 &
 fi
 export PATH=${NODE_DIR}/bin:${NODE_DIR}/lib/node_modules/npm/bin/node-gyp-bin:${PATH}
 cd ${BASE_DIR}/Resources/examples/pxScene2d/src/jsbindings
