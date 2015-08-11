@@ -131,22 +131,6 @@ copyBinaries() {
 }
 
 createDMG() {
-#need to update with new DMG method and args to function to support edge - see /var/tmp/createdmg.sh
-#template based code
-#  DMGTEMPLATE=~/Desktop/Pxscene.template.dmg
-#  DMGMP=/Volumes/Pxscene
-#  printf "Creating DMG...\n"
-#  hdiutil attach -mountpoint "${DMGMP}" "${DMGTEMPLATE}"
-#  rm -rf ${DMGMP}/Pxscene.app/Contents/Resources/examples
-#  mv -f deploy/examples ${DMGMP}/Pxscene.app/Contents/Resources/.
-#  printf "done.\n"
-#  cd deploy/MacOSX
-#  printf "Creating dmg..."
-#  DISKIMAGENAME=Pxscene
-#  hdiutil detach "${DMGMP}"
-#  hdiutil convert -format UDZO -ov -o "${DISKIMAGENAME}" "${DMGTEMPLATE}"
-#  printf "done.\n"
-#end template based code
   DMG_RES_DIR=deploy/MacOSX/dmgresources
   WINX=10	#opened DMG X position
   WINY=10	#opened DMG Y position
@@ -156,6 +140,7 @@ createDMG() {
   TEXT_SIZE=16	#DMG text size
 
   VOLUME_NAME=pxscene	#mounted DMG name
+  MOUNT_DIR="/Volumes/${VOLUME_NAME}"
   VOLUME_ICON_FILE=${DMG_RES_DIR}/pxscenevolico.icns	#DMG volume icon
   BACKGROUND_FILE=${DMG_RES_DIR}/background.png		#DMG background image
   BACKGROUND_FILE_NAME="$(basename ${BACKGROUND_FILE})"
@@ -175,51 +160,46 @@ createDMG() {
   printf "Creating DMG...\n"
   test -z "${VOLUME_NAME}" && VOLUME_NAME="$(basename "${DMG_FILE}" .dmg)"
 
+  #remove .DS_Store if it exists
   if [ -f "${SRC_FOLDER}/.DS_Store" ]; then
-    echo "Deleting any .DS_Store in source folder"
     rm "${SRC_FOLDER}/.DS_Store"
   fi
 
-  # Create the image
-  echo "Creating disk image..."
+  # Create the temporary template image
   test -f "${DMG_TEMP_NAME}" && rm -f "${DMG_TEMP_NAME}"
   ACTUAL_SIZE=`du -sm "${SRC_FOLDER}" | cut -f1`
   DISK_IMAGE_SIZE=$(expr ${ACTUAL_SIZE} + 20)
+  printf "  Creating temporary template"
   hdiutil create -srcfolder "${SRC_FOLDER}" -volname "${VOLUME_NAME}" -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size ${DISK_IMAGE_SIZE}m "${DMG_TEMP_NAME}"
 
-  # mount it
-  echo "Mounting disk image..."
-  MOUNT_DIR="/Volumes/${VOLUME_NAME}"
-  echo "${MOUNT_DIR}"
-
-  # try unmount dmg if it was mounted previously (e.g. developer mounted dmg, installed app and forgot to unmount it)
-  echo "Unmounting disk image..."
   DEV_NAME=$(hdiutil info | egrep '^/dev/' | sed 1q | awk '{print $1}')
-  echo "${DMG_TEMP_NAME}"
   test -d "${MOUNT_DIR}" && hdiutil detach "${DEV_NAME}"
 
-  echo "Mount directory: ${MOUNT_DIR}"
-  DEV_NAME=$(hdiutil attach -readwrite -noverify -noautoopen "${DMG_TEMP_NAME}" | egrep '^/dev/' | sed 1q | awk '{print $1}')
-  echo "Device name:     ${DEV_NAME}"
+  DEV_NAME=$(hdiutil attach -readwrite -noverify -noautoopenrw "${DMG_TEMP_NAME}" | egrep '^/dev/' | sed 1q | awk '{print $1}')
 
+  printf "  Mounting: ${MOUNT_DIR} at ${DEV_NAME}\n"
+  #copy background file
   if ! test -z "${BACKGROUND_FILE}"; then
-    echo "Copying background file..."
+    printf "  Copying background file..."
     test -d "${MOUNT_DIR}/.background" || mkdir "${MOUNT_DIR}/.background"
     cp "${BACKGROUND_FILE}" "${MOUNT_DIR}/.background/${BACKGROUND_FILE_NAME}"
+    printf "done.\n"
   fi
 
-  echo "making link to Applications dir"
-  echo ${MOUNT_DIR}
+  printf "  Making link to Applications folder..."
   ln -s /Applications "${MOUNT_DIR}/Applications"
+  printf "done.\n"
 
   if ! test -z "${VOLUME_ICON_FILE}"; then
-    echo "Copying volume icon file '${VOLUME_ICON_FILE}'..."
+    printf "  Copying and setting volume icon file ${VOLUME_ICON_FILE}..."
     cp "${VOLUME_ICON_FILE}" "${MOUNT_DIR}/.VolumeIcon.icns"
     SetFile -c icnC "${MOUNT_DIR}/.VolumeIcon.icns"
+    printf "done.\n"
   fi
 
   # run applescript
   APPLESCRIPT=$(mktemp -t createdmg)
+  printf "  Creating Applescript in ${APPLESCRIPT} for customizing DMG..."
   printf 'on run (volumeName)
 	tell application "Finder"
 		tell disk (volumeName as string)
@@ -296,43 +276,47 @@ createDMG() {
 			
 			if (do shell script "[ -f " & dsStore & " ]; echo ${?}") = "0" then set ejectMe to true
 		end repeat
-		log "waited " & waitTime & " seconds for .DS_STORE to be created."
 	end tell
   end run' | sed -e "s/WINX/${WINX}/g" -e "s/WINY/${WINY}/g" -e "s/WINW/${WINW}/g" -e "s/WINH/${WINH}/g" -e "s/BACKGROUND_CLAUSE/${BACKGROUND_CLAUSE}/g" -e "s/REPOSITION_HIDDEN_FILES_CLAUSE/${REPOSITION_HIDDEN_FILES_CLAUSE}/g" -e "s/ICON_SIZE/${ICON_SIZE}/g" -e "s/TEXT_SIZE/${TEXT_SIZE}/g" | perl -pe  "s/POSITION_CLAUSE/${POSITION_CLAUSE}/g" | perl -pe "s/APPLICATION_CLAUSE/${APPLICATION_CLAUSE}/g" | perl -pe "s/HIDING_CLAUSE/${HIDING_CLAUSE}/" >"${APPLESCRIPT}"
+  printf "done.\n"
 
-  echo "Running Applescript: /usr/bin/osascript \"${APPLESCRIPT}\" \"${VOLUME_NAME}\""
+  printf "  Running Applescript: /usr/bin/osascript ${APPLESCRIPT} on ${VOLUME_NAME}..."
   "/usr/bin/osascript" "${APPLESCRIPT}" "${VOLUME_NAME}" || true
-  echo "Done running the applescript..."
-  sleep 4
+  printf "done.\n"
+  sleep 4  # to wait for applescript to finish
 
   rm "${APPLESCRIPT}"
 
   # make sure it's not world writeable
-  echo "Fixing permissions..."
+  printf "  Modifying permissions..."
   chmod -Rf go-w "${MOUNT_DIR}" &> /dev/null || true
-  echo "Done fixing permissions."
+  printf "done.\n"
 
   # make the top window open itself on mount:
-  echo "Blessing started"
+  printf "  Setting auto open (bless)..."
   bless --folder "${MOUNT_DIR}" --openfolder "${MOUNT_DIR}"
-  echo "Blessing finished"
+  printf "done.\n"
 
   if ! test -z "${VOLUME_ICON_FILE}"; then
     # tell the volume that it has a special file attribute
+    printf "  Setting volume icon file..."
     SetFile -a C "${MOUNT_DIR}"
+    printf "done.\n"
   fi
 
   # unmount
-  echo "Unmounting disk image..."
-  echo ${DEV_NAME}
-  sleep 60
+  printf "  Unmounting disk image ${DEV_NAME}..."
+#  echo ${DEV_NAME}
+#  sleep 60
   hdiutil detach "${DEV_NAME}"
+  printf "  done.\n"
 
   # compress image
-  echo "Compressing disk image..."
+  printf "  Compressing disk image..."
   hdiutil convert -ov "${DMG_TEMP_NAME}" -format UDZO -imagekey zlib-level=9 -o "${DMG_DIR}/${DMG_NAME}"
   rm -f "${DMG_TEMP_NAME}"
-  echo "Disk image done"
+  printf "done compressing disk image.\n"
+  printf "done Creating disk image.\n"
 }
 
 
