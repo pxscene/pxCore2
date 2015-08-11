@@ -89,7 +89,7 @@ buildExternalLibraries() {
     make >> ${LOG_PATH}/${i}.out 2>&1
     printf "done.\n"
     TS=`date "+%Y-%m-%d %H:%M:%S"`
-    printf "${TS} > Finished ${i}.\n" &> ${LOG_PATH}/${i}.out
+    printf "${TS} > Finished ${i}.\n" >> ${LOG_PATH}/${i}.out 2>&1
     cd ..
   done
   cd ../../..
@@ -126,6 +126,7 @@ copyBinaries() {
   cp ${BIN_SOURCE_PATH}/src/jsbindings/*.ttf ${DEPLOY_PATH}/src/jsbindings/.
   cp ${BIN_SOURCE_PATH}/src/jsbindings/*.sh ${DEPLOY_PATH}/src/jsbindings/.
   cp ${BIN_SOURCE_PATH}/src/jsbindings/build/Debug/px.node ${DEPLOY_PATH}/src/jsbindings/build/Debug/.
+  mv -f deploy/examples deploy/MacOSX/Pxscene/Pxscene.app/Contents/Resources/.
   printf "done.\n"
 }
 
@@ -154,7 +155,7 @@ createDMG() {
   ICON_SIZE=128	#DMG icon size
   TEXT_SIZE=16	#DMG text size
 
-  VOLUME_NAME=Pxscene	#mounted DMG name
+  VOLUME_NAME=pxscene	#mounted DMG name
   VOLUME_ICON_FILE=${DMG_RES_DIR}/pxscenevolico.icns	#DMG volume icon
   BACKGROUND_FILE=${DMG_RES_DIR}/background.png		#DMG background image
   BACKGROUND_FILE_NAME="$(basename ${BACKGROUND_FILE})"
@@ -164,7 +165,7 @@ createDMG() {
   POSITION_CLAUSE="${POSITION_CLAUSE}set position of item \"Pxscene.app\" to {240, 140}"
   APPLICATION_CLAUSE="set position of item \"Applications\" to {240, 390}"
 
-  DMG_FILE="deploy/MacOSX/Pxscene.dmg"
+  DMG_FILE="deploy/MacOSX/pxscene.dmg"
   DMG_DIRNAME="$(dirname "${DMG_FILE}")"
   DMG_DIR="$(cd "${DMG_DIRNAME}" > /dev/null; pwd)"
   DMG_NAME="$(basename "${DMG_FILE}")"
@@ -329,7 +330,7 @@ createDMG() {
 
   # compress image
   echo "Compressing disk image..."
-  hdiutil convert "${DMG_TEMP_NAME}" -format UDZO -imagekey zlib-level=9 -o "${DMG_DIR}/${DMG_NAME}"
+  hdiutil convert -ov "${DMG_TEMP_NAME}" -format UDZO -imagekey zlib-level=9 -o "${DMG_DIR}/${DMG_NAME}"
   rm -f "${DMG_TEMP_NAME}"
   echo "Disk image done"
 }
