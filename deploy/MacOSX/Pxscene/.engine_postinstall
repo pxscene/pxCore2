@@ -6,5 +6,6 @@ printf "post install\n" >> ${LOG_FILE} 2>&1
 #echo "$KS_PREINSTALL_OUT" >> ${LOG_FILE} 2>&1
 #echo "POST OUTPUT -------" >> ${LOG_FILE} 2>&1
 #echo "$KS_INSTALL_OUT" >> ${LOG_FILE} 2>&1
+TS=`date "+%Y-%m-%d %H:%M:%S"`
 printf "${KS_Version}\n" > ${BASE_DIR}/Contents/MacOS/version
-printf "The new version is ${KS_Version}\n" >> ${LOG_FILE} 2>&1
+printf "${TS} > The new pxscene version is ${KS_Version}\n" >> ${LOG_FILE} 2>&1
