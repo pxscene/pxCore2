@@ -109,7 +109,7 @@ void pxText2::renderText(bool render)
   float sx = 1.0; 
   float sy = 1.0;
                   
-	if (!mText) {
+	if (!mText || !strcmp(mText.cString(),"")) {
        clearMeasurements();
        setMeasurementBounds(mx, 0, my, 0);
 	   return;
