@@ -25,7 +25,7 @@ pxText2::pxText2(pxScene2d* s):pxText(s)
 
 pxText2::~pxText2()
 {
-   printf("!CLF: pxText2::~pxText2()\n");
+//   printf("!CLF: pxText2::~pxText2()\n");
 	 delete measurements;
    measurements = 0;
 }
@@ -52,6 +52,18 @@ void pxText2::onInit()
   }
 }
 
+void pxText2::recalc() 
+{
+	if (!mText || !strcmp(mText.cString(),"")) {
+       clearMeasurements();
+       setMeasurementBounds(mx, 0, my, 0);
+	   return;
+	}  
+  
+  clearMeasurements();
+  renderText(false);
+}
+  
 /** 
  * setText: for pxText2, setText sets the text value, but does not
  * affect the dimensions of the object.  Dimensions are respected 
@@ -99,7 +111,7 @@ void pxText2::clearMeasurements()
 
 void pxText2::renderText(bool render)
 {
-  printf("pxText2::renderText render=%d initialized=%d\n",render,mInitialized);
+//  printf("pxText2::renderText render=%d initialized=%d\n",render,mInitialized);
 
   if( !mInitialized) {
     return;
