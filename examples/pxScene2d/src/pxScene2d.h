@@ -277,6 +277,9 @@ public:
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mReady(), mMaskTextureRef(),
     mMaskTextureCacheObject(),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false)
+#ifdef PX_DIRTY_RECTANGLES
+    , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
+    #endif //PX_DIRTY_RECTANGLES
   {
     mScene = scene;
     mReady = new rtPromise;
@@ -292,6 +295,8 @@ public:
     v = mChildren.size();
     return RT_OK;
   }
+
+  virtual rtError Set(const char* name, const rtValue* value);
 
   rtError getChild(int32_t i, rtObjectRef& r) const 
   {
@@ -752,12 +757,20 @@ protected:
   rtString mId;
   pxMatrix4f mMatrix;
   bool mUseMatrix;
+  #ifdef PX_DIRTY_RECTANGLES
+  bool mIsDirty;
+  pxMatrix4f mLastRenderMatrix;
+  pxRect mScreenCoordinates;
+  #endif //PX_DIRTY_RECTANGLES
 
   pxContextFramebufferRef createSnapshot(pxContextFramebufferRef fbo);
   void createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxContextFramebufferRef maskFbo);
   void deleteSnapshot(pxContextFramebufferRef fbo);
   void createMask();
   void deleteMask();
+  #ifdef PX_DIRTY_RECTANGLES
+  pxRect getBoundingRectInScreenCoordinates();
+  #endif //PX_DIRTY_RECTANGLES
 
   pxScene2d* mScene;
 
@@ -849,8 +862,10 @@ testView(): mContainer(NULL),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) 
   virtual void RT_STDCALL setViewContainer(pxIViewContainer* l)
   {
     rtLogInfo("testView::setViewContainer(%p)", l);
+    mContainer = l;
   }
 
+  virtual void RT_STDCALL onUpdate(double t);
   virtual void RT_STDCALL onDraw();
 
 
@@ -866,7 +881,7 @@ private:
   int32_t mMouseX, mMouseY;
 };
 
-class pxViewContainer: public pxObject
+class pxViewContainer: public pxObject, public pxIViewContainer
 {
 public:
   rtDeclareObject(pxViewContainer, pxObject);
@@ -904,9 +919,14 @@ public:
   {
     mView = v;
     if (mView)
+    {
       mView->onSize(mw,mh);
+      mView->setViewContainer(this);
+    }
     return RT_OK;
   }
+
+  void invalidateRect(pxRect* r);
 
 #if 0
   rtError uri(rtString& v) const { v = mURI; return RT_OK; }
@@ -1029,6 +1049,13 @@ public:
     return RT_OK;
   }
 
+  virtual void update(double t)
+  {
+    if (mView)
+      mView->onUpdate(t);
+    pxObject::update(t);
+  }
+
   virtual void draw() 
   {
     if (mView)
@@ -1122,11 +1149,13 @@ public:
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
+  rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createRectangle", createRectangle, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createImage", createImage, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createImage9", createImage9, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createText", createText, rtObjectRef, rtObjectRef);
+  rtMethod1ArgAndReturn("createText2", createText2, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createScene", createScene, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
@@ -1188,10 +1217,14 @@ public:
   rtError showOutlines(bool& v) const;
   rtError setShowOutlines(bool v);
 
+  rtError showDirtyRect(bool& v) const;
+  rtError setShowDirtyRect(bool v);
+
   rtError create(rtObjectRef p, rtObjectRef& o);
   rtError createObject(rtObjectRef p, rtObjectRef& o);
   rtError createRectangle(rtObjectRef p, rtObjectRef& o);
   rtError createText(rtObjectRef p, rtObjectRef& o);
+  rtError createText2(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
   rtError createScene(rtObjectRef p,rtObjectRef& o);
@@ -1250,9 +1283,15 @@ public:
   virtual void onKeyUp(uint32_t keycode, uint32_t flags);
   virtual void onChar(uint32_t codepoint);
   
+  virtual void onUpdate(double t);
   virtual void onDraw();
 
-  virtual void setViewContainer(pxIViewContainer* /*l*/) {}
+  virtual void setViewContainer(pxIViewContainer* l) 
+  {
+    mContainer = l;
+  }
+
+  void invalidateRect(pxRect* r);
   
   void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m);
   void getMatrixFromSceneToObject(pxObject* o, pxMatrix4f& m);
@@ -1301,6 +1340,13 @@ private:
   bool mTop;
   bool mStopPropagation;
   int mTag;
+  pxIViewContainer *mContainer;
+  bool mShowDirtyRect;
+public:
+  bool mDirty;
+  #ifdef PX_DIRTY_RECTANGLES
+  static pxRect mDirtyRect;
+  #endif //PX_DIRTY_RECTANGLES
 };
 
 class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase

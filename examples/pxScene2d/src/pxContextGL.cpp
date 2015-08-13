@@ -901,15 +901,14 @@ static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const float* c
 
 static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw, const float* c)
 {
-  float half = lw/2;
-  float ox1  = x-half;
-  float ix1  = x+half;
-  float ox2  = x+w+half;
-  float ix2  = x+w-half;
-  float oy1  = y-half;
-  float iy1  = y+half;
-  float oy2  = y+h+half;
-  float iy2  = y+h-half;
+   float ox1  = x;
+  float ix1  = x+lw;
+  float ox2  = x+w;
+  float ix2  = x+w-lw;
+  float oy1  = y;
+  float iy1  = y+lw;
+  float oy2  = y+h;
+  float iy2  = y+h-lw;
   
   const GLfloat verts[10][2] =
   {
@@ -1165,6 +1164,8 @@ void pxContext::setSize(int w, int h)
   {
     defaultContextSurface.width = w;
     defaultContextSurface.height = h;
+    gResW = w;
+    gResH = h;
   }
 }
 
@@ -1173,9 +1174,26 @@ void pxContext::clear(int /*w*/, int /*h*/)
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void pxContext::clear(int left, int top, int right, int bottom)
+{
+  glEnable(GL_SCISSOR_TEST); //todo - not set each frame
+
+  //map form screen to window coordinates
+  glScissor(left, gResH-top-bottom, right, bottom);
+  glClear(GL_COLOR_BUFFER_BIT);
+}
+
 void pxContext::setMatrix(pxMatrix4f& m)
 {
   gMatrix.multiply(m);
+  #ifdef PX_DIRTY_RECTANGLES
+  gMatrix.copy(m); //TODO - fix me
+  #endif //PX_DIRTY_RECTANGLES
+}
+
+pxMatrix4f pxContext::getMatrix()
+{
+  return gMatrix;
 }
 
 void pxContext::setAlpha(float a)
@@ -1344,4 +1362,22 @@ void pxContext::snapshot(pxOffscreen& o)
 {
   o.init(gResW,gResH);
   glReadPixels(0,0,gResW,gResH,GL_RGBA,GL_UNSIGNED_BYTE,(void*)o.base());
+}
+
+void pxContext::mapToScreenCoordinates(float inX, float inY, int &outX, int &outY)
+{
+  pxVector4f positionVector(inX, inY, 0, 1);
+  pxVector4f positionCoords = gMatrix.multiply(positionVector);
+
+  outX = positionCoords.mX / positionCoords.mW;
+  outY = positionCoords.mY / positionCoords.mW;
+}
+
+void pxContext::mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int &outX, int &outY)
+{
+  pxVector4f positionVector(inX, inY, 0, 1);
+  pxVector4f positionCoords = m.multiply(positionVector);
+
+  outX = positionCoords.mX / positionCoords.mW;
+  outY = positionCoords.mY / positionCoords.mW;
 }

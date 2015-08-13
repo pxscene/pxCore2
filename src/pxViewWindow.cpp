@@ -3,6 +3,7 @@
 // pxViewWindow.cpp
 
 #include "pxViewWindow.h"
+#include "pxTimer.h"
 
 //#include "rtLog.h"
 
@@ -94,6 +95,15 @@ void pxViewWindow::onChar(uint32_t codepoint)
 {
   if (mView)
     mView->onChar(codepoint);
+}
+
+
+void pxViewWindow::onAnimationTimer()
+{
+  if (mView)
+  {
+    mView->onUpdate(pxSeconds());
+  }
 }
 
 void pxViewWindow::onDraw(pxSurfaceNative s)

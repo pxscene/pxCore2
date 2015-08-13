@@ -27,10 +27,7 @@ protected:
     pxWindow::invalidateRect(r);
   }
 
-  void onAnimationTimer()
-  {
-    invalidateRect(NULL);
-  }
+  virtual void onAnimationTimer();
 
   // The following methods are delegated to the view
   virtual void onSize(int32_t w, int32_t h);

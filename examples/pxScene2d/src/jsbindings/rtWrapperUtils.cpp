@@ -4,7 +4,8 @@
 
 #include <rtMutex.h>
 
-static pthread_mutex_t sSceneLock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+static pthread_t sCurrentSceneThread;
 static rtMutex objectMapMutex;
 
 typedef std::map< rtIObject*, Persistent<Object>* > maptype_rt2v8;
@@ -59,14 +60,21 @@ Local<Object> HandleMap::lookupSurrogate(v8::Isolate* isolate, const rtObjectRef
   return obj;
 }
 
+bool rtWrapperSceneUpdateHasLock()
+{
+  return pthread_self() == sCurrentSceneThread;
+}
+
 void rtWrapperSceneUpdateEnter()
 {
   pthread_mutex_lock(&sSceneLock);
+  sCurrentSceneThread = pthread_self();
 }
 
 void rtWrapperSceneUpdateExit()
 {
   pthread_mutex_unlock(&sSceneLock);
+  sCurrentSceneThread = 0;
 }
 
 using namespace v8;

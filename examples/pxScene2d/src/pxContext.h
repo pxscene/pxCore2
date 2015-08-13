@@ -24,8 +24,10 @@ class pxContext {
 
   void setSize(int w, int h);
   void clear(int w, int h);
+  void clear(int left, int top, int width, int height);
 
   void setMatrix(pxMatrix4f& m);
+  pxMatrix4f getMatrix();
   void setAlpha(float a);
   float getAlpha();
 
@@ -36,7 +38,9 @@ class pxContext {
   pxError updateFramebuffer(pxContextFramebufferRef fbo, int width, int height);
   pxError setFramebuffer(pxContextFramebufferRef fbo);
   pxContextFramebufferRef getCurrentFramebuffer();
-//  pxError deleteContextSurface(pxTextureRef texture);
+
+  void mapToScreenCoordinates(float inX, float inY, int &outX, int &outY);
+  void mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int &outX, int &outY);
 
   pxTextureRef createTexture(pxOffscreen& o);
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer);

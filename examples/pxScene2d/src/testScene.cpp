@@ -6,6 +6,7 @@
 #include "rtPathUtils.h"
 #include "pxScene2d.h"
 #include "pxText.h"
+#include "pxText2.h"
 #include "pxImage.h"
 #include "pxKeycodes.h"
 
@@ -414,6 +415,16 @@ pxViewRef testScene()
   bg2.set("parent", root);
   bg2.set("w", scene->w());
   bg2.set("h", scene->h());
+
+  rtObjectRef r;
+  scene.sendReturns<rtObjectRef>("createRectangle", r);
+  if (r)
+  {
+    r.set("w", 300);
+    r.set("h", 300);
+    r.set("fillColor", 0xaaaaaaff);
+    r.set("parent", root);
+  }
 
   rtObjectRef t;
   scene.sendReturns<rtObjectRef>("createText", t);

@@ -19,6 +19,7 @@
 
 #include "pxRectangle.h"
 #include "pxText.h"
+#include "pxText2.h"
 #include "pxImage.h"
 #include "pxImage9.h"
 
@@ -126,9 +127,6 @@ unsigned char *base64_decode(const unsigned char *data,
     return decoded_data;
 }
 
-
-
-
 // TODO get rid of globals
 pxContext context;
 rtFunctionRef gOnScene;
@@ -168,9 +166,23 @@ int numInterps = sizeof(interps)/sizeof(interps[0]);
 
 #endif
 
+#ifdef PX_DIRTY_RECTANGLES
+pxRect pxScene2d::mDirtyRect;
+#endif //PX_DIRTY_RECTANGLES
+
 double pxInterpLinear(double i)
 {
   return pxClamp<double>(i, 0, 1);
+}
+
+
+rtError pxObject::Set(const char* name, const rtValue* value)
+{
+  #ifdef PX_DIRTY_RECTANGLES
+  mIsDirty = true;
+  #endif //PX_DIRTY_RECTANGLES
+  mScene->mDirty = true;
+  return rtObject::Set(name, value);
 }
 
 rtError pxObject::animateToP2(rtObjectRef props, double duration, 
@@ -234,22 +246,11 @@ rtError pxObject::removeAll()
 
 rtError pxObject::moveToFront()
 {
-  rtObjectRef rtChild;
   pxObject* parent = this->parent();
  
-  if( parent != NULL) {
-	  // TO DO: Need split out to getIndexOfChild method?
-	  for(int32_t i = 0; i < (int32_t)parent->numChildren(); i++) {
-		  parent->getChild(i, rtChild);
-		  if( strncmp(((pxObject*)&rtChild)->id(),this->id(),this->id().length()) == 0) {
-				rtLogInfo("moveToFront: found child\n");
-				// Remove and add to end
-				this->remove();
-				this->setParent(parent);
-				break;
-			} 
-	  }
-  }
+  remove();
+  setParent(parent);
+
   return RT_OK;
 }
 #if 0
@@ -457,6 +458,17 @@ void pxObject::update(double t)
     mCancelInSet = true;
     ++it;
   }
+
+
+  #ifdef PX_DIRTY_RECTANGLES
+  if (mIsDirty)
+  {
+    mScene->mDirtyRect.unionRect(mScreenCoordinates);
+    pxRect dirtyRect = getBoundingRectInScreenCoordinates();
+    mScene->mDirtyRect.unionRect(dirtyRect);
+    mIsDirty = false;
+  }
+  #endif //PX_DIRTY_RECTANGLES
   
   // Recursively update children
   for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -464,6 +476,44 @@ void pxObject::update(double t)
     (*it)->update(t);
   }
 }
+
+#ifdef PX_DIRTY_RECTANGLES
+pxRect pxObject::getBoundingRectInScreenCoordinates()
+{
+  int x[4], y[4];
+  context.mapToScreenCoordinates(mLastRenderMatrix, 0,0,x[0],y[0]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, mw, mh, x[1], y[1]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, 0, mh, x[2], y[2]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, mw, 0, x[3], y[3]);
+  int left, right, top, bottom;
+
+  left = x[0];
+  right = x[0];
+  top = y[0];
+  bottom = y[0];
+  for (int i = 0; i < 4; i ++)
+  {
+    if (x[i] < left)
+    {
+      left = x[i];
+    }
+    else if (x[i] > right)
+    {
+      right = x[i];
+    }
+
+    if (y[i] < top)
+    {
+      top = y[i];
+    }
+    else if (y[i] > bottom)
+    {
+      bottom = y[i];
+    }
+  }
+  return pxRect(left, top, right, bottom);
+}
+#endif //PX_DIRTY_RECTANGLES
 
 const float alphaEpsilon = (1.0f/255.0f);
 
@@ -532,6 +582,11 @@ void pxObject::drawInternal(bool maskPass)
 
   context.setMatrix(m);
   context.setAlpha(ma);
+
+  #ifdef PX_DIRTY_RECTANGLES
+  mLastRenderMatrix = context.getMatrix();
+  mScreenCoordinates = getBoundingRectInScreenCoordinates();
+  #endif //PX_DIRTY_RECTANGLES
   
   float c[4] = {1, 0, 0, 1};
   context.drawDiagRect(0, 0, mw, mh, c);
@@ -778,6 +833,9 @@ bool pxObject::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
       return true;
     }
   }
+  #ifdef PX_DIRTY_RECTANGLES
+  mIsDirty = true;
+  #endif //PX_DIRTY_RECTANGLES
   return false;
 }
 
@@ -850,13 +908,18 @@ rtDefineProperty(pxObject,useMatrix);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top)
- :start(0),frameCount(0) 
+  :start(0),frameCount(0), mContainer(NULL), mShowDirtyRect(false)
 { 
   mRoot = new pxObject(this);
   mFocus = mRoot;
   mEmit = new rtEmit();
   mTop = top;
   mTag = gTag++;
+  // make sure that initial onFocus is sent
+  rtObjectRef e = new rtMapObject;
+  e.set("target",mFocus);
+  rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+  t->mEmit.send("onFocus",e);
 }
 
 void pxScene2d::init()
@@ -882,6 +945,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createRectangle(p,o);
   else if (!strcmp("text",t.cString()))
     e = createText(p,o);
+  else if (!strcmp("text2",t.cString()))
+    e = createText2(p,o);    
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
   else if (!strcmp("image9",t.cString()))
@@ -939,6 +1004,14 @@ rtError pxScene2d::createText(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
+rtError pxScene2d::createText2(rtObjectRef p, rtObjectRef& o)
+{
+  o = new pxText2(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+}
+
 rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImage(this);
@@ -987,6 +1060,46 @@ rtError pxScene2d::allInterpolators(rtObjectRef& v) const
 
 void pxScene2d::draw()
 {
+  #ifdef PX_DIRTY_RECTANGLES
+  int x = mDirtyRect.left();
+  int y = mDirtyRect.top();
+  int w = mDirtyRect.right() - x;
+  int h = mDirtyRect.bottom() - y;
+  if (mTop)
+  {
+    if (mShowDirtyRect)
+    {
+      glDisable(GL_SCISSOR_TEST);
+      context.clear(mWidth, mHeight);
+    }
+    else
+    {
+      context.clear(x, y, w, h);
+    }
+  }
+
+  if (mRoot)
+  {
+    pxMatrix4f m;
+    mRoot->drawInternal(m, 1.0);
+    mDirtyRect.setEmpty();
+  }
+
+  if (mTop && mShowDirtyRect)
+  {
+    pxMatrix4f identity;
+    identity.identity();
+    pxMatrix4f currentMatrix = context.getMatrix();
+    context.setMatrix(identity);
+    float red[]= {1,0,0,1};
+    bool showOutlines = context.showOutlines();
+    context.setShowOutlines(true);
+    context.drawDiagRect(x, y, w, h, red);
+    context.setShowOutlines(showOutlines);
+    context.setMatrix(currentMatrix);
+    glEnable(GL_SCISSOR_TEST);
+  }
+  #else
   if (mTop)
     context.clear(mWidth, mHeight);
 
@@ -997,27 +1110,25 @@ void pxScene2d::draw()
     mRoot->drawInternal(1.0);
     context.popState();
   }
+  #endif //PX_DIRTY_RECTANGLES
 }
 
-void pxScene2d::onDraw()
+
+void pxScene2d::onUpdate(double t)
 {
-
-  if (mTop)
-    context.setSize(mWidth, mHeight);
-
-
-  if (start == 0)
-  {
-    start = pxSeconds();
-  }
-  
-#if 1
   pxTextureCacheObject::checkForCompletedDownloads();
   pxText::checkForCompletedDownloads();
-  update(pxSeconds());
-  draw();
-#endif
 
+  if (start == 0)
+    start = pxSeconds();
+
+  update(t);
+  if (mDirty)
+  {
+    mDirty = false;
+    if (mContainer)
+      mContainer->invalidateRect(NULL);
+  }
   // TODO get rid of mTop somehow
   if (mTop)
   {
@@ -1039,6 +1150,18 @@ void pxScene2d::onDraw()
 
   frameCount++;
   }
+}
+
+void pxScene2d::onDraw()
+{
+//  printf("**** drawing \n");
+
+  if (mTop)
+    context.setSize(mWidth, mHeight);  
+#if 1
+    draw();
+#endif
+
 }
 
 // Does not draw updates scene to time t
@@ -1206,7 +1329,6 @@ rtError pxScene2d::setFocus(rtObjectRef o)
 	    rtObjectRef e = new rtMapObject;
 	    e.set("target",mFocus);
 	    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
-	    //bubbleEvent(e, t, "onPreBlur", "onBlur");
 	    t->mEmit.send("onBlur",e);
   }
 
@@ -1461,6 +1583,18 @@ rtError pxScene2d::setShowOutlines(bool v)
   return RT_OK; 
 }
 
+rtError pxScene2d::showDirtyRect(bool& v) const
+{
+  v=mShowDirtyRect;
+  return RT_OK;
+}
+
+rtError pxScene2d::setShowDirtyRect(bool v)
+{
+  mShowDirtyRect = v;
+  return RT_OK;
+}
+
 rtError pxScene2d::onScene(rtFunctionRef& v) const 
 { 
   v = gOnScene; 
@@ -1511,9 +1645,11 @@ rtDefineProperty(pxScene2d, onScene);
 rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
+rtDefineProperty(pxScene2d, showDirtyRect);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, createRectangle);
 rtDefineMethod(pxScene2d, createText);
+rtDefineMethod(pxScene2d, createText2);
 rtDefineMethod(pxScene2d, createImage);
 rtDefineMethod(pxScene2d, createImage9);
 rtDefineMethod(pxScene2d, createScene);
@@ -1565,6 +1701,12 @@ rtError pxScene2dRef::Set(uint32_t i, const rtValue* value)
   return (*this)->Set(i, value);
 }
 
+void RT_STDCALL testView::onUpdate(double /*t*/)
+{
+  if (mContainer)
+    mContainer->invalidateRect(NULL);
+}
+
 void RT_STDCALL testView::onDraw()
 {
 //  rtLogInfo("testView::onDraw()");
@@ -1575,6 +1717,11 @@ void RT_STDCALL testView::onDraw()
   context.drawRect(mw, mh, 1, mEntered?green:red, white); 
   context.drawDiagLine(0,mMouseY,mw,mMouseY,black);
   context.drawDiagLine(mMouseX,0,mMouseX,mh,black);
+}
+
+void pxViewContainer::invalidateRect(pxRect* /*r*/)
+{
+  mScene->mDirty = true;
 }
 
 rtDefineObject(pxViewContainer, pxObject);

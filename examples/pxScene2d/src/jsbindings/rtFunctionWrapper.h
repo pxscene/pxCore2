@@ -58,8 +58,13 @@ public:
     return mRefCount;
   }
 
+  void signal(rtValue const& returnValue);
+
 private:
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
+
+  rtValue wait();
+  void setupSynchronousWait();
 
   class FunctionLookup : public jsIFunctionLookup
   {
@@ -77,6 +82,12 @@ private:
   Persistent<Function> mFunction;
   Isolate* mIsolate;
   vector<rtValue> mArgs;
+
+  bool mComplete;
+  bool mTeardownThreadingPrimitives;
+  pthread_mutex_t mMutex;
+  pthread_cond_t mCond;
+  rtValue mReturnValue;
 };
 
 #endif

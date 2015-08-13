@@ -1,10 +1,10 @@
 var root = scene.root;
 
 
-var bg = scene.createRectangle({fillColor:0xccccccff, parent:root});
+//var bg = scene.createRectangle({fillColor:0xccccccff, parent:root});
 function updateSize(w, h) {
-    bg.w = w;
-    bg.h = h;
+//    bg.w = w;
+//    bg.h = h;
 }
 
 scene.on("onResize", function(e){updateSize(e.w,e.h);});
@@ -48,7 +48,7 @@ for (var i=0; i < faces.length; i++)
     console.log(faceName);
     var t = scene.createText({text:"Enter in some text...", 
                               parent:row,x:10,
-                              textColor:0x000000ff, pixelSize:36,
+                              textColor:0xfaebd7ff, pixelSize:36,
                               faceURL:faces[i]});
     var t2 = scene.createText({text:faceName, 
                                parent:row,x:20,y:t.h,

@@ -47,6 +47,7 @@ extern "C" {
 
 FT_Library ft;
 
+
 int fontDownloadsPending = 0; //must only be set in the main thread
 rtMutex fontDownloadMutex;
 bool fontDownloadsAvailable = false;
@@ -114,6 +115,34 @@ void pxFace::setPixelSize(uint32_t s)
     mPixelSize = s;
   }
 }
+void pxFace::getHeight(float& height)
+{
+ 	// is mFace ever not valid?
+	// TO DO:  check FT_IS_SCALABLE 
+	FT_Size_Metrics* metrics = &mFace->size->metrics;
+  	
+	height = metrics->height>>6; 
+}
+  
+void pxFace::getMetrics(float& height, float& ascender, float& descender, float& naturalLeading)
+{
+//	printf("pxFace::getMetrics\n");
+	// is mFace ever not valid?
+	// TO DO:  check FT_IS_SCALABLE 
+	FT_Size_Metrics* metrics = &mFace->size->metrics;
+
+	double            em_size, y_scale;
+
+	/* compute floating point scale factors */
+	em_size = 1.0 * mFace->units_per_EM;
+	y_scale = metrics->y_ppem / em_size;
+  	
+	height = metrics->height>>6;
+	ascender = metrics->ascender * y_scale;
+	descender = metrics->descender * y_scale;
+  naturalLeading = height - (ascender + descender);
+
+}
   
 const GlyphCacheEntry* pxFace::getGlyph(uint32_t codePoint)
 {
@@ -140,7 +169,7 @@ const GlyphCacheEntry* pxFace::getGlyph(uint32_t codePoint)
       entry->bitmapdotrows = g->bitmap.rows;
       entry->advancedotx = g->advance.x;
       entry->advancedoty = g->advance.y;
-      entry->vertAdvance = g->metrics.vertAdvance;
+      entry->vertAdvance = g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
       
       entry->mTexture = context.createTexture(g->bitmap.width, g->bitmap.rows, 
                                               g->bitmap.width, g->bitmap.rows, 
@@ -181,8 +210,7 @@ void pxFace::measureText(const char* text, uint32_t size,  float sx, float sy,
     }
     else
     {
-      //h += metrics->height>>6;
-      h += (metrics->height);
+      h += metrics->height>>6;
       lw = 0;
     }
     w = pxMax<float>(w, lw);
@@ -242,6 +270,32 @@ void pxFace::renderText(const char *text, uint32_t size, float x, float y,
     }
   }
 }
+
+void pxFace::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
+                         float& w, float& h) 
+{
+  
+  setPixelSize(size);
+  
+  w = 0; h = 0;
+  
+  FT_Size_Metrics* metrics = &mFace->size->metrics;
+  
+  h = metrics->height>>6;
+  float lw = 0;
+
+  const GlyphCacheEntry* entry = getGlyph(codePoint);
+  if (!entry) 
+    return;
+
+  lw = (entry->advancedotx >> 6) * sx;
+
+  w = pxMax<float>(w, lw);
+
+  h *= sy;
+}
+
+
 
 typedef rtRefT<pxFace> pxFaceRef;
 
@@ -373,7 +427,9 @@ rtError pxText::setFaceURL(const char* s)
   FaceMap::iterator it = gFaceMap.find(s);
   if (it != gFaceMap.end())
   {
-    mReady.send("resolve", this);
+//    printf("pxText::setFaceURL sending ready\n");
+    fontLoaded();
+    //mReady.send("resolve", this);
     mFace = it->second;
   }
   else
@@ -400,12 +456,16 @@ rtError pxText::setFaceURL(const char* s)
       if (e != RT_OK)
       {
         rtLogInfo("Could not load font face, %s, %s\n", "blah", s);
+        fontLoaded(); // font is still loaded, it's just the default font because some 
+                      // error occurred.
         mReady.send("reject",this);
         return e;
       }
       else
       {
-        mReady.send("resolve", this);
+        //printf("pxText::setFaceURL sending ready 2\n");
+        fontLoaded();
+        //mReady.send("resolve", this);
         mFace = f;
       }
     }
@@ -481,7 +541,9 @@ void pxText::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
     }
     else {
       mFace = f;
-      mReady.send("resolve",this);
+      //printf("pxText::onFontDownloadComplete2 sending ready 2\n");
+      fontLoaded();
+      //mReady.send("resolve",this);
     }
   }
   else
