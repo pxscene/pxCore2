@@ -4,7 +4,12 @@
 
 #include <rtMutex.h>
 
+#ifdef __APPLE__
+static pthread_mutex_t sSceneLock = PTHREAD_MUTEX_INITIALIZER;
+#else
 static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+#endif
+
 static pthread_t sCurrentSceneThread;
 static rtMutex objectMapMutex;
 
