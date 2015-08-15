@@ -84,7 +84,7 @@ function doIt() {
                           y:randomInt(50,scene.h-picture.h-50),
                           r:randomInt(-15,15),sx:0.75,sy:0.75},1,pxStop,0)
         .then(function() {
-          if (pictures.numChildren > 15) {
+          if (pictures.numChildren > 10) {
             var f = pictures.getChild(0);
             f.animateTo({a: 0}, 0.75, 0, 0)
               .then(function(f){

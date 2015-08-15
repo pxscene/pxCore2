@@ -241,7 +241,7 @@ void pxWindowNative::invalidateRectInternal(pxRect *r)
 {
   (void)r;
   //rendering for egl is now handled inside of onWindowTimerFired()
-  //drawFrame();
+  drawFrame();
 }
 
 bool pxWindow::visibility()
@@ -379,7 +379,7 @@ void pxWindowNative::animateAndRender()
 {
   static double lastAnimationTime = pxMilliseconds();
   double currentAnimationTime = pxMilliseconds();
-  drawFrame(); 
+  //drawFrame(); 
 
   double animationDelta = currentAnimationTime-lastAnimationTime;
   if (mResizeFlag)
@@ -400,6 +400,7 @@ void pxWindowNative::animateAndRender()
         setLastAnimationTime(currentAnimationTime);
     }
   }
+  else printf("mTimerFPS is 0\n");
 }
 
 void pxWindowNative::drawFrame()

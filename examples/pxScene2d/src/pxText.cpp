@@ -99,12 +99,14 @@ rtError pxFace::init(const FT_Byte*  fontData, FT_Long size, const char* n)
 
 pxFace::~pxFace() 
 { 
-  rtLogInfo("~pxFace"); 
+//  rtLogInfo("~pxFace"); 
   FaceMap::iterator it = gFaceMap.find(mFaceName);
   if (it != gFaceMap.end())
     gFaceMap.erase(it);
+#if 0
   else
     rtLogError("Could not find faceName in map");
+#endif
 }
 
 void pxFace::setPixelSize(uint32_t s)
@@ -536,7 +538,7 @@ void pxText::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
                         fontDownloadRequest.fileDownloadRequest->getFileURL().cString());
     if (e != RT_OK)
     {
-      rtLogInfo("Could not load font face, %s, %s\n", "blah", fontDownloadRequest.fileDownloadRequest->getFileURL().cString());
+//      rtLogInfo("Could not load font face, %s, %s\n", "blah", fontDownloadRequest.fileDownloadRequest->getFileURL().cString());
       mReady.send("reject",this);
     }
     else {

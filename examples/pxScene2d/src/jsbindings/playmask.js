@@ -2,10 +2,10 @@ var root = scene.root;
 
 var w = 180;
 var h = 240;
-var across = 15;
+var across = 7;
 var baseURL = "http://54.146.54.142/images/dvd_tile.";
 for (var k = 0; k < 1; k++) {
-for(var i = 1; i <= 209; i++) {
+for(var i = 1; i <= 21; i++) {
   var url = baseURL+i+".jpg";
   var j = i-1;
 var maskurl = process.cwd()+"/../../images/postermask2.png";
