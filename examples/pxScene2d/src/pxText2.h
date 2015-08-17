@@ -290,8 +290,8 @@ public:
   rtProperty(xStartPos, xStartPos, setXStartPos, float); 
   rtProperty(xStopPos, xStopPos, setXStopPos, float);
   rtProperty(truncation, truncation, setTruncation, uint32_t);
-  rtProperty(verticalAlign, verticalAlign, setVerticalAlign, uint8_t);
-  rtProperty(horizontalAlign, horizontalAlign, setHorizontalAlign, uint8_t);
+  rtProperty(verticalAlign, verticalAlign, setVerticalAlign, uint32_t);
+  rtProperty(horizontalAlign, horizontalAlign, setHorizontalAlign, uint32_t);
   rtProperty(leading, leading, setLeading, float); 	
   
   bool wordWrap()            const { return mWordWrap;}
@@ -312,15 +312,15 @@ public:
     
   uint32_t truncation()             const { return mTruncation; }
   rtError truncation(uint32_t& v)   const { v = mTruncation; return RT_OK;   }
-  rtError setTruncation(uint32_t v)       { mTruncation = v; recalc(); return RT_OK;   }
+  rtError setTruncation(uint32_t v)       { printf("pxText2::setTruncation() %d\n", v); mTruncation = v; recalc(); return RT_OK;   }
 
   uint8_t verticalAlign()             const { return mVerticalAlign; }
-  rtError verticalAlign(uint8_t& v)   const { v = mVerticalAlign; return RT_OK;   }
-  rtError setVerticalAlign(uint8_t v)       { mVerticalAlign = v; recalc(); return RT_OK;   }
+  rtError verticalAlign(uint32_t& v)   const { v = mVerticalAlign; return RT_OK;   }
+  rtError setVerticalAlign(uint32_t v)       { mVerticalAlign = v; recalc(); return RT_OK;   }
   
-  uint8_t horizontalAlign()             const { return mHorizontalAlign; }
-  rtError horizontalAlign(uint8_t& v)   const { v = mHorizontalAlign; return RT_OK;   }
-  rtError setHorizontalAlign(uint8_t v)       { mHorizontalAlign = v; recalc(); return RT_OK;   }
+  uint8_t horizontalAlign()             const { printf("pxText2::horizontalAlign() %d\n", mHorizontalAlign); return mHorizontalAlign; }
+  rtError horizontalAlign(uint32_t& v)   const { printf("pxText2::horizontalAlign(v) %d\n", mHorizontalAlign); v = mHorizontalAlign; return RT_OK;   }
+  rtError setHorizontalAlign(uint32_t v)       { mHorizontalAlign = v; recalc(); return RT_OK;   }
   
   float leading()             const { return mLeading; }
   rtError leading(float& v)   const { v = mLeading; return RT_OK;   }
@@ -348,7 +348,7 @@ public:
               !strcmp(name,"ellipsis") ||
               !strcmp(name,"xStartPos") ||
               !strcmp(name,"xStopPos") ||
-              !strcmp(name,"mTruncation") ||
+              !strcmp(name,"truncation") ||
               !strcmp(name,"verticalAlign")||
               !strcmp(name,"horizontalAlign") ||
               !strcmp(name,"leading"));
@@ -364,8 +364,8 @@ public:
 	uint32_t mTruncation;  
 	float mXStartPos;
 	float mXStopPos;
-	float mVerticalAlign;
-	float mHorizontalAlign;
+	uint32_t mVerticalAlign;
+	uint32_t mHorizontalAlign;
 	float mLeading;
 	bool mWordWrap;
 	bool mEllipsis;
