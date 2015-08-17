@@ -17,25 +17,10 @@ extern "C" {
 
 
 pxText2::pxText2(pxScene2d* s):pxText(s)
-                               //,mTruncation(false),mXStartPos(0),mXStopPos(0),
-                               //mVerticalAlign(0),mHorizontalAlign(0),mLeading(0),
-                               //mWordWrap(false),mEllipsis(false),mFontLoaded(false),mInitialized(false),
-                               //lineNumber(0),lastLineNumber(0)
 {
   measurements= new pxTextMeasurements(s);
-  
   mFontLoaded = false;
   mInitialized = false;
-  mWordWrap = false;
-  mEllipsis = false;
-  lineNumber = 0;
-  lastLineNumber = 0;
-  mTruncation = false;  
-  mXStartPos = 0;
-  mXStopPos = 0;
-  mVerticalAlign = 0;
-  mHorizontalAlign = 0;
-  mLeading = 0;  
 }
 
 pxText2::~pxText2()
