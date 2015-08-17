@@ -136,6 +136,7 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
   }
 }
 
+
 function readConfigFile(argv)
 {
   var fs = require('fs');
@@ -162,7 +163,22 @@ function readConfigFile(argv)
   return configSettings;
 }
 
-var scene = px.getScene(0, 0, 1280, 720);
+var ww = 800;
+var wh = 400;
+
+var ew = process.env.HOR;
+var eh = process.env.VER;
+
+if (ew)
+  ww = ew;
+
+if (eh)
+  wh = eh;
+
+//var scene = px.getScene(0, 0, 800, 400);
+var scene = px.getScene(0, 0, ww, eh);
+
+
 var api = new Api(scene);
 
 // register a "global" hook that gets invoked whenever a child scene is created

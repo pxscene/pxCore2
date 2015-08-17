@@ -83,6 +83,7 @@ public:
     #else
     uv_timer_start(&mTimer, timerCallback, 1000, 1000);
     #endif
+    setAnimationFPS(60);
   }
 
   Local<Object> scene(Isolate* isolate) const

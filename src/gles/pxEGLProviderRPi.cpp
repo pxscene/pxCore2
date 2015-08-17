@@ -129,6 +129,8 @@ static void init_ogl(CUBE_STATE_T *state)
    nativewindow.width = state->screen_width;
    nativewindow.height = state->screen_height;
    vc_dispmanx_update_submit_sync( dispman_update );
+
+   printf("window width %d %d\n", nativewindow.width, nativewindow.height);
       
    check();
 
