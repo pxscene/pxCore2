@@ -312,14 +312,14 @@ public:
     
   uint32_t truncation()             const { return mTruncation; }
   rtError truncation(uint32_t& v)   const { v = mTruncation; return RT_OK;   }
-  rtError setTruncation(uint32_t v)       { printf("pxText2::setTruncation() %d\n", v); mTruncation = v; recalc(); return RT_OK;   }
+  rtError setTruncation(uint32_t v)       { mTruncation = v; recalc(); return RT_OK;   }
 
   uint8_t verticalAlign()             const { return mVerticalAlign; }
   rtError verticalAlign(uint32_t& v)   const { v = mVerticalAlign; return RT_OK;   }
   rtError setVerticalAlign(uint32_t v)       { mVerticalAlign = v; recalc(); return RT_OK;   }
   
-  uint8_t horizontalAlign()             const { printf("pxText2::horizontalAlign() %d\n", mHorizontalAlign); return mHorizontalAlign; }
-  rtError horizontalAlign(uint32_t& v)   const { printf("pxText2::horizontalAlign(v) %d\n", mHorizontalAlign); v = mHorizontalAlign; return RT_OK;   }
+  uint8_t horizontalAlign()             const { return mHorizontalAlign; }
+  rtError horizontalAlign(uint32_t& v)   const { v = mHorizontalAlign; return RT_OK;   }
   rtError setHorizontalAlign(uint32_t v)       { mHorizontalAlign = v; recalc(); return RT_OK;   }
   
   float leading()             const { return mLeading; }
