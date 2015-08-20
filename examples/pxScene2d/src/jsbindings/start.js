@@ -1,4 +1,3 @@
-namedContext = "Start Global";
 var setLoggingLevel = require('rcvrcore/Logger').setLoggingLevel;
 
 var argDefinitions = {screenWidth:{required:false, default:1280, help:"Specifies the screen width"},
@@ -14,10 +13,8 @@ if( processArgs.hasOwnProperty('logLevel')) {
   setLoggingLevel(processArgs['logLevel']);
 }
 
-var xreFrameworkBaseUri = processArgs['xreFrameworkBaseUri'];
-console.log("xreFrameworkBaseUri=" + xreFrameworkBaseUri);
-
 // Create root object and send it the base URI of the xre2 framework modules
 var pxRoot = require('rcvrcore/PxRoot')(0, 0, processArgs['screenWidth'], processArgs['screenHeight']);
 
 pxRoot.addScene({url:processArgs['url'],w:processArgs['screenWidth'],h:processArgs['screenHeight']});
+pxRoot.setOriginalUrl(processArgs['url']);
