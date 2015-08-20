@@ -29,8 +29,11 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
     // before inserting it into the objectMap_rt2v8 map.
     // assert(p->IsWeak());
     //
+// Jake says that this situation is ok...
+#if 0
     if (!p->IsWeak())
       rtLogWarn("TODO: Why isn't this handle weak?");
+#endif
     if (p)
     {
       p->Reset();
