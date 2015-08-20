@@ -29,7 +29,6 @@ function AppSceneContext(params) { //rootScene, container, innerscene, packageUr
     this.packageUrl = params.packageUrl;
   }
   this.defaultBaseUri = "";
-  this.sceneManager = params.sceneManager;
   this.basePackageUri = "";
   this.fileArchive = null;
   this.packageManifest = null;
@@ -181,7 +180,6 @@ AppSceneContext.prototype.runScriptInVMContext = function (code, uri) {
       createInstance: createComponent.bind(this),
       getFile: getFile.bind(this),
       buildAbsoluteFilePath: buildAbsoluteFilePath.bind(this),
-      sceneManager: this.sceneManager,
       framework: {
         getNamespaceBaseFilePath: getNamespaceBaseFilePath.bind(this),
         installBaseFramework: installBaseFramework.bind(this)
