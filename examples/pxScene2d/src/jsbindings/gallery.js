@@ -10,7 +10,7 @@ url = process.cwd() + "/../../images/skulls.png";
 var bg = scene.createRectangle({url:url,xStretch:2,yStretch:2,parent:root,fillColor:0xe0e0e0ff});
 
 //url = process.cwd() + "/../../images/radial_gradient.png";
-url = process.cwd() + "/status_bg.png";
+url = process.cwd() + "/../../images/status_bg.png";
 var bgShade = scene.createImage({url:url,xStretch:1,yStretch:1,parent:root});
 
 var childPad = 48;
