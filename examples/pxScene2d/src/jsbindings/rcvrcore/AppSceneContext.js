@@ -62,12 +62,6 @@ AppSceneContext.prototype.loadScene = function() {
 
   this.loadPackage(fullPath);
 
-  ///this._scene.setFocus(innerscene); //fails - crashes with no error report
-  //container.setFocus(innerscene); // does not work - container does not contain setFocus
-  //innerscene.setFocus(container);  // does not work - no errors
-
-  this.rootScene.setFocus(this.container);  // works - enables child scene to work and get key events
-
   this.container.on('onKeyDown', function (e) {
     log.message(2, "container(" + this.packageUrl + "): keydown:" + e.keyCode);
   }.bind(this));

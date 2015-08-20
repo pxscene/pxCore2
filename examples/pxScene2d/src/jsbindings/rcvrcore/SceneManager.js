@@ -34,6 +34,7 @@ SceneManager.prototype.createNewAppContext = function(params) {
     }
 
     appSceneContext.loadScene();
+    params.rootScene.setFocus(params.sceneContainer);
     log.message(2, "  push app Scene context");
     this.sceneStack.push(appSceneContext);
   } else {
