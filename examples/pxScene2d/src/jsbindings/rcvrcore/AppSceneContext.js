@@ -48,13 +48,13 @@ AppSceneContext.prototype.loadScene = function() {
   var urlParts = url.parse(this.packageUrl, true);
   var fullPath = this.packageUrl;
   if (fullPath.substring(0, 4) !== "http") {
+    if( fullPath.charAt(0) === '.' ) {
+      // local file system
+      this.defaultBaseUri = ".";
+    }
     fullPath = urlParts.pathname;
     this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
     var fileName = this.packageUrl.substring(fullPath.lastIndexOf('/'));
-    if( this.packageUrl.charAt(0) === '.' ) {
-      // shouldn't allow indirect file system references.  Use base
-      ///fullPath = this.getPackageBaseFilePath() + fileName;
-    }
   } else {
     this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
   }
@@ -188,6 +188,7 @@ AppSceneContext.prototype.runScriptInVMContext = function (code, uri) {
         getNamespaceBaseFilePath: getNamespaceBaseFilePath.bind(this),
         installAppFramework: installAppFramework.bind(this),
         getPackageBaseFilePath: getPackageBaseFilePath.bind(this),
+        getPackageFile: getFile.bind(this),
         inputParams: this.queryParams
       },
       importTracking: {}
