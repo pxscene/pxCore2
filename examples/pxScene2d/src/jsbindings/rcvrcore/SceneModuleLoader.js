@@ -26,8 +26,8 @@ SceneModuleLoader.prototype.loadScenePackage = function(scenePackage) {
 
     _this.fileArchive = new FileArchive('SceneModule');
 
-    if (hasExtension(scenePackage.fileUri, '.tar') || hasExtension(scenePackage.fileUri, '.tar.gz')) {
-      _this.fileArchive.loadFromTarFile(scenePackage.fileUri).then(function () {
+    if (hasExtension(scenePackage.fileUri, '.jar') ) {
+      _this.fileArchive.loadFromJarFile(scenePackage.fileUri).then(function () {
         (_this.processFileArchive() == 0)? resolve() : reject();
       }).catch(function (error) {
         reject("Error loading tar file: " + error)
