@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 
+#include "pxWindow.h"
 #include "pxWindowUtil.h"
 #include "pxCore.h"
 #include "pxKeycodes.h"
@@ -328,3 +329,120 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
   return commonKeycode;
 }
 
+struct asciiKeymapEntry
+{
+  uint32_t keycode;
+  uint32_t flags;
+  uint32_t ascii;
+};
+
+static asciiKeymapEntry asciiKeymap[] = 
+{
+  {PX_KEY_SPACE, 0, ' '},
+  {PX_KEY_ONE, PX_MOD_SHIFT, '!'},
+  {PX_KEY_SINGLEQUOTE, PX_MOD_SHIFT, '"'},
+  {PX_KEY_THREE, PX_MOD_SHIFT, '#'},
+  {PX_KEY_FOUR, PX_MOD_SHIFT, '$'},
+  {PX_KEY_FIVE, PX_MOD_SHIFT, '%'},
+  {PX_KEY_SEVEN, PX_MOD_SHIFT, '&'},
+  {PX_KEY_SINGLEQUOTE, 0, '\''},
+  {PX_KEY_NINE, PX_MOD_SHIFT, '('},
+  {PX_KEY_ZERO, PX_MOD_SHIFT, '}'},
+  {PX_KEY_EIGHT, PX_MOD_SHIFT, '*'},
+  {PX_KEY_EQUALS, PX_MOD_SHIFT, '+'},
+  {PX_KEY_COMMA, 0, ','},
+  {PX_KEY_SUBTRACT, 0, '-'},
+  {PX_KEY_PERIOD, 0, '.'},
+  {PX_KEY_FORWARDSLASH, 0, '/'},
+  {PX_KEY_ZERO, 0, '0'},
+  {PX_KEY_ONE, 0, '1'},
+  {PX_KEY_TWO, 0, '2'},
+  {PX_KEY_THREE, 0, '3'},
+  {PX_KEY_FOUR, 0, '4'},
+  {PX_KEY_FIVE, 0, '5'},
+  {PX_KEY_SIX, 0, '6'},
+  {PX_KEY_SEVEN, 0, '7'},
+  {PX_KEY_EIGHT, 0, '8'},
+  {PX_KEY_NINE, 0, '9'},
+  {PX_KEY_SEMICOLON, PX_MOD_SHIFT, ':'},
+  {PX_KEY_SEMICOLON, 0, ';'},
+  {PX_KEY_COMMA, PX_MOD_SHIFT, '<'},
+  {PX_KEY_EQUALS, 0, '='},
+  {PX_KEY_PERIOD, PX_MOD_SHIFT, '>'},
+  {PX_KEY_FORWARDSLASH, PX_MOD_SHIFT, '?'},
+  {PX_KEY_TWO, PX_MOD_SHIFT, '@'},
+  {PX_KEY_A, PX_MOD_SHIFT, 'A'},
+  {PX_KEY_B, PX_MOD_SHIFT, 'B'},
+  {PX_KEY_C, PX_MOD_SHIFT, 'C'},
+  {PX_KEY_D, PX_MOD_SHIFT, 'D'},
+  {PX_KEY_E, PX_MOD_SHIFT, 'E'},
+  {PX_KEY_F, PX_MOD_SHIFT, 'F'},
+  {PX_KEY_G, PX_MOD_SHIFT, 'G'},
+  {PX_KEY_H, PX_MOD_SHIFT, 'H'},
+  {PX_KEY_I, PX_MOD_SHIFT, 'I'},
+  {PX_KEY_J, PX_MOD_SHIFT, 'J'},
+  {PX_KEY_K, PX_MOD_SHIFT, 'K'},
+  {PX_KEY_L, PX_MOD_SHIFT, 'L'},
+  {PX_KEY_M, PX_MOD_SHIFT, 'M'},
+  {PX_KEY_N, PX_MOD_SHIFT, 'N'},
+  {PX_KEY_O, PX_MOD_SHIFT, 'O'},
+  {PX_KEY_P, PX_MOD_SHIFT, 'P'},
+  {PX_KEY_Q, PX_MOD_SHIFT, 'Q'},
+  {PX_KEY_R, PX_MOD_SHIFT, 'R'},
+  {PX_KEY_S, PX_MOD_SHIFT, 'S'},
+  {PX_KEY_T, PX_MOD_SHIFT, 'T'},
+  {PX_KEY_U, PX_MOD_SHIFT, 'U'},
+  {PX_KEY_V, PX_MOD_SHIFT, 'V'},
+  {PX_KEY_W, PX_MOD_SHIFT, 'W'},
+  {PX_KEY_X, PX_MOD_SHIFT, 'X'},
+  {PX_KEY_Y, PX_MOD_SHIFT, 'Y'},
+  {PX_KEY_Z, PX_MOD_SHIFT, 'Z'},
+  {PX_KEY_OPENBRACKET, 0, '['},
+  {PX_KEY_BACKSLASH, 0, '\\'},
+  {PX_KEY_CLOSEBRACKET, 0, ']'},
+  {PX_KEY_SIX, PX_MOD_SHIFT, '^'},
+  {PX_KEY_SUBTRACT, PX_MOD_SHIFT, '_'},
+  {PX_KEY_GRAVEACCENT, 0, '`'},
+  {PX_KEY_A, 0, 'a'},
+  {PX_KEY_B, 0, 'b'},
+  {PX_KEY_C, 0, 'c'},
+  {PX_KEY_D, 0, 'd'},
+  {PX_KEY_E, 0, 'e'},
+  {PX_KEY_F, 0, 'f'},
+  {PX_KEY_G, 0, 'g'},
+  {PX_KEY_H, 0, 'h'},
+  {PX_KEY_I, 0, 'i'},
+  {PX_KEY_J, 0, 'j'},
+  {PX_KEY_K, 0, 'k'},
+  {PX_KEY_L, 0, 'l'},
+  {PX_KEY_M, 0, 'm'},
+  {PX_KEY_N, 0, 'n'},
+  {PX_KEY_O, 0, 'o'},
+  {PX_KEY_P, 0, 'p'},
+  {PX_KEY_Q, 0, 'q'},
+  {PX_KEY_R, 0, 'r'},
+  {PX_KEY_S, 0, 's'},
+  {PX_KEY_T, 0, 't'},
+  {PX_KEY_U, 0, 'u'},
+  {PX_KEY_V, 0, 'v'},
+  {PX_KEY_W, 0, 'w'},
+  {PX_KEY_X, 0, 'x'},
+  {PX_KEY_Y, 0, 'y'},
+  {PX_KEY_Z, 0, 'z'},
+  {PX_KEY_OPENBRACKET, PX_MOD_SHIFT, '{'},
+  {PX_KEY_BACKSLASH, PX_MOD_SHIFT, '|'},
+  {PX_KEY_CLOSEBRACKET, PX_MOD_SHIFT, '}'},
+  {PX_KEY_GRAVEACCENT, PX_MOD_SHIFT, '~'}
+};
+
+static int asciiKeymapLen = sizeof(asciiKeymap)/sizeof(asciiKeymap[0]);
+
+uint32_t keycodeToAscii(uint32_t keycode, uint32_t flags)
+{
+  for (int i = 0; i < asciiKeymapLen; i++)
+  {
+    if (asciiKeymap[i].keycode == keycode && asciiKeymap[i].flags == flags)
+      return asciiKeymap[i].ascii;
+  }
+  return 0;
+}

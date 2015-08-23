@@ -15,6 +15,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <assert.h>
+#include <ctype.h>
 
 // TODO figure out what to do with rtLog
 #if 0
@@ -427,10 +428,21 @@ double pxWindowNative::getLastAnimationTime()
 void pxWindowNative::keyEventListener(const pxKeyEvent& evt, void* argp)
 {
   pxWindowNative* p = reinterpret_cast<pxWindowNative *>(argp);
+  uint32_t keycode = keycodeFromNative(evt.code);
+  if (evt.state == pxKeyStatePressed)
+    p->onKeyDown(keycode, evt.modifiers);
+  
   if (evt.state == pxKeyStatePressed || evt.state == pxKeyStateRepeat)
-    p->onKeyDown(keycodeFromNative(evt.code), evt.modifiers);
-  else if (evt.state == pxKeyStateRelease)
-    p->onKeyUp(keycodeFromNative(evt.code), evt.modifiers);
+  {
+    // TODO keycodeToAscii should be avoided onChar should get a unicode
+    // codepoint
+    uint32_t ascii = keycodeToAscii(keycode, evt.modifiers);
+    if (!iscntrl(ascii))
+      p->onChar(ascii);
+  }
+
+  if (evt.state == pxKeyStateRelease)
+    p->onKeyUp(keycode, evt.modifiers);
 }
 
 void pxWindowNative::mouseEventListener(const pxMouseEvent& evt, void* argp)

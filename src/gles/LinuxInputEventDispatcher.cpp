@@ -344,7 +344,7 @@ public:
     int i = 0;
 
     input_event e;
-    int n = read(pfd.fd, &e, sizeof(input_event));
+    read(pfd.fd, &e, sizeof(input_event));
 
     switch (e.type)
     {

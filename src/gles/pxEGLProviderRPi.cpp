@@ -172,25 +172,29 @@ public:
     return PX_OK;
   }
 
-  virtual pxError createDisplay(EGLDisplay* display)
+  virtual pxError createDisplay(EGLDisplay* /*display*/)
   {
     printf("pxEGLProviderRPi::createDisplay()\n");
     return PX_OK;
   }
 
-  virtual pxError createSurface(EGLDisplay display, const EGLConfig& config, EGLSurface* surface)
+  virtual pxError createSurface(EGLDisplay /*display*/, 
+                                const EGLConfig& /*config*/, 
+                                EGLSurface* /*surface*/)
   {
     printf("pxEGLProviderRPi::createSurface()\n");
     return PX_OK;
   }
 
-  virtual pxError createContext(EGLDisplay display, const EGLConfig& config, EGLContext* context)
+  virtual pxError createContext(EGLDisplay /*display*/, 
+                                const EGLConfig& /*config*/, 
+                                EGLContext* /*context*/)
   {
     printf("pxEGLProviderRPi::createContext()\n");
     return PX_OK;
   }
   
-  virtual pxError initWithDefaults(int width, int height)
+  virtual pxError initWithDefaults(int /*width*/, int /*height*/)
   { 
     printf("pxEGLProviderRPi::initWithDefaults()\n");   
    bcm_host_init();
