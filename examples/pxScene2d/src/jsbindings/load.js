@@ -203,13 +203,16 @@ if (argv.length >= 2) {
     // TODO - WARNING root scene.create* doesn't allow passing in property bags
     configJson["parent"] = scene.root;
     configJson["url"] = originalURL;
-    var childScene = scene.createScene(configJson);
-  scene.setFocus(childScene);
+    // var childScene = scene.createScene(configJson);
+    //scene.setFocus(childScene);
 /*
     childScene.url = originalURL;
     childScene.parent = scene.root;
 */
-    var fpsBg = scene.createRectangle({fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:0,parent:scene.root});
+    var blackBg = scene.createRectangle({fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:1,parent:scene.root});
+    var childScene = scene.createScene(configJson);
+    scene.setFocus(childScene);
+    var fpsBg = scene.createRectangle({fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:1,parent:scene.root});
     var fpsCounter = scene.createText({x:5,textColor:0xffffffff,pixelSize:24,text:"0fps",parent:fpsBg});
     fpsBg.w = fpsCounter.w+16;
     fpsBg.h = fpsCounter.h;
