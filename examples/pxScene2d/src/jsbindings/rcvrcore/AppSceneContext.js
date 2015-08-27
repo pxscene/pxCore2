@@ -127,13 +127,14 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
           _this.runScriptInVMContext(mainCode, main);
         });
       } else {
+        _this.importProtocolPaths = _this.packageManifest.getNamespaceImportPaths();
         var mainCode = _this.fileArchive.getFileContents(main);
         _this.runScriptInVMContext(mainCode, main);
       }
 
     })
     .catch(function(err) {
-      console.error("Error: Did not load fileArchive: " + err );
+      console.error("Error: Did not load fileArchive: Error=" + err );
     });
 
 }
@@ -159,7 +160,7 @@ AppSceneContext.prototype.runScriptInVMContext = function (code, uri) {
       xresys: this.xresys,
       xmodule: xModule,
       console: console,
-      screenScene: this._scene,
+      rootScene: this.rootScene,
       scene: sceneForChild,
       runtime: apiForChild,
       process: process,
@@ -297,6 +298,7 @@ function getNamespaceBaseFilePath() {
   return this.getNamespaceBaseFilePath();
 }
 
+
 AppSceneContext.prototype.buildFullFilePath = function(filePath) {
   var urlParts = url.parse(filePath, true);
   var fullPath = filePath;
@@ -313,15 +315,27 @@ AppSceneContext.prototype.buildFullFilePath = function(filePath) {
     }
   } else {
     var sbase = this.basePackageUri;
-    if (sbase.substring(0, 4) !== "http") {
-      if( sbase.charAt(0) == '/' ) {
-        fullPath = sbase + "/" + filePath; //this.defaultBaseUri + sbase + "/" + filePath;
-      } else {
-        fullPath = sbase + "/" + filePath; //this.defaultBaseUri + "/" + sbase + "/" + filePath;
-      }
-    } else {
-      fullPath = sbase + "/" + filePath;
+    var fileToLoad = filePath;
+    if( filePath.charAt(0) === '/' ) {
+      fileToLoad = filePath.substring(1);
     }
+
+
+    if( this.fileArchive.hasFileContents(fileToLoad) ) {
+      log.message(10, "buildFullFilePath(): The file is in the archive: " + fileToLoad);
+    } else {
+      if (sbase.substring(0, 4) !== "http") {
+        if( sbase.charAt(0) == '/' ) {
+          fullPath = sbase + "/" + filePath; //this.defaultBaseUri + sbase + "/" + filePath;
+        } else {
+          fullPath = sbase + "/" + filePath; //this.defaultBaseUri + "/" + sbase + "/" + filePath;
+        }
+      } else {
+        fullPath = sbase + "/" + filePath;
+      }
+    }
+
+
   }
 
   return fullPath;
@@ -337,10 +351,17 @@ function buildAbsoluteFilePath(filePath) {
 }
 
 AppSceneContext.prototype.getFile = function(filePath) {
-  log.message(1, "getFile: requestedFile=" + filePath);
+  var _this = this;
+  log.message(4, "getFile: requestedFile=" + filePath);
 
   var fullPath = this.buildFullFilePath(filePath);
-  log.message(1, "getFile: fullPath=" + fullPath);
+  log.message(4, "getFile: fullPath=" + fullPath);
+  if( this.fileArchive.hasFileContents(fullPath) ) {
+    return new Promise(function(resolve, reject) {
+      console.log("getFileContents of " + fullPath);
+      resolve(_this.fileArchive.getFileContents(fullPath));
+    });
+  }
   return loadFile(fullPath);
 }
 
@@ -384,14 +405,21 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
           }
         }
       } else {
-        fullPath = _this.basePackageUri + "/" + filePath;
+        var fileToLoad = filePath;
+        if( filePath.charAt(0) === '/' ) {
+          fileToLoad = filePath.substring(1);
+        }
+        if( _this.fileArchive.hasFileContents(fileToLoad) ) {
+          _this.processCodeBuffer(origFilePath, filePath, currentXModule, _this.fileArchive.getFileContents(fileToLoad), onImportComplete, reject);
+          return;
+        } else {
+          fullPath = _this.basePackageUri + "/" + filePath;
+        }
       }
 
       // acquire file
       _this.setScriptStatus(filePath, 'downloading');
-      //var moduleLoader = new SceneModuleLoader();
       _this.asyncFileAcquisition.acquire(fullPath)
-      //moduleLoader.loadScenePackage({fileUri:fullPath})
         .then(function(moduleLoader){
           var xModule;
           log.message(4, "PROCESS RCVD MODULE: " + filePath);
@@ -399,21 +427,25 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
           // is it still needed - another one may have already arrived from a different module
           if( _this.isScriptReady(filePath) ) {
             var modExports = _this.getScriptContents(filePath);
-            ///log.message(7, "module " + filePath + " is already ready for: " + xModule.name + ", object=" + modExports);
             onImportComplete([modExports, origFilePath]);
           } else if( _this.isScriptLoaded((filePath))) {
-            log.message(1, "It looks like module script is already loaded -- no need to run it");
+            log.message(4, "It looks like module script is already loaded -- no need to run it");
             _this.addModuleReadyListener(filePath, function(moduleExports) {
               log.message(7, "Received moduleExports from other download" );
               onImportComplete([moduleExports, origFilePath]);
             });
           } else {
             log.message(4, "Need to run script: " + filePath);
-            _this.fileArchive = moduleLoader.getFileArchive();
-            _this.packageManifest = moduleLoader.getManifest();
-            var main = _this.packageManifest.getMain();
+            var currentFileArchive;
+            var currentFileManifest;
+            ///_this.fileArchive = moduleLoader.getFileArchive();
+            ///currentFileArchive = _this.fileArchive;
+            currentFileArchive = moduleLoader.getFileArchive();
+            currentFileManifest = moduleLoader.getManifest();
+            var main = currentFileManifest.getMain();
 
-            var mainCode = _this.fileArchive.getFileContents(main);
+            var mainCode = currentFileArchive.getFileContents(main);
+            log.message(10, "Creating new XModule for " + filePath);
             xModule = new XModule(filePath, _this);
             xModule.initSandbox(_this.sandbox);
             var sourceCode = AppSceneContext.wrap(mainCode);
@@ -426,10 +458,8 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
               import: xmodImportModule.bind(xModule)
             };
 
-            moduleFunc(px, xmodPrepareModule.bind(xModule), xModule, filePath, filePath);
-            //var modReadyPromise = eval(responseData);
             log.message(4, "RUN " + filePath);
-            //script.runInNewContext(xModule.sandbox);
+            moduleFunc(px, xmodPrepareModule.bind(xModule), xModule, filePath, filePath);
             log.message(4, "RUN DONE: " + filePath);
 
             // Set up a async wait until module indicates it's completly ready
@@ -459,7 +489,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
                 // notify 'ready' listeners
                 _this.callModuleReadyListeners(filePath, xModule.exports);
               }).catch(function (error) {
-                reject("include: failed while waiting for module <" + filePath + "> to be ready for [" + currentXModule.name + "]");
+                reject("include(1): failed while waiting for module <" + filePath + "> to be ready for [" + currentXModule.name + "] - error=" + error);
               });
 
             }
@@ -476,6 +506,87 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       onImportComplete([_this.getScriptContents(filePath), origFilePath]);
     }
   });
+
+}
+
+AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, currentXModule, codeBuffer, onImportComplete, onImportRejected) {
+  var _this = this;
+  var xModule;
+
+  /*
+   log.message(4, "PROCESS RCVD MODULE: " + filePath);
+   // file acquired
+   // is it still needed - another one may have already arrived from a different module
+   if( _this.isScriptReady(filePath) ) {
+   var modExports = _this.getScriptContents(filePath);
+   onImportComplete([modExports, origFilePath]);
+   } else if( _this.isScriptLoaded((filePath))) {
+   log.message(1, "It looks like module script is already loaded -- no need to run it");
+   _this.addModuleReadyListener(filePath, function(moduleExports) {
+   log.message(7, "Received moduleExports from other download" );
+   onImportComplete([moduleExports, origFilePath]);
+   });
+   } else {
+   log.message(4, "Need to run script: " + filePath);
+   _this.fileArchive = moduleLoader.getFileArchive();
+   _this.packageManifest = moduleLoader.getManifest();
+   var main = _this.packageManifest.getMain();
+   var mainCode = _this.fileArchive.getFileContents(main);
+   */
+
+//Need to pass in filePath, mainCodeBuffer, onImportComplete, onImportRejected
+
+  _this.setScriptStatus(filePath, 'downloading');
+
+
+  log.message(7, "cb Creating new XModule for " + filePath);
+
+  xModule = new XModule(filePath, _this);
+  xModule.initSandbox(_this.sandbox);
+  var sourceCode = AppSceneContext.wrap(codeBuffer);
+  var script = new vm.Script(sourceCode, filePath);
+
+  var moduleFunc = script.runInContext(_this.sandbox);
+  var px = {
+    log: xModule.log,
+    import: xmodImportModule.bind(xModule)
+  };
+
+  log.message(4, "cbRUN " + filePath);
+  moduleFunc(px, xmodPrepareModule.bind(xModule), xModule, filePath, filePath);
+  log.message(4, "cbRUN DONE: " + filePath);
+
+  // Set up a async wait until module indicates it's completly ready
+  var modReadyPromise = xModule.moduleReadyPromise;
+  if( modReadyPromise == null ) {
+
+    // It's possible that these exports have already been added
+    _this.addScript(filePath, 'ready', xModule.exports);
+
+    _this.addImportedPublicClasses(xModule.exports, xModule.publicClasses);
+
+    onImportComplete([xModule.exports, origFilePath]);
+    log.message(4, "AppSceneContext after notifying[:" + currentXModule.name + "] about import<" + filePath + ">");
+    // notify 'ready' listeners
+    _this.callModuleReadyListeners(filePath, xModule.exports);
+  } else {
+    // Now wait for module to indicate that it's fully ready to go
+    modReadyPromise.then(function () {
+      log.message(7, "AppSceneContext[xModule=" + xModule.name + "]: is notified that <" + filePath + "> MODULE INDICATES IT'S FULLY READY");
+      _this.addScript(filePath, 'loaded', xModule.exports);
+      _this.setScriptStatus(filePath, 'ready');
+      log.message(7, "AppSceneContext: is about to notify [" + currentXModule.name + "] that <" + filePath + "> has been imported and is ready");
+      _this.addImportedPublicClasses(xModule.exports, xModule.publicClasses);
+
+      onImportComplete([xModule.exports, origFilePath]);
+      log.message(8, "AppSceneContext after notifying[:" + currentXModule.name + "] about import<" + filePath + ">");
+      // notify 'ready' listeners
+      _this.callModuleReadyListeners(filePath, xModule.exports);
+    }).catch(function (error) {
+      onImportRejected("include(2): failed while waiting for module <" + filePath + "> to be ready for [" + currentXModule.name + "] - error=" + error);
+    });
+
+  }
 
 }
 
