@@ -366,8 +366,9 @@ void pxWindowNative::onGlutKeyboard(unsigned char key, int x, int y)
   if (w)
   {
     // JR Did I mention Glut keyboard support is not very good
-    w->onChar(unmodifiedKey);
     w->onKeyDown(keycodeFromNative(mappedKey), flags);
+    if (!iscntrl(unmodifiedKey))
+      w->onChar(unmodifiedKey);
     w->onKeyUp(keycodeFromNative(mappedKey), flags);
   }
 }
