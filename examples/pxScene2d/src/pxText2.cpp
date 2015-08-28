@@ -510,7 +510,19 @@ void pxText2::renderTextNoWordWrap(float sx, float sy, float tempX, bool render)
     // Check for truncation
     if(mTruncation == TRUNCATE || mTruncation == TRUNCATE_AT_WORD) 
     {
-      renderTextRowWithTruncation(mText, lineWidth, my, sx, sy, mPixelSize, mTextColor, render);
+      // Calculate vertical alignment values
+      if( mVerticalAlign == V_BOTTOM || mVerticalAlign == V_CENTER) 
+      {
+        if( mVerticalAlign == V_BOTTOM ) 
+        {
+          tempY = my + (mh - charH); // could be negative
+        } 
+        else 
+        {
+          tempY = my+ (mh/2) - charH/2;
+        }
+      } 
+      renderTextRowWithTruncation(mText, lineWidth, tempY, sx, sy, mPixelSize, mTextColor, render);
 
     }
   
