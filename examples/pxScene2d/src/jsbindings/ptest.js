@@ -5,7 +5,7 @@ var i1 = scene.create({t:"image", url:u1, parent:scene.root});
 var i2 = scene.create({t:"image", url:u2, parent:scene.root, x:400});
 
 
-if (false) {
+if (true) {
 //This crashes
 i1.ready.then(function() {console.log("image 1 ready"); });
 i2.ready.then(function() {console.log("image 2 ready"); });
@@ -13,7 +13,7 @@ i2.ready.then(function() {console.log("image 2 ready"); });
 Promise.all([i1.ready, i2.ready]).then(function(){console.log("Both ready");});
 }
 else {
-//This crashes
+// This doesn't
 var p1 = new Promise(function(fulfill,reject){
 i1.ready.then(function() {console.log("image 1 ready"); fulfill(i1); });
 });
