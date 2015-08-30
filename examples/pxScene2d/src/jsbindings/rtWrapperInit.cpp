@@ -186,9 +186,9 @@ protected:
 
   virtual void onDraw(pxSurfaceNative )
   {
-    //  rtWrapperSceneUpdateEnter();
+    rtWrapperSceneUpdateEnter();
     mScene->onDraw();
-    //rtWrapperSceneUpdateExit();
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onAnimationTimer()
