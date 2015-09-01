@@ -13,110 +13,73 @@ static void jsFunctionCompletionHandler(void* argp, rtValue const& result)
   wrapper->signal(result);
 }
 
-class ResolverFunction : public rtAbstractFunction
+rtResolverFunction::rtResolverFunction(Disposition disp, Isolate* isolate, Local<Promise::Resolver>& resolver)
+  : rtAbstractFunction()
+  , mDisposition(disp)
+  , mResolver(isolate, resolver)
+  , mIsolate(isolate)
 {
-public:
-  enum Disposition
-  {
-    DispositionResolve,
-    DispositionReject
-  };
+}
 
-  ResolverFunction(Disposition disp, Isolate* isolate, Local<Promise::Resolver>& resolver)
-    : rtAbstractFunction()
-    , mDisposition(disp)
-    , mResolver(isolate, resolver)
-    , mIsolate(isolate)
-  {
-  }
-
-  virtual ~ResolverFunction()
-  {
-    rtLogInfo("delete");
-  }
-
-  virtual rtError Send(int numArgs, const rtValue* args, rtValue* /*result*/)
-  {
-    AsyncContext* ctx = new AsyncContext();
-
-    // keep current object alive while we enqueue this request
-    ctx->resolverFunc = rtFunctionRef(this);
-
-    for (int i = 0; i < numArgs; ++i)
-      ctx->args.push_back(args[i]);
-
-    mReq.data = ctx;
-    uv_queue_work(uv_default_loop(), &mReq, &workCallback, &afterWorkCallback);
-    return RT_OK;
-  }
-
-private:
-  struct AsyncContext
-  {
-    rtFunctionRef resolverFunc;
-    std::vector<rtValue> args;
-  };
-
-  static void workCallback(uv_work_t* /*req */)
-  {
-    // empty
-  }
-
-  static void afterWorkCallback(uv_work_t* req, int /* status */)
-  {
-    AsyncContext* ctx = reinterpret_cast<AsyncContext*>(req->data);
-    ResolverFunction* resolverFunc = static_cast<ResolverFunction *>(ctx->resolverFunc.getPtr());
-
-    assert(ctx->args.size() < 2);
-    assert(Isolate::GetCurrent() == resolverFunc->mIsolate);
-
-    // Locker locker(resolverFunc->mIsolate);
-    HandleScope scope(resolverFunc->mIsolate);
-    // Context::Scope contextScope(PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mContext));
-
-    Handle<Value> value;
-    if (ctx->args.size() > 0)
-      value = rt2js(resolverFunc->mIsolate, ctx->args[0]);
-
-    Local<Promise::Resolver> resolver = PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mResolver);
-
-    TryCatch tryCatch;
-    if (resolverFunc->mDisposition == DispositionResolve)
-      resolver->Resolve(value);
-    else
-      resolver->Reject(value);
-
-    if (tryCatch.HasCaught())
-    {
-      String::Utf8Value trace(tryCatch.StackTrace());
-      rtLogWarn("Error resolving promise");
-      rtLogWarn("%s", *trace);
-    }
-
-    resolverFunc->mIsolate->RunMicrotasks();
-
-    delete ctx;
-  }
-
-private:
-  Disposition mDisposition;
-  Persistent<Promise::Resolver> mResolver;
-  Isolate* mIsolate;
-  uv_work_t mReq;
-};
-
-static bool isPromise(const rtValue& v)
+rtResolverFunction::~rtResolverFunction()
 {
-  if (v.getType() != RT_rtObjectRefType)
-    return false;
+  rtLogInfo("delete");
+}
 
-  rtObjectRef ref = v.toObject();
-  if (!ref)
-    return false;
+rtError rtResolverFunction::Send(int numArgs, const rtValue* args, rtValue* /*result*/)
+{
+  AsyncContext* ctx = new AsyncContext();
 
-  rtString desc;
-  rtError err = ref.sendReturns<rtString>("description", desc);
-  return err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0;
+  // keep current object alive while we enqueue this request
+  ctx->resolverFunc = rtFunctionRef(this);
+
+  for (int i = 0; i < numArgs; ++i)
+    ctx->args.push_back(args[i]);
+
+  mReq.data = ctx;
+  uv_queue_work(uv_default_loop(), &mReq, &workCallback, &afterWorkCallback);
+  return RT_OK;
+}
+
+void rtResolverFunction::workCallback(uv_work_t* /*req */)
+{
+  // empty
+}
+
+void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
+{
+  AsyncContext* ctx = reinterpret_cast<AsyncContext*>(req->data);
+  rtResolverFunction* resolverFunc = static_cast<rtResolverFunction *>(ctx->resolverFunc.getPtr());
+
+  assert(ctx->args.size() < 2);
+  assert(Isolate::GetCurrent() == resolverFunc->mIsolate);
+
+  // Locker locker(resolverFunc->mIsolate);
+  HandleScope scope(resolverFunc->mIsolate);
+  // Context::Scope contextScope(PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mContext));
+
+  Handle<Value> value;
+  if (ctx->args.size() > 0)
+    value = rt2js(resolverFunc->mIsolate, ctx->args[0]);
+
+  Local<Promise::Resolver> resolver = PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mResolver);
+
+  TryCatch tryCatch;
+  if (resolverFunc->mDisposition == DispositionResolve)
+    resolver->Resolve(value);
+  else
+    resolver->Reject(value);
+
+  if (tryCatch.HasCaught())
+  {
+    String::Utf8Value trace(tryCatch.StackTrace());
+    rtLogWarn("Error resolving promise");
+    rtLogWarn("%s", *trace);
+  }
+
+  resolverFunc->mIsolate->RunMicrotasks();
+
+  delete ctx;
 }
 
 rtFunctionWrapper::rtFunctionWrapper(const rtFunctionRef& ref)
@@ -188,15 +151,19 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
     return throwRtError(isolate, err, "failed to invoke function");
   }
 
-  if (isPromise(result))
+  if (rtIsPromise(result))
   {
     Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
 
-    rtFunctionRef resolve(new ResolverFunction(ResolverFunction::DispositionResolve, isolate, resolver));
-    rtFunctionRef reject(new ResolverFunction(ResolverFunction::DispositionReject, isolate, resolver));
-    rtObjectRef newPromise;
+    rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, isolate, resolver));
+    rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, isolate, resolver));
 
+    rtObjectRef newPromise;
     rtObjectRef promise = result.toObject();
+
+    Local<Object> jsPromise = resolver->GetPromise();
+    HandleMap::addWeakReference(isolate, promise, jsPromise);
+
     rtError err = promise.send("then", resolve, reject, newPromise);
 
     // must hold this lock to prevent promise from resolving internally before we
@@ -206,7 +173,7 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
     if (err != RT_OK)
       return throwRtError(isolate, err, "failed to register for promise callback");
     else
-      args.GetReturnValue().Set(resolver->GetPromise());
+      args.GetReturnValue().Set(jsPromise);
   }
   else
   {

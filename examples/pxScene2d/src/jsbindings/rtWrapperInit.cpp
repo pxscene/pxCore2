@@ -131,12 +131,16 @@ protected:
 
   virtual void onSize(int32_t w, int32_t h)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onSize(w, h);
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onMouseDown(x, y, flags);
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onCloseRequest()
@@ -147,41 +151,57 @@ protected:
 
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onMouseUp(x, y, flags);
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onMouseLeave()
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onMouseLeave();
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onMouseMove(int32_t x, int32_t y)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onMouseMove(x, y);
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onFocus()
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onFocus();
+    rtWrapperSceneUpdateExit();
   }
   virtual void onBlur()
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onBlur();
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onKeyDown(uint32_t keycode, uint32_t flags)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onKeyDown(keycode, flags);
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onKeyUp(uint32_t keycode, uint32_t flags)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onKeyUp(keycode, flags);
+    rtWrapperSceneUpdateExit();
   }
   
   virtual void onChar(uint32_t c)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onChar(c);
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onDraw(pxSurfaceNative )

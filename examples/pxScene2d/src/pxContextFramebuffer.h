@@ -17,7 +17,7 @@ typedef struct _pxContextState
 class pxContextFramebuffer
 {
 public:
-  pxContextFramebuffer() : m_framebufferTexture(), m_framebufferStateStack() {}
+  pxContextFramebuffer() : mRef(0), m_framebufferTexture(), m_framebufferStateStack() {}
   pxContextFramebuffer(pxTextureRef texture) : m_framebufferTexture(texture), m_framebufferStateStack() {}
   virtual ~pxContextFramebuffer() {}
 

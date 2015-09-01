@@ -83,7 +83,8 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
       };
 
       if (err) {
-        container.ready.reject(container);
+        // TODO: fixme
+        // container.ready.reject(container);
         console.log("failed to load script:" + uri);
         console.log(err);
         // TODO: scene.onError(err); ???
@@ -103,13 +104,15 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
             container.a = 0;
             container.painting = true;
             container.animateTo({a:1}, 0.2, 0, 0);
-            container.ready.resolve(container);
+            // TODO: fixme
+            // container.ready.resolve(container);
           }
           else
             container.painting = true;
         }
         catch (err) {
-          container.ready.reject(container);
+          // TODO: fixme
+          // container.ready.reject(container);
           console.log("failed to run app:" + uri);
           console.log(err);
 
@@ -129,7 +132,8 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
     });
   }
   catch (err) {
-    container.ready.reject(container);
+    // TODO: fixme
+    // container.ready.reject(container);
     console.log("failed to load script:" + uri);
     console.log(err);
     // TODO: scene.onError(err); ???

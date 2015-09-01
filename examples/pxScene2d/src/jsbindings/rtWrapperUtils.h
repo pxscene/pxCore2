@@ -14,6 +14,7 @@
 #include <memory>
 
 bool rtIsMainThread();
+bool rtIsPromise(const rtValue& v);
 
 template<class T>
 inline std::string jsToString(T const& val)
@@ -168,6 +169,7 @@ protected:
     isolate->ThrowException(v8::Exception::Error(v8::String::NewFromUtf8(isolate, buff)));
   }
 
+protected:
   TRef mWrappedObject;
 };
 

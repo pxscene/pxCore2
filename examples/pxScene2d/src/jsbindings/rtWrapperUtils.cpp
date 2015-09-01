@@ -68,6 +68,23 @@ Local<Object> HandleMap::lookupSurrogate(v8::Isolate* isolate, const rtObjectRef
   return obj;
 }
 
+bool rtIsPromise(const rtValue& v)
+{
+  if (v.getType() != RT_rtObjectRefType)
+    return false;
+
+  rtObjectRef ref = v.toObject();
+  if (!ref)
+    return false;
+
+  rtString desc;
+  rtError err = ref.sendReturns<rtString>("description", desc);
+  if (err != RT_OK)
+    return false;
+
+  return strcmp(desc.cString(), "rtPromise") == 0;
+}
+
 bool rtWrapperSceneUpdateHasLock()
 {
   return pthread_self() == sCurrentSceneThread;

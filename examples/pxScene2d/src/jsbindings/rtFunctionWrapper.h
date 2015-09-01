@@ -90,4 +90,35 @@ private:
   rtValue mReturnValue;
 };
 
+class rtResolverFunction : public rtAbstractFunction
+{
+public:
+  enum Disposition
+  {
+    DispositionResolve,
+    DispositionReject
+  };
+
+  rtResolverFunction(Disposition d, v8::Isolate* isolate, v8::Local<v8::Promise::Resolver>& resolver);
+  virtual ~rtResolverFunction();
+  virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
+
+private:
+  struct AsyncContext
+  {
+    rtFunctionRef resolverFunc;
+    std::vector<rtValue> args;
+  };
+
+private:
+  static void workCallback(uv_work_t* req);
+  static void afterWorkCallback(uv_work_t* req, int status);
+
+private:
+  Disposition                     mDisposition;
+  Persistent<Promise::Resolver>   mResolver;
+  Isolate*                        mIsolate;
+  uv_work_t                       mReq;
+};
+
 #endif

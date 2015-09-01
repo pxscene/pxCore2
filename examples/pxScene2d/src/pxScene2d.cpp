@@ -36,6 +36,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+extern bool rtWrapperSceneUpdateHasLock();
 
 static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
@@ -211,6 +212,7 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
 
 void pxObject::setParent(rtRefT<pxObject>& parent)
 {
+  assert(rtWrapperSceneUpdateHasLock());
   mParent = parent;
   parent->mChildren.push_back(this);
 }
@@ -225,6 +227,7 @@ rtError pxObject::remove()
 {
   if (mParent)
   {
+    assert(rtWrapperSceneUpdateHasLock());
     for(vector<rtRefT<pxObject> >::iterator it = mParent->mChildren.begin(); 
         it != mParent->mChildren.end(); ++it)
     {
@@ -240,6 +243,7 @@ rtError pxObject::remove()
 
 rtError pxObject::removeAll()
 {
+  assert(rtWrapperSceneUpdateHasLock());
   mChildren.clear();
   return RT_OK;
 }
@@ -471,6 +475,7 @@ void pxObject::update(double t)
   #endif //PX_DIRTY_RECTANGLES
   
   // Recursively update children
+  assert(rtWrapperSceneUpdateHasLock());
   for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
     (*it)->update(t);
@@ -595,6 +600,7 @@ void pxObject::drawInternal(bool maskPass)
   {
     pxTextureRef maskTextureRef;
     bool maskFound = false;
+    assert(rtWrapperSceneUpdateHasLock());
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->drawAsMask())
@@ -627,6 +633,7 @@ void pxObject::drawInternal(bool maskPass)
       if (mw>alphaEpsilon && mh>alphaEpsilon)
         draw();
 
+      assert(rtWrapperSceneUpdateHasLock());
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
       {
         context.pushState();
@@ -661,6 +668,7 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hi
   m2.multiply(m);
 
   {
+    assert(rtWrapperSceneUpdateHasLock());
     for(vector<rtRefT<pxObject> >::reverse_iterator it = mChildren.rbegin(); it != mChildren.rend(); ++it)
     {
       if ((*it)->hitTestInternal(m2, pt, hit, hitPt))
@@ -721,6 +729,7 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
     context.clear(mw, mh);
     draw();
 
+    assert(rtWrapperSceneUpdateHasLock());
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       context.pushState();
@@ -766,6 +775,7 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
   {
     context.clear(mw, mh);
 
+    assert(rtWrapperSceneUpdateHasLock());
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->drawAsMask())
@@ -781,6 +791,7 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
   {
     context.clear(mw, mh);
 
+    assert(rtWrapperSceneUpdateHasLock());
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->drawEnabled())
