@@ -10,6 +10,7 @@ static pthread_mutex_t sSceneLock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
+static int sLockCount;
 static pthread_t sCurrentSceneThread;
 static rtMutex objectMapMutex;
 
@@ -92,14 +93,18 @@ bool rtWrapperSceneUpdateHasLock()
 
 void rtWrapperSceneUpdateEnter()
 {
-  pthread_mutex_lock(&sSceneLock);
+  assert(pthread_mutex_lock(&sSceneLock) == 0);
   sCurrentSceneThread = pthread_self();
+  sLockCount++;
 }
 
 void rtWrapperSceneUpdateExit()
 {
-  pthread_mutex_unlock(&sSceneLock);
-  sCurrentSceneThread = 0;
+  assert(rtWrapperSceneUpdateHasLock());
+  assert(pthread_mutex_unlock(&sSceneLock) == 0);
+  sLockCount--;
+  if (sLockCount == 0)
+    sCurrentSceneThread = 0;
 }
 
 using namespace v8;

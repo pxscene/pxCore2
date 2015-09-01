@@ -69,7 +69,10 @@ public:
     rtLogInfo("initializing scene");
     mScene->init();
     mScene->setViewContainer(this);
+  }
 
+  void startTimers()
+  {
     rtLogInfo("starting background thread for event loop processing");
     startEventProcessingThread();
 
@@ -213,11 +216,9 @@ protected:
 
   virtual void onAnimationTimer()
   {
-
     rtWrapperSceneUpdateEnter();
     mScene->onUpdate(pxSeconds());
     rtWrapperSceneUpdateExit();
-//    invalidateRect(NULL);
   }
 private:
   pxScene2dRef mScene;
@@ -278,6 +279,7 @@ static void getScene(const FunctionCallbackInfo<Value>& args)
     char title[]= { "pxScene from JavasScript!" };
     mainWindow->setTitle(title);
     mainWindow->setVisibility(true);
+    mainWindow->startTimers();
   }
 
   EscapableHandleScope scope(args.GetIsolate());
