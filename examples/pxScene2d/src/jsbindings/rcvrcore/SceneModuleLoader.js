@@ -1,5 +1,10 @@
 "use strict";
 
+var fs = require('fs');
+var url = require('url');
+
+var http = require('http');
+
 var FileArchive = require('rcvrcore/utils/FileArchive');
 
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
@@ -11,7 +16,98 @@ function SceneModuleLoader() {
   this.defaultManifest = false;
 }
 
-SceneModuleLoader.prototype.loadScenePackage = function(scenePackage) {
+SceneModuleLoader.prototype.loadScenePackage = function(fileSpec) {
+  var _this = this;
+  var filePath = fileSpec.fileUri;
+
+  return new Promise(function (resolve, reject) {
+    if (filePath.substring(0, 4) === "http") {
+      _this.loadRemoteFile(filePath).then(function dataAvailable(data) {
+        _this.processFileData(filePath, data);
+        if(_this.processFileArchive() == 0) {
+          resolve();
+        } else {
+          reject();
+        }
+      }).catch(function onError(err) {
+        console.log("error on http get: " + err);
+      });
+    } else {
+      _this.loadLocalFile(filePath).then(function dataAvailable(data) {
+        _this.processFileData(filePath, data);
+        if(_this.processFileArchive() == 0) {
+          resolve();
+        } else {
+          reject();
+        }
+      }).catch(function onError(err) {
+        console.log("error on file get: " + err);
+      });
+    }
+  });
+}
+
+SceneModuleLoader.prototype.processFileData = function(filePath, data) {
+  this.fileArchive = new FileArchive(filePath);
+  if( data[0] === 80 && data[1] === 75 && data[2] === 3 && data[3] === 4) {
+    this.fileArchive.loadFromJarData(data);
+  } else {
+    this.fileArchive.addFile('package.json', "{ \"main\" : \"" + filePath + "\" }");
+    this.fileArchive.addFile(filePath, data);
+    this.defaultManifest = true;
+  }
+}
+
+
+SceneModuleLoader.prototype.loadRemoteFile = function(filePath) {
+  var _this = this;
+  return new Promise(function (resolve, reject) {
+    var req = http.get(url.parse(filePath), function (res) {
+      if (res.statusCode !== 200) {
+        console.log(res.statusCode);
+        reject("http get error. statusCode=" + res.statusCode);
+      }
+      var data = [], dataLen = 0;
+
+      // don't set the encoding, it will break everything !
+      res.on("data", function (chunk) {
+        data.push(chunk);
+        dataLen += chunk.length;
+      });
+
+      res.on("end", function () {
+        var buf = new Buffer(dataLen);
+        for (var i=0,len=data.length,pos=0; i<len; i++) {
+          data[i].copy(buf, pos);
+          pos += data[i].length;
+        }
+
+        resolve(buf);
+      });
+    });
+
+    req.on("error", function(err){
+      reject(err);
+    });
+  });
+
+}
+
+SceneModuleLoader.prototype.loadLocalFile = function(filePath) {
+  var _this = this;
+
+  return new Promise( function(resolve, reject) {
+    fs.readFile(filePath, function (err, data) {
+      if (err) {
+        reject(err);
+      }
+      resolve(data);
+    });
+  });
+};
+
+
+SceneModuleLoader.prototype.loadScenePackageOld = function(scenePackage) {
   var _this = this;
 
   return new Promise(function (resolve, reject) {

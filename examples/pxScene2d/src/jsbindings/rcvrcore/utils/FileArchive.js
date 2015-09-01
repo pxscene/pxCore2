@@ -79,7 +79,7 @@ FileArchive.prototype.addFile = function(filename, contents) {
 FileArchive.prototype.loadRemoteJarFile = function(filePath) {
   var _this = this;
   return new Promise(function (resolve, reject) {
-    var req = http.get(url.parse("http://localhost/.../file.zip"), function (res) {
+    var req = http.get(url.parse(filePath), function (res) {
       if (res.statusCode !== 200) {
         console.log(res.statusCode);
         reject("http get error. statusCode=" + res.statusCode);
@@ -126,6 +126,11 @@ FileArchive.prototype.loadLocalJarFile = function(jarFilePath) {
     });
   });
 };
+
+FileArchive.prototype.loadFromJarData = function(dataBuf) {
+  var jar = new JSZip(dataBuf);
+  this.processJar(jar);
+}
 
 FileArchive.prototype.processJar = function(jar) {
   for(var file in jar.files) {

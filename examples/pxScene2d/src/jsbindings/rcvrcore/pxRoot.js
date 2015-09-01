@@ -22,7 +22,7 @@ var VirtualKeyCode = {UNKNOWN:0, ENTER:13, PAGE_UP:33, PAGE_DOWN:34, LEFT:37, RI
 
 
 // The singleton instance of pxRoot
-var pxRoot = null;
+var pxroot = null;
 
 // The public XRE system APIs
 var XreSysApis = {
@@ -31,7 +31,7 @@ var XreSysApis = {
   }
 }
 
-function PxRoot(baseUri) {
+function pxRoot(baseUri) {
   this.rootScene = null;
   // only one child scene at the root level for now
   this.childScene = null;
@@ -39,7 +39,7 @@ function PxRoot(baseUri) {
   this.fpsBg = null;
 }
 
-PxRoot.prototype.initialize = function(x, y, width, height) {
+pxRoot.prototype.initialize = function(x, y, width, height) {
   this.rootScene = px.getScene(x, y, width, height);
 
   this.rootScene.root.on('onPreKeyDown', function (e) {
@@ -128,7 +128,7 @@ PxRoot.prototype.initialize = function(x, y, width, height) {
 
 };
 
-PxRoot.prototype.showFpsView = function(show) {
+pxRoot.prototype.showFpsView = function(show) {
   if( show && this.fpsBg === null ) {
     this.fpsBg = this.rootScene.createRectangle({fillColor: 0x00000080, lineColor: 0xffff0080,lineWidth: 3,x: 10,y: 10,a: 0, parent: this.rootScene.root });
     var fpsCounter = this.rootScene.createText({x: 5,textColor: 0xffffffff,pixelSize: 24,text: "0fps",parent: this.fpsBg });
@@ -150,7 +150,7 @@ PxRoot.prototype.showFpsView = function(show) {
   }
 }
 
-PxRoot.prototype.createNewAppContext = function(params) {
+pxRoot.prototype.createNewAppContext = function(params) {
   log.message(2, "Create New Scene Context: url=" + params.packageUrl);
 
   var appSceneContext = new AppSceneContext(params);
@@ -178,7 +178,7 @@ function getVirtualKeyCode(keyCode, flags) {
 }
 
 
-PxRoot.prototype.addScene = function(params) {
+pxRoot.prototype.addScene = function(params) {
   if( this.rootScene == null ) {
     console.error("Root scene has not been created.  Has PxRoot been initialized?");
     return null;
@@ -197,14 +197,14 @@ PxRoot.prototype.addScene = function(params) {
   return this.childScene;
 };
 
-PxRoot.prototype.setOriginalUrl = function(origUrl) {
+pxRoot.prototype.setOriginalUrl = function(origUrl) {
   this.originalUrl = origUrl;
 }
 
 module.exports = function(x, y, width, height) {
-  pxRoot = new PxRoot();
-  pxRoot.initialize(x, y, width, height);
-  return pxRoot;
+  pxroot = new pxRoot();
+  pxroot.initialize(x, y, width, height);
+  return pxroot;
 };
 
 

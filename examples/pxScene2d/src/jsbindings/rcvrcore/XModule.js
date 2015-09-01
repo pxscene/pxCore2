@@ -69,10 +69,6 @@ XModule.prototype.getModuleExports = function(moduleName) {
   }
 }
 
-function prepareModule(requiredModuleSet, readyCallBack, failedCallback, params) {
-  this.prepareModule(requiredModuleSet, readyCallBack, failedCallback, params);
-}
-
 function importModule(requiredModuleSet, params) {
   return this.importModule(requiredModuleSet, params);
 }
@@ -80,7 +76,7 @@ function importModule(requiredModuleSet, params) {
 XModule.prototype.importModule = function(requiredModuleSet, params) {
   var _this = this;
   return new Promise(function(resolve, reject) {
-    _this.prepareModule(requiredModuleSet, function readyCallback(importsArr) {
+    _this._importModule(requiredModuleSet, function readyCallback(importsArr) {
       resolve(importsArr);
     }) ,
       function failureCallback(error) {
@@ -89,7 +85,7 @@ XModule.prototype.importModule = function(requiredModuleSet, params) {
   } );
 }
 
-XModule.prototype.prepareModule = function(requiredModuleSet, readyCallBack, failedCallback, params) {
+XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, failedCallback, params) {
 
   if( readyCallBack == 'undefined' ) {
     console.trace("WARNING: " + 'prepareModule was did not have resolutionCallback parameter: USAGE: prepareModule(requiredModules, readyCallback, [failedCallback])');
@@ -169,6 +165,7 @@ XModule.prototype.prepareModule = function(requiredModuleSet, readyCallBack, fai
 
     // Now wait for all the include/import promises to be fulfilled
     Promise.all(_this.promises).then(function (exports) {
+      var exportsMap = {};
       var exportsArr = [];
       for (var k = 0; k < _this.moduleNameList.length; ++k) {
         var ptn = pathToNameMap;
@@ -178,11 +175,12 @@ XModule.prototype.prepareModule = function(requiredModuleSet, readyCallBack, fai
         _this.appSandbox[pathToNameMap[exports[k][1]]] = exports[k][0];
         _this.moduleData[_this.moduleNameList[k]]= exports[k][0];
         exportsArr[k] = exports[k][0];
+        exportsMap[pathToNameMap[exports[k][1]]] = exports[k][0];
         //console.log("TJC: " + _this.name + " gets: module[" + _this.moduleNameList[k] + "]: " + exports[k][0]);
       }
       log.message(7, "XMODULE ABOUT TO NOTIFY [" + _this.name + "] that all its imports are Ready");
       if( readyCallBack != null && readyCallBack != 'undefined' ) {
-        readyCallBack(exportsArr);
+        readyCallBack(exportsMap);
       }
       moduleBuildResolve();
       log.message(8, "XMODULE AFTER NOTIFY [" + _this.name + "] that all its imports are Ready");
@@ -201,7 +199,6 @@ XModule.prototype.prepareModule = function(requiredModuleSet, readyCallBack, fai
 }
 
 module.exports = {
-  prepareModule: prepareModule,
   importModule: importModule,
   XModule: XModule
 };
