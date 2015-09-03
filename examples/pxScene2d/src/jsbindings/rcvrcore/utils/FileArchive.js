@@ -11,13 +11,21 @@ var log = new Logger('FileUtils');
 
 var tarDirectory = {};
 
-function FileArchive(name) {
-  this.name = name;
+function FileArchive(filePath) {
+  this.filePath = filePath;
+  this.baseFilePath = filePath.substring(0, filePath.lastIndexOf('/'));
   this.numEntries = 0;
   this.directory = {};
   this.jar = null;
 }
 
+FileArchive.prototype.getFilePath = function() {
+  return this.filePath;
+}
+
+FileArchive.prototype.getBaseFilePath = function() {
+  return this.baseFilePath;
+}
 
 FileArchive.prototype.loadFromJarFile = function(filePath) {
   var _this = this;
@@ -60,6 +68,7 @@ FileArchive.prototype.getFileContents = function(filename) {
   if( this.directory.hasOwnProperty(filename) ) {
     return this.directory[filename];
   } else {
+    console.error("No file contents in [" + this.baseFilePath + "] for " + filename);
     return null;
   }
 }
@@ -81,7 +90,6 @@ FileArchive.prototype.loadRemoteJarFile = function(filePath) {
   return new Promise(function (resolve, reject) {
     var req = http.get(url.parse(filePath), function (res) {
       if (res.statusCode !== 200) {
-        console.log(res.statusCode);
         reject("http get error. statusCode=" + res.statusCode);
       }
       var data = [], dataLen = 0;
@@ -130,6 +138,7 @@ FileArchive.prototype.loadLocalJarFile = function(jarFilePath) {
 FileArchive.prototype.loadFromJarData = function(dataBuf) {
   var jar = new JSZip(dataBuf);
   this.processJar(jar);
+  this.loadedJarFile = true;
 }
 
 FileArchive.prototype.processJar = function(jar) {

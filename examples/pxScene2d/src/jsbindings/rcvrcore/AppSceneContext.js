@@ -22,7 +22,11 @@ function AppSceneContext(params) { //rootScene, container, innerscene, packageUr
   if( params.packageUrl.indexOf('?') != -1 ) {
     var urlParts = url.parse(params.packageUrl, true);
     this.queryParams = urlParts.query;
-    this.packageUrl = urlParts.pathname;
+    if (params.packageUrl.substring(0, 4) === "http") {
+      this.packageUrl = urlParts.protocol + "//" + urlParts.host + urlParts.pathname;
+    } else {
+      this.packageUrl = params.packageUrl;
+    }
   } else {
     this.queryParams = {};
     this.packageUrl = params.packageUrl;
@@ -35,11 +39,12 @@ function AppSceneContext(params) { //rootScene, container, innerscene, packageUr
   this.scriptMap = {};
   this.xmoduleMap = {};
   this.asyncFileAcquisition = new AsyncFileAcquisition();
-  this.publicClasses = {};
   this.importProtocolPaths = {};
   this.importRedirects = {};
   this.lastHrTime = process.hrtime();
   this.resizeTimer = null;
+  this.topXModule = null;
+  this.jarFileMap = {};
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -75,40 +80,13 @@ AppSceneContext.prototype.loadScene = function() {
 
 }
 
-AppSceneContext.prototype.setFocus = function() {
-  log.info("setFocus");
-  this.rootScene.setFocus(this.container);
-}
-
-AppSceneContext.prototype.onResize = function(resizeEvent) {
-  var hrTime = process.hrtime(this.lastHrTime);
-  var deltaMillis = (hrTime[0] * 1000 + hrTime[1] / 1000000);
-  this.lastHrTime = process.hrtime();
-  if( deltaMillis > 300 ) {
-    if( this.resizeTimer != null ) {
-      clearTimeout(this.resizeTimer);
-      this.resizeTimer = null;
-    }
-    this.container.w = resizeEvent.w;
-    this.container.h = resizeEvent.h;
-  } else {
-    var lastWidth = resizeEvent.w;
-    var lastHeight = resizeEvent.h;
-    this.resizeTimer = setTimeout(function() {
-      this.container.w = lastWidth;
-      this.container.h = lastHeight;
-    }.bind(this), 500);
-  }
-}
-
-
 AppSceneContext.prototype.loadPackage = function(packageUri) {
   var _this = this;
 
   var moduleLoader = new SceneModuleLoader();
 
   moduleLoader.loadScenePackage({fileUri:packageUri})
-    .then(function() {
+    .then(function processScenePackage() {
       _this.fileArchive = moduleLoader.getFileArchive();
       _this.packageManifest = moduleLoader.getManifest();
       var main = _this.packageManifest.getMain();
@@ -121,25 +99,43 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
           _this.importProtocolPaths = manifest.getNamespaceImportPaths();
 
           var mainCode = _this.fileArchive.getFileContents(main);
-          _this.runScriptInVMContext(mainCode, main);
+          _this.runScriptInNewVMContext(mainCode, main, false);
         }).catch(function(e){
           var mainCode = _this.fileArchive.getFileContents(main);
-          _this.runScriptInVMContext(mainCode, main);
+          _this.runScriptInNewVMContext(mainCode, main, false);
         });
       } else {
         _this.importProtocolPaths = _this.packageManifest.getNamespaceImportPaths();
+        _this.jarFileMap[packageUri] = _this.fileArchive;
+        var moduleUri = packageUri + "?module=" + main;
+
         var mainCode = _this.fileArchive.getFileContents(main);
-        _this.runScriptInVMContext(mainCode, main);
+        _this.runScriptInNewVMContext(mainCode, moduleUri, true);
       }
 
     })
     .catch(function(err) {
-      console.error("Error: Did not load fileArchive: Error=" + err );
+      console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=" + err );
     });
 
 }
 
-AppSceneContext.prototype.runScriptInVMContext = function (code, uri) {
+AppSceneContext.prototype.getModuleBasePath = function(moduleUri) {
+  var questionMarkIndex = moduleUri.lastIndexOf('?');
+  if( questionMarkIndex != -1 ) {
+    // might be a jar file uri.  Let's split it up and see if there is a module param
+    var urlParts = url.parse(moduleUri, true);
+    if( urlParts.query !== 'undefined' && urlParts.query.hasOwnProperty('module')) {
+      var relativeModulePath = urlParts.query.module;
+      var relativePath = relativeModulePath.substring(0, relativeModulePath.lastIndexOf('/'));
+      return {baseUri:moduleUri.substring(0, questionMarkIndex), relativePath:relativePath, isJarFile:true};
+    }
+  }
+
+  return {baseUri:moduleUri.substring(0, moduleUri.lastIndexOf('/')), isJarFile:false};
+}
+
+AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJarFile) {
   var sceneForChild = this.innerscene;
   var apiForChild = this;
 
@@ -150,7 +146,8 @@ AppSceneContext.prototype.runScriptInVMContext = function (code, uri) {
   var urlParts = url.parse(uri, true);
 
   var thisAppSceneContext = this;
-  var xModule = new XModule(urlParts.pathname, this);
+  var xModule = new XModule(urlParts.pathname, this, fromJarFile, this.getModuleBasePath(uri));
+  this.topXModule = xModule;
 
   var self = this;
   var newSandbox;
@@ -178,7 +175,6 @@ AppSceneContext.prototype.runScriptInVMContext = function (code, uri) {
       clearInterval: clearInterval,
       baseXreModuleDirectory: __dirname,
       basePackageUri: this.basePackageUri,
-      createInstance: createComponent.bind(this),
       getFile: getFile.bind(this),
       buildAbsoluteFilePath: buildAbsoluteFilePath.bind(this),
       framework: {
@@ -358,11 +354,32 @@ AppSceneContext.prototype.getFile = function(filePath) {
   log.message(4, "getFile: fullPath=" + fullPath);
   if( this.fileArchive.hasFileContents(fullPath) ) {
     return new Promise(function(resolve, reject) {
-      //console.log("getFileContents of " + fullPath);
       resolve(_this.fileArchive.getFileContents(fullPath));
     });
   }
   return loadFile(fullPath);
+}
+
+AppSceneContext.prototype.resolveModulePath = function(filePath, currentXModule) {
+  var normPath;
+  var currModBasePath = currentXModule.getBasePath();
+  if( currModBasePath.isJarFile ) {
+    normPath = url.resolve(currentXModule.getBasePath().relativePath + "/", filePath);
+    if( normPath.charAt(0) == '/' ) {
+      normPath = normPath.substring(1);
+    }
+    return {fileUri:currModBasePath.baseUri, relativePath:normPath, isJarFile:true};
+  } else {
+    var fileUri = "";
+    if( filePath.charAt(0) == '/' ) {
+      // temporary for now
+      fileUri = this.basePackageUri + filePath;
+    } else {
+      fileUri = url.resolve(currentXModule.getBasePath().baseUri + "/", filePath);
+    }
+
+    return {fileUri:fileUri, isJarFile:false};
+  }
 }
 
 AppSceneContext.prototype.include = function(filePath, currentXModule) {
@@ -378,89 +395,88 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       return
     }
 
-    if( _this.isScriptDownloading(filePath) ) {
-      log.message(4, "Script is downloading for " + filePath);
-      _this.addModuleReadyListener(filePath, function(moduleExports) {
+    var fullIncludeUri;
+    var resolvedModulePath;
+    resolvedModulePath = _this.resolveModulePath(filePath, currentXModule);
+    if( resolvedModulePath.isJarFile ) {
+      fullIncludeUri = resolvedModulePath.fileUri + "?module=" + resolvedModulePath.relativePath;
+    } else {
+      fullIncludeUri = resolvedModulePath.fileUri;
+    }
+
+    if( _this.isScriptDownloading(fullIncludeUri) ) {
+      log.message(4, "Script is downloading for " + fullIncludeUri);
+      _this.addModuleReadyListener(fullIncludeUri, function(moduleExports) {
         onImportComplete([moduleExports, origFilePath]);
 
         return;
       });
     }
-    var haveFile = _this.isScriptLoaded(filePath);
+
+    var haveFile = _this.isScriptLoaded(fullIncludeUri);
 
     if (haveFile == false) {
-      var urlParts = url.parse(filePath, true);
-      var fullPath = filePath;
-
-      if( urlParts.hasOwnProperty('protocol') &&urlParts['protocol'] !== null ) {
-        var protocol = urlParts['protocol'];
-        if( protocol !== 'undefined' && protocol.length > 0 ) {
-          var proto = protocol.substr(0,protocol.length-1);
-          if( _this.importProtocolPaths.hasOwnProperty(proto) ) {
-            var protoPath = _this.importProtocolPaths[proto];
-            fullPath = _this.importProtocolPaths[proto] + "/" + fullPath.substring(6);
-          }
-        }
-      } else {
-        var fileToLoad = filePath;
-        if( filePath.charAt(0) === '/' ) {
-          fileToLoad = filePath.substring(1);
-        }
-        if( _this.fileArchive.hasFileContents(fileToLoad) ) {
-          _this.processCodeBuffer(origFilePath, filePath, currentXModule, _this.fileArchive.getFileContents(fileToLoad), onImportComplete, reject);
+      if( resolvedModulePath.isJarFile ) {
+        var theFileArchive = _this.jarFileMap[resolvedModulePath.fileUri];
+        if( theFileArchive.hasFileContents(resolvedModulePath.relativePath) ) {
+          var moduleBasePath = _this.getModuleBasePath(fullIncludeUri);
+          _this.processCodeBuffer(origFilePath, fullIncludeUri, moduleBasePath, currentXModule, theFileArchive.getFileContents(resolvedModulePath.relativePath), true, onImportComplete, reject);
           return;
         } else {
-          fullPath = _this.basePackageUri + "/" + filePath;
+          console.error("The file was not found in the archive: " + resolvedModulePath.relativePath);
         }
       }
 
+      var fullPath = filePath;
+
+      fullPath = fullIncludeUri; //_this.resolveModulePath(filePath, currentXModule);
+
       // acquire file
-      _this.setScriptStatus(filePath, 'downloading');
+      _this.setScriptStatus(fullIncludeUri, 'downloading');
       _this.asyncFileAcquisition.acquire(fullPath)
         .then(function(moduleLoader){
           var xModule;
-          log.message(4, "PROCESS RCVD MODULE: " + filePath);
+          log.message(4, "PROCESS RCVD MODULE: " + fullIncludeUri);
           // file acquired
           // is it still needed - another one may have already arrived from a different module
-          if( _this.isScriptReady(filePath) ) {
-            var modExports = _this.getScriptContents(filePath);
+          if( _this.isScriptReady(fullIncludeUri) ) {
+            var modExports = _this.getScriptContents(fullIncludeUri);
             onImportComplete([modExports, origFilePath]);
-          } else if( _this.isScriptLoaded((filePath))) {
+          } else if( _this.isScriptLoaded((fullIncludeUri))) {
             log.message(4, "It looks like module script is already loaded -- no need to run it");
-            _this.addModuleReadyListener(filePath, function(moduleExports) {
+            _this.addModuleReadyListener(fullIncludeUri, function(moduleExports) {
               log.message(7, "Received moduleExports from other download" );
               onImportComplete([moduleExports, origFilePath]);
             });
           } else {
-            log.message(4, "Need to run script: " + filePath);
+            log.message(4, "Need to run script: " + fullIncludeUri);
             var currentFileArchive;
             var currentFileManifest;
-            ///_this.fileArchive = moduleLoader.getFileArchive();
-            ///currentFileArchive = _this.fileArchive;
             currentFileArchive = moduleLoader.getFileArchive();
             currentFileManifest = moduleLoader.getManifest();
             var main = currentFileManifest.getMain();
 
             var mainCode = currentFileArchive.getFileContents(main);
 
-            _this.processCodeBuffer(origFilePath, filePath, currentXModule, mainCode, onImportComplete, reject);
+            var baseUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
+            _this.processCodeBuffer(origFilePath, fullPath, {baseUri:baseUri, isJarFile:false}, currentXModule, mainCode, false, onImportComplete, reject);
 
           }
 
         }).catch(function(err){
-          console.error("Error: could not load file " + filePath  + ", err=" + err);
+          console.error("Error: could not load file " + fullIncludeUri  + ", err=" + err);
           reject("include failed");
         });
 
     } else {
-      log.message(4, "Already have file loaded and ready, just return the existing content: " + filePath);
-      onImportComplete([_this.getScriptContents(filePath), origFilePath]);
+      log.message(4, "Already have file loaded and ready, just return the existing content: " + fullIncludeUri);
+      onImportComplete([_this.getScriptContents(fullIncludeUri), origFilePath]);
     }
   });
 
 }
 
-AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, currentXModule, codeBuffer, onImportComplete, onImportRejected) {
+AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, moduleBasePath, currentXModule, codeBuffer, fromJarFile, onImportComplete, onImportRejected) {
   var _this = this;
   var xModule;
 
@@ -472,7 +488,7 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
   if( xModule === 'undefined' ) {
     log.message(7, "cb Creating new XModule for " + filePath);
 
-    xModule = new XModule(filePath, _this);
+    xModule = new XModule(filePath, _this, fromJarFile, moduleBasePath);
     xModule.initSandbox(_this.sandbox);
     var sourceCode = AppSceneContext.wrap(codeBuffer);
     var script = new vm.Script(sourceCode, filePath);
@@ -497,8 +513,6 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
       // It's possible that these exports have already been added
       _this.addScript(filePath, 'ready', xModule.exports);
 
-      _this.addImportedPublicClasses(xModule.exports, xModule.publicClasses);
-
       onImportComplete([xModule.exports, origFilePath]);
       log.message(4, "AppSceneContext after notifying[:" + currentXModule.name + "] about import<" + filePath + ">");
       // notify 'ready' listeners
@@ -510,7 +524,6 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
         _this.addScript(filePath, 'loaded', xModule.exports);
         _this.setScriptStatus(filePath, 'ready');
         log.message(7, "AppSceneContext: is about to notify [" + currentXModule.name + "] that <" + filePath + "> has been imported and is ready");
-        _this.addImportedPublicClasses(xModule.exports, xModule.publicClasses);
 
         onImportComplete([xModule.exports, origFilePath]);
         log.message(8, "AppSceneContext after notifying[:" + currentXModule.name + "] about import<" + filePath + ">");
@@ -526,53 +539,31 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 
 }
 
-AppSceneContext.prototype.addImportedPublicClasses = function(exports, classMap) {
-  if( typeof classMap !== 'undefined' ) {
-    for ( var key in classMap) {
-      if (classMap.hasOwnProperty(key)) {
-        if (!this.publicClasses.hasOwnProperty(key)) {
-          this.publicClasses[key] = classMap[key];
-          log.message(4, "Added public class: " + key);
-        } else {
-          console.trace("Wait a second... ClassName<" + key + "> is already listed in the public class list");
-        }
-      }
+
+AppSceneContext.prototype.setFocus = function() {
+  log.info("setFocus");
+  this.rootScene.setFocus(this.container);
+}
+
+AppSceneContext.prototype.onResize = function(resizeEvent) {
+  var hrTime = process.hrtime(this.lastHrTime);
+  var deltaMillis = (hrTime[0] * 1000 + hrTime[1] / 1000000);
+  this.lastHrTime = process.hrtime();
+  if( deltaMillis > 300 ) {
+    if( this.resizeTimer != null ) {
+      clearTimeout(this.resizeTimer);
+      this.resizeTimer = null;
     }
+    this.container.w = resizeEvent.w;
+    this.container.h = resizeEvent.h;
   } else {
-    log.message(10, "addImportPublicClasses() classMap undefined");
+    var lastWidth = resizeEvent.w;
+    var lastHeight = resizeEvent.h;
+    this.resizeTimer = setTimeout(function() {
+      this.container.w = lastWidth;
+      this.container.h = lastHeight;
+    }.bind(this), 500);
   }
-
-  if( typeof(exports) === 'function') {
-    var exp = exports;
-    log.message(4, "Module Exporting a function: " + exp.name);
-    this.publicClasses[exp.name] = exports;
-  }
-
-}
-
-AppSceneContext.prototype.getConstructor = function(className) {
-  if( this.publicClasses.hasOwnProperty(className) ) {
-    log.message(4, "getConstructor(" + className + "): returns " + this.publicClasses[className] + ", typeof " + typeof(this.publicClasses[className]));
-    return this.publicClasses[className];
-  } else {
-    console.trace("Unknown className[" + className + "]");
-    return null;
-  }
-}
-
-AppSceneContext.prototype.createClass = function(className, params) {
-  if( this.publicClasses.hasOwnProperty(className) ) {
-    log.message(10, "createClass(" + className + "): returns " + ", typeof " + typeof(this.publicClasses[className])); // + this.publicClasses[className]);
-    return new this.publicClasses[className](params);
-  } else {
-    console.trace("Unknown className[" + className + "]");
-    return null;
-  }
-}
-
-function createComponent(className, params) {
-  log.message(8, "ASC#createComponent(" + className + ", " + params + ")");
-  return this.createClass(className, params);
 }
 
 AppSceneContext.prototype.addModuleReadyListener = function(moduleName, callback) {
@@ -611,7 +602,7 @@ AppSceneContext.prototype.getXModule = function(name) {
 }
 
 AppSceneContext.prototype.addScript = function(name, status, scriptObject) {
-  if( this.scriptMap.hasOwnProperty(name) ) {
+    if( this.scriptMap.hasOwnProperty(name) ) {
     var curData = this.scriptMap[name];
     curData.status = status;
     if( status == 'ready' && (typeof scriptObject == 'undefined' || scriptObject == null) ) {
@@ -754,7 +745,8 @@ AsyncFileAcquisition.prototype.acquire = function(uri) {
           delete self.requestMap[uri];
         })
         .catch(function(error){
-          console.error("Error: could not load file " + filePath  + ", error=" + error);
+          console.error("Error");
+          console.error("AsyncFileAcquisition - Error: could not load file " + uri  + ", error=" + error);
           reject(error);
           var listeners = self.requestMap[uri].listeners;
           if( listeners != null && listeners.length != 0 ) {
