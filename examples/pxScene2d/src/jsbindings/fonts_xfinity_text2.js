@@ -53,6 +53,9 @@ for(var n = 0; n < elems.length; n++) {
                 var fontMetrics = t.getFontMetrics();
                 console.log("natural leading is "+fontMetrics.naturalLeading);
                 console.log("fontMetrics.height="+fontMetrics.height);
+                console.log("fontMetrics.baseline="+fontMetrics.baseline);
+                console.log("fontMetrics.ascent="+fontMetrics.ascent);
+                console.log("fontMetrics.descent="+fontMetrics.descent);
                 t.h = fontMetrics.height;
                 t.parent.h = t.h+(fontMetrics.naturalLeading/2);
                 t.parent.w = 800;
