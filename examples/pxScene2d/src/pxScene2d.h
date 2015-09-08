@@ -276,7 +276,8 @@ public:
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mReady(), mMaskTextureRef(),
-    mMaskTextureCacheObject(),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false)
+    mMaskTextureCacheObject(),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
+      , mRepaintCount(0) //TODO - remove mRepaintCount as it's only needed on certain platforms
 #ifdef PX_DIRTY_RECTANGLES
     , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
     #endif //PX_DIRTY_RECTANGLES
@@ -732,6 +733,8 @@ public:
   rtError useMatrix(bool& v) const { v = mUseMatrix; return RT_OK; }
   rtError setUseMatrix(const bool& v) { mUseMatrix = v; return RT_OK; }
 
+  void repaint() { mRepaint = true; mRepaintCount = 0; }
+
 public:
   rtEmitRef mEmit;
 
@@ -757,6 +760,8 @@ protected:
   rtString mId;
   pxMatrix4f mMatrix;
   bool mUseMatrix;
+  bool mRepaint;
+  int mRepaintCount;
   #ifdef PX_DIRTY_RECTANGLES
   bool mIsDirty;
   pxMatrix4f mLastRenderMatrix;
