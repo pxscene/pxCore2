@@ -196,8 +196,10 @@ jsFunctionWrapper::~jsFunctionWrapper()
 {
   if (mTeardownThreadingPrimitives)
   {
+#ifndef USE_STD_THREADS
     pthread_mutex_destroy(&mMutex);
     pthread_cond_destroy(&mCond);
+#endif
   }
 }
 
@@ -205,25 +207,42 @@ void jsFunctionWrapper::setupSynchronousWait()
 {
   mComplete = false;
   mTeardownThreadingPrimitives = true;
+#ifndef USE_STD_THREADS
   pthread_mutex_init(&mMutex, NULL);
   pthread_cond_init(&mCond, NULL);
+#endif
 }
 
 void jsFunctionWrapper::signal(rtValue const& returnValue)
 {
+#ifdef USE_STD_THREADS
+  std::unique_lock<std::mutex> lock(mMutex);
+#else
   pthread_mutex_lock(&mMutex);
+#endif
+
   mComplete = true;
   mReturnValue = returnValue;
+
+#ifdef USE_STD_THREADS
+  mCond.notify_one();
+#else
   pthread_mutex_unlock(&mMutex);
   pthread_cond_signal(&mCond);
+#endif
 }
 
 rtValue jsFunctionWrapper::wait()
 {
+#ifdef USE_STD_THREADS
+  std::unique_lock<std::mutex> lock(mMutex);
+  mCond.wait(lock, [&] { return mComplete; });
+#else
   pthread_mutex_lock(&mMutex);
   while (!mComplete)
     pthread_cond_wait(&mCond, &mMutex);
   pthread_mutex_unlock(&mMutex);
+#endif
   return mReturnValue;
 }
 

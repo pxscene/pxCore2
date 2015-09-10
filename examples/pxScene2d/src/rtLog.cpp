@@ -3,14 +3,21 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-//#include "windows.h"
 #include <stdarg.h>
 #include <string.h>
 #include "rtLog.h"
+
+#ifndef WIN32
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <pthread.h>
+#else
+#include <Windows.h>
+#define strcasecmp _stricmp
+#endif
+
 #include <inttypes.h>
+
 
 struct LogLevelSetter
 {
@@ -91,8 +98,11 @@ void rtLogPrintf(rtLogLevel level, const char* file, int line, const char* forma
   uint64_t threadId;
   pthread_threadid_np(NULL, &threadId);
   #define THREAD_ID_FORMAT PRIu64
+#elif defined WIN32
+  const DWORD threadId = GetCurrentThreadId();
+  #define THREAD_ID_FORMAT "l"
 #else
-  const int   threadId = syscall(__NR_gettid);
+  const int threadId = syscall(__NR_gettid);
   #define THREAD_ID_FORMAT "d"
 #endif
 

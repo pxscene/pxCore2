@@ -6,7 +6,9 @@
 #define PX_WINDOW_NATIVE_GLUT_H
 
 #include <stdio.h>
+#ifndef WIN32
 #include <sys/mman.h>
+#endif
 #include <cstring>
 #include <vector>
 #include <iostream>

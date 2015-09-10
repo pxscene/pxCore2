@@ -1,7 +1,10 @@
 // pxCore CopyRight 2007-2015 John Robinson
 // pxUtil.cpp
 
+#ifndef WIN32
 #include <unistd.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

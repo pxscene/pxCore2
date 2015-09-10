@@ -4,7 +4,6 @@
 #include "rtWrapperUtils.h"
 #include "jsCallback.h"
 
-
 using namespace v8;
 
 class rtAbstractFunction : public rtIFunction
@@ -85,8 +84,15 @@ private:
 
   bool mComplete;
   bool mTeardownThreadingPrimitives;
+
+#ifdef USE_STD_THREADS
+  std::mutex mMutex;
+  std::condition_variable mCond;
+#else
   pthread_mutex_t mMutex;
   pthread_cond_t mCond;
+#endif
+
   rtValue mReturnValue;
 };
 

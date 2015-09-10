@@ -2,6 +2,7 @@
 #define RT_ATOMIC_H
 
 #ifdef WIN32
+#include <Windows.h>
 #define rtAtomic          volatile long
 #define rtAtomicInc(ptr)  (InterlockedIncrement(ptr))
 #define rtAtomicDec(ptr)  (InterlockedDecrement(ptr))

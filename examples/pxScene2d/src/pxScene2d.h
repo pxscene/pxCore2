@@ -11,7 +11,11 @@
 using namespace std;
 
 #ifndef finline
+#ifdef WIN32
+#define finline __forceinline
+#else
 #define finline __attribute__((always_inline))
+#endif
 #endif
 
 #include "rtRefT.h"
