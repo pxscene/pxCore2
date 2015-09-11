@@ -11,11 +11,18 @@
 #include "pxContext.h"
 #include "pxFileDownloader.h"
 
+extern "C"
+{
+#include "utf8.h"
+}
+
 extern pxContext context;
 
 rtError pxImage9::url(rtString& s) const { s = mURL; return RT_OK; }
 rtError pxImage9::setURL(const char* s) { 
   mURL = s;
+  if (!s || !u8_strlen((char*)s)) 
+    return RT_OK;  
   loadImage(mURL);
   return RT_OK;
 }
