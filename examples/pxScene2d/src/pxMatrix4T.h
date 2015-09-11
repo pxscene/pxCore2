@@ -5,6 +5,18 @@
 #define pxMatrix4T_h
 
 #include <stdlib.h>
+
+#ifdef WIN32
+#define _USE_MATH_DEFINES
+template<class X, class S, class C>
+void sincosf(X x, S* s, C* c)
+{
+  if (s)
+    *s = sin(x);
+  if (c)
+    *c = cos(x);
+}
+#endif
 #include <math.h>
 #include <string.h>
 #include <stdio.h>

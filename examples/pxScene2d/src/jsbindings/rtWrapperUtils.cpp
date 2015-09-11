@@ -6,12 +6,19 @@
 
 #ifdef __APPLE__
 static pthread_mutex_t sSceneLock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_t sCurrentSceneThread;
+#elif defined(USE_STD_THREADS)
+#include <thread>
+#include <mutex>
+static std::mutex sSceneLock;
+static std::thread::id sCurrentSceneThread;
 #else
 static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+static pthread_t sCurrentSceneThread;
 #endif
 
 static int sLockCount;
-static pthread_t sCurrentSceneThread;
+
 static rtMutex objectMapMutex;
 
 typedef std::map< rtIObject*, Persistent<Object>* > maptype_rt2v8;
@@ -88,23 +95,42 @@ bool rtIsPromise(const rtValue& v)
 
 bool rtWrapperSceneUpdateHasLock()
 {
+#ifdef USE_STD_THREADS
+  return std::this_thread::get_id() == sCurrentSceneThread;
+#else
   return pthread_self() == sCurrentSceneThread;
+#endif
 }
 
 void rtWrapperSceneUpdateEnter()
 {
+#ifdef USE_STD_THREADS
+  std::unique_lock<std::mutex> lock(sSceneLock);
+  sCurrentSceneThread = std::this_thread::get_id();
+#else
   assert(pthread_mutex_lock(&sSceneLock) == 0);
   sCurrentSceneThread = pthread_self();
+#endif
   sLockCount++;
 }
 
 void rtWrapperSceneUpdateExit()
 {
   assert(rtWrapperSceneUpdateHasLock());
+#ifdef USE_STD_THREADS
+  std::unique_lock<std::mutex> lock(sSceneLock);
+#else
   assert(pthread_mutex_unlock(&sSceneLock) == 0);
+#endif
   sLockCount--;
+
+#ifdef USE_STD_THREADS
+  if (sLockCount == 0)
+    sCurrentSceneThread = std::thread::id()
+#else
   if (sLockCount == 0)
     sCurrentSceneThread = 0;
+#endif
 }
 
 using namespace v8;

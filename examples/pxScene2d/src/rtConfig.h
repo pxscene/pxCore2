@@ -2,6 +2,7 @@
 #define RT_CONFIG_H
 
 #if defined(RT_PLATFORM_LINUX)
+#elif defined(RT_PLATFORM_WINDOWS)
 #else
 #error "Must define be RT_PLATFORM_LINUX"
 #endif

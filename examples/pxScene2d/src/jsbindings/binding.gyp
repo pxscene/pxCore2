@@ -19,10 +19,7 @@
         "../rtThreadPool.cpp",
         "../rtThreadTask.cpp",
         "../rtLibrary.cpp",
-        "../linux/rtMutexNative.cpp",
-        "../linux/rtThreadPoolNative.cpp",
         "../utf8.c",
-
         "../pxContextGL.cpp",
         "../pxImage.cpp",
         "../pxImage9.cpp",
@@ -61,24 +58,34 @@
       ],
 
   "conditions": [
-    ['OS=="mac"', {'defines':['RUNINMAIN'],
-                  'libraries': [
-            "-framework GLUT",
-            "-framework OpenGL",
-            "../../../external/jpg/.libs/libjpeg.a",
-            ]}],
-    ['OS!="mac"', {'libraries': [
-            "-lglut",
-            "-lGL",
-            "-lGLEW",
-            "-ljpeg",
-            ]}],
-            ],
-
-      "defines": [
-        "PX_PLATFORM_GLUT",
-        "RT_PLATFORM_LINUX",
-      ],
+    ['OS=="linux"',
+      {
+        'sources': ["../linux/rtMutexNative.cpp", "../linux/rtThreadPoolNative.cpp"]
+      },
+    ],
+    ['OS=="mac"',
+      {
+        'defines':['RUNINMAIN'],
+        'libraries': ["-framework GLUT", "-framework OpenGL", "../../../external/jpg/.libs/libjpeg.a"]
+      }
+    ],
+    ['OS!="mac"',
+      {
+        'libraries': ["-lglut", "-lGL", "-lGLEW", "-ljpeg"]
+      }
+    ],
+    ['OS!="win"',
+      {
+        'defines': [ "PX_PLATFORM_GLUT", "RT_PLATFORM_LINUX"]
+      }
+    ],
+    ['OS=="win"',
+      {
+        'defines': ["PX_PLATFORM_GLUT", "RT_PLATFORM_WINDOWS"],
+        'sources': ["../win/rtMutexNative.cpp", "../win/rtThreadPoolNative.cpp"]
+      }
+    ]
+  ],
 
       'cflags!': [
         "-Wno-unused-parameter"

@@ -10,10 +10,19 @@
 
 using namespace v8;
 
+#ifdef WIN32
+static DWORD __rt_main_thread__;
+#else
 static pthread_t __rt_main_thread__;
+#endif
+
 bool rtIsMainThread()
 {
+#ifdef WIN32
+  return GetCurrentThreadId() == __rt_main_thread__;
+#else
   return pthread_self() == __rt_main_thread__;
+#endif
 }
 
 struct EventLoopContext
@@ -24,11 +33,17 @@ struct EventLoopContext
 // TODO on OSX run the windows event loop on the main thread and use
 // a timer to pump messages
 #ifndef RUNINMAIN
+#ifdef WIN32
+static void processEventLoop(void* argp)
+#else
 static void* processEventLoop(void* argp)
+#endif
 {
   EventLoopContext* ctx = reinterpret_cast<EventLoopContext *>(argp);
   ctx->eventLoop->run();
+#ifndef WIN32
   return 0;
+#endif
 }
 #endif
 
@@ -101,9 +116,14 @@ public:
 #else
     EventLoopContext* ctx = new EventLoopContext();
     ctx->eventLoop = mEventLoop;
+#ifdef WIN32
+    uintptr_t threadId = _beginthread(processEventLoop, 0, ctx);
+    if (threadId != -1)
+      mEventLoopThread = (HANDLE)threadId;
+#else
     pthread_create(&mEventLoopThread, NULL, &processEventLoop, ctx);
 #endif
-
+#endif
   }
 
   virtual ~jsWindow()
@@ -226,7 +246,11 @@ private:
   Persistent<Object> mJavaScene;
 
 #ifndef RUNINMAIN
+#ifdef WIN32
+  HANDLE mEventLoopThread;
+#else
   pthread_t mEventLoopThread;
+#endif
 #endif
 
   uv_timer_t mTimer;
@@ -291,7 +315,11 @@ void ModuleInit(
   Handle<Value>     /* unused */,
   Handle<Context>     context)
 {
+#ifdef WIN32
+  __rt_main_thread__ = GetCurrentThreadId();
+#else
   __rt_main_thread__ = pthread_self();
+#endif
 
   Isolate* isolate = context->GetIsolate();
 

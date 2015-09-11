@@ -77,7 +77,6 @@ rtError rtLoadFile(const char* f, rtData& data)
 {
   rtError e = RT_FAIL;
 #ifdef WIN32
-  char buff[1024];
   HANDLE hFile = CreateFile(f, GENERIC_READ, 0, NULL, 0,
     FILE_ATTRIBUTE_NORMAL, NULL);
   if (hFile != INVALID_HANDLE_VALUE)
