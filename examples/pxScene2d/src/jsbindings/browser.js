@@ -25,7 +25,13 @@ inputbg.on("onChar",function(e) {
 
 inputbg.on("onKeyDown", function(e) {
   if (e.keyCode == 13) {
-    content.url = url.text;
+
+    var u = url.text;
+    // TODO Temporary hack
+    if (u.indexOf(':') == -1)
+      u = 'http://www.pxscene.org/examples/px-reference/gallery/' + u;
+
+    content.url = u;
     scene.setFocus(content);
     content.ready.then(function() {
       contentBG.draw = true;
