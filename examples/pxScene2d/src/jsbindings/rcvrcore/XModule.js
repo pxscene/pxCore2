@@ -20,6 +20,7 @@ function XModule(name, appSceneContext, fromJarFile, basePath) {
   this.log = null;
   this.fromJarFile = fromJarFile;
   this.basePath = basePath;
+  this.importReplacementMap = {};
 }
 
 XModule.prototype.load = function(uri) {
@@ -201,6 +202,28 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
 
   this.moduleReadyPromise = promise;
   return this.getInstance;
+}
+
+
+XModule.prototype.configImport = function(replacementMap) {
+  this.importReplacementMap = replacementMap;
+}
+
+XModule.prototype.findImportReplacementMatch = function(path) {
+  if( this.importReplacementMap === null ) {
+    return null;
+  }
+  // look for direct matches or partial matches at beginning of uri
+  for(var key in this.importReplacementMap) {
+    var regexp = new RegExp('^' + key);
+    var found = path.match(regexp);
+    if( path.match(regexp) ) {
+      var newUri = path.replace(regexp, this.importReplacementMap[key]);
+      return {fileUri:newUri, isJarFile:false};
+    }
+  }
+
+  return null;
 }
 
 module.exports = {

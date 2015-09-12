@@ -10,9 +10,7 @@ var xmodImportModule = require('rcvrcore/XModule').importModule;
 var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 
-
 var log = new Logger('AppSceneContext');
-
 
 function AppSceneContext(params) { //rootScene, container, innerscene, packageUrl) {
   this.rootScene = params.rootScene;
@@ -39,8 +37,6 @@ function AppSceneContext(params) { //rootScene, container, innerscene, packageUr
   this.scriptMap = {};
   this.xmoduleMap = {};
   this.asyncFileAcquisition = new AsyncFileAcquisition();
-  this.importProtocolPaths = {};
-  this.importRedirects = {};
   this.lastHrTime = process.hrtime();
   this.resizeTimer = null;
   this.topXModule = null;
@@ -91,26 +87,27 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
       _this.packageManifest = moduleLoader.getManifest();
       var main = _this.packageManifest.getMain();
 
+      var configImport = {};
       if( moduleLoader.isDefaultManifest() ) {
         // let's see if there's one on the server
         _this.getFile("package.json").then( function(packageFileContents) {
           var manifest = new SceneModuleManifest();
           manifest.loadFromJSON(packageFileContents);
-          _this.importProtocolPaths = manifest.getNamespaceImportPaths();
+          configImport = manifest.getConfigImport();
 
           var mainCode = _this.fileArchive.getFileContents(main);
-          _this.runScriptInNewVMContext(mainCode, main, false);
+          _this.runScriptInNewVMContext(mainCode, main, false, configImport);
         }).catch(function(e){
           var mainCode = _this.fileArchive.getFileContents(main);
-          _this.runScriptInNewVMContext(mainCode, main, false);
+          _this.runScriptInNewVMContext(mainCode, main, false, null);
         });
       } else {
-        _this.importProtocolPaths = _this.packageManifest.getNamespaceImportPaths();
+        configImport = _this.packageManifest.getConfigImport();
         _this.jarFileMap[packageUri] = _this.fileArchive;
         var moduleUri = packageUri + "?module=" + main;
 
         var mainCode = _this.fileArchive.getFileContents(main);
-        _this.runScriptInNewVMContext(mainCode, moduleUri, true);
+        _this.runScriptInNewVMContext(mainCode, moduleUri, true, configImport);
       }
 
     })
@@ -135,7 +132,16 @@ AppSceneContext.prototype.getModuleBasePath = function(moduleUri) {
   return {baseUri:moduleUri.substring(0, moduleUri.lastIndexOf('/')), isJarFile:false};
 }
 
-AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJarFile) {
+function createModule_pxScope(xModule) {
+  return {
+    log: xModule.log,
+    import: xmodImportModule.bind(xModule),
+    configImport: xModule.configImport.bind(xModule)
+  };
+
+}
+
+AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJarFile, configImport) {
   var sceneForChild = this.innerscene;
   var apiForChild = this;
 
@@ -148,6 +154,9 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
   var thisAppSceneContext = this;
   var xModule = new XModule(urlParts.pathname, this, fromJarFile, this.getModuleBasePath(uri));
   this.topXModule = xModule;
+  if( configImport !== null ) {
+    xModule.configImport(configImport);
+  }
 
   var self = this;
   var newSandbox;
@@ -199,12 +208,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       var sourceCode = AppSceneContext.wrap(code);
       var script = new vm.Script(sourceCode, fname);
       var moduleFunc = script.runInNewContext(newSandbox); //xModule.sandbox);
-      var px = {
-        log: xModule.log,
-        import: xmodImportModule.bind(xModule),
-        addImportProtocolPath: addImportProtocolPath.bind(self),
-        //addImportRedirect: addImportRedirect.bind(this)
-      };
+      var px = createModule_pxScope(xModule);
       moduleFunc(px, xModule, fname, this.basePackageUri);
 
       // TODO do the old scenes context get released when we reload a scenes url??
@@ -243,23 +247,6 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
     // TODO: scene.onError(err); ???
   }
 }
-
-function addImportRedirect(basePath, redirect) {
-  this.addImportRedirect(basePath, redirect);
-}
-
-function addImportProtocolPath(protocol, redirect) {
-  this.addImportProtocolPath(protocol, redirect);
-}
-
-AppSceneContext.prototype.addImportRedirect = function(basePath, redirect) {
-  this.importRedirects[basePath] = redirect;
-}
-
-AppSceneContext.prototype.addImportProtocolPath = function(protocol, redirect) {
-  this.importProtocolPaths[protocol] = redirect;
-}
-
 
 AppSceneContext.prototype.getPackageBaseFilePath = function() {
   var fullPath;
@@ -304,10 +291,6 @@ AppSceneContext.prototype.buildFullFilePath = function(filePath) {
 
     if( protocol !== 'undefined' && protocol.length > 0 ) {
       var proto = protocol.substr(0,protocol.length-1);
-      if( this.importProtocolPaths.hasOwnProperty(proto) ) {
-        var protoPath = this.importProtocolPaths[proto];
-        fullPath = this.importProtocolPaths[proto] + "/" + fullPath.substring(6);
-      }
     }
   } else {
     var sbase = this.basePackageUri;
@@ -361,6 +344,14 @@ AppSceneContext.prototype.getFile = function(filePath) {
 }
 
 AppSceneContext.prototype.resolveModulePath = function(filePath, currentXModule) {
+  var replacementMatch = currentXModule.findImportReplacementMatch(filePath);
+  if( replacementMatch === null && this.topXModule !== currentXModule) {
+    replacementMatch = this.topXModule.findImportReplacementMatch(filePath);
+  }
+  if( replacementMatch !== null ) {
+    log.info(filePath + " ==> " + replacementMatch.fileUri);
+    return replacementMatch;
+  }
   var normPath;
   var currModBasePath = currentXModule.getBasePath();
   if( currModBasePath.isJarFile ) {
@@ -494,14 +485,11 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, m
     var script = new vm.Script(sourceCode, filePath);
 
     var moduleFunc = script.runInContext(_this.sandbox);
-    var px = {
-      log: xModule.log,
-      import: xmodImportModule.bind(xModule)
-    };
+    var px = createModule_pxScope(xModule);
 
-    log.message(4, "cbRUN " + filePath);
+    log.message(4, "RUN " + filePath);
     moduleFunc(px, xModule, filePath, origFilePath);
-    log.message(4, "cbRUN DONE: " + filePath);
+    log.message(4, "RUN DONE: " + filePath);
 
     this.setXModule(filePath, xModule);
 
