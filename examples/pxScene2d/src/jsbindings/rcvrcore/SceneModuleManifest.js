@@ -14,11 +14,11 @@ SceneModuleManifest.prototype.getMain = function() {
   return this.main;
 };
 
-SceneModuleManifest.prototype.getNamespaceImportPaths = function() {
-  if( typeof this.jsonData.importPaths === 'undefined' || typeof this.jsonData.importPaths.namespaces === 'undefined') {
+SceneModuleManifest.prototype.getConfigImport = function() {
+  if( typeof this.jsonData.configImport === 'undefined' ) {
     return {};
   }
-  return this.jsonData.importPaths.namespaces;
+  return this.jsonData.configImport;
 };
 
 module.exports = SceneModuleManifest;
