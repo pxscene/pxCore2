@@ -10,12 +10,16 @@ var argDefinitions = {screenWidth:{required:false, default:1280, help:"Specifies
 var argProcessor = require("rcvrcore/utils/ArgProcessor");
 var processArgs = argProcessor(process.argv, argDefinitions);
 
+if (processArgs['url']=='')
+  processArgs['url'] = 'browser.js';
+
 if( processArgs.hasOwnProperty('logLevel')) {
   setLoggingLevel(processArgs['logLevel']);
 }
 
 // Create root object and send it the base URI of the xre2 framework modules
 var pxRoot = require('rcvrcore/pxRoot')(0, 0, processArgs['screenWidth'], processArgs['screenHeight']);
+
 
 pxRoot.addScene({url:processArgs['url'],w:processArgs['screenWidth'],h:processArgs['screenHeight'],
   useNodeBasedImports:processArgs['useNodeBasedImports']});

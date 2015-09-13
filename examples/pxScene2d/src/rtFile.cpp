@@ -9,6 +9,14 @@
 #include <fcntl.h>
 #include <string.h>
 
+#ifdef WIN32
+#include <Windows.h>
+#include <limits>
+#ifdef max
+#undef max
+#endif
+#endif
+
 #include "rtFile.h"
 
 rtData::rtData(): mData(NULL), mLength(0) {}
@@ -41,6 +49,17 @@ rtError rtStoreFile(const char* f, rtData& data)
 {
   rtError e = RT_FAIL;
 
+#ifdef WIN32
+  // TODO
+  HANDLE hFile = CreateFileA(f, GENERIC_WRITE, 0, NULL, TRUNCATE_EXISTING | CREATE_NEW,
+    FILE_ATTRIBUTE_NORMAL, NULL);
+  if (hFile != INVALID_HANDLE_VALUE)
+  {
+    DWORD dwBytesWritten = 0;
+    WriteFile(hFile, data.data(), data.length(), &dwBytesWritten, NULL);
+    CloseHandle(hFile);
+  }
+#else
   int fd = open(f, O_CREAT | O_TRUNC | O_WRONLY);
   if (fd >= 0)
   {
@@ -50,12 +69,36 @@ rtError rtStoreFile(const char* f, rtData& data)
       e = RT_OK;
     close(fd);
   }
+#endif
   return e;
 }
 
 rtError rtLoadFile(const char* f, rtData& data) 
 {
   rtError e = RT_FAIL;
+#ifdef WIN32
+  HANDLE hFile = CreateFile(f, GENERIC_READ, 0, NULL, 0,
+    FILE_ATTRIBUTE_NORMAL, NULL);
+  if (hFile != INVALID_HANDLE_VALUE)
+  {
+    LARGE_INTEGER size;
+    if (GetFileSizeEx(hFile, &size))
+    {
+      if (size.QuadPart < std::numeric_limits<uint32_t>::max())
+      {
+        uint32_t l = static_cast<uint32_t>(size.QuadPart);
+        data.init(l);
+
+        DWORD dwBytesRead = 0;
+        if (ReadFile(hFile, data.data(), l, &dwBytesRead, NULL))
+        {
+
+        }
+      }
+    }
+    CloseHandle(hFile);
+  }
+#else
   struct stat st;
   int fd = open(f, O_RDONLY);
   if (fd >= 0) {
@@ -69,5 +112,6 @@ rtError rtLoadFile(const char* f, rtData& data)
     }
     close(fd);
   }
+#endif
   return e;
 }

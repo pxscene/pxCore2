@@ -11,7 +11,11 @@
 using namespace std;
 
 #ifndef finline
+#ifdef WIN32
+#define finline __forceinline
+#else
 #define finline __attribute__((always_inline))
+#endif
 #endif
 
 #include "rtRefT.h"
@@ -276,7 +280,8 @@ public:
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mReady(), mMaskTextureRef(),
-    mMaskTextureCacheObject(),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false)
+    mMaskTextureCacheObject(),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
+      , mRepaintCount(0) //TODO - remove mRepaintCount as it's only needed on certain platforms
 #ifdef PX_DIRTY_RECTANGLES
     , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
     #endif //PX_DIRTY_RECTANGLES
@@ -712,25 +717,27 @@ public:
   rtError m43(float& v) const { v = mMatrix.constData(14); return RT_OK; }
   rtError m44(float& v) const { v = mMatrix.constData(15); return RT_OK; }
 
-  rtError setM11(const float& v) { mMatrix.data()[0] = v; return RT_OK; }
-  rtError setM12(const float& v) { mMatrix.data()[1] = v; return RT_OK; }
-  rtError setM13(const float& v) { mMatrix.data()[2] = v; return RT_OK; }
-  rtError setM14(const float& v) { mMatrix.data()[3] = v; return RT_OK; }
-  rtError setM21(const float& v) { mMatrix.data()[4] = v; return RT_OK; }
-  rtError setM22(const float& v) { mMatrix.data()[5] = v; return RT_OK; }
-  rtError setM23(const float& v) { mMatrix.data()[6] = v; return RT_OK; }
-  rtError setM24(const float& v) { mMatrix.data()[7] = v; return RT_OK; }
-  rtError setM31(const float& v) { mMatrix.data()[8] = v; return RT_OK; }
-  rtError setM32(const float& v) { mMatrix.data()[9] = v; return RT_OK; }
-  rtError setM33(const float& v) { mMatrix.data()[10] = v; return RT_OK; }
-  rtError setM34(const float& v) { mMatrix.data()[11] = v; return RT_OK; }
-  rtError setM41(const float& v) { mMatrix.data()[12] = v; return RT_OK; }
-  rtError setM42(const float& v) { mMatrix.data()[13] = v; return RT_OK; }
-  rtError setM43(const float& v) { mMatrix.data()[14] = v; return RT_OK; }
-  rtError setM44(const float& v) { mMatrix.data()[15] = v; return RT_OK; }
+  rtError setM11(const float& v) { cancelAnimation("m11",true); mMatrix.data()[0] = v; return RT_OK; }
+  rtError setM12(const float& v) { cancelAnimation("m12",true); mMatrix.data()[1] = v; return RT_OK; }
+  rtError setM13(const float& v) { cancelAnimation("m13",true); mMatrix.data()[2] = v; return RT_OK; }
+  rtError setM14(const float& v) { cancelAnimation("m14",true); mMatrix.data()[3] = v; return RT_OK; }
+  rtError setM21(const float& v) { cancelAnimation("m21",true); mMatrix.data()[4] = v; return RT_OK; }
+  rtError setM22(const float& v) { cancelAnimation("m22",true); mMatrix.data()[5] = v; return RT_OK; }
+  rtError setM23(const float& v) { cancelAnimation("m23",true); mMatrix.data()[6] = v; return RT_OK; }
+  rtError setM24(const float& v) { cancelAnimation("m24",true); mMatrix.data()[7] = v; return RT_OK; }
+  rtError setM31(const float& v) { cancelAnimation("m31",true); mMatrix.data()[8] = v; return RT_OK; }
+  rtError setM32(const float& v) { cancelAnimation("m32",true); mMatrix.data()[9] = v; return RT_OK; }
+  rtError setM33(const float& v) { cancelAnimation("m33",true); mMatrix.data()[10] = v; return RT_OK; }
+  rtError setM34(const float& v) { cancelAnimation("m34",true); mMatrix.data()[11] = v; return RT_OK; }
+  rtError setM41(const float& v) { cancelAnimation("m41",true); mMatrix.data()[12] = v; return RT_OK; }
+  rtError setM42(const float& v) { cancelAnimation("m42",true); mMatrix.data()[13] = v; return RT_OK; }
+  rtError setM43(const float& v) { cancelAnimation("m43",true); mMatrix.data()[14] = v; return RT_OK; }
+  rtError setM44(const float& v) { cancelAnimation("m44",true); mMatrix.data()[15] = v; return RT_OK; }
 
   rtError useMatrix(bool& v) const { v = mUseMatrix; return RT_OK; }
   rtError setUseMatrix(const bool& v) { mUseMatrix = v; return RT_OK; }
+
+  void repaint() { mRepaint = true; mRepaintCount = 0; }
 
 public:
   rtEmitRef mEmit;
@@ -757,6 +764,8 @@ protected:
   rtString mId;
   pxMatrix4f mMatrix;
   bool mUseMatrix;
+  bool mRepaint;
+  int mRepaintCount;
   #ifdef PX_DIRTY_RECTANGLES
   bool mIsDirty;
   pxMatrix4f mLastRenderMatrix;

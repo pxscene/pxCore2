@@ -181,6 +181,14 @@ rtError pxObject::Set(const char* name, const rtValue* value)
   #ifdef PX_DIRTY_RECTANGLES
   mIsDirty = true;
   #endif //PX_DIRTY_RECTANGLES
+  repaint();
+  pxObject* parent = mParent;
+  while (parent)
+  {
+    parent->repaint();
+    parent = parent->parent();
+  }
+  mScene->invalidateRect(NULL);
   mScene->mDirty = true;
   return rtObject::Set(name, value);
 }
@@ -619,7 +627,10 @@ void pxObject::drawInternal(bool maskPass)
       mClipSnapshotRef = createSnapshot(mClipSnapshotRef);
       context.setMatrix(m);
       context.setAlpha(ma);
-      context.drawImage(0,0,mw,mh, mClipSnapshotRef->getTexture(), mMaskTextureRef, PX_NONE, PX_NONE);
+      if (mClipSnapshotRef.getPtr() != NULL)
+      {
+        context.drawImage(0, 0, mw, mh, mClipSnapshotRef->getTexture(), mMaskTextureRef, PX_NONE, PX_NONE);
+      }
     }
     else
     {
@@ -638,6 +649,19 @@ void pxObject::drawInternal(bool maskPass)
   else
   {
     context.drawImage(0,0,mw,mh, mSnapshotRef->getTexture(), mMaskTextureRef, PX_NONE, PX_NONE);
+  }
+
+  if (!maskPass)
+  {
+    //TODO - remove need for mRepaintCount
+    if (mRepaintCount > 1)
+    {
+      mRepaint = false;
+    }
+    else
+    {
+      mRepaintCount++;
+    }
   }
 }
 
@@ -716,7 +740,7 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
     context.updateFramebuffer(fbo, mw, mh);
   }
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
-  if (context.setFramebuffer(fbo) == PX_OK)
+  if (mRepaint && context.setFramebuffer(fbo) == PX_OK)
   {
     context.clear(mw, mh);
     draw();
@@ -832,6 +856,13 @@ bool pxObject::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
       mMaskTextureRef = textureCacheObject->getTexture();
       return true;
     }
+  }
+  repaint();
+  pxObject* parent = mParent;
+  while (parent)
+  {
+    parent->repaint();
+    parent = parent->parent();
   }
   #ifdef PX_DIRTY_RECTANGLES
   mIsDirty = true;
@@ -1722,6 +1753,25 @@ void RT_STDCALL testView::onDraw()
 void pxViewContainer::invalidateRect(pxRect* /*r*/)
 {
   mScene->mDirty = true;
+  repaint();
+  pxObject* parent = this->parent();
+  while (parent)
+  {
+    parent->repaint();
+    parent = parent->parent();
+  }
+  if (mScene)
+  {
+    mScene->invalidateRect(NULL);
+  }
+}
+
+void pxScene2d::invalidateRect(pxRect* /*r*/)
+{
+  if (mContainer && !mTop)
+  {
+    mContainer->invalidateRect(NULL);
+  }
 }
 
 rtDefineObject(pxViewContainer, pxObject);

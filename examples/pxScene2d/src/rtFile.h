@@ -3,10 +3,13 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#ifndef WIN32
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#endif
 
 #include "rtDefs.h"
 

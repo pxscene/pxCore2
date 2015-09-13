@@ -20,6 +20,15 @@
 #define WAYLAND_EGL_BUFFER_OPAQUE 0
 #define WAYLAND_PX_CORE_FPS 30
 
+#define MOD_SHIFT	0x01
+#define MOD_ALT		0x02
+#define MOD_CTRL	0x04
+
+bool bShiftPressed = false;
+bool bAltPressed = false;
+bool bCtrlPressed = false;
+
+
 waylandDisplay* displayRef::mDisplay = NULL;
 struct wl_registry_listener displayRef::mWaylandRegistryListener;
 struct wl_pointer_listener displayRef::mWaylandPointerListener;
@@ -30,6 +39,8 @@ vector<pxWindowNative*> pxWindowNative::mWindowVector;
 bool pxWindowNative::mEventLoopTimerStarted = false;
 float pxWindowNative::mEventLoopInterval = 1000.0 / (float)WAYLAND_PX_CORE_FPS;
 timer_t pxWindowNative::mRenderTimerId;
+
+
 
 displayRef::displayRef()
 {
@@ -66,17 +77,17 @@ static void registry_handle_global(void *data, struct wl_registry *registry, uin
     displayRef dRef;
     if (strcmp(interface, wl_compositor_interface.name) == 0)
         dRef.getDisplay()->compositor = (struct wl_compositor*)wl_registry_bind(registry, name,
-            &wl_compositor_interface, version);
+            &wl_compositor_interface, 1 /*version*/);
     else if (strcmp(interface, wl_shm_interface.name) == 0)
         dRef.getDisplay()->shm = (struct wl_shm*)wl_registry_bind(registry, name,
-            &wl_shm_interface, version);
+            &wl_shm_interface, 1/*version*/);
     else if (strcmp(interface, wl_shell_interface.name) == 0)
         dRef.getDisplay()->shell = (struct wl_shell*)wl_registry_bind(registry, name,
-            &wl_shell_interface, version);
+            &wl_shell_interface, 1 /*version*/);
     else if (strcmp(interface, wl_seat_interface.name) == 0)
     {
         dRef.getDisplay()->seat = (struct wl_seat*)wl_registry_bind(registry, name,
-            &wl_seat_interface, version);
+            &wl_seat_interface, 1 /*version*/);
         dRef.getDisplay()->pointer = (struct wl_pointer*)wl_seat_get_pointer(dRef.getDisplay()->seat);
         wl_pointer_add_listener(dRef.getDisplay()->pointer, &displayRef::mWaylandPointerListener,
             dRef.getDisplay());
@@ -197,12 +208,21 @@ keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
     vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
     vector<pxWindowNative*>::iterator i;
     unsigned long flags = 0;
+    flags |= bShiftPressed ? PX_MOD_SHIFT:0;
+    flags |= bCtrlPressed ? PX_MOD_CONTROL:0;
+    flags |= bAltPressed ? PX_MOD_ALT:0;
     for (i = windowVector.begin(); i < windowVector.end(); i++)
     {
         pxWindowNative* w = (*i);
-        w->onKeyDown(keycodeFromNative(key),flags);
-        w->onKeyUp(keycodeFromNative(key),flags);
-        w->onChar((char)key);
+        if (state)
+        {
+            w->onKeyDown(keycodeFromNative(key),flags);
+            w->onChar((char)key);
+        }
+        else
+        {
+            w->onKeyUp(keycodeFromNative(key),flags);
+        }
     }
 }
 
@@ -212,6 +232,32 @@ keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
               uint32_t mods_latched, uint32_t mods_locked,
               uint32_t group)
 {
+    if (mods_depressed & MOD_SHIFT)
+    {
+        bShiftPressed = true;
+    }
+    else
+    {
+        bShiftPressed = false;
+    }
+
+    if (mods_depressed & MOD_ALT)
+    {
+        bAltPressed = true;
+    }
+    else
+    {
+        bAltPressed = false;
+    }
+
+    if (mods_depressed & MOD_CTRL)
+    {
+        bCtrlPressed = true;
+    }
+    else
+    {
+        bCtrlPressed = false;
+    }
 }
 
 static void shell_surface_ping(void *data,
@@ -394,14 +440,14 @@ void pxWindow::setVisibility(bool visible)
     mVisible = visible;
 }
 
-pxError pxWindow::setAnimationFPS(long fps)
+pxError pxWindow::setAnimationFPS(uint32_t fps)
 {
     mTimerFPS = fps;
     mLastAnimationTime = pxMilliseconds();
     return PX_OK;
 }
 
-void pxWindow::setTitle(char* title)
+void pxWindow::setTitle(const char* title)
 {
     //todo
 }
@@ -479,17 +525,41 @@ int pxWindowNative::stopAndDeleteEventLoopTimer()
     return returnValue;
 }
 
+void pxWindowNative::runEventLoopOnce()
+{
+  vector<pxWindowNative*> windowVector = pxWindowNative::getNativeWindows();
+  vector<pxWindowNative*>::iterator i;
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    w->animateAndRender();
+  }
+  usleep(1000); //TODO - find out why pxSleepMS causes a crash on some devices
+}
+
+
+
 void pxWindowNative::runEventLoop()
 {
     exitFlag = false;
-    
-    createAndStartEventLoopTimer((int)mEventLoopInterval);
-    
+    //createAndStartEventLoopTimer((int)mEventLoopInterval);
+    displayRef dRef;
+    waylandDisplay* display = dRef.getDisplay();
+    vector<pxWindowNative*> windowVector = pxWindowNative::getNativeWindows();
+
     while(!exitFlag)
     {
-        pxSleepMS(1000); // Breath
+        vector<pxWindowNative*>::iterator i;
+        for (i = windowVector.begin(); i < windowVector.end(); i++)
+        {
+           pxWindowNative* w = (*i);
+           w->animateAndRender();
+        }
+        wl_display_dispatch(display->display);
+        //pxSleepMS(1000); // Breath
     }
 }
+
 
 void pxWindowNative::exitEventLoop()
 {
@@ -759,6 +829,7 @@ void pxWindowNative::drawFrame()
 
     //this is needed only for egl
     if (WAYLAND_EGL_BUFFER_OPAQUE) {
+    //if (true) {
         struct wl_region *region = wl_compositor_create_region(wDisplay->compositor);
         wl_region_add(region, 0, 0,
                   mLastWidth,

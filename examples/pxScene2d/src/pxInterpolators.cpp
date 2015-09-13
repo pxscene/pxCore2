@@ -3,10 +3,10 @@
 
 #include "pxInterpolators.h"
 
+#ifdef WIN32
+#define _USE_MATH_DEFINES
+#endif
 #include <math.h>
-
-
-
 
 double easeInElastic_helper(double t, double b, double c, double d, double a, double p) 
 {
@@ -129,7 +129,12 @@ static double Pulse_(double x)
 		val = x - (1 - exp(-x));
 	} else {
 		// the previous animation ended here:
-		double start = exp(-1);
+#ifdef WIN32
+          // ambiguous call
+          double start = exp(-1.0);
+#else
+          double start = exp(-1);
+#endif
 
 		// simple viscous drag
 		x -= 1;

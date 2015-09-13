@@ -4,7 +4,6 @@
 #include "rtWrapperUtils.h"
 #include "jsCallback.h"
 
-
 using namespace v8;
 
 class rtAbstractFunction : public rtIFunction
@@ -85,9 +84,47 @@ private:
 
   bool mComplete;
   bool mTeardownThreadingPrimitives;
+
+#ifdef USE_STD_THREADS
+  std::mutex mMutex;
+  std::condition_variable mCond;
+#else
   pthread_mutex_t mMutex;
   pthread_cond_t mCond;
+#endif
+
   rtValue mReturnValue;
+};
+
+class rtResolverFunction : public rtAbstractFunction
+{
+public:
+  enum Disposition
+  {
+    DispositionResolve,
+    DispositionReject
+  };
+
+  rtResolverFunction(Disposition d, v8::Isolate* isolate, v8::Local<v8::Promise::Resolver>& resolver);
+  virtual ~rtResolverFunction();
+  virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
+
+private:
+  struct AsyncContext
+  {
+    rtFunctionRef resolverFunc;
+    std::vector<rtValue> args;
+  };
+
+private:
+  static void workCallback(uv_work_t* req);
+  static void afterWorkCallback(uv_work_t* req, int status);
+
+private:
+  Disposition                     mDisposition;
+  Persistent<Promise::Resolver>   mResolver;
+  Isolate*                        mIsolate;
+  uv_work_t                       mReq;
 };
 
 #endif

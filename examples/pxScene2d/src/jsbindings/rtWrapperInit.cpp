@@ -10,10 +10,19 @@
 
 using namespace v8;
 
+#ifdef WIN32
+static DWORD __rt_main_thread__;
+#else
 static pthread_t __rt_main_thread__;
+#endif
+
 bool rtIsMainThread()
 {
+#ifdef WIN32
+  return GetCurrentThreadId() == __rt_main_thread__;
+#else
   return pthread_self() == __rt_main_thread__;
+#endif
 }
 
 struct EventLoopContext
@@ -24,11 +33,17 @@ struct EventLoopContext
 // TODO on OSX run the windows event loop on the main thread and use
 // a timer to pump messages
 #ifndef RUNINMAIN
+#ifdef WIN32
+static void processEventLoop(void* argp)
+#else
 static void* processEventLoop(void* argp)
+#endif
 {
   EventLoopContext* ctx = reinterpret_cast<EventLoopContext *>(argp);
   ctx->eventLoop->run();
+#ifndef WIN32
   return 0;
+#endif
 }
 #endif
 
@@ -69,7 +84,10 @@ public:
     rtLogInfo("initializing scene");
     mScene->init();
     mScene->setViewContainer(this);
+  }
 
+  void startTimers()
+  {
     rtLogInfo("starting background thread for event loop processing");
     startEventProcessingThread();
 
@@ -98,9 +116,14 @@ public:
 #else
     EventLoopContext* ctx = new EventLoopContext();
     ctx->eventLoop = mEventLoop;
+#ifdef WIN32
+    uintptr_t threadId = _beginthread(processEventLoop, 0, ctx);
+    if (threadId != -1)
+      mEventLoopThread = (HANDLE)threadId;
+#else
     pthread_create(&mEventLoopThread, NULL, &processEventLoop, ctx);
 #endif
-
+#endif
   }
 
   virtual ~jsWindow()
@@ -131,12 +154,16 @@ protected:
 
   virtual void onSize(int32_t w, int32_t h)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onSize(w, h);
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onMouseDown(x, y, flags);
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onCloseRequest()
@@ -147,57 +174,71 @@ protected:
 
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onMouseUp(x, y, flags);
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onMouseLeave()
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onMouseLeave();
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onMouseMove(int32_t x, int32_t y)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onMouseMove(x, y);
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onFocus()
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onFocus();
+    rtWrapperSceneUpdateExit();
   }
   virtual void onBlur()
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onBlur();
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onKeyDown(uint32_t keycode, uint32_t flags)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onKeyDown(keycode, flags);
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onKeyUp(uint32_t keycode, uint32_t flags)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onKeyUp(keycode, flags);
+    rtWrapperSceneUpdateExit();
   }
   
   virtual void onChar(uint32_t c)
   {
+    rtWrapperSceneUpdateEnter();
     mScene->onChar(c);
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onDraw(pxSurfaceNative )
   {
-    //  rtWrapperSceneUpdateEnter();
+    rtWrapperSceneUpdateEnter();
     mScene->onDraw();
-    //rtWrapperSceneUpdateExit();
+    rtWrapperSceneUpdateExit();
   }
 
   virtual void onAnimationTimer()
   {
-
     rtWrapperSceneUpdateEnter();
     mScene->onUpdate(pxSeconds());
     rtWrapperSceneUpdateExit();
-//    invalidateRect(NULL);
   }
 private:
   pxScene2dRef mScene;
@@ -205,7 +246,11 @@ private:
   Persistent<Object> mJavaScene;
 
 #ifndef RUNINMAIN
+#ifdef WIN32
+  HANDLE mEventLoopThread;
+#else
   pthread_t mEventLoopThread;
+#endif
 #endif
 
   uv_timer_t mTimer;
@@ -258,6 +303,7 @@ static void getScene(const FunctionCallbackInfo<Value>& args)
     char title[]= { "pxScene from JavasScript!" };
     mainWindow->setTitle(title);
     mainWindow->setVisibility(true);
+    mainWindow->startTimers();
   }
 
   EscapableHandleScope scope(args.GetIsolate());
@@ -269,7 +315,11 @@ void ModuleInit(
   Handle<Value>     /* unused */,
   Handle<Context>     context)
 {
+#ifdef WIN32
+  __rt_main_thread__ = GetCurrentThreadId();
+#else
   __rt_main_thread__ = pthread_self();
+#endif
 
   Isolate* isolate = context->GetIsolate();
 

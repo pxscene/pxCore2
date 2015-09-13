@@ -83,7 +83,8 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
       };
 
       if (err) {
-        container.ready.reject(container);
+        // TODO: fixme
+        // container.ready.reject(container);
         console.log("failed to load script:" + uri);
         console.log(err);
         // TODO: scene.onError(err); ???
@@ -103,13 +104,15 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
             container.a = 0;
             container.painting = true;
             container.animateTo({a:1}, 0.2, 0, 0);
-            container.ready.resolve(container);
+            // TODO: fixme
+            // container.ready.resolve(container);
           }
           else
             container.painting = true;
         }
         catch (err) {
-          container.ready.reject(container);
+          // TODO: fixme
+          // container.ready.reject(container);
           console.log("failed to run app:" + uri);
           console.log(err);
 
@@ -129,7 +132,8 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
     });
   }
   catch (err) {
-    container.ready.reject(container);
+    // TODO: fixme
+    // container.ready.reject(container);
     console.log("failed to load script:" + uri);
     console.log(err);
     // TODO: scene.onError(err); ???
@@ -203,13 +207,16 @@ if (argv.length >= 2) {
     // TODO - WARNING root scene.create* doesn't allow passing in property bags
     configJson["parent"] = scene.root;
     configJson["url"] = originalURL;
-    var childScene = scene.createScene(configJson);
-  scene.setFocus(childScene);
+    // var childScene = scene.createScene(configJson);
+    //scene.setFocus(childScene);
 /*
     childScene.url = originalURL;
     childScene.parent = scene.root;
 */
-    var fpsBg = scene.createRectangle({fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:0,parent:scene.root});
+    var blackBg = scene.createRectangle({fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:1,parent:scene.root});
+    var childScene = scene.createScene(configJson);
+    scene.setFocus(childScene);
+    var fpsBg = scene.createRectangle({fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:1,parent:scene.root});
     var fpsCounter = scene.createText({x:5,textColor:0xffffffff,pixelSize:24,text:"0fps",parent:fpsBg});
     fpsBg.w = fpsCounter.w+16;
     fpsBg.h = fpsCounter.h;

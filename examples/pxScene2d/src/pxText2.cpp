@@ -17,10 +17,25 @@ extern "C" {
 
 
 pxText2::pxText2(pxScene2d* s):pxText(s)
+                               //,mTruncation(false),mXStartPos(0),mXStopPos(0),
+                               //mVerticalAlign(0),mHorizontalAlign(0),mLeading(0),
+                               //mWordWrap(false),mEllipsis(false),mFontLoaded(false),mInitialized(false),
+                               //lineNumber(0),lastLineNumber(0)
 {
   measurements= new pxTextMeasurements(s);
+  
   mFontLoaded = false;
   mInitialized = false;
+  mWordWrap = false;
+  mEllipsis = false;
+  lineNumber = 0;
+  lastLineNumber = 0;
+  mTruncation = false;  
+  mXStartPos = 0;
+  mXStopPos = 0;
+  mVerticalAlign = 0;
+  mHorizontalAlign = 0;
+  mLeading = 0;  
 }
 
 pxText2::~pxText2()
@@ -495,7 +510,19 @@ void pxText2::renderTextNoWordWrap(float sx, float sy, float tempX, bool render)
     // Check for truncation
     if(mTruncation == TRUNCATE || mTruncation == TRUNCATE_AT_WORD) 
     {
-      renderTextRowWithTruncation(mText, lineWidth, my, sx, sy, mPixelSize, mTextColor, render);
+      // Calculate vertical alignment values
+      if( mVerticalAlign == V_BOTTOM || mVerticalAlign == V_CENTER) 
+      {
+        if( mVerticalAlign == V_BOTTOM ) 
+        {
+          tempY = my + (mh - charH); // could be negative
+        } 
+        else 
+        {
+          tempY = my+ (mh/2) - charH/2;
+        }
+      } 
+      renderTextRowWithTruncation(mText, lineWidth, tempY, sx, sy, mPixelSize, mTextColor, render);
 
     }
   

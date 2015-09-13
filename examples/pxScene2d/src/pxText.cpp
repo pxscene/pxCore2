@@ -73,7 +73,7 @@ FaceMap gFaceMap;
 
 uint32_t gFaceId = 0;
 
-pxFace::pxFace():mRefCount(0) { mFaceId = gFaceId++; }
+pxFace::pxFace():mPixelSize(0), mRefCount(0) { mFaceId = gFaceId++; }
 
 rtError pxFace::init(const char* n)
 {
