@@ -73,7 +73,7 @@ FaceMap gFaceMap;
 
 uint32_t gFaceId = 0;
 
-pxFace::pxFace():mPixelSize(0), mRefCount(0) { mFaceId = gFaceId++; }
+pxFace::pxFace():mPixelSize(0), mRefCount(0), mFontData(0) { mFaceId = gFaceId++; }
 
 rtError pxFace::init(const char* n)
 {
@@ -88,7 +88,11 @@ rtError pxFace::init(const char* n)
 
 rtError pxFace::init(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
-  if(FT_New_Memory_Face(ft, fontData, size, 0, &mFace))
+  // We need to keep a copy of fontData since the download will be deleted.
+  mFontData = (char *)malloc(size);
+  memcpy(mFontData, fontData, size);
+  
+  if(FT_New_Memory_Face(ft, (const FT_Byte*)mFontData, size, 0, &mFace))
     return RT_FAIL;
 
   mFaceName = n;
@@ -107,6 +111,10 @@ pxFace::~pxFace()
   else
     rtLogError("Could not find faceName in map");
 #endif
+  if(mFontData) {
+    free(mFontData);
+    mFontData = 0;
+  }
 }
 
 void pxFace::setPixelSize(uint32_t s)

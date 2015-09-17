@@ -77,6 +77,8 @@ private:
   FT_Face mFace;
   uint32_t mPixelSize;
   rtAtomic mRefCount;
+  
+  char* mFontData; // for remote fonts loaded into memory
 };
 
 class pxText: public pxObject 
