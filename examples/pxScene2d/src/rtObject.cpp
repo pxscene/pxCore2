@@ -3,6 +3,363 @@
 
 #include "rtObject.h"
 
+
+// rtEmit
+unsigned long rtEmit::AddRef() 
+{
+  return rtAtomicInc(&mRefCount);
+}
+  
+unsigned long rtEmit::Release() {
+  long l = rtAtomicDec(&mRefCount);
+  if (l == 0) delete this;
+  return l;
+}
+
+rtError rtEmit::setListener(const char* eventName, rtIFunction* f)
+{
+  for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); 
+       it != mEntries.end(); it++)
+  {
+    _rtEmitEntry& e = (*it);
+    if (e.n == eventName && e.isProp)
+    {
+      mEntries.erase(it);
+      // There can only be one
+      break;
+    }
+  }
+  if (f)
+  {
+    _rtEmitEntry e;
+    e.n = eventName;
+    e.f = f;
+    e.isProp = true;
+    mEntries.push_back(e);      
+  }
+  
+  return RT_OK;
+}
+
+rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
+{
+  if (!f) 
+    return RT_ERROR;
+  // Only allow unique entries
+  bool found = false;
+  for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); 
+       it != mEntries.end(); it++)
+  {
+    _rtEmitEntry& e = (*it);
+    if (e.n == eventName && e.f.getPtr() == f && !e.isProp)
+    {
+      found = true;
+      break;
+    }
+  }
+  if (!found)
+  {
+    _rtEmitEntry e;
+    e.n = eventName;
+    e.f = f;
+    e.isProp = false;
+    mEntries.push_back(e);
+  }
+  
+  return RT_OK;
+}
+
+rtError rtEmit::delListener(const char* eventName, rtIFunction* f)
+{
+  for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); 
+       it != mEntries.end(); it++)
+  {
+    _rtEmitEntry& e = (*it);
+    if (e.n == eventName && e.f.getPtr() == f && !e.isProp)
+    {
+      mEntries.erase(it);
+      // There can only be one
+      break;
+    }
+  }
+  
+  return RT_OK;
+}
+
+rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result) 
+{
+  (void)result;
+  if (numArgs > 0)
+  {
+    rtString eventName = args[0].toString();
+    rtLogDebug("rtEmit::Send %s", eventName.cString());
+    for(vector<_rtEmitEntry>::iterator it = mEntries.begin(); 
+        it != mEntries.end(); it++)
+    {
+      _rtEmitEntry& e = (*it);
+      if (e.n == eventName)
+      {
+        // Do this here to make interop synchronous
+        rtValue discard;
+        // have to invoke all no opportunity to return errors
+        // SYNC EVENTS
+#if 0
+        e.f->Send(numArgs-1, args+1, &discard);
+#else
+        e.f->Send(numArgs-1, args+1, NULL);
+#endif
+        // TODO log error 
+      }
+    }
+  }
+  return RT_OK;
+}
+        
+// rtEmitRef
+rtError rtEmitRef::Send(int numArgs,const rtValue* args,rtValue* result) 
+{
+  return (*this)->Send(numArgs, args, result);
+}
+
+// rtArrayObject
+void rtArrayObject::empty()
+{
+  mElements.empty();
+}
+
+void rtArrayObject::pushBack(rtValue v)
+{
+  mElements.push_back(v);
+}
+
+rtError rtArrayObject::Get(const char* name, rtValue* value)
+{
+  if (!value) 
+    return RT_FAIL;
+  if (!strcmp(name, "length"))
+  {
+    value->setUInt32(mElements.size());
+    return RT_OK;
+  }
+  else
+    return RT_PROP_NOT_FOUND;
+}
+
+rtError rtArrayObject::Get(uint32_t i, rtValue* value)
+{
+  if (!value) 
+    return RT_FAIL;
+  if (i < mElements.size())
+  {
+    *value = mElements[i];
+    return RT_OK;
+  }
+  else
+    return RT_PROP_NOT_FOUND;
+}
+
+rtError rtArrayObject::Set(const char* /*name*/,const rtValue* /*value*/)
+{
+  return RT_PROP_NOT_FOUND;
+}
+
+rtError rtArrayObject::Set(uint32_t i, const rtValue* value)
+{
+  if (!value) 
+    return RT_FAIL;
+  if (i < mElements.size())
+  {
+    mElements[i] = *value;
+    return RT_OK;
+  }
+  else
+    return RT_PROP_NOT_FOUND;
+}
+
+// rtMapObject
+vector<rtNamedValue>::iterator rtMapObject::find(const char* name)
+{
+  vector<rtNamedValue>::iterator it = mProps.begin(); 
+  while(it != mProps.end())
+  {
+    if (it->n == name)
+      return it;
+    it++;
+  }
+  return it;
+}
+
+rtError rtMapObject::Get(const char* name, rtValue* value)
+{
+  if (!value) 
+    return RT_FAIL;
+  
+  vector<rtNamedValue>::iterator it = find(name);
+  if (it != mProps.end())
+  {
+    *value = it->v;
+    return RT_OK;
+  }
+  else if (!strcmp(name, "allKeys"))
+  {
+    rtRefT<rtArrayObject> keys = new rtArrayObject;
+    vector<rtNamedValue>::iterator it = mProps.begin();
+    while(it != mProps.end())
+    {
+      keys->pushBack(it->n);
+      it++;
+    }
+    *value = keys;
+    return RT_OK;
+  }
+  return RT_PROP_NOT_FOUND;
+}
+
+rtError rtMapObject::Set(const char* name, const rtValue* value)
+{
+  if (!value) 
+    return RT_FAIL;
+  
+  vector<rtNamedValue>::iterator it = find(name);
+  if (it != mProps.end())
+  {
+    it->v = *value;
+    return RT_OK;
+  }
+  else
+  {
+    rtNamedValue v;
+    v.n = name;
+    v.v = *value;
+    mProps.push_back(v);
+    return RT_OK;
+  }
+  return RT_PROP_NOT_FOUND;
+}
+
+rtError rtMapObject::Get(uint32_t /*i*/, rtValue* /*value*/)
+{
+  return RT_PROP_NOT_FOUND;
+}
+
+rtError rtMapObject::Set(uint32_t /*i*/, const rtValue* /*value*/)
+{
+  return RT_PROP_NOT_FOUND;
+}
+
+
+// rtObject
+  
+unsigned long /*__stdcall__ */ rtObject::AddRef() 
+{
+  return rtAtomicInc(&mRefCount);
+}
+
+unsigned long /*__stdcall*/ rtObject::Release() 
+{
+  long l = rtAtomicDec(&mRefCount);
+  if (l == 0) 
+    delete this;
+  return l;
+}
+
+rtError rtObject::init()
+{
+  mInitialized = true;
+	onInit();
+  return RT_OK;
+}
+
+rtError rtObject::Get(uint32_t /*i*/, rtValue* /*value*/)
+{
+  return RT_PROP_NOT_FOUND;
+}
+
+rtError rtObject::Get(const char* name, rtValue* value)
+{
+  rtError hr = RT_PROP_NOT_FOUND;
+  rtMethodMap* m = getMap();
+  
+  while(m) 
+  {
+    rtPropertyEntry* e = m->getFirstProperty();
+    while(e) 
+    {
+      if (strcmp(name, e->mPropertyName) == 0) 
+      {
+        rtGetPropertyThunk t = e->mGetThunk;
+        hr = (*this.*t)(*value);
+        return hr;
+      }
+      e = e->mNext;
+    }
+    m = m->parentsMap;
+  }
+  rtLogDebug("key: %s not found", name);
+  
+  {
+    rtLogDebug("Looking for function as property: %s", name);
+    
+    rtMethodMap* m;
+    m = getMap();
+    
+    while(m)
+    {
+      rtMethodEntry* e = m->getFirstMethod();
+      while(e)
+      {
+        if (strcmp(name, e->mMethodName) == 0)
+        {
+          rtLogDebug("found method: %s", name);
+          value->setFunction(new rtObjectFunction(this, e->mThunk));
+          hr = RT_OK;
+          return hr;
+        }
+        e = e->mNext;
+      }
+      
+      m = m->parentsMap;
+    }
+  }
+  return hr;
+}
+
+rtError rtObject::Set(uint32_t /*i*/, const rtValue* /*value*/)
+{
+  return RT_PROP_NOT_FOUND;
+}
+
+rtError rtObject::Set(const char* name, const rtValue* value) 
+{
+  rtError hr = RT_PROP_NOT_FOUND;
+  
+  rtMethodMap* m;
+  m = getMap();
+  
+  while(m) 
+  {
+    rtPropertyEntry* e = m->getFirstProperty();
+    while(e) 
+    {
+      if (strcmp(name, e->mPropertyName) == 0) 
+      {
+        if (e->mSetThunk) 
+        {
+          rtSetPropertyThunk t = e->mSetThunk;
+          hr = (*this.*t)(*value);
+        }
+        return hr;
+      }
+      e = e->mNext;
+    }
+    
+    m = m->parentsMap;
+  }
+  
+  return RT_OK;
+}
+
+// rtObjectBase
 void rtObjectBase::set(rtObjectRef o)
 {
   if (!o) 
@@ -26,9 +383,8 @@ rtError rtObjectBase::Send(const char* messageName, int numArgs,
   rtError e = RT_ERROR;
   rtFunctionRef f;
   e = get<rtFunctionRef>(messageName, f);
-  if (e == RT_OK) {
+  if (e == RT_OK) 
     e = f->Send(numArgs, args, NULL);
-  }
   return e;
 }
 
@@ -38,9 +394,8 @@ rtError rtObjectBase::SendReturns(const char* messageName, int numArgs,
   rtError e = RT_ERROR;
   rtFunctionRef f;
   e = get<rtFunctionRef>(messageName, f);
-  if (e == RT_OK) {
+  if (e == RT_OK) 
     e = f->Send(numArgs, args, &result);
-  }
   return e;
 }
 
@@ -138,7 +493,8 @@ rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2,
 }
 
 
-rtError rtObjectRef::Get(const char* name, rtValue* value) {
+rtError rtObjectRef::Get(const char* name, rtValue* value) 
+{
   return (*this)->Get(name, value);
 }
  
@@ -146,26 +502,31 @@ rtError rtObjectRef::Set(const char* name, const rtValue* value) {
   return (*this)->Set(name, value);
 }
 
-rtError rtObjectRef::Get(uint32_t i, rtValue* value) {
+rtError rtObjectRef::Get(uint32_t i, rtValue* value) 
+{
   return (*this)->Get(i, value);
 }
  
-rtError rtObjectRef::Set(uint32_t i, const rtValue* value) {
+rtError rtObjectRef::Set(uint32_t i, const rtValue* value) 
+{
   return (*this)->Set(i, value);
 }
 
-rtError rtFunctionRef::Send(int numArgs, const rtValue* args, rtValue* result) {
+rtError rtFunctionRef::Send(int numArgs, const rtValue* args, rtValue* result) 
+{
   return (*this)->Send(numArgs, args, result);
 }
 
-rtError rtObjectFunction::Send(int numArgs, const rtValue* args, rtValue* result){  
+rtError rtObjectFunction::Send(int numArgs, const rtValue* args, rtValue* result)
+{  
   rtLogDebug("rtObjectFunction::Send(%d,...)", numArgs);
   return (*mObject.*mThunk)(numArgs, args, *result);
 }
 
 rtObject::~rtObject() {}
 
-rtError rtObject::description(rtString& d) {
+rtError rtObject::description(rtString& d) const
+{
     d = getMap()->className;
     return RT_OK;
 }
@@ -208,7 +569,9 @@ rtError rtObject::allKeys(rtObjectRef& v) const
 
 
 #if 0
-rtError rtAlloc(const char* objectName, rtObjectRef& object) {
+// TODO
+rtError rtAlloc(const char* objectName, rtObjectRef& object) 
+{
   return RT_OK;
 }
 #endif

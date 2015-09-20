@@ -175,6 +175,61 @@ double pxInterpLinear(double i)
   return pxClamp<double>(i, 0, 1);
 }
 
+// Small helper class that vends the children of a pxObject as a collection
+class pxObjectChildren: public rtObject {
+public:
+  pxObjectChildren(pxObject* o)
+  {
+    mObject = o;
+  }
+
+  virtual rtError Get(const char* name, rtValue* value)
+  {
+    if (!value) return RT_FAIL;
+    if (!strcmp(name, "length"))
+    {
+      value->setUInt32(mObject->numChildren());
+      return RT_OK;
+    }
+    else
+      return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Get(uint32_t i, rtValue* value)
+  {
+    if (!value) return RT_FAIL;
+    if (i < mObject->numChildren())
+    {
+      rtObjectRef o;
+      rtError e = mObject->getChild(i, o);
+      *value = o;
+      return e;
+    }
+    else
+      return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Set(const char* /*name*/, const rtValue* /*value*/)
+  {
+    // readonly property
+    return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/)
+  {
+    // readonly property
+    return RT_PROP_NOT_FOUND;
+  }
+
+private:
+  rtRefT<pxObject> mObject;
+};
+
+
+
+
+
+// pxObject methods
 
 rtError pxObject::Set(const char* name, const rtValue* value)
 {
@@ -427,7 +482,7 @@ void pxObject::update(double t)
       }
 #endif
 #if 0
-      else if (a.at == PX_SEESAW)
+      else if (a.at == PX_OSCILLATE)
       {
         // flip
         double t;
@@ -450,9 +505,9 @@ void pxObject::update(double t)
     float from, to;
     from = a.from;
     to = a.to;
-    if (a.at == PX_SEESAW)
+    if (a.at == PX_OSCILLATE)
     {
-      if (fmod(t2,2) != 0)   // perf chk ?
+      if (fmod(t2,2) != 0)   // TODO perf chk ?
       {
         from = a.to;
         to   = a.from;
@@ -1707,6 +1762,7 @@ rtDefineProperty(pxScene2d, PX_EASEOUTELASTIC);
 rtDefineProperty(pxScene2d, PX_EASEOUTBOUNCE);
 rtDefineProperty(pxScene2d, PX_END);
 rtDefineProperty(pxScene2d, PX_SEESAW);
+rtDefineProperty(pxScene2d, PX_OSCILLATE);
 rtDefineProperty(pxScene2d, PX_LOOP);
 rtDefineProperty(pxScene2d, PX_NONE);
 rtDefineProperty(pxScene2d, PX_STRETCH);

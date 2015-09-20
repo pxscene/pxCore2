@@ -50,7 +50,8 @@ rtError rtStoreFile(const char* f, rtData& data)
   rtError e = RT_FAIL;
 
 #ifdef WIN32
-  // TODO
+  // TODO should do W Variants... convert from utf8 
+  // and break out to win/rtFile impl...
   HANDLE hFile = CreateFileA(f, GENERIC_WRITE, 0, NULL, TRUNCATE_EXISTING | CREATE_NEW,
     FILE_ATTRIBUTE_NORMAL, NULL);
   if (hFile != INVALID_HANDLE_VALUE)
