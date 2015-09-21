@@ -18,6 +18,7 @@ function SceneModuleLoader() {
 }
 
 SceneModuleLoader.prototype.loadScenePackage = function(fileSpec) {
+  log.message(4, "loadScenePackage - fileSpec.fileUri=" + fileSpec.fileUri);
   var _this = this;
   var filePath = fileSpec.fileUri;
 
@@ -35,6 +36,9 @@ SceneModuleLoader.prototype.loadScenePackage = function(fileSpec) {
         reject(err);
       });
     } else {
+      if( filePath.substring(0,5) === 'file:' ) {
+        filePath = filePath.substring(5);
+      }
       _this.loadLocalFile(filePath).then(function dataAvailable(data) {
         _this.processFileData(filePath, data);
         if(_this.processFileArchive() == 0) {
