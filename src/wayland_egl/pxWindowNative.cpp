@@ -555,7 +555,8 @@ void pxWindowNative::runEventLoop()
            pxWindowNative* w = (*i);
            w->animateAndRender();
         }
-        wl_display_dispatch(display->display);
+        wl_display_dispatch_pending(display->display);
+        usleep(32*1000);
         //pxSleepMS(1000); // Breath
     }
 }

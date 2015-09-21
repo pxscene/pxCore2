@@ -116,7 +116,9 @@ void rtWrapperSceneUpdateEnter()
 
 void rtWrapperSceneUpdateExit()
 {
+#ifndef RT_USE_SINGLE_RENDER_THREAD
   assert(rtWrapperSceneUpdateHasLock());
+#endif //RT_USE_SINGLE_RENDER_THREAD
 #ifdef USE_STD_THREADS
   std::unique_lock<std::mutex> lock(sSceneLock);
 #else

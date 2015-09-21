@@ -14,6 +14,7 @@
 #include <memory>
 
 bool rtIsMainThread();
+bool rtIsRenderThread();
 bool rtIsPromise(const rtValue& v);
 
 template<class T>
