@@ -44,37 +44,6 @@ XModule.prototype.include = function(filePath) {
   return rtnPromise;
 }
 
-
-
-function getModuleExports(moduleName) {
-  this.getModuleExports(moduleName);
-}
-
-XModule.prototype.getImports = function(moduleName) {
-  var name = this.name;
-  if( this.moduleData.hasOwnProperty(moduleName)) {
-    var rtnExports = this.moduleData[moduleName];
-    if( typeof rtnExports == 'undefined') {
-      console.trace(this.name + " getImports(" + moduleName + ") finds no imports defined");
-    }
-    return rtnExports;
-  } else {
-    console.error("getImports for " + name + ": module [" + moduleName + "] doesn't exist")
-  }
-}
-
-XModule.prototype.getModuleExports = function(moduleName) {
-  if( this.moduleData.hasOwnProperty(moduleName)) {
-    var rtnExports = this.moduleData[moduleName];
-    if( typeof rtnExports == 'undefined') {
-      console.trace(this.name + " getModuleExports(" + moduleName + ") finds no exports defined");
-    }
-    return rtnExports;
-  } else {
-    console.error("getModuleExports: module [" + moduleName + "] doesn't exist")
-  }
-}
-
 function importModule(requiredModuleSet, params) {
   return this.importModule(requiredModuleSet, params);
 }
@@ -92,27 +61,31 @@ XModule.prototype.importModule = function(requiredModuleSet, params) {
 }
 
 XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, failedCallback, params) {
+  var isSingleStringImportType = false;
 
   if( readyCallBack == 'undefined' ) {
     console.trace("WARNING: " + 'prepareModule was did not have resolutionCallback parameter: USAGE: prepareModule(requiredModules, readyCallback, [failedCallback])');
   }
 
   var pathToNameMap = {};
-  var requiredModules = requiredModuleSet;
-  if( !Array.isArray(requiredModuleSet) ) {
+  var requiredModules = [];
+  if( typeof requiredModuleSet === 'string' ) {
+    requiredModules.push(requiredModuleSet);
+    isSingleStringImportType = true;
+  } else if( !Array.isArray(requiredModuleSet) ) {
     requiredModules = [];
     for(var key in requiredModuleSet) {
       requiredModules.push(requiredModuleSet[key]);
       pathToNameMap[requiredModuleSet[key]] = key;
     }
   } else {
+    requiredModules = requiredModuleSet;
     for(var k = 0; k < requiredModuleSet.length; ++k) {
       var baseName = requiredModuleSet[k].substring(requiredModuleSet[k].lastIndexOf('/')+1);
       pathToNameMap[requiredModuleSet[k]] = baseName;
     }
 
   }
-
 
   if( requiredModules.length == 0 ) {
     log.message(5, "XModule:  No includes are required for " + this.name);
@@ -161,9 +134,9 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
   var promise = new Promise(function(moduleBuildResolve, moduleBuildReject) {
     if (requiredModules != 'undefined') {
       for (var k = 0; k < requiredModules.length; ++k) {
-        var promise = _this.include(requiredModules[k]);
+        var ipromise = _this.include(requiredModules[k]);
         _this.moduleNameList[k] = requiredModules[k];
-        _this.promises[k] = promise;
+        _this.promises[k] = ipromise;
       }
     } else {
       console.trace("requiredModules undefined");
@@ -173,16 +146,16 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
     Promise.all(_this.promises).then(function (exports) {
       var exportsMap = {};
       var exportsArr = [];
-      for (var k = 0; k < _this.moduleNameList.length; ++k) {
-        var ptn = pathToNameMap;
-        var resPath = exports[k][1];
-        var shortName = ptn[resPath];
-
-        _this.appSandbox[pathToNameMap[exports[k][1]]] = exports[k][0];
-        _this.moduleData[_this.moduleNameList[k]]= exports[k][0];
-        exportsArr[k] = exports[k][0];
-        exportsMap[pathToNameMap[exports[k][1]]] = exports[k][0];
-        //console.log("TJC: " + _this.name + " gets: module[" + _this.moduleNameList[k] + "]: " + exports[k][0]);
+      if( isSingleStringImportType ) {
+        exportsMap = exports[0][0];
+      } else {
+        for (var k = 0; k < _this.moduleNameList.length; ++k) {
+          ///_this.appSandbox[pathToNameMap[exports[k][1]]] = exports[k][0];
+          _this.moduleData[_this.moduleNameList[k]] = exports[k][0];
+          exportsArr[k] = exports[k][0];
+          exportsMap[pathToNameMap[exports[k][1]]] = exports[k][0];
+          //console.log("TJC: " + _this.name + " gets: module[" + _this.moduleNameList[k] + "]: " + exports[k][0]);
+        }
       }
       log.message(7, "XMODULE ABOUT TO NOTIFY [" + _this.name + "] that all its imports are Ready");
       if( readyCallBack != null && readyCallBack != 'undefined' ) {
@@ -224,6 +197,22 @@ XModule.prototype.findImportReplacementMatch = function(path) {
   }
 
   return null;
+}
+
+function getFile(filePath) {
+  this.getFile(filePath);
+}
+
+XModule.prototype.getFile = function(filePath) {
+  return this.appSceneContext.getModuleFile(filePath, this);
+}
+
+function resolveFilePath(filePath) {
+  this.getFile(filePath);
+}
+
+XModule.prototype.resolveFilePath = function(filePath) {
+  return this.appSceneContext.resolveModulePath(filePath, this);
 }
 
 module.exports = {

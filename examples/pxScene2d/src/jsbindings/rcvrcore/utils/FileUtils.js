@@ -30,18 +30,24 @@ function loadFile(fileUri) {
               log.message(3, "Got file[" + fileUri + "] from web service");
               resolve(code);
             } else {
-              log.error("FAILED to read file[" + fileUri + "] from web service");
+              log.error("StatusCode Bad: FAILED to read file[" + fileUri + "] from web service");
               reject(res.statusCode);
             }
           });
         });
         req.on('error', function (err) {
-          log.error("FAILED to read file[" + fileUri + "] from web service");
+          log.error("Error: FAILED to read file[" + fileUri + "] from web service");
           reject(err);
         });
       }
     }
     else {
+      if( fileUri.substring(0,5) === 'file:' ) {
+        fileUri = fileUri.substring(5);
+        if( fileUri.substring(0,2) === '//') {
+          fileUri = fileUri.substring(1);
+        }
+      }
       var infile = fs.createReadStream(fileUri);
       infile.on('data', function (data) {
         code += data;

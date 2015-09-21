@@ -1,4 +1,4 @@
-
+px.import("px:scene.1.js").then( function ready(scene) {
 var root = scene.root;
 var bg = scene.create({t:"image",url:"../../images/status_bg.png",parent:root,xStretch:1,yStretch:1});
 var inputbg = scene.create({t:"image9",a:0.9,url:"../../images/input2.png",x:10,y:10,w:400,lInset:10,rInset:10,tInset:10,bInset:10,parent:bg});
@@ -102,3 +102,8 @@ scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 updateSize(scene.w,scene.h);
 
 scene.setFocus(inputbg);
+
+}).catch( function importFailed(err){
+  console.error("Import failed for browser.js: " + err)
+});
+

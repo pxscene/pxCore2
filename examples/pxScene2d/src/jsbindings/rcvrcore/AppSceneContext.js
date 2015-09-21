@@ -41,6 +41,7 @@ function AppSceneContext(params) { //rootScene, container, innerscene, packageUr
   this.resizeTimer = null;
   this.topXModule = null;
   this.jarFileMap = {};
+  this.sceneWrapper = null;
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -136,7 +137,12 @@ function createModule_pxScope(xModule) {
   return {
     log: xModule.log,
     import: xmodImportModule.bind(xModule),
-    configImport: xModule.configImport.bind(xModule)
+    configImport: xModule.configImport.bind(xModule),
+    resolveFilePath: xModule.resolveFilePath.bind(xModule),
+    appQueryParams: this.queryParams,
+    getPackageBaseFilePath: getPackageBaseFilePath.bind(this),
+    getFile: getFile.bind(this),
+    getModuleFile: xModule.getFile.bind(xModule),
   };
 
 }
@@ -166,16 +172,13 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       xresys: this.xresys,
       xmodule: xModule,
       console: console,
-      rootScene: this.rootScene,
-      scene: sceneForChild,
       runtime: apiForChild,
       process: process,
-      sandboxContext1: "true",
       theNamedContext: "Sandbox: " + uri,
       Buffer: Buffer,
       require: function (pkg) {
-        log.message(3, "SecureRequire2: " + pkg);
-        // TODO: do whitelist/validate import here
+        log.message(3, "old use of require not supported: " + pkg);
+        // TODO: remove
         return requireIt(pkg);
 
       },
@@ -183,20 +186,6 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       setInterval: setInterval,
       clearInterval: clearInterval,
       baseXreModuleDirectory: __dirname,
-      basePackageUri: this.basePackageUri,
-      getFile: getFile.bind(this),
-      buildAbsoluteFilePath: buildAbsoluteFilePath.bind(this),
-      framework: {
-        getNamespaceBaseFilePath: getNamespaceBaseFilePath.bind(this),
-        installBaseFramework: installBaseFramework.bind(this)
-      },
-      app: {
-        getNamespaceBaseFilePath: getNamespaceBaseFilePath.bind(this),
-        installAppFramework: installAppFramework.bind(this),
-        getPackageBaseFilePath: getPackageBaseFilePath.bind(this),
-        getPackageFile: getFile.bind(this),
-        inputParams: this.queryParams
-      },
       importTracking: {}
     } // end sandbox
     xModule.initSandbox(newSandbox);
@@ -208,7 +197,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       var sourceCode = AppSceneContext.wrap(code);
       var script = new vm.Script(sourceCode, fname);
       var moduleFunc = script.runInNewContext(newSandbox); //xModule.sandbox);
-      var px = createModule_pxScope(xModule);
+      var px = createModule_pxScope.call(this, xModule);
       moduleFunc(px, xModule, fname, this.basePackageUri);
 
       // TODO do the old scenes context get released when we reload a scenes url??
@@ -273,15 +262,6 @@ function getPackageBaseFilePath() {
   return this.getPackageBaseFilePath();
 }
 
-AppSceneContext.prototype.getNamespaceBaseFilePath = function() {
-  return this.defaultBaseUri;
-}
-
-function getNamespaceBaseFilePath() {
-  return this.getNamespaceBaseFilePath();
-}
-
-
 AppSceneContext.prototype.buildFullFilePath = function(filePath) {
   var urlParts = url.parse(filePath, true);
   var fullPath = filePath;
@@ -329,7 +309,26 @@ function buildAbsoluteFilePath(filePath) {
   return this.buildFullFilePath(filePath);
 }
 
-AppSceneContext.prototype.getFile = function(filePath) {
+AppSceneContext.prototype.getModuleFile = function(filePath, xModule) {
+  var resolvedModulePath;
+  resolvedModulePath = this.resolveModulePath(filePath, xModule);
+  if( resolvedModulePath.isJarFile ) {
+    var theFileArchive = this.jarFileMap[resolvedModulePath.fileUri];
+    if( theFileArchive.hasFileContents(resolvedModulePath.relativePath) ) {
+      return new Promise(function(resolve, reject) {
+        resolve(theFileArchive.getFileContents(resolvedModulePath.relativePath));
+      });
+      return;
+    } else {
+      console.error("getModuleFile(): The file was not found in the archive: " + resolvedModulePath.relativePath);
+    }
+  } else {
+    log.message(3, "TJC: getModuleFile("+filePath + "): resolves to " + resolvedModulePath.fileUri);
+    return this.getFile(resolvedModulePath.fileUri);
+  }
+}
+
+AppSceneContext.prototype.getFile_deprecated = function(filePath) {
   var _this = this;
   log.message(4, "getFile: requestedFile=" + filePath);
 
@@ -341,6 +340,13 @@ AppSceneContext.prototype.getFile = function(filePath) {
     });
   }
   return loadFile(fullPath);
+}
+
+AppSceneContext.prototype.getFile = function(filePath) {
+  var _this = this;
+  log.message(4, "getFile: requestedFile=" + filePath);
+
+  return loadFile(filePath);
 }
 
 AppSceneContext.prototype.resolveModulePath = function(filePath, currentXModule) {
@@ -379,16 +385,29 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
   return new Promise(function (onImportComplete, reject) {
     if( filePath === 'fs' || filePath === 'px' || filePath === 'http' || filePath === 'url' || filePath === 'os'
-      || filePath === 'events' || filePath === 'net') {
+      || filePath === 'events' || filePath === 'net' || filePath === 'querystring') {
       // built-ins
       var modData = require(filePath);
       onImportComplete([modData, origFilePath]);
-      return
+      return;
+    } else if( filePath.substring(0, 9) === "px:scene.") {
+      filePath = 'rcvrcore/' + filePath.substring(3);
+      var Scene = require(filePath);
+      if( _this.sceneWrapper === null ) {
+        _this.sceneWrapper = new Scene();
+      }
+      _this.sceneWrapper._setNativeScene(_this.innerscene, currentXModule.name);
+      onImportComplete([_this.sceneWrapper, origFilePath]);
+      return;
     }
 
     var fullIncludeUri;
     var resolvedModulePath;
-    resolvedModulePath = _this.resolveModulePath(filePath, currentXModule);
+    if( filePath.substring(0, 9) === "px:scene.") {
+      resolvedModulePath = {isJarFile:false, fileUri:__dirname+'/' + filePath.substring(3)};
+    } else {
+      resolvedModulePath = _this.resolveModulePath(filePath, currentXModule);
+    }
     if( resolvedModulePath.isJarFile ) {
       fullIncludeUri = resolvedModulePath.fileUri + "?module=" + resolvedModulePath.relativePath;
     } else {
@@ -420,7 +439,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
 
       var fullPath = filePath;
 
-      fullPath = fullIncludeUri; //_this.resolveModulePath(filePath, currentXModule);
+      fullPath = fullIncludeUri;
 
       // acquire file
       _this.setScriptStatus(fullIncludeUri, 'downloading');
@@ -470,7 +489,6 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
 AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, moduleBasePath, currentXModule, codeBuffer, fromJarFile, onImportComplete, onImportRejected) {
   var _this = this;
   var xModule;
-
   var haveFile = _this.isScriptLoaded(filePath);
 
   _this.setScriptStatus(filePath, 'downloading');
@@ -485,7 +503,7 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, m
     var script = new vm.Script(sourceCode, filePath);
 
     var moduleFunc = script.runInContext(_this.sandbox);
-    var px = createModule_pxScope(xModule);
+    var px = createModule_pxScope.call(this, xModule);
 
     log.message(4, "RUN " + filePath);
     moduleFunc(px, xModule, filePath, origFilePath);
@@ -497,7 +515,6 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, m
     // Set up a async wait until module indicates it's completly ready
     var modReadyPromise = xModule.moduleReadyPromise;
     if( modReadyPromise == null ) {
-
       // It's possible that these exports have already been added
       _this.addScript(filePath, 'ready', xModule.exports);
 
@@ -678,26 +695,6 @@ AppSceneContext.prototype.isScriptReady = function(name) {
 
 function AsyncFileAcquisition() {
   this.requestMap = {};
-}
-
-AppSceneContext.prototype.installBaseFramework = function(params) {
-  for (var key in params) {
-    this.sandbox.framework[key] = params[key];
-  }
-}
-
-function installBaseFramework(params) {
-  this.installBaseFramework(params);
-}
-
-AppSceneContext.prototype.installAppFramework = function(params) {
-  for (var key in params) {
-    this.sandbox.app[key] = params[key];
-  }
-}
-
-function installAppFramework(params) {
-  this.installAppFramework(params);
 }
 
 AsyncFileAcquisition.prototype.acquire = function(uri) {
