@@ -580,7 +580,7 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
 					if( render) {
             mFace->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
           } 
-          setMeasurementBounds(xPos+charW, ellipsisW, tempY, charH);
+          setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH);
           setLastLineMeasurements(xPos+charW+ellipsisW, tempY);
 				}
 				break;
@@ -620,7 +620,7 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
 					if( render) {
             mFace->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
           }
-          setMeasurementBounds(xPos+charW, ellipsisW, tempY, charH);
+          setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH);
           setLastLineMeasurements(xPos+charW+ellipsisW, tempY);
 				}
 				break;
@@ -670,7 +670,7 @@ rtError pxText2::getFontMetrics(rtObjectRef& o) {
 	metrics->setAscent(ascent);
 	metrics->setDescent(descent);
   metrics->setNaturalLeading(naturalLeading);
-  metrics->setBaseline(my+height+descent); // descent is always negative for horizontal layout
+  metrics->setBaseline(my+ascent);
 	o = metrics;
 
 	return RT_OK;
