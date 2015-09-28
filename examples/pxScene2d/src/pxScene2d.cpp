@@ -786,7 +786,7 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
   context.setMatrix(m);
   context.setAlpha(parentAlpha);
 
-  if (fbo.getPtr() == NULL || fbo->width() != mw || fbo->height() != mh)
+  if (fbo.getPtr() == NULL || fbo->width() != floor(mw) || fbo->height() != floor(mh))
   {
     fbo = context.createFramebuffer(mw, mh);
   }
