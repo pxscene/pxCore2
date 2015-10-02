@@ -99,9 +99,9 @@ rtError pxText2::setPixelSize(uint32_t v)
 }
 
 void pxText2::draw() {
-
+  static pxTextureRef nullMaskRef;
 	if (mCached.getPtr()) {
-    context.drawImage(0,0,mw,mh,mCached->getTexture(),pxTextureRef(),PX_NONE,PX_NONE);
+    context.drawImage(0,0,mw,mh,mCached->getTexture(),nullMaskRef,PX_NONE,PX_NONE);
 	}
 	else {
 	  renderText(true);

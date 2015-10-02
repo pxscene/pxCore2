@@ -419,9 +419,10 @@ void pxText::update(double t)
 }
 
 void pxText::draw() {
+  static pxTextureRef nullMaskRef;
   if (mCached.getPtr() && mCached->getTexture().getPtr())
   {
-    context.drawImage(0, 0, mw, mh, mCached->getTexture(), pxTextureRef(), PX_NONE, PX_NONE);
+    context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef, PX_NONE, PX_NONE);
   }
   else
   {
