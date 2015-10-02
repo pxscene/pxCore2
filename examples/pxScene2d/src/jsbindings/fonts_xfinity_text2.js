@@ -12,15 +12,16 @@ updateSize(scene.w, scene.h);
 
 
 // null or "" is the default face FreeSans.ttf
+
 var faces = ["",
-             "XFINITYSansTT-New-Bold.ttf",
-             "XFINITYSansTT-New-BoldCond.ttf",
-             "XFINITYSansTT-New-ExLgt.ttf",
-             "XFINITYSansTT-New-Lgt.ttf",
-             "XFINITYSansTT-New-Med.ttf",
-             "XFINITYSansTT-New-MedCond.ttf",
-             "DejaVuSans.ttf",
-             "DejaVuSerif.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Bold.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-BoldCond.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-ExLgt.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Lgt.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Med.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-MedCond.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/DejaVuSans.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/DejaVuSerif.ttf",
             ];
 
 console.log("faces: ", faces.length);
@@ -31,25 +32,26 @@ var scrollContent = scene.createImage({parent:scroll});
 var rowcontainer = scene.createImage({parent:scrollContent});
 
 var elems = [];
+var promises = [];
 var p = 0; 
 for (var i=0; i < faces.length; i++)
 {
     var row = scene.createImage({parent:rowcontainer,y:0, clip:false});
     var faceName = faces[i]?faces[i]:"FreeSans.ttf";
-    console.log(faceName);
+    console.log("fontFace: "+faceName);
     var t = scene.createText2({text:"Enter in some text...", 
                               parent:row,x:10,y:0,
                               textColor:0xfaebd7ff, pixelSize:24,
                               faceURL:faces[i], clip:true, w:scene.w,h:100});
     elems[i] = t;                           
-    
+    promises[i] = t.ready;
 
 }
-for(var n = 0; n < elems.length; n++) {
-  
-          elems[n].ready.then(function(t) {
-             console.log("Inside ready for face="+t.faceURL);
+Promise.all(promises).then(function(success, failure) {
 
+  for(var n = 0; n < elems.length; n++) {
+    console.log("In promise n="+n);
+                var t = elems[n];
                 var fontMetrics = t.getFontMetrics();
                 console.log("natural leading is "+fontMetrics.naturalLeading);
                 console.log("fontMetrics.height="+fontMetrics.height);
@@ -59,23 +61,24 @@ for(var n = 0; n < elems.length; n++) {
                 t.h = fontMetrics.height;
                 t.parent.h = t.h+(fontMetrics.naturalLeading/2);
                 t.parent.w = 800;
-                for( var i = 0; i < elems.length; i++) {
-                  if( i != 0 && t === elems[i]) { 
-                    var prevParent = elems[i-1].parent;
-                    console.log("PrevParent elem is "+elems[i-1].faceURL);
-                    console.log("Prevparent y is "+prevParent.y);
-                    console.log("PrevParent.h set to "+prevParent.h);
-                    t.parent.y = prevParent.h+prevParent.y; 
-                    
-                    break;
-                  } else if( i == 0) {
-                      var row = rowcontainer.children[i];
+                if( n != 0) {
+                    var prevParent = elems[n-1].parent;          
+
+                          console.log("PrevParent elem is "+elems[n-1].faceURL);
+
+                          t.parent.y = prevParent.h+prevParent.y; 
+                          console.log("Prevparent y is "+prevParent.y);
+                          console.log("PrevParent.h set to "+prevParent.h);
+                          
+                  } 
+                  else  {
+                      var row = rowcontainer.children[n];
                       select.animateTo({x:row.x,y:row.y,h:row.h,w:row.w},0.3,0,0);                   
                   }
                 }
 
               });
-}
+//}
 
 var select = scene.createRectangle({parent:scrollContent, fillColor:0x000000, 
                                     lineColor:0xffff00ff,
@@ -86,13 +89,13 @@ function clamp(v, min, max) {
     return Math.min(Math.max(min,v),max);
 }
 var measurements;
-var width;
+var width = 800;
 var currentRow = 0;
 function selectRow(i) {
     currentRow = i;
     var row = rowcontainer.children[i];
     measurements = row.children[0].measureText();
-    width = measurements.bounds.x2 + row.children[0].x;
+    //width = measurements.bounds.x2 + row.children[0].x;
     select.animateTo({x:row.x,y:row.y,h:row.h, w:width},0.3,0,0);
     // animate to bring selection into view
     var t = -scrollContent.y;
@@ -128,7 +131,6 @@ function updateText(s) {
     for (var i = 0; i < rowcontainer.children.length; i++) {
         console.log("updateText row i="+i+" with text="+s);
         rowcontainer.children[i].children[0].text = s;
-        
     }
     //selectRow(currentRow);
 }
