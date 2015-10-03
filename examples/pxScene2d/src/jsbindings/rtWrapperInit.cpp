@@ -10,10 +10,16 @@
 
 using namespace v8;
 
+class jsWindow;
+
 #ifdef WIN32
 static DWORD __rt_main_thread__;
 #else
 static pthread_t __rt_main_thread__;
+static pthread_t __rt_render_thread__;
+static pthread_mutex_t gInitLock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t gInitCond  = PTHREAD_COND_INITIALIZER;
+static bool gInitComplete = false;
 #endif
 
 bool rtIsMainThread()
@@ -25,26 +31,23 @@ bool rtIsMainThread()
 #endif
 }
 
+bool rtIsRenderThread()
+{
+  return pthread_self() == __rt_render_thread__;
+}
+
 struct EventLoopContext
 {
+  jsWindow* win;
   pxEventLoop* eventLoop;
 };
 
-// TODO on OSX run the windows event loop on the main thread and use
-// a timer to pump messages
 #ifndef RUNINMAIN
 #ifdef WIN32
-static void processEventLoop(void* argp)
+static void processEventLoop(void* argp);
 #else
-static void* processEventLoop(void* argp)
+static void* processEventLoop(void* argp);
 #endif
-{
-  EventLoopContext* ctx = reinterpret_cast<EventLoopContext *>(argp);
-  ctx->eventLoop->run();
-#ifndef WIN32
-  return 0;
-#endif
-}
 #endif
 
 enum WindowCallback
@@ -75,21 +78,43 @@ public:
     : pxWindow()
     , mScene(new pxScene2d())
     , mEventLoop(new pxEventLoop())
+    , m_x(x)
+    , m_y(y)
+    , m_w(w)
+    , m_h(h)
   {
     mJavaScene.Reset(isolate, rtObjectWrapper::createFromObjectReference(isolate, mScene.getPtr()));
+  }
 
-    rtLogInfo("creating native with [%d, %d, %d, %d]", x, y, w, h);
-    init(x, y, w, h);
+  void setup()
+  {
+    rtLogInfo("creating native with [%d, %d, %d, %d]", m_x, m_y, m_w, m_h);
+    init(m_x, m_y, m_w, m_h);
 
     rtLogInfo("initializing scene");
     mScene->init();
     mScene->setViewContainer(this);
+
+    char title[]= { "pxScene from JavasScript!" };
+    setTitle(title);
+    setVisibility(true);
+    startTimers();
+
+    #ifdef RT_USE_SINGLE_RENDER_THREAD
+    rtLogInfo("waiting for intiailization to complete");
+    pthread_mutex_lock(&gInitLock);
+    gInitComplete = true;
+    pthread_mutex_unlock(&gInitLock);
+    pthread_cond_signal(&gInitCond);
+    #endif
   }
 
   void startTimers()
   {
+    #ifndef RT_USE_SINGLE_RENDER_THREAD
     rtLogInfo("starting background thread for event loop processing");
     startEventProcessingThread();
+    #endif
 
     // we start a timer in case there aren't any other evens to the keep the
     // nodejs event loop alive. Fire a time repeatedly.
@@ -116,11 +141,13 @@ public:
 #else
     EventLoopContext* ctx = new EventLoopContext();
     ctx->eventLoop = mEventLoop;
+    ctx->win = this;
 #ifdef WIN32
     uintptr_t threadId = _beginthread(processEventLoop, 0, ctx);
     if (threadId != -1)
       mEventLoopThread = (HANDLE)threadId;
 #else
+    rtLogInfo("creating event processing loop thread");
     pthread_create(&mEventLoopThread, NULL, &processEventLoop, ctx);
 #endif
 #endif
@@ -254,6 +281,11 @@ private:
 #endif
 
   uv_timer_t mTimer;
+
+  int m_x;
+  int m_y;
+  int m_w;
+  int m_h;
 };
 
 static jsWindow* mainWindow = NULL;
@@ -299,11 +331,18 @@ static void getScene(const FunctionCallbackInfo<Value>& args)
     }
 
     mainWindow = new jsWindow(args.GetIsolate(), x, y, w, h);
+    #ifndef RT_USE_SINGLE_RENDER_THREAD
+    mainWindow->setup();
+    #else
+    // start event loop.. eventloop will do init on it's own thread,
+    // we'll wait for the init to complete before continuing.
+    mainWindow->startEventProcessingThread();
 
-    char title[]= { "pxScene from JavasScript!" };
-    mainWindow->setTitle(title);
-    mainWindow->setVisibility(true);
-    mainWindow->startTimers();
+    pthread_mutex_lock(&gInitLock);
+    while (!gInitComplete)
+      pthread_cond_wait(&gInitCond, &gInitLock);
+    pthread_mutex_unlock(&gInitLock);
+    #endif
   }
 
   EscapableHandleScope scope(args.GetIsolate());
@@ -332,5 +371,27 @@ void ModuleInit(
   target->Set(String::NewFromUtf8(isolate, "dispose"),
     FunctionTemplate::New(isolate, disposeNode)->GetFunction());
 }
+
+// TODO on OSX run the windows event loop on the main thread and use
+// a timer to pump messages
+#ifndef RUNINMAIN
+#ifdef WIN32
+static void processEventLoop(void* argp)
+#else
+static void* processEventLoop(void* argp)
+#endif
+{
+  EventLoopContext* ctx = reinterpret_cast<EventLoopContext *>(argp);
+
+  #ifdef RT_USE_SINGLE_RENDER_THREAD
+  ctx->win->setup();
+  #endif
+
+  ctx->eventLoop->run();
+#ifndef WIN32
+  return 0;
+#endif
+}
+#endif
 
 NODE_MODULE_CONTEXT_AWARE(px, ModuleInit);

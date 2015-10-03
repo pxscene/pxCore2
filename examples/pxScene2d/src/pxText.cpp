@@ -141,15 +141,15 @@ void pxFace::getMetrics(float& height, float& ascender, float& descender, float&
 	// TO DO:  check FT_IS_SCALABLE 
 	FT_Size_Metrics* metrics = &mFace->size->metrics;
 
-	double            em_size, y_scale;
+	//double            em_size, y_scale;
 
 	/* compute floating point scale factors */
-	em_size = 1.0 * mFace->units_per_EM;
-	y_scale = metrics->y_ppem / em_size;
+	//em_size = 1.0 * mFace->units_per_EM;
+	//y_scale = metrics->y_ppem / em_size;
   	
 	height = metrics->height>>6;
-	ascender = metrics->ascender * y_scale;
-	descender = metrics->descender * y_scale;
+	ascender = metrics->ascender>>6; //* y_scale
+	descender = -metrics->descender>>6; //* y_scale
   naturalLeading = height - (ascender + descender);
 
 }
@@ -419,9 +419,10 @@ void pxText::update(double t)
 }
 
 void pxText::draw() {
+  static pxTextureRef nullMaskRef;
   if (mCached.getPtr() && mCached->getTexture().getPtr())
   {
-    context.drawImage(0, 0, mw, mh, mCached->getTexture(), pxTextureRef(), PX_NONE, PX_NONE);
+    context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef, PX_NONE, PX_NONE);
   }
   else
   {

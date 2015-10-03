@@ -41,6 +41,7 @@ class pxContext {
 
   void mapToScreenCoordinates(float inX, float inY, int &outX, int &outY);
   void mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int &outX, int &outY);
+  bool isObjectOnScreen(float x, float y, float width, float height);
 
   pxTextureRef createTexture(pxOffscreen& o);
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer);

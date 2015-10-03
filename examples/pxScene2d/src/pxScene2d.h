@@ -29,6 +29,8 @@ using namespace std;
 #include "rtObject.h"
 #include "rtObjectMacros.h"
 
+#include "rtPromise.h"
+
 #include "pxCore.h"
 #include "pxIView.h"
 
@@ -38,6 +40,9 @@ using namespace std;
 #include "pxTextureCacheObject.h"
 #include "pxContextFramebuffer.h"
 
+#include "testView.h"
+
+// TODO Finish
 //#include "pxTransform.h"
 
 
@@ -70,23 +75,12 @@ typedef void (*pxAnimationEnded)(void* ctx);
 
 double pxInterpLinear(double i);
 
-enum pxAnimationType {PX_END = 0, PX_SEESAW, PX_LOOP};
-
-struct pxPoint2f {
-  pxPoint2f() {}
-  pxPoint2f(float _x, float _y) { x = _x; y = _y; } 
-  float x, y;
-};
+enum pxAnimationType {PX_END = 0, PX_OSCILLATE, PX_LOOP};
 
 struct pxAnimationTarget {
   char* prop;
   float to;
 };
-
-typedef double (*pxInterp)(double i);
-typedef void (*pxAnimationEnded)(void* ctx);
-
-double pxInterpLinear(double i);
 
 struct animation {
   bool cancelled;
@@ -102,110 +96,28 @@ struct animation {
   rtObjectRef promise;
 };
 
+struct pxPoint2f {
+  pxPoint2f() {}
+  pxPoint2f(float _x, float _y) { x = _x; y = _y; } 
+  float x, y;
+};
+
+typedef double (*pxInterp)(double i);
+typedef void (*pxAnimationEnded)(void* ctx);
+
+double pxInterpLinear(double i);
+
 class pxFileDownloadRequest;
 
-
-enum rtPromiseState {PENDING,FULFILLED,REJECTED};
-
-struct thenData
-{
-  rtFunctionRef mResolve;
-  rtFunctionRef mReject;
-  rtObjectRef mNextPromise;
-};
-
-class rtPromise: public rtObject
-{
-public:
-  rtDeclareObject(rtPromise,rtObject);
-
-  rtMethod2ArgAndReturn("then",then,rtFunctionRef,rtFunctionRef,rtObjectRef);
-
-  rtMethod1ArgAndNoReturn("resolve",resolve,rtValue);
-  rtMethod1ArgAndNoReturn("reject",reject,rtValue);
-
-  rtPromise():mState(PENDING) {}
-
-  rtError then(rtFunctionRef resolve, rtFunctionRef reject, 
-               rtObjectRef& newPromise)
-  {
-    if (mState == PENDING)
-    {
-      thenData d;
-      d.mResolve = resolve;
-      d.mReject = reject;
-      d.mNextPromise = new rtPromise;
-      mThenData.push_back(d);
-
-      newPromise = d.mNextPromise;
-    }
-    else if (mState == FULFILLED)
-    {
-      if (resolve)
-      {
-        resolve.send(mValue);
-        newPromise = new rtPromise;
-        newPromise.send("resolve",mValue);
-      }
-    }
-    else if (mState == REJECTED)
-    {
-      if (reject)
-      {
-        reject.send(mValue);
-        newPromise = new rtPromise;
-        newPromise.send("reject",mValue);
-      }
-    }
-    else
-      rtLogError("Invalid rtPromise state");
-    return RT_OK;
-  }
-
-  rtError resolve(const rtValue& v)
-  {
-    mState = FULFILLED;
-    mValue = v;
-    for (vector<thenData>::iterator it = mThenData.begin();
-         it != mThenData.end(); ++it)
-    {
-      if (it->mResolve)
-      {
-        it->mResolve.send(mValue);
-        it->mNextPromise.send("resolve",mValue);
-      }
-    }
-    mThenData.clear();
-    return RT_OK;
-  }
-
-  rtError reject(const rtValue& v)
-  {
-    mState = REJECTED;
-    mValue = v;
-    for (vector<thenData>::iterator it = mThenData.begin();
-         it != mThenData.end(); ++it)
-    {
-      if (it->mReject)
-      {
-        it->mReject.send(mValue);
-        it->mNextPromise.send("reject",mValue);
-      }
-    }
-    mThenData.clear();
-    return RT_OK;
-  }
-
-private:
-  rtPromiseState mState;
-  vector<thenData> mThenData;
-  rtValue mValue;
-};
-
-class pxObject;
 class pxScene2d;
 
-class pxObject: public rtObject 
+class pxObjectImpl
+{
+protected:
+  vector<animation> mAnimations;  
+};
+
+class pxObject: public rtObject, private pxObjectImpl
 {
 public:
   rtDeclareObject(pxObject, rtObject);
@@ -241,12 +153,6 @@ public:
   rtMethodNoArgAndNoReturn("remove", remove);
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
   rtMethodNoArgAndNoReturn("moveToFront", moveToFront);
-
-  #if 0
-  //TODO - remove
-  rtMethod5ArgAndNoReturn("animateToF", animateToF2, rtObjectRef, double,
-                          uint32_t, uint32_t, rtFunctionRef);
-  #endif
 
   rtMethod4ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
                         uint32_t, uint32_t, rtObjectRef);
@@ -436,62 +342,17 @@ public:
   bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit, pxPoint2f& hitPt);
   virtual bool hitTest(pxPoint2f& pt);
 
-  #if 0
-  //TODO - remove
-  rtError animateToF(const char* prop, double to, double duration,
-                     uint32_t interp, uint32_t animationType, 
-                     rtFunctionRef onEnd);
-  #endif
-
   rtError animateTo(const char* prop, double to, double duration,
                      uint32_t interp, uint32_t animationType, 
                      rtObjectRef promise);
-
-  #if 0
-  //TODO - REMOVE
-  rtError animateToF2(rtObjectRef props, double duration,
-                     uint32_t interp, uint32_t animationType,
-                     rtFunctionRef onEnd)
-  {
-    if (!props) return RT_FAIL;
-    rtObjectRef keys = props.get<rtObjectRef>("allKeys");
-    if (keys)
-    {
-      uint32_t len = keys.get<uint32_t>("length");
-      for (uint32_t i = 0; i < len; i++)
-      {
-        rtString key = keys.get<rtString>(i);
-        animateToF(key, props.get<float>(key), duration, interp, animationType,
-                  (i==0)?onEnd:rtFunctionRef());
-      }
-    }
-    return RT_OK;
-  }
-  #endif
 
   rtError animateToP2(rtObjectRef props, double duration, 
                       uint32_t interp, uint32_t animationType, 
                       rtObjectRef& promise);
 
-  #if 0
-  //TODO - remove
-  void animateToF(const char* prop, double to, double duration,
-		 pxInterp interp, pxAnimationType at, 
-                 rtFunctionRef onEnd);
-   #endif
-
   void animateTo(const char* prop, double to, double duration,
 		 pxInterp interp, pxAnimationType at, 
                  rtObjectRef promise);
-
-  #if 0
-  //TODO - remove
-  void animateToF(const char* prop, double to, double duration,
-		 pxInterp interp=0, pxAnimationType at=PX_END)
-  {
-    animateToF(prop, to, duration, interp, at, rtFunctionRef());
-  }
-  #endif
 
   void cancelAnimation(const char* prop, bool fastforward = false);
 
@@ -597,7 +458,6 @@ public:
     
     while(o)
     {
-//      rtRefT<pxObject> j = o;
       pxMatrix4f m2;
 #if 0
       m2.translate(j->mx+j->mcx, j->my+j->mcy);
@@ -746,7 +606,7 @@ protected:
   // TODO getting freaking huge... 
   rtRefT<pxObject> mParent;
   vector<rtRefT<pxObject> > mChildren;
-  vector<animation> mAnimations;
+//  vector<animation> mAnimations;
   float mcx, mcy, mx, my, ma, mr, mrx, mry, mrz, msx, msy, mw, mh;
   bool mInteractive;
   pxContextFramebufferRef mSnapshotRef;
@@ -788,106 +648,6 @@ protected:
     v = (void*)this;
     return RT_OK;
   }
-};
-
-
-class testView: public pxIView
-{
-public:
-  
-testView(): mContainer(NULL),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) {}
-  virtual ~testView() {}
-
-  virtual unsigned long AddRef() {
-    return rtAtomicInc(&mRefCount);
-  }
-  
-  virtual unsigned long Release() {
-    long l = rtAtomicDec(&mRefCount);
-    if (l == 0) delete this;
-    return l;
-  }
-
-  virtual void RT_STDCALL onSize(int32_t w, int32_t h)
-  {
-    rtLogInfo("testView::onSize(%d, %d)", w, h);
-    mw = w;
-    mh = h;
-  }
-
-  virtual void RT_STDCALL onMouseDown(int32_t x, int32_t y, uint32_t flags)
-  {
-    rtLogInfo("testView::onMouseDown(%d, %d, %u)", x, y, flags);
-  }
-
-  virtual void RT_STDCALL onMouseUp(int32_t x, int32_t y, uint32_t flags)
-  {
-    rtLogInfo("testView::onMouseUp(%d, %d, %u)", x, y, flags);
-  }
-
-  virtual void RT_STDCALL onMouseMove(int32_t x, int32_t y)
-  {
-    rtLogInfo("testView::onMouseMove(%d, %d)", x, y);
-    mMouseX = x;
-    mMouseY = y;
-  }
-
-  virtual void RT_STDCALL onMouseEnter()
-  {
-    rtLogInfo("testView::onMouseEnter()");
-    mEntered = true;
-  }
-
-  virtual void RT_STDCALL onMouseLeave()
-  {
-    rtLogInfo("testView::onMouseLeave()");
-    mEntered = false;
-  }
-
-  virtual void RT_STDCALL onFocus()
-  {
-    rtLogInfo("testView::onFocus()");
-  }
-  virtual void RT_STDCALL onBlur()
-  {
-    rtLogInfo("testView::onBlur()");
-
-  }
-  virtual void RT_STDCALL onKeyDown(uint32_t keycode, uint32_t flags)
-  {
-    rtLogInfo("testView::onKeyDown(%u, %u)", keycode, flags);
-  }
-
-  virtual void RT_STDCALL onKeyUp(uint32_t keycode, uint32_t flags)
-  {
-    rtLogInfo("testView::onKeyUp(%u, %u)", keycode, flags);
-  }
-
-  virtual void RT_STDCALL onChar(uint32_t codepoint)
-  {
-    rtLogInfo("testView::onChar(%u)", codepoint);
-  }
-
-  virtual void RT_STDCALL setViewContainer(pxIViewContainer* l)
-  {
-    rtLogInfo("testView::setViewContainer(%p)", l);
-    mContainer = l;
-  }
-
-  virtual void RT_STDCALL onUpdate(double t);
-  virtual void RT_STDCALL onDraw();
-
-
-#if 0
-  virtual rtError RT_STDCALL setURI(const char* s) = 0;
-#endif
-
-private:
-  pxIViewContainer *mContainer;
-  rtAtomic mRefCount;
-  float mw, mh;
-  bool mEntered;
-  int32_t mMouseX, mMouseY;
 };
 
 class pxViewContainer: public pxObject, public pxIViewContainer
@@ -1100,56 +860,6 @@ private:
 
 typedef rtRefT<pxObject> pxObjectRef;
 
-// Small helper class that vends the children of a pxObject as a collection
-class pxObjectChildren: public rtObject {
-public:
-  pxObjectChildren(pxObject* o)
-  {
-    mObject = o;
-  }
-
-  virtual rtError Get(const char* name, rtValue* value)
-  {
-    if (!value) return RT_FAIL;
-    if (!strcmp(name, "length"))
-    {
-      value->setUInt32(mObject->numChildren());
-      return RT_OK;
-    }
-    else
-      return RT_PROP_NOT_FOUND;
-  }
-
-  virtual rtError Get(uint32_t i, rtValue* value)
-  {
-    if (!value) return RT_FAIL;
-    if (i < mObject->numChildren())
-    {
-      rtObjectRef o;
-      rtError e = mObject->getChild(i, o);
-      *value = o;
-      return e;
-    }
-    else
-      return RT_PROP_NOT_FOUND;
-  }
-
-  virtual rtError Set(const char* /*name*/, const rtValue* /*value*/)
-  {
-    // readonly property
-    return RT_PROP_NOT_FOUND;
-  }
-
-  virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/)
-  {
-    // readonly property
-    return RT_PROP_NOT_FOUND;
-  }
-
-private:
-  rtRefT<pxObject> mObject;
-};
-
 class pxScene2d: public rtObject, public pxIView {
 public:
   rtDeclareObject(pxScene2d, rtObject);
@@ -1193,7 +903,9 @@ public:
   rtConstantProperty(PX_EASEOUTELASTIC, PX_EASEOUTELASTIC_, uint32_t);
   rtConstantProperty(PX_EASEOUTBOUNCE, PX_EASEOUTBOUNCE_, uint32_t);
   rtConstantProperty(PX_END, PX_END, uint32_t);
-  rtConstantProperty(PX_SEESAW, PX_SEESAW, uint32_t);
+  // TODO deprecated remove from js samples
+  rtConstantProperty(PX_SEESAW, PX_OSCILLATE, uint32_t);
+  rtConstantProperty(PX_OSCILLATE, PX_OSCILLATE, uint32_t);
   rtConstantProperty(PX_LOOP, PX_LOOP, uint32_t);
   rtConstantProperty(PX_NONE, PX_NONE_, uint32_t);
   rtConstantProperty(PX_STRETCH, PX_STRETCH_, uint32_t);
@@ -1329,7 +1041,7 @@ private:
   // t is assumed to be monotonically increasing
   void update(double t);
 
-  // Only type supported is "image/png;base64"
+  // Note: Only type currently supported is "image/png;base64"
   rtError screenshot(rtString type, rtString& pngData);
   
   rtRefT<pxObject> mRoot;
@@ -1340,7 +1052,7 @@ private:
   int mHeight;
   rtEmitRef mEmit;
 
-// Top level scene only
+// TODO Top level scene only
   rtRefT<pxObject> mMouseEntered;
   rtRefT<pxObject> mMouseDown;
   pxPoint2f mMouseDownPt;
@@ -1358,6 +1070,7 @@ public:
   #endif //PX_DIRTY_RECTANGLES
 };
 
+// TODO do we need this anymore?
 class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase
 {
  public:

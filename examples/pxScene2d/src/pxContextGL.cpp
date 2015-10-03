@@ -26,6 +26,11 @@ pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
 pxContextFramebufferRef defaultFramebuffer(new pxContextFramebuffer());
 pxContextFramebufferRef currentFramebuffer = defaultFramebuffer;
 
+enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
+    PROGRAM_TEXTURE_MASKED_SHADER};
+
+pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
+
 // TODO get rid of this global crap
 
 static int gResW, gResH;
@@ -117,7 +122,7 @@ void premultiply(float* d, const float* s)
 class pxFBOTexture : public pxTexture
 {
 public:
-  pxFBOTexture() : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0)
+  pxFBOTexture() : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true)
   {
     mTextureType = PX_TEXTURE_FRAME_BUFFER;
   }
@@ -146,6 +151,7 @@ public:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    mBindTexture = true;
   }
   
   pxError resizeTexture(int width, int height)
@@ -162,7 +168,8 @@ public:
     return PX_OK;
     #endif
 
-    glBindTexture(GL_TEXTURE_2D, mTextureId);
+    //TODO - remove commented out section
+    /*glBindTexture(GL_TEXTURE_2D, mTextureId);
 
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 
                  width, height, GL_RGBA,
@@ -171,7 +178,7 @@ public:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
     return PX_OK;
   }
   
@@ -195,16 +202,20 @@ public:
   virtual pxError prepareForRendering()
   {
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
-                           GL_TEXTURE_2D, mTextureId, 0);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    if (mBindTexture)
     {
-      if ((mWidth != 0) && (mHeight != 0))
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                             GL_TEXTURE_2D, mTextureId, 0);
+
+      if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
       {
-        rtLogWarn("error setting the render surface");
+        if ((mWidth != 0) && (mHeight != 0))
+        {
+          rtLogWarn("error setting the render surface");
+        }
+        return PX_FAIL;
       }
-      return PX_FAIL;
+      mBindTexture = false;
     }
     //glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, mTextureId);
@@ -261,6 +272,7 @@ private:
   int mHeight;
   GLuint mFramebufferId;
   GLuint mTextureId;
+  bool mBindTexture;
 };
 
 class pxTextureOffscreen : public pxTexture
@@ -627,6 +639,7 @@ public:
     
   void use()
   {
+    currentGLProgram = PROGRAM_UNKNOWN;
     glUseProgram(mProgram);
   }
 
@@ -664,7 +677,11 @@ public:
             int count,
             const float* color)
   {
-    use();
+    if (currentGLProgram != PROGRAM_SOLID_SHADER)
+    {
+      use();
+      currentGLProgram = PROGRAM_SOLID_SHADER;
+    }
     glUniform2f(mResolutionLoc, resW, resH);
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -718,7 +735,11 @@ public:
             pxTextureRef texture,
             const float* color)
   {
-    use();
+    if (currentGLProgram != PROGRAM_A_TEXTURE_SHADER)
+    {
+      use();
+      currentGLProgram = PROGRAM_A_TEXTURE_SHADER;
+    }
     glUniform2f(mResolutionLoc, resW, resH);
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -778,7 +799,11 @@ public:
             pxTextureRef texture,
             int32_t xStretch, int32_t yStretch)
   {
-    use();
+    if (currentGLProgram != PROGRAM_TEXTURE_SHADER)
+    {
+      use();
+      currentGLProgram = PROGRAM_TEXTURE_SHADER;
+    }
     glUniform2f(mResolutionLoc, resW, resH);
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -843,7 +868,11 @@ public:
             pxTextureRef texture,
             pxTextureRef mask)
   {
-    use();
+    if (currentGLProgram != PROGRAM_TEXTURE_MASKED_SHADER)
+    {
+      use();
+      currentGLProgram = PROGRAM_TEXTURE_MASKED_SHADER;
+    }
     glUniform2f(mResolutionLoc, resW, resH);
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -1380,4 +1409,27 @@ void pxContext::mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int 
 
   outX = positionCoords.mX / positionCoords.mW;
   outY = positionCoords.mY / positionCoords.mW;
+}
+
+bool pxContext::isObjectOnScreen(float x, float y, float width, float height)
+{
+  int outX1, outX2, outY1, outY2;
+  mapToScreenCoordinates(width,height,outX2, outY2);
+  if (outX2 < 0 || outY2 < 0)
+  {
+    return false;
+  }
+  mapToScreenCoordinates(x,y,outX1, outY1);
+  int fboWidth = currentFramebuffer->width();
+  int fboHeight = currentFramebuffer->height();
+  if (currentFramebuffer == defaultFramebuffer)
+  {
+    fboWidth = gResW;
+    fboHeight = gResH;
+  }
+  if (outX1 > fboWidth || outY1 > fboHeight)
+  {
+    return false;
+  }
+  return true;
 }

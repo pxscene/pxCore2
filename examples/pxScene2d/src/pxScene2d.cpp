@@ -29,7 +29,6 @@
 
 #include "pxIView.h"
 
-
 // Taken from
 // http://stackoverflow.com/questions/342409/how-do-i-base64-encode-decode-in-c
 
@@ -175,13 +174,71 @@ double pxInterpLinear(double i)
   return pxClamp<double>(i, 0, 1);
 }
 
+// Small helper class that vends the children of a pxObject as a collection
+class pxObjectChildren: public rtObject {
+public:
+  pxObjectChildren(pxObject* o)
+  {
+    mObject = o;
+  }
+
+  virtual rtError Get(const char* name, rtValue* value)
+  {
+    if (!value) return RT_FAIL;
+    if (!strcmp(name, "length"))
+    {
+      value->setUInt32(mObject->numChildren());
+      return RT_OK;
+    }
+    else
+      return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Get(uint32_t i, rtValue* value)
+  {
+    if (!value) return RT_FAIL;
+    if (i < mObject->numChildren())
+    {
+      rtObjectRef o;
+      rtError e = mObject->getChild(i, o);
+      *value = o;
+      return e;
+    }
+    else
+      return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Set(const char* /*name*/, const rtValue* /*value*/)
+  {
+    // readonly property
+    return RT_PROP_NOT_FOUND;
+  }
+
+  virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/)
+  {
+    // readonly property
+    return RT_PROP_NOT_FOUND;
+  }
+
+private:
+  rtRefT<pxObject> mObject;
+};
+
+
+
+
+
+// pxObject methods
 
 rtError pxObject::Set(const char* name, const rtValue* value)
 {
   #ifdef PX_DIRTY_RECTANGLES
   mIsDirty = true;
   #endif //PX_DIRTY_RECTANGLES
-  repaint();
+  if (strcmp(name, "x") != 0 && strcmp(name, "y") != 0 &&  strcmp(name, "a") != 0)
+  {
+    repaint();
+  }
   pxObject* parent = mParent;
   while (parent)
   {
@@ -427,7 +484,7 @@ void pxObject::update(double t)
       }
 #endif
 #if 0
-      else if (a.at == PX_SEESAW)
+      else if (a.at == PX_OSCILLATE)
       {
         // flip
         double t;
@@ -450,9 +507,9 @@ void pxObject::update(double t)
     float from, to;
     from = a.from;
     to = a.to;
-    if (a.at == PX_SEESAW)
+    if (a.at == PX_OSCILLATE)
     {
-      if (fmod(t2,2) != 0)   // perf chk ?
+      if (fmod(t2,2) != 0)   // TODO perf chk ?
       {
         from = a.to;
         to   = a.from;
@@ -591,6 +648,11 @@ void pxObject::drawInternal(bool maskPass)
   context.setMatrix(m);
   context.setAlpha(ma);
 
+  if (!context.isObjectOnScreen(0,0,mw,mh))
+  {
+    return;
+  }
+
   #ifdef PX_DIRTY_RECTANGLES
   mLastRenderMatrix = context.getMatrix();
   mScreenCoordinates = getBoundingRectInScreenCoordinates();
@@ -601,7 +663,6 @@ void pxObject::drawInternal(bool maskPass)
 
   if (mPainting)
   {
-    pxTextureRef maskTextureRef;
     bool maskFound = false;
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
@@ -654,11 +715,11 @@ void pxObject::drawInternal(bool maskPass)
   if (!maskPass)
   {
     //TODO - remove need for mRepaintCount
-    if (mRepaintCount > 1)
+    if (mRepaintCount > 0)
     {
       mRepaint = false;
     }
-    else
+    else if (mRepaint)
     {
       mRepaintCount++;
     }
@@ -731,13 +792,13 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
   context.setMatrix(m);
   context.setAlpha(parentAlpha);
 
-  if (fbo.getPtr() == NULL || fbo->width() != mw || fbo->height() != mh)
+  if (fbo.getPtr() == NULL || fbo->width() != floor(mw) || fbo->height() != floor(mh))
   {
-    fbo = context.createFramebuffer(mw, mh);
+    fbo = context.createFramebuffer(floor(mw), floor(mh));
   }
   else
   {
-    context.updateFramebuffer(fbo, mw, mh);
+    context.updateFramebuffer(fbo, floor(mw), floor(mh));
   }
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (mRepaint && context.setFramebuffer(fbo) == PX_OK)
@@ -767,22 +828,22 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
 
   context.setAlpha(parentAlpha);
 
-  if (drawableFbo.getPtr() == NULL || drawableFbo->width() != mw || drawableFbo->height() != mh)
+  if (drawableFbo.getPtr() == NULL || drawableFbo->width() != floor(mw) || drawableFbo->height() != floor(mh))
   {
-    drawableFbo = context.createFramebuffer(mw, mh);
+    drawableFbo = context.createFramebuffer(floor(mw), floor(mh));
   }
   else
   {
-    context.updateFramebuffer(drawableFbo, mw, mh);
+    context.updateFramebuffer(drawableFbo, floor(mw), floor(mh));
   }
 
-  if (maskFbo.getPtr() == NULL || maskFbo->width() != mw || maskFbo->height() != mh)
+  if (maskFbo.getPtr() == NULL || maskFbo->width() != floor(mw) || maskFbo->height() != floor(mh))
   {
-    maskFbo = context.createFramebuffer(mw, mh);
+    maskFbo = context.createFramebuffer(floor(mw), floor(mh));
   }
   else
   {
-    context.updateFramebuffer(maskFbo, mw, mh);
+    context.updateFramebuffer(maskFbo, floor(mw), floor(mh));
   }
 
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
@@ -1707,6 +1768,7 @@ rtDefineProperty(pxScene2d, PX_EASEOUTELASTIC);
 rtDefineProperty(pxScene2d, PX_EASEOUTBOUNCE);
 rtDefineProperty(pxScene2d, PX_END);
 rtDefineProperty(pxScene2d, PX_SEESAW);
+rtDefineProperty(pxScene2d, PX_OSCILLATE);
 rtDefineProperty(pxScene2d, PX_LOOP);
 rtDefineProperty(pxScene2d, PX_NONE);
 rtDefineProperty(pxScene2d, PX_STRETCH);
