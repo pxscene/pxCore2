@@ -34,13 +34,10 @@ var text2 = scene.create({t:"text2", clip:true, parent:container, x:px, y:py, rx
    text2.ellipsis=true;
    text2.truncation=1;
 
-   
-           
    text2.text=longText; 
 //   text2.text+=longText2;
 
                  
-
 //var text2 = scene.createText2({wordWrap:true, ellipsis:true, truncation:0,leading:10, clip:false, w:400, h:400, parent:container, textColor:0xFFDDFFFF, pixelSize:20, x:px, y:py, rx:0, ry:1, rz:0});
 var metrics = null;
 var measurements = null;
@@ -66,7 +63,7 @@ function textready(text) {
   console.log("measurements firstCharY="+measurements.firstChar.y);
   console.log("measurements lastCharX="+measurements.lastChar.x);
   console.log("measurements lastCharY="+measurements.lastChar.y);
-});
+}
 
 function cycleValues(v) {
     console.log("v is "+v);
@@ -90,7 +87,7 @@ scene.root.on("onChar", function(e) {
   } else if(e.charCode == 116) { // t for truncation
 
     v = cycleValues(text2.truncation);
-    text2.truncation = v //t;
+    text2.truncation = v;
     if(v == 0) {
       truncationStatus.text="truncation=none";
     } else if(v ==1) {
