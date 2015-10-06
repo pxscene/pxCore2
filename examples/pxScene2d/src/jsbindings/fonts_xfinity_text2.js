@@ -1,6 +1,7 @@
 var root = scene.root;
 
 
+var width = 800;
 //var bg = scene.createRectangle({fillColor:0xccccccff, parent:root});
 function updateSize(w, h) {
 //    bg.w = w;
@@ -24,13 +25,19 @@ var faces = ["",
              "http://54.146.54.142/tom/xre2/apps/receiver/fonts/DejaVuSerif.ttf",
             ];
 
-console.log("faces: ", faces.length);
+console.log("faces: "+faces.length);
+scene.w = width;
+console.log("scene.w="+scene.w);
 
 var scroll = scene.createImage({parent:root});
-var scrollContent = scene.createImage({parent:scroll});
+var scrollContent = scene.createImage({parent:scroll,w:width});
 
 var rowcontainer = scene.createImage({parent:scrollContent});
 
+pleaseWait = scene.createText2({text:"Please wait while fonts load...", 
+                              parent:root,x:10,y:0,
+                              textColor:0xfaebd7ff, pixelSize:24,
+                              faceURL:faces[i], clip:true, w:width,h:100});
 var elems = [];
 var promises = [];
 var p = 0; 
@@ -42,16 +49,20 @@ for (var i=0; i < faces.length; i++)
     var t = scene.createText2({text:"Enter in some text...", 
                               parent:row,x:10,y:0,
                               textColor:0xfaebd7ff, pixelSize:24,
-                              faceURL:faces[i], clip:true, w:scene.w,h:100});
+                              faceURL:faces[i], clip:true,w:width,h:100, draw:false});
     elems[i] = t;                           
     promises[i] = t.ready;
 
 }
 Promise.all(promises).then(function(success, failure) {
 
+  pleaseWait.remove();
+  pleaseWait = null;
   for(var n = 0; n < elems.length; n++) {
-    console.log("In promise n="+n);
+
+    console.log("IN PROMISE n="+n);
                 var t = elems[n];
+                t.draw = true;
                 var fontMetrics = t.getFontMetrics();
                 console.log("natural leading is "+fontMetrics.naturalLeading);
                 console.log("fontMetrics.height="+fontMetrics.height);
@@ -59,8 +70,8 @@ Promise.all(promises).then(function(success, failure) {
                 console.log("fontMetrics.ascent="+fontMetrics.ascent);
                 console.log("fontMetrics.descent="+fontMetrics.descent);
                 t.h = fontMetrics.height;
-                t.parent.h = t.h+(fontMetrics.naturalLeading/2);
-                t.parent.w = 800;
+                t.parent.h = t.h+(fontMetrics.naturalLeading);
+                t.parent.w = width;
                 if( n != 0) {
                     var prevParent = elems[n-1].parent;          
 
@@ -89,7 +100,7 @@ function clamp(v, min, max) {
     return Math.min(Math.max(min,v),max);
 }
 var measurements;
-var width = 800;
+
 var currentRow = 0;
 function selectRow(i) {
     currentRow = i;

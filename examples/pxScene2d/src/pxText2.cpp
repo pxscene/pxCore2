@@ -87,7 +87,6 @@ void pxText2::recalc()
     clearMeasurements();
     renderText(false);
     
-  //  mReady.send("resolve", this);
     setNeedsRecalc(false);
 
   }
@@ -101,7 +100,7 @@ void pxText2::setNeedsRecalc(bool recalc)
   {
     //printf("pxText2::setNeedsRecalc deleting old promise\n");
     static_cast<rtPromise *>(mReady.getPtr())->Release(); 
-    //delete mReady;
+
     mReady = new rtPromise;
  
   }
@@ -150,7 +149,7 @@ void pxText2::update(double t)
 //    printf("pxText2::update: mNeedsRecalc=%d\n",mNeedsRecalc);
 //    printf("pxText2::update: mInitialized=%d && mFontLoaded=%d\n",mInitialized, mFontLoaded);
     recalc();
-    //renderText(true);
+
     setNeedsRecalc(false);
     mDirty = true;
     if(mInitialized && mFontLoaded ) {
@@ -714,11 +713,13 @@ bool pxText2::isNewline( char ch )
 */
 rtError pxText2::getFontMetrics(rtObjectRef& o) {
 
+  //printf("pxText2::getFontMetrics\n");
   if( mNeedsRecalc) {
     if(!mInitialized || !mFontLoaded) {
       rtLogWarn("getFontMetrics called TOO EARLY -- not initialized or font not loaded!\n");
     }
     recalc();
+    mNeedsRecalc = true;  // Hack to leave this set so that promise will be issued, as necessary
   }
 	float height, ascent, descent, naturalLeading;
 	pxTextMetrics* metrics = new pxTextMetrics(mScene);
@@ -743,12 +744,13 @@ rtError pxText2::getFontMetrics(rtObjectRef& o) {
  *                          The y position represents the baseline.
  * */
 rtError pxText2::measureText(rtObjectRef& o) {
-//  printf("pxText2::measureText()\n");
+  //printf("pxText2::measureText()\n");
   if( mNeedsRecalc) {
     if(!mInitialized || !mFontLoaded) {
       rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
     }
     recalc();
+    mNeedsRecalc = true;  // Hack to leave this set so that promise will be issued, as necessary
   }
 	//pxTextMeasurements* measure = new pxTextMeasurements();
 	//o = measure;
