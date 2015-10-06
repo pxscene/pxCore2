@@ -258,10 +258,10 @@ public:
   rtError setY(float v)       { cancelAnimation("y"); my = v; return RT_OK;   }
   float w()             const { return mw; }
   rtError w(float& v)   const { v = mw; return RT_OK;   }
-  rtError setW(float v)       { cancelAnimation("w"); mw = v; return RT_OK;   }
+  virtual rtError setW(float v)       { cancelAnimation("w"); mw = v; return RT_OK;   }
   float h()             const { return mh; }
   rtError h(float& v)   const { v = mh; return RT_OK;   }
-  rtError setH(float v)       { cancelAnimation("h"); mh = v; return RT_OK;   }
+  virtual rtError setH(float v)       { cancelAnimation("h"); mh = v; return RT_OK;   }
   float cx()            const { return mcx;}
   rtError cx(float& v)  const { v = mcx; return RT_OK;  }
   rtError setCX(float v)      { cancelAnimation("cx"); mcx = v; return RT_OK;  }

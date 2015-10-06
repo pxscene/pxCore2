@@ -61,8 +61,8 @@ public:
     
   void setPixelSize(uint32_t s);  
   const GlyphCacheEntry* getGlyph(uint32_t codePoint);  
-  void getMetrics(float& height, float& ascender, float& descender, float& naturalLeading);
-  void getHeight(float& height);
+  void getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading);
+  void getHeight(uint32_t size, float& height);
   void measureText(const char* text, uint32_t size,  float sx, float sy, 
                    float& w, float& h);
   void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
@@ -109,7 +109,7 @@ public:
   }
 
   rtError faceURL(rtString& v) const { v = mFaceURL; return RT_OK; }
-  rtError setFaceURL(const char* s);
+  virtual rtError setFaceURL(const char* s);
 
   rtError pixelSize(uint32_t& v) const { v = mPixelSize; return RT_OK; }
   virtual rtError setPixelSize(uint32_t v);

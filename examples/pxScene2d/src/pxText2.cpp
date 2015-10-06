@@ -36,6 +36,7 @@ pxText2::pxText2(pxScene2d* s):pxText(s)
   mVerticalAlign = 0;
   mHorizontalAlign = 0;
   mLeading = 0;  
+  mNeedsRecalc = true;
 }
 
 pxText2::~pxText2()
@@ -50,35 +51,62 @@ pxText2::~pxText2()
  */
 void pxText2::fontLoaded() 
 {
-  //printf("pxText2::fontLoaded. Initialized=%d\n",mInitialized);
+//  printf("pxText2::fontLoaded. Initialized=%d\n",mInitialized);
   mFontLoaded = true;
   if( mInitialized) {
-    recalc();
-    mReady.send("resolve", this);
+    setNeedsRecalc(true);
+    //rtString url;
+    //faceURL(url);
+    //printf("pxText2::fontLoaded and init'd: %s\n",url.cString());
+
   }
 }
 
 void pxText2::onInit()
 {
+//  printf("pxText2::onInit. mFontLoaded=%d\n",mFontLoaded);
   mInitialized = true;
   if( mFontLoaded) {
-    recalc();
-    mReady.send("resolve", this);   
+    setNeedsRecalc(true);
+    //rtString url;
+    //faceURL(url);
+    //printf("pxText2::fontLoaded and init'd: %s\n",url.cString());
+ 
   }
 }
 
 void pxText2::recalc() 
 {
-	if (!mText || !strcmp(mText.cString(),"")) {
-       clearMeasurements();
-       setMeasurementBounds(mx, 0, my, 0);
-	   return;
-	}  
-  
-  clearMeasurements();
-  renderText(false);
+  if( mNeedsRecalc) {
+    if (!mText || !strcmp(mText.cString(),"")) {
+         clearMeasurements();
+         setMeasurementBounds(mx, 0, my, 0);
+       return;
+    }  
+    
+    clearMeasurements();
+    renderText(false);
+    
+  //  mReady.send("resolve", this);
+    setNeedsRecalc(false);
+
+  }
 }
+void pxText2::setNeedsRecalc(bool recalc) 
+{ 
+  //printf("Setting mNeedsRecalc=%d\n",recalc); 
+  mNeedsRecalc = recalc; 
+
+  if(recalc && static_cast<rtPromise *>(mReady.getPtr())->status()) 
+  {
+    //printf("pxText2::setNeedsRecalc deleting old promise\n");
+    static_cast<rtPromise *>(mReady.getPtr())->Release(); 
+    //delete mReady;
+    mReady = new rtPromise;
+ 
+  }
   
+}
 /** 
  * setText: for pxText2, setText sets the text value, but does not
  * affect the dimensions of the object.  Dimensions are respected 
@@ -86,17 +114,24 @@ void pxText2::recalc()
  * to other properties.
  **/
 rtError pxText2::setText(const char* s) { 
+  //printf("pxText2::setText %s\n",s);
   mText = s; 
-  recalc();
+  setNeedsRecalc(true); 
   return RT_OK; 
 }
 
 rtError pxText2::setPixelSize(uint32_t v) 
 {   
   mPixelSize = v; 
-  recalc();
+  setNeedsRecalc(true); 
   return RT_OK; 
 }
+rtError pxText2::setFaceURL(const char* s)
+{
+  setNeedsRecalc(true);
+  return pxText::setFaceURL(s);
+}
+
 
 void pxText2::draw() {
   static pxTextureRef nullMaskRef;
@@ -108,7 +143,24 @@ void pxText2::draw() {
 
 	}
 }
-
+void pxText2::update(double t)
+{
+  //printf("pxText2::update: mNeedsRecalc=%d\n",mNeedsRecalc);
+  if( mNeedsRecalc ) {
+//    printf("pxText2::update: mNeedsRecalc=%d\n",mNeedsRecalc);
+//    printf("pxText2::update: mInitialized=%d && mFontLoaded=%d\n",mInitialized, mFontLoaded);
+    recalc();
+    //renderText(true);
+    setNeedsRecalc(false);
+    mDirty = true;
+    if(mInitialized && mFontLoaded ) {
+      //printf("pxText2::update: FIRING PROMISE\n");
+      mReady.send("resolve", this);
+    }
+  }  
+    
+  pxText::update(t);
+}
 /** This function needs to measure the text, taking into consideration
  *  wrapping, truncation and dimensions; but it should not render the 
  *  text yet. 
@@ -181,7 +233,7 @@ void pxText2::renderTextWithWordWrap(const char *text, float sx, float sy, float
   {
     measureTextWithWrapOrNewLine( text, sx, sy, tempX, tempY, size, color, lineNumber, false);
     float metricHeight;
-    mFace->getHeight(metricHeight);
+    mFace->getHeight(mPixelSize, metricHeight);
     float textHeight =  ((lineNumber+1)*metricHeight) + ((lineNumber-1)* mLeading);
     if( mVerticalAlign == V_BOTTOM ) 
     {
@@ -339,18 +391,18 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 		  
 		}	
     
-    if( !render && !clip() && mTruncation == NONE) {
-      if(tempY > my+mh) {
-        mh = my + tempY;
-      }
-      if( !mWordWrap) {
-        // Allow text to overflow the boundaries
-        if( tempX > mx+mw) {
-          mw = mx + tempX;
-        }
+    //if( !render && !clip() && mTruncation == NONE) {
+      //if(tempY > my+mh) {
+        //mh = my + tempY;
+      //}
+      //if( !mWordWrap) {
+        //// Allow text to overflow the boundaries
+        //if( tempX > mx+mw) {
+          //mw = mx + tempX;
+        //}
         
-      }
-    }
+      //}
+    //}
 }
 
 
@@ -381,12 +433,12 @@ void pxText2::renderOneLine(uint32_t lineNumber, const char * tempStr, float tem
   if( lineNumber == lastLineNumber) {
     setLastLineMeasurements(xPos+charW, tempY);
     
-    if( !render && !clip() && mTruncation == NONE && !mWordWrap) {
-      // Allow text to overflow the boundaries
-      if( mx+mw < xPos+charW) {
-        mw = xPos+charW;
-      }
-    } 
+    //if( !render && !clip() && mTruncation == NONE && !mWordWrap) {
+      //// Allow text to overflow the boundaries
+      //if( mx+mw < xPos+charW) {
+        //mw = xPos+charW;
+      //}
+    //} 
   }
   // Now, render the text
   if( render) {mFace->renderText(tempStr, size, xPos, tempY, sx, sy, color,lineWidth);} 
@@ -413,7 +465,7 @@ void pxText2::setMeasurementBounds(float xPos, float width, float yPos, float he
   
   if( lineNumber == 0) {
     float height, ascent, descent, naturalLeading;
-    mFace->getMetrics(height, ascent, descent, naturalLeading);
+    mFace->getMetrics(mPixelSize, height, ascent, descent, naturalLeading);
 
     measurements->getFirstChar()->setX(xPos);
     measurements->getFirstChar()->setY(yPos + ascent);
@@ -423,7 +475,7 @@ void pxText2::setMeasurementBounds(float xPos, float width, float yPos, float he
 void pxText2::setLastLineMeasurements(float x, float y) 
 {
   float height, ascent, descent, naturalLeading;
-  mFace->getMetrics(height, ascent, descent, naturalLeading);
+  mFace->getMetrics(mPixelSize, height, ascent, descent, naturalLeading);
   measurements->getLastChar()->setX(x);
   measurements->getLastChar()->setY(y+ascent);
 }
@@ -462,7 +514,7 @@ void pxText2::renderTextNoWordWrap(float sx, float sy, float tempX, bool render)
   if( (charW + tempXStartPos) <= lineWidth || mTruncation == NONE) 
   {
     float metricHeight;
-    mFace->getHeight(metricHeight);
+    mFace->getHeight(mPixelSize, metricHeight);
 //    printf("metric height is %f and charH is %f\n", metricHeight, charH);
     if( charH > metricHeight) {
 
@@ -662,10 +714,16 @@ bool pxText2::isNewline( char ch )
 */
 rtError pxText2::getFontMetrics(rtObjectRef& o) {
 
+  if( mNeedsRecalc) {
+    if(!mInitialized || !mFontLoaded) {
+      rtLogWarn("getFontMetrics called TOO EARLY -- not initialized or font not loaded!\n");
+    }
+    recalc();
+  }
 	float height, ascent, descent, naturalLeading;
 	pxTextMetrics* metrics = new pxTextMetrics(mScene);
 
-	mFace->getMetrics(height, ascent, descent, naturalLeading);
+	mFace->getMetrics(mPixelSize, height, ascent, descent, naturalLeading);
 	metrics->setHeight(height);
 	metrics->setAscent(ascent);
 	metrics->setDescent(descent);
@@ -686,7 +744,12 @@ rtError pxText2::getFontMetrics(rtObjectRef& o) {
  * */
 rtError pxText2::measureText(rtObjectRef& o) {
 //  printf("pxText2::measureText()\n");
-
+  if( mNeedsRecalc) {
+    if(!mInitialized || !mFontLoaded) {
+      rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
+    }
+    recalc();
+  }
 	//pxTextMeasurements* measure = new pxTextMeasurements();
 	//o = measure;
   o = measurements;

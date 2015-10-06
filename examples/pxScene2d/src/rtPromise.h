@@ -92,6 +92,14 @@ public:
     return RT_OK;
   }
 
+  bool status()
+  {
+    if( mState == PENDING)
+      return false;
+    else 
+      return true;
+  }
+  
 private:
   rtPromiseState mState;
   vector<thenData> mThenData;

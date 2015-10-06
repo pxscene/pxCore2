@@ -296,43 +296,47 @@ public:
   
   bool wordWrap()            const { return mWordWrap;}
   rtError wordWrap(bool& v)  const { v = mWordWrap; return RT_OK;  }
-  rtError setWordWrap(bool v) { mWordWrap = v; recalc(); return RT_OK; }
+  rtError setWordWrap(bool v) { mWordWrap = v; setNeedsRecalc(true); return RT_OK; }
   
   bool ellipsis()            const { return mEllipsis;}
   rtError ellipsis(bool& v)  const { v = mEllipsis; return RT_OK;  }
-  rtError setEllipsis(bool v) { mEllipsis = v; recalc(); return RT_OK; }
+  rtError setEllipsis(bool v) { mEllipsis = v; setNeedsRecalc(true); return RT_OK; }
   
   float xStartPos()             const { return mXStartPos; }
   rtError xStartPos(float& v)   const { v = mXStartPos; return RT_OK;   }
-  rtError setXStartPos(float v) { mXStartPos = v; recalc(); return RT_OK; }
+  rtError setXStartPos(float v) { mXStartPos = v; setNeedsRecalc(true); return RT_OK; }
   
   float xStopPos()             const { return mXStopPos; }
   rtError xStopPos(float& v)   const { v = mXStopPos; return RT_OK;   }
-  rtError setXStopPos(float v) { mXStopPos = v; recalc(); return RT_OK; }
+  rtError setXStopPos(float v) { mXStopPos = v; setNeedsRecalc(true); return RT_OK; }
     
   uint32_t truncation()             const { return mTruncation; }
   rtError truncation(uint32_t& v)   const { v = mTruncation; return RT_OK;   }
-  rtError setTruncation(uint32_t v)       { mTruncation = v; recalc(); return RT_OK;   }
+  rtError setTruncation(uint32_t v)       { mTruncation = v; setNeedsRecalc(true); return RT_OK;   }
 
   uint8_t verticalAlign()             const { return mVerticalAlign; }
   rtError verticalAlign(uint32_t& v)   const { v = mVerticalAlign; return RT_OK;   }
-  rtError setVerticalAlign(uint32_t v)       { mVerticalAlign = v; recalc(); return RT_OK;   }
+  rtError setVerticalAlign(uint32_t v)       { mVerticalAlign = v;  setNeedsRecalc(true); return RT_OK;   }
   
   uint8_t horizontalAlign()             const { return mHorizontalAlign; }
   rtError horizontalAlign(uint32_t& v)   const { v = mHorizontalAlign; return RT_OK;   }
-  rtError setHorizontalAlign(uint32_t v)       { mHorizontalAlign = v; recalc(); return RT_OK;   }
+  rtError setHorizontalAlign(uint32_t v)       { mHorizontalAlign = v;  setNeedsRecalc(true); return RT_OK;   }
   
   float leading()             const { return mLeading; }
   rtError leading(float& v)   const { v = mLeading; return RT_OK;   }
-  rtError setLeading(float v)       { mLeading = v; recalc(); return RT_OK;   }  
+  rtError setLeading(float v)       { mLeading = v;  setNeedsRecalc(true); return RT_OK;   }  
   
   virtual rtError setText(const char* s); 
   virtual rtError setPixelSize(uint32_t v);
+  virtual rtError setFaceURL(const char* s);
+  virtual rtError setW(float v)       { setNeedsRecalc(true); return pxObject::setW(v);   }
+  virtual rtError setH(float v)       { setNeedsRecalc(true); return pxObject::setH(v);   }  
   void renderText(bool render);
   virtual void fontLoaded();
   void determineMeasurementBounds();
   virtual void draw();
   virtual void onInit();
+  virtual void update(double t);
 
  
   rtMethodNoArgAndReturn("getFontMetrics", getFontMetrics, rtObjectRef);
@@ -372,11 +376,13 @@ public:
   
   bool mFontLoaded;
   bool mInitialized;
+  bool mNeedsRecalc;
   
   rtRefT<pxTextMeasurements> measurements;
   uint32_t lineNumber;
   uint32_t lastLineNumber;
   
+  void setNeedsRecalc(bool recalc);
   bool isNewline( char ch );
   bool isWordBoundary( char ch );
   bool isSpaceChar( char ch );  

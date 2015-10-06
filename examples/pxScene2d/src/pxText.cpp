@@ -125,31 +125,29 @@ void pxFace::setPixelSize(uint32_t s)
     mPixelSize = s;
   }
 }
-void pxFace::getHeight(float& height)
+void pxFace::getHeight(uint32_t size, float& height)
 {
  	// is mFace ever not valid?
 	// TO DO:  check FT_IS_SCALABLE 
+  setPixelSize(size);
+  
 	FT_Size_Metrics* metrics = &mFace->size->metrics;
   	
 	height = metrics->height>>6; 
 }
   
-void pxFace::getMetrics(float& height, float& ascender, float& descender, float& naturalLeading)
+void pxFace::getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading)
 {
 //	printf("pxFace::getMetrics\n");
 	// is mFace ever not valid?
 	// TO DO:  check FT_IS_SCALABLE 
+  setPixelSize(size);
+  
 	FT_Size_Metrics* metrics = &mFace->size->metrics;
-
-	//double            em_size, y_scale;
-
-	/* compute floating point scale factors */
-	//em_size = 1.0 * mFace->units_per_EM;
-	//y_scale = metrics->y_ppem / em_size;
   	
 	height = metrics->height>>6;
-	ascender = metrics->ascender>>6; //* y_scale
-	descender = -metrics->descender>>6; //* y_scale
+	ascender = metrics->ascender>>6; 
+	descender = -metrics->descender>>6; 
   naturalLeading = height - (ascender + descender);
 
 }
