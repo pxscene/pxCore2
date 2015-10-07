@@ -3,6 +3,7 @@
 
 #include "../rtMutex.h"
 #include "../rtThreadTask.h"
+#include "../rtString.h"
 
 #include <pthread.h>
 
@@ -18,6 +19,7 @@ public:
     ~rtThreadPoolNative();
     
     void executeTask(rtThreadTask* threadTask);
+    void raisePriority(rtString key);
     void startThread();
     
 protected:

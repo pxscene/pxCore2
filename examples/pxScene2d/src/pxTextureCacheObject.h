@@ -29,7 +29,7 @@ class pxTextureCacheObject
 {
 public:
   pxTextureCacheObject() : mRef(0), mTexture(), mURL(),
-        mImageDownloadRequest(NULL), mParent(NULL), mStatusCode(0), mHttpStatusCode(0) {}
+        mImageDownloadRequest(NULL), mParent(NULL), mStatusCode(0), mHttpStatusCode(0), mDownloadInProgress(false) {}
   virtual ~pxTextureCacheObject();
 
   virtual unsigned long AddRef()
@@ -52,6 +52,8 @@ public:
   rtError setURL(const char* s);
   int getStatusCode();
   int getHttpStatusCode();
+  bool isDownloadInProgress() { return mDownloadInProgress; }
+  void raiseDownloadPriority();
 
 
   void onImageDownloadComplete(ImageDownloadRequest imageDownloadRequest);
@@ -69,6 +71,7 @@ protected:
   pxObject* mParent;
   int mStatusCode;
   int mHttpStatusCode;
+  bool mDownloadInProgress;
 };
 
 #endif //PX_TEXTURE_CACHE_OBJECT_H

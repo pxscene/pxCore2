@@ -97,3 +97,24 @@ void rtThreadPoolNative::executeTask(rtThreadTask* threadTask)
     mThreadTaskCondition.signal();
     mThreadTaskMutex.unlock();
 }
+
+void rtThreadPoolNative::raisePriority(rtString key)
+{
+    mThreadTaskMutex.lock();
+    rtThreadTask* threadTask = NULL;
+    for (std::deque<rtThreadTask*>::iterator it = mThreadTasks.begin(); it!=mThreadTasks.end(); ++it)
+    {
+        if ((*it)->getKey().compare(key) == 0)
+        {
+            threadTask = *it;
+            it = mThreadTasks.erase(it);
+            break;
+        }
+    }
+    if (threadTask != NULL)
+    {
+        mThreadTasks.push_front(threadTask);
+    }
+    mThreadTaskCondition.signal();
+    mThreadTaskMutex.unlock();
+}

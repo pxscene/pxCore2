@@ -101,6 +101,7 @@ pxTextureCacheObject::~pxTextureCacheObject()
 
 void pxTextureCacheObject::onImageDownloadComplete(ImageDownloadRequest imageDownloadRequest)
 {
+  mDownloadInProgress = false;
   mImageDownloadRequest = NULL;
   if (imageDownloadRequest.fileDownloadRequest == NULL)
   {
@@ -198,6 +199,7 @@ void pxTextureCacheObject::loadImage(rtString url)
       setStatus(RT_TEXTURE_STATUS_DOWNLOADING);
       mImageDownloadRequest->setCallbackFunction(pxTextureDownloadComplete);
       pxFileDownloader::getInstance()->addToDownloadQueue(mImageDownloadRequest);
+      mDownloadInProgress = true;
     }
     else 
     {
@@ -245,4 +247,12 @@ void pxTextureCacheObject::setStatus(int statusCode, int httpStatusCode)
 {
   mStatusCode = statusCode;
   mHttpStatusCode = httpStatusCode;
+}
+
+void pxTextureCacheObject::raiseDownloadPriority()
+{
+  if (!mURL.isEmpty() && mImageDownloadRequest != NULL)
+  {
+    pxFileDownloader::getInstance()->raiseDownloadPriority(mImageDownloadRequest);
+  }
 }

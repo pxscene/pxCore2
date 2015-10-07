@@ -113,8 +113,11 @@ void pxFileDownloader::startNextDownloadInBackground()
 
 void pxFileDownloader::raiseDownloadPriority(pxFileDownloadRequest* downloadRequest)
 {
-    (void)downloadRequest;
-    //todo
+  if (downloadRequest != NULL)
+  {
+    rtThreadPool *mainThreadPool = rtThreadPool::globalInstance();
+    mainThreadPool->raisePriority(downloadRequest->getFileURL());
+  }
 }
 
 void pxFileDownloader::removeDownloadRequest(pxFileDownloadRequest* downloadRequest)
@@ -255,7 +258,7 @@ void pxFileDownloader::downloadFileInBackground(pxFileDownloadRequest* downloadR
 {
     rtThreadPool* mainThreadPool = rtThreadPool::globalInstance();
     
-    rtThreadTask* task = new rtThreadTask(startFileDownloadInBackground, (void*)downloadRequest);
+    rtThreadTask* task = new rtThreadTask(startFileDownloadInBackground, (void*)downloadRequest, downloadRequest->getFileURL());
     
     mainThreadPool->executeTask(task);
 }

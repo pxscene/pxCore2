@@ -52,6 +52,10 @@ void pxImage::draw() {
   static pxTextureRef nullMaskRef;
   context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, 
                     mXStretch, mYStretch);
+  if (mTextureCacheObject.isDownloadInProgress())
+  {
+    mTextureCacheObject.raiseDownloadPriority();
+  }
 }
 
 bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status)

@@ -2,8 +2,8 @@
 
 #include <stddef.h>
 
-rtThreadTask::rtThreadTask(void (*functionPointer)(void*), void* data) : 
-    mFunctionPointer(functionPointer), mData(data)
+rtThreadTask::rtThreadTask(void (*functionPointer)(void*), void* data, rtString key) :
+    mFunctionPointer(functionPointer), mData(data), mKey(key)
 {
 }
 
@@ -19,4 +19,9 @@ void rtThreadTask::execute()
     {
         (*mFunctionPointer)(mData);
     }
+}
+
+rtString rtThreadTask::getKey()
+{
+    return mKey;
 }
