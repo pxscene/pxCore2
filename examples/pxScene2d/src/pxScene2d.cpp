@@ -648,10 +648,10 @@ void pxObject::drawInternal(bool maskPass)
   context.setMatrix(m);
   context.setAlpha(ma);
 
-  /*if (!context.isObjectOnScreen(0,0,mw,mh))
+  if (mClip && !context.isObjectOnScreen(0,0,mw,mh))
   {
     return;
-  }*/
+  }
 
   #ifdef PX_DIRTY_RECTANGLES
   mLastRenderMatrix = context.getMatrix();
@@ -696,8 +696,11 @@ void pxObject::drawInternal(bool maskPass)
     else
     {
       // trivially reject things too small to be seen
-      if (mw>alphaEpsilon && mh>alphaEpsilon)
+      if (mw>alphaEpsilon && mh>alphaEpsilon && context.isObjectOnScreen(0, 0, mw, mh))
+      {
         draw();
+      }
+
 
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
       {

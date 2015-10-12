@@ -218,7 +218,7 @@ public:
       mBindTexture = false;
     }
     //glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, mTextureId);
+    //glBindTexture(GL_TEXTURE_2D, mTextureId);
     glViewport ( 0, 0, mWidth, mHeight);
     gResW = mWidth;
     gResH = mHeight;
@@ -1415,10 +1415,6 @@ bool pxContext::isObjectOnScreen(float x, float y, float width, float height)
 {
   int outX1, outX2, outY1, outY2;
   mapToScreenCoordinates(width,height,outX2, outY2);
-  if (outX2 < 0 || outY2 < 0)
-  {
-    return false;
-  }
   mapToScreenCoordinates(x,y,outX1, outY1);
   int fboWidth = currentFramebuffer->width();
   int fboHeight = currentFramebuffer->height();
@@ -1427,7 +1423,10 @@ bool pxContext::isObjectOnScreen(float x, float y, float width, float height)
     fboWidth = gResW;
     fboHeight = gResH;
   }
-  if (outX1 > fboWidth || outY1 > fboHeight)
+  if ((outX1 < 0 && outX2 < 0) ||
+      (outX1 > fboWidth && outX2 > fboWidth) ||
+      (outY1 < 0 && outY2 < 0) ||
+      (outY1 > fboHeight && outY2 > fboHeight))
   {
     return false;
   }
