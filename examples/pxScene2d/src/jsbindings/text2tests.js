@@ -1,9 +1,15 @@
 var root = scene.root;
+//var textA = "ÉéÈèÇçËëÒòÔôÖöÙùÀàÂâAaBbCcDdEeFfGgHhIiKkLlMmNnOoPpQqRrSsTtVvXxYyZz123456789";
+//var longText = textA + "\n" + textA + "\n" + textA;
 // "Hello!  How are you?";//
-var longText = "Here is a collection of a bunch of randomness, like words, phrases, and sentences that isn't supposed to make any kind of sense whatsoever. I want to test capital AV next to each other here. In generating this, I'm listening to someone talking, trying to make sense of what they are saying, and at the same time dictating to myself what I am going to type along with actually typing it out, recognizing when I make mistakes, and correcting myself when I do.  I don't think I'm doing a very good job listening to whoever it is that is doing the talking right now.  It probably would have been a lot easier to just copy and paste something from the net, but I'm a typist, not a person that hunts and pecks to find the appropriate key on the keyboard.  Though I do think I'm probably off of my 30 word per minute speed from way back when.  How much more text is appropriate?  Why do I use words like appropriate when I could just say will do instead?  These and other questions generally go on unanswered.  But looking at the output of this text, I realize that its simply not enough and that I need to add more text; which is making me wonder why I simply didn't copy and paste in the first place.  Ah, yes, the strange musings of a software engineer.";
-//var longText2 = " when I could just say will do instead?  These and other questions generally go on unanswered.  But looking at the output of this text, I realize that its simply not enough and that I need to add more text; which is making me wonder why I simply didn't copy and paste in the first place.  Ah, yes, the strange musings of a software engineer.";
+var longText = "Here is a collection of a bunch of randomness, like words, phrases, and sentences that isn't supposed to make any kind of sense whatsoever. I want to test capital AV next to each other here. In generating this, I'm listening to someone talking, trying to make sense of what they are saying, and at the same time dictating to myself what I am going to type along with actually typing it out, recognizing when I make mistakes, and correcting myself when I do.";
+var longText2 = "I don't think I'm doing a very good job listening to whoever it is that is doing the talking right now.  It probably would have been a lot easier to just copy and paste something from the net, but I'm a typist, not a person that hunts and pecks to find the appropriate key on the keyboard.  Though I do think I'm probably off of my 30 word per minute speed from way back when.  How much more text is appropriate?  Why do I use words like appropriate when I could just say will do instead?  These and other questions generally go on unanswered.  But looking at the output of this text, I realize that its simply not enough and that I need to add more text; which is making me wonder why I simply didn't copy and paste in the first place.  Ah, yes, the strange musings of a software engineer.";
+var longText3 = longText + " " +longText2;
+var shortText = "Hello!  How are you?";
 root.w=800;
-var rect = scene.create({t:"rect", parent:root, x:100, y:100, w:400, h:400, lineColor:0xFF0000FF, lineWidth:1, clip:false});
+
+var bg = scene.create({t:"object", parent:root, x:100, y:100, w:1000, h:1000, clip:false});
+var rect = scene.create({t:"rect", parent:root, x:100, y:100, w:400, h:400, fillColor:0x00000000, lineColor:0xFF0000FF, lineWidth:1, clip:false});
 var container = scene.create({t:"object", parent:root, x:100, y:100, w:800, h:600, clip:false});
 
 // widgets for tracking current property settings
@@ -12,14 +18,20 @@ var wrapStatus = scene.create({t:"text", parent:container, x:20, y:440, textColo
 var hAlignStatus = scene.create({t:"text", parent:container, x:20, y:460, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"hAlign=left"});
 var vAlignStatus = scene.create({t:"text", parent:container, x:20, y:480, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"vAlign=top"});
 var ellipsisStatus = scene.create({t:"text", parent:container, x:20, y:500, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"ellipsis=true"});
-var clipStatus = scene.create({t:"text", parent:container, x:20, y:520, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"clip=true"});
+var textStatus = scene.create({t:"text", parent:container, x:400, y:420, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"text=longest"});
+var textHint = scene.create({t:"text", parent:container, x:540, y:420, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"(use small s)"});
+var clipStatus = scene.create({t:"text", parent:container, x:400, y:440, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"clip=true"});
+var xStartPosStatus = scene.create({t:"text", parent:container, x:400, y:460, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"xStartPos=0"});
+var xStopPosStatus = scene.create({t:"text", parent:container, x:400, y:480, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"xStopPos=0"});
+var xStopPosHint = scene.create({t:"text", parent:container, x:540, y:480, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"(use small L)"});
+var leadingStatus = scene.create({t:"text", parent:container, x:400, y:500, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"leading=0"});
 var px = 0;
 var py = 0;
 var leading = 0;
 
 // Use fontUrl to load from web
 //var fontUrl = "http://localhost/XRE2/fonts/DancingScript-Bold.ttf";
-var text2 = scene.create({t:"text2", clip:true, parent:container, x:px, y:py, rx:0, ry:0, rz:0});
+var text2 = scene.create({t:"text2", clip:true, parent:container, x:px, y:py, rx:0, ry:0, rz:0,x:0, y:0});
    text2.h=400;
    text2.w=400;
    text2.textColor=0xFFDDFFFF;
@@ -34,14 +46,40 @@ var text2 = scene.create({t:"text2", clip:true, parent:container, x:px, y:py, rx
    text2.ellipsis=true;
    text2.truncation=1;
 
-   text2.text=longText; 
-//   text2.text+=longText2;
+   text2.text=longText3;
 
                  
 //var text2 = scene.createText2({wordWrap:true, ellipsis:true, truncation:0,leading:10, clip:false, w:400, h:400, parent:container, textColor:0xFFDDFFFF, pixelSize:20, x:px, y:py, rx:0, ry:1, rz:0});
 var metrics = null;
 var measurements = null;
 
+function showMeasurements() {
+    var bounds = measurements.bounds;
+    var firstChar = measurements.firstChar;
+    var lastChar = measurements.lastChar;
+    var w = bounds.x2 - bounds.x1;
+    var spacing = metrics.height + text2.leading;
+    var x = bounds.x1;//0;
+    var y = bounds.y1;//0;
+    var green = 0x00FF0077;
+    var blue = 0x0000FF77;
+    var red = 0xFF000077;
+    var yellow = 0xFFFF0077;
+    var orange = 0xFF8C0077;
+    do {
+        scene.create({t:"rect", parent:bg, fillColor:green, x:x, y:y + metrics.baseline - metrics.ascent, w:w, h:metrics.ascent});
+        scene.create({t:"rect", parent:bg, fillColor:blue, y:y + metrics.baseline, w:w, h:metrics.descent});
+        scene.create({t:"rect", fillColor:0x00000000, parent:bg, lineColor:red, lineWidth:1, x:x, y:y, w:w, h:metrics.height});
+        y += spacing;
+    } while (y < bounds.y2);
+    scene.create({t:"rect", fillColor:0x00000000, parent:bg, lineColor:yellow, lineWidth:1, x:bounds.x1, y:bounds.y1, w:w, h:bounds.y2 - bounds.y1});
+    scene.create({t:"rect", fillColor:0x00000000, parent:bg, lineColor:orange, lineWidth:1, x:firstChar.x, y:firstChar.y, w:lastChar.x - firstChar.x, h:lastChar.y - firstChar.y});
+}
+text2.ready.then(function(text) {
+    console.log("!CLF: First Promise received");
+    textready(text);
+
+  });
 
 function textready(text) {
 	console.log("inside text2.ready");
@@ -63,6 +101,8 @@ function textready(text) {
   console.log("measurements firstCharY="+measurements.firstChar.y);
   console.log("measurements lastCharX="+measurements.lastChar.x);
   console.log("measurements lastCharY="+measurements.lastChar.y);
+  
+  showMeasurements();
 }
 
 function cycleValues(v) {
@@ -129,9 +169,47 @@ scene.root.on("onChar", function(e) {
     } else {
       clipStatus.text ="clip=false";
     }    
+  } else if(e.charCode ==120) { // x for xStartPos
+    if(text2.xStartPos == 0) {
+      text2.xStartPos = 25; 
+      xStartPosStatus.text="xStartPos=25";
+    } else {
+      text2.xStartPos = 0;
+      xStartPosStatus.text="xStartPos=0";
+    }
+  } else if(e.charCode ==108) { // l for xStopPos
+    if(text2.xStopPos == 0) {
+      text2.xStopPos = 375; 
+      xStopPosStatus.text="xStopPos=375";
+    } else {
+      text2.xStopPos = 0;
+      xStopPosStatus.text="xStopPos=0";
+    }
+  } else if(e.charCode == 43) { // + for leading+5
+      text2.leading += 5; 
+      leadingStatus.text="leading="+text2.leading;
+  } else if(e.charCode == 45) { // - for leading+5
+      text2.leading -= 5; 
+      leadingStatus.text="leading="+text2.leading;
+  } else if(e.charCode == 115) { // s for xStopPos
+    if(textStatus.text == "text=longest") {
+      text2.text = shortText; 
+      textStatus.text="text=short";
+    } else if(textStatus.text == "text=short"){
+      text2.text = longText; 
+      textStatus.text="text=long";
+    } else if(textStatus.text == "text=long"){
+      text2.text = longText2; 
+      textStatus.text="text=longer";
+    } else if(textStatus.text == "text=longer"){
+      text2.text = longText3; 
+      textStatus.text="text=longest";
+    }
   }
+  bg.removeAll();
   text2.ready.then(function(text) {
     console.log("!CLF: Promise received");
     textready(text);
+
   });
 });
