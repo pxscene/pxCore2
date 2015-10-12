@@ -648,10 +648,10 @@ void pxObject::drawInternal(bool maskPass)
   context.setMatrix(m);
   context.setAlpha(ma);
 
-  if (!context.isObjectOnScreen(0,0,mw,mh))
+  /*if (!context.isObjectOnScreen(0,0,mw,mh))
   {
     return;
-  }
+  }*/
 
   #ifdef PX_DIRTY_RECTANGLES
   mLastRenderMatrix = context.getMatrix();
