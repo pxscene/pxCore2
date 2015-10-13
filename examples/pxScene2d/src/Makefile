@@ -127,6 +127,11 @@ analyze:
 	$(MAKE) clean
 	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) gl2d
 
+PXMAIN=$(OBJDIR)/pxMain.o
+POLY_BUG_OBJS=$(filter-out $(PXMAIN), $(OBJS)) $(OBJDIR)/poly_bug.o
+poly_bug: $(POLY_BUG_OBJS)
+	$(CXX) $(POLY_BUG_OBJS) $(LDFLAGS) -o poly_bug
+
 gl2d: $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -o gl2d
 

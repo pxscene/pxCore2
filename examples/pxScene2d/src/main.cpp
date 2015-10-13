@@ -209,7 +209,8 @@ void exitGlut() {
   glutDestroyWindow(win);
 }
 
-int main (int argc, char **argv) {
+int main (int argc, char **argv)
+{
 
   glutInit(&argc, argv);
   createGlutWindow();
@@ -223,6 +224,4 @@ int main (int argc, char **argv) {
   exitGlut();
   return 0;
 }
-
-
 
