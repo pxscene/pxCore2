@@ -127,7 +127,7 @@ public:
 			const rtValue& arg4, T& result);
 
   // General case
-  rtError Send(const char* messageName, int numArgs, const rtValue* args); 
+  virtual rtError Send(const char* messageName, int numArgs, const rtValue* args);
   rtError SendReturns(const char* messageName, int numArgs, 
                       const rtValue* args,
                       rtValue& result); 
