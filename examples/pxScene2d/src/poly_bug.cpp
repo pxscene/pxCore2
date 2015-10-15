@@ -19,13 +19,27 @@
 class MyRtObject : public rtObject
 {
 public:
+
+#if 0
   virtual rtError Send(const char* message, int /*argc*/,  const rtValue* argv)
   {
     printf("MyRtObject::%s(%d)\n", message, argv[0].toInt32());
     return 0;
   }
+#endif
 
-  virtual rtError Get(const char*, rtValue*) { return 0; }
+  rtError hello(int, const rtValue*, rtValue&)
+  {
+    printf("In Hello\n");
+    return RT_OK;
+  }
+
+  virtual rtError Get(const char* n, rtValue* v) 
+  { 
+    printf("get %s\n", n); 
+    *v = new rtObjectFunction(this, (rtMethodThunk)&MyRtObject::hello);
+    return 0; 
+  }
   virtual rtError Get(uint32_t, rtValue* ) { return 0; }
   virtual rtError Set(const char*, const rtValue* ) { return 0; }
   virtual rtError Set(uint32_t, const rtValue*) { return 0; }
