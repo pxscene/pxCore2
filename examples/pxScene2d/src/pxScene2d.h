@@ -307,7 +307,7 @@ public:
 
   bool clip()            const { return mClip;}
   rtError clip(bool& v)  const { v = mClip; return RT_OK;  }
-  rtError setClip(bool v) { mClip = v; return RT_OK; }
+  virtual rtError setClip(bool v) { mClip = v; return RT_OK; }
   
   rtString mask()            const { return mMaskUrl;}
   rtError mask(rtString& v)  const { v = mMaskUrl; return RT_OK;  }

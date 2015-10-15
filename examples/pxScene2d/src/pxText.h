@@ -149,6 +149,9 @@ public:
   bool mDirty;
   pxContextFramebufferRef mCached;
   pxFileDownloadRequest* mFontDownloadRequest;
+  
+  virtual float getFBOWidth() { return mw; }
+  virtual float getFBOHeight() { return mh; }
 };
 
 #endif

@@ -331,6 +331,7 @@ public:
   virtual rtError setFaceURL(const char* s);
   virtual rtError setW(float v)       { setNeedsRecalc(true); return pxObject::setW(v);   }
   virtual rtError setH(float v)       { setNeedsRecalc(true); return pxObject::setH(v);   }  
+  virtual rtError setClip(bool v) { mClip = v; setNeedsRecalc(true); return RT_OK; }
   void renderText(bool render);
   virtual void fontLoaded();
   void determineMeasurementBounds();
@@ -381,22 +382,31 @@ public:
   rtRefT<pxTextMeasurements> measurements;
   uint32_t lineNumber;
   uint32_t lastLineNumber;
+  float noClipX, noClipY, noClipW, noClipH;
+//  float startX;
+  float startY;
+//  bool clippedLastLine;
   
   void setNeedsRecalc(bool recalc);
+  virtual float getFBOWidth();
+  virtual float getFBOHeight(); 
   bool isNewline( char ch );
   bool isWordBoundary( char ch );
   bool isSpaceChar( char ch );  
   
-  void renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempY, float sx, float sy, uint32_t pixelSize,float* color, bool render);
+  void renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempX, float tempY, float sx, float sy, uint32_t pixelSize, float* color, bool render);
   void renderTextNoWordWrap(float sx, float sy, float tempX, bool render);
   void renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t pixelSize, float* color, bool render);
-  void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, float* color, uint32_t &lineNumber, bool render);
-  void renderOneLine(uint32_t lineNumber, const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float* color, float lineWidth, bool render );
+  void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, float* color, bool render);
+  void renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float* color, float lineWidth, bool render );
   
   void recalc();
   void clearMeasurements();
+  void setMeasurementBoundsY(bool start, float yVal);
+  void setMeasurementBoundsX(bool start, float xVal);  
+  void setMeasurementBounds(bool start, float xVal, float yVal);
   void setMeasurementBounds(float xPos, float width, float yPos, float height);
-  void setLastLineMeasurements(float xPos, float y);
+  void setLineMeasurements(bool firstLine, float xPos, float y);
 };
 
 #endif

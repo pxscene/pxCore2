@@ -390,7 +390,7 @@ void pxText::update(double t)
     if (mText.length() >= 10)
     {
       mCached = NULL;
-      pxContextFramebufferRef cached = context.createFramebuffer(mw,mh);
+      pxContextFramebufferRef cached = context.createFramebuffer(getFBOWidth(),getFBOHeight());//mw,mh);
       if (cached.getPtr())
       {
         pxContextFramebufferRef previousSurface = context.getCurrentFramebuffer();
