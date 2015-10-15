@@ -320,7 +320,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 				else 
         {  // If not lastLine
           
-          // In progress: Account for the case where wordWrap is off, but newline was found previously
+          // Account for the case where wordWrap is off, but newline was found previously
           if( !mWordWrap && lineNumber != 0 ) {
             lastLineNumber = lineNumber;
             //printf("!!!!CLF: calling renderTextRowWithTruncation! %s\n",accString.cString());
@@ -539,7 +539,7 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
   
   if( !clip() && mTruncation == NONE) 
   {
-    //printf("!CLF: Setting NoClip values in renderOneLine to W=%f and H=%f\n",charW, charH);
+    printf("!CLF: Setting NoClip values in renderOneLine to noClipW=%f\n",noClipW);
     noClipW = charW;
     if( !mWordWrap)  
     {
@@ -570,7 +570,7 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
     }
     else 
     {
-      // mWordWrap is on
+      // mWordWrap is on - No Clip and No Truncation
       if( mHorizontalAlign == H_CENTER ) 
       { 
         xPos = (lineWidth/2) - charW/2;
@@ -661,9 +661,9 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
       // !CLF:  TODO:  What if there are newlines within the text, and 
       // that's how we got here with mWordWrap==false?  
       if(!clip() && mTruncation == NONE) {
-        //printf("!CLF Why isn't this correct? tempX=%f xPos=%f xStartPos=%f noClipX=%f noClipW=%f charW=%f\n", tempX, xPos,mXStartPos, noClipX, noClipW, charW);
-        if( noClipX != tempX) { // hAlign was calculated
-          setMeasurementBounds(false, charW, charH);
+        //printf("!CLF lineNumber == 0 !mWordWrap !clip() && mTruncation == NONE tempX=%f xPos=%f xStartPos=%f noClipX=%f noClipW=%f charW=%f\n", tempX, xPos,mXStartPos, noClipX, noClipW, charW);
+        if( noClipX != tempX) { 
+          setMeasurementBounds(false, noClipX+charW, charH);
         }
         else {
           setMeasurementBounds(false, noClipX+(charW+xPos), charH);
@@ -673,22 +673,29 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
         setMeasurementBoundsX(true, noClipX);
       }
       else {
-       //printf("!CLF Why isn't this correct II? tempX=%f xPos=%f xStartPos=%f noClipX=%f noClipW=%f charW=%f\n", tempX, xPos,mXStartPos, noClipX, noClipW, charW);
+       // If we're here, clip could be on or off
+       //printf("!CLF lineNumber == 0 !mWordWrap clip=%d mTruncation=%d tempX=%f xPos=%f xStartPos=%f noClipX=%f noClipW=%f charW=%f\n", clip(),mTruncation, tempX, xPos,mXStartPos, noClipX, noClipW, charW);
+       float width = charW;
+       if( clip() && charW > lineWidth) {
+         width = lineWidth;// respect max
+       } 
 
-        if( xPos != tempX) { // hAlign was calculated
+        if( xPos != tempX) { 
           setLineMeasurements(true, xPos<mx?mx:xPos, tempY);
           setMeasurementBoundsX(true, xPos<mx?mx:xPos);
-          setMeasurementBounds(false, (xPos+charW) > mw? mw:charW, charH);
+          setMeasurementBounds(false, (xPos+width) > mw? mw:width, charH);
         }        
         else {
-          if( xPos+charW > mw && (xPos+lineWidth) > mw) {
+          if( xPos+width > mw && (xPos+lineWidth) > mw) {
+            //printf("xPos+charW >mw lineWidth=%f\n",lineWidth);
             setMeasurementBounds(false, mw-xPos, charH);
           } 
           else {
-            setMeasurementBounds(false, (xPos+charW) > mw? mw:xPos+charW, charH);
+            //printf("else not xPos+charW >mw lineWidth=%f\n",lineWidth);
+            setMeasurementBounds(false, (xPos+width) > mw? mw:xPos+width, charH);
           }
         }
-        setLineMeasurements(false, (xPos+charW) > mw? mw:xPos+charW, tempY);
+        setLineMeasurements(false, (xPos+width) > mw? mw:xPos+width, tempY);
 
       }
     }
