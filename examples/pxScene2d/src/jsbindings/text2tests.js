@@ -2,11 +2,30 @@ var root = scene.root;
 //var textA = "ÉéÈèÇçËëÒòÔôÖöÙùÀàÂâAaBbCcDdEeFfGgHhIiKkLlMmNnOoPpQqRrSsTtVvXxYyZz123456789";
 //var longText = textA + "\n" + textA + "\n" + textA;
 // "Hello!  How are you?";//
+// Use fontUrl to load from web
+var fontUrlStart = "http://54.146.54.142/tom/receiverdotjs/fonts/";
+var DancingScript = "DancingScript-Bold.ttf";
+var DejaVu = "DejaVuSans.ttf";
+var DejaVuSerif = "DejaVuSerif.ttf";
+var XFinity = "XFINITYSansTT-New-Lgt.ttf";
+var XFinityBold = "XFINITYSansTT-New-Bold.ttf";
+// Different text strings to test
 var longText = "Here is a collection of a bunch of randomness, like words, phrases, and sentences that isn't supposed to make any kind of sense whatsoever. I want to test capital AV next to each other here. In generating this, I'm listening to someone talking, trying to make sense of what they are saying, and at the same time dictating to myself what I am going to type along with actually typing it out, recognizing when I make mistakes, and correcting myself when I do.";
 var longText2 = "I don't think I'm doing a very good job listening to whoever it is that is doing the talking right now.  It probably would have been a lot easier to just copy and paste something from the net, but I'm a typist, not a person that hunts and pecks to find the appropriate key on the keyboard.  Though I do think I'm probably off of my 30 word per minute speed from way back when.  How much more text is appropriate?  Why do I use words like appropriate when I could just say will do instead?  These and other questions generally go on unanswered.  But looking at the output of this text, I realize that its simply not enough and that I need to add more text; which is making me wonder why I simply didn't copy and paste in the first place.  Ah, yes, the strange musings of a software engineer.";
 var longText3 = longText + " " +longText2;
 var shortText = "Hello!  How are you?";
+var mediumText = "The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog."
 root.w=800;
+
+// Use the "fake" vars below to keep font ref counts at 1 so that they 
+// stay loaded. 
+/*
+var faketextDancing = scene.create({t:"text", parent:root, faceURL:DancingScript, draw:false});
+var faketextDejaVu = scene.create({t:"text", parent:root, faceURL:fontUrlStart+DejaVu, draw:false});
+var faketextDejaVuSerif = scene.create({t:"text", parent:root, faceURL:fontUrlStart+DejaVuSerif, draw:false});
+var faketextXFinity = scene.create({t:"text", parent:root, faceURL:fontUrlStart+XFinity, draw:false});
+var faketextXFinityBold = scene.create({t:"text", parent:root, faceURL:fontUrlStart+XFinityBold, draw:false});
+*/
 
 var bg = scene.create({t:"object", parent:root, x:100, y:100, w:1000, h:1000, clip:false});
 var rect = scene.create({t:"rect", parent:root, x:100, y:100, w:400, h:400, fillColor:0x00000000, lineColor:0xFF0000FF, lineWidth:1, clip:false});
@@ -28,36 +47,34 @@ var lastCharX = scene.create({t:"text", parent:root, x:400, y:40, textColor:0xFF
 var lastCharY = scene.create({t:"text", parent:root, x:400, y:60, textColor:0xFFDDFFFF, pixelSize:15,clip:false,text:"LastCharY="});
  
 // widgets for tracking current property settings
-var truncationStatus = scene.create({t:"text", parent:container, x:20, y:420, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"truncation=truncate"});
-var wrapStatus = scene.create({t:"text", parent:container, x:20, y:440, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"wordWrap=true"});
-var hAlignStatus = scene.create({t:"text", parent:container, x:20, y:460, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"hAlign=left"});
-var vAlignStatus = scene.create({t:"text", parent:container, x:20, y:480, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"vAlign=top"});
-var ellipsisStatus = scene.create({t:"text", parent:container, x:20, y:500, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"ellipsis=true"});
-var pixelSizeStatus = scene.create({t:"text", parent:container, x:20, y:520, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"pixelSize=20"});
-var pixelSizeHint = scene.create({t:"text", parent:container, x:140, y:520, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"(use p and P)"});
-var textStatus = scene.create({t:"text", parent:container, x:400, y:420, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"text=longest"});
-var textHint = scene.create({t:"text", parent:container, x:540, y:420, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"(use small s)"});
-var clipStatus = scene.create({t:"text", parent:container, x:400, y:440, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"clip=true"});
-var xStartPosStatus = scene.create({t:"text", parent:container, x:400, y:460, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"xStartPos=0"});
-var xStopPosStatus = scene.create({t:"text", parent:container, x:400, y:480, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"xStopPos=0"});
-var xStopPosHint = scene.create({t:"text", parent:container, x:540, y:480, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"(use small L)"});
-var leadingStatus = scene.create({t:"text", parent:container, x:400, y:500, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"leading=0"});
-var leadingHint = scene.create({t:"text", parent:container, x:540, y:500, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"(use + -)"});
+var truncationStatus = scene.create({t:"text", parent:root, x:20, y:container.y+420, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"truncation=truncate"});
+var wrapStatus = scene.create({t:"text", parent:root, x:20, y:container.y+440, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"wordWrap=true"});
+var hAlignStatus = scene.create({t:"text", parent:root, x:20, y:container.y+460, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"hAlign=left"});
+var vAlignStatus = scene.create({t:"text", parent:root, x:20, y:container.y+480, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"vAlign=top"});
+var ellipsisStatus = scene.create({t:"text", parent:root, x:20, y:container.y+500, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"ellipsis=true"});
+var pixelSizeStatus = scene.create({t:"text", parent:root, x:20, y:container.y+520, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"pixelSize=20"});
+var pixelSizeHint = scene.create({t:"text", parent:root, x:140, y:container.y+520, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"(use p and P)"});
+var textStatus = scene.create({t:"text", parent:root, x:350, y:container.y+420, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"text=longest"});
+var textHint = scene.create({t:"text", parent:root, x:465, y:container.y+420, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"(use small s)"});
+var clipStatus = scene.create({t:"text", parent:root, x:350, y:container.y+440, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"clip=true"});
+var xStartPosStatus = scene.create({t:"text", parent:root, x:350, y:container.y+460, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"xStartPos=0"});
+var xStopPosStatus = scene.create({t:"text", parent:root, x:350, y:container.y+480, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"xStopPos=0"});
+var xStopPosHint = scene.create({t:"text", parent:root, x:465, y:container.y+480, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"(use small L)"});
+var leadingStatus = scene.create({t:"text", parent:root, x:350, y:container.y+500, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"leading=0"});
+var leadingHint = scene.create({t:"text", parent:root, x:465, y:container.y+500, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"(use + -)"});
+var fontStatus = scene.create({t:"text", parent:root, x:350, y:container.y+520, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"font="+DancingScript});
 var px = 0;
 var py = 0;
 var leading = 0;
 
-// Use fontUrl to load from web
 
-
-//var fontUrl = "http://localhost/XRE2/fonts/DancingScript-Bold.ttf";
 var text2 = scene.create({t:"text2", clip:true, parent:container, x:px, y:py, rx:0, ry:0, rz:0,x:0, y:0});
    text2.h=400;
    text2.w=400;
    text2.textColor=0xFFDDFFFF;
    text2.pixelSize=20;
    text2.leading=0;
-   text2.faceURL="DancingScript-Bold.ttf";
+   text2.faceURL=DancingScript;"DancingScript-Bold.ttf";
    text2.horizontalAlign=0;
    text2.verticalAlign=0;
    text2.xStartPos=0;
@@ -232,6 +249,9 @@ scene.root.on("onChar", function(e) {
       text2.text = shortText; 
       textStatus.text="text=short";
     } else if(textStatus.text == "text=short"){
+      text2.text = mediumText; 
+      textStatus.text="text=medium";
+    } else if(textStatus.text == "text=medium"){
       text2.text = longText; 
       textStatus.text="text=long";
     } else if(textStatus.text == "text=long"){
@@ -255,6 +275,23 @@ scene.root.on("onChar", function(e) {
       text2.pixelSize -= 5;
     }
     pixelSizeStatus.text="pixelSize="+text2.pixelSize;
+  } else if(e.charCode == 102) { // f for font
+    if(fontStatus.text == "font="+DancingScript) {
+      text2.faceURL = fontUrlStart+DejaVu; 
+      fontStatus.text = "font="+DejaVu+" (http)";
+     } else if(fontStatus.text == "font="+DejaVu+" (http)"){
+      text2.faceURL = fontUrlStart+XFinity; 
+      fontStatus.text = "font="+XFinity+" (http)";
+    } else if(fontStatus.text == "font="+XFinity+" (http)"){
+      text2.faceURL = fontUrlStart+DejaVuSerif; 
+      fontStatus.text = "font="+DejaVuSerif+" (http)";
+    } else if(fontStatus.text == "font="+DejaVuSerif+" (http)"){
+      text2.faceURL = fontUrlStart+XFinityBold; 
+      fontStatus.text = "font="+XFinityBold+" (http)";
+    } else if(fontStatus.text == "font="+XFinityBold+" (http)"){
+      text2.faceURL = DancingScript; 
+      fontStatus.text = "font="+DancingScript;
+    }
   }
   bg.removeAll();
   text2.ready.then(function(text) {

@@ -51,7 +51,15 @@ void pxText2::fontLoaded()
   mFontLoaded = true;
   if( mInitialized) {
     setNeedsRecalc(true);
-
+    // This repaint logic is necessary for clearing FBO if
+    // clipping is on
+    repaint();
+    pxObject* parent = mParent;
+    while (parent)
+    {
+     parent->repaint();
+     parent = parent->parent();
+    }    
   }
 }
 
@@ -132,6 +140,8 @@ rtError pxText2::setPixelSize(uint32_t v)
 }
 rtError pxText2::setFaceURL(const char* s)
 {
+  //printf("pxText2::setFaceURL \"%s\"\n",s);
+  mFontLoaded = false;
   setNeedsRecalc(true);
   return pxText::setFaceURL(s);
 }
@@ -539,7 +549,7 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
   
   if( !clip() && mTruncation == NONE) 
   {
-    printf("!CLF: Setting NoClip values in renderOneLine to noClipW=%f\n",noClipW);
+    //printf("!CLF: Setting NoClip values in renderOneLine to noClipW=%f\n",noClipW);
     noClipW = charW;
     if( !mWordWrap)  
     {
@@ -637,7 +647,7 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
     {
       setMeasurementBoundsX(true, xPos<mx?mx:xPos);
       if( mWordWrap) {
-        printf("!CLF: wordWrap true: tempY=%f, mh=%f, charH=%f\n",tempY, mh, charH);
+        //printf("!CLF: wordWrap true: tempY=%f, mh=%f, charH=%f\n",tempY, mh, charH);
         if( tempY + charH <= mh) {
           setLineMeasurements(false,xPos+charW, tempY);
         } 
