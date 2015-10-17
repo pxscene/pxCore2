@@ -73,8 +73,37 @@ FaceMap gFaceMap;
 
 uint32_t gFaceId = 0;
 
-pxFace::pxFace():mPixelSize(0), mRefCount(0), mFontData(0) { mFaceId = gFaceId++; }
+pxFace::pxFace():mPixelSize(0), mRefCount(0), mFontData(0), mInitialized(false) { mFaceId = gFaceId++; }
 
+void pxFace::onDownloadComplete(const FT_Byte*  fontData, FT_Long size, const char* n)
+{
+
+  if( strncmp(n, mFaceName.cString(), strlen(mFaceName.cString()))) {
+    rtLogWarn("pxFace::onDownloadComplete received for face \"%s\" but this face is \"%s\"\n",n, mFaceName.cString());
+    return; 
+  }
+
+  init(fontData, size, n);
+  
+  for (vector<pxText*>::iterator it = mListeners.begin();
+         it != mListeners.end(); ++it)
+    {
+      //pxText* text = *it;
+      (*it)->fontLoaded();
+
+    }
+    mListeners.clear();
+}
+
+void pxFace::addListener(pxText* pText) 
+{
+
+  mListeners.push_back(pText);
+}
+void pxFace::setFaceName(const char* n)
+{
+  mFaceName = n;
+}
 rtError pxFace::init(const char* n)
 {
   if(FT_New_Face(ft, n, 0, &mFace))
@@ -82,7 +111,11 @@ rtError pxFace::init(const char* n)
   
   mFaceName = n;
   setPixelSize(defaultPixelSize);
+  mInitialized = true;
+
   gFaceMap.insert(make_pair(n, this));
+
+
   return RT_OK;
 }
 
@@ -97,13 +130,14 @@ rtError pxFace::init(const FT_Byte*  fontData, FT_Long size, const char* n)
 
   mFaceName = n;
   setPixelSize(defaultPixelSize);
-  gFaceMap.insert(make_pair(n, this));
+  mInitialized = true;
+
   return RT_OK;
 }
 
 pxFace::~pxFace() 
 { 
-//  rtLogInfo("~pxFace"); 
+  rtLogInfo("~pxFace\n"); 
   FaceMap::iterator it = gFaceMap.find(mFaceName);
   if (it != gFaceMap.end())
     gFaceMap.erase(it);
@@ -436,10 +470,15 @@ rtError pxText::setFaceURL(const char* s)
   FaceMap::iterator it = gFaceMap.find(s);
   if (it != gFaceMap.end())
   {
-//    printf("pxText::setFaceURL sending ready\n");
-    fontLoaded();
-    //mReady.send("resolve", this);
     mFace = it->second;
+    if( !mFace->isInitialized()) 
+    {
+      mFace->addListener(this);
+    } 
+    else {
+      fontLoaded();
+    }      
+    
   }
   else
   {
@@ -453,11 +492,21 @@ rtError pxText::setFaceURL(const char* s)
         // the previous request will not be processed and the memory will be freed when the download is complete
         mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
       }
+      // Create the face and add this text as a listener for the download complete event.
+      // This pxFace creation should only ever happen once for each font face!
+      pxFaceRef f = new pxFace;
+      f->setFaceName(s);
+      f->addListener(this);
+      mFace = f;
+      // Add face to map even though it is not yet initialized, ie., hasn't downloaded yet
+      gFaceMap.insert(make_pair(s, f));
+      // Start the download request
       mFontDownloadRequest =
           new pxFileDownloadRequest(s, this);
       fontDownloadsPending++;
       mFontDownloadRequest->setCallbackFunction(pxFontDownloadComplete);
       pxFileDownloader::getInstance()->addToDownloadQueue(mFontDownloadRequest);
+
     }
     else {
       pxFaceRef f = new pxFace;
@@ -472,7 +521,7 @@ rtError pxText::setFaceURL(const char* s)
       }
       else
       {
-        //printf("pxText::setFaceURL sending ready 2\n");
+        printf("pxText::setFaceURL calling fontLoaded\n");
         fontLoaded();
         //mReady.send("resolve", this);
         mFace = f;
@@ -529,6 +578,7 @@ void pxText::checkForCompletedDownloads(int maxTimeInMilliseconds)
 
 void pxText::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
 {
+  //printf("pxText::onFontDownloadComplete\n");
   mFontDownloadRequest = NULL;
   if (fontDownloadRequest.fileDownloadRequest == NULL)
   {
@@ -539,21 +589,11 @@ void pxText::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
       fontDownloadRequest.fileDownloadRequest->getHttpStatusCode() == 200 &&
       fontDownloadRequest.fileDownloadRequest->getDownloadedData() != NULL)
   {
-    pxFaceRef f = new pxFace;
-    rtError e = f->init((FT_Byte*)fontDownloadRequest.fileDownloadRequest->getDownloadedData(),
-                        (FT_Long)fontDownloadRequest.fileDownloadRequest->getDownloadedDataSize(),
-                        fontDownloadRequest.fileDownloadRequest->getFileURL().cString());
-    if (e != RT_OK)
-    {
-//      rtLogInfo("Could not load font face, %s, %s\n", "blah", fontDownloadRequest.fileDownloadRequest->getFileURL().cString());
-      mReady.send("reject",this);
-    }
-    else {
-      mFace = f;
-      //printf("pxText::onFontDownloadComplete2 sending ready 2\n");
-      fontLoaded();
-      //mReady.send("resolve",this);
-    }
+    // Let the face handle the completion event and notifications to listeners
+    mFace->onDownloadComplete((FT_Byte*)fontDownloadRequest.fileDownloadRequest->getDownloadedData(),
+                          (FT_Long)fontDownloadRequest.fileDownloadRequest->getDownloadedDataSize(),
+                          fontDownloadRequest.fileDownloadRequest->getFileURL().cString());
+
   }
   else
   {

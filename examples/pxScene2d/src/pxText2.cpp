@@ -1064,17 +1064,20 @@ bool pxText2::isNewline( char ch )
 * descent - float - the distance from the baseline to the font descender  (note that this is a hint, not a solid rule)
 */
 rtError pxText2::getFontMetrics(rtObjectRef& o) {
+    //printf("pxText2::getFontMetrics\n");  
+	float height, ascent, descent, naturalLeading;
+	pxTextMetrics* metrics = new pxTextMetrics(mScene);
 
-  //printf("pxText2::getFontMetrics\n");
   if( mNeedsRecalc) {
     if(!mInitialized || !mFontLoaded) {
       rtLogWarn("getFontMetrics called TOO EARLY -- not initialized or font not loaded!\n");
+      o = metrics;
+      return RT_OK; // !CLF: TO DO - COULD RETURN RT_ERROR HERE TO CATCH NOT WAITING ON PROMISE
     }
     recalc();
     mNeedsRecalc = true;  // Hack to leave this set so that promise will be issued, as necessary
   }
-	float height, ascent, descent, naturalLeading;
-	pxTextMetrics* metrics = new pxTextMetrics(mScene);
+
 
 	mFace->getMetrics(mPixelSize, height, ascent, descent, naturalLeading);
 	metrics->setHeight(height);
@@ -1100,6 +1103,8 @@ rtError pxText2::measureText(rtObjectRef& o) {
   if( mNeedsRecalc) {
     if(!mInitialized || !mFontLoaded) {
       rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
+      o = measurements;
+      return RT_OK; // !CLF: TO DO - COULD RETURN RT_ERROR HERE TO CATCH NOT WAITING ON PROMISE
     }
     recalc();
     mNeedsRecalc = true;  // Hack to leave this set so that promise will be issued, as necessary

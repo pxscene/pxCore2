@@ -14,6 +14,7 @@
 
 #define defaultPixelSize 16
 #define defaultFace "FreeSans.ttf"
+class pxText;
 
 class pxFace;
 typedef rtRefT<pxFace> pxFaceRef;
@@ -46,6 +47,11 @@ public:
   
   rtError init(const char* n);
   rtError init(const FT_Byte*  fontData, FT_Long size, const char* n);
+  
+  void setFaceName(const char* n);
+  bool isInitialized() { return mInitialized; }
+  void onDownloadComplete(const FT_Byte* fontData, FT_Long size, const char* n);
+  void addListener(pxText* pText);
 
   virtual unsigned long AddRef() 
   {
@@ -79,6 +85,9 @@ private:
   rtAtomic mRefCount;
   
   char* mFontData; // for remote fonts loaded into memory
+  
+  bool mInitialized;
+  vector<pxText*> mListeners;
 };
 
 class pxText: public pxObject 
