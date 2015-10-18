@@ -78,7 +78,8 @@ pxFace::pxFace():mPixelSize(0), mRefCount(0), mFontData(0), mInitialized(false) 
 void pxFace::onDownloadComplete(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
 
-  if( strncmp(n, mFaceName.cString(), strlen(mFaceName.cString()))) {
+  if( mFaceName.compare(mFaceName)) 
+  {
     rtLogWarn("pxFace::onDownloadComplete received for face \"%s\" but this face is \"%s\"\n",n, mFaceName.cString());
     return; 
   }
@@ -88,7 +89,6 @@ void pxFace::onDownloadComplete(const FT_Byte*  fontData, FT_Long size, const ch
   for (vector<pxText*>::iterator it = mListeners.begin();
          it != mListeners.end(); ++it)
     {
-      //pxText* text = *it;
       (*it)->fontLoaded();
 
     }
