@@ -78,7 +78,7 @@ pxFace::pxFace():mPixelSize(0), mRefCount(0), mFontData(0), mInitialized(false) 
 void pxFace::onDownloadComplete(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
 
-  if( mFaceName.compare(mFaceName)) 
+  if( mFaceName.compare(n)) 
   {
     rtLogWarn("pxFace::onDownloadComplete received for face \"%s\" but this face is \"%s\"\n",n, mFaceName.cString());
     return; 
