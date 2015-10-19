@@ -148,7 +148,7 @@ public:
     rtError getProperty(rtString propertyName, rtValue &value);
     const vector<pxObjectCloneProperty>& getProperties();
     rtError setProperty(rtString propertyName, rtValue value);
-    vector<rtRefT<pxObject> > getChildren();
+    const vector<rtRefT<pxObject> >& getChildren();
     rtError setChildren(vector<rtRefT<pxObject> > children);
     rtError addChild(rtRefT<pxObject> child);
     rtError removeChild(rtRefT<pxObject> child);
@@ -156,12 +156,15 @@ public:
     rtRefT<pxObject> getParent();
     rtError setParent(rtRefT<pxObject> parent);
     rtError clearProperties();
+    bool childrenAreModified();
+    rtError reset();
 
 private:
     rtAtomic mRef;
     vector<pxObjectCloneProperty> mProperties;
     vector<rtRefT<pxObject> > mChildren;
     rtRefT<pxObject> mParent;
+    bool mChildrenAreModified;
 };
 
 class pxObject: public rtObject, private pxObjectImpl
@@ -248,10 +251,10 @@ public:
   virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(mSnapshotRef); deleteSnapshot(mClipSnapshotRef);}
 
   // TODO missing conversions in rtValue between uint32_t and int32_t
-  uint32_t numChildren() const { return mChildren.size(); }
+  uint32_t numChildren() const { return getChildren().size(); }
   rtError numChildren(int32_t& v) const 
   {
-    v = mChildren.size();
+    v = getChildren().size();
     return RT_OK;
   }
 
@@ -259,7 +262,7 @@ public:
 
   rtError getChild(int32_t i, rtObjectRef& r) const 
   {
-    r = mChildren[i];
+    r = getChildren()[i];
     return RT_OK;
   }
 
@@ -269,12 +272,26 @@ public:
   void setParent(rtRefT<pxObject>& parent);
   pxObject* parent() const
   {
-    return mParent;
+    if (mClone->getParent().getPtr() != NULL)
+    {
+      return mClone->getParent();
+    }
+    else
+    {
+      return mParent;
+    }
   }
 
   rtError parent(rtObjectRef& v) const
   {
-    v = mParent.getPtr();
+    if (mClone->getParent().getPtr() != NULL)
+    {
+      v = mClone->getParent();
+    }
+    else
+    {
+      v = mParent.getPtr();
+    }
     return RT_OK;
   }
 
@@ -907,10 +924,10 @@ public:
     // TODO fix rtString empty check
     if (from->mId.cString() && !strcmp(id, from->mId.cString()))
       return from;
-    
-    for(vector<rtRefT<pxObject> >::iterator it = from->mChildren.begin(); it != from->mChildren.end(); ++it)
+
+    for (vector<rtRefT<pxObject> >::const_iterator it = from->getChildren().begin(); it != from->getChildren().end(); ++it)
     {
-      pxObject* o = getObjectById(id, (*it).getPtr());
+      pxObject *o = getObjectById(id, (*it).getPtr());
       if (o)
         return o;
     }
@@ -973,6 +990,16 @@ public:
   rtError setUseMatrix(const bool& v) { mUseMatrix = v; return RT_OK; }
 
   void repaint() { mRepaint = true; mRepaintCount = 0; }
+
+  pxObjectCloneRef getClone() { return mClone; }
+  const vector<rtRefT<pxObject> >& getChildren() const
+  {
+    if (mClone->childrenAreModified())
+    {
+      return mClone->getChildren();
+    }
+    return mChildren;
+  }
 
 public:
   rtEmitRef mEmit;

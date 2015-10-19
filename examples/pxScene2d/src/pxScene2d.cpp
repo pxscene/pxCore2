@@ -239,14 +239,14 @@ rtError pxObject::Set(const char* name, const rtValue* value)
   {
     repaint();
   }
-  pxObject* parent = mParent;
-  while (parent)
+  pxObject* parentObject = parent();
+  while (parentObject)
   {
-    parent->repaint();
-    parent = parent->parent();
+    parentObject->repaint();
+    parentObject = parentObject->parent();
   }
   mScene->invalidateRect(NULL);
-  mScene->mDirty = true;
+  mScene->mDirty = true; //TODO - check here for draw race condition
   return rtObject::Set(name, value);
 }
 
@@ -276,8 +276,10 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
 
 void pxObject::setParent(rtRefT<pxObject>& parent)
 {
-  mParent = parent;
-  parent->mChildren.push_back(this);
+  mClone->setParent(parent);
+  parent->getClone()->addChild(this);
+  //mParent = parent;
+  //parent->mChildren.push_back(this);
 }
 
 rtError pxObject::children(rtObjectRef& v) const
@@ -288,9 +290,11 @@ rtError pxObject::children(rtObjectRef& v) const
 
 rtError pxObject::remove()
 {
-  if (mParent)
+  pxObject* parentObject = parent();
+  if (parentObject)
   {
-    for(vector<rtRefT<pxObject> >::iterator it = mParent->mChildren.begin(); 
+    parentObject->getClone()->removeChild(this);
+    /*for(vector<rtRefT<pxObject> >::iterator it = mParent->mChildren.begin();
         it != mParent->mChildren.end(); ++it)
     {
       if ((it)->getPtr() == this)
@@ -298,14 +302,15 @@ rtError pxObject::remove()
         mParent->mChildren.erase(it);
         return RT_OK;
       }
-    }
+    }*/
   }
   return RT_OK;
 }
 
 rtError pxObject::removeAll()
 {
-  mChildren.clear();
+  //mChildren.clear();
+  mClone->removeAllChildren();
   return RT_OK;
 }
 
@@ -536,7 +541,7 @@ void pxObject::update(double t)
   #endif //PX_DIRTY_RECTANGLES
   
   // Recursively update children
-  for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  for (vector<rtRefT<pxObject> >::const_iterator it = getChildren().begin(); it != getChildren().end(); ++it)
   {
     (*it)->update(t);
   }
@@ -1070,7 +1075,15 @@ void pxObject::commitClone()
       mMatrix.data()[14] = (it)->value.toFloat();
     }
   }
-  mClone->clearProperties();
+  if (mClone->childrenAreModified())
+  {
+    mChildren = mClone->getChildren();
+  }
+  if (mClone->getParent().getPtr() != NULL)
+  {
+    mParent = mClone->getParent();
+  }
+  mClone->reset();
 }
 
 void pxObject::createClone()
@@ -1124,11 +1137,11 @@ bool pxObject::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
     }
   }
   repaint();
-  pxObject* parent = mParent;
-  while (parent)
+  pxObject* parentObject = parent();
+  while (parentObject)
   {
-    parent->repaint();
-    parent = parent->parent();
+    parentObject->repaint();
+    parentObject = parentObject->parent();
   }
   #ifdef PX_DIRTY_RECTANGLES
   mIsDirty = true;
@@ -2059,7 +2072,7 @@ void pxScene2d::invalidateRect(pxRect* /*r*/)
   }
 }
 
-pxObjectClone::pxObjectClone() : mRef(0), mProperties(), mChildren(), mParent()
+pxObjectClone::pxObjectClone() : mRef(0), mProperties(), mChildren(), mParent(),mChildrenAreModified(false)
 {
 }
 pxObjectClone::~pxObjectClone()
@@ -2103,25 +2116,28 @@ rtError pxObjectClone::setProperty(rtString propertyName, rtValue value)
   return RT_OK;
 }
 
-vector<rtRefT<pxObject> > pxObjectClone::getChildren()
+const vector<rtRefT<pxObject> >& pxObjectClone::getChildren()
 {
   return mChildren;
 }
 
 rtError pxObjectClone::setChildren(vector<rtRefT<pxObject> > children)
 {
+  mChildrenAreModified = true;
   mChildren = children;
   return RT_OK;
 }
 
 rtError pxObjectClone::addChild(rtRefT<pxObject> child)
 {
+  mChildrenAreModified = true;
   mChildren.push_back(child);
   return RT_OK;
 }
 
 rtError pxObjectClone::removeChild(rtRefT<pxObject> child)
 {
+  mChildrenAreModified = true;
   for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin();
       it != mChildren.end(); ++it)
   {
@@ -2136,6 +2152,7 @@ rtError pxObjectClone::removeChild(rtRefT<pxObject> child)
 
 rtError pxObjectClone::removeAllChildren()
 {
+  mChildrenAreModified = true;
   mChildren.clear();
   return RT_OK;
 }
@@ -2154,6 +2171,19 @@ rtError pxObjectClone::setParent(rtRefT<pxObject> parent)
 rtError pxObjectClone::clearProperties()
 {
   mProperties.clear();
+  return RT_OK;
+}
+
+bool pxObjectClone::childrenAreModified()
+{
+  return mChildrenAreModified;
+}
+
+rtError pxObjectClone::reset()
+{
+  clearProperties();
+  mChildrenAreModified = false;
+  mParent = NULL;
   return RT_OK;
 }
 
