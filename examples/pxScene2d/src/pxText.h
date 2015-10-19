@@ -145,12 +145,13 @@ public:
 
   void onFontDownloadComplete(FontDownloadRequest fontDownloadRequest);
   static void checkForCompletedDownloads(int maxTimeInMilliseconds=10);
-  virtual void fontLoaded() {printf("pxText::fontLoaded\n"); mReady.send("resolve", this);}
+  virtual void fontLoaded() {printf("pxText::fontLoaded\n"); mFontLoaded=true;mReady.send("resolve", this);}
 
  protected:
   virtual void draw();
   rtString mText;
 // TODO should we just use a face object instead of urls
+  bool mFontLoaded;
   rtString mFaceURL;
   pxFaceRef mFace;
   float mTextColor[4];

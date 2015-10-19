@@ -375,7 +375,6 @@ public:
 	bool mWordWrap;
 	bool mEllipsis;
   
-  bool mFontLoaded;
   bool mInitialized;
   bool mNeedsRecalc;
   

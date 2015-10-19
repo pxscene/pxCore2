@@ -155,7 +155,9 @@ void pxFace::setPixelSize(uint32_t s)
 {
   if (mPixelSize != s)
   {
-    FT_Set_Pixel_Sizes(mFace, 0, s);
+    if( mInitialized) {
+      FT_Set_Pixel_Sizes(mFace, 0, s);
+    }
     mPixelSize = s;
   }
 }
@@ -163,6 +165,8 @@ void pxFace::getHeight(uint32_t size, float& height)
 {
  	// is mFace ever not valid?
 	// TO DO:  check FT_IS_SCALABLE 
+  if( !mInitialized) return;
+  
   setPixelSize(size);
   
 	FT_Size_Metrics* metrics = &mFace->size->metrics;
@@ -175,6 +179,8 @@ void pxFace::getMetrics(uint32_t size, float& height, float& ascender, float& de
 //	printf("pxFace::getMetrics\n");
 	// is mFace ever not valid?
 	// TO DO:  check FT_IS_SCALABLE 
+  if( !mInitialized) return;
+  
   setPixelSize(size);
   
 	FT_Size_Metrics* metrics = &mFace->size->metrics;
@@ -228,6 +234,8 @@ void pxFace::measureText(const char* text, uint32_t size,  float sx, float sy,
                          float& w, float& h) 
 {
   
+  if( !mInitialized) return;
+  
   setPixelSize(size);
   
   w = 0; h = 0;
@@ -266,7 +274,7 @@ void pxFace::renderText(const char *text, uint32_t size, float x, float y,
                         float sx, float sy, 
                         float* color, float mw) 
 {
-  if (!text) 
+  if (!text || !mInitialized) 
     return;
 
   int i = 0;
@@ -316,6 +324,7 @@ void pxFace::renderText(const char *text, uint32_t size, float x, float y,
 void pxFace::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
                          float& w, float& h) 
 {
+  if( !mInitialized) return;
   
   setPixelSize(size);
   
