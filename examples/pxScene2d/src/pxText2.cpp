@@ -129,22 +129,22 @@ rtError pxText2::setText(const char* s) {
   //printf("pxText2::setText %s\n",s);
   rtString str(s);
   setCloneProperty("text",str);
-  /*mText = s;
-  setNeedsRecalc(true); */
+  setNeedsRecalc(true);
+  /*mText = s;*/
   return RT_OK; 
 }
 
 rtError pxText2::setPixelSize(uint32_t v) 
 {
   setCloneProperty("pixelSize",v);
-  /*mPixelSize = v;
-  setNeedsRecalc(true); */
+  setNeedsRecalc(true);
+  /*mPixelSize = v;*/
   return RT_OK; 
 }
 rtError pxText2::setFaceURL(const char* s)
 {
-  /*mFontLoaded = false;
-  setCloneProperty setNeedsRecalc(true);*/
+  /*mFontLoaded = false;*/
+  setNeedsRecalc(true);
   return pxText::setFaceURL(s);
 }
 
