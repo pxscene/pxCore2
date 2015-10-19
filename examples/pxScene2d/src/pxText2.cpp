@@ -151,6 +151,31 @@ rtError pxText2::setFaceURL(const char* s)
 
 void pxText2::draw() {
 
+  if (mDirty)
+  {
+    // TODO make this configurable
+    if (mText.length() >= 10)
+    {
+      mCached = NULL;
+      pxContextFramebufferRef cached = context.createFramebuffer(getFBOWidth(),getFBOHeight());//mw,mh);
+      if (cached.getPtr())
+      {
+        pxContextFramebufferRef previousSurface = context.getCurrentFramebuffer();
+        context.setFramebuffer(cached);
+        pxMatrix4f m;
+        context.setMatrix(m);
+        context.setAlpha(1.0);
+        context.clear(mw,mh);
+        renderText(true);
+        context.setFramebuffer(previousSurface);
+        mCached = cached;
+      }
+    }
+    else mCached = NULL;
+
+    mDirty = false;
+  }
+
   static pxTextureRef nullMaskRef;
 	if (mCached.getPtr() && mCached->getTexture().getPtr()) 
   {

@@ -442,20 +442,12 @@ rtError pxText::setPixelSize(uint32_t v)
 void pxText::update(double t)
 {
   pxObject::update(t);
-  
-#if 1
+}
+
+void pxText::draw() {
+
   if (mDirty)
   {
-#if 0
-    // TODO magic number
-    if (mText.length() >= 5)
-    {
-      setPainting(true);
-      setPainting(false);
-    }
-    else
-      setPainting(true);
-#else
     // TODO make this configurable
     if (mText.length() >= 10)
     {
@@ -469,24 +461,16 @@ void pxText::update(double t)
         context.setMatrix(m);
         context.setAlpha(1.0);
         context.clear(mw,mh);
-        draw();
+        mFace->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
         context.setFramebuffer(previousSurface);
         mCached = cached;
       }
     }
     else mCached = NULL;
-    
-#endif
-    
-    mDirty = false;
-    }
-#else
-  mDirty = false;
-#endif
-  
-}
 
-void pxText::draw() {
+    mDirty = false;
+  }
+
   static pxTextureRef nullMaskRef;
   if (mCached.getPtr() && mCached->getTexture().getPtr())
   {
