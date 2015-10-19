@@ -47,7 +47,7 @@ pxText2::~pxText2()
  */
 void pxText2::fontLoaded() 
 {
-//  printf("pxText2::fontLoaded. Initialized=%d\n",mInitialized);
+  //printf("pxText2::fontLoaded. Initialized=%d\n",mInitialized);
   mFontLoaded = true;
   if( mInitialized) {
     setNeedsRecalc(true);
@@ -148,9 +148,11 @@ rtError pxText2::setFaceURL(const char* s)
 
 
 void pxText2::draw() {
+
   static pxTextureRef nullMaskRef;
 	if (mCached.getPtr() && mCached->getTexture().getPtr()) 
   {
+    //printf("Cached texture\n");
     if(!clip() && mTruncation == NONE)
     {
       //printf("!CLF: pxText2::draw() with cachedPtr and noClip values x=%f y=%f w=%f h=%f\n",noClipX,noClipY,noClipW,noClipH);
@@ -177,7 +179,7 @@ void pxText2::update(double t)
     setNeedsRecalc(false);
     mDirty = true;
     if(mInitialized && mFontLoaded ) {
-      //printf("pxText2::update: FIRING PROMISE\n");
+      printf("pxText2::update: FIRING PROMISE\n");
       mReady.send("resolve", this);
     }
   }  
@@ -212,14 +214,22 @@ void pxText2::renderText(bool render)
   if( !mInitialized || !mFontLoaded) {
     return;
   }
+  rtString text; 
+  // This seems expensive!! 
+  if( render) {
+    text = mText;
+  }
+  else {
+    this->text(text); 
+  }
 
   // These mimic the values used by pxText when it calls pxText::renderText
   float sx = 1.0; 
   float sy = 1.0;
-  float tempX = mx;
+  float tempX = render?mx:this->x();
   lineNumber = 0;
                   
-	if (!mText || !strcmp(mText.cString(),"")) 
+	if (!text || !strcmp(text.cString(),"")) 
   {
      clearMeasurements();
      setMeasurementBounds(mx, 0, my, 0);
@@ -230,12 +240,12 @@ void pxText2::renderText(bool render)
 	if( !mWordWrap) 
   {
     //printf("calling renderTextNoWordWrap\n");
-    renderTextNoWordWrap(sx, sy, tempX, render);
+    renderTextNoWordWrap(text, sx, sy, tempX, render);
 
 	} 
 	else 
 	{	
-    renderTextWithWordWrap(mText, sx, sy, tempX, mPixelSize, mTextColor, render);
+    renderTextWithWordWrap(text, sx, sy, tempX, mPixelSize, mTextColor, render);
 
 	}
 
@@ -245,14 +255,14 @@ void pxText2::renderTextWithWordWrap(const char *text, float sx, float sy, float
 {
 	float tempY = 0;
 
-  if( mHorizontalAlign == H_LEFT && mTruncation != NONE ) 
-  {
-    if( mXStopPos != 0) 
-    {
-      // TODO: if this single line won't fit when it accounts for mXStopPos, 
-      // need to wrap to a new line
-    }
-  }
+  //if( mHorizontalAlign == H_LEFT && mTruncation != NONE ) 
+  //{
+    //if( mXStopPos != 0) 
+    //{
+      //// TODO: if this single line won't fit when it accounts for mXStopPos, 
+      //// need to wrap to a new line
+    //}
+  //}
 
 
    measureTextWithWrapOrNewLine( text, sx, sy, tempX, tempY, size, color, render);
@@ -263,7 +273,54 @@ void pxText2::renderTextWithWordWrap(const char *text, float sx, float sy, float
 void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, 
                                            uint32_t size, float* color, bool render) 
 {
-  //printf(">>>>>>>>>>>>>>>>>>>> pxText2::measureTextWithWrapOrNewLine\n");
+  //printf(">>>>>>>>>>>>>>>>>>>> pxText2::measureTextWithWrapOrNewLine render=%d\n", render);
+  // Get property values used within this function via correct mechanism
+  uint32_t hAlign, vAlign, truncation, pixelSize;
+  bool wordWrap, ellipsis;
+  float xStartPos, xStopPos, w, h, x, y, leading;
+  float textColor[4];
+  if( render) 
+  {
+    hAlign = mHorizontalAlign;
+    vAlign = mVerticalAlign;
+    truncation = mTruncation;
+    pixelSize = mPixelSize;
+    memcpy(textColor, mTextColor, sizeof(mTextColor));
+    ellipsis = mEllipsis;
+    wordWrap = mWordWrap;
+    xStartPos = mXStartPos;
+    xStopPos = mXStopPos;
+    w = mw;
+    h = mh;
+    x = mx;
+    y = my;
+    leading = mLeading;
+  } 
+  else {
+    hAlign = horizontalAlign();
+    vAlign = verticalAlign();
+    //!CLF:  WHY DO THESE NEED this->  ???
+    truncation = this->truncation();
+    this->pixelSize(pixelSize);
+    // There must be a better way to do color?
+    uint32_t tempColor;
+    this->textColor(tempColor);
+    textColor[0] = (float)((tempColor>>24)&0xff)/255.0f;
+    textColor[1] = (float)((tempColor>>16)&0xff)/255.0f;
+    textColor[2] = (float)((tempColor>>8)&0xff)/255.0f;
+    textColor[3] = (float)((tempColor>>0)&0xff)/255.0f;
+    
+    ellipsis = this->ellipsis();
+    wordWrap = this->wordWrap();
+    xStartPos = this->xStartPos();   
+    xStopPos = this->xStopPos(); 
+    w = this->w();
+    h = this->h();
+    x = this->x();
+    y = this->y();
+    leading = this->leading();
+  }  
+
   
 	int i = 0;
 	u_int32_t charToMeasure;
@@ -271,17 +328,17 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 
   rtString accString = "";
   bool lastLine = false;
-  float lineWidth = mw;
+  float lineWidth = w;
 
   // If really rendering, startY should reflect value for any verticalAlignment adjustments
   if( render) {
     tempY = startY;
   }
   if(lineNumber == 0) {
-    if( mHorizontalAlign == H_LEFT) 
+    if( hAlign == H_LEFT) 
     {
- //     setLineMeasurements(true, mXStartPos, tempY);
-      tempX = mXStartPos;
+ //     setLineMeasurements(true, xStartPos, tempY);
+      tempX = xStartPos;
     }
     else {
 //      setLineMeasurements(true, tempX, tempY);
@@ -297,10 +354,10 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 			if( isNewline(charToMeasure))
       {
         // Render what we had so far in accString; since we are here, it will fit.
-        renderOneLine(accString.cString(), mx, tempY, sx, sy, size, color, lineWidth, render);
+        renderOneLine(accString.cString(), x, tempY, sx, sy, size, color, lineWidth, render);
 
         accString = "";			
-				tempY += (mLeading*sy) + charH;
+				tempY += (leading*sy) + charH;
 
 				lineNumber++;
         //if( tempX + charW
@@ -309,7 +366,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 			}
 		
       // Check if text still fits on this line, or if wrap needs to occur
-			if( (tempX + charW) <= lineWidth || (!mWordWrap && lineNumber == 0)) 
+			if( (tempX + charW) <= lineWidth || (!wordWrap && lineNumber == 0)) 
       {
 				accString.append(tempChar);
 				tempX += charW;
@@ -321,7 +378,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 				// Note: Last line will never be set when truncation is NONE.
 				if( lastLine) 
         {
-					renderTextRowWithTruncation(accString, lineWidth, mx, tempY, sx, sy, size, color, render);
+					renderTextRowWithTruncation(accString, lineWidth, x, tempY, sx, sy, size, color, render);
 					// Clear accString because we've rendered it 
 					accString = "";	
 					break; // break out of reading mText
@@ -331,16 +388,16 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
         {  // If not lastLine
           
           // Account for the case where wordWrap is off, but newline was found previously
-          if( !mWordWrap && lineNumber != 0 ) {
+          if( !wordWrap && lineNumber != 0 ) {
             lastLineNumber = lineNumber;
             //printf("!!!!CLF: calling renderTextRowWithTruncation! %s\n",accString.cString());
-            if( mTruncation != NONE) {
-              renderTextRowWithTruncation(accString, mw, mx, tempY, sx, sy, size, color, render);
+            if( truncation != NONE) {
+              renderTextRowWithTruncation(accString, w, x, tempY, sx, sy, size, color, render);
               accString = ""; 
               break; 
             } else {
               if( clip()) {
-                renderOneLine(accString, mx, tempY, sx, sy, size, color, mw, render);
+                renderOneLine(accString, x, tempY, sx, sy, size, color, w, render);
                 accString = ""; 
                 break; 
               } else {
@@ -369,7 +426,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 						// write out entire string that will fit
 						// Use horizonal positioning
             //printf("Calling renderOneLine with lineNumber=%d\n",lineNumber);
-            renderOneLine(tempStr, mx, tempY, sx, sy, size, color, lineWidth, render);
+            renderOneLine(tempStr, x, tempY, sx, sy, size, color, lineWidth, render);
 
 						// Now reset accString to hold remaining text
 						tempStr = strdup(accString.cString());
@@ -396,7 +453,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 
 					}
 					// Now skip to next line
-					tempY += (mLeading*sy) + charH;
+					tempY += (leading*sy) + charH;
 					tempX = 0;
 					lineNumber++;
 
@@ -406,12 +463,12 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
           
           // If Truncation is NONE, we never want to set as last line; 
           // just keep rendering...
-          if( mTruncation != NONE && tempY + ((mLeading*sy) + (charH*2)) > this->h() && !lastLine) 
+          if( truncation != NONE && tempY + ((leading*sy) + (charH*2)) > h && !lastLine) 
           {
             lastLine = true;
-            if(mXStopPos != 0 && mHorizontalAlign == H_LEFT) 
+            if(xStopPos != 0 && hAlign == H_LEFT) 
             {
-                lineWidth = mXStopPos - mx;
+                lineWidth = xStopPos - mx;
             } 				
           } 
 
@@ -423,18 +480,18 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 		
 		if(accString.length() > 0) {
       lastLineNumber = lineNumber;
-      if( mTruncation == NONE && !mWordWrap ) {
+      if( truncation == NONE && !mWordWrap ) {
         //printf("CLF! Sending tempX instead of this->w(): %f\n", tempX);
-        renderOneLine(accString.cString(), mx, tempY, sx, sy, size, color, tempX, render);
+        renderOneLine(accString.cString(), x, tempY, sx, sy, size, color, tempX, render);
       } else {
         // check if we need to truncate this last line
-        if( !lastLine && mXStopPos != 0 && mHorizontalAlign == H_LEFT && mTruncation != NONE && mXStopPos > mXStartPos
-            && tempX > mw) {
-          renderTextRowWithTruncation(accString, mXStopPos - mx, mx, tempY, sx, sy, size, color, render);
+        if( !lastLine && xStopPos != 0 && hAlign == H_LEFT && truncation != NONE && xStopPos > xStartPos
+            && tempX > w) {
+          renderTextRowWithTruncation(accString, xStopPos - x, x, tempY, sx, sy, size, color, render);
         } 
         else
         {
-          renderOneLine(accString.cString(), mx, tempY, sx, sy, size, color, this->w(), render);
+          renderOneLine(accString.cString(), x, tempY, sx, sy, size, color, w, render);
         }
       }
 		  
@@ -443,72 +500,73 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
  
   if( !render) {
       float metricHeight;
-      mFace->getHeight(mPixelSize,metricHeight);
-      //printf("pxText2::renderTextWithWordWrap metricHeight is %f\n",metricHeight);
-      //printf("pxText2::renderTextWithWordWrap lineNumer=%d\n",lineNumber);
+      mFace->getHeight(pixelSize,metricHeight);
+      printf("pxText2::renderTextWithWordWrap metricHeight is %f\n",metricHeight);
+      printf("pxText2::renderTextWithWordWrap lineNumber=%d\n",lineNumber);
       //printf("pxText2::renderTextWithWordWrap mLeading=%f\n",mLeading);
-      float textHeight = tempY+metricHeight+(((charH/metricHeight)-1)*(mLeading*sy));//charH + ((charH/metricHeight)*mLeading);//((lastLineNumber+1)*metricHeight) + ((lastLineNumber-1)* mLeading); 
+      float textHeight = tempY+metricHeight+(((charH/metricHeight)-1)*(leading*sy));//charH + ((charH/metricHeight)*mLeading);//((lastLineNumber+1)*metricHeight) + ((lastLineNumber-1)* mLeading); 
+      //float textHeight = tempY+(metricHeight*(lineNumber-1))+((mLeading*sy)*(lineNumber-1));
       //textHeight -= (mLeading*sy); // no leading after last row of text
-      //printf("pxText2::renderTextWithWordWrap textHeight is %f\n",textHeight);
-      //printf("pxText2::renderTextWithWordWrap tempY is %f\n",tempY);
+      printf("pxText2::renderTextWithWordWrap textHeight is %f\n",textHeight);
+      printf("pxText2::renderTextWithWordWrap tempY is %f\n",tempY);
 
       // NOTE that the only time mWordWrap should be false in this function
       // is when there are newline char(s) in the text being rendered.
-      if( mVerticalAlign == V_BOTTOM ) 
+      if( vAlign == V_BOTTOM ) 
       {
-        if(!mWordWrap ) 
+        if(!wordWrap ) 
         {
-          startY = my + (mh - textHeight); // could be negative
-          if(!clip() && mTruncation == NONE) 
+          startY = y + (h - textHeight); // could be negative
+          if(!clip() && truncation == NONE) 
           {
-            noClipY = my;    
+            noClipY = y;    
             noClipH = textHeight;//mh;
           } 
         } 
         else 
         {
-          startY = my + (mh - textHeight); // could be negative
+          startY = y + (h - textHeight); // could be negative
           if(!clip()) 
           {    
-            noClipY = my-(textHeight-mh);
-            if(mTruncation == NONE) {
+            noClipY = y-(textHeight-h);
+            if(truncation == NONE) {
               noClipH = textHeight;
-              startY = my;
+              startY = y;
             }
           }
         }
       } 
-      else if( mVerticalAlign == V_CENTER)
+      else if( vAlign == V_CENTER)
       {
-        if(!mWordWrap ) 
+        if(!wordWrap ) 
         {
-          startY = my+ (mh/2) - textHeight/2;
-          if(!clip() && mTruncation == NONE) 
+          startY = y+ (h/2) - textHeight/2;
+          if(!clip() && truncation == NONE) 
           {
-            noClipY = my;
-            noClipH = mh;
+            noClipY = y;
+            noClipH = h;
           }
         } 
         else 
         {
-          startY = my + (mh-textHeight)/2;
+          startY = y + (h-textHeight)/2;
           if(!clip())  
           {
-            noClipY = (my + (mh/2)) - textHeight/2;
-            if(mTruncation == NONE)
+            noClipY = (y + (h/2)) - textHeight/2;
+            if(truncation == NONE)
             {
-              startY = my;
+              startY = y;
               noClipH = textHeight;
             }
           }
         }
       }
-      else if( mVerticalAlign == V_TOP)
+      else if( vAlign == V_TOP)
       {
-        startY = my;
-        if( mWordWrap && !clip() && mTruncation == NONE)
+        startY = y;
+        if( wordWrap && !clip() && truncation == NONE)
         {
-          noClipY = my;
+          noClipY = y;
           noClipH = textHeight;
           
         }
@@ -516,7 +574,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
       }
       
       // Now set the top and bottom Y bounds
-      if( !clip() && mTruncation == NONE) 
+      if( !clip() && truncation == NONE) 
       {
         setMeasurementBoundsY(true, noClipY);
         setMeasurementBoundsY(false, textHeight);        
@@ -525,12 +583,12 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
       {
         //printf("!CLF: Setting bounds: startY=%f, my=%f, textHeight=%f\n",startY, my, textHeight);
         if(startY < my) {
-          setMeasurementBoundsY(true, my);
-          setMeasurementBoundsY(false, textHeight>mh?mh:textHeight); 
+          setMeasurementBoundsY(true, y);
+          setMeasurementBoundsY(false, textHeight>h?h:textHeight); 
         }
         else {
           setMeasurementBoundsY(true, startY);
-          setMeasurementBoundsY(false, textHeight>mh?mh:textHeight); 
+          setMeasurementBoundsY(false, textHeight>h?h:textHeight); 
         }
       } 
 
@@ -541,34 +599,83 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 
 void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy, uint32_t size, float* color, float lineWidth, bool render )
 {
+  // Get property values used within this function via correct mechanism
+  uint32_t hAlign, vAlign, truncation, pixelSize;
+  bool wordWrap, ellipsis, clip;
+  float xStartPos, xStopPos, w, h, x, y, leading;
+  float textColor[4];
+  if( render) 
+  {
+    hAlign = mHorizontalAlign;
+    vAlign = mVerticalAlign;
+    truncation = mTruncation;
+    pixelSize = mPixelSize;
+    memcpy(textColor, mTextColor, sizeof(mTextColor));
+    ellipsis = mEllipsis;
+    wordWrap = mWordWrap;
+    clip = mClip;
+    xStartPos = mXStartPos;
+    xStopPos = mXStopPos;
+    w = mw;
+    h = mh;
+    x = mx;
+    y = my;
+    leading = mLeading;
+  } 
+  else {
+    hAlign = horizontalAlign();
+    vAlign = verticalAlign();
+    //!CLF:  WHY DO THESE NEED this->  ???
+    truncation = this->truncation();
+    this->pixelSize(pixelSize);
+    // There must be a better way to do color?
+    uint32_t tempColor;
+    this->textColor(tempColor);
+    textColor[0] = (float)((tempColor>>24)&0xff)/255.0f;
+    textColor[1] = (float)((tempColor>>16)&0xff)/255.0f;
+    textColor[2] = (float)((tempColor>>8)&0xff)/255.0f;
+    textColor[3] = (float)((tempColor>>0)&0xff)/255.0f;
+    
+    ellipsis = this->ellipsis();
+    wordWrap = this->wordWrap();
+    clip = this->clip();
+    xStartPos = this->xStartPos();   
+    xStopPos = this->xStopPos(); 
+    w = this->w();
+    h = this->h();
+    x = this->x();
+    y = this->y();
+    leading = this->leading();
+  }    
+  
   float charW; float charH;
 
   //printf("pxText2::renderOneLine tempY=%f noClipY=%f\n",tempY,noClipY);
   float xPos = tempX; 
   mFace->measureText(tempStr, size, sx, sy, charW, charH);
   
-  if( !clip() && mTruncation == NONE) 
+  if( !clip && truncation == NONE) 
   {
     //printf("!CLF: Setting NoClip values in renderOneLine to noClipW=%f\n",noClipW);
     noClipW = charW;
-    if( !mWordWrap)  
+    if( !wordWrap)  
     {
-      if( mHorizontalAlign == H_CENTER ) 
+      if( hAlign == H_CENTER ) 
       { 
         xPos = tempX;
         noClipX = (lineWidth/2) - charW/2;
       }
-      else if( mHorizontalAlign == H_RIGHT) 
+      else if( hAlign == H_RIGHT) 
       {
         xPos = tempX;
-        noClipX = mw-charW;
+        noClipX = w-charW;
       }
       else 
       {
         if( lineNumber == 0)
         {
           xPos = tempX;
-          noClipX = mXStartPos;
+          noClipX = xStartPos;
         } 
         else 
         {
@@ -581,12 +688,12 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
     else 
     {
       // mWordWrap is on - No Clip and No Truncation
-      if( mHorizontalAlign == H_CENTER ) 
+      if( hAlign == H_CENTER ) 
       { 
         xPos = (lineWidth/2) - charW/2;
         noClipX = tempX;
       }
-      else if( mHorizontalAlign == H_RIGHT) 
+      else if( hAlign == H_RIGHT) 
       {
         xPos = lineWidth - charW;
         noClipX = tempX;
@@ -595,7 +702,7 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
       {
         if( lineNumber == 0)
         {
-          xPos = mXStartPos;
+          xPos = xStartPos;
           noClipX = tempX;
         } 
         else 
@@ -609,11 +716,11 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
   else 
   {
     // If we're here, clip could be on or off
-    if( mHorizontalAlign == H_CENTER ) 
+    if( hAlign == H_CENTER ) 
     { 
       xPos = (lineWidth/2) - charW/2;
     }
-    else if( mHorizontalAlign == H_RIGHT) 
+    else if( hAlign == H_RIGHT) 
     {
        xPos = lineWidth - charW;
     }
@@ -621,7 +728,7 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
     {
       if(lineNumber==0)
       {
-        xPos = mXStartPos;
+        xPos = xStartPos;
       }      
     }
     
@@ -633,12 +740,20 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
    //when lineNumber==lastLineNumber.  Check now.
   if( lineNumber != 0)
   {
-    if( !clip() && mTruncation == NONE) 
+    if( !clip && truncation == NONE) 
     {
       setMeasurementBoundsX(true, xPos);
-      if( lineNumber == lastLineNumber || mTruncation == NONE) {
-        //printf("!CLF: calculating lineMeasurement! pixelSize=%d noClipH=%f noClipY=%f lineNumber=%d\n",mPixelSize,noClipH, noClipY, lineNumber);
-        setLineMeasurements(false,xPos+charW, noClipY+(noClipH-(noClipH/(lineNumber+1))));
+      if( lineNumber == lastLineNumber || truncation == NONE) {
+        float height, ascender, descender, naturalLeading;
+        mFace->getMetrics(mPixelSize, height, ascender, descender, naturalLeading);
+        //mFace->getHeight(mPixelSize,metricHeight);
+        float calcdH = noClipY+(((height)*lineNumber)+((leading*sy)*lineNumber));
+        //float lineH = (noClipH/lineNumber);
+        //float bottomBound = noClipY +noClipH -(mLeading*sy);
+        //float calcdH = bottomBound - lineH; //noClipY + noClipH - bottom Bound;
+        //float calcdH = noClipY+(((noClipH/lineNumber)*lineNumber)-(mLeading*sy));
+        printf("!CLF: calculating lineMeasurement! pixelSize=%d noClipH=%f noClipY=%f lineNumber=%d\n",mPixelSize,noClipH, noClipY, lineNumber);
+        setLineMeasurements(false,xPos+charW, calcdH);//noClipY+(noClipH-(noClipH/(lineNumber+1)-(mLeading*sy))));
         setMeasurementBoundsX(false, charW );
       } 
 
@@ -646,16 +761,16 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
     else
     {
       setMeasurementBoundsX(true, xPos<mx?mx:xPos);
-      if( mWordWrap) {
+      if( wordWrap) {
         //printf("!CLF: wordWrap true: tempY=%f, mh=%f, charH=%f\n",tempY, mh, charH);
-        if( tempY + charH <= mh) {
+        if( tempY + charH <= h) {
           setLineMeasurements(false,xPos+charW, tempY);
         } 
         setMeasurementBoundsX(false, charW);
       }
       else {
-        setLineMeasurements(false, xPos+charW > mw? lineWidth: xPos+charW, tempY);
-        setMeasurementBoundsX(false, charW > mw? lineWidth: charW );
+        setLineMeasurements(false, xPos+charW > w? lineWidth: xPos+charW, tempY);
+        setMeasurementBoundsX(false, charW > w? lineWidth: charW );
       }
     }
 
@@ -664,13 +779,13 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
 
   if( lineNumber == 0) 
   {
-    if(!mWordWrap) 
+    if(!wordWrap) 
     {
       // Set start/stop line and bounds values because this is the only  
       // line of text there is...
       // !CLF:  TODO:  What if there are newlines within the text, and 
       // that's how we got here with mWordWrap==false?  
-      if(!clip() && mTruncation == NONE) {
+      if(!clip && truncation == NONE) {
         //printf("!CLF lineNumber == 0 !mWordWrap !clip() && mTruncation == NONE tempX=%f xPos=%f xStartPos=%f noClipX=%f noClipW=%f charW=%f\n", tempX, xPos,mXStartPos, noClipX, noClipW, charW);
         if( noClipX != tempX) { 
           setMeasurementBounds(false, noClipX+charW, charH);
@@ -686,33 +801,33 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
        // If we're here, clip could be on or off
        //printf("!CLF lineNumber == 0 !mWordWrap clip=%d mTruncation=%d tempX=%f xPos=%f xStartPos=%f noClipX=%f noClipW=%f charW=%f\n", clip(),mTruncation, tempX, xPos,mXStartPos, noClipX, noClipW, charW);
        float width = charW;
-       if( clip() && charW > lineWidth) {
+       if( clip && charW > lineWidth) {
          width = lineWidth;// respect max
        } 
 
         if( xPos != tempX) { 
-          setLineMeasurements(true, xPos<mx?mx:xPos, tempY);
-          setMeasurementBoundsX(true, xPos<mx?mx:xPos);
-          setMeasurementBounds(false, (xPos+width) > mw? mw:width, charH);
+          setLineMeasurements(true, xPos<x?x:xPos, tempY);
+          setMeasurementBoundsX(true, xPos<x?x:xPos);
+          setMeasurementBounds(false, (xPos+width) > w? w:width, charH);
         }        
         else {
-          if( xPos+width > mw && (xPos+lineWidth) > mw) {
+          if( xPos+width > w && (xPos+lineWidth) > w) {
             //printf("xPos+charW >mw lineWidth=%f\n",lineWidth);
-            setMeasurementBounds(false, mw-xPos, charH);
+            setMeasurementBounds(false, w-xPos, charH);
           } 
           else {
             //printf("else not xPos+charW >mw lineWidth=%f\n",lineWidth);
-            setMeasurementBounds(false, (xPos+width) > mw? mw:xPos+width, charH);
+            setMeasurementBounds(false, (xPos+width) > w? w:xPos+width, charH);
           }
         }
-        setLineMeasurements(false, (xPos+width) > mw? mw:xPos+width, tempY);
+        setLineMeasurements(false, (xPos+width) > w? w:xPos+width, tempY);
 
       }
     }
     else 
     {
       // mWordWrap is true and lineNumber==0
-      if( !clip() && mTruncation == NONE)
+      if( !clip && truncation == NONE)
       {
         //printf("!CLF: No clip here we go: noClipY=%f my=%f, tempY=%f, noClipH=%f\n",noClipY,my, tempY,noClipH);
         //printf("!CLF: No clip here we go: noClipX=%f mx=%f, tempX=%f, noClipW=%f\n",noClipX,mx, tempX,noClipW);
@@ -732,13 +847,13 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
       else         
       {
         //printf("!CLF: Here we go: xPos=%f mx=%f, tempX=%f, lineWidth=%f, charW=%f mw=%f\n",xPos,mx, tempX,lineWidth, charW, mw);
-        setMeasurementBoundsX(true, xPos<mx?mx:xPos);
-        setLineMeasurements(true, xPos<mx?mx:xPos, tempY< my?my:tempY);
-        if( charW > mw && (xPos+lineWidth) > mw) {
-          setMeasurementBoundsX(false, mw-xPos );
+        setMeasurementBoundsX(true, xPos<x?x:xPos);
+        setLineMeasurements(true, xPos<x?x:xPos, tempY< y?y:tempY);
+        if( charW > w && (xPos+lineWidth) > w) {
+          setMeasurementBoundsX(false, w-xPos );
         }
         else {
-          setMeasurementBoundsX(false, charW > mw? mw:charW );
+          setMeasurementBoundsX(false, charW > w? w:charW );
         }
         setLineMeasurements(false, xPos+charW, tempY);
        
@@ -843,65 +958,110 @@ void pxText2::setLineMeasurements(bool firstLine, float xPos, float yPos)
 /** 
  * renderTextNoWordWrap: To be used when wordWrap is false
  * */
-void pxText2::renderTextNoWordWrap(float sx, float sy, float tempX, bool render)
+void pxText2::renderTextNoWordWrap(rtString & text, float sx, float sy, float tempX, bool render)
 {
   //printf("pxText2::renderTextNoWordWrap render=%d\n",render);
+  // Get property values used within this function via correct mechanism
+  uint32_t hAlign, vAlign, truncation, pixelSize;
+  bool wordWrap, ellipsis;
+  float xStartPos, xStopPos, w, h, x, y;
+  float textColor[4];
+  if( render) 
+  {
+    hAlign = mHorizontalAlign;
+    vAlign = mVerticalAlign;
+    truncation = mTruncation;
+    pixelSize = mPixelSize;
+    memcpy(textColor, mTextColor, sizeof(mTextColor));
+    ellipsis = mEllipsis;
+    wordWrap = mWordWrap;
+    xStartPos = mXStartPos;
+    xStopPos = mXStopPos;
+    w = mw;
+    h = mh;
+    x = mx;
+    y = my;
+  } 
+  else {
+    hAlign = horizontalAlign();
+    vAlign = verticalAlign();
+    //!CLF:  WHY DO THESE NEED this->  ???
+    truncation = this->truncation();
+    this->pixelSize(pixelSize);
+    // There must be a better way to do color?
+    uint32_t tempColor;
+    this->textColor(tempColor);
+    textColor[0] = (float)((tempColor>>24)&0xff)/255.0f;
+    textColor[1] = (float)((tempColor>>16)&0xff)/255.0f;
+    textColor[2] = (float)((tempColor>>8)&0xff)/255.0f;
+    textColor[3] = (float)((tempColor>>0)&0xff)/255.0f;
+    
+    ellipsis = this->ellipsis();
+    wordWrap = this->wordWrap();
+    xStartPos = this->xStartPos();   
+    xStopPos = this->xStopPos(); 
+    w = this->w();
+    h = this->h();
+    x = this->x();
+    y = this->y();
+ 
+  }  
   
   float charW, charH;
-  float lineWidth = this->w();
+  float lineWidth = w;
   float tempXStartPos = tempX;
-  float tempY = my;
+  float tempY = y;
   
-  if( mHorizontalAlign == H_LEFT) {
-    tempXStartPos = mXStartPos;
+  if( hAlign == H_LEFT) {
+    tempXStartPos = xStartPos;
 
   }
   
   // Measure as single line since there's no word wrapping
-  mFace->measureText(mText, mPixelSize, sx, sy, charW, charH);
+  mFace->measureText(text, pixelSize, sx, sy, charW, charH);
   //printf(">>>>>>>>>>>> pxText2::renderTextNoWordWrap charH=%f charW=%f\n", charH, charW);
 
   float metricHeight;
-  mFace->getHeight(mPixelSize, metricHeight);
+  mFace->getHeight(pixelSize, metricHeight);
   //printf(">>>>>>>>>>>>>> metric height is %f and charH is %f\n", metricHeight, charH);
   if( charH > metricHeight) // There's a newline in the text somewhere
   {
     lineNumber = 0;
-    measureTextWithWrapOrNewLine(mText, sx, sy, tempX, render?startY:tempY, mPixelSize, mTextColor, render);
+    measureTextWithWrapOrNewLine(text, sx, sy, tempX, render?startY:tempY, pixelSize, textColor, render);
   }
   else 
   {
     // Calculate vertical alignment values
-    if( mVerticalAlign == V_BOTTOM || mVerticalAlign == V_CENTER) 
+    if( vAlign == V_BOTTOM || vAlign == V_CENTER) 
     {
-      if( mVerticalAlign == V_BOTTOM ) 
+      if( vAlign == V_BOTTOM ) 
       {
-        tempY = my + (mh - charH); // could be negative
+        tempY = y + (h - charH); // could be negative
       } 
       else 
       {
-        tempY = my+ (mh/2) - charH/2;
+        tempY = y+ (h/2) - charH/2;
       }
     }
 
     // Will it fit on one line OR is there no truncation, so we don't care...
-    if( (charW + tempXStartPos) <= lineWidth || mTruncation == NONE) 
+    if( (charW + tempXStartPos) <= lineWidth || truncation == NONE) 
     {
       lastLineNumber = lineNumber = 0;
       //printf("pxText2::renderTextNoWordWrap setLineMeasurements tempXStartPos=%f tempY=%f before renderOneLine\n",tempXStartPos, tempY);
       setLineMeasurements(true, tempXStartPos, tempY);
       setMeasurementBounds(true, tempXStartPos, tempY);
 
-      renderOneLine(mText, tempX, tempY, sx, sy, mPixelSize, mTextColor, lineWidth, render); 
+      renderOneLine(text, tempX, tempY, sx, sy, pixelSize, textColor, lineWidth, render); 
     
     }      
     else 
     { 
       // Do we really need to check for truncation? It has to be one of these
       // since we checked for NONE above.
-      if(mTruncation == TRUNCATE || mTruncation == TRUNCATE_AT_WORD) 
+      if(truncation == TRUNCATE || truncation == TRUNCATE_AT_WORD) 
       {
-          renderTextRowWithTruncation(mText, lineWidth, tempX, tempY, sx, sy, mPixelSize, mTextColor, render);
+          renderTextRowWithTruncation(text, lineWidth, tempX, tempY, sx, sy, pixelSize, textColor, render);
       }     
     }                 
   
@@ -921,11 +1081,36 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
   //printf(">>>>>>>>>>>>>>>>>>pxText2::renderTextRowWithTruncation tempY = %f tempX = %f\n",tempY, tempX);
   //printf(">>>>>>>>>>>>>>>>>>pxText2::renderTextRowWithTruncation lineWidth = %f \n",lineWidth);
   
+  // Get property values used within this function via correct mechanism
+  uint32_t hAlign, vAlign, truncation;
+  bool wordWrap, ellipsis;
+  float xStartPos, xStopPos;
+  if( render) 
+  {
+    hAlign = mHorizontalAlign;
+    vAlign = mVerticalAlign;
+    truncation = mTruncation;
+    ellipsis = mEllipsis;
+    wordWrap = mWordWrap;
+    xStartPos = mXStartPos;
+    xStopPos = mXStopPos;
+  } 
+  else {
+    hAlign = horizontalAlign();
+    vAlign = verticalAlign();
+    //!CLF:  WHY DO THESE NEED this->  ???
+    truncation = this->truncation();
+    ellipsis = this->ellipsis();
+    wordWrap = this->wordWrap();
+    xStartPos = this->xStartPos();   
+    xStopPos = this->xStopPos(); 
+  }
+  
 	float charW, charH;
 	char * tempStr = strdup(accString.cString()); // Should give a copy
 	int length = accString.length();
 	float ellipsisW = 0;
-	if( mEllipsis) 
+	if( ellipsis) 
   {
 		length -= ELLIPSIS_LEN;
 		mFace->measureText(ELLIPSIS_STR, pixelSize, sx, sy, ellipsisW, charH);
@@ -933,15 +1118,15 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
 	}
   
   // Make adjustments for H_LEFT xStartPos and xStopPos, as applicable
-  if( mHorizontalAlign == H_LEFT)
+  if( hAlign == H_LEFT)
   {
     if( lineNumber == 0) {
-      tempX = mXStartPos;
+      tempX = xStartPos;
     }
     // Adjust line width when stop pos is authored (and using H_LEFT)
-    if( mTruncation != NONE && mXStopPos != 0 && mXStopPos > tempX) 
+    if( truncation != NONE && xStopPos != 0 && xStopPos > tempX) 
     {
-      lineWidth = mXStopPos - tempX;
+      lineWidth = xStopPos - tempX;
     }    
   }
 
@@ -955,38 +1140,38 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
 		if( (tempX + charW + ellipsisW) <= lineWidth) 
     {
 			float xPos = tempX;  
-			if( mTruncation == TRUNCATE) 
+			if( truncation == TRUNCATE) 
       {
 				// we're done; just render
 				// Ignore xStartPos and xStopPos if H align is not LEFT
-				if( mHorizontalAlign == H_CENTER )
+				if( hAlign == H_CENTER )
         { 
 					xPos = (lineWidth/2) - ((charW+ellipsisW)/2);
 				}	
-        else if( mHorizontalAlign == H_RIGHT)
+        else if( hAlign == H_RIGHT)
         {
           xPos =  lineWidth - charW - ellipsisW;
         }	
         
-        if(!mWordWrap) {setMeasurementBounds(xPos, charW, tempY, charH); }
+        if(!wordWrap) {setMeasurementBounds(xPos, charW, tempY, charH); }
         setLineMeasurements(false, xPos+charW, tempY);
         if( lineNumber==0) {setLineMeasurements(true, xPos, tempY);}
 
         if( render) {
           mFace->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, color,lineWidth);
         } 
-				if( mEllipsis) 
+				if( ellipsis) 
         {
 					//printf("rendering truncated text with ellipsis\n");
 					if( render) {
             mFace->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
           } 
-          if(!mWordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
+          if(!wordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
           setLineMeasurements(false, xPos+charW+ellipsisW, tempY);
 				}
 				break;
 			} 
-			else if( mTruncation == TRUNCATE_AT_WORD)
+			else if( truncation == TRUNCATE_AT_WORD)
       {
 				// Look for word boundary on which to break
 				int n = 1;
@@ -1001,28 +1186,28 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
 					mFace->measureText(tempStr, pixelSize, sx, sy, charW, charH);
 
           // Ignore xStartPos and xStopPos if H align is not LEFT
-					if( mHorizontalAlign == H_CENTER )
+					if( hAlign == H_CENTER )
           { 
 						xPos = (lineWidth/2) - ((charW+ellipsisW)/2);
 					}	
-					else if( mHorizontalAlign == H_RIGHT) 
+					else if( hAlign == H_RIGHT) 
           {
 						xPos = lineWidth - charW - ellipsisW;
 					}					
-          if(!mWordWrap) { setMeasurementBounds(xPos, charW, tempY, charH); }
+          if(!wordWrap) { setMeasurementBounds(xPos, charW, tempY, charH); }
           setLineMeasurements(false, xPos+charW, tempY); 		
           if( lineNumber==0) {setLineMeasurements(true, xPos, tempY);	}							
 					if( render){
             mFace->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, color,lineWidth);
           }
 				}
-				if( mEllipsis) 
+				if( ellipsis) 
         {
 					//printf("rendering  text on word boundary with ellipsis\n");
 					if( render) {
             mFace->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
           }
-          if(!mWordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
+          if(!wordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
           setLineMeasurements(false, xPos+charW+ellipsisW, tempY);
 				}
 				break;
@@ -1064,7 +1249,7 @@ bool pxText2::isNewline( char ch )
 * descent - float - the distance from the baseline to the font descender  (note that this is a hint, not a solid rule)
 */
 rtError pxText2::getFontMetrics(rtObjectRef& o) {
-    //printf("pxText2::getFontMetrics\n");  
+  //printf("pxText2::getFontMetrics\n");  
 	float height, ascent, descent, naturalLeading;
 	pxTextMetrics* metrics = new pxTextMetrics(mScene);
 
