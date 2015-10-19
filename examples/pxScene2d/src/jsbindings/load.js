@@ -167,8 +167,8 @@ function readConfigFile(argv)
   return configSettings;
 }
 
-var ww = 800;
-var wh = 400;
+var ww = 1280;
+var wh = 720;
 
 var ew = process.env.HOR;
 var eh = process.env.VER;

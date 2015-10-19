@@ -26,14 +26,14 @@ public:
   rtError url(rtString& s) const;
   rtError setURL(const char* s);
   
-  rtError lInset(float& v) const { v = ml; return RT_OK; }
-  rtError setLInset(float v) { ml = v; return RT_OK; }
-  rtError tInset(float& v) const { v = mt; return RT_OK; }
-  rtError setTInset(float v) { mt = v; return RT_OK; }
-  rtError rInset(float& v) const { v = mr; return RT_OK; }
-  rtError setRInset(float v) { mr = v; return RT_OK; }
-  rtError bInset(float& v) const { v = mb; return RT_OK; }
-  rtError setBInset(float v) { mb = v; return RT_OK; }
+  rtError lInset(float& v) const { rtValue value;if (getCloneProperty("lInset", value) == RT_OK){ v = value.toFloat(); return RT_OK;}v = ml; return RT_OK; }
+  rtError setLInset(float v) { setCloneProperty("lInset",v); /*ml = v;*/ return RT_OK; }
+  rtError tInset(float& v) const {rtValue value;if (getCloneProperty("tInset", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mt; return RT_OK; }
+  rtError setTInset(float v) { setCloneProperty("tInset",v); /*mt = v;*/ return RT_OK; }
+  rtError rInset(float& v) const {rtValue value;if (getCloneProperty("rInset", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mr; return RT_OK; }
+  rtError setRInset(float v) { setCloneProperty("rInset",v); /*mr = v;*/ return RT_OK; }
+  rtError bInset(float& v) const {rtValue value;if (getCloneProperty("bInset", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mb; return RT_OK; }
+  rtError setBInset(float v) { setCloneProperty("bInset",v); /*mb = v;*/ return RT_OK; }
 
   rtError statusCode(int32_t& v) const
   {
@@ -48,6 +48,7 @@ public:
   }
 
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
+  virtual void commitClone();
 
 protected:
   virtual void draw();

@@ -77,6 +77,7 @@ public:
                   float sx, float sy, 
                   float* color, float mw);
 
+
 private:
   uint32_t mFaceId;
   rtString mFaceName;
@@ -110,17 +111,18 @@ public:
   }
 
   rtError setTextColor(uint32_t c) {
-    mTextColor[0] = (float)((c>>24)&0xff)/255.0f;
+    setCloneProperty("textColor",c);
+    /*mTextColor[0] = (float)((c>>24)&0xff)/255.0f;
     mTextColor[1] = (float)((c>>16)&0xff)/255.0f;
     mTextColor[2] = (float)((c>>8)&0xff)/255.0f;
-    mTextColor[3] = (float)((c>>0)&0xff)/255.0f;
+    mTextColor[3] = (float)((c>>0)&0xff)/255.0f;*/
     return RT_OK;
   }
 
-  rtError faceURL(rtString& v) const { v = mFaceURL; return RT_OK; }
+  rtError faceURL(rtString& v) const {rtValue value;if (getCloneProperty("faceUrl", value) == RT_OK){v = value.toString();return RT_OK;}v = mFaceURL; return RT_OK; }
   virtual rtError setFaceURL(const char* s);
 
-  rtError pixelSize(uint32_t& v) const { v = mPixelSize; return RT_OK; }
+  rtError pixelSize(uint32_t& v) const {rtValue value;if (getCloneProperty("pixelSize", value) == RT_OK){v = value.toInt32();return RT_OK;} v = mPixelSize; return RT_OK; }
   virtual rtError setPixelSize(uint32_t v);
 
   virtual void update(double t);
@@ -146,6 +148,7 @@ public:
   void onFontDownloadComplete(FontDownloadRequest fontDownloadRequest);
   static void checkForCompletedDownloads(int maxTimeInMilliseconds=10);
   virtual void fontLoaded() {printf("pxText::fontLoaded\n"); mFontLoaded=true;mReady.send("resolve", this);}
+  virtual void commitClone();
 
  protected:
   virtual void draw();

@@ -111,10 +111,57 @@ class pxFileDownloadRequest;
 
 class pxScene2d;
 
+class pxObjectClone;
+
+typedef rtRefT<pxObjectClone> pxObjectCloneRef;
+
 class pxObjectImpl
 {
 protected:
   vector<animation> mAnimations;  
+};
+
+struct pxObjectCloneProperty {
+    rtString propertyName;
+    rtValue value;
+};
+
+class pxObjectClone
+{
+public:
+    pxObjectClone();
+    virtual ~pxObjectClone();
+
+    virtual unsigned long AddRef()
+    {
+      return rtAtomicInc(&mRef);
+    }
+
+    virtual unsigned long Release()
+    {
+      unsigned long l = rtAtomicDec(&mRef);
+      if (l == 0)
+        delete this;
+      return l;
+    }
+
+    rtError getProperty(rtString propertyName, rtValue &value);
+    const vector<pxObjectCloneProperty>& getProperties();
+    rtError setProperty(rtString propertyName, rtValue value);
+    vector<rtRefT<pxObject> > getChildren();
+    rtError setChildren(vector<rtRefT<pxObject> > children);
+    rtError addChild(rtRefT<pxObject> child);
+    rtError removeChild(rtRefT<pxObject> child);
+    rtError removeAllChildren();
+    rtRefT<pxObject> getParent();
+    rtError setParent(rtRefT<pxObject> parent);
+    rtError clearProperties();
+
+private:
+    rtAtomic mRef;
+    vector<pxObjectCloneProperty> mProperties;
+    vector<rtRefT<pxObject> > mChildren;
+    rtRefT<pxObject> mParent;
 };
 
 class pxObject: public rtObject, private pxObjectImpl
@@ -187,7 +234,7 @@ public:
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mReady(), mMaskTextureRef(),
     mMaskTextureCacheObject(),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
-      , mRepaintCount(0) //TODO - remove mRepaintCount as it's only needed on certain platforms
+      , mRepaintCount(0), mClone() //TODO - remove mRepaintCount as it's only needed on certain platforms
 #ifdef PX_DIRTY_RECTANGLES
     , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
     #endif //PX_DIRTY_RECTANGLES
@@ -195,6 +242,7 @@ public:
     mScene = scene;
     mReady = new rtPromise;
     mEmit = new rtEmit;
+    createClone();
   }
 
   virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(mSnapshotRef); deleteSnapshot(mClipSnapshotRef);}
@@ -224,7 +272,7 @@ public:
     return mParent;
   }
 
-  rtError parent(rtObjectRef& v) const 
+  rtError parent(rtObjectRef& v) const
   {
     v = mParent.getPtr();
     return RT_OK;
@@ -250,50 +298,288 @@ public:
   rtError interactive(bool& v) const { v = mInteractive; return RT_OK; }
   rtError setInteractive(bool v) { mInteractive = v; return RT_OK; }
 
-  float x()             const { return mx; }
-  rtError x(float& v)   const { v = mx; return RT_OK;   }
-  rtError setX(float v)       { cancelAnimation("x"); mx = v; return RT_OK;   }
-  float y()             const { return my; }
-  rtError y(float& v)   const { v = my; return RT_OK;   }
-  rtError setY(float v)       { cancelAnimation("y"); my = v; return RT_OK;   }
-  float w()             const { return mw; }
-  rtError w(float& v)   const { v = mw; return RT_OK;   }
-  virtual rtError setW(float v)       { cancelAnimation("w"); mw = v; return RT_OK;   }
-  float h()             const { return mh; }
-  rtError h(float& v)   const { v = mh; return RT_OK;   }
-  virtual rtError setH(float v)       { cancelAnimation("h"); mh = v; return RT_OK;   }
-  float cx()            const { return mcx;}
-  rtError cx(float& v)  const { v = mcx; return RT_OK;  }
-  rtError setCX(float v)      { cancelAnimation("cx"); mcx = v; return RT_OK;  }
-  float cy()            const { return mcy;}
-  rtError cy(float& v)  const { v = mcy; return RT_OK;  }
-  rtError setCY(float v)      { cancelAnimation("cy"); mcy = v; return RT_OK;  }
-  float sx()            const { return msx;}
-  rtError sx(float& v)  const { v = msx; return RT_OK;  }
-  rtError setSX(float v)      { cancelAnimation("sx"); msx = v; return RT_OK;  }
-  float sy()            const { return msy;}
-  rtError sy(float& v)  const { v = msx; return RT_OK;  } 
-  rtError setSY(float v)      { cancelAnimation("sy"); msy = v; return RT_OK;  }
-  float a()             const { return ma; }
-  rtError a(float& v)   const { v = ma; return RT_OK;   }
-  rtError setA(float v)       { cancelAnimation("a"); ma = v; return RT_OK;   }
-  float r()             const { return mr; }
-  rtError r(float& v)   const { v = mr; return RT_OK;   }
-  rtError setR(float v)       { cancelAnimation("r"); mr = v; return RT_OK;   }
-  float rx()            const { return mrx;}
-  rtError rx(float& v)  const { v = mrx; return RT_OK;  }
-  rtError setRX(float v)      { cancelAnimation("rx"); mrx = v; return RT_OK;  }
-  float ry()            const { return mry;}
-  rtError ry(float& v)  const { v = mry; return RT_OK;  }
-  rtError setRY(float v)      { cancelAnimation("ry"); mry = v; return RT_OK;  }
-  float rz()            const { return mrz;}
-  rtError rz(float& v)  const { v = mrz; return RT_OK;  }
-  rtError setRZ(float v)      { cancelAnimation("rz"); mrz = v; return RT_OK;  }
-  bool painting()            const { return mPainting;}
-  rtError painting(bool& v)  const { v = mPainting; return RT_OK;  }
+  float x()             const {
+    rtValue value;
+    if (getCloneProperty("x", value) == RT_OK)
+    {
+      return value.toFloat();
+    }
+    return mx;
+  }
+  rtError x(float& v)   const {
+    rtValue value;
+    if (getCloneProperty("x", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = mx;
+    return RT_OK;
+  }
+  rtError setX(float v)       { cancelAnimation("x"); setCloneProperty("x",v); /*mx = v; mfnote*/ return RT_OK; }
+
+  float y()             const {
+    rtValue value;
+    if (getCloneProperty("y", value) == RT_OK)
+    {
+      return value.toFloat();
+    }
+    return my;
+  }
+  rtError y(float& v)   const {
+    rtValue value;
+    if (getCloneProperty("y", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = my;
+    return RT_OK;
+  }
+  rtError setY(float v)       { cancelAnimation("y"); setCloneProperty("y",v); /*my = v;*/ return RT_OK;   }
+
+  float w()             const {
+    rtValue value;
+    if (getCloneProperty("w", value) == RT_OK)
+    {
+      return value.toFloat();
+    }
+    return mw;
+  }
+  rtError w(float& v)   const {
+    rtValue value;
+    if (getCloneProperty("w", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = mw;
+    return RT_OK;
+  }
+  virtual rtError setW(float v)       { cancelAnimation("w"); setCloneProperty("w",v); /*mw = v;*/ return RT_OK;   }
+
+  float h()             const {
+    rtValue value;
+    if (getCloneProperty("h", value) == RT_OK)
+    {
+      return value.toFloat();
+    }
+    return mh;
+  }
+  rtError h(float& v)   const {
+    rtValue value;
+    if (getCloneProperty("h", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = mh;
+    return RT_OK;
+  }
+  virtual rtError setH(float v)       { cancelAnimation("h"); setCloneProperty("h",v); /*mh = v;*/ return RT_OK;   }
+
+  float cx()            const {
+    rtValue value;
+    if (getCloneProperty("cx", value) == RT_OK)
+    {
+      return value.toFloat();
+    }
+    return mcx;
+  }
+  rtError cx(float& v)  const {
+    rtValue value;
+    if (getCloneProperty("cx", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = mcx;
+    return RT_OK;
+  }
+  rtError setCX(float v)      { cancelAnimation("cx"); setCloneProperty("cx",v); /*mcx = v;*/ return RT_OK;  }
+
+  float cy()            const {
+    rtValue value;
+    if (getCloneProperty("cy", value) == RT_OK)
+    {
+      return value.toFloat();
+    }
+    return mcy;
+  }
+  rtError cy(float& v)  const {
+    rtValue value;
+    if (getCloneProperty("cy", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = mcy;
+    return RT_OK;
+  }
+  rtError setCY(float v)      { cancelAnimation("cy"); setCloneProperty("cy",v); /*mcy = v;*/ return RT_OK;  }
+
+  float sx()            const {
+    rtValue value;
+    if (getCloneProperty("sx", value) == RT_OK)
+    {
+      return value.toFloat();
+    }
+    return msx;
+  }
+  rtError sx(float& v)  const {
+    rtValue value;
+    if (getCloneProperty("sx", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = msx;
+    return RT_OK;
+  }
+  rtError setSX(float v)      { cancelAnimation("sx"); setCloneProperty("sx",v); /*msx = v;*/ return RT_OK;  }
+
+  float sy()            const {
+    rtValue value;
+    if (getCloneProperty("sy", value) == RT_OK)
+    {
+      return value.toFloat();
+    }
+    return msy;
+  }
+  rtError sy(float& v)  const {
+    rtValue value;
+    if (getCloneProperty("sy", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = msx;
+    return RT_OK;
+  }
+  rtError setSY(float v)      { cancelAnimation("sy"); setCloneProperty("sy",v); /*msy = v;*/ return RT_OK;  }
+
+  float a()             const {
+    rtValue value;
+    if (getCloneProperty("a", value) == RT_OK)
+    {
+      return value.toFloat();
+    }
+    return ma;
+  }
+  rtError a(float& v)   const {
+    rtValue value;
+    if (getCloneProperty("a", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = ma;
+    return RT_OK;
+  }
+  rtError setA(float v)       { cancelAnimation("a"); setCloneProperty("a",v); /*ma = v;*/ return RT_OK;   }
+
+  float r()             const {
+    rtValue value;
+    if (getCloneProperty("r", value) == RT_OK)
+    {
+      return value.toFloat();
+    }
+    return mr;
+  }
+  rtError r(float& v)   const {
+    rtValue value;
+    if (getCloneProperty("r", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = mr;
+    return RT_OK;
+  }
+  rtError setR(float v)       { cancelAnimation("r"); setCloneProperty("r",v); /*mr = v;*/ return RT_OK;   }
+
+  float rx()            const {
+    rtValue value;
+    if (getCloneProperty("rx", value) == RT_OK)
+    {
+      return value.toFloat();
+    }
+    return mrx;
+  }
+  rtError rx(float& v)  const {
+    rtValue value;
+    if (getCloneProperty("rx", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = mrx;
+    return RT_OK;
+  }
+  rtError setRX(float v)      { cancelAnimation("rx"); setCloneProperty("rx",v); /*mrx = v;*/ return RT_OK;  }
+
+  float ry()            const {
+    rtValue value;
+    if (getCloneProperty("ry", value) == RT_OK)
+    {
+      return value.toFloat();
+    }
+    return mry;
+  }
+  rtError ry(float& v)  const {
+    rtValue value;
+    if (getCloneProperty("ry", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = mry;
+    return RT_OK;
+  }
+  rtError setRY(float v)      { cancelAnimation("ry"); setCloneProperty("ry",v); /*mry = v;*/ return RT_OK;  }
+
+  float rz()            const {
+    rtValue value;
+    if (getCloneProperty("rz", value) == RT_OK)
+    {
+      return value.toFloat();
+    }
+    return mrz;
+  }
+  rtError rz(float& v)  const {
+    rtValue value;
+    if (getCloneProperty("rz", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = mrz;
+    return RT_OK;
+  }
+  rtError setRZ(float v)      { cancelAnimation("rz"); setCloneProperty("rz",v); /*mrz = v;*/ return RT_OK;  }
+
+  bool painting()            const {
+    rtValue value;
+    if (getCloneProperty("painting", value) == RT_OK)
+    {
+      return value.toBool();
+    }
+    return mPainting;
+  }
+  rtError painting(bool& v)  const {
+    rtValue value;
+    if (getCloneProperty("painting", value) == RT_OK)
+    {
+      v = value.toBool();
+      return RT_OK;
+    }
+    v = mPainting;
+    return RT_OK;
+  }
   rtError setPainting(bool v)
-  { 
-      mPainting = v; 
+  {
+    setCloneProperty("painting",v);
+     /* mPainting = v;
       if (!mPainting)
       {
         mSnapshotRef = createSnapshot(mSnapshotRef);
@@ -301,29 +587,109 @@ public:
       else
       {
           deleteSnapshot(mSnapshotRef);
-      }
+      }*/
       return RT_OK;
   }
 
-  bool clip()            const { return mClip;}
-  rtError clip(bool& v)  const { v = mClip; return RT_OK;  }
-  virtual rtError setClip(bool v) { mClip = v; return RT_OK; }
+  bool clip()            const {
+    rtValue value;
+    if (getCloneProperty("clip", value) == RT_OK)
+    {
+      return value.toBool();
+    }
+    return mClip;
+  }
+  rtError clip(bool& v)  const {
+    rtValue value;
+    if (getCloneProperty("clip", value) == RT_OK)
+    {
+      v = value.toBool();
+      return RT_OK;
+    }
+    v = mClip;
+    return RT_OK;
+  }
+  rtError setClip(bool v) { setCloneProperty("clip",v); /*mClip = v;*/ return RT_OK; }
   
-  rtString mask()            const { return mMaskUrl;}
-  rtError mask(rtString& v)  const { v = mMaskUrl; return RT_OK;  }
-  rtError setMask(rtString v) { mMaskUrl = v; createMask(); return RT_OK; }
+  rtString mask()            const {
+    rtValue value;
+    if (getCloneProperty("mask", value) == RT_OK)
+    {
+      return value.toString();
+    }
+    return mMaskUrl;
+  }
+  rtError mask(rtString& v)  const {
+    rtValue value;
+    if (getCloneProperty("mask", value) == RT_OK)
+    {
+      v = value.toString();
+      return RT_OK;
+    }
+    v = mMaskUrl;
+    return RT_OK;
+  }
+  rtError setMask(rtString v) { setCloneProperty("mask",v); /*mMaskUrl = v; createMask();*/ return RT_OK; }
 
-  bool drawAsMask()            const { return mDrawAsMask;}
-  rtError drawAsMask(bool& v)  const { v = mDrawAsMask; return RT_OK;  }
-  rtError setDrawAsMask(bool v) { mDrawAsMask = v; return RT_OK; }
+  bool drawAsMask()            const {
+    rtValue value;
+    if (getCloneProperty("drawAsMask", value) == RT_OK)
+    {
+      return value.toBool();
+    }
+    return mDrawAsMask;
+  }
+  rtError drawAsMask(bool& v)  const {
+    rtValue value;
+    if (getCloneProperty("drawAsMask", value) == RT_OK)
+    {
+      v = value.toBool();
+      return RT_OK;
+    }
+    v = mDrawAsMask;
+    return RT_OK;
+  }
+  rtError setDrawAsMask(bool v) { setCloneProperty("drawAsMask",v); /*mDrawAsMask = v;*/ return RT_OK; }
 
-  bool drawEnabled()            const { return mDraw;}
-  rtError drawEnabled(bool& v)  const { v = mDraw; return RT_OK;  }
-  rtError setDrawEnabled(bool v) { mDraw = v; return RT_OK; }
+  bool drawEnabled()            const {
+    rtValue value;
+    if (getCloneProperty("draw", value) == RT_OK)
+    {
+      return value.toBool();
+    }
+    return mDraw;
+  }
+  rtError drawEnabled(bool& v)  const {
+    rtValue value;
+    if (getCloneProperty("draw", value) == RT_OK)
+    {
+      v = value.toBool();
+      return RT_OK;
+    }
+    v = mDraw;
+    return RT_OK;
+  }
+  rtError setDrawEnabled(bool v) { setCloneProperty("draw",v); /*mDraw = v;*/ return RT_OK; }
 
-  bool drawAsHitTest()            const { return mDrawAsHitTest;}
-  rtError drawAsHitTest(bool& v)  const { v = mDrawAsHitTest; return RT_OK;  }
-  rtError setDrawAsHitTest(bool v) { mDrawAsHitTest = v; return RT_OK; }
+  bool drawAsHitTest()            const {
+    rtValue value;
+    if (getCloneProperty("drawAsHitTest", value) == RT_OK)
+    {
+      return value.toBool();
+    }
+    return mDrawAsHitTest;
+  }
+  rtError drawAsHitTest(bool& v)  const {
+    rtValue value;
+    if (getCloneProperty("drawAsHitTest", value) == RT_OK)
+    {
+      v = value.toBool();
+      return RT_OK;
+    }
+    v = mDrawAsHitTest;
+    return RT_OK;
+  }
+  rtError setDrawAsHitTest(bool v) { setCloneProperty("drawAsHitTest",v); /*mDrawAsHitTest = v;*/ return RT_OK; }
 
   rtError ready(rtObjectRef& v) const
   {
@@ -560,41 +926,50 @@ public:
 
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
 
-  rtError m11(float& v) const { v = mMatrix.constData(0); return RT_OK; }
-  rtError m12(float& v) const { v = mMatrix.constData(1); return RT_OK; }
-  rtError m13(float& v) const { v = mMatrix.constData(2); return RT_OK; }
-  rtError m14(float& v) const { v = mMatrix.constData(3); return RT_OK; }
-  rtError m21(float& v) const { v = mMatrix.constData(4); return RT_OK; }
-  rtError m22(float& v) const { v = mMatrix.constData(5); return RT_OK; }
-  rtError m23(float& v) const { v = mMatrix.constData(6); return RT_OK; }
-  rtError m24(float& v) const { v = mMatrix.constData(7); return RT_OK; }
-  rtError m31(float& v) const { v = mMatrix.constData(8); return RT_OK; }
-  rtError m32(float& v) const { v = mMatrix.constData(9); return RT_OK; }
-  rtError m33(float& v) const { v = mMatrix.constData(10); return RT_OK; }
-  rtError m34(float& v) const { v = mMatrix.constData(11); return RT_OK; }
-  rtError m41(float& v) const { v = mMatrix.constData(12); return RT_OK; }
-  rtError m42(float& v) const { v = mMatrix.constData(13); return RT_OK; }
-  rtError m43(float& v) const { v = mMatrix.constData(14); return RT_OK; }
-  rtError m44(float& v) const { v = mMatrix.constData(15); return RT_OK; }
+  rtError m11(float& v) const {rtValue value;if (getCloneProperty("m11", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(0);return RT_OK; }
+  rtError m12(float& v) const {rtValue value;if (getCloneProperty("m12", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(1); return RT_OK; }
+  rtError m13(float& v) const {rtValue value;if (getCloneProperty("m13", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(2); return RT_OK; }
+  rtError m14(float& v) const {rtValue value;if (getCloneProperty("m14", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(3); return RT_OK; }
+  rtError m21(float& v) const {rtValue value;if (getCloneProperty("m21", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(4); return RT_OK; }
+  rtError m22(float& v) const {rtValue value;if (getCloneProperty("m22", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(5); return RT_OK; }
+  rtError m23(float& v) const {rtValue value;if (getCloneProperty("m23", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(6); return RT_OK; }
+  rtError m24(float& v) const {rtValue value;if (getCloneProperty("m23", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(7); return RT_OK; }
+  rtError m31(float& v) const {rtValue value;if (getCloneProperty("m31", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(8); return RT_OK; }
+  rtError m32(float& v) const {rtValue value;if (getCloneProperty("m32", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(9); return RT_OK; }
+  rtError m33(float& v) const {rtValue value;if (getCloneProperty("m33", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(10); return RT_OK; }
+  rtError m34(float& v) const {rtValue value;if (getCloneProperty("m34", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(11); return RT_OK; }
+  rtError m41(float& v) const {rtValue value;if (getCloneProperty("m41", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(12); return RT_OK; }
+  rtError m42(float& v) const {rtValue value;if (getCloneProperty("m42", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(13); return RT_OK; }
+  rtError m43(float& v) const {rtValue value;if (getCloneProperty("m43", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(14); return RT_OK; }
+  rtError m44(float& v) const {rtValue value;if (getCloneProperty("m44", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(15); return RT_OK; }
 
-  rtError setM11(const float& v) { cancelAnimation("m11",true); mMatrix.data()[0] = v; return RT_OK; }
-  rtError setM12(const float& v) { cancelAnimation("m12",true); mMatrix.data()[1] = v; return RT_OK; }
-  rtError setM13(const float& v) { cancelAnimation("m13",true); mMatrix.data()[2] = v; return RT_OK; }
-  rtError setM14(const float& v) { cancelAnimation("m14",true); mMatrix.data()[3] = v; return RT_OK; }
-  rtError setM21(const float& v) { cancelAnimation("m21",true); mMatrix.data()[4] = v; return RT_OK; }
-  rtError setM22(const float& v) { cancelAnimation("m22",true); mMatrix.data()[5] = v; return RT_OK; }
-  rtError setM23(const float& v) { cancelAnimation("m23",true); mMatrix.data()[6] = v; return RT_OK; }
-  rtError setM24(const float& v) { cancelAnimation("m24",true); mMatrix.data()[7] = v; return RT_OK; }
-  rtError setM31(const float& v) { cancelAnimation("m31",true); mMatrix.data()[8] = v; return RT_OK; }
-  rtError setM32(const float& v) { cancelAnimation("m32",true); mMatrix.data()[9] = v; return RT_OK; }
-  rtError setM33(const float& v) { cancelAnimation("m33",true); mMatrix.data()[10] = v; return RT_OK; }
-  rtError setM34(const float& v) { cancelAnimation("m34",true); mMatrix.data()[11] = v; return RT_OK; }
-  rtError setM41(const float& v) { cancelAnimation("m41",true); mMatrix.data()[12] = v; return RT_OK; }
-  rtError setM42(const float& v) { cancelAnimation("m42",true); mMatrix.data()[13] = v; return RT_OK; }
-  rtError setM43(const float& v) { cancelAnimation("m43",true); mMatrix.data()[14] = v; return RT_OK; }
-  rtError setM44(const float& v) { cancelAnimation("m44",true); mMatrix.data()[15] = v; return RT_OK; }
+  rtError setM11(const float& v) { cancelAnimation("m11",true); setCloneProperty("m11",v); /*mMatrix.data()[0] = v;*/ return RT_OK; }
+  rtError setM12(const float& v) { cancelAnimation("m12",true); setCloneProperty("m12",v); /*mMatrix.data()[1] = v;*/ return RT_OK; }
+  rtError setM13(const float& v) { cancelAnimation("m13",true); setCloneProperty("m13",v); /*mMatrix.data()[2] = v;*/ return RT_OK; }
+  rtError setM14(const float& v) { cancelAnimation("m14",true); setCloneProperty("m14",v); /*mMatrix.data()[3] = v;*/ return RT_OK; }
+  rtError setM21(const float& v) { cancelAnimation("m21",true); setCloneProperty("m21",v); /*mMatrix.data()[4] = v;*/ return RT_OK; }
+  rtError setM22(const float& v) { cancelAnimation("m22",true); setCloneProperty("m22",v); /*mMatrix.data()[5] = v;*/ return RT_OK; }
+  rtError setM23(const float& v) { cancelAnimation("m23",true); setCloneProperty("m23",v); /*mMatrix.data()[6] = v;*/ return RT_OK; }
+  rtError setM24(const float& v) { cancelAnimation("m24",true); setCloneProperty("m24",v); /*mMatrix.data()[7] = v;*/ return RT_OK; }
+  rtError setM31(const float& v) { cancelAnimation("m31",true); setCloneProperty("m31",v); /* mMatrix.data()[8] = v;*/ return RT_OK; }
+  rtError setM32(const float& v) { cancelAnimation("m32",true); setCloneProperty("m32",v); /*mMatrix.data()[9] = v;*/ return RT_OK; }
+  rtError setM33(const float& v) { cancelAnimation("m33",true); setCloneProperty("m33",v); /*mMatrix.data()[10] = v;*/ return RT_OK; }
+  rtError setM34(const float& v) { cancelAnimation("m34",true); setCloneProperty("m34",v); /*mMatrix.data()[11] = v;*/ return RT_OK; }
+  rtError setM41(const float& v) { cancelAnimation("m41",true); setCloneProperty("m41",v); /*mMatrix.data()[12] = v;*/ return RT_OK; }
+  rtError setM42(const float& v) { cancelAnimation("m42",true); setCloneProperty("m42",v); /*mMatrix.data()[13] = v;*/ return RT_OK; }
+  rtError setM43(const float& v) { cancelAnimation("m43",true); setCloneProperty("m43",v); /*mMatrix.data()[14] = v;*/ return RT_OK; }
+  rtError setM44(const float& v) { cancelAnimation("m44",true); setCloneProperty("m44",v); /*mMatrix.data()[15] = v;*/ return RT_OK; }
 
-  rtError useMatrix(bool& v) const { v = mUseMatrix; return RT_OK; }
+  rtError useMatrix(bool& v) const {
+    rtValue value;
+    if (getCloneProperty("useMatrix", value) == RT_OK)
+    {
+      v = value.toBool();
+      return RT_OK;
+    }
+    v = mUseMatrix;
+    return RT_OK;
+  }
   rtError setUseMatrix(const bool& v) { mUseMatrix = v; return RT_OK; }
 
   void repaint() { mRepaint = true; mRepaintCount = 0; }
@@ -626,6 +1001,7 @@ protected:
   bool mUseMatrix;
   bool mRepaint;
   int mRepaintCount;
+  pxObjectCloneRef mClone;
   #ifdef PX_DIRTY_RECTANGLES
   bool mIsDirty;
   pxMatrix4f mLastRenderMatrix;
@@ -637,6 +1013,12 @@ protected:
   void deleteSnapshot(pxContextFramebufferRef fbo);
   void createMask();
   void deleteMask();
+  virtual void commitClone();
+  void createClone();
+  void deleteClone();
+  rtError getCloneProperty(rtString propertyName, rtValue& value) const;
+  rtError setCloneProperty(rtString propertyName, rtValue value);
+  bool hasClone() const;
   #ifdef PX_DIRTY_RECTANGLES
   pxRect getBoundingRectInScreenCoordinates();
   #endif //PX_DIRTY_RECTANGLES
@@ -689,7 +1071,11 @@ public:
     mView = v;
     if (mView)
     {
-      mView->onSize(mw,mh);
+      float width = 0;
+      float height = 0;
+      w(width);
+      h(height);
+      mView->onSize(width,height);
       mView->setViewContainer(this);
     }
     return RT_OK;
@@ -702,21 +1088,54 @@ public:
   rtError setURI(rtString v) { mURI = v; return RT_OK; }
 #endif
 
-  rtError w(float& v) const { v = mw; return RT_OK; }
+  rtError w(float& v) const {
+    rtValue value;
+    if (getCloneProperty("w", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = mw;
+    return RT_OK;
+  }
   rtError setW(float v) 
-  { 
-    mw = v; 
+  {
+    setCloneProperty("w",v);
+    //mw = v;
     if (mView)
-      mView->onSize(mw,mh); 
+    {
+      float width = 0;
+      float height = 0;
+      w(width);
+      h(height);
+      mView->onSize(width, height);
+    }
+
     return RT_OK; 
   }
   
-  rtError h(float& v) const { v = mh; return RT_OK; }
+  rtError h(float& v) const {
+    rtValue value;
+    if (getCloneProperty("h", value) == RT_OK)
+    {
+      v = value.toFloat();
+      return RT_OK;
+    }
+    v = mh;
+    return RT_OK;
+  }
   rtError setH(float v) 
-  { 
-    mh = v; 
+  {
+    setCloneProperty("h",v);
+    //mh = v;
     if (mView)
-      mView->onSize(mw,mh); 
+    {
+      float width = 0;
+      float height = 0;
+      w(width);
+      h(height);
+      mView->onSize(width, height);
+    }
     return RT_OK; 
   }
 
@@ -831,6 +1250,8 @@ public:
       mView->onDraw();
   }
 
+  virtual void commitClone();
+
   
 
 protected:
@@ -848,7 +1269,17 @@ public:
   
 pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
 
-  rtError uri(rtString& v) const { v = mURI; return RT_OK; }
+  rtError uri(rtString& v) const {
+    //mfnote: todo
+    /*rtValue value;
+    if (getCloneProperty("uri", value) == RT_OK)
+    {
+      v = value.toString();
+      return RT_OK;
+    }*/
+    v = mURI;
+    return RT_OK;
+  }
   rtError setURI(rtString v);
 
   rtError api(rtValue& v) const;
@@ -1086,6 +1517,5 @@ class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t i, const rtValue* value);
 };
-
 
 #endif

@@ -32,29 +32,57 @@ public:
   rtError url(rtString& s) const;
   rtError setURL(const char* s);
   
-  rtError xStretch(int32_t& v) const { v = (int32_t)mXStretch; return RT_OK; }
+  rtError xStretch(int32_t& v) const {
+
+    rtValue value;
+    if (getCloneProperty("xStretch", value) == RT_OK)
+    {
+      v = value.toInt32();
+      return RT_OK;
+    }
+    v = (int32_t)mXStretch;
+    return RT_OK;
+  }
   rtError setXStretch(int32_t v)
   {
-    mXStretch = (pxStretch)v;
+    setCloneProperty("xStretch",v);
+    /*mXStretch = (pxStretch)v;*/
     return RT_OK;
   }
 
-  rtError yStretch(int32_t& v) const { v = (int32_t)mYStretch; return RT_OK; }
+  rtError yStretch(int32_t& v) const {
+    rtValue value;
+    if (getCloneProperty("yStretch", value) == RT_OK)
+    {
+      v = value.toInt32();
+      return RT_OK;
+    }
+    v = (int32_t)mYStretch;
+    return RT_OK;
+  }
   rtError setYStretch(int32_t v)
   {
-    mYStretch = (pxStretch)v;
+    setCloneProperty("yStretch",v);
+    /*mYStretch = (pxStretch)v;*/
     return RT_OK;
   }
 
   rtError autoSize(bool& v) const
   {
+    rtValue value;
+    if (getCloneProperty("autoSize", value) == RT_OK)
+    {
+      v = value.toBool();
+      return RT_OK;
+    }
     v = mAutoSize;
     return RT_OK;
   }
 
   rtError setAutoSize(bool v)
   {
-    mAutoSize = v;
+    setCloneProperty("autoSize",v);
+    /*mAutoSize = v;*/
     return RT_OK;
   }
 
@@ -76,6 +104,7 @@ public:
   }
 
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
+  virtual void commitClone();
   
 protected:
   virtual void draw();

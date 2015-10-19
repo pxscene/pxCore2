@@ -28,10 +28,11 @@ public:
   }
 
   rtError setFillColor(uint32_t c) {
-    mFillColor[0] = (float)((c>>24)&0xff)/255.0f;
+    setCloneProperty("fillColor",c);
+    /*mFillColor[0] = (float)((c>>24)&0xff)/255.0f;
     mFillColor[1] = (float)((c>>16)&0xff)/255.0f;
     mFillColor[2] = (float)((c>>8)&0xff)/255.0f;
-    mFillColor[3] = (float)((c>>0)&0xff)/255.0f;
+    mFillColor[3] = (float)((c>>0)&0xff)/255.0f;*/
     return RT_OK;
   }
 
@@ -41,20 +42,28 @@ public:
   }
 
   rtError setLineColor(uint32_t c) {
-    mLineColor[0] = (float)((c>>24)&0xff)/255.0f;
+    setCloneProperty("lineColor",c);
+    /*mLineColor[0] = (float)((c>>24)&0xff)/255.0f;
     mLineColor[1] = (float)((c>>16)&0xff)/255.0f;
     mLineColor[2] = (float)((c>>8)&0xff)/255.0f;
-    mLineColor[3] = (float)((c>>0)&0xff)/255.0f;
+    mLineColor[3] = (float)((c>>0)&0xff)/255.0f;*/
     return RT_OK;
   }
 
   rtError lineWidth(float& w) const {
+    rtValue value;
+    if (getCloneProperty("lineWidth", value) == RT_OK)
+    {
+      w = value.toFloat();
+      return RT_OK;
+    }
     w = mLineWidth;
     return RT_OK;
   }
   
   rtError setLineWidth(float w) {
-    mLineWidth = w;
+    setCloneProperty("lineWidth",w);
+    /*mLineWidth = w;*/
     return RT_OK;
   }
 
@@ -75,6 +84,7 @@ public:
   }
   
   virtual void draw();
+  virtual void commitClone();
   
 private:
   float mFillColor[4];

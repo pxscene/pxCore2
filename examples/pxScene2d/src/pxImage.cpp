@@ -30,16 +30,34 @@ void pxImage::onInit()
   setURL(mURL);
 }
 
-rtError pxImage::url(rtString& s) const { s = mURL; return RT_OK; }
+rtError pxImage::url(rtString& s) const {
+  rtValue value;
+  if (getCloneProperty("url", value) == RT_OK)
+  {
+    s = value.toString();
+    return RT_OK;
+  }
+  s = mURL;
+  return RT_OK;
+}
+
 rtError pxImage::setURL(const char* s) 
-{ 
-  mURL = s;
+{
+  rtString str(s);
+  if (str.length() > 0)
+  {
+    setCloneProperty("url", str);
+    printf("setting url: %s\n", str.cString());
+  }
+
+  /*mURL = s;
   if (!s || !u8_strlen((char*)s)) 
     return RT_OK;
   if (mInitialized)
     loadImage(mURL);
   else
-    rtLogDebug("Deferring image load until pxImage is initialized.");
+    rtLogDebug("Deferring image load until pxImage is initialized.");*/
+
   return RT_OK;
 }
 
@@ -89,6 +107,41 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
   }
   mReady.send("reject",this);
   return false;
+}
+
+void pxImage::commitClone()
+{
+  const vector<pxObjectCloneProperty>& properties = mClone->getProperties();
+  for(vector<pxObjectCloneProperty>::const_iterator it = properties.begin();
+      it != properties.end(); ++it)
+  {
+    if ((it)->propertyName == "url")
+    {
+      mURL = (it)->value.toString();
+      if (mURL.length() > 0)
+      {
+        if (mInitialized)
+        {
+          loadImage(mURL);
+        }
+        else
+          rtLogDebug("Deferring image load until pxImage is initialized.");
+      }
+    }
+    else if ((it)->propertyName == "xStretch")
+    {
+      mXStretch = (pxStretch)(it)->value.toInt32();
+    }
+    else if ((it)->propertyName == "yStretch")
+    {
+      mYStretch = (pxStretch)(it)->value.toInt32();
+    }
+    else if ((it)->propertyName == "autoSize")
+    {
+      mAutoSize = (it)->value.toBool();
+    }
+  }
+  pxObject::commitClone();
 }
 
 rtDefineObject(pxImage,pxObject);

@@ -127,22 +127,24 @@ void pxText2::setNeedsRecalc(bool recalc)
  **/
 rtError pxText2::setText(const char* s) { 
   //printf("pxText2::setText %s\n",s);
-  mText = s; 
-  setNeedsRecalc(true); 
+  rtString str(s);
+  setCloneProperty("text",str);
+  /*mText = s;
+  setNeedsRecalc(true); */
   return RT_OK; 
 }
 
 rtError pxText2::setPixelSize(uint32_t v) 
-{   
-  mPixelSize = v; 
-  setNeedsRecalc(true); 
+{
+  setCloneProperty("pixelSize",v);
+  /*mPixelSize = v;
+  setNeedsRecalc(true); */
   return RT_OK; 
 }
 rtError pxText2::setFaceURL(const char* s)
 {
-  //printf("pxText2::setFaceURL \"%s\"\n",s);
-  mFontLoaded = false;
-  setNeedsRecalc(true);
+  /*mFontLoaded = false;
+  setCloneProperty setNeedsRecalc(true);*/
   return pxText::setFaceURL(s);
 }
 
@@ -1300,6 +1302,84 @@ rtError pxText2::measureText(rtObjectRef& o) {
   
 	return RT_OK;
 }
+
+void pxText2::commitClone()
+{
+  const vector<pxObjectCloneProperty>& properties = mClone->getProperties();
+  for(vector<pxObjectCloneProperty>::const_iterator it = properties.begin();
+      it != properties.end(); ++it)
+  {
+    if ((it)->propertyName == "text")
+    {
+      mText = (it)->value.toString();
+      setNeedsRecalc(true);
+    }
+    else if ((it)->propertyName == "pixelSize")
+    {
+      mPixelSize = (it)->value.toInt32();
+      setNeedsRecalc(true);
+    }
+    else if ((it)->propertyName == "faceUrl")
+    {
+      mFontLoaded = false;
+      setNeedsRecalc(true);
+    }
+    else if ((it)->propertyName == "wordWrap")
+    {
+      mWordWrap = (it)->value.toBool();
+      setNeedsRecalc(true);
+    }
+    else if ((it)->propertyName == "ellipsis")
+    {
+      mEllipsis = (it)->value.toBool();
+      setNeedsRecalc(true);
+    }
+    else if ((it)->propertyName == "xStartPos")
+    {
+      mXStartPos = (it)->value.toFloat();
+      setNeedsRecalc(true);
+    }
+    else if ((it)->propertyName == "xStopPos")
+    {
+      mXStopPos = (it)->value.toFloat();
+      setNeedsRecalc(true);
+    }
+    else if ((it)->propertyName == "truncation")
+    {
+      mTruncation = (it)->value.toInt32();
+      setNeedsRecalc(true);
+    }
+    else if ((it)->propertyName == "verticalAlign")
+    {
+      mVerticalAlign = (it)->value.toInt8();
+      setNeedsRecalc(true);
+    }
+    else if ((it)->propertyName == "horizontalAlign")
+    {
+      mHorizontalAlign = (it)->value.toInt8();
+      setNeedsRecalc(true);
+    }
+    else if ((it)->propertyName == "leading")
+    {
+      mLeading = (it)->value.toFloat();
+      setNeedsRecalc(true);
+    }
+    else if ((it)->propertyName == "w")
+    {
+      setNeedsRecalc(true);
+    }
+    else if ((it)->propertyName == "h")
+    {
+      setNeedsRecalc(true);
+    }
+    else if ((it)->propertyName == "clip")
+    {
+      setNeedsRecalc(true);
+    }
+  }
+  pxText::commitClone();
+}
+
 // pxTextMetrics
 rtDefineObject(pxTextMetrics, pxObject);
 rtDefineProperty(pxTextMetrics, height); 

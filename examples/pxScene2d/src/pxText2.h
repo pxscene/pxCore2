@@ -294,50 +294,51 @@ public:
   rtProperty(horizontalAlign, horizontalAlign, setHorizontalAlign, uint32_t);
   rtProperty(leading, leading, setLeading, float); 	
   
-  bool wordWrap()            const { return mWordWrap;}
-  rtError wordWrap(bool& v)  const { v = mWordWrap; return RT_OK;  }
-  rtError setWordWrap(bool v) { mWordWrap = v; setNeedsRecalc(true); return RT_OK; }
+  bool wordWrap()            const {rtValue value;if (getCloneProperty("wordWrap", value) == RT_OK){ return value.toBool();} return mWordWrap;}
+  rtError wordWrap(bool& v)  const {rtValue value;if (getCloneProperty("wordWrap", value) == RT_OK){v = value.toBool();return RT_OK;} v = mWordWrap; return RT_OK;  }
+  rtError setWordWrap(bool v) { setCloneProperty("wordWrap",v); /*mWordWrap = v; setNeedsRecalc(true);*/ return RT_OK; }
   
-  bool ellipsis()            const { return mEllipsis;}
-  rtError ellipsis(bool& v)  const { v = mEllipsis; return RT_OK;  }
-  rtError setEllipsis(bool v) { mEllipsis = v; setNeedsRecalc(true); return RT_OK; }
+  bool ellipsis()            const {rtValue value;if (getCloneProperty("ellipsis", value) == RT_OK){ return value.toBool();} return mEllipsis;}
+  rtError ellipsis(bool& v)  const {rtValue value;if (getCloneProperty("ellipsis", value) == RT_OK){v = value.toBool();return RT_OK;} v = mEllipsis; return RT_OK;  }
+  rtError setEllipsis(bool v) { setCloneProperty("ellipsis",v); /*mEllipsis = v; setNeedsRecalc(true);*/ return RT_OK; }
   
-  float xStartPos()             const { return mXStartPos; }
-  rtError xStartPos(float& v)   const { v = mXStartPos; return RT_OK;   }
-  rtError setXStartPos(float v) { mXStartPos = v; setNeedsRecalc(true); return RT_OK; }
+  float xStartPos()             const { rtValue value;if (getCloneProperty("xStartPos", value) == RT_OK){ return value.toFloat();}return mXStartPos; }
+  rtError xStartPos(float& v)   const { rtValue value;if (getCloneProperty("xStartPos", value) == RT_OK){v = value.toFloat();return RT_OK;}v = mXStartPos; return RT_OK;   }
+  rtError setXStartPos(float v) { setCloneProperty("xStartPos",v); /*mXStartPos = v; setNeedsRecalc(true);*/ return RT_OK; }
   
-  float xStopPos()             const { return mXStopPos; }
-  rtError xStopPos(float& v)   const { v = mXStopPos; return RT_OK;   }
-  rtError setXStopPos(float v) { mXStopPos = v; setNeedsRecalc(true); return RT_OK; }
+  float xStopPos()             const { rtValue value;if (getCloneProperty("xStopPos", value) == RT_OK){ return value.toFloat();}return mXStopPos; }
+  rtError xStopPos(float& v)   const {rtValue value;if (getCloneProperty("xStopPos", value) == RT_OK){v = value.toFloat();return RT_OK;} v = mXStopPos; return RT_OK;   }
+  rtError setXStopPos(float v) { setCloneProperty("xStopPos",v); /*mXStopPos = v; setNeedsRecalc(true);*/ return RT_OK; }
     
-  uint32_t truncation()             const { return mTruncation; }
-  rtError truncation(uint32_t& v)   const { v = mTruncation; return RT_OK;   }
-  rtError setTruncation(uint32_t v)       { mTruncation = v; setNeedsRecalc(true); return RT_OK;   }
+  uint32_t truncation()             const { rtValue value;if (getCloneProperty("truncation", value) == RT_OK){ return value.toInt32();}return mTruncation; }
+  rtError truncation(uint32_t& v)   const {rtValue value;if (getCloneProperty("truncation", value) == RT_OK){v = value.toInt32();return RT_OK;} v = mTruncation; return RT_OK;   }
+  rtError setTruncation(uint32_t v)       { setCloneProperty("truncation",v); /*mTruncation = v; setNeedsRecalc(true);*/ return RT_OK;   }
 
-  uint8_t verticalAlign()             const { return mVerticalAlign; }
-  rtError verticalAlign(uint32_t& v)   const { v = mVerticalAlign; return RT_OK;   }
-  rtError setVerticalAlign(uint32_t v)       { mVerticalAlign = v;  setNeedsRecalc(true); return RT_OK;   }
+  uint8_t verticalAlign()             const { rtValue value;if (getCloneProperty("verticalAlign", value) == RT_OK){ return value.toInt8();}return mVerticalAlign; }
+  rtError verticalAlign(uint32_t& v)   const {rtValue value;if (getCloneProperty("verticalAlign", value) == RT_OK){v = value.toInt8();return RT_OK;} v = mVerticalAlign; return RT_OK;   }
+  rtError setVerticalAlign(uint32_t v)       { setCloneProperty("verticalAlign",v); /*mVerticalAlign = v;  setNeedsRecalc(true);*/ return RT_OK;   }
   
-  uint8_t horizontalAlign()             const { return mHorizontalAlign; }
-  rtError horizontalAlign(uint32_t& v)   const { v = mHorizontalAlign; return RT_OK;   }
-  rtError setHorizontalAlign(uint32_t v)       { mHorizontalAlign = v;  setNeedsRecalc(true); return RT_OK;   }
+  uint8_t horizontalAlign()             const { rtValue value;if (getCloneProperty("horizontalAlign", value) == RT_OK){ return value.toInt8();}return mHorizontalAlign; }
+  rtError horizontalAlign(uint32_t& v)   const {rtValue value;if (getCloneProperty("horizontalAlign", value) == RT_OK){v = value.toInt8();return RT_OK;} v = mHorizontalAlign; return RT_OK;   }
+  rtError setHorizontalAlign(uint32_t v)       { setCloneProperty("horizontalAlign",v); /*mHorizontalAlign = v;  setNeedsRecalc(true);*/ return RT_OK;   }
   
-  float leading()             const { return mLeading; }
-  rtError leading(float& v)   const { v = mLeading; return RT_OK;   }
-  rtError setLeading(float v)       { mLeading = v;  setNeedsRecalc(true); return RT_OK;   }  
+  float leading()             const { rtValue value;if (getCloneProperty("leading", value) == RT_OK){ return value.toFloat();}return mLeading; }
+  rtError leading(float& v)   const {rtValue value;if (getCloneProperty("leading", value) == RT_OK){v = value.toFloat();return RT_OK;} v = mLeading; return RT_OK;   }
+  rtError setLeading(float v)       { setCloneProperty("leading",v); /*mLeading = v;  setNeedsRecalc(true);*/ return RT_OK;   }
   
   virtual rtError setText(const char* s); 
   virtual rtError setPixelSize(uint32_t v);
   virtual rtError setFaceURL(const char* s);
-  virtual rtError setW(float v)       { setNeedsRecalc(true); return pxObject::setW(v);   }
-  virtual rtError setH(float v)       { setNeedsRecalc(true); return pxObject::setH(v);   }  
-  virtual rtError setClip(bool v) { mClip = v; setNeedsRecalc(true); return RT_OK; }
+  virtual rtError setW(float v)       { /*setCloneProperty setNeedsRecalc(true);*/ return pxObject::setW(v);   }
+  virtual rtError setH(float v)       { /*setCloneProperty setNeedsRecalc(true);*/ return pxObject::setH(v);   }
+  virtual rtError setClip(bool v) { setCloneProperty("clip",v);/*mClip = v; setNeedsRecalc(true);*/ return RT_OK; }
   void renderText(bool render);
   virtual void fontLoaded();
   void determineMeasurementBounds();
   virtual void draw();
   virtual void onInit();
   virtual void update(double t);
+  virtual void commitClone();
 
  
   rtMethodNoArgAndReturn("getFontMetrics", getFontMetrics, rtObjectRef);

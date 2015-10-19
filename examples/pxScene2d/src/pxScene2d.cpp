@@ -540,6 +540,8 @@ void pxObject::update(double t)
   {
     (*it)->update(t);
   }
+
+  commitClone();
 }
 
 #ifdef PX_DIRTY_RECTANGLES
@@ -909,6 +911,206 @@ void pxObject::deleteMask()
   {
     mMaskTextureRef->deleteTexture();
   }
+}
+
+void pxObject::commitClone()
+{
+  const vector<pxObjectCloneProperty>& properties = mClone->getProperties();
+  for(vector<pxObjectCloneProperty>::const_iterator it = properties.begin();
+      it != properties.end(); ++it)
+  {
+    if ((it)->propertyName == "x")
+    {
+      mx = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "y")
+    {
+      my = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "w")
+    {
+      mw = (it)->value.toFloat();
+      //printf("returning a width of: %f\n", mw);
+    }
+    else if ((it)->propertyName == "h")
+    {
+      mh = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "cx")
+    {
+      mcx = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "cy")
+    {
+      mcy = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "sx")
+    {
+      msx = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "sy")
+    {
+      msy = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "a")
+    {
+      ma = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "r")
+    {
+      mr = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "rx")
+    {
+      mrx = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "ry")
+    {
+      mry = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "rz")
+    {
+      mrz = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "painting")
+    {
+      mPainting = (it)->value.toBool();
+      if (!mPainting)
+      {
+        mSnapshotRef = createSnapshot(mSnapshotRef);
+      }
+      else
+      {
+        deleteSnapshot(mSnapshotRef);
+      }
+    }
+    else if ((it)->propertyName == "clip")
+    {
+      mClip = (it)->value.toBool();
+    }
+    else if ((it)->propertyName == "mask")
+    {
+      mMaskUrl = (it)->value.toString();
+      createMask();
+    }
+    else if ((it)->propertyName == "drawAsMask")
+    {
+      mDrawAsMask = (it)->value.toBool();
+    }
+    else if ((it)->propertyName == "draw")
+    {
+      mDraw = (it)->value.toBool();
+    }
+    else if ((it)->propertyName == "drawAsHitTest")
+    {
+      mDrawAsHitTest = (it)->value.toBool();
+    }
+    else if ((it)->propertyName == "m11")
+    {
+      mMatrix.data()[0] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m12")
+    {
+      mMatrix.data()[1] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m13")
+    {
+      mMatrix.data()[2] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m14")
+    {
+      mMatrix.data()[3] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m21")
+    {
+      mMatrix.data()[4] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m22")
+    {
+      mMatrix.data()[5] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m23")
+    {
+      mMatrix.data()[6] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m24")
+    {
+      mMatrix.data()[7] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m31")
+    {
+      mMatrix.data()[8] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m32")
+    {
+      mMatrix.data()[9] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m33")
+    {
+      mMatrix.data()[10] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m34")
+    {
+      mMatrix.data()[11] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m41")
+    {
+      mMatrix.data()[12] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m42")
+    {
+      mMatrix.data()[13] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m43")
+    {
+      mMatrix.data()[14] = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "m44")
+    {
+      mMatrix.data()[14] = (it)->value.toFloat();
+    }
+  }
+  mClone->clearProperties();
+}
+
+void pxObject::createClone()
+{
+  if (!hasClone())
+  {
+    mClone = new pxObjectClone();
+  }
+}
+
+void pxObject::deleteClone()
+{
+  if (hasClone())
+  {
+    mClone->Release();
+  }
+}
+
+rtError pxObject::getCloneProperty(rtString propertyName, rtValue &value) const
+{
+  if (hasClone())
+  {
+    return mClone->getProperty(propertyName, value);
+  }
+  return RT_ERROR;
+}
+
+rtError pxObject::setCloneProperty(rtString propertyName, rtValue value)
+{
+  if (!hasClone())
+  {
+    createClone();
+  }
+  mClone->setProperty(propertyName, value);
+  return RT_OK;
+}
+
+bool pxObject::hasClone() const
+{
+  return (mClone.getPtr() != NULL);
 }
 
 bool pxObject::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status)
@@ -1831,12 +2033,128 @@ void pxViewContainer::invalidateRect(pxRect* /*r*/)
   }
 }
 
+void pxViewContainer::commitClone()
+{
+  const vector<pxObjectCloneProperty>& properties = mClone->getProperties();
+  for(vector<pxObjectCloneProperty>::const_iterator it = properties.begin();
+      it != properties.end(); ++it)
+  {
+    if ((it)->propertyName == "w")
+    {
+      mw = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "h")
+    {
+      mh = (it)->value.toFloat();
+    }
+  }
+  pxObject::commitClone();
+}
+
 void pxScene2d::invalidateRect(pxRect* /*r*/)
 {
   if (mContainer && !mTop)
   {
     mContainer->invalidateRect(NULL);
   }
+}
+
+pxObjectClone::pxObjectClone() : mRef(0), mProperties(), mChildren(), mParent()
+{
+}
+pxObjectClone::~pxObjectClone()
+{
+}
+
+rtError pxObjectClone::getProperty(rtString propertyName, rtValue &value)
+{
+  for(vector<pxObjectCloneProperty>::iterator it = mProperties.begin();
+      it != mProperties.end(); ++it)
+  {
+    if ((it)->propertyName == propertyName)
+    {
+      value = (it)->value;
+      return RT_OK;
+    }
+  }
+  return RT_ERROR;
+}
+
+const vector<pxObjectCloneProperty>& pxObjectClone::getProperties()
+{
+  return mProperties;
+}
+
+rtError pxObjectClone::setProperty(rtString propertyName, rtValue value)
+{
+  for(vector<pxObjectCloneProperty>::iterator it = mProperties.begin();
+      it != mProperties.end(); ++it)
+  {
+    if ((it)->propertyName == propertyName)
+    {
+      (it)->value = value;
+      return RT_OK;
+    }
+  }
+  pxObjectCloneProperty cloneProperty;
+  cloneProperty.propertyName = propertyName;
+  cloneProperty.value = value;
+  mProperties.push_back(cloneProperty);
+  return RT_OK;
+}
+
+vector<rtRefT<pxObject> > pxObjectClone::getChildren()
+{
+  return mChildren;
+}
+
+rtError pxObjectClone::setChildren(vector<rtRefT<pxObject> > children)
+{
+  mChildren = children;
+  return RT_OK;
+}
+
+rtError pxObjectClone::addChild(rtRefT<pxObject> child)
+{
+  mChildren.push_back(child);
+  return RT_OK;
+}
+
+rtError pxObjectClone::removeChild(rtRefT<pxObject> child)
+{
+  for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin();
+      it != mChildren.end(); ++it)
+  {
+    if ((it)->getPtr() == child.getPtr())
+    {
+      mChildren.erase(it);
+      return RT_OK;
+    }
+  }
+  return RT_OK;
+}
+
+rtError pxObjectClone::removeAllChildren()
+{
+  mChildren.clear();
+  return RT_OK;
+}
+
+rtRefT<pxObject> pxObjectClone::getParent()
+{
+  return mParent;
+}
+
+rtError pxObjectClone::setParent(rtRefT<pxObject> parent)
+{
+  mParent = parent;
+  return RT_OK;
+}
+
+rtError pxObjectClone::clearProperties()
+{
+  mProperties.clear();
+  return RT_OK;
 }
 
 rtDefineObject(pxViewContainer, pxObject);

@@ -395,18 +395,45 @@ pxText::~pxText()
   }
 }
 
-rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
+rtError pxText::text(rtString& s) const {
+  rtValue value;
+  if (getCloneProperty("text", value) == RT_OK)
+  {
+    s = value.toString();
+    return RT_OK;
+  }
+  s = mText;
+  return RT_OK;
+}
 
-rtError pxText::setText(const char* s) { 
-  mText = s; 
-  mFace->measureText(s, mPixelSize, 1.0, 1.0, mw, mh);
+rtError pxText::setText(const char* s) {
+  rtString str(s);
+  setCloneProperty("text",s);
+  /*mText = s;*/
+  //mfnote: check here for mFace race condition between this and raw
+  float width = w();
+  float height = h();
+  uint32_t size;
+  pixelSize(size);
+  mFace->measureText(s, size, 1.0, 1.0, width, height);
+  //printf("setText size: %f x %f\n", width, height);
+  setW(width);
+  setH(height);
   return RT_OK; 
 }
 
 rtError pxText::setPixelSize(uint32_t v) 
-{   
-  mPixelSize = v; 
-  mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+{
+  setCloneProperty("pixelSize",v);
+  /*mPixelSize = v;*/
+  float width = w();
+  float height = h();
+  rtString textValue;
+  text(textValue);
+  mFace->measureText(textValue, v, 1.0, 1.0, width, height);
+  //printf("setPixelSize size: %f x %f\n", width, height);
+  setW(width);
+  setH(height);
   return RT_OK; 
 }
 
@@ -473,7 +500,10 @@ void pxText::draw() {
 
 rtError pxText::setFaceURL(const char* s)
 {
-  if (!s || !s[0])
+  rtString str(s);
+  setCloneProperty("faceUrl",str);
+
+  /*if (!s || !s[0])
     s = defaultFace;
 
   FaceMap::iterator it = gFaceMap.find(s);
@@ -537,7 +567,7 @@ rtError pxText::setFaceURL(const char* s)
       }
     }
   }
-  mFaceURL = s;
+  mFaceURL = s;*/
   
   return RT_OK;
 }
@@ -615,6 +645,103 @@ void pxText::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
       mReady.send("reject",this);
     }
   }
+}
+
+void pxText::commitClone()
+{
+  const vector<pxObjectCloneProperty>& properties = mClone->getProperties();
+  for(vector<pxObjectCloneProperty>::const_iterator it = properties.begin();
+      it != properties.end(); ++it)
+  {
+    if ((it)->propertyName == "textColor")
+    {
+      uint32_t c = (it)->value.toInt32();
+      mTextColor[0] = (float)((c>>24)&0xff)/255.0f;
+      mTextColor[1] = (float)((c>>16)&0xff)/255.0f;
+      mTextColor[2] = (float)((c>>8)&0xff)/255.0f;
+      mTextColor[3] = (float)((c>>0)&0xff)/255.0f;
+    }
+    else if ((it)->propertyName == "text")
+    {
+      mText = (it)->value.toString();
+      //mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+    }
+    else if ((it)->propertyName == "pixelSize")
+    {
+      mPixelSize = (it)->value.toInt32();
+      //mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+    }
+    else if ((it)->propertyName == "faceUrl")
+    {
+      rtString str = (it)->value.toString();
+      const char* s = str.cString();
+      if (!s || !s[0])
+        s = defaultFace;
+
+      FaceMap::iterator it = gFaceMap.find(s);
+      if (it != gFaceMap.end())
+      {
+        mFace = it->second;
+        if( !mFace->isInitialized())
+        {
+          mFace->addListener(this);
+        }
+        else {
+          fontLoaded();
+        }
+
+      }
+      else
+      {
+        const char *result = strstr(s, "http");
+        int position = result - s;
+        if (position == 0 && strlen(s) > 0)
+        {
+          if (mFontDownloadRequest != NULL)
+          {
+            // if there is a previous request pending then set the callback to NULL
+            // the previous request will not be processed and the memory will be freed when the download is complete
+            mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
+          }
+          // Create the face and add this text as a listener for the download complete event.
+          // This pxFace creation should only ever happen once for each font face!
+          pxFaceRef f = new pxFace;
+          f->setFaceName(s);
+          f->addListener(this);
+          mFace = f;
+          // Add face to map even though it is not yet initialized, ie., hasn't downloaded yet
+          gFaceMap.insert(make_pair(s, f));
+          // Start the download request
+          mFontDownloadRequest =
+              new pxFileDownloadRequest(s, this);
+          fontDownloadsPending++;
+          mFontDownloadRequest->setCallbackFunction(pxFontDownloadComplete);
+          pxFileDownloader::getInstance()->addToDownloadQueue(mFontDownloadRequest);
+
+        }
+        else {
+          pxFaceRef f = new pxFace;
+          rtError e = f->init(s);
+          if (e != RT_OK)
+          {
+            rtLogInfo("Could not load font face, %s, %s\n", "blah", s);
+            fontLoaded(); // font is still loaded, it's just the default font because some
+            // error occurred.
+            mReady.send("reject",this);
+          }
+          else
+          {
+            printf("pxText::setFaceURL calling fontLoaded\n");
+            fontLoaded();
+            //mReady.send("resolve", this);
+            mFace = f;
+          }
+        }
+      }
+      mFaceURL = s;
+    }
+  }
+  pxObject::commitClone();
 }
 
 rtDefineObject(pxText, pxObject);

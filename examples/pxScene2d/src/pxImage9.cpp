@@ -18,12 +18,26 @@ extern "C"
 
 extern pxContext context;
 
-rtError pxImage9::url(rtString& s) const { s = mURL; return RT_OK; }
-rtError pxImage9::setURL(const char* s) { 
-  mURL = s;
+rtError pxImage9::url(rtString& s) const {
+  rtValue value;
+  if (getCloneProperty("url", value) == RT_OK)
+  {
+    s = value.toString();
+    return RT_OK;
+  }
+  s = mURL;
+  return RT_OK;
+}
+rtError pxImage9::setURL(const char* s) {
+  rtString str(s);
+  if (str.length() > 0)
+  {
+    setCloneProperty("url", str);
+  }
+  /*mURL = s;
   if (!s || !u8_strlen((char*)s)) 
     return RT_OK;  
-  loadImage(mURL);
+  loadImage(mURL);*/
   return RT_OK;
 }
 
@@ -59,6 +73,40 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
   }
   mReady.send("reject",this);
   return false;
+}
+
+void pxImage9::commitClone()
+{
+  const vector<pxObjectCloneProperty>& properties = mClone->getProperties();
+  for(vector<pxObjectCloneProperty>::const_iterator it = properties.begin();
+      it != properties.end(); ++it)
+  {
+    if ((it)->propertyName == "url")
+    {
+      mURL = (it)->value.toString();
+      if (mURL.length() > 0)
+      {
+        loadImage(mURL);
+      }
+    }
+    else if ((it)->propertyName == "lInset")
+    {
+      ml = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "tInset")
+    {
+      mt = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "rInset")
+    {
+      mr = (it)->value.toFloat();
+    }
+    else if ((it)->propertyName == "bInset")
+    {
+      mb = (it)->value.toFloat();
+    }
+  }
+  pxObject::commitClone();
 }
 
 rtDefineObject(pxImage9, pxObject);
