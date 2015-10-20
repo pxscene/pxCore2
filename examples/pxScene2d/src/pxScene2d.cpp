@@ -235,18 +235,7 @@ rtError pxObject::Set(const char* name, const rtValue* value)
   #ifdef PX_DIRTY_RECTANGLES
   mIsDirty = true;
   #endif //PX_DIRTY_RECTANGLES
-  if (strcmp(name, "x") != 0 && strcmp(name, "y") != 0 &&  strcmp(name, "a") != 0)
-  {
-    repaint();
-  }
-  pxObject* parentObject = parent();
-  while (parentObject)
-  {
-    parentObject->repaint();
-    parentObject = parentObject->parent();
-  }
-  mScene->invalidateRect(NULL);
-  mScene->mDirty = true; //TODO - check here for draw race condition
+
   return rtObject::Set(name, value);
 }
 
@@ -545,8 +534,6 @@ void pxObject::update(double t)
   {
     (*it)->update(t);
   }
-
-  commitClone();
 }
 
 #ifdef PX_DIRTY_RECTANGLES
@@ -918,6 +905,15 @@ void pxObject::deleteMask()
   }
 }
 
+void pxObject::commitInternal()
+{
+  commitClone();
+  for (vector<rtRefT<pxObject> >::const_iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  {
+    (*it)->commitInternal();
+  }
+}
+
 void pxObject::commitClone()
 {
   const vector<pxObjectCloneProperty>& properties = mClone->getProperties();
@@ -1010,71 +1006,16 @@ void pxObject::commitClone()
     {
       mDrawAsHitTest = (it)->value.toBool();
     }
-    else if ((it)->propertyName == "m11")
-    {
-      mMatrix.data()[0] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m12")
-    {
-      mMatrix.data()[1] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m13")
-    {
-      mMatrix.data()[2] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m14")
-    {
-      mMatrix.data()[3] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m21")
-    {
-      mMatrix.data()[4] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m22")
-    {
-      mMatrix.data()[5] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m23")
-    {
-      mMatrix.data()[6] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m24")
-    {
-      mMatrix.data()[7] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m31")
-    {
-      mMatrix.data()[8] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m32")
-    {
-      mMatrix.data()[9] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m33")
-    {
-      mMatrix.data()[10] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m34")
-    {
-      mMatrix.data()[11] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m41")
-    {
-      mMatrix.data()[12] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m42")
-    {
-      mMatrix.data()[13] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m43")
-    {
-      mMatrix.data()[14] = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "m44")
-    {
-      mMatrix.data()[14] = (it)->value.toFloat();
-    }
   }
+  repaint();
+  pxObject* parentObject = parent();
+  while (parentObject)
+  {
+    parentObject->repaint();
+    parentObject = parentObject->parent();
+  }
+  mScene->invalidateRect(NULL);
+  mScene->mDirty = true; //TODO - check here for draw race condition
   if (mClone->childrenAreModified())
   {
     mChildren = mClone->getChildren();
@@ -1082,6 +1023,10 @@ void pxObject::commitClone()
   if (mClone->getParent().getPtr() != NULL)
   {
     mParent = mClone->getParent();
+  }
+  if (mClone->matrixIsModified())
+  {
+    mMatrix = mClone->getMatrix();
   }
   mClone->reset();
 }
@@ -1426,13 +1371,19 @@ void pxScene2d::draw()
 
 void pxScene2d::onUpdate(double t)
 {
-  pxTextureCacheObject::checkForCompletedDownloads();
-  pxText::checkForCompletedDownloads();
+  if (mTop) {
+    pxTextureCacheObject::checkForCompletedDownloads();
+    pxText::checkForCompletedDownloads();
+  }
 
   if (start == 0)
     start = pxSeconds();
 
   update(t);
+  if (mRoot)
+  {
+    mRoot->commitInternal();
+  }
   if (mDirty)
   {
     mDirty = false;
@@ -2179,10 +2130,28 @@ bool pxObjectClone::childrenAreModified()
   return mChildrenAreModified;
 }
 
+rtError pxObjectClone::setMatrixValue(int index, float value)
+{
+  mMatrixIsModified = true;
+  mMatrix.data()[index] = value;
+  return RT_OK;
+}
+
+const pxMatrix4f& pxObjectClone::getMatrix()
+{
+  return mMatrix;
+}
+
+bool pxObjectClone::matrixIsModified()
+{
+  return mMatrixIsModified;
+}
+
 rtError pxObjectClone::reset()
 {
   clearProperties();
   mChildrenAreModified = false;
+  mMatrixIsModified = false;
   mParent = NULL;
   return RT_OK;
 }

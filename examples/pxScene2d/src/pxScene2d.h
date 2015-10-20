@@ -157,6 +157,10 @@ public:
     rtError setParent(rtRefT<pxObject> parent);
     rtError clearProperties();
     bool childrenAreModified();
+    rtError setMatrixValue(int index, float value);
+    const pxMatrix4f& getMatrix();
+    bool matrixIsModified();
+
     rtError reset();
 
 private:
@@ -165,6 +169,8 @@ private:
     vector<rtRefT<pxObject> > mChildren;
     rtRefT<pxObject> mParent;
     bool mChildrenAreModified;
+    pxMatrix4f mMatrix;
+    bool mMatrixIsModified;
 };
 
 class pxObject: public rtObject, private pxObjectImpl
@@ -719,6 +725,7 @@ public:
   void moveForward();
   void moveBackward();
 
+  void commitInternal();
   void drawInternal(bool maskPass=false);
   virtual void draw() {}
 
@@ -943,39 +950,39 @@ public:
 
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
 
-  rtError m11(float& v) const {rtValue value;if (getCloneProperty("m11", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(0);return RT_OK; }
-  rtError m12(float& v) const {rtValue value;if (getCloneProperty("m12", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(1); return RT_OK; }
-  rtError m13(float& v) const {rtValue value;if (getCloneProperty("m13", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(2); return RT_OK; }
-  rtError m14(float& v) const {rtValue value;if (getCloneProperty("m14", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(3); return RT_OK; }
-  rtError m21(float& v) const {rtValue value;if (getCloneProperty("m21", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(4); return RT_OK; }
-  rtError m22(float& v) const {rtValue value;if (getCloneProperty("m22", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(5); return RT_OK; }
-  rtError m23(float& v) const {rtValue value;if (getCloneProperty("m23", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(6); return RT_OK; }
-  rtError m24(float& v) const {rtValue value;if (getCloneProperty("m23", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(7); return RT_OK; }
-  rtError m31(float& v) const {rtValue value;if (getCloneProperty("m31", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(8); return RT_OK; }
-  rtError m32(float& v) const {rtValue value;if (getCloneProperty("m32", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(9); return RT_OK; }
-  rtError m33(float& v) const {rtValue value;if (getCloneProperty("m33", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(10); return RT_OK; }
-  rtError m34(float& v) const {rtValue value;if (getCloneProperty("m34", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(11); return RT_OK; }
-  rtError m41(float& v) const {rtValue value;if (getCloneProperty("m41", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(12); return RT_OK; }
-  rtError m42(float& v) const {rtValue value;if (getCloneProperty("m42", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(13); return RT_OK; }
-  rtError m43(float& v) const {rtValue value;if (getCloneProperty("m43", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(14); return RT_OK; }
-  rtError m44(float& v) const {rtValue value;if (getCloneProperty("m44", value) == RT_OK){ v = value.toFloat();} v = mMatrix.constData(15); return RT_OK; }
+  rtError m11(float& v) const {v = getMatrix().constData(0);return RT_OK; }
+  rtError m12(float& v) const {v = getMatrix().constData(1); return RT_OK; }
+  rtError m13(float& v) const {v = getMatrix().constData(2); return RT_OK; }
+  rtError m14(float& v) const {v = getMatrix().constData(3); return RT_OK; }
+  rtError m21(float& v) const {v = getMatrix().constData(4); return RT_OK; }
+  rtError m22(float& v) const {v = getMatrix().constData(5); return RT_OK; }
+  rtError m23(float& v) const {v = getMatrix().constData(6); return RT_OK; }
+  rtError m24(float& v) const {v = getMatrix().constData(7); return RT_OK; }
+  rtError m31(float& v) const {v = getMatrix().constData(8); return RT_OK; }
+  rtError m32(float& v) const {v = getMatrix().constData(9); return RT_OK; }
+  rtError m33(float& v) const {v = getMatrix().constData(10); return RT_OK; }
+  rtError m34(float& v) const {v = getMatrix().constData(11); return RT_OK; }
+  rtError m41(float& v) const {v = getMatrix().constData(12); return RT_OK; }
+  rtError m42(float& v) const {v = getMatrix().constData(13); return RT_OK; }
+  rtError m43(float& v) const {v = getMatrix().constData(14); return RT_OK; }
+  rtError m44(float& v) const {v = getMatrix().constData(15); return RT_OK; }
 
-  rtError setM11(const float& v) { cancelAnimation("m11",true); setCloneProperty("m11",v); /*mMatrix.data()[0] = v;*/ return RT_OK; }
-  rtError setM12(const float& v) { cancelAnimation("m12",true); setCloneProperty("m12",v); /*mMatrix.data()[1] = v;*/ return RT_OK; }
-  rtError setM13(const float& v) { cancelAnimation("m13",true); setCloneProperty("m13",v); /*mMatrix.data()[2] = v;*/ return RT_OK; }
-  rtError setM14(const float& v) { cancelAnimation("m14",true); setCloneProperty("m14",v); /*mMatrix.data()[3] = v;*/ return RT_OK; }
-  rtError setM21(const float& v) { cancelAnimation("m21",true); setCloneProperty("m21",v); /*mMatrix.data()[4] = v;*/ return RT_OK; }
-  rtError setM22(const float& v) { cancelAnimation("m22",true); setCloneProperty("m22",v); /*mMatrix.data()[5] = v;*/ return RT_OK; }
-  rtError setM23(const float& v) { cancelAnimation("m23",true); setCloneProperty("m23",v); /*mMatrix.data()[6] = v;*/ return RT_OK; }
-  rtError setM24(const float& v) { cancelAnimation("m24",true); setCloneProperty("m24",v); /*mMatrix.data()[7] = v;*/ return RT_OK; }
-  rtError setM31(const float& v) { cancelAnimation("m31",true); setCloneProperty("m31",v); /* mMatrix.data()[8] = v;*/ return RT_OK; }
-  rtError setM32(const float& v) { cancelAnimation("m32",true); setCloneProperty("m32",v); /*mMatrix.data()[9] = v;*/ return RT_OK; }
-  rtError setM33(const float& v) { cancelAnimation("m33",true); setCloneProperty("m33",v); /*mMatrix.data()[10] = v;*/ return RT_OK; }
-  rtError setM34(const float& v) { cancelAnimation("m34",true); setCloneProperty("m34",v); /*mMatrix.data()[11] = v;*/ return RT_OK; }
-  rtError setM41(const float& v) { cancelAnimation("m41",true); setCloneProperty("m41",v); /*mMatrix.data()[12] = v;*/ return RT_OK; }
-  rtError setM42(const float& v) { cancelAnimation("m42",true); setCloneProperty("m42",v); /*mMatrix.data()[13] = v;*/ return RT_OK; }
-  rtError setM43(const float& v) { cancelAnimation("m43",true); setCloneProperty("m43",v); /*mMatrix.data()[14] = v;*/ return RT_OK; }
-  rtError setM44(const float& v) { cancelAnimation("m44",true); setCloneProperty("m44",v); /*mMatrix.data()[15] = v;*/ return RT_OK; }
+  rtError setM11(const float& v) { cancelAnimation("m11",true); mClone->setMatrixValue(0,v); /*mMatrix.data()[0] = v;*/ return RT_OK; }
+  rtError setM12(const float& v) { cancelAnimation("m12",true); mClone->setMatrixValue(1,v); /*mMatrix.data()[1] = v;*/ return RT_OK; }
+  rtError setM13(const float& v) { cancelAnimation("m13",true); mClone->setMatrixValue(2,v); /*mMatrix.data()[2] = v;*/ return RT_OK; }
+  rtError setM14(const float& v) { cancelAnimation("m14",true); mClone->setMatrixValue(3,v); /*mMatrix.data()[3] = v;*/ return RT_OK; }
+  rtError setM21(const float& v) { cancelAnimation("m21",true); mClone->setMatrixValue(4,v); /*mMatrix.data()[4] = v;*/ return RT_OK; }
+  rtError setM22(const float& v) { cancelAnimation("m22",true); mClone->setMatrixValue(5,v); /*mMatrix.data()[5] = v;*/ return RT_OK; }
+  rtError setM23(const float& v) { cancelAnimation("m23",true); mClone->setMatrixValue(6,v); /*mMatrix.data()[6] = v;*/ return RT_OK; }
+  rtError setM24(const float& v) { cancelAnimation("m24",true); mClone->setMatrixValue(7,v); /*mMatrix.data()[7] = v;*/ return RT_OK; }
+  rtError setM31(const float& v) { cancelAnimation("m31",true); mClone->setMatrixValue(8,v); /* mMatrix.data()[8] = v;*/ return RT_OK; }
+  rtError setM32(const float& v) { cancelAnimation("m32",true); mClone->setMatrixValue(9,v); /*mMatrix.data()[9] = v;*/ return RT_OK; }
+  rtError setM33(const float& v) { cancelAnimation("m33",true); mClone->setMatrixValue(10,v); /*mMatrix.data()[10] = v;*/ return RT_OK; }
+  rtError setM34(const float& v) { cancelAnimation("m34",true); mClone->setMatrixValue(11,v); /*mMatrix.data()[11] = v;*/ return RT_OK; }
+  rtError setM41(const float& v) { cancelAnimation("m41",true); mClone->setMatrixValue(12,v); /*mMatrix.data()[12] = v;*/ return RT_OK; }
+  rtError setM42(const float& v) { cancelAnimation("m42",true); mClone->setMatrixValue(13,v); /*mMatrix.data()[13] = v;*/ return RT_OK; }
+  rtError setM43(const float& v) { cancelAnimation("m43",true); mClone->setMatrixValue(14,v); /*mMatrix.data()[14] = v;*/ return RT_OK; }
+  rtError setM44(const float& v) { cancelAnimation("m44",true); mClone->setMatrixValue(15,v); /*mMatrix.data()[15] = v;*/ return RT_OK; }
 
   rtError useMatrix(bool& v) const {
     rtValue value;
@@ -999,6 +1006,15 @@ public:
       return mClone->getChildren();
     }
     return mChildren;
+  }
+
+  const pxMatrix4f& getMatrix() const
+  {
+    if (mClone->matrixIsModified())
+    {
+      return mClone->getMatrix();
+    }
+    return mMatrix;
   }
 
 public:
