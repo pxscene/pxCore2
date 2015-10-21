@@ -916,10 +916,12 @@ void pxObject::commitInternal()
 
 void pxObject::commitClone()
 {
+  bool repaintNeeded = false;
   const vector<pxObjectCloneProperty>& properties = mClone->getProperties();
   for(vector<pxObjectCloneProperty>::const_iterator it = properties.begin();
       it != properties.end(); ++it)
   {
+    repaintNeeded = true;
     if ((it)->propertyName == "x")
     {
       mx = (it)->value.toFloat();
@@ -1007,26 +1009,31 @@ void pxObject::commitClone()
       mDrawAsHitTest = (it)->value.toBool();
     }
   }
-  repaint();
-  pxObject* parentObject = parent();
-  while (parentObject)
-  {
-    parentObject->repaint();
-    parentObject = parentObject->parent();
-  }
-  mScene->invalidateRect(NULL);
-  mScene->mDirty = true; //TODO - check here for draw race condition
   if (mClone->childrenAreModified())
   {
+    repaintNeeded = true;
     mChildren = mClone->getChildren();
   }
   if (mClone->getParent().getPtr() != NULL)
   {
+    repaintNeeded = true;
     mParent = mClone->getParent();
   }
   if (mClone->matrixIsModified())
   {
+    repaintNeeded = true;
     mMatrix = mClone->getMatrix();
+  }
+  if (repaintNeeded)
+  {
+    repaint();  //mfnote: TODO - optimize to have it repaint if not x,y,or a
+    pxObject *parentObject = parent();
+    while (parentObject) {
+      parentObject->repaint();
+      parentObject = parentObject->parent();
+    }
+    mScene->invalidateRect(NULL);
+    mScene->mDirty = true; //TODO - check here for draw race condition
   }
   mClone->reset();
 }
