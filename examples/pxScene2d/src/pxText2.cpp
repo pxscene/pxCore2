@@ -276,7 +276,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
   //printf(">>>>>>>>>>>>>>>>>>>> pxText2::measureTextWithWrapOrNewLine render=%d\n", render);
   // Get property values used within this function via correct mechanism
   uint32_t hAlign, vAlign, truncation, pixelSize;
-  bool wordWrap, ellipsis;
+  bool wordWrap;
   float xStartPos, xStopPos, w, h, x, y, leading;
   float textColor[4];
   if( render) 
@@ -286,7 +286,6 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
     truncation = mTruncation;
     pixelSize = mPixelSize;
     memcpy(textColor, mTextColor, sizeof(mTextColor));
-    ellipsis = mEllipsis;
     wordWrap = mWordWrap;
     xStartPos = mXStartPos;
     xStopPos = mXStopPos;
@@ -310,7 +309,6 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
     textColor[2] = (float)((tempColor>>8)&0xff)/255.0f;
     textColor[3] = (float)((tempColor>>0)&0xff)/255.0f;
     
-    ellipsis = this->ellipsis();
     wordWrap = this->wordWrap();
     xStartPos = this->xStartPos();   
     xStopPos = this->xStopPos(); 
@@ -600,22 +598,19 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy, uint32_t size, float* color, float lineWidth, bool render )
 {
   // Get property values used within this function via correct mechanism
-  uint32_t hAlign, vAlign, truncation, pixelSize;
-  bool wordWrap, ellipsis, clip;
-  float xStartPos, xStopPos, w, h, x, y, leading;
+  uint32_t hAlign,truncation, pixelSize;
+  bool wordWrap, clip;
+  float xStartPos, w, h, x, y, leading;
   float textColor[4];
   if( render) 
   {
     hAlign = mHorizontalAlign;
-    vAlign = mVerticalAlign;
     truncation = mTruncation;
     pixelSize = mPixelSize;
     memcpy(textColor, mTextColor, sizeof(mTextColor));
-    ellipsis = mEllipsis;
     wordWrap = mWordWrap;
     clip = mClip;
     xStartPos = mXStartPos;
-    xStopPos = mXStopPos;
     w = mw;
     h = mh;
     x = mx;
@@ -624,7 +619,6 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
   } 
   else {
     hAlign = horizontalAlign();
-    vAlign = verticalAlign();
     //!CLF:  WHY DO THESE NEED this->  ???
     truncation = this->truncation();
     this->pixelSize(pixelSize);
@@ -636,11 +630,9 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
     textColor[2] = (float)((tempColor>>8)&0xff)/255.0f;
     textColor[3] = (float)((tempColor>>0)&0xff)/255.0f;
     
-    ellipsis = this->ellipsis();
     wordWrap = this->wordWrap();
     clip = this->clip();
     xStartPos = this->xStartPos();   
-    xStopPos = this->xStopPos(); 
     w = this->w();
     h = this->h();
     x = this->x();
@@ -963,8 +955,7 @@ void pxText2::renderTextNoWordWrap(rtString & text, float sx, float sy, float te
   //printf("pxText2::renderTextNoWordWrap render=%d\n",render);
   // Get property values used within this function via correct mechanism
   uint32_t hAlign, vAlign, truncation, pixelSize;
-  bool wordWrap, ellipsis;
-  float xStartPos, xStopPos, w, h, x, y;
+  float xStartPos, w, h, y;
   float textColor[4];
   if( render) 
   {
@@ -973,13 +964,9 @@ void pxText2::renderTextNoWordWrap(rtString & text, float sx, float sy, float te
     truncation = mTruncation;
     pixelSize = mPixelSize;
     memcpy(textColor, mTextColor, sizeof(mTextColor));
-    ellipsis = mEllipsis;
-    wordWrap = mWordWrap;
     xStartPos = mXStartPos;
-    xStopPos = mXStopPos;
     w = mw;
     h = mh;
-    x = mx;
     y = my;
   } 
   else {
@@ -996,13 +983,9 @@ void pxText2::renderTextNoWordWrap(rtString & text, float sx, float sy, float te
     textColor[2] = (float)((tempColor>>8)&0xff)/255.0f;
     textColor[3] = (float)((tempColor>>0)&0xff)/255.0f;
     
-    ellipsis = this->ellipsis();
-    wordWrap = this->wordWrap();
     xStartPos = this->xStartPos();   
-    xStopPos = this->xStopPos(); 
     w = this->w();
     h = this->h();
-    x = this->x();
     y = this->y();
  
   }  
@@ -1082,13 +1065,12 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
   //printf(">>>>>>>>>>>>>>>>>>pxText2::renderTextRowWithTruncation lineWidth = %f \n",lineWidth);
   
   // Get property values used within this function via correct mechanism
-  uint32_t hAlign, vAlign, truncation;
+  uint32_t hAlign, truncation;
   bool wordWrap, ellipsis;
   float xStartPos, xStopPos;
   if( render) 
   {
     hAlign = mHorizontalAlign;
-    vAlign = mVerticalAlign;
     truncation = mTruncation;
     ellipsis = mEllipsis;
     wordWrap = mWordWrap;
@@ -1097,7 +1079,6 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
   } 
   else {
     hAlign = horizontalAlign();
-    vAlign = verticalAlign();
     //!CLF:  WHY DO THESE NEED this->  ???
     truncation = this->truncation();
     ellipsis = this->ellipsis();
