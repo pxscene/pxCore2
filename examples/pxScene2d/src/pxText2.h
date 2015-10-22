@@ -394,7 +394,7 @@ public:
   bool isSpaceChar( char ch );  
   
   void renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempX, float tempY, float sx, float sy, uint32_t pixelSize, float* color, bool render);
-  void renderTextNoWordWrap(rtString & text, float sx, float sy, float tempX, bool render);
+  void renderTextNoWordWrap(float sx, float sy, float tempX, bool render);
   void renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t pixelSize, float* color, bool render);
   void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, float* color, bool render);
   void renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float* color, float lineWidth, bool render );
