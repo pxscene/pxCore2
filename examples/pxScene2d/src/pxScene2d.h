@@ -632,7 +632,7 @@ public:
     v = mClip;
     return RT_OK;
   }
-  rtError setClip(bool v) { setCloneProperty("clip",v); /*mClip = v;*/ return RT_OK; }
+  virtual rtError setClip(bool v) { setCloneProperty("clip",v); /*mClip = v;*/ return RT_OK; }
   
   rtString mask()            const {
     rtValue value;
