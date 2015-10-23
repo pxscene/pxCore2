@@ -411,14 +411,14 @@ rtError pxText::setText(const char* s) {
   setCloneProperty("text",s);
   /*mText = s;*/
   //mfnote: check here for mFace race condition between this and raw
-  float width = w();
+  /*float width = w();
   float height = h();
   uint32_t size;
   pixelSize(size);
   mFace->measureText(s, size, 1.0, 1.0, width, height);
   //printf("setText size: %f x %f\n", width, height);
   setW(width);
-  setH(height);
+  setH(height);*/
   return RT_OK; 
 }
 
@@ -426,14 +426,14 @@ rtError pxText::setPixelSize(uint32_t v)
 {
   setCloneProperty("pixelSize",v);
   /*mPixelSize = v;*/
-  float width = w();
+  /*float width = w();
   float height = h();
   rtString textValue;
   text(textValue);
   mFace->measureText(textValue, v, 1.0, 1.0, width, height);
   //printf("setPixelSize size: %f x %f\n", width, height);
   setW(width);
-  setH(height);
+  setH(height);*/
   return RT_OK; 
 }
 
@@ -643,10 +643,12 @@ void pxText::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
 
 void pxText::commitClone()
 {
+  bool dirty = false;
   const vector<pxObjectCloneProperty>& properties = mClone->getProperties();
   for(vector<pxObjectCloneProperty>::const_iterator it = properties.begin();
       it != properties.end(); ++it)
   {
+    dirty = true;
     if ((it)->propertyName == "textColor")
     {
       uint32_t c = (it)->value.toInt32();
@@ -658,12 +660,12 @@ void pxText::commitClone()
     else if ((it)->propertyName == "text")
     {
       mText = (it)->value.toString();
-      //mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+      mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
     }
     else if ((it)->propertyName == "pixelSize")
     {
       mPixelSize = (it)->value.toInt32();
-      //mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+      mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
     }
     else if ((it)->propertyName == "faceUrl")
     {
@@ -725,16 +727,18 @@ void pxText::commitClone()
           }
           else
           {
+            mFace = f;
             printf("pxText::setFaceURL calling fontLoaded\n");
             fontLoaded();
             //mReady.send("resolve", this);
-            mFace = f;
           }
         }
       }
       mFaceURL = s;
     }
   }
+  if (dirty)
+    mDirty = true;
   pxObject::commitClone();
 }
 

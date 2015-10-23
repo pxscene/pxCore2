@@ -192,6 +192,7 @@ void pxText2::draw() {
 }
 void pxText2::update(double t)
 {
+  /*
   //printf("pxText2::update: mNeedsRecalc=%d\n",mNeedsRecalc);
   if( mNeedsRecalc ) {
 //    printf("pxText2::update: mNeedsRecalc=%d\n",mNeedsRecalc);
@@ -204,7 +205,7 @@ void pxText2::update(double t)
       //printf("pxText2::update: FIRING PROMISE\n");
       mReady.send("resolve", this);
     }
-  }  
+  } */
     
   pxText::update(t);
 }
@@ -1142,10 +1143,12 @@ rtError pxText2::measureText(rtObjectRef& o) {
 
 void pxText2::commitClone()
 {
+  bool dirty = false;
   const vector<pxObjectCloneProperty>& properties = mClone->getProperties();
   for(vector<pxObjectCloneProperty>::const_iterator it = properties.begin();
       it != properties.end(); ++it)
   {
+    dirty = true;
     if ((it)->propertyName == "text")
     {
       mText = (it)->value.toString();
@@ -1215,6 +1218,23 @@ void pxText2::commitClone()
     }
   }
   pxText::commitClone();
+  if (dirty)
+  {
+    mDirty = true;
+  }
+  //printf("pxText2::update: mNeedsRecalc=%d\n",mNeedsRecalc);
+  if( mNeedsRecalc ) {
+//    printf("pxText2::update: mNeedsRecalc=%d\n",mNeedsRecalc);
+//    printf("pxText2::update: mInitialized=%d && mFontLoaded=%d\n",mInitialized, mFontLoaded);
+    recalc();
+
+    setNeedsRecalc(false);
+    mDirty = true;
+    if(mInitialized && mFontLoaded ) {
+      //printf("pxText2::update: FIRING PROMISE\n");
+      mReady.send("resolve", this);
+    }
+  }
 }
 
 // pxTextMetrics
