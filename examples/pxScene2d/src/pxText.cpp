@@ -437,7 +437,17 @@ rtError pxText::setPixelSize(uint32_t v)
   return RT_OK; 
 }
 
-
+void pxText::fontLoaded() 
+{
+  //printf("pxText::fontLoaded\n"); 
+  mFontLoaded=true;
+  // pxText gets its height and width from the text itself, 
+  // so measure it
+  mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+  mDirty=true;  
+ 
+  mReady.send("resolve", this);
+}
         
 void pxText::update(double t)
 {

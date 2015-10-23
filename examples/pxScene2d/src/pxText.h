@@ -147,7 +147,7 @@ public:
 
   void onFontDownloadComplete(FontDownloadRequest fontDownloadRequest);
   static void checkForCompletedDownloads(int maxTimeInMilliseconds=10);
-  virtual void fontLoaded() {printf("pxText::fontLoaded\n"); mFontLoaded=true;mReady.send("resolve", this);}
+  virtual void fontLoaded(); 
   virtual void commitClone();
 
  protected:
