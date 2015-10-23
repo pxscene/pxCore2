@@ -36,6 +36,9 @@
 #include <stdlib.h>
 
 
+extern void rtWrapperSceneUpdateEnter();
+extern void rtWrapperSceneUpdateExit();
+
 static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
                                 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
@@ -905,12 +908,12 @@ void pxObject::deleteMask()
   }
 }
 
-void pxObject::commitInternal()
+void pxObject::commit()
 {
   commitClone();
   for (vector<rtRefT<pxObject> >::const_iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
-    (*it)->commitInternal();
+    (*it)->commit();
   }
 }
 
@@ -1387,11 +1390,9 @@ void pxScene2d::onUpdate(double t)
     start = pxSeconds();
 
   update(t);
-  if (mRoot)
-  {
-    mRoot->commitInternal();
-  }
-  if (mDirty)
+
+  //TODO - fix meg
+  //if (mDirty)
   {
     mDirty = false;
     if (mContainer)
@@ -1430,6 +1431,25 @@ void pxScene2d::onDraw()
     draw();
 #endif
 
+#ifdef RT_USE_SINGLE_RENDER_THREAD
+  rtWrapperSceneUpdateEnter();
+#endif //RT_USE_SINGLE_RENDER_THREAD
+  if (mTop && mRoot)
+  {
+    mRoot->commit();
+  }
+#ifdef RT_USE_SINGLE_RENDER_THREAD
+  rtWrapperSceneUpdateExit();
+#endif
+
+}
+
+void pxScene2d::onCommit()
+{
+  if (mRoot)
+  {
+    mRoot->commit();
+  }
 }
 
 // Does not draw updates scene to time t
@@ -1986,6 +2006,10 @@ void RT_STDCALL testView::onDraw()
   context.drawRect(mw, mh, 1, mEntered?green:red, white); 
   context.drawDiagLine(0,mMouseY,mw,mMouseY,black);
   context.drawDiagLine(mMouseX,0,mMouseX,mh,black);
+}
+
+void RT_STDCALL testView::onCommit()
+{
 }
 
 void pxViewContainer::invalidateRect(pxRect* /*r*/)

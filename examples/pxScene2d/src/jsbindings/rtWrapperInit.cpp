@@ -256,9 +256,13 @@ protected:
 
   virtual void onDraw(pxSurfaceNative )
   {
+#ifndef RT_USE_SINGLE_RENDER_THREAD
     rtWrapperSceneUpdateEnter();
+#endif//RT_USE_SINGLE_RENDER_THREAD
     mScene->onDraw();
+#ifndef RT_USE_SINGLE_RENDER_THREAD
     rtWrapperSceneUpdateExit();
+#endif //RT_USE_SINGLE_RENDER_THREAD
   }
 
   virtual void onAnimationTimer()

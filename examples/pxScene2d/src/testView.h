@@ -86,6 +86,7 @@ testView(): mContainer(NULL),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) 
 
   virtual void RT_STDCALL onUpdate(double t);
   virtual void RT_STDCALL onDraw();
+  virtual void RT_STDCALL onCommit();
 
 
 #if 0

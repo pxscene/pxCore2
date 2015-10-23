@@ -725,7 +725,7 @@ public:
   void moveForward();
   void moveBackward();
 
-  void commitInternal();
+  virtual void commit();
   void drawInternal(bool maskPass=false);
   virtual void draw() {}
 
@@ -1287,17 +1287,23 @@ public:
     pxObject::update(t);
   }
 
+  virtual void commit()
+  {
+    if (mView)
+      mView->onCommit();
+    pxObject::commit();
+  }
+
   virtual void draw() 
   {
     if (mView)
       mView->onDraw();
   }
 
-  virtual void commitClone();
-
   
 
 protected:
+  virtual void commitClone();
   pxViewRef mView;
   rtString mURI;
 };
@@ -1480,6 +1486,7 @@ public:
   
   virtual void onUpdate(double t);
   virtual void onDraw();
+  virtual void onCommit();
 
   virtual void setViewContainer(pxIViewContainer* l) 
   {
