@@ -294,7 +294,7 @@ public:
   rtProperty(horizontalAlign, horizontalAlign, setHorizontalAlign, uint32_t);
   rtProperty(leading, leading, setLeading, float); 	
   
-   bool wordWrap()            const {rtValue value;if (getCloneProperty("wordWrap", value) == RT_OK){ return value.toBool();} return mWordWrap;}
+  bool wordWrap()            const {rtValue value;if (getCloneProperty("wordWrap", value) == RT_OK){ return value.toBool();} return mWordWrap;}
   rtError wordWrap(bool& v)  const {rtValue value;if (getCloneProperty("wordWrap", value) == RT_OK){v = value.toBool();return RT_OK;} v = mWordWrap; return RT_OK;  }
   rtError setWordWrap(bool v) { setCloneProperty("wordWrap",v); /*mWordWrap = v;*/ return RT_OK; }
   
@@ -332,14 +332,14 @@ public:
   virtual rtError setW(float v)       { return pxObject::setW(v);   }
   virtual rtError setH(float v)       { return pxObject::setH(v);   }  
   virtual rtError setClip(bool v) {  setCloneProperty("clip",v); /*mClip = v;*/ return RT_OK; }
-  void renderText(bool render);
+  void renderText(uint8_t render);
   virtual void fontLoaded();
   void determineMeasurementBounds();
   virtual void draw();
   virtual void onInit();
   virtual void update(double t);
   virtual void commitClone();
-
+  rtError setCloneProperty(rtString propertyName, rtValue value);
  
   rtMethodNoArgAndReturn("getFontMetrics", getFontMetrics, rtObjectRef);
   rtError getFontMetrics(rtObjectRef& o);
@@ -394,11 +394,11 @@ public:
   bool isWordBoundary( char ch );
   bool isSpaceChar( char ch );  
   
-  void renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempX, float tempY, float sx, float sy, uint32_t pixelSize, float* color, bool render);
-  void renderTextNoWordWrap(float sx, float sy, float tempX, bool render);
-  void renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t pixelSize, float* color, bool render);
-  void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, float* color, bool render);
-  void renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float* color, float lineWidth, bool render );
+  void renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempX, float tempY, float sx, float sy, uint32_t pixelSize, float* color, uint8_t render);
+  void renderTextNoWordWrap(float sx, float sy, float tempX, uint8_t render);
+  void renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t pixelSize, float* color, uint8_t render);
+  void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, float* color, uint8_t render);
+  void renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float* color, float lineWidth, uint8_t render );
   
   void recalc();
   void clearMeasurements();

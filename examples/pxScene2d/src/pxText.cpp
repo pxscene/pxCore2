@@ -106,6 +106,7 @@ void pxFace::setFaceName(const char* n)
 }
 rtError pxFace::init(const char* n)
 {
+  printf("pxFace::init(%s)\n",n);
   if(FT_New_Face(ft, n, 0, &mFace))
     return RT_FAIL;
   
@@ -121,6 +122,7 @@ rtError pxFace::init(const char* n)
 
 rtError pxFace::init(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
+  printf("pxFace::init(data for %s)\n",n);
   // We need to keep a copy of fontData since the download will be deleted.
   mFontData = (char *)malloc(size);
   memcpy(mFontData, fontData, size);
@@ -277,6 +279,8 @@ void pxFace::renderText(const char *text, uint32_t size, float x, float y,
   if (!text || !mInitialized) 
     return;
 
+  //printf("pxFace::renderText with x=%f and y=%f\n",x,y);
+  
   int i = 0;
   u_int32_t codePoint;
 
@@ -439,7 +443,7 @@ rtError pxText::setPixelSize(uint32_t v)
 
 void pxText::fontLoaded() 
 {
-  //printf("pxText::fontLoaded\n"); 
+  printf("pxText::fontLoaded\n"); 
   mFontLoaded=true;
   // pxText gets its height and width from the text itself, 
   // so measure it
@@ -451,6 +455,7 @@ void pxText::fontLoaded()
         
 void pxText::update(double t)
 {
+  mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
   pxObject::update(t);
 }
 
@@ -660,12 +665,12 @@ void pxText::commitClone()
     else if ((it)->propertyName == "text")
     {
       mText = (it)->value.toString();
-      mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+      //mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
     }
     else if ((it)->propertyName == "pixelSize")
     {
       mPixelSize = (it)->value.toInt32();
-      mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+      //mFace->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
     }
     else if ((it)->propertyName == "faceUrl")
     {
@@ -728,9 +733,9 @@ void pxText::commitClone()
           else
           {
             mFace = f;
-            printf("pxText::setFaceURL calling fontLoaded\n");
+            //printf("pxText::setFaceURL calling fontLoaded\n");
             fontLoaded();
-            //mReady.send("resolve", this);
+            
           }
         }
       }
