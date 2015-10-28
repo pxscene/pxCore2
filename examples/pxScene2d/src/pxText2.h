@@ -72,25 +72,27 @@ public:
   rtReadOnlyProperty(naturalLeading, naturalLeading, float);
   rtReadOnlyProperty(baseline, baseline, float);
  
-	float height()             const { return mHeight; }
-	rtError height(float& v)   const { v = mHeight; return RT_OK;   }
-	rtError setHeight(float v)       { mHeight = v; return RT_OK;   }
+	float height()             const { rtValue value;if (getCloneProperty("height", value) == RT_OK){ return value.toFloat();} return mHeight; }
+	rtError height(float& v)   const { rtValue value;if (getCloneProperty("height", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mHeight; return RT_OK;   }
+	rtError setHeight(float v)       {  setCloneProperty("height",v); /*mHeight = v;*/ return RT_OK;   }
 
-	float ascent()             const { return mAscent; }
-	rtError ascent(float& v)   const { v = mAscent; return RT_OK;   }
-	rtError setAscent(float v)       { mAscent = v; return RT_OK;   } 
+	float ascent()             const { rtValue value;if (getCloneProperty("ascent", value) == RT_OK){ return value.toFloat();} return mAscent; }
+	rtError ascent(float& v)   const { rtValue value;if (getCloneProperty("ascent", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mAscent; return RT_OK;   }
+	rtError setAscent(float v)       { setCloneProperty("ascent",v); /*mAscent = v;*/ return RT_OK;   }
 
-	float descent()             const { return mDescent; }
-	rtError descent(float& v)   const { v = mDescent; return RT_OK;   }
-	rtError setDescent(float v)       { mDescent = v; return RT_OK;   } 
+	float descent()             const { rtValue value;if (getCloneProperty("descent", value) == RT_OK){ return value.toFloat();} return mDescent; }
+	rtError descent(float& v)   const { rtValue value;if (getCloneProperty("descent", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mDescent; return RT_OK;   }
+	rtError setDescent(float v)       { setCloneProperty("descent",v); /*mDescent = v;*/ return RT_OK;   }
  
- 	float naturalLeading()             const { return mNaturalLeading; }
-	rtError naturalLeading(float& v)   const { v = mNaturalLeading; return RT_OK;   }
-	rtError setNaturalLeading(float v)       { mNaturalLeading = v; return RT_OK;   } 
+ 	float naturalLeading()             const { rtValue value;if (getCloneProperty("naturalLeading", value) == RT_OK){ return value.toFloat();} return mNaturalLeading; }
+	rtError naturalLeading(float& v)   const { rtValue value;if (getCloneProperty("naturalLeading", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mNaturalLeading; return RT_OK;   }
+	rtError setNaturalLeading(float v)       { setCloneProperty("naturalLeading",v); /*mNaturalLeading = v;*/ return RT_OK;   }
   
- 	float baseline()             const { return mBaseline; }
-	rtError baseline(float& v)   const { v = mBaseline; return RT_OK;   }
-	rtError setBaseline(float v)       { mBaseline = v; return RT_OK;   }   
+ 	float baseline()             const { rtValue value;if (getCloneProperty("baseline", value) == RT_OK){ return value.toFloat();} return mBaseline; }
+	rtError baseline(float& v)   const { rtValue value;if (getCloneProperty("baseline", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mBaseline; return RT_OK;   }
+	rtError setBaseline(float v)       { setCloneProperty("baseline",v); /*mBaseline = v;*/ return RT_OK;   }
+
+  virtual void commitClone();
    
   private:
     rtAtomic mRefCount;	
@@ -128,18 +130,20 @@ public:
 	rtReadOnlyProperty(x, x, float);
   rtReadOnlyProperty(y, y, float);
 
-	float x()             const { return mX; }
-	rtError x(float& v)   const { v = mX; return RT_OK;   }
-	rtError setX(float v)       { mX = v; return RT_OK;   }
+	float x()             const { rtValue value;if (getCloneProperty("x", value) == RT_OK){ return value.toFloat();}  return mX; }
+	rtError x(float& v)   const { rtValue value;if (getCloneProperty("x", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mX; return RT_OK;   }
+	rtError setX(float v)       { setCloneProperty("x",v); /*mX = v;*/ return RT_OK;   }
 
-	float y()             const { return mY; }
-	rtError y(float& v)   const { v = mY; return RT_OK;   }
-	rtError setY(float v)       { mY = v; return RT_OK;   }
+	float y()             const { rtValue value;if (getCloneProperty("y", value) == RT_OK){ return value.toFloat();} return mY; }
+	rtError y(float& v)   const { rtValue value;if (getCloneProperty("y", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mY; return RT_OK;   }
+	rtError setY(float v)       { setCloneProperty("y",v); /*mY = v;*/ return RT_OK;   }
 
   void clear() {
     mX = 0;
     mY = 0;
   }
+
+  virtual void commitClone();
       
   private:
     rtAtomic mRefCount;	
@@ -177,28 +181,31 @@ public:
   rtReadOnlyProperty(x2, x2, float);
   rtReadOnlyProperty(y2, y2, float);
 
-	float x1()             const { return mX1; }
-	rtError x1(float& v)   const { v = mX1; return RT_OK;   }
-	rtError setX1(float v)       { mX1 = v; return RT_OK;   }
+	float x1()             const { rtValue value;if (getCloneProperty("x1", value) == RT_OK){ return value.toFloat();} return mX1; }
+	rtError x1(float& v)   const { rtValue value;if (getCloneProperty("x1", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mX1; return RT_OK;   }
+	rtError setX1(float v)       { setCloneProperty("x1",v); mX1 = v; return RT_OK;   }
 
-	float y1()             const { return mY1; }
-	rtError y1(float& v)   const { v = mY1; return RT_OK;   }
-	rtError setY1(float v)       { mY1 = v; return RT_OK;   }
+	float y1()             const { rtValue value;if (getCloneProperty("y1", value) == RT_OK){ return value.toFloat();} return mY1; }
+	rtError y1(float& v)   const { rtValue value;if (getCloneProperty("y1", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mY1; return RT_OK;   }
+	rtError setY1(float v)       { setCloneProperty("y1",v); mY1 = v; return RT_OK;   }
 
-	float x2()             const { return mX2; }
-	rtError x2(float& v)   const { v = mX2; return RT_OK;   }
-	rtError setX2(float v)       { mX2 = v; return RT_OK;   }
+	float x2()             const { rtValue value;if (getCloneProperty("x2", value) == RT_OK){ return value.toFloat();} return mX2; }
+	rtError x2(float& v)   const { rtValue value;if (getCloneProperty("x2", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mX2; return RT_OK;   }
+	rtError setX2(float v)       { setCloneProperty("x2",v); mX2 = v; return RT_OK;   }
 
-	float y2()             const { return mY2; }
-	rtError y2(float& v)   const { v = mY2; return RT_OK;   }
-	rtError setY2(float v)       { mY2 = v; return RT_OK;   }
+	float y2()             const { rtValue value;if (getCloneProperty("y2", value) == RT_OK){ return value.toFloat();} return mY2; }
+	rtError y2(float& v)   const { rtValue value;if (getCloneProperty("y2", value) == RT_OK){ v = value.toFloat(); return RT_OK;} v = mY2; return RT_OK;   }
+	rtError setY2(float v)       { setCloneProperty("y2",v); mY2 = v; return RT_OK;   }
       
   void clear() {
     mX1 = 0;
     mY1 = 0;
     mX2 = 0;
     mY2 = 0;
-  }    
+  }
+
+  virtual void commitClone();
+
   private:
     rtAtomic mRefCount;	
     float mX1;
@@ -237,6 +244,8 @@ public:
   rtReadOnlyProperty(bounds, bounds, rtObjectRef);
   rtReadOnlyProperty(firstChar, firstChar, rtObjectRef);
   rtReadOnlyProperty(lastChar, lastChar, rtObjectRef);
+
+  /*TODO: do these need to be updated for clone support*/
   
   rtError bounds(rtObjectRef& v) const
   {
@@ -252,8 +261,8 @@ public:
   {
     v = mLastChar;
     return RT_OK;
-  } 
-  
+  }
+
   rtRefT<pxTextBounds> getBounds()      { return mBounds;}
   rtRefT<pxCharPosition> getFirstChar() { return mFirstChar; }
   rtRefT<pxCharPosition> getLastChar()  { return mLastChar; }
@@ -262,7 +271,7 @@ public:
     mBounds->clear();
     mFirstChar->clear();
     mLastChar->clear();
-  }    
+  }
       
   private:
     rtAtomic mRefCount;	

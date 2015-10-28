@@ -601,7 +601,7 @@ public:
   }
   rtError setPainting(bool v)
   {
-    setCloneProperty("painting",v);
+    setCloneProperty("painting",true/*v*/);
      /* mPainting = v;
       if (!mPainting)
       {

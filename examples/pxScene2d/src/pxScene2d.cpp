@@ -980,15 +980,15 @@ void pxObject::commitClone()
     }
     else if ((it)->propertyName == "painting")
     {
-      mPainting = (it)->value.toBool();
-      if (!mPainting)
+      mPainting = true;//(it)->value.toBool();
+      /*if (!mPainting)
       {
         mSnapshotRef = createSnapshot(mSnapshotRef);
       }
       else
       {
         deleteSnapshot(mSnapshotRef);
-      }
+      }*/
     }
     else if ((it)->propertyName == "clip")
     {
