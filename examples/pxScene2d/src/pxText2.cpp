@@ -780,7 +780,7 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
   }
 
   // Now, render the text
-  if( render) {mFace->renderText(tempStr, size, xPos, tempY, sx, sy, color,lineWidth);} 
+  if( render == 1) {mFace->renderText(tempStr, size, xPos, tempY, sx, sy, color,lineWidth);}
  
 
 }

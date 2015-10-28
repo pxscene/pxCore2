@@ -599,7 +599,7 @@ public:
     v = mPainting;
     return RT_OK;
   }
-  rtError setPainting(bool v)
+  rtError setPainting(bool /*v*/)
   {
     setCloneProperty("painting",true/*v*/);
      /* mPainting = v;
