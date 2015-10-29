@@ -461,7 +461,7 @@ void pxText::update(double t)
 
 void pxText::draw() {
 
-  if (mDirty)
+  /*if (mDirty)
   {
     // TODO make this configurable
     if (mText.length() >= 10)
@@ -491,7 +491,7 @@ void pxText::draw() {
   {
     context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef, PX_NONE, PX_NONE);
   }
-  else
+  else*/
   {
     mFace->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
   }
