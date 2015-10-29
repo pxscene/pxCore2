@@ -780,7 +780,7 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
   }
 
   // Now, render the text
-  if( render == 1) {mFace->renderText(tempStr, size, xPos, tempY, sx, sy, color,lineWidth);}
+  if( render == 1) {mFace->renderText(tempStr, size, xPos, tempY, sx, sy, color,lineWidth);} 
  
 
 }
@@ -1261,73 +1261,6 @@ rtError pxText2::setCloneProperty(rtString propertyName, rtValue value)
   return RT_OK;
   
 }
-
-void pxTextMetrics::commitClone()
-{
-  const vector<pxObjectCloneProperty>& properties = mClone->getProperties();
-  for(vector<pxObjectCloneProperty>::const_iterator it = properties.begin();
-      it != properties.end(); ++it)
-  {
-    if ((it)->propertyName == "height")
-    {
-      mHeight = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "ascent") {
-      mAscent = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "descent") {
-      mDescent = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "naturalLeading") {
-      mNaturalLeading = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "baseline") {
-      mBaseline = (it)->value.toFloat();
-    }
-  }
-  pxObject::commitClone();
-}
-
-void pxCharPosition::commitClone()
-{
-  const vector<pxObjectCloneProperty>& properties = mClone->getProperties();
-  for(vector<pxObjectCloneProperty>::const_iterator it = properties.begin();
-      it != properties.end(); ++it)
-  {
-    if ((it)->propertyName == "x")
-    {
-      mX = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "y") {
-      mY = (it)->value.toFloat();
-    }
-  }
-  pxObject::commitClone();
-}
-
-void pxTextBounds::commitClone()
-{
-  const vector<pxObjectCloneProperty>& properties = mClone->getProperties();
-  for(vector<pxObjectCloneProperty>::const_iterator it = properties.begin();
-      it != properties.end(); ++it)
-  {
-    if ((it)->propertyName == "x1")
-    {
-      mX1 = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "y1") {
-      mY1 = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "x2") {
-      mX2 = (it)->value.toFloat();
-    }
-    else if ((it)->propertyName == "y2") {
-      mY2 = (it)->value.toFloat();
-    }
-  }
-  pxObject::commitClone();
-}
-
 // pxTextMetrics
 rtDefineObject(pxTextMetrics, pxObject);
 rtDefineProperty(pxTextMetrics, height); 
