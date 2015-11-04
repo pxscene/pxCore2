@@ -15,6 +15,7 @@ var longText2 = "I don't think I'm doing a very good job listening to whoever it
 var longText3 = longText + " " +longText2;
 var shortText = "Hello!  How are you?";
 var mediumText = "The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog."
+var newlineText = "Paragraph\nParagraph longer\nParagraph more";
 root.w=800;
 
 // Use the "fake" vars below to keep font ref counts at 1 so that they 
@@ -121,7 +122,7 @@ text2.ready.then(function(text) {
 
 function textready(text) {
 	console.log("inside text2.ready");
-
+  console.log("text2.h="+text2.h+" and text2.w="+text2.w);
 
 	metrics = text2.getFontMetrics();
 	console.log("metrics h="+metrics.height);
@@ -252,6 +253,9 @@ scene.root.on("onChar", function(e) {
       text2.text = mediumText; 
       textStatus.text="text=medium";
     } else if(textStatus.text == "text=medium"){
+      text2.text = newlineText; 
+      textStatus.text="text=newlines";
+    } else if(textStatus.text == "text=newlines"){
       text2.text = longText; 
       textStatus.text="text=long";
     } else if(textStatus.text == "text=long"){
