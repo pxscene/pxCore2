@@ -1398,8 +1398,8 @@ void pxContext::mapToScreenCoordinates(float inX, float inY, int &outX, int &out
   pxVector4f positionVector(inX, inY, 0, 1);
   pxVector4f positionCoords = gMatrix.multiply(positionVector);
 
-  outX = positionCoords.mX / positionCoords.mW;
-  outY = positionCoords.mY / positionCoords.mW;
+  outX = positionCoords.mX;
+  outY = positionCoords.mY;
 }
 
 void pxContext::mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int &outX, int &outY)
@@ -1407,8 +1407,8 @@ void pxContext::mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int 
   pxVector4f positionVector(inX, inY, 0, 1);
   pxVector4f positionCoords = m.multiply(positionVector);
 
-  outX = positionCoords.mX / positionCoords.mW;
-  outY = positionCoords.mY / positionCoords.mW;
+  outX = positionCoords.mX;
+  outY = positionCoords.mY;
 }
 
 bool pxContext::isObjectOnScreen(float x, float y, float width, float height)

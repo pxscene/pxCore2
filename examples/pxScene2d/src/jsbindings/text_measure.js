@@ -15,8 +15,6 @@ function createRect(props) {
 }
 
 function onTextReady(text, props, bg) {
-    text.pixelSize = props.pixelSize; // otherwise it doesn't work. looks like a bug of text2
-
     // measure
     var metrics = text.getFontMetrics();
     var measurements = text.measureText();
