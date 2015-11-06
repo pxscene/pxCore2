@@ -93,10 +93,27 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
   {
     mReady.send("resolve",this);
     mTexture = textureCacheObject->getTexture();
-    if (mAutoSize && mTexture.getPtr() != NULL)
+    bool autoSizeValue = true;
+    autoSize(autoSizeValue);
+    if (autoSizeValue && mTexture.getPtr() != NULL)
     {
-      mw = mTexture->width();
-      mh = mTexture->height();
+      rtValue value;
+      if (getCloneProperty("w", value) == RT_OK)
+      {
+        setW(mTexture->width());
+      }
+      else
+      {
+        mw = mTexture->width();
+      }
+      if (getCloneProperty("h", value) == RT_OK)
+      {
+        setH(mTexture->height());
+      }
+      else
+      {
+        mh = mTexture->height();
+      }
     }
     // send after width and height have been set
     rtObjectRef e = new rtMapObject;

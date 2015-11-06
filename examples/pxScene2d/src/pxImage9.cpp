@@ -66,8 +66,23 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
 
   if (textureCacheObject != NULL && status == RT_OK && textureCacheObject->getTexture().getPtr() != NULL)
   {
-    mw = textureCacheObject->getTexture()->width();
-    mh = textureCacheObject->getTexture()->height();
+    rtValue value;
+    if (getCloneProperty("w", value) == RT_OK)
+    {
+      setW(textureCacheObject->getTexture()->width());
+    }
+    else
+    {
+      mw = textureCacheObject->getTexture()->width();
+    }
+    if (getCloneProperty("h", value) == RT_OK)
+    {
+      setH(textureCacheObject->getTexture()->height());
+    }
+    else
+    {
+      mh = textureCacheObject->getTexture()->height();
+    }
     mReady.send("resolve",this);
     return true;
   }
