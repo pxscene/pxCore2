@@ -924,7 +924,6 @@ void pxObject::commitClone()
   for(vector<pxObjectCloneProperty>::const_iterator it = properties.begin();
       it != properties.end(); ++it)
   {
-    repaintNeeded = true;
     if ((it)->propertyName == "x")
     {
       mx = (it)->value.toFloat();
@@ -935,51 +934,63 @@ void pxObject::commitClone()
     }
     else if ((it)->propertyName == "w")
     {
+      repaintNeeded = true;
       mw = (it)->value.toFloat();
       //printf("returning a width of: %f\n", mw);
     }
     else if ((it)->propertyName == "h")
     {
+      repaintNeeded = true;
       mh = (it)->value.toFloat();
     }
     else if ((it)->propertyName == "cx")
     {
+      repaintNeeded = true;
       mcx = (it)->value.toFloat();
     }
     else if ((it)->propertyName == "cy")
     {
+      repaintNeeded = true;
       mcy = (it)->value.toFloat();
     }
     else if ((it)->propertyName == "sx")
     {
+      repaintNeeded = true;
       msx = (it)->value.toFloat();
     }
     else if ((it)->propertyName == "sy")
     {
+      repaintNeeded = true;
       msy = (it)->value.toFloat();
     }
     else if ((it)->propertyName == "a")
     {
+      repaintNeeded = true;
       ma = (it)->value.toFloat();
     }
     else if ((it)->propertyName == "r")
     {
+      repaintNeeded = true;
       mr = (it)->value.toFloat();
     }
     else if ((it)->propertyName == "rx")
     {
+      repaintNeeded = true;
       mrx = (it)->value.toFloat();
     }
     else if ((it)->propertyName == "ry")
     {
+      repaintNeeded = true;
       mry = (it)->value.toFloat();
     }
     else if ((it)->propertyName == "rz")
     {
+      repaintNeeded = true;
       mrz = (it)->value.toFloat();
     }
     else if ((it)->propertyName == "painting")
     {
+      repaintNeeded = true;
       mPainting = true;//(it)->value.toBool();
       /*if (!mPainting)
       {
@@ -992,24 +1003,32 @@ void pxObject::commitClone()
     }
     else if ((it)->propertyName == "clip")
     {
+      repaintNeeded = true;
       mClip = (it)->value.toBool();
     }
     else if ((it)->propertyName == "mask")
     {
+      repaintNeeded = true;
       mMaskUrl = (it)->value.toString();
       createMask();
     }
     else if ((it)->propertyName == "drawAsMask")
     {
+      repaintNeeded = true;
       mDrawAsMask = (it)->value.toBool();
     }
     else if ((it)->propertyName == "draw")
     {
+      repaintNeeded = true;
       mDraw = (it)->value.toBool();
     }
     else if ((it)->propertyName == "drawAsHitTest")
     {
       mDrawAsHitTest = (it)->value.toBool();
+    }
+    else
+    {
+      repaintNeeded = true;
     }
   }
   if (mClone->childrenAreModified())
@@ -1392,11 +1411,15 @@ void pxScene2d::onUpdate(double t)
   update(t);
 
   //TODO - fix meg
-  //if (mDirty)
+  if (mDirty)
   {
     mDirty = false;
     if (mContainer)
       mContainer->invalidateRect(NULL);
+  }
+  else if (mTop && mRoot)
+  {
+    mRoot->commit();
   }
   // TODO get rid of mTop somehow
   if (mTop)
