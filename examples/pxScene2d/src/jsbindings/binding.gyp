@@ -76,7 +76,7 @@
     ],
     ['OS!="win"',
       {
-        'defines': [ "PX_PLATFORM_GLUT", "RT_PLATFORM_LINUX"]
+        'defines': [ "PX_PLATFORM_GLUT", "RT_PLATFORM_LINUX", "RT_USE_SINGLE_RENDER_THREAD"]
       }
     ],
     ['OS=="win"',
