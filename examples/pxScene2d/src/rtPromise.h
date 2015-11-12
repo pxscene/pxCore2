@@ -20,7 +20,7 @@ public:
   rtMethod1ArgAndNoReturn("resolve",resolve,rtValue);
   rtMethod1ArgAndNoReturn("reject",reject,rtValue);
 
-  rtPromise():mState(PENDING) {}
+  rtPromise():mState(PENDING), mObject(NULL) {}
 
   rtError then(rtFunctionRef resolve, rtFunctionRef reject, 
                rtObjectRef& newPromise)
@@ -39,18 +39,18 @@ public:
     {
       if (resolve)
       {
-        resolve.send(mValue);
+        resolve.send(mObject);
         newPromise = new rtPromise;
-        newPromise.send("resolve",mValue);
+        newPromise.send("resolve",mObject);
       }
     }
     else if (mState == REJECTED)
     {
       if (reject)
       {
-        reject.send(mValue);
+        reject.send(mObject);
         newPromise = new rtPromise;
-        newPromise.send("reject",mValue);
+        newPromise.send("reject",mObject);
       }
     }
     else
@@ -60,15 +60,19 @@ public:
 
   rtError resolve(const rtValue& v)
   {
+    if (mState != PENDING)
+    {
+      return RT_OK;
+    }
     mState = FULFILLED;
-    mValue = v;
+    mObject = v.toObject().getPtr();
     for (vector<thenData>::iterator it = mThenData.begin();
          it != mThenData.end(); ++it)
     {
       if (it->mResolve)
       {
-        it->mResolve.send(mValue);
-        it->mNextPromise.send("resolve",mValue);
+        it->mResolve.send(mObject);
+        it->mNextPromise.send("resolve",mObject);
       }
     }
     mThenData.clear();
@@ -77,18 +81,30 @@ public:
 
   rtError reject(const rtValue& v)
   {
-    mState = REJECTED;
-    mValue = v;
-    for (vector<thenData>::iterator it = mThenData.begin();
-         it != mThenData.end(); ++it)
+    if (mState != PENDING)
     {
-      if (it->mReject)
-      {
-        it->mReject.send(mValue);
-        it->mNextPromise.send("reject",mValue);
-      }
+      return RT_OK;
     }
-    mThenData.clear();
+    mState = REJECTED;
+    rtObjectRef objRef = v.toObject();
+    if (objRef.getPtr() != NULL)
+    {
+      mObject = objRef.getPtr();
+    }
+    if (mObject != NULL)
+    {
+      for (vector<thenData>::iterator it = mThenData.begin();
+         it != mThenData.end(); ++it)
+      {
+        if (it->mReject)
+        {
+          it->mReject.send(mObject);
+          it->mNextPromise.send("reject",mObject);
+        }
+      }
+      mThenData.clear();
+    }
+    mObject = objRef.getPtr();
     return RT_OK;
   }
 
@@ -103,5 +119,5 @@ public:
 private:
   rtPromiseState mState;
   vector<thenData> mThenData;
-  rtValue mValue;
+  rtIObject* mObject;
 };
