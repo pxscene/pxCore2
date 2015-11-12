@@ -25,6 +25,14 @@ rtValue::rtValue(const rtFunctionRef& v):mType(0) { setFunction(v); }
 rtValue::rtValue(const rtValue& v)      :mType(0) { setValue(v);  }
 rtValue::rtValue(voidPtr v)             :mType(0) { setVoidPtr(v); }
 
+rtValue::~rtValue()
+{
+  if (mType == RT_objectType || mType == RT_functionType)
+  {
+    setEmpty();
+  }
+}
+
 rtObjectRef rtValue::toObject() const  { 
   rtObjectRef v; 
   getObject(v); 
@@ -45,13 +53,21 @@ void rtValue::setEmpty() {
       mValue.objectValue->Release();
       mValue.objectValue = NULL;
     }
-    else if (mType == RT_stringType) 
+  }
+  else if (mType == RT_stringType) 
+  {
+    if (mValue.stringValue) 
     {
-      if (mValue.stringValue) 
-      {
-        delete mValue.stringValue;
-        mValue.stringValue = NULL;
-      }
+      delete mValue.stringValue;
+      mValue.stringValue = NULL;
+    }
+  }
+  else if (mType == RT_functionType)
+  {
+    if (mValue.functionValue)
+    {
+       mValue.functionValue->Release();
+       mValue.functionValue = NULL;
     }
   }
   // TODO setting this to '0' makes node wrappers unhappy
@@ -63,6 +79,14 @@ void rtValue::setEmpty() {
 void rtValue::setValue(const rtValue& v) {
   setEmpty();
   mType = v.mType; mValue = v.mValue;
+  if (mType == RT_objectType && mValue.objectValue != NULL)
+  {
+     mValue.objectValue->AddRef();
+  }
+  else if (mType == RT_functionType && mValue.functionValue != NULL)
+  {
+    mValue.functionValue->AddRef();
+  }
 }
 
 void rtValue::setBool(bool v) {

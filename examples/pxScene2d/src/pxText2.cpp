@@ -1253,7 +1253,7 @@ rtError pxText2::setCloneProperty(rtString propertyName, rtValue value)
   if(static_cast<rtPromise *>(mReady.getPtr())->status()) 
   {
     printf("pxText2::setCloneProperty deleting old promise\n");
-    static_cast<rtPromise *>(mReady.getPtr())->Release(); 
+    //static_cast<rtPromise *>(mReady.getPtr())->Release(); 
 
     mReady = new rtPromise;
  

@@ -254,7 +254,7 @@ public:
     createClone();
   }
 
-  virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ deleteSnapshot(mSnapshotRef); deleteSnapshot(mClipSnapshotRef);}
+  virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ rtValue nullValue; mReady.send("reject",nullValue); deleteSnapshot(mSnapshotRef); deleteSnapshot(mClipSnapshotRef);}
 
   // TODO missing conversions in rtValue between uint32_t and int32_t
   uint32_t numChildren() const { return getChildren().size(); }
