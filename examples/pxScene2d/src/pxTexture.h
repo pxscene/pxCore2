@@ -28,7 +28,7 @@ class pxTexture: public pxTextureNative
 public:
   pxTexture() : mRef(0), mTextureType(PX_TEXTURE_UNKNOWN), mPremultipliedAlpha(false)
   {}
-  virtual ~pxTexture() {}
+  virtual ~pxTexture();
 
   virtual unsigned long AddRef()
   {

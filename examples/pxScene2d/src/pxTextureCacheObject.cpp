@@ -11,13 +11,25 @@ extern pxContext context;
 #include <map>
 using namespace std;
 
-typedef map<rtString, pxTextureRef> TextureMap;
+typedef map<rtString, pxTexture*> TextureMap;
 TextureMap gCompleteTextureCache;
 
 int gTextureDownloadsPending = 0; //must only be set in the main thread
 rtMutex textureDownloadMutex;
 bool textureDownloadsAvailable = false;
 vector<ImageDownloadRequest> completedTextureDownloads;
+
+void removeFromTextureCache(pxTexture* texture)
+{
+  for(TextureMap::iterator it = gCompleteTextureCache.begin(); it != gCompleteTextureCache.end(); it++)
+  {
+    if (it->second == texture)
+    {
+      gCompleteTextureCache.erase(it);
+      return;
+    }
+  }
+}
 
 void pxTextureDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
 {
@@ -124,7 +136,7 @@ void pxTextureCacheObject::onImageDownloadComplete(ImageDownloadRequest imageDow
       {
           mTexture = imageDownloadRequest.texture;
           gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(),
-                  mTexture));
+                  mTexture.getPtr()));
           rtLogDebug("image %d, %d", mTexture->width(), mTexture->height());
           setStatus(RT_TEXTURE_STATUS_OK);
           if (mParent != NULL)
@@ -222,7 +234,7 @@ void pxTextureCacheObject::loadImage(rtString url)
       else
       {
         mTexture = context.createTexture(imageOffscreen);
-        gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(s, mTexture));
+        gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(s, mTexture.getPtr()));
         setStatus(RT_TEXTURE_STATUS_OK);
         if (mParent != NULL)
         {

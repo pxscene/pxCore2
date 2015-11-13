@@ -31,6 +31,7 @@
         "../pxInterpolators.cpp",
         "../pxFileDownloader.cpp",
         "../pxTextureCacheObject.cpp",
+        "../pxTexture.cpp",
         "../pxMatrix4T.cpp",
         "../pxTransform.cpp",
        ],
