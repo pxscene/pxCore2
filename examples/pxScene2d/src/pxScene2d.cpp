@@ -1856,6 +1856,7 @@ rtDefineMethod(pxViewContainer, onChar);
 rtDefineObject(pxSceneContainer, pxViewContainer);
 rtDefineProperty(pxSceneContainer, url);
 rtDefineProperty(pxSceneContainer, api);
+rtDefineMethod(pxSceneContainer, makeReady);
 
 rtError pxSceneContainer::setURI(rtString v)
 { 
@@ -1873,7 +1874,7 @@ rtError pxSceneContainer::setURI(rtString v)
     // assuming that the script loading code restores painting at a "good" time
     setPainting(false);
     gOnScene.send((rtObject*)this, newScene.getPtr(), mURI);
-    //mReady.send("resolve",this);
+//    mReady.send("resolve",this);
   }
   return RT_OK; 
 }
@@ -1881,6 +1882,13 @@ rtError pxSceneContainer::setURI(rtString v)
 rtError pxSceneContainer::api(rtValue& v) const 
 { 
   return mScene->api(v); 
+}
+
+rtError pxSceneContainer::makeReady(bool ready)
+{
+  printf("make ready: %d\n", ready);
+  mReady.send(ready?"resolve":"reject", this);
+  return RT_OK;
 }
 
 #if 0

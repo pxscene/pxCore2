@@ -845,6 +845,7 @@ public:
   rtDeclareObject(pxSceneContainer, pxViewContainer);
   rtProperty(url, uri, setURI, rtString);
   rtReadOnlyProperty(api, api, rtValue);
+  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);
   
 pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
 
@@ -852,6 +853,9 @@ pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
   rtError setURI(rtString v);
 
   rtError api(rtValue& v) const;
+
+  rtError makeReady(bool ready);
+
 private:
   rtRefT<pxScene2d> mScene;
   rtString mURI;
