@@ -219,6 +219,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
       if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
         console.log("Main module is ready - no imports: " + this.packageUrl);
+        this.container.makeReady(true);
         this.innerscene.api = {isReady:true};
       } else {
         var modulePromise = xModule.moduleReadyPromise;
@@ -226,8 +227,10 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
         modulePromise.then( function(i) {
           self.innerscene.api = xModule.exports;
           console.log("Main module is ready - got imports: " + self.packageUrl);
+          this.container.makeReady(true);
         }).catch( function() {
           console.log("Main module load has failed - on failed imports: " + self.packageUrl);
+          this.container.makeReady(false);
         } );
       }
 
