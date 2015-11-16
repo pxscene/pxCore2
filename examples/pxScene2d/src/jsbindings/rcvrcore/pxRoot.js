@@ -24,13 +24,6 @@ var VirtualKeyCode = {UNKNOWN:0, ENTER:13, PAGE_UP:33, PAGE_DOWN:34, LEFT:37, RI
 // The singleton instance of pxRoot
 var pxroot = null;
 
-// The public XRE system APIs
-var XreSysApis = {
-  getIt: function()  {
-    return "The XRE system";
-  }
-}
-
 function pxRoot(baseUri) {
   this.rootScene = null;
   // only one child scene at the root level for now
@@ -99,21 +92,16 @@ pxRoot.prototype.initialize = function(x, y, width, height) {
   var self = this;
 // register a "global" hook that gets invoked whenever a child scene is created
   this.rootScene.onScene = function (container, innerscene, url) {
-    // TODO part of an experiment to eliminate intermediate rendering of the scene
-    // while it is being set up
-    // container when returned here has it's painting property set to false.
-    // it won't start rendering until we set painting to true which we do
-    // after the script has loaded
-
+    //TODO - investigate: had to create the new app scene context and load it after queueing it up to be triggered
+    // in a different thread context due to segment fault crashes.
     setTimeout(function () {
       if( container.parent === self.rootScene.root ) {
-        log.info("\n\nTJC: New scene is top level: url=" + url);
+        log.info("onScene: New scene is top level: url=" + url);
       } else {
-        log.info("\n\nTJC: New scene is second level: url=" + url);
+        log.info("onScene: New scene is second level: url=" + url);
       }
 
-      self.createNewAppContext({
-        rootScene: self.rootScene, sceneContainer: container, scene: innerscene, packageUrl: url, xreSysApis: XreSysApis});
+      self.createNewAppContext({sceneContainer:container, scene:innerscene, packageUrl:url});
 
     }, 10);
   }
@@ -156,9 +144,9 @@ pxRoot.prototype.createNewAppContext = function(params) {
   var appSceneContext = new AppSceneContext(params);
 
   appSceneContext.loadScene();
-  if( params.sceneContainer.parent === params.rootScene.root ) {
+  if( params.sceneContainer.parent === this.rootScene.root ) {
     // It's a top level app
-    params.rootScene.setFocus(params.sceneContainer);
+    this.rootScene.setFocus(params.sceneContainer);
   }
 }
 
