@@ -165,7 +165,7 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
       log.message(8, "XMODULE AFTER NOTIFY [" + _this.name + "] that all its imports are Ready");
     }).catch(function (error) {
       console.error("Error - failed to get Remote modules for: " + _this.name + ", error=" + error);
-      // notify xreRemoteRequire that the promise can't be kept
+      // notify that the promise can't be kept
       if( failedCallback != null && failedCallback != 'undefined' ) {
         failedCallback();
       }
