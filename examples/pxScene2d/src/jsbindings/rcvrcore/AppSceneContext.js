@@ -12,9 +12,7 @@ var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 
 var log = new Logger('AppSceneContext');
 
-function AppSceneContext(params) { //rootScene, container, innerscene, packageUrl) {
-  this.rootScene = params.rootScene;
-  this.xresys = params.xreSysApis;
+function AppSceneContext(params) { // container, innerscene, packageUrl) {
   this.container = params.sceneContainer;
   this.innerscene = params.scene;
   if( params.packageUrl.indexOf('?') != -1 ) {
@@ -147,6 +145,9 @@ function createModule_pxScope(xModule) {
 
 }
 
+function onAppModuleReady(callback) {
+}
+
 AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJarFile, configImport) {
   var sceneForChild = this.innerscene;
   var apiForChild = this;
@@ -169,7 +170,6 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
   try {
     newSandbox = {
       sandboxName: "InitialSandbox",
-      xresys: this.xresys,
       xmodule: xModule,
       console: console,
       runtime: apiForChild,
@@ -185,33 +185,52 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       setTimeout: setTimeout,
       setInterval: setInterval,
       clearInterval: clearInterval,
-      baseXreModuleDirectory: __dirname,
       importTracking: {}
     } // end sandbox
     xModule.initSandbox(newSandbox);
     thisAppSceneContext.sandbox = newSandbox; //xModule.sandbox;
 
     try {
-      // TODO: This form will not work until nodejs >= 0.12.x
-      // var opts = { filename: fname, displayError: true };
+      this.innerscene.api = {isReady:false, onModuleReady:onAppModuleReady.bind(this) };
+
       var sourceCode = AppSceneContext.wrap(code);
-      var script = new vm.Script(sourceCode, fname);
-      var moduleFunc = script.runInNewContext(newSandbox); //xModule.sandbox);
+      //var script = new vm.Script(sourceCode, fname);
+      //var moduleFunc = script.runInNewContext(newSandbox, {filename:fname, displayErrors:true});
+      var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {filename:fname, displayErrors:true});
       var px = createModule_pxScope.call(this, xModule);
-      moduleFunc(px, xModule, fname, this.basePackageUri);
+      var rtnObject = moduleFunc(px, xModule, fname, this.basePackageUri);
+      rtnObject = xModule.exports;
+      if( rtnObject !== undefined ) {
+        console.log("Undefined rtnObject.v1=" + rtnObject.v1);
+      }
 
       // TODO do the old scenes context get released when we reload a scenes url??
-
-      // TODO part of an experiment to eliminate intermediate rendering of the scene
+      // TODO part of an experiment to eliminate intermediate rendering of the scene - from original load.js
       // while it is being set up
       if (true) { // enable to fade scenes in
         this.container.a = 0;
         this.container.painting = true;
         this.container.animateTo({a: 1}, 0.2, 0, 0);
-        //this._scene.setFocus(container);
       }
-      else
+      else {
         this.container.painting = true;
+      }
+
+      console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
+      if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
+        console.log("Main module is ready - no imports: " + this.packageUrl);
+        this.innerscene.api = {isReady:true};
+      } else {
+        var modulePromise = xModule.moduleReadyPromise;
+        console.log("Main module: wait for promise");
+        modulePromise.then( function(i) {
+          self.innerscene.api = xModule.exports;
+          console.log("Main module is ready - got imports: " + self.packageUrl);
+        }).catch( function() {
+          console.log("Main module load has failed - on failed imports: " + self.packageUrl);
+        } );
+      }
+
     }
     catch (err) {
       console.error("failed to run app:" + uri);
@@ -385,7 +404,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
   return new Promise(function (onImportComplete, reject) {
     if( filePath === 'fs' || filePath === 'px' || filePath === 'http' || filePath === 'url' || filePath === 'os'
-      || filePath === 'events' || filePath === 'net' || filePath === 'querystring') {
+      || filePath === 'events' || filePath === 'net' || filePath === 'querystring' || filePath === 'htmlparser') {
       // built-ins
       var modData = require(filePath);
       onImportComplete([modData, origFilePath]);
@@ -500,9 +519,11 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, m
     xModule = new XModule(filePath, _this, fromJarFile, moduleBasePath);
     xModule.initSandbox(_this.sandbox);
     var sourceCode = AppSceneContext.wrap(codeBuffer);
-    var script = new vm.Script(sourceCode, filePath);
 
-    var moduleFunc = script.runInContext(_this.sandbox);
+    //var script = new vm.Script(sourceCode, filePath);
+    //var moduleFunc = script.runInContext(_this.sandbox);
+    moduleFunc = vm.runInContext(sourceCode, _this.sandbox, {filename:filePath, displayErrors:true});
+
     var px = createModule_pxScope.call(this, xModule);
 
     log.message(4, "RUN " + filePath);
@@ -515,7 +536,7 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, m
     // Set up a async wait until module indicates it's completly ready
     var modReadyPromise = xModule.moduleReadyPromise;
     if( modReadyPromise == null ) {
-      // It's possible that these exports have already been added
+      // No use of px.import or it's possible that these exports have already been added
       _this.addScript(filePath, 'ready', xModule.exports);
 
       onImportComplete([xModule.exports, origFilePath]);
@@ -544,11 +565,14 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, m
 
 }
 
-
+/*
 AppSceneContext.prototype.setFocus = function() {
   log.info("setFocus");
   this.rootScene.setFocus(this.container);
 }
+*/
+
+
 
 AppSceneContext.prototype.onResize = function(resizeEvent) {
   var hrTime = process.hrtime(this.lastHrTime);
