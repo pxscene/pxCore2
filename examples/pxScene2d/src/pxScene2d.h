@@ -880,6 +880,7 @@ public:
   rtMethod1ArgAndReturn("createText", createText, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createText2", createText2, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createScene", createScene, rtObjectRef, rtObjectRef);
+  rtMethod1ArgAndReturn("getFont", getFont, rtString, rtObjectRef);
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
@@ -953,6 +954,7 @@ public:
   rtError createImage(rtObjectRef p, rtObjectRef& o);
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
   rtError createScene(rtObjectRef p,rtObjectRef& o);
+  rtError getFont(rtString p, rtObjectRef& o);
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)

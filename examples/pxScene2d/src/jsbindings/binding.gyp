@@ -25,6 +25,7 @@
         "../pxImage9.cpp",
         "../pxScene2d.cpp",
         "../pxRectangle.cpp",
+        "../pxFont.cpp",
         "../pxText.cpp",
         "../pxText2.cpp",
         "../pxUtil.cpp",

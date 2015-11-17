@@ -21,6 +21,26 @@ var faces = ["http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-Ne
              "PoiretOne-Regular.ttf",
             ];
 
+// Example for using getFont for font metrics
+var myFont = scene.getFont( "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Bold.ttf");
+
+myFont.ready.then(function(font) {
+  console.log("!CLF: First Promise received");
+
+	console.log("inside font.ready");
+
+	metrics = font.getFontMetrics(35);
+	console.log("metrics h="+metrics.height);
+	console.log("metrics a="+metrics.ascent);
+	console.log("metrics d="+metrics.descent);
+  console.log("metrics naturalLeading="+metrics.naturalLeading);
+  console.log("metrics baseline="+metrics.baseline);
+  
+  var measure = font.measureText( 35, "Please type some text...");
+  console.log("measure w="+measure.w);
+  console.log("measure h="+measure.h);
+  });
+
 var scroll = scene.createImage({parent:root});
 var scrollContent = scene.createImage({parent:scroll});
 
@@ -49,7 +69,7 @@ for (var i=0; i < faces.length; i++)
   var rowReady = new Promise(
     
     function(fulfill,reject) {
-      
+
       var prevRowCopy = prevRow;
       var rowCopy = row;
       var tCopy = t;
@@ -57,6 +77,7 @@ for (var i=0; i < faces.length; i++)
 
       // Please note that rowReady at this point is the rowReady for the previous row
       Promise.all([t.ready,t2.ready,rowReady]).then(function() {
+        console.log("IN PROMISE ALL!");
         t2Copy.y = tCopy.h;
         rowCopy.h = tCopy.h+t2Copy.h;
 

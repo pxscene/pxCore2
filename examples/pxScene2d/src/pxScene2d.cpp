@@ -18,6 +18,7 @@
 #include "pxWindowUtil.h"
 
 #include "pxRectangle.h"
+#include "pxFont.h"
 #include "pxText.h"
 #include "pxText2.h"
 #include "pxImage.h"
@@ -1131,6 +1132,15 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
+rtError pxScene2d::getFont(rtString p, rtObjectRef& o)
+{
+  //printf("pxScene2d::getFont\n");
+
+  o = pxFontManager::getFont(this, p);
+
+  return RT_OK;
+}
+
 rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 {
   rtRefT<pxViewContainer> c = new pxViewContainer(this);
@@ -1212,7 +1222,7 @@ void pxScene2d::draw()
 void pxScene2d::onUpdate(double t)
 {
   pxTextureCacheObject::checkForCompletedDownloads();
-  pxText::checkForCompletedDownloads();
+  pxFont::checkForCompletedDownloads();
 
   if (start == 0)
     start = pxSeconds();
@@ -1745,6 +1755,7 @@ rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, createRectangle);
 rtDefineMethod(pxScene2d, createText);
 rtDefineMethod(pxScene2d, createText2);
+rtDefineMethod(pxScene2d, getFont);
 rtDefineMethod(pxScene2d, createImage);
 rtDefineMethod(pxScene2d, createImage9);
 rtDefineMethod(pxScene2d, createScene);
@@ -1874,7 +1885,7 @@ rtError pxSceneContainer::setURI(rtString v)
     // assuming that the script loading code restores painting at a "good" time
     setPainting(false);
     gOnScene.send((rtObject*)this, newScene.getPtr(), mURI);
-//    mReady.send("resolve",this);
+    //mReady.send("resolve",this);
   }
   return RT_OK; 
 }
