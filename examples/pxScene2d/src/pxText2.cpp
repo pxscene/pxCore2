@@ -885,7 +885,10 @@ void pxText2::renderTextNoWordWrap(float sx, float sy, float tempX, bool render)
         tempY = my+ (mh/2) - charH/2;
       }
     }
-
+    if( mTruncation == NONE && !clip() && charH > mh) {
+      noClipH = charH;
+      noClipW = charW;
+    }
     // Will it fit on one line OR is there no truncation, so we don't care...
     if( (charW + tempXStartPos) <= lineWidth || mTruncation == NONE) 
     {
