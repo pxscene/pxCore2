@@ -66,6 +66,11 @@ void rtString::append(const char* s) {
 }
 
 int rtString::compare(const char* s) const {
+
+  if( !mData) {
+    return strncmp("",s,strnlen(s,2));
+  }
+  
   u_int32_t c1, c2;
   int i1 = 0, i2 = 0;
   
