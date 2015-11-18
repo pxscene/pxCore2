@@ -11,84 +11,15 @@
 #include "rtString.h"
 #include "rtRefT.h"
 #include "pxScene2d.h"
+#include "pxFont.h"
 
-#define defaultPixelSize 16
-#define defaultFace "FreeSans.ttf"
 class pxText;
 
-class pxFace;
-typedef rtRefT<pxFace> pxFaceRef;
 
-class pxFileDownloadRequest;
-typedef struct _FontDownloadRequest
-{
-  pxFileDownloadRequest* fileDownloadRequest;
-} FontDownloadRequest;
 
-struct GlyphCacheEntry
-{
-  int bitmap_left;
-  int bitmap_top;
-  int bitmapdotwidth;
-  int bitmapdotrows;
-  //void* bitmapdotbuffer;
-  int advancedotx;
-  int advancedoty;
-  int vertAdvance;
 
-  pxTextureRef mTexture;
-};
 
-class pxFace
-{
-public:
-  pxFace();
-  virtual ~pxFace();
-  
-  rtError init(const char* n);
-  rtError init(const FT_Byte*  fontData, FT_Long size, const char* n);
-  
-  void setFaceName(const char* n);
-  bool isInitialized() { return mInitialized; }
-  void onDownloadComplete(const FT_Byte* fontData, FT_Long size, const char* n);
-  void addListener(pxText* pText);
 
-  virtual unsigned long AddRef() 
-  {
-    return rtAtomicInc(&mRefCount);
-  }
-  
-  virtual unsigned long Release() 
-  {
-    long l = rtAtomicDec(&mRefCount);
-    if (l == 0) delete this;
-    return l;
-  }
-    
-  void setPixelSize(uint32_t s);  
-  const GlyphCacheEntry* getGlyph(uint32_t codePoint);  
-  void getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading);
-  void getHeight(uint32_t size, float& height);
-  void measureText(const char* text, uint32_t size,  float sx, float sy, 
-                   float& w, float& h);
-  void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
-                         float& w, float& h);                   
-  void renderText(const char *text, uint32_t size, float x, float y, 
-                  float sx, float sy, 
-                  float* color, float mw);
-
-private:
-  uint32_t mFaceId;
-  rtString mFaceName;
-  FT_Face mFace;
-  uint32_t mPixelSize;
-  rtAtomic mRefCount;
-  
-  char* mFontData; // for remote fonts loaded into memory
-  
-  bool mInitialized;
-  vector<pxText*> mListeners;
-};
 
 class pxText: public pxObject 
 {
@@ -124,7 +55,8 @@ public:
   virtual rtError setPixelSize(uint32_t v);
 
   virtual void update(double t);
-
+  virtual void onInit();
+  
   virtual rtError Set(const char* name, const rtValue* value)
   {
 #if 1
@@ -143,9 +75,7 @@ public:
     return e;
   }
 
-  void onFontDownloadComplete(FontDownloadRequest fontDownloadRequest);
-  static void checkForCompletedDownloads(int maxTimeInMilliseconds=10);
-  virtual void fontLoaded();
+  virtual void fontLoaded(const char * value);
 
  protected:
   virtual void draw();
@@ -153,7 +83,8 @@ public:
 // TODO should we just use a face object instead of urls
   bool mFontLoaded;
   rtString mFaceURL;
-  pxFaceRef mFace;
+
+pxFont* mFont;
   float mTextColor[4];
   uint32_t mPixelSize;
   bool mDirty;

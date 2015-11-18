@@ -43,63 +43,7 @@ static const char isnew_line_chars[] = "\n\v\f\r";
 static const char word_boundary_chars[] = " \t/:&,;.";
 static const char space_chars[] = " \t";
 
-/**********************************************************************
- * 
- * pxTextMetrics
- * 
- **********************************************************************/
-class pxTextMetrics: public pxObject {
 
-public:
-	pxTextMetrics(pxScene2d* s): pxObject(s), mRefCount(0) {  }
-	virtual ~pxTextMetrics() {}
-
-	virtual unsigned long AddRef() 
-	{
-		return rtAtomicInc(&mRefCount);
-	}
-
-	virtual unsigned long Release() 
-	{
-		long l = rtAtomicDec(&mRefCount);
-		if (l == 0) delete this;
-			return l;
-	}
-	rtDeclareObject(pxTextMetrics, pxObject);
-	rtReadOnlyProperty(height, height, float); 
-	rtReadOnlyProperty(ascent, ascent, float);
-	rtReadOnlyProperty(descent, descent, float);
-  rtReadOnlyProperty(naturalLeading, naturalLeading, float);
-  rtReadOnlyProperty(baseline, baseline, float);
- 
-	float height()             const { return mHeight; }
-	rtError height(float& v)   const { v = mHeight; return RT_OK;   }
-	rtError setHeight(float v)       { mHeight = v; return RT_OK;   }
-
-	float ascent()             const { return mAscent; }
-	rtError ascent(float& v)   const { v = mAscent; return RT_OK;   }
-	rtError setAscent(float v)       { mAscent = v; return RT_OK;   } 
-
-	float descent()             const { return mDescent; }
-	rtError descent(float& v)   const { v = mDescent; return RT_OK;   }
-	rtError setDescent(float v)       { mDescent = v; return RT_OK;   } 
- 
- 	float naturalLeading()             const { return mNaturalLeading; }
-	rtError naturalLeading(float& v)   const { v = mNaturalLeading; return RT_OK;   }
-	rtError setNaturalLeading(float v)       { mNaturalLeading = v; return RT_OK;   } 
-  
- 	float baseline()             const { return mBaseline; }
-	rtError baseline(float& v)   const { v = mBaseline; return RT_OK;   }
-	rtError setBaseline(float v)       { mBaseline = v; return RT_OK;   }   
-   
-  private:
-    rtAtomic mRefCount;	
-   	float mHeight;
-    float mAscent;
-    float mDescent;
-    float mNaturalLeading;
-    float mBaseline;
-};
 
 /**********************************************************************
  * 
@@ -333,7 +277,7 @@ public:
   virtual rtError setH(float v)       { setNeedsRecalc(true); return pxObject::setH(v);   }  
   virtual rtError setClip(bool v) { mClip = v; setNeedsRecalc(true); return RT_OK; }
   void renderText(bool render);
-  virtual void fontLoaded();
+  virtual void fontLoaded(const char * value);
   void determineMeasurementBounds();
   virtual void draw();
   virtual void onInit();
