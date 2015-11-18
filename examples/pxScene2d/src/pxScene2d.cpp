@@ -1141,6 +1141,12 @@ rtError pxScene2d::getFont(rtString p, rtObjectRef& o)
   return RT_OK;
 }
 
+rtError pxScene2d::clock(uint64_t & time)
+{
+  time = (uint64_t)pxMilliseconds();
+  
+  return RT_OK;
+}
 rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 {
   rtRefT<pxViewContainer> c = new pxViewContainer(this);
@@ -1756,6 +1762,7 @@ rtDefineMethod(pxScene2d, createRectangle);
 rtDefineMethod(pxScene2d, createText);
 rtDefineMethod(pxScene2d, createText2);
 rtDefineMethod(pxScene2d, getFont);
+rtDefineMethod(pxScene2d, clock);
 rtDefineMethod(pxScene2d, createImage);
 rtDefineMethod(pxScene2d, createImage9);
 rtDefineMethod(pxScene2d, createScene);
