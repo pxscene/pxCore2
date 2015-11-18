@@ -107,10 +107,11 @@ void pxFace::setFaceName(const char* n)
 }
 rtError pxFace::init(const char* n)
 {
+  mFaceName = n;
+    
   if(FT_New_Face(ft, n, 0, &mFace))
     return RT_FAIL;
   
-  mFaceName = n;
   setPixelSize(defaultPixelSize);
   mInitialized = true;
 
@@ -235,8 +236,11 @@ void pxFace::measureText(const char* text, uint32_t size,  float sx, float sy,
                          float& w, float& h) 
 {
   
-  if( !mInitialized) return;
-  
+  if( !mInitialized) {
+    rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
+    return;
+  }
+
   setPixelSize(size);
   
   w = 0; h = 0;
@@ -325,7 +329,10 @@ void pxFace::renderText(const char *text, uint32_t size, float x, float y,
 void pxFace::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
                          float& w, float& h) 
 {
-  if( !mInitialized) return;
+  if( !mInitialized) {
+    rtLogWarn("measureTextChar called TOO EARLY -- not initialized or font not loaded!\n");
+    return;
+  }
   
   setPixelSize(size);
   
@@ -421,10 +428,11 @@ printf("pxFont::loadFont for %s\n",mFaceName.cString());
     }
     else {
       pxFaceRef f = new pxFace;
+      mFace = f;
       rtError e = f->init(mFaceName);
       if (e != RT_OK)
       {
-        rtLogInfo("Could not load font face, %s, %s\n", "blah", mFaceName.cString());
+        rtLogInfo("Could not load font face %s\n", mFaceName.cString());
         sendReady("reject");
         //fontLoaded(); // font is still loaded, it's just the default font because some 
                       // error occurred.
@@ -437,7 +445,7 @@ printf("pxFont::loadFont for %s\n",mFaceName.cString());
         
         fontLoaded();
         //mReady.send("resolve", this);
-        mFace = f;
+        //mFace = f;
       }
     }
 
