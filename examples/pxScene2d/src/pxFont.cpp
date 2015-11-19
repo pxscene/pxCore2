@@ -155,11 +155,9 @@ pxFace::~pxFace()
 
 void pxFace::setPixelSize(uint32_t s)
 {
-  if (mPixelSize != s)
+  if (mPixelSize != s && mInitialized)
   {
-    if( mInitialized) {
-      FT_Set_Pixel_Sizes(mFace, 0, s);
-    }
+    FT_Set_Pixel_Sizes(mFace, 0, s);
     mPixelSize = s;
   }
 }
