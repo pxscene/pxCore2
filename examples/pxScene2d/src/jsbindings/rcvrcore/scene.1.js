@@ -86,6 +86,14 @@ function Scene() {
     stylePatterns.push([paramMatchSet,styleParams]);
   }
 
+  this.clock = function clock() {
+    return nativeScene.clock();
+  }
+
+  this.getFont = function getFont(url) {
+    return nativeScene.getFont(url);
+  }
+
   function applyStyle(createParams) {
     var currentMatch = null;
     var currentKeysMatched = 0;
