@@ -27,6 +27,10 @@ function Scene() {
     }
   }
 
+  this.loadArchive = function(u) {
+    return nativeScene.loadArchive(u);
+  }
+
   this.getX = function() { return nativeScene.x; };
   this.getY = function() {
     return nativeScene.y; };

@@ -1,4 +1,5 @@
-// rtLog.h CopyRight 2005-2006 John Robinson
+// rtCore Copyright 2005-2015 John Robinson
+// rtLog.h
 
 #ifndef RT_LOG_H
 #define RT_LOG_H

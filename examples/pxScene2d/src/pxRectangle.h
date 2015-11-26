@@ -1,12 +1,13 @@
-// pxCore CopyRight 2007-2015 John Robinson
-// pxText.h
+// pxCore Copyright 2007-2015 John Robinson
+// pxRectangle.h
 
 #ifndef PX_RECTANGLE_H
 #define PX_RECTANGLE_H
 
 #include "pxScene2d.h"
 
-class pxRectangle: public pxObject {
+class pxRectangle: public pxObject 
+{
 public:
   rtDeclareObject(pxRectangle, pxObject);
   rtProperty(fillColor, fillColor, setFillColor, uint32_t);
@@ -22,12 +23,14 @@ public:
     mReady.send("resolve",this);
   }
   
-  rtError fillColor(uint32_t& /*c*/) const {
+  rtError fillColor(uint32_t& /*c*/) const 
+  {
     rtLogWarn("fillColor not implemented");
     return RT_OK;
   }
 
-  rtError setFillColor(uint32_t c) {
+  rtError setFillColor(uint32_t c) 
+  {
     mFillColor[0] = (float)((c>>24)&0xff)/255.0f;
     mFillColor[1] = (float)((c>>16)&0xff)/255.0f;
     mFillColor[2] = (float)((c>>8)&0xff)/255.0f;
@@ -35,12 +38,14 @@ public:
     return RT_OK;
   }
 
-  rtError lineColor(uint32_t& /*c*/) const {
+  rtError lineColor(uint32_t& /*c*/) const 
+  {
     rtLogWarn("lineColor not implemented");
     return RT_OK;
   }
 
-  rtError setLineColor(uint32_t c) {
+  rtError setLineColor(uint32_t c) 
+  {
     mLineColor[0] = (float)((c>>24)&0xff)/255.0f;
     mLineColor[1] = (float)((c>>16)&0xff)/255.0f;
     mLineColor[2] = (float)((c>>8)&0xff)/255.0f;
@@ -48,18 +53,21 @@ public:
     return RT_OK;
   }
 
-  rtError lineWidth(float& w) const {
+  rtError lineWidth(float& w) const 
+  {
     w = mLineWidth;
     return RT_OK;
   }
   
-  rtError setLineWidth(float w) {
+  rtError setLineWidth(float w) 
+  {
     mLineWidth = w;
     return RT_OK;
   }
 
   // c is assumed to not be premultiplied
-  void setFillColor(float* c) {
+  void setFillColor(float* c) 
+  {
     mFillColor[0] = c[0];
     mFillColor[1] = c[1];
     mFillColor[2] = c[2];
@@ -67,7 +75,8 @@ public:
   }
   
   // c is assumed to not be premultiplied
-  void setLineColor(float* c) {
+  void setLineColor(float* c) 
+  {
     mLineColor[0] = c[0];
     mLineColor[1] = c[1];
     mLineColor[2] = c[2];

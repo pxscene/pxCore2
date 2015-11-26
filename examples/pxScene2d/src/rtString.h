@@ -1,9 +1,10 @@
-// rtCore CopyRight 2007-2015 John Robinson
+// rtCore Copyright 2007-2015 John Robinson
 // rtString.h
 
 #ifndef _RT_STRING
 #define _RT_STRING
 
+#include <stdlib.h>
 #include <stdint.h>
 
 #ifndef finline
@@ -15,6 +16,7 @@ public:
   rtString();
   rtString(char* s);
   rtString(const char* s);
+  rtString(const char* s, uint32_t byteLen);
   rtString(const rtString& s);
   
   ~rtString();
@@ -51,6 +53,18 @@ public:
   finline bool operator<= (const char* s) const { return compare(s) <= 0; }
   finline bool operator>  (const char* s) const { return compare(s) >  0; }
   finline bool operator>= (const char* s) const { return compare(s) >= 0; }
+
+  bool beginsWith(const char* s) const;
+
+  rtString substring(size_t pos, size_t len = 0) const;
+#if 0
+
+
+  pos_t find(size_t pos, const char* s, size_t n);
+#endif
+
+  size_t find(size_t pos, const char* s) const;
+  size_t find(size_t pos, uint32_t codePoint) const;
 
 private:
   char* mData;

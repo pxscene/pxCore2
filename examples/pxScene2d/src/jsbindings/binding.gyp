@@ -16,9 +16,11 @@
         "../rtString.cpp",
         "../rtValue.cpp",
         "../rtFile.cpp",
+        "../rtThreadQueue.cpp",
         "../rtThreadPool.cpp",
         "../rtThreadTask.cpp",
         "../rtLibrary.cpp",
+        "../rtZip.cpp",
         "../utf8.c",
         "../pxContextGL.cpp",
         "../pxImage.cpp",
@@ -34,6 +36,10 @@
         "../pxTextureCacheObject.cpp",
         "../pxMatrix4T.cpp",
         "../pxTransform.cpp",
+        "../pxArchive.cpp",
+        "../../external/zlib/contrib/minizip/unzip.c",
+        "../../external/zlib/contrib/minizip/ioapi.c",
+        "../ioapi_mem.c",
        ],
 
       "include_dirs" : [
@@ -42,6 +48,8 @@
         "../../external/ft/include",
         "../../external/curl/include",
         "../../external/jpg",
+        "../../external/zlib",
+        "../../external/zlib/contrib/minizip",
         "../../../../src"
       ],
 
@@ -50,6 +58,7 @@
         "-L../../../external/png/.libs",
         "-L../../../external/jpg/.libs",
         "-L../../../external/curl/lib/.libs/",
+        "../../../external/zlib/libz.a",
         "../../../../../build/glut/libpxCore.a",
         "-lfreetype",
         "-lpng16",
@@ -88,11 +97,12 @@
     ]
   ],
 
-      'cflags!': [
-        "-Wno-unused-parameter"
-      ],
+#      'cflags!': [
+#        "-Wno-unused-parameter"
+#      ],
 
       "cflags": [
+         "-Wno-unused-parameter",
         "-Wno-attributes",
         "-Wall",
         "-Wextra"

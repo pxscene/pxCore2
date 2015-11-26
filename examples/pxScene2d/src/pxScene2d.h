@@ -28,8 +28,8 @@ using namespace std;
 #include "rtValue.h"
 #include "rtObject.h"
 #include "rtObjectMacros.h"
-
 #include "rtPromise.h"
+#include "rtThreadQueue.h"
 
 #include "pxCore.h"
 #include "pxIView.h"
@@ -40,7 +40,12 @@ using namespace std;
 #include "pxTextureCacheObject.h"
 #include "pxContextFramebuffer.h"
 
+#include "pxArchive.h"
+
 #include "testView.h"
+
+// TODO Move this to pxEventLoop
+extern rtThreadQueue gUIThreadQueue;
 
 // TODO Finish
 //#include "pxTransform.h"
@@ -873,6 +878,7 @@ public:
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
+  rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createRectangle", createRectangle, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createImage", createImage, rtObjectRef, rtObjectRef);
@@ -918,6 +924,7 @@ public:
   rtConstantProperty(PX_REPEAT, PX_REPEAT_, uint32_t);
  
   rtReadOnlyProperty(allInterpolators, allInterpolators, rtObjectRef);
+
 
   pxScene2d(bool top = true);
   
@@ -1038,6 +1045,21 @@ public:
   {
     v = getRoot();
     return RT_OK;
+  }
+
+  rtError loadArchive(const rtString& url, rtObjectRef& archive)
+  {
+    rtError e = RT_FAIL;
+    printf("1\n");
+    rtRefT<pxArchive> a = new pxArchive;
+    printf("2\n");
+    if (a->initFromUrl(url) == RT_OK)
+    {
+    printf("3\n");
+      archive = a;
+      e = RT_OK;
+    }
+    return e;
   }
   
 private:

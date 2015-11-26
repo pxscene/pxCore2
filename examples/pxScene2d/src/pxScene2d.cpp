@@ -1,4 +1,4 @@
-// pxCore CopyRight 2007-2015 John Robinson
+// pxCore Copyright 2007-2015 John Robinson
 // pxScene2d.cpp
 
 #include "pxScene2d.h"
@@ -30,6 +30,9 @@
 
 #include "pxIView.h"
 
+rtThreadQueue gUIThreadQueue;
+
+// TODO move to rt*
 // Taken from
 // http://stackoverflow.com/questions/342409/how-do-i-base64-encode-decode-in-c
 
@@ -1227,8 +1230,12 @@ void pxScene2d::draw()
 
 void pxScene2d::onUpdate(double t)
 {
+  // TODO if (mTop) check??
   pxTextureCacheObject::checkForCompletedDownloads();
   pxFont::checkForCompletedDownloads();
+
+  // Dispatch various tasks on the main UI thread
+  gUIThreadQueue.process(0.01);
 
   if (start == 0)
     start = pxSeconds();
@@ -1436,18 +1443,20 @@ void pxScene2d::setMouseEntered(pxObject* o)
 rtError pxScene2d::setFocus(rtObjectRef o)
 {
 
-  if(mFocus) {
+  if(mFocus) 
+  {
 	    rtObjectRef e = new rtMapObject;
 	    e.set("target",mFocus);
 	    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
 	    t->mEmit.send("onBlur",e);
   }
 
-  if (o) {
+  if (o) 
+  {
 	  mFocus = o;
   }
-  else {
-
+  else 
+  {
 	  mFocus = getRoot();
   }
   rtObjectRef e = new rtMapObject;
@@ -1772,6 +1781,7 @@ rtDefineMethod(pxScene2d, delListener);
 rtDefineMethod(pxScene2d, setFocus);
 rtDefineMethod(pxScene2d, stopPropagation);
 rtDefineMethod(pxScene2d, screenshot);
+rtDefineMethod(pxScene2d, loadArchive);
 rtDefineProperty(pxScene2d, ctx);
 rtDefineProperty(pxScene2d, api);
 rtDefineProperty(pxScene2d, emit);

@@ -17,9 +17,13 @@ static DWORD __rt_main_thread__;
 #else
 static pthread_t __rt_main_thread__;
 static pthread_t __rt_render_thread__;
+
+#if 0
 static pthread_mutex_t gInitLock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t gInitCond  = PTHREAD_COND_INITIALIZER;
 static bool gInitComplete = false;
+#endif
+
 #endif
 
 bool rtIsMainThread()

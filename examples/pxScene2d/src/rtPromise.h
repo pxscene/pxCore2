@@ -1,5 +1,8 @@
-// pxCore CopyRight 2007-2015 John Robinson
+// rtCore Copyright 2007-2015 John Robinson
 // rtPromise.h
+
+#ifndef _RT_PROMISE_H
+#define _RT_PROMISE_H
 
 enum rtPromiseState {PENDING,FULFILLED,REJECTED};
 
@@ -105,3 +108,5 @@ private:
   vector<thenData> mThenData;
   rtValue mValue;
 };
+
+#endif

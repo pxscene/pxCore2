@@ -61,7 +61,7 @@ rtError rtStoreFile(const char* f, rtData& data)
     CloseHandle(hFile);
   }
 #else
-  int fd = open(f, O_CREAT | O_TRUNC | O_WRONLY);
+  int fd = open(f, O_CREAT | O_TRUNC | O_WRONLY,0644);
   if (fd >= 0)
   {
     if (data.length() > 0)

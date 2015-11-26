@@ -1,5 +1,9 @@
 // rtCore CopyRight 2007-2015 John Robinson
 // rtFile.h
+
+#ifndef _RT_FILE_H
+#define _RT_FILE_H
+
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -79,3 +83,5 @@ public:
 private:
   FILE* mFile;
 };
+
+#endif

@@ -1,3 +1,5 @@
+px.import("px:scene.1").then(function(scene) {
+
 var root = scene.root;
 
 var o = scene.create({t:"rect",fillColor:0xffffffff,w:300,h:300,parent:root,cx:150,cy:150,c:[
@@ -8,24 +10,24 @@ var o = scene.create({t:"rect",fillColor:0xffffffff,w:300,h:300,parent:root,cx:1
 
 var a1 = o.animateTo({r:360},1,scene.PX_LINEAR,scene.PX_END)
   .then(function(z) {
-      console.log('Im finally here:'+z);
+    // TODO crashing
+   //   console.log('Im finally here:'+z);
     z.animateTo({sx:2.0,sy:2.0},1,scene.PX_LINEAR,scene.PX_END);
     return z;
     })
   .then(function(z) {
-    console.log("chained promise",z);
+    //console.log("chained promise",z);
     return "test";
   })
 .then(function(y) {
   console.log("foo: ", y);
 });
 
-
 var a2 = o.children[1].animateTo({r:-360},6,scene.PX_LINEAR,scene.PX_END)
   .then(function() {
     console.log("child animation done");
 });
 
-
 Promise.all([a1,a2]).then(function() {console.log("all animations complete");});
 
+});
