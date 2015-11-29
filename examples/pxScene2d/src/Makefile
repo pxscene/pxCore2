@@ -1,4 +1,6 @@
 
+ZLIB=../external/zlib/
+
 all: gl2d
 clean:
 	rm -rf $(OBJDIR)
@@ -19,26 +21,33 @@ PXLIBS=$(PXCOREDIR)/build/glut
 TARGETINCLUDE=
 endif
 
+
 VPATH=linux
 RT_SRCS=\
-    rtError.cpp\
+	utf8.c\
+	ioapi_mem.c\
+	unzip.c\
+	ioapi.c\
+	rtError.cpp\
+	rtLog.cpp \
     rtFile.cpp \
-    rtLog.cpp \
     rtPathUtils.cpp \
     rtString.cpp \
-    rtObject.cpp \
     rtValue.cpp \
-    linux/rtMutexNative.cpp \
-    linux/rtThreadPoolNative.cpp \
+    rtObject.cpp \
     rtThreadPool.cpp \
     rtThreadTask.cpp \
+	  rtThreadQueue.cpp \
     rtLibrary.cpp \
-    utf8.c
+		rtZip.cpp\
+    linux/rtMutexNative.cpp \
+    linux/rtThreadPoolNative.cpp \
     
 PX_SRCS=\
     pxMain.cpp \
     pxScene2d.cpp \
 		pxRectangle.cpp \
+	  pxFont.cpp \
     pxText.cpp \
     pxText2.cpp \
     pxImage.cpp \
@@ -48,7 +57,8 @@ PX_SRCS=\
     pxTextureCacheObject.cpp \
     pxFileDownloader.cpp \
     pxInterpolators.cpp \
-		pxMatrix4T.cpp
+		pxMatrix4T.cpp \
+	  pxArchive.cpp
 
 EXTDIR=../external
 PXCOREDIR=../../..
@@ -61,6 +71,7 @@ SEARCH=\
   -I$(EXTDIR)/ft/include \
   -I$(EXTDIR)/png \
   -I$(PXHDRS) \
+	-I$(ZLIB) \
 	$(TARGETINCLUDE)
 
 CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) 
@@ -73,7 +84,8 @@ LDJPG   = -L$(EXTDIR)/jpg/.libs -ljpeg
 endif
 LDFT    = -L$(EXTDIR)/ft/objs/.libs -lfreetype
 LDCURL  = -L$(EXTDIR)/curl/lib/.libs -lcurl
-LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL)
+LDZLIB  = -L$(EXTDIR)/zlib -lz
+LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDZLIB)
 
 ifeq ($(UNAME_S),Darwin)
 LDFLAGS = -L$(PXLIBS) -lpxCore $(LDEXT) -framework GLUT -framework OpenGL -ldl
@@ -88,9 +100,12 @@ endif
 OBJDIR=obj
 SRCS=$(PX_SRCS) $(RT_SRCS) testScene.cpp
 
-OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS)))
-OBJS:=$(patsubst %.c, $(OBJDIR)/%.o, $(OBJS))
-OBJS: $(SRCS)
+OBJS=$(patsubst %.cpp, %.o, $(notdir $(SRCS)))
+OBJS:=$(patsubst %.c, %.o, $(notdir $(OBJS)))
+OBJS:=$(patsubst %, $(OBJDIR)/%, $(OBJS))
+#OBJS: $(SRCS)
+#$(info $(OBJS))
+
 
 $(OBJDIR)/%.o : %.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
