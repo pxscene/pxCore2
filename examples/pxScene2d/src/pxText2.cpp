@@ -36,18 +36,12 @@ pxText2::pxText2(pxScene2d* s):pxText(s)
 
 }
 
-pxText2::~pxText2()
-{
-	 delete measurements;
-   measurements = 0;
-}
-
 /** This signals that the font file loaded successfully; now we need to 
  * send the ready promise once we have the text, too
  */
 void pxText2::fontLoaded(const char * value) 
 {
-//  printf("pxText2::fontLoaded. Initialized=%d\n",mInitialized);
+  //rtLogInfo("pxText2::fontLoaded. Initialized=%d\n",mInitialized);
   if(!strncmp(value, "resolve", strnlen(value, 8))) {
     mFontLoaded = true;
   }
@@ -113,13 +107,9 @@ void pxText2::setNeedsRecalc(bool recalc)
 
   if(recalc && static_cast<rtPromise *>(mReady.getPtr())->status()) 
   {
-    //printf("pxText2::setNeedsRecalc deleting old promise\n");
-    static_cast<rtPromise *>(mReady.getPtr())->Release(); 
-
     mReady = new rtPromise;
- 
   }
-  
+
 }
 /** 
  * setText: for pxText2, setText sets the text value, but does not
@@ -136,6 +126,7 @@ rtError pxText2::setText(const char* s) {
 
 rtError pxText2::setPixelSize(uint32_t v) 
 {   
+  //printf("pxText2::setPixelSize %s\n",mText.cString());
   mPixelSize = v; 
   setNeedsRecalc(true); 
   return RT_OK; 
@@ -155,7 +146,7 @@ void pxText2::draw() {
   {
     if(!clip() && mTruncation == NONE)
     {
-      //printf("!CLF: pxText2::draw() with cachedPtr and noClip values x=%f y=%f w=%f h=%f\n",noClipX,noClipY,noClipW,noClipH);
+      //printf("!CLF: pxText2::draw() with cachedPtr && noClip values x=%f y=%f w=%f h=%f\n",noClipX,noClipY,noClipW,noClipH);
       context.drawImage(noClipX,noClipY,noClipW,noClipH,mCached->getTexture(),nullMaskRef,PX_NONE,PX_NONE);
     }
     else 
@@ -163,23 +154,25 @@ void pxText2::draw() {
       context.drawImage(0,0,mw,mh,mCached->getTexture(),nullMaskRef,PX_NONE,PX_NONE);
     }
 	}
-	else {
+	else 
+    {
 	  renderText(true);
-
 	}
 }
 void pxText2::update(double t)
 {
   //printf("pxText2::update: mNeedsRecalc=%d\n",mNeedsRecalc);
   if( mNeedsRecalc ) {
-//    printf("pxText2::update: mNeedsRecalc=%d\n",mNeedsRecalc);
-//    printf("pxText2::update: mInitialized=%d && mFontLoaded=%d\n",mInitialized, mFontLoaded);
+    //printf("pxText2::update: mNeedsRecalc=%d\n",mNeedsRecalc);
+    //printf("pxText2::update: mInitialized=%d && mFontLoaded=%d\n",mInitialized, mFontLoaded);
+    
     recalc();
 
     setNeedsRecalc(false);
     mDirty = true;
+    mScene->mDirty = true;
     if(mInitialized && mFontLoaded ) {
-      //printf("pxText2::update: FIRING PROMISE\n");
+      //rtLogInfo("pxText2::update: FIRING PROMISE\n");
       mReady.send("resolve", this);
     }
   }  
@@ -295,7 +288,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 			char tempChar[2];
 			tempChar[0] = charToMeasure;
 			tempChar[1] = 0;
-			mFont->getFace()->measureTextChar(charToMeasure, size,  sx, sy, charW, charH);
+			mFont->measureTextChar(charToMeasure, size,  sx, sy, charW, charH);
 			if( isNewline(charToMeasure))
       {
         // Render what we had so far in accString; since we are here, it will fit.
@@ -402,7 +395,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 					tempX = 0;
 					lineNumber++;
 
-					mFont->getFace()->measureText(accString.cString(), size, sx, sy, charW, charH);
+					mFont->measureText(accString.cString(), size, sx, sy, charW, charH);
 
           tempX += charW;			
           
@@ -445,7 +438,7 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
  
   if( !render) {
       float metricHeight;
-      mFont->getFace()->getHeight(mPixelSize,metricHeight);
+      mFont->getHeight(mPixelSize,metricHeight);
       //printf("pxText2::renderTextWithWordWrap metricHeight is %f\n",metricHeight);
       //printf("pxText2::renderTextWithWordWrap lineNumer=%d\n",lineNumber);
       //printf("pxText2::renderTextWithWordWrap mLeading=%f\n",mLeading);
@@ -547,7 +540,7 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
 
   //printf("pxText2::renderOneLine tempY=%f noClipY=%f\n",tempY,noClipY);
   float xPos = tempX; 
-  mFont->getFace()->measureText(tempStr, size, sx, sy, charW, charH);
+  mFont->measureText(tempStr, size, sx, sy, charW, charH);
   
   if( !clip() && mTruncation == NONE) 
   {
@@ -750,7 +743,7 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
   }
 
   // Now, render the text
-  if( render) {mFont->getFace()->renderText(tempStr, size, xPos, tempY, sx, sy, color,lineWidth);} 
+  if( render) {mFont->renderText(tempStr, size, xPos, tempY, sx, sy, color,lineWidth);} 
  
 
 }
@@ -832,7 +825,7 @@ void pxText2::setLineMeasurements(bool firstLine, float xPos, float yPos)
 {
   //printf("pxText2::setLineMeasurements firstLine=%d xPos=%f yPos=%f\n", firstLine, xPos, yPos);
   float height, ascent, descent, naturalLeading;
-  mFont->getFace()->getMetrics(mPixelSize, height, ascent, descent, naturalLeading);
+  mFont->getMetrics(mPixelSize, height, ascent, descent, naturalLeading);
   if(!firstLine) {
     measurements->getLastChar()->setX(xPos);
     measurements->getLastChar()->setY(yPos + ascent);
@@ -860,11 +853,11 @@ void pxText2::renderTextNoWordWrap(float sx, float sy, float tempX, bool render)
   }
   
   // Measure as single line since there's no word wrapping
-  mFont->getFace()->measureText(mText, mPixelSize, sx, sy, charW, charH);
+  mFont->measureText(mText, mPixelSize, sx, sy, charW, charH);
   //printf(">>>>>>>>>>>> pxText2::renderTextNoWordWrap charH=%f charW=%f\n", charH, charW);
 
   float metricHeight;
-  mFont->getFace()->getHeight(mPixelSize, metricHeight);
+  mFont->getHeight(mPixelSize, metricHeight);
   //printf(">>>>>>>>>>>>>> metric height is %f and charH is %f\n", metricHeight, charH);
   if( charH > metricHeight) // There's a newline in the text somewhere
   {
@@ -933,7 +926,7 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
 	if( mEllipsis) 
   {
 		length -= ELLIPSIS_LEN;
-		mFont->getFace()->measureText(ELLIPSIS_STR, pixelSize, sx, sy, ellipsisW, charH);
+		mFont->measureText(ELLIPSIS_STR, pixelSize, sx, sy, ellipsisW, charH);
 		//printf("ellipsisW is %f\n",ellipsisW);
 	}
   
@@ -956,7 +949,7 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
 		tempStr[i] = '\0';
 		charW = 0;
 		charH = 0;
-		mFont->getFace()->measureText(tempStr, pixelSize, sx, sy, charW, charH);
+		mFont->measureText(tempStr, pixelSize, sx, sy, charW, charH);
 		if( (tempX + charW + ellipsisW) <= lineWidth) 
     {
 			float xPos = tempX;  
@@ -978,13 +971,13 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
         if( lineNumber==0) {setLineMeasurements(true, xPos, tempY);}
 
         if( render) {
-          mFont->getFace()->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, color,lineWidth);
+          mFont->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, color,lineWidth);
         } 
 				if( mEllipsis) 
         {
 					//printf("rendering truncated text with ellipsis\n");
 					if( render) {
-            mFont->getFace()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
+            mFont->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
           } 
           if(!mWordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
           setLineMeasurements(false, xPos+charW+ellipsisW, tempY);
@@ -1003,7 +996,7 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
 				if( isWordBoundary(tempStr[i-n])) 
         {
 					tempStr[i-n+1] = '\0';
-					mFont->getFace()->measureText(tempStr, pixelSize, sx, sy, charW, charH);
+					mFont->measureText(tempStr, pixelSize, sx, sy, charW, charH);
 
           // Ignore xStartPos and xStopPos if H align is not LEFT
 					if( mHorizontalAlign == H_CENTER )
@@ -1018,14 +1011,14 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
           setLineMeasurements(false, xPos+charW, tempY); 		
           if( lineNumber==0) {setLineMeasurements(true, xPos, tempY);	}							
 					if( render){
-            mFont->getFace()->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, color,lineWidth);
+            mFont->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, color,lineWidth);
           }
 				}
 				if( mEllipsis) 
         {
 					//printf("rendering  text on word boundary with ellipsis\n");
 					if( render) {
-            mFont->getFace()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
+            mFont->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
           }
           if(!mWordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
           setLineMeasurements(false, xPos+charW+ellipsisW, tempY);
@@ -1069,7 +1062,7 @@ bool pxText2::isNewline( char ch )
 * descent - float - the distance from the baseline to the font descender  (note that this is a hint, not a solid rule)
 */
 rtError pxText2::getFontMetrics(rtObjectRef& o) {
-  printf("pxText2::getFontMetrics\n");  
+  //printf("pxText2::getFontMetrics\n");  
   
   mFont->getFontMetrics(mPixelSize, o);
 

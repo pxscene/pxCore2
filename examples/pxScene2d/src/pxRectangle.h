@@ -20,8 +20,10 @@ public:
     float l[4] = {1,1,1,1};
     setFillColor(f);
     setLineColor(l);
-    mReady.send("resolve",this);
+    //mReady.send("resolve",this);
   }
+
+  virtual void onInit() {mReady.send("resolve",this);}
   
   rtError fillColor(uint32_t& /*c*/) const 
   {

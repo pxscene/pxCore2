@@ -96,6 +96,7 @@ class rtValue {
   rtValue(const rtFunctionRef& v);
   rtValue(const rtValue& v);
   rtValue(voidPtr v);
+  ~rtValue();
 
   finline rtValue& operator=(bool v)                { setBool(v);     return *this; }
   finline rtValue& operator=(int8_t v)              { setInt8(v);     return *this; }
