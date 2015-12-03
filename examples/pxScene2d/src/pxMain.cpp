@@ -49,7 +49,9 @@ int pxMain()
 
   win.setTitle("pxCore!");
   win.setVisibility(true);
-  win.setView(testScene());
+  pxScene2dRef s = testScene();
+  win.setView(s);
+
   win.setAnimationFPS(60);
 
 #if 0 

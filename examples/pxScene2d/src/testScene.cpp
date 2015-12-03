@@ -364,7 +364,7 @@ rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void*
   return RT_OK;
 }
 
-pxViewRef testScene()
+pxScene2dRef testScene()
 {
   callbackCtx* ctx = new callbackCtx;
   rtObjectRef& bg1 = ctx->bg1;

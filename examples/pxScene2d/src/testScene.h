@@ -5,7 +5,10 @@
 #define TEST_SCENE_H
 
 #include "pxIView.h"
+#include "pxScene2d.h"
 
-pxViewRef testScene();
+//pxViewRef testScene();
+
+pxScene2dRef testScene();
 
 #endif
