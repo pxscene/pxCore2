@@ -53,21 +53,9 @@ static const char space_chars[] = " \t";
 class pxCharPosition: public pxObject {
 
 public:
-	pxCharPosition(pxScene2d* s): pxObject(s), mRefCount(0) {  }
+	pxCharPosition(pxScene2d* s): pxObject(s) {  }
 	virtual ~pxCharPosition() {}
 
-	virtual unsigned long AddRef() 
-	{
-		return rtAtomicInc(&mRefCount);
-	}
-
-	virtual unsigned long Release() 
-	{
-		long l = rtAtomicDec(&mRefCount);
-		if (l == 0) delete this;
-			return l;
-	}
-  
 	rtDeclareObject(pxCharPosition, pxObject);
 	rtReadOnlyProperty(x, x, float);
   rtReadOnlyProperty(y, y, float);
@@ -86,7 +74,6 @@ public:
   }
       
   private:
-    rtAtomic mRefCount;	
     float mX;
     float mY;
     
@@ -100,20 +87,8 @@ public:
 class pxTextBounds: public pxObject {
 
 public:
-	pxTextBounds(pxScene2d* s): pxObject(s), mRefCount(0) { clear(); }
+	pxTextBounds(pxScene2d* s): pxObject(s) { clear(); }
 	virtual ~pxTextBounds() {}
-
-	virtual unsigned long AddRef() 
-	{
-		return rtAtomicInc(&mRefCount);
-	}
-
-	virtual unsigned long Release() 
-	{
-		long l = rtAtomicDec(&mRefCount);
-		if (l == 0) delete this;
-			return l;
-	}
   
 	rtDeclareObject(pxTextBounds, pxObject);
 	rtReadOnlyProperty(x1, x1, float);
@@ -144,7 +119,6 @@ public:
     mY2 = 0;
   }    
   private:
-    rtAtomic mRefCount;	
     float mX1;
     float mY1;
     float mX2;
@@ -159,24 +133,13 @@ public:
 class pxTextMeasurements: public pxObject {
 
 public:
-	pxTextMeasurements(pxScene2d* s): pxObject(s), mRefCount(0) { 
+	pxTextMeasurements(pxScene2d* s): pxObject(s){ 
     mBounds = new pxTextBounds(s);
     mFirstChar = new pxCharPosition(s);
     mLastChar = new pxCharPosition(s);
   }
 	virtual ~pxTextMeasurements() {}
 
-	virtual unsigned long AddRef() 
-	{
-		return rtAtomicInc(&mRefCount);
-	}
-
-	virtual unsigned long Release() 
-	{
-		long l = rtAtomicDec(&mRefCount);
-		if (l == 0) delete this;
-			return l;
-	}
 	rtDeclareObject(pxTextMeasurements, pxObject);
   rtReadOnlyProperty(bounds, bounds, rtObjectRef);
   rtReadOnlyProperty(firstChar, firstChar, rtObjectRef);
@@ -209,8 +172,7 @@ public:
   }    
       
   private:
-    rtAtomic mRefCount;	
-    
+   
     rtRefT<pxTextBounds> mBounds;
     rtRefT<pxCharPosition> mFirstChar;
     rtRefT<pxCharPosition> mLastChar;
@@ -227,7 +189,7 @@ public:
   rtDeclareObject(pxText2, pxText);
 
   pxText2(pxScene2d* s);
-  ~pxText2();
+  ~pxText2(){}
   
   rtProperty(wordWrap, wordWrap, setWordWrap, bool);
   rtProperty(ellipsis, ellipsis, setEllipsis, bool);

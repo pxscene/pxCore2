@@ -31,7 +31,7 @@ public:
   rtProperty(faceURL, faceURL, setFaceURL, rtString);
 
   pxText(pxScene2d* scene);
-  ~pxText();
+  ~pxText() {}
   rtError text(rtString& s) const;
   virtual rtError setText(const char* text);
 
@@ -84,7 +84,8 @@ public:
   bool mFontLoaded;
   rtString mFaceURL;
 
-pxFont* mFont;
+  rtRefT<pxFont> mFont;
+  
   float mTextColor[4];
   uint32_t mPixelSize;
   bool mDirty;

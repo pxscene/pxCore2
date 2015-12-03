@@ -19,8 +19,6 @@ class pxFont;
 #define defaultPixelSize 16
 #define defaultFace "FreeSans.ttf"
 
-class pxFace;
-typedef rtRefT<pxFace> pxFaceRef;
 
 class pxFileDownloadRequest;
 typedef struct _FontDownloadRequest
@@ -41,57 +39,6 @@ struct GlyphCacheEntry
   pxTextureRef mTexture;
 };
 
-class pxFace
-{
-public:
-  pxFace();
-  virtual ~pxFace();
-  
-  rtError init(const char* n);
-  rtError init(const FT_Byte*  fontData, FT_Long size, const char* n);
-  
-  void setFaceName(const char* n);
-  bool isInitialized() { return mInitialized; }
-  void onDownloadComplete(const FT_Byte* fontData, FT_Long size, const char* n);
-  void addListener(pxFont* pFont);
-
-  virtual unsigned long AddRef() 
-  {
-    return rtAtomicInc(&mRefCount);
-  }
-  
-  virtual unsigned long Release() 
-  {
-    long l = rtAtomicDec(&mRefCount);
-    if (l == 0) delete this;
-    return l;
-  }
-    
-  void setPixelSize(uint32_t s);  
-  const GlyphCacheEntry* getGlyph(uint32_t codePoint);  
-  void getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading);
-  void getHeight(uint32_t size, float& height);
-  void measureText(const char* text, uint32_t size,  float sx, float sy, 
-                   float& w, float& h);
-  void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
-                         float& w, float& h);                   
-  void renderText(const char *text, uint32_t size, float x, float y, 
-                  float sx, float sy, 
-                  float* color, float mw);
-
-private:
-  uint32_t mFaceId;
-  rtString mFaceName;
-  FT_Face mFace;
-  uint32_t mPixelSize;
-  rtAtomic mRefCount;
-  
-  char* mFontData; // for remote fonts loaded into memory
-  
-  bool mInitialized;
-  vector<pxFont*> mListeners;
-};
-
 
 
 /**********************************************************************
@@ -102,20 +49,9 @@ private:
 class pxTextMetrics: public pxObject {
 
 public:
-	pxTextMetrics(pxScene2d* s): pxObject(s), mRefCount(0) {  }
+	pxTextMetrics(pxScene2d* s): pxObject(s) {  }
 	virtual ~pxTextMetrics() {}
 
-	virtual unsigned long AddRef() 
-	{
-		return rtAtomicInc(&mRefCount);
-	}
-
-	virtual unsigned long Release() 
-	{
-		long l = rtAtomicDec(&mRefCount);
-		if (l == 0) delete this;
-			return l;
-	}
 	rtDeclareObject(pxTextMetrics, pxObject);
 	rtReadOnlyProperty(height, height, float); 
 	rtReadOnlyProperty(ascent, ascent, float);
@@ -144,7 +80,6 @@ public:
 	rtError setBaseline(float v)       { mBaseline = v; return RT_OK;   }   
    
   private:
-    rtAtomic mRefCount;	
    	float mHeight;
     float mAscent;
     float mDescent;
@@ -160,26 +95,12 @@ public:
 class pxTextSimpleMeasurements: public pxObject {
 
 public:
-	pxTextSimpleMeasurements(pxScene2d* s): pxObject(s), mRefCount(0) { 
+	pxTextSimpleMeasurements(pxScene2d* s): pxObject(s) { 
 
   }
 	virtual ~pxTextSimpleMeasurements() {}
 
-	virtual unsigned long AddRef() 
-	{
-		return rtAtomicInc(&mRefCount);
-	}
-
-	virtual unsigned long Release() 
-	{
-		long l = rtAtomicDec(&mRefCount);
-		if (l == 0) delete this;
-			return l;
-	}
 	rtDeclareObject(pxTextSimpleMeasurements, pxObject);
-
-  private:
-    rtAtomic mRefCount;	
     
 };
 
@@ -194,44 +115,55 @@ public:
 	pxFont(pxScene2d* s, rtString faceURL);
 	virtual ~pxFont() ;
 
-	virtual unsigned long AddRef() 
-	{
-		return rtAtomicInc(&mRefCount);
-	}
-
-	virtual unsigned long Release() 
-	{
-		long l = rtAtomicDec(&mRefCount);
-		if (l == 0) delete this;
-			return l;
-	}
 	rtDeclareObject(pxFont, pxObject);
   rtMethod1ArgAndReturn("getFontMetrics", getFontMetrics, uint32_t, rtObjectRef);
   rtError getFontMetrics(uint32_t pixelSize, rtObjectRef& o);
   rtMethod2ArgAndReturn("measureText", measureText, uint32_t, rtString, rtObjectRef);
   rtError measureText(uint32_t, rtString, rtObjectRef& o);   
-  // Should we have a getter so that users can query the fontFace?
+  
+  
+  // Should we have a getter so that javascript can query the fontFace?
+  rtString getFontName() { return mFaceName;}
   void fontLoaded();
   void onFontDownloadComplete(FontDownloadRequest fontDownloadRequest);
+  void onDownloadComplete(const FT_Byte* fontData, FT_Long size, const char* n);
+  
   static void checkForCompletedDownloads(int maxTimeInMilliseconds=10);
-  pxFaceRef getFace() { return mFace;}
+    
   void addListener(pxText* pText);
   bool isFontLoaded() { return mInitialized;}
+  rtError loadFont();
 
-  private:
- 
-    void sendReady(const char * value); 
-    rtError loadFont();
-    
-    rtAtomic mRefCount;	
+  // FT Face related functions
+  void setPixelSize(uint32_t s);  
+  const GlyphCacheEntry* getGlyph(uint32_t codePoint);  
+  void getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading);
+  void getHeight(uint32_t size, float& height);
+  void measureText(const char* text, uint32_t size,  float sx, float sy, 
+                   float& w, float& h);
+  void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
+                         float& w, float& h);                   
+  void renderText(const char *text, uint32_t size, float x, float y, 
+                  float sx, float sy, 
+                  float* color, float mw);
 
-    pxFaceRef mFace;
-    //uint32_t mFaceId;
-    rtString mFaceName;
+private:
+  rtError init(const char* n);
+  rtError init(const FT_Byte*  fontData, FT_Long size, const char* n); 
+  void sendReady(const char * value); 
+
+  uint32_t mFaceId;
+  rtString mFaceName;
+  FT_Face mFace;
+  uint32_t mPixelSize;
+  
+  char* mFontData; // for remote fonts loaded into memory
+  
+  bool mInitialized;
     
-    pxFileDownloadRequest* mFontDownloadRequest;
+  pxFileDownloadRequest* mFontDownloadRequest;
     
-    vector<pxText*> mListeners;
+  vector<pxText*> mListeners;
 };
 
 // Weak Map
@@ -241,9 +173,9 @@ class pxFontManager
 {
   
   public: 
-  
-    static rtObjectRef getFont(pxScene2d* scene, const char* s);
-    static pxFont* getFontObj(pxScene2d* scene, const char* s);
+    
+    static rtRefT<pxFont> getFont(pxScene2d* scene, const char* s);
+    static void removeFont(rtString faceName);
     
   protected: 
     static void initFT(pxScene2d* scene);  

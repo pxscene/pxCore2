@@ -5,73 +5,55 @@
 #include "pxFileDownloader.h"
 #include "pxTimer.h"
 #include "pxFont.h"
-
-#include <math.h>
-#include <map>
-
-
-
-
-
 #include "pxContext.h"
 
 extern pxContext context;
 
 
-pxText::pxText(pxScene2d* scene):pxObject(scene)//, mFontDownloadRequest(NULL)
+pxText::pxText(pxScene2d* scene):pxObject(scene)
 {
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
-  mFont = pxFontManager::getFontObj(scene,defaultFace);
-//  mFace = gFace;
+  mFont = pxFontManager::getFont(scene,defaultFace);
   mPixelSize = defaultPixelSize;
   mDirty = true;
 }
 
-pxText::~pxText()
-{
-  //if (mFontDownloadRequest != NULL)
-  //{
-    //// if there is a previous request pending then set the callback to NULL
-    //// the previous request will not be processed and the memory will be freed when the download is complete
-    //mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
-  //}
-}
 
 void pxText::onInit()
 {
-//  printf("pxText2::onInit. mFontLoaded=%d\n",mFontLoaded);
+  //printf("pxText2::onInit. mFontLoaded=%d\n",mFontLoaded);
   mInitialized = true;
 
   if( mFont->isFontLoaded()) {
-
     fontLoaded("resolve");
   }
 }
 rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
 
-rtError pxText::setText(const char* s) { 
-  printf("pxText::setText\n"); 
+rtError pxText::setText(const char* s) 
+{ 
+  //printf("pxText::setText %s\n", s); 
   mText = s; 
-  mFont->getFace()->measureText(s, mPixelSize, 1.0, 1.0, mw, mh);
+  mFont->measureText(s, mPixelSize, 1.0, 1.0, mw, mh);
   return RT_OK; 
 }
 
 rtError pxText::setPixelSize(uint32_t v) 
 {   
-  printf("pxText::setPixelSize\n"); 
+  //printf("pxText::setPixelSize\n"); 
   mPixelSize = v; 
-  mFont->getFace()->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+  mFont->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
   return RT_OK; 
 }
 
 void pxText::fontLoaded(const char * value)
 {
-  printf("pxText::fontLoaded for fontFace=%s and mInitialized=%d\n",mFaceURL.cString(), mInitialized); 
+  //rtLogInfo("pxText::fontLoaded for fontFace=%s and mInitialized=%d\n",mFaceURL.compare("")?mFaceURL.cString():defaultFace, mInitialized); 
   mFontLoaded=true;
   // pxText gets its height and width from the text itself, 
   // so measure it
-  mFont->getFace()->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+  mFont->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
   mDirty=true;  
   printf("After fontLoaded and measureText, mw=%f and mh=%f\n",mw,mh);
   
@@ -145,7 +127,7 @@ void pxText::draw() {
   }
   else
   {
-    mFont->getFace()->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
+    mFont->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
   }
 }
 
@@ -158,7 +140,7 @@ rtError pxText::setFaceURL(const char* s)
   mFontLoaded = false;
   mFaceURL = s;
 
-  mFont = pxFontManager::getFontObj(mScene, s);
+  mFont = pxFontManager::getFont(mScene, s);
   mFont->addListener(this);
   
   return RT_OK;

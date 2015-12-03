@@ -67,61 +67,38 @@ void pxFontDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
   }
 }
 
-
-// Weak Map
-//typedef map<rtString, pxFace*> FaceMap;
-//FaceMap gFaceMap;
-
 uint32_t gFaceId = 0;
 
-pxFace::pxFace():mPixelSize(0), mRefCount(0), mFontData(0), mInitialized(false) { mFaceId = gFaceId++; }
-
-void pxFace::onDownloadComplete(const FT_Byte*  fontData, FT_Long size, const char* n)
+void pxFont::onDownloadComplete(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
-  printf("pxFace::onDownloadComplete %s\n",n);
+  rtLogInfo("pxFont::onDownloadComplete %s\n",n);
   if( mFaceName.compare(n)) 
   {
-    rtLogWarn("pxFace::onDownloadComplete received for face \"%s\" but this face is \"%s\"\n",n, mFaceName.cString());
+    rtLogWarn("pxFont::onDownloadComplete received for face \"%s\" but this face is \"%s\"\n",n, mFaceName.cString());
     return; 
   }
 
   init(fontData, size, n);
   
-  for (vector<pxFont*>::iterator it = mListeners.begin();
-         it != mListeners.end(); ++it)
-    {
-      (*it)->fontLoaded();// This is really just a single pxFont... so maybe this listener, etc. is not necessary
+  fontLoaded();
 
-    }
-    mListeners.clear();
 }
 
-void pxFace::addListener(pxFont* pFont) 
-{
-  mListeners.push_back(pFont);
-  
-}
-void pxFace::setFaceName(const char* n)
-{
-  mFaceName = n;
-}
-rtError pxFace::init(const char* n)
+
+rtError pxFont::init(const char* n)
 {
   mFaceName = n;
     
   if(FT_New_Face(ft, n, 0, &mFace))
     return RT_FAIL;
   
-  setPixelSize(defaultPixelSize);
   mInitialized = true;
-
-//  gFaceMap.insert(make_pair(n, this));
-
+  setPixelSize(defaultPixelSize);
 
   return RT_OK;
 }
 
-rtError pxFace::init(const FT_Byte*  fontData, FT_Long size, const char* n)
+rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
   // We need to keep a copy of fontData since the download will be deleted.
   mFontData = (char *)malloc(size);
@@ -131,41 +108,30 @@ rtError pxFace::init(const FT_Byte*  fontData, FT_Long size, const char* n)
     return RT_FAIL;
 
   mFaceName = n;
-  setPixelSize(defaultPixelSize);
   mInitialized = true;
-
+  setPixelSize(defaultPixelSize);
+  
   return RT_OK;
 }
 
-pxFace::~pxFace() 
-{ 
-  //rtLogInfo("~pxFace\n"); 
-  //FaceMap::iterator it = gFaceMap.find(mFaceName);
-  //if (it != gFaceMap.end())
-    //gFaceMap.erase(it);
-//#if 0
-  //else
-    //rtLogError("Could not find faceName in map");
-//#endif
-  //if(mFontData) {
-    //free(mFontData);
-    //mFontData = 0;
-  //}
-}
 
-void pxFace::setPixelSize(uint32_t s)
+void pxFont::setPixelSize(uint32_t s)
 {
   if (mPixelSize != s && mInitialized)
   {
+    //printf("pxFont::setPixelSize size=%d mPixelSize=%d mInitialized=%d and mFace=%d\n", s,mPixelSize,mInitialized, mFace);
     FT_Set_Pixel_Sizes(mFace, 0, s);
     mPixelSize = s;
   }
 }
-void pxFace::getHeight(uint32_t size, float& height)
+void pxFont::getHeight(uint32_t size, float& height)
 {
- 	// is mFace ever not valid?
 	// TO DO:  check FT_IS_SCALABLE 
-  if( !mInitialized) return;
+  if( !mInitialized) 
+  {
+    rtLogWarn("getHeight called on font before it is initialized\n");
+    return;
+  }
   
   setPixelSize(size);
   
@@ -174,12 +140,14 @@ void pxFace::getHeight(uint32_t size, float& height)
 	height = metrics->height>>6; 
 }
   
-void pxFace::getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading)
+void pxFont::getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading)
 {
-//	printf("pxFace::getMetrics\n");
-	// is mFace ever not valid?
 	// TO DO:  check FT_IS_SCALABLE 
-  if( !mInitialized) return;
+  if( !mInitialized) 
+  {
+    rtLogWarn("getMetrics called on font before it is initialized\n");
+    return;
+  }
   
   setPixelSize(size);
   
@@ -192,7 +160,7 @@ void pxFace::getMetrics(uint32_t size, float& height, float& ascender, float& de
 
 }
   
-const GlyphCacheEntry* pxFace::getGlyph(uint32_t codePoint)
+const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
 {
   GlyphKey key; 
   key.mFaceId = mFaceId; 
@@ -230,11 +198,11 @@ const GlyphCacheEntry* pxFace::getGlyph(uint32_t codePoint)
   return NULL;
 }
 
-void pxFace::measureText(const char* text, uint32_t size,  float sx, float sy, 
+void pxFont::measureText(const char* text, uint32_t size,  float sx, float sy, 
                          float& w, float& h) 
 {
-  
-  if( !mInitialized) {
+  if( !mInitialized) 
+  {
     rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
     return;
   }
@@ -244,6 +212,7 @@ void pxFace::measureText(const char* text, uint32_t size,  float sx, float sy,
   w = 0; h = 0;
   if (!text) 
     return;
+    
   int i = 0;
   u_int32_t codePoint;
   
@@ -273,12 +242,15 @@ void pxFace::measureText(const char* text, uint32_t size,  float sx, float sy,
   h *= sy;
 }
 
-void pxFace::renderText(const char *text, uint32_t size, float x, float y, 
+void pxFont::renderText(const char *text, uint32_t size, float x, float y, 
                         float sx, float sy, 
                         float* color, float mw) 
 {
-  if (!text || !mInitialized) 
+  if (!text || !mInitialized)
+  { 
+    rtLogWarn("renderText called on font before it is initialized\n");
     return;
+  }
 
   int i = 0;
   u_int32_t codePoint;
@@ -324,7 +296,7 @@ void pxFace::renderText(const char *text, uint32_t size, float x, float y,
   }
 }
 
-void pxFace::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
+void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
                          float& w, float& h) 
 {
   if( !mInitialized) {
@@ -353,108 +325,99 @@ void pxFace::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, floa
 }
 
 
-
-typedef rtRefT<pxFace> pxFaceRef;
-
-//pxFont* gFont;
-
-
-pxFont::pxFont(pxScene2d* scene, rtString faceURL):pxObject(scene), mFontDownloadRequest(NULL)
+pxFont::pxFont(pxScene2d* scene, rtString faceURL):pxObject(scene), mPixelSize(0), mFontData(0), mInitialized(false), mFontDownloadRequest(NULL)
 {  
+  mFaceId = gFaceId++; 
   mFaceName = faceURL;
   
-  loadFont();
 }
 
 pxFont::~pxFont() 
 {
+  rtLogInfo("~pxFont %s\n", mFaceName.cString());
   if (mFontDownloadRequest != NULL)
   {
-    // if there is a previous request pending then set the callback to NULL
-    // the previous request will not be processed and the memory will be freed when the download is complete
+    // clear any pending downloads
     mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
   }  
+   
+  pxFontManager::removeFont( mFaceName);
+ 
+  if( mInitialized) 
+  {
+    FT_Done_Face(mFace);
+  }
+  mFace = 0;
+  
+  if(mFontData) {
+    free(mFontData);
+    mFontData = 0;
+  } 
+   
 }
 
 void pxFont::fontLoaded()
 {
     mInitialized = true;
-
     sendReady("resolve");
-    // This would normally just do mReady.send, but that's
-    // being done via listeners for now.
 }
 
 void pxFont::addListener(pxText* pText) 
 {
-  printf("pxFont::addListener for %s\n",mFaceName.cString());
-  if( !mInitialized) {
+  //printf("pxFont::addListener for %s\n",mFaceName.cString());
+  if( !mInitialized) 
+  {
     mListeners.push_back(pText);
-  } else {
+  } 
+  else 
+  {
     pText->fontLoaded("resolve");
   }
   
 }
 rtError pxFont::loadFont()
 {
-printf("pxFont::loadFont for %s\n",mFaceName.cString());
-    const char *result = strstr(mFaceName, "http");
-    int position = result - mFaceName;
-    if (position == 0 && strlen(mFaceName) > 0)
+  rtLogInfo("pxFont::loadFont for %s\n",mFaceName.cString());
+  const char *result = strstr(mFaceName, "http");
+  int position = result - mFaceName;
+  if (position == 0 && strlen(mFaceName) > 0)
+  {
+    if (mFontDownloadRequest != NULL)
     {
-      if (mFontDownloadRequest != NULL)
-      {
-        // if there is a previous request pending then set the callback to NULL
-        // the previous request will not be processed and the memory will be freed when the download is complete
-        mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
-      }
-      // Create the face and add this text as a listener for the download complete event.
-      // This pxFace creation should only ever happen once for each font face!
-      pxFaceRef f = new pxFace;
-      f->setFaceName(mFaceName);
-      f->addListener(this);
-      mFace = f;
-      // Add face to map even though it is not yet initialized, ie., hasn't downloaded yet
-//      gFontMap.insert(make_pair(mFaceName, f));
-      // Start the download request
-      mFontDownloadRequest =
-          new pxFileDownloadRequest(mFaceName, this);
-      fontDownloadsPending++;
-      mFontDownloadRequest->setCallbackFunction(pxFontDownloadComplete);
-      pxFileDownloader::getInstance()->addToDownloadQueue(mFontDownloadRequest);
+      // if there is a previous request pending then set the callback to NULL
+      // the previous request will not be processed and the memory will be freed when the download is complete
+      mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
+    }
+    // Start the download request
+    mFontDownloadRequest =
+        new pxFileDownloadRequest(mFaceName, this);
+   
+    fontDownloadsPending++;
+    mFontDownloadRequest->setCallbackFunction(pxFontDownloadComplete);
+    pxFileDownloader::getInstance()->addToDownloadQueue(mFontDownloadRequest);
+
+  }
+  else {
+    rtError e = init(mFaceName);
+    if (e != RT_OK)
+    {
+      rtLogWarn("Could not load font face %s\n", mFaceName.cString());
+      sendReady("reject");
+
+      return e;
+    }
+    else
+    {
+      fontLoaded();
 
     }
-    else {
-      pxFaceRef f = new pxFace;
-      mFace = f;
-      rtError e = f->init(mFaceName);
-      if (e != RT_OK)
-      {
-        rtLogInfo("Could not load font face %s\n", mFaceName.cString());
-        sendReady("reject");
-        //fontLoaded(); // font is still loaded, it's just the default font because some 
-                      // error occurred.
-        //mReady.send("reject",this);
-        return e;
-      }
-      else
-      {
-        //printf("pxText::setFaceURL calling fontLoaded\n");
-        
-        fontLoaded();
-        //mReady.send("resolve", this);
-        //mFace = f;
-      }
-    }
-
-
+  }
   
   return RT_OK;
 }
 
 void pxFont::checkForCompletedDownloads(int maxTimeInMilliseconds)
 {
-  //printf("pxFont::checkForCompletedDownloads\n");
   double startTimeInMs = pxMilliseconds();
   if (fontDownloadsPending > 0)
   {
@@ -498,12 +461,11 @@ void pxFont::checkForCompletedDownloads(int maxTimeInMilliseconds)
 
 void pxFont::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
 {
-  printf("pxFont::onFontDownloadComplete\n");
+  rtLogInfo("pxFont::onFontDownloadComplete\n");
   mFontDownloadRequest = NULL;
   if (fontDownloadRequest.fileDownloadRequest == NULL)
   {
     sendReady("reject");
-    //mReady.send("reject",this);
     return;
   }
   if (fontDownloadRequest.fileDownloadRequest->getDownloadStatusCode() == 0 &&
@@ -511,7 +473,7 @@ void pxFont::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
       fontDownloadRequest.fileDownloadRequest->getDownloadedData() != NULL)
   {
     // Let the face handle the completion event and notifications to listeners
-    mFace->onDownloadComplete((FT_Byte*)fontDownloadRequest.fileDownloadRequest->getDownloadedData(),
+    onDownloadComplete((FT_Byte*)fontDownloadRequest.fileDownloadRequest->getDownloadedData(),
                           (FT_Long)fontDownloadRequest.fileDownloadRequest->getDownloadedDataSize(),
                           fontDownloadRequest.fileDownloadRequest->getFileURL().cString());
 
@@ -525,7 +487,6 @@ void pxFont::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
     if (mParent != NULL)
     {
       sendReady("reject");
-      //mReady.send("reject",this);
     }
   }
 }
@@ -533,12 +494,12 @@ void pxFont::sendReady(const char * value)
 {
   for (vector<pxText*>::iterator it = mListeners.begin();
          it != mListeners.end(); ++it)
-    {
-      (*it)->fontLoaded(value);
+  {
+    (*it)->fontLoaded(value);
 
-    }
-    mListeners.clear();
-    mReady.send(value,this);
+  }
+  mListeners.clear();
+  mReady.send(value,this);
 }
 
 /*
@@ -549,21 +510,20 @@ void pxFont::sendReady(const char * value)
 * ascent - float - the distance from the baseline to the font ascender (note that this is a hint, not a solid rule)
 * descent - float - the distance from the baseline to the font descender  (note that this is a hint, not a solid rule)
 */
-rtError pxFont::getFontMetrics(uint32_t pixelSize, rtObjectRef& o) {
-    //printf("pxText2::getFontMetrics\n");  
+rtError pxFont::getFontMetrics(uint32_t pixelSize, rtObjectRef& o) 
+{
+  //printf("pxText2::getFontMetrics\n");  
 	float height, ascent, descent, naturalLeading;
 	pxTextMetrics* metrics = new pxTextMetrics(mScene);
 
+  if(!mInitialized ) 
+  {
+    rtLogWarn("getFontMetrics called TOO EARLY -- not initialized or font not loaded!\n");
+    o = metrics;
+    return RT_OK; // !CLF: TO DO - COULD RETURN RT_ERROR HERE TO CATCH NOT WAITING ON PROMISE
+  }
 
-    if(!mInitialized ) {
-      rtLogWarn("getFontMetrics called TOO EARLY -- not initialized or font not loaded!\n");
-      o = metrics;
-      return RT_OK; // !CLF: TO DO - COULD RETURN RT_ERROR HERE TO CATCH NOT WAITING ON PROMISE
-    }
-
-
-
-	mFace->getMetrics(pixelSize, height, ascent, descent, naturalLeading);
+	getMetrics(pixelSize, height, ascent, descent, naturalLeading);
 	metrics->setHeight(height);
 	metrics->setAscent(ascent);
 	metrics->setDescent(descent);
@@ -578,13 +538,14 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
 {
     pxTextSimpleMeasurements* measure = new pxTextSimpleMeasurements(mScene);
     
-    if(!mInitialized ) {
+    if(!mInitialized ) 
+    {
       rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
       o = measure;
       return RT_OK; // !CLF: TO DO - COULD RETURN RT_ERROR HERE TO CATCH NOT WAITING ON PROMISE
     } 
     float w, h;
-    mFace->measureText(stringToMeasure, pixelSize, 1.0,1.0, w, h);
+    measureText(stringToMeasure, pixelSize, 1.0,1.0, w, h);
     measure->setW(w);
     measure->setH(h);
     o = measure;
@@ -596,7 +557,8 @@ FontMap pxFontManager::mFontMap;
 bool pxFontManager::init = false;
 void pxFontManager::initFT(pxScene2d* scene) 
 {
-  if (init) {
+  if (init) 
+  {
     //printf("initFT returning; already inited\n");
     return;
   }
@@ -608,42 +570,50 @@ void pxFontManager::initFT(pxScene2d* scene)
     return;
   }
   
-  // Set up default font
-  pxFont * pFont = new pxFont(scene, defaultFace);
-  mFontMap.insert(make_pair(defaultFace, pFont));
+  //// Set up default font
+  //rtRefT<pxFont> pFont = new pxFont(scene, defaultFace);
+  //mFontMap.insert(make_pair(defaultFace, pFont));
+
+  //pFont->loadFont();
 
 }
-rtObjectRef pxFontManager::getFont(pxScene2d* scene, const char* s)
+rtRefT<pxFont> pxFontManager::getFont(pxScene2d* scene, const char* s)
 {
-  return getFontObj(scene, s);
-
-}
-pxFont* pxFontManager::getFontObj(pxScene2d* scene, const char* s)
-{
-  printf("pxFontManager::getFontObj\n");
   initFT(scene);
 
-  pxFont* pFont;
+  rtRefT<pxFont> pFont;
 
   if (!s || !s[0])
     s = defaultFace;
-
+  
   FontMap::iterator it = mFontMap.find(s);
   if (it != mFontMap.end())
   {
+    rtLogInfo("Found pxFont in map for %s\n",s);
     pFont = it->second;
     return pFont;  
     
   }
   else 
   {
+    rtLogInfo("Create pxFont in map for %s\n",s);
     pFont = new pxFont(scene, s);
     mFontMap.insert(make_pair(s, pFont));
+    pFont->loadFont();
   }
- printf("pxFontManager::getFontObj END\n");
- return pFont;
+  
+  return pFont;
 }
-   
+
+void pxFontManager::removeFont(rtString faceName)
+{
+  FontMap::iterator it = mFontMap.find(faceName);
+  if (it != mFontMap.end())
+  {  
+    mFontMap.erase(it);
+  }
+}
+
 
 // pxTextMetrics
 rtDefineObject(pxTextMetrics, pxObject);

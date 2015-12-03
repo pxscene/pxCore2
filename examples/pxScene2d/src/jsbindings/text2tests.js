@@ -18,14 +18,13 @@ var mediumText = "The quick brown fox jumps over the lazy dog. The quick brown f
 var newlineText = "Paragraph\nParagraph longer\nParagraph more";
 root.w=800;
 
-// Use the "fake" vars below to keep font ref counts at 1 so that they 
-// stay loaded. 
+// Use the font vars below to preload fonts so that they stay loaded. 
 /*
-var faketextDancing = scene.create({t:"text", parent:root, faceURL:DancingScript, draw:false});
-var faketextDejaVu = scene.create({t:"text", parent:root, faceURL:fontUrlStart+DejaVu, draw:false});
-var faketextDejaVuSerif = scene.create({t:"text", parent:root, faceURL:fontUrlStart+DejaVuSerif, draw:false});
-var faketextXFinity = scene.create({t:"text", parent:root, faceURL:fontUrlStart+XFinity, draw:false});
-var faketextXFinityBold = scene.create({t:"text", parent:root, faceURL:fontUrlStart+XFinityBold, draw:false});
+var fontDancing = scene.getFont(DancingScript);
+var fontDejaVu = scene.getFont(fontUrlStart+DejaVu);
+var fontDejaVuSerif = scene.getFont(fontUrlStart+DejaVuSerif);
+var fontXFinity = scene.getFont(fontUrlStart+XFinity);
+var fontXFinityBold = scene.getFont(fontUrlStart+XFinityBold);
 */
 
 var bg = scene.create({t:"object", parent:root, x:100, y:100, w:1000, h:1000, clip:false});
@@ -75,7 +74,7 @@ var text2 = scene.create({t:"text2", clip:true, parent:container, x:px, y:py, rx
    text2.textColor=0xFFDDFFFF;
    text2.pixelSize=20;
    text2.leading=0;
-   text2.faceURL=DancingScript;"DancingScript-Bold.ttf";
+   text2.faceURL=DancingScript;
    text2.horizontalAlign=0;
    text2.verticalAlign=0;
    text2.xStartPos=0;
