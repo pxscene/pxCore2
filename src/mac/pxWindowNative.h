@@ -1,71 +1,117 @@
-// pxWindowNative
-// PX : Portable Graphics Library
-// (c) 2005 - 2007 John Robinson
+// pxCore CopyRight 2005-2007 John Robinson
+// Portable Framebuffer and Windowing Library
+// pxWindowNative.h
 
 #ifndef PX_WINDOW_NATIVE_H
 #define PX_WINDOW_NATIVE_H
 
-#include <Carbon/Carbon.h>
-
 class pxWindowNative
 {
 public:
-    pxWindowNative(): mWindowRef(NULL), mTrackingRegion(NULL), theTimer(NULL), mLastModifierState(0), mDragging(false) {}
-    virtual ~pxWindowNative() {}
-
+  pxWindowNative(): mWindow(NULL),mTimer(NULL)/*: mWindowRef(NULL), mTrackingRegion(NULL), theTimer(NULL), mLastModifierState(0), mDragging(false)*/ {}
+  virtual ~pxWindowNative() {}
+  
+  // The Joy of ObjectiveC++
+  static void _helper_onCreate(pxWindowNative* w)
+  {
+    if (w)
+      w->onCreate();
+  }
+  static void _helper_onCloseRequest(pxWindowNative* w) { if (w) w->onCloseRequest(); }
+  static void _helper_onClose(pxWindowNative* w)
+  {
+    if (w)
+      w->onClose();
+  }
+  static void _helper_onSize(pxWindowNative* win, int32_t w, int32_t h)
+  {
+    if (win)
+      win->onSize(w, h);
+  }
+  static void _helper_onMouseDown(pxWindowNative* w, int32_t x, int32_t y, uint32_t flags)
+  {
+    if (w)
+      w->onMouseDown(x, y, flags);
+  }
+  static void _helper_onMouseUp(pxWindowNative* w, int32_t x, int32_t y, uint32_t flags)
+  {
+    if (w)
+      w->onMouseUp(x, y, flags);
+  }
+  static void _helper_onMouseMove(pxWindowNative* w, int32_t x, int32_t y)
+  {
+    if (w)
+      w->onMouseMove(x, y);
+  }
+  static void _helper_onMouseEnter(pxWindowNative* w)
+  {
+    if (w)
+      w->onMouseEnter();
+  }
+  static void _helper_onMouseLeave(pxWindowNative* w)
+  {
+    if (w)
+      w->onMouseLeave();
+  }
+  static void _helper_onKeyDown(pxWindowNative* w, uint32_t keycode, uint32_t flags)
+  {
+    if (w)
+      w->onKeyDown(keycode, flags);
+  }
+  static void _helper_onKeyUp(pxWindowNative* w, uint32_t keycode, uint32_t flags)
+  {
+    if (w)
+      w->onKeyUp(keycode, flags);
+  }
+  static void _helper_onChar(pxWindowNative* w, uint32_t c)
+  {
+    if (w)
+      w->onChar(c);
+  }
+  static void _helper_onDraw(pxWindowNative* w, pxSurfaceNative surface)
+  {
+    if (w)
+      w->onDraw(surface);
+  }
+  static void _helper_onAnimationTimer(pxWindowNative* w)
+  {
+    if (w)
+      w->onAnimationTimer();
+  }
+  
+  
 protected:
-
-    virtual void onCreate() = 0;
-	
-	virtual void onCloseRequest() = 0;
-    virtual void onClose() = 0;
-	
-	virtual void onSize(int w, int h) = 0;
-
-    virtual void onMouseDown(int x, int y, unsigned long flags) = 0;
-    virtual void onMouseUp(int x, int y, unsigned long flags) = 0;
-
-    virtual void onMouseMove(int x, int y) = 0;
-	
-	virtual void onMouseLeave() = 0;
-
-    virtual void onKeyDown(int keycode, unsigned long flags) = 0;
-    virtual void onKeyUp(int keycode, unsigned long flags) = 0;
-    virtual void onChar(char c) = 0;
-
-    virtual void onDraw(pxSurfaceNative surface) = 0;
-
-    virtual void onAnimationTimer() = 0;
-	
-	void createMouseTrackingRegion();
-	
-	static pascal OSStatus doKeyDown(EventHandlerCallRef nextHandler, EventRef theEvent, void* userData);
-	static pascal OSStatus doKeyUp(EventHandlerCallRef nextHandler, EventRef theEvent, void* userData);
-	static pascal OSStatus doKeyModifierChanged(EventHandlerCallRef nextHandler, EventRef theEvent, void* userData);
-	
-	static pascal OSStatus doWindowDrawContent(EventHandlerCallRef nextHandler, EventRef theEvent, void* userData);
-	static pascal OSStatus doWindowClosed(EventHandlerCallRef nextHandler, EventRef theEvent, void* userData);
-	
-	static pascal OSStatus doMouseDown(EventHandlerCallRef nextHandler, EventRef theEvent, void* userData);
-	static pascal OSStatus doMouseUp(EventHandlerCallRef nextHandler, EventRef theEvent, void* userData);
-	static pascal OSStatus doMouseMove(EventHandlerCallRef nextHandler, EventRef theEvent, void* userData);
-	static pascal OSStatus doMouseLeave(EventHandlerCallRef nextHandler, EventRef theEvent, void* userData);
-	
-	static pascal OSStatus doWindowResizeComplete(EventHandlerCallRef nextHandler, EventRef theEvent, void* userData);
-	static pascal OSStatus doWindowCloseRequest(EventHandlerCallRef nextHandler, EventRef theEvent, void* userData);
-	
-	static pascal void doPeriodicTask(EventLoopTimerRef theTimer, void* userData);
-	
-	WindowRef mWindowRef;
-	MouseTrackingRef mTrackingRegion;
-	EventLoopTimerRef theTimer;	
-	UInt32 mLastModifierState;
-	bool mDragging;
+  
+  virtual void onCreate() = 0;
+  
+  virtual void onCloseRequest() = 0;
+  virtual void onClose() = 0;
+  
+  virtual void onSize(int32_t w, int32_t h) = 0;
+  
+  virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags) = 0;
+  virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags) = 0;
+  
+  virtual void onMouseMove(int32_t x, int32_t y) = 0;
+  
+  virtual void onMouseEnter() = 0;
+  virtual void onMouseLeave() = 0;
+  
+  virtual void onKeyDown(uint32_t keycode, uint32_t flags) = 0;
+  virtual void onKeyUp(uint32_t keycode, uint32_t flags) = 0;
+  virtual void onChar(uint32_t c) = 0;
+  
+  virtual void onDraw(pxSurfaceNative surface) = 0;
+  
+  virtual void onAnimationTimer() = 0;
+  
+  void* mWindow;
+  void* mTimer;
 };
 
 // Key Codes
 
-#define PX_KEY_NATIVE_ENTER        0x4c
+#define PX_KEY_NATIVE_ENTER        0x24
 #define PX_KEY_NATIVE_BACKSPACE    0x33
 #define PX_KEY_NATIVE_TAB          0x30
 #define PX_KEY_NATIVE_CLEAR        0x47

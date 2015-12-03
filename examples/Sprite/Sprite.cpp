@@ -31,6 +31,8 @@ void drawBackground(pxBuffer& b)
   }
 }
 
+int counter = 0;
+
 class myWindow: public pxWindow
 {
 private:
@@ -71,6 +73,7 @@ private:
     y = (int)(300*((double)rand()/(double)RAND_MAX));
 
     invalidateRect();
+    printf("animation timer fired %d\n", counter++);
   }
 
   pxOffscreen mTexture;

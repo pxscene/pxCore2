@@ -92,6 +92,7 @@ private:
     if (flags & PX_MOD_SHIFT)   printf("Shift ");
     if (flags & PX_MOD_CONTROL) printf("Control ");
     if (flags & PX_MOD_ALT)     printf("Alt ");
+    if (flags & PX_MOD_COMMAND)     printf("Command ");
     printf("]");
     printf(" Keycode: 0x%x", c);
     printf("\n");
@@ -103,9 +104,15 @@ private:
     if (flags & PX_MOD_SHIFT)   printf("Shift ");
     if (flags & PX_MOD_CONTROL) printf("Control ");
     if (flags & PX_MOD_ALT)     printf("Alt ");
+    if (flags & PX_MOD_COMMAND)     printf("Command ");    
     printf("]");
     printf(" Keycode: 0x%x", c);
     printf("\n");
+  }
+  
+  void onChar(uint32_t c)
+  {
+    printf("Char \"%c\"; code: %d\n", c, c);
   }
 
   const char* getKeyDescription( uint32_t keycode )

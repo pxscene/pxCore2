@@ -902,7 +902,6 @@ private:
   GLint mPosLoc;
   GLint mUVLoc;
 
-  GLint mColorLoc;
   GLint mAlphaLoc;
 
   GLint mTextureLoc;

@@ -1,4 +1,4 @@
-// pxCore CopyRight 2007 John Robinson
+// pxCore CopyRight 2005-2007 John Robinson
 // Portable Framebuffer and Windowing Library
 // pxConfigNative.h
 
@@ -7,9 +7,12 @@
 
 #define PXCALL // __stdcall
 
-#include "mac/pxBufferNative.h"
-#include "mac/pxOffscreenNative.h"
-#include "mac/pxWindowNative.h"
+#define PX_LITTLEENDIAN_PIXELS
+#define PX_LITTLEENDIAN_RGBA_PIXELS
+
+#include "pxBufferNative.h"
+#include "pxOffscreenNative.h"
+#include "pxWindowNative.h"
 
 #endif
 

@@ -24,9 +24,12 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
   case PX_KEY_NATIVE_TAB:
     commonKeycode = PX_KEY_TAB;
     break;
+// TODO
+#if 0
   case PX_KEY_NATIVE_CANCEL:
     commonKeycode = PX_KEY_NATIVE_CANCEL; //TODO
     break;
+#endif
   case PX_KEY_NATIVE_CLEAR:
     commonKeycode = PX_KEY_NATIVE_CLEAR; //TODO
     break;
@@ -294,9 +297,12 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
   case PX_KEY_NATIVE_DELETE:
     commonKeycode = PX_KEY_DELETE;
     break;
+// TODO
+#if 0
   case PX_KEY_NATIVE_NUMLOCK:
     commonKeycode = PX_KEY_NUMLOCK;
     break;
+#endif
   case PX_KEY_NATIVE_SCROLLLOCK:
     commonKeycode = PX_KEY_SCROLLLOCK;
     break;
@@ -307,12 +313,15 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
     commonKeycode = PX_KEY_INSERT;
     break;
 
+// TODO
+#if 0
 #ifdef _WIN32
 #pragma message("WARNING: PX_KEY_NATIVE_HELP is not supported. Please fixe me!")
 #else
   case PX_KEY_NATIVE_HELP:
     commonKeycode = PX_KEY_NATIVE_HELP;
     break;
+#endif
 #endif
 
   case PX_KEY_NATIVE_BACKQUOTE:

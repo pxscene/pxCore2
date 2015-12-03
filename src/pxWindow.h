@@ -84,6 +84,7 @@ public:
 #define PX_MOD_SHIFT        8
 #define PX_MOD_CONTROL      16
 #define PX_MOD_ALT          32
+#define PX_MOD_COMMAND      64
 
 #endif
 

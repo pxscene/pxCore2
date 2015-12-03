@@ -49,6 +49,7 @@ protected:
 private:
   pxViewRef mView;
 //  pxOffscreen mViewOffscreen;
+  uint32_t mWidth, mHeight;
 };
 
 #endif // PX_VIEWWINDOW_H

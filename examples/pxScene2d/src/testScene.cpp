@@ -447,6 +447,7 @@ pxViewRef testScene()
   props.set("r",360.0);
   picture.send("animateTo", props, 0.5, 0, 1);
   picture.set("parent", root);
+  picture.set("url", bananaURL);
 
   printf("Enumerate children of root object\n");
   rtObjectRef c = root.get<rtObjectRef>("children");

@@ -129,7 +129,7 @@ size_t rtString::find(size_t pos, const char* str) const
 
   old = haystack;
   uint32_t haystackChar = u8_nextchar(mData, &haystack);
-  for(;haystackChar && (haystackPos < pos);old=haystack,haystackChar=u8_nextchar(mData,&haystack),++haystackPos);
+  for(;haystackChar && (haystackPos < pos);old=haystack,haystackChar=u8_nextchar(mData,&haystack),++haystackPos)
   {
     // skipping
   }

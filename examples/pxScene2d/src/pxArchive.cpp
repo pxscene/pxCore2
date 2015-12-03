@@ -133,7 +133,8 @@ void pxArchive::onDownloadComplete(pxFileDownloadRequest* downloadRequest)
   pxArchive* a = (pxArchive*)downloadRequest->getCallbackData();
 
   a->mLoadStatus.set("statusCode", downloadRequest->getDownloadStatusCode());
-  a->mLoadStatus.set("httpStatusCode", downloadRequest->getHttpStatusCode());
+  // TODO rtValue doesn't like longs... rtValue and fix downloadRequest
+  a->mLoadStatus.set("httpStatusCode", (uint32_t)downloadRequest->getHttpStatusCode());
 
   if (downloadRequest->getDownloadStatusCode() == 0)
   {

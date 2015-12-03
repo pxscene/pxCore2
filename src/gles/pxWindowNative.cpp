@@ -184,6 +184,20 @@ static void onWindowTimerFired(int /*sig*/, siginfo_t* /*si*/, void* /*uc*/)
   }
 }
 
+
+int kbhit()
+{
+  struct timeval tv;
+  fd_set fds;
+  tv.tv_sec = 0;
+  tv.tv_usec = 0;
+  FD_ZERO(&fds);
+  FD_SET(STDIN_FILENO, &fds); //STDIN_FILENO is 0
+  select(STDIN_FILENO+1, &fds, NULL, NULL, &tv);
+  return FD_ISSET(STDIN_FILENO, &fds);
+}
+
+
 pxWindowNative::pxWindowNative()
   : mTimerFPS(0)
   , mLastWidth(0)
@@ -201,6 +215,8 @@ pxWindowNative::pxWindowNative()
   mInputProvider->addKeyListener(&keyEventListener, this);
   mInputProvider->init();
 
+  nonblock(NB_ENABLE);
+
   // TODO: rtThreadCreate
   pthread_create(&mInputEventThread, NULL, &pxWindowNative::dispatchInput, this);
 }
@@ -211,6 +227,7 @@ pxWindowNative::~pxWindowNative()
   unregisterWindow(this);
 
   destroyPlatformEGLProvider(mEGLProvider);
+  nonblock(NB_DISABLE);
 }
 
 pxError pxWindow::init(int /*left*/, int /*top*/, int width, int height)
@@ -289,6 +306,13 @@ pxError pxWindow::endNativeDrawing(pxSurfaceNative& s)
 void pxWindowNative::onAnimationTimerInternal()
 {
   if (mTimerFPS) onAnimationTimer();
+  // TODO HACK
+  while (!kbhit())
+  {
+    char c = fgetc(stdin);
+    if (!iscntrl(c))
+      onChar(c);
+  }
 }
 
 int pxWindowNative::createAndStartEventLoopTimer(int timeoutInMilliseconds )

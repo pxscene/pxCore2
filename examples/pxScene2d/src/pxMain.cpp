@@ -51,7 +51,8 @@ int pxMain()
   win.setVisibility(true);
   win.setView(testScene());
   win.setAnimationFPS(60);
- 
+
+#if 0 
 #ifndef __APPLE__
   testWindow win2;
 
@@ -59,10 +60,10 @@ int pxMain()
 
   win2.setTitle("pxCore! 2");
   win2.setVisibility(true);
-  win2.setView(testScene());
+  win.setView(testScene());
   win2.setAnimationFPS(60);
 #endif
-
+#endif
 
   eventLoop.run();
 

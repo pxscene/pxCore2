@@ -26,8 +26,11 @@ pxError pxViewWindow::setView(pxIView* v)
   mView = v;
 
   if (v)
-    v->setViewContainer(this); 
-
+  {
+    v->setViewContainer(this);
+    onSize(mWidth,mHeight);
+  }
+    
   return PX_OK;
 }
 
@@ -38,6 +41,9 @@ void pxViewWindow::onClose()
 
 void pxViewWindow::onSize(int32_t w, int32_t h)
 {
+  mWidth = w;
+  mHeight = h;
+  
   if (mView)
     mView->onSize(w, h);
 }
