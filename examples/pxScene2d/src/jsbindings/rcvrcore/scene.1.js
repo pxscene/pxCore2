@@ -98,6 +98,10 @@ function Scene() {
     return nativeScene.getFont(url);
   }
 
+  this.screenshot = function screenshot(type, pngData) {
+    return nativeScene.screenshot(type, pngData);
+  }
+  
   function applyStyle(createParams) {
     var currentMatch = null;
     var currentKeysMatched = 0;
