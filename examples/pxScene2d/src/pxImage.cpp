@@ -102,6 +102,10 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
       mw = mTexture->width();
       mh = mTexture->height();
     } 
+
+    pxObject* parent = mParent;
+    if( !parent)
+      rtLogWarn("In pxImage::onTextureReady, pxImage with url=%s has no parent!\n", mURL.cString());
      
     ////// send after width and height have been set
     // TO DO: Remove use of onReady in samples
