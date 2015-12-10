@@ -76,6 +76,7 @@ public:
   }
 
   virtual void fontLoaded(const char * value);
+  virtual void sendPromise();
 
  protected:
   virtual void draw();

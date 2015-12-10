@@ -240,6 +240,7 @@ public:
   virtual rtError setClip(bool v) { mClip = v; setNeedsRecalc(true); return RT_OK; }
   void renderText(bool render);
   virtual void fontLoaded(const char * value);
+  virtual void sendPromise();
   void determineMeasurementBounds();
   virtual void draw();
   virtual void onInit();

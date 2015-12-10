@@ -23,7 +23,7 @@ rtResolverFunction::rtResolverFunction(Disposition disp, Isolate* isolate, Local
 
 rtResolverFunction::~rtResolverFunction()
 {
-  rtLogInfo("delete");
+  rtLogDebug("delete");
 }
 
 rtError rtResolverFunction::Send(int numArgs, const rtValue* args, rtValue* /*result*/)

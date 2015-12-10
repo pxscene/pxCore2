@@ -43,6 +43,7 @@ class pxContext {
   void mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int &outX, int &outY);
   bool isObjectOnScreen(float x, float y, float width, float height);
 
+  pxTextureRef createTexture(); // default to use before image load is complete
   pxTextureRef createTexture(pxOffscreen& o);
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer);
 

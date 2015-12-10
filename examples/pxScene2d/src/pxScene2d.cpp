@@ -229,10 +229,26 @@ private:
 };
 
 
-
-
-
 // pxObject methods
+void pxObject::sendPromise()
+{ 
+  if(mInitialized && !((rtPromise*)mReady.getPtr())->status())
+  {
+    mReady.send("resolve",this); 
+  }
+}
+
+void pxObject::createNewPromise()
+{ 
+  // Only create a new promise if the existing one has been 
+  // resolved or rejected already.
+  if(((rtPromise*)mReady.getPtr())->status()) 
+  {
+    rtLogDebug("CREATING NEW PROMISE\n");
+    mReady = new rtPromise; 
+  }
+}
+
 
 rtError pxObject::Set(const char* name, const rtValue* value)
 {
@@ -544,6 +560,8 @@ void pxObject::update(double t)
   {
     (*it)->update(t);
   }
+  // Send promise
+  sendPromise();
 }
 
 #ifdef PX_DIRTY_RECTANGLES

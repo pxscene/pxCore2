@@ -105,12 +105,23 @@ void pxText2::setNeedsRecalc(bool recalc)
   //printf("Setting mNeedsRecalc=%d\n",recalc); 
   mNeedsRecalc = recalc; 
 
-  if(recalc && static_cast<rtPromise *>(mReady.getPtr())->status()) 
+  if(recalc)
   {
-    mReady = new rtPromise;
+    //printf("Text2 CREATE NEW PROMISE\n");
+    createNewPromise();
   }
 
 }
+
+void pxText2::sendPromise() 
+{ 
+  if(mInitialized && mFontLoaded && !mNeedsRecalc && !((rtPromise*)mReady.getPtr())->status()) 
+  {
+    //printf("pxText2 SENDPROMISE\n");
+    mReady.send("resolve",this); 
+  }
+}
+
 /** 
  * setText: for pxText2, setText sets the text value, but does not
  * affect the dimensions of the object.  Dimensions are respected 
@@ -171,10 +182,6 @@ void pxText2::update(double t)
     setNeedsRecalc(false);
     mDirty = true;
     mScene->mDirty = true;
-    if(mInitialized && mFontLoaded ) {
-      //rtLogInfo("pxText2::update: FIRING PROMISE\n");
-      mReady.send("resolve", this);
-    }
   }  
     
   pxText::update(t);

@@ -280,6 +280,20 @@ private:
   bool mBindTexture;
 };
 
+class pxTextureNone : public pxTexture 
+{
+public:
+  pxTextureNone() {}
+
+  virtual pxError deleteTexture() {return PX_FAIL;}
+  virtual int width() {return 0;}
+  virtual int height() {return 0;}
+  virtual pxError resizeTexture(int w, int h) { (void)w; (void)h; return PX_FAIL; }
+  virtual pxError getOffscreen(pxOffscreen& o) {return PX_FAIL;}
+  virtual pxError bindGLTexture(int tLoc)  {return PX_FAIL;}
+  virtual pxError bindGLTextureAsMask(int mLoc)  {return PX_FAIL;}
+};
+   
 class pxTextureOffscreen : public pxTexture
 {
 public:
@@ -1359,6 +1373,12 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
   premultiply(colorPM,color);
   
   gSolidShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_LINES,verts,2,colorPM); 
+}
+
+pxTextureRef pxContext::createTexture()
+{
+  pxTextureNone* noneTexture = new pxTextureNone();
+  return noneTexture;
 }
 
 pxTextureRef pxContext::createTexture(pxOffscreen& o)

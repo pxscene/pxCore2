@@ -5,6 +5,7 @@
 #include "rtRefT.h"
 #include "pxOffscreen.h"
 #include "rtAtomic.h"
+#include "rtError.h"
 
 enum pxTextureType { 
   PX_TEXTURE_UNKNOWN = 0,
@@ -14,6 +15,13 @@ enum pxTextureType {
   PX_TEXTURE_FRAME_BUFFER = 4
 };
 
+class pxTexture;
+
+class pxTextureNotifier 
+{
+public: 
+  virtual void notifyTextureReady(pxTexture* texture, rtError rtnCode, int statusCode, int httpStatusCode=0) = 0;
+};
 
 class pxTextureNative
 {
@@ -27,7 +35,7 @@ class pxTexture: public pxTextureNative
 {
 public:
   pxTexture() : mRef(0), mTextureType(PX_TEXTURE_UNKNOWN), mPremultipliedAlpha(false)
-  {}
+  { }
   virtual ~pxTexture() {}
 
   virtual unsigned long AddRef()
@@ -55,11 +63,20 @@ public:
   virtual pxError prepareForRendering() { return PX_OK; }
   bool premultipliedAlpha() { return mPremultipliedAlpha; }
   void enablePremultipliedAlpha(bool enable) { mPremultipliedAlpha = enable; }
-  
+  void addListener(pxTextureNotifier* requestor) {mListeners.push_back(requestor);}
+  void notifyListeners(pxTexture* texture, rtError rtnCode, int statusCode, int httpStatusCode=0) {           
+    for (vector<pxTextureNotifier*>::iterator it = mListeners.begin();
+                it != mListeners.end(); ++it)
+          {
+            (*it)->notifyTextureReady(texture, rtnCode, statusCode, httpStatusCode);
+          }
+      mListeners.clear();
+  }
 protected:
   rtAtomic mRef;
   pxTextureType mTextureType;
   bool mPremultipliedAlpha;
+  vector<pxTextureNotifier*> mListeners;
 };
 
 typedef rtRefT<pxTexture> pxTextureRef;

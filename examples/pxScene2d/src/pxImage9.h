@@ -18,7 +18,8 @@ public:
   rtReadOnlyProperty(statusCode, statusCode, int32_t);
   rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
 
-  pxImage9(pxScene2d* scene) : pxObject(scene),ml(0),mt(0),mr(0),mb(0),mTextureCacheObject(), mStatusCode(0), mHttpStatusCode(0) 
+  pxImage9(pxScene2d* scene) : pxObject(scene),ml(0),mt(0),mr(0),mb(0),mTextureCacheObject(), 
+                               mStatusCode(0), mHttpStatusCode(0), imageLoaded(false) 
   { 
     mTextureCacheObject.setParent(this); 
   }
@@ -47,8 +48,11 @@ public:
     return RT_OK;
   }
 
+  virtual void onInit();
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
-
+  virtual void sendPromise();
+  virtual void createNewPromise() { rtLogDebug("pxImage9 ignoring createNewPromise\n"); }
+  
 protected:
   virtual void draw();
   void loadImage(rtString url);
@@ -58,6 +62,8 @@ protected:
   pxTextureCacheObject mTextureCacheObject;
   int mStatusCode;
   int mHttpStatusCode;
+  
+  bool imageLoaded;
 };
 
 #endif

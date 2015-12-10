@@ -77,7 +77,6 @@ void pxTextureCacheObject::checkForCompletedDownloads(int maxTimeInMilliseconds)
           break;
         }
       }
-      //completedTextureDownloads.clear();
       if (gTextureDownloadsPending < 0)
       {
         //this is a safety check (hopefully never used)
@@ -114,23 +113,32 @@ void pxTextureCacheObject::onImageDownloadComplete(ImageDownloadRequest imageDow
       if (imageDownloadRequest.texture.getPtr() == NULL)
       {
           rtLogError("Image Decode Failed: %s", imageDownloadRequest.fileDownloadRequest->getFileURL().cString());
-          setStatus(RT_TEXTURE_STATUS_DECODE_FAILURE);
-          if (mParent != NULL)
-          {
-            mParent->onTextureReady(this, RT_FAIL);
-          }
+          gCompleteTextureCache.erase(mURL.cString());
+          mTexture->notifyListeners(mTexture,RT_FAIL, RT_TEXTURE_STATUS_DECODE_FAILURE);
+          mTexture = 0;
       }
       else
       {
+          pxTextureRef tmpTexture;
           mTexture = imageDownloadRequest.texture;
-          gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(),
-                  mTexture));
-          rtLogDebug("image %d, %d", mTexture->width(), mTexture->height());
-          setStatus(RT_TEXTURE_STATUS_OK);
-          if (mParent != NULL)
+          //replace "empty" texture in the vector
+          TextureMap::iterator it = gCompleteTextureCache.find(mURL.cString());
+          // replace existing element that should have had type == PX_TEXTURE_UNKNOWN
+          if( it != gCompleteTextureCache.end()) 
           {
-            mParent->onTextureReady(this, RT_OK);
+            if( it->second->getType() != PX_TEXTURE_UNKNOWN) {
+              rtLogWarn("Image being downloaded already had texture\n"); }
+            tmpTexture = it->second; 
+            gCompleteTextureCache.erase(mURL.cString());
           }
+          gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(mURL.cString(), mTexture));
+    
+          // Notify listeners on old and new mTexture
+          tmpTexture->notifyListeners(mTexture,RT_OK, RT_TEXTURE_STATUS_OK);  
+          mTexture->notifyListeners(mTexture,RT_OK, RT_TEXTURE_STATUS_OK);  
+                  
+          rtLogDebug("image %d, %d", mTexture->width(), mTexture->height());
+
       }
   }
   else
@@ -139,11 +147,10 @@ void pxTextureCacheObject::onImageDownloadComplete(ImageDownloadRequest imageDow
                 imageDownloadRequest.fileDownloadRequest->getFileURL().cString(),
                 imageDownloadRequest.fileDownloadRequest->getErrorString().cString(),
                 imageDownloadRequest.fileDownloadRequest->getHttpStatusCode());
-      setStatus(RT_TEXTURE_STATUS_HTTP_ERROR, imageDownloadRequest.fileDownloadRequest->getHttpStatusCode());
-      if (mParent != NULL)
-      {
-        mParent->onTextureReady(this, RT_FAIL);
-      }
+      
+      gCompleteTextureCache.erase(mURL.cString());
+      mTexture->notifyListeners(mTexture,RT_FAIL, RT_TEXTURE_STATUS_HTTP_ERROR, imageDownloadRequest.fileDownloadRequest->getHttpStatusCode());
+      mTexture = 0;
   }
 }
 
@@ -155,9 +162,10 @@ rtError pxTextureCacheObject::url(rtString& s) const
 
 rtError pxTextureCacheObject::setURL(const char* s)
 {
+  if (!s || !mURL.compare(s)) 
+    return RT_OK;  
   mURL = s;
-  if (!s) 
-    return RT_OK;
+
   loadImage(mURL);
   return RT_OK;
 }
@@ -167,21 +175,54 @@ void pxTextureCacheObject::setParent(pxObject* parent)
     mParent = parent;
 }
 
+
+void pxTextureCacheObject::notifyTextureReady(pxTexture* texture, rtError rtnCode, int statusCode, int httpStatusCode=0)
+{
+  mTexture = texture;
+  setStatus(statusCode, httpStatusCode);
+  if( mParent) 
+  {
+    mParent->onTextureReady(this, rtnCode);
+  }
+}
+
 void pxTextureCacheObject::loadImage(rtString url)
 {
   TextureMap::iterator it = gCompleteTextureCache.find(url);
   if (it != gCompleteTextureCache.end())
   {
     mTexture = it->second;
-    setStatus(RT_TEXTURE_STATUS_OK);
-    if (mParent != NULL)
+    // If it's here, but an "empty" texture, register as listener
+    if( mTexture->getType() == PX_TEXTURE_UNKNOWN) 
     {
-      mParent->onTextureReady(this, RT_OK);
+      rtLogDebug("pxTextureCacheObject::loadImage adding listener for %s\n", url.cString());
+      mTexture->addListener(this);
     }
+    else 
+    {
+      rtLogDebug("pxTextureCacheObject::loadImageSENDING ON TEXTURE READY for %s\n",url.cString());
+      notifyTextureReady(mTexture,RT_OK,RT_TEXTURE_STATUS_OK);
+    }
+
   }
   else
   {
-    rtLogWarn("Image texture cache miss");
+    rtLogDebug("pxTextureCacheObject::loadImage startingDownload for %s\n",url.cString());
+    startImageDownload(url);
+
+  }
+}
+
+void pxTextureCacheObject::startImageDownload(rtString url)
+{
+    rtLogDebug("StartImageDownload for %s\n",url.cString());
+    
+    // Create empty texture as a placeholder in the cache map
+    mTexture = context.createTexture();
+    mTexture->addListener(this);
+    gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(url, mTexture));
+
+    rtLogDebug("Image texture cache miss");
     const char* s = url.cString();
     const char *result = strstr(s, "http");
     int position = result - s;
@@ -189,6 +230,12 @@ void pxTextureCacheObject::loadImage(rtString url)
     {
       if (mImageDownloadRequest != NULL)
       {
+        if(!mImageDownloadRequest->getFileURL().compare(url))
+        {
+          printf("DOWNLOAD ALREADY IN THE QUEUE FOR %s\n",url.cString());
+          return;  // Download already in progress
+          
+        }
         // if there is a previous request pending then set the callback to NULL
         // the previous request will not be processed and the memory will be freed when the download is complete
         mImageDownloadRequest->setCallbackFunctionThreadSafe(NULL);
@@ -213,25 +260,39 @@ void pxTextureCacheObject::loadImage(rtString url)
         {
           errorCode = RT_TEXTURE_STATUS_FILE_NOT_FOUND;
         }
-        setStatus(errorCode);
-        if (mParent != NULL)
-        {
-          mParent->onTextureReady(this, RT_FAIL);
-        }
+
+        mTexture->notifyListeners( mTexture, RT_FAIL, errorCode);
+
       }
       else
       {
+        pxTextureRef tmpTexture;
+        // create offscreen texture for local image
         mTexture = context.createTexture(imageOffscreen);
-        gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(s, mTexture));
-        setStatus(RT_TEXTURE_STATUS_OK);
-        if (mParent != NULL)
+        TextureMap::iterator it = gCompleteTextureCache.find(s);
+        // replace existing element that should have had type == PX_TEXTURE_UNKNOWN
+        if(it != gCompleteTextureCache.end()) 
         {
-          mParent->onTextureReady(this, RT_OK);
+          if( it->second->getType() != PX_TEXTURE_UNKNOWN) {
+            rtLogWarn("Local image already had texture\n"); }
+          // notify listeners of the old texture
+          tmpTexture = it->second;
+          gCompleteTextureCache.erase(mURL.cString());
         }
+        else 
+        {
+          // This should really never happen because we added it already
+          rtLogWarn("Local image was not in map\n");
+        }
+        gCompleteTextureCache.insert(pair<rtString,pxTextureRef>(s, mTexture));
+        // notify listeners of this texture
+        mTexture->notifyListeners(mTexture,RT_OK, RT_TEXTURE_STATUS_OK);
+        tmpTexture->notifyListeners(mTexture,RT_OK, RT_TEXTURE_STATUS_OK);
+
       }
-    }
-  }
+    }  
 }
+
 
 int pxTextureCacheObject::getStatusCode()
 {

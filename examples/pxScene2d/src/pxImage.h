@@ -20,14 +20,17 @@ public:
   rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
   
   pxImage(pxScene2d* scene) : pxObject(scene),mXStretch(PX_NONE),mYStretch(PX_NONE),mTexture(), 
-    mTextureCacheObject(), mAutoSize(true), mStatusCode(0), mHttpStatusCode(0) 
+    mTextureCacheObject(), mAutoSize(true), mStatusCode(0), mHttpStatusCode(0),imageLoaded(false)
   { 
     mTextureCacheObject.setParent(this);
   }
 
-  virtual ~pxImage() { rtLogInfo("~pxImage()"); }
+  virtual ~pxImage() { rtLogDebug("~pxImage()"); }
 
+  virtual void update(double t) { pxObject::update(t);}
   virtual void onInit();
+  virtual void sendPromise();
+  virtual void createNewPromise() { rtLogDebug("pxImage ignoring createNewPromise\n"); }
   
   rtError url(rtString& s) const;
   rtError setURL(const char* s);
@@ -89,6 +92,8 @@ protected:
   bool mAutoSize;
   int mStatusCode;
   int mHttpStatusCode;
+  
+  bool imageLoaded;
 };
 
 #endif
