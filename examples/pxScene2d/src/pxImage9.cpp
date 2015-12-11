@@ -60,7 +60,7 @@ void pxImage9::sendPromise()
 
 
 void pxImage9::draw() {
-  context.drawImage9(mw, mh, ml, mt, mr, mb, mTextureCacheObject.getTexture());
+  context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, mTextureCacheObject.getTexture());
 }
 
 void pxImage9::loadImage(rtString url)
@@ -95,9 +95,9 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
 
 rtDefineObject(pxImage9, pxObject);
 rtDefineProperty(pxImage9, url);
-rtDefineProperty(pxImage9, lInset);
-rtDefineProperty(pxImage9, tInset);
-rtDefineProperty(pxImage9, rInset);
-rtDefineProperty(pxImage9, bInset);
+rtDefineProperty(pxImage9, insetLeft);
+rtDefineProperty(pxImage9, insetTop);
+rtDefineProperty(pxImage9, insetRight);
+rtDefineProperty(pxImage9, insetBottom);
 rtDefineProperty(pxImage9,statusCode);
 rtDefineProperty(pxImage9,httpStatusCode);

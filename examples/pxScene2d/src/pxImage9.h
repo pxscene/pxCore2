@@ -11,14 +11,14 @@ class pxImage9: public pxObject {
 public:
   rtDeclareObject(pxImage9, pxObject);
   rtProperty(url, url, setUrl, rtString);
-  rtProperty(lInset, lInset, setLInset, float);
-  rtProperty(tInset, tInset, setTInset, float);
-  rtProperty(rInset, rInset, setRInset, float);
-  rtProperty(bInset, bInset, setBInset, float);
+  rtProperty(insetLeft, insetLeft, setInsetLeft, float);
+  rtProperty(insetTop, insetTop, setInsetTop, float);
+  rtProperty(insetRight, insetRight, setInsetRight, float);
+  rtProperty(insetBottom, insetBottom, setInsetBottom, float);
   rtReadOnlyProperty(statusCode, statusCode, int32_t);
   rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
 
-  pxImage9(pxScene2d* scene) : pxObject(scene),ml(0),mt(0),mr(0),mb(0),mTextureCacheObject(), 
+  pxImage9(pxScene2d* scene) : pxObject(scene),mInsetLeft(0),mInsetTop(0),mInsetRight(0),mInsetBottom(0),mTextureCacheObject(), 
                                mStatusCode(0), mHttpStatusCode(0), imageLoaded(false) 
   { 
     mTextureCacheObject.setParent(this); 
@@ -27,14 +27,14 @@ public:
   rtError url(rtString& s) const;
   rtError setUrl(const char* s);
   
-  rtError lInset(float& v) const { v = ml; return RT_OK; }
-  rtError setLInset(float v) { ml = v; return RT_OK; }
-  rtError tInset(float& v) const { v = mt; return RT_OK; }
-  rtError setTInset(float v) { mt = v; return RT_OK; }
-  rtError rInset(float& v) const { v = mr; return RT_OK; }
-  rtError setRInset(float v) { mr = v; return RT_OK; }
-  rtError bInset(float& v) const { v = mb; return RT_OK; }
-  rtError setBInset(float v) { mb = v; return RT_OK; }
+  rtError insetLeft(float& v) const { v = mInsetLeft; return RT_OK; }
+  rtError setInsetLeft(float v) { mInsetLeft = v; return RT_OK; }
+  rtError insetTop(float& v) const { v = mInsetTop; return RT_OK; }
+  rtError setInsetTop(float v) { mInsetTop = v; return RT_OK; }
+  rtError insetRight(float& v) const { v = mInsetRight; return RT_OK; }
+  rtError setInsetRight(float v) { mInsetRight = v; return RT_OK; }
+  rtError insetBottom(float& v) const { v = mInsetBottom; return RT_OK; }
+  rtError setInsetBottom(float v) { mInsetBottom = v; return RT_OK; }
 
   rtError statusCode(int32_t& v) const
   {
@@ -58,7 +58,7 @@ protected:
   void loadImage(rtString Url);
   
   rtString mUrl;
-  float ml, mt, mr, mb;
+  float mInsetLeft, mInsetTop, mInsetRight, mInsetBottom;
   pxTextureCacheObject mTextureCacheObject;
   int mStatusCode;
   int mHttpStatusCode;
