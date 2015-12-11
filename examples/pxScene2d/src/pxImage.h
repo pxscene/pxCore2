@@ -13,13 +13,13 @@ class pxImage: public pxObject {
 public:
   rtDeclareObject(pxImage, pxObject);
   rtProperty(url, url, setUrl, rtString);
-  rtProperty(xStretch, xStretch, setXStretch, int32_t);
-  rtProperty(yStretch, yStretch, setYStretch, int32_t);
+  rtProperty(stretchX, stretchX, setStretchX, int32_t);
+  rtProperty(stretchY, stretchY, setStretchY, int32_t);
   rtProperty(autoSize, autoSize, setAutoSize, bool);
   rtReadOnlyProperty(statusCode, statusCode, int32_t);
   rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
   
-  pxImage(pxScene2d* scene) : pxObject(scene),mXStretch(PX_NONE),mYStretch(PX_NONE),mTexture(), 
+  pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(PX_NONE),mStretchY(PX_NONE),mTexture(), 
     mTextureCacheObject(), mAutoSize(true), mStatusCode(0), mHttpStatusCode(0),imageLoaded(false)
   { 
     mTextureCacheObject.setParent(this);
@@ -35,17 +35,17 @@ public:
   rtError url(rtString& s) const;
   rtError setUrl(const char* s);
   
-  rtError xStretch(int32_t& v) const { v = (int32_t)mXStretch; return RT_OK; }
-  rtError setXStretch(int32_t v)
+  rtError stretchX(int32_t& v) const { v = (int32_t)mStretchX; return RT_OK; }
+  rtError setStretchX(int32_t v)
   {
-    mXStretch = (pxStretch)v;
+    mStretchX = (pxStretch)v;
     return RT_OK;
   }
 
-  rtError yStretch(int32_t& v) const { v = (int32_t)mYStretch; return RT_OK; }
-  rtError setYStretch(int32_t v)
+  rtError stretchY(int32_t& v) const { v = (int32_t)mStretchY; return RT_OK; }
+  rtError setStretchY(int32_t v)
   {
-    mYStretch = (pxStretch)v;
+    mStretchY = (pxStretch)v;
     return RT_OK;
   }
 
@@ -85,8 +85,8 @@ protected:
   void loadImage(rtString Url);
   
   rtString mUrl;
-  pxStretch mXStretch;
-  pxStretch mYStretch;
+  pxStretch mStretchX;
+  pxStretch mStretchY;
   pxTextureRef mTexture;
   pxTextureCacheObject mTextureCacheObject;
   bool mAutoSize;

@@ -2,10 +2,10 @@ var root = scene.root;
 
 var url;
 url = process.cwd() + "/../../images/skulls.png";
-var bg = scene.createImage({url:url,xStretch:2,yStretch:2,parent:root});
+var bg = scene.createImage({url:url,stretchX:2,stretchY:2,parent:root});
 
 url = process.cwd() + "/../../images/radial_gradient.png";
-var bgShade = scene.createImage({url:url,xStretch:1,yStretch:1,parent:root});
+var bgShade = scene.createImage({url:url,stretchX:1,stretchY:1,parent:root});
 
 var txt1 = scene.createText({x:10,text:"",parent:root,pixelSize:64});
 

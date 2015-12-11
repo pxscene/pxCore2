@@ -65,8 +65,8 @@ var url = "http://farm4.static.flickr.com/3307/5767175230_b5d2bf2312_z.jpg";
 //var url = process.cwd()+"/../../images/ball.png";
 // This works if load.js is updating the FPS text output on screen, but not if it's not. 
 // Doesn't seem to respect the passed in w/h; instead, must be set in promise!
-var myImage = scene.create({t:"image",url:url,parent:rect,w:200,h:200,autoSize:false,clip:true,xStretch:1,yStretch:1});
-//,autoSize:false,xStretch:1,yStretch:1
+var myImage = scene.create({t:"image",url:url,parent:rect,w:200,h:200,autoSize:false,clip:true,stretchX:1,stretchY:1});
+//,autoSize:false,stretchX:1,stretchY:1
 myImage.ready.then(function(obj)
 {
   console.log("received image promise");
@@ -86,8 +86,8 @@ var url = "http://farm4.static.flickr.com/3307/5767175230_b5d2bf2312_z.jpg";
 //var url = process.cwd()+"/../../images/ball.png";
 // This works if load.js is updating the FPS text output on screen, but not if it's not. 
 // Doesn't seem to respect the passed in w/h; instead, must be set in promise!
-var myImage = scene.create({t:"image9",url:url,parent:rect,y:200,x:200,w:200,h:200,autoSize:false,clip:true,xStretch:1,yStretch:1});
-//,autoSize:false,xStretch:1,yStretch:1
+var myImage = scene.create({t:"image9",url:url,parent:rect,y:200,x:200,w:200,h:200,autoSize:false,clip:true,stretchX:1,stretchY:1});
+//,autoSize:false,stretchX:1,stretchY:1
 myImage.ready.then(function(obj)
 {
   console.log("received image9 promise");

@@ -817,7 +817,7 @@ public:
             int count,            
             const void* pos, const void* uv,
             pxTextureRef texture,
-            int32_t xStretch, int32_t yStretch)
+            int32_t stretchX, int32_t stretchY)
   {
     if (currentGLProgram != PROGRAM_TEXTURE_SHADER)
     {
@@ -831,9 +831,9 @@ public:
     texture->bindGLTexture(mTextureLoc);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 
-		    (xStretch==PX_REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+		    (stretchX==PX_REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 
-		    (yStretch==PX_REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+		    (stretchY==PX_REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
 
     glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
     glVertexAttribPointer(mUVLoc, 2, GL_FLOAT, GL_FALSE, 0, uv);
@@ -979,7 +979,7 @@ static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat 
 }
 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
-                             pxTextureRef mask, pxStretch xStretch, pxStretch yStretch, float* color)
+                             pxTextureRef mask, pxStretch stretchX, pxStretch stretchY, float* color)
 {
 
   if (texture.getPtr() == NULL)
@@ -990,9 +990,9 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   float iw = texture->width();
   float ih = texture->height();
   
-  if (xStretch == PX_NONE)
+  if (stretchX == PX_NONE)
     w = iw;
-  if (yStretch == PX_NONE)
+  if (stretchY == PX_NONE)
     h = ih;
 
   const float verts[4][2] = 
@@ -1005,7 +1005,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   };
 
   float tw;
-  switch(xStretch) {
+  switch(stretchX) {
   case PX_NONE:
   case PX_STRETCH:
     tw = 1.0;
@@ -1016,7 +1016,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   }
 
   float th;
-  switch(yStretch) {
+  switch(stretchY) {
   case PX_NONE:
   case PX_STRETCH:
     th = 1.0;
@@ -1042,7 +1042,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   if (mask.getPtr() == NULL && texture->getType() != PX_TEXTURE_ALPHA)
   {
-    gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,xStretch,yStretch);
+    gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,stretchX,stretchY);
   }
   else if (mask.getPtr() == NULL && texture->getType() == PX_TEXTURE_ALPHA)
   {
@@ -1335,10 +1335,10 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
 }
 
 void pxContext::drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
-                          pxStretch xStretch, pxStretch yStretch, float* color) 
+                          pxStretch stretchX, pxStretch stretchY, float* color) 
 {
   float black[4] = {0,0,0,1};
-  drawImageTexture(x, y, w, h, t, mask, xStretch, yStretch, color?color:black);
+  drawImageTexture(x, y, w, h, t, mask, stretchX, stretchY, color?color:black);
 }
 
 void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)

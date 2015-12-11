@@ -73,7 +73,7 @@ void pxImage::sendPromise()
 void pxImage::draw() {
   static pxTextureRef nullMaskRef;
   context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, 
-                    mXStretch, mYStretch);
+                    mStretchX, mStretchY);
   if (mTextureCacheObject.isDownloadInProgress())
   {
     mTextureCacheObject.raiseDownloadPriority();
@@ -127,8 +127,8 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
 
 rtDefineObject(pxImage,pxObject);
 rtDefineProperty(pxImage,url);
-rtDefineProperty(pxImage,xStretch);
-rtDefineProperty(pxImage,yStretch);
+rtDefineProperty(pxImage,stretchX);
+rtDefineProperty(pxImage,stretchY);
 rtDefineProperty(pxImage,autoSize);
 rtDefineProperty(pxImage,statusCode);
 rtDefineProperty(pxImage,httpStatusCode);

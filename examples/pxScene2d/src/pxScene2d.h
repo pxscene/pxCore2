@@ -705,8 +705,8 @@ public:
   void invalidateRect(pxRect* r);
 
 #if 0
-  rtError url(rtString& v) const { v = mUrl; return RT_OK; }
-  rtError setUrl(rtString v) { mUrl = v; return RT_OK; }
+  rtError url(rtString& v) const { v = mUri; return RT_OK; }
+  rtError setUrl(rtString v) { mUri = v; return RT_OK; }
 #endif
 
   rtError w(float& v) const { v = mw; return RT_OK; }
@@ -1049,13 +1049,13 @@ public:
     return RT_OK;
   }
 
-  rtError loadArchive(const rtString& Url, rtObjectRef& archive)
+  rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
     rtError e = RT_FAIL;
     printf("1\n");
     rtRefT<pxArchive> a = new pxArchive;
     printf("2\n");
-    if (a->initFromUrl(Url) == RT_OK)
+    if (a->initFromUrl(url) == RT_OK)
     {
     printf("3\n");
       archive = a;

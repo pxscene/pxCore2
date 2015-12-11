@@ -5,7 +5,13 @@ var url;
 url = process.cwd() + "/../../images/skulls.png";
 var url2;
 url2 = process.cwd() + "/../../images/flower1.jpg";
-var image = scene.createImage({url:url,xStretch:2,yStretch:2,parent:container, autoSize:false});
+var image = scene.createImage({url:url,stretchX:1,stretchY:1,parent:container,autoSize:false});
+
+image.ready.then(function(e) {
+  console.log("inside first image ready!");
+  image.w = 50;
+  image.h = 50;
+});
 
 image.on("onMouseDown", function(e) {
 
@@ -34,11 +40,7 @@ image.on("onMouseDown", function(e) {
 
   
 });
-image.ready.then(function(e) {
-  console.log("inside first image ready!");
-  image.w = 50;
-  image.h = 50;
-});
+
 
 //image.ready.then(function(text) {
 	//console.log("inside image.ready");
