@@ -1,7 +1,7 @@
 var root = scene.root;
 
-// null or "" is the default face FreeSans.ttf
-var faces = ["http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Bold.ttf",
+// null or "" is the default font FreeSans.ttf
+var fonts = ["http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Bold.ttf",
              "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-MedCond.ttf",
              "PoiretOne-Regular.ttf",
              "DancingScript-Bold.ttf",
@@ -49,20 +49,20 @@ var rowcontainer = scene.createImage({parent:scrollContent});
 var prevRow;
 
 var p = 0; 
-for (var i=0; i < faces.length; i++)
+for (var i=0; i < fonts.length; i++)
 {
   var row = scene.createImage({parent:rowcontainer,a:0});
   
-  var faceName = faces[i]?faces[i]:"FreeSans.ttf";
+  var faceName = fonts[i]?fonts[i]:"FreeSans.ttf";
   var t = scene.createText({
     parent:row,x:10,
     textColor:0xfaebd7ff, pixelSize:36,
-    faceUrl:faces[i],
+    fontUrl:fonts[i],
     text: "Please type some text..."});
   var t2 = scene.createText({text:"" + (i+1) + ". " + faceName, 
                              parent:row,x:20,
                              textColor:0xfaebd7ff, pixelSize:14,a:0.6,
-                             faceUrl:"FreeSans.ttf"});
+                             fontUrl:"FreeSans.ttf"});
   
 
   // Use promises to layout the rows as the text becomes ready

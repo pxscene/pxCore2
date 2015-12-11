@@ -10,7 +10,7 @@
 #include <map>
 
 struct GlyphKey {
-  uint32_t mFaceId;
+  uint32_t mFontId;
   uint32_t mPixelSize;
   uint32_t mCodePoint;
 
@@ -18,8 +18,8 @@ struct GlyphKey {
   // The way it orders them doesn't matter, all that matters is that
   // it orders them consistently.
   bool operator<(GlyphKey const& other) const {
-    if (mFaceId < other.mFaceId) return true; else
-      if (mFaceId == other.mFaceId) {
+    if (mFontId < other.mFontId) return true; else
+      if (mFontId == other.mFontId) {
         if (mPixelSize < other.mPixelSize) return true; else
           if (mPixelSize == other.mPixelSize) {
             if (mCodePoint < other.mCodePoint) return true;
@@ -67,14 +67,14 @@ void pxFontDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
   }
 }
 
-uint32_t gFaceId = 0;
+uint32_t gFontId = 0;
 
 void pxFont::onDownloadComplete(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
   rtLogInfo("pxFont::onDownloadComplete %s\n",n);
-  if( mFaceName.compare(n)) 
+  if( mFontName.compare(n)) 
   {
-    rtLogWarn("pxFont::onDownloadComplete received for face \"%s\" but this face is \"%s\"\n",n, mFaceName.cString());
+    rtLogWarn("pxFont::onDownloadComplete received for font \"%s\" but this font is \"%s\"\n",n, mFontName.cString());
     return; 
   }
 
@@ -87,7 +87,7 @@ void pxFont::onDownloadComplete(const FT_Byte*  fontData, FT_Long size, const ch
 
 rtError pxFont::init(const char* n)
 {
-  mFaceName = n;
+  mFontName = n;
     
   if(FT_New_Face(ft, n, 0, &mFace))
     return RT_FAIL;
@@ -107,7 +107,7 @@ rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
   if(FT_New_Memory_Face(ft, (const FT_Byte*)mFontData, size, 0, &mFace))
     return RT_FAIL;
 
-  mFaceName = n;
+  mFontName = n;
   mInitialized = true;
   setPixelSize(defaultPixelSize);
   
@@ -163,7 +163,7 @@ void pxFont::getMetrics(uint32_t size, float& height, float& ascender, float& de
 const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
 {
   GlyphKey key; 
-  key.mFaceId = mFaceId; 
+  key.mFontId = mFontId; 
   key.mPixelSize = mPixelSize; 
   key.mCodePoint = codePoint;
   GlyphCache::iterator it = gGlyphCache.find(key);
@@ -325,23 +325,23 @@ void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, floa
 }
 
 
-pxFont::pxFont(pxScene2d* scene, rtString faceUrl):pxObject(scene), mPixelSize(0), mFontData(0), mInitialized(false), mFontDownloadRequest(NULL)
+pxFont::pxFont(pxScene2d* scene, rtString fontUrl):pxObject(scene), mPixelSize(0), mFontData(0), mInitialized(false), mFontDownloadRequest(NULL)
 {  
-  mFaceId = gFaceId++; 
-  mFaceName = faceUrl;
+  mFontId = gFontId++; 
+  mFontName = fontUrl;
   
 }
 
 pxFont::~pxFont() 
 {
-  rtLogInfo("~pxFont %s\n", mFaceName.cString());
+  rtLogInfo("~pxFont %s\n", mFontName.cString());
   if (mFontDownloadRequest != NULL)
   {
     // clear any pending downloads
     mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
   }  
    
-  pxFontManager::removeFont( mFaceName);
+  pxFontManager::removeFont( mFontName);
  
   if( mInitialized) 
   {
@@ -364,7 +364,7 @@ void pxFont::fontLoaded()
 
 void pxFont::addListener(pxText* pText) 
 {
-  //printf("pxFont::addListener for %s\n",mFaceName.cString());
+  //printf("pxFont::addListener for %s\n",mFontName.cString());
   if( !mInitialized) 
   {
     mListeners.push_back(pText);
@@ -377,10 +377,10 @@ void pxFont::addListener(pxText* pText)
 }
 rtError pxFont::loadFont()
 {
-  rtLogInfo("pxFont::loadFont for %s\n",mFaceName.cString());
-  const char *result = strstr(mFaceName, "http");
-  int position = result - mFaceName;
-  if (position == 0 && strlen(mFaceName) > 0)
+  rtLogInfo("pxFont::loadFont for %s\n",mFontName.cString());
+  const char *result = strstr(mFontName, "http");
+  int position = result - mFontName;
+  if (position == 0 && strlen(mFontName) > 0)
   {
     if (mFontDownloadRequest != NULL)
     {
@@ -390,7 +390,7 @@ rtError pxFont::loadFont()
     }
     // Start the download request
     mFontDownloadRequest =
-        new pxFileDownloadRequest(mFaceName, this);
+        new pxFileDownloadRequest(mFontName, this);
    
     fontDownloadsPending++;
     mFontDownloadRequest->setCallbackFunction(pxFontDownloadComplete);
@@ -398,10 +398,10 @@ rtError pxFont::loadFont()
 
   }
   else {
-    rtError e = init(mFaceName);
+    rtError e = init(mFontName);
     if (e != RT_OK)
     {
-      rtLogWarn("Could not load font face %s\n", mFaceName.cString());
+      rtLogWarn("Could not load font face %s\n", mFontName.cString());
       sendReady("reject");
 
       return e;
@@ -472,7 +472,7 @@ void pxFont::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
       fontDownloadRequest.fileDownloadRequest->getHttpStatusCode() == 200 &&
       fontDownloadRequest.fileDownloadRequest->getDownloadedData() != NULL)
   {
-    // Let the face handle the completion event and notifications to listeners
+    // Let the font handle the completion event and notifications to listeners
     onDownloadComplete((FT_Byte*)fontDownloadRequest.fileDownloadRequest->getDownloadedData(),
                           (FT_Long)fontDownloadRequest.fileDownloadRequest->getDownloadedDataSize(),
                           fontDownloadRequest.fileDownloadRequest->getFileUrl().cString());
@@ -503,7 +503,7 @@ void pxFont::sendReady(const char * value)
 }
 
 /*
-#### getFontMetrics - returns information about the font face (font and size).  It does not convey information about the text of the font.  
+#### getFontMetrics - returns information about the font (font and size).  It does not convey information about the text of the font.  
 * See section 3.a in http://www.freetype.org/freetype2/docs/tutorial/step2.html .  
 * The returned object has the following properties:
 * height - float - the distance between baselines
@@ -571,8 +571,8 @@ void pxFontManager::initFT(pxScene2d* scene)
   }
   
   //// Set up default font
-  //rtRefT<pxFont> pFont = new pxFont(scene, defaultFace);
-  //mFontMap.insert(make_pair(defaultFace, pFont));
+  //rtRefT<pxFont> pFont = new pxFont(scene, defaultFont);
+  //mFontMap.insert(make_pair(defaultFont, pFont));
 
   //pFont->loadFont();
 
@@ -584,7 +584,7 @@ rtRefT<pxFont> pxFontManager::getFont(pxScene2d* scene, const char* s)
   rtRefT<pxFont> pFont;
 
   if (!s || !s[0])
-    s = defaultFace;
+    s = defaultFont;
   
   FontMap::iterator it = mFontMap.find(s);
   if (it != mFontMap.end())
@@ -605,9 +605,9 @@ rtRefT<pxFont> pxFontManager::getFont(pxScene2d* scene, const char* s)
   return pFont;
 }
 
-void pxFontManager::removeFont(rtString faceName)
+void pxFontManager::removeFont(rtString fontName)
 {
-  FontMap::iterator it = mFontMap.find(faceName);
+  FontMap::iterator it = mFontMap.find(fontName);
   if (it != mFontMap.end())
   {  
     mFontMap.erase(it);

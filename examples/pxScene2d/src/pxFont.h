@@ -17,7 +17,7 @@ class pxText;
 class pxFont;
 
 #define defaultPixelSize 16
-#define defaultFace "FreeSans.ttf"
+#define defaultFont "FreeSans.ttf"
 
 
 class pxFileDownloadRequest;
@@ -112,7 +112,7 @@ public:
 class pxFont: public pxObject {
 
 public:
-	pxFont(pxScene2d* s, rtString faceUrl);
+	pxFont(pxScene2d* s, rtString fontUrl);
 	virtual ~pxFont() ;
 
 	rtDeclareObject(pxFont, pxObject);
@@ -122,8 +122,7 @@ public:
   rtError measureText(uint32_t, rtString, rtObjectRef& o);   
   
   
-  // Should we have a getter so that javascript can query the fontFace?
-  rtString getFontName() { return mFaceName;}
+  rtString getFontName() { return mFontName;}
   void fontLoaded();
   void onFontDownloadComplete(FontDownloadRequest fontDownloadRequest);
   void onDownloadComplete(const FT_Byte* fontData, FT_Long size, const char* n);
@@ -152,8 +151,8 @@ private:
   rtError init(const FT_Byte*  fontData, FT_Long size, const char* n); 
   void sendReady(const char * value); 
 
-  uint32_t mFaceId;
-  rtString mFaceName;
+  uint32_t mFontId;
+  rtString mFontName;
   FT_Face mFace;
   uint32_t mPixelSize;
   
@@ -175,7 +174,7 @@ class pxFontManager
   public: 
     
     static rtRefT<pxFont> getFont(pxScene2d* scene, const char* s);
-    static void removeFont(rtString faceName);
+    static void removeFont(rtString fontName);
     
   protected: 
     static void initFT(pxScene2d* scene);  

@@ -14,7 +14,7 @@ pxText::pxText(pxScene2d* scene):pxObject(scene)
 {
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
-  mFont = pxFontManager::getFont(scene,defaultFace);
+  mFont = pxFontManager::getFont(scene,defaultFont);
   mPixelSize = defaultPixelSize;
   mDirty = true;
 }
@@ -58,7 +58,7 @@ rtError pxText::setPixelSize(uint32_t v)
 
 void pxText::fontLoaded(const char * value)
 {
-  //rtLogInfo("pxText::fontLoaded for fontFace=%s and mInitialized=%d\n",mFaceUrl.compare("")?mFaceUrl.cString():defaultFace, mInitialized); 
+  //rtLogInfo("pxText::fontLoaded for fontName=%s and mInitialized=%d\n",mFontUrl.compare("")?mFontUrl.cString():defaultFont, mInitialized); 
   mFontLoaded=true;
   // pxText gets its height and width from the text itself, 
   // so measure it
@@ -139,15 +139,15 @@ void pxText::draw() {
   }
 }
 
-rtError pxText::setFaceUrl(const char* s)
+rtError pxText::setFontUrl(const char* s)
 {
   //printf("pxText::setFaceUrl for %s\n",s);
   if (!s || !s[0]) {
-    s = defaultFace;
+    s = defaultFont;
   }
   mFontLoaded = false;
   createNewPromise();
-  mFaceUrl = s;
+  mFontUrl = s;
 
   mFont = pxFontManager::getFont(mScene, s);
   mFont->addListener(this);
@@ -159,4 +159,4 @@ rtDefineObject(pxText, pxObject);
 rtDefineProperty(pxText, text);
 rtDefineProperty(pxText, textColor);
 rtDefineProperty(pxText, pixelSize);
-rtDefineProperty(pxText, faceUrl);
+rtDefineProperty(pxText, fontUrl);

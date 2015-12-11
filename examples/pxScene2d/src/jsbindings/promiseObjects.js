@@ -47,7 +47,7 @@ myText.ready.then(function(textObj) {
 //!CLF: TO DO:  text2 y position is broken when it's inside root - or more generally?  As if it doubles so that y is off screen!!
 var text2 = scene.create({t:"text2", clip:true, parent:root, x:200, y:150,
                             h:400,w:200,textColor:0xFFFFFFFF, pixelSize:20,
-                            faceUrl:"http://54.146.54.142/tom/receiverdotjs/fonts/XFINITYSansTT-New-Lgt.ttf",
+                            fontUrl:"http://54.146.54.142/tom/receiverdotjs/fonts/XFINITYSansTT-New-Lgt.ttf",
                             text:"then again... not really!",wordWrap:true,truncation:0,
                              rx:0, ry:0, rz:0});
 

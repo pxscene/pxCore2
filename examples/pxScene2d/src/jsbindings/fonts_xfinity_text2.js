@@ -12,9 +12,9 @@ scene.on("onResize", function(e){updateSize(e.w,e.h);});
 updateSize(scene.w, scene.h);
 
 
-// null or "" is the default face FreeSans.ttf
+// null or "" is the default font FreeSans.ttf
 
-var faces = ["",
+var fonts = ["",
              "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Bold.ttf",
              "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-BoldCond.ttf",
              "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-ExLgt.ttf",
@@ -25,7 +25,7 @@ var faces = ["",
              "http://54.146.54.142/tom/xre2/apps/receiver/fonts/DejaVuSerif.ttf",
             ];
 
-console.log("faces: "+faces.length);
+console.log("fonts: "+fonts.length);
 scene.w = width;
 console.log("scene.w="+scene.w);
 
@@ -37,19 +37,19 @@ var rowcontainer = scene.createImage({parent:scrollContent});
 pleaseWait = scene.createText2({text:"Please wait while fonts load...", 
                               parent:root,x:10,y:0,
                               textColor:0xfaebd7ff, pixelSize:24,
-                              faceUrl:faces[i], clip:true, w:width,h:100});
+                              fontUrl:fonts[i], clip:true, w:width,h:100});
 var elems = [];
 var promises = [];
 var p = 0; 
-for (var i=0; i < faces.length; i++)
+for (var i=0; i < fonts.length; i++)
 {
     var row = scene.createImage({parent:rowcontainer,y:0, clip:false});
-    var faceName = faces[i]?faces[i]:"FreeSans.ttf";
+    var faceName = fonts[i]?fonts[i]:"FreeSans.ttf";
     console.log("fontFace: "+faceName);
     var t = scene.createText2({text:"Enter in some text...", 
                               parent:row,x:10,y:0,
                               textColor:0xfaebd7ff, pixelSize:24,
-                              faceUrl:faces[i], clip:true,w:width,h:100, draw:false});
+                              fontUrl:fonts[i], clip:true,w:width,h:100, draw:false});
     elems[i] = t;                           
     promises[i] = t.ready;
 
@@ -75,7 +75,7 @@ Promise.all(promises).then(function(success, failure) {
                 if( n != 0) {
                     var prevParent = elems[n-1].parent;          
 
-                          console.log("PrevParent elem is "+elems[n-1].faceUrl);
+                          console.log("PrevParent elem is "+elems[n-1].fontUrl);
 
                           t.parent.y = prevParent.h+prevParent.y; 
                           console.log("Prevparent y is "+prevParent.y);

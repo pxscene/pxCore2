@@ -11,8 +11,8 @@ scene.on("onResize", function(e){updateSize(e.w,e.h);});
 updateSize(scene.w, scene.h);
 
 
-// null or "" is the default face FreeSans.ttf
-var faces = ["",
+// null or "" is the default font FreeSans.ttf
+var fonts = ["",
              "XFINITYSansTT-New-Bold.ttf",
              "XFINITYSansTT-New-BoldCond.ttf",
              "XFINITYSansTT-New-ExLgt.ttf",
@@ -23,7 +23,7 @@ var faces = ["",
              "DejaVuSerif.ttf",
             ];
 
-console.log("faces: ", faces.length);
+console.log("faces: ", fonts.length);
 
 var scroll = scene.createImage({parent:root});
 var scrollContent = scene.createImage({parent:scroll});
@@ -31,15 +31,15 @@ var scrollContent = scene.createImage({parent:scroll});
 var rowcontainer = scene.createImage({parent:scrollContent});
 
 var p = 0; 
-for (var i=0; i < faces.length; i++)
+for (var i=0; i < fonts.length; i++)
 {
     var row = scene.createImage({parent:rowcontainer,y:p});
-    var faceName = faces[i]?faces[i]:"FreeSans.ttf";
+    var faceName = fonts[i]?fonts[i]:"FreeSans.ttf";
     console.log(faceName);
     var t = scene.createText({text:"Enter in some text...", 
                               parent:row,x:10,
                               textColor:0xffffffff, pixelSize:24,
-                              faceUrl:faces[i]});
+                              fontUrl:fonts[i]});
     var t2 = scene.createText({text:faceName, 
                                parent:row,x:20,y:t.h,
                                textColor:0x000000ff, pixelSize:14,a:0.6});

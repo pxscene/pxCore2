@@ -74,7 +74,7 @@ var text2 = scene.create({t:"text2", clip:true, parent:container, x:px, y:py, rx
    text2.textColor=0xFFDDFFFF;
    text2.pixelSize=20;
    text2.leading=0;
-   text2.faceUrl=DancingScript;
+   text2.fontUrl=DancingScript;
    text2.horizontalAlign=0;
    text2.verticalAlign=0;
    text2.xStartPos=0;
@@ -280,19 +280,19 @@ scene.root.on("onChar", function(e) {
     pixelSizeStatus.text="pixelSize="+text2.pixelSize;
   } else if(e.charCode == 102) { // f for font
     if(fontStatus.text == "font="+DancingScript) {
-      text2.faceUrl = fontUrlStart+DejaVu; 
+      text2.fontUrl = fontUrlStart+DejaVu; 
       fontStatus.text = "font="+DejaVu+" (http)";
      } else if(fontStatus.text == "font="+DejaVu+" (http)"){
-      text2.faceUrl = fontUrlStart+XFinity; 
+      text2.fontUrl = fontUrlStart+XFinity; 
       fontStatus.text = "font="+XFinity+" (http)";
     } else if(fontStatus.text == "font="+XFinity+" (http)"){
-      text2.faceUrl = fontUrlStart+DejaVuSerif; 
+      text2.fontUrl = fontUrlStart+DejaVuSerif; 
       fontStatus.text = "font="+DejaVuSerif+" (http)";
     } else if(fontStatus.text == "font="+DejaVuSerif+" (http)"){
-      text2.faceUrl = fontUrlStart+XFinityBold; 
+      text2.fontUrl = fontUrlStart+XFinityBold; 
       fontStatus.text = "font="+XFinityBold+" (http)";
     } else if(fontStatus.text == "font="+XFinityBold+" (http)"){
-      text2.faceUrl = DancingScript; 
+      text2.fontUrl = DancingScript; 
       fontStatus.text = "font="+DancingScript;
     }
   }

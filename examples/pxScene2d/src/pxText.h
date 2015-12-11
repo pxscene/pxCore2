@@ -20,7 +20,7 @@ public:
   rtProperty(text, text, setText, rtString);
   rtProperty(textColor, textColor, setTextColor, uint32_t);
   rtProperty(pixelSize, pixelSize, setPixelSize, uint32_t);
-  rtProperty(faceUrl, faceUrl, setFaceUrl, rtString);
+  rtProperty(fontUrl, fontUrl, setFontUrl, rtString);
 
   pxText(pxScene2d* scene);
   ~pxText() {}
@@ -40,8 +40,8 @@ public:
     return RT_OK;
   }
 
-  rtError faceUrl(rtString& v) const { v = mFaceUrl; return RT_OK; }
-  virtual rtError setFaceUrl(const char* s);
+  rtError fontUrl(rtString& v) const { v = mFontUrl; return RT_OK; }
+  virtual rtError setFontUrl(const char* s);
 
   rtError pixelSize(uint32_t& v) const { v = mPixelSize; return RT_OK; }
   virtual rtError setPixelSize(uint32_t v);
@@ -56,7 +56,7 @@ public:
               !strcmp(name,"h") ||
               !strcmp(name,"text") ||
               !strcmp(name,"pixelSize") ||
-              !strcmp(name,"faceUrl") ||
+              !strcmp(name,"fontUrl") ||
               !strcmp(name,"textColor"));
 #else
     mDirty = true;
@@ -73,9 +73,9 @@ public:
  protected:
   virtual void draw();
   rtString mText;
-// TODO should we just use a face object instead of Urls
+// TODO should we just use a font object instead of Urls
   bool mFontLoaded;
-  rtString mFaceUrl;
+  rtString mFontUrl;
 
   rtRefT<pxFont> mFont;
   

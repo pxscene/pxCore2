@@ -142,12 +142,12 @@ rtError pxText2::setPixelSize(uint32_t v)
   setNeedsRecalc(true); 
   return RT_OK; 
 }
-rtError pxText2::setFaceUrl(const char* s)
+rtError pxText2::setFontUrl(const char* s)
 {
-  //printf("pxText2::setFaceUrl \"%s\"\n",s);
+  //printf("pxText2::setFontUrl \"%s\"\n",s);
   mFontLoaded = false;
   setNeedsRecalc(true);
-  return pxText::setFaceUrl(s);
+  return pxText::setFontUrl(s);
 }
 
 
@@ -1061,7 +1061,7 @@ bool pxText2::isNewline( char ch )
     return (strchr(isnew_line_chars, ch) != 0);
 }
 /*
-#### getFontMetrics - returns information about the font face (font and size).  It does not convey information about the text of the font.  
+#### getFontMetrics - returns information about the font (font and size).  It does not convey information about the text of the font.  
 * See section 3.a in http://www.freetype.org/freetype2/docs/tutorial/step2.html .  
 * The returned object has the following properties:
 * height - float - the distance between baselines

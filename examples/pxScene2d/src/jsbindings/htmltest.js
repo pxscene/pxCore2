@@ -10,7 +10,7 @@ console.log("viewObj w="+viewObj.w+" and h="+viewObj.h);
 var textObj2 = scene.create({
         t: "text2",
 		text: "6:17a / 43°",
-		faceUrl:"/home/comcast/comcast_files/pxCore/examples/pxScene2d/src/jsbindings/fonts/XFINITYSansTT-New-Bold.ttf",
+		fontUrl:"http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Bold.ttf",
 		pixelSize: 20,
 		parent: viewObj,
 		w :viewObj.w,
