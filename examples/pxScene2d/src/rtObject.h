@@ -419,7 +419,7 @@ rtError rtFunctionBase::sendReturns(const rtValue& arg1, T& result)
   rtValue resultValue;
   rtError e = SendReturns(1, args, resultValue);
   if (e == RT_OK) 
-    resultValue.cvt(result);
+    result = resultValue.convert<T>();
   return e;
 }
 

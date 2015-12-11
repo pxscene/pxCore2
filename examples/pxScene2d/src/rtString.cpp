@@ -11,9 +11,7 @@ extern "C" {
 #include "utf8.h"
 }
 
-rtString::rtString(): mData(0)  
-{
-}
+rtString::rtString(): mData(0) {}
 
 rtString::rtString(char* s): mData(0) 
 {
@@ -27,7 +25,7 @@ rtString::rtString(const char* s): mData(0)
     mData = strdup(s);
 }
 
-rtString::rtString(const char* s, uint32_t byteLen)
+rtString::rtString(const char* s, uint32_t byteLen): mData(0)
 {
   if (s)
   {
@@ -45,15 +43,24 @@ rtString::rtString(const rtString& s): mData(0)
 
 rtString& rtString::operator=(const rtString& s) 
 {
-  if (s.mData) // Aliases
-    mData = strdup(s.mData);
+  if (this != &s)
+  {
+    term();
+    if (s.mData) // Aliases
+      mData = strdup(s.mData);
+  }
   return *this;
 }
 
 rtString& rtString::operator=(const char* s) 
 {
-  if (s) // Aliases
-    mData = strdup(s);
+  // TODO think about this one... 
+  if (s != mData)
+  {
+    term();
+    if (s) // Aliases
+      mData = strdup(s);
+  }
   return *this;
 }
 
@@ -64,9 +71,10 @@ bool rtString::isEmpty()
 
 rtString::~rtString() { term(); }
 
-void rtString::term() {
+void rtString::term() 
+{
   if (mData)
-      free(mData);
+    free(mData);
   mData = 0;
 }
 
@@ -80,14 +88,14 @@ void rtString::append(const char* s)
 
 int rtString::compare(const char* s) const 
 {
-  if( !mData) {
+  if( !mData) 
     return strncmp("",s,strnlen(s,2));
-  }
  
   u_int32_t c1, c2;
   int i1 = 0, i2 = 0;
   
-  do {
+  do 
+  {
     c1 = u8_nextchar((char*)s, &i1);
     c2 = u8_nextchar((char*)mData, &i2);
   } while (c1 == c2 && c1 && c2);

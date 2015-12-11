@@ -22,7 +22,7 @@ rtResolverFunction::rtResolverFunction(Disposition disp, Isolate* isolate, Local
 }
 
 rtResolverFunction::~rtResolverFunction()
-{
+{  
   rtLogDebug("delete");
 }
 

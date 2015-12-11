@@ -27,39 +27,71 @@ rtValue::rtValue(voidPtr v)             :mType(0) { setVoidPtr(v); }
 
 rtValue::~rtValue()
 {
-  if (mType == RT_objectType || mType == RT_functionType)
-  {
+//  if (mType == RT_objectType || mType == RT_functionType)
+   {
     setEmpty();
-  }
+       }
 }
 
-rtObjectRef rtValue::toObject() const  { 
+bool rtValue::operator==(const rtValue& rhs) const
+{
+  return compare(*this, rhs);
+}
+
+bool rtValue::compare(const rtValue& lhs, const rtValue& rhs)
+{
+  bool result = false;
+  if (lhs.getType() == rhs.getType())
+  {
+    switch(lhs.getType())
+    {
+    case RT_voidType:     result = true; break;
+    case RT_boolType:     result = (lhs.mValue.boolValue == rhs.mValue.boolValue); break;
+    case RT_int8_tType:   result = (lhs.mValue.int8Value == rhs.mValue.int8Value); break;
+    case RT_uint8_tType:  result = (lhs.mValue.uint8Value == rhs.mValue.uint8Value); break;
+    case RT_int32_tType:  result = (lhs.mValue.int32Value == rhs.mValue.int32Value); break;
+    case RT_uint32_tType: result = (lhs.mValue.uint32Value == rhs.mValue.uint32Value); break;
+    case RT_int64_tType:  result = (lhs.mValue.int64Value == rhs.mValue.int64Value); break;
+    case RT_uint64_tType: result = (lhs.mValue.uint64Value == rhs.mValue.uint64Value); break;
+    case RT_floatType:    result = (lhs.mValue.floatValue == rhs.mValue.floatValue); break;
+    case RT_doubleType:   result = (lhs.mValue.doubleValue == rhs.mValue.doubleValue); break;
+    case RT_stringType:   
+    {
+      if (lhs.mValue.stringValue && rhs.mValue.stringValue)
+        result = (*lhs.mValue.stringValue == *rhs.mValue.stringValue); 
+      else
+        result = (lhs.mValue.stringValue == rhs.mValue.stringValue);
+    }
+    break;
+    case RT_objectType:   result = (lhs.mValue.objectValue == rhs.mValue.objectValue); break;
+    case RT_functionType: result = (lhs.mValue.functionValue == rhs.mValue.functionValue); break;
+    }
+  }
+  return result;
+}
+
+rtObjectRef rtValue::toObject() const 
+{ 
   rtObjectRef v; 
   getObject(v); 
   return v; 
 }
 
-rtFunctionRef rtValue::toFunction() const {
+rtFunctionRef rtValue::toFunction() const 
+{
   rtFunctionRef f;
   getFunction(f);
   return f;
 }
 
-void rtValue::setEmpty() {
+void rtValue::setEmpty() 
+{
   if (mType == RT_objectType) 
   {
     if (mValue.objectValue) 
     {
       mValue.objectValue->Release();
       mValue.objectValue = NULL;
-    }
-  }
-  else if (mType == RT_stringType) 
-  {
-    if (mValue.stringValue) 
-    {
-      delete mValue.stringValue;
-      mValue.stringValue = NULL;
     }
   }
   else if (mType == RT_functionType)
@@ -70,123 +102,174 @@ void rtValue::setEmpty() {
        mValue.functionValue = NULL;
     }
   }
+  else if (mType == RT_stringType) 
+  {
+    if (mValue.stringValue) 
+    {
+      delete mValue.stringValue;
+      mValue.stringValue = NULL;
+    }
+  }
+
   // TODO setting this to '0' makes node wrappers unhappy
   mType = 0;
   // TODO do we really need thi
   mValue.uint64Value = 0;
+  //memset(&mValue, 0, sizeof(mValue));
 }
 
-void rtValue::setValue(const rtValue& v) {
-  setEmpty();
-  mType = v.mType; mValue = v.mValue;
-  if (mType == RT_objectType && mValue.objectValue != NULL)
+void rtValue::setValue(const rtValue& v) 
+{
+  if (this != &v)
   {
-     mValue.objectValue->AddRef();
-  }
-  else if (mType == RT_functionType && mValue.functionValue != NULL)
-  {
-    mValue.functionValue->AddRef();
+    setEmpty();
+    mType = v.mType;
+    if (mType == RT_objectType && v.mValue.objectValue != NULL)
+    {
+      mValue.objectValue = v.mValue.objectValue;
+      mValue.objectValue->AddRef();
+    }
+    else if (mType == RT_functionType && v.mValue.functionValue != NULL)
+    {
+      mValue.functionValue = v.mValue.functionValue;
+      mValue.functionValue->AddRef();
+    }
+#if 1
+    else if (mType == RT_stringType && v.mValue.stringValue != NULL)
+    {
+      setString(*(v.mValue.stringValue));
+    }
+#endif
+    else
+      mValue = v.mValue;
   }
 }
 
-void rtValue::setBool(bool v) {
+void rtValue::setBool(bool v) 
+{
   setEmpty();
   mType = RT_boolType; mValue.boolValue = v;
 }
 
-void rtValue::setInt8(int8_t v) {
+void rtValue::setInt8(int8_t v) 
+{
   setEmpty();
   mType = RT_int8_tType; mValue.int8Value = v;
 }
 
-void rtValue::setUInt8(uint8_t v) {
+void rtValue::setUInt8(uint8_t v) 
+{
   setEmpty();
   mType = RT_uint8_tType; mValue.uint8Value = v;
 }
 
-void rtValue::setInt32(int32_t v) {
+void rtValue::setInt32(int32_t v) 
+{
   setEmpty();
   mType = RT_int32_tType; mValue.int32Value = v;
 }
 
-void rtValue::setUInt32(uint32_t v) {
+void rtValue::setUInt32(uint32_t v) 
+{
   setEmpty();
   mType = RT_uint32_tType; mValue.uint32Value = v;
 }
 
-void rtValue::setInt64(int64_t v) {
+void rtValue::setInt64(int64_t v) 
+{
   setEmpty();
   mType = RT_int64_tType; mValue.int64Value = v;
 }
 
-void rtValue::setUInt64(uint64_t v) {
+void rtValue::setUInt64(uint64_t v) 
+{
   setEmpty();
   mType = RT_uint64_tType; mValue.uint64Value = v;
 }
 
-void rtValue::setFloat(float v) {
+void rtValue::setFloat(float v) 
+{
   setEmpty();
   mType = RT_floatType; mValue.floatValue = v;
 }
 
-void rtValue::setDouble(double v) {
+void rtValue::setDouble(double v) 
+{
   setEmpty();
   mType = RT_doubleType; mValue.doubleValue = v;
 }
 
-void rtValue::setString(const rtString& v) {
+void rtValue::setString(const rtString& v) 
+{
   setEmpty();
   mType = RT_stringType; mValue.stringValue = new rtString(v);
 }
 
-void rtValue::setObject(const rtIObject* v) {
+void rtValue::setObject(const rtIObject* v) 
+{
   setEmpty();
   mType = RT_objectType; 
   mValue.objectValue = (rtIObject*)v;
-  if (v) mValue.objectValue->AddRef(); 
+  if (v) 
+    mValue.objectValue->AddRef(); 
 }
 
-void rtValue::setObject(const rtObjectRef& v) {
+void rtValue::setObject(const rtObjectRef& v) 
+{
+#if 0
   setEmpty();
   mType = RT_objectType; 
   mValue.objectValue = v.getPtr();
-  if (v) mValue.objectValue->AddRef(); 
+  if (v) 
+    mValue.objectValue->AddRef(); 
+#else
+  setObject(v.getPtr());
+#endif
 }
 
-void rtValue::setFunction(const rtIFunction* v) {
+void rtValue::setFunction(const rtIFunction* v) 
+{
   setEmpty();
   mType = RT_functionType;
   mValue.functionValue = (rtIFunction*)v;
   if (v) mValue.functionValue->AddRef();
 }
 
-void rtValue::setFunction(const rtFunctionRef& v) {
+void rtValue::setFunction(const rtFunctionRef& v) 
+{
   setFunction(v.getPtr());
 }
 
-void rtValue::setVoidPtr(voidPtr v) {
+void rtValue::setVoidPtr(voidPtr v) 
+{
   setEmpty();
   mType = RT_voidPtrType;
   mValue.voidPtrValue = v;
 }
 
-rtError rtValue::getBool(bool& v) const {
-  if (mType == RT_boolType) v = mValue.boolValue;
-  else {
+rtError rtValue::getBool(bool& v) const 
+{
+  if (mType == RT_boolType) 
+    v = mValue.boolValue;
+  else 
+  {
     v = false; // normalize to default
     switch(mType)
     {
-    case RT_boolType: break;
+    case RT_voidType: break;
+    case RT_boolType: v = mValue.boolValue; break;
     case RT_int8_tType: v = (mValue.int8Value==0)?false:true; break;
     case RT_uint8_tType: v = (mValue.uint8Value==0)?false:true; break;
     case RT_int32_tType: v = (mValue.int32Value==0)?false:true; break;
     case RT_uint32_tType: v = (mValue.uint32Value==0)?false:true; break;
+    case RT_int64_tType: v = (mValue.int64Value==0)?false:true; break;
+    case RT_uint64_tType: v = (mValue.uint64Value==0)?false:true; break;
     case RT_floatType: v = (mValue.floatValue==0.0f)?false:true; break;
     case RT_doubleType: v = (mValue.doubleValue==0.0)?false:true; break;
     case RT_stringType: 
     {
       if (mValue.stringValue)
-        v = (*mValue.stringValue=="false")?false:true; break;
+        v = (*mValue.stringValue=="")?false:true; break;
     }
     break;
     case RT_objectType: v = mValue.objectValue?true:false; break;
@@ -199,17 +282,23 @@ rtError rtValue::getBool(bool& v) const {
   return RT_OK;
 }
 
-rtError rtValue::getInt8(int8_t& v)  const {
-  if (mType == RT_int8_tType) v = mValue.int8Value;
-  else {
+rtError rtValue::getInt8(int8_t& v)  const 
+{
+  if (mType == RT_int8_tType) 
+    v = mValue.int8Value;
+  else 
+  {
     v = 0; // normalize to default
     switch(mType)
     {
+    case RT_voidType: break;
     case RT_boolType: v = (int8_t)mValue.boolValue?1:0; break;
     case RT_int8_tType: v = (int8_t)mValue.int8Value; break;
     case RT_uint8_tType: v = (int8_t)mValue.uint8Value; break;
     case RT_int32_tType: v = (int8_t)mValue.int32Value; break;
     case RT_uint32_tType: v = (int8_t)mValue.uint32Value; break;
+    case RT_int64_tType: v = (int8_t)mValue.int64Value; break;
+    case RT_uint64_tType: v = (int8_t)mValue.uint64Value; break;
 // TODO look at faster float to fixed conversion
     case RT_floatType: v = (int8_t)mValue.floatValue; break;
     case RT_doubleType: v = (int8_t)mValue.doubleValue; break;
@@ -229,17 +318,23 @@ rtError rtValue::getInt8(int8_t& v)  const {
   return RT_OK;
 }
 
-rtError rtValue::getUInt8(uint8_t& v) const {
-  if (mType == RT_uint8_tType) v = mValue.uint8Value;
-  else {
+rtError rtValue::getUInt8(uint8_t& v) const 
+{
+  if (mType == RT_uint8_tType) 
+    v = mValue.uint8Value;
+  else 
+  {
     v = 0; // normalize to default
     switch(mType)
     {
+    case RT_voidType: break;
     case RT_boolType: v = (uint8_t)mValue.boolValue?1:0; break;
     case RT_int8_tType: v = (uint8_t)mValue.int8Value; break;
     case RT_uint8_tType: v = (uint8_t)mValue.uint8Value; break;
     case RT_int32_tType: v = (uint8_t)mValue.int32Value; break;
     case RT_uint32_tType: v = (uint8_t)mValue.uint32Value; break;
+    case RT_int64_tType: v = (uint8_t)mValue.int64Value; break;
+    case RT_uint64_tType: v = (uint8_t)mValue.uint64Value; break;
 // TODO look at faster float to fixed conversion
     case RT_floatType: v = (uint8_t)mValue.floatValue; break;
     case RT_doubleType: v = (uint8_t)mValue.doubleValue; break;
@@ -259,12 +354,16 @@ rtError rtValue::getUInt8(uint8_t& v) const {
   return RT_OK;
 }
 
-rtError rtValue::getInt32(int32_t& v) const {
-  if (mType == RT_int32_tType) v = mValue.int32Value;
-  else {
+rtError rtValue::getInt32(int32_t& v) const 
+{
+  if (mType == RT_int32_tType) 
+    v = mValue.int32Value;
+  else 
+  {
     v = 0; // normalize to default
     switch(mType)
     {
+    case RT_voidType: break;
     case RT_boolType: v = (int32_t)mValue.boolValue?1:0; break;
     case RT_int8_tType: v = (int32_t)mValue.int8Value; break;
     case RT_uint8_tType: v = (int32_t)mValue.uint8Value; break;
@@ -291,17 +390,23 @@ rtError rtValue::getInt32(int32_t& v) const {
   return RT_OK;
 }
 
-rtError rtValue::getUInt32(uint32_t& v) const {
-  if (mType == RT_uint32_tType) v = mValue.uint32Value;
-  else {
+rtError rtValue::getUInt32(uint32_t& v) const 
+{
+  if (mType == RT_uint32_tType) 
+    v = mValue.uint32Value;
+  else 
+  {
     v = 0; // normalize to default
     switch(mType)
     {
+    case RT_voidType: break;
     case RT_boolType: v = (uint32_t)mValue.boolValue?1:0; break;
     case RT_int8_tType: v = (uint32_t)mValue.int8Value; break;
     case RT_uint8_tType: v = (uint32_t)mValue.uint8Value; break;
     case RT_int32_tType: v = (uint32_t)mValue.int32Value; break;
     case RT_uint32_tType: v = (uint32_t)mValue.uint32Value; break;
+    case RT_int64_tType: v = (uint32_t)mValue.int32Value; break;
+    case RT_uint64_tType: v = (uint32_t)mValue.uint32Value; break;
 // TODO look at faster float to fixed conversion
     case RT_floatType: v = (uint32_t)mValue.floatValue; break;
     case RT_doubleType: v = (uint32_t)mValue.doubleValue; break;
@@ -321,18 +426,23 @@ rtError rtValue::getUInt32(uint32_t& v) const {
   return RT_OK;
 }
 
-
-rtError rtValue::getInt64(int64_t& v) const {
-  if (mType == RT_int64_tType) v = mValue.int64Value;
-  else {
+rtError rtValue::getInt64(int64_t& v) const 
+{
+  if (mType == RT_int64_tType) 
+    v = mValue.int64Value;
+  else 
+  {
     v = 0; // normalize to default
     switch(mType)
     {
+    case RT_voidType: break;
     case RT_boolType: v = (int64_t)mValue.boolValue?1:0; break;
     case RT_int8_tType: v = (int64_t)mValue.int8Value; break;
     case RT_uint8_tType: v = (int64_t)mValue.uint8Value; break;
     case RT_int32_tType: v = (int64_t)mValue.int32Value; break;
     case RT_uint32_tType: v = (int64_t)mValue.uint32Value; break;
+    case RT_int64_tType: v = (int64_t)mValue.int64Value; break;
+    case RT_uint64_tType: v = (int64_t)mValue.uint64Value; break;
 // TODO look at faster float to fixed conversion
     case RT_floatType: v = (int64_t)mValue.floatValue; break;
     case RT_doubleType: v = (int64_t)mValue.doubleValue; break;
@@ -352,17 +462,23 @@ rtError rtValue::getInt64(int64_t& v) const {
   return RT_OK;
 }
 
-rtError rtValue::getUInt64(uint64_t& v) const {
-  if (mType == RT_uint64_tType) v = mValue.uint64Value;
-  else {
+rtError rtValue::getUInt64(uint64_t& v) const 
+{
+  if (mType == RT_uint64_tType) 
+    v = mValue.uint64Value;
+  else 
+  {
     v = 0; // normalize to default
     switch(mType)
     {
+    case RT_voidType: break;
     case RT_boolType: v = (uint64_t)mValue.boolValue?1:0; break;
     case RT_int8_tType: v = (uint64_t)mValue.int8Value; break;
     case RT_uint8_tType: v = (uint64_t)mValue.uint8Value; break;
     case RT_int32_tType: v = (uint64_t)mValue.int32Value; break;
     case RT_uint32_tType: v = (uint64_t)mValue.uint32Value; break;
+    case RT_int64_tType: v = (uint64_t)mValue.int64Value; break;
+    case RT_uint64_tType: v = (uint64_t)mValue.uint64Value; break;
 // TODO look at faster float to fixed conversion
     case RT_floatType: v = (uint64_t)mValue.floatValue; break;
     case RT_doubleType: v = (uint64_t)mValue.doubleValue; break;
@@ -381,17 +497,24 @@ rtError rtValue::getUInt64(uint64_t& v) const {
   }
   return RT_OK;
 }
-rtError rtValue::getFloat(float& v) const {
-  if (mType == RT_floatType) v = mValue.floatValue;
-  else {
+
+rtError rtValue::getFloat(float& v) const 
+{
+  if (mType == RT_floatType) 
+    v = mValue.floatValue;
+  else 
+  {
     v = 0.0f; // normalize to default
     switch(mType)
     {
+    case RT_voidType: break;
     case RT_boolType: v = mValue.boolValue?1.0f:0.0f; break;
     case RT_int8_tType: v = (float)mValue.int8Value; break;
     case RT_uint8_tType: v = (float)mValue.uint8Value; break;
     case RT_int32_tType: v = (float)mValue.int32Value; break;
     case RT_uint32_tType: v = (float)mValue.uint32Value; break;
+    case RT_int64_tType: v = (float)mValue.int64Value; break;
+    case RT_uint64_tType: v = (float)mValue.uint64Value; break;
 //    case RT_floatType: break;
     case RT_doubleType: v = (float)mValue.doubleValue; break;
     case RT_stringType: 
@@ -410,12 +533,16 @@ rtError rtValue::getFloat(float& v) const {
   return RT_OK;
 }
 
-rtError rtValue::getDouble(double& v) const {
-  if (mType == RT_doubleType) v = mValue.doubleValue;
-  else {
+rtError rtValue::getDouble(double& v) const 
+{
+  if (mType == RT_doubleType) 
+    v = mValue.doubleValue;
+  else 
+  {
     v = 0; // normalize to default
     switch(mType)
     {
+    case RT_voidType: break;
     case RT_boolType: v = mValue.boolValue?1.0:0.0; break;
     case RT_int8_tType: v = (double)mValue.int8Value; break;
     case RT_uint8_tType: v = (double)mValue.uint8Value; break;
@@ -441,14 +568,17 @@ rtError rtValue::getDouble(double& v) const {
   return RT_OK;
 }
 
-rtError rtValue::getString(rtString& v) const {
+rtError rtValue::getString(rtString& v) const 
+{
   if (mType == RT_stringType && mValue.stringValue) 
     v = *mValue.stringValue;
-  else {
+  else 
+  {
     // TODO EVIL buffer on stack
     char buffer[256]; buffer[0] = 0;
     switch(mType)
     {
+    case RT_voidType: break;
     case RT_boolType: sprintf(buffer, "%s", mValue.boolValue?"true":"false"); break;
     case RT_int8_tType: sprintf(buffer, "%d", mValue.int8Value); break;
     case RT_uint8_tType: sprintf(buffer, "%u", mValue.uint8Value); break;
@@ -456,8 +586,8 @@ rtError rtValue::getString(rtString& v) const {
     case RT_uint32_tType: sprintf(buffer, "%u", mValue.uint32Value); break;
     case RT_int64_tType: sprintf(buffer, "%lld", (long long int)mValue.int64Value); break;
     case RT_uint64_tType: sprintf(buffer, "%llu", (unsigned long long int)mValue.uint64Value); break;
-    case RT_floatType: sprintf(buffer, "%f", mValue.floatValue); break;
-    case RT_doubleType: sprintf(buffer, "%f", mValue.doubleValue); break;
+    case RT_floatType: sprintf(buffer, "%g", mValue.floatValue); break;
+    case RT_doubleType: sprintf(buffer, "%g", mValue.doubleValue); break;
       // TODO call toString or description on object
     case RT_objectType: break;
     case RT_functionType: break;
@@ -470,17 +600,22 @@ rtError rtValue::getString(rtString& v) const {
   return RT_OK;
 }
 
-rtError rtValue::getObject(rtObjectRef& v) const {
-  if (mType == RT_objectType) v = mValue.objectValue;
-  else {
+rtError rtValue::getObject(rtObjectRef& v) const 
+{
+  if (mType == RT_objectType) 
+    v = mValue.objectValue;
+  else 
+  {
     // No other types are convertable to object
     v = NULL;
   }
   return RT_OK;
 }
 
-rtError rtValue::getFunction(rtFunctionRef& v) const {
-  if (mType == RT_functionType) v = mValue.functionValue;
+rtError rtValue::getFunction(rtFunctionRef& v) const 
+{
+  if (mType == RT_functionType) 
+    v = mValue.functionValue;
   else 
   {
     // No other types are convertable to function
@@ -489,8 +624,10 @@ rtError rtValue::getFunction(rtFunctionRef& v) const {
   return RT_OK;
 }
 
-rtError rtValue::getVoidPtr(voidPtr& v) const {
-  if (mType == RT_voidPtrType) v = mValue.voidPtrValue;
+rtError rtValue::getVoidPtr(voidPtr& v) const 
+{
+  if (mType == RT_voidPtrType) 
+    v = mValue.voidPtrValue;
   else 
   {
     // No other types are convertable
@@ -499,7 +636,8 @@ rtError rtValue::getVoidPtr(voidPtr& v) const {
   return RT_OK;
 }
 
-rtError rtValue::getValue(rtValue& v) const {
+rtError rtValue::getValue(rtValue& v) const 
+{
   v = *this;
   return RT_OK;
 }
