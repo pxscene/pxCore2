@@ -10,7 +10,7 @@
 class pxImage9: public pxObject {
 public:
   rtDeclareObject(pxImage9, pxObject);
-  rtProperty(url, url, setURL, rtString);
+  rtProperty(url, url, setUrl, rtString);
   rtProperty(lInset, lInset, setLInset, float);
   rtProperty(tInset, tInset, setTInset, float);
   rtProperty(rInset, rInset, setRInset, float);
@@ -25,7 +25,7 @@ public:
   }
   
   rtError url(rtString& s) const;
-  rtError setURL(const char* s);
+  rtError setUrl(const char* s);
   
   rtError lInset(float& v) const { v = ml; return RT_OK; }
   rtError setLInset(float v) { ml = v; return RT_OK; }
@@ -55,9 +55,9 @@ public:
   
 protected:
   virtual void draw();
-  void loadImage(rtString url);
+  void loadImage(rtString Url);
   
-  rtString mURL;
+  rtString mUrl;
   float ml, mt, mr, mb;
   pxTextureCacheObject mTextureCacheObject;
   int mStatusCode;

@@ -921,7 +921,7 @@ void pxObject::createMask()
   {
     const char* s = mMaskUrl.cString();
     mMaskTextureCacheObject.setParent(this);
-    mMaskTextureCacheObject.setURL(s);
+    mMaskTextureCacheObject.setUrl(s);
   }
 }
 
@@ -1760,7 +1760,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
       char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
       if (d)
       {
-        // We return a data URI string containing the image data
+        // We return a data Url string containing the image data
         pngData = "data:image/png;base64,";
         pngData.append(d);
         free(d);
@@ -1904,22 +1904,22 @@ rtDefineProperty(pxSceneContainer, url);
 rtDefineProperty(pxSceneContainer, api);
 rtDefineMethod(pxSceneContainer, makeReady);
 
-rtError pxSceneContainer::setURI(rtString v)
+rtError pxSceneContainer::setUrl(rtString v)
 { 
   // If old promise is still unfulfilled reject it
-  // and create a new promise for the context of this URI
+  // and create a new promise for the context of this Url
   mReady.send("reject", this); 
   mReady = new rtPromise;  
   rtRefT<pxScene2d> newScene = new pxScene2d(false);
   setView(newScene);
   mScene = newScene;
-  mURI = v; 
+  mUrl = v; 
   if (gOnScene)
   {
     // TODO experiment to improve interstitial rendering at scene load time
     // assuming that the script loading code restores painting at a "good" time
     setPainting(false);
-    gOnScene.send((rtObject*)this, newScene.getPtr(), mURI);
+    gOnScene.send((rtObject*)this, newScene.getPtr(), mUrl);
     //mReady.send("resolve",this);
   }
   return RT_OK; 

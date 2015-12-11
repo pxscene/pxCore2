@@ -37,7 +37,7 @@ var rowcontainer = scene.createImage({parent:scrollContent});
 pleaseWait = scene.createText2({text:"Please wait while fonts load...", 
                               parent:root,x:10,y:0,
                               textColor:0xfaebd7ff, pixelSize:24,
-                              faceURL:faces[i], clip:true, w:width,h:100});
+                              faceUrl:faces[i], clip:true, w:width,h:100});
 var elems = [];
 var promises = [];
 var p = 0; 
@@ -49,7 +49,7 @@ for (var i=0; i < faces.length; i++)
     var t = scene.createText2({text:"Enter in some text...", 
                               parent:row,x:10,y:0,
                               textColor:0xfaebd7ff, pixelSize:24,
-                              faceURL:faces[i], clip:true,w:width,h:100, draw:false});
+                              faceUrl:faces[i], clip:true,w:width,h:100, draw:false});
     elems[i] = t;                           
     promises[i] = t.ready;
 
@@ -75,7 +75,7 @@ Promise.all(promises).then(function(success, failure) {
                 if( n != 0) {
                     var prevParent = elems[n-1].parent;          
 
-                          console.log("PrevParent elem is "+elems[n-1].faceURL);
+                          console.log("PrevParent elem is "+elems[n-1].faceUrl);
 
                           t.parent.y = prevParent.h+prevParent.y; 
                           console.log("Prevparent y is "+prevParent.y);

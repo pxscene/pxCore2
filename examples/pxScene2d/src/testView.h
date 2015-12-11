@@ -89,7 +89,7 @@ testView(): mContainer(NULL),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) 
 
 
 #if 0
-  virtual rtError RT_STDCALL setURI(const char* s) = 0;
+  virtual rtError RT_STDCALL setUrl(const char* s) = 0;
 #endif
 
 private:

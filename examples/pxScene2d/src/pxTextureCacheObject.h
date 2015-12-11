@@ -28,7 +28,7 @@ typedef struct _ImageDownloadRequest
 class pxTextureCacheObject : public pxTextureNotifier
 {
 public:
-  pxTextureCacheObject() : mRef(0), mTexture(), mURL(),
+  pxTextureCacheObject() : mRef(0), mTexture(), mUrl(),
         mImageDownloadRequest(NULL), mParent(NULL), mStatusCode(0), mHttpStatusCode(0), mDownloadInProgress(false) {}
   virtual ~pxTextureCacheObject();
 
@@ -49,7 +49,7 @@ public:
   void setParent(pxObject* parent);
   
   rtError url(rtString& s) const;
-  rtError setURL(const char* s);
+  rtError setUrl(const char* s);
   int getStatusCode();
   int getHttpStatusCode();
   bool isDownloadInProgress() { return mDownloadInProgress; }
@@ -61,13 +61,13 @@ public:
   static void checkForCompletedDownloads(int maxTimeInMilliseconds=10);
   
 protected:
-  void loadImage(rtString url);
+  void loadImage(rtString Url);
   void setStatus(int statusCode, int httpStatusCode=0);
-  void startImageDownload(rtString url);
+  void startImageDownload(rtString Url);
   
   rtAtomic mRef;
   pxTextureRef mTexture;
-  rtString mURL;
+  rtString mUrl;
   pxFileDownloadRequest* mImageDownloadRequest;
   pxObject* mParent;
   int mStatusCode;

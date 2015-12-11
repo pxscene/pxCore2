@@ -27,30 +27,30 @@ extern pxContext context;
 
 void pxImage::onInit()
 {
-  rtLogDebug("pxImage::onInit() mURL=%s\n",mURL.cString());
+  rtLogDebug("pxImage::onInit() mUrl=%s\n",mUrl.cString());
   mInitialized = true;
-  setURL(mURL);
+  setUrl(mUrl);
 }
 
-rtError pxImage::url(rtString& s) const { s = mURL; return RT_OK; }
-rtError pxImage::setURL(const char* s) 
+rtError pxImage::url(rtString& s) const { s = mUrl; return RT_OK; }
+rtError pxImage::setUrl(const char* s) 
 { 
-  rtLogDebug("pxImage::setURL init=%d imageLoaded=%d s=%s mURL=%s\n", mInitialized, imageLoaded, s, mURL.cString());
+  rtLogDebug("pxImage::setUrl init=%d imageLoaded=%d s=%s mUrl=%s\n", mInitialized, imageLoaded, s, mUrl.cString());
   
   // we don't want to createNewPromise on the first time through when the 
   // url is initially being set because it's already created on construction
-  // If mURL is already set and loaded and s is different, create a new promise
-  if( mURL.length() > 0 && mURL.compare(s) && imageLoaded)
+  // If mUrl is already set and loaded and s is different, create a new promise
+  if( mUrl.length() > 0 && mUrl.compare(s) && imageLoaded)
   {
     imageLoaded = false;
-    rtLogDebug("pxImage calling pxObject::createPromise for %s\n",mURL.cString());
+    rtLogDebug("pxImage calling pxObject::createPromise for %s\n",mUrl.cString());
     pxObject::createNewPromise();
   }
-  mURL = s;
+  mUrl = s;
   if (!s || !u8_strlen((char*)s)) 
     return RT_OK;
   if (mInitialized)
-    loadImage(mURL);
+    loadImage(mUrl);
   else
     rtLogDebug("Deferring image load until pxImage is initialized.");
   return RT_OK;
@@ -59,14 +59,14 @@ rtError pxImage::setURL(const char* s)
 void pxImage::loadImage(rtString url)
 {
   //printf("pxImage::loadImage %s\n",url.cString());
-  mTextureCacheObject.setURL(url);
+  mTextureCacheObject.setUrl(url);
 }
 
 void pxImage::sendPromise() 
 { 
   if(mInitialized && (imageLoaded || mStatusCode!=RT_OK) && !((rtPromise*)mReady.getPtr())->status()) 
   {
-      rtLogDebug("pxImage SENDPROMISE for %s\n", mURL.cString());
+      rtLogDebug("pxImage SENDPROMISE for %s\n", mUrl.cString());
       mReady.send("resolve",this); }
   }
     
@@ -105,7 +105,7 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
 
     pxObject* parent = mParent;
     if( !parent)
-      rtLogWarn("In pxImage::onTextureReady, pxImage with url=%s has no parent!\n", mURL.cString());
+      rtLogWarn("In pxImage::onTextureReady, pxImage with url=%s has no parent!\n", mUrl.cString());
      
     ////// send after width and height have been set
     // TO DO: Remove use of onReady in samples
@@ -120,7 +120,7 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
     
     return true;
   }
-  rtLogWarn("pxImage SENDPROMISE for ERROR %s\n", mURL.cString());
+  rtLogWarn("pxImage SENDPROMISE for ERROR %s\n", mUrl.cString());
   mReady.send("reject",this);
   return false;
 }

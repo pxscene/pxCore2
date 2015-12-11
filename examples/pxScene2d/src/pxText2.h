@@ -234,7 +234,7 @@ public:
   
   virtual rtError setText(const char* s); 
   virtual rtError setPixelSize(uint32_t v);
-  virtual rtError setFaceURL(const char* s);
+  virtual rtError setFaceUrl(const char* s);
   virtual rtError setW(float v)       { setNeedsRecalc(true); return pxObject::setW(v);   }
   virtual rtError setH(float v)       { setNeedsRecalc(true); return pxObject::setH(v);   }  
   virtual rtError setClip(bool v) { mClip = v; setNeedsRecalc(true); return RT_OK; }

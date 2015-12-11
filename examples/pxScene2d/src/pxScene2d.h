@@ -705,8 +705,8 @@ public:
   void invalidateRect(pxRect* r);
 
 #if 0
-  rtError uri(rtString& v) const { v = mURI; return RT_OK; }
-  rtError setURI(rtString v) { mURI = v; return RT_OK; }
+  rtError url(rtString& v) const { v = mUrl; return RT_OK; }
+  rtError setUrl(rtString v) { mUrl = v; return RT_OK; }
 #endif
 
   rtError w(float& v) const { v = mw; return RT_OK; }
@@ -842,7 +842,7 @@ public:
 
 protected:
   pxViewRef mView;
-  rtString mURI;
+  rtString mUrl;
 };
 
 
@@ -850,14 +850,14 @@ class pxSceneContainer: public pxViewContainer
 {
 public:
   rtDeclareObject(pxSceneContainer, pxViewContainer);
-  rtProperty(url, uri, setURI, rtString);
+  rtProperty(url, url, setUrl, rtString);
   rtReadOnlyProperty(api, api, rtValue);
   rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);
   
 pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
 
-  rtError uri(rtString& v) const { v = mURI; return RT_OK; }
-  rtError setURI(rtString v);
+  rtError url(rtString& v) const { v = mUrl; return RT_OK; }
+  rtError setUrl(rtString v);
 
   rtError api(rtValue& v) const;
 
@@ -865,7 +865,7 @@ pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
 
 private:
   rtRefT<pxScene2d> mScene;
-  rtString mURI;
+  rtString mUrl;
 };
 
 
@@ -1049,13 +1049,13 @@ public:
     return RT_OK;
   }
 
-  rtError loadArchive(const rtString& url, rtObjectRef& archive)
+  rtError loadArchive(const rtString& Url, rtObjectRef& archive)
   {
     rtError e = RT_FAIL;
     printf("1\n");
     rtRefT<pxArchive> a = new pxArchive;
     printf("2\n");
-    if (a->initFromUrl(url) == RT_OK)
+    if (a->initFromUrl(Url) == RT_OK)
     {
     printf("3\n");
       archive = a;

@@ -39,7 +39,7 @@ for (var i=0; i < faces.length; i++)
     var t = scene.createText({text:"Enter in some text...", 
                               parent:row,x:10,
                               textColor:0xffffffff, pixelSize:24,
-                              faceURL:faces[i]});
+                              faceUrl:faces[i]});
     var t2 = scene.createText({text:faceName, 
                                parent:row,x:20,y:t.h,
                                textColor:0x000000ff, pixelSize:14,a:0.6});

@@ -112,7 +112,7 @@ public:
 class pxFont: public pxObject {
 
 public:
-	pxFont(pxScene2d* s, rtString faceURL);
+	pxFont(pxScene2d* s, rtString faceUrl);
 	virtual ~pxFont() ;
 
 	rtDeclareObject(pxFont, pxObject);

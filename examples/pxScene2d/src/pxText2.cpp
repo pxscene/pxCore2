@@ -142,12 +142,12 @@ rtError pxText2::setPixelSize(uint32_t v)
   setNeedsRecalc(true); 
   return RT_OK; 
 }
-rtError pxText2::setFaceURL(const char* s)
+rtError pxText2::setFaceUrl(const char* s)
 {
-  //printf("pxText2::setFaceURL \"%s\"\n",s);
+  //printf("pxText2::setFaceUrl \"%s\"\n",s);
   mFontLoaded = false;
   setNeedsRecalc(true);
-  return pxText::setFaceURL(s);
+  return pxText::setFaceUrl(s);
 }
 
 

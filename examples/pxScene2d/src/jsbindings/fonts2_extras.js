@@ -1,5 +1,6 @@
 var root = scene.root;
 
+
 // null or "" is the default face FreeSans.ttf
 var faces = ["http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Bold.ttf",
              "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-MedCond.ttf",
@@ -22,36 +23,48 @@ var faces = ["http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-Ne
             ];
 
 // Example for using getFont for font metrics
-var myFont = scene.getFont( "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Bold.ttf");
+var myFonts = [];//scene.getFont( "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Bold.ttf");
+var myFontPromises = [];
+for (var i=0; i < faces.length; i++)
+{
+  myFonts[i] = scene.getFont(faces[i]?faces[i]:"FreeSans.ttf");
+  myFontPromises[i] = myFonts[i].ready;
+  
 
-myFont.ready.then(function(font) {
-  console.log("!CLF: First Promise received");
+}
+Promise.all(myFontPromises).then(function() {
+  for (var i=0; i < myFonts.length; i++)
+  {
+//myFont.ready.then(function(font) {
+  console.log("!CLF: Promise.all received");
 
 	console.log("inside font.ready");
 
-	metrics = font.getFontMetrics(35);
+console.log("font name is "+myFonts[i].faceName);
+	metrics = myFonts[i].getFontMetrics(35);
 	console.log("metrics h="+metrics.height);
 	console.log("metrics a="+metrics.ascent);
 	console.log("metrics d="+metrics.descent);
   console.log("metrics naturalLeading="+metrics.naturalLeading);
   console.log("metrics baseline="+metrics.baseline);
   
-  var measure = font.measureText( 35, "Please type some text...");
+  var measure = myFonts[i].measureText( 35, "Please type some text...");
   console.log("measure w="+measure.w);
   console.log("measure h="+measure.h);
-  });
+  }
+});
 
-var scroll = scene.createImage({parent:root});
-var scrollContent = scene.createImage({parent:scroll});
+var scroll = scene.create({t:"object",parent:root});
+var scrollContent = scene.create({t:"object",parent:scroll});
 
-var rowcontainer = scene.createImage({parent:scrollContent});
+var rowcontainer = scene.create({t:"object",parent:scrollContent});
 
 var prevRow;
 
 var p = 0; 
 for (var i=0; i < faces.length; i++)
 {
-  var row = scene.createImage({parent:rowcontainer,a:0});
+  var row = scene.create({t:"object",parent:rowcontainer,a:0});
   
   var faceName = faces[i]?faces[i]:"FreeSans.ttf";
   var t = scene.createText({
@@ -106,11 +119,18 @@ for (var i=0; i < faces.length; i++)
 var select = scene.createRectangle({parent:scrollContent, fillColor:0x000000, 
                                     lineColor:0xffff00ff,
                                     lineWidth:4,w:scene.w,h:100});
-
+select.ready.then(function(obj) {
+  
+  console.log("Select RECT got ready promise!  h="+obj.h+" and w="+obj.w);
+  
+});
 
 function clamp(v, min, max) {
     return Math.min(Math.max(min,v),max);
 }
+
+var time = scene.clock();
+console.log("Time is "+time);
 
 var currentRow = 0;
 function selectRow(i) {
@@ -156,6 +176,12 @@ scene.root.on("onKeyDown", function (e) {
       str = str.slice(0,-1);
       updateText(str);
     }
+    else if(keycode == 32) //space bar
+    {
+      rowcontainer.removeAll();
+      myFontPromises = [];
+      myFonts = [];
+    }
 });
 
 scene.root.on("onChar", function(e) {
@@ -163,6 +189,8 @@ scene.root.on("onChar", function(e) {
     str += String.fromCharCode(e.charCode);
     updateText(str);
   }
+  time = scene.clock();
+console.log("Time is "+time);
 });
 
 function updateSize(w, h) {

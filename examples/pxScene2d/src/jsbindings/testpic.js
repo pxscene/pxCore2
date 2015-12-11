@@ -1,11 +1,13 @@
 var root = scene.root;
 
 var url = "http://farm4.static.flickr.com/3307/5767175230_b5d2bf2312_z.jpg";
-//var url = process.cwd()+"/../../images/ball.png";
+
+//var container = scene.create({t:"object", parent:root, w:root.w, h:root.h});
+//scene.createImage({url:url,parent:container});
+
 // This works if load.js is updating the FPS text output on screen, but not if it's not!
-var myImage = scene.createImage({parent:root,w:200,h:200,autoSize:false,clip:true,xStretch:1,yStretch:1});
-myImage.url = url;
-//,autoSize:false,xStretch:1,yStretch:1
+var myImage = scene.create({t:"image",parent:root,url:url,w:-1,h:-1,autoSize:false,clip:false});
+
 myImage.ready.then(function(obj)
 {
   console.log("promise received");
@@ -16,6 +18,6 @@ myImage.ready.then(function(obj)
   
   obj.ready.then(function(newObj)
   {
-    console.log("promise received");    
+    console.log("second promise received");    
   });
 });

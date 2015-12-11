@@ -40,14 +40,14 @@ function onTextReady(text, props, bg) {
 function createText(x, y, props) {
     var bg = scene.create({t:"object", parent:root, x:x, y:y, w:1000, h:1000, clip:false});
     var container = scene.create({t:"object", parent:root, x:x, y:y, w:1000, h:1000, clip:false});
-    var obj = {t:"text2", faceURL:"FreeSans.ttf", w:1000, h:1000, parent:container, textColor:0xFFFFFFFF, pixelSize:25, x:0, y:0, leading:0, wordWrap:false, clip:false};
+    var obj = {t:"text2", faceUrl:"FreeSans.ttf", w:1000, h:1000, parent:container, textColor:0xFFFFFFFF, pixelSize:25, x:0, y:0, leading:0, wordWrap:false, clip:false};
     for (var i in props) obj[i] = props[i];
     var text2 = scene.create(obj);
     text2.ready.then(function(text) { onTextReady(text2, obj, bg); });
     return text2;
 }
 
-createText(0, 0, {faceURL:"FreeSans.ttf", text:(textA + "\n" + textA + "\n" + textA), wordWrap:false, clip:false});
-createText(0, 200, {faceURL:"http://www.w3schools.com/cssref/sansation_light.woff", text:(textB + " " + textB + " " + textB), wordWrap:true, clip:false});
-createText(0, 400, {faceURL:"DancingScript-Bold.ttf", text:(textB + "\n" + textB + "\n" + textB), wordWrap:true, clip:false, pixelSize:35, leading:20});
+createText(0, 0, {faceUrl:"FreeSans.ttf", text:(textA + "\n" + textA + "\n" + textA), wordWrap:false, clip:false});
+createText(0, 200, {faceUrl:"http://www.w3schools.com/cssref/sansation_light.woff", text:(textB + " " + textB + " " + textB), wordWrap:true, clip:false});
+createText(0, 400, {faceUrl:"DancingScript-Bold.ttf", text:(textB + "\n" + textB + "\n" + textB), wordWrap:true, clip:false, pixelSize:35, leading:20});
 

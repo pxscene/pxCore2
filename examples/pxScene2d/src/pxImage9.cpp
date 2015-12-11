@@ -21,29 +21,29 @@ extern pxContext context;
 void pxImage9::onInit()
 {
   mInitialized = true;
-  setURL(mURL);
+  setUrl(mUrl);
 }
 
 rtError pxImage9::url(rtString& s) const 
 { 
-  s = mURL; 
+  s = mUrl; 
   return RT_OK; 
 }
 
-rtError pxImage9::setURL(const char* s) { 
+rtError pxImage9::setUrl(const char* s) { 
   
-  if(mURL.length() > 0 && mURL.compare(s) && imageLoaded)
+  if(mUrl.length() > 0 && mUrl.compare(s) && imageLoaded)
   {
     imageLoaded = false;
     pxObject::createNewPromise();
   }      
-  mURL = s;
+  mUrl = s;
 
   if (!s || !u8_strlen((char*)s)) 
     return RT_OK;  
     
   if(mInitialized)
-    loadImage(mURL);
+    loadImage(mUrl);
     
   return RT_OK;
 }
@@ -53,7 +53,7 @@ void pxImage9::sendPromise()
   //printf("image9 init=%d imageLoaded=%d\n",mInitialized,imageLoaded);
   if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status()) 
   { 
-    rtLogDebug("pxImage9 SENDPROMISE for %s\n", mURL.cString()); 
+    rtLogDebug("pxImage9 SENDPROMISE for %s\n", mUrl.cString()); 
     mReady.send("resolve",this);
   } 
 }
@@ -65,7 +65,7 @@ void pxImage9::draw() {
 
 void pxImage9::loadImage(rtString url)
 {
-  mTextureCacheObject.setURL(url);
+  mTextureCacheObject.setUrl(url);
 }
 
 bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status)

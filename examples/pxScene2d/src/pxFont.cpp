@@ -325,10 +325,10 @@ void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, floa
 }
 
 
-pxFont::pxFont(pxScene2d* scene, rtString faceURL):pxObject(scene), mPixelSize(0), mFontData(0), mInitialized(false), mFontDownloadRequest(NULL)
+pxFont::pxFont(pxScene2d* scene, rtString faceUrl):pxObject(scene), mPixelSize(0), mFontData(0), mInitialized(false), mFontDownloadRequest(NULL)
 {  
   mFaceId = gFaceId++; 
-  mFaceName = faceURL;
+  mFaceName = faceUrl;
   
 }
 
@@ -475,13 +475,13 @@ void pxFont::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
     // Let the face handle the completion event and notifications to listeners
     onDownloadComplete((FT_Byte*)fontDownloadRequest.fileDownloadRequest->getDownloadedData(),
                           (FT_Long)fontDownloadRequest.fileDownloadRequest->getDownloadedDataSize(),
-                          fontDownloadRequest.fileDownloadRequest->getFileURL().cString());
+                          fontDownloadRequest.fileDownloadRequest->getFileUrl().cString());
 
   }
   else
   {
     rtLogWarn("Font Download Failed: %s Error: %s HTTP Status Code: %ld",
-              fontDownloadRequest.fileDownloadRequest->getFileURL().cString(),
+              fontDownloadRequest.fileDownloadRequest->getFileUrl().cString(),
               fontDownloadRequest.fileDownloadRequest->getErrorString().cString(),
               fontDownloadRequest.fileDownloadRequest->getHttpStatusCode());
     if (mParent != NULL)

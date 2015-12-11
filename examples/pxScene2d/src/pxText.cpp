@@ -58,7 +58,7 @@ rtError pxText::setPixelSize(uint32_t v)
 
 void pxText::fontLoaded(const char * value)
 {
-  //rtLogInfo("pxText::fontLoaded for fontFace=%s and mInitialized=%d\n",mFaceURL.compare("")?mFaceURL.cString():defaultFace, mInitialized); 
+  //rtLogInfo("pxText::fontLoaded for fontFace=%s and mInitialized=%d\n",mFaceUrl.compare("")?mFaceUrl.cString():defaultFace, mInitialized); 
   mFontLoaded=true;
   // pxText gets its height and width from the text itself, 
   // so measure it
@@ -139,15 +139,15 @@ void pxText::draw() {
   }
 }
 
-rtError pxText::setFaceURL(const char* s)
+rtError pxText::setFaceUrl(const char* s)
 {
-  //printf("pxText::setFaceURL for %s\n",s);
+  //printf("pxText::setFaceUrl for %s\n",s);
   if (!s || !s[0]) {
     s = defaultFace;
   }
   mFontLoaded = false;
   createNewPromise();
-  mFaceURL = s;
+  mFaceUrl = s;
 
   mFont = pxFontManager::getFont(mScene, s);
   mFont->addListener(this);
@@ -159,4 +159,4 @@ rtDefineObject(pxText, pxObject);
 rtDefineProperty(pxText, text);
 rtDefineProperty(pxText, textColor);
 rtDefineProperty(pxText, pixelSize);
-rtDefineProperty(pxText, faceURL);
+rtDefineProperty(pxText, faceUrl);

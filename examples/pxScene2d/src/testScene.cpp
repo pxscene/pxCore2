@@ -62,7 +62,7 @@ void testScene()
     {
       pxImage* i = new pxImage();
       p = i;
-      i->setURL(d.cString());
+      i->setUrl(d.cString());
       p->setCX(i->w()/2);
       p->setCY(i->h()/2);
     }
@@ -291,7 +291,7 @@ void ballScene()
   bg.set("h", scene->h());
 
   rtRefT<pxImage> p = new pxImage();
-  p->setURL(d3);
+  p->setUrl(d3);
   p->setParent(root);
   p->setX(450);
   p->setY(350);
@@ -312,8 +312,8 @@ struct callbackCtx
   rtObjectRef picture;
 };
 
-rtString bananaURL;
-rtString ballURL;
+rtString bananaUrl;
+rtString ballUrl;
 
 rtError onSizeCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* context)
 {
@@ -349,12 +349,12 @@ rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void*
       // '1'
     case PX_KEY_ONE:
       printf("banana\n");
-      picture.set("url", bananaURL);
+      picture.set("url", bananaUrl);
       break;
       // '2'
     case PX_KEY_TWO:
       printf("ball\n");
-      picture.set("url", ballURL);
+      picture.set("url", ballUrl);
       break;
     default:
       rtLogWarn("unhandled key");
@@ -375,10 +375,10 @@ pxScene2dRef testScene()
 
   rtString d;
   rtGetCurrentDirectory(d);
-  bananaURL = d;
-  ballURL = d;
-  bananaURL.append("/../images/banana.png");
-  ballURL.append("/../images/ball.png");
+  bananaUrl = d;
+  ballUrl = d;
+  bananaUrl.append("/../images/banana.png");
+  ballUrl.append("/../images/ball.png");
 
   scene->init();
 
@@ -387,11 +387,11 @@ pxScene2dRef testScene()
   root.send("on", "onKeyDown", new rtFunctionCallback(onKeyDownCB,ctx));
   scene.send("on", "onResize", new rtFunctionCallback(onSizeCB,ctx));
 
-  rtString bgURL;
+  rtString bgUrl;
   scene.sendReturns<rtObjectRef>("createImage", bg1);
-  bgURL = d;
-  bgURL.append("/../images/skulls.png");
-  bg1.set("url", bgURL);
+  bgUrl = d;
+  bgUrl.append("/../images/skulls.png");
+  bg1.set("url", bgUrl);
   bg1.set("xStretch", 2);
   bg1.set("yStretch", 2);
   bg1.set("parent", root);
@@ -407,9 +407,9 @@ pxScene2dRef testScene()
   }
 
   scene.sendReturns<rtObjectRef>("createImage", bg2);
-  bgURL = d;
-  bgURL.append("/../images/radial_gradient.png");
-  bg2.set("url", bgURL);
+  bgUrl = d;
+  bgUrl.append("/../images/radial_gradient.png");
+  bg2.set("url", bgUrl);
   bg2.set("xStretch", 1);
   bg2.set("yStretch", 1);
   bg2.set("parent", root);
@@ -447,7 +447,7 @@ pxScene2dRef testScene()
   props.set("r",360.0);
   picture.send("animateTo", props, 0.5, 0, 1);
   picture.set("parent", root);
-  picture.set("url", bananaURL);
+  picture.set("url", bananaUrl);
 
   printf("Enumerate children of root object\n");
   rtObjectRef c = root.get<rtObjectRef>("children");

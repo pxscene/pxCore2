@@ -12,7 +12,7 @@
 class pxImage: public pxObject {
 public:
   rtDeclareObject(pxImage, pxObject);
-  rtProperty(url, url, setURL, rtString);
+  rtProperty(url, url, setUrl, rtString);
   rtProperty(xStretch, xStretch, setXStretch, int32_t);
   rtProperty(yStretch, yStretch, setYStretch, int32_t);
   rtProperty(autoSize, autoSize, setAutoSize, bool);
@@ -33,7 +33,7 @@ public:
   virtual void createNewPromise() { rtLogDebug("pxImage ignoring createNewPromise\n"); }
   
   rtError url(rtString& s) const;
-  rtError setURL(const char* s);
+  rtError setUrl(const char* s);
   
   rtError xStretch(int32_t& v) const { v = (int32_t)mXStretch; return RT_OK; }
   rtError setXStretch(int32_t v)
@@ -82,9 +82,9 @@ public:
   
 protected:
   virtual void draw();
-  void loadImage(rtString url);
+  void loadImage(rtString Url);
   
-  rtString mURL;
+  rtString mUrl;
   pxStretch mXStretch;
   pxStretch mYStretch;
   pxTextureRef mTexture;

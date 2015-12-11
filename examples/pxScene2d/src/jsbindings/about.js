@@ -22,7 +22,7 @@ console.log(faceName);
 var t = scene.createText({text:"Version 1.0", 
                           parent:row,x:10,
                           textColor:0x000000ff, pixelSize:18,
-                          faceURL:faceName});
+                          faceUrl:faceName});
 row.h = t.h;
 row.w = 800;
 p += row.h;

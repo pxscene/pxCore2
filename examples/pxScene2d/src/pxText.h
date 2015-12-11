@@ -13,14 +13,6 @@
 #include "pxScene2d.h"
 #include "pxFont.h"
 
-class pxText;
-
-
-
-
-
-
-
 class pxText: public pxObject 
 {
 public:
@@ -28,7 +20,7 @@ public:
   rtProperty(text, text, setText, rtString);
   rtProperty(textColor, textColor, setTextColor, uint32_t);
   rtProperty(pixelSize, pixelSize, setPixelSize, uint32_t);
-  rtProperty(faceURL, faceURL, setFaceURL, rtString);
+  rtProperty(faceUrl, faceUrl, setFaceUrl, rtString);
 
   pxText(pxScene2d* scene);
   ~pxText() {}
@@ -48,8 +40,8 @@ public:
     return RT_OK;
   }
 
-  rtError faceURL(rtString& v) const { v = mFaceURL; return RT_OK; }
-  virtual rtError setFaceURL(const char* s);
+  rtError faceUrl(rtString& v) const { v = mFaceUrl; return RT_OK; }
+  virtual rtError setFaceUrl(const char* s);
 
   rtError pixelSize(uint32_t& v) const { v = mPixelSize; return RT_OK; }
   virtual rtError setPixelSize(uint32_t v);
@@ -64,7 +56,7 @@ public:
               !strcmp(name,"h") ||
               !strcmp(name,"text") ||
               !strcmp(name,"pixelSize") ||
-              !strcmp(name,"faceURL") ||
+              !strcmp(name,"faceUrl") ||
               !strcmp(name,"textColor"));
 #else
     mDirty = true;
@@ -81,9 +73,9 @@ public:
  protected:
   virtual void draw();
   rtString mText;
-// TODO should we just use a face object instead of urls
+// TODO should we just use a face object instead of Urls
   bool mFontLoaded;
-  rtString mFaceURL;
+  rtString mFaceUrl;
 
   rtRefT<pxFont> mFont;
   
