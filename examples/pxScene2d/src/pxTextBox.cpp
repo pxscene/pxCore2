@@ -834,11 +834,11 @@ void pxTextBox::setLineMeasurements(bool firstLine, float xPos, float yPos)
   float height, ascent, descent, naturalLeading;
   mFont->getMetrics(mPixelSize, height, ascent, descent, naturalLeading);
   if(!firstLine) {
-    measurements->getLastChar()->setX(xPos);
-    measurements->getLastChar()->setY(yPos + ascent);
+    measurements->getCharLast()->setX(xPos);
+    measurements->getCharLast()->setY(yPos + ascent);
   } else {
-    measurements->getFirstChar()->setX(xPos);
-    measurements->getFirstChar()->setY(yPos + ascent);    
+    measurements->getCharFirst()->setX(xPos);
+    measurements->getCharFirst()->setY(yPos + ascent);    
   }
 }
 
@@ -1079,9 +1079,9 @@ rtError pxTextBox::getFontMetrics(rtObjectRef& o) {
 /**
  * #### measureText – returns an object with the following properties (measurements are relative to (x,y) of the text object):
  * bounds - object - {x1:0, y1:0, x2:0, y2:0} - The two points representing the bounding rectangle of the complete text
- * firstChar - {x:0, y:0} - The x position represents the left most rendered pixel of the first character on the first line of text. 
+ * charFirst - {x:0, y:0} - The x position represents the left most rendered pixel of the first character on the first line of text. 
  *                          The y position represents the baseline.
- * lastChar - {x:0, y:0} -  The x position represents the right most rendered pixel of the last character on the last line of text.  
+ * charLast - {x:0, y:0} -  The x position represents the right most rendered pixel of the last character on the last line of text.  
  *                          The y position represents the baseline.
  * */
 rtError pxTextBox::measureText(rtObjectRef& o) {
@@ -1115,8 +1115,8 @@ rtDefineProperty(pxCharPosition, y);
 // pxTextMeasurements
 rtDefineObject(pxTextMeasurements, pxObject);
 rtDefineProperty(pxTextMeasurements, bounds); 
-rtDefineProperty(pxTextMeasurements, firstChar);
-rtDefineProperty(pxTextMeasurements, lastChar);
+rtDefineProperty(pxTextMeasurements, charFirst);
+rtDefineProperty(pxTextMeasurements, charLast);
 // pxTextBox
 rtDefineObject(pxTextBox, pxText);
 rtDefineProperty(pxTextBox, wordWrap);

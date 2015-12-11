@@ -19,8 +19,8 @@ function onTextReady(text, props, bg) {
     var metrics = text.getFontMetrics();
     var measurements = text.measureText();
     var bounds = measurements.bounds;
-    var firstChar = measurements.firstChar;
-    var lastChar = measurements.lastChar;
+    var charFirst = measurements.charFirst;
+    var charLast = measurements.charLast;
     var w = bounds.x2 - bounds.x1;
     var spacing = metrics.height + props.leading;
 
@@ -34,7 +34,7 @@ function onTextReady(text, props, bg) {
         y += spacing;
     } while (y < bounds.y2);
     createRect({parent:bg, lineColor:yellow, lineWidth:1, y:bounds.y1, w:w, h:bounds.y2 - bounds.y1});
-    createRect({parent:bg, lineColor:orange, lineWidth:1, x:firstChar.x, y:firstChar.y, w:lastChar.x - firstChar.x, h:lastChar.y - firstChar.y});
+    createRect({parent:bg, lineColor:orange, lineWidth:1, x:charFirst.x, y:charFirst.y, w:charLast.x - charFirst.x, h:charLast.y - charFirst.y});
 }
 
 function createText(x, y, props) {

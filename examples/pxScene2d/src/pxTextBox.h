@@ -135,47 +135,47 @@ class pxTextMeasurements: public pxObject {
 public:
 	pxTextMeasurements(pxScene2d* s): pxObject(s){ 
     mBounds = new pxTextBounds(s);
-    mFirstChar = new pxCharPosition(s);
-    mLastChar = new pxCharPosition(s);
+    mCharFirst = new pxCharPosition(s);
+    mCharLast = new pxCharPosition(s);
   }
 	virtual ~pxTextMeasurements() {}
 
 	rtDeclareObject(pxTextMeasurements, pxObject);
   rtReadOnlyProperty(bounds, bounds, rtObjectRef);
-  rtReadOnlyProperty(firstChar, firstChar, rtObjectRef);
-  rtReadOnlyProperty(lastChar, lastChar, rtObjectRef);
+  rtReadOnlyProperty(charFirst, charFirst, rtObjectRef);
+  rtReadOnlyProperty(charLast, charLast, rtObjectRef);
   
   rtError bounds(rtObjectRef& v) const
   {
     v = mBounds;
     return RT_OK;
   }
-  rtError firstChar(rtObjectRef& v) const
+  rtError charFirst(rtObjectRef& v) const
   {
-    v = mFirstChar;
+    v = mCharFirst;
     return RT_OK;
   }
-  rtError lastChar(rtObjectRef& v) const
+  rtError charLast(rtObjectRef& v) const
   {
-    v = mLastChar;
+    v = mCharLast;
     return RT_OK;
   } 
   
   rtRefT<pxTextBounds> getBounds()      { return mBounds;}
-  rtRefT<pxCharPosition> getFirstChar() { return mFirstChar; }
-  rtRefT<pxCharPosition> getLastChar()  { return mLastChar; }
+  rtRefT<pxCharPosition> getCharFirst() { return mCharFirst; }
+  rtRefT<pxCharPosition> getCharLast()  { return mCharLast; }
   
   void clear() {
     mBounds->clear();
-    mFirstChar->clear();
-    mLastChar->clear();
+    mCharFirst->clear();
+    mCharLast->clear();
   }    
       
   private:
    
     rtRefT<pxTextBounds> mBounds;
-    rtRefT<pxCharPosition> mFirstChar;
-    rtRefT<pxCharPosition> mLastChar;
+    rtRefT<pxCharPosition> mCharFirst;
+    rtRefT<pxCharPosition> mCharLast;
     
 };
 

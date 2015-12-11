@@ -41,10 +41,10 @@ var boundsX1 = scene.create({t:"text", parent:root, x:200, y:0, textColor:0xFFDD
 var boundsY1 = scene.create({t:"text", parent:root, x:200, y:20, textColor:0xFFDDFFFF, pixelSize:15,clip:false,text:"BoundsY1="});
 var boundsX2 = scene.create({t:"text", parent:root, x:200, y:40, textColor:0xFFDDFFFF, pixelSize:15,clip:false,text:"BoundsX2="});
 var boundsY2 = scene.create({t:"text", parent:root, x:200, y:60, textColor:0xFFDDFFFF, pixelSize:15,clip:false,text:"BoundsY2="});
-var firstCharX = scene.create({t:"text", parent:root, x:400, y:0, textColor:0xFFDDFFFF, pixelSize:15,clip:false,text:"FirstCharX="});
-var firstCharY = scene.create({t:"text", parent:root, x:400, y:20, textColor:0xFFDDFFFF, pixelSize:15,clip:false,text:"FirstCharY="});
-var lastCharX = scene.create({t:"text", parent:root, x:400, y:40, textColor:0xFFDDFFFF, pixelSize:15,clip:false,text:"LastCharX="});
-var lastCharY = scene.create({t:"text", parent:root, x:400, y:60, textColor:0xFFDDFFFF, pixelSize:15,clip:false,text:"LastCharY="});
+var charFirstX = scene.create({t:"text", parent:root, x:400, y:0, textColor:0xFFDDFFFF, pixelSize:15,clip:false,text:"charFirstX="});
+var charFirstY = scene.create({t:"text", parent:root, x:400, y:20, textColor:0xFFDDFFFF, pixelSize:15,clip:false,text:"charFirstY="});
+var charLastX = scene.create({t:"text", parent:root, x:400, y:40, textColor:0xFFDDFFFF, pixelSize:15,clip:false,text:"charLastX="});
+var charLastY = scene.create({t:"text", parent:root, x:400, y:60, textColor:0xFFDDFFFF, pixelSize:15,clip:false,text:"charLastY="});
  
 // widgets for tracking current property settings
 var truncationStatus = scene.create({t:"text", parent:root, x:20, y:container.y+420, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"truncation=truncate"});
@@ -92,8 +92,8 @@ var measurements = null;
 
 function showMeasurements() {
     var bounds = measurements.bounds;
-    var firstChar = measurements.firstChar;
-    var lastChar = measurements.lastChar;
+    var charFirst = measurements.charFirst;
+    var charLast = measurements.charLast;
     var w = bounds.x2 - bounds.x1;
     var spacing = metrics.height + text2.leading;
     var x = bounds.x1;//0;
@@ -111,7 +111,7 @@ function showMeasurements() {
         y += spacing;
     } while (y < bounds.y2);
     scene.create({t:"rect", fillColor:0x00000000, parent:bg, lineColor:yellow, lineWidth:1, x:bounds.x1, y:bounds.y1, w:w, h:bounds.y2 - bounds.y1});
-    scene.create({t:"rect", fillColor:0x00000000, parent:bg, lineColor:pink, lineWidth:1, x:firstChar.x, y:firstChar.y, w:lastChar.x - firstChar.x, h:(lastChar.y - firstChar.y)==0?1:(lastChar.y - firstChar.y)});
+    scene.create({t:"rect", fillColor:0x00000000, parent:bg, lineColor:pink, lineWidth:1, x:charFirst.x, y:charFirst.y, w:charLast.x - charFirst.x, h:(charLast.y - charFirst.y)==0?1:(charLast.y - charFirst.y)});
 }
 text2.ready.then(function(text) {
     console.log("!CLF: First Promise received");
@@ -135,10 +135,10 @@ function textready(text) {
   console.log("measurements boundsY1="+measurements.bounds.y1);
   console.log("measurements boundsX2="+measurements.bounds.x2);
   console.log("measurements boundsY2="+measurements.bounds.y2);
-  console.log("measurements firstCharX="+measurements.firstChar.x);
-  console.log("measurements firstCharY="+measurements.firstChar.y);
-  console.log("measurements lastCharX="+measurements.lastChar.x);
-  console.log("measurements lastCharY="+measurements.lastChar.y);
+  console.log("measurements charFirstX="+measurements.charFirst.x);
+  console.log("measurements charFirstY="+measurements.charFirst.y);
+  console.log("measurements charLastX="+measurements.charLast.x);
+  console.log("measurements charLastY="+measurements.charLast.y);
 
   height.text="Height="+metrics.height;
   ascent.text="Ascent="+metrics.ascent;
@@ -149,10 +149,10 @@ function textready(text) {
   boundsY1.text="BoundsY1="+measurements.bounds.y1;
   boundsX2.text="BoundsX2="+measurements.bounds.x2;
   boundsY2.text="BoundsY2="+measurements.bounds.y2;
-  firstCharX.text="FirstCharX="+measurements.firstChar.x;
-  firstCharY.text="FirstCharY="+measurements.firstChar.y;
-  lastCharX.text="LastCharX="+measurements.lastChar.x;
-  lastCharY.text="LastCharY="+measurements.lastChar.y;
+  charFirstX.text="charFirstX="+measurements.charFirst.x;
+  charFirstY.text="charFirstY="+measurements.charFirst.y;
+  charLastX.text="charLastX="+measurements.charLast.x;
+  charLastY.text="charLastY="+measurements.charLast.y;
 
   
   showMeasurements();

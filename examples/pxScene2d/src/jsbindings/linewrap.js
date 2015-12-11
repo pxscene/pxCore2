@@ -34,8 +34,8 @@ text2.ready.then(function(text) {
   console.log("measurements boundsY1="+measurements.bounds.y1);
   console.log("measurements boundsX2="+measurements.bounds.x2);
   console.log("measurements boundsY2="+measurements.bounds.y2);
-  console.log("measurements firstCharX="+measurements.firstChar.x);
-  console.log("measurements firstCharY="+measurements.firstChar.y);
-  console.log("measurements lastCharX="+measurements.lastChar.x);
-  console.log("measurements lastCharY="+measurements.lastChar.y);
+  console.log("measurements charFirstX="+measurements.charFirst.x);
+  console.log("measurements charFirstY="+measurements.charFirst.y);
+  console.log("measurements charLastX="+measurements.charLast.x);
+  console.log("measurements charLastY="+measurements.charLast.y);
 });
