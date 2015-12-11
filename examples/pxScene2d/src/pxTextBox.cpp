@@ -1,8 +1,8 @@
 // pxCore CopyRight 2007-2015 John Robinson
-// pxText2.cpp
+// pxTextBox.cpp
 
 #include "pxText.h"
-#include "pxText2.h"
+#include "pxTextBox.h"
 #include "pxFileDownloader.h"
 #include "pxTimer.h"
 #include "pxContext.h"
@@ -16,7 +16,7 @@ extern "C" {
 }
 
 
-pxText2::pxText2(pxScene2d* s):pxText(s)
+pxTextBox::pxTextBox(pxScene2d* s):pxText(s)
 {
   measurements= new pxTextMeasurements(s);
   
@@ -39,9 +39,9 @@ pxText2::pxText2(pxScene2d* s):pxText(s)
 /** This signals that the font file loaded successfully; now we need to 
  * send the ready promise once we have the text, too
  */
-void pxText2::fontLoaded(const char * value) 
+void pxTextBox::fontLoaded(const char * value) 
 {
-  //rtLogInfo("pxText2::fontLoaded. Initialized=%d\n",mInitialized);
+  //rtLogInfo("pxTextBox::fontLoaded. Initialized=%d\n",mInitialized);
   if(!strncmp(value, "resolve", strnlen(value, 8))) {
     mFontLoaded = true;
   }
@@ -59,14 +59,14 @@ void pxText2::fontLoaded(const char * value)
   }
 }
 
-float pxText2::getFBOWidth() 
+float pxTextBox::getFBOWidth() 
 { 
   if( !clip() && mTruncation == NONE && !mWordWrap) 
      return noClipW;
   else 
     return mw; 
 }
-float pxText2::getFBOHeight() 
+float pxTextBox::getFBOHeight() 
 { 
   if( !clip() && mTruncation == NONE) 
      return noClipH;
@@ -74,9 +74,9 @@ float pxText2::getFBOHeight()
     return mh;
 }
 
-void pxText2::onInit()
+void pxTextBox::onInit()
 {
-//  printf("pxText2::onInit. mFontLoaded=%d\n",mFontLoaded);
+//  printf("pxTextBox::onInit. mFontLoaded=%d\n",mFontLoaded);
   mInitialized = true;
   if( mFontLoaded) {
     setNeedsRecalc(true);
@@ -84,7 +84,7 @@ void pxText2::onInit()
   }
 }
 
-void pxText2::recalc() 
+void pxTextBox::recalc() 
 {
   if( mNeedsRecalc) {
     if (!mText || !strcmp(mText.cString(),"")) {
@@ -100,64 +100,64 @@ void pxText2::recalc()
 
   }
 }
-void pxText2::setNeedsRecalc(bool recalc) 
+void pxTextBox::setNeedsRecalc(bool recalc) 
 { 
   //printf("Setting mNeedsRecalc=%d\n",recalc); 
   mNeedsRecalc = recalc; 
 
   if(recalc)
   {
-    //printf("Text2 CREATE NEW PROMISE\n");
+    //printf("TextBox CREATE NEW PROMISE\n");
     createNewPromise();
   }
 
 }
 
-void pxText2::sendPromise() 
+void pxTextBox::sendPromise() 
 { 
   if(mInitialized && mFontLoaded && !mNeedsRecalc && !((rtPromise*)mReady.getPtr())->status()) 
   {
-    //printf("pxText2 SENDPROMISE\n");
+    //printf("pxTextBox SENDPROMISE\n");
     mReady.send("resolve",this); 
   }
 }
 
 /** 
- * setText: for pxText2, setText sets the text value, but does not
+ * setText: for pxTextBox, setText sets the text value, but does not
  * affect the dimensions of the object.  Dimensions are respected 
  * and text is wrapped/truncated within those dimensions according
  * to other properties.
  **/
-rtError pxText2::setText(const char* s) { 
-  //printf("pxText2::setText %s\n",s);
+rtError pxTextBox::setText(const char* s) { 
+  //printf("pxTextBox::setText %s\n",s);
   mText = s; 
   setNeedsRecalc(true); 
   return RT_OK; 
 }
 
-rtError pxText2::setPixelSize(uint32_t v) 
+rtError pxTextBox::setPixelSize(uint32_t v) 
 {   
-  //printf("pxText2::setPixelSize %s\n",mText.cString());
+  //printf("pxTextBox::setPixelSize %s\n",mText.cString());
   mPixelSize = v; 
   setNeedsRecalc(true); 
   return RT_OK; 
 }
-rtError pxText2::setFontUrl(const char* s)
+rtError pxTextBox::setFontUrl(const char* s)
 {
-  //printf("pxText2::setFontUrl \"%s\"\n",s);
+  //printf("pxTextBox::setFontUrl \"%s\"\n",s);
   mFontLoaded = false;
   setNeedsRecalc(true);
   return pxText::setFontUrl(s);
 }
 
 
-void pxText2::draw() {
+void pxTextBox::draw() {
   static pxTextureRef nullMaskRef;
 	if (mCached.getPtr() && mCached->getTexture().getPtr()) 
   {
     if(!clip() && mTruncation == NONE)
     {
-      //printf("!CLF: pxText2::draw() with cachedPtr && noClip values x=%f y=%f w=%f h=%f\n",noClipX,noClipY,noClipW,noClipH);
+      //printf("!CLF: pxTextBox::draw() with cachedPtr && noClip values x=%f y=%f w=%f h=%f\n",noClipX,noClipY,noClipW,noClipH);
       context.drawImage(noClipX,noClipY,noClipW,noClipH,mCached->getTexture(),nullMaskRef,PX_NONE,PX_NONE);
     }
     else 
@@ -170,12 +170,12 @@ void pxText2::draw() {
 	  renderText(true);
 	}
 }
-void pxText2::update(double t)
+void pxTextBox::update(double t)
 {
-  //printf("pxText2::update: mNeedsRecalc=%d\n",mNeedsRecalc);
+  //printf("pxTextBox::update: mNeedsRecalc=%d\n",mNeedsRecalc);
   if( mNeedsRecalc ) {
-    //printf("pxText2::update: mNeedsRecalc=%d\n",mNeedsRecalc);
-    //printf("pxText2::update: mInitialized=%d && mFontLoaded=%d\n",mInitialized, mFontLoaded);
+    //printf("pxTextBox::update: mNeedsRecalc=%d\n",mNeedsRecalc);
+    //printf("pxTextBox::update: mInitialized=%d && mFontLoaded=%d\n",mInitialized, mFontLoaded);
     
     recalc();
 
@@ -190,11 +190,11 @@ void pxText2::update(double t)
  *  wrapping, truncation and dimensions; but it should not render the 
  *  text yet. 
  * */
-void pxText2::determineMeasurementBounds() 
+void pxTextBox::determineMeasurementBounds() 
 {
   
 }
-void pxText2::clearMeasurements()
+void pxTextBox::clearMeasurements()
 {
     lastLineNumber = 0;
     lineNumber = 0;
@@ -207,9 +207,9 @@ void pxText2::clearMeasurements()
     measurements->clear(); 
 }
 
-void pxText2::renderText(bool render)
+void pxTextBox::renderText(bool render)
 {
-  //printf("pxText2::renderText render=%d initialized=%d fontLoaded=%d\n",render,mInitialized,mFontLoaded);
+  //printf("pxTextBox::renderText render=%d initialized=%d fontLoaded=%d\n",render,mInitialized,mFontLoaded);
 
   if( !mInitialized || !mFontLoaded) {
     return;
@@ -243,7 +243,7 @@ void pxText2::renderText(bool render)
 
 }
 
-void pxText2::renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t size, float* color, bool render)
+void pxTextBox::renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t size, float* color, bool render)
 {
 	float tempY = 0;
 
@@ -262,10 +262,10 @@ void pxText2::renderTextWithWordWrap(const char *text, float sx, float sy, float
 }
 
 
-void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, 
+void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, 
                                            uint32_t size, float* color, bool render) 
 {
-  //printf(">>>>>>>>>>>>>>>>>>>> pxText2::measureTextWithWrapOrNewLine\n");
+  //printf(">>>>>>>>>>>>>>>>>>>> pxTextBox::measureTextWithWrapOrNewLine\n");
   
 	int i = 0;
 	u_int32_t charToMeasure;
@@ -446,13 +446,13 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
   if( !render) {
       float metricHeight;
       mFont->getHeight(mPixelSize,metricHeight);
-      //printf("pxText2::renderTextWithWordWrap metricHeight is %f\n",metricHeight);
-      //printf("pxText2::renderTextWithWordWrap lineNumer=%d\n",lineNumber);
-      //printf("pxText2::renderTextWithWordWrap mLeading=%f\n",mLeading);
+      //printf("pxTextBox::renderTextWithWordWrap metricHeight is %f\n",metricHeight);
+      //printf("pxTextBox::renderTextWithWordWrap lineNumer=%d\n",lineNumber);
+      //printf("pxTextBox::renderTextWithWordWrap mLeading=%f\n",mLeading);
       float textHeight = tempY+metricHeight+(((charH/metricHeight)-1)*(mLeading*sy));//charH + ((charH/metricHeight)*mLeading);//((lastLineNumber+1)*metricHeight) + ((lastLineNumber-1)* mLeading); 
       //textHeight -= (mLeading*sy); // no leading after last row of text
-      //printf("pxText2::renderTextWithWordWrap textHeight is %f\n",textHeight);
-      //printf("pxText2::renderTextWithWordWrap tempY is %f\n",tempY);
+      //printf("pxTextBox::renderTextWithWordWrap textHeight is %f\n",textHeight);
+      //printf("pxTextBox::renderTextWithWordWrap tempY is %f\n",tempY);
 
       // NOTE that the only time mWordWrap should be false in this function
       // is when there are newline char(s) in the text being rendered.
@@ -541,11 +541,11 @@ void pxText2::measureTextWithWrapOrNewLine(const char *text, float sx, float sy,
 }
 
 
-void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy, uint32_t size, float* color, float lineWidth, bool render )
+void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy, uint32_t size, float* color, float lineWidth, bool render )
 {
   float charW; float charH;
 
-  //printf("pxText2::renderOneLine tempY=%f noClipY=%f\n",tempY,noClipY);
+  //printf("pxTextBox::renderOneLine tempY=%f noClipY=%f\n",tempY,noClipY);
   float xPos = tempX; 
   mFont->measureText(tempStr, size, sx, sy, charW, charH);
   
@@ -755,10 +755,10 @@ void pxText2::renderOneLine(const char * tempStr, float tempX, float tempY, floa
 
 }
 
-void pxText2::setMeasurementBoundsY(bool start, float yVal) {
+void pxTextBox::setMeasurementBoundsY(bool start, float yVal) {
 
   rtRefT<pxTextBounds> bounds = measurements->getBounds();  
-  //printf("pxText2::setMeasurementBoundsY: start=%d yVal=%f and current vals y1=%f y2=%f\n",start, yVal,bounds->y1(),bounds->y2());  
+  //printf("pxTextBox::setMeasurementBoundsY: start=%d yVal=%f and current vals y1=%f y2=%f\n",start, yVal,bounds->y1(),bounds->y2());  
   if( start) { 
     if( bounds->y1()== 0 || bounds->y1() > yVal) {
         bounds->setY1(yVal);
@@ -770,11 +770,11 @@ void pxText2::setMeasurementBoundsY(bool start, float yVal) {
     }  
   }    
 }
-void pxText2::setMeasurementBoundsX(bool start, float xVal)
+void pxTextBox::setMeasurementBoundsX(bool start, float xVal)
 {
 
   rtRefT<pxTextBounds> bounds = measurements->getBounds();
-  //printf("pxText2::setMeasurementBoundsX: start=%d xVal=%f already set to %f\n",start, xVal,bounds->x2());
+  //printf("pxTextBox::setMeasurementBoundsX: start=%d xVal=%f already set to %f\n",start, xVal,bounds->x2());
   if( start) {
     if( bounds->x1() == 0 || (bounds->x1() > xVal)) {
       bounds->setX1(xVal);
@@ -787,10 +787,10 @@ void pxText2::setMeasurementBoundsX(bool start, float xVal)
   }  
 }
  
-void pxText2::setMeasurementBounds(bool start, float xVal, float yVal)
+void pxTextBox::setMeasurementBounds(bool start, float xVal, float yVal)
 {
   rtRefT<pxTextBounds> bounds = measurements->getBounds();
-  //printf("pxText2::setMeasurementBounds: start=%d xVal=%f yVal%f\n",start, xVal,yVal);
+  //printf("pxTextBox::setMeasurementBounds: start=%d xVal=%f yVal%f\n",start, xVal,yVal);
   if( start) {
     if( bounds->x1() == 0 || (bounds->x1() > xVal)) {
       bounds->setX1(xVal);
@@ -808,9 +808,9 @@ void pxText2::setMeasurementBounds(bool start, float xVal, float yVal)
     }        
   }
 }
-void pxText2::setMeasurementBounds(float xPos, float width, float yPos, float height)
+void pxTextBox::setMeasurementBounds(float xPos, float width, float yPos, float height)
 {
-  //printf("pxText2::setMeasurementBounds\n");
+  //printf("pxTextBox::setMeasurementBounds\n");
   // Set the bounds for the text
   rtRefT<pxTextBounds> bounds = measurements->getBounds();
   if( bounds->x2() < (xPos + width) ) {
@@ -828,9 +828,9 @@ void pxText2::setMeasurementBounds(float xPos, float width, float yPos, float he
   
 }
 
-void pxText2::setLineMeasurements(bool firstLine, float xPos, float yPos) 
+void pxTextBox::setLineMeasurements(bool firstLine, float xPos, float yPos) 
 {
-  //printf("pxText2::setLineMeasurements firstLine=%d xPos=%f yPos=%f\n", firstLine, xPos, yPos);
+  //printf("pxTextBox::setLineMeasurements firstLine=%d xPos=%f yPos=%f\n", firstLine, xPos, yPos);
   float height, ascent, descent, naturalLeading;
   mFont->getMetrics(mPixelSize, height, ascent, descent, naturalLeading);
   if(!firstLine) {
@@ -845,9 +845,9 @@ void pxText2::setLineMeasurements(bool firstLine, float xPos, float yPos)
 /** 
  * renderTextNoWordWrap: To be used when wordWrap is false
  * */
-void pxText2::renderTextNoWordWrap(float sx, float sy, float tempX, bool render)
+void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool render)
 {
-  //printf("pxText2::renderTextNoWordWrap render=%d\n",render);
+  //printf("pxTextBox::renderTextNoWordWrap render=%d\n",render);
   
   float charW, charH;
   float lineWidth = this->w();
@@ -861,7 +861,7 @@ void pxText2::renderTextNoWordWrap(float sx, float sy, float tempX, bool render)
   
   // Measure as single line since there's no word wrapping
   mFont->measureText(mText, mPixelSize, sx, sy, charW, charH);
-  //printf(">>>>>>>>>>>> pxText2::renderTextNoWordWrap charH=%f charW=%f\n", charH, charW);
+  //printf(">>>>>>>>>>>> pxTextBox::renderTextNoWordWrap charH=%f charW=%f\n", charH, charW);
 
   float metricHeight;
   mFont->getHeight(mPixelSize, metricHeight);
@@ -893,7 +893,7 @@ void pxText2::renderTextNoWordWrap(float sx, float sy, float tempX, bool render)
     if( (charW + tempXStartPos) <= lineWidth || mTruncation == NONE) 
     {
       lastLineNumber = lineNumber = 0;
-      //printf("pxText2::renderTextNoWordWrap setLineMeasurements tempXStartPos=%f tempY=%f before renderOneLine\n",tempXStartPos, tempY);
+      //printf("pxTextBox::renderTextNoWordWrap setLineMeasurements tempXStartPos=%f tempY=%f before renderOneLine\n",tempXStartPos, tempY);
       setLineMeasurements(true, tempXStartPos, tempY);
       setMeasurementBounds(true, tempXStartPos, tempY);
 
@@ -919,12 +919,12 @@ void pxText2::renderTextNoWordWrap(float sx, float sy, float tempX, bool render)
  * vAlign information is set prior to the call of this function, so we should
  * be able to depend on it for setting bounds and start/stop positions.
  * */
-void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempX, float tempY, 
+void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempX, float tempY, 
                                           float sx, float sy, uint32_t pixelSize, float* color, bool render) 
 {
-  //printf(">>>>>>>>>>>>>>>>>>pxText2::renderTextRowWithTruncation lineNumber = %d render = %d\n",lineNumber, render);
-  //printf(">>>>>>>>>>>>>>>>>>pxText2::renderTextRowWithTruncation tempY = %f tempX = %f\n",tempY, tempX);
-  //printf(">>>>>>>>>>>>>>>>>>pxText2::renderTextRowWithTruncation lineWidth = %f \n",lineWidth);
+  //printf(">>>>>>>>>>>>>>>>>>pxTextBox::renderTextRowWithTruncation lineNumber = %d render = %d\n",lineNumber, render);
+  //printf(">>>>>>>>>>>>>>>>>>pxTextBox::renderTextRowWithTruncation tempY = %f tempX = %f\n",tempY, tempX);
+  //printf(">>>>>>>>>>>>>>>>>>pxTextBox::renderTextRowWithTruncation lineWidth = %f \n",lineWidth);
   
 	float charW, charH;
 	char * tempStr = strdup(accString.cString()); // Should give a copy
@@ -1038,11 +1038,11 @@ void pxText2::renderTextRowWithTruncation(rtString & accString, float lineWidth,
 	}	
 }
 
-bool pxText2::isWordBoundary( char ch )
+bool pxTextBox::isWordBoundary( char ch )
 {
     return (strchr(word_boundary_chars, ch) != NULL);
 }
-bool pxText2::isSpaceChar( char ch ) 
+bool pxTextBox::isSpaceChar( char ch ) 
 {
 	return (strchr(space_chars, ch) != NULL);
 }
@@ -1056,7 +1056,7 @@ bool pxText2::isSpaceChar( char ch )
  * '\r' (0x0d)  carriage return (CR)
  -------------------------------------------------------------------------*/
 
-bool pxText2::isNewline( char ch )
+bool pxTextBox::isNewline( char ch )
 {
     return (strchr(isnew_line_chars, ch) != 0);
 }
@@ -1068,8 +1068,8 @@ bool pxText2::isNewline( char ch )
 * ascent - float - the distance from the baseline to the font ascender (note that this is a hint, not a solid rule)
 * descent - float - the distance from the baseline to the font descender  (note that this is a hint, not a solid rule)
 */
-rtError pxText2::getFontMetrics(rtObjectRef& o) {
-  //printf("pxText2::getFontMetrics\n");  
+rtError pxTextBox::getFontMetrics(rtObjectRef& o) {
+  //printf("pxTextBox::getFontMetrics\n");  
   
   mFont->getFontMetrics(mPixelSize, o);
 
@@ -1084,8 +1084,8 @@ rtError pxText2::getFontMetrics(rtObjectRef& o) {
  * lastChar - {x:0, y:0} -  The x position represents the right most rendered pixel of the last character on the last line of text.  
  *                          The y position represents the baseline.
  * */
-rtError pxText2::measureText(rtObjectRef& o) {
-  //printf("pxText2::measureText()\n");
+rtError pxTextBox::measureText(rtObjectRef& o) {
+  //printf("pxTextBox::measureText()\n");
   if( mNeedsRecalc) {
     if(!mInitialized || !mFontLoaded) {
       rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
@@ -1117,15 +1117,15 @@ rtDefineObject(pxTextMeasurements, pxObject);
 rtDefineProperty(pxTextMeasurements, bounds); 
 rtDefineProperty(pxTextMeasurements, firstChar);
 rtDefineProperty(pxTextMeasurements, lastChar);
-// pxText2
-rtDefineObject(pxText2, pxText);
-rtDefineProperty(pxText2, wordWrap);
-rtDefineProperty(pxText2, ellipsis);
-rtDefineProperty(pxText2, xStartPos); 
-rtDefineProperty(pxText2, xStopPos);
-rtDefineProperty(pxText2, truncation);
-rtDefineProperty(pxText2, verticalAlign);
-rtDefineProperty(pxText2, horizontalAlign);
-rtDefineProperty(pxText2, leading);
-rtDefineMethod(pxText2, getFontMetrics);
-rtDefineMethod(pxText2, measureText);
+// pxTextBox
+rtDefineObject(pxTextBox, pxText);
+rtDefineProperty(pxTextBox, wordWrap);
+rtDefineProperty(pxTextBox, ellipsis);
+rtDefineProperty(pxTextBox, xStartPos); 
+rtDefineProperty(pxTextBox, xStopPos);
+rtDefineProperty(pxTextBox, truncation);
+rtDefineProperty(pxTextBox, verticalAlign);
+rtDefineProperty(pxTextBox, horizontalAlign);
+rtDefineProperty(pxTextBox, leading);
+rtDefineMethod(pxTextBox, getFontMetrics);
+rtDefineMethod(pxTextBox, measureText);

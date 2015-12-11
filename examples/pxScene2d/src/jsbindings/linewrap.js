@@ -9,13 +9,13 @@ var leading = 0;
 
 // Use fontUrl to load from web
 //var fontUrl = "http://localhost/XRE2/fonts/DancingScript-Bold.ttf";
-var text2 = scene.create({t:"text2",   text:longText,  fontUrl:"DancingScript-Bold.ttf", horizontalAlign:1, verticalAlign:0, xStartPos:25,xStopPos:0,
+var text2 = scene.create({t:"textBox",   text:longText,  fontUrl:"DancingScript-Bold.ttf", horizontalAlign:1, verticalAlign:0, xStartPos:25,xStopPos:0,
 						wordWrap:true, ellipsis:true, truncation:2,leading:0, 
 						clip:false, w:400, h:400, parent:container, textColor:0xFFDDFFFF, 
 						pixelSize:20, x:px, y:py, rx:0, ry:1, rz:0});
             
 
-//var text2 = scene.createText2({wordWrap:true, ellipsis:true, truncation:0,leading:10, clip:false, w:400, h:400, parent:container, textColor:0xFFDDFFFF, pixelSize:20, x:px, y:py, rx:0, ry:1, rz:0});
+//var text2 = scene.create({t:"textBox",wordWrap:true, ellipsis:true, truncation:0,leading:10, clip:false, w:400, h:400, parent:container, textColor:0xFFDDFFFF, pixelSize:20, x:px, y:py, rx:0, ry:1, rz:0});
 var metrics = null;
 var measurements = null;
 

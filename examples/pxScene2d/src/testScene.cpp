@@ -6,7 +6,7 @@
 #include "rtPathUtils.h"
 #include "pxScene2d.h"
 #include "pxText.h"
-#include "pxText2.h"
+#include "pxTextBox.h"
 #include "pxImage.h"
 #include "pxKeycodes.h"
 

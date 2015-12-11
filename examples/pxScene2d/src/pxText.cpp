@@ -22,7 +22,7 @@ pxText::pxText(pxScene2d* scene):pxObject(scene)
 
 void pxText::onInit()
 {
-  //printf("pxText2::onInit. mFontLoaded=%d\n",mFontLoaded);
+
   mInitialized = true;
 
   if( mFont->isFontLoaded()) {

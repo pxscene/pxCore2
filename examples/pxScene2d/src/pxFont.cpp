@@ -512,7 +512,7 @@ void pxFont::sendReady(const char * value)
 */
 rtError pxFont::getFontMetrics(uint32_t pixelSize, rtObjectRef& o) 
 {
-  //printf("pxText2::getFontMetrics\n");  
+  //printf("pxFont::getFontMetrics\n");  
 	float height, ascent, descent, naturalLeading;
 	pxTextMetrics* metrics = new pxTextMetrics(mScene);
 

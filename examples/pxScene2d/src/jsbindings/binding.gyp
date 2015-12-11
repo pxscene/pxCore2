@@ -29,7 +29,7 @@
         "../pxRectangle.cpp",
         "../pxFont.cpp",
         "../pxText.cpp",
-        "../pxText2.cpp",
+        "../pxTextBox.cpp",
         "../pxUtil.cpp",
         "../pxInterpolators.cpp",
         "../pxFileDownloader.cpp",

@@ -8,7 +8,7 @@ var viewObj = scene.create({
 console.log("root w="+root.w+" and h="+root.h);
 console.log("viewObj w="+viewObj.w+" and h="+viewObj.h);
 var textObj2 = scene.create({
-        t: "text2",
+        t: "textBox",
 		text: "6:17a / 43°",
 		fontUrl:"http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Bold.ttf",
 		pixelSize: 20,

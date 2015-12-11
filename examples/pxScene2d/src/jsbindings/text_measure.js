@@ -40,7 +40,7 @@ function onTextReady(text, props, bg) {
 function createText(x, y, props) {
     var bg = scene.create({t:"object", parent:root, x:x, y:y, w:1000, h:1000, clip:false});
     var container = scene.create({t:"object", parent:root, x:x, y:y, w:1000, h:1000, clip:false});
-    var obj = {t:"text2", fontUrl:"FreeSans.ttf", w:1000, h:1000, parent:container, textColor:0xFFFFFFFF, pixelSize:25, x:0, y:0, leading:0, wordWrap:false, clip:false};
+    var obj = {t:"textBox", fontUrl:"FreeSans.ttf", w:1000, h:1000, parent:container, textColor:0xFFFFFFFF, pixelSize:25, x:0, y:0, leading:0, wordWrap:false, clip:false};
     for (var i in props) obj[i] = props[i];
     var text2 = scene.create(obj);
     text2.ready.then(function(text) { onTextReady(text2, obj, bg); });

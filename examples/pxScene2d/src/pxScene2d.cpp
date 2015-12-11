@@ -20,7 +20,7 @@
 #include "pxRectangle.h"
 #include "pxFont.h"
 #include "pxText.h"
-#include "pxText2.h"
+#include "pxTextBox.h"
 #include "pxImage.h"
 #include "pxImage9.h"
 
@@ -1062,8 +1062,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createRectangle(p,o);
   else if (!strcmp("text",t.cString()))
     e = createText(p,o);
-  else if (!strcmp("text2",t.cString()))
-    e = createText2(p,o);    
+  else if (!strcmp("textBox",t.cString()))
+    e = createTextBox(p,o);    
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
   else if (!strcmp("image9",t.cString()))
@@ -1121,9 +1121,9 @@ rtError pxScene2d::createText(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
-rtError pxScene2d::createText2(rtObjectRef p, rtObjectRef& o)
+rtError pxScene2d::createTextBox(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxText2(this);
+  o = new pxTextBox(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -1787,7 +1787,7 @@ rtDefineProperty(pxScene2d, showDirtyRect);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, createRectangle);
 rtDefineMethod(pxScene2d, createText);
-rtDefineMethod(pxScene2d, createText2);
+rtDefineMethod(pxScene2d, createTextBox);
 rtDefineMethod(pxScene2d, getFont);
 rtDefineMethod(pxScene2d, clock);
 rtDefineMethod(pxScene2d, createImage);

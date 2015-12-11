@@ -1,8 +1,8 @@
 // pxCore CopyRight 2007-2015 John Robinson
-// pxText2.h
+// pxTextBox.h
 
-#ifndef PX_TEXT2_H
-#define PX_TEXT2_H
+#ifndef PX_TEXTBOX_H
+#define PX_TEXTBOX_H
 
 // TODO it would be nice to push this back into implemention
 #include <ft2build.h>
@@ -184,12 +184,12 @@ public:
  * pxTex2
  * 
  **********************************************************************/
-class pxText2: public pxText {
+class pxTextBox: public pxText {
 public:
-  rtDeclareObject(pxText2, pxText);
+  rtDeclareObject(pxTextBox, pxText);
 
-  pxText2(pxScene2d* s);
-  ~pxText2(){}
+  pxTextBox(pxScene2d* s);
+  ~pxTextBox(){}
   
   rtProperty(wordWrap, wordWrap, setWordWrap, bool);
   rtProperty(ellipsis, ellipsis, setEllipsis, bool);
@@ -254,7 +254,7 @@ public:
 
   virtual rtError Set(const char* name, const rtValue* value)
   {
-	  //printf("pxText2 Set for %s\n", name );
+	  //printf("pxTextBox Set for %s\n", name );
 
     mDirty = mDirty || (!strcmp(name,"wordWrap") ||
               !strcmp(name,"ellipsis") ||

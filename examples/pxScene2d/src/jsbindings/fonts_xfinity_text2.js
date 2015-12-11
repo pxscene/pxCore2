@@ -34,7 +34,7 @@ var scrollContent = scene.createImage({parent:scroll,w:width});
 
 var rowcontainer = scene.createImage({parent:scrollContent});
 
-pleaseWait = scene.createText2({text:"Please wait while fonts load...", 
+pleaseWait = scene.create({t:"textBox",text:"Please wait while fonts load...", 
                               parent:root,x:10,y:0,
                               textColor:0xfaebd7ff, pixelSize:24,
                               fontUrl:fonts[i], clip:true, w:width,h:100});
@@ -46,7 +46,7 @@ for (var i=0; i < fonts.length; i++)
     var row = scene.createImage({parent:rowcontainer,y:0, clip:false});
     var faceName = fonts[i]?fonts[i]:"FreeSans.ttf";
     console.log("fontFace: "+faceName);
-    var t = scene.createText2({text:"Enter in some text...", 
+    var t = scene.create({t:"textBox",text:"Enter in some text...", 
                               parent:row,x:10,y:0,
                               textColor:0xfaebd7ff, pixelSize:24,
                               fontUrl:fonts[i], clip:true,w:width,h:100, draw:false});
