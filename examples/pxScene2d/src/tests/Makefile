@@ -27,10 +27,15 @@ SRCS=\
 	$(ZLIB)libz.a\
 	../ioapi_mem.c\
 	../rtTest.cpp\
+	../rtLog.cpp\
 	../rtString.cpp\
 	../rtFile.cpp\
 	../rtZip.cpp\
+	../rtValue.cpp\
+	../rtObject.cpp\
 	testString.cpp\
+	testValue.cpp\
+	testObject.cpp\
 	testZip.cpp\
 	tests.cpp
 

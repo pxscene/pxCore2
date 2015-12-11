@@ -39,7 +39,8 @@ public:
   int32_t byteLength() const;
 
 #if 0
-  void subst(const char* before, const char* after) {
+  void subst(const char* before, const char* after) 
+  {
   }
 #endif
 
@@ -57,9 +58,8 @@ public:
   bool beginsWith(const char* s) const;
 
   rtString substring(size_t pos, size_t len = 0) const;
+
 #if 0
-
-
   pos_t find(size_t pos, const char* s, size_t n);
 #endif
 

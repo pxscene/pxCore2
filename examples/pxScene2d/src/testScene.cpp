@@ -435,8 +435,8 @@ pxScene2dRef testScene()
 #else
   t.set("text","hELLO\n");
 #endif
-  t.set("x", 100);
-  t.set("y", 100);
+  t.set("x", 10);
+  t.set("y", 10);
   t.set("parent", root);
 
   scene.sendReturns<rtObjectRef>("createImage", picture);
