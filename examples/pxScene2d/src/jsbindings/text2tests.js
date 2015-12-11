@@ -75,8 +75,8 @@ var text2 = scene.create({t:"textBox", clip:true, parent:container, x:px, y:py, 
    text2.pixelSize=20;
    text2.leading=0;
    text2.fontUrl=DancingScript;
-   text2.horizontalAlign=0;
-   text2.verticalAlign=0;
+   text2.alignHorizontal=0;
+   text2.alignVertical=0;
    text2.xStartPos=0;
    text2.xStopPos=0;
 	 text2.wordWrap=true;
@@ -195,9 +195,9 @@ scene.root.on("onChar", function(e) {
     } else {
       ellipsisStatus.text ="ellipsis=false";
     }    
-  } else if(e.charCode == 104) { // h for horizontalAlign
-    v = cycleValues(text2.horizontalAlign);
-    text2.horizontalAlign = v;
+  } else if(e.charCode == 104) { // h for alignHorizontal
+    v = cycleValues(text2.alignHorizontal);
+    text2.alignHorizontal = v;
     if(v == 0) {
       hAlignStatus.text="hAlign=left";
     } else if(v ==1) {
@@ -205,9 +205,9 @@ scene.root.on("onChar", function(e) {
     } else {
       hAlignStatus.text="hAlign=right";
     }   
-  } else if(e.charCode == 118) { // v for verticalAlign
-    v = cycleValues(text2.verticalAlign);
-    text2.verticalAlign = v;
+  } else if(e.charCode == 118) { // v for alignVertical
+    v = cycleValues(text2.alignVertical);
+    text2.alignVertical = v;
     if(v == 0) {
       vAlignStatus.text="vAlign=top";
     } else if(v ==1) {

@@ -27,12 +27,12 @@ enum PX_TRUNCATION {
 	TRUNCATE,
 	TRUNCATE_AT_WORD
 };
-enum PX_VERTICAL_ALIGN {
+enum PX_ALIGN_VERTICAL {
 	V_TOP, 
 	V_CENTER,
 	V_BOTTOM
 };
-enum PX_HORIZONTAL_ALIGN {
+enum PX_ALIGN_HORIZONTAL {
 	H_LEFT, 
 	H_CENTER,
 	H_RIGHT
@@ -196,8 +196,8 @@ public:
   rtProperty(xStartPos, xStartPos, setXStartPos, float); 
   rtProperty(xStopPos, xStopPos, setXStopPos, float);
   rtProperty(truncation, truncation, setTruncation, uint32_t);
-  rtProperty(verticalAlign, verticalAlign, setVerticalAlign, uint32_t);
-  rtProperty(horizontalAlign, horizontalAlign, setHorizontalAlign, uint32_t);
+  rtProperty(alignVertical, alignVertical, setAlignVertical, uint32_t);
+  rtProperty(alignHorizontal, alignHorizontal, setAlignHorizontal, uint32_t);
   rtProperty(leading, leading, setLeading, float); 	
   
   bool wordWrap()            const { return mWordWrap;}
@@ -220,13 +220,13 @@ public:
   rtError truncation(uint32_t& v)   const { v = mTruncation; return RT_OK;   }
   rtError setTruncation(uint32_t v)       { mTruncation = v; setNeedsRecalc(true); return RT_OK;   }
 
-  uint8_t verticalAlign()             const { return mVerticalAlign; }
-  rtError verticalAlign(uint32_t& v)   const { v = mVerticalAlign; return RT_OK;   }
-  rtError setVerticalAlign(uint32_t v)       { mVerticalAlign = v;  setNeedsRecalc(true); return RT_OK;   }
+  uint8_t alignVertical()             const { return mAlignVertical; }
+  rtError alignVertical(uint32_t& v)   const { v = mAlignVertical; return RT_OK;   }
+  rtError setAlignVertical(uint32_t v)       { mAlignVertical = v;  setNeedsRecalc(true); return RT_OK;   }
   
-  uint8_t horizontalAlign()             const { return mHorizontalAlign; }
-  rtError horizontalAlign(uint32_t& v)   const { v = mHorizontalAlign; return RT_OK;   }
-  rtError setHorizontalAlign(uint32_t v)       { mHorizontalAlign = v;  setNeedsRecalc(true); return RT_OK;   }
+  uint8_t alignHorizontal()             const { return mAlignHorizontal; }
+  rtError alignHorizontal(uint32_t& v)   const { v = mAlignHorizontal; return RT_OK;   }
+  rtError setAlignHorizontal(uint32_t v)       { mAlignHorizontal = v;  setNeedsRecalc(true); return RT_OK;   }
   
   float leading()             const { return mLeading; }
   rtError leading(float& v)   const { v = mLeading; return RT_OK;   }
@@ -261,8 +261,8 @@ public:
               !strcmp(name,"xStartPos") ||
               !strcmp(name,"xStopPos") ||
               !strcmp(name,"truncation") ||
-              !strcmp(name,"verticalAlign")||
-              !strcmp(name,"horizontalAlign") ||
+              !strcmp(name,"alignVertical")||
+              !strcmp(name,"alignHorizontal") ||
               !strcmp(name,"leading"));
 
     rtError e = pxText::Set(name, value);
@@ -276,8 +276,8 @@ public:
 	uint32_t mTruncation;  
 	float mXStartPos;
 	float mXStopPos;
-	uint32_t mVerticalAlign;
-	uint32_t mHorizontalAlign;
+	uint32_t mAlignVertical;
+	uint32_t mAlignHorizontal;
 	float mLeading;
 	bool mWordWrap;
 	bool mEllipsis;
