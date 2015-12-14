@@ -105,7 +105,12 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
 
     pxObject* parent = mParent;
     if( !parent)
+    {
+      // Send the promise here because the image will not get an 
+      // update call until it has a parent
+      sendPromise();
       rtLogWarn("In pxImage::onTextureReady, pxImage with url=%s has no parent!\n", mURL.cString());
+    }
      
     ////// send after width and height have been set
     // TO DO: Remove use of onReady in samples
@@ -113,9 +118,6 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
     //e.set("name", "onReady");
     //e.set("target", this);
     //mEmit.send("onReady", e);
-    // !CLF:  WHY doesn't the instant info image draw without this
-    // sendPromise()? Why is it not being called from the update loop?? 
-    //sendPromise();
    
     
     return true;
