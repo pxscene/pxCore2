@@ -81,7 +81,14 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
     mStatusCode = textureCacheObject->getStatusCode();
     mHttpStatusCode = textureCacheObject->getHttpStatusCode();
   }
-
+  pxObject* parent = mParent;
+  if( !parent)
+  {
+    // Send the promise here because the image will not get an 
+    // update call until it has a parent
+    sendPromise();
+    rtLogWarn("In pxImage9::onTextureReady, pxImage with url=%s has no parent!\n", mUrl.cString());
+  }
   if (textureCacheObject != NULL && status == RT_OK && textureCacheObject->getTexture().getPtr() != NULL)
   {
     mw = textureCacheObject->getTexture()->width();
