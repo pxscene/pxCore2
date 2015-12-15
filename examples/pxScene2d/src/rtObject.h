@@ -4,11 +4,6 @@
 #ifndef RT_OBJECT_H
 #define RT_OBJECT_H
 
-#include <string.h>
-
-#include <vector>
-using namespace std;
-
 #include "rtLog.h"
 #include "rtAtomic.h"
 #include "rtError.h"
@@ -16,6 +11,10 @@ using namespace std;
 #include "rtValue.h"
 #include "rtObjectMacros.h"
 #include "rtRefT.h"
+
+#include <string.h>
+#include <vector>
+using namespace std;
 
 // rtIObject and rtIFunction are designed to be an
 // Abstract Binary Interface(ABI)
@@ -26,11 +25,6 @@ class rtIObject {
   virtual ~rtIObject() { }
   virtual unsigned long AddRef() = 0;
   virtual unsigned long Release() = 0;
-#if 1
-  // Only for debugging purposes please
-  // Probably can get the same utility by AddRef followed by Release?
-  virtual unsigned long getRefCount() const = 0;
-#endif
   virtual rtError Get(const char* name, rtValue* value) = 0;
   virtual rtError Get(uint32_t i, rtValue* value) = 0;
   virtual rtError Set(const char* name, const rtValue* value) = 0;
@@ -42,11 +36,6 @@ class rtIFunction {
   virtual ~rtIFunction() { }
   virtual unsigned long AddRef() = 0;
   virtual unsigned long Release() = 0;
-#if 1
-  // Only for debugging purposes please
-  // Probably can get the same utility by AddRef followed by Release?
-  virtual unsigned long getRefCount() const = 0;
-#endif
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
 };
 
@@ -195,7 +184,7 @@ class rtObjectRef: public rtRefT<rtIObject>, public rtObjectBase
 {
  public:
   rtObjectRef() {}
-  rtObjectRef(rtIObject* o) { asn(o); }
+  rtObjectRef(const rtIObject* o) { asn(o); }
 
   // operator= is not inherited
   rtObjectRef& operator=(rtIObject* o) { asn(o); return *this; }
@@ -211,7 +200,7 @@ class rtFunctionRef: public rtRefT<rtIFunction>, public rtFunctionBase
 {
  public:
   rtFunctionRef() {}
-  rtFunctionRef(rtIFunction* f) { asn(f); }
+  rtFunctionRef(const rtIFunction* f) { asn(f); }
 
   // operator= is not inherited
   rtFunctionRef& operator=(rtIFunction* f) { asn(f); return *this; }
@@ -230,20 +219,12 @@ public:
   virtual ~rtObjectFunction() {}
   
   virtual unsigned long AddRef() { return rtAtomicInc(&mRefCount); }
-  
   virtual unsigned long Release() 
   {
     long l = rtAtomicDec(&mRefCount);
     if (l == 0) delete this;
     return l;
   }
-
-  #if 1
-  virtual unsigned long getRefCount() const 
-  {
-    return mRefCount;
-  }
-  #endif
 
  private:
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
@@ -269,13 +250,6 @@ public:
   
   virtual unsigned long /*__stdcall*/ AddRef();
   virtual unsigned long /*__stdcall*/ Release();
-
-#if 1
-  virtual unsigned long getRefCount() const 
-  {
-    return mRefCount;
-  }
-#endif
 
 #if 1
 
@@ -519,13 +493,6 @@ public:
 
   virtual unsigned long AddRef();
   virtual unsigned long Release();
-
-  #if 1
-  virtual unsigned long getRefCount() const 
-  {
-    return mRefCount;
-  }
-  #endif
 
   rtError setListener(const char* eventName, rtIFunction* f);
   rtError addListener(const char* eventName, rtIFunction* f);

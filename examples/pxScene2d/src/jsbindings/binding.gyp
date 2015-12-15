@@ -37,8 +37,8 @@
         "../pxMatrix4T.cpp",
         "../pxTransform.cpp",
         "../pxArchive.cpp",
-        "../../external/zlib/contrib/minizip/unzip.c",
-        "../../external/zlib/contrib/minizip/ioapi.c",
+        "../unzip.c",
+        "../ioapi.c",
         "../ioapi_mem.c",
        ],
 
@@ -49,7 +49,6 @@
         "../../external/curl/include",
         "../../external/jpg",
         "../../external/zlib",
-        "../../external/zlib/contrib/minizip",
         "../../../../src"
       ],
 

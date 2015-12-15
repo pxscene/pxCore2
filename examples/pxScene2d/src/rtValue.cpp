@@ -27,10 +27,7 @@ rtValue::rtValue(voidPtr v)             :mType(0) { setVoidPtr(v); }
 
 rtValue::~rtValue()
 {
-//  if (mType == RT_objectType || mType == RT_functionType)
-   {
-    setEmpty();
-       }
+  term();
 }
 
 bool rtValue::operator==(const rtValue& rhs) const

@@ -1,3 +1,6 @@
+// rtCore Copyright 2007-2015 John Robinson
+// rtCore.h
+
 #ifndef RT_CORE_H
 #define RT_CORE_H
 

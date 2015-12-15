@@ -1,3 +1,6 @@
+// rtCore Copyright 2007-2015 John Robinson
+// rtDefs.h
+
 #ifndef _RT_DEFS
 #define _RT_DEFS
 

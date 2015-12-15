@@ -1,3 +1,6 @@
+// pxCore Copyright 2007-2015 John Robinson
+// pxTransform.h
+
 #include "pxTransform.h"
 #include <ctype.h>
 
@@ -17,17 +20,6 @@ rtError pxTransformData::set(const char* name, float v)
   return mTransform->set(this, name, v);
 }
 
-
-
-
-
-
-
-
-
-
-
-
 enum opcode
 {
   OP_PUSHFLOAT,
@@ -43,8 +35,6 @@ typedef struct
   const char* s;
   uint32_t len;
 } token;
-
-
 
 funcEntry pxTransform::funcEntries[] =
 {

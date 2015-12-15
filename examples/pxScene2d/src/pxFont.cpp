@@ -555,7 +555,7 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
 
 FontMap pxFontManager::mFontMap;
 bool pxFontManager::init = false;
-void pxFontManager::initFT(pxScene2d* scene) 
+void pxFontManager::initFT(pxScene2d* /*scene*/) 
 {
   if (init) 
   {

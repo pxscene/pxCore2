@@ -783,8 +783,8 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hi
     pxVector4f v(pt.x, pt.y, 0, 1);
     v = m2.multiply(v);
     pxPoint2f newPt;
-    newPt.x = v.mX;
-    newPt.y = v.mY;
+    newPt.x = v.x();
+    newPt.y = v.y();
     if (mInteractive && hitTest(newPt))
     {
       hit = this;
@@ -1581,22 +1581,22 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
       {
         pxVector4f validate;
         pxObject::transformPointFromObjectToScene(mMouseDown, to, validate);
-        if (fabs(validate.mX -(float)x)> 0.01 || 
-            fabs(validate.mY -(float)y) > 0.01) 
+        if (fabs(validate.x()-(float)x)> 0.01 || 
+            fabs(validate.y()-(float)y) > 0.01) 
         {
           printf("Error in point transformation (%d,%d) != (%f,%f); (%f, %f)",
-                 x,y,validate.mX,validate.mY,to.mX,to.mY);
+                 x,y,validate.x(),validate.y(),to.x(),to.y());
         }
       }
 
       {
         pxVector4f validate;
         pxObject::transformPointFromObjectToObject(mMouseDown, mMouseDown, to, validate);
-        if (fabs(validate.mX -(float)to.mX)> 0.01 || 
-            fabs(validate.mY -(float)to.mY) > 0.01) 
+        if (fabs(validate.x()-(float)to.x())> 0.01 || 
+            fabs(validate.y()-(float)to.y()) > 0.01) 
         {
           printf("Error in point transformation (o2o) (%f,%f) != (%f,%f)",
-                 to.mX,to.mY,validate.mX,validate.mY);
+                 to.x(),to.y(),validate.x(),validate.y());
         }
       }
 
@@ -1611,8 +1611,8 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
 #else
     rtObjectRef e = new rtMapObject;
     e.set("target", mMouseDown.getPtr());
-    e.set("x", to.mX);
-    e.set("y", to.mY);
+    e.set("x", to.x());
+    e.set("y", to.y());
     bubbleEvent(e, mMouseDown, "onPreMouseMove", "onMouseMove");
 #endif
     }

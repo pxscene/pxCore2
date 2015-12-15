@@ -1,3 +1,6 @@
+// pxCore Copyright 2007-2015 John Robinson
+// pxTransform.h
+
 #ifndef PX_TRANSFORM_H
 #define PX_TRANSFORM_H
 
@@ -11,7 +14,6 @@
 #include "rtValue.h"
 #include "rtObject.h"
 #include "pxMatrix4T.h"
-
 
 #define INVALID_REG UINT32_MAX
 

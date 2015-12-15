@@ -4,7 +4,6 @@
 #ifndef _PX_ARCHIVE_H
 #define _PX_ARCHIVE_H
 
-
 #include "rtRefT.h"
 #include "rtString.h"
 

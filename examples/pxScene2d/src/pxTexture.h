@@ -64,13 +64,14 @@ public:
   bool premultipliedAlpha() { return mPremultipliedAlpha; }
   void enablePremultipliedAlpha(bool enable) { mPremultipliedAlpha = enable; }
   void addListener(pxTextureNotifier* requestor) {mListeners.push_back(requestor);}
-  void notifyListeners(pxTexture* texture, rtError rtnCode, int statusCode, int httpStatusCode=0) {           
+  void notifyListeners(pxTexture* texture, rtError rtnCode, int statusCode, int httpStatusCode=0) 
+  {           
     for (vector<pxTextureNotifier*>::iterator it = mListeners.begin();
                 it != mListeners.end(); ++it)
-          {
-            (*it)->notifyTextureReady(texture, rtnCode, statusCode, httpStatusCode);
-          }
-      mListeners.clear();
+    {
+      (*it)->notifyTextureReady(texture, rtnCode, statusCode, httpStatusCode);
+    }
+    mListeners.clear();
   }
 protected:
   rtAtomic mRef;

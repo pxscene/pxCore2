@@ -1,8 +1,8 @@
 // pxCore CopyRight 2007-2015 John Robinson
 // pxMatrix4T.h
 
-#ifndef pxMatrix4T_h
-#define pxMatrix4T_h
+#ifndef PX_MATRIX4T_H
+#define PX_MATRIX4T_H
 
 #include <stdlib.h>
 
@@ -21,11 +21,6 @@ void sincosf(X x, S* s, C* c)
 #include <string.h>
 #include <stdio.h>
 
-#ifndef UNUSED
-#define UNUSED(expr) (void)(expr)
-#endif
-
-
 #if defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_GENERIC_DFB) || defined(__APPLE__)
 #ifndef sincos
 
@@ -42,71 +37,48 @@ void sincosf(float x, float *s, float *c);
 #endif
 #endif //defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_GENERIC_DFB)
 
+template<typename FloatT> class pxMatrix4T;
 
-class pxVector4f {
+template <typename FloatT = float>
+class pxVector4T 
+{
+friend class pxMatrix4T<FloatT>;
 public:
-  pxVector4f(): mX(0), mY(0), mZ(0), mW(1) {}
-  pxVector4f(float x, float y, float z = 0, float w = 1) {
+  pxVector4T(): mX(0), mY(0), mZ(0), mW(1) {}
+  pxVector4T(float x, float y, float z = 0, float w = 1) 
+  {
     mX = x; mY = y, mZ = z; mW = w;
   }
+
+  FloatT x() {return mX;}
+  FloatT y() {return mY;}
+  FloatT z() {return mZ;}
+  FloatT w() {return mW;}
 
   void dump()
   {
     printf("Dumping pxVector4f\n");
     printf("[ %f, %f, %f, %f]\n", mX, mY, mZ, mW);
   }
-  
+
+private:
   float mX, mY, mZ, mW;
 };
 
-
 template <typename FloatT = float>
-class pxMatrix4T {
+class pxMatrix4T 
+{
 public:
-  pxMatrix4T(){
-    identity();
-  }
+  pxMatrix4T()                    {identity();}
+  pxMatrix4T(const pxMatrix4T& m) {copy(m);   }
   
-  pxMatrix4T(const pxMatrix4T& m) {
-    copy(m);
-  }
+  inline FloatT* data() {return mValues;}
+  FloatT constData(int i) const {return mValues[i];}
   
-  FloatT* data() {
-    return mValues;
-  }
-
-  FloatT constData(int i) const {
-    return mValues[i];
-  }
+  void copy(const pxMatrix4T& m) {memcpy(mValues, m.mValues, sizeof(mValues));}
   
-  void copy(const pxMatrix4T& m) {
-    memcpy(mValues, m.mValues, sizeof(mValues));
-  }
-  
-
-#if 0
-  void multiply(pxMatrix4T& mat) {
-    FloatT* m = mValues;
-    FloatT* n = mat.mValues;
-    
-    FloatT tmp[16];
-    const FloatT *row, *column;
-    div_t d;
-    int i, j;
-    
-    for (i = 0; i < 16; i++) {
-      tmp[i] = 0;
-      d = div(i, 4);
-      row = n + d.quot * 4;
-      column = m + d.rem;
-      for (j = 0; j < 4; j++)
-        tmp[i] += row[j] * column[j * 4];
-    }
-    memcpy(m, &tmp, sizeof tmp);
-  }
-#else
-
-  void multiply(pxMatrix4T& mat) {
+  void multiply(pxMatrix4T& mat) 
+  {
     FloatT* a = mValues;
     FloatT* b = mat.mValues;
     
@@ -144,12 +116,10 @@ public:
 
     memcpy(a, &out, sizeof out);
   }
-
-
-#endif
   
-  pxVector4f multiply(const pxVector4f& v) {
-    pxVector4f out;
+  pxVector4T<FloatT> multiply(const pxVector4T<FloatT>& v) 
+  {
+    pxVector4T<FloatT> out;
     float x = v.mX;
     float y = v.mY;
     float z = v.mZ;
@@ -161,48 +131,24 @@ public:
     out.mW = m[3] * x + m[7] * y + m[11] * z + m[15] * w;
     return out;
   }
-    
-#if 0
-  void multiply(FloatT* m, FloatT* n) {
-    
-    FloatT tmp[16];
-    const FloatT *row, *column;
-    div_t d;
-    int i, j;
-    
-    for (i = 0; i < 16; i++) {
-      tmp[i] = 0;
-      d = div(i, 4);
-      row = n + d.quot * 4;
-      column = m + d.rem;
-      for (j = 0; j < 4; j++)
-        tmp[i] += row[j] * column[j * 4];
-    }
-    memcpy(m, &tmp, sizeof tmp);
-  }
-#endif
   
-#ifdef PX_PLATFORM_GENERIC_EGL
-  inline void rotateInRadians(FloatT angle) {
-#else
-  inline void rotateInRadians(FloatT angle) {
-#endif
+  inline void rotateInRadians(FloatT angle) 
+  {
     rotateInRadians(angle, 0, 0, 1);
   }
   
-#ifdef PX_PLATFORM_GENERIC_EGL
-  inline void rotateInDegrees(FloatT angle) {
-#else
-  inline void rotateInDegrees(FloatT angle) {
-#endif
+  inline void rotateInDegrees(FloatT angle) 
+  {
     rotateInRadians(angle * M_PI/180.0, 0, 0, 1);
   }
 
-  void rotateInDegrees(FloatT angle, FloatT x, FloatT y, FloatT z) {
+  void rotateInDegrees(FloatT angle, FloatT x, FloatT y, FloatT z) 
+  {
     rotateInRadians(angle * M_PI/180.0, x, y, z);
   }
   
-  void rotateInRadians(FloatT angle, FloatT /*x*/, FloatT /*y*/, FloatT /*z*/) {
+  void rotateInRadians(FloatT angle, FloatT /*x*/, FloatT /*y*/, FloatT /*z*/) 
+  {
 #if 0
     FloatT* m = mValues;
     FloatT s, c;
@@ -222,11 +168,13 @@ public:
 #endif
   }
   
-  void rotateZInDegrees(FloatT angle) {
+  void rotateZInDegrees(FloatT angle) 
+  {
     rotateZInRadians(angle * M_PI/180.0);
   }
   
-  void rotateZInRadians(FloatT angle) {
+  void rotateZInRadians(FloatT angle) 
+  {
     FloatT *out = mValues;
     FloatT *a = mValues;
     FloatT s, c;
@@ -253,74 +201,56 @@ public:
     out[7] = a13 * c - a03 * s;
   }
   
-#if 0
-  void scale(FloatT sx, FloatT sy, FloatT sz = 1.0) {
-    FloatT* m = mValues;
-    FloatT t[16] = { sx, 0, 0, 0,  0, sy, 0, 0,  0, 0, sz, 0,  0, 0, 0, 1 };
-    multiply(m, t);
-  }
-#else
-void scale(FloatT sx, FloatT sy) 
-{  
-  FloatT *out = mValues;
-  FloatT *a = mValues;
-  
-  out[0] = a[0] * sx;
-  out[1] = a[1] * sx;
-  out[2] = a[2] * sx;
-  out[3] = a[3] * sx;
-  out[4] = a[4] * sy;
-  out[5] = a[5] * sy;
-  out[6] = a[6] * sy;
-  out[7] = a[7] * sy;
-}
-
-void scale(FloatT sx, FloatT sy, FloatT sz) 
-{  
-  FloatT *out = mValues;
-  FloatT *a = mValues;
-  
-  out[0] = a[0] * sx;
-  out[1] = a[1] * sx;
-  out[2] = a[2] * sx;
-  out[3] = a[3] * sx;
-  out[4] = a[4] * sy;
-  out[5] = a[5] * sy;
-  out[6] = a[6] * sy;
-  out[7] = a[7] * sy;
-
-  if (sz != 1.0)
-  {
-    out[8] = a[8] * sz;
-    out[9] = a[9] * sz;
-    out[10] = a[10] * sz;
-    out[11] = a[11] * sz;
-  }
-}
-#endif
-  
-#if 0
-  void translate(FloatT x, FloatT y, FloatT z = 0.0)
-  {
-    FloatT* m = mValues;
-    FloatT t[16] = { 1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  x, y, z, 1 };
+  void scale(FloatT sx, FloatT sy) 
+  {   
+    FloatT *out = mValues;
+    FloatT *a = mValues;
     
-    multiply(m, t);
+    out[0] = a[0] * sx;
+    out[1] = a[1] * sx;
+    out[2] = a[2] * sx;
+    out[3] = a[3] * sx;
+    out[4] = a[4] * sy;
+    out[5] = a[5] * sy;
+    out[6] = a[6] * sy;
+    out[7] = a[7] * sy;
   }
-#else
 
-void translate(FloatT x, FloatT y) 
-{
-  FloatT *m = mValues;
-  
-  m[12] = m[0] * x + m[4] * y + m[12];
-  m[13] = m[1] * x + m[5] * y + m[13];
-  m[14] = m[2] * x + m[6] * y + m[14];
-  m[15] = m[3] * x + m[7] * y + m[15];
-}
+  void scale(FloatT sx, FloatT sy, FloatT sz) 
+  {  
+    FloatT *out = mValues;
+    FloatT *a = mValues;
+    
+    out[0] = a[0] * sx;
+    out[1] = a[1] * sx;
+    out[2] = a[2] * sx;
+    out[3] = a[3] * sx;
+    out[4] = a[4] * sy;
+    out[5] = a[5] * sy;
+    out[6] = a[6] * sy;
+    out[7] = a[7] * sy;
+    
+    if (sz != 1.0)
+    {
+      out[8] = a[8] * sz;
+      out[9] = a[9] * sz;
+      out[10] = a[10] * sz;
+      out[11] = a[11] * sz;
+    }
+  }
 
-void translate(FloatT x, FloatT y, FloatT z) 
-{
+  void translate(FloatT x, FloatT y) 
+  {
+    FloatT *m = mValues;
+    
+    m[12] = m[0] * x + m[4] * y + m[12];
+    m[13] = m[1] * x + m[5] * y + m[13];
+    m[14] = m[2] * x + m[6] * y + m[14];
+    m[15] = m[3] * x + m[7] * y + m[15];
+  }
+
+  void translate(FloatT x, FloatT y, FloatT z) 
+  {
     FloatT *m = mValues;
     
     if (z != 0.0)
@@ -337,14 +267,13 @@ void translate(FloatT x, FloatT y, FloatT z)
       m[14] = m[2] * x + m[6] * y + m[14];
       m[15] = m[3] * x + m[7] * y + m[15];
     }
-}
+  }
       
-#endif
-  
-      void identity() 
-{
+  void identity() 
+  {
     FloatT* m = mValues;
-    FloatT t[16] = {
+    FloatT t[16] = 
+    {
       1.0, 0.0, 0.0, 0.0,
       0.0, 1.0, 0.0, 0.0,
       0.0, 0.0, 1.0, 0.0,
@@ -354,7 +283,8 @@ void translate(FloatT x, FloatT y, FloatT z)
     memcpy(m, t, sizeof(t));
   }
   
-  void transpose() {
+  void transpose() 
+  {
     FloatT* m = mValues;
     FloatT t[16] = {
       m[0], m[4], m[8],  m[12],
@@ -372,28 +302,9 @@ void translate(FloatT x, FloatT y, FloatT z)
    * Read http://www.gamedev.net/community/forums/topic.asp?topic_id=425118
    * for an explanation.
    */
-#if 0
-  void invert() {
-    FloatT* m = mValues;
-    FloatT t[16];
-    identity();
-    
-    // Extract and invert the translation part 't'. The inverse of a
-    // translation matrix can be calculated by negating the translation
-    // coordinates.
-    t[12] = -m[12]; t[13] = -m[13]; t[14] = -m[14];
-    
-    // Invert the rotation part 'r'. The inverse of a rotation matrix is
-    // equal to its transpose.
-    m[12] = m[13] = m[14] = 0;
-    transpose();
-    
-    // inv(m) = inv(r) * inv(t)
-    multiply(m, t);
-  }
-#else
   
-  void invert() {
+  void invert() 
+  {
     float* a = mValues;
     float* out = mValues;
     
@@ -431,9 +342,8 @@ void translate(FloatT x, FloatT y, FloatT z)
     float det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
 
 #if 0 // not invertable... error
-    if (!det) {
+    if (!det) 
       return null;
-    }
 #endif
     
     det = 1.0 / det;
@@ -456,9 +366,9 @@ void translate(FloatT x, FloatT y, FloatT z)
     out[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
     
   }
-#endif
   
-  void perspective(float fovy, float aspect, float zNear, float zFar) {
+  void perspective(float fovy, float aspect, float zNear, float zFar) 
+  {
     FloatT* m = mValues;
     FloatT tmp[16];
     identity(tmp);
@@ -485,24 +395,22 @@ void translate(FloatT x, FloatT y, FloatT z)
     memcpy(m, tmp, sizeof(tmp));
   }
 
-
-void dump(const char* n = NULL)
-{
-  FloatT* p = mValues;
-  printf("Dump 4x4 Matrix: %s\n", n?n:"none");
-  for (int i = 0; i < 4; i++)
+  void dump(const char* n = NULL)
   {
-    printf("[ %f, %f, %f, %f]\n", p[0], p[1], p[2], p[3]);
-    p +=4;
+    FloatT* p = mValues;
+    printf("Dump 4x4 Matrix: %s\n", n?n:"none");
+    for (int i = 0; i < 4; i++)
+    {
+      printf("[ %f, %f, %f, %f]\n", p[0], p[1], p[2], p[3]);
+      p +=4;
+    }
   }
-}
-  
-//private:
-public:
+
+private:
   FloatT mValues[16];
 };
 
+typedef pxVector4T<float> pxVector4f;
 typedef pxMatrix4T<float> pxMatrix4f;
-
 
 #endif

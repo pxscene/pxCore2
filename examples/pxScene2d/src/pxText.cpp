@@ -56,7 +56,7 @@ rtError pxText::setPixelSize(uint32_t v)
   return RT_OK; 
 }
 
-void pxText::fontLoaded(const char * value)
+void pxText::fontLoaded(const char * /*value*/)
 {
   //rtLogInfo("pxText::fontLoaded for fontFace=%s and mInitialized=%d\n",mFaceURL.compare("")?mFaceURL.cString():defaultFace, mInitialized); 
   mFontLoaded=true;

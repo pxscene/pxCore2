@@ -6,9 +6,9 @@
 
 int main()
 {
-//  testString();
-//  testValue();
+  testString();
+  testValue();
   testObject();
-//  testZip();
+  testZip();
   rtDumpTestCounters();
 }
