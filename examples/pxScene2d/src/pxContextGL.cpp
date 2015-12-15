@@ -990,10 +990,14 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   float iw = texture->width();
   float ih = texture->height();
   
-  if (stretchX == PX_NONE)
+  if (w == -1)
     w = iw;
-  if (stretchY == PX_NONE)
+  if (h == -1)
     h = ih;
+  //if (stretchX == PX_NONE)
+    //w = iw;
+  //if (stretchY == PX_NONE)
+    //h = ih;
 
   const float verts[4][2] = 
   {

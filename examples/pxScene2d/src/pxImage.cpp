@@ -58,7 +58,7 @@ rtError pxImage::setUrl(const char* s)
 
 void pxImage::loadImage(rtString url)
 {
-  //printf("pxImage::loadImage %s\n",url.cString());
+  rtLogDebug("pxImage::loadImage %s\n",url.cString());
   mTextureCacheObject.setUrl(url);
 }
 
@@ -71,8 +71,12 @@ void pxImage::sendPromise()
   }
     
 void pxImage::draw() {
+  rtLogDebug("pxImage::draw() mw=%f mh=%f\n", mw, mh);
   static pxTextureRef nullMaskRef;
-  context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, 
+  context.drawImage(0, 0, 
+                    getOnscreenWidth(),
+                    getOnscreenHeight(), 
+                    mTextureCacheObject.getTexture(), nullMaskRef, 
                     mStretchX, mStretchY);
   if (mTextureCacheObject.isDownloadInProgress())
   {
@@ -82,9 +86,11 @@ void pxImage::draw() {
 
 bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status)
 {
+  rtLogDebug("pxImage::onTextureReady() mw=%f mh=%f\n", mw, mh);
   if (pxObject::onTextureReady(textureCacheObject, status))
   {
     imageLoaded = true;
+    mScene->mDirty = true;
     return true;
   }
 
@@ -96,20 +102,29 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
   if (textureCacheObject != NULL && status == RT_OK)
   {
     imageLoaded = true; 
-    mTexture = textureCacheObject->getTexture();
-    if (mAutoSize && mTexture.getPtr() != NULL)
-    {
-      mw = mTexture->width();
-      mh = mTexture->height();
-    } 
+    // Now that image is loaded, must force redraw;
+    // dimensions could have changed.
+    mScene->mDirty = true;
+      
+      // use texture from mTextureCacheObject
+//    mTexture = textureCacheObject->getTexture();
+    //if (mAutoSize && mTexture.getPtr() != NULL)
+    //{
+      //mw = mTexture->width();
+      //mh = mTexture->height();
+    //} 
 
-    pxObject* parent = mParent;
+   pxObject* parent = mParent;
     if( !parent)
     {
       // Send the promise here because the image will not get an 
       // update call until it has a parent
       sendPromise();
       rtLogWarn("In pxImage::onTextureReady, pxImage with url=%s has no parent!\n", mUrl.cString());
+    } 
+    else 
+    {
+      rtLogDebug("pxImage::onTextureReady parent mw=%f mh=%f\n",parent->w(), parent->h());
     }
      
     ////// send after width and height have been set
@@ -131,7 +146,7 @@ rtDefineObject(pxImage,pxObject);
 rtDefineProperty(pxImage,url);
 rtDefineProperty(pxImage,stretchX);
 rtDefineProperty(pxImage,stretchY);
-rtDefineProperty(pxImage,autoSize);
+//rtDefineProperty(pxImage,autoSize);
 rtDefineProperty(pxImage,statusCode);
 rtDefineProperty(pxImage,httpStatusCode);
 

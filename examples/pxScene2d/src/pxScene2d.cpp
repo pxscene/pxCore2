@@ -606,6 +606,11 @@ const float alphaEpsilon = (1.0f/255.0f);
 
 void pxObject::drawInternal(bool maskPass)
 {
+  //rtLogInfo("pxObject::drawInternal mw=%f mh=%f\n", mw, mh);
+  
+  float w = getOnscreenWidth();
+  float h = getOnscreenHeight();
+  
   if (!drawEnabled() && !maskPass)
   {
     return;
@@ -647,7 +652,7 @@ void pxObject::drawInternal(bool maskPass)
   printf("drawInternal: %s\n", mId.cString());
   m.dump();
 
-  pxVector4f v1(mx+mw, my, 0, 1);
+  pxVector4f v1(mx+w, my, 0, 1);
   printf("Print vector top\n");
   v1.dump();
 
@@ -656,7 +661,7 @@ void pxObject::drawInternal(bool maskPass)
   result1.dump();
 
 
-  pxVector4f v2(mx+mw, my+mh, 0, 1);
+  pxVector4f v2(mx+w, my+mh, 0, 1);
   printf("Print vector bottom\n");
   v2.dump();
 
@@ -670,8 +675,9 @@ void pxObject::drawInternal(bool maskPass)
   context.setMatrix(m);
   context.setAlpha(ma);
 
-  if (mClip && !context.isObjectOnScreen(0,0,mw,mh))
+  if (mClip && !context.isObjectOnScreen(0,0,w,h))
   {
+    //rtLogInfo("pxObject::drawInternal returning because object is not on screen mw=%f mh=%f\n", mw, mh);
     return;
   }
 
@@ -681,8 +687,9 @@ void pxObject::drawInternal(bool maskPass)
   #endif //PX_DIRTY_RECTANGLES
   
   float c[4] = {1, 0, 0, 1};
-  context.drawDiagRect(0, 0, mw, mh, c);
+  context.drawDiagRect(0, 0, w, h, c);
 
+  //rtLogInfo("pxObject::drawInternal mPainting=%d mw=%f mh=%f\n", mPainting, mw, mh);
   if (mPainting)
   {
     bool maskFound = false;
@@ -690,36 +697,41 @@ void pxObject::drawInternal(bool maskPass)
     {
       if ((*it)->drawAsMask())
       {
+        //rtLogInfo("pxObject::drawInternal drawAsMask is true mw=%f mh=%f\n", mw, mh);
         maskFound = true;
         break;
       }
     }
     if (maskFound)
     {
-      if (mw>alphaEpsilon && mh>alphaEpsilon)
+      if (w>alphaEpsilon && h>alphaEpsilon)
         draw();
 
-      pxContextFramebufferRef drawableSnapshot = context.createFramebuffer(mw, mh);
-      pxContextFramebufferRef maskSnapshot = context.createFramebuffer(mw, mh);
+      pxContextFramebufferRef drawableSnapshot = context.createFramebuffer(w, h);
+      pxContextFramebufferRef maskSnapshot = context.createFramebuffer(w, h);
       createSnapshotOfChildren(drawableSnapshot, maskSnapshot);
       context.setMatrix(m);
-      context.drawImage(0, 0, mw, mh, drawableSnapshot->getTexture(), maskSnapshot->getTexture(), PX_NONE, PX_NONE);
+      //rtLogInfo("context.drawImage\n");
+      context.drawImage(0, 0, w, h, drawableSnapshot->getTexture(), maskSnapshot->getTexture(), PX_NONE, PX_NONE);
     }
     else if (mClip || mMaskUrl.length() > 0)
     {
+      //rtLogInfo("calling createSnapshot for mw=%f mh=%f\n", mw, mh);
       mClipSnapshotRef = createSnapshot(mClipSnapshotRef);
       context.setMatrix(m);
       context.setAlpha(ma);
       if (mClipSnapshotRef.getPtr() != NULL)
       {
-        context.drawImage(0, 0, mw, mh, mClipSnapshotRef->getTexture(), mMaskTextureRef, PX_NONE, PX_NONE);
+        //rtLogInfo("context.drawImage\n");
+        context.drawImage(0, 0, w, h, mClipSnapshotRef->getTexture(), mMaskTextureRef, PX_NONE, PX_NONE);
       }
     }
     else
     {
       // trivially reject things too small to be seen
-      if (mw>alphaEpsilon && mh>alphaEpsilon && context.isObjectOnScreen(0, 0, mw, mh))
+      if (w>alphaEpsilon && h>alphaEpsilon && context.isObjectOnScreen(0, 0, w, h))
       {
+        //rtLogInfo("calling draw() mw=%f mh=%f\n", mw, mh);
         draw();
       }
 
@@ -727,6 +739,7 @@ void pxObject::drawInternal(bool maskPass)
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
       {
         context.pushState();
+        //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
         context.popState();
       }
@@ -734,7 +747,8 @@ void pxObject::drawInternal(bool maskPass)
   }
   else
   {
-    context.drawImage(0,0,mw,mh, mSnapshotRef->getTexture(), mMaskTextureRef, PX_NONE, PX_NONE);
+    //rtLogInfo("context.drawImage mw=%f mh=%f\n", mw, mh);
+    context.drawImage(0,0,w,h, mSnapshotRef->getTexture(), mMaskTextureRef, PX_NONE, PX_NONE);
   }
 
   if (!maskPass)
@@ -817,18 +831,25 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
   context.setMatrix(m);
   context.setAlpha(parentAlpha);
 
-  if (fbo.getPtr() == NULL || fbo->width() != floor(mw) || fbo->height() != floor(mh))
+
+  float w = getOnscreenWidth();
+  float h = getOnscreenHeight();
+
+  //rtLogInfo("createSnapshot  w=%f h=%f\n", w, h);
+  if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
   {
-    fbo = context.createFramebuffer(floor(mw), floor(mh));
+    //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
+    fbo = context.createFramebuffer(floor(w), floor(h));
   }
   else
   {
-    context.updateFramebuffer(fbo, floor(mw), floor(mh));
+    //rtLogInfo("updateFramebuffer  mw=%f mh=%f\n", w, h);
+    context.updateFramebuffer(fbo, floor(w), floor(h));
   }
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (mRepaint && context.setFramebuffer(fbo) == PX_OK)
   {
-    context.clear(mw, mh);
+    context.clear(w, h);
     draw();
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -845,7 +866,7 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
 
 void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxContextFramebufferRef maskFbo)
 {
-
+  //rtLogInfo("pxObject::createSnapshotOfChildren\n");
   pxMatrix4f m;
   float parentAlpha = ma;
 
@@ -853,28 +874,33 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
 
   context.setAlpha(parentAlpha);
 
-  if (drawableFbo.getPtr() == NULL || drawableFbo->width() != floor(mw) || drawableFbo->height() != floor(mh))
+  float w = getOnscreenWidth();
+  float h = getOnscreenHeight();
+
+  //rtLogInfo("createSnapshotOfChildren  w=%f h=%f\n", w, h);
+  
+  if (drawableFbo.getPtr() == NULL || drawableFbo->width() != floor(w) || drawableFbo->height() != floor(h))
   {
-    drawableFbo = context.createFramebuffer(floor(mw), floor(mh));
+    drawableFbo = context.createFramebuffer(floor(w), floor(h));
   }
   else
   {
-    context.updateFramebuffer(drawableFbo, floor(mw), floor(mh));
+    context.updateFramebuffer(drawableFbo, floor(w), floor(h));
   }
 
-  if (maskFbo.getPtr() == NULL || maskFbo->width() != floor(mw) || maskFbo->height() != floor(mh))
+  if (maskFbo.getPtr() == NULL || maskFbo->width() != floor(w) || maskFbo->height() != floor(h))
   {
     maskFbo = context.createFramebuffer(floor(mw), floor(mh));
   }
   else
   {
-    context.updateFramebuffer(maskFbo, floor(mw), floor(mh));
+    context.updateFramebuffer(maskFbo, floor(w), floor(h));
   }
 
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (context.setFramebuffer(maskFbo) == PX_OK)
   {
-    context.clear(mw, mh);
+    context.clear(w, h);
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
@@ -889,7 +915,7 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
 
   if (context.setFramebuffer(drawableFbo) == PX_OK)
   {
-    context.clear(mw, mh);
+    context.clear(w, h);
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
@@ -1192,6 +1218,7 @@ rtError pxScene2d::allInterpolators(rtObjectRef& v) const
 
 void pxScene2d::draw()
 {
+  //rtLogInfo("pxScene2d::draw()\n");
   #ifdef PX_DIRTY_RECTANGLES
   int x = mDirtyRect.left();
   int y = mDirtyRect.top();

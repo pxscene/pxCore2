@@ -1,12 +1,10 @@
 var root = scene.root;
 
 var url = "http://farm4.static.flickr.com/3307/5767175230_b5d2bf2312_z.jpg";
-
 //var container = scene.create({t:"object", parent:root, w:root.w, h:root.h});
 //scene.createImage({url:url,parent:container});
-
-// This works if load.js is updating the FPS text output on screen, but not if it's not!
-var myImage = scene.create({t:"image",parent:root,url:url,w:-1,h:-1,autoSize:false,clip:false});
+// This works now with changes to remove autoSize and use w/h as -1
+var myImage = scene.create({t:"image",parent:root,url:url,clip:false,  w:150, h:150});
 
 myImage.ready.then(function(obj)
 {

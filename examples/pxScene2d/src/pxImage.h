@@ -15,14 +15,16 @@ public:
   rtProperty(url, url, setUrl, rtString);
   rtProperty(stretchX, stretchX, setStretchX, int32_t);
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
-  rtProperty(autoSize, autoSize, setAutoSize, bool);
+//  rtProperty(autoSize, autoSize, setAutoSize, bool);
   rtReadOnlyProperty(statusCode, statusCode, int32_t);
   rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
   
-  pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(PX_NONE),mStretchY(PX_NONE),mTexture(), 
-    mTextureCacheObject(), mAutoSize(true), mStatusCode(0), mHttpStatusCode(0),imageLoaded(false)
+  pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(PX_NONE),mStretchY(PX_NONE), 
+    mTextureCacheObject(), mStatusCode(0), mHttpStatusCode(0),imageLoaded(false)
   { 
     mTextureCacheObject.setParent(this);
+    mw = -1;
+    mh = -1;
   }
 
   virtual ~pxImage() { rtLogDebug("~pxImage()"); }
@@ -49,17 +51,17 @@ public:
     return RT_OK;
   }
 
-  rtError autoSize(bool& v) const
-  {
-    v = mAutoSize;
-    return RT_OK;
-  }
+  //rtError autoSize(bool& v) const
+  //{
+    //v = mAutoSize;
+    //return RT_OK;
+  //}
 
-  rtError setAutoSize(bool v)
-  {
-    mAutoSize = v;
-    return RT_OK;
-  }
+  //rtError setAutoSize(bool v)
+  //{
+    //mAutoSize = v;
+    //return RT_OK;
+  //}
 
   rtError statusCode(int32_t& v) const
   {
@@ -72,13 +74,15 @@ public:
     v = (int32_t)mHttpStatusCode;
     return RT_OK;
   }
-  
   pxTextureRef getTexture()
   {
-    return mTexture;
+    return mTextureCacheObject.getTexture();
   }
 
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
+  // !CLF: To Do: These names are terrible... find better ones!
+  virtual float getOnscreenWidth() { if(mw==-1) return mTextureCacheObject.getTexture()->width(); else return mw; }
+  virtual float getOnscreenHeight() { if(mh==-1) return mTextureCacheObject.getTexture()->height(); else  return mh;  }
   
 protected:
   virtual void draw();
@@ -87,9 +91,9 @@ protected:
   rtString mUrl;
   pxStretch mStretchX;
   pxStretch mStretchY;
-  pxTextureRef mTexture;
+//  pxTextureRef mTexture;
   pxTextureCacheObject mTextureCacheObject;
-  bool mAutoSize;
+//  bool mAutoSize;
   int mStatusCode;
   int mHttpStatusCode;
   
