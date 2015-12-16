@@ -109,7 +109,7 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
       // Send the promise here because the image will not get an 
       // update call until it has a parent
       sendPromise();
-      rtLogWarn("In pxImage::onTextureReady, pxImage with url=%s has no parent!\n", mURL.cString());
+      rtLogDebug("In pxImage::onTextureReady, pxImage with url=%s has no parent!\n", mURL.cString());
     }
      
     ////// send after width and height have been set

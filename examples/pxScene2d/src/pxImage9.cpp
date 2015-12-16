@@ -88,7 +88,7 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
     // Send the promise here because the image will not get an 
     // update call until it has a parent
     sendPromise();
-    rtLogWarn("In pxImage9::onTextureReady, pxImage with url=%s has no parent!\n", mURL.cString());
+    rtLogDebug("In pxImage9::onTextureReady, pxImage with url=%s has no parent!\n", mURL.cString());
   }
   
   if (textureCacheObject != NULL && status == RT_OK && textureCacheObject->getTexture().getPtr() != NULL)
