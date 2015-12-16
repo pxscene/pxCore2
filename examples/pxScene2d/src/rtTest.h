@@ -1,8 +1,8 @@
-// rtTest.h CopyRight 2005-2006 John Robinson
-// rtCore
+// rtCore CopyRight 2005-2015 John Robinson
+// rtTest.h
 
-#ifndef _H_RT_TEST
-#define _H_RT_TEST
+#ifndef RT_TEST_H
+#define RT_TEST_H
 
 #include <stdio.h>
 

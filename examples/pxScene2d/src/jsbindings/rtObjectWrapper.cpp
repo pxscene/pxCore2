@@ -89,27 +89,30 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(Isolate* isolate, cons
 
   {
     rtString desc;
-    rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
-    if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
+    if (ref)
     {
-      Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
-
-      rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, isolate, resolver));
-      rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, isolate, resolver));
-
-      rtObjectRef newPromise;
-      rtObjectRef promise = ref;
-
-      Local<Object> jsPromise = resolver->GetPromise();
-      HandleMap::addWeakReference(isolate, ref, jsPromise);
-
-      err = promise.send("then", resolve, reject, newPromise);
-      if (err == RT_OK)
-        return scope.Escape(jsPromise);
-      else
-        rtLogError("failed to setup promise");
-
-      return scope.Escape(Local<Object>());
+      rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
+      if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
+      {
+        Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
+        
+        rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, isolate, resolver));
+        rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, isolate, resolver));
+        
+        rtObjectRef newPromise;
+        rtObjectRef promise = ref;
+        
+        Local<Object> jsPromise = resolver->GetPromise();
+        HandleMap::addWeakReference(isolate, ref, jsPromise);
+        
+        err = promise.send("then", resolve, reject, newPromise);
+        if (err == RT_OK)
+          return scope.Escape(jsPromise);
+        else
+          rtLogError("failed to setup promise");
+        
+        return scope.Escape(Local<Object>());
+      }
     }
   }
 

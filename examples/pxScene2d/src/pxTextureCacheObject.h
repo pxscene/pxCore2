@@ -25,7 +25,7 @@ typedef struct _ImageDownloadRequest
 #define RT_TEXTURE_STATUS_HTTP_ERROR     5
 #define RT_TEXTURE_STATUS_UNKNOWN_ERROR  6
 
-class pxTextureCacheObject
+class pxTextureCacheObject : public pxTextureNotifier
 {
 public:
   pxTextureCacheObject() : mRef(0), mTexture(), mURL(),
@@ -55,14 +55,15 @@ public:
   bool isDownloadInProgress() { return mDownloadInProgress; }
   void raiseDownloadPriority();
 
-
   void onImageDownloadComplete(ImageDownloadRequest imageDownloadRequest);
+  void notifyTextureReady(pxTexture* texture, rtError rtnCode, int statusCode, int httpStatusCode);
 
   static void checkForCompletedDownloads(int maxTimeInMilliseconds=10);
   
 protected:
   void loadImage(rtString url);
   void setStatus(int statusCode, int httpStatusCode=0);
+  void startImageDownload(rtString url);
   
   rtAtomic mRef;
   pxTextureRef mTexture;

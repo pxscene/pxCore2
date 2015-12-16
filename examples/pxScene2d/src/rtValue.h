@@ -9,7 +9,6 @@
 #include "rtDefs.h"
 #include "rtString.h"
 
-
 #define RT_voidType               '\0'
 #define RT_valueType              'v'
 #define RT_rtValueType            'v'
@@ -31,7 +30,7 @@
 #define RT_rtFunctionRefType      'f'
 #define RT_voidPtrType            'z'
 
-// JR Hack Only needed for reflection... method signature
+// TODO JR Hack Only needed for reflection... method signature
 #define RT_voidType2               "\0"
 #define RT_valueType2              "v"
 #define RT_rtValueType2            "v"
@@ -58,7 +57,8 @@ class rtFunctionRef;
 
 typedef void* voidPtr;
 
-union rtValue_ {
+union rtValue_ 
+{
   bool        boolValue;
   int8_t      int8Value;
   uint8_t     uint8Value;
@@ -76,7 +76,8 @@ union rtValue_ {
 
 typedef char rtType;
 
-class rtValue {
+class rtValue 
+{
  public:
   rtValue();
   rtValue(bool v);
@@ -98,6 +99,8 @@ class rtValue {
   rtValue(voidPtr v);
   ~rtValue();
 
+  void term() { setEmpty(); }
+
   finline rtValue& operator=(bool v)                { setBool(v);     return *this; }
   finline rtValue& operator=(int8_t v)              { setInt8(v);     return *this; }
   finline rtValue& operator=(uint8_t v)             { setUInt8(v);    return *this; }
@@ -106,16 +109,80 @@ class rtValue {
   finline rtValue& operator=(int64_t v)             { setInt64(v);    return *this; }
   finline rtValue& operator=(uint64_t v)            { setUInt64(v);   return *this; }
   finline rtValue& operator=(float v)               { setFloat(v);    return *this; }
-  finline rtValue& operator=(double v)              { setDouble(v);   return *this; }  
-  finline rtValue& operator=(rtIObject* v)          { setObject(v);   return *this; }
+  finline rtValue& operator=(double v)              { setDouble(v);   return *this; }
+  finline rtValue& operator=(const char* v)         { setString(v);   return *this; }
+  finline rtValue& operator=(const rtString& v)     { setString(v);   return *this; }
+  finline rtValue& operator=(const rtIObject* v)    { setObject(v);   return *this; }
   finline rtValue& operator=(const rtObjectRef& v)  { setObject(v);   return *this; }
-  finline rtValue& operator=(rtIFunction* v)        { setFunction(v); return *this; }
+  finline rtValue& operator=(const rtIFunction* v)  { setFunction(v); return *this; }
   finline rtValue& operator=(const rtFunctionRef& v){ setFunction(v); return *this; }
   finline rtValue& operator=(const rtValue& v)      { setValue(v);    return *this; }
   finline rtValue& operator=(voidPtr v)             { setVoidPtr(v);  return *this; }
 
   bool operator!=(const rtValue& rhs) const { return !(*this == rhs); }
   bool operator==(const rtValue& rhs) const;
+
+
+  finline bool       toBool()     const { bool v;        getBool(v);   return v; }
+  finline int8_t     toInt8()     const { int8_t v;      getInt8(v);   return v; }
+  finline uint8_t    toUInt8()    const { uint8_t v;     getUInt8(v);  return v; }
+  finline int32_t    toInt32()    const { int32_t v;     getInt32(v);  return v; }
+  finline uint32_t   toUInt32()   const { int32_t v;     getInt32(v);  return v; }
+  finline int64_t    toInt64()    const { int64_t v(0);  getInt64(v);  return v; }
+  finline uint64_t   toUInt64()   const { uint64_t v(0); getUInt64(v); return v; }
+  finline float      toFloat()    const { float v;       getFloat(v);  return v; }
+  finline double     toDouble()   const { double v;      getDouble(v); return v; }
+  finline rtString   toString()   const { rtString v;    getString(v); return v; }
+  rtObjectRef        toObject()   const;
+  rtFunctionRef      toFunction() const;
+  voidPtr            toVoidPtr()  const { voidPtr v;     getVoidPtr(v);return v; }
+
+  rtType getType() const { return mType; }
+
+  void setEmpty();
+  void setValue(const rtValue& v);
+  void setBool(bool v);
+  void setInt8(int8_t v);
+  void setUInt8(uint8_t v);
+  void setInt32(int32_t v);
+  void setUInt32(uint32_t v);
+  void setInt64(int64_t v);
+  void setUInt64(uint64_t v);
+  void setFloat(float v);
+  void setDouble(double v);
+  void setString(const rtString& v);
+  void setObject(const rtIObject* v);
+  void setObject(const rtObjectRef& v);
+  void setFunction(const rtIFunction* v);
+  void setFunction(const rtFunctionRef& v);
+  void setVoidPtr(voidPtr v);
+
+  rtError getValue(rtValue& v)          const;
+  rtError getBool(bool& v)              const;
+  rtError getInt8(int8_t& v)            const;
+  rtError getUInt8(uint8_t& v)          const;
+  rtError getInt32(int32_t& v)          const;
+  rtError getInt64(int64_t& v)          const;
+  rtError getUInt64(uint64_t& v)        const;
+  rtError getUInt32(uint32_t& v)        const;
+  rtError getFloat(float& v)            const;
+  rtError getDouble(double& v)          const;
+  rtError getString(rtString& v)        const;
+  rtError getObject(rtObjectRef& v)     const;
+  rtError getFunction(rtFunctionRef& v) const;
+  rtError getVoidPtr(voidPtr& v)        const;
+
+  // TODO rework this so we avoid a copy if the type matches
+  template <typename T> 
+    T convert() const { T t; cvt(t); return t; }
+
+  template <typename T> 
+    void assign(const T t) { asn(t); }
+
+ protected:
+
+  // Both values must have the same type
+  static bool compare(const rtValue& lhs, const rtValue& rhs);
 
   void cvt(rtValue& v)                const { getValue(v);    }
   void cvt(bool& v)                   const { getBool(v);     }
@@ -150,69 +217,8 @@ class rtValue {
   void asn(const rtFunctionRef& v)          { setFunction(v); }
   void asn(voidPtr v)                       { setVoidPtr(v);  }
 
-  finline bool       toBool()   const { bool v;        getBool(v);   return v; }
-  finline int8_t     toInt8()   const { int8_t v;      getInt8(v);   return v; }
-  finline uint8_t    toUInt8()  const { uint8_t v;     getUInt8(v);  return v; }
-  finline int32_t    toInt32()  const { int32_t v;     getInt32(v);  return v; }
-  finline uint32_t   toUInt32() const { int32_t v;     getInt32(v);  return v; }
-  finline int64_t    toInt64()  const { int64_t v(0);  getInt64(v);  return v; }
-  finline uint64_t   toUInt64() const { uint64_t v(0); getUInt64(v); return v; }
-  finline float      toFloat() const  { float v;       getFloat(v);  return v; }
-  finline double     toDouble() const { double v;      getDouble(v); return v; }
-  finline rtString   toString() const { rtString v;    getString(v); return v; }
-  //finline rtObjectRef toObject() const { rtObjectRef v; getObject(v); return v; }
-  rtObjectRef toObject() const;
-  rtFunctionRef toFunction() const;
-  voidPtr toVoidPtr() const;
-
-  // TODO rework this so we avoid a copy if the type matches
-  template <typename T> 
-    T convert() const { T t; cvt(t); return t; }
-
-  template <typename T> 
-    void assign(T t) { asn(t); }
-
-  // JRXXX
-  rtType getType() const { return mType; }
-
- public:
-  // explicit setters
-  void setEmpty();
-  void setValue(const rtValue& v);
-  void setBool(bool v);
-  void setInt8(int8_t v);
-  void setUInt8(uint8_t v);
-  void setInt32(int32_t v);
-  void setUInt32(uint32_t v);
-  void setInt64(int64_t v);
-  void setUInt64(uint64_t v);
-  void setFloat(float v);
-  void setDouble(double v);
-  void setString(const rtString& v);
-  void setObject(const rtIObject* v);
-  void setObject(const rtObjectRef& v);
-  void setFunction(const rtIFunction* v);
-  void setFunction(const rtFunctionRef& v);
-  void setVoidPtr(voidPtr v);
-
-  rtError getValue(rtValue& v)          const;
-  rtError getBool(bool& v)              const;
-  rtError getInt8(int8_t& v)            const;
-  rtError getUInt8(uint8_t& v)          const;
-  rtError getInt32(int32_t& v)          const;
-  rtError getInt64(int64_t& v)          const;
-  rtError getUInt64(uint64_t& v)        const;
-  rtError getUInt32(uint32_t& v)        const;
-  rtError getFloat(float& v)            const;
-  rtError getDouble(double& v)          const;
-  rtError getString(rtString& v)        const;
-  rtError getObject(rtObjectRef& v)     const;
-  rtError getFunction(rtFunctionRef& v) const;
-  rtError getVoidPtr(voidPtr& v)        const;
-
   rtError coerceType(rtType newType);
 
- protected:
   rtType mType;
   rtValue_ mValue;
 };

@@ -280,6 +280,20 @@ private:
   bool mBindTexture;
 };
 
+class pxTextureNone : public pxTexture 
+{
+public:
+  pxTextureNone() {}
+
+  virtual pxError deleteTexture() {return PX_FAIL;}
+  virtual int width() {return 0;}
+  virtual int height() {return 0;}
+  virtual pxError resizeTexture(int /*w*/, int /*h*/) { return PX_FAIL; }
+  virtual pxError getOffscreen(pxOffscreen& /*o*/)    { return PX_FAIL; }
+  virtual pxError bindGLTexture(int /*tLoc*/)         { return PX_FAIL; }
+  virtual pxError bindGLTextureAsMask(int /*mLoc*/)   { return PX_FAIL; }
+};
+   
 class pxTextureOffscreen : public pxTexture
 {
 public:
@@ -536,9 +550,8 @@ public:
     return PX_OK;
   }
   
-  virtual pxError getOffscreen(pxOffscreen& o)
+  virtual pxError getOffscreen(pxOffscreen& /*o*/)
   {
-    (void)o;
     if (!mInitialized)
     {
       return PX_NOTINITIALIZED;
@@ -546,8 +559,8 @@ public:
     return PX_FAIL;
   }
 
-  virtual int width() { return mDrawWidth; }
-  virtual int height() { return mDrawHeight; }
+  virtual int width()  {return mDrawWidth; }
+  virtual int height() {return mDrawHeight;}
   
 private:
   float mDrawWidth;
@@ -1361,6 +1374,12 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
   gSolidShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_LINES,verts,2,colorPM); 
 }
 
+pxTextureRef pxContext::createTexture()
+{
+  pxTextureNone* noneTexture = new pxTextureNone();
+  return noneTexture;
+}
+
 pxTextureRef pxContext::createTexture(pxOffscreen& o)
 {
   pxTextureOffscreen* offscreenTexture = new pxTextureOffscreen(o);
@@ -1403,15 +1422,15 @@ void pxContext::mapToScreenCoordinates(float inX, float inY, int &outX, int &out
   pxVector4f positionVector(inX, inY, 0, 1);
   pxVector4f positionCoords = gMatrix.multiply(positionVector);
 
-  if (positionCoords.mW == 0)
+  if (positionCoords.w() == 0)
   {
     outX = 0;
     outY = 0;
   }
   else
   {
-    outX = positionCoords.mX / positionCoords.mW;
-    outY = positionCoords.mY / positionCoords.mW;
+    outX = positionCoords.x() / positionCoords.w();
+    outY = positionCoords.y() / positionCoords.w();
   }
 }
 
@@ -1420,15 +1439,15 @@ void pxContext::mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int 
   pxVector4f positionVector(inX, inY, 0, 1);
   pxVector4f positionCoords = m.multiply(positionVector);
 
-  if (positionCoords.mW == 0)
+  if (positionCoords.w() == 0)
   {
     outX = 0;
     outY = 0;
   }
   else
   {
-    outX = positionCoords.mX / positionCoords.mW;
-    outY = positionCoords.mY / positionCoords.mW;
+    outX = positionCoords.x() / positionCoords.w();
+    outY = positionCoords.y() / positionCoords.w();
   }
 }
 

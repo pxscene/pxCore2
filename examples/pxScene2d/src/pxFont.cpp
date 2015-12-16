@@ -555,7 +555,7 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
 
 FontMap pxFontManager::mFontMap;
 bool pxFontManager::init = false;
-void pxFontManager::initFT(pxScene2d* scene) 
+void pxFontManager::initFT(pxScene2d* /*scene*/) 
 {
   if (init) 
   {
@@ -589,14 +589,14 @@ rtRefT<pxFont> pxFontManager::getFont(pxScene2d* scene, const char* s)
   FontMap::iterator it = mFontMap.find(s);
   if (it != mFontMap.end())
   {
-    rtLogInfo("Found pxFont in map for %s\n",s);
+    rtLogDebug("Found pxFont in map for %s\n",s);
     pFont = it->second;
     return pFont;  
     
   }
   else 
   {
-    rtLogInfo("Create pxFont in map for %s\n",s);
+    rtLogDebug("Create pxFont in map for %s\n",s);
     pFont = new pxFont(scene, s);
     mFontMap.insert(make_pair(s, pFont));
     pFont->loadFont();

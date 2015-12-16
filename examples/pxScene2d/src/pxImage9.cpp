@@ -18,14 +18,46 @@ extern "C"
 
 extern pxContext context;
 
-rtError pxImage9::url(rtString& s) const { s = mURL; return RT_OK; }
+void pxImage9::onInit()
+{
+  mInitialized = true;
+  setURL(mURL);
+}
+
+rtError pxImage9::url(rtString& s) const 
+{ 
+  s = mURL; 
+  return RT_OK; 
+}
+
 rtError pxImage9::setURL(const char* s) { 
+  
+  if(mURL.length() > 0 && mURL.compare(s) && imageLoaded)
+  {
+    imageLoaded = false;
+    pxObject::createNewPromise();
+  }      
   mURL = s;
+
   if (!s || !u8_strlen((char*)s)) 
     return RT_OK;  
-  loadImage(mURL);
+    
+  if(mInitialized)
+    loadImage(mURL);
+    
   return RT_OK;
 }
+
+void pxImage9::sendPromise() 
+{ 
+  //printf("image9 init=%d imageLoaded=%d\n",mInitialized,imageLoaded);
+  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status()) 
+  { 
+    rtLogDebug("pxImage9 SENDPROMISE for %s\n", mURL.cString()); 
+    mReady.send("resolve",this);
+  } 
+}
+
 
 void pxImage9::draw() {
   context.drawImage9(mw, mh, ml, mt, mr, mb, mTextureCacheObject.getTexture());
@@ -40,7 +72,7 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
 {
   if (pxObject::onTextureReady(textureCacheObject, status))
   {
-    mReady.send("resolve",this);
+    imageLoaded = true;
     return true;
   }
 
@@ -49,12 +81,21 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
     mStatusCode = textureCacheObject->getStatusCode();
     mHttpStatusCode = textureCacheObject->getHttpStatusCode();
   }
-
+  
+  pxObject* parent = mParent;
+  if( !parent)
+  {
+    // Send the promise here because the image will not get an 
+    // update call until it has a parent
+    sendPromise();
+    rtLogWarn("In pxImage9::onTextureReady, pxImage with url=%s has no parent!\n", mURL.cString());
+  }
+  
   if (textureCacheObject != NULL && status == RT_OK && textureCacheObject->getTexture().getPtr() != NULL)
   {
     mw = textureCacheObject->getTexture()->width();
     mh = textureCacheObject->getTexture()->height();
-    mReady.send("resolve",this);
+    imageLoaded = true;
     return true;
   }
   mReady.send("reject",this);

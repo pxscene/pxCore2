@@ -6,17 +6,58 @@
 #include "rtTest.h"
 #include "rtString.h"
 
+#include <string.h>
+
 void testString()
 {
   printf("testString\n");
   rtString s;
+  rtString s2;
   const char sz1[] = "Sample String";
   const char sz2[] = "String";
   const char sz3[] = "S";
+  const char sz4[] = "Iñtërnâtiônàližætiøn";
 
+  RT_TEST(s == NULL);
   RT_TEST(s == "");
   RT_TEST(s != sz1);
   RT_TEST(s.length() == 0);
+  RT_TEST(s.byteLength() == 0);
+  RT_TEST(strcmp(s.cString(),"") == 0);
+  RT_TEST(strcmp(s,"") == 0);
+  RT_TEST(s.isEmpty());
+  s = sz1;
+  RT_TEST(!s.isEmpty());
+  s.term();
+  RT_TEST(s.isEmpty());
+  s = sz4;
+  RT_TEST(s.length() == 20);
+  RT_TEST(s.byteLength() == 28);
+
+  RT_TEST(s == s);
+
+  s2 = sz4;
+  RT_TEST(s == s2);
+  RT_TEST(s2 == s);
+  
+  s = sz4;
+  s2 = "";
+  RT_TEST(s2 < s);
+  RT_TEST(s > s2);
+  RT_TEST(s2 <= s);
+  RT_TEST(s >= s2);
+  RT_TEST(s <= s);
+  RT_TEST(s >= s);
+  RT_TEST(s != s2);
+
+  s2 = "A";
+  RT_TEST(s2 < s);
+  RT_TEST(s > s2);
+  RT_TEST(s2 <= s);
+  RT_TEST(s >= s2);
+  RT_TEST(s <= s);
+  RT_TEST(s >= s);
+  RT_TEST(s != s2);
 
   s = sz1;
   RT_TEST(s != "");

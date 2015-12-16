@@ -216,7 +216,8 @@ if (argv.length >= 2) {
     var blackBg = scene.createRectangle({fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:1,parent:scene.root});
     var childScene = scene.createScene(configJson);
     scene.setFocus(childScene);
-    var fpsBg = scene.createRectangle({fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:1,parent:scene.root});
+    var showFPS = false;
+    var fpsBg = scene.createRectangle({fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:showFPS?1:0,parent:scene.root});
     var fpsCounter = scene.createText({x:5,textColor:0xffffffff,pixelSize:24,text:"0fps",parent:fpsBg});
     fpsBg.w = fpsCounter.w+16;
     fpsBg.h = fpsCounter.h;
@@ -227,7 +228,7 @@ if (argv.length >= 2) {
     }
 
     scene.on("onFPS", function(e) { 
-        if(fpsBg.a) {
+        if(showFPS) {
             fpsCounter.text = ""+Math.floor(e.fps)+"fps"; 
             fpsBg.w = fpsCounter.w+16;
             fpsBg.h = fpsCounter.h;
@@ -255,7 +256,8 @@ if (argv.length >= 2) {
 	    var code = e.keyCode; var flags = e.flags;
       console.log("onKeyDown:", code, ", ", flags);
       if (code == 89 && (flags & 48)) {  // ctrl-alt-y
-        fpsBg.a = (fpsBg.a==0)?1.0:0;
+        showFPS = !showFPS
+        fpsBg.a = (showFPS)?1.0:0;
         e.stopPropagation();
       }
       if (code == 79 && (flags & 48)) {  // ctrl-alt-o

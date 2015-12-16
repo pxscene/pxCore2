@@ -31,23 +31,32 @@ void pxText::onInit()
 }
 rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
 
+void pxText::sendPromise() 
+{ 
+  if(mInitialized && mFontLoaded && !((rtPromise*)mReady.getPtr())->status()) 
+  {
+    //printf("pxText SENDPROMISE\n");
+    mReady.send("resolve",this); 
+  }
+}
+
 rtError pxText::setText(const char* s) 
 { 
-  //printf("pxText::setText %s\n", s); 
   mText = s; 
+  createNewPromise();
   mFont->measureText(s, mPixelSize, 1.0, 1.0, mw, mh);
   return RT_OK; 
 }
 
 rtError pxText::setPixelSize(uint32_t v) 
 {   
-  //printf("pxText::setPixelSize\n"); 
   mPixelSize = v; 
+  createNewPromise();
   mFont->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
   return RT_OK; 
 }
 
-void pxText::fontLoaded(const char * value)
+void pxText::fontLoaded(const char * /*value*/)
 {
   //rtLogInfo("pxText::fontLoaded for fontFace=%s and mInitialized=%d\n",mFaceURL.compare("")?mFaceURL.cString():defaultFace, mInitialized); 
   mFontLoaded=true;
@@ -55,10 +64,9 @@ void pxText::fontLoaded(const char * value)
   // so measure it
   mFont->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
   mDirty=true;  
-  printf("After fontLoaded and measureText, mw=%f and mh=%f\n",mw,mh);
+//  printf("After fontLoaded and measureText, mw=%f and mh=%f\n",mw,mh);
   
   if( mInitialized) {
-    mReady.send(value, this);
     // This repaint logic is necessary for clearing FBO if
     // clipping is on
     repaint();
@@ -133,11 +141,12 @@ void pxText::draw() {
 
 rtError pxText::setFaceURL(const char* s)
 {
-  printf("pxText::setFaceURL for %s\n",s);
+  //printf("pxText::setFaceURL for %s\n",s);
   if (!s || !s[0]) {
     s = defaultFace;
   }
   mFontLoaded = false;
+  createNewPromise();
   mFaceURL = s;
 
   mFont = pxFontManager::getFont(mScene, s);

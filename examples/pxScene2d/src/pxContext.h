@@ -1,3 +1,6 @@
+// pxCore Copyright 2007-2015 John Robinson
+// pxContext.h
+
 #ifndef PX_CONTEXT_H
 #define PX_CONTEXT_H
 
@@ -43,6 +46,7 @@ class pxContext {
   void mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int &outX, int &outY);
   bool isObjectOnScreen(float x, float y, float width, float height);
 
+  pxTextureRef createTexture(); // default to use before image load is complete
   pxTextureRef createTexture(pxOffscreen& o);
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer);
 
@@ -62,7 +66,6 @@ class pxContext {
 
 private:
   bool mShowOutlines;
-
 };
 
 

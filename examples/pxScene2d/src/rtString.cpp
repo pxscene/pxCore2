@@ -7,19 +7,12 @@
 
 #include <stdio.h>
 #include "rtLog.h"
-extern "C" {
+extern "C" 
+{
 #include "utf8.h"
 }
 
-rtString::rtString(): mData(0)  
-{
-}
-
-rtString::rtString(char* s): mData(0) 
-{
-  if (s)
-    mData = strdup(s);
-}
+rtString::rtString(): mData(0) {}
 
 rtString::rtString(const char* s): mData(0) 
 {
@@ -27,7 +20,7 @@ rtString::rtString(const char* s): mData(0)
     mData = strdup(s);
 }
 
-rtString::rtString(const char* s, uint32_t byteLen)
+rtString::rtString(const char* s, uint32_t byteLen): mData(0)
 {
   if (s)
   {
@@ -45,28 +38,37 @@ rtString::rtString(const rtString& s): mData(0)
 
 rtString& rtString::operator=(const rtString& s) 
 {
-  if (s.mData) // Aliases
-    mData = strdup(s.mData);
+  if (this != &s)
+  {
+    term();
+    if (s.mData)
+      mData = strdup(s.mData);
+  }
   return *this;
 }
 
 rtString& rtString::operator=(const char* s) 
 {
-  if (s) // Aliases
-    mData = strdup(s);
+  if (s != mData)
+  {
+    term();
+    if (s)
+      mData = strdup(s);
+  }
   return *this;
 }
 
-bool rtString::isEmpty()
+bool rtString::isEmpty() const
 {
   return (!mData || !(*mData));
 }
 
 rtString::~rtString() { term(); }
 
-void rtString::term() {
+void rtString::term() 
+{
   if (mData)
-      free(mData);
+    free(mData);
   mData = 0;
 }
 
@@ -75,34 +77,32 @@ void rtString::append(const char* s)
   int sl = strlen(s);
   int dl = strlen(mData);
   mData = (char*)realloc((void*)mData, dl+sl+1);
-    strcpy(mData+dl, s);
+  strcpy(mData+dl, s);
 }
 
 int rtString::compare(const char* s) const 
 {
-  if( !mData) {
-    return strncmp("",s,strnlen(s,2));
-  }
+  const char *d = mData?mData:"";
+  s = s?s:"";
  
   u_int32_t c1, c2;
   int i1 = 0, i2 = 0;
   
-  do {
-    c1 = u8_nextchar((char*)s, &i1);
-    c2 = u8_nextchar((char*)mData, &i2);
+  do 
+  {
+    c1 = u8_nextchar((char*)d, &i1);
+    c2 = u8_nextchar((char*)s, &i2);
   } while (c1 == c2 && c1 && c2);
   
-  return c1-c2;
+  return c1==c2?0:c1<c2?-1:1;
 }
 
 
 const char* rtString::cString() const 
 {
-  // TODO const cast 
-  return mData?(const char*)mData:"";
+  return mData?mData:"";
 }
 
-//HACK: missing symbol. Is this utf8?
 int32_t rtString::length() const 
 {
   return mData?u8_strlen(mData):0;

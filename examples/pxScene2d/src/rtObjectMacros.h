@@ -1,5 +1,5 @@
 // rtCore CopyRight 2005-2015 John Robinson
-// rtObjectMactros.h
+// rtObjectMacros.h
 
 #ifndef RT_OBJECT_MACROS_H
 #define RT_OBJECT_MACROS_H

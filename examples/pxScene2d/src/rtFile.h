@@ -17,10 +17,13 @@
 
 #include "rtDefs.h"
 
-class rtData {
+class rtData 
+{
  public:
   rtData();
   ~rtData();
+
+  // TODO copy constructor and assignment
   
   rtError init(uint32_t length);
   rtError init(uint8_t* data, uint32_t length);
@@ -38,6 +41,7 @@ class rtData {
 rtError rtLoadFile(const char* f, rtData& data);
 rtError rtStoreFile(const char* f, rtData& data);
 
+#if 1
 class rtFilePointer
 {
 public:
@@ -83,5 +87,6 @@ public:
 private:
   FILE* mFile;
 };
+#endif
 
 #endif
