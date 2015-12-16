@@ -17,6 +17,11 @@ rtError pxArchive::initFromUrl(const rtString& url)
 
   mUrl = url;
 
+  // Since this object can be released before we get a async completion
+  // We need to maintain this object's lifetime
+  // TODO review overall flow and organization
+  AddRef();
+
   if (url.beginsWith("http:") || url.beginsWith("https:"))
   {
     mLoadStatus.set("sourceType", "http");
@@ -30,6 +35,7 @@ rtError pxArchive::initFromUrl(const rtString& url)
     // Assuming file
     mLoadStatus.set("sourceType", "file");
     // TODO align statusCodes for loadStatus
+
     if (rtLoadFile(url, mData) == RT_OK)
     {
       mLoadStatus.set("statusCode",0);
@@ -148,14 +154,12 @@ void pxArchive::onDownloadComplete(pxFileDownloadRequest* downloadRequest)
   }
   else
     gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, a, NULL);
-
-  // done with this
-  delete downloadRequest;
 }
 
 void pxArchive::onDownloadCompleteUI(void* context, void* /*data*/)
 {
   pxArchive* a = (pxArchive*)context;
+
   // Todo Real error condition
   if (a->mLoadStatus.get<int32_t>("statusCode") == 0)
   {
@@ -171,6 +175,9 @@ void pxArchive::onDownloadCompleteUI(void* context, void* /*data*/)
   }
   else
     a->mReady.send("reject", a);
+
+  //  We're done with the archive object so release it
+  a->Release();
 }
 
 void pxArchive::process(void* data, size_t dataSize)
