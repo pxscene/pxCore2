@@ -17,9 +17,7 @@ class rtPromise: public rtObject
 {
 public:
   rtDeclareObject(rtPromise,rtObject);
-
   rtMethod2ArgAndReturn("then",then,rtFunctionRef,rtFunctionRef,rtObjectRef);
-
   rtMethod1ArgAndNoReturn("resolve",resolve,rtValue);
   rtMethod1ArgAndNoReturn("reject",reject,rtValue);
 

@@ -1,7 +1,10 @@
-// rtError.h CopyRight 2005-2015 John Robinson
+// rtCore CopyRight 2005-2015 John Robinson
+// rtError.h
 
 #ifndef RT_ERROR_H
 #define RT_ERROR_H
+
+#include <stdint.h>
 
 #define RT_OK                           0
 #define RT_ERROR                        1
@@ -16,7 +19,7 @@
 #define RT_RESOURCE_NOT_FOUND		8
 #define RT_NO_CONNECTION		9
 
-typedef unsigned long rtError;
+typedef uint32_t rtError;
 
 const char* rtStrError(rtError e);
 

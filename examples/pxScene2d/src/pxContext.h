@@ -1,3 +1,6 @@
+// pxCore Copyright 2007-2015 John Robinson
+// pxContext.h
+
 #ifndef PX_CONTEXT_H
 #define PX_CONTEXT_H
 
@@ -63,7 +66,6 @@ class pxContext {
 
 private:
   bool mShowOutlines;
-
 };
 
 

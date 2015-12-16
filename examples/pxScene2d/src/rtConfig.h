@@ -1,3 +1,6 @@
+// rtCore Copyright 2007-2015 John Robinson
+// rtConfig.h
+
 #ifndef RT_CONFIG_H
 #define RT_CONFIG_H
 

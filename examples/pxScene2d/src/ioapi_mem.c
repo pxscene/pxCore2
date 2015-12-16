@@ -75,27 +75,28 @@ typedef struct ourmemory_s {
 
 voidpf ZCALLBACK fopen_mem_func (voidpf opaque, const void* filename, int mode)
 {
-    ourmemory_t *mem = malloc(sizeof(*mem));
-    if (mem==NULL)
-      return NULL; /* Can't allocate space, so failed */
-
-    /* Filenames are specified in the form :
-     *    <hex base of zip file>+<hex size of zip file>
-     * This may not work where memory addresses are longer than the
-     * size of an int and therefore may need addressing for 64bit
-     * architectures
-     */
-    if (sscanf(filename,"%p+%lx",&mem->base,&mem->size)!=2)
-      return NULL;
-
-    if (mode & ZLIB_FILEFUNC_MODE_CREATE)
-      mem->limit=0; /* When writing we start with 0 bytes written */
-    else
-      mem->limit=mem->size;
-
-    mem->cur_offset = 0;
-
-    return mem;
+  (void) opaque;
+  ourmemory_t *mem = malloc(sizeof(*mem));
+  if (mem==NULL)
+    return NULL; /* Can't allocate space, so failed */
+  
+  /* Filenames are specified in the form :
+   *    <hex base of zip file>+<hex size of zip file>
+   * This may not work where memory addresses are longer than the
+   * size of an int and therefore may need addressing for 64bit
+   * architectures
+   */
+  if (sscanf(filename,"%p+%lx",&mem->base,&mem->size)!=2)
+    return NULL;
+  
+  if (mode & ZLIB_FILEFUNC_MODE_CREATE)
+    mem->limit=0; /* When writing we start with 0 bytes written */
+  else
+    mem->limit=mem->size;
+  
+  mem->cur_offset = 0;
+  
+  return mem;
 }
 
 
@@ -105,15 +106,16 @@ uLong ZCALLBACK fread_mem_func (opaque, stream, buf, size)
    void* buf;
    uLong size;
 {
-    ourmemory_t *mem = (ourmemory_t *)stream;
-
-    if (size > mem->size - mem->cur_offset)
-      size = mem->size - mem->cur_offset;
-
-    memcpy(buf, mem->base + mem->cur_offset, size);
-    mem->cur_offset+=size;
-
-    return size;
+  (void) opaque;
+  ourmemory_t *mem = (ourmemory_t *)stream;
+  
+  if (size > mem->size - mem->cur_offset)
+    size = mem->size - mem->cur_offset;
+  
+  memcpy(buf, mem->base + mem->cur_offset, size);
+  mem->cur_offset+=size;
+  
+  return size;
 }
 
 
@@ -123,26 +125,27 @@ uLong ZCALLBACK fwrite_mem_func (opaque, stream, buf, size)
    const void* buf;
    uLong size;
 {
-    ourmemory_t *mem = (ourmemory_t *)stream;
-
-    if (size > mem->size - mem->cur_offset)
-      size = mem->size - mem->cur_offset;
-
-    memcpy(mem->base + mem->cur_offset, buf, size);
-    mem->cur_offset+=size;
-    if (mem->cur_offset > mem->limit)
-      mem->limit = mem->cur_offset;
-
-    return size;
+  (void) opaque;
+  ourmemory_t *mem = (ourmemory_t *)stream;
+  
+  if (size > mem->size - mem->cur_offset)
+    size = mem->size - mem->cur_offset;
+  
+  memcpy(mem->base + mem->cur_offset, buf, size);
+  mem->cur_offset+=size;
+  if (mem->cur_offset > mem->limit)
+    mem->limit = mem->cur_offset;
+  
+  return size;
 }
 
 ZPOS64_T ZCALLBACK ftell_mem_func (opaque, stream)
    voidpf opaque;
    voidpf stream;
 {
-    ourmemory_t *mem = (ourmemory_t *)stream;
-
-    return mem->cur_offset;
+  (void) opaque;
+  ourmemory_t *mem = (ourmemory_t *)stream; 
+  return mem->cur_offset;
 }
 
 long ZCALLBACK fseek_mem_func (opaque, stream, offset, origin)
@@ -151,57 +154,61 @@ long ZCALLBACK fseek_mem_func (opaque, stream, offset, origin)
    ZPOS64_T offset;
    int origin;
 {
-    ourmemory_t *mem = (ourmemory_t *)stream;
-    uLong new_pos;
-    switch (origin)
-    {
-    case ZLIB_FILEFUNC_SEEK_CUR :
-        new_pos = mem->cur_offset + offset;
-        break;
-    case ZLIB_FILEFUNC_SEEK_END :
-        new_pos = mem->limit + offset;
-        break;
-    case ZLIB_FILEFUNC_SEEK_SET :
-        new_pos = offset;
-        break;
-    default: return -1;
-    }
+  (void) opaque;
+  ourmemory_t *mem = (ourmemory_t *)stream;
+  uLong new_pos;
+  switch (origin)
+  {
+  case ZLIB_FILEFUNC_SEEK_CUR :
+    new_pos = mem->cur_offset + offset;
+    break;
+  case ZLIB_FILEFUNC_SEEK_END :
+    new_pos = mem->limit + offset;
+    break;
+  case ZLIB_FILEFUNC_SEEK_SET :
+    new_pos = offset;
+    break;
+  default: return -1;
+  }
 
-    if (new_pos > mem->size)
-      return 1; /* Failed to seek that far */
-
-    if (new_pos > mem->limit)
-      memset(mem->base + mem->limit, 0, new_pos - mem->limit);
-
-    mem->cur_offset = new_pos;
-    return 0;
+  if (new_pos > mem->size)
+    return 1; /* Failed to seek that far */
+  
+  if (new_pos > mem->limit)
+    memset(mem->base + mem->limit, 0, new_pos - mem->limit);
+  
+  mem->cur_offset = new_pos;
+  return 0;
 }
 
 int ZCALLBACK fclose_mem_func (opaque, stream)
    voidpf opaque;
    voidpf stream;
 {
-    ourmemory_t *mem = (ourmemory_t *)stream;
-
-    /* Note that once we've written to the buffer we don't tell anyone
-       about it here. Probably the opaque handle could be used to inform
-       some other component of how much data was written.
-
-       This, and other aspects of writing through this interface, has
-       not been tested.
-     */
-
-    free (mem);
-    return 0;
+  (void) opaque;
+  ourmemory_t *mem = (ourmemory_t *)stream;
+  
+  /* Note that once we've written to the buffer we don't tell anyone
+     about it here. Probably the opaque handle could be used to inform
+     some other component of how much data was written.
+     
+     This, and other aspects of writing through this interface, has
+     not been tested.
+  */
+  
+  free (mem);
+  return 0;
 }
 
 int ZCALLBACK ferror_mem_func (opaque, stream)
    voidpf opaque;
    voidpf stream;
 {
+  (void) opaque;
+  (void) stream;
 //    ourmemory_t *mem = (ourmemory_t *)stream;
-    /* We never return errors */
-    return 0;
+  /* We never return errors */
+  return 0;
 }
 
 void fill_memory_filefunc64 (pzlib_filefunc_def)

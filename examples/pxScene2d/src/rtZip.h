@@ -1,3 +1,6 @@
+// rtCore CopyRight 2007-2015 John Robinson
+// rtZip.h
+
 #ifndef _RT_ZIP_H
 #define _RT_ZIP_H
 

@@ -5,10 +5,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-rtError rtGetCurrentDirectory(rtString& d) {
+rtError rtGetCurrentDirectory(rtString& d) 
+{
   char* p = getcwd(NULL, 0);
 
-  if (p) {
+  if (p) 
+  {
     d = p;
     free(p);
   }

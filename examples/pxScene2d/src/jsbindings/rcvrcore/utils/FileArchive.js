@@ -11,12 +11,13 @@ var log = new Logger('FileUtils');
 
 var tarDirectory = {};
 
-function FileArchive(filePath) {
+function FileArchive(filePath, nativeFileArchive) {
   this.filePath = filePath;
   this.baseFilePath = filePath.substring(0, filePath.lastIndexOf('/'));
   this.numEntries = 0;
   this.directory = {};
   this.jar = null;
+  this.nativeFileArchive = nativeFileArchive;
 }
 
 FileArchive.prototype.getFilePath = function() {
@@ -65,11 +66,23 @@ FileArchive.prototype.removeFile = function(filename) {
 }
 
 FileArchive.prototype.getFileContents = function(filename) {
+  console.log("FileArchive::getFileContents<" + filename + ">");
   if( this.directory.hasOwnProperty(filename) ) {
     return this.directory[filename];
   } else {
-    console.error("No file contents in [" + this.baseFilePath + "] for " + filename);
-    return null;
+    var fileContents = null;
+    if( this.nativeFileArchive !== undefined ) {
+      console.log("Looking file file in native archive: " + filename);
+      fileContents = this.nativeFileArchive.getFileAsString(filename);
+    }
+    if( fileContents === undefined || fileContents === null ) {
+      console.error("No file contents in [" + this.baseFilePath + "] for " + filename);
+      return null;
+    }
+
+    console.log("Found file <" + filename + ">: " + "ok");
+
+    return fileContents;
   }
 }
 
@@ -158,8 +171,29 @@ FileArchive.prototype.addArchiveEntry = function(filename, data) {
 }
 
 FileArchive.prototype.hasFileContents = function(filename) {
-  return this.directory.hasOwnProperty(filename);
+  var hasFile = this.directory.hasOwnProperty(filename);
+  if( hasFile == false ) {
+    if (this.nativeFileArchive !== undefined) {
+      hasFile = isFileInList(filename, this.nativeFileArchive.fileNames);
+    }
+  }
+
+    console.log("hasFileContents(" + filename + ") = " + hasFile);
+
+    return hasFile;
 }
+
+
+function isFileInList(fileName, list) {
+  for(var k = 0; k < list.length; ++k) {
+    if( list[k] === fileName ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 
 function hasExtension(filePath, extension) {
   var idx = filePath.lastIndexOf(extension);

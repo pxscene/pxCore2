@@ -99,6 +99,8 @@ class rtValue
   rtValue(voidPtr v);
   ~rtValue();
 
+  void term() { setEmpty(); }
+
   finline rtValue& operator=(bool v)                { setBool(v);     return *this; }
   finline rtValue& operator=(int8_t v)              { setInt8(v);     return *this; }
   finline rtValue& operator=(uint8_t v)             { setUInt8(v);    return *this; }
@@ -110,9 +112,9 @@ class rtValue
   finline rtValue& operator=(double v)              { setDouble(v);   return *this; }
   finline rtValue& operator=(const char* v)         { setString(v);   return *this; }
   finline rtValue& operator=(const rtString& v)     { setString(v);   return *this; }
-  finline rtValue& operator=(rtIObject* v)          { setObject(v);   return *this; }
+  finline rtValue& operator=(const rtIObject* v)    { setObject(v);   return *this; }
   finline rtValue& operator=(const rtObjectRef& v)  { setObject(v);   return *this; }
-  finline rtValue& operator=(rtIFunction* v)        { setFunction(v); return *this; }
+  finline rtValue& operator=(const rtIFunction* v)  { setFunction(v); return *this; }
   finline rtValue& operator=(const rtFunctionRef& v){ setFunction(v); return *this; }
   finline rtValue& operator=(const rtValue& v)      { setValue(v);    return *this; }
   finline rtValue& operator=(voidPtr v)             { setVoidPtr(v);  return *this; }
@@ -175,7 +177,7 @@ class rtValue
     T convert() const { T t; cvt(t); return t; }
 
   template <typename T> 
-    void assign(T t) { asn(t); }
+    void assign(const T t) { asn(t); }
 
  protected:
 
