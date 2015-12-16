@@ -34,7 +34,7 @@ function AppSceneContext(params) { // container, innerscene, packageUrl) {
   this.sandbox = {};
   this.scriptMap = {};
   this.xmoduleMap = {};
-  this.asyncFileAcquisition = new AsyncFileAcquisition();
+  this.asyncFileAcquisition = new AsyncFileAcquisition(params.scene);
   this.lastHrTime = process.hrtime();
   this.resizeTimer = null;
   this.topXModule = null;
@@ -717,7 +717,8 @@ AppSceneContext.prototype.isScriptReady = function(name) {
   return false;
 }
 
-function AsyncFileAcquisition() {
+function AsyncFileAcquisition(scene) {
+  this.scene = scene;
   this.requestMap = {};
 }
 
@@ -740,7 +741,7 @@ AsyncFileAcquisition.prototype.acquire = function(uri) {
       _this.requestMap[uri] = {status: "acquiring", moduleLoader: moduleLoader, listeners: []};
       var self = _this;
       log.message(4, "ACQUISITION: adding requestor for: " + uri);
-      moduleLoader.loadScenePackage({fileUri:uri})
+      moduleLoader.loadScenePackage(_this.scene, {fileUri:uri})
         .then(function() {
           log.message(4, "---> ACQUIRED: " + uri);
           resolve(moduleLoader);
