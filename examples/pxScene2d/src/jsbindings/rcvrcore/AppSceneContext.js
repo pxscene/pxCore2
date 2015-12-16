@@ -80,7 +80,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
 
   var moduleLoader = new SceneModuleLoader();
 
-  moduleLoader.loadScenePackage({fileUri:packageUri})
+  moduleLoader.loadScenePackage(this.innerscene, {fileUri:packageUri})
     .then(function processScenePackage() {
       _this.fileArchive = moduleLoader.getFileArchive();
       _this.packageManifest = moduleLoader.getManifest();
