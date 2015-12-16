@@ -206,7 +206,9 @@ rtError rtMapObject::Get(const char* name, rtValue* value)
     vector<rtNamedValue>::iterator it = mProps.begin();
     while(it != mProps.end())
     {
-      keys->pushBack(it->n);
+      // exclude allKeys
+      if (it->n != "allKeys")
+        keys->pushBack(it->n);
       it++;
     }
     *value = keys;
@@ -542,7 +544,8 @@ rtError rtObject::allKeys(rtObjectRef& v) const
       rtPropertyEntry* e = m->getFirstProperty();
       while(e) 
       {
-        keys->pushBack(e->mPropertyName);
+        if (e->mPropertyName != "allKeys")
+          keys->pushBack(e->mPropertyName);
         e = e->mNext;
       }
       m = m->parentsMap;
