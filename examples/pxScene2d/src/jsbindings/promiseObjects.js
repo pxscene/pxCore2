@@ -8,6 +8,9 @@ root.ready.then(function(sceneObj) {
   console.log("received scene promise");
 });
 
+var font = scene.getFont("http://54.146.54.142/tom/receiverdotjs/fonts/XFINITYSansTT-New-Lgt.ttf");
+font.ready.then(function(obj){ console.log("Font is ready")});
+
 var rectReady1 = rect.ready;
 rect.ready.then(function(obj){
   console.log("received rect promise");
@@ -71,8 +74,8 @@ myImage.ready.then(function(obj)
 {
   console.log("received image promise");
   console.log("image dimensions before set are w="+myImage.w+" and h="+myImage.h);
-  obj.w = 200;
-  obj.h = 200;
+  //obj.w = 200;
+  //obj.h = 200;
   console.log("image dimensions are w="+myImage.w+" and h="+myImage.h);
   
   obj.ready.then(function(newObj)

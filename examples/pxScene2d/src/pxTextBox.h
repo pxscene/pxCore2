@@ -231,7 +231,6 @@ public:
   float leading()             const { return mLeading; }
   rtError leading(float& v)   const { v = mLeading; return RT_OK;   }
   rtError setLeading(float v)       { mLeading = v;  setNeedsRecalc(true); return RT_OK;   }  
-  
   virtual rtError setText(const char* s); 
   virtual rtError setPixelSize(uint32_t v);
   virtual rtError setFontUrl(const char* s);

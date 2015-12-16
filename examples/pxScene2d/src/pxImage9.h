@@ -6,6 +6,7 @@
 
 #include "pxOffscreen.h"
 #include "pxTextureCacheObject.h"
+#include "rtResource.h"
 
 class pxImage9: public pxObject {
 public:
@@ -15,6 +16,7 @@ public:
   rtProperty(insetTop, insetTop, setInsetTop, float);
   rtProperty(insetRight, insetRight, setInsetRight, float);
   rtProperty(insetBottom, insetBottom, setInsetBottom, float);
+  rtProperty(resource, resource, setResource, rtObjectRef);  
   rtReadOnlyProperty(statusCode, statusCode, int32_t);
   rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
 
@@ -22,11 +24,15 @@ public:
                                mStatusCode(0), mHttpStatusCode(0), imageLoaded(false) 
   { 
     mTextureCacheObject.setParent(this); 
+    mResource = new rtResourceImage;
   }
   
   rtError url(rtString& s) const;
   rtError setUrl(const char* s);
-  
+
+  rtError resource(rtObjectRef& o) const { printf("!!!!!!!!!!!!!!!!!!!!pxImage9 getResource\n");o = mResource; return RT_OK; }
+  rtError setResource(rtObjectRef o) { printf("!!!!!!!!!!!!!!!!!!!!!!!pxImage9 setResource\n");mResource = o; return RT_OK; }
+    
   rtError insetLeft(float& v) const { v = mInsetLeft; return RT_OK; }
   rtError setInsetLeft(float v) { mInsetLeft = v; return RT_OK; }
   rtError insetTop(float& v) const { v = mInsetTop; return RT_OK; }
@@ -51,7 +57,7 @@ public:
   virtual void onInit();
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
   virtual void sendPromise();
-  virtual void createNewPromise() { rtLogDebug("pxImage9 ignoring createNewPromise\n"); }
+  virtual void createNewPromise() { rtLogInfo("pxImage9 ignoring createNewPromise\n"); }
   
 protected:
   virtual void draw();
@@ -60,6 +66,7 @@ protected:
   rtString mUrl;
   float mInsetLeft, mInsetTop, mInsetRight, mInsetBottom;
   pxTextureCacheObject mTextureCacheObject;
+  rtObjectRef mResource;  
   int mStatusCode;
   int mHttpStatusCode;
   

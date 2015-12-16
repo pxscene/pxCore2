@@ -30,6 +30,7 @@ using namespace std;
 #include "rtObjectMacros.h"
 #include "rtPromise.h"
 #include "rtThreadQueue.h"
+#include "rtResource.h"
 
 #include "pxCore.h"
 #include "pxIView.h"
@@ -257,43 +258,43 @@ public:
 
   float x()             const { return mx; }
   rtError x(float& v)   const { v = mx; return RT_OK;   }
-  rtError setX(float v)       { printf("setX\n");cancelAnimation("x"); mx = v; return RT_OK;   }
+  rtError setX(float v)       { cancelAnimation("x"); mx = v; return RT_OK;   }
   float y()             const { return my; }
   rtError y(float& v)   const { v = my; return RT_OK;   }
-  rtError setY(float v)       { printf("setY\n"); cancelAnimation("y"); my = v; return RT_OK;   }
+  rtError setY(float v)       { cancelAnimation("y"); my = v; return RT_OK;   }
   float w()             const { return mw; }
   rtError w(float& v)   const { v = mw; return RT_OK;   }
-  virtual rtError setW(float v)       { printf("setW\n");cancelAnimation("w"); createNewPromise();mw = v; return RT_OK;   }
+  virtual rtError setW(float v)       { cancelAnimation("w"); createNewPromise();mw = v; return RT_OK;   }
   float h()             const { return mh; }
   rtError h(float& v)   const { v = mh; return RT_OK;   }
-  virtual rtError setH(float v)       { printf("setH\n");cancelAnimation("h"); createNewPromise();mh = v; return RT_OK;   }
+  virtual rtError setH(float v)       { cancelAnimation("h"); createNewPromise();mh = v; return RT_OK;   }
   float cx()            const { return mcx;}
   rtError cx(float& v)  const { v = mcx; return RT_OK;  }
-  rtError setCX(float v)      { printf("set cx\n");cancelAnimation("cx"); createNewPromise();mcx = v; return RT_OK;  }
+  rtError setCX(float v)      { cancelAnimation("cx"); createNewPromise();mcx = v; return RT_OK;  }
   float cy()            const { return mcy;}
   rtError cy(float& v)  const { v = mcy; return RT_OK;  }
-  rtError setCY(float v)      { printf("set cy\n");cancelAnimation("cy"); createNewPromise();mcy = v; return RT_OK;  }
+  rtError setCY(float v)      { cancelAnimation("cy"); createNewPromise();mcy = v; return RT_OK;  }
   float sx()            const { return msx;}
   rtError sx(float& v)  const { v = msx; return RT_OK;  }
-  rtError setSX(float v)      { printf("set sx\n");cancelAnimation("sx"); createNewPromise();msx = v; return RT_OK;  }
+  rtError setSX(float v)      { cancelAnimation("sx"); createNewPromise();msx = v; return RT_OK;  }
   float sy()            const { return msy;}
   rtError sy(float& v)  const { v = msx; return RT_OK;  } 
-  rtError setSY(float v)      { printf("set sy\n");cancelAnimation("sy");createNewPromise(); msy = v; return RT_OK;  }
+  rtError setSY(float v)      { cancelAnimation("sy");createNewPromise(); msy = v; return RT_OK;  }
   float a()             const { return ma; }
   rtError a(float& v)   const { v = ma; return RT_OK;   }
-  rtError setA(float v)       { printf("set a\n");cancelAnimation("a"); ma = v; printf("set a DONE\n");return RT_OK;   }
+  rtError setA(float v)       { cancelAnimation("a"); ma = v; return RT_OK;   }
   float r()             const { return mr; }
   rtError r(float& v)   const { v = mr; return RT_OK;   }
-  rtError setR(float v)       { printf("set r\n");cancelAnimation("r"); createNewPromise();mr = v; return RT_OK;   }
+  rtError setR(float v)       { cancelAnimation("r"); createNewPromise();mr = v; return RT_OK;   }
   float rx()            const { return mrx;}
   rtError rx(float& v)  const { v = mrx; return RT_OK;  }
-  rtError setRX(float v)      { printf("set rx\n");cancelAnimation("rx"); createNewPromise(); mrx = v; return RT_OK;  }
+  rtError setRX(float v)      { cancelAnimation("rx"); createNewPromise(); mrx = v; return RT_OK;  }
   float ry()            const { return mry;}
   rtError ry(float& v)  const { v = mry; return RT_OK;  }
-  rtError setRY(float v)      { printf("set ry\n");cancelAnimation("ry"); createNewPromise();mry = v; return RT_OK;  }
+  rtError setRY(float v)      { cancelAnimation("ry"); createNewPromise();mry = v; return RT_OK;  }
   float rz()            const { return mrz;}
   rtError rz(float& v)  const { v = mrz; return RT_OK;  }
-  rtError setRZ(float v)      { printf("set rz\n");cancelAnimation("rz"); createNewPromise();mrz = v; return RT_OK;  }
+  rtError setRZ(float v)      { cancelAnimation("rz"); createNewPromise();mrz = v; return RT_OK;  }
   bool painting()            const { return mPainting;}
   rtError painting(bool& v)  const { v = mPainting; return RT_OK;  }
   rtError setPainting(bool v)

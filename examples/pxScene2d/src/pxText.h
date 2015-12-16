@@ -20,7 +20,8 @@ public:
   rtProperty(text, text, setText, rtString);
   rtProperty(textColor, textColor, setTextColor, uint32_t);
   rtProperty(pixelSize, pixelSize, setPixelSize, uint32_t);
-  rtProperty(fontUrl, fontUrl, setFontUrl, rtString);
+  rtProperty(fontUrl, fontUrl, setFontUrl, rtString);  
+  rtProperty(font, font, setFont, rtObjectRef);
 
   pxText(pxScene2d* scene);
   ~pxText() {}
@@ -45,12 +46,16 @@ public:
 
   rtError pixelSize(uint32_t& v) const { v = mPixelSize; return RT_OK; }
   virtual rtError setPixelSize(uint32_t v);
-
+  
+  rtError font(rtObjectRef& o) const { o = mFont; return RT_OK; }
+  rtError setFont(rtObjectRef o) { mFont = o; return RT_OK; }
+  
   virtual void update(double t);
   virtual void onInit();
   
   virtual rtError Set(const char* name, const rtValue* value)
   {
+    //rtLogInfo("pxText::Set %s\n",name);
 #if 1
     mDirty = mDirty || (!strcmp(name,"w") ||
               !strcmp(name,"h") ||
@@ -77,7 +82,7 @@ public:
   bool mFontLoaded;
   rtString mFontUrl;
 
-  rtRefT<pxFont> mFont;
+  rtObjectRef mFont;
   
   float mTextColor[4];
   uint32_t mPixelSize;

@@ -46,13 +46,13 @@ struct GlyphCacheEntry
  * pxTextMetrics
  * 
  **********************************************************************/
-class pxTextMetrics: public pxObject {
+class pxTextMetrics: public rtObject {
 
 public:
-	pxTextMetrics(pxScene2d* s): pxObject(s) {  }
+	pxTextMetrics(){  }
 	virtual ~pxTextMetrics() {}
 
-	rtDeclareObject(pxTextMetrics, pxObject);
+	rtDeclareObject(pxTextMetrics, rtObject);
 	rtReadOnlyProperty(height, height, float); 
 	rtReadOnlyProperty(ascent, ascent, float);
 	rtReadOnlyProperty(descent, descent, float);
@@ -92,16 +92,31 @@ public:
  * pxTextMeasurements
  * 
  **********************************************************************/
-class pxTextSimpleMeasurements: public pxObject {
+class pxTextSimpleMeasurements: public rtObject {
 
 public:
-	pxTextSimpleMeasurements(pxScene2d* s): pxObject(s) { 
+	pxTextSimpleMeasurements() { 
 
   }
 	virtual ~pxTextSimpleMeasurements() {}
 
-	rtDeclareObject(pxTextSimpleMeasurements, pxObject);
+	rtDeclareObject(pxTextSimpleMeasurements, rtObject);
+  rtReadOnlyProperty(w, w, int32_t);
+  rtReadOnlyProperty(h, h, int32_t);  
+
+  int32_t w() const { return mw;  }
+  rtError w(int32_t& v) const { v = mw;  return RT_OK; }
+  int32_t h() const { return mh; }
+  rtError h(int32_t& v) const { v = mh; return RT_OK; }   
+
+  void setW(int32_t v) { mw = v; }
+  void setH(int32_t v) { mh = v; }  
     
+protected:
+ 
+  
+  int32_t mw;
+  int32_t mh;
 };
 
 /**********************************************************************
@@ -109,20 +124,26 @@ public:
  * pxFont
  * 
  **********************************************************************/
-class pxFont: public pxObject {
+class pxFont: public rtResource {
 
 public:
-	pxFont(pxScene2d* s, rtString fontUrl);
+	pxFont(rtString fontUrl);
 	virtual ~pxFont() ;
 
-	rtDeclareObject(pxFont, pxObject);
+	rtDeclareObject(pxFont, rtResource);
+  rtReadOnlyProperty(ready, ready, rtObjectRef);
   rtMethod1ArgAndReturn("getFontMetrics", getFontMetrics, uint32_t, rtObjectRef);
   rtError getFontMetrics(uint32_t pixelSize, rtObjectRef& o);
   rtMethod2ArgAndReturn("measureText", measureText, uint32_t, rtString, rtObjectRef);
   rtError measureText(uint32_t, rtString, rtObjectRef& o);   
   
-  
-  rtString getFontName() { return mFontName;}
+  //rtError ready(rtObjectRef& v) const
+  //{
+    //v = mReady;
+    //return RT_OK;
+  //}
+    
+  //rtString getFontName() { return mFontName;}
   void fontLoaded();
   void onFontDownloadComplete(FontDownloadRequest fontDownloadRequest);
   void onDownloadComplete(const FT_Byte* fontData, FT_Long size, const char* n);
@@ -138,7 +159,8 @@ public:
   const GlyphCacheEntry* getGlyph(uint32_t codePoint);  
   void getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading);
   void getHeight(uint32_t size, float& height);
-  void measureText(const char* text, uint32_t size,  float sx, float sy, 
+  void measureText(const char* text, uint32_t size, float& w, float& h);
+  void measureTextInternal(const char* text, uint32_t size,  float sx, float sy, 
                    float& w, float& h);
   void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
                          float& w, float& h);                   
@@ -146,13 +168,16 @@ public:
                   float sx, float sy, 
                   float* color, float mw);
 
+  // !CLF: TO DO:  Need an impl of this or need rtResource to require url for init
+  virtual void init() {}
+  
 private:
   rtError init(const char* n);
   rtError init(const FT_Byte*  fontData, FT_Long size, const char* n); 
   void sendReady(const char * value); 
 
   uint32_t mFontId;
-  rtString mFontName;
+  //rtString mFontName;
   FT_Face mFace;
   uint32_t mPixelSize;
   

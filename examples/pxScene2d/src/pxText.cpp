@@ -25,7 +25,7 @@ void pxText::onInit()
 
   mInitialized = true;
 
-  if( mFont->isFontLoaded()) {
+  if( ((pxFont*)mFont.getPtr())->isFontLoaded()) {
     fontLoaded("resolve");
   }
 }
@@ -42,27 +42,30 @@ void pxText::sendPromise()
 
 rtError pxText::setText(const char* s) 
 { 
+  //rtLogInfo("pxText::setText\n");
   mText = s; 
   createNewPromise();
-  mFont->measureText(s, mPixelSize, 1.0, 1.0, mw, mh);
+  ((pxFont*)mFont.getPtr())->measureTextInternal(s, mPixelSize, 1.0, 1.0, mw, mh);
   return RT_OK; 
 }
 
 rtError pxText::setPixelSize(uint32_t v) 
 {   
+  //rtLogInfo("pxText::setPixelSize\n");
   mPixelSize = v; 
   createNewPromise();
-  mFont->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+  ((pxFont*)mFont.getPtr())->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
   return RT_OK; 
 }
 
 void pxText::fontLoaded(const char * value)
 {
-  //rtLogInfo("pxText::fontLoaded for fontName=%s and mInitialized=%d\n",mFontUrl.compare("")?mFontUrl.cString():defaultFont, mInitialized); 
+  printf("pxText::fontLoaded for text value=%s\n",mText.cString());
+  rtLogInfo("pxText::fontLoaded for fontName=%s and mInitialized=%d\n",mFontUrl.compare("")?mFontUrl.cString():defaultFont, mInitialized); 
   mFontLoaded=true;
   // pxText gets its height and width from the text itself, 
   // so measure it
-  mFont->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+  ((pxFont*)mFont.getPtr())->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
   mDirty=true;  
 //  printf("After fontLoaded and measureText, mw=%f and mh=%f\n",mw,mh);
   
@@ -135,7 +138,7 @@ void pxText::draw() {
   }
   else
   {
-    mFont->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
+    ((pxFont*)mFont.getPtr())->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
   }
 }
 
@@ -150,7 +153,7 @@ rtError pxText::setFontUrl(const char* s)
   mFontUrl = s;
 
   mFont = pxFontManager::getFont(mScene, s);
-  mFont->addListener(this);
+  ((pxFont*)mFont.getPtr())->addListener(this);
   
   return RT_OK;
 }
@@ -160,3 +163,4 @@ rtDefineProperty(pxText, text);
 rtDefineProperty(pxText, textColor);
 rtDefineProperty(pxText, pixelSize);
 rtDefineProperty(pxText, fontUrl);
+rtDefineProperty(pxText, font);

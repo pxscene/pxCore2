@@ -16,6 +16,7 @@
         "../rtString.cpp",
         "../rtValue.cpp",
         "../rtFile.cpp",
+        "../rtResource.cpp",
         "../rtThreadPool.cpp",
         "../rtThreadTask.cpp",
         "../rtLibrary.cpp",

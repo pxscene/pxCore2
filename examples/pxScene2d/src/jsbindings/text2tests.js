@@ -19,13 +19,28 @@ var newlineText = "Paragraph\nParagraph longer\nParagraph more";
 root.w=800;
 
 // Use the font vars below to preload fonts so that they stay loaded. 
-/*
+
 var fontDancing = scene.getFont(DancingScript);
 var fontDejaVu = scene.getFont(fontUrlStart+DejaVu);
 var fontDejaVuSerif = scene.getFont(fontUrlStart+DejaVuSerif);
 var fontXFinity = scene.getFont(fontUrlStart+XFinity);
 var fontXFinityBold = scene.getFont(fontUrlStart+XFinityBold);
-*/
+
+fontDejaVu.ready.then(function(f) {
+  console.log("Ready for DejaVu font!");
+  var tmpMetrics = f.getFontMetrics(35);
+ 	console.log("height is "+tmpMetrics.height);
+	console.log("ascent is "+tmpMetrics.ascent);
+	console.log("descent is "+tmpMetrics.descent);
+  console.log("naturalLeading is "+tmpMetrics.naturalLeading);
+  console.log("baseline is "+tmpMetrics.baseline); 
+  
+  var tmpMeasure = f.measureText(35, "Help me, please!");
+  console.log("font measurements w="+tmpMeasure.w);
+  console.log("font measurements h="+tmpMeasure.h);
+  
+});
+
 
 var bg = scene.create({t:"object", parent:root, x:100, y:100, w:1000, h:1000, clip:false});
 var rect = scene.create({t:"rect", parent:root, x:100, y:100, w:400, h:400, fillColor:0x00000000, lineColor:0xFF0000FF, lineWidth:1, clip:false});
@@ -295,6 +310,14 @@ scene.root.on("onChar", function(e) {
       text2.fontUrl = DancingScript; 
       fontStatus.text = "font="+DancingScript;
     }
+    var font = text2.font;
+    font.ready.then(function(f){
+      console.log("Font is ready url="+f.url);
+      var status = f.loadStatus;
+      console.log("status is ");
+      console.log(status);
+      console.log("Font is ready loadStatus.statusCode="+f.loadStatus.statusCode);
+      });
   }
   bg.removeAll();
   text2.ready.then(function(text) {

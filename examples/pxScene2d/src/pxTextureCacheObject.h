@@ -56,7 +56,7 @@ public:
   void raiseDownloadPriority();
 
   void onImageDownloadComplete(ImageDownloadRequest imageDownloadRequest);
-  void notifyTextureReady(pxTexture* texture, rtError rtnCode, int statusCode, int httpStatusCode);
+  void notifyTextureReady(pxTexture* texture, rtError rtnCode, int statusCode, int httpStatusCode=0);
 
   static void checkForCompletedDownloads(int maxTimeInMilliseconds=10);
   

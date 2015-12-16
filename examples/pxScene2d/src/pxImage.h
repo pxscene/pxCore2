@@ -8,6 +8,7 @@
 #include "rtMutex.h"
 #include "pxTexture.h"
 #include "pxTextureCacheObject.h"
+#include "rtResource.h"
 
 class pxImage: public pxObject {
 public:
@@ -15,6 +16,7 @@ public:
   rtProperty(url, url, setUrl, rtString);
   rtProperty(stretchX, stretchX, setStretchX, int32_t);
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
+  rtProperty(resource, resource, setResource, rtObjectRef);
 //  rtProperty(autoSize, autoSize, setAutoSize, bool);
   rtReadOnlyProperty(statusCode, statusCode, int32_t);
   rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
@@ -25,6 +27,7 @@ public:
     mTextureCacheObject.setParent(this);
     mw = -1;
     mh = -1;
+    mResource = new rtResourceImage;
   }
 
   virtual ~pxImage() { rtLogDebug("~pxImage()"); }
@@ -32,7 +35,7 @@ public:
   virtual void update(double t) { pxObject::update(t);}
   virtual void onInit();
   virtual void sendPromise();
-  virtual void createNewPromise() { rtLogDebug("pxImage ignoring createNewPromise\n"); }
+  virtual void createNewPromise() { rtLogInfo("pxImage ignoring createNewPromise\n"); }
   
   rtError url(rtString& s) const;
   rtError setUrl(const char* s);
@@ -50,18 +53,9 @@ public:
     mStretchY = (pxStretch)v;
     return RT_OK;
   }
-
-  //rtError autoSize(bool& v) const
-  //{
-    //v = mAutoSize;
-    //return RT_OK;
-  //}
-
-  //rtError setAutoSize(bool v)
-  //{
-    //mAutoSize = v;
-    //return RT_OK;
-  //}
+  
+  rtError resource(rtObjectRef& o) const { /*printf("!!!!!!!!!!!!!!!!!!!!!!!pxImage getResource\n");*/o = mResource; return RT_OK; }
+  rtError setResource(rtObjectRef o) { /*printf("!!!!!!!!!!!!!!!!!!!!!pxImage setResource\n");*/mResource = o; return RT_OK; }
 
   rtError statusCode(int32_t& v) const
   {
@@ -81,8 +75,8 @@ public:
 
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
   // !CLF: To Do: These names are terrible... find better ones!
-  virtual float getOnscreenWidth() { if(mw==-1) return mTextureCacheObject.getTexture()->width(); else return mw; }
-  virtual float getOnscreenHeight() { if(mh==-1) return mTextureCacheObject.getTexture()->height(); else  return mh;  }
+  virtual float getOnscreenWidth();// { if(mw==-1) return mTextureCacheObject.getTexture()->width(); else return mw; }
+  virtual float getOnscreenHeight();// { if(mh==-1) return mTextureCacheObject.getTexture()->height(); else  return mh;  }
   
 protected:
   virtual void draw();
@@ -93,6 +87,7 @@ protected:
   pxStretch mStretchY;
 //  pxTextureRef mTexture;
   pxTextureCacheObject mTextureCacheObject;
+  rtObjectRef mResource;
 //  bool mAutoSize;
   int mStatusCode;
   int mHttpStatusCode;

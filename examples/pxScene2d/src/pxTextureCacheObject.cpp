@@ -149,7 +149,7 @@ void pxTextureCacheObject::onImageDownloadComplete(ImageDownloadRequest imageDow
                 imageDownloadRequest.fileDownloadRequest->getHttpStatusCode());
       
       gCompleteTextureCache.erase(mUrl.cString());
-      mTexture->notifyListeners(mTexture,RT_FAIL, RT_TEXTURE_STATUS_HTTP_ERROR, imageDownloadRequest.fileDownloadRequest->getHttpStatusCode());
+      mTexture->notifyListeners(mTexture, RT_FAIL, RT_TEXTURE_STATUS_HTTP_ERROR, imageDownloadRequest.fileDownloadRequest->getHttpStatusCode());
       mTexture = 0;
   }
 }
@@ -176,7 +176,7 @@ void pxTextureCacheObject::setParent(pxObject* parent)
 }
 
 
-void pxTextureCacheObject::notifyTextureReady(pxTexture* texture, rtError rtnCode, int statusCode, int httpStatusCode=0)
+void pxTextureCacheObject::notifyTextureReady(pxTexture* texture, rtError rtnCode, int statusCode, int httpStatusCode)
 {
   mTexture = texture;
   setStatus(statusCode, httpStatusCode);

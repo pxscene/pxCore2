@@ -72,9 +72,9 @@ uint32_t gFontId = 0;
 void pxFont::onDownloadComplete(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
   rtLogInfo("pxFont::onDownloadComplete %s\n",n);
-  if( mFontName.compare(n)) 
+  if( mUrl.compare(n)) 
   {
-    rtLogWarn("pxFont::onDownloadComplete received for font \"%s\" but this font is \"%s\"\n",n, mFontName.cString());
+    rtLogWarn("pxFont::onDownloadComplete received for font \"%s\" but this font is \"%s\"\n",n, mUrl.cString());
     return; 
   }
 
@@ -87,7 +87,7 @@ void pxFont::onDownloadComplete(const FT_Byte*  fontData, FT_Long size, const ch
 
 rtError pxFont::init(const char* n)
 {
-  mFontName = n;
+  mUrl = n;
     
   if(FT_New_Face(ft, n, 0, &mFace))
     return RT_FAIL;
@@ -107,7 +107,7 @@ rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
   if(FT_New_Memory_Face(ft, (const FT_Byte*)mFontData, size, 0, &mFace))
     return RT_FAIL;
 
-  mFontName = n;
+  mUrl = n;
   mInitialized = true;
   setPixelSize(defaultPixelSize);
   
@@ -145,8 +145,11 @@ void pxFont::getMetrics(uint32_t size, float& height, float& ascender, float& de
 	// TO DO:  check FT_IS_SCALABLE 
   if( !mInitialized) 
   {
-    rtLogWarn("getMetrics called on font before it is initialized\n");
+    rtLogWarn("Font getMetrics called on font before it is initialized\n");
     return;
+  }
+  if(!size) {
+    rtLogWarn("Font getMetrics called with pixelSize=0\n");
   }
   
   setPixelSize(size);
@@ -198,7 +201,7 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
   return NULL;
 }
 
-void pxFont::measureText(const char* text, uint32_t size,  float sx, float sy, 
+void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, float sy, 
                          float& w, float& h) 
 {
   if( !mInitialized) 
@@ -303,7 +306,7 @@ void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, floa
     rtLogWarn("measureTextChar called TOO EARLY -- not initialized or font not loaded!\n");
     return;
   }
-  
+    
   setPixelSize(size);
   
   w = 0; h = 0;
@@ -325,23 +328,23 @@ void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, floa
 }
 
 
-pxFont::pxFont(pxScene2d* scene, rtString fontUrl):pxObject(scene), mPixelSize(0), mFontData(0), mInitialized(false), mFontDownloadRequest(NULL)
+pxFont::pxFont(rtString fontUrl):rtResource(),mPixelSize(0), mFontData(0), mInitialized(false), mFontDownloadRequest(NULL)
 {  
   mFontId = gFontId++; 
-  mFontName = fontUrl;
-  
+  mUrl = fontUrl;
+
 }
 
 pxFont::~pxFont() 
 {
-  rtLogInfo("~pxFont %s\n", mFontName.cString());
+  rtLogInfo("~pxFont %s\n", mUrl.cString());
   if (mFontDownloadRequest != NULL)
   {
     // clear any pending downloads
     mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
   }  
    
-  pxFontManager::removeFont( mFontName);
+  pxFontManager::removeFont( mUrl);
  
   if( mInitialized) 
   {
@@ -364,7 +367,7 @@ void pxFont::fontLoaded()
 
 void pxFont::addListener(pxText* pText) 
 {
-  //printf("pxFont::addListener for %s\n",mFontName.cString());
+  //printf("pxFont::addListener for %s\n",mUrl.cString());
   if( !mInitialized) 
   {
     mListeners.push_back(pText);
@@ -377,10 +380,10 @@ void pxFont::addListener(pxText* pText)
 }
 rtError pxFont::loadFont()
 {
-  rtLogInfo("pxFont::loadFont for %s\n",mFontName.cString());
-  const char *result = strstr(mFontName, "http");
-  int position = result - mFontName;
-  if (position == 0 && strlen(mFontName) > 0)
+  rtLogInfo("pxFont::loadFont for %s\n",mUrl.cString());
+  const char *result = strstr(mUrl, "http");
+  int position = result - mUrl;
+  if (position == 0 && strlen(mUrl) > 0)
   {
     if (mFontDownloadRequest != NULL)
     {
@@ -390,7 +393,7 @@ rtError pxFont::loadFont()
     }
     // Start the download request
     mFontDownloadRequest =
-        new pxFileDownloadRequest(mFontName, this);
+        new pxFileDownloadRequest(mUrl, this);
    
     fontDownloadsPending++;
     mFontDownloadRequest->setCallbackFunction(pxFontDownloadComplete);
@@ -398,16 +401,17 @@ rtError pxFont::loadFont()
 
   }
   else {
-    rtError e = init(mFontName);
+    rtError e = init(mUrl);
     if (e != RT_OK)
     {
-      rtLogWarn("Could not load font face %s\n", mFontName.cString());
+      rtLogWarn("Could not load font face %s\n", mUrl.cString());
       sendReady("reject");
 
       return e;
     }
     else
     {
+      setLoadStatus("statusCode", "OK");
       fontLoaded();
 
     }
@@ -465,9 +469,14 @@ void pxFont::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
   mFontDownloadRequest = NULL;
   if (fontDownloadRequest.fileDownloadRequest == NULL)
   {
+    setLoadStatus("statusCode", "FAIL");
     sendReady("reject");
     return;
   }
+  
+  setLoadStatus("statusCode", fontDownloadRequest.fileDownloadRequest->getDownloadStatusCode());
+  setLoadStatus("httpStatusCode", fontDownloadRequest.fileDownloadRequest->getHttpStatusCode());
+  
   if (fontDownloadRequest.fileDownloadRequest->getDownloadStatusCode() == 0 &&
       fontDownloadRequest.fileDownloadRequest->getHttpStatusCode() == 200 &&
       fontDownloadRequest.fileDownloadRequest->getDownloadedData() != NULL)
@@ -484,10 +493,10 @@ void pxFont::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
               fontDownloadRequest.fileDownloadRequest->getFileUrl().cString(),
               fontDownloadRequest.fileDownloadRequest->getErrorString().cString(),
               fontDownloadRequest.fileDownloadRequest->getHttpStatusCode());
-    if (mParent != NULL)
-    {
+
+
       sendReady("reject");
-    }
+
   }
 }
 void pxFont::sendReady(const char * value)
@@ -514,7 +523,7 @@ rtError pxFont::getFontMetrics(uint32_t pixelSize, rtObjectRef& o)
 {
   //printf("pxFont::getFontMetrics\n");  
 	float height, ascent, descent, naturalLeading;
-	pxTextMetrics* metrics = new pxTextMetrics(mScene);
+	pxTextMetrics* metrics = new pxTextMetrics();
 
   if(!mInitialized ) 
   {
@@ -528,7 +537,7 @@ rtError pxFont::getFontMetrics(uint32_t pixelSize, rtObjectRef& o)
 	metrics->setAscent(ascent);
 	metrics->setDescent(descent);
   metrics->setNaturalLeading(naturalLeading);
-  metrics->setBaseline(my+ascent);
+  metrics->setBaseline(ascent);
 	o = metrics;
 
 	return RT_OK;
@@ -536,21 +545,26 @@ rtError pxFont::getFontMetrics(uint32_t pixelSize, rtObjectRef& o)
 
 rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObjectRef& o)
 {
-    pxTextSimpleMeasurements* measure = new pxTextSimpleMeasurements(mScene);
-    
-    if(!mInitialized ) 
-    {
-      rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
-      o = measure;
-      return RT_OK; // !CLF: TO DO - COULD RETURN RT_ERROR HERE TO CATCH NOT WAITING ON PROMISE
-    } 
-    float w, h;
-    measureText(stringToMeasure, pixelSize, 1.0,1.0, w, h);
-    measure->setW(w);
-    measure->setH(h);
+  pxTextSimpleMeasurements* measure = new pxTextSimpleMeasurements();
+  
+  if(!mInitialized ) 
+  {
+    rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
     o = measure;
-    
-    return RT_OK; 
+    return RT_OK; // !CLF: TO DO - COULD RETURN RT_ERROR HERE TO CATCH NOT WAITING ON PROMISE
+  } 
+  
+  if(!pixelSize) {
+    rtLogWarn("Font measureText called with pixelSize=0\n");
+  }    
+  
+  float w, h;
+  measureTextInternal(stringToMeasure, pixelSize, 1.0,1.0, w, h);
+  measure->setW(w);
+  measure->setH(h);
+  o = measure;
+  
+  return RT_OK; 
 }
 
 FontMap pxFontManager::mFontMap;
@@ -597,7 +611,7 @@ rtRefT<pxFont> pxFontManager::getFont(pxScene2d* scene, const char* s)
   else 
   {
     rtLogDebug("Create pxFont in map for %s\n",s);
-    pFont = new pxFont(scene, s);
+    pFont = new pxFont(s);
     mFontMap.insert(make_pair(s, pFont));
     pFont->loadFont();
   }
@@ -616,7 +630,7 @@ void pxFontManager::removeFont(rtString fontName)
 
 
 // pxTextMetrics
-rtDefineObject(pxTextMetrics, pxObject);
+rtDefineObject(pxTextMetrics, rtResource);
 rtDefineProperty(pxTextMetrics, height); 
 rtDefineProperty(pxTextMetrics, ascent);
 rtDefineProperty(pxTextMetrics, descent);
@@ -624,8 +638,8 @@ rtDefineProperty(pxTextMetrics, naturalLeading);
 rtDefineProperty(pxTextMetrics, baseline);
 
 // pxFont
-rtDefineObject(pxFont, pxObject);
+rtDefineObject(pxFont, rtResource);
 rtDefineMethod(pxFont, getFontMetrics);
 rtDefineMethod(pxFont, measureText);
 
-rtDefineObject(pxTextSimpleMeasurements, pxObject);
+rtDefineObject(pxTextSimpleMeasurements, rtResource);
