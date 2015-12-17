@@ -544,7 +544,8 @@ rtError rtObject::allKeys(rtObjectRef& v) const
       rtPropertyEntry* e = m->getFirstProperty();
       while(e) 
       {
-        if (e->mPropertyName != "allKeys")
+        // exclude allKeys
+        if (strcmp(e->mPropertyName,"allKeys"))
           keys->pushBack(e->mPropertyName);
         e = e->mNext;
       }
