@@ -21,7 +21,14 @@ static int sLockCount;
 
 static rtMutex objectMapMutex;
 
-typedef std::map< rtIObject*, Persistent<Object>* > maptype_rt2v8;
+struct ObjectReference
+{
+  Persistent<Object>* v8;
+  rtObjectRef         rt;
+};
+
+//typedef std::map< rtIObject*, Persistent<Object>* > maptype_rt2v8;
+typedef std::map< rtIObject*, ObjectReference > maptype_rt2v8;
 
 maptype_rt2v8 objectMap_rt2v8;
 
@@ -31,7 +38,7 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
   maptype_rt2v8::iterator itr = objectMap_rt2v8.find(data.GetParameter());
   if (itr != objectMap_rt2v8.end())
   {
-    Persistent<Object>* p = itr->second;
+    Persistent<Object>* p = itr->second.v8;
     // TODO: Removing this temproarily until we understand how this callback works. I
     // would have assumed that this is a weak persistent since we called SetWeak() on it
     // before inserting it into the objectMap_rt2v8 map.
@@ -53,27 +60,67 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
 
 void HandleMap::addWeakReference(Isolate* isolate, const rtObjectRef& from, Local<Object>& to)
 {
-  Persistent<Object>* h(new Persistent<Object>(isolate, to));
-  h->SetWeak(from.getPtr(), &weakCallback_rt2v8);
-
   rtMutexLockGuard lock(objectMapMutex);
-  objectMap_rt2v8.insert(std::make_pair(from.getPtr(), h));
+
+  ObjectReference entry;
+  entry.v8 = new Persistent<Object>(isolate, to);
+  entry.v8->SetWeak(from.getPtr(), &weakCallback_rt2v8);
+  entry.rt = from;
+
+  std::pair< maptype_rt2v8::iterator, bool > ret =
+    objectMap_rt2v8.insert(std::make_pair(from.getPtr(), entry));
+
+  if (!ret.second)
+  {
+    entry.v8->Reset();
+    delete entry.v8;
+  }
+
+  #if 0
+  static FILE* f = NULL;
+  if (!f)
+    f = fopen("/tmp/handles.txt", "w+");
+  if (f)
+  {
+    rtString desc;
+    const_cast<rtObjectRef &>(from).sendReturns<rtString>("description", desc);
+    fprintf(f, "%p (%s) => %p\n", from.getPtr(), desc.cString(), h);
+  }
+  #endif
 }
 
 Local<Object> HandleMap::lookupSurrogate(v8::Isolate* isolate, const rtObjectRef& from)
 {
   Local<Object> obj;
+  EscapableHandleScope scope(isolate);
+
+  Persistent<Object>* p = NULL;
 
   rtMutexLockGuard lock(objectMapMutex);
   maptype_rt2v8::iterator itr = objectMap_rt2v8.find(from.getPtr());
   if (itr != objectMap_rt2v8.end())
   {
-    Persistent<Object>* p = itr->second;
+    p = itr->second.v8;
     if (p)
       obj = PersistentToLocal(isolate, *p);
   }
 
-  return obj;
+  #if 1
+  if (!obj.IsEmpty())
+  {
+    // JR sanity check
+    if ((from.getPtr() != NULL) && (const_cast<rtObjectRef &>(from).get<rtFunctionRef>("animateTo") != NULL) &&
+        (!obj->Has(v8::String::NewFromUtf8(isolate,"animateTo"))))
+    {
+      rtString desc;
+      const_cast<rtObjectRef &>(from).sendReturns<rtString>("description", desc);
+      printf("type mismatch in handle map %p (%s) != %p\n", from.getPtr(), desc.cString(), p);
+      assert(false);
+    }
+  }
+  #endif
+
+  return scope.Escape(obj);
 }
 
 bool rtIsPromise(const rtValue& v)
@@ -119,19 +166,20 @@ void rtWrapperSceneUpdateExit()
 #ifndef RT_USE_SINGLE_RENDER_THREAD
   assert(rtWrapperSceneUpdateHasLock());
 #endif //RT_USE_SINGLE_RENDER_THREAD
-#ifdef USE_STD_THREADS
-  std::unique_lock<std::mutex> lock(sSceneLock);
-#else
-  assert(pthread_mutex_unlock(&sSceneLock) == 0);
-#endif
-  sLockCount--;
 
+  sLockCount--;
 #ifdef USE_STD_THREADS
   if (sLockCount == 0)
     sCurrentSceneThread = std::thread::id()
 #else
   if (sLockCount == 0)
     sCurrentSceneThread = 0;
+#endif
+
+#ifdef USE_STD_THREADS
+  std::unique_lock<std::mutex> lock(sSceneLock);
+#else
+  assert(pthread_mutex_unlock(&sSceneLock) == 0);
 #endif
 }
 

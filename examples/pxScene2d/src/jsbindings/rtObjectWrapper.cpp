@@ -68,6 +68,10 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(Isolate* isolate, cons
 {
   EscapableHandleScope scope(isolate);
 
+  Local<Object> obj = HandleMap::lookupSurrogate(isolate, ref);
+  if (!obj.IsEmpty())
+    return scope.Escape(obj);
+
   // introspect for rtArrayValue
   // TODO: not sure this is good. Any object can have a 'length' property
   {
@@ -115,10 +119,6 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(Isolate* isolate, cons
       }
     }
   }
-
-  Local<Object> obj = HandleMap::lookupSurrogate(isolate, ref);
-  if (!obj.IsEmpty())
-    return scope.Escape(obj);
 
   Local<Value> argv[1] = 
   { 
