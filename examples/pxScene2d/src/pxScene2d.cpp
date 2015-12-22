@@ -39,6 +39,19 @@ rtThreadQueue gUIThreadQueue;
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifdef ENABLE_VALGRIND
+#include <valgrind/callgrind.h>
+void startProfiling()
+{
+  CALLGRIND_START_INSTRUMENTATION;
+}
+
+void stopProfiling()
+{
+  CALLGRIND_STOP_INSTRUMENTATION;
+}
+#endif //ENABLE_VALGRIND
+
 
 static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
