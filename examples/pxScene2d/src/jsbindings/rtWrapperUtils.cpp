@@ -109,9 +109,10 @@ Local<Object> HandleMap::lookupSurrogate(v8::Isolate* isolate, const rtObjectRef
   if (!obj.IsEmpty())
   {
     // JR sanity check
-    if ((from.getPtr() != NULL) && (const_cast<rtObjectRef &>(from).get<rtFunctionRef>("animateTo") != NULL) &&
+    if ((from.getPtr() != NULL) && (from.get<rtFunctionRef>("animateTo") != NULL) &&
         (!obj->Has(v8::String::NewFromUtf8(isolate,"animateTo"))))
     {
+      // TODO change description to a property
       rtString desc;
       const_cast<rtObjectRef &>(from).sendReturns<rtString>("description", desc);
       printf("type mismatch in handle map %p (%s) != %p\n", from.getPtr(), desc.cString(), p);

@@ -132,7 +132,7 @@ void rtArrayObject::pushBack(rtValue v)
   mElements.push_back(v);
 }
 
-rtError rtArrayObject::Get(const char* name, rtValue* value)
+rtError rtArrayObject::Get(const char* name, rtValue* value) const
 {
   if (!value) 
     return RT_FAIL;
@@ -145,7 +145,7 @@ rtError rtArrayObject::Get(const char* name, rtValue* value)
     return RT_PROP_NOT_FOUND;
 }
 
-rtError rtArrayObject::Get(uint32_t i, rtValue* value)
+rtError rtArrayObject::Get(uint32_t i, rtValue* value) const
 {
   if (!value) 
     return RT_FAIL;
@@ -189,12 +189,14 @@ vector<rtNamedValue>::iterator rtMapObject::find(const char* name)
   return it;
 }
 
-rtError rtMapObject::Get(const char* name, rtValue* value)
+rtError rtMapObject::Get(const char* name, rtValue* value) const
 {
   if (!value) 
     return RT_FAIL;
+
+  rtMapObject* this_ = const_cast<rtMapObject*>(this);
   
-  vector<rtNamedValue>::iterator it = find(name);
+  vector<rtNamedValue>::iterator it = this_->find(name);
   if (it != mProps.end())
   {
     *value = it->v;
@@ -203,7 +205,7 @@ rtError rtMapObject::Get(const char* name, rtValue* value)
   else if (!strcmp(name, "allKeys"))
   {
     rtRefT<rtArrayObject> keys = new rtArrayObject;
-    vector<rtNamedValue>::iterator it = mProps.begin();
+    vector<rtNamedValue>::const_iterator it = this_->mProps.begin();
     while(it != mProps.end())
     {
       // exclude allKeys
@@ -239,7 +241,7 @@ rtError rtMapObject::Set(const char* name, const rtValue* value)
   return RT_PROP_NOT_FOUND;
 }
 
-rtError rtMapObject::Get(uint32_t /*i*/, rtValue* /*value*/)
+rtError rtMapObject::Get(uint32_t /*i*/, rtValue* /*value*/) const
 {
   return RT_PROP_NOT_FOUND;
 }
@@ -272,12 +274,12 @@ rtError rtObject::init()
   return RT_OK;
 }
 
-rtError rtObject::Get(uint32_t /*i*/, rtValue* /*value*/)
+rtError rtObject::Get(uint32_t /*i*/, rtValue* /*value*/) const
 {
   return RT_PROP_NOT_FOUND;
 }
 
-rtError rtObject::Get(const char* name, rtValue* value)
+rtError rtObject::Get(const char* name, rtValue* value) const
 {
   rtError hr = RT_PROP_NOT_FOUND;
   rtMethodMap* m = getMap();
@@ -495,20 +497,21 @@ rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2,
 }
 
 
-rtError rtObjectRef::Get(const char* name, rtValue* value) 
+rtError rtObjectRef::Get(const char* name, rtValue* value) const
 {
   return (*this)->Get(name, value);
 }
  
-rtError rtObjectRef::Set(const char* name, const rtValue* value) {
-  return (*this)->Set(name, value);
-}
-
-rtError rtObjectRef::Get(uint32_t i, rtValue* value) 
+rtError rtObjectRef::Get(uint32_t i, rtValue* value) const
 {
   return (*this)->Get(i, value);
 }
  
+rtError rtObjectRef::Set(const char* name, const rtValue* value) 
+{
+  return (*this)->Set(name, value);
+}
+
 rtError rtObjectRef::Set(uint32_t i, const rtValue* value) 
 {
   return (*this)->Set(i, value);

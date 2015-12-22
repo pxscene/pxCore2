@@ -186,7 +186,7 @@ public:
     mObject = o;
   }
 
-  virtual rtError Get(const char* name, rtValue* value)
+  virtual rtError Get(const char* name, rtValue* value) const
   {
     if (!value) return RT_FAIL;
     if (!strcmp(name, "length"))
@@ -198,7 +198,7 @@ public:
       return RT_PROP_NOT_FOUND;
   }
 
-  virtual rtError Get(uint32_t i, rtValue* value)
+  virtual rtError Get(uint32_t i, rtValue* value) const
   {
     if (!value) return RT_FAIL;
     if (i < mObject->numChildren())
@@ -1823,12 +1823,12 @@ rtDefineProperty(pxScene2d, PX_NONE);
 rtDefineProperty(pxScene2d, PX_STRETCH);
 rtDefineProperty(pxScene2d, PX_REPEAT);
 
-rtError pxScene2dRef::Get(const char* name, rtValue* value)
+rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
   return (*this)->Get(name, value);
 }
 
-rtError pxScene2dRef::Get(uint32_t i, rtValue* value)
+rtError pxScene2dRef::Get(uint32_t i, rtValue* value) const
 {
   return (*this)->Get(i, value);
 }
