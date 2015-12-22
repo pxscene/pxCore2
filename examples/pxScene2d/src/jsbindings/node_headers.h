@@ -8,6 +8,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include <v8.h>
+#include <v8-util.h>
 #include <uv.h>
 #ifndef WIN32
 #pragma GCC diagnostic pop
