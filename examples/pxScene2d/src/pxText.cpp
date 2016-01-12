@@ -14,6 +14,7 @@ pxText::pxText(pxScene2d* scene):pxObject(scene)
 {
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
+  // Default to use default font
   mFont = pxFontManager::getFont(scene,defaultFont);
   mPixelSize = defaultPixelSize;
   mDirty = true;
@@ -61,7 +62,7 @@ rtError pxText::setPixelSize(uint32_t v)
 void pxText::fontLoaded(const char * /*value*/)
 {
   printf("pxText::fontLoaded for text value=%s\n",mText.cString());
-  rtLogDebug("pxText::fontLoaded for fontName=%s and mInitialized=%d\n",mFontUrl.compare("")?mFontUrl.cString():defaultFont, mInitialized); 
+//  rtLogDebug("pxText::fontLoaded for fontName=%s and mInitialized=%d\n",mFontUrl.compare("")?mFontUrl.cString():defaultFont, mInitialized); 
   mFontLoaded=true;
   // pxText gets its height and width from the text itself, 
   // so measure it
@@ -150,7 +151,7 @@ rtError pxText::setFontUrl(const char* s)
   }
   mFontLoaded = false;
   createNewPromise();
-  mFontUrl = s;
+//  mFontUrl = s;
 
   mFont = pxFontManager::getFont(mScene, s);
   getFontResource()->addListener(this);

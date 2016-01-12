@@ -41,7 +41,7 @@ public:
     return RT_OK;
   }
 
-  rtError fontUrl(rtString& v) const { v = mFontUrl; return RT_OK; }
+  rtError fontUrl(rtString& v) const { getFontResource()->url(v); return RT_OK; }
   virtual rtError setFontUrl(const char* s);
 
   rtError pixelSize(uint32_t& v) const { v = mPixelSize; return RT_OK; }
@@ -77,12 +77,12 @@ public:
 
  protected:
   virtual void draw();
-  pxFont* getFontResource() { return (pxFont*)mFont.getPtr(); }  
+  inline pxFont* getFontResource() const { return (pxFont*)mFont.getPtr(); }  
   
   rtString mText;
 // TODO should we just use a font object instead of Urls
   bool mFontLoaded;
-  rtString mFontUrl;
+//  rtString mFontUrl;
 
   rtObjectRef mFont;
   
