@@ -270,7 +270,8 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
   
 	int i = 0;
 	u_int32_t charToMeasure;
-	float charW, charH;
+	float charW=0;
+  float charH=0;
 
   rtString accString = "";
   bool lastLine = false;
@@ -445,7 +446,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
 
  
   if( !render) {
-      float metricHeight;
+      float metricHeight=0;
       getFontResource()->getHeight(mPixelSize,metricHeight);
       //printf("pxTextBox::renderTextWithWordWrap metricHeight is %f\n",metricHeight);
       //printf("pxTextBox::renderTextWithWordWrap lineNumer=%d\n",lineNumber);
@@ -544,7 +545,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
 
 void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy, uint32_t size, float* color, float lineWidth, bool render )
 {
-  float charW; float charH;
+  float charW =0, charH=0;
 
   //printf("pxTextBox::renderOneLine tempY=%f noClipY=%f\n",tempY,noClipY);
   float xPos = tempX; 
@@ -832,7 +833,7 @@ void pxTextBox::setMeasurementBounds(float xPos, float width, float yPos, float 
 void pxTextBox::setLineMeasurements(bool firstLine, float xPos, float yPos) 
 {
   //printf("pxTextBox::setLineMeasurements firstLine=%d xPos=%f yPos=%f\n", firstLine, xPos, yPos);
-  float height, ascent, descent, naturalLeading;
+  float height=0, ascent=0, descent=0, naturalLeading=0;
   getFontResource()->getMetrics(mPixelSize, height, ascent, descent, naturalLeading);
   if(!firstLine) {
     measurements->getCharLast()->setX(xPos);
@@ -850,7 +851,7 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
 {
   //printf("pxTextBox::renderTextNoWordWrap render=%d\n",render);
   
-  float charW, charH;
+  float charW=0, charH=0;
   float lineWidth = this->w();
   float tempXStartPos = tempX;
   float tempY = my;
@@ -864,7 +865,7 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
   getFontResource()->measureTextInternal(mText, mPixelSize, sx, sy, charW, charH);
   //printf(">>>>>>>>>>>> pxTextBox::renderTextNoWordWrap charH=%f charW=%f\n", charH, charW);
 
-  float metricHeight;
+  float metricHeight=0;
   getFontResource()->getHeight(mPixelSize, metricHeight);
   //printf(">>>>>>>>>>>>>> metric height is %f and charH is %f\n", metricHeight, charH);
   if( charH > metricHeight) // There's a newline in the text somewhere
@@ -927,7 +928,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
   //printf(">>>>>>>>>>>>>>>>>>pxTextBox::renderTextRowWithTruncation tempY = %f tempX = %f\n",tempY, tempX);
   //printf(">>>>>>>>>>>>>>>>>>pxTextBox::renderTextRowWithTruncation lineWidth = %f \n",lineWidth);
   
-	float charW, charH;
+	float charW=0, charH=0;
 	char * tempStr = strdup(accString.cString()); // Should give a copy
 	int length = accString.length();
 	float ellipsisW = 0;
