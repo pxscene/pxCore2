@@ -146,7 +146,7 @@ public:
   rtProperty(interactive, interactive, setInteractive, bool);
   rtProperty(painting, painting, setPainting, bool);
   rtProperty(clip, clip, setClip, bool);
-  rtProperty(mask, mask, setMask, rtString);
+//  rtProperty(mask, mask, setMask, rtString);
   rtProperty(drawAsMask, drawAsMask, setDrawAsMask, bool);
   rtProperty(draw, drawEnabled, setDrawEnabled, bool);
   rtProperty(drawAsHitTest, drawAsHitTest, setDrawAsHitTest, bool);
@@ -191,8 +191,8 @@ public:
   pxObject(pxScene2d* scene): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
-    mSnapshotRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mReady(), mMaskTextureRef(),
-    mMaskTextureCacheObject(),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
+    mSnapshotRef(), mPainting(true), mClip(false), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mReady(), 
+    mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
       , mRepaintCount(0) //TODO - remove mRepaintCount as it's only needed on certain platforms
 #ifdef PX_DIRTY_RECTANGLES
     , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
@@ -316,9 +316,6 @@ public:
   rtError clip(bool& v)  const { v = mClip; return RT_OK;  }
   virtual rtError setClip(bool v) { mClip = v; return RT_OK; }
   
-  rtString mask()            const { return mMaskUrl;}
-  rtError mask(rtString& v)  const { v = mMaskUrl; return RT_OK;  }
-  rtError setMask(rtString v) { mMaskUrl = v; createMask(); return RT_OK; }
 
   bool drawAsMask()            const { return mDrawAsMask;}
   rtError drawAsMask(bool& v)  const { v = mDrawAsMask; return RT_OK;  }
@@ -627,13 +624,10 @@ protected:
   pxContextFramebufferRef mSnapshotRef;
   bool mPainting;
   bool mClip;
-  rtString mMaskUrl;
   bool mDrawAsMask;
   bool mDraw;
   bool mDrawAsHitTest;
   rtObjectRef mReady;
-  pxTextureRef mMaskTextureRef;
-  pxTextureCacheObject mMaskTextureCacheObject;
   pxContextFramebufferRef mClipSnapshotRef;
   bool mCancelInSet;
   rtString mId;
@@ -650,8 +644,6 @@ protected:
   pxContextFramebufferRef createSnapshot(pxContextFramebufferRef fbo);
   void createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxContextFramebufferRef maskFbo);
   void deleteSnapshot(pxContextFramebufferRef fbo);
-  void createMask();
-  void deleteMask();
   #ifdef PX_DIRTY_RECTANGLES
   pxRect getBoundingRectInScreenCoordinates();
   #endif //PX_DIRTY_RECTANGLES
@@ -893,6 +885,7 @@ public:
   rtMethod1ArgAndReturn("createRectangle", createRectangle, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createImage", createImage, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createImage9", createImage9, rtObjectRef, rtObjectRef);
+//  rtMethod1ArgAndReturn("createImageResource", createImageResource, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createText", createText, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createTextBox", createTextBox, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("createScene", createScene, rtObjectRef, rtObjectRef);
@@ -971,6 +964,7 @@ public:
   rtError createTextBox(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
+//  rtError createImageResource(rtObjectRef p, rtObjectRef& o);  
   rtError createScene(rtObjectRef p,rtObjectRef& o);
   rtError getFont(rtString p, rtObjectRef& o);
   rtError clock(uint64_t & time);

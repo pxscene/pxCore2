@@ -727,7 +727,7 @@ void pxObject::drawInternal(bool maskPass)
       //rtLogInfo("context.drawImage\n");
       context.drawImage(0, 0, w, h, drawableSnapshot->getTexture(), maskSnapshot->getTexture(), PX_NONE, PX_NONE);
     }
-    else if (mClip || mMaskUrl.length() > 0)
+    else if (mClip )
     {
       //rtLogInfo("calling createSnapshot for mw=%f mh=%f\n", mw, mh);
       mClipSnapshotRef = createSnapshot(mClipSnapshotRef);
@@ -736,7 +736,8 @@ void pxObject::drawInternal(bool maskPass)
       if (mClipSnapshotRef.getPtr() != NULL)
       {
         //rtLogInfo("context.drawImage\n");
-        context.drawImage(0, 0, w, h, mClipSnapshotRef->getTexture(), mMaskTextureRef, PX_NONE, PX_NONE);
+        static pxTextureRef nullMaskRef;
+        context.drawImage(0, 0, w, h, mClipSnapshotRef->getTexture(), nullMaskRef, PX_NONE, PX_NONE);
       }
     }
     else
@@ -761,7 +762,8 @@ void pxObject::drawInternal(bool maskPass)
   else
   {
     //rtLogInfo("context.drawImage mw=%f mh=%f\n", mw, mh);
-    context.drawImage(0,0,w,h, mSnapshotRef->getTexture(), mMaskTextureRef, PX_NONE, PX_NONE);
+    static pxTextureRef nullMaskRef;
+    context.drawImage(0,0,w,h, mSnapshotRef->getTexture(), nullMaskRef, PX_NONE, PX_NONE);
   }
 
   if (!maskPass)
@@ -952,36 +954,10 @@ void pxObject::deleteSnapshot(pxContextFramebufferRef fbo)
   }
 }
 
-void pxObject::createMask()
-{
-  deleteMask();
-  
-  if (mMaskUrl.length() > 0)
-  {
-    const char* s = mMaskUrl.cString();
-    mMaskTextureCacheObject.setParent(this);
-    mMaskTextureCacheObject.setUrl(s);
-  }
-}
 
-void pxObject::deleteMask()
-{
-  if (mMaskTextureRef.getPtr() != NULL)
-  {
-    mMaskTextureRef->deleteTexture();
-  }
-}
 
 bool pxObject::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status)
 {
-  if (textureCacheObject != NULL && status == RT_OK)
-  {
-    if (textureCacheObject == &mMaskTextureCacheObject)
-    {
-      mMaskTextureRef = textureCacheObject->getTexture();
-      return true;
-    }
-  }
   repaint();
   pxObject* parent = mParent;
   while (parent)
@@ -1021,7 +997,7 @@ rtDefineProperty(pxObject, id);
 rtDefineProperty(pxObject, interactive);
 rtDefineProperty(pxObject, painting);
 rtDefineProperty(pxObject, clip);
-rtDefineProperty(pxObject, mask);
+//rtDefineProperty(pxObject, mask);
 rtDefineProperty(pxObject, drawAsMask);
 rtDefineProperty(pxObject, draw);
 rtDefineProperty(pxObject, drawAsHitTest);
@@ -1107,6 +1083,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createImage(p,o);
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
+  //else if (!strcmp("imageResource",t.cString()))
+    //e = createImageResource(p,o);    
   else if (!strcmp("scene",t.cString()))
     e = createScene(p,o);
   else if (!strcmp("external",t.cString()))
@@ -1183,6 +1161,26 @@ rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 }
+
+/*rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
+{
+  rtString url = p.get<rtString>("url"); 
+  //rtObjectRef keys = o.get<rtObjectRef>("allKeys");
+  //if (keys)
+  //{
+    //uint32_t len = keys.get<uint32_t>("length");
+    //for (uint32_t i = 0; i < len; i++)
+    //{
+      //rtString key = keys.get<rtString>(i);
+      //set(key, o.get<rtValue>(key));
+    //}
+  //}
+  o = pxImageManager::getImage(url);
+//  o = new pxResourceImage();
+//  o.set(p);
+  o.send("init");
+  return RT_OK;
+}*/
 
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
