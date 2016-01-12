@@ -146,10 +146,9 @@ public:
   rtProperty(interactive, interactive, setInteractive, bool);
   rtProperty(painting, painting, setPainting, bool);
   rtProperty(clip, clip, setClip, bool);
-//  rtProperty(mask, mask, setMask, rtString);
-  rtProperty(drawAsMask, drawAsMask, setDrawAsMask, bool);
+  rtProperty(mask, mask, setMask, bool);
   rtProperty(draw, drawEnabled, setDrawEnabled, bool);
-  rtProperty(drawAsHitTest, drawAsHitTest, setDrawAsHitTest, bool);
+  rtProperty(hitTest, hitTest, setHitTest, bool);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
 
   rtReadOnlyProperty(numChildren, numChildren, int32_t);
@@ -191,7 +190,7 @@ public:
   pxObject(pxScene2d* scene): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
     mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
-    mSnapshotRef(), mPainting(true), mClip(false), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mReady(), 
+    mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(), 
     mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
       , mRepaintCount(0) //TODO - remove mRepaintCount as it's only needed on certain platforms
 #ifdef PX_DIRTY_RECTANGLES
@@ -315,19 +314,18 @@ public:
   bool clip()            const { return mClip;}
   rtError clip(bool& v)  const { v = mClip; return RT_OK;  }
   virtual rtError setClip(bool v) { mClip = v; return RT_OK; }
-  
 
-  bool drawAsMask()            const { return mDrawAsMask;}
-  rtError drawAsMask(bool& v)  const { v = mDrawAsMask; return RT_OK;  }
-  rtError setDrawAsMask(bool v) { mDrawAsMask = v; return RT_OK; }
+  bool mask()            const { return mMask;}
+  rtError mask(bool& v)  const { v = mMask; return RT_OK;  }
+  rtError setMask(bool v) { mMask = v; return RT_OK; }
 
   bool drawEnabled()            const { return mDraw;}
   rtError drawEnabled(bool& v)  const { v = mDraw; return RT_OK;  }
   rtError setDrawEnabled(bool v) { mDraw = v; return RT_OK; }
 
-  bool drawAsHitTest()            const { return mDrawAsHitTest;}
-  rtError drawAsHitTest(bool& v)  const { v = mDrawAsHitTest; return RT_OK;  }
-  rtError setDrawAsHitTest(bool v) { mDrawAsHitTest = v; return RT_OK; }
+  bool hitTest()            const { return mHitTest;}
+  rtError hitTest(bool& v)  const { v = mHitTest; return RT_OK;  }
+  rtError setHitTest(bool v) { mHitTest = v; return RT_OK; }
 
   rtError ready(rtObjectRef& v) const
   {
@@ -624,9 +622,9 @@ protected:
   pxContextFramebufferRef mSnapshotRef;
   bool mPainting;
   bool mClip;
-  bool mDrawAsMask;
+  bool mMask;
   bool mDraw;
-  bool mDrawAsHitTest;
+  bool mHitTest;
   rtObjectRef mReady;
   pxContextFramebufferRef mClipSnapshotRef;
   bool mCancelInSet;

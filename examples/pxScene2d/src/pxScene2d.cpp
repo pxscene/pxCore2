@@ -708,9 +708,9 @@ void pxObject::drawInternal(bool maskPass)
     bool maskFound = false;
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      if ((*it)->drawAsMask())
+      if ((*it)->mask())
       {
-        //rtLogInfo("pxObject::drawInternal drawAsMask is true mw=%f mh=%f\n", mw, mh);
+        //rtLogInfo("pxObject::drawInternal mask is true mw=%f mh=%f\n", mw, mh);
         maskFound = true;
         break;
       }
@@ -919,7 +919,7 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      if ((*it)->drawAsMask())
+      if ((*it)->mask())
       {
         context.pushState();
         (*it)->drawInternal(true);
@@ -997,10 +997,9 @@ rtDefineProperty(pxObject, id);
 rtDefineProperty(pxObject, interactive);
 rtDefineProperty(pxObject, painting);
 rtDefineProperty(pxObject, clip);
-//rtDefineProperty(pxObject, mask);
-rtDefineProperty(pxObject, drawAsMask);
+rtDefineProperty(pxObject, mask);
 rtDefineProperty(pxObject, draw);
-rtDefineProperty(pxObject, drawAsHitTest);
+rtDefineProperty(pxObject, hitTest);
 rtDefineProperty(pxObject,ready);
 rtDefineProperty(pxObject, numChildren);
 rtDefineMethod(pxObject, getChild);
