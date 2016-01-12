@@ -561,7 +561,7 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
   
   float w, h;
   measureTextInternal(stringToMeasure, pixelSize, 1.0,1.0, w, h);
-  printf("pxFont::measureText returned %f and %f for pixelSize=%d and text \"%s\"\n",w, h,pixelSize, stringToMeasure.cString());
+  //printf("pxFont::measureText returned %f and %f for pixelSize=%d and text \"%s\"\n",w, h,pixelSize, stringToMeasure.cString());
   measure->setW(w);
   measure->setH(h);
   o = measure;

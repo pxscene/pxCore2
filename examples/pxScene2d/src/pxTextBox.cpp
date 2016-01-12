@@ -1089,7 +1089,7 @@ rtError pxTextBox::getFontMetrics(rtObjectRef& o) {
  *                          The y position represents the baseline.
  * */
 rtError pxTextBox::measureText(rtObjectRef& o) {
-  printf("pxTextBox::measureText() mNeedsRecalc=%d text=%s\n",mNeedsRecalc,mText.cString());
+  //printf("pxTextBox::measureText() mNeedsRecalc=%d text=%s\n",mNeedsRecalc,mText.cString());
   if( mNeedsRecalc) {
     if(!mInitialized || !mFontLoaded) {
       rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
@@ -1101,7 +1101,7 @@ rtError pxTextBox::measureText(rtObjectRef& o) {
   }
 	//pxTextMeasurements* measure = new pxTextMeasurements();
 	//o = measure;
-  printf("measurement is %f, %f\n",measurements->getCharLast()->x(), measurements->getCharLast()->y());
+  //printf("measurement is %f, %f\n",measurements->getCharLast()->x(), measurements->getCharLast()->y());
   o = measurements;
   
 	return RT_OK;
