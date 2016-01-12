@@ -494,7 +494,6 @@ void pxFont::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
               fontDownloadRequest.fileDownloadRequest->getErrorString().cString(),
               fontDownloadRequest.fileDownloadRequest->getHttpStatusCode());
 
-
       sendReady("reject");
 
   }

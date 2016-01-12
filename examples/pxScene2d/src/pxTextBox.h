@@ -50,13 +50,13 @@ static const char space_chars[] = " \t";
  * pxCharPosition
  * 
  **********************************************************************/
-class pxCharPosition: public pxObject {
+class pxCharPosition: public rtObject {
 
 public:
-	pxCharPosition(pxScene2d* s): pxObject(s) {  }
+	pxCharPosition() {  }
 	virtual ~pxCharPosition() {}
 
-	rtDeclareObject(pxCharPosition, pxObject);
+	rtDeclareObject(pxCharPosition, rtObject);
 	rtReadOnlyProperty(x, x, float);
   rtReadOnlyProperty(y, y, float);
 
@@ -84,13 +84,13 @@ public:
  * pxTextBounds
  * 
  **********************************************************************/
-class pxTextBounds: public pxObject {
+class pxTextBounds: public rtObject {
 
 public:
-	pxTextBounds(pxScene2d* s): pxObject(s) { clear(); }
+	pxTextBounds() { clear(); }
 	virtual ~pxTextBounds() {}
   
-	rtDeclareObject(pxTextBounds, pxObject);
+	rtDeclareObject(pxTextBounds, rtObject);
 	rtReadOnlyProperty(x1, x1, float);
   rtReadOnlyProperty(y1, y1, float);
   rtReadOnlyProperty(x2, x2, float);
@@ -130,17 +130,17 @@ public:
  * pxTextMeasurements
  * 
  **********************************************************************/
-class pxTextMeasurements: public pxObject {
+class pxTextMeasurements: public rtObject {
 
 public:
-	pxTextMeasurements(pxScene2d* s): pxObject(s){ 
-    mBounds = new pxTextBounds(s);
-    mCharFirst = new pxCharPosition(s);
-    mCharLast = new pxCharPosition(s);
+	pxTextMeasurements(){ 
+    mBounds = new pxTextBounds();
+    mCharFirst = new pxCharPosition();
+    mCharLast = new pxCharPosition();
   }
 	virtual ~pxTextMeasurements() {}
 
-	rtDeclareObject(pxTextMeasurements, pxObject);
+	rtDeclareObject(pxTextMeasurements, rtObject);
   rtReadOnlyProperty(bounds, bounds, rtObjectRef);
   rtReadOnlyProperty(charFirst, charFirst, rtObjectRef);
   rtReadOnlyProperty(charLast, charLast, rtObjectRef);
@@ -272,6 +272,8 @@ public:
 
  protected:
  
+  pxTextMeasurements* getMeasurements() { return (pxTextMeasurements*)measurements.getPtr();}
+    
 	uint32_t mTruncation;  
 	float mXStartPos;
 	float mXStopPos;
@@ -284,7 +286,7 @@ public:
   bool mInitialized;
   bool mNeedsRecalc;
   
-  rtRefT<pxTextMeasurements> measurements;
+  rtObjectRef measurements;
   uint32_t lineNumber;
   uint32_t lastLineNumber;
   float noClipX, noClipY, noClipW, noClipH;

@@ -4,7 +4,7 @@ var root = scene.root;
 // "Hello!  How are you?";//
 // Use fontUrl to load from web
 var fontUrlStart = "http://54.146.54.142/tom/receiverdotjs/fonts/";
-var DancingScript = "DancingScript-Bold.ttf";
+var XFinityMed = "XFINITYSansTT-New-Med.ttf";
 var DejaVu = "DejaVuSans.ttf";
 var DejaVuSerif = "DejaVuSerif.ttf";
 var XFinity = "XFINITYSansTT-New-Lgt.ttf";
@@ -20,7 +20,7 @@ root.w=800;
 
 // Use the font vars below to preload fonts so that they stay loaded. 
 
-var fontDancing = scene.getFont(DancingScript);
+var fontDancing = scene.getFont(fontUrlStart+XFinityMed);
 var fontDejaVu = scene.getFont(fontUrlStart+DejaVu);
 var fontDejaVuSerif = scene.getFont(fontUrlStart+DejaVuSerif);
 var fontXFinity = scene.getFont(fontUrlStart+XFinity);
@@ -77,7 +77,7 @@ var xStopPosStatus = scene.create({t:"text", parent:root, x:350, y:container.y+4
 var xStopPosHint = scene.create({t:"text", parent:root, x:465, y:container.y+480, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"(use small L)"});
 var leadingStatus = scene.create({t:"text", parent:root, x:350, y:container.y+500, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"leading=0"});
 var leadingHint = scene.create({t:"text", parent:root, x:465, y:container.y+500, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"(use + -)"});
-var fontStatus = scene.create({t:"text", parent:root, x:350, y:container.y+520, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"font="+DancingScript});
+var fontStatus = scene.create({t:"text", parent:root, x:350, y:container.y+520, textColor:0xFFDDFFFF, pixelSize:20,clip:false,text:"font="+XFinityMed+" (http)"});
 var px = 0;
 var py = 0;
 var leading = 0;
@@ -89,7 +89,7 @@ var text2 = scene.create({t:"textBox", clip:true, parent:container, x:px, y:py, 
    text2.textColor=0xFFDDFFFF;
    text2.pixelSize=20;
    text2.leading=0;
-   text2.fontUrl=DancingScript;
+   text2.fontUrl=fontUrlStart+XFinityMed;
    text2.alignHorizontal=0;
    text2.alignVertical=0;
    text2.xStartPos=0;
@@ -294,7 +294,7 @@ scene.root.on("onChar", function(e) {
     }
     pixelSizeStatus.text="pixelSize="+text2.pixelSize;
   } else if(e.charCode == 102) { // f for font
-    if(fontStatus.text == "font="+DancingScript) {
+    if(fontStatus.text == "font="+XFinityMed+" (http)") {
       text2.fontUrl = fontUrlStart+DejaVu; 
       fontStatus.text = "font="+DejaVu+" (http)";
      } else if(fontStatus.text == "font="+DejaVu+" (http)"){
@@ -307,8 +307,8 @@ scene.root.on("onChar", function(e) {
       text2.fontUrl = fontUrlStart+XFinityBold; 
       fontStatus.text = "font="+XFinityBold+" (http)";
     } else if(fontStatus.text == "font="+XFinityBold+" (http)"){
-      text2.fontUrl = DancingScript; 
-      fontStatus.text = "font="+DancingScript;
+      text2.fontUrl = fontUrlStart+XFinityMed; 
+      fontStatus.text = "font="+XFinityMed+" (http)";
     }
     var font = text2.font;
     font.ready.then(function(f){

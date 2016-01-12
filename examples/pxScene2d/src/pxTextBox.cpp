@@ -18,7 +18,7 @@ extern "C" {
 
 pxTextBox::pxTextBox(pxScene2d* s):pxText(s)
 {
-  measurements= new pxTextMeasurements(s);
+  measurements= new pxTextMeasurements();
   
   mFontLoaded = false;
   mInitialized = false;
@@ -131,6 +131,10 @@ void pxTextBox::sendPromise()
  **/
 rtError pxTextBox::setText(const char* s) { 
   //printf("pxTextBox::setText %s\n",s);
+  if( !mText.compare(s)){
+    rtLogDebug("pxTextBox.setText setting to same value %s and %s\n", mText.cString(), s);
+    return RT_OK;
+  }
   mText = s; 
   setNeedsRecalc(true); 
   return RT_OK; 
@@ -205,7 +209,7 @@ void pxTextBox::clearMeasurements()
     noClipH = mh;
  //   startX = mx;
     startY = my;
-    measurements->clear(); 
+    getMeasurements()->clear(); 
 }
 
 void pxTextBox::renderText(bool render)
@@ -270,8 +274,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
   
 	int i = 0;
 	u_int32_t charToMeasure;
-	float charW=0;
-  float charH=0;
+	float charW=0, charH=0;
 
   rtString accString = "";
   bool lastLine = false;
@@ -759,7 +762,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
 
 void pxTextBox::setMeasurementBoundsY(bool start, float yVal) {
 
-  rtRefT<pxTextBounds> bounds = measurements->getBounds();  
+  rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();  
   //printf("pxTextBox::setMeasurementBoundsY: start=%d yVal=%f and current vals y1=%f y2=%f\n",start, yVal,bounds->y1(),bounds->y2());  
   if( start) { 
     if( bounds->y1()== 0 || bounds->y1() > yVal) {
@@ -775,7 +778,7 @@ void pxTextBox::setMeasurementBoundsY(bool start, float yVal) {
 void pxTextBox::setMeasurementBoundsX(bool start, float xVal)
 {
 
-  rtRefT<pxTextBounds> bounds = measurements->getBounds();
+  rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
   //printf("pxTextBox::setMeasurementBoundsX: start=%d xVal=%f already set to %f\n",start, xVal,bounds->x2());
   if( start) {
     if( bounds->x1() == 0 || (bounds->x1() > xVal)) {
@@ -791,7 +794,7 @@ void pxTextBox::setMeasurementBoundsX(bool start, float xVal)
  
 void pxTextBox::setMeasurementBounds(bool start, float xVal, float yVal)
 {
-  rtRefT<pxTextBounds> bounds = measurements->getBounds();
+  rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
   //printf("pxTextBox::setMeasurementBounds: start=%d xVal=%f yVal%f\n",start, xVal,yVal);
   if( start) {
     if( bounds->x1() == 0 || (bounds->x1() > xVal)) {
@@ -814,7 +817,7 @@ void pxTextBox::setMeasurementBounds(float xPos, float width, float yPos, float 
 {
   //printf("pxTextBox::setMeasurementBounds\n");
   // Set the bounds for the text
-  rtRefT<pxTextBounds> bounds = measurements->getBounds();
+  rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
   if( bounds->x2() < (xPos + width) ) {
     bounds->setX2(xPos + width);
   } 
@@ -836,11 +839,11 @@ void pxTextBox::setLineMeasurements(bool firstLine, float xPos, float yPos)
   float height=0, ascent=0, descent=0, naturalLeading=0;
   getFontResource()->getMetrics(mPixelSize, height, ascent, descent, naturalLeading);
   if(!firstLine) {
-    measurements->getCharLast()->setX(xPos);
-    measurements->getCharLast()->setY(yPos + ascent);
+    getMeasurements()->getCharLast()->setX(xPos);
+    getMeasurements()->getCharLast()->setY(yPos + ascent);
   } else {
-    measurements->getCharFirst()->setX(xPos);
-    measurements->getCharFirst()->setY(yPos + ascent);    
+    getMeasurements()->getCharFirst()->setX(xPos);
+    getMeasurements()->getCharFirst()->setY(yPos + ascent);    
   }
 }
 
@@ -1071,13 +1074,20 @@ bool pxTextBox::isNewline( char ch )
 * descent - float - the distance from the baseline to the font descender  (note that this is a hint, not a solid rule)
 */
 rtError pxTextBox::getFontMetrics(rtObjectRef& o) {
+  
+  if(!mInitialized || !mFontLoaded) {
+    rtLogWarn("getFontMetrics called TOO EARLY -- not initialized or font not loaded!\n");
+
+    return RT_OK; // !CLF: TO DO - COULD RETURN RT_ERROR HERE TO CATCH NOT WAITING ON PROMISE
+  }
   //printf("pxTextBox::getFontMetrics\n");  
   
   getFontResource()->getFontMetrics(mPixelSize, o);
   // set Baseline relative to my
-  pxTextMetrics* metrics = (pxTextMetrics*)o.getPtr();
-  metrics->setBaseline(metrics->baseline()+my);
-
+//  pxTextMetrics* metrics = (pxTextMetrics*)o.getPtr();
+//  metrics->setBaseline(metrics->baseline()+my);
+//  o = metrics;
+  
 	return RT_OK;
 }
 
@@ -1109,17 +1119,17 @@ rtError pxTextBox::measureText(rtObjectRef& o) {
 }
 
 // pxTextBounds
-rtDefineObject(pxTextBounds, pxObject);
+rtDefineObject(pxTextBounds, rtObject);
 rtDefineProperty(pxTextBounds, x1);
 rtDefineProperty(pxTextBounds, y1);
 rtDefineProperty(pxTextBounds, x2);
 rtDefineProperty(pxTextBounds, y2);
 // pxCharPosition
-rtDefineObject(pxCharPosition, pxObject);
+rtDefineObject(pxCharPosition, rtObject);
 rtDefineProperty(pxCharPosition, x);
 rtDefineProperty(pxCharPosition, y);
 // pxTextMeasurements
-rtDefineObject(pxTextMeasurements, pxObject);
+rtDefineObject(pxTextMeasurements, rtObject);
 rtDefineProperty(pxTextMeasurements, bounds); 
 rtDefineProperty(pxTextMeasurements, charFirst);
 rtDefineProperty(pxTextMeasurements, charLast);

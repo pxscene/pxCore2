@@ -44,6 +44,10 @@ void pxText::sendPromise()
 rtError pxText::setText(const char* s) 
 { 
   //rtLogInfo("pxText::setText\n");
+  if( !mText.compare(s)){
+    rtLogDebug("pxText.setText setting to same value %s and %s\n", mText.cString(), s);
+    return RT_OK;
+  }
   mText = s; 
   createNewPromise();
   getFontResource()->measureTextInternal(s, mPixelSize, 1.0, 1.0, mw, mh);

@@ -338,7 +338,7 @@ public:
   
   virtual pxError deleteTexture()
   {
-    rtLogInfo("pxTextureOffscreen::deleteTexture()");
+    rtLogDebug("pxTextureOffscreen::deleteTexture()");
     if (mTextureName) glDeleteTextures(1, &mTextureName);
     mInitialized = false;
     return PX_OK;
