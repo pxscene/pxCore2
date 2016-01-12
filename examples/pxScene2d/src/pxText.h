@@ -77,6 +77,8 @@ public:
 
  protected:
   virtual void draw();
+  // !CLF ToDo: Could mFont.send(...) be used in places where mFont is needed, instead
+  // of this getFontResource?
   inline pxFont* getFontResource() const { return (pxFont*)mFont.getPtr(); }  
   
   rtString mText;
