@@ -62,7 +62,7 @@ public:
 protected:
   virtual void draw();
   void loadImage(rtString Url);
-  rtResourceImage* getResourceImage() { return (rtResourceImage*)mResource.getPtr(); }
+  inline rtResourceImage* getResourceImage() const { return (rtResourceImage*)mResource.getPtr(); }
   
   rtString mUrl;
   float mInsetLeft, mInsetTop, mInsetRight, mInsetBottom;
