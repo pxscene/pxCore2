@@ -543,6 +543,7 @@ rtError pxFont::getFontMetrics(uint32_t pixelSize, rtObjectRef& o)
 	return RT_OK;
 }
 
+/** Public API exposed to java script */
 rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObjectRef& o)
 {
   pxTextSimpleMeasurements* measure = new pxTextSimpleMeasurements();
@@ -560,6 +561,7 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
   
   float w, h;
   measureTextInternal(stringToMeasure, pixelSize, 1.0,1.0, w, h);
+  printf("pxFont::measureText returned %f and %f for pixelSize=%d and text \"%s\"\n",w, h,pixelSize, stringToMeasure.cString());
   measure->setW(w);
   measure->setH(h);
   o = measure;
@@ -643,3 +645,5 @@ rtDefineMethod(pxFont, getFontMetrics);
 rtDefineMethod(pxFont, measureText);
 
 rtDefineObject(pxTextSimpleMeasurements, rtResource);
+rtDefineProperty(pxTextSimpleMeasurements, w);
+rtDefineProperty(pxTextSimpleMeasurements, h);

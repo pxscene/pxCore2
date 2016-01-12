@@ -77,6 +77,8 @@ public:
 
  protected:
   virtual void draw();
+  pxFont* getFontResource() { return (pxFont*)mFont.getPtr(); }  
+  
   rtString mText;
 // TODO should we just use a font object instead of Urls
   bool mFontLoaded;

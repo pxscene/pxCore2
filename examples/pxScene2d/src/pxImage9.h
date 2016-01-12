@@ -57,11 +57,12 @@ public:
   virtual void onInit();
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
   virtual void sendPromise();
-  virtual void createNewPromise() { rtLogInfo("pxImage9 ignoring createNewPromise\n"); }
+  virtual void createNewPromise() { rtLogDebug("pxImage9 ignoring createNewPromise\n"); }
   
 protected:
   virtual void draw();
   void loadImage(rtString Url);
+  rtResourceImage* getResourceImage() { return (rtResourceImage*)mResource.getPtr(); }
   
   rtString mUrl;
   float mInsetLeft, mInsetTop, mInsetRight, mInsetBottom;

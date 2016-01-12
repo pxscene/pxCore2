@@ -67,7 +67,7 @@ protected:
 class rtResourceImage : public rtResource
 {
 public:
-  rtResourceImage(const char* s = 0);
+  rtResourceImage(const char* url = 0);
   ~rtResourceImage() {}
   
   rtDeclareObject(rtResourceImage, rtResource);

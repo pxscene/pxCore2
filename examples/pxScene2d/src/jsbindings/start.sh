@@ -1,5 +1,7 @@
 #!/bin/sh
 
+ulimit -c unlimited
+
 pxSceneDir=../..
 jsbindingsDir=$pxSceneDir/src/jsbindings
 

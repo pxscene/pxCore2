@@ -27,7 +27,7 @@ public:
     mTextureCacheObject.setParent(this);
     mw = -1;
     mh = -1;
-    mResource = new rtResourceImage;
+    mResource = new rtResourceImage();
   }
 
   virtual ~pxImage() { rtLogDebug("~pxImage()"); }
@@ -35,7 +35,7 @@ public:
   virtual void update(double t) { pxObject::update(t);}
   virtual void onInit();
   virtual void sendPromise();
-  virtual void createNewPromise() { rtLogInfo("pxImage ignoring createNewPromise\n"); }
+  virtual void createNewPromise() { rtLogDebug("pxImage ignoring createNewPromise\n"); }
   
   rtError url(rtString& s) const;
   rtError setUrl(const char* s);
@@ -81,6 +81,7 @@ public:
 protected:
   virtual void draw();
   void loadImage(rtString Url);
+  rtResourceImage* getResourceImage() { return (rtResourceImage*)mResource.getPtr(); }
   
   rtString mUrl;
   pxStretch mStretchX;

@@ -92,15 +92,20 @@ rtValue jsCallback::run()
   if (!func.IsEmpty())
     val = func->Call(context->Global(), static_cast<int>(this->mArgs.size()), args);
 
+  delete [] args;
+
+  rtValue returnValue;
   if (tryCatch.HasCaught())
   {
     String::Utf8Value trace(tryCatch.StackTrace());
     rtLogWarn("%s", *trace);
   }
+  else
+  {
+    rtWrapperError error;
+    returnValue = js2rt(context->GetIsolate(), val, &error);
+  }
 
-  delete [] args;
-
-  rtWrapperError error;
-  return js2rt(context->GetIsolate(), val, &error);
+  return returnValue;
 }
 

@@ -25,7 +25,7 @@ void pxText::onInit()
 
   mInitialized = true;
 
-  if( ((pxFont*)mFont.getPtr())->isFontLoaded()) {
+  if( getFontResource()->isFontLoaded()) {
     fontLoaded("resolve");
   }
 }
@@ -45,7 +45,7 @@ rtError pxText::setText(const char* s)
   //rtLogInfo("pxText::setText\n");
   mText = s; 
   createNewPromise();
-  ((pxFont*)mFont.getPtr())->measureTextInternal(s, mPixelSize, 1.0, 1.0, mw, mh);
+  getFontResource()->measureTextInternal(s, mPixelSize, 1.0, 1.0, mw, mh);
   return RT_OK; 
 }
 
@@ -54,18 +54,18 @@ rtError pxText::setPixelSize(uint32_t v)
   //rtLogInfo("pxText::setPixelSize\n");
   mPixelSize = v; 
   createNewPromise();
-  ((pxFont*)mFont.getPtr())->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
+  getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
   return RT_OK; 
 }
 
 void pxText::fontLoaded(const char * /*value*/)
 {
   printf("pxText::fontLoaded for text value=%s\n",mText.cString());
-  rtLogInfo("pxText::fontLoaded for fontName=%s and mInitialized=%d\n",mFontUrl.compare("")?mFontUrl.cString():defaultFont, mInitialized); 
+  rtLogDebug("pxText::fontLoaded for fontName=%s and mInitialized=%d\n",mFontUrl.compare("")?mFontUrl.cString():defaultFont, mInitialized); 
   mFontLoaded=true;
   // pxText gets its height and width from the text itself, 
   // so measure it
-  ((pxFont*)mFont.getPtr())->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
+  getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
   mDirty=true;  
 //  printf("After fontLoaded and measureText, mw=%f and mh=%f\n",mw,mh);
   
@@ -138,7 +138,7 @@ void pxText::draw() {
   }
   else
   {
-    ((pxFont*)mFont.getPtr())->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
+    getFontResource()->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
   }
 }
 
@@ -153,7 +153,7 @@ rtError pxText::setFontUrl(const char* s)
   mFontUrl = s;
 
   mFont = pxFontManager::getFont(mScene, s);
-  ((pxFont*)mFont.getPtr())->addListener(this);
+  getFontResource()->addListener(this);
   
   return RT_OK;
 }

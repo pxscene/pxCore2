@@ -9,11 +9,13 @@ var image = scene.createImage({url:url,stretchX:1,stretchY:1,parent:container,au
 
 image.ready.then(function(e) {
   console.log("inside first image ready!");
-  image.w = 50;
-  image.h = 50;
+  image.w = 500;
+  image.h = 500;
 });
 
-image.on("onMouseDown", function(e) {
+image.on("onMouseDown", function(m) {
+
+console.log("Inside onMouseDown");
 
   if( image.url== process.cwd() + "/../../images/skulls.png") {
     console.log("image is currently skull");
@@ -21,8 +23,8 @@ image.on("onMouseDown", function(e) {
     image.ready.then(function(text) {
       console.log("inside image.ready url2 (flower)");
 
-      image.sx = 400/image.w;
-      image.sy = 400/image.h;
+      image.sx = 400/image.resource.w;
+      image.sy = 400/image.resource.h;
 
     });
     
@@ -32,8 +34,8 @@ image.on("onMouseDown", function(e) {
     image.ready.then(function(text) {
       console.log("inside image.ready url (skull)");
 
-      image.sx = 400/image.w;
-      image.sy = 400/image.h;
+      image.sx = 400/image.resource.w;
+      image.sy = 400/image.resource.h;
 
     });
 }  

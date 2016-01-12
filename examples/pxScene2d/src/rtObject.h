@@ -25,8 +25,8 @@ class rtIObject {
   virtual ~rtIObject() { }
   virtual unsigned long AddRef() = 0;
   virtual unsigned long Release() = 0;
-  virtual rtError Get(const char* name, rtValue* value) = 0;
-  virtual rtError Get(uint32_t i, rtValue* value) = 0;
+  virtual rtError Get(const char* name, rtValue* value) const = 0;
+  virtual rtError Get(uint32_t i, rtValue* value) const = 0;
   virtual rtError Set(const char* name, const rtValue* value) = 0;
   virtual rtError Set(uint32_t i, const rtValue* value) = 0;
 };
@@ -47,13 +47,13 @@ class rtObjectBase
 public:
 
   template<typename T>
-    rtError get(const char* name, T& value);  
+    rtError get(const char* name, T& value) const;
   template<typename T>
-    T get(const char* name);
+    T get(const char* name) const;
   template<typename T>
-    rtError get(uint32_t i, T& value);  
+    rtError get(uint32_t i, T& value) const;
   template<typename T>
-    T get(uint32_t i);
+    T get(uint32_t i) const;
 
   void set(rtObjectRef o);
 
@@ -122,8 +122,8 @@ public:
                       rtValue& result); 
 
  private:
-  virtual rtError Get(const char* name, rtValue* value) = 0;
-  virtual rtError Get(uint32_t i, rtValue* value) = 0;
+  virtual rtError Get(const char* name, rtValue* value) const = 0;
+  virtual rtError Get(uint32_t i, rtValue* value) const = 0;
   virtual rtError Set(const char* name, const rtValue* value) = 0;
   virtual rtError Set(uint32_t i, const rtValue* value) = 0;
 };
@@ -190,8 +190,8 @@ class rtObjectRef: public rtRefT<rtIObject>, public rtObjectBase
   rtObjectRef& operator=(rtIObject* o) { asn(o); return *this; }
 
  private:
-  virtual rtError Get(const char* name, rtValue* value);
-  virtual rtError Get(uint32_t i, rtValue* value);
+  virtual rtError Get(const char* name, rtValue* value) const;
+  virtual rtError Get(uint32_t i, rtValue* value) const;
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t i, const rtValue* value);
 };
@@ -211,7 +211,7 @@ class rtFunctionRef: public rtRefT<rtIFunction>, public rtFunctionBase
 
 class rtObjectFunction: public rtIFunction, public rtFunctionBase {
 public:
-  rtObjectFunction(rtObject* o, rtMethodThunk t): mRefCount(0) 
+  rtObjectFunction(const rtObject* o, rtMethodThunk t): mRefCount(0) 
   {
     mObject = o;
     mThunk = t;
@@ -261,8 +261,8 @@ public:
   rtError description(rtString& d) const;
   rtError allKeys(rtObjectRef& v) const;
 
-  virtual rtError Get(uint32_t /*i*/, rtValue* /*value*/);
-  virtual rtError Get(const char* name, rtValue* value);
+  virtual rtError Get(uint32_t /*i*/, rtValue* /*value*/) const;
+  virtual rtError Get(const char* name, rtValue* value) const;
   virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/);
   virtual rtError Set(const char* name, const rtValue* value);
 
@@ -281,7 +281,7 @@ rtError rtAlloc(const char* objectName, rtObjectRef& object);
 // TODO move out to another file
 
 template<typename T>
-rtError rtObjectBase::get(const char* name, T& value) 
+rtError rtObjectBase::get(const char* name, T& value) const
 {
   rtValue v;
   rtError e = Get(name, &v);
@@ -291,7 +291,7 @@ rtError rtObjectBase::get(const char* name, T& value)
 }
 
 template<typename T>
-T rtObjectBase::get(const char* name) 
+T rtObjectBase::get(const char* name) const
 {
   rtValue v;
   Get(name, &v);
@@ -299,7 +299,7 @@ T rtObjectBase::get(const char* name)
 }
 
 template<typename T>
-T rtObjectBase::get(uint32_t i) 
+T rtObjectBase::get(uint32_t i) const
 {
   rtValue v;
   Get(i, &v);
@@ -307,7 +307,7 @@ T rtObjectBase::get(uint32_t i)
 }
 
 template<typename T>
-rtError rtObjectBase::get(uint32_t i, T& value) 
+rtError rtObjectBase::get(uint32_t i, T& value) const
 {
   rtValue v;
   rtError e = Get(i, &v);
@@ -526,8 +526,8 @@ public:
   void empty();
   void pushBack(rtValue v);
 
-  virtual rtError Get(const char* name, rtValue* value);
-  virtual rtError Get(uint32_t i, rtValue* value);
+  virtual rtError Get(const char* name, rtValue* value) const;
+  virtual rtError Get(uint32_t i, rtValue* value) const;
   virtual rtError Set(const char* /*name*/, const rtValue* /*value*/);
   virtual rtError Set(uint32_t i, const rtValue* value);
 
@@ -547,9 +547,9 @@ public:
 
   vector<rtNamedValue>::iterator find(const char* name);
 
-  virtual rtError Get(const char* name, rtValue* value);
+  virtual rtError Get(const char* name, rtValue* value) const;
+  virtual rtError Get(uint32_t /*i*/, rtValue* /*value*/) const;
   virtual rtError Set(const char* name, const rtValue* value);
-  virtual rtError Get(uint32_t /*i*/, rtValue* /*value*/);
   virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/);
 
 private:

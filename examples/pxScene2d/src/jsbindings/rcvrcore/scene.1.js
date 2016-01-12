@@ -58,8 +58,8 @@ function Scene() {
     return nativeScene.createImage(params)
   }
 
-  this.createImage9 = function(params) {
-    return nativeScene.createImage9(params);
+  this.createImage9 = function(params,b1, b2) {
+    return nativeScene.createImage9(params, b1, b2);
   }
 
   //TODO - what is createExternal used for?  Testing only?

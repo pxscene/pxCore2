@@ -38,7 +38,7 @@ rtError pxImage9::setUrl(const char* s) {
     pxObject::createNewPromise();
   }      
   mUrl = s;
-  ((rtResourceImage*)mResource.getPtr())->setUrl(s);
+  getResourceImage()->setUrl(s);
 
   if (!s || !u8_strlen((char*)s)) 
     return RT_OK;  
@@ -81,8 +81,8 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
   {
     mStatusCode = textureCacheObject->getStatusCode();
     mHttpStatusCode = textureCacheObject->getHttpStatusCode();
-    ((rtResourceImage*)mResource.getPtr())->setLoadStatus("statusCode", mStatusCode);
-    ((rtResourceImage*)mResource.getPtr())->setLoadStatus("httpStatusCode", mHttpStatusCode);    
+    getResourceImage()->setLoadStatus("statusCode", mStatusCode);
+    getResourceImage()->setLoadStatus("httpStatusCode", mHttpStatusCode);    
   }
   pxObject* parent = mParent;
   if( !parent)

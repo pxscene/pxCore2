@@ -81,17 +81,11 @@ class jsWindow : public pxWindow, public pxIViewContainer
 public:
   jsWindow(Isolate* isolate, int x, int y, int w, int h)
     : pxWindow()
-    , mScene(new pxScene2d())
     , mEventLoop(new pxEventLoop())
   {
-    mJavaScene.Reset(isolate, rtObjectWrapper::createFromObjectReference(isolate, mScene.getPtr()));
 
     rtLogInfo("creating native with [%d, %d, %d, %d]", x, y, w, h);
     init(x, y, w, h);
-
-    rtLogInfo("initializing scene");
-    mScene->init();
-    mScene->setViewContainer(this);
   }
 
   void startTimers()
@@ -114,6 +108,21 @@ public:
 
   Local<Object> scene(Isolate* isolate) const
   {
+    
+    if (!mView)
+    {
+      // Lazy creation of scene
+      jsWindow* this_ = const_cast<jsWindow*>(this);
+      rtLogInfo("initializing scene");
+      pxScene2dRef scene = new pxScene2d;
+      scene->init();
+      this_->mJavaScene.Reset(isolate, rtObjectWrapper::createFromObjectReference(isolate, scene.getPtr()));
+
+      this_->mView = scene;
+      this_->mView->setViewContainer(this_);
+      this_->mView->onSize(mWidth, mHeight);
+    }
+
     return PersistentToLocal(isolate, mJavaScene);
   }
 
@@ -160,15 +169,19 @@ protected:
 
   virtual void onSize(int32_t w, int32_t h)
   {
+    mWidth = w;
+    mHeight = h;
     ENTERSCENELOCK();
-    mScene->onSize(w, h);
+    if (mView)
+      mView->onSize(w, h);
     EXITSCENELOCK();
   }
 
   virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags)
   {
     ENTERSCENELOCK();
-    mScene->onMouseDown(x, y, flags);
+    if (mView)
+      mView->onMouseDown(x, y, flags);
     EXITSCENELOCK();
   }
 
@@ -181,75 +194,88 @@ protected:
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)
   {
     ENTERSCENELOCK();
-    mScene->onMouseUp(x, y, flags);
+    if (mView)
+      mView->onMouseUp(x, y, flags);
     EXITSCENELOCK();
   }
 
   virtual void onMouseLeave()
   {
     ENTERSCENELOCK();
-    mScene->onMouseLeave();
+    if (mView)
+      mView->onMouseLeave();
     EXITSCENELOCK();
   }
 
   virtual void onMouseMove(int32_t x, int32_t y)
   {
     ENTERSCENELOCK();
-    mScene->onMouseMove(x, y);
+    if (mView)
+      mView->onMouseMove(x, y);
     EXITSCENELOCK();
   }
 
   virtual void onFocus()
   {
     ENTERSCENELOCK();
-    mScene->onFocus();
+    if (mView)
+      mView->onFocus();
     EXITSCENELOCK();
   }
   virtual void onBlur()
   {
     ENTERSCENELOCK();
-    mScene->onBlur();
+    if (mView)
+      mView->onBlur();
     EXITSCENELOCK();
   }
 
   virtual void onKeyDown(uint32_t keycode, uint32_t flags)
   {
     ENTERSCENELOCK();
-    mScene->onKeyDown(keycode, flags);
+    if (mView)
+      mView->onKeyDown(keycode, flags);
     EXITSCENELOCK();
   }
 
   virtual void onKeyUp(uint32_t keycode, uint32_t flags)
   {
     ENTERSCENELOCK();
-    mScene->onKeyUp(keycode, flags);
+    if (mView)
+      mView->onKeyUp(keycode, flags);
     EXITSCENELOCK();
   }
   
   virtual void onChar(uint32_t c)
   {
     ENTERSCENELOCK();
-    mScene->onChar(c);
+    if (mView)
+      mView->onChar(c);
     EXITSCENELOCK();
   }
 
   virtual void onDraw(pxSurfaceNative )
   {
     ENTERSCENELOCK();
-    mScene->onDraw();
+    if (mView)
+      mView->onDraw();
     EXITSCENELOCK();
   }
 
   virtual void onAnimationTimer()
   {
     ENTERSCENELOCK();
-    mScene->onUpdate(pxSeconds());
+    if (mView)
+      mView->onUpdate(pxSeconds());
     EXITSCENELOCK();
   }
 private:
-  pxScene2dRef mScene;
+  // TODO consolidate with pxCore smart pointer
+  rtRefT<pxIView> mView;
   pxEventLoop* mEventLoop;
   Persistent<Object> mJavaScene;
+  int mWidth;
+  int mHeight;
 
 #ifndef RUNINMAIN
 #ifdef WIN32

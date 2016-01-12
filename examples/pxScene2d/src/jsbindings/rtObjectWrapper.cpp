@@ -68,6 +68,10 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(Isolate* isolate, cons
 {
   EscapableHandleScope scope(isolate);
 
+  Local<Object> obj = HandleMap::lookupSurrogate(isolate, ref);
+  if (!obj.IsEmpty())
+    return scope.Escape(obj);
+
   // introspect for rtArrayValue
   // TODO: not sure this is good. Any object can have a 'length' property
   {
@@ -115,10 +119,6 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(Isolate* isolate, cons
       }
     }
   }
-
-  Local<Object> obj = HandleMap::lookupSurrogate(isolate, ref);
-  if (!obj.IsEmpty())
-    return scope.Escape(obj);
 
   Local<Value> argv[1] = 
   { 
@@ -274,7 +274,7 @@ unsigned long jsObjectWrapper::Release()
   return l;
 }
 
-rtError jsObjectWrapper::getAllKeys(Isolate* isolate, rtValue* value)
+rtError jsObjectWrapper::getAllKeys(Isolate* isolate, rtValue* value) const
 {
   Local<Object> self = PersistentToLocal(isolate, mObject);
   Local<Array> names = self->GetPropertyNames();
@@ -294,7 +294,7 @@ rtError jsObjectWrapper::getAllKeys(Isolate* isolate, rtValue* value)
   return RT_OK;
 }
 
-rtError jsObjectWrapper::Get(const char* name, rtValue* value)
+rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
 {
   if (!value)
     return RT_ERROR_INVALID_ARG;
@@ -337,7 +337,7 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value)
   return err;
 }
 
-rtError jsObjectWrapper::Get(uint32_t i, rtValue* value)
+rtError jsObjectWrapper::Get(uint32_t i, rtValue* value) const
 {
   if (!value)
     return RT_ERROR_INVALID_ARG;

@@ -48,7 +48,7 @@ rtError pxImage::setUrl(const char* s)
     pxObject::createNewPromise();
   }
   mUrl = s;
-  ((rtResourceImage*)mResource.getPtr())->setUrl(s);
+  getResourceImage()->setUrl(s);
   if (!s || !u8_strlen((char*)s)) 
     return RT_OK;
     
@@ -127,8 +127,8 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
   {
     mStatusCode = textureCacheObject->getStatusCode();
     mHttpStatusCode = textureCacheObject->getHttpStatusCode();
-    ((rtResourceImage*)mResource.getPtr())->setLoadStatus("statusCode", mStatusCode);
-    ((rtResourceImage*)mResource.getPtr())->setLoadStatus("httpStatusCode", mHttpStatusCode);
+    getResourceImage()->setLoadStatus("statusCode", mStatusCode);
+    getResourceImage()->setLoadStatus("httpStatusCode", mHttpStatusCode);
   }
   if (textureCacheObject != NULL && status == RT_OK)
   {
@@ -141,9 +141,9 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
 //    mTexture = textureCacheObject->getTexture();
     if (textureCacheObject->getTexture().getPtr() != NULL)
     {
-      ((rtResourceImage*)mResource.getPtr())->setW(textureCacheObject->getTexture()->width());
-      ((rtResourceImage*)mResource.getPtr())->setH(textureCacheObject->getTexture()->height());
-      ((rtResourceImage*)mResource.getPtr())->sendPromise("resolve");
+      getResourceImage()->setW(textureCacheObject->getTexture()->width());
+      getResourceImage()->setH(textureCacheObject->getTexture()->height());
+      getResourceImage()->sendPromise("resolve");
     } 
 
    pxObject* parent = mParent;
@@ -170,7 +170,7 @@ bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError s
     return true;
   }
   rtLogWarn("pxImage SENDPROMISE for ERROR %s\n", mUrl.cString());
-  ((rtResourceImage*)mResource.getPtr())->sendPromise("reject");
+  getResourceImage()->sendPromise("reject");
   mReady.send("reject",this);
   return false;
 }
