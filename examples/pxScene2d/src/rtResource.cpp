@@ -24,7 +24,7 @@ rtError rtResource::setUrl(const char* url)
   return RT_OK;
 }
 
-void rtResourceImage::init()
+void rtImageResource::init()
 {
   if( mInitialized) 
     return; 
@@ -57,37 +57,37 @@ rtValue rtResource::getLoadStatus(rtString key)
   return value;
 }
 
-rtResourceImage::rtResourceImage(const char* url)
+rtImageResource::rtImageResource(const char* url)
 {
   setUrl(url);
 }
 
 
 
-//void rtResourceImage::loadResource()
+//void rtImageResource::loadResource()
 //{
   //mTextureCacheObject.loadImage( mUrl);
 //}
 
 //ImageMap pxImageManager::mImageMap;
-//rtRefT<rtResourceImage> pxImageManager::getImage(const char* url)
+//rtRefT<rtImageResource> pxImageManager::getImage(const char* url)
 //{
-  //rtRefT<rtResourceImage> pImage;
+  //rtRefT<rtImageResource> pImage;
 
   //// Handle empty url?  But what to do about it?
   
   //ImageMap::iterator it = mImageMap.find(url);
   //if (it != mImageMap.end())
   //{
-    //rtLogDebug("Found rtResourceImage in map for %s\n",s);
+    //rtLogDebug("Found rtImageResource in map for %s\n",s);
     //pImage = it->second;
     //return pFont;  
     
   //}
   //else 
   //{
-    //rtLogDebug("Create rtResourceImage in map for %s\n",s);
-    //pImage = new rtResourceImage(url);
+    //rtLogDebug("Create rtImageResource in map for %s\n",s);
+    //pImage = new rtImageResource(url);
     //mImageMap.insert(make_pair(s, pImage));
     //pImage->loadImage();
   //}
@@ -108,6 +108,6 @@ rtDefineProperty(rtResource,url);
 rtDefineProperty(rtResource,ready);
 rtDefineProperty(rtResource,loadStatus);
 
-rtDefineObject(rtResourceImage, rtResource);
-rtDefineProperty(rtResourceImage, w);
-rtDefineProperty(rtResourceImage, h); 
+rtDefineObject(rtImageResource, rtResource);
+rtDefineProperty(rtImageResource, w);
+rtDefineProperty(rtImageResource, h); 

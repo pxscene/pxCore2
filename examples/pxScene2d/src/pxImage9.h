@@ -22,7 +22,7 @@ public:
                                imageLoaded(false) 
   { 
     mTextureCacheObject.setParent(this); 
-    mResource = new rtResourceImage;
+    mResource = new rtImageResource;
   }
   
   rtError url(rtString& s) const;
@@ -49,7 +49,7 @@ public:
 protected:
   virtual void draw();
   void loadImage(rtString Url);
-  inline rtResourceImage* getResourceImage() const { return (rtResourceImage*)mResource.getPtr(); }
+  inline rtImageResource* getImageResource() const { return (rtImageResource*)mResource.getPtr(); }
   
   rtString mUrl;
   float mInsetLeft, mInsetTop, mInsetRight, mInsetBottom;

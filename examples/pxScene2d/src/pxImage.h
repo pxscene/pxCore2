@@ -24,7 +24,7 @@ public:
     mTextureCacheObject.setParent(this);
     mw = -1;
     mh = -1;
-    mResource = new rtResourceImage();
+    mResource = new rtImageResource();
   }
 
   virtual ~pxImage() { rtLogDebug("~pxImage()"); }
@@ -67,7 +67,7 @@ public:
 protected:
   virtual void draw();
   void loadImage(rtString Url);
-  inline rtResourceImage* getResourceImage() const { return (rtResourceImage*)mResource.getPtr(); }
+  inline rtImageResource* getImageResource() const { return (rtImageResource*)mResource.getPtr(); }
   
   rtString mUrl;
   pxStretch mStretchX;

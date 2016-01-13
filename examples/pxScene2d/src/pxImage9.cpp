@@ -38,7 +38,7 @@ rtError pxImage9::setUrl(const char* s) {
     pxObject::createNewPromise();
   }      
   mUrl = s;
-  getResourceImage()->setUrl(s);
+  getImageResource()->setUrl(s);
 
   if (!s || !u8_strlen((char*)s)) 
     return RT_OK;  
@@ -79,8 +79,8 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
 
   if (textureCacheObject != NULL)
   {
-    getResourceImage()->setLoadStatus("statusCode", textureCacheObject->getStatusCode());
-    getResourceImage()->setLoadStatus("httpStatusCode", textureCacheObject->getHttpStatusCode());    
+    getImageResource()->setLoadStatus("statusCode", textureCacheObject->getStatusCode());
+    getImageResource()->setLoadStatus("httpStatusCode", textureCacheObject->getHttpStatusCode());    
   }
   pxObject* parent = mParent;
   if( !parent)
@@ -97,6 +97,7 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
     imageLoaded = true;
     return true;
   }
+  getImageResource()->sendPromise("reject");
   mReady.send("reject",this);
   return false;
 }

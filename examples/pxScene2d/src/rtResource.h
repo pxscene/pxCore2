@@ -67,13 +67,13 @@ protected:
 
 };
 
-class rtResourceImage : public rtResource
+class rtImageResource : public rtResource
 {
 public:
-  rtResourceImage(const char* url = 0);
-  ~rtResourceImage() {}
+  rtImageResource(const char* url = 0);
+  ~rtImageResource() {}
   
-  rtDeclareObject(rtResourceImage, rtResource);
+  rtDeclareObject(rtImageResource, rtResource);
 
   // Need these, or use from texture?  
   rtReadOnlyProperty(w, w, int32_t);
@@ -103,12 +103,12 @@ protected:
 };
 /*
 // Weak Map
-typedef map<rtString, rtResourceImage*> ImageMap;
+typedef map<rtString, rtImageResource*> ImageMap;
 class pxImageManager
 {
   
   public: 
-    static rtRefT<rtResourceImage> getImage(const char* url);
+    static rtRefT<rtImageResource> getImage(const char* url);
     static void removeImage(rtString imageUrl);
     
   protected: 
