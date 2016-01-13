@@ -50,6 +50,12 @@ void rtResource::setLoadStatus(rtString key, rtValue val)
   mLoadStatus.set(key,val);
 
 }
+rtValue rtResource::getLoadStatus(rtString key)
+{
+  rtValue value;
+  mLoadStatus.get(key, value);
+  return value;
+}
 
 rtResourceImage::rtResourceImage(const char* url)
 {

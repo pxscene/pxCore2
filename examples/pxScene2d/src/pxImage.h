@@ -17,12 +17,9 @@ public:
   rtProperty(stretchX, stretchX, setStretchX, int32_t);
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
   rtProperty(resource, resource, setResource, rtObjectRef);
-//  rtProperty(autoSize, autoSize, setAutoSize, bool);
-  rtReadOnlyProperty(statusCode, statusCode, int32_t);
-  rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
   
   pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(PX_NONE),mStretchY(PX_NONE), 
-    mTextureCacheObject(), mStatusCode(0), mHttpStatusCode(0),imageLoaded(false)
+    mTextureCacheObject(), imageLoaded(false)
   { 
     mTextureCacheObject.setParent(this);
     mw = -1;
@@ -57,17 +54,6 @@ public:
   rtError resource(rtObjectRef& o) const { /*printf("!!!!!!!!!!!!!!!!!!!!!!!pxImage getResource\n");*/o = mResource; return RT_OK; }
   rtError setResource(rtObjectRef o) { /*printf("!!!!!!!!!!!!!!!!!!!!!pxImage setResource\n");*/mResource = o; return RT_OK; }
 
-  rtError statusCode(int32_t& v) const
-  {
-    v = (int32_t)mStatusCode;
-    return RT_OK;
-  }
-
-  rtError httpStatusCode(int32_t& v) const
-  {
-    v = (int32_t)mHttpStatusCode;
-    return RT_OK;
-  }
   pxTextureRef getTexture()
   {
     return mTextureCacheObject.getTexture();
@@ -89,9 +75,6 @@ protected:
 //  pxTextureRef mTexture;
   pxTextureCacheObject mTextureCacheObject;
   rtObjectRef mResource;
-//  bool mAutoSize;
-  int mStatusCode;
-  int mHttpStatusCode;
   
   bool imageLoaded;
 };

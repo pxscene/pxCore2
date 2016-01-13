@@ -65,7 +65,7 @@ rtError pxText::setPixelSize(uint32_t v)
 
 void pxText::fontLoaded(const char * /*value*/)
 {
-  printf("pxText::fontLoaded for text value=%s\n",mText.cString());
+  //printf("pxText::fontLoaded for text value=%s\n",mText.cString());
 //  rtLogDebug("pxText::fontLoaded for fontName=%s and mInitialized=%d\n",mFontUrl.compare("")?mFontUrl.cString():defaultFont, mInitialized); 
   mFontLoaded=true;
   // pxText gets its height and width from the text itself, 

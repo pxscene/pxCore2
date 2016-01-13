@@ -17,11 +17,9 @@ public:
   rtProperty(insetRight, insetRight, setInsetRight, float);
   rtProperty(insetBottom, insetBottom, setInsetBottom, float);
   rtProperty(resource, resource, setResource, rtObjectRef);  
-  rtReadOnlyProperty(statusCode, statusCode, int32_t);
-  rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
 
   pxImage9(pxScene2d* scene) : pxObject(scene),mInsetLeft(0),mInsetTop(0),mInsetRight(0),mInsetBottom(0),mTextureCacheObject(), 
-                               mStatusCode(0), mHttpStatusCode(0), imageLoaded(false) 
+                               imageLoaded(false) 
   { 
     mTextureCacheObject.setParent(this); 
     mResource = new rtResourceImage;
@@ -42,17 +40,6 @@ public:
   rtError insetBottom(float& v) const { v = mInsetBottom; return RT_OK; }
   rtError setInsetBottom(float v) { mInsetBottom = v; return RT_OK; }
 
-  rtError statusCode(int32_t& v) const
-  {
-    v = (int32_t)mStatusCode;
-    return RT_OK;
-  }
-
-  rtError httpStatusCode(int32_t& v) const
-  {
-    v = (int32_t)mHttpStatusCode;
-    return RT_OK;
-  }
 
   virtual void onInit();
   virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
@@ -68,8 +55,6 @@ protected:
   float mInsetLeft, mInsetTop, mInsetRight, mInsetBottom;
   pxTextureCacheObject mTextureCacheObject;
   rtObjectRef mResource;  
-  int mStatusCode;
-  int mHttpStatusCode;
   
   bool imageLoaded;
 };

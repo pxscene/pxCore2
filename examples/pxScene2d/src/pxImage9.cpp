@@ -79,10 +79,8 @@ bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError 
 
   if (textureCacheObject != NULL)
   {
-    mStatusCode = textureCacheObject->getStatusCode();
-    mHttpStatusCode = textureCacheObject->getHttpStatusCode();
-    getResourceImage()->setLoadStatus("statusCode", mStatusCode);
-    getResourceImage()->setLoadStatus("httpStatusCode", mHttpStatusCode);    
+    getResourceImage()->setLoadStatus("statusCode", textureCacheObject->getStatusCode());
+    getResourceImage()->setLoadStatus("httpStatusCode", textureCacheObject->getHttpStatusCode());    
   }
   pxObject* parent = mParent;
   if( !parent)
@@ -109,5 +107,3 @@ rtDefineProperty(pxImage9, insetLeft);
 rtDefineProperty(pxImage9, insetTop);
 rtDefineProperty(pxImage9, insetRight);
 rtDefineProperty(pxImage9, insetBottom);
-rtDefineProperty(pxImage9,statusCode);
-rtDefineProperty(pxImage9,httpStatusCode);

@@ -52,6 +52,9 @@ public:
   void sendPromise(rtString val) { mReady.send(val, this);}
     
   virtual void init() = 0;
+  
+  // Convenience method; not exposed to javascript
+  rtValue getLoadStatus(rtString key);
  
 protected: 
  // virtual void loadResource() = 0;
