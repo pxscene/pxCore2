@@ -39,6 +39,7 @@ RT_SRCS=\
     rtThreadTask.cpp \
 	  rtThreadQueue.cpp \
     rtLibrary.cpp \
+    rtResource.cpp \
 		rtZip.cpp\
     linux/rtMutexNative.cpp \
     linux/rtThreadPoolNative.cpp \
@@ -49,7 +50,7 @@ PX_SRCS=\
 		pxRectangle.cpp \
 	  pxFont.cpp \
     pxText.cpp \
-    pxText2.cpp \
+    pxTextBox.cpp \
     pxImage.cpp \
     pxUtil.cpp \
     pxContextGL.cpp \

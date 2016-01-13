@@ -111,9 +111,10 @@ void testScene() {
   for (int i = 0; i < n; i++) {
     
     rtObjectRef p;
-
+    rtObjectRef props = new rtMapObject();
     if (i < 1) {
-      scene.sendReturns<rtObjectRef>("createRectangle", p);
+      props.set("t","rect");
+      scene.sendReturns<rtObjectRef>("create", props, p);
       p.set("w", 300);
       p.set("h", 30);
       p.set("fillColor",0x00ff00ff);
@@ -122,7 +123,8 @@ void testScene() {
       p.send("animateTo", "h", 600, 0.5, 0, 0);
   }
     else if (i < 2){
-      scene.sendReturns<rtObjectRef>("createImage9", p);
+      props.set("t","image9");
+      scene.sendReturns<rtObjectRef>("create", props, p);
       p.set("url", d2);
       p.set("cx", p.get<float>("w")/2);
       p.set("cy", p.get<float>("h")/2);
@@ -132,7 +134,8 @@ void testScene() {
     }
 #if 1
     else if (i < n-3){
-      scene.sendReturns<rtObjectRef>("createImage", p);
+      props.set("t","image");
+      scene.sendReturns<rtObjectRef>("create", props, p);
       p.set("url", d);
       p.set("cx", p.get<float>("w")/2);
       p.set("cy", p.get<float>("h")/2);
@@ -140,7 +143,8 @@ void testScene() {
     }
 #endif
     else {
-      scene.sendReturns<rtObjectRef>("createText", p);
+      props.set("t","text");
+      scene.sendReturns<rtObjectRef>("create", props, p);
       p.send("animateTo", "sx", 2.0, 1.0, 0, 0);
       p.send("animateTo", "sy", 2.0, 1.0, 0, 0);
       nx = 200;
@@ -275,14 +279,19 @@ void ballScene()
   rtObjectRef root = scene.get<rtObjectRef>("root");  
 
   rtObjectRef bg;
-  scene.sendReturns<rtObjectRef>("createImage", bg);
+  rtObjectRef props = new rtMapObject();
+  props.set("t","image");
+  scene.sendReturns<rtObjectRef>("create", props, bg);
   bg.set("url", d);
   bg.set("stretchX", 2);
   bg.set("stretchY", 2);
   bg.set("parent", root);
   bg.set("w", scene->w());
   bg.set("h", scene->h());
-  scene.sendReturns<rtObjectRef>("createImage", bg);
+  
+  rtObjectRef props = new rtMapObject();
+  props.set("t","image");  
+  scene.sendReturns<rtObjectRef>("create", props, bg);
   bg.set("url", d2);
   bg.set("stretchX", 1);
   bg.set("stretchY", 1);
@@ -388,7 +397,9 @@ pxScene2dRef testScene()
   scene.send("on", "onResize", new rtFunctionCallback(onSizeCB,ctx));
 
   rtString bgUrl;
-  scene.sendReturns<rtObjectRef>("createImage", bg1);
+  rtObjectRef props = new rtMapObject();
+  props.set("t","image");  
+  scene.sendReturns<rtObjectRef>("create", props, bg1);
   bgUrl = d;
   bgUrl.append("/../images/skulls.png");
   bg1.set("url", bgUrl);
@@ -406,7 +417,9 @@ pxScene2dRef testScene()
     printf("i: %d key: %s\n", i, keys.get<rtString>(i).cString());
   }
 
-  scene.sendReturns<rtObjectRef>("createImage", bg2);
+  props = new rtMapObject();
+  props.set("t","image");
+  scene.sendReturns<rtObjectRef>("create", props, bg2);
   bgUrl = d;
   bgUrl.append("/../images/radial_gradient.png");
   bg2.set("url", bgUrl);
@@ -417,7 +430,9 @@ pxScene2dRef testScene()
   bg2.set("h", scene->h());
 
   rtObjectRef r;
-  scene.sendReturns<rtObjectRef>("createRectangle", r);
+  props = new rtMapObject();
+  props.set("t","rect");
+  scene.sendReturns<rtObjectRef>("create", props, r);
   if (r)
   {
     r.set("w", 300);
@@ -427,7 +442,9 @@ pxScene2dRef testScene()
   }
 
   rtObjectRef t;
-  scene.sendReturns<rtObjectRef>("createText", t);
+  props = new rtMapObject();
+  props.set("t","text");
+  scene.sendReturns<rtObjectRef>("create", props, t);
 #if 1
   t.set("text", "Select an image to display:\n\n"
         "1: Banana\n"
@@ -438,12 +455,13 @@ pxScene2dRef testScene()
   t.set("x", 10);
   t.set("y", 10);
   t.set("parent", root);
-
-  scene.sendReturns<rtObjectRef>("createImage", picture);
+  props = new rtMapObject();
+  props.set("t","image");
+  scene.sendReturns<rtObjectRef>("create", props, picture);
   picture.set("x", 400);
   picture.set("y", 400);
   // TODO animateTo now takes a property bag of properties and targets too lazy to fix this call right now
-  rtObjectRef props = new rtMapObject;
+  props = new rtMapObject();
   props.set("r",360.0);
   picture.send("animateTo", props, 0.5, 0, 1);
   picture.set("parent", root);

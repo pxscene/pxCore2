@@ -37,6 +37,7 @@ RT_SRCS=\
     rtThreadTask.cpp \
     rtThreadQueue.cpp \
     rtLibrary.cpp \
+    rtResource.cpp \
     rtZip.cpp \
     utf8.c
     
@@ -45,7 +46,7 @@ PX_SRCS=\
     pxScene2d.cpp \
 		pxRectangle.cpp \
     pxText.cpp \
-    pxText2.cpp \
+    pxTextBox.cpp \
     pxFont.cpp \
     pxImage.cpp \
     pxUtil.cpp \
