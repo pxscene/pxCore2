@@ -880,17 +880,17 @@ public:
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
-  rtMethod1ArgAndReturn("createRectangle", createRectangle, rtObjectRef, rtObjectRef);
-  rtMethod1ArgAndReturn("createImage", createImage, rtObjectRef, rtObjectRef);
-  rtMethod1ArgAndReturn("createImage9", createImage9, rtObjectRef, rtObjectRef);
+//  rtMethod1ArgAndReturn("createRectangle", createRectangle, rtObjectRef, rtObjectRef);
+//  rtMethod1ArgAndReturn("createImage", createImage, rtObjectRef, rtObjectRef);
+//  rtMethod1ArgAndReturn("createImage9", createImage9, rtObjectRef, rtObjectRef);
 //  rtMethod1ArgAndReturn("createImageResource", createImageResource, rtObjectRef, rtObjectRef);
-  rtMethod1ArgAndReturn("createText", createText, rtObjectRef, rtObjectRef);
-  rtMethod1ArgAndReturn("createTextBox", createTextBox, rtObjectRef, rtObjectRef);
-  rtMethod1ArgAndReturn("createScene", createScene, rtObjectRef, rtObjectRef);
+  //rtMethod1ArgAndReturn("createText", createText, rtObjectRef, rtObjectRef);
+  //rtMethod1ArgAndReturn("createTextBox", createTextBox, rtObjectRef, rtObjectRef);
+  //rtMethod1ArgAndReturn("createScene", createScene, rtObjectRef, rtObjectRef);
   rtMethod1ArgAndReturn("getFont", getFont, rtString, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
-  rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
-                        rtObjectRef);
+  //rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
+                        //rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
 
