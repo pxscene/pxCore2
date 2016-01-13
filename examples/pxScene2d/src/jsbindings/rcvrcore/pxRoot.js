@@ -118,8 +118,8 @@ pxRoot.prototype.initialize = function(x, y, width, height) {
 
 pxRoot.prototype.showFpsView = function(show) {
   if( show && this.fpsBg === null ) {
-    this.fpsBg = this.rootScene.createRectangle({fillColor: 0x00000080, lineColor: 0xffff0080,lineWidth: 3,x: 10,y: 10,a: 0, parent: this.rootScene.root });
-    var fpsCounter = this.rootScene.createText({x: 5,textColor: 0xffffffff,pixelSize: 24,text: "0fps",parent: this.fpsBg });
+    this.fpsBg = this.rootScene.create({t:"rect",fillColor: 0x00000080, lineColor: 0xffff0080,lineWidth: 3,x: 10,y: 10,a: 0, parent: this.rootScene.root });
+    var fpsCounter = this.rootScene.create({t:"text",x: 5,textColor: 0xffffffff,pixelSize: 24,text: "0fps",parent: this.fpsBg });
     this.fpsBg.w = fpsCounter.w + 16;
     this.fpsBg.h = fpsCounter.h;
     this.fpsBg.a = 1.0;
@@ -180,8 +180,9 @@ pxRoot.prototype.addScene = function(params) {
   }
 
   params['parent'] = this.rootScene.root;
+  params['t'] = "scene";
 
-  this.childScene =  this.rootScene.createScene(params);
+  this.childScene =  this.rootScene.create(params);
   return this.childScene;
 };
 

@@ -46,36 +46,36 @@ function Scene() {
     return nativeScene.create(params);
   }
 
-  this.createRectangle = function(params) {
-    return nativeScene.createRectangle(params)
-  }
+  //this.createRectangle = function(params) {
+    //return nativeScene.createRectangle(params)
+  //}
 
-  this.createText = function(params) {
-    return nativeScene.createText(params)
-  }
+  //this.createText = function(params) {
+    //return nativeScene.createText(params)
+  //}
 
-  this.createImage = function(params) {
-    return nativeScene.createImage(params)
-  }
+  //this.createImage = function(params) {
+    //return nativeScene.createImage(params)
+  //}
 
-  this.createImage9 = function(params,b1, b2) {
-    return nativeScene.createImage9(params, b1, b2);
-  }
+  //this.createImage9 = function(params,b1, b2) {
+    //return nativeScene.createImage9(params, b1, b2);
+  //}
 
-  //TODO - what is createExternal used for?  Testing only?
-  this.createExternal = function(params) {
-    if( params.parent === undefined ) {
-      params.parent = nativeScene.root;
-    }
-    return nativeScene.createExternal(params);
-  }
+  ////TODO - what is createExternal used for?  Testing only?
+  //this.createExternal = function(params) {
+    //if( params.parent === undefined ) {
+      //params.parent = nativeScene.root;
+    //}
+    //return nativeScene.createExternal(params);
+  //}
 
-  this.createScene = function(params) {
-    if( params.parent === undefined ) {
-      params.parent = nativeScene.root;
-    }
-    return nativeScene.createScene(params);
-  }
+  //this.createScene = function(params) {
+    //if( params.parent === undefined ) {
+      //params.parent = nativeScene.root;
+    //}
+    //return nativeScene.createScene(params);
+  //}
 
   this.setFocus = function(element) {
     return nativeScene.setFocus(element);
