@@ -12,8 +12,9 @@
 #include "rtRefT.h"
 #include "pxScene2d.h"
 #include "pxFont.h"
+#include "rtResource.h"
 
-class pxText: public pxObject 
+class pxText: public pxObject, rtResourceListener 
 {
 public:
   rtDeclareObject(pxText, pxObject);
@@ -48,7 +49,7 @@ public:
   virtual rtError setPixelSize(uint32_t v);
   
   rtError font(rtObjectRef& o) const { o = mFont; return RT_OK; }
-  rtError setFont(rtObjectRef o) { mFont = o; return RT_OK; }
+  virtual rtError setFont(rtObjectRef o);
   
   virtual void update(double t);
   virtual void onInit();
@@ -72,7 +73,7 @@ public:
     return e;
   }
 
-  virtual void fontLoaded(const char * value);
+  virtual void resourceReady(rtString readyResolution);
   virtual void sendPromise();
 
  protected:

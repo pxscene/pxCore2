@@ -38,7 +38,7 @@ using namespace std;
 #include "pxMatrix4T.h"
 #include "pxInterpolators.h"
 #include "pxTexture.h"
-#include "pxTextureCacheObject.h"
+//#include "pxTextureCacheObject.h"
 #include "pxContextFramebuffer.h"
 
 #include "pxArchive.h"
@@ -562,7 +562,7 @@ public:
     return RT_OK;
   }
 
-  virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
+  virtual bool onTextureReady();
   // !CLF: To Do: These names are terrible... find better ones!
   // These to functions are not exposed to javascript; they are for internal
   // determination of w/h for the pxObject. For instance, pxImage could be
@@ -962,7 +962,7 @@ public:
   rtError createTextBox(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
-//  rtError createImageResource(rtObjectRef p, rtObjectRef& o);  
+  rtError createImageResource(rtObjectRef p, rtObjectRef& o);  
   rtError createScene(rtObjectRef p,rtObjectRef& o);
   rtError getFont(rtString p, rtObjectRef& o);
   rtError clock(uint64_t & time);

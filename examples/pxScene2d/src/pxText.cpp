@@ -23,11 +23,10 @@ pxText::pxText(pxScene2d* scene):pxObject(scene)
 
 void pxText::onInit()
 {
-
   mInitialized = true;
 
   if( getFontResource()->isFontLoaded()) {
-    fontLoaded("resolve");
+    resourceReady("resolve");
   }
 }
 rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
@@ -63,31 +62,28 @@ rtError pxText::setPixelSize(uint32_t v)
   return RT_OK; 
 }
 
-void pxText::fontLoaded(const char * /*value*/)
+void pxText::resourceReady(rtString readyResolution)
 {
-  //printf("pxText::fontLoaded for text value=%s\n",mText.cString());
-//  rtLogDebug("pxText::fontLoaded for fontName=%s and mInitialized=%d\n",mFontUrl.compare("")?mFontUrl.cString():defaultFont, mInitialized); 
-  mFontLoaded=true;
-  // pxText gets its height and width from the text itself, 
-  // so measure it
-  getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
-  mDirty=true;  
-//  printf("After fontLoaded and measureText, mw=%f and mh=%f\n",mw,mh);
-  
-  if( mInitialized) {
-    // This repaint logic is necessary for clearing FBO if
-    // clipping is on
-    repaint();
-    pxObject* parent = mParent;
-    while (parent)
-    {
-     parent->repaint();
-     parent = parent->parent();
-    }    
-  }  
-  
+  if( !readyResolution.compare("resolve"))
+  {    
+    mFontLoaded=true;
+    // pxText gets its height and width from the text itself, 
+    // so measure it
+    getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
+    mDirty=true;  
+  //  printf("After fontLoaded and measureText, mw=%f and mh=%f\n",mw,mh);
+    // !CLF: ToDo Use pxObject::onTextureReady() and rename it.
+    if( mInitialized) 
+      pxObject::onTextureReady();
+    
+  }
+  else 
+  {
+      pxObject::onTextureReady();
+      mReady.send("reject",this);
+  }     
 }
-        
+       
 void pxText::update(double t)
 {
   pxObject::update(t);
@@ -145,6 +141,10 @@ void pxText::draw() {
   {
     getFontResource()->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
   }
+  
+  if (!mFontLoaded && getFontResource()->isDownloadInProgress())
+    getFontResource()->raiseDownloadPriority();
+  
 }
 
 rtError pxText::setFontUrl(const char* s)
@@ -155,13 +155,24 @@ rtError pxText::setFontUrl(const char* s)
   }
   mFontLoaded = false;
   createNewPromise();
-//  mFontUrl = s;
 
   mFont = pxFontManager::getFont(mScene, s);
   getFontResource()->addListener(this);
   
   return RT_OK;
 }
+
+rtError pxText::setFont(rtObjectRef o) 
+{ 
+  mFontLoaded = false;
+  createNewPromise();
+  // !CLF: TODO: Need validation/verification of o
+  mFont = o; 
+  getFontResource()->addListener(this);
+    
+  return RT_OK; 
+}
+  
 
 rtDefineObject(pxText, pxObject);
 rtDefineProperty(pxText, text);

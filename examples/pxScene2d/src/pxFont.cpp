@@ -47,43 +47,74 @@ extern "C" {
 #endif
 
 FT_Library ft;
-
-
-int fontDownloadsPending = 0; //must only be set in the main thread
-rtMutex fontDownloadMutex;
-bool fontDownloadsAvailable = false;
-vector<FontDownloadRequest> completedFontDownloads;
-
-void pxFontDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
-{
-  if (fileDownloadRequest != NULL)
-  {
-    FontDownloadRequest fontDownloadRequest;
-    fontDownloadRequest.fileDownloadRequest = fileDownloadRequest;
-    fontDownloadMutex.lock();
-    completedFontDownloads.push_back(fontDownloadRequest);
-    fontDownloadsAvailable = true;
-    fontDownloadMutex.unlock();
-  }
-}
-
 uint32_t gFontId = 0;
 
-void pxFont::onDownloadComplete(const FT_Byte*  fontData, FT_Long size, const char* n)
-{
-  rtLogInfo("pxFont::onDownloadComplete %s\n",n);
-  if( mUrl.compare(n)) 
-  {
-    rtLogWarn("pxFont::onDownloadComplete received for font \"%s\" but this font is \"%s\"\n",n, mUrl.cString());
-    return; 
-  }
 
-  init(fontData, size, n);
-  
-  fontLoaded();
+pxFont::pxFont(rtString fontUrl):rtResource(),mPixelSize(0), mFontData(0)
+{  
+  mFontId = gFontId++; 
+  mUrl = fontUrl;
 
 }
 
+pxFont::~pxFont() 
+{
+  rtLogInfo("~pxFont %s\n", mUrl.cString());
+  // download should be canceled/removed in rtResource
+  //if (mDownloadRequest != NULL)
+  //{
+    //// clear any pending downloads
+    //mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
+  //}  
+   
+  pxFontManager::removeFont( mUrl);
+ 
+  if( mInitialized) 
+  {
+    FT_Done_Face(mFace);
+  }
+  mFace = 0;
+  
+  if(mFontData) {
+    free(mFontData);
+    mFontData = 0;
+  } 
+   
+}
+bool pxFont::loadResourceData(pxFileDownloadRequest* fileDownloadRequest)
+{
+      // Load the font data
+      init( (FT_Byte*)fileDownloadRequest->getDownloadedData(), 
+            (FT_Long)fileDownloadRequest->getDownloadedDataSize(), 
+            fileDownloadRequest->getFileUrl().cString());
+            
+      return true;
+}
+
+void pxFont::loadResourceFromFile()
+{
+    rtError e = init(mUrl);
+    if (e != RT_OK)
+    {
+      rtLogWarn("Could not load font face %s\n", mUrl.cString());
+      mLoadStatus.set("statusCode", RT_RESOURCE_STATUS_FILE_NOT_FOUND);
+      // Since this object can be released before we get a async completion
+      // We need to maintain this object's lifetime
+      // TODO review overall flow and organization
+      AddRef();     
+      gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"reject");
+    }
+    else
+    {
+      mLoadStatus.set("statusCode", RT_RESOURCE_STATUS_OK);
+      // Since this object can be released before we get a async completion
+      // We need to maintain this object's lifetime
+      // TODO review overall flow and organization
+      AddRef();      
+      gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"resolve");
+
+    } 
+}
 
 rtError pxFont::init(const char* n)
 {
@@ -328,188 +359,6 @@ void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, floa
 }
 
 
-pxFont::pxFont(rtString fontUrl):rtResource(),mPixelSize(0), mFontData(0), mInitialized(false), mFontDownloadRequest(NULL)
-{  
-  mFontId = gFontId++; 
-  mUrl = fontUrl;
-
-}
-
-pxFont::~pxFont() 
-{
-  rtLogInfo("~pxFont %s\n", mUrl.cString());
-  if (mFontDownloadRequest != NULL)
-  {
-    // clear any pending downloads
-    mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
-  }  
-   
-  pxFontManager::removeFont( mUrl);
- 
-  if( mInitialized) 
-  {
-    FT_Done_Face(mFace);
-  }
-  mFace = 0;
-  
-  if(mFontData) {
-    free(mFontData);
-    mFontData = 0;
-  } 
-   
-}
-
-void pxFont::fontLoaded()
-{
-    mInitialized = true;
-    sendReady("resolve");
-}
-
-void pxFont::addListener(pxText* pText) 
-{
-  //printf("pxFont::addListener for %s\n",mUrl.cString());
-  if( !mInitialized) 
-  {
-    mListeners.push_back(pText);
-  } 
-  else 
-  {
-    pText->fontLoaded("resolve");
-  }
-  
-}
-rtError pxFont::loadFont()
-{
-  rtLogInfo("pxFont::loadFont for %s\n",mUrl.cString());
-  const char *result = strstr(mUrl, "http");
-  int position = result - mUrl;
-  if (position == 0 && strlen(mUrl) > 0)
-  {
-    if (mFontDownloadRequest != NULL)
-    {
-      // if there is a previous request pending then set the callback to NULL
-      // the previous request will not be processed and the memory will be freed when the download is complete
-      mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
-    }
-    // Start the download request
-    mFontDownloadRequest =
-        new pxFileDownloadRequest(mUrl, this);
-   
-    fontDownloadsPending++;
-    mFontDownloadRequest->setCallbackFunction(pxFontDownloadComplete);
-    pxFileDownloader::getInstance()->addToDownloadQueue(mFontDownloadRequest);
-
-  }
-  else {
-    rtError e = init(mUrl);
-    if (e != RT_OK)
-    {
-      rtLogWarn("Could not load font face %s\n", mUrl.cString());
-      sendReady("reject");
-
-      return e;
-    }
-    else
-    {
-      setLoadStatus("statusCode", "OK");
-      fontLoaded();
-
-    }
-  }
-  
-  return RT_OK;
-}
-
-void pxFont::checkForCompletedDownloads(int maxTimeInMilliseconds)
-{
-  double startTimeInMs = pxMilliseconds();
-  if (fontDownloadsPending > 0)
-  {
-    fontDownloadMutex.lock();
-    if (fontDownloadsAvailable)
-    {
-      for(vector<FontDownloadRequest>::iterator it = completedFontDownloads.begin(); it != completedFontDownloads.end(); )
-      {
-        FontDownloadRequest fontDownloadRequest = (*it);
-        if (!fontDownloadRequest.fileDownloadRequest)
-        {
-          it = completedFontDownloads.erase(it);
-          continue;
-        }
-        if (fontDownloadRequest.fileDownloadRequest->getCallbackData() != NULL)
-        {
-          pxFont *fontObject = (pxFont *) fontDownloadRequest.fileDownloadRequest->getCallbackData();
-          fontObject->onFontDownloadComplete(fontDownloadRequest);
-        }
-
-        delete fontDownloadRequest.fileDownloadRequest;
-        fontDownloadsAvailable = false;
-        fontDownloadsPending--;
-        it = completedFontDownloads.erase(it);
-        double currentTimeInMs = pxMilliseconds();
-        if ((maxTimeInMilliseconds >= 0) && (currentTimeInMs - startTimeInMs > maxTimeInMilliseconds))
-        {
-          break;
-        }
-      }
-      if (fontDownloadsPending < 0)
-      {
-        //this is a safety check (hopefully never used)
-        //to ensure downloads are still processed in the event of a fontDownloadsPending bug in the future
-        fontDownloadsPending = 0;
-      }
-    }
-    fontDownloadMutex.unlock();
-  }
-}
-
-void pxFont::onFontDownloadComplete(FontDownloadRequest fontDownloadRequest)
-{
-  rtLogInfo("pxFont::onFontDownloadComplete\n");
-  mFontDownloadRequest = NULL;
-  if (fontDownloadRequest.fileDownloadRequest == NULL)
-  {
-    setLoadStatus("statusCode", "FAIL");
-    sendReady("reject");
-    return;
-  }
-  
-  setLoadStatus("statusCode", fontDownloadRequest.fileDownloadRequest->getDownloadStatusCode());
-  setLoadStatus("httpStatusCode", fontDownloadRequest.fileDownloadRequest->getHttpStatusCode());
-  
-  if (fontDownloadRequest.fileDownloadRequest->getDownloadStatusCode() == 0 &&
-      fontDownloadRequest.fileDownloadRequest->getHttpStatusCode() == 200 &&
-      fontDownloadRequest.fileDownloadRequest->getDownloadedData() != NULL)
-  {
-    // Let the font handle the completion event and notifications to listeners
-    onDownloadComplete((FT_Byte*)fontDownloadRequest.fileDownloadRequest->getDownloadedData(),
-                          (FT_Long)fontDownloadRequest.fileDownloadRequest->getDownloadedDataSize(),
-                          fontDownloadRequest.fileDownloadRequest->getFileUrl().cString());
-
-  }
-  else
-  {
-    rtLogWarn("Font Download Failed: %s Error: %s HTTP Status Code: %ld",
-              fontDownloadRequest.fileDownloadRequest->getFileUrl().cString(),
-              fontDownloadRequest.fileDownloadRequest->getErrorString().cString(),
-              fontDownloadRequest.fileDownloadRequest->getHttpStatusCode());
-
-      sendReady("reject");
-
-  }
-}
-void pxFont::sendReady(const char * value)
-{
-  for (vector<pxText*>::iterator it = mListeners.begin();
-         it != mListeners.end(); ++it)
-  {
-    (*it)->fontLoaded(value);
-
-  }
-  mListeners.clear();
-  mReady.send(value,this);
-}
-
 /*
 #### getFontMetrics - returns information about the font (font and size).  It does not convey information about the text of the font.  
 * See section 3.a in http://www.freetype.org/freetype2/docs/tutorial/step2.html .  
@@ -568,6 +417,10 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
   return RT_OK; 
 }
 
+
+/**********************************************************************/
+/**                    pxFontManager                                  */
+/**********************************************************************/
 FontMap pxFontManager::mFontMap;
 bool pxFontManager::init = false;
 void pxFontManager::initFT(pxScene2d* /*scene*/) 
@@ -585,12 +438,6 @@ void pxFontManager::initFT(pxScene2d* /*scene*/)
     return;
   }
   
-  //// Set up default font
-  //rtRefT<pxFont> pFont = new pxFont(scene, defaultFont);
-  //mFontMap.insert(make_pair(defaultFont, pFont));
-
-  //pFont->loadFont();
-
 }
 rtRefT<pxFont> pxFontManager::getFont(pxScene2d* scene, const char* s)
 {
@@ -614,7 +461,7 @@ rtRefT<pxFont> pxFontManager::getFont(pxScene2d* scene, const char* s)
     rtLogDebug("Create pxFont in map for %s\n",s);
     pFont = new pxFont(s);
     mFontMap.insert(make_pair(s, pFont));
-    pFont->loadFont();
+    pFont->loadResource();
   }
   
   return pFont;

@@ -956,7 +956,7 @@ void pxObject::deleteSnapshot(pxContextFramebufferRef fbo)
 
 
 
-bool pxObject::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status)
+bool pxObject::onTextureReady()
 {
   repaint();
   pxObject* parent = mParent;
@@ -1082,8 +1082,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createImage(p,o);
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
-  //else if (!strcmp("imageResource",t.cString()))
-    //e = createImageResource(p,o);    
+  else if (!strcmp("imageResource",t.cString()))
+    e = createImageResource(p,o);    
   else if (!strcmp("scene",t.cString()))
     e = createScene(p,o);
   else if (!strcmp("external",t.cString()))
@@ -1161,25 +1161,13 @@ rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
-/*rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
+rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString url = p.get<rtString>("url"); 
-  //rtObjectRef keys = o.get<rtObjectRef>("allKeys");
-  //if (keys)
-  //{
-    //uint32_t len = keys.get<uint32_t>("length");
-    //for (uint32_t i = 0; i < len; i++)
-    //{
-      //rtString key = keys.get<rtString>(i);
-      //set(key, o.get<rtValue>(key));
-    //}
-  //}
   o = pxImageManager::getImage(url);
-//  o = new pxResourceImage();
-//  o.set(p);
   o.send("init");
   return RT_OK;
-}*/
+}
 
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
@@ -1286,8 +1274,8 @@ void pxScene2d::draw()
 void pxScene2d::onUpdate(double t)
 {
   // TODO if (mTop) check??
-  pxTextureCacheObject::checkForCompletedDownloads();
-  pxFont::checkForCompletedDownloads();
+ // pxTextureCacheObject::checkForCompletedDownloads();
+  //pxFont::checkForCompletedDownloads();
 
   // Dispatch various tasks on the main UI thread
   gUIThreadQueue.process(0.01);

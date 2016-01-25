@@ -234,11 +234,12 @@ public:
   virtual rtError setText(const char* s); 
   virtual rtError setPixelSize(uint32_t v);
   virtual rtError setFontUrl(const char* s);
+  virtual rtError setFont(rtObjectRef o);
   virtual rtError setW(float v)       { setNeedsRecalc(true); return pxObject::setW(v);   }
   virtual rtError setH(float v)       { setNeedsRecalc(true); return pxObject::setH(v);   }  
   virtual rtError setClip(bool v) { mClip = v; setNeedsRecalc(true); return RT_OK; }
   void renderText(bool render);
-  virtual void fontLoaded(const char * value);
+  virtual void resourceReady(rtString readyResolution);
   virtual void sendPromise();
   void determineMeasurementBounds();
   virtual void draw();

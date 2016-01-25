@@ -39,24 +39,24 @@ pxTextBox::pxTextBox(pxScene2d* s):pxText(s)
 /** This signals that the font file loaded successfully; now we need to 
  * send the ready promise once we have the text, too
  */
-void pxTextBox::fontLoaded(const char * value) 
+void pxTextBox::resourceReady(rtString readyResolution)
 {
-  rtLogDebug("pxTextBox::fontLoaded. Initialized=%d\n",mInitialized);
-  if(!strncmp(value, "resolve", strnlen(value, 8))) {
+  if( !readyResolution.compare("resolve"))
+  {  
     mFontLoaded = true;
+
+    if( mInitialized) {
+      setNeedsRecalc(true);
+      pxObject::onTextureReady();
+    }
+      
   }
-  if( mInitialized) {
-    setNeedsRecalc(true);
-    // This repaint logic is necessary for clearing FBO if
-    // clipping is on
-    repaint();
-    pxObject* parent = mParent;
-    while (parent)
-    {
-     parent->repaint();
-     parent = parent->parent();
-    }    
-  }
+  else 
+  {
+      pxObject::onTextureReady();
+      mReady.send("reject",this);
+  }    
+  
 }
 
 float pxTextBox::getFBOWidth() 
@@ -156,6 +156,15 @@ rtError pxTextBox::setFontUrl(const char* s)
 }
 
 
+rtError pxTextBox::setFont(rtObjectRef o) 
+{ 
+  mFontLoaded = false;
+  setNeedsRecalc(true);
+   
+  return pxText::setFont(o);
+}
+
+
 void pxTextBox::draw() {
   static pxTextureRef nullMaskRef;
 	if (mCached.getPtr() && mCached->getTexture().getPtr()) 
@@ -174,6 +183,9 @@ void pxTextBox::draw() {
     {
 	  renderText(true);
 	}
+  
+  if (!mFontLoaded && getFontResource()->isDownloadInProgress())
+    getFontResource()->raiseDownloadPriority();  
 }
 void pxTextBox::update(double t)
 {

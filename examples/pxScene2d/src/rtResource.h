@@ -15,7 +15,25 @@
 #include "rtObject.h"
 #include "rtObjectMacros.h"
 #include "rtPromise.h"
+#include "pxTexture.h"
 
+#include <map>
+class pxFileDownloadRequest;
+
+#define RT_RESOURCE_STATUS_OK             0
+#define RT_RESOURCE_STATUS_DOWNLOADING    1
+#define RT_RESOURCE_STATUS_FILE_NOT_FOUND 2
+#define RT_RESOURCE_STATUS_NETWORK_ERROR  3
+#define RT_RESOURCE_STATUS_DECODE_FAILURE 4
+#define RT_RESOURCE_STATUS_HTTP_ERROR     5
+#define RT_RESOURCE_STATUS_UNKNOWN_ERROR  6
+
+
+class rtResourceListener 
+{
+public: 
+  virtual void resourceReady(rtString readyResolution) = 0;
+};
 
 class rtResource : public rtObject
 {
@@ -26,24 +44,17 @@ public:
   rtReadOnlyProperty(ready,ready,rtObjectRef);
   rtReadOnlyProperty(loadStatus,loadStatus,rtObjectRef);
     
-  rtResource(){  
+  rtResource():mUrl(0),mDownloadRequest(0),priorityRaised(false),mReady(){  
     mReady = new rtPromise;
     mLoadStatus = new rtMapObject; 
+    mLoadStatus.set("statusCode", 0);
    }
-  ~rtResource() {}
+  ~rtResource();
 
-  virtual unsigned long AddRef() {
-    return rtAtomicInc(&mRefCount);
-  }
   
-  virtual unsigned long Release() {
-    long l = rtAtomicDec(&mRefCount);
-    if (l == 0) delete this;
-    return l;
-  }
-
   rtError url(rtString& s) const { s = mUrl; return RT_OK;}
   rtError setUrl(const char* s);
+  rtString getUrl() { return mUrl;}
 
   rtError ready(rtObjectRef& r) const;
   rtError loadStatus(rtObjectRef& v) const;
@@ -55,53 +66,68 @@ public:
   
   // Convenience method; not exposed to javascript
   rtValue getLoadStatus(rtString key);
- 
-protected: 
- // virtual void loadResource() = 0;
+  bool isInitialized() { return mInitialized; }
+  
+  bool isDownloadInProgress() { return (mDownloadRequest!=NULL);}  
+  virtual void raiseDownloadPriority(); 
+  void addListener(rtResourceListener* pListener);
+  void removeListener(rtResourceListener* pListener);
+  virtual void loadResource();
+  
+protected:   
+  static void onDownloadComplete(pxFileDownloadRequest* downloadRequest);
+  static void onDownloadCompleteUI(void* context, void* data);
+  virtual void processDownloadedResource(pxFileDownloadRequest* fileDownloadRequest);
+  virtual bool loadResourceData(pxFileDownloadRequest* fileDownloadRequest) = 0;
+  
+  void notifyListeners(rtString readyResolution);
+
+  virtual void loadResourceFromFile() = 0;
+
   
   rtString mUrl;
-  
-  // Use rtObjectRef or template as below?  Same thing?
+  pxFileDownloadRequest* mDownloadRequest;  
+  bool priorityRaised;
+
   rtObjectRef mLoadStatus;
   rtObjectRef mReady;
-
+  list<rtResourceListener*> mListeners;
 };
 
 class rtImageResource : public rtResource
 {
 public:
   rtImageResource(const char* url = 0);
-  ~rtImageResource() {}
+  ~rtImageResource(); 
   
   rtDeclareObject(rtImageResource, rtResource);
+  
+  virtual unsigned long Release() ;
 
   // Need these, or use from texture?  
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);  
 
-  int32_t w() const { return mw;  }
-  rtError w(int32_t& v) const { v = mw;  return RT_OK; }
-  int32_t h() const { return mh; }
-  rtError h(int32_t& v) const { v = mh; return RT_OK; } 
+  int32_t w() const;
+  rtError w(int32_t& v) const;
+  int32_t h() const;
+  rtError h(int32_t& v) const; 
 
-  // These are not exposed to javascript
-  // For convenience for now, to get from texture
-  void setW(int32_t v) { mw = v; }
-  void setH(int32_t v) { mh = v; }
-  
-   
+  pxTextureRef getTexture() { return mTexture; }  
+ 
   virtual void init();
-//  virtual void loadResource();
-  
-  
-  
-protected:
 
-  int32_t mw;
-  int32_t mh;
+protected:  
+  virtual bool loadResourceData(pxFileDownloadRequest* fileDownloadRequest);
+  
+private: 
 
+  void loadResourceFromFile();
+
+  pxTextureRef mTexture;
+ 
 };
-/*
+
 // Weak Map
 typedef map<rtString, rtImageResource*> ImageMap;
 class pxImageManager
@@ -111,11 +137,12 @@ class pxImageManager
     static rtRefT<rtImageResource> getImage(const char* url);
     static void removeImage(rtString imageUrl);
     
-  protected: 
+  private: 
     static ImageMap mImageMap;
-    
+    static rtRefT<rtImageResource> emptyUrlResource;
+
 };
-*/
+
 
 
 #endif

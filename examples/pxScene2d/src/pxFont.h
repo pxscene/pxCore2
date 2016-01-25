@@ -21,10 +21,6 @@ class pxFont;
 
 
 class pxFileDownloadRequest;
-typedef struct _FontDownloadRequest
-{
-  pxFileDownloadRequest* fileDownloadRequest;
-} FontDownloadRequest;
 
 struct GlyphCacheEntry
 {
@@ -132,28 +128,12 @@ public:
 
 	rtDeclareObject(pxFont, rtResource);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
+  
   rtMethod1ArgAndReturn("getFontMetrics", getFontMetrics, uint32_t, rtObjectRef);
   rtError getFontMetrics(uint32_t pixelSize, rtObjectRef& o);
   rtMethod2ArgAndReturn("measureText", measureText, uint32_t, rtString, rtObjectRef);
   rtError measureText(uint32_t, rtString, rtObjectRef& o);   
-  
-  //rtError ready(rtObjectRef& v) const
-  //{
-    //v = mReady;
-    //return RT_OK;
-  //}
     
-  //rtString getFontName() { return mFontName;}
-  void fontLoaded();
-  void onFontDownloadComplete(FontDownloadRequest fontDownloadRequest);
-  void onDownloadComplete(const FT_Byte* fontData, FT_Long size, const char* n);
-  
-  static void checkForCompletedDownloads(int maxTimeInMilliseconds=10);
-    
-  void addListener(pxText* pText);
-  bool isFontLoaded() { return mInitialized;}
-  rtError loadFont();
-
   // FT Face related functions
   void setPixelSize(uint32_t s);  
   const GlyphCacheEntry* getGlyph(uint32_t codePoint);  
@@ -168,26 +148,24 @@ public:
                   float sx, float sy, 
                   float* color, float mw);
 
-  // !CLF: TO DO:  Need an impl of this or need rtResource to require url for init
   virtual void init() {}
+  bool isFontLoaded() { return mInitialized;}
+   
+protected:
+  // Implementation for rtResource virtuals
+  virtual bool loadResourceData(pxFileDownloadRequest* fileDownloadRequest);
   
 private:
+  void loadResourceFromFile();
   rtError init(const char* n);
   rtError init(const FT_Byte*  fontData, FT_Long size, const char* n); 
-  void sendReady(const char * value); 
 
+  // FreeType font info
   uint32_t mFontId;
-  //rtString mFontName;
   FT_Face mFace;
   uint32_t mPixelSize;
-  
   char* mFontData; // for remote fonts loaded into memory
-  
-  bool mInitialized;
-    
-  pxFileDownloadRequest* mFontDownloadRequest;
-    
-  vector<pxText*> mListeners;
+
 };
 
 // Weak Map

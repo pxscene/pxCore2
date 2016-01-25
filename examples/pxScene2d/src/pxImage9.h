@@ -5,10 +5,10 @@
 #define PX_IMAGE9_H
 
 #include "pxOffscreen.h"
-#include "pxTextureCacheObject.h"
+//#include "pxTextureCacheObject.h"
 #include "rtResource.h"
 
-class pxImage9: public pxObject {
+class pxImage9: public pxObject, rtResourceListener {
 public:
   rtDeclareObject(pxImage9, pxObject);
   rtProperty(url, url, setUrl, rtString);
@@ -18,11 +18,10 @@ public:
   rtProperty(insetBottom, insetBottom, setInsetBottom, float);
   rtProperty(resource, resource, setResource, rtObjectRef);  
 
-  pxImage9(pxScene2d* scene) : pxObject(scene),mInsetLeft(0),mInsetTop(0),mInsetRight(0),mInsetBottom(0),mTextureCacheObject(), 
+  pxImage9(pxScene2d* scene) : pxObject(scene),mInsetLeft(0),mInsetTop(0),mInsetRight(0),mInsetBottom(0), 
                                imageLoaded(false) 
   { 
-    mTextureCacheObject.setParent(this); 
-    mResource = new rtImageResource;
+    mResource = pxImageManager::getImage("");
   }
   
   rtError url(rtString& s) const;
@@ -42,7 +41,8 @@ public:
 
 
   virtual void onInit();
-  virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
+  virtual void resourceReady(rtString readyResolution);
+  //virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject) {return true;}
   virtual void sendPromise();
   virtual void createNewPromise() { rtLogDebug("pxImage9 ignoring createNewPromise\n"); }
   
@@ -51,9 +51,7 @@ protected:
   void loadImage(rtString Url);
   inline rtImageResource* getImageResource() const { return (rtImageResource*)mResource.getPtr(); }
   
-  rtString mUrl;
   float mInsetLeft, mInsetTop, mInsetRight, mInsetBottom;
-  pxTextureCacheObject mTextureCacheObject;
   rtObjectRef mResource;  
   
   bool imageLoaded;

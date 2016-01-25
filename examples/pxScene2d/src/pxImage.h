@@ -7,10 +7,10 @@
 #include "pxContext.h"
 #include "rtMutex.h"
 #include "pxTexture.h"
-#include "pxTextureCacheObject.h"
+//#include "pxTextureCacheObject.h"
 #include "rtResource.h"
 
-class pxImage: public pxObject {
+class pxImage: public pxObject, rtResourceListener {
 public:
   rtDeclareObject(pxImage, pxObject);
   rtProperty(url, url, setUrl, rtString);
@@ -19,12 +19,11 @@ public:
   rtProperty(resource, resource, setResource, rtObjectRef);
   
   pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(PX_NONE),mStretchY(PX_NONE), 
-    mTextureCacheObject(), imageLoaded(false)
+    imageLoaded(false)
   { 
-    mTextureCacheObject.setParent(this);
     mw = -1;
     mh = -1;
-    mResource = new rtImageResource();
+    mResource = pxImageManager::getImage("");
   }
 
   virtual ~pxImage() { rtLogDebug("~pxImage()"); }
@@ -52,28 +51,21 @@ public:
   }
   
   rtError resource(rtObjectRef& o) const { /*printf("!!!!!!!!!!!!!!!!!!!!!!!pxImage getResource\n");*/o = mResource; return RT_OK; }
-  rtError setResource(rtObjectRef o) { /*printf("!!!!!!!!!!!!!!!!!!!!!pxImage setResource\n");*/mResource = o; return RT_OK; }
+  rtError setResource(rtObjectRef o);
 
-  pxTextureRef getTexture()
-  {
-    return mTextureCacheObject.getTexture();
-  }
-
-  virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
+  virtual void resourceReady(rtString readyResolution);
+  //virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject) {return true;}
   // !CLF: To Do: These names are terrible... find better ones!
-  virtual float getOnscreenWidth();// { if(mw==-1) return mTextureCacheObject.getTexture()->width(); else return mw; }
-  virtual float getOnscreenHeight();// { if(mh==-1) return mTextureCacheObject.getTexture()->height(); else  return mh;  }
+  virtual float getOnscreenWidth();
+  virtual float getOnscreenHeight();
   
 protected:
   virtual void draw();
   void loadImage(rtString Url);
   inline rtImageResource* getImageResource() const { return (rtImageResource*)mResource.getPtr(); }
-  
-  rtString mUrl;
+
   pxStretch mStretchX;
   pxStretch mStretchY;
-//  pxTextureRef mTexture;
-  pxTextureCacheObject mTextureCacheObject;
   rtObjectRef mResource;
   
   bool imageLoaded;
