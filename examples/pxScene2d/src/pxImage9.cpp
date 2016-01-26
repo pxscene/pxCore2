@@ -98,3 +98,4 @@ rtDefineProperty(pxImage9, insetLeft);
 rtDefineProperty(pxImage9, insetTop);
 rtDefineProperty(pxImage9, insetRight);
 rtDefineProperty(pxImage9, insetBottom);
+rtDefineProperty(pxImage9, resource);
