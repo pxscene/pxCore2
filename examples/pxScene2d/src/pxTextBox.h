@@ -247,8 +247,8 @@ public:
   virtual void update(double t);
 
  
-  rtMethodNoArgAndReturn("getFontMetrics", getFontMetrics, rtObjectRef);
-  rtError getFontMetrics(rtObjectRef& o);
+  //rtMethodNoArgAndReturn("getFontMetrics", getFontMetrics, rtObjectRef);
+  //rtError getFontMetrics(rtObjectRef& o);
   rtMethodNoArgAndReturn("measureText", measureText, rtObjectRef);
   rtError measureText(rtObjectRef& o); 
 

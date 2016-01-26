@@ -1085,23 +1085,23 @@ bool pxTextBox::isNewline( char ch )
 * ascent - float - the distance from the baseline to the font ascender (note that this is a hint, not a solid rule)
 * descent - float - the distance from the baseline to the font descender  (note that this is a hint, not a solid rule)
 */
-rtError pxTextBox::getFontMetrics(rtObjectRef& o) {
+//rtError pxTextBox::getFontMetrics(rtObjectRef& o) {
   
-  if(!mInitialized || !mFontLoaded) {
-    rtLogWarn("getFontMetrics called TOO EARLY -- not initialized or font not loaded!\n");
+  //if(!mInitialized || !mFontLoaded) {
+    //rtLogWarn("getFontMetrics called TOO EARLY -- not initialized or font not loaded!\n");
 
-    return RT_OK; // !CLF: TO DO - COULD RETURN RT_ERROR HERE TO CATCH NOT WAITING ON PROMISE
-  }
-  //printf("pxTextBox::getFontMetrics\n");  
+    //return RT_OK; // !CLF: TO DO - COULD RETURN RT_ERROR HERE TO CATCH NOT WAITING ON PROMISE
+  //}
+  ////printf("pxTextBox::getFontMetrics\n");  
   
-  getFontResource()->getFontMetrics(mPixelSize, o);
-  // set Baseline relative to my
-//  pxTextMetrics* metrics = (pxTextMetrics*)o.getPtr();
-//  metrics->setBaseline(metrics->baseline()+my);
-//  o = metrics;
+  //getFontResource()->getFontMetrics(mPixelSize, o);
+  //// set Baseline relative to my
+////  pxTextMetrics* metrics = (pxTextMetrics*)o.getPtr();
+////  metrics->setBaseline(metrics->baseline()+my);
+////  o = metrics;
   
-	return RT_OK;
-}
+	//return RT_OK;
+//}
 
 /**
  * #### measureText – returns an object with the following properties (measurements are relative to (x,y) of the text object):
@@ -1155,5 +1155,5 @@ rtDefineProperty(pxTextBox, truncation);
 rtDefineProperty(pxTextBox, alignVertical);
 rtDefineProperty(pxTextBox, alignHorizontal);
 rtDefineProperty(pxTextBox, leading);
-rtDefineMethod(pxTextBox, getFontMetrics);
+//rtDefineMethod(pxTextBox, getFontMetrics);
 rtDefineMethod(pxTextBox, measureText);
