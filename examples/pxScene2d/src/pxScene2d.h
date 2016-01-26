@@ -917,7 +917,7 @@ public:
   rtConstantProperty(PX_EASEOUTBOUNCE, PX_EASEOUTBOUNCE_, uint32_t);
   rtConstantProperty(PX_END, PX_END, uint32_t);
   // TODO deprecated remove from js samples
-  rtConstantProperty(PX_SEESAW, PX_OSCILLATE, uint32_t);
+//  rtConstantProperty(PX_SEESAW, PX_OSCILLATE, uint32_t);
   rtConstantProperty(PX_OSCILLATE, PX_OSCILLATE, uint32_t);
   rtConstantProperty(PX_LOOP, PX_LOOP, uint32_t);
   rtConstantProperty(PX_NONE, PX_NONE_, uint32_t);

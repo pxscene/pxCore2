@@ -7,7 +7,7 @@ var prompt = scene.create({t:"text",text:"Enter Url to JS File or Package",paren
 var url = scene.create({t:"text",text:"",parent:inputbg,pixelSize:24,textColor:0x303030ff,x:10,y:2});
 var cursor = scene.create({t:"rect", w:2, h:inputbg.h-10, parent:inputbg,x:10,y:5});
 
-cursor.animateTo({a:0},0.5,scene.PX_LINEAR,scene.PX_SEESAW);
+cursor.animateTo({a:0},0.5,scene.PX_LINEAR,scene.PX_OSCILLATE);
 
 
 var contentBG = scene.create({t:"rect",x:10,y:60,parent:bg,fillColor:0xffffffff,a:0.05,draw:false});

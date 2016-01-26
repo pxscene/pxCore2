@@ -1841,7 +1841,7 @@ rtDefineProperty(pxScene2d, PX_EASEINELASTIC);
 rtDefineProperty(pxScene2d, PX_EASEOUTELASTIC);
 rtDefineProperty(pxScene2d, PX_EASEOUTBOUNCE);
 rtDefineProperty(pxScene2d, PX_END);
-rtDefineProperty(pxScene2d, PX_SEESAW);
+//rtDefineProperty(pxScene2d, PX_SEESAW);
 rtDefineProperty(pxScene2d, PX_OSCILLATE);
 rtDefineProperty(pxScene2d, PX_LOOP);
 rtDefineProperty(pxScene2d, PX_NONE);
