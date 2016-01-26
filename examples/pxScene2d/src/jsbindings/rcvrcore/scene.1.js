@@ -94,9 +94,9 @@ function Scene() {
     return nativeScene.clock();
   }
 
-  this.getFont = function getFont(url) {
-    return nativeScene.getFont(url);
-  }
+  //this.getFont = function getFont(url) {
+    //return nativeScene.getFont(url);
+  //}
 
   this.screenshot = function screenshot(type, pngData) {
     return nativeScene.screenshot(type, pngData);

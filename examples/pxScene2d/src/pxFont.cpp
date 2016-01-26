@@ -423,7 +423,7 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
 /**********************************************************************/
 FontMap pxFontManager::mFontMap;
 bool pxFontManager::init = false;
-void pxFontManager::initFT(pxScene2d* /*scene*/) 
+void pxFontManager::initFT() 
 {
   if (init) 
   {
@@ -439,28 +439,28 @@ void pxFontManager::initFT(pxScene2d* /*scene*/)
   }
   
 }
-rtRefT<pxFont> pxFontManager::getFont(pxScene2d* scene, const char* s)
+rtRefT<pxFont> pxFontManager::getFont(const char* url)
 {
-  initFT(scene);
+  initFT();
 
   rtRefT<pxFont> pFont;
 
-  if (!s || !s[0])
-    s = defaultFont;
+  if (!url || !url[0])
+    url = defaultFont;
   
-  FontMap::iterator it = mFontMap.find(s);
+  FontMap::iterator it = mFontMap.find(url);
   if (it != mFontMap.end())
   {
-    rtLogDebug("Found pxFont in map for %s\n",s);
+    rtLogDebug("Found pxFont in map for %s\n",url);
     pFont = it->second;
     return pFont;  
     
   }
   else 
   {
-    rtLogDebug("Create pxFont in map for %s\n",s);
-    pFont = new pxFont(s);
-    mFontMap.insert(make_pair(s, pFont));
+    rtLogDebug("Create pxFont in map for %s\n",url);
+    pFont = new pxFont(url);
+    mFontMap.insert(make_pair(url, pFont));
     pFont->loadResource();
   }
   

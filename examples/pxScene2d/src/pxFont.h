@@ -176,11 +176,11 @@ class pxFontManager
   
   public: 
     
-    static rtRefT<pxFont> getFont(pxScene2d* scene, const char* s);
+    static rtRefT<pxFont> getFont(const char* url);
     static void removeFont(rtString fontName);
     
   protected: 
-    static void initFT(pxScene2d* scene);  
+    static void initFT();  
     static FontMap mFontMap;
     static bool init;
     

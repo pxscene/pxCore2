@@ -1084,6 +1084,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createImage9(p,o);
   else if (!strcmp("imageResource",t.cString()))
     e = createImageResource(p,o);    
+  else if (!strcmp("fontResource",t.cString()))
+    e = createFontResource(p,o);        
   else if (!strcmp("scene",t.cString()))
     e = createScene(p,o);
   else if (!strcmp("external",t.cString()))
@@ -1169,20 +1171,18 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
+rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
+{
+  rtString url = p.get<rtString>("url"); 
+  o = pxFontManager::getFont(url);
+  return RT_OK;
+}
+
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxSceneContainer(this);
   o.set(p);
   o.send("init");
-  return RT_OK;
-}
-
-rtError pxScene2d::getFont(rtString p, rtObjectRef& o)
-{
-  //printf("pxScene2d::getFont\n");
-
-  o = pxFontManager::getFont(this, p);
-
   return RT_OK;
 }
 
@@ -1813,7 +1813,7 @@ rtDefineMethod(pxScene2d, create);
 //rtDefineMethod(pxScene2d, createRectangle);
 //rtDefineMethod(pxScene2d, createText);
 //rtDefineMethod(pxScene2d, createTextBox);
-rtDefineMethod(pxScene2d, getFont);
+//rtDefineMethod(pxScene2d, getFont);
 rtDefineMethod(pxScene2d, clock);
 //rtDefineMethod(pxScene2d, createImage);
 //rtDefineMethod(pxScene2d, createImage9);
