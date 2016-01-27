@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <ctype.h>
+#include <pthread.h>
 
 // TODO figure out what to do with rtLog
 #if 0
