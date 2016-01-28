@@ -60,12 +60,17 @@ rtError getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx); 
 void testWindows();
 void testContexts();
 
-
 args_t *s_gArgs;
 
-int main(int argc, char** argv)
+//int main(int argc, char** argv)
+
+int pxMain()
 {
-  static args_t aa(argc, argv);
+  char *argv[2] = {"",""};
+
+//  static args_t aa(argc, argv);
+  static args_t aa(1, argv);
+
   s_gArgs = &aa;
 
   testWindows(); /// multi threaded
