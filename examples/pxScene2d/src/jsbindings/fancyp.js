@@ -2,15 +2,15 @@ var root = scene.root;
 
 var url;
 url = process.cwd() + "/../../images/skulls.png";
-var bg = scene.createImage({url:url,stretchX:2,stretchY:2,parent:root});
+var bg = scene.create({t:"image", url:url,stretchX:scene.stretch.REPEAT,stretchY:scene.stretch.REPEAT,parent:root});
 
 url = process.cwd() + "/../../images/radial_gradient.png";
-var bgShade = scene.createImage({url:url,stretchX:1,stretchY:1,parent:root});
+var bgShade = scene.create({t:"image", url:url,stretchX:scene.stretch.STRETCH,stretchY:scene.stretch.STRETCH,parent:root});
 
-var txt1 = scene.createText({x:10,text:"",parent:root});
+var txt1 = scene.create({t:"text", x:10,text:"",parent:root});
 
 url = process.cwd() + "/../../images/ball.png"
-var ball = scene.createImage({url:url,parent:root});
+var ball = scene.create({t:"image", url:url,parent:root});
 ball.cx = ball.w/2;
 ball.cy = ball.h/2;
 
@@ -20,33 +20,33 @@ function fancy(o) {
 
   // animate x and restart the overall animation at end
   o.x = startX;
-  o.animateTo({x:50}, 1.0, scene.PX_LINEAR, scene.PX_END)
+  o.animateTo({x:50}, 1.0, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_END)
     .then(function(o){
-      return o.animateTo({x:startX},3.0,scene.PX_EASEOUTELASTIC,
-                          scene.PX_END)})
+      return o.animateTo({x:startX},3.0,scene.animation.EASE_OUT_ELASTIC,
+                          scene.animation.OPTION_END)})
     .then(function(){console.log("restart");fancy(o);});
 
   // animate y
   o.y = startY;
-  o.animateTo({y:350}, 1.0, scene.PX_EASEOUTBOUNCE, scene.PX_END)
+  o.animateTo({y:350}, 1.0, scene.animation.EASE_OUT_BOUNCE, scene.animation.OPTION_END)
     .then(function(o) {
-      o.animateTo({y:startY}, 1.0, scene.PX_EASEOUTELASTIC, 
-                  scene.PX_END);
+      o.animateTo({y:startY}, 1.0, scene.animation.EASE_OUT_ELASTIC, 
+                  scene.animation.OPTION_END);
     });
 
   // animate r
   o.r = 0;
-  o.animateTo({r:-360},2.5,scene.PX_EASEOUTELASTIC,scene.PX_END);
+  o.animateTo({r:-360},2.5,scene.animation.EASE_OUT_ELASTIC,scene.animation.OPTION_END);
 
   // animate sx, sy
-  o.animateTo({sx:0.2,sy:0.2},1,scene.PX_LINEAR,scene.PX_END)
+  o.animateTo({sx:0.2,sy:0.2},1,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_END)
     .then(function(o){
-      return o.animateTo({sx:2.0,sy:2.0},1.0,scene.PX_EXP1,
-                         scene.PX_END);
+      return o.animateTo({sx:2.0,sy:2.0},1.0,scene.animation.TWEEN_EXP1,
+                         scene.animation.OPTION_END);
     })
     .then(function(o) {
-      o.animateTo({sx:1.0,sy:1.0}, 1.0, scene.PX_EASEOUTELASTIC, 
-                  scene.PX_END);
+      o.animateTo({sx:1.0,sy:1.0}, 1.0, scene.animation.EASE_OUT_ELASTIC, 
+                  scene.animation.OPTION_END);
     });
 }
 

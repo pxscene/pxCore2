@@ -5,21 +5,11 @@ function Scene() {
   this._setNativeScene = function(scene, filePath) {
     if( nativeScene === null ) {
       nativeScene = scene;
-      this.PX_LINEAR = scene.PX_LINEAR;
-      this.PX_EXP1 = scene.PX_EXP1;
-      this.PX_EXP2 = scene.PX_EXP2;
-      this.PX_EXP3 = scene.PX_EXP3;
-      this.PX_LOOP = scene.PX_LOOP;
-      this.PX_SEESAW = scene.PX_SEESAW;
-      this.PX_STOP = scene.PX_STOP;
-      this.PX_INQUAD = scene.PX_INQUAD;
-      this.PX_INCUBIC = scene.PX_INCUBIC;
-      this.PX_INBACK = scene.PX_INBACK;
-      this.PX_EASEINELASTIC = scene.PX_EASEINELASTIC;
-      this.PX_EASEOUTELASTIC = scene.PX_EASEOUTELASTIC;
-      this.PX_EASEOUTBOUNCE = scene.PX_EASEOUTBOUNCE;
-      this.PX_END = scene.PX_END;
-      this.allInterpolators = scene.allInterpolators;
+      this.animation = scene.animation;
+      this.stretch   = scene.stretch;
+      this.alignVertical = scene.alignVertical;
+      this.alignHorizontal = scene.alignHorizontal;
+      this.truncation = scene.truncation;
       this.root = scene.root;
       this.filePath = filePath;
       this.w = scene.w;

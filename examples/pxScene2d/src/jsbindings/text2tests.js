@@ -20,14 +20,14 @@ root.w=800;
 
 // Use the font vars below to preload fonts so that they stay loaded. 
 
-var fontDancing = scene.getFont(fontUrlStart+XFinityMed);
-var fontDejaVu = scene.getFont(fontUrlStart+DejaVu);
-var fontDejaVuSerif = scene.getFont(fontUrlStart+DejaVuSerif);
-var fontXFinity = scene.getFont(fontUrlStart+XFinity);
-var fontXFinityBold = scene.getFont(fontUrlStart+XFinityBold);
+var fontXfinityMed = scene.create({t:"fontResource",url:fontUrlStart+XFinityMed});
+var fontDejaVu = scene.create({t:"fontResource",url:fontUrlStart+DejaVu});
+var fontDejaVuSerif = scene.create({t:"fontResource",url:fontUrlStart+DejaVuSerif});
+var fontXFinity = scene.create({t:"fontResource",url:fontUrlStart+XFinity});
+var fontXFinityBold = scene.create({t:"fontResource",url:fontUrlStart+XFinityBold});
 
-fontDejaVu.ready.then(function(f) {
-  console.log("Ready for DejaVu font!");
+fontXfinityMed.ready.then(function(f) {
+  console.log("Ready for fontXfinityMed font!");
   var tmpMetrics = f.getFontMetrics(35);
  	console.log("height is "+tmpMetrics.height);
 	console.log("ascent is "+tmpMetrics.ascent);
@@ -101,7 +101,7 @@ var text2 = scene.create({t:"textBox", clip:true, parent:container, x:px, y:py, 
    text2.text=longText3;
 
                  
-//var text2 = scene.createTextBox({wordWrap:true, ellipsis:true, truncation:0,leading:10, clip:false, w:400, h:400, parent:container, textColor:0xFFDDFFFF, pixelSize:20, x:px, y:py, rx:0, ry:1, rz:0});
+//var text2 = scene.create({t:"textBox", wordWrap:true, ellipsis:true, truncation:0,leading:10, clip:false, w:400, h:400, parent:container, textColor:0xFFDDFFFF, pixelSize:20, x:px, y:py, rx:0, ry:1, rz:0});
 var metrics = null;
 var measurements = null;
 
@@ -138,7 +138,7 @@ function textready(text) {
 	console.log("inside text2.ready");
   console.log("text2.h="+text2.h+" and text2.w="+text2.w);
 
-	metrics = text2.getFontMetrics();
+	metrics = text2.font.getFontMetrics(text2.pixelSize);
 	console.log("metrics h="+metrics.height);
 	console.log("metrics a="+metrics.ascent);
 	console.log("metrics d="+metrics.descent);
@@ -180,7 +180,7 @@ function cycleValues(v) {
     } else {
       v++;
     }
-    console.log("v is now"+v);
+    console.log("v is now "+v);
     return v;
 }
 scene.root.on("onChar", function(e) {
@@ -294,20 +294,26 @@ scene.root.on("onChar", function(e) {
     }
     pixelSizeStatus.text="pixelSize="+text2.pixelSize;
   } else if(e.charCode == 102) { // f for font
+    
     if(fontStatus.text == "font="+XFinityMed+" (http)") {
-      text2.fontUrl = fontUrlStart+DejaVu; 
+      text2.font = fontDejaVu;
+      //text2.fontUrl = fontUrlStart+DejaVu; 
       fontStatus.text = "font="+DejaVu+" (http)";
      } else if(fontStatus.text == "font="+DejaVu+" (http)"){
-      text2.fontUrl = fontUrlStart+XFinity; 
+       text2.font = fontXFinity;
+      //text2.fontUrl = fontUrlStart+XFinity; 
       fontStatus.text = "font="+XFinity+" (http)";
     } else if(fontStatus.text == "font="+XFinity+" (http)"){
-      text2.fontUrl = fontUrlStart+DejaVuSerif; 
+      text2.font = fontDejaVuSerif;
+      //text2.fontUrl = fontUrlStart+DejaVuSerif; 
       fontStatus.text = "font="+DejaVuSerif+" (http)";
     } else if(fontStatus.text == "font="+DejaVuSerif+" (http)"){
-      text2.fontUrl = fontUrlStart+XFinityBold; 
+      text2.font = fontXFinityBold;
+      //text2.fontUrl = fontUrlStart+XFinityBold; 
       fontStatus.text = "font="+XFinityBold+" (http)";
     } else if(fontStatus.text == "font="+XFinityBold+" (http)"){
-      text2.fontUrl = fontUrlStart+XFinityMed; 
+      text2.font = fontXfinityMed;
+      //text2.fontUrl = fontUrlStart+XFinityMed; 
       fontStatus.text = "font="+XFinityMed+" (http)";
     }
     var font = text2.font;
@@ -317,6 +323,9 @@ scene.root.on("onChar", function(e) {
       console.log("status is ");
       console.log(status);
       console.log("Font is ready loadStatus.statusCode="+f.loadStatus.statusCode);
+      console.log("try badVal");
+      var badVal = loadStatus.somethingThatNotThere;
+      console.log("badVal is "+badVal);
       });
   }
   bg.removeAll();

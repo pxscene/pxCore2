@@ -2,20 +2,20 @@ var root = scene.root;
 
 var url;
 url = process.cwd() + "/../../images/skulls.png";
-var bg = scene.createImage({url:url,stretchX:2,stretchY:2,parent:root});
+var bg = scene.create({t:"image", url:url,stretchX:scene.stretch.REPEAT,stretchY:scene.stretch.REPEAT,parent:root});
 
 url = process.cwd() + "/../../images/radial_gradient.png";
-var bgShade = scene.createImage({url:url,stretchX:1,stretchY:1,parent:root});
+var bgShade = scene.create({t:"image", url:url,stretchX:scene.stretch.STRETCH,stretchY:scene.stretch.STRETCH,parent:root});
 
-var txt1 = scene.createText({x:10,text:"",parent:root,pixelSize:64});
+var txt1 = scene.create({t:"text", x:10,text:"",parent:root,pixelSize:64});
 
-var rect = scene.createRectangle({parent:root, draw:true});
+var rect = scene.create({t:"rect", parent:root, draw:true});
 rect.w= root.w;
 rect.h= root.h;
 rect.fillColor = 0x00000000;
 
 url = process.cwd() + "/../../images/ball.png";
-var ball = scene.createImage({url:url,parent:rect,clip:false, draw:true});
+var ball = scene.create({t:"image", url:url,parent:rect,clip:false, draw:true});
 ball.x = 0;
 ball.y = 0;
 rect.w = ball.w;
@@ -23,9 +23,9 @@ rect.h = ball.h;
 
 
 url = process.cwd() + "/../../images/postermask2.png";
-var logo = scene.createImage({url:url,parent:rect,drawAsMask:true,draw:false});
+var logo = scene.create({t:"image", url:url,parent:rect,mask:true});
 
-var childText = scene.createText({text:"Hello There!!!",parent:logo,textColor:0xff0000ff,pixelSize:64});
+var childText = scene.create({t:"text", text:"Hello There!!!",parent:logo,textColor:0xff0000ff,pixelSize:64});
 childText.y = 0;
 childText.x = 0;
 logo.x = (ball.w-logo.w)/2;
@@ -41,9 +41,9 @@ function fancy(o) {
 
   // animate x and restart the overall animation at end
   o.x = startX;
-  o.animateTo({x:50}, 1.0, scene.PX_LINEAR, scene.PX_END)
+  o.animateTo({x:50}, 1.0, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_END)
     .then(function(z){
-      z.animateTo({x:startX}, 3.0, scene.PX_EASEOUTELASTIC, scene.PX_END)
+      z.animateTo({x:startX}, 3.0, scene.animation.EASE_OUT_ELASTIC, scene.animation.OPTION_END)
         .then(function(z) {
           fancy(z);
       	  return z;
@@ -52,22 +52,22 @@ function fancy(o) {
 
   // animate y
   o.y = startY;
-  o.animateTo({y:350}, 1.0, scene.PX_EASEOUTBOUNCE, scene.PX_END)
+  o.animateTo({y:350}, 1.0, scene.animation.EASE_OUT_BOUNCE, scene.animation.OPTION_END)
     .then(function(z) {
-      z.animateTo({y:startY}, 1.0, scene.PX_EASEOUTELASTIC, scene.PX_END);
+      z.animateTo({y:startY}, 1.0, scene.animation.EASE_OUT_ELASTIC, scene.animation.OPTION_END);
       return z;
     });
 
   // animate r
   o.r = 0;
-  o.animateTo({r:-360}, 2.5, scene.PX_EASEOUTELASTIC, scene.PX_END);
+  o.animateTo({r:-360}, 2.5, scene.animation.EASE_OUT_ELASTIC, scene.animation.OPTION_END);
 
   // animate sx, sy
-  o.animateTo({sx:0.2,sy:0.2}, 1, scene.PX_LINEAR, scene.PX_END)
+  o.animateTo({sx:0.2,sy:0.2}, 1, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_END)
     .then(function(z){
-       z.animateTo({sx:2.0,sy:2.0}, 1.0, scene.PX_EXP1, scene.PX_END)
+       z.animateTo({sx:2.0,sy:2.0}, 1.0, scene.animation.TWEEN_EXP1, scene.animation.OPTION_END)
          .then(function(z) {
-            z.animateTo({sx:1.0,sy:1.0}, 1.0, scene.PX_EASEOUTELASTIC, scene.PX_END);
+            z.animateTo({sx:1.0,sy:1.0}, 1.0, scene.animation.EASE_OUT_ELASTIC, scene.animation.OPTION_END);
          })
     });
 }

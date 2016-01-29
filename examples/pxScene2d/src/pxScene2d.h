@@ -50,24 +50,10 @@ extern rtThreadQueue gUIThreadQueue;
 
 // TODO Finish
 //#include "pxTransform.h"
+#include "rtConstants.h"
 
-
-// Interpolator constants
-#define PX_LINEAR_         0
-#define PX_EXP1_           1 
-#define PX_EXP2_           2
-#define PX_EXP3_           3
-#define PX_STOP_           4
-#define PX_INQUAD_         5
-#define PX_INCUBIC_        6
-#define PX_INBACK_         7
-#define PX_EASEINELASTIC_  8
-#define PX_EASEOUTELASTIC_ 9
-#define PX_EASEOUTBOUNCE_  10
-
-#define PX_NONE_           0
-#define PX_STRETCH_        1
-#define PX_REPEAT_         2
+// Constants
+static rtConstants CONSTANTS;
 
 
 #if 0
@@ -76,12 +62,8 @@ void registerObjectFactory(objectFactory f, void* context);
 rtError createObject2(const char* t, rtObjectRef& o);
 #endif
 
-typedef double (*pxInterp)(double i);
 typedef void (*pxAnimationEnded)(void* ctx);
 
-double pxInterpLinear(double i);
-
-enum pxAnimationType {PX_END = 0, PX_OSCILLATE, PX_LOOP};
 
 struct pxAnimationTarget {
   char* prop;
@@ -96,7 +78,7 @@ struct animation {
   bool flip;
   double start;
   double duration;
-  pxAnimationType at;
+  rtConstantsAnimation::animationOptions at;//pxAnimationType at;
   pxInterp interp;
   rtFunctionRef ended;
   rtObjectRef promise;
@@ -108,10 +90,6 @@ struct pxPoint2f {
   float x, y;
 };
 
-typedef double (*pxInterp)(double i);
-typedef void (*pxAnimationEnded)(void* ctx);
-
-double pxInterpLinear(double i);
 
 class pxFileDownloadRequest;
 
@@ -355,7 +333,7 @@ public:
                       rtObjectRef& promise);
 
   void animateTo(const char* prop, double to, double duration,
-		 pxInterp interp, pxAnimationType at, 
+		 pxInterp interp, rtConstantsAnimation::animationOptions,//pxAnimationType at, 
                  rtObjectRef promise);
 
   void cancelAnimation(const char* prop, bool fastforward = false);
@@ -904,28 +882,12 @@ public:
   rtProperty(ctx, ctx, setCtx, rtValue);
   rtProperty(api, api, setAPI, rtValue);
   rtReadOnlyProperty(emit, emit, rtFunctionRef);
-  rtConstantProperty(PX_LINEAR, PX_LINEAR_, uint32_t);
-  rtConstantProperty(PX_EXP1, PX_EXP1_, uint32_t);
-  rtConstantProperty(PX_EXP2, PX_EXP2_, uint32_t);
-  rtConstantProperty(PX_EXP3, PX_EXP3_, uint32_t);
-  rtConstantProperty(PX_STOP, PX_STOP_, uint32_t);
-  rtConstantProperty(PX_INQUAD, PX_INQUAD_, uint32_t);
-  rtConstantProperty(PX_INCUBIC, PX_INCUBIC_, uint32_t);
-  rtConstantProperty(PX_INBACK, PX_INBACK_, uint32_t);
-  rtConstantProperty(PX_EASEINELASTIC, PX_EASEINELASTIC_, uint32_t);
-  rtConstantProperty(PX_EASEOUTELASTIC, PX_EASEOUTELASTIC_, uint32_t);
-  rtConstantProperty(PX_EASEOUTBOUNCE, PX_EASEOUTBOUNCE_, uint32_t);
-  rtConstantProperty(PX_END, PX_END, uint32_t);
-  // TODO deprecated remove from js samples
-//  rtConstantProperty(PX_SEESAW, PX_OSCILLATE, uint32_t);
-  rtConstantProperty(PX_OSCILLATE, PX_OSCILLATE, uint32_t);
-  rtConstantProperty(PX_LOOP, PX_LOOP, uint32_t);
-  rtConstantProperty(PX_NONE, PX_NONE_, uint32_t);
-  rtConstantProperty(PX_STRETCH, PX_STRETCH_, uint32_t);
-  rtConstantProperty(PX_REPEAT, PX_REPEAT_, uint32_t);
- 
-  rtReadOnlyProperty(allInterpolators, allInterpolators, rtObjectRef);
-
+  // Properties for returning various CONSTANTS
+  rtReadOnlyProperty(animation,animation,rtObjectRef);
+  rtReadOnlyProperty(stretch,stretch,rtObjectRef);
+  rtReadOnlyProperty(alignVertical,alignVertical,rtObjectRef);
+  rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
+  rtReadOnlyProperty(truncation,truncation,rtObjectRef);
 
   pxScene2d(bool top = true);
   
@@ -1003,7 +965,11 @@ public:
 
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
   
-  rtError allInterpolators(rtObjectRef& v) const;
+  rtError animation(rtObjectRef& v) const {v = &CONSTANTS.animationConstants; return RT_OK;}
+  rtError stretch(rtObjectRef& v) const {v = &CONSTANTS.stretchConstants; return RT_OK;}
+  rtError alignVertical(rtObjectRef& v) const {v = &CONSTANTS.alignVerticalConstants; return RT_OK;}
+  rtError alignHorizontal(rtObjectRef& v) const {v = &CONSTANTS.alignHorizontalConstants; return RT_OK;}
+  rtError truncation(rtObjectRef& v) const {v = &CONSTANTS.truncationConstants; return RT_OK;}
 
   void setMouseEntered(pxObject* o);
 

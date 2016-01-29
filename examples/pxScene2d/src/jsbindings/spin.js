@@ -2,15 +2,15 @@ var root = scene.root;
 
 var url;
 url = process.cwd() + "/../../images/skulls.png";
-var bg = scene.createImage({url:url,stretchX:scene.PX_REPEAT,stretchY:scene.PX_REPEAT,
+var bg = scene.create({t:"image", url:url,stretchX:scene.stretch.REPEAT,stretchY:scene.stretch.REPEAT,
                             parent:root});
-bg.animateTo({r:360},60.0,scene.PX_LINEAR,scene.PX_LOOP);
+bg.animateTo({r:360},60.0,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP);
 
 url = process.cwd() + "/../../images/radial_gradient.png";
-var bgShade = scene.createImage({url:url,stretchX:scene.PX_STRETCH,stretchY:scene.PX_STRETCH,
+var bgShade = scene.create({t:"image", url:url,stretchX:scene.stretch.STRETCH,stretchY:scene.stretch.STRETCH,
                                  parent:root});
 
-scene.createScene({url:"hello.js",parent:root,w:1280,h:720});
+scene.create({t:"scene", url:"fonts2.js",parent:root,w:1280,h:720});
 
 function updateSize(w, h) {
   //var d = Math.pow(Math.pow(w,2)+Math.pow(h,2),0.5);

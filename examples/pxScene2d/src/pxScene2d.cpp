@@ -159,26 +159,6 @@ pxInterp interps[] =
 int numInterps = sizeof(interps)/sizeof(interps[0]);
 #else
 
-struct _pxInterpEntry
-{
-  const char* n;
-  pxInterp i;
-};
-_pxInterpEntry interps[] = 
-{
-  {"PX_LINEAR", pxInterpLinear},
-  {"PX_EXP1", pxExp1},
-  {"PX_EXP2", pxExp2},
-  {"PX_EXP3", pxExp3},
-  {"PX_STOP", pxStop},
-  {"PX_INQUAD", pxInQuad},
-  {"PX_INCUBIC", pxInCubic},
-  {"PX_INBACK", pxInBack},
-  {"PX_EASEINELASTIC", pxEaseInElastic},
-  {"PX_EASEOUTELASTIC", pxEaseOutElastic},
-  {"PX_EASEOUTBOUNCE", pxEaseOutBounce},
-};
-int numInterps = sizeof(interps)/sizeof(interps[0]);
 
 #endif
 
@@ -186,10 +166,6 @@ int numInterps = sizeof(interps)/sizeof(interps[0]);
 pxRect pxScene2d::mDirtyRect;
 #endif //PX_DIRTY_RECTANGLES
 
-double pxInterpLinear(double i)
-{
-  return pxClamp<double>(i, 0, 1);
-}
 
 // Small helper class that vends the children of a pxObject as a collection
 class pxObjectChildren: public rtObject {
@@ -299,7 +275,7 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
     for (uint32_t i = 0; i < len; i++)
     {
       rtString key = keys.get<rtString>(i);
-      animateTo(key, props.get<float>(key), duration, interp, animationType,(i==0)?promise:rtObjectRef());
+      animateTo(key, props.get<float>(key), duration, interp, animationType, (i==0)?promise:rtObjectRef());
     }
   }
 //  promise.send("resolve","hello");
@@ -351,37 +327,13 @@ rtError pxObject::moveToFront()
 
   return RT_OK;
 }
-#if 0
-rtError pxObject::animateTo(const char* prop, double to, double duration, 
-                            uint32_t interp, uint32_t animationType) 
-{
-  interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
-  animateTo(prop, to, duration, interps[interp].i, 
-            (pxAnimationType)animationType);
-  return RT_OK;
-  }
-#endif
-
-#if 0
-//TODO - remove
-rtError pxObject::animateToF(const char* prop, double to, double duration,
-                             uint32_t interp, uint32_t animationType, 
-                            rtFunctionRef onEnd) 
-{
-  interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
-  animateToF(prop, to, duration, interps[interp].i,
-            (pxAnimationType)animationType, onEnd);
-  return RT_OK;
-}
-#endif
 
 rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t animationType, 
                             rtObjectRef promise) 
 {
-  interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
-  animateTo(prop, to, duration, interps[interp].i,
-            (pxAnimationType)animationType, promise);
+  animateTo(prop, to, duration, CONSTANTS.animationConstants.getInterpFunc(interp),// interps[interp].i,
+            (rtConstantsAnimation::animationOptions)animationType, promise);
   return RT_OK;
 }
 
@@ -405,7 +357,7 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
     animation& a = (*it);
     if (!a.cancelled && a.prop == prop)
     {
-      if (a.at == PX_END)
+      if (a.at == rtConstantsAnimation::OPTION_END)
       {
         // fastforward
 #if 1
@@ -433,34 +385,8 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
   mCancelInSet = f;
 }
 
-#if 0
-//TODO - remove
-void pxObject::animateToF(const char* prop, double to, double duration,
-                         pxInterp interp, pxAnimationType at,
-                         rtFunctionRef onEnd)
-{
-  cancelAnimation(prop, true);
-  
-  // schedule animation
-  animation a;
-
-  a.cancelled = false;
-  a.prop     = prop;
-  a.from     = get<float>(prop);
-  a.to       = to;
-  a.start    = -1;
-  a.duration = duration;
-  a.interp   = interp?interp:pxInterpLinear;
-  a.at       = at;
-  a.ended = onEnd;
-//  a.promise = promise;
-
-  mAnimations.push_back(a);
-}
-#endif
-
 void pxObject::animateTo(const char* prop, double to, double duration,
-                         pxInterp interp, pxAnimationType at,
+                         pxInterp interp, rtConstantsAnimation::animationOptions at,
                          rtObjectRef promise)
 {
   cancelAnimation(prop, true);
@@ -495,7 +421,7 @@ void pxObject::update(double t)
     double end = a.start + a.duration;
     
     // if duration has elapsed
-    if (t >= end && a.at == PX_END)
+    if (t >= end && a.at == rtConstantsAnimation::OPTION_END)
     {
       // TODO this sort of blows since this triggers another
       // animation traversal to cancel animations
@@ -504,7 +430,7 @@ void pxObject::update(double t)
 #else
       set(a.prop, a.to);
 
-      if (a.at == PX_END)
+      if (a.at == rtConstantsAnimation::OPTION_END)
       {
         if (a.ended)
           a.ended.send(this);
@@ -517,7 +443,7 @@ void pxObject::update(double t)
       }
 #endif
 #if 0
-      else if (a.at == PX_OSCILLATE)
+      else if (a.at == rtConstantsAnimation::OPTION_OSCILLATE)
       {
         // flip
         double t;
@@ -540,7 +466,7 @@ void pxObject::update(double t)
     float from, to;
     from = a.from;
     to = a.to;
-    if (a.at == PX_OSCILLATE)
+    if (a.at == rtConstantsAnimation::OPTION_OSCILLATE)
     {
       if (fmod(t2,2) != 0)   // TODO perf chk ?
       {
@@ -1202,17 +1128,6 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
-rtError pxScene2d::allInterpolators(rtObjectRef& v) const
-{
-  rtRefT<rtArrayObject> keys = new rtArrayObject;
-
-  for (int i = 0; i < numInterps; i++)
-  {
-    keys->pushBack(interps[i].n);
-  }
-  v = keys;
-  return RT_OK;
-}
 
 void pxScene2d::draw()
 {
@@ -1810,15 +1725,7 @@ rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
 rtDefineMethod(pxScene2d, create);
-//rtDefineMethod(pxScene2d, createRectangle);
-//rtDefineMethod(pxScene2d, createText);
-//rtDefineMethod(pxScene2d, createTextBox);
-//rtDefineMethod(pxScene2d, getFont);
 rtDefineMethod(pxScene2d, clock);
-//rtDefineMethod(pxScene2d, createImage);
-//rtDefineMethod(pxScene2d, createImage9);
-//rtDefineMethod(pxScene2d, createScene);
-//rtDefineMethod(pxScene2d, createExternal);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
 rtDefineMethod(pxScene2d, setFocus);
@@ -1828,25 +1735,13 @@ rtDefineMethod(pxScene2d, loadArchive);
 rtDefineProperty(pxScene2d, ctx);
 rtDefineProperty(pxScene2d, api);
 rtDefineProperty(pxScene2d, emit);
-rtDefineProperty(pxScene2d, allInterpolators);
-rtDefineProperty(pxScene2d, PX_LINEAR);
-rtDefineProperty(pxScene2d, PX_EXP1);
-rtDefineProperty(pxScene2d, PX_EXP2);
-rtDefineProperty(pxScene2d, PX_EXP3);
-rtDefineProperty(pxScene2d, PX_STOP);
-rtDefineProperty(pxScene2d, PX_INQUAD);
-rtDefineProperty(pxScene2d, PX_INCUBIC);
-rtDefineProperty(pxScene2d, PX_INBACK);
-rtDefineProperty(pxScene2d, PX_EASEINELASTIC);
-rtDefineProperty(pxScene2d, PX_EASEOUTELASTIC);
-rtDefineProperty(pxScene2d, PX_EASEOUTBOUNCE);
-rtDefineProperty(pxScene2d, PX_END);
-//rtDefineProperty(pxScene2d, PX_SEESAW);
-rtDefineProperty(pxScene2d, PX_OSCILLATE);
-rtDefineProperty(pxScene2d, PX_LOOP);
-rtDefineProperty(pxScene2d, PX_NONE);
-rtDefineProperty(pxScene2d, PX_STRETCH);
-rtDefineProperty(pxScene2d, PX_REPEAT);
+// Properties for access to Constants
+rtDefineProperty(pxScene2d,animation);
+rtDefineProperty(pxScene2d,stretch);
+rtDefineProperty(pxScene2d,alignVertical);
+rtDefineProperty(pxScene2d,alignHorizontal);
+rtDefineProperty(pxScene2d,truncation);
+
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {

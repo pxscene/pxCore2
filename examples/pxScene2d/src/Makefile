@@ -37,10 +37,11 @@ RT_SRCS=\
     rtObject.cpp \
     rtThreadPool.cpp \
     rtThreadTask.cpp \
-	  rtThreadQueue.cpp \
+	rtThreadQueue.cpp \
     rtLibrary.cpp \
     rtResource.cpp \
-		rtZip.cpp\
+    rtConstants.cpp \
+	rtZip.cpp\
     linux/rtMutexNative.cpp \
     linux/rtThreadPoolNative.cpp \
     

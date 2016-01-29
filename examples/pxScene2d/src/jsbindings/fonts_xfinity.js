@@ -1,7 +1,7 @@
 var root = scene.root;
 
 
-//var bg = scene.createRectangle({fillColor:0xccccccff, parent:root});
+//var bg = scene.create({t:"rect", fillColor:0xccccccff, parent:root});
 function updateSize(w, h) {
 //    bg.w = w;
 //    bg.h = h;
@@ -13,34 +13,34 @@ updateSize(scene.w, scene.h);
 
 // null or "" is the default font FreeSans.ttf
 var fonts = ["",
-             "XFINITYSansTT-New-Bold.ttf",
-             "XFINITYSansTT-New-BoldCond.ttf",
-             "XFINITYSansTT-New-ExLgt.ttf",
-             "XFINITYSansTT-New-Lgt.ttf",
-             "XFINITYSansTT-New-Med.ttf",
-             "XFINITYSansTT-New-MedCond.ttf",
-             "DejaVuSans.ttf",
-             "DejaVuSerif.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Bold.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-BoldCond.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-ExLgt.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Lgt.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-Med.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/XFINITYSansTT-New-MedCond.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/DejaVuSans.ttf",
+             "http://54.146.54.142/tom/xre2/apps/receiver/fonts/DejaVuSerif.ttf",
             ];
 
 console.log("faces: ", fonts.length);
 
-var scroll = scene.createImage({parent:root});
-var scrollContent = scene.createImage({parent:scroll});
+var scroll = scene.create({t:"image", parent:root});
+var scrollContent = scene.create({t:"image", parent:scroll});
 
-var rowcontainer = scene.createImage({parent:scrollContent});
+var rowcontainer = scene.create({t:"image", parent:scrollContent});
 
 var p = 0; 
 for (var i=0; i < fonts.length; i++)
 {
-    var row = scene.createImage({parent:rowcontainer,y:p});
+    var row = scene.create({t:"image", parent:rowcontainer,y:p});
     var faceName = fonts[i]?fonts[i]:"FreeSans.ttf";
     console.log(faceName);
-    var t = scene.createText({text:"Enter in some text...", 
+    var t = scene.create({t:"text", text:"Enter in some text...", 
                               parent:row,x:10,
                               textColor:0xffffffff, pixelSize:24,
                               fontUrl:fonts[i]});
-    var t2 = scene.createText({text:faceName, 
+    var t2 = scene.create({t:"text", text:faceName, 
                                parent:row,x:20,y:t.h,
                                textColor:0x000000ff, pixelSize:14,a:0.6});
     
@@ -49,7 +49,7 @@ for (var i=0; i < fonts.length; i++)
 
     p += row.h;
 }
-var select = scene.createRectangle({parent:scrollContent, fillColor:0x000000, 
+var select = scene.create({t:"rect", parent:scrollContent, fillColor:0x000000, 
                                     lineColor:0xffff00ff,
                                     lineWidth:4,w:scene.w,h:100});
 

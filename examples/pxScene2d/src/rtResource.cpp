@@ -76,7 +76,7 @@ void rtResource::addListener(rtResourceListener* pListener)
   
 }
 
-void rtResource::removeListener(rtResourceListener* pListener)
+void rtResource::removeListener(rtResourceListener* /*pListener*/)
 {
   /*
   for (list<rtResourceListener*>::iterator it = mListeners.begin();

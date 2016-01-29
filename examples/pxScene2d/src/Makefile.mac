@@ -38,6 +38,7 @@ RT_SRCS=\
     rtThreadQueue.cpp \
     rtLibrary.cpp \
     rtResource.cpp \
+    rtConstants.cpp \
     rtZip.cpp \
     utf8.c
     

@@ -14,29 +14,6 @@
 #include "pxText.h"
 
 
-/*#### truncation - one of the following values
-* NONE - no trunctaction
-* TRUNCATE - text is truncated at the bottom of the text object.  The last word may be partially truncated. 
-* TRUNCATE_AT_WORD_BOUNDARY - text is truncated at the bottom of the text object.  Truncation occurs at the word boundary.
-* ELLIPSES - text is truncated at the bottom of the text object with ellipses applied.  The last word may be broken off by the ellipses.
-* ELLIPSES_AT_WORD_BOUNDARY - text is truncated at the bottom of the text object with ellipses applied to the last possible full word.
-###### Note: When truncation is applied at the word boundary, in a situation where the last line of text to be rendered contains a
-*/
-enum PX_TRUNCATION {
-	NONE, 
-	TRUNCATE,
-	TRUNCATE_AT_WORD
-};
-enum PX_ALIGN_VERTICAL {
-	V_TOP, 
-	V_CENTER,
-	V_BOTTOM
-};
-enum PX_ALIGN_HORIZONTAL {
-	H_LEFT, 
-	H_CENTER,
-	H_RIGHT
-};
 #define ELLIPSIS_STR "\u2026"
 #define ELLIPSIS_LEN (sizeof(ELLIPSIS_STR)-1)	
 static const char isnew_line_chars[] = "\n\v\f\r";

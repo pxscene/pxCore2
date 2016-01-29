@@ -2,7 +2,7 @@ var root = scene.root;
 
 var url = "http://farm4.static.flickr.com/3307/5767175230_b5d2bf2312_z.jpg";
 //var container = scene.create({t:"object", parent:root, w:root.w, h:root.h});
-//scene.createImage({url:url,parent:container});
+//scene.create({t:"image", url:url,parent:container});
 // This works now with changes to remove autoSize and use w/h as -1
 var myImage = scene.create({t:"image",parent:root,url:url,clip:false,  w:150, h:150});
 

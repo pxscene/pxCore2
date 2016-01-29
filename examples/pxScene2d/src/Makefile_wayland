@@ -14,6 +14,7 @@ RT_SRCS=\
     rtObject.cpp \
     rtValue.cpp \
     rtResource.cpp \
+    rtConstants.cpp \
     linux/rtMutexNative.cpp \
     linux/rtThreadPoolNative.cpp \
     rtThreadPool.cpp \

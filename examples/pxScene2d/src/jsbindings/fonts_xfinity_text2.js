@@ -2,7 +2,7 @@ var root = scene.root;
 
 
 var width = 800;
-//var bg = scene.createRectangle({fillColor:0xccccccff, parent:root});
+//var bg = scene.create({t:"rect", fillColor:0xccccccff, parent:root});
 function updateSize(w, h) {
 //    bg.w = w;
 //    bg.h = h;
@@ -29,10 +29,10 @@ console.log("fonts: "+fonts.length);
 scene.w = width;
 console.log("scene.w="+scene.w);
 
-var scroll = scene.createImage({parent:root});
-var scrollContent = scene.createImage({parent:scroll,w:width});
+var scroll = scene.create({t:"image", parent:root});
+var scrollContent = scene.create({t:"image", parent:scroll,w:width});
 
-var rowcontainer = scene.createImage({parent:scrollContent});
+var rowcontainer = scene.create({t:"image", parent:scrollContent});
 
 pleaseWait = scene.create({t:"textBox",text:"Please wait while fonts load...", 
                               parent:root,x:10,y:0,
@@ -43,7 +43,7 @@ var promises = [];
 var p = 0; 
 for (var i=0; i < fonts.length; i++)
 {
-    var row = scene.createImage({parent:rowcontainer,y:0, clip:false});
+    var row = scene.create({t:"image", parent:rowcontainer,y:0, clip:false});
     var faceName = fonts[i]?fonts[i]:"FreeSans.ttf";
     console.log("fontFace: "+faceName);
     var t = scene.create({t:"textBox",text:"Enter in some text...", 
@@ -91,7 +91,7 @@ Promise.all(promises).then(function(success, failure) {
               });
 //}
 
-var select = scene.createRectangle({parent:scrollContent, fillColor:0x000000, 
+var select = scene.create({t:"rect", parent:scrollContent, fillColor:0x000000, 
                                     lineColor:0xffff00ff,
                                     lineWidth:4,w:scene.w,h:100});
 
