@@ -63,7 +63,7 @@ Promise.all(promises).then(function(success, failure) {
     console.log("IN PROMISE n="+n);
                 var t = elems[n];
                 t.draw = true;
-                var fontMetrics = t.getFontMetrics();
+                var fontMetrics = t.font.getFontMetrics(t.pixelSize);
                 console.log("natural leading is "+fontMetrics.naturalLeading);
                 console.log("fontMetrics.height="+fontMetrics.height);
                 console.log("fontMetrics.baseline="+fontMetrics.baseline);

@@ -79,9 +79,11 @@ void pxTextBox::onInit()
 {
   //printf("pxTextBox::onInit. mFontLoaded=%d\n",mFontLoaded);
   mInitialized = true;
-  if( mFontLoaded) {
+  // If this is using the default font, we would not get a callback
+  if(mFontLoaded || getFontResource()->isFontLoaded())
+  {
+    mFontLoaded = true;
     setNeedsRecalc(true);
- 
   }
 }
 
