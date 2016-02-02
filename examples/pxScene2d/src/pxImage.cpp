@@ -110,7 +110,7 @@ void pxImage::sendPromise()
 
 float pxImage::getOnscreenWidth() 
 { 
-  if(mw ==-1 ) 
+  if(mw == -1 ) 
   {
     return mResource.get<float>("w");
   }

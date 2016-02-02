@@ -831,7 +831,7 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
 
   if (maskFbo.getPtr() == NULL || maskFbo->width() != floor(w) || maskFbo->height() != floor(h))
   {
-    maskFbo = context.createFramebuffer(floor(mw), floor(mh));
+    maskFbo = context.createFramebuffer(floor(w), floor(h));
   }
   else
   {
