@@ -223,7 +223,7 @@ void pxTextBox::clearMeasurements()
     noClipW = mw;
     noClipH = mh;
  //   startX = mx;
-    startY = my;
+ //   startY = my;
     getMeasurements()->clear(); 
 }
 
@@ -238,7 +238,7 @@ void pxTextBox::renderText(bool render)
   // These mimic the values used by pxText when it calls pxText::renderText
   float sx = 1.0; 
   float sy = 1.0;
-  float tempX = mx;
+  float tempX = 0;//mx;
   lineNumber = 0;
                   
 	if (!mText || !strcmp(mText.cString(),"")) 
@@ -319,7 +319,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
 			if( isNewline(charToMeasure))
       {
         // Render what we had so far in accString; since we are here, it will fit.
-        renderOneLine(accString.cString(), mx, tempY, sx, sy, size, color, lineWidth, render);
+        renderOneLine(accString.cString(), 0, tempY, sx, sy, size, color, lineWidth, render);
 
         accString = "";			
 				tempY += (mLeading*sy) + charH;
@@ -362,7 +362,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
               break; 
             } else {
               if( clip()) {
-                renderOneLine(accString, mx, tempY, sx, sy, size, color, mw, render);
+                renderOneLine(accString, 0, tempY, sx, sy, size, color, mw, render);
                 accString = ""; 
                 break; 
               } else {
@@ -391,7 +391,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
 						// write out entire string that will fit
 						// Use horizonal positioning
             //printf("Calling renderOneLine with lineNumber=%d\n",lineNumber);
-            renderOneLine(tempStr, mx, tempY, sx, sy, size, color, lineWidth, render);
+            renderOneLine(tempStr, 0, tempY, sx, sy, size, color, lineWidth, render);
 
 						// Now reset accString to hold remaining text
 						tempStr = strdup(accString.cString());
@@ -447,7 +447,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       lastLineNumber = lineNumber;
       if( mTruncation == rtConstantsTruncation::NONE && !mWordWrap ) {
         //printf("CLF! Sending tempX instead of this->w(): %f\n", tempX);
-        renderOneLine(accString.cString(), mx, tempY, sx, sy, size, color, tempX, render);
+        renderOneLine(accString.cString(), 0, tempY, sx, sy, size, color, tempX, render);
       } else {
         // check if we need to truncate this last line
         if( !lastLine && mXStopPos != 0 && mAlignHorizontal == rtConstantsAlignHorizontal::LEFT && mTruncation != rtConstantsTruncation::NONE && mXStopPos > mXStartPos
@@ -456,7 +456,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         } 
         else
         {
-          renderOneLine(accString.cString(), mx, tempY, sx, sy, size, color, this->w(), render);
+          renderOneLine(accString.cString(), 0, tempY, sx, sy, size, color, this->w(), render);
         }
       }
 		  
@@ -495,7 +495,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
             noClipY = my-(textHeight-mh);
             if(mTruncation == rtConstantsTruncation::NONE) {
               noClipH = textHeight;
-              startY = my;
+              startY = 0;//my;
             }
           }
         }
@@ -519,7 +519,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
             noClipY = (my + (mh/2)) - textHeight/2;
             if(mTruncation == rtConstantsTruncation::NONE)
             {
-              startY = my;
+              startY = 0;//my;
               noClipH = textHeight;
             }
           }
@@ -527,10 +527,10 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       }
       else if( mAlignVertical == rtConstantsAlignVertical::TOP)
       {
-        startY = my;
+        startY = 0;//my; // This fixes XRE2-85 clip:true wordWrap:true thin sliver of text shown
         if( mWordWrap && !clip() && mTruncation == rtConstantsTruncation::NONE)
         {
-          noClipY = my;
+          noClipY = 0;//my; // This fixes clip:true wordWrap:true y position additive of my
           noClipH = textHeight;
           
         }
@@ -589,7 +589,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       {
         if( lineNumber == 0)
         {
-          printf("LineNumber is 0\n");
+          //printf("LineNumber is 0\n");
           xPos = tempX;
           noClipX = mXStartPos;
         } 
@@ -748,7 +748,9 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
 
           setLineMeasurements(true, xPos, noClipY);
           setMeasurementBoundsX(true, xPos);
-          setMeasurementBoundsX(false, noClipW);//charW );  
+          //printf("setMeasurementBounds is using noClipW of %f\n",noClipW);
+          //printf("setMeasurementBounds charW of %f\n",charW);
+          setMeasurementBoundsX(false, charW);//noClipW);//charW );  // Fix x2 bounds issue
      
 
       }
@@ -873,7 +875,7 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
   float charW=0, charH=0;
   float lineWidth = this->w();
   float tempXStartPos = tempX;
-  float tempY = my;
+  float tempY = 0;//my;
   
   if( mAlignHorizontal == rtConstantsAlignHorizontal::LEFT) {
     tempXStartPos = mXStartPos;
