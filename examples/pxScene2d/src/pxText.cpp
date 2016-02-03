@@ -48,8 +48,11 @@ rtError pxText::setText(const char* s)
     return RT_OK;
   }
   mText = s; 
-  createNewPromise();
-  getFontResource()->measureTextInternal(s, mPixelSize, 1.0, 1.0, mw, mh);
+  if( getFontResource()->isFontLoaded())
+  {
+    createNewPromise();
+    getFontResource()->measureTextInternal(s, mPixelSize, 1.0, 1.0, mw, mh);
+  }
   return RT_OK; 
 }
 
@@ -57,8 +60,11 @@ rtError pxText::setPixelSize(uint32_t v)
 {   
   //rtLogInfo("pxText::setPixelSize\n");
   mPixelSize = v; 
-  createNewPromise();
-  getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
+  if( getFontResource()->isFontLoaded())
+  {
+    createNewPromise();
+    getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
+  }
   return RT_OK; 
 }
 
@@ -133,18 +139,21 @@ void pxText::update(double t)
 
 void pxText::draw() {
   static pxTextureRef nullMaskRef;
-  if (mCached.getPtr() && mCached->getTexture().getPtr())
+  if( getFontResource()->isFontLoaded())
   {
-    context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef, rtConstantsStretch::NONE, rtConstantsStretch::NONE);
-  }
-  else
-  {
-    getFontResource()->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
-  }
-  
-  if (!mFontLoaded && getFontResource()->isDownloadInProgress())
-    getFontResource()->raiseDownloadPriority();
-  
+    if (mCached.getPtr() && mCached->getTexture().getPtr())
+    {
+      context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef, rtConstantsStretch::NONE, rtConstantsStretch::NONE);
+    }
+    else
+    {
+      getFontResource()->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
+    }
+  }  
+  else {
+    if (!mFontLoaded && getFontResource()->isDownloadInProgress())
+      getFontResource()->raiseDownloadPriority();
+    }
 }
 
 rtError pxText::setFontUrl(const char* s)
