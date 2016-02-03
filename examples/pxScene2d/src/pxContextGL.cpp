@@ -830,9 +830,9 @@ public:
     texture->bindGLTexture(mTextureLoc);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 
-		    (stretchX==PX_REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+		    (stretchX==rtConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 
-		    (stretchY==PX_REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+		    (stretchY==rtConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
 
     glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
     glVertexAttribPointer(mUVLoc, 2, GL_FLOAT, GL_FALSE, 0, uv);
@@ -978,7 +978,7 @@ static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat 
 }
 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
-                             pxTextureRef mask, pxStretch stretchX, pxStretch stretchY, float* color)
+                             pxTextureRef mask, rtConstantsStretch::constants stretchX, rtConstantsStretch::constants stretchY, float* color)
 {
 
   if (texture.getPtr() == NULL)
@@ -1009,22 +1009,22 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   float tw;
   switch(stretchX) {
-  case PX_NONE:
-  case PX_STRETCH:
+  case rtConstantsStretch::NONE:
+  case rtConstantsStretch::STRETCH:
     tw = 1.0;
     break;
-  case PX_REPEAT:
+  case rtConstantsStretch::REPEAT:
     tw = w/iw;
     break;
   }
 
   float th;
   switch(stretchY) {
-  case PX_NONE:
-  case PX_STRETCH:
+  case rtConstantsStretch::NONE:
+  case rtConstantsStretch::STRETCH:
     th = 1.0;
     break;
-  case PX_REPEAT:
+  case rtConstantsStretch::REPEAT:
     th = h/ih;
     break;
   }
@@ -1164,7 +1164,7 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
     { ou2,ov2 }
   };
 
-  gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,22,verts,uv,texture,PX_NONE,PX_NONE);
+  gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,22,verts,uv,texture,rtConstantsStretch::NONE,rtConstantsStretch::NONE);
 }
 
 bool gContextInit = false;
@@ -1338,7 +1338,7 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
 }
 
 void pxContext::drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
-                          pxStretch stretchX, pxStretch stretchY, float* color) 
+                          rtConstantsStretch::constants stretchX, rtConstantsStretch::constants stretchY, float* color) 
 {
   float black[4] = {0,0,0,1};
   drawImageTexture(x, y, w, h, t, mask, stretchX, stretchY, color?color:black);

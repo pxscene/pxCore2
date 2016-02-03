@@ -135,7 +135,7 @@ void pxText::draw() {
   static pxTextureRef nullMaskRef;
   if (mCached.getPtr() && mCached->getTexture().getPtr())
   {
-    context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef, PX_NONE, PX_NONE);
+    context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef, rtConstantsStretch::NONE, rtConstantsStretch::NONE);
   }
   else
   {

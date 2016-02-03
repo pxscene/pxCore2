@@ -183,6 +183,30 @@ function cycleValues(v) {
     console.log("v is now "+v);
     return v;
 }
+
+function changeTextValue() {
+  
+    if(textStatus.text == "text=longest") {
+      text2.text = shortText; 
+      textStatus.text="text=short";
+    } else if(textStatus.text == "text=short"){
+      text2.text = mediumText; 
+      textStatus.text="text=medium";
+    } else if(textStatus.text == "text=medium"){
+      text2.text = newlineText; 
+      textStatus.text="text=newlines";
+    } else if(textStatus.text == "text=newlines"){
+      text2.text = longText; 
+      textStatus.text="text=long";
+    } else if(textStatus.text == "text=long"){
+      text2.text = longText2; 
+      textStatus.text="text=longer";
+    } else if(textStatus.text == "text=longer"){
+      text2.text = longText3; 
+      textStatus.text="text=longest";
+    }  
+}
+
 scene.root.on("onChar", function(e) {
   var v; 
   if (e.charCode == 119) { // w for wordWrap
@@ -260,25 +284,8 @@ scene.root.on("onChar", function(e) {
       text2.leading -= 5; 
       leadingStatus.text="leading="+text2.leading;
   } else if(e.charCode == 115) { // s for text
-    if(textStatus.text == "text=longest") {
-      text2.text = shortText; 
-      textStatus.text="text=short";
-    } else if(textStatus.text == "text=short"){
-      text2.text = mediumText; 
-      textStatus.text="text=medium";
-    } else if(textStatus.text == "text=medium"){
-      text2.text = newlineText; 
-      textStatus.text="text=newlines";
-    } else if(textStatus.text == "text=newlines"){
-      text2.text = longText; 
-      textStatus.text="text=long";
-    } else if(textStatus.text == "text=long"){
-      text2.text = longText2; 
-      textStatus.text="text=longer";
-    } else if(textStatus.text == "text=longer"){
-      text2.text = longText3; 
-      textStatus.text="text=longest";
-    }
+    changeTextValue();
+
   } else if(e.charCode == 112) { // p for increasing pixelSize
     if(text2.pixelSize == 60) {
       text2.pixelSize = 15; 

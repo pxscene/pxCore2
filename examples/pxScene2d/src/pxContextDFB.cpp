@@ -189,7 +189,7 @@ static void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNat
 
 
 static void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen,
-                pxStretch stretchX, pxStretch stretchY)
+                rtConstantsStretch::constants stretchX, rtConstantsStretch::constants stretchY)
 {
 //  glActiveTexture(GL_TEXTURE0);
 //  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
@@ -521,7 +521,7 @@ void pxContext::drawImage9(float w, float h, pxOffscreen& o)
 
 
 void pxContext::drawImage(float w, float h, pxOffscreen& o,
-                          pxStretch stretchX, pxStretch stretchY)
+                          rtConstantsStretch::constants stretchX, rtConstantsStretch::constants stretchY)
 {
   drawImage2(0, 0, w, h, o, stretchX, stretchY);
 }

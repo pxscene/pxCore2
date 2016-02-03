@@ -27,11 +27,11 @@ pxTextBox::pxTextBox(pxScene2d* s):pxText(s)
   mEllipsis = false;
   lineNumber = 0;
   lastLineNumber = 0;
-  mTruncation = false;  
+  mTruncation = rtConstantsTruncation::NONE;  
   mXStartPos = 0;
   mXStopPos = 0;
-  mAlignVertical = 0;
-  mAlignHorizontal = 0;
+  mAlignVertical = rtConstantsAlignVertical::TOP;
+  mAlignHorizontal = rtConstantsAlignHorizontal::LEFT;
   mLeading = 0;  
   mNeedsRecalc = true;
 
@@ -175,11 +175,11 @@ void pxTextBox::draw() {
     if(!clip() && mTruncation == rtConstantsTruncation::NONE)
     {
       //printf("!CLF: pxTextBox::draw() with cachedPtr && noClip values x=%f y=%f w=%f h=%f\n",noClipX,noClipY,noClipW,noClipH);
-      context.drawImage(noClipX,noClipY,noClipW,noClipH,mCached->getTexture(),nullMaskRef,PX_NONE,PX_NONE);
+      context.drawImage(noClipX,noClipY,noClipW,noClipH,mCached->getTexture(),nullMaskRef,rtConstantsStretch::NONE,rtConstantsStretch::NONE);
     }
     else 
     {
-      context.drawImage(0,0,mw,mh,mCached->getTexture(),nullMaskRef,PX_NONE,PX_NONE);
+      context.drawImage(0,0,mw,mh,mCached->getTexture(),nullMaskRef,rtConstantsStretch::NONE,rtConstantsStretch::NONE);
     }
 	}
 	else 
@@ -218,8 +218,8 @@ void pxTextBox::clearMeasurements()
 {
     lastLineNumber = 0;
     lineNumber = 0;
-    noClipX = mx;
-    noClipY = my;
+    noClipX = 0;
+    noClipY = 0;
     noClipW = mw;
     noClipH = mh;
  //   startX = mx;
@@ -572,7 +572,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   if( !clip() && mTruncation == rtConstantsTruncation::NONE) 
   {
     //printf("!CLF: Setting NoClip values in renderOneLine to noClipW=%f\n",noClipW);
-    noClipW = charW;
+    noClipW = (noClipW < charW) ? charW:noClipW;
     if( !mWordWrap)  
     {
       if( mAlignHorizontal == rtConstantsAlignHorizontal::CENTER ) 
@@ -589,6 +589,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       {
         if( lineNumber == 0)
         {
+          printf("LineNumber is 0\n");
           xPos = tempX;
           noClipX = mXStartPos;
         } 
@@ -907,7 +908,7 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
     }
     if( mTruncation == rtConstantsTruncation::NONE && !clip() && charH > mh) {
       noClipH = charH;
-      noClipW = charW;
+      noClipW = (noClipW < charW) ? charW:noClipW;
     }
     // Will it fit on one line OR is there no truncation, so we don't care...
     if( (charW + tempXStartPos) <= lineWidth || mTruncation == rtConstantsTruncation::NONE) 

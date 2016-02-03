@@ -18,7 +18,7 @@ public:
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
   rtProperty(resource, resource, setResource, rtObjectRef);
   
-  pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(PX_NONE),mStretchY(PX_NONE), 
+  pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(rtConstantsStretch::NONE),mStretchY(rtConstantsStretch::NONE), 
     imageLoaded(false)
   { 
     mw = -1;
@@ -39,14 +39,14 @@ public:
   rtError stretchX(int32_t& v) const { v = (int32_t)mStretchX; return RT_OK; }
   rtError setStretchX(int32_t v)
   {
-    mStretchX = (pxStretch)v;
+    mStretchX = (rtConstantsStretch::constants)v;
     return RT_OK;
   }
 
   rtError stretchY(int32_t& v) const { v = (int32_t)mStretchY; return RT_OK; }
   rtError setStretchY(int32_t v)
   {
-    mStretchY = (pxStretch)v;
+    mStretchY = (rtConstantsStretch::constants)v;
     return RT_OK;
   }
   
@@ -64,8 +64,8 @@ protected:
   void loadImage(rtString Url);
   inline rtImageResource* getImageResource() const { return (rtImageResource*)mResource.getPtr(); }
 
-  pxStretch mStretchX;
-  pxStretch mStretchY;
+  rtConstantsStretch::constants mStretchX;
+  rtConstantsStretch::constants mStretchY;
   rtObjectRef mResource;
   
   bool imageLoaded;
