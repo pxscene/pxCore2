@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Smalloc Node.js v0.12.7 Manual &amp; Documentation</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="canonical" href="http://nodejs.org/api/smalloc.html">
+  <script type="text/javascript" src="//use.typekit.net/mse5tqx.js"></script>
+  <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+</head>
+<body class="alt apidoc int docs" id="docs">
+    <div id="nav">
+      <img id="logo" src="assets/logo.svg" alt="node.js">
+      <ul>
+        <li><a href="http://nodejs.org">Home</a></li>
+        <li><a href="http://nodejs.org/download/">Downloads</a></li>
+        <li class="active"><a href="http://nodejs.org/documentation/">Docs</a></li>
+        <li><a href="http://nodejs.org/community/">Community</a></li>
+        <li><a href="http://nodejs.org/about/">About</a></li>
+        <li><a href="http://jobs.nodejs.org">Jobs</a></li>
+        <li><a href="http://blog.nodejs.org">Blog</a></li>
+      </ul>
+    </div>
+    <div id="content-wrap">
+    <div id="content" class="clearfix">
+      <div id="column2" class="interior">
+        <!--<img src="/images/logo-light.svg" alt="node.js" width="170">-->
+        <ul class="docs-nav">
+          <li><a href="http://nodejs.org/documentation/">About Docs</a></li>
+          <li><a href="http://nodejs.org/documentation/tutorials/">Tutorials</a></li>
+          <li><a href="http://nodejs.org/documentation/contributing/">Contributing</a></li>
+          <li><a href="http://nodejs.org/documentation/workflow/">Workflow</a></li>
+          <li><a href="http://nodejs.org/documentation/localization/">Localization</a></li>
+          <li class="active"><a href="http://nodejs.org/api/">API Docs</a></li>
+        </ul>
+      </div>
+        <div id="column1" class="interior">
+          <header>
+            <h1>Node.js v0.12.7 Manual &amp; Documentation</h1>
+            <div id="gtoc">
+              <p>
+                <a href="index.html" name="toc">Index</a> |
+                <a href="all.html">View on single page</a> |
+                <a href="smalloc.json">View as JSON</a>
+              </p>
+            </div>
+            <hr>
+          </header>
+
+          <div id="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+<li><a href="#smalloc_smalloc">Smalloc</a><ul>
+<li><a href="#smalloc_class_smalloc">Class: smalloc</a><ul>
+<li><a href="#smalloc_smalloc_alloc_length_receiver_type">smalloc.alloc(length[, receiver][, type])</a></li>
+<li><a href="#smalloc_smalloc_copyonto_source_sourcestart_dest_deststart_copylength">smalloc.copyOnto(source, sourceStart, dest, destStart, copyLength);</a></li>
+<li><a href="#smalloc_smalloc_dispose_obj">smalloc.dispose(obj)</a></li>
+<li><a href="#smalloc_smalloc_hasexternaldata_obj">smalloc.hasExternalData(obj)</a></li>
+<li><a href="#smalloc_smalloc_kmaxlength">smalloc.kMaxLength</a></li>
+<li><a href="#smalloc_smalloc_types">smalloc.Types</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+
+          <div id="apicontent">
+            <h1>Smalloc<span><a class="mark" href="#smalloc_smalloc" id="smalloc_smalloc">#</a></span></h1>
+<pre class="api_stability_1">Stability: 1 - Experimental</pre><h2>Class: smalloc<span><a class="mark" href="#smalloc_class_smalloc" id="smalloc_class_smalloc">#</a></span></h2>
+<p>Buffers are backed by a simple allocator that only handles the assignation of
+external raw memory. Smalloc exposes that functionality.
+
+</p>
+<h3>smalloc.alloc(length[, receiver][, type])<span><a class="mark" href="#smalloc_smalloc_alloc_length_receiver_type" id="smalloc_smalloc_alloc_length_receiver_type">#</a></span></h3>
+<div class="signature"><ul>
+<li><code>length</code> <span class="type">Number</span> <code>&lt;= smalloc.kMaxLength</code></li>
+<li><code>receiver</code> <span class="type">Object</span> Default: <code>new Object</code></li>
+<li><code>type</code> <span class="type">Enum</span> Default: <code>Uint8</code></li>
+</div></ul>
+<p>Returns <code>receiver</code> with allocated external array data. If no <code>receiver</code> is
+passed then a new Object will be created and returned.
+
+</p>
+<p>This can be used to create your own Buffer-like classes. No other properties are
+set, so the user will need to keep track of other necessary information (e.g.
+<code>length</code> of the allocation).
+
+</p>
+<pre><code>function SimpleData(n) {
+  this.length = n;
+  smalloc.alloc(this.length, this);
+}
+
+SimpleData.prototype = { /* ... */ };</code></pre>
+<p>It only checks if the <code>receiver</code> is an Object, and also not an Array. Because of
+this it is possible to allocate external array data to more than a plain Object.
+
+</p>
+<pre><code>function allocMe() { }
+smalloc.alloc(3, allocMe);
+
+// { [Function allocMe] &#39;0&#39;: 0, &#39;1&#39;: 0, &#39;2&#39;: 0 }</code></pre>
+<p>v8 does not support allocating external array data to an Array, and if passed
+will throw.
+
+</p>
+<p>It&#39;s possible to specify the type of external array data you would like. All
+possible options are listed in <code>smalloc.Types</code>. Example usage:
+
+</p>
+<pre><code>var doubleArr = smalloc.alloc(3, smalloc.Types.Double);
+
+for (var i = 0; i &lt; 3; i++)
+  doubleArr = i / 10;
+
+// { &#39;0&#39;: 0, &#39;1&#39;: 0.1, &#39;2&#39;: 0.2 }</code></pre>
+<p>It is not possible to freeze, seal and prevent extensions of objects with
+external data using <code>Object.freeze</code>, <code>Object.seal</code> and
+<code>Object.preventExtensions</code> respectively.
+
+</p>
+<h3>smalloc.copyOnto(source, sourceStart, dest, destStart, copyLength);<span><a class="mark" href="#smalloc_smalloc_copyonto_source_sourcestart_dest_deststart_copylength" id="smalloc_smalloc_copyonto_source_sourcestart_dest_deststart_copylength">#</a></span></h3>
+<div class="signature"><ul>
+<li><code>source</code> <span class="type">Object</span> with external array allocation</li>
+<li><code>sourceStart</code> <span class="type">Number</span> Position to begin copying from</li>
+<li><code>dest</code> <span class="type">Object</span> with external array allocation</li>
+<li><code>destStart</code> <span class="type">Number</span> Position to begin copying onto</li>
+<li><code>copyLength</code> <span class="type">Number</span> Length of copy</li>
+</div></ul>
+<p>Copy memory from one external array allocation to another. No arguments are
+optional, and any violation will throw.
+
+</p>
+<pre><code>var a = smalloc.alloc(4);
+var b = smalloc.alloc(4);
+
+for (var i = 0; i &lt; 4; i++) {
+  a[i] = i;
+  b[i] = i * 2;
+}
+
+// { &#39;0&#39;: 0, &#39;1&#39;: 1, &#39;2&#39;: 2, &#39;3&#39;: 3 }
+// { &#39;0&#39;: 0, &#39;1&#39;: 2, &#39;2&#39;: 4, &#39;3&#39;: 6 }
+
+smalloc.copyOnto(b, 2, a, 0, 2);
+
+// { &#39;0&#39;: 4, &#39;1&#39;: 6, &#39;2&#39;: 2, &#39;3&#39;: 3 }</code></pre>
+<p><code>copyOnto</code> automatically detects the length of the allocation internally, so no
+need to set any additional properties for this to work.
+
+</p>
+<h3>smalloc.dispose(obj)<span><a class="mark" href="#smalloc_smalloc_dispose_obj" id="smalloc_smalloc_dispose_obj">#</a></span></h3>
+<div class="signature"><ul>
+<li><code>obj</code> Object</li>
+</div></ul>
+<p>Free memory that has been allocated to an object via <code>smalloc.alloc</code>.
+
+</p>
+<pre><code>var a = {};
+smalloc.alloc(3, a);
+
+// { &#39;0&#39;: 0, &#39;1&#39;: 0, &#39;2&#39;: 0 }
+
+smalloc.dispose(a);
+
+// {}</code></pre>
+<p>This is useful to reduce strain on the garbage collector, but developers must be
+careful. Cryptic errors may arise in applications that are difficult to trace.
+
+</p>
+<pre><code>var a = smalloc.alloc(4);
+var b = smalloc.alloc(4);
+
+// perform this somewhere along the line
+smalloc.dispose(b);
+
+// now trying to copy some data out
+smalloc.copyOnto(b, 2, a, 0, 2);
+
+// now results in:
+// RangeError: copy_length &gt; source_length</code></pre>
+<p>After <code>dispose()</code> is called object still behaves as one with external data, for
+example <code>smalloc.hasExternalData()</code> returns <code>true</code>.
+<code>dispose()</code> does not support Buffers, and will throw if passed.
+
+</p>
+<h3>smalloc.hasExternalData(obj)<span><a class="mark" href="#smalloc_smalloc_hasexternaldata_obj" id="smalloc_smalloc_hasexternaldata_obj">#</a></span></h3>
+<div class="signature"><ul>
+<li><code>obj</code> <span class="type">Object</span></li>
+</div></ul>
+<p>Returns <code>true</code> if the <code>obj</code> has externally allocated memory.
+
+</p>
+<h3>smalloc.kMaxLength<span><a class="mark" href="#smalloc_smalloc_kmaxlength" id="smalloc_smalloc_kmaxlength">#</a></span></h3>
+<p>Size of maximum allocation. This is also applicable to Buffer creation.
+
+</p>
+<h3>smalloc.Types<span><a class="mark" href="#smalloc_smalloc_types" id="smalloc_smalloc_types">#</a></span></h3>
+<p>Enum of possible external array types. Contains:
+
+</p>
+<ul>
+<li><code>Int8</code></li>
+<li><code>Uint8</code></li>
+<li><code>Int16</code></li>
+<li><code>Uint16</code></li>
+<li><code>Int32</code></li>
+<li><code>Uint32</code></li>
+<li><code>Float</code></li>
+<li><code>Double</code></li>
+<li><code>Uint8Clamped</code></li>
+</ul>
+
+          </div>
+        </div>
+    </div>
+    </div>
+    <div id="footer">
+      <div class="foot-1">
+        <a href="http://www.joyent.com"><h5>The Node.js Project is Sponsored by</h5>
+        <img src="assets/joyent-footer.svg" width="200">
+        <p class="tag">Production Node +<br>High Performance Infrastructure</p></a>
+        <a href="https://my.joyent.com/landing/signup/701800000015696" class="button getstarted">Get Started</a>
+      </div>
+      <div class="foot-2">
+        <div class="foot-nav">
+          <ul>
+            <li><a href="http://nodejs.org/download/">Downloads</a></li>
+          </ul>
+          <ul>
+            <li><a href="http://nodejs.org/documentation/">Documentation</a></li>
+            <li><a href="http://nodejs.org/api/">API Docs</a></li>
+            <li><a href="http://nodejs.org/documentation/tutorials/">Tutorials</a></li>
+            <li><a href="http://nodejs.org/documentation/localization/">Localization</a></li>
+          </ul>
+          <ul>
+            <li><a href="http://nodejs.org/community/">Community</a></li>
+            <li><a href="https://github.com/joyent/node/issues">Github Issues</a></li>
+            <li><a href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+            <li><a href="http://webchat.freenode.net/?channels=node.js">IRC</a></li>
+            <li><a href="https://twitter.com/nodejs">Twitter</a></li>
+          </ul>
+          <ul>
+            <li><a href="http://nodejs.org/about/">About</a></li>
+            <li><a href="http://nodejs.org/about/organization/">Organization</a></li>
+            <li><a href="http://nodejs.org/about/core-team/">Core Team</a></li>
+            <li><a href="http://nodejs.org/about/resources/">Resources</a></li>
+          </ul>
+          <ul>
+            <li><a href="http://blog.nodejs.org">Blog</a></li>
+          </ul>
+        </div>
+        <p class="copyright">Copyright 2014 <a href="http://joyent.com/">Joyent, Inc</a>, Node.js is a <a href="https://nodejs.org/images/trademark-policy.pdf">trademark</a> of Joyent, Inc. <a href="https://raw.github.com/joyent/node/v0.12.7/LICENSE">View license</a>.</p>
+      </div>
+    </div>
+
+  <script src="/sh_main.js"></script>
+  <script src="/sh_javascript.min.js"></script>
+  <script>highlight(undefined, undefined, 'pre');</script>
+  <script>
+    window._gaq = [['_setAccount', 'UA-10874194-2'], ['_trackPageview']];
+    (function(d, t) {
+      var g = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      g.src = '//www.google-analytics.com/ga.js';
+      s.parentNode.insertBefore(g, s);
+    }(document, 'script'));
+  </script>
+</body>
+</html>
+

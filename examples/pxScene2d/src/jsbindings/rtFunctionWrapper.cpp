@@ -54,21 +54,27 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
   assert(ctx->args.size() < 2);
   assert(Isolate::GetCurrent() == resolverFunc->mIsolate);
 
-  // Locker locker(resolverFunc->mIsolate);
-  HandleScope scope(resolverFunc->mIsolate);
-  // Context::Scope contextScope(PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mContext));
+  Locker                locker(resolverFunc->mIsolate);
+  Isolate::Scope isolate_scope(resolverFunc->mIsolate);
+  HandleScope     handle_scope(resolverFunc->mIsolate);  // Create a stack-allocated handle scope.
 
   Handle<Value> value;
   if (ctx->args.size() > 0)
+  {
     value = rt2js(resolverFunc->mIsolate, ctx->args[0]);
+  }
 
   Local<Promise::Resolver> resolver = PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mResolver);
 
   TryCatch tryCatch;
   if (resolverFunc->mDisposition == DispositionResolve)
+  {
     resolver->Resolve(value);
+  }
   else
+  {
     resolver->Reject(value);
+  }
 
   if (tryCatch.HasCaught())
   {
@@ -93,6 +99,10 @@ rtFunctionWrapper::~rtFunctionWrapper()
 
 void rtFunctionWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports)
 {
+  Locker                locker(isolate);
+  Isolate::Scope isolate_scope(isolate);
+  HandleScope     handle_scope(isolate);  // Create a stack-allocated handle scope.
+
   Local<FunctionTemplate> tmpl = FunctionTemplate::New(isolate, create);
   tmpl->SetClassName(String::NewFromUtf8(isolate, kClassName));
 
@@ -116,12 +126,17 @@ void rtFunctionWrapper::create(const FunctionCallbackInfo<Value>& args)
 
 Handle<Object> rtFunctionWrapper::createFromFunctionReference(Isolate* isolate, const rtFunctionRef& func)
 {
+  Locker                locker(isolate);
+  Isolate::Scope isolate_scope(isolate);
+
   EscapableHandleScope scope(isolate);
   Local<Value> argv[1] = 
   {
     External::New(isolate, func.getPtr()) 
   };
+
   Local<Function> c = PersistentToLocal(isolate, ctor);
+
   return scope.Escape(c->NewInstance(1, argv));
 }
 
@@ -129,6 +144,7 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
 {
   Isolate* isolate = args.GetIsolate();
 
+  Locker     locker(isolate);
   HandleScope scope(isolate);
 
   rtWrapperError error;

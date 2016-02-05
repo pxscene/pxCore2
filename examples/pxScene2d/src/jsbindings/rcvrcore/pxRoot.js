@@ -1,6 +1,13 @@
 "use strict";
 
-var px = require("px");
+var px;
+
+if ( typeof(getScene) == 'undefined' )
+{
+    // pxCore *NOT* pre-loaded in JS context...
+   px = require("px");
+}
+
 var fs = require("fs");
 var AppSceneContext = require('rcvrcore/AppSceneContext');
 
@@ -33,7 +40,16 @@ function pxRoot(baseUri) {
 }
 
 pxRoot.prototype.initialize = function(x, y, width, height) {
+
+  if ( typeof(getScene) == 'undefined' )
+  {
   this.rootScene = px.getScene(x, y, width, height);
+  }
+  else
+  {
+    // pxCore pre-loaded in JS context...
+    this.rootScene = getScene(x, y, width, height);
+  }  
 
   this.rootScene.root.on('onPreKeyDown', function (e) {
     log.message(2, "PxRoot: got pre-key " + e.keyCode);

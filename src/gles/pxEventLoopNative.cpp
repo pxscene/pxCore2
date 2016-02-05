@@ -1,4 +1,4 @@
-// pxCore CopyRight 2005-2006 John Robinson
+// pxCore CopyRight 2005-2015 John Robinson
 // Portable Framebuffer and Windowing Library
 // pxEventLoopNative.cpp
 

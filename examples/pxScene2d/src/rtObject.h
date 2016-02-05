@@ -22,6 +22,8 @@ using namespace std;
 
 class rtIObject {
  public:
+  typedef unsigned long refcount_t;
+
   virtual ~rtIObject() { }
   virtual unsigned long AddRef() = 0;
   virtual unsigned long Release() = 0;
