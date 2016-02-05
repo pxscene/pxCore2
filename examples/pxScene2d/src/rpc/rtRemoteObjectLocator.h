@@ -24,14 +24,16 @@ private:
   static void* run_listener(void* argp);
 
 private:
-  int set_src(char const* srcaddr);
-  int set_dest(char const* dstaddr, int16_t dstport);
-  int set_src_v4(char const* srcaddr);
-  int set_src_v6(char const* srcaddr);
+  int set_src(char const* srcaddr, int16_t port);
+  int set_dest(char const* dstaddr, int16_t port);
+  int set_src_v4(char const* srcaddr, int16_t port);
+  int set_src_v6(char const* srcaddr, int16_t port);
   void run_listener();
+  void do_read();
 
 private:
   typedef std::map< std::string, rtObjectRef > refmap_t;
+  typedef std::vector<char> buff_t;
 
   sockaddr_storage  m_dest;
   sockaddr_storage  m_src;
@@ -39,4 +41,8 @@ private:
   int               m_family;
   refmap_t          m_objects;
   pthread_t         m_thread;
+  bool              m_run;
+  buff_t            m_buff;
+  pthread_mutex_t   m_mutex;
+  pid_t             m_pid;
 };
