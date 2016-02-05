@@ -940,7 +940,7 @@ rtDefineMethod(pxObject, animateToF2);
 rtDefineMethod(pxObject, animateToP2);
 rtDefineMethod(pxObject, addListener);
 rtDefineMethod(pxObject, delListener);
-rtDefineProperty(pxObject, emit);
+//rtDefineProperty(pxObject, emit);
 rtDefineProperty(pxObject, onReady);
 rtDefineMethod(pxObject, getObjectById);
 rtDefineProperty(pxObject,m11);

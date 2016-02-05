@@ -144,7 +144,7 @@ public:
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
   rtProperty(onReady, onReady, setOnReady, rtFunctionRef);
 
-  rtReadOnlyProperty(emit, emit, rtFunctionRef);
+//  rtReadOnlyProperty(emit, emit, rtFunctionRef);
   rtMethod1ArgAndReturn("getObjectById",getObjectById,rtString,rtObjectRef);
 
   rtProperty(m11,m11,setM11,float);
