@@ -10,7 +10,7 @@ int main(int argc, char* /*argv*/[])
   char const* objectName = "com.xfinity.xsmart.Thermostat/JakesHouse";
 
   rtRemoteObjectLocator locator;
-  ret = locator.open("224.10.10.12", 10004, "192.168.1.183");
+  ret = locator.open("224.10.10.12", 10004, "eth0");
   if (ret != 0)
     perror("failed to open");
 
