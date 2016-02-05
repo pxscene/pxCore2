@@ -1734,7 +1734,7 @@ rtDefineMethod(pxScene2d, screenshot);
 rtDefineMethod(pxScene2d, loadArchive);
 rtDefineProperty(pxScene2d, ctx);
 rtDefineProperty(pxScene2d, api);
-rtDefineProperty(pxScene2d, emit);
+//rtDefineProperty(pxScene2d, emit);
 // Properties for access to Constants
 rtDefineProperty(pxScene2d,animation);
 rtDefineProperty(pxScene2d,stretch);

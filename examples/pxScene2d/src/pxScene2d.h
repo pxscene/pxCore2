@@ -881,7 +881,7 @@ public:
 
   rtProperty(ctx, ctx, setCtx, rtValue);
   rtProperty(api, api, setAPI, rtValue);
-  rtReadOnlyProperty(emit, emit, rtFunctionRef);
+//  rtReadOnlyProperty(emit, emit, rtFunctionRef);
   // Properties for returning various CONSTANTS
   rtReadOnlyProperty(animation,animation,rtObjectRef);
   rtReadOnlyProperty(stretch,stretch,rtObjectRef);
