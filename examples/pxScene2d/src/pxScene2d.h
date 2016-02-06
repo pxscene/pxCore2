@@ -127,6 +127,7 @@ public:
   rtProperty(mask, mask, setMask, bool);
   rtProperty(draw, drawEnabled, setDrawEnabled, bool);
   rtProperty(hitTest, hitTest, setHitTest, bool);
+  rtProperty(focus, focus, setFocus, bool); 
   rtReadOnlyProperty(ready, ready, rtObjectRef);
 
   rtReadOnlyProperty(numChildren, numChildren, int32_t);
@@ -142,7 +143,7 @@ public:
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
-  rtProperty(onReady, onReady, setOnReady, rtFunctionRef);
+ // rtProperty(onReady, onReady, setOnReady, rtFunctionRef);
 
 //  rtReadOnlyProperty(emit, emit, rtFunctionRef);
   rtMethod1ArgAndReturn("getObjectById",getObjectById,rtString,rtObjectRef);
@@ -305,6 +306,10 @@ public:
   rtError hitTest(bool& v)  const { v = mHitTest; return RT_OK;  }
   rtError setHitTest(bool v) { mHitTest = v; return RT_OK; }
 
+  bool focus()            const { return mFocus;}
+  rtError focus(bool& v)  const { v = mFocus; return RT_OK;  }
+  rtError setFocus(bool v);
+  
   rtError ready(rtObjectRef& v) const
   {
     v = mReady;
@@ -324,6 +329,8 @@ public:
   bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit, pxPoint2f& hitPt);
   virtual bool hitTest(pxPoint2f& pt);
 
+  void setFocusInternal(bool focus) { mFocus = focus; }
+  
   rtError animateTo(const char* prop, double to, double duration,
                      uint32_t interp, uint32_t animationType, 
                      rtObjectRef promise);
@@ -348,18 +355,18 @@ public:
     return mEmit->delListener(eventName, f);
   }
 
-  rtError onReady(rtFunctionRef& /*f*/) const
-  {
-    rtLogError("onReady get not implemented\n");
-    return RT_OK;
-  }
+  //rtError onReady(rtFunctionRef& /*f*/) const
+  //{
+    //rtLogError("onReady get not implemented\n");
+    //return RT_OK;
+  //}
 
   // TODO why does this have to be const
-  rtError setOnReady(const rtFunctionRef& f)
-  {
-    mEmit->setListener("onReady", f);
-    return RT_OK;
-  }
+  //rtError setOnReady(const rtFunctionRef& f)
+  //{
+    //mEmit->setListener("onReady", f);
+    //return RT_OK;
+  //}
 
   virtual void update(double t);
 
@@ -604,6 +611,7 @@ protected:
   bool mDraw;
   bool mHitTest;
   rtObjectRef mReady;
+  bool mFocus;
   pxContextFramebufferRef mClipSnapshotRef;
   bool mCancelInSet;
   rtString mId;
@@ -873,7 +881,10 @@ public:
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
 
   // TODO make this a property
-  rtMethod1ArgAndNoReturn("setFocus", setFocus, rtObjectRef);
+  // focus is now a bool property on pxObject
+  //rtMethod1ArgAndNoReturn("setFocus", setFocus, rtObjectRef);
+  rtMethodNoArgAndReturn("getFocus", getFocus, rtObjectRef);
+  
   
   rtMethodNoArgAndNoReturn("stopPropagation",stopPropagation);
   
@@ -942,9 +953,9 @@ public:
     return mEmit->delListener(eventName, f);
   }
 
-  rtError focus(rtObjectRef& o)
+  rtError getFocus(rtObjectRef& o)
   {
-    o = mFocus;
+    o = mFocusObj;
     return RT_OK;
   }
 
@@ -1045,7 +1056,7 @@ private:
   rtError screenshot(rtString type, rtString& pngData);
   
   rtRefT<pxObject> mRoot;
-  rtObjectRef mFocus;
+  rtObjectRef mFocusObj;
   double start, end2;
   int frameCount;
   int mWidth;

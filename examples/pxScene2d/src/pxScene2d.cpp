@@ -238,6 +238,19 @@ void pxObject::createNewPromise()
   }
 }
 
+/** since this is a boolean, we have to handle if someone sets it to 
+ * false - for now, it will mean "set focus to my parent scene" */
+rtError pxObject::setFocus(bool v) 
+{
+  printf("pxObject::setFocus v=%d\n",v);
+  if(v) {
+    return mScene->setFocus(this);
+  }
+  else {
+    return mScene->setFocus(NULL);
+  }
+  
+}
 
 rtError pxObject::Set(const char* name, const rtValue* value)
 {
@@ -926,6 +939,7 @@ rtDefineProperty(pxObject, clip);
 rtDefineProperty(pxObject, mask);
 rtDefineProperty(pxObject, draw);
 rtDefineProperty(pxObject, hitTest);
+rtDefineProperty(pxObject,focus);
 rtDefineProperty(pxObject,ready);
 rtDefineProperty(pxObject, numChildren);
 rtDefineMethod(pxObject, getChild);
@@ -941,7 +955,7 @@ rtDefineMethod(pxObject, animateToP2);
 rtDefineMethod(pxObject, addListener);
 rtDefineMethod(pxObject, delListener);
 //rtDefineProperty(pxObject, emit);
-rtDefineProperty(pxObject, onReady);
+//rtDefineProperty(pxObject, onReady);
 rtDefineMethod(pxObject, getObjectById);
 rtDefineProperty(pxObject,m11);
 rtDefineProperty(pxObject,m12);
@@ -968,14 +982,15 @@ pxScene2d::pxScene2d(bool top)
   :start(0),frameCount(0), mContainer(NULL), mShowDirtyRect(false)
 { 
   mRoot = new pxObject(this);
-  mFocus = mRoot;
+  mFocusObj = mRoot;
   mEmit = new rtEmit();
   mTop = top;
   mTag = gTag++;
   // make sure that initial onFocus is sent
   rtObjectRef e = new rtMapObject;
-  e.set("target",mFocus);
-  rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+  ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(true);
+  e.set("target",mFocusObj);
+  rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
   t->mEmit.send("onFocus",e);
 }
 
@@ -1398,32 +1413,38 @@ void pxScene2d::setMouseEntered(pxObject* o)
     }
   }
 }
+/** This function is not exposed to javascript; it is called when 
+ * mFocus = true is set for a pxObject whose parent scene is this scene
+ **/
 rtError pxScene2d::setFocus(rtObjectRef o)
 {
-
-  if(mFocus) 
+  printf(" pxScene2d::setFocus\n");
+  if(mFocusObj) 
   {
 	    rtObjectRef e = new rtMapObject;
-	    e.set("target",mFocus);
-	    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+      ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(false);
+	    e.set("target",mFocusObj);
+	    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
 	    t->mEmit.send("onBlur",e);
   }
 
   if (o) 
   {
-	  mFocus = o;
+	  mFocusObj = o;
   }
   else 
   {
-	  mFocus = getRoot();
+	  mFocusObj = getRoot();
   }
   rtObjectRef e = new rtMapObject;
-  e.set("target",mFocus);
-  rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+  ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(true);
+  e.set("target",mFocusObj);
+  rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
   t->mEmit.send("onFocus",e);
 
   return RT_OK;
 }
+
 void pxScene2d::onMouseEnter()
 {
 }
@@ -1613,38 +1634,38 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
 
 void pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags) 
 {
-  if (mFocus)
+  if (mFocusObj)
   {
     rtObjectRef e = new rtMapObject;
-    e.set("target",mFocus);
+    e.set("target",mFocusObj);
     e.set("keyCode", keyCode);
     e.set("flags", (uint32_t)flags);
-    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
     bubbleEvent(e, t, "onPreKeyDown", "onKeyDown");
   }
 }
 
 void pxScene2d::onKeyUp(uint32_t keyCode, uint32_t flags)
 {
-  if (mFocus)
+  if (mFocusObj)
   {
     rtObjectRef e = new rtMapObject;
-    e.set("target",mFocus);
+    e.set("target",mFocusObj);
     e.set("keyCode", keyCode);
     e.set("flags", (uint32_t)flags);
-    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
     bubbleEvent(e, t, "onPreKeyUp", "onKeyUp");
   }
 }
 
 void pxScene2d::onChar(uint32_t c)
 {
-  if (mFocus)
+  if (mFocusObj)
   {
     rtObjectRef e = new rtMapObject;
-    e.set("target",mFocus);
+    e.set("target",mFocusObj);
     e.set("charCode", c);
-    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
     bubbleEvent(e, t, "onPreChar", "onChar");
   }
 }
@@ -1728,7 +1749,7 @@ rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
-rtDefineMethod(pxScene2d, setFocus);
+rtDefineMethod(pxScene2d, getFocus);
 rtDefineMethod(pxScene2d, stopPropagation);
 rtDefineMethod(pxScene2d, screenshot);
 rtDefineMethod(pxScene2d, loadArchive);
