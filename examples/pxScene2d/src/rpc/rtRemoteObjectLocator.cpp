@@ -1,14 +1,9 @@
 #include "rtRemoteObjectLocator.h"
 #include "rtSocketUtils.h"
 
-#include <netdb.h>
-#include <ifaddrs.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <errno.h>
-#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
@@ -20,26 +15,6 @@
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
-
-
-static rtError 
-read_until(int fd, char* buff, int n)
-{
-  ssize_t bytes_read = 0;
-  ssize_t bytes_to_read = n;
-
-  while (bytes_read < bytes_to_read)
-  {
-    ssize_t n = read(fd, buff + bytes_read, (bytes_to_read - bytes_read));
-    if (n == -1)
-    {
-      rtLogError("failed to read from fd %d. %s", fd, strerror(errno));
-      return RT_FAIL;;
-    }
-    bytes_read += n;
-  }
-  return RT_OK;
-}
 
 static void
 dump_document(rapidjson::Document const& doc)
@@ -204,7 +179,7 @@ void
 rtRemoteObjectLocator::do_readn(int fd, buff_t& buff)
 {
   int length = 0;
-  rtError err = read_until(fd, reinterpret_cast<char *>(&length), 4);
+  rtError err = rtReadUntil(fd, reinterpret_cast<char *>(&length), 4);
   if (err != RT_OK)
   {
     rtLogError("failed to read from socket");
@@ -213,7 +188,7 @@ rtRemoteObjectLocator::do_readn(int fd, buff_t& buff)
 
   int n = ntohl(length);
 
-  err = read_until(fd, &buff[0], n);
+  err = rtReadUntil(fd, &buff[0], n);
   if (err != RT_OK)
   {
     rtLogError("failed to read message from socket");
@@ -238,7 +213,9 @@ rtRemoteObjectLocator::do_dispatch(char const* buff, int n, sockaddr_storage* pe
 {
   // rtLogInfo("new message from %s:%d", inet_ntoa(src.sin_addr), htons(src.sin_port));
   // printf("read: %d\n", int(n));
-  printf("read: \"%.*s\"\n", n, buff); // static_cast<int>(m_read_buff.size()), &m_read_buff[0]);
+  #ifdef RT_RPC_DEBUG
+  rtLogDebug("read:\nt\t\"%.*s\"\n", n, buff); // static_cast<int>(m_read_buff.size()), &m_read_buff[0]);
+  #endif
 
   rapidjson::Document doc;
   rapidjson::MemoryStream stream(buff, n);
