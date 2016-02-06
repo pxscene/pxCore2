@@ -15,8 +15,19 @@
 #include <rtLog.h>
 
 #include <rapidjson/document.h>
+#include <rapidjson/memorystream.h>
+#include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+
+static void
+dump_document(rapidjson::Document const& doc)
+{
+  rapidjson::StringBuffer buff;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
+  doc.Accept(writer);
+  printf("\n%s\n", buff.GetString());
+}
 
 static rtError
 get_interface_address(char const* name, sockaddr_storage* sa)
@@ -131,6 +142,11 @@ parse_address(sockaddr_storage& ss, char const* addr, uint16_t port)
         v4->sin_family = AF_INET;
         v4->sin_port = htons(port);
       }
+      if (ss.ss_family == AF_INET6)
+      {
+        v6->sin6_family = AF_INET6;
+        v6->sin6_port = htons(port);
+      }
     }
   }
   else
@@ -170,6 +186,10 @@ rtRemoteObjectLocator::rtRemoteObjectLocator()
   m_read_buff.reserve(1024 * 4);
   m_read_buff.resize(1024 * 4);
   pthread_mutex_init(&m_mutex, NULL);
+  pthread_cond_init(&m_cond, NULL);
+
+  m_command_handlers.insert(cmd_handler_map_t::value_type("search", &rtRemoteObjectLocator::on_search));
+  m_command_handlers.insert(cmd_handler_map_t::value_type("locate", &rtRemoteObjectLocator::on_locate));
 }
 
 rtRemoteObjectLocator::~rtRemoteObjectLocator()
@@ -349,7 +369,7 @@ rtRemoteObjectLocator::run_listener()
 
   while (true)
   {
-    int maxFd = m_mcast_fd + 1;
+    int maxFd = 0;
 
     fd_set read_fds;
     fd_set err_fds;
@@ -362,7 +382,7 @@ rtRemoteObjectLocator::run_listener()
     push_fd(&err_fds, m_mcast_fd, &maxFd);
     push_fd(&err_fds, m_ucast_fd, &maxFd);
 
-    int ret = select(maxFd, &read_fds, NULL, &err_fds, NULL);
+    int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, NULL);
     if (ret == -1)
     {
       int err = errno;
@@ -381,8 +401,9 @@ rtRemoteObjectLocator::run_listener()
 void
 rtRemoteObjectLocator::do_read(int fd)
 {
-  sockaddr_in src;
-  socklen_t len = sizeof(src);
+  // we only suppor v4 right now. not sure how recvfrom supports v6 and v4
+  sockaddr_storage src;
+  socklen_t len = sizeof(sockaddr_in);
 
   #if 0
   ssize_t n = read(m_mcast_fd, &m_read_buff[0], m_read_buff.capacity());
@@ -392,23 +413,70 @@ rtRemoteObjectLocator::do_read(int fd)
   if (n > 0)
     m_read_buff.resize(n);
 
-  rtLogInfo("new message from %s:%d", inet_ntoa(src.sin_addr), htons(src.sin_port));
+  // rtLogInfo("new message from %s:%d", inet_ntoa(src.sin_addr), htons(src.sin_port));
+  printf("read: %d\n", int(n));
   printf("read: \"%.*s\"\n", int(n), &m_read_buff[0]); // static_cast<int>(m_read_buff.size()), &m_read_buff[0]);
+
+  rapidjson::Document doc;
+  rapidjson::MemoryStream stream(&m_read_buff[0], m_read_buff.size());
+  if (doc.ParseStream<rapidjson::kParseDefaultFlags>(stream).HasParseError())
+  {
+    size_t begin = doc.GetErrorOffset();
+    size_t end = begin + 16;
+    if (end > m_read_buff.size())
+      end = m_read_buff.size();
+    int length = (end - begin);
+
+    rtLogWarn("unparsable JSON read: %d", doc.GetParseError());
+    rtLogWarn("\"%.*s\"\n", length, &m_read_buff[0]);
+  }
+  else
+  {
+    if (!doc.HasMember("type"))
+    {
+      rtLogWarn("recived JSON payload without type");
+      return;
+    }
+
+    std::string cmd = doc["type"].GetString();
+
+    auto itr = m_command_handlers.find(cmd);
+    if (itr == m_command_handlers.end())
+    {
+      rtLogWarn("no command handler registered for: %s", cmd.c_str());
+      return;
+    }
+
+    // https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
+    #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
+
+    rtError err = CALL_MEMBER_FN(*this, itr->second)(doc, reinterpret_cast<sockaddr *>(&src),
+      get_length(src));
+
+    if (err != RT_OK)
+    {
+      rtLogWarn("failed to run command for %s. %d", cmd.c_str(), err);
+      return;
+    }
+  }
 }
 
 rtError
-rtRemoteObjectLocator::startListener()
+rtRemoteObjectLocator::startListener(bool serverMode)
 {
-  rtError err = open_multicast_socket();
-  if (err != RT_OK)
-    return err;
+  if (serverMode)
+  {
+    rtError err = open_multicast_socket();
+    if (err != RT_OK)
+      return err;
+  }
 
   pthread_create(&m_read_thread, NULL, &rtRemoteObjectLocator::run_listener, this);
   return RT_OK;
 }
 
 rtObjectRef
-rtRemoteObjectLocator::findObject(std::string const& name)
+rtRemoteObjectLocator::findObject(std::string const& name, uint32_t timeout)
 {
   rtObjectRef obj;
 
@@ -423,8 +491,6 @@ rtRemoteObjectLocator::findObject(std::string const& name)
     rtLogDebug("sending out mutlicast search for: %s", name.c_str());
 
     std::string req = createSearchRequest(name, m_pid);
-    sockaddr_in* addr = reinterpret_cast<sockaddr_in *>(&m_mcast_dest);
-    rtLogInfo("sendto: %s:%d", inet_ntoa(addr->sin_addr), ntohs(addr->sin_port));
 
     if (sendto(m_ucast_fd, req.c_str(), req.size(), MSG_NOSIGNAL,
       reinterpret_cast<sockaddr *>(&m_mcast_dest), get_length(m_mcast_dest)) < 0)
@@ -432,7 +498,77 @@ rtRemoteObjectLocator::findObject(std::string const& name)
       rtLogError("failed to send: %s", strerror(errno));
       return rtObjectRef();
     }
+
+    // TODO: real timeout
+    timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ts.tv_sec += 2;
+
+    bool timed_out = false;
+
+    // wait for response
+    pthread_mutex_lock(&m_mutex);
+    while (!m_response_available && !timed_out)
+    {
+      int ret = pthread_cond_timedwait(&m_cond, &m_mutex, &ts);
+      if (ret == 0)
+        m_response_available = false;
+      else if (ret == ETIMEDOUT)
+        timed_out = true;
+    }
+    pthread_mutex_unlock(&m_mutex);
   }
 
   return obj;
+}
+
+rtError
+rtRemoteObjectLocator::on_search(rapidjson::Document const& doc, sockaddr* soc, socklen_t len)
+{
+  // sockaddr_in* v4 = reinterpret_cast<sockaddr_in *>(src);
+  // rtLogInfo("new message from %s:%d", inet_ntoa(v4->sin_addr), htons(v4->sin_port));
+  if (doc.HasMember("source-id"))
+  {
+    int pid = doc["source-id"].GetInt();
+    if (m_pid == pid)
+      return RT_OK;
+  }
+
+  bool have_object = false;
+  std::string id = doc["object-id"].GetString();
+
+  if (doc.HasMember("object-id"))
+  {
+    pthread_mutex_lock(&m_mutex);
+    have_object = m_objects.find(id) != m_objects.end();
+    pthread_mutex_unlock(&m_mutex);
+  }
+
+  if (have_object)
+  {
+    rapidjson::Document doc;
+    doc.SetObject();
+    doc.AddMember("object-id", id, doc.GetAllocator());
+    doc.AddMember("type", "locate", doc.GetAllocator());
+    doc.AddMember("ip", "10.10.1.10", doc.GetAllocator());
+    doc.AddMember("port", 12345, doc.GetAllocator());
+
+    rapidjson::StringBuffer buff;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buff);
+    doc.Accept(writer);
+
+    printf("send: \"%.*s\"\n", int(buff.GetSize()), buff.GetString());
+
+    if (sendto(m_ucast_fd, buff.GetString(), buff.GetSize(), MSG_NOSIGNAL,soc, len) < 0)
+      rtLogError("failed to send: %s", strerror(errno));
+  }
+
+  return RT_OK;
+}
+
+rtError
+rtRemoteObjectLocator::on_locate(rapidjson::Document const& doc, sockaddr* /*soc*/, socklen_t /*len*/)
+{
+  dump_document(doc);
+  return RT_OK;
 }

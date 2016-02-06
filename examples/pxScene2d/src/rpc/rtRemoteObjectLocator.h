@@ -5,11 +5,12 @@
 #include <rtObject.h>
 #include <map>
 #include <string>
-
-class rtRemoteTransport;
+#include <rapidjson/document.h>
 
 class rtRemoteObjectLocator
 {
+  friend class rtCommandDispatcher;
+
 public:
   rtRemoteObjectLocator();
   ~rtRemoteObjectLocator();
@@ -17,22 +18,30 @@ public:
 public:
   rtError open(char const* dstaddr, int16_t dstport, char const* srcaddr);
   rtError registerObject(std::string const& name, rtObjectRef const& obj);
-  rtError startListener();
-  rtObjectRef findObject(std::string const& name);
+  rtError startListener(bool serverMode = false);
+  rtObjectRef findObject(std::string const& name, uint32_t timeout = -1);
 
 private:
   static void* run_listener(void* argp);
 
 private:
+  typedef rtError (rtRemoteObjectLocator::*command_handler_t)( rapidjson::Document const&,
+    sockaddr* soc, socklen_t len);
+
   void run_listener();
   void do_read(int fd);
 
   rtError open_unicast_socket();
   rtError open_multicast_socket();
 
+  // command handlers
+  rtError on_search(rapidjson::Document const& doc, sockaddr* soc, socklen_t len);
+  rtError on_locate(rapidjson::Document const& doc, sockaddr* soc, socklen_t len);
+
 private:
   typedef std::map< std::string, rtObjectRef > refmap_t;
   typedef std::vector<char> buff_t;
+  typedef std::map< std::string, command_handler_t > cmd_handler_map_t;
 
   sockaddr_storage  m_mcast_dest;
   sockaddr_storage  m_mcast_src;
@@ -47,7 +56,10 @@ private:
   pthread_t         m_read_thread;
   buff_t            m_read_buff;
   bool              m_read_run;
+  bool              m_response_available;
 
+  pthread_cond_t    m_cond;
   pthread_mutex_t   m_mutex;
   pid_t             m_pid;
+  cmd_handler_map_t m_command_handlers;
 };

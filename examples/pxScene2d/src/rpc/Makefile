@@ -11,7 +11,7 @@ RT_SRCS=\
   rtRemoteObjectLocator.cpp \
   rtRemoteObject.cpp
 
-CXXFLAGS=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -std=c++0x -g -DRT_PLATFORM_LINUX -I../ -I.
+CXXFLAGS=-O0 -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -std=c++0x -g -DRT_PLATFORM_LINUX -I../ -I.
 LDFLAGS =-pthread -ldl
 OBJDIR=obj
 

@@ -11,11 +11,14 @@ int main(int argc, char* /*argv*/[])
 
   rtRemoteObjectLocator locator;
   ret = locator.open("224.10.10.12", 10004, "eth0");
+
   if (ret != 0)
     perror("failed to open");
 
   if (argc == 2)
   {
+    locator.startListener(false);
+
     rtObjectRef thermo = locator.findObject(objectName);
     if (!thermo)
     {
@@ -24,11 +27,12 @@ int main(int argc, char* /*argv*/[])
   }
   else
   {
+    locator.startListener(true);
+
     rtObjectRef thermo(new rtObject());
     thermo.set("description", "hello from your thermostat");
 
     locator.registerObject(objectName, thermo);
-    locator.startListener();
 
     while (1)
       sleep(10);
