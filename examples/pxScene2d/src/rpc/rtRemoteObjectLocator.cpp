@@ -58,20 +58,15 @@ get_interface_address(char const* name, sockaddr_storage* sa)
       }
       else
       {
-        if (sa->ss_family == AF_INET)
+        void* p = (sa->ss_family == AF_INET)
+          ? reinterpret_cast<void *>(&(reinterpret_cast<sockaddr_in *>(sa)->sin_addr))
+          : reinterpret_cast<void *>(&(reinterpret_cast<sockaddr_in6 *>(sa)->sin6_addr));
+
+        ret = inet_pton(sa->ss_family, host, p);
+        if (ret != 1)
         {
-          sockaddr_in* v4 = reinterpret_cast<sockaddr_in *>(sa);
-          ret = inet_pton(AF_INET, host, &v4->sin_addr);
-          if (ret != 1)
-          {
-            rtLogError("failed to parse: %s as valid ipv4 address", host);
-            error = RT_FAIL;
-          }
-        }
-        if (sa->ss_family == AF_INET6)
-        {
-          // TODO
-          assert(false);
+          rtLogError("failed to parse: %s as valid ipv4 address", host);
+          error = RT_FAIL;
         }
         goto out;
       }
