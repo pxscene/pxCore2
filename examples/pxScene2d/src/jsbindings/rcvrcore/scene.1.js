@@ -14,6 +14,7 @@ function Scene() {
       this.filePath = filePath;
       this.w = scene.w;
       this.h = scene.h;
+      this.focus = scene.focus;
     }
   }
 
@@ -67,8 +68,8 @@ function Scene() {
     //return nativeScene.createScene(params);
   //}
 
-  this.setFocus = function(element) {
-    return nativeScene.setFocus(element);
+  this.getFocus = function(element) {
+    return nativeScene.getFocus(element);
   }
 
   this.on = function(eventType, func) {

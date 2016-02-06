@@ -33,7 +33,8 @@ inputbg.on("onKeyDown", function(e) {
       u = 'http://www.pxscene.org/examples/px-reference/gallery/' + u;
 
     content.url = u;
-    scene.setFocus(content);
+    //scene.setFocus(content);
+    content.focus = true;
     content.ready.then(function() {
       contentBG.draw = true;
 /*
@@ -70,11 +71,13 @@ inputbg.on("onBlur", function(e) {
 });
 
 inputbg.on("onMouseUp", function(e) {
-  scene.setFocus(inputbg);
+  //scene.setFocus(inputbg);
+  inputbg.focus = true;
 });
 
 content.on("onMouseUp", function(e) {
   scene.setFocus(content);
+  content.focus=true;
 });
 
 function updateSize(w,h) {
@@ -91,7 +94,8 @@ scene.root.on("onPreKeyDown", function(e) {
   if (e.keyCode == 76 && e.flags == 16) { // ctrl-l
     //console.log("api:"+content.api);
 //    if (content.api) content.api.test(32);
-    scene.setFocus(inputbg);
+    //scene.setFocus(inputbg);
+    inputbg.focus = true;
     url.text = "";
     prompt.a = (url.text)?0:1;
     cursor.x = 10;
@@ -102,8 +106,8 @@ scene.root.on("onPreKeyDown", function(e) {
 scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 updateSize(scene.w,scene.h);
 
-scene.setFocus(inputbg);
-
+//scene.setFocus(inputbg);
+inputbg.focus = true;
 }).catch( function importFailed(err){
   console.error("Import failed for browser.js: " + err)
 });

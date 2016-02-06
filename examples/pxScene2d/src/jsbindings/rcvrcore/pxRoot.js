@@ -102,8 +102,8 @@ pxRoot.prototype.initialize = function(x, y, width, height) {
     }
   });
 
-  this.rootScene.setFocus(this.rootScene.root);
-
+  //this.rootScene.setFocus(this.rootScene.root);
+  this.rootScene.root.focus = true;
 
   var self = this;
 // register a "global" hook that gets invoked whenever a child scene is created
@@ -162,7 +162,8 @@ pxRoot.prototype.createNewAppContext = function(params) {
   appSceneContext.loadScene();
   if( params.sceneContainer.parent === this.rootScene.root ) {
     // It's a top level app
-    this.rootScene.setFocus(params.sceneContainer);
+    //this.rootScene.setFocus(params.sceneContainer);
+    params.sceneContainer.focus=true;
   }
 }
 
