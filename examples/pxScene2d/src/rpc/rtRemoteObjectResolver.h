@@ -1,11 +1,15 @@
 #ifndef __RT_REMOTE_OBJECT_RESOLVER_H__
 #define __RT_REMOTE_OBJECT_RESOLVER_H__
 
+#include <rtAtomic.h>
 #include <rtError.h>
+
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
+
 #include <sys/socket.h>
 #include <rapidjson/document.h>
 
@@ -26,9 +30,12 @@ private:
   static void* run_listener(void* argp);
 
 private:
-  typedef rtError (rtRemoteObjectResolver::*command_handler_t)( rapidjson::Document const&, sockaddr* soc, socklen_t len);
+  typedef std::shared_ptr< rapidjson::Document > document_ptr_t;
+
+  typedef rtError (rtRemoteObjectResolver::*command_handler_t)( document_ptr_t const&, sockaddr* soc, socklen_t len);
   typedef std::vector< char > buff_t;
   typedef std::map< std::string, command_handler_t > cmd_handler_map_t;
+  typedef std::map< rtAtomic, document_ptr_t > request_map_t;
   typedef std::set< std::string > object_id_set_t;
 
   void run_listener();
@@ -39,8 +46,8 @@ private:
   rtError open_multicast_socket();
 
   // command handlers
-  rtError on_search(rapidjson::Document const& doc, sockaddr* soc, socklen_t len);
-  rtError on_locate(rapidjson::Document const& doc, sockaddr* soc, socklen_t len);
+  rtError on_search(document_ptr_t const& doc, sockaddr* soc, socklen_t len);
+  rtError on_locate(document_ptr_t const& doc, sockaddr* soc, socklen_t len);
 
 private:
   sockaddr_storage  m_mcast_dest;
@@ -52,9 +59,6 @@ private:
   socklen_t         m_ucast_len;
 
   pthread_t         m_read_thread;
-  bool              m_read_run;
-  bool              m_response_available;
-
   pthread_cond_t    m_cond;
   pthread_mutex_t   m_mutex;
   pid_t             m_pid;
@@ -62,6 +66,8 @@ private:
   std::string       m_rpc_addr;
   uint16_t          m_rpc_port;
   object_id_set_t   m_registered_objects;
+  rtAtomic          m_seq_id;
+  request_map_t     m_pending_searches;
 };
 
 #endif

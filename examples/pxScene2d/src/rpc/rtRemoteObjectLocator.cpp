@@ -166,6 +166,8 @@ rtRemoteObjectLocator::run_listener()
 void
 rtRemoteObjectLocator::do_accept(int fd)
 {
+  assert(false);
+
   sockaddr_storage remote_endpoint;
   memset(&remote_endpoint, 0, sizeof(remote_endpoint));
 
@@ -312,22 +314,9 @@ rtRemoteObjectLocator::findObject(std::string const& name, rtObjectRef& obj, uin
 
     if (err == RT_OK)
     {
+      rtLogInfo("I found it!");
       // TODO: create sesssion with 'rpc_endpoint'
     }
-
-    #if 0
-    // wait for response
-    pthread_mutex_lock(&m_mutex);
-    while (!m_response_available && !timed_out)
-    {
-      int ret = pthread_cond_timedwait(&m_cond, &m_mutex, &ts);
-      if (ret == 0)
-        m_response_available = false;
-      else if (ret == ETIMEDOUT)
-        timed_out = true;
-    }
-    pthread_mutex_unlock(&m_mutex);
-    #endif
   }
 
   return (obj ? RT_OK : RT_FAIL);

@@ -54,16 +54,15 @@ private:
   typedef std::map< std::string, command_handler_t > cmd_handler_map_t;
   typedef std::vector< connected_client > client_list_t;
 
-  sockaddr_storage  m_rpc_endpoint;
-  int               m_rpc_fd;
+  sockaddr_storage        m_rpc_endpoint;
+  int                     m_rpc_fd;
 
-  refmap_t          m_objects;
-  pthread_t         m_thread;
-  bool              m_read_run;
+  refmap_t                m_objects;
+  pthread_t               m_thread;
 
-  pthread_cond_t    m_cond;
-  pthread_mutex_t   m_mutex;
-  cmd_handler_map_t m_command_handlers;
-  client_list_t     m_client_list;
+  pthread_cond_t          m_cond;
+  pthread_mutex_t         m_mutex;
+  cmd_handler_map_t       m_command_handlers;
+  client_list_t           m_client_list;
   rtRemoteObjectResolver* m_resolver;
 };
