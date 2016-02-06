@@ -9,7 +9,9 @@ RT_SRCS=\
   ../rtObject.cpp \
   rpc_main.cpp \
   rtRemoteObjectLocator.cpp \
-  rtRemoteObject.cpp
+  rtRemoteObjectResolver.cpp \
+  rtRemoteObject.cpp \
+  rtSocketUtils.cpp
 
 CXXFLAGS=-O0 -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -std=c++0x -g -DRT_PLATFORM_LINUX -I../ -I.
 LDFLAGS =-pthread -ldl

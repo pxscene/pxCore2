@@ -6,29 +6,24 @@
 
 int main(int argc, char* /*argv*/[])
 {
-  int ret = 0;
   char const* objectName = "com.xfinity.xsmart.Thermostat/JakesHouse";
 
   rtRemoteObjectLocator locator;
-  ret = locator.open("224.10.10.12", 10004, "eth0");
-
-  if (ret != 0)
-    perror("failed to open");
+  locator.open("224.10.10.12", 10004, "eth0");
+  locator.start();
 
   if (argc == 2)
   {
-    locator.startListener(false);
-
-    rtObjectRef thermo = locator.findObject(objectName);
-    if (!thermo)
+    rtObjectRef thermo;
+    rtError err = locator.findObject(objectName, thermo);
+    if (err != RT_OK)
     {
-      std::cout << "why didn't it work!" << std::endl;
+      printf("failed to find object\n");
+      return 0;
     }
   }
   else
   {
-    locator.startListener(true);
-
     rtObjectRef thermo(new rtObject());
     thermo.set("description", "hello from your thermostat");
 
