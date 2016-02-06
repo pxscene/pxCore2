@@ -20,6 +20,31 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
+
+static socklen_t
+get_length(sockaddr_storage const& ss)
+{
+  return ss.ss_family == AF_INET ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
+}
+
+static uint16_t
+get_port(sockaddr_storage const& ss)
+{
+  sockaddr_in const* v4 = reinterpret_cast<sockaddr_in const *>(&ss);
+  sockaddr_in6 const* v6 = reinterpret_cast<sockaddr_in6 const *>(&ss);
+  return ntohs((ss.ss_family == AF_INET) ? v4->sin_port : v6->sin6_port);
+}
+
+static void*
+get_inetaddr(sockaddr_storage& ss)
+{
+  sockaddr_in* v4 = reinterpret_cast<sockaddr_in *>(&ss);
+  sockaddr_in6* v6 = reinterpret_cast<sockaddr_in6 *>(&ss);
+  return (ss.ss_family == AF_INET)
+    ? reinterpret_cast<void *>(&(v4->sin_addr))
+    : reinterpret_cast<void *>(&(v6->sin6_addr));
+}
+
 static void
 dump_document(rapidjson::Document const& doc)
 {
@@ -69,11 +94,7 @@ get_interface_address(char const* name, sockaddr_storage* sa)
       }
       else
       {
-        void* p = (sa->ss_family == AF_INET)
-          ? reinterpret_cast<void *>(&(reinterpret_cast<sockaddr_in *>(sa)->sin_addr))
-          : reinterpret_cast<void *>(&(reinterpret_cast<sockaddr_in6 *>(sa)->sin6_addr));
-
-        ret = inet_pton(sa->ss_family, host, p);
+        ret = inet_pton(sa->ss_family, host, get_inetaddr(*sa));
         if (ret != 1)
         {
           rtLogError("failed to parse: %s as valid ipv4 address", host);
@@ -100,12 +121,6 @@ push_fd(fd_set* fds, int fd, int* max_fd)
     if (max_fd && fd > *max_fd)
       *max_fd = fd;
   }
-}
-
-static socklen_t
-get_length(sockaddr_storage const& ss)
-{
-  return ss.ss_family == AF_INET ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
 }
 
 static int
@@ -173,9 +188,8 @@ createSearchRequest(std::string const& name, pid_t pid)
 
 rtRemoteObjectLocator::rtRemoteObjectLocator()
   : m_mcast_fd(-1)
-  , m_mcast_family(0)
   , m_ucast_fd(-1)
-  , m_ucast_family(0)
+  , m_rpc_fd(-1)
   , m_read_thread(0)
   , m_read_run(false)
   , m_pid(getpid())
@@ -183,6 +197,8 @@ rtRemoteObjectLocator::rtRemoteObjectLocator()
   memset(&m_mcast_dest, 0, sizeof(m_mcast_dest));
   memset(&m_mcast_src, 0, sizeof(m_mcast_src));
   memset(&m_ucast_endpoint, 0, sizeof(m_ucast_endpoint));
+  memset(&m_rpc_endpoint, 0, sizeof(m_rpc_endpoint));
+
   m_read_buff.reserve(1024 * 4);
   m_read_buff.resize(1024 * 4);
   pthread_mutex_init(&m_mutex, NULL);
@@ -201,7 +217,7 @@ rtRemoteObjectLocator::~rtRemoteObjectLocator()
 }
 
 rtError
-rtRemoteObjectLocator::open(char const* dstaddr, int16_t port, char const* srcaddr)
+rtRemoteObjectLocator::open(char const* dstaddr, uint16_t port, char const* srcaddr)
 {
   rtError err = RT_OK;
 
@@ -209,6 +225,7 @@ rtRemoteObjectLocator::open(char const* dstaddr, int16_t port, char const* srcad
   if (err != RT_OK)
     return err;
 
+  // TODO: no need to parse srcaddr multiple times, just copy result
   err = parse_address(m_mcast_src, srcaddr, port);
   if (err != RT_OK)
     return err;
@@ -217,7 +234,15 @@ rtRemoteObjectLocator::open(char const* dstaddr, int16_t port, char const* srcad
   if (err != RT_OK)
     return err;
 
+  err = parse_address(m_rpc_endpoint, srcaddr, 0);
+  if (err != RT_OK)
+    return err;
+
   err = open_unicast_socket();
+  if (err != RT_OK)
+    return err;
+
+  err = open_rpc_listener();
   if (err != RT_OK)
     return err;
 
@@ -377,10 +402,18 @@ rtRemoteObjectLocator::run_listener()
     FD_ZERO(&read_fds);
     push_fd(&read_fds, m_mcast_fd, &maxFd);
     push_fd(&read_fds, m_ucast_fd, &maxFd);
+    push_fd(&read_fds, m_rpc_fd, &maxFd);
 
     FD_ZERO(&err_fds);
     push_fd(&err_fds, m_mcast_fd, &maxFd);
     push_fd(&err_fds, m_ucast_fd, &maxFd);
+    push_fd(&err_fds, m_rpc_fd, &maxFd);
+
+    for (auto const& c : m_client_list)
+    {
+      push_fd(&read_fds, c.fd, &maxFd);
+      push_fd(&err_fds, c.fd, &maxFd);
+    }
 
     int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, NULL);
     if (ret == -1)
@@ -395,12 +428,61 @@ rtRemoteObjectLocator::run_listener()
 
     if (FD_ISSET(m_ucast_fd, &read_fds))
       do_read(m_ucast_fd);
+
+    if (FD_ISSET(m_rpc_fd, &read_fds))
+      do_accept(m_rpc_fd);
+
+    for (auto const& c : m_client_list)
+    {
+      if (FD_ISSET(c.fd, &read_fds))
+      {
+        // need to adapt read
+        do_read(c.fd);
+      }
+
+      if (FD_ISSET(c.fd, &err_fds))
+      {
+      }
+    }
   }
+}
+
+void
+rtRemoteObjectLocator::do_accept(int fd)
+{
+  sockaddr_storage remote_endpoint;
+  memset(&remote_endpoint, 0, sizeof(remote_endpoint));
+
+  socklen_t len = sizeof(sockaddr_storage);
+
+  int ret = accept(fd, reinterpret_cast<sockaddr *>(&remote_endpoint), &len);
+  if (ret == -1)
+  {
+    int err = errno;
+    rtLogWarn("error accepting new tcp connect. %s", strerror(err));
+    return;
+  }
+
+  char addr_buff[128];
+  inet_ntop(m_rpc_endpoint.ss_family, get_inetaddr(m_rpc_endpoint), addr_buff, get_length(m_rpc_endpoint));
+
+  rtLogInfo("new tcp connection from %s:%d", addr_buff, get_port(remote_endpoint));
+
+  connected_client client;
+  client.peer = remote_endpoint;
+  client.fd = ret;
+  m_client_list.push_back(client);
 }
 
 void
 rtRemoteObjectLocator::do_read(int fd)
 {
+  //
+  // we should change the packet format so that it's 4 bytes network order
+  // followed by that many bytes of JSON payload. 
+  // This will make it caompatible with UDP and TCP.
+  //
+
   // we only suppor v4 right now. not sure how recvfrom supports v6 and v4
   sockaddr_storage src;
   socklen_t len = sizeof(sockaddr_in);
@@ -414,7 +496,7 @@ rtRemoteObjectLocator::do_read(int fd)
     m_read_buff.resize(n);
 
   // rtLogInfo("new message from %s:%d", inet_ntoa(src.sin_addr), htons(src.sin_port));
-  printf("read: %d\n", int(n));
+  // printf("read: %d\n", int(n));
   printf("read: \"%.*s\"\n", int(n), &m_read_buff[0]); // static_cast<int>(m_read_buff.size()), &m_read_buff[0]);
 
   rapidjson::Document doc;
@@ -546,12 +628,16 @@ rtRemoteObjectLocator::on_search(rapidjson::Document const& doc, sockaddr* soc, 
 
   if (have_object)
   {
+    char addr_buff[128];
+    inet_ntop(m_rpc_endpoint.ss_family, get_inetaddr(m_rpc_endpoint), addr_buff, get_length(m_rpc_endpoint));
+
     rapidjson::Document doc;
     doc.SetObject();
     doc.AddMember("object-id", id, doc.GetAllocator());
     doc.AddMember("type", "locate", doc.GetAllocator());
-    doc.AddMember("ip", "10.10.1.10", doc.GetAllocator());
-    doc.AddMember("port", 12345, doc.GetAllocator());
+
+    doc.AddMember("ip", std::string(addr_buff), doc.GetAllocator());
+    doc.AddMember("port", get_port(m_rpc_endpoint), doc.GetAllocator());
 
     rapidjson::StringBuffer buff;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buff);
@@ -570,5 +656,59 @@ rtError
 rtRemoteObjectLocator::on_locate(rapidjson::Document const& doc, sockaddr* /*soc*/, socklen_t /*len*/)
 {
   dump_document(doc);
+  return RT_OK;
+}
+
+rtError
+rtRemoteObjectLocator::open_rpc_listener()
+{
+  int err = 0;
+  int ret = 0;
+
+  m_rpc_fd = socket(m_rpc_endpoint.ss_family, SOCK_STREAM, 0);
+  if (m_rpc_fd < 0)
+  {
+    err = errno;
+    rtLogError("failed to create TCP socket. %s", strerror(err));
+  }
+
+  ret = bind(m_rpc_fd, reinterpret_cast<sockaddr *>(&m_rpc_endpoint), get_length(m_rpc_endpoint));
+  if (ret < 0)
+  {
+    err = errno;
+    rtLogError("failed to bind socket. %s", strerror(err));
+    return RT_FAIL;
+  }
+
+  socklen_t len = get_length(m_rpc_endpoint);
+  ret = getsockname(m_rpc_fd, reinterpret_cast<sockaddr *>(&m_rpc_endpoint), &len);
+  if (ret < 0)
+  {
+    err = errno;
+    rtLogError("getsockname: %s", strerror(err));
+    return RT_FAIL;
+  }
+  else
+  {
+    sockaddr_in* saddr = reinterpret_cast<sockaddr_in *>(&m_rpc_endpoint);
+    rtLogInfo("locate tcp socket bound to: %s:%d", inet_ntoa(saddr->sin_addr), ntohs(saddr->sin_port));
+  }
+
+  ret = fcntl(m_rpc_fd, F_SETFL, O_NONBLOCK);
+  if (ret < 0)
+  {
+    err = errno;
+    rtLogError("fcntl: %s", strerror(errno));
+    return RT_FAIL;
+  }
+
+  ret = listen(m_rpc_fd, 2);
+  if (ret < 0)
+  {
+    err = errno;
+    rtLogError("failed to put socket in listen mode. %s", strerror(err));
+    return RT_FAIL;
+  }
+
   return RT_OK;
 }

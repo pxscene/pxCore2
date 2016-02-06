@@ -35,6 +35,11 @@ $(OBJDIR)/%.o : ../%.c
 debug:
 	@echo $(OBJS)
 
+clean:
+	rm -rf obj
+	rm -f rpc_sample
+	rm -f core
+
 sample: $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -o rpc_sample
 
