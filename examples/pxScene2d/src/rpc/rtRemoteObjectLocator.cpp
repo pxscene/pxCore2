@@ -1,4 +1,5 @@
 #include "rtRemoteObjectLocator.h"
+#include "rtRemoteObject.h"
 #include "rtSocketUtils.h"
 
 #include <stdlib.h>
@@ -9,12 +10,37 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <rtLog.h>
+#include <sstream>
+#include <algorithm>
 
 #include <rapidjson/document.h>
 #include <rapidjson/memorystream.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+
+static const int kMaxMessageLength = (1024 * 16);
+
+static bool
+same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
+{
+  if (addr1.ss_family != addr2.ss_family)
+    return false;
+
+  if (addr1.ss_family == AF_INET)
+  {
+    sockaddr_in const* in1 = reinterpret_cast<sockaddr_in const*>(&addr1);
+    sockaddr_in const* in2 = reinterpret_cast<sockaddr_in const*>(&addr2);
+
+    if (in1->sin_port != in2->sin_port)
+      return false;
+
+    return in1->sin_addr.s_addr == in2->sin_addr.s_addr;
+  }
+
+  assert(false);
+  return false;
+}
 
 static void
 dump_document(rapidjson::Document const& doc)
@@ -28,17 +54,33 @@ dump_document(rapidjson::Document const& doc)
 rtRemoteObjectLocator::rtRemoteObjectLocator()
   : m_rpc_fd(-1)
   , m_thread(0)
+  , m_pipe_write(-1)
+  , m_pipe_read(-1)
 {
   memset(&m_rpc_endpoint, 0, sizeof(m_rpc_endpoint));
 
   pthread_mutex_init(&m_mutex, NULL);
   pthread_cond_init(&m_cond, NULL);
+
+  int arr[2];
+  int ret = pipe(arr);
+  if (ret == 0)
+  {
+    m_pipe_read = arr[0];
+    m_pipe_write = arr[1];
+  }
+
+  m_command_handlers.insert(cmd_handler_map_t::value_type("open-session", &rtRemoteObjectLocator::on_open_session));
 }
 
 rtRemoteObjectLocator::~rtRemoteObjectLocator()
 {
   if (m_rpc_fd != -1)
     close(m_rpc_fd);
+  if (m_pipe_read != -1)
+    close(m_pipe_read);
+  if (m_pipe_write != -1)
+    close(m_pipe_write);
 }
 
 rtError
@@ -46,17 +88,16 @@ rtRemoteObjectLocator::open(char const* dstaddr, uint16_t port, char const* srca
 {
   rtError err = RT_OK;
 
-
   err = rtParseAddress(m_rpc_endpoint, srcaddr, 0);
+  if (err != RT_OK)
+    return err;
+
+  err = open_rpc_listener();
   if (err != RT_OK)
     return err;
 
   m_resolver = new rtRemoteObjectResolver(m_rpc_endpoint);
   err = m_resolver->open(dstaddr, port, srcaddr);
-  if (err != RT_OK)
-    return err;
-
-  err = open_rpc_listener();
   if (err != RT_OK)
     return err;
 
@@ -74,7 +115,11 @@ rtRemoteObjectLocator::registerObject(std::string const& name, rtObjectRef const
     rtLogWarn("object %s is already registered", name.c_str());
     return EEXIST;
   }
-  m_objects.insert(refmap_t::value_type(name, obj));
+
+  object_reference entry;
+  entry.object = obj;
+  m_objects.insert(refmap_t::value_type(name, entry));
+
   m_resolver->registerObject(name);
   pthread_mutex_unlock(&m_mutex);
   return RT_OK;
@@ -91,7 +136,7 @@ rtRemoteObjectLocator::run_listener(void* argp)
 void
 rtRemoteObjectLocator::run_listener()
 {
-  buff_t buff;
+  rt_sockbuf_t buff;
   buff.reserve(1024 * 1024);
   buff.resize(1024 * 1024);
 
@@ -104,9 +149,11 @@ rtRemoteObjectLocator::run_listener()
 
     FD_ZERO(&read_fds);
     rtPushFd(&read_fds, m_rpc_fd, &maxFd);
+    rtPushFd(&read_fds, m_pipe_read, &maxFd);
 
     FD_ZERO(&err_fds);
     rtPushFd(&err_fds, m_rpc_fd, &maxFd);
+    rtPushFd(&err_fds, m_pipe_read, &maxFd);
 
     for (auto const& c : m_client_list)
     {
@@ -122,27 +169,45 @@ rtRemoteObjectLocator::run_listener()
       continue;
     }
 
+    // right now we just use this to signal "hey" more fds added
+    // later we'll use this to shutdown
+    if (FD_ISSET(m_pipe_read, &read_fds))
+    {
+      char ch;
+      read(m_pipe_read, &ch, 1);
+      continue;
+    }
+
     if (FD_ISSET(m_rpc_fd, &read_fds))
       do_accept(m_rpc_fd);
 
-    for (auto const& c : m_client_list)
+    for (auto& c : m_client_list)
     {
-      if (FD_ISSET(c.fd, &read_fds))
-        do_readn(c.fd, buff);
-
       if (FD_ISSET(c.fd, &err_fds))
       {
         // TODO
+        rtLogWarn("error on fd: %d", c.fd);
+      }
+
+      if (FD_ISSET(c.fd, &read_fds))
+      {
+        if (do_readn(c.fd, buff, c.peer) != RT_OK)
+          on_client_disconnect(c);
+        }
       }
     }
-  }
+
+    auto end = std::remove_if(m_client_list.begin(), m_client_list.end(),
+        [](connected_client const& c)
+        {
+          return c.fd == -1;
+        });
+    m_client_list.erase(end, m_client_list.end());
 }
 
 void
 rtRemoteObjectLocator::do_accept(int fd)
 {
-  assert(false);
-
   sockaddr_storage remote_endpoint;
   memset(&remote_endpoint, 0, sizeof(remote_endpoint));
 
@@ -155,19 +220,7 @@ rtRemoteObjectLocator::do_accept(int fd)
     rtLogWarn("error accepting new tcp connect. %s", strerror(err));
     return;
   }
-
-  rtSocketGetLength(m_rpc_endpoint, &len);
-
-  void* addr = NULL;
-  rtGetInetAddr(m_rpc_endpoint, &addr);
-
-  char addr_buff[128];
-  inet_ntop(m_rpc_endpoint.ss_family, addr, addr_buff, len);
-
-  uint16_t port;
-  rtGetPort(remote_endpoint, &port);
-
-  rtLogInfo("new tcp connection from %s:%d", addr_buff, port);
+  rtLogInfo("new connection from %s with fd:%d", rtSocketToString(remote_endpoint).c_str(), ret);
 
   connected_client client;
   client.peer = remote_endpoint;
@@ -175,90 +228,44 @@ rtRemoteObjectLocator::do_accept(int fd)
   m_client_list.push_back(client);
 }
 
-void
-rtRemoteObjectLocator::do_readn(int fd, buff_t& buff)
+rtError
+rtRemoteObjectLocator::do_readn(int fd, rt_sockbuf_t& buff, sockaddr_storage const& peer)
 {
-  int length = 0;
-  rtError err = rtReadUntil(fd, reinterpret_cast<char *>(&length), 4);
+  docptr_t doc;
+  rtError err = rtReadMessage(fd, buff, doc);
   if (err != RT_OK)
-  {
-    rtLogError("failed to read from socket");
-    return;
-  }
+    return err;
 
-  int n = ntohl(length);
-
-  err = rtReadUntil(fd, &buff[0], n);
-  if (err != RT_OK)
-  {
-    rtLogError("failed to read message from socket");
-    return;
-  }
-
-  sockaddr_storage peer;
-  socklen_t len = sizeof(sockaddr_in);
-
-  int ret = getpeername(fd, reinterpret_cast<sockaddr *>(&peer), &len);
-  if (ret != 0)
-  {
-    rtLogError("failed to get tcp peer name. %s", strerror(errno));
-    return;
-  }
-
-  do_dispatch(&buff[0], n, &peer);
+  do_dispatch(doc, peer);
+  return RT_OK;
 }
 
 void
-rtRemoteObjectLocator::do_dispatch(char const* buff, int n, sockaddr_storage* peer)
+rtRemoteObjectLocator::do_dispatch(docptr_t const& doc, sockaddr_storage const& peer)
 {
-  // rtLogInfo("new message from %s:%d", inet_ntoa(src.sin_addr), htons(src.sin_port));
-  // printf("read: %d\n", int(n));
-  #ifdef RT_RPC_DEBUG
-  rtLogDebug("read:\nt\t\"%.*s\"\n", n, buff); // static_cast<int>(m_read_buff.size()), &m_read_buff[0]);
-  #endif
-
-  rapidjson::Document doc;
-  rapidjson::MemoryStream stream(buff, n);
-  if (doc.ParseStream<rapidjson::kParseDefaultFlags>(stream).HasParseError())
+  if (!doc->HasMember("type"))
   {
-    int begin = doc.GetErrorOffset();
-    int end = begin + 16;
-    if (end > n)
-      end = n;
-    int length = (end - begin);
-
-    rtLogWarn("unparsable JSON read: %d", doc.GetParseError());
-    rtLogWarn("\"%.*s\"\n", length, buff);
+    rtLogWarn("received JSON payload without type");
+    return;
   }
-  else
+
+  std::string cmd = (*doc)["type"].GetString();
+
+  auto itr = m_command_handlers.find(cmd);
+  if (itr == m_command_handlers.end())
   {
-    if (!doc.HasMember("type"))
-    {
-      rtLogWarn("recived JSON payload without type");
-      return;
-    }
+    rtLogWarn("no command handler registered for: %s", cmd.c_str());
+    return;
+  }
 
-    std::string cmd = doc["type"].GetString();
+  // https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
+  #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
 
-    auto itr = m_command_handlers.find(cmd);
-    if (itr == m_command_handlers.end())
-    {
-      rtLogWarn("no command handler registered for: %s", cmd.c_str());
-      return;
-    }
-
-    socklen_t len;
-    rtSocketGetLength(*peer, &len);
-
-    // https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
-    #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
-
-    rtError err = CALL_MEMBER_FN(*this, itr->second)(doc, reinterpret_cast<sockaddr *>(peer), len);
-    if (err != RT_OK)
-    {
-      rtLogWarn("failed to run command for %s. %d", cmd.c_str(), err);
-      return;
-    }
+  rtError err = CALL_MEMBER_FN(*this, itr->second)(doc, peer);
+  if (err != RT_OK)
+  {
+    rtLogWarn("failed to run command for %s. %d", cmd.c_str(), err);
+    return;
   }
 }
 
@@ -281,7 +288,7 @@ rtRemoteObjectLocator::findObject(std::string const& name, rtObjectRef& obj, uin
   // first check local
   auto itr = m_objects.find(name);
   if (itr != m_objects.end())
-    obj = itr->second;
+    obj = itr->second.object;
 
   // if object is not registered with us locally, then check network
   if (!obj)
@@ -291,8 +298,38 @@ rtRemoteObjectLocator::findObject(std::string const& name, rtObjectRef& obj, uin
 
     if (err == RT_OK)
     {
-      rtLogInfo("I found it!");
-      // TODO: create sesssion with 'rpc_endpoint'
+      std::shared_ptr<rtRpcTransport> transport;
+      std::string const transport_name = rtSocketToString(rpc_endpoint);
+
+      auto itr = m_transports.find(transport_name);
+      if (itr != m_transports.end())
+        transport = itr->second;
+
+      if (!transport)
+      {
+        transport.reset(new rtRpcTransport(rpc_endpoint));
+        err = transport->start();
+        if (err != RT_OK)
+        {
+          rtLogWarn("failed to start transport. %d", err);
+          return err;
+        }
+
+        // we have race condition here. if the transport doesn't exist, two threads may
+        // create one but only one will get inserted into the m_transports map. I'm not
+        // sure that this really matters much
+        pthread_mutex_lock(&m_mutex);
+        m_transports.insert(tport_map_t::value_type(transport_name, transport));
+        pthread_mutex_unlock(&m_mutex);
+      }
+
+      if (transport)
+      {
+        rtRemoteObject* remote(new rtRemoteObject(name, transport));
+        err = transport->start_session(name);
+        if (err == RT_OK)
+          obj = remote;
+      }
     }
   }
 
@@ -351,6 +388,59 @@ rtRemoteObjectLocator::open_rpc_listener()
     err = errno;
     rtLogError("failed to put socket in listen mode. %s", strerror(err));
     return RT_FAIL;
+  }
+
+  return RT_OK;
+}
+
+rtError
+rtRemoteObjectLocator::on_open_session(docptr_t const& doc, sockaddr_storage const& soc)
+{
+  if (!doc->HasMember("object-id"))
+  {
+    rtLogWarn("open session message missing object-id field");
+    return RT_FAIL;
+  }
+
+  std::string const id = (*doc)["object-id"].GetString();
+
+  pthread_mutex_lock(&m_mutex);
+  auto itr = m_objects.find(id);
+  if (itr != m_objects.end())
+  {
+    for (auto const& c : m_client_list)
+    {
+      if (same_endpoint(soc, c.peer))
+      {
+        rtLogInfo("new session for %s added to %s", rtSocketToString(soc).c_str(), id.c_str());
+        itr->second.client_fds.push_back(c.fd);
+        break;
+      }
+    }
+  }
+  pthread_mutex_unlock(&m_mutex);
+
+  // send ack
+
+  return RT_OK;
+}
+
+rtError
+rtRemoteObjectLocator::on_client_disconnect(connected_client& client)
+{
+  int client_fd = client.fd;
+
+  if (client.fd != -1)
+  {
+    close(client.fd);
+    client.fd = -1;
+  }
+
+  for (auto& i : m_objects)
+  {
+    auto end = std::remove_if(i.second.client_fds.begin(), i.second.client_fds.end(),
+        [client_fd](int fd) { return fd == client_fd; });
+    i.second.client_fds.erase(end, i.second.client_fds.end());
   }
 
   return RT_OK;

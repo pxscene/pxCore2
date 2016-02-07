@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 #include <iostream>
+#include <map>
 
 int main(int argc, char* /*argv*/[])
 {
@@ -18,9 +19,14 @@ int main(int argc, char* /*argv*/[])
     rtError err = locator.findObject(objectName, thermo);
     if (err != RT_OK)
     {
-      printf("failed to find object\n");
+      printf("not ok\n");
       return 0;
     }
+    else
+    {
+      printf("ok\n");
+    }
+    sleep(2);
   }
   else
   {

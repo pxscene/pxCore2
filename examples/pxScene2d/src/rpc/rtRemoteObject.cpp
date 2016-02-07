@@ -1,8 +1,12 @@
 #include "rtRemoteObject.h"
+#include "rtRpcTransport.h"
 
-rtRemoteObject::rtRemoteObject()
-  : mRefCount(0)
+rtRemoteObject::rtRemoteObject(std::string const& id, std::shared_ptr<rtRpcTransport> const& transport)
+  : m_ref_count(0)
+  , m_id(id)
+  , m_transport(transport)
 {
+  m_transport->keep_alive(id);
 }
 
 rtRemoteObject::~rtRemoteObject()
@@ -36,13 +40,13 @@ rtRemoteObject::Set(uint32_t index, rtValue const* value)
 rtObject::refcount_t
 rtRemoteObject::AddRef()
 {
-  return rtAtomicInc(&mRefCount);
+  return rtAtomicInc(&m_ref_count);
 }
 
 rtObject::refcount_t
 rtRemoteObject::Release()
 {
-  refcount_t n = rtAtomicDec(&mRefCount);
+  refcount_t n = rtAtomicDec(&m_ref_count);
   if (n == 0)
     delete this;
   return n;

@@ -15,18 +15,6 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
-#ifdef RT_RPC_DEBUG
-static ssize_t
-debug_sendto(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen)
-{
-  rtLogDebug("send:\n\t\"%.*s\"\n", int(len), (char *)buf);
-  return sendto(sockfd, buf, len, flags, dest_addr, addrlen);
-}
-#define _sendto debug_sendto
-#else
-#define _sendto sendto
-#endif
-
 void
 dump_document(rapidjson::Document const& doc)
 {
@@ -169,15 +157,12 @@ rtRemoteObjectResolver::open_unicast_socket()
 }
 
 rtError
-rtRemoteObjectResolver::on_search(document_ptr_t const& d, sockaddr* soc, socklen_t /*len*/)
+rtRemoteObjectResolver::on_search(document_ptr_t const& d, sockaddr_storage const& soc)
 {
   rapidjson::Document& doc = *d;
 
   int pid;
   int seq_id;
-
-  // sockaddr_in* v4 = reinterpret_cast<sockaddr_in *>(src);
-  // rtLogInfo("new message from %s:%d", inet_ntoa(v4->sin_addr), htons(v4->sin_port));
 
   if (doc.HasMember("source"))
   {
@@ -212,19 +197,14 @@ rtRemoteObjectResolver::on_search(document_ptr_t const& d, sockaddr* soc, sockle
     doc.AddMember("source", pid, doc.GetAllocator());
     doc.AddMember("seqid", seq_id, doc.GetAllocator());
 
-    rapidjson::StringBuffer buff;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buff);
-    doc.Accept(writer);
-
-    if (_sendto(m_ucast_fd, buff.GetString(), buff.GetSize(), MSG_NOSIGNAL,soc, m_ucast_len) < 0)
-      rtLogError("failed to send: %s", strerror(errno));
+    return rtSendDocument(doc, m_ucast_fd, &soc);
   }
 
   return RT_OK;
 }
 
 rtError
-rtRemoteObjectResolver::on_locate(document_ptr_t const& doc, sockaddr* /*soc*/, socklen_t /*len*/)
+rtRemoteObjectResolver::on_locate(document_ptr_t const& doc, sockaddr_storage const& /*soc*/)
 {
   int seqId = -1;
   if (doc->HasMember("seqid"))
@@ -235,7 +215,6 @@ rtRemoteObjectResolver::on_locate(document_ptr_t const& doc, sockaddr* /*soc*/, 
   pthread_cond_signal(&m_cond);
   pthread_mutex_unlock(&m_mutex);
 
-  // dump_document(doc);
   return RT_OK;
 }
 
@@ -250,6 +229,7 @@ rtRemoteObjectResolver::run_listener(void* argp)
 rtError
 rtRemoteObjectResolver::resolveObject(std::string const& name, sockaddr_storage& endpoint, uint32_t timeout)
 {
+  rtError err = RT_OK;
   rtAtomic seqId = rtAtomicInc(&m_seq_id);
 
   rapidjson::Document doc;
@@ -258,18 +238,10 @@ rtRemoteObjectResolver::resolveObject(std::string const& name, sockaddr_storage&
   doc.AddMember("type", "search", doc.GetAllocator());
   doc.AddMember("source", m_pid, doc.GetAllocator());
   doc.AddMember("seqid", seqId, doc.GetAllocator());
-  rapidjson::GenericStringBuffer<rapidjson::UTF8<> > buff;
-  rapidjson::Writer<rapidjson::GenericStringBuffer<rapidjson::UTF8<> > > writer(buff);
-  doc.Accept(writer);
 
-  socklen_t len;
-  rtSocketGetLength(endpoint, &len);
-
-  if (_sendto(m_ucast_fd, buff.GetString(), buff.GetSize(), MSG_NOSIGNAL, reinterpret_cast<sockaddr *>(&m_mcast_dest), len) < 0)
-  {
-    rtLogError("failed to send: %s", strerror(errno));
-    return RT_FAIL;
-  }
+  err = rtSendDocument(doc, m_ucast_fd, &m_mcast_dest);
+  if (err != RT_OK)
+    return err;
 
   document_ptr_t search_response;
   request_map_t::const_iterator itr;
@@ -398,13 +370,10 @@ rtRemoteObjectResolver::do_dispatch(char const* buff, int n, sockaddr_storage* p
       return;
     }
 
-    socklen_t len;
-    rtSocketGetLength(*peer, &len);
-
     // https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
     #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
 
-    rtError err = CALL_MEMBER_FN(*this, itr->second)(doc, reinterpret_cast<sockaddr *>(peer), len);
+    rtError err = CALL_MEMBER_FN(*this, itr->second)(doc, *peer);
     if (err != RT_OK)
     {
       rtLogWarn("failed to run command for %s. %d", cmd.c_str(), err);

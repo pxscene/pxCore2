@@ -3,6 +3,14 @@
 
 #include <sys/socket.h>
 #include <rtError.h>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <rapidjson/document.h>
+
+typedef std::vector<char> rt_sockbuf_t;
+typedef std::shared_ptr<rapidjson::Document> docptr_t;
 
 rtError rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port);
 rtError rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len);
@@ -11,5 +19,10 @@ rtError rtGetInetAddr(sockaddr_storage const& ss, void** addr);
 rtError rtGetPort(sockaddr_storage const& ss, uint16_t* port);
 rtError rtPushFd(fd_set* fds, int fd, int* max_fd);
 rtError rtReadUntil(int fd, char* buff, int n);
+rtError rtReadMessage(int fd, rt_sockbuf_t& buff, docptr_t& doc);
+std::string rtSocketToString(sockaddr_storage const& ss);
+
+// this really doesn't belong here, but putting it here for now
+rtError rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest);
 
 #endif

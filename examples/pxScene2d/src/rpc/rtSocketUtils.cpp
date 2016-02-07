@@ -9,6 +9,13 @@
 #include <unistd.h>
 
 #include <rtLog.h>
+#include <sstream>
+
+#include <rapidjson/memorystream.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+
+static const int kMaxMessageLength = (1024 * 16);
 
 rtError
 rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port)
@@ -174,6 +181,12 @@ rtReadUntil(int fd, char* buff, int n)
   while (bytes_read < bytes_to_read)
   {
     ssize_t n = read(fd, buff + bytes_read, (bytes_to_read - bytes_read));
+    if (n == 0)
+    {
+      rtLogWarn("socket closed");
+      return RT_FAIL;
+    }
+
     if (n == -1)
     {
       rtLogError("failed to read from fd %d. %s", fd, strerror(errno));
@@ -183,3 +196,127 @@ rtReadUntil(int fd, char* buff, int n)
   }
   return RT_OK;
 }
+
+std::string
+rtSocketToString(sockaddr_storage const& ss)
+{
+  // TODO make this more effecient
+  void* addr = NULL;
+  rtGetInetAddr(ss, &addr);
+
+  uint16_t port;
+  rtGetPort(ss, &port);
+
+  char addr_buff[128];
+  inet_ntop(ss.ss_family, addr, addr_buff, sizeof(addr_buff));
+
+  std::stringstream buff;
+  buff << addr_buff;
+  buff << ':';
+  buff << port;
+  return buff.str();
+}
+
+rtError
+rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest)
+{
+  rapidjson::StringBuffer buff;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buff);
+  doc.Accept(writer);
+
+  #ifdef RT_RPC_DEBUG
+  char const* verb = (dest != NULL ? "sendto" : "send");
+  rtLogDebug("%s:\n\t\"%.*s\"\n", verb, static_cast<int>(buff.GetSize()), buff.GetString());
+  #endif
+
+  if (dest)
+  {
+    socklen_t len;
+    rtSocketGetLength(*dest, &len);
+
+    if (sendto(fd, buff.GetString(), buff.GetSize(), MSG_NOSIGNAL,
+          reinterpret_cast<sockaddr const *>(dest), len) < 0)
+    {
+      rtLogError("sendto failed. %s. dest:%s family:%d", strerror(errno), rtSocketToString(*dest).c_str(),
+        dest->ss_family);
+
+      return RT_FAIL;
+    }
+  }
+  else
+  {
+    // send length first
+    int n = buff.GetSize();
+    n = htonl(n);
+
+    if (send(fd, reinterpret_cast<char *>(&n), 4, MSG_NOSIGNAL) < 0)
+    {
+      rtLogError("failed to send length of message. %s", strerror(errno));
+      return RT_FAIL;
+    }
+
+    if (send(fd, buff.GetString(), buff.GetSize(), MSG_NOSIGNAL) < 0)
+    {
+      rtLogError("failed to send. %s", strerror(errno));
+      return RT_FAIL;
+    }
+  }
+
+  return RT_OK;
+}
+
+rtError
+rtReadMessage(int fd, rt_sockbuf_t& buff, docptr_t& doc)
+{
+  rtError err = RT_OK;
+
+  int n = 0;
+  int capacity = static_cast<int>(buff.capacity());
+
+  err = rtReadUntil(fd, reinterpret_cast<char *>(&n), 4);
+  if (err != RT_OK)
+  {
+    rtLogWarn("error reading length from socket");
+    return err;
+  }
+
+  n = ntohl(n);
+  if (n > capacity)
+  {
+    rtLogWarn("buffer capacity %d not big enough for message size: %d", capacity, n);
+    // TODO: should drain, and discard message
+    assert(false);
+    return RT_FAIL;
+  }
+
+  err = rtReadUntil(fd, &buff[0], n);
+  if (err != RT_OK)
+  {
+    rtLogError("failed to read payload message of length %d from socket", n);
+    return err;
+  }
+ 
+  buff.resize(n);
+  doc.reset(new rapidjson::Document());
+
+  rapidjson::MemoryStream stream(&buff[0], n);
+  if (doc->ParseStream<rapidjson::kParseDefaultFlags>(stream).HasParseError())
+  {
+    int begin = doc->GetErrorOffset();
+    int end = begin + 16;
+    if (end > n)
+      end = n;
+    int length = (end - begin);
+
+    rtLogWarn("unparsable JSON read: %d", doc->GetParseError());
+    rtLogWarn("\"%.*s\"\n", length, &buff[0]);
+
+    doc.reset();
+
+    return RT_FAIL;
+  }
+  
+  return RT_OK;
+}
+
+ 

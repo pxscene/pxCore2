@@ -32,7 +32,7 @@ private:
 private:
   typedef std::shared_ptr< rapidjson::Document > document_ptr_t;
 
-  typedef rtError (rtRemoteObjectResolver::*command_handler_t)( document_ptr_t const&, sockaddr* soc, socklen_t len);
+  typedef rtError (rtRemoteObjectResolver::*command_handler_t)( document_ptr_t const&, sockaddr_storage const& soc);
   typedef std::vector< char > buff_t;
   typedef std::map< std::string, command_handler_t > cmd_handler_map_t;
   typedef std::map< rtAtomic, document_ptr_t > request_map_t;
@@ -46,8 +46,8 @@ private:
   rtError open_multicast_socket();
 
   // command handlers
-  rtError on_search(document_ptr_t const& doc, sockaddr* soc, socklen_t len);
-  rtError on_locate(document_ptr_t const& doc, sockaddr* soc, socklen_t len);
+  rtError on_search(document_ptr_t const& doc, sockaddr_storage const& soc);
+  rtError on_locate(document_ptr_t const& doc, sockaddr_storage const& soc);
 
 private:
   sockaddr_storage  m_mcast_dest;
