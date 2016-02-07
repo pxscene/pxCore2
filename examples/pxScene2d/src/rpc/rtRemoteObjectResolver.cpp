@@ -172,8 +172,8 @@ rtRemoteObjectResolver::on_search(document_ptr_t const& d, sockaddr_storage cons
       return RT_OK;
   }
 
-  if (doc.HasMember("seqid"))
-    seq_id = doc["seqid"].GetInt();
+  if (doc.HasMember("corkey"))
+    seq_id = doc["corkey"].GetInt();
 
   auto itr = m_registered_objects.end();
 
@@ -195,7 +195,7 @@ rtRemoteObjectResolver::on_search(document_ptr_t const& d, sockaddr_storage cons
     doc.AddMember("port", m_rpc_port, doc.GetAllocator());
     // echo these back to sender
     doc.AddMember("source", pid, doc.GetAllocator());
-    doc.AddMember("seqid", seq_id, doc.GetAllocator());
+    doc.AddMember("corkey", seq_id, doc.GetAllocator());
 
     return rtSendDocument(doc, m_ucast_fd, &soc);
   }
@@ -207,8 +207,8 @@ rtError
 rtRemoteObjectResolver::on_locate(document_ptr_t const& doc, sockaddr_storage const& /*soc*/)
 {
   int seqId = -1;
-  if (doc->HasMember("seqid"))
-    seqId = (*doc)["seqid"].GetInt();
+  if (doc->HasMember("corkey"))
+    seqId = (*doc)["corkey"].GetInt();
 
   pthread_mutex_lock(&m_mutex);
   m_pending_searches[seqId] = doc;
@@ -237,7 +237,7 @@ rtRemoteObjectResolver::resolveObject(std::string const& name, sockaddr_storage&
   doc.AddMember("object-id", name, doc.GetAllocator());
   doc.AddMember("type", "search", doc.GetAllocator());
   doc.AddMember("source", m_pid, doc.GetAllocator());
-  doc.AddMember("seqid", seqId, doc.GetAllocator());
+  doc.AddMember("corkey", seqId, doc.GetAllocator());
 
   err = rtSendDocument(doc, m_ucast_fd, &m_mcast_dest);
   if (err != RT_OK)

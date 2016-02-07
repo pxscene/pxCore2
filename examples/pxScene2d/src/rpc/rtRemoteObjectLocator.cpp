@@ -402,6 +402,15 @@ rtRemoteObjectLocator::on_open_session(docptr_t const& doc, sockaddr_storage con
     return RT_FAIL;
   }
 
+  if (!doc->HasMember("corkey"))
+  {
+    rtLogWarn("message doesn't contain correlation key");
+    return RT_FAIL;
+  }
+
+  int key = (*doc)["corkey"].GetInt();
+
+  int fd = -1;
   std::string const id = (*doc)["object-id"].GetString();
 
   pthread_mutex_lock(&m_mutex);
@@ -414,15 +423,27 @@ rtRemoteObjectLocator::on_open_session(docptr_t const& doc, sockaddr_storage con
       {
         rtLogInfo("new session for %s added to %s", rtSocketToString(soc).c_str(), id.c_str());
         itr->second.client_fds.push_back(c.fd);
+        fd = c.fd;
         break;
       }
     }
   }
   pthread_mutex_unlock(&m_mutex);
 
-  // send ack
+  rtError err = RT_OK;
 
-  return RT_OK;
+  // send ack
+  if (fd != -1)
+  {
+    rapidjson::Document doc;
+    doc.SetObject();
+    doc.AddMember("type", "open-session-response", doc.GetAllocator());
+    doc.AddMember("object-id", id, doc.GetAllocator());
+    doc.AddMember("corkey", key, doc.GetAllocator());
+    err = rtSendDocument(doc, fd, NULL);
+  }
+
+  return err;
 }
 
 rtError

@@ -12,8 +12,12 @@
 
 rtRpcTransport::rtRpcTransport(sockaddr_storage const& ss)
   : m_fd(-1)
+  , m_thread(0)
+  , m_corkey(1)
 {
   m_remote_endpoint = ss;
+  pthread_mutex_init(&m_mutex, NULL);
+  pthread_cond_init(&m_cond, NULL);
 }
 
 rtRpcTransport::~rtRpcTransport()
@@ -66,11 +70,29 @@ rtRpcTransport::connect_rpc_endpoint()
 rtError
 rtRpcTransport::start_session(std::string const& object_id)
 {
+  rtError err = RT_OK;
+
   rapidjson::Document doc;
   doc.SetObject();
   doc.AddMember("type", "open-session", doc.GetAllocator());
   doc.AddMember("object-id", object_id, doc.GetAllocator());
-  return rtSendDocument(doc, m_fd, NULL);
+
+  int key = rtAtomicInc(&m_corkey);
+  doc.AddMember("corkey", key, doc.GetAllocator());
+
+  err = rtSendDocument(doc, m_fd, NULL);
+  if (err != RT_OK)
+    return err;
+
+  request_map_t::const_iterator itr;
+
+  // TODO: std::future/std::promise
+  pthread_mutex_lock(&m_mutex);
+  while ((itr = m_requests.find(key)) == m_requests.end())
+    pthread_cond_wait(&m_cond, &m_mutex);
+  pthread_mutex_unlock(&m_mutex);
+
+  return RT_OK;
 }
 
 rtError
@@ -140,6 +162,10 @@ rtRpcTransport::readn(int fd, rt_sockbuf_t& buff)
   if (err != RT_OK)
     return err;
 
+  #ifdef RT_RPC_DEBUG
+  rtLogDebug("read:\n\t\"%.*s\"\n", (int) buff.size(), &buff[0]);
+  #endif
+
   if (!doc->HasMember("type"))
   {
     rtLogWarn("received JSON message with no type");
@@ -148,14 +174,25 @@ rtRpcTransport::readn(int fd, rt_sockbuf_t& buff)
 
   std::string cmd = (*doc)["type"].GetString();
 
-  auto itr = m_command_handlers.find(cmd);
-  if (itr == m_command_handlers.end())
+  // TODO: this could be done with std::future/std::promise
+  int key = -1;
+  if (doc->HasMember("corkey"))
+    key = (*doc)["corkey"].GetInt();
+
+  if (key != -1)
   {
-    rtLogWarn("no command handler registered for: %s", cmd.c_str());
-    return RT_FAIL;
+    pthread_mutex_lock(&m_mutex);
+    m_requests[key] = doc;
+    pthread_cond_broadcast(&m_cond);
+    pthread_mutex_unlock(&m_mutex);
   }
 
   // https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
   #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
-  return CALL_MEMBER_FN(*this, itr->second)(doc); // , peer);
+
+  auto itr = m_message_handlers.find(cmd);
+  if (itr != m_message_handlers.end())
+    err = CALL_MEMBER_FN(*this, itr->second)(doc); // , peer);
+
+  return err;
 }

@@ -208,6 +208,7 @@ rtSocketToString(sockaddr_storage const& ss)
   rtGetPort(ss, &port);
 
   char addr_buff[128];
+  memset(addr_buff, 0, sizeof(addr_buff));
   inet_ntop(ss.ss_family, addr, addr_buff, sizeof(addr_buff));
 
   std::stringstream buff;

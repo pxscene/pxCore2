@@ -5,8 +5,10 @@
 #include <string>
 #include <vector>
 
+#include <rtAtomic.h>
 #include <rtError.h>
 #include <rtValue.h>
+
 #include <sys/socket.h>
 #include <pthread.h>
 
@@ -36,14 +38,18 @@ public:
     { m_object_list.push_back(s); }
 
 private:
-  typedef rtError (rtRpcTransport::*command_handler_t)(docptr_t const&);
-  typedef std::map< std::string, command_handler_t > cmd_handler_map_t;
+  typedef rtError (rtRpcTransport::*message_handler_t)(docptr_t const&);
+  typedef std::map< std::string, message_handler_t > msghandler_map_t;
+  typedef std::map< rtAtomic, docptr_t > request_map_t;
 
   rtError connect_rpc_endpoint();
   rtError send_keep_alive();
   rtError run_listener();
   rtError readn(int fd, rt_sockbuf_t& buff);
   rtError dispatch(docptr_t const& doc);
+
+  // message handlers
+  rtError on_start_session(docptr_t const& doc);
 
   static void* run_listener(void* argp);
 
@@ -54,7 +60,9 @@ private:
   pthread_t                 m_thread;
   pthread_mutex_t           m_mutex;
   pthread_cond_t            m_cond;
-  cmd_handler_map_t         m_command_handlers;
+  msghandler_map_t          m_message_handlers;
+  rtAtomic                  m_corkey;
+  request_map_t             m_requests;
 };
 
 #endif
