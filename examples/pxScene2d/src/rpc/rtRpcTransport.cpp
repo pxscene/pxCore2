@@ -77,7 +77,7 @@ rtRpcTransport::start_session(std::string const& object_id)
   doc.AddMember("type", "open-session", doc.GetAllocator());
   doc.AddMember("object-id", object_id, doc.GetAllocator());
 
-  int key = rtAtomicInc(&m_corkey);
+  int key = next_key();
   doc.AddMember("corkey", key, doc.GetAllocator());
 
   err = rtSendDocument(doc, m_fd, NULL);
@@ -157,7 +157,7 @@ rtRpcTransport::run_listener()
 rtError
 rtRpcTransport::readn(int fd, rt_sockbuf_t& buff)
 {
-  docptr_t doc;
+  rtJsonDocPtr_t doc;
   rtError err = rtReadMessage(fd, buff, doc);
   if (err != RT_OK)
     return err;
@@ -179,6 +179,7 @@ rtRpcTransport::readn(int fd, rt_sockbuf_t& buff)
   if (doc->HasMember("corkey"))
     key = (*doc)["corkey"].GetInt();
 
+  // should be std::future/std::promise
   if (key != -1)
   {
     pthread_mutex_lock(&m_mutex);
@@ -195,4 +196,62 @@ rtRpcTransport::readn(int fd, rt_sockbuf_t& buff)
     err = CALL_MEMBER_FN(*this, itr->second)(doc); // , peer);
 
   return err;
+}
+
+rtJsonDocPtr_t
+rtRpcTransport::wait_for_response(int key)
+{
+  rtJsonDocPtr_t response;
+
+  // TODO: std::future/std::promise
+  request_map_t::const_iterator itr;
+  pthread_mutex_lock(&m_mutex);
+  while ((itr = m_requests.find(key)) == m_requests.end())
+    pthread_cond_wait(&m_cond, &m_mutex);
+  response = itr->second;
+  m_requests.erase(itr);
+  pthread_mutex_unlock(&m_mutex);
+
+  return response;
+}
+
+rtError
+rtRpcTransport::get(std::string const& id, char const* name, rtValue* value)
+{
+  int key = next_key();
+
+  rapidjson::Document doc;
+  doc.SetObject();
+  doc.AddMember("type", "get.byname", doc.GetAllocator());
+  doc.AddMember("name", std::string(name), doc.GetAllocator());
+  doc.AddMember("object-id", id, doc.GetAllocator());
+  doc.AddMember("corkey", key, doc.GetAllocator());
+
+  rtError err = rtSendDocument(doc, m_fd, NULL);
+  if (err != RT_OK)
+    return err;
+
+  rtJsonDocPtr_t res = wait_for_response(key);
+  if (!res)
+    return RT_FAIL;
+
+  return RT_OK;
+}
+
+rtError
+rtRpcTransport::get(std::string const& id, uint32_t index, rtValue* value)
+{
+  return RT_FAIL;
+}
+
+rtError
+rtRpcTransport::set(std::string const& id, char const* name, rtValue const* value)
+{
+  return RT_FAIL;
+}
+
+rtError
+rtRpcTransport::set(std::string const& id, uint32_t index, rtValue const* value)
+{
+  return RT_FAIL;
 }

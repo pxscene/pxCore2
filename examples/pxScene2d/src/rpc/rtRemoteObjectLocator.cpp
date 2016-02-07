@@ -70,7 +70,16 @@ rtRemoteObjectLocator::rtRemoteObjectLocator()
     m_pipe_write = arr[1];
   }
 
-  m_command_handlers.insert(cmd_handler_map_t::value_type("open-session", &rtRemoteObjectLocator::on_open_session));
+  m_command_handlers.insert(cmd_handler_map_t::value_type("open-session",
+        &rtRemoteObjectLocator::on_open_session));
+  m_command_handlers.insert(cmd_handler_map_t::value_type("get.byname",
+        &rtRemoteObjectLocator::on_get_byname));
+  m_command_handlers.insert(cmd_handler_map_t::value_type("get.byindex",
+        &rtRemoteObjectLocator::on_get_byindex));;
+  m_command_handlers.insert(cmd_handler_map_t::value_type("set.byname",
+        &rtRemoteObjectLocator::on_set_byname));
+  m_command_handlers.insert(cmd_handler_map_t::value_type("set.byindex",
+        &rtRemoteObjectLocator::on_set_byindex));
 }
 
 rtRemoteObjectLocator::~rtRemoteObjectLocator()
@@ -231,7 +240,7 @@ rtRemoteObjectLocator::do_accept(int fd)
 rtError
 rtRemoteObjectLocator::do_readn(int fd, rt_sockbuf_t& buff, sockaddr_storage const& peer)
 {
-  docptr_t doc;
+  rtJsonDocPtr_t doc;
   rtError err = rtReadMessage(fd, buff, doc);
   if (err != RT_OK)
     return err;
@@ -241,7 +250,7 @@ rtRemoteObjectLocator::do_readn(int fd, rt_sockbuf_t& buff, sockaddr_storage con
 }
 
 void
-rtRemoteObjectLocator::do_dispatch(docptr_t const& doc, sockaddr_storage const& peer)
+rtRemoteObjectLocator::do_dispatch(rtJsonDocPtr_t const& doc, sockaddr_storage const& peer)
 {
   if (!doc->HasMember("type"))
   {
@@ -394,7 +403,7 @@ rtRemoteObjectLocator::open_rpc_listener()
 }
 
 rtError
-rtRemoteObjectLocator::on_open_session(docptr_t const& doc, sockaddr_storage const& soc)
+rtRemoteObjectLocator::on_open_session(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc)
 {
   if (!doc->HasMember("object-id"))
   {
@@ -465,4 +474,79 @@ rtRemoteObjectLocator::on_client_disconnect(connected_client& client)
   }
 
   return RT_OK;
+}
+
+rtObjectRef
+rtRemoteObjectLocator::get_object(rapidjson::Document const& doc) const
+{
+  rtObjectRef obj;
+
+  std::string const id = doc["object-id"].GetString();
+  pthread_mutex_lock(&m_mutex);
+  auto itr = m_objects.find(id);
+  if (itr != m_objects.end())
+    obj = itr->second.object;
+  pthread_mutex_unlock(&m_mutex);
+
+  return obj;
+}
+
+rtError
+rtRemoteObjectLocator::on_get_byname(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
+{
+  rtObjectRef obj = get_object(*doc);
+  if (!obj)
+    return RT_FAIL;
+
+  std::string const& property_name = (*doc)["name"].GetString();
+
+  rtValue value;
+  rtError err = obj->Get(property_name.c_str(), &value);
+  if (err == RT_OK)
+  {
+    // TODO
+  }
+
+  return RT_FAIL;
+}
+
+rtError
+rtRemoteObjectLocator::on_get_byindex(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
+{
+  rtObjectRef obj = get_object(*doc);
+  if (!obj)
+    return RT_FAIL;
+  return RT_FAIL;
+}
+
+rtError
+rtRemoteObjectLocator::on_set_byname(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
+{
+  rtObjectRef obj = get_object(*doc);
+  if (!obj)
+    return RT_FAIL;
+
+  std::string const& property_name = (*doc)["name"].GetString();
+
+  rtValue value;
+  rtError err = rtValueReader::read(value, doc);
+  if (err != RT_OK)
+    return err;
+
+  err = obj->Set(property_name.c_str(), &value);
+  if (err == RT_OK)
+  {
+    // TODO
+  }
+
+  return err;
+}
+
+rtError
+rtRemoteObjectLocator::on_set_byindex(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
+{
+  rtObjectRef obj = get_object(*doc);
+  if (!obj)
+    return RT_FAIL;
+  return RT_FAIL;
 }

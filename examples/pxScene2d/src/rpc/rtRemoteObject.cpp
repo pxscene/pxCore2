@@ -16,25 +16,25 @@ rtRemoteObject::~rtRemoteObject()
 rtError
 rtRemoteObject::Get(char const* name, rtValue* value) const
 {
-  return 0;
+  return m_transport->get(m_id, name, value);
 }
 
 rtError
 rtRemoteObject::Get(uint32_t index, rtValue* value) const
 {
-  return 0;
+  return m_transport->get(m_id, index, value);
 }
 
 rtError
 rtRemoteObject::Set(char const* name, rtValue const* value)
 {
-  return 0;
+  return m_transport->set(m_id, name, value);
 }
 
 rtError
 rtRemoteObject::Set(uint32_t index, rtValue const* value)
 {
-  return 0;
+  return m_transport->set(m_id, index, value);
 }
 
 rtObject::refcount_t

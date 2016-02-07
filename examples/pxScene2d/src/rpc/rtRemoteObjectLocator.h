@@ -7,6 +7,7 @@
 #include <string>
 #include <rapidjson/document.h>
 
+#include "rtRpcTypes.h"
 #include "rtRemoteObjectResolver.h"
 #include "rtRpcTransport.h"
 #include "rtSocketUtils.h"
@@ -33,22 +34,29 @@ private:
     int                 fd;
   };
 
-  typedef rtError (rtRemoteObjectLocator::*command_handler_t)(docptr_t const&, sockaddr_storage const& soc);
+  typedef rtError (rtRemoteObjectLocator::*command_handler_t)(rtJsonDocPtr_t const&, sockaddr_storage const& soc);
 
   static void* run_listener(void* argp);
 
   void run_listener();
   rtError do_readn(int fd, rt_sockbuf_t& buff, sockaddr_storage const& peer);
   void do_accept(int fd);
-  void do_dispatch(docptr_t const& doc, sockaddr_storage const& peer);
+  void do_dispatch(rtJsonDocPtr_t const& doc, sockaddr_storage const& peer);
 
   rtError open_rpc_listener();
 
   // command handlers
   // rtError on_search(rapidjson::Document const& doc, sockaddr* soc, socklen_t len);
   // rtError on_locate(rapidjson::Document const& doc, sockaddr* soc, socklen_t len);
-  rtError on_open_session(docptr_t const& doc, sockaddr_storage const& soc);
+  rtError on_open_session(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc);
+  rtError on_get_byname(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc);
+  rtError on_set_byname(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc);
+  rtError on_get_byindex(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc);
+  rtError on_set_byindex(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc);
+
   rtError on_client_disconnect(connected_client& client);
+
+  rtObjectRef get_object(rapidjson::Document const& doc) const;
 
 private:
   struct object_reference
@@ -65,8 +73,8 @@ private:
   sockaddr_storage        m_rpc_endpoint;
   int                     m_rpc_fd;
   pthread_t               m_thread;
-  pthread_cond_t          m_cond;
-  pthread_mutex_t         m_mutex;
+  mutable pthread_cond_t          m_cond;
+  mutable pthread_mutex_t         m_mutex;
   cmd_handler_map_t       m_command_handlers;
 
   refmap_t                m_objects;

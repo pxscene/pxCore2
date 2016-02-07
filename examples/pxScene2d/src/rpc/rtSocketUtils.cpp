@@ -267,7 +267,7 @@ rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest)
 }
 
 rtError
-rtReadMessage(int fd, rt_sockbuf_t& buff, docptr_t& doc)
+rtReadMessage(int fd, rt_sockbuf_t& buff, rtJsonDocPtr_t& doc)
 {
   rtError err = RT_OK;
 

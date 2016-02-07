@@ -12,6 +12,8 @@ RT_SRCS=\
   rtRemoteObjectResolver.cpp \
   rtRemoteObject.cpp \
   rtRpcTransport.cpp \
+  rtValueReader.cpp \
+  rtValueWriter.cpp \
   rtSocketUtils.cpp
 
 CXXFLAGS=-DRT_RPC_DEBUG -O0 -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -std=c++0x -g -DRT_PLATFORM_LINUX -I../ -I.
