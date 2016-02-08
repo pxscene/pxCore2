@@ -29,7 +29,7 @@
 #include "pxScene2d.h"
 #include "pxImage.h"
 #include "pxText.h"
-#include "pxText2.h"
+#include "pxTextBox.h"
 #include "pxWindowUtil.h"
 
 #include "testScene.h"

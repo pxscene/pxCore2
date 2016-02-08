@@ -141,12 +141,12 @@ public:
   {
     rotateInRadians(angle * M_PI/180.0, 0, 0, 1);
   }
-
+#ifdef ANIMATION_ROTATE_XYZ
   void rotateInDegrees(FloatT angle, FloatT x, FloatT y, FloatT z) 
   {
     rotateInRadians(angle * M_PI/180.0, x, y, z);
   }
-  
+#endif // ANIMATION_ROTATE_XYZ  
   void rotateInRadians(FloatT angle, FloatT /*x*/, FloatT /*y*/, FloatT /*z*/) 
   {
 #if 0

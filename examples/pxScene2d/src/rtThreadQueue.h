@@ -1,5 +1,7 @@
 // rtCore CopyRight 2007-2015 John Robinson
 // rtThreadQueue.h
+#ifndef RT_THREAD_QUEUE_H
+#define RT_THREAD_QUEUE_H
 
 #include "rtError.h"
 #include "rtMutex.h"
@@ -34,3 +36,4 @@ private:
   deque<ThreadQueueEntry> mTasks;
   rtMutex mTaskMutex;
 };
+#endif //RT_THREAD_QUEUE_H

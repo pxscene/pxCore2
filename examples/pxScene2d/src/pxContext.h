@@ -9,10 +9,11 @@
 #include "pxMatrix4T.h"
 #include "rtCore.h"
 #include "rtRefT.h"
+#include "rtConstants.h"
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
 
-enum pxStretch { PX_NONE = 0, PX_STRETCH = 1, PX_REPEAT = 2 };
+//enum pxStretch { PX_NONE = 0, PX_STRETCH = 1, PX_REPEAT = 2 };
 
 class pxContext {
  public:
@@ -55,7 +56,7 @@ class pxContext {
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);
 
   void drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
-                 pxStretch xStretch, pxStretch yStretch, float* color = NULL);
+                 rtConstantsStretch::constants xStretch, rtConstantsStretch::constants yStretch, float* color = NULL);
 
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxTextureRef texture);

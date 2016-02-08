@@ -20,7 +20,7 @@
 #include "pxRectangle.h"
 #include "pxFont.h"
 #include "pxText.h"
-#include "pxText2.h"
+#include "pxTextBox.h"
 #include "pxImage.h"
 #include "pxImage9.h"
 
@@ -159,26 +159,6 @@ pxInterp interps[] =
 int numInterps = sizeof(interps)/sizeof(interps[0]);
 #else
 
-struct _pxInterpEntry
-{
-  const char* n;
-  pxInterp i;
-};
-_pxInterpEntry interps[] = 
-{
-  {"PX_LINEAR", pxInterpLinear},
-  {"PX_EXP1", pxExp1},
-  {"PX_EXP2", pxExp2},
-  {"PX_EXP3", pxExp3},
-  {"PX_STOP", pxStop},
-  {"PX_INQUAD", pxInQuad},
-  {"PX_INCUBIC", pxInCubic},
-  {"PX_INBACK", pxInBack},
-  {"PX_EASEINELASTIC", pxEaseInElastic},
-  {"PX_EASEOUTELASTIC", pxEaseOutElastic},
-  {"PX_EASEOUTBOUNCE", pxEaseOutBounce},
-};
-int numInterps = sizeof(interps)/sizeof(interps[0]);
 
 #endif
 
@@ -186,10 +166,6 @@ int numInterps = sizeof(interps)/sizeof(interps[0]);
 pxRect pxScene2d::mDirtyRect;
 #endif //PX_DIRTY_RECTANGLES
 
-double pxInterpLinear(double i)
-{
-  return pxClamp<double>(i, 0, 1);
-}
 
 // Small helper class that vends the children of a pxObject as a collection
 class pxObjectChildren: public rtObject {
@@ -262,6 +238,19 @@ void pxObject::createNewPromise()
   }
 }
 
+/** since this is a boolean, we have to handle if someone sets it to 
+ * false - for now, it will mean "set focus to my parent scene" */
+rtError pxObject::setFocus(bool v) 
+{
+  printf("pxObject::setFocus v=%d\n",v);
+  if(v) {
+    return mScene->setFocus(this);
+  }
+  else {
+    return mScene->setFocus(NULL);
+  }
+  
+}
 
 rtError pxObject::Set(const char* name, const rtValue* value)
 {
@@ -299,7 +288,7 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
     for (uint32_t i = 0; i < len; i++)
     {
       rtString key = keys.get<rtString>(i);
-      animateTo(key, props.get<float>(key), duration, interp, animationType,(i==0)?promise:rtObjectRef());
+      animateTo(key, props.get<float>(key), duration, interp, animationType, (i==0)?promise:rtObjectRef());
     }
   }
 //  promise.send("resolve","hello");
@@ -351,37 +340,13 @@ rtError pxObject::moveToFront()
 
   return RT_OK;
 }
-#if 0
-rtError pxObject::animateTo(const char* prop, double to, double duration, 
-                            uint32_t interp, uint32_t animationType) 
-{
-  interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
-  animateTo(prop, to, duration, interps[interp].i, 
-            (pxAnimationType)animationType);
-  return RT_OK;
-  }
-#endif
-
-#if 0
-//TODO - remove
-rtError pxObject::animateToF(const char* prop, double to, double duration,
-                             uint32_t interp, uint32_t animationType, 
-                            rtFunctionRef onEnd) 
-{
-  interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
-  animateToF(prop, to, duration, interps[interp].i,
-            (pxAnimationType)animationType, onEnd);
-  return RT_OK;
-}
-#endif
 
 rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t animationType, 
                             rtObjectRef promise) 
 {
-  interp = pxClamp<uint32_t>(interp, 0, numInterps-1);
-  animateTo(prop, to, duration, interps[interp].i,
-            (pxAnimationType)animationType, promise);
+  animateTo(prop, to, duration, CONSTANTS.animationConstants.getInterpFunc(interp),// interps[interp].i,
+            (rtConstantsAnimation::animationOptions)animationType, promise);
   return RT_OK;
 }
 
@@ -405,7 +370,7 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
     animation& a = (*it);
     if (!a.cancelled && a.prop == prop)
     {
-      if (a.at == PX_END)
+      if (a.at == rtConstantsAnimation::OPTION_END)
       {
         // fastforward
 #if 1
@@ -433,34 +398,8 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
   mCancelInSet = f;
 }
 
-#if 0
-//TODO - remove
-void pxObject::animateToF(const char* prop, double to, double duration,
-                         pxInterp interp, pxAnimationType at,
-                         rtFunctionRef onEnd)
-{
-  cancelAnimation(prop, true);
-  
-  // schedule animation
-  animation a;
-
-  a.cancelled = false;
-  a.prop     = prop;
-  a.from     = get<float>(prop);
-  a.to       = to;
-  a.start    = -1;
-  a.duration = duration;
-  a.interp   = interp?interp:pxInterpLinear;
-  a.at       = at;
-  a.ended = onEnd;
-//  a.promise = promise;
-
-  mAnimations.push_back(a);
-}
-#endif
-
 void pxObject::animateTo(const char* prop, double to, double duration,
-                         pxInterp interp, pxAnimationType at,
+                         pxInterp interp, rtConstantsAnimation::animationOptions at,
                          rtObjectRef promise)
 {
   cancelAnimation(prop, true);
@@ -495,7 +434,7 @@ void pxObject::update(double t)
     double end = a.start + a.duration;
     
     // if duration has elapsed
-    if (t >= end && a.at == PX_END)
+    if (t >= end && a.at == rtConstantsAnimation::OPTION_END)
     {
       // TODO this sort of blows since this triggers another
       // animation traversal to cancel animations
@@ -504,7 +443,7 @@ void pxObject::update(double t)
 #else
       set(a.prop, a.to);
 
-      if (a.at == PX_END)
+      if (a.at == rtConstantsAnimation::OPTION_END)
       {
         if (a.ended)
           a.ended.send(this);
@@ -517,7 +456,7 @@ void pxObject::update(double t)
       }
 #endif
 #if 0
-      else if (a.at == PX_OSCILLATE)
+      else if (a.at == rtConstantsAnimation::OPTION_OSCILLATE)
       {
         // flip
         double t;
@@ -540,7 +479,7 @@ void pxObject::update(double t)
     float from, to;
     from = a.from;
     to = a.to;
-    if (a.at == PX_OSCILLATE)
+    if (a.at == rtConstantsAnimation::OPTION_OSCILLATE)
     {
       if (fmod(t2,2) != 0)   // TODO perf chk ?
       {
@@ -619,6 +558,11 @@ const float alphaEpsilon = (1.0f/255.0f);
 
 void pxObject::drawInternal(bool maskPass)
 {
+  //rtLogInfo("pxObject::drawInternal mw=%f mh=%f\n", mw, mh);
+  
+  float w = getOnscreenWidth();
+  float h = getOnscreenHeight();
+  
   if (!drawEnabled() && !maskPass)
   {
     return;
@@ -637,7 +581,13 @@ void pxObject::drawInternal(bool maskPass)
   // translate based on xy rotate/scale based on cx, cy
   m.translate(mx+mcx, my+mcy);
   //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
-  if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
+  if (mr) {
+    m.rotateInDegrees(mr
+#ifdef ANIMATION_ROTATE_XYZ    
+    , mrx, mry, mrz
+#endif //ANIMATION_ROTATE_XYZ    
+    );
+  }
   //if (mr) m.rotateInDegrees(mr, 0, 0, 1);
   if (msx != 1.0f || msy != 1.0f) m.scale(msx, msy);
   m.translate(-mcx, -mcy);
@@ -649,7 +599,11 @@ void pxObject::drawInternal(bool maskPass)
   m.translate(mx, my);
   //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
   //  m.rotateInDegrees(mr, mrx, mry, mrz);
-  m.rotateInDegrees(mr, 0, 0, 1);
+  m.rotateInDegrees(mr
+#ifdef ANIMATION_ROTATE_XYZ  
+  , 0, 0, 1
+#endif // ANIMATION_ROTATE_XYZ  
+  );
   m.scale(msx, msy);
   m.translate(-mcx, -mcy);
 #endif
@@ -660,7 +614,7 @@ void pxObject::drawInternal(bool maskPass)
   printf("drawInternal: %s\n", mId.cString());
   m.dump();
 
-  pxVector4f v1(mx+mw, my, 0, 1);
+  pxVector4f v1(mx+w, my, 0, 1);
   printf("Print vector top\n");
   v1.dump();
 
@@ -669,7 +623,7 @@ void pxObject::drawInternal(bool maskPass)
   result1.dump();
 
 
-  pxVector4f v2(mx+mw, my+mh, 0, 1);
+  pxVector4f v2(mx+w, my+mh, 0, 1);
   printf("Print vector bottom\n");
   v2.dump();
 
@@ -683,8 +637,9 @@ void pxObject::drawInternal(bool maskPass)
   context.setMatrix(m);
   context.setAlpha(ma);
 
-  if (mClip && !context.isObjectOnScreen(0,0,mw,mh))
+  if (mClip && !context.isObjectOnScreen(0,0,w,h))
   {
+    //rtLogInfo("pxObject::drawInternal returning because object is not on screen mw=%f mh=%f\n", mw, mh);
     return;
   }
 
@@ -694,45 +649,52 @@ void pxObject::drawInternal(bool maskPass)
   #endif //PX_DIRTY_RECTANGLES
   
   float c[4] = {1, 0, 0, 1};
-  context.drawDiagRect(0, 0, mw, mh, c);
+  context.drawDiagRect(0, 0, w, h, c);
 
+  //rtLogInfo("pxObject::drawInternal mPainting=%d mw=%f mh=%f\n", mPainting, mw, mh);
   if (mPainting)
   {
     bool maskFound = false;
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      if ((*it)->drawAsMask())
+      if ((*it)->mask())
       {
+        //rtLogInfo("pxObject::drawInternal mask is true mw=%f mh=%f\n", mw, mh);
         maskFound = true;
         break;
       }
     }
     if (maskFound)
     {
-      if (mw>alphaEpsilon && mh>alphaEpsilon)
+      if (w>alphaEpsilon && h>alphaEpsilon)
         draw();
 
-      pxContextFramebufferRef drawableSnapshot = context.createFramebuffer(mw, mh);
-      pxContextFramebufferRef maskSnapshot = context.createFramebuffer(mw, mh);
+      pxContextFramebufferRef drawableSnapshot = context.createFramebuffer(w, h);
+      pxContextFramebufferRef maskSnapshot = context.createFramebuffer(w, h);
       createSnapshotOfChildren(drawableSnapshot, maskSnapshot);
       context.setMatrix(m);
-      context.drawImage(0, 0, mw, mh, drawableSnapshot->getTexture(), maskSnapshot->getTexture(), PX_NONE, PX_NONE);
+      //rtLogInfo("context.drawImage\n");
+      context.drawImage(0, 0, w, h, drawableSnapshot->getTexture(), maskSnapshot->getTexture(), rtConstantsStretch::NONE, rtConstantsStretch::NONE);
     }
-    else if (mClip || mMaskUrl.length() > 0)
+    else if (mClip )
     {
+      //rtLogInfo("calling createSnapshot for mw=%f mh=%f\n", mw, mh);
       mClipSnapshotRef = createSnapshot(mClipSnapshotRef);
       context.setMatrix(m);
       context.setAlpha(ma);
       if (mClipSnapshotRef.getPtr() != NULL)
       {
-        context.drawImage(0, 0, mw, mh, mClipSnapshotRef->getTexture(), mMaskTextureRef, PX_NONE, PX_NONE);
+        //rtLogInfo("context.drawImage\n");
+        static pxTextureRef nullMaskRef;
+        context.drawImage(0, 0, w, h, mClipSnapshotRef->getTexture(), nullMaskRef, rtConstantsStretch::NONE, rtConstantsStretch::NONE);
       }
     }
     else
     {
       // trivially reject things too small to be seen
-      if (mw>alphaEpsilon && mh>alphaEpsilon && context.isObjectOnScreen(0, 0, mw, mh))
+      if (w>alphaEpsilon && h>alphaEpsilon && context.isObjectOnScreen(0, 0, w, h))
       {
+        //rtLogInfo("calling draw() mw=%f mh=%f\n", mw, mh);
         draw();
       }
 
@@ -740,6 +702,7 @@ void pxObject::drawInternal(bool maskPass)
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
       {
         context.pushState();
+        //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
         context.popState();
       }
@@ -747,7 +710,9 @@ void pxObject::drawInternal(bool maskPass)
   }
   else
   {
-    context.drawImage(0,0,mw,mh, mSnapshotRef->getTexture(), mMaskTextureRef, PX_NONE, PX_NONE);
+    //rtLogInfo("context.drawImage mw=%f mh=%f\n", mw, mh);
+    static pxTextureRef nullMaskRef;
+    context.drawImage(0,0,w,h, mSnapshotRef->getTexture(), nullMaskRef, rtConstantsStretch::NONE, rtConstantsStretch::NONE);
   }
 
   if (!maskPass)
@@ -774,7 +739,11 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hi
 #if 0
   m2.translate(mx+mcx, my+mcy);
 //  m.rotateInDegrees(mr, mrx, mry, mrz);
-  m2.rotateInDegrees(mr, 0, 0, 1);
+  m2.rotateInDegrees(mr
+#ifdef ANIMATION_ROTATE_XYZ  
+  , 0, 0, 1
+#endif // ANIMATION_ROTATE_XYZ  
+  );
   m2.scale(msx, msy);  
   m2.translate(-mcx, -mcy);
 #else
@@ -830,18 +799,25 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
   context.setMatrix(m);
   context.setAlpha(parentAlpha);
 
-  if (fbo.getPtr() == NULL || fbo->width() != floor(mw) || fbo->height() != floor(mh))
+
+  float w = getOnscreenWidth();
+  float h = getOnscreenHeight();
+
+  //rtLogInfo("createSnapshot  w=%f h=%f\n", w, h);
+  if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
   {
-    fbo = context.createFramebuffer(floor(mw), floor(mh));
+    //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
+    fbo = context.createFramebuffer(floor(w), floor(h));
   }
   else
   {
-    context.updateFramebuffer(fbo, floor(mw), floor(mh));
+    //rtLogInfo("updateFramebuffer  mw=%f mh=%f\n", w, h);
+    context.updateFramebuffer(fbo, floor(w), floor(h));
   }
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (mRepaint && context.setFramebuffer(fbo) == PX_OK)
   {
-    context.clear(mw, mh);
+    context.clear(w, h);
     draw();
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -858,7 +834,7 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
 
 void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxContextFramebufferRef maskFbo)
 {
-
+  //rtLogInfo("pxObject::createSnapshotOfChildren\n");
   pxMatrix4f m;
   float parentAlpha = ma;
 
@@ -866,32 +842,37 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
 
   context.setAlpha(parentAlpha);
 
-  if (drawableFbo.getPtr() == NULL || drawableFbo->width() != floor(mw) || drawableFbo->height() != floor(mh))
+  float w = getOnscreenWidth();
+  float h = getOnscreenHeight();
+
+  //rtLogInfo("createSnapshotOfChildren  w=%f h=%f\n", w, h);
+  
+  if (drawableFbo.getPtr() == NULL || drawableFbo->width() != floor(w) || drawableFbo->height() != floor(h))
   {
-    drawableFbo = context.createFramebuffer(floor(mw), floor(mh));
+    drawableFbo = context.createFramebuffer(floor(w), floor(h));
   }
   else
   {
-    context.updateFramebuffer(drawableFbo, floor(mw), floor(mh));
+    context.updateFramebuffer(drawableFbo, floor(w), floor(h));
   }
 
-  if (maskFbo.getPtr() == NULL || maskFbo->width() != floor(mw) || maskFbo->height() != floor(mh))
+  if (maskFbo.getPtr() == NULL || maskFbo->width() != floor(w) || maskFbo->height() != floor(h))
   {
-    maskFbo = context.createFramebuffer(floor(mw), floor(mh));
+    maskFbo = context.createFramebuffer(floor(w), floor(h));
   }
   else
   {
-    context.updateFramebuffer(maskFbo, floor(mw), floor(mh));
+    context.updateFramebuffer(maskFbo, floor(w), floor(h));
   }
 
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (context.setFramebuffer(maskFbo) == PX_OK)
   {
-    context.clear(mw, mh);
+    context.clear(w, h);
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      if ((*it)->drawAsMask())
+      if ((*it)->mask())
       {
         context.pushState();
         (*it)->drawInternal(true);
@@ -902,7 +883,7 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
 
   if (context.setFramebuffer(drawableFbo) == PX_OK)
   {
-    context.clear(mw, mh);
+    context.clear(w, h);
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
@@ -926,36 +907,10 @@ void pxObject::deleteSnapshot(pxContextFramebufferRef fbo)
   }
 }
 
-void pxObject::createMask()
-{
-  deleteMask();
-  
-  if (mMaskUrl.length() > 0)
-  {
-    const char* s = mMaskUrl.cString();
-    mMaskTextureCacheObject.setParent(this);
-    mMaskTextureCacheObject.setURL(s);
-  }
-}
 
-void pxObject::deleteMask()
-{
-  if (mMaskTextureRef.getPtr() != NULL)
-  {
-    mMaskTextureRef->deleteTexture();
-  }
-}
 
-bool pxObject::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status)
+bool pxObject::onTextureReady()
 {
-  if (textureCacheObject != NULL && status == RT_OK)
-  {
-    if (textureCacheObject == &mMaskTextureCacheObject)
-    {
-      mMaskTextureRef = textureCacheObject->getTexture();
-      return true;
-    }
-  }
   repaint();
   pxObject* parent = mParent;
   while (parent)
@@ -988,17 +943,19 @@ rtDefineProperty(pxObject, sx);
 rtDefineProperty(pxObject, sy);
 rtDefineProperty(pxObject, a);
 rtDefineProperty(pxObject, r);
+#ifdef ANIMATION_ROTATE_XYZ
 rtDefineProperty(pxObject, rx);
 rtDefineProperty(pxObject, ry);
 rtDefineProperty(pxObject, rz);
+#endif //ANIMATION_ROTATE_XYZ
 rtDefineProperty(pxObject, id);
 rtDefineProperty(pxObject, interactive);
 rtDefineProperty(pxObject, painting);
 rtDefineProperty(pxObject, clip);
 rtDefineProperty(pxObject, mask);
-rtDefineProperty(pxObject, drawAsMask);
 rtDefineProperty(pxObject, draw);
-rtDefineProperty(pxObject, drawAsHitTest);
+rtDefineProperty(pxObject, hitTest);
+rtDefineProperty(pxObject,focus);
 rtDefineProperty(pxObject,ready);
 rtDefineProperty(pxObject, numChildren);
 rtDefineMethod(pxObject, getChild);
@@ -1013,8 +970,8 @@ rtDefineMethod(pxObject, animateToF2);
 rtDefineMethod(pxObject, animateToP2);
 rtDefineMethod(pxObject, addListener);
 rtDefineMethod(pxObject, delListener);
-rtDefineProperty(pxObject, emit);
-rtDefineProperty(pxObject, onReady);
+//rtDefineProperty(pxObject, emit);
+//rtDefineProperty(pxObject, onReady);
 rtDefineMethod(pxObject, getObjectById);
 rtDefineProperty(pxObject,m11);
 rtDefineProperty(pxObject,m12);
@@ -1041,14 +998,15 @@ pxScene2d::pxScene2d(bool top)
   :start(0),frameCount(0), mContainer(NULL), mShowDirtyRect(false)
 { 
   mRoot = new pxObject(this);
-  mFocus = mRoot;
+  mFocusObj = mRoot;
   mEmit = new rtEmit();
   mTop = top;
   mTag = gTag++;
   // make sure that initial onFocus is sent
   rtObjectRef e = new rtMapObject;
-  e.set("target",mFocus);
-  rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+  ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(true);
+  e.set("target",mFocusObj);
+  rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
   t->mEmit.send("onFocus",e);
 }
 
@@ -1075,12 +1033,16 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createRectangle(p,o);
   else if (!strcmp("text",t.cString()))
     e = createText(p,o);
-  else if (!strcmp("text2",t.cString()))
-    e = createText2(p,o);    
+  else if (!strcmp("textBox",t.cString()))
+    e = createTextBox(p,o);    
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
+  else if (!strcmp("imageResource",t.cString()))
+    e = createImageResource(p,o);    
+  else if (!strcmp("fontResource",t.cString()))
+    e = createFontResource(p,o);        
   else if (!strcmp("scene",t.cString()))
     e = createScene(p,o);
   else if (!strcmp("external",t.cString()))
@@ -1134,9 +1096,9 @@ rtError pxScene2d::createText(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
-rtError pxScene2d::createText2(rtObjectRef p, rtObjectRef& o)
+rtError pxScene2d::createTextBox(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxText2(this);
+  o = new pxTextBox(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -1158,20 +1120,26 @@ rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
+rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
+{
+  rtString url = p.get<rtString>("url"); 
+  o = pxImageManager::getImage(url);
+  o.send("init");
+  return RT_OK;
+}
+
+rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
+{
+  rtString url = p.get<rtString>("url"); 
+  o = pxFontManager::getFont(url);
+  return RT_OK;
+}
+
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxSceneContainer(this);
   o.set(p);
   o.send("init");
-  return RT_OK;
-}
-
-rtError pxScene2d::getFont(rtString p, rtObjectRef& o)
-{
-  //printf("pxScene2d::getFont\n");
-
-  o = pxFontManager::getFont(this, p);
-
   return RT_OK;
 }
 
@@ -1191,20 +1159,10 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
-rtError pxScene2d::allInterpolators(rtObjectRef& v) const
-{
-  rtRefT<rtArrayObject> keys = new rtArrayObject;
-
-  for (int i = 0; i < numInterps; i++)
-  {
-    keys->pushBack(interps[i].n);
-  }
-  v = keys;
-  return RT_OK;
-}
 
 void pxScene2d::draw()
 {
+  //rtLogInfo("pxScene2d::draw()\n");
   #ifdef PX_DIRTY_RECTANGLES
   int x = mDirtyRect.left();
   int y = mDirtyRect.top();
@@ -1262,8 +1220,8 @@ void pxScene2d::draw()
 void pxScene2d::onUpdate(double t)
 {
   // TODO if (mTop) check??
-  pxTextureCacheObject::checkForCompletedDownloads();
-  pxFont::checkForCompletedDownloads();
+ // pxTextureCacheObject::checkForCompletedDownloads();
+  //pxFont::checkForCompletedDownloads();
 
   // Dispatch various tasks on the main UI thread
   gUIThreadQueue.process(0.01);
@@ -1471,32 +1429,38 @@ void pxScene2d::setMouseEntered(pxObject* o)
     }
   }
 }
+/** This function is not exposed to javascript; it is called when 
+ * mFocus = true is set for a pxObject whose parent scene is this scene
+ **/
 rtError pxScene2d::setFocus(rtObjectRef o)
 {
-
-  if(mFocus) 
+  printf(" pxScene2d::setFocus\n");
+  if(mFocusObj) 
   {
 	    rtObjectRef e = new rtMapObject;
-	    e.set("target",mFocus);
-	    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+      ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(false);
+	    e.set("target",mFocusObj);
+	    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
 	    t->mEmit.send("onBlur",e);
   }
 
   if (o) 
   {
-	  mFocus = o;
+	  mFocusObj = o;
   }
   else 
   {
-	  mFocus = getRoot();
+	  mFocusObj = getRoot();
   }
   rtObjectRef e = new rtMapObject;
-  e.set("target",mFocus);
-  rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+  ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(true);
+  e.set("target",mFocusObj);
+  rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
   t->mEmit.send("onFocus",e);
 
   return RT_OK;
 }
+
 void pxScene2d::onMouseEnter()
 {
 }
@@ -1686,38 +1650,38 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
 
 void pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags) 
 {
-  if (mFocus)
+  if (mFocusObj)
   {
     rtObjectRef e = new rtMapObject;
-    e.set("target",mFocus);
+    e.set("target",mFocusObj);
     e.set("keyCode", keyCode);
     e.set("flags", (uint32_t)flags);
-    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
     bubbleEvent(e, t, "onPreKeyDown", "onKeyDown");
   }
 }
 
 void pxScene2d::onKeyUp(uint32_t keyCode, uint32_t flags)
 {
-  if (mFocus)
+  if (mFocusObj)
   {
     rtObjectRef e = new rtMapObject;
-    e.set("target",mFocus);
+    e.set("target",mFocusObj);
     e.set("keyCode", keyCode);
     e.set("flags", (uint32_t)flags);
-    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
     bubbleEvent(e, t, "onPreKeyUp", "onKeyUp");
   }
 }
 
 void pxScene2d::onChar(uint32_t c)
 {
-  if (mFocus)
+  if (mFocusObj)
   {
     rtObjectRef e = new rtMapObject;
-    e.set("target",mFocus);
+    e.set("target",mFocusObj);
     e.set("charCode", c);
-    rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
     bubbleEvent(e, t, "onPreChar", "onChar");
   }
 }
@@ -1773,7 +1737,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
       char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
       if (d)
       {
-        // We return a data URI string containing the image data
+        // We return a data Url string containing the image data
         pngData = "data:image/png;base64,";
         pngData.append(d);
         free(d);
@@ -1798,43 +1762,23 @@ rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
 rtDefineMethod(pxScene2d, create);
-rtDefineMethod(pxScene2d, createRectangle);
-rtDefineMethod(pxScene2d, createText);
-rtDefineMethod(pxScene2d, createText2);
-rtDefineMethod(pxScene2d, getFont);
 rtDefineMethod(pxScene2d, clock);
-rtDefineMethod(pxScene2d, createImage);
-rtDefineMethod(pxScene2d, createImage9);
-rtDefineMethod(pxScene2d, createScene);
-rtDefineMethod(pxScene2d, createExternal);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
-rtDefineMethod(pxScene2d, setFocus);
+rtDefineMethod(pxScene2d, getFocus);
 rtDefineMethod(pxScene2d, stopPropagation);
 rtDefineMethod(pxScene2d, screenshot);
 rtDefineMethod(pxScene2d, loadArchive);
 rtDefineProperty(pxScene2d, ctx);
 rtDefineProperty(pxScene2d, api);
-rtDefineProperty(pxScene2d, emit);
-rtDefineProperty(pxScene2d, allInterpolators);
-rtDefineProperty(pxScene2d, PX_LINEAR);
-rtDefineProperty(pxScene2d, PX_EXP1);
-rtDefineProperty(pxScene2d, PX_EXP2);
-rtDefineProperty(pxScene2d, PX_EXP3);
-rtDefineProperty(pxScene2d, PX_STOP);
-rtDefineProperty(pxScene2d, PX_INQUAD);
-rtDefineProperty(pxScene2d, PX_INCUBIC);
-rtDefineProperty(pxScene2d, PX_INBACK);
-rtDefineProperty(pxScene2d, PX_EASEINELASTIC);
-rtDefineProperty(pxScene2d, PX_EASEOUTELASTIC);
-rtDefineProperty(pxScene2d, PX_EASEOUTBOUNCE);
-rtDefineProperty(pxScene2d, PX_END);
-rtDefineProperty(pxScene2d, PX_SEESAW);
-rtDefineProperty(pxScene2d, PX_OSCILLATE);
-rtDefineProperty(pxScene2d, PX_LOOP);
-rtDefineProperty(pxScene2d, PX_NONE);
-rtDefineProperty(pxScene2d, PX_STRETCH);
-rtDefineProperty(pxScene2d, PX_REPEAT);
+//rtDefineProperty(pxScene2d, emit);
+// Properties for access to Constants
+rtDefineProperty(pxScene2d,animation);
+rtDefineProperty(pxScene2d,stretch);
+rtDefineProperty(pxScene2d,alignVertical);
+rtDefineProperty(pxScene2d,alignHorizontal);
+rtDefineProperty(pxScene2d,truncation);
+
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
@@ -1917,22 +1861,22 @@ rtDefineProperty(pxSceneContainer, url);
 rtDefineProperty(pxSceneContainer, api);
 rtDefineMethod(pxSceneContainer, makeReady);
 
-rtError pxSceneContainer::setURI(rtString v)
+rtError pxSceneContainer::setUrl(rtString v)
 { 
   // If old promise is still unfulfilled reject it
-  // and create a new promise for the context of this URI
+  // and create a new promise for the context of this Url
   mReady.send("reject", this); 
   mReady = new rtPromise;  
   rtRefT<pxScene2d> newScene = new pxScene2d(false);
   setView(newScene);
   mScene = newScene;
-  mURI = v; 
+  mUrl = v; 
   if (gOnScene)
   {
     // TODO experiment to improve interstitial rendering at scene load time
     // assuming that the script loading code restores painting at a "good" time
     setPainting(false);
-    gOnScene.send((rtObject*)this, newScene.getPtr(), mURI);
+    gOnScene.send((rtObject*)this, newScene.getPtr(), mUrl);
     //mReady.send("resolve",this);
   }
   return RT_OK; 
