@@ -227,7 +227,8 @@ rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest)
 
   #ifdef RT_RPC_DEBUG
   char const* verb = (dest != NULL ? "sendto" : "send");
-  rtLogDebug("%s:\n\t\"%.*s\"\n", verb, static_cast<int>(buff.GetSize()), buff.GetString());
+  rtLogDebug("%s (%d):\n\t\"%.*s\"\n", verb, static_cast<int>(buff.GetSize()),
+    static_cast<int>(buff.GetSize()), buff.GetString());
   #endif
 
   if (dest)
@@ -282,6 +283,7 @@ rtReadMessage(int fd, rt_sockbuf_t& buff, rtJsonDocPtr_t& doc)
   }
 
   n = ntohl(n);
+
   if (n > capacity)
   {
     rtLogWarn("buffer capacity %d not big enough for message size: %d", capacity, n);
@@ -290,6 +292,9 @@ rtReadMessage(int fd, rt_sockbuf_t& buff, rtJsonDocPtr_t& doc)
     return RT_FAIL;
   }
 
+  buff.resize(n + 1);
+  buff[n] = '\0';
+
   err = rtReadUntil(fd, &buff[0], n);
   if (err != RT_OK)
   {
@@ -297,22 +302,21 @@ rtReadMessage(int fd, rt_sockbuf_t& buff, rtJsonDocPtr_t& doc)
     return err;
   }
  
-  buff.resize(n);
   doc.reset(new rapidjson::Document());
 
   rapidjson::MemoryStream stream(&buff[0], n);
   if (doc->ParseStream<rapidjson::kParseDefaultFlags>(stream).HasParseError())
   {
-    int begin = doc->GetErrorOffset();
-    int end = begin + 16;
+    int begin = doc->GetErrorOffset() - 16;
+    if (begin < 0)
+      begin = 0;
+    int end = begin + 64;
     if (end > n)
       end = n;
     int length = (end - begin);
 
-    rtLogWarn("unparsable JSON read: %d", doc->GetParseError());
-    rtLogWarn("\"%.*s\"\n", length, &buff[0]);
-
-    doc.reset();
+    rtLogWarn("unparsable JSON read:%d offset:%d", doc->GetParseError(), (int) doc->GetErrorOffset());
+    rtLogWarn("\"%.*s\"\n", length, &buff[0] + begin);
 
     return RT_FAIL;
   }

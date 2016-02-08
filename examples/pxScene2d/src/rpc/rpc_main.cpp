@@ -1,9 +1,13 @@
 #include "rtRemoteObject.h"
 #include "rtRemoteObjectLocator.h"
+#include "rtRpcTransport.h"
 
 #include <unistd.h>
 #include <iostream>
 #include <map>
+
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
 
 int main(int argc, char* /*argv*/[])
 {
@@ -18,15 +22,15 @@ int main(int argc, char* /*argv*/[])
     rtObjectRef thermo;
     rtError err = locator.findObject(objectName, thermo);
     if (err != RT_OK)
+      assert(false);
+
+    while (true)
     {
-      printf("not ok\n");
-      return 0;
+      printf("get description\n");
+      rtString desc = thermo.get<rtString>("description");
+      printf("desc: %s\n", desc.cString());
+      sleep(1);
     }
-    else
-    {
-      printf("ok\n");
-    }
-    sleep(2);
   }
   else
   {

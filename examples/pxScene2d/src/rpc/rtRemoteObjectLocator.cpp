@@ -70,15 +70,15 @@ rtRemoteObjectLocator::rtRemoteObjectLocator()
     m_pipe_write = arr[1];
   }
 
-  m_command_handlers.insert(cmd_handler_map_t::value_type("open-session",
+  m_command_handlers.insert(cmd_handler_map_t::value_type("session.open.request",
         &rtRemoteObjectLocator::on_open_session));
-  m_command_handlers.insert(cmd_handler_map_t::value_type("get.byname",
+  m_command_handlers.insert(cmd_handler_map_t::value_type("get.byname.request",
         &rtRemoteObjectLocator::on_get_byname));
-  m_command_handlers.insert(cmd_handler_map_t::value_type("get.byindex",
+  m_command_handlers.insert(cmd_handler_map_t::value_type("get.byindex.request.",
         &rtRemoteObjectLocator::on_get_byindex));;
-  m_command_handlers.insert(cmd_handler_map_t::value_type("set.byname",
+  m_command_handlers.insert(cmd_handler_map_t::value_type("set.byname.request",
         &rtRemoteObjectLocator::on_set_byname));
-  m_command_handlers.insert(cmd_handler_map_t::value_type("set.byindex",
+  m_command_handlers.insert(cmd_handler_map_t::value_type("set.byindex.request",
         &rtRemoteObjectLocator::on_set_byindex));
 }
 
@@ -245,12 +245,12 @@ rtRemoteObjectLocator::do_readn(int fd, rt_sockbuf_t& buff, sockaddr_storage con
   if (err != RT_OK)
     return err;
 
-  do_dispatch(doc, peer);
+  do_dispatch(doc, fd, peer);
   return RT_OK;
 }
 
 void
-rtRemoteObjectLocator::do_dispatch(rtJsonDocPtr_t const& doc, sockaddr_storage const& peer)
+rtRemoteObjectLocator::do_dispatch(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& peer)
 {
   if (!doc->HasMember("type"))
   {
@@ -270,7 +270,7 @@ rtRemoteObjectLocator::do_dispatch(rtJsonDocPtr_t const& doc, sockaddr_storage c
   // https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
   #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
 
-  rtError err = CALL_MEMBER_FN(*this, itr->second)(doc, peer);
+  rtError err = CALL_MEMBER_FN(*this, itr->second)(doc, fd, peer);
   if (err != RT_OK)
   {
     rtLogWarn("failed to run command for %s. %d", cmd.c_str(), err);
@@ -403,7 +403,7 @@ rtRemoteObjectLocator::open_rpc_listener()
 }
 
 rtError
-rtRemoteObjectLocator::on_open_session(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc)
+rtRemoteObjectLocator::on_open_session(rtJsonDocPtr_t const& doc, int /*fd*/, sockaddr_storage const& soc)
 {
   if (!doc->HasMember("object-id"))
   {
@@ -446,7 +446,7 @@ rtRemoteObjectLocator::on_open_session(rtJsonDocPtr_t const& doc, sockaddr_stora
   {
     rapidjson::Document doc;
     doc.SetObject();
-    doc.AddMember("type", "open-session-response", doc.GetAllocator());
+    doc.AddMember("type", "session.open.response", doc.GetAllocator());
     doc.AddMember("object-id", id, doc.GetAllocator());
     doc.AddMember("corkey", key, doc.GetAllocator());
     err = rtSendDocument(doc, fd, NULL);
@@ -477,11 +477,10 @@ rtRemoteObjectLocator::on_client_disconnect(connected_client& client)
 }
 
 rtObjectRef
-rtRemoteObjectLocator::get_object(rapidjson::Document const& doc) const
+rtRemoteObjectLocator::get_object(std::string const& id) const
 {
   rtObjectRef obj;
 
-  std::string const id = doc["object-id"].GetString();
   pthread_mutex_lock(&m_mutex);
   auto itr = m_objects.find(id);
   if (itr != m_objects.end())
@@ -492,44 +491,64 @@ rtRemoteObjectLocator::get_object(rapidjson::Document const& doc) const
 }
 
 rtError
-rtRemoteObjectLocator::on_get_byname(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
+rtRemoteObjectLocator::on_get_byname(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& /*soc*/)
 {
-  rtObjectRef obj = get_object(*doc);
-  if (!obj)
-    return RT_FAIL;
+  int key = (*doc)["corkey"].GetInt();
 
+  std::string const id = (*doc)["object-id"].GetString();
   std::string const& property_name = (*doc)["name"].GetString();
 
-  rtValue value;
-  rtError err = obj->Get(property_name.c_str(), &value);
-  if (err == RT_OK)
+  rtJsonDocPtr_t res(new rapidjson::Document());
+  res->SetObject();
+  res->AddMember("type", "get.byname.response", res->GetAllocator());
+  res->AddMember("corkey", key, res->GetAllocator());
+  res->AddMember("object-id", id, res->GetAllocator());
+
+  rtObjectRef obj = get_object(id);
+  if (!obj)
   {
-    // TODO
+    res->AddMember("status", 1, res->GetAllocator());
+    res->AddMember("status-message", std::string("object not found"), res->GetAllocator());
+  }
+  else
+  {
+    rtValue value;
+    rtError err = obj->Get(property_name.c_str(), &value);
+    if (err == RT_OK)
+    {
+      rtValueWriter::write(value, *res);
+      res->AddMember("status", 0, res->GetAllocator());
+    }
+    else
+    {
+      res->AddMember("status", static_cast<int32_t>(err), res->GetAllocator());
+      err = rtSendDocument(*res, fd, NULL);
+    }
   }
 
-  return RT_FAIL;
+  return RT_OK;
 }
 
 rtError
-rtRemoteObjectLocator::on_get_byindex(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
+rtRemoteObjectLocator::on_get_byindex(rtJsonDocPtr_t const& doc, int /*fd*/, sockaddr_storage const& /*soc*/)
 {
-  rtObjectRef obj = get_object(*doc);
+  rtObjectRef obj;
   if (!obj)
     return RT_FAIL;
   return RT_FAIL;
 }
 
 rtError
-rtRemoteObjectLocator::on_set_byname(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
+rtRemoteObjectLocator::on_set_byname(rtJsonDocPtr_t const& doc, int /*fd*/, sockaddr_storage const& /*soc*/)
 {
-  rtObjectRef obj = get_object(*doc);
+  rtObjectRef obj;
   if (!obj)
     return RT_FAIL;
 
   std::string const& property_name = (*doc)["name"].GetString();
 
   rtValue value;
-  rtError err = rtValueReader::read(value, doc);
+  rtError err = rtValueReader::read(value, *doc);
   if (err != RT_OK)
     return err;
 
@@ -543,9 +562,9 @@ rtRemoteObjectLocator::on_set_byname(rtJsonDocPtr_t const& doc, sockaddr_storage
 }
 
 rtError
-rtRemoteObjectLocator::on_set_byindex(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
+rtRemoteObjectLocator::on_set_byindex(rtJsonDocPtr_t const& doc, int /*fd*/, sockaddr_storage const& /*soc*/)
 {
-  rtObjectRef obj = get_object(*doc);
+  rtObjectRef obj;
   if (!obj)
     return RT_FAIL;
   return RT_FAIL;

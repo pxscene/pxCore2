@@ -74,7 +74,7 @@ rtRpcTransport::start_session(std::string const& object_id)
 
   rapidjson::Document doc;
   doc.SetObject();
-  doc.AddMember("type", "open-session", doc.GetAllocator());
+  doc.AddMember("type", "session.open.request", doc.GetAllocator());
   doc.AddMember("object-id", object_id, doc.GetAllocator());
 
   int key = next_key();
@@ -220,14 +220,14 @@ rtRpcTransport::get(std::string const& id, char const* name, rtValue* value)
 {
   int key = next_key();
 
-  rapidjson::Document doc;
-  doc.SetObject();
-  doc.AddMember("type", "get.byname", doc.GetAllocator());
-  doc.AddMember("name", std::string(name), doc.GetAllocator());
-  doc.AddMember("object-id", id, doc.GetAllocator());
-  doc.AddMember("corkey", key, doc.GetAllocator());
+  rapidjson::Document req;
+  req.SetObject();
+  req.AddMember("type", "get.byname.request", req.GetAllocator());
+  req.AddMember("name", std::string(name), req.GetAllocator());
+  req.AddMember("object-id", id, req.GetAllocator());
+  req.AddMember("corkey", key, req.GetAllocator());
 
-  rtError err = rtSendDocument(doc, m_fd, NULL);
+  rtError err = rtSendDocument(req, m_fd, NULL);
   if (err != RT_OK)
     return err;
 
@@ -235,23 +235,91 @@ rtRpcTransport::get(std::string const& id, char const* name, rtValue* value)
   if (!res)
     return RT_FAIL;
 
-  return RT_OK;
+  err = rtValueReader::read(*value, *res);
+  if (err != RT_OK)
+    return err;
+
+  return static_cast<rtError>((*res)["status"].GetInt());
 }
 
 rtError
 rtRpcTransport::get(std::string const& id, uint32_t index, rtValue* value)
 {
-  return RT_FAIL;
+  int key = next_key();
+  
+  rapidjson::Document req;
+  req.SetObject();
+  req.AddMember("type", "get.byindex.request", req.GetAllocator());
+  req.AddMember("index", index, req.GetAllocator());
+  req.AddMember("object-id", id, req.GetAllocator());
+  req.AddMember("corkey", key, req.GetAllocator());
+  
+  rtError err = rtSendDocument(req, m_fd, NULL);
+  if (err != RT_OK)
+    return err;
+  
+  rtJsonDocPtr_t res = wait_for_response(key);
+  if (!res)
+    return RT_FAIL;
+
+  err = rtValueReader::read(*value, *res); 
+  if (err != RT_OK)
+    return err;
+
+  return static_cast<rtError>((*res)["status"].GetInt());
 }
 
 rtError
 rtRpcTransport::set(std::string const& id, char const* name, rtValue const* value)
 {
-  return RT_FAIL;
+  int key = next_key();
+
+  rapidjson::Document req;
+  req.SetObject();
+  req.AddMember("type", "set.byname.request", req.GetAllocator());
+  req.AddMember("name", std::string(name), req.GetAllocator());
+  req.AddMember("object-id", id, req.GetAllocator());
+  req.AddMember("corkey", key, req.GetAllocator());
+
+  rtError err = rtValueWriter::write(*value, req);
+  if (err != RT_OK)
+    return err;
+
+  err = rtSendDocument(req, m_fd, NULL);
+  if (err != RT_OK)
+    return err;
+
+  rtJsonDocPtr_t res = wait_for_response(key);
+  if (!res)
+    return RT_FAIL;
+
+  return static_cast<rtError>((*res)["status"].GetInt());
 }
 
 rtError
 rtRpcTransport::set(std::string const& id, uint32_t index, rtValue const* value)
 {
+  int key = next_key();
+
+  rapidjson::Document req;
+  req.SetObject();
+  req.AddMember("type", "set.byindex.request", req.GetAllocator());
+  req.AddMember("index", index, req.GetAllocator());
+  req.AddMember("object-id", id, req.GetAllocator());
+  req.AddMember("corkey", key, req.GetAllocator());
+
+  rtError err = rtValueWriter::write(*value, req);
+  if (err != RT_OK)
+    return err;
+
+  err = rtSendDocument(req, m_fd, NULL);
+  if (err != RT_OK)
+    return err;
+
+  rtJsonDocPtr_t res = wait_for_response(key);
+  if (!res)
+    return RT_FAIL;
+
+  return static_cast<rtError>((*res)["status"].GetInt()); 
   return RT_FAIL;
 }

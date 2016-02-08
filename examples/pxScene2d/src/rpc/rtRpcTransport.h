@@ -19,13 +19,14 @@
 
 class rtValueWriter
 {
-  static rtError write(rtValue const& val, rtJsonDocPtr_t const& doc);
+public:
+  static rtError write(rtValue const& val, rapidjson::Document& doc);
 };
 
 class rtValueReader
 {
 public:
-  static rtError read(rtValue& val, rtJsonDocPtr_t const& doc);
+  static rtError read(rtValue& val, rapidjson::Document const& doc);
 };
 
 class rtRpcTransport
