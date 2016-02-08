@@ -581,7 +581,13 @@ void pxObject::drawInternal(bool maskPass)
   // translate based on xy rotate/scale based on cx, cy
   m.translate(mx+mcx, my+mcy);
   //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
-  if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
+  if (mr) {
+    m.rotateInDegrees(mr
+#ifdef ANIMATION_ROTATE_XYZ    
+    , mrx, mry, mrz
+#endif //ANIMATION_ROTATE_XYZ    
+    );
+  }
   //if (mr) m.rotateInDegrees(mr, 0, 0, 1);
   if (msx != 1.0f || msy != 1.0f) m.scale(msx, msy);
   m.translate(-mcx, -mcy);
@@ -593,7 +599,11 @@ void pxObject::drawInternal(bool maskPass)
   m.translate(mx, my);
   //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
   //  m.rotateInDegrees(mr, mrx, mry, mrz);
-  m.rotateInDegrees(mr, 0, 0, 1);
+  m.rotateInDegrees(mr
+#ifdef ANIMATION_ROTATE_XYZ  
+  , 0, 0, 1
+#endif // ANIMATION_ROTATE_XYZ  
+  );
   m.scale(msx, msy);
   m.translate(-mcx, -mcy);
 #endif
@@ -729,7 +739,11 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hi
 #if 0
   m2.translate(mx+mcx, my+mcy);
 //  m.rotateInDegrees(mr, mrx, mry, mrz);
-  m2.rotateInDegrees(mr, 0, 0, 1);
+  m2.rotateInDegrees(mr
+#ifdef ANIMATION_ROTATE_XYZ  
+  , 0, 0, 1
+#endif // ANIMATION_ROTATE_XYZ  
+  );
   m2.scale(msx, msy);  
   m2.translate(-mcx, -mcy);
 #else
@@ -929,9 +943,11 @@ rtDefineProperty(pxObject, sx);
 rtDefineProperty(pxObject, sy);
 rtDefineProperty(pxObject, a);
 rtDefineProperty(pxObject, r);
+#ifdef ANIMATION_ROTATE_XYZ
 rtDefineProperty(pxObject, rx);
 rtDefineProperty(pxObject, ry);
 rtDefineProperty(pxObject, rz);
+#endif //ANIMATION_ROTATE_XYZ
 rtDefineProperty(pxObject, id);
 rtDefineProperty(pxObject, interactive);
 rtDefineProperty(pxObject, painting);

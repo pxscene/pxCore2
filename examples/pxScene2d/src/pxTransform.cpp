@@ -63,10 +63,11 @@ pxTransform::pxTransform():mStack(NULL),mByteCode(NULL)
     i.set("sx",1);
     i.set("sy",1);
     i.set("r",0);
+#ifdef ANIMATION_ROTATE_XYZ
     i.set("rx",0);
     i.set("ry",0);
     i.set("rz",1);
-
+#endif // ANIMATION_ROTATE_XYZ
     printf("before initTransform\n");
     initTransform(i, 
       "x cx + y cy + translateXY "
@@ -380,16 +381,23 @@ bool pxTransform::opTranslateXY(pxTransform* t)
 
 bool pxTransform::opRotateInDegreesXYZ(pxTransform* t)
 {
-  float r, rx, ry, rz;
+  float r;
+#ifdef ANIMATION_ROTATE_XYZ
+  float rx, ry, rz;
   if (!t->pop(rz))
     return false;
   if (!t->pop(ry))
     return false;
   if (!t->pop(rx))
     return false;
+#endif // ANIMATION_ROTATE_XYZ
   if (!t->pop(r))
     return false;
-  t->mMatrix.rotateInDegrees(r,rx,ry,rz);
+  t->mMatrix.rotateInDegrees(r
+#ifdef ANIMATION_ROTATE_XYZ  
+  ,rx,ry,rz
+#endif // ANIMATION_ROTATE_XYZ  
+  );
   return true;
 }
 

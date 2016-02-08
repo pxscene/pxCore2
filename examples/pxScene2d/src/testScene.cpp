@@ -77,11 +77,11 @@ void testScene()
     p->setY(ny);
 
 
-
+#ifdef ANIMATION_ROTATE_XYZ
     p->setRX(0);
     p->setRY(0);
     p->setRZ(1);
-
+#endif //ANIMATION_ROTATE_XYZ
     p->setParent(root);
     
     p->animateTo("r", 360, 2.0, pxInterpLinear, loop);
@@ -177,11 +177,11 @@ void testScene() {
     p.set("parent", root);
     p.set("x", nx);
     p.set("y", ny);
-
+#ifdef ANIMATION_ROTATE_XYZ
     p.set("rx", 0);
     p.set("ry", 0);
     p.set("rz", 1);
-
+#endif //ANIMATION_ROTATE_XYZ
     p.send("animateTo", "r", 360, 1.0+(i*0.3), 0, 1);
     if (i < n-1) {
       p.send("animateTo", "x", 600, 1.0+(i*0.3), 0, 0);
@@ -463,7 +463,7 @@ pxScene2dRef testScene()
   // TODO animateTo now takes a property bag of properties and targets too lazy to fix this call right now
   props = new rtMapObject();
   props.set("r",360.0);
-  picture.send("animateTo", props, 0.5, CONSTANTS.animationConstants.getValue(TWEEN_LINEAR), CONSTANTS.animationConstants.getValue(OPTION_OSCILLATE));
+  picture.send("animateTo", props, 0.5, rtConstantsAnimation::TWEEN_LINEAR, rtConstantsAnimation::OPTION_OSCILLATE);
   picture.set("parent", root);
   picture.set("url", bananaUrl);
 

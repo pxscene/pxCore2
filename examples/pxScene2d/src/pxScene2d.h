@@ -117,9 +117,11 @@ public:
   rtProperty(sy, sy, setSY, float);
   rtProperty(a, a, setA, float);
   rtProperty(r, r, setR, float);
+#ifdef ANIMATION_ROTATE_XYZ
   rtProperty(rx, rx, setRX, float);
   rtProperty(ry, ry, setRY, float);
   rtProperty(rz, rz, setRZ, float);
+#endif // ANIMATION_ROTATE_XYZ
   rtProperty(id, id, setId, rtString);
   rtProperty(interactive, interactive, setInteractive, bool);
   rtProperty(painting, painting, setPainting, bool);
@@ -167,7 +169,10 @@ public:
   rtProperty(useMatrix,useMatrix,setUseMatrix,bool);
 
   pxObject(pxScene2d* scene): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
-    mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
+#ifdef ANIMATION_ROTATE_XYZ  
+    mrx(0), mry(0), mrz(1.0), 
+#endif //ANIMATION_ROTATE_XYZ
+    msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(), 
     mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
@@ -264,6 +269,7 @@ public:
   float r()             const { return mr; }
   rtError r(float& v)   const { v = mr; return RT_OK;   }
   rtError setR(float v)       { cancelAnimation("r"); createNewPromise();mr = v; return RT_OK;   }
+#ifdef ANIMATION_ROTATE_XYZ
   float rx()            const { return mrx;}
   rtError rx(float& v)  const { v = mrx; return RT_OK;  }
   rtError setRX(float v)      { cancelAnimation("rx"); createNewPromise(); mrx = v; return RT_OK;  }
@@ -273,6 +279,7 @@ public:
   float rz()            const { return mrz;}
   rtError rz(float& v)  const { v = mrz; return RT_OK;  }
   rtError setRZ(float v)      { cancelAnimation("rz"); createNewPromise();mrz = v; return RT_OK;  }
+#endif // ANIMATION_ROTATE_XYZ
   bool painting()            const { return mPainting;}
   rtError painting(bool& v)  const { v = mPainting; return RT_OK;  }
   rtError setPainting(bool v)
@@ -383,14 +390,19 @@ public:
     i.set("sx",1);
     i.set("sy",1);
     i.set("r",0);
+#ifdef ANIMATION_ROTATE_XYZ    
     i.set("rx",0);
     i.set("ry",0);
     i.set("rz",1);
-
+#endif //ANIMATION_ROTATE_XYZ
     printf("before initTransform\n");
     t->initTransform(i, 
       "x cx + y cy + translateXY "
+#ifdef ANIMATION_ROTATE_XYZ
       "r rx ry rz rotateInDegreesXYZ "
+#else
+      "r rotateInDegrees rotateInDegreesXYZ "
+#endif //ANIMATION_ROTATE_XYZ
       "sx sy scaleXY "
       "cx -1 * cy -1 * translateXY "
       );
@@ -424,13 +436,25 @@ public:
 #if 1
       // translate based on xy rotate/scale based on cx, cy
       m.translate(mx+mcx, my+mcy);
-      if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
+      if (mr) {
+        m.rotateInDegrees(mr
+#ifdef ANIMATION_ROTATE_XYZ
+        , mrx, mry, mrz
+#endif // ANIMATION_ROTATE_XYZ        
+        );
+      }
       if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);  
       m.translate(-mcx, -mcy);    
 #else
       // translate/rotate/scale based on cx, cy
       m.translate(mx, my);
-      if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
+      if (mr) {
+        m.rotateInDegrees(mr
+#ifdef ANIMATION_ROTATE_XYZ
+        , mrx, mry, mrz
+#endif // ANIMATION_ROTATE_XYZ        
+        );
+      }
       if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
       m.translate(-mcx, -mcy);
 #endif
@@ -450,7 +474,13 @@ public:
       pxMatrix4f m2;
 #if 0
       m2.translate(j->mx+j->mcx, j->my+j->mcy);
-      if (j->mr) m2.rotateInDegrees(j->mr, j->mrx, j->mry, j->mrz);
+      if (j->mr) {
+        m2.rotateInDegrees(j->mr
+#ifdef ANIMATION_ROTATE_XYZ        
+        , j->mrx, j->mry, j->mrz
+#endif //ANIMATION_ROTATE_XYZ        
+        );
+      }
       if (j->msx != 1.0 || j->msy != 1.0) m2.scale(j->msx, j->msy);  
       m2.translate(-j->mcx, -j->mcy);
 #else
@@ -484,7 +514,14 @@ public:
       rtRefT<pxObject>& j = *it;;
       pxMatrix4f m2;
       m2.translate(j->mx+j->mcx, j->my+j->mcy);
-      if (j->mr) m2.rotateInDegrees(j->mr, j->mrx, j->mry, j->mrz);
+      if (j->mr) {
+        m2.rotateInDegrees(j->mr
+#ifdef ANIMATION_ROTATE_XYZ        
+        , j->mrx, j->mry, j->mrz
+#endif //ANIMATION_ROTATE_XYZ      
+        );
+      }
+      
       if (j->msx != 1.0 || j->msy != 1.0) m2.scale(j->msx, j->msy);  
       m2.translate(-j->mcx, -j->mcy);
       m2.invert();
@@ -602,7 +639,11 @@ protected:
   rtRefT<pxObject> mParent;
   vector<rtRefT<pxObject> > mChildren;
 //  vector<animation> mAnimations;
-  float mcx, mcy, mx, my, ma, mr, mrx, mry, mrz, msx, msy, mw, mh;
+  float mcx, mcy, mx, my, ma, mr;
+#ifdef ANIMATION_ROTATE_XYZ
+  float mrx, mry, mrz;
+#endif // ANIMATION_ROTATE_XYZ
+  float msx, msy, mw, mh;
   bool mInteractive;
   pxContextFramebufferRef mSnapshotRef;
   bool mPainting;
