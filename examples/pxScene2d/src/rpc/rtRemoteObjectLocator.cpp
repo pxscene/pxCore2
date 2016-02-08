@@ -80,6 +80,8 @@ rtRemoteObjectLocator::rtRemoteObjectLocator()
         &rtRemoteObjectLocator::on_set_byname));
   m_command_handlers.insert(cmd_handler_map_t::value_type("set.byindex.request",
         &rtRemoteObjectLocator::on_set_byindex));
+  m_command_handlers.insert(cmd_handler_map_t::value_type("method.call.request",
+        &rtRemoteObjectLocator::on_method_call));
 }
 
 rtRemoteObjectLocator::~rtRemoteObjectLocator()
@@ -516,7 +518,9 @@ rtRemoteObjectLocator::on_get_byname(rtJsonDocPtr_t const& doc, int fd, sockaddr
     rtError err = obj->Get(property_name.c_str(), &value);
     if (err == RT_OK)
     {
-      rtValueWriter::write(value, *res);
+      rapidjson::Value val;
+      rtValueWriter::write(value, val, *res);
+      res->AddMember("value", val, res->GetAllocator());
       res->AddMember("status", 0, res->GetAllocator());
     }
     else
@@ -567,5 +571,12 @@ rtRemoteObjectLocator::on_set_byindex(rtJsonDocPtr_t const& doc, int /*fd*/, soc
   rtObjectRef obj;
   if (!obj)
     return RT_FAIL;
+  return RT_FAIL;
+}
+
+rtError
+rtRemoteObjectLocator::on_method_call(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc)
+{
+  dump_document(*doc);
   return RT_FAIL;
 }

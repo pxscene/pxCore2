@@ -53,6 +53,7 @@ private:
   rtError on_set_byname(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
   rtError on_get_byindex(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
   rtError on_set_byindex(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
+  rtError on_method_call(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
 
   rtError on_client_disconnect(connected_client& client);
 

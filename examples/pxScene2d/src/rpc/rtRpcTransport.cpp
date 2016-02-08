@@ -1,5 +1,8 @@
 #include "rtRpcTransport.h"
+#include "rtRpcTransport.h"
 #include "rtSocketUtils.h"
+
+#include "rapidjson/rapidjson.h"
 
 #include <rtLog.h>
 
@@ -235,7 +238,7 @@ rtRpcTransport::get(std::string const& id, char const* name, rtValue* value)
   if (!res)
     return RT_FAIL;
 
-  err = rtValueReader::read(*value, *res);
+  err = rtValueReader::read(*value, *res, shared_from_this());
   if (err != RT_OK)
     return err;
 
@@ -262,7 +265,7 @@ rtRpcTransport::get(std::string const& id, uint32_t index, rtValue* value)
   if (!res)
     return RT_FAIL;
 
-  err = rtValueReader::read(*value, *res); 
+  err = rtValueReader::read(*value, *res, shared_from_this()); 
   if (err != RT_OK)
     return err;
 
@@ -281,9 +284,11 @@ rtRpcTransport::set(std::string const& id, char const* name, rtValue const* valu
   req.AddMember("object-id", id, req.GetAllocator());
   req.AddMember("corkey", key, req.GetAllocator());
 
-  rtError err = rtValueWriter::write(*value, req);
+  rapidjson::Value val;
+  rtError err = rtValueWriter::write(*value, val, req);
   if (err != RT_OK)
     return err;
+  req.AddMember("value", val, req.GetAllocator());
 
   err = rtSendDocument(req, m_fd, NULL);
   if (err != RT_OK)
@@ -308,9 +313,11 @@ rtRpcTransport::set(std::string const& id, uint32_t index, rtValue const* value)
   req.AddMember("object-id", id, req.GetAllocator());
   req.AddMember("corkey", key, req.GetAllocator());
 
-  rtError err = rtValueWriter::write(*value, req);
+  rapidjson::Value val;
+  rtError err = rtValueWriter::write(*value, val, req);
   if (err != RT_OK)
     return err;
+  req.AddMember("value", val, req.GetAllocator());
 
   err = rtSendDocument(req, m_fd, NULL);
   if (err != RT_OK)
@@ -321,5 +328,45 @@ rtRpcTransport::set(std::string const& id, uint32_t index, rtValue const* value)
     return RT_FAIL;
 
   return static_cast<rtError>((*res)["status"].GetInt()); 
-  return RT_FAIL;
+}
+
+rtError
+rtRpcTransport::send(std::string const& id, std::string const& name, int argc, rtValue const* argv, rtValue* result)
+{
+  rtError err = RT_OK;
+
+  int key = next_key();
+
+  rapidjson::Document req;
+  req.SetObject();
+  req.AddMember("type", "method.call.request", req.GetAllocator());
+  if (id.size() > 0)
+    req.AddMember("object-id", id, req.GetAllocator());
+  req.AddMember("name", name, req.GetAllocator());
+  req.AddMember("corkey", key, req.GetAllocator());
+
+  rapidjson::Value args(rapidjson::kArrayType);
+  for (int i = 0; i < argc; ++i)
+  {
+    rapidjson::Value arg;
+    rtError err = rtValueWriter::write(argv[i], arg, req);
+    if (err != RT_OK)
+      return err;
+    args.PushBack(arg, req.GetAllocator());
+  }
+  req.AddMember("args", args, req.GetAllocator());
+
+  err = rtSendDocument(req, m_fd, NULL);
+  if (err != RT_OK)
+    return err;
+
+  rtJsonDocPtr_t res = wait_for_response(key);
+  if (!res)
+    return RT_FAIL;
+
+  err = rtValueReader::read(*result, (*res)["result"], shared_from_this());
+  if (err != RT_OK)
+    return err;
+
+  return static_cast<rtError>((*res)["status"].GetInt());
 }

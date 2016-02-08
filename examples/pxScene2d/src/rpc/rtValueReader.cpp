@@ -1,10 +1,9 @@
 #include "rtRpcTransport.h"
+#include "rtRemoteObject.h"
 
 rtError
-rtValueReader::read(rtValue& to, rapidjson::Document const& doc)
+rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRpcTransport> const& tport)
 {
-  rapidjson::Value const& from = doc["value"];
-
   rtType const type = static_cast<rtType>(from["type"].GetInt());
   switch (type)
   {
@@ -60,11 +59,24 @@ rtValueReader::read(rtValue& to, rapidjson::Document const& doc)
     break;
 
     case RT_objectType:
-    assert(false);
+    {
+      assert(tport != NULL);
+      if (!tport)
+        return RT_FAIL;
+      std::string const id = from["value"]["id"].GetString();
+      to.setObject(new rtRemoteObject(id, tport));
+    }
     break;
 
     case RT_functionType:
-    assert(false);
+    {
+      assert(tport != NULL);
+      if (!tport)
+        return RT_FAIL;
+      std::string const id = from["value"]["id"].GetString();
+      std::string const name = from["value"]["name"].GetString();
+      to.setFunction(new rtRemoteFunction(id, name, tport));
+    }
     break;
 
     case RT_voidPtrType:
