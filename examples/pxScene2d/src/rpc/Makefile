@@ -9,9 +9,14 @@ RT_SRCS=\
   ../rtObject.cpp \
   rpc_main.cpp \
   rtRemoteObjectLocator.cpp \
-  rtRemoteObject.cpp
+  rtRemoteObjectResolver.cpp \
+  rtRemoteObject.cpp \
+  rtRpcTransport.cpp \
+  rtValueReader.cpp \
+  rtValueWriter.cpp \
+  rtSocketUtils.cpp
 
-CXXFLAGS=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -std=c++0x -g -DRT_PLATFORM_LINUX -I../ -I.
+CXXFLAGS=-DRT_RPC_DEBUG -O0 -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -std=c++0x -g -DRT_PLATFORM_LINUX -I../ -I.
 LDFLAGS =-pthread -ldl
 OBJDIR=obj
 
@@ -34,6 +39,11 @@ $(OBJDIR)/%.o : ../%.c
 
 debug:
 	@echo $(OBJS)
+
+clean:
+	rm -rf obj
+	rm -f rpc_sample
+	rm -f core
 
 sample: $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -o rpc_sample

@@ -2,24 +2,15 @@
 #define __RT_REMOTE_OBJECT_H__
 
 #include <rtObject.h>
+#include <memory>
+#include <string>
 
-class rtRemoteTransport
-{
-public:
-};
-
-class rtValueReader
-{
-};
-
-class rtValueWriter
-{
-};
+class rtRpcTransport;
 
 class rtRemoteObject : public rtIObject
 {
 public:
-  rtRemoteObject();
+  rtRemoteObject(std::string const& id, std::shared_ptr<rtRpcTransport> const& transport);
   virtual ~rtRemoteObject();
 
   virtual rtError Get(char const* name, rtValue* value) const;
@@ -30,8 +21,13 @@ public:
   virtual refcount_t AddRef();
   virtual refcount_t Release();
 
+  inline std::string const& id() const
+    { return m_id; }
+
 private:
-  refcount_t mRefCount;
+  refcount_t                        m_ref_count;
+  std::string                       m_id;
+  std::shared_ptr<rtRpcTransport>   m_transport;
 };
 
 #endif
