@@ -286,28 +286,14 @@ void rtResource::onDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
 {
   if (fileDownloadRequest != NULL && fileDownloadRequest->getCallbackData() != NULL) 
   {
-    //gUIThreadQueue.addTask(rtResource::onResourceDownloadComplete,fileDownloadRequest->getCallbackData(), fileDownloadRequest);
-    //rtResource::onResourceDownloadComplete(fileDownloadRequest->getCallbackData(), fileDownloadRequest);
-    // Call virtual processDownlodedResource for specialized handling
+    // Call virtual processDownlodedResource for specialized handling - 
+    // Call directly rather than queuing
     ((rtResource*)fileDownloadRequest->getCallbackData())->processDownloadedResource(fileDownloadRequest);
     // Clear download data
     ((rtResource*)fileDownloadRequest->getCallbackData())->mDownloadRequest = 0;
   }
 }
 
-// Static callback that gets queued by generic onDownloadComplete
-/*void rtResource::onResourceDownloadComplete(void* context, void* data)
-{
-    //if(!context) {
-      //// free the pxFileDownloadRequest ?
-      //return;
-    //}
-    
-    //// Call virtual processDownlodedResource for specialized handling
-    //((rtResource*)context)->processDownloadedResource((pxFileDownloadRequest*)data);
-      
-    //((rtResource*)context)->mDownloadRequest = 0;
-}*/
 bool rtImageResource::loadResourceData(pxFileDownloadRequest* fileDownloadRequest)
 {
       pxOffscreen imageOffscreen;
@@ -321,7 +307,7 @@ bool rtImageResource::loadResourceData(pxFileDownloadRequest* fileDownloadReques
       
       return false;
 }
-/* Try rtResource processDownloadedResource */
+/** rtResource processDownloadedResource */
 void rtResource::processDownloadedResource(pxFileDownloadRequest* fileDownloadRequest)
 {
   rtString val = "reject";
@@ -344,6 +330,7 @@ void rtResource::processDownloadedResource(pxFileDownloadRequest* fileDownloadRe
       }
       else
       {
+        //rtLogInfo("Image Decode Successful: %s", fileDownloadRequest->getFileUrl().cString());
         // ToDo: Could context.createTexture ever fail and return null here?
        // mTexture = context.createTexture(imageOffscreen);
         mLoadStatus.set("statusCode", 0);
@@ -375,9 +362,9 @@ void rtResource::processDownloadedResource(pxFileDownloadRequest* fileDownloadRe
 /**
  * rtImageResource 
  */
-
 ImageMap pxImageManager::mImageMap;
 rtRefT<rtImageResource> pxImageManager::emptyUrlResource = 0;
+/** static pxImageManager::getImage */
 rtRefT<rtImageResource> pxImageManager::getImage(const char* url)
 {
   //printf("pxImageManager::getImage\n");
