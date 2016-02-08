@@ -217,7 +217,7 @@ if (argv.length >= 2) {
     var blackBg = scene.create({t:"rect", fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:1,parent:scene.root});
     var childScene = scene.create(configJson);
     //scene.setFocus(childScene);
-    chilScene.focus = true;
+    childScene.focus = true;
     var showFPS = false;
     var fpsBg = scene.create({t:"rect", fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:showFPS?1:0,parent:scene.root});
     var fpsCounter = scene.create({t:"text", x:5,textColor:0xffffffff,pixelSize:24,text:"0fps",parent:fpsBg});
