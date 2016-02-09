@@ -26,11 +26,8 @@ int main(int argc, char* /*argv*/[])
 
     while (true)
     {
-      printf("get description\n");
-
       rtString desc;
       rtError err = thermo.sendReturns<rtString>("description", desc);
-
       printf("desc: %s\n", desc.cString());
       sleep(1);
     }

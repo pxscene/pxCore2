@@ -1,6 +1,7 @@
 #include "rtRpcTransport.h"
 #include "rtRpcTransport.h"
 #include "rtSocketUtils.h"
+#include "rtRpcMessage.h"
 
 #include "rapidjson/rapidjson.h"
 
@@ -77,11 +78,11 @@ rtRpcTransport::start_session(std::string const& object_id)
 
   rapidjson::Document doc;
   doc.SetObject();
-  doc.AddMember("type", "session.open.request", doc.GetAllocator());
-  doc.AddMember("object-id", object_id, doc.GetAllocator());
+  doc.AddMember(kFieldNameMessageType, kMessageTypeOpenSessionRequest, doc.GetAllocator());
+  doc.AddMember(kFieldNameObjectId, object_id, doc.GetAllocator());
 
   int key = next_key();
-  doc.AddMember("corkey", key, doc.GetAllocator());
+  doc.AddMember(kFieldNameCorrelationKey, key, doc.GetAllocator());
 
   err = rtSendDocument(doc, m_fd, NULL);
   if (err != RT_OK)
@@ -103,7 +104,7 @@ rtRpcTransport::send_keep_alive()
 {
   rapidjson::Document doc;
   doc.SetObject();
-  doc.AddMember("type", "keep-alive", doc.GetAllocator());
+  doc.AddMember(kFieldNameMessageType, kMessageTypeKeepAliveRequest, doc.GetAllocator());
   rapidjson::Value ids(rapidjson::kArrayType);
   for (auto const& id : m_object_list)
     ids.PushBack(rapidjson::Value().SetString(id.c_str(), id.size()), doc.GetAllocator());
@@ -145,13 +146,20 @@ rtRpcTransport::run_listener()
       int err = errno;
       rtLogWarn("select failed. %s", strerror(errno));
       if (err == EBADF)
-        return RT_OK;
+        return RT_FAIL;
       else
         continue;
     }
 
     if (FD_ISSET(m_fd, &read_fds))
-      readn(m_fd, buff);
+    {
+      rtError err = readn(m_fd, buff);
+      if (err != RT_OK)
+      {
+        rtLogWarn("failed to read from fd: %d", m_fd);
+        return err;
+      }
+    }
   }
 
   return RT_OK;
@@ -165,22 +173,17 @@ rtRpcTransport::readn(int fd, rt_sockbuf_t& buff)
   if (err != RT_OK)
     return err;
 
-  #ifdef RT_RPC_DEBUG
-  rtLogDebug("read:\n\t\"%.*s\"\n", (int) buff.size(), &buff[0]);
-  #endif
-
-  if (!doc->HasMember("type"))
+  auto type = doc->FindMember(kFieldNameMessageType);
+  if (type == doc->MemberEnd())
   {
     rtLogWarn("received JSON message with no type");
     return RT_FAIL;
   }
 
-  std::string cmd = (*doc)["type"].GetString();
+  std::string cmd = type->value.GetString();
 
   // TODO: this could be done with std::future/std::promise
-  int key = -1;
-  if (doc->HasMember("corkey"))
-    key = (*doc)["corkey"].GetInt();
+  int key = rtMessage_GetCorrelationKey(*doc);
 
   // should be std::future/std::promise
   if (key != -1)
@@ -225,10 +228,10 @@ rtRpcTransport::get(std::string const& id, char const* name, rtValue* value)
 
   rapidjson::Document req;
   req.SetObject();
-  req.AddMember("type", "get.byname.request", req.GetAllocator());
-  req.AddMember("name", std::string(name), req.GetAllocator());
-  req.AddMember("object-id", id, req.GetAllocator());
-  req.AddMember("corkey", key, req.GetAllocator());
+  req.AddMember(kFieldNameMessageType, kMessageTypeGetByNameRequest, req.GetAllocator());
+  req.AddMember(kFieldNamePropertyName, std::string(name), req.GetAllocator());
+  req.AddMember(kFieldNameObjectId, id, req.GetAllocator());
+  req.AddMember(kFieldNameCorrelationKey, key, req.GetAllocator());
 
   rtError err = rtSendDocument(req, m_fd, NULL);
   if (err != RT_OK)
@@ -240,9 +243,12 @@ rtRpcTransport::get(std::string const& id, char const* name, rtValue* value)
 
   err = rtValueReader::read(*value, (*res)["value"], shared_from_this());
   if (err != RT_OK)
+  {
+    rtLogWarn("failed to decode return value");
     return err;
+  }
 
-  return static_cast<rtError>((*res)["status"].GetInt());
+  return rtMessage_GetStatusCode(*res);
 }
 
 rtError
@@ -252,10 +258,10 @@ rtRpcTransport::get(std::string const& id, uint32_t index, rtValue* value)
   
   rapidjson::Document req;
   req.SetObject();
-  req.AddMember("type", "get.byindex.request", req.GetAllocator());
-  req.AddMember("index", index, req.GetAllocator());
-  req.AddMember("object-id", id, req.GetAllocator());
-  req.AddMember("corkey", key, req.GetAllocator());
+  req.AddMember(kFieldNameMessageType, kMessageTypeGetByIndexRequest, req.GetAllocator());
+  req.AddMember(kFieldNamePropertyIndex, index, req.GetAllocator());
+  req.AddMember(kFieldNameObjectId, id, req.GetAllocator());
+  req.AddMember(kFieldNameCorrelationKey, key, req.GetAllocator());
   
   rtError err = rtSendDocument(req, m_fd, NULL);
   if (err != RT_OK)
@@ -269,7 +275,7 @@ rtRpcTransport::get(std::string const& id, uint32_t index, rtValue* value)
   if (err != RT_OK)
     return err;
 
-  return static_cast<rtError>((*res)["status"].GetInt());
+  return rtMessage_GetStatusCode(*res);
 }
 
 rtError
@@ -279,10 +285,10 @@ rtRpcTransport::set(std::string const& id, char const* name, rtValue const* valu
 
   rapidjson::Document req;
   req.SetObject();
-  req.AddMember("type", "set.byname.request", req.GetAllocator());
-  req.AddMember("name", std::string(name), req.GetAllocator());
-  req.AddMember("object-id", id, req.GetAllocator());
-  req.AddMember("corkey", key, req.GetAllocator());
+  req.AddMember(kFieldNameMessageType, kMessageTypeSetByNameRequest, req.GetAllocator());
+  req.AddMember(kFieldNamePropertyName, std::string(name), req.GetAllocator());
+  req.AddMember(kFieldNameObjectId, id, req.GetAllocator());
+  req.AddMember(kFieldNameCorrelationKey, key, req.GetAllocator());
 
   rapidjson::Value val;
   rtError err = rtValueWriter::write(*value, val, req);
@@ -298,7 +304,7 @@ rtRpcTransport::set(std::string const& id, char const* name, rtValue const* valu
   if (!res)
     return RT_FAIL;
 
-  return static_cast<rtError>((*res)["status"].GetInt());
+  return rtMessage_GetStatusCode(*res);
 }
 
 rtError
@@ -308,10 +314,10 @@ rtRpcTransport::set(std::string const& id, uint32_t index, rtValue const* value)
 
   rapidjson::Document req;
   req.SetObject();
-  req.AddMember("type", "set.byindex.request", req.GetAllocator());
-  req.AddMember("index", index, req.GetAllocator());
-  req.AddMember("object-id", id, req.GetAllocator());
-  req.AddMember("corkey", key, req.GetAllocator());
+  req.AddMember(kFieldNameMessageType, kMessageTypeSetByIndexRequest, req.GetAllocator());
+  req.AddMember(kFieldNamePropertyIndex, index, req.GetAllocator());
+  req.AddMember(kFieldNameObjectId, id, req.GetAllocator());
+  req.AddMember(kFieldNameCorrelationKey, key, req.GetAllocator());
 
   rapidjson::Value val;
   rtError err = rtValueWriter::write(*value, val, req);
@@ -327,7 +333,7 @@ rtRpcTransport::set(std::string const& id, uint32_t index, rtValue const* value)
   if (!res)
     return RT_FAIL;
 
-  return static_cast<rtError>((*res)["status"].GetInt()); 
+  return rtMessage_GetStatusCode(*res);
 }
 
 rtError
@@ -339,11 +345,11 @@ rtRpcTransport::send(std::string const& id, std::string const& name, int argc, r
 
   rapidjson::Document req;
   req.SetObject();
-  req.AddMember("type", "method.call.request", req.GetAllocator());
+  req.AddMember(kFieldNameMessageType, kMessageTypeMethodCallRequest, req.GetAllocator());
   if (id.size() > 0)
-    req.AddMember("object-id", id, req.GetAllocator());
-  req.AddMember("name", name, req.GetAllocator());
-  req.AddMember("corkey", key, req.GetAllocator());
+    req.AddMember(kFieldNameObjectId, id, req.GetAllocator());
+  req.AddMember(kFieldNameFunctionName, name, req.GetAllocator());
+  req.AddMember(kFieldNameCorrelationKey, key, req.GetAllocator());
 
   rapidjson::Value args(rapidjson::kArrayType);
   for (int i = 0; i < argc; ++i)
@@ -354,7 +360,7 @@ rtRpcTransport::send(std::string const& id, std::string const& name, int argc, r
       return err;
     args.PushBack(arg, req.GetAllocator());
   }
-  req.AddMember("args", args, req.GetAllocator());
+  req.AddMember(kFieldNameFunctionArgs, args, req.GetAllocator());
 
   err = rtSendDocument(req, m_fd, NULL);
   if (err != RT_OK)
@@ -364,9 +370,9 @@ rtRpcTransport::send(std::string const& id, std::string const& name, int argc, r
   if (!res)
     return RT_FAIL;
 
-  err = rtValueReader::read(*result, (*res)["return_value"], shared_from_this());
+  err = rtValueReader::read(*result, (*res)[kFieldNameFunctionReturn], shared_from_this());
   if (err != RT_OK)
     return err;
 
-  return static_cast<rtError>((*res)["status"].GetInt());
+  return rtMessage_GetStatusCode(*res);
 }

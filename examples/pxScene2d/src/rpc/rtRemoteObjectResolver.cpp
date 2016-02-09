@@ -1,5 +1,6 @@
 #include "rtRemoteObjectResolver.h"
 #include "rtSocketUtils.h"
+#include "rtRpcMessage.h"
 
 #include <rtLog.h>
 
@@ -172,13 +173,13 @@ rtRemoteObjectResolver::on_search(document_ptr_t const& d, sockaddr_storage cons
       return RT_OK;
   }
 
-  if (doc.HasMember("corkey"))
-    seq_id = doc["corkey"].GetInt();
+  if (doc.HasMember(kFieldNameCorrelationKey))
+    seq_id = doc[kFieldNameCorrelationKey].GetInt();
 
   auto itr = m_registered_objects.end();
 
-  std::string const id = doc["object-id"].GetString();
-  if (doc.HasMember("object-id"))
+  std::string const id = doc[kFieldNameObjectId].GetString();
+  if (doc.HasMember(kFieldNameObjectId))
   {
     pthread_mutex_lock(&m_mutex);
     itr = m_registered_objects.find(id);
@@ -189,13 +190,13 @@ rtRemoteObjectResolver::on_search(document_ptr_t const& d, sockaddr_storage cons
   {
     rapidjson::Document doc;
     doc.SetObject();
-    doc.AddMember("object-id", id, doc.GetAllocator());
-    doc.AddMember("type", "locate", doc.GetAllocator());
+    doc.AddMember(kFieldNameMessageType, "locate", doc.GetAllocator());
+    doc.AddMember(kFieldNameObjectId, id, doc.GetAllocator());
     doc.AddMember("ip", m_rpc_addr, doc.GetAllocator());
     doc.AddMember("port", m_rpc_port, doc.GetAllocator());
     // echo these back to sender
     doc.AddMember("source", pid, doc.GetAllocator());
-    doc.AddMember("corkey", seq_id, doc.GetAllocator());
+    doc.AddMember(kFieldNameCorrelationKey, seq_id, doc.GetAllocator());
 
     return rtSendDocument(doc, m_ucast_fd, &soc);
   }
@@ -207,8 +208,8 @@ rtError
 rtRemoteObjectResolver::on_locate(document_ptr_t const& doc, sockaddr_storage const& /*soc*/)
 {
   int seqId = -1;
-  if (doc->HasMember("corkey"))
-    seqId = (*doc)["corkey"].GetInt();
+  if (doc->HasMember(kFieldNameCorrelationKey))
+    seqId = (*doc)[kFieldNameCorrelationKey].GetInt();
 
   pthread_mutex_lock(&m_mutex);
   m_pending_searches[seqId] = doc;
@@ -234,10 +235,10 @@ rtRemoteObjectResolver::resolveObject(std::string const& name, sockaddr_storage&
 
   rapidjson::Document doc;
   doc.SetObject();
-  doc.AddMember("object-id", name, doc.GetAllocator());
-  doc.AddMember("type", "search", doc.GetAllocator());
+  doc.AddMember(kFieldNameMessageType, "search", doc.GetAllocator());
+  doc.AddMember(kFieldNameObjectId, name, doc.GetAllocator());
   doc.AddMember("source", m_pid, doc.GetAllocator());
-  doc.AddMember("corkey", seqId, doc.GetAllocator());
+  doc.AddMember(kFieldNameCorrelationKey, seqId, doc.GetAllocator());
 
   err = rtSendDocument(doc, m_ucast_fd, &m_mcast_dest);
   if (err != RT_OK)
@@ -355,13 +356,13 @@ rtRemoteObjectResolver::do_dispatch(char const* buff, int n, sockaddr_storage* p
   }
   else
   {
-    if (!doc->HasMember("type"))
+    if (!doc->HasMember(kFieldNameMessageType))
     {
       rtLogWarn("recived JSON payload without type");
       return;
     }
 
-    std::string cmd = (*doc)["type"].GetString();
+    std::string cmd = (*doc)[kFieldNameMessageType].GetString();
 
     auto itr = m_command_handlers.find(cmd);
     if (itr == m_command_handlers.end())
