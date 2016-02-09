@@ -1,6 +1,7 @@
 #include "rtRemoteObjectLocator.h"
 #include "rtRemoteObject.h"
 #include "rtSocketUtils.h"
+#include "rtRpcMessage.h"
 
 #include <stdlib.h>
 #include <arpa/inet.h>
@@ -20,6 +21,14 @@
 #include <rapidjson/writer.h>
 
 static const int kMaxMessageLength = (1024 * 16);
+
+static void
+set_status(rapidjson::Document& doc, int status, char const* status_message = NULL)
+{
+  doc.AddMember(kFieldNameStatusCode, status, doc.GetAllocator());
+  if (status_message)
+    doc.AddMember(kFieldNameStatusMessage, std::string(status_message), doc.GetAllocator());
+}
 
 static bool
 same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
@@ -70,16 +79,18 @@ rtRemoteObjectLocator::rtRemoteObjectLocator()
     m_pipe_write = arr[1];
   }
 
-  m_command_handlers.insert(cmd_handler_map_t::value_type("session.open.request",
-        &rtRemoteObjectLocator::on_open_session));
-  m_command_handlers.insert(cmd_handler_map_t::value_type("get.byname.request",
-        &rtRemoteObjectLocator::on_get_byname));
-  m_command_handlers.insert(cmd_handler_map_t::value_type("get.byindex.request.",
-        &rtRemoteObjectLocator::on_get_byindex));;
-  m_command_handlers.insert(cmd_handler_map_t::value_type("set.byname.request",
-        &rtRemoteObjectLocator::on_set_byname));
-  m_command_handlers.insert(cmd_handler_map_t::value_type("set.byindex.request",
-        &rtRemoteObjectLocator::on_set_byindex));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(
+    kMessageTypeOpenSessionRequest, &rtRemoteObjectLocator::on_open_session));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(
+    kMessageTypeGetByNameRequest, &rtRemoteObjectLocator::on_get));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(
+    kMessageTypeGetByIndexRequest, &rtRemoteObjectLocator::on_get));;
+  m_command_handlers.insert(cmd_handler_map_t::value_type(
+    kMessageTypeSetByNameRequest, &rtRemoteObjectLocator::on_set));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(
+    kMessageTypeSetByIndexRequest, &rtRemoteObjectLocator::on_set));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(
+    kMessageTypeMethodCallRequest, &rtRemoteObjectLocator::on_method_call));
 }
 
 rtRemoteObjectLocator::~rtRemoteObjectLocator()
@@ -252,18 +263,12 @@ rtRemoteObjectLocator::do_readn(int fd, rt_sockbuf_t& buff, sockaddr_storage con
 void
 rtRemoteObjectLocator::do_dispatch(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& peer)
 {
-  if (!doc->HasMember("type"))
-  {
-    rtLogWarn("received JSON payload without type");
-    return;
-  }
+  char const* message_type = rtMessage_GetMessageType(*doc);
 
-  std::string cmd = (*doc)["type"].GetString();
-
-  auto itr = m_command_handlers.find(cmd);
+  auto itr = m_command_handlers.find(message_type);
   if (itr == m_command_handlers.end())
   {
-    rtLogWarn("no command handler registered for: %s", cmd.c_str());
+    rtLogWarn("no command handler registered for: %s", message_type);
     return;
   }
 
@@ -273,7 +278,7 @@ rtRemoteObjectLocator::do_dispatch(rtJsonDocPtr_t const& doc, int fd, sockaddr_s
   rtError err = CALL_MEMBER_FN(*this, itr->second)(doc, fd, peer);
   if (err != RT_OK)
   {
-    rtLogWarn("failed to run command for %s. %d", cmd.c_str(), err);
+    rtLogWarn("failed to run command for %s. %d", message_type, err);
     return;
   }
 }
@@ -405,22 +410,10 @@ rtRemoteObjectLocator::open_rpc_listener()
 rtError
 rtRemoteObjectLocator::on_open_session(rtJsonDocPtr_t const& doc, int /*fd*/, sockaddr_storage const& soc)
 {
-  if (!doc->HasMember("object-id"))
-  {
-    rtLogWarn("open session message missing object-id field");
-    return RT_FAIL;
-  }
-
-  if (!doc->HasMember("corkey"))
-  {
-    rtLogWarn("message doesn't contain correlation key");
-    return RT_FAIL;
-  }
-
-  int key = (*doc)["corkey"].GetInt();
+  uint32_t key = rtMessage_GetCorrelationKey(*doc);
+  char const* id = rtMessage_GetObjectId(*doc);
 
   int fd = -1;
-  std::string const id = (*doc)["object-id"].GetString();
 
   pthread_mutex_lock(&m_mutex);
   auto itr = m_objects.find(id);
@@ -430,7 +423,7 @@ rtRemoteObjectLocator::on_open_session(rtJsonDocPtr_t const& doc, int /*fd*/, so
     {
       if (same_endpoint(soc, c.peer))
       {
-        rtLogInfo("new session for %s added to %s", rtSocketToString(soc).c_str(), id.c_str());
+        rtLogInfo("new session for %s added to %s", rtSocketToString(soc).c_str(), id);
         itr->second.client_fds.push_back(c.fd);
         fd = c.fd;
         break;
@@ -446,9 +439,9 @@ rtRemoteObjectLocator::on_open_session(rtJsonDocPtr_t const& doc, int /*fd*/, so
   {
     rapidjson::Document doc;
     doc.SetObject();
-    doc.AddMember("type", "session.open.response", doc.GetAllocator());
-    doc.AddMember("object-id", id, doc.GetAllocator());
-    doc.AddMember("corkey", key, doc.GetAllocator());
+    doc.AddMember(kFieldNameMessageType, kMessageTypeOpenSessionResponse, doc.GetAllocator());
+    doc.AddMember(kFieldNameObjectId, std::string(id), doc.GetAllocator());
+    doc.AddMember(kFieldNameCorrelationKey, key, doc.GetAllocator());
     err = rtSendDocument(doc, fd, NULL);
   }
 
@@ -491,68 +484,86 @@ rtRemoteObjectLocator::get_object(std::string const& id) const
 }
 
 rtError
-rtRemoteObjectLocator::on_get_byname(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& /*soc*/)
+rtRemoteObjectLocator::on_get(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& /*soc*/)
 {
-  int key = (*doc)["corkey"].GetInt();
-
-  std::string const id = (*doc)["object-id"].GetString();
-  std::string const& property_name = (*doc)["name"].GetString();
+  uint32_t key = rtMessage_GetCorrelationKey(*doc);
+  char const* id = rtMessage_GetObjectId(*doc);
 
   rtJsonDocPtr_t res(new rapidjson::Document());
   res->SetObject();
-  res->AddMember("type", "get.byname.response", res->GetAllocator());
-  res->AddMember("corkey", key, res->GetAllocator());
-  res->AddMember("object-id", id, res->GetAllocator());
+  res->AddMember(kFieldNameMessageType, kMessageTypeGetByNameResponse, res->GetAllocator());
+  res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
+  res->AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
 
   rtObjectRef obj = get_object(id);
   if (!obj)
   {
-    res->AddMember("status", 1, res->GetAllocator());
-    res->AddMember("status-message", std::string("object not found"), res->GetAllocator());
+    res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
+    res->AddMember(kFieldNameStatusMessage, std::string("object not found"), res->GetAllocator());
   }
   else
   {
+    rtError err;
     rtValue value;
-    rtError err = obj->Get(property_name.c_str(), &value);
-    if (err == RT_OK)
+
+    uint32_t    index;
+    char const* name = rtMessage_GetPropertyName(*doc);
+
+    if (name)
     {
-      rtValueWriter::write(value, *res);
-      res->AddMember("status", 0, res->GetAllocator());
+      err = obj->Get(name, &value);
     }
     else
     {
-      res->AddMember("status", static_cast<int32_t>(err), res->GetAllocator());
-      err = rtSendDocument(*res, fd, NULL);
+      index = rtMessage_GetPropertyIndex(*doc);
+      if (index != kInvalidPropertyIndex)
+        err = obj->Get(index, &value);
     }
+    if (err == RT_OK)
+    {
+      rapidjson::Value val;
+      if (value.getType() == RT_functionType)
+      {
+        val.SetObject();
+        val.AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
+        if (name)
+          val.AddMember(kFieldNameFunctionName, std::string(name), res->GetAllocator());
+        else
+          val.AddMember(kFieldNameFunctionIndex, index, res->GetAllocator());
+        val.AddMember(kFieldNameValueType, static_cast<int>(RT_functionType), res->GetAllocator());
+      }
+      else
+      {
+        rtValueWriter::write(value, val, *res);
+      }
+      res->AddMember("value", val, res->GetAllocator());
+      res->AddMember(kFieldNameStatusCode, 0, res->GetAllocator());
+    }
+    else
+    {
+      res->AddMember(kFieldNameStatusCode, static_cast<int32_t>(err), res->GetAllocator());
+    }
+    err = rtSendDocument(*res, fd, NULL);
   }
 
   return RT_OK;
 }
 
 rtError
-rtRemoteObjectLocator::on_get_byindex(rtJsonDocPtr_t const& doc, int /*fd*/, sockaddr_storage const& /*soc*/)
-{
-  rtObjectRef obj;
-  if (!obj)
-    return RT_FAIL;
-  return RT_FAIL;
-}
-
-rtError
-rtRemoteObjectLocator::on_set_byname(rtJsonDocPtr_t const& doc, int /*fd*/, sockaddr_storage const& /*soc*/)
+rtRemoteObjectLocator::on_set(rtJsonDocPtr_t const& doc, int /*fd*/, sockaddr_storage const& /*soc*/)
 {
   rtObjectRef obj;
   if (!obj)
     return RT_FAIL;
 
-  std::string const& property_name = (*doc)["name"].GetString();
+  char const* prop_name = rtMessage_GetPropertyName(*doc);
 
   rtValue value;
   rtError err = rtValueReader::read(value, *doc);
   if (err != RT_OK)
     return err;
 
-  err = obj->Set(property_name.c_str(), &value);
+  err = obj->Set(prop_name, &value);
   if (err == RT_OK)
   {
     // TODO
@@ -562,10 +573,66 @@ rtRemoteObjectLocator::on_set_byname(rtJsonDocPtr_t const& doc, int /*fd*/, sock
 }
 
 rtError
-rtRemoteObjectLocator::on_set_byindex(rtJsonDocPtr_t const& doc, int /*fd*/, sockaddr_storage const& /*soc*/)
+rtRemoteObjectLocator::on_method_call(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc)
 {
-  rtObjectRef obj;
+  uint32_t key = rtMessage_GetCorrelationKey(*doc);
+  char const* id = rtMessage_GetObjectId(*doc);
+  rtError err   = RT_OK;
+
+  rapidjson::Document res;
+  res.SetObject();
+  res.AddMember(kFieldNameMessageType, kMessageTypeMethodCallResponse, res.GetAllocator());
+  res.AddMember(kFieldNameCorrelationKey, key, res.GetAllocator());
+
+  rtObjectRef obj = get_object(id);
   if (!obj)
-    return RT_FAIL;
-  return RT_FAIL;
+  {
+    set_status(res, 1, "object not found");
+  }
+  else
+  {
+    auto function_name = doc->FindMember(kFieldNameFunctionName);
+    if (function_name == doc->MemberEnd())
+    {
+      rtLogInfo("message missing %s field", kFieldNameFunctionName);
+      return RT_FAIL;
+    }
+
+    rtFunctionRef func;
+    err = obj.get<rtFunctionRef>(function_name->value.GetString(), func);
+    if (err == RT_OK)
+    {
+      // virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
+      std::vector<rtValue> argv;
+
+      rapidjson::Value const& args = (*doc)[kFieldNameFunctionArgs];
+      for (rapidjson::Value::ConstValueIterator itr = args.Begin(); itr != args.End(); ++itr)
+      {
+        rtValue arg;
+        rtValueReader::read(arg, *itr);
+        argv.push_back(arg);
+      }
+
+      rtValue return_value;
+      err = func->Send(static_cast<int>(argv.size()), &argv[0], &return_value);
+      if (err == RT_OK)
+      {
+        rapidjson::Value val;
+        rtValueWriter::write(return_value, val, res);
+        res.AddMember(kFieldNameFunctionReturn, val, res.GetAllocator());
+      }
+      
+      set_status(res, 0);
+    }
+    else
+    {
+      set_status(res, 1, "ENOTFOUND");
+    }
+  }
+
+  err = rtSendDocument(res, fd, NULL);
+  if (err != RT_OK)
+    rtLogWarn("failed to send response. %d", err);
+
+  return RT_OK;
 }

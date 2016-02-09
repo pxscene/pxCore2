@@ -17,19 +17,22 @@
 #include "rtRpcTypes.h"
 #include "rtSocketUtils.h"
 
+class rtRpcTransport;
+
 class rtValueWriter
 {
 public:
-  static rtError write(rtValue const& val, rapidjson::Document& doc);
+  static rtError write(rtValue const& from, rapidjson::Value& to, rapidjson::Document& parent);
 };
 
 class rtValueReader
 {
 public:
-  static rtError read(rtValue& val, rapidjson::Document const& doc);
+  static rtError read(rtValue& val, rapidjson::Value const& from,
+    std::shared_ptr<rtRpcTransport> const& tport = std::shared_ptr<rtRpcTransport>());
 };
 
-class rtRpcTransport
+class rtRpcTransport : public std::enable_shared_from_this<rtRpcTransport>
 {
 public:
   rtRpcTransport(sockaddr_storage const& ss);
@@ -43,6 +46,8 @@ public:
 
   rtError get(std::string const& id, uint32_t index, rtValue* value);
   rtError set(std::string const& id, uint32_t index, rtValue const* value);
+
+  rtError send(std::string const& id, std::string const& name, int argc, rtValue const* argv, rtValue* result);
 
   inline void keep_alive(std::string const& s)
     { m_object_list.push_back(s); }

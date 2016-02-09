@@ -49,10 +49,9 @@ private:
   // rtError on_search(rapidjson::Document const& doc, sockaddr* soc, socklen_t len);
   // rtError on_locate(rapidjson::Document const& doc, sockaddr* soc, socklen_t len);
   rtError on_open_session(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
-  rtError on_get_byname(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
-  rtError on_set_byname(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
-  rtError on_get_byindex(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
-  rtError on_set_byindex(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
+  rtError on_get(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
+  rtError on_set(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
+  rtError on_method_call(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
 
   rtError on_client_disconnect(connected_client& client);
 
