@@ -20,6 +20,32 @@
 #include <rapidjson/writer.h>
 
 static const int kMaxMessageLength = (1024 * 16);
+static const char* kFieldNameCorrelationKey = "corkey";
+static const char* kFieldNameObjectId = "object-id";
+
+static int
+get_key(rapidjson::Document const& doc)
+{
+  if (!doc.HasMember(kFieldNameCorrelationKey))
+    return -1;
+  return doc[kFieldNameCorrelationKey].GetInt();
+}
+
+static std::string
+get_object_id(rapidjson::Document const& doc)
+{
+  if (!doc.HasMember(kFieldNameObjectId))
+    return std::string();
+  return doc[kFieldNameObjectId].GetString();
+}
+
+static void
+set_status(rapidjson::Document& doc, int status, char const* status_message = NULL)
+{
+  doc.AddMember("status", status, doc.GetAllocator());
+  if (status_message)
+    doc.AddMember("status-message", std::string(status_message), doc.GetAllocator());
+}
 
 static bool
 same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
@@ -519,15 +545,25 @@ rtRemoteObjectLocator::on_get_byname(rtJsonDocPtr_t const& doc, int fd, sockaddr
     if (err == RT_OK)
     {
       rapidjson::Value val;
-      rtValueWriter::write(value, val, *res);
+      if (value.getType() == RT_functionType)
+      {
+        val.SetObject();
+        val.AddMember("id", id, res->GetAllocator());
+        val.AddMember("name", property_name, res->GetAllocator());
+        val.AddMember("type", static_cast<int>(RT_functionType), res->GetAllocator());
+      }
+      else
+      {
+        rtValueWriter::write(value, val, *res);
+      }
       res->AddMember("value", val, res->GetAllocator());
       res->AddMember("status", 0, res->GetAllocator());
     }
     else
     {
       res->AddMember("status", static_cast<int32_t>(err), res->GetAllocator());
-      err = rtSendDocument(*res, fd, NULL);
     }
+    err = rtSendDocument(*res, fd, NULL);
   }
 
   return RT_OK;
@@ -577,6 +613,61 @@ rtRemoteObjectLocator::on_set_byindex(rtJsonDocPtr_t const& doc, int /*fd*/, soc
 rtError
 rtRemoteObjectLocator::on_method_call(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc)
 {
-  dump_document(*doc);
-  return RT_FAIL;
+  //  "{"type":"method.call.request","object-id":"com.xfinity.xsmart.Thermostat/JakesHouse","name":"description","corkey":4,"args":[]}"
+  int         key   = get_key(*doc);
+  rtError     err   = RT_OK;
+  std::string id    = get_object_id(*doc);
+
+  rapidjson::Document res;
+  res.SetObject();
+  res.AddMember("type", "method.call.response", res.GetAllocator());
+  res.AddMember("corkey", key, res.GetAllocator());
+
+  rtObjectRef obj = get_object(id);
+  if (!obj)
+  {
+    set_status(res, 1, "object not found");
+  }
+  else
+  {
+    std::string function_name = (*doc)["name"].GetString();
+
+    rtFunctionRef func;
+    err = obj.get<rtFunctionRef>(function_name.c_str(), func);
+    if (err == RT_OK)
+    {
+      // virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
+      std::vector<rtValue> argv;
+
+      rapidjson::Value const& args = (*doc)["args"];
+      for (rapidjson::Value::ConstValueIterator itr = args.Begin(); itr != args.End(); ++itr)
+      {
+        rtValue arg;
+        rtValueReader::read(arg, *itr);
+        argv.push_back(arg);
+      }
+
+      rtValue return_value;
+      err = func->Send(static_cast<int>(argv.size()), &argv[0], &return_value);
+      if (err == RT_OK)
+      {
+        rapidjson::Value val;
+        rtValueWriter::write(return_value, val, res);
+        res.AddMember("return_value", val, res.GetAllocator());
+
+      }
+      
+      set_status(res, 0);
+    }
+    else
+    {
+      set_status(res, 1, "ENOTFOUND");
+    }
+  }
+
+  err = rtSendDocument(res, fd, NULL);
+  if (err != RT_OK)
+    rtLogWarn("failed to send response. %d", err);
+
+  return RT_OK;
 }

@@ -63,7 +63,7 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
       assert(tport != NULL);
       if (!tport)
         return RT_FAIL;
-      std::string const id = from["value"]["id"].GetString();
+      std::string const id = from["id"].GetString();
       to.setObject(new rtRemoteObject(id, tport));
     }
     break;
@@ -73,8 +73,8 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
       assert(tport != NULL);
       if (!tport)
         return RT_FAIL;
-      std::string const id = from["value"]["id"].GetString();
-      std::string const name = from["value"]["name"].GetString();
+      std::string const id = from["id"].GetString();
+      std::string const name = from["name"].GetString();
       to.setFunction(new rtRemoteFunction(id, name, tport));
     }
     break;

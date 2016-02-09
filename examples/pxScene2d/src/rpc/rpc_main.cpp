@@ -27,7 +27,10 @@ int main(int argc, char* /*argv*/[])
     while (true)
     {
       printf("get description\n");
-      rtString desc = thermo.get<rtString>("description");
+
+      rtString desc;
+      rtError err = thermo.sendReturns<rtString>("description", desc);
+
       printf("desc: %s\n", desc.cString());
       sleep(1);
     }
@@ -35,8 +38,6 @@ int main(int argc, char* /*argv*/[])
   else
   {
     rtObjectRef thermo(new rtObject());
-    thermo.set("description", "hello from your thermostat");
-
     locator.registerObject(objectName, thermo);
 
     while (1)

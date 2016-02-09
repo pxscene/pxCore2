@@ -238,7 +238,7 @@ rtRpcTransport::get(std::string const& id, char const* name, rtValue* value)
   if (!res)
     return RT_FAIL;
 
-  err = rtValueReader::read(*value, *res, shared_from_this());
+  err = rtValueReader::read(*value, (*res)["value"], shared_from_this());
   if (err != RT_OK)
     return err;
 
@@ -364,7 +364,7 @@ rtRpcTransport::send(std::string const& id, std::string const& name, int argc, r
   if (!res)
     return RT_FAIL;
 
-  err = rtValueReader::read(*result, (*res)["result"], shared_from_this());
+  err = rtValueReader::read(*result, (*res)["return_value"], shared_from_this());
   if (err != RT_OK)
     return err;
 

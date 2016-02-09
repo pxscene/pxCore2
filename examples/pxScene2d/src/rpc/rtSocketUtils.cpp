@@ -301,6 +301,10 @@ rtReadMessage(int fd, rt_sockbuf_t& buff, rtJsonDocPtr_t& doc)
     rtLogError("failed to read payload message of length %d from socket", n);
     return err;
   }
+    
+  #ifdef RT_RPC_DEBUG
+  rtLogDebug("read (%d):\n\t\"%.*s\"\n", static_cast<int>(buff.size()), static_cast<int>(buff.size()), &buff[0]);
+  #endif
  
   doc.reset(new rapidjson::Document());
 

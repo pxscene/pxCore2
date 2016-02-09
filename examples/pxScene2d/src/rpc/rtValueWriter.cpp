@@ -18,7 +18,7 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
     case RT_doubleType:   to.AddMember("value", from.toDouble(), doc.GetAllocator()); break;
     case RT_stringType:   to.AddMember("value", std::string(from.toString().cString()), doc.GetAllocator()); break;
     case RT_objectType:   assert(false); break;
-    case RT_functionType: break;
+    case RT_functionType: assert(false); break;
     case RT_voidPtrType:  assert(false); break;
   }
   return RT_OK;
