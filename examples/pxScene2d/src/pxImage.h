@@ -7,22 +7,23 @@
 #include "pxContext.h"
 #include "rtMutex.h"
 #include "pxTexture.h"
-#include "pxTextureCacheObject.h"
+//#include "pxTextureCacheObject.h"
+#include "rtResource.h"
 
-class pxImage: public pxObject {
+class pxImage: public pxObject, rtResourceListener {
 public:
   rtDeclareObject(pxImage, pxObject);
-  rtProperty(url, url, setURL, rtString);
-  rtProperty(xStretch, xStretch, setXStretch, int32_t);
-  rtProperty(yStretch, yStretch, setYStretch, int32_t);
-  rtProperty(autoSize, autoSize, setAutoSize, bool);
-  rtReadOnlyProperty(statusCode, statusCode, int32_t);
-  rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
+  rtProperty(url, url, setUrl, rtString);
+  rtProperty(stretchX, stretchX, setStretchX, int32_t);
+  rtProperty(stretchY, stretchY, setStretchY, int32_t);
+  rtProperty(resource, resource, setResource, rtObjectRef);
   
-  pxImage(pxScene2d* scene) : pxObject(scene),mXStretch(PX_NONE),mYStretch(PX_NONE),mTexture(), 
-    mTextureCacheObject(), mAutoSize(true), mStatusCode(0), mHttpStatusCode(0),imageLoaded(false)
+  pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(rtConstantsStretch::NONE),mStretchY(rtConstantsStretch::NONE), 
+    imageLoaded(false)
   { 
-    mTextureCacheObject.setParent(this);
+    mw = -1;
+    mh = -1;
+    mResource = pxImageManager::getImage("");
   }
 
   virtual ~pxImage() { rtLogDebug("~pxImage()"); }
@@ -33,65 +34,39 @@ public:
   virtual void createNewPromise() { rtLogDebug("pxImage ignoring createNewPromise\n"); }
   
   rtError url(rtString& s) const;
-  rtError setURL(const char* s);
+  rtError setUrl(const char* s);
   
-  rtError xStretch(int32_t& v) const { v = (int32_t)mXStretch; return RT_OK; }
-  rtError setXStretch(int32_t v)
+  rtError stretchX(int32_t& v) const { v = (int32_t)mStretchX; return RT_OK; }
+  rtError setStretchX(int32_t v)
   {
-    mXStretch = (pxStretch)v;
+    mStretchX = (rtConstantsStretch::constants)v;
     return RT_OK;
   }
 
-  rtError yStretch(int32_t& v) const { v = (int32_t)mYStretch; return RT_OK; }
-  rtError setYStretch(int32_t v)
+  rtError stretchY(int32_t& v) const { v = (int32_t)mStretchY; return RT_OK; }
+  rtError setStretchY(int32_t v)
   {
-    mYStretch = (pxStretch)v;
-    return RT_OK;
-  }
-
-  rtError autoSize(bool& v) const
-  {
-    v = mAutoSize;
-    return RT_OK;
-  }
-
-  rtError setAutoSize(bool v)
-  {
-    mAutoSize = v;
-    return RT_OK;
-  }
-
-  rtError statusCode(int32_t& v) const
-  {
-    v = (int32_t)mStatusCode;
-    return RT_OK;
-  }
-
-  rtError httpStatusCode(int32_t& v) const
-  {
-    v = (int32_t)mHttpStatusCode;
+    mStretchY = (rtConstantsStretch::constants)v;
     return RT_OK;
   }
   
-  pxTextureRef getTexture()
-  {
-    return mTexture;
-  }
+  rtError resource(rtObjectRef& o) const { /*printf("!!!!!!!!!!!!!!!!!!!!!!!pxImage getResource\n");*/o = mResource; return RT_OK; }
+  rtError setResource(rtObjectRef o);
 
-  virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
+  virtual void resourceReady(rtString readyResolution);
+  //virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject) {return true;}
+  // !CLF: To Do: These names are terrible... find better ones!
+  virtual float getOnscreenWidth();
+  virtual float getOnscreenHeight();
   
 protected:
   virtual void draw();
-  void loadImage(rtString url);
-  
-  rtString mURL;
-  pxStretch mXStretch;
-  pxStretch mYStretch;
-  pxTextureRef mTexture;
-  pxTextureCacheObject mTextureCacheObject;
-  bool mAutoSize;
-  int mStatusCode;
-  int mHttpStatusCode;
+  void loadImage(rtString Url);
+  inline rtImageResource* getImageResource() const { return (rtImageResource*)mResource.getPtr(); }
+
+  rtConstantsStretch::constants mStretchX;
+  rtConstantsStretch::constants mStretchY;
+  rtObjectRef mResource;
   
   bool imageLoaded;
 };

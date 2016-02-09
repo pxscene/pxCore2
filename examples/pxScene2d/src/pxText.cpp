@@ -14,7 +14,8 @@ pxText::pxText(pxScene2d* scene):pxObject(scene)
 {
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
-  mFont = pxFontManager::getFont(scene,defaultFace);
+  // Default to use default font
+  mFont = pxFontManager::getFont(defaultFont);
   mPixelSize = defaultPixelSize;
   mDirty = true;
 }
@@ -22,11 +23,10 @@ pxText::pxText(pxScene2d* scene):pxObject(scene)
 
 void pxText::onInit()
 {
-  //printf("pxText2::onInit. mFontLoaded=%d\n",mFontLoaded);
   mInitialized = true;
 
-  if( mFont->isFontLoaded()) {
-    fontLoaded("resolve");
+  if( getFontResource()->isFontLoaded()) {
+    resourceReady("resolve");
   }
 }
 rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
@@ -42,44 +42,54 @@ void pxText::sendPromise()
 
 rtError pxText::setText(const char* s) 
 { 
+  //rtLogInfo("pxText::setText\n");
+  if( !mText.compare(s)){
+    rtLogDebug("pxText.setText setting to same value %s and %s\n", mText.cString(), s);
+    return RT_OK;
+  }
   mText = s; 
-  createNewPromise();
-  mFont->measureText(s, mPixelSize, 1.0, 1.0, mw, mh);
+  if( getFontResource()->isFontLoaded())
+  {
+    createNewPromise();
+    getFontResource()->measureTextInternal(s, mPixelSize, 1.0, 1.0, mw, mh);
+  }
   return RT_OK; 
 }
 
 rtError pxText::setPixelSize(uint32_t v) 
 {   
+  //rtLogInfo("pxText::setPixelSize\n");
   mPixelSize = v; 
-  createNewPromise();
-  mFont->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
+  if( getFontResource()->isFontLoaded())
+  {
+    createNewPromise();
+    getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
+  }
   return RT_OK; 
 }
 
-void pxText::fontLoaded(const char * /*value*/)
+void pxText::resourceReady(rtString readyResolution)
 {
-  //rtLogInfo("pxText::fontLoaded for fontFace=%s and mInitialized=%d\n",mFaceURL.compare("")?mFaceURL.cString():defaultFace, mInitialized); 
-  mFontLoaded=true;
-  // pxText gets its height and width from the text itself, 
-  // so measure it
-  mFont->measureText(mText, mPixelSize, 1.0, 1.0, mw, mh);
-  mDirty=true;  
-//  printf("After fontLoaded and measureText, mw=%f and mh=%f\n",mw,mh);
-  
-  if( mInitialized) {
-    // This repaint logic is necessary for clearing FBO if
-    // clipping is on
-    repaint();
-    pxObject* parent = mParent;
-    while (parent)
-    {
-     parent->repaint();
-     parent = parent->parent();
-    }    
-  }  
-  
+  if( !readyResolution.compare("resolve"))
+  {    
+    mFontLoaded=true;
+    // pxText gets its height and width from the text itself, 
+    // so measure it
+    getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
+    mDirty=true;  
+  //  printf("After fontLoaded and measureText, mw=%f and mh=%f\n",mw,mh);
+    // !CLF: ToDo Use pxObject::onTextureReady() and rename it.
+    if( mInitialized) 
+      pxObject::onTextureReady();
+    
+  }
+  else 
+  {
+      pxObject::onTextureReady();
+      mReady.send("reject",this);
+  }     
 }
-        
+       
 void pxText::update(double t)
 {
   pxObject::update(t);
@@ -129,34 +139,53 @@ void pxText::update(double t)
 
 void pxText::draw() {
   static pxTextureRef nullMaskRef;
-  if (mCached.getPtr() && mCached->getTexture().getPtr())
+  if( getFontResource()->isFontLoaded())
   {
-    context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef, PX_NONE, PX_NONE);
-  }
-  else
-  {
-    mFont->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
-  }
+    if (mCached.getPtr() && mCached->getTexture().getPtr())
+    {
+      context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef, rtConstantsStretch::NONE, rtConstantsStretch::NONE);
+    }
+    else
+    {
+      getFontResource()->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
+    }
+  }  
+  else {
+    if (!mFontLoaded && getFontResource()->isDownloadInProgress())
+      getFontResource()->raiseDownloadPriority();
+    }
 }
 
-rtError pxText::setFaceURL(const char* s)
+rtError pxText::setFontUrl(const char* s)
 {
-  //printf("pxText::setFaceURL for %s\n",s);
+  //printf("pxText::setFaceUrl for %s\n",s);
   if (!s || !s[0]) {
-    s = defaultFace;
+    s = defaultFont;
   }
   mFontLoaded = false;
   createNewPromise();
-  mFaceURL = s;
 
-  mFont = pxFontManager::getFont(mScene, s);
-  mFont->addListener(this);
+  mFont = pxFontManager::getFont(s);
+  getFontResource()->addListener(this);
   
   return RT_OK;
 }
+
+rtError pxText::setFont(rtObjectRef o) 
+{ 
+  mFontLoaded = false;
+  createNewPromise();
+  // !CLF: TODO: Need validation/verification of o
+  mFont = o; 
+  getFontResource()->addListener(this);
+    
+  return RT_OK; 
+}
+  
 
 rtDefineObject(pxText, pxObject);
 rtDefineProperty(pxText, text);
 rtDefineProperty(pxText, textColor);
 rtDefineProperty(pxText, pixelSize);
-rtDefineProperty(pxText, faceURL);
+rtDefineProperty(pxText, fontUrl);
+rtDefineProperty(pxText, font);

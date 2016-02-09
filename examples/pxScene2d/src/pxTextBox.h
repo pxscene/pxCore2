@@ -1,8 +1,8 @@
 // pxCore CopyRight 2007-2015 John Robinson
-// pxText2.h
+// pxTextBox.h
 
-#ifndef PX_TEXT2_H
-#define PX_TEXT2_H
+#ifndef PX_TEXTBOX_H
+#define PX_TEXTBOX_H
 
 // TODO it would be nice to push this back into implemention
 #include <ft2build.h>
@@ -14,29 +14,6 @@
 #include "pxText.h"
 
 
-/*#### truncation - one of the following values
-* NONE - no trunctaction
-* TRUNCATE - text is truncated at the bottom of the text object.  The last word may be partially truncated. 
-* TRUNCATE_AT_WORD_BOUNDARY - text is truncated at the bottom of the text object.  Truncation occurs at the word boundary.
-* ELLIPSES - text is truncated at the bottom of the text object with ellipses applied.  The last word may be broken off by the ellipses.
-* ELLIPSES_AT_WORD_BOUNDARY - text is truncated at the bottom of the text object with ellipses applied to the last possible full word.
-###### Note: When truncation is applied at the word boundary, in a situation where the last line of text to be rendered contains a
-*/
-enum PX_TRUNCATION {
-	NONE, 
-	TRUNCATE,
-	TRUNCATE_AT_WORD
-};
-enum PX_VERTICAL_ALIGN {
-	V_TOP, 
-	V_CENTER,
-	V_BOTTOM
-};
-enum PX_HORIZONTAL_ALIGN {
-	H_LEFT, 
-	H_CENTER,
-	H_RIGHT
-};
 #define ELLIPSIS_STR "\u2026"
 #define ELLIPSIS_LEN (sizeof(ELLIPSIS_STR)-1)	
 static const char isnew_line_chars[] = "\n\v\f\r";
@@ -50,13 +27,13 @@ static const char space_chars[] = " \t";
  * pxCharPosition
  * 
  **********************************************************************/
-class pxCharPosition: public pxObject {
+class pxCharPosition: public rtObject {
 
 public:
-	pxCharPosition(pxScene2d* s): pxObject(s) {  }
+	pxCharPosition() {  }
 	virtual ~pxCharPosition() {}
 
-	rtDeclareObject(pxCharPosition, pxObject);
+	rtDeclareObject(pxCharPosition, rtObject);
 	rtReadOnlyProperty(x, x, float);
   rtReadOnlyProperty(y, y, float);
 
@@ -84,13 +61,13 @@ public:
  * pxTextBounds
  * 
  **********************************************************************/
-class pxTextBounds: public pxObject {
+class pxTextBounds: public rtObject {
 
 public:
-	pxTextBounds(pxScene2d* s): pxObject(s) { clear(); }
+	pxTextBounds() { clear(); }
 	virtual ~pxTextBounds() {}
   
-	rtDeclareObject(pxTextBounds, pxObject);
+	rtDeclareObject(pxTextBounds, rtObject);
 	rtReadOnlyProperty(x1, x1, float);
   rtReadOnlyProperty(y1, y1, float);
   rtReadOnlyProperty(x2, x2, float);
@@ -130,52 +107,52 @@ public:
  * pxTextMeasurements
  * 
  **********************************************************************/
-class pxTextMeasurements: public pxObject {
+class pxTextMeasurements: public rtObject {
 
 public:
-	pxTextMeasurements(pxScene2d* s): pxObject(s){ 
-    mBounds = new pxTextBounds(s);
-    mFirstChar = new pxCharPosition(s);
-    mLastChar = new pxCharPosition(s);
+	pxTextMeasurements(){ 
+    mBounds = new pxTextBounds();
+    mCharFirst = new pxCharPosition();
+    mCharLast = new pxCharPosition();
   }
 	virtual ~pxTextMeasurements() {}
 
-	rtDeclareObject(pxTextMeasurements, pxObject);
+	rtDeclareObject(pxTextMeasurements, rtObject);
   rtReadOnlyProperty(bounds, bounds, rtObjectRef);
-  rtReadOnlyProperty(firstChar, firstChar, rtObjectRef);
-  rtReadOnlyProperty(lastChar, lastChar, rtObjectRef);
+  rtReadOnlyProperty(charFirst, charFirst, rtObjectRef);
+  rtReadOnlyProperty(charLast, charLast, rtObjectRef);
   
   rtError bounds(rtObjectRef& v) const
   {
     v = mBounds;
     return RT_OK;
   }
-  rtError firstChar(rtObjectRef& v) const
+  rtError charFirst(rtObjectRef& v) const
   {
-    v = mFirstChar;
+    v = mCharFirst;
     return RT_OK;
   }
-  rtError lastChar(rtObjectRef& v) const
+  rtError charLast(rtObjectRef& v) const
   {
-    v = mLastChar;
+    v = mCharLast;
     return RT_OK;
   } 
   
   rtRefT<pxTextBounds> getBounds()      { return mBounds;}
-  rtRefT<pxCharPosition> getFirstChar() { return mFirstChar; }
-  rtRefT<pxCharPosition> getLastChar()  { return mLastChar; }
+  rtRefT<pxCharPosition> getCharFirst() { return mCharFirst; }
+  rtRefT<pxCharPosition> getCharLast()  { return mCharLast; }
   
   void clear() {
     mBounds->clear();
-    mFirstChar->clear();
-    mLastChar->clear();
+    mCharFirst->clear();
+    mCharLast->clear();
   }    
       
   private:
    
     rtRefT<pxTextBounds> mBounds;
-    rtRefT<pxCharPosition> mFirstChar;
-    rtRefT<pxCharPosition> mLastChar;
+    rtRefT<pxCharPosition> mCharFirst;
+    rtRefT<pxCharPosition> mCharLast;
     
 };
 
@@ -184,20 +161,20 @@ public:
  * pxTex2
  * 
  **********************************************************************/
-class pxText2: public pxText {
+class pxTextBox: public pxText {
 public:
-  rtDeclareObject(pxText2, pxText);
+  rtDeclareObject(pxTextBox, pxText);
 
-  pxText2(pxScene2d* s);
-  ~pxText2(){}
+  pxTextBox(pxScene2d* s);
+  ~pxTextBox(){}
   
   rtProperty(wordWrap, wordWrap, setWordWrap, bool);
   rtProperty(ellipsis, ellipsis, setEllipsis, bool);
   rtProperty(xStartPos, xStartPos, setXStartPos, float); 
   rtProperty(xStopPos, xStopPos, setXStopPos, float);
   rtProperty(truncation, truncation, setTruncation, uint32_t);
-  rtProperty(verticalAlign, verticalAlign, setVerticalAlign, uint32_t);
-  rtProperty(horizontalAlign, horizontalAlign, setHorizontalAlign, uint32_t);
+  rtProperty(alignVertical, alignVertical, setAlignVertical, uint32_t);
+  rtProperty(alignHorizontal, alignHorizontal, setAlignHorizontal, uint32_t);
   rtProperty(leading, leading, setLeading, float); 	
   
   bool wordWrap()            const { return mWordWrap;}
@@ -220,26 +197,26 @@ public:
   rtError truncation(uint32_t& v)   const { v = mTruncation; return RT_OK;   }
   rtError setTruncation(uint32_t v)       { mTruncation = v; setNeedsRecalc(true); return RT_OK;   }
 
-  uint8_t verticalAlign()             const { return mVerticalAlign; }
-  rtError verticalAlign(uint32_t& v)   const { v = mVerticalAlign; return RT_OK;   }
-  rtError setVerticalAlign(uint32_t v)       { mVerticalAlign = v;  setNeedsRecalc(true); return RT_OK;   }
+  uint8_t alignVertical()             const { return mAlignVertical; }
+  rtError alignVertical(uint32_t& v)   const { v = mAlignVertical; return RT_OK;   }
+  rtError setAlignVertical(uint32_t v)       { mAlignVertical = v;  setNeedsRecalc(true); return RT_OK;   }
   
-  uint8_t horizontalAlign()             const { return mHorizontalAlign; }
-  rtError horizontalAlign(uint32_t& v)   const { v = mHorizontalAlign; return RT_OK;   }
-  rtError setHorizontalAlign(uint32_t v)       { mHorizontalAlign = v;  setNeedsRecalc(true); return RT_OK;   }
+  uint8_t alignHorizontal()             const { return mAlignHorizontal; }
+  rtError alignHorizontal(uint32_t& v)   const { v = mAlignHorizontal; return RT_OK;   }
+  rtError setAlignHorizontal(uint32_t v)       { mAlignHorizontal = v;  setNeedsRecalc(true); return RT_OK;   }
   
   float leading()             const { return mLeading; }
   rtError leading(float& v)   const { v = mLeading; return RT_OK;   }
   rtError setLeading(float v)       { mLeading = v;  setNeedsRecalc(true); return RT_OK;   }  
-  
   virtual rtError setText(const char* s); 
   virtual rtError setPixelSize(uint32_t v);
-  virtual rtError setFaceURL(const char* s);
+  virtual rtError setFontUrl(const char* s);
+  virtual rtError setFont(rtObjectRef o);
   virtual rtError setW(float v)       { setNeedsRecalc(true); return pxObject::setW(v);   }
   virtual rtError setH(float v)       { setNeedsRecalc(true); return pxObject::setH(v);   }  
   virtual rtError setClip(bool v) { mClip = v; setNeedsRecalc(true); return RT_OK; }
   void renderText(bool render);
-  virtual void fontLoaded(const char * value);
+  virtual void resourceReady(rtString readyResolution);
   virtual void sendPromise();
   void determineMeasurementBounds();
   virtual void draw();
@@ -247,22 +224,22 @@ public:
   virtual void update(double t);
 
  
-  rtMethodNoArgAndReturn("getFontMetrics", getFontMetrics, rtObjectRef);
-  rtError getFontMetrics(rtObjectRef& o);
+  //rtMethodNoArgAndReturn("getFontMetrics", getFontMetrics, rtObjectRef);
+  //rtError getFontMetrics(rtObjectRef& o);
   rtMethodNoArgAndReturn("measureText", measureText, rtObjectRef);
   rtError measureText(rtObjectRef& o); 
 
   virtual rtError Set(const char* name, const rtValue* value)
   {
-	  //printf("pxText2 Set for %s\n", name );
+	  //printf("pxTextBox Set for %s\n", name );
 
     mDirty = mDirty || (!strcmp(name,"wordWrap") ||
               !strcmp(name,"ellipsis") ||
               !strcmp(name,"xStartPos") ||
               !strcmp(name,"xStopPos") ||
               !strcmp(name,"truncation") ||
-              !strcmp(name,"verticalAlign")||
-              !strcmp(name,"horizontalAlign") ||
+              !strcmp(name,"alignVertical")||
+              !strcmp(name,"alignHorizontal") ||
               !strcmp(name,"leading"));
 
     rtError e = pxText::Set(name, value);
@@ -273,11 +250,13 @@ public:
 
  protected:
  
+  pxTextMeasurements* getMeasurements() { return (pxTextMeasurements*)measurements.getPtr();}
+    
 	uint32_t mTruncation;  
 	float mXStartPos;
 	float mXStopPos;
-	uint32_t mVerticalAlign;
-	uint32_t mHorizontalAlign;
+	uint32_t mAlignVertical;
+	uint32_t mAlignHorizontal;
 	float mLeading;
 	bool mWordWrap;
 	bool mEllipsis;
@@ -285,7 +264,7 @@ public:
   bool mInitialized;
   bool mNeedsRecalc;
   
-  rtRefT<pxTextMeasurements> measurements;
+  rtObjectRef measurements;
   uint32_t lineNumber;
   uint32_t lastLineNumber;
   float noClipX, noClipY, noClipW, noClipH;

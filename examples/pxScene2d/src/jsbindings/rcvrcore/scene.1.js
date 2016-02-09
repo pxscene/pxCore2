@@ -5,21 +5,11 @@ function Scene() {
   this._setNativeScene = function(scene, filePath) {
     if( nativeScene === null ) {
       nativeScene = scene;
-      this.PX_LINEAR = scene.PX_LINEAR;
-      this.PX_EXP1 = scene.PX_EXP1;
-      this.PX_EXP2 = scene.PX_EXP2;
-      this.PX_EXP3 = scene.PX_EXP3;
-      this.PX_LOOP = scene.PX_LOOP;
-      this.PX_SEESAW = scene.PX_SEESAW;
-      this.PX_STOP = scene.PX_STOP;
-      this.PX_INQUAD = scene.PX_INQUAD;
-      this.PX_INCUBIC = scene.PX_INCUBIC;
-      this.PX_INBACK = scene.PX_INBACK;
-      this.PX_EASEINELASTIC = scene.PX_EASEINELASTIC;
-      this.PX_EASEOUTELASTIC = scene.PX_EASEOUTELASTIC;
-      this.PX_EASEOUTBOUNCE = scene.PX_EASEOUTBOUNCE;
-      this.PX_END = scene.PX_END;
-      this.allInterpolators = scene.allInterpolators;
+      this.animation = scene.animation;
+      this.stretch   = scene.stretch;
+      this.alignVertical = scene.alignVertical;
+      this.alignHorizontal = scene.alignHorizontal;
+      this.truncation = scene.truncation;
       this.root = scene.root;
       this.filePath = filePath;
       this.w = scene.w;
@@ -46,39 +36,39 @@ function Scene() {
     return nativeScene.create(params);
   }
 
-  this.createRectangle = function(params) {
-    return nativeScene.createRectangle(params)
-  }
+  //this.createRectangle = function(params) {
+    //return nativeScene.createRectangle(params)
+  //}
 
-  this.createText = function(params) {
-    return nativeScene.createText(params)
-  }
+  //this.createText = function(params) {
+    //return nativeScene.createText(params)
+  //}
 
-  this.createImage = function(params) {
-    return nativeScene.createImage(params)
-  }
+  //this.createImage = function(params) {
+    //return nativeScene.createImage(params)
+  //}
 
-  this.createImage9 = function(params,b1, b2) {
-    return nativeScene.createImage9(params, b1, b2);
-  }
+  //this.createImage9 = function(params,b1, b2) {
+    //return nativeScene.createImage9(params, b1, b2);
+  //}
 
-  //TODO - what is createExternal used for?  Testing only?
-  this.createExternal = function(params) {
-    if( params.parent === undefined ) {
-      params.parent = nativeScene.root;
-    }
-    return nativeScene.createExternal(params);
-  }
+  ////TODO - what is createExternal used for?  Testing only?
+  //this.createExternal = function(params) {
+    //if( params.parent === undefined ) {
+      //params.parent = nativeScene.root;
+    //}
+    //return nativeScene.createExternal(params);
+  //}
 
-  this.createScene = function(params) {
-    if( params.parent === undefined ) {
-      params.parent = nativeScene.root;
-    }
-    return nativeScene.createScene(params);
-  }
+  //this.createScene = function(params) {
+    //if( params.parent === undefined ) {
+      //params.parent = nativeScene.root;
+    //}
+    //return nativeScene.createScene(params);
+  //}
 
-  this.setFocus = function(element) {
-    return nativeScene.setFocus(element);
+  this.getFocus = function(element) {
+    return nativeScene.getFocus(element);
   }
 
   this.on = function(eventType, func) {
@@ -94,9 +84,9 @@ function Scene() {
     return nativeScene.clock();
   }
 
-  this.getFont = function getFont(url) {
-    return nativeScene.getFont(url);
-  }
+  //this.getFont = function getFont(url) {
+    //return nativeScene.getFont(url);
+  //}
 
   this.screenshot = function screenshot(type, pngData) {
     return nativeScene.screenshot(type, pngData);

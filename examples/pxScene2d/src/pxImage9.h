@@ -5,63 +5,54 @@
 #define PX_IMAGE9_H
 
 #include "pxOffscreen.h"
-#include "pxTextureCacheObject.h"
+//#include "pxTextureCacheObject.h"
+#include "rtResource.h"
 
-class pxImage9: public pxObject {
+class pxImage9: public pxObject, rtResourceListener {
 public:
   rtDeclareObject(pxImage9, pxObject);
-  rtProperty(url, url, setURL, rtString);
-  rtProperty(lInset, lInset, setLInset, float);
-  rtProperty(tInset, tInset, setTInset, float);
-  rtProperty(rInset, rInset, setRInset, float);
-  rtProperty(bInset, bInset, setBInset, float);
-  rtReadOnlyProperty(statusCode, statusCode, int32_t);
-  rtReadOnlyProperty(httpStatusCode, httpStatusCode, int32_t);
+  rtProperty(url, url, setUrl, rtString);
+  rtProperty(insetLeft, insetLeft, setInsetLeft, float);
+  rtProperty(insetTop, insetTop, setInsetTop, float);
+  rtProperty(insetRight, insetRight, setInsetRight, float);
+  rtProperty(insetBottom, insetBottom, setInsetBottom, float);
+  rtProperty(resource, resource, setResource, rtObjectRef);  
 
-  pxImage9(pxScene2d* scene) : pxObject(scene),ml(0),mt(0),mr(0),mb(0),mTextureCacheObject(), 
-                               mStatusCode(0), mHttpStatusCode(0), imageLoaded(false) 
+  pxImage9(pxScene2d* scene) : pxObject(scene),mInsetLeft(0),mInsetTop(0),mInsetRight(0),mInsetBottom(0), 
+                               imageLoaded(false) 
   { 
-    mTextureCacheObject.setParent(this); 
+    mResource = pxImageManager::getImage("");
   }
   
   rtError url(rtString& s) const;
-  rtError setURL(const char* s);
-  
-  rtError lInset(float& v) const { v = ml; return RT_OK; }
-  rtError setLInset(float v) { ml = v; return RT_OK; }
-  rtError tInset(float& v) const { v = mt; return RT_OK; }
-  rtError setTInset(float v) { mt = v; return RT_OK; }
-  rtError rInset(float& v) const { v = mr; return RT_OK; }
-  rtError setRInset(float v) { mr = v; return RT_OK; }
-  rtError bInset(float& v) const { v = mb; return RT_OK; }
-  rtError setBInset(float v) { mb = v; return RT_OK; }
+  rtError setUrl(const char* s);
 
-  rtError statusCode(int32_t& v) const
-  {
-    v = (int32_t)mStatusCode;
-    return RT_OK;
-  }
+  rtError resource(rtObjectRef& o) const { /*printf("!!!!!!!!!!!!!!!!!!!!pxImage9 getResource\n");*/o = mResource; return RT_OK; }
+  rtError setResource(rtObjectRef o) { /*printf("!!!!!!!!!!!!!!!!!!!!!!!pxImage9 setResource\n");*/mResource = o; return RT_OK; }
+    
+  rtError insetLeft(float& v) const { v = mInsetLeft; return RT_OK; }
+  rtError setInsetLeft(float v) { mInsetLeft = v; return RT_OK; }
+  rtError insetTop(float& v) const { v = mInsetTop; return RT_OK; }
+  rtError setInsetTop(float v) { mInsetTop = v; return RT_OK; }
+  rtError insetRight(float& v) const { v = mInsetRight; return RT_OK; }
+  rtError setInsetRight(float v) { mInsetRight = v; return RT_OK; }
+  rtError insetBottom(float& v) const { v = mInsetBottom; return RT_OK; }
+  rtError setInsetBottom(float v) { mInsetBottom = v; return RT_OK; }
 
-  rtError httpStatusCode(int32_t& v) const
-  {
-    v = (int32_t)mHttpStatusCode;
-    return RT_OK;
-  }
 
   virtual void onInit();
-  virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
+  virtual void resourceReady(rtString readyResolution);
+  //virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject) {return true;}
   virtual void sendPromise();
   virtual void createNewPromise() { rtLogDebug("pxImage9 ignoring createNewPromise\n"); }
   
 protected:
   virtual void draw();
-  void loadImage(rtString url);
+  void loadImage(rtString Url);
+  inline rtImageResource* getImageResource() const { return (rtImageResource*)mResource.getPtr(); }
   
-  rtString mURL;
-  float ml, mt, mr, mb;
-  pxTextureCacheObject mTextureCacheObject;
-  int mStatusCode;
-  int mHttpStatusCode;
+  float mInsetLeft, mInsetTop, mInsetRight, mInsetBottom;
+  rtObjectRef mResource;  
   
   bool imageLoaded;
 };

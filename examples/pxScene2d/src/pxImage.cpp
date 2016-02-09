@@ -20,119 +20,164 @@ extern "C"
 #include "utf8.h"
 }
 
-#include <map>
+//#include <map>
 using namespace std;
 
 extern pxContext context;
 
 void pxImage::onInit()
 {
-  rtLogDebug("pxImage::onInit() mURL=%s\n",mURL.cString());
+  //rtLogDebug("pxImage::onInit() mUrl=%s\n",mUrl.cString());
   mInitialized = true;
-  setURL(mURL);
+  //printf("pxImage::onInit for mUrl=\n");
+  //printf("%s\n",getImageResource()->getUrl().cString());
+  setUrl(getImageResource()->getUrl());
 }
 
-rtError pxImage::url(rtString& s) const { s = mURL; return RT_OK; }
-rtError pxImage::setURL(const char* s) 
+/**
+ * setResource
+ * */
+rtError pxImage::setResource(rtObjectRef o) 
 { 
-  rtLogDebug("pxImage::setURL init=%d imageLoaded=%d s=%s mURL=%s\n", mInitialized, imageLoaded, s, mURL.cString());
+  //printf("!!!!!!!!!!!!!!!!!!!!!pxImage setResource\n");
+  if(!o)
+  { 
+    setUrl("");
+    return RT_OK;
+  }
+  
+  // Verify the object passed in is an rtImageResource
+  rtString desc;
+  o.sendReturns("description",desc);
+  if(!desc.compare("rtImageResource"))
+  {
+    rtString url;
+    url = o.get<rtString>("url");
+    // Only create new promise if url is different 
+    if( getImageResource()->getUrl().compare(o.get<rtString>("url")) )
+    {
+      mResource = o; 
+      imageLoaded = false;
+      pxObject::createNewPromise();
+      getImageResource()->addListener(this); 
+    }
+    return RT_OK; 
+  } 
+  else 
+  {
+    rtLogError("Object passed as resource is not an imageResource!\n");
+    return RT_ERROR; 
+  }
+
+}
+
+rtError pxImage::url(rtString& s) const { s = getImageResource()->getUrl(); return RT_OK; }
+rtError pxImage::setUrl(const char* s) 
+{ 
+  //rtLogInfo("pxImage::setUrl init=%d imageLoaded=%d \n", mInitialized, imageLoaded);
+  //rtLogDebug("pxImage::setUrl for s=%s mUrl=%s\n", s, mUrl.cString());
   
   // we don't want to createNewPromise on the first time through when the 
   // url is initially being set because it's already created on construction
-  // If mURL is already set and loaded and s is different, create a new promise
-  if( mURL.length() > 0 && mURL.compare(s) && imageLoaded)
+  // If mUrl is already set and loaded and s is different, create a new promise
+  rtImageResource* resourceObj = getImageResource();
+  if( resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s) && imageLoaded)
   {
-    imageLoaded = false;
-    rtLogDebug("pxImage calling pxObject::createPromise for %s\n",mURL.cString());
-    pxObject::createNewPromise();
+    if(imageLoaded) 
+    {
+      imageLoaded = false;
+      //rtLogDebug("pxImage calling pxObject::createPromise for %s\n",resourceObj->getUrl().cString());
+      pxObject::createNewPromise();
+    }
+    //else 
+    //{
+      //// Stop listening for the old resource that this image was using
+      //resourceObj->removeListener(this);
+      //mReady.send("reject",this); // reject the original promise for old image
+    //}
   }
-  mURL = s;
-  if (!s || !u8_strlen((char*)s)) 
-    return RT_OK;
-  if (mInitialized)
-    loadImage(mURL);
-  else
-    rtLogDebug("Deferring image load until pxImage is initialized.");
-  return RT_OK;
-}
 
-void pxImage::loadImage(rtString url)
-{
-  //printf("pxImage::loadImage %s\n",url.cString());
-  mTextureCacheObject.setURL(url);
+
+  mResource = pxImageManager::getImage(s);
+  if(getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded) {
+    getImageResource()->addListener(this);
+  }
+  
+  return RT_OK;
 }
 
 void pxImage::sendPromise() 
 { 
-  if(mInitialized && (imageLoaded || mStatusCode!=RT_OK) && !((rtPromise*)mReady.getPtr())->status()) 
+  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status()) 
   {
-      rtLogDebug("pxImage SENDPROMISE for %s\n", mURL.cString());
-      mReady.send("resolve",this); }
-  }
-    
-void pxImage::draw() {
-  static pxTextureRef nullMaskRef;
-  context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, 
-                    mXStretch, mYStretch);
-  if (mTextureCacheObject.isDownloadInProgress())
-  {
-    mTextureCacheObject.raiseDownloadPriority();
+      //rtLogDebug("pxImage SENDPROMISE for %s\n", mUrl.cString());
+      mReady.send("resolve",this); 
   }
 }
 
-bool pxImage::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status)
-{
-  if (pxObject::onTextureReady(textureCacheObject, status))
+float pxImage::getOnscreenWidth() 
+{ 
+  if(mw == -1 ) 
   {
-    imageLoaded = true;
-    return true;
+    return mResource.get<float>("w");
   }
+  else 
+    return mw; 
 
-  if (textureCacheObject != NULL)
+}
+float pxImage::getOnscreenHeight() 
+{ 
+  if(mh == -1) 
   {
-    mStatusCode = textureCacheObject->getStatusCode();
-    mHttpStatusCode = textureCacheObject->getHttpStatusCode();
+    return mResource.get<float>("h");
   }
-  if (textureCacheObject != NULL && status == RT_OK)
+  else  
+    return mh;  
+ }
+      
+void pxImage::draw() {
+  //rtLogDebug("pxImage::draw() mw=%f mh=%f\n", mw, mh);
+  static pxTextureRef nullMaskRef;
+  context.drawImage(0, 0, 
+                    getOnscreenWidth(),
+                    getOnscreenHeight(), 
+                    getImageResource()->getTexture(), nullMaskRef, 
+                    mStretchX, mStretchY);
+  // Raise the priority if we're still waiting on the image download                  
+  if (!imageLoaded && getImageResource()->isDownloadInProgress())
+    getImageResource()->raiseDownloadPriority();
+
+}
+void pxImage::resourceReady(rtString readyResolution)
+{
+  //printf("pxImage::resourceReady(%s) mInitialized=%d for \"%s\"\n",readyResolution.cString(),mInitialized,getImageResource()->getUrl().cString());
+  if( !readyResolution.compare("resolve"))
   {
     imageLoaded = true; 
-    mTexture = textureCacheObject->getTexture();
-    if (mAutoSize && mTexture.getPtr() != NULL)
-    {
-      mw = mTexture->width();
-      mh = mTexture->height();
-    } 
-
+    pxObject::onTextureReady();
+    // Now that image is loaded, must force redraw;
+    // dimensions could have changed.
+    mScene->mDirty = true;
     pxObject* parent = mParent;
     if( !parent)
     {
       // Send the promise here because the image will not get an 
       // update call until it has a parent
       sendPromise();
-      rtLogDebug("In pxImage::onTextureReady, pxImage with url=%s has no parent!\n", mURL.cString());
+      //rtLogInfo("In pxImage::resourceReady, pxImage with url=%s has no parent!\n", getImageResource()->getUrl().cString());
     }
-     
-    ////// send after width and height have been set
-    // TO DO: Remove use of onReady in samples
-    //rtObjectRef e = new rtMapObject;
-    //e.set("name", "onReady");
-    //e.set("target", this);
-    //mEmit.send("onReady", e);
-   
-    
-    return true;
   }
-  rtLogWarn("pxImage SENDPROMISE for ERROR %s\n", mURL.cString());
-  mReady.send("reject",this);
-  return false;
+  else 
+  {
+      pxObject::onTextureReady();
+      mReady.send("reject",this);
+  }
 }
 
 rtDefineObject(pxImage,pxObject);
 rtDefineProperty(pxImage,url);
-rtDefineProperty(pxImage,xStretch);
-rtDefineProperty(pxImage,yStretch);
-rtDefineProperty(pxImage,autoSize);
-rtDefineProperty(pxImage,statusCode);
-rtDefineProperty(pxImage,httpStatusCode);
+rtDefineProperty(pxImage, resource);
+rtDefineProperty(pxImage,stretchX);
+rtDefineProperty(pxImage,stretchY);
 
 

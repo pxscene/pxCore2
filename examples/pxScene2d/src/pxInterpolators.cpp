@@ -1,13 +1,18 @@
 // pxCore CopyRight 2007-2015 John Robinson
 // pxInterpolators.cpp
-
+#include "pxCore.h"
 #include "pxInterpolators.h"
+
 
 #ifdef WIN32
 #define _USE_MATH_DEFINES
 #endif
 #include <math.h>
 
+double pxInterpLinear(double i)
+{
+  return pxClamp<double>(i, 0, 1);
+}
 double easeInElastic_helper(double t, double b, double c, double d, double a, double p) 
 {
   if (t == 0) 
@@ -81,6 +86,11 @@ double pxEaseOutBounce(double t)
 {
   double a = 1.0;
   return easeOutBounce_helper(t, 1, a);
+}
+// for now, just do ease out
+double pxEaseInOutBounce(double t)
+{
+  return pxEaseOutBounce(t);
 }
 
 double pxExp1(double t) 

@@ -27,8 +27,8 @@ public:
     mDownloadedData = NULL;
   }
   
-  void setFileURL(const char* imageUrl) { mFileUrl = imageUrl; }
-  rtString getFileURL() const { return mFileUrl; }
+  void setFileUrl(const char* imageUrl) { mFileUrl = imageUrl; }
+  rtString getFileUrl() const { return mFileUrl; }
     
   void setProxy(const char* proxyServer)
   {
