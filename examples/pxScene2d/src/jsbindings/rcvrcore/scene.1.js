@@ -14,7 +14,6 @@ function Scene() {
       this.filePath = filePath;
       this.w = scene.w;
       this.h = scene.h;
-      this.focus = scene.focus;
     }
   }
 
