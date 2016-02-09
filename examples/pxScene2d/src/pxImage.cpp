@@ -35,32 +35,39 @@ void pxImage::onInit()
 }
 
 /**
- * !CLF: Should setResource check if url matches existing resource url, 
- * and just send promise if that is the case?
+ * setResource
  * */
 rtError pxImage::setResource(rtObjectRef o) 
 { 
   //printf("!!!!!!!!!!!!!!!!!!!!!pxImage setResource\n");
-  //rtString desc;
-  //printf("!!!!!!!!!!!!!!!!!!!!!pxImage setResource about to do static cast\n");
-  //// Without try/catch handling, how do we find out whether this rtObjectRef is eligible or not???
-  //rtError err = static_cast<rtObjectRef &>(o).sendReturns<rtString>("description", desc);
-  //printf("desc is %s\n",desc.cString());
-  //if (err == RT_OK && strcmp(desc.cString(), "rtImageResource") == 0)
-  //{
-    //printf("Object is an rtImageResource\n");
-    mResource = o; 
-    imageLoaded = false;
-    //printf("image promise state is %d\n",((rtPromise*)mReady.getPtr())->status());
-    pxObject::createNewPromise();
-    getImageResource()->addListener(this); 
+  if(!o)
+  { 
+    setUrl("");
+    return RT_OK;
+  }
+  
+  // Verify the object passed in is an rtImageResource
+  rtString desc;
+  o.sendReturns("description",desc);
+  if(!desc.compare("rtImageResource"))
+  {
+    rtString url;
+    url = o.get<rtString>("url");
+    // Only create new promise if url is different 
+    if( getImageResource()->getUrl().compare(o.get<rtString>("url")) )
+    {
+      mResource = o; 
+      imageLoaded = false;
+      pxObject::createNewPromise();
+      getImageResource()->addListener(this); 
+    }
     return RT_OK; 
-  //}
-  //else 
-  //{
-    //rtLogError("Object passed as resource is not an imageResource!\n");
-    //return RT_OK;
-  //}
+  } 
+  else 
+  {
+    rtLogError("Object passed as resource is not an imageResource!\n");
+    return RT_ERROR; 
+  }
 
 }
 

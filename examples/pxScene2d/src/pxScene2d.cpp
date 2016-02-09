@@ -1004,7 +1004,7 @@ pxScene2d::pxScene2d(bool top)
   mTag = gTag++;
   // make sure that initial onFocus is sent
   rtObjectRef e = new rtMapObject;
-  ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(true);
+  mRoot->setFocusInternal(true);
   e.set("target",mFocusObj);
   rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
   t->mEmit.send("onFocus",e);
@@ -1437,11 +1437,11 @@ rtError pxScene2d::setFocus(rtObjectRef o)
   printf(" pxScene2d::setFocus\n");
   if(mFocusObj) 
   {
-	    rtObjectRef e = new rtMapObject;
-      ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(false);
-	    e.set("target",mFocusObj);
-	    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
-	    t->mEmit.send("onBlur",e);
+    rtObjectRef e = new rtMapObject;
+    ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(false);
+    e.set("target",mFocusObj);
+    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
+    t->mEmit.send("onBlur",e);
   }
 
   if (o) 
