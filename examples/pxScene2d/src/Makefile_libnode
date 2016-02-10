@@ -1,0 +1,183 @@
+
+all: rtNode
+clean:
+	rm -rf $(OBJDIR)
+	rm -f rtNode
+
+UNAME_S := $(shell uname -s)
+HNAME_S := $(shell hostname) 
+
+ifeq ($(HNAME_S),raspberrypi ) 
+PX_PLATFORM=PX_PLATFORM_GENERIC_EGL
+PXLIBS=$(PXCOREDIR)/build/egl
+TARGETINCLUDE= -I/opt/vc/include \
+  -I/opt/vc/include/interface/vcos/pthreads \
+  -I/opt/vc/include/interface/vmcs_host/linux
+else
+PX_PLATFORM=PX_PLATFORM_GLUT
+PXLIBS=$(PXCOREDIR)/build/glut
+TARGETINCLUDE=
+endif
+
+
+VPATH=linux
+RT_SRCS=\
+    utf8.c\
+    ioapi_mem.c\
+    unzip.c\
+    ioapi.c\
+    rtError.cpp \
+    rtLog.cpp \
+    rtFile.cpp \
+    rtPathUtils.cpp \
+    rtString.cpp \
+    rtValue.cpp \
+    rtObject.cpp \
+    jsCallback.cpp \
+    rtFunctionWrapper.cpp \
+    rtObjectWrapper.cpp \
+    rtThreadPool.cpp \
+    rtThreadTask.cpp \
+    rtWrapperUtils.cpp \
+    rtThreadQueue.cpp \
+    rtLibrary.cpp \
+    rtZip.cpp \
+    linux/rtMutexNative.cpp \
+    linux/rtThreadPoolNative.cpp
+
+PX_SRCS=\
+    pxScene2d.cpp \
+    pxRectangle.cpp \
+    pxFont.cpp \
+    pxText.cpp \
+    pxText2.cpp \
+    pxImage.cpp \
+    pxUtil.cpp \
+    pxContextGL.cpp \
+    pxImage9.cpp \
+    pxTextureCacheObject.cpp \
+    pxFileDownloader.cpp \
+    pxInterpolators.cpp \
+    pxMatrix4T.cpp \
+    pxArchive.cpp
+
+EXTDIR=../external
+PXCOREDIR=../../..
+PXHDRS=$(PXCOREDIR)/src
+PXLIBS=$(PXCOREDIR)/build/glut
+
+NODEINC=$(EXTDIR)/libnode
+NODEDIR=$(EXTDIR)/libnode
+
+ZLIB=$(EXTDIR)/zlib/
+
+
+SEARCH=\
+  -Ilinux \
+  -I$(EXTDIR)/jpg \
+  -I$(EXTDIR)/curl/include \
+  -I$(EXTDIR)/ft/include \
+  -I$(EXTDIR)/png \
+  -I$(PXHDRS)\
+  -I$(ZLIB) \
+  -I./ \
+  -I$(NODEINC)/src \
+  -I$(NODEINC)/deps/uv/include \
+  -I$(NODEINC)/deps/v8 \
+  -I$(NODEINC)/deps/debugger-agent/include \
+  -I$(NODEINC)/deps/v8/include \
+   $(TARGETINCLUDE)
+
+
+CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) 
+
+#CXXFLAGS=  $(SEARCH) -DENABLE_GLUT -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT
+#CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DENABLE_GLUT -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT
+
+
+LDPNG    = -L$(EXTDIR)/png/.libs -lpng16
+ifeq ($(UNAME_S),Darwin)
+LDJPG    = $(EXTDIR)/jpg/.libs/libjpeg.a
+else
+LDJPG    = -L$(EXTDIR)/jpg/.libs -ljpeg
+endif
+LDFT     = -L$(EXTDIR)/ft/objs/.libs -lfreetype
+LDCURL   = -L$(EXTDIR)/curl/lib/.libs -lcurl
+LDZLIB   = -L$(EXTDIR)/zlib -lz
+
+LDNODE   = -L$(NODEDIR)/out/Release/obj.target
+LDNODEV8 = -L$(NODEDIR)/out/Release
+
+#LDNODE   = -L$(NODEDIR)/out/Debug/obj.target
+#LDNODEV8 = -L$(NODEDIR)/out/Debug
+
+
+LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDNODE) $(LDNODEV8) $(LDZLIB)
+
+LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform
+
+
+OBJDIR=obj
+
+rtMutexNative.o: linux/rtMutexNative.cpp
+	g++ -o $(OBJDIR)/rtMutexNative.o -Wall $(CXXFLAGS) -c linux/rtMutexNative.cpp
+
+rtThreadPoolNative.o: linux/rtThreadPoolNative.cpp
+	g++ -o $(OBJDIR)/rtThreadPoolNative.o -Wall $(CXXFLAGS) -c linux/rtThreadPoolNative.cpp
+
+$(OBJDIR)/rtWrapperUtils.o: jsbindings/rtWrapperUtils.cpp
+	g++ -o $(OBJDIR)/rtWrapperUtils.o -Wall $(CXXFLAGS) -c jsbindings/rtWrapperUtils.cpp
+
+$(OBJDIR)/rtFunctionWrapper.o: jsbindings/rtFunctionWrapper.cpp
+	g++ -o $(OBJDIR)/rtFunctionWrapper.o -Wall $(CXXFLAGS) -c jsbindings/rtFunctionWrapper.cpp
+
+$(OBJDIR)/rtObjectWrapper.o: jsbindings/rtObjectWrapper.cpp
+	g++ -o $(OBJDIR)/rtObjectWrapper.o -Wall $(CXXFLAGS) -c jsbindings/rtObjectWrapper.cpp
+
+$(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
+	g++ -o $(OBJDIR)/jsCallback.o -Wall $(CXXFLAGS) -c jsbindings/jsCallback.cpp
+
+SRCS=$(PX_SRCS) $(RT_SRCS) rtNode.cpp pxMain_node.cpp
+
+OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS)))
+OBJS:=$(patsubst %.c, $(OBJDIR)/%.o, $(OBJS))
+OBJS: $(SRCS)
+
+$(OBJDIR)/%.o : %.cpp
+	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
+	$(CXX) -c $(CXXFLAGS) $< -o $@
+
+$(OBJDIR)/%.o : %.c
+	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
+	$(CC) -c $(CXXFLAGS) $< -o $@
+
+
+# Enable these. There are already a bunch of things 
+# enabled by default. These are in addition to those.
+SCAN_CHECKS=\
+  alpha.core.BoolAssignment\
+  alpha.core.CastSize\
+  alpha.core.FixedAddr\
+  alpha.core.SizeofPtr\
+  alpha.core.TestAfterDivZero\
+  alpha.cplusplus.NewDeleteLeaks\
+  alpha.cplusplus.VirtualCall\
+  alpha.security.ArrayBoundV2\
+  alpha.security.MallocOverflow\
+  alpha.security.ReturnPtrRange\
+  alpha.unix.MallocWithAnnotations\
+  alpha.unix.PthreadLock\
+  alpha.unix.SimpleStream\
+  alpha.unix.cstring.NotNullTerminated\
+  alpha.unix.cstring.OutOfBounds\
+  security.insecureAPI.strcpy
+
+LLVM_CHECKS=$(patsubst %, -enable-checker %, $(SCAN_CHECKS))
+
+analyze:
+	$(MAKE) clean
+	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) rtNode
+
+rtNode: $(OBJS)
+	$(CXX) $(OBJS) $(LDFLAGS) -o rtNode
+

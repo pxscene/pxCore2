@@ -12,23 +12,17 @@
 #include "rtRefT.h"
 #include "pxScene2d.h"
 #include "pxFont.h"
+#include "rtResource.h"
 
-class pxText;
-
-
-
-
-
-
-
-class pxText: public pxObject 
+class pxText: public pxObject, rtResourceListener 
 {
 public:
   rtDeclareObject(pxText, pxObject);
   rtProperty(text, text, setText, rtString);
   rtProperty(textColor, textColor, setTextColor, uint32_t);
   rtProperty(pixelSize, pixelSize, setPixelSize, uint32_t);
-  rtProperty(faceURL, faceURL, setFaceURL, rtString);
+  rtProperty(fontUrl, fontUrl, setFontUrl, rtString);  
+  rtProperty(font, font, setFont, rtObjectRef);
 
   pxText(pxScene2d* scene);
   ~pxText() {}
@@ -48,23 +42,27 @@ public:
     return RT_OK;
   }
 
-  rtError faceURL(rtString& v) const { v = mFaceURL; return RT_OK; }
-  virtual rtError setFaceURL(const char* s);
+  rtError fontUrl(rtString& v) const { getFontResource()->url(v); return RT_OK; }
+  virtual rtError setFontUrl(const char* s);
 
   rtError pixelSize(uint32_t& v) const { v = mPixelSize; return RT_OK; }
   virtual rtError setPixelSize(uint32_t v);
-
+  
+  rtError font(rtObjectRef& o) const { o = mFont; return RT_OK; }
+  virtual rtError setFont(rtObjectRef o);
+  
   virtual void update(double t);
   virtual void onInit();
   
   virtual rtError Set(const char* name, const rtValue* value)
   {
+    //rtLogInfo("pxText::Set %s\n",name);
 #if 1
     mDirty = mDirty || (!strcmp(name,"w") ||
               !strcmp(name,"h") ||
               !strcmp(name,"text") ||
               !strcmp(name,"pixelSize") ||
-              !strcmp(name,"faceURL") ||
+              !strcmp(name,"fontUrl") ||
               !strcmp(name,"textColor"));
 #else
     mDirty = true;
@@ -75,17 +73,21 @@ public:
     return e;
   }
 
-  virtual void fontLoaded(const char * value);
+  virtual void resourceReady(rtString readyResolution);
   virtual void sendPromise();
 
  protected:
   virtual void draw();
+  // !CLF ToDo: Could mFont.send(...) be used in places where mFont is needed, instead
+  // of this getFontResource?
+  inline pxFont* getFontResource() const { return (pxFont*)mFont.getPtr(); }  
+  
   rtString mText;
-// TODO should we just use a face object instead of urls
+// TODO should we just use a font object instead of Urls
   bool mFontLoaded;
-  rtString mFaceURL;
+//  rtString mFontUrl;
 
-  rtRefT<pxFont> mFont;
+  rtObjectRef mFont;
   
   float mTextColor[4];
   uint32_t mPixelSize;

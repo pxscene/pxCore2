@@ -116,7 +116,7 @@ void pxFileDownloader::raiseDownloadPriority(pxFileDownloadRequest* downloadRequ
   if (downloadRequest != NULL)
   {
     rtThreadPool *mainThreadPool = rtThreadPool::globalInstance();
-    mainThreadPool->raisePriority(downloadRequest->getFileURL());
+    mainThreadPool->raisePriority(downloadRequest->getFileUrl());
   }
 }
 
@@ -144,7 +144,7 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     curl_handle = curl_easy_init();
 
     /* specify URL to get */
-    curl_easy_setopt(curl_handle, CURLOPT_URL, downloadRequest->getFileURL().cString());
+    curl_easy_setopt(curl_handle, CURLOPT_URL, downloadRequest->getFileUrl().cString());
     curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1); //when redirected, follow the redirections
     curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, HeaderCallback);
     curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)&chunk);
@@ -179,7 +179,7 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     {
         stringstream errorStringStream;
         
-        errorStringStream << "Download error for: " << downloadRequest->getFileURL().cString()
+        errorStringStream << "Download error for: " << downloadRequest->getFileUrl().cString()
                 << ".  Error code : " << res << ".  Using proxy: ";
         if (useProxy)
         {
@@ -258,7 +258,7 @@ void pxFileDownloader::downloadFileInBackground(pxFileDownloadRequest* downloadR
 {
     rtThreadPool* mainThreadPool = rtThreadPool::globalInstance();
     
-    rtThreadTask* task = new rtThreadTask(startFileDownloadInBackground, (void*)downloadRequest, downloadRequest->getFileURL());
+    rtThreadTask* task = new rtThreadTask(startFileDownloadInBackground, (void*)downloadRequest, downloadRequest->getFileUrl());
     
     mainThreadPool->executeTask(task);
 }

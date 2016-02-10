@@ -1,0 +1,147 @@
+CURRENTPATH = `pwd`
+all: rtNode
+
+clean:
+	rm -rf $(OBJDIR)
+	rm -f librtnode.so
+
+VPATH=linux
+
+
+RT_SRCS=\
+           rtError.cpp \
+           rtFile.cpp \
+           rtLog.cpp \
+           rtPathUtils.cpp \
+           rtString.cpp \
+           rtObject.cpp \
+           rtValue.cpp \
+           linux/rtMutexNative.cpp \
+           linux/rtThreadPoolNative.cpp \
+           rtThreadPool.cpp \
+           rtThreadTask.cpp \
+           rtLibrary.cpp \
+           utf8.c
+
+PX_SRCS=\
+	   pxScene2d.cpp \
+	   pxRectangle.cpp \
+           pxText.cpp \
+           pxText2.cpp \
+           pxImage.cpp \
+           pxUtil.cpp \
+           pxContextGL.cpp \
+           pxImage9.cpp \
+           pxTextureCacheObject.cpp \
+           pxFileDownloader.cpp \
+           pxInterpolators.cpp \
+	   pxMatrix4T.cpp \
+	   jsbindings/rtWrapperUtils.cpp \
+           jsbindings/rtFunctionWrapper.cpp \
+           jsbindings/rtObjectWrapper.cpp \
+           jsbindings/jsCallback.cpp \
+           rtNode.cpp
+
+EXTDIR=../external
+PXCOREDIR=../../../
+PXHDRS=$(PXCOREDIR)/src
+
+NODEINC=../external/libnode
+NODEDIR=../external/libnode
+
+SEARCH=\
+  -Ilinux \
+  -I$(EXTDIR)/jpg \
+  -I$(EXTDIR)/curl/include \
+  -I$(EXTDIR)/ft/include \
+  -I$(EXTDIR)/png \
+  -I$(PXHDRS)\
+  -I. \
+  -I$(NODEINC)/src \
+  -I$(NODEINC)/deps/uv/include \
+  -I$(NODEINC)/deps/v8 \
+  -I$(NODEINC)/deps/debugger-agent/include \
+  -I$(NODEINC)/deps/v8/include
+
+
+CXXFLAGS= $(SEARCH) -DENABLE_GLUT -DPX_PLATFORM_GLUT -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -fPIC
+
+
+LDPNG    = -L$(EXTDIR)/png/.libs -lpng16
+LDJPG    = -L$(EXTDIR)/jpg/.libs -ljpeg
+LDFT     = -L$(EXTDIR)/ft/objs/.libs -lfreetype
+LDCURL   = -L$(EXTDIR)/curl/lib/.libs -lcurl
+LDNODE   = -L$(NODEDIR)/out/Release/obj.target
+LDNODEV8 = -L$(NODEDIR)/out/Release
+
+
+LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDNODE) $(LDNODEV8)
+
+LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -shared 
+
+
+OBJDIR=obj
+
+pxViewWindow.o: ../../../src/pxViewWindow.cpp
+	g++ -o $(OBJDIR)/pxViewWindow.o -Wall $(CXXFLAGS) -c ../../../pxViewWindow.cpp
+
+pxOffscreen.o: ../../../src/pxOffscreen.cpp
+	g++ -o $(OBJDIR)/.o -Wall $(CXXFLAGS) -c ../../../pxOffscreen.cpp
+
+pxWindowNative.o: ../../../src/generic/pxWindowNative.cpp
+	g++ -o $(OBJDIR)/.o -Wall $(CXXFLAGS) -c ../../../generic/pxWindowNative.cpp
+
+pxBufferNative.o: ../../../src/gles/pxBufferNative.cpp
+	g++ -o $(OBJDIR)/.o -Wall $(CXXFLAGS) -c ../../../gles/pxBufferNative.cpp
+
+pxOffscreenNative.o: ../../../src/gles/pxOffscreenNative.cpp
+	g++ -o $(OBJDIR)/.o -Wall $(CXXFLAGS) -c ../../../gles/pxOffscreenNative.cpp
+
+pxEventLoopNative.o: ../../../src/gles/pxEventLoopNative.cpp
+	g++ -o $(OBJDIR)/.o -Wall $(CXXFLAGS) -c ../../../gles/pxEventLoopNative.cpp
+
+pxTimerNative.o: ../../../src/gles/pxTimerNative.cpp
+	g++ -o $(OBJDIR)/.o -Wall $(CXXFLAGS) -c ../../../gles/pxTimerNative.cpp
+
+pxWindowUtil.o: ../../../src/pxWindowUtil.cpp
+	g++ -o $(OBJDIR)/.o -Wall $(CXXFLAGS) -c ../../../pxWindowUtil.cpp
+
+
+
+rtMutexNative.o: linux/rtMutexNative.cpp
+	g++ -o $(OBJDIR)/rtMutexNative.o -Wall $(CXXFLAGS) -c linux/rtMutexNative.cpp
+
+rtThreadPoolNative.o: linux/rtThreadPoolNative.cpp
+	g++ -o $(OBJDIR)/rtThreadPoolNative.o -Wall $(CXXFLAGS) -c linux/rtThreadPoolNative.cpp
+
+$(OBJDIR)/rtWrapperUtils.o: jsbindings/rtWrapperUtils.cpp
+	g++ -o $(OBJDIR)/rtWrapperUtils.o -Wall $(CXXFLAGS) -c jsbindings/rtWrapperUtils.cpp
+
+$(OBJDIR)/rtFunctionWrapper.o: jsbindings/rtFunctionWrapper.cpp
+	g++ -o $(OBJDIR)/rtFunctionWrapper.o -Wall $(CXXFLAGS) -c jsbindings/rtFunctionWrapper.cpp
+
+$(OBJDIR)/rtObjectWrapper.o: jsbindings/rtObjectWrapper.cpp
+	g++ -o $(OBJDIR)/rtObjectWrapper.o -Wall $(CXXFLAGS) -c jsbindings/rtObjectWrapper.cpp
+
+$(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
+	g++ -o $(OBJDIR)/jsCallback.o -Wall $(CXXFLAGS) -c jsbindings/jsCallback.cpp
+
+
+SRCS=$(PX_SRCS) $(RT_SRCS) 
+
+OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS)))
+OBJS:=$(patsubst %.c, $(OBJDIR)/%.o, $(OBJS))
+OBJS: $(SRCS)
+
+$(OBJDIR)/%.o : %.cpp
+	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
+	$(CXX) -c $(CXXFLAGS) $< -o $@
+
+$(OBJDIR)/%.o : %.c
+	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
+	$(CC) -c $(CXXFLAGS) $< -o $@
+
+
+rtNode: $(OBJS)
+	$(CXX) $(OBJS) $(LDFLAGS) -o librtnode.so
+

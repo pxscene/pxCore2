@@ -6,7 +6,7 @@
 
 using namespace v8;
 
-static const char* kClassName = "Object";
+static const char* kClassName   = "rtObject";
 static const char* kFuncAllKeys = "allKeys";
 static const char* kPropLength = "length";
 
@@ -37,6 +37,7 @@ rtObjectWrapper::rtObjectWrapper(const rtObjectRef& ref)
 
 rtObjectWrapper::~rtObjectWrapper()
 {
+  //rtLogInfo("OBJ - delete");
 }
 
 void rtObjectWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports)
@@ -296,9 +297,9 @@ rtError jsObjectWrapper::getAllKeys(Isolate* isolate, rtValue* value) const
 
 rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
 {
-  if (!value)
-    return RT_ERROR_INVALID_ARG;
   if (!name)
+    return RT_ERROR_INVALID_ARG;
+  if (!value)
     return RT_ERROR_INVALID_ARG;
 
   if (strcmp(name, jsObjectWrapper::kIsJavaScriptObjectWrapper) == 0)
@@ -359,9 +360,9 @@ rtError jsObjectWrapper::Get(uint32_t i, rtValue* value) const
 
 rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
 {
-  if (!value)
-    return RT_ERROR_INVALID_ARG;
   if (!name)
+    return RT_ERROR_INVALID_ARG;
+  if (!value)
     return RT_ERROR_INVALID_ARG;
 
   Local<String> s = String::NewFromUtf8(mIsolate, name);

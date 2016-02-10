@@ -6,7 +6,7 @@
 #include "rtPathUtils.h"
 #include "pxScene2d.h"
 #include "pxText.h"
-#include "pxText2.h"
+#include "pxTextBox.h"
 #include "pxImage.h"
 #include "pxKeycodes.h"
 
@@ -62,7 +62,7 @@ void testScene()
     {
       pxImage* i = new pxImage();
       p = i;
-      i->setURL(d.cString());
+      i->setUrl(d.cString());
       p->setCX(i->w()/2);
       p->setCY(i->h()/2);
     }
@@ -77,11 +77,11 @@ void testScene()
     p->setY(ny);
 
 
-
+#ifdef ANIMATION_ROTATE_XYZ
     p->setRX(0);
     p->setRY(0);
     p->setRZ(1);
-
+#endif //ANIMATION_ROTATE_XYZ
     p->setParent(root);
     
     p->animateTo("r", 360, 2.0, pxInterpLinear, loop);
@@ -111,9 +111,10 @@ void testScene() {
   for (int i = 0; i < n; i++) {
     
     rtObjectRef p;
-
+    rtObjectRef props = new rtMapObject();
     if (i < 1) {
-      scene.sendReturns<rtObjectRef>("createRectangle", p);
+      props.set("t","rect");
+      scene.sendReturns<rtObjectRef>("create", props, p);
       p.set("w", 300);
       p.set("h", 30);
       p.set("fillColor",0x00ff00ff);
@@ -122,7 +123,8 @@ void testScene() {
       p.send("animateTo", "h", 600, 0.5, 0, 0);
   }
     else if (i < 2){
-      scene.sendReturns<rtObjectRef>("createImage9", p);
+      props.set("t","image9");
+      scene.sendReturns<rtObjectRef>("create", props, p);
       p.set("url", d2);
       p.set("cx", p.get<float>("w")/2);
       p.set("cy", p.get<float>("h")/2);
@@ -132,7 +134,8 @@ void testScene() {
     }
 #if 1
     else if (i < n-3){
-      scene.sendReturns<rtObjectRef>("createImage", p);
+      props.set("t","image");
+      scene.sendReturns<rtObjectRef>("create", props, p);
       p.set("url", d);
       p.set("cx", p.get<float>("w")/2);
       p.set("cy", p.get<float>("h")/2);
@@ -140,7 +143,8 @@ void testScene() {
     }
 #endif
     else {
-      scene.sendReturns<rtObjectRef>("createText", p);
+      props.set("t","text");
+      scene.sendReturns<rtObjectRef>("create", props, p);
       p.send("animateTo", "sx", 2.0, 1.0, 0, 0);
       p.send("animateTo", "sy", 2.0, 1.0, 0, 0);
       nx = 200;
@@ -173,11 +177,11 @@ void testScene() {
     p.set("parent", root);
     p.set("x", nx);
     p.set("y", ny);
-
+#ifdef ANIMATION_ROTATE_XYZ
     p.set("rx", 0);
     p.set("ry", 0);
     p.set("rz", 1);
-
+#endif //ANIMATION_ROTATE_XYZ
     p.send("animateTo", "r", 360, 1.0+(i*0.3), 0, 1);
     if (i < n-1) {
       p.send("animateTo", "x", 600, 1.0+(i*0.3), 0, 0);
@@ -275,23 +279,28 @@ void ballScene()
   rtObjectRef root = scene.get<rtObjectRef>("root");  
 
   rtObjectRef bg;
-  scene.sendReturns<rtObjectRef>("createImage", bg);
+  rtObjectRef props = new rtMapObject();
+  props.set("t","image");
+  scene.sendReturns<rtObjectRef>("create", props, bg);
   bg.set("url", d);
-  bg.set("xStretch", 2);
-  bg.set("yStretch", 2);
+  bg.set("stretchX", 2);
+  bg.set("stretchY", 2);
   bg.set("parent", root);
   bg.set("w", scene->w());
   bg.set("h", scene->h());
-  scene.sendReturns<rtObjectRef>("createImage", bg);
+  
+  rtObjectRef props = new rtMapObject();
+  props.set("t","image");  
+  scene.sendReturns<rtObjectRef>("create", props, bg);
   bg.set("url", d2);
-  bg.set("xStretch", 1);
-  bg.set("yStretch", 1);
+  bg.set("stretchX", 1);
+  bg.set("stretchY", 1);
   bg.set("parent", root);
   bg.set("w", scene->w());
   bg.set("h", scene->h());
 
   rtRefT<pxImage> p = new pxImage();
-  p->setURL(d3);
+  p->setUrl(d3);
   p->setParent(root);
   p->setX(450);
   p->setY(350);
@@ -312,8 +321,8 @@ struct callbackCtx
   rtObjectRef picture;
 };
 
-rtString bananaURL;
-rtString ballURL;
+rtString bananaUrl;
+rtString ballUrl;
 
 rtError onSizeCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* context)
 {
@@ -349,12 +358,12 @@ rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void*
       // '1'
     case PX_KEY_ONE:
       printf("banana\n");
-      picture.set("url", bananaURL);
+      picture.set("url", bananaUrl);
       break;
       // '2'
     case PX_KEY_TWO:
       printf("ball\n");
-      picture.set("url", ballURL);
+      picture.set("url", ballUrl);
       break;
     default:
       rtLogWarn("unhandled key");
@@ -375,10 +384,10 @@ pxScene2dRef testScene()
 
   rtString d;
   rtGetCurrentDirectory(d);
-  bananaURL = d;
-  ballURL = d;
-  bananaURL.append("/../images/banana.png");
-  ballURL.append("/../images/ball.png");
+  bananaUrl = d;
+  ballUrl = d;
+  bananaUrl.append("/../images/banana.png");
+  ballUrl.append("/../images/ball.png");
 
   scene->init();
 
@@ -387,13 +396,15 @@ pxScene2dRef testScene()
   root.send("on", "onKeyDown", new rtFunctionCallback(onKeyDownCB,ctx));
   scene.send("on", "onResize", new rtFunctionCallback(onSizeCB,ctx));
 
-  rtString bgURL;
-  scene.sendReturns<rtObjectRef>("createImage", bg1);
-  bgURL = d;
-  bgURL.append("/../images/skulls.png");
-  bg1.set("url", bgURL);
-  bg1.set("xStretch", 2);
-  bg1.set("yStretch", 2);
+  rtString bgUrl;
+  rtObjectRef props = new rtMapObject();
+  props.set("t","image");  
+  scene.sendReturns<rtObjectRef>("create", props, bg1);
+  bgUrl = d;
+  bgUrl.append("/../images/skulls.png");
+  bg1.set("url", bgUrl);
+  bg1.set("stretchX", 2);
+  bg1.set("stretchY", 2);
   bg1.set("parent", root);
   bg1.set("w", scene->w());
   bg1.set("h", scene->h());
@@ -406,18 +417,22 @@ pxScene2dRef testScene()
     printf("i: %d key: %s\n", i, keys.get<rtString>(i).cString());
   }
 
-  scene.sendReturns<rtObjectRef>("createImage", bg2);
-  bgURL = d;
-  bgURL.append("/../images/radial_gradient.png");
-  bg2.set("url", bgURL);
-  bg2.set("xStretch", 1);
-  bg2.set("yStretch", 1);
+  props = new rtMapObject();
+  props.set("t","image");
+  scene.sendReturns<rtObjectRef>("create", props, bg2);
+  bgUrl = d;
+  bgUrl.append("/../images/radial_gradient.png");
+  bg2.set("url", bgUrl);
+  bg2.set("stretchX", 1);
+  bg2.set("stretchY", 1);
   bg2.set("parent", root);
   bg2.set("w", scene->w());
   bg2.set("h", scene->h());
 
   rtObjectRef r;
-  scene.sendReturns<rtObjectRef>("createRectangle", r);
+  props = new rtMapObject();
+  props.set("t","rect");
+  scene.sendReturns<rtObjectRef>("create", props, r);
   if (r)
   {
     r.set("w", 300);
@@ -427,7 +442,9 @@ pxScene2dRef testScene()
   }
 
   rtObjectRef t;
-  scene.sendReturns<rtObjectRef>("createText", t);
+  props = new rtMapObject();
+  props.set("t","text");
+  scene.sendReturns<rtObjectRef>("create", props, t);
 #if 1
   t.set("text", "Select an image to display:\n\n"
         "1: Banana\n"
@@ -438,16 +455,17 @@ pxScene2dRef testScene()
   t.set("x", 10);
   t.set("y", 10);
   t.set("parent", root);
-
-  scene.sendReturns<rtObjectRef>("createImage", picture);
+  props = new rtMapObject();
+  props.set("t","image");
+  scene.sendReturns<rtObjectRef>("create", props, picture);
   picture.set("x", 400);
   picture.set("y", 400);
   // TODO animateTo now takes a property bag of properties and targets too lazy to fix this call right now
-  rtObjectRef props = new rtMapObject;
+  props = new rtMapObject();
   props.set("r",360.0);
-  picture.send("animateTo", props, 0.5, 0, 1);
+  picture.send("animateTo", props, 0.5, rtConstantsAnimation::TWEEN_LINEAR, rtConstantsAnimation::OPTION_OSCILLATE);
   picture.set("parent", root);
-  picture.set("url", bananaURL);
+  picture.set("url", bananaUrl);
 
   printf("Enumerate children of root object\n");
   rtObjectRef c = root.get<rtObjectRef>("children");

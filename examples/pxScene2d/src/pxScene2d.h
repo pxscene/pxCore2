@@ -30,6 +30,7 @@ using namespace std;
 #include "rtObjectMacros.h"
 #include "rtPromise.h"
 #include "rtThreadQueue.h"
+#include "rtResource.h"
 
 #include "pxCore.h"
 #include "pxIView.h"
@@ -37,7 +38,7 @@ using namespace std;
 #include "pxMatrix4T.h"
 #include "pxInterpolators.h"
 #include "pxTexture.h"
-#include "pxTextureCacheObject.h"
+//#include "pxTextureCacheObject.h"
 #include "pxContextFramebuffer.h"
 
 #include "pxArchive.h"
@@ -49,24 +50,10 @@ extern rtThreadQueue gUIThreadQueue;
 
 // TODO Finish
 //#include "pxTransform.h"
+#include "rtConstants.h"
 
-
-// Interpolator constants
-#define PX_LINEAR_         0
-#define PX_EXP1_           1 
-#define PX_EXP2_           2
-#define PX_EXP3_           3
-#define PX_STOP_           4
-#define PX_INQUAD_         5
-#define PX_INCUBIC_        6
-#define PX_INBACK_         7
-#define PX_EASEINELASTIC_  8
-#define PX_EASEOUTELASTIC_ 9
-#define PX_EASEOUTBOUNCE_  10
-
-#define PX_NONE_           0
-#define PX_STRETCH_        1
-#define PX_REPEAT_         2
+// Constants
+static rtConstants CONSTANTS;
 
 
 #if 0
@@ -75,12 +62,8 @@ void registerObjectFactory(objectFactory f, void* context);
 rtError createObject2(const char* t, rtObjectRef& o);
 #endif
 
-typedef double (*pxInterp)(double i);
 typedef void (*pxAnimationEnded)(void* ctx);
 
-double pxInterpLinear(double i);
-
-enum pxAnimationType {PX_END = 0, PX_OSCILLATE, PX_LOOP};
 
 struct pxAnimationTarget {
   char* prop;
@@ -95,7 +78,7 @@ struct animation {
   bool flip;
   double start;
   double duration;
-  pxAnimationType at;
+  rtConstantsAnimation::animationOptions at;//pxAnimationType at;
   pxInterp interp;
   rtFunctionRef ended;
   rtObjectRef promise;
@@ -107,10 +90,6 @@ struct pxPoint2f {
   float x, y;
 };
 
-typedef double (*pxInterp)(double i);
-typedef void (*pxAnimationEnded)(void* ctx);
-
-double pxInterpLinear(double i);
 
 class pxFileDownloadRequest;
 
@@ -138,17 +117,19 @@ public:
   rtProperty(sy, sy, setSY, float);
   rtProperty(a, a, setA, float);
   rtProperty(r, r, setR, float);
+#ifdef ANIMATION_ROTATE_XYZ
   rtProperty(rx, rx, setRX, float);
   rtProperty(ry, ry, setRY, float);
   rtProperty(rz, rz, setRZ, float);
+#endif // ANIMATION_ROTATE_XYZ
   rtProperty(id, id, setId, rtString);
   rtProperty(interactive, interactive, setInteractive, bool);
   rtProperty(painting, painting, setPainting, bool);
   rtProperty(clip, clip, setClip, bool);
-  rtProperty(mask, mask, setMask, rtString);
-  rtProperty(drawAsMask, drawAsMask, setDrawAsMask, bool);
+  rtProperty(mask, mask, setMask, bool);
   rtProperty(draw, drawEnabled, setDrawEnabled, bool);
-  rtProperty(drawAsHitTest, drawAsHitTest, setDrawAsHitTest, bool);
+  rtProperty(hitTest, hitTest, setHitTest, bool);
+  rtProperty(focus, focus, setFocus, bool); 
   rtReadOnlyProperty(ready, ready, rtObjectRef);
 
   rtReadOnlyProperty(numChildren, numChildren, int32_t);
@@ -164,9 +145,9 @@ public:
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
-  rtProperty(onReady, onReady, setOnReady, rtFunctionRef);
+ // rtProperty(onReady, onReady, setOnReady, rtFunctionRef);
 
-  rtReadOnlyProperty(emit, emit, rtFunctionRef);
+//  rtReadOnlyProperty(emit, emit, rtFunctionRef);
   rtMethod1ArgAndReturn("getObjectById",getObjectById,rtString,rtObjectRef);
 
   rtProperty(m11,m11,setM11,float);
@@ -188,10 +169,13 @@ public:
   rtProperty(useMatrix,useMatrix,setUseMatrix,bool);
 
   pxObject(pxScene2d* scene): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
-    mrx(0), mry(0), mrz(1.0), msx(1), msy(1), mw(0), mh(0),
+#ifdef ANIMATION_ROTATE_XYZ  
+    mrx(0), mry(0), mrz(1.0), 
+#endif //ANIMATION_ROTATE_XYZ
+    msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
-    mSnapshotRef(), mPainting(true), mClip(false), mMaskUrl(), mDrawAsMask(false), mDraw(true), mDrawAsHitTest(true), mReady(), mMaskTextureRef(),
-    mMaskTextureCacheObject(),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
+    mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(), 
+    mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
       , mRepaintCount(0) //TODO - remove mRepaintCount as it's only needed on certain platforms
 #ifdef PX_DIRTY_RECTANGLES
     , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
@@ -285,6 +269,7 @@ public:
   float r()             const { return mr; }
   rtError r(float& v)   const { v = mr; return RT_OK;   }
   rtError setR(float v)       { cancelAnimation("r"); createNewPromise();mr = v; return RT_OK;   }
+#ifdef ANIMATION_ROTATE_XYZ
   float rx()            const { return mrx;}
   rtError rx(float& v)  const { v = mrx; return RT_OK;  }
   rtError setRX(float v)      { cancelAnimation("rx"); createNewPromise(); mrx = v; return RT_OK;  }
@@ -294,6 +279,7 @@ public:
   float rz()            const { return mrz;}
   rtError rz(float& v)  const { v = mrz; return RT_OK;  }
   rtError setRZ(float v)      { cancelAnimation("rz"); createNewPromise();mrz = v; return RT_OK;  }
+#endif // ANIMATION_ROTATE_XYZ
   bool painting()            const { return mPainting;}
   rtError painting(bool& v)  const { v = mPainting; return RT_OK;  }
   rtError setPainting(bool v)
@@ -301,6 +287,7 @@ public:
       mPainting = v; 
       if (!mPainting)
       {
+        //rtLogInfo("in setPainting and calling createSnapshot mw=%f mh=%f\n", mw, mh);
         mSnapshotRef = createSnapshot(mSnapshotRef);
       }
       else
@@ -313,23 +300,23 @@ public:
   bool clip()            const { return mClip;}
   rtError clip(bool& v)  const { v = mClip; return RT_OK;  }
   virtual rtError setClip(bool v) { mClip = v; return RT_OK; }
-  
-  rtString mask()            const { return mMaskUrl;}
-  rtError mask(rtString& v)  const { v = mMaskUrl; return RT_OK;  }
-  rtError setMask(rtString v) { mMaskUrl = v; createMask(); return RT_OK; }
 
-  bool drawAsMask()            const { return mDrawAsMask;}
-  rtError drawAsMask(bool& v)  const { v = mDrawAsMask; return RT_OK;  }
-  rtError setDrawAsMask(bool v) { mDrawAsMask = v; return RT_OK; }
+  bool mask()            const { return mMask;}
+  rtError mask(bool& v)  const { v = mMask; return RT_OK;  }
+  rtError setMask(bool v) { mMask = v; return RT_OK; }
 
   bool drawEnabled()            const { return mDraw;}
   rtError drawEnabled(bool& v)  const { v = mDraw; return RT_OK;  }
   rtError setDrawEnabled(bool v) { mDraw = v; return RT_OK; }
 
-  bool drawAsHitTest()            const { return mDrawAsHitTest;}
-  rtError drawAsHitTest(bool& v)  const { v = mDrawAsHitTest; return RT_OK;  }
-  rtError setDrawAsHitTest(bool v) { mDrawAsHitTest = v; return RT_OK; }
+  bool hitTest()            const { return mHitTest;}
+  rtError hitTest(bool& v)  const { v = mHitTest; return RT_OK;  }
+  rtError setHitTest(bool v) { mHitTest = v; return RT_OK; }
 
+  bool focus()            const { return mFocus;}
+  rtError focus(bool& v)  const { v = mFocus; return RT_OK;  }
+  rtError setFocus(bool v);
+  
   rtError ready(rtObjectRef& v) const
   {
     v = mReady;
@@ -349,6 +336,8 @@ public:
   bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit, pxPoint2f& hitPt);
   virtual bool hitTest(pxPoint2f& pt);
 
+  void setFocusInternal(bool focus) { mFocus = focus; }
+  
   rtError animateTo(const char* prop, double to, double duration,
                      uint32_t interp, uint32_t animationType, 
                      rtObjectRef promise);
@@ -358,7 +347,7 @@ public:
                       rtObjectRef& promise);
 
   void animateTo(const char* prop, double to, double duration,
-		 pxInterp interp, pxAnimationType at, 
+		 pxInterp interp, rtConstantsAnimation::animationOptions,//pxAnimationType at, 
                  rtObjectRef promise);
 
   void cancelAnimation(const char* prop, bool fastforward = false);
@@ -373,18 +362,18 @@ public:
     return mEmit->delListener(eventName, f);
   }
 
-  rtError onReady(rtFunctionRef& /*f*/) const
-  {
-    rtLogError("onReady get not implemented\n");
-    return RT_OK;
-  }
+  //rtError onReady(rtFunctionRef& /*f*/) const
+  //{
+    //rtLogError("onReady get not implemented\n");
+    //return RT_OK;
+  //}
 
   // TODO why does this have to be const
-  rtError setOnReady(const rtFunctionRef& f)
-  {
-    mEmit->setListener("onReady", f);
-    return RT_OK;
-  }
+  //rtError setOnReady(const rtFunctionRef& f)
+  //{
+    //mEmit->setListener("onReady", f);
+    //return RT_OK;
+  //}
 
   virtual void update(double t);
 
@@ -401,14 +390,19 @@ public:
     i.set("sx",1);
     i.set("sy",1);
     i.set("r",0);
+#ifdef ANIMATION_ROTATE_XYZ    
     i.set("rx",0);
     i.set("ry",0);
     i.set("rz",1);
-
+#endif //ANIMATION_ROTATE_XYZ
     printf("before initTransform\n");
     t->initTransform(i, 
       "x cx + y cy + translateXY "
+#ifdef ANIMATION_ROTATE_XYZ
       "r rx ry rz rotateInDegreesXYZ "
+#else
+      "r rotateInDegrees rotateInDegreesXYZ "
+#endif //ANIMATION_ROTATE_XYZ
       "sx sy scaleXY "
       "cx -1 * cy -1 * translateXY "
       );
@@ -442,13 +436,25 @@ public:
 #if 1
       // translate based on xy rotate/scale based on cx, cy
       m.translate(mx+mcx, my+mcy);
-      if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
+      if (mr) {
+        m.rotateInDegrees(mr
+#ifdef ANIMATION_ROTATE_XYZ
+        , mrx, mry, mrz
+#endif // ANIMATION_ROTATE_XYZ        
+        );
+      }
       if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);  
       m.translate(-mcx, -mcy);    
 #else
       // translate/rotate/scale based on cx, cy
       m.translate(mx, my);
-      if (mr) m.rotateInDegrees(mr, mrx, mry, mrz);
+      if (mr) {
+        m.rotateInDegrees(mr
+#ifdef ANIMATION_ROTATE_XYZ
+        , mrx, mry, mrz
+#endif // ANIMATION_ROTATE_XYZ        
+        );
+      }
       if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
       m.translate(-mcx, -mcy);
 #endif
@@ -468,7 +474,13 @@ public:
       pxMatrix4f m2;
 #if 0
       m2.translate(j->mx+j->mcx, j->my+j->mcy);
-      if (j->mr) m2.rotateInDegrees(j->mr, j->mrx, j->mry, j->mrz);
+      if (j->mr) {
+        m2.rotateInDegrees(j->mr
+#ifdef ANIMATION_ROTATE_XYZ        
+        , j->mrx, j->mry, j->mrz
+#endif //ANIMATION_ROTATE_XYZ        
+        );
+      }
       if (j->msx != 1.0 || j->msy != 1.0) m2.scale(j->msx, j->msy);  
       m2.translate(-j->mcx, -j->mcy);
 #else
@@ -502,7 +514,14 @@ public:
       rtRefT<pxObject>& j = *it;;
       pxMatrix4f m2;
       m2.translate(j->mx+j->mcx, j->my+j->mcy);
-      if (j->mr) m2.rotateInDegrees(j->mr, j->mrx, j->mry, j->mrz);
+      if (j->mr) {
+        m2.rotateInDegrees(j->mr
+#ifdef ANIMATION_ROTATE_XYZ        
+        , j->mrx, j->mry, j->mrz
+#endif //ANIMATION_ROTATE_XYZ      
+        );
+      }
+      
       if (j->msx != 1.0 || j->msy != 1.0) m2.scale(j->msx, j->msy);  
       m2.translate(-j->mcx, -j->mcy);
       m2.invert();
@@ -565,7 +584,13 @@ public:
     return RT_OK;
   }
 
-  virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status);
+  virtual bool onTextureReady();
+  // !CLF: To Do: These names are terrible... find better ones!
+  // These to functions are not exposed to javascript; they are for internal
+  // determination of w/h for the pxObject. For instance, pxImage could be
+  // from the texture or the pxImage values themselves.
+  virtual float getOnscreenWidth() {  return mw; }
+  virtual float getOnscreenHeight() { return mh;  }
 
   rtError m11(float& v) const { v = mMatrix.constData(0); return RT_OK; }
   rtError m12(float& v) const { v = mMatrix.constData(1); return RT_OK; }
@@ -614,18 +639,20 @@ protected:
   rtRefT<pxObject> mParent;
   vector<rtRefT<pxObject> > mChildren;
 //  vector<animation> mAnimations;
-  float mcx, mcy, mx, my, ma, mr, mrx, mry, mrz, msx, msy, mw, mh;
+  float mcx, mcy, mx, my, ma, mr;
+#ifdef ANIMATION_ROTATE_XYZ
+  float mrx, mry, mrz;
+#endif // ANIMATION_ROTATE_XYZ
+  float msx, msy, mw, mh;
   bool mInteractive;
   pxContextFramebufferRef mSnapshotRef;
   bool mPainting;
   bool mClip;
-  rtString mMaskUrl;
-  bool mDrawAsMask;
+  bool mMask;
   bool mDraw;
-  bool mDrawAsHitTest;
+  bool mHitTest;
   rtObjectRef mReady;
-  pxTextureRef mMaskTextureRef;
-  pxTextureCacheObject mMaskTextureCacheObject;
+  bool mFocus;
   pxContextFramebufferRef mClipSnapshotRef;
   bool mCancelInSet;
   rtString mId;
@@ -642,8 +669,6 @@ protected:
   pxContextFramebufferRef createSnapshot(pxContextFramebufferRef fbo);
   void createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxContextFramebufferRef maskFbo);
   void deleteSnapshot(pxContextFramebufferRef fbo);
-  void createMask();
-  void deleteMask();
   #ifdef PX_DIRTY_RECTANGLES
   pxRect getBoundingRectInScreenCoordinates();
   #endif //PX_DIRTY_RECTANGLES
@@ -705,8 +730,8 @@ public:
   void invalidateRect(pxRect* r);
 
 #if 0
-  rtError uri(rtString& v) const { v = mURI; return RT_OK; }
-  rtError setURI(rtString v) { mURI = v; return RT_OK; }
+  rtError url(rtString& v) const { v = mUri; return RT_OK; }
+  rtError setUrl(rtString v) { mUri = v; return RT_OK; }
 #endif
 
   rtError w(float& v) const { v = mw; return RT_OK; }
@@ -842,7 +867,7 @@ public:
 
 protected:
   pxViewRef mView;
-  rtString mURI;
+  rtString mUrl;
 };
 
 
@@ -850,14 +875,14 @@ class pxSceneContainer: public pxViewContainer
 {
 public:
   rtDeclareObject(pxSceneContainer, pxViewContainer);
-  rtProperty(url, uri, setURI, rtString);
+  rtProperty(url, url, setUrl, rtString);
   rtReadOnlyProperty(api, api, rtValue);
   rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);
   
 pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
 
-  rtError uri(rtString& v) const { v = mURI; return RT_OK; }
-  rtError setURI(rtString v);
+  rtError url(rtString& v) const { v = mUrl; return RT_OK; }
+  rtError setUrl(rtString v);
 
   rtError api(rtValue& v) const;
 
@@ -865,7 +890,7 @@ pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
 
 private:
   rtRefT<pxScene2d> mScene;
-  rtString mURI;
+  rtString mUrl;
 };
 
 
@@ -882,21 +907,25 @@ public:
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
-  rtMethod1ArgAndReturn("createRectangle", createRectangle, rtObjectRef, rtObjectRef);
-  rtMethod1ArgAndReturn("createImage", createImage, rtObjectRef, rtObjectRef);
-  rtMethod1ArgAndReturn("createImage9", createImage9, rtObjectRef, rtObjectRef);
-  rtMethod1ArgAndReturn("createText", createText, rtObjectRef, rtObjectRef);
-  rtMethod1ArgAndReturn("createText2", createText2, rtObjectRef, rtObjectRef);
-  rtMethod1ArgAndReturn("createScene", createScene, rtObjectRef, rtObjectRef);
-  rtMethod1ArgAndReturn("getFont", getFont, rtString, rtObjectRef);
+//  rtMethod1ArgAndReturn("createRectangle", createRectangle, rtObjectRef, rtObjectRef);
+//  rtMethod1ArgAndReturn("createImage", createImage, rtObjectRef, rtObjectRef);
+//  rtMethod1ArgAndReturn("createImage9", createImage9, rtObjectRef, rtObjectRef);
+//  rtMethod1ArgAndReturn("createImageResource", createImageResource, rtObjectRef, rtObjectRef);
+  //rtMethod1ArgAndReturn("createText", createText, rtObjectRef, rtObjectRef);
+  //rtMethod1ArgAndReturn("createTextBox", createTextBox, rtObjectRef, rtObjectRef);
+  //rtMethod1ArgAndReturn("createScene", createScene, rtObjectRef, rtObjectRef);
+//  rtMethod1ArgAndReturn("getFont", getFont, rtString, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
-  rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
-                        rtObjectRef);
+  //rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
+                        //rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
 
   // TODO make this a property
-  rtMethod1ArgAndNoReturn("setFocus", setFocus, rtObjectRef);
+  // focus is now a bool property on pxObject
+  //rtMethod1ArgAndNoReturn("setFocus", setFocus, rtObjectRef);
+  rtMethodNoArgAndReturn("getFocus", getFocus, rtObjectRef);
+  
   
   rtMethodNoArgAndNoReturn("stopPropagation",stopPropagation);
   
@@ -904,29 +933,13 @@ public:
 
   rtProperty(ctx, ctx, setCtx, rtValue);
   rtProperty(api, api, setAPI, rtValue);
-  rtReadOnlyProperty(emit, emit, rtFunctionRef);
-  rtConstantProperty(PX_LINEAR, PX_LINEAR_, uint32_t);
-  rtConstantProperty(PX_EXP1, PX_EXP1_, uint32_t);
-  rtConstantProperty(PX_EXP2, PX_EXP2_, uint32_t);
-  rtConstantProperty(PX_EXP3, PX_EXP3_, uint32_t);
-  rtConstantProperty(PX_STOP, PX_STOP_, uint32_t);
-  rtConstantProperty(PX_INQUAD, PX_INQUAD_, uint32_t);
-  rtConstantProperty(PX_INCUBIC, PX_INCUBIC_, uint32_t);
-  rtConstantProperty(PX_INBACK, PX_INBACK_, uint32_t);
-  rtConstantProperty(PX_EASEINELASTIC, PX_EASEINELASTIC_, uint32_t);
-  rtConstantProperty(PX_EASEOUTELASTIC, PX_EASEOUTELASTIC_, uint32_t);
-  rtConstantProperty(PX_EASEOUTBOUNCE, PX_EASEOUTBOUNCE_, uint32_t);
-  rtConstantProperty(PX_END, PX_END, uint32_t);
-  // TODO deprecated remove from js samples
-  rtConstantProperty(PX_SEESAW, PX_OSCILLATE, uint32_t);
-  rtConstantProperty(PX_OSCILLATE, PX_OSCILLATE, uint32_t);
-  rtConstantProperty(PX_LOOP, PX_LOOP, uint32_t);
-  rtConstantProperty(PX_NONE, PX_NONE_, uint32_t);
-  rtConstantProperty(PX_STRETCH, PX_STRETCH_, uint32_t);
-  rtConstantProperty(PX_REPEAT, PX_REPEAT_, uint32_t);
- 
-  rtReadOnlyProperty(allInterpolators, allInterpolators, rtObjectRef);
-
+//  rtReadOnlyProperty(emit, emit, rtFunctionRef);
+  // Properties for returning various CONSTANTS
+  rtReadOnlyProperty(animation,animation,rtObjectRef);
+  rtReadOnlyProperty(stretch,stretch,rtObjectRef);
+  rtReadOnlyProperty(alignVertical,alignVertical,rtObjectRef);
+  rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
+  rtReadOnlyProperty(truncation,truncation,rtObjectRef);
 
   pxScene2d(bool top = true);
   
@@ -960,11 +973,14 @@ public:
   rtError createObject(rtObjectRef p, rtObjectRef& o);
   rtError createRectangle(rtObjectRef p, rtObjectRef& o);
   rtError createText(rtObjectRef p, rtObjectRef& o);
-  rtError createText2(rtObjectRef p, rtObjectRef& o);
+  rtError createTextBox(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
+  rtError createImageResource(rtObjectRef p, rtObjectRef& o); 
+  rtError createFontResource(rtObjectRef p, rtObjectRef& o);  
   rtError createScene(rtObjectRef p,rtObjectRef& o);
-  rtError getFont(rtString p, rtObjectRef& o);
+//  rtError createFont(rtObjectRef p, rtObjectRef& o);
+//  rtError getFont(rtString p, rtObjectRef& o);
   rtError clock(uint64_t & time);
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
 
@@ -978,9 +994,9 @@ public:
     return mEmit->delListener(eventName, f);
   }
 
-  rtError focus(rtObjectRef& o)
+  rtError getFocus(rtObjectRef& o)
   {
-    o = mFocus;
+    o = mFocusObj;
     return RT_OK;
   }
 
@@ -1001,7 +1017,11 @@ public:
 
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
   
-  rtError allInterpolators(rtObjectRef& v) const;
+  rtError animation(rtObjectRef& v) const {v = &CONSTANTS.animationConstants; return RT_OK;}
+  rtError stretch(rtObjectRef& v) const {v = &CONSTANTS.stretchConstants; return RT_OK;}
+  rtError alignVertical(rtObjectRef& v) const {v = &CONSTANTS.alignVerticalConstants; return RT_OK;}
+  rtError alignHorizontal(rtObjectRef& v) const {v = &CONSTANTS.alignHorizontalConstants; return RT_OK;}
+  rtError truncation(rtObjectRef& v) const {v = &CONSTANTS.truncationConstants; return RT_OK;}
 
   void setMouseEntered(pxObject* o);
 
@@ -1077,7 +1097,7 @@ private:
   rtError screenshot(rtString type, rtString& pngData);
   
   rtRefT<pxObject> mRoot;
-  rtObjectRef mFocus;
+  rtObjectRef mFocusObj;
   double start, end2;
   int frameCount;
   int mWidth;

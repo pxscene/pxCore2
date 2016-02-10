@@ -3,14 +3,14 @@ var setLoggingLevel = require('rcvrcore/Logger').setLoggingLevel;
 var argDefinitions = {screenWidth:{required:false, default:1280, help:"Specifies the screen width"},
   screenHeight:{required:false, default:720, help:"Specifies the screen height"},
   logLevel:{required:false, default:1, help:"Specifies the logging level (0-N)"},
-  url:{required:true, help:"Specifies JavaScript file to load"},
+                              url:{required:false, /*true,*/     help:"Specifies JavaScript file to load"},
   useNodeBasedImports:{required:false, help:"If true then imports don't need to specify file extensions"}
 };
 
 var argProcessor = require("rcvrcore/utils/ArgProcessor");
 var processArgs = argProcessor(process.argv, argDefinitions);
 
-if (processArgs['url']=='')
+if (processArgs['url']=='' || typeof(processArgs['url'])=='undefined')
   processArgs['url'] = 'browser.js';
 
 if( processArgs.hasOwnProperty('logLevel')) {

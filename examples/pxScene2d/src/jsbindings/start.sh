@@ -3,10 +3,12 @@
 ulimit -c unlimited
 
 pxSceneDir=../..
+nodeBinaryDir=../../external/libnode/out/Release
 jsbindingsDir=$pxSceneDir/src/jsbindings
 
 echo "Start"
-echo "pxSceneDir=" $pxSceneDir
+echo "   pxSceneDir=" $pxSceneDir
+echo "nodeBinaryDir=" $nodeBinaryDir
 echo "jsbindingsDir=" $jsbindingsDir
 echo "\n"
 
@@ -19,4 +21,4 @@ export NODE_PATH=./:$jsbindingsDir/build/Debug:./node_modules
 
 echo $LD_LIBRARY_PATH
 
-node start.js url=$*
+$nodeBinaryDir/node start.js url=$*

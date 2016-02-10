@@ -21,29 +21,28 @@ extern pxContext context;
 void pxImage9::onInit()
 {
   mInitialized = true;
-  setURL(mURL);
+  setUrl(getImageResource()->getUrl());
 }
 
 rtError pxImage9::url(rtString& s) const 
 { 
-  s = mURL; 
+  s = getImageResource()->getUrl(); 
   return RT_OK; 
 }
 
-rtError pxImage9::setURL(const char* s) { 
-  
-  if(mURL.length() > 0 && mURL.compare(s) && imageLoaded)
+rtError pxImage9::setUrl(const char* s) 
+{ 
+  rtImageResource* resourceObj = getImageResource();  
+  if(resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s) && imageLoaded)
   {
     imageLoaded = false;
     pxObject::createNewPromise();
-  }      
-  mURL = s;
+  } 
+  // !CLF ToDo: DeleteListener if the image hasn't loaded yet.  See pxImage.cpp
 
-  if (!s || !u8_strlen((char*)s)) 
-    return RT_OK;  
-    
-  if(mInitialized)
-    loadImage(mURL);
+  mResource = pxImageManager::getImage(s); 
+  if(getImageResource()->getUrl().length() > 0)
+    getImageResource()->addListener(this);
     
   return RT_OK;
 }
@@ -53,60 +52,50 @@ void pxImage9::sendPromise()
   //printf("image9 init=%d imageLoaded=%d\n",mInitialized,imageLoaded);
   if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status()) 
   { 
-    rtLogDebug("pxImage9 SENDPROMISE for %s\n", mURL.cString()); 
+    rtLogDebug("pxImage9 SENDPROMISE for %s\n", getImageResource()->getUrl().cString()); 
     mReady.send("resolve",this);
   } 
 }
 
 
 void pxImage9::draw() {
-  context.drawImage9(mw, mh, ml, mt, mr, mb, mTextureCacheObject.getTexture());
+  context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
 }
 
-void pxImage9::loadImage(rtString url)
+void pxImage9::resourceReady(rtString readyResolution)
 {
-  mTextureCacheObject.setURL(url);
-}
-
-bool pxImage9::onTextureReady(pxTextureCacheObject* textureCacheObject, rtError status)
-{
-  if (pxObject::onTextureReady(textureCacheObject, status))
+  //printf("pxImage9::resourceReady()\n");
+  if( !readyResolution.compare("resolve"))
   {
+    imageLoaded = true; 
+    // nineslice gets its w and h from the image only
+    mw = getImageResource()->w();
+    mh = getImageResource()->h();
     imageLoaded = true;
-    return true;
+    pxObject::onTextureReady();
+    // Now that image is loaded, must force redraw;
+    // dimensions could have changed.
+    mScene->mDirty = true;
+    pxObject* parent = mParent;
+    if( !parent)
+    {
+      // Send the promise here because the image will not get an 
+      // update call until it has a parent
+      sendPromise();
+      //rtLogInfo("In pxImage::resourceReady, pxImage with url=%s has no parent!\n", getImageResource()->getUrl().cString());
+    }
   }
-
-  if (textureCacheObject != NULL)
+  else 
   {
-    mStatusCode = textureCacheObject->getStatusCode();
-    mHttpStatusCode = textureCacheObject->getHttpStatusCode();
+      pxObject::onTextureReady();
+      mReady.send("reject",this);
   }
-  
-  pxObject* parent = mParent;
-  if( !parent)
-  {
-    // Send the promise here because the image will not get an 
-    // update call until it has a parent
-    sendPromise();
-    rtLogDebug("In pxImage9::onTextureReady, pxImage with url=%s has no parent!\n", mURL.cString());
-  }
-  
-  if (textureCacheObject != NULL && status == RT_OK && textureCacheObject->getTexture().getPtr() != NULL)
-  {
-    mw = textureCacheObject->getTexture()->width();
-    mh = textureCacheObject->getTexture()->height();
-    imageLoaded = true;
-    return true;
-  }
-  mReady.send("reject",this);
-  return false;
 }
 
 rtDefineObject(pxImage9, pxObject);
 rtDefineProperty(pxImage9, url);
-rtDefineProperty(pxImage9, lInset);
-rtDefineProperty(pxImage9, tInset);
-rtDefineProperty(pxImage9, rInset);
-rtDefineProperty(pxImage9, bInset);
-rtDefineProperty(pxImage9,statusCode);
-rtDefineProperty(pxImage9,httpStatusCode);
+rtDefineProperty(pxImage9, insetLeft);
+rtDefineProperty(pxImage9, insetTop);
+rtDefineProperty(pxImage9, insetRight);
+rtDefineProperty(pxImage9, insetBottom);
+rtDefineProperty(pxImage9, resource);
