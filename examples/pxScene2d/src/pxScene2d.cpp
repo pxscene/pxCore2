@@ -23,6 +23,7 @@
 #include "pxText2.h"
 #include "pxImage.h"
 #include "pxImage9.h"
+#include "pxWayland.h"
 
 #include "pxContext.h"
 #include "pxFileDownloader.h"
@@ -52,6 +53,11 @@ void stopProfiling()
 }
 #endif //ENABLE_VALGRIND
 
+#define WAYLAND_EVENT( event, target, ...) \
+  pxWayland *wayland= dynamic_cast<pxWayland*>((pxObject*)(target)); \
+  if ( wayland ) { \
+     wayland->event( __VA_ARGS__ ); \
+  }
 
 static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
@@ -1050,6 +1056,16 @@ pxScene2d::pxScene2d(bool top)
   e.set("target",mFocus);
   rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
   t->mEmit.send("onFocus",e);
+  #ifdef USE_SCENE_POINTER
+  mPointerX= 0;
+  mPointerY= 0;
+  mPointerW= 0;
+  mPointerH= 0;
+  mPointerHotSpotX= 40;
+  mPointerHotSpotY= 16;
+  mPointerHidden= false;
+  mPointerTextureCacheObj.setURL("cursor.png");
+  #endif
 }
 
 void pxScene2d::init()
@@ -1085,6 +1101,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createScene(p,o);
   else if (!strcmp("external",t.cString()))
     e = createExternal(p,o);
+  else if (!strcmp("wayland",t.cString()))
+    e = createWayland(p,o);
   else if (!strcmp("object",t.cString()))
     e = createObject(p,o);
   else
@@ -1191,6 +1209,15 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
+rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
+{
+  o = new pxWayland(this);
+  o.set(p);
+  o.send("init");
+
+  return RT_OK;
+}
+
 rtError pxScene2d::allInterpolators(rtObjectRef& v) const
 {
   rtRefT<rtArrayObject> keys = new rtArrayObject;
@@ -1256,6 +1283,25 @@ void pxScene2d::draw()
     context.popState();
   }
   #endif //PX_DIRTY_RECTANGLES
+  #ifdef USE_SCENE_POINTER
+  if (mPointerTexture.getPtr() == NULL)
+  {
+    mPointerTexture = mPointerTextureCacheObj.getTexture();
+    if (mPointerTexture.getPtr() != NULL)
+    {
+      mPointerW = mPointerTexture->width();
+      mPointerH = mPointerTexture->height();
+    }
+  }
+  if ( (mPointerTexture.getPtr() != NULL) &&
+       !mPointerHidden )
+  {
+     context.drawImage( mPointerX-mPointerHotSpotX, mPointerY-mPointerHotSpotY, 
+                        mPointerW, mPointerH, 
+                        mPointerTexture, mNullTexture, PX_NONE, PX_NONE );
+                        
+  }
+  #endif
 }
 
 
@@ -1382,6 +1428,7 @@ void pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
       #if 0
       hit->mEmit.send("onMouseDown", e);
       #else
+      WAYLAND_EVENT( onMouseDown, hit );
       bubbleEvent(e,hit,"onPreMouseDown","onMouseDown");
       #endif
     }
@@ -1427,6 +1474,7 @@ void pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
         #if 0
         hit->mEmit.send("onMouseUp", e);
         #else
+        WAYLAND_EVENT( onMouseUp, hit );
         bubbleEvent(e,hit,"onPreMouseUp","onMouseUp");
         #endif
       }
@@ -1452,6 +1500,7 @@ void pxScene2d::setMouseEntered(pxObject* o)
       #if 0
       mMouseEntered->mEmit.send("onMouseLeave", e);
       #else
+      WAYLAND_EVENT( onMouseLeave, mMouseEntered );
       bubbleEvent(e,mMouseEntered,"onPreMouseLeave","onMouseLeave");
       #endif
     }
@@ -1466,6 +1515,7 @@ void pxScene2d::setMouseEntered(pxObject* o)
       #if 0
       mMouseEntered->mEmit.send("onMouseEnter", e);
       #else
+      WAYLAND_EVENT( onMouseEnter, mMouseEntered );
       bubbleEvent(e,mMouseEntered,"onPreMouseEnter","onMouseEnter");
       #endif
     }
@@ -1558,6 +1608,8 @@ void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
     {
       // TODO a bit messy
       rtFunctionRef emit = (*it)->mEmit.getPtr();
+      // TODO: As we bubble onMouseMove we need to keep adjusting the coordinates into the
+      // coordinate space of the successive parents object ??
       if (emit)
         emit.send(event,e);
     }
@@ -1566,6 +1618,12 @@ void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
 
 void pxScene2d::onMouseMove(int32_t x, int32_t y)
 {
+  #ifdef USE_SCENE_POINTER
+  mPointerX= x;
+  mPointerY= y;
+  invalidateRect(NULL);
+  mDirty= true;
+  #endif
 #if 1
   {
     // Send to root scene in global window coordinates
@@ -1626,6 +1684,7 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
     e.set("target", mMouseDown.getPtr());
     e.set("x", to.x());
     e.set("y", to.y());
+    WAYLAND_EVENT( onMouseMove, mMouseDown, to.x(), to.y() );
     bubbleEvent(e, mMouseDown, "onPreMouseMove", "onMouseMove");
 #endif
     }
@@ -1659,6 +1718,7 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
 #if 0
       hit->mEmit.send("onMouseMove",e);
 #else
+      WAYLAND_EVENT( onMouseMove, hit, hitPt.x, hitPt.y );
       bubbleEvent(e, hit, "onPreMouseMove", "onMouseMove");
 #endif
 #endif
@@ -1693,6 +1753,7 @@ void pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags)
     e.set("keyCode", keyCode);
     e.set("flags", (uint32_t)flags);
     rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+    WAYLAND_EVENT( onKeyDown, t, keyCode, flags );
     bubbleEvent(e, t, "onPreKeyDown", "onKeyDown");
   }
 }
@@ -1706,6 +1767,7 @@ void pxScene2d::onKeyUp(uint32_t keyCode, uint32_t flags)
     e.set("keyCode", keyCode);
     e.set("flags", (uint32_t)flags);
     rtRefT<pxObject> t = (pxObject*)mFocus.get<voidPtr>("_pxObject");
+    WAYLAND_EVENT( onKeyUp, t, keyCode, flags );
     bubbleEvent(e, t, "onPreKeyUp", "onKeyUp");
   }
 }
@@ -1807,6 +1869,7 @@ rtDefineMethod(pxScene2d, createImage);
 rtDefineMethod(pxScene2d, createImage9);
 rtDefineMethod(pxScene2d, createScene);
 rtDefineMethod(pxScene2d, createExternal);
+rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
 rtDefineMethod(pxScene2d, setFocus);

@@ -26,6 +26,7 @@ PX_SRCS=\
     pxText.cpp \
     pxText2.cpp \
     pxImage.cpp \
+    pxWayland.cpp \
     pxUtil.cpp \
     pxContextGL.cpp \
     pxImage9.cpp \

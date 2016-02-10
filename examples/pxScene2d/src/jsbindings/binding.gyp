@@ -25,6 +25,7 @@
         "../pxContextGL.cpp",
         "../pxImage.cpp",
         "../pxImage9.cpp",
+        "../pxWayland.cpp",
         "../pxScene2d.cpp",
         "../pxRectangle.cpp",
         "../pxFont.cpp",
@@ -49,6 +50,7 @@
         "../../external/curl/include",
         "../../external/jpg",
         "../../external/zlib",
+        "../../external/westeros/external/install/include",
         "../../../../src"
       ],
 
@@ -57,6 +59,8 @@
         "-L../../../external/png/.libs",
         "-L../../../external/jpg/.libs",
         "-L../../../external/curl/lib/.libs/",
+        "-L../../../external/westeros/external/install/lib",
+        "-lwesteros_compositor",
         "../../../external/zlib/libz.a",
         "../../../../../build/glut/libpxCore.a",
         "-lfreetype",
@@ -96,6 +100,8 @@
       }
     ]
   ],
+
+  'cflags_cc!': [ "-fno-rtti" ],
 
 #      'cflags!': [
 #        "-Wno-unused-parameter"

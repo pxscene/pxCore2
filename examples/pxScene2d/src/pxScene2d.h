@@ -44,6 +44,9 @@ using namespace std;
 
 #include "testView.h"
 
+//Uncomment to enable display of pointer by pxScene
+//#define USE_SCENE_POINTER
+
 // TODO Move this to pxEventLoop
 extern rtThreadQueue gUIThreadQueue;
 
@@ -892,6 +895,8 @@ public:
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
+  rtMethod1ArgAndReturn("createWayland", createWayland, rtObjectRef,
+                        rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
 
@@ -967,6 +972,7 @@ public:
   rtError getFont(rtString p, rtObjectRef& o);
   rtError clock(uint64_t & time);
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
+  rtError createWayland(rtObjectRef p, rtObjectRef& o);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
@@ -1095,7 +1101,23 @@ private:
   int mTag;
   pxIViewContainer *mContainer;
   bool mShowDirtyRect;
+  #ifdef USE_SCENE_POINTER
+  pxTextureRef mNullTexture;
+  pxTextureCacheObject mPointerTextureCacheObj;
+  pxTextureRef mPointerTexture;
+  int32_t mPointerX;
+  int32_t mPointerY;
+  int32_t mPointerW;
+  int32_t mPointerH;
+  int32_t mPointerHotSpotX;
+  int32_t mPointerHotSpotY;
+  #endif
+  bool mPointerHidden;
 public:
+  void hidePointer( bool hide )
+  {
+     mPointerHidden= hide;
+  }
   bool mDirty;
   #ifdef PX_DIRTY_RECTANGLES
   static pxRect mDirtyRect;
