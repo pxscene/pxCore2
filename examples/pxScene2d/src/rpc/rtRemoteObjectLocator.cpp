@@ -14,12 +14,6 @@
 #include <sstream>
 #include <algorithm>
 
-#include <rapidjson/document.h>
-#include <rapidjson/memorystream.h>
-#include <rapidjson/prettywriter.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
-
 static const int kMaxMessageLength = (1024 * 16);
 
 static void
@@ -49,15 +43,6 @@ same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
 
   assert(false);
   return false;
-}
-
-static void
-dump_document(rapidjson::Document const& doc)
-{
-  rapidjson::StringBuffer buff;
-  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
-  doc.Accept(writer);
-  printf("\n%s\n", buff.GetString());
 }
 
 rtRemoteObjectLocator::rtRemoteObjectLocator()
@@ -512,6 +497,8 @@ rtRemoteObjectLocator::on_get(rtJsonDocPtr_t const& doc, int fd, sockaddr_storag
     if (name)
     {
       err = obj->Get(name, &value);
+      if (err != RT_OK)
+        rtLogWarn("failed to get property: %s", name);
     }
     else
     {
@@ -534,7 +521,9 @@ rtRemoteObjectLocator::on_get(rtJsonDocPtr_t const& doc, int fd, sockaddr_storag
       }
       else
       {
-        rtValueWriter::write(value, val, *res);
+        err = rtValueWriter::write(value, val, *res);
+        if (err != RT_OK)
+          rtLogWarn("failed to write value: %d", err);
       }
       res->AddMember("value", val, res->GetAllocator());
       res->AddMember(kFieldNameStatusCode, 0, res->GetAllocator());
@@ -550,30 +539,64 @@ rtRemoteObjectLocator::on_get(rtJsonDocPtr_t const& doc, int fd, sockaddr_storag
 }
 
 rtError
-rtRemoteObjectLocator::on_set(rtJsonDocPtr_t const& doc, int /*fd*/, sockaddr_storage const& /*soc*/)
+rtRemoteObjectLocator::on_set(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& /*soc*/)
 {
-  rtObjectRef obj;
+  uint32_t key = rtMessage_GetCorrelationKey(*doc);
+  char const* id = rtMessage_GetObjectId(*doc);
+
+  rtJsonDocPtr_t res(new rapidjson::Document());
+  res->SetObject();
+  res->AddMember(kFieldNameMessageType, kMessageTypeSetByNameResponse, res->GetAllocator());
+  res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
+  res->AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
+
+  rtObjectRef obj = get_object(id);
   if (!obj)
-    return RT_FAIL;
-
-  char const* prop_name = rtMessage_GetPropertyName(*doc);
-
-  rtValue value;
-  rtError err = rtValueReader::read(value, *doc);
-  if (err != RT_OK)
-    return err;
-
-  err = obj->Set(prop_name, &value);
-  if (err == RT_OK)
   {
-    // TODO
+    res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
+    res->AddMember(kFieldNameStatusMessage, std::string("object not found"), res->GetAllocator());
   }
+  else
+  {
+    uint32_t index;
+    rtError err = RT_FAIL;
 
-  return err;
+    rtValue value;
+
+    auto itr = doc->FindMember("value");
+    if (itr != doc->MemberEnd())
+      err = rtValueReader::read(value, itr->value);
+
+    if (err == RT_OK)
+    {
+      char const* name = rtMessage_GetPropertyName(*doc);
+      if (name)
+      {
+        err = obj->Set(name, &value);
+        rtLogDebug("set %s: %d", name, err);
+      }
+      else
+      {
+        index = rtMessage_GetPropertyIndex(*doc);
+        if (index != kInvalidPropertyIndex)
+          err = obj->Set(index, &value);
+
+      }
+    }
+
+    if (err == RT_OK)
+    {
+      res->AddMember(kFieldNameStatusCode, 0, res->GetAllocator());
+    }
+
+    res->AddMember(kFieldNameStatusCode, static_cast<int>(err), res->GetAllocator());
+    err = rtSendDocument(*res, fd, NULL);
+  }
+  return RT_OK;
 }
 
 rtError
-rtRemoteObjectLocator::on_method_call(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc)
+rtRemoteObjectLocator::on_method_call(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& /*soc*/)
 {
   uint32_t key = rtMessage_GetCorrelationKey(*doc);
   char const* id = rtMessage_GetObjectId(*doc);

@@ -4,6 +4,31 @@
 #include <limits>
 #include <rapidjson/document.h>
 #include <rtError.h>
+#include <rtValue.h>
+#include "rtSocketUtils.h"
+
+class rtRpcMessage
+{
+public:
+  rtRpcMessage();
+  virtual ~rtRpcMessage();
+
+  bool isValid() const;
+
+public:
+  rtError getPropertyName(rtValue& v);
+  rtError getPropertyIndex(rtValue& v);
+  rtError getMessageType(rtValue& v) const;
+  rtError getCorrelationKey(rtValue& v);
+  rtError getObjectId(rtValue& v);
+
+public:
+  static rtError readMessage(int fd, rt_sockbuf_t& buff, rtRpcMessage& m);
+
+private:
+  struct Impl;
+  std::shared_ptr<Impl> m_impl;
+};
 
 #define kFieldNameMessageType "message.type"
 #define kFieldNameCorrelationKey "correlation.key"
@@ -18,6 +43,7 @@
 #define kFieldNameFunctionReturn "function.return_value"
 #define kFieldNameValueType "type"
 #define kFieldNameValueValue "value"
+#define kFieldNameSenderId "sender.id"
 
 #define kMessageTypeSetByNameRequest "set.byname.request"
 #define kMessageTypeSetByNameResponse "set.byname.response"
@@ -41,7 +67,8 @@ uint32_t    rtMessage_GetPropertyIndex(rapidjson::Document const& doc);
 char const* rtMessage_GetMessageType(rapidjson::Document const& doc);
 uint32_t    rtMessage_GetCorrelationKey(rapidjson::Document const& doc);
 char const* rtMessage_GetObjectId(rapidjson::Document const& doc);
-
 rtError     rtMessage_GetStatusCode(rapidjson::Document const& doc);
+rtError     rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out = stdout);
+
 
 #endif

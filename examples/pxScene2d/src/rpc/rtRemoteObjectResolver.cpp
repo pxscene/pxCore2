@@ -158,45 +158,36 @@ rtRemoteObjectResolver::open_unicast_socket()
 }
 
 rtError
-rtRemoteObjectResolver::on_search(document_ptr_t const& d, sockaddr_storage const& soc)
+rtRemoteObjectResolver::on_search(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc)
 {
-  rapidjson::Document& doc = *d;
-
-  int pid;
-  int seq_id;
-
-  if (doc.HasMember("source"))
+  auto senderId = doc->FindMember(kFieldNameSenderId);
+  assert(senderId != doc->MemberEnd());
+  if (senderId->value.GetInt() == m_pid)
   {
-    pid = doc["source"].GetInt();
-    // did we get our own search reques? If so, just ignore
-    if (m_pid == pid)
-      return RT_OK;
+    return RT_OK;
   }
 
-  if (doc.HasMember(kFieldNameCorrelationKey))
-    seq_id = doc[kFieldNameCorrelationKey].GetInt();
+  int key = rtMessage_GetCorrelationKey(*doc);
+
 
   auto itr = m_registered_objects.end();
 
-  std::string const id = doc[kFieldNameObjectId].GetString();
-  if (doc.HasMember(kFieldNameObjectId))
-  {
-    pthread_mutex_lock(&m_mutex);
-    itr = m_registered_objects.find(id);
-    pthread_mutex_unlock(&m_mutex);
-  }
+  char const* objectId = rtMessage_GetObjectId(*doc);
+  pthread_mutex_lock(&m_mutex);
+  itr = m_registered_objects.find(objectId);
+  pthread_mutex_unlock(&m_mutex);
 
   if (itr != m_registered_objects.end())
   {
     rapidjson::Document doc;
     doc.SetObject();
     doc.AddMember(kFieldNameMessageType, "locate", doc.GetAllocator());
-    doc.AddMember(kFieldNameObjectId, id, doc.GetAllocator());
+    doc.AddMember(kFieldNameObjectId, std::string(objectId), doc.GetAllocator());
     doc.AddMember("ip", m_rpc_addr, doc.GetAllocator());
     doc.AddMember("port", m_rpc_port, doc.GetAllocator());
-    // echo these back to sender
-    doc.AddMember("source", pid, doc.GetAllocator());
-    doc.AddMember(kFieldNameCorrelationKey, seq_id, doc.GetAllocator());
+    // echo kback to sender
+    doc.AddMember(kFieldNameSenderId, senderId->value.GetInt(), doc.GetAllocator());
+    doc.AddMember(kFieldNameCorrelationKey, key, doc.GetAllocator());
 
     return rtSendDocument(doc, m_ucast_fd, &soc);
   }
@@ -205,7 +196,7 @@ rtRemoteObjectResolver::on_search(document_ptr_t const& d, sockaddr_storage cons
 }
 
 rtError
-rtRemoteObjectResolver::on_locate(document_ptr_t const& doc, sockaddr_storage const& /*soc*/)
+rtRemoteObjectResolver::on_locate(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
 {
   int seqId = -1;
   if (doc->HasMember(kFieldNameCorrelationKey))
@@ -237,14 +228,14 @@ rtRemoteObjectResolver::resolveObject(std::string const& name, sockaddr_storage&
   doc.SetObject();
   doc.AddMember(kFieldNameMessageType, "search", doc.GetAllocator());
   doc.AddMember(kFieldNameObjectId, name, doc.GetAllocator());
-  doc.AddMember("source", m_pid, doc.GetAllocator());
+  doc.AddMember(kFieldNameSenderId, m_pid, doc.GetAllocator());
   doc.AddMember(kFieldNameCorrelationKey, seqId, doc.GetAllocator());
 
   err = rtSendDocument(doc, m_ucast_fd, &m_mcast_dest);
   if (err != RT_OK)
     return err;
 
-  document_ptr_t search_response;
+  rtJsonDocPtr_t search_response;
   request_map_t::const_iterator itr;
 
   // wait here until timeout expires or we get a response that matches out pid/seqid
@@ -340,46 +331,28 @@ rtRemoteObjectResolver::do_dispatch(char const* buff, int n, sockaddr_storage* p
   rtLogDebug("read:\n\t\"%.*s\"\n", n, buff); // static_cast<int>(m_read_buff.size()), &m_read_buff[0]);
   #endif
 
-  std::shared_ptr<rapidjson::Document> doc(new rapidjson::Document());
+  rtJsonDocPtr_t doc;
+  rtError err = rtParseMessage(buff, n, doc);
+  if (err != RT_OK)
+    return;
 
-  rapidjson::MemoryStream stream(buff, n);
-  if (doc->ParseStream<rapidjson::kParseDefaultFlags>(stream).HasParseError())
+  char const* message_type = rtMessage_GetMessageType(*doc);
+
+  auto itr = m_command_handlers.find(message_type);
+  if (itr == m_command_handlers.end())
   {
-    int begin = doc->GetErrorOffset();
-    int end = begin + 16;
-    if (end > n)
-      end = n;
-    int length = (end - begin);
-
-    rtLogWarn("unparsable JSON read: %d", doc->GetParseError());
-    rtLogWarn("\"%.*s\"\n", length, buff);
+    rtLogWarn("no command handler registered for: %s", message_type);
+    return;
   }
-  else
+
+  // https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
+  #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
+
+  err = CALL_MEMBER_FN(*this, itr->second)(doc, *peer);
+  if (err != RT_OK)
   {
-    if (!doc->HasMember(kFieldNameMessageType))
-    {
-      rtLogWarn("recived JSON payload without type");
-      return;
-    }
-
-    std::string cmd = (*doc)[kFieldNameMessageType].GetString();
-
-    auto itr = m_command_handlers.find(cmd);
-    if (itr == m_command_handlers.end())
-    {
-      rtLogWarn("no command handler registered for: %s", cmd.c_str());
-      return;
-    }
-
-    // https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
-    #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
-
-    rtError err = CALL_MEMBER_FN(*this, itr->second)(doc, *peer);
-    if (err != RT_OK)
-    {
-      rtLogWarn("failed to run command for %s. %d", cmd.c_str(), err);
-      return;
-    }
+    rtLogWarn("failed to run command for %s. %d", message_type, err);
+    return;
   }
 }
 

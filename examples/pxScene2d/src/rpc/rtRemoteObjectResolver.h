@@ -11,7 +11,7 @@
 #include <vector>
 
 #include <sys/socket.h>
-#include <rapidjson/document.h>
+#include "rtRpcTypes.h"
 
 class rtRemoteObjectResolver
 {
@@ -30,12 +30,10 @@ private:
   static void* run_listener(void* argp);
 
 private:
-  typedef std::shared_ptr< rapidjson::Document > document_ptr_t;
-
-  typedef rtError (rtRemoteObjectResolver::*command_handler_t)( document_ptr_t const&, sockaddr_storage const& soc);
+  typedef rtError (rtRemoteObjectResolver::*command_handler_t)(rtJsonDocPtr_t const&, sockaddr_storage const& soc);
   typedef std::vector< char > buff_t;
   typedef std::map< std::string, command_handler_t > cmd_handler_map_t;
-  typedef std::map< rtAtomic, document_ptr_t > request_map_t;
+  typedef std::map< rtAtomic, rtJsonDocPtr_t > request_map_t;
   typedef std::set< std::string > object_id_set_t;
 
   void run_listener();
@@ -46,8 +44,8 @@ private:
   rtError open_multicast_socket();
 
   // command handlers
-  rtError on_search(document_ptr_t const& doc, sockaddr_storage const& soc);
-  rtError on_locate(document_ptr_t const& doc, sockaddr_storage const& soc);
+  rtError on_search(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc);
+  rtError on_locate(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc);
 
 private:
   sockaddr_storage  m_mcast_dest;

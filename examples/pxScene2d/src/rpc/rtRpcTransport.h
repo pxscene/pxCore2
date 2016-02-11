@@ -1,17 +1,19 @@
 #ifndef __RT_RPC_TRANSPORT_H__
 #define __RT_RPC_TRANSPORT_H__
 
+#include <atomic>
+#include <condition_variable>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
-#include <rtAtomic.h>
 #include <rtError.h>
 #include <rtValue.h>
 
 #include <sys/socket.h>
-#include <pthread.h>
 #include <rapidjson/document.h>
 
 #include "rtRpcTypes.h"
@@ -53,14 +55,13 @@ public:
     { m_object_list.push_back(s); }
 
 private:
+  typedef uint32_t key_type;
+
   typedef rtError (rtRpcTransport::*message_handler_t)(rtJsonDocPtr_t const&);
   typedef std::map< std::string, message_handler_t > msghandler_map_t;
-  typedef std::map< rtAtomic, rtJsonDocPtr_t > request_map_t;
+  typedef std::map< key_type, rtJsonDocPtr_t > request_map_t;
 
-  uint32_t next_key()
-    { return rtAtomicInc(&m_corkey); }
-
-  rtJsonDocPtr_t wait_for_response(int key);
+  rtJsonDocPtr_t wait_for_response(int key, uint32_t timeout = 1000);
 
   rtError connect_rpc_endpoint();
   rtError send_keep_alive();
@@ -71,18 +72,16 @@ private:
   // message handlers
   rtError on_start_session(rtJsonDocPtr_t const& doc);
 
-  static void* run_listener(void* argp);
-
 private:
-  sockaddr_storage          m_remote_endpoint;
-  int                       m_fd;
-  std::vector<std::string>  m_object_list;
-  pthread_t                 m_thread;
-  pthread_mutex_t           m_mutex;
-  pthread_cond_t            m_cond;
-  msghandler_map_t          m_message_handlers;
-  rtAtomic                  m_corkey;
-  request_map_t             m_requests;
+  sockaddr_storage              m_remote_endpoint;
+  int                           m_fd;
+  std::vector<std::string>      m_object_list;
+  std::mutex                    m_mutex;
+  std::unique_ptr<std::thread>  m_thread;
+  std::condition_variable       m_cond;
+  msghandler_map_t              m_message_handlers;
+  std::atomic<key_type>         m_next_key;
+  request_map_t                 m_requests;
 };
 
 #endif

@@ -16,12 +16,9 @@
 
 rtRpcTransport::rtRpcTransport(sockaddr_storage const& ss)
   : m_fd(-1)
-  , m_thread(0)
-  , m_corkey(1)
+  , m_next_key(1)
 {
   m_remote_endpoint = ss;
-  pthread_mutex_init(&m_mutex, NULL);
-  pthread_cond_init(&m_cond, NULL);
 }
 
 rtRpcTransport::~rtRpcTransport()
@@ -43,7 +40,7 @@ rtRpcTransport::start()
     return err;
   }
 
-  pthread_create(&m_thread, NULL, &rtRpcTransport::run_listener, this);
+  m_thread.reset(new std::thread(&rtRpcTransport::run_listener, this));
   return RT_OK;
 }
 
@@ -81,22 +78,16 @@ rtRpcTransport::start_session(std::string const& object_id)
   doc.AddMember(kFieldNameMessageType, kMessageTypeOpenSessionRequest, doc.GetAllocator());
   doc.AddMember(kFieldNameObjectId, object_id, doc.GetAllocator());
 
-  int key = next_key();
+  key_type key = m_next_key++;
   doc.AddMember(kFieldNameCorrelationKey, key, doc.GetAllocator());
 
   err = rtSendDocument(doc, m_fd, NULL);
   if (err != RT_OK)
     return err;
 
-  request_map_t::const_iterator itr;
-
-  // TODO: std::future/std::promise
-  pthread_mutex_lock(&m_mutex);
-  while ((itr = m_requests.find(key)) == m_requests.end())
-    pthread_cond_wait(&m_cond, &m_mutex);
-  pthread_mutex_unlock(&m_mutex);
-
-  return RT_OK;
+  return wait_for_response(key) != nullptr
+    ? RT_OK
+    : RT_FAIL;
 }
 
 rtError
@@ -110,14 +101,6 @@ rtRpcTransport::send_keep_alive()
     ids.PushBack(rapidjson::Value().SetString(id.c_str(), id.size()), doc.GetAllocator());
   doc.AddMember("ids", ids, doc.GetAllocator());
   return rtSendDocument(doc, m_fd, NULL);
-}
-
-void*
-rtRpcTransport::run_listener(void* argp)
-{
-  rtRpcTransport* obj = reinterpret_cast<rtRpcTransport *>(argp);
-  obj->run_listener();
-  return NULL;
 }
 
 rtError
@@ -188,10 +171,10 @@ rtRpcTransport::readn(int fd, rt_sockbuf_t& buff)
   // should be std::future/std::promise
   if (key != -1)
   {
-    pthread_mutex_lock(&m_mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
     m_requests[key] = doc;
-    pthread_cond_broadcast(&m_cond);
-    pthread_mutex_unlock(&m_mutex);
+    lock.unlock();
+    m_cond.notify_all();
   }
 
   // https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
@@ -205,18 +188,25 @@ rtRpcTransport::readn(int fd, rt_sockbuf_t& buff)
 }
 
 rtJsonDocPtr_t
-rtRpcTransport::wait_for_response(int key)
+rtRpcTransport::wait_for_response(int key, uint32_t timeout)
 {
   rtJsonDocPtr_t response;
 
   // TODO: std::future/std::promise
-  request_map_t::const_iterator itr;
-  pthread_mutex_lock(&m_mutex);
-  while ((itr = m_requests.find(key)) == m_requests.end())
-    pthread_cond_wait(&m_cond, &m_mutex);
-  response = itr->second;
-  m_requests.erase(itr);
-  pthread_mutex_unlock(&m_mutex);
+  auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
+
+  std::unique_lock<std::mutex> lock(m_mutex);
+  m_cond.wait_until(lock, delay, [this, key, &response] 
+    {
+      auto itr = this->m_requests.find(key);
+      if (itr != this->m_requests.end())
+      {
+        response = itr->second;
+        this->m_requests.erase(itr);
+      }
+      return response != nullptr;
+    });
+  lock.unlock();
 
   return response;
 }
@@ -224,7 +214,7 @@ rtRpcTransport::wait_for_response(int key)
 rtError
 rtRpcTransport::get(std::string const& id, char const* name, rtValue* value)
 {
-  int key = next_key();
+  key_type key = m_next_key++;
 
   rapidjson::Document req;
   req.SetObject();
@@ -254,7 +244,7 @@ rtRpcTransport::get(std::string const& id, char const* name, rtValue* value)
 rtError
 rtRpcTransport::get(std::string const& id, uint32_t index, rtValue* value)
 {
-  int key = next_key();
+  key_type key = m_next_key++;
   
   rapidjson::Document req;
   req.SetObject();
@@ -281,7 +271,7 @@ rtRpcTransport::get(std::string const& id, uint32_t index, rtValue* value)
 rtError
 rtRpcTransport::set(std::string const& id, char const* name, rtValue const* value)
 {
-  int key = next_key();
+  key_type key = m_next_key++;
 
   rapidjson::Document req;
   req.SetObject();
@@ -310,7 +300,7 @@ rtRpcTransport::set(std::string const& id, char const* name, rtValue const* valu
 rtError
 rtRpcTransport::set(std::string const& id, uint32_t index, rtValue const* value)
 {
-  int key = next_key();
+  key_type key = m_next_key++;
 
   rapidjson::Document req;
   req.SetObject();
@@ -341,7 +331,7 @@ rtRpcTransport::send(std::string const& id, std::string const& name, int argc, r
 {
   rtError err = RT_OK;
 
-  int key = next_key();
+  key_type key = m_next_key++;
 
   rapidjson::Document req;
   req.SetObject();

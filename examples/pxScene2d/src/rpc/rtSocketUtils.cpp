@@ -305,10 +305,19 @@ rtReadMessage(int fd, rt_sockbuf_t& buff, rtJsonDocPtr_t& doc)
   #ifdef RT_RPC_DEBUG
   rtLogDebug("read (%d):\n\t\"%.*s\"\n", static_cast<int>(buff.size()), static_cast<int>(buff.size()), &buff[0]);
   #endif
- 
+
+  return rtParseMessage(&buff[0], n, doc);
+}
+
+rtError
+rtParseMessage(char const* buff, int n, rtJsonDocPtr_t& doc)
+{
+  if (!buff)
+    return RT_FAIL;
+
   doc.reset(new rapidjson::Document());
 
-  rapidjson::MemoryStream stream(&buff[0], n);
+  rapidjson::MemoryStream stream(buff, n);
   if (doc->ParseStream<rapidjson::kParseDefaultFlags>(stream).HasParseError())
   {
     int begin = doc->GetErrorOffset() - 16;
@@ -320,12 +329,10 @@ rtReadMessage(int fd, rt_sockbuf_t& buff, rtJsonDocPtr_t& doc)
     int length = (end - begin);
 
     rtLogWarn("unparsable JSON read:%d offset:%d", doc->GetParseError(), (int) doc->GetErrorOffset());
-    rtLogWarn("\"%.*s\"\n", length, &buff[0] + begin);
+    rtLogWarn("\"%.*s\"\n", length, buff + begin);
 
     return RT_FAIL;
   }
   
   return RT_OK;
 }
-
- 
