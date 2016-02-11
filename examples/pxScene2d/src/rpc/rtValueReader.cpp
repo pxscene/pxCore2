@@ -1,5 +1,6 @@
 #include "rtRpcTransport.h"
 #include "rtRemoteObject.h"
+#include "rtRemoteFunction.h"
 #include "rtRpcMessage.h"
 
 rtError

@@ -19,7 +19,7 @@
 #include "rtRpcTypes.h"
 #include "rtSocketUtils.h"
 
-class rtRpcTransport;
+class rtRpcClient;
 
 class rtValueWriter
 {
@@ -31,14 +31,14 @@ class rtValueReader
 {
 public:
   static rtError read(rtValue& val, rapidjson::Value const& from,
-    std::shared_ptr<rtRpcTransport> const& tport = std::shared_ptr<rtRpcTransport>());
+    std::shared_ptr<rtRpcClient> const& tport = std::shared_ptr<rtRpcClient>());
 };
 
-class rtRpcTransport : public std::enable_shared_from_this<rtRpcTransport>
+class rtRpcClient: public std::enable_shared_from_this<rtRpcClient>
 {
 public:
-  rtRpcTransport(sockaddr_storage const& ss);
-  ~rtRpcTransport();
+  rtRpcClient(sockaddr_storage const& ss);
+  ~rtRpcClient();
 
   rtError start();
   rtError start_session(std::string const& object_id);
@@ -57,7 +57,7 @@ public:
 private:
   typedef uint32_t key_type;
 
-  typedef rtError (rtRpcTransport::*message_handler_t)(rtJsonDocPtr_t const&);
+  typedef rtError (rtRpcClient::*message_handler_t)(rtJsonDocPtr_t const&);
   typedef std::map< std::string, message_handler_t > msghandler_map_t;
   typedef std::map< key_type, rtJsonDocPtr_t > request_map_t;
 

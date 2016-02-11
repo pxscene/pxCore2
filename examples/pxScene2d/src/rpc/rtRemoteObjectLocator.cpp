@@ -2,6 +2,7 @@
 #include "rtRemoteObject.h"
 #include "rtSocketUtils.h"
 #include "rtRpcMessage.h"
+#include "rtRpcClient.h"
 
 #include <stdlib.h>
 #include <arpa/inet.h>
@@ -297,7 +298,7 @@ rtRemoteObjectLocator::findObject(std::string const& name, rtObjectRef& obj, uin
 
     if (err == RT_OK)
     {
-      std::shared_ptr<rtRpcTransport> transport;
+      std::shared_ptr<rtRpcClient> transport;
       std::string const transport_name = rtSocketToString(rpc_endpoint);
 
       auto itr = m_transports.find(transport_name);
@@ -306,7 +307,7 @@ rtRemoteObjectLocator::findObject(std::string const& name, rtObjectRef& obj, uin
 
       if (!transport)
       {
-        transport.reset(new rtRpcTransport(rpc_endpoint));
+        transport.reset(new rtRpcClient(rpc_endpoint));
         err = transport->start();
         if (err != RT_OK)
         {

@@ -1,6 +1,6 @@
 #include "rtRemoteObject.h"
 #include "rtRemoteObjectLocator.h"
-#include "rtRpcTransport.h"
+#include "rtRpcClient.h"
 
 #include <unistd.h>
 #include <iostream>

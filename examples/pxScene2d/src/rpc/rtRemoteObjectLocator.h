@@ -9,8 +9,9 @@
 
 #include "rtRpcTypes.h"
 #include "rtRemoteObjectResolver.h"
-#include "rtRpcTransport.h"
 #include "rtSocketUtils.h"
+
+class rtRpcClient;
 
 class rtRemoteObjectLocator
 {
@@ -67,7 +68,7 @@ private:
   typedef std::map< std::string, object_reference > refmap_t;
   typedef std::map< std::string, command_handler_t > cmd_handler_map_t;
   typedef std::vector< connected_client > client_list_t;
-  typedef std::map< std::string, std::shared_ptr<rtRpcTransport> > tport_map_t;
+  typedef std::map< std::string, std::shared_ptr<rtRpcClient> > tport_map_t;
 
   sockaddr_storage        m_rpc_endpoint;
   int                     m_rpc_fd;

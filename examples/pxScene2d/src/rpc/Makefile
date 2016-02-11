@@ -11,8 +11,9 @@ RT_SRCS=\
   rtRemoteObjectLocator.cpp \
   rtRemoteObjectResolver.cpp \
   rtRemoteObject.cpp \
+  rtRemoteFunction.cpp \
   rtRpcMessage.cpp \
-  rtRpcTransport.cpp \
+  rtRpcClient.cpp \
   rtValueReader.cpp \
   rtValueWriter.cpp \
   rtSocketUtils.cpp

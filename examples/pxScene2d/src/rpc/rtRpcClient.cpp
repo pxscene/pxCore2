@@ -1,5 +1,5 @@
-#include "rtRpcTransport.h"
-#include "rtRpcTransport.h"
+#include "rtRpcClient.h"
+#include "rtRpcClient.h"
 #include "rtSocketUtils.h"
 #include "rtRpcMessage.h"
 
@@ -14,14 +14,14 @@
 
 #include <rapidjson/document.h>
 
-rtRpcTransport::rtRpcTransport(sockaddr_storage const& ss)
+rtRpcClient::rtRpcClient(sockaddr_storage const& ss)
   : m_fd(-1)
   , m_next_key(1)
 {
   m_remote_endpoint = ss;
 }
 
-rtRpcTransport::~rtRpcTransport()
+rtRpcClient::~rtRpcClient()
 {
   if (m_fd > 0)
   {
@@ -31,7 +31,7 @@ rtRpcTransport::~rtRpcTransport()
 }
 
 rtError
-rtRpcTransport::start()
+rtRpcClient::start()
 {
   rtError err = connect_rpc_endpoint();
   if (err != RT_OK)
@@ -40,12 +40,12 @@ rtRpcTransport::start()
     return err;
   }
 
-  m_thread.reset(new std::thread(&rtRpcTransport::run_listener, this));
+  m_thread.reset(new std::thread(&rtRpcClient::run_listener, this));
   return RT_OK;
 }
 
 rtError
-rtRpcTransport::connect_rpc_endpoint()
+rtRpcClient::connect_rpc_endpoint()
 {
   m_fd = socket(m_remote_endpoint.ss_family, SOCK_STREAM, 0);
   if (m_fd < 0)
@@ -69,7 +69,7 @@ rtRpcTransport::connect_rpc_endpoint()
 }
 
 rtError
-rtRpcTransport::start_session(std::string const& object_id)
+rtRpcClient::start_session(std::string const& object_id)
 {
   rtError err = RT_OK;
 
@@ -91,7 +91,7 @@ rtRpcTransport::start_session(std::string const& object_id)
 }
 
 rtError
-rtRpcTransport::send_keep_alive()
+rtRpcClient::send_keep_alive()
 {
   rapidjson::Document doc;
   doc.SetObject();
@@ -104,7 +104,7 @@ rtRpcTransport::send_keep_alive()
 }
 
 rtError
-rtRpcTransport::run_listener()
+rtRpcClient::run_listener()
 {
   rt_sockbuf_t buff;
   buff.reserve(1024 * 4);
@@ -149,7 +149,7 @@ rtRpcTransport::run_listener()
 }
 
 rtError
-rtRpcTransport::readn(int fd, rt_sockbuf_t& buff)
+rtRpcClient::readn(int fd, rt_sockbuf_t& buff)
 {
   rtJsonDocPtr_t doc;
   rtError err = rtReadMessage(fd, buff, doc);
@@ -188,7 +188,7 @@ rtRpcTransport::readn(int fd, rt_sockbuf_t& buff)
 }
 
 rtJsonDocPtr_t
-rtRpcTransport::wait_for_response(int key, uint32_t timeout)
+rtRpcClient::wait_for_response(int key, uint32_t timeout)
 {
   rtJsonDocPtr_t response;
 
@@ -212,7 +212,7 @@ rtRpcTransport::wait_for_response(int key, uint32_t timeout)
 }
 
 rtError
-rtRpcTransport::get(std::string const& id, char const* name, rtValue* value)
+rtRpcClient::get(std::string const& id, char const* name, rtValue* value)
 {
   key_type key = m_next_key++;
 
@@ -242,7 +242,7 @@ rtRpcTransport::get(std::string const& id, char const* name, rtValue* value)
 }
 
 rtError
-rtRpcTransport::get(std::string const& id, uint32_t index, rtValue* value)
+rtRpcClient::get(std::string const& id, uint32_t index, rtValue* value)
 {
   key_type key = m_next_key++;
   
@@ -269,7 +269,7 @@ rtRpcTransport::get(std::string const& id, uint32_t index, rtValue* value)
 }
 
 rtError
-rtRpcTransport::set(std::string const& id, char const* name, rtValue const* value)
+rtRpcClient::set(std::string const& id, char const* name, rtValue const* value)
 {
   key_type key = m_next_key++;
 
@@ -298,7 +298,7 @@ rtRpcTransport::set(std::string const& id, char const* name, rtValue const* valu
 }
 
 rtError
-rtRpcTransport::set(std::string const& id, uint32_t index, rtValue const* value)
+rtRpcClient::set(std::string const& id, uint32_t index, rtValue const* value)
 {
   key_type key = m_next_key++;
 
@@ -327,7 +327,7 @@ rtRpcTransport::set(std::string const& id, uint32_t index, rtValue const* value)
 }
 
 rtError
-rtRpcTransport::send(std::string const& id, std::string const& name, int argc, rtValue const* argv, rtValue* result)
+rtRpcClient::send(std::string const& id, std::string const& name, int argc, rtValue const* argv, rtValue* result)
 {
   rtError err = RT_OK;
 
