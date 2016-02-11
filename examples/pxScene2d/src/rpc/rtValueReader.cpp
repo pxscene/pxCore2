@@ -1,10 +1,10 @@
-#include "rtRpcTransport.h"
+#include "rtRpcClient.h"
 #include "rtRemoteObject.h"
 #include "rtRemoteFunction.h"
 #include "rtRpcMessage.h"
 
 rtError
-rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRpcTransport> const& tport)
+rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRpcClient> const& tport)
 {
   auto type = from.FindMember(kFieldNameValueType);
   if (type  == from.MemberEnd())

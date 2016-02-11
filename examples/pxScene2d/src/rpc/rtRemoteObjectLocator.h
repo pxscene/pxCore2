@@ -1,10 +1,13 @@
 
-#include <pthread.h>
+#include <condition_variable>
+#include <map>
+#include <mutex>
+#include <string>
+#include <thread>
+
 #include <stdint.h>
 #include <netinet/in.h>
 #include <rtObject.h>
-#include <map>
-#include <string>
 #include <rapidjson/document.h>
 
 #include "rtRpcTypes.h"
@@ -26,7 +29,7 @@ public:
   rtError start();
 
   rtError registerObject(std::string const& name, rtObjectRef const& obj);
-  rtError findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout = 0);
+  rtError findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout = 1000);
 
 private:
   struct connected_client
@@ -36,8 +39,6 @@ private:
   };
 
   typedef rtError (rtRemoteObjectLocator::*command_handler_t)(rtJsonDocPtr_t const&, int fd, sockaddr_storage const& soc);
-
-  static void* run_listener(void* argp);
 
   void run_listener();
   rtError do_readn(int fd, rt_sockbuf_t& buff, sockaddr_storage const& peer);
@@ -70,18 +71,17 @@ private:
   typedef std::vector< connected_client > client_list_t;
   typedef std::map< std::string, std::shared_ptr<rtRpcClient> > tport_map_t;
 
-  sockaddr_storage        m_rpc_endpoint;
-  int                     m_rpc_fd;
-  pthread_t               m_thread;
-  mutable pthread_cond_t          m_cond;
-  mutable pthread_mutex_t         m_mutex;
-  cmd_handler_map_t       m_command_handlers;
+  sockaddr_storage                m_rpc_endpoint;
+  int                             m_rpc_fd;
+  std::unique_ptr<std::thread>    m_thread;
+  mutable std::mutex              m_mutex;
+  cmd_handler_map_t               m_command_handlers;
 
-  refmap_t                m_objects;
-  client_list_t           m_client_list;
+  refmap_t                        m_objects;
+  client_list_t                   m_client_list;
 
-  rtRemoteObjectResolver* m_resolver;
-  tport_map_t             m_transports;
-  int                     m_pipe_write;
-  int                     m_pipe_read;
+  rtRemoteObjectResolver*         m_resolver;
+  tport_map_t                     m_transports;
+  int                             m_pipe_write;
+  int                             m_pipe_read;
 };

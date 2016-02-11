@@ -4,13 +4,17 @@
 #include <rtAtomic.h>
 #include <rtError.h>
 
+#include <condition_variable>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <sys/socket.h>
+
 #include "rtRpcTypes.h"
 
 class rtRemoteObjectResolver
@@ -24,10 +28,7 @@ public:
   rtError start();
 
   rtError registerObject(std::string const& name);
-  rtError resolveObject(std::string const& name, sockaddr_storage& endpoint, uint32_t timeout = -1);
-
-private:
-  static void* run_listener(void* argp);
+  rtError resolveObject(std::string const& name, sockaddr_storage& endpoint, uint32_t timeout = 1000);
 
 private:
   typedef rtError (rtRemoteObjectResolver::*command_handler_t)(rtJsonDocPtr_t const&, sockaddr_storage const& soc);
@@ -56,9 +57,9 @@ private:
   int               m_ucast_fd;
   socklen_t         m_ucast_len;
 
-  pthread_t         m_read_thread;
-  pthread_cond_t    m_cond;
-  pthread_mutex_t   m_mutex;
+  std::unique_ptr<std::thread> m_read_thread;
+  std::condition_variable m_cond;
+  std::mutex        m_mutex;
   pid_t             m_pid;
   cmd_handler_map_t m_command_handlers;
   std::string       m_rpc_addr;

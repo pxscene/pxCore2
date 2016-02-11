@@ -1,7 +1,7 @@
 #include "rtRemoteObject.h"
-#include "rtRpcTransport.h"
+#include "rtRpcClient.h"
 
-rtRemoteObject::rtRemoteObject(std::string const& id, std::shared_ptr<rtRpcTransport> const& transport)
+rtRemoteObject::rtRemoteObject(std::string const& id, std::shared_ptr<rtRpcClient> const& transport)
   : m_ref_count(0)
   , m_id(id)
   , m_transport(transport)

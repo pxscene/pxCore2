@@ -1,4 +1,4 @@
-#include "rtRpcTransport.h"
+#include "rtRpcClient.h"
 #include "rapidjson/rapidjson.h"
 
 rtError

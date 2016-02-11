@@ -48,14 +48,10 @@ same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
 
 rtRemoteObjectLocator::rtRemoteObjectLocator()
   : m_rpc_fd(-1)
-  , m_thread(0)
   , m_pipe_write(-1)
   , m_pipe_read(-1)
 {
   memset(&m_rpc_endpoint, 0, sizeof(m_rpc_endpoint));
-
-  pthread_mutex_init(&m_mutex, NULL);
-  pthread_cond_init(&m_cond, NULL);
 
   int arr[2];
   int ret = pipe(arr);
@@ -113,11 +109,11 @@ rtRemoteObjectLocator::open(char const* dstaddr, uint16_t port, char const* srca
 rtError
 rtRemoteObjectLocator::registerObject(std::string const& name, rtObjectRef const& obj)
 {
-  pthread_mutex_lock(&m_mutex);
+  std::unique_lock<std::mutex> lock(m_mutex);
   auto itr = m_objects.find(name);
   if (itr != m_objects.end())
   {
-    pthread_mutex_unlock(&m_mutex);
+    lock.unlock();
     rtLogWarn("object %s is already registered", name.c_str());
     return EEXIST;
   }
@@ -127,16 +123,9 @@ rtRemoteObjectLocator::registerObject(std::string const& name, rtObjectRef const
   m_objects.insert(refmap_t::value_type(name, entry));
 
   m_resolver->registerObject(name);
-  pthread_mutex_unlock(&m_mutex);
-  return RT_OK;
-}
+  lock.unlock();
 
-void*
-rtRemoteObjectLocator::run_listener(void* argp)
-{
-  rtRemoteObjectLocator* locator = reinterpret_cast<rtRemoteObjectLocator *>(argp);
-  locator->run_listener();
-  return NULL;
+  return RT_OK;
 }
 
 void
@@ -276,7 +265,7 @@ rtRemoteObjectLocator::start()
   if (err != RT_OK)
     return err;
 
-  pthread_create(&m_thread, NULL, &rtRemoteObjectLocator::run_listener, this);
+  m_thread.reset(new std::thread(&rtRemoteObjectLocator::run_listener, this));
   return RT_OK;
 }
 
@@ -318,9 +307,8 @@ rtRemoteObjectLocator::findObject(std::string const& name, rtObjectRef& obj, uin
         // we have race condition here. if the transport doesn't exist, two threads may
         // create one but only one will get inserted into the m_transports map. I'm not
         // sure that this really matters much
-        pthread_mutex_lock(&m_mutex);
+        std::unique_lock<std::mutex> lock(m_mutex);
         m_transports.insert(tport_map_t::value_type(transport_name, transport));
-        pthread_mutex_unlock(&m_mutex);
       }
 
       if (transport)
@@ -401,7 +389,7 @@ rtRemoteObjectLocator::on_open_session(rtJsonDocPtr_t const& doc, int /*fd*/, so
 
   int fd = -1;
 
-  pthread_mutex_lock(&m_mutex);
+  std::unique_lock<std::mutex> lock(m_mutex);
   auto itr = m_objects.find(id);
   if (itr != m_objects.end())
   {
@@ -416,7 +404,7 @@ rtRemoteObjectLocator::on_open_session(rtJsonDocPtr_t const& doc, int /*fd*/, so
       }
     }
   }
-  pthread_mutex_unlock(&m_mutex);
+  lock.unlock();
 
   rtError err = RT_OK;
 
@@ -460,11 +448,11 @@ rtRemoteObjectLocator::get_object(std::string const& id) const
 {
   rtObjectRef obj;
 
-  pthread_mutex_lock(&m_mutex);
+  std::unique_lock<std::mutex> lock(m_mutex);
   auto itr = m_objects.find(id);
   if (itr != m_objects.end())
     obj = itr->second.object;
-  pthread_mutex_unlock(&m_mutex);
+  lock.unlock();
 
   return obj;
 }

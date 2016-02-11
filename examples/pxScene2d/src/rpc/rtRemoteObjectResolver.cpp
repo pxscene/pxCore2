@@ -16,20 +16,10 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
-void
-dump_document(rapidjson::Document const& doc)
-{
-  rapidjson::StringBuffer buff;
-  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
-  doc.Accept(writer);
-  printf("\n%s\n", buff.GetString());
-}
-
 rtRemoteObjectResolver::rtRemoteObjectResolver(sockaddr_storage const& rpc_endpoint)
   : m_mcast_fd(-1)
   , m_ucast_fd(-1)
   , m_ucast_len(0)
-  , m_read_thread(0)
   , m_pid(getpid())
   , m_command_handlers()
   , m_rpc_addr()
@@ -39,9 +29,6 @@ rtRemoteObjectResolver::rtRemoteObjectResolver(sockaddr_storage const& rpc_endpo
   memset(&m_mcast_dest, 0, sizeof(m_mcast_dest));
   memset(&m_mcast_src, 0, sizeof(m_mcast_src));
   memset(&m_ucast_endpoint, 0, sizeof(m_ucast_endpoint));
-
-  pthread_mutex_init(&m_mutex, NULL);
-  pthread_cond_init(&m_cond, NULL);
 
   m_command_handlers.insert(cmd_handler_map_t::value_type("search", &rtRemoteObjectResolver::on_search));
   m_command_handlers.insert(cmd_handler_map_t::value_type("locate", &rtRemoteObjectResolver::on_locate));
@@ -173,9 +160,10 @@ rtRemoteObjectResolver::on_search(rtJsonDocPtr_t const& doc, sockaddr_storage co
   auto itr = m_registered_objects.end();
 
   char const* objectId = rtMessage_GetObjectId(*doc);
-  pthread_mutex_lock(&m_mutex);
+
+  std::unique_lock<std::mutex> lock(m_mutex);
   itr = m_registered_objects.find(objectId);
-  pthread_mutex_unlock(&m_mutex);
+  lock.unlock();
 
   if (itr != m_registered_objects.end())
   {
@@ -198,24 +186,14 @@ rtRemoteObjectResolver::on_search(rtJsonDocPtr_t const& doc, sockaddr_storage co
 rtError
 rtRemoteObjectResolver::on_locate(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
 {
-  int seqId = -1;
-  if (doc->HasMember(kFieldNameCorrelationKey))
-    seqId = (*doc)[kFieldNameCorrelationKey].GetInt();
+  int key = rtMessage_GetCorrelationKey(*doc);
 
-  pthread_mutex_lock(&m_mutex);
-  m_pending_searches[seqId] = doc;
-  pthread_cond_signal(&m_cond);
-  pthread_mutex_unlock(&m_mutex);
+  std::unique_lock<std::mutex> lock(m_mutex);
+  m_pending_searches[key] = doc;
+  lock.unlock();
+  m_cond.notify_all();
 
   return RT_OK;
-}
-
-void*
-rtRemoteObjectResolver::run_listener(void* argp)
-{
-  rtRemoteObjectResolver* resolver = reinterpret_cast<rtRemoteObjectResolver *>(argp);
-  resolver->run_listener();
-  return NULL;
 }
 
 rtError
@@ -238,16 +216,23 @@ rtRemoteObjectResolver::resolveObject(std::string const& name, sockaddr_storage&
   rtJsonDocPtr_t search_response;
   request_map_t::const_iterator itr;
 
+  rtLogInfo("timeout: %u\n", timeout);
+
+  auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
+
   // wait here until timeout expires or we get a response that matches out pid/seqid
-  pthread_mutex_lock(&m_mutex);
-  while ((itr = m_pending_searches.find(seqId)) == m_pending_searches.end())
-    pthread_cond_wait(&m_cond, &m_mutex);
-  if (itr != m_pending_searches.end())
-  {
-    search_response = itr->second;
-    m_pending_searches.erase(itr);
-  }
-  pthread_mutex_unlock(&m_mutex);
+  std::unique_lock<std::mutex> lock(m_mutex);
+  m_cond.wait_until(lock, delay, [this, seqId, &search_response]
+    {
+      auto itr = this->m_pending_searches.find(seqId);
+      if (itr != this->m_pending_searches.end())
+      {
+        search_response = itr->second;
+        this->m_pending_searches.erase(itr);
+      }
+      return search_response != nullptr;
+    });
+  lock.unlock();
 
   if (!search_response)
     return RT_FAIL;
@@ -362,17 +347,15 @@ rtRemoteObjectResolver::start()
   rtError err = open_multicast_socket();
   if (err != RT_OK)
     return err;
-
-  pthread_create(&m_read_thread, NULL, &rtRemoteObjectResolver::run_listener, this);
+  m_read_thread.reset(new std::thread(&rtRemoteObjectResolver::run_listener, this));
   return RT_OK;
 }
 
 rtError
 rtRemoteObjectResolver::registerObject(std::string const& name)
 {
-  pthread_mutex_lock(&m_mutex);
+  std::unique_lock<std::mutex> lock(m_mutex);
   m_registered_objects.insert(name);
-  pthread_mutex_unlock(&m_mutex);
   return RT_OK;
 }
 

@@ -1,7 +1,7 @@
 #include "rtRemoteFunction.h"
-#include "rtRpcTransport.h"
+#include "rtRpcClient.h"
 
-rtRemoteFunction::rtRemoteFunction(std::string const& id, std::string const& name, std::shared_ptr<rtRpcTransport> const& transport)
+rtRemoteFunction::rtRemoteFunction(std::string const& id, std::string const& name, std::shared_ptr<rtRpcClient> const& transport)
   : m_ref_count(0)
   , m_id(id)
   , m_name(name)
