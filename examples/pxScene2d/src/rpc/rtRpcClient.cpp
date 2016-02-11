@@ -33,19 +33,19 @@ rtRpcClient::~rtRpcClient()
 rtError
 rtRpcClient::start()
 {
-  rtError err = connect_rpc_endpoint();
+  rtError err = connectRpcEndpoint();
   if (err != RT_OK)
   {
     rtLogWarn("failed to connect to rpc endpoint");
     return err;
   }
 
-  m_thread.reset(new std::thread(&rtRpcClient::run_listener, this));
+  m_thread.reset(new std::thread(&rtRpcClient::runListener, this));
   return RT_OK;
 }
 
 rtError
-rtRpcClient::connect_rpc_endpoint()
+rtRpcClient::connectRpcEndpoint()
 {
   m_fd = socket(m_remote_endpoint.ss_family, SOCK_STREAM, 0);
   if (m_fd < 0)
@@ -69,7 +69,7 @@ rtRpcClient::connect_rpc_endpoint()
 }
 
 rtError
-rtRpcClient::start_session(std::string const& object_id)
+rtRpcClient::startSession(std::string const& object_id)
 {
   rtError err = RT_OK;
 
@@ -85,13 +85,13 @@ rtRpcClient::start_session(std::string const& object_id)
   if (err != RT_OK)
     return err;
 
-  return wait_for_response(key) != nullptr
+  return waitForResponse(key) != nullptr
     ? RT_OK
     : RT_FAIL;
 }
 
 rtError
-rtRpcClient::send_keep_alive()
+rtRpcClient::sendKeepAlive()
 {
   rapidjson::Document doc;
   doc.SetObject();
@@ -104,7 +104,7 @@ rtRpcClient::send_keep_alive()
 }
 
 rtError
-rtRpcClient::run_listener()
+rtRpcClient::runListener()
 {
   rt_sockbuf_t buff;
   buff.reserve(1024 * 4);
@@ -188,7 +188,7 @@ rtRpcClient::readn(int fd, rt_sockbuf_t& buff)
 }
 
 rtJsonDocPtr_t
-rtRpcClient::wait_for_response(int key, uint32_t timeout)
+rtRpcClient::waitForResponse(int key, uint32_t timeout)
 {
   rtJsonDocPtr_t response;
 
@@ -227,7 +227,7 @@ rtRpcClient::get(std::string const& id, char const* name, rtValue* value)
   if (err != RT_OK)
     return err;
 
-  rtJsonDocPtr_t res = wait_for_response(key);
+  rtJsonDocPtr_t res = waitForResponse(key);
   if (!res)
     return RT_FAIL;
 
@@ -257,7 +257,7 @@ rtRpcClient::get(std::string const& id, uint32_t index, rtValue* value)
   if (err != RT_OK)
     return err;
   
-  rtJsonDocPtr_t res = wait_for_response(key);
+  rtJsonDocPtr_t res = waitForResponse(key);
   if (!res)
     return RT_FAIL;
 
@@ -290,7 +290,7 @@ rtRpcClient::set(std::string const& id, char const* name, rtValue const* value)
   if (err != RT_OK)
     return err;
 
-  rtJsonDocPtr_t res = wait_for_response(key);
+  rtJsonDocPtr_t res = waitForResponse(key);
   if (!res)
     return RT_FAIL;
 
@@ -319,7 +319,7 @@ rtRpcClient::set(std::string const& id, uint32_t index, rtValue const* value)
   if (err != RT_OK)
     return err;
 
-  rtJsonDocPtr_t res = wait_for_response(key);
+  rtJsonDocPtr_t res = waitForResponse(key);
   if (!res)
     return RT_FAIL;
 
@@ -356,7 +356,7 @@ rtRpcClient::send(std::string const& id, std::string const& name, int argc, rtVa
   if (err != RT_OK)
     return err;
 
-  rtJsonDocPtr_t res = wait_for_response(key);
+  rtJsonDocPtr_t res = waitForResponse(key);
   if (!res)
     return RT_FAIL;
 

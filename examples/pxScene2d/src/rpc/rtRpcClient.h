@@ -41,7 +41,7 @@ public:
   ~rtRpcClient();
 
   rtError start();
-  rtError start_session(std::string const& object_id);
+  rtError startSession(std::string const& object_id);
 
   rtError get(std::string const& id, char const* name, rtValue* value);
   rtError set(std::string const& id, char const* name, rtValue const* value);
@@ -61,16 +61,16 @@ private:
   typedef std::map< std::string, message_handler_t > msghandler_map_t;
   typedef std::map< key_type, rtJsonDocPtr_t > request_map_t;
 
-  rtJsonDocPtr_t wait_for_response(int key, uint32_t timeout = 1000);
+  rtJsonDocPtr_t waitForResponse(int key, uint32_t timeout = 1000);
 
-  rtError connect_rpc_endpoint();
-  rtError send_keep_alive();
-  rtError run_listener();
+  rtError connectRpcEndpoint();
+  rtError sendKeepAlive();
+  rtError runListener();
   rtError readn(int fd, rt_sockbuf_t& buff);
   rtError dispatch(rtJsonDocPtr_t const& doc);
 
   // message handlers
-  rtError on_start_session(rtJsonDocPtr_t const& doc);
+  rtError onStartSession(rtJsonDocPtr_t const& doc);
 
 private:
   sockaddr_storage              m_remote_endpoint;

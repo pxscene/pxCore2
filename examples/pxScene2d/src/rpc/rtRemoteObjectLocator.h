@@ -40,24 +40,24 @@ private:
 
   typedef rtError (rtRemoteObjectLocator::*command_handler_t)(rtJsonDocPtr_t const&, int fd, sockaddr_storage const& soc);
 
-  void run_listener();
-  rtError do_readn(int fd, rt_sockbuf_t& buff, sockaddr_storage const& peer);
-  void do_accept(int fd);
-  void do_dispatch(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& peer);
+  void runListener();
+  rtError doReadn(int fd, rt_sockbuf_t& buff, sockaddr_storage const& peer);
+  void doAccept(int fd);
+  void doDispatch(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& peer);
 
-  rtError open_rpc_listener();
+  rtError openRpcListener();
 
   // command handlers
   // rtError on_search(rapidjson::Document const& doc, sockaddr* soc, socklen_t len);
   // rtError on_locate(rapidjson::Document const& doc, sockaddr* soc, socklen_t len);
-  rtError on_open_session(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
-  rtError on_get(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
-  rtError on_set(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
-  rtError on_method_call(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
+  rtError onOpenSession(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
+  rtError onGet(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
+  rtError onSet(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
+  rtError onMethodCall(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
 
-  rtError on_client_disconnect(connected_client& client);
+  rtError onClientDisconnect(connected_client& client);
 
-  rtObjectRef get_object(std::string const& id) const;
+  rtObjectRef getObject(std::string const& id) const;
 
 private:
   struct object_reference

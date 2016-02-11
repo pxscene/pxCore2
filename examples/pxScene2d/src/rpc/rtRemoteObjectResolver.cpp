@@ -30,8 +30,8 @@ rtRemoteObjectResolver::rtRemoteObjectResolver(sockaddr_storage const& rpc_endpo
   memset(&m_mcast_src, 0, sizeof(m_mcast_src));
   memset(&m_ucast_endpoint, 0, sizeof(m_ucast_endpoint));
 
-  m_command_handlers.insert(cmd_handler_map_t::value_type("search", &rtRemoteObjectResolver::on_search));
-  m_command_handlers.insert(cmd_handler_map_t::value_type("locate", &rtRemoteObjectResolver::on_locate));
+  m_command_handlers.insert(cmd_handler_map_t::value_type("search", &rtRemoteObjectResolver::onSearch));
+  m_command_handlers.insert(cmd_handler_map_t::value_type("locate", &rtRemoteObjectResolver::onLocate));
     
   char addr_buff[128];
 
@@ -73,7 +73,7 @@ rtRemoteObjectResolver::open(char const* dstaddr, uint16_t port, char const* src
   if (err != RT_OK)
     return err;
 
-  err = open_unicast_socket();
+  err = openUnicastSocket();
   if (err != RT_OK)
     return err;
 
@@ -81,7 +81,7 @@ rtRemoteObjectResolver::open(char const* dstaddr, uint16_t port, char const* src
 }
 
 rtError
-rtRemoteObjectResolver::open_unicast_socket()
+rtRemoteObjectResolver::openUnicastSocket()
 {
   int ret = 0;
   int err = 0;
@@ -145,7 +145,7 @@ rtRemoteObjectResolver::open_unicast_socket()
 }
 
 rtError
-rtRemoteObjectResolver::on_search(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc)
+rtRemoteObjectResolver::onSearch(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc)
 {
   auto senderId = doc->FindMember(kFieldNameSenderId);
   assert(senderId != doc->MemberEnd());
@@ -184,7 +184,7 @@ rtRemoteObjectResolver::on_search(rtJsonDocPtr_t const& doc, sockaddr_storage co
 }
 
 rtError
-rtRemoteObjectResolver::on_locate(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
+rtRemoteObjectResolver::onLocate(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
 {
   int key = rtMessage_GetCorrelationKey(*doc);
 
@@ -254,7 +254,7 @@ rtRemoteObjectResolver::resolveObject(std::string const& name, sockaddr_storage&
 }
 
 void
-rtRemoteObjectResolver::run_listener()
+rtRemoteObjectResolver::runListener()
 {
   buff_t buff;
   buff.reserve(1024 * 1024);
@@ -284,15 +284,15 @@ rtRemoteObjectResolver::run_listener()
     }
 
     if (FD_ISSET(m_mcast_fd, &read_fds))
-      do_read(m_mcast_fd, buff);
+      doRead(m_mcast_fd, buff);
 
     if (FD_ISSET(m_ucast_fd, &read_fds))
-      do_read(m_ucast_fd, buff);
+      doRead(m_ucast_fd, buff);
   }
 }
 
 void
-rtRemoteObjectResolver::do_read(int fd, buff_t& buff)
+rtRemoteObjectResolver::doRead(int fd, buff_t& buff)
 {
   // we only suppor v4 right now. not sure how recvfrom supports v6 and v4
   sockaddr_storage src;
@@ -304,11 +304,11 @@ rtRemoteObjectResolver::do_read(int fd, buff_t& buff)
 
   ssize_t n = recvfrom(fd, &buff[0], buff.capacity(), 0, reinterpret_cast<sockaddr *>(&src), &len);
   if (n > 0)
-    do_dispatch(&buff[0], static_cast<int>(n), &src);
+    doDispatch(&buff[0], static_cast<int>(n), &src);
 }
 
 void
-rtRemoteObjectResolver::do_dispatch(char const* buff, int n, sockaddr_storage* peer)
+rtRemoteObjectResolver::doDispatch(char const* buff, int n, sockaddr_storage* peer)
 {
   // rtLogInfo("new message from %s:%d", inet_ntoa(src.sin_addr), htons(src.sin_port));
   // printf("read: %d\n", int(n));
@@ -344,10 +344,10 @@ rtRemoteObjectResolver::do_dispatch(char const* buff, int n, sockaddr_storage* p
 rtError
 rtRemoteObjectResolver::start()
 {
-  rtError err = open_multicast_socket();
+  rtError err = openMulticastSocket();
   if (err != RT_OK)
     return err;
-  m_read_thread.reset(new std::thread(&rtRemoteObjectResolver::run_listener, this));
+  m_read_thread.reset(new std::thread(&rtRemoteObjectResolver::runListener, this));
   return RT_OK;
 }
 
@@ -360,7 +360,7 @@ rtRemoteObjectResolver::registerObject(std::string const& name)
 }
 
 rtError
-rtRemoteObjectResolver::open_multicast_socket()
+rtRemoteObjectResolver::openMulticastSocket()
 {
   int err = 0;
 

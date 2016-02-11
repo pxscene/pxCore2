@@ -61,18 +61,12 @@ rtRemoteObjectLocator::rtRemoteObjectLocator()
     m_pipe_write = arr[1];
   }
 
-  m_command_handlers.insert(cmd_handler_map_t::value_type(
-    kMessageTypeOpenSessionRequest, &rtRemoteObjectLocator::on_open_session));
-  m_command_handlers.insert(cmd_handler_map_t::value_type(
-    kMessageTypeGetByNameRequest, &rtRemoteObjectLocator::on_get));
-  m_command_handlers.insert(cmd_handler_map_t::value_type(
-    kMessageTypeGetByIndexRequest, &rtRemoteObjectLocator::on_get));;
-  m_command_handlers.insert(cmd_handler_map_t::value_type(
-    kMessageTypeSetByNameRequest, &rtRemoteObjectLocator::on_set));
-  m_command_handlers.insert(cmd_handler_map_t::value_type(
-    kMessageTypeSetByIndexRequest, &rtRemoteObjectLocator::on_set));
-  m_command_handlers.insert(cmd_handler_map_t::value_type(
-    kMessageTypeMethodCallRequest, &rtRemoteObjectLocator::on_method_call));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeOpenSessionRequest, &rtRemoteObjectLocator::onOpenSession));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeGetByNameRequest, &rtRemoteObjectLocator::onGet));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeGetByIndexRequest, &rtRemoteObjectLocator::onGet));;
+  m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeSetByNameRequest, &rtRemoteObjectLocator::onSet));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeSetByIndexRequest, &rtRemoteObjectLocator::onSet));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeMethodCallRequest, &rtRemoteObjectLocator::onMethodCall));
 }
 
 rtRemoteObjectLocator::~rtRemoteObjectLocator()
@@ -94,7 +88,7 @@ rtRemoteObjectLocator::open(char const* dstaddr, uint16_t port, char const* srca
   if (err != RT_OK)
     return err;
 
-  err = open_rpc_listener();
+  err = openRpcListener();
   if (err != RT_OK)
     return err;
 
@@ -129,7 +123,7 @@ rtRemoteObjectLocator::registerObject(std::string const& name, rtObjectRef const
 }
 
 void
-rtRemoteObjectLocator::run_listener()
+rtRemoteObjectLocator::runListener()
 {
   rt_sockbuf_t buff;
   buff.reserve(1024 * 1024);
@@ -174,7 +168,7 @@ rtRemoteObjectLocator::run_listener()
     }
 
     if (FD_ISSET(m_rpc_fd, &read_fds))
-      do_accept(m_rpc_fd);
+      doAccept(m_rpc_fd);
 
     for (auto& c : m_client_list)
     {
@@ -186,8 +180,8 @@ rtRemoteObjectLocator::run_listener()
 
       if (FD_ISSET(c.fd, &read_fds))
       {
-        if (do_readn(c.fd, buff, c.peer) != RT_OK)
-          on_client_disconnect(c);
+        if (doReadn(c.fd, buff, c.peer) != RT_OK)
+          onClientDisconnect(c);
         }
       }
     }
@@ -201,7 +195,7 @@ rtRemoteObjectLocator::run_listener()
 }
 
 void
-rtRemoteObjectLocator::do_accept(int fd)
+rtRemoteObjectLocator::doAccept(int fd)
 {
   sockaddr_storage remote_endpoint;
   memset(&remote_endpoint, 0, sizeof(remote_endpoint));
@@ -224,19 +218,19 @@ rtRemoteObjectLocator::do_accept(int fd)
 }
 
 rtError
-rtRemoteObjectLocator::do_readn(int fd, rt_sockbuf_t& buff, sockaddr_storage const& peer)
+rtRemoteObjectLocator::doReadn(int fd, rt_sockbuf_t& buff, sockaddr_storage const& peer)
 {
   rtJsonDocPtr_t doc;
   rtError err = rtReadMessage(fd, buff, doc);
   if (err != RT_OK)
     return err;
 
-  do_dispatch(doc, fd, peer);
+  doDispatch(doc, fd, peer);
   return RT_OK;
 }
 
 void
-rtRemoteObjectLocator::do_dispatch(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& peer)
+rtRemoteObjectLocator::doDispatch(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& peer)
 {
   char const* message_type = rtMessage_GetMessageType(*doc);
 
@@ -265,7 +259,7 @@ rtRemoteObjectLocator::start()
   if (err != RT_OK)
     return err;
 
-  m_thread.reset(new std::thread(&rtRemoteObjectLocator::run_listener, this));
+  m_thread.reset(new std::thread(&rtRemoteObjectLocator::runListener, this));
   return RT_OK;
 }
 
@@ -314,7 +308,7 @@ rtRemoteObjectLocator::findObject(std::string const& name, rtObjectRef& obj, uin
       if (transport)
       {
         rtRemoteObject* remote(new rtRemoteObject(name, transport));
-        err = transport->start_session(name);
+        err = transport->startSession(name);
         if (err == RT_OK)
           obj = remote;
       }
@@ -325,7 +319,7 @@ rtRemoteObjectLocator::findObject(std::string const& name, rtObjectRef& obj, uin
 }
 
 rtError
-rtRemoteObjectLocator::open_rpc_listener()
+rtRemoteObjectLocator::openRpcListener()
 {
   int err = 0;
   int ret = 0;
@@ -382,7 +376,7 @@ rtRemoteObjectLocator::open_rpc_listener()
 }
 
 rtError
-rtRemoteObjectLocator::on_open_session(rtJsonDocPtr_t const& doc, int /*fd*/, sockaddr_storage const& soc)
+rtRemoteObjectLocator::onOpenSession(rtJsonDocPtr_t const& doc, int /*fd*/, sockaddr_storage const& soc)
 {
   uint32_t key = rtMessage_GetCorrelationKey(*doc);
   char const* id = rtMessage_GetObjectId(*doc);
@@ -423,7 +417,7 @@ rtRemoteObjectLocator::on_open_session(rtJsonDocPtr_t const& doc, int /*fd*/, so
 }
 
 rtError
-rtRemoteObjectLocator::on_client_disconnect(connected_client& client)
+rtRemoteObjectLocator::onClientDisconnect(connected_client& client)
 {
   int client_fd = client.fd;
 
@@ -444,7 +438,7 @@ rtRemoteObjectLocator::on_client_disconnect(connected_client& client)
 }
 
 rtObjectRef
-rtRemoteObjectLocator::get_object(std::string const& id) const
+rtRemoteObjectLocator::getObject(std::string const& id) const
 {
   rtObjectRef obj;
 
@@ -458,7 +452,7 @@ rtRemoteObjectLocator::get_object(std::string const& id) const
 }
 
 rtError
-rtRemoteObjectLocator::on_get(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& /*soc*/)
+rtRemoteObjectLocator::onGet(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& /*soc*/)
 {
   uint32_t key = rtMessage_GetCorrelationKey(*doc);
   char const* id = rtMessage_GetObjectId(*doc);
@@ -469,7 +463,7 @@ rtRemoteObjectLocator::on_get(rtJsonDocPtr_t const& doc, int fd, sockaddr_storag
   res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
   res->AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
 
-  rtObjectRef obj = get_object(id);
+  rtObjectRef obj = getObject(id);
   if (!obj)
   {
     res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
@@ -528,7 +522,7 @@ rtRemoteObjectLocator::on_get(rtJsonDocPtr_t const& doc, int fd, sockaddr_storag
 }
 
 rtError
-rtRemoteObjectLocator::on_set(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& /*soc*/)
+rtRemoteObjectLocator::onSet(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& /*soc*/)
 {
   uint32_t key = rtMessage_GetCorrelationKey(*doc);
   char const* id = rtMessage_GetObjectId(*doc);
@@ -539,7 +533,7 @@ rtRemoteObjectLocator::on_set(rtJsonDocPtr_t const& doc, int fd, sockaddr_storag
   res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
   res->AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
 
-  rtObjectRef obj = get_object(id);
+  rtObjectRef obj = getObject(id);
   if (!obj)
   {
     res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
@@ -585,7 +579,7 @@ rtRemoteObjectLocator::on_set(rtJsonDocPtr_t const& doc, int fd, sockaddr_storag
 }
 
 rtError
-rtRemoteObjectLocator::on_method_call(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& /*soc*/)
+rtRemoteObjectLocator::onMethodCall(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& /*soc*/)
 {
   uint32_t key = rtMessage_GetCorrelationKey(*doc);
   char const* id = rtMessage_GetObjectId(*doc);
@@ -596,7 +590,7 @@ rtRemoteObjectLocator::on_method_call(rtJsonDocPtr_t const& doc, int fd, sockadd
   res.AddMember(kFieldNameMessageType, kMessageTypeMethodCallResponse, res.GetAllocator());
   res.AddMember(kFieldNameCorrelationKey, key, res.GetAllocator());
 
-  rtObjectRef obj = get_object(id);
+  rtObjectRef obj = getObject(id);
   if (!obj)
   {
     set_status(res, 1, "object not found");

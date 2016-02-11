@@ -37,16 +37,16 @@ private:
   typedef std::map< rtAtomic, rtJsonDocPtr_t > request_map_t;
   typedef std::set< std::string > object_id_set_t;
 
-  void run_listener();
-  void do_read(int fd, buff_t& buff);
-  void do_dispatch(char const* buff, int n, sockaddr_storage* peer);
+  void runListener();
+  void doRead(int fd, buff_t& buff);
+  void doDispatch(char const* buff, int n, sockaddr_storage* peer);
 
-  rtError open_unicast_socket();
-  rtError open_multicast_socket();
+  rtError openUnicastSocket();
+  rtError openMulticastSocket();
 
   // command handlers
-  rtError on_search(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc);
-  rtError on_locate(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc);
+  rtError onSearch(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc);
+  rtError onLocate(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc);
 
 private:
   sockaddr_storage  m_mcast_dest;
