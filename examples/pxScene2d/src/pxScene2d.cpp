@@ -346,7 +346,7 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
                             rtObjectRef promise) 
 {
   animateTo(prop, to, duration, CONSTANTS.animationConstants.getInterpFunc(interp),// interps[interp].i,
-            (rtConstantsAnimation::animationOptions)animationType, promise);
+            (pxConstantsAnimation::animationOptions)animationType, promise);
   return RT_OK;
 }
 
@@ -370,7 +370,7 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
     animation& a = (*it);
     if (!a.cancelled && a.prop == prop)
     {
-      if (a.at == rtConstantsAnimation::OPTION_END)
+      if (a.at == pxConstantsAnimation::OPTION_END)
       {
         // fastforward
 #if 1
@@ -399,7 +399,7 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
 }
 
 void pxObject::animateTo(const char* prop, double to, double duration,
-                         pxInterp interp, rtConstantsAnimation::animationOptions at,
+                         pxInterp interp, pxConstantsAnimation::animationOptions at,
                          rtObjectRef promise)
 {
   cancelAnimation(prop, true);
@@ -434,7 +434,7 @@ void pxObject::update(double t)
     double end = a.start + a.duration;
     
     // if duration has elapsed
-    if (t >= end && a.at == rtConstantsAnimation::OPTION_END)
+    if (t >= end && a.at == pxConstantsAnimation::OPTION_END)
     {
       // TODO this sort of blows since this triggers another
       // animation traversal to cancel animations
@@ -443,7 +443,7 @@ void pxObject::update(double t)
 #else
       set(a.prop, a.to);
 
-      if (a.at == rtConstantsAnimation::OPTION_END)
+      if (a.at == pxConstantsAnimation::OPTION_END)
       {
         if (a.ended)
           a.ended.send(this);
@@ -456,7 +456,7 @@ void pxObject::update(double t)
       }
 #endif
 #if 0
-      else if (a.at == rtConstantsAnimation::OPTION_OSCILLATE)
+      else if (a.at == pxConstantsAnimation::OPTION_OSCILLATE)
       {
         // flip
         double t;
@@ -479,7 +479,7 @@ void pxObject::update(double t)
     float from, to;
     from = a.from;
     to = a.to;
-    if (a.at == rtConstantsAnimation::OPTION_OSCILLATE)
+    if (a.at == pxConstantsAnimation::OPTION_OSCILLATE)
     {
       if (fmod(t2,2) != 0)   // TODO perf chk ?
       {

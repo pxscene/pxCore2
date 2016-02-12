@@ -1,8 +1,8 @@
 // pxCore CopyRight 2007-2015 John Robinson
-// rtResource.h
+// pxResource.h
 
-#ifndef RT_RESOURCE_H
-#define RT_RESOURCE_H
+#ifndef PX_RESOURCE_H
+#define PX_RESOURCE_H
 
 #include "rtRefT.h"
 #include "rtString.h"
@@ -20,36 +20,36 @@
 #include <map>
 class pxFileDownloadRequest;
 
-#define RT_RESOURCE_STATUS_OK             0
-#define RT_RESOURCE_STATUS_DOWNLOADING    1
-#define RT_RESOURCE_STATUS_FILE_NOT_FOUND 2
-#define RT_RESOURCE_STATUS_NETWORK_ERROR  3
-#define RT_RESOURCE_STATUS_DECODE_FAILURE 4
-#define RT_RESOURCE_STATUS_HTTP_ERROR     5
-#define RT_RESOURCE_STATUS_UNKNOWN_ERROR  6
+#define PX_RESOURCE_STATUS_OK             0
+#define PX_RESOURCE_STATUS_DOWNLOADING    1
+#define PX_RESOURCE_STATUS_FILE_NOT_FOUND 2
+#define PX_RESOURCE_STATUS_NETWORK_ERROR  3
+#define PX_RESOURCE_STATUS_DECODE_FAILURE 4
+#define PX_RESOURCE_STATUS_HTTP_ERROR     5
+#define PX_RESOURCE_STATUS_UNKNOWN_ERROR  6
 
 
-class rtResourceListener 
+class pxResourceListener 
 {
 public: 
   virtual void resourceReady(rtString readyResolution) = 0;
 };
 
-class rtResource : public rtObject
+class pxResource : public rtObject
 {
 public: 
-  rtDeclareObject(rtResource, rtObject);
+  rtDeclareObject(pxResource, rtObject);
   
   rtReadOnlyProperty(url,url,rtString);
   rtReadOnlyProperty(ready,ready,rtObjectRef);
   rtReadOnlyProperty(loadStatus,loadStatus,rtObjectRef);
     
-  rtResource():mUrl(0),mDownloadRequest(0),priorityRaised(false),mReady(){  
+  pxResource():mUrl(0),mDownloadRequest(0),priorityRaised(false),mReady(){  
     mReady = new rtPromise;
     mLoadStatus = new rtMapObject; 
     mLoadStatus.set("statusCode", 0);
    }
-  ~rtResource();
+  ~pxResource();
 
   
   rtError url(rtString& s) const { s = mUrl; return RT_OK;}
@@ -70,8 +70,8 @@ public:
   
   bool isDownloadInProgress() { return (mDownloadRequest!=NULL);}  
   virtual void raiseDownloadPriority(); 
-  void addListener(rtResourceListener* pListener);
-  void removeListener(rtResourceListener* pListener);
+  void addListener(pxResourceListener* pListener);
+  void removeListener(pxResourceListener* pListener);
   virtual void loadResource();
   
 protected:   
@@ -91,16 +91,16 @@ protected:
 
   rtObjectRef mLoadStatus;
   rtObjectRef mReady;
-  list<rtResourceListener*> mListeners;
+  list<pxResourceListener*> mListeners;
 };
 
-class rtImageResource : public rtResource
+class rtImageResource : public pxResource
 {
 public:
   rtImageResource(const char* url = 0);
   ~rtImageResource(); 
   
-  rtDeclareObject(rtImageResource, rtResource);
+  rtDeclareObject(rtImageResource, pxResource);
   
   virtual unsigned long Release() ;
 
@@ -145,6 +145,6 @@ class pxImageManager
 
 
 
-#endif
+#endif // PX_RESOURCE
 
 

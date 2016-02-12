@@ -463,7 +463,7 @@ pxScene2dRef testScene()
   // TODO animateTo now takes a property bag of properties and targets too lazy to fix this call right now
   props = new rtMapObject();
   props.set("r",360.0);
-  picture.send("animateTo", props, 0.5, rtConstantsAnimation::TWEEN_LINEAR, rtConstantsAnimation::OPTION_OSCILLATE);
+  picture.send("animateTo", props, 0.5, pxConstantsAnimation::TWEEN_LINEAR, pxConstantsAnimation::OPTION_OSCILLATE);
   picture.set("parent", root);
   picture.set("url", bananaUrl);
 

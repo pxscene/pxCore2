@@ -12,9 +12,9 @@
 #include "rtRefT.h"
 #include "pxScene2d.h"
 #include "pxFont.h"
-#include "rtResource.h"
+#include "pxResource.h"
 
-class pxText: public pxObject, rtResourceListener 
+class pxText: public pxObject, pxResourceListener 
 {
 public:
   rtDeclareObject(pxText, pxObject);

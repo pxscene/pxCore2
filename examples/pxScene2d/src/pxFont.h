@@ -120,13 +120,13 @@ protected:
  * pxFont
  * 
  **********************************************************************/
-class pxFont: public rtResource {
+class pxFont: public pxResource {
 
 public:
 	pxFont(rtString fontUrl);
 	virtual ~pxFont() ;
 
-	rtDeclareObject(pxFont, rtResource);
+	rtDeclareObject(pxFont, pxResource);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
   
   rtMethod1ArgAndReturn("getFontMetrics", getFontMetrics, uint32_t, rtObjectRef);
@@ -152,7 +152,7 @@ public:
   bool isFontLoaded() { return mInitialized;}
    
 protected:
-  // Implementation for rtResource virtuals
+  // Implementation for pxResource virtuals
   virtual bool loadResourceData(pxFileDownloadRequest* fileDownloadRequest);
   
 private:

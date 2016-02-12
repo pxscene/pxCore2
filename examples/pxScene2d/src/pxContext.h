@@ -9,7 +9,7 @@
 #include "pxMatrix4T.h"
 #include "rtCore.h"
 #include "rtRefT.h"
-#include "rtConstants.h"
+#include "pxConstants.h"
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
 
@@ -56,8 +56,8 @@ class pxContext {
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);
 
   void drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask, bool useTextureDimsAlways = true,
-                 float* color = NULL, rtConstantsStretch::constants xStretch = rtConstantsStretch::NONE, 
-                 rtConstantsStretch::constants yStretch = rtConstantsStretch::NONE );
+                 float* color = NULL, pxConstantsStretch::constants xStretch = pxConstantsStretch::NONE, 
+                 pxConstantsStretch::constants yStretch = pxConstantsStretch::NONE );
 
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxTextureRef texture);

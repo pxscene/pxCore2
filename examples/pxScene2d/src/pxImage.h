@@ -8,9 +8,9 @@
 #include "rtMutex.h"
 #include "pxTexture.h"
 //#include "pxTextureCacheObject.h"
-#include "rtResource.h"
+#include "pxResource.h"
 
-class pxImage: public pxObject, rtResourceListener {
+class pxImage: public pxObject, pxResourceListener {
 public:
   rtDeclareObject(pxImage, pxObject);
   rtProperty(url, url, setUrl, rtString);
@@ -18,7 +18,7 @@ public:
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
   rtProperty(resource, resource, setResource, rtObjectRef);
   
-  pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(rtConstantsStretch::NONE),mStretchY(rtConstantsStretch::NONE), 
+  pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(pxConstantsStretch::NONE),mStretchY(pxConstantsStretch::NONE), 
     imageLoaded(false)
   { 
     mw = -1;
@@ -39,14 +39,14 @@ public:
   rtError stretchX(int32_t& v) const { v = (int32_t)mStretchX; return RT_OK; }
   rtError setStretchX(int32_t v)
   {
-    mStretchX = (rtConstantsStretch::constants)v;
+    mStretchX = (pxConstantsStretch::constants)v;
     return RT_OK;
   }
 
   rtError stretchY(int32_t& v) const { v = (int32_t)mStretchY; return RT_OK; }
   rtError setStretchY(int32_t v)
   {
-    mStretchY = (rtConstantsStretch::constants)v;
+    mStretchY = (pxConstantsStretch::constants)v;
     return RT_OK;
   }
   
@@ -64,8 +64,8 @@ protected:
   void loadImage(rtString Url);
   inline rtImageResource* getImageResource() const { return (rtImageResource*)mResource.getPtr(); }
 
-  rtConstantsStretch::constants mStretchX;
-  rtConstantsStretch::constants mStretchY;
+  pxConstantsStretch::constants mStretchX;
+  pxConstantsStretch::constants mStretchY;
   rtObjectRef mResource;
   
   bool imageLoaded;

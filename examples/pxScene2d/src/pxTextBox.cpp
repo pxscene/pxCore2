@@ -1,7 +1,7 @@
 // pxCore CopyRight 2007-2015 John Robinson
 // pxTextBox.cpp
 
-#include "rtConstants.h"
+#include "pxConstants.h"
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxFileDownloader.h"
@@ -27,11 +27,11 @@ pxTextBox::pxTextBox(pxScene2d* s):pxText(s)
   mEllipsis = false;
   lineNumber = 0;
   lastLineNumber = 0;
-  mTruncation = rtConstantsTruncation::NONE;  
+  mTruncation = pxConstantsTruncation::NONE;  
   mXStartPos = 0;
   mXStopPos = 0;
-  mAlignVertical = rtConstantsAlignVertical::TOP;
-  mAlignHorizontal = rtConstantsAlignHorizontal::LEFT;
+  mAlignVertical = pxConstantsAlignVertical::TOP;
+  mAlignHorizontal = pxConstantsAlignHorizontal::LEFT;
   mLeading = 0;  
   mNeedsRecalc = true;
 
@@ -62,14 +62,14 @@ void pxTextBox::resourceReady(rtString readyResolution)
 
 float pxTextBox::getFBOWidth() 
 { 
-  if( !clip() && mTruncation == rtConstantsTruncation::NONE && !mWordWrap) 
+  if( !clip() && mTruncation == pxConstantsTruncation::NONE && !mWordWrap) 
      return noClipW;
   else 
     return mw; 
 }
 float pxTextBox::getFBOHeight() 
 { 
-  if( !clip() && mTruncation == rtConstantsTruncation::NONE) 
+  if( !clip() && mTruncation == pxConstantsTruncation::NONE) 
      return noClipH;
   else 
     return mh;
@@ -172,7 +172,7 @@ void pxTextBox::draw() {
   static pxTextureRef nullMaskRef;
 	if (mCached.getPtr() && mCached->getTexture().getPtr()) 
   {
-    if(!clip() && mTruncation == rtConstantsTruncation::NONE)
+    if(!clip() && mTruncation == pxConstantsTruncation::NONE)
     {
       //printf("!CLF: pxTextBox::draw() with cachedPtr && noClip values x=%f y=%f w=%f h=%f\n",noClipX,noClipY,noClipW,noClipH);
       context.drawImage(noClipX,noClipY,noClipW,noClipH,mCached->getTexture(),nullMaskRef,false);
@@ -267,7 +267,7 @@ void pxTextBox::renderTextWithWordWrap(const char *text, float sx, float sy, flo
 {
 	float tempY = 0;
 
-  if( mAlignHorizontal == rtConstantsAlignHorizontal::LEFT && mTruncation != rtConstantsTruncation::NONE ) 
+  if( mAlignHorizontal == pxConstantsAlignHorizontal::LEFT && mTruncation != pxConstantsTruncation::NONE ) 
   {
     if( mXStopPos != 0) 
     {
@@ -300,7 +300,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
     tempY = startY;
   }
   if(lineNumber == 0) {
-    if( mAlignHorizontal == rtConstantsAlignHorizontal::LEFT) 
+    if( mAlignHorizontal == pxConstantsAlignHorizontal::LEFT) 
     {
  //     setLineMeasurements(true, mXStartPos, tempY);
       tempX = mXStartPos;
@@ -356,7 +356,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
           if( !mWordWrap && lineNumber != 0 ) {
             lastLineNumber = lineNumber;
             //printf("!!!!CLF: calling renderTextRowWithTruncation! %s\n",accString.cString());
-            if( mTruncation != rtConstantsTruncation::NONE) {
+            if( mTruncation != pxConstantsTruncation::NONE) {
               renderTextRowWithTruncation(accString, mw, mx, tempY, sx, sy, size, color, render);
               accString = ""; 
               break; 
@@ -428,10 +428,10 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
           
           // If Truncation is NONE, we never want to set as last line; 
           // just keep rendering...
-          if( mTruncation != rtConstantsTruncation::NONE && tempY + ((mLeading*sy) + (charH*2)) > this->h() && !lastLine) 
+          if( mTruncation != pxConstantsTruncation::NONE && tempY + ((mLeading*sy) + (charH*2)) > this->h() && !lastLine) 
           {
             lastLine = true;
-            if(mXStopPos != 0 && mAlignHorizontal == rtConstantsAlignHorizontal::LEFT) 
+            if(mXStopPos != 0 && mAlignHorizontal == pxConstantsAlignHorizontal::LEFT) 
             {
                 lineWidth = mXStopPos - mx;
             } 				
@@ -445,12 +445,12 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
 		
 		if(accString.length() > 0) {
       lastLineNumber = lineNumber;
-      if( mTruncation == rtConstantsTruncation::NONE && !mWordWrap ) {
+      if( mTruncation == pxConstantsTruncation::NONE && !mWordWrap ) {
         //printf("CLF! Sending tempX instead of this->w(): %f\n", tempX);
         renderOneLine(accString.cString(), 0, tempY, sx, sy, size, color, tempX, render);
       } else {
         // check if we need to truncate this last line
-        if( !lastLine && mXStopPos != 0 && mAlignHorizontal == rtConstantsAlignHorizontal::LEFT && mTruncation != rtConstantsTruncation::NONE && mXStopPos > mXStartPos
+        if( !lastLine && mXStopPos != 0 && mAlignHorizontal == pxConstantsAlignHorizontal::LEFT && mTruncation != pxConstantsTruncation::NONE && mXStopPos > mXStartPos
             && tempX > mw) {
           renderTextRowWithTruncation(accString, mXStopPos - mx, mx, tempY, sx, sy, size, color, render);
         } 
@@ -476,12 +476,12 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
 
       // NOTE that the only time mWordWrap should be false in this function
       // is when there are newline char(s) in the text being rendered.
-      if( mAlignVertical == rtConstantsAlignVertical::BOTTOM ) 
+      if( mAlignVertical == pxConstantsAlignVertical::BOTTOM ) 
       {
         if(!mWordWrap ) 
         {
           startY = my + (mh - textHeight); // could be negative
-          if(!clip() && mTruncation == rtConstantsTruncation::NONE) 
+          if(!clip() && mTruncation == pxConstantsTruncation::NONE) 
           {
             noClipY = my;    
             noClipH = textHeight;//mh;
@@ -493,19 +493,19 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
           if(!clip()) 
           {    
             noClipY = my-(textHeight-mh);
-            if(mTruncation == rtConstantsTruncation::NONE) {
+            if(mTruncation == pxConstantsTruncation::NONE) {
               noClipH = textHeight;
               startY = 0;//my;
             }
           }
         }
       } 
-      else if( mAlignVertical == rtConstantsAlignVertical::CENTER)
+      else if( mAlignVertical == pxConstantsAlignVertical::CENTER)
       {
         if(!mWordWrap ) 
         {
           startY = my+ (mh/2) - textHeight/2;
-          if(!clip() && mTruncation == rtConstantsTruncation::NONE) 
+          if(!clip() && mTruncation == pxConstantsTruncation::NONE) 
           {
             noClipY = my;
             noClipH = mh;
@@ -517,7 +517,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
           if(!clip())  
           {
             noClipY = (my + (mh/2)) - textHeight/2;
-            if(mTruncation == rtConstantsTruncation::NONE)
+            if(mTruncation == pxConstantsTruncation::NONE)
             {
               startY = 0;//my;
               noClipH = textHeight;
@@ -525,10 +525,10 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
           }
         }
       }
-      else if( mAlignVertical == rtConstantsAlignVertical::TOP)
+      else if( mAlignVertical == pxConstantsAlignVertical::TOP)
       {
         startY = 0;//my; // This fixes XRE2-85 clip:true wordWrap:true thin sliver of text shown
-        if( mWordWrap && !clip() && mTruncation == rtConstantsTruncation::NONE)
+        if( mWordWrap && !clip() && mTruncation == pxConstantsTruncation::NONE)
         {
           noClipY = 0;//my; // This fixes clip:true wordWrap:true y position additive of my
           noClipH = textHeight;
@@ -538,7 +538,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       }
       
       // Now set the top and bottom Y bounds
-      if( !clip() && mTruncation == rtConstantsTruncation::NONE) 
+      if( !clip() && mTruncation == pxConstantsTruncation::NONE) 
       {
         setMeasurementBoundsY(true, noClipY);
         setMeasurementBoundsY(false, textHeight);        
@@ -569,18 +569,18 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   float xPos = tempX; 
   getFontResource()->measureTextInternal(tempStr, size, sx, sy, charW, charH);
   
-  if( !clip() && mTruncation == rtConstantsTruncation::NONE) 
+  if( !clip() && mTruncation == pxConstantsTruncation::NONE) 
   {
     //printf("!CLF: Setting NoClip values in renderOneLine to noClipW=%f\n",noClipW);
     noClipW = (noClipW < charW) ? charW:noClipW;
     if( !mWordWrap)  
     {
-      if( mAlignHorizontal == rtConstantsAlignHorizontal::CENTER ) 
+      if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER ) 
       { 
         xPos = tempX;
         noClipX = (lineWidth/2) - charW/2;
       }
-      else if( mAlignHorizontal == rtConstantsAlignHorizontal::RIGHT) 
+      else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT) 
       {
         xPos = tempX;
         noClipX = mw-charW;
@@ -604,12 +604,12 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
     else 
     {
       // mWordWrap is on - No Clip and No Truncation
-      if( mAlignHorizontal == rtConstantsAlignHorizontal::CENTER)  
+      if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER)  
       { 
         xPos = (lineWidth/2) - charW/2;
         noClipX = tempX;
       }
-      else if( mAlignHorizontal == rtConstantsAlignHorizontal::RIGHT) 
+      else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT) 
       {
         xPos = lineWidth - charW;
         noClipX = tempX;
@@ -632,11 +632,11 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   else 
   {
     // If we're here, clip could be on or off
-    if( mAlignHorizontal == rtConstantsAlignHorizontal::CENTER)  
+    if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER)  
     { 
       xPos = (lineWidth/2) - charW/2;
     }
-    else if( mAlignHorizontal == rtConstantsAlignHorizontal::RIGHT) 
+    else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT) 
     {
        xPos = lineWidth - charW;
     }
@@ -656,10 +656,10 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
    //when lineNumber==lastLineNumber.  Check now.
   if( lineNumber != 0)
   {
-    if( !clip() && mTruncation == rtConstantsTruncation::NONE) 
+    if( !clip() && mTruncation == pxConstantsTruncation::NONE) 
     {
       setMeasurementBoundsX(true, xPos);
-      if( lineNumber == lastLineNumber || mTruncation == rtConstantsTruncation::NONE) {
+      if( lineNumber == lastLineNumber || mTruncation == pxConstantsTruncation::NONE) {
         //printf("!CLF: calculating lineMeasurement! pixelSize=%d noClipH=%f noClipY=%f lineNumber=%d\n",mPixelSize,noClipH, noClipY, lineNumber);
         setLineMeasurements(false,xPos+charW, noClipY+(noClipH-(noClipH/(lineNumber+1))));
         setMeasurementBoundsX(false, charW );
@@ -693,7 +693,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       // line of text there is...
       // !CLF:  TODO:  What if there are newlines within the text, and 
       // that's how we got here with mWordWrap==false?  
-      if(!clip() && mTruncation == rtConstantsTruncation::NONE) {
+      if(!clip() && mTruncation == pxConstantsTruncation::NONE) {
         //printf("!CLF lineNumber == 0 !mWordWrap !clip() && mTruncation == NONE tempX=%f xPos=%f xStartPos=%f noClipX=%f noClipW=%f charW=%f\n", tempX, xPos,mXStartPos, noClipX, noClipW, charW);
         if( noClipX != tempX) { 
           setMeasurementBounds(false, noClipX+charW, charH);
@@ -735,7 +735,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
     else 
     {
       // mWordWrap is true and lineNumber==0
-      if( !clip() && mTruncation == rtConstantsTruncation::NONE)
+      if( !clip() && mTruncation == pxConstantsTruncation::NONE)
       {
         //printf("!CLF: No clip here we go: noClipY=%f my=%f, tempY=%f, noClipH=%f\n",noClipY,my, tempY,noClipH);
         //printf("!CLF: No clip here we go: noClipX=%f mx=%f, tempX=%f, noClipW=%f\n",noClipX,mx, tempX,noClipW);
@@ -877,7 +877,7 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
   float tempXStartPos = tempX;
   float tempY = 0;//my;
   
-  if( mAlignHorizontal == rtConstantsAlignHorizontal::LEFT) {
+  if( mAlignHorizontal == pxConstantsAlignHorizontal::LEFT) {
     tempXStartPos = mXStartPos;
 
   }
@@ -897,9 +897,9 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
   else 
   {
     // Calculate vertical alignment values
-    if( mAlignVertical == rtConstantsAlignVertical::BOTTOM || mAlignVertical == rtConstantsAlignVertical::CENTER) 
+    if( mAlignVertical == pxConstantsAlignVertical::BOTTOM || mAlignVertical == pxConstantsAlignVertical::CENTER) 
     {
-      if( mAlignVertical == rtConstantsAlignVertical::BOTTOM ) 
+      if( mAlignVertical == pxConstantsAlignVertical::BOTTOM ) 
       {
         tempY = my + (mh - charH); // could be negative
       } 
@@ -908,12 +908,12 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
         tempY = my+ (mh/2) - charH/2;
       }
     }
-    if( mTruncation == rtConstantsTruncation::NONE && !clip() && charH > mh) {
+    if( mTruncation == pxConstantsTruncation::NONE && !clip() && charH > mh) {
       noClipH = charH;
       noClipW = (noClipW < charW) ? charW:noClipW;
     }
     // Will it fit on one line OR is there no truncation, so we don't care...
-    if( (charW + tempXStartPos) <= lineWidth || mTruncation == rtConstantsTruncation::NONE) 
+    if( (charW + tempXStartPos) <= lineWidth || mTruncation == pxConstantsTruncation::NONE) 
     {
       lastLineNumber = lineNumber = 0;
       //printf("pxTextBox::renderTextNoWordWrap setLineMeasurements tempXStartPos=%f tempY=%f before renderOneLine\n",tempXStartPos, tempY);
@@ -927,7 +927,7 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
     { 
       // Do we really need to check for truncation? It has to be one of these
       // since we checked for NONE above.
-      if(mTruncation == rtConstantsTruncation::TRUNCATE || mTruncation == rtConstantsTruncation::TRUNCATE_AT_WORD) 
+      if(mTruncation == pxConstantsTruncation::TRUNCATE || mTruncation == pxConstantsTruncation::TRUNCATE_AT_WORD) 
       {
           renderTextRowWithTruncation(mText, lineWidth, tempX, tempY, sx, sy, mPixelSize, mTextColor, render);
       }     
@@ -961,13 +961,13 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
 	}
   
   // Make adjustments for H_LEFT xStartPos and xStopPos, as applicable
-  if( mAlignHorizontal == rtConstantsAlignHorizontal::LEFT)
+  if( mAlignHorizontal == pxConstantsAlignHorizontal::LEFT)
   {
     if( lineNumber == 0) {
       tempX = mXStartPos;
     }
     // Adjust line width when stop pos is authored (and using H_LEFT)
-    if( mTruncation != rtConstantsTruncation::NONE && mXStopPos != 0 && mXStopPos > tempX) 
+    if( mTruncation != pxConstantsTruncation::NONE && mXStopPos != 0 && mXStopPos > tempX) 
     {
       lineWidth = mXStopPos - tempX;
     }    
@@ -983,15 +983,15 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
 		if( (tempX + charW + ellipsisW) <= lineWidth) 
     {
 			float xPos = tempX;  
-			if( mTruncation == rtConstantsTruncation::TRUNCATE) 
+			if( mTruncation == pxConstantsTruncation::TRUNCATE) 
       {
 				// we're done; just render
 				// Ignore xStartPos and xStopPos if H align is not LEFT
-				if( mAlignHorizontal == rtConstantsAlignHorizontal::CENTER )
+				if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER )
         { 
 					xPos = (lineWidth/2) - ((charW+ellipsisW)/2);
 				}	
-        else if( mAlignHorizontal == rtConstantsAlignHorizontal::RIGHT)
+        else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT)
         {
           xPos =  lineWidth - charW - ellipsisW;
         }	
@@ -1014,7 +1014,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
 				}
 				break;
 			} 
-			else if( mTruncation == rtConstantsTruncation::TRUNCATE_AT_WORD)
+			else if( mTruncation == pxConstantsTruncation::TRUNCATE_AT_WORD)
       {
 				// Look for word boundary on which to break
 				int n = 1;
@@ -1029,11 +1029,11 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
 					getFontResource()->measureTextInternal(tempStr, pixelSize, sx, sy, charW, charH);
 
           // Ignore xStartPos and xStopPos if H align is not LEFT
-					if( mAlignHorizontal == rtConstantsAlignHorizontal::CENTER) 
+					if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER) 
           { 
 						xPos = (lineWidth/2) - ((charW+ellipsisW)/2);
 					}	
-					else if( mAlignHorizontal == rtConstantsAlignHorizontal::RIGHT) 
+					else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT) 
           {
 						xPos = lineWidth - charW - ellipsisW;
 					}					

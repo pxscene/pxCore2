@@ -13,8 +13,6 @@ RT_SRCS=\
     rtString.cpp \
     rtObject.cpp \
     rtValue.cpp \
-    rtResource.cpp \
-    rtConstants.cpp \
     linux/rtMutexNative.cpp \
     linux/rtThreadPoolNative.cpp \
     rtThreadPool.cpp \
@@ -24,6 +22,8 @@ RT_SRCS=\
 PX_SRCS=\
     pxMain.cpp \
     pxScene2d.cpp \
+    pxResource.cpp \
+    pxConstants.cpp \
     pxRectangle.cpp \
     pxText.cpp \
     pxTextBox.cpp \

@@ -30,7 +30,7 @@ using namespace std;
 #include "rtObjectMacros.h"
 #include "rtPromise.h"
 #include "rtThreadQueue.h"
-#include "rtResource.h"
+#include "pxResource.h"
 
 #include "pxCore.h"
 #include "pxIView.h"
@@ -50,10 +50,10 @@ extern rtThreadQueue gUIThreadQueue;
 
 // TODO Finish
 //#include "pxTransform.h"
-#include "rtConstants.h"
+#include "pxConstants.h"
 
 // Constants
-static rtConstants CONSTANTS;
+static pxConstants CONSTANTS;
 
 
 #if 0
@@ -78,7 +78,7 @@ struct animation {
   bool flip;
   double start;
   double duration;
-  rtConstantsAnimation::animationOptions at;//pxAnimationType at;
+  pxConstantsAnimation::animationOptions at;//pxAnimationType at;
   pxInterp interp;
   rtFunctionRef ended;
   rtObjectRef promise;
@@ -347,7 +347,7 @@ public:
                       rtObjectRef& promise);
 
   void animateTo(const char* prop, double to, double duration,
-		 pxInterp interp, rtConstantsAnimation::animationOptions,//pxAnimationType at, 
+		 pxInterp interp, pxConstantsAnimation::animationOptions,
                  rtObjectRef promise);
 
   void cancelAnimation(const char* prop, bool fastforward = false);
