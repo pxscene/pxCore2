@@ -175,11 +175,11 @@ void pxTextBox::draw() {
     if(!clip() && mTruncation == rtConstantsTruncation::NONE)
     {
       //printf("!CLF: pxTextBox::draw() with cachedPtr && noClip values x=%f y=%f w=%f h=%f\n",noClipX,noClipY,noClipW,noClipH);
-      context.drawImage(noClipX,noClipY,noClipW,noClipH,mCached->getTexture(),nullMaskRef,rtConstantsStretch::NONE,rtConstantsStretch::NONE);
+      context.drawImage(noClipX,noClipY,noClipW,noClipH,mCached->getTexture(),nullMaskRef,false);
     }
     else 
     {
-      context.drawImage(0,0,mw,mh,mCached->getTexture(),nullMaskRef,rtConstantsStretch::NONE,rtConstantsStretch::NONE);
+      context.drawImage(0,0,mw,mh,mCached->getTexture(),nullMaskRef, true);
     }
 	}
 	else 

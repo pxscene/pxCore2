@@ -315,8 +315,7 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
       
       pxTextureRef texture = entry->mTexture;
       pxTextureRef nullImage;
-      context.drawImage(x2,y2, w, h, texture, nullImage, rtConstantsStretch::NONE, rtConstantsStretch::NONE, 
-                        color);
+      context.drawImage(x2,y2, w, h, texture, nullImage, false, color);
       x += (entry->advancedotx >> 6) * sx;
       // TODO not sure if this is right?  seems weird commenting out to see what happens
       y += (entry->advancedoty >> 6) * sy;

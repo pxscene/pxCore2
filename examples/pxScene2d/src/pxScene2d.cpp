@@ -674,7 +674,7 @@ void pxObject::drawInternal(bool maskPass)
       createSnapshotOfChildren(drawableSnapshot, maskSnapshot);
       context.setMatrix(m);
       //rtLogInfo("context.drawImage\n");
-      context.drawImage(0, 0, w, h, drawableSnapshot->getTexture(), maskSnapshot->getTexture(), rtConstantsStretch::NONE, rtConstantsStretch::NONE);
+      context.drawImage(0, 0, w, h, drawableSnapshot->getTexture(), maskSnapshot->getTexture());
     }
     else if (mClip )
     {
@@ -686,7 +686,7 @@ void pxObject::drawInternal(bool maskPass)
       {
         //rtLogInfo("context.drawImage\n");
         static pxTextureRef nullMaskRef;
-        context.drawImage(0, 0, w, h, mClipSnapshotRef->getTexture(), nullMaskRef, rtConstantsStretch::NONE, rtConstantsStretch::NONE);
+        context.drawImage(0, 0, w, h, mClipSnapshotRef->getTexture(), nullMaskRef);
       }
     }
     else
@@ -712,7 +712,7 @@ void pxObject::drawInternal(bool maskPass)
   {
     //rtLogInfo("context.drawImage mw=%f mh=%f\n", mw, mh);
     static pxTextureRef nullMaskRef;
-    context.drawImage(0,0,w,h, mSnapshotRef->getTexture(), nullMaskRef, rtConstantsStretch::NONE, rtConstantsStretch::NONE);
+    context.drawImage(0,0,w,h, mSnapshotRef->getTexture(), nullMaskRef);
   }
 
   if (!maskPass)

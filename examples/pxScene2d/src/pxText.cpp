@@ -77,7 +77,6 @@ void pxText::resourceReady(rtString readyResolution)
     // so measure it
     getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
     mDirty=true;  
-  //  printf("After fontLoaded and measureText, mw=%f and mh=%f\n",mw,mh);
     // !CLF: ToDo Use pxObject::onTextureReady() and rename it.
     if( mInitialized) 
       pxObject::onTextureReady();
@@ -143,7 +142,7 @@ void pxText::draw() {
   {
     if (mCached.getPtr() && mCached->getTexture().getPtr())
     {
-      context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef, rtConstantsStretch::NONE, rtConstantsStretch::NONE);
+      context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef);
     }
     else
     {
