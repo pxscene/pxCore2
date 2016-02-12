@@ -37,15 +37,15 @@ RT_SRCS=\
     rtThreadTask.cpp \
     rtThreadQueue.cpp \
     rtLibrary.cpp \
-    rtResource.cpp \
-    rtConstants.cpp \
     rtZip.cpp \
     utf8.c
     
 PX_SRCS=\
     pxMain.cpp \
+    pxResource.cpp \
+    pxConstants.cpp \
     pxScene2d.cpp \
-		pxRectangle.cpp \
+	pxRectangle.cpp \
     pxText.cpp \
     pxTextBox.cpp \
     pxFont.cpp \
@@ -55,7 +55,7 @@ PX_SRCS=\
     pxImage9.cpp \
     pxFileDownloader.cpp \
     pxInterpolators.cpp \
-		pxMatrix4T.cpp \
+	pxMatrix4T.cpp \
     pxArchive.cpp
 
 EXTDIR=../external

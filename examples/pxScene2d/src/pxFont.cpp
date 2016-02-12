@@ -50,7 +50,7 @@ FT_Library ft;
 uint32_t gFontId = 0;
 
 
-pxFont::pxFont(rtString fontUrl):rtResource(),mPixelSize(0), mFontData(0)
+pxFont::pxFont(rtString fontUrl):pxResource(),mPixelSize(0), mFontData(0)
 {  
   mFontId = gFontId++; 
   mUrl = fontUrl;
@@ -60,7 +60,7 @@ pxFont::pxFont(rtString fontUrl):rtResource(),mPixelSize(0), mFontData(0)
 pxFont::~pxFont() 
 {
   rtLogInfo("~pxFont %s\n", mUrl.cString());
-  // download should be canceled/removed in rtResource
+  // download should be canceled/removed in pxResource
   //if (mDownloadRequest != NULL)
   //{
     //// clear any pending downloads
@@ -97,7 +97,7 @@ void pxFont::loadResourceFromFile()
     if (e != RT_OK)
     {
       rtLogWarn("Could not load font face %s\n", mUrl.cString());
-      mLoadStatus.set("statusCode", RT_RESOURCE_STATUS_FILE_NOT_FOUND);
+      mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_FILE_NOT_FOUND);
       // Since this object can be released before we get a async completion
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
@@ -106,7 +106,7 @@ void pxFont::loadResourceFromFile()
     }
     else
     {
-      mLoadStatus.set("statusCode", RT_RESOURCE_STATUS_OK);
+      mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_OK);
       // Since this object can be released before we get a async completion
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
@@ -477,7 +477,7 @@ void pxFontManager::removeFont(rtString fontName)
 
 
 // pxTextMetrics
-rtDefineObject(pxTextMetrics, rtResource);
+rtDefineObject(pxTextMetrics, pxResource);
 rtDefineProperty(pxTextMetrics, height); 
 rtDefineProperty(pxTextMetrics, ascent);
 rtDefineProperty(pxTextMetrics, descent);
@@ -485,10 +485,10 @@ rtDefineProperty(pxTextMetrics, naturalLeading);
 rtDefineProperty(pxTextMetrics, baseline);
 
 // pxFont
-rtDefineObject(pxFont, rtResource);
+rtDefineObject(pxFont, pxResource);
 rtDefineMethod(pxFont, getFontMetrics);
 rtDefineMethod(pxFont, measureText);
 
-rtDefineObject(pxTextSimpleMeasurements, rtResource);
+rtDefineObject(pxTextSimpleMeasurements, pxResource);
 rtDefineProperty(pxTextSimpleMeasurements, w);
 rtDefineProperty(pxTextSimpleMeasurements, h);

@@ -6,9 +6,9 @@
 
 #include "pxOffscreen.h"
 //#include "pxTextureCacheObject.h"
-#include "rtResource.h"
+#include "pxResource.h"
 
-class pxImage9: public pxObject, rtResourceListener {
+class pxImage9: public pxObject, pxResourceListener {
 public:
   rtDeclareObject(pxImage9, pxObject);
   rtProperty(url, url, setUrl, rtString);

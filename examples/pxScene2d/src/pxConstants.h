@@ -1,8 +1,8 @@
 // rtCore Copyright 2007-2015 John Robinson
-// rtConstants.h
+// pxConstants.h
 
-#ifndef _RT_CONSTANTS
-#define _RT_CONSTANTS
+#ifndef _PX_CONSTANTS
+#define _PX_CONSTANTS
 
 #include <stdint.h>
 
@@ -16,26 +16,26 @@
 #include "rtObjectMacros.h"
 #include "pxInterpolators.h"
 
-class rtConstantsAnimation;
-class rtConstantsStretch;
-class rtConstantsAlignVertical;
-class rtConstantsAlignHorizontal;
-class rtConstantsTruncation;
+class pxConstantsAnimation;
+class pxConstantsStretch;
+class pxConstantsAlignVertical;
+class pxConstantsAlignHorizontal;
+class pxConstantsTruncation;
 
 /* Class for access to constants */
-class rtConstants : public rtObject
+class pxConstants : public rtObject
 {
   
 public:  
-  static rtConstantsAnimation animationConstants;
-  static rtConstantsStretch stretchConstants;
-  static rtConstantsAlignVertical alignVerticalConstants;
-  static rtConstantsAlignHorizontal alignHorizontalConstants;
-  static rtConstantsTruncation truncationConstants;  
+  static pxConstantsAnimation animationConstants;
+  static pxConstantsStretch stretchConstants;
+  static pxConstantsAlignVertical alignVerticalConstants;
+  static pxConstantsAlignHorizontal alignHorizontalConstants;
+  static pxConstantsTruncation truncationConstants;  
   
 };
 
-class rtConstantsAnimation : public rtObject 
+class pxConstantsAnimation : public rtObject 
 {
 
 public:
@@ -66,7 +66,7 @@ public:
     COUNT_FOREVER = -1
   };
 
-  rtDeclareObject(rtConstantsAnimation, rtObject);
+  rtDeclareObject(pxConstantsAnimation, rtObject);
   
   rtConstantProperty(TWEEN_LINEAR, TWEEN_LINEAR, int32_t);
   rtConstantProperty(TWEEN_EXP1, TWEEN_EXP1, int32_t);
@@ -115,7 +115,7 @@ public:
 
 
 
-class rtConstantsStretch : public rtObject
+class pxConstantsStretch : public rtObject
 {
 public:
   enum constants {
@@ -123,7 +123,7 @@ public:
     STRETCH,
     REPEAT,
   };
-  rtDeclareObject(rtConstantsStretch, rtObject);
+  rtDeclareObject(pxConstantsStretch, rtObject);
   
   rtConstantProperty(NONE, NONE, int32_t);
   rtConstantProperty(STRETCH, STRETCH, int32_t);
@@ -131,7 +131,7 @@ public:
 };
 
 
-class rtConstantsAlignVertical : public rtObject
+class pxConstantsAlignVertical : public rtObject
 {
 public:
   enum constants {
@@ -139,14 +139,14 @@ public:
     CENTER,
     BOTTOM,
   };
-  rtDeclareObject(rtConstantsAlignVertical, rtObject);
+  rtDeclareObject(pxConstantsAlignVertical, rtObject);
   
   rtConstantProperty(TOP, TOP, int32_t);
   rtConstantProperty(CENTER, CENTER, int32_t);
   rtConstantProperty(BOTTOM, BOTTOM, int32_t);
 };
 
-class rtConstantsAlignHorizontal : public rtObject
+class pxConstantsAlignHorizontal : public rtObject
 {
 public:
   enum constants {
@@ -154,14 +154,14 @@ public:
     CENTER,
     RIGHT,
   };
-  rtDeclareObject(rtConstantsAlignHorizontal, rtObject);
+  rtDeclareObject(pxConstantsAlignHorizontal, rtObject);
   
   rtConstantProperty(LEFT, LEFT, int32_t);
   rtConstantProperty(CENTER, CENTER, int32_t);
   rtConstantProperty(RIGHT, RIGHT, int32_t);
 };
 
-class rtConstantsTruncation : public rtObject
+class pxConstantsTruncation : public rtObject
 {
 public:
   enum constants {
@@ -169,7 +169,7 @@ public:
     TRUNCATE,
     TRUNCATE_AT_WORD,
   };
-  rtDeclareObject(rtConstantsTruncation, rtObject);
+  rtDeclareObject(pxConstantsTruncation, rtObject);
   
   rtConstantProperty(NONE, NONE, int32_t);
   rtConstantProperty(TRUNCATE, TRUNCATE, int32_t);
@@ -178,4 +178,4 @@ public:
 
 
 
-#endif
+#endif // PX_CONSTANTS

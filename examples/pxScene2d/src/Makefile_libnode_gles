@@ -22,15 +22,16 @@ RT_SRCS=\
            utf8.c
 
 PX_SRCS=\
-	   pxScene2d.cpp \
-	   pxRectangle.cpp \
+           pxScene2d.cpp \
+           pxResource.cpp \
+           pxConstants.cpp \
+           pxRectangle.cpp \
            pxText.cpp \
-           pxText2.cpp \
+           pxTextBox.cpp \
            pxImage.cpp \
            pxUtil.cpp \
            pxContextGL.cpp \
            pxImage9.cpp \
-           pxTextureCacheObject.cpp \
            pxFileDownloader.cpp \
            pxInterpolators.cpp \
 	   pxMatrix4T.cpp \

@@ -830,9 +830,9 @@ public:
     texture->bindGLTexture(mTextureLoc);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 
-		    (stretchX==rtConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+		    (stretchX==pxConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 
-		    (stretchY==rtConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+		    (stretchY==pxConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
 
     glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
     glVertexAttribPointer(mUVLoc, 2, GL_FLOAT, GL_FALSE, 0, uv);
@@ -979,7 +979,7 @@ static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat 
 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
                              pxTextureRef mask, bool useTextureDimsAlways, float* color,
-                             rtConstantsStretch::constants stretchX, rtConstantsStretch::constants stretchY)
+                             pxConstantsStretch::constants stretchX, pxConstantsStretch::constants stretchY)
 {
 
   if (texture.getPtr() == NULL)
@@ -1014,22 +1014,22 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   float tw;
   switch(stretchX) {
-  case rtConstantsStretch::NONE:
-  case rtConstantsStretch::STRETCH:
+  case pxConstantsStretch::NONE:
+  case pxConstantsStretch::STRETCH:
     tw = 1.0;
     break;
-  case rtConstantsStretch::REPEAT:
+  case pxConstantsStretch::REPEAT:
     tw = w/iw;
     break;
   }
 
   float th;
   switch(stretchY) {
-  case rtConstantsStretch::NONE:
-  case rtConstantsStretch::STRETCH:
+  case pxConstantsStretch::NONE:
+  case pxConstantsStretch::STRETCH:
     th = 1.0;
     break;
-  case rtConstantsStretch::REPEAT:
+  case pxConstantsStretch::REPEAT:
     th = h/ih;
     break;
   }
@@ -1169,7 +1169,7 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
     { ou2,ov2 }
   };
 
-  gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,22,verts,uv,texture,rtConstantsStretch::NONE,rtConstantsStretch::NONE);
+  gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,22,verts,uv,texture,pxConstantsStretch::NONE,pxConstantsStretch::NONE);
 }
 
 bool gContextInit = false;
@@ -1344,7 +1344,7 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
 
 void pxContext::drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
                           bool useTextureDimsAlways, float* color, 
-                          rtConstantsStretch::constants stretchX, rtConstantsStretch::constants stretchY) 
+                          pxConstantsStretch::constants stretchX, pxConstantsStretch::constants stretchY) 
 {
   float black[4] = {0,0,0,1};
   drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways, color?color:black, stretchX, stretchY);

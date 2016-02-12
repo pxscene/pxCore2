@@ -37,16 +37,16 @@ RT_SRCS=\
     rtObject.cpp \
     rtThreadPool.cpp \
     rtThreadTask.cpp \
-	rtThreadQueue.cpp \
+		rtThreadQueue.cpp \
     rtLibrary.cpp \
-    rtResource.cpp \
-    rtConstants.cpp \
-	rtZip.cpp\
+		rtZip.cpp\
     linux/rtMutexNative.cpp \
     linux/rtThreadPoolNative.cpp \
     
 PX_SRCS=\
     pxMain.cpp \
+    pxResource.cpp \
+    pxConstants.cpp \
     pxScene2d.cpp \
 		pxRectangle.cpp \
 	  pxFont.cpp \

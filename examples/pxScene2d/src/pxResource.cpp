@@ -1,5 +1,5 @@
 // pxCore CopyRight 2007-2015 John Robinson
-// rtResource.cpp
+// pxResource.cpp
 #include "pxScene2d.h"
 
 #include "rtThreadQueue.h"
@@ -7,7 +7,7 @@
 #include "pxFileDownloader.h"
 #include "rtString.h"
 #include "rtRefT.h"
-#include "rtResource.h"
+#include "pxResource.h"
 #include "pxUtil.h"
 
 extern rtThreadQueue gUIThreadQueue;
@@ -15,41 +15,41 @@ extern pxContext context;
 
 
 
-rtResource::~rtResource() 
+pxResource::~pxResource() 
 {
-  printf("rtResource::~rtResource()\n");
+  printf("pxResource::~pxResource()\n");
   if (mDownloadRequest != NULL)
   {
-    printf("rtResource::~rtResource(): mDownloadRequest not null\n");
+    printf("pxResource::~pxResource(): mDownloadRequest not null\n");
     // if there is a previous request pending then set the callback to NULL
     // the previous request will not be processed and the memory will be freed when the download is complete
     mDownloadRequest->setCallbackFunctionThreadSafe(NULL);
     mDownloadRequest = 0;
   }
-  printf("Leaving rtResource::~rtResource()\n");
+  printf("Leaving pxResource::~pxResource()\n");
 }
 
-rtError rtResource::setUrl(const char* url)
+rtError pxResource::setUrl(const char* url)
 {
-  //printf("rtResource::setUrl for url=\"%s\"\n",url);
+  //printf("pxResource::setUrl for url=\"%s\"\n",url);
   mUrl = url;
   
   return RT_OK;
 }
 
-rtError rtResource::ready(rtObjectRef& r) const
+rtError pxResource::ready(rtObjectRef& r) const
 {
   r = mReady;
   return RT_OK;
 }
 
-rtError rtResource::loadStatus(rtObjectRef& v) const
+rtError pxResource::loadStatus(rtObjectRef& v) const
 {
   v = mLoadStatus;
   return RT_OK;
 }
 
-rtValue rtResource::getLoadStatus(rtString key)
+rtValue pxResource::getLoadStatus(rtString key)
 {
   rtValue value;
   mLoadStatus.get(key, value);
@@ -57,7 +57,7 @@ rtValue rtResource::getLoadStatus(rtString key)
 }
 
 
-void rtResource::addListener(rtResourceListener* pListener) 
+void pxResource::addListener(pxResourceListener* pListener) 
 {
   if( mUrl.isEmpty())
     return;
@@ -76,10 +76,10 @@ void rtResource::addListener(rtResourceListener* pListener)
   
 }
 
-void rtResource::removeListener(rtResourceListener* /*pListener*/)
+void pxResource::removeListener(pxResourceListener* /*pListener*/)
 {
   /*
-  for (list<rtResourceListener*>::iterator it = mListeners.begin();
+  for (list<pxResourceListener*>::iterator it = mListeners.begin();
          it != mListeners.end(); ++it)
   {
     if((*it) == pListener) 
@@ -101,14 +101,14 @@ void rtResource::removeListener(rtResourceListener* /*pListener*/)
   */
 }
 
-void rtResource::notifyListeners(rtString readyResolution)
+void pxResource::notifyListeners(rtString readyResolution)
 {
   //printf("notifyListeners for url=%s # of listeners=%d\n",mUrl.cString(),mListeners.size());
  
   mReady.send(readyResolution,this); 
   if( mListeners.size() == 0)
     return;
-  for (list<rtResourceListener*>::iterator it = mListeners.begin();
+  for (list<pxResourceListener*>::iterator it = mListeners.begin();
          it != mListeners.end(); ++it)
   {
     (*it)->resourceReady(readyResolution);
@@ -118,11 +118,11 @@ void rtResource::notifyListeners(rtString readyResolution)
   mListeners.clear();
   
 }
-void rtResource::raiseDownloadPriority()
+void pxResource::raiseDownloadPriority()
 {
   if (!priorityRaised && !mUrl.isEmpty() && mDownloadRequest != NULL)
   {
-    printf(">>>>>>>>>>>>>>>>>>>>>>>Inside rtResource::raiseDownloadPriority and download is in progress for %s\n",mUrl.cString());
+    printf(">>>>>>>>>>>>>>>>>>>>>>>Inside pxResource::raiseDownloadPriority and download is in progress for %s\n",mUrl.cString());
     if( mListeners.size() == 0) 
       printf("But size is 0, so no one cares!!!!!\n");
     priorityRaised = true;
@@ -210,7 +210,7 @@ rtError rtImageResource::h(int32_t& v) const
  * in the cache map.
  * 
  * */
-void rtResource::loadResource()
+void pxResource::loadResource()
 {
   mLoadStatus.set("statusCode", -1);
   //printf("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
@@ -219,7 +219,7 @@ void rtResource::loadResource()
     mLoadStatus.set("sourceType", "http");
     mDownloadRequest = new pxFileDownloadRequest(mUrl, this);
     // setup for asynchronous load and callback
-    mDownloadRequest->setCallbackFunction(rtResource::onDownloadComplete);
+    mDownloadRequest->setCallbackFunction(pxResource::onDownloadComplete);
     pxFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
   }
   else
@@ -228,9 +228,9 @@ void rtResource::loadResource()
   }
 
 }
-void rtResource::onDownloadCompleteUI(void* context, void* data)
+void pxResource::onDownloadCompleteUI(void* context, void* data)
 {
-  rtResource* res = (rtImageResource*)context;
+  pxResource* res = (rtImageResource*)context;
   rtString resolution = (char*)data;
   
   res->notifyListeners(resolution);
@@ -250,11 +250,11 @@ void rtImageResource::loadResourceFromFile()
     rtLogWarn("image load failed"); // TODO: why?
     if (loadImageSuccess == RT_RESOURCE_NOT_FOUND)
     {
-      mLoadStatus.set("statusCode",RT_RESOURCE_STATUS_FILE_NOT_FOUND);
+      mLoadStatus.set("statusCode",PX_RESOURCE_STATUS_FILE_NOT_FOUND);
     }
     else 
     {
-      mLoadStatus.set("statusCode", RT_RESOURCE_STATUS_DECODE_FAILURE);
+      mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
     }
 
     // Since this object can be released before we get a async completion
@@ -282,15 +282,15 @@ void rtImageResource::loadResourceFromFile()
 
 
 // Static callback that gets called when fileDownloadRequest completes 
-void rtResource::onDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
+void pxResource::onDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
 {
   if (fileDownloadRequest != NULL && fileDownloadRequest->getCallbackData() != NULL) 
   {
     // Call virtual processDownlodedResource for specialized handling - 
     // Call directly rather than queuing
-    ((rtResource*)fileDownloadRequest->getCallbackData())->processDownloadedResource(fileDownloadRequest);
+    ((pxResource*)fileDownloadRequest->getCallbackData())->processDownloadedResource(fileDownloadRequest);
     // Clear download data
-    ((rtResource*)fileDownloadRequest->getCallbackData())->mDownloadRequest = 0;
+    ((pxResource*)fileDownloadRequest->getCallbackData())->mDownloadRequest = 0;
   }
 }
 
@@ -307,8 +307,8 @@ bool rtImageResource::loadResourceData(pxFileDownloadRequest* fileDownloadReques
       
       return false;
 }
-/** rtResource processDownloadedResource */
-void rtResource::processDownloadedResource(pxFileDownloadRequest* fileDownloadRequest)
+/** pxResource processDownloadedResource */
+void pxResource::processDownloadedResource(pxFileDownloadRequest* fileDownloadRequest)
 {
   rtString val = "reject";
   if (fileDownloadRequest != NULL)
@@ -320,13 +320,13 @@ void rtResource::processDownloadedResource(pxFileDownloadRequest* fileDownloadRe
       if(!loadResourceData(fileDownloadRequest))
       {
         rtLogError("Image Decode Failed: %s", fileDownloadRequest->getFileUrl().cString());
-        mLoadStatus.set("statusCode", RT_RESOURCE_STATUS_DECODE_FAILURE);
+        mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
         mLoadStatus.set("httpStatusCode", (uint32_t)fileDownloadRequest->getHttpStatusCode());
         // Since this object can be released before we get a async completion
         // We need to maintain this object's lifetime
         // TODO review overall flow and organization
         AddRef();        
-        gUIThreadQueue.addTask(rtResource::onDownloadCompleteUI, this, (void*)"reject");        
+        gUIThreadQueue.addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");        
       }
       else
       {
@@ -339,7 +339,7 @@ void rtResource::processDownloadedResource(pxFileDownloadRequest* fileDownloadRe
         // We need to maintain this object's lifetime
         // TODO review overall flow and organization
         AddRef();        
-        gUIThreadQueue.addTask(rtResource::onDownloadCompleteUI, this, (void*)"resolve"); 
+        gUIThreadQueue.addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve"); 
       }
     }
     else 
@@ -348,13 +348,13 @@ void rtResource::processDownloadedResource(pxFileDownloadRequest* fileDownloadRe
                 fileDownloadRequest->getFileUrl().cString(),
                 fileDownloadRequest->getErrorString().cString(),
                 fileDownloadRequest->getHttpStatusCode());
-      mLoadStatus.set("statusCode", RT_RESOURCE_STATUS_HTTP_ERROR);
+      mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_HTTP_ERROR);
       mLoadStatus.set("httpStatusCode",(uint32_t)fileDownloadRequest->getHttpStatusCode());
       // Since this object can be released before we get a async completion
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
       AddRef();        
-      gUIThreadQueue.addTask(rtResource::onDownloadCompleteUI, this, (void*)"reject");      
+      gUIThreadQueue.addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");      
     }
   }
 
@@ -416,11 +416,11 @@ void pxImageManager::removeImage(rtString imageUrl)
   //mImageMap.erase(imageUrl);
 }
 
-rtDefineObject(rtResource, rtObject);
-rtDefineProperty(rtResource,url);
-rtDefineProperty(rtResource,ready);
-rtDefineProperty(rtResource,loadStatus);
+rtDefineObject(pxResource, rtObject);
+rtDefineProperty(pxResource,url);
+rtDefineProperty(pxResource,ready);
+rtDefineProperty(pxResource,loadStatus);
 
-rtDefineObject(rtImageResource, rtResource);
+rtDefineObject(rtImageResource, pxResource);
 rtDefineProperty(rtImageResource, w);
 rtDefineProperty(rtImageResource, h); 
