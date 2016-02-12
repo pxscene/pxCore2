@@ -978,7 +978,8 @@ static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat 
 }
 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
-                             pxTextureRef mask, rtConstantsStretch::constants stretchX, rtConstantsStretch::constants stretchY, float* color)
+                             pxTextureRef mask, bool useTextureDimsAlways, float* color,
+                             rtConstantsStretch::constants stretchX, rtConstantsStretch::constants stretchY)
 {
 
   if (texture.getPtr() == NULL)
@@ -988,15 +989,19 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   float iw = texture->width();
   float ih = texture->height();
-  
-  if (w == -1)
-    w = iw;
-  if (h == -1)
-    h = ih;
-  //if (stretchX == PX_NONE)
-    //w = iw;
-  //if (stretchY == PX_NONE)
-    //h = ih;
+  if( useTextureDimsAlways) 
+  {
+      w = iw;
+      h = ih;    
+  }
+  else 
+  {
+    if (w == -1)
+      w = iw;
+    if (h == -1)
+      h = ih;
+  }
+
 
   const float verts[4][2] = 
   {
@@ -1338,10 +1343,11 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
 }
 
 void pxContext::drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
-                          rtConstantsStretch::constants stretchX, rtConstantsStretch::constants stretchY, float* color) 
+                          bool useTextureDimsAlways, float* color, 
+                          rtConstantsStretch::constants stretchX, rtConstantsStretch::constants stretchY) 
 {
   float black[4] = {0,0,0,1};
-  drawImageTexture(x, y, w, h, t, mask, stretchX, stretchY, color?color:black);
+  drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways, color?color:black, stretchX, stretchY);
 }
 
 void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)

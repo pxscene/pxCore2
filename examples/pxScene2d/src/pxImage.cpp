@@ -142,7 +142,7 @@ void pxImage::draw() {
                     getOnscreenWidth(),
                     getOnscreenHeight(), 
                     getImageResource()->getTexture(), nullMaskRef, 
-                    mStretchX, mStretchY);
+                    false, NULL, mStretchX, mStretchY);
   // Raise the priority if we're still waiting on the image download                  
   if (!imageLoaded && getImageResource()->isDownloadInProgress())
     getImageResource()->raiseDownloadPriority();
