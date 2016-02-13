@@ -149,10 +149,10 @@ void pxText::draw() {
       getFontResource()->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
     }
   }  
-  else {
-    if (!mFontLoaded && getFontResource()->isDownloadInProgress())
-      getFontResource()->raiseDownloadPriority();
-    }
+  //else {
+    //if (!mFontLoaded && getFontResource()->isDownloadInProgress())
+      //getFontResource()->raiseDownloadPriority();
+    //}
 }
 
 rtError pxText::setFontUrl(const char* s)
