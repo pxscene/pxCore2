@@ -59,6 +59,7 @@ rtRemoteObjectLocator::rtRemoteObjectLocator()
   m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeSetByNameRequest, &rtRemoteObjectLocator::onSet));
   m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeSetByIndexRequest, &rtRemoteObjectLocator::onSet));
   m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeMethodCallRequest, &rtRemoteObjectLocator::onMethodCall));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeKeepAliveRequest, &rtRemoteObjectLocator::onKeepAlive));
 }
 
 rtRemoteObjectLocator::~rtRemoteObjectLocator()
@@ -631,4 +632,26 @@ rtRemoteObjectLocator::onMethodCall(rtJsonDocPtr_t const& doc, int fd, sockaddr_
     rtLogWarn("failed to send response. %d", err);
 
   return RT_OK;
+}
+
+rtError
+rtRemoteObjectLocator::onKeepAlive(rtJsonDocPtr_t const& req, int fd, sockaddr_storage const& /*soc*/)
+{
+  uint32_t key = rtMessage_GetCorrelationKey(*req);
+
+  auto itr = req->FindMember(kFieldNameKeepAliveIds);
+  if (itr != req->MemberEnd())
+  {
+    // TODO: update a keep-alive to "now"
+    for (rapidjson::Value::ConstValueIterator id  = itr->value.Begin(); id != itr->value.End(); ++id)
+    {
+      rtLogInfo("keep-alive: %s", id->GetString());
+    }
+  }
+
+  rapidjson::Document res;
+  res.SetObject();
+  res.AddMember(kFieldNameCorrelationKey, key, res.GetAllocator());
+  res.AddMember(kFieldNameMessageType, kMessageTypeKeepAliveResponse, res.GetAllocator());
+  return rtSendDocument(res, fd, NULL);
 }

@@ -216,8 +216,6 @@ rtRemoteObjectResolver::resolveObject(std::string const& name, sockaddr_storage&
   rtJsonDocPtr_t search_response;
   request_map_t::const_iterator itr;
 
-  rtLogInfo("timeout: %u\n", timeout);
-
   auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
 
   // wait here until timeout expires or we get a response that matches out pid/seqid

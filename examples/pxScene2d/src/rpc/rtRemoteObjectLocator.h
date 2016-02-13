@@ -54,6 +54,7 @@ private:
   rtError onGet(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
   rtError onSet(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
   rtError onMethodCall(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
+  rtError onKeepAlive(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
 
   rtError onClientDisconnect(connected_client& client);
 

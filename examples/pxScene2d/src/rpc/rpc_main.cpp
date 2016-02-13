@@ -90,6 +90,7 @@ int main(int argc, char* /*argv*/[])
       printf("HERE (%d): %d + %d = %d\n", ret, i, i, ret);
       #endif
 
+      sleep(30); // test keep-alive
       sleep(1);
     }
   }

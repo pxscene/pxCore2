@@ -93,14 +93,19 @@ rtRpcClient::startSession(std::string const& object_id)
 rtError
 rtRpcClient::sendKeepAlive()
 {
-  rapidjson::Document doc;
-  doc.SetObject();
-  doc.AddMember(kFieldNameMessageType, kMessageTypeKeepAliveRequest, doc.GetAllocator());
+  key_type key = m_next_key++;
+
+  rapidjson::Document req;
+  req.SetObject();
+  req.AddMember(kFieldNameMessageType, kMessageTypeKeepAliveRequest, req.GetAllocator());
+  req.AddMember(kFieldNameCorrelationKey, key, req.GetAllocator());
+
   rapidjson::Value ids(rapidjson::kArrayType);
   for (auto const& id : m_object_list)
-    ids.PushBack(rapidjson::Value().SetString(id.c_str(), id.size()), doc.GetAllocator());
-  doc.AddMember("ids", ids, doc.GetAllocator());
-  return rtSendDocument(doc, m_fd, NULL);
+    ids.PushBack(rapidjson::Value().SetString(id.c_str(), id.size()), req.GetAllocator());
+  req.AddMember(kFieldNameKeepAliveIds, ids, req.GetAllocator());
+
+  return rtSendDocument(req, m_fd, NULL);
 }
 
 rtError
@@ -123,7 +128,20 @@ rtRpcClient::runListener()
     FD_ZERO(&err_fds);
     rtPushFd(&err_fds, m_fd, &maxFd);
 
-    int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, NULL);
+    // timeout is for keep-alive
+    timeval timeout;
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+
+    int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, &timeout);
+    if (ret == 0)
+    {
+      rtError err = sendKeepAlive();
+      if (err != RT_OK)
+        rtLogWarn("error sending keep-alive:%d", err);
+      continue;
+    }
+
     if (ret == -1)
     {
       int err = errno;
@@ -222,6 +240,16 @@ rtRpcClient::get(std::string const& id, char const* name, rtValue* value)
 }
 
 rtError
+rtRpcClient::get(std::string const& id, uint32_t index, rtValue* value)
+{
+  rapidjson::Document req;
+  req.SetObject();
+  req.AddMember(kFieldNameMessageType, kMessageTypeGetByIndexRequest, req.GetAllocator());
+  req.AddMember(kFieldNamePropertyIndex, index, req.GetAllocator());
+  return sendGet(id, req, value);
+}
+
+rtError
 rtRpcClient::sendGet(std::string const& id, rapidjson::Document& req, rtValue* value)
 {
   key_type key = m_next_key++;
@@ -246,16 +274,6 @@ rtRpcClient::sendGet(std::string const& id, rapidjson::Document& req, rtValue* v
 
   return rtMessage_GetStatusCode(*res);
 }
-
-rtError
-rtRpcClient::get(std::string const& id, uint32_t index, rtValue* value)
-{
-  rapidjson::Document req;
-  req.SetObject();
-  req.AddMember(kFieldNameMessageType, kMessageTypeGetByIndexRequest, req.GetAllocator());
-  req.AddMember(kFieldNamePropertyIndex, index, req.GetAllocator());
-  return sendGet(id, req, value);
-}
   
 rtError
 rtRpcClient::set(std::string const& id, char const* name, rtValue const* value)
@@ -264,6 +282,16 @@ rtRpcClient::set(std::string const& id, char const* name, rtValue const* value)
   req.SetObject();
   req.AddMember(kFieldNameMessageType, kMessageTypeSetByNameRequest, req.GetAllocator());
   req.AddMember(kFieldNamePropertyName, std::string(name), req.GetAllocator());
+  return sendSet(id, req, value);
+}
+
+rtError
+rtRpcClient::set(std::string const& id, uint32_t index, rtValue const* value)
+{
+  rapidjson::Document req;
+  req.SetObject();
+  req.AddMember(kFieldNameMessageType, kMessageTypeSetByIndexRequest, req.GetAllocator());
+  req.AddMember(kFieldNamePropertyIndex, index, req.GetAllocator());
   return sendSet(id, req, value);
 }
 
@@ -289,16 +317,6 @@ rtRpcClient::sendSet(std::string const& id, rapidjson::Document& req, rtValue co
     return RT_FAIL;
 
   return rtMessage_GetStatusCode(*res);
-}
-
-rtError
-rtRpcClient::set(std::string const& id, uint32_t index, rtValue const* value)
-{
-  rapidjson::Document req;
-  req.SetObject();
-  req.AddMember(kFieldNameMessageType, kMessageTypeSetByIndexRequest, req.GetAllocator());
-  req.AddMember(kFieldNamePropertyIndex, index, req.GetAllocator());
-  return sendSet(id, req, value);
 }
 
 rtError
