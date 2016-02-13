@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <rtLog.h>
 #include <assert.h>
+#include <stdarg.h>
 #include <memory>
 
 #include <rapidjson/document.h>
@@ -212,3 +213,31 @@ rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out)
   return RT_OK;
 }
 
+rtError
+rtMessage_SetStatus(rapidjson::Document& doc, rtError code)
+{
+  rtError e = RT_OK;
+  doc.AddMember(kFieldNameStatusCode, code, doc.GetAllocator());
+  return e;
+}
+
+rtError
+rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...)
+{
+  rtError e = RT_OK;
+  doc.AddMember(kFieldNameStatusCode, code, doc.GetAllocator());
+
+  if (fmt != nullptr)
+  {
+    char buff[256];
+    memset(buff, 0, sizeof(buff));
+
+    va_list args;
+    va_start(args, fmt);
+    int n = vsnprintf(buff, sizeof(buff), fmt, args);
+    if (n > 0)
+      doc.AddMember(kFieldNameStatusMessage, std::string(buff), doc.GetAllocator());
+    va_end(args);
+  }
+  return e;
+}

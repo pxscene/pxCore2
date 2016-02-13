@@ -57,6 +57,9 @@ public:
 private:
   typedef uint32_t key_type;
 
+  rtError sendSet(std::string const& id, rapidjson::Document& req, rtValue const* value);
+  rtError sendGet(std::string const& id, rapidjson::Document& req, rtValue* value);
+
   typedef rtError (rtRpcClient::*message_handler_t)(rtJsonDocPtr_t const&);
   typedef std::map< std::string, message_handler_t > msghandler_map_t;
   typedef std::map< key_type, rtJsonDocPtr_t > request_map_t;

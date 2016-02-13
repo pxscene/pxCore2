@@ -5,6 +5,7 @@
 #include <rapidjson/document.h>
 #include <rtError.h>
 #include <rtValue.h>
+#include "rtLog.h"
 #include "rtSocketUtils.h"
 
 class rtRpcMessage
@@ -41,6 +42,7 @@ private:
 #define kFieldNameFunctionIndex "function.index"
 #define kFieldNameFunctionArgs "function.args"
 #define kFieldNameFunctionReturn "function.return_value"
+#define kFieldNameValue "value"
 #define kFieldNameValueType "type"
 #define kFieldNameValueValue "value"
 #define kFieldNameSenderId "sender.id"
@@ -69,6 +71,9 @@ uint32_t    rtMessage_GetCorrelationKey(rapidjson::Document const& doc);
 char const* rtMessage_GetObjectId(rapidjson::Document const& doc);
 rtError     rtMessage_GetStatusCode(rapidjson::Document const& doc);
 rtError     rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out = stdout);
+rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...)
+              RT_PRINTF_FORMAT(3, 4);
+rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code);
 
 
 #endif

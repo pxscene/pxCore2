@@ -17,14 +17,6 @@
 
 static const int kMaxMessageLength = (1024 * 16);
 
-static void
-set_status(rapidjson::Document& doc, int status, char const* status_message = NULL)
-{
-  doc.AddMember(kFieldNameStatusCode, status, doc.GetAllocator());
-  if (status_message)
-    doc.AddMember(kFieldNameStatusMessage, std::string(status_message), doc.GetAllocator());
-}
-
 static bool
 same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
 {
@@ -508,7 +500,7 @@ rtRemoteObjectLocator::onGet(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage
         if (err != RT_OK)
           rtLogWarn("failed to write value: %d", err);
       }
-      res->AddMember("value", val, res->GetAllocator());
+      res->AddMember(kFieldNameValue, val, res->GetAllocator());
       res->AddMember(kFieldNameStatusCode, 0, res->GetAllocator());
     }
     else
@@ -546,7 +538,7 @@ rtRemoteObjectLocator::onSet(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage
 
     rtValue value;
 
-    auto itr = doc->FindMember("value");
+    auto itr = doc->FindMember(kFieldNameValue);
     if (itr != doc->MemberEnd())
       err = rtValueReader::read(value, itr->value);
 
@@ -556,14 +548,12 @@ rtRemoteObjectLocator::onSet(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage
       if (name)
       {
         err = obj->Set(name, &value);
-        rtLogDebug("set %s: %d", name, err);
       }
       else
       {
         index = rtMessage_GetPropertyIndex(*doc);
         if (index != kInvalidPropertyIndex)
           err = obj->Set(index, &value);
-
       }
     }
 
@@ -593,7 +583,7 @@ rtRemoteObjectLocator::onMethodCall(rtJsonDocPtr_t const& doc, int fd, sockaddr_
   rtObjectRef obj = getObject(id);
   if (!obj)
   {
-    set_status(res, 1, "object not found");
+    rtMessage_SetStatus(res, 1, "failed to find object");
   }
   else
   {
@@ -627,12 +617,12 @@ rtRemoteObjectLocator::onMethodCall(rtJsonDocPtr_t const& doc, int fd, sockaddr_
         rtValueWriter::write(return_value, val, res);
         res.AddMember(kFieldNameFunctionReturn, val, res.GetAllocator());
       }
-      
-      set_status(res, 0);
+     
+      rtMessage_SetStatus(res, 0);
     }
     else
     {
-      set_status(res, 1, "ENOTFOUND");
+      rtMessage_SetStatus(res, 1, "object not found");
     }
   }
 

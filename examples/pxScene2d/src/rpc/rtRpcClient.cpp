@@ -214,12 +214,17 @@ rtRpcClient::waitForResponse(int key, uint32_t timeout)
 rtError
 rtRpcClient::get(std::string const& id, char const* name, rtValue* value)
 {
-  key_type key = m_next_key++;
-
   rapidjson::Document req;
   req.SetObject();
   req.AddMember(kFieldNameMessageType, kMessageTypeGetByNameRequest, req.GetAllocator());
   req.AddMember(kFieldNamePropertyName, std::string(name), req.GetAllocator());
+  return sendGet(id, req, value);
+}
+
+rtError
+rtRpcClient::sendGet(std::string const& id, rapidjson::Document& req, rtValue* value)
+{
+  key_type key = m_next_key++;
   req.AddMember(kFieldNameObjectId, id, req.GetAllocator());
   req.AddMember(kFieldNameCorrelationKey, key, req.GetAllocator());
 
@@ -231,12 +236,13 @@ rtRpcClient::get(std::string const& id, char const* name, rtValue* value)
   if (!res)
     return RT_FAIL;
 
-  err = rtValueReader::read(*value, (*res)["value"], shared_from_this());
+  auto itr = res->FindMember(kFieldNameValue);
+  if (itr == res->MemberEnd())
+    return RT_FAIL;
+
+  err = rtValueReader::read(*value, itr->value, shared_from_this());
   if (err != RT_OK)
-  {
-    rtLogWarn("failed to decode return value");
     return err;
-  }
 
   return rtMessage_GetStatusCode(*res);
 }
@@ -244,39 +250,27 @@ rtRpcClient::get(std::string const& id, char const* name, rtValue* value)
 rtError
 rtRpcClient::get(std::string const& id, uint32_t index, rtValue* value)
 {
-  key_type key = m_next_key++;
-  
   rapidjson::Document req;
   req.SetObject();
   req.AddMember(kFieldNameMessageType, kMessageTypeGetByIndexRequest, req.GetAllocator());
   req.AddMember(kFieldNamePropertyIndex, index, req.GetAllocator());
-  req.AddMember(kFieldNameObjectId, id, req.GetAllocator());
-  req.AddMember(kFieldNameCorrelationKey, key, req.GetAllocator());
-  
-  rtError err = rtSendDocument(req, m_fd, NULL);
-  if (err != RT_OK)
-    return err;
-  
-  rtJsonDocPtr_t res = waitForResponse(key);
-  if (!res)
-    return RT_FAIL;
-
-  err = rtValueReader::read(*value, *res, shared_from_this()); 
-  if (err != RT_OK)
-    return err;
-
-  return rtMessage_GetStatusCode(*res);
+  return sendGet(id, req, value);
 }
-
+  
 rtError
 rtRpcClient::set(std::string const& id, char const* name, rtValue const* value)
 {
-  key_type key = m_next_key++;
-
   rapidjson::Document req;
   req.SetObject();
   req.AddMember(kFieldNameMessageType, kMessageTypeSetByNameRequest, req.GetAllocator());
   req.AddMember(kFieldNamePropertyName, std::string(name), req.GetAllocator());
+  return sendSet(id, req, value);
+}
+
+rtError
+rtRpcClient::sendSet(std::string const& id, rapidjson::Document& req, rtValue const* value)
+{
+  key_type key = m_next_key++;
   req.AddMember(kFieldNameObjectId, id, req.GetAllocator());
   req.AddMember(kFieldNameCorrelationKey, key, req.GetAllocator());
 
@@ -284,7 +278,7 @@ rtRpcClient::set(std::string const& id, char const* name, rtValue const* value)
   rtError err = rtValueWriter::write(*value, val, req);
   if (err != RT_OK)
     return err;
-  req.AddMember("value", val, req.GetAllocator());
+  req.AddMember(kFieldNameValue, val, req.GetAllocator());
 
   err = rtSendDocument(req, m_fd, NULL);
   if (err != RT_OK)
@@ -300,30 +294,11 @@ rtRpcClient::set(std::string const& id, char const* name, rtValue const* value)
 rtError
 rtRpcClient::set(std::string const& id, uint32_t index, rtValue const* value)
 {
-  key_type key = m_next_key++;
-
   rapidjson::Document req;
   req.SetObject();
   req.AddMember(kFieldNameMessageType, kMessageTypeSetByIndexRequest, req.GetAllocator());
   req.AddMember(kFieldNamePropertyIndex, index, req.GetAllocator());
-  req.AddMember(kFieldNameObjectId, id, req.GetAllocator());
-  req.AddMember(kFieldNameCorrelationKey, key, req.GetAllocator());
-
-  rapidjson::Value val;
-  rtError err = rtValueWriter::write(*value, val, req);
-  if (err != RT_OK)
-    return err;
-  req.AddMember("value", val, req.GetAllocator());
-
-  err = rtSendDocument(req, m_fd, NULL);
-  if (err != RT_OK)
-    return err;
-
-  rtJsonDocPtr_t res = waitForResponse(key);
-  if (!res)
-    return RT_FAIL;
-
-  return rtMessage_GetStatusCode(*res);
+  return sendSet(id, req, value);
 }
 
 rtError
@@ -359,8 +334,12 @@ rtRpcClient::send(std::string const& id, std::string const& name, int argc, rtVa
   rtJsonDocPtr_t res = waitForResponse(key);
   if (!res)
     return RT_FAIL;
+  
+  auto itr = res->FindMember(kFieldNameFunctionReturn);
+  if (itr == res->MemberEnd())
+    return RT_FAIL;
 
-  err = rtValueReader::read(*result, (*res)[kFieldNameFunctionReturn], shared_from_this());
+  err = rtValueReader::read(*result, itr->value, shared_from_this());
   if (err != RT_OK)
     return err;
 

@@ -17,6 +17,13 @@ public:
   rtDeclareObject(rtThermostat, rtObject);
   rtProperty(prop1, prop1, setProp1, uint32_t);
   rtMethodNoArgAndNoReturn("hello", hello);
+  rtMethod2ArgAndReturn("add", add, int32_t, int32_t, int32_t);
+
+  rtError add(int32_t x, int32_t y, int32_t& result)
+  {
+    result = x + y;
+    return RT_OK;
+  }
 
   float prop1()               const { return m_prop1;}
   rtError prop1(uint32_t& v)     const { v = m_prop1; return RT_OK; }
@@ -35,6 +42,7 @@ private:
 
 rtDefineObject(rtThermostat, rtObject);
 rtDefineProperty(rtThermostat, prop1);
+rtDefineMethod(rtThermostat, add);
 
 
 int main(int argc, char* /*argv*/[])
@@ -55,23 +63,32 @@ int main(int argc, char* /*argv*/[])
       exit(0);
     }
 
-    int i = 10;
+    int i = 1;
 
     while (true)
     {
+      i++;
+
       rtString desc;
-      rtError err = RT_FAIL;
      
       #if 0 // this works
       err = obj.sendReturns<rtString>("description", desc);
       RT_ASSERT(err);
       #endif
 
+      #if 0 // this works
       err = obj.set("prop1", i++);
       RT_ASSERT(err);
 
       uint32_t n = obj.get<uint32_t>("prop1");
       printf("fillColor: %d\n", n);
+      #endif
+
+      #if 0 // this works
+      int32_t ret = 0;
+      err = obj.sendReturns<int32_t>("add", i, i, ret);
+      printf("HERE (%d): %d + %d = %d\n", ret, i, i, ret);
+      #endif
 
       sleep(1);
     }
