@@ -319,7 +319,7 @@ void pxResource::processDownloadedResource(pxFileDownloadRequest* fileDownloadRe
     {
       if(!loadResourceData(fileDownloadRequest))
       {
-        rtLogError("Image Decode Failed: %s", fileDownloadRequest->getFileUrl().cString());
+        rtLogError("Resource Decode Failed: %s", fileDownloadRequest->getFileUrl().cString());
         mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
         mLoadStatus.set("httpStatusCode", (uint32_t)fileDownloadRequest->getHttpStatusCode());
         // Since this object can be released before we get a async completion

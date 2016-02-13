@@ -187,8 +187,8 @@ void pxTextBox::draw() {
 	  renderText(true);
 	}
   
-  if (!mFontLoaded && getFontResource()->isDownloadInProgress())
-    getFontResource()->raiseDownloadPriority();  
+  //if (!mFontLoaded && getFontResource()->isDownloadInProgress())
+    //getFontResource()->raiseDownloadPriority();  
 }
 void pxTextBox::update(double t)
 {
