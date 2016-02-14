@@ -23,7 +23,7 @@ private:
   rtAtomic                          m_ref_count;
   std::string                       m_id;
   std::string                       m_name;
-  std::shared_ptr<rtRpcClient>   m_transport;
+  std::shared_ptr<rtRpcClient>      m_rpc_client;   
 };
 
 #endif
