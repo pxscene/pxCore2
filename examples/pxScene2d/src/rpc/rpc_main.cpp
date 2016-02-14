@@ -99,6 +99,9 @@ int main(int argc, char* /*argv*/[])
     rtObjectRef obj(new rtThermostat());
     locator.registerObject(objectName, obj);
 
+    printf("sleeping for 5\n");
+    sleep(5);
+    locator.removeObject(objectName);
     while (1)
       sleep(10);
   }

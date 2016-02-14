@@ -139,6 +139,8 @@ rtRemoteObjectLocator::registerObject(std::string const& name, rtObjectRef const
 void
 rtRemoteObjectLocator::runListener()
 {
+  time_t lastKeepAliveCheck = 0;
+
   rt_sockbuf_t buff;
   buff.reserve(1024 * 1024);
   buff.resize(1024 * 1024);
@@ -164,7 +166,11 @@ rtRemoteObjectLocator::runListener()
       rtPushFd(&err_fds, c.fd, &maxFd);
     }
 
-    int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, NULL);
+    timeval timeout;
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+
+    int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, &timeout);
     if (ret == -1)
     {
       int err = errno;
@@ -178,7 +184,6 @@ rtRemoteObjectLocator::runListener()
     {
       char ch;
       read(m_pipe_read, &ch, 1);
-      continue;
     }
 
     if (FD_ISSET(m_rpc_fd, &read_fds))
@@ -187,16 +192,12 @@ rtRemoteObjectLocator::runListener()
     for (auto& c : m_client_list)
     {
       if (FD_ISSET(c.fd, &err_fds))
-      {
-        // TODO
-        rtLogWarn("error on fd: %d", c.fd);
-      }
+        rtLogError("error on fd: %d", c.fd);
 
       if (FD_ISSET(c.fd, &read_fds))
       {
         if (doReadn(c.fd, buff, c.peer) != RT_OK)
           onClientDisconnect(c);
-        }
       }
     }
 
@@ -206,6 +207,16 @@ rtRemoteObjectLocator::runListener()
           return c.fd == -1;
         });
     m_client_list.erase(end, m_client_list.end());
+
+    time_t now = time(nullptr);
+    if (now - lastKeepAliveCheck > 1)
+    {
+      int n = 0;
+      rtError err = removeStaleObjects(&n);
+      if (err == RT_OK && n > 0)
+      lastKeepAliveCheck = now;
+    }
+  }
 }
 
 void
@@ -432,6 +443,8 @@ rtRemoteObjectLocator::onOpenSession(rtJsonDocPtr_t const& doc, int /*fd*/, sock
 rtError
 rtRemoteObjectLocator::onClientDisconnect(connected_client& client)
 {
+  rtLogInfo("client disconnect: %s", rtSocketToString(client.peer).c_str());
+
   int client_fd = client.fd;
 
   if (client.fd != -1)
@@ -695,6 +708,7 @@ rtRemoteObjectLocator::removeStaleObjects(int* num_removed)
   {
     if (itr->second.owner_removed && (now - itr->second.last_used > m_keep_alive_interval))
     {
+      rtLogInfo("removing stale object: %s", itr->first.c_str());
       itr = m_objects.erase(itr);
       n++;
     }

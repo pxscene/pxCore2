@@ -196,7 +196,7 @@ rtReadUntil(int fd, char* buff, int n)
     ssize_t n = read(fd, buff + bytes_read, (bytes_to_read - bytes_read));
     if (n == 0)
     {
-      rtLogWarn("socket closed");
+      rtLogDebug("socket closed");
       return RT_FAIL;
     }
 
@@ -205,6 +205,7 @@ rtReadUntil(int fd, char* buff, int n)
       rtLogError("failed to read from fd %d. %s", fd, strerror(errno));
       return RT_FAIL;;
     }
+
     bytes_read += n;
   }
   return RT_OK;
@@ -299,10 +300,7 @@ rtReadMessage(int fd, rt_sockbuf_t& buff, rtJsonDocPtr_t& doc)
 
   err = rtReadUntil(fd, reinterpret_cast<char *>(&n), 4);
   if (err != RT_OK)
-  {
-    rtLogWarn("error reading length from socket");
     return err;
-  }
 
   n = ntohl(n);
 
