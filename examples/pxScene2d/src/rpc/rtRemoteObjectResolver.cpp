@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <net/if.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 
@@ -18,6 +19,7 @@
 
 rtRemoteObjectResolver::rtRemoteObjectResolver(sockaddr_storage const& rpc_endpoint)
   : m_mcast_fd(-1)
+  , m_mcast_src_index(-1)
   , m_ucast_fd(-1)
   , m_ucast_len(0)
   , m_pid(getpid())
@@ -60,16 +62,18 @@ rtRemoteObjectResolver::open(char const* dstaddr, uint16_t port, char const* src
 {
   rtError err = RT_OK;
 
-  err = rtParseAddress(m_mcast_dest, dstaddr, port);
+  rtLogInfo("opening with dest:%s (%d) src:%s", dstaddr, port, srcaddr);
+
+  err = rtParseAddress(m_mcast_dest, dstaddr, port, nullptr);
   if (err != RT_OK)
     return err;
 
   // TODO: no need to parse srcaddr multiple times, just copy result
-  err = rtParseAddress(m_mcast_src, srcaddr, port);
+  err = rtParseAddress(m_mcast_src, srcaddr, port, &m_mcast_src_index);
   if (err != RT_OK)
     return err;
 
-  err = rtParseAddress(m_ucast_endpoint, srcaddr, 0);
+  err = rtParseAddress(m_ucast_endpoint, srcaddr, 0, nullptr);
   if (err != RT_OK)
     return err;
 
@@ -117,14 +121,22 @@ rtRemoteObjectResolver::openUnicastSocket()
   }
   else
   {
-    sockaddr_in* saddr = reinterpret_cast<sockaddr_in *>(&m_ucast_endpoint);
-    rtLogInfo("local udp socket bound to %s:%d", inet_ntoa(saddr->sin_addr), ntohs(saddr->sin_port));
+    rtLogInfo("local udp socket bound to %s", rtSocketToString(m_ucast_endpoint).c_str());
   }
 
   // btw, when we use this socket to send multicast, use the right interface
-  in_addr mcast_interface = reinterpret_cast<sockaddr_in *>(&m_mcast_src)->sin_addr;
-  err = setsockopt(m_ucast_fd, IPPROTO_IP, IP_MULTICAST_IF, reinterpret_cast<char *>(&mcast_interface),
-    sizeof(mcast_interface));
+  if (m_mcast_src.ss_family == AF_INET)
+  {
+    in_addr mcast_interface = reinterpret_cast<sockaddr_in *>(&m_mcast_src)->sin_addr;
+    err = setsockopt(m_ucast_fd, IPPROTO_IP, IP_MULTICAST_IF, reinterpret_cast<char *>(&mcast_interface),
+        sizeof(mcast_interface));
+  }
+  else
+  {
+    uint32_t ifindex = m_mcast_src_index;
+    err = setsockopt(m_ucast_fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, &ifindex, sizeof(ifindex));
+  }
+
   if (err < 0)
   {
     err = errno;
@@ -213,36 +225,36 @@ rtRemoteObjectResolver::resolveObject(std::string const& name, sockaddr_storage&
   if (err != RT_OK)
     return err;
 
-  rtJsonDocPtr_t search_response;
+  rtJsonDocPtr_t searchResponse;
   request_map_t::const_iterator itr;
 
   auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
 
   // wait here until timeout expires or we get a response that matches out pid/seqid
   std::unique_lock<std::mutex> lock(m_mutex);
-  m_cond.wait_until(lock, delay, [this, seqId, &search_response]
+  m_cond.wait_until(lock, delay, [this, seqId, &searchResponse]
     {
       auto itr = this->m_pending_searches.find(seqId);
       if (itr != this->m_pending_searches.end())
       {
-        search_response = itr->second;
+        searchResponse = itr->second;
         this->m_pending_searches.erase(itr);
       }
-      return search_response != nullptr;
+      return searchResponse != nullptr;
     });
   lock.unlock();
 
-  if (!search_response)
+  if (!searchResponse)
     return RT_FAIL;
 
   // response is in itr
-  if (search_response)
+  if (searchResponse)
   {
-    assert(search_response->HasMember("ip"));
-    assert(search_response->HasMember("port"));
+    assert(searchResponse->HasMember("ip"));
+    assert(searchResponse->HasMember("port"));
 
-    rtError err = rtParseAddress(endpoint, (*search_response)["ip"].GetString(),
-      (*search_response)["port"].GetInt());
+    rtError err = rtParseAddress(endpoint, (*searchResponse)["ip"].GetString(),
+        (*searchResponse)["port"].GetInt(), nullptr);
 
     if (err != RT_OK)
       return err;
@@ -366,7 +378,8 @@ rtRemoteObjectResolver::openMulticastSocket()
   if (m_mcast_fd < 0)
   {
     err = errno;
-    rtLogError("failed to create multicast socket. %s", strerror(err));
+    rtLogError("failed to create datagram socket with family:%d. %s",
+      m_mcast_dest.ss_family, strerror(err));
     return RT_FAIL;
   }
 
@@ -380,31 +393,54 @@ rtRemoteObjectResolver::openMulticastSocket()
     return RT_FAIL;
   }
 
-  sockaddr_in saddr = *(reinterpret_cast<sockaddr_in *>(&m_mcast_src));
-  saddr.sin_addr.s_addr = INADDR_ANY;
-  err = bind(m_mcast_fd, reinterpret_cast<sockaddr *>(&saddr), sizeof(sockaddr_in));
+  if (m_mcast_src.ss_family == AF_INET)
+  {
+    sockaddr_in saddr = *(reinterpret_cast<sockaddr_in *>(&m_mcast_src));
+    saddr.sin_addr.s_addr = INADDR_ANY;
+    err = bind(m_mcast_fd, reinterpret_cast<sockaddr *>(&saddr), sizeof(sockaddr_in));
+  }
+  else
+  {
+    sockaddr_in6* v6 = reinterpret_cast<sockaddr_in6 *>(&m_mcast_src);
+    v6->sin6_addr = in6addr_any;
+    err = bind(m_mcast_fd, reinterpret_cast<sockaddr *>(v6), sizeof(sockaddr_in6));
+  }
+
   if (err < 0)
   {
     err = errno;
-    rtLogError("failed to bind socket. %s", strerror(err));
+    rtLogError("failed to bind multicast socket to %s. %s",
+        rtSocketToString(m_mcast_src).c_str(),  strerror(err));
     return RT_FAIL;
   }
 
   // join group
-  ip_mreq group;
-  group.imr_multiaddr = reinterpret_cast<sockaddr_in *>(&m_mcast_dest)->sin_addr;
-  group.imr_interface = reinterpret_cast<sockaddr_in *>(&m_mcast_src)->sin_addr;
+  if (m_mcast_src.ss_family == AF_INET)
+  {
+    ip_mreq group;
+    group.imr_multiaddr = reinterpret_cast<sockaddr_in *>(&m_mcast_dest)->sin_addr;
+    group.imr_interface = reinterpret_cast<sockaddr_in *>(&m_mcast_src)->sin_addr;
 
-  err = setsockopt(m_mcast_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&group, sizeof(group));
+    err = setsockopt(m_mcast_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&group, sizeof(group));
+  }
+  else
+  {
+    ipv6_mreq mreq;
+    mreq.ipv6mr_multiaddr = reinterpret_cast<sockaddr_in6 *>(&m_mcast_dest)->sin6_addr;
+    mreq.ipv6mr_interface = m_mcast_src_index;
+    err = setsockopt(m_mcast_fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq));
+  }
+
   if (err < 0)
   {
     err = errno;
-    rtLogError("failed to join mcast group. %s", strerror(err));
+    rtLogError("failed to join mcast group %s. %s", rtSocketToString(m_mcast_dest).c_str(),
+      strerror(err));
     return RT_FAIL;
   }
 
   rtLogInfo("successfully joined multicast group: %s on interface: %s",
-      inet_ntoa(group.imr_multiaddr), inet_ntoa(group.imr_interface));
+    rtSocketToString(m_mcast_dest).c_str(), rtSocketToString(m_mcast_src).c_str());
 
   return RT_OK;
 }

@@ -76,9 +76,29 @@ rtRemoteObjectLocator::open(char const* dstaddr, uint16_t port, char const* srca
 {
   rtError err = RT_OK;
 
-  err = rtParseAddress(m_rpc_endpoint, srcaddr, 0);
+  if (port == 0)
+    port = kDefaultMulticastPort;
+
+  if (srcaddr == nullptr)
+    srcaddr = kDefaultMulticastInterface;
+
+
+  err = rtParseAddress(m_rpc_endpoint, srcaddr, 0, nullptr);
   if (err != RT_OK)
     return err;
+
+  rtLogDebug("rpc endoint: %s", rtSocketToString(m_rpc_endpoint).c_str());
+  rtLogDebug("rpc endpoint family: %d", m_rpc_endpoint.ss_family);
+
+  if (dstaddr == nullptr)
+  {
+    if (m_rpc_endpoint.ss_family == AF_INET6)
+      dstaddr = kDefaultIPv6MulticastAddress;
+    else
+      dstaddr = kDefaultIPv4MulticastAddress;
+  }
+
+  rtLogDebug("dstaddr: %s", dstaddr);
 
   err = openRpcListener();
   if (err != RT_OK)
@@ -346,8 +366,7 @@ rtRemoteObjectLocator::openRpcListener()
   }
   else
   {
-    sockaddr_in* saddr = reinterpret_cast<sockaddr_in *>(&m_rpc_endpoint);
-    rtLogInfo("locate tcp socket bound to: %s:%d", inet_ntoa(saddr->sin_addr), ntohs(saddr->sin_port));
+    rtLogInfo("local tcp socket bound to %s", rtSocketToString(m_rpc_endpoint).c_str());
   }
 
   ret = fcntl(m_rpc_fd, F_SETFL, O_NONBLOCK);

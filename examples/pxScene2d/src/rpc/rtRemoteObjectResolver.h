@@ -52,6 +52,7 @@ private:
   sockaddr_storage  m_mcast_dest;
   sockaddr_storage  m_mcast_src;
   int               m_mcast_fd;
+  uint32_t          m_mcast_src_index;
 
   sockaddr_storage  m_ucast_endpoint;
   int               m_ucast_fd;

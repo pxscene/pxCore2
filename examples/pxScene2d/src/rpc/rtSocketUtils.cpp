@@ -3,6 +3,7 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include <net/if.h>
 #include <ifaddrs.h>
 #include <string.h>
 #include <netdb.h>
@@ -16,9 +17,12 @@
 #include <rapidjson/writer.h>
 
 rtError
-rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port)
+rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* index)
 {
   int ret = 0;
+
+  if (index != nullptr)
+    *index = -1;
 
   sockaddr_in* v4 = reinterpret_cast<sockaddr_in *>(&ss);
   ret = inet_pton(AF_INET, addr, &v4->sin_addr);
@@ -45,6 +49,9 @@ rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port)
       if (err != RT_OK)
         return RT_FAIL;
 
+      if (index != nullptr)
+        *index = if_nametoindex(addr);
+
       if (ss.ss_family == AF_INET)
       {
         v4->sin_family = AF_INET;
@@ -55,6 +62,12 @@ rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port)
         v6->sin6_family = AF_INET6;
         v6->sin6_port = htons(port);
       }
+    }
+    else if (ret == 1)
+    {
+      // it's a numeric address
+      v6->sin6_family = AF_INET6;
+      v6->sin6_port = htons(port);
     }
   }
   else
@@ -93,37 +106,39 @@ rtGetInterfaceAddress(char const* name, sockaddr_storage& ss)
     if (i->ifa_addr == NULL)
       continue;
 
-    if (strcmp(name, i->ifa_name) == 0)
+    if (strcmp(name, i->ifa_name) != 0)
+      continue;
+
+    if (i->ifa_addr->sa_family != AF_INET && i->ifa_addr->sa_family != AF_INET6)
+      continue;
+
+    ss.ss_family = i->ifa_addr->sa_family;
+
+    socklen_t len;
+    rtSocketGetLength(ss, &len);
+
+    char host[NI_MAXHOST];
+    char serv[NI_MAXSERV];
+
+    ret = getnameinfo(i->ifa_addr, len, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICHOST);
+    if (ret != 0)
     {
-      char host[NI_MAXHOST];
+      rtLogError("failed to get address for %s. %s", name, gai_strerror(ret));
+      error = RT_FAIL;
+      goto out;
+    }
+    else
+    {
+      void* addr = NULL;
+      rtGetInetAddr(ss, &addr);
 
-      ss.ss_family = i->ifa_addr->sa_family;
-      if (ss.ss_family != AF_INET && ss.ss_family != AF_INET6)
-        continue;
-
-      socklen_t len;
-      rtSocketGetLength(ss, &len);
-
-      ret = getnameinfo(i->ifa_addr, len, host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-      if (ret != 0)
+      ret = inet_pton(ss.ss_family, host, addr);
+      if (ret != 1)
       {
-        rtLogError("failed to get address for %s. %s", name, gai_strerror(ret));
+        rtLogError("failed to parse: %s as valid ipv4 address", host);
         error = RT_FAIL;
-        goto out;
       }
-      else
-      {
-        void* addr = NULL;
-        rtGetInetAddr(ss, &addr);
-
-        ret = inet_pton(ss.ss_family, host, addr);
-        if (ret != 1)
-        {
-          rtLogError("failed to parse: %s as valid ipv4 address", host);
-          error = RT_FAIL;
-        }
-        goto out;
-      }
+      goto out;
     }
   }
 

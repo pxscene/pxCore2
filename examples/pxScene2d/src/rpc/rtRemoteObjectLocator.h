@@ -14,6 +14,15 @@
 #include "rtRemoteObjectResolver.h"
 #include "rtSocketUtils.h"
 
+#ifdef __APPLE__
+#define kDefaultMulticastInterface "en0"
+#else
+#define kDefaultMulticastInterface "eth0"
+#endif
+#define kDefaultIPv4MulticastAddress "224.10.0.12"
+#define kDefaultIPv6MulticastAddress "ff05:0:0:0:0:0:0:201"
+#define kDefaultMulticastPort 10004
+
 class rtRpcClient;
 
 class rtRemoteObjectLocator
@@ -25,7 +34,8 @@ public:
   ~rtRemoteObjectLocator();
 
 public:
-  rtError open(char const* dstaddr, uint16_t dstport, char const* srcaddr);
+  rtError open(char const* dstaddr = nullptr, uint16_t dstport = 0,
+    char const* srcaddr = nullptr);
   rtError start();
 
   rtError registerObject(std::string const& name, rtObjectRef const& obj);
