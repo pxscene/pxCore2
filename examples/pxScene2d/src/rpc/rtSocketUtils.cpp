@@ -15,8 +15,6 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
-static const int kMaxMessageLength = (1024 * 16);
-
 rtError
 rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port)
 {
@@ -236,7 +234,12 @@ rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest)
     socklen_t len;
     rtSocketGetLength(*dest, &len);
 
-    if (sendto(fd, buff.GetString(), buff.GetSize(), MSG_NOSIGNAL,
+    int flags = 0;
+    #ifndef __APPLE__
+    flags = MSG_NOSIGNAL;
+    #endif
+
+    if (sendto(fd, buff.GetString(), buff.GetSize(), flags,
           reinterpret_cast<sockaddr const *>(dest), len) < 0)
     {
       rtLogError("sendto failed. %s. dest:%s family:%d", strerror(errno), rtSocketToString(*dest).c_str(),
@@ -251,13 +254,17 @@ rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest)
     int n = buff.GetSize();
     n = htonl(n);
 
-    if (send(fd, reinterpret_cast<char *>(&n), 4, MSG_NOSIGNAL) < 0)
+    int flags = 0;
+    #ifndef __APPLE__
+    flags = MSG_NOSIGNAL;
+    #endif
+    if (send(fd, reinterpret_cast<char *>(&n), 4, flags) < 0)
     {
       rtLogError("failed to send length of message. %s", strerror(errno));
       return RT_FAIL;
     }
 
-    if (send(fd, buff.GetString(), buff.GetSize(), MSG_NOSIGNAL) < 0)
+    if (send(fd, buff.GetString(), buff.GetSize(), flags) < 0)
     {
       rtLogError("failed to send. %s", strerror(errno));
       return RT_FAIL;

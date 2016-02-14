@@ -15,8 +15,6 @@
 #include <sstream>
 #include <algorithm>
 
-static const int kMaxMessageLength = (1024 * 16);
-
 static bool
 same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
 {
@@ -330,7 +328,7 @@ rtRemoteObjectLocator::openRpcListener()
   socklen_t len;
   rtSocketGetLength(m_rpc_endpoint, &len);
 
-  ret = bind(m_rpc_fd, reinterpret_cast<sockaddr *>(&m_rpc_endpoint), len);
+  ret = ::bind(m_rpc_fd, reinterpret_cast<sockaddr *>(&m_rpc_endpoint), len);
   if (ret < 0)
   {
     err = errno;
@@ -467,7 +465,7 @@ rtRemoteObjectLocator::onGet(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage
   }
   else
   {
-    rtError err;
+    rtError err = RT_OK;
     rtValue value;
 
     uint32_t    index;
