@@ -47,6 +47,8 @@ private:
 #define kFieldNameValueValue "value"
 #define kFieldNameSenderId "sender.id"
 #define kFieldNameKeepAliveIds "keep_alive.ids"
+#define kFieldNameIp "ip"
+#define kFieldNamePort "port"
 
 #define kMessageTypeSetByNameRequest "set.byname.request"
 #define kMessageTypeSetByNameResponse "set.byname.response"
@@ -62,6 +64,8 @@ private:
 #define kMessageTypeMethodCallRequest "method.call.request"
 #define kMessageTypeKeepAliveRequest "keep_alive.request"
 #define kMessageTypeKeepAliveResponse "keep_alive.response"
+#define kMessageTypeSearch "search"
+#define kMessageTypeLocate "locate"
 
 #define kInvalidPropertyIndex std::numeric_limits<uint32_t>::max()
 #define kInvalidCorrelationKey std::numeric_limits<uint32_t>::max()

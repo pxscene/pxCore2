@@ -32,8 +32,8 @@ rtRemoteObjectResolver::rtRemoteObjectResolver(sockaddr_storage const& rpc_endpo
   memset(&m_mcast_src, 0, sizeof(m_mcast_src));
   memset(&m_ucast_endpoint, 0, sizeof(m_ucast_endpoint));
 
-  m_command_handlers.insert(cmd_handler_map_t::value_type("search", &rtRemoteObjectResolver::onSearch));
-  m_command_handlers.insert(cmd_handler_map_t::value_type("locate", &rtRemoteObjectResolver::onLocate));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeSearch, &rtRemoteObjectResolver::onSearch));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeLocate, &rtRemoteObjectResolver::onLocate));
     
   char addr_buff[128];
 
@@ -181,10 +181,10 @@ rtRemoteObjectResolver::onSearch(rtJsonDocPtr_t const& doc, sockaddr_storage con
   {
     rapidjson::Document doc;
     doc.SetObject();
-    doc.AddMember(kFieldNameMessageType, "locate", doc.GetAllocator());
+    doc.AddMember(kFieldNameMessageType, kMessageTypeLocate, doc.GetAllocator());
     doc.AddMember(kFieldNameObjectId, std::string(objectId), doc.GetAllocator());
-    doc.AddMember("ip", m_rpc_addr, doc.GetAllocator());
-    doc.AddMember("port", m_rpc_port, doc.GetAllocator());
+    doc.AddMember(kFieldNameIp, m_rpc_addr, doc.GetAllocator());
+    doc.AddMember(kFieldNamePort, m_rpc_port, doc.GetAllocator());
     // echo kback to sender
     doc.AddMember(kFieldNameSenderId, senderId->value.GetInt(), doc.GetAllocator());
     doc.AddMember(kFieldNameCorrelationKey, key, doc.GetAllocator());
@@ -216,7 +216,7 @@ rtRemoteObjectResolver::resolveObject(std::string const& name, sockaddr_storage&
 
   rapidjson::Document doc;
   doc.SetObject();
-  doc.AddMember(kFieldNameMessageType, "search", doc.GetAllocator());
+  doc.AddMember(kFieldNameMessageType, kMessageTypeSearch, doc.GetAllocator());
   doc.AddMember(kFieldNameObjectId, name, doc.GetAllocator());
   doc.AddMember(kFieldNameSenderId, m_pid, doc.GetAllocator());
   doc.AddMember(kFieldNameCorrelationKey, seqId, doc.GetAllocator());
@@ -250,11 +250,11 @@ rtRemoteObjectResolver::resolveObject(std::string const& name, sockaddr_storage&
   // response is in itr
   if (searchResponse)
   {
-    assert(searchResponse->HasMember("ip"));
-    assert(searchResponse->HasMember("port"));
+    assert(searchResponse->HasMember(kFieldNameIp));
+    assert(searchResponse->HasMember(kFieldNamePort));
 
-    rtError err = rtParseAddress(endpoint, (*searchResponse)["ip"].GetString(),
-        (*searchResponse)["port"].GetInt(), nullptr);
+    rtError err = rtParseAddress(endpoint, (*searchResponse)[kFieldNameIp].GetString(),
+        (*searchResponse)[kFieldNamePort].GetInt(), nullptr);
 
     if (err != RT_OK)
       return err;

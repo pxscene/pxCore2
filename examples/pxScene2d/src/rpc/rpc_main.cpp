@@ -84,13 +84,12 @@ int main(int argc, char* /*argv*/[])
       printf("fillColor: %d\n", n);
       #endif
 
-      #if 0 // this works
+      #if 1 // this works
       int32_t ret = 0;
       err = obj.sendReturns<int32_t>("add", i, i, ret);
       printf("HERE (%d): %d + %d = %d\n", ret, i, i, ret);
       #endif
 
-      sleep(30); // test keep-alive
       sleep(1);
     }
   }
@@ -99,9 +98,7 @@ int main(int argc, char* /*argv*/[])
     rtObjectRef obj(new rtThermostat());
     locator.registerObject(objectName, obj);
 
-    printf("sleeping for 5\n");
-    sleep(5);
-    locator.removeObject(objectName);
+    // locator.removeObject(objectName);
     while (1)
       sleep(10);
   }
