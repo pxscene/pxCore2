@@ -29,7 +29,9 @@ public:
   rtError start();
 
   rtError registerObject(std::string const& name, rtObjectRef const& obj);
+  rtError removeObject(std::string const& name, bool* in_use = nullptr);
   rtError findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout = 1000);
+  rtError removeStaleObjects(int* num_removed);
 
 private:
   struct connected_client
@@ -63,8 +65,10 @@ private:
 private:
   struct object_reference
   {
-    rtObjectRef object;
-    std::vector<int> client_fds;
+    rtObjectRef       object;
+    std::vector<int>  client_fds;
+    time_t            last_used;
+    bool              owner_removed;
   };
 
   typedef std::map< std::string, object_reference > refmap_t;
@@ -85,4 +89,5 @@ private:
   tport_map_t                     m_transports;
   int                             m_pipe_write;
   int                             m_pipe_read;
+  uint32_t                        m_keep_alive_interval;
 };

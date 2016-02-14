@@ -42,6 +42,7 @@ rtRemoteObjectLocator::rtRemoteObjectLocator()
   : m_rpc_fd(-1)
   , m_pipe_write(-1)
   , m_pipe_read(-1)
+  , m_keep_alive_interval(15)
 {
   memset(&m_rpc_endpoint, 0, sizeof(m_rpc_endpoint));
 
@@ -107,6 +108,8 @@ rtRemoteObjectLocator::registerObject(std::string const& name, rtObjectRef const
 
   object_reference entry;
   entry.object = obj;
+  entry.last_used = time(nullptr);
+  entry.owner_removed = false;
   m_objects.insert(refmap_t::value_type(name, entry));
 
   m_resolver->registerObject(name);
@@ -642,11 +645,19 @@ rtRemoteObjectLocator::onKeepAlive(rtJsonDocPtr_t const& req, int fd, sockaddr_s
   auto itr = req->FindMember(kFieldNameKeepAliveIds);
   if (itr != req->MemberEnd())
   {
-    // TODO: update a keep-alive to "now"
+    time_t now = time(nullptr);
+
+    std::unique_lock<std::mutex> lock(m_mutex);
     for (rapidjson::Value::ConstValueIterator id  = itr->value.Begin(); id != itr->value.End(); ++id)
     {
-      rtLogInfo("keep-alive: %s", id->GetString());
+      auto itr = m_objects.find(id->GetString());
+      if (itr != m_objects.end())
+        itr->second.last_used = now;
     }
+  }
+  else
+  {
+    rtLogInfo("got keep-alive without any interesting information");
   }
 
   rapidjson::Document res;
@@ -654,4 +665,53 @@ rtRemoteObjectLocator::onKeepAlive(rtJsonDocPtr_t const& req, int fd, sockaddr_s
   res.AddMember(kFieldNameCorrelationKey, key, res.GetAllocator());
   res.AddMember(kFieldNameMessageType, kMessageTypeKeepAliveResponse, res.GetAllocator());
   return rtSendDocument(res, fd, NULL);
+}
+
+rtError
+rtRemoteObjectLocator::removeStaleObjects(int* num_removed)
+{
+  int n = 0;
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  time_t now = time(nullptr);
+  for (auto itr = m_objects.begin(); itr != m_objects.end(); ++itr)
+  {
+    if (itr->second.owner_removed && (now - itr->second.last_used > m_keep_alive_interval))
+    {
+      itr = m_objects.erase(itr);
+      n++;
+    }
+  }
+
+  if (num_removed != nullptr)
+    *num_removed = n;
+
+  lock.unlock();
+  return n;
+}
+
+rtError
+rtRemoteObjectLocator::removeObject(std::string const& name, bool* in_use)
+{
+  bool alive = false;
+
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  auto itr = m_objects.find(name);
+  if (itr == m_objects.end())
+    return RT_FAIL;
+
+  time_t now = time(nullptr);
+  if (now - itr->second.last_used < m_keep_alive_interval)
+    alive = true;
+
+  if (in_use != nullptr)
+    *in_use = alive;
+
+  if (!alive)
+    m_objects.erase(itr);
+  else
+    itr->second.owner_removed = true;
+
+  return RT_OK;
 }
