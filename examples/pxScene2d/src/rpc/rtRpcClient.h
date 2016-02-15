@@ -17,6 +17,7 @@
 #include <rapidjson/document.h>
 
 #include "rtRpcTypes.h"
+#include "rtRpcMessage.h"
 #include "rtSocketUtils.h"
 
 class rtRpcClient;
@@ -41,15 +42,15 @@ public:
   ~rtRpcClient();
 
   rtError start();
-  rtError startSession(std::string const& object_id);
+  rtError startSession(std::string const& objectName);
 
-  rtError get(std::string const& id, char const* name, rtValue* value);
-  rtError set(std::string const& id, char const* name, rtValue const* value);
+  rtError get(std::string const& objectName, char const* propertyName, rtValue& value);
+  rtError set(std::string const& objectName, char const* propertyName, rtValue const& value);
 
-  rtError get(std::string const& id, uint32_t index, rtValue* value);
-  rtError set(std::string const& id, uint32_t index, rtValue const* value);
+  rtError get(std::string const& objectName, uint32_t index, rtValue& value);
+  rtError set(std::string const& objectName, uint32_t index, rtValue const& value);
 
-  rtError send(std::string const& id, std::string const& name, int argc, rtValue const* argv, rtValue* result);
+  rtError send(std::string const& objectName, std::string const& name, int argc, rtValue const* argv, rtValue* result);
 
   inline void keep_alive(std::string const& s)
     { m_object_list.push_back(s); }
@@ -57,8 +58,8 @@ public:
 private:
   typedef uint32_t key_type;
 
-  rtError sendSet(std::string const& id, rapidjson::Document& req, rtValue const* value);
-  rtError sendGet(std::string const& id, rapidjson::Document& req, rtValue* value);
+  rtError sendGet(rtRpcGetRequest const& req, rtValue& value);
+  rtError sendSet(rtRpcSetRequest const& req);
 
   typedef rtError (rtRpcClient::*message_handler_t)(rtJsonDocPtr_t const&);
   typedef std::map< std::string, message_handler_t > msghandler_map_t;

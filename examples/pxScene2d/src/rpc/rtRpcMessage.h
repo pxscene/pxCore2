@@ -8,28 +8,8 @@
 #include "rtLog.h"
 #include "rtSocketUtils.h"
 
-class rtRpcMessage
-{
-public:
-  rtRpcMessage();
-  virtual ~rtRpcMessage();
-
-  bool isValid() const;
-
-public:
-  rtError getPropertyName(rtValue& v);
-  rtError getPropertyIndex(rtValue& v);
-  rtError getMessageType(rtValue& v) const;
-  rtError getCorrelationKey(rtValue& v);
-  rtError getObjectId(rtValue& v);
-
-public:
-  static rtError readMessage(int fd, rt_sockbuf_t& buff, rtRpcMessage& m);
-
-private:
-  struct Impl;
-  std::shared_ptr<Impl> m_impl;
-};
+class rtRpcMessage;
+class rtRpcRequest;
 
 #define kFieldNameMessageType "message.type"
 #define kFieldNameCorrelationKey "correlation.key"
@@ -58,17 +38,85 @@ private:
 #define kMessageTypeGetByNameResponse "get.byname.response"
 #define kMessageTypeGetByIndexRequest "get.byindex.request"
 #define kMessageTypeGetByIndexResponse "get.byindex.response"
-#define kMessageTypeOpenSessionRequest "session.open.request"
 #define kMessageTypeOpenSessionResponse "session.open.response"
 #define kMessageTypeMethodCallResponse "method.call.response"
-#define kMessageTypeMethodCallRequest "method.call.request"
-#define kMessageTypeKeepAliveRequest "keep_alive.request"
 #define kMessageTypeKeepAliveResponse "keep_alive.response"
 #define kMessageTypeSearch "search"
 #define kMessageTypeLocate "locate"
+#define kMessageTypeMethodCallRequest "method.call.request"
+#define kMessageTypeKeepAliveRequest "keep_alive.request"
+#define kMessageTypeOpenSessionRequest "session.open.request"
 
 #define kInvalidPropertyIndex std::numeric_limits<uint32_t>::max()
 #define kInvalidCorrelationKey std::numeric_limits<uint32_t>::max()
+
+class rtRpcMessage
+{
+public:
+  typedef uint32_t key_type;
+  virtual ~rtRpcMessage();
+  bool isValid() const;
+
+protected:
+  rtRpcMessage(char const* messageType, std::string const& objectName);
+
+private:
+  rtRpcMessage() { }
+
+public:
+  key_type    getCorrelationKey() const;
+  char const* getMessageType() const;
+  char const* getObjectName() const;
+
+  rtError send(int fd, sockaddr_storage const* dest) const;
+
+protected:
+  struct Impl;
+  std::shared_ptr<Impl>   m_impl;
+  key_type                m_correlation_key;
+};
+
+class rtRpcRequest : public rtRpcMessage
+{
+protected:
+  rtRpcRequest(char const* messageType, std::string const& objectName);
+};
+
+class rtRpcRequestOpenSession : public rtRpcRequest
+{
+public:
+  rtRpcRequestOpenSession(std::string const& objectName);
+};
+
+class rtRpcRequestKeepAlive : public rtRpcRequest
+{
+public:
+  rtRpcRequestKeepAlive();
+  void addObjectName(std::string const& name);
+};
+
+class rtRpcMethodCallRequest : public rtRpcRequest
+{
+public:
+  rtRpcMethodCallRequest(std::string const& objectName);
+  void setMethodName(std::string const& methodName);
+  void addMethodArgument(rtValue const& arg);
+};
+
+class rtRpcGetRequest : public rtRpcRequest
+{
+public:
+  rtRpcGetRequest(std::string const& objectName, std::string const& fieldName);
+  rtRpcGetRequest(std::string const& objectName, uint32_t fieldIndex);
+};
+
+class rtRpcSetRequest : public rtRpcRequest
+{
+public:
+  rtRpcSetRequest(std::string const& objectName, std::string const& fieldName);
+  rtRpcSetRequest(std::string const& objectName, uint32_t fieldIndex);
+  rtError setValue(rtValue const& value);
+};
 
 char const* rtMessage_GetPropertyName(rapidjson::Document const& doc);
 uint32_t    rtMessage_GetPropertyIndex(rapidjson::Document const& doc);

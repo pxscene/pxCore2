@@ -16,25 +16,33 @@ rtRemoteObject::~rtRemoteObject()
 rtError
 rtRemoteObject::Get(char const* name, rtValue* value) const
 {
-  return m_rpc_client->get(m_id, name, value);
+  if (value == nullptr)
+    return RT_ERROR_INVALID_ARG;
+  return m_rpc_client->get(m_id, name, *value);
 }
 
 rtError
 rtRemoteObject::Get(uint32_t index, rtValue* value) const
 {
-  return m_rpc_client->get(m_id, index, value);
+  if (value == nullptr)
+    return RT_ERROR_INVALID_ARG;
+  return m_rpc_client->get(m_id, index, *value);
 }
 
 rtError
 rtRemoteObject::Set(char const* name, rtValue const* value)
 {
-  return m_rpc_client->set(m_id, name, value);
+  if (value == nullptr)
+    return RT_ERROR_INVALID_ARG;
+  return m_rpc_client->set(m_id, name, *value);
 }
 
 rtError
 rtRemoteObject::Set(uint32_t index, rtValue const* value)
 {
-  return m_rpc_client->set(m_id, index, value);
+  if (value == nullptr)
+    return RT_ERROR_INVALID_ARG;
+  return m_rpc_client->set(m_id, index, *value);
 }
 
 rtObject::refcount_t
