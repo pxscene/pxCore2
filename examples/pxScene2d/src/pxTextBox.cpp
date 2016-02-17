@@ -577,13 +577,14 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
     {
       if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER ) 
       { 
-        xPos = tempX;
-        noClipX = (lineWidth/2) - charW/2;
+        xPos = (lineWidth/2) - charW/2;
+        noClipX = tempX;
       }
       else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT) 
       {
-        xPos = tempX;
-        noClipX = mw-charW;
+        
+        xPos = mw-charW;
+        noClipX = tempX;
       }
       else 
       {
