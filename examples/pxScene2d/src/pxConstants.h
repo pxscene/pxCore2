@@ -16,30 +16,12 @@
 #include "rtObjectMacros.h"
 #include "pxInterpolators.h"
 
-class pxConstantsAnimation;
-class pxConstantsStretch;
-class pxConstantsAlignVertical;
-class pxConstantsAlignHorizontal;
-class pxConstantsTruncation;
 
-/* Class for access to constants */
-class pxConstants : public rtObject
-{
-  
-public:  
-  static pxConstantsAnimation animationConstants;
-  static pxConstantsStretch stretchConstants;
-  static pxConstantsAlignVertical alignVerticalConstants;
-  static pxConstantsAlignHorizontal alignHorizontalConstants;
-  static pxConstantsTruncation truncationConstants;  
-  
-};
 
 class pxConstantsAnimation : public rtObject 
 {
 
 public:
-
   enum animationInterpolators {
     TWEEN_LINEAR = 0, 
     TWEEN_EXP1 = 1,
@@ -177,5 +159,18 @@ public:
 };
 
 
+/* Class for access to constants */
+class pxConstants : public rtObject
+{
+  
+public: 
+
+  static rtRefT<pxConstantsAnimation> animationConstants;
+  static rtRefT<pxConstantsStretch> stretchConstants;
+  static rtRefT<pxConstantsAlignVertical> alignVerticalConstants;
+  static rtRefT<pxConstantsAlignHorizontal> alignHorizontalConstants;
+  static rtRefT<pxConstantsTruncation> truncationConstants;  
+  
+};
 
 #endif // PX_CONSTANTS

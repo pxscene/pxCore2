@@ -345,7 +345,7 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t animationType, 
                             rtObjectRef promise) 
 {
-  animateTo(prop, to, duration, CONSTANTS.animationConstants.getInterpFunc(interp),// interps[interp].i,
+  animateTo(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
             (pxConstantsAnimation::animationOptions)animationType, promise);
   return RT_OK;
 }

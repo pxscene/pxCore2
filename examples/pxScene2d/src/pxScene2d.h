@@ -1012,11 +1012,11 @@ public:
 
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
   
-  rtError animation(rtObjectRef& v) const {v = &CONSTANTS.animationConstants; return RT_OK;}
-  rtError stretch(rtObjectRef& v) const {v = &CONSTANTS.stretchConstants; return RT_OK;}
-  rtError alignVertical(rtObjectRef& v) const {v = &CONSTANTS.alignVerticalConstants; return RT_OK;}
-  rtError alignHorizontal(rtObjectRef& v) const {v = &CONSTANTS.alignHorizontalConstants; return RT_OK;}
-  rtError truncation(rtObjectRef& v) const {v = &CONSTANTS.truncationConstants; return RT_OK;}
+  rtError animation(rtObjectRef& v) const {v = CONSTANTS.animationConstants; return RT_OK;}
+  rtError stretch(rtObjectRef& v) const {v = CONSTANTS.stretchConstants; return RT_OK;}
+  rtError alignVertical(rtObjectRef& v) const {v = CONSTANTS.alignVerticalConstants; return RT_OK;}
+  rtError alignHorizontal(rtObjectRef& v) const {v = CONSTANTS.alignHorizontalConstants; return RT_OK;}
+  rtError truncation(rtObjectRef& v) const {v = CONSTANTS.truncationConstants; return RT_OK;}
 
   void setMouseEntered(pxObject* o);
 
