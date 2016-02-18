@@ -76,7 +76,7 @@ inputbg.on("onMouseUp", function(e) {
 });
 
 content.on("onMouseUp", function(e) {
-  scene.setFocus(content);
+  //scene.setFocus(content);
   content.focus=true;
 });
 

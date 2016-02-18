@@ -3,11 +3,11 @@
 
 #include "pxConstants.h"
 
-pxConstantsAnimation pxConstants::animationConstants;
-pxConstantsStretch pxConstants::stretchConstants;
-pxConstantsAlignVertical pxConstants::alignVerticalConstants;
-pxConstantsAlignHorizontal pxConstants::alignHorizontalConstants;
-pxConstantsTruncation pxConstants::truncationConstants; 
+rtRefT<pxConstantsAnimation> pxConstants::animationConstants = new pxConstantsAnimation();
+rtRefT<pxConstantsStretch> pxConstants::stretchConstants = new pxConstantsStretch();
+rtRefT<pxConstantsAlignVertical> pxConstants::alignVerticalConstants = new pxConstantsAlignVertical();
+rtRefT<pxConstantsAlignHorizontal> pxConstants::alignHorizontalConstants = new pxConstantsAlignHorizontal();
+rtRefT<pxConstantsTruncation> pxConstants::truncationConstants = new pxConstantsTruncation(); 
   
 rtError pxConstantsAnimation::interpolators(rtObjectRef& v) const
 {
