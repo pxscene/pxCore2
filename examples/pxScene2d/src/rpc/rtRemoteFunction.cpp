@@ -1,11 +1,11 @@
 #include "rtRemoteFunction.h"
 #include "rtRpcClient.h"
 
-rtRemoteFunction::rtRemoteFunction(std::string const& id, std::string const& name, std::shared_ptr<rtRpcClient> const& transport)
+rtRemoteFunction::rtRemoteFunction(std::string const& id, std::string const& name, std::shared_ptr<rtRpcClient> const& client)
   : m_ref_count(0)
   , m_id(id)
   , m_name(name)
-  , m_transport(transport)
+  , m_rpc_client(client)
 {
 }
 
@@ -17,7 +17,7 @@ rtRemoteFunction::~rtRemoteFunction()
 rtError
 rtRemoteFunction::Send(int argc, rtValue const* argv, rtValue* result)
 {
-  return m_transport->send(m_id, m_name, argc, argv, result);
+  return m_rpc_client->send(m_id, m_name, argc, argv, result);
 }
 
 unsigned long

@@ -888,6 +888,12 @@ pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
 
   rtError makeReady(bool ready);
 
+  // in the case of pxSceneContainer, the makeReady should be the  
+  // catalyst for ready to fire, so override sendPromise and 
+  // createNewPromise to prevent firing from update() 
+  virtual void sendPromise() { rtLogDebug("pxSceneContainer ignoring sendPromise\n"); }
+  virtual void createNewPromise(){ rtLogDebug("pxSceneContainer ignoring createNewPromise\n"); }
+  
 private:
   rtRefT<pxScene2d> mScene;
   rtString mUrl;

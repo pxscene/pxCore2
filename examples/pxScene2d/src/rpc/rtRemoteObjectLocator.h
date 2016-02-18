@@ -14,6 +14,15 @@
 #include "rtRemoteObjectResolver.h"
 #include "rtSocketUtils.h"
 
+#ifdef __APPLE__
+#define kDefaultMulticastInterface "en0"
+#else
+#define kDefaultMulticastInterface "eth0"
+#endif
+#define kDefaultIPv4MulticastAddress "224.10.0.12"
+#define kDefaultIPv6MulticastAddress "ff05:0:0:0:0:0:0:201"
+#define kDefaultMulticastPort 10004
+
 class rtRpcClient;
 
 class rtRemoteObjectLocator
@@ -25,11 +34,14 @@ public:
   ~rtRemoteObjectLocator();
 
 public:
-  rtError open(char const* dstaddr, uint16_t dstport, char const* srcaddr);
+  rtError open(char const* dstaddr = nullptr, uint16_t dstport = 0,
+    char const* srcaddr = nullptr);
   rtError start();
 
   rtError registerObject(std::string const& name, rtObjectRef const& obj);
+  rtError removeObject(std::string const& name, bool* in_use = nullptr);
   rtError findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout = 1000);
+  rtError removeStaleObjects(int* num_removed);
 
 private:
   struct connected_client
@@ -54,6 +66,7 @@ private:
   rtError onGet(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
   rtError onSet(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
   rtError onMethodCall(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
+  rtError onKeepAlive(rtJsonDocPtr_t const& doc, int fd, sockaddr_storage const& soc);
 
   rtError onClientDisconnect(connected_client& client);
 
@@ -62,8 +75,10 @@ private:
 private:
   struct object_reference
   {
-    rtObjectRef object;
-    std::vector<int> client_fds;
+    rtObjectRef       object;
+    std::vector<int>  client_fds;
+    time_t            last_used;
+    bool              owner_removed;
   };
 
   typedef std::map< std::string, object_reference > refmap_t;
@@ -84,4 +99,5 @@ private:
   tport_map_t                     m_transports;
   int                             m_pipe_write;
   int                             m_pipe_read;
+  uint32_t                        m_keep_alive_interval;
 };
