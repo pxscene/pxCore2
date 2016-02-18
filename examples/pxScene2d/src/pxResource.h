@@ -49,7 +49,7 @@ public:
     mLoadStatus = new rtMapObject; 
     mLoadStatus.set("statusCode", 0);
    }
-  ~pxResource();
+  virtual ~pxResource();
 
   
   rtError url(rtString& s) const { s = mUrl; return RT_OK;}

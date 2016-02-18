@@ -17,7 +17,7 @@ extern pxContext context;
 
 pxResource::~pxResource() 
 {
-  printf("pxResource::~pxResource()\n");
+  //printf("pxResource::~pxResource()\n");
   if (mDownloadRequest != NULL)
   {
     printf("pxResource::~pxResource(): mDownloadRequest not null\n");
@@ -26,7 +26,8 @@ pxResource::~pxResource()
     mDownloadRequest->setCallbackFunctionThreadSafe(NULL);
     mDownloadRequest = 0;
   }
-  printf("Leaving pxResource::~pxResource()\n");
+  //mListeners.clear();
+  //printf("Leaving pxResource::~pxResource()\n");
 }
 
 rtError pxResource::setUrl(const char* url)
@@ -141,7 +142,7 @@ rtImageResource::rtImageResource(const char* url)
 }
 rtImageResource::~rtImageResource() 
 {
-  printf("destructor for rtImageResource for %s\n",mUrl.cString());
+  //printf("destructor for rtImageResource for %s\n",mUrl.cString());
   //pxImageManager::removeImage( mUrl);
 }
   
