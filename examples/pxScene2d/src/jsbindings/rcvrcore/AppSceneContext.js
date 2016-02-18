@@ -15,6 +15,7 @@ var log = new Logger('AppSceneContext');
 function AppSceneContext(params) { // container, innerscene, packageUrl) {
   this.container = params.sceneContainer;
   this.innerscene = params.scene;
+  this.rpcController = params.rpcController;
   if( params.packageUrl.indexOf('?') != -1 ) {
     var urlParts = url.parse(params.packageUrl, true);
     this.queryParams = urlParts.query;
@@ -416,6 +417,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         _this.sceneWrapper = new Scene();
       }
       _this.sceneWrapper._setNativeScene(_this.innerscene, currentXModule.name);
+      _this.sceneWrapper._setRPCController(_this.rpcController);
       onImportComplete([_this.sceneWrapper, origFilePath]);
       return;
     }
