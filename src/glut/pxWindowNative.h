@@ -258,5 +258,6 @@ protected:
 #define PX_KEY_NATIVE_DECIMAL      10039
 #define PX_KEY_NATIVE_BACKQUOTE    '`'
 #define PX_KEY_NATIVE_QUOTE        '\''
+#define PX_KEY_NATIVE_MINUS        12
 
 #endif // PX_WINDOW_NATIVE_GLUT_H

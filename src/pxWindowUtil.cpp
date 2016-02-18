@@ -312,6 +312,9 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
   case PX_KEY_NATIVE_INSERT:
     commonKeycode = PX_KEY_INSERT;
     break;
+  case PX_KEY_NATIVE_MINUS:
+    commonKeycode = PX_KEY_DASH;
+    break;
 
 // TODO
 #if 0
@@ -441,7 +444,11 @@ static asciiKeymapEntry asciiKeymap[] =
   {PX_KEY_OPENBRACKET, PX_MOD_SHIFT, '{'},
   {PX_KEY_BACKSLASH, PX_MOD_SHIFT, '|'},
   {PX_KEY_CLOSEBRACKET, PX_MOD_SHIFT, '}'},
-  {PX_KEY_GRAVEACCENT, PX_MOD_SHIFT, '~'}
+  {PX_KEY_GRAVEACCENT, PX_MOD_SHIFT, '~'},
+  {PX_KEY_DASH, 0, '-'},
+  {PX_KEY_DASH, PX_MOD_SHIFT, '_'},
+  {PX_KEY_SUBTRACT, 0, '-'},
+  {PX_KEY_SUBTRACT, PX_MOD_SHIFT, '_'}
 };
 
 static int asciiKeymapLen = sizeof(asciiKeymap)/sizeof(asciiKeymap[0]);
