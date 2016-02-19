@@ -23,7 +23,10 @@
 #include "pxTextBox.h"
 #include "pxImage.h"
 #include "pxImage9.h"
+
+#ifdef PX_WAYLAND
 #include "pxWayland.h"
+#endif
 
 #include "pxContext.h"
 #include "pxFileDownloader.h"
@@ -53,11 +56,15 @@ void stopProfiling()
 }
 #endif //ENABLE_VALGRIND
 
+#ifdef PX_WAYLAND
 #define WAYLAND_EVENT( event, target, ...) \
   pxWayland *wayland= dynamic_cast<pxWayland*>((pxObject*)(target)); \
   if ( wayland ) { \
      wayland->event( __VA_ARGS__ ); \
   }
+#else
+#define WAYLAND_EVENT(...)
+#endif
 
 static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
@@ -1063,8 +1070,10 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createScene(p,o);
   else if (!strcmp("external",t.cString()))
     e = createExternal(p,o);
+#ifdef PX_WAYLAND
   else if (!strcmp("wayland",t.cString()))
     e = createWayland(p,o);
+#endif
   else if (!strcmp("object",t.cString()))
     e = createObject(p,o);
   else
@@ -1177,6 +1186,7 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
+#ifdef PX_WAYLAND
 rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxWayland(this);
@@ -1185,6 +1195,7 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 
   return RT_OK;
 }
+#endif
 
 void pxScene2d::draw()
 {
