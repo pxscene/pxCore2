@@ -29,7 +29,6 @@
         "../pxContextGL.cpp",
         "../pxImage.cpp",
         "../pxImage9.cpp",
-        "../pxWayland.cpp",
         "../pxScene2d.cpp",
         "../pxRectangle.cpp",
         "../pxFont.cpp",
@@ -63,7 +62,6 @@
         "-L../../../external/jpg/.libs",
         "-L../../../external/curl/lib/.libs/",
         "-L../../../external/westeros/external/install/lib",
-        "-lwesteros_compositor",
         "../../../external/zlib/libz.a",
         "../../../../../build/glut/libpxCore.a",
         "-lfreetype",
@@ -74,6 +72,14 @@
       ],
 
   "conditions": [
+    ['"<!(echo $PX_WAYLAND)"=="yes"', 
+    {
+        'defines':['PX_WAYLAND'],
+        'sources': ["../pxWayland.cpp"],
+        'libraries':["-lwesteros_compositor"]
+    },
+    ],
+
     ['OS=="linux"',
       {
         'sources': ["../linux/rtMutexNative.cpp", "../linux/rtThreadPoolNative.cpp"]
