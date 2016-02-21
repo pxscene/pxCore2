@@ -49,8 +49,15 @@ int main(int argc, char* /*argv*/[])
 {
   char const* objectName = "com.xfinity.xsmart.Thermostat/JakesHouse";
 
+  rtError e = RT_OK;
   rtRemoteObjectLocator locator;
-  locator.open(); // "224.10.10.12", 10004, "en0");
+  e = locator.open(); // "224.10.10.12", 10004, "en0");
+  if (e != RT_OK)
+  {
+    rtLogError("failed to open rtRemoteObjectLocator: %d", e);
+    return 1;
+  }
+
   locator.start();
 
   if (argc == 2)

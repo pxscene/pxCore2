@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <ifaddrs.h>
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
@@ -14,6 +15,38 @@
 #include <rtLog.h>
 #include <sstream>
 #include <algorithm>
+
+static rtError
+rtFindFirstInetInterface(char* name, size_t len)
+{
+  rtError e = RT_FAIL;
+  ifaddrs* ifaddr = NULL;
+  int ret = getifaddrs(&ifaddr);
+  if (ret == -1)
+  {
+    rtLogError("failed to get list of interfaces: %s", strerror(errno));
+    return RT_FAIL;
+  }
+
+  for (ifaddrs* i = ifaddr; i != nullptr; i = i->ifa_next)
+  {
+    if (i->ifa_addr == nullptr)
+      continue;
+    if (i->ifa_addr->sa_family != AF_INET && i->ifa_addr->sa_family != AF_INET6)
+      continue;
+    if (strcmp(i->ifa_name, "lo") == 0)
+      continue;
+
+    strncpy(name, i->ifa_name, len);
+    e = RT_OK;
+    break;
+  }
+
+  if (ifaddr)
+    freeifaddrs(ifaddr);
+
+  return e;
+}
 
 static bool
 same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
@@ -75,17 +108,39 @@ rtError
 rtRemoteObjectLocator::open(char const* dstaddr, uint16_t port, char const* srcaddr)
 {
   rtError err = RT_OK;
+  char name[64];
 
   if (port == 0)
     port = kDefaultMulticastPort;
 
+  bool usingDefault = false;
   if (srcaddr == nullptr)
+  {
+    usingDefault = true;
     srcaddr = kDefaultMulticastInterface;
-
+  }
 
   err = rtParseAddress(m_rpc_endpoint, srcaddr, 0, nullptr);
   if (err != RT_OK)
-    return err;
+  {
+    rtLogWarn("failed to find address for: %s", srcaddr);
+    // since we're using the default, and we didn't find it, try using the first inet capable
+    // interface.
+    memset(name, 0, sizeof(name));
+    if (usingDefault)
+    {
+      rtLogInfo("using default interface %s, but not found looking for another.", srcaddr);
+      err = rtFindFirstInetInterface(name, sizeof(name));
+      if (err == RT_OK)
+      {
+	srcaddr = name;
+        rtLogInfo("using new default interface: %s", name);
+        err = rtParseAddress(m_rpc_endpoint, srcaddr, 0, nullptr);
+      }
+    }
+    if (err != RT_OK)
+      return err;
+  }
 
   rtLogDebug("rpc endoint: %s", rtSocketToString(m_rpc_endpoint).c_str());
   rtLogDebug("rpc endpoint family: %d", m_rpc_endpoint.ss_family);
