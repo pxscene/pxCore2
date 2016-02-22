@@ -11,12 +11,12 @@ function RPCContext(theScene) {
   var functions = {};
   var onRPCCall;
 
-  this.registerApp = function(targetName) {
+  this.registerApp = function(appNamespace) {
     if( rpcController !== null && !appNameTargetRegistered ) {
-      appNameTargetRegistered = rpcController.registerApp(targetName, scene);
-      sourceTargetName = targetName;
+      appNameTargetRegistered = rpcController.registerApp(appNamespace, scene);
+      sourceTargetName = appNamespace;
     } else {
-      console.error("RPC registerApp: No rpcController exists or target app is already registered for " + targetName + ", rpcController=" + rpcController);
+      console.error("RPC registerApp: No rpcController exists or target app is already registered for " + appNamespace + ", rpcController=" + rpcController);
     }
 
     return appNameTargetRegistered;
@@ -27,7 +27,7 @@ function RPCContext(theScene) {
   };
 
   this.registerFunction = function(functionName, domainFiltersArray) {
-    if( rpcController !== null || !appNameTargetRegistered ) {
+    if( rpcController !== null && appNameTargetRegistered ) {
       functions[functionName] = domainFiltersArray;
       return true;
     } else {
