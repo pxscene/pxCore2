@@ -56,14 +56,13 @@ public:
     { m_object_list.push_back(s); }
 
 private:
-  typedef uint32_t key_type;
 
   rtError sendGet(rtRpcGetRequest const& req, rtValue& value);
   rtError sendSet(rtRpcSetRequest const& req);
 
   typedef rtError (rtRpcClient::*message_handler_t)(rtJsonDocPtr_t const&);
   typedef std::map< std::string, message_handler_t > msghandler_map_t;
-  typedef std::map< key_type, rtJsonDocPtr_t > request_map_t;
+  typedef std::map< rtCorrelationKey_t, rtJsonDocPtr_t > request_map_t;
 
   rtJsonDocPtr_t waitForResponse(int key, uint32_t timeout = 1000);
 
@@ -84,7 +83,7 @@ private:
   std::unique_ptr<std::thread>  m_thread;
   std::condition_variable       m_cond;
   msghandler_map_t              m_message_handlers;
-  std::atomic<key_type>         m_next_key;
+  std::atomic<rtCorrelationKey_t> m_next_key;
   request_map_t                 m_requests;
 };
 
