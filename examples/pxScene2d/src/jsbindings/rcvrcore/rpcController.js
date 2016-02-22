@@ -12,6 +12,7 @@ function RPCController() {
       return false;
     }
     registeredApps[targetName] = scene;
+    return true;
   };
 
   this.execute = function(sourceTarget, remoteTargetName, functionName, args, callback) {
