@@ -10,6 +10,7 @@ if ( typeof(getScene) == 'undefined' )
 
 var fs = require("fs");
 var AppSceneContext = require('rcvrcore/AppSceneContext');
+var RPCController = require('rcvrcore/rpcController');
 
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('XModule');
@@ -37,6 +38,7 @@ function pxRoot(baseUri) {
   this.childScene = null;
   this.originalUrl = 'browser.js';
   this.fpsBg = null;
+  this.rpcController = new RPCController();
 }
 
 pxRoot.prototype.initialize = function(x, y, width, height) {
@@ -117,7 +119,7 @@ pxRoot.prototype.initialize = function(x, y, width, height) {
         log.info("onScene: New scene is second level: url=" + url);
       }
 
-      self.createNewAppContext({sceneContainer:container, scene:innerscene, packageUrl:url});
+      self.createNewAppContext({sceneContainer:container, scene:innerscene, packageUrl:url, rpcController:self.rpcController});
 
     }, 10);
   }

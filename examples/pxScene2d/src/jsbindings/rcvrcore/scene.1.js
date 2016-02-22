@@ -1,6 +1,9 @@
+var RPCContext = require('rcvrcore/rpcContext');
+
 function Scene() {
   var nativeScene = null;
   var stylePatterns = [];
+  var rpcContext = new RPCContext(this);
 
   this._setNativeScene = function(scene, filePath) {
     if( nativeScene === null ) {
@@ -15,6 +18,14 @@ function Scene() {
       this.w = scene.w;
       this.h = scene.h;
     }
+  }
+
+  this._setRPCController = function(rpcController) {
+    rpcContext._setRPCController(rpcController);
+  }
+
+  this.getRPCContext = function getRPCContext() {
+    return rpcContext;
   }
 
   this.loadArchive = function(u) {
