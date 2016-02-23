@@ -2,9 +2,6 @@
 #include "stdlib.h"
 #include "memory.h"
 
-#include <sys/types.h>
-#include <unistd.h>
-
 #include "westeros-compositor.h"
 
 #define WST_MAX_ERROR_DETAIL (512)
@@ -42,7 +39,7 @@ WstCompositor;
 static const char* wstGetNextNestedDisplayName(void);
 
 
-static int g_pid= 0;
+static int g_pid= 1000;
 static int g_nextNestedId= 0;
 
 
@@ -812,11 +809,6 @@ static const char* wstGetNextNestedDisplayName(void)
    char *name= 0;
    char work[32];
    int id;
-   
-   if ( g_pid == 0 )
-   {
-      g_pid= getpid();
-   }
    
    id= g_nextNestedId;
    
