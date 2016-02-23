@@ -29,6 +29,7 @@ class pxContext {
   void setSize(int w, int h);
   void getSize(int& w, int& h);
   void clear(int w, int h);
+  void clear(int w, int h, float *fillColor );
   void clear(int left, int top, int width, int height);
 
   void setMatrix(pxMatrix4f& m);

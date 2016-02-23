@@ -1,7 +1,6 @@
 // pxCore CopyRight 2007-2015 John Robinson
 // pxWayland.cpp
 
-//JRW COMPOSITOR
 #include "rtString.h"
 #include "rtRefT.h"
 #include "pxCore.h"
@@ -28,9 +27,13 @@ pxWayland::pxWayland(pxScene2d* scene)
     m_clientMonitorThreadId(0), 
     m_clientMonitorStarted(false),
     m_clientPID(-1),
-    m_wctx(0) 
+    m_wctx(0)
 {
   pthread_mutex_init( &m_mutex, 0 );
+  m_fillColor[0]= 0.0; 
+  m_fillColor[1]= 0.0; 
+  m_fillColor[2]= 0.0; 
+  m_fillColor[3]= 0.0; 
   addListener("onClientStarted", get<rtFunctionRef>("onClientStarted"));
   addListener("onClientStopped", get<rtFunctionRef>("onClientStopped"));
   addListener("onClientConnected", get<rtFunctionRef>("onClientConnected"));
@@ -154,7 +157,7 @@ void pxWayland::draw() {
   context.pushState();
   pxContextFramebufferRef previousFrameBuffer= context.getCurrentFramebuffer();
   context.setFramebuffer( m_fbo );
-  context.clear( mw, mh );
+  context.clear( mw, mh, m_fillColor );
   WstCompositorComposeEmbedded( m_wctx, 
                                 mw,
                                 mh,
@@ -819,5 +822,6 @@ rtDefineObject(pxWayland,pxObject);
 rtDefineProperty(pxWayland,displayName);
 rtDefineProperty(pxWayland,cmd);
 rtDefineProperty(pxWayland, clientPID);
+rtDefineProperty(pxWayland, fillColor);
 
 

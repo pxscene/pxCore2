@@ -34,6 +34,7 @@
         "../pxFont.cpp",
         "../pxText.cpp",
         "../pxTextBox.cpp",
+        "../pxWayland.cpp",
         "../pxUtil.cpp",
         "../pxInterpolators.cpp",
         "../pxFileDownloader.cpp",
@@ -72,12 +73,28 @@
       ],
 
   "conditions": [
-    ['"<!(echo $PX_WAYLAND)"=="yes"', 
-    {
-        'defines':['PX_WAYLAND'],
-        'sources': ["../pxWayland.cpp"],
-        'libraries':["-lwesteros_compositor"]
-    },
+    ['OS=="linux"',
+      {
+       "conditions": [
+       ['"<!(ls ../../external | grep -s "westeros$" | cat)"=="westeros"',
+          {
+              'libraries':["-lwesteros_compositor"]          
+          }
+       ],
+       ['"<!(ls ../../external | grep -s "westeros$" | cat)"!="westeros"',
+          {
+              'sources': ["../../external/westeros-stub/westeros-stub.cpp"],
+              "include_dirs": ["../../external/westeros-stub"]           
+          }
+       ],
+       ]
+     }
+    ],
+    ['OS!="linux"',
+       {
+           'sources': ["../../external/westeros-stub/westeros-stub.cpp"],
+           "include_dirs": ["../../external/westeros-stub"]           
+       }
     ],
 
     ['OS=="linux"',
