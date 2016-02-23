@@ -1236,6 +1236,16 @@ void pxContext::clear(int /*w*/, int /*h*/)
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void pxContext::clear(int /*w*/, int /*h*/, float *fillColor )
+{
+  float color[4];
+  
+  glGetFloatv( GL_COLOR_CLEAR_VALUE, color );
+  glClearColor( fillColor[0], fillColor[1], fillColor[2], fillColor[3] );
+  glClear(GL_COLOR_BUFFER_BIT);
+  glClearColor( color[0], color[1], color[2], color[3] );
+}
+
 void pxContext::clear(int left, int top, int right, int bottom)
 {
   glEnable(GL_SCISSOR_TEST); //todo - not set each frame

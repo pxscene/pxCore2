@@ -4,7 +4,6 @@
 #ifndef PX_WAYLAND_H
 #define PX_WAYLAND_H
 
-//JRW COMPOSITOR
 #include <pthread.h>
 #include "pxContext.h"
 #include "rtMutex.h"
@@ -18,6 +17,7 @@ public:
   rtProperty(displayName, displayName, setDisplayName, rtString);
   rtProperty(cmd, cmd, setCmd, rtString);
   rtReadOnlyProperty(clientPID, clientPID, int32_t);
+  rtProperty(fillColor, fillColor, setFillColor, uint32_t);
   
   pxWayland(pxScene2d* scene);
 
@@ -33,6 +33,21 @@ public:
   {
      m_cmd = s;
      return RT_OK;
+  }
+
+  rtError fillColor(uint32_t& /*c*/) const 
+  {
+    rtLogWarn("fillColor not implemented");
+    return RT_OK;
+  }
+
+  rtError setFillColor(uint32_t c) 
+  {
+    m_fillColor[0] = (float)((c>>24)&0xff)/255.0f;
+    m_fillColor[1] = (float)((c>>16)&0xff)/255.0f;
+    m_fillColor[2] = (float)((c>>8)&0xff)/255.0f;
+    m_fillColor[3] = (float)((c>>0)&0xff)/255.0f;
+    return RT_OK;
   }
 
   rtError clientPID(int32_t& pid) const { pid = m_clientPID; return RT_OK; }
@@ -74,6 +89,7 @@ protected:
   int32_t m_clientPID;
   pxContextFramebufferRef m_fbo;
   WstCompositor *m_wctx;
+  float m_fillColor[4];
 };
 
 #endif
