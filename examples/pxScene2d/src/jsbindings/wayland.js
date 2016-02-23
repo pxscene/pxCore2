@@ -1,3 +1,5 @@
+var westonDir = "/home/johnrobinson/Documents/";
+
 px.import("px:scene.1.js").then( function ready(scene) {
 var root = scene.root;
 var bg = scene.create({t:"image",url:"../../images/status_bg.png",parent:root,stretchX:scene.stretch.STRETCH,stretchY:scene.stretch.STRETCH});
@@ -23,9 +25,14 @@ var wayland1, wayland2;
 
 setTimeout(function(){
 
-  var cmd = "/home/johnrobinson/Documents/weston/weston-terminal";
+  var cmd = westonDir+"weston/weston-terminal";
   var owayland1 = scene.create( {t:"rect", x:200,y:200,w:750,h:440,parent:root ,fillColor:0xffffffff});
-  wayland1 = scene.create( {t:"wayland", displayName:"nested2", x:0, y:0, w:750, h:440, parent:owayland1, cmd:cmd} );
+  wayland1 = scene.create( {t:"wayland", displayName:"nested2", x:0, y:0, w:750, h:440, parent:owayland1, cmd:cmd, fillColor:0x00000033} );
+
+  wayland1.on("onMouseUp", function(e) {
+    console.log("here");
+    wayland1.focus = true;
+  });
 
   wayland1.on("onClientConnected", function(e) { txt1.text="Client connected: pid: "+e.pid; txt2.text="" });
   wayland1.on("onClientDisconnected", function(e) { txt1.text="Client disconnected: pid: "+e.pid; });
@@ -47,14 +54,16 @@ setTimeout(function(){
 
   wayland1.cx = wayland1.w/2;
   wayland1.cy = wayland1.h/2;
-  wayland1.animateTo({r:360},5,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP);
+  wayland1.animateTo({r:360,a:0.5},5,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE);
 
  
 }, 4000 );
 
 setTimeout(function(){
-  var cmd = "/home/johnrobinson/Documents/weston/weston-clickdot";
-   wayland2 = scene.create( {t:"wayland", x:640, y:360, w:640, h:460, r:-20, parent:root, cmd:cmd, sx:0.5, sy:0.5} );
+  var cmd = westonDir+"weston/weston-clickdot";
+//  var cmd = westonDir+"weston/weston-simple-egl";
+//  var cmd = westonDir+"weston/weston-flower";
+   wayland2 = scene.create( {t:"wayland", x:640, y:360, w:640, h:460, r:-20, parent:root, cmd:cmd, sx:0.5, sy:0.5, fillColor:0x00000055} );
 
    wayland2.on("onClientConnected", function(e) { txt3.text="Client connected: pid: "+e.pid; txt2.text="" });
    wayland2.on("onClientDisconnected", function(e) { txt3.text="Client disconnected: pid: "+e.pid; });
