@@ -364,13 +364,11 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
 {
   if (!mCancelInSet)
     return;
-
   bool f = mCancelInSet;
   // Do not reenter
   mCancelInSet = false;
 
   // If an animation for this property is in progress we cancel it here
-  // we also fastforward the animation if it is of type PX_END
   vector<animation>::iterator it = mAnimations.begin();
   while (it != mAnimations.end())
   {
@@ -389,7 +387,6 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
       {
         if (a.ended)
           a.ended.send(this);
-
         if (a.promise)
         {
           if( resolve)
@@ -398,13 +395,15 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
             a.promise.send("reject",this);
         }
       }
+#if 0
       else
       {
         // TODO experiment if we cancel non ending animations set back
         // to beginning
         if (fastforward)
-          set(prop, a.from);
+          set(prop, a.to);
       }
+#endif
       a.cancelled = true;
     }
     ++it;
@@ -431,6 +430,7 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
   a.at       = at;
   a.count    = count;
   a.actualCount = 0;
+  a.reversing = false;
 //  a.ended = onEnd;
   a.promise = promise;
 
@@ -454,34 +454,19 @@ void pxObject::update(double t)
   while (it != mAnimations.end())
   {
     animation& a = (*it);
-
     if (a.start < 0) a.start = t;
     double end = a.start + a.duration;
     
     // if duration has elapsed, increment the count for this animation
-    if( t >=end && a.count != pxConstantsAnimation::COUNT_FOREVER) 
+    if( t >=end && a.count != pxConstantsAnimation::COUNT_FOREVER 
+        && !(a.at & pxConstantsAnimation::OPTION_OSCILLATE)) 
     {
-      if(a.at & pxConstantsAnimation::OPTION_OSCILLATE)
-      {
-        a.actualCount += .5;
-        if( a.actualCount != a.count) 
-        {
-          a.start    = t;  
-          float from, to;
-          from = a.from;
-          to = a.to;   
-          a.from = to;
-          a.to = from;   
-        }
-      }
-      else 
-      {
         a.actualCount++;
-        a.start    = -1;
-      }
+        a.start  = -1;
     }
     // if duration has elapsed and count is met, end the animation    
-    if (t >= end && ((a.at & pxConstantsAnimation::OPTION_LOOP && a.count == 1)  
+    if (t >= end &&
+        ((a.at & pxConstantsAnimation::OPTION_LOOP && a.count == 1)  
         || (a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count)))
     {
       // TODO this sort of blows since this triggers another
@@ -525,10 +510,22 @@ void pxObject::update(double t)
     to = a.to;
     if (a.at & pxConstantsAnimation::OPTION_OSCILLATE)
     {
-      if (fmod(t2,2) != 0)   // TODO perf chk ?
+      if( (fmod(t2,2) != 0))  // TODO perf chk ?
       {
+        if(!a.reversing)
+        {
+          a.reversing = true;
+          a.actualCount++;
+        }
         from = a.to;
         to   = a.from;
+
+      }
+      else if( a.reversing && (fmod(t2,2) == 0)) 
+      {
+        a.reversing = false;
+        a.actualCount++;
+        a.start = -1;
       }
     }
     

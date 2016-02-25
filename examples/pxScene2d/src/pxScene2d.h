@@ -85,6 +85,7 @@ struct animation {
   pxInterp interp;
   int32_t count;
   float actualCount;
+  bool reversing;
   rtFunctionRef ended;
   rtObjectRef promise;
 };
