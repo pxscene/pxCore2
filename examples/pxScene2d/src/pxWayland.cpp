@@ -27,6 +27,8 @@ pxWayland::pxWayland(pxScene2d* scene)
     m_clientMonitorThreadId(0), 
     m_clientMonitorStarted(false),
     m_clientPID(-1),
+    m_nominalw(0),
+    m_nominalh(0),
     m_wctx(0)
 {
   pthread_mutex_init( &m_mutex, 0 );
@@ -81,6 +83,14 @@ void pxWayland::createDisplay(rtString displayName)
    if ( m_wctx )
    {
       if ( !WstCompositorSetIsEmbedded( m_wctx, true ) )
+      {
+         error= true;
+         goto exit;
+      }
+      
+      m_nominalw= (int)mw;
+      m_nominalh= (int)mh;
+      if ( !WstCompositorSetOutputSize( m_wctx, m_nominalw, m_nominalh ) )
       {
          error= true;
          goto exit;
@@ -149,10 +159,7 @@ void pxWayland::draw() {
   {
      context.updateFramebuffer( m_fbo, mw, mh );
   }
-
-  int resW, resH;
-  context.getSize( resW, resH );
-
+  
   pxMatrix4f m;
   context.pushState();
   pxContextFramebufferRef previousFrameBuffer= context.getCurrentFramebuffer();
@@ -161,8 +168,8 @@ void pxWayland::draw() {
   WstCompositorComposeEmbedded( m_wctx, 
                                 mw,
                                 mh,
-                                mw,
-                                mh,
+                                m_nominalw,
+                                m_nominalh,
                                 m.data(),
                                 context.getAlpha() );
   context.setFramebuffer( previousFrameBuffer );

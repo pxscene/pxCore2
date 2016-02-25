@@ -87,6 +87,8 @@ protected:
   rtString m_DisplayName;
   rtString m_cmd;
   int32_t m_clientPID;
+  int m_nominalw;
+  int m_nominalh;
   pxContextFramebufferRef m_fbo;
   WstCompositor *m_wctx;
   float m_fillColor[4];
