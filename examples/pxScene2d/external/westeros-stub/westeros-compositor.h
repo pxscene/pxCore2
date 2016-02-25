@@ -143,6 +143,19 @@ bool WstCompositorSetRendererModule( WstCompositor *ctx, const char *rendererMod
 bool WstCompositorSetIsNested( WstCompositor *ctx, bool isNested );
 
 /**
+ * WstCompositorSetIsRepeater
+ *
+ * Specify if the compositor is to act as a repeating nested compositor.  A 
+ * normal nested compositor will compose client surfaces to produce an output
+ * surface which is then sent to a second compositor for display.  A repeating 
+ * nested compositor will not perform any composition rendering but instead 
+ * will forward surface buffers from its clients to the wayland display to 
+ * which it is connected.  Enabling repeating will also enable nested 
+ * composition.
+ */
+bool WstCompositorSetIsRepeater( WstCompositor *ctx, bool isRepeater );
+
+/**
  * WstCompositorSetIsEmbedded
  *
  * Specify if the compositor is to act as an embedded compositor.  When acting
@@ -155,17 +168,12 @@ bool WstCompositorSetIsNested( WstCompositor *ctx, bool isNested );
 bool WstCompositorSetIsEmbedded( WstCompositor *ctx, bool isEmbedded );
 
 /**
- * WstCompositorSetIsRepeater
+ * WstCompositorSetOutputSize
  *
- * Specify if the compositor is to act as a repeating nested compositor.  A 
- * normal nested compositor will compose client surfaces to produce an output
- * surface which is then sent to a second compositor for display.  A repeating 
- * nested compositor will not perform any composition rendering but instead 
- * will forward surface buffers from its clients to the wayland display to 
- * which it is connected.  Enabling repeating will also enable nested 
- * composition.
+ * Specify the size of the output surface for the compositor.  This
+ * must be called prior to WstCompositorStart
  */
-bool WstCompositorSetIsRepeater( WstCompositor *ctx, bool isRepeater );
+bool WstCompositorSetOutputSize( WstCompositor *ctx, int width, int height );
 
 /**
  * WstCompositorSetNestedDisplayName
@@ -192,13 +200,6 @@ bool WstCompositorSetNestedSize( WstCompositor *ctx, unsigned int width, unsigne
  * image.  This must be called prior to WstCompositorStart.
  */
 bool WstCompositorSetAllowCursorModification( WstCompositor *ctx, bool allow );
-
-/**
- * WstCompositorGetOutputDimensions
- *
- * Obtain the width and height of the compositor output.
- */
-void WstCompositorGetOutputDimensions( WstCompositor *ctx, unsigned int *width, unsigned int *height );
  
 /**
  * WstCompositorGetDisplayName
@@ -250,6 +251,13 @@ bool WstCompositorGetIsRepeater( WstCompositor *ctx );
  * compositor or not.  This may be called at any time.
  */
 bool WstCompositorGetIsEmbedded( WstCompositor *ctx );
+
+/**
+ * WstCompositorGetOutputSize
+ *
+ * Obtain the width and height of the compositor output.
+ */
+void WstCompositorGetOutputSize( WstCompositor *ctx, unsigned int *width, unsigned int *height );
 
 /**
  * WstCompositorGetNestedDisplayName

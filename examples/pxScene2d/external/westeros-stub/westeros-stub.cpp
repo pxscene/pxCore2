@@ -258,6 +258,44 @@ exit:
    return result;
 }
 
+bool WstCompositorSetOutputSize( WstCompositor *ctx, int width, int height )
+{
+   bool result= false;
+   
+   if ( ctx )
+   {
+      if ( ctx->running )
+      {
+         sprintf( ctx->lastErrorDetail,
+                  "Bad state.  Cannot set output size while compositor is running" );
+         goto exit;
+      }      
+
+      if ( width == 0 )
+      {
+         sprintf( ctx->lastErrorDetail,
+                  "Invalid argument.  The output width (%u) must be greater than zero", width );
+         goto exit;      
+      }
+
+      if ( height == 0 )
+      {
+         sprintf( ctx->lastErrorDetail,
+                  "Invalid argument.  The output height (%u) must be greater than zero", height );
+         goto exit;      
+      }
+               
+      ctx->outputWidth= width;
+      ctx->outputHeight= height;
+            
+      result= true;
+   }
+
+exit:
+   
+   return result;
+}
+
 bool WstCompositorSetNestedDisplayName( WstCompositor *ctx, const char *nestedDisplayName )
 {
    bool result= false;
@@ -364,27 +402,6 @@ exit:
    return result;
 }
 
-void WstCompositorGetOutputDimensions( WstCompositor *ctx, unsigned int *width, unsigned int *height )
-{
-   int outputWidth= 0;
-   int outputHeight= 0;
-   
-   if ( ctx )
-   {               
-      outputWidth= ctx->outputWidth;
-      outputHeight= ctx->outputHeight;
-   }
-
-   if ( width )
-   {
-      *width= outputWidth;
-   }
-   if ( height )
-   {
-      *height= outputHeight;
-   }
-}
-
 const char *WstCompositorGetDisplayName( WstCompositor *ctx )
 {
    const char *displayName= 0;
@@ -461,6 +478,27 @@ bool WstCompositorGetIsEmbedded( WstCompositor *ctx )
    }
    
    return isEmbedded;
+}
+
+void WstCompositorGetOutputSize( WstCompositor *ctx, unsigned int *width, unsigned int *height )
+{
+   int outputWidth= 0;
+   int outputHeight= 0;
+   
+   if ( ctx )
+   {               
+      outputWidth= ctx->outputWidth;
+      outputHeight= ctx->outputHeight;
+   }
+
+   if ( width )
+   {
+      *width= outputWidth;
+   }
+   if ( height )
+   {
+      *height= outputHeight;
+   }
 }
 
 const char *WstCompositorGetNestedDisplayName( WstCompositor *ctx )
