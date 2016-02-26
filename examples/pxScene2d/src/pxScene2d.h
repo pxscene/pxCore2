@@ -81,8 +81,11 @@ struct animation {
   bool flip;
   double start;
   double duration;
-  pxConstantsAnimation::animationOptions at;//pxAnimationType at;
+  pxConstantsAnimation::animationOptions at;
   pxInterp interp;
+  int32_t count;
+  float actualCount;
+  bool reversing;
   rtFunctionRef ended;
   rtObjectRef promise;
 };
@@ -143,8 +146,8 @@ public:
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
   rtMethodNoArgAndNoReturn("moveToFront", moveToFront);
 
-  rtMethod4ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
-                        uint32_t, uint32_t, rtObjectRef);
+  rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
+                        uint32_t, uint32_t, int32_t, rtObjectRef);
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
@@ -343,17 +346,17 @@ public:
   
   rtError animateTo(const char* prop, double to, double duration,
                      uint32_t interp, uint32_t animationType, 
-                     rtObjectRef promise);
+                     int32_t count, rtObjectRef promise);
 
   rtError animateToP2(rtObjectRef props, double duration, 
-                      uint32_t interp, uint32_t animationType, 
-                      rtObjectRef& promise);
+                      uint32_t interp, uint32_t animationType,
+                      int32_t count, rtObjectRef& promise);
 
-  void animateTo(const char* prop, double to, double duration,
-		 pxInterp interp, pxConstantsAnimation::animationOptions,
-                 rtObjectRef promise);
+  void animateToInternal(const char* prop, double to, double duration,
+                 pxInterp interp, pxConstantsAnimation::animationOptions,
+                 int32_t count, rtObjectRef promise);
 
-  void cancelAnimation(const char* prop, bool fastforward = false);
+  void cancelAnimation(const char* prop, bool fastforward = false, bool rewind = false, bool resolve = false);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
