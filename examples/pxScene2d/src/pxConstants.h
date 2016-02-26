@@ -38,10 +38,10 @@ public:
   };
   enum animationOptions {
     // Options  
-    OPTION_END= 0,
-    OPTION_OSCILLATE,
+    OPTION_OSCILLATE = 1,
     OPTION_LOOP,
-    OPTION_FASTFORWARD = 8 
+    OPTION_FASTFORWARD = 8,
+    OPTION_REWIND = 16  
   };
   enum animationCounts {  
     // Count
@@ -50,23 +50,24 @@ public:
 
   rtDeclareObject(pxConstantsAnimation, rtObject);
   
-  rtConstantProperty(TWEEN_LINEAR, TWEEN_LINEAR, int32_t);
-  rtConstantProperty(TWEEN_EXP1, TWEEN_EXP1, int32_t);
-  rtConstantProperty(TWEEN_EXP2, TWEEN_EXP2, int32_t);
-  rtConstantProperty(TWEEN_EXP3, TWEEN_EXP3, int32_t);
-  rtConstantProperty(TWEEN_STOP, TWEEN_STOP, int32_t);
-  rtConstantProperty(EASE_IN_QUAD, EASE_IN_QUAD, int32_t);
-  rtConstantProperty(EASE_IN_CUBIC, EASE_IN_CUBIC, int32_t);
-  rtConstantProperty(EASE_IN_BACK, EASE_IN_BACK, int32_t);
-  rtConstantProperty(EASE_IN_ELASTIC, EASE_IN_ELASTIC, int32_t);
-  rtConstantProperty(EASE_OUT_ELASTIC, EASE_OUT_ELASTIC, int32_t);
-  rtConstantProperty(EASE_OUT_BOUNCE, EASE_OUT_BOUNCE, int32_t);
+  rtConstantProperty(TWEEN_LINEAR, TWEEN_LINEAR, uint32_t);
+  rtConstantProperty(TWEEN_EXP1, TWEEN_EXP1, uint32_t);
+  rtConstantProperty(TWEEN_EXP2, TWEEN_EXP2, uint32_t);
+  rtConstantProperty(TWEEN_EXP3, TWEEN_EXP3, uint32_t);
+  rtConstantProperty(TWEEN_STOP, TWEEN_STOP, uint32_t);
+  rtConstantProperty(EASE_IN_QUAD, EASE_IN_QUAD, uint32_t);
+  rtConstantProperty(EASE_IN_CUBIC, EASE_IN_CUBIC, uint32_t);
+  rtConstantProperty(EASE_IN_BACK, EASE_IN_BACK, uint32_t);
+  rtConstantProperty(EASE_IN_ELASTIC, EASE_IN_ELASTIC, uint32_t);
+  rtConstantProperty(EASE_OUT_ELASTIC, EASE_OUT_ELASTIC, uint32_t);
+  rtConstantProperty(EASE_OUT_BOUNCE, EASE_OUT_BOUNCE, uint32_t);
   // EASE_INOUT_BOUNCE not yet enabled
   // rtConstantProperty(EASE_INOUT_BOUNCE, EASE_INOUT_BOUNCE, int32_t);
-  rtConstantProperty(OPTION_END, OPTION_END, int32_t);
-  rtConstantProperty(OPTION_OSCILLATE, OPTION_OSCILLATE, int32_t);
-  rtConstantProperty(OPTION_LOOP, OPTION_LOOP, int32_t);
-  rtConstantProperty(OPTION_FASTFORWARD, OPTION_FASTFORWARD, int32_t);
+  // OPTIONS
+  rtConstantProperty(OPTION_OSCILLATE, OPTION_OSCILLATE, uint32_t);
+  rtConstantProperty(OPTION_LOOP, OPTION_LOOP, uint32_t);
+  rtConstantProperty(OPTION_FASTFORWARD, OPTION_FASTFORWARD, uint32_t);
+  rtConstantProperty(OPTION_REWIND, OPTION_REWIND, uint32_t);
   rtConstantProperty(COUNT_FOREVER, COUNT_FOREVER, int32_t);
 
   rtReadOnlyProperty(interpolators, interpolators, rtObjectRef);
@@ -107,9 +108,9 @@ public:
   };
   rtDeclareObject(pxConstantsStretch, rtObject);
   
-  rtConstantProperty(NONE, NONE, int32_t);
-  rtConstantProperty(STRETCH, STRETCH, int32_t);
-  rtConstantProperty(REPEAT, REPEAT, int32_t);
+  rtConstantProperty(NONE, NONE, uint32_t);
+  rtConstantProperty(STRETCH, STRETCH, uint32_t);
+  rtConstantProperty(REPEAT, REPEAT, uint32_t);
 };
 
 
@@ -123,9 +124,9 @@ public:
   };
   rtDeclareObject(pxConstantsAlignVertical, rtObject);
   
-  rtConstantProperty(TOP, TOP, int32_t);
-  rtConstantProperty(CENTER, CENTER, int32_t);
-  rtConstantProperty(BOTTOM, BOTTOM, int32_t);
+  rtConstantProperty(TOP, TOP, uint32_t);
+  rtConstantProperty(CENTER, CENTER, uint32_t);
+  rtConstantProperty(BOTTOM, BOTTOM, uint32_t);
 };
 
 class pxConstantsAlignHorizontal : public rtObject
@@ -138,9 +139,9 @@ public:
   };
   rtDeclareObject(pxConstantsAlignHorizontal, rtObject);
   
-  rtConstantProperty(LEFT, LEFT, int32_t);
-  rtConstantProperty(CENTER, CENTER, int32_t);
-  rtConstantProperty(RIGHT, RIGHT, int32_t);
+  rtConstantProperty(LEFT, LEFT, uint32_t);
+  rtConstantProperty(CENTER, CENTER, uint32_t);
+  rtConstantProperty(RIGHT, RIGHT, uint32_t);
 };
 
 class pxConstantsTruncation : public rtObject
@@ -153,9 +154,9 @@ public:
   };
   rtDeclareObject(pxConstantsTruncation, rtObject);
   
-  rtConstantProperty(NONE, NONE, int32_t);
-  rtConstantProperty(TRUNCATE, TRUNCATE, int32_t);
-  rtConstantProperty(TRUNCATE_AT_WORD, TRUNCATE_AT_WORD, int32_t);
+  rtConstantProperty(NONE, NONE, uint32_t);
+  rtConstantProperty(TRUNCATE, TRUNCATE, uint32_t);
+  rtConstantProperty(TRUNCATE_AT_WORD, TRUNCATE_AT_WORD, uint32_t);
 };
 
 

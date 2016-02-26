@@ -281,10 +281,14 @@ rtError pxObject::Set(const char* name, const rtValue* value)
 
 rtError pxObject::animateToP2(rtObjectRef props, double duration, 
                               uint32_t interp, uint32_t animationType, 
-                              rtObjectRef& promise)
+                              int32_t count, rtObjectRef& promise)
 {
 
   if (!props) return RT_FAIL;
+  // Default to Linear, Loop and count==1
+  if (!interp) {interp = pxConstantsAnimation::TWEEN_LINEAR;}
+  if (!animationType) {animationType = pxConstantsAnimation::OPTION_LOOP;}
+  if (!count) {count = 1;}
 
   promise = new rtPromise;
 
@@ -295,10 +299,9 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
     for (uint32_t i = 0; i < len; i++)
     {
       rtString key = keys.get<rtString>(i);
-      animateTo(key, props.get<float>(key), duration, interp, animationType, (i==0)?promise:rtObjectRef());
+      animateTo(key, props.get<float>(key), duration, interp, animationType, count,(i==0)?promise:rtObjectRef());
     }
   }
-//  promise.send("resolve","hello");
 
   return RT_OK;
 }
@@ -350,54 +353,60 @@ rtError pxObject::moveToFront()
 
 rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t animationType, 
-                            rtObjectRef promise) 
+                            int32_t count, rtObjectRef promise) 
 {
-  animateTo(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
-            (pxConstantsAnimation::animationOptions)animationType, promise);
+  animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
+            (pxConstantsAnimation::animationOptions)animationType, count, promise);
   return RT_OK;
 }
 
 // Dont fastforward when calling from set* methods since that will
 // recurse indefinitely and crash and we're going to change the value in
 // the set* method anyway.
-void pxObject::cancelAnimation(const char* prop, bool fastforward)
+void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, bool resolve)
 {
   if (!mCancelInSet)
     return;
-
   bool f = mCancelInSet;
   // Do not reenter
   mCancelInSet = false;
 
   // If an animation for this property is in progress we cancel it here
-  // we also fastforward the animation if it is of type PX_END
   vector<animation>::iterator it = mAnimations.begin();
   while (it != mAnimations.end())
   {
     animation& a = (*it);
     if (!a.cancelled && a.prop == prop)
     {
-      if (a.at == pxConstantsAnimation::OPTION_END)
+      // Fastforward or rewind, if specified
+      if( fastforward)
+        set(prop, a.to);
+      else if( rewind) 
+        set(prop, a.from);
+    
+      // If animation was never-ending, promise was already resolved.
+      // If not, send it now.
+      if( a.count != pxConstantsAnimation::COUNT_FOREVER)
       {
-        // fastforward
-#if 1
-        if (fastforward)
-          set(prop, a.to);
-#endif
-
         if (a.ended)
           a.ended.send(this);
-
         if (a.promise)
-          a.promise.send("resolve",this);
+        {
+          if( resolve)
+            a.promise.send("resolve",this);
+          else 
+            a.promise.send("reject",this);
+        }
       }
+#if 0
       else
       {
         // TODO experiment if we cancel non ending animations set back
         // to beginning
         if (fastforward)
-          set(prop, a.from);
+          set(prop, a.to);
       }
+#endif
       a.cancelled = true;
     }
     ++it;
@@ -405,11 +414,11 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
   mCancelInSet = f;
 }
 
-void pxObject::animateTo(const char* prop, double to, double duration,
+void pxObject::animateToInternal(const char* prop, double to, double duration,
                          pxInterp interp, pxConstantsAnimation::animationOptions at,
-                         rtObjectRef promise)
+                         int32_t count, rtObjectRef promise)
 {
-  cancelAnimation(prop, true);
+  cancelAnimation(prop,(at & pxConstantsAnimation::OPTION_FASTFORWARD), (at & pxConstantsAnimation::OPTION_REWIND));
   
   // schedule animation
   animation a;
@@ -422,10 +431,22 @@ void pxObject::animateTo(const char* prop, double to, double duration,
   a.duration = duration;
   a.interp   = interp?interp:pxInterpLinear;
   a.at       = at;
+  a.count    = count;
+  a.actualCount = 0;
+  a.reversing = false;
 //  a.ended = onEnd;
   a.promise = promise;
 
   mAnimations.push_back(a);
+  
+  // resolve promise immediately if this is COUNT_FOREVER
+  if( count == pxConstantsAnimation::COUNT_FOREVER)
+  {
+    if (a.ended)
+      a.ended.send(this);
+    if (a.promise)
+      a.promise.send("resolve",this);  
+  }
 }
 
 void pxObject::update(double t)
@@ -436,43 +457,45 @@ void pxObject::update(double t)
   while (it != mAnimations.end())
   {
     animation& a = (*it);
-
     if (a.start < 0) a.start = t;
     double end = a.start + a.duration;
     
-    // if duration has elapsed
-    if (t >= end && a.at == pxConstantsAnimation::OPTION_END)
+    // if duration has elapsed, increment the count for this animation
+    if( t >=end && a.count != pxConstantsAnimation::COUNT_FOREVER 
+        && !(a.at & pxConstantsAnimation::OPTION_OSCILLATE)) 
+    {
+        a.actualCount++;
+        a.start  = -1;
+    }
+    // if duration has elapsed and count is met, end the animation    
+    if (t >= end && a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count)
     {
       // TODO this sort of blows since this triggers another
       // animation traversal to cancel animations
-#if 1
-      cancelAnimation(a.prop, true);
+#if 0
+      cancelAnimation(a.prop, true, false, true);
 #else
+      assert(mCancelInSet);
+      mCancelInSet = false;     
       set(a.prop, a.to);
-
-      if (a.at == pxConstantsAnimation::OPTION_END)
+      mCancelInSet = true;       
+        
+      if (a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
         if (a.ended)
           a.ended.send(this);
         if (a.promise)
-          a.promise.send("resolved",this);
+          a.promise.send("resolve",this);
 
         // Erase making sure to push the iterator forward before
+        a.cancelled = true;
         it = mAnimations.erase(it);
         continue;
       }
 #endif
-#if 0
-      else if (a.at == pxConstantsAnimation::OPTION_OSCILLATE)
-      {
-        // flip
-        double t;
-        t = a.from;
-        a.from = a.to;
-        a.to = t;
-      }
-#endif
+
     }
+     
     if (a.cancelled)
     {
       it = mAnimations.erase(it);
@@ -486,13 +509,32 @@ void pxObject::update(double t)
     float from, to;
     from = a.from;
     to = a.to;
-    if (a.at == pxConstantsAnimation::OPTION_OSCILLATE)
+    if (a.at & pxConstantsAnimation::OPTION_OSCILLATE)
     {
-      if (fmod(t2,2) != 0)   // TODO perf chk ?
+      if( (fmod(t2,2) != 0))  // TODO perf chk ?
       {
+        if(!a.reversing)
+        {
+          a.reversing = true;
+          a.actualCount++;
+        }
         from = a.to;
         to   = a.from;
+
       }
+      else if( a.reversing && (fmod(t2,2) == 0)) 
+      {
+        a.reversing = false;
+        a.actualCount++;
+        a.start = -1;
+      }
+      // Prevent one more loop through oscillate
+      if(a.actualCount >= a.count) 
+      { 
+        cancelAnimation(a.prop, false, false, true);
+        continue;
+      }     
+
     }
     
     float v = from + (to - from) * d;
