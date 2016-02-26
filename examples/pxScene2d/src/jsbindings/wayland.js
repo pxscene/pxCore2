@@ -9,7 +9,7 @@ var prompt = scene.create({t:"text",text:"Enter Url to JS File or Package",paren
 var url = scene.create({t:"text",text:"",parent:inputbg,pixelSize:24,textColor:0x303030ff,x:10,y:2});
 var cursor = scene.create({t:"rect", w:2, h:inputbg.h-10, parent:inputbg,x:10,y:5});
 
-cursor.animateTo({a:0},0.5,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE);
+cursor.animateTo({a:0},0.5,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE,scene.animation.COUNT_FOREVER);
 
 var contentBG = scene.create({t:"rect",x:10,y:60,parent:bg,fillColor:0xffffffff,a:0.05,draw:false});
 var content = scene.create({t:"scene",x:10,y:60,parent:bg,clip:true});
@@ -50,12 +50,12 @@ setTimeout(function(){
   wayland1.focus = true;
   owayland1.cx = owayland1.w/2;
   owayland1.cy = owayland1.h/2;
-  owayland1.animateTo({r:360},5,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP);
+  owayland1.animateTo({r:360},5,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP,scene.animation.COUNT_FOREVER);
 
   wayland1.cx = wayland1.w/2;
   wayland1.cy = wayland1.h/2;
-  wayland1.animateTo({r:360,a:0.5},5,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE);
-  wayland1.animateTo({h:800},2.5,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE);
+  wayland1.animateTo({r:360,a:0.5},5,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE,scene.animation.COUNT_FOREVER);
+  wayland1.animateTo({h:800},2.5,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE,scene.animation.COUNT_FOREVER);
 
  
 }, 4000 );
