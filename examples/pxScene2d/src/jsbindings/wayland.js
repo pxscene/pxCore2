@@ -55,6 +55,7 @@ setTimeout(function(){
   wayland1.cx = wayland1.w/2;
   wayland1.cy = wayland1.h/2;
   wayland1.animateTo({r:360,a:0.5},5,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE);
+  wayland1.animateTo({h:800},2.5,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE);
 
  
 }, 4000 );
