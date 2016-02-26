@@ -529,9 +529,10 @@ void pxObject::update(double t)
         a.start = -1;
       }
       // Prevent one more loop through oscillate
-      if(a.actualCount >= a.count) 
+      if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count ) 
       { 
         cancelAnimation(a.prop, false, false, true);
+        it = mAnimations.erase(it);
         continue;
       }     
 
