@@ -285,6 +285,10 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
 {
 
   if (!props) return RT_FAIL;
+  // Default to Linear, Loop and count==1
+  if (!interp) {interp = pxConstantsAnimation::TWEEN_LINEAR;}
+  if (!animationType) {animationType = pxConstantsAnimation::OPTION_LOOP;}
+  if (!count) {count = 1;}
 
   promise = new rtPromise;
 
@@ -298,7 +302,6 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
       animateTo(key, props.get<float>(key), duration, interp, animationType, count,(i==0)?promise:rtObjectRef());
     }
   }
-//  promise.send("resolve","hello");
 
   return RT_OK;
 }
@@ -525,6 +528,13 @@ void pxObject::update(double t)
         a.actualCount++;
         a.start = -1;
       }
+      // Prevent one more loop through oscillate
+      if(a.actualCount >= a.count) 
+      { 
+        cancelAnimation(a.prop, false, false, true);
+        continue;
+      }     
+
     }
     
     float v = from + (to - from) * d;
