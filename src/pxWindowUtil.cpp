@@ -312,9 +312,6 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
   case PX_KEY_NATIVE_INSERT:
     commonKeycode = PX_KEY_INSERT;
     break;
-  case PX_KEY_NATIVE_MINUS:
-    commonKeycode = PX_KEY_DASH;
-    break;
 
 // TODO
 #if 0
