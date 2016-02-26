@@ -465,9 +465,7 @@ void pxObject::update(double t)
         a.start  = -1;
     }
     // if duration has elapsed and count is met, end the animation    
-    if (t >= end &&
-        ((a.at & pxConstantsAnimation::OPTION_LOOP && a.count == 1)  
-        || (a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count)))
+    if (t >= end && a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count)
     {
       // TODO this sort of blows since this triggers another
       // animation traversal to cancel animations
