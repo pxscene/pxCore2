@@ -391,7 +391,7 @@ void pxWindowNative::onGlutEntry(int state)
 
 void pxWindowNative::onGlutKeyboardSpecial(int key, int x, int y)
 {
-  int keycode = key;
+  int keycode = 0;
   switch (key)
   {
     case GLUT_KEY_F1:
@@ -462,7 +462,7 @@ void pxWindowNative::onGlutKeyboardSpecial(int key, int x, int y)
   }
 
   pxWindowNative* w = getWindowFromGlutID(glutGetWindow());
-  if (w)
+  if (w && keycode)
   {
     w->onKeyDown(keycodeFromNative((int)keycode), 0);
     w->onKeyUp(keycodeFromNative((int)keycode), 0);
@@ -864,7 +864,7 @@ uint32_t getRawNativeKeycodeFromGlut(uint32_t key, uint32_t modifiers)
   //glut doesn't support keycodes. we do some mappings here
   key = tolower(key);
   
-  //bool shiftPressed = (glutGetModifiers() & GLUT_ACTIVE_SHIFT);
+  bool shiftPressed = (glutGetModifiers() & GLUT_ACTIVE_SHIFT);
   bool ctrlPressed = (glutGetModifiers() & GLUT_ACTIVE_CTRL);
   //bool altPressed = (glutGetModifiers() & GLUT_ACTIVE_ALT);
   
@@ -951,6 +951,48 @@ uint32_t getRawNativeKeycodeFromGlut(uint32_t key, uint32_t modifiers)
         break;
       case 26:
         rawKeycode = 'z';
+        break;
+    }
+  }
+  if (shiftPressed)
+  {
+    switch (rawKeycode)
+    {
+      case 33:
+        rawKeycode = '1';
+        break;
+      case 64:
+        rawKeycode = '2';
+        break;
+      case 35:
+        rawKeycode = '3';
+        break;
+      case 36:
+        rawKeycode = '4';
+        break;
+      case 37:
+        rawKeycode = '5';
+        break;
+      case 94:
+        rawKeycode = '6';
+        break;
+      case 38:
+        rawKeycode = '7';
+        break;
+      case 42:
+        rawKeycode = '8';
+        break;
+      case 40:
+        rawKeycode = '9';
+        break;
+      case 41:
+        rawKeycode = '0';
+        break;
+      case 95:
+        rawKeycode = '-';
+        break;
+      case 43:
+        rawKeycode = '=';
         break;
     }
   }

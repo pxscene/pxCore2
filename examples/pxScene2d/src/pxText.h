@@ -25,7 +25,7 @@ public:
   rtProperty(font, font, setFont, rtObjectRef);
 
   pxText(pxScene2d* scene);
-  ~pxText() {}
+  virtual ~pxText() {}
   rtError text(rtString& s) const;
   virtual rtError setText(const char* text);
 

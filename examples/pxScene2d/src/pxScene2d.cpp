@@ -24,6 +24,8 @@
 #include "pxImage.h"
 #include "pxImage9.h"
 
+#include "pxWayland.h"
+
 #include "pxContext.h"
 #include "pxFileDownloader.h"
 #include "rtMutex.h"
@@ -52,6 +54,11 @@ void stopProfiling()
 }
 #endif //ENABLE_VALGRIND
 
+#define WAYLAND_EVENT( event, target, ...) \
+  pxWayland *wayland= dynamic_cast<pxWayland*>((pxObject*)(target)); \
+  if ( wayland ) { \
+     wayland->event( __VA_ARGS__ ); \
+  }
 
 static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
@@ -274,10 +281,14 @@ rtError pxObject::Set(const char* name, const rtValue* value)
 
 rtError pxObject::animateToP2(rtObjectRef props, double duration, 
                               uint32_t interp, uint32_t animationType, 
-                              rtObjectRef& promise)
+                              int32_t count, rtObjectRef& promise)
 {
 
   if (!props) return RT_FAIL;
+  // Default to Linear, Loop and count==1
+  if (!interp) {interp = pxConstantsAnimation::TWEEN_LINEAR;}
+  if (!animationType) {animationType = pxConstantsAnimation::OPTION_LOOP;}
+  if (!count) {count = 1;}
 
   promise = new rtPromise;
 
@@ -288,10 +299,9 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
     for (uint32_t i = 0; i < len; i++)
     {
       rtString key = keys.get<rtString>(i);
-      animateTo(key, props.get<float>(key), duration, interp, animationType, (i==0)?promise:rtObjectRef());
+      animateTo(key, props.get<float>(key), duration, interp, animationType, count,(i==0)?promise:rtObjectRef());
     }
   }
-//  promise.send("resolve","hello");
 
   return RT_OK;
 }
@@ -343,54 +353,60 @@ rtError pxObject::moveToFront()
 
 rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t animationType, 
-                            rtObjectRef promise) 
+                            int32_t count, rtObjectRef promise) 
 {
-  animateTo(prop, to, duration, CONSTANTS.animationConstants.getInterpFunc(interp),// interps[interp].i,
-            (pxConstantsAnimation::animationOptions)animationType, promise);
+  animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
+            (pxConstantsAnimation::animationOptions)animationType, count, promise);
   return RT_OK;
 }
 
 // Dont fastforward when calling from set* methods since that will
 // recurse indefinitely and crash and we're going to change the value in
 // the set* method anyway.
-void pxObject::cancelAnimation(const char* prop, bool fastforward)
+void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, bool resolve)
 {
   if (!mCancelInSet)
     return;
-
   bool f = mCancelInSet;
   // Do not reenter
   mCancelInSet = false;
 
   // If an animation for this property is in progress we cancel it here
-  // we also fastforward the animation if it is of type PX_END
   vector<animation>::iterator it = mAnimations.begin();
   while (it != mAnimations.end())
   {
     animation& a = (*it);
     if (!a.cancelled && a.prop == prop)
     {
-      if (a.at == pxConstantsAnimation::OPTION_END)
+      // Fastforward or rewind, if specified
+      if( fastforward)
+        set(prop, a.to);
+      else if( rewind) 
+        set(prop, a.from);
+    
+      // If animation was never-ending, promise was already resolved.
+      // If not, send it now.
+      if( a.count != pxConstantsAnimation::COUNT_FOREVER)
       {
-        // fastforward
-#if 1
-        if (fastforward)
-          set(prop, a.to);
-#endif
-
         if (a.ended)
           a.ended.send(this);
-
         if (a.promise)
-          a.promise.send("resolve",this);
+        {
+          if( resolve)
+            a.promise.send("resolve",this);
+          else 
+            a.promise.send("reject",this);
+        }
       }
+#if 0
       else
       {
         // TODO experiment if we cancel non ending animations set back
         // to beginning
         if (fastforward)
-          set(prop, a.from);
+          set(prop, a.to);
       }
+#endif
       a.cancelled = true;
     }
     ++it;
@@ -398,11 +414,11 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward)
   mCancelInSet = f;
 }
 
-void pxObject::animateTo(const char* prop, double to, double duration,
+void pxObject::animateToInternal(const char* prop, double to, double duration,
                          pxInterp interp, pxConstantsAnimation::animationOptions at,
-                         rtObjectRef promise)
+                         int32_t count, rtObjectRef promise)
 {
-  cancelAnimation(prop, true);
+  cancelAnimation(prop,(at & pxConstantsAnimation::OPTION_FASTFORWARD), (at & pxConstantsAnimation::OPTION_REWIND));
   
   // schedule animation
   animation a;
@@ -415,10 +431,22 @@ void pxObject::animateTo(const char* prop, double to, double duration,
   a.duration = duration;
   a.interp   = interp?interp:pxInterpLinear;
   a.at       = at;
+  a.count    = count;
+  a.actualCount = 0;
+  a.reversing = false;
 //  a.ended = onEnd;
   a.promise = promise;
 
   mAnimations.push_back(a);
+  
+  // resolve promise immediately if this is COUNT_FOREVER
+  if( count == pxConstantsAnimation::COUNT_FOREVER)
+  {
+    if (a.ended)
+      a.ended.send(this);
+    if (a.promise)
+      a.promise.send("resolve",this);  
+  }
 }
 
 void pxObject::update(double t)
@@ -429,43 +457,45 @@ void pxObject::update(double t)
   while (it != mAnimations.end())
   {
     animation& a = (*it);
-
     if (a.start < 0) a.start = t;
     double end = a.start + a.duration;
     
-    // if duration has elapsed
-    if (t >= end && a.at == pxConstantsAnimation::OPTION_END)
+    // if duration has elapsed, increment the count for this animation
+    if( t >=end && a.count != pxConstantsAnimation::COUNT_FOREVER 
+        && !(a.at & pxConstantsAnimation::OPTION_OSCILLATE)) 
+    {
+        a.actualCount++;
+        a.start  = -1;
+    }
+    // if duration has elapsed and count is met, end the animation    
+    if (t >= end && a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count)
     {
       // TODO this sort of blows since this triggers another
       // animation traversal to cancel animations
-#if 1
-      cancelAnimation(a.prop, true);
+#if 0
+      cancelAnimation(a.prop, true, false, true);
 #else
+      assert(mCancelInSet);
+      mCancelInSet = false;     
       set(a.prop, a.to);
-
-      if (a.at == pxConstantsAnimation::OPTION_END)
+      mCancelInSet = true;       
+        
+      if (a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
         if (a.ended)
           a.ended.send(this);
         if (a.promise)
-          a.promise.send("resolved",this);
+          a.promise.send("resolve",this);
 
         // Erase making sure to push the iterator forward before
+        a.cancelled = true;
         it = mAnimations.erase(it);
         continue;
       }
 #endif
-#if 0
-      else if (a.at == pxConstantsAnimation::OPTION_OSCILLATE)
-      {
-        // flip
-        double t;
-        t = a.from;
-        a.from = a.to;
-        a.to = t;
-      }
-#endif
+
     }
+     
     if (a.cancelled)
     {
       it = mAnimations.erase(it);
@@ -479,13 +509,33 @@ void pxObject::update(double t)
     float from, to;
     from = a.from;
     to = a.to;
-    if (a.at == pxConstantsAnimation::OPTION_OSCILLATE)
+    if (a.at & pxConstantsAnimation::OPTION_OSCILLATE)
     {
-      if (fmod(t2,2) != 0)   // TODO perf chk ?
+      if( (fmod(t2,2) != 0))  // TODO perf chk ?
       {
+        if(!a.reversing)
+        {
+          a.reversing = true;
+          a.actualCount++;
+        }
         from = a.to;
         to   = a.from;
+
       }
+      else if( a.reversing && (fmod(t2,2) == 0)) 
+      {
+        a.reversing = false;
+        a.actualCount++;
+        a.start = -1;
+      }
+      // Prevent one more loop through oscillate
+      if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count ) 
+      { 
+        cancelAnimation(a.prop, false, false, true);
+        it = mAnimations.erase(it);
+        continue;
+      }     
+
     }
     
     float v = from + (to - from) * d;
@@ -1008,6 +1058,16 @@ pxScene2d::pxScene2d(bool top)
   e.set("target",mFocusObj);
   rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
   t->mEmit.send("onFocus",e);
+  #ifdef USE_SCENE_POINTER
+  mPointerX= 0;
+  mPointerY= 0;
+  mPointerW= 0;
+  mPointerH= 0;
+  mPointerHotSpotX= 40;
+  mPointerHotSpotY= 16;
+  mPointerHidden= false;
+  mPointerTextureCacheObj.setURL("cursor.png");
+  #endif
 }
 
 void pxScene2d::init()
@@ -1047,6 +1107,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createScene(p,o);
   else if (!strcmp("external",t.cString()))
     e = createExternal(p,o);
+  else if (!strcmp("wayland",t.cString()))
+    e = createWayland(p,o);
   else if (!strcmp("object",t.cString()))
     e = createObject(p,o);
   else
@@ -1159,6 +1221,14 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
+rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
+{
+  o = new pxWayland(this);
+  o.set(p);
+  o.send("init");
+
+  return RT_OK;
+}
 
 void pxScene2d::draw()
 {
@@ -1214,6 +1284,25 @@ void pxScene2d::draw()
     context.popState();
   }
   #endif //PX_DIRTY_RECTANGLES
+  #ifdef USE_SCENE_POINTER
+  if (mPointerTexture.getPtr() == NULL)
+  {
+    mPointerTexture = mPointerTextureCacheObj.getTexture();
+    if (mPointerTexture.getPtr() != NULL)
+    {
+      mPointerW = mPointerTexture->width();
+      mPointerH = mPointerTexture->height();
+    }
+  }
+  if ( (mPointerTexture.getPtr() != NULL) &&
+       !mPointerHidden )
+  {
+     context.drawImage( mPointerX-mPointerHotSpotX, mPointerY-mPointerHotSpotY, 
+                        mPointerW, mPointerH, 
+                        mPointerTexture, mNullTexture);
+                        
+  }
+  #endif
 }
 
 
@@ -1340,6 +1429,7 @@ void pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
       #if 0
       hit->mEmit.send("onMouseDown", e);
       #else
+      WAYLAND_EVENT( onMouseDown, hit );
       bubbleEvent(e,hit,"onPreMouseDown","onMouseDown");
       #endif
     }
@@ -1385,6 +1475,7 @@ void pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
         #if 0
         hit->mEmit.send("onMouseUp", e);
         #else
+        WAYLAND_EVENT( onMouseUp, hit );
         bubbleEvent(e,hit,"onPreMouseUp","onMouseUp");
         #endif
       }
@@ -1410,6 +1501,7 @@ void pxScene2d::setMouseEntered(pxObject* o)
       #if 0
       mMouseEntered->mEmit.send("onMouseLeave", e);
       #else
+      WAYLAND_EVENT( onMouseLeave, mMouseEntered );
       bubbleEvent(e,mMouseEntered,"onPreMouseLeave","onMouseLeave");
       #endif
     }
@@ -1424,6 +1516,7 @@ void pxScene2d::setMouseEntered(pxObject* o)
       #if 0
       mMouseEntered->mEmit.send("onMouseEnter", e);
       #else
+      WAYLAND_EVENT( onMouseEnter, mMouseEntered );
       bubbleEvent(e,mMouseEntered,"onPreMouseEnter","onMouseEnter");
       #endif
     }
@@ -1522,6 +1615,8 @@ void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
     {
       // TODO a bit messy
       rtFunctionRef emit = (*it)->mEmit.getPtr();
+      // TODO: As we bubble onMouseMove we need to keep adjusting the coordinates into the
+      // coordinate space of the successive parents object ??
       if (emit)
         emit.send(event,e);
     }
@@ -1530,6 +1625,12 @@ void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
 
 void pxScene2d::onMouseMove(int32_t x, int32_t y)
 {
+  #ifdef USE_SCENE_POINTER
+  mPointerX= x;
+  mPointerY= y;
+  invalidateRect(NULL);
+  mDirty= true;
+  #endif
 #if 1
   {
     // Send to root scene in global window coordinates
@@ -1590,6 +1691,7 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
     e.set("target", mMouseDown.getPtr());
     e.set("x", to.x());
     e.set("y", to.y());
+    WAYLAND_EVENT( onMouseMove, mMouseDown, to.x(), to.y() );
     bubbleEvent(e, mMouseDown, "onPreMouseMove", "onMouseMove");
 #endif
     }
@@ -1623,6 +1725,7 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
 #if 0
       hit->mEmit.send("onMouseMove",e);
 #else
+      WAYLAND_EVENT( onMouseMove, hit, hitPt.x, hitPt.y );
       bubbleEvent(e, hit, "onPreMouseMove", "onMouseMove");
 #endif
 #endif
@@ -1657,6 +1760,7 @@ void pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags)
     e.set("keyCode", keyCode);
     e.set("flags", (uint32_t)flags);
     rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
+    WAYLAND_EVENT( onKeyDown, t, keyCode, flags );
     bubbleEvent(e, t, "onPreKeyDown", "onKeyDown");
   }
 }
@@ -1670,6 +1774,7 @@ void pxScene2d::onKeyUp(uint32_t keyCode, uint32_t flags)
     e.set("keyCode", keyCode);
     e.set("flags", (uint32_t)flags);
     rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
+    WAYLAND_EVENT( onKeyUp, t, keyCode, flags );
     bubbleEvent(e, t, "onPreKeyUp", "onKeyUp");
   }
 }
@@ -1763,6 +1868,7 @@ rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
+//rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
 rtDefineMethod(pxScene2d, getFocus);

@@ -45,6 +45,9 @@ using namespace std;
 
 #include "testView.h"
 
+//Uncomment to enable display of pointer by pxScene
+//#define USE_SCENE_POINTER
+
 // TODO Move this to pxEventLoop
 extern rtThreadQueue gUIThreadQueue;
 
@@ -78,8 +81,11 @@ struct animation {
   bool flip;
   double start;
   double duration;
-  pxConstantsAnimation::animationOptions at;//pxAnimationType at;
+  pxConstantsAnimation::animationOptions at;
   pxInterp interp;
+  int32_t count;
+  float actualCount;
+  bool reversing;
   rtFunctionRef ended;
   rtObjectRef promise;
 };
@@ -140,8 +146,8 @@ public:
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
   rtMethodNoArgAndNoReturn("moveToFront", moveToFront);
 
-  rtMethod4ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
-                        uint32_t, uint32_t, rtObjectRef);
+  rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
+                        uint32_t, uint32_t, int32_t, rtObjectRef);
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
@@ -340,17 +346,17 @@ public:
   
   rtError animateTo(const char* prop, double to, double duration,
                      uint32_t interp, uint32_t animationType, 
-                     rtObjectRef promise);
+                     int32_t count, rtObjectRef promise);
 
   rtError animateToP2(rtObjectRef props, double duration, 
-                      uint32_t interp, uint32_t animationType, 
-                      rtObjectRef& promise);
+                      uint32_t interp, uint32_t animationType,
+                      int32_t count, rtObjectRef& promise);
 
-  void animateTo(const char* prop, double to, double duration,
-		 pxInterp interp, pxConstantsAnimation::animationOptions,
-                 rtObjectRef promise);
+  void animateToInternal(const char* prop, double to, double duration,
+                 pxInterp interp, pxConstantsAnimation::animationOptions,
+                 int32_t count, rtObjectRef promise);
 
-  void cancelAnimation(const char* prop, bool fastforward = false);
+  void cancelAnimation(const char* prop, bool fastforward = false, bool rewind = false, bool resolve = false);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
@@ -914,6 +920,12 @@ public:
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
+/*
+  rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
+                        rtObjectRef);
+  rtMethod1ArgAndReturn("createWayland", createWayland, rtObjectRef,
+                        rtObjectRef);
+*/
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
 
@@ -966,6 +978,7 @@ public:
   rtError setShowDirtyRect(bool v);
 
   rtError create(rtObjectRef p, rtObjectRef& o);
+
   rtError createObject(rtObjectRef p, rtObjectRef& o);
   rtError createRectangle(rtObjectRef p, rtObjectRef& o);
   rtError createText(rtObjectRef p, rtObjectRef& o);
@@ -976,8 +989,9 @@ public:
   rtError createFontResource(rtObjectRef p, rtObjectRef& o);  
   rtError createScene(rtObjectRef p,rtObjectRef& o);
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
-  
+
   rtError clock(uint64_t & time);
+  rtError createWayland(rtObjectRef p, rtObjectRef& o);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
@@ -1012,11 +1026,11 @@ public:
 
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
   
-  rtError animation(rtObjectRef& v) const {v = &CONSTANTS.animationConstants; return RT_OK;}
-  rtError stretch(rtObjectRef& v) const {v = &CONSTANTS.stretchConstants; return RT_OK;}
-  rtError alignVertical(rtObjectRef& v) const {v = &CONSTANTS.alignVerticalConstants; return RT_OK;}
-  rtError alignHorizontal(rtObjectRef& v) const {v = &CONSTANTS.alignHorizontalConstants; return RT_OK;}
-  rtError truncation(rtObjectRef& v) const {v = &CONSTANTS.truncationConstants; return RT_OK;}
+  rtError animation(rtObjectRef& v) const {v = CONSTANTS.animationConstants; return RT_OK;}
+  rtError stretch(rtObjectRef& v) const {v = CONSTANTS.stretchConstants; return RT_OK;}
+  rtError alignVertical(rtObjectRef& v) const {v = CONSTANTS.alignVerticalConstants; return RT_OK;}
+  rtError alignHorizontal(rtObjectRef& v) const {v = CONSTANTS.alignHorizontalConstants; return RT_OK;}
+  rtError truncation(rtObjectRef& v) const {v = CONSTANTS.truncationConstants; return RT_OK;}
 
   void setMouseEntered(pxObject* o);
 
@@ -1110,7 +1124,23 @@ private:
   int mTag;
   pxIViewContainer *mContainer;
   bool mShowDirtyRect;
+  #ifdef USE_SCENE_POINTER
+  pxTextureRef mNullTexture;
+  pxTextureCacheObject mPointerTextureCacheObj;
+  pxTextureRef mPointerTexture;
+  int32_t mPointerX;
+  int32_t mPointerY;
+  int32_t mPointerW;
+  int32_t mPointerH;
+  int32_t mPointerHotSpotX;
+  int32_t mPointerHotSpotY;
+  #endif
+  bool mPointerHidden;
 public:
+  void hidePointer( bool hide )
+  {
+     mPointerHidden= hide;
+  }
   bool mDirty;
   #ifdef PX_DIRTY_RECTANGLES
   static pxRect mDirtyRect;

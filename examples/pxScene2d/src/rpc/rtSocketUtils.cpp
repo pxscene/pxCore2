@@ -16,6 +16,7 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
+
 rtError
 rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* index)
 {
@@ -89,7 +90,7 @@ rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len)
 rtError
 rtGetInterfaceAddress(char const* name, sockaddr_storage& ss)
 {
-  rtError error = RT_OK;
+  rtError error = RT_FAIL;
   ifaddrs* ifaddr = NULL;
 
   int ret = getifaddrs(&ifaddr);
@@ -138,6 +139,7 @@ rtGetInterfaceAddress(char const* name, sockaddr_storage& ss)
         rtLogError("failed to parse: %s as valid ipv4 address", host);
         error = RT_FAIL;
       }
+      error = RT_OK;
       goto out;
     }
   }

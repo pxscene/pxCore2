@@ -8,9 +8,6 @@
 #include "rtLog.h"
 #include "rtSocketUtils.h"
 
-class rtRpcMessage;
-class rtRpcRequest;
-
 #define kFieldNameMessageType "message.type"
 #define kFieldNameCorrelationKey "correlation.key"
 #define kFieldNameObjectId "object.id"
@@ -53,7 +50,6 @@ class rtRpcRequest;
 class rtRpcMessage
 {
 public:
-  typedef uint32_t key_type;
   virtual ~rtRpcMessage();
   bool isValid() const;
 
@@ -64,7 +60,7 @@ private:
   rtRpcMessage() { }
 
 public:
-  key_type    getCorrelationKey() const;
+  rtCorrelationKey_t getCorrelationKey() const;
   char const* getMessageType() const;
   char const* getObjectName() const;
 
@@ -73,7 +69,7 @@ public:
 protected:
   struct Impl;
   std::shared_ptr<Impl>   m_impl;
-  key_type                m_correlation_key;
+  rtCorrelationKey_t      m_correlation_key;
 };
 
 class rtRpcRequest : public rtRpcMessage

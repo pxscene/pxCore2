@@ -441,7 +441,11 @@ static asciiKeymapEntry asciiKeymap[] =
   {PX_KEY_OPENBRACKET, PX_MOD_SHIFT, '{'},
   {PX_KEY_BACKSLASH, PX_MOD_SHIFT, '|'},
   {PX_KEY_CLOSEBRACKET, PX_MOD_SHIFT, '}'},
-  {PX_KEY_GRAVEACCENT, PX_MOD_SHIFT, '~'}
+  {PX_KEY_GRAVEACCENT, PX_MOD_SHIFT, '~'},
+  {PX_KEY_DASH, 0, '-'},
+  {PX_KEY_DASH, PX_MOD_SHIFT, '_'},
+  {PX_KEY_SUBTRACT, 0, '-'},
+  {PX_KEY_SUBTRACT, PX_MOD_SHIFT, '_'}
 };
 
 static int asciiKeymapLen = sizeof(asciiKeymap)/sizeof(asciiKeymap[0]);

@@ -17,7 +17,7 @@
 
 namespace
 {
-  std::atomic<rtRpcMessage::key_type> s_next_key;
+  std::atomic<rtCorrelationKey_t> s_next_key;
 }
 
 template<class T> T
@@ -181,7 +181,7 @@ rtRpcMessage::getObjectName() const
   return from_json<char const *>(m_impl->d[kFieldNameObjectId]);
 }
 
-rtRpcMessage::key_type
+rtCorrelationKey_t
 rtRpcMessage::getCorrelationKey() const
 {
   return m_correlation_key;

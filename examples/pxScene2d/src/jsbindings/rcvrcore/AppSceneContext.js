@@ -211,7 +211,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       if (true) { // enable to fade scenes in
         this.container.a = 0;
         this.container.painting = true;
-        this.container.animateTo({a: 1}, 0.2, 0, 0);
+        this.container.animateTo({a: 1}, 0.2, this.innerscene.animation.TWEEN_LINEAR,this.innerscene.animation.OPTION_LOOP,1);
       }
       else {
         this.container.painting = true;

@@ -34,6 +34,7 @@
         "../pxFont.cpp",
         "../pxText.cpp",
         "../pxTextBox.cpp",
+        "../pxWayland.cpp",
         "../pxUtil.cpp",
         "../pxInterpolators.cpp",
         "../pxFileDownloader.cpp",
@@ -52,6 +53,7 @@
         "../../external/curl/include",
         "../../external/jpg",
         "../../external/zlib",
+        "../../external/westeros/external/install/include",
         "../../../../src"
       ],
 
@@ -60,6 +62,7 @@
         "-L../../../external/png/.libs",
         "-L../../../external/jpg/.libs",
         "-L../../../external/curl/lib/.libs/",
+        "-L../../../external/westeros/external/install/lib",
         "../../../external/zlib/libz.a",
         "../../../../../build/glut/libpxCore.a",
         "-lfreetype",
@@ -70,6 +73,30 @@
       ],
 
   "conditions": [
+    ['OS=="linux"',
+      {
+       "conditions": [
+       ['"<!(ls ../../external | grep -s "westeros$" | cat)"=="westeros"',
+          {
+              'libraries':["-lwesteros_compositor"]          
+          }
+       ],
+       ['"<!(ls ../../external | grep -s "westeros$" | cat)"!="westeros"',
+          {
+              'sources': ["../../external/westeros-stub/westeros-stub.cpp"],
+              "include_dirs": ["../../external/westeros-stub"]           
+          }
+       ],
+       ]
+     }
+    ],
+    ['OS!="linux"',
+       {
+           'sources': ["../../external/westeros-stub/westeros-stub.cpp"],
+           "include_dirs": ["../../external/westeros-stub"]           
+       }
+    ],
+
     ['OS=="linux"',
       {
         'sources': ["../linux/rtMutexNative.cpp", "../linux/rtThreadPoolNative.cpp"]
@@ -99,6 +126,8 @@
       }
     ]
   ],
+
+  'cflags_cc!': [ "-fno-rtti" ],
 
 #      'cflags!': [
 #        "-Wno-unused-parameter"

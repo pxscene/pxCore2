@@ -3,11 +3,11 @@
 
 #include "pxConstants.h"
 
-pxConstantsAnimation pxConstants::animationConstants;
-pxConstantsStretch pxConstants::stretchConstants;
-pxConstantsAlignVertical pxConstants::alignVerticalConstants;
-pxConstantsAlignHorizontal pxConstants::alignHorizontalConstants;
-pxConstantsTruncation pxConstants::truncationConstants; 
+rtRefT<pxConstantsAnimation> pxConstants::animationConstants = new pxConstantsAnimation();
+rtRefT<pxConstantsStretch> pxConstants::stretchConstants = new pxConstantsStretch();
+rtRefT<pxConstantsAlignVertical> pxConstants::alignVerticalConstants = new pxConstantsAlignVertical();
+rtRefT<pxConstantsAlignHorizontal> pxConstants::alignHorizontalConstants = new pxConstantsAlignHorizontal();
+rtRefT<pxConstantsTruncation> pxConstants::truncationConstants = new pxConstantsTruncation(); 
   
 rtError pxConstantsAnimation::interpolators(rtObjectRef& v) const
 {
@@ -45,10 +45,10 @@ rtDefineProperty(pxConstantsAnimation, EASE_IN_ELASTIC);
 rtDefineProperty(pxConstantsAnimation, EASE_OUT_ELASTIC);
 rtDefineProperty(pxConstantsAnimation, EASE_OUT_BOUNCE);
 //rtDefineProperty(pxConstantsAnimation, EASE_INOUT_BOUNCE);
-rtDefineProperty(pxConstantsAnimation, OPTION_END);
 rtDefineProperty(pxConstantsAnimation, OPTION_OSCILLATE);
 rtDefineProperty(pxConstantsAnimation, OPTION_LOOP);
 rtDefineProperty(pxConstantsAnimation, OPTION_FASTFORWARD);
+rtDefineProperty(pxConstantsAnimation, OPTION_REWIND);
 rtDefineProperty(pxConstantsAnimation, COUNT_FOREVER);
 rtDefineProperty(pxConstantsAnimation, interpolators);
 // Constants for Stretch
