@@ -18,35 +18,24 @@ function SceneModuleLoader() {
 }
 
 SceneModuleLoader.prototype.loadScenePackage = function(scene, fileSpec) {
-  console.log("loadScenePackage: " + fileSpec.fileUri);
+  log.message(4, "loadScenePackage: " + fileSpec.fileUri);
   var filePath = fileSpec.fileUri;
   var _this = this;
   return new Promise(function (resolve, reject) {
     scene.loadArchive(fileSpec.fileUri)
       .ready.then(function(a) {
-        console.log("---------------------------");
-        console.log("");
-        console.log("loadScenePackage: loadArchive succeeded for (",filePath,").");
-        console.log("files: ", a.fileNames);
-        console.log("file data: >>>>>>");
-        //console.log(a.getFileAsString(f));
-        console.log("<<<<<<");
-        console.log("loadStatus:", a.loadStatus);
+        log.message(4, "loadScenePackage: loadArchive succeeded for (",filePath,").");
 
         _this.fileArchive = new FileArchive(filePath, a);
-        console.log("Number of files: " + a.fileNames.length);
-        console.log("Type of filenames: " + typeof(a.fileNames));
-        for(var k = 0; k < a.fileNames.length; ++k) {
-          console.log("   " + a.fileNames[k]);
-        }
+        log.message(4, "Number of files: " + a.fileNames.length);
         _this.loadedJarFile = (a.fileNames.length > 1);
-        console.log("LoadedFromJarFile= " + _this.loadedJarFile);
+        log.message(10, "LoadedFromJarFile= " + _this.loadedJarFile);
         if(isFileInList("package.json", a.fileNames)) {
-          console.log("Has package.json");
+          log.message(10, "Has package.json");
           _this.fileArchive.addFile('package.json', a.getFileAsString('package.json'));
           _this.defaultManifest = false;
         } else {
-          console.log("Doesn't have package.json");
+          log.message(10, "Doesn't have package.json");
           _this.fileArchive.addFile('package.json', "{ \"main\" : \"" + filePath + "\" }");
           _this.defaultManifest = true;
         }
@@ -56,8 +45,6 @@ SceneModuleLoader.prototype.loadScenePackage = function(scene, fileSpec) {
         resolve();
 
       }, function(a){
-        console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXX");
-        console.log("");
         console.error("loadScenePackage: loadArchive failed for (",filePath,").");
         reject(a.loadStatus);
       });

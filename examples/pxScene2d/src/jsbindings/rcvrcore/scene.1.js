@@ -4,6 +4,8 @@ function Scene() {
   var nativeScene = null;
   var stylePatterns = [];
   var rpcContext = new RPCContext(this);
+  var appContextMap = {};
+  var componentDefinitions = null;
 
   this._setNativeScene = function(scene, filePath) {
     if( nativeScene === null ) {
@@ -44,39 +46,17 @@ function Scene() {
   this.create = function create(params) {
     applyStyle.call(this, params);
 
-    return nativeScene.create(params);
+    var component = null;
+    if( componentDefinitions !== null && params.hasOwnProperty("t") ) {
+      component = createComponent(params);
+    }
+
+    if( component !== null ) {
+      return component;
+    } else {
+      return nativeScene.create(params);
+    }
   }
-
-  //this.createRectangle = function(params) {
-    //return nativeScene.createRectangle(params)
-  //}
-
-  //this.createText = function(params) {
-    //return nativeScene.createText(params)
-  //}
-
-  //this.createImage = function(params) {
-    //return nativeScene.createImage(params)
-  //}
-
-  //this.createImage9 = function(params,b1, b2) {
-    //return nativeScene.createImage9(params, b1, b2);
-  //}
-
-  ////TODO - what is createExternal used for?  Testing only?
-  //this.createExternal = function(params) {
-    //if( params.parent === undefined ) {
-      //params.parent = nativeScene.root;
-    //}
-    //return nativeScene.createExternal(params);
-  //}
-
-  //this.createScene = function(params) {
-    //if( params.parent === undefined ) {
-      //params.parent = nativeScene.root;
-    //}
-    //return nativeScene.createScene(params);
-  //}
 
   this.getFocus = function(element) {
     return nativeScene.getFocus(element);
@@ -95,14 +75,38 @@ function Scene() {
     return nativeScene.clock();
   }
 
-  //this.getFont = function getFont(url) {
-    //return nativeScene.getFont(url);
-  //}
-
   this.screenshot = function screenshot(type, pngData) {
     return nativeScene.screenshot(type, pngData);
   }
-  
+
+  this.setAppContext = function(appContextName, appContext) {
+    if( !appContextMap.hasOwnProperty(appContextName) ) {
+      appContextMap[appContextName] = appContext;
+      return true;
+    }
+
+    return false;
+  }
+
+  this.getAppContext = function(appContextName) {
+    return appContextMap[appContextName];
+  }
+
+  this.addComponentDefinitions = function(appComponentDefinitions) {
+    componentDefinitions = appComponentDefinitions;
+  }
+
+  function createComponent(params) {
+    if( componentDefinitions === null ) {
+      return null;
+    }
+    if( componentDefinitions.hasOwnProperty(params.t) && typeof(componentDefinitions[params.t]) === "function") {
+      return new componentDefinitions[params.t](params);
+    } else {
+      return null;
+    }
+  }
+
   function applyStyle(createParams) {
     var currentMatch = null;
     var currentKeysMatched = 0;
@@ -114,7 +118,7 @@ function Scene() {
       var allKeysMatched = true;
       var totalKeysMatched = 0;
       for (var patternKey in patternMatchSet) {
-        if( !createParams.hasOwnProperty(patternKey) ) {
+        if( !createParams.hasOwnProperty(patternKey)  || patternMatchSet[patternKey] !== createParams[patternKey] ) {
           // don't consider this set anymore
           allKeysMatched = false;
           break;

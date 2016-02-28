@@ -66,13 +66,13 @@ FileArchive.prototype.removeFile = function(filename) {
 }
 
 FileArchive.prototype.getFileContents = function(filename) {
-  console.log("FileArchive::getFileContents<" + filename + ">");
+  log.message(10, "FileArchive::getFileContents<" + filename + ">");
   if( this.directory.hasOwnProperty(filename) ) {
     return this.directory[filename];
   } else {
     var fileContents = null;
     if( this.nativeFileArchive !== undefined ) {
-      console.log("Looking file file in native archive: " + filename);
+      log.message(10, "Looking for file in native archive: " + filename);
       fileContents = this.nativeFileArchive.getFileAsString(filename);
     }
     if( fileContents === undefined || fileContents === null ) {
@@ -80,7 +80,7 @@ FileArchive.prototype.getFileContents = function(filename) {
       return null;
     }
 
-    console.log("Found file <" + filename + ">: " + "ok");
+    log.message(10, "Found file <" + filename + ">: " + "ok");
 
     return fileContents;
   }
@@ -178,9 +178,9 @@ FileArchive.prototype.hasFileContents = function(filename) {
     }
   }
 
-    console.log("hasFileContents(" + filename + ") = " + hasFile);
+  log.message(10, "hasFileContents(" + filename + ") = " + hasFile);
 
-    return hasFile;
+  return hasFile;
 }
 
 

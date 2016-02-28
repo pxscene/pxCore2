@@ -201,9 +201,6 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       var px = createModule_pxScope.call(this, xModule);
       var rtnObject = moduleFunc(px, xModule, fname, this.basePackageUri);
       rtnObject = xModule.exports;
-      if( rtnObject !== undefined ) {
-        console.log("Undefined rtnObject.v1=" + rtnObject.v1);
-      }
 
       // TODO do the old scenes context get released when we reload a scenes url??
       // TODO part of an experiment to eliminate intermediate rendering of the scene - from original load.js
@@ -217,7 +214,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
         this.container.painting = true;
       }
 
-      console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
+      //console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
       if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
         this.container.makeReady(true);
         this.innerscene.api = {isReady:true};
@@ -227,7 +224,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
           self.innerscene.api = xModule.exports;
           self.container.makeReady(true);
         }).catch( function(err) {
-          console.log("Main module[" + self.packageUrl + "]" + " load has failed - on failed imports: " + ", err=" + err);
+          console.error("Main module[" + self.packageUrl + "]" + " load has failed - on failed imports: " + ", err=" + err);
           self.container.makeReady(false);
         } );
       }
