@@ -264,13 +264,6 @@ bool WstCompositorSetOutputSize( WstCompositor *ctx, int width, int height )
    
    if ( ctx )
    {
-      if ( ctx->running )
-      {
-         sprintf( ctx->lastErrorDetail,
-                  "Bad state.  Cannot set output size while compositor is running" );
-         goto exit;
-      }      
-
       if ( width == 0 )
       {
          sprintf( ctx->lastErrorDetail,
@@ -610,6 +603,33 @@ bool WstCompositorSetClientStatusCallback( WstCompositor *ctx, WstClientStatus c
       {
          sprintf( ctx->lastErrorDetail,
                   "Bad state.  Compositor is not embedded" );
+         goto exit;
+      }
+      
+      result= true;
+   }
+
+exit:
+
+   return result;   
+}
+bool WstCompositorSetOutputNestedListener( WstCompositor *ctx, WstOutputNestedListener *listener, void *userData )
+{
+  bool result= false;
+   
+   if ( ctx )
+   {
+      if ( ctx->running )
+      {
+         sprintf( ctx->lastErrorDetail,
+                  "Bad state.  Cannot set output nested listener while compositor is running" );
+         goto exit;
+      }      
+
+      if ( !ctx->isNested )
+      {
+         sprintf( ctx->lastErrorDetail,
+                  "Bad state.  Compositor is not nested" );
          goto exit;
       }
       
