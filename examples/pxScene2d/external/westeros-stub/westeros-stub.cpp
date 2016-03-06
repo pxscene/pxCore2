@@ -26,6 +26,7 @@ typedef struct _WstCompositor
    unsigned int nestedWidth;
    unsigned int nestedHeight;
    bool allowModifyCursor;
+   void *nativeWindow;
    int outputWidth;
    int outputHeight;
 
@@ -146,6 +147,29 @@ bool WstCompositorSetFrameRate( WstCompositor *ctx, unsigned int frameRate )
       }
 
       ctx->frameRate= frameRate;
+      
+      result= true;
+   }
+
+exit:
+   
+   return result;
+}
+
+bool WstCompositorSetNativeWindow( WstCompositor *ctx, void *nativeWindow )
+{
+   bool result= false;
+   
+   if ( ctx )
+   {
+      if ( ctx->running )
+      {
+         sprintf( ctx->lastErrorDetail,
+                  "Bad state.  Cannot set native window while compositor is running" );
+         goto exit;
+      }
+
+      ctx->nativeWindow= nativeWindow;
       
       result= true;
    }
@@ -547,6 +571,20 @@ bool WstCompositorSetTerminatedCallback( WstCompositor *ctx, WstTerminatedCallba
    {
       result= true;
    }
+
+   return result;   
+}
+
+bool WstCompositorSetDispatchCallback( WstCompositor *ctx, WstDispatchCallback cb, void *userData )
+{
+   bool result= false;
+   
+   if ( ctx )
+   {
+      result= true;
+   }
+
+exit:
 
    return result;   
 }

@@ -39,6 +39,7 @@ typedef enum _WstClient_status
 } WstClient_status;
 
 typedef void (*WstTerminatedCallback)( WstCompositor *ctx, void *userData );
+typedef void (*WstDispatchCallback)( WstCompositor *ctx, void *userData );
 typedef void (*WstInvalidateSceneCallback)( WstCompositor *ctx, void *userData );
 typedef void (*WstHidePointerCallback)( WstCompositor *ctx, bool hidePointer, void *userData );
 typedef void (*WstClientStatus)( WstCompositor *ctx, int status, int clientPID, int detail, void *userData );
@@ -135,6 +136,14 @@ bool WstCompositorSetDisplayName( WstCompositor *ctx, const char *displayName );
  * generate each new composited output frame.  This can be called at any time.
  */
 bool WstCompositorSetFrameRate( WstCompositor *ctx, unsigned int frameRate );
+
+/**
+ * WstCompositorSetNativeWindow
+ *
+ * Specify the native window to be used by the compositor render module
+ * in creating its rendering context.
+ */
+bool WstCompositorSetNativeWindow( WstCompositor *ctx, void *nativeWindow );
 
 /**
  * WstCompositorSetRendererModule
@@ -308,6 +317,14 @@ bool WstCompositorGetAllowCursorModification( WstCompositor *ctx );
  * has terminated.
  */
 bool WstCompositorSetTerminatedCallback( WstCompositor *ctx, WstTerminatedCallback cb, void *userData );
+
+/**
+ * WstCompositorSetDispatchCallback
+ *
+ * Specifies a callback for a compositor to periodically invoke to give an opportunity for any required
+ * implementatipn specific event dispatching or other 'main loop' type processing.
+ */
+bool WstCompositorSetDispatchCallback( WstCompositor *ctx, WstDispatchCallback cb, void *userData );
 
 /**
  * WstCompositorSetInvalidateCallback
