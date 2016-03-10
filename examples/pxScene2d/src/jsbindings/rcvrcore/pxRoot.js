@@ -80,7 +80,7 @@ pxRoot.prototype.initialize = function(x, y, width, height) {
         // decode the base64 data and write it to a file
         fs.writeFile("screenshot.png", new Buffer(base64PNGData, 'base64'), function(err) {
           if (err)
-            console.log("Error creating screenshot.png");
+            console.error("Error creating screenshot.png");
           else
             console.log("Created screenshot.png");
         });
