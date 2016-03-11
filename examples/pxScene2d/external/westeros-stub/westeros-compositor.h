@@ -39,9 +39,16 @@ typedef enum _WstClient_status
 } WstClient_status;
 
 typedef void (*WstTerminatedCallback)( WstCompositor *ctx, void *userData );
+typedef void (*WstDispatchCallback)( WstCompositor *ctx, void *userData );
 typedef void (*WstInvalidateSceneCallback)( WstCompositor *ctx, void *userData );
 typedef void (*WstHidePointerCallback)( WstCompositor *ctx, bool hidePointer, void *userData );
 typedef void (*WstClientStatus)( WstCompositor *ctx, int status, int clientPID, int detail, void *userData );
+
+typedef void (*WstOutputHandleGeometryCallback)( void *userData, int32_t x, int32_t y, int32_t mmWidth, int32_t mmHeight,
+                                                 int32_t subPixel, const char *make, const char *model, int32_t transform );
+typedef void (*WstOutputHandleModeCallback)( void *userData, uint32_t flags, int32_t width, int32_t height, int32_t refreshRate );
+typedef void (*WstOutputHandleDoneCallback)( void *UserData );
+typedef void (*WstOutputHandleScaleCallback)( void *UserData, int32_t scale );
 
 typedef void (*WstKeyboardHandleKeyMapCallback)( void *userData, uint32_t format, int fd, uint32_t size );
 typedef void (*WstKeyboardHandleEnterCallback)( void *userData, struct wl_array *keys );
@@ -56,6 +63,15 @@ typedef void (*WstPointerHandleLeaveCallback)( void *userData );
 typedef void (*WstPointerHandleMotionCallback)( void *userData, uint32_t time, wl_fixed_t sx, wl_fixed_t sy );
 typedef void (*WstPointerHandleButtonCallback)( void *userData, uint32_t time, uint32_t button, uint32_t state );
 typedef void (*WstPointerHandleAxisCallback)( void *userData, uint32_t time, uint32_t axis, wl_fixed_t value );
+
+typedef struct _WstOutputNestedListener
+{
+   WstOutputHandleGeometryCallback outputHandleGeometry;
+   WstOutputHandleModeCallback outputHandleMode;
+   WstOutputHandleDoneCallback outputHandleDone;
+   WstOutputHandleScaleCallback outputHandleScale;
+   
+} WstOutputNestedListener;
 
 typedef struct _WstKeyboardNestedListener
 {
@@ -120,6 +136,14 @@ bool WstCompositorSetDisplayName( WstCompositor *ctx, const char *displayName );
  * generate each new composited output frame.  This can be called at any time.
  */
 bool WstCompositorSetFrameRate( WstCompositor *ctx, unsigned int frameRate );
+
+/**
+ * WstCompositorSetNativeWindow
+ *
+ * Specify the native window to be used by the compositor render module
+ * in creating its rendering context.
+ */
+bool WstCompositorSetNativeWindow( WstCompositor *ctx, void *nativeWindow );
 
 /**
  * WstCompositorSetRendererModule
@@ -295,6 +319,14 @@ bool WstCompositorGetAllowCursorModification( WstCompositor *ctx );
 bool WstCompositorSetTerminatedCallback( WstCompositor *ctx, WstTerminatedCallback cb, void *userData );
 
 /**
+ * WstCompositorSetDispatchCallback
+ *
+ * Specifies a callback for a compositor to periodically invoke to give an opportunity for any required
+ * implementatipn specific event dispatching or other 'main loop' type processing.
+ */
+bool WstCompositorSetDispatchCallback( WstCompositor *ctx, WstDispatchCallback cb, void *userData );
+
+/**
  * WstCompositorSetInvalidateCallback
  *
  * Specifies a callback for an embedded compositor to invoke to signal that its
@@ -321,6 +353,17 @@ bool WstCompositorSetHidePointerCallback( WstCompositor *ctx, WstHidePointerCall
  * value will be the signal that caused the client to terminate.
  */
 bool WstCompositorSetClientStatusCallback( WstCompositor *ctx, WstClientStatus cb, void *userData );
+
+/**
+ * WstCompositorSetOutputNestedListener
+ *
+ * Specifies a set of callbacks to be invoked by a nested compositor for output events.  By default
+ * the nested compositor will forward output events to a connected client.  When a listener is set
+ * using WstCompositorSetOutputNestedListener the events will instead be passed to the caller
+ * through the specified callback functions.  This allows the caller to handle the events outside
+ * of Wayland.  This must be called prior to WstCompositorStart.
+ */
+bool WstCompositorSetOutputNestedListener( WstCompositor *ctx, WstOutputNestedListener *listener, void *userData );
 
 /**
  * WstCompositorSetKeyboardNestedListener
