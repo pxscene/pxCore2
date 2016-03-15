@@ -1589,6 +1589,7 @@ void pxScene2d::onBlur()
 void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t, 
                             const char* preEvent, const char* event) 
 {
+  rtValue stop;
   if (e && t)
   {
     mStopPropagation = false;
@@ -1607,7 +1608,7 @@ void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
       // TODO a bit messy
       rtFunctionRef emit = (*it)->mEmit.getPtr();
       if (emit)
-        emit.send(preEvent,e);
+        emit.sendReturns(preEvent,e,stop);
     }
 
     e.set("name", event);
@@ -1618,7 +1619,7 @@ void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
       // TODO: As we bubble onMouseMove we need to keep adjusting the coordinates into the
       // coordinate space of the successive parents object ??
       if (emit)
-        emit.send(event,e);
+        emit.sendReturns(event,e,stop);
     }
   }
 }

@@ -57,7 +57,11 @@ function Scene() {
       return nativeScene.create(params);
     }
   }
-
+  
+  this.stopPropagation = function() {
+    return nativeScene.stopPropagation();
+  }
+  
   this.getFocus = function(element) {
     return nativeScene.getFocus(element);
   }
