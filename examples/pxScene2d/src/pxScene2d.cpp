@@ -1562,7 +1562,8 @@ rtError pxScene2d::setFocus(rtObjectRef o)
     ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(false);
     e.set("target",mFocusObj);
     rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
-    t->mEmit.send("onBlur",e);
+    //t->mEmit.send("onBlur",e);
+    bubbleEvent(e,t,"onPreBlur","onBlur");
   }
 
   if (o) 
@@ -1577,7 +1578,8 @@ rtError pxScene2d::setFocus(rtObjectRef o)
   ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(true);
   e.set("target",mFocusObj);
   rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
-  t->mEmit.send("onFocus",e);
+  //t->mEmit.send("onFocus",e);
+  bubbleEvent(e,t,"onPreFocus","onFocus");
 
   return RT_OK;
 }
