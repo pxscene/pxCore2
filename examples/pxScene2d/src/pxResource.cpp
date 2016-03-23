@@ -345,7 +345,7 @@ void pxResource::processDownloadedResource(pxFileDownloadRequest* fileDownloadRe
     }
     else 
     {
-      rtLogWarn("Image Download Failed: %s Error: %s HTTP Status Code: %ld",
+      rtLogWarn("Resource Download Failed: %s Error: %s HTTP Status Code: %ld",
                 fileDownloadRequest->getFileUrl().cString(),
                 fileDownloadRequest->getErrorString().cString(),
                 fileDownloadRequest->getHttpStatusCode());
