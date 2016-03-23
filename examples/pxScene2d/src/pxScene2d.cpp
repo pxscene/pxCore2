@@ -41,6 +41,11 @@ rtThreadQueue gUIThreadQueue;
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifdef ENABLE_RT_NODE
+extern void rtWrapperSceneUpdateEnter();
+extern void rtWrapperSceneUpdateExit();
+#endif //ENABLE_RT_NODE
+
 #ifdef ENABLE_VALGRIND
 #include <valgrind/callgrind.h>
 void startProfiling()
@@ -1308,6 +1313,12 @@ void pxScene2d::draw()
 
 void pxScene2d::onUpdate(double t)
 {
+  #ifdef ENABLE_RT_NODE
+  if (mTop)
+  {
+    rtWrapperSceneUpdateEnter();
+  }
+  #endif //ENABLE_RT_NODE
   // TODO if (mTop) check??
  // pxTextureCacheObject::checkForCompletedDownloads();
   //pxFont::checkForCompletedDownloads();
@@ -1346,6 +1357,12 @@ void pxScene2d::onUpdate(double t)
 
   frameCount++;
   }
+  #ifdef ENABLE_RT_NODE
+  if (mTop)
+  {
+    rtWrapperSceneUpdateExit();
+  }
+  #endif //ENABLE_RT_NODE
 }
 
 void pxScene2d::onDraw()
@@ -1353,10 +1370,21 @@ void pxScene2d::onDraw()
 //  printf("**** drawing \n");
 
   if (mTop)
-    context.setSize(mWidth, mHeight);  
+  {
+    #ifdef ENABLE_RT_NODE
+    rtWrapperSceneUpdateEnter();
+    #endif //ENABLE_RT_NODE
+    context.setSize(mWidth, mHeight);
+  }  
 #if 1
     draw();
 #endif
+  #ifdef ENABLE_RT_NODE
+  if (mTop)
+  {
+    rtWrapperSceneUpdateExit();
+  }
+  #endif //ENABLE_RT_NODE
 
 }
 

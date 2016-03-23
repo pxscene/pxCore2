@@ -18,7 +18,9 @@ RT_SRCS=\
            rtValue.cpp \
            rtThreadPool.cpp \
            rtThreadTask.cpp \
+           rtThreadQueue.cpp \
            rtLibrary.cpp \
+           rtZip.cpp \
            utf8.c
 
 PX_SRCS=\
@@ -28,6 +30,7 @@ PX_SRCS=\
 	   pxRectangle.cpp \
            pxText.cpp \
            pxTextBox.cpp \
+           pxWayland.cpp \
            pxImage.cpp \
            pxUtil.cpp \
            pxContextGL.cpp \
@@ -35,6 +38,8 @@ PX_SRCS=\
            pxFileDownloader.cpp \
            pxInterpolators.cpp \
 	   pxMatrix4T.cpp \
+           pxArchive.cpp \
+           pxFont.cpp \
            rtNode.cpp
 
 PXCOREDIR=../../../
@@ -60,7 +65,7 @@ SEARCH=\
 	$(PXCORE_INCLUDES)
 
 
-CXXFLAGS= -Wno-attributes -Wall -Wextra -fpermissive -fPIC $(SEARCH) -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE 
+CXXFLAGS= -Wno-attributes -Wall -Wextra -fpermissive -fPIC $(SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DENABLE_RT_NODE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE 
 
 
 LDNODE   = -L$(NODEDIR)/out/Release/obj.target
@@ -69,7 +74,8 @@ LDNODEV8 = -L$(NODEDIR)/out/Release
 
 LDEXT   = -lpng16 -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8)
 
-LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -shared -Wl,-soname,librtnode.so -o librtnode.so.1.0 
+#LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -shared -Wl,-soname,librtnode.so -o librtnode.so.1.0 
+LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -shared -Wl,-soname,librtnode.so -o librtnode.so.1.0 -lwesteros_compositor -lnexus -lnxclient -lnxpl -lGLESv2
 
 
 OBJDIR=obj
