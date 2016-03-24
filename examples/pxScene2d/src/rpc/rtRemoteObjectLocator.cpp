@@ -690,12 +690,17 @@ rtRemoteObjectLocator::onMethodCall(rtJsonDocPtr_t const& doc, int fd, sockaddr_
       // virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
       std::vector<rtValue> argv;
 
-      rapidjson::Value const& args = (*doc)[kFieldNameFunctionArgs];
-      for (rapidjson::Value::ConstValueIterator itr = args.Begin(); itr != args.End(); ++itr)
+      auto itr = doc->FindMember(kFieldNameFunctionArgs);
+      if (itr != doc->MemberEnd())
       {
-        rtValue arg;
-        rtValueReader::read(arg, *itr);
-        argv.push_back(arg);
+        // rapidjson::Value const& args = (*doc)[kFieldNameFunctionArgs];
+        rapidjson::Value const& args = itr->value;
+        for (rapidjson::Value::ConstValueIterator itr = args.Begin(); itr != args.End(); ++itr)
+        {
+          rtValue arg;
+          rtValueReader::read(arg, *itr);
+          argv.push_back(arg);
+        }
       }
 
       rtValue return_value;
