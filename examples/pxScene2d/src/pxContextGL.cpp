@@ -1450,8 +1450,8 @@ void pxContext::mapToScreenCoordinates(float inX, float inY, int &outX, int &out
 
   if (positionCoords.w() == 0)
   {
-    outX = 0;
-    outY = 0;
+    outX = positionCoords.x();
+    outY = positionCoords.y();
   }
   else
   {
@@ -1467,8 +1467,8 @@ void pxContext::mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int 
 
   if (positionCoords.w() == 0)
   {
-    outX = 0;
-    outY = 0;
+    outX = positionCoords.x();
+    outY = positionCoords.y();
   }
   else
   {
