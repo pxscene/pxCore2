@@ -266,7 +266,7 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, flo
     }
     else
     {
-      h += metrics->height>>6;
+      h += (metrics->height>>6) *sy;
       lw = 0;
     }
     w = pxMax<float>(w, lw);
@@ -317,14 +317,13 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
       pxTextureRef nullImage;
       context.drawImage(x2,y2, w, h, texture, nullImage, false, color);
       x += (entry->advancedotx >> 6) * sx;
-      // TODO not sure if this is right?  seems weird commenting out to see what happens
-      y += (entry->advancedoty >> 6) * sy;
+      // no change to y because we are not moving to next line yet
     }
     else
     {
       x = 0;
-      // TODO not sure if this is right?
-      y += (entry->vertAdvance>>6) * sy;
+      // Use height to advance to next line
+      y += (metrics->height>>6) * sy;
     }
   }
 }
