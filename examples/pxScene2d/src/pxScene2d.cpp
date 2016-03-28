@@ -747,7 +747,7 @@ void pxObject::drawInternal(bool maskPass)
     else
     {
       // trivially reject things too small to be seen
-      if (w>alphaEpsilon && h>alphaEpsilon && context.isObjectOnScreen(0, 0, w, h))
+      if ( !mClip || (w>alphaEpsilon && h>alphaEpsilon && context.isObjectOnScreen(0, 0, w, h)))
       {
         //rtLogInfo("calling draw() mw=%f mh=%f\n", mw, mh);
         draw();
