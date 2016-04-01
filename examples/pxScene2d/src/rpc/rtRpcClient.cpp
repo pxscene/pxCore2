@@ -189,6 +189,40 @@ rtRpcClient::readn(int fd, rt_sockbuf_t& buff)
   return err;
 }
 
+template<class TResponse> TResponse
+rtRpcClient::waitForResponse2(rtRpcRequest const& req, uint32_t timeout)
+{
+  rtJsonDocPtr_t res;
+  int key = req.getCorrelationKey();
+
+  auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
+
+  std::unique_lock<std::mutex> lock(m_mutex);
+  m_cond.wait_until(lock, delay, [this, key, &res]
+    {
+      auto itr = this->m_requests.find(key);
+      if (itr != this->m_requests.end())
+      {
+        res = itr->second;
+        this->m_requests.erase(itr);
+      }
+      return res != nullptr;
+    });
+  lock.unlock();
+
+  if (!res)
+    return TResponse(kMessageTypeInvalidResponse);
+
+  auto itr = res->FindMember(kFieldNameMessageType);
+  if (itr == res->MemberEnd())
+  {
+    rtLogError("failed to find %s in message", kFieldNameMessageType);
+    return TResponse(kMessageTypeInvalidResponse);
+  }
+
+  return TResponse(itr->value.GetString());
+}
+
 rtJsonDocPtr_t
 rtRpcClient::waitForResponse(int key, uint32_t timeout)
 {
@@ -228,10 +262,24 @@ rtRpcClient::get(std::string const& objectName, uint32_t index, rtValue& value)
 rtError
 rtRpcClient::sendGet(rtRpcGetRequest const& req, rtValue& value)
 {
-  rtError e = req.send(m_fd, NULL);
+  rtError e = RT_FAIL;
+
+  e = req.send(m_fd, NULL);
   if (e != RT_OK)
     return e;
 
+  #if 0 // we'd really like it to look like this
+  rtRpcGetResponse res = waitForResponse2<rtRpcGetResponse>(req);
+  if (!res.isValid())
+    return RT_FAIL;
+
+  e = res.getStatusCode();
+  if (e != RT_OK)
+    return e;
+
+  value = res.getValue();
+  return RT_OK;
+  #else
   rtJsonDocPtr_t res = waitForResponse(req.getCorrelationKey());
   if (!res)
     return RT_FAIL;
@@ -245,6 +293,7 @@ rtRpcClient::sendGet(rtRpcGetRequest const& req, rtValue& value)
     return e;
 
   return rtMessage_GetStatusCode(*res);
+  #endif
 }
   
 rtError
@@ -266,7 +315,9 @@ rtRpcClient::set(std::string const& objectName, uint32_t propertyIndex, rtValue 
 rtError
 rtRpcClient::sendSet(rtRpcSetRequest const& req)
 {
-  rtError e = req.send(m_fd, NULL);
+  rtError e = RT_FAIL;
+
+  e = req.send(m_fd, NULL);
   if (e != RT_OK)
     return e;
 

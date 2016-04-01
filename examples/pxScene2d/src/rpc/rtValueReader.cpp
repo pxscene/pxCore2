@@ -3,6 +3,13 @@
 #include "rtRemoteFunction.h"
 #include "rtRpcMessage.h"
 
+// TODO: don't require transport as argument
+// TODO: then what if object and/or function is remote. 
+// maybe use some type of identifier to indicate remote, with reference
+// to transport. I don't like transport being a member of rtRemoteObject
+// and rtRemoteFunction.
+// either of these should be able simply include a reference to a transport
+// with a handle returned by server in json message.
 rtError
 rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRpcClient> const& tport)
 {

@@ -83,7 +83,7 @@ int main(int argc, char* /*argv*/[])
       RT_ASSERT(err);
       #endif
 
-      #if 0 // this works
+      #if 1 // this works
       err = obj.set("prop1", i++);
       RT_ASSERT(err);
 
@@ -91,7 +91,7 @@ int main(int argc, char* /*argv*/[])
       printf("fillColor: %d\n", n);
       #endif
 
-      #if 1 // this works
+      #if 0 // this works
       int32_t ret = 0;
       err = obj.sendReturns<int32_t>("add", i, i, ret);
       printf("HERE (%d): %d + %d = %d\n", ret, i, i, ret);

@@ -27,6 +27,7 @@
 #define kFieldNameIp "ip"
 #define kFieldNamePort "port"
 
+#define kMessageTypeInvalidResponse "invalid.response"
 #define kMessageTypeSetByNameRequest "set.byname.request"
 #define kMessageTypeSetByNameResponse "set.byname.response"
 #define kMessageTypeSetByIndexRequest "set.byindex.request"
@@ -77,6 +78,26 @@ class rtRpcRequest : public rtRpcMessage
 protected:
   rtRpcRequest(char const* messageType, std::string const& objectName);
 };
+
+class rtRpcResponse : public rtRpcMessage
+{
+public:
+  rtRpcResponse(char const* messageType, std::string const& objectName);
+public:
+  rtError getStatusCode() const;
+  inline bool isValid() const
+    { return m_is_valid; }
+private:
+  bool m_is_valid;
+};
+
+class rtRpcGetResponse : public rtRpcResponse
+{
+public:
+  rtRpcGetResponse(std::string const& objectName);
+  rtValue getValue() const;
+};
+
 
 class rtRpcRequestOpenSession : public rtRpcRequest
 {

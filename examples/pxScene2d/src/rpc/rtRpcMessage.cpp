@@ -343,3 +343,26 @@ rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...
   }
   return e;
 }
+
+rtRpcResponse::rtRpcResponse(char const* messageType, std::string const& objectName)
+  : rtRpcMessage(messageType, objectName)
+{
+}
+
+rtError
+rtRpcResponse::getStatusCode() const
+{
+  auto itr = m_impl->d.FindMember(kFieldNameStatusCode);
+  if (itr == m_impl->d.MemberEnd())
+  {
+    rtLogError("failed to find %s in rpc response", kFieldNameStatusCode);
+    assert(false);
+    return RT_FAIL;
+  }
+  return static_cast<rtError>(itr->value.GetInt());
+}
+
+rtRpcGetResponse::rtRpcGetResponse(std::string const& objectName)
+  : rtRpcResponse(kMessageTypeGetByNameResponse, objectName)
+{
+}

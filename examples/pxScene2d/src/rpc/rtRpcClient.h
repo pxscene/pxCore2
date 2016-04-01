@@ -66,6 +66,9 @@ private:
 
   rtJsonDocPtr_t waitForResponse(int key, uint32_t timeout = 1000);
 
+  template<class TResponse>
+  TResponse waitForResponse2(rtRpcRequest const& req, uint32_t timeout = 1000);
+
   rtError connectRpcEndpoint();
   rtError sendKeepAlive();
   rtError runListener();

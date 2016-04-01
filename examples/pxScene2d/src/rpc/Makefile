@@ -18,8 +18,26 @@ RT_SRCS=\
   rtValueWriter.cpp \
   rtSocketUtils.cpp
 
-CFLAGS=-DRT_RPC_DEBUG -O0 -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -g -DRT_PLATFORM_LINUX -I../ -I.
-CXXFLAGS =-std=c++0x $(CFLAGS)
+ifeq ($V, 1)
+  CXX_PRETTY = $(CXX)
+  LD_PRETTY = $(CXX)
+  CC_PRETTY = $(CC)
+else
+  CXX_PRETTY = @echo " [CXX] $<" ; $(CXX)
+  LD_PRETTY = @echo "[LINK] $@" ; $(CXX)
+  CC_PRETTY = @echo " [CC] $<" ; $(CC)
+endif
+
+ifeq ($(DEBUG), 1)
+  CXXFLAGS += -g -O0 -fno-inline -DRT_RPC_DEBUG
+  CFLAGS   += -g -O0 -fno-inline
+else
+  CXXFLAGS += -O2
+  CFLAGS   += -O2
+endif
+
+CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -g -DRT_PLATFORM_LINUX -I../ -I.
+CXXFLAGS+=-std=c++0x -DRAPIDJSON_HAS_STDSTIRNG $(CFLAGS)
 LDFLAGS =-pthread -ldl
 OBJDIR=obj
 
@@ -30,15 +48,15 @@ OBJS:=$(patsubst        %, $(OBJDIR)/%, $(OBJS))
 
 $(OBJDIR)/%.o: ../%.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
-	$(CXX) -c $(CXXFLAGS) $< -o $@
+	$(CXX_PRETTY) -c $(CXXFLAGS) $< -o $@
 
 $(OBJDIR)/%.o: %.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
-	$(CXX) -c $(CXXFLAGS) $< -o $@
+	$(CXX_PRETTY) -c $(CXXFLAGS) $< -o $@
 
 $(OBJDIR)/%.o : ../%.c
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC_PRETTY) -c $(CFLAGS) $< -o $@
 
 debug:
 	@echo $(OBJS)
@@ -49,5 +67,5 @@ clean:
 	rm -f core
 
 sample: $(OBJS)
-	$(CXX) $(OBJS) $(LDFLAGS) -o rpc_sample
+	$(CXX_PRETTY) $(OBJS) $(LDFLAGS) -o rpc_sample
 
