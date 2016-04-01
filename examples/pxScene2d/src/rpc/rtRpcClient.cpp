@@ -7,6 +7,7 @@
 
 #include <rtLog.h>
 
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <string.h>
@@ -53,6 +54,7 @@ rtRpcClient::connectRpcEndpoint()
     rtLogError("failed to create socket. %s", strerror(errno));
     return RT_FAIL;
   }
+  fcntl(m_fd, F_SETFD, fcntl(m_fd, F_GETFD) | FD_CLOEXEC);
 
   socklen_t len;
   rtSocketGetLength(m_remote_endpoint, &len);

@@ -238,7 +238,9 @@ rtRemoteObjectLocator::runListener()
     if (FD_ISSET(m_pipe_read, &read_fds))
     {
       char ch;
-      read(m_pipe_read, &ch, 1);
+      ssize_t nBytesRead = read(m_pipe_read, &ch, 1);
+      if (nBytesRead != 1)
+	rtLogError("failed to read from pipe. %d", errno);
     }
 
     if (FD_ISSET(m_rpc_fd, &read_fds))
@@ -410,6 +412,9 @@ rtRemoteObjectLocator::openRpcListener()
     err = errno;
     rtLogError("failed to create TCP socket. %s", strerror(err));
   }
+
+  fcntl(m_rpc_fd, F_SETFD, fcntl(m_rpc_fd, F_GETFD) | FD_CLOEXEC);
+
 
   socklen_t len;
   rtSocketGetLength(m_rpc_endpoint, &len);

@@ -5,6 +5,7 @@
 #include <rtLog.h>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <string.h>
 #include <netinet/in.h>
 #include <net/if.h>
@@ -98,6 +99,7 @@ rtRemoteObjectResolver::openUnicastSocket()
       m_ucast_endpoint.ss_family, strerror(err));
     return RT_FAIL;
   }
+  fcntl(m_ucast_fd, F_SETFD, fcntl(m_ucast_fd, F_GETFD) | FD_CLOEXEC);
 
   rtSocketGetLength(m_ucast_endpoint, &m_ucast_len);
 
@@ -382,6 +384,7 @@ rtRemoteObjectResolver::openMulticastSocket()
       m_mcast_dest.ss_family, strerror(err));
     return RT_FAIL;
   }
+  fcntl(m_mcast_fd, F_SETFD, fcntl(m_mcast_fd, F_GETFD) | FD_CLOEXEC);
 
   // re-use because multiple applications may want to join group on same machine
   int reuse = 1;
