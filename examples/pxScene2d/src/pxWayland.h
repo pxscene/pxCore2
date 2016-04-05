@@ -8,6 +8,7 @@
 #include "pxContext.h"
 #include "rtMutex.h"
 #include "pxTexture.h"
+#include "rtRemoteObjectLocator.h"
 
 #include "westeros-compositor.h"
 
@@ -18,12 +19,15 @@ public:
   rtProperty(cmd, cmd, setCmd, rtString);
   rtReadOnlyProperty(clientPID, clientPID, int32_t);
   rtProperty(fillColor, fillColor, setFillColor, uint32_t);
+  rtProperty(hasApi, hasApi, setHasApi, bool);
+  rtReadOnlyProperty(api, api, rtValue);
   
   pxWayland(pxScene2d* scene);
 
   virtual ~pxWayland();
 
   virtual void onInit();
+  virtual void sendPromise();
   
   rtError displayName(rtString& s) const;
   rtError setDisplayName(const char* s);
@@ -50,6 +54,25 @@ public:
     return RT_OK;
   }
 
+  rtError hasApi(bool& v) const
+  {
+    v=m_hasApi;
+    return RT_OK;
+  }
+  rtError setHasApi(bool v)
+  {
+    m_hasApi = v;
+    return RT_OK;
+  }
+
+  rtError api(rtValue& v) const
+  {
+    m_remoteObjectMutex.lock();
+    v = m_API;
+    m_remoteObjectMutex.unlock();
+    return RT_OK;
+  }
+
   rtError clientPID(int32_t& pid) const { pid = m_clientPID; return RT_OK; }
   
   void onKeyDown(uint32_t keycode, uint32_t flags);
@@ -62,8 +85,10 @@ public:
 
 private:
   pthread_t m_clientMonitorThreadId;
+  pthread_t m_findRemoteThreadId;
   pthread_mutex_t m_mutex;
   bool m_clientMonitorStarted;
+  bool m_waitingForRemoteObject;
   
   static void invalidate( WstCompositor *wctx, void *userData );
   static void hidePointer( WstCompositor *wctx, bool hide, void *userData );
@@ -77,8 +102,12 @@ private:
   void launchAndMonitorClient();
   void terminateClient();
   static void *clientMonitorThread( void *data );
+  static void *findRemoteThread(void *data);
   uint32_t getModifiers( uint32_t flags );
   uint32_t linuxFromPX( uint32_t keyCode );
+  void startRemoteObjectDetection();
+  rtError connectToRemoteObject();
+  rtError startRemoteObjectLocator();
       
 protected:
   virtual void draw();
@@ -90,6 +119,13 @@ protected:
   pxContextFramebufferRef m_fbo;
   WstCompositor *m_wctx;
   float m_fillColor[4];
+
+  bool m_hasApi;
+  rtValue m_API;
+  rtRemoteObjectLocator m_locator;
+  rtObjectRef m_remoteObject;
+  rtString m_remoteObjectName;
+  mutable rtMutex m_remoteObjectMutex;
 };
 
 #endif
