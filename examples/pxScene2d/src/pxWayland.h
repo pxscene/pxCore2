@@ -8,7 +8,9 @@
 #include "pxContext.h"
 #include "rtMutex.h"
 #include "pxTexture.h"
+#ifdef ENABLE_PX_WAYLAND_RPC
 #include "rtRemoteObjectLocator.h"
+#endif //ENABLE_PX_WAYLAND_RPC
 
 #include "westeros-compositor.h"
 
@@ -122,8 +124,10 @@ protected:
 
   bool m_hasApi;
   rtValue m_API;
+#ifdef ENABLE_PX_WAYLAND_RPC
   rtRemoteObjectLocator m_locator;
   rtObjectRef m_remoteObject;
+#endif
   rtString m_remoteObjectName;
   mutable rtMutex m_remoteObjectMutex;
 };

@@ -36,8 +36,10 @@ pxWayland::pxWayland(pxScene2d* scene)
     m_wctx(0),
     m_hasApi(false),
     m_API(),
+#ifdef ENABLE_PX_WAYLAND_RPC
     m_locator(),
     m_remoteObject(),
+#endif //ENABLE_PX_WAYLAND_RPC
     m_remoteObjectName(TEST_REMOTE_OBJECT_NAME),
     m_remoteObjectMutex()
 {
@@ -466,6 +468,7 @@ void* pxWayland::findRemoteThread( void *data )
 
 rtError pxWayland::startRemoteObjectLocator()
 {
+#ifdef ENABLE_PX_WAYLAND_RPC
   rtError errorCode = m_locator.open();
 
   if (errorCode != RT_OK)
@@ -488,11 +491,15 @@ rtError pxWayland::startRemoteObjectLocator()
   }
 
   return errorCode;
+#else
+  return RT_FAIL;
+#endif //ENABLE_PX_WAYLAND_RPC
 }
 
 rtError pxWayland::connectToRemoteObject()
 {
   rtError errorCode = RT_FAIL;
+#ifdef ENABLE_PX_WAYLAND_RPC
   int findTime = 0;
 
   while (findTime < MAX_FIND_REMOTE_TIMEOUT_IN_MS)
@@ -529,7 +536,7 @@ rtError pxWayland::connectToRemoteObject()
   m_remoteObjectMutex.lock();
   m_waitingForRemoteObject = false;
   m_remoteObjectMutex.unlock();
-
+#endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
 }
 
