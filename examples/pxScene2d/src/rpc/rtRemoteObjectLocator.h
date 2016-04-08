@@ -1,3 +1,5 @@
+#ifndef __RT_REMOTE_OBJECT_LOCATOR_H__
+#define __RT_REMOTE_OBJECT_LOCATOR_H__
 
 #include <condition_variable>
 #include <map>
@@ -101,3 +103,5 @@ private:
   int                             m_pipe_read;
   uint32_t                        m_keep_alive_interval;
 };
+
+#endif
