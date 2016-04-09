@@ -1,7 +1,6 @@
 #ifndef __RT_REMOTE_OBJECT_RESOLVER_H__
 #define __RT_REMOTE_OBJECT_RESOLVER_H__
 
-#include <rtAtomic.h>
 #include <rtError.h>
 
 #include <condition_variable>
@@ -34,7 +33,7 @@ private:
   typedef rtError (rtRemoteObjectResolver::*command_handler_t)(rtJsonDocPtr_t const&, sockaddr_storage const& soc);
   typedef std::vector< char > buff_t;
   typedef std::map< std::string, command_handler_t > cmd_handler_map_t;
-  typedef std::map< rtAtomic, rtJsonDocPtr_t > request_map_t;
+  typedef std::map< rtCorrelationKey_t, rtJsonDocPtr_t > request_map_t;
   typedef std::set< std::string > object_id_set_t;
 
   void runListener();
@@ -66,7 +65,6 @@ private:
   std::string       m_rpc_addr;
   uint16_t          m_rpc_port;
   object_id_set_t   m_registered_objects;
-  rtAtomic          m_seq_id;
   request_map_t     m_pending_searches;
 };
 

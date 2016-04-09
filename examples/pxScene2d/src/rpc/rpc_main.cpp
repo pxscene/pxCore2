@@ -83,15 +83,19 @@ int main(int argc, char* /*argv*/[])
       RT_ASSERT(err);
       #endif
 
-      #if 1 // this works
-      err = obj.set("prop1", i++);
-      RT_ASSERT(err);
+      #if 0 // this works
+      err = obj.set("prop1", i);
+      if (err != RT_OK)
+      {
+	printf("failed to set prop\n");
+	return -1;
+      }
 
       uint32_t n = obj.get<uint32_t>("prop1");
       printf("fillColor: %d\n", n);
       #endif
 
-      #if 0 // this works
+      #if 1// this works
       int32_t ret = 0;
       err = obj.sendReturns<int32_t>("add", i, i, ret);
       printf("HERE (%d): %d + %d = %d\n", ret, i, i, ret);

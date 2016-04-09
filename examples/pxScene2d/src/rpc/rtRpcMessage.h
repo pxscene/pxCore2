@@ -145,6 +145,7 @@ rtError     rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out = s
 rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...)
               RT_PRINTF_FORMAT(3, 4);
 rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code);
+rtCorrelationKey_t rtMessage_GetNextCorrelationKey();
 
 
 #endif

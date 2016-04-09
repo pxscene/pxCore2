@@ -20,6 +20,12 @@ namespace
   std::atomic<rtCorrelationKey_t> s_next_key;
 }
 
+rtCorrelationKey_t
+rtMessage_GetNextCorrelationKey()
+{
+  return ++s_next_key;
+}
+
 template<class T> T
 from_json(rapidjson::GenericValue<rapidjson::UTF8<> > const& /*v*/)
 {
@@ -61,7 +67,7 @@ rtRpcMessage::send(int fd, sockaddr_storage const* dest) const
 rtRpcRequest::rtRpcRequest(char const* messageType, std::string const& objectName)
   : rtRpcMessage(messageType, objectName)
 {
-  m_correlation_key = s_next_key++;
+  m_correlation_key = rtMessage_GetNextCorrelationKey();
   m_impl->d.AddMember(kFieldNameCorrelationKey, m_correlation_key, m_impl->d.GetAllocator());
 }
 
@@ -184,6 +190,7 @@ rtRpcMessage::getObjectName() const
 rtCorrelationKey_t
 rtRpcMessage::getCorrelationKey() const
 {
+  assert(m_correlation_key != 0);
   return m_correlation_key;
   // return from_json<uint32_t>(m_impl->d[kFieldNameCorrelationKey]);
 }

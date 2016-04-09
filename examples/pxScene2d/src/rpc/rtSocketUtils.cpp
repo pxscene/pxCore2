@@ -1,5 +1,8 @@
 #include "rtSocketUtils.h"
 
+#include <cstdio>
+#include <sstream>
+
 #include <netinet/in.h>
 #include <errno.h>
 #include <arpa/inet.h>
@@ -10,7 +13,6 @@
 #include <unistd.h>
 
 #include <rtLog.h>
-#include <sstream>
 
 #include <rapidjson/memorystream.h>
 #include <rapidjson/stringbuffer.h>
@@ -97,8 +99,7 @@ rtGetInterfaceAddress(char const* name, sockaddr_storage& ss)
 
   if (ret == -1)
   {
-    int err = errno;
-    rtLogError("failed to get list of interfaces. %s", strerror(err));
+    rtLogError("failed to get list of interfaces. %s", rtStrError(errno).c_str());
     return RT_FAIL;
   }
 
@@ -204,7 +205,7 @@ rtReadUntil(int fd, char* buff, int n)
 
     if (n == -1)
     {
-      rtLogError("failed to read from fd %d. %s", fd, strerror(errno));
+      rtLogError("failed to read from fd %d. %s", fd, rtStrError(errno).c_str());
       return RT_FAIL;;
     }
 
@@ -260,7 +261,7 @@ rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest)
     if (sendto(fd, buff.GetString(), buff.GetSize(), flags,
           reinterpret_cast<sockaddr const *>(dest), len) < 0)
     {
-      rtLogError("sendto failed. %s. dest:%s family:%d", strerror(errno), rtSocketToString(*dest).c_str(),
+      rtLogError("sendto failed. %s. dest:%s family:%d", rtStrError(errno).c_str(), rtSocketToString(*dest).c_str(),
         dest->ss_family);
 
       return RT_FAIL;
@@ -278,13 +279,13 @@ rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest)
     #endif
     if (send(fd, reinterpret_cast<char *>(&n), 4, flags) < 0)
     {
-      rtLogError("failed to send length of message. %s", strerror(errno));
+      rtLogError("failed to send length of message. %s", rtStrError(errno).c_str());
       return RT_FAIL;
     }
 
     if (send(fd, buff.GetString(), buff.GetSize(), flags) < 0)
     {
-      rtLogError("failed to send. %s", strerror(errno));
+      rtLogError("failed to send. %s", rtStrError(errno).c_str());
       return RT_FAIL;
     }
   }
@@ -357,4 +358,18 @@ rtParseMessage(char const* buff, int n, rtJsonDocPtr_t& doc)
   }
   
   return RT_OK;
+}
+
+std::string
+rtStrError(int e)
+{
+  char buff[256];
+  memset(buff, 0, sizeof(buff));
+
+  char* s = strerror_r(e, buff, sizeof(buff));
+  if (s)
+    return std::string(s);
+
+  std::snprintf(buff, sizeof(buff), "unknown error: %d", e);
+  return std::string(buff);
 }

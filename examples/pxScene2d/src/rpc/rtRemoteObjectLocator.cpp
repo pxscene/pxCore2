@@ -24,7 +24,7 @@ rtFindFirstInetInterface(char* name, size_t len)
   int ret = getifaddrs(&ifaddr);
   if (ret == -1)
   {
-    rtLogError("failed to get list of interfaces: %s", strerror(errno));
+    rtLogError("failed to get list of interfaces: %s", rtStrError(errno).c_str());
     return RT_FAIL;
   }
 
@@ -228,8 +228,7 @@ rtRemoteObjectLocator::runListener()
     int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, &timeout);
     if (ret == -1)
     {
-      int err = errno;
-      rtLogWarn("select failed: %s", strerror(err));
+      rtLogWarn("select failed: %s", rtStrError(errno).c_str());
       continue;
     }
 
@@ -287,8 +286,7 @@ rtRemoteObjectLocator::doAccept(int fd)
   int ret = accept(fd, reinterpret_cast<sockaddr *>(&remote_endpoint), &len);
   if (ret == -1)
   {
-    int err = errno;
-    rtLogWarn("error accepting new tcp connect. %s", strerror(err));
+    rtLogWarn("error accepting new tcp connect. %s", rtStrError(errno).c_str());
     return;
   }
   rtLogInfo("new connection from %s with fd:%d", rtSocketToString(remote_endpoint).c_str(), ret);
@@ -361,6 +359,9 @@ rtRemoteObjectLocator::findObject(std::string const& name, rtObjectRef& obj, uin
     sockaddr_storage rpc_endpoint;
     err = m_resolver->resolveObject(name, rpc_endpoint, timeout);
 
+    rtLogDebug("object %s resolve at endpoint: %s", name.c_str(),
+      rtSocketToString(rpc_endpoint).c_str());
+
     if (err == RT_OK)
     {
       std::shared_ptr<rtRpcClient> transport;
@@ -403,14 +404,12 @@ rtRemoteObjectLocator::findObject(std::string const& name, rtObjectRef& obj, uin
 rtError
 rtRemoteObjectLocator::openRpcListener()
 {
-  int err = 0;
   int ret = 0;
 
   m_rpc_fd = socket(m_rpc_endpoint.ss_family, SOCK_STREAM, 0);
   if (m_rpc_fd < 0)
   {
-    err = errno;
-    rtLogError("failed to create TCP socket. %s", strerror(err));
+    rtLogError("failed to create TCP socket. %s", rtStrError(errno).c_str());
   }
 
   fcntl(m_rpc_fd, F_SETFD, fcntl(m_rpc_fd, F_GETFD) | FD_CLOEXEC);
@@ -422,8 +421,7 @@ rtRemoteObjectLocator::openRpcListener()
   ret = ::bind(m_rpc_fd, reinterpret_cast<sockaddr *>(&m_rpc_endpoint), len);
   if (ret < 0)
   {
-    err = errno;
-    rtLogError("failed to bind socket. %s", strerror(err));
+    rtLogError("failed to bind socket. %s", rtStrError(errno).c_str());
     return RT_FAIL;
   }
 
@@ -431,8 +429,7 @@ rtRemoteObjectLocator::openRpcListener()
   ret = getsockname(m_rpc_fd, reinterpret_cast<sockaddr *>(&m_rpc_endpoint), &len);
   if (ret < 0)
   {
-    err = errno;
-    rtLogError("getsockname: %s", strerror(err));
+    rtLogError("getsockname: %s", rtStrError(errno).c_str());
     return RT_FAIL;
   }
   else
@@ -443,16 +440,14 @@ rtRemoteObjectLocator::openRpcListener()
   ret = fcntl(m_rpc_fd, F_SETFL, O_NONBLOCK);
   if (ret < 0)
   {
-    err = errno;
-    rtLogError("fcntl: %s", strerror(errno));
+    rtLogError("fcntl: %s", rtStrError(errno).c_str());
     return RT_FAIL;
   }
 
   ret = listen(m_rpc_fd, 2);
   if (ret < 0)
   {
-    err = errno;
-    rtLogError("failed to put socket in listen mode. %s", strerror(err));
+    rtLogError("failed to put socket in listen mode. %s", rtStrError(errno).c_str());
     return RT_FAIL;
   }
 
