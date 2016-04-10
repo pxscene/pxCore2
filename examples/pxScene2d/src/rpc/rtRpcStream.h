@@ -40,6 +40,12 @@ public:
   rtError setMessageCallback(message_handler handler);
   rtError setInactivityCallback(rtRpcInactivityHandler_t handler);
 
+  inline sockaddr_storage getLocalEndpoint() const
+    { return m_local_endpoint; }
+
+  inline sockaddr_storage getRemoteEndpoint() const
+    { return m_remote_endpoint; }
+
 private:
   rtError sendDocument(rapidjson::Document const& doc)
   {

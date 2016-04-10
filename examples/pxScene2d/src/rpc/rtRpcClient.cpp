@@ -2,6 +2,8 @@
 #include "rtRpcClient.h"
 #include "rtSocketUtils.h"
 #include "rtRpcMessage.h"
+#include "rtValueReader.h"
+#include "rtValueWriter.h"
 
 #include "rapidjson/rapidjson.h"
 

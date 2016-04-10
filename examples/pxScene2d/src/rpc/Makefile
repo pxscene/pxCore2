@@ -18,7 +18,8 @@ RT_SRCS=\
   rtValueReader.cpp \
   rtValueWriter.cpp \
   rtSocketUtils.cpp \
-  rtRpcStream.cpp
+  rtRpcStream.cpp \
+  rtObjectCache.cpp
 
 ifeq ($V, 1)
   CXX_PRETTY = $(CXX)

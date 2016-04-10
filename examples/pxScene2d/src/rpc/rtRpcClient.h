@@ -21,21 +21,6 @@
 #include "rtRpcMessage.h"
 #include "rtSocketUtils.h"
 
-class rtRpcClient;
-
-class rtValueWriter
-{
-public:
-  static rtError write(rtValue const& from, rapidjson::Value& to, rapidjson::Document& parent);
-};
-
-class rtValueReader
-{
-public:
-  static rtError read(rtValue& val, rapidjson::Value const& from,
-    std::shared_ptr<rtRpcClient> const& tport = std::shared_ptr<rtRpcClient>());
-};
-
 class rtRpcClient: public std::enable_shared_from_this<rtRpcClient>
 {
 public:
@@ -71,6 +56,12 @@ public:
   {
     return m_stream->sendDocument(doc);
   }
+
+  inline sockaddr_storage getRemoteEndpoint() const
+    { return m_stream->getRemoteEndpoint(); }
+
+  inline sockaddr_storage getLocalEndpoint() const
+    { return m_stream->getLocalEndpoint(); }
 
 private:
 

@@ -108,6 +108,14 @@ rtRpcStream::rtRpcStream(int fd, sockaddr_storage const& local_endpoint, sockadd
   memset(&m_local_endpoint, 0, sizeof(m_local_endpoint));
   memcpy(&m_remote_endpoint, &remote_endpoint, sizeof(m_remote_endpoint));
   memcpy(&m_local_endpoint, &local_endpoint, sizeof(m_local_endpoint));
+
+  socklen_t len;
+  sockaddr_storage addr;
+  int ret = getpeername(fd, (sockaddr *)&addr, &len);
+  if (ret == -1)
+    rtLogWarn("failed to get the local socket %d endpoint. %s", fd, rtStrError(errno).c_str());
+  else
+    memcpy(&m_local_endpoint, &addr, sizeof(sockaddr_storage));
 }
 
 rtRpcStream::~rtRpcStream()
@@ -177,6 +185,8 @@ rtRpcStream::connectTo(sockaddr_storage const& endpoint)
     rtLogError("failed to connect to remote rpc endpoint. %s", rtStrError(errno).c_str());
     return RT_FAIL;
   }
+
+  memcpy(&m_local_endpoint, &endpoint, sizeof(sockaddr_storage));
 
   rtLogInfo("new tcp connection to: %s", rtSocketToString(endpoint).c_str());
   return RT_OK;

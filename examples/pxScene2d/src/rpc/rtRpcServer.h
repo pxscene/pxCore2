@@ -41,7 +41,6 @@ public:
   rtError start();
 
   rtError registerObject(std::string const& name, rtObjectRef const& obj);
-  rtError removeObject(std::string const& name, bool* in_use = nullptr);
   rtError findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout = 1000);
   rtError removeStaleObjects(int* num_removed);
 
@@ -63,8 +62,6 @@ private:
   rtError onSet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& doc);
   rtError onMethodCall(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& doc);
   rtError onKeepAlive(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& doc);
-
-  rtError onClientDisconnect(connected_client& client);
   rtError openRpcListener();
 
   rtObjectRef getObject(std::string const& id) const;
@@ -91,7 +88,7 @@ private:
   mutable std::mutex            m_mutex;
   command_handler_map		m_command_handlers;
 
-  refmap_t                      m_objects;
+//  refmap_t                      m_objects;
 
   rtRemoteObjectResolver*       m_resolver;
   tport_map_t                   m_transports;

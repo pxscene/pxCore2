@@ -1,8 +1,11 @@
 #include "rtRpcServer.h"
 #include "rtRemoteObject.h"
+#include "rtObjectCache.h"
 #include "rtSocketUtils.h"
 #include "rtRpcMessage.h"
 #include "rtRpcClient.h"
+#include "rtValueReader.h"
+#include "rtValueWriter.h"
 
 #include <stdlib.h>
 #include <arpa/inet.h>
@@ -183,24 +186,12 @@ rtRpcServer::open(char const* dstaddr, uint16_t port, char const* srcaddr)
 rtError
 rtRpcServer::registerObject(std::string const& name, rtObjectRef const& obj)
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
-  auto itr = m_objects.find(name);
-  if (itr != m_objects.end())
+  rtObjectRef ref = rtObjectCache::findObject(name);
+  if (!ref)
   {
-    lock.unlock();
-    rtLogWarn("object %s is already registered", name.c_str());
-    return EEXIST;
+    rtObjectCache::insert(name, obj);
   }
-
-  object_reference entry;
-  entry.object = obj;
-  entry.last_used = time(nullptr);
-  entry.owner_removed = false;
-  m_objects.insert(refmap_t::value_type(name, entry));
-
   m_resolver->registerObject(name);
-  lock.unlock();
-
   return RT_OK;
 }
 
@@ -321,11 +312,7 @@ rtError
 rtRpcServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout)
 {
   rtError err = RT_OK;
-
-  // first check local
-  auto itr = m_objects.find(name);
-  if (itr != m_objects.end())
-    obj = itr->second.object;
+  obj = rtObjectCache::findObject(name);
 
   // if object is not registered with us locally, then check network
   if (!obj)
@@ -431,17 +418,17 @@ rtRpcServer::openRpcListener()
 rtError
 rtRpcServer::onOpenSession(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& req)
 {
-  rtLogDebug("enter");
-
-  uint32_t key = rtMessage_GetCorrelationKey(*req);
+  rtCorrelationKey_t key = rtMessage_GetCorrelationKey(*req);
   char const* id = rtMessage_GetObjectId(*req);
 
   #if 0
+
   std::unique_lock<std::mutex> lock(m_mutex);
   auto itr = m_objects.find(id);
   if (itr != m_objects.end())
   {
-    for (auto const& c : m_client_list)
+    sockaddr_storage const soc = client->getRemoteEndpoint();
+    for (auto const& c : m_clients)
     {
       if (same_endpoint(soc, c.peer))
       {
@@ -467,41 +454,10 @@ rtRpcServer::onOpenSession(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t 
   return err;
 }
 
-rtError
-rtRpcServer::onClientDisconnect(connected_client& client)
-{
-  rtLogInfo("client disconnect: %s", rtSocketToString(client.peer).c_str());
-
-  int client_fd = client.fd;
-
-  if (client.fd != -1)
-  {
-    close(client.fd);
-    client.fd = -1;
-  }
-
-  for (auto& i : m_objects)
-  {
-    auto end = std::remove_if(i.second.client_fds.begin(), i.second.client_fds.end(),
-        [client_fd](int fd) { return fd == client_fd; });
-    i.second.client_fds.erase(end, i.second.client_fds.end());
-  }
-
-  return RT_OK;
-}
-
 rtObjectRef
 rtRpcServer::getObject(std::string const& id) const
 {
-  rtObjectRef obj;
-
-  std::unique_lock<std::mutex> lock(m_mutex);
-  auto itr = m_objects.find(id);
-  if (itr != m_objects.end())
-    obj = itr->second.object;
-  lock.unlock();
-
-  return obj;
+  return rtObjectCache::findObject(id);
 }
 
 rtError
@@ -602,7 +558,7 @@ rtRpcServer::onSet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& d
 
     auto itr = doc->FindMember(kFieldNameValue);
     if (itr != doc->MemberEnd())
-      err = rtValueReader::read(value, itr->value);
+      err = rtValueReader::read(value, itr->value, client);
 
     if (err == RT_OK)
     {
@@ -671,7 +627,7 @@ rtRpcServer::onMethodCall(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t c
         for (rapidjson::Value::ConstValueIterator itr = args.Begin(); itr != args.End(); ++itr)
         {
           rtValue arg;
-          rtValueReader::read(arg, *itr);
+          rtValueReader::read(arg, *itr, client);
           argv.push_back(arg);
         }
       }
@@ -714,9 +670,10 @@ rtRpcServer::onKeepAlive(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t co
     std::unique_lock<std::mutex> lock(m_mutex);
     for (rapidjson::Value::ConstValueIterator id  = itr->value.Begin(); id != itr->value.End(); ++id)
     {
-      auto itr = m_objects.find(id->GetString());
-      if (itr != m_objects.end())
-        itr->second.last_used = now;
+      rtError e = rtObjectCache::touch(id->GetString(), now);
+      if (e != RT_OK)
+	rtLogWarn("error updating last used time for: %s, %s", 
+	  id->GetString(), rtStrError(e));
     }
   }
   else
@@ -735,49 +692,5 @@ rtRpcServer::onKeepAlive(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t co
 rtError
 rtRpcServer::removeStaleObjects(int* num_removed)
 {
-  int n = 0;
-  std::unique_lock<std::mutex> lock(m_mutex);
-
-  time_t now = time(nullptr);
-  for (auto itr = m_objects.begin(); itr != m_objects.end(); ++itr)
-  {
-    if (itr->second.owner_removed && (now - itr->second.last_used > m_keep_alive_interval))
-    {
-      rtLogInfo("removing stale object: %s", itr->first.c_str());
-      itr = m_objects.erase(itr);
-      n++;
-    }
-  }
-
-  if (num_removed != nullptr)
-    *num_removed = n;
-
-  lock.unlock();
-  return n;
-}
-
-rtError
-rtRpcServer::removeObject(std::string const& name, bool* in_use)
-{
-  bool alive = false;
-
-  std::unique_lock<std::mutex> lock(m_mutex);
-
-  auto itr = m_objects.find(name);
-  if (itr == m_objects.end())
-    return RT_FAIL;
-
-  time_t now = time(nullptr);
-  if (now - itr->second.last_used < m_keep_alive_interval)
-    alive = true;
-
-  if (in_use != nullptr)
-    *in_use = alive;
-
-  if (!alive)
-    m_objects.erase(itr);
-  else
-    itr->second.owner_removed = true;
-
-  return RT_OK;
+  return rtObjectCache::removeIfOlderThan(m_keep_alive_interval, num_removed);
 }

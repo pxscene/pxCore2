@@ -1,3 +1,4 @@
+#include "rtValueReader.h"
 #include "rtRpcClient.h"
 #include "rtRemoteObject.h"
 #include "rtRemoteFunction.h"
@@ -11,7 +12,7 @@
 // either of these should be able simply include a reference to a transport
 // with a handle returned by server in json message.
 rtError
-rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRpcClient> const& tport)
+rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRpcClient> const& client)
 {
   auto type = from.FindMember(kFieldNameValueType);
   if (type  == from.MemberEnd())
@@ -76,36 +77,31 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
 
     case RT_objectType:
     {
-      assert(tport != NULL);
-      if (!tport)
+      assert(client != NULL);
+      if (!client)
         return RT_FAIL;
 
       auto id = from.FindMember(kFieldNameObjectId);
       if (id == from.MemberEnd())
         return RT_FAIL;
-      to.setObject(new rtRemoteObject(id->value.GetString(), tport));
+      to.setObject(new rtRemoteObject(id->value.GetString(), client));
     }
     break;
 
     case RT_functionType:
     {
-      assert(tport != NULL);
-      if (!tport)
+      assert(client != NULL);
+      if (!client)
         return RT_FAIL;
 
-      auto id = from.FindMember(kFieldNameObjectId);
-      if (id == from.MemberEnd())
-      {
-        rtLogWarn("function doesn't have field: %s", kFieldNameObjectId);
-        return RT_FAIL;
-      }
-      auto name = from.FindMember(kFieldNameFunctionName);
-      if (name == from.MemberEnd())
-      {
-        rtLogWarn("function doesn't have field: %s", kFieldNameObjectId);
-        return RT_FAIL;
-      }
-      to.setFunction(new rtRemoteFunction(id->value.GetString(), name->value.GetString(), tport));
+      auto itr = from.FindMember(kFieldNameObjectId);
+      std::string objectId = itr->value.GetString();
+	
+      itr = from.FindMember(kFieldNameFunctionName);
+      assert(itr != from.MemberEnd());
+      std::string functionId = itr->value.GetString();
+
+      to.setFunction(new rtRemoteFunction(objectId, functionId, client));
     }
     break;
 

@@ -2,10 +2,10 @@
 #define __RT_TYPES_H__
 
 #include <rtError.h>
+#include <rtObject.h>
 #include <rapidjson/document.h>
 
 #include <memory>
-#include <string>
 
 class rtRpcClient;
 

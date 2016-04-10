@@ -1,5 +1,7 @@
 #include "rtRpcMessage.h"
 #include "rtRpcClient.h"
+#include "rtValueReader.h"
+#include "rtValueWriter.h"
 
 #include <arpa/inet.h>
 #include <rtLog.h>
