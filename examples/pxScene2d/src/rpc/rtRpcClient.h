@@ -39,10 +39,11 @@ public:
 class rtRpcClient: public std::enable_shared_from_this<rtRpcClient>
 {
 public:
-  rtRpcClient(sockaddr_storage const& ss);
+  rtRpcClient(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint);
+  rtRpcClient(sockaddr_storage const& remote_endpoint);
   ~rtRpcClient();
 
-  rtError start();
+  rtError open();
   rtError startSession(std::string const& objectName, uint32_t timeout = kDefaultRequestTimeout);
 
   rtError get(std::string const& objectName, char const* propertyName, rtValue& value,
@@ -63,9 +64,17 @@ public:
   inline void keep_alive(std::string const& s)
     { m_object_list.push_back(s); }
 
+  rtError setMessageCallback(rtRpcMessageHandler_t const& handler)
+    { m_message_handler = handler; return RT_OK; } 
+
+  rtError sendDocument(rapidjson::Document const& doc)
+  {
+    return m_stream->sendDocument(doc);
+  }
+
 private:
 
-  rtError onIncomingMessage(rtJsonDocPtr_t const& doc);
+  rtError onIncomingMessage(rtJsonDocPtr_t const& msg);
   rtError onInactivity(time_t lastMessage, time_t now);
   rtError sendGet(rtRpcGetRequest const& req, rtValue& value, uint32_t timeout);
   rtError sendSet(rtRpcSetRequest const& req, uint32_t timeout);
@@ -78,10 +87,9 @@ private:
   rtError onStartSession(rtJsonDocPtr_t const& doc);
 
 private:
-  sockaddr_storage              	m_remote_endpoint;
   std::shared_ptr<rtRpcStream>		m_stream;
   std::vector<std::string>      	m_object_list;
-  std::atomic<rtCorrelationKey_t>	m_next_key;
+  rtRpcMessageHandler_t			m_message_handler;
 };
 
 #endif

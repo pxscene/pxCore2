@@ -15,12 +15,20 @@
 
 #include <rapidjson/document.h>
 
-rtRpcClient::rtRpcClient(sockaddr_storage const& ss)
-  : m_next_key(1)
+rtRpcClient::rtRpcClient(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint)
+  : m_stream(new rtRpcStream(fd, local_endpoint, remote_endpoint))
 {
-  m_remote_endpoint = ss;
-  m_stream.reset(new rtRpcStream());
-  m_stream->setMessageCallback(std::bind(&rtRpcClient::onIncomingMessage, this, std::placeholders::_1));
+  m_stream->setMessageCallback(std::bind(&rtRpcClient::onIncomingMessage, this,
+    std::placeholders::_1));
+  m_stream->setInactivityCallback(std::bind(&rtRpcClient::onInactivity, this,
+    std::placeholders::_1, std::placeholders::_2));
+}
+
+rtRpcClient::rtRpcClient(sockaddr_storage const& remote_endpoint)
+  : m_stream(new rtRpcStream(-1, sockaddr_storage(), remote_endpoint))
+{
+  m_stream->setMessageCallback(std::bind(&rtRpcClient::onIncomingMessage, this,
+    std::placeholders::_1));
   m_stream->setInactivityCallback(std::bind(&rtRpcClient::onInactivity, this,
     std::placeholders::_1, std::placeholders::_2));
 }
@@ -31,18 +39,26 @@ rtRpcClient::~rtRpcClient()
 }
 
 rtError
-rtRpcClient::onIncomingMessage(rtJsonDocPtr_t const& doc)
+rtRpcClient::onIncomingMessage(rtJsonDocPtr_t const& msg)
 {
-  auto type = doc->FindMember(kFieldNameMessageType);
-  if (type == doc->MemberEnd())
+  rtError e = RT_OK;
+
+  auto type = msg->FindMember(kFieldNameMessageType);
+  if (type == msg->MemberEnd())
   {
     rtLogWarn("received JSON message with no type");
-    return  RT_FAIL;
+    e = RT_FAIL;
   }
 
-  // now what?
-  // TODO
-  return RT_OK;
+  std::shared_ptr<rtRpcClient> client = shared_from_this();
+  if (e == RT_OK && m_message_handler)
+  {
+    e = m_message_handler(client, msg);
+    if (e != RT_OK)
+      rtLogWarn("error inoking message handler. %s", rtStrError(e));
+  }
+
+  return e;
 }
 
 rtError
@@ -53,7 +69,7 @@ rtRpcClient::onInactivity(time_t /*lastMessage*/, time_t /*now*/)
 }
 
 rtError
-rtRpcClient::start()
+rtRpcClient::open()
 {
   rtError err = connectRpcEndpoint();
   if (err != RT_OK)
@@ -73,7 +89,12 @@ rtRpcClient::start()
 rtError
 rtRpcClient::connectRpcEndpoint()
 {
-  return m_stream->connectTo(m_remote_endpoint);
+  rtError e = RT_OK;
+  if (!m_stream->isConnected())
+  {
+    e = m_stream->connect();
+  }
+  return e;
 }
 
 rtError

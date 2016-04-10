@@ -84,8 +84,15 @@ rtError
 rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len)
 {
   if (!len)
-    return RT_FAIL;
-  *len = (ss.ss_family == AF_INET ? sizeof(sockaddr_in) : sizeof(sockaddr_in6));
+    return RT_ERROR_INVALID_ARG;
+
+  if (ss.ss_family == AF_INET)
+    *len = sizeof(sockaddr_in);
+  else if (ss.ss_family == AF_INET6)
+    *len = sizeof(sockaddr_in6);
+  else
+    *len = 0;
+
   return RT_OK;
 }
 
@@ -199,7 +206,7 @@ rtReadUntil(int fd, char* buff, int n)
     ssize_t n = read(fd, buff + bytes_read, (bytes_to_read - bytes_read));
     if (n == 0)
     {
-      rtLogDebug("socket closed");
+      rtLogWarn("tring to read from file descriptor: %d. It looks closed", fd);
       return RT_FAIL;
     }
 
@@ -236,7 +243,7 @@ rtSocketToString(sockaddr_storage const& ss)
 }
 
 rtError
-rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest)
+rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* dest)
 {
   rapidjson::StringBuffer buff;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buff);

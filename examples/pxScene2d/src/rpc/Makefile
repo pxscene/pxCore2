@@ -7,8 +7,9 @@ RT_SRCS=\
   ../rtLog.cpp \
   ../rtValue.cpp \
   ../rtObject.cpp \
+  ../rtError.cpp \
   rpc_main.cpp \
-  rtRemoteObjectLocator.cpp \
+  rtRpcServer.cpp \
   rtRemoteObjectResolver.cpp \
   rtRemoteObject.cpp \
   rtRemoteFunction.cpp \
@@ -38,7 +39,7 @@ else
 endif
 
 CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -g -DRT_PLATFORM_LINUX -I../ -I.
-CXXFLAGS+=-std=c++0x -DRAPIDJSON_HAS_STDSTIRNG $(CFLAGS)
+CXXFLAGS+=-std=c++0x $(CFLAGS)
 LDFLAGS =-pthread -ldl
 OBJDIR=obj
 

@@ -1,6 +1,6 @@
 #include "rtRemoteObject.h"
-#include "rtRemoteObjectLocator.h"
 #include "rtRpcClient.h"
+#include "rtRpcServer.h"
 
 #include <unistd.h>
 #include <iostream>
@@ -50,20 +50,20 @@ int main(int argc, char* /*argv*/[])
   char const* objectName = "com.xfinity.xsmart.Thermostat/JakesHouse";
 
   rtError e = RT_OK;
-  rtRemoteObjectLocator locator;
-  e = locator.open(); // "224.10.10.12", 10004, "en0");
+  rtRpcServer server;
+  e = server.open(); // "224.10.10.12", 10004, "en0");
   if (e != RT_OK)
   {
     rtLogError("failed to open rtRemoteObjectLocator: %d", e);
     return 1;
   }
 
-  locator.start();
+  server.start();
 
   if (argc == 2)
   {
     rtObjectRef obj;
-    rtError err = locator.findObject(objectName, obj);
+    rtError err = server.findObject(objectName, obj);
     if (err != RT_OK)
     {
       printf("failed to find object: %s\n", objectName);
@@ -107,7 +107,7 @@ int main(int argc, char* /*argv*/[])
   else
   {
     rtObjectRef obj(new rtThermostat());
-    locator.registerObject(objectName, obj);
+    server.registerObject(objectName, obj);
 
     // locator.removeObject(objectName);
     while (1)

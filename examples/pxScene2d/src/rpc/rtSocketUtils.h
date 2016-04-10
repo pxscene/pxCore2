@@ -23,6 +23,6 @@ rtError rtParseMessage(char const* buff, int n, rtJsonDocPtr_t& doc);
 std::string rtSocketToString(sockaddr_storage const& ss);
 
 // this really doesn't belong here, but putting it here for now
-rtError rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest);
+rtError rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* dest);
 
 #endif

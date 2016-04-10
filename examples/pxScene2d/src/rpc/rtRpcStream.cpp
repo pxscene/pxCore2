@@ -100,11 +100,14 @@ private:
 static std::shared_ptr<rtRpcStreamSelector> gStreamSelector;
 
 
-rtRpcStream::rtRpcStream(int fd)
+rtRpcStream::rtRpcStream(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint)
   : m_fd(fd)
   , m_last_message_time(0)
   , m_message_handler(nullptr)
 {
+  memset(&m_local_endpoint, 0, sizeof(m_local_endpoint));
+  memcpy(&m_remote_endpoint, &remote_endpoint, sizeof(m_remote_endpoint));
+  memcpy(&m_local_endpoint, &local_endpoint, sizeof(m_local_endpoint));
 }
 
 rtRpcStream::~rtRpcStream()
@@ -143,6 +146,18 @@ rtRpcStream::close()
 }
 
 rtError
+rtRpcStream::connect()
+{
+  if (m_fd != -1)
+  {
+    rtLogWarn("already connected");
+    return RT_FAIL;
+  }
+
+  return connectTo(m_remote_endpoint);
+}
+
+rtError
 rtRpcStream::connectTo(sockaddr_storage const& endpoint)
 {
   m_fd = socket(endpoint.ss_family, SOCK_STREAM, 0);
@@ -156,7 +171,7 @@ rtRpcStream::connectTo(sockaddr_storage const& endpoint)
   socklen_t len;
   rtSocketGetLength(endpoint, &len);
 
-  int ret = connect(m_fd, reinterpret_cast<sockaddr const *>(&endpoint), len);
+  int ret = ::connect(m_fd, reinterpret_cast<sockaddr const *>(&endpoint), len);
   if (ret < 0)
   {
     rtLogError("failed to connect to remote rpc endpoint. %s", rtStrError(errno).c_str());
@@ -182,7 +197,7 @@ rtRpcStream::setMessageCallback(message_handler handler)
 }
 
 rtError
-rtRpcStream::setInactivityCallback(inactivity_handler handler)
+rtRpcStream::setInactivityCallback(rtRpcInactivityHandler_t handler)
 {
   m_inactivity_handler = handler;
   return RT_OK;
@@ -208,7 +223,7 @@ rtRpcStream::onIncomingMessage(rt_sockbuf_t& buff, time_t now)
   rtError err = rtReadMessage(m_fd, buff, doc);
   if (err != RT_OK)
   {
-    rtLogWarn("failed to read message from fd:%d. %d", m_fd, err);
+    rtLogWarn("failed to read message from fd:%d. %s", m_fd, rtStrError(err));
     return err;
   }
 
@@ -229,7 +244,9 @@ rtRpcStream::onIncomingMessage(rt_sockbuf_t& buff, time_t now)
 
   if (m_message_handler)
   {
-    m_message_handler(doc);
+    err = m_message_handler(doc);
+    if (err != RT_OK)
+      rtLogWarn("error running message dispatcher: %s", rtStrError(err));
   }
 
   return RT_OK;
@@ -240,6 +257,7 @@ rtRpcStream::sendRequest(rtRpcRequest const& req, message_handler handler, uint3
 {
   rtCorrelationKey_t key = req.getCorrelationKey();
   assert(key != 0);
+  assert(m_fd != -1);
 
   if (handler)
   {
@@ -262,9 +280,7 @@ rtRpcStream::sendRequest(rtRpcRequest const& req, message_handler handler, uint3
   {
     rtJsonDocPtr_t doc = waitForResponse(key, timeout);
     if (doc)
-    {
       e = handler(doc);
-    }
   }
 
   return e;
