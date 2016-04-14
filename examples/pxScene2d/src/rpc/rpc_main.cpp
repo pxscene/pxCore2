@@ -1,6 +1,6 @@
-#include "rtRemoteObject.h"
-#include "rtRpcClient.h"
-#include "rtRpcServer.h"
+
+#include "rtRpc.h"
+#include <rtObject.h>
 
 #include <unistd.h>
 #include <iostream>
@@ -49,22 +49,14 @@ int main(int argc, char* /*argv*/[])
 {
   char const* objectName = "com.xfinity.xsmart.Thermostat/JakesHouse";
 
-  rtError e = RT_OK;
-  rtRpcServer server;
-  e = server.open(); // "224.10.10.12", 10004, "en0");
-  if (e != RT_OK)
-  {
-    rtLogError("failed to open rtRemoteObjectLocator: %d", e);
-    return 1;
-  }
-
-  server.start();
+  rtError e = rtRpcInit();
+  assert(e == RT_OK);
 
   if (argc == 2)
   {
     rtObjectRef obj;
-    rtError err = server.findObject(objectName, obj);
-    if (err != RT_OK)
+    e = rtRpcLocateObject(objectName, obj);
+    if (e != RT_OK)
     {
       printf("failed to find object: %s\n", objectName);
       exit(0);
@@ -79,13 +71,13 @@ int main(int argc, char* /*argv*/[])
       rtString desc;
      
       #if 0 // this works
-      err = obj.sendReturns<rtString>("description", desc);
-      RT_ASSERT(err);
+      e = obj.sendReturns<rtString>("description", desc);
+      RT_ASSERT(e);
       #endif
 
       #if 0 // this works
-      err = obj.set("prop1", i);
-      if (err != RT_OK)
+      e = obj.set("prop1", i);
+      if (e != RT_OK)
       {
 	printf("failed to set prop\n");
 	return -1;
@@ -97,7 +89,7 @@ int main(int argc, char* /*argv*/[])
 
       #if 1// this works
       int32_t ret = 0;
-      err = obj.sendReturns<int32_t>("add", i, i, ret);
+      e = obj.sendReturns<int32_t>("add", i, i, ret);
       printf("HERE (%d): %d + %d = %d\n", ret, i, i, ret);
       #endif
 
@@ -107,7 +99,7 @@ int main(int argc, char* /*argv*/[])
   else
   {
     rtObjectRef obj(new rtThermostat());
-    server.registerObject(objectName, obj);
+    e = rtRpcRegisterObject(objectName, obj);
 
     // locator.removeObject(objectName);
     while (1)
