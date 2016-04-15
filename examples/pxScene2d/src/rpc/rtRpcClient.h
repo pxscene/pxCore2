@@ -29,22 +29,14 @@ public:
   ~rtRpcClient();
 
   rtError open();
-  rtError startSession(std::string const& objectName, uint32_t timeout = kDefaultRequestTimeout);
-
-  rtError get(std::string const& objectName, char const* propertyName, rtValue& value,
-    uint32_t timeout = kDefaultRequestTimeout);
-
-  rtError set(std::string const& objectName, char const* propertyName, rtValue const& value,
-    uint32_t timeout = kDefaultRequestTimeout);
-
-  rtError get(std::string const& objectName, uint32_t index, rtValue& value,
-    uint32_t timeout = kDefaultRequestTimeout);
-
-  rtError set(std::string const& objectName, uint32_t index, rtValue const& value,
-    uint32_t timeout = kDefaultRequestTimeout);
+  rtError startSession(std::string const& objectName, uint32_t timeout = 0);
+  rtError get(std::string const& objectName, char const* propertyName, rtValue& value, uint32_t timeout = 0);
+  rtError get(std::string const& objectName, uint32_t index, rtValue& value, uint32_t timeout = 0);
+  rtError set(std::string const& objectName, uint32_t index, rtValue const& value, uint32_t timeout = 0);
+  rtError set(std::string const& objectName, char const* propertyName, rtValue const& value, uint32_t timeout = 0);
 
   rtError send(std::string const& objectName, std::string const& name, int argc, rtValue const* argv,
-    rtValue* result, uint32_t timeout = kDefaultRequestTimeout);
+    rtValue* result, uint32_t timeout);
 
   inline void keep_alive(std::string const& s)
     { m_object_list.push_back(s); }

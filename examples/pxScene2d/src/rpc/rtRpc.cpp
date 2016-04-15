@@ -1,5 +1,6 @@
 #include "rtRpc.h"
 #include "rtRpcClient.h"
+#include "rtRpcConfig.h"
 #include "rtRpcServer.h"
 
 #include <rtLog.h>
@@ -26,6 +27,12 @@ rtRpcInit()
       gServer->start();
     }
   });
+
+  if (e == RT_OK)
+  {
+    // prime config
+    rtRpcConfig::getInstance();
+  }
 
   return e;
 }

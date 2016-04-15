@@ -16,15 +16,6 @@
 #include "rtRemoteObjectResolver.h"
 #include "rtSocketUtils.h"
 
-#ifdef __APPLE__
-#define kDefaultMulticastInterface "en0"
-#else
-#define kDefaultMulticastInterface "eth0"
-#endif
-#define kDefaultIPv4MulticastAddress "224.10.0.12"
-#define kDefaultIPv6MulticastAddress "ff05:0:0:0:0:0:0:201"
-#define kDefaultMulticastPort 10004
-
 class rtRpcClient;
 
 class rtRpcServer

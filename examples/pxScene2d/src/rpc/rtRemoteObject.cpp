@@ -11,6 +11,8 @@ rtRemoteObject::rtRemoteObject(std::string const& id, std::shared_ptr<rtRpcClien
 
 rtRemoteObject::~rtRemoteObject()
 {
+  Release();
+  // TODO: send deref here
 }
 
 rtError

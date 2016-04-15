@@ -4,6 +4,7 @@
 #include "rtRpcMessage.h"
 #include "rtValueReader.h"
 #include "rtValueWriter.h"
+#include "rtRpcConfig.h"
 
 #include "rapidjson/rapidjson.h"
 
@@ -126,9 +127,12 @@ rtRpcClient::sendKeepAlive()
 }
 
 rtError
-rtRpcClient::get(std::string const& objectName, char const* propertyName, rtValue& value, 
+rtRpcClient::get(std::string const& objectName, char const* propertyName, rtValue& value,
   uint32_t timeout)
 {
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
   return sendGet(rtRpcGetRequest(objectName, propertyName), value, timeout);
 }
 
@@ -136,12 +140,18 @@ rtError
 rtRpcClient::get(std::string const& objectName, uint32_t index, rtValue& value,
   uint32_t timeout)
 {
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
   return sendGet(rtRpcGetRequest(objectName, index), value, timeout);
 }
 
 rtError
 rtRpcClient::sendGet(rtRpcGetRequest const& req, rtValue& value, uint32_t timeout)
 {
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
   rtJsonDocPtr_t res;
   rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr_t const& doc)
   {
@@ -170,6 +180,9 @@ rtError
 rtRpcClient::set(std::string const& objectName, char const* propertyName, rtValue const& value,
   uint32_t timeout)
 {
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
   rtRpcSetRequest req(objectName, propertyName);
   req.setValue(value);
   return sendSet(req, timeout);
@@ -179,6 +192,9 @@ rtError
 rtRpcClient::set(std::string const& objectName, uint32_t propertyIndex, rtValue const& value,
   uint32_t timeout)
 {
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
   rtRpcSetRequest req(objectName, propertyIndex);
   req.setValue(value);
   return sendSet(req, timeout);
@@ -187,6 +203,9 @@ rtRpcClient::set(std::string const& objectName, uint32_t propertyIndex, rtValue 
 rtError
 rtRpcClient::sendSet(rtRpcSetRequest const& req, uint32_t timeout)
 {
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
   rtJsonDocPtr_t res;
   rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr_t const& doc) 
   {
@@ -207,6 +226,9 @@ rtError
 rtRpcClient::send(std::string const& objectName, std::string const& methodName,
   int argc, rtValue const* argv, rtValue* result, uint32_t timeout)
 {
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
   rtRpcMethodCallRequest req(objectName);
   req.setMethodName(methodName);
   for (int i = 0; i < argc; ++i)

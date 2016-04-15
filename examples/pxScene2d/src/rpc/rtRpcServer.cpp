@@ -6,6 +6,7 @@
 #include "rtRpcClient.h"
 #include "rtValueReader.h"
 #include "rtValueWriter.h"
+#include "rtRpcConfig.h"
 
 #include <stdlib.h>
 #include <arpa/inet.h>
@@ -127,13 +128,13 @@ rtRpcServer::open(char const* dstaddr, uint16_t port, char const* srcaddr)
   char name[64];
 
   if (port == 0)
-    port = kDefaultMulticastPort;
+    port = rtRpcSetting<uint16_t>("rt.rpc.resolver.multicast_port");
 
   bool usingDefault = false;
   if (srcaddr == nullptr)
   {
     usingDefault = true;
-    srcaddr = kDefaultMulticastInterface;
+    srcaddr = rtRpcSetting<char const *>("rt.rpc.resolver.multicast_interface");
   }
 
   err = rtParseAddress(m_rpc_endpoint, srcaddr, 0, nullptr);
@@ -164,9 +165,9 @@ rtRpcServer::open(char const* dstaddr, uint16_t port, char const* srcaddr)
   if (dstaddr == nullptr)
   {
     if (m_rpc_endpoint.ss_family == AF_INET6)
-      dstaddr = kDefaultIPv6MulticastAddress;
+      dstaddr = rtRpcSetting<char const *>("rt.rpc.resolver.multicast_address6");
     else
-      dstaddr = kDefaultIPv4MulticastAddress;
+      dstaddr = rtRpcSetting<char const *>("rt.rpc.resolver.multicast_address");
   }
 
   rtLogDebug("dstaddr: %s", dstaddr);
