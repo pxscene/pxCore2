@@ -16,25 +16,39 @@
 
 #include "rtRpcTypes.h"
 
-class rtRemoteObjectResolver
+class rtIRpcResolver
 {
 public:
-  rtRemoteObjectResolver(sockaddr_storage const& rpc_endpoint);
-  ~rtRemoteObjectResolver();
+  virtual ~rtIRpcResolver() { }
+  virtual rtError open() = 0;
+  virtual rtError close() = 0;
+  virtual rtError registerObject(std::string const& name, sockaddr_storage const& endpoint) = 0;
+  virtual rtError locateObject(std::string const& name, sockaddr_storage& endpoint,
+      uint32_t timeout) = 0;
+};
+
+class rtRpcMulticastResolver : public rtIRpcResolver
+{
+public:
+  rtRpcMulticastResolver(sockaddr_storage const& rpc_endpoint);
+  ~rtRpcMulticastResolver();
 
 public:
-  rtError open(char const* dstaddr, uint16_t dstport, char const* srcaddr);
-  rtError start();
+  rtError init(char const* dstaddr, uint16_t dstport, char const* srcaddr);
 
-  rtError registerObject(std::string const& name);
-  rtError resolveObject(std::string const& name, sockaddr_storage& endpoint, uint32_t timeout = 1000);
+  virtual rtError open() override;
+  virtual rtError close() override;
+  virtual rtError registerObject(std::string const& name, sockaddr_storage const& endpoint) override;
+  virtual rtError locateObject(std::string const& name, sockaddr_storage& endpoint,
+    uint32_t timeout) override;
 
 private:
-  typedef rtError (rtRemoteObjectResolver::*command_handler_t)(rtJsonDocPtr_t const&, sockaddr_storage const& soc);
+  typedef rtError (rtRpcMulticastResolver::*command_handler_t)(rtJsonDocPtr_t const&, sockaddr_storage const& soc);
+
+  using HostedObjectsMap = std::map< std::string, sockaddr_storage >;
   typedef std::vector< char > buff_t;
   typedef std::map< std::string, command_handler_t > cmd_handler_map_t;
   typedef std::map< rtCorrelationKey_t, rtJsonDocPtr_t > request_map_t;
-  typedef std::set< std::string > object_id_set_t;
 
   void runListener();
   void doRead(int fd, buff_t& buff);
@@ -64,7 +78,7 @@ private:
   cmd_handler_map_t m_command_handlers;
   std::string       m_rpc_addr;
   uint16_t          m_rpc_port;
-  object_id_set_t   m_registered_objects;
+  HostedObjectsMap  m_hosted_objects;
   request_map_t     m_pending_searches;
 };
 

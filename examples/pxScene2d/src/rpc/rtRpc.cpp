@@ -22,10 +22,6 @@ rtRpcInit()
     {
       rtLogError("failed to open rtRpcServer. %s", rtStrError(e));
     }
-    else
-    {
-      gServer->start();
-    }
   });
 
   if (e == RT_OK)

@@ -75,6 +75,7 @@ same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
 
 rtRpcServer::rtRpcServer()
   : m_listen_fd(-1)
+  , m_resolver(nullptr)
   , m_pipe_write(-1)
   , m_pipe_read(-1)
   , m_keep_alive_interval(15)
@@ -114,11 +115,17 @@ rtRpcServer::rtRpcServer()
 rtRpcServer::~rtRpcServer()
 {
   if (m_listen_fd != -1)
-    close(m_listen_fd);
+    ::close(m_listen_fd);
   if (m_pipe_read != -1)
-    close(m_pipe_read);
+    ::close(m_pipe_read);
   if (m_pipe_write != -1)
-    close(m_pipe_write);
+    ::close(m_pipe_write);
+
+  if (m_resolver)
+  {
+    m_resolver->close();
+    delete m_resolver;
+  }
 }
 
 rtError
@@ -140,27 +147,24 @@ rtRpcServer::open(char const* dstaddr, uint16_t port, char const* srcaddr)
   err = rtParseAddress(m_rpc_endpoint, srcaddr, 0, nullptr);
   if (err != RT_OK)
   {
-    rtLogInfo("failed to find address for: %s", srcaddr);
+    rtLogDebug("failed to find address for: %s", srcaddr);
     // since we're using the default, and we didn't find it, try using the first inet capable
     // interface.
     memset(name, 0, sizeof(name));
     if (usingDefault)
     {
-      rtLogInfo("using default interface %s, but not found looking for another.", srcaddr);
+      rtLogDebug("using default interface %s, but not found looking for another.", srcaddr);
       err = rtFindFirstInetInterface(name, sizeof(name));
       if (err == RT_OK)
       {
 	srcaddr = name;
-        rtLogInfo("using new default interface: %s", name);
+        rtLogDebug("using new default interface: %s", name);
         err = rtParseAddress(m_rpc_endpoint, srcaddr, 0, nullptr);
       }
     }
     if (err != RT_OK)
       return err;
   }
-
-  rtLogDebug("rpc endoint: %s", rtSocketToString(m_rpc_endpoint).c_str());
-  rtLogDebug("rpc endpoint family: %d", m_rpc_endpoint.ss_family);
 
   if (dstaddr == nullptr)
   {
@@ -170,18 +174,27 @@ rtRpcServer::open(char const* dstaddr, uint16_t port, char const* srcaddr)
       dstaddr = rtRpcSetting<char const *>("rt.rpc.resolver.multicast_address");
   }
 
-  rtLogDebug("dstaddr: %s", dstaddr);
-
   err = openRpcListener();
   if (err != RT_OK)
     return err;
 
-  m_resolver = new rtRemoteObjectResolver(m_rpc_endpoint);
-  err = m_resolver->open(dstaddr, port, srcaddr);
+  rtRpcMulticastResolver* resolver(new rtRpcMulticastResolver(m_rpc_endpoint));
+  err = resolver->init(dstaddr, port, srcaddr);
   if (err != RT_OK)
+  {
+    rtLogError("failed to initialize multicast resolver. %s", rtStrError(err));
     return err;
+  }
 
-  return RT_OK;
+  m_resolver = resolver;
+  err = start();
+  if (err != RT_OK)
+  {
+    rtLogError("failed to start rpc server. %s", rtStrError(err));
+    return err;
+  }
+
+  return err;
 }
 
 rtError
@@ -189,10 +202,8 @@ rtRpcServer::registerObject(std::string const& name, rtObjectRef const& obj)
 {
   rtObjectRef ref = rtObjectCache::findObject(name);
   if (!ref)
-  {
     rtObjectCache::insert(name, obj);
-  }
-  m_resolver->registerObject(name);
+  m_resolver->registerObject(name, m_rpc_endpoint);
   return RT_OK;
 }
 
@@ -279,7 +290,7 @@ rtRpcServer::doAccept(int fd)
   newClient->setMessageCallback(std::bind(&rtRpcServer::onIncomingMessage, this,
     std::placeholders::_1, std::placeholders::_2));
   newClient->open();
-  m_clients.push_back(newClient);
+  m_connected_clients.push_back(newClient);
 }
 
 rtError
@@ -301,11 +312,21 @@ rtRpcServer::onIncomingMessage(std::shared_ptr<rtRpcClient>& client, rtJsonDocPt
 rtError
 rtRpcServer::start()
 {
-  rtError err = m_resolver->start();
+  rtError err = m_resolver->open();
   if (err != RT_OK)
     return err;
+  rtLogInfo("resolver now open");
 
-  m_thread.reset(new std::thread(&rtRpcServer::runListener, this));
+  try
+  {
+    m_thread.reset(new std::thread(&rtRpcServer::runListener, this));
+  }
+  catch (std::exception const& err)
+  {
+    rtLogError("failed to start listener thread. %s", err.what());
+    return RT_FAIL;
+  }
+
   return RT_OK;
 }
 
@@ -319,19 +340,30 @@ rtRpcServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t time
   if (!obj)
   {
     sockaddr_storage rpc_endpoint;
-    err = m_resolver->resolveObject(name, rpc_endpoint, timeout);
+    err = m_resolver->locateObject(name, rpc_endpoint, timeout);
 
-    rtLogDebug("object %s resolve at endpoint: %s", name.c_str(),
+    rtLogDebug("object %s found at endpoint: %s", name.c_str(),
       rtSocketToString(rpc_endpoint).c_str());
 
     if (err == RT_OK)
     {
       std::shared_ptr<rtRpcClient> client;
-      std::string const transport_name = rtSocketToString(rpc_endpoint);
+      std::string const endpointName = rtSocketToString(rpc_endpoint);
 
-      auto itr = m_transports.find(transport_name);
-      if (itr != m_transports.end())
+      auto itr = m_object_map.find(endpointName);
+      if (itr != m_object_map.end())
         client = itr->second;
+
+      // if a client is already "hosting" this object, 
+      // then just re-use it
+      for (auto i : m_object_map)
+      {
+	if (same_endpoint(i.second->getRemoteEndpoint(), rpc_endpoint))
+	{
+	  client = i.second;
+	  break;
+	}
+      }
 
       if (!client)
       {
@@ -339,15 +371,15 @@ rtRpcServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t time
         err = client->open();
         if (err != RT_OK)
         {
-          rtLogWarn("failed to start transport. %s", rtStrError(err));
+          rtLogWarn("failed to start new client. %s", rtStrError(err));
           return err;
         }
 
         // we have race condition here. if the transport doesn't exist, two threads may
-        // create one but only one will get inserted into the m_transports map. I'm not
+        // create one but only one will get inserted into the m_connected_client map. I'm not
         // sure that this really matters much
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_transports.insert(tport_map_t::value_type(transport_name, client));
+        m_object_map.insert(ClientMap::value_type(endpointName, client));
       }
 
       if (client)
@@ -387,17 +419,8 @@ rtRpcServer::openRpcListener()
     return RT_FAIL;
   }
 
-  rtSocketGetLength(m_rpc_endpoint, &len);
-  ret = getsockname(m_listen_fd, reinterpret_cast<sockaddr *>(&m_rpc_endpoint), &len);
-  if (ret < 0)
-  {
-    rtLogError("getsockname: %s", rtStrError(errno).c_str());
-    return RT_FAIL;
-  }
-  else
-  {
-    rtLogInfo("local tcp socket bound to %s", rtSocketToString(m_rpc_endpoint).c_str());
-  }
+  rtGetSockName(m_listen_fd, m_rpc_endpoint);
+  rtLogInfo("local rpc listener on: %s", rtSocketToString(m_rpc_endpoint).c_str());
 
   ret = fcntl(m_listen_fd, F_SETFL, O_NONBLOCK);
   if (ret < 0)

@@ -11,7 +11,6 @@
 #include <fcntl.h>
 #include <rtLog.h>
 
-
 class rtRpcStreamSelector
 {
 public:
@@ -105,17 +104,8 @@ rtRpcStream::rtRpcStream(int fd, sockaddr_storage const& local_endpoint, sockadd
   , m_last_message_time(0)
   , m_message_handler(nullptr)
 {
-  memset(&m_local_endpoint, 0, sizeof(m_local_endpoint));
   memcpy(&m_remote_endpoint, &remote_endpoint, sizeof(m_remote_endpoint));
   memcpy(&m_local_endpoint, &local_endpoint, sizeof(m_local_endpoint));
-
-  socklen_t len;
-  sockaddr_storage addr;
-  int ret = getpeername(fd, (sockaddr *)&addr, &len);
-  if (ret == -1)
-    rtLogWarn("failed to get the local socket %d endpoint. %s", fd, rtStrError(errno).c_str());
-  else
-    memcpy(&m_local_endpoint, &addr, sizeof(sockaddr_storage));
 }
 
 rtRpcStream::~rtRpcStream()
@@ -138,7 +128,7 @@ rtRpcStream::open()
 rtError
 rtRpcStream::close()
 {
-  if (m_fd > 0)
+  if (m_fd != kInvalidSocket)
   {
     int ret = 0;
     
@@ -146,9 +136,7 @@ rtRpcStream::close()
     if (ret == -1)
       rtLogWarn("shutdown failed on fd %d: %s", m_fd, rtStrError(errno).c_str());
 
-    ret = ::close(m_fd);
-    if (ret == -1)
-      rtLogWarn("close failed on fd %d: %s", m_fd, rtStrError(errno).c_str());
+    rtCloseSocket(m_fd);
   }
   return RT_OK;
 }
@@ -156,12 +144,7 @@ rtRpcStream::close()
 rtError
 rtRpcStream::connect()
 {
-  if (m_fd != -1)
-  {
-    rtLogWarn("already connected");
-    return RT_FAIL;
-  }
-
+  assert(m_fd == kInvalidSocket);
   return connectTo(m_remote_endpoint);
 }
 
@@ -183,12 +166,18 @@ rtRpcStream::connectTo(sockaddr_storage const& endpoint)
   if (ret < 0)
   {
     rtLogError("failed to connect to remote rpc endpoint. %s", rtStrError(errno).c_str());
+    rtCloseSocket(m_fd);
     return RT_FAIL;
   }
 
-  memcpy(&m_local_endpoint, &endpoint, sizeof(sockaddr_storage));
+  rtGetSockName(m_fd, m_local_endpoint);
+  rtGetPeerName(m_fd, m_remote_endpoint);
 
-  rtLogInfo("new tcp connection to: %s", rtSocketToString(endpoint).c_str());
+  rtLogInfo("new connection (%d) %s --> %s",
+    m_fd,
+    rtSocketToString(m_local_endpoint).c_str(),
+    rtSocketToString(m_remote_endpoint).c_str());
+
   return RT_OK;
 }
 
@@ -267,7 +256,7 @@ rtRpcStream::sendRequest(rtRpcRequest const& req, message_handler handler, uint3
 {
   rtCorrelationKey_t key = req.getCorrelationKey();
   assert(key != 0);
-  assert(m_fd != -1);
+  assert(m_fd != kInvalidSocket);
 
   if (handler)
   {

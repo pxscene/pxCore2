@@ -105,6 +105,10 @@ rtRpcClient::startSession(std::string const& objectName, uint32_t timeout)
 {
   rtJsonDocPtr_t res;
   rtRpcRequestOpenSession req(objectName);
+
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
   rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr_t const& doc)
   {
     res = doc;
@@ -112,7 +116,10 @@ rtRpcClient::startSession(std::string const& objectName, uint32_t timeout)
   }, timeout);
 
   if (e != RT_OK)
+  {
+    rtLogError("failed to send request to start session. %s", rtStrError(e));
     return e;
+  }
 
   return res != nullptr ? RT_OK : RT_FAIL;
 }

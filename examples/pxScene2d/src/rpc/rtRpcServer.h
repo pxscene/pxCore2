@@ -13,7 +13,7 @@
 #include <rapidjson/document.h>
 
 #include "rtRpcTypes.h"
-#include "rtRemoteObjectResolver.h"
+#include "rtRpcResolver.h"
 #include "rtSocketUtils.h"
 
 class rtRpcClient;
@@ -27,10 +27,7 @@ public:
   ~rtRpcServer();
 
 public:
-  rtError open(char const* dstaddr = nullptr, uint16_t dstport = 0,
-    char const* srcaddr = nullptr);
-  rtError start();
-
+  rtError open(char const* dstaddr = nullptr, uint16_t dstport = 0, char const* srcaddr = nullptr);
   rtError registerObject(std::string const& name, rtObjectRef const& obj);
   rtError findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout = 1000);
   rtError removeStaleObjects(int* num_removed);
@@ -48,6 +45,7 @@ private:
   rtError onIncomingMessage(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& msg);
 
   // command handlers
+  rtError start();
   rtError onOpenSession(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& doc);
   rtError onGet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& doc);
   rtError onSet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& doc);
@@ -68,9 +66,9 @@ private:
 
   typedef std::map< std::string, object_reference > refmap_t;
   typedef std::map< std::string, rtRpcMessageHandler_t > command_handler_map;
-  typedef std::map< std::string, std::shared_ptr<rtRpcClient> > tport_map_t;
 
-  using client_list = std::vector< std::shared_ptr<rtRpcClient> >;
+  using ClientMap = std::map< std::string, std::shared_ptr<rtRpcClient> >;
+  using ClientList = std::vector< std::shared_ptr<rtRpcClient > >;
 
   sockaddr_storage              m_rpc_endpoint;
   int                           m_listen_fd;
@@ -81,12 +79,12 @@ private:
 
 //  refmap_t                      m_objects;
 
-  rtRemoteObjectResolver*       m_resolver;
-  tport_map_t                   m_transports;
+  rtIRpcResolver*		m_resolver;
+  ClientMap			m_object_map;
+  ClientList			m_connected_clients;
   int                           m_pipe_write;
   int                           m_pipe_read;
   uint32_t                      m_keep_alive_interval;
-  client_list			m_clients;
 };
 
 #endif

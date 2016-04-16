@@ -1,6 +1,7 @@
-#include "rtRemoteObjectResolver.h"
+#include "rtRpcResolver.h"
 #include "rtSocketUtils.h"
 #include "rtRpcMessage.h"
+#include "rtRpcConfig.h"
 
 #include <rtLog.h>
 
@@ -18,7 +19,7 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
-rtRemoteObjectResolver::rtRemoteObjectResolver(sockaddr_storage const& rpc_endpoint)
+rtRpcMulticastResolver::rtRpcMulticastResolver(sockaddr_storage const& rpc_endpoint)
   : m_mcast_fd(-1)
   , m_mcast_src_index(-1)
   , m_ucast_fd(-1)
@@ -32,8 +33,8 @@ rtRemoteObjectResolver::rtRemoteObjectResolver(sockaddr_storage const& rpc_endpo
   memset(&m_mcast_src, 0, sizeof(m_mcast_src));
   memset(&m_ucast_endpoint, 0, sizeof(m_ucast_endpoint));
 
-  m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeSearch, &rtRemoteObjectResolver::onSearch));
-  m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeLocate, &rtRemoteObjectResolver::onLocate));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeSearch, &rtRpcMulticastResolver::onSearch));
+  m_command_handlers.insert(cmd_handler_map_t::value_type(kMessageTypeLocate, &rtRpcMulticastResolver::onLocate));
     
   char addr_buff[128];
 
@@ -49,16 +50,17 @@ rtRemoteObjectResolver::rtRemoteObjectResolver(sockaddr_storage const& rpc_endpo
   rtGetPort(rpc_endpoint, &m_rpc_port);
 }
 
-rtRemoteObjectResolver::~rtRemoteObjectResolver()
+rtRpcMulticastResolver::~rtRpcMulticastResolver()
 {
-  if (m_mcast_fd != -1)
-    close(m_mcast_fd);
-  if (m_ucast_fd != -1)
-    close(m_ucast_fd);
+  rtError err = this->close();
+  if (err != RT_OK)
+  {
+    rtLogWarn("failed to close resolver: %s", rtStrError(err));
+  }
 }
 
 rtError
-rtRemoteObjectResolver::open(char const* dstaddr, uint16_t port, char const* srcaddr)
+rtRpcMulticastResolver::init(char const* dstaddr, uint16_t port, char const* srcaddr)
 {
   rtError err = RT_OK;
 
@@ -77,15 +79,26 @@ rtRemoteObjectResolver::open(char const* dstaddr, uint16_t port, char const* src
   if (err != RT_OK)
     return err;
 
-  err = openUnicastSocket();
-  if (err != RT_OK)
-    return err;
-
   return RT_OK;
 }
 
 rtError
-rtRemoteObjectResolver::openUnicastSocket()
+rtRpcMulticastResolver::open()
+{
+  rtError err = openUnicastSocket();
+  if (err != RT_OK)
+    return err;
+
+  err = openMulticastSocket();
+  if (err != RT_OK)
+    return err;
+
+  m_read_thread.reset(new std::thread(&rtRpcMulticastResolver::runListener, this));
+  return RT_OK;
+}
+
+rtError
+rtRpcMulticastResolver::openUnicastSocket()
 {
   int ret = 0;
   int err = 0;
@@ -158,7 +171,7 @@ rtRemoteObjectResolver::openUnicastSocket()
 }
 
 rtError
-rtRemoteObjectResolver::onSearch(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc)
+rtRpcMulticastResolver::onSearch(rtJsonDocPtr_t const& doc, sockaddr_storage const& soc)
 {
   auto senderId = doc->FindMember(kFieldNameSenderId);
   assert(senderId != doc->MemberEnd());
@@ -170,15 +183,15 @@ rtRemoteObjectResolver::onSearch(rtJsonDocPtr_t const& doc, sockaddr_storage con
   int key = rtMessage_GetCorrelationKey(*doc);
 
 
-  auto itr = m_registered_objects.end();
+  auto itr = m_hosted_objects.end();
 
   char const* objectId = rtMessage_GetObjectId(*doc);
 
   std::unique_lock<std::mutex> lock(m_mutex);
-  itr = m_registered_objects.find(objectId);
+  itr = m_hosted_objects.find(objectId);
   lock.unlock();
 
-  if (itr != m_registered_objects.end())
+  if (itr != m_hosted_objects.end())
   {
     rapidjson::Document doc;
     doc.SetObject();
@@ -197,7 +210,7 @@ rtRemoteObjectResolver::onSearch(rtJsonDocPtr_t const& doc, sockaddr_storage con
 }
 
 rtError
-rtRemoteObjectResolver::onLocate(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
+rtRpcMulticastResolver::onLocate(rtJsonDocPtr_t const& doc, sockaddr_storage const& /*soc*/)
 {
   int key = rtMessage_GetCorrelationKey(*doc);
 
@@ -210,8 +223,14 @@ rtRemoteObjectResolver::onLocate(rtJsonDocPtr_t const& doc, sockaddr_storage con
 }
 
 rtError
-rtRemoteObjectResolver::resolveObject(std::string const& name, sockaddr_storage& endpoint, uint32_t timeout)
+rtRpcMulticastResolver::locateObject(std::string const& name, sockaddr_storage& endpoint, uint32_t timeout)
 {
+  if (m_ucast_fd == -1)
+  {
+    rtLogError("unicast socket not opened");
+    return RT_FAIL;
+  }
+
   rtError err = RT_OK;
   rtCorrelationKey_t seqId = rtMessage_GetNextCorrelationKey();
 
@@ -265,7 +284,7 @@ rtRemoteObjectResolver::resolveObject(std::string const& name, sockaddr_storage&
 }
 
 void
-rtRemoteObjectResolver::runListener()
+rtRpcMulticastResolver::runListener()
 {
   buff_t buff;
   buff.reserve(1024 * 1024);
@@ -302,7 +321,7 @@ rtRemoteObjectResolver::runListener()
 }
 
 void
-rtRemoteObjectResolver::doRead(int fd, buff_t& buff)
+rtRpcMulticastResolver::doRead(int fd, buff_t& buff)
 {
   // we only suppor v4 right now. not sure how recvfrom supports v6 and v4
   sockaddr_storage src;
@@ -318,12 +337,12 @@ rtRemoteObjectResolver::doRead(int fd, buff_t& buff)
 }
 
 void
-rtRemoteObjectResolver::doDispatch(char const* buff, int n, sockaddr_storage* peer)
+rtRpcMulticastResolver::doDispatch(char const* buff, int n, sockaddr_storage* peer)
 {
   // rtLogInfo("new message from %s:%d", inet_ntoa(src.sin_addr), htons(src.sin_port));
   // printf("read: %d\n", int(n));
   #ifdef RT_RPC_DEBUG
-  rtLogDebug("read:\n\t\"%.*s\"\n", n, buff); // static_cast<int>(m_read_buff.size()), &m_read_buff[0]);
+  rtLogDebug("read:\n<<<\t\"%.*s\"\n", n, buff); // static_cast<int>(m_read_buff.size()), &m_read_buff[0]);
   #endif
 
   rtJsonDocPtr_t doc;
@@ -352,25 +371,37 @@ rtRemoteObjectResolver::doDispatch(char const* buff, int n, sockaddr_storage* pe
 }
 
 rtError
-rtRemoteObjectResolver::start()
+rtRpcMulticastResolver::close()
 {
-  rtError err = openMulticastSocket();
-  if (err != RT_OK)
-    return err;
-  m_read_thread.reset(new std::thread(&rtRemoteObjectResolver::runListener, this));
+  int ret = 0;
+
+  if (m_mcast_fd != -1)
+  {
+    ret = ::close(m_mcast_fd);
+    if (ret == -1)
+      rtLogWarn("failed to close %d. %s", m_mcast_fd, rtStrError(errno).c_str());
+  }
+
+  if (m_ucast_fd != -1)
+  {
+    ret = ::close(m_ucast_fd);
+    if (ret == -1)
+      rtLogWarn("failed to close %d. %s", m_ucast_fd, rtStrError(errno).c_str());
+  }
+
   return RT_OK;
 }
 
 rtError
-rtRemoteObjectResolver::registerObject(std::string const& name)
+rtRpcMulticastResolver::registerObject(std::string const& name, sockaddr_storage const& endpoint)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
-  m_registered_objects.insert(name);
+  m_hosted_objects[name] = endpoint;
   return RT_OK;
 }
 
 rtError
-rtRemoteObjectResolver::openMulticastSocket()
+rtRpcMulticastResolver::openMulticastSocket()
 {
   int err = 0;
 

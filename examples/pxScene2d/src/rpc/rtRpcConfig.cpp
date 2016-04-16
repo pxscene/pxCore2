@@ -30,7 +30,7 @@ static long int to_long(char const* s)
 {
   if (s == nullptr)
   {
-    rtLogError("can't conver nullptr to uint16_t");
+    rtLogError("can't conver nullptr to long int");
     assert(false);
   }
 
@@ -78,6 +78,7 @@ static Setting kDefaultSettings[] =
   { "rt.rpc.resolver.multicast_address6", "ff05:0:0:0:0:0:0:201" },
   { "rt.rpc.resolver.multicast_port", "10004" },
   { "rt.rpc.default.request_timeout", "1000" },
+  { "rt.rpc.resolver.locate_timeout", "1000" },
   { nullptr, nullptr }
 };
 
@@ -141,8 +142,6 @@ rtRpcConfig::getString(char const* key)
     return nullptr;
   }
 
-  rtLogInfo("getting key:%s\n", key);
-
   auto itr = m_map.find(key);
   if (itr == m_map.end())
   {
@@ -150,9 +149,7 @@ rtRpcConfig::getString(char const* key)
     return nullptr;
   }
 
-  char const* val = itr->second.c_str();
-  rtLogInfo("val:%s", val);
-
+  // char const* val = itr->second.c_str();
   return itr->second.c_str();
 }
 

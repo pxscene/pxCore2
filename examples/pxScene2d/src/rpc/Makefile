@@ -10,7 +10,7 @@ RT_SRCS=\
   ../rtError.cpp \
   rpc_main.cpp \
   rtRpcServer.cpp \
-  rtRemoteObjectResolver.cpp \
+  rtRpcResolver.cpp \
   rtRemoteObject.cpp \
   rtRemoteFunction.cpp \
   rtRpcMessage.cpp \

@@ -11,6 +11,8 @@
 
 typedef std::vector<char> rt_sockbuf_t;
 
+#define kInvalidSocket (-1)
+
 rtError rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* index);
 rtError rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len);
 rtError rtGetInterfaceAddress(char const* name, sockaddr_storage& ss);
@@ -24,5 +26,8 @@ std::string rtSocketToString(sockaddr_storage const& ss);
 
 // this really doesn't belong here, but putting it here for now
 rtError rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* dest);
+rtError rtGetPeerName(int fd, sockaddr_storage& endpoint);
+rtError rtGetSockName(int fd, sockaddr_storage& endpoint);
+rtError	rtCloseSocket(int& fd);
 
 #endif
