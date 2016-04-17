@@ -75,5 +75,5 @@ rtRpcLocateObject(char const* id, rtObjectRef& obj)
     return RT_ERROR_INVALID_ARG;
   }
 
-  return gServer->findObject(id, obj);
+  return gServer->findObject(id, obj, 3000);
 }

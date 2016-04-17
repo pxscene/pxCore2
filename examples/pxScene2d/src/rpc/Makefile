@@ -43,7 +43,7 @@ endif
 
 CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -g -DRT_PLATFORM_LINUX -I../ -I.
 CXXFLAGS+=-std=c++0x $(CFLAGS)
-LDFLAGS =-pthread -ldl
+LDFLAGS =-pthread -ldl -luuid
 OBJDIR=obj
 
 OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RT_SRCS)))

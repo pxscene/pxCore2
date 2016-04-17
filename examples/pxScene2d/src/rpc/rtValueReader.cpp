@@ -16,11 +16,17 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
 {
   auto type = from.FindMember(kFieldNameValueType);
   if (type  == from.MemberEnd())
+  {
+    rtLogWarn("failed to find member: %s", kFieldNameValueType);
     return RT_FAIL;
+  }
 
   auto val = from.FindMember(kFieldNameValueValue);
   if (type->value.GetInt() != RT_functionType && val == from.MemberEnd())
+  {
+    rtLogWarn("failed to find member: %s", kFieldNameValueValue);
     return RT_FAIL;
+  }
 
   switch (type->value.GetInt())
   {
@@ -94,11 +100,17 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
       if (!client)
         return RT_FAIL;
 
-      auto itr = from.FindMember(kFieldNameObjectId);
+      auto const& func = from.FindMember("value");
+      assert(func != from.MemberEnd());
+
+      auto itr = func->value.FindMember(kFieldNameObjectId);
+      assert(itr != func->value.MemberEnd());
+
       std::string objectId = itr->value.GetString();
 	
-      itr = from.FindMember(kFieldNameFunctionName);
-      assert(itr != from.MemberEnd());
+      itr = func->value.FindMember(kFieldNameFunctionName);
+      assert(itr != func->value.MemberEnd());
+
       std::string functionId = itr->value.GetString();
 
       to.setFunction(new rtRemoteFunction(objectId, functionId, client));
@@ -106,7 +118,13 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
     break;
 
     case RT_voidPtrType:
-    assert(false);
+    {
+#if __x86_64
+      to.setVoidPtr((void *) val->value.GetUint64());
+#else
+      to.setVoidPtr((void *) val->value.GetUint32());
+#endif
+    }
     break;
   }
 

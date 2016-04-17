@@ -290,7 +290,7 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
     rtGetPeerName(fd, remote_endpoint);
 
   char const* verb = (dest != NULL ? "sendto" : "send");
-  rtLogDebug("%s [%d/%s] (%d):\n>>>\t\"%.*s\"\n",
+  rtLogDebug("%s [%d/%s] (%d):\n***OUT***\t\"%.*s\"\n",
     verb,
     fd,
     rtSocketToString(remote_endpoint).c_str(),
@@ -377,7 +377,7 @@ rtReadMessage(int fd, rtSocketBuffer& buff, rtJsonDocPtr& doc)
   }
     
   #ifdef RT_RPC_DEBUG
-  rtLogDebug("read (%d):\n<<<\t\"%.*s\"\n", static_cast<int>(buff.size()), static_cast<int>(buff.size()), &buff[0]);
+  rtLogDebug("read (%d):\n***IN***\t\"%.*s\"\n", static_cast<int>(buff.size()), static_cast<int>(buff.size()), &buff[0]);
   #endif
 
   return rtParseMessage(&buff[0], n, doc);

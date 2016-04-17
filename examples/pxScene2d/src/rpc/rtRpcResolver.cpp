@@ -433,7 +433,7 @@ rtRpcMulticastResolver::doDispatch(char const* buff, int n, sockaddr_storage* pe
   // rtLogInfo("new message from %s:%d", inet_ntoa(src.sin_addr), htons(src.sin_port));
   // printf("read: %d\n", int(n));
   #ifdef RT_RPC_DEBUG
-  rtLogDebug("read:\n<<<\t\"%.*s\"\n", n, buff); // static_cast<int>(m_read_buff.size()), &m_read_buff[0]);
+  rtLogDebug("read:\n***IN***\t\"%.*s\"\n", n, buff); // static_cast<int>(m_read_buff.size()), &m_read_buff[0]);
   #endif
 
   rtJsonDocPtr doc;

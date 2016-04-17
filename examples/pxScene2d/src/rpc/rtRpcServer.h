@@ -29,7 +29,7 @@ public:
 public:
   rtError open();
   rtError registerObject(std::string const& name, rtObjectRef const& obj);
-  rtError findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout = 1000);
+  rtError findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout);
   rtError removeStaleObjects();
 
 private:
@@ -52,8 +52,6 @@ private:
   rtError onMethodCall(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc);
   rtError onKeepAlive(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc);
   rtError openRpcListener();
-
-  rtObjectRef getObject(std::string const& id) const;
 
 private:
   struct ObjectReference

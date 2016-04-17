@@ -5,10 +5,14 @@
 #include "rtSocketUtils.h"
 #include "rtRpcConfig.h"
 
+#include <atomic>
 #include <cstdio>
 #include <limits>
+#include <sstream>
+
 #include <rtError.h>
 #include <rtValue.h>
+#include <uuid/uuid.h>
 #include <rapidjson/document.h>
 
 #define kFieldNameMessageType "message.type"
@@ -178,11 +182,19 @@ if (value.getType() == RT_functionType)
 
 namespace
 {
-  std::string getId(rtFunctionRef const& ref)
+  static std::atomic<int> sNextFunctionId;
+
+  std::string getId(rtFunctionRef const& /*ref*/)
   {
-    char buff[64] = {0};
-    std::snprintf(buff, sizeof(buff), "%p", ref.getPtr());
-    return std::string(buff);
+    char buff[32] = {0};
+    uuid_t id;
+    uuid_generate(id);
+    uuid_unparse_lower(id, buff);
+
+    std::stringstream ss;
+    ss << "func://";
+    ss << buff;
+    return ss.str();
   }
 }
 
@@ -193,6 +205,8 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
 
   if (from.getType() == RT_functionType)
   {
+    to.AddMember(kFieldNameValueType, static_cast<int>(RT_functionType), doc.GetAllocator());
+
     rtFunctionRef func = from.toFunction();
     std::string id = getId(func);
 
@@ -200,7 +214,6 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
     val.SetObject();
     val.AddMember(kFieldNameObjectId, std::string("global"), doc.GetAllocator());
     val.AddMember(kFieldNameFunctionName, id, doc.GetAllocator());
-    val.AddMember(kFieldNameValueType, static_cast<int>(RT_functionType), doc.GetAllocator());
 
     rtObjectCache::insert(id, func, rtRpcSetting<int>("rt.rpc.cache.max_object_lifetime"));
     to.AddMember("value", val, doc.GetAllocator());
@@ -224,7 +237,13 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
     case RT_stringType:   to.AddMember("value", std::string(from.toString().cString()), doc.GetAllocator()); break;
     case RT_objectType:   assert(false); break;
     case RT_functionType: assert(false); break;
-    case RT_voidPtrType:  assert(false); break;
+    case RT_voidPtrType:
+#if __x86_64
+      to.AddMember("Value", (uint64_t)(from.toVoidPtr()), doc.GetAllocator());
+#else
+      to.AddMember("value", (uint32_t)(from.toVoidPtr()), doc.GetAllocator());
+#endif
+      break;
   }
   return RT_OK;
 }

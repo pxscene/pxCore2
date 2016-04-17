@@ -20,7 +20,7 @@ class rtRpcStream : public std::enable_shared_from_this<rtRpcStream>
   friend class rtRpcClient;
 
 public:
-  using message_handler = std::function<rtError (rtJsonDocPtr const& doc)>;
+  using MessageHandler = std::function<rtError (rtJsonDocPtr const& doc)>;
 
   rtRpcStream(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint);
   ~rtRpcStream();
@@ -36,8 +36,8 @@ public:
   rtError connectTo(sockaddr_storage const& endpoint);
   rtError connect();
   rtError send(rtRpcMessage const& msg);
-  rtError sendRequest(rtRpcRequest const& req, message_handler handler, uint32_t timeout = 1000);
-  rtError setMessageCallback(message_handler handler);
+  rtError sendRequest(rtRpcRequest const& req, MessageHandler handler, uint32_t timeout = 1000);
+  rtError setMessageCallback(MessageHandler handler);
   rtError setInactivityCallback(rtRpcInactivityHandler handler);
 
   inline sockaddr_storage getLocalEndpoint() const
@@ -61,7 +61,7 @@ private:
 
   int 				m_fd;
   time_t 			m_last_message_time;
-  message_handler		m_message_handler;
+  MessageHandler		m_message_handler;
   rtRpcInactivityHandler	m_inactivity_handler;
   std::mutex			m_mutex;
   std::condition_variable	m_cond;

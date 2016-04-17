@@ -79,8 +79,8 @@ static Setting kDefaultSettings[] =
   { "rt.rpc.resolver.multicast_address", "224.10.0.12" },
   { "rt.rpc.resolver.multicast_address6", "ff05:0:0:0:0:0:0:201" },
   { "rt.rpc.resolver.multicast_port", "10004" },
-  { "rt.rpc.default.request_timeout", "1000" },
-  { "rt.rpc.resolver.locate_timeout", "1000" },
+  { "rt.rpc.default.request_timeout", "3000" },
+  { "rt.rpc.resolver.locate_timeout", "3000" },
   { "rt.rpc.cache.max_object_lifetime", "15" },
   { nullptr, nullptr }
 };

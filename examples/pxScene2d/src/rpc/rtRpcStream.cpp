@@ -189,7 +189,7 @@ rtRpcStream::send(rtRpcMessage const& m)
 }
 
 rtError
-rtRpcStream::setMessageCallback(message_handler handler)
+rtRpcStream::setMessageCallback(MessageHandler handler)
 {
   m_message_handler = handler;
   return RT_OK;
@@ -252,7 +252,7 @@ rtRpcStream::onIncomingMessage(rtSocketBuffer& buff, time_t now)
 }
 
 rtError
-rtRpcStream::sendRequest(rtRpcRequest const& req, message_handler handler, uint32_t timeout)
+rtRpcStream::sendRequest(rtRpcRequest const& req, MessageHandler handler, uint32_t timeout)
 {
   rtCorrelationKey key = req.getCorrelationKey();
   assert(key != 0);

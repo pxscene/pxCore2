@@ -284,6 +284,8 @@ rtRpcServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t time
       if (!client)
       {
         client.reset(new rtRpcClient(rpc_endpoint));
+	client->setMessageCallback(std::bind(&rtRpcServer::onIncomingMessage, this, 
+	  std::placeholders::_1, std::placeholders::_2));
         err = client->open();
         if (err != RT_OK)
         {
@@ -396,12 +398,6 @@ rtRpcServer::onOpenSession(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr co
   return err;
 }
 
-rtObjectRef
-rtRpcServer::getObject(std::string const& id) const
-{
-  return rtObjectCache::findObject(id);
-}
-
 rtError
 rtRpcServer::onGet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc)
 {
@@ -414,7 +410,7 @@ rtRpcServer::onGet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc
   res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
   res->AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
 
-  rtObjectRef obj = getObject(id);
+  rtObjectRef obj = rtObjectCache::findObject(id);
   if (!obj)
   {
     res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
@@ -485,7 +481,7 @@ rtRpcServer::onSet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc
   res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
   res->AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
 
-  rtObjectRef obj = getObject(id);
+  rtObjectRef obj = rtObjectCache::findObject(id);
   if (!obj)
   {
     res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
@@ -540,10 +536,10 @@ rtRpcServer::onMethodCall(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr con
   res.AddMember(kFieldNameMessageType, kMessageTypeMethodCallResponse, res.GetAllocator());
   res.AddMember(kFieldNameCorrelationKey, key, res.GetAllocator());
 
-  rtObjectRef obj = getObject(id);
-  if (!obj)
+  rtObjectRef obj = rtObjectCache::findObject(id);
+  if (!obj && (strcmp(id, "global") != 0))
   {
-    rtMessage_SetStatus(res, 1, "failed to find object");
+    rtMessage_SetStatus(res, 1, "failed to find object with id: %s", id);
   }
   else
   {
@@ -555,7 +551,15 @@ rtRpcServer::onMethodCall(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr con
     }
 
     rtFunctionRef func;
-    err = obj.get<rtFunctionRef>(function_name->value.GetString(), func);
+    if (obj) // member function
+    {
+      err = obj.get<rtFunctionRef>(function_name->value.GetString(), func);
+    }
+    else
+    {
+      func = rtObjectCache::findFunction(function_name->value.GetString());
+    }
+
     if (err == RT_OK)
     {
       // virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
@@ -564,25 +568,25 @@ rtRpcServer::onMethodCall(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr con
       auto itr = doc->FindMember(kFieldNameFunctionArgs);
       if (itr != doc->MemberEnd())
       {
-        // rapidjson::Value const& args = (*doc)[kFieldNameFunctionArgs];
-        rapidjson::Value const& args = itr->value;
-        for (rapidjson::Value::ConstValueIterator itr = args.Begin(); itr != args.End(); ++itr)
-        {
-          rtValue arg;
-          rtValueReader::read(arg, *itr, client);
-          argv.push_back(arg);
-        }
+	// rapidjson::Value const& args = (*doc)[kFieldNameFunctionArgs];
+	rapidjson::Value const& args = itr->value;
+	for (rapidjson::Value::ConstValueIterator itr = args.Begin(); itr != args.End(); ++itr)
+	{
+	  rtValue arg;
+	  rtValueReader::read(arg, *itr, client);
+	  argv.push_back(arg);
+	}
       }
 
       rtValue return_value;
       err = func->Send(static_cast<int>(argv.size()), &argv[0], &return_value);
       if (err == RT_OK)
       {
-        rapidjson::Value val;
-        rtValueWriter::write(return_value, val, res);
-        res.AddMember(kFieldNameFunctionReturn, val, res.GetAllocator());
+	rapidjson::Value val;
+	rtValueWriter::write(return_value, val, res);
+	res.AddMember(kFieldNameFunctionReturn, val, res.GetAllocator());
       }
-     
+
       rtMessage_SetStatus(res, 0);
     }
     else
