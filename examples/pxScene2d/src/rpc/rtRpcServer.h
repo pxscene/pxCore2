@@ -27,10 +27,10 @@ public:
   ~rtRpcServer();
 
 public:
-  rtError open(char const* dstaddr = nullptr, uint16_t dstport = 0, char const* srcaddr = nullptr);
+  rtError open();
   rtError registerObject(std::string const& name, rtObjectRef const& obj);
   rtError findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout = 1000);
-  rtError removeStaleObjects(int* num_removed);
+  rtError removeStaleObjects();
 
 private:
   struct connected_client
@@ -42,21 +42,21 @@ private:
   void runListener();
   void doAccept(int fd);
 
-  rtError onIncomingMessage(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& msg);
+  rtError onIncomingMessage(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& msg);
 
   // command handlers
   rtError start();
-  rtError onOpenSession(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& doc);
-  rtError onGet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& doc);
-  rtError onSet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& doc);
-  rtError onMethodCall(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& doc);
-  rtError onKeepAlive(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& doc);
+  rtError onOpenSession(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc);
+  rtError onGet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc);
+  rtError onSet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc);
+  rtError onMethodCall(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc);
+  rtError onKeepAlive(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc);
   rtError openRpcListener();
 
   rtObjectRef getObject(std::string const& id) const;
 
 private:
-  struct object_reference
+  struct ObjectReference
   {
     rtObjectRef       object;
     std::vector<int>  client_fds;
@@ -64,20 +64,17 @@ private:
     bool              owner_removed;
   };
 
-  typedef std::map< std::string, object_reference > refmap_t;
-  typedef std::map< std::string, rtRpcMessageHandler_t > command_handler_map;
-
   using ClientMap = std::map< std::string, std::shared_ptr<rtRpcClient> >;
   using ClientList = std::vector< std::shared_ptr<rtRpcClient > >;
+  using CommandHandlerMap = std::map< std::string, rtRpcMessageHandler >;
+  using ObjectRefeMap = std::map< std::string, ObjectReference >;
 
   sockaddr_storage              m_rpc_endpoint;
   int                           m_listen_fd;
 
   std::unique_ptr<std::thread>  m_thread;
   mutable std::mutex            m_mutex;
-  command_handler_map		m_command_handlers;
-
-//  refmap_t                      m_objects;
+  CommandHandlerMap		m_command_handlers;
 
   rtIRpcResolver*		m_resolver;
   ClientMap			m_object_map;

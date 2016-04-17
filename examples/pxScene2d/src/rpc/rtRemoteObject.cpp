@@ -6,7 +6,7 @@ rtRemoteObject::rtRemoteObject(std::string const& id, std::shared_ptr<rtRpcClien
   , m_id(id)
   , m_rpc_client(client)
 {
-  m_rpc_client->keep_alive(id);
+  m_rpc_client->keepAlive(id);
 }
 
 rtRemoteObject::~rtRemoteObject()

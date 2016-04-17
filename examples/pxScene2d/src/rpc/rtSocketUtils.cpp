@@ -18,6 +18,38 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
+static rtError
+rtFindFirstInetInterface(char* name, size_t len)
+{
+  rtError e = RT_FAIL;
+  ifaddrs* ifaddr = NULL;
+  int ret = getifaddrs(&ifaddr);
+  if (ret == -1)
+  {
+    rtLogError("failed to get list of interfaces: %s", rtStrError(errno).c_str());
+    return RT_FAIL;
+  }
+
+  for (ifaddrs* i = ifaddr; i != nullptr; i = i->ifa_next)
+  {
+    if (i->ifa_addr == nullptr)
+      continue;
+    if (i->ifa_addr->sa_family != AF_INET && i->ifa_addr->sa_family != AF_INET6)
+      continue;
+    if (strcmp(i->ifa_name, "lo") == 0)
+      continue;
+
+    strncpy(name, i->ifa_name, len);
+    e = RT_OK;
+    break;
+  }
+
+  if (ifaddr)
+    freeifaddrs(ifaddr);
+
+  return e;
+}
+
 
 rtError
 rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* index)
@@ -313,7 +345,7 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
 }
 
 rtError
-rtReadMessage(int fd, rt_sockbuf_t& buff, rtJsonDocPtr_t& doc)
+rtReadMessage(int fd, rtSocketBuffer& buff, rtJsonDocPtr& doc)
 {
   rtError err = RT_OK;
 
@@ -352,7 +384,7 @@ rtReadMessage(int fd, rt_sockbuf_t& buff, rtJsonDocPtr_t& doc)
 }
 
 rtError
-rtParseMessage(char const* buff, int n, rtJsonDocPtr_t& doc)
+rtParseMessage(char const* buff, int n, rtJsonDocPtr& doc)
 {
   if (!buff)
     return RT_FAIL;
@@ -445,4 +477,22 @@ rtCloseSocket(int& fd)
     fd = kInvalidSocket;
   }
   return RT_OK;
+}
+
+rtError
+rtGetDefaultInterface(sockaddr_storage& addr, uint16_t port)
+{
+  char name[64];
+  memset(name, 0, sizeof(name));
+
+  rtError e = rtFindFirstInetInterface(name, sizeof(name));
+  if (e == RT_OK)
+  {
+    sockaddr_storage temp;
+    e = rtParseAddress(temp, name, port, nullptr);
+    if (e == RT_OK)
+      memcpy(&addr, &temp, sizeof(sockaddr_storage));
+  }
+
+  return e;
 }

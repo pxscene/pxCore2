@@ -29,7 +29,7 @@ public:
 private:
   rtError pollFds()
   {
-    rt_sockbuf_t buff;
+    rtSocketBuffer buff;
     buff.reserve(1024 * 1024);
     buff.resize(1024 * 1024);
     
@@ -73,7 +73,7 @@ private:
 	  if (e != RT_OK)
 	    m_streams[i].reset();
 	}
-	else if (now - s->m_last_message_time > 10)
+	else if (now - s->m_last_message_time > 2)
 	{
 	  e = s->onInactivity(now);
 	  if (e != RT_OK)
@@ -196,7 +196,7 @@ rtRpcStream::setMessageCallback(message_handler handler)
 }
 
 rtError
-rtRpcStream::setInactivityCallback(rtRpcInactivityHandler_t handler)
+rtRpcStream::setInactivityCallback(rtRpcInactivityHandler handler)
 {
   m_inactivity_handler = handler;
   return RT_OK;
@@ -214,15 +214,15 @@ rtRpcStream::onInactivity(time_t now)
 }
 
 rtError
-rtRpcStream::onIncomingMessage(rt_sockbuf_t& buff, time_t now)
+rtRpcStream::onIncomingMessage(rtSocketBuffer& buff, time_t now)
 {
   m_last_message_time = now;
 
-  rtJsonDocPtr_t doc;
+  rtJsonDocPtr doc;
   rtError err = rtReadMessage(m_fd, buff, doc);
   if (err != RT_OK)
   {
-    rtLogWarn("failed to read message from fd:%d. %s", m_fd, rtStrError(err));
+    rtLogDebug("failed to read message from fd:%d. %s", m_fd, rtStrError(err));
     return err;
   }
 
@@ -254,7 +254,7 @@ rtRpcStream::onIncomingMessage(rt_sockbuf_t& buff, time_t now)
 rtError
 rtRpcStream::sendRequest(rtRpcRequest const& req, message_handler handler, uint32_t timeout)
 {
-  rtCorrelationKey_t key = req.getCorrelationKey();
+  rtCorrelationKey key = req.getCorrelationKey();
   assert(key != 0);
   assert(m_fd != kInvalidSocket);
 
@@ -264,7 +264,7 @@ rtRpcStream::sendRequest(rtRpcRequest const& req, message_handler handler, uint3
     // is waiting for a response
     std::unique_lock<std::mutex> lock(m_mutex);
     assert(m_requests.find(key) == m_requests.end());
-    m_requests[key] = rtJsonDocPtr_t();
+    m_requests[key] = rtJsonDocPtr();
   }
 
   m_last_message_time = time(0);
@@ -277,7 +277,7 @@ rtRpcStream::sendRequest(rtRpcRequest const& req, message_handler handler, uint3
 
   if (handler)
   {
-    rtJsonDocPtr_t doc = waitForResponse(key, timeout);
+    rtJsonDocPtr doc = waitForResponse(key, timeout);
     if (doc)
       e = handler(doc);
   }
@@ -285,10 +285,10 @@ rtRpcStream::sendRequest(rtRpcRequest const& req, message_handler handler, uint3
   return e;
 }
 
-rtJsonDocPtr_t
+rtJsonDocPtr
 rtRpcStream::waitForResponse(int key, uint32_t timeout)
 {
-  rtJsonDocPtr_t res;
+  rtJsonDocPtr res;
 
   auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
 

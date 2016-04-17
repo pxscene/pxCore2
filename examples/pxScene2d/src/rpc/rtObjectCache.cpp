@@ -1,4 +1,5 @@
 #include "rtObjectCache.h"
+#include "rtRpcConfig.h"
 
 
 #include <map>
@@ -11,6 +12,7 @@ namespace
     rtObjectRef   	Object;
     rtFunctionRef 	Function;
     time_t		LastUsed;
+    int			MaxAge;
   };
 
   using refmap = std::map< std::string, Entry >;
@@ -36,11 +38,12 @@ rtObjectCache::findFunction(std::string const& id)
 }
 
 rtError
-rtObjectCache::insert(std::string const& id, rtFunctionRef const& ref)
+rtObjectCache::insert(std::string const& id, rtFunctionRef const& ref, int maxAge)
 {
   Entry e;
   e.LastUsed = time(nullptr);
   e.Function = ref;
+  e.MaxAge = maxAge;
 
   std::unique_lock<std::mutex> lock(sMutex);
   auto res = sRefMap.insert(refmap::value_type(id, e));
@@ -48,11 +51,12 @@ rtObjectCache::insert(std::string const& id, rtFunctionRef const& ref)
 }
 
 rtError
-rtObjectCache::insert(std::string const& id, rtObjectRef const& ref)
+rtObjectCache::insert(std::string const& id, rtObjectRef const& ref, int maxAge)
 {
   Entry e;
   e.LastUsed = time(nullptr);
   e.Object = ref;
+  e.MaxAge = maxAge;
 
   std::unique_lock<std::mutex> lock(sMutex);
   auto res = sRefMap.insert(refmap::value_type(id, e));
@@ -92,23 +96,27 @@ rtObjectCache::erase(std::string const& id)
 }
 
 rtError
-rtObjectCache::removeIfOlderThan(int age, int* nRemoved)
+rtObjectCache::removeUnused()
 {
-  int n = 0;
   time_t now = time(nullptr);
+
+  int const maxAge = rtRpcSetting<int>("rt.rpc.cache.max_object_lifetime");
 
   std::unique_lock<std::mutex> lock(sMutex);
   for (auto itr = sRefMap.begin(); itr != sRefMap.end(); ++itr)
   {
-    if ((now - itr->second.LastUsed) > age)
+    if (itr->second.MaxAge == -1)
+      continue;
+
+    if ((now - itr->second.LastUsed) > maxAge)
     {
+      rtLogInfo("removing %s. It's last access time:%d is older max allowed: %d",
+	itr->first.c_str(),
+	static_cast<int>(now - itr->second.LastUsed),
+	maxAge);
       itr = sRefMap.erase(itr);
-      n++;
     }
   }
-
-  if (nRemoved)
-    *nRemoved = n;
 
   return RT_OK;
 }

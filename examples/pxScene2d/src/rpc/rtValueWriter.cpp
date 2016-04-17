@@ -1,13 +1,15 @@
-#include <cstdio>
 #ifndef __RT_RPC_MESSAGE_H__
 #define __RT_RPC_MESSAGE_H__
 
-#include <limits>
-#include <rapidjson/document.h>
-#include <rtError.h>
-#include <rtValue.h>
 #include "rtLog.h"
 #include "rtSocketUtils.h"
+#include "rtRpcConfig.h"
+
+#include <cstdio>
+#include <limits>
+#include <rtError.h>
+#include <rtValue.h>
+#include <rapidjson/document.h>
 
 #define kFieldNameMessageType "message.type"
 #define kFieldNameCorrelationKey "correlation.key"
@@ -62,7 +64,7 @@ private:
   rtRpcMessage() { }
 
 public:
-  rtCorrelationKey_t getCorrelationKey() const;
+  rtCorrelationKey getCorrelationKey() const;
   char const* getMessageType() const;
   char const* getObjectName() const;
 
@@ -71,7 +73,7 @@ public:
 protected:
   struct Impl;
   std::shared_ptr<Impl>   m_impl;
-  rtCorrelationKey_t      m_correlation_key;
+  rtCorrelationKey      m_correlation_key;
 };
 
 class rtRpcRequest : public rtRpcMessage
@@ -146,7 +148,7 @@ rtError     rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out = s
 rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...)
               RT_PRINTF_FORMAT(3, 4);
 rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code);
-rtCorrelationKey_t rtMessage_GetNextCorrelationKey();
+rtCorrelationKey rtMessage_GetNextCorrelationKey();
 
 
 #endif
@@ -200,7 +202,7 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
     val.AddMember(kFieldNameFunctionName, id, doc.GetAllocator());
     val.AddMember(kFieldNameValueType, static_cast<int>(RT_functionType), doc.GetAllocator());
 
-    rtObjectCache::insert(id, func);
+    rtObjectCache::insert(id, func, rtRpcSetting<int>("rt.rpc.cache.max_object_lifetime"));
     to.AddMember("value", val, doc.GetAllocator());
 
     return RT_OK;

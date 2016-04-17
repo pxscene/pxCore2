@@ -71,14 +71,17 @@ static Setting kDefaultSettings[] =
 {
 #ifdef __APPLE__
   { "rt.rpc.resolver.multicast_interface", "en0" },
+  { "rt.rpc.server.listen_interface", "en0" },
 #else
   { "rt.rpc.resolver.multicast_interface", "eth0" },
+  { "rt.rpc.server.listen_interface", "eth0" },
 #endif
   { "rt.rpc.resolver.multicast_address", "224.10.0.12" },
   { "rt.rpc.resolver.multicast_address6", "ff05:0:0:0:0:0:0:201" },
   { "rt.rpc.resolver.multicast_port", "10004" },
   { "rt.rpc.default.request_timeout", "1000" },
   { "rt.rpc.resolver.locate_timeout", "1000" },
+  { "rt.rpc.cache.max_object_lifetime", "15" },
   { nullptr, nullptr }
 };
 
@@ -124,6 +127,12 @@ uint16_t
 rtRpcConfig::getUInt16(char const* key)
 {
   return numeric_cast<uint16_t>(getString(key));
+}
+
+int32_t
+rtRpcConfig::getInt32(char const* key)
+{
+  return numeric_cast<int32_t>(getString(key));
 }
 
 uint32_t

@@ -42,7 +42,7 @@ rtRpcClient::~rtRpcClient()
 }
 
 rtError
-rtRpcClient::onIncomingMessage(rtJsonDocPtr_t const& msg)
+rtRpcClient::onIncomingMessage(rtJsonDocPtr const& msg)
 {
   rtError e = RT_OK;
 
@@ -103,13 +103,13 @@ rtRpcClient::connectRpcEndpoint()
 rtError
 rtRpcClient::startSession(std::string const& objectName, uint32_t timeout)
 {
-  rtJsonDocPtr_t res;
+  rtJsonDocPtr res;
   rtRpcRequestOpenSession req(objectName);
 
   if (timeout == 0)
     timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
 
-  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr_t const& doc)
+  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc)
   {
     res = doc;
     return RT_OK;
@@ -127,6 +127,8 @@ rtRpcClient::startSession(std::string const& objectName, uint32_t timeout)
 rtError
 rtRpcClient::sendKeepAlive()
 {
+  if (m_object_list.empty())
+    return RT_OK;
   rtRpcRequestKeepAlive req;
   for (auto const& name : m_object_list)
     req.addObjectName(name);
@@ -159,8 +161,8 @@ rtRpcClient::sendGet(rtRpcGetRequest const& req, rtValue& value, uint32_t timeou
   if (timeout == 0)
     timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
 
-  rtJsonDocPtr_t res;
-  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr_t const& doc)
+  rtJsonDocPtr res;
+  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc)
   {
     res = doc;
     return RT_OK;
@@ -213,8 +215,8 @@ rtRpcClient::sendSet(rtRpcSetRequest const& req, uint32_t timeout)
   if (timeout == 0)
     timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
 
-  rtJsonDocPtr_t res;
-  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr_t const& doc) 
+  rtJsonDocPtr res;
+  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc) 
   {
     res = doc;
     return RT_OK;
@@ -241,8 +243,8 @@ rtRpcClient::send(std::string const& objectName, std::string const& methodName,
   for (int i = 0; i < argc; ++i)
     req.addMethodArgument(argv[i]);
 
-  rtJsonDocPtr_t res;
-  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr_t const& doc)
+  rtJsonDocPtr res;
+  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc)
   {
     res = doc;
     return RT_OK;

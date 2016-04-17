@@ -19,6 +19,7 @@ public:
   char const*	getString(char const* key);
   uint16_t  	getUInt16(char const* key);
   uint32_t      getUInt32(char const* key);
+  int32_t	getInt32(char const* key);
 
 private:
   std::map< std::string, std::string> m_map;
@@ -47,6 +48,12 @@ template<>
 inline uint32_t rtRpcSetting(char const* s)
 {
   return rtRpcConfig::getInstance()->getUInt32(s);
+}
+
+template<>
+inline int32_t rtRpcSetting(char const* s)
+{
+  return rtRpcConfig::getInstance()->getInt32(s);
 }
 
 #endif

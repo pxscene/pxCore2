@@ -6,14 +6,17 @@
 #include <rapidjson/document.h>
 
 #include <memory>
+#include <vector>
+
+#define kInvalidSocket (-1)
 
 class rtRpcClient;
 
-typedef std::shared_ptr< rapidjson::Document > rtJsonDocPtr_t;
-typedef uint32_t rtCorrelationKey_t;
-
-using rtRpcMessageHandler_t = std::function<rtError (std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr_t const& msg)>;
-using rtRpcInactivityHandler_t = std::function<rtError(time_t lastMessageTime, time_t now)>;
+using rtSocketBuffer = std::vector<char>;
+using rtJsonDocPtr = std::shared_ptr< rapidjson::Document >;
+using rtCorrelationKey = uint32_t;
+using rtRpcMessageHandler = std::function<rtError (std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& msg)>;
+using rtRpcInactivityHandler = std::function<rtError(time_t lastMessageTime, time_t now)>;
 
 std::string rtStrError(int e);
 
