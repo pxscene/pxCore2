@@ -22,14 +22,26 @@ using namespace std;
 
 extern pxContext context;
 
+#define MAX_FIND_REMOTE_TIMEOUT_IN_MS 5000
+#define FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS 500
+#define TEST_REMOTE_OBJECT_NAME "waylandClient123" //TODO - update
+
 pxWayland::pxWayland(pxScene2d* scene) 
   : pxObject(scene), 
     m_clientMonitorThreadId(0), 
+    m_findRemoteThreadId(0),
     m_clientMonitorStarted(false),
+    m_waitingForRemoteObject(false),
     m_clientPID(-1),
-    m_nominalw(0),
-    m_nominalh(0),
-    m_wctx(0)
+    m_wctx(0),
+    m_hasApi(false),
+    m_API(),
+#ifdef ENABLE_PX_WAYLAND_RPC
+    m_locator(),
+    m_remoteObject(),
+#endif //ENABLE_PX_WAYLAND_RPC
+    m_remoteObjectName(TEST_REMOTE_OBJECT_NAME),
+    m_remoteObjectMutex()
 {
   pthread_mutex_init( &m_mutex, 0 );
   m_fillColor[0]= 0.0; 
@@ -69,6 +81,14 @@ rtError pxWayland::setDisplayName(const char* s)
   return RT_OK;
 }
 
+void pxWayland::sendPromise()
+{
+  if(mInitialized && !m_waitingForRemoteObject && !((rtPromise*)mReady.getPtr())->status())
+  {
+    mReady.send("resolve",this);
+  }
+}
+
 void pxWayland::createDisplay(rtString displayName)
 {
    bool error= false;
@@ -88,9 +108,7 @@ void pxWayland::createDisplay(rtString displayName)
          goto exit;
       }
       
-      m_nominalw= (int)mw;
-      m_nominalh= (int)mh;
-      if ( !WstCompositorSetOutputSize( m_wctx, m_nominalw, m_nominalh ) )
+      if ( !WstCompositorSetOutputSize( m_wctx, mw, mh ) )
       {
          error= true;
          goto exit;
@@ -131,17 +149,24 @@ void pxWayland::createDisplay(rtString displayName)
          error= true;
          goto exit;
       }
-      
-      mReady.send("resolve",this);
-      rtObjectRef e = new rtMapObject;
-      e.set("name", "onReady");
-      e.set("target", this);
-      mEmit.send("onReady", e);
+
+      if (!m_hasApi)
+      {
+        mReady.send("resolve", this);
+        rtObjectRef e = new rtMapObject;
+        e.set("name", "onReady");
+        e.set("target", this);
+        mEmit.send("onReady", e);
+      }
       
       if ( strlen(cmd) > 0 )
       {
          rtLogDebug("pxWayland: launching client (%s)", cmd );
+         rtLogInfo("remote client's id is %s", m_remoteObjectName.cString() );
+         setenv("PX_WAYLAND_CLIENT_REMOTE_OBJECT_NAME", m_remoteObjectName.cString(), 1);
          launchClient();
+         m_waitingForRemoteObject = true;
+         startRemoteObjectDetection();
       }
    }
    
@@ -156,8 +181,9 @@ exit:
 void pxWayland::draw() {
   if ( (m_fbo->width() != mw) ||
        (m_fbo->height() != mh) )
-  {
+  {     
      context.updateFramebuffer( m_fbo, mw, mh );
+     WstCompositorSetOutputSize( m_wctx, mw, mh );
   }
   
   pxMatrix4f m;
@@ -168,8 +194,8 @@ void pxWayland::draw() {
   WstCompositorComposeEmbedded( m_wctx, 
                                 mw,
                                 mh,
-                                m_nominalw,
-                                m_nominalh,
+                                mw,
+                                mh,
                                 m.data(),
                                 context.getAlpha() );
   context.setFramebuffer( previousFrameBuffer );
@@ -373,7 +399,7 @@ void pxWayland::launchClient()
 
 void pxWayland::launchAndMonitorClient()
 {
-   rtLogInfo( "pxWayland::launchAndMonitorClient enter for (%s)", m_cmd.cString() );   
+   rtLogInfo( "pxWayland::launchAndMonitorClient enter for (%s)", m_cmd.cString() );
 
    m_clientMonitorStarted= true;
 
@@ -386,7 +412,7 @@ void pxWayland::launchAndMonitorClient()
 
    m_clientMonitorStarted= false;
 
-   rtLogInfo( "pxWayland::launchAndMonitorClient exit for (%s)", m_cmd.cString() );   
+   rtLogInfo( "pxWayland::launchAndMonitorClient exit for (%s)", m_cmd.cString() );
 }
 
 void pxWayland::terminateClient()
@@ -399,6 +425,13 @@ void pxWayland::terminateClient()
       // process ending
       pthread_join( m_clientMonitorThreadId, NULL );      
    }
+
+   if (m_waitingForRemoteObject)
+   {
+     m_waitingForRemoteObject = false;
+
+     pthread_join( m_findRemoteThreadId, NULL );
+   }
 }
 
 void* pxWayland::clientMonitorThread( void *data )
@@ -408,6 +441,103 @@ void* pxWayland::clientMonitorThread( void *data )
    pxw->launchAndMonitorClient();
    
    return NULL;
+}
+
+void pxWayland::startRemoteObjectDetection()
+{
+  int rc= pthread_create( &m_findRemoteThreadId, NULL, findRemoteThread, this );
+  if ( rc )
+  {
+    rtLogError("Failed to start find remote object thread");
+  }
+}
+
+void* pxWayland::findRemoteThread( void *data )
+{
+  pxWayland *pxw= (pxWayland*)data;
+
+  rtError errorCode = pxw->startRemoteObjectLocator();
+
+  if (errorCode == RT_OK)
+  {
+    pxw->connectToRemoteObject();
+  }
+
+  return NULL;
+}
+
+rtError pxWayland::startRemoteObjectLocator()
+{
+#ifdef ENABLE_PX_WAYLAND_RPC
+  rtError errorCode = m_locator.open();
+
+  if (errorCode != RT_OK)
+  {
+    rtLogError("pxWayland failed to open rtRemoteObjectLocator: %d", errorCode);
+    m_remoteObjectMutex.lock();
+    m_waitingForRemoteObject = false;
+    m_remoteObjectMutex.unlock();
+    return errorCode;
+  }
+
+  errorCode = m_locator.start();
+  if (errorCode != RT_OK)
+  {
+    rtLogError("pxWayland failed to start rtRemoteObjectLocator: %d", errorCode);
+    m_remoteObjectMutex.lock();
+    m_waitingForRemoteObject = false;
+    m_remoteObjectMutex.unlock();
+    return errorCode;
+  }
+
+  return errorCode;
+#else
+  return RT_FAIL;
+#endif //ENABLE_PX_WAYLAND_RPC
+}
+
+rtError pxWayland::connectToRemoteObject()
+{
+  rtError errorCode = RT_FAIL;
+#ifdef ENABLE_PX_WAYLAND_RPC
+  int findTime = 0;
+
+  while (findTime < MAX_FIND_REMOTE_TIMEOUT_IN_MS)
+  {
+    findTime += FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS;
+    rtLogInfo("Attempting to find remote object %s", m_remoteObjectName.cString());
+    errorCode = m_locator.findObject(m_remoteObjectName.cString(), m_remoteObject, FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS);
+    if (errorCode != RT_OK)
+    {
+      rtLogError("XREBrowserPlugin failed to find object: %s errorCode %d\n",
+                 m_remoteObjectName.cString(), errorCode);
+    }
+    else
+    {
+      rtLogInfo("Remote object %s found.  search time %d ms \n", m_remoteObjectName.cString(), findTime);
+      break;
+    }
+  }
+
+  if (errorCode == RT_OK)
+  {
+    m_remoteObject.send("init");
+    //rtString urlToSet = "http://www.google.com";
+    //m_remoteObject.set("url", urlToSet);
+    m_remoteObjectMutex.lock();
+    m_API = m_remoteObject;
+    m_remoteObjectMutex.unlock();
+  }
+  else
+  {
+    rtLogError("unable to connect to remote object");
+  }
+
+  m_remoteObjectMutex.lock();
+  m_waitingForRemoteObject = false;
+  m_remoteObjectMutex.unlock();
+#endif //ENABLE_PX_WAYLAND_RPC
+  return errorCode;
 }
 
 // These key codes are from linux/input.h which may not be available depending on what platform we are building for
@@ -830,5 +960,6 @@ rtDefineProperty(pxWayland,displayName);
 rtDefineProperty(pxWayland,cmd);
 rtDefineProperty(pxWayland, clientPID);
 rtDefineProperty(pxWayland, fillColor);
+rtDefineProperty(pxWayland, api);
 
 

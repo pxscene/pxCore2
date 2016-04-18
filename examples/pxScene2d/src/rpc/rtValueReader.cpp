@@ -1,18 +1,32 @@
+#include "rtValueReader.h"
 #include "rtRpcClient.h"
 #include "rtRemoteObject.h"
 #include "rtRemoteFunction.h"
 #include "rtRpcMessage.h"
 
+// TODO: don't require transport as argument
+// TODO: then what if object and/or function is remote. 
+// maybe use some type of identifier to indicate remote, with reference
+// to transport. I don't like transport being a member of rtRemoteObject
+// and rtRemoteFunction.
+// either of these should be able simply include a reference to a transport
+// with a handle returned by server in json message.
 rtError
-rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRpcClient> const& tport)
+rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRpcClient> const& client)
 {
   auto type = from.FindMember(kFieldNameValueType);
   if (type  == from.MemberEnd())
+  {
+    rtLogWarn("failed to find member: %s", kFieldNameValueType);
     return RT_FAIL;
+  }
 
   auto val = from.FindMember(kFieldNameValueValue);
   if (type->value.GetInt() != RT_functionType && val == from.MemberEnd())
+  {
+    rtLogWarn("failed to find member: %s", kFieldNameValueValue);
     return RT_FAIL;
+  }
 
   switch (type->value.GetInt())
   {
@@ -69,41 +83,48 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
 
     case RT_objectType:
     {
-      assert(tport != NULL);
-      if (!tport)
+      assert(client != NULL);
+      if (!client)
         return RT_FAIL;
 
       auto id = from.FindMember(kFieldNameObjectId);
       if (id == from.MemberEnd())
         return RT_FAIL;
-      to.setObject(new rtRemoteObject(id->value.GetString(), tport));
+      to.setObject(new rtRemoteObject(id->value.GetString(), client));
     }
     break;
 
     case RT_functionType:
     {
-      assert(tport != NULL);
-      if (!tport)
+      assert(client != NULL);
+      if (!client)
         return RT_FAIL;
 
-      auto id = from.FindMember(kFieldNameObjectId);
-      if (id == from.MemberEnd())
-      {
-        rtLogWarn("function doesn't have field: %s", kFieldNameObjectId);
-        return RT_FAIL;
-      }
-      auto name = from.FindMember(kFieldNameFunctionName);
-      if (name == from.MemberEnd())
-      {
-        rtLogWarn("function doesn't have field: %s", kFieldNameObjectId);
-        return RT_FAIL;
-      }
-      to.setFunction(new rtRemoteFunction(id->value.GetString(), name->value.GetString(), tport));
+      auto const& func = from.FindMember("value");
+      assert(func != from.MemberEnd());
+
+      auto itr = func->value.FindMember(kFieldNameObjectId);
+      assert(itr != func->value.MemberEnd());
+
+      std::string objectId = itr->value.GetString();
+	
+      itr = func->value.FindMember(kFieldNameFunctionName);
+      assert(itr != func->value.MemberEnd());
+
+      std::string functionId = itr->value.GetString();
+
+      to.setFunction(new rtRemoteFunction(objectId, functionId, client));
     }
     break;
 
     case RT_voidPtrType:
-    assert(false);
+    {
+#if __x86_64
+      to.setVoidPtr((void *) val->value.GetUint64());
+#else
+      to.setVoidPtr((void *) val->value.GetUint());
+#endif
+    }
     break;
   }
 

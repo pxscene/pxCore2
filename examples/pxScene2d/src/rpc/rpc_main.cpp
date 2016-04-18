@@ -1,6 +1,6 @@
-#include "rtRemoteObject.h"
-#include "rtRemoteObjectLocator.h"
-#include "rtRpcClient.h"
+
+#include "rtRpc.h"
+#include <rtObject.h>
 
 #include <unistd.h>
 #include <iostream>
@@ -16,6 +16,7 @@ class rtThermostat : public rtObject
 public:
   rtDeclareObject(rtThermostat, rtObject);
   rtProperty(prop1, prop1, setProp1, uint32_t);
+  rtProperty(onTempChanged, onTempChanged, onTempChanged, rtFunctionRef);
   rtMethodNoArgAndNoReturn("hello", hello);
   rtMethod2ArgAndReturn("add", add, int32_t, int32_t, int32_t);
 
@@ -25,9 +26,27 @@ public:
     return RT_OK;
   }
 
-  float prop1()               const { return m_prop1;}
-  rtError prop1(uint32_t& v)     const { v = m_prop1; return RT_OK; }
-  rtError setProp1(uint32_t v)         { m_prop1 = v; return RT_OK; }
+  float prop1() const
+    { return m_prop1; }
+
+  rtError prop1(uint32_t& v) const
+    { v = m_prop1; return RT_OK; }
+
+  rtError setProp1(uint32_t v)
+    { m_prop1 = v; return RT_OK; }
+
+
+
+  rtFunctionRef onTempChanged() const
+    { return m_onTempChanged; }
+
+  rtError onTempChanged(rtFunctionRef& ref) const
+    { ref = m_onTempChanged; return RT_OK; }
+
+  rtError onTempChanged(rtFunctionRef ref)
+    { m_onTempChanged = ref; return RT_OK; }
+
+
 
   rtError hello()
   {
@@ -37,34 +56,42 @@ public:
 
 private:
   uint32_t m_prop1;
+  rtFunctionRef m_onTempChanged;
 };
 
 
 rtDefineObject(rtThermostat, rtObject);
 rtDefineProperty(rtThermostat, prop1);
+rtDefineProperty(rtThermostat, onTempChanged);
 rtDefineMethod(rtThermostat, add);
+
+static rtError my_callback(int argc, rtValue const* argv, rtValue* result, void* /*argp*/)
+{
+  static int i = 10;
+
+  char buff[256];
+  snprintf(buff, sizeof(buff), "The temp has change by: %d", i++);
+  if (result)
+  {
+    *result = rtValue(buff);
+  }
+  return RT_OK;
+}
+
 
 
 int main(int argc, char* /*argv*/[])
 {
   char const* objectName = "com.xfinity.xsmart.Thermostat/JakesHouse";
 
-  rtError e = RT_OK;
-  rtRemoteObjectLocator locator;
-  e = locator.open(); // "224.10.10.12", 10004, "en0");
-  if (e != RT_OK)
-  {
-    rtLogError("failed to open rtRemoteObjectLocator: %d", e);
-    return 1;
-  }
-
-  locator.start();
+  rtError e = rtRpcInit();
+  assert(e == RT_OK);
 
   if (argc == 2)
   {
     rtObjectRef obj;
-    rtError err = locator.findObject(objectName, obj);
-    if (err != RT_OK)
+    e = rtRpcLocateObject(objectName, obj);
+    if (e != RT_OK)
     {
       printf("failed to find object: %s\n", objectName);
       exit(0);
@@ -79,35 +106,66 @@ int main(int argc, char* /*argv*/[])
       rtString desc;
      
       #if 0 // this works
-      err = obj.sendReturns<rtString>("description", desc);
-      RT_ASSERT(err);
+      e = obj.sendReturns<rtString>("description", desc);
+      RT_ASSERT(e);
       #endif
 
       #if 0 // this works
-      err = obj.set("prop1", i++);
-      RT_ASSERT(err);
+      e = obj.set("prop1", i);
+      if (e != RT_OK)
+      {
+	printf("failed to set prop\n");
+	return -1;
+      }
 
       uint32_t n = obj.get<uint32_t>("prop1");
       printf("fillColor: %d\n", n);
       #endif
 
-      #if 1 // this works
+      #if 0// this works
       int32_t ret = 0;
-      err = obj.sendReturns<int32_t>("add", i, i, ret);
+      e = obj.sendReturns<int32_t>("add", i, i, ret);
       printf("HERE (%d): %d + %d = %d\n", ret, i, i, ret);
       #endif
 
-      sleep(1);
+      e = obj.set("onTempChanged", new rtFunctionCallback(my_callback));
+      sleep(1000);
     }
   }
   else
   {
     rtObjectRef obj(new rtThermostat());
-    locator.registerObject(objectName, obj);
+    e = rtRpcRegisterObject(objectName, obj);
 
     // locator.removeObject(objectName);
+    int temp = 50;
+
     while (1)
-      sleep(10);
+    {
+      rtFunctionRef ref;
+      obj.get("onTempChanged", ref);
+
+      if (ref)
+      {
+	rtValue arg1(temp++);
+	rtString s;
+	rtError e = ref.sendReturns<rtString>(arg1, s);
+	if (e == RT_OK)
+	{
+	  printf("s:%s\n", s.cString());
+	}
+	else
+	{
+	  printf("error: %d\n", (int) e);
+	}
+      }
+      else
+      {
+	printf("onTempChanged is null\n");
+      }
+
+      sleep(1);
+    }
   }
 
   return 0;

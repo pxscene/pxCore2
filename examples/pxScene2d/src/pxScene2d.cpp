@@ -41,6 +41,11 @@ rtThreadQueue gUIThreadQueue;
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifdef ENABLE_RT_NODE
+extern void rtWrapperSceneUpdateEnter();
+extern void rtWrapperSceneUpdateExit();
+#endif //ENABLE_RT_NODE
+
 #ifdef ENABLE_VALGRIND
 #include <valgrind/callgrind.h>
 void startProfiling()
@@ -742,7 +747,7 @@ void pxObject::drawInternal(bool maskPass)
     else
     {
       // trivially reject things too small to be seen
-      if (w>alphaEpsilon && h>alphaEpsilon && context.isObjectOnScreen(0, 0, w, h))
+      if ( !mClip || (w>alphaEpsilon && h>alphaEpsilon && context.isObjectOnScreen(0, 0, w, h)))
       {
         //rtLogInfo("calling draw() mw=%f mh=%f\n", mw, mh);
         draw();
@@ -1308,6 +1313,12 @@ void pxScene2d::draw()
 
 void pxScene2d::onUpdate(double t)
 {
+  #ifdef ENABLE_RT_NODE
+  if (mTop)
+  {
+    rtWrapperSceneUpdateEnter();
+  }
+  #endif //ENABLE_RT_NODE
   // TODO if (mTop) check??
  // pxTextureCacheObject::checkForCompletedDownloads();
   //pxFont::checkForCompletedDownloads();
@@ -1346,6 +1357,12 @@ void pxScene2d::onUpdate(double t)
 
   frameCount++;
   }
+  #ifdef ENABLE_RT_NODE
+  if (mTop)
+  {
+    rtWrapperSceneUpdateExit();
+  }
+  #endif //ENABLE_RT_NODE
 }
 
 void pxScene2d::onDraw()
@@ -1353,10 +1370,21 @@ void pxScene2d::onDraw()
 //  printf("**** drawing \n");
 
   if (mTop)
-    context.setSize(mWidth, mHeight);  
+  {
+    #ifdef ENABLE_RT_NODE
+    rtWrapperSceneUpdateEnter();
+    #endif //ENABLE_RT_NODE
+    context.setSize(mWidth, mHeight);
+  }  
 #if 1
     draw();
 #endif
+  #ifdef ENABLE_RT_NODE
+  if (mTop)
+  {
+    rtWrapperSceneUpdateExit();
+  }
+  #endif //ENABLE_RT_NODE
 
 }
 
@@ -1534,7 +1562,8 @@ rtError pxScene2d::setFocus(rtObjectRef o)
     ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(false);
     e.set("target",mFocusObj);
     rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
-    t->mEmit.send("onBlur",e);
+    //t->mEmit.send("onBlur",e);
+    bubbleEvent(e,t,"onPreBlur","onBlur");
   }
 
   if (o) 
@@ -1549,7 +1578,8 @@ rtError pxScene2d::setFocus(rtObjectRef o)
   ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(true);
   e.set("target",mFocusObj);
   rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
-  t->mEmit.send("onFocus",e);
+  //t->mEmit.send("onFocus",e);
+  bubbleEvent(e,t,"onPreFocus","onFocus");
 
   return RT_OK;
 }
@@ -1589,6 +1619,7 @@ void pxScene2d::onBlur()
 void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t, 
                             const char* preEvent, const char* event) 
 {
+  rtValue stop;
   if (e && t)
   {
     mStopPropagation = false;
@@ -1607,7 +1638,7 @@ void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
       // TODO a bit messy
       rtFunctionRef emit = (*it)->mEmit.getPtr();
       if (emit)
-        emit.send(preEvent,e);
+        emit.sendReturns(preEvent,e,stop);
     }
 
     e.set("name", event);
@@ -1618,7 +1649,7 @@ void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
       // TODO: As we bubble onMouseMove we need to keep adjusting the coordinates into the
       // coordinate space of the successive parents object ??
       if (emit)
-        emit.send(event,e);
+        emit.sendReturns(event,e,stop);
     }
   }
 }

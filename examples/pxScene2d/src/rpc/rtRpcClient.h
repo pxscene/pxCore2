@@ -16,75 +16,63 @@
 #include <sys/socket.h>
 #include <rapidjson/document.h>
 
+#include "rtRpcStream.h"
 #include "rtRpcTypes.h"
 #include "rtRpcMessage.h"
 #include "rtSocketUtils.h"
 
-class rtRpcClient;
-
-class rtValueWriter
-{
-public:
-  static rtError write(rtValue const& from, rapidjson::Value& to, rapidjson::Document& parent);
-};
-
-class rtValueReader
-{
-public:
-  static rtError read(rtValue& val, rapidjson::Value const& from,
-    std::shared_ptr<rtRpcClient> const& tport = std::shared_ptr<rtRpcClient>());
-};
-
 class rtRpcClient: public std::enable_shared_from_this<rtRpcClient>
 {
 public:
-  rtRpcClient(sockaddr_storage const& ss);
+  rtRpcClient(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint);
+  rtRpcClient(sockaddr_storage const& remote_endpoint);
   ~rtRpcClient();
 
-  rtError start();
-  rtError startSession(std::string const& objectName);
+  rtError open();
+  rtError startSession(std::string const& objectName, uint32_t timeout = 0);
+  rtError get(std::string const& objectName, char const* propertyName, rtValue& value, uint32_t timeout = 0);
+  rtError get(std::string const& objectName, uint32_t index, rtValue& value, uint32_t timeout = 0);
+  rtError set(std::string const& objectName, uint32_t index, rtValue const& value, uint32_t timeout = 0);
+  rtError set(std::string const& objectName, char const* propertyName, rtValue const& value, uint32_t timeout = 0);
 
-  rtError get(std::string const& objectName, char const* propertyName, rtValue& value);
-  rtError set(std::string const& objectName, char const* propertyName, rtValue const& value);
+  rtError send(std::string const& objectName, std::string const& name, int argc, rtValue const* argv,
+    rtValue* result, uint32_t timeout);
 
-  rtError get(std::string const& objectName, uint32_t index, rtValue& value);
-  rtError set(std::string const& objectName, uint32_t index, rtValue const& value);
-
-  rtError send(std::string const& objectName, std::string const& name, int argc, rtValue const* argv, rtValue* result);
-
-  inline void keep_alive(std::string const& s)
+  inline void keepAlive(std::string const& s)
     { m_object_list.push_back(s); }
+
+  rtError setMessageCallback(rtRpcMessageHandler const& handler)
+    { m_message_handler = handler; return RT_OK; } 
+
+  rtError sendDocument(rapidjson::Document const& doc)
+  {
+    return m_stream->sendDocument(doc);
+  }
+
+  inline sockaddr_storage getRemoteEndpoint() const
+    { return m_stream->getRemoteEndpoint(); }
+
+  inline sockaddr_storage getLocalEndpoint() const
+    { return m_stream->getLocalEndpoint(); }
 
 private:
 
-  rtError sendGet(rtRpcGetRequest const& req, rtValue& value);
-  rtError sendSet(rtRpcSetRequest const& req);
-
-  typedef rtError (rtRpcClient::*message_handler_t)(rtJsonDocPtr_t const&);
-  typedef std::map< std::string, message_handler_t > msghandler_map_t;
-  typedef std::map< rtCorrelationKey_t, rtJsonDocPtr_t > request_map_t;
-
-  rtJsonDocPtr_t waitForResponse(int key, uint32_t timeout = 1000);
-
+  rtError onIncomingMessage(rtJsonDocPtr const& msg);
+  rtError onInactivity(time_t lastMessage, time_t now);
+  rtError sendGet(rtRpcGetRequest const& req, rtValue& value, uint32_t timeout);
+  rtError sendSet(rtRpcSetRequest const& req, uint32_t timeout);
   rtError connectRpcEndpoint();
   rtError sendKeepAlive();
   rtError runListener();
-  rtError readn(int fd, rt_sockbuf_t& buff);
-  rtError dispatch(rtJsonDocPtr_t const& doc);
+  rtError dispatch(rtJsonDocPtr const& doc);
 
   // message handlers
-  rtError onStartSession(rtJsonDocPtr_t const& doc);
+  rtError onStartSession(rtJsonDocPtr const& doc);
 
 private:
-  sockaddr_storage              m_remote_endpoint;
-  int                           m_fd;
-  std::vector<std::string>      m_object_list;
-  std::mutex                    m_mutex;
-  std::unique_ptr<std::thread>  m_thread;
-  std::condition_variable       m_cond;
-  msghandler_map_t              m_message_handlers;
-  std::atomic<rtCorrelationKey_t> m_next_key;
-  request_map_t                 m_requests;
+  std::shared_ptr<rtRpcStream>		m_stream;
+  std::vector<std::string>      	m_object_list;
+  rtRpcMessageHandler			m_message_handler;
 };
 
 #endif

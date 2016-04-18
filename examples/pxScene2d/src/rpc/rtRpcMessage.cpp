@@ -1,5 +1,7 @@
 #include "rtRpcMessage.h"
 #include "rtRpcClient.h"
+#include "rtValueReader.h"
+#include "rtValueWriter.h"
 
 #include <arpa/inet.h>
 #include <rtLog.h>
@@ -17,7 +19,13 @@
 
 namespace
 {
-  std::atomic<rtCorrelationKey_t> s_next_key;
+  std::atomic<rtCorrelationKey> s_next_key;
+}
+
+rtCorrelationKey
+rtMessage_GetNextCorrelationKey()
+{
+  return ++s_next_key;
 }
 
 template<class T> T
@@ -61,7 +69,7 @@ rtRpcMessage::send(int fd, sockaddr_storage const* dest) const
 rtRpcRequest::rtRpcRequest(char const* messageType, std::string const& objectName)
   : rtRpcMessage(messageType, objectName)
 {
-  m_correlation_key = s_next_key++;
+  m_correlation_key = rtMessage_GetNextCorrelationKey();
   m_impl->d.AddMember(kFieldNameCorrelationKey, m_correlation_key, m_impl->d.GetAllocator());
 }
 
@@ -181,9 +189,10 @@ rtRpcMessage::getObjectName() const
   return from_json<char const *>(m_impl->d[kFieldNameObjectId]);
 }
 
-rtCorrelationKey_t
+rtCorrelationKey
 rtRpcMessage::getCorrelationKey() const
 {
+  assert(m_correlation_key != 0);
   return m_correlation_key;
   // return from_json<uint32_t>(m_impl->d[kFieldNameCorrelationKey]);
 }
@@ -342,4 +351,27 @@ rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...
     va_end(args);
   }
   return e;
+}
+
+rtRpcResponse::rtRpcResponse(char const* messageType, std::string const& objectName)
+  : rtRpcMessage(messageType, objectName)
+{
+}
+
+rtError
+rtRpcResponse::getStatusCode() const
+{
+  auto itr = m_impl->d.FindMember(kFieldNameStatusCode);
+  if (itr == m_impl->d.MemberEnd())
+  {
+    rtLogError("failed to find %s in rpc response", kFieldNameStatusCode);
+    assert(false);
+    return RT_FAIL;
+  }
+  return static_cast<rtError>(itr->value.GetInt());
+}
+
+rtRpcGetResponse::rtRpcGetResponse(std::string const& objectName)
+  : rtRpcResponse(kMessageTypeGetByNameResponse, objectName)
+{
 }

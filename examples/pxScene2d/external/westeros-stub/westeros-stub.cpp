@@ -26,6 +26,7 @@ typedef struct _WstCompositor
    unsigned int nestedWidth;
    unsigned int nestedHeight;
    bool allowModifyCursor;
+   void *nativeWindow;
    int outputWidth;
    int outputHeight;
 
@@ -155,6 +156,29 @@ exit:
    return result;
 }
 
+bool WstCompositorSetNativeWindow( WstCompositor *ctx, void *nativeWindow )
+{
+   bool result= false;
+   
+   if ( ctx )
+   {
+      if ( ctx->running )
+      {
+         sprintf( ctx->lastErrorDetail,
+                  "Bad state.  Cannot set native window while compositor is running" );
+         goto exit;
+      }
+
+      ctx->nativeWindow= nativeWindow;
+      
+      result= true;
+   }
+
+exit:
+   
+   return result;
+}
+
 bool WstCompositorSetRendererModule( WstCompositor *ctx, const char *rendererModule )
 {
    bool result= false;
@@ -264,13 +288,6 @@ bool WstCompositorSetOutputSize( WstCompositor *ctx, int width, int height )
    
    if ( ctx )
    {
-      if ( ctx->running )
-      {
-         sprintf( ctx->lastErrorDetail,
-                  "Bad state.  Cannot set output size while compositor is running" );
-         goto exit;
-      }      
-
       if ( width == 0 )
       {
          sprintf( ctx->lastErrorDetail,
@@ -558,6 +575,20 @@ bool WstCompositorSetTerminatedCallback( WstCompositor *ctx, WstTerminatedCallba
    return result;   
 }
 
+bool WstCompositorSetDispatchCallback( WstCompositor *ctx, WstDispatchCallback cb, void *userData )
+{
+   bool result= false;
+   
+   if ( ctx )
+   {
+      result= true;
+   }
+
+exit:
+
+   return result;   
+}
+
 bool WstCompositorSetInvalidateCallback( WstCompositor *ctx, WstInvalidateSceneCallback cb, void *userData )
 {
    bool result= false;
@@ -610,6 +641,33 @@ bool WstCompositorSetClientStatusCallback( WstCompositor *ctx, WstClientStatus c
       {
          sprintf( ctx->lastErrorDetail,
                   "Bad state.  Compositor is not embedded" );
+         goto exit;
+      }
+      
+      result= true;
+   }
+
+exit:
+
+   return result;   
+}
+bool WstCompositorSetOutputNestedListener( WstCompositor *ctx, WstOutputNestedListener *listener, void *userData )
+{
+  bool result= false;
+   
+   if ( ctx )
+   {
+      if ( ctx->running )
+      {
+         sprintf( ctx->lastErrorDetail,
+                  "Bad state.  Cannot set output nested listener while compositor is running" );
+         goto exit;
+      }      
+
+      if ( !ctx->isNested )
+      {
+         sprintf( ctx->lastErrorDetail,
+                  "Bad state.  Compositor is not nested" );
          goto exit;
       }
       

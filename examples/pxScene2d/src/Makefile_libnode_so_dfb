@@ -30,10 +30,9 @@ PX_SRCS=\
 	   pxRectangle.cpp \
            pxText.cpp \
            pxTextBox.cpp \
-           pxWayland.cpp \
            pxImage.cpp \
            pxUtil.cpp \
-           pxContextGL.cpp \
+           pxContextDFB.cpp \
            pxImage9.cpp \
            pxFileDownloader.cpp \
            pxInterpolators.cpp \
@@ -65,7 +64,7 @@ SEARCH=\
 	$(PXCORE_INCLUDES)
 
 
-CXXFLAGS= -Wno-attributes -Wall -Wextra -fpermissive -fPIC $(SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DENABLE_RT_NODE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE 
+CXXFLAGS= -Wno-attributes -Wall -Wextra -fpermissive -fPIC $(SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DENABLE_RT_NODE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DPX_PLATFORM_GENERIC_DFB -ENABLE_DFB
 
 
 LDNODE   = -L$(NODEDIR)/out/Release/obj.target
@@ -75,7 +74,7 @@ LDNODEV8 = -L$(NODEDIR)/out/Release
 LDEXT   = -lpng16 -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8)
 
 #LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -shared -Wl,-soname,librtnode.so -o librtnode.so.1.0 
-LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -shared -Wl,-soname,librtnode.so -o librtnode.so.1.0 -lwesteros_compositor -lnexus -lnxclient -lnxpl -lGLESv2
+LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -shared -Wl,-soname,librtnode.so -o librtnode.so.1.0 -lnexus -lnxclient -lnxpl -ldirectfb -ldl
 
 
 OBJDIR=obj

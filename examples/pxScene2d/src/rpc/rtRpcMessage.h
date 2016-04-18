@@ -27,6 +27,7 @@
 #define kFieldNameIp "ip"
 #define kFieldNamePort "port"
 
+#define kMessageTypeInvalidResponse "invalid.response"
 #define kMessageTypeSetByNameRequest "set.byname.request"
 #define kMessageTypeSetByNameResponse "set.byname.response"
 #define kMessageTypeSetByIndexRequest "set.byindex.request"
@@ -60,7 +61,7 @@ private:
   rtRpcMessage() { }
 
 public:
-  rtCorrelationKey_t getCorrelationKey() const;
+  rtCorrelationKey getCorrelationKey() const;
   char const* getMessageType() const;
   char const* getObjectName() const;
 
@@ -69,7 +70,7 @@ public:
 protected:
   struct Impl;
   std::shared_ptr<Impl>   m_impl;
-  rtCorrelationKey_t      m_correlation_key;
+  rtCorrelationKey      m_correlation_key;
 };
 
 class rtRpcRequest : public rtRpcMessage
@@ -77,6 +78,26 @@ class rtRpcRequest : public rtRpcMessage
 protected:
   rtRpcRequest(char const* messageType, std::string const& objectName);
 };
+
+class rtRpcResponse : public rtRpcMessage
+{
+public:
+  rtRpcResponse(char const* messageType, std::string const& objectName);
+public:
+  rtError getStatusCode() const;
+  inline bool isValid() const
+    { return m_is_valid; }
+private:
+  bool m_is_valid;
+};
+
+class rtRpcGetResponse : public rtRpcResponse
+{
+public:
+  rtRpcGetResponse(std::string const& objectName);
+  rtValue getValue() const;
+};
+
 
 class rtRpcRequestOpenSession : public rtRpcRequest
 {
@@ -124,6 +145,7 @@ rtError     rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out = s
 rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...)
               RT_PRINTF_FORMAT(3, 4);
 rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code);
+rtCorrelationKey rtMessage_GetNextCorrelationKey();
 
 
 #endif

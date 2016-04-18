@@ -2,11 +2,15 @@
 #include "rtRpcClient.h"
 #include "rtSocketUtils.h"
 #include "rtRpcMessage.h"
+#include "rtValueReader.h"
+#include "rtValueWriter.h"
+#include "rtRpcConfig.h"
 
 #include "rapidjson/rapidjson.h"
 
 #include <rtLog.h>
 
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <string.h>
@@ -14,225 +18,154 @@
 
 #include <rapidjson/document.h>
 
-rtRpcClient::rtRpcClient(sockaddr_storage const& ss)
-  : m_fd(-1)
-  , m_next_key(1)
+rtRpcClient::rtRpcClient(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint)
+  : m_stream(new rtRpcStream(fd, local_endpoint, remote_endpoint))
+  , m_message_handler(nullptr)
 {
-  m_remote_endpoint = ss;
+  m_stream->setMessageCallback(std::bind(&rtRpcClient::onIncomingMessage, this,
+    std::placeholders::_1));
+  m_stream->setInactivityCallback(std::bind(&rtRpcClient::onInactivity, this,
+    std::placeholders::_1, std::placeholders::_2));
+}
+
+rtRpcClient::rtRpcClient(sockaddr_storage const& remote_endpoint)
+  : m_stream(new rtRpcStream(-1, sockaddr_storage(), remote_endpoint))
+  , m_message_handler(nullptr)
+{
+  m_stream->setMessageCallback(std::bind(&rtRpcClient::onIncomingMessage, this,
+    std::placeholders::_1));
+  m_stream->setInactivityCallback(std::bind(&rtRpcClient::onInactivity, this,
+    std::placeholders::_1, std::placeholders::_2));
 }
 
 rtRpcClient::~rtRpcClient()
 {
-  if (m_fd > 0)
-  {
-    shutdown(m_fd, SHUT_RDWR);
-    close(m_fd);
-  }
+  m_stream->close();
 }
 
 rtError
-rtRpcClient::start()
+rtRpcClient::onIncomingMessage(rtJsonDocPtr const& msg)
+{
+  std::shared_ptr<rtRpcClient> client = shared_from_this();
+
+  rtError e = RT_OK;
+  if (m_message_handler)
+  {
+    e = m_message_handler(client, msg);
+    if (e != RT_OK)
+      rtLogWarn("error inoking message handler. %s", rtStrError(e));
+  }
+
+  return e;
+}
+
+rtError
+rtRpcClient::onInactivity(time_t /*lastMessage*/, time_t /*now*/)
+{
+  sendKeepAlive();
+  return RT_OK;
+}
+
+rtError
+rtRpcClient::open()
 {
   rtError err = connectRpcEndpoint();
   if (err != RT_OK)
   {
-    rtLogWarn("failed to connect to rpc endpoint");
+    rtLogWarn("failed to connect to rpc endpoint: %d", err);
     return err;
   }
-
-  m_thread.reset(new std::thread(&rtRpcClient::runListener, this));
+  err = m_stream->open();
+  if (err != RT_OK)
+  {
+    rtLogError("failed to open stream for read/write: %d", err);
+    return err;
+  }
   return RT_OK;
 }
 
 rtError
 rtRpcClient::connectRpcEndpoint()
 {
-  m_fd = socket(m_remote_endpoint.ss_family, SOCK_STREAM, 0);
-  if (m_fd < 0)
+  rtError e = RT_OK;
+  if (!m_stream->isConnected())
   {
-    rtLogError("failed to create socket. %s", strerror(errno));
-    return RT_FAIL;
+    e = m_stream->connect();
   }
-
-  socklen_t len;
-  rtSocketGetLength(m_remote_endpoint, &len);
-
-  int ret = connect(m_fd, reinterpret_cast<sockaddr *>(&m_remote_endpoint), len);
-  if (ret < 0)
-  {
-    rtLogError("failed to connect to remote rpc endpoint. %s", strerror(errno));
-    return RT_FAIL;
-  }
-
-  rtLogInfo("new tcp connection to: %s", rtSocketToString(m_remote_endpoint).c_str());
-  return RT_OK;
+  return e;
 }
 
 rtError
-rtRpcClient::startSession(std::string const& objectName)
+rtRpcClient::startSession(std::string const& objectName, uint32_t timeout)
 {
-  rtError e = RT_FAIL;
-
+  rtJsonDocPtr res;
   rtRpcRequestOpenSession req(objectName);
-  e = req.send(m_fd, NULL);
-  if (e != RT_OK)
-    return e;
 
-  return waitForResponse(req.getCorrelationKey()) != nullptr
-    ? RT_OK
-    : RT_FAIL;
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
+  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc)
+  {
+    res = doc;
+    return RT_OK;
+  }, timeout);
+
+  if (e != RT_OK)
+  {
+    rtLogError("failed to send request to start session. %s", rtStrError(e));
+    return e;
+  }
+
+  return res != nullptr ? RT_OK : RT_FAIL;
 }
 
 rtError
 rtRpcClient::sendKeepAlive()
 {
+  if (m_object_list.empty())
+    return RT_OK;
   rtRpcRequestKeepAlive req;
   for (auto const& name : m_object_list)
     req.addObjectName(name);
-  return req.send(m_fd, NULL);
+  return m_stream->send(req);
 }
 
 rtError
-rtRpcClient::runListener()
+rtRpcClient::get(std::string const& objectName, char const* propertyName, rtValue& value,
+  uint32_t timeout)
 {
-  rt_sockbuf_t buff;
-  buff.reserve(1024 * 4);
-  buff.resize(1024 * 4);
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
 
-  while (true)
+  return sendGet(rtRpcGetRequest(objectName, propertyName), value, timeout);
+}
+
+rtError
+rtRpcClient::get(std::string const& objectName, uint32_t index, rtValue& value,
+  uint32_t timeout)
+{
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
+  return sendGet(rtRpcGetRequest(objectName, index), value, timeout);
+}
+
+rtError
+rtRpcClient::sendGet(rtRpcGetRequest const& req, rtValue& value, uint32_t timeout)
+{
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
+  rtJsonDocPtr res;
+  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc)
   {
-    int maxFd = 0;
+    res = doc;
+    return RT_OK;
+  }, timeout);
 
-    fd_set read_fds;
-    fd_set err_fds;
-
-    FD_ZERO(&read_fds);
-    rtPushFd(&read_fds, m_fd, &maxFd);
-
-    FD_ZERO(&err_fds);
-    rtPushFd(&err_fds, m_fd, &maxFd);
-
-    // timeout is for keep-alive
-    timeval timeout;
-    timeout.tv_sec = 2;
-    timeout.tv_usec = 0;
-
-    int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, &timeout);
-    if (ret == 0)
-    {
-      rtError err = sendKeepAlive();
-      if (err != RT_OK)
-        rtLogWarn("error sending keep-alive:%d", err);
-      continue;
-    }
-
-    if (ret == -1)
-    {
-      int err = errno;
-      rtLogWarn("select failed. %s", strerror(errno));
-      if (err == EBADF)
-        return RT_FAIL;
-      else
-        continue;
-    }
-
-    if (FD_ISSET(m_fd, &read_fds))
-    {
-      rtError err = readn(m_fd, buff);
-      if (err != RT_OK)
-      {
-        rtLogWarn("failed to read from fd: %d", m_fd);
-        return err;
-      }
-    }
-  }
-
-  return RT_OK;
-}
-
-rtError
-rtRpcClient::readn(int fd, rt_sockbuf_t& buff)
-{
-  rtJsonDocPtr_t doc;
-  rtError err = rtReadMessage(fd, buff, doc);
-  if (err != RT_OK)
-    return err;
-
-  auto type = doc->FindMember(kFieldNameMessageType);
-  if (type == doc->MemberEnd())
-  {
-    rtLogWarn("received JSON message with no type");
-    return RT_FAIL;
-  }
-
-  std::string cmd = type->value.GetString();
-
-  // TODO: this could be done with std::future/std::promise
-  int key = rtMessage_GetCorrelationKey(*doc);
-
-  // should be std::future/std::promise
-  if (key != -1)
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_requests[key] = doc;
-    lock.unlock();
-    m_cond.notify_all();
-  }
-
-  // https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
-  #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
-
-  auto itr = m_message_handlers.find(cmd);
-  if (itr != m_message_handlers.end())
-    err = CALL_MEMBER_FN(*this, itr->second)(doc); // , peer);
-
-  return err;
-}
-
-rtJsonDocPtr_t
-rtRpcClient::waitForResponse(int key, uint32_t timeout)
-{
-  rtJsonDocPtr_t response;
-
-  // TODO: std::future/std::promise
-  auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
-
-  std::unique_lock<std::mutex> lock(m_mutex);
-  m_cond.wait_until(lock, delay, [this, key, &response] 
-    {
-      auto itr = this->m_requests.find(key);
-      if (itr != this->m_requests.end())
-      {
-        response = itr->second;
-        this->m_requests.erase(itr);
-      }
-      return response != nullptr;
-    });
-  lock.unlock();
-
-  return response;
-}
-
-rtError
-rtRpcClient::get(std::string const& objectName, char const* propertyName, rtValue& value)
-{
-  return sendGet(rtRpcGetRequest(objectName, propertyName), value);
-}
-
-rtError
-rtRpcClient::get(std::string const& objectName, uint32_t index, rtValue& value)
-{
-  return sendGet(rtRpcGetRequest(objectName, index), value);
-}
-
-rtError
-rtRpcClient::sendGet(rtRpcGetRequest const& req, rtValue& value)
-{
-  rtError e = req.send(m_fd, NULL);
   if (e != RT_OK)
     return e;
 
-  rtJsonDocPtr_t res = waitForResponse(req.getCorrelationKey());
   if (!res)
     return RT_FAIL;
 
@@ -248,29 +181,45 @@ rtRpcClient::sendGet(rtRpcGetRequest const& req, rtValue& value)
 }
   
 rtError
-rtRpcClient::set(std::string const& objectName, char const* propertyName, rtValue const& value)
+rtRpcClient::set(std::string const& objectName, char const* propertyName, rtValue const& value,
+  uint32_t timeout)
 {
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
   rtRpcSetRequest req(objectName, propertyName);
   req.setValue(value);
-  return sendSet(req);
+  return sendSet(req, timeout);
 }
 
 rtError
-rtRpcClient::set(std::string const& objectName, uint32_t propertyIndex, rtValue const& value)
+rtRpcClient::set(std::string const& objectName, uint32_t propertyIndex, rtValue const& value,
+  uint32_t timeout)
 {
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
   rtRpcSetRequest req(objectName, propertyIndex);
   req.setValue(value);
-  return sendSet(req);
+  return sendSet(req, timeout);
 }
 
 rtError
-rtRpcClient::sendSet(rtRpcSetRequest const& req)
+rtRpcClient::sendSet(rtRpcSetRequest const& req, uint32_t timeout)
 {
-  rtError e = req.send(m_fd, NULL);
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+
+  rtJsonDocPtr res;
+  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc) 
+  {
+    res = doc;
+    return RT_OK;
+  }, timeout);
+
   if (e != RT_OK)
     return e;
 
-  rtJsonDocPtr_t res = waitForResponse(req.getCorrelationKey());
   if (!res)
     return RT_FAIL;
 
@@ -279,20 +228,26 @@ rtRpcClient::sendSet(rtRpcSetRequest const& req)
 
 rtError
 rtRpcClient::send(std::string const& objectName, std::string const& methodName,
-  int argc, rtValue const* argv, rtValue* result)
+  int argc, rtValue const* argv, rtValue* result, uint32_t timeout)
 {
-  rtError e = RT_OK;
+  if (timeout == 0)
+    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
 
   rtRpcMethodCallRequest req(objectName);
   req.setMethodName(methodName);
   for (int i = 0; i < argc; ++i)
     req.addMethodArgument(argv[i]);
 
-  e = req.send(m_fd, NULL);
+  rtJsonDocPtr res;
+  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc)
+  {
+    res = doc;
+    return RT_OK;
+  }, timeout);
+
   if (e != RT_OK)
     return e;
 
-  rtJsonDocPtr_t res = waitForResponse(req.getCorrelationKey());
   if (!res)
     return RT_FAIL;
   
@@ -300,9 +255,12 @@ rtRpcClient::send(std::string const& objectName, std::string const& methodName,
   if (itr == res->MemberEnd())
     return RT_FAIL;
 
-  e = rtValueReader::read(*result, itr->value, shared_from_this());
-  if (e != RT_OK)
-    return e;
+  if (result)
+  {
+    e = rtValueReader::read(*result, itr->value, shared_from_this());
+    if (e != RT_OK)
+      return e;
+  }
 
   return rtMessage_GetStatusCode(*res);
 }

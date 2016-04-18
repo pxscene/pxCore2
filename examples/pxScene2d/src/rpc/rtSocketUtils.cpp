@@ -1,5 +1,8 @@
 #include "rtSocketUtils.h"
 
+#include <cstdio>
+#include <sstream>
+
 #include <netinet/in.h>
 #include <errno.h>
 #include <arpa/inet.h>
@@ -10,11 +13,42 @@
 #include <unistd.h>
 
 #include <rtLog.h>
-#include <sstream>
 
 #include <rapidjson/memorystream.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+
+static rtError
+rtFindFirstInetInterface(char* name, size_t len)
+{
+  rtError e = RT_FAIL;
+  ifaddrs* ifaddr = NULL;
+  int ret = getifaddrs(&ifaddr);
+  if (ret == -1)
+  {
+    rtLogError("failed to get list of interfaces: %s", rtStrError(errno).c_str());
+    return RT_FAIL;
+  }
+
+  for (ifaddrs* i = ifaddr; i != nullptr; i = i->ifa_next)
+  {
+    if (i->ifa_addr == nullptr)
+      continue;
+    if (i->ifa_addr->sa_family != AF_INET && i->ifa_addr->sa_family != AF_INET6)
+      continue;
+    if (strcmp(i->ifa_name, "lo") == 0)
+      continue;
+
+    strncpy(name, i->ifa_name, len);
+    e = RT_OK;
+    break;
+  }
+
+  if (ifaddr)
+    freeifaddrs(ifaddr);
+
+  return e;
+}
 
 
 rtError
@@ -82,8 +116,15 @@ rtError
 rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len)
 {
   if (!len)
-    return RT_FAIL;
-  *len = (ss.ss_family == AF_INET ? sizeof(sockaddr_in) : sizeof(sockaddr_in6));
+    return RT_ERROR_INVALID_ARG;
+
+  if (ss.ss_family == AF_INET)
+    *len = sizeof(sockaddr_in);
+  else if (ss.ss_family == AF_INET6)
+    *len = sizeof(sockaddr_in6);
+  else
+    *len = 0;
+
   return RT_OK;
 }
 
@@ -97,8 +138,7 @@ rtGetInterfaceAddress(char const* name, sockaddr_storage& ss)
 
   if (ret == -1)
   {
-    int err = errno;
-    rtLogError("failed to get list of interfaces. %s", strerror(err));
+    rtLogError("failed to get list of interfaces. %s", rtStrError(errno).c_str());
     return RT_FAIL;
   }
 
@@ -198,13 +238,13 @@ rtReadUntil(int fd, char* buff, int n)
     ssize_t n = read(fd, buff + bytes_read, (bytes_to_read - bytes_read));
     if (n == 0)
     {
-      rtLogDebug("socket closed");
+      rtLogWarn("tring to read from file descriptor: %d. It looks closed", fd);
       return RT_FAIL;
     }
 
     if (n == -1)
     {
-      rtLogError("failed to read from fd %d. %s", fd, strerror(errno));
+      rtLogError("failed to read from fd %d. %s", fd, rtStrError(errno).c_str());
       return RT_FAIL;;
     }
 
@@ -235,16 +275,28 @@ rtSocketToString(sockaddr_storage const& ss)
 }
 
 rtError
-rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest)
+rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* dest)
 {
   rapidjson::StringBuffer buff;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buff);
   doc.Accept(writer);
 
   #ifdef RT_RPC_DEBUG
+  sockaddr_storage remote_endpoint;
+  memset(&remote_endpoint, 0, sizeof(sockaddr_storage));
+  if (dest)
+    remote_endpoint = *dest;
+  else
+    rtGetPeerName(fd, remote_endpoint);
+
   char const* verb = (dest != NULL ? "sendto" : "send");
-  rtLogDebug("%s (%d):\n\t\"%.*s\"\n", verb, static_cast<int>(buff.GetSize()),
-    static_cast<int>(buff.GetSize()), buff.GetString());
+  rtLogDebug("%s [%d/%s] (%d):\n***OUT***\t\"%.*s\"\n",
+    verb,
+    fd,
+    rtSocketToString(remote_endpoint).c_str(),
+    static_cast<int>(buff.GetSize()),
+    static_cast<int>(buff.GetSize()),
+    buff.GetString());
   #endif
 
   if (dest)
@@ -260,7 +312,7 @@ rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest)
     if (sendto(fd, buff.GetString(), buff.GetSize(), flags,
           reinterpret_cast<sockaddr const *>(dest), len) < 0)
     {
-      rtLogError("sendto failed. %s. dest:%s family:%d", strerror(errno), rtSocketToString(*dest).c_str(),
+      rtLogError("sendto failed. %s. dest:%s family:%d", rtStrError(errno).c_str(), rtSocketToString(*dest).c_str(),
         dest->ss_family);
 
       return RT_FAIL;
@@ -278,13 +330,13 @@ rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest)
     #endif
     if (send(fd, reinterpret_cast<char *>(&n), 4, flags) < 0)
     {
-      rtLogError("failed to send length of message. %s", strerror(errno));
+      rtLogError("failed to send length of message. %s", rtStrError(errno).c_str());
       return RT_FAIL;
     }
 
     if (send(fd, buff.GetString(), buff.GetSize(), flags) < 0)
     {
-      rtLogError("failed to send. %s", strerror(errno));
+      rtLogError("failed to send. %s", rtStrError(errno).c_str());
       return RT_FAIL;
     }
   }
@@ -293,7 +345,7 @@ rtSendDocument(rapidjson::Document& doc, int fd, sockaddr_storage const* dest)
 }
 
 rtError
-rtReadMessage(int fd, rt_sockbuf_t& buff, rtJsonDocPtr_t& doc)
+rtReadMessage(int fd, rtSocketBuffer& buff, rtJsonDocPtr& doc)
 {
   rtError err = RT_OK;
 
@@ -325,14 +377,14 @@ rtReadMessage(int fd, rt_sockbuf_t& buff, rtJsonDocPtr_t& doc)
   }
     
   #ifdef RT_RPC_DEBUG
-  rtLogDebug("read (%d):\n\t\"%.*s\"\n", static_cast<int>(buff.size()), static_cast<int>(buff.size()), &buff[0]);
+  rtLogDebug("read (%d):\n***IN***\t\"%.*s\"\n", static_cast<int>(buff.size()), static_cast<int>(buff.size()), &buff[0]);
   #endif
 
   return rtParseMessage(&buff[0], n, doc);
 }
 
 rtError
-rtParseMessage(char const* buff, int n, rtJsonDocPtr_t& doc)
+rtParseMessage(char const* buff, int n, rtJsonDocPtr& doc)
 {
   if (!buff)
     return RT_FAIL;
@@ -357,4 +409,90 @@ rtParseMessage(char const* buff, int n, rtJsonDocPtr_t& doc)
   }
   
   return RT_OK;
+}
+
+std::string
+rtStrError(int e)
+{
+  char buff[256];
+  memset(buff, 0, sizeof(buff));
+
+  char* s = strerror_r(e, buff, sizeof(buff));
+  if (s)
+    return std::string(s);
+
+  std::snprintf(buff, sizeof(buff), "unknown error: %d", e);
+  return std::string(buff);
+}
+
+rtError
+rtGetPeerName(int fd, sockaddr_storage& endpoint)
+{
+  sockaddr_storage addr;
+  memset(&addr, 0, sizeof(sockaddr_storage));
+
+  socklen_t len;
+  rtSocketGetLength(endpoint, &len);
+
+  int ret = getpeername(fd, (sockaddr *)&addr, &len);
+  if (ret == -1)
+  {
+    rtLogWarn("failed to get the peername for fd:%d endpoint. %s", fd, rtStrError(errno).c_str());
+    return RT_FAIL;
+  }
+
+  memcpy(&endpoint, &addr, sizeof(sockaddr_storage));
+  return RT_OK;
+}
+
+rtError
+rtGetSockName(int fd, sockaddr_storage& endpoint)
+{
+  assert(fd > 2);
+
+  sockaddr_storage addr;
+  memset(&addr, 0, sizeof(sockaddr_storage));
+
+  socklen_t len;
+  rtSocketGetLength(endpoint, &len);
+
+  int ret = getsockname(fd, (sockaddr *)&addr, &len);
+  if (ret == -1)
+  {
+    rtLogWarn("failed to get the socket name for fd:%d endpoint. %s", fd, rtStrError(errno).c_str());
+    assert(false);
+    return RT_FAIL;
+  }
+
+  memcpy(&endpoint, &addr, sizeof(sockaddr_storage));
+  return RT_OK;
+}
+
+rtError
+rtCloseSocket(int& fd)
+{
+  if (fd != kInvalidSocket)
+  {
+    ::close(fd);
+    fd = kInvalidSocket;
+  }
+  return RT_OK;
+}
+
+rtError
+rtGetDefaultInterface(sockaddr_storage& addr, uint16_t port)
+{
+  char name[64];
+  memset(name, 0, sizeof(name));
+
+  rtError e = rtFindFirstInetInterface(name, sizeof(name));
+  if (e == RT_OK)
+  {
+    sockaddr_storage temp;
+    e = rtParseAddress(temp, name, port, nullptr);
+    if (e == RT_OK)
+      memcpy(&addr, &temp, sizeof(sockaddr_storage));
+  }
+
+  return e;
 }

@@ -18,6 +18,15 @@
 #include <ctype.h>
 #include <pthread.h>
 
+#ifndef NB_ENABLE
+#include <termios.h>
+#define NON_BLOCKING_ENABLED (0)
+#define NON_BLOCKING_DISABLED (1)
+#define NB_ENABLE NON_BLOCKING_ENABLED
+#define NB_DISABLE NON_BLOCKING_DISABLED
+#define nonblock setBlockingMode
+#endif
+
 // TODO figure out what to do with rtLog
 #if 0
 #include "rtLog.h"
@@ -185,6 +194,27 @@ static void onWindowTimerFired(int /*sig*/, siginfo_t* /*si*/, void* /*uc*/)
   }
 }
 
+static void setBlockingMode(int blockingState )  
+{  
+   struct termios ttystate;
+   int mask, bits;  
+ 
+   mask= (blockingState == NON_BLOCKING_ENABLED) ? ~(ICANON|ECHO) : -1;
+   bits= (blockingState == NON_BLOCKING_ENABLED) ? 0 : (ICANON|ECHO);
+
+   // Obtain the current terminal state and alter the attributes to achieve 
+   // the requested blocking behaviour
+   tcgetattr(STDIN_FILENO, &ttystate);  
+
+   ttystate.c_lflag= ((ttystate.c_lflag & mask) | bits);  
+ 
+   if (blockingState == NON_BLOCKING_ENABLED)  
+   {  
+       ttystate.c_cc[VMIN]= 1;  
+   }  
+
+   tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);   
+}
 
 int kbhit()
 {
@@ -308,7 +338,7 @@ void pxWindowNative::onAnimationTimerInternal()
 {
   if (mTimerFPS) onAnimationTimer();
   // TODO HACK
-  while (!kbhit())
+  if (kbhit())
   {
     char c = fgetc(stdin);
     if (!iscntrl(c))
