@@ -214,9 +214,9 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
     val.SetObject();
     val.AddMember(kFieldNameObjectId, std::string("global"), doc.GetAllocator());
     val.AddMember(kFieldNameFunctionName, id, doc.GetAllocator());
+    to.AddMember("value", val, doc.GetAllocator());
 
     rtObjectCache::insert(id, func, rtRpcSetting<int>("rt.rpc.cache.max_object_lifetime"));
-    to.AddMember("value", val, doc.GetAllocator());
 
     return RT_OK;
   }
@@ -236,7 +236,6 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
     case RT_uint32_tType: to.AddMember("value", from.toUInt32(), doc.GetAllocator()); break;
     case RT_stringType:   to.AddMember("value", std::string(from.toString().cString()), doc.GetAllocator()); break;
     case RT_objectType:   assert(false); break;
-    case RT_functionType: assert(false); break;
     case RT_voidPtrType:
 #if __x86_64
       to.AddMember("Value", (uint64_t)(from.toVoidPtr()), doc.GetAllocator());

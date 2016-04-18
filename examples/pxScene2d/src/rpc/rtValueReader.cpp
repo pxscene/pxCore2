@@ -122,7 +122,7 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
 #if __x86_64
       to.setVoidPtr((void *) val->value.GetUint64());
 #else
-      to.setVoidPtr((void *) val->value.GetUint32());
+      to.setVoidPtr((void *) val->value.GetUint());
 #endif
     }
     break;
