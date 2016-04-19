@@ -87,9 +87,10 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
       if (!client)
         return RT_FAIL;
 
-      auto id = from.FindMember(kFieldNameObjectId);
-      if (id == from.MemberEnd())
-        return RT_FAIL;
+      auto const& obj = from.FindMember("value");
+      assert(obj != from.MemberEnd());
+
+      auto id = obj->value.FindMember(kFieldNameObjectId);
       to.setObject(new rtRemoteObject(id->value.GetString(), client));
     }
     break;

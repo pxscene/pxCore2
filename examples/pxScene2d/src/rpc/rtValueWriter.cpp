@@ -196,6 +196,19 @@ namespace
     ss << buff;
     return ss.str();
   }
+ 
+  std::string getId(rtObjectRef const& /*ref*/)
+  {
+    char buff[32] = {0};
+    uuid_t id;
+    uuid_generate(id);
+    uuid_unparse_lower(id, buff);
+
+    std::stringstream ss;
+    ss << "obj://";
+    ss << buff;
+    return ss.str();
+   }
 }
 
 rtError
@@ -217,7 +230,22 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
     to.AddMember("value", val, doc.GetAllocator());
 
     rtObjectCache::insert(id, func, rtRpcSetting<int>("rt.rpc.cache.max_object_lifetime"));
+    return RT_OK;
+  }
 
+  if (from.getType() == RT_objectType)
+  {
+    to.AddMember(kFieldNameValueType, static_cast<int>(RT_objectType), doc.GetAllocator());
+
+    rtObjectRef obj = from.toObject();
+    std::string id = getId(obj);
+
+    rapidjson::Value val;
+    val.SetObject();
+    val.AddMember(kFieldNameObjectId, id, doc.GetAllocator());
+    to.AddMember("value", val, doc.GetAllocator());
+
+    rtObjectCache::insert(id, obj, rtRpcSetting<int>("rt.rpc.cache.max_object_lifetime"));
     return RT_OK;
   }
 
@@ -235,7 +263,6 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
     case RT_int32_tType:  to.AddMember("value", from.toInt32(), doc.GetAllocator()); break;
     case RT_uint32_tType: to.AddMember("value", from.toUInt32(), doc.GetAllocator()); break;
     case RT_stringType:   to.AddMember("value", std::string(from.toString().cString()), doc.GetAllocator()); break;
-    case RT_objectType:   assert(false); break;
     case RT_voidPtrType:
 #if __x86_64
       to.AddMember("Value", (uint64_t)(from.toVoidPtr()), doc.GetAllocator());

@@ -1,6 +1,7 @@
 
 #include "rtRpc.h"
 #include <rtObject.h>
+#include <functional>
 
 #include <unistd.h>
 #include <iostream>
@@ -11,13 +12,39 @@
 
 #define RT_ASSERT(E) if ((E) != RT_OK) { printf("failed: %d, %d\n", (E), __LINE__); assert(false); }
 
+class rtLcd : public rtObject
+{
+  rtDeclareObject(rtLcd, rtObject);
+  rtProperty(text, text, setText, rtString);
+  rtProperty(height, height, setHeight, uint32_t);
+  rtProperty(width, width, setWidth, uint32_t);
+
+  rtString text() const { return m_text; }
+  rtError  text(rtString& s) const { s = m_text; return RT_OK; }
+  rtError  setText(rtString const& s) { m_text = s; return RT_OK; }
+
+  uint32_t height() const { return m_height; }
+  rtError  height(uint32_t& s) const { s = m_height; return RT_OK; }
+  rtError  setHeight(uint32_t s) { m_height = s; return RT_OK; }
+
+  uint32_t width() const { return m_width; }
+  rtError  width(uint32_t& s) const { s = m_width; return RT_OK; }
+  rtError  setWidth(uint32_t s) { m_width = s; return RT_OK; }
+
+private:
+  rtString m_text;
+  uint32_t m_width;
+  uint32_t m_height;
+};
+
+
 class rtThermostat : public rtObject
 {
 public:
   rtDeclareObject(rtThermostat, rtObject);
-  rtProperty(prop1, prop1, setProp1, uint32_t);
-  rtProperty(onTempChanged, onTempChanged, onTempChanged, rtFunctionRef);
-  rtMethodNoArgAndNoReturn("hello", hello);
+  rtProperty(lcd, lcd, setLcd, rtObjectRef);
+
+  // rtMethodNoArgAndNoReturn("hello", hello);
   rtMethod2ArgAndReturn("add", add, int32_t, int32_t, int32_t);
 
   rtError add(int32_t x, int32_t y, int32_t& result)
@@ -26,27 +53,13 @@ public:
     return RT_OK;
   }
 
-  float prop1() const
-    { return m_prop1; }
+  rtObjectRef lcd() const { return m_lcd; }
+  rtError     lcd(rtObjectRef& ref) const { ref = m_lcd; return RT_OK; }
+  rtError     setLcd(rtObjectRef lcd) { m_lcd = lcd; return RT_OK; }
 
-  rtError prop1(uint32_t& v) const
-    { v = m_prop1; return RT_OK; }
-
-  rtError setProp1(uint32_t v)
-    { m_prop1 = v; return RT_OK; }
-
-
-
-  rtFunctionRef onTempChanged() const
-    { return m_onTempChanged; }
-
-  rtError onTempChanged(rtFunctionRef& ref) const
-    { ref = m_onTempChanged; return RT_OK; }
-
-  rtError onTempChanged(rtFunctionRef ref)
-    { m_onTempChanged = ref; return RT_OK; }
-
-
+  rtFunctionRef onTempChanged() const { return m_onTempChanged; } 
+  rtError onTempChanged(rtFunctionRef& ref) const { ref = m_onTempChanged; return RT_OK; } 
+  rtError onTempChanged(rtFunctionRef ref) { m_onTempChanged = ref; return RT_OK; } 
 
   rtError hello()
   {
@@ -55,17 +68,22 @@ public:
   }
 
 private:
-  uint32_t m_prop1;
-  rtFunctionRef m_onTempChanged;
+  rtObjectRef 		m_lcd;
+  rtFunctionRef 	m_onTempChanged;
 };
+
+rtDefineObject(rtLcd, 	rtObject);
+rtDefineProperty(rtLcd, text);
+rtDefineProperty(rtLcd, width);
+rtDefineProperty(rtLcd, height);
 
 
 rtDefineObject(rtThermostat, rtObject);
-rtDefineProperty(rtThermostat, prop1);
-rtDefineProperty(rtThermostat, onTempChanged);
+rtDefineProperty(rtThermostat, lcd);
+//rtDefineProperty(rtThermostat, onTempChanged);
 rtDefineMethod(rtThermostat, add);
 
-static rtError my_callback(int argc, rtValue const* argv, rtValue* result, void* /*argp*/)
+static rtError my_callback(int /*argc*/, rtValue const* /*argv*/, rtValue* result, void* /*argp*/)
 {
   static int i = 10;
 
@@ -79,93 +97,186 @@ static rtError my_callback(int argc, rtValue const* argv, rtValue* result, void*
 }
 
 
+static char const* objectName = "com.xfinity.xsmart.Thermostat/JakesHouse";
+
+void Test_SetProperty_Basic_Client()
+{
+  rtObjectRef objectRef;
+  rtError e = rtRpcLocateObject(objectName, objectRef);
+  assert(e == RT_OK);
+
+  int i = 10;
+  while (true)
+  {
+    e = objectRef.set("prop1", i);
+    assert(e == RT_OK);
+
+    uint32_t n = objectRef.get<uint32_t>("prop1");
+    printf("prop1:%d\n", n);
+    assert(n == static_cast<uint32_t>(i));
+
+    i++;
+
+    sleep(1);
+  }
+}
+
+void Test_SetPRoperty_Basic_Server()
+{
+  rtObjectRef obj(new rtThermostat());
+  rtError e = rtRpcRegisterObject(objectName, obj);
+  assert(e == RT_OK);
+  while (true)
+    sleep(10);
+}
+
+void Test_FunctionReferences_Client()
+{
+  rtObjectRef objectRef;
+  rtError e = rtRpcLocateObject(objectName, objectRef);
+  assert(e == RT_OK);
+
+  while (true)
+  {
+    e = objectRef.set("onTempChanged", new rtFunctionCallback(my_callback));
+    sleep(1000);
+  }
+}
+
+void Test_FunctionReferences_Server()
+{
+  rtObjectRef obj(new rtThermostat());
+  rtError e = rtRpcRegisterObject(objectName, obj);
+  assert(e == RT_OK);
+
+  // locator.removeObject(objectName);
+  int temp = 50;
+
+  while (1)
+  {
+    rtFunctionRef ref;
+    obj.get("onTempChanged", ref);
+
+    if (ref)
+    {
+      rtValue arg1(temp++);
+      rtString s;
+      rtError e = ref.sendReturns<rtString>(arg1, s);
+      if (e == RT_OK)
+      {
+	printf("s:%s\n", s.cString());
+      }
+      else
+      {
+	printf("error: %d\n", (int) e);
+      }
+    }
+    else
+    {
+      printf("onTempChanged is null\n");
+    }
+
+    sleep(1);
+  }
+}
+
+void
+Test_MethodCall_Client()
+{
+  rtObjectRef objectRef;
+  rtError e = rtRpcLocateObject(objectName, objectRef);
+  assert(e == RT_OK);
+
+  while (true)
+  {
+    rtString desc;
+    rtError e = objectRef.sendReturns<rtString>("description", desc);
+    assert(e == RT_OK);
+    printf("description: %s\n", desc.cString());
+    sleep(1);
+  }
+}
+
+void
+Test_MethodCall_Server()
+{
+  rtObjectRef obj(new rtThermostat());
+  rtError e = rtRpcRegisterObject(objectName, obj);
+  assert(e == RT_OK);
+  while (true)
+    sleep(10);
+}
+
+void
+Test_SetProperty_Object_Client()
+{
+  rtObjectRef objectRef;
+  rtError e = rtRpcLocateObject(objectName, objectRef);
+  assert(e == RT_OK);
+
+  int n = 10;
+  char buff[256];
+
+  while (true)
+  {
+    rtObjectRef lcd;
+    e = objectRef.get("lcd", lcd);
+
+    rtString s = lcd.get<rtString>("text");
+    printf("text: %s\n", s.cString());
+
+    snprintf(buff, sizeof(buff), "hello from me:%d", n++);
+    s = buff;
+    lcd.set("text", s);
+
+    assert(e == RT_OK);
+
+    sleep(1);
+  }
+}
+
+void
+Test_SetProperty_Object_Server()
+{
+  rtObjectRef obj(new rtThermostat());
+
+  rtObjectRef lcd(new rtLcd());
+  lcd.set("text", "This is the lcd");
+  lcd.set("width", 10);
+  lcd.set("height", 11);
+
+  obj.set("lcd", lcd);
+
+  rtError e = rtRpcRegisterObject(objectName, obj);
+  assert(e == RT_OK);
+  while (true)
+    sleep(10);
+}
+
+struct TestCase
+{
+  std::function<void ()> client;
+  std::function<void ()> server;
+};
+
+std::map< int, TestCase > testCases;
+
 
 int main(int argc, char* /*argv*/[])
 {
-  char const* objectName = "com.xfinity.xsmart.Thermostat/JakesHouse";
-
   rtError e = rtRpcInit();
   assert(e == RT_OK);
 
   if (argc == 2)
   {
-    rtObjectRef obj;
-    e = rtRpcLocateObject(objectName, obj);
-    if (e != RT_OK)
-    {
-      printf("failed to find object: %s\n", objectName);
-      exit(0);
-    }
-
-    int i = 1;
-
-    while (true)
-    {
-      i++;
-
-      rtString desc;
-     
-      #if 0 // this works
-      e = obj.sendReturns<rtString>("description", desc);
-      RT_ASSERT(e);
-      #endif
-
-      #if 0 // this works
-      e = obj.set("prop1", i);
-      if (e != RT_OK)
-      {
-	printf("failed to set prop\n");
-	return -1;
-      }
-
-      uint32_t n = obj.get<uint32_t>("prop1");
-      printf("fillColor: %d\n", n);
-      #endif
-
-      #if 0// this works
-      int32_t ret = 0;
-      e = obj.sendReturns<int32_t>("add", i, i, ret);
-      printf("HERE (%d): %d + %d = %d\n", ret, i, i, ret);
-      #endif
-
-      e = obj.set("onTempChanged", new rtFunctionCallback(my_callback));
-      sleep(1000);
-    }
+    //Test_FunctionReferences_Client();
+    // Test_MethodCall_Client();
+    Test_SetProperty_Object_Client();
   }
   else
   {
-    rtObjectRef obj(new rtThermostat());
-    e = rtRpcRegisterObject(objectName, obj);
-
-    // locator.removeObject(objectName);
-    int temp = 50;
-
-    while (1)
-    {
-      rtFunctionRef ref;
-      obj.get("onTempChanged", ref);
-
-      if (ref)
-      {
-	rtValue arg1(temp++);
-	rtString s;
-	rtError e = ref.sendReturns<rtString>(arg1, s);
-	if (e == RT_OK)
-	{
-	  printf("s:%s\n", s.cString());
-	}
-	else
-	{
-	  printf("error: %d\n", (int) e);
-	}
-      }
-      else
-      {
-	printf("onTempChanged is null\n");
-      }
-
-      sleep(1);
-    }
+    // Test_FunctionReferences_Server();
+    Test_SetProperty_Object_Server();
   }
 
   return 0;
