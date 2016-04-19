@@ -187,13 +187,16 @@ Test_MethodCall_Client()
   rtError e = rtRpcLocateObject(objectName, objectRef);
   assert(e == RT_OK);
 
+  int i = 1;
   while (true)
   {
-    rtString desc;
-    rtError e = objectRef.sendReturns<rtString>("description", desc);
+    rtValue val(i);
+    rtValue sum(0);
+    rtError e = objectRef.sendReturns("add", val, val, sum);
+    printf("%d + %d == %d\n", i, i, sum.toInt32());
     assert(e == RT_OK);
-    printf("description: %s\n", desc.cString());
     sleep(1);
+    i += 1;
   }
 }
 
@@ -270,13 +273,14 @@ int main(int argc, char* /*argv*/[])
   if (argc == 2)
   {
     //Test_FunctionReferences_Client();
-    // Test_MethodCall_Client();
-    Test_SetProperty_Object_Client();
+    Test_MethodCall_Client();
+    // Test_SetProperty_Object_Client();
   }
   else
   {
     // Test_FunctionReferences_Server();
-    Test_SetProperty_Object_Server();
+    // Test_SetProperty_Object_Server();
+    Test_MethodCall_Server();
   }
 
   return 0;

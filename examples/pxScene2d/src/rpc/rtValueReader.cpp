@@ -4,13 +4,27 @@
 #include "rtRemoteFunction.h"
 #include "rtRpcMessage.h"
 
-// TODO: don't require transport as argument
-// TODO: then what if object and/or function is remote. 
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+
 // maybe use some type of identifier to indicate remote, with reference
 // to transport. I don't like transport being a member of rtRemoteObject
 // and rtRemoteFunction.
 // either of these should be able simply include a reference to a transport
 // with a handle returned by server in json message.
+
+#if 0
+static std::string toString(rapidjson::Value const& v)
+{
+  rapidjson::StringBuffer buff;
+  rapidjson::Writer< rapidjson::GenericStringBuffer< rapidjson::UTF8<> > > writer(buff);
+  v.Accept(writer);
+
+  char const* s = buff.GetString();
+  return (s != nullptr ? std::string(s) : std::string());
+}
+#endif
+
 rtError
 rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRpcClient> const& client)
 {
@@ -101,19 +115,31 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
       if (!client)
         return RT_FAIL;
 
+      std::string objectId;
+      std::string functionId;
+
       auto const& func = from.FindMember("value");
-      assert(func != from.MemberEnd());
+      if (func != from.MemberEnd())
+      {
+	auto itr = func->value.FindMember(kFieldNameObjectId);
+	assert(itr != func->value.MemberEnd());
+	objectId = itr->value.GetString();
 
-      auto itr = func->value.FindMember(kFieldNameObjectId);
-      assert(itr != func->value.MemberEnd());
+	itr = func->value.FindMember(kFieldNameFunctionName);
+	assert(itr != func->value.MemberEnd());
+	functionId = itr->value.GetString();
+      }
+      else
+      {
+	auto itr = from.FindMember(kFieldNameObjectId);
+	assert(itr != from.MemberEnd());
+	objectId = itr->value.GetString();
 
-      std::string objectId = itr->value.GetString();
+	itr = from.FindMember(kFieldNameFunctionName);
+	assert(itr != from.MemberEnd());
+	functionId = itr->value.GetString();
+      }
 	
-      itr = func->value.FindMember(kFieldNameFunctionName);
-      assert(itr != func->value.MemberEnd());
-
-      std::string functionId = itr->value.GetString();
-
       to.setFunction(new rtRemoteFunction(objectId, functionId, client));
     }
     break;
