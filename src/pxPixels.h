@@ -6,6 +6,7 @@
 #define PX_PIXELS_H
 
 #include "pxCore.h"
+#include <stdint.h>
 
 struct pxPixel {
 
@@ -53,7 +54,7 @@ struct pxPixel {
             unsigned char b: 8;
 #endif
         };
-        unsigned long u;
+        uint32_t u;
     };
 };
 
