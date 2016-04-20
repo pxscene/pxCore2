@@ -10,7 +10,7 @@ RT_SRCS=\
   ../rtError.cpp \
   rpc_main.cpp \
   rtRpcServer.cpp \
-  rtRemoteObjectResolver.cpp \
+  rtRpcResolver.cpp \
   rtRemoteObject.cpp \
   rtRemoteFunction.cpp \
   rtRpcMessage.cpp \
@@ -19,7 +19,9 @@ RT_SRCS=\
   rtValueWriter.cpp \
   rtSocketUtils.cpp \
   rtRpcStream.cpp \
-  rtObjectCache.cpp
+  rtObjectCache.cpp \
+  rtRpc.cpp \
+  rtRpcConfig.cpp
 
 ifeq ($V, 1)
   CXX_PRETTY = $(CXX)
@@ -41,7 +43,7 @@ endif
 
 CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -g -DRT_PLATFORM_LINUX -I../ -I.
 CXXFLAGS+=-std=c++0x $(CFLAGS)
-LDFLAGS =-pthread -ldl
+LDFLAGS =-pthread -ldl -luuid
 OBJDIR=obj
 
 OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RT_SRCS)))

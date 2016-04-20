@@ -1,13 +1,19 @@
-#include <cstdio>
 #ifndef __RT_RPC_MESSAGE_H__
 #define __RT_RPC_MESSAGE_H__
 
-#include <limits>
-#include <rapidjson/document.h>
-#include <rtError.h>
-#include <rtValue.h>
 #include "rtLog.h"
 #include "rtSocketUtils.h"
+#include "rtRpcConfig.h"
+
+#include <atomic>
+#include <cstdio>
+#include <limits>
+#include <sstream>
+
+#include <rtError.h>
+#include <rtValue.h>
+#include <uuid/uuid.h>
+#include <rapidjson/document.h>
 
 #define kFieldNameMessageType "message.type"
 #define kFieldNameCorrelationKey "correlation.key"
@@ -62,7 +68,7 @@ private:
   rtRpcMessage() { }
 
 public:
-  rtCorrelationKey_t getCorrelationKey() const;
+  rtCorrelationKey getCorrelationKey() const;
   char const* getMessageType() const;
   char const* getObjectName() const;
 
@@ -71,7 +77,7 @@ public:
 protected:
   struct Impl;
   std::shared_ptr<Impl>   m_impl;
-  rtCorrelationKey_t      m_correlation_key;
+  rtCorrelationKey      m_correlation_key;
 };
 
 class rtRpcRequest : public rtRpcMessage
@@ -146,7 +152,7 @@ rtError     rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out = s
 rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...)
               RT_PRINTF_FORMAT(3, 4);
 rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code);
-rtCorrelationKey_t rtMessage_GetNextCorrelationKey();
+rtCorrelationKey rtMessage_GetNextCorrelationKey();
 
 
 #endif
@@ -176,12 +182,33 @@ if (value.getType() == RT_functionType)
 
 namespace
 {
-  std::string getId(rtFunctionRef const& ref)
+  static std::atomic<int> sNextFunctionId;
+
+  std::string getId(rtFunctionRef const& /*ref*/)
   {
-    char buff[64] = {0};
-    std::snprintf(buff, sizeof(buff), "%p", ref.getPtr());
-    return std::string(buff);
+    char buff[32] = {0};
+    uuid_t id;
+    uuid_generate(id);
+    uuid_unparse_lower(id, buff);
+
+    std::stringstream ss;
+    ss << "func://";
+    ss << buff;
+    return ss.str();
   }
+ 
+  std::string getId(rtObjectRef const& /*ref*/)
+  {
+    char buff[32] = {0};
+    uuid_t id;
+    uuid_generate(id);
+    uuid_unparse_lower(id, buff);
+
+    std::stringstream ss;
+    ss << "obj://";
+    ss << buff;
+    return ss.str();
+   }
 }
 
 rtError
@@ -191,6 +218,8 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
 
   if (from.getType() == RT_functionType)
   {
+    to.AddMember(kFieldNameValueType, static_cast<int>(RT_functionType), doc.GetAllocator());
+
     rtFunctionRef func = from.toFunction();
     std::string id = getId(func);
 
@@ -198,11 +227,25 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
     val.SetObject();
     val.AddMember(kFieldNameObjectId, std::string("global"), doc.GetAllocator());
     val.AddMember(kFieldNameFunctionName, id, doc.GetAllocator());
-    val.AddMember(kFieldNameValueType, static_cast<int>(RT_functionType), doc.GetAllocator());
-
-    rtObjectCache::insert(id, func);
     to.AddMember("value", val, doc.GetAllocator());
 
+    rtObjectCache::insert(id, func, rtRpcSetting<int>("rt.rpc.cache.max_object_lifetime"));
+    return RT_OK;
+  }
+
+  if (from.getType() == RT_objectType)
+  {
+    to.AddMember(kFieldNameValueType, static_cast<int>(RT_objectType), doc.GetAllocator());
+
+    rtObjectRef obj = from.toObject();
+    std::string id = getId(obj);
+
+    rapidjson::Value val;
+    val.SetObject();
+    val.AddMember(kFieldNameObjectId, id, doc.GetAllocator());
+    to.AddMember("value", val, doc.GetAllocator());
+
+    rtObjectCache::insert(id, obj, rtRpcSetting<int>("rt.rpc.cache.max_object_lifetime"));
     return RT_OK;
   }
 
@@ -220,9 +263,13 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
     case RT_int32_tType:  to.AddMember("value", from.toInt32(), doc.GetAllocator()); break;
     case RT_uint32_tType: to.AddMember("value", from.toUInt32(), doc.GetAllocator()); break;
     case RT_stringType:   to.AddMember("value", std::string(from.toString().cString()), doc.GetAllocator()); break;
-    case RT_objectType:   assert(false); break;
-    case RT_functionType: assert(false); break;
-    case RT_voidPtrType:  assert(false); break;
+    case RT_voidPtrType:
+#if __x86_64
+      to.AddMember("Value", (uint64_t)(from.toVoidPtr()), doc.GetAllocator());
+#else
+      to.AddMember("value", (uint32_t)(from.toVoidPtr()), doc.GetAllocator());
+#endif
+      break;
   }
   return RT_OK;
 }

@@ -19,10 +19,10 @@
 
 namespace
 {
-  std::atomic<rtCorrelationKey_t> s_next_key;
+  std::atomic<rtCorrelationKey> s_next_key;
 }
 
-rtCorrelationKey_t
+rtCorrelationKey
 rtMessage_GetNextCorrelationKey()
 {
   return ++s_next_key;
@@ -189,7 +189,7 @@ rtRpcMessage::getObjectName() const
   return from_json<char const *>(m_impl->d[kFieldNameObjectId]);
 }
 
-rtCorrelationKey_t
+rtCorrelationKey
 rtRpcMessage::getCorrelationKey() const
 {
   assert(m_correlation_key != 0);

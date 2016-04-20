@@ -29,27 +29,19 @@ public:
   ~rtRpcClient();
 
   rtError open();
-  rtError startSession(std::string const& objectName, uint32_t timeout = kDefaultRequestTimeout);
-
-  rtError get(std::string const& objectName, char const* propertyName, rtValue& value,
-    uint32_t timeout = kDefaultRequestTimeout);
-
-  rtError set(std::string const& objectName, char const* propertyName, rtValue const& value,
-    uint32_t timeout = kDefaultRequestTimeout);
-
-  rtError get(std::string const& objectName, uint32_t index, rtValue& value,
-    uint32_t timeout = kDefaultRequestTimeout);
-
-  rtError set(std::string const& objectName, uint32_t index, rtValue const& value,
-    uint32_t timeout = kDefaultRequestTimeout);
+  rtError startSession(std::string const& objectName, uint32_t timeout = 0);
+  rtError get(std::string const& objectName, char const* propertyName, rtValue& value, uint32_t timeout = 0);
+  rtError get(std::string const& objectName, uint32_t index, rtValue& value, uint32_t timeout = 0);
+  rtError set(std::string const& objectName, uint32_t index, rtValue const& value, uint32_t timeout = 0);
+  rtError set(std::string const& objectName, char const* propertyName, rtValue const& value, uint32_t timeout = 0);
 
   rtError send(std::string const& objectName, std::string const& name, int argc, rtValue const* argv,
-    rtValue* result, uint32_t timeout = kDefaultRequestTimeout);
+    rtValue* result, uint32_t timeout);
 
-  inline void keep_alive(std::string const& s)
+  inline void keepAlive(std::string const& s)
     { m_object_list.push_back(s); }
 
-  rtError setMessageCallback(rtRpcMessageHandler_t const& handler)
+  rtError setMessageCallback(rtRpcMessageHandler const& handler)
     { m_message_handler = handler; return RT_OK; } 
 
   rtError sendDocument(rapidjson::Document const& doc)
@@ -65,22 +57,22 @@ public:
 
 private:
 
-  rtError onIncomingMessage(rtJsonDocPtr_t const& msg);
+  rtError onIncomingMessage(rtJsonDocPtr const& msg);
   rtError onInactivity(time_t lastMessage, time_t now);
   rtError sendGet(rtRpcGetRequest const& req, rtValue& value, uint32_t timeout);
   rtError sendSet(rtRpcSetRequest const& req, uint32_t timeout);
   rtError connectRpcEndpoint();
   rtError sendKeepAlive();
   rtError runListener();
-  rtError dispatch(rtJsonDocPtr_t const& doc);
+  rtError dispatch(rtJsonDocPtr const& doc);
 
   // message handlers
-  rtError onStartSession(rtJsonDocPtr_t const& doc);
+  rtError onStartSession(rtJsonDocPtr const& doc);
 
 private:
   std::shared_ptr<rtRpcStream>		m_stream;
   std::vector<std::string>      	m_object_list;
-  rtRpcMessageHandler_t			m_message_handler;
+  rtRpcMessageHandler			m_message_handler;
 };
 
 #endif

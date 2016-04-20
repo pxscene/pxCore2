@@ -10,11 +10,11 @@ class rtObjectCache
 public:
   static rtObjectRef findObject(std::string const& id);
   static rtFunctionRef findFunction(std::string const& id);
-  static rtError insert(std::string const& id, rtObjectRef const& ref);
-  static rtError insert(std::string const& id, rtFunctionRef const& ref);
+  static rtError insert(std::string const& id, rtObjectRef const& ref, int maxAge);
+  static rtError insert(std::string const& id, rtFunctionRef const& ref, int maxAge);
   static rtError touch(std::string const& id, time_t now);
   static rtError erase(std::string const& id);
-  static rtError removeIfOlderThan(int arg, int* nRemoved);
+  static rtError removeUnused();
 
 private:
   rtObjectCache() { }
