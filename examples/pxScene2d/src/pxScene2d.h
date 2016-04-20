@@ -30,6 +30,9 @@ using namespace std;
 #include "rtObjectMacros.h"
 #include "rtPromise.h"
 #include "rtThreadQueue.h"
+
+#define ANIMATION_ROTATE_XYZ
+
 #include "pxResource.h"
 
 #include "pxCore.h"
