@@ -43,6 +43,7 @@ class rtThermostat : public rtObject
 public:
   rtDeclareObject(rtThermostat, rtObject);
   rtProperty(lcd, lcd, setLcd, rtObjectRef);
+  rtProperty(onTempChanged, onTempChanged, setOnTempChanged, rtFunctionRef);
 
   // rtMethodNoArgAndNoReturn("hello", hello);
   rtMethod2ArgAndReturn("add", add, int32_t, int32_t, int32_t);
@@ -59,7 +60,7 @@ public:
 
   rtFunctionRef onTempChanged() const { return m_onTempChanged; } 
   rtError onTempChanged(rtFunctionRef& ref) const { ref = m_onTempChanged; return RT_OK; } 
-  rtError onTempChanged(rtFunctionRef ref) { m_onTempChanged = ref; return RT_OK; } 
+  rtError setOnTempChanged(rtFunctionRef ref) { m_onTempChanged = ref; return RT_OK; } 
 
   rtError hello()
   {
@@ -80,7 +81,7 @@ rtDefineProperty(rtLcd, height);
 
 rtDefineObject(rtThermostat, rtObject);
 rtDefineProperty(rtThermostat, lcd);
-//rtDefineProperty(rtThermostat, onTempChanged);
+rtDefineProperty(rtThermostat, onTempChanged);
 rtDefineMethod(rtThermostat, add);
 
 static rtError my_callback(int /*argc*/, rtValue const* /*argv*/, rtValue* result, void* /*argp*/)
@@ -121,7 +122,7 @@ void Test_SetProperty_Basic_Client()
   }
 }
 
-void Test_SetPRoperty_Basic_Server()
+void Test_SetProperty_Basic_Server()
 {
   rtObjectRef obj(new rtThermostat());
   rtError e = rtRpcRegisterObject(objectName, obj);
@@ -136,9 +137,11 @@ void Test_FunctionReferences_Client()
   rtError e = rtRpcLocateObject(objectName, objectRef);
   assert(e == RT_OK);
 
+  e = objectRef.set("onTempChanged", new rtFunctionCallback(my_callback));
+  assert(e == RT_OK);
+
   while (true)
   {
-    e = objectRef.set("onTempChanged", new rtFunctionCallback(my_callback));
     sleep(1000);
   }
 }
@@ -160,16 +163,12 @@ void Test_FunctionReferences_Server()
     if (ref)
     {
       rtValue arg1(temp++);
+
       rtString s;
       rtError e = ref.sendReturns<rtString>(arg1, s);
-      if (e == RT_OK)
-      {
-	printf("s:%s\n", s.cString());
-      }
-      else
-      {
-	printf("error: %d\n", (int) e);
-      }
+      assert(e == RT_OK);
+
+      printf("s:%s\n", s.cString());
     }
     else
     {
@@ -272,15 +271,15 @@ int main(int argc, char* /*argv*/[])
 
   if (argc == 2)
   {
-    //Test_FunctionReferences_Client();
-    Test_MethodCall_Client();
+    Test_FunctionReferences_Client();
+    // Test_MethodCall_Client();
     // Test_SetProperty_Object_Client();
   }
   else
   {
-    // Test_FunctionReferences_Server();
+    Test_FunctionReferences_Server();
     // Test_SetProperty_Object_Server();
-    Test_MethodCall_Server();
+    // Test_MethodCall_Server();
   }
 
   return 0;

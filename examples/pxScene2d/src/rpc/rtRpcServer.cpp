@@ -495,6 +495,8 @@ rtRpcServer::onSet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc
     rtValue value;
 
     auto itr = doc->FindMember(kFieldNameValue);
+    assert(itr != doc->MemberEnd());
+
     if (itr != doc->MemberEnd())
       err = rtValueReader::read(value, itr->value, client);
 
@@ -511,11 +513,6 @@ rtRpcServer::onSet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc
         if (index != kInvalidPropertyIndex)
           err = obj->Set(index, &value);
       }
-    }
-
-    if (err == RT_OK)
-    {
-      res->AddMember(kFieldNameStatusCode, 0, res->GetAllocator());
     }
 
     res->AddMember(kFieldNameStatusCode, static_cast<int>(err), res->GetAllocator());
