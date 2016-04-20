@@ -15,7 +15,7 @@ static std::string trim(char const* begin, char const* end)
 {
   assert(begin != nullptr);
   assert(end != nullptr);
-  
+
   while (begin && (begin < end) && isspace(*begin))
     ++begin;
 
@@ -53,8 +53,8 @@ static long int to_long(char const* s)
 template<class T>
 static T numeric_cast(char const* s)
 {
-  long int l = to_long(s);
-  long int max = std::numeric_limits<T>::max();
+  long unsigned int l = to_long(s);
+  long unsigned int max = std::numeric_limits<T>::max();
   assert(l <= max);
   return static_cast<T>(l);
 }
@@ -174,7 +174,7 @@ rtRpcConfig::fromFile(char const* file)
     rtLogError("null file path");
     return conf;
   }
-  
+
   FILE* f = fopen(file, "r");
   if (!f)
   {
@@ -208,7 +208,7 @@ rtRpcConfig::fromFile(char const* file)
       end++;
 
     assert(end && *end == '=');
-    
+
     std::string name = trim(begin, end);
 
     begin = end + 1;
