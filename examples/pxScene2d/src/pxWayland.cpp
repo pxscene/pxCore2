@@ -37,7 +37,6 @@ pxWayland::pxWayland(pxScene2d* scene)
     m_hasApi(false),
     m_API(),
 #ifdef ENABLE_PX_WAYLAND_RPC
-    m_locator(),
     m_remoteObject(),
 #endif //ENABLE_PX_WAYLAND_RPC
     m_remoteObjectName(TEST_REMOTE_OBJECT_NAME),
@@ -469,21 +468,10 @@ void* pxWayland::findRemoteThread( void *data )
 rtError pxWayland::startRemoteObjectLocator()
 {
 #ifdef ENABLE_PX_WAYLAND_RPC
-  rtError errorCode = m_locator.open();
-
+  rtError errorCode = rtRpcInit();
   if (errorCode != RT_OK)
   {
-    rtLogError("pxWayland failed to open rtRemoteObjectLocator: %d", errorCode);
-    m_remoteObjectMutex.lock();
-    m_waitingForRemoteObject = false;
-    m_remoteObjectMutex.unlock();
-    return errorCode;
-  }
-
-  errorCode = m_locator.start();
-  if (errorCode != RT_OK)
-  {
-    rtLogError("pxWayland failed to start rtRemoteObjectLocator: %d", errorCode);
+    rtLogError("pxWayland failed to initialize rtRpcInit: %d", errorCode);
     m_remoteObjectMutex.lock();
     m_waitingForRemoteObject = false;
     m_remoteObjectMutex.unlock();
@@ -506,7 +494,7 @@ rtError pxWayland::connectToRemoteObject()
   {
     findTime += FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS;
     rtLogInfo("Attempting to find remote object %s", m_remoteObjectName.cString());
-    errorCode = m_locator.findObject(m_remoteObjectName.cString(), m_remoteObject, FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS);
+    errorCode = rtRpcLocateObject(m_remoteObjectName.cString(), m_remoteObject);
     if (errorCode != RT_OK)
     {
       rtLogError("XREBrowserPlugin failed to find object: %s errorCode %d\n",

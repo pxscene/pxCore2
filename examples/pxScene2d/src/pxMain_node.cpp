@@ -191,7 +191,7 @@ void testWindows()
 
   pxScene2dRef scene1 = new pxScene2d;
 
-  win1.init(10, 10, 800, 600);
+  win1.init(0, 0, 1280, 720);
 
   win1.setTitle(">> Window 1 <<");
   win1.setVisibility(true);

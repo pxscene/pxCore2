@@ -3,7 +3,7 @@ all: rtNode
 
 clean:
 	rm -rf $(OBJDIR)
-	rm -f rtNode 
+	rm -f rtNode
 
 VPATH=linux
 
@@ -23,6 +23,7 @@ RT_SRCS=\
            rtZip.cpp \
            ioapi_mem.c \
            utf8.c
+
 
 PX_SRCS=\
            pxScene2d.cpp \
@@ -58,6 +59,7 @@ SEARCH=\
   -I$(EXTDIR)/png \
   -I$(PXHDRS)\
   -I. \
+  -Irpc \
   -I$(NODEINC)/src \
   -I$(NODEINC)/deps/uv/include \
   -I$(NODEINC)/deps/v8 \
@@ -67,16 +69,16 @@ SEARCH=\
 	$(PXCORE_INCLUDES)
 
 
-CXXFLAGS= -Wno-attributes -Wall -Wextra -g -fpermissive $(SEARCH) -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE 
+CXXFLAGS= -Wno-attributes -Wall -Wextra -O3 -fpermissive $(SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
 
 
 LDNODE   = -L$(NODEDIR)/out/Debug/obj.target
 LDNODEV8 = -L$(NODEDIR)/out/Debug
 
 
-LDEXT   = -lpng16 -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8)
+LDEXT   = -lpng16 -ljpeg -lfreetype -lcurl -luuid $(LDNODE) $(LDNODEV8)
 
-LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt $(PXCORE_LIBS) -lwesteros_compositor -lnexus -lnxclient -lnxpl -lGLESv2 
+LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -L./ -lrtrpc $(PXCORE_LIBS) -lwesteros_compositor -lnexus -lnxclient -lnxpl -lGLESv2
 
 
 OBJDIR=obj
@@ -131,7 +133,7 @@ $(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
 $(OBJDIR)/pxEGLProviderNexus.o: ../../../../platform/src/plugins/pxEGLProviderNexus.cpp
 	$(CXX) -o $(OBJDIR)/pxEGLProviderNexus.o -Wall $(CXXFLAGS) -c ../../../../platform/src/plugins/pxEGLProviderNexus.cpp
 
-SRCS=$(PX_SRCS) $(RT_SRCS) 
+SRCS=$(PX_SRCS) $(RT_SRCS)
 
 OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS)))
 OBJS:=$(patsubst %.c, $(OBJDIR)/%.o, $(OBJS))
@@ -148,6 +150,6 @@ $(OBJDIR)/%.o : %.c
 	$(CC) -c $(CXXFLAGS) $< -o $@
 
 
-rtNode: $(OBJS_ALL) 
+rtNode: $(OBJS_ALL)
 	$(CXX) $(OBJS_ALL) $(LDFLAGS) -o rtNode
 
