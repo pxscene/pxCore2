@@ -43,19 +43,16 @@ same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
 rtRpcServer::rtRpcServer()
   : m_listen_fd(-1)
   , m_resolver(nullptr)
-  , m_pipe_write(-1)
-  , m_pipe_read(-1)
   , m_keep_alive_interval(15)
 {
   memset(&m_rpc_endpoint, 0, sizeof(m_rpc_endpoint));
 
-  int arr[2];
-  int ret = pipe(arr);
+  m_shutdown_pipe[0] = -1;
+  m_shutdown_pipe[1] = -1;
+
+  int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
   if (ret == 0)
-  {
-    m_pipe_read = arr[0];
-    m_pipe_write = arr[1];
-  }
+    rtLogWarn("failed to create shutdown pipe. %s", rtStrError(ret).c_str());
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeOpenSessionRequest,
     std::bind(&rtRpcServer::onOpenSession, this, std::placeholders::_1, std::placeholders::_2)));
@@ -81,12 +78,24 @@ rtRpcServer::rtRpcServer()
 
 rtRpcServer::~rtRpcServer()
 {
+  if (m_shutdown_pipe[0] != -1)
+  {
+    char buff[] = {"shutdown"};
+    write(m_shutdown_pipe[1], buff, sizeof(buff));
+
+    if (m_thread)
+    {
+      m_thread->join();
+      m_thread.reset();
+    }
+  }
+
   if (m_listen_fd != -1)
     ::close(m_listen_fd);
-  if (m_pipe_read != -1)
-    ::close(m_pipe_read);
-  if (m_pipe_write != -1)
-    ::close(m_pipe_write);
+  if (m_shutdown_pipe[0] != -1)
+    ::close(m_shutdown_pipe[0]);
+  if (m_shutdown_pipe[1] != -1)
+    ::close(m_shutdown_pipe[1] = -1);
 
   if (m_resolver)
   {
@@ -141,11 +150,10 @@ rtRpcServer::runListener()
 
     FD_ZERO(&read_fds);
     rtPushFd(&read_fds, m_listen_fd, &maxFd);
-    rtPushFd(&read_fds, m_pipe_read, &maxFd);
+    rtPushFd(&read_fds, m_shutdown_pipe[0], &maxFd);
 
     FD_ZERO(&err_fds);
     rtPushFd(&err_fds, m_listen_fd, &maxFd);
-    rtPushFd(&err_fds, m_pipe_read, &maxFd);
 
     timeval timeout;
     timeout.tv_sec = 1;
@@ -160,12 +168,10 @@ rtRpcServer::runListener()
 
     // right now we just use this to signal "hey" more fds added
     // later we'll use this to shutdown
-    if (FD_ISSET(m_pipe_read, &read_fds))
+    if (FD_ISSET(m_shutdown_pipe[0], &read_fds))
     {
-      char ch;
-      ssize_t nBytesRead = read(m_pipe_read, &ch, 1);
-      if (nBytesRead != 1)
-	rtLogError("failed to read from pipe. %d", errno);
+      rtLogInfo("got shutdown signal");
+      return;
     }
 
     if (FD_ISSET(m_listen_fd, &read_fds))

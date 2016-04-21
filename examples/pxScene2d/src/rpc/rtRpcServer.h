@@ -77,8 +77,7 @@ private:
   rtIRpcResolver*		m_resolver;
   ClientMap			m_object_map;
   ClientList			m_connected_clients;
-  int                           m_pipe_write;
-  int                           m_pipe_read;
+  int                           m_shutdown_pipe[2];
   uint32_t                      m_keep_alive_interval;
 };
 

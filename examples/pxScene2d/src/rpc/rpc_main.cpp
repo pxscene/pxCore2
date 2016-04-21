@@ -139,11 +139,6 @@ void Test_FunctionReferences_Client()
 
   e = objectRef.set("onTempChanged", new rtFunctionCallback(my_callback));
   assert(e == RT_OK);
-
-  while (true)
-  {
-    sleep(1000);
-  }
 }
 
 void Test_FunctionReferences_Server()
@@ -166,7 +161,8 @@ void Test_FunctionReferences_Server()
 
       rtString s;
       rtError e = ref.sendReturns<rtString>(arg1, s);
-      assert(e == RT_OK);
+      if (e != RT_OK)
+	return;
 
       printf("s:%s\n", s.cString());
     }
@@ -281,6 +277,8 @@ int main(int argc, char* /*argv*/[])
     // Test_SetProperty_Object_Server();
     // Test_MethodCall_Server();
   }
+
+  rtRpcShutdown();
 
   return 0;
 }
