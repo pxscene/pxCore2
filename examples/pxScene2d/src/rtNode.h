@@ -9,10 +9,6 @@
 #include "include/v8.h"
 #include "include/libplatform/libplatform.h"
 
-#include "env.h"
-#include "env-inl.h"
-
-
 namespace node
 {
 class Environment;
@@ -24,6 +20,8 @@ class rtNodeContext;
 
 typedef rtRefT<rtNodeContext> rtNodeContextRef;
 
+
+#define UNUSED_PARAM(x) ((x)=(x))
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -71,7 +69,14 @@ public:
     return l;
   }
 
-  const char *js_file;
+  bool           mKillUVWorker; 
+  uv_timer_t     mTimer;
+  
+  const char   *js_file;
+  std::string   js_script;
+  
+  pthread_t     js_worker;
+  pthread_t     uv_worker;
 
   rtNode   *node;
 
@@ -82,16 +87,15 @@ private:
   node::Environment*             mEnv;
   v8::Persistent<v8::Object>     rtWrappers;
 
+  void createEnvironment();
  // v8::Persistent<v8::ObjectTemplate>  globalTemplate;
 
-  bool      mKillUVWorker;
-
-  pthread_t worker;
   pthread_t uv_thread;
+
+  int mRefCount;
 
   int startThread(const char *js);
 
-  int mRefCount;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -108,6 +112,8 @@ public:
 
   void init(int argc, char** argv);
 
+  v8::Isolate   *getIsolate() { return mIsolate; };
+  
 private:
   void term();
 

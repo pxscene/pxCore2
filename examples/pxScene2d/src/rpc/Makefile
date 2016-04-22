@@ -2,25 +2,51 @@ LIBRTRPC  = rtRpc
 LIBRTCORE = rtCore
 SAMPLEAPP = rpcSampleApp
 
+<<<<<<< HEAD
 all: lib$(LIBRTRPC).so lib$(LIBRTCORE).so $(SAMPLEAPP)
 
+=======
+LIBRTRPC  = rtRpc
+LIBRTCORE = rtCore
+SAMPLEAPP = rpcSampleApp
+
+all: lib$(LIBRTRPC).so lib$(LIBRTCORE).so $(SAMPLEAPP)
+
+>>>>>>> johnrobinsn/_temp_pxcore2_stage
 RTCORE_SRCS=\
   ../utf8.c \
   ../rtString.cpp \
   ../rtLog.cpp \
   ../rtValue.cpp \
+<<<<<<< HEAD
   ../rtObject.cpp
 
 RTRPC_SRCS=\
   rtRemoteObjectLocator.cpp \
   rtRemoteObjectResolver.cpp \
+=======
+  ../rtObject.cpp \
+  ../rtError.cpp 
+
+
+RTRPC_SRCS=\
+  rtRpcServer.cpp \
+  rtRpcResolver.cpp \
+>>>>>>> johnrobinsn/_temp_pxcore2_stage
   rtRemoteObject.cpp \
   rtRemoteFunction.cpp \
   rtRpcMessage.cpp \
   rtRpcClient.cpp \
   rtValueReader.cpp \
   rtValueWriter.cpp \
-  rtSocketUtils.cpp
+  rtSocketUtils.cpp \
+  rtRpcStream.cpp \
+  rtObjectCache.cpp \
+  rtRpc.cpp \
+  rtRpcConfig.cpp
+
+SAMPLEAPP_SRCS=\
+  rpc_main.cpp
 
 SAMPLEAPP_SRCS=\
   rpc_main.cpp
@@ -44,8 +70,13 @@ else
 endif
 
 CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -g -DRT_PLATFORM_LINUX -I../ -I. -fPIC
+<<<<<<< HEAD
 CXXFLAGS+=-std=c++0x -DRAPIDJSON_HAS_STDSTIRNG $(CFLAGS)
 LDFLAGS =-pthread -ldl
+=======
+CXXFLAGS+=-std=c++0x $(CFLAGS)
+LDFLAGS =-pthread -ldl -luuid
+>>>>>>> johnrobinsn/_temp_pxcore2_stage
 OBJDIR=obj
 
 RTCORE_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RTCORE_SRCS)))
@@ -58,6 +89,10 @@ RTRPC_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(RTRPC_OBJS)))
 RTRPC_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(RTRPC_OBJS))
 
 SAMPLEAPP_OBJS = $(OBJDIR)/rpc_main.o
+<<<<<<< HEAD
+=======
+
+>>>>>>> johnrobinsn/_temp_pxcore2_stage
 
 $(OBJDIR)/%.o: ../%.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)

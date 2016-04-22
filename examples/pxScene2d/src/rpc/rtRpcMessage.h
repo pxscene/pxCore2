@@ -61,7 +61,7 @@ private:
   rtRpcMessage() { }
 
 public:
-  rtCorrelationKey_t getCorrelationKey() const;
+  rtCorrelationKey getCorrelationKey() const;
   char const* getMessageType() const;
   char const* getObjectName() const;
 
@@ -70,7 +70,7 @@ public:
 protected:
   struct Impl;
   std::shared_ptr<Impl>   m_impl;
-  rtCorrelationKey_t      m_correlation_key;
+  rtCorrelationKey      m_correlation_key;
 };
 
 class rtRpcRequest : public rtRpcMessage
@@ -145,6 +145,7 @@ rtError     rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out = s
 rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...)
               RT_PRINTF_FORMAT(3, 4);
 rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code);
+rtCorrelationKey rtMessage_GetNextCorrelationKey();
 
 
 #endif
