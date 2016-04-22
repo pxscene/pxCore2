@@ -40,8 +40,7 @@ PX_SRCS=\
 	   pxMatrix4T.cpp \
            pxArchive.cpp \
            pxFont.cpp \
-           rtNode.cpp \
-           ../external/westeros-stub/westeros-stub.cpp
+           rtNode.cpp
 
 PXCOREDIR=../../../
 PXHDRS=$(PXCOREDIR)/src
@@ -63,8 +62,6 @@ SEARCH=\
   -I$(NODEINC)/deps/cares/include \
   -I$(NODEINC)/deps/debugger-agent/include \
   -I$(NODEINC)/deps/v8/include \
-  -I../external/westeros/external/install/include \
-  -I../external/westeros-stub \
 	$(PXCORE_INCLUDES)
 
 
@@ -78,7 +75,7 @@ LDNODEV8 = -L$(NODEDIR)/out/Release
 LDEXT   = -lpng16 -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8)
 
 #LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -shared -Wl,-soname,librtnode.so -o librtnode.so.1.0 
-LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -shared -Wl,-soname,librtnode.so -o librtnode.so.1.0 -lnexus -lnxclient -lnxpl -lGLESv2
+LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -shared -Wl,-soname,librtnode.so -o librtnode.so.1.0 -lwesteros_compositor -lnexus -lnxclient -lnxpl -lGLESv2
 
 
 OBJDIR=obj
@@ -126,9 +123,6 @@ $(OBJDIR)/rtObjectWrapper.o: jsbindings/rtObjectWrapper.cpp
 
 $(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
 	$(CXX) -o $(OBJDIR)/jsCallback.o -Wall $(CXXFLAGS) -c jsbindings/jsCallback.cpp
-
-$(OBJDIR)/westeros-stub.o: ../external/westeros-stub/westeros-stub.cpp
-	$(CXX) -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS) -c ../external/westeros-stub/westeros-stub.cpp
 
 
 SRCS=$(PX_SRCS) $(RT_SRCS) 
