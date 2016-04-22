@@ -33,6 +33,8 @@
 #include "jsbindings/rtObjectWrapper.h"
 #include "jsbindings/rtFunctionWrapper.h"
 
+#include <pxEventLoop.h>
+
 
 using namespace v8;
 using namespace node;
@@ -126,6 +128,18 @@ void *jsThread(void *ptr)
   return NULL;
 }
 
+pxEventLoop* gLoop = NULL;
+
+static void timerCallback(uv_timer_t* )
+{
+    #ifdef RUNINMAIN
+    if (gLoop)
+      gLoop->runOnce();
+    #else
+    rtLogDebug("uv timer callback");
+    #endif
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -140,7 +154,7 @@ static inline bool file_exists(const char *file)
 
 
 rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
-     mKillUVWorker(false), mIsolate(isolate), mRefCount(0), js_worker(NULL), uv_worker(NULL), mEnv(NULL) //, mContext(0)
+     mKillUVWorker(false), mIsolate(isolate), mRefCount(0), js_worker(NULL), uv_worker(NULL), mEnv(NULL), mTimer() //, mContext(0)
 {
   assert(isolate); // MUST HAVE !
 
@@ -249,6 +263,21 @@ void rtNodeContext::add(const char *name, rtValue const& val)
   global->Set(String::NewFromUtf8(mIsolate, name), rt2js(mIsolate, val));
 }
 
+void rtNodeContext::startTimers()
+{
+    rtLogInfo("starting background thread for event loop processing");
+
+    // we start a timer in case there aren't any other evens to the keep the
+    // nodejs event loop alive. Fire a time repeatedly.
+    uv_timer_init(uv_default_loop(), &mTimer);
+    
+    #ifdef RUNINMAIN
+    uv_timer_start(&mTimer, timerCallback, 0, 5);
+    #else
+    uv_timer_start(&mTimer, timerCallback, 1000, 1000);
+    #endif
+}
+
 rtObjectRef rtNodeContext::runThread(const char *file)
 {
   if(file_exists(file) == false)
@@ -258,6 +287,7 @@ rtObjectRef rtNodeContext::runThread(const char *file)
     return rtObjectRef(0);  // ERROR
   }
 
+  startTimers();
   startThread(file);
 
   return rtObjectRef(0);// JUNK
@@ -390,9 +420,6 @@ void rtNodeContext::uvWorker()
         }
       }
     }//scope - - - - - - - - - - - - - - -
-
-    usleep(0); // scheduler time slice 
-     more = true; // HACK
 
   } while (more == true && mKillUVWorker == false);
 

@@ -69,8 +69,7 @@ public:
     return l;
   }
 
-  bool           mKillUVWorker; 
-  uv_timer_t     mTimer;
+  bool           mKillUVWorker;
   
   const char   *js_file;
   std::string   js_script;
@@ -93,8 +92,10 @@ private:
   pthread_t uv_thread;
 
   int mRefCount;
+  uv_timer_t mTimer;
 
   int startThread(const char *js);
+  void startTimers();
 
 };
 
