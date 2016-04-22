@@ -2,10 +2,6 @@ LIBRTRPC  = rtRpc
 LIBRTCORE = rtCore
 SAMPLEAPP = rpcSampleApp
 
-LIBRTRPC  = rtRpc
-LIBRTCORE = rtCore
-SAMPLEAPP = rpcSampleApp
-
 all: lib$(LIBRTRPC).so lib$(LIBRTCORE).so $(SAMPLEAPP)
 
 RTCORE_SRCS=\
@@ -31,9 +27,6 @@ RTRPC_SRCS=\
   rtObjectCache.cpp \
   rtRpc.cpp \
   rtRpcConfig.cpp
-
-SAMPLEAPP_SRCS=\
-  rpc_main.cpp
 
 SAMPLEAPP_SRCS=\
   rpc_main.cpp
