@@ -1,14 +1,20 @@
 
-all: sample
+LIBRTRPC  = rtRpc
+LIBRTCORE = rtCore
+SAMPLEAPP = rpcSampleApp
 
-RT_SRCS=\
+all: lib$(LIBRTRPC).so lib$(LIBRTCORE).so $(SAMPLEAPP)
+
+RTCORE_SRCS=\
   ../utf8.c \
   ../rtString.cpp \
   ../rtLog.cpp \
   ../rtValue.cpp \
   ../rtObject.cpp \
-  ../rtError.cpp \
-  rpc_main.cpp \
+  ../rtError.cpp 
+
+
+RTRPC_SRCS=\
   rtRpcServer.cpp \
   rtRpcResolver.cpp \
   rtRemoteObject.cpp \
@@ -22,6 +28,9 @@ RT_SRCS=\
   rtObjectCache.cpp \
   rtRpc.cpp \
   rtRpcConfig.cpp
+
+SAMPLEAPP_SRCS=\
+  rpc_main.cpp
 
 ifeq ($V, 1)
   CXX_PRETTY = $(CXX)
@@ -41,15 +50,22 @@ else
   CFLAGS   += -O2
 endif
 
-CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -g -DRT_PLATFORM_LINUX -I../ -I.
+CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -g -DRT_PLATFORM_LINUX -I../ -I. -fPIC
 CXXFLAGS+=-std=c++0x $(CFLAGS)
 LDFLAGS =-pthread -ldl -luuid
 OBJDIR=obj
 
-OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RT_SRCS)))
-OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(OBJS)))
-OBJS:=$(patsubst   %.c, %.o        , $(notdir $(OBJS)))
-OBJS:=$(patsubst        %, $(OBJDIR)/%, $(OBJS))
+RTCORE_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RTCORE_SRCS)))
+RTCORE_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(RTCORE_OBJS)))
+RTCORE_OBJS:=$(patsubst   %.c, %.o        , $(notdir $(RTCORE_OBJS)))
+RTCORE_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(RTCORE_OBJS))
+
+RTRPC_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RTRPC_SRCS)))
+RTRPC_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(RTRPC_OBJS)))
+RTRPC_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(RTRPC_OBJS))
+
+SAMPLEAPP_OBJS = $(OBJDIR)/rpc_main.o
+
 
 $(OBJDIR)/%.o: ../%.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
@@ -68,9 +84,14 @@ debug:
 
 clean:
 	rm -rf obj
-	rm -f rpc_sample
-	rm -f core
+	rm -f $(SAMPLEAPP)
+	rm -f *.so
 
-sample: $(OBJS)
-	$(CXX_PRETTY) $(OBJS) $(LDFLAGS) -o rpc_sample
+lib$(LIBRTCORE).so: $(RTCORE_OBJS)
+	$(CXX_PRETTY) $(RTCORE_OBJS) $(LDFLAGS) -shared -o $@
 
+lib$(LIBRTRPC).so: $(RTRPC_OBJS)
+	$(CXX_PRETTY) $(RTRPC_OBJS) $(LDFLAGS) -shared -o $@
+
+$(SAMPLEAPP): $(SAMPLEAPP_OBJS) lib$(LIBRTRPC).so lib$(LIBRTCORE).so
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -l$(LIBRTCORE) -l$(LIBRTRPC)
