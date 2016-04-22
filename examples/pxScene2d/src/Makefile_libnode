@@ -89,8 +89,8 @@ SEARCH=\
   -I$(NODEINC)/deps/v8 \
   -I$(NODEINC)/deps/debugger-agent/include \
   -I$(NODEINC)/deps/v8/include \
-  -I../external/westeros/external/install/include \
-  -I../external/westeros-stub \
+  -I$(EXTDIR)/westeros/external/install/include \
+  -I$(EXTDIR)/westeros-stub \
    $(TARGETINCLUDE)
 
 
@@ -142,8 +142,8 @@ $(OBJDIR)/rtObjectWrapper.o: jsbindings/rtObjectWrapper.cpp
 $(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
 	g++ -o $(OBJDIR)/jsCallback.o -Wall $(CXXFLAGS) -c jsbindings/jsCallback.cpp
 
-$(OBJDIR)/westeros-stub.o: ../external/westeros-stub/westeros-stub.cpp
-	g++ -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS) -c ../external/westeros-stub/westeros-stub.cpp
+$(OBJDIR)/westeros-stub.o: $(EXTDIR)/westeros-stub/westeros-stub.cpp
+	g++ -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS) -c $(EXTDIR)/westeros-stub/westeros-stub.cpp
 
 SRCS=$(PX_SRCS) $(RT_SRCS) rtNode.cpp pxMain_node.cpp
 

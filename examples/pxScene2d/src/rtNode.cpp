@@ -11,6 +11,21 @@
 #include <iostream>
 #include <sstream>
 
+#ifndef WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
+#include "node.h"
+#include "node_javascript.h"
+
+#include "env.h"
+#include "env-inl.h"
+
+#ifndef WIN32
+#pragma GCC diagnostic pop
+#endif
+
 #include "pxCore.h"
 
 #include "rtNode.h"
@@ -18,8 +33,6 @@
 #include "jsbindings/rtObjectWrapper.h"
 #include "jsbindings/rtFunctionWrapper.h"
 
-#include "node.h"
-#include "node_javascript.h"
 
 using namespace v8;
 using namespace node;
@@ -42,11 +55,7 @@ static const char** exec_argv;
 #ifdef WIN32
 static DWORD __rt_main_thread__;
 #else
-static pthread_t __rt_main_thread__;
-static pthread_t __rt_render_thread__;
-static pthread_mutex_t gInitLock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t gInitCond  = PTHREAD_COND_INITIALIZER;
-static bool gInitComplete = false;
+/*static*/ pthread_t __rt_main_thread__;
 #endif
 
 bool rtIsMainThread()
@@ -71,7 +80,7 @@ void *uvThread(void *ptr)
 
     if(ctx)
     {
-      ctx->uvWorker();
+      ctx->uvWorker(); // BLOCKS
     }
     else
     {
@@ -131,12 +140,18 @@ static inline bool file_exists(const char *file)
 
 
 rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
-   mRefCount(0), mIsolate(isolate), mKillUVWorker(false)
+     mKillUVWorker(false), mIsolate(isolate), mRefCount(0), js_worker(NULL), uv_worker(NULL), mEnv(NULL) //, mContext(0)
 {
   assert(isolate); // MUST HAVE !
 
   AddRef();
 
+  createEnvironment();
+}
+
+
+void rtNodeContext::createEnvironment()
+{  
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -182,8 +197,36 @@ rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
 
 rtNodeContext::~rtNodeContext()
 {
-  mKillUVWorker = true; // kill UV loop
+  Locker                locker(mIsolate);
+  Isolate::Scope isolate_scope(mIsolate);
+  HandleScope     handle_scope(mIsolate);
+  
+  if(uv_worker)
+  {
+    printf("\nINFO: %s() - kill UV loop", __PRETTY_FUNCTION__); fflush(stdout);
+   
+    mKillUVWorker = true; // kill UV loop
+    
+    (void) pthread_join(uv_worker, NULL);
+  }
+  
+  if(mEnv)
+  {
+    RunAtExit(mEnv);
 
+    mEnv->Dispose();
+    mEnv = NULL;
+  }
+  
+  if(exec_argv)
+  {
+    delete[] exec_argv;
+    exec_argv = NULL;
+    exec_argc = 0;
+  }
+    
+  Release();
+  
   mContext.Reset();
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
 }
@@ -230,20 +273,14 @@ rtObjectRef rtNodeContext::runScript(const char *script)
     Isolate::Scope isolate_scope(mIsolate);
     HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 
-    // Enter the context for compiling and running ... Persistent > Local
-
     // Get a Local context...
     Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
     Context::Scope context_scope(local_context);
 
     Local<String> source = String::NewFromUtf8(mIsolate, script);
 
-    printf("\nINFO:  <<<<< COMPILE SCRIPT !\n");
-
     // Compile the source code.
     Local<Script> run_script = Script::Compile(source);
-
-    printf("DEBUG:  %15s()    - SCRIPT = %s\n", __FUNCTION__, script);
 
     // Run the script to get the result.
     Local<Value> result = run_script->Run();
@@ -253,9 +290,9 @@ rtObjectRef rtNodeContext::runScript(const char *script)
 
     printf("DEBUG:  %15s()    - RESULT = %s\n", __FUNCTION__, *utf8);  // TODO:  Probably need an actual RESULT return mechanisim
 
-    return rtObjectRef(0);// JUNK
-
   }//scope
+
+    return rtObjectRef(0);// JUNK
 }
 
 int rtNodeContext::startThread(const char *js)
@@ -264,7 +301,7 @@ int rtNodeContext::startThread(const char *js)
 
 //  printf("\n startThread() - ENTER\n");
 
-  if(pthread_create(&worker, NULL, jsThread, (void *) this))
+  if(pthread_create(&js_worker, NULL, jsThread, (void *) this))
   {
     fprintf(stderr, "Error creating thread\n");
     return 1;
@@ -325,7 +362,7 @@ void rtNodeContext::uvWorker()
 {
   bool more;
 
-  printf("\n Start >>> uvWorker() !!!! \n");
+  printf("\n Start >>> %s() !!!! \n", __FUNCTION__);
 
   do
   {
@@ -354,18 +391,24 @@ void rtNodeContext::uvWorker()
       }
     }//scope - - - - - - - - - - - - - - -
 
+    usleep(0); // scheduler time slice 
+     more = true; // HACK
+
   } while (more == true && mKillUVWorker == false);
 
-  printf("\n End >>> uvWorker() !!!! \n");
+  printf("\n End >>> %s() !!!! \n", __FUNCTION__);
 
   int code = EmitExit(mEnv);
+  
+  UNUSED_PARAM(code);
+  
   RunAtExit(mEnv);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtNode::rtNode() : mPlatform(NULL) //, mPxNodeExtension(NULL)
+rtNode::rtNode() : mPlatform(NULL)
 {  
   nodePath();
 
@@ -373,7 +416,7 @@ rtNode::rtNode() : mPlatform(NULL) //, mPxNodeExtension(NULL)
   node_isolate = mIsolate; // Must come first !!
 }
 
-rtNode::rtNode(int argc, char** argv) : mPlatform(NULL)//, mPxNodeExtension(NULL)
+rtNode::rtNode(int argc, char** argv) : mPlatform(NULL)
 {
   nodePath();
 
@@ -400,17 +443,17 @@ void rtNode::nodePath()
     {
       ::setenv("NODE_PATH", cwd, 1); // last arg is 'overwrite' ... 0 means DON'T !
 
-      printf("\n\n INFO: NODE_PATH = [%s] << NEW\n", cwd);
+      //printf("\n\n INFO: NODE_PATH = [%s] << NEW\n", cwd);
     }
     else
     {
       printf("\nERROR: failed to set NODE_PATH\n");
     }
   }
-  else
-  {
-     printf("\nINFO:  NODE_PATH =  [%s]  <<<<< ALREADY SET !\n", NODE_PATH);
-  }
+  // else
+  // {
+  //    printf("\nINFO:  NODE_PATH =  [%s]  <<<<< ALREADY SET !\n", NODE_PATH);
+  // }
 }
 
 void rtNode::init(int argc, char** argv)
@@ -436,14 +479,13 @@ void rtNode::term()
 {
   if(node_is_initialized)
   {
-    node_is_initialized = false;
-
-    mIsolate = NULL;
-
     node_isolate->Dispose();
     node_isolate = NULL;
+    mIsolate = NULL;
 
     V8::Dispose();
+
+    node_is_initialized = false; 
 
   //  V8::ShutdownPlatform();
   //  if(mPlatform)
@@ -467,6 +509,8 @@ rtNodeContextRef rtNode::getGlobalContext() const
 
 rtNodeContextRef rtNode::createContext(bool ownThread)
 {
+  UNUSED_PARAM(ownThread);    // not implemented yet.  
+
   rtNodeContextRef ctxref = new rtNodeContext(mIsolate);
 
   ctxref->node = this;

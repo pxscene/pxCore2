@@ -3751,6 +3751,8 @@ int Start(int argc, char** argv) {
   node_isolate = NULL;
   V8::Dispose();
 
+  node_is_initialized = true;
+ 
   delete[] exec_argv;
   exec_argv = NULL;
 
