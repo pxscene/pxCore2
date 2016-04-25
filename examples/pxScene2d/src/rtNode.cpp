@@ -33,7 +33,14 @@
 #include "jsbindings/rtObjectWrapper.h"
 #include "jsbindings/rtFunctionWrapper.h"
 
-#include <pxEventLoop.h>
+
+#ifdef RUNINMAIN
+#define ENTERSCENELOCK()
+#define EXITSCENELOCK() 
+#else
+#define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
+#define EXITSCENELOCK()  rtWrapperSceneUpdateExit(); 
+#endif
 
 
 using namespace v8;
@@ -57,7 +64,7 @@ static const char** exec_argv;
 #ifdef WIN32
 static DWORD __rt_main_thread__;
 #else
-/*static*/ pthread_t __rt_main_thread__;
+static pthread_t __rt_main_thread__;
 #endif
 
 bool rtIsMainThread()
@@ -65,7 +72,8 @@ bool rtIsMainThread()
 #ifdef WIN32
   return GetCurrentThreadId() == __rt_main_thread__;
 #else
-  return pthread_self() == __rt_main_thread__;
+//  return pthread_self() == __rt_main_thread__;
+  return pthread_self() != __rt_main_thread__;
 #endif
 }
 
@@ -74,7 +82,7 @@ bool rtIsMainThread()
 
 void *uvThread(void *ptr)
 {
-  printf("uvThread() - ENTER\n");
+  //printf("uvThread() - ENTER\n");
 
   if(ptr)
   {
@@ -128,8 +136,6 @@ void *jsThread(void *ptr)
   return NULL;
 }
 
-pxEventLoop* gLoop = NULL;
-
 static void timerCallback(uv_timer_t* )
 {
     #ifdef RUNINMAIN
@@ -154,7 +160,7 @@ static inline bool file_exists(const char *file)
 
 
 rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
-     mKillUVWorker(false), mIsolate(isolate), mRefCount(0), js_worker(NULL), uv_worker(NULL), mEnv(NULL), mTimer() //, mContext(0)
+     mKillUVWorker(false), mIsolate(isolate), js_worker(NULL), uv_worker(NULL), mEnv(NULL), mRefCount(0), mTimer() //, mContext(0)
 {
   assert(isolate); // MUST HAVE !
 
@@ -437,6 +443,8 @@ void rtNodeContext::uvWorker()
 
 rtNode::rtNode() : mPlatform(NULL)
 {  
+  __rt_main_thread__ = pthread_self();
+  
   nodePath();
 
   mIsolate     = Isolate::New();
@@ -445,6 +453,8 @@ rtNode::rtNode() : mPlatform(NULL)
 
 rtNode::rtNode(int argc, char** argv) : mPlatform(NULL)
 {
+  __rt_main_thread__ = pthread_self();
+  
   nodePath();
 
   mIsolate     = Isolate::New();

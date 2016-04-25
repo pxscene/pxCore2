@@ -75,15 +75,11 @@ void testContextsLeak();
 
 args_t *s_gArgs;
 
-extern pthread_t __rt_main_thread__;
-
 pxEventLoop  eventLoop;
-extern pxEventLoop* gLoop;
+
 
 int pxMain()
 {
-  __rt_main_thread__ = pthread_self();
-  
   #pragma GCC diagnostic ignored "-Wwrite-strings"
 
   
@@ -94,8 +90,6 @@ int pxMain()
 
   static args_t aa(argc, argv);
   s_gArgs = &aa;
-
-  gLoop = &eventLoop;
 
   testWindows(); /// multi threaded
  // testContextsLeak();  /// single threaded
