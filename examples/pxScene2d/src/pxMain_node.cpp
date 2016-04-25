@@ -75,13 +75,9 @@ void testContextsLeak();
 
 args_t *s_gArgs;
 
-pxEventLoop  eventLoop;
-
-
 int pxMain()
 {
   #pragma GCC diagnostic ignored "-Wwrite-strings"
-
   
                        //012345678 90ABCDEF0 1234567890ABCDEF
   static char *args   = "rtNode\0-e\0var pxArg_url=\"browser.js\"\0\0";
@@ -96,6 +92,15 @@ int pxMain()
 
    return 0;
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+pxEventLoop  eventLoop;
+pxEventLoop* gLoop = &eventLoop;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class testWindow: public pxViewWindow
 {
@@ -163,9 +168,7 @@ rtError getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 
 void testWindows()
 {
-  rtNode node1;//(s_gArgs->argc, s_gArgs->argv);
-
-  node1.init(s_gArgs->argc, s_gArgs->argv);
+  rtNode node1(s_gArgs->argc, s_gArgs->argv);
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   //
@@ -213,6 +216,10 @@ void testWindows()
 
   win1.setScene(ctx1, scene1);
 
+ // The ADD "scene" approach requires a change to pxRoot.js 
+ //
+ // ctx1->add("scene", rtValue( scene1.getPtr() ));
+
   scene1->init();
 
 #endif
@@ -240,6 +247,8 @@ void testWindows()
 
   scene2->init();
 
+ // ctx2->add("scene", rtValue( scene2.getPtr() ));
+  
 #endif
 
 

@@ -108,8 +108,6 @@ void *uvThread(void *ptr)
 
 void *jsThread(void *ptr)
 {
-//  printf("jsThread() - ENTER\n");
-
   if(ptr)
   {
     rtNodeContext *ctx = (rtNodeContext*) ptr;
@@ -160,7 +158,8 @@ static inline bool file_exists(const char *file)
 
 
 rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
-     mKillUVWorker(false), mIsolate(isolate), js_worker(NULL), uv_worker(NULL), mEnv(NULL), mRefCount(0), mTimer() //, mContext(0)
+     mKillUVWorker(false),  js_worker(0), uv_worker(0),
+     mIsolate(isolate), mEnv(NULL), mRefCount(0) //, mTimer() //, mContext(0)
 {
   assert(isolate); // MUST HAVE !
 
