@@ -35,6 +35,10 @@
 
 
 #ifdef RUNINMAIN
+
+#include "pxEventLoop.h"
+extern pxEventLoop* gLoop;
+
 #define ENTERSCENELOCK()
 #define EXITSCENELOCK() 
 #else
