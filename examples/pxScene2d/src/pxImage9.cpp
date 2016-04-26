@@ -51,15 +51,6 @@ rtError pxImage9::setUrl(const char* s)
     imageLoaded = false;
     pxObject::createNewPromise();
   } 
-  
-  if (mListenerAdded)
-  {
-    if (getImageResource())
-    {
-      getImageResource()->removeListener(this);
-    }
-    mListenerAdded = false;
-  }
 
   mResource = pxImageManager::getImage(s); 
   if(getImageResource()->getUrl().length() > 0)

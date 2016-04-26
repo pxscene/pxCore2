@@ -113,14 +113,6 @@ rtError pxImage::setUrl(const char* s)
 
 
   mResource = pxImageManager::getImage(s);
-  if (mListenerAdded)
-  {
-    if (getImageResource())
-    {
-      getImageResource()->removeListener(this);
-    }
-    mListenerAdded = false;
-  }
 
   if(getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded) {
     mListenerAdded = true;

@@ -175,15 +175,6 @@ rtError pxText::setFontUrl(const char* s)
   mFontLoaded = false;
   createNewPromise();
 
-  if (mListenerAdded)
-  {
-    if (getFontResource())
-    {
-      getFontResource()->removeListener(this);
-    }
-    mListenerAdded = false;
-  }
-
   mFont = pxFontManager::getFont(s);
   mListenerAdded = true;
   getFontResource()->addListener(this);
@@ -195,14 +186,6 @@ rtError pxText::setFont(rtObjectRef o)
 { 
   mFontLoaded = false;
   createNewPromise();
-  if (mListenerAdded)
-  {
-    if (getFontResource())
-    {
-      getFontResource()->removeListener(this);
-    }
-    mListenerAdded = false;
-  }
 
   // !CLF: TODO: Need validation/verification of o
   mFont = o; 
