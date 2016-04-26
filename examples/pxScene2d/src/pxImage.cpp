@@ -25,6 +25,19 @@ using namespace std;
 
 extern pxContext context;
 
+pxImage::~pxImage()
+{
+  rtLogDebug("~pxImage()");
+  if (mListenerAdded)
+  {
+    if (getImageResource())
+    {
+      getImageResource()->removeListener(this);
+    }
+    mListenerAdded = false;
+  }
+}
+
 void pxImage::onInit()
 {
   //rtLogDebug("pxImage::onInit() mUrl=%s\n",mUrl.cString());
@@ -59,6 +72,7 @@ rtError pxImage::setResource(rtObjectRef o)
       mResource = o; 
       imageLoaded = false;
       pxObject::createNewPromise();
+      mListenerAdded = true;
       getImageResource()->addListener(this); 
     }
     return RT_OK; 
@@ -99,7 +113,17 @@ rtError pxImage::setUrl(const char* s)
 
 
   mResource = pxImageManager::getImage(s);
+  if (mListenerAdded)
+  {
+    if (getImageResource())
+    {
+      getImageResource()->removeListener(this);
+    }
+    mListenerAdded = false;
+  }
+
   if(getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded) {
+    mListenerAdded = true;
     getImageResource()->addListener(this);
   }
   

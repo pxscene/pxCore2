@@ -40,6 +40,7 @@ public:
   rtError setInsetBottom(float v) { mInsetBottom = v; return RT_OK; }
 
 
+  virtual ~pxImage9();
   virtual void onInit();
   virtual void resourceReady(rtString readyResolution);
   //virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject) {return true;}
@@ -55,6 +56,7 @@ protected:
   rtObjectRef mResource;  
   
   bool imageLoaded;
+  bool mListenerAdded;
 };
 
 #endif

@@ -18,6 +18,19 @@ extern "C"
 
 extern pxContext context;
 
+pxImage9::~pxImage9()
+{
+  rtLogDebug("~pxImage9()");
+  if (mListenerAdded)
+  {
+    if (getImageResource())
+    {
+      getImageResource()->removeListener(this);
+    }
+    mListenerAdded = false;
+  }
+}
+
 void pxImage9::onInit()
 {
   mInitialized = true;
@@ -38,11 +51,22 @@ rtError pxImage9::setUrl(const char* s)
     imageLoaded = false;
     pxObject::createNewPromise();
   } 
-  // !CLF ToDo: DeleteListener if the image hasn't loaded yet.  See pxImage.cpp
+  
+  if (mListenerAdded)
+  {
+    if (getImageResource())
+    {
+      getImageResource()->removeListener(this);
+    }
+    mListenerAdded = false;
+  }
 
   mResource = pxImageManager::getImage(s); 
   if(getImageResource()->getUrl().length() > 0)
+  {
+    mListenerAdded = true;
     getImageResource()->addListener(this);
+  }
     
   return RT_OK;
 }

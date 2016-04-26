@@ -25,7 +25,7 @@ public:
   rtProperty(font, font, setFont, rtObjectRef);
 
   pxText(pxScene2d* scene);
-  virtual ~pxText() {}
+  virtual ~pxText();
   rtError text(rtString& s) const;
   virtual rtError setText(const char* text);
 
@@ -97,6 +97,7 @@ public:
   
   virtual float getFBOWidth() { return mw; }
   virtual float getFBOHeight() { return mh; }
+  bool mListenerAdded;
 };
 
 #endif

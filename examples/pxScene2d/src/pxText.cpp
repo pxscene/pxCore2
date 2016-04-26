@@ -10,7 +10,7 @@
 extern pxContext context;
 
 
-pxText::pxText(pxScene2d* scene):pxObject(scene)
+pxText::pxText(pxScene2d* scene):pxObject(scene), mListenerAdded(false)
 {
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
@@ -20,6 +20,17 @@ pxText::pxText(pxScene2d* scene):pxObject(scene)
   mDirty = true;
 }
 
+pxText::~pxText()
+{
+  if (mListenerAdded)
+  {
+    if (getFontResource())
+    {
+      getFontResource()->removeListener(this);
+    }
+    mListenerAdded = false;
+  }
+}
 
 void pxText::onInit()
 {
@@ -164,7 +175,17 @@ rtError pxText::setFontUrl(const char* s)
   mFontLoaded = false;
   createNewPromise();
 
+  if (mListenerAdded)
+  {
+    if (getFontResource())
+    {
+      getFontResource()->removeListener(this);
+    }
+    mListenerAdded = false;
+  }
+
   mFont = pxFontManager::getFont(s);
+  mListenerAdded = true;
   getFontResource()->addListener(this);
   
   return RT_OK;
@@ -174,8 +195,18 @@ rtError pxText::setFont(rtObjectRef o)
 { 
   mFontLoaded = false;
   createNewPromise();
+  if (mListenerAdded)
+  {
+    if (getFontResource())
+    {
+      getFontResource()->removeListener(this);
+    }
+    mListenerAdded = false;
+  }
+
   // !CLF: TODO: Need validation/verification of o
   mFont = o; 
+  mListenerAdded = true;
   getFontResource()->addListener(this);
     
   return RT_OK; 

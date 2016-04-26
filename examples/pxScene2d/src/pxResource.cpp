@@ -26,6 +26,7 @@ pxResource::~pxResource()
     mDownloadRequest->setCallbackFunctionThreadSafe(NULL);
     mDownloadRequest = 0;
   }
+  gUIThreadQueue.removeAllTasksForObject(this);
   //mListeners.clear();
   //printf("Leaving pxResource::~pxResource()\n");
 }
@@ -72,14 +73,16 @@ void pxResource::addListener(pxResourceListener* pListener)
   } 
   else 
   {
+    mListenersMutex.lock();
     mListeners.push_back(pListener);
+    mListenersMutex.unlock();
   }
   
 }
 
-void pxResource::removeListener(pxResourceListener* /*pListener*/)
+void pxResource::removeListener(pxResourceListener* pListener)
 {
-  /*
+  mListenersMutex.lock();
   for (list<pxResourceListener*>::iterator it = mListeners.begin();
          it != mListeners.end(); ++it)
   {
@@ -99,7 +102,7 @@ void pxResource::removeListener(pxResourceListener* /*pListener*/)
     mDownloadRequest->setCallbackFunctionThreadSafe(NULL);
     mDownloadRequest = 0;    
   }
-  */
+  mListenersMutex.unlock();
 }
 
 void pxResource::notifyListeners(rtString readyResolution)
@@ -107,8 +110,12 @@ void pxResource::notifyListeners(rtString readyResolution)
   //printf("notifyListeners for url=%s # of listeners=%d\n",mUrl.cString(),mListeners.size());
  
   mReady.send(readyResolution,this); 
+  mListenersMutex.lock();
   if( mListeners.size() == 0)
+  {
+    mListenersMutex.unlock();
     return;
+  }
   for (list<pxResourceListener*>::iterator it = mListeners.begin();
          it != mListeners.end(); ++it)
   {
@@ -117,6 +124,7 @@ void pxResource::notifyListeners(rtString readyResolution)
   }
   //printf("notifyListeners for url=%s Ending\n");
   mListeners.clear();
+  mListenersMutex.unlock();
   
 }
 void pxResource::raiseDownloadPriority()
@@ -124,7 +132,10 @@ void pxResource::raiseDownloadPriority()
   if (!priorityRaised && !mUrl.isEmpty() && mDownloadRequest != NULL)
   {
     printf(">>>>>>>>>>>>>>>>>>>>>>>Inside pxResource::raiseDownloadPriority and download is in progress for %s\n",mUrl.cString());
-    if( mListeners.size() == 0) 
+    mListenersMutex.lock();
+    int lisenersSize = mListeners.size();
+    mListenersMutex.unlock();
+    if( lisenersSize == 0) 
       printf("But size is 0, so no one cares!!!!!\n");
     priorityRaised = true;
     pxFileDownloader::getInstance()->raiseDownloadPriority(mDownloadRequest);
