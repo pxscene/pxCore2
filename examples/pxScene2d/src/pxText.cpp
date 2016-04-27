@@ -88,6 +88,7 @@ void pxText::resourceReady(rtString readyResolution)
     // so measure it
     getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
     mDirty=true;  
+    mScene->mDirty = true;
     // !CLF: ToDo Use pxObject::onTextureReady() and rename it.
     if( mInitialized) 
       pxObject::onTextureReady();
