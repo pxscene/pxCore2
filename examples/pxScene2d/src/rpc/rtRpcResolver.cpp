@@ -75,6 +75,7 @@ private:
   uint16_t          m_rpc_port;
   HostedObjectsMap  m_hosted_objects;
   RequestMap	    m_pending_searches;
+  int		    m_shutdown_pipe[2];
 };
 
 rtRpcMulticastResolver::rtRpcMulticastResolver()
@@ -92,15 +93,19 @@ rtRpcMulticastResolver::rtRpcMulticastResolver()
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeSearch, &rtRpcMulticastResolver::onSearch));
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeLocate, &rtRpcMulticastResolver::onLocate));
 
+  m_shutdown_pipe[0] = -1;
+  m_shutdown_pipe[1] = -1;
+
+  int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
+  if (ret == -1)
+    rtLogWarn("failed to create shutdown pipe. %s", rtStrError(ret).c_str());
 }
 
 rtRpcMulticastResolver::~rtRpcMulticastResolver()
 {
   rtError err = this->close();
   if (err != RT_OK)
-  {
     rtLogWarn("failed to close resolver: %s", rtStrError(err));
-  }
 }
 
 rtError
@@ -391,6 +396,7 @@ rtRpcMulticastResolver::runListener()
     FD_ZERO(&read_fds);
     rtPushFd(&read_fds, m_mcast_fd, &maxFd);
     rtPushFd(&read_fds, m_ucast_fd, &maxFd);
+    rtPushFd(&read_fds, m_shutdown_pipe[0], &maxFd);
 
     FD_ZERO(&err_fds);
     rtPushFd(&err_fds, m_mcast_fd, &maxFd);
@@ -401,6 +407,12 @@ rtRpcMulticastResolver::runListener()
     {
       rtLogWarn("select failed: %s", rtStrError(errno).c_str());
       continue;
+    }
+
+    if (FD_ISSET(m_shutdown_pipe[0], &read_fds))
+    {
+      rtLogInfo("got shutdown signal");
+      return;
     }
 
     if (FD_ISSET(m_mcast_fd, &read_fds))
@@ -464,21 +476,32 @@ rtRpcMulticastResolver::doDispatch(char const* buff, int n, sockaddr_storage* pe
 rtError
 rtRpcMulticastResolver::close()
 {
-  int ret = 0;
+  if (m_shutdown_pipe[1] != -1)
+  {
+    char buff[] = {"shutdown"};
+    write(m_shutdown_pipe[1], buff, sizeof(buff));
+
+    if (m_read_thread)
+    {
+      m_read_thread->join();
+      m_read_thread.reset();
+    }
+
+    if (m_shutdown_pipe[0] != -1)
+      ::close(m_shutdown_pipe[0]);
+    if (m_shutdown_pipe[1] != -1)
+      ::close(m_shutdown_pipe[1]);
+  }
 
   if (m_mcast_fd != -1)
-  {
-    ret = ::close(m_mcast_fd);
-    if (ret == -1)
-      rtLogWarn("failed to close %d. %s", m_mcast_fd, rtStrError(errno).c_str());
-  }
-
+    ::close(m_mcast_fd);
   if (m_ucast_fd != -1)
-  {
-    ret = ::close(m_ucast_fd);
-    if (ret == -1)
-      rtLogWarn("failed to close %d. %s", m_ucast_fd, rtStrError(errno).c_str());
-  }
+    ::close(m_ucast_fd);
+
+  m_mcast_fd = -1;
+  m_ucast_fd = -1;
+  m_shutdown_pipe[0] = -1;
+  m_shutdown_pipe[1] = -1;
 
   return RT_OK;
 }

@@ -14,10 +14,10 @@ var contentBG = scene.create({t:"rect",x:10,y:60,parent:bg,fillColor:0xffffffff,
 var content = scene.create({t:"scene",x:10,y:60,parent:bg,clip:true});
 
 inputbg.on("onChar",function(e) {
-  if (e.charCode == 13) 
+  if (e.charCode == 13)  // <<<  ENTER KEY
     return;
   // TODO should we be getting an onChar event for backspace
-  if (e.charCode != 8) {
+  if (e.charCode != 8) { // <<<  BACKSPACE KEY
     url.text += String.fromCharCode(e.charCode);
     prompt.a = (url.text)?0:1;
     cursor.x = url.x+url.w;
@@ -25,7 +25,7 @@ inputbg.on("onChar",function(e) {
 });
 
 inputbg.on("onKeyDown", function(e) {
-  if (e.keyCode == 13) {
+  if (e.keyCode == 13) { // <<<  ENTER KEY
 
     var u = url.text;
     // TODO Temporary hack
@@ -51,7 +51,7 @@ inputbg.on("onKeyDown", function(e) {
                        }
     );
   }
-  else if (e.keyCode == 8) {
+  else if (e.keyCode == 8) { // <<<  BACKSPACE KEY
     var s = url.text.slice();
     console.log(url.text);
     console.log(s.slice(0,url.text.length-2));

@@ -40,7 +40,8 @@ PX_SRCS=\
 	   pxMatrix4T.cpp \
            pxArchive.cpp \
            pxFont.cpp \
-           rtNode.cpp
+           rtNode.cpp \
+           ../external/westeros-stub/westeros-stub.cpp
 
 PXCOREDIR=../../../
 PXHDRS=$(PXCOREDIR)/src
@@ -62,10 +63,12 @@ SEARCH=\
   -I$(NODEINC)/deps/cares/include \
   -I$(NODEINC)/deps/debugger-agent/include \
   -I$(NODEINC)/deps/v8/include \
+  -I../external/westeros/external/install/include \
+  -I../external/westeros-stub \
 	$(PXCORE_INCLUDES)
 
 
-CXXFLAGS= -Wno-attributes -Wall -Wextra -fpermissive -fPIC $(SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DENABLE_RT_NODE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE 
+CXXFLAGS= -Wno-attributes -Wall -Wextra -fpermissive -fPIC $(SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE 
 
 
 LDNODE   = -L$(NODEDIR)/out/Release/obj.target
@@ -75,7 +78,7 @@ LDNODEV8 = -L$(NODEDIR)/out/Release
 LDEXT   = -lpng16 -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8)
 
 #LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -shared -Wl,-soname,librtnode.so -o librtnode.so.1.0 
-LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -shared -Wl,-soname,librtnode.so -o librtnode.so.1.0 -lwesteros_compositor -lnexus -lnxclient -lnxpl -lGLESv2
+LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -shared -Wl,-soname,librtnode.so -o librtnode.so.1.0 -lnexus -lnxclient -lnxpl -lGLESv2
 
 
 OBJDIR=obj
@@ -123,6 +126,9 @@ $(OBJDIR)/rtObjectWrapper.o: jsbindings/rtObjectWrapper.cpp
 
 $(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
 	$(CXX) -o $(OBJDIR)/jsCallback.o -Wall $(CXXFLAGS) -c jsbindings/jsCallback.cpp
+
+$(OBJDIR)/westeros-stub.o: ../external/westeros-stub/westeros-stub.cpp
+	$(CXX) -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS) -c ../external/westeros-stub/westeros-stub.cpp
 
 
 SRCS=$(PX_SRCS) $(RT_SRCS) 

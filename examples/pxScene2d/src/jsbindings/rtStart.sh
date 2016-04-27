@@ -1,15 +1,16 @@
 #!/bin/sh
 
 pxSceneDir=../..
-jsbindingsDir=$pxSceneDir/src/jsbindings
+externalDir=../../external
+bindingsV8Dir=$pxSceneDir/src/jsbindings
 
 #echo "Start"
 #echo "pxSceneDir=" $pxSceneDir
 #echo "jsbindingsDir=" $jsbindingsDir
 #echo "\n"
 
-export DYLD_LIBRARY_PATH=$pxSceneDir/external/png/.libs/:$pxSceneDir/external/curl/lib/.libs/:$pxSceneDir/external/ft/objs/.libs/
-export LD_LIBRARY_PATH=$pxSceneDir/external/png/.libs/:$pxSceneDir/external/jpg/.libs/:$pxSceneDir/external/curl/lib/.libs/:../../external/libnode/out/Release/obj.target
+export DYLD_LIBRARY_PATH=$externalDir/png/.libs/:$externalDir/curl/lib/.libs/:$externalDir/ft/objs/.libs/
+export LD_LIBRARY_PATH=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/libnode/out/Release/obj.target
 
 #[ -f FontdinerSwanky.ttf ] || cp $pxSceneDir/src/FontdinerSwanky.ttf .
 #[ -f FreeSans.ttf ] || cp $pxSceneDir/src/FreeSans.ttf .

@@ -5,7 +5,7 @@
     'node_use_etw%': 'false',
     'node_use_perfctr%': 'false',
     'node_has_winsdk%': 'false',
-    'node_target_type%': 'executable',  #'shared_library', #  'executable',
+    'node_target_type%': 'shared_library', #  'executable',
     'node_shared_v8%': 'false',
     'node_shared_zlib%': 'false',
     'node_shared_http_parser%': 'false',

@@ -6,24 +6,41 @@
 #endif
 
 #include <stdio.h>
+#include <pthread.h>
+
 
 #include "pxCore.h"
+
+
+#ifndef WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
+#include "node.h"
+
+#ifndef WIN32
+#pragma GCC diagnostic pop
+#endif
+
 #include "pxEventLoop.h"
 #include "pxWindow.h"
 #include "pxScene2d.h"
 #include "pxViewWindow.h"
 
 #include "rtNode.h"
+#include "jsbindings/rtWrapperUtils.h"
 #include "jsbindings/rtObjectWrapper.h"
 #include "jsbindings/rtFunctionWrapper.h"
 
-#include "node.h"
-#include "node_javascript.h"
-
-#include <pthread.h>
-
 using namespace v8;
 using namespace node;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+pxEventLoop  eventLoop;
+pxEventLoop* gLoop = &eventLoop;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -59,31 +76,29 @@ rtError getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx); 
 
 void testWindows();
 void testContexts();
+void testContextsLeak();
 
 args_t *s_gArgs;
 
-//int main(int argc, char** argv)
-
 int pxMain()
 {
-  char *argv[2] = {"",""};
+  #pragma GCC diagnostic ignored "-Wwrite-strings"
+  
+                       //012345678 90ABCDEF0 1234567890ABCDEF
+  static char *args   = "rtNode\0-e\0var pxArg_url=\"browser.js\"\0\0";
+  static char *argv[] = {&args[0], &args[7],  &args[10], NULL};
+  int          argc   = sizeof(argv)/sizeof(char*) - 1;
 
-//  static args_t aa(argc, argv);
-  static args_t aa(1, argv);
-
+  static args_t aa(argc, argv);
   s_gArgs = &aa;
 
   testWindows(); /// multi threaded
- // testContexts();  /// single threaded
+ // testContextsLeak();  /// single threaded
 
    return 0;
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-pxEventLoop eventLoop;
 
 class testWindow: public pxViewWindow
 {
@@ -113,6 +128,7 @@ public:
     // so we need to explicitly tell the event loop to exit
   //  eventLoop.exit();
   }
+
 private:
 
   pxScene2dRef        mScene;
@@ -126,8 +142,6 @@ rtError getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
   if (result)
   {
     pxScene2dRef s = (pxScene2d*)ctx;
-
-//    printf("\n\n #############\n #############  getScene() >>  s = %p\n #############\n\n", (void *) s);
 
     *result = s; // return the scene reference
   }
@@ -152,9 +166,7 @@ rtError getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 
 void testWindows()
 {
-  rtNode node1;//(s_gArgs->argc, s_gArgs->argv);
-
-  node1.init(s_gArgs->argc, s_gArgs->argv);
+  rtNode node1(s_gArgs->argc, s_gArgs->argv);
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   //
@@ -191,7 +203,7 @@ void testWindows()
 
   pxScene2dRef scene1 = new pxScene2d;
 
-  win1.init(10, 10, 800, 600);
+  win1.init(0, 0, 1280, 720);
 
   win1.setTitle(">> Window 1 <<");
   win1.setVisibility(true);
@@ -201,6 +213,10 @@ void testWindows()
   win1.debug_name = "WindowOne";
 
   win1.setScene(ctx1, scene1);
+
+ // The ADD "scene" approach requires a change to pxRoot.js 
+ //
+ // ctx1->add("scene", rtValue( scene1.getPtr() ));
 
   scene1->init();
 
@@ -229,6 +245,8 @@ void testWindows()
 
   scene2->init();
 
+ // ctx2->add("scene", rtValue( scene2.getPtr() ));
+  
 #endif
 
 
@@ -272,15 +290,15 @@ void testWindows()
 
 //  ctx1->runThread("test1sec.js");
 
-  ctx1->Release();
+//  ctx1->Release();
 
 #endif
 
 #ifdef USE_WINDOW_2
 //  printf("\n### Window Run 2A"); // ##############################
 
-//  ctx2->runFile("start.js");
-  ctx2->runThread("fancyp.js");
+  ctx2->runFile("start.js");
+//  ctx2->runThread("fancyp.js");
 
   printf("\n### Window Run 2B"); // ##############################
 #endif
@@ -299,11 +317,13 @@ void testWindows()
 //  use_debug_agent = true;
 //  debug_wait_connect = true;
 
-//  printf("\n### eventLoop "); // ##############################
-
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #if defined(USE_WINDOW_1) || defined(USE_WINDOW_2) || defined(USE_WINDOW_3)
-  eventLoop.run();
+
+  eventLoop.run(); // BLOCKS
+  
+  printf("\n INFO:  eventLoop() .... exited !");
+  
 #endif
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -346,6 +366,41 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void testContextsLeak()
+{
+ rtNode node1;
+ node1.init(s_gArgs->argc, s_gArgs->argv);
+      
+  for (int i = 0; i< 2; i++)
+  { 
+    //printf("\n\nCREATE ctx >>>  Press ENTER key...");
+    //getchar();
+    
+    {//scope
+      // rtNode node1;
+
+      // printf("\nINFO: Calling  node1.init() ..."); fflush(stdout);
+     
+      // node1.init(s_gArgs->argc, s_gArgs->argv);
+      
+      printf("\nINFO: Calling  node1.createContext() ..."); fflush(stdout);
+
+      rtNodeContextRef ctx1 = node1.createContext();
+
+     // printf("\n\nDESTROY ctx >>>  Press ENTER key...");
+     // getchar();
+
+      printf("\nINFO: Calling   ctx1->Release() ..."); fflush(stdout);
+      
+      ctx1->Release();
+    }//scope   
+  }//FOR
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 //#define NODE_PER
 

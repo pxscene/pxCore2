@@ -9,6 +9,7 @@
 static rtRpcServer* gServer = nullptr;
 static std::once_flag gServerOnce;
 static std::once_flag gClientOnce;
+std::shared_ptr<rtRpcStreamSelector> gStreamSelector;
 
 rtError
 rtRpcInit()
@@ -33,9 +34,15 @@ rtRpcInit()
   return e;
 }
 
+extern rtError rtRpcShutdownStreamSelector();
+
 rtError
 rtRpcShutdown()
 {
+  rtError e = rtRpcShutdownStreamSelector();
+  if (e != RT_OK)
+    rtLogWarn("error shutting down stream selector. %s", rtStrError(e));
+
   if (gServer)
   {
     delete gServer;
