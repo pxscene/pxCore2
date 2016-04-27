@@ -209,6 +209,10 @@ pxRoot.prototype.setOriginalUrl = function(origUrl) {
   this.originalUrl = origUrl;
 }
 
+pxRoot.prototype.setUrl = function(url) {
+  this.childScene.url = url;
+}
+
 module.exports = function(x, y, width, height) {
   pxroot = new pxRoot();
   pxroot.initialize(x, y, width, height);
