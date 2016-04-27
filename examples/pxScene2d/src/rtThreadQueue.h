@@ -28,6 +28,8 @@ public:
   // Thread safe
   rtError addTask(rtThreadTaskCB t, void* context, void* data);
 
+  rtError removeAllTasksForObject(void* context);
+
   // Invoke this method periodically on the dispatching (owning) thread
   // maxSeconds=0 means process until empty
   rtError process(double maxSeconds = 0);

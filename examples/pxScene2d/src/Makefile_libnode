@@ -43,7 +43,8 @@ RT_SRCS=\
     rtLibrary.cpp \
     rtZip.cpp \
     linux/rtMutexNative.cpp \
-    linux/rtThreadPoolNative.cpp
+    linux/rtThreadPoolNative.cpp \
+    ../external/westeros-stub/westeros-stub.cpp
 
 PX_SRCS=\
     pxScene2d.cpp \
@@ -53,6 +54,7 @@ PX_SRCS=\
     pxFont.cpp \
     pxText.cpp \
     pxTextBox.cpp \
+    pxWayland.cpp \
     pxImage.cpp \
     pxUtil.cpp \
     pxContextGL.cpp \
@@ -87,10 +89,13 @@ SEARCH=\
   -I$(NODEINC)/deps/v8 \
   -I$(NODEINC)/deps/debugger-agent/include \
   -I$(NODEINC)/deps/v8/include \
+  -I$(EXTDIR)/westeros/external/install/include \
+  -I$(EXTDIR)/westeros-stub \
    $(TARGETINCLUDE)
 
 
-CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) 
+#CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE 
+CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE
 
 #CXXFLAGS=  $(SEARCH) -DENABLE_GLUT -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT
 #CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DENABLE_GLUT -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT
@@ -137,6 +142,9 @@ $(OBJDIR)/rtObjectWrapper.o: jsbindings/rtObjectWrapper.cpp
 
 $(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
 	g++ -o $(OBJDIR)/jsCallback.o -Wall $(CXXFLAGS) -c jsbindings/jsCallback.cpp
+
+$(OBJDIR)/westeros-stub.o: $(EXTDIR)/westeros-stub/westeros-stub.cpp
+	g++ -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS) -c $(EXTDIR)/westeros-stub/westeros-stub.cpp
 
 SRCS=$(PX_SRCS) $(RT_SRCS) rtNode.cpp pxMain_node.cpp
 

@@ -104,8 +104,13 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
         // have to invoke all no opportunity to return errors
         // SYNC EVENTS
 #if 1
+        // SYNC EVENTS ... enables stopPropagation() ...
+        //
         e.f->Send(numArgs-1, args+1, &discard);
 #else
+
+#warning "  >>>>>>  No SYNC EVENTS... stopPropagation() will be broken !!"
+
         e.f->Send(numArgs-1, args+1, NULL);
 #endif
         // TODO log error 

@@ -8,7 +8,10 @@ extern rtThreadQueue gUIThreadQueue;
 
 pxArchive::pxArchive(): mIsFile(true) {}
 
-pxArchive::~pxArchive() {}
+pxArchive::~pxArchive()
+{
+  gUIThreadQueue.removeAllTasksForObject(this);
+}
 
 rtError pxArchive::initFromUrl(const rtString& url)
 {

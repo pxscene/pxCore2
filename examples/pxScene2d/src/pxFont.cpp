@@ -60,6 +60,7 @@ pxFont::pxFont(rtString fontUrl):pxResource(),mPixelSize(0), mFontData(0)
 pxFont::~pxFont() 
 {
   rtLogInfo("~pxFont %s\n", mUrl.cString());
+  gUIThreadQueue.removeAllTasksForObject(this);
   // download should be canceled/removed in pxResource
   //if (mDownloadRequest != NULL)
   //{

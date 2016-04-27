@@ -1,5 +1,9 @@
 "use strict";
 
+////////////////////////////////////////////////////////////////
+//
+// USES EXTENSION LOADING
+/* */
 var px;
 
 if ( typeof(getScene) == 'undefined' )
@@ -7,6 +11,8 @@ if ( typeof(getScene) == 'undefined' )
     // pxCore *NOT* pre-loaded in JS context...
    px = require("px");
 }
+
+////////////////////////////////////////////////////////////////
 
 var fs = require("fs");
 var AppSceneContext = require('rcvrcore/AppSceneContext');
@@ -43,14 +49,26 @@ function pxRoot(baseUri) {
 
 pxRoot.prototype.initialize = function(x, y, width, height) {
 
-  if ( typeof(getScene) == 'undefined' )
+  ////////////////////////////////////////////////////////////////
+  //
+  // USE getScene TO GET CONTEXT
+  //
+  if( true )
   {
-  this.rootScene = px.getScene(x, y, width, height);
-  }
+    if ( typeof(getScene) == 'undefined' )
+    {
+      this.rootScene = px.getScene(x, y, width, height);
+    }
+    else
+    {
+      // pxCore pre-loaded in JS context...
+      this.rootScene = getScene(x, y, width, height);
+    }
+  }    
   else
   {
-    // pxCore pre-loaded in JS context...
-    this.rootScene = getScene(x, y, width, height);
+     // SCENE pre-loaded in JS context via .cpp...
+     this.rootScene = scene;
   }  
 
   this.rootScene.root.on('onPreKeyDown', function (e) {
@@ -207,6 +225,10 @@ pxRoot.prototype.addScene = function(params) {
 
 pxRoot.prototype.setOriginalUrl = function(origUrl) {
   this.originalUrl = origUrl;
+}
+
+pxRoot.prototype.setUrl = function(url) {
+  this.childScene.url = url;
 }
 
 module.exports = function(x, y, width, height) {

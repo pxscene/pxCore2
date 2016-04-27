@@ -147,9 +147,29 @@ public:
     rotateInRadians(angle * M_PI/180.0, x, y, z);
   }
 #endif // ANIMATION_ROTATE_XYZ  
-  void rotateInRadians(FloatT angle, FloatT /*x*/, FloatT /*y*/, FloatT /*z*/) 
+
+void multiply(FloatT* m, FloatT* n) 
+{
+  
+  FloatT tmp[16];
+  const FloatT *row, *column;
+  div_t d;
+  int i, j;
+  
+  for (i = 0; i < 16; i++) {
+    tmp[i] = 0;
+    d = div(i, 4);
+    row = n + d.quot * 4;
+    column = m + d.rem;
+    for (j = 0; j < 4; j++)
+      tmp[i] += row[j] * column[j * 4];
+  }
+  memcpy(m, &tmp, sizeof tmp);
+}
+
+  void rotateInRadians(FloatT angle, FloatT x, FloatT y, FloatT z) 
   {
-#if 0
+#if 1
     FloatT* m = mValues;
     FloatT s, c;
     

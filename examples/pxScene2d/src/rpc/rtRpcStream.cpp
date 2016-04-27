@@ -14,6 +14,15 @@
 class rtRpcStreamSelector
 {
 public:
+  rtRpcStreamSelector()
+  {
+    int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
+    if (ret == -1)
+    {
+      rtLogError("failed to create pipe. %s", rtStrError(ret).c_str());
+    }
+  }
+
   rtError start()
   {
     m_thread.reset(new std::thread(&rtRpcStreamSelector::pollFds, this));
@@ -23,6 +32,23 @@ public:
   rtError registerStream(std::shared_ptr<rtRpcStream> const& s)
   {
     m_streams.push_back(s);
+    return RT_OK;
+  }
+
+  rtError shutdown()
+  {
+    if (m_thread)
+    {
+      char buff[] = { "shudown" };
+      write(m_shutdown_pipe[1], buff, sizeof(buff));
+
+      m_thread->join();
+      m_thread.reset();
+    }
+
+    ::close(m_shutdown_pipe[0]);
+    ::close(m_shutdown_pipe[1]);
+
     return RT_OK;
   }
 
@@ -48,6 +74,7 @@ private:
 	rtPushFd(&read_fds, s->m_fd, &maxFd);
 	rtPushFd(&err_fds, s->m_fd, &maxFd);
       }
+      rtPushFd(&read_fds, m_shutdown_pipe[0], &maxFd);
 
       timeval timeout;
       timeout.tv_sec = 1;
@@ -58,6 +85,12 @@ private:
       {
 	rtLogWarn("select failed: %s", rtStrError(errno).c_str());
 	continue;
+      }
+
+      if (FD_ISSET(m_shutdown_pipe[0], &read_fds))
+      {
+	rtLogInfo("got shutdown signal");
+	return RT_OK;
       }
 
       time_t now = time(0);
@@ -94,10 +127,23 @@ private:
   std::vector< std::shared_ptr<rtRpcStream> > 	m_streams;
   std::shared_ptr< std::thread > 		m_thread;
   std::mutex					m_mutex;
+  int						m_shutdown_pipe[2];
 };
 
 static std::shared_ptr<rtRpcStreamSelector> gStreamSelector;
 
+rtError
+rtRpcShutdownStreamSelector()
+{
+  if (gStreamSelector)
+  {
+    rtError e = gStreamSelector->shutdown();
+    if (e != RT_OK)
+      rtLogWarn("failed to shutdown StreamSelector. %s", rtStrError(e));
+    gStreamSelector.reset();
+  }
+  return RT_OK;
+}
 
 rtRpcStream::rtRpcStream(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint)
   : m_fd(fd)
@@ -134,7 +180,7 @@ rtRpcStream::close()
     
     ret = ::shutdown(m_fd, SHUT_RDWR);
     if (ret == -1)
-      rtLogWarn("shutdown failed on fd %d: %s", m_fd, rtStrError(errno).c_str());
+      rtLogDebug("shutdown failed on fd %d: %s", m_fd, rtStrError(errno).c_str());
 
     rtCloseSocket(m_fd);
   }

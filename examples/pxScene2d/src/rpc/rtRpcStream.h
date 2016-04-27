@@ -57,7 +57,7 @@ private:
   rtJsonDocPtr waitForResponse(int key, uint32_t timeout);
 
 private:
-  using rtRequestMap_t = std::map< rtCorrelationKey, rtJsonDocPtr >;
+  using rtRequestMap = std::map< rtCorrelationKey, rtJsonDocPtr >;
 
   int 				m_fd;
   time_t 			m_last_message_time;
@@ -65,7 +65,7 @@ private:
   rtRpcInactivityHandler	m_inactivity_handler;
   std::mutex			m_mutex;
   std::condition_variable	m_cond;
-  rtRequestMap_t		m_requests;
+  rtRequestMap			m_requests;
   sockaddr_storage		m_local_endpoint;
   sockaddr_storage		m_remote_endpoint;
 };
