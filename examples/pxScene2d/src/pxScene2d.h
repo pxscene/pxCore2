@@ -992,9 +992,9 @@ public:
   rtError createFontResource(rtObjectRef p, rtObjectRef& o);  
   rtError createScene(rtObjectRef p,rtObjectRef& o);
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
+  rtError createWayland(rtObjectRef p, rtObjectRef& o);
 
   rtError clock(uint64_t & time);
-  rtError createWayland(rtObjectRef p, rtObjectRef& o);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
@@ -1129,7 +1129,7 @@ private:
   bool mShowDirtyRect;
   #ifdef USE_SCENE_POINTER
   pxTextureRef mNullTexture;
-  pxTextureCacheObject mPointerTextureCacheObj;
+  rtObjectRef mPointerResource;
   pxTextureRef mPointerTexture;
   int32_t mPointerX;
   int32_t mPointerY;
