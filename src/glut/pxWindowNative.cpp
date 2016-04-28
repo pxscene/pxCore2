@@ -34,11 +34,11 @@
 #endif
 
 #ifndef rtLogWarn
-#define rtLogWarn 
+#define rtLogWarn(...) (void)0
 #endif
 
 #ifndef rtLogError
-#define rtLogError
+#define rtLogError(...) (void)0
 #endif
 
 #if 1
