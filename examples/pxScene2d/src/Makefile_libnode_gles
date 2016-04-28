@@ -72,8 +72,8 @@ SEARCH=\
 CXXFLAGS= -Wno-attributes -Wall -Wextra -O3 -fpermissive $(SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
 
 
-LDNODE   = -L$(NODEDIR)/out/Debug/obj.target
-LDNODEV8 = -L$(NODEDIR)/out/Debug
+LDNODE   = -L$(NODEDIR)/out/Release/obj.target
+LDNODEV8 = -L$(NODEDIR)/out/Release
 
 
 LDEXT   = -lpng16 -ljpeg -lfreetype -lcurl -luuid $(LDNODE) $(LDNODEV8)
