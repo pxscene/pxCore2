@@ -23,7 +23,7 @@ static std::string trim(char const* begin, char const* end)
     --end;
 
   if (begin == end) return std::string();
-  return std::string(begin, (end - begin));
+  return std::string(begin, (end - begin - 1));
 }
 
 static long int to_long(char const* s)
@@ -113,10 +113,18 @@ rtRpcConfig::getInstance()
     std::shared_ptr<rtRpcConfig> confFromFile = rtRpcConfig::fromFile(fileName.c_str());
     if (confFromFile)
     {
-      rtLogInfo("loading configuration settings from: %s", fileName.c_str());
+      rtLogInfo("loading configuration settings (%d) from: %s",
+        static_cast<int>(confFromFile->m_map.size()), fileName.c_str());
       for (auto const& itr : confFromFile->m_map)
-	gConf->m_map[itr.first] = itr.second;
+      {
+        rtLogDebug("'%s' -> '%s'", itr.first.c_str(), itr.second.c_str());
+        gConf->m_map[itr.first] = itr.second;
+      }
       break;
+    }
+    else
+    {
+      rtLogDebug("failed to find settings file: %s", fileName.c_str());
     }
   }
 
@@ -212,14 +220,16 @@ rtRpcConfig::fromFile(char const* file)
     std::string name = trim(begin, end);
 
     begin = end + 1;
-    end = (p + (n - 1));
+    end = p + n;
 
     std::string val = trim(begin, end);
 
     rtLogDebug("LINE:(%04d) '%s'", line++, p);
-    rtLogDebug("'%s' == '%s", name.c_str(), val.c_str());
+    rtLogDebug("'%s' == '%s'", name.c_str(), val.c_str());
+
+    conf->m_map[name] = val;
   }
 
   fclose(f);
-  return RT_OK;
+  return conf;
 }
