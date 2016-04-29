@@ -89,6 +89,7 @@ SEARCH=\
   -I$(NODEINC)/deps/v8 \
   -I$(NODEINC)/deps/debugger-agent/include \
   -I$(NODEINC)/deps/v8/include \
+  -I$(NODEINC)/deps/cares/include \
   -I$(EXTDIR)/westeros/external/install/include \
   -I$(EXTDIR)/westeros-stub \
    $(TARGETINCLUDE)
