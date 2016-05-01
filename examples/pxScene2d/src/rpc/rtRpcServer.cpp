@@ -51,7 +51,7 @@ rtRpcServer::rtRpcServer()
   m_shutdown_pipe[1] = -1;
 
   int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
-  if (ret == 0)
+  if (ret != 0)
     rtLogWarn("failed to create shutdown pipe. %s", rtStrError(ret).c_str());
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeOpenSessionRequest,

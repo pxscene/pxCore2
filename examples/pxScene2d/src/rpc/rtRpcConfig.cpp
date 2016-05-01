@@ -86,10 +86,14 @@ static Setting kDefaultSettings[] =
 };
 
 std::shared_ptr<rtRpcConfig>
-rtRpcConfig::getInstance()
+rtRpcConfig::getInstance(bool reloadConfiguration)
 {
   if (gConf)
-    return gConf;
+  {
+    if (!reloadConfiguration)
+      return gConf;
+    gConf.reset();
+  }
 
   gConf.reset(new rtRpcConfig());
   for (int i = 0; kDefaultSettings[i].name; ++i)

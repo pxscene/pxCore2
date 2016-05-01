@@ -43,14 +43,14 @@ else
 endif
 
 ifeq ($(DEBUG), 1)
-  CXXFLAGS += -g -O0 -fno-inline -DRT_RPC_DEBUG
+  CXXFLAGS += -DRT_RPC_DEBUG
   CFLAGS   += -g -O0 -fno-inline
 else
   CXXFLAGS += -O2
   CFLAGS   += -O2
 endif
 
-CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -g -DRT_PLATFORM_LINUX -I../ -I. -fPIC
+CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
 CXXFLAGS+=-std=c++0x $(CFLAGS)
 LDFLAGS =-pthread -ldl -luuid
 OBJDIR=obj

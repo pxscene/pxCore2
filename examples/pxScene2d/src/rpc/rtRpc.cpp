@@ -4,31 +4,37 @@
 #include "rtRpcServer.h"
 
 #include <rtLog.h>
+#include <mutex>
 #include <thread>
 
 static rtRpcServer* gServer = nullptr;
-static std::once_flag gServerOnce;
-static std::once_flag gClientOnce;
+static std::mutex gMutex;
 std::shared_ptr<rtRpcStreamSelector> gStreamSelector;
 
 rtError
 rtRpcInit()
 {
   rtError e = RT_OK;
-  std::call_once(gServerOnce, [&e]()
+
+  std::lock_guard<std::mutex> lock(gMutex);
+  if (gServer == nullptr)
   {
     gServer = new rtRpcServer();
     e = gServer->open();
     if (e != RT_OK)
-    {
       rtLogError("failed to open rtRpcServer. %s", rtStrError(e));
-    }
-  });
+  };
+
+  if (gServer == nullptr)
+  {
+    rtLogError("rtRpcServer is null");
+    e = RT_FAIL;
+  }
 
   if (e == RT_OK)
   {
-    // prime config
-    rtRpcConfig::getInstance();
+    // prime config (true) means drop/reload configuration
+    rtRpcConfig::getInstance(true);
   }
 
   return e;
@@ -41,7 +47,9 @@ rtRpcShutdown()
 {
   rtError e = rtRpcShutdownStreamSelector();
   if (e != RT_OK)
+  {
     rtLogWarn("error shutting down stream selector. %s", rtStrError(e));
+  }
 
   if (gServer)
   {
@@ -49,7 +57,7 @@ rtRpcShutdown()
     gServer = nullptr;
   }
 
-  return RT_FAIL;
+  return RT_OK;
 }
 
 rtError

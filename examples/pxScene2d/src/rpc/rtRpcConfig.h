@@ -12,7 +12,7 @@
 class rtRpcConfig
 {
 public:
-  static std::shared_ptr<rtRpcConfig> getInstance();
+  static std::shared_ptr<rtRpcConfig> getInstance(bool reloadConfiguration = false);
   static std::shared_ptr<rtRpcConfig> fromFile(char const* file);
 
 public:
