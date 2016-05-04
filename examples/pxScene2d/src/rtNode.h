@@ -49,11 +49,24 @@ public:
   //
   void add(const char *name, rtValue  const& val);
 
-  rtObjectRef runThread(const char *file);
+  rtObjectRef runScript(const char        *script,  const char *args = NULL); // BLOCKS
+  rtObjectRef runScript(const std::string &script,  const char *args = NULL); // BLOCKS
+  rtObjectRef runFile  (const char *file,           const char *args = NULL); // BLOCKS
 
-  rtObjectRef runScript(const char *script);
-  rtObjectRef runFile  (const char *file);
+  rtObjectRef runScriptThreaded(const char *script, const char *args = NULL); // THREADED
+  rtObjectRef runFileThreaded(const char *file,     const char *args = NULL); // THREADED
 
+  rtObjectRef runFile(const char *file)  // DEPRECATED
+  { 
+    #warning "runFile() - is DEPRECATED ... going away soon." 
+    return runFileThreaded(file); 
+  } 
+
+  rtObjectRef runThread(const char *file)  // DEPRECATED
+  { 
+    #warning "runThread() - is DEPRECATED ... going away soon." 
+    return runFileThreaded(file); 
+  }
 
   void uvWorker();
   int  startUVThread();
@@ -72,6 +85,8 @@ public:
   }
 
   bool           mKillUVWorker;
+  
+  uv_timer_t     mTimer;
   
   const char   *js_file;
   std::string   js_script;
@@ -94,10 +109,22 @@ private:
   pthread_t uv_thread;
 
   int mRefCount;
-  uv_timer_t mTimer;
-
-  int startThread(const char *js);
+  
   void startTimers();
+
+#ifdef  USE_UV_TIMERS
+  int startThread(const char *js);
+#else
+    static void timerCallback(uv_timer_t* )
+    {
+      #ifdef RUNINMAIN
+      // if (gLoop)
+      //   gLoop->runOnce();
+      #else
+      //rtLogDebug("Hello, from uv timer callback");
+      #endif
+    }
+#endif
 
 };
 
@@ -124,8 +151,6 @@ private:
 
   v8::Isolate   *mIsolate;
   v8::Platform  *mPlatform;
-
-//  v8::Extension *mPxNodeExtension;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
