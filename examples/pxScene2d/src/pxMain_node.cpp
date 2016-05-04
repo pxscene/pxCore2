@@ -141,6 +141,9 @@ private:
 
 rtError getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
+  UNUSED_PARAM(numArgs);
+  UNUSED_PARAM(args);
+
   // We don't use the arguments so just return the scene object reference
   if (result)
   {

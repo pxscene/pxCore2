@@ -25,6 +25,8 @@ extern pxContext context;
 #define FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS 500
 #define TEST_REMOTE_OBJECT_NAME "waylandClient123" //TODO - update
 
+#define UNUSED_PARAM(x) ((x)=(x))
+
 pxWayland::pxWayland()
   :
     mClientMonitorThreadId(0), 
@@ -159,12 +161,16 @@ exit:
 
 void pxWayland::onSize(int32_t w, int32_t h)
 {
-  mWidth= w;
-  mHeight= h;
+  mWidth  = w;
+  mHeight = h;
 }
 
 void pxWayland::onMouseDown(int32_t x, int32_t y, uint32_t flags)
 {
+   UNUSED_PARAM(x);
+   UNUSED_PARAM(y);
+   UNUSED_PARAM(flags);
+
    // TODO: 0x110 is BTN_LEFT : need mouse event to include button codes
    // perhaps with mapping from native to PX.  Wayland expects Linux button codes
    WstCompositorPointerButtonEvent( mWCtx, 0x110, WstPointer_buttonState_depressed );
@@ -172,6 +178,10 @@ void pxWayland::onMouseDown(int32_t x, int32_t y, uint32_t flags)
 
 void pxWayland::onMouseUp(int32_t x, int32_t y, uint32_t flags)
 {
+   UNUSED_PARAM(x);
+   UNUSED_PARAM(y);
+   UNUSED_PARAM(flags);
+
    // TODO: 0x110 is BTN_LEFT : need mouse event to include button codes
    // perhaps with mapping from native to PX.  Wayland expects Linux button codes
    WstCompositorPointerButtonEvent( mWCtx, 0x110, WstPointer_buttonState_released );
@@ -233,11 +243,15 @@ void pxWayland::onKeyUp(uint32_t keycode, uint32_t flags)
 
 void pxWayland::onChar(uint32_t codepoint)
 {
+   UNUSED_PARAM(codepoint);
+
    // Nothing to do
 }
 
 void pxWayland::onUpdate(double t)
 {
+   UNUSED_PARAM(t);
+
   if(!mReadyEmitted && mEvents && mWCtx && !mWaitingForRemoteObject )
   {
     mReadyEmitted= true;
