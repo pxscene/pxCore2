@@ -71,12 +71,14 @@ rtError createObject2(const char* t, rtObjectRef& o);
 typedef void (*pxAnimationEnded)(void* ctx);
 
 
-struct pxAnimationTarget {
+struct pxAnimationTarget 
+{
   char* prop;
   float to;
 };
 
-struct animation {
+struct animation 
+{
   bool cancelled;
   rtString prop;
   float from;
@@ -93,7 +95,8 @@ struct animation {
   rtObjectRef promise;
 };
 
-struct pxPoint2f {
+struct pxPoint2f 
+{
   pxPoint2f() {}
   pxPoint2f(float _x, float _y) { x = _x; y = _y; } 
   float x, y;
@@ -104,13 +107,7 @@ class pxFileDownloadRequest;
 
 class pxScene2d;
 
-class pxObjectImpl
-{
-protected:
-  vector<animation> mAnimations;  
-};
-
-class pxObject: public rtObject, private pxObjectImpl
+class pxObject: public rtObject
 {
 public:
   rtDeclareObject(pxObject, rtObject);
@@ -177,7 +174,7 @@ public:
   rtProperty(m44,m44,setM44,float);
   rtProperty(useMatrix,useMatrix,setUseMatrix,bool);
 
-  pxObject(pxScene2d* scene): rtObject(), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
+pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
 #ifdef ANIMATION_ROTATE_XYZ  
     mrx(0), mry(0), mrz(1.0), 
 #endif //ANIMATION_ROTATE_XYZ
@@ -188,14 +185,21 @@ public:
       , mRepaintCount(0) //TODO - remove mRepaintCount as it's only needed on certain platforms
 #ifdef PX_DIRTY_RECTANGLES
     , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
-    #endif //PX_DIRTY_RECTANGLES
+#endif //PX_DIRTY_RECTANGLES
   {
     mScene = scene;
     mReady = new rtPromise;
     mEmit = new rtEmit;
   }
 
-  virtual ~pxObject() { /*printf("pxObject destroyed\n");*/ rtValue nullValue; mReady.send("reject",nullValue); deleteSnapshot(mSnapshotRef); deleteSnapshot(mClipSnapshotRef);}
+  virtual ~pxObject() 
+  { 
+    printf("pxObject destroyed\n"); 
+    rtValue nullValue; 
+    mReady.send("reject",nullValue); 
+    deleteSnapshot(mSnapshotRef); 
+    deleteSnapshot(mClipSnapshotRef);
+  }
 
   // TODO missing conversions in rtValue between uint32_t and int32_t
   uint32_t numChildren() const { return mChildren.size(); }
@@ -224,7 +228,7 @@ public:
 
   rtError parent(rtObjectRef& v) const 
   {
-    v = mParent.getPtr();
+    v = mParent;
     return RT_OK;
   }
 
@@ -645,7 +649,8 @@ public:
 
 protected:
   // TODO getting freaking huge... 
-  rtRefT<pxObject> mParent;
+//  rtRefT<pxObject> mParent;
+  pxObject* mParent;
   vector<rtRefT<pxObject> > mChildren;
 //  vector<animation> mAnimations;
   float mcx, mcy, mx, my, ma, mr;
@@ -683,6 +688,8 @@ protected:
   #endif //PX_DIRTY_RECTANGLES
 
   pxScene2d* mScene;
+
+  vector<animation> mAnimations;  
 
  private:
   rtError _pxObject(voidPtr& v) const {
@@ -911,7 +918,8 @@ private:
 
 typedef rtRefT<pxObject> pxObjectRef;
 
-class pxScene2d: public rtObject, public pxIView {
+class pxScene2d: public rtObject, public pxIView 
+{
 public:
   rtDeclareObject(pxScene2d, rtObject);
   rtProperty(onScene, onScene, setOnScene, rtFunctionRef);
@@ -953,14 +961,18 @@ public:
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
 
   pxScene2d(bool top = true);
+  virtual ~pxScene2d() {printf("deleting pxScene2d\n");}
   
-  virtual unsigned long AddRef() {
+  virtual unsigned long AddRef() 
+  {
     return rtAtomicInc(&mRefCount);
   }
   
-  virtual unsigned long Release() {
+  virtual unsigned long Release() 
+  {
     long l = rtAtomicDec(&mRefCount);
-    if (l == 0) delete this;
+    if (l == 0)
+      delete this;
     return l;
   }
 
@@ -1085,12 +1097,9 @@ public:
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
     rtError e = RT_FAIL;
-    printf("1\n");
     rtRefT<pxArchive> a = new pxArchive;
-    printf("2\n");
     if (a->initFromUrl(url) == RT_OK)
     {
-    printf("3\n");
       archive = a;
       e = RT_OK;
     }

@@ -1051,12 +1051,14 @@ pxScene2d::pxScene2d(bool top)
   mEmit = new rtEmit();
   mTop = top;
   mTag = gTag++;
+
   // make sure that initial onFocus is sent
   rtObjectRef e = new rtMapObject;
   mRoot->setFocusInternal(true);
   e.set("target",mFocusObj);
   rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
   t->mEmit.send("onFocus",e);
+
   #ifdef USE_SCENE_POINTER
   mPointerX= 0;
   mPointerY= 0;

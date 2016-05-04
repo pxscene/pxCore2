@@ -59,7 +59,9 @@ PX_SRCS=\
     pxFileDownloader.cpp \
     pxInterpolators.cpp \
 		pxMatrix4T.cpp \
-	  pxArchive.cpp
+	  pxArchive.cpp \
+		pxWayland.cpp \
+		$(EXTDIR)/westeros-stub/westeros-stub.cpp
 
 EXTDIR=../external
 PXCOREDIR=../../..
@@ -71,11 +73,12 @@ SEARCH=\
   -I$(EXTDIR)/curl/include \
   -I$(EXTDIR)/ft/include \
   -I$(EXTDIR)/png \
+	-I$(EXTDIR)/westeros-stub \
   -I$(PXHDRS) \
 	-I$(ZLIB) \
 	$(TARGETINCLUDE)
 
-CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) 
+CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM)
 
 LDPNG   = -L$(EXTDIR)/png/.libs -lpng16
 ifeq ($(UNAME_S),Darwin)
