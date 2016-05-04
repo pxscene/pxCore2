@@ -10,6 +10,7 @@
 #include <limits.h>
 #include <limits>
 #include <vector>
+#include <iostream>
 
 static std::string trim(char const* begin, char const* end)
 {
@@ -19,14 +20,15 @@ static std::string trim(char const* begin, char const* end)
   while (begin && (begin < end) && isspace(*begin))
     ++begin;
 
-  while (end && (end > begin) && isspace(*end))
+  while (end && (end > begin) && isblank(*end))
     --end;
 
   if (begin == end) return std::string();
-  return std::string(begin, (end - begin - 1));
+  return std::string(begin, (end - begin));
 }
 
-static long int to_long(char const* s)
+template<class T>
+static T numeric_cast(char const* s, std::function<T (const char *nptr, char **endptr, int base)> converter)
 {
   if (s == nullptr)
   {
@@ -34,29 +36,20 @@ static long int to_long(char const* s)
     assert(false);
   }
 
-  long int l = strtol(s, nullptr, 10);
-  if (l == std::numeric_limits<long>::min()) // underflow
+  T const val = converter(s, nullptr, 10);
+  if (val == std::numeric_limits<T>::min()) // underflow
   {
-    rtLogError("uint16_t underflow: %s", s);
+    rtLogError("underflow: %s", s);
     assert(false);
   }
 
-  if (l == std::numeric_limits<long>::max()) // overflow
+  if (val == std::numeric_limits<T>::max()) // overflow
   {
-    rtLogError("uint16_t overflow: %s", s);
+    rtLogError("overflow: %s", s);
     assert(false);
   }
 
-  return l;
-}
-
-template<class T>
-static T numeric_cast(char const* s)
-{
-  long int l = to_long(s);
-  long int max = std::numeric_limits<T>::max();
-  assert(l <= max);
-  return static_cast<T>(l);
+  return val;
 }
 
 static std::shared_ptr<rtRpcConfig> gConf;
@@ -88,12 +81,8 @@ static Setting kDefaultSettings[] =
 std::shared_ptr<rtRpcConfig>
 rtRpcConfig::getInstance(bool reloadConfiguration)
 {
-  if (gConf)
-  {
-    if (!reloadConfiguration)
-      return gConf;
-    gConf.reset();
-  }
+  if (gConf && !reloadConfiguration)
+    return gConf;
 
   gConf.reset(new rtRpcConfig());
   for (int i = 0; kDefaultSettings[i].name; ++i)
@@ -138,19 +127,19 @@ rtRpcConfig::getInstance(bool reloadConfiguration)
 uint16_t
 rtRpcConfig::getUInt16(char const* key)
 {
-  return numeric_cast<uint16_t>(getString(key));
+  return numeric_cast<uint16_t>(getString(key), strtoul);
 }
 
 int32_t
 rtRpcConfig::getInt32(char const* key)
 {
-  return numeric_cast<int32_t>(getString(key));
+  return numeric_cast<int32_t>(getString(key), strtol);
 }
 
 uint32_t
 rtRpcConfig::getUInt32(char const* key)
 {
-  return numeric_cast<uint32_t>(getString(key));
+  return numeric_cast<uint32_t>(getString(key), strtoul);
 }
 
 char const*
@@ -210,6 +199,7 @@ rtRpcConfig::fromFile(char const* file)
     size_t n = strlen(p);
     if (n == 0)
       continue;
+
     if (p[n-1] == '\n')
       p[n-1] = '\0';
 
@@ -224,7 +214,7 @@ rtRpcConfig::fromFile(char const* file)
     std::string name = trim(begin, end);
 
     begin = end + 1;
-    end = p + n;
+    end = (p + (n-1));
 
     std::string val = trim(begin, end);
 
