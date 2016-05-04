@@ -56,17 +56,8 @@ public:
   rtObjectRef runScriptThreaded(const char *script, const char *args = NULL); // THREADED
   rtObjectRef runFileThreaded(const char *file,     const char *args = NULL); // THREADED
 
-  rtObjectRef runFile(const char *file)  // DEPRECATED
-  { 
-    #warning "runFile() - is DEPRECATED ... going away soon." 
-    return runFileThreaded(file); 
-  } 
-
-  rtObjectRef runThread(const char *file)  // DEPRECATED
-  { 
-    #warning "runThread() - is DEPRECATED ... going away soon." 
-    return runFileThreaded(file); 
-  }
+  rtObjectRef runFile(  const char *file);  // DEPRECATED
+  rtObjectRef runThread(const char *file);  // DEPRECATED
 
   void uvWorker();
   int  startUVThread();
