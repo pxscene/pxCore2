@@ -15,6 +15,7 @@ rtError
 rtRpcInit()
 {
   rtError e = RT_OK;
+  rtRpcConfig::getInstance(true);
 
   std::lock_guard<std::mutex> lock(gMutex);
   if (gServer == nullptr)
@@ -29,12 +30,6 @@ rtRpcInit()
   {
     rtLogError("rtRpcServer is null");
     e = RT_FAIL;
-  }
-
-  if (e == RT_OK)
-  {
-    // prime config (true) means drop/reload configuration
-    rtRpcConfig::getInstance(true);
   }
 
   return e;

@@ -1,5 +1,6 @@
 
 #include "rtRpc.h"
+#include "rtRpcConfig.h"
 #include <rtObject.h>
 #include <functional>
 
@@ -264,6 +265,11 @@ int main(int argc, char* /*argv*/[])
 {
   rtError e = rtRpcInit();
   assert(e == RT_OK);
+
+  uint32_t u = rtRpcConfig::getInstance()->getUInt32("foo");
+  std::cout << "u:" << u << std::endl;
+  return 0;
+
 
   if (argc == 2)
   {
