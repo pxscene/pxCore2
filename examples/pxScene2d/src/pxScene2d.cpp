@@ -1396,6 +1396,13 @@ pxObject* pxScene2d::getRoot() const
   return mRoot;
 }
 
+void pxScene2d::onComplete()
+{
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onComplete");
+  mEmit.send("onComplete", e);
+}
+
 void pxScene2d::onSize(int32_t w, int32_t h)
 {
 #if 0
@@ -1993,6 +2000,10 @@ rtError pxSceneContainer::setUrl(rtString v)
   mReady = new rtPromise;  
   rtRefT<pxScene2d> newScene = new pxScene2d(false);
   setView(newScene);
+  if (mScene.getPtr() != NULL)
+  {
+    mScene->onComplete();
+  }
   mScene = newScene;
   mUrl = v; 
   if (gOnScene)

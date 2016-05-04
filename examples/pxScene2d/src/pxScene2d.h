@@ -1055,6 +1055,7 @@ public:
   
   virtual void onUpdate(double t);
   virtual void onDraw();
+  virtual void onComplete();
 
   virtual void setViewContainer(pxIViewContainer* l) 
   {
