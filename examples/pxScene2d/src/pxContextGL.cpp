@@ -724,7 +724,7 @@ private:
 };
 
 
-solidShaderProgram *gSolidShader;
+solidShaderProgram *gSolidShader = NULL;
 
 class aTextureShaderProgram: public shaderProgram
 {
@@ -790,7 +790,7 @@ private:
 };
 
 
-aTextureShaderProgram *gATextureShader;
+aTextureShaderProgram *gATextureShader = NULL;
 
 class textureShaderProgram: public shaderProgram
 {
@@ -857,7 +857,7 @@ private:
 };
 
 
-textureShaderProgram *gTextureShader;
+textureShaderProgram *gTextureShader = NULL;
 
 class textureMaskedShaderProgram: public shaderProgram
 {
@@ -927,7 +927,7 @@ private:
   GLint mMaskLoc;
 };
 
-textureMaskedShaderProgram *gTextureMaskedShader;
+textureMaskedShaderProgram *gTextureMaskedShader = NULL;
 
 static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const float* c)
 {
@@ -1174,6 +1174,33 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
 
 bool gContextInit = false;
 
+pxContext::~pxContext()
+{
+  if (gSolidShader)
+  {
+    delete gSolidShader;
+    gSolidShader = NULL;
+  }
+
+  if (gATextureShader)
+  {
+    delete gATextureShader;
+    gATextureShader = NULL;
+  }
+
+  if (gTextureShader)
+  {
+    delete gTextureShader;
+    gTextureShader = NULL;
+  }
+
+  if (gTextureMaskedShader)
+  {
+    delete gTextureMaskedShader;
+    gTextureMaskedShader = NULL;
+  }
+}
+
 void pxContext::init()
 {
 
@@ -1185,6 +1212,30 @@ void pxContext::init()
 #endif
 
   glClearColor(0, 0, 0, 0);
+
+  if (gSolidShader)
+  {
+    delete gSolidShader;
+    gSolidShader = NULL;
+  }
+
+  if (gATextureShader)
+  {
+    delete gATextureShader;
+    gATextureShader = NULL;
+  }
+
+  if (gTextureShader)
+  {
+    delete gTextureShader;
+    gTextureShader = NULL;
+  }
+
+  if (gTextureMaskedShader)
+  {
+    delete gTextureMaskedShader;
+    gTextureMaskedShader = NULL;
+  }
 
   gSolidShader = new solidShaderProgram();
   gSolidShader->init(vShaderText,fSolidShaderText);

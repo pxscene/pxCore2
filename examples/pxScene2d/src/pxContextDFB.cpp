@@ -352,6 +352,10 @@ static void drawImage92(float x, float y, float w, float h, float x1, float y1, 
 //  }
 }
 
+pxContext::~pxContext()
+{
+}
+
 
 void pxContext::init()
 {

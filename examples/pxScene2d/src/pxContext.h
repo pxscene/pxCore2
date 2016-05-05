@@ -19,6 +19,7 @@ class pxContext {
  public:
 
   pxContext(): mShowOutlines(false) {}
+  ~pxContext();
 
   void init();
   
