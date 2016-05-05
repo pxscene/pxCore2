@@ -369,11 +369,6 @@ rtObjectRef rtNodeContext::runScriptThreaded(const char *script, const char *arg
     
   js_script = script;
 
-  if(pthread_create(&uv_worker, NULL, uvThread, (void *) this))
-  {
-    fprintf(stderr, "Error creating UV thread\n");
-  }
-
 #ifndef  USE_UV_TIMERS
   // call runScript() in this thread...
   if(pthread_create(&js_worker, NULL, jsThread, (void *) this))
@@ -381,6 +376,11 @@ rtObjectRef rtNodeContext::runScriptThreaded(const char *script, const char *arg
     fprintf(stderr, "Error creating JS thread\n");
   }
 #endif
+
+  if(pthread_create(&uv_worker, NULL, uvThread, (void *) this))
+  {
+    fprintf(stderr, "Error creating UV thread\n");
+  }
 
   return rtObjectRef(0);
 }
