@@ -26,7 +26,20 @@ function XModule(name, appSceneContext, fromJarFile, basePath) {
 XModule.prototype.load = function(uri) {
   global.exports = self.exports;
   global.module = self;
+}
 
+XModule.prototype.freeResources = function() {
+  this.appSandbox = null;
+  this.moduleReadyPromise = null;
+  this.exports = null;
+  this.pendingIncludes = null;
+  this.moduleNameList = null;
+  this.promises = null;
+  this.moduleData = null;
+  this.appSceneContext = null;
+  this.imports = null;
+  this.log = null;
+  this.importReplacementMap = null;
 }
 
 XModule.prototype.getBasePath = function() {

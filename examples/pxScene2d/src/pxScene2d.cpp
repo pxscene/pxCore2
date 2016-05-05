@@ -1051,12 +1051,14 @@ pxScene2d::pxScene2d(bool top)
   mEmit = new rtEmit();
   mTop = top;
   mTag = gTag++;
+
   // make sure that initial onFocus is sent
   rtObjectRef e = new rtMapObject;
   mRoot->setFocusInternal(true);
   e.set("target",mFocusObj);
   rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
   t->mEmit.send("onFocus",e);
+
   #ifdef USE_SCENE_POINTER
   mPointerX= 0;
   mPointerY= 0;
@@ -1394,6 +1396,13 @@ void pxScene2d::update(double t)
 pxObject* pxScene2d::getRoot() const
 {
   return mRoot;
+}
+
+void pxScene2d::onComplete()
+{
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onComplete");
+  mEmit.send("onComplete", e);
 }
 
 void pxScene2d::onSize(int32_t w, int32_t h)
@@ -1993,6 +2002,10 @@ rtError pxSceneContainer::setUrl(rtString v)
   mReady = new rtPromise;  
   rtRefT<pxScene2d> newScene = new pxScene2d(false);
   setView(newScene);
+  if (mScene.getPtr() != NULL)
+  {
+    mScene->onComplete();
+  }
   mScene = newScene;
   mUrl = v; 
   if (gOnScene)

@@ -72,6 +72,27 @@ AppSceneContext.prototype.loadScene = function() {
     log.message(2, "innerscene root(" + this.packageUrl + "): keydown:" + e.keyCode);
   }.bind(this));
 
+
+  this.innerscene.on('onComplete', function (e) {
+    this.container = null;
+    this.innerscene = null;
+    this.sandbox = null;
+    for(var key in this.scriptMap) {
+      this.scriptMap[key].scriptObject = null;
+      this.scriptMap[key].readyListeners = null;
+    }
+    this.scriptMap = null;
+    for(var xmodule in this.xmoduleMap) {
+      this.xmoduleMap[xmodule].freeResources();
+    }
+    this.xmoduleMap = null;
+    this.topXModule = null;
+    this.jarFileMap = null;
+    this.sceneWrapper = null;
+    global.gc();
+  }.bind(this));
+
+
   log.info("loadScene() - ends");
 
 }

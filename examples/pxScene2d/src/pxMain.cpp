@@ -27,30 +27,44 @@
 //extern rtRefT<pxScene2d> scene;
 
 pxEventLoop eventLoop;
-
 class testWindow: public pxViewWindow
 {
 private:
-  void onCloseRequest()
-  {
-    // When someone clicks the close box no policy is predefined.
-    // so we need to explicitly tell the event loop to exit
-    eventLoop.exit();
-  }  
+  void onKeyDown(uint32_t keycode, uint32_t flags);
+  void onCloseRequest();
 };
+
+bool flag = false;
+testWindow win;
+
 
 int pxMain()
 {
   int width = 1280;
   int height = 720;
 
-  testWindow win;
   win.init(10, 10, width, height);
 
   win.setTitle("pxCore!");
   win.setVisibility(true);
+
+#if 1
   pxScene2dRef s = testScene();
+//  pxScene2dRef s = new pxScene2d(true);
+  printf("Before setView\n");
   win.setView(s);
+  printf("Before setView(NULL)\n");
+  win.setView(NULL);
+#if 0
+  {
+  printf("pxObject should be destroyed\n");
+  rtRefT<pxObject> o = new pxObject(s);
+  }
+#endif
+  s = NULL;
+#endif
+
+
 
   win.setAnimationFPS(60);
 
@@ -69,6 +83,34 @@ int pxMain()
 
   eventLoop.run();
 
+  printf("after event loop");
+
   return 0;
 }
 
+void testWindow::onKeyDown(uint32_t keycode, uint32_t flags)
+{
+  pxViewWindow::onKeyDown(keycode, flags);
+  printf("keycode %d\n", keycode);
+  
+  if (keycode == 65)
+  {
+    if (flag)
+    {
+      pxScene2dRef s = testScene();
+      win.setView(s);
+    }
+    else
+      win.setView(NULL);
+
+    flag = !flag;
+  }
+}
+
+void testWindow::onCloseRequest()
+{
+  printf("in onCloseRequest()");
+  // When someone clicks the close box no policy is predefined.
+  // so we need to explicitly tell the event loop to exit
+  eventLoop.exit();
+}  
