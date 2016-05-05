@@ -1,8 +1,8 @@
 #include "rtValueReader.h"
-#include "rtRpcClient.h"
+#include "rtRemoteClient.h"
 #include "rtRemoteObject.h"
 #include "rtRemoteFunction.h"
-#include "rtRpcMessage.h"
+#include "rtRemoteMessage.h"
 
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
@@ -26,7 +26,7 @@ static std::string toString(rapidjson::Value const& v)
 #endif
 
 rtError
-rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRpcClient> const& client)
+rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRemoteClient> const& client)
 {
   auto type = from.FindMember(kFieldNameValueType);
   if (type  == from.MemberEnd())

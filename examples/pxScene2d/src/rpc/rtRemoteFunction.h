@@ -5,13 +5,13 @@
 #include <memory>
 #include <string>
 
-class rtRpcClient;
+class rtRemoteClient;
 
 class rtRemoteFunction : public rtIFunction
 {
 public:
   rtRemoteFunction(std::string const& id, std::string const& name,
-    std::shared_ptr<rtRpcClient> const& transport);
+    std::shared_ptr<rtRemoteClient> const& transport);
 
   virtual ~rtRemoteFunction();
 
@@ -23,7 +23,7 @@ private:
   rtAtomic                          m_ref_count;
   std::string                       m_id;
   std::string                       m_name;
-  std::shared_ptr<rtRpcClient>      m_rpc_client;   
+  std::shared_ptr<rtRemoteClient>      m_rpc_client;   
 };
 
 #endif

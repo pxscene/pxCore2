@@ -48,17 +48,17 @@
 #define kInvalidPropertyIndex std::numeric_limits<uint32_t>::max()
 #define kInvalidCorrelationKey std::numeric_limits<uint32_t>::max()
 
-class rtRpcMessage
+class rtRemoteMessage
 {
 public:
-  virtual ~rtRpcMessage();
+  virtual ~rtRemoteMessage();
   bool isValid() const;
 
 protected:
-  rtRpcMessage(char const* messageType, std::string const& objectName);
+  rtRemoteMessage(char const* messageType, std::string const& objectName);
 
 private:
-  rtRpcMessage() { }
+  rtRemoteMessage() { }
 
 public:
   rtCorrelationKey getCorrelationKey() const;
@@ -73,16 +73,16 @@ protected:
   rtCorrelationKey      m_correlation_key;
 };
 
-class rtRpcRequest : public rtRpcMessage
+class rtRemoteRequest : public rtRemoteMessage
 {
 protected:
-  rtRpcRequest(char const* messageType, std::string const& objectName);
+  rtRemoteRequest(char const* messageType, std::string const& objectName);
 };
 
-class rtRpcResponse : public rtRpcMessage
+class rtRemoteResponse : public rtRemoteMessage
 {
 public:
-  rtRpcResponse(char const* messageType, std::string const& objectName);
+  rtRemoteResponse(char const* messageType, std::string const& objectName);
 public:
   rtError getStatusCode() const;
   inline bool isValid() const
@@ -91,47 +91,47 @@ private:
   bool m_is_valid;
 };
 
-class rtRpcGetResponse : public rtRpcResponse
+class rtRemoteGetResponse : public rtRemoteResponse
 {
 public:
-  rtRpcGetResponse(std::string const& objectName);
+  rtRemoteGetResponse(std::string const& objectName);
   rtValue getValue() const;
 };
 
 
-class rtRpcRequestOpenSession : public rtRpcRequest
+class rtRemoteRequestOpenSession : public rtRemoteRequest
 {
 public:
-  rtRpcRequestOpenSession(std::string const& objectName);
+  rtRemoteRequestOpenSession(std::string const& objectName);
 };
 
-class rtRpcRequestKeepAlive : public rtRpcRequest
+class rtRemoteRequestKeepAlive : public rtRemoteRequest
 {
 public:
-  rtRpcRequestKeepAlive();
+  rtRemoteRequestKeepAlive();
   void addObjectName(std::string const& name);
 };
 
-class rtRpcMethodCallRequest : public rtRpcRequest
+class rtRemoteMethodCallRequest : public rtRemoteRequest
 {
 public:
-  rtRpcMethodCallRequest(std::string const& objectName);
+  rtRemoteMethodCallRequest(std::string const& objectName);
   void setMethodName(std::string const& methodName);
   void addMethodArgument(rtValue const& arg);
 };
 
-class rtRpcGetRequest : public rtRpcRequest
+class rtRemoteGetRequest : public rtRemoteRequest
 {
 public:
-  rtRpcGetRequest(std::string const& objectName, std::string const& fieldName);
-  rtRpcGetRequest(std::string const& objectName, uint32_t fieldIndex);
+  rtRemoteGetRequest(std::string const& objectName, std::string const& fieldName);
+  rtRemoteGetRequest(std::string const& objectName, uint32_t fieldIndex);
 };
 
-class rtRpcSetRequest : public rtRpcRequest
+class rtRemoteSetRequest : public rtRemoteRequest
 {
 public:
-  rtRpcSetRequest(std::string const& objectName, std::string const& fieldName);
-  rtRpcSetRequest(std::string const& objectName, uint32_t fieldIndex);
+  rtRemoteSetRequest(std::string const& objectName, std::string const& fieldName);
+  rtRemoteSetRequest(std::string const& objectName, uint32_t fieldIndex);
   rtError setValue(rtValue const& value);
 };
 

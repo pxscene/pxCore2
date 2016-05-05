@@ -1,46 +1,46 @@
-#include "rtRpc.h"
-#include "rtRpcClient.h"
-#include "rtRpcConfig.h"
-#include "rtRpcServer.h"
+#include "rtRemote.h"
+#include "rtRemoteClient.h"
+#include "rtRemoteConfig.h"
+#include "rtRemoteServer.h"
 
 #include <rtLog.h>
 #include <mutex>
 #include <thread>
 
-static rtRpcServer* gServer = nullptr;
+static rtRemoteServer* gServer = nullptr;
 static std::mutex gMutex;
-std::shared_ptr<rtRpcStreamSelector> gStreamSelector;
+std::shared_ptr<rtRemoteStreamSelector> gStreamSelector;
 
 rtError
-rtRpcInit()
+rtRemoteInit()
 {
   rtError e = RT_OK;
-  rtRpcConfig::getInstance(true);
+  rtRemoteConfig::getInstance(true);
 
   std::lock_guard<std::mutex> lock(gMutex);
   if (gServer == nullptr)
   {
-    gServer = new rtRpcServer();
+    gServer = new rtRemoteServer();
     e = gServer->open();
     if (e != RT_OK)
-      rtLogError("failed to open rtRpcServer. %s", rtStrError(e));
+      rtLogError("failed to open rtRemoteServer. %s", rtStrError(e));
   };
 
   if (gServer == nullptr)
   {
-    rtLogError("rtRpcServer is null");
+    rtLogError("rtRemoteServer is null");
     e = RT_FAIL;
   }
 
   return e;
 }
 
-extern rtError rtRpcShutdownStreamSelector();
+extern rtError rtRemoteShutdownStreamSelector();
 
 rtError
-rtRpcShutdown()
+rtRemoteShutdown()
 {
-  rtError e = rtRpcShutdownStreamSelector();
+  rtError e = rtRemoteShutdownStreamSelector();
   if (e != RT_OK)
   {
     rtLogWarn("error shutting down stream selector. %s", rtStrError(e));
@@ -56,7 +56,7 @@ rtRpcShutdown()
 }
 
 rtError
-rtRpcRegisterObject(char const* id, rtObjectRef const& obj)
+rtRemoteRegisterObject(char const* id, rtObjectRef const& obj)
 {
   if (gServer == nullptr)
     return RT_FAIL;
@@ -71,11 +71,11 @@ rtRpcRegisterObject(char const* id, rtObjectRef const& obj)
 }
 
 rtError
-rtRpcLocateObject(char const* id, rtObjectRef& obj)
+rtRemoteLocateObject(char const* id, rtObjectRef& obj)
 {
   if (gServer == nullptr)
   {
-    rtLogError("rtRpcInit not called");
+    rtLogError("rtRemoteInit not called");
     return RT_FAIL;
   }
 

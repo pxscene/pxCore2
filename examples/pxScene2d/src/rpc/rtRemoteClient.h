@@ -16,17 +16,17 @@
 #include <sys/socket.h>
 #include <rapidjson/document.h>
 
-#include "rtRpcStream.h"
-#include "rtRpcTypes.h"
-#include "rtRpcMessage.h"
+#include "rtRemoteStream.h"
+#include "rtRemoteTypes.h"
+#include "rtRemoteMessage.h"
 #include "rtSocketUtils.h"
 
-class rtRpcClient: public std::enable_shared_from_this<rtRpcClient>
+class rtRemoteClient: public std::enable_shared_from_this<rtRemoteClient>
 {
 public:
-  rtRpcClient(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint);
-  rtRpcClient(sockaddr_storage const& remote_endpoint);
-  ~rtRpcClient();
+  rtRemoteClient(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint);
+  rtRemoteClient(sockaddr_storage const& remote_endpoint);
+  ~rtRemoteClient();
 
   rtError open();
   rtError startSession(std::string const& objectName, uint32_t timeout = 0);
@@ -41,7 +41,7 @@ public:
   inline void keepAlive(std::string const& s)
     { m_object_list.push_back(s); }
 
-  rtError setMessageCallback(rtRpcMessageHandler const& handler)
+  rtError setMessageCallback(rtRemoteMessageHandler const& handler)
     { m_message_handler = handler; return RT_OK; } 
 
   rtError sendDocument(rapidjson::Document const& doc)
@@ -59,8 +59,8 @@ private:
 
   rtError onIncomingMessage(rtJsonDocPtr const& msg);
   rtError onInactivity(time_t lastMessage, time_t now);
-  rtError sendGet(rtRpcGetRequest const& req, rtValue& value, uint32_t timeout);
-  rtError sendSet(rtRpcSetRequest const& req, uint32_t timeout);
+  rtError sendGet(rtRemoteGetRequest const& req, rtValue& value, uint32_t timeout);
+  rtError sendSet(rtRemoteSetRequest const& req, uint32_t timeout);
   rtError connectRpcEndpoint();
   rtError sendKeepAlive();
   rtError runListener();
@@ -70,9 +70,9 @@ private:
   rtError onStartSession(rtJsonDocPtr const& doc);
 
 private:
-  std::shared_ptr<rtRpcStream>		m_stream;
+  std::shared_ptr<rtRemoteStream>		m_stream;
   std::vector<std::string>      	m_object_list;
-  rtRpcMessageHandler			m_message_handler;
+  rtRemoteMessageHandler			m_message_handler;
 };
 
 #endif

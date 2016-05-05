@@ -1,7 +1,7 @@
-#include "rtRpcResolver.h"
+#include "rtRemoteResolver.h"
 #include "rtSocketUtils.h"
-#include "rtRpcMessage.h"
-#include "rtRpcConfig.h"
+#include "rtRemoteMessage.h"
+#include "rtRemoteConfig.h"
 
 #include <condition_variable>
 #include <thread>
@@ -24,11 +24,11 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
-class rtRpcMulticastResolver : public rtIRpcResolver
+class rtRemoteMulticastResolver : public rtIRpcResolver
 {
 public:
-  rtRpcMulticastResolver();
-  ~rtRpcMulticastResolver();
+  rtRemoteMulticastResolver();
+  ~rtRemoteMulticastResolver();
 
 public:
   virtual rtError open(sockaddr_storage const& rpc_endpoint) override;
@@ -38,7 +38,7 @@ public:
     uint32_t timeout) override;
 
 private:
-  typedef rtError (rtRpcMulticastResolver::*command_handler_t)(rtJsonDocPtr const&, sockaddr_storage const& soc);
+  typedef rtError (rtRemoteMulticastResolver::*command_handler_t)(rtJsonDocPtr const&, sockaddr_storage const& soc);
 
   using HostedObjectsMap = std::map< std::string, sockaddr_storage >;
   using CommandHandlerMap = std::map< std::string, command_handler_t >;
@@ -78,7 +78,7 @@ private:
   int		    m_shutdown_pipe[2];
 };
 
-rtRpcMulticastResolver::rtRpcMulticastResolver()
+rtRemoteMulticastResolver::rtRemoteMulticastResolver()
   : m_mcast_fd(-1)
   , m_mcast_src_index(-1)
   , m_ucast_fd(-1)
@@ -90,8 +90,8 @@ rtRpcMulticastResolver::rtRpcMulticastResolver()
   memset(&m_mcast_src, 0, sizeof(m_mcast_src));
   memset(&m_ucast_endpoint, 0, sizeof(m_ucast_endpoint));
 
-  m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeSearch, &rtRpcMulticastResolver::onSearch));
-  m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeLocate, &rtRpcMulticastResolver::onLocate));
+  m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeSearch, &rtRemoteMulticastResolver::onSearch));
+  m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeLocate, &rtRemoteMulticastResolver::onLocate));
 
   m_shutdown_pipe[0] = -1;
   m_shutdown_pipe[1] = -1;
@@ -101,7 +101,7 @@ rtRpcMulticastResolver::rtRpcMulticastResolver()
     rtLogWarn("failed to create shutdown pipe. %s", rtStrError(ret).c_str());
 }
 
-rtRpcMulticastResolver::~rtRpcMulticastResolver()
+rtRemoteMulticastResolver::~rtRemoteMulticastResolver()
 {
   rtError err = this->close();
   if (err != RT_OK)
@@ -109,12 +109,12 @@ rtRpcMulticastResolver::~rtRpcMulticastResolver()
 }
 
 rtError
-rtRpcMulticastResolver::init()
+rtRemoteMulticastResolver::init()
 {
   rtError err = RT_OK;
 
-  uint16_t port = rtRpcSetting<uint16_t>("rt.rpc.resolver.multicast_port");
-  char const* dstaddr = rtRpcSetting<char const *>("rt.rpc.resolver.multicast_address");
+  uint16_t port = rtRemoteSetting<uint16_t>("rt.rpc.resolver.multicast_port");
+  char const* dstaddr = rtRemoteSetting<char const *>("rt.rpc.resolver.multicast_address");
 
   err = rtParseAddress(m_mcast_dest, dstaddr, port, nullptr);
   if (err != RT_OK)
@@ -123,7 +123,7 @@ rtRpcMulticastResolver::init()
     return err;
   }
 
-  char const* srcaddr = rtRpcSetting<char const *>("rt.rpc.resolver.multicast_interface");
+  char const* srcaddr = rtRemoteSetting<char const *>("rt.rpc.resolver.multicast_interface");
 
   err = rtParseAddress(m_mcast_src, srcaddr, port, &m_mcast_src_index);
   if (err != RT_OK)
@@ -149,7 +149,7 @@ rtRpcMulticastResolver::init()
 }
 
 rtError
-rtRpcMulticastResolver::open(sockaddr_storage const& rpc_endpoint)
+rtRemoteMulticastResolver::open(sockaddr_storage const& rpc_endpoint)
 {
   {
     char buff[128];
@@ -188,12 +188,12 @@ rtRpcMulticastResolver::open(sockaddr_storage const& rpc_endpoint)
     return err;
   }
 
-  m_read_thread.reset(new std::thread(&rtRpcMulticastResolver::runListener, this));
+  m_read_thread.reset(new std::thread(&rtRemoteMulticastResolver::runListener, this));
   return RT_OK;
 }
 
 rtError
-rtRpcMulticastResolver::openUnicastSocket()
+rtRemoteMulticastResolver::openUnicastSocket()
 {
   int ret = 0;
   int err = 0;
@@ -266,7 +266,7 @@ rtRpcMulticastResolver::openUnicastSocket()
 }
 
 rtError
-rtRpcMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage const& soc)
+rtRemoteMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage const& soc)
 {
   auto senderId = doc->FindMember(kFieldNameSenderId);
   assert(senderId != doc->MemberEnd());
@@ -305,7 +305,7 @@ rtRpcMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage const
 }
 
 rtError
-rtRpcMulticastResolver::onLocate(rtJsonDocPtr const& doc, sockaddr_storage const& /*soc*/)
+rtRemoteMulticastResolver::onLocate(rtJsonDocPtr const& doc, sockaddr_storage const& /*soc*/)
 {
   int key = rtMessage_GetCorrelationKey(*doc);
 
@@ -318,7 +318,7 @@ rtRpcMulticastResolver::onLocate(rtJsonDocPtr const& doc, sockaddr_storage const
 }
 
 rtError
-rtRpcMulticastResolver::locateObject(std::string const& name, sockaddr_storage& endpoint, uint32_t timeout)
+rtRemoteMulticastResolver::locateObject(std::string const& name, sockaddr_storage& endpoint, uint32_t timeout)
 {
   if (m_ucast_fd == -1)
   {
@@ -380,7 +380,7 @@ rtRpcMulticastResolver::locateObject(std::string const& name, sockaddr_storage& 
 }
 
 void
-rtRpcMulticastResolver::runListener()
+rtRemoteMulticastResolver::runListener()
 {
   rtSocketBuffer buff;
   buff.reserve(1024 * 1024);
@@ -424,7 +424,7 @@ rtRpcMulticastResolver::runListener()
 }
 
 void
-rtRpcMulticastResolver::doRead(int fd, rtSocketBuffer& buff)
+rtRemoteMulticastResolver::doRead(int fd, rtSocketBuffer& buff)
 {
   // we only suppor v4 right now. not sure how recvfrom supports v6 and v4
   sockaddr_storage src;
@@ -440,7 +440,7 @@ rtRpcMulticastResolver::doRead(int fd, rtSocketBuffer& buff)
 }
 
 void
-rtRpcMulticastResolver::doDispatch(char const* buff, int n, sockaddr_storage* peer)
+rtRemoteMulticastResolver::doDispatch(char const* buff, int n, sockaddr_storage* peer)
 {
   // rtLogInfo("new message from %s:%d", inet_ntoa(src.sin_addr), htons(src.sin_port));
   // printf("read: %d\n", int(n));
@@ -474,7 +474,7 @@ rtRpcMulticastResolver::doDispatch(char const* buff, int n, sockaddr_storage* pe
 }
 
 rtError
-rtRpcMulticastResolver::close()
+rtRemoteMulticastResolver::close()
 {
   if (m_shutdown_pipe[1] != -1)
   {
@@ -507,7 +507,7 @@ rtRpcMulticastResolver::close()
 }
 
 rtError
-rtRpcMulticastResolver::registerObject(std::string const& name, sockaddr_storage const& endpoint)
+rtRemoteMulticastResolver::registerObject(std::string const& name, sockaddr_storage const& endpoint)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_hosted_objects[name] = endpoint;
@@ -515,7 +515,7 @@ rtRpcMulticastResolver::registerObject(std::string const& name, sockaddr_storage
 }
 
 rtError
-rtRpcMulticastResolver::openMulticastSocket()
+rtRemoteMulticastResolver::openMulticastSocket()
 {
   int err = 0;
 
@@ -591,7 +591,7 @@ rtRpcMulticastResolver::openMulticastSocket()
   return RT_OK;
 }
 
-rtIRpcResolver* rtRpcCreateResolver()
+rtIRpcResolver* rtRemoteCreateResolver()
 {
-  return new rtRpcMulticastResolver();
+  return new rtRemoteMulticastResolver();
 }

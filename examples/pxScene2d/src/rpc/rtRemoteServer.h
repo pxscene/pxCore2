@@ -12,19 +12,19 @@
 #include <rtObject.h>
 #include <rapidjson/document.h>
 
-#include "rtRpcTypes.h"
-#include "rtRpcResolver.h"
+#include "rtRemoteTypes.h"
+#include "rtRemoteResolver.h"
 #include "rtSocketUtils.h"
 
-class rtRpcClient;
+class rtRemoteClient;
 
-class rtRpcServer
+class rtRemoteServer
 {
   friend class rtCommandDispatcher;
 
 public:
-  rtRpcServer();
-  ~rtRpcServer();
+  rtRemoteServer();
+  ~rtRemoteServer();
 
 public:
   rtError open();
@@ -42,15 +42,15 @@ private:
   void runListener();
   void doAccept(int fd);
 
-  rtError onIncomingMessage(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& msg);
+  rtError onIncomingMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg);
 
   // command handlers
   rtError start();
-  rtError onOpenSession(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc);
-  rtError onGet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc);
-  rtError onSet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc);
-  rtError onMethodCall(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc);
-  rtError onKeepAlive(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc);
+  rtError onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc);
+  rtError onGet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc);
+  rtError onSet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc);
+  rtError onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc);
+  rtError onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc);
   rtError openRpcListener();
 
 private:
@@ -62,9 +62,9 @@ private:
     bool              owner_removed;
   };
 
-  using ClientMap = std::map< std::string, std::shared_ptr<rtRpcClient> >;
-  using ClientList = std::vector< std::shared_ptr<rtRpcClient > >;
-  using CommandHandlerMap = std::map< std::string, rtRpcMessageHandler >;
+  using ClientMap = std::map< std::string, std::shared_ptr<rtRemoteClient> >;
+  using ClientList = std::vector< std::shared_ptr<rtRemoteClient > >;
+  using CommandHandlerMap = std::map< std::string, rtRemoteMessageHandler >;
   using ObjectRefeMap = std::map< std::string, ObjectReference >;
 
   sockaddr_storage              m_rpc_endpoint;

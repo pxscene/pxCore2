@@ -1,10 +1,10 @@
-#include "rtRpcClient.h"
-#include "rtRpcClient.h"
+#include "rtRemoteClient.h"
+#include "rtRemoteClient.h"
 #include "rtSocketUtils.h"
-#include "rtRpcMessage.h"
+#include "rtRemoteMessage.h"
 #include "rtValueReader.h"
 #include "rtValueWriter.h"
-#include "rtRpcConfig.h"
+#include "rtRemoteConfig.h"
 
 #include "rapidjson/rapidjson.h"
 
@@ -18,35 +18,35 @@
 
 #include <rapidjson/document.h>
 
-rtRpcClient::rtRpcClient(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint)
-  : m_stream(new rtRpcStream(fd, local_endpoint, remote_endpoint))
+rtRemoteClient::rtRemoteClient(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint)
+  : m_stream(new rtRemoteStream(fd, local_endpoint, remote_endpoint))
   , m_message_handler(nullptr)
 {
-  m_stream->setMessageCallback(std::bind(&rtRpcClient::onIncomingMessage, this,
+  m_stream->setMessageCallback(std::bind(&rtRemoteClient::onIncomingMessage, this,
     std::placeholders::_1));
-  m_stream->setInactivityCallback(std::bind(&rtRpcClient::onInactivity, this,
+  m_stream->setInactivityCallback(std::bind(&rtRemoteClient::onInactivity, this,
     std::placeholders::_1, std::placeholders::_2));
 }
 
-rtRpcClient::rtRpcClient(sockaddr_storage const& remote_endpoint)
-  : m_stream(new rtRpcStream(-1, sockaddr_storage(), remote_endpoint))
+rtRemoteClient::rtRemoteClient(sockaddr_storage const& remote_endpoint)
+  : m_stream(new rtRemoteStream(-1, sockaddr_storage(), remote_endpoint))
   , m_message_handler(nullptr)
 {
-  m_stream->setMessageCallback(std::bind(&rtRpcClient::onIncomingMessage, this,
+  m_stream->setMessageCallback(std::bind(&rtRemoteClient::onIncomingMessage, this,
     std::placeholders::_1));
-  m_stream->setInactivityCallback(std::bind(&rtRpcClient::onInactivity, this,
+  m_stream->setInactivityCallback(std::bind(&rtRemoteClient::onInactivity, this,
     std::placeholders::_1, std::placeholders::_2));
 }
 
-rtRpcClient::~rtRpcClient()
+rtRemoteClient::~rtRemoteClient()
 {
   m_stream->close();
 }
 
 rtError
-rtRpcClient::onIncomingMessage(rtJsonDocPtr const& msg)
+rtRemoteClient::onIncomingMessage(rtJsonDocPtr const& msg)
 {
-  std::shared_ptr<rtRpcClient> client = shared_from_this();
+  std::shared_ptr<rtRemoteClient> client = shared_from_this();
 
   rtError e = RT_OK;
   if (m_message_handler)
@@ -60,14 +60,14 @@ rtRpcClient::onIncomingMessage(rtJsonDocPtr const& msg)
 }
 
 rtError
-rtRpcClient::onInactivity(time_t /*lastMessage*/, time_t /*now*/)
+rtRemoteClient::onInactivity(time_t /*lastMessage*/, time_t /*now*/)
 {
   sendKeepAlive();
   return RT_OK;
 }
 
 rtError
-rtRpcClient::open()
+rtRemoteClient::open()
 {
   rtError err = connectRpcEndpoint();
   if (err != RT_OK)
@@ -85,7 +85,7 @@ rtRpcClient::open()
 }
 
 rtError
-rtRpcClient::connectRpcEndpoint()
+rtRemoteClient::connectRpcEndpoint()
 {
   rtError e = RT_OK;
   if (!m_stream->isConnected())
@@ -96,13 +96,13 @@ rtRpcClient::connectRpcEndpoint()
 }
 
 rtError
-rtRpcClient::startSession(std::string const& objectName, uint32_t timeout)
+rtRemoteClient::startSession(std::string const& objectName, uint32_t timeout)
 {
   rtJsonDocPtr res;
-  rtRpcRequestOpenSession req(objectName);
+  rtRemoteRequestOpenSession req(objectName);
 
   if (timeout == 0)
-    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
 
   rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc)
   {
@@ -120,41 +120,41 @@ rtRpcClient::startSession(std::string const& objectName, uint32_t timeout)
 }
 
 rtError
-rtRpcClient::sendKeepAlive()
+rtRemoteClient::sendKeepAlive()
 {
   if (m_object_list.empty())
     return RT_OK;
-  rtRpcRequestKeepAlive req;
+  rtRemoteRequestKeepAlive req;
   for (auto const& name : m_object_list)
     req.addObjectName(name);
   return m_stream->send(req);
 }
 
 rtError
-rtRpcClient::get(std::string const& objectName, char const* propertyName, rtValue& value,
+rtRemoteClient::get(std::string const& objectName, char const* propertyName, rtValue& value,
   uint32_t timeout)
 {
   if (timeout == 0)
-    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
 
-  return sendGet(rtRpcGetRequest(objectName, propertyName), value, timeout);
+  return sendGet(rtRemoteGetRequest(objectName, propertyName), value, timeout);
 }
 
 rtError
-rtRpcClient::get(std::string const& objectName, uint32_t index, rtValue& value,
+rtRemoteClient::get(std::string const& objectName, uint32_t index, rtValue& value,
   uint32_t timeout)
 {
   if (timeout == 0)
-    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
 
-  return sendGet(rtRpcGetRequest(objectName, index), value, timeout);
+  return sendGet(rtRemoteGetRequest(objectName, index), value, timeout);
 }
 
 rtError
-rtRpcClient::sendGet(rtRpcGetRequest const& req, rtValue& value, uint32_t timeout)
+rtRemoteClient::sendGet(rtRemoteGetRequest const& req, rtValue& value, uint32_t timeout)
 {
   if (timeout == 0)
-    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
 
   rtJsonDocPtr res;
   rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc)
@@ -181,34 +181,34 @@ rtRpcClient::sendGet(rtRpcGetRequest const& req, rtValue& value, uint32_t timeou
 }
   
 rtError
-rtRpcClient::set(std::string const& objectName, char const* propertyName, rtValue const& value,
+rtRemoteClient::set(std::string const& objectName, char const* propertyName, rtValue const& value,
   uint32_t timeout)
 {
   if (timeout == 0)
-    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
 
-  rtRpcSetRequest req(objectName, propertyName);
+  rtRemoteSetRequest req(objectName, propertyName);
   req.setValue(value);
   return sendSet(req, timeout);
 }
 
 rtError
-rtRpcClient::set(std::string const& objectName, uint32_t propertyIndex, rtValue const& value,
+rtRemoteClient::set(std::string const& objectName, uint32_t propertyIndex, rtValue const& value,
   uint32_t timeout)
 {
   if (timeout == 0)
-    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
 
-  rtRpcSetRequest req(objectName, propertyIndex);
+  rtRemoteSetRequest req(objectName, propertyIndex);
   req.setValue(value);
   return sendSet(req, timeout);
 }
 
 rtError
-rtRpcClient::sendSet(rtRpcSetRequest const& req, uint32_t timeout)
+rtRemoteClient::sendSet(rtRemoteSetRequest const& req, uint32_t timeout)
 {
   if (timeout == 0)
-    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
 
   rtJsonDocPtr res;
   rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc) 
@@ -227,13 +227,13 @@ rtRpcClient::sendSet(rtRpcSetRequest const& req, uint32_t timeout)
 }
 
 rtError
-rtRpcClient::send(std::string const& objectName, std::string const& methodName,
+rtRemoteClient::send(std::string const& objectName, std::string const& methodName,
   int argc, rtValue const* argv, rtValue* result, uint32_t timeout)
 {
   if (timeout == 0)
-    timeout = rtRpcSetting<uint32_t>("rt.rpc.default.request_timeout");
+    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
 
-  rtRpcMethodCallRequest req(objectName);
+  rtRemoteMethodCallRequest req(objectName);
   req.setMethodName(methodName);
   for (int i = 0; i < argc; ++i)
     req.addMethodArgument(argv[i]);

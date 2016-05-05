@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "rtRpcTypes.h"
+#include "rtRemoteTypes.h"
 
 rtError rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* index);
 rtError rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len);

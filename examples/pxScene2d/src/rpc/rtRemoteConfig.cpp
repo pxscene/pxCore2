@@ -1,4 +1,4 @@
-#include "rtRpcConfig.h"
+#include "rtRemoteConfig.h"
 #include <rtLog.h>
 
 #include <assert.h>
@@ -52,7 +52,7 @@ static T numeric_cast(char const* s, std::function<T (const char *nptr, char **e
   return val;
 }
 
-static std::shared_ptr<rtRpcConfig> gConf;
+static std::shared_ptr<rtRemoteConfig> gConf;
 
 struct Setting
 {
@@ -78,13 +78,13 @@ static Setting kDefaultSettings[] =
   { nullptr, nullptr }
 };
 
-std::shared_ptr<rtRpcConfig>
-rtRpcConfig::getInstance(bool reloadConfiguration)
+std::shared_ptr<rtRemoteConfig>
+rtRemoteConfig::getInstance(bool reloadConfiguration)
 {
   if (gConf && !reloadConfiguration)
     return gConf;
 
-  gConf.reset(new rtRpcConfig());
+  gConf.reset(new rtRemoteConfig());
   for (int i = 0; kDefaultSettings[i].name; ++i)
   {
     gConf->m_map.insert(std::map<std::string, std::string>::value_type(
@@ -103,7 +103,7 @@ rtRpcConfig::getInstance(bool reloadConfiguration)
   for (std::string const& fileName : configFiles)
   {
     // overrite any existing defaults from file
-    std::shared_ptr<rtRpcConfig> confFromFile = rtRpcConfig::fromFile(fileName.c_str());
+    std::shared_ptr<rtRemoteConfig> confFromFile = rtRemoteConfig::fromFile(fileName.c_str());
     if (confFromFile)
     {
       rtLogInfo("loading configuration settings (%d) from: %s",
@@ -125,25 +125,25 @@ rtRpcConfig::getInstance(bool reloadConfiguration)
 }
 
 uint16_t
-rtRpcConfig::getUInt16(char const* key)
+rtRemoteConfig::getUInt16(char const* key)
 {
   return numeric_cast<uint16_t>(getString(key), strtoul);
 }
 
 int32_t
-rtRpcConfig::getInt32(char const* key)
+rtRemoteConfig::getInt32(char const* key)
 {
   return numeric_cast<int32_t>(getString(key), strtol);
 }
 
 uint32_t
-rtRpcConfig::getUInt32(char const* key)
+rtRemoteConfig::getUInt32(char const* key)
 {
   return numeric_cast<uint32_t>(getString(key), strtoul);
 }
 
 char const*
-rtRpcConfig::getString(char const* key)
+rtRemoteConfig::getString(char const* key)
 {
   if (key == nullptr)
   {
@@ -165,10 +165,10 @@ rtRpcConfig::getString(char const* key)
 
 
 
-std::shared_ptr<rtRpcConfig>
-rtRpcConfig::fromFile(char const* file)
+std::shared_ptr<rtRemoteConfig>
+rtRemoteConfig::fromFile(char const* file)
 {
-  std::shared_ptr<rtRpcConfig> conf;
+  std::shared_ptr<rtRemoteConfig> conf;
 
   if (file == nullptr)
   {
@@ -183,7 +183,7 @@ rtRpcConfig::fromFile(char const* file)
     return conf;
   }
 
-  conf.reset(new rtRpcConfig());
+  conf.reset(new rtRemoteConfig());
 
   std::vector<char> buff;
   buff.reserve(1024);

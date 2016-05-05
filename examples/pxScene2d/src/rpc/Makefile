@@ -1,5 +1,5 @@
 
-LIBRTRPC  = rtRpc
+LIBRTRPC  = rtRemote
 LIBRTCORE = rtCore
 SAMPLEAPP = rpcSampleApp
 
@@ -15,19 +15,19 @@ RTCORE_SRCS=\
 
 
 RTRPC_SRCS=\
-  rtRpcServer.cpp \
-  rtRpcResolver.cpp \
+  rtRemoteServer.cpp \
+  rtRemoteResolver.cpp \
   rtRemoteObject.cpp \
   rtRemoteFunction.cpp \
-  rtRpcMessage.cpp \
-  rtRpcClient.cpp \
+  rtRemoteMessage.cpp \
+  rtRemoteClient.cpp \
   rtValueReader.cpp \
   rtValueWriter.cpp \
   rtSocketUtils.cpp \
-  rtRpcStream.cpp \
+  rtRemoteStream.cpp \
   rtObjectCache.cpp \
-  rtRpc.cpp \
-  rtRpcConfig.cpp
+  rtRemote.cpp \
+  rtRemoteConfig.cpp
 
 SAMPLEAPP_SRCS=\
   rpc_main.cpp

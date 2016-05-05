@@ -1,5 +1,5 @@
-#include "rtRpcStream.h"
-#include "rtRpcMessage.h"
+#include "rtRemoteStream.h"
+#include "rtRemoteMessage.h"
 
 #include <algorithm>
 #include <memory>
@@ -11,10 +11,10 @@
 #include <fcntl.h>
 #include <rtLog.h>
 
-class rtRpcStreamSelector
+class rtRemoteStreamSelector
 {
 public:
-  rtRpcStreamSelector()
+  rtRemoteStreamSelector()
   {
     int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
     if (ret == -1)
@@ -25,11 +25,11 @@ public:
 
   rtError start()
   {
-    m_thread.reset(new std::thread(&rtRpcStreamSelector::pollFds, this));
+    m_thread.reset(new std::thread(&rtRemoteStreamSelector::pollFds, this));
     return RT_OK;
   }
 
-  rtError registerStream(std::shared_ptr<rtRpcStream> const& s)
+  rtError registerStream(std::shared_ptr<rtRemoteStream> const& s)
   {
     m_streams.push_back(s);
     return RT_OK;
@@ -99,7 +99,7 @@ private:
       for (int i = 0, n = static_cast<int>(m_streams.size()); i < n; ++i)
       {
 	rtError e = RT_OK;
-	std::shared_ptr<rtRpcStream> const& s = m_streams[i];
+	std::shared_ptr<rtRemoteStream> const& s = m_streams[i];
 	if (FD_ISSET(s->m_fd, &read_fds))
 	{
 	  e = s->onIncomingMessage(buff, now);
@@ -116,7 +116,7 @@ private:
 
       // remove all dead streams
       auto end = std::remove_if(m_streams.begin(), m_streams.end(),
-	  [](std::shared_ptr<rtRpcStream> const& s) { return s == nullptr; });
+	  [](std::shared_ptr<rtRemoteStream> const& s) { return s == nullptr; });
       m_streams.erase(end, m_streams.end());
     }
 
@@ -124,16 +124,16 @@ private:
   }
 
 private:
-  std::vector< std::shared_ptr<rtRpcStream> > 	m_streams;
+  std::vector< std::shared_ptr<rtRemoteStream> > 	m_streams;
   std::shared_ptr< std::thread > 		m_thread;
   std::mutex					m_mutex;
   int						m_shutdown_pipe[2];
 };
 
-static std::shared_ptr<rtRpcStreamSelector> gStreamSelector;
+static std::shared_ptr<rtRemoteStreamSelector> gStreamSelector;
 
 rtError
-rtRpcShutdownStreamSelector()
+rtRemoteShutdownStreamSelector()
 {
   if (gStreamSelector)
   {
@@ -145,7 +145,7 @@ rtRpcShutdownStreamSelector()
   return RT_OK;
 }
 
-rtRpcStream::rtRpcStream(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint)
+rtRemoteStream::rtRemoteStream(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint)
   : m_fd(fd)
   , m_last_message_time(0)
   , m_message_handler(nullptr)
@@ -154,17 +154,17 @@ rtRpcStream::rtRpcStream(int fd, sockaddr_storage const& local_endpoint, sockadd
   memcpy(&m_local_endpoint, &local_endpoint, sizeof(m_local_endpoint));
 }
 
-rtRpcStream::~rtRpcStream()
+rtRemoteStream::~rtRemoteStream()
 {
   this->close();
 }
 
 rtError
-rtRpcStream::open()
+rtRemoteStream::open()
 {
   if (!gStreamSelector)
   {
-    gStreamSelector.reset(new rtRpcStreamSelector());
+    gStreamSelector.reset(new rtRemoteStreamSelector());
     gStreamSelector->start();
   }
   gStreamSelector->registerStream(shared_from_this());
@@ -172,7 +172,7 @@ rtRpcStream::open()
 }
 
 rtError
-rtRpcStream::close()
+rtRemoteStream::close()
 {
   if (m_fd != kInvalidSocket)
   {
@@ -188,14 +188,14 @@ rtRpcStream::close()
 }
 
 rtError
-rtRpcStream::connect()
+rtRemoteStream::connect()
 {
   assert(m_fd == kInvalidSocket);
   return connectTo(m_remote_endpoint);
 }
 
 rtError
-rtRpcStream::connectTo(sockaddr_storage const& endpoint)
+rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
 {
   m_fd = socket(endpoint.ss_family, SOCK_STREAM, 0);
   if (m_fd < 0)
@@ -228,28 +228,28 @@ rtRpcStream::connectTo(sockaddr_storage const& endpoint)
 }
 
 rtError
-rtRpcStream::send(rtRpcMessage const& m)
+rtRemoteStream::send(rtRemoteMessage const& m)
 {
   m_last_message_time = time(0);
   return m.send(m_fd, NULL);
 }
 
 rtError
-rtRpcStream::setMessageCallback(MessageHandler handler)
+rtRemoteStream::setMessageCallback(MessageHandler handler)
 {
   m_message_handler = handler;
   return RT_OK;
 }
 
 rtError
-rtRpcStream::setInactivityCallback(rtRpcInactivityHandler handler)
+rtRemoteStream::setInactivityCallback(rtRemoteInactivityHandler handler)
 {
   m_inactivity_handler = handler;
   return RT_OK;
 }
 
 rtError
-rtRpcStream::onInactivity(time_t now)
+rtRemoteStream::onInactivity(time_t now)
 {
   if (m_inactivity_handler)
   {
@@ -260,7 +260,7 @@ rtRpcStream::onInactivity(time_t now)
 }
 
 rtError
-rtRpcStream::onIncomingMessage(rtSocketBuffer& buff, time_t now)
+rtRemoteStream::onIncomingMessage(rtSocketBuffer& buff, time_t now)
 {
   m_last_message_time = now;
 
@@ -298,7 +298,7 @@ rtRpcStream::onIncomingMessage(rtSocketBuffer& buff, time_t now)
 }
 
 rtError
-rtRpcStream::sendRequest(rtRpcRequest const& req, MessageHandler handler, uint32_t timeout)
+rtRemoteStream::sendRequest(rtRemoteRequest const& req, MessageHandler handler, uint32_t timeout)
 {
   rtCorrelationKey key = req.getCorrelationKey();
   assert(key != 0);
@@ -332,7 +332,7 @@ rtRpcStream::sendRequest(rtRpcRequest const& req, MessageHandler handler, uint32
 }
 
 rtJsonDocPtr
-rtRpcStream::waitForResponse(int key, uint32_t timeout)
+rtRemoteStream::waitForResponse(int key, uint32_t timeout)
 {
   rtJsonDocPtr res;
 
