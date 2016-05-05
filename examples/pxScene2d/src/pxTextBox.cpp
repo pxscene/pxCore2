@@ -315,6 +315,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       char tempChar[2];
       tempChar[0] = charToMeasure;
       tempChar[1] = 0;
+
       getFontResource()->measureTextChar(charToMeasure, size,  sx, sy, charW, charH);
       if( isNewline(charToMeasure))
       {
@@ -349,23 +350,28 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
           break; // break out of reading mText
 
         }
-        else
-        {  // If not lastLine
-
+        else  // If NOT lastLine
+        {
           // Account for the case where wordWrap is off, but newline was found previously
-          if( !mWordWrap && lineNumber != 0 ) {
+          if( !mWordWrap && lineNumber != 0 )
+          {
             lastLineNumber = lineNumber;
             //printf("!!!!CLF: calling renderTextRowWithTruncation! %s\n",accString.cString());
             if( mTruncation != pxConstantsTruncation::NONE) {
               renderTextRowWithTruncation(accString, mw, mx, tempY, sx, sy, size, color, render);
               accString = "";
               break;
-            } else {
-              if( clip()) {
+            }
+            else
+            {
+              if( clip() )
+              {
                 renderOneLine(accString, 0, tempY, sx, sy, size, color, mw, render);
                 accString = "";
                 break;
-              } else {
+              }
+              else
+              {
                 accString.append(tempChar);
                 tempX += charW;
                 continue;
@@ -375,10 +381,9 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
           // End special case when !wordWrap but newline found
 
           // Out of space on the current line; find and wrap at word boundary
-          char * tempStr = strdup(accString.cString()); // Should give a copy
-          // Need to free the duplicate string?
-          int length = accString.length();
-          int n = length-1;
+          char *tempStr = strdup(accString.cString()); // Should give a copy
+          int    length = accString.length();
+          int         n = length-1;
 
           while(!isWordBoundary(tempStr[n]) && n >= 0)
           {
@@ -386,16 +391,17 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
           }
           if( isWordBoundary(tempStr[n]))
           {
-
             tempStr[n+1] = '\0';
             // write out entire string that will fit
             // Use horizonal positioning
             //printf("Calling renderOneLine with lineNumber=%d\n",lineNumber);
             renderOneLine(tempStr, 0, tempY, sx, sy, size, color, lineWidth, render);
+            free(tempStr);
 
             // Now reset accString to hold remaining text
             tempStr = strdup(accString.cString());
             n++;
+
             if( strlen(tempStr+n) > 0)
             {
               if( isSpaceChar(tempStr[n]))
@@ -411,12 +417,15 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
             {
               accString = "";
             }
+
             if( !isSpaceChar(tempChar[0]) || (isSpaceChar(tempChar[0]) && accString.length() != 0))
             {
               accString.append(tempChar);
             }
 
+            free(tempStr);
           }
+
           // Now skip to next line
           tempY += (mLeading*sy) + charH;
           tempX = 0;
@@ -436,12 +445,9 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
                 lineWidth = mXStopPos - mx;
             }
           }
-
         }
-
       }
-
-    }
+    }//WHILE
 
     if(accString.length() > 0) {
       lastLineNumber = lineNumber;
@@ -1068,10 +1074,11 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           {
             xPos = lineWidth - charW - ellipsisW;
           }
-          if(!mWordWrap) { setMeasurementBounds(xPos, charW, tempY, charH); }
+          if(!mWordWrap){ setMeasurementBounds(xPos, charW, tempY, charH); }
           setLineMeasurements(false, xPos+charW, tempY);
           if( lineNumber==0) {setLineMeasurements(true, xPos, tempY);  }
-          if( render){
+          if( render)
+          {
             getFontResource()->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, color,lineWidth);
           }
         }
@@ -1086,10 +1093,12 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         }
         break;
       }
-
     }
+  }//FOR
 
-  }
+  if(tempStr)
+    free(tempStr);
+  tempStr = NULL;
 }
 
 bool pxTextBox::isWordBoundary( char ch )
