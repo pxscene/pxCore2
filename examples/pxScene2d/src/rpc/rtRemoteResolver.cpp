@@ -38,10 +38,9 @@ public:
     uint32_t timeout) override;
 
 private:
-  typedef rtError (rtRemoteMulticastResolver::*command_handler_t)(rtJsonDocPtr const&, sockaddr_storage const& soc);
-
+  using CommandHandler = rtError (rtRemoteMulticastResolver::*)(rtJsonDocPtr const&, sockaddr_storage const&);
   using HostedObjectsMap = std::map< std::string, sockaddr_storage >;
-  using CommandHandlerMap = std::map< std::string, command_handler_t >;
+  using CommandHandlerMap = std::map< std::string, CommandHandler >;
   using RequestMap = std::map< rtCorrelationKey, rtJsonDocPtr >;
 
   void runListener();

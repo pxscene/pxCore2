@@ -1,7 +1,6 @@
 #include "rtRemoteConfig.h"
 #include <rtLog.h>
 
-#include <assert.h>
 #include <errno.h>
 #include <rtLog.h>
 #include <stdio.h>
@@ -14,9 +13,18 @@
 
 static std::string trim(char const* begin, char const* end)
 {
-  assert(begin != nullptr);
-  assert(end != nullptr);
-  
+  if (begin == nullptr)
+  {
+    rtLogError("invalid 'begin' pointer");
+    return std::string();
+  }
+
+  if (end == nullptr)
+  {
+    rtLogError("invalid 'end' pointer");
+    return std::string();
+  }
+
   while (begin && (begin < end) && isspace(*begin))
     ++begin;
 
@@ -32,21 +40,25 @@ static T numeric_cast(char const* s, std::function<T (const char *nptr, char **e
 {
   if (s == nullptr)
   {
+    // TODO: this should throw an exception and/or return something clearly
+    // invalid
     rtLogError("can't conver nullptr to long int");
-    assert(false);
+    return T();
   }
 
   T const val = converter(s, nullptr, 10);
   if (val == std::numeric_limits<T>::min()) // underflow
   {
     rtLogError("underflow: %s", s);
-    assert(false);
+    // TODO
+    return T();
   }
 
   if (val == std::numeric_limits<T>::max()) // overflow
   {
     rtLogError("overflow: %s", s);
-    assert(false);
+    // TODO
+    return T();
   }
 
   return val;
@@ -148,7 +160,6 @@ rtRemoteConfig::getString(char const* key)
   if (key == nullptr)
   {
     rtLogError("can't find null key");
-    assert(false);
     return nullptr;
   }
 
@@ -176,7 +187,7 @@ rtRemoteConfig::fromFile(char const* file)
     return conf;
   }
   
-  FILE* f = fopen(file, "r");
+  std::unique_ptr<FILE, int (*)(FILE *)> f(fopen(file, "r"), fclose);
   if (!f)
   {
     rtLogDebug("can't open: %s. %s", file, strerror(errno));
@@ -192,7 +203,7 @@ rtRemoteConfig::fromFile(char const* file)
   int line = 1;
 
   char* p = nullptr;
-  while ((p = fgets(&buff[0], static_cast<int>(buff.size()), f)) != nullptr)
+  while ((p = fgets(&buff[0], static_cast<int>(buff.size()), f.get())) != nullptr)
   {
     if (!p) break;
 
@@ -209,7 +220,11 @@ rtRemoteConfig::fromFile(char const* file)
     while (end && (*end != '='))
       end++;
 
-    assert(end && *end == '=');
+    if (end && *end != '=')
+    {
+      rtLogWarn("invalid configuration line: '%s'", p);
+      continue;
+    }
     
     std::string name = trim(begin, end);
 
@@ -221,9 +236,15 @@ rtRemoteConfig::fromFile(char const* file)
     rtLogDebug("LINE:(%04d) '%s'", line++, p);
     rtLogDebug("'%s' == '%s'", name.c_str(), val.c_str());
 
+    auto itr = conf->m_map.find(name);
+    if (itr != conf->m_map.end())
+    {
+      rtLogInfo("overwriting configuration val '%s' -> '%s' with '%s'",
+	itr->first.c_str(), itr->second.c_str(), val.c_str());
+    }
+
     conf->m_map[name] = val;
   }
 
-  fclose(f);
   return conf;
 }
