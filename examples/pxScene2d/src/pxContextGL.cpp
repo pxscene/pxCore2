@@ -1531,6 +1531,9 @@ void pxContext::mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int 
 
 bool pxContext::isObjectOnScreen(float x, float y, float width, float height)
 {
+#if 1
+  return true;
+#else
   int outX1, outX2, outY1, outY2;
   mapToScreenCoordinates(width,height,outX2, outY2);
   mapToScreenCoordinates(x,y,outX1, outY1);
@@ -1549,4 +1552,5 @@ bool pxContext::isObjectOnScreen(float x, float y, float width, float height)
     return false;
   }
   return true;
+#endif
 }
