@@ -5,12 +5,12 @@
 #include <memory>
 #include <string>
 
-class rtRpcClient;
+class rtRemoteClient;
 
 class rtRemoteObject : public rtIObject
 {
 public:
-  rtRemoteObject(std::string const& id, std::shared_ptr<rtRpcClient> const& transport);
+  rtRemoteObject(std::string const& id, std::shared_ptr<rtRemoteClient> const& transport);
   virtual ~rtRemoteObject();
 
   virtual rtError Get(char const* name, rtValue* value) const;
@@ -27,7 +27,7 @@ public:
 private:
   rtAtomic                          m_ref_count;
   std::string                       m_id;
-  std::shared_ptr<rtRpcClient>      m_rpc_client;
+  std::shared_ptr<rtRemoteClient>      m_rpc_client;
 };
 
 #endif

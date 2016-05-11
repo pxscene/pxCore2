@@ -150,6 +150,7 @@ pxRoot.prototype.initialize = function(x, y, width, height) {
     }
   }.bind(this));
 
+  this.rootScene.create({t:"rect",fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:1, parent: this.rootScene.root });
 };
 
 pxRoot.prototype.showFpsView = function(show) {
@@ -225,6 +226,10 @@ pxRoot.prototype.addScene = function(params) {
 
 pxRoot.prototype.setOriginalUrl = function(origUrl) {
   this.originalUrl = origUrl;
+}
+
+pxRoot.prototype.setUrl = function(url) {
+  this.childScene.url = url;
 }
 
 module.exports = function(x, y, width, height) {

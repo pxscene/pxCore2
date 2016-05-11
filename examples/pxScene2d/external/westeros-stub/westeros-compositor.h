@@ -6,6 +6,14 @@
 typedef unsigned int uint32_t;
 typedef int wl_fixed_t;
 
+typedef struct _WstRect
+{
+   int x;
+   int y;
+   int width;
+   int height;
+} WstRect;
+
 typedef struct _WstCompositor WstCompositor;
 
 typedef enum _WstKeyboard_keyState
@@ -37,6 +45,12 @@ typedef enum _WstClient_status
    WstClient_connected,
    WstClient_disconnected
 } WstClient_status;
+
+typedef enum _WstHints
+{
+   WstHints_none= 0,
+   WstHints_noRotation= (1<<0)
+} WstHints;
 
 typedef void (*WstTerminatedCallback)( WstCompositor *ctx, void *userData );
 typedef void (*WstDispatchCallback)( WstCompositor *ctx, void *userData );
@@ -390,11 +404,28 @@ bool WstCompositorSetPointerNestedListener( WstCompositor *ctx, WstPointerNested
 /**
  * WstCompositorComposeEmbedded
  *
- * Requests that the current scene be composed as part of the
- * configured embedded environment.  This should only be called
- * while the compositor is running.
+ * Requests that the current scene be composed as part of the configured embedded environment.  This
+ * should be called with the environment setup for offscreen rendering.  For example, if OpenGL is
+ * being used for rendering, WstCompositorComposeEmbedded should be called with an FBO set as the
+ * current render target.
+ *
+ * The x, y, width and height give the desired composition rectangle.  The matrix and alpha
+ * values are what the caller intends to apply when the composited scene is subsequently rendered
+ * from the offscreen target to the callers scene.  Based on the hinting provided, the compositor will
+ * either render to the offscreen target or use an available fast path to render to a separate 
+ * plane.  If no fast path is available it will render to the offscreen target without the transform
+ * and alpha.  If it renders to a separate plane it will apply the provide transformation matrix and alpha
+ * and will set needHolePunch to true.  Upon return, if needHolePunch is true, the caller should 
+ * render a hole punch for each rectangle returned in rects, otherwise it should render the offscreen 
+ * target to its scene while applying the transformation matrix and alpha.
+ *
+ * This should only be called while the compositor is running.
  */
-bool WstCompositorComposeEmbedded( WstCompositor *ctx, int width, int height, int resW, int resH, float *matrix, float alpha );
+bool WstCompositorComposeEmbedded( WstCompositor *ctx, 
+                                   int x, int y, int width, int height,
+                                   float *matrix, float alpha, 
+                                   unsigned int hints, 
+                                   bool *needHolePunch, std::vector<WstRect> &rects );
 
 /**
  * WstCompositorStart

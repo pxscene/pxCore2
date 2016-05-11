@@ -89,12 +89,14 @@ SEARCH=\
   -I$(NODEINC)/deps/v8 \
   -I$(NODEINC)/deps/debugger-agent/include \
   -I$(NODEINC)/deps/v8/include \
+  -I$(NODEINC)/deps/cares/include \
   -I$(EXTDIR)/westeros/external/install/include \
   -I$(EXTDIR)/westeros-stub \
    $(TARGETINCLUDE)
 
 
-CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) 
+#CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE 
+CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN
 
 #CXXFLAGS=  $(SEARCH) -DENABLE_GLUT -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT
 #CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DENABLE_GLUT -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT

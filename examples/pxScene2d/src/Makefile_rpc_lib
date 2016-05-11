@@ -28,13 +28,13 @@ RPC_SRCS=\
            rpc/rtObjectCache.cpp \
            rpc/rtRemoteFunction.cpp \
            rpc/rtRemoteObject.cpp \
-           rpc/rtRpcClient.cpp \
-           rpc/rtRpcConfig.cpp \
-           rpc/rtRpc.cpp \
-           rpc/rtRpcMessage.cpp \
-           rpc/rtRpcResolver.cpp \
-           rpc/rtRpcServer.cpp \
-           rpc/rtRpcStream.cpp \
+           rpc/rtRemoteClient.cpp \
+           rpc/rtRemoteConfig.cpp \
+           rpc/rtRemote.cpp \
+           rpc/rtRemoteMessage.cpp \
+           rpc/rtRemoteResolver.cpp \
+           rpc/rtRemoteServer.cpp \
+           rpc/rtRemoteStream.cpp \
            rpc/rtSocketUtils.cpp \
            rpc/rtValueReader.cpp \
            rpc/rtValueWriter.cpp

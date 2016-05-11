@@ -17,6 +17,6 @@ public:
   virtual rtError locateObject(std::string const& name, sockaddr_storage& endpoint, uint32_t timeout) = 0;
 };
 
-rtIRpcResolver* rtRpcCreateResolver();
+rtIRpcResolver* rtRemoteCreateResolver();
 
 #endif

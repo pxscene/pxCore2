@@ -23,19 +23,21 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "pxEventLoop.h"
-#include "pxWindow.h"
-#include "pxScene2d.h"
-#include "pxViewWindow.h"
-
 #include "rtNode.h"
 #include "jsbindings/rtWrapperUtils.h"
 #include "jsbindings/rtObjectWrapper.h"
 #include "jsbindings/rtFunctionWrapper.h"
 
+#include "jsbindings/jsWindow.h"
+
 using namespace v8;
 using namespace node;
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+pxEventLoop  eventLoop;
+pxEventLoop* gLoop = &eventLoop;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -75,15 +77,9 @@ void testContextsLeak();
 
 args_t *s_gArgs;
 
-extern pthread_t __rt_main_thread__;
-
-
 int pxMain()
 {
-  __rt_main_thread__ = pthread_self();
-  
   #pragma GCC diagnostic ignored "-Wwrite-strings"
-
   
                        //012345678 90ABCDEF0 1234567890ABCDEF
   static char *args   = "rtNode\0-e\0var pxArg_url=\"browser.js\"\0\0";
@@ -99,19 +95,18 @@ int pxMain()
    return 0;
 }
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pxEventLoop  eventLoop;
-pxEventLoop* gLoop = &eventLoop;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class testWindow: public pxViewWindow
+class testWindow: public xxWindow //public pxViewWindow
 {
 public:
 
+  testWindow(int x, int y, int w, int h) : 
+      xxWindow(NULL, x, y, w, h)
+  {
+    
+  }
+  
   std::string debug_name;
 
   void setScene(rtNodeContextRef ctx, pxScene2dRef s)
@@ -146,6 +141,9 @@ private:
 
 rtError getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
+  UNUSED_PARAM(numArgs);
+  UNUSED_PARAM(args);
+
   // We don't use the arguments so just return the scene object reference
   if (result)
   {
@@ -174,9 +172,7 @@ rtError getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 
 void testWindows()
 {
-  rtNode node1;//(s_gArgs->argc, s_gArgs->argv);
-
-  node1.init(s_gArgs->argc, s_gArgs->argv);
+  rtNode node1(s_gArgs->argc, s_gArgs->argv);
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   //
@@ -209,20 +205,22 @@ void testWindows()
   //
 #ifdef USE_WINDOW_1
 
-  static testWindow win1;
+  static testWindow win1(10, 10, 1280, 720);
 
   pxScene2dRef scene1 = new pxScene2d;
 
-  win1.init(0, 0, 1280, 720);
-
-  win1.setTitle(">> Window 1 <<");
-  win1.setVisibility(true);
+//  win1.setTitle(">> Window 1 <<");
+//  win1.setVisibility(true);
   win1.setView(scene1);
-  win1.setAnimationFPS(60);
+//  win1.setAnimationFPS(60);
 
   win1.debug_name = "WindowOne";
 
   win1.setScene(ctx1, scene1);
+
+ // The ADD "scene" approach requires a change to pxRoot.js 
+ //
+ // ctx1->add("scene", rtValue( scene1.getPtr() ));
 
   scene1->init();
 
@@ -234,16 +232,14 @@ void testWindows()
   //
 #ifdef USE_WINDOW_2
 
-  static testWindow win2;
+  static testWindow win2(810, 10, 1280, 720);
 
   pxScene2dRef scene2 = new pxScene2d;
 
-  win2.init(810, 10, 750, 550);
-
-  win2.setTitle(">> Window 2 <<");
-  win2.setVisibility(true);
+  // win2.setTitle(">> Window 2 <<");
+  // win2.setVisibility(true);
   win2.setView(scene2);
-  win2.setAnimationFPS(60);
+//  win2.setAnimationFPS(60);
 
   win2.debug_name = "WindowTwo";
 
@@ -251,6 +247,8 @@ void testWindows()
 
   scene2->init();
 
+ // ctx2->add("scene", rtValue( scene2.getPtr() ));
+  
 #endif
 
 
@@ -290,9 +288,9 @@ void testWindows()
 //  ctx1->runScript("console.log(\"Hello\")");
 //  ctx1->runScript("sayHello");
 
-  ctx1->runThread("start.js");
+//  ctx1->runFileThreaded("start.js" );
 
-//  ctx1->runThread("test1sec.js");
+  ctx1->runThread("start.js");
 
 //  ctx1->Release();
 
@@ -301,8 +299,7 @@ void testWindows()
 #ifdef USE_WINDOW_2
 //  printf("\n### Window Run 2A"); // ##############################
 
-//  ctx2->runFile("start.js");
-  ctx2->runThread("fancyp.js");
+  ctx2->runFileThreaded("start.js");
 
   printf("\n### Window Run 2B"); // ##############################
 #endif
@@ -465,7 +462,7 @@ void testContexts()
     max_ctx = (max_ctx >= elapsed) ? max_ctx : elapsed;
     min_ctx = (min_ctx <  elapsed) ? min_ctx : elapsed;
 
-    ctx1->runFile("test1sec.js");
+    ctx1->runFileThreaded("test1sec.js");
 
     ctx1->Release();
   }//FOR

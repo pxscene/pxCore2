@@ -19,14 +19,14 @@ public:
   rtProperty(resource, resource, setResource, rtObjectRef);
   
   pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(pxConstantsStretch::NONE),mStretchY(pxConstantsStretch::NONE), 
-    imageLoaded(false)
+    imageLoaded(false), mListenerAdded(false)
   { 
     mw = -1;
     mh = -1;
     mResource = pxImageManager::getImage("");
   }
 
-  virtual ~pxImage() { rtLogDebug("~pxImage()"); }
+  virtual ~pxImage();
 
   virtual void update(double t) { pxObject::update(t);}
   virtual void onInit();
@@ -69,6 +69,7 @@ protected:
   rtObjectRef mResource;
   
   bool imageLoaded;
+  bool mListenerAdded;
 };
 
 #endif

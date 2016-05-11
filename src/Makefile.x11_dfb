@@ -2,13 +2,16 @@
 CFLAGS= -DPX_PLATFORM_X11 -DENABLE_DFB -fPIC -g
 OUTDIR=../build/x11
 
-INCDIR=-I/usr/X11R6/include -I/usr/include/directfb 
+INCDIR=-I/usr/X11R6/include -I/usr/local/include/directfb
+
 all: $(OUTDIR)/libpxCore.a 
 
-$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o
-		       mkdir -p $(OUTDIR)    
-	    ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o             
-          
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o pxViewWindow.o
+	mkdir -p $(OUTDIR)    
+	ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o pxViewWindow.o 
+
+pxViewWindow.o: pxViewWindow.cpp
+	g++ -o pxViewWindow.o -Wall $(INCDIR) $(CFLAGS) -c pxViewWindow.cpp
 
 pxOffscreen.o: pxOffscreen.cpp
 	g++ -o pxOffscreen.o -Wall $(INCDIR) $(CFLAGS) -c pxOffscreen.cpp

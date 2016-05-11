@@ -34,11 +34,11 @@
 #endif
 
 #ifndef rtLogWarn
-#define rtLogWarn 
+#define rtLogWarn(...) (void)0
 #endif
 
 #ifndef rtLogError
-#define rtLogError
+#define rtLogError(...) (void)0
 #endif
 
 #if 1
@@ -581,9 +581,9 @@ pxError pxWindow::init(int left, int top, int width, int height)
     glutPassiveMotionFunc(onGlutMousePassiveMotion);
     glutKeyboardFunc(onGlutKeyboard);
 
-#ifdef PX_USE_GLUT_ON_CLOSE
+//#ifdef PX_USE_GLUT_ON_CLOSE
     glutWMCloseFunc(onGlutClose);
-#endif
+//#endif
 
     glutSpecialFunc(onGlutKeyboardSpecial);
     glutEntryFunc(onGlutEntry);
@@ -691,6 +691,8 @@ static bool gTimerSet = false;
 
 void pxWindowNative::runEventLoop()
 {
+//glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+
   exitFlag = false;
 
   if (!gTimerSet)
@@ -720,12 +722,13 @@ void pxWindowNative::runEventLoopOnce()
 
 void pxWindowNative::exitEventLoop()
 {
+
   exitFlag = true;
-#ifdef glutLeaveMainLoop
+//#ifdef glutLeaveMainLoop
   glutLeaveMainLoop();
-#else
-  exit(0);
-#endif
+//#else
+    // exit(0);
+//#endif
 }
 
 #if 0

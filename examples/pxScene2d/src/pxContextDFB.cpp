@@ -2,585 +2,1474 @@
 #include "rtLog.h"
 #include "pxContext.h"
 
+
+//#include <time.h> // JUNK
+
+
 #include <directfb.h>
 
-/* Place holder for a dfb implementation of pxContext */
+// Debug macros...
+#define USE_DRAW_IMAGE_TEXTURE
+#define USE_DRAW_DIAG_RECT
+#define USE_DRAW_DIAG_LINE
 
 
-extern IDirectFB        *dfb;
-extern IDirectFBSurface *primary;
-extern IDirectFBWindow  *window;
+extern IDirectFB                *dfb;
+extern IDirectFBDisplayLayer    *dfbLayer;
 
-#define DFBCHECK(x...)              \
-{                                   \
-  DFBResult err = x;                \
-                                    \
-  if (err != DFB_OK)                \
-{                                   \
-  rtLogError( " DFB died... " );    \
-  DirectFBErrorFatal( #x, err );    \
-  }                                 \
+extern DFBSurfaceDescription     dfbDescription;
+extern IDirectFBSurface         *dfbSurface;
+extern IDirectFBEventBuffer     *dfbBuffer;
+
+extern DFBSurfacePixelFormat     dfbPixelformat;
+extern bool needsFlip;
+
+extern char* p2str(DFBSurfacePixelFormat fmt); // DEBUG
+
+
+#if 0
+// Use div0 to trigger debugger to break...
+
+#define DFB_CHECK(x...)              \
+{                                    \
+   DFBResult err = x;                \
+                                     \
+   if (err != DFB_OK)                \
+   {                                 \
+      rtLogError( " DFB died... " ); \
+      int n = 0;  int m = 2/n;\
+         DirectFBErrorFatal( #x, err ); \
+   }                                 \
+}
+#else
+
+#define DFB_CHECK(x...)              \
+{                                    \
+   DFBResult err = x;                \
+                                     \
+   if (err != DFB_OK)                \
+   {                                 \
+      rtLogError( " DFB died... " ); \
+      DirectFBErrorFatal( #x, err ); \
+   }                                 \
 }
 
 
+#endif
+//====================================================================================================================================================================================
 
-static void draw9SliceRect(float x, float y, float w, float h, float x1, float y1, float x2, float y2)
+//#warning TODO:  Use  pxContextSurfaceNativeDesc  within   pxFBOTexture ??
+
+pxContextSurfaceNativeDesc  defaultContextSurface;
+pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
+
+pxContextFramebufferRef defaultFramebuffer(new pxContextFramebuffer());
+pxContextFramebufferRef currentFramebuffer = defaultFramebuffer;
+
+// TODO get rid of this global crap
+
+static int gResW, gResH;
+static pxMatrix4f gMatrix;
+static float gAlpha = 1.0;
+
+//====================================================================================================================================================================================
+
+// more globals :(
+static IDirectFBSurface  *boundTextureMask;
+static IDirectFBSurface  *boundTexture;
+static IDirectFBSurface  *boundFramebuffer = NULL; // default
+
+void premultiply(float* d, const float* s)
 {
-  float ox1 = x;
-  float ix1 = x+x1;
-  float ox2 = x+w;
-  float ix2 = x+w-x2;
-  float oy1 = y;
-  float iy1 = y+y1;
-  float oy2 = y+h;
-  float iy2 = y+h-y2;
+   d[0] = s[0]*s[3];
+   d[1] = s[1]*s[3];
+   d[2] = s[2]*s[3];
+   d[3] = s[3];
+}
 
-  const float verts[22][2] =
+//====================================================================================================================================================================================
+
+class pxFBOTexture : public pxTexture
+{
+public:
+   pxFBOTexture() : mWidth(0), mHeight(0), mOffscreen(), mTexture(NULL)
+   {
+      mTextureType = PX_TEXTURE_FRAME_BUFFER;
+   }
+
+   ~pxFBOTexture()  { deleteTexture(); }
+
+   void createTexture(int w, int h)
+   {
+      rtLogDebug("############# this: %p >>  %s  WxH: %d x %d \n", this, __PRETTY_FUNCTION__, w,h);
+
+      if (mTexture !=NULL)
+      {
+         deleteTexture();
+      }
+
+      if(w <= 0 || h <= 0)
+      {
+         //rtLogDebug("\nERROR:  %s(%d, %d) - INVALID",__PRETTY_FUNCTION__, w,h);
+         return;
+      }
+
+      rtLogDebug("############# this: %p >>  %s(%d, %d) \n", this, __PRETTY_FUNCTION__, w, h);
+
+      mWidth  = w;
+      mHeight = h;
+
+      //boundTexture = mTexture; // it's an FBO
+
+      mOffscreen.init(w,h);
+
+      createSurface(mOffscreen); // surface is framebuffer
+
+      DFB_CHECK(mTexture->Clear(mTexture, 0x00, 0x00, 0x00, 0x00 ) );  // TRANSPARENT
+      //DFB_CHECK(mTexture->Clear(mTexture, 0x00, 0xFF, 0x00, 0xFF ) );  // DEBUG - GREEN !!!!
+
+      //rtLogDebug("############# this: %p >>  %s - CLEAR_GREEN !!!!\n", this, __PRETTY_FUNCTION__);
+   }
+
+   pxError resizeTexture(int w, int h)
+   {
+      rtLogDebug("############# this: %p >>  %s  WxH: %d, %d\n", this, __PRETTY_FUNCTION__, w, h);
+
+      if (mWidth != w || mHeight != h || !mTexture)
+      {
+         createTexture(w, h);
+         return PX_OK;
+      }
+
+      // glActiveTexture(GL_TEXTURE3);
+      // glBindTexture(GL_TEXTURE_2D, mTextureId);
+      // glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+      //              width, height, GL_RGBA,
+      //              GL_UNSIGNED_BYTE, NULL);
+
+      // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      // glUniform1f(u_alphatexture, 1.0);
+
+      boundFramebuffer = mTexture;
+
+      return PX_OK;
+   }
+
+   virtual pxError deleteTexture()
+   {
+      rtLogDebug("############# this: (virtual) %p >>  %s  ENTER\n",mTexture, __PRETTY_FUNCTION__);
+
+      if(mTexture)
+      {
+         // if(currentFramebuffer == this)
+         // {
+         //   // Is this sufficient ? or Dangerous ?
+         //   currentFramebuffer = NULL;
+         //   boundTexture = NULL;
+         // }
+
+         mTexture->Release(mTexture);
+         mTexture = NULL;
+      }
+
+      return PX_OK;
+   }
+
+   virtual pxError prepareForRendering()
+   {
+	  //glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId);
+      boundFramebuffer = mTexture;
+
+    //glBindTexture(GL_TEXTURE_2D, mTextureId);
+    boundTexture = mTexture;
+
+      rtLogDebug("############# this: (virtual) >>  %s  ENTER\n", __PRETTY_FUNCTION__);
+
+      gResW = mWidth;
+      gResH = mHeight;
+    
+      return PX_OK;
+   }
+
+  // TODO get rid of pxError
+  // TODO get rid of bindTexture() and bindTextureAsMask()
+   virtual pxError bindGLTexture(int tLoc)
+   {
+      (void) tLoc;
+
+      if (mTexture == NULL)
+      {
+         rtLogDebug("############# this: %p >>  %s  ENTER\n", this,__PRETTY_FUNCTION__);
+         return PX_NOTINITIALIZED;
+      }
+
+      boundTexture = mTexture;
+
+      return PX_OK;
+   }
+
+   virtual pxError bindGLTextureAsMask(int mLoc)
+   {
+      (void) mLoc;
+
+      if (!mTexture)
+      {
+         rtLogDebug("############# this: %p >>  %s  ENTER\n", this,__PRETTY_FUNCTION__);
+         return PX_NOTINITIALIZED;
+      }
+
+      boundTextureMask = mTexture;
+
+      return PX_OK;
+   }
+
+#if 1 // Do we need this?  maybe for some debugging use case??
+  virtual pxError getOffscreen(pxOffscreen& o)
   {
-    { ox1,oy1 },
-    { ix1,oy1 },
-    { ox1,iy1 },
-    { ix1,iy1 },
-    { ox1,iy2 },
-    { ix1,iy2 },
-    { ox1,oy2 },
-    { ix1,oy2 },
-    { ix2,oy2 },
-    { ix1,iy2 },
-    { ix2,iy2 },
-    { ix1,iy1 },
-    { ix2,iy1 },
-    { ix1,oy1 },
-    { ix2,oy1 },
-    { ox2,oy1 },
-    { ix2,iy1 },
-    { ox2,iy1 },
-    { ix2,iy2 },
-    { ox2,iy2 },
-    { ix2,oy2 },
-    { ox2,oy2 }
-  };
-#if 0
-  const float colors[4][3] =
-  {
-    { 1, 0, 0 },
-    { 0, 1, 0 },
-    { 0, 1, 0 },
-    { 0, 0, 1 }
-  };
-  const float uv[22][2] =
-  {
-    { 0, 0 },
-    { 1, 0 },
-    { 0, 1 },
-    { 1, 1 }
-  };
+    (void)o;
+    // TODO
+    return PX_FAIL;
+  }
 #endif
 
+   virtual int width()   { return mWidth;  }
+   virtual int height()  { return mHeight; }
 
-//  {
-//    glUniform1f(u_alphatexture, 0.0);
-//    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-//    glEnableVertexAttribArray(attr_pos);
-//    glDrawArrays(GL_TRIANGLE_STRIP, 0, 22);
-//    glDisableVertexAttribArray(attr_pos);
-//  }
-}
+//   void setWidth(int w)  { dsc.width  = mWidth  = w; }
+//   void setHeight(int h) { dsc.height = mHeight = h; }
+
+//   void                    setSurface(IDirectFBSurface* s)     { mTexture  = s; };
+
+//   IDirectFBSurface*       getSurface()     { return mTexture; };
+//   DFBVertex*              getVetricies()   { return &v[0];   };
+//   DFBSurfaceDescription   getDescription() { return dsc;     };
+
+   DFBVertex v[4];  //quad
 
 
-static void drawRect2(float x, float y, float w, float h)
+private:
+   int                     mWidth;
+   int                     mHeight;
+
+   pxOffscreen             mOffscreen;
+
+   IDirectFBSurface       *mTexture;
+
+   DFBSurfaceDescription   dsc;
+
+private:
+
+   pxError createSurface(pxOffscreen& o)
+   {
+      mWidth  = o.width();
+      mHeight = o.height();
+
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      dsc.width                 = o.width();
+      dsc.height                = o.height();
+      dsc.flags                 = DFBSurfaceDescriptionFlags(DSDESC_WIDTH | DSDESC_HEIGHT| DSDESC_PREALLOCATED | DSDESC_PIXELFORMAT);
+      dsc.pixelformat           = dfbPixelformat;
+      dsc.preallocated[0].data  = o.base();      // Buffer is your data
+      dsc.preallocated[0].pitch = o.width() * 4;
+      dsc.preallocated[1].data  = NULL;          // Not using a back buffer
+      dsc.preallocated[1].pitch = 0;
+
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      IDirectFBSurface  *tmp;
+
+      DFB_CHECK(dfb->CreateSurface( dfb, &dsc, &tmp ) );
+
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      dsc.width                 = o.width();
+      dsc.height                = o.height();
+      dsc.caps                  = DSCAPS_VIDEOONLY; //   DSCAPS_PREMULTIPLIED
+      dsc.flags                 = DFBSurfaceDescriptionFlags(DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PIXELFORMAT | DSDESC_CAPS);
+      dsc.pixelformat           = dfbPixelformat;
+
+      DFB_CHECK(dfb->CreateSurface( dfb, &dsc, &mTexture ) );
+
+      DFB_CHECK(mTexture->Blit(mTexture, tmp, NULL, 0,0)); // blit copy to surface
+
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      tmp->Release(tmp);
+
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      return PX_OK;
+   }
+};// CLASS - pxFBOTexture
+
+//====================================================================================================================================================================================
+
+class pxTextureOffscreen : public pxTexture
 {
-  if(primary == 0)
+public:
+   pxTextureOffscreen() : mOffscreen(), mInitialized(false),
+                          mTextureUploaded(false)
+   {
+      mTextureType = PX_TEXTURE_OFFSCREEN;
+   }
+
+   pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false),
+                                        mTextureUploaded(false)
+   {
+      mTextureType = PX_TEXTURE_OFFSCREEN;
+
+      createTexture(o);
+   }
+
+  ~pxTextureOffscreen() { deleteTexture(); };
+
+   void createTexture(pxOffscreen& o)
+   {
+      mOffscreen.init(o.width(), o.height());
+
+      // Flip the image data here so we match GL FBO layout
+//      mOffscreen.setUpsideDown(true);
+      o.blit(mOffscreen);
+
+      // premultiply
+      for (int y = 0; y < mOffscreen.height(); y++)
+      {
+         pxPixel* d = mOffscreen.scanline(y);
+         pxPixel* de = d + mOffscreen.width();
+         while (d < de)
+         {
+            d->r = (d->r * d->a)/255;
+            d->g = (d->g * d->a)/255;
+            d->b = (d->b * d->a)/255;
+            d++;
+         }
+      }
+
+      createSurface(o);
+
+//JUNK
+//     if(mTexture)
+//     {
+//        boundTexture = mTexture;
+
+//        mTexture->Dump(mTexture,
+//                      "/home/hfitzpatrick/projects/xre2/image_dumps",
+//                      "image_");
+//     }
+//JUNK
+
+      mInitialized = true;
+   }
+
+   virtual pxError deleteTexture()
+   {
+      rtLogInfo("pxTextureOffscreen::deleteTexture()");
+
+      if(mTexture)
+      {
+         // if(currentFramebuffer == this)
+         // {
+         //   // Is this sufficient ? or Dangerous ?
+         //   currentFramebuffer = NULL;
+            boundTexture = NULL;
+         // }
+
+         mTexture->Release(mTexture);
+         mTexture = NULL;
+      }
+
+      mInitialized = false;
+      return PX_OK;
+   }
+
+   virtual pxError bindGLTexture(int tLoc)
+   {
+      (void) tLoc;
+
+      if (!mInitialized)
+      {
+         return PX_NOTINITIALIZED;
+      }
+
+      if (!mTexture)
+      {
+         rtLogDebug("############# this: %p >>  %s  ENTER\n", this,__PRETTY_FUNCTION__);
+         return PX_NOTINITIALIZED;
+      }
+
+      // TODO would be nice to do the upload in createTexture but right now it's getting called on wrong thread
+      if (!mTextureUploaded)
+      {
+         createSurface(mOffscreen); // JUNK
+
+    //     boundTexture = mTexture;
+
+         mTextureUploaded = true;
+      }
+   //  else
+      {
+          boundTexture = mTexture;
+      }
+
+      return PX_OK;
+   }
+
+  virtual pxError bindGLTextureAsMask(int mLoc)
+   {
+      (void) mLoc;
+
+      if (!mInitialized)
+      {
+         return PX_NOTINITIALIZED;
+      }
+
+      if (!mTexture)
+      {
+         rtLogDebug("############# this: %p >>  %s  ENTER\n", this,__PRETTY_FUNCTION__);
+         return PX_NOTINITIALIZED;
+      }
+
+      if (!mTextureUploaded)
+      {
+         createSurface(mOffscreen); // JUNK
+
+    //     boundTextureMask = mTexture;
+
+         mTextureUploaded = true;
+      }
+    //  else
+      {
+         boundTextureMask = mTexture;
+      }
+
+      return PX_OK;
+   }
+
+  virtual pxError getOffscreen(pxOffscreen& o)
   {
-    rtLog("cannot drawRect2 on context surface because surface is NULL");
-    return;
+    if (!mInitialized)
+    {
+      return PX_NOTINITIALIZED;
+    }
+
+    o.init(mOffscreen.width(), mOffscreen.height());
+    mOffscreen.blit(o);
+
+    return PX_OK;
   }
 
-  DFBCHECK (primary->FillRectangle (primary, x, y, w, h));
-}
+  virtual int width()  { return mOffscreen.width();  }
+  virtual int height() { return mOffscreen.height(); }
 
+private:
+  pxOffscreen mOffscreen;
+  bool        mInitialized;
 
-static void drawRectOutline(float x, float y, float w, float h, float lw)
+  bool        mTextureUploaded;
+
+  IDirectFBSurface       *mTexture;
+  DFBSurfaceDescription   dsc;
+
+private:
+
+   pxError createSurface(pxOffscreen& o)
+   {
+
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      dsc.width                 = o.width();
+      dsc.height                = o.height();
+      dsc.flags                 = DFBSurfaceDescriptionFlags(DSDESC_WIDTH | DSDESC_HEIGHT| DSDESC_PREALLOCATED | DSDESC_PIXELFORMAT);
+      dsc.pixelformat           = dfbPixelformat;
+      dsc.preallocated[0].data  = o.base();      // Buffer is your data
+      dsc.preallocated[0].pitch = o.width() * 4;
+      dsc.preallocated[1].data  = NULL;          // Not using a back buffer
+      dsc.preallocated[1].pitch = 0;
+
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      IDirectFBSurface  *tmp;
+
+      DFB_CHECK(dfb->CreateSurface( dfb, &dsc, &tmp ) );
+
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      dsc.width                 = o.width();
+      dsc.height                = o.height();
+      dsc.caps                  = DSCAPS_VIDEOONLY; //   DSCAPS_PREMULTIPLIED
+      dsc.flags                 = DFBSurfaceDescriptionFlags(DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PIXELFORMAT | DSDESC_CAPS);
+      dsc.pixelformat           = dfbPixelformat;
+
+      DFB_CHECK(dfb->CreateSurface( dfb, &dsc, &mTexture ) );
+
+      DFB_CHECK(mTexture->Blit(mTexture, tmp, NULL, 0,0)); // blit copy to surface
+
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      tmp->Release(tmp);
+
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      return PX_OK;
+   }
+
+}; // CLASS - pxTextureOffscreen
+
+//====================================================================================================================================================================================
+
+class pxTextureAlpha : public pxTexture
 {
-  if(primary == 0)
-  {
-    rtLog("cannot drawRect2 on context surface because surface is NULL");
-    return;
-  }
+public:
+   pxTextureAlpha() :  mDrawWidth(0.0),  mDrawHeight(0.0),
+                      mImageWidth(0.0), mImageHeight(0.0),
+                      mTexture(NULL), mBuffer(NULL), mInitialized(false)
+   {
+      mTextureType = PX_TEXTURE_ALPHA;
+   }
 
-  DFBCHECK (primary->DrawRectangle (primary, x, y, w, h));
+   pxTextureAlpha(float w, float h, float iw, float ih, void* buffer)
+      : mDrawWidth(w),    mDrawHeight(h),
+        mImageWidth(iw), mImageHeight(ih),
+        mTexture(NULL), mBuffer(NULL), mInitialized(false)
+   {
+      mTextureType = PX_TEXTURE_ALPHA;
 
+      // copy the pixels
+      int bitmapSize = ih * iw;
+      mBuffer = malloc(bitmapSize);
 
-//  float half = lw/2;
-//  float ox1  = x-half;
-//  float ix1  = x+half;
-//  float ox2  = x+w+half;
-//  float ix2  = x+w-half;
-//  float oy1  = y-half;
-//  float iy1  = y+half;
-//  float oy2  = y+h+half;
-//  float iy2  = y+h-half;
+#if 1
+      memcpy(mBuffer, buffer, bitmapSize);
+#else
+      // TODO consider iw,ih as ints rather than floats...
+      int32_t bw = (int32_t)iw;
+      int32_t bh = (int32_t)ih;
 
-//  const float verts[10][2] =
-//  {
-//    { ox1,oy1 },
-//    { ix1,iy1 },
-//    { ox2,oy1 },
-//    { ix2,iy1 },
-//    { ox2,oy2 },
-//    { ix2,iy2 },
-//    { ox1,oy2 },
-//    { ix1,iy2 },
-//    { ox1,oy1 },
-//    { ix1,iy1 }
-//  };
+      // Flip here so that we match FBO layout...
+      for (int32_t i = 0; i < bh; i++)
+      {
+        uint8_t *s = (uint8_t*)buffer+(bw*i);
+        uint8_t *d = (uint8_t*)mBuffer+(bw*(bh-i-1));
+        uint8_t *de = d+bw;
+        while(d<de)
+          *d++ = *s++;
+      }
+#endif
 
-//  {
-//    glUniform1f(u_alphatexture, 0.0);
+      // TODO Moved this to bindTexture because of more pain from JS thread calls
+//      createTexture(w, h, iw, ih);
 
-//    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-//    glEnableVertexAttribArray(attr_pos);
-//    glDrawArrays(GL_TRIANGLE_STRIP, 0, 10);
-//    glDisableVertexAttribArray(attr_pos);
-//  }
-}
+//      //JUNK
+//       if(mTexture)
+//       {
+//          boundTexture = mTexture;
 
+//          mTexture->Dump(mTexture,
+//                        "/home/hfitzpatrick/projects/xre2/image_dumps",
+//                        "image_alpha_");
+//       }
+//      //JUNK
+   }
 
-static void drawSurface2(float x, float y, float w, float h, pxContextSurfaceNativeDesc* contextSurface)
+   ~pxTextureAlpha()
+   {
+      if(mBuffer)
+      {
+         free(mBuffer);
+      }
+      deleteTexture();
+   }
+
+   void createTexture(float w, float h, float iw, float ih)
+   {
+      rtLogDebug("############# this: %p >>  %s  WxH: %.0f x %.0f \n", this, __PRETTY_FUNCTION__, w,h);
+
+      if (mTexture != NULL)
+      {
+         deleteTexture();
+      }
+
+      if(iw == 0 || ih == 0)
+      {
+         return;
+      }
+
+      mDrawWidth   = w;
+      mDrawHeight  = h;
+
+      mImageWidth  = iw;
+      mImageHeight = ih;
+
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      // Load DFB surface with TEXTURE
+
+      dsc.width                 = iw;
+      dsc.height                = ih;
+      dsc.flags                 = (DFBSurfaceDescriptionFlags)(DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PREALLOCATED | DSDESC_PIXELFORMAT);// | DSDESC_CAPS);
+      //      dsc.caps                  = DSCAPS_VIDEOONLY;//DSCAPS_VIDEOONLY;// DSCAPS_SYSTEMONLY; //DSCAPS_NONE;  //DSCAPS_VIDEOONLY
+      dsc.pixelformat           = DSPF_A8;      // ALPHA !!
+      dsc.preallocated[0].data  = mBuffer;      // Buffer is your data
+      dsc.preallocated[0].pitch = iw;
+      dsc.preallocated[1].data  = NULL;         // Not using a back buffer
+      dsc.preallocated[1].pitch = 0;
+
+      DFB_CHECK (dfb->CreateSurface( dfb, &dsc, &mTexture));
+
+      boundTexture = mTexture;
+
+      mInitialized = true;
+   }
+
+   virtual pxError deleteTexture()
+   {
+      rtLogDebug("############# this: (virtual) %p >>  %s  ENTER\n",mTexture, __PRETTY_FUNCTION__);
+
+      if (mTexture != NULL)
+      {
+         mTexture->Release(mTexture);
+         mTexture = NULL;
+      }
+
+      mInitialized = false;
+      return PX_OK;
+   }
+
+   virtual pxError bindGLTexture(int tLoc)
+   {
+      (void) tLoc;
+
+      // TODO Moved to here because of js threading issues
+      if (!mInitialized) createTexture(mDrawWidth,mDrawHeight,mImageWidth,mImageHeight);
+      if (!mInitialized)
+      {
+         //rtLogDebug("############# this: %p >>  %s  PX_NOTINITIALIZED\n", this, __PRETTY_FUNCTION__);
+
+         return PX_NOTINITIALIZED;
+      }
+
+      boundTexture = mTexture;
+
+      return PX_OK;
+   }
+
+   virtual pxError bindGLTextureAsMask(int mLoc)
+   {
+      (void) mLoc;
+
+      if (!mInitialized)
+      {
+         rtLogDebug("############# this: %p >>  %s  PX_NOTINITIALIZED\n", this, __PRETTY_FUNCTION__);
+
+         return PX_NOTINITIALIZED;
+      }
+
+      boundTextureMask = mTexture;
+
+      return PX_OK;
+   }
+
+   virtual pxError getOffscreen(pxOffscreen& o)
+   {
+      rtLogDebug("############# this: %p >>  %s  ENTER\n", this, __PRETTY_FUNCTION__);
+
+      (void)o; // warning
+
+      if (!mInitialized)
+      {
+         return PX_NOTINITIALIZED;
+      }
+      return PX_FAIL;
+   }
+
+   virtual int width()  { return mDrawWidth;  }
+   virtual int height() { return mDrawHeight; }
+
+   //DFBVertex*              getVetricies()   { return &v[0];   };
+   //DFBVertex v[4];  //quad
+
+   IDirectFBSurface*       getSurface()     { return mTexture; };
+   DFBSurfaceDescription   getDescription() { return dsc;     };
+
+private:
+   float mDrawWidth;
+   float mDrawHeight;
+
+   float mImageWidth;
+   float mImageHeight;
+
+   IDirectFBSurface       *mTexture;
+   DFBSurfaceDescription   dsc;
+
+   void                   *mBuffer;
+   bool                    mInitialized;
+
+}; // CLASS - pxTextureAlpha
+
+//====================================================================================================================================================================================
+
+// SOLID
+void draw_SOLID(int resW, int resH, float* matrix, float alpha,
+                DFBRectangle &src, DFBRectangle &dst,
+                pxTextureRef texture, const float* color)
 {
-  if ((contextSurface == NULL) || (contextSurface->texture == 0))
-  {
-    return;
-  }
+   (void) resW; (void) resH; (void) matrix; (void) alpha; (void) src;
 
-//  glActiveTexture(GL_TEXTURE0);
-//  glBindTexture(GL_TEXTURE_2D, contextSurface->texture);
-//  glUniform1i(u_texture, 0);
+   float colorPM[4];
+   premultiply(colorPM, color);
 
-//  const float verts[4][2] =
-//  {
-//    { x,y },
-//    {  x+w, y },
-//    {  x,  y+h },
-//    {  x+w, y+h }
-//  };
+   texture->bindGLTexture(0);
 
-//  const float uv[4][2] =
-//  {
-//    { 0, 0 },
-//    { 1, 0 },
-//    { 0, 1 },
-//    { 1, 1 }
-//  };
+   DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer, (DFBSurfaceBlittingFlags) (DSBLIT_COLORIZE | DSBLIT_BLEND_ALPHACHANNEL) ));
 
-//  {
-//    glUniform1f(u_alphatexture, 1.0);
-//    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-//    glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
-//    glEnableVertexAttribArray(attr_pos);
-//    glEnableVertexAttribArray(attr_uv);
-//    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-//    glDisableVertexAttribArray(attr_pos);
-//    glDisableVertexAttribArray(attr_uv);
-//  }
+   DFB_CHECK(boundFramebuffer->SetColor( boundFramebuffer, colorPM[0] * 255.0, // RGBA
+                                                           colorPM[1] * 255.0,
+                                                           colorPM[2] * 255.0,
+                                                           colorPM[3] * 255.0));
 
-//  glBindTexture(GL_TEXTURE_2D, textureId1); //bind back to original texture
+   DFB_CHECK(boundFramebuffer->Blit(boundFramebuffer, boundTexture, NULL, dst.x , dst.y));
+
+   DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer, (DFBSurfaceBlittingFlags) (DSBLIT_BLEND_ALPHACHANNEL) ));
 }
 
+//====================================================================================================================================================================================
 
-static void drawImage2(float x, float y, float w, float h, pxOffscreen& offscreen,
-                pxConstantsStretch::constants stretchX, pxConstantsStretch::constants stretchY)
+// TEXTURE
+void draw_TEXTURE(int resW, int resH, float* matrix, float alpha,
+                  DFBRectangle &src, DFBRectangle &dst,
+                  pxTextureRef texture,
+                  int32_t xStretch = 0, int32_t yStretch = 0)
 {
-//  glActiveTexture(GL_TEXTURE0);
-//  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-//	       offscreen.width(), offscreen.height(), 0, GL_BGRA_EXT,
-//	       GL_UNSIGNED_BYTE, offscreen.base());
+   (void) resW; (void) resH; (void) matrix; (void) alpha;
 
-//  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-//  glActiveTexture(GL_TEXTURE0);
-//  glUniform1i(u_texture, 0);
+   texture->bindGLTexture(0);
 
-//  const float verts[4][2] =
-//  {
-//    { x,y },
-//    {  x+w, y },
-//    {  x,  y+h },
-//    {  x+w, y+h }
-//  };
-
-//  const float uv[4][2] =
-//  {
-//    { 0, 0 },
-//    { 1, 0 },
-//    { 0, 1 },
-//    { 1, 1 }
-//  };
-
-//  {
-//    glUniform1f(u_alphatexture, 1.0);
-//    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-//    glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
-//    glEnableVertexAttribArray(attr_pos);
-//    glEnableVertexAttribArray(attr_uv);
-//    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-//    glDisableVertexAttribArray(attr_pos);
-//    glDisableVertexAttribArray(attr_uv);
-//  }
+   if(xStretch == pxConstantsStretch::REPEAT || yStretch == pxConstantsStretch::REPEAT)
+   {
+      DFB_CHECK(boundFramebuffer->TileBlit(boundFramebuffer, boundTexture,  &src, dst.x , dst.y));
+   }
+   else
+   if(xStretch == pxConstantsStretch::REPEAT || yStretch == pxConstantsStretch::REPEAT)
+   {
+      DFB_CHECK(boundFramebuffer->StretchBlit(boundFramebuffer, boundTexture, &src, &dst));
+   }
+   else
+   {
+      DFB_CHECK(boundFramebuffer->Blit(boundFramebuffer, boundTexture, NULL, dst.x , dst.y));
+   }
 }
 
+//====================================================================================================================================================================================
 
-static void drawImage92(float x, float y, float w, float h, float x1, float y1, float x2, float y2,
-    pxOffscreen& offscreen)
+// MASK
+void draw_MASK(int resW, int resH, float* matrix, float alpha,
+               DFBRectangle &src, DFBRectangle &dst,
+               pxTextureRef texture,
+               pxTextureRef mask)
 {
-//  glActiveTexture(GL_TEXTURE0);
-//  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-//	       offscreen.width(), offscreen.height(), 0, GL_BGRA_EXT,
-//	       GL_UNSIGNED_BYTE, offscreen.base());
+   (void) resW; (void) resH; (void) matrix; (void) alpha; (void) src;
 
-//  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-//  glActiveTexture(GL_TEXTURE0);
-//  glUniform1i(u_texture, 0);
+   printf("\n >>>> Draw MASK");
 
-//  float ox1 = x;
-//  float ix1 = x+x1;
-//  float ix2 = x+w-x2;
-//  float ox2 = x+w;
+   texture->bindGLTexture(0);
 
-//  float oy1 = y;
-//  float iy1 = y+y1;
-//  float iy2 = y+h-y2;
-//  float oy2 = y+h;
+   mask->bindGLTextureAsMask(0);
 
+   DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer, (DFBSurfaceBlittingFlags) (DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_BLEND_COLORALPHA) ));
 
+   DFB_CHECK(boundFramebuffer->Blit(boundFramebuffer, boundTexture, NULL, dst.x , dst.y));
 
-//  float w2 = offscreen.width();
-//  float h2 = offscreen.height();
-
-//  float ou1 = 0;
-//  float iu1 = x1/w2;
-//  float iu2 = (w2-x2)/w2;
-//  float ou2 = 1;
-
-//  float ov1 = 0;
-//  float iv1 = y1/h2;
-//  float iv2 = (h2-y2)/h2;
-//  float ov2 = 1;
-
-//#if 1 // sanitize values
-//  iu1 = pxClamp<float>(iu1, 0, 1);
-//  iu2 = pxClamp<float>(iu2, 0, 1);
-//  iv1 = pxClamp<float>(iv1, 0, 1);
-//  iv2 = pxClamp<float>(iv2, 0, 1);
-
-//  float tmin, tmax;
-
-//  tmin = pxMin<float>(iu1, iu2);
-//  tmax = pxMax<float>(iu1, iu2);
-//  iu1 = tmin;
-//  iu2 = tmax;
-
-//  tmin = pxMin<float>(iv1, iv2);
-//  tmax = pxMax<float>(iv1, iv2);
-//  iv1 = tmin;
-//  iv2 = tmax;
-
-//#endif
-
-//  const float verts[22][2] =
-//  {
-//    { ox1,oy1 },
-//    { ix1,oy1 },
-//    { ox1,iy1 },
-//    { ix1,iy1 },
-//    { ox1,iy2 },
-//    { ix1,iy2 },
-//    { ox1,oy2 },
-//    { ix1,oy2 },
-//    { ix2,oy2 },
-//    { ix1,iy2 },
-//    { ix2,iy2 },
-//    { ix1,iy1 },
-//    { ix2,iy1 },
-//    { ix1,oy1 },
-//    { ix2,oy1 },
-//    { ox2,oy1 },
-//    { ix2,iy1 },
-//    { ox2,iy1 },
-//    { ix2,iy2 },
-//    { ox2,iy2 },
-//    { ix2,oy2 },
-//    { ox2,oy2 }
-//  };
-
-//  const float uv[22][2] =
-//  {
-//    { ou1,ov1 },
-//    { iu1,ov1 },
-//    { ou1,iv1 },
-//    { iu1,iv1 },
-//    { ou1,iv2 },
-//    { iu1,iv2 },
-//    { ou1,ov2 },
-//    { iu1,ov2 },
-//    { iu2,ov2 },
-//    { iu1,iv2 },
-//    { iu2,iv2 },
-//    { iu1,iv1 },
-//    { iu2,iv1 },
-//    { iu1,ov1 },
-//    { iu2,ov1 },
-//    { ou2,ov1 },
-//    { iu2,iv1 },
-//    { ou2,iv1 },
-//    { iu2,iv2 },
-//    { ou2,iv2 },
-//    { iu2,ov2 },
-//    { ou2,ov2 }
-//  };
-
-//  {
-//    glUniform1f(u_alphatexture, 1.0);
-//    glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-//    glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
-//    glEnableVertexAttribArray(attr_pos);
-//    glEnableVertexAttribArray(attr_uv);
-
-//    glDrawArrays(GL_TRIANGLE_STRIP, 0, 22);
-
-//    glDisableVertexAttribArray(attr_pos);
-//    glDisableVertexAttribArray(attr_uv);
-//  }
+   DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer, (DFBSurfaceBlittingFlags) (DSBLIT_BLEND_ALPHACHANNEL) ));
 }
 
+
+
+//====================================================================================================================================================================================
+
+static void drawRect2(float x, float y, float w, float h, const float* c)
+{
+   if( boundFramebuffer == 0)
+   {
+      rtLogError("cannot drawRect2() on context surface because surface is NULL");
+      return;
+   }
+
+   const float verts[4][2] =
+   {
+      {  x,   y },
+      {  x+w, y },
+      {  x,   y+h },
+      {  x+w, y+h }
+   };
+
+   (void) verts; // WARNING
+
+   float colorPM[4];
+   premultiply(colorPM,c);
+
+   DFB_CHECK( boundFramebuffer->SetColor( boundFramebuffer, colorPM[0] * 255.0, // RGBA
+                                                            colorPM[1] * 255.0,
+                                                            colorPM[2] * 255.0,
+                                                            colorPM[3] * 255.0));
+
+   DFB_CHECK( boundFramebuffer->FillRectangle( boundFramebuffer, x, y, w, h));
+}
+
+static void drawRectOutline(float x, float y, float w, float h, float lw, const float* c)
+{
+   if( boundFramebuffer == 0)
+   {
+      rtLogError("cannot drawRectOutline() on context surface because surface is NULL");
+      return;
+   }
+
+   float colorPM[4];
+   premultiply(colorPM, c);
+
+   DFB_CHECK( boundFramebuffer->SetColor(  boundFramebuffer, colorPM[0] * 255.0, // RGBA
+                                                             colorPM[1] * 255.0,
+                                                             colorPM[2] * 255.0,
+                                                             colorPM[3] * 255.0));
+   if(lw >= w)
+   {
+      lw = 0;
+   }
+
+   float half = lw/2;
+
+   DFB_CHECK(  boundFramebuffer->FillRectangle(  boundFramebuffer, x-half,     y-half,     lw + w, lw    ) ); // TOP
+   DFB_CHECK(  boundFramebuffer->FillRectangle(  boundFramebuffer, x-half,     y-half + h, lw + w, lw    ) ); // BOTTOM
+   DFB_CHECK(  boundFramebuffer->FillRectangle(  boundFramebuffer, x-half,     y-half,     lw,     lw + h) ); // LEFT
+   DFB_CHECK(  boundFramebuffer->FillRectangle(  boundFramebuffer, x-half + w, y-half,     lw,     lw + h) ); // RIGHT
+
+   needsFlip = true;
+}
+
+static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
+                             pxTextureRef mask, pxConstantsStretch::constants xStretch, pxConstantsStretch::constants yStretch, float* color)
+{
+   if (texture.getPtr() == NULL)
+   {
+      rtLogError("ERROR: drawImageTexture() >>> texture: NULL   BAD !");
+      return;
+   }
+
+//   if (mask.getPtr() != NULL)
+//   {
+//      rtLogDebug("\n#############  MASKED !!");
+//   }
+
+   float iw = texture->width();
+   float ih = texture->height();
+
+   if (iw <= 0 || ih <= 0)
+   {
+      rtLogError("ERROR: drawImageTexture() >>>  WxH: 0x0   BAD !");
+      return;
+   }
+
+   if (xStretch == pxConstantsStretch::NONE)  w = iw;
+   if (yStretch == pxConstantsStretch::NONE)  h = ih;
+
+#if 0 // redundent for DFB
+   const float verts[4][2] =
+   {
+     { x,     y },
+     { x+w,   y },
+     { x,   y+h },
+     { x+w, y+h }
+   };
+
+   (void) verts; // WARNING
+
+   float tw;
+   switch(xStretch)
+   {
+      case PX_NONE:
+      case PX_STRETCH: tw = 1.0;  break;
+      case PX_REPEAT:  tw = w/iw; break;
+   }
+
+   float th;
+   switch(yStretch)
+   {
+      case PX_NONE:
+      case PX_STRETCH: th = 1.0;  break;
+      case PX_REPEAT:  th = h/ih; break;
+   }
+
+   float firstTextureY  = th;
+   float secondTextureY = 0;
+
+   const float uv[4][2] =
+   {
+     { 0,  firstTextureY  },
+     { tw, firstTextureY  },
+     { 0,  secondTextureY },
+     { tw, secondTextureY }
+   };
+
+   (void) uv; // WARNING
+#endif // 00
+
+   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+   if (!currentFramebuffer)
+   {
+      rtLogError("ERROR:  the currentFramebuffer surface is NULL !");
+      return;
+   }
+
+   DFBRectangle src;
+
+   src.x = 0;
+   src.y = 0;
+   src.w = iw;
+   src.h = ih;
+
+   DFBRectangle dst;
+
+   dst.x = x;
+   dst.y = y;
+   dst.w = w;
+   dst.h = h;
+
+   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+#if 0
+   // TEXTURED TRIANGLES...
+
+   if(boundTexture != NULL)
+   {
+      pxFBOTexture *tex = (pxFBOTexture *) texture.getPtr();
+
+      rtLogDebug("\nINFO: ###################  TextureTriangles()  !!!!!!!!!!!!!!!!");
+      dfbSurface->TextureTriangles(dfbSurface, tex->getSurface(), tex->getVetricies(), NULL, 4, DTTF_STRIP);
+   }
+   else
+   {
+      rtLogDebug("\nINFO: ###################  TextureTriangles() fails");
+   }
+#endif
+
+   if (mask.getPtr() == NULL && texture->getType() != PX_TEXTURE_ALPHA)
+   {
+     //gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,xStretch,yStretch);
+               draw_TEXTURE(gResW,gResH,gMatrix.data(),gAlpha,src,dst,texture,xStretch,yStretch);
+   }
+   else if (mask.getPtr() == NULL && texture->getType() == PX_TEXTURE_ALPHA)
+   {
+     //gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,colorPM);
+                  draw_SOLID(gResW,gResH,gMatrix.data(),gAlpha,src,dst,texture,color);
+   }
+   else if (mask.getPtr() != NULL)
+   {
+     //gTextureMaskedShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,mask);
+                        draw_MASK(gResW,gResH,gMatrix.data(),gAlpha,src,dst,texture,mask);
+   }
+   else
+   {
+     rtLogError("Unhandled case");
+   }
+
+   needsFlip = true;
+}
+
+static void drawImage92(float x,  float y,  float w,  float h,
+                        float x1, float y1, float x2, float y2, pxTextureRef texture)
+{
+   if (texture.getPtr() == NULL)
+   {
+     return;
+   }
+
+   DFBRectangle srcUL, dstUL; // Upper Left;
+   DFBRectangle srcUM, dstUM; // Upper Middle;
+   DFBRectangle srcUR, dstUR; // Upper Right
+
+   DFBRectangle srcML, dstML; // Middle Left;
+   DFBRectangle srcMM, dstMM; // Middle Middle;
+   DFBRectangle srcMR, dstMR; // Middle Right
+
+   DFBRectangle srcBL, dstBL; // Bottom Left;
+   DFBRectangle srcBM, dstBM; // Bottom Middle;
+   DFBRectangle srcBR, dstBR; // Bottom Right
+
+   float iw = texture->width();
+   float ih = texture->height();
+
+   // HACK ! .. prevent 'zero' dimension rectangles getting to blitter.
+   //
+   if(x1 <=0) x1 = 1;
+   if(y1 <=0) y1 = 1;
+   if(x2 <=0) x2 = 1;
+   if(y2 <=0) y2 = 1;
+
+  // printf("\n ###  drawImage92() >> WxH:  %f x %f     x1: %f  y1: %f    x2: %f y2: %f",w,h,  x1, y1,  x2, y2);
+
+   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   // TOP ROW
+   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+   int k = 1; // HACK to prevent Zero dimensioned rectangles.
+
+   srcUL.w = x1;                    srcUM.w = (x2 - x1) + k;         srcUR.w = iw - x2;
+   srcUL.h = y1;                    srcUM.h = y1;                    srcUR.h = y1;
+   srcUL.x = 0;                     srcUM.x = x1;                    srcUR.x = x2;
+   srcUL.y = 0;                     srcUM.y = 0;                     srcUR.y = 0;
+
+   dstUL.w = x1;                    dstUM.w = w - (iw - x2) - x1;    dstUR.w = (iw - x2);
+   dstUL.h = y1;                    dstUM.h = y1;                    dstUR.h = y1;
+   dstUL.x = x;                     dstUM.x = dstUL.x + dstUL.w;     dstUR.x = dstUM.x + dstUM.w;
+   dstUL.y = y;                     dstUM.y = dstUL.y;               dstUR.y = dstUL.y;
+
+   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   // MIDDLE ROW
+   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+   srcML.w = x1;                    srcMM.w = (x2 - x1) + k;        srcMR.w = (iw - x2);
+   srcML.h = (y2 - y1) + k;         srcMM.h = (y2 - y1) + k;        srcMR.h = (y2 - y1) + k;
+   srcML.x = 0;                     srcMM.x = x1;                   srcMR.x = x2;
+   srcML.y = y1;                    srcMM.y = y1 ;                  srcMR.y = y1;
+
+   dstML.w = dstUL.w;               dstMM.w = dstUM.w;              dstMR.w = dstUR.w;
+   dstML.h = h - (ih - y2) - y1;    dstMM.h = dstML.h;              dstMR.h = dstML.h;
+   dstML.x = dstUL.x;               dstMM.x = dstUM.x;              dstMR.x = dstUR.x;
+   dstML.y = dstUL.y + dstUL.h;     dstMM.y = dstUM.y + dstUM.h;    dstMR.y = dstUR.y + dstUR.h;
+
+   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   // BOTTOM ROW
+   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+   srcBL.w = x1;                    srcBM.w = (x2 - x1) + k;        srcBR.w = (iw - x2);
+   srcBL.h = (ih - y2);             srcBM.h = (ih - y2);            srcBR.h = (ih - y2);
+   srcBL.x = 0;                     srcBM.x = x1;                   srcBR.x = x2;
+   srcBL.y = y2;                    srcBM.y = y2;                   srcBR.y = y2;
+
+   dstBL.w = dstUL.w;               dstBM.w = dstMM.w;              dstBR.w = dstMR.w;
+   dstBL.h = (ih - y2);             dstBM.h = dstBL.h;              dstBR.h = dstBL.h;
+   dstBL.x = dstUL.x;               dstBM.x = dstMM.x;              dstBR.x = dstMR.x;
+   dstBL.y = dstML.y + dstML.h;     dstBM.y = dstMM.y + dstMM.h;    dstBR.y = dstMR.y + dstMR.h;
+
+   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+   if (boundFramebuffer == NULL)
+   {
+      rtLogError("ERROR: drawImage92() >>> boundFrame: NULL   BAD !");
+
+      boundFramebuffer = dfbSurface;
+   }
+
+   texture->bindGLTexture(0);
+
+   //                                   UPPER ROW              MIDDLE ROW            BOTTOM ROW
+   const DFBRectangle src[9] = {srcUL, srcUM, srcUR,    srcML, srcMM, srcMR,    srcBL, srcBM, srcBR };
+   const DFBRectangle dst[9] = {dstUL, dstUM, dstUR,    dstML, dstMM, dstMR,    dstBL, dstBM, dstBR };
+
+   DFB_CHECK(boundFramebuffer->BatchStretchBlit(boundFramebuffer, boundTexture, &src[0], &dst[0], 9));
+}
+
+bool gContextInit = false;
+
+pxContext::~pxContext()
+{
+}
 
 void pxContext::init()
 {
- // TODO
+#if 0
+  if (gContextInit)
+    return;
+  else
+    gContextInit = true;
+#endif
+
+   DFB_CHECK( dfbSurface->Clear( dfbSurface, 0x00, 0x00, 0x00, 0x00 ) ); // TRANSPARENT
+
+   boundFramebuffer = dfbSurface;  // needed here.
+   boundTexture     = dfbSurface;  // needed here.
+
+   DFB_CHECK(dfbSurface->SetRenderOptions(dfbSurface, DSRO_MATRIX));
+
+   rtLogSetLevel(RT_LOG_INFO); // LOG LEVEL
 }
 
 void pxContext::setSize(int w, int h)
 {
-//  glViewport(0, 0, (GLint)w, (GLint)h);
+   gResW = w;
+   gResH = h;
+
+   if (currentFramebuffer == defaultFramebuffer)
+   {
+      defaultContextSurface.width  = w;
+      defaultContextSurface.height = h;
+   }
 }
 
-
-void pxContext::clear(int w, int h)
+void pxContext::clear(int /*w*/, int /*h*/)
 {
-  if(primary == 0)
-  {
-    rtLog("cannot clear on context surface because surface is NULL");
-    return;
-  }
+   if(dfbSurface == 0)
+   {
+      rtLogError("cannot clear on context surface because surface is NULL");
+      return;
+   }
 
-  DFBCHECK (primary->FillRectangle (primary, 0, 0, w, h));
-
-//Clear the screen by filling a rectangle with the size of the surface.
-//Default color is black, default drawing flags are DSDRAW_NOFX.
+   DFB_CHECK( dfbSurface->Clear( dfbSurface, 0x00, 0x00, 0x00, 0x00 ) ); // TRANSPARENT
+   //DFB_CHECK( dfbSurface->Clear( dfbSurface, 0x00, 0x00, 0x8F, 0xFF ) );  //  CLEAR_BLUE   << JUNK
 }
 
+void pxContext::clear(int /*w*/, int /*h*/, float* /*fillColor*/ )
+{
+  //TODO - support color
+  if(dfbSurface == 0)
+   {
+      rtLogError("cannot clear on context surface because surface is NULL");
+      return;
+   }
+  DFB_CHECK( dfbSurface->Clear( dfbSurface, 0x00, 0x00, 0x00, 0x00 ) ); // TRANSPARENT
+}
 
 void pxContext::setMatrix(pxMatrix4f& m)
 {
-//  glUniformMatrix4fv(u_matrix, 1, GL_FALSE, m.data());
-}
+   gMatrix.multiply(m);
 
+   const float *mm = gMatrix.data();
+
+   s32 matrix[9];
+
+   // Convert to fixed point for DFB...
+   matrix[0] = (s32)(mm[0]  * 0x10000);
+   matrix[1] = (s32)(mm[4]  * 0x10000);
+   matrix[2] = (s32)(mm[12] * 0x10000);
+   matrix[3] = (s32)(mm[1]  * 0x10000);
+   matrix[4] = (s32)(mm[5]  * 0x10000);
+   matrix[5] = (s32)(mm[13] * 0x10000);
+
+   matrix[6] = 0x00000;
+   matrix[7] = 0x00000;
+   matrix[8] = 0x10000;
+
+//   DFB_CHECK(/*dfbSurface*/ boundTexture->SetRenderOptions(/*dfbSurface*/ boundTexture, DSRO_MATRIX)); // JUNK
+
+   DFB_CHECK(dfbSurface->SetMatrix(dfbSurface, matrix));
+}
 
 void pxContext::setAlpha(float a)
 {
-//  glUniform1f(u_alpha, a);
-  window->SetOpacity(window, a);
+   gAlpha *= a;
 }
 
-
-pxError pxContext::createContextSurface(pxContextSurfaceNativeDesc* contextSurface, int width, int height)
+float pxContext::getAlpha()
 {
-  if (dfb == NULL)
-  {
-    rtLog("cannot create context surface because DFB is NULL");
-    return PX_FAIL;
-  }
-
-  if (contextSurface == NULL)
-  {
-    rtLog("cannot create context surface because contextSurface is NULL");
-    return PX_FAIL;
-  }
-
-  deleteContextSurface(contextSurface);
-
-  contextSurface->dsc.width  = width;
-  contextSurface->dsc.height = height;
-
-  contextSurface->width  = width;
-  contextSurface->height = height;
-
-  DFBCHECK (dfb->CreateSurface( dfb, &contextSurface->dsc, &contextSurface->surface ));
-
-  return PX_OK;
+   return gAlpha;
 }
 
-
-pxError pxContext::setRenderSurface(pxContextSurfaceNativeDesc* contextSurface)
+pxContextFramebufferRef pxContext::createFramebuffer(int w, int h)
 {
-  if(contextSurface == 0)
-  {
-    rtLog("cannot setRenderSurface on context surface because surface is NULL");
-    return PX_FAIL;
-  }
+   pxContextFramebuffer *fbo     = new pxContextFramebuffer();
+   pxFBOTexture         *texture = new pxFBOTexture();
 
-  primary = contextSurface->surface;
+   texture->createTexture(w, h);
 
-//  if (contextSurface == NULL)
-//  {
+   fbo->setTexture(texture);
+
+   return fbo;
+}
+
+pxError pxContext::updateFramebuffer(pxContextFramebufferRef fbo, int w, int h)
+{
+   if (fbo.getPtr() == NULL || fbo->getTexture().getPtr() == NULL)
+   {
+      return PX_FAIL;
+   }
+
+   return fbo->getTexture()->resizeTexture(w, h);
+}
+
+pxContextFramebufferRef pxContext::getCurrentFramebuffer()
+{
+   return currentFramebuffer;
+}
+
+pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
+{
+   if (fbo.getPtr() == NULL || fbo->getTexture().getPtr() == NULL)
+   {
+      //glViewport ( 0, 0, defaultContextSurface.width, defaultContextSurface.height);
+
+      gResW = defaultContextSurface.width;
+      gResH = defaultContextSurface.height;
+
+      // TODO probably need to save off the original FBO handle rather than assuming zero
 //    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//    return PX_OK;
-//  }
 
-//  if ((contextSurface->framebuffer == 0) || (contextSurface->texture == 0))
-//  {
-//    rtLog("render surface is not initialized");
-//    return PX_NOTINITIALIZED;
-//  }
+      boundFramebuffer   = dfbSurface;//default
+      currentFramebuffer = defaultFramebuffer;
 
-//  glBindFramebuffer(GL_FRAMEBUFFER, contextSurface->framebuffer);
-//  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-//                          GL_TEXTURE_2D, contextSurface->texture, 0);
+      pxContextState contextState;
+      currentFramebuffer->currentState(contextState);
 
-//  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-//  {
-//    rtLog("error setting the render surface");
-//    return PX_FAIL;
-//  }
+      gAlpha  = contextState.alpha;
+      gMatrix = contextState.matrix;
 
-//  glClearColor(0.0, 0.0, 0.0, 0.0);
-//  glClear(GL_COLOR_BUFFER_BIT);
+      return PX_OK;
+   }
 
-  return PX_OK;
+   currentFramebuffer = fbo;
+
+   pxContextState contextState;
+   currentFramebuffer->currentState(contextState);
+
+   gAlpha  = contextState.alpha;
+   gMatrix = contextState.matrix;
+
+   return fbo->getTexture()->prepareForRendering();
 }
 
-
-pxError pxContext::deleteContextSurface(pxContextSurfaceNativeDesc* contextSurface)
+#if 0
+pxError pxContext::deleteContextSurface(pxTextureRef texture)
 {
-  if (contextSurface == NULL)
+  if (texture.getPtr() == NULL)
   {
-    return PX_OK;
+    return PX_FAIL;
   }
-
-  IDirectFBSurface *surface = contextSurface->surface; //alias
-
-  if(surface != 0)
-  {
-     surface->Release(surface);
-  }
-
-//  if (contextSurface->framebuffer != 0)
-//  {
-//    glDeleteFramebuffers(1, &contextSurface->framebuffer);
-//    contextSurface->framebuffer = 0;
-//  }
-//  if (contextSurface->texture != 0)
-//  {
-//    glDeleteTextures(1, &contextSurface->texture);
-//    contextSurface->texture = 0;
-//  }
-  return PX_OK;
+  return texture->deleteTexture();
 }
+#endif
 
 void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor)
 {
-  if(primary == 0)
-  {
-    rtLog("cannot drawRect on context surface because surface is NULL");
-    return;
-  }
+   if(fillColor == NULL && lineColor == NULL)
+   {
+      rtLogError("cannot drawRect() on context surface because colors are NULL");
+      return;
+   }
 
-  DFBCHECK (primary->SetColor(primary, fillColor[0] * 255.0,
-                                       fillColor[1] * 255.0,
-                                       fillColor[2] * 255.0,
-                                       fillColor[3] * 255.0));
-  float half = lineWidth/2;
+   if(boundTexture == NULL)
+   {
+      rtLogError("cannot drawRect() on context surface because boundTexture is NULL");
+      return;
+   }
 
-  drawRect2(half, half, w-lineWidth, h-lineWidth);
+   if(fillColor != NULL && fillColor[3] > 0.0) // with non-transparent color
+   {
+      // Draw FILL rectangle for smaller FILL areas
+      float half = lineWidth/2;
 
-  if (lineWidth > 0)
-  {
-    DFBCHECK (primary->SetColor(primary, lineColor[0] * 255.0,
-                                         lineColor[1] * 255.0,
-                                         lineColor[2] * 255.0,
-                                         lineColor[3] * 255.0));
+      drawRect2(half, half, w-lineWidth, h-lineWidth, fillColor);
+   }
 
-    drawRectOutline(0, 0, w, h, lineWidth);
-  }
+   if(lineWidth > 0 && lineColor != NULL && lineColor[3] > 0.0) // with non-transparent color and non-zero stroke
+   {
+      drawRectOutline(0, 0, w, h, lineWidth, lineColor);
+   }
 }
 
-
-void pxContext::drawImage9(float w, float h, pxOffscreen& o)
+void pxContext::drawImage9(float w, float h, float x1, float y1,
+                           float x2, float y2, pxTextureRef texture)
 {
-  drawImage92(0, 0, w, h, 75,75,75,75, o);
+   if (texture.getPtr() != NULL)
+   {
+      drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
+   }
 }
 
 
-void pxContext::drawImage(float w, float h, pxOffscreen& o,
+void pxContext::drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
+                          bool useTextureDimsAlways, float* color,
                           pxConstantsStretch::constants stretchX, pxConstantsStretch::constants stretchY)
 {
-  drawImage2(0, 0, w, h, o, stretchX, stretchY);
+   float black[4] = {0,0,0,1};
+   drawImageTexture(x, y, w, h, t, mask, stretchX, stretchY, color ? color : black);
 }
 
-
-void pxContext::drawSurface(float w, float h, pxContextSurfaceNativeDesc* contextSurface)
+void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 {
-  drawSurface2(0, 0, w, h, contextSurface);
+#ifndef USE_DRAW_DIAG_RECT
+   return;
+#endif
+
+   if (!mShowOutlines) return;
+
+   if(boundFramebuffer == NULL)
+   {
+      rtLogError("cannot drawDiagRect() on context surface because boundTexture is NULL");
+      return;
+   }
+
+   if(w == 0.0 || h == 0.0)
+   {
+      rtLogError("cannot drawDiagRect() - width/height cannot be Zero.");
+      return;
+   }
+
+   if (!boundFramebuffer)
+   {
+      rtLogError("ERROR:  the boundFramebuffer surface is NULL !");
+
+      boundFramebuffer = dfbSurface; // default
+   }
+
+   const float verts[4][2] =
+   {
+      {  x,   y   },
+      {  x+w, y   },
+      {  x+w, y+h },
+      {  x,   y+h },
+   };
+
+   (void) verts; // warning
+
+   float colorPM[4];
+   premultiply(colorPM, color);
+
+   DFB_CHECK (boundFramebuffer->SetColor(boundFramebuffer, colorPM[0] * 255.0, // RGBA
+                                                           colorPM[1] * 255.0,
+                                                           colorPM[2] * 255.0,
+                                                           colorPM[3] * 255.0));
+
+   DFB_CHECK (boundFramebuffer->DrawRectangle(boundFramebuffer, x, y, w, h));
 }
 
-
-void pxContext::drawImageAlpha(float x, float y, float w, float h, int bw, int bh, void* buffer, float* color)
+void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* color)
 {
-//    glActiveTexture(GL_TEXTURE1);
+#ifndef USE_DRAW_DIAG_LINE
+   return;
+#endif
 
-//    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-//    glTexImage2D(
-//      GL_TEXTURE_2D,
-//      0,
-//      GL_ALPHA,
-//      bw,
-//      bh,
-//      0,
-//      GL_ALPHA,
-//      GL_UNSIGNED_BYTE,
-//      buffer
-//    );
+   if (!mShowOutlines) return;
 
-//    glUniform1i(u_texture, 1);
-//    glUniform1f(u_alphatexture, 2.0);
+   if(boundTexture == NULL)
+   {
+      rtLogError("cannot drawDiagLine() on context surface because boundTexture is NULL");
+      return;
+   }
 
-//    const float verts[4][2] =
-//    {
-//      { x,y },
-//      {  x+w, y },
-//      {  x,  y+h },
-//      {  x+w, y+h }
-//    };
+   if (!boundFramebuffer)
+   {
+      rtLogError("ERROR:  the boundFramebuffer surface is NULL !");
 
-//    const float uv[4][2] =
-//    {
-//      { 0, 0 },
-//      { 1, 0 },
-//      { 0, 1 },
-//      { 1, 1 }
-//    };
+      boundFramebuffer = dfbSurface; // default
+   }
 
-//    {
-//      glUniform4fv(u_color, 1, color);
-//      glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-//      glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, uv);
-//      glEnableVertexAttribArray(attr_pos);
-//      glEnableVertexAttribArray(attr_uv);
+  const float verts[4][2] =
+  {
+    { x1, y1 },
+    { x2, y2 },
+   };
+   (void) verts; // warning
 
-//      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+   float colorPM[4];
+   premultiply(colorPM,color);
 
-//      glDisableVertexAttribArray(attr_pos);
-//      glDisableVertexAttribArray(attr_uv);
-//    }
+   DFB_CHECK (boundFramebuffer->SetColor(boundTexture, colorPM[0] * 255.0, // RGBA
+                                                       colorPM[1] * 255.0,
+                                                       colorPM[2] * 255.0,
+                                                       colorPM[3] * 255.0));
+
+   DFB_CHECK (boundFramebuffer->DrawLine(boundFramebuffer, x1,y1, x2,y2));
+}
+
+pxTextureRef pxContext::createTexture(pxOffscreen& o)
+{
+   pxTextureOffscreen* offscreenTexture = new pxTextureOffscreen(o);
+
+   return offscreenTexture;
+}
+
+pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void* buffer)
+{
+   pxTextureAlpha* alphaTexture = new pxTextureAlpha(w,h,iw,ih,buffer);
+
+   return alphaTexture;
+}
+
+void pxContext::pushState()
+{
+   pxContextState contextState;
+
+   contextState.matrix = gMatrix;
+   contextState.alpha  = gAlpha;
+
+   currentFramebuffer->pushState(contextState);
+}
+
+void pxContext::popState()
+{
+   pxContextState contextState;
+
+   if (currentFramebuffer->popState(contextState) == PX_OK)
+   {
+      gAlpha  = contextState.alpha;
+      gMatrix = contextState.matrix;
+   }
+}
+
+bool pxContext::isObjectOnScreen(float x, float y, float width, float height)
+{
+  return true;
+}
+
+void pxContext::snapshot(pxOffscreen&)
+{
+}
+
+void pxContext::getSize(int& w, int& h)
+{
+   w= gResW;
+   h= gResH;
 }
 
 
+#if 0
+
+// JUNK
+// JUNK
+// JUNK
+// JUNK
+
+class Timer
+{
+   timeval timer[2];
+
+   struct timespec start_tm, end_tm;
+
+public:
+
+   void start()
+   {
+      gettimeofday(&this->timer[0], NULL);
+   }
+
+   void stop()
+   {
+      gettimeofday(&this->timer[1], NULL);
+   }
+
+   long duration_ms() const // milliseconds
+   {
+      long secs( this->timer[1].tv_sec  - this->timer[0].tv_sec);
+      long usecs(this->timer[1].tv_usec - this->timer[0].tv_usec);
+
+      if(usecs < 0)
+      {
+         --secs;
+         usecs += 1000000;
+      }
+
+      return static_cast<long>( (secs * 1000) + ((double) usecs / 1000.0 + 0.5));
+   }
+};
+
+// JUNK
+// JUNK
+// JUNK
+// JUNK
+
+//static uint64_t sum = 0;
+//static unsigned int blits = 0, fps = 0;
+//static Timer timer;
+#endif //0

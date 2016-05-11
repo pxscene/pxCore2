@@ -21,6 +21,23 @@ rtError rtThreadQueue::addTask(rtThreadTaskCB t, void* context, void* data)
   return RT_OK;
 }
 
+rtError rtThreadQueue::removeAllTasksForObject(void* context)
+{
+  mTaskMutex.lock();
+  for(deque<ThreadQueueEntry>::iterator it = mTasks.begin(); 
+        it != mTasks.end(); ++it)
+  {
+    if ((it)->context == context)
+    {
+      it = mTasks.erase(it);
+      break;
+    }
+  }
+  mTaskMutex.unlock();
+
+  return RT_OK;
+}
+
 rtError rtThreadQueue::process(double maxSeconds)
 {
   bool done = false;

@@ -16,6 +16,7 @@
 #include "rtObjectMacros.h"
 #include "rtPromise.h"
 #include "pxTexture.h"
+#include "rtMutex.h"
 
 #include <map>
 class pxFileDownloadRequest;
@@ -44,7 +45,7 @@ public:
   rtReadOnlyProperty(ready,ready,rtObjectRef);
   rtReadOnlyProperty(loadStatus,loadStatus,rtObjectRef);
     
-  pxResource():mUrl(0),mDownloadRequest(0),priorityRaised(false),mReady(){  
+  pxResource():mUrl(0),mDownloadRequest(0),priorityRaised(false),mReady(), mListenersMutex(){  
     mReady = new rtPromise;
     mLoadStatus = new rtMapObject; 
     mLoadStatus.set("statusCode", 0);
@@ -92,6 +93,7 @@ protected:
   rtObjectRef mLoadStatus;
   rtObjectRef mReady;
   list<pxResourceListener*> mListeners;
+  rtMutex mListenersMutex;
 };
 
 class rtImageResource : public pxResource

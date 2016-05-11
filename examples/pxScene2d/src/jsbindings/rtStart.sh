@@ -20,7 +20,7 @@ export LD_LIBRARY_PATH=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$external
 #gdb --args ../rtNode  $1 $2
 #strace -o trace.txt ../rtNode $1 $2 $3 $4 $5 $6 $7
 
-gdb ../rtNode $1 $2 $3 $4 $5 $6 $7
+../rtNode $1 $2 $3 $4 $5 $6 $7
 
 #if [ "$#" -ne 1 ]; then
 #   ../rtNode "./start.js"

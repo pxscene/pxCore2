@@ -34,6 +34,19 @@
 #include "jsbindings/rtFunctionWrapper.h"
 
 
+#ifdef RUNINMAIN
+
+//#include "pxEventLoop.h"
+//extern pxEventLoop* gLoop;
+
+#define ENTERSCENELOCK()
+#define EXITSCENELOCK()
+#else
+#define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
+#define EXITSCENELOCK()  rtWrapperSceneUpdateExit();
+#endif
+
+
 using namespace v8;
 using namespace node;
 
@@ -55,15 +68,20 @@ static const char** exec_argv;
 #ifdef WIN32
 static DWORD __rt_main_thread__;
 #else
-/*static*/ pthread_t __rt_main_thread__;
+static pthread_t __rt_main_thread__;
 #endif
 
+// rtIsMainThread() - Previously:  identify the MAIN thread of 'node' which running JS code.
+//
+// rtIsMainThread() - Currently:   identify BACKGROUND thread which running JS code.
+//
 bool rtIsMainThread()
 {
 #ifdef WIN32
   return GetCurrentThreadId() == __rt_main_thread__;
 #else
-  return pthread_self() == __rt_main_thread__;
+//  return pthread_self() == __rt_main_thread__;
+  return pthread_self() != __rt_main_thread__;
 #endif
 }
 
@@ -72,15 +90,16 @@ bool rtIsMainThread()
 
 void *uvThread(void *ptr)
 {
-  printf("uvThread() - ENTER\n");
-
   if(ptr)
   {
     rtNodeContext *ctx = (rtNodeContext *) ptr;
 
     if(ctx)
     {
-      ctx->uvWorker(); // BLOCKS
+      while(ctx->mKillUVWorker == false)
+      {
+        ctx->uvWorker(); // BLOCKS
+      }
     }
     else
     {
@@ -98,26 +117,18 @@ void *uvThread(void *ptr)
 
 void *jsThread(void *ptr)
 {
-//  printf("jsThread() - ENTER\n");
-
   if(ptr)
   {
     rtNodeContext *ctx = (rtNodeContext*) ptr;
 
     if(ctx)
     {
-      ctx->runFile(ctx->js_file);
+      ctx->runScript(ctx->js_script);
     }
     else
     {
       fprintf(stderr, "FATAL - No Instance... jsThread() exiting...");
-    }
-
-    static bool only_one = false;
-    if(only_one == false)
-    {
-      only_one = true;
-      ctx->uvWorker();
+      return NULL;
     }
   }
 
@@ -125,6 +136,27 @@ void *jsThread(void *ptr)
 
   return NULL;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef  USE_UV_TIMERS
+
+static void timerCallback(uv_timer_t* )
+{
+#ifdef USE_UV_TIMERS
+    #ifdef RUNINMAIN
+    if (gLoop)
+      gLoop->runOnce();
+    #else
+    rtLogDebug("uv timer callback");
+    #endif
+#else
+     // Do nothing...
+#endif
+}
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,18 +172,17 @@ static inline bool file_exists(const char *file)
 
 
 rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
-     mKillUVWorker(false), mIsolate(isolate), mRefCount(0), js_worker(NULL), uv_worker(NULL), mEnv(NULL) //, mContext(0)
+     mKillUVWorker(false),  js_worker(0), uv_worker(0),
+     mIsolate(isolate), mEnv(NULL), mRefCount(0)
 {
   assert(isolate); // MUST HAVE !
-
-  AddRef();
 
   createEnvironment();
 }
 
 
 void rtNodeContext::createEnvironment()
-{  
+{
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -171,14 +202,13 @@ void rtNodeContext::createEnvironment()
 
   rtWrappers.Reset(mIsolate, global);
 
-  mEnv = CreateEnvironment(
-        mIsolate,
-        uv_default_loop(),
-        local_context,
-        s_gArgs->argc,
-        s_gArgs->argv,
-        exec_argc,
-        exec_argv);
+  mEnv = CreateEnvironment(mIsolate,
+                           uv_default_loop(),
+                           local_context,
+                           s_gArgs->argc,
+                           s_gArgs->argv,
+                           exec_argc,
+                           exec_argv);
 
   // Start debug agent when argv has --debug
   if (use_debug_agent)
@@ -200,16 +230,23 @@ rtNodeContext::~rtNodeContext()
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
-  
+
   if(uv_worker)
   {
-    printf("\nINFO: %s() - kill UV loop", __PRETTY_FUNCTION__); fflush(stdout);
-   
     mKillUVWorker = true; // kill UV loop
-    
+
     (void) pthread_join(uv_worker, NULL);
+
+    uv_worker = 0;
   }
-  
+
+  if(js_worker)
+  {
+    (void) pthread_join(js_worker, NULL);
+
+    js_worker = 0;
+  }
+
   if(mEnv)
   {
     RunAtExit(mEnv);
@@ -217,16 +254,16 @@ rtNodeContext::~rtNodeContext()
     mEnv->Dispose();
     mEnv = NULL;
   }
-  
+
   if(exec_argv)
   {
     delete[] exec_argv;
     exec_argv = NULL;
     exec_argc = 0;
   }
-    
+
   Release();
-  
+
   mContext.Reset();
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
 }
@@ -234,6 +271,13 @@ rtNodeContext::~rtNodeContext()
 
 void rtNodeContext::add(const char *name, rtValue const& val)
 {
+  if(name == NULL)
+  {
+    rtLogError("no symbolic name for rtValue");
+    // TODO: test for uniquiness !
+    return;
+  }
+
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
@@ -249,26 +293,50 @@ void rtNodeContext::add(const char *name, rtValue const& val)
   global->Set(String::NewFromUtf8(mIsolate, name), rt2js(mIsolate, val));
 }
 
-rtObjectRef rtNodeContext::runThread(const char *file)
+void rtNodeContext::startTimers()
 {
-  if(file_exists(file) == false)
-  {
-    printf("DEBUG:  %15s()    - NO FILE\n", __FUNCTION__);
+#ifdef  USE_UV_TIMERS
 
-    return rtObjectRef(0);  // ERROR
-  }
+    rtLogInfo("starting background thread for event loop processing");
 
-  startThread(file);
+    // we start a timer in case there aren't any other evens to the keep the
+    // nodejs event loop alive. Fire a time repeatedly.
+    uv_timer_init(uv_default_loop(), &mTimer);
 
-  return rtObjectRef(0);// JUNK
+    #ifdef RUNINMAIN
+    uv_timer_start(&mTimer, timerCallback, 0, 5);
+    #else
+    uv_timer_start(&mTimer, timerCallback, 1000, 1000);
+    #endif
 
-  //return startThread(s.c_str());
+#endif
 }
 
-rtObjectRef rtNodeContext::runScript(const char *script)
+rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NULL*/)
 {
-  {//scope
+  if(script == NULL)
+  {
+    rtLogError("no script given.");
 
+    return  rtObjectRef(0);// JUNK
+  }
+
+  return runScript(std::string(script), args);
+}
+
+
+rtObjectRef rtNodeContext::runScript(const std::string &script, const char *args /*= NULL*/)
+{
+  if(script.empty())
+  {
+    rtLogError(" - no script given.");
+
+    return  rtObjectRef(0);// JUNK
+  }
+
+  UNUSED_PARAM(args);
+
+  {//scope
     Locker                locker(mIsolate);
     Isolate::Scope isolate_scope(mIsolate);
     HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
@@ -277,7 +345,7 @@ rtObjectRef rtNodeContext::runScript(const char *script)
     Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
     Context::Scope context_scope(local_context);
 
-    Local<String> source = String::NewFromUtf8(mIsolate, script);
+    Local<String> source = String::NewFromUtf8(mIsolate, script.c_str());
 
     // Compile the source code.
     Local<Script> run_script = Script::Compile(source);
@@ -288,71 +356,89 @@ rtObjectRef rtNodeContext::runScript(const char *script)
     // Convert the result to an UTF8 string and print it.
     String::Utf8Value utf8(result);
 
-    printf("DEBUG:  %15s()    - RESULT = %s\n", __FUNCTION__, *utf8);  // TODO:  Probably need an actual RESULT return mechanisim
-
+//    printf("DEBUG:  %15s()    - RESULT = %s\n", __FUNCTION__, *utf8);  // TODO:  Probably need an actual RESULT return mechanisim
   }//scope
 
     return rtObjectRef(0);// JUNK
 }
 
-int rtNodeContext::startThread(const char *js)
+
+rtObjectRef rtNodeContext::runScriptThreaded(const char *script, const char *args /*= NULL*/)
 {
-  js_file = js;
+  if(script == NULL)
+  {
+    rtLogError(" - no script given.");
 
-//  printf("\n startThread() - ENTER\n");
+    return  rtObjectRef(0);// JUNK
+  }
 
+  UNUSED_PARAM(args);
+
+  js_script = script;
+
+#ifndef  USE_UV_TIMERS
+  // call runScript() in this thread...
   if(pthread_create(&js_worker, NULL, jsThread, (void *) this))
   {
-    fprintf(stderr, "Error creating thread\n");
-    return 1;
+    fprintf(stderr, "Error creating JS thread\n");
   }
+#endif
+
+  if(pthread_create(&uv_worker, NULL, uvThread, (void *) this))
+  {
+    fprintf(stderr, "Error creating UV thread\n");
+  }
+
+  return rtObjectRef(0);
+}
+
+std::string readFile(const char *file)
+{
+  std::ifstream       src_file(file);
+  std::stringstream   src_script;
+
+  src_script << src_file.rdbuf(); // slurp up file
+
+  std::string s = src_script.str();
+
+  return s;
+}
+
+rtObjectRef rtNodeContext::runFile(const char *file, const char *args /*= NULL*/)
+{
+  UNUSED_PARAM(args);
+
+  if(file == NULL)
+  {
+    rtLogError(" - no script given.");
+
+    return  rtObjectRef(0);// JUNK
+  }
+
+//  printf("\n#### [%p]  %s() >> Running \"%s\"\n", this, __FUNCTION__, file.c_str());
+
+  // Read the script file
+  js_script = readFile(file);
+
+  return runScript(js_script);
 }
 
 
-rtObjectRef rtNodeContext::runFile(const char *file)
+rtObjectRef rtNodeContext::runFileThreaded(const char *file, const char *args /*= NULL*/)
 {
-//  int exec_argc = 0;
-//  const char** exec_argv;
+  UNUSED_PARAM(args);
 
-  printf("\n#### [%p]  %s() >> Running \"%s\"\n", this, __FUNCTION__, file);
+  if(file == NULL)
+  {
+    rtLogError(" - no script given.");
 
-  // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    return  rtObjectRef(0);// JUNK
+  }
+
   // Read the script file
-  std::ifstream       js_file(file);
-  std::stringstream   src_file;
+  js_script = readFile(file);
 
-  src_file << js_file.rdbuf(); // slurp up file
-
-  std::string s = src_file.str();
-
-  {//scope- - - - - - - - - - - - - - -
-
-    Locker                locker(mIsolate);
-    Isolate::Scope isolate_scope(mIsolate);
-    HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-
-    Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
-    Context::Scope context_scope(local_context);
-
-    Local<String> source = String::NewFromUtf8(mIsolate, s.c_str());
-
-    // Compile the source code.
-    Local<Script> script = Script::Compile(source);
-
-    // Run the script to get the result.
-    Local<Value> result = script->Run();
-
-    // Convert the result to an UTF8 string and print it.
-    String::Utf8Value utf8(result);
-
-  }//scope- - - - - - - - - - - - - - -
-
-//  static bool only_one = false;
-//  if(only_one == false)
-//  {
-//    only_one = true;
-//    uvWorker();
-//  }
+  runScriptThreaded(js_script.c_str(), args);
 
   return rtObjectRef(0);
 }
@@ -363,6 +449,21 @@ void rtNodeContext::uvWorker()
   bool more;
 
   printf("\n Start >>> %s() !!!! \n", __FUNCTION__);
+
+#ifndef  USE_UV_TIMERS
+
+    // we start a timer in case there aren't any other evens to the keep the
+    // nodejs event loop alive. Fire a time repeatedly.
+    uv_timer_init(uv_default_loop(), &mTimer);
+
+    // TODO experiment crank up the timers so we can pump cocoa messages on main thread
+    #ifdef RUNINMAIN
+      uv_timer_start(&mTimer, timerCallback, 0, 5);
+    #else
+      uv_timer_start(&mTimer, timerCallback, 1000, 1000);
+    #endif
+
+#endif //  USE_UV_TIMERS
 
   do
   {
@@ -391,25 +492,36 @@ void rtNodeContext::uvWorker()
       }
     }//scope - - - - - - - - - - - - - - -
 
-    usleep(0); // scheduler time slice 
-     more = true; // HACK
-
   } while (more == true && mKillUVWorker == false);
 
   printf("\n End >>> %s() !!!! \n", __FUNCTION__);
 
   int code = EmitExit(mEnv);
-  
+
   UNUSED_PARAM(code);
-  
+
   RunAtExit(mEnv);
+}
+
+rtObjectRef rtNodeContext:: runFile(const char *file)  // DEPRECATED
+{
+  #warning "runFile() - is DEPRECATED ... going away soon."
+  return runFileThreaded(file);
+}
+
+rtObjectRef rtNodeContext:: runThread(const char *file)  // DEPRECATED
+{
+  #warning "runThread() - is DEPRECATED ... going away soon."
+  return runFileThreaded(file);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 rtNode::rtNode() : mPlatform(NULL)
-{  
+{
+  __rt_main_thread__ = pthread_self();
+
   nodePath();
 
   mIsolate     = Isolate::New();
@@ -418,6 +530,8 @@ rtNode::rtNode() : mPlatform(NULL)
 
 rtNode::rtNode(int argc, char** argv) : mPlatform(NULL)
 {
+  __rt_main_thread__ = pthread_self(); //  NB
+
   nodePath();
 
   mIsolate     = Isolate::New();
@@ -485,7 +599,7 @@ void rtNode::term()
 
     V8::Dispose();
 
-    node_is_initialized = false; 
+    node_is_initialized = false;
 
   //  V8::ShutdownPlatform();
   //  if(mPlatform)
@@ -509,7 +623,7 @@ rtNodeContextRef rtNode::getGlobalContext() const
 
 rtNodeContextRef rtNode::createContext(bool ownThread)
 {
-  UNUSED_PARAM(ownThread);    // not implemented yet.  
+  UNUSED_PARAM(ownThread);    // not implemented yet.
 
   rtNodeContextRef ctxref = new rtNodeContext(mIsolate);
 

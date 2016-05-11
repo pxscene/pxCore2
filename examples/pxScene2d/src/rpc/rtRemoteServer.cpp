@@ -1,12 +1,12 @@
-#include "rtRpcServer.h"
+#include "rtRemoteServer.h"
 #include "rtRemoteObject.h"
 #include "rtObjectCache.h"
 #include "rtSocketUtils.h"
-#include "rtRpcMessage.h"
-#include "rtRpcClient.h"
+#include "rtRemoteMessage.h"
+#include "rtRemoteClient.h"
 #include "rtValueReader.h"
 #include "rtValueWriter.h"
-#include "rtRpcConfig.h"
+#include "rtRemoteConfig.h"
 
 #include <stdlib.h>
 #include <arpa/inet.h>
@@ -40,7 +40,7 @@ same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
   return false;
 }
 
-rtRpcServer::rtRpcServer()
+rtRemoteServer::rtRemoteServer()
   : m_listen_fd(-1)
   , m_resolver(nullptr)
   , m_keep_alive_interval(15)
@@ -51,32 +51,32 @@ rtRpcServer::rtRpcServer()
   m_shutdown_pipe[1] = -1;
 
   int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
-  if (ret == 0)
+  if (ret != 0)
     rtLogWarn("failed to create shutdown pipe. %s", rtStrError(ret).c_str());
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeOpenSessionRequest,
-    std::bind(&rtRpcServer::onOpenSession, this, std::placeholders::_1, std::placeholders::_2)));
+    std::bind(&rtRemoteServer::onOpenSession, this, std::placeholders::_1, std::placeholders::_2)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeGetByNameRequest,
-    std::bind(&rtRpcServer::onGet, this, std::placeholders::_1, std::placeholders::_2)));
+    std::bind(&rtRemoteServer::onGet, this, std::placeholders::_1, std::placeholders::_2)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeGetByIndexRequest,
-    std::bind(&rtRpcServer::onGet, this, std::placeholders::_1, std::placeholders::_2)));
+    std::bind(&rtRemoteServer::onGet, this, std::placeholders::_1, std::placeholders::_2)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeSetByNameRequest,
-    std::bind(&rtRpcServer::onSet, this, std::placeholders::_1, std::placeholders::_2)));
+    std::bind(&rtRemoteServer::onSet, this, std::placeholders::_1, std::placeholders::_2)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeSetByIndexRequest,
-    std::bind(&rtRpcServer::onSet, this, std::placeholders::_1, std::placeholders::_2)));
+    std::bind(&rtRemoteServer::onSet, this, std::placeholders::_1, std::placeholders::_2)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeMethodCallRequest,
-    std::bind(&rtRpcServer::onMethodCall, this, std::placeholders::_1, std::placeholders::_2)));
+    std::bind(&rtRemoteServer::onMethodCall, this, std::placeholders::_1, std::placeholders::_2)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeKeepAliveRequest,
-    std::bind(&rtRpcServer::onKeepAlive, this, std::placeholders::_1, std::placeholders::_2)));
+    std::bind(&rtRemoteServer::onKeepAlive, this, std::placeholders::_1, std::placeholders::_2)));
 }
 
-rtRpcServer::~rtRpcServer()
+rtRemoteServer::~rtRemoteServer()
 {
   if (m_shutdown_pipe[0] != -1)
   {
@@ -105,13 +105,13 @@ rtRpcServer::~rtRpcServer()
 }
 
 rtError
-rtRpcServer::open()
+rtRemoteServer::open()
 {
   rtError err = openRpcListener();
   if (err != RT_OK)
     return err;
 
-  m_resolver = rtRpcCreateResolver();
+  m_resolver = rtRemoteCreateResolver();
   err = start();
   if (err != RT_OK)
   {
@@ -123,7 +123,7 @@ rtRpcServer::open()
 }
 
 rtError
-rtRpcServer::registerObject(std::string const& name, rtObjectRef const& obj)
+rtRemoteServer::registerObject(std::string const& name, rtObjectRef const& obj)
 {
   rtObjectRef ref = rtObjectCache::findObject(name);
   if (!ref)
@@ -133,7 +133,7 @@ rtRpcServer::registerObject(std::string const& name, rtObjectRef const& obj)
 }
 
 void
-rtRpcServer::runListener()
+rtRemoteServer::runListener()
 {
   time_t lastKeepAliveCheck = 0;
 
@@ -188,7 +188,7 @@ rtRpcServer::runListener()
 }
 
 void
-rtRpcServer::doAccept(int fd)
+rtRemoteServer::doAccept(int fd)
 {
   sockaddr_storage remote_endpoint;
   memset(&remote_endpoint, 0, sizeof(remote_endpoint));
@@ -207,14 +207,14 @@ rtRpcServer::doAccept(int fd)
   memset(&local_endpoint, 0, sizeof(sockaddr_storage));
   rtGetSockName(fd, local_endpoint);
 
-  std::shared_ptr<rtRpcClient> newClient(new rtRpcClient(ret, local_endpoint, remote_endpoint));
-  newClient->setMessageCallback(std::bind(&rtRpcServer::onIncomingMessage, this, std::placeholders::_1, std::placeholders::_2));
+  std::shared_ptr<rtRemoteClient> newClient(new rtRemoteClient(ret, local_endpoint, remote_endpoint));
+  newClient->setMessageCallback(std::bind(&rtRemoteServer::onIncomingMessage, this, std::placeholders::_1, std::placeholders::_2));
   newClient->open();
   m_connected_clients.push_back(newClient);
 }
 
 rtError
-rtRpcServer::onIncomingMessage(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& msg)
+rtRemoteServer::onIncomingMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg)
 {
   char const* message_type = rtMessage_GetMessageType(*msg);
 
@@ -230,7 +230,7 @@ rtRpcServer::onIncomingMessage(std::shared_ptr<rtRpcClient>& client, rtJsonDocPt
 }
 
 rtError
-rtRpcServer::start()
+rtRemoteServer::start()
 {
   rtError err = m_resolver->open(m_rpc_endpoint);
   if (err != RT_OK)
@@ -241,7 +241,7 @@ rtRpcServer::start()
 
   try
   {
-    m_thread.reset(new std::thread(&rtRpcServer::runListener, this));
+    m_thread.reset(new std::thread(&rtRemoteServer::runListener, this));
   }
   catch (std::exception const& err)
   {
@@ -253,7 +253,7 @@ rtRpcServer::start()
 }
 
 rtError
-rtRpcServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout)
+rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout)
 {
   rtError err = RT_OK;
   obj = rtObjectCache::findObject(name);
@@ -269,7 +269,7 @@ rtRpcServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t time
 
     if (err == RT_OK)
     {
-      std::shared_ptr<rtRpcClient> client;
+      std::shared_ptr<rtRemoteClient> client;
       std::string const endpointName = rtSocketToString(rpc_endpoint);
 
       auto itr = m_object_map.find(endpointName);
@@ -289,8 +289,8 @@ rtRpcServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t time
 
       if (!client)
       {
-        client.reset(new rtRpcClient(rpc_endpoint));
-	client->setMessageCallback(std::bind(&rtRpcServer::onIncomingMessage, this, 
+        client.reset(new rtRemoteClient(rpc_endpoint));
+	client->setMessageCallback(std::bind(&rtRemoteServer::onIncomingMessage, this, 
 	  std::placeholders::_1, std::placeholders::_2));
         err = client->open();
         if (err != RT_OK)
@@ -320,7 +320,7 @@ rtRpcServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t time
 }
 
 rtError
-rtRpcServer::openRpcListener()
+rtRemoteServer::openRpcListener()
 {
   int ret = 0;
 
@@ -366,7 +366,7 @@ rtRpcServer::openRpcListener()
 }
 
 rtError
-rtRpcServer::onOpenSession(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& req)
+rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& req)
 {
   rtCorrelationKey key = rtMessage_GetCorrelationKey(*req);
   char const* id = rtMessage_GetObjectId(*req);
@@ -405,7 +405,7 @@ rtRpcServer::onOpenSession(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr co
 }
 
 rtError
-rtRpcServer::onGet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc)
+rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc)
 {
   uint32_t key = rtMessage_GetCorrelationKey(*doc);
   char const* id = rtMessage_GetObjectId(*doc);
@@ -476,7 +476,7 @@ rtRpcServer::onGet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc
 }
 
 rtError
-rtRpcServer::onSet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc)
+rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc)
 {
   uint32_t key = rtMessage_GetCorrelationKey(*doc);
   char const* id = rtMessage_GetObjectId(*doc);
@@ -528,7 +528,7 @@ rtRpcServer::onSet(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc
 }
 
 rtError
-rtRpcServer::onMethodCall(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& doc)
+rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc)
 {
   uint32_t key = rtMessage_GetCorrelationKey(*doc);
   char const* id = rtMessage_GetObjectId(*doc);
@@ -607,7 +607,7 @@ rtRpcServer::onMethodCall(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr con
 }
 
 rtError
-rtRpcServer::onKeepAlive(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr const& req)
+rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& req)
 {
   uint32_t key = rtMessage_GetCorrelationKey(*req);
 
@@ -639,7 +639,7 @@ rtRpcServer::onKeepAlive(std::shared_ptr<rtRpcClient>& client, rtJsonDocPtr cons
 }
 
 rtError
-rtRpcServer::removeStaleObjects()
+rtRemoteServer::removeStaleObjects()
 {
   return rtObjectCache::removeUnused(); // m_keep_alive_interval, num_removed);
 }

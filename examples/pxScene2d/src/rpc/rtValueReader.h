@@ -6,12 +6,12 @@
 #include <rtValue.h>
 #include <rapidjson/document.h>
 
-class rtRpcClient;
+class rtRemoteClient;
 
 class rtValueReader
 {
 public:
-  static rtError read(rtValue& val, rapidjson::Value const& from, std::shared_ptr<rtRpcClient> const& client);
+  static rtError read(rtValue& val, rapidjson::Value const& from, std::shared_ptr<rtRemoteClient> const& client);
 };
 
 #endif
