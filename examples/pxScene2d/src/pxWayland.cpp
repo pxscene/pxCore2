@@ -268,6 +268,10 @@ void pxWayland::onDraw()
      WstCompositorSetOutputSize( mWCtx, mWidth, mHeight );
   }
   
+  bool needHolePunch= false;
+  int hints= WstHints_none;
+  std::vector<WstRect> rects;
+
   pxMatrix4f m;
   context.pushState();
   pxContextFramebufferRef previousFrameBuffer= context.getCurrentFramebuffer();
@@ -279,7 +283,10 @@ void pxWayland::onDraw()
                                 mWidth,
                                 mHeight,
                                 m.data(),
-                                context.getAlpha() );
+                                context.getAlpha(),
+                                hints,
+                                &needHolePunch,
+                                rects );
   context.setFramebuffer( previousFrameBuffer );
   context.popState();
   
