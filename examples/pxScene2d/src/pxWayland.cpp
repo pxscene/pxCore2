@@ -35,6 +35,10 @@ pxWayland::pxWayland()
     mReadyEmitted(false),
     mClientMonitorStarted(false),
     mWaitingForRemoteObject(false),
+    mX(0),
+    mY(0),
+    mWidth(0),
+    mHeight(0),
     mEvents(0),
     mClientPID(-1),
     mWCtx(0),
@@ -268,23 +272,70 @@ void pxWayland::onDraw()
      WstCompositorSetOutputSize( mWCtx, mWidth, mHeight );
   }
   
-  pxMatrix4f m;
+  int hints= 0;
+  if ( !isRotated() ) hints |= WstHints_noRotation;
+  
+  bool needHolePunch;
+  std::vector<WstRect> rects;
+  pxMatrix4f m= context.getMatrix();
   context.pushState();
   pxContextFramebufferRef previousFrameBuffer= context.getCurrentFramebuffer();
   context.setFramebuffer( mFBO );
   context.clear( mWidth, mHeight, mFillColor );
   WstCompositorComposeEmbedded( mWCtx, 
-                                mWidth,
-                                mHeight,
+                                mX,
+                                mY,
                                 mWidth,
                                 mHeight,
                                 m.data(),
-                                context.getAlpha() );
+                                context.getAlpha(),
+                                hints,
+                                &needHolePunch,
+                                rects );
   context.setFramebuffer( previousFrameBuffer );
   context.popState();
   
-  static pxTextureRef nullMaskRef;
-  context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
+  if ( needHolePunch )
+  {
+     if ( mFillColor )
+     {
+        static pxTextureRef nullMaskRef;
+        context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
+     }
+     GLfloat priorColor[4];
+     GLint priorBox[4];
+     GLint viewport[4];
+     bool wasEnabled= glIsEnabled(GL_SCISSOR_TEST);
+     glGetIntegerv( GL_SCISSOR_BOX, priorBox );
+     glGetFloatv( GL_COLOR_CLEAR_VALUE, priorColor );
+     glGetIntegerv( GL_VIEWPORT, viewport );
+     
+     glEnable( GL_SCISSOR_TEST );
+     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+     for( unsigned int i= 0; i < rects.size(); ++i )
+     {
+        WstRect r= rects[i];
+        if ( r.width && r.height )
+        {
+           glScissor( r.x, viewport[3]-(r.y+r.height), r.width, r.height );
+           glClear( GL_COLOR_BUFFER_BIT );
+        }
+     }
+     
+     if ( wasEnabled )
+     {
+        glScissor( priorBox[0], priorBox[1], priorBox[2], priorBox[3] );
+     }
+     else
+     {
+        glDisable( GL_SCISSOR_TEST );
+     }
+  }
+  else
+  {
+     static pxTextureRef nullMaskRef;
+     context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
+  }
 }
 
 void pxWayland::handleInvalidate()
@@ -343,6 +394,24 @@ uint32_t pxWayland::getModifiers( uint32_t flags )
       modifiers |= WstKeyboard_alt;
       
    return modifiers;
+}
+
+bool pxWayland::isRotated()
+{
+   float *f= context.getMatrix().data();
+   const float e= 1.0e-2;
+      
+   if ( (fabsf(f[1]) > e) ||
+        (fabsf(f[2]) > e) ||
+        (fabsf(f[4]) > e) ||
+        (fabsf(f[6]) > e) ||
+        (fabsf(f[8]) > e) ||
+        (fabsf(f[9]) > e) )
+   {
+      return true;
+   }
+   
+   return false;
 }
 
 void pxWayland::launchClient()
@@ -1091,6 +1160,7 @@ rtError pxWaylandContainer::setView(pxWayland* v)
   mWayland= v;
   if ( mWayland )
   {
+     mWayland->setPos( mx, my );
      mWayland->setEvents( this );
   }
   return pxViewContainer::setView(v);
@@ -1100,6 +1170,7 @@ void pxWaylandContainer::onInit()
 {
   if ( mWayland )
   {
+    mWayland->setPos( mx, my );
     mWayland->onInit();
   }
 }

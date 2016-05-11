@@ -2,6 +2,8 @@
 #include "stdlib.h"
 #include "memory.h"
 
+#include <vector>
+
 #include "westeros-compositor.h"
 
 #define WST_MAX_ERROR_DETAIL (512)
@@ -592,11 +594,7 @@ bool WstCompositorSetDispatchCallback( WstCompositor *ctx, WstDispatchCallback c
       result= true;
    }
 
-   goto exit;
-
-exit:
-
-   return result;
+   return result;   
 }
 
 bool WstCompositorSetInvalidateCallback( WstCompositor *ctx, WstInvalidateSceneCallback cb, void *userData )
@@ -763,12 +761,14 @@ exit:
    return result;
 }
 
-bool WstCompositorComposeEmbedded( WstCompositor *ctx, int width, int height, int resW, int resH, float *matrix, float alpha )
+bool WstCompositorComposeEmbedded( WstCompositor *ctx, 
+                                   int x, int y, int width, int height,
+                                   float *matrix, float alpha, 
+                                   unsigned int hints, 
+                                   bool *needHolePunch, std::vector<WstRect> &rects )
 {
   UNUSED_PARAM(width);
   UNUSED_PARAM(height);
-  UNUSED_PARAM(resW);
-  UNUSED_PARAM(resH);
   UNUSED_PARAM(matrix);
   UNUSED_PARAM(alpha);
 
@@ -789,7 +789,10 @@ bool WstCompositorComposeEmbedded( WstCompositor *ctx, int width, int height, in
                   "Bad state.  Compositor is not running" );
          goto exit;
       }
-
+      
+      *needHolePunch= false;
+      rects.clear();
+         
       result= true;
    }
 

@@ -95,6 +95,12 @@ public:
     mRemoteObjectMutex.unlock();
     return RT_OK;
   }
+  
+  void setPos( int x, int y )
+  {
+     mX= x;
+     mY= y;
+  }
 
   virtual void onInit();
 
@@ -120,6 +126,8 @@ private:
   bool mReadyEmitted;
   bool mClientMonitorStarted;
   bool mWaitingForRemoteObject;
+  int mX;
+  int mY;
   int mWidth;
   int mHeight;
 
@@ -136,6 +144,7 @@ private:
   static void *clientMonitorThread( void *data );
   static void *findRemoteThread(void *data);
   uint32_t getModifiers( uint32_t flags );
+  bool isRotated();
   uint32_t linuxFromPX( uint32_t keyCode );
   void startRemoteObjectDetection();
   rtError connectToRemoteObject();
