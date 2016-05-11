@@ -763,7 +763,11 @@ exit:
    return result;
 }
 
-bool WstCompositorComposeEmbedded( WstCompositor *ctx, int width, int height, int resW, int resH, float *matrix, float alpha )
+bool WstCompositorComposeEmbedded( WstCompositor *ctx,
+                                   int width, int height, int resW, int resH,
+                                   float *matrix, float alpha,
+                                   unsigned int hints,
+                                   bool *needHolePunch, std::vector<WstRect> &rects )
 {
   UNUSED_PARAM(width);
   UNUSED_PARAM(height);
@@ -771,6 +775,9 @@ bool WstCompositorComposeEmbedded( WstCompositor *ctx, int width, int height, in
   UNUSED_PARAM(resH);
   UNUSED_PARAM(matrix);
   UNUSED_PARAM(alpha);
+  UNUSED_PARAM(hints);
+  UNUSED_PARAM(needHolePunch);
+  UNUSED_PARAM(rects);
 
    bool result= false;
 
