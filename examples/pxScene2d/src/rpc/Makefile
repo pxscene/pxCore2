@@ -11,7 +11,7 @@ RTCORE_SRCS=\
   ../rtLog.cpp \
   ../rtValue.cpp \
   ../rtObject.cpp \
-  ../rtError.cpp 
+  ../rtError.cpp
 
 
 RTRPC_SRCS=\
