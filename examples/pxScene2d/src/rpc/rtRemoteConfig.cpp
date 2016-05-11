@@ -61,20 +61,7 @@ static T numeric_cast(char const* s, std::function<T (const char *nptr, char **e
     return T();
   }
 
-<<<<<<< HEAD:examples/pxScene2d/src/rpc/rtRemoteConfig.cpp
   return val;
-=======
-  return l;
-}
-
-template<class T>
-static T numeric_cast(char const* s)
-{
-  long unsigned int l = to_long(s);
-  long unsigned int max = std::numeric_limits<T>::max();
-  assert(l <= max);
-  return static_cast<T>(l);
->>>>>>> b56403dd8a69a9a2902f37b5218318aa57ca16c0:examples/pxScene2d/src/rpc/rtRpcConfig.cpp
 }
 
 static std::shared_ptr<rtRemoteConfig> gConf;
@@ -199,13 +186,8 @@ rtRemoteConfig::fromFile(char const* file)
     rtLogError("null file path");
     return conf;
   }
-<<<<<<< HEAD:examples/pxScene2d/src/rpc/rtRemoteConfig.cpp
-  
-  std::unique_ptr<FILE, int (*)(FILE *)> f(fopen(file, "r"), fclose);
-=======
 
-  FILE* f = fopen(file, "r");
->>>>>>> b56403dd8a69a9a2902f37b5218318aa57ca16c0:examples/pxScene2d/src/rpc/rtRpcConfig.cpp
+  std::unique_ptr<FILE, int (*)(FILE *)> f(fopen(file, "r"), fclose);
   if (!f)
   {
     rtLogDebug("can't open: %s. %s", file, strerror(errno));
@@ -238,17 +220,12 @@ rtRemoteConfig::fromFile(char const* file)
     while (end && (*end != '='))
       end++;
 
-<<<<<<< HEAD:examples/pxScene2d/src/rpc/rtRemoteConfig.cpp
     if (end && *end != '=')
     {
       rtLogWarn("invalid configuration line: '%s'", p);
       continue;
     }
     
-=======
-    assert(end && *end == '=');
-
->>>>>>> b56403dd8a69a9a2902f37b5218318aa57ca16c0:examples/pxScene2d/src/rpc/rtRpcConfig.cpp
     std::string name = trim(begin, end);
 
     begin = end + 1;
@@ -263,7 +240,7 @@ rtRemoteConfig::fromFile(char const* file)
     if (itr != conf->m_map.end())
     {
       rtLogInfo("overwriting configuration val '%s' -> '%s' with '%s'",
-	itr->first.c_str(), itr->second.c_str(), val.c_str());
+          itr->first.c_str(), itr->second.c_str(), val.c_str());
     }
 
     conf->m_map[name] = val;
