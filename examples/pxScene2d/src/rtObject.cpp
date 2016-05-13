@@ -103,7 +103,7 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
         rtValue discard;
         // have to invoke all no opportunity to return errors
         // SYNC EVENTS
-#if 1
+#ifndef DISABLE_SYNC_EVENTS
         // SYNC EVENTS ... enables stopPropagation() ...
         //
         e.f->Send(numArgs-1, args+1, &discard);
