@@ -13,8 +13,17 @@
 
 class rtString {
 public:
+  /**
+   * Default constructor
+   */
   rtString();
+
+  /**
+   * Constructor
+   * @param s A c-style string that must be null-terminated
+   */
   rtString(const char* s);
+
   rtString(const char* s, uint32_t byteLen);
   rtString(const rtString& s);
   
@@ -22,18 +31,29 @@ public:
   
   rtString& operator=(const rtString& s);
   rtString& operator=(const char* s);
-  
+
+  /**
+   * Determines if the string is empty.
+   * @returns true if string length is zero or is null
+   */
   bool isEmpty() const;
+
   void term();
 
   void append(const char* s);
 
   int compare(const char* s) const;
 
-  // number of utf8 characters
+  /**
+   * The length of the string in utf8 characters.
+   * @returns The number of utf8 characters.
+   */
   int32_t length() const;
   
-  // number of bytes
+  /**
+   * The length of the string in bytes.
+   * @returns The number of bytes in the string.
+   */
   int32_t byteLength() const;
 
 #if 0
