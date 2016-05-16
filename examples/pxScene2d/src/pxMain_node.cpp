@@ -11,8 +11,13 @@
 
 #include "jsbindings/rtWrapperUtils.h"
 
+#if 0
 #define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
 #define EXITSCENELOCK()  rtWrapperSceneUpdateExit(); 
+#else
+#define ENTERSCENELOCK()
+#define EXITSCENELOCK()
+#endif
 
 rtNode script;
 pxEventLoop  eventLoop;
