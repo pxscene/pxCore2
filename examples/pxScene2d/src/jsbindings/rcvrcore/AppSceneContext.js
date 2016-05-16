@@ -64,14 +64,14 @@ AppSceneContext.prototype.loadScene = function() {
 
   this.container.on('onKeyDown', function (e) {
     log.message(2, "container(" + this.packageUrl + "): keydown:" + e.keyCode);
-  }.bind(this));
+  }/*.bind(this));*/);
+
   this.innerscene.on('onKeyDown', function (e) {
     log.message(2, "innerscene(" + this.packageUrl + "): keydown:" + e.keyCode);
-  }.bind(this));
+  }/*.bind(this));*/);
   this.innerscene.root.on('onKeyDown', function (e) {
     log.message(2, "innerscene root(" + this.packageUrl + "): keydown:" + e.keyCode);
-  }.bind(this));
-
+  }/*.bind(this));*/);
 
   this.innerscene.on('onComplete', function (e) {
     this.container = null;
@@ -80,6 +80,10 @@ AppSceneContext.prototype.loadScene = function() {
     for(var key in this.scriptMap) {
       this.scriptMap[key].scriptObject = null;
       this.scriptMap[key].readyListeners = null;
+/* JRJRJR
+      delete this.scriptMap[key].scriptObject;
+      delete this.scriptMap[key].readyListeners;
+*/
     }
     this.scriptMap = null;
     for(var xmodule in this.xmoduleMap) {
@@ -90,7 +94,7 @@ AppSceneContext.prototype.loadScene = function() {
     this.jarFileMap = null;
     this.sceneWrapper = null;
     global.gc();
-  }.bind(this));
+  }/*.bind(this));*/);
 
 
   log.info("loadScene() - ends");
@@ -102,6 +106,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
 
   var moduleLoader = new SceneModuleLoader();
 
+
   moduleLoader.loadScenePackage(this.innerscene, {fileUri:packageUri})
     .then(function processScenePackage() {
       _this.fileArchive = moduleLoader.getFileArchive();
@@ -110,10 +115,10 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
 
       var configImport = {};
       if( moduleLoader.isDefaultManifest() ) {
-        // let's see if there's one on the server
         _this.getFile("package.json").then( function(packageFileContents) {
           var manifest = new SceneModuleManifest();
           manifest.loadFromJSON(packageFileContents);
+
           configImport = manifest.getConfigImport();
 
           var mainCode = _this.fileArchive.getFileContents(main);
@@ -213,11 +218,14 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
     thisAppSceneContext.sandbox = newSandbox; //xModule.sandbox;
 
     try {
-      this.innerscene.api = {isReady:false, onModuleReady:onAppModuleReady.bind(this) };
+      //JRJRJRJR  This line causing a garbage collection leak...
+      // LEAKLEAK
+      //this.innerscene.api = {isReady:false, onModuleReady:onAppModuleReady.bind(this) };
 
       var sourceCode = AppSceneContext.wrap(code);
       //var script = new vm.Script(sourceCode, fname);
       //var moduleFunc = script.runInNewContext(newSandbox, {filename:fname, displayErrors:true});
+
       var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {filename:fname, displayErrors:true});
       var px = createModule_pxScope.call(this, xModule);
       var rtnObject = moduleFunc(px, xModule, fname, this.basePackageUri);

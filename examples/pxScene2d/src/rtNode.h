@@ -5,11 +5,31 @@
 #include "rtObject.h"
 #include "rtValue.h"
 
+#ifndef WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
+#if 0
+#include "node.h"
+#endif
+
 #include "uv.h"
 #include "include/v8.h"
 #include "include/libplatform/libplatform.h"
 
+#if 1
+#ifndef WIN32
+#pragma GCC diagnostic pop
+#endif
+#endif
+
 #include <string>
+
+#include "jsbindings/rtWrapperUtils.h"
+#include "jsbindings/rtObjectWrapper.h"
+#include "jsbindings/rtFunctionWrapper.h"
+
 
 namespace node
 {
@@ -51,7 +71,7 @@ public:
 
   rtObjectRef runScript(const char        *script,  const char *args = NULL); // BLOCKS
   rtObjectRef runScript(const std::string &script,  const char *args = NULL); // BLOCKS
-  rtObjectRef runFile  (const char *file,           const char *args = NULL); // BLOCKS
+  rtObjectRef runFile  (const char *file,           const char *args); // BLOCKS
 
   rtObjectRef runScriptThreaded(const char *script, const char *args = NULL); // THREADED
   rtObjectRef runFileThreaded(const char *file,     const char *args = NULL); // THREADED
@@ -124,18 +144,17 @@ private:
 class rtNode
 {
 public:
-  rtNode();
-  rtNode(int argc, char** argv);
+//  rtNode();
+  rtNode(/*int argc, char** argv*/);
   ~rtNode();
 
   rtNodeContextRef getGlobalContext() const;
   rtNodeContextRef createContext(bool ownThread = false);
 
-  void init(int argc, char** argv);
-
   v8::Isolate   *getIsolate() { return mIsolate; };
   
 private:
+  void init(int argc, char** argv);
   void term();
 
   void nodePath();

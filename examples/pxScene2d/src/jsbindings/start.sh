@@ -21,4 +21,4 @@ export NODE_PATH=./:$jsbindingsDir/build/Debug:./node_modules
 
 echo $LD_LIBRARY_PATH
 
-node start.js url=$*
+node --expose-gc start.js url=$*

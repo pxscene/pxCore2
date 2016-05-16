@@ -961,7 +961,7 @@ public:
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
 
   pxScene2d(bool top = true);
-  virtual ~pxScene2d() {printf("deleting pxScene2d\n");}
+  virtual ~pxScene2d() {printf("***** deleting pxScene2d\n");}
   
   virtual unsigned long AddRef() 
   {
@@ -971,6 +971,7 @@ public:
   virtual unsigned long Release() 
   {
     long l = rtAtomicDec(&mRefCount);
+    //  printf("pxScene2d release %ld\n",l);
     if (l == 0)
       delete this;
     return l;

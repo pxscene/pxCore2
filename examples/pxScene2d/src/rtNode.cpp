@@ -62,6 +62,9 @@ static int exec_argc;
 static const char** exec_argv;
 
 
+args_t *s_gArgs;
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -518,6 +521,7 @@ rtObjectRef rtNodeContext:: runThread(const char *file)  // DEPRECATED
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#if 0
 rtNode::rtNode() : mPlatform(NULL)
 {
   __rt_main_thread__ = pthread_self();
@@ -527,9 +531,24 @@ rtNode::rtNode() : mPlatform(NULL)
   mIsolate     = Isolate::New();
   node_isolate = mIsolate; // Must come first !!
 }
+#endif
 
-rtNode::rtNode(int argc, char** argv) : mPlatform(NULL)
+rtNode::rtNode(/*int argc, char** argv*/) : mPlatform(NULL)
 {
+
+                              //0123456 789ABCDEF012 345 67890ABCDEF
+  static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Intialized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
+//  static const char *argv2[] = {&args2[0], &args2[7], NULL};
+  int          argc   = sizeof(argv2)/sizeof(char*) - 1;
+
+  static args_t aa(argc, (char**)argv2);
+
+  s_gArgs = &aa;
+
+
+  char **argv = aa.argv;
+
   __rt_main_thread__ = pthread_self(); //  NB
 
   nodePath();

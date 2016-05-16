@@ -1529,7 +1529,7 @@ void pxContext::mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int 
   }
 }
 
-bool pxContext::isObjectOnScreen(float x, float y, float width, float height)
+bool pxContext::isObjectOnScreen(float /*x*/, float /*y*/, float /*width*/, float /*height*/)
 {
 #if 1
   return true;

@@ -13,6 +13,16 @@ function Api(scene) {
   this._scene = scene;
 }
 
+
+setInterval(function() {
+  if (global.gc)
+  {
+//    console.log("trying to run gc");
+    global.gc();
+  }
+},1000);
+
+
 Api.prototype.destroyNodeFromScene = function(scene, node) {
   if (node) {
     var children = node.children;
@@ -79,7 +89,7 @@ Api.prototype.loadScriptForScene = function(container, scene, uri) {
         runtime   : apiForChild,
         process   : process,
         require   : secureRequire,
-        setTimeout: setTimeout,
+//        setTimeout: setTimeout,
       };
 
       if (err) {
@@ -186,7 +196,10 @@ var scene = px.getScene(0, 0, ww, eh);
 var api = new Api(scene);
 
 // register a "global" hook that gets invoked whenever a child scene is created
-scene.onScene = function(container, innerscene, url) {
+
+
+
+scene.onScene = function onScene(container, innerscene, url) {
     // TODO part of an experiment to eliminate intermediate rendering of the scene
     // while it is being set up
     // container when returned here has it's painting property set to false.
@@ -194,6 +207,8 @@ scene.onScene = function(container, innerscene, url) {
     // after the script has loaded
     api.loadScriptForScene(container,innerscene, url);
 };
+
+
 
 var argv = process.argv;
 

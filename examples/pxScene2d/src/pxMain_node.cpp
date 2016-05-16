@@ -1,492 +1,193 @@
 // pxCore Copyright 2007-2015 John Robinson
 // main.cpp
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#include <stdio.h>
-#include <pthread.h>
-
-
 #include "pxCore.h"
-
-
-#ifndef WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
-#include "node.h"
-
-#ifndef WIN32
-#pragma GCC diagnostic pop
-#endif
+#include "pxTimer.h"
+#include "pxEventLoop.h"
+#include "pxWindow.h"
+#include "pxScene2d.h"
 
 #include "rtNode.h"
+
 #include "jsbindings/rtWrapperUtils.h"
-#include "jsbindings/rtObjectWrapper.h"
-#include "jsbindings/rtFunctionWrapper.h"
 
-#include "jsbindings/jsWindow.h"
+#define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
+#define EXITSCENELOCK()  rtWrapperSceneUpdateExit(); 
 
-using namespace v8;
-using namespace node;
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+rtNode script;
 pxEventLoop  eventLoop;
-pxEventLoop* gLoop = &eventLoop;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-rtError getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx); // fwd
-
-//static void disposeNode(const FunctionCallbackInfo<Value>& args); //fwd
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//static void disposeNode(const FunctionCallbackInfo<Value>& args)
-//{
-//  printf("DEBUG:  disposeNode() ... ENTER \n");
-//
-//  if (args.Length() < 1)
-//    return;
-//
-//  if (!args[0]->IsObject())
-//    return;
-//
-//  Local<Object> obj = args[0]->ToObject();
-
-//  rtObjectWrapper* wrapper = static_cast<rtObjectWrapper *>(obj->GetAlignedPointerFromInternalField(0));
-//  if (wrapper)
-//    wrapper->dispose();
-//}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// MAIN()
-//
-
-void testWindows();
-void testContexts();
-void testContextsLeak();
-
-args_t *s_gArgs;
-
-int pxMain()
+rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx)
 {
-  #pragma GCC diagnostic ignored "-Wwrite-strings"
-  
-                       //012345678 90ABCDEF0 1234567890ABCDEF
-  static char *args   = "rtNode\0-e\0var pxArg_url=\"browser.js\"\0\0";
-  static char *argv[] = {&args[0], &args[7],  &args[10], NULL};
-  int          argc   = sizeof(argv)/sizeof(char*) - 1;
-
-  static args_t aa(argc, argv);
-  s_gArgs = &aa;
-
-  testWindows(); /// multi threaded
- // testContextsLeak();  /// single threaded
-
-   return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class testWindow: public xxWindow //public pxViewWindow
-{
-public:
-
-  testWindow(int x, int y, int w, int h) : 
-      xxWindow(NULL, x, y, w, h)
-  {
-    
-  }
-  
-  std::string debug_name;
-
-  void setScene(rtNodeContextRef ctx, pxScene2dRef s)
-  {
-    rtValue v = new rtFunctionCallback(getScene, s.getPtr());
-
-    ctx->add("getScene", v);
-
-    mScene = s;
-  }
-
-  void onClose()
-  {
-    printf("\n\n #############\n #############  onClose() \n #############\n\n");
-  }
-
-  void onCloseRequest()
-  {
-    printf("\n\n #############\n #############  onCloseRequest() \n #############\n\n");
-
-    // When someone clicks the close box no policy is predefined.
-    // so we need to explicitly tell the event loop to exit
-  //  eventLoop.exit();
-  }
-
-private:
-
-  pxScene2dRef        mScene;
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-rtError getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
-{
-  UNUSED_PARAM(numArgs);
-  UNUSED_PARAM(args);
-
-  // We don't use the arguments so just return the scene object reference
   if (result)
-  {
-    pxScene2dRef s = (pxScene2d*)ctx;
-
-    *result = s; // return the scene reference
-  }
+    *result = (pxScene2d*)ctx;; // return the scene reference
 
   return RT_OK;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#define USE_CONTEXT_1
-#define USE_WINDOW_1
-
-//#define USE_CONTEXT_2
-//#define USE_WINDOW_2
-
-//#define USE_CONTEXT_3
-//#define USE_WINDOW_3
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void testWindows()
-{
-  rtNode node1(s_gArgs->argc, s_gArgs->argv);
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  //
-  // Setup node CONTEXT...
-  //
-
-#ifdef USE_CONTEXT_1
-
-  rtNodeContextRef ctx1 = node1.createContext();
-
-#endif
-
-#ifdef USE_CONTEXT_2
-
-  rtNodeContextRef ctx2 = node1.createContext();
-
-#endif
-
-#ifdef USE_CONTEXT_3
-
-  rtNodeContextRef ctx3 = node1.createContext();
-
-#endif
-
-  printf("\n Setup WINDOW and SCENE");  fflush(stdout);
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  //
-  // Setup WINDOW and SCENE
-  //
-#ifdef USE_WINDOW_1
-
-  static testWindow win1(10, 10, 1280, 720);
-
-  pxScene2dRef scene1 = new pxScene2d;
-
-//  win1.setTitle(">> Window 1 <<");
-//  win1.setVisibility(true);
-  win1.setView(scene1);
-//  win1.setAnimationFPS(60);
-
-  win1.debug_name = "WindowOne";
-
-  win1.setScene(ctx1, scene1);
-
- // The ADD "scene" approach requires a change to pxRoot.js 
- //
- // ctx1->add("scene", rtValue( scene1.getPtr() ));
-
-  scene1->init();
-
-#endif
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  //
-  // Setup WINDOW and SCENE
-  //
-#ifdef USE_WINDOW_2
-
-  static testWindow win2(810, 10, 1280, 720);
-
-  pxScene2dRef scene2 = new pxScene2d;
-
-  // win2.setTitle(">> Window 2 <<");
-  // win2.setVisibility(true);
-  win2.setView(scene2);
-//  win2.setAnimationFPS(60);
-
-  win2.debug_name = "WindowTwo";
-
-  win2.setScene(ctx2, scene2);
-
-  scene2->init();
-
- // ctx2->add("scene", rtValue( scene2.getPtr() ));
-  
-#endif
-
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  //
-  // Setup WINDOW and SCENE
-  //
-#ifdef USE_WINDOW_3
-
-  static testWindow win3;
-
-  pxScene2dRef scene3 = new pxScene2d;
-
-  win3.init(10, 610, 750, 550);
-
-  win3.setTitle(">> Window 3 <<");
-  win3.setVisibility(true);
-  win3.setView(scene3);
-  win3.setAnimationFPS(60);
-
-  win3.debug_name = "WindowThree";
-
-  win3.setScene(ctx3, scene3);
-
-  scene3->init();
-
-#endif
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  //
-  // RUN !
-  //
-
-#ifdef USE_WINDOW_1
-  printf("\n### Window Run 1A"); // ##############################
-
-//  ctx1->runScript("console.log(\"Hello\")");
-//  ctx1->runScript("sayHello");
-
-//  ctx1->runFileThreaded("start.js" );
-
-  ctx1->runThread("start.js");
-
-//  ctx1->Release();
-
-#endif
-
-#ifdef USE_WINDOW_2
-//  printf("\n### Window Run 2A"); // ##############################
-
-  ctx2->runFileThreaded("start.js");
-
-  printf("\n### Window Run 2B"); // ##############################
-#endif
-
-#ifdef USE_WINDOW_3
-//  printf("\n### Window Run 3A"); // ##############################
-
-//  ctx3->runFile("start.js");
-  ctx3->runFile("fancyp.js");
-
-  printf("\n### Window Run 3B"); // ##############################
-#endif
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-//  use_debug_agent = true;
-//  debug_wait_connect = true;
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#if defined(USE_WINDOW_1) || defined(USE_WINDOW_2) || defined(USE_WINDOW_3)
-
-  eventLoop.run(); // BLOCKS
-  
-  printf("\n INFO:  eventLoop() .... exited !");
-  
-#endif
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-//  while(true)
-//  {
-//    usleep(1000); // 1 second
-//    printf("\n###########################  TICK1 always !!");
-//  }
-
-  getchar();
-  printf("\n INFO:  EXITING 11111");
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class Timer
+class sceneWindow : public pxWindow, public pxIViewContainer
 {
 public:
-  Timer()
+  sceneWindow() {}
+  virtual ~sceneWindow() {}
+
+  void init(int x, int y, int w, int h, const char* uri = NULL)
   {
-    clock_gettime(CLOCK_REALTIME, &beg_);
+    pxWindow::init(x,y,w,h);
+
+    pxScene2dRef scene = new pxScene2d;
+    scene->init();
+    
+    setView(scene);
+
+    ctx = script.createContext();
+    ctx->add("getScene", new rtFunctionCallback(getScene, scene.getPtr()));
+
+    char buffer[256];
+    sprintf(buffer, "var pxArg_url=\"%s\";", uri?uri:"browser.js");
+    ctx->runScript(buffer);
+    ctx->runFile("start.js");
+  }
+  
+  rtError setView(pxIView* v)
+  {
+    mView = v;
+
+    if (v)
+    {
+      v->setViewContainer(this);
+      onSize(mWidth,mHeight);
+    }
+      
+    return RT_OK;
   }
 
-  double elapsed()
+  virtual void invalidateRect(pxRect* r)
   {
-    clock_gettime(CLOCK_REALTIME, &end_);
-    return end_.tv_sec  - beg_.tv_sec +
-          (end_.tv_nsec - beg_.tv_nsec) / 1000000000.;
+    pxWindow::invalidateRect(r);
   }
 
-  void reset()
-  {
-    clock_gettime(CLOCK_REALTIME, &beg_);
+protected:
+
+  virtual void onSize(int32_t w, int32_t h)
+  {     
+    mWidth  = w;
+    mHeight = h;
+    ENTERSCENELOCK();
+    if (mView)
+      mView->onSize(w, h);
+    EXITSCENELOCK();
   }
 
-private:
-    timespec beg_, end_;
+  virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags)
+  {
+    ENTERSCENELOCK();
+    if (mView)
+      mView->onMouseDown(x, y, flags);
+    EXITSCENELOCK();
+  }
+
+  virtual void onCloseRequest() {}
+
+  virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)
+  {
+    ENTERSCENELOCK();
+    if (mView)
+      mView->onMouseUp(x, y, flags);
+    EXITSCENELOCK();
+  }
+
+  virtual void onMouseLeave()
+  {
+    ENTERSCENELOCK();
+    if (mView)
+      mView->onMouseLeave();
+    EXITSCENELOCK();
+  }
+
+  virtual void onMouseMove(int32_t x, int32_t y)
+  {
+    ENTERSCENELOCK();
+    if (mView)
+      mView->onMouseMove(x, y);
+    EXITSCENELOCK();
+  }
+
+  virtual void onFocus()
+  {
+    ENTERSCENELOCK();
+    if (mView)
+      mView->onFocus();
+    EXITSCENELOCK();
+  }
+  virtual void onBlur()
+  {
+    ENTERSCENELOCK();
+    if (mView)
+      mView->onBlur();
+    EXITSCENELOCK();
+  }
+
+  virtual void onKeyDown(uint32_t keycode, uint32_t flags)
+  {
+    ENTERSCENELOCK();
+    if (mView)
+    {
+      mView->onKeyDown(keycode, flags);
+    }
+    EXITSCENELOCK();
+  }
+
+  virtual void onKeyUp(uint32_t keycode, uint32_t flags)
+  {
+    ENTERSCENELOCK();
+    if (mView)
+      mView->onKeyUp(keycode, flags);
+    EXITSCENELOCK();
+  }
+  
+  virtual void onChar(uint32_t c)
+  {
+    ENTERSCENELOCK();
+    if (mView)
+      mView->onChar(c);
+    EXITSCENELOCK();
+  }
+
+  virtual void onDraw(pxSurfaceNative )
+  {
+    ENTERSCENELOCK();
+    if (mView)
+      mView->onDraw();
+    EXITSCENELOCK();
+  }
+
+  virtual void onAnimationTimer()
+  {
+    ENTERSCENELOCK();
+    if (mView)
+      mView->onUpdate(pxSeconds());
+    EXITSCENELOCK();
+  }
+
+  int mWidth;
+  int mHeight;
+  rtRefT<pxIView> mView;
+
+  rtNodeContextRef ctx;
 };
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void testContextsLeak()
+int pxMain()
 {
- rtNode node1;
- node1.init(s_gArgs->argc, s_gArgs->argv);
-      
-  for (int i = 0; i< 2; i++)
-  { 
-    //printf("\n\nCREATE ctx >>>  Press ENTER key...");
-    //getchar();
-    
-    {//scope
-      // rtNode node1;
+  sceneWindow win;
+  win.init(10, 10, 1280, 720, "browser.js");
 
-      // printf("\nINFO: Calling  node1.init() ..."); fflush(stdout);
-     
-      // node1.init(s_gArgs->argc, s_gArgs->argv);
-      
-      printf("\nINFO: Calling  node1.createContext() ..."); fflush(stdout);
-
-      rtNodeContextRef ctx1 = node1.createContext();
-
-     // printf("\n\nDESTROY ctx >>>  Press ENTER key...");
-     // getchar();
-
-      printf("\nINFO: Calling   ctx1->Release() ..."); fflush(stdout);
-      
-      ctx1->Release();
-    }//scope   
-  }//FOR
+  #if 0
+  sceneWindow win2;
+  win2.init(50, 50, 1280, 720);
+  #endif
+  
+  eventLoop.run();
+  
+  return 0;
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-//#define NODE_PER
-
-void testContexts()
-{
-  rtNodeContextRef ctx1;
-
-  double elapsed = 0.0;
-
-  Timer tm_node;
-
-  static rtNode node1(s_gArgs->argc, s_gArgs->argv);  // MUST BE STATIC !
-
-  elapsed = tm_node.elapsed();
-
-  printf("\n NODE() ... took %f seconds", elapsed);
-
-  #define MYNODE node1
-
-#ifdef NODE_PER
-  double     min_node = 990.0;
-  double     max_node = 0.0;
-  double elapsed_node = 0.0;
-
-#endif
-
-  double     min_ctx = 990.0;
-  double     max_ctx = 0.0;
-  double elapsed_ctx = 0.0;
-
-  int    total_iterations = 4;
-
-  for (int i = 0; i< total_iterations; i++)
-  {
-
-#ifdef NODE_PER
-    Timer tm_node;
-    rtNode node_per;
-    elapsed = tm_node.elapsed();
-
-    elapsed_node += elapsed;
-
-    max_node = (max_node >= elapsed) ? max_node : elapsed;
-    min_node = (min_node <  elapsed) ? min_node : elapsed;
-
-#define MYNODE node_per
-
-#endif
-
-    Timer tm_ctx;
-    ctx1 = MYNODE.createContext();
-    elapsed = tm_ctx.elapsed();
-
-    if(i < 3)  printf("\n createContext() ... took %f seconds", elapsed);
-
-    elapsed_ctx += elapsed;
-
-    max_ctx = (max_ctx >= elapsed) ? max_ctx : elapsed;
-    min_ctx = (min_ctx <  elapsed) ? min_ctx : elapsed;
-
-    ctx1->runFileThreaded("test1sec.js");
-
-    ctx1->Release();
-  }//FOR
-
-  printf("\n");
-  printf("\n");
-
-#ifdef NODE_PER
-  double avg_node = (elapsed_node / (double) total_iterations);
-
-  printf("\n###    NODE: %d iterations took %f seconds  (%f sec average)", total_iterations,  elapsed_node, avg_node);
-  printf("\n###          Max =  %f seconds  Min = %f seconds", max_node, min_node);
-  printf("\n");
-#endif
-
-  double avg_ctx  = (elapsed_ctx  / (double) total_iterations);
-
-  printf("\n### CONTEXT: %d iterations took %f seconds  (%f sec average)", total_iterations,  elapsed_ctx, avg_ctx);
-  printf("\n###          Max =  %f seconds  Min = %f seconds", max_ctx, min_ctx);
-
-
-  printf("\n");
-  printf("\n");
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

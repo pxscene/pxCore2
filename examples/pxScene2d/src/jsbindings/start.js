@@ -1,4 +1,14 @@
 
+setInterval(function() {
+  if (global.gc)
+  {
+ //   console.log("trying to run gc");
+    global.gc();
+  }
+},1000);
+
+
+
 var px;
 
 if ( typeof(getScene) == 'undefined' )

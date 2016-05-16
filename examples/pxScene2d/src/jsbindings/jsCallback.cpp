@@ -70,6 +70,8 @@ void jsCallback::doCallback(uv_work_t* req, int /* status */)
 
 rtValue jsCallback::run()
 {
+  HandleScope handle_scope(mIsolate);
+
   Handle<Value>* args = this->makeArgs();
 
   // TODO: This context is almost certainly wrong!!!
