@@ -612,7 +612,8 @@ void rtNode::term()
 {
   if(node_is_initialized)
   {
-    node_isolate->Dispose();
+// JRJRJR  Causing crash???  ask Hugh
+//    node_isolate->Dispose();
     node_isolate = NULL;
     mIsolate = NULL;
 

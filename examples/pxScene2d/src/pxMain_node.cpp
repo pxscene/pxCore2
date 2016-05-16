@@ -177,10 +177,10 @@ protected:
   rtNodeContextRef ctx;
 };
 
-int pxMain()
+int pxMain(int argc, char* argv[])
 {
   sceneWindow win;
-  win.init(10, 10, 1280, 720, "browser.js");
+  win.init(10, 10, 1280, 720, (argc >= 2)?argv[1]:"browser.js");
 
   #if 0
   sceneWindow win2;

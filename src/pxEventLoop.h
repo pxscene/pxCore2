@@ -7,7 +7,7 @@
 
 // Prototype for the portable entry point for applications using the
 // pxCore framework
-int pxMain();
+int pxMain(int argc, char* argv[]);
 
 // Class used to manage an application's main event loop
 class pxEventLoop
