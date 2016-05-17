@@ -53,21 +53,21 @@ if (false) {
   scene.root.on("onPreKeyDown", function(e) {
 	  var code = e.keyCode; var flags = e.flags;
     console.log("onKeyDown:", code, ", ", flags);
-    if (code == 89 && (flags & 48)) {  // ctrl-alt-y
+    if (code == 89 && ((flags & 48)==48)) {  // ctrl-alt-y
       showFPS = !showFPS
       fpsBg.a = (showFPS)?1.0:0;
       e.stopPropagation();
     }
-    if (code == 79 && (flags & 48)) {  // ctrl-alt-o
+    if (code == 79 && ((flags & 48) == 48)) {  // ctrl-alt-o
       scene.showOutlines = !scene.showOutlines;
       e.stopPropagation();
     }
-    else if (code == 82 && (flags & 48)) {  // ctrl-alt-r
+    else if (code == 82 && ((flags & 48) == 48)) {  // ctrl-alt-r
       console.log("Reloading url: ", originalURL);
       childScene.url = originalURL;
       e.stopPropagation();
     }
-    else if (code == 72 && (flags & 48)) {  // ctrl-alt-h
+    else if (code == 72 && ((flags & 48)==48)) {  // ctrl-alt-h
       var homeURL = "browser.js";
       console.log("loading home url: ", homeURL);
       childScene.url = homeURL;
@@ -95,9 +95,9 @@ console.log("here");
 	  var code = e.keyCode; var flags = e.flags;
     console.log("onKeyUp:", code, ", ", flags);
     // eat the ones we handle here
-    if (code == 89 && (flags & 48)) e.stopPropagation(); // ctrl-alt-y
-    if (code == 79 && (flags & 48)) e.stopPropagation(); // ctrl-alt-o
-    else if (code == 82 && (flags | 48)) e.stopPropagation(); // ctrl-alt-r
+    if (code == 89 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-y
+    else if (code == 79 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-o
+    else if (code == 82 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-r
   });
 
   scene.root.on("onPreChar", function(e) {
