@@ -5,7 +5,7 @@
     'node_use_etw%': 'false',
     'node_use_perfctr%': 'false',
     'node_has_winsdk%': 'false',
-    'node_target_type%': 'shared_library', #  'executable',
+    'node_target_type%': 'shared_library' , # 'shared_library', #  'executable',
     'node_shared_v8%': 'false',
     'node_shared_zlib%': 'false',
     'node_shared_http_parser%': 'false',
@@ -100,7 +100,7 @@
         'src/node_file.cc',
         'src/node_http_parser.cc',
         'src/node_javascript.cc',
-        'src/node_main.cc',
+    #    'src/node_main.cc',
         'src/node_os.cc',
         'src/node_v8.cc',
         'src/node_stat_watcher.cc',
@@ -169,6 +169,13 @@
       ],
 
       'conditions': [
+#MODIFIED CODE
+        [ 'node_target_type=="executable"', {
+          'sources': [
+             'src/node_main.cc'
+          ]
+        }],
+#MODIFIED CODE
         [ 'gcc_version<=44', {
           # GCC versions <= 4.4 do not handle the aliasing in the queue
           # implementation, so disable aliasing on these platforms
