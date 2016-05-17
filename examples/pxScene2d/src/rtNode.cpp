@@ -330,6 +330,8 @@ rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NU
 
 rtObjectRef rtNodeContext::runScript(const std::string &script, const char *args /*= NULL*/)
 {
+
+  printf("In rtNodeContext::runScript\n");
   if(script.empty())
   {
     rtLogError(" - no script given.");
@@ -361,6 +363,8 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char *args
 
 //    printf("DEBUG:  %15s()    - RESULT = %s\n", __FUNCTION__, *utf8);  // TODO:  Probably need an actual RESULT return mechanisim
   }//scope
+
+  printf("Exit rtNodeContext::runscript\n");
 
     return rtObjectRef(0);// JUNK
 }

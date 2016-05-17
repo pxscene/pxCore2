@@ -150,7 +150,7 @@ unsigned char *base64_decode(const unsigned char *data,
 }
 
 // TODO get rid of globals
-pxContext context;
+extern pxContext context;
 rtFunctionRef gOnScene;
 
 #if 0
@@ -1071,6 +1071,7 @@ pxScene2d::pxScene2d(bool top)
   #endif
 }
 
+#if 0
 void pxScene2d::init()
 {
   rtLogInfo("Object Sizes");
@@ -1084,6 +1085,7 @@ void pxScene2d::init()
   // TODO move this to the window
   context.init();
 }
+#endif
 
 rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
@@ -1200,6 +1202,7 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
+  printf("creating scene container\n");
   o = new pxSceneContainer(this);
   o.set(p);
   o.send("init");
@@ -1423,6 +1426,11 @@ void pxScene2d::onSize(int32_t w, int32_t h)
   e.set("w", w);
   e.set("h", h);
   mEmit.send("onResize", e);
+
+#if 0 // JRJR... this shouldn't crash
+  if (mContainer)
+    mContainer->invalidateRect(NULL);
+#endif
 }
 
 void pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
@@ -2000,6 +2008,8 @@ rtError pxSceneContainer::setUrl(rtString v)
   // and create a new promise for the context of this Url
   mReady.send("reject", this); 
   mReady = new rtPromise;  
+
+#if 0
   rtRefT<pxScene2d> newScene = new pxScene2d(false);
   setView(newScene);
   if (mScene.getPtr() != NULL)
@@ -2012,10 +2022,15 @@ rtError pxSceneContainer::setUrl(rtString v)
   {
     // TODO experiment to improve interstitial rendering at scene load time
     // assuming that the script loading code restores painting at a "good" time
-    setPainting(false);
+    //setPainting(false);
     gOnScene.send((rtObject*)this, newScene.getPtr(), mUrl);
     //mReady.send("resolve",this);
   }
+#else
+  printf("begin load scene %s\n", v.cString());
+  setView(new pxScriptView(v.cString(),""));
+  printf("end load scene %s\n", v.cString());
+#endif
   return RT_OK; 
 }
 
@@ -2045,3 +2060,51 @@ rtError createObject2(const char* t, rtObjectRef& o)
   return gObjectFactory(gObjectFactoryContext, t, o);
 }
 #endif
+
+rtNode script;
+
+pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContainer(NULL), mRefCount(0)
+  {
+    rtLogError("creating pxScriptView");
+    mCtx = script.createContext();
+    if (mCtx)
+    {
+      mCtx->add("getScene", new rtFunctionCallback(getScene, this));
+
+      char buffer[256];
+      sprintf(buffer, "var _url=\"%s\";", url);
+      mCtx->runScript(buffer);
+      printf("Running init for %s\n", url);
+      mCtx->runFile("init.js");    
+    }
+  }
+
+rtError pxScriptView::getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx)
+{
+  rtLogError("@@@@@@@@@@  In getScene\n");
+    // JR Todo can specify what scene version/type to create in args
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+    if (!v->mApi)
+    {
+      static bool top = true;
+      pxScene2dRef scene = new pxScene2d(top);
+      top = false;
+      v->mView = scene;
+      v->mApi = scene;
+      
+      v->mView->setViewContainer(v->mViewContainer);
+      v->mView->onSize(v->mWidth,v->mHeight);
+//      v->mViewContainer->invalidateRect(NULL);
+    }
+    
+    if (result)
+    {
+      *result = v->mApi;
+      return RT_OK;
+    }
+  }
+  
+  return RT_FAIL;
+}

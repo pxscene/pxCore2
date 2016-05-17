@@ -48,6 +48,9 @@ using namespace std;
 
 #include "testView.h"
 
+#include "rtNode.h"
+
+
 //Uncomment to enable display of pointer by pxScene
 //#define USE_SCENE_POINTER
 
@@ -918,6 +921,132 @@ private:
 
 typedef rtRefT<pxObject> pxObjectRef;
 
+// Important that this have a separate lifetime from scene object
+class pxScriptView: public pxIView
+{
+public:
+  pxScriptView(const char* url, const char* /*lang*/);
+
+  virtual ~pxScriptView()
+  {
+    if (mView)
+      setViewContainer(NULL);
+  }
+
+  virtual unsigned long AddRef() 
+  {
+    return rtAtomicInc(&mRefCount);
+  }
+  
+  virtual unsigned long Release() 
+  {
+    long l = rtAtomicDec(&mRefCount);
+    //  printf("pxScene2d release %ld\n",l);
+    if (l == 0)
+      delete this;
+    return l;
+  }
+  
+protected:
+
+  static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
+
+  virtual void onSize(int32_t w, int32_t h)
+  {
+    mWidth = w;
+    mHeight = h;
+    if (mView)
+      mView->onSize(w,h);
+  }
+
+  virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags)
+  {
+    if (mView)
+      mView->onMouseDown(x,y,flags);
+  }
+
+  virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)
+  {
+    if (mView)
+      mView->onMouseUp(x,y,flags);
+  }
+
+  virtual void onMouseMove(int32_t x, int32_t y)
+  {
+    if (mView)
+      mView->onMouseMove(x,y);
+  }
+
+  virtual void onMouseEnter()
+  {
+    if (mView)
+      mView->onMouseEnter();
+  }
+
+  virtual void onMouseLeave()
+  {
+    if (mView)
+      mView->onMouseLeave();
+  }
+
+  virtual void onFocus()
+  {
+    if (mView)
+      mView->onFocus();
+  }
+
+  virtual void onBlur()
+  {
+    if (mView)
+      mView->onBlur();
+  }
+
+  virtual void onKeyDown(uint32_t keycode, uint32_t flags)
+  {
+    if (mView)
+      mView->onKeyDown(keycode, flags);
+  }
+
+  virtual void onKeyUp(uint32_t keycode, uint32_t flags)
+  {
+    if (mView)
+      mView->onKeyUp(keycode,flags);
+  }
+
+  virtual void onChar(uint32_t codepoint)
+  {
+    if (mView)
+      mView->onChar(codepoint);
+  }
+
+  virtual void onUpdate(double t)
+  {
+    if (mView)
+      mView->onUpdate(t);
+  }
+
+  virtual void onDraw(/*pxBuffer& b, pxRect* r*/)
+  {
+    if (mView)
+      mView->onDraw();
+  }
+
+  virtual void setViewContainer(pxIViewContainer* l)
+  {
+    mViewContainer = l;
+    if (mView)
+      mView->setViewContainer(l);
+  }
+
+  int mWidth;
+  int mHeight;
+  rtObjectRef mApi;
+  rtRefT<pxIView> mView;
+  rtNodeContextRef mCtx;
+  pxIViewContainer* mViewContainer;
+  unsigned long mRefCount;
+};
+
 class pxScene2d: public rtObject, public pxIView 
 {
 public:
@@ -977,7 +1106,7 @@ public:
     return l;
   }
 
-  void init();
+//  void init();
 
   rtError onScene(rtFunctionRef& v) const;
   rtError setOnScene(rtFunctionRef v);

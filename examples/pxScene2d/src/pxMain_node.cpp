@@ -5,9 +5,12 @@
 #include "pxTimer.h"
 #include "pxEventLoop.h"
 #include "pxWindow.h"
+
+#define ANIMATION_ROTATE_XYZ
+#include "pxContext.h"
 #include "pxScene2d.h"
 
-#include "rtNode.h"
+//#include "rtNode.h"
 
 #include "jsbindings/rtWrapperUtils.h"
 
@@ -19,16 +22,8 @@
 #define EXITSCENELOCK()
 #endif
 
-rtNode script;
 pxEventLoop  eventLoop;
-
-rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx)
-{
-  if (result)
-    *result = (pxScene2d*)ctx;; // return the scene reference
-
-  return RT_OK;
-}
+pxContext context;
 
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
@@ -39,19 +34,7 @@ public:
   void init(int x, int y, int w, int h, const char* uri = NULL)
   {
     pxWindow::init(x,y,w,h);
-
-    pxScene2dRef scene = new pxScene2d;
-    scene->init();
-    
-    setView(scene);
-
-    ctx = script.createContext();
-    ctx->add("getScene", new rtFunctionCallback(getScene, scene.getPtr()));
-
-    char buffer[256];
-    sprintf(buffer, "var pxArg_url=\"%s\";", uri?uri:"browser.js");
-    ctx->runScript(buffer);
-    ctx->runFile("start.js");
+    setView(new pxScriptView(uri?uri:"browser.js","javascript/node/v8"));
   }
   
   rtError setView(pxIView* v)
@@ -178,8 +161,6 @@ protected:
   int mWidth;
   int mHeight;
   rtRefT<pxIView> mView;
-
-  rtNodeContextRef ctx;
 };
 
 int pxMain(int argc, char* argv[])
@@ -191,6 +172,11 @@ int pxMain(int argc, char* argv[])
   sceneWindow win2;
   win2.init(50, 50, 1280, 720);
   #endif
+
+// JRJR TODO this needs happen after GL initialization which right now only happens after a pxWindow has been created.  
+// Likely will move this to pxWindow...  as an option... a "context" type
+// would like to decouple it from pxScene2d specifically
+  context.init();
   
   eventLoop.run();
   

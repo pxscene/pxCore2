@@ -13,7 +13,7 @@ var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var log = new Logger('AppSceneContext');
 
 function AppSceneContext(params) { // container, innerscene, packageUrl) {
-  this.container = params.sceneContainer;
+//  this.container = params.sceneContainer;
   this.innerscene = params.scene;
   this.rpcController = params.rpcController;
   if( params.packageUrl.indexOf('?') != -1 ) {
@@ -62,6 +62,7 @@ AppSceneContext.prototype.loadScene = function() {
 
   this.loadPackage(fullPath);
 
+if (false) {
   this.container.on('onKeyDown', function (e) {
     log.message(2, "container(" + this.packageUrl + "): keydown:" + e.keyCode);
   }/*.bind(this));*/);
@@ -72,9 +73,9 @@ AppSceneContext.prototype.loadScene = function() {
   this.innerscene.root.on('onKeyDown', function (e) {
     log.message(2, "innerscene root(" + this.packageUrl + "): keydown:" + e.keyCode);
   }/*.bind(this));*/);
-
+}
   this.innerscene.on('onComplete', function (e) {
-    this.container = null;
+//    this.container = null;
     this.innerscene = null;
     this.sandbox = null;
     for(var key in this.scriptMap) {
@@ -231,6 +232,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       var rtnObject = moduleFunc(px, xModule, fname, this.basePackageUri);
       rtnObject = xModule.exports;
 
+if (false) {
       // TODO do the old scenes context get released when we reload a scenes url??
       // TODO part of an experiment to eliminate intermediate rendering of the scene - from original load.js
       // while it is being set up
@@ -242,10 +244,11 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       else {
         this.container.painting = true;
       }
+}
 
       //console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
       if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
-        this.container.makeReady(true);
+//        this.container.makeReady(true);
         this.innerscene.api = {isReady:true};
       } else {
         var modulePromise = xModule.moduleReadyPromise;
@@ -611,14 +614,14 @@ AppSceneContext.prototype.onResize = function(resizeEvent) {
       clearTimeout(this.resizeTimer);
       this.resizeTimer = null;
     }
-    this.container.w = resizeEvent.w;
-    this.container.h = resizeEvent.h;
+//    this.container.w = resizeEvent.w;
+//    this.container.h = resizeEvent.h;
   } else {
     var lastWidth = resizeEvent.w;
     var lastHeight = resizeEvent.h;
     this.resizeTimer = setTimeout(function() {
-      this.container.w = lastWidth;
-      this.container.h = lastHeight;
+//      this.container.w = lastWidth;
+//      this.container.h = lastHeight;
     }.bind(this), 500);
   }
 }
