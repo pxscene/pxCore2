@@ -5,6 +5,10 @@ all: gl2d
 clean:
 	rm -rf $(OBJDIR)
 	rm -f gl2d
+	rm -rf html/
+
+docs:
+	doxygen doxygen.conf
 
 UNAME_S := $(shell uname -s)
 HNAME_S := $(shell hostname) 
