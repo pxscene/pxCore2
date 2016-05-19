@@ -57,6 +57,7 @@ SEARCH=\
   -I$(EXTDIR)/png \
   -I$(PXHDRS)\
   -I. \
+  -Irpc \
   -I$(NODEINC)/src \
   -I$(NODEINC)/deps/uv/include \
   -I$(NODEINC)/deps/v8 \
