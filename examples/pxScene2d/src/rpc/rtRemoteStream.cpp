@@ -326,6 +326,8 @@ rtRemoteStream::sendRequest(rtRemoteRequest const& req, MessageHandler handler, 
     rtJsonDocPtr doc = waitForResponse(key, timeout);
     if (doc)
       e = handler(doc);
+    else
+      e = RT_TIMEOUT;
   }
 
   return e;

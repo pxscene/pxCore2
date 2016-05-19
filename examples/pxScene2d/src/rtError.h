@@ -19,6 +19,9 @@
 #define RT_RESOURCE_NOT_FOUND		8
 #define RT_NO_CONNECTION		9
 
+// errors specific to rtRemote
+#define RT_TIMEOUT 1000
+
 typedef uint32_t rtError;
 
 const char* rtStrError(rtError e);

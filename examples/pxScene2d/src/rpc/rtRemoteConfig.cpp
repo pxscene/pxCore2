@@ -127,6 +127,8 @@ rtRemoteConfig::getInstance(bool reloadConfiguration)
   if (file)
     configFiles.push_back(file);
 
+  configFiles.push_back("./rtremote.conf");
+  configFiles.push_back("/etc/rtremote.conf");
   configFiles.push_back("./rtrpc.conf");
   configFiles.push_back("/etc/rtrpc.conf");
 
