@@ -20,6 +20,10 @@ const char* rtStrError(rtError e)
     RT_ERROR_CASE(RT_OBJECT_NO_LONGER_AVAILABLE);
     RT_ERROR_CASE(RT_RESOURCE_NOT_FOUND);
     RT_ERROR_CASE(RT_NO_CONNECTION);
+
+    case RT_TIMEOUT:
+      s = "timeout";
+      break;
     default:
       break;
   }

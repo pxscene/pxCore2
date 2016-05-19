@@ -160,22 +160,34 @@ rtRemoteClient::sendGet(rtRemoteGetRequest const& req, rtValue& value, uint32_t 
   rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc)
   {
     res = doc;
-    return RT_OK;
+    return res != nullptr ? RT_OK : RT_FAIL;
   }, timeout);
 
   if (e != RT_OK)
+  {
+    rtLogDebug("get failed: %s", rtStrError(e));
     return e;
+  }
 
   if (!res)
+  {
+    rtLogDebug("get failed to return a response");
     return RT_FAIL;
+  }
 
   auto itr = res->FindMember(kFieldNameValue);
   if (itr == res->MemberEnd())
+  {
+    rtLogWarn("response doesn't contain: %s", kFieldNameValue);
     return RT_FAIL;
+  }
 
   e = rtValueReader::read(value, itr->value, shared_from_this());
   if (e != RT_OK)
+  {
+    rtLogWarn("failed to read value from response");
     return e;
+  }
 
   return rtMessage_GetStatusCode(*res);
 }
