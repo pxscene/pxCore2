@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include <string>
 #include <fstream>
 
 #include <iostream>
@@ -26,13 +25,15 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "pxCore.h"
+#include "rtObject.h"
+#include "rtValue.h"
 
 #include "rtNode.h"
 
 #include "jsbindings/rtObjectWrapper.h"
 #include "jsbindings/rtFunctionWrapper.h"
 
+// #define USE_UV_TIMERS
 
 #ifdef RUNINMAIN
 
@@ -54,12 +55,12 @@ extern args_t *s_gArgs;
 
 namespace node
 {
-extern bool use_debug_agent;
-extern bool debug_wait_connect;
+  extern bool use_debug_agent;
+  extern bool debug_wait_connect;
 }
 
 static int exec_argc;
-static const char** exec_argv;
+static const char** exec_argv = NULL;
 
 
 args_t *s_gArgs;
@@ -69,9 +70,9 @@ args_t *s_gArgs;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef WIN32
-static DWORD __rt_main_thread__;
+  static DWORD __rt_main_thread__;
 #else
-static pthread_t __rt_main_thread__;
+  static pthread_t __rt_main_thread__;
 #endif
 
 // rtIsMainThread() - Previously:  identify the MAIN thread of 'node' which running JS code.
@@ -93,6 +94,8 @@ bool rtIsMainThread()
 
 void *uvThread(void *ptr)
 {
+  rtLogDebug(" - uvThread ENTER...");
+
   if(ptr)
   {
     rtNodeContext *ctx = (rtNodeContext *) ptr;
@@ -106,11 +109,11 @@ void *uvThread(void *ptr)
     }
     else
     {
-      fprintf(stderr, "FATAL - No node instance... uvThread() exiting...");
+      rtLogError(" .. FATAL - No node instance... ");
     }
   }
 
-  printf("uvThread() - EXITING...\n");
+  rtLogDebug(" - uvThread EXITING ...");
 
   return NULL;
 }
@@ -120,6 +123,8 @@ void *uvThread(void *ptr)
 
 void *jsThread(void *ptr)
 {
+  rtLogDebug(" - jsThread ENTER...");
+
   if(ptr)
   {
     rtNodeContext *ctx = (rtNodeContext*) ptr;
@@ -135,7 +140,7 @@ void *jsThread(void *ptr)
     }
   }
 
-  printf("jsThread() - EXITING...\n");
+  rtLogError(" - jsThread EXITING...");
 
   return NULL;
 }
@@ -145,19 +150,24 @@ void *jsThread(void *ptr)
 
 #ifdef  USE_UV_TIMERS
 
-static void timerCallback(uv_timer_t* )
-{
-#ifdef USE_UV_TIMERS
+  #include "pxEventLoop.h"
+
+  extern pxEventLoop* gLoop;
+
+  static void timerCallback(uv_timer_t* )
+  {
     #ifdef RUNINMAIN
     if (gLoop)
       gLoop->runOnce();
     #else
-    rtLogDebug("uv timer callback");
+      rtLogDebug("uv timer callback");
     #endif
+  }
 #else
-     // Do nothing...
-#endif
-}
+  static void timerCallback(uv_timer_t* )
+  {
+    // DUMMY
+  }
 
 #endif
 
@@ -175,8 +185,9 @@ static inline bool file_exists(const char *file)
 
 
 rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
-     mKillUVWorker(false),  js_worker(0), uv_worker(0),
-     mIsolate(isolate), mEnv(NULL), mRefCount(0)
+     mKillUVWorker(false), mIsolate(isolate), mEnv(NULL), mRefCount(0), 
+     js_worker(0), uv_worker(0)
+     
 {
   assert(isolate); // MUST HAVE !
 
@@ -200,8 +211,8 @@ void rtNodeContext::createEnvironment()
   Handle<Object> global = local_context->Global();
 
   // Register wrappers.
-    rtObjectWrapper::exportPrototype(mIsolate, global);
-  rtFunctionWrapper::exportPrototype(mIsolate, global);
+     rtObjectWrapper::exportPrototype(mIsolate, global);
+   rtFunctionWrapper::exportPrototype(mIsolate, global);
 
   rtWrappers.Reset(mIsolate, global);
 
@@ -226,32 +237,32 @@ void rtNodeContext::createEnvironment()
   {
     EnableDebug(mEnv);
   }
+#if 0
+  #ifdef  USE_UV_TIMERS
+
+    rtLogError("... Start  UV TIMERS ...");
+
+    startTimers(); // keep alive
+
+    createThread_UV();
+
+  #endif
+#endif
+
 }
 
 rtNodeContext::~rtNodeContext()
 {
+  killThread_UV();
+  killThread_JS();
+
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
 
-  if(uv_worker)
-  {
-    mKillUVWorker = true; // kill UV loop
-
-    (void) pthread_join(uv_worker, NULL);
-
-    uv_worker = 0;
-  }
-
-  if(js_worker)
-  {
-    (void) pthread_join(js_worker, NULL);
-
-    js_worker = 0;
-  }
-
   if(mEnv)
   {
+   // EmitExit(mEnv);
     RunAtExit(mEnv);
 
     mEnv->Dispose();
@@ -265,6 +276,10 @@ rtNodeContext::~rtNodeContext()
     exec_argc = 0;
   }
 
+  // Un-Register wrappers.
+    rtObjectWrapper::destroyPrototype();
+  rtFunctionWrapper::destroyPrototype();
+
   Release();
 
   mContext.Reset();
@@ -276,7 +291,7 @@ void rtNodeContext::add(const char *name, rtValue const& val)
 {
   if(name == NULL)
   {
-    rtLogError("no symbolic name for rtValue");
+    rtLogError(" %s  ... no symbolic name for rtValue.",__PRETTY_FUNCTION__);
     // TODO: test for uniquiness !
     return;
   }
@@ -284,8 +299,6 @@ void rtNodeContext::add(const char *name, rtValue const& val)
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-
-//  printf("\n#### [%p]  %s() >> Adding \"%s\"\n", this, __FUNCTION__, name);
 
   // Get a Local context...
   Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
@@ -300,46 +313,47 @@ void rtNodeContext::startTimers()
 {
 #ifdef  USE_UV_TIMERS
 
-    rtLogInfo("starting background thread for event loop processing");
+  rtLogInfo("starting background thread for event loop processing");
 
-    // we start a timer in case there aren't any other evens to the keep the
-    // nodejs event loop alive. Fire a time repeatedly.
-    uv_timer_init(uv_default_loop(), &mTimer);
+  // we start a timer in case there aren't any other evens to the keep the
+  // nodejs event loop alive. Fire a time repeatedly.
+  uv_timer_init(uv_default_loop(), &mTimer);
 
-    #ifdef RUNINMAIN
-    uv_timer_start(&mTimer, timerCallback, 0, 5);
-    #else
-    uv_timer_start(&mTimer, timerCallback, 1000, 1000);
-    #endif
+  #ifdef RUNINMAIN
+  uv_timer_start(&mTimer, timerCallback, 0, 5);
+  #else
+  uv_timer_start(&mTimer, timerCallback, 1000, 1000);
+  #endif
 
 #endif
 }
 
-rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NULL*/)
+rtObjectRef rtNodeContext::runScript(const char *script, const char* args /*= NULL*/)
 {
   if(script == NULL)
   {
-    rtLogError("no script given.");
+    rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
 
     return  rtObjectRef(0);// JUNK
   }
+
+  rtLogDebug(" %s  ... Running...",__PRETTY_FUNCTION__);
 
   return runScript(std::string(script), args);
 }
 
-
-rtObjectRef rtNodeContext::runScript(const std::string &script, const char *args /*= NULL*/)
+rtObjectRef rtNodeContext::runScript(const std::string &script, const char* /* args = NULL*/)
 {
-
-  printf("In rtNodeContext::runScript\n");
   if(script.empty())
   {
-    rtLogError(" - no script given.");
+    rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
 
     return  rtObjectRef(0);// JUNK
   }
 
-  UNUSED_PARAM(args);
+#ifndef  USE_UV_TIMERS
+ // createThread_UV();
+#endif
 
   {//scope
     Locker                locker(mIsolate);
@@ -360,41 +374,30 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char *args
 
     // Convert the result to an UTF8 string and print it.
     String::Utf8Value utf8(result);
-
-//    printf("DEBUG:  %15s()    - RESULT = %s\n", __FUNCTION__, *utf8);  // TODO:  Probably need an actual RESULT return mechanisim
   }//scope
 
-  printf("Exit rtNodeContext::runscript\n");
-
-    return rtObjectRef(0);// JUNK
+  return rtObjectRef(0);// JUNK
 }
 
 
-rtObjectRef rtNodeContext::runScriptThreaded(const char *script, const char *args /*= NULL*/)
+rtObjectRef rtNodeContext::runScriptThreaded(const char *script, const char* /* args = NULL*/)
 {
+  rtLogDebug(" %s  ... ENTER",__PRETTY_FUNCTION__);
+
   if(script == NULL)
   {
-    rtLogError(" - no script given.");
+    rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
 
     return  rtObjectRef(0);// JUNK
   }
 
-  UNUSED_PARAM(args);
-
   js_script = script;
 
 #ifndef  USE_UV_TIMERS
-  // call runScript() in this thread...
-  if(pthread_create(&js_worker, NULL, jsThread, (void *) this))
-  {
-    fprintf(stderr, "Error creating JS thread\n");
-  }
+  createThread_JS();
 #endif
 
-  if(pthread_create(&uv_worker, NULL, uvThread, (void *) this))
-  {
-    fprintf(stderr, "Error creating UV thread\n");
-  }
+  createThread_UV();
 
   return rtObjectRef(0);
 }
@@ -411,18 +414,14 @@ std::string readFile(const char *file)
   return s;
 }
 
-rtObjectRef rtNodeContext::runFile(const char *file, const char *args /*= NULL*/)
+rtObjectRef rtNodeContext::runFile(const char *file, const char* /* args = NULL*/)
 {
-  UNUSED_PARAM(args);
-
   if(file == NULL)
   {
-    rtLogError(" - no script given.");
+    rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
 
     return  rtObjectRef(0);// JUNK
   }
-
-//  printf("\n#### [%p]  %s() >> Running \"%s\"\n", this, __FUNCTION__, file.c_str());
 
   // Read the script file
   js_script = readFile(file);
@@ -431,13 +430,13 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char *args /*= NULL*/
 }
 
 
-rtObjectRef rtNodeContext::runFileThreaded(const char *file, const char *args /*= NULL*/)
+rtObjectRef rtNodeContext::runFileThreaded(const char *file, const char* args /*= NULL*/)
 {
-  UNUSED_PARAM(args);
+  rtLogDebug(" %s - ENTER", __PRETTY_FUNCTION__);
 
   if(file == NULL)
   {
-    rtLogError(" - no script given.");
+     rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
 
     return  rtObjectRef(0);// JUNK
   }
@@ -451,24 +450,103 @@ rtObjectRef rtNodeContext::runFileThreaded(const char *file, const char *args /*
 }
 
 
+bool rtNodeContext::createThread_UV()
+{
+  if(uv_worker == 0) // only once
+  {
+    pthread_mutex_init(&uv_mutex, NULL);
+
+    if(pthread_create(&uv_worker, NULL, uvThread, (void *) this))
+    {
+      rtLogError(" %s  ... Error creating UV thread",__PRETTY_FUNCTION__);
+      return false;
+    }
+
+    rtLogDebug(" %s  ... Created  UV_THREAD ...",__PRETTY_FUNCTION__);
+  }
+  return true;
+}
+
+bool rtNodeContext::killThread_UV()
+{
+  if(uv_worker)
+  {
+    rtLogError(" %s - Kill UV ", __PRETTY_FUNCTION__); // JUNK
+
+    pthread_mutex_lock(&uv_mutex);   // ##
+    mKillUVWorker = true;            // ## kill UV loop
+    pthread_mutex_unlock(&uv_mutex); // ##
+
+    uv_stop(mEnv->event_loop());
+
+    (void) pthread_join(uv_worker, NULL);
+
+    uv_worker = 0;
+    pthread_mutex_destroy(&uv_mutex);
+
+    rtLogDebug(" %s - Kill UV - DONE", __PRETTY_FUNCTION__); // JUNK
+  }
+
+  return true;
+}
+
+
+bool rtNodeContext::killThread_JS()
+{
+  if(js_worker)
+  {
+    rtLogError(" %s - Kill JS ", __PRETTY_FUNCTION__); // JUNK
+
+    (void) pthread_join(js_worker, NULL);
+
+    js_worker = 0;
+    pthread_mutex_destroy(&js_mutex);
+
+    rtLogDebug(" %s - Kill JS - DONE", __PRETTY_FUNCTION__); // JUNK
+  }
+
+  return true;
+}
+
+
+bool rtNodeContext::createThread_JS()
+{
+  if(js_worker == 0)  // only once
+  {
+    if(pthread_create(&js_worker, NULL, jsThread, (void *) this))
+    {
+      rtLogError(" %s  ... Error creating JS thread",__PRETTY_FUNCTION__);
+
+      return false;
+    }
+
+    rtLogDebug(" %s  ... Created  JS_THREAD ...",__PRETTY_FUNCTION__);
+
+    pthread_mutex_init(&js_mutex, NULL);
+  }
+
+  return true;
+}
+
+
 void rtNodeContext::uvWorker()
 {
-  bool more;
+  rtLogDebug(" %s - ENTER", __PRETTY_FUNCTION__);
 
-  printf("\n Start >>> %s() !!!! \n", __FUNCTION__);
+  bool more;
 
 #ifndef  USE_UV_TIMERS
 
-    // we start a timer in case there aren't any other evens to the keep the
-    // nodejs event loop alive. Fire a time repeatedly.
-    uv_timer_init(uv_default_loop(), &mTimer);
+  // we start a timer in case there aren't any other evens to the keep the
+  // nodejs event loop alive. Fire a time repeatedly.
+  uv_timer_init(uv_default_loop(), &mTimer);
 
-    // TODO experiment crank up the timers so we can pump cocoa messages on main thread
-    #ifdef RUNINMAIN
-      uv_timer_start(&mTimer, timerCallback, 0, 5);
-    #else
-      uv_timer_start(&mTimer, timerCallback, 1000, 1000);
-    #endif
+  // TODO experiment crank up the timers so we can pump cocoa messages on main thread
+  #ifdef RUNINMAIN
+    uv_timer_start(&mTimer, timerCallback, 0, 5);
+  #else
+    uv_timer_start(&mTimer, timerCallback, 1000, 1000);
+  #endif
 
 #endif //  USE_UV_TIMERS
 
@@ -499,17 +577,26 @@ void rtNodeContext::uvWorker()
       }
     }//scope - - - - - - - - - - - - - - -
 
-  } while (more == true && mKillUVWorker == false);
+    pthread_mutex_lock(&uv_mutex);     // ##
+    if(mKillUVWorker == true)
+    {
+      break;
+    }
+    pthread_mutex_unlock(&uv_mutex);   // ##
+  } while (more == true);
 
-  printf("\n End >>> %s() !!!! \n", __FUNCTION__);
+  uv_timer_stop(&mTimer);
 
   int code = EmitExit(mEnv);
 
   UNUSED_PARAM(code);
 
   RunAtExit(mEnv);
+
+  rtLogDebug(" %s - EXIT  ", __PRETTY_FUNCTION__);
 }
 
+#if 1
 rtObjectRef rtNodeContext:: runFile(const char *file)  // DEPRECATED
 {
   #warning "runFile() - is DEPRECATED ... going away soon."
@@ -521,30 +608,19 @@ rtObjectRef rtNodeContext:: runThread(const char *file)  // DEPRECATED
   #warning "runThread() - is DEPRECATED ... going away soon."
   return runFileThreaded(file);
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#if 0
-rtNode::rtNode() : mPlatform(NULL)
-{
-  __rt_main_thread__ = pthread_self();
-
-  nodePath();
-
-  mIsolate     = Isolate::New();
-  node_isolate = mIsolate; // Must come first !!
-}
 #endif
 
-rtNode::rtNode(/*int argc, char** argv*/) : mPlatform(NULL)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+rtNode::rtNode() : mPlatform(NULL)
 {
 
                               //0123456 789ABCDEF012 345 67890ABCDEF
   static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Intialized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
 //  static const char *argv2[] = {&args2[0], &args2[7], NULL};
-  int          argc   = sizeof(argv2)/sizeof(char*) - 1;
+  int                 argc   = sizeof(argv2)/sizeof(char*) - 1;
 
   static args_t aa(argc, (char**)argv2);
 
@@ -584,7 +660,7 @@ void rtNode::nodePath()
     }
     else
     {
-      printf("\nERROR: failed to set NODE_PATH\n");
+      rtLogError(" - failed to set NODE_PATH");
     }
   }
   // else
@@ -614,13 +690,16 @@ void rtNode::init(int argc, char** argv)
 
 void rtNode::term()
 {
-  if(node_is_initialized)
+  if(node_isolate)
   {
 // JRJRJR  Causing crash???  ask Hugh
-//    node_isolate->Dispose();
+    node_isolate->Dispose();
     node_isolate = NULL;
     mIsolate = NULL;
+  }
 
+  if(node_is_initialized ) //&& false)
+  {
     V8::Dispose();
 
     node_is_initialized = false;

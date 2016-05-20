@@ -37,7 +37,17 @@ rtObjectWrapper::rtObjectWrapper(const rtObjectRef& ref)
 
 rtObjectWrapper::~rtObjectWrapper()
 {
-  //rtLogInfo("OBJ - delete");
+}
+
+void rtObjectWrapper::destroyPrototype()
+{
+  if( !ctor.IsEmpty() )
+  {
+    // TODO: THIS LEAKS... need to free obj within persistent
+
+    ctor.ClearWeak();
+    ctor.Reset();
+  }
 }
 
 void rtObjectWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports)
@@ -100,30 +110,30 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(Isolate* isolate, cons
       if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
       {
         Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
-        
+
         rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, isolate, resolver));
         rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, isolate, resolver));
-        
+
         rtObjectRef newPromise;
         rtObjectRef promise = ref;
-        
+
         Local<Object> jsPromise = resolver->GetPromise();
         HandleMap::addWeakReference(isolate, ref, jsPromise);
-        
+
         err = promise.send("then", resolve, reject, newPromise);
         if (err == RT_OK)
           return scope.Escape(jsPromise);
         else
           rtLogError("failed to setup promise");
-        
+
         return scope.Escape(Local<Object>());
       }
     }
   }
 
-  Local<Value> argv[1] = 
-  { 
-    External::New(isolate, ref.getPtr()) 
+  Local<Value> argv[1] =
+  {
+    External::New(isolate, ref.getPtr())
   };
 
   Local<Function> func = PersistentToLocal(isolate, ctor);
@@ -242,7 +252,7 @@ void rtObjectWrapper::setPropertyByIndex(uint32_t index, Local<Value> val, const
 }
 
 void rtObjectWrapper::create(const FunctionCallbackInfo<Value>& args)
-{ 
+{
   assert(args.IsConstructCall());
 
   HandleScope scope(args.GetIsolate());

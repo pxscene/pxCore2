@@ -37,6 +37,7 @@ public:
 
 public:
   static void exportPrototype(v8::Isolate* isolate, Handle<Object> exports);
+  static void destroyPrototype();
 
   static v8::Handle<v8::Object> createFromFunctionReference(v8::Isolate* isolate, const rtFunctionRef& func);
 

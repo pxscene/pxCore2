@@ -1,17 +1,11 @@
 #ifndef RTNODE_H
 #define RTNODE_H
 
-
-#include "rtObject.h"
-#include "rtValue.h"
+#include <string>
 
 #ifndef WIN32
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
-#if 0
-#include "node.h"
 #endif
 
 #include "uv.h"
@@ -24,18 +18,10 @@
 #endif
 #endif
 
-#include <string>
-
-#include "jsbindings/rtWrapperUtils.h"
-#include "jsbindings/rtObjectWrapper.h"
-#include "jsbindings/rtFunctionWrapper.h"
-
-
 namespace node
 {
-class Environment;
+  class Environment;
 }
-
 
 class rtNode;
 class rtNodeContext;
@@ -80,8 +66,6 @@ public:
   rtObjectRef runThread(const char *file);  // DEPRECATED
 
   void uvWorker();
-  int  startUVThread();
-
 
   unsigned long AddRef()
   {
@@ -91,21 +75,18 @@ public:
   unsigned long Release()
   {
     long l = rtAtomicDec(&mRefCount);
-    if (l == 0) delete this;
+    if (l == 0)  delete this;
     return l;
   }
 
-  bool           mKillUVWorker;
-  
-  uv_timer_t     mTimer;
-  
-  const char   *js_file;
-  std::string   js_script;
-  
-  pthread_t     js_worker;
-  pthread_t     uv_worker;
+  bool             mKillUVWorker;
 
-  rtNode   *node;
+  uv_timer_t       mTimer;
+
+  const char      *js_file;
+  std::string      js_script;
+
+  rtNode          *node;
 
 private:
   v8::Isolate                   *mIsolate;
@@ -114,28 +95,26 @@ private:
   node::Environment*             mEnv;
   v8::Persistent<v8::Object>     rtWrappers;
 
+  int mRefCount;
+
+  pthread_t        js_worker;
+  pthread_mutex_t  js_mutex;
+
+  pthread_t        uv_worker;
+  pthread_mutex_t  uv_mutex;
+
+
+  bool createThread_UV();
+  bool   killThread_UV();
+
+  bool createThread_JS();
+  bool   killThread_JS();
+
+
   void createEnvironment();
  // v8::Persistent<v8::ObjectTemplate>  globalTemplate;
 
-  pthread_t uv_thread;
-
-  int mRefCount;
-  
   void startTimers();
-
-#ifdef  USE_UV_TIMERS
-  int startThread(const char *js);
-#else
-    static void timerCallback(uv_timer_t* )
-    {
-      #ifdef RUNINMAIN
-      // if (gLoop)
-      //   gLoop->runOnce();
-      #else
-      //rtLogDebug("Hello, from uv timer callback");
-      #endif
-    }
-#endif
 
 };
 
@@ -144,15 +123,14 @@ private:
 class rtNode
 {
 public:
-//  rtNode();
-  rtNode(/*int argc, char** argv*/);
+  rtNode();
   ~rtNode();
 
   rtNodeContextRef getGlobalContext() const;
   rtNodeContextRef createContext(bool ownThread = false);
 
   v8::Isolate   *getIsolate() { return mIsolate; };
-  
+
 private:
   void init(int argc, char** argv);
   void term();

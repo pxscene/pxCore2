@@ -22,7 +22,7 @@ rtResolverFunction::rtResolverFunction(Disposition disp, Isolate* isolate, Local
 }
 
 rtResolverFunction::~rtResolverFunction()
-{  
+{
   rtLogDebug("delete");
 }
 
@@ -95,6 +95,20 @@ rtFunctionWrapper::rtFunctionWrapper(const rtFunctionRef& ref)
 
 rtFunctionWrapper::~rtFunctionWrapper()
 {
+
+}
+
+void rtFunctionWrapper::destroyPrototype()
+{
+  if( !ctor.IsEmpty() )
+  {
+    // TODO: THIS LEAKS... need to free obj within persistent
+
+    //  rtFunctionWrapper *obj = V8::Utils::OpenPersistent(ctor);
+
+    ctor.ClearWeak();
+    ctor.Reset();
+  }
 }
 
 void rtFunctionWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports)
@@ -115,7 +129,7 @@ void rtFunctionWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports
 }
 
 void rtFunctionWrapper::create(const FunctionCallbackInfo<Value>& args)
-{ 
+{
   assert(args.IsConstructCall());
 
   HandleScope scope(args.GetIsolate());
@@ -130,9 +144,9 @@ Handle<Object> rtFunctionWrapper::createFromFunctionReference(Isolate* isolate, 
   Isolate::Scope isolate_scope(isolate);
 
   EscapableHandleScope scope(isolate);
-  Local<Value> argv[1] = 
+  Local<Value> argv[1] =
   {
-    External::New(isolate, func.getPtr()) 
+    External::New(isolate, func.getPtr())
   };
 
   Local<Function> c = PersistentToLocal(isolate, ctor);

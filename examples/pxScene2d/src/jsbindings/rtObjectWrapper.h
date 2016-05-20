@@ -9,7 +9,7 @@ class rtObjectWrapper : public rtWrapper<rtObjectRef, rtObjectWrapper>
 {
 public:
   rtObjectWrapper(const rtObjectRef& ref);
-  virtual ~rtObjectWrapper(); 
+  virtual ~rtObjectWrapper();
 
   void dispose()
   {
@@ -17,6 +17,7 @@ public:
 
 public:
   static void exportPrototype(Isolate* isolate, Handle<Object> exports);
+  static void destroyPrototype();
 
   static Handle<Object> createFromObjectReference(Isolate* isolate, const rtObjectRef& ref);
 
