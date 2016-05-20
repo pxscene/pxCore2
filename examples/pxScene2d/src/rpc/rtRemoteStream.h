@@ -5,9 +5,11 @@
 #include "rtSocketUtils.h"
 
 #include <condition_variable>
+#include <deque>
 #include <map>
 #include <memory>
 #include <mutex>
+#include <thread>
 
 class rtRemoteClient;
 class rtRemoteMessage;
@@ -57,17 +59,31 @@ private:
   rtJsonDocPtr waitForResponse(int key, uint32_t timeout);
 
 private:
+  void runMessageDispatch();
+
+  struct WorkItem
+  {
+    rtJsonDocPtr  Doc;
+  };
+
   using rtRequestMap = std::map< rtCorrelationKey, rtJsonDocPtr >;
 
-  int 				m_fd;
-  time_t 			m_last_message_time;
-  MessageHandler		m_message_handler;
-  rtRemoteInactivityHandler	m_inactivity_handler;
-  std::mutex			m_mutex;
-  std::condition_variable	m_cond;
-  rtRequestMap			m_requests;
-  sockaddr_storage		m_local_endpoint;
-  sockaddr_storage		m_remote_endpoint;
+  int                       m_fd;
+  time_t                    m_last_message_time;
+  MessageHandler            m_message_handler;
+  rtRemoteInactivityHandler m_inactivity_handler;
+  std::mutex                m_mutex;
+  std::condition_variable   m_cond;
+  rtRequestMap              m_requests;
+  sockaddr_storage          m_local_endpoint;
+  sockaddr_storage          m_remote_endpoint;
+
+  // work queue
+  std::vector<std::thread*> m_dispatch_threads;
+  bool                      m_running;
+  std::deque<WorkItem>      m_work_queue;
+  std::mutex                m_work_mutex;
+  std::condition_variable   m_work_cond;
 };
 
 #endif
