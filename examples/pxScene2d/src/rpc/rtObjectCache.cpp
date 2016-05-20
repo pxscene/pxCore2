@@ -9,16 +9,16 @@ namespace
 {
   struct Entry
   {
-    rtObjectRef   	Object;
-    rtFunctionRef 	Function;
-    time_t		LastUsed;
-    int			MaxAge;
+    rtObjectRef     Object;
+    rtFunctionRef   Function;
+    time_t          LastUsed;
+    int             MaxAge;
   };
 
   using refmap = std::map< std::string, Entry >;
 
-  std::mutex 		sMutex;
-  refmap 		sRefMap;
+  std::mutex    sMutex;
+  refmap        sRefMap;
 }
 
 rtObjectRef
@@ -111,9 +111,9 @@ rtObjectCache::removeUnused()
     if ((now - itr->second.LastUsed) > maxAge)
     {
       rtLogInfo("removing %s. It's last access time:%d is older max allowed: %d",
-	itr->first.c_str(),
-	static_cast<int>(now - itr->second.LastUsed),
-	maxAge);
+          itr->first.c_str(),
+          static_cast<int>(now - itr->second.LastUsed),
+          maxAge);
       itr = sRefMap.erase(itr);
     }
   }

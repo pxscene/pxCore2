@@ -70,9 +70,9 @@ private:
   rtError onStartSession(rtJsonDocPtr const& doc);
 
 private:
-  std::shared_ptr<rtRemoteStream>		m_stream;
-  std::vector<std::string>      	m_object_list;
-  rtRemoteMessageHandler			m_message_handler;
+  std::shared_ptr<rtRemoteStream>   m_stream;
+  std::vector<std::string>          m_object_list;
+  rtRemoteMessageHandler            m_message_handler;
 };
 
 #endif

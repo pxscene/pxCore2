@@ -72,11 +72,11 @@ private:
 
   std::unique_ptr<std::thread>  m_thread;
   mutable std::mutex            m_mutex;
-  CommandHandlerMap		m_command_handlers;
+  CommandHandlerMap             m_command_handlers;
 
-  rtIRpcResolver*		m_resolver;
-  ClientMap			m_object_map;
-  ClientList			m_connected_clients;
+  rtIRpcResolver*               m_resolver;
+  ClientMap                     m_object_map;
+  ClientList                    m_connected_clients;
   int                           m_shutdown_pipe[2];
   uint32_t                      m_keep_alive_interval;
 };

@@ -7,9 +7,30 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+
+#include <algorithm>
 #include <limits>
 #include <vector>
 #include <iostream>
+
+static inline std::string& ltrim(std::string& s)
+{
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+    std::not1(std::ptr_fun<int, int>(std::isspace))));
+  return s;
+}
+
+static inline std::string& rtrim(std::string& s)
+{
+  s.erase(std::find_if(s.rbegin(), s.rend(),
+    std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+  return s;
+}
+
+static inline std::string& trim(std::string& s)
+{
+  return ltrim(rtrim(s));
+}
 
 static std::string trim(char const* begin, char const* end)
 {
@@ -30,14 +51,8 @@ static std::string trim(char const* begin, char const* end)
   }
 >>>>>>> johnrobinsn/_temp_pxcore2_stage:examples/pxScene2d/src/rpc/rtRemoteConfig.cpp
 
-  while (begin && (begin < end) && isspace(*begin))
-    ++begin;
-
-  while (end && (end > begin) && isblank(*end))
-    --end;
-
-  if (begin == end) return std::string();
-  return std::string(begin, (end - begin));
+  std::string s(begin, (end - begin));
+  return trim(s);
 }
 
 template<class T>
