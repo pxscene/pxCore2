@@ -18,7 +18,7 @@
 
 #define UNUSED_PARAM(x) ((x)=(x))
 
-typedef struct _WstCompositor 
+typedef struct _WstCompositor
 {
    const char *displayName;
    unsigned int frameRate;
@@ -100,12 +100,12 @@ void WstCompositorDestroy( WstCompositor *ctx )
 const char *WstCompositorGetLastErrorDetail( WstCompositor *ctx )
 {
    const char *msg= 0;
-   
+
    if ( ctx )
    {
       msg= ctx->lastErrorDetail;
    }
-   
+
    return msg;
 }
 
@@ -126,14 +126,14 @@ bool WstCompositorSetDisplayName( WstCompositor *ctx, const char *displayName )
       {
          free( (void*)ctx->displayName );
       }
-      
+
       ctx->displayName= strdup( displayName );
 
       result= true;
    }
 
 exit:
-   
+
    return result;
 }
 
@@ -147,7 +147,7 @@ bool WstCompositorSetFrameRate( WstCompositor *ctx, unsigned int frameRate )
       {
          sprintf( ctx->lastErrorDetail,
                   "Invalid argument.  The frameRate (%u) must be greater than 0 fps", frameRate );
-         goto exit; 
+         goto exit;
       }
 
       ctx->frameRate= frameRate;
@@ -156,7 +156,7 @@ bool WstCompositorSetFrameRate( WstCompositor *ctx, unsigned int frameRate )
    }
 
 exit:
-   
+
    return result;
 }
 
@@ -174,7 +174,7 @@ bool WstCompositorSetNativeWindow( WstCompositor *ctx, void *nativeWindow )
       }
 
       ctx->nativeWindow= nativeWindow;
-      
+
       result= true;
    }
 
@@ -277,7 +277,7 @@ bool WstCompositorSetIsEmbedded( WstCompositor *ctx, bool isEmbedded )
       }
 
       ctx->isEmbedded= isEmbedded;
-            
+
       result= true;
    }
 
@@ -322,7 +322,7 @@ bool WstCompositorSetNestedDisplayName( WstCompositor *ctx, const char *nestedDi
    bool result= false;
    int len;
    const char *name= 0;
-   
+
    if ( ctx )
    {
       if ( ctx->running )
@@ -339,7 +339,7 @@ bool WstCompositorSetNestedDisplayName( WstCompositor *ctx, const char *nestedDi
          if ( (len == 0) || (len > MAX_NESTED_NAME_LEN) )
          {
             sprintf( ctx->lastErrorDetail,
-                     "Invalid argument.  The nested name length (%u) must be > 0 and < %u in length", 
+                     "Invalid argument.  The nested name length (%u) must be > 0 and < %u in length",
                      len, MAX_NESTED_NAME_LEN );
             goto exit;
          }
@@ -373,7 +373,7 @@ bool WstCompositorSetNestedSize( WstCompositor *ctx, unsigned int width, unsigne
          sprintf( ctx->lastErrorDetail,
                   "Bad state.  Cannot set nested size while compositor is running" );
          goto exit;
-      }      
+      }
 
       if ( width == 0 )
       {
@@ -468,7 +468,7 @@ const char *WstCompositorGetRendererModule( WstCompositor *ctx )
 bool WstCompositorGetIsNested( WstCompositor *ctx )
 {
    bool isNested= false;
-   
+
    if ( ctx )
    {
       isNested= ctx->isNested;
@@ -480,7 +480,7 @@ bool WstCompositorGetIsNested( WstCompositor *ctx )
 bool WstCompositorGetIsRepeater( WstCompositor *ctx )
 {
    bool isRepeater= false;
-   
+
    if ( ctx )
    {
       isRepeater= ctx->isRepeater;
@@ -492,12 +492,12 @@ bool WstCompositorGetIsRepeater( WstCompositor *ctx )
 bool WstCompositorGetIsEmbedded( WstCompositor *ctx )
 {
    bool isEmbedded= false;
-   
+
    if ( ctx )
-   {               
+   {
       isEmbedded= ctx->isEmbedded;
    }
-   
+
    return isEmbedded;
 }
 
@@ -525,7 +525,7 @@ void WstCompositorGetOutputSize( WstCompositor *ctx, unsigned int *width, unsign
 const char *WstCompositorGetNestedDisplayName( WstCompositor *ctx )
 {
    const char *nestedDisplayName= 0;
-   
+
    if ( ctx )
    {
       nestedDisplayName= ctx->nestedDisplayName;
@@ -538,7 +538,7 @@ void WstCompositorGetNestedSize( WstCompositor *ctx, unsigned int *width, unsign
 {
    int nestedWidth= 0;
    int nestedHeight= 0;
-   
+
    if ( ctx )
    {
       nestedWidth= ctx->nestedWidth;
@@ -558,12 +558,12 @@ void WstCompositorGetNestedSize( WstCompositor *ctx, unsigned int *width, unsign
 bool WstCompositorGetAllowCursorModification( WstCompositor *ctx )
 {
    bool allow= false;
-   
+
    if ( ctx )
    {
       allow= ctx->allowModifyCursor;
    }
-   
+
    return allow;
 }
 
@@ -588,13 +588,13 @@ bool WstCompositorSetDispatchCallback( WstCompositor *ctx, WstDispatchCallback c
    UNUSED_PARAM(userData);
 
    bool result= false;
-   
+
    if ( ctx )
    {
       result= true;
    }
 
-   return result;   
+   return result;
 }
 
 bool WstCompositorSetInvalidateCallback( WstCompositor *ctx, WstInvalidateSceneCallback cb, void *userData )
@@ -660,7 +660,7 @@ bool WstCompositorSetClientStatusCallback( WstCompositor *ctx, WstClientStatus c
                   "Bad state.  Compositor is not embedded" );
          goto exit;
       }
-      
+
       result= true;
    }
 
@@ -761,16 +761,19 @@ exit:
    return result;
 }
 
-bool WstCompositorComposeEmbedded( WstCompositor *ctx, 
+bool WstCompositorComposeEmbedded( WstCompositor *ctx,
                                    int x, int y, int width, int height,
-                                   float *matrix, float alpha, 
-                                   unsigned int hints, 
+                                   float *matrix, float alpha,
+                                   unsigned int hints,
                                    bool *needHolePunch, std::vector<WstRect> &rects )
 {
+  UNUSED_PARAM(x);
+  UNUSED_PARAM(y);
   UNUSED_PARAM(width);
   UNUSED_PARAM(height);
   UNUSED_PARAM(matrix);
   UNUSED_PARAM(alpha);
+  UNUSED_PARAM(hints);
 
    bool result= false;
 
@@ -789,15 +792,15 @@ bool WstCompositorComposeEmbedded( WstCompositor *ctx,
                   "Bad state.  Compositor is not running" );
          goto exit;
       }
-      
+
       *needHolePunch= false;
       rects.clear();
-         
+
       result= true;
    }
 
 exit:
-   
+
    return result;
 }
 
