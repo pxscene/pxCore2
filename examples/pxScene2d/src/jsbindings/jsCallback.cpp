@@ -70,9 +70,9 @@ void jsCallback::doCallback(uv_work_t* req, int /* status */)
 
 rtValue jsCallback::run()
 {
-  Locker                  locker(mIsolate);
-  Isolate::Scope   isolate_scope(mIsolate);    
-  HandleScope handle_scope(mIsolate);
+  Locker                locker(mIsolate);
+  Isolate::Scope isolate_scope(mIsolate);
+  HandleScope     handle_scope(mIsolate);  // Create a stack-allocated handle scope.
 
   Handle<Value>* args = this->makeArgs();
 

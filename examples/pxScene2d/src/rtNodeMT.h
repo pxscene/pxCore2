@@ -1,6 +1,9 @@
 #ifndef RTNODE_H
 #define RTNODE_H
 
+#include "rtObject.h"
+#include "rtValue.h"
+
 #include <string>
 
 #ifndef WIN32
@@ -51,8 +54,6 @@ public:
   rtNodeContext(v8::Isolate *isolate);
   ~rtNodeContext();
 
-  //  rtStringRef <<< as an OUT parameter
-  //
   void add(const char *name, rtValue  const& val);
 
   rtObjectRef runScript(const char        *script,  const char *args = NULL); // BLOCKS
@@ -64,8 +65,6 @@ public:
 
   rtObjectRef runFile(  const char *file);  // DEPRECATED
   rtObjectRef runThread(const char *file);  // DEPRECATED
-
-  void uvWorker();
 
   unsigned long AddRef()
   {
@@ -79,9 +78,9 @@ public:
     return l;
   }
 
-  bool             mKillUVWorker;
+  void uvWorker();
 
-  uv_timer_t       mTimer;
+  bool             mKillUVWorker;
 
   const char      *js_file;
   std::string      js_script;
@@ -95,13 +94,15 @@ private:
   node::Environment*             mEnv;
   v8::Persistent<v8::Object>     rtWrappers;
 
-  int mRefCount;
+  uv_timer_t       mTimer;
 
   pthread_t        js_worker;
   pthread_mutex_t  js_mutex;
+  pthread_mutexattr_t js_mutex_attr;
 
   pthread_t        uv_worker;
   pthread_mutex_t  uv_mutex;
+  pthread_mutexattr_t uv_mutex_attr;
 
 
   bool createThread_UV();
@@ -110,12 +111,11 @@ private:
   bool createThread_JS();
   bool   killThread_JS();
 
-
-  void createEnvironment();
- // v8::Persistent<v8::ObjectTemplate>  globalTemplate;
-
   void startTimers();
 
+  void createEnvironment();
+
+  int mRefCount;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,6 +125,8 @@ class rtNode
 public:
   rtNode();
   ~rtNode();
+
+  void pump(); //DUMMY for now
 
   rtNodeContextRef getGlobalContext() const;
   rtNodeContextRef createContext(bool ownThread = false);

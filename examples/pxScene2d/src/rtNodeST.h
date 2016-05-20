@@ -4,6 +4,8 @@
 #include "rtObject.h"
 #include "rtValue.h"
 
+#include <string>
+
 #ifndef WIN32
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -18,12 +20,6 @@
 #pragma GCC diagnostic pop
 #endif
 #endif
-
-#include <string>
-
-#include "jsbindings/rtWrapperUtils.h"
-#include "jsbindings/rtObjectWrapper.h"
-#include "jsbindings/rtFunctionWrapper.h"
 
 namespace node
 {
@@ -97,8 +93,7 @@ private:
 class rtNode
 {
 public:
-//  rtNode();
-  rtNode(/*int argc, char** argv*/);
+  rtNode();
   ~rtNode();
 
   void pump();

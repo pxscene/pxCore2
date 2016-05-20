@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include <string>
 #include <fstream>
 
 #include <iostream>
@@ -26,17 +25,10 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "pxCore.h"
-
 #include "rtNode.h"
 
 #include "jsbindings/rtObjectWrapper.h"
 #include "jsbindings/rtFunctionWrapper.h"
-
-#include "rtThreadQueue.h"
-
-extern rtThreadQueue gUIThreadQueue;
-
 
 
 #ifdef RUNINMAIN
@@ -168,7 +160,13 @@ rtNodeContext::~rtNodeContext()
     exec_argc = 0;
   }
 
-//  Release();
+  // TODO:  Might not be needed in ST case...
+  //
+  // Un-Register wrappers.
+  // rtObjectWrapper::destroyPrototype();
+  // rtFunctionWrapper::destroyPrototype();
+
+  // Release();
 
   mContext.Reset();
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
@@ -179,7 +177,7 @@ void rtNodeContext::add(const char *name, rtValue const& val)
 {
   if(name == NULL)
   {
-    rtLogError("no symbolic name for rtValue");
+    rtLogError(" %s  ... no symbolic name for rtValue.",__PRETTY_FUNCTION__);
     // TODO: test for uniquiness !
     return;
   }
@@ -187,8 +185,6 @@ void rtNodeContext::add(const char *name, rtValue const& val)
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-
-//  printf("\n#### [%p]  %s() >> Adding \"%s\"\n", this, __FUNCTION__, name);
 
   // Get a Local context...
   Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
@@ -203,27 +199,25 @@ rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NU
 {
   if(script == NULL)
   {
-    rtLogError("no script given.");
+    rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
 
     return  rtObjectRef(0);// JUNK
   }
+
+  rtLogDebug(" %s  ... Running...",__PRETTY_FUNCTION__);
 
   return runScript(std::string(script), args);
 }
 
 
-rtObjectRef rtNodeContext::runScript(const std::string &script, const char *args /*= NULL*/)
+rtObjectRef rtNodeContext::runScript(const std::string &script, const char* /* args = NULL*/)
 {
-
-  printf("In rtNodeContext::runScript\n");
   if(script.empty())
   {
-    rtLogError(" - no script given.");
+    rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
 
     return  rtObjectRef(0);// JUNK
   }
-
-  UNUSED_PARAM(args);
 
   {//scope
     Locker                locker(mIsolate);
@@ -244,11 +238,7 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char *args
 
     // Convert the result to an UTF8 string and print it.
     String::Utf8Value utf8(result);
-
-//    printf("DEBUG:  %15s()    - RESULT = %s\n", __FUNCTION__, *utf8);  // TODO:  Probably need an actual RESULT return mechanisim
   }//scope
-
-  printf("Exit rtNodeContext::runscript\n");
 
     return rtObjectRef(0);// JUNK
 }
@@ -265,18 +255,14 @@ std::string readFile(const char *file)
   return s;
 }
 
-rtObjectRef rtNodeContext::runFile(const char *file, const char *args /*= NULL*/)
+rtObjectRef rtNodeContext::runFile(const char *file, const char* /*args = NULL*/)
 {
-  UNUSED_PARAM(args);
-
   if(file == NULL)
   {
-    rtLogError(" - no script given.");
+    rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
 
     return  rtObjectRef(0);// JUNK
   }
-
-//  printf("\n#### [%p]  %s() >> Running \"%s\"\n", this, __FUNCTION__, file.c_str());
 
   // Read the script file
   js_script = readFile(file);
@@ -284,9 +270,12 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char *args /*= NULL*/
   return runScript(js_script);
 }
 
-rtNode::rtNode(/*int argc, char** argv*/) : mPlatform(NULL)
-{
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+rtNode::rtNode() : mPlatform(NULL)
+{
                               //0123456 789ABCDEF012 345 67890ABCDEF
   static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Intialized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
@@ -351,7 +340,7 @@ void rtNode::nodePath()
     }
     else
     {
-      printf("\nERROR: failed to set NODE_PATH\n");
+      rtLogError(" - failed to set NODE_PATH");
     }
   }
   // else
@@ -381,11 +370,16 @@ void rtNode::init(int argc, char** argv)
 
 void rtNode::term()
 {
-  if(node_is_initialized)
+  if(node_isolate)
   {
+// JRJRJR  Causing crash???  ask Hugh
+//    node_isolate->Dispose();
     node_isolate = NULL;
     mIsolate = NULL;
+  }
 
+  if(node_is_initialized )
+  {
     V8::Dispose();
 
     node_is_initialized = false;

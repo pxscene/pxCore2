@@ -18,7 +18,7 @@ extern rtNode script;
 
 #if 0
 #define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
-#define EXITSCENELOCK()  rtWrapperSceneUpdateExit(); 
+#define EXITSCENELOCK()  rtWrapperSceneUpdateExit();
 #else
 #define ENTERSCENELOCK()
 #define EXITSCENELOCK()
@@ -26,6 +26,8 @@ extern rtNode script;
 
 
 pxEventLoop  eventLoop;
+pxEventLoop* gLoop = &eventLoop;
+
 pxContext context;
 
 class sceneWindow : public pxWindow, public pxIViewContainer
@@ -42,17 +44,19 @@ public:
     sprintf(buffer,"shell.js?url=%s",url);
     setView(new pxScriptView(buffer,"javascript/node/v8"));
   }
-  
+
   rtError setView(pxIView* v)
   {
+    ENTERSCENELOCK()
     mView = v;
 
     if (v)
     {
       v->setViewContainer(this);
-      onSize(mWidth,mHeight);
+      onSize(mWidth, mHeight);
     }
-      
+    EXITSCENELOCK()
+
     return RT_OK;
   }
 
@@ -139,7 +143,7 @@ protected:
       mView->onKeyUp(keycode, flags);
     EXITSCENELOCK();
   }
-  
+
   virtual void onChar(uint32_t c)
   {
     ENTERSCENELOCK();
@@ -173,7 +177,7 @@ protected:
 int pxMain(int argc, char* argv[])
 {
 
-  
+
   rtLogError("in pxMain");
 
   sceneWindow win;
@@ -184,12 +188,12 @@ int pxMain(int argc, char* argv[])
   win2.init(50, 50, 1280, 720);
   #endif
 
-// JRJR TODO this needs happen after GL initialization which right now only happens after a pxWindow has been created.  
+// JRJR TODO this needs happen after GL initialization which right now only happens after a pxWindow has been created.
 // Likely will move this to pxWindow...  as an option... a "context" type
 // would like to decouple it from pxScene2d specifically
   context.init();
-  
+
   eventLoop.run();
-  
+
   return 0;
 }

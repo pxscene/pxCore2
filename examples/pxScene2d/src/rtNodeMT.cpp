@@ -25,17 +25,14 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "rtObject.h"
-#include "rtValue.h"
-
 #include "rtNode.h"
 
 #include "jsbindings/rtObjectWrapper.h"
 #include "jsbindings/rtFunctionWrapper.h"
 
-// #define USE_UV_TIMERS
+#define USE_UV_TIMERS
 
-#ifdef RUNINMAIN
+#ifndef RUNINMAIN
 
 //#include "pxEventLoop.h"
 //extern pxEventLoop* gLoop;
@@ -60,7 +57,7 @@ namespace node
 }
 
 static int exec_argc;
-static const char** exec_argv = NULL;
+static const char** exec_argv;
 
 
 args_t *s_gArgs;
@@ -102,10 +99,7 @@ void *uvThread(void *ptr)
 
     if(ctx)
     {
-      while(ctx->mKillUVWorker == false)
-      {
-        ctx->uvWorker(); // BLOCKS
-      }
+      ctx->uvWorker(); // BLOCKS
     }
     else
     {
@@ -156,14 +150,15 @@ void *jsThread(void *ptr)
 
   static void timerCallback(uv_timer_t* )
   {
-    #ifdef RUNINMAIN
-    if (gLoop)
-      gLoop->runOnce();
-    #else
-      rtLogDebug("uv timer callback");
-    #endif
+//    #ifdef RUNINMAIN
+//    if (gLoop)
+//      gLoop->runOnce();
+//    #else
+//      rtLogDebug("uv timer callback");
+//    #endif
   }
 #else
+
   static void timerCallback(uv_timer_t* )
   {
     // DUMMY
@@ -185,8 +180,8 @@ static inline bool file_exists(const char *file)
 
 
 rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
-     mKillUVWorker(false), mIsolate(isolate), mEnv(NULL), mRefCount(0), 
-     js_worker(0), uv_worker(0)
+     mKillUVWorker(false), mIsolate(isolate), mEnv(NULL), 
+     js_worker(0), uv_worker(0), mRefCount(0)
      
 {
   assert(isolate); // MUST HAVE !
@@ -237,18 +232,6 @@ void rtNodeContext::createEnvironment()
   {
     EnableDebug(mEnv);
   }
-#if 0
-  #ifdef  USE_UV_TIMERS
-
-    rtLogError("... Start  UV TIMERS ...");
-
-    startTimers(); // keep alive
-
-    createThread_UV();
-
-  #endif
-#endif
-
 }
 
 rtNodeContext::~rtNodeContext()
@@ -265,7 +248,7 @@ rtNodeContext::~rtNodeContext()
    // EmitExit(mEnv);
     RunAtExit(mEnv);
 
-    mEnv->Dispose();
+   // mEnv->Dispose();
     mEnv = NULL;
   }
 
@@ -276,11 +259,13 @@ rtNodeContext::~rtNodeContext()
     exec_argc = 0;
   }
 
+  // TODO:  Next steps ... re-add? 
+  //
   // Un-Register wrappers.
-    rtObjectWrapper::destroyPrototype();
-  rtFunctionWrapper::destroyPrototype();
+//    rtObjectWrapper::destroyPrototype();
+//  rtFunctionWrapper::destroyPrototype();
 
-  Release();
+  // Release();
 
   mContext.Reset();
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
@@ -351,9 +336,7 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char* /* a
     return  rtObjectRef(0);// JUNK
   }
 
-#ifndef  USE_UV_TIMERS
- // createThread_UV();
-#endif
+  createThread_UV();
 
   {//scope
     Locker                locker(mIsolate);
@@ -382,7 +365,7 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char* /* a
 
 rtObjectRef rtNodeContext::runScriptThreaded(const char *script, const char* /* args = NULL*/)
 {
-  rtLogDebug(" %s  ... ENTER",__PRETTY_FUNCTION__);
+  rtLogDebug(" %s - ENTER", __PRETTY_FUNCTION__);
 
   if(script == NULL)
   {
@@ -393,11 +376,7 @@ rtObjectRef rtNodeContext::runScriptThreaded(const char *script, const char* /* 
 
   js_script = script;
 
-#ifndef  USE_UV_TIMERS
   createThread_JS();
-#endif
-
-  createThread_UV();
 
   return rtObjectRef(0);
 }
@@ -416,6 +395,8 @@ std::string readFile(const char *file)
 
 rtObjectRef rtNodeContext::runFile(const char *file, const char* /* args = NULL*/)
 {
+  rtLogDebug(" %s - ENTER", __PRETTY_FUNCTION__);
+
   if(file == NULL)
   {
     rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
@@ -454,7 +435,9 @@ bool rtNodeContext::createThread_UV()
 {
   if(uv_worker == 0) // only once
   {
-    pthread_mutex_init(&uv_mutex, NULL);
+    pthread_mutexattr_init(&uv_mutex_attr);
+    pthread_mutexattr_settype(&uv_mutex_attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&uv_mutex, &uv_mutex_attr);
 
     if(pthread_create(&uv_worker, NULL, uvThread, (void *) this))
     {
@@ -501,6 +484,7 @@ bool rtNodeContext::killThread_JS()
 
     js_worker = 0;
     pthread_mutex_destroy(&js_mutex);
+    pthread_mutexattr_destroy(&js_mutex_attr);
 
     rtLogDebug(" %s - Kill JS - DONE", __PRETTY_FUNCTION__); // JUNK
   }
@@ -513,6 +497,10 @@ bool rtNodeContext::createThread_JS()
 {
   if(js_worker == 0)  // only once
   {
+    pthread_mutexattr_init(&js_mutex_attr);
+    pthread_mutexattr_settype(&js_mutex_attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&js_mutex, &js_mutex_attr);
+
     if(pthread_create(&js_worker, NULL, jsThread, (void *) this))
     {
       rtLogError(" %s  ... Error creating JS thread",__PRETTY_FUNCTION__);
@@ -521,8 +509,6 @@ bool rtNodeContext::createThread_JS()
     }
 
     rtLogDebug(" %s  ... Created  JS_THREAD ...",__PRETTY_FUNCTION__);
-
-    pthread_mutex_init(&js_mutex, NULL);
   }
 
   return true;
@@ -535,20 +521,7 @@ void rtNodeContext::uvWorker()
 
   bool more;
 
-#ifndef  USE_UV_TIMERS
-
-  // we start a timer in case there aren't any other evens to the keep the
-  // nodejs event loop alive. Fire a time repeatedly.
-  uv_timer_init(uv_default_loop(), &mTimer);
-
-  // TODO experiment crank up the timers so we can pump cocoa messages on main thread
-  #ifdef RUNINMAIN
-    uv_timer_start(&mTimer, timerCallback, 0, 5);
-  #else
-    uv_timer_start(&mTimer, timerCallback, 1000, 1000);
-  #endif
-
-#endif //  USE_UV_TIMERS
+  startTimers();
 
   do
   {
@@ -580,6 +553,9 @@ void rtNodeContext::uvWorker()
     pthread_mutex_lock(&uv_mutex);     // ##
     if(mKillUVWorker == true)
     {
+      pthread_mutex_unlock(&uv_mutex);   // ##
+
+      rtLogDebug(" %s - told to EXIT  ", __PRETTY_FUNCTION__);
       break;
     }
     pthread_mutex_unlock(&uv_mutex);   // ##
@@ -615,11 +591,9 @@ rtObjectRef rtNodeContext:: runThread(const char *file)  // DEPRECATED
 
 rtNode::rtNode() : mPlatform(NULL)
 {
-
                               //0123456 789ABCDEF012 345 67890ABCDEF
   static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Intialized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
-//  static const char *argv2[] = {&args2[0], &args2[7], NULL};
   int                 argc   = sizeof(argv2)/sizeof(char*) - 1;
 
   static args_t aa(argc, (char**)argv2);
@@ -642,6 +616,11 @@ rtNode::rtNode() : mPlatform(NULL)
 rtNode::~rtNode()
 {
   term();
+}
+
+void rtNode::pump()
+{
+  // DUMMY
 }
 
 void rtNode::nodePath()
@@ -693,12 +672,12 @@ void rtNode::term()
   if(node_isolate)
   {
 // JRJRJR  Causing crash???  ask Hugh
-    node_isolate->Dispose();
+//    node_isolate->Dispose();
     node_isolate = NULL;
     mIsolate = NULL;
   }
 
-  if(node_is_initialized ) //&& false)
+  if(node_is_initialized )
   {
     V8::Dispose();
 
@@ -736,8 +715,3 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
