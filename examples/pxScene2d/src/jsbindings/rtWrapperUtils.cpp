@@ -34,6 +34,8 @@ maptype_rt2v8 objectMap_rt2v8;
 
 void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
 {
+  // JRJR TODO disable this lock when running single threaded... sometimes get hang in garbage collection
+  // reentrancy?
   rtMutexLockGuard lock(objectMapMutex);
   maptype_rt2v8::iterator itr = objectMap_rt2v8.find(data.GetParameter());
   if (itr != objectMap_rt2v8.end())

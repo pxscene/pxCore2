@@ -17,7 +17,7 @@ export DYLD_LIBRARY_PATH=$externalDir/png/.libs/:$externalDir/curl/lib/.libs/:$e
 
 # Debug libs...
 #
-export LD_LIBRARY_PATH=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/libnode/out/Debug/obj.target
+export LD_LIBRARY_PATH=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/libnode/out/Release/obj.target
 
 #[ -f FontdinerSwanky.ttf ] || cp $pxSceneDir/src/FontdinerSwanky.ttf .
 #[ -f FreeSans.ttf ] || cp $pxSceneDir/src/FreeSans.ttf .

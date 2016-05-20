@@ -55,7 +55,7 @@ function blah(o)
   o.animateTo({r:360}, 1.0, scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP, 5).then(function(o) { console.log("done"); /*blah(o);*/});
 }
 }
-//return;
+return;
 
 
 

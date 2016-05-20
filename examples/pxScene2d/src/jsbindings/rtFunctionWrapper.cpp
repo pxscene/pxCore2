@@ -51,8 +51,10 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
   AsyncContext* ctx = reinterpret_cast<AsyncContext*>(req->data);
   rtResolverFunction* resolverFunc = static_cast<rtResolverFunction *>(ctx->resolverFunc.getPtr());
 
+
+
   assert(ctx->args.size() < 2);
-  assert(Isolate::GetCurrent() == resolverFunc->mIsolate);
+//  assert(Isolate::GetCurrent() == resolverFunc->mIsolate);
 
   Locker                locker(resolverFunc->mIsolate);
   Isolate::Scope isolate_scope(resolverFunc->mIsolate);
@@ -65,6 +67,8 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
   }
 
   Local<Promise::Resolver> resolver = PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mResolver);
+  Local<Context> local_context = resolver->CreationContext();
+  Context::Scope context_scope(local_context);
 
   TryCatch tryCatch;
   if (resolverFunc->mDisposition == DispositionResolve)

@@ -10,7 +10,9 @@
 #include "pxContext.h"
 #include "pxScene2d.h"
 
-//#include "rtNode.h"
+#include "rtNode.h"
+
+extern rtNode script;
 
 #include "jsbindings/rtWrapperUtils.h"
 
@@ -22,6 +24,7 @@
 #define EXITSCENELOCK()
 #endif
 
+
 pxEventLoop  eventLoop;
 pxContext context;
 
@@ -31,10 +34,13 @@ public:
   sceneWindow() {}
   virtual ~sceneWindow() {}
 
-  void init(int x, int y, int w, int h, const char* uri = NULL)
+  void init(int x, int y, int w, int h, const char* url = NULL)
   {
     pxWindow::init(x,y,w,h);
-    setView(new pxScriptView(uri?uri:"browser.js","javascript/node/v8"));
+    char buffer[1024];
+    // JR TODO url needs to be url encoded
+    sprintf(buffer,"shell.js?url=%s",url);
+    setView(new pxScriptView(buffer,"javascript/node/v8"));
   }
   
   rtError setView(pxIView* v)
@@ -58,7 +64,7 @@ public:
 protected:
 
   virtual void onSize(int32_t w, int32_t h)
-  {     
+  {
     mWidth  = w;
     mHeight = h;
     ENTERSCENELOCK();
@@ -156,6 +162,7 @@ protected:
     if (mView)
       mView->onUpdate(pxSeconds());
     EXITSCENELOCK();
+    script.pump();
   }
 
   int mWidth;
@@ -165,6 +172,10 @@ protected:
 
 int pxMain(int argc, char* argv[])
 {
+
+  
+  rtLogError("in pxMain");
+
   sceneWindow win;
   win.init(10, 10, 1280, 720, (argc >= 2)?argv[1]:"browser.js");
 

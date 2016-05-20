@@ -929,7 +929,7 @@ public:
 
   virtual ~pxScriptView()
   {
-    printf("pxScriptView destroyed\n");
+    rtLogError("pxScriptView destroyed\n");
     if (mView)
       setViewContainer(NULL);
   }

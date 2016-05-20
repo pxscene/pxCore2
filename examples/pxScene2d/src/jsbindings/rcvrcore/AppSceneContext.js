@@ -202,6 +202,8 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       console: console,
       runtime: apiForChild,
       process: process,
+      urlModule: require("url"),
+      queryStringModule: require("querystring"),
       theNamedContext: "Sandbox: " + uri,
       Buffer: Buffer,
       require: function (pkg) {

@@ -1,8 +1,7 @@
 #ifndef RTNODE_H
 #define RTNODE_H
 
-#include "rtObject.h"
-#include "rtValue.h"
+#include <string>
 
 #ifndef WIN32
 #pragma GCC diagnostic push
@@ -19,21 +18,16 @@
 #endif
 #endif
 
-#include <string>
-
-#include "jsbindings/rtWrapperUtils.h"
-#include "jsbindings/rtObjectWrapper.h"
-#include "jsbindings/rtFunctionWrapper.h"
-
 namespace node
 {
-class Environment;
+  class Environment;
 }
 
 class rtNode;
 class rtNodeContext;
 
 typedef rtRefT<rtNodeContext> rtNodeContextRef;
+
 
 #define UNUSED_PARAM(x) ((x)=(x))
 
@@ -57,11 +51,21 @@ public:
   rtNodeContext(v8::Isolate *isolate);
   ~rtNodeContext();
 
+  //  rtStringRef <<< as an OUT parameter
+  //
   void add(const char *name, rtValue  const& val);
 
   rtObjectRef runScript(const char        *script,  const char *args = NULL); // BLOCKS
   rtObjectRef runScript(const std::string &script,  const char *args = NULL); // BLOCKS
-  rtObjectRef runFile  (const char *file,           const char *args = NULL); // BLOCKS
+  rtObjectRef runFile  (const char *file,           const char *args); // BLOCKS
+
+  rtObjectRef runScriptThreaded(const char *script, const char *args = NULL); // THREADED
+  rtObjectRef runFileThreaded(const char *file,     const char *args = NULL); // THREADED
+
+  rtObjectRef runFile(  const char *file);  // DEPRECATED
+  rtObjectRef runThread(const char *file);  // DEPRECATED
+
+  void uvWorker();
 
   unsigned long AddRef()
   {
@@ -71,14 +75,18 @@ public:
   unsigned long Release()
   {
     long l = rtAtomicDec(&mRefCount);
-    if (l == 0) delete this;
+    if (l == 0)  delete this;
     return l;
   }
 
-  const char   *js_file;
-  std::string   js_script;
-  
-  rtNode   *node;
+  bool             mKillUVWorker;
+
+  uv_timer_t       mTimer;
+
+  const char      *js_file;
+  std::string      js_script;
+
+  rtNode          *node;
 
 private:
   v8::Isolate                   *mIsolate;
@@ -87,27 +95,42 @@ private:
   node::Environment*             mEnv;
   v8::Persistent<v8::Object>     rtWrappers;
 
-  void createEnvironment();
-
   int mRefCount;
-  };
+
+  pthread_t        js_worker;
+  pthread_mutex_t  js_mutex;
+
+  pthread_t        uv_worker;
+  pthread_mutex_t  uv_mutex;
+
+
+  bool createThread_UV();
+  bool   killThread_UV();
+
+  bool createThread_JS();
+  bool   killThread_JS();
+
+
+  void createEnvironment();
+ // v8::Persistent<v8::ObjectTemplate>  globalTemplate;
+
+  void startTimers();
+
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class rtNode
 {
 public:
-//  rtNode();
-  rtNode(/*int argc, char** argv*/);
+  rtNode();
   ~rtNode();
-
-  void pump();
 
   rtNodeContextRef getGlobalContext() const;
   rtNodeContextRef createContext(bool ownThread = false);
 
   v8::Isolate   *getIsolate() { return mIsolate; };
-  
+
 private:
   void init(int argc, char** argv);
   void term();
