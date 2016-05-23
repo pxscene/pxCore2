@@ -500,6 +500,8 @@ public:
   rtError addListener(const char* eventName, rtIFunction* f);
   rtError delListener(const char* eventName, rtIFunction* f);
 
+  rtError clearListeners() {mEntries.clear(); return RT_OK;}
+
 public:
   virtual rtError Send(int numArgs,const rtValue* args,rtValue* result);
     

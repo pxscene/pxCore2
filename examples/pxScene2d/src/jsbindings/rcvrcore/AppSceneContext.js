@@ -13,7 +13,8 @@ var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var log = new Logger('AppSceneContext');
 
 function AppSceneContext(params) { // container, innerscene, packageUrl) {
-//  this.container = params.sceneContainer;
+  //  this.container = params.sceneContainer;
+  this.makeReady - params.makeReady;
   this.innerscene = params.scene;
   this.rpcController = params.rpcController;
   if( params.packageUrl.indexOf('?') != -1 ) {
@@ -74,6 +75,8 @@ if (false) {
     log.message(2, "innerscene root(" + this.packageUrl + "): keydown:" + e.keyCode);
   }/*.bind(this));*/);
 }
+
+if (false) {
   this.innerscene.on('onComplete', function (e) {
 //    this.container = null;
     this.innerscene = null;
@@ -96,7 +99,7 @@ if (false) {
     this.sceneWrapper = null;
     global.gc();
   }/*.bind(this));*/);
-
+}
 
   log.info("loadScene() - ends");
 
@@ -223,7 +226,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
     try {
       //JRJRJRJR  This line causing a garbage collection leak...
       // LEAKLEAK
-      //this.innerscene.api = {isReady:false, onModuleReady:onAppModuleReady.bind(this) };
+//      this.innerscene.api = {isReady:false, onModuleReady:onAppModuleReady.bind(this) };
 
       var sourceCode = AppSceneContext.wrap(code);
       //var script = new vm.Script(sourceCode, fname);
@@ -251,15 +254,19 @@ if (false) {
       //console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
       if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
 //        this.container.makeReady(true);
-        this.innerscene.api = {isReady:true};
+        
+//        this.innerscene.api = {isReady:true};
+        this.makeReady(true,{});
       } else {
         var modulePromise = xModule.moduleReadyPromise;
         modulePromise.then( function(i) {
           self.innerscene.api = xModule.exports;
-          self.container.makeReady(true);
+//          self.container.makeReady(true);
+          this.makeReady(true,xModule.exports);
         }).catch( function(err) {
           console.error("Main module[" + self.packageUrl + "]" + " load has failed - on failed imports: " + ", err=" + err);
-          self.container.makeReady(false);
+//          self.container.makeReady(false);
+          this.makeReady(false,{});
         } );
       }
 

@@ -152,6 +152,8 @@ rtValue rtObjectWrapper::unwrapObject(const Local<Object>& obj)
 template<typename T>
 void rtObjectWrapper::getProperty(const T& prop, const PropertyCallbackInfo<Value>& info)
 {
+//  HandleScope handle_scope(info.GetIsolate());
+
   rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
     return;
@@ -175,7 +177,12 @@ void rtObjectWrapper::getProperty(const T& prop, const PropertyCallbackInfo<Valu
   }
   else
   {
-    info.GetReturnValue().Set(rt2js(info.GetIsolate(), value));
+    Local<Value> v;
+    EscapableHandleScope scope(info.GetIsolate());
+    v = rt2js(info.GetIsolate(),value);
+//    info.GetReturnValue().Set(rt2js(info.GetIsolate(), value));
+    scope.Escape(v);
+    info.GetReturnValue().Set(v);
   }
 }
 
@@ -271,6 +278,7 @@ jsObjectWrapper::jsObjectWrapper(Isolate* isolate, const Handle<Value>& obj, boo
 
 jsObjectWrapper::~jsObjectWrapper()
 {
+  mObject.Reset();
 }
 
 unsigned long jsObjectWrapper::AddRef()
@@ -307,6 +315,8 @@ rtError jsObjectWrapper::getAllKeys(Isolate* isolate, rtValue* value) const
 
 rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
 {
+  HandleScope handle_scope(mIsolate);
+
   if (!name)
     return RT_ERROR_INVALID_ARG;
   if (!value)

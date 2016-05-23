@@ -54,7 +54,7 @@ if (false) {
 
   scene.root.on("onPreKeyDown", function(e) {
 	  var code = e.keyCode; var flags = e.flags;
-    console.log("onKeyDown:", code, ", ", flags);
+    console.log("onPreKeyDown:", code, ", ", flags);
     if (code == 89 && ((flags & 48)==48)) {  // ctrl-alt-y
       showFPS = !showFPS
       fpsBg.a = (showFPS)?1.0:0;
@@ -64,18 +64,18 @@ if (false) {
       scene.showOutlines = !scene.showOutlines;
       e.stopPropagation();
     }
-    else if (code == 82 && ((flags & 48) == 48)) {  // ctrl-alt-r
+    else if (code == 82 && ((flags & 56) == 56)) {  // ctrl-alt-r
       console.log("Reloading url: ", originalURL);
       childScene.url = originalURL;
       e.stopPropagation();
     }
-    else if (code == 72 && ((flags & 48)==48)) {  // ctrl-alt-h
+    else if (code == 72 && ((flags & 56)==56)) {  // ctrl-alt-h
       var homeURL = "browser.js";
       console.log("loading home url: ", homeURL);
       childScene.url = homeURL;
       e.stopPropagation();
     }
-    else if (code == 83 && (flags & 16)) { // ctrl-s
+    else if (code == 83 && ((flags & 48)==48)) { // ctrl-s
       // This returns a data URI string with the image data
       var dataURI = scene.screenshot('image/png;base64');
       // convert the data URI by stripping off the scheme and type information
@@ -90,17 +90,36 @@ if (false) {
       });
     }
   });
-console.log("here");
 
   scene.root.on("onPreKeyUp", function(e) {
-    console.log("in onKeyUp", e.keyCode, e.flags);
+    console.log("in onPreKeyUp", e.keyCode, e.flags);
 	  var code = e.keyCode; var flags = e.flags;
     console.log("onKeyUp:", code, ", ", flags);
     // eat the ones we handle here
     if (code == 89 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-y
     else if (code == 79 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-o
-    else if (code == 82 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-r
+    else if (code == 82 && ((flags & 56)==56)) e.stopPropagation(); // ctrl-alt-r
+    else if (code == 72 && ((flags & 56)==56)) e.stopPropagation(); // ctrl-alt-r
+    else if (code == 83 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-s
   });
+
+if (true) {
+  scene.root.on("onKeyDown", function(e) {
+	  var code = e.keyCode; var flags = e.flags;
+    console.log("onKeyDown shell:", code, ", ", flags);
+    if (code == 82 && ((flags & 48) == 48)) {  // ctrl-alt-r
+      console.log("Reloading url: ", originalURL);
+      childScene.url = originalURL;
+      e.stopPropagation();
+    }
+    else if (code == 72 && ((flags & 48)==48)) {  // ctrl-alt-h
+      var homeURL = "browser.js";
+      console.log("Loading home url: ", homeURL);
+      childScene.url = homeURL;
+      e.stopPropagation();
+    }
+  });
+}
 
   scene.root.on("onPreChar", function(e) {
     console.log("in onchar");
@@ -108,7 +127,6 @@ console.log("here");
     console.log("onChar:", c);
 	  // TODO eating some "undesired" chars for now... need to redo this
     if (c<32) {
-      //            childScene.emit("onChar", e);
       console.log("stop onChar");
       e.stopPropagation()
     }

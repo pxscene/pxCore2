@@ -65,6 +65,8 @@ extern rtThreadQueue gUIThreadQueue;
 static pxConstants CONSTANTS;
 
 
+static int pxObjectCount = 0;
+
 #if 0
 typedef rtError (*objectFactory)(void* context, const char* t, rtObjectRef& o);
 void registerObjectFactory(objectFactory f, void* context);
@@ -109,6 +111,7 @@ struct pxPoint2f
 class pxFileDownloadRequest;
 
 class pxScene2d;
+class pxScriptView;
 
 class pxObject: public rtObject
 {
@@ -190,19 +193,38 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
     , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
 #endif //PX_DIRTY_RECTANGLES
   {
+    pxObjectCount++;
     mScene = scene;
     mReady = new rtPromise;
     mEmit = new rtEmit;
   }
 
+  virtual unsigned long Release()
+  {
+    rtString d;
+    // Why is this bad
+    //sendReturns<rtString>("description",d);
+    rtString d2 = getMap()->className;
+    unsigned long c =  rtObject::Release();
+    if (c == 0)
+      printf("pxObject %s  %ld: %s\n", (c==0)?" *********** Destroyed":"Released",c, d2.cString());
+    return c;
+  }
+
   virtual ~pxObject() 
   { 
-    printf("pxObject destroyed\n"); 
+//    rtString d;
+    // TODO... why is this bad
+//    sendReturns<rtString>("description",d);
+//    printf("**************** pxObject destroyed: %s\n",getMap()->className); 
+    pxObjectCount--;
     rtValue nullValue; 
     mReady.send("reject",nullValue); 
     deleteSnapshot(mSnapshotRef); 
     deleteSnapshot(mClipSnapshotRef);
   }
+
+  
 
   // TODO missing conversions in rtValue between uint32_t and int32_t
   uint32_t numChildren() const { return mChildren.size(); }
@@ -343,6 +365,24 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
   void moveToBack();
   void moveForward();
   void moveBackward();
+
+  void dispose()
+  {
+    vector<animation>::iterator it = mAnimations.begin();
+    for(;it != mAnimations.end();it++)
+    {
+      if ((*it).promise)
+        (*it).promise.send("reject",this);
+    }
+
+    mAnimations.clear();
+    mEmit->clearListeners();
+    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      (*it)->dispose();
+    } 
+    mChildren.clear();
+  }
 
   void drawInternal(bool maskPass=false);
   virtual void draw() {}
@@ -701,6 +741,13 @@ protected:
   }
 };
 
+class pxRoot: public pxObject
+{
+  rtDeclareObject(pxRoot, pxObject);
+public:
+  pxRoot(pxScene2d* scene): pxObject(scene) {}
+};
+
 class pxViewContainer: public pxObject, public pxIViewContainer
 {
 public:
@@ -898,10 +945,12 @@ public:
   rtReadOnlyProperty(api, api, rtValue);
   rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);
   
-pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
+  pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
 
   rtError url(rtString& v) const { v = mUrl; return RT_OK; }
   rtError setUrl(rtString v);
+
+  rtError setScriptView(pxScriptView* scriptView);
 
   rtError api(rtValue& v) const;
 
@@ -914,7 +963,7 @@ pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
   virtual void createNewPromise(){ rtLogDebug("pxSceneContainer ignoring createNewPromise\n"); }
   
 private:
-  rtRefT<pxScene2d> mScene;
+  rtRefT<pxScriptView> mScriptView;
   rtString mUrl;
 };
 
@@ -922,6 +971,8 @@ private:
 typedef rtRefT<pxObject> pxObjectRef;
 
 // Important that this have a separate lifetime from scene object
+// and to not hold direct references to this objects from the script context
+// Don't make this into an rtObject
 class pxScriptView: public pxIView
 {
 public:
@@ -930,8 +981,19 @@ public:
   virtual ~pxScriptView()
   {
     rtLogError("pxScriptView destroyed\n");
+
+    // Clear out these references since the script context
+    // can outlive this view
+    mCtx->add("getScene", 0);
+    mCtx->add("makeReady", 0);
+    
     if (mView)
       setViewContainer(NULL);
+
+    // Hack to try and reduce leaks until garbage collection can
+    // be cleaned up
+    if (mApi)
+      mApi.send("dispose");
   }
 
   virtual unsigned long AddRef() 
@@ -947,10 +1009,20 @@ public:
       delete this;
     return l;
   }
+
+  rtError api(rtValue& v)
+  {
+    if (!mApi)
+      return RT_FAIL;
+
+    v = mApi;
+    return RT_OK;
+  }
   
 protected:
 
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
+  static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
 
   virtual void onSize(int32_t w, int32_t h)
   {
@@ -1090,8 +1162,13 @@ public:
   rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
 
+  rtMethodNoArgAndNoReturn("dispose",dispose);
+
   pxScene2d(bool top = true);
-  virtual ~pxScene2d() {printf("***** deleting pxScene2d\n");}
+  virtual ~pxScene2d() 
+  {
+    printf("***** deleting pxScene2d\n");
+  }
   
   virtual unsigned long AddRef() 
   {
@@ -1108,6 +1185,19 @@ public:
   }
 
 //  void init();
+
+  rtError dispose()
+  {
+    printf("*************** Dispose\n");
+    if (mRoot)
+      mRoot->dispose();
+    mEmit->clearListeners();
+    mRoot = NULL;
+    //mFocusObj = NULL;
+    //setFocus(NULL);
+    return RT_OK;
+  }
+
 
   rtError onScene(rtFunctionRef& v) const;
   rtError setOnScene(rtFunctionRef v);

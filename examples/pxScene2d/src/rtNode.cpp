@@ -323,10 +323,10 @@ void rtNode::pump()
   uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
 
   // Enable this to expedite garbage collection for testing... warning perf hit
-  #if 0
+  #if 1
   static int i = 0;
 
-  if (i++ > 100)
+  if (i++ > 600)
   {
     mIsolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
     i++;

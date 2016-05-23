@@ -23,7 +23,8 @@ rtResolverFunction::rtResolverFunction(Disposition disp, Isolate* isolate, Local
 
 rtResolverFunction::~rtResolverFunction()
 {
-  rtLogDebug("delete");
+  rtLogDebug("~rtResolverFunction");
+  mResolver.Reset();
 }
 
 rtError rtResolverFunction::Send(int numArgs, const rtValue* args, rtValue* /*result*/)
@@ -99,7 +100,6 @@ rtFunctionWrapper::rtFunctionWrapper(const rtFunctionRef& ref)
 
 rtFunctionWrapper::~rtFunctionWrapper()
 {
-
 }
 
 void rtFunctionWrapper::destroyPrototype()
@@ -228,6 +228,8 @@ jsFunctionWrapper::jsFunctionWrapper(Isolate* isolate, const Handle<Value>& val)
 
 jsFunctionWrapper::~jsFunctionWrapper()
 {
+  mFunction.Reset();
+
   if (mTeardownThreadingPrimitives)
   {
 #ifndef USE_STD_THREADS

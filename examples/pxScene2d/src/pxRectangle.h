@@ -27,6 +27,7 @@ public:
   
   rtError fillColor(uint32_t& /*c*/) const 
   {
+    // TODO
     rtLogWarn("fillColor not implemented");
     return RT_OK;
   }
@@ -42,6 +43,7 @@ public:
 
   rtError lineColor(uint32_t& /*c*/) const 
   {
+    // TODO
     rtLogWarn("lineColor not implemented");
     return RT_OK;
   }

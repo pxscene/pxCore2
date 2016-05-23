@@ -1041,12 +1041,14 @@ rtDefineProperty(pxObject,m44);
 rtDefineProperty(pxObject,useMatrix);
 
 
+rtDefineObject(pxRoot,pxObject);
+
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top)
   :start(0),frameCount(0), mContainer(NULL), mShowDirtyRect(false)
 { 
-  mRoot = new pxObject(this);
+  mRoot = new pxRoot(this);
   mFocusObj = mRoot;
   mEmit = new rtEmit();
   mTop = top;
@@ -1344,7 +1346,7 @@ void pxScene2d::onUpdate(double t)
     end2 = pxSeconds();
 
     double fps = (double)frameCount/(end2-start);
-    printf("%f fps\n", fps);
+    printf("%f fps pxObjectCount %d\n", fps, pxObjectCount);
     // TODO FUTURES... might be nice to have "struct" style object's that get copied
     // at the interop layer so we don't get remoted calls back to the render thread
     // for accessing the values (events would be the primary usecase)
@@ -1624,6 +1626,14 @@ void pxScene2d::onBlur()
 
 }
 
+bool gStopPropagation;
+rtError stopPropagation2(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+{
+  bool& stopProp = *(bool*)ctx;
+  stopProp = true;
+  return RT_OK;
+}
+
 void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t, 
                             const char* preEvent, const char* event) 
 {
@@ -1631,7 +1641,8 @@ void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
   if (e && t)
   {
     mStopPropagation = false;
-    e.set("stopPropagation", get<rtFunctionRef>("stopPropagation"));
+//    e.set("stopPropagation", get<rtFunctionRef>("stopPropagation"));
+    e.set("stopPropagation", new rtFunctionCallback(stopPropagation2, (void*)&gStopPropagation));
     
     vector<rtRefT<pxObject> > l;
     while(t)
@@ -1640,6 +1651,7 @@ void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
       t = t->parent();
     }
 
+//    printf("before %s bubble\n", preEvent);
     e.set("name", preEvent);
     for (vector<rtRefT<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != l.rend();++it)
     {
@@ -1647,8 +1659,12 @@ void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
       rtFunctionRef emit = (*it)->mEmit.getPtr();
       if (emit)
         emit.sendReturns(preEvent,e,stop);
+      if (mStopPropagation)
+        break;
     }
+//    printf("after %s bubble\n", preEvent);
 
+//    printf("before %s bubble\n", event);
     e.set("name", event);
     for (vector<rtRefT<pxObject> >::iterator it = l.begin();!mStopPropagation && it != l.end();++it)
     {
@@ -1656,9 +1672,14 @@ void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
       rtFunctionRef emit = (*it)->mEmit.getPtr();
       // TODO: As we bubble onMouseMove we need to keep adjusting the coordinates into the
       // coordinate space of the successive parents object ??
+      // JRJR... not convinced on this comment please discus with me first.
       if (emit)
         emit.sendReturns(event,e,stop);
+//      printf("mStopPropagation %d\n", mStopPropagation);
+      if (mStopPropagation)
+        break;
     }
+//    printf("after %s bubble\n", event);
   }
 }
 
@@ -1919,7 +1940,7 @@ rtDefineProperty(pxScene2d,stretch);
 rtDefineProperty(pxScene2d,alignVertical);
 rtDefineProperty(pxScene2d,alignHorizontal);
 rtDefineProperty(pxScene2d,truncation);
-
+rtDefineMethod(pxScene2d, dispose);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
@@ -2002,7 +2023,7 @@ rtDefineProperty(pxSceneContainer, url);
 rtDefineProperty(pxSceneContainer, api);
 rtDefineMethod(pxSceneContainer, makeReady);
 
-rtError pxSceneContainer::setUrl(rtString v)
+rtError pxSceneContainer::setUrl(rtString url)
 { 
   // If old promise is still unfulfilled reject it
   // and create a new promise for the context of this Url
@@ -2027,17 +2048,31 @@ rtError pxSceneContainer::setUrl(rtString v)
     //mReady.send("resolve",this);
   }
 #else
-  printf("begin load scene %s\n", v.cString());
-  setView(new pxScriptView(v.cString(),""));
-  printf("end load scene %s\n", v.cString());
+  printf("begin load scene %s\n", url.cString());
+  mUrl = url;
+  setScriptView(new pxScriptView(url.cString(),""));
+  printf("end load scene %s\n", url.cString());
 #endif
   return RT_OK; 
 }
 
 rtError pxSceneContainer::api(rtValue& v) const 
 { 
-  return mScene->api(v); 
+//  return mScene->api(v);
+  if (mScriptView)
+    return mScriptView->api(v);
+  else 
+    return RT_FAIL;
 }
+
+
+rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
+{
+  mScriptView = scriptView;
+  setView(scriptView);
+  return RT_OK;
+}
+
 
 rtError pxSceneContainer::makeReady(bool ready)
 {
@@ -2070,41 +2105,63 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContaine
     if (mCtx)
     {
       mCtx->add("getScene", new rtFunctionCallback(getScene, this));
+      mCtx->add("makeReady", new rtFunctionCallback(makeReady, this));
 
-      char buffer[256];
-      sprintf(buffer, "var _url=\"%s\";", url);
-      mCtx->runScript(buffer);
+//      mCtx->add("getScene", get<rtFunctionRef>("getScene"));
+//      mCtx->add("makeReady", get<rtFunctionRef>("makeReady"));
       printf("Running init for %s\n", url);
       mCtx->runFile("init.js");    
+      char buffer[256];
+      sprintf(buffer, "loadUrl(\"%s\");", url);
+      mCtx->runScript(buffer);
     }
   }
 
-rtError pxScriptView::getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx)
+rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
-  rtLogError("@@@@@@@@@@  In getScene\n");
-    // JR Todo can specify what scene version/type to create in args
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
-    if (!v->mApi)
+    if (numArgs == 1)
     {
-      static bool top = true;
-      pxScene2dRef scene = new pxScene2d(top);
-      top = false;
-      v->mView = scene;
-      v->mApi = scene;
+      rtString sceneType = args[0].toString();
+      rtLogError("@@@@@@@@@@  In getScene %s\n", sceneType.cString());
+      // JR Todo can specify what scene version/type to create in args
+      if (!v->mApi)
+      {
+        static bool top = true;
+        pxScene2dRef scene = new pxScene2d(top);
+        top = false;
+        v->mView = scene;
+        v->mApi = scene;
+        
+        v->mView->setViewContainer(v->mViewContainer);
+        v->mView->onSize(v->mWidth,v->mHeight);
+      }
       
-      v->mView->setViewContainer(v->mViewContainer);
-      v->mView->onSize(v->mWidth,v->mHeight);
-//      v->mViewContainer->invalidateRect(NULL);
+      if (result)
+      {
+        *result = v->mApi;
+        return RT_OK;
+      }
     }
-    
-    if (result)
+  }
+  return RT_FAIL;
+}
+
+
+rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+{
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+    printf("In Make Ready\n");
+    if (numArgs == 2)
     {
-      *result = v->mApi;
+//      if (args[0].toBool())
       return RT_OK;
     }
   }
-  
   return RT_FAIL;
 }
+
