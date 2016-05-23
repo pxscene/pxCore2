@@ -32,6 +32,9 @@ struct jsCallback
   static void work(uv_work_t* req);
   static void doCallback(uv_work_t* req, int status);
 
+  // made this public for the direct call (rtIsMain) path
+  virtual ~jsCallback();
+
 private:
   std::vector<rtValue> mArgs;
   uv_work_t mReq;
@@ -43,7 +46,6 @@ private:
   void* mCompletionContext;
 
   jsCallback(v8::Isolate* isolate);
-  virtual ~jsCallback();
 };
 
 #endif

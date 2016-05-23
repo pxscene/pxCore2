@@ -1148,7 +1148,7 @@ public:
   rtMethodNoArgAndReturn("getFocus", getFocus, rtObjectRef);
   
   
-  rtMethodNoArgAndNoReturn("stopPropagation",stopPropagation);
+//  rtMethodNoArgAndNoReturn("stopPropagation",stopPropagation);
   
   rtMethod1ArgAndReturn("screenshot", screenshot, rtString, rtString);
 
@@ -1247,12 +1247,14 @@ public:
 
   rtError setFocus(rtObjectRef o);
  
+#if 0
   rtError stopPropagation()
   {
     printf("stopPropagation()\n");
     mStopPropagation = true;
     return RT_OK;
   }
+#endif
 
   rtError ctx(rtValue& v) const { v = mContext; return RT_OK; }
   rtError setCtx(const rtValue& v) { mContext = v; return RT_OK; }

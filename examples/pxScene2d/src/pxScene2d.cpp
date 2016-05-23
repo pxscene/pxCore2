@@ -1928,7 +1928,7 @@ rtDefineMethod(pxScene2d, clock);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
 rtDefineMethod(pxScene2d, getFocus);
-rtDefineMethod(pxScene2d, stopPropagation);
+//rtDefineMethod(pxScene2d, stopPropagation);
 rtDefineMethod(pxScene2d, screenshot);
 rtDefineMethod(pxScene2d, loadArchive);
 rtDefineProperty(pxScene2d, ctx);

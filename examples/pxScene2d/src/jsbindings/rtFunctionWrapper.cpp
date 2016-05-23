@@ -335,6 +335,7 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
     if (rtIsMainThread()) // main thread run now
     {
       *result = callback->run();
+      delete callback;
     }
     else // queue and wait
     {

@@ -326,10 +326,10 @@ void rtNode::pump()
   #if 1
   static int i = 0;
 
-  if (i++ > 600)
+  if (i++ > 60)
   {
     mIsolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
-    i++;
+    i = 0;
   }
   #endif
 
