@@ -328,7 +328,7 @@ void rtNode::pump()
 
   if (i++ > 60)
   {
-    mIsolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
+    //mIsolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
     i = 0;
   }
   #endif
