@@ -2,7 +2,7 @@
 #define __RT_SOCKET_UTILS_H__
 
 #include <sys/socket.h>
-#include <rtError.h>
+#include "../rtError.h"
 #include <memory>
 #include <string>
 #include <vector>

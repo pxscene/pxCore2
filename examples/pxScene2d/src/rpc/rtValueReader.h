@@ -2,9 +2,9 @@
 #define __RT_VALUE_READER_H__
 
 #include <memory>
-#include <rtError.h>
-#include <rtValue.h>
-#include <rapidjson/document.h>
+#include "../rtError.h"
+#include "../rtValue.h"
+#include "rapidjson/document.h"
 
 class rtRemoteClient;
 

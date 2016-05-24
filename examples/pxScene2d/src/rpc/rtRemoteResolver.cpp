@@ -84,7 +84,7 @@ rtRemoteMulticastResolver::rtRemoteMulticastResolver()
   , m_ucast_len(0)
   , m_pid(getpid())
   , m_command_handlers()
-{
+{rtLogInfo("rtRemoteMulticastResolver::rtRemoteMulticastResolver");
   memset(&m_mcast_dest, 0, sizeof(m_mcast_dest));
   memset(&m_mcast_src, 0, sizeof(m_mcast_src));
   memset(&m_ucast_endpoint, 0, sizeof(m_ucast_endpoint));
@@ -101,7 +101,7 @@ rtRemoteMulticastResolver::rtRemoteMulticastResolver()
 }
 
 rtRemoteMulticastResolver::~rtRemoteMulticastResolver()
-{
+{rtLogInfo("rtRemoteMulticastResolver::~rtRemoteMulticastResolver");
   rtError err = this->close();
   if (err != RT_OK)
     rtLogWarn("failed to close resolver: %s", rtStrError(err));
@@ -109,7 +109,7 @@ rtRemoteMulticastResolver::~rtRemoteMulticastResolver()
 
 rtError
 rtRemoteMulticastResolver::init()
-{
+{rtLogInfo("rtRemoteMulticastResolver::Init");
   rtError err = RT_OK;
 
   uint16_t port = rtRemoteSetting<uint16_t>("rt.rpc.resolver.multicast_port");
@@ -149,7 +149,7 @@ rtRemoteMulticastResolver::init()
 
 rtError
 rtRemoteMulticastResolver::open(sockaddr_storage const& rpc_endpoint)
-{
+{rtLogInfo("rtRemoteMulticastResolver::open");
   {
     char buff[128];
 
@@ -193,7 +193,7 @@ rtRemoteMulticastResolver::open(sockaddr_storage const& rpc_endpoint)
 
 rtError
 rtRemoteMulticastResolver::openUnicastSocket()
-{
+{rtLogInfo("rtRemoteMulticastResolver::openUnicastSocket");
   int ret = 0;
   int err = 0;
 
@@ -266,7 +266,7 @@ rtRemoteMulticastResolver::openUnicastSocket()
 
 rtError
 rtRemoteMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage const& soc)
-{
+{rtLogInfo("rtRemoteMulticastResolver::onSearch");
   auto senderId = doc->FindMember(kFieldNameSenderId);
   assert(senderId != doc->MemberEnd());
   if (senderId->value.GetInt() == m_pid)
@@ -305,7 +305,7 @@ rtRemoteMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage co
 
 rtError
 rtRemoteMulticastResolver::onLocate(rtJsonDocPtr const& doc, sockaddr_storage const& /*soc*/)
-{
+{rtLogInfo("rtRemoteMulticastResolver::onLocate");
   int key = rtMessage_GetCorrelationKey(*doc);
 
   std::unique_lock<std::mutex> lock(m_mutex);
@@ -318,7 +318,7 @@ rtRemoteMulticastResolver::onLocate(rtJsonDocPtr const& doc, sockaddr_storage co
 
 rtError
 rtRemoteMulticastResolver::locateObject(std::string const& name, sockaddr_storage& endpoint, uint32_t timeout)
-{
+{rtLogInfo("rtRemoteMulticastResolver::locateObject");
   if (m_ucast_fd == -1)
   {
     rtLogError("unicast socket not opened");
@@ -380,7 +380,7 @@ rtRemoteMulticastResolver::locateObject(std::string const& name, sockaddr_storag
 
 void
 rtRemoteMulticastResolver::runListener()
-{
+{rtLogInfo("rtRemoteMulticastResolver::runListener");
   rtSocketBuffer buff;
   buff.reserve(1024 * 1024);
   buff.resize(1024 * 1024);
@@ -424,7 +424,7 @@ rtRemoteMulticastResolver::runListener()
 
 void
 rtRemoteMulticastResolver::doRead(int fd, rtSocketBuffer& buff)
-{
+{rtLogInfo("rtRemoteMulticastResolver::doRead");
   // we only suppor v4 right now. not sure how recvfrom supports v6 and v4
   sockaddr_storage src;
   socklen_t len = sizeof(sockaddr_in);
@@ -440,7 +440,7 @@ rtRemoteMulticastResolver::doRead(int fd, rtSocketBuffer& buff)
 
 void
 rtRemoteMulticastResolver::doDispatch(char const* buff, int n, sockaddr_storage* peer)
-{
+{rtLogInfo("rtRemoteMulticastResolver::doDispatch");
   // rtLogInfo("new message from %s:%d", inet_ntoa(src.sin_addr), htons(src.sin_port));
   // printf("read: %d\n", int(n));
   #ifdef RT_RPC_DEBUG
@@ -474,7 +474,7 @@ rtRemoteMulticastResolver::doDispatch(char const* buff, int n, sockaddr_storage*
 
 rtError
 rtRemoteMulticastResolver::close()
-{
+{rtLogInfo("rtRemoteMulticastResolver::close");
   if (m_shutdown_pipe[1] != -1)
   {
     char buff[] = {"shutdown"};
@@ -515,7 +515,7 @@ rtRemoteMulticastResolver::registerObject(std::string const& name, sockaddr_stor
 
 rtError
 rtRemoteMulticastResolver::openMulticastSocket()
-{
+{rtLogInfo("rtRemoteMulticastResolver::openMulticastSocket");
   int err = 0;
 
   m_mcast_fd = socket(m_mcast_dest.ss_family, SOCK_DGRAM, 0);

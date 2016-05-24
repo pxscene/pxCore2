@@ -16,6 +16,7 @@
 #endif
 
 #include "rtDefs.h"
+#include "rtLog.h"
 
 class rtData 
 {

@@ -23,14 +23,14 @@ TEST(RemoteSettingsTest,RTRemoteRegisterObjectTest)
 {
   
   EXPECT_EQ(RT_OK,rtRemoteInit());
-  rtObjectRef objServer(new rtThermostat());  
-  rtObjectRef obj(new rtLcd());
+  rtObjectRef serverObj(new rtThermostat());  
+  rtObjectRef obj(new rtLcd());   
   obj.set("text","Remote LCD - Thermostat");
   obj.set("height",10);
   obj.set("width",150);
-  EXPECT_EQ(RT_OK,rtRemoteRegisterObject(objectName, objServer));
+  EXPECT_EQ(RT_OK,rtRemoteRegisterObject(objectName, serverObj));
   
-  objServer.set("lcd",obj);
+  serverObj.set("lcd",obj);
 }
 
 TEST(RemoteSettingsTest,UINTTest) 
@@ -39,8 +39,8 @@ TEST(RemoteSettingsTest,UINTTest)
   uint64_t i = 123;
  
   rtObjectRef objectRef;
-  rtObjectRef obj(new rtLcd()); // allocate an rt object
-  rtObjectRef serverObj(new rtThermostat());
+  rtObjectRef obj(new rtLcd());    // allocate an rt object
+  rtObjectRef serverObj(new rtThermostat());   
   obj.set("text","Remote LCD - Thermostat");
   obj.set("height",10);
   obj.set("width",150);
@@ -78,7 +78,6 @@ TEST(RemoteSettingsTest,UINTTest)
  
   printf("height:%d\n", objectRef.get<uint8_t>("height"));
   //EXPECT_EQ(static_cast<uint8_t>(i), objectRef.get<uint8_t>("height"));
-//EXPECT_EQ("123",rtRemoteSetting<char const*>(*p));
   
   rtRemoteShutdown();
 }
@@ -90,8 +89,8 @@ TEST(RemoteSettingsTest,UINTMaxValueTest)
   rtObjectRef objectRef;
 
   rtObjectRef lcd;  
-  rtObjectRef obj(new rtLcd()); 
-  rtObjectRef serverObj(new rtThermostat());
+  rtObjectRef obj(new rtLcd());    
+  rtObjectRef serverObj(new rtThermostat());   
   obj.set("text","Remote LCD - Thermostat");
   obj.set("height",10);
   obj.set("height",150);
@@ -136,8 +135,8 @@ TEST(RemoteSettingsTest,UINTMinValueTest)
   int i = 0;
   rtObjectRef objectRef;
   
-  rtObjectRef obj(new rtLcd()); // allocate an rt object
-  rtObjectRef serverObj(new rtThermostat());
+  rtObjectRef obj(new rtLcd());    // allocate an rt object
+  rtObjectRef serverObj(new rtThermostat());   
   obj.set("text","Remote LCD - Thermostat");
   obj.set("height",10);
   obj.set("width",150);
@@ -178,11 +177,11 @@ TEST(RemoteSettingsTest,UINTInvalidDataTest)
   rtObjectRef objectRef;
   
   rtObjectRef lcd;
-  rtObjectRef obj(new rtLcd()); // allocate an rt object
-  rtObjectRef serverObj(new rtThermostat());
+  rtObjectRef obj(new rtLcd());    // allocate an rt object
+  rtObjectRef serverObj(new rtThermostat());   
   obj.set("text","Remote LCD - Thermostat");
   obj.set("height",10);
-  obj.set("height",150);
+  obj.set("width",150);
   EXPECT_EQ(RT_OK, rtRemoteRegisterObject(objectName, serverObj));
   
   serverObj.set("lcd",obj);
@@ -222,11 +221,11 @@ TEST(RemoteSettingsTest,INTTest)
   rtObjectRef objectRef;
   
   rtObjectRef lcd;
-  rtObjectRef obj(new rtLcd()); // allocate an rt object
-  rtObjectRef serverObj(new rtThermostat());
+  rtObjectRef obj(new rtLcd());    // allocate an rt object
+  rtObjectRef serverObj(new rtThermostat());   
   obj.set("text","Remote LCD - Thermostat");
   obj.set("height",10);
-  obj.set("height",150);
+  obj.set("width",150);
   EXPECT_EQ(RT_OK, rtRemoteRegisterObject(objectName, serverObj));
 
   serverObj.set("lcd",obj); 
@@ -267,8 +266,8 @@ TEST(RemoteSettingsTest,INTMaxValueTest)
   rtObjectRef objectRef;
  
   rtObjectRef lcd; 
-  rtObjectRef obj(new rtLcd()); // allocate an rt object
-  rtObjectRef serverObj(new rtThermostat());
+  rtObjectRef obj(new rtLcd());    // allocate an rt object
+  rtObjectRef serverObj(new rtThermostat());   
   obj.set("text","Remote LCD - Thermostat");
   obj.set("height",10);
   obj.set("width",50);
@@ -282,7 +281,7 @@ TEST(RemoteSettingsTest,INTMaxValueTest)
   EXPECT_EQ(RT_OK,lcd.set("height", i));
     
   
-  //printf("height:%ld\n", objectRef.get<int64_t>("height"));
+  printf("height:%ld\n", objectRef.get<int64_t>("height"));
   //EXPECT_EQ(static_cast<int64_t>(i), objectRef.get<int64_t>("height"));
   
   //INT32
@@ -317,8 +316,8 @@ TEST(RemoteSettingsTest,INTMinValueTest)
   int64_t i = INT64_MIN;
   rtObjectRef objectRef;
   
-  rtObjectRef obj(new rtLcd()); // allocate an rt object
-  rtObjectRef serverObj(new rtThermostat());
+  rtObjectRef obj(new rtLcd());    // allocate an rt object
+  rtObjectRef serverObj(new rtThermostat());   
   obj.set("text","Remote LCD - Thermostat");
   obj.set("height",10);
   obj.set("width",150);
@@ -368,8 +367,8 @@ TEST(RemoteSettingsTest,INTInvalidDataTest)
   rtObjectRef objectRef;
  
   rtObjectRef lcd; 
-  rtObjectRef obj(new rtLcd()); // allocate an rt object
-  rtObjectRef serverObj(new rtThermostat());
+  rtObjectRef obj(new rtLcd());    // allocate an rt object
+  rtObjectRef serverObj(new rtThermostat());   
   obj.set("text","Remote LCD - Thermostat");
   obj.set("height",10);
   obj.set("width",150);
@@ -435,8 +434,8 @@ TEST(RemoteSettingsTest,rtLCDPropertyTest)
 {
   EXPECT_EQ(RT_OK,rtRemoteInit());
   
-  rtObjectRef obj(new rtLcd()); // allocate an rt object
-  rtObjectRef serverObj(new rtThermostat());
+  rtObjectRef obj(new rtLcd());    // allocate an rt object
+  rtObjectRef serverObj(new rtThermostat());   
   obj.set("text","Remote LCD - Thermostat");
   obj.set("width",10);
   obj.set("height",150);

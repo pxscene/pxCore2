@@ -7,7 +7,7 @@
 
 #include <assert.h>
 #include <stdint.h>
-#include <rtError.h>
+#include "../rtError.h"
 
 class rtRemoteConfig
 {

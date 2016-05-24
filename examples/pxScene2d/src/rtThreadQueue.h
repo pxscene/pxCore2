@@ -5,7 +5,7 @@
 
 #include "rtError.h"
 #include "rtMutex.h"
-
+#include "rtLog.h"
 #include <deque>
 using namespace std;
 

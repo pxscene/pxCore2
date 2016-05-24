@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS= -L /opt/gtest/lib ../librtCore.so ../librtRemote.so -lgtest -lgtest_main -lm
+CXXFLAGS= -L /opt/gtest/lib ../librtCore.so ../librtRemote.so -lgtest -lgtest_main -std=c++11 -lm
 INCS= -I/opt/gtest/include
 OBJS=rtRpcTest.cpp
 

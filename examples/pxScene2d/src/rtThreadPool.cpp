@@ -1,5 +1,5 @@
 #include "rtThreadPool.h"
-
+#include "rtLog.h"
 #include <iostream>
 using namespace std;
 
@@ -19,7 +19,7 @@ rtThreadPool::~rtThreadPool()
 rtThreadPool* rtThreadPool::globalInstance()
 {
     if (mGlobalInstance == NULL)
-    {
+    {rtLogInfo("rtThreadPool::globalInstance");
         mGlobalInstance = new rtThreadPool(RT_THREAD_POOL_DEFAULT_THREAD_COUNT);
     }
     return mGlobalInstance;

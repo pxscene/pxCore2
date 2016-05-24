@@ -20,7 +20,7 @@
 
 static rtError
 rtFindFirstInetInterface(char* name, size_t len)
-{
+{rtLogInfo("rtSocketUtils::-rtFindFirstInetInterface");
   rtError e = RT_FAIL;
   ifaddrs* ifaddr = NULL;
   int ret = getifaddrs(&ifaddr);
@@ -53,7 +53,7 @@ rtFindFirstInetInterface(char* name, size_t len)
 
 rtError
 rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* index)
-{
+{rtLogInfo("rtSocketUtils::-rtParseAddress");
   int ret = 0;
 
   if (index != nullptr)
@@ -114,7 +114,7 @@ rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* 
 
 rtError
 rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len)
-{
+{rtLogInfo("rtSocketUtils::-rtSocketGetLength");
   if (!len)
     return RT_ERROR_INVALID_ARG;
 
@@ -130,7 +130,7 @@ rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len)
 
 rtError
 rtGetInterfaceAddress(char const* name, sockaddr_storage& ss)
-{
+{rtLogInfo("rtSocketUtils::-rtGetInterfaceAddress");
   rtError error = RT_FAIL;
   ifaddrs* ifaddr = NULL;
 
@@ -193,7 +193,7 @@ out:
 
 rtError
 rtGetInetAddr(sockaddr_storage const& ss, void** addr)
-{
+{rtLogInfo("rtSocketUtils::-rtGetInetAddr");
   sockaddr_in const* v4 = reinterpret_cast<sockaddr_in const*>(&ss);
   sockaddr_in6 const* v6 = reinterpret_cast<sockaddr_in6 const*>(&ss);
 
@@ -208,7 +208,7 @@ rtGetInetAddr(sockaddr_storage const& ss, void** addr)
 
 rtError
 rtGetPort(sockaddr_storage const& ss, uint16_t* port)
-{
+{rtLogInfo("rtSocketUtils::-rtGetPort");
   sockaddr_in const* v4 = reinterpret_cast<sockaddr_in const *>(&ss);
   sockaddr_in6 const* v6 = reinterpret_cast<sockaddr_in6 const *>(&ss);
   *port = ntohs((ss.ss_family == AF_INET) ? v4->sin_port : v6->sin6_port);
@@ -217,7 +217,7 @@ rtGetPort(sockaddr_storage const& ss, uint16_t* port)
 
 rtError
 rtPushFd(fd_set* fds, int fd, int* max_fd)
-{
+{rtLogInfo("rtSocketUtils::-rtPushFd");
   if (fd != -1)
   {
     FD_SET(fd, fds);
@@ -229,7 +229,7 @@ rtPushFd(fd_set* fds, int fd, int* max_fd)
 
 rtError
 rtReadUntil(int fd, char* buff, int n)
-{
+{rtLogInfo("rtSocketUtils::-rtReadUntil");
   ssize_t bytes_read = 0;
   ssize_t bytes_to_read = n;
 
@@ -255,7 +255,7 @@ rtReadUntil(int fd, char* buff, int n)
 
 std::string
 rtSocketToString(sockaddr_storage const& ss)
-{
+{rtLogInfo("rtSocketUtils::-rtSocketToString");
   // TODO make this more effecient
   void* addr = NULL;
   rtGetInetAddr(ss, &addr);
@@ -276,7 +276,7 @@ rtSocketToString(sockaddr_storage const& ss)
 
 rtError
 rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* dest)
-{
+{rtLogInfo("rtSocketUtils::-rtSendDocument");
   rapidjson::StringBuffer buff;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buff);
   doc.Accept(writer);
@@ -346,7 +346,7 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
 
 rtError
 rtReadMessage(int fd, rtSocketBuffer& buff, rtJsonDocPtr& doc)
-{
+{rtLogInfo("rtSocketUtils::-rtReadMessage");
   rtError err = RT_OK;
 
   int n = 0;
@@ -385,7 +385,7 @@ rtReadMessage(int fd, rtSocketBuffer& buff, rtJsonDocPtr& doc)
 
 rtError
 rtParseMessage(char const* buff, int n, rtJsonDocPtr& doc)
-{
+{rtLogInfo("rtSocketUtils::-rtParseMessage");
   if (!buff)
     return RT_FAIL;
 
@@ -413,7 +413,7 @@ rtParseMessage(char const* buff, int n, rtJsonDocPtr& doc)
 
 std::string
 rtStrError(int e)
-{
+{rtLogInfo("rtSocketUtils::-rtStrError");
   char buff[256];
   memset(buff, 0, sizeof(buff));
 
@@ -427,7 +427,7 @@ rtStrError(int e)
 
 rtError
 rtGetPeerName(int fd, sockaddr_storage& endpoint)
-{
+{rtLogInfo("rtSocketUtils::-rtGetPeerName");
   sockaddr_storage addr;
   memset(&addr, 0, sizeof(sockaddr_storage));
 
@@ -447,7 +447,7 @@ rtGetPeerName(int fd, sockaddr_storage& endpoint)
 
 rtError
 rtGetSockName(int fd, sockaddr_storage& endpoint)
-{
+{rtLogInfo("rtSocketUtils::-rtGetSockName");
   assert(fd > 2);
 
   sockaddr_storage addr;
@@ -470,7 +470,7 @@ rtGetSockName(int fd, sockaddr_storage& endpoint)
 
 rtError
 rtCloseSocket(int& fd)
-{
+{rtLogInfo("rtSocketUtils::-rtCloseSocket");
   if (fd != kInvalidSocket)
   {
     ::close(fd);
@@ -481,7 +481,7 @@ rtCloseSocket(int& fd)
 
 rtError
 rtGetDefaultInterface(sockaddr_storage& addr, uint16_t port)
-{
+{rtLogInfo("rtSocketUtils::-rtGetDefaultInterface");
   char name[64];
   memset(name, 0, sizeof(name));
 

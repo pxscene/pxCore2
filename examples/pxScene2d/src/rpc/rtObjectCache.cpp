@@ -23,7 +23,7 @@ namespace
 
 rtObjectRef
 rtObjectCache::findObject(std::string const& id)
-{
+{rtLogInfo("rtObjectCache::findObject");
   std::unique_lock<std::mutex> lock(sMutex);
   auto itr = sRefMap.find(id);
   return (itr != sRefMap.end()) ? itr->second.Object : rtObjectRef();
@@ -31,7 +31,7 @@ rtObjectCache::findObject(std::string const& id)
 
 rtFunctionRef
 rtObjectCache::findFunction(std::string const& id)
-{
+{rtLogInfo("rtObjectCache::findFunction");
   std::unique_lock<std::mutex> lock(sMutex);
   auto itr = sRefMap.find(id);
   return (itr != sRefMap.end()) ? itr->second.Function : rtFunctionRef();
@@ -39,7 +39,7 @@ rtObjectCache::findFunction(std::string const& id)
 
 rtError
 rtObjectCache::insert(std::string const& id, rtFunctionRef const& ref, int maxAge)
-{
+{rtLogInfo("rtObjectCache::insert");
   Entry e;
   e.LastUsed = time(nullptr);
   e.Function = ref;
@@ -52,7 +52,7 @@ rtObjectCache::insert(std::string const& id, rtFunctionRef const& ref, int maxAg
 
 rtError
 rtObjectCache::insert(std::string const& id, rtObjectRef const& ref, int maxAge)
-{
+{rtLogInfo("rtObjectCache::insert");
   Entry e;
   e.LastUsed = time(nullptr);
   e.Object = ref;
@@ -65,7 +65,7 @@ rtObjectCache::insert(std::string const& id, rtObjectRef const& ref, int maxAge)
 
 rtError
 rtObjectCache::touch(std::string const& id, time_t now)
-{
+{rtLogInfo("rtObjectCache::touch");
   rtError e = RT_FAIL;
 
   std::unique_lock<std::mutex> lock(sMutex);
@@ -81,7 +81,7 @@ rtObjectCache::touch(std::string const& id, time_t now)
 
 rtError
 rtObjectCache::erase(std::string const& id)
-{
+{rtLogInfo("rtObjectCache::erase");
   rtError e = RT_FAIL;
 
   std::unique_lock<std::mutex> lock(sMutex);
@@ -97,7 +97,7 @@ rtObjectCache::erase(std::string const& id)
 
 rtError
 rtObjectCache::removeUnused()
-{
+{rtLogInfo("rtObjectCache::removeUnused");
   time_t now = time(nullptr);
 
   int const maxAge = rtRemoteSetting<int>("rt.rpc.cache.max_object_lifetime");

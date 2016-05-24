@@ -10,11 +10,11 @@
 #include <thread>
 #include <vector>
 
-#include <rtError.h>
-#include <rtValue.h>
+#include "../rtError.h"
+#include "../rtValue.h"
 
 #include <sys/socket.h>
-#include <rapidjson/document.h>
+#include "rapidjson/document.h"
 
 #include "rtRemoteStream.h"
 #include "rtRemoteTypes.h"

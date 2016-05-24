@@ -12,7 +12,7 @@
 #include <iostream>
 
 static std::string trim(char const* begin, char const* end)
-{
+{rtLogInfo("rtRemoteConfig::-trim");
   if (begin == nullptr)
   {
     rtLogError("invalid 'begin' pointer");
@@ -37,7 +37,7 @@ static std::string trim(char const* begin, char const* end)
 
 template<class T>
 static T numeric_cast(char const* s, std::function<T (const char *nptr, char **endptr, int base)> converter)
-{
+{rtLogInfo("rtRemoteConfig::-trim");
   if (s == nullptr)
   {
     // TODO: this should throw an exception and/or return something clearly
@@ -92,7 +92,7 @@ static Setting kDefaultSettings[] =
 
 std::shared_ptr<rtRemoteConfig>
 rtRemoteConfig::getInstance(bool reloadConfiguration)
-{
+{rtLogInfo("rtRemoteConfig::getInstance");
   if (gConf && !reloadConfiguration)
     return gConf;
 
@@ -138,25 +138,25 @@ rtRemoteConfig::getInstance(bool reloadConfiguration)
 
 uint16_t
 rtRemoteConfig::getUInt16(char const* key)
-{
+{rtLogInfo("rtRemoteConfig::getUInt16");
   return numeric_cast<uint16_t>(getString(key), strtoul);
 }
 
 int32_t
 rtRemoteConfig::getInt32(char const* key)
-{
+{rtLogInfo("rtRemoteConfig::getInt32");
   return numeric_cast<int32_t>(getString(key), strtol);
 }
 
 uint32_t
 rtRemoteConfig::getUInt32(char const* key)
-{
+{rtLogInfo("rtRemoteConfig::getUInt32");
   return numeric_cast<uint32_t>(getString(key), strtoul);
 }
 
 char const*
 rtRemoteConfig::getString(char const* key)
-{
+{rtLogInfo("rtRemoteConfig::getString");
   if (key == nullptr)
   {
     rtLogError("can't find null key");
@@ -178,7 +178,7 @@ rtRemoteConfig::getString(char const* key)
 
 std::shared_ptr<rtRemoteConfig>
 rtRemoteConfig::fromFile(char const* file)
-{
+{rtLogInfo("rtRemoteConfig::fromFile");
   std::shared_ptr<rtRemoteConfig> conf;
 
   if (file == nullptr)

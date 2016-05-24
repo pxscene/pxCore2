@@ -9,8 +9,8 @@
 
 #include <stdint.h>
 #include <netinet/in.h>
-#include <rtObject.h>
-#include <rapidjson/document.h>
+#include "../rtObject.h"
+#include "rapidjson/document.h"
 
 #include "rtRemoteTypes.h"
 #include "rtRemoteResolver.h"

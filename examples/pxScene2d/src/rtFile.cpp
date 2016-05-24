@@ -32,7 +32,7 @@ rtError rtData::init(uint32_t length) {
   else return RT_FAIL;
 }
 
-rtError rtData::init(uint8_t* data, uint32_t length) {
+rtError rtData::init(uint8_t* data, uint32_t length) {rtLogInfo("rtData::init");
   rtError e = RT_FAIL;
   if (init(length) == RT_OK) {
     memcpy(mData, data, length);
@@ -46,7 +46,7 @@ uint8_t* rtData::data() { return mData; }
 uint32_t rtData::length() { return mLength; }
 
 rtError rtStoreFile(const char* f, rtData& data)
-{
+{rtLogInfo("rtStoreFile");
   rtError e = RT_FAIL;
 
 #ifdef WIN32
@@ -75,7 +75,7 @@ rtError rtStoreFile(const char* f, rtData& data)
 }
 
 rtError rtLoadFile(const char* f, rtData& data) 
-{
+{rtLogInfo("rtLoadFile");
   rtError e = RT_FAIL;
 #ifdef WIN32
   HANDLE hFile = CreateFile(f, GENERIC_READ, 0, NULL, 0,

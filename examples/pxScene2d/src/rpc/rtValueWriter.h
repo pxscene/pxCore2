@@ -2,9 +2,9 @@
 #define __RT_VALUE_WRITER_H__
 
 #include <memory>
-#include <rtValue.h>
-#include <rtError.h>
-#include <rapidjson/document.h>
+#include "../rtValue.h"
+#include "../rtError.h"
+#include "rapidjson/document.h"
 
 class rtValueWriter
 {

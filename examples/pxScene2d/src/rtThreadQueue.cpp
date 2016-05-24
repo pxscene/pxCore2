@@ -9,7 +9,7 @@ rtThreadQueue::rtThreadQueue(){}
 rtThreadQueue::~rtThreadQueue() {}
 
 rtError rtThreadQueue::addTask(rtThreadTaskCB t, void* context, void* data)
-{
+{rtLogInfo("rtThreadQueue::addTasks");
   mTaskMutex.lock();
   ThreadQueueEntry entry;
   entry.task = t;
@@ -22,7 +22,7 @@ rtError rtThreadQueue::addTask(rtThreadTaskCB t, void* context, void* data)
 }
 
 rtError rtThreadQueue::removeAllTasksForObject(void* context)
-{
+{rtLogInfo("rtThreadQueue::removeAllTasksForObject");
   mTaskMutex.lock();
   for(deque<ThreadQueueEntry>::iterator it = mTasks.begin(); 
         it != mTasks.end(); ++it)
@@ -39,7 +39,7 @@ rtError rtThreadQueue::removeAllTasksForObject(void* context)
 }
 
 rtError rtThreadQueue::process(double maxSeconds)
-{
+{rtLogInfo("rtThreadQueue::process");
   bool done = false;
   double start = pxSeconds();
   do

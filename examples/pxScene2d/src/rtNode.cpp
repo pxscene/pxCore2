@@ -76,7 +76,7 @@ static pthread_t __rt_main_thread__;
 // rtIsMainThread() - Currently:   identify BACKGROUND thread which running JS code.
 //
 bool rtIsMainThread()
-{
+{rtLogInfo("\n rtNode::rtIsMainThread");
 #ifdef WIN32
   return GetCurrentThreadId() == __rt_main_thread__;
 #else
@@ -89,7 +89,7 @@ bool rtIsMainThread()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void *uvThread(void *ptr)
-{
+{rtLogInfo("\n rtNode::uvThread");
   if(ptr)
   {
     rtNodeContext *ctx = (rtNodeContext *) ptr;
@@ -116,7 +116,7 @@ void *uvThread(void *ptr)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void *jsThread(void *ptr)
-{
+{rtLogInfo("\n rtNode::jsThread");
   if(ptr)
   {
     rtNodeContext *ctx = (rtNodeContext*) ptr;
@@ -143,7 +143,7 @@ void *jsThread(void *ptr)
 #ifdef  USE_UV_TIMERS
 
 static void timerCallback(uv_timer_t* )
-{
+{rtLogInfo("\n rtNode::timerCallback");
 #ifdef USE_UV_TIMERS
     #ifdef RUNINMAIN
     if (gLoop)
@@ -162,7 +162,7 @@ static void timerCallback(uv_timer_t* )
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static inline bool file_exists(const char *file)
-{
+{rtLogInfo("\n rtNode::file_exists");
   struct stat buffer;
   return (stat (file, &buffer) == 0);
 }
@@ -174,7 +174,7 @@ static inline bool file_exists(const char *file)
 rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
      mKillUVWorker(false),  js_worker(0), uv_worker(0),
      mIsolate(isolate), mEnv(NULL), mRefCount(0)
-{
+{rtLogInfo("\n rtNode::rtNodeContext");
   assert(isolate); // MUST HAVE !
 
   createEnvironment();
@@ -182,7 +182,7 @@ rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
 
 
 void rtNodeContext::createEnvironment()
-{
+{rtLogInfo("\n rtNode::createEnvironment");
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -226,13 +226,13 @@ void rtNodeContext::createEnvironment()
 }
 
 rtNodeContext::~rtNodeContext()
-{
+{rtLogInfo("\n rtNode::~rtNodeContext");
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
 
   if(uv_worker)
-  {
+  {rtLogInfo("\n rtNode::uv_worker join");
     mKillUVWorker = true; // kill UV loop
 
     (void) pthread_join(uv_worker, NULL);
@@ -241,14 +241,14 @@ rtNodeContext::~rtNodeContext()
   }
 
   if(js_worker)
-  {
+  {rtLogInfo("\n rtNode::js_worker join");
     (void) pthread_join(js_worker, NULL);
 
     js_worker = 0;
   }
 
   if(mEnv)
-  {
+  {rtLogInfo("\n rtNode::RunAtExit called");
     RunAtExit(mEnv);
 
     mEnv->Dispose();
@@ -270,7 +270,7 @@ rtNodeContext::~rtNodeContext()
 
 
 void rtNodeContext::add(const char *name, rtValue const& val)
-{
+{rtLogInfo("\n rtNodeContext::add");
   if(name == NULL)
   {
     rtLogError("no symbolic name for rtValue");
@@ -294,7 +294,7 @@ void rtNodeContext::add(const char *name, rtValue const& val)
 }
 
 void rtNodeContext::startTimers()
-{
+{rtLogInfo("\n rtNodeContext::startTimers");
 #ifdef  USE_UV_TIMERS
 
     rtLogInfo("starting background thread for event loop processing");
@@ -313,7 +313,7 @@ void rtNodeContext::startTimers()
 }
 
 rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NULL*/)
-{
+{rtLogInfo("\n rtNodeContext::runScript");
   if(script == NULL)
   {
     rtLogError("no script given.");
@@ -326,7 +326,7 @@ rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NU
 
 
 rtObjectRef rtNodeContext::runScript(const std::string &script, const char *args /*= NULL*/)
-{
+{rtLogInfo("\n rtNodeContext::runScript");
   if(script.empty())
   {
     rtLogError(" - no script given.");
@@ -364,7 +364,7 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char *args
 
 
 rtObjectRef rtNodeContext::runScriptThreaded(const char *script, const char *args /*= NULL*/)
-{
+{rtLogInfo("\n rtNodeContext::runScript");
   if(script == NULL)
   {
     rtLogError(" - no script given.");
@@ -379,13 +379,13 @@ rtObjectRef rtNodeContext::runScriptThreaded(const char *script, const char *arg
 #ifndef  USE_UV_TIMERS
   // call runScript() in this thread...
   if(pthread_create(&js_worker, NULL, jsThread, (void *) this))
-  {
+  {rtLogInfo("\n rtNodeContext::pthread_Create::js_worker");
     fprintf(stderr, "Error creating JS thread\n");
   }
 #endif
 
   if(pthread_create(&uv_worker, NULL, uvThread, (void *) this))
-  {
+  {rtLogInfo("\n rtNodeContext::pthread_Create::uv_worker");
     fprintf(stderr, "Error creating UV thread\n");
   }
 
@@ -393,7 +393,7 @@ rtObjectRef rtNodeContext::runScriptThreaded(const char *script, const char *arg
 }
 
 std::string readFile(const char *file)
-{
+{rtLogInfo("\n rtNodeContext::readFile");
   std::ifstream       src_file(file);
   std::stringstream   src_script;
 
@@ -405,7 +405,7 @@ std::string readFile(const char *file)
 }
 
 rtObjectRef rtNodeContext::runFile(const char *file, const char *args /*= NULL*/)
-{
+{rtLogInfo("\n rtNodeContext::runFile");
   UNUSED_PARAM(args);
 
   if(file == NULL)
@@ -425,7 +425,7 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char *args /*= NULL*/
 
 
 rtObjectRef rtNodeContext::runFileThreaded(const char *file, const char *args /*= NULL*/)
-{
+{rtLogInfo("\n rtNodeContext::runFileThreaded");
   UNUSED_PARAM(args);
 
   if(file == NULL)
@@ -445,7 +445,7 @@ rtObjectRef rtNodeContext::runFileThreaded(const char *file, const char *args /*
 
 
 void rtNodeContext::uvWorker()
-{
+{rtLogInfo("\n rtNodeContext::uvWorker");
   bool more;
 
   printf("\n Start >>> %s() !!!! \n", __FUNCTION__);
@@ -504,13 +504,13 @@ void rtNodeContext::uvWorker()
 }
 
 rtObjectRef rtNodeContext:: runFile(const char *file)  // DEPRECATED
-{
+{rtLogInfo("\n rtNodeContext::runFile");
   #warning "runFile() - is DEPRECATED ... going away soon."
   return runFileThreaded(file);
 }
 
 rtObjectRef rtNodeContext:: runThread(const char *file)  // DEPRECATED
-{
+{rtLogInfo("\n rtNodeContext::runThread");
   #warning "runThread() - is DEPRECATED ... going away soon."
   return runFileThreaded(file);
 }
@@ -519,7 +519,7 @@ rtObjectRef rtNodeContext:: runThread(const char *file)  // DEPRECATED
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 rtNode::rtNode() : mPlatform(NULL)
-{
+{rtLogInfo("\n rtNodeContext::mPlatform");
   __rt_main_thread__ = pthread_self();
 
   nodePath();
@@ -529,7 +529,7 @@ rtNode::rtNode() : mPlatform(NULL)
 }
 
 rtNode::rtNode(int argc, char** argv) : mPlatform(NULL)
-{
+{rtLogInfo("\n rtNodeContext::rtNode");
   __rt_main_thread__ = pthread_self(); //  NB
 
   nodePath();
@@ -541,12 +541,12 @@ rtNode::rtNode(int argc, char** argv) : mPlatform(NULL)
 }
 
 rtNode::~rtNode()
-{
+{rtLogInfo("\n rtNodeContext::~rtNode");
   term();
 }
 
 void rtNode::nodePath()
-{
+{rtLogInfo("\n rtNodeContext::NodePath");
   const char* NODE_PATH = ::getenv("NODE_PATH");
 
   if(NODE_PATH == NULL)
@@ -571,7 +571,7 @@ void rtNode::nodePath()
 }
 
 void rtNode::init(int argc, char** argv)
-{
+{rtLogInfo("\n rtNode::init");
   // Hack around with the argv pointer. Used for process.title = "blah".
   argv = uv_setup_args(argc, argv);
 
@@ -590,7 +590,7 @@ void rtNode::init(int argc, char** argv)
 }
 
 void rtNode::term()
-{
+{rtLogInfo("\n rtNode::term");
   if(node_is_initialized)
   {
     node_isolate->Dispose();
@@ -617,12 +617,12 @@ void rtNode::term()
 }
 
 rtNodeContextRef rtNode::getGlobalContext() const
-{
+{rtLogInfo("\n rtNode::getGlobalContext");
   return rtNodeContextRef();
 }
 
 rtNodeContextRef rtNode::createContext(bool ownThread)
-{
+{rtLogInfo("\n rtNode::createContext");
   UNUSED_PARAM(ownThread);    // not implemented yet.
 
   rtNodeContextRef ctxref = new rtNodeContext(mIsolate);

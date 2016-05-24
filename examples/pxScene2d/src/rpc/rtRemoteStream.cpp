@@ -15,7 +15,7 @@ class rtRemoteStreamSelector
 {
 public:
   rtRemoteStreamSelector()
-  {
+  {rtLogInfo("rtRemoteStreamSelector");
     int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
     if (ret == -1)
     {
@@ -30,13 +30,13 @@ public:
   }
 
   rtError registerStream(std::shared_ptr<rtRemoteStream> const& s)
-  {
+  {rtLogInfo("registerStream");
     m_streams.push_back(s);
     return RT_OK;
   }
 
   rtError shutdown()
-  {
+  {rtLogInfo("rtRemoteStream::-shutdown");
     if (m_thread)
     {
       char buff[] = { "shudown" };
@@ -54,7 +54,7 @@ public:
 
 private:
   rtError pollFds()
-  {
+  {rtLogInfo("rtRemoteStream::-pollFds");
     rtSocketBuffer buff;
     buff.reserve(1024 * 1024);
     buff.resize(1024 * 1024);
@@ -149,19 +149,19 @@ rtRemoteStream::rtRemoteStream(int fd, sockaddr_storage const& local_endpoint, s
   : m_fd(fd)
   , m_last_message_time(0)
   , m_message_handler(nullptr)
-{
+{rtLogInfo("rtRemoteStream::rtRemoteStream");
   memcpy(&m_remote_endpoint, &remote_endpoint, sizeof(m_remote_endpoint));
   memcpy(&m_local_endpoint, &local_endpoint, sizeof(m_local_endpoint));
 }
 
 rtRemoteStream::~rtRemoteStream()
-{
+{rtLogInfo("rtRemoteStream::~rtRemoteStream");
   this->close();
 }
 
 rtError
 rtRemoteStream::open()
-{
+{rtLogInfo("rtRemoteStream::open");
   if (!gStreamSelector)
   {
     gStreamSelector.reset(new rtRemoteStreamSelector());
@@ -173,7 +173,7 @@ rtRemoteStream::open()
 
 rtError
 rtRemoteStream::close()
-{
+{rtLogInfo("rtRemoteStream::close");
   if (m_fd != kInvalidSocket)
   {
     int ret = 0;
@@ -189,14 +189,14 @@ rtRemoteStream::close()
 
 rtError
 rtRemoteStream::connect()
-{
+{rtLogInfo("rtRemoteStream::connect");
   assert(m_fd == kInvalidSocket);
   return connectTo(m_remote_endpoint);
 }
 
 rtError
 rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
-{
+{rtLogInfo("rtRemoteStream::connectTo");
   m_fd = socket(endpoint.ss_family, SOCK_STREAM, 0);
   if (m_fd < 0)
   {
@@ -229,28 +229,28 @@ rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
 
 rtError
 rtRemoteStream::send(rtRemoteMessage const& m)
-{
+{rtLogInfo("rtRemoteStream::send");
   m_last_message_time = time(0);
   return m.send(m_fd, NULL);
 }
 
 rtError
 rtRemoteStream::setMessageCallback(MessageHandler handler)
-{
+{rtLogInfo("rtRemoteStream::setMessageCallback");
   m_message_handler = handler;
   return RT_OK;
 }
 
 rtError
 rtRemoteStream::setInactivityCallback(rtRemoteInactivityHandler handler)
-{
+{rtLogInfo("rtRemoteStream::setInactivityCallback");
   m_inactivity_handler = handler;
   return RT_OK;
 }
 
 rtError
 rtRemoteStream::onInactivity(time_t now)
-{
+{rtLogInfo("rtRemoteStream::onInactivity");
   if (m_inactivity_handler)
   {
     m_inactivity_handler(m_last_message_time, now);
@@ -261,7 +261,7 @@ rtRemoteStream::onInactivity(time_t now)
 
 rtError
 rtRemoteStream::onIncomingMessage(rtSocketBuffer& buff, time_t now)
-{
+{rtLogInfo("rtRemoteStream::onIncomingMessage");
   m_last_message_time = now;
 
   rtJsonDocPtr doc;
@@ -299,7 +299,7 @@ rtRemoteStream::onIncomingMessage(rtSocketBuffer& buff, time_t now)
 
 rtError
 rtRemoteStream::sendRequest(rtRemoteRequest const& req, MessageHandler handler, uint32_t timeout)
-{
+{rtLogInfo("rtRemoteStream::sendRequest");
   rtCorrelationKey key = req.getCorrelationKey();
   assert(key != 0);
   assert(m_fd != kInvalidSocket);
@@ -333,7 +333,7 @@ rtRemoteStream::sendRequest(rtRemoteRequest const& req, MessageHandler handler, 
 
 rtJsonDocPtr
 rtRemoteStream::waitForResponse(int key, uint32_t timeout)
-{
+{rtLogInfo("rtRemoteStream::waitForResponse");
   rtJsonDocPtr res;
 
   auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);

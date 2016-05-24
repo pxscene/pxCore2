@@ -1,7 +1,7 @@
 
 #include "rtRemote.h"
 #include "rtRemoteConfig.h"
-#include <rtObject.h>
+#include "../rtObject.h"
 #include <functional>
 
 #include <unistd.h>

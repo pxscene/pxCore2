@@ -1,9 +1,9 @@
 #ifndef __RT_TYPES_H__
 #define __RT_TYPES_H__
 
-#include <rtError.h>
-#include <rtObject.h>
-#include <rapidjson/document.h>
+#include "../rtError.h"
+#include "../rtObject.h"
+#include "rapidjson/document.h"
 
 #include <memory>
 #include <vector>

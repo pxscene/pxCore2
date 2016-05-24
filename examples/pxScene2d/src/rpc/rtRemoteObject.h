@@ -1,7 +1,7 @@
 #ifndef __RT_REMOTE_OBJECT_H__
 #define __RT_REMOTE_OBJECT_H__
 
-#include <rtObject.h>
+#include "../rtObject.h"
 #include <memory>
 #include <string>
 

@@ -17,7 +17,7 @@ unsigned long rtEmit::Release() {
 }
 
 rtError rtEmit::setListener(const char* eventName, rtIFunction* f)
-{
+{rtLogInfo("rtEmit::setListener");
   for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); 
        it != mEntries.end(); it++)
   {
@@ -42,7 +42,7 @@ rtError rtEmit::setListener(const char* eventName, rtIFunction* f)
 }
 
 rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
-{
+{rtLogInfo("rtEmit::addListener");
   if (!f) 
     return RT_ERROR;
   // Only allow unique entries
@@ -70,7 +70,7 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
 }
 
 rtError rtEmit::delListener(const char* eventName, rtIFunction* f)
-{
+{rtLogInfo("rtEmit::delListener");
   for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); 
        it != mEntries.end(); it++)
   {
@@ -87,7 +87,7 @@ rtError rtEmit::delListener(const char* eventName, rtIFunction* f)
 }
 
 rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result) 
-{
+{rtLogInfo("rtEmit::Send");
   (void)result;
   if (numArgs > 0)
   {
@@ -122,23 +122,23 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
         
 // rtEmitRef
 rtError rtEmitRef::Send(int numArgs,const rtValue* args,rtValue* result) 
-{
+{rtLogInfo("rtEmit::Send");
   return (*this)->Send(numArgs, args, result);
 }
 
 // rtArrayObject
 void rtArrayObject::empty()
-{
+{rtLogInfo("rtEmit::empty");
   mElements.empty();
 }
 
 void rtArrayObject::pushBack(rtValue v)
-{
+{rtLogInfo("rtArrayObject::pushBack");
   mElements.push_back(v);
 }
 
 rtError rtArrayObject::Get(const char* name, rtValue* value) const
-{
+{rtLogInfo("rtArrayObject::Get");
   if (!value) 
     return RT_FAIL;
   if (!strcmp(name, "length"))
@@ -151,7 +151,7 @@ rtError rtArrayObject::Get(const char* name, rtValue* value) const
 }
 
 rtError rtArrayObject::Get(uint32_t i, rtValue* value) const
-{
+{rtLogInfo("rtArrayObject::Get");
   if (!value) 
     return RT_FAIL;
   if (i < mElements.size())
@@ -164,12 +164,12 @@ rtError rtArrayObject::Get(uint32_t i, rtValue* value) const
 }
 
 rtError rtArrayObject::Set(const char* /*name*/,const rtValue* /*value*/)
-{
+{rtLogInfo("rtArrayObject::Set");
   return RT_PROP_NOT_FOUND;
 }
 
 rtError rtArrayObject::Set(uint32_t i, const rtValue* value)
-{
+{rtLogInfo("rtArrayObject::Set");
   if (!value) 
     return RT_FAIL;
   if (i < mElements.size())
@@ -183,7 +183,7 @@ rtError rtArrayObject::Set(uint32_t i, const rtValue* value)
 
 // rtMapObject
 vector<rtNamedValue>::iterator rtMapObject::find(const char* name)
-{
+{rtLogInfo("rtArrayObject::find");
   vector<rtNamedValue>::iterator it = mProps.begin(); 
   while(it != mProps.end())
   {
@@ -195,7 +195,7 @@ vector<rtNamedValue>::iterator rtMapObject::find(const char* name)
 }
 
 rtError rtMapObject::Get(const char* name, rtValue* value) const
-{
+{rtLogInfo("rtArrayObject::Get");
   if (!value) 
     return RT_FAIL;
 
@@ -225,7 +225,7 @@ rtError rtMapObject::Get(const char* name, rtValue* value) const
 }
 
 rtError rtMapObject::Set(const char* name, const rtValue* value)
-{
+{rtLogInfo("rtArrayObject::Set");
   if (!value) 
     return RT_FAIL;
   
@@ -247,12 +247,12 @@ rtError rtMapObject::Set(const char* name, const rtValue* value)
 }
 
 rtError rtMapObject::Get(uint32_t /*i*/, rtValue* /*value*/) const
-{
+{rtLogInfo("rtArrayObject::Get");
   return RT_PROP_NOT_FOUND;
 }
 
 rtError rtMapObject::Set(uint32_t /*i*/, const rtValue* /*value*/)
-{
+{rtLogInfo("rtArrayObject::Set");
   return RT_PROP_NOT_FOUND;
 }
 
@@ -260,12 +260,12 @@ rtError rtMapObject::Set(uint32_t /*i*/, const rtValue* /*value*/)
 // rtObject
   
 unsigned long /*__stdcall__ */ rtObject::AddRef() 
-{
+{rtLogInfo("rtObject::AddRef");
   return rtAtomicInc(&mRefCount);
 }
 
 unsigned long /*__stdcall*/ rtObject::Release() 
-{
+{rtLogInfo("rtObject::Release");
   long l = rtAtomicDec(&mRefCount);
   if (l == 0) 
     delete this;
@@ -273,19 +273,19 @@ unsigned long /*__stdcall*/ rtObject::Release()
 }
 
 rtError rtObject::init()
-{
+{rtLogInfo("rtObject::init");
   mInitialized = true;
 	onInit();
   return RT_OK;
 }
 
 rtError rtObject::Get(uint32_t /*i*/, rtValue* /*value*/) const
-{
+{rtLogInfo("rtObject::Get");
   return RT_PROP_NOT_FOUND;
 }
 
 rtError rtObject::Get(const char* name, rtValue* value) const
-{
+{rtLogInfo("rtObject::Get");
   rtError hr = RT_PROP_NOT_FOUND;
   rtMethodMap* m = getMap();
   
@@ -334,12 +334,12 @@ rtError rtObject::Get(const char* name, rtValue* value) const
 }
 
 rtError rtObject::Set(uint32_t /*i*/, const rtValue* /*value*/)
-{
+{rtLogInfo("rtObject::Set");
   return RT_PROP_NOT_FOUND;
 }
 
 rtError rtObject::Set(const char* name, const rtValue* value) 
-{
+{rtLogInfo("rtObject::Set");
   rtError hr = RT_PROP_NOT_FOUND;
   
   rtMethodMap* m;
@@ -370,7 +370,7 @@ rtError rtObject::Set(const char* name, const rtValue* value)
 
 // rtObjectBase
 void rtObjectBase::set(rtObjectRef o)
-{
+{rtLogInfo("rtObject::Set");
   if (!o) 
     return;
 
@@ -388,7 +388,7 @@ void rtObjectBase::set(rtObjectRef o)
 
 rtError rtObjectBase::Send(const char* messageName, int numArgs, 
 			   const rtValue* args) 
-{
+{rtLogInfo("rtObject::Send");
   rtError e = RT_ERROR;
   rtFunctionRef f;
   e = get<rtFunctionRef>(messageName, f);
@@ -399,7 +399,7 @@ rtError rtObjectBase::Send(const char* messageName, int numArgs,
 
 rtError rtObjectBase::SendReturns(const char* messageName, int numArgs, 
 			   const rtValue* args, rtValue& result) 
-{
+{rtLogInfo("rtObject::SendReturns");
   rtError e = RT_ERROR;
   rtFunctionRef f;
   e = get<rtFunctionRef>(messageName, f);
@@ -408,23 +408,23 @@ rtError rtObjectBase::SendReturns(const char* messageName, int numArgs,
   return e;
 }
 
-rtError rtObjectBase::send(const char* messageName) {
+rtError rtObjectBase::send(const char* messageName) {rtLogInfo("rtObject::Send");
   return Send(messageName, 0, 0);
 }
 
-rtError rtObjectBase::send(const char* messageName, const rtValue& arg1) {
+rtError rtObjectBase::send(const char* messageName, const rtValue& arg1) {rtLogInfo("rtObject::Send");
   rtValue args[1] = {arg1};
   return Send(messageName, 1, args);
 }
 
 rtError rtObjectBase::send(const char* messageName, const rtValue& arg1, 
-			   const rtValue& arg2) {
+			   const rtValue& arg2) {rtLogInfo("rtObject::Send");
   rtValue args[2] = {arg1, arg2};
   return Send(messageName, 2, args);
 }
 
 rtError rtObjectBase::send(const char* messageName, const rtValue& arg1, 
-			   const rtValue& arg2, const rtValue& arg3) {
+			   const rtValue& arg2, const rtValue& arg3) {rtLogInfo("rtObject::Send");
   rtValue args[3] = {arg1, arg2, arg3};
   return Send(messageName, 3, args);
 }
@@ -432,7 +432,7 @@ rtError rtObjectBase::send(const char* messageName, const rtValue& arg1,
 rtError rtObjectBase::send(const char* messageName, const rtValue& arg1, 
 			   const rtValue& arg2, const rtValue& arg3, 
 			   const rtValue& arg4)
-{
+{rtLogInfo("rtObject::Send");
   rtValue args[4] = {arg1, arg2, arg3, arg4};
   return Send(messageName, 4, args);
 }
@@ -440,38 +440,38 @@ rtError rtObjectBase::send(const char* messageName, const rtValue& arg1,
 rtError rtObjectBase::send(const char* messageName, const rtValue& arg1, 
 			   const rtValue& arg2, const rtValue& arg3, 
 			   const rtValue& arg4, const rtValue& arg5)
-{
+{rtLogInfo("rtObject::Send");
   rtValue args[5] = {arg1, arg2, arg3, arg4, arg5};
   return Send(messageName, 5, args);
 }
 
 rtError rtFunctionBase::send()
-{
+{rtLogInfo("rtObject::Send");
   return Send(0, 0, NULL);
 }
 
 rtError rtFunctionBase::send(const rtValue& arg1)
-{
+{rtLogInfo("rtObject::Send");
   rtValue args[1] = {arg1};
   return Send(1, args, NULL);
 }
 
 rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2)
-{
+{rtLogInfo("rtObject::Send");
   rtValue args[2] = {arg1, arg2};
   return Send(2, args);
 }
 
 rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2, 
 			     const rtValue& arg3)
-{
+{rtLogInfo("rtObject::Send");
   rtValue args[3] = {arg1, arg2, arg3};
   return Send(3, args);
 }
 
 rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2, 
 			     const rtValue& arg3, const rtValue& arg4)
-{
+{rtLogInfo("rtObject::Send");
   rtValue args[4] = {arg1, arg2, arg3, arg4};
   return Send(4, args);
 }
@@ -479,7 +479,7 @@ rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2,
 rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2, 
 			     const rtValue& arg3, const rtValue& arg4,
 			     const rtValue& arg5)
-{
+{rtLogInfo("rtObject::Send");
   rtValue args[5] = {arg1, arg2, arg3, arg4, arg5};
   return Send(5, args);
 }
@@ -487,7 +487,7 @@ rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2,
 rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2, 
 			     const rtValue& arg3, const rtValue& arg4,
 			     const rtValue& arg5, const rtValue& arg6)
-{
+{rtLogInfo("rtObject::Send");
   rtValue args[6] = {arg1, arg2, arg3, arg4, arg5, arg6};
   return Send(6, args);
 }
@@ -496,39 +496,39 @@ rtError rtFunctionBase::send(const rtValue& arg1, const rtValue& arg2,
 			     const rtValue& arg3, const rtValue& arg4,
 			     const rtValue& arg5, const rtValue& arg6,
 			     const rtValue& arg7)
-{
+{rtLogInfo("rtObject::Send");
   rtValue args[7] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7};
   return Send(7, args);
 }
 
 
 rtError rtObjectRef::Get(const char* name, rtValue* value) const
-{
+{rtLogInfo("rtObject::Get");
   return (*this)->Get(name, value);
 }
  
 rtError rtObjectRef::Get(uint32_t i, rtValue* value) const
-{
+{rtLogInfo("rtObject::Get");
   return (*this)->Get(i, value);
 }
  
 rtError rtObjectRef::Set(const char* name, const rtValue* value) 
-{
+{rtLogInfo("rtObject::Set");
   return (*this)->Set(name, value);
 }
 
 rtError rtObjectRef::Set(uint32_t i, const rtValue* value) 
-{
+{rtLogInfo("rtObject::Set");
   return (*this)->Set(i, value);
 }
 
 rtError rtFunctionRef::Send(int numArgs, const rtValue* args, rtValue* result) 
-{
+{rtLogInfo("rtObject::Send");
   return (*this)->Send(numArgs, args, result);
 }
 
 rtError rtObjectFunction::Send(int numArgs, const rtValue* args, rtValue* result)
-{  
+{rtLogInfo("rtObject::Send");  
   rtLogDebug("rtObjectFunction::Send(%d,...)", numArgs);
   return (*mObject.*mThunk)(numArgs, args, *result);
 }
@@ -542,7 +542,7 @@ rtError rtObject::description(rtString& d) const
 }
 
 rtError rtObject::allKeys(rtObjectRef& v) const
-{
+{rtLogInfo("rtObject::allKeys");
   rtRefT<rtArrayObject> keys = new rtArrayObject;
 
   {
@@ -583,7 +583,7 @@ rtError rtObject::allKeys(rtObjectRef& v) const
 #if 0
 // TODO
 rtError rtAlloc(const char* objectName, rtObjectRef& object) 
-{
+{rtLogInfo("rtObject::allKeys");
   return RT_OK;
 }
 #endif

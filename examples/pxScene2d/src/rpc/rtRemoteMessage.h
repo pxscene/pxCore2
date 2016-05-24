@@ -2,10 +2,10 @@
 #define __RT_RPC_MESSAGE_H__
 
 #include <limits>
-#include <rapidjson/document.h>
-#include <rtError.h>
-#include <rtValue.h>
-#include "rtLog.h"
+#include "rapidjson/document.h"
+#include "../rtError.h"
+#include "../rtValue.h"
+#include "../rtLog.h"
 #include "rtSocketUtils.h"
 
 #define kFieldNameMessageType "message.type"

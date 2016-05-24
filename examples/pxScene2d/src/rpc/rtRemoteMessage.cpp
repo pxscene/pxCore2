@@ -24,25 +24,25 @@ namespace
 
 rtCorrelationKey
 rtMessage_GetNextCorrelationKey()
-{
+{rtLogInfo("rtMessage::GetNextCorrelationKey");
   return ++s_next_key;
 }
 
 template<class T> T
 from_json(rapidjson::GenericValue<rapidjson::UTF8<> > const& /*v*/)
-{
+{rtLogInfo("rtMessage::from_json");
   assert(false);
 }
 
 template<> char const*
 from_json<char const *>(rapidjson::GenericValue<rapidjson::UTF8<> > const& v)
-{
+{rtLogInfo("rtMessage::from_json");
   return v.GetString();
 }
 
 template<> uint32_t
 from_json<uint32_t>(rapidjson::GenericValue<rapidjson::UTF8<> > const& v)
-{
+{rtLogInfo("rtMessage::from_json");
   return v.GetUint();
 }
 
@@ -53,7 +53,7 @@ struct rtRemoteMessage::Impl
 
 rtRemoteMessage::rtRemoteMessage(char const* messageType, std::string const& objectName)
   : m_impl(new Impl())
-{
+{rtLogInfo("rtRemoteMessage::rtRemoteMessage");
   m_impl->d.SetObject();
   m_impl->d.AddMember(kFieldNameMessageType, std::string(messageType), m_impl->d.GetAllocator());
   if (objectName.size())
@@ -62,47 +62,47 @@ rtRemoteMessage::rtRemoteMessage(char const* messageType, std::string const& obj
 
 rtError
 rtRemoteMessage::send(int fd, sockaddr_storage const* dest) const
-{
+{rtLogInfo("rtRemoteMessage::send");
   return rtSendDocument(m_impl->d, fd, dest);
 }
 
 rtRemoteRequest::rtRemoteRequest(char const* messageType, std::string const& objectName)
   : rtRemoteMessage(messageType, objectName)
-{
+{rtLogInfo("rtRemoteRequest::rtRemoteRequest");
   m_correlation_key = rtMessage_GetNextCorrelationKey();
   m_impl->d.AddMember(kFieldNameCorrelationKey, m_correlation_key, m_impl->d.GetAllocator());
 }
 
 bool
 rtRemoteMessage::isValid() const
-{
+{rtLogInfo("rtRemoteMessage::isValid");
   return m_impl != nullptr;
 }
 
 rtRemoteRequestOpenSession::rtRemoteRequestOpenSession(std::string const& objectName)
   : rtRemoteRequest(kMessageTypeOpenSessionRequest, objectName)
-{
+{rtLogInfo("rtRemoteRequestOpenSession::rtRemoteRequestOpenSession");
 }
 
 rtRemoteRequestKeepAlive::rtRemoteRequestKeepAlive()
   : rtRemoteRequest(kMessageTypeKeepAliveRequest, "")
-{
+{rtLogInfo("rtRemoteRequestOpenSession::rtRemoteRequestKeepAlive");
 }
 
 rtRemoteMethodCallRequest::rtRemoteMethodCallRequest(std::string const& objectName)
   : rtRemoteRequest(kMessageTypeMethodCallRequest, objectName)
-{
+{rtLogInfo("rtRemoteRequestOpenSession::rtRemoteMethodCallRequest");
 }
 
 void
 rtRemoteMethodCallRequest::setMethodName(std::string const& methodName)
-{
+{rtLogInfo("rtRemoteRequestOpenSession::setMethodName");
   m_impl->d.AddMember(kFieldNameFunctionName, methodName, m_impl->d.GetAllocator());
 }
 
 void
 rtRemoteMethodCallRequest::addMethodArgument(rtValue const& arg)
-{
+{rtLogInfo("rtRemoteRequestOpenSession::addMethodArgument");
   rapidjson::Value jsonValue;
   rtError err = rtValueWriter::write(arg, jsonValue, m_impl->d);
 
@@ -124,31 +124,31 @@ rtRemoteMethodCallRequest::addMethodArgument(rtValue const& arg)
 
 rtRemoteGetRequest::rtRemoteGetRequest(std::string const& objectName, std::string const& fieldName)
   : rtRemoteRequest(kMessageTypeGetByNameRequest, objectName)
-{
+{rtLogInfo("rtRemoteGetRequest::rtRemoteGetRequest");
   m_impl->d.AddMember(kFieldNamePropertyName, fieldName, m_impl->d.GetAllocator());
 }
 
 rtRemoteGetRequest::rtRemoteGetRequest(std::string const& objectName, uint32_t fieldIndex)
   : rtRemoteRequest(kMessageTypeGetByNameRequest, objectName)
-{
+{rtLogInfo("rtRemoteGetRequest::rtRemoteGetRequest");
   m_impl->d.AddMember(kFieldNamePropertyIndex, fieldIndex, m_impl->d.GetAllocator());
 }
 
 rtRemoteSetRequest::rtRemoteSetRequest(std::string const& objectName, std::string const& fieldName)
   : rtRemoteRequest(kMessageTypeSetByNameRequest, objectName)
-{
+{rtLogInfo("rtRemoteGetRequest::rtRemoteSetRequest");
   m_impl->d.AddMember(kFieldNamePropertyName, fieldName, m_impl->d.GetAllocator());
 }
 
 rtRemoteSetRequest::rtRemoteSetRequest(std::string const& objectName, uint32_t fieldIndex)
   : rtRemoteRequest(kMessageTypeSetByIndexRequest, objectName)
-{
+{rtLogInfo("rtRemoteGetRequest::rtRemoteSetRequest");
   m_impl->d.AddMember(kFieldNamePropertyIndex, fieldIndex, m_impl->d.GetAllocator());
 }
 
 rtError
 rtRemoteSetRequest::setValue(rtValue const& value)
-{
+{rtLogInfo("rtRemoteGetRequest::rtRemoteSetValue");
   rapidjson::Value jsonValue;
   rtError e = rtValueWriter::write(value, jsonValue, m_impl->d);
   if (e != RT_OK)
@@ -159,7 +159,7 @@ rtRemoteSetRequest::setValue(rtValue const& value)
 
 void
 rtRemoteRequestKeepAlive::addObjectName(std::string const& name)
-{
+{rtLogInfo("rtRemoteRequestKeepAlive::addObjectName");
   auto itr = m_impl->d.FindMember(kFieldNameKeepAliveIds);
   if (itr == m_impl->d.MemberEnd())
   {
@@ -174,24 +174,24 @@ rtRemoteRequestKeepAlive::addObjectName(std::string const& name)
 }
 
 rtRemoteMessage::~rtRemoteMessage()
-{
+{rtLogInfo("rtRemoteMessage::~rtRemoteMessage");
 }
 
 char const*
 rtRemoteMessage::getMessageType() const
-{
+{rtLogInfo("rtRemoteMessage::getMessageType");
   return from_json<char const *>(m_impl->d[kFieldNameMessageType]);
 }
 
 char const*
 rtRemoteMessage::getObjectName() const
-{
+{rtLogInfo("rtRemoteMessage::getObjectName");
   return from_json<char const *>(m_impl->d[kFieldNameObjectId]);
 }
 
 rtCorrelationKey
 rtRemoteMessage::getCorrelationKey() const
-{
+{rtLogInfo("rtRemoteMessage::getCorrelationKey");
   assert(m_correlation_key != 0);
   return m_correlation_key;
   // return from_json<uint32_t>(m_impl->d[kFieldNameCorrelationKey]);
@@ -199,7 +199,7 @@ rtRemoteMessage::getCorrelationKey() const
 
 char const*
 rtMessage_GetPropertyName(rapidjson::Document const& doc)
-{
+{rtLogInfo("rtMessage_GetPropertyName");
   rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNamePropertyName);
   return itr != doc.MemberEnd() 
     ? itr->value.GetString() 
@@ -208,7 +208,7 @@ rtMessage_GetPropertyName(rapidjson::Document const& doc)
 
 uint32_t
 rtMessage_GetPropertyIndex(rapidjson::Document const& doc)
-{
+{rtLogInfo("rtMessage_GetPropertyIndex");
   rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNamePropertyName);
   return itr != doc.MemberEnd() 
     ? itr->value.GetUint()
@@ -217,7 +217,7 @@ rtMessage_GetPropertyIndex(rapidjson::Document const& doc)
 
 char const*
 rtMessage_GetMessageType(rapidjson::Document const& doc)
-{
+{rtLogInfo("rtMessage_GetMessageType");
   rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNameMessageType);
   return itr != doc.MemberEnd() 
     ? itr->value.GetString()
@@ -226,7 +226,7 @@ rtMessage_GetMessageType(rapidjson::Document const& doc)
 
 uint32_t
 rtMessage_GetCorrelationKey(rapidjson::Document const& doc)
-{
+{rtLogInfo("rtMessage_GetCorrelationKey");
   rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNameCorrelationKey);
   assert(itr != doc.MemberEnd());
   return itr != doc.MemberEnd() ?
@@ -236,7 +236,7 @@ rtMessage_GetCorrelationKey(rapidjson::Document const& doc)
 
 char const*
 rtMessage_GetObjectId(rapidjson::Document const& doc)
-{
+{rtLogInfo("rtMessage_GetObjectId");
   rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNameObjectId);
   return itr != doc.MemberEnd() 
     ? itr->value.GetString()
@@ -245,7 +245,7 @@ rtMessage_GetObjectId(rapidjson::Document const& doc)
 
 rtError
 rtMessage_GetStatusCode(rapidjson::Document const& doc)
-{
+{rtLogInfo("rtMessage_GetStatusCode");
   rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNameStatusCode);
   assert(itr != doc.MemberEnd());
   return static_cast<rtError>(itr->value.GetInt());
@@ -254,7 +254,7 @@ rtMessage_GetStatusCode(rapidjson::Document const& doc)
 #if 0
 rtError
 rtRemoteMessage::readMessage(int fd, rt_sockbuf_t& buff, rtRemoteMessage& m)
-{
+{rtLogInfo("rtRemoteMessage::readMessage");
   rtError err = RT_OK;
 
   int n = 0;
@@ -314,7 +314,7 @@ rtRemoteMessage::readMessage(int fd, rt_sockbuf_t& buff, rtRemoteMessage& m)
 
 rtError
 rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out)
-{
+{rtLogInfo("rtMessage_DumpDocument");
   if (out == nullptr)
     out = stdout;
   rapidjson::StringBuffer buff;
@@ -326,7 +326,7 @@ rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out)
 
 rtError
 rtMessage_SetStatus(rapidjson::Document& doc, rtError code)
-{
+{rtLogInfo("rtMessage_SetStatus");
   rtError e = RT_OK;
   doc.AddMember(kFieldNameStatusCode, code, doc.GetAllocator());
   return e;
@@ -334,7 +334,7 @@ rtMessage_SetStatus(rapidjson::Document& doc, rtError code)
 
 rtError
 rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...)
-{
+{rtLogInfo("rtMessage_SetStatus");
   rtError e = RT_OK;
   doc.AddMember(kFieldNameStatusCode, code, doc.GetAllocator());
 
@@ -360,7 +360,7 @@ rtRemoteResponse::rtRemoteResponse(char const* messageType, std::string const& o
 
 rtError
 rtRemoteResponse::getStatusCode() const
-{
+{rtLogInfo("rtRemoteResponse::getStatusCode");
   auto itr = m_impl->d.FindMember(kFieldNameStatusCode);
   if (itr == m_impl->d.MemberEnd())
   {
@@ -373,5 +373,5 @@ rtRemoteResponse::getStatusCode() const
 
 rtRemoteGetResponse::rtRemoteGetResponse(std::string const& objectName)
   : rtRemoteResponse(kMessageTypeGetByNameResponse, objectName)
-{
+{rtLogInfo("rtRemoteResponse::rtRemoteGetResponse");
 }
