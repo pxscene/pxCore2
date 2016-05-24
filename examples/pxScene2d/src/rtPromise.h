@@ -103,8 +103,8 @@ public:
           it->mNextPromise.send("reject",mObject);
         }
       }
-      mThenData.clear();
     }
+    mThenData.clear();
     mObject = objRef.getPtr();
     return RT_OK;
   }

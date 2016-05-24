@@ -206,8 +206,10 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
     //sendReturns<rtString>("description",d);
     rtString d2 = getMap()->className;
     unsigned long c =  rtObject::Release();
+    #if 0
     if (c == 0)
       printf("pxObject %s  %ld: %s\n", (c==0)?" *********** Destroyed":"Released",c, d2.cString());
+    #endif
     return c;
   }
 
@@ -374,6 +376,9 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
       if ((*it).promise)
         (*it).promise.send("reject",this);
     }
+
+    rtValue nullValue;
+    mReady.send("reject",nullValue);
 
     mAnimations.clear();
     mEmit->clearListeners();
@@ -780,7 +785,7 @@ public:
     addListener("onChar", get<rtFunctionRef>("onChar"));
   }
 
-  virtual ~pxViewContainer() {}
+  virtual ~pxViewContainer() { /*printf("#################~pxViewContainer\n");*/}
 
   rtError setView(pxIView* v)
   {
@@ -946,6 +951,15 @@ public:
   rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);
   
   pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
+  virtual ~pxSceneContainer() {/*printf("###############~pxSceneContainer\n");*/} 
+
+  virtual unsigned long Release()
+  {
+    unsigned long c = pxViewContainer::Release();
+//    printf("pxSceneContainer::Release(): %ld\n", c);
+    return c;
+  }
+
 
   rtError url(rtString& v) const { v = mUrl; return RT_OK; }
   rtError setUrl(rtString v);
@@ -992,6 +1006,7 @@ public:
 
     // Hack to try and reduce leaks until garbage collection can
     // be cleaned up
+    
     if (mApi)
       mApi.send("dispose");
   }
@@ -1118,6 +1133,7 @@ protected:
   rtNodeContextRef mCtx;
   pxIViewContainer* mViewContainer;
   unsigned long mRefCount;
+  rtString mUrl;
 };
 
 class pxScene2d: public rtObject, public pxIView 
@@ -1193,8 +1209,7 @@ public:
       mRoot->dispose();
     mEmit->clearListeners();
     mRoot = NULL;
-    //mFocusObj = NULL;
-    //setFocus(NULL);
+    mFocusObj = NULL;
     return RT_OK;
   }
 
