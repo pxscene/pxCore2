@@ -64,19 +64,24 @@ AppSceneContext.prototype.loadScene = function() {
   this.loadPackage(fullPath);
 
 if (false) {
+if (false) {
+  // This no longer has access to the container
   this.container.on('onKeyDown', function (e) {
     log.message(2, "container(" + this.packageUrl + "): keydown:" + e.keyCode);
-  }/*.bind(this));*/);
+  }.bind(this));
 
+}
   this.innerscene.on('onKeyDown', function (e) {
     log.message(2, "innerscene(" + this.packageUrl + "): keydown:" + e.keyCode);
-  }/*.bind(this));*/);
+  }.bind(this));
+
   this.innerscene.root.on('onKeyDown', function (e) {
     log.message(2, "innerscene root(" + this.packageUrl + "): keydown:" + e.keyCode);
-  }/*.bind(this));*/);
+  }.bind(this));
 }
 
 if (false) {
+  // JRJRJR No longer get this event... 
   this.innerscene.on('onComplete', function (e) {
 //    this.container = null;
     this.innerscene = null;
@@ -98,7 +103,7 @@ if (false) {
     this.jarFileMap = null;
     this.sceneWrapper = null;
     global.gc();
-  }/*.bind(this));*/);
+  }.bind(this));
 }
 
   log.info("loadScene() - ends");

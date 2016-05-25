@@ -1627,7 +1627,7 @@ void pxScene2d::onBlur()
 }
 
 bool gStopPropagation;
-rtError stopPropagation2(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+rtError stopPropagation2(int /*numArgs*/, const rtValue* /*args*/, rtValue* /*result*/, void* ctx)
 {
   bool& stopProp = *(bool*)ctx;
   stopProp = true;
@@ -2021,6 +2021,7 @@ rtDefineMethod(pxViewContainer, onChar);
 rtDefineObject(pxSceneContainer, pxViewContainer);
 rtDefineProperty(pxSceneContainer, url);
 rtDefineProperty(pxSceneContainer, api);
+rtDefineProperty(pxSceneContainer, ready);
 rtDefineMethod(pxSceneContainer, makeReady);
 
 rtError pxSceneContainer::setUrl(rtString url)
@@ -2065,6 +2066,12 @@ rtError pxSceneContainer::api(rtValue& v) const
     return RT_FAIL;
 }
 
+rtError pxSceneContainer::ready(rtObjectRef& o) const
+{
+  if (mScriptView)
+    return mScriptView->ready(o);
+  return RT_FAIL;
+}
 
 rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
 {
@@ -2106,9 +2113,8 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContaine
     {
       mCtx->add("getScene", new rtFunctionCallback(getScene, this));
       mCtx->add("makeReady", new rtFunctionCallback(makeReady, this));
+      mReady = new rtPromise;
 
-//      mCtx->add("getScene", get<rtFunctionRef>("getScene"));
-//      mCtx->add("makeReady", get<rtFunctionRef>("makeReady"));
       printf("Running init for %s\n", url);
       mCtx->runFile("init.js");    
       char buffer[256];
@@ -2127,13 +2133,13 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
       rtString sceneType = args[0].toString();
       rtLogError("@@@@@@@@@@  In getScene %s\n", sceneType.cString());
       // JR Todo can specify what scene version/type to create in args
-      if (!v->mApi)
+      if (!v->mScene)
       {
         static bool top = true;
         pxScene2dRef scene = new pxScene2d(top);
         top = false;
         v->mView = scene;
-        v->mApi = scene;
+        v->mScene = scene;
         
         v->mView->setViewContainer(v->mViewContainer);
         v->mView->onSize(v->mWidth,v->mHeight);
@@ -2141,7 +2147,7 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
       
       if (result)
       {
-        *result = v->mApi;
+        *result = v->mScene;
         return RT_OK;
       }
     }
@@ -2150,15 +2156,24 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
 }
 
 
-rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
     printf("In Make Ready\n");
-    if (numArgs == 2)
+    if (numArgs >= 1)
     {
-//      if (args[0].toBool())
+      if (args[0].toBool())
+      {
+        if (numArgs >= 2)
+          v->mApi = args[1].toObject();
+
+        v->mReady.send("resolve", v->mApi);
+      }
+      else
+        v->mReady.send("reject", rtValue()); // JRJR  should declare an empty rtValue for this purpose
+
       return RT_OK;
     }
   }
