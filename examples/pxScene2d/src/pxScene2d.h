@@ -948,6 +948,7 @@ public:
   rtDeclareObject(pxSceneContainer, pxViewContainer);
   rtProperty(url, url, setUrl, rtString);
   rtReadOnlyProperty(api, api, rtValue);
+  rtReadOnlyProperty(ready, ready, rtObjectRef);
   rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);
   
   pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
@@ -967,6 +968,7 @@ public:
   rtError setScriptView(pxScriptView* scriptView);
 
   rtError api(rtValue& v) const;
+  rtError ready(rtObjectRef& o) const;
 
   rtError makeReady(bool ready);
 
@@ -1007,8 +1009,8 @@ public:
     // Hack to try and reduce leaks until garbage collection can
     // be cleaned up
     
-    if (mApi)
-      mApi.send("dispose");
+    if (mScene)
+      mScene.send("dispose");
   }
 
   virtual unsigned long AddRef() 
@@ -1031,6 +1033,15 @@ public:
       return RT_FAIL;
 
     v = mApi;
+    return RT_OK;
+  }
+
+  rtError ready(rtObjectRef& o)
+  {
+    if (!mReady)
+      return RT_FAIL;
+    
+    o = mReady;
     return RT_OK;
   }
   
@@ -1129,6 +1140,8 @@ protected:
   int mWidth;
   int mHeight;
   rtObjectRef mApi;
+  rtObjectRef mReady;
+  rtObjectRef mScene;
   rtRefT<pxIView> mView;
   rtNodeContextRef mCtx;
   pxIViewContainer* mViewContainer;

@@ -119,7 +119,7 @@ void rtNodeContext::createEnvironment()
   Handle<Object> global = local_context->Global();
 
   // Register wrappers.
-    rtObjectWrapper::exportPrototype(mIsolate, global);
+  rtObjectWrapper::exportPrototype(mIsolate, global);
   rtFunctionWrapper::exportPrototype(mIsolate, global);
 
   rtWrappers.Reset(mIsolate, global);
@@ -135,6 +135,7 @@ void rtNodeContext::createEnvironment()
   // Start debug agent when argv has --debug
   if (use_debug_agent)
   {
+    printf("use_debug_agent\n");
     StartDebug(mEnv, debug_wait_connect);
   }
 
@@ -334,6 +335,13 @@ void rtNode::pump()
   #endif
 
 }
+
+#if 0
+rtNode::forceGC()
+{
+  mIsolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
+}
+#endif
 
 void rtNode::nodePath()
 {

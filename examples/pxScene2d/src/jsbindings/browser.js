@@ -35,7 +35,13 @@ inputbg.on("onKeyDown", function(e) {
     content.url = u;
     //scene.setFocus(content);
     content.focus = true;
-    content.ready.then(function() {
+if (true)
+{
+    content.ready.then(function(o) {
+      
+      //o.foo();
+      console.log(o);
+      
       contentBG.draw = true;
 /*
       console.log("api after promise:"+content.api);
@@ -50,6 +56,7 @@ inputbg.on("onKeyDown", function(e) {
                          console.log("scene load failed");
                        }
     );
+}
   }
   else if (e.keyCode == 8) { // <<<  BACKSPACE KEY
     var s = url.text.slice();
