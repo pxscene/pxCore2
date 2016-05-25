@@ -22,6 +22,8 @@ public:
                                imageLoaded(false) 
   { 
     mResource = pxImageManager::getImage("");
+    mw = -1;
+    mh = -1;
   }
   
   rtError url(rtString& s) const;

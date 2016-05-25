@@ -83,9 +83,10 @@ void pxImage9::resourceReady(rtString readyResolution)
   if( !readyResolution.compare("resolve"))
   {
     imageLoaded = true; 
-    // nineslice gets its w and h from the image only
-    mw = getImageResource()->w();
-    mh = getImageResource()->h();
+    // nineslice gets its w and h from the image only if
+    // not set for the pxImage9
+    if( mw == -1) { mw = getImageResource()->w(); }
+    if( mh == -1) { mh = getImageResource()->h(); }
     imageLoaded = true;
     pxObject::onTextureReady();
     // Now that image is loaded, must force redraw;
