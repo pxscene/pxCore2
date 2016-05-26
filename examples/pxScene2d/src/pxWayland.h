@@ -12,7 +12,7 @@
 #include "pxTexture.h"
 #include "rtObject.h"
 #ifdef ENABLE_PX_WAYLAND_RPC
-#include "rtRpc.h"
+#include "rtRemote.h"
 #endif //ENABLE_PX_WAYLAND_RPC
 
 #include "westeros-compositor.h"

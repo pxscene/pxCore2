@@ -71,8 +71,8 @@ private:
 
       for (auto const& s : m_streams)
       {
-	rtPushFd(&read_fds, s->m_fd, &maxFd);
-	rtPushFd(&err_fds, s->m_fd, &maxFd);
+        rtPushFd(&read_fds, s->m_fd, &maxFd);
+        rtPushFd(&err_fds, s->m_fd, &maxFd);
       }
       rtPushFd(&read_fds, m_shutdown_pipe[0], &maxFd);
 
@@ -83,14 +83,14 @@ private:
       int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, &timeout);
       if (ret == -1)
       {
-	rtLogWarn("select failed: %s", rtStrError(errno).c_str());
-	continue;
+        rtLogWarn("select failed: %s", rtStrError(errno).c_str());
+        continue;
       }
 
       if (FD_ISSET(m_shutdown_pipe[0], &read_fds))
       {
-	rtLogInfo("got shutdown signal");
-	return RT_OK;
+        rtLogInfo("got shutdown signal");
+        return RT_OK;
       }
 
       time_t now = time(0);
@@ -98,25 +98,25 @@ private:
       std::unique_lock<std::mutex> lock(m_mutex);
       for (int i = 0, n = static_cast<int>(m_streams.size()); i < n; ++i)
       {
-	rtError e = RT_OK;
-	std::shared_ptr<rtRemoteStream> const& s = m_streams[i];
-	if (FD_ISSET(s->m_fd, &read_fds))
-	{
-	  e = s->onIncomingMessage(buff, now);
-	  if (e != RT_OK)
-	    m_streams[i].reset();
-	}
-	else if (now - s->m_last_message_time > 2)
-	{
-	  e = s->onInactivity(now);
-	  if (e != RT_OK)
-	    m_streams[i].reset();
-	}
+        rtError e = RT_OK;
+        std::shared_ptr<rtRemoteStream> const& s = m_streams[i];
+        if (FD_ISSET(s->m_fd, &read_fds))
+        {
+          e = s->onIncomingMessage(buff, now);
+          if (e != RT_OK)
+            m_streams[i].reset();
+        }
+        else if (now - s->m_last_message_time > 2)
+        {
+          e = s->onInactivity(now);
+          if (e != RT_OK)
+            m_streams[i].reset();
+        }
       }
 
       // remove all dead streams
       auto end = std::remove_if(m_streams.begin(), m_streams.end(),
-	  [](std::shared_ptr<rtRemoteStream> const& s) { return s == nullptr; });
+          [](std::shared_ptr<rtRemoteStream> const& s) { return s == nullptr; });
       m_streams.erase(end, m_streams.end());
     }
 
@@ -124,10 +124,10 @@ private:
   }
 
 private:
-  std::vector< std::shared_ptr<rtRemoteStream> > 	m_streams;
-  std::shared_ptr< std::thread > 		m_thread;
-  std::mutex					m_mutex;
-  int						m_shutdown_pipe[2];
+  std::vector< std::shared_ptr<rtRemoteStream> >  m_streams;
+  std::shared_ptr< std::thread >                  m_thread;
+  std::mutex                                      m_mutex;
+  int                                             m_shutdown_pipe[2];
 };
 
 static std::shared_ptr<rtRemoteStreamSelector> gStreamSelector;
@@ -149,6 +149,7 @@ rtRemoteStream::rtRemoteStream(int fd, sockaddr_storage const& local_endpoint, s
   : m_fd(fd)
   , m_last_message_time(0)
   , m_message_handler(nullptr)
+  , m_running(false)
 {
   memcpy(&m_remote_endpoint, &remote_endpoint, sizeof(m_remote_endpoint));
   memcpy(&m_local_endpoint, &local_endpoint, sizeof(m_local_endpoint));
@@ -159,9 +160,51 @@ rtRemoteStream::~rtRemoteStream()
   this->close();
 }
 
+void
+rtRemoteStream::runMessageDispatch()
+{
+  WorkItem item;
+
+  while (true)
+  {
+    item.Doc = nullptr;
+    {
+      std::unique_lock<std::mutex> qlock(m_work_mutex);
+      m_work_cond.wait(qlock, [this] { return !this->m_running || !m_work_queue.empty(); });
+
+      if (!m_running)
+        return;
+
+      if (!m_work_queue.empty())
+      {
+        item = m_work_queue.front();
+        m_work_queue.pop_front();
+      }
+    }
+
+    if (item.Doc != nullptr)
+    {
+      if (m_message_handler)
+      {
+        rtError err = m_message_handler(item.Doc);
+        if (err != RT_OK)
+          rtLogWarn("error running message dispatcher: %s", rtStrError(err));
+      }
+    }
+  }
+}
+
 rtError
 rtRemoteStream::open()
 {
+  m_running = true;
+
+  int const kNumDispatcherThreads = 1;
+  for (int i = 0; i < kNumDispatcherThreads; ++i)
+  {
+    m_dispatch_threads.push_back(new std::thread(&rtRemoteStream::runMessageDispatch, this));
+  }
+
   if (!gStreamSelector)
   {
     gStreamSelector.reset(new rtRemoteStreamSelector());
@@ -174,6 +217,20 @@ rtRemoteStream::open()
 rtError
 rtRemoteStream::close()
 {
+  {
+    std::unique_lock<std::mutex> lock(m_work_mutex);
+    m_running = false;
+    m_work_cond.notify_all();
+  }
+
+  for (auto thread : m_dispatch_threads)
+  {
+    thread->join();
+    delete thread;
+  }
+
+  m_dispatch_threads.clear();
+
   if (m_fd != kInvalidSocket)
   {
     int ret = 0;
@@ -184,6 +241,7 @@ rtRemoteStream::close()
 
     rtCloseSocket(m_fd);
   }
+
   return RT_OK;
 }
 
@@ -265,6 +323,7 @@ rtRemoteStream::onIncomingMessage(rtSocketBuffer& buff, time_t now)
   m_last_message_time = now;
 
   rtJsonDocPtr doc;
+
   rtError err = rtReadMessage(m_fd, buff, doc);
   if (err != RT_OK)
   {
@@ -274,24 +333,25 @@ rtRemoteStream::onIncomingMessage(rtSocketBuffer& buff, time_t now)
 
   int const key = rtMessage_GetCorrelationKey(*doc);
 
-  // is someone waiting for a response?
+  // is someone waiting for a response
   {
     std::unique_lock<std::mutex> lock(m_mutex);
-    auto itr = m_requests.find(key);
-    if (itr != m_requests.end())
+    if (m_requests.find(key) != m_requests.end())
     {
       m_requests[key] = doc;
       lock.unlock();
       m_cond.notify_all();
-      return RT_OK;
     }
   }
 
-  if (m_message_handler)
+  // enqueue to dispatch on a worker thread
   {
-    err = m_message_handler(doc);
-    if (err != RT_OK)
-      rtLogWarn("error running message dispatcher: %s", rtStrError(err));
+    WorkItem item;
+    item.Doc = doc;
+
+    std::unique_lock<std::mutex> lock(m_work_mutex);
+    m_work_queue.push_back(item);
+    m_work_cond.notify_one();
   }
 
   return RT_OK;
@@ -326,6 +386,8 @@ rtRemoteStream::sendRequest(rtRemoteRequest const& req, MessageHandler handler, 
     rtJsonDocPtr doc = waitForResponse(key, timeout);
     if (doc)
       e = handler(doc);
+    else
+      e = RT_TIMEOUT;
   }
 
   return e;
@@ -345,8 +407,8 @@ rtRemoteStream::waitForResponse(int key, uint32_t timeout)
       if (itr != this->m_requests.end())
       {
         res = itr->second;
-	if (res != nullptr)
-	  this->m_requests.erase(itr);
+        if (res != nullptr)
+          this->m_requests.erase(itr);
       }
       return res != nullptr;
     });

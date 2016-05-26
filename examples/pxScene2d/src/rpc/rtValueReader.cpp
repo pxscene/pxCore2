@@ -121,23 +121,23 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
       auto const& func = from.FindMember("value");
       if (func != from.MemberEnd())
       {
-	auto itr = func->value.FindMember(kFieldNameObjectId);
-	assert(itr != func->value.MemberEnd());
-	objectId = itr->value.GetString();
+        auto itr = func->value.FindMember(kFieldNameObjectId);
+        assert(itr != func->value.MemberEnd());
+        objectId = itr->value.GetString();
 
-	itr = func->value.FindMember(kFieldNameFunctionName);
-	assert(itr != func->value.MemberEnd());
-	functionId = itr->value.GetString();
+        itr = func->value.FindMember(kFieldNameFunctionName);
+        assert(itr != func->value.MemberEnd());
+        functionId = itr->value.GetString();
       }
       else
       {
-	auto itr = from.FindMember(kFieldNameObjectId);
-	assert(itr != from.MemberEnd());
-	objectId = itr->value.GetString();
+        auto itr = from.FindMember(kFieldNameObjectId);
+        assert(itr != from.MemberEnd());
+        objectId = itr->value.GetString();
 
-	itr = from.FindMember(kFieldNameFunctionName);
-	assert(itr != from.MemberEnd());
-	functionId = itr->value.GetString();
+        itr = from.FindMember(kFieldNameFunctionName);
+        assert(itr != from.MemberEnd());
+        functionId = itr->value.GetString();
       }
 	
       to.setFunction(new rtRemoteFunction(objectId, functionId, client));

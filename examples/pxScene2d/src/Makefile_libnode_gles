@@ -69,8 +69,7 @@ SEARCH=\
 	$(PXCORE_INCLUDES)
 
 
-CXXFLAGS= -Wno-attributes -Wall -Wextra -O3 -fpermissive $(SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
-
+CXXFLAGS= -Wno-attributes -Wall -Wextra -O3 -fpermissive $(SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DENABLE_PX_WAYLAND_RPC
 
 LDNODE   = -L$(NODEDIR)/out/Release/obj.target
 LDNODEV8 = -L$(NODEDIR)/out/Release
@@ -78,8 +77,7 @@ LDNODEV8 = -L$(NODEDIR)/out/Release
 
 LDEXT   = -lpng16 -ljpeg -lfreetype -lcurl -luuid $(LDNODE) $(LDNODEV8)
 
-LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -L./ -lrtrpc $(PXCORE_LIBS) -lwesteros_compositor -lnexus -lnxclient -lnxpl -lGLESv2
-
+LDFLAGS = -lnode -pthread $(LDEXT) -ldl -lrt -Lrpc/ -lrtRemote $(PXCORE_LIBS) -lwesteros_compositor -lnexus -lnxclient -lnxpl -lGLESv2
 
 OBJDIR=obj
 

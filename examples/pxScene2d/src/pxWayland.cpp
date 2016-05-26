@@ -523,10 +523,10 @@ void* pxWayland::findRemoteThread( void *data )
 rtError pxWayland::startRemoteObjectLocator()
 {
 #ifdef ENABLE_PX_WAYLAND_RPC
-  rtError errorCode = rtRpcInit();
+  rtError errorCode = rtRemoteInit();
   if (errorCode != RT_OK)
   {
-    rtLogError("pxWayland failed to initialize rtRpcInit: %d", errorCode);
+    rtLogError("pxWayland failed to initialize rtRemoteInit: %d", errorCode);
     mRemoteObjectMutex.lock();
     mWaitingForRemoteObject = false;
     mRemoteObjectMutex.unlock();
@@ -549,7 +549,7 @@ rtError pxWayland::connectToRemoteObject()
   {
     findTime += FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS;
     rtLogInfo("Attempting to find remote object %s", mRemoteObjectName.cString());
-    errorCode = rtRpcLocateObject(mRemoteObjectName.cString(), mRemoteObject);
+    errorCode = rtRemoteLocateObject(mRemoteObjectName.cString(), mRemoteObject);
     if (errorCode != RT_OK)
     {
       rtLogError("XREBrowserPlugin failed to find object: %s errorCode %d\n",
