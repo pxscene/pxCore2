@@ -307,8 +307,13 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
 
 void pxObject::setParent(rtRefT<pxObject>& parent)
 {
-  mParent = parent;
-  parent->mChildren.push_back(this);
+  if (mParent != parent)
+  {
+    remove();
+    mParent = parent;
+    if (parent)
+      parent->mChildren.push_back(this);
+  }
 }
 
 rtError pxObject::children(rtObjectRef& v) const

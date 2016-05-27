@@ -261,11 +261,13 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
 
   rtError setParent(rtObjectRef parent) 
   {
-    void* p = parent.get<voidPtr>("_pxObject");
-    if (p) {
-      rtRefT<pxObject> p2 = (pxObject*)p;
-      setParent(p2);
-    }
+    rtRefT<pxObject> p;
+
+    if (parent)
+      p = (pxObject*)parent.get<voidPtr>("_pxObject");
+    
+    setParent(p);
+
     return RT_OK;
   }
 
@@ -385,6 +387,8 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       (*it)->dispose();
+//      (*it)->setParent(NULL);
+      (*it)->mParent = NULL;  // setParent mutates the mChildren collection
     } 
     mChildren.clear();
   }
@@ -789,11 +793,15 @@ public:
 
   rtError setView(pxIView* v)
   {
+    if (mView)
+      mView->setViewContainer(NULL);
+
     mView = v;
+
     if (mView)
     {
-      mView->onSize(mw,mh);
       mView->setViewContainer(this);
+      mView->onSize(mw,mh);
     }
     return RT_OK;
   }
@@ -1132,9 +1140,9 @@ protected:
 
   virtual void setViewContainer(pxIViewContainer* l)
   {
-    mViewContainer = l;
     if (mView)
       mView->setViewContainer(l);
+    mViewContainer = l;
   }
 
   int mWidth;
