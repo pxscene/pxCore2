@@ -10,6 +10,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <rtLog.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 
 class rtRemoteStreamSelector
 {
@@ -261,6 +264,10 @@ rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
     rtLogError("failed to create socket. %s", rtStrError(errno).c_str());
     return RT_FAIL;
   }
+  uint32_t one = 1;
+  if (-1 == setsockopt(m_fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+    rtLogError("setting TCP_NODELAY failed");
+
   fcntl(m_fd, F_SETFD, fcntl(m_fd, F_GETFD) | FD_CLOEXEC);
 
   socklen_t len;
