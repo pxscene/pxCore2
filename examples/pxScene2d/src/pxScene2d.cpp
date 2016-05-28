@@ -1876,18 +1876,6 @@ rtError pxScene2d::setShowDirtyRect(bool v)
   return RT_OK;
 }
 
-rtError pxScene2d::onScene(rtFunctionRef& v) const 
-{ 
-  v = gOnScene; 
-  return RT_OK; 
-}
-
-rtError pxScene2d::setOnScene(rtFunctionRef v) 
-{ 
-  gOnScene = v; 
-  return RT_OK; 
-}
-
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
   // Is this a type we support?
@@ -1922,7 +1910,6 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
-rtDefineProperty(pxScene2d, onScene);
 rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);

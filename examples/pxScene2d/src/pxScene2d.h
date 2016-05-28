@@ -1161,7 +1161,6 @@ class pxScene2d: public rtObject, public pxIView
 {
 public:
   rtDeclareObject(pxScene2d, rtObject);
-  rtProperty(onScene, onScene, setOnScene, rtFunctionRef);
   rtReadOnlyProperty(root, root, rtObjectRef);
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);
@@ -1233,10 +1232,6 @@ public:
     mFocusObj = NULL;
     return RT_OK;
   }
-
-
-  rtError onScene(rtFunctionRef& v) const;
-  rtError setOnScene(rtFunctionRef v);
 
   int32_t w() const { return mWidth;  }
   rtError w(int32_t& v) const { v = mWidth;  return RT_OK; }
