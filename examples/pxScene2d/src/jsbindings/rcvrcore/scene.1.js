@@ -17,8 +17,10 @@ function Scene() {
       this.truncation = scene.truncation;
       this.root = scene.root;
       this.filePath = filePath;
-      this.w = scene.w;
-      this.h = scene.h;
+      this.__defineGetter__("w", function() { return scene.w; });
+      this.__defineGetter__("h", function() { return scene.h; });
+      //this.w = scene.w;
+      //this.h = scene.h;
     }
   }
 
