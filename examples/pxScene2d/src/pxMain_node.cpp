@@ -33,7 +33,7 @@ pxContext context;
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
 public:
-  sceneWindow() {}
+  sceneWindow(): mWidth(-1),mHeight(-1) {}
   virtual ~sceneWindow() {}
 
   void init(int x, int y, int w, int h, const char* url = NULL)
@@ -69,12 +69,15 @@ protected:
 
   virtual void onSize(int32_t w, int32_t h)
   {
-    mWidth  = w;
-    mHeight = h;
-    ENTERSCENELOCK();
-    if (mView)
-      mView->onSize(w, h);
-    EXITSCENELOCK();
+    if (mWidth != w || mHeight != h)
+    {
+      mWidth  = w;
+      mHeight = h;
+      ENTERSCENELOCK();
+      if (mView)
+        mView->onSize(w, h);
+      EXITSCENELOCK();
+    }
   }
 
   virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags)
