@@ -12,7 +12,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -205,6 +207,10 @@ rtRemoteMulticastResolver::openUnicastSocket()
       m_ucast_endpoint.ss_family, rtStrError(errno).c_str());
     return RT_FAIL;
   }
+  uint32_t one = 1;
+  if (-1 == setsockopt(m_ucast_fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+    rtLogError("setting TCP_NODELAY failed");
+
   fcntl(m_ucast_fd, F_SETFD, fcntl(m_ucast_fd, F_GETFD) | FD_CLOEXEC);
 
   rtSocketGetLength(m_ucast_endpoint, &m_ucast_len);
@@ -519,6 +525,10 @@ rtRemoteMulticastResolver::openMulticastSocket()
   int err = 0;
 
   m_mcast_fd = socket(m_mcast_dest.ss_family, SOCK_DGRAM, 0);
+  uint32_t one = 1;
+  if (-1 == setsockopt(m_mcast_fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+    rtLogError("setting TCP_NODELAY failed");
+
   if (m_mcast_fd < 0)
   {
     err = errno;
