@@ -332,6 +332,7 @@ rtError pxObject::remove()
       if ((it)->getPtr() == this)
       {
         mParent->mChildren.erase(it);
+        mParent = NULL;
         return RT_OK;
       }
     }

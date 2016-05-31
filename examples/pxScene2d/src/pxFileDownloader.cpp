@@ -154,7 +154,8 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
 
     //CA certificates
-    curl_easy_setopt(curl_handle,CURLOPT_CAINFO,CA_CERTIFICATE);
+    // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
+   // curl_easy_setopt(curl_handle,CURLOPT_CAINFO,CA_CERTIFICATE);
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, true);
 
