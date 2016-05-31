@@ -19,7 +19,7 @@ public:
   static void exportPrototype(Isolate* isolate, Handle<Object> exports);
   static void destroyPrototype();
 
-  static Handle<Object> createFromObjectReference(Isolate* isolate, const rtObjectRef& ref);
+  static Handle<Object> createFromObjectReference(v8::Local<v8::Context>& ctx, const rtObjectRef& ref);
 
   static rtValue unwrapObject(const Local<Object>& val);
 

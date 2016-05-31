@@ -1,17 +1,19 @@
 #include "jsCallback.h"
 #include "rtWrapperUtils.h"
 
-jsCallback::jsCallback(v8::Isolate* isolate)
-  : mIsolate(isolate)
-  , mCompletionFunc(NULL)
+jsCallback::jsCallback(v8::Local<v8::Context>& ctx)
+  : mCompletionFunc(NULL)
   , mCompletionContext(NULL)
 {
   mReq.data = this;
+  mContext.Reset(ctx->GetIsolate(), ctx);
+  mIsolate = ctx->GetIsolate();
   mFunctionLookup = NULL;
 }
 
 jsCallback::~jsCallback()
 {
+  mContext.Reset();
   delete mFunctionLookup;
 }
 
@@ -30,9 +32,9 @@ void jsCallback::work(uv_work_t* /* req */)
 {
 }
 
-jsCallback* jsCallback::create(v8::Isolate* isolate)
+jsCallback* jsCallback::create(v8::Local<v8::Context>& ctx)
 {
-  return new jsCallback(isolate);
+  return new jsCallback(ctx);
 }
 
 jsCallback* jsCallback::addArg(const rtValue& val)
@@ -41,11 +43,11 @@ jsCallback* jsCallback::addArg(const rtValue& val)
   return this;
 }
 
-Handle<Value>* jsCallback::makeArgs()
+Handle<Value>* jsCallback::makeArgs(Local<Context>& ctx)
 {
   Handle<Value>* args = new Handle<Value>[mArgs.size()];
   for (size_t i = 0; i < mArgs.size(); ++i)
-    args[i] = rt2js(mIsolate, mArgs[i]);
+    args[i] = rt2js(ctx, mArgs[i]);
   return args;
 }
 
@@ -72,12 +74,12 @@ rtValue jsCallback::run()
 {
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);  // Create a stack-allocated handle scope.
+  HandleScope handle_scope(mIsolate);
 
-  Handle<Value>* args = this->makeArgs();
+  Local<Context> ctx = PersistentToLocal(mIsolate, mContext);
+  Handle<Value>* args = this->makeArgs(ctx);
+  Local<Function> func = this->mFunctionLookup->lookup(ctx);
 
-  // TODO: This context is almost certainly wrong!!!
-  Local<Function> func = this->mFunctionLookup->lookup();
   assert(!func.IsEmpty());
   assert(!func->IsUndefined());
 
@@ -89,12 +91,16 @@ rtValue jsCallback::run()
   #endif
 
   Local<Context> context = func->CreationContext();
+  Context::Scope contextScope(context);
 
   Local<Value> val;
 
   TryCatch tryCatch;
   if (!func.IsEmpty())
+  {
+    // TODO: check that first arg. Is that 'this' why are we using context->Global()?
     val = func->Call(context->Global(), static_cast<int>(this->mArgs.size()), args);
+  }
 
   delete [] args;
 
@@ -107,7 +113,7 @@ rtValue jsCallback::run()
   else
   {
     rtWrapperError error;
-    returnValue = js2rt(context->GetIsolate(), val, &error);
+    returnValue = js2rt(context, val, &error);
   }
 
   return returnValue;

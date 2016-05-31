@@ -46,6 +46,8 @@ inline v8::Local<TypeName> PersistentToLocal(v8::Isolate* isolate, const v8::Per
     return StrongPersistentToLocal(persistent);
 }
 
+uint32_t GetContextId(v8::Local<v8::Context>& ctx);
+
 // I don't think node/v8 addons support c++ exceptions. In cases where
 // a pending error might be set on a call stack, you can use this object
 // to pass around. If there's a pending error, simply use:
@@ -174,16 +176,19 @@ protected:
   TRef mWrappedObject;
 };
 
-rtValue js2rt(v8::Isolate* isolate, const v8::Handle<v8::Value>& val, rtWrapperError* error);
+rtValue js2rt(v8::Local<v8::Context>& ctx, const v8::Handle<v8::Value>& val, rtWrapperError* error);
 
-v8::Handle<v8::Value> rt2js(v8::Isolate* isolate, const rtValue& val);
+v8::Handle<v8::Value> rt2js(v8::Local<v8::Context>& ctx, const rtValue& val);
 
 
 class HandleMap
 {
 public:
+  static int const kContextIdIndex;
+
   static void addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, v8::Local<v8::Object>& to);
-  static v8::Local<v8::Object> lookupSurrogate(v8::Isolate* isolate, const rtObjectRef& from);
+  static v8::Local<v8::Object> lookupSurrogate(v8::Local<v8::Context>& ctx, const rtObjectRef& from);
+  static void clearAllForContext(uint32_t contextId);
 };
 
 

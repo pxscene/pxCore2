@@ -13,11 +13,12 @@ static void jsFunctionCompletionHandler(void* argp, rtValue const& result)
   wrapper->signal(result);
 }
 
-rtResolverFunction::rtResolverFunction(Disposition disp, Isolate* isolate, Local<Promise::Resolver>& resolver)
+rtResolverFunction::rtResolverFunction(Disposition disp, v8::Local<v8::Context>& ctx, Local<Promise::Resolver>& resolver)
   : rtAbstractFunction()
   , mDisposition(disp)
-  , mResolver(isolate, resolver)
-  , mIsolate(isolate)
+  , mResolver(ctx->GetIsolate(), resolver)
+  , mContext(ctx->GetIsolate(), ctx)
+  , mIsolate(ctx->GetIsolate())
 {
 }
 
@@ -52,19 +53,23 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
   AsyncContext* ctx = reinterpret_cast<AsyncContext*>(req->data);
   rtResolverFunction* resolverFunc = static_cast<rtResolverFunction *>(ctx->resolverFunc.getPtr());
 
-
-
   assert(ctx->args.size() < 2);
 //  assert(Isolate::GetCurrent() == resolverFunc->mIsolate);
 
   Locker                locker(resolverFunc->mIsolate);
   Isolate::Scope isolate_scope(resolverFunc->mIsolate);
-  HandleScope     handle_scope(resolverFunc->mIsolate);  // Create a stack-allocated handle scope.
+  HandleScope     handle_scope(resolverFunc->mIsolate);
+
+  Local<Context> creationContext = PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mContext);
+  Context::Scope contextScope(creationContext);
+
+  // uint32_t id = GetContextId(creationContext);
+  // rtLogInfo("Send:%u", id);
 
   Handle<Value> value;
   if (ctx->args.size() > 0)
   {
-    value = rt2js(resolverFunc->mIsolate, ctx->args[0]);
+    value = rt2js(creationContext, ctx->args[0]);
   }
 
   Local<Promise::Resolver> resolver = PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mResolver);
@@ -137,6 +142,13 @@ void rtFunctionWrapper::create(const FunctionCallbackInfo<Value>& args)
   assert(args.IsConstructCall());
 
   HandleScope scope(args.GetIsolate());
+
+  // Local<Context> c1 = args.GetIsolate()->GetCurrentContext();
+  // Local<Context> c2 = args.GetIsolate()->GetCallingContext();
+  // Local<Context> c3 = args.GetIsolate()->GetEnteredContext();
+  // rtLogInfo("current:%u calling:%u entered:%u", GetContextId(c1), GetContextId(c2),
+  //     GetContextId(c3));
+
   rtIFunction* func = static_cast<rtIFunction *>(args[0].As<External>()->Value());
   rtFunctionWrapper* wrapper = new rtFunctionWrapper(func);
   wrapper->Wrap(args.This());
@@ -163,14 +175,27 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
   Isolate* isolate = args.GetIsolate();
 
   Locker     locker(isolate);
-  HandleScope scope(isolate);
+  Isolate::Scope isolateScope(isolate);
+  HandleScope handleScope(isolate);
+
+  // Local<Context> curr = isolate->GetCurrentContext();
 
   rtWrapperError error;
+
+  #if 0
+  Local<String> s = args.This()->ToString();
+  String::Utf8Value v(s);
+  rtLogInfo("call:%s", *v);
+  #endif
+
+  Local<Context> ctx = args.This()->CreationContext();
+  // rtLogInfo("id: %u", GetContextId(ctx));
+  Context::Scope contextScope(ctx);
 
   std::vector<rtValue> argList;
   for (int i = 0; i < args.Length(); ++i)
   {
-    argList.push_back(js2rt(isolate, args[i], &error));
+    argList.push_back(js2rt(ctx, args[i], &error));
     if (error.hasError())
       isolate->ThrowException(error.toTypeError(isolate));
   }
@@ -189,8 +214,8 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
   {
     Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
 
-    rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, isolate, resolver));
-    rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, isolate, resolver));
+    rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, ctx, resolver));
+    rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, ctx, resolver));
 
     rtObjectRef newPromise;
     rtObjectRef promise = result.toObject();
@@ -212,23 +237,25 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
   else
   {
     rtWrapperSceneUpdateExit();
-    args.GetReturnValue().Set(rt2js(isolate, result));
+    args.GetReturnValue().Set(rt2js(ctx, result));
   }
 }
 
-jsFunctionWrapper::jsFunctionWrapper(Isolate* isolate, const Handle<Value>& val)
+jsFunctionWrapper::jsFunctionWrapper(Local<Context>& ctx, const Handle<Value>& val)
   : mRefCount(0)
-  , mFunction(isolate, Handle<Function>::Cast(val))
-  , mIsolate(isolate)
+  , mFunction(ctx->GetIsolate(), Handle<Function>::Cast(val))
   , mComplete(false)
   , mTeardownThreadingPrimitives(false)
 {
+  mIsolate = ctx->GetIsolate();
+  mContext.Reset(ctx->GetIsolate(), ctx);
   assert(val->IsFunction());
 }
 
 jsFunctionWrapper::~jsFunctionWrapper()
 {
   mFunction.Reset();
+  mContext.Reset();
 
   if (mTeardownThreadingPrimitives)
   {
@@ -324,7 +351,13 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
   //    return true; // <-- Can't do this
   // });
   //
-  jsCallback* callback = jsCallback::create(mIsolate);
+
+  Locker locker(mIsolate);
+  HandleScope handleScope(mIsolate);
+  Local<Context> ctx = PersistentToLocal(mIsolate, mContext);
+  Context::Scope contextScope(ctx);
+
+  jsCallback* callback = jsCallback::create(ctx);
   for (int i = 0; i < numArgs; ++i)
     callback->addArg(args[i]);
 
@@ -357,8 +390,11 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
   return RT_OK;
 }
 
-Local<Function> jsFunctionWrapper::FunctionLookup::lookup()
+Local<Function> jsFunctionWrapper::FunctionLookup::lookup(v8::Local<v8::Context>& ctx)
 {
-  return PersistentToLocal(mParent->mIsolate, mParent->mFunction);
+  EscapableHandleScope handleScope(mParent->mIsolate);
+  Context::Scope contextScope(ctx);
+  Local<Function> func = PersistentToLocal(mParent->mIsolate, mParent->mFunction);
+  return handleScope.Escape(func);
 }
 

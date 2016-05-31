@@ -15,68 +15,155 @@ static std::thread::id sCurrentSceneThread;
 #else
 static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static pthread_t sCurrentSceneThread;
+static pthread_mutex_t sObjectMapMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
 static int sLockCount;
 
-static rtMutex objectMapMutex;
+const int HandleMap::kContextIdIndex = 2;
 
 struct ObjectReference
 {
-  Persistent<Object>* v8;
-  rtObjectRef         rt;
+  rtObjectRef        RTObject;
+  Persistent<Object> PersistentObject;
+  uint32_t           CreationContextId;
 };
 
-//typedef std::map< rtIObject*, Persistent<Object>* > maptype_rt2v8;
-typedef std::map< rtIObject*, ObjectReference > maptype_rt2v8;
+typedef std::map< rtIObject*, ObjectReference*  > ObjectReferenceMap;
+static ObjectReferenceMap objectMap;
 
-maptype_rt2v8 objectMap_rt2v8;
+uint32_t
+GetContextId(Local<Context>& ctx)
+{
+  if (ctx.IsEmpty()) return 0;
+
+  HandleScope handleScope(ctx->GetIsolate());
+  Local<Value> val = ctx->GetEmbedderData(HandleMap::kContextIdIndex);
+  assert(!val.IsEmpty());
+  return val->Uint32Value();
+}
 
 void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
 {
-  // JRJR TODO disable this lock when running single threaded... sometimes get hang in garbage collection
-  // reentrancy?
-  rtMutexLockGuard lock(objectMapMutex);
-  maptype_rt2v8::iterator itr = objectMap_rt2v8.find(data.GetParameter());
-  if (itr != objectMap_rt2v8.end())
+  Locker locker(data.GetIsolate());
+  Isolate::Scope isolateScope(data.GetIsolate());
+  HandleScope handleScope(data.GetIsolate());
+
+  // rtLogInfo("ptr: %p", data.GetParameter());
+
+  Local<Object> obj = data.GetValue();
+  assert(!obj.IsEmpty());
+
+  Local<Context> ctx = obj->CreationContext();
+  assert(!ctx.IsEmpty());
+
+  #if 0
+  Local<String> s = obj->GetConstructorName();
+  String::Utf8Value v(s);
+  rtLogInfo("OBJ: %s", *v);
+
+  int index = 0;
+  rtIObject* rt = data.GetParameter();
+  rtValue value;
+  while (rt->Get(index++, &value) == RT_OK)
   {
-    Persistent<Object>* p = itr->second.v8;
-    // TODO: Removing this temproarily until we understand how this callback works. I
+    rtLogInfo("  type:%d", value.getType());
+  }
+  #endif
+
+  // uint32_t contextId = GetContextId(ctx);
+  // rtLogInfo("contextId: %u addr:%p", contextId, data.GetParameter());
+
+  pthread_mutex_lock(&sObjectMapMutex);
+  ObjectReferenceMap::iterator j = objectMap.find(data.GetParameter());
+  if (j != objectMap.end())
+  {
+    // TODO: Removing this temporarily until we understand how this callback works. I
     // would have assumed that this is a weak persistent since we called SetWeak() on it
     // before inserting it into the objectMap_rt2v8 map.
     // assert(p->IsWeak());
     //
-// Jake says that this situation is ok...
+    j->second->PersistentObject.ClearWeak();
+    j->second->PersistentObject.Reset();
 #if 0
     if (!p->IsWeak())
       rtLogWarn("TODO: Why isn't this handle weak?");
-#endif
     if (p)
     {
-      p->Reset();
-      delete p;
+      // delete p;
     }
-    objectMap_rt2v8.erase(itr);
+    else
+    {
+      rtLogError("null handle in map");
+    }
+#endif
+    delete j->second;
+    objectMap.erase(j);
   }
+  else
+  {
+    rtLogWarn("failed to find:%p in map", data.GetParameter());
+  }
+  pthread_mutex_unlock(&sObjectMapMutex);
 }
 
-void HandleMap::addWeakReference(Isolate* isolate, const rtObjectRef& from, Local<Object>& to)
+void
+HandleMap::clearAllForContext(uint32_t contextId)
 {
-  rtMutexLockGuard lock(objectMapMutex);
+  typedef ObjectReferenceMap::iterator iterator;
 
-  ObjectReference entry;
-  entry.v8 = new Persistent<Object>(isolate, to);
-  entry.v8->SetWeak(from.getPtr(), &weakCallback_rt2v8);
-  entry.rt = from;
+  int n = 0;
 
-  std::pair< maptype_rt2v8::iterator, bool > ret =
-    objectMap_rt2v8.insert(std::make_pair(from.getPtr(), entry));
+  pthread_mutex_lock(&sObjectMapMutex);
+  rtLogInfo("clearing all persistent handles for: %u size:%u", contextId,
+    static_cast<unsigned>(objectMap.size()));
 
-  if (!ret.second)
+  for (iterator begin = objectMap.begin(), end = objectMap.end(); begin != end;)
   {
-    entry.v8->Reset();
-    delete entry.v8;
+    ObjectReference* ref = begin->second;
+    // rtLogInfo("looking at:%d == %d", ref->CreationContextId, contextId);
+
+    if (ref->CreationContextId == contextId)
+    {
+      ref->PersistentObject.ClearWeak();
+      ref->PersistentObject.Reset();
+      delete ref;
+      objectMap.erase(begin++);
+      n++;
+    }
+    else
+    {
+      ++begin;
+    }
   }
+  rtLogInfo("clear complete. removed:%d size:%u", n,
+      static_cast<unsigned>(objectMap.size()));
+  pthread_mutex_unlock(&sObjectMapMutex);
+}
+
+void HandleMap::addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, Local<Object>& to)
+{
+  HandleScope handleScope(isolate);
+  Local<Context> creationContext = to->CreationContext();
+
+  uint32_t const contextIdCreation = GetContextId(creationContext);
+  assert(contextIdCreation != 0);
+
+  pthread_mutex_lock(&sObjectMapMutex);
+  ObjectReferenceMap::iterator i = objectMap.find(from.getPtr());
+  assert(i == objectMap.end());
+
+  if (i == objectMap.end())
+  {
+    // rtLogInfo("add id:%u addr:%p", contextIdCreation, from.getPtr());
+    ObjectReference* entry(new ObjectReference());
+    entry->PersistentObject.Reset(isolate, to);
+    entry->PersistentObject.SetWeak(from.getPtr(), &weakCallback_rt2v8);
+    entry->RTObject = from;
+    entry->CreationContextId = contextIdCreation;
+    objectMap.insert(std::make_pair(from.getPtr(), entry));
+  }
+  pthread_mutex_unlock(&sObjectMapMutex);
 
   #if 0
   static FILE* f = NULL;
@@ -89,23 +176,24 @@ void HandleMap::addWeakReference(Isolate* isolate, const rtObjectRef& from, Loca
     fprintf(f, "%p (%s) => %p\n", from.getPtr(), desc.cString(), h);
   }
   #endif
+
 }
 
-Local<Object> HandleMap::lookupSurrogate(v8::Isolate* isolate, const rtObjectRef& from)
+Local<Object> HandleMap::lookupSurrogate(v8::Local<v8::Context>& ctx, const rtObjectRef& from)
 {
-  Local<Object> obj;
+  Isolate* isolate = ctx->GetIsolate();
   EscapableHandleScope scope(isolate);
+  Local<Object> obj;
 
-  Persistent<Object>* p = NULL;
-
-  rtMutexLockGuard lock(objectMapMutex);
-  maptype_rt2v8::iterator itr = objectMap_rt2v8.find(from.getPtr());
-  if (itr != objectMap_rt2v8.end())
+  pthread_mutex_lock(&sObjectMapMutex);
+  ObjectReferenceMap::iterator i = objectMap.find(from.getPtr());
+  if (i == objectMap.end())
   {
-    p = itr->second.v8;
-    if (p)
-      obj = PersistentToLocal(isolate, *p);
+    pthread_mutex_unlock(&sObjectMapMutex);
+    return scope.Escape(obj);
   }
+  obj = PersistentToLocal(isolate, i->second->PersistentObject);
+  pthread_mutex_unlock(&sObjectMapMutex);
 
   #if 1
   if (!obj.IsEmpty())
@@ -117,7 +205,7 @@ Local<Object> HandleMap::lookupSurrogate(v8::Isolate* isolate, const rtObjectRef
       // TODO change description to a property
       rtString desc;
       const_cast<rtObjectRef &>(from).sendReturns<rtString>("description", desc);
-      printf("type mismatch in handle map %p (%s) != %p\n", from.getPtr(), desc.cString(), p);
+      rtLogError("type mismatch in handle map %p (%s)", from.getPtr(), desc.cString());
       assert(false);
     }
   }
@@ -188,8 +276,12 @@ void rtWrapperSceneUpdateExit()
 
 using namespace v8;
 
-Handle<Value> rt2js(Isolate* isolate, const rtValue& v)
+Handle<Value> rt2js(Local<Context>& ctx, const rtValue& v)
 {
+  Context::Scope contextScope(ctx);
+
+  Isolate* isolate = ctx->GetIsolate();
+
   switch (v.getType())
   {
     case RT_int32_tType:
@@ -234,7 +326,7 @@ Handle<Value> rt2js(Isolate* isolate, const rtValue& v)
     case RT_rtObjectRefType:
       return jsObjectWrapper::isJavaScriptObjectWrapper(v.toObject())
         ? static_cast<jsObjectWrapper *>(v.toObject().getPtr())->getWrappedObject()
-        : rtObjectWrapper::createFromObjectReference(isolate, v.toObject());
+        : rtObjectWrapper::createFromObjectReference(ctx, v.toObject());
       break;
     case RT_boolType:
       return Boolean::New(isolate, v.toBool());
@@ -261,12 +353,14 @@ Handle<Value> rt2js(Isolate* isolate, const rtValue& v)
   return Undefined(isolate);
 }
 
-rtValue js2rt(v8::Isolate* isolate, const Handle<Value>& val, rtWrapperError* )
+rtValue js2rt(v8::Local<v8::Context>& ctx, const Handle<Value>& val, rtWrapperError* )
 {
+  v8::Isolate* isolate = ctx->GetIsolate();
+
   if (val->IsUndefined()) { return rtValue((void *)0); }
   if (val->IsNull())      { return rtValue((char *)0); }
   if (val->IsString())    { return toString(val); }
-  if (val->IsFunction())  { return rtValue(rtFunctionRef(new jsFunctionWrapper(isolate, val))); }
+  if (val->IsFunction())  { return rtValue(rtFunctionRef(new jsFunctionWrapper(ctx, val))); }
   if (val->IsArray() || val->IsObject())
   {
     // This is mostly a heuristic. We should probably set a second internal
