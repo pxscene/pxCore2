@@ -58,28 +58,33 @@ void rtObjectWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports)
   Local<ObjectTemplate> inst = tmpl->InstanceTemplate();
   inst->SetInternalFieldCount(1);
   inst->SetNamedPropertyHandler(
-    &getPropertyByName,
-    &setPropertyByName,
-    NULL,
-    NULL,
-    &getEnumerablePropertyNames);
+      &getPropertyByName,
+      &setPropertyByName,
+      NULL,
+      NULL,
+      &getEnumerablePropertyNames);
 
   inst->SetIndexedPropertyHandler(
-    &getPropertyByIndex,
-    &setPropertyByIndex,
-    NULL,
-    NULL,
-    &getEnumerablePropertyIndecies);
+      &getPropertyByIndex,
+      &setPropertyByIndex,
+      NULL,
+      NULL,
+      &getEnumerablePropertyIndecies);
 
   ctor.Reset(isolate, tmpl->GetFunction());
   exports->Set(String::NewFromUtf8(isolate, kClassName), tmpl->GetFunction());
 }
 
-Handle<Object> rtObjectWrapper::createFromObjectReference(Isolate* isolate, const rtObjectRef& ref)
+Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>& ctx, const rtObjectRef& ref)
 {
-  EscapableHandleScope scope(isolate);
+  Isolate* isolate(ctx->GetIsolate());
 
-  Local<Object> obj = HandleMap::lookupSurrogate(isolate, ref);
+  EscapableHandleScope scope(isolate);
+  Context::Scope contextScope(ctx);
+
+  // rtLogInfo("lookup:%u addr:%p", GetContextId(ctx), ref.getPtr());
+  Local<Object> obj = HandleMap::lookupSurrogate(ctx, ref);
+
   if (!obj.IsEmpty())
     return scope.Escape(obj);
 
@@ -96,7 +101,7 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(Isolate* isolate, cons
         rtValue item;
         rtError err = ref->Get(i, &item);
         if (err == RT_OK)
-          arr->Set(Number::New(isolate, i), rt2js(isolate, item));
+          arr->Set(Number::New(isolate, i), rt2js(ctx, item));
       }
       return scope.Escape(arr);
     }
@@ -111,13 +116,15 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(Isolate* isolate, cons
       {
         Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
 
-        rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, isolate, resolver));
-        rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, isolate, resolver));
+        rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, ctx, resolver));
+        rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, ctx, resolver));
 
         rtObjectRef newPromise;
         rtObjectRef promise = ref;
 
         Local<Object> jsPromise = resolver->GetPromise();
+
+        // rtLogInfo("addp id:%u addr:%p", GetContextId(creationContext), ref.getPtr());
         HandleMap::addWeakReference(isolate, ref, jsPromise);
 
         err = promise.send("then", resolve, reject, newPromise);
@@ -139,8 +146,11 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(Isolate* isolate, cons
   Local<Function> func = PersistentToLocal(isolate, ctor);
   obj = func->NewInstance(1, argv);
 
-  HandleMap::addWeakReference(isolate, ref, obj);
+  // Local<Context> creationContext = obj->CreationContext();
+  // rtLogInfo("add id:%u addr:%p", GetContextId(creationContext), ref.getPtr());
+  // assert(GetContextId(creationContext) == GetContextId(ctx));
 
+  HandleMap::addWeakReference(isolate, ref, obj);
   return scope.Escape(obj);
 }
 
@@ -152,7 +162,8 @@ rtValue rtObjectWrapper::unwrapObject(const Local<Object>& obj)
 template<typename T>
 void rtObjectWrapper::getProperty(const T& prop, const PropertyCallbackInfo<Value>& info)
 {
-//  HandleScope handle_scope(info.GetIsolate());
+  HandleScope handle_scope(info.GetIsolate());
+  Local<Context> ctx = info.This()->CreationContext();
 
   rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
@@ -179,7 +190,7 @@ void rtObjectWrapper::getProperty(const T& prop, const PropertyCallbackInfo<Valu
   {
     Local<Value> v;
     EscapableHandleScope scope(info.GetIsolate());
-    v = rt2js(info.GetIsolate(),value);
+    v = rt2js(ctx, value);
 //    info.GetReturnValue().Set(rt2js(info.GetIsolate(), value));
     scope.Escape(v);
     info.GetReturnValue().Set(v);
@@ -189,12 +200,15 @@ void rtObjectWrapper::getProperty(const T& prop, const PropertyCallbackInfo<Valu
 template<typename T>
 void rtObjectWrapper::setProperty(const T& prop, Local<Value> val, const PropertyCallbackInfo<Value>& info)
 {
-  Isolate* isolate = info.GetIsolate();
+  Locker locker(info.GetIsolate());
+  Isolate::Scope isolateScope(info.GetIsolate());
+  HandleScope handleScope(info.GetIsolate());
+  Local<Context> creationContext = info.This()->CreationContext();
 
   rtWrapperError error;
-  rtValue value = js2rt(isolate, val, &error);
+  rtValue value = js2rt(creationContext, val, &error);
   if (error.hasError())
-    isolate->ThrowException(error.toTypeError(isolate));
+    info.GetIsolate()->ThrowException(error.toTypeError(info.GetIsolate()));
 
   rtWrapperSceneUpdateEnter();
   rtError err = unwrap(info)->Set(prop, &value);
@@ -295,14 +309,16 @@ unsigned long jsObjectWrapper::Release()
 
 rtError jsObjectWrapper::getAllKeys(Isolate* isolate, rtValue* value) const
 {
+  HandleScope handleScope(isolate);
   Local<Object> self = PersistentToLocal(isolate, mObject);
   Local<Array> names = self->GetPropertyNames();
+  Local<Context> ctx = self->CreationContext();
 
   rtRefT<rtArrayObject> result(new rtArrayObject);
   for (int i = 0, n = names->Length(); i < n; ++i)
   {
     rtWrapperError error;
-    rtValue val = js2rt(isolate, names->Get(i), &error);
+    rtValue val = js2rt(ctx, names->Get(i), &error);
     if (error.hasError())
       return RT_FAIL;
     else
@@ -333,6 +349,7 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
 
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
   Local<String> s = String::NewFromUtf8(mIsolate, name);
+  Local<Context> ctx = self->CreationContext();
 
   if (mIsArray)
   {
@@ -350,7 +367,7 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
     else
     {
       rtWrapperError error;
-      *value = js2rt(mIsolate, self->Get(s), &error);
+      *value = js2rt(ctx, self->Get(s), &error);
       if (error.hasError())
         err = RT_ERROR_INVALID_ARG;
     }
@@ -363,15 +380,17 @@ rtError jsObjectWrapper::Get(uint32_t i, rtValue* value) const
   if (!value)
     return RT_ERROR_INVALID_ARG;
 
-  // TODO: This call will be coming from a non-js thread
-  // we probably need to lock the context
+  Locker locker(mIsolate);
+  HandleScope handleScope(mIsolate);
 
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
   if (!self->Has(i))
     return RT_PROPERTY_NOT_FOUND;
 
+  Local<Context> ctx = self->CreationContext();
+
   rtWrapperError error;
-  *value = js2rt(mIsolate, self->Get(i), &error);
+  *value = js2rt(ctx, self->Get(i), &error);
   if (error.hasError())
     return RT_ERROR_INVALID_ARG;
 
@@ -385,8 +404,11 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
   if (!value)
     return RT_ERROR_INVALID_ARG;
 
+  Locker locker(mIsolate);
+  HandleScope handleScope(mIsolate);
   Local<String> s = String::NewFromUtf8(mIsolate, name);
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
+  Local<Context> ctx = self->CreationContext();
 
   rtError err = RT_OK;
 
@@ -400,7 +422,7 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
   }
   else
   {
-    err = self->Set(s, rt2js(mIsolate, *value));
+    err = self->Set(s, rt2js(ctx, *value));
   }
 
   return err;
@@ -411,8 +433,12 @@ rtError jsObjectWrapper::Set(uint32_t i, const rtValue* value)
   if (!value)
     return RT_ERROR_INVALID_ARG;
 
+  Locker locker(mIsolate);
+  HandleScope handleScope(mIsolate);
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
-  if (!self->Set(i, rt2js(mIsolate, *value)))
+  Local<Context> ctx = self->CreationContext();
+
+  if (!self->Set(i, rt2js(ctx, *value)))
     return RT_FAIL;
 
   return RT_OK;
@@ -420,6 +446,7 @@ rtError jsObjectWrapper::Set(uint32_t i, const rtValue* value)
 
 Local<Object> jsObjectWrapper::getWrappedObject()
 {
-  return PersistentToLocal(mIsolate, mObject);
+  EscapableHandleScope scope(mIsolate);
+  return scope.Escape(PersistentToLocal(mIsolate, mObject));
 }
 

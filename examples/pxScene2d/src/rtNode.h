@@ -3,6 +3,7 @@
 
 #include "rtObject.h"
 #include "rtValue.h"
+#include "rtAtomic.h"
 
 #ifndef WIN32
 #pragma GCC diagnostic push
@@ -85,12 +86,13 @@ private:
   v8::Persistent<v8::Context>    mContext;
 
   node::Environment*             mEnv;
-  v8::Persistent<v8::Object>     rtWrappers;
+  v8::Persistent<v8::Object>     mRtWrappers;
 
   void createEnvironment();
 
   int mRefCount;
-  };
+  rtAtomic mId;
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -116,6 +118,8 @@ private:
 
   v8::Isolate   *mIsolate;
   v8::Platform  *mPlatform;
+  v8::Persistent<v8::Context> mContext;
+  bool mTestGc;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

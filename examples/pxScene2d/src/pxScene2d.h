@@ -1004,7 +1004,7 @@ public:
 
   virtual ~pxScriptView()
   {
-    rtLogError("pxScriptView destroyed\n");
+    rtLogInfo(__FUNCTION__);
 
     // Clear out these references since the script context
     // can outlive this view

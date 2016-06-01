@@ -248,7 +248,7 @@ void pxObject::createNewPromise()
  * false - for now, it will mean "set focus to my parent scene" */
 rtError pxObject::setFocus(bool v) 
 {
-  printf("pxObject::setFocus v=%d\n",v);
+  rtLogInfo("pxObject::setFocus v=%d",v);
   if(v) {
     return mScene->setFocus(this);
   }
@@ -332,6 +332,7 @@ rtError pxObject::remove()
       if ((it)->getPtr() == this)
       {
         mParent->mChildren.erase(it);
+        mParent = NULL;
         return RT_OK;
       }
     }
@@ -1209,7 +1210,7 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
-  printf("creating scene container\n");
+  rtLogInfo("creating scene container");
   o = new pxSceneContainer(this);
   o.set(p);
   o.send("init");
@@ -1351,7 +1352,7 @@ void pxScene2d::onUpdate(double t)
     end2 = pxSeconds();
 
     double fps = (double)frameCount/(end2-start);
-    printf("%f fps pxObjectCount %d\n", fps, pxObjectCount);
+    rtLogInfo("%f fps pxObjectCount %d", fps, pxObjectCount);
     // TODO FUTURES... might be nice to have "struct" style object's that get copied
     // at the interop layer so we don't get remoted calls back to the render thread
     // for accessing the values (events would be the primary usecase)
@@ -1570,7 +1571,7 @@ void pxScene2d::setMouseEntered(pxObject* o)
  **/
 rtError pxScene2d::setFocus(rtObjectRef o)
 {
-  printf(" pxScene2d::setFocus\n");
+  rtLogInfo("pxScene2d::setFocus");
   if(mFocusObj) 
   {
     rtObjectRef e = new rtMapObject;
@@ -1727,7 +1728,7 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
         if (fabs(validate.x()-(float)x)> 0.01 || 
             fabs(validate.y()-(float)y) > 0.01) 
         {
-          printf("Error in point transformation (%d,%d) != (%f,%f); (%f, %f)",
+          rtLogInfo("Error in point transformation (%d,%d) != (%f,%f); (%f, %f)",
                  x,y,validate.x(),validate.y(),to.x(),to.y());
         }
       }
@@ -1738,7 +1739,7 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
         if (fabs(validate.x()-(float)to.x())> 0.01 || 
             fabs(validate.y()-(float)to.y()) > 0.01) 
         {
-          printf("Error in point transformation (o2o) (%f,%f) != (%f,%f)",
+          rtLogInfo("Error in point transformation (o2o) (%f,%f) != (%f,%f)",
                  to.x(),to.y(),validate.x(),validate.y());
         }
       }
@@ -2041,10 +2042,10 @@ rtError pxSceneContainer::setUrl(rtString url)
     //mReady.send("resolve",this);
   }
 #else
-  printf("begin load scene %s\n", url.cString());
+  rtLogInfo("begin load scene %s", url.cString());
   mUrl = url;
   setScriptView(new pxScriptView(url.cString(),""));
-  printf("end load scene %s\n", url.cString());
+  rtLogInfo("end load scene %s", url.cString());
 #endif
   return RT_OK; 
 }
@@ -2075,7 +2076,7 @@ rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
 
 rtError pxSceneContainer::makeReady(bool ready)
 {
-  printf("make ready: %d\n", ready);
+  rtLogInfo("make ready: %d", ready);
   mReady.send(ready?"resolve":"reject", this);
   return RT_OK;
 }
@@ -2107,7 +2108,7 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContaine
       mCtx->add("makeReady", new rtFunctionCallback(makeReady, this));
       mReady = new rtPromise;
 
-      printf("Running init for %s\n", url);
+      rtLogInfo("Running init for %s", url);
       mCtx->runFile("init.js");    
       char buffer[256];
       sprintf(buffer, "loadUrl(\"%s\");", url);
@@ -2153,7 +2154,7 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
-    printf("In Make Ready\n");
+    rtLogInfo("In Make Ready");
     if (numArgs >= 1)
     {
       if (args[0].toBool())

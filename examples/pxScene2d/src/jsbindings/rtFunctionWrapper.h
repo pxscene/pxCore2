@@ -49,7 +49,7 @@ private:
 class jsFunctionWrapper : public rtIFunction
 {
 public:
-  jsFunctionWrapper(v8::Isolate* isolate, const Handle<Value>& val);
+  jsFunctionWrapper(v8::Local<v8::Context>& ctx, const Handle<Value>& val);
   ~jsFunctionWrapper();
 
   virtual unsigned long AddRef();
@@ -70,7 +70,7 @@ private:
   {
   public:
     FunctionLookup(jsFunctionWrapper* parent) : mParent(parent) { }
-    virtual Local<Function> lookup();
+    virtual Local<Function> lookup(v8::Local<v8::Context>& ctx);
   private:
     jsFunctionWrapper* mParent;
   };
@@ -80,6 +80,7 @@ private:
 private:
   unsigned long mRefCount;
   Persistent<Function> mFunction;
+  Persistent<Context> mContext;
   Isolate* mIsolate;
   vector<rtValue> mArgs;
 
@@ -106,7 +107,7 @@ public:
     DispositionReject
   };
 
-  rtResolverFunction(Disposition d, v8::Isolate* isolate, v8::Local<v8::Promise::Resolver>& resolver);
+  rtResolverFunction(Disposition d, v8::Local<v8::Context>& ctx, v8::Local<v8::Promise::Resolver>& resolver);
   virtual ~rtResolverFunction();
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
 
@@ -124,7 +125,8 @@ private:
 private:
   Disposition                     mDisposition;
   Persistent<Promise::Resolver>   mResolver;
-  Isolate*                        mIsolate;
+  Persistent<v8::Context>         mContext;
+  v8::Isolate*                    mIsolate;
   uv_work_t                       mReq;
 };
 

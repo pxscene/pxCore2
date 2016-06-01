@@ -65,6 +65,7 @@ extern bool debug_wait_connect;
 
 static int exec_argc;
 static const char** exec_argv;
+static rtAtomic sNextId = 100;
 
 
 args_t *s_gArgs;
@@ -99,6 +100,7 @@ rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
      mIsolate(isolate), mEnv(NULL), mRefCount(0)
 {
   assert(isolate); // MUST HAVE !
+  mId = rtAtomicInc(&sNextId);
 
   createEnvironment();
 }
@@ -110,7 +112,14 @@ void rtNodeContext::createEnvironment()
   HandleScope     handle_scope(mIsolate);
 
   // Create a new context.
-  mContext.Reset(mIsolate, Context::New(mIsolate));
+  {
+    HandleScope tempScope(mIsolate);
+
+    Local<Context> ctx = Context::New(mIsolate);
+    ctx->SetEmbedderData(HandleMap::kContextIdIndex, v8::Integer::New(mIsolate, mId));
+    mContext.Reset(mIsolate, ctx);
+  }
+
 
   // Get a Local context.
   Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
@@ -122,7 +131,7 @@ void rtNodeContext::createEnvironment()
   rtObjectWrapper::exportPrototype(mIsolate, global);
   rtFunctionWrapper::exportPrototype(mIsolate, global);
 
-  rtWrappers.Reset(mIsolate, global);
+  mRtWrappers.Reset(mIsolate, global);
 
   mEnv = CreateEnvironment(mIsolate,
                            uv_default_loop(),
@@ -170,8 +179,11 @@ rtNodeContext::~rtNodeContext()
   }
 
 //  Release();
+  // clear out persistent javascript handles
+  HandleMap::clearAllForContext(mId);
 
   mContext.Reset();
+  mRtWrappers.Reset();
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
 }
 
@@ -197,7 +209,7 @@ void rtNodeContext::add(const char *name, rtValue const& val)
 
   Handle<Object> global = local_context->Global();
 
-  global->Set(String::NewFromUtf8(mIsolate, name), rt2js(mIsolate, val));
+  global->Set(String::NewFromUtf8(mIsolate, name), rt2js(local_context, val));
 }
 
 rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NULL*/)
@@ -216,7 +228,7 @@ rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NU
 rtObjectRef rtNodeContext::runScript(const std::string &script, const char *args /*= NULL*/)
 {
 
-  printf("In rtNodeContext::runScript\n");
+  rtLogInfo("In rtNodeContext::runScript");
   if(script.empty())
   {
     rtLogError(" - no script given.");
@@ -249,7 +261,7 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char *args
 //    printf("DEBUG:  %15s()    - RESULT = %s\n", __FUNCTION__, *utf8);  // TODO:  Probably need an actual RESULT return mechanisim
   }//scope
 
-  printf("Exit rtNodeContext::runscript\n");
+  rtLogInfo("Exit rtNodeContext::runscript");
 
     return rtObjectRef(0);// JUNK
 }
@@ -287,9 +299,17 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char *args /*= NULL*/
 
 rtNode::rtNode(/*int argc, char** argv*/) : mPlatform(NULL)
 {
+  char const* s = getenv("RT_TEST_GC");
+  if (s && strlen(s) > 0)
+    mTestGc = true;
+  else
+    mTestGc = false;
+
+  if (mTestGc)
+    rtLogWarn("*** PERFORMANCE WARNING *** : gc being invoked in render thread");
 
                               //0123456 789ABCDEF012 345 67890ABCDEF
-  static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Intialized\");\0\0";
+  static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
   int          argc   = sizeof(argv2)/sizeof(char*) - 1;
 
@@ -305,6 +325,7 @@ rtNode::rtNode(/*int argc, char** argv*/) : mPlatform(NULL)
   nodePath();
 
   mIsolate     = Isolate::New();
+
   node_isolate = mIsolate; // Must come first !!
 
   init(argc, argv);
@@ -324,16 +345,18 @@ void rtNode::pump()
   uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
 
   // Enable this to expedite garbage collection for testing... warning perf hit
-  #if 0
-  static int i = 0;
-
-  if (i++ > 60)
+  if (mTestGc)
   {
-    mIsolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
-    i = 0;
-  }
-  #endif
+    static int sGcTickCount = 0;
 
+    if (sGcTickCount++ > 60)
+    {
+      Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+      Context::Scope contextScope(local_context);
+      mIsolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
+      sGcTickCount = 0;
+    }
+  }
 }
 
 #if 0
@@ -359,7 +382,7 @@ void rtNode::nodePath()
     }
     else
     {
-      printf("\nERROR: failed to set NODE_PATH\n");
+      rtLogError("failed to set NODE_PATH");
     }
   }
   // else
@@ -384,6 +407,15 @@ void rtNode::init(int argc, char** argv)
 
     V8::Initialize();
     node_is_initialized = true;
+
+    Locker locker(mIsolate);
+    Isolate::Scope isolateScope(mIsolate);
+
+    HandleScope handleScope(mIsolate);
+
+    Local<Context> ctx = Context::New(mIsolate);
+    ctx->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, 99));
+    mContext.Reset(mIsolate, ctx);
   }
 }
 
