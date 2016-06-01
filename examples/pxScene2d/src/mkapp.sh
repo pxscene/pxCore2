@@ -20,7 +20,7 @@ cp browser.js $bundleBin
 cp init.js $bundleBin
 cp shell.js $bundleBin
 cp rtNode $bundleBin
-cp rtStart.sh $bundleBin
+cp macstuff/rtStart.sh $bundleBin
 cp -a rcvrcore $bundleBin/rcvrcore
 cp -a node_modules $bundleBin/node_modules
 cp -a macstuff/Resources $bundleBin/Resources

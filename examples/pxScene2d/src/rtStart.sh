@@ -5,8 +5,9 @@ THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd $THIS_DIR
 
-export DYLD_LIBRARY_PATH=./lib/
-export LD_LIBRARY_PATH=./lib/
+externalDir=../external
+
+export LD_LIBRARY_PATH=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/libnode/out/Release/obj.target
 
 ./rtNode $1 $2 $3 $4 $5 $6 $7
 
