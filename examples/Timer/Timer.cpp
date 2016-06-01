@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 
-int pxMain()
+int pxMain(int argc, char* argv[])
 {
    double start, end;
    
