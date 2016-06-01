@@ -81,7 +81,7 @@ private:
   int x, y;
 };
 
-int pxMain()
+int pxMain(int argc, char* argv[])
 {
   myWindow win;
 
