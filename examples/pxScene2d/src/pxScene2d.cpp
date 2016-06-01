@@ -1351,8 +1351,8 @@ void pxScene2d::onUpdate(double t)
   {
     end2 = pxSeconds();
 
-    double fps = (double)frameCount/(end2-start);
-    rtLogInfo("%f fps pxObjectCount %d", fps, pxObjectCount);
+    double fps = rint((double)frameCount/(end2-start));
+    printf("%g fps pxObjectCount %d\n", fps, pxObjectCount);
     // TODO FUTURES... might be nice to have "struct" style object's that get copied
     // at the interop layer so we don't get remoted calls back to the render thread
     // for accessing the values (events would be the primary usecase)

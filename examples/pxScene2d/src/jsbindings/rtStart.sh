@@ -9,7 +9,8 @@ bindingsV8Dir=$pxSceneDir/src/jsbindings
 #echo "jsbindingsDir=" $jsbindingsDir
 #echo "\n"
 
-export DYLD_LIBRARY_PATH=$externalDir/png/.libs/:$externalDir/curl/lib/.libs/:$externalDir/ft/objs/.libs/
+#export DYLD_LIBRARY_PATH=$externalDir/png/.libs/:$externalDir/curl/lib/.libs/:$externalDir/ft/objs/.libs/
+export DYLD_LIBRARY_PATH=$externalDir/png/.libs/:$externalDir/curl/lib/.libs/:$externalDir/libnode/out/Release/:$externalDir/ft/objs/.libs/
 
 # Release libs...
 #
@@ -36,6 +37,7 @@ export RT_LOG_LEVEL=info
 # NOTE:  To use GDB ... use the DEBUG .so path for libnode
 
 #gdb --args ../rtNode  $1 $2
+#lldb --environment "DYLD_LIBRARY_PATH=$externalDir/png/.libs/:$externalDir/curl/lib/.libs/:$externalDir/libnode/out/Release/:$externalDir/ft/objs/.libs/" -- ../rtNode  $1 $2
 #strace -o trace.txt ../rtNode $1 $2 $3 $4 $5 $6 $7
 
 ../rtNode $1 $2 $3 $4 $5 $6 $7

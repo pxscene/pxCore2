@@ -90,11 +90,13 @@ bool rtIsMainThread()
   return true;
 }
 
+#if 0
 static inline bool file_exists(const char *file)
 {
   struct stat buffer;
   return (stat (file, &buffer) == 0);
 }
+#endif
 
 rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
      mIsolate(isolate), mEnv(NULL), mRefCount(0)
@@ -297,7 +299,7 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char *args /*= NULL*/
   return runScript(js_script);
 }
 
-rtNode::rtNode(/*int argc, char** argv*/) : mPlatform(NULL)
+rtNode::rtNode(/*int argc, char** argv*/) /*: mPlatform(NULL)*/
 {
   char const* s = getenv("RT_TEST_GC");
   if (s && strlen(s) > 0)

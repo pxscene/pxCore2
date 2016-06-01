@@ -1024,6 +1024,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     break;
   }
 
+  float tb = 0;
   float th;
   switch(stretchY) {
   case pxConstantsStretch::NONE:
@@ -1031,12 +1032,19 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     th = 1.0;
     break;
   case pxConstantsStretch::REPEAT:
+#if 0 // PX_TEXTURE_ANCHOR_BOTTOM
     th = h/ih;
+#else
+    
+    float temp = h/ih;    
+    th = ceil(temp);
+    tb = 1.0f-(temp-floor(temp));
+#endif
     break;
   }
 
   float firstTextureY = th;
-  float secondTextureY = 0;
+  float secondTextureY = tb;
 
   const float uv[4][2] = {
     { 0,  firstTextureY },

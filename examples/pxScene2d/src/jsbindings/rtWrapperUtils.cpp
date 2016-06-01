@@ -5,8 +5,9 @@
 #include <rtMutex.h>
 
 #ifdef __APPLE__
-static pthread_mutex_t sSceneLock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER; //PTHREAD_MUTEX_INITIALIZER;
 static pthread_t sCurrentSceneThread;
+static pthread_mutex_t sObjectMapMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER; //PTHREAD_MUTEX_INITIALIZER;
 #elif defined(USE_STD_THREADS)
 #include <thread>
 #include <mutex>

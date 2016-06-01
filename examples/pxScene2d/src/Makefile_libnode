@@ -1,11 +1,17 @@
 
+UNAME_S := $(shell uname -s)
+HNAME_S := $(shell hostname) 
+
+ifeq ($(UNAME_S),Darwin)
+all: rtNode pxMain.app
+else
 all: rtNode
+endif
+
 clean:
 	rm -rf $(OBJDIR)
 	rm -f rtNode
-
-UNAME_S := $(shell uname -s)
-HNAME_S := $(shell hostname) 
+	rm -rf pxMain.app
 
 ifeq ($(HNAME_S),raspberrypi ) 
 PX_PLATFORM=PX_PLATFORM_GENERIC_EGL
@@ -14,9 +20,15 @@ TARGETINCLUDE= -I/opt/vc/include \
   -I/opt/vc/include/interface/vcos/pthreads \
   -I/opt/vc/include/interface/vmcs_host/linux
 else
+ifeq ($(UNAME_S),Darwin)
+PX_PLATFORM=PX_PLATFORM_MAC
+PXLIBS=$(PXCOREDIR)/build/mac
+TARGETINCLUDE=
+else
 PX_PLATFORM=PX_PLATFORM_GLUT
 PXLIBS=$(PXCOREDIR)/build/glut
 TARGETINCLUDE=
+endif
 endif
 
 
@@ -67,7 +79,7 @@ PX_SRCS=\
 EXTDIR=../external
 PXCOREDIR=../../..
 PXHDRS=$(PXCOREDIR)/src
-PXLIBS=$(PXCOREDIR)/build/glut
+#PXLIBS=$(PXCOREDIR)/build/glut
 
 NODEINC=$(EXTDIR)/libnode
 NODEDIR=$(EXTDIR)/libnode
@@ -121,8 +133,11 @@ LDNODEV8 = -L$(NODEDIR)/out/Release
 
 LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDNODE) $(LDNODEV8) $(LDZLIB)
 
+ifeq ($(UNAME_S),Darwin)
+LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread $(LDEXT) -ldl -lv8_libplatform -framework OpenGL -framework Cocoa -framework Foundation
+else
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform
-
+endif
 
 OBJDIR=obj
 
@@ -191,3 +206,6 @@ analyze:
 rtNode: $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -o rtNode
 
+pxMain.app: rtNode
+	rm -rf pxMain.app
+	./mkapp.sh

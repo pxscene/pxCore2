@@ -97,6 +97,6 @@ void pxEventLoop::exit()
 
 int main(int argc, char* argv[])
 {
-    pxMain();
+    pxMain(argc,argv);
     return 0;
 }

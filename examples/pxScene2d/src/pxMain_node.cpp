@@ -39,6 +39,7 @@ public:
   void init(int x, int y, int w, int h, const char* url = NULL)
   {
     pxWindow::init(x,y,w,h);
+    
     char buffer[1024];
     // JR TODO url needs to be url encoded
     sprintf(buffer,"shell.js?url=%s",url);
@@ -69,7 +70,7 @@ protected:
 
   virtual void onSize(int32_t w, int32_t h)
   {
-    if (mWidth != w || mHeight != h)
+//    if (mWidth != w || mHeight != h)
     {
       mWidth  = w;
       mHeight = h;
@@ -88,7 +89,10 @@ protected:
     EXITSCENELOCK();
   }
 
-  virtual void onCloseRequest() {}
+  virtual void onCloseRequest() 
+  {
+    eventLoop.exit();
+  }
 
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)
   {
@@ -185,6 +189,9 @@ int pxMain(int argc, char* argv[])
 
   sceneWindow win;
   win.init(10, 10, 1280, 720, (argc >= 2)?argv[1]:"browser.js");
+  // JRJR Why aren't these necessary for glut... pxCore bug
+  win.setVisibility(true);
+  win.setAnimationFPS(60);
 
   #if 0
   sceneWindow win2;

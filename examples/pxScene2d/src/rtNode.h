@@ -117,7 +117,7 @@ private:
   void nodePath();
 
   v8::Isolate   *mIsolate;
-  v8::Platform  *mPlatform;
+//  v8::Platform  *mPlatform;
   v8::Persistent<v8::Context> mContext;
   bool mTestGc;
 };
