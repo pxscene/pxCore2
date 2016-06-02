@@ -1,0 +1,12 @@
+{
+  "name": "px",
+  "version": "1.0.0",
+  "description": "px 2d scene graph",
+  "main": "pxScene2d.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "gpyfile:" true,
+  "author": "",
+  "license": "ISC"
+}

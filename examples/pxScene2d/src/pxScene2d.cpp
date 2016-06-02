@@ -1210,7 +1210,6 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
-  rtLogInfo("creating scene container");
   o = new pxSceneContainer(this);
   o.set(p);
   o.send("init");
@@ -2024,29 +2023,9 @@ rtError pxSceneContainer::setUrl(rtString url)
   mReady.send("reject", this); 
   mReady = new rtPromise;  
 
-#if 0
-  rtRefT<pxScene2d> newScene = new pxScene2d(false);
-  setView(newScene);
-  if (mScene.getPtr() != NULL)
-  {
-    mScene->onComplete();
-  }
-  mScene = newScene;
-  mUrl = v; 
-  if (gOnScene)
-  {
-    // TODO experiment to improve interstitial rendering at scene load time
-    // assuming that the script loading code restores painting at a "good" time
-    //setPainting(false);
-    gOnScene.send((rtObject*)this, newScene.getPtr(), mUrl);
-    //mReady.send("resolve",this);
-  }
-#else
-  rtLogInfo("begin load scene %s", url.cString());
   mUrl = url;
   setScriptView(new pxScriptView(url.cString(),""));
-  rtLogInfo("end load scene %s", url.cString());
-#endif
+
   return RT_OK; 
 }
 
@@ -2100,7 +2079,6 @@ rtNode script;
 
 pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContainer(NULL), mRefCount(0)
   {
-    rtLogError("creating pxScriptView");
     mCtx = script.createContext();
     if (mCtx)
     {
@@ -2108,7 +2086,6 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContaine
       mCtx->add("makeReady", new rtFunctionCallback(makeReady, this));
       mReady = new rtPromise;
 
-      rtLogInfo("Running init for %s", url);
       mCtx->runFile("init.js");    
       char buffer[256];
       sprintf(buffer, "loadUrl(\"%s\");", url);
@@ -2124,7 +2101,6 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
     if (numArgs == 1)
     {
       rtString sceneType = args[0].toString();
-      rtLogError("@@@@@@@@@@  In getScene %s\n", sceneType.cString());
       // JR Todo can specify what scene version/type to create in args
       if (!v->mScene)
       {
@@ -2154,7 +2130,7 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
-    rtLogInfo("In Make Ready");
+//    rtLogInfo("In Make Ready");
     if (numArgs >= 1)
     {
       if (args[0].toBool())

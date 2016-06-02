@@ -1,7 +1,7 @@
 #!/bin/bash
 
 externalDir=../external
-bundle=pxMain.app
+bundle=pxscene.app
 bundleBin=$bundle/Contents/MacOS
 bundleLib=$bundleBin/lib
 
@@ -15,11 +15,11 @@ cp $externalDir/ft/objs/.libs/libfreetype.6.dylib $bundleLib
 
 cp macstuff/Info.plist $bundle/Contents
 cp -a ../images $bundle/Contents
-cp macstuff/FreeSans.ttf $bundleBin/FreeSans.ttf
+cp FreeSans.ttf $bundleBin/FreeSans.ttf
 cp browser.js $bundleBin
 cp init.js $bundleBin
 cp shell.js $bundleBin
-cp rtNode $bundleBin
+cp pxscene $bundleBin
 cp macstuff/rtStart.sh $bundleBin
 cp -a rcvrcore $bundleBin/rcvrcore
 cp -a node_modules $bundleBin/node_modules

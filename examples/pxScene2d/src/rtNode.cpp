@@ -229,8 +229,6 @@ rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NU
 
 rtObjectRef rtNodeContext::runScript(const std::string &script, const char *args /*= NULL*/)
 {
-
-  rtLogInfo("In rtNodeContext::runScript");
   if(script.empty())
   {
     rtLogError(" - no script given.");
@@ -263,9 +261,7 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char *args
 //    printf("DEBUG:  %15s()    - RESULT = %s\n", __FUNCTION__, *utf8);  // TODO:  Probably need an actual RESULT return mechanisim
   }//scope
 
-  rtLogInfo("Exit rtNodeContext::runscript");
-
-    return rtObjectRef(0);// JUNK
+  return rtObjectRef(0);// JUNK
 }
 
 std::string readFile(const char *file)
@@ -309,6 +305,8 @@ rtNode::rtNode(/*int argc, char** argv*/) /*: mPlatform(NULL)*/
 
   if (mTestGc)
     rtLogWarn("*** PERFORMANCE WARNING *** : gc being invoked in render thread");
+
+// TODO Please make this better... less hard coded... 
 
                               //0123456 789ABCDEF012 345 67890ABCDEF
   static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";

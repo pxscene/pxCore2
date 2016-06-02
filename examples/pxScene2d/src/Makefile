@@ -1,17 +1,17 @@
 
-ZLIB=../external/zlib/
-
-all: gl2d
-clean:
-	rm -rf $(OBJDIR)
-	rm -f gl2d
-	rm -rf html/
-
-docs:
-	doxygen doxygen.conf
-
 UNAME_S := $(shell uname -s)
 HNAME_S := $(shell hostname) 
+
+ifeq ($(UNAME_S),Darwin)
+all: pxscene pxscene.app
+else
+all: rtNode
+endif
+
+clean:
+	rm -rf $(OBJDIR)
+	rm -f pxscene
+	rm -rf pxscene.app
 
 ifeq ($(HNAME_S),raspberrypi ) 
 PX_PLATFORM=PX_PLATFORM_GENERIC_EGL
@@ -20,56 +20,72 @@ TARGETINCLUDE= -I/opt/vc/include \
   -I/opt/vc/include/interface/vcos/pthreads \
   -I/opt/vc/include/interface/vmcs_host/linux
 else
+ifeq ($(UNAME_S),Darwin)
+PX_PLATFORM=PX_PLATFORM_MAC
+PXLIBS=$(PXCOREDIR)/build/mac
+TARGETINCLUDE=
+else
 PX_PLATFORM=PX_PLATFORM_GLUT
 PXLIBS=$(PXCOREDIR)/build/glut
 TARGETINCLUDE=
+endif
 endif
 
 
 VPATH=linux
 RT_SRCS=\
-	utf8.c\
-	ioapi_mem.c\
-	unzip.c\
-	ioapi.c\
-	rtError.cpp\
-	rtLog.cpp \
+    utf8.c\
+    ioapi_mem.c\
+    unzip.c\
+    ioapi.c\
+    rtError.cpp \
+    rtLog.cpp \
     rtFile.cpp \
     rtPathUtils.cpp \
     rtString.cpp \
     rtValue.cpp \
     rtObject.cpp \
+    jsCallback.cpp \
+    rtFunctionWrapper.cpp \
+    rtObjectWrapper.cpp \
     rtThreadPool.cpp \
     rtThreadTask.cpp \
-		rtThreadQueue.cpp \
+    rtWrapperUtils.cpp \
+    rtThreadQueue.cpp \
     rtLibrary.cpp \
-		rtZip.cpp\
+    rtZip.cpp \
     linux/rtMutexNative.cpp \
     linux/rtThreadPoolNative.cpp \
-    
+    ../external/westeros-stub/westeros-stub.cpp
+
 PX_SRCS=\
-    pxMain.cpp \
+    pxScene2d.cpp \
     pxResource.cpp \
     pxConstants.cpp \
-    pxScene2d.cpp \
-		pxRectangle.cpp \
-	  pxFont.cpp \
+    pxRectangle.cpp \
+    pxFont.cpp \
     pxText.cpp \
     pxTextBox.cpp \
+    pxWayland.cpp \
     pxImage.cpp \
     pxUtil.cpp \
     pxContextGL.cpp \
     pxImage9.cpp \
     pxFileDownloader.cpp \
     pxInterpolators.cpp \
-		pxMatrix4T.cpp \
-	  pxArchive.cpp \
-		pxWayland.cpp \
-		$(EXTDIR)/westeros-stub/westeros-stub.cpp
+    pxMatrix4T.cpp \
+    pxArchive.cpp
 
 EXTDIR=../external
 PXCOREDIR=../../..
 PXHDRS=$(PXCOREDIR)/src
+#PXLIBS=$(PXCOREDIR)/build/glut
+
+NODEINC=$(EXTDIR)/libnode
+NODEDIR=$(EXTDIR)/libnode
+
+ZLIB=$(EXTDIR)/zlib/
+
 
 SEARCH=\
   -Ilinux \
@@ -77,43 +93,80 @@ SEARCH=\
   -I$(EXTDIR)/curl/include \
   -I$(EXTDIR)/ft/include \
   -I$(EXTDIR)/png \
-	-I$(EXTDIR)/westeros-stub \
-  -I$(PXHDRS) \
-	-I$(ZLIB) \
-	$(TARGETINCLUDE)
+  -I$(PXHDRS)\
+  -I$(ZLIB) \
+  -I./ \
+  -I$(NODEINC)/src \
+  -I$(NODEINC)/deps/uv/include \
+  -I$(NODEINC)/deps/v8 \
+  -I$(NODEINC)/deps/debugger-agent/include \
+  -I$(NODEINC)/deps/v8/include \
+  -I$(NODEINC)/deps/cares/include \
+  -I$(EXTDIR)/westeros/external/install/include \
+  -I$(EXTDIR)/westeros-stub \
+   $(TARGETINCLUDE)
 
-CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM)
 
-LDPNG   = -L$(EXTDIR)/png/.libs -lpng16
+#CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE 
+CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN
+
+#CXXFLAGS=  $(SEARCH) -DENABLE_GLUT -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT
+#CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DENABLE_GLUT -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT
+
+
+LDPNG    = -L$(EXTDIR)/png/.libs -lpng16
 ifeq ($(UNAME_S),Darwin)
 LDJPG    = $(EXTDIR)/jpg/.libs/libjpeg.a
 else
-LDJPG   = -L$(EXTDIR)/jpg/.libs -ljpeg
+LDJPG    = -L$(EXTDIR)/jpg/.libs -ljpeg
 endif
-LDFT    = -L$(EXTDIR)/ft/objs/.libs -lfreetype
-LDCURL  = -L$(EXTDIR)/curl/lib/.libs -lcurl
-LDZLIB  = -L$(EXTDIR)/zlib -lz
-LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDZLIB)
+LDFT     = -L$(EXTDIR)/ft/objs/.libs -lfreetype
+LDCURL   = -L$(EXTDIR)/curl/lib/.libs -lcurl
+LDZLIB   = -L$(EXTDIR)/zlib -lz
+
+LDNODE   = -L$(NODEDIR)/out/Release/obj.target
+LDNODEV8 = -L$(NODEDIR)/out/Release
+
+#LDNODE   = -L$(NODEDIR)/out/Debug/obj.target
+#LDNODEV8 = -L$(NODEDIR)/out/Debug
+
+
+LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDNODE) $(LDNODEV8) $(LDZLIB)
 
 ifeq ($(UNAME_S),Darwin)
-LDFLAGS = -L$(PXLIBS) -lpxCore $(LDEXT) -framework GLUT -framework OpenGL -ldl
+LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread $(LDEXT) -ldl -lv8_libplatform -framework OpenGL -framework Cocoa -framework Foundation
 else
-ifeq ($(HNAME_S),raspberrypi )
-LDFLAGS = -L$(PXLIBS) -lpxCore -pthread -lGLESv2 $(LDEXT) -ldl -lEGL -lrt -L/opt/vc/lib -lvcos -lbcm_host
-else
-LDFLAGS = -L$(PXLIBS) -lpxCore -pthread -lglut -lGL -lGLEW $(LDEXT) -ldl
-endif
+LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform
 endif
 
 OBJDIR=obj
-SRCS=$(PX_SRCS) $(RT_SRCS) testScene.cpp
 
-OBJS=$(patsubst %.cpp, %.o, $(notdir $(SRCS)))
-OBJS:=$(patsubst %.c, %.o, $(notdir $(OBJS)))
-OBJS:=$(patsubst %, $(OBJDIR)/%, $(OBJS))
-#OBJS: $(SRCS)
-#$(info $(OBJS))
+rtMutexNative.o: linux/rtMutexNative.cpp
+	g++ -o $(OBJDIR)/rtMutexNative.o -Wall $(CXXFLAGS) -c linux/rtMutexNative.cpp
 
+rtThreadPoolNative.o: linux/rtThreadPoolNative.cpp
+	g++ -o $(OBJDIR)/rtThreadPoolNative.o -Wall $(CXXFLAGS) -c linux/rtThreadPoolNative.cpp
+
+$(OBJDIR)/rtWrapperUtils.o: jsbindings/rtWrapperUtils.cpp
+	g++ -o $(OBJDIR)/rtWrapperUtils.o -Wall $(CXXFLAGS) -c jsbindings/rtWrapperUtils.cpp
+
+$(OBJDIR)/rtFunctionWrapper.o: jsbindings/rtFunctionWrapper.cpp
+	g++ -o $(OBJDIR)/rtFunctionWrapper.o -Wall $(CXXFLAGS) -c jsbindings/rtFunctionWrapper.cpp
+
+$(OBJDIR)/rtObjectWrapper.o: jsbindings/rtObjectWrapper.cpp
+	g++ -o $(OBJDIR)/rtObjectWrapper.o -Wall $(CXXFLAGS) -c jsbindings/rtObjectWrapper.cpp
+
+$(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
+	g++ -o $(OBJDIR)/jsCallback.o -Wall $(CXXFLAGS) -c jsbindings/jsCallback.cpp
+
+$(OBJDIR)/westeros-stub.o: $(EXTDIR)/westeros-stub/westeros-stub.cpp
+	g++ -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS) -c $(EXTDIR)/westeros-stub/westeros-stub.cpp
+
+SRCS=$(PX_SRCS) $(RT_SRCS) rtNode.cpp pxScene.cpp
+
+OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS)))
+OBJS:=$(patsubst %.c, $(OBJDIR)/%.o, $(OBJS))
+OBJS: $(SRCS)
 
 $(OBJDIR)/%.o : %.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
@@ -148,13 +201,11 @@ LLVM_CHECKS=$(patsubst %, -enable-checker %, $(SCAN_CHECKS))
 
 analyze:
 	$(MAKE) clean
-	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) gl2d
+	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) pxscene
 
-PXMAIN=$(OBJDIR)/pxMain.o
-POLY_BUG_OBJS=$(filter-out $(PXMAIN), $(OBJS)) $(OBJDIR)/poly_bug.o
-poly_bug: $(POLY_BUG_OBJS)
-	$(CXX) $(POLY_BUG_OBJS) $(LDFLAGS) -o poly_bug
+rtNode: $(OBJS)
+	$(CXX) $(OBJS) $(LDFLAGS) -o pxscene
 
-gl2d: $(OBJS)
-	$(CXX) $(OBJS) $(LDFLAGS) -o gl2d
-
+pxscene.app: pxscene
+	rm -rf pxscene.app
+	./mkapp.sh

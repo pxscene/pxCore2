@@ -1,0 +1,5 @@
+#!/bin/bash
+cd ~/Documents/pxCore/examples/pxScene2d/src/jsbindings
+node --version > nodeversion.txt
+echo $TERM > term.txt
+./load.sh browser.js > browser.log
