@@ -5,7 +5,7 @@ HNAME_S := $(shell hostname)
 ifeq ($(UNAME_S),Darwin)
 all: pxscene pxscene.app
 else
-all: rtNode
+all: pxscene
 endif
 
 clean:
@@ -203,7 +203,7 @@ analyze:
 	$(MAKE) clean
 	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) pxscene
 
-rtNode: $(OBJS)
+pxscene: $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -o pxscene
 
 pxscene.app: pxscene
