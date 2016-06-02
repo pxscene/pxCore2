@@ -111,6 +111,9 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
 void
 HandleMap::clearAllForContext(uint32_t contextId)
 {
+  // JRJR Bail for now a bit crashy
+  return;
+
   typedef ObjectReferenceMap::iterator iterator;
 
   int n = 0;

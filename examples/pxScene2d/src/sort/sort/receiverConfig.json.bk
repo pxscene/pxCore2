@@ -1,9 +1,0 @@
-{
-"serverUrl":"xre://xre.poc6.xcal.tv:10004/shell",
-"objectFilePath":"/opt",
-"width":1280,
-"height":720,
-"commandLogger":{"level":"off"},
-"eventLogger":{"level":"off"},
-"defaultLogger":{"level":"off"}
-}
