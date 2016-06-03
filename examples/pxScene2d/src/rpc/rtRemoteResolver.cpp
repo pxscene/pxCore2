@@ -12,9 +12,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
-#include <netinet/tcp.h>
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -199,7 +197,9 @@ rtRemoteMulticastResolver::openUnicastSocket()
   int ret = 0;
   int err = 0;
 
-  m_ucast_fd = socket(m_ucast_endpoint.ss_family, SOCK_DGRAM, 0);
+  const int socket_type = SOCK_DGRAM;
+  m_ucast_fd = socket(m_ucast_endpoint.ss_family, socket_type, 0);
+
   if (m_ucast_fd < 0)
   {
     err = errno;
@@ -207,8 +207,8 @@ rtRemoteMulticastResolver::openUnicastSocket()
       m_ucast_endpoint.ss_family, rtStrError(errno).c_str());
     return RT_FAIL;
   }
-  uint32_t one = 1;
-  if (-1 == setsockopt(m_ucast_fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+
+  if (rtSocketSetNoDelay(m_ucast_fd, socket_type) != RT_OK)
     rtLogError("setting TCP_NODELAY failed");
 
   fcntl(m_ucast_fd, F_SETFD, fcntl(m_ucast_fd, F_GETFD) | FD_CLOEXEC);
@@ -523,11 +523,9 @@ rtError
 rtRemoteMulticastResolver::openMulticastSocket()
 {
   int err = 0;
-
-  m_mcast_fd = socket(m_mcast_dest.ss_family, SOCK_DGRAM, 0);
-  uint32_t one = 1;
-  if (-1 == setsockopt(m_mcast_fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
-    rtLogError("setting TCP_NODELAY failed");
+  
+  const int socket_type = SOCK_DGRAM;
+  m_mcast_fd = socket(m_mcast_dest.ss_family, socket_type, 0);
 
   if (m_mcast_fd < 0)
   {
@@ -536,6 +534,9 @@ rtRemoteMulticastResolver::openMulticastSocket()
       m_mcast_dest.ss_family, rtStrError(errno).c_str());
     return RT_FAIL;
   }
+  if (rtSocketSetNoDelay(m_mcast_fd, socket_type) != RT_OK)
+    rtLogError("setting TCP_NODELAY failed");
+
   fcntl(m_mcast_fd, F_SETFD, fcntl(m_mcast_fd, F_GETFD) | FD_CLOEXEC);
 
   // re-use because multiple applications may want to join group on same machine

@@ -19,6 +19,7 @@ rtError rtReadUntil(int fd, char* buff, int n);
 rtError rtReadMessage(int fd, rtSocketBuffer& buff, rtJsonDocPtr& doc);
 rtError rtParseMessage(char const* buff, int n, rtJsonDocPtr& doc);
 std::string rtSocketToString(sockaddr_storage const& ss);
+rtError rtSocketSetNoDelay(int fd, int socket_type);
 
 // this really doesn't belong here, but putting it here for now
 rtError rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* dest);

@@ -4,6 +4,8 @@
 #include <sstream>
 
 #include <netinet/in.h>
+#include <sys/socket.h>
+#include <netinet/tcp.h>
 #include <errno.h>
 #include <arpa/inet.h>
 #include <net/if.h>
@@ -442,6 +444,20 @@ rtGetPeerName(int fd, sockaddr_storage& endpoint)
   }
 
   memcpy(&endpoint, &addr, sizeof(sockaddr_storage));
+  return RT_OK;
+}
+
+rtError
+rtSocketSetNoDelay(int fd, int socket_type)
+{
+  if (socket_type == SOCK_STREAM)
+  {
+    uint32_t one = 1;
+    if (-1 == setsockopt(fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+    {
+      return RT_FAIL;
+    }
+  }
   return RT_OK;
 }
 
