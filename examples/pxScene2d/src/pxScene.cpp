@@ -9,6 +9,7 @@
 #define ANIMATION_ROTATE_XYZ
 #include "pxContext.h"
 #include "pxScene2d.h"
+#include "rtUrlUtils.h"
 
 #include "rtNode.h"
 
@@ -41,8 +42,7 @@ public:
     pxWindow::init(x,y,w,h);
     
     char buffer[1024];
-    // JR TODO url needs to be url encoded
-    sprintf(buffer,"shell.js?url=%s",url);
+    sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(url).cString());
     setView(new pxScriptView(buffer,"javascript/node/v8"));
   }
 

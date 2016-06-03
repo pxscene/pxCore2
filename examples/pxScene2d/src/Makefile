@@ -42,6 +42,7 @@ RT_SRCS=\
     rtLog.cpp \
     rtFile.cpp \
     rtPathUtils.cpp \
+    rtUrlUtils.cpp \
     rtString.cpp \
     rtValue.cpp \
     rtObject.cpp \
