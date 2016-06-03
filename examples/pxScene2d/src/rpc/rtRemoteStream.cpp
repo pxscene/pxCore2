@@ -1,5 +1,6 @@
 #include "rtRemoteStream.h"
 #include "rtRemoteMessage.h"
+#include "rtSocketUtils.h"
 
 #include <algorithm>
 #include <memory>
@@ -10,9 +11,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <rtLog.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
 
 class rtRemoteStreamSelector
 {
@@ -258,15 +256,17 @@ rtRemoteStream::connect()
 rtError
 rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
 {
-  m_fd = socket(endpoint.ss_family, SOCK_STREAM, 0);
+  const int socket_type = SOCK_STREAM;
+  m_fd = socket(endpoint.ss_family, socket_type, 0);
   if (m_fd < 0)
   {
     rtLogError("failed to create socket. %s", rtStrError(errno).c_str());
     return RT_FAIL;
   }
-  uint32_t one = 1;
-  if (-1 == setsockopt(m_fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+
+  if (rtSocketSetNoDelay(m_fd, socket_type) != RT_OK)
     rtLogError("setting TCP_NODELAY failed");
+
 
   fcntl(m_fd, F_SETFD, fcntl(m_fd, F_GETFD) | FD_CLOEXEC);
 

@@ -18,9 +18,6 @@
 #include <rtLog.h>
 #include <sstream>
 #include <algorithm>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
 
 static bool
 same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
@@ -329,13 +326,14 @@ rtRemoteServer::openRpcListener()
 
   rtGetDefaultInterface(m_rpc_endpoint, 0);
 
-  m_listen_fd = socket(m_rpc_endpoint.ss_family, SOCK_STREAM, 0);
+  const int socket_type = SOCK_STREAM;
+  m_listen_fd = socket(m_rpc_endpoint.ss_family, socket_type, 0);
   if (m_listen_fd < 0)
   {
     rtLogError("failed to create TCP socket. %s", rtStrError(errno).c_str());
   }
-  uint32_t one = 1;
-  if (-1 == setsockopt(m_listen_fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+
+  if (rtSocketSetNoDelay(m_listen_fd, socket_type) != RT_OK)
     rtLogError("setting TCP_NODELAY failed");
 
   fcntl(m_listen_fd, F_SETFD, fcntl(m_listen_fd, F_GETFD) | FD_CLOEXEC);
