@@ -186,24 +186,6 @@ NODE_EXTERN extern v8::Isolate* node_isolate;                  /*MODIFIED CODE*/
 NODE_EXTERN extern bool node_is_initialized;                   /*MODIFIED CODE*/
 
 
-class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
- public:
-  // Impose an upper limit to avoid out of memory errors that bring down
-  // the process.
-  static const size_t kMaxLength = 0x3fffffff;
-  static ArrayBufferAllocator the_singleton;
-  virtual ~ArrayBufferAllocator() {}
-  virtual void* Allocate(size_t length);
-  virtual void* AllocateUninitialized(size_t length);
-  virtual void Free(void* data, size_t length);
- private:
-  ArrayBufferAllocator() {}
-  ArrayBufferAllocator(const ArrayBufferAllocator&);
-  void operator=(const ArrayBufferAllocator&);
-};
-
-
-
 NODE_EXTERN void Init(int* argc,
                       const char** argv,
                       int* exec_argc,

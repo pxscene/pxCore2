@@ -158,21 +158,21 @@ int WRITE_UTF8_FLAGS = v8::String::HINT_MANY_WRITES_EXPECTED |
 //
 //  NOTE:  Moving to 'node.h'
 //
-//class ArrayBufferAllocator : public ArrayBuffer::Allocator {
-// public:
-//  // Impose an upper limit to avoid out of memory errors that bring down
-//  // the process.
-//  static const size_t kMaxLength = 0x3fffffff;
-//  static ArrayBufferAllocator the_singleton;
-//  virtual ~ArrayBufferAllocator() {}
-//  virtual void* Allocate(size_t length);
-//  virtual void* AllocateUninitialized(size_t length);
-//  virtual void Free(void* data, size_t length);
-// private:
-//  ArrayBufferAllocator() {}
-//  ArrayBufferAllocator(const ArrayBufferAllocator&);
-//  void operator=(const ArrayBufferAllocator&);
-//};
+class ArrayBufferAllocator : public ArrayBuffer::Allocator {
+public:
+ // Impose an upper limit to avoid out of memory errors that bring down
+ // the process.
+ static const size_t kMaxLength = 0x3fffffff;
+ static ArrayBufferAllocator the_singleton;
+ virtual ~ArrayBufferAllocator() {}
+ virtual void* Allocate(size_t length);
+ virtual void* AllocateUninitialized(size_t length);
+ virtual void Free(void* data, size_t length);
+private:
+ ArrayBufferAllocator() {}
+ ArrayBufferAllocator(const ArrayBufferAllocator&);
+ void operator=(const ArrayBufferAllocator&);
+};
 
 ArrayBufferAllocator ArrayBufferAllocator::the_singleton;
 

@@ -248,7 +248,7 @@ void pxObject::createNewPromise()
  * false - for now, it will mean "set focus to my parent scene" */
 rtError pxObject::setFocus(bool v) 
 {
-  rtLogInfo("pxObject::setFocus v=%d",v);
+  printf("pxObject::setFocus v=%d\n",v);
   if(v) {
     return mScene->setFocus(this);
   }
