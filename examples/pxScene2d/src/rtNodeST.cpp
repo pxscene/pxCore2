@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include <string>
 #include <fstream>
 
 #include <iostream>
@@ -17,6 +18,7 @@
 
 #include "node.h"
 #include "node_javascript.h"
+#include "node_contextify_mods.h"
 
 #include "env.h"
 #include "env-inl.h"
@@ -25,11 +27,18 @@
 #pragma GCC diagnostic pop
 #endif
 
+//#include "pxCore.h"
+
 #include "rtNode.h"
 
-#include "jsbindings/rtObjectWrapper.h"
-#include "jsbindings/rtFunctionWrapper.h"
+#include "rtThreadQueue.h"
 
+extern rtThreadQueue gUIThreadQueue;
+
+
+#ifdef USE_CONTEXTIFY_CLONES
+#warning Using USE_CONTEXTIFY_CLONES !!
+#endif
 
 #ifdef RUNINMAIN
 
@@ -57,6 +66,7 @@ extern bool debug_wait_connect;
 
 static int exec_argc;
 static const char** exec_argv;
+static rtAtomic sNextId = 100;
 
 
 args_t *s_gArgs;
@@ -81,19 +91,33 @@ bool rtIsMainThread()
   return true;
 }
 
+#if 0
 static inline bool file_exists(const char *file)
 {
   struct stat buffer;
   return (stat (file, &buffer) == 0);
 }
+#endif
 
 rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
      mIsolate(isolate), mEnv(NULL), mRefCount(0)
 {
   assert(isolate); // MUST HAVE !
+  mId = rtAtomicInc(&sNextId);
 
   createEnvironment();
 }
+
+#ifdef USE_CONTEXTIFY_CLONES
+rtNodeContext::rtNodeContext(v8::Isolate *isolate, rtNodeContextRef clone_me) :
+      mIsolate(isolate), mEnv(NULL), mRefCount(0)
+{
+  assert(mIsolate); // MUST HAVE !
+ mId = rtAtomicInc(&sNextId);
+
+  clonedEnvironment(clone_me);
+}
+#endif
 
 void rtNodeContext::createEnvironment()
 {
@@ -102,7 +126,14 @@ void rtNodeContext::createEnvironment()
   HandleScope     handle_scope(mIsolate);
 
   // Create a new context.
-  mContext.Reset(mIsolate, Context::New(mIsolate));
+  {
+    HandleScope tempScope(mIsolate);
+
+    Local<Context> ctx = Context::New(mIsolate);
+    ctx->SetEmbedderData(HandleMap::kContextIdIndex, v8::Integer::New(mIsolate, mId));
+    mContext.Reset(mIsolate, ctx);
+  }
+
 
   // Get a Local context.
   Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
@@ -111,11 +142,12 @@ void rtNodeContext::createEnvironment()
   Handle<Object> global = local_context->Global();
 
   // Register wrappers.
-    rtObjectWrapper::exportPrototype(mIsolate, global);
+  rtObjectWrapper::exportPrototype(mIsolate, global);
   rtFunctionWrapper::exportPrototype(mIsolate, global);
 
-  rtWrappers.Reset(mIsolate, global);
+  mRtWrappers.Reset(mIsolate, global);
 
+  // Create Environment.
   mEnv = CreateEnvironment(mIsolate,
                            uv_default_loop(),
                            local_context,
@@ -127,9 +159,11 @@ void rtNodeContext::createEnvironment()
   // Start debug agent when argv has --debug
   if (use_debug_agent)
   {
+    printf("use_debug_agent\n");
     StartDebug(mEnv, debug_wait_connect);
   }
 
+  // Load Environment.
   LoadEnvironment(mEnv);
 
   // Enable debugger
@@ -138,6 +172,100 @@ void rtNodeContext::createEnvironment()
     EnableDebug(mEnv);
   }
 }
+
+#ifdef USE_CONTEXTIFY_CLONES
+
+void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
+{
+  mIsolate = clone_me->getIsolate();
+
+  Locker                locker(mIsolate);
+  Isolate::Scope isolate_scope(mIsolate);
+  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
+
+  // Get a Local context...
+  Local<Context> local_context = clone_me->getLocalContext();
+  Context::Scope context_scope(local_context);
+
+  mSandbox.Reset(mIsolate, Object::New( mIsolate )); // persistent
+
+/*
+
+var newSandbox = {
+      sandboxName: "InitialSandbox",
+      xmodule: xModule,
+      console: console,
+      runtime: apiForChild,
+      process: process,
+      theNamedContext: "Sandbox: " + uri,
+      Buffer: Buffer,
+      require: function (pkg) {
+         log.message(3, "old use of require not supported: " + pkg);
+         // TODO: remove
+         return requireIt(pkg);
+
+       },
+       setTimeout: setTimeout,
+       setInterval: setInterval,
+       clearInterval: clearInterval,
+       importTracking: {}
+    } // end sandbox
+*/
+
+  // Create dummy sandbox for ContextiftContext::makeContext() ...
+  Local<Object> sandbox = node::PersistentToLocal<Object>(mIsolate, mSandbox);
+
+  // Module pairs...
+  typedef struct mpair
+  {
+     char *name;
+     char *module;
+
+     mpair(char *n, char *m) : name(n), module(m) {}
+  } mpair;
+
+  mpair items[] =
+  {
+     mpair("console",       "console"),
+     mpair("process",       "process"),
+     mpair("Buffer",        "Buffer"),
+     mpair("xmodule",       "_XModule"),
+     mpair("runtime",       "_apiForChild"),
+     mpair("setTimeout",    "setTimeout"),
+     mpair("setInterval",   "setInterval"),
+     mpair("clearInterval", "clearInterval"),
+
+     mpair("require",           "_require_it"),
+     mpair("urlModule",         "_urlModule"),
+     mpair("queryStringModule", "_queryStringModule"),
+  };
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  int count = sizeof(items) / sizeof(items[0]);
+
+  for(int i = 0; i< count; i++)
+  {
+    Local<Value> module = local_context->Global()->Get( String::NewFromUtf8(mIsolate, items[i].module) );
+
+    if (/*module.IsEmpty()) ||*/ module->IsUndefined())
+    {
+      printf("\nFATAL:   '%s' is empty !! - UNEXPECTED", items[i].module);
+    }
+    else
+    {
+      //printf("\nINFO:   '%s' loaded OK !! ", items[i].module);
+      sandbox->Set( String::NewFromUtf8(mIsolate, items[i].name), module );
+    }
+  }
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  Local<Context>  ctx = node::makeContext(mIsolate, sandbox);
+
+  mContext.Reset(mIsolate, ctx); // Local to Persistent
+}
+#endif // USE_CONTEXTIFY_CLONES
 
 rtNodeContext::~rtNodeContext()
 {
@@ -149,7 +277,7 @@ rtNodeContext::~rtNodeContext()
   {
     RunAtExit(mEnv);
 
-    //mEnv->Dispose();
+    mEnv->Dispose();
     mEnv = NULL;
   }
 
@@ -166,9 +294,17 @@ rtNodeContext::~rtNodeContext()
   // rtObjectWrapper::destroyPrototype();
   // rtFunctionWrapper::destroyPrototype();
 
-  // Release();
+  // clear out persistent javascript handles
+  HandleMap::clearAllForContext(mId);
 
+  printf("\n##########   ~rtNodeContext() - kill SANDBOX and CONTEXT !!\n\n");
+
+  mSandbox.Reset();
   mContext.Reset();
+  mRtWrappers.Reset();
+
+  Release();
+
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
 }
 
@@ -177,7 +313,7 @@ void rtNodeContext::add(const char *name, rtValue const& val)
 {
   if(name == NULL)
   {
-    rtLogError(" %s  ... no symbolic name for rtValue.",__PRETTY_FUNCTION__);
+    rtLogError("no symbolic name for rtValue");
     // TODO: test for uniquiness !
     return;
   }
@@ -186,13 +322,15 @@ void rtNodeContext::add(const char *name, rtValue const& val)
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 
+//  printf("\n#### [%p]  %s() >> Adding \"%s\"\n", this, __FUNCTION__, name);
+
   // Get a Local context...
   Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
   Context::Scope context_scope(local_context);
 
   Handle<Object> global = local_context->Global();
 
-  global->Set(String::NewFromUtf8(mIsolate, name), rt2js(mIsolate, val));
+  global->Set(String::NewFromUtf8(mIsolate, name), rt2js(local_context, val));
 }
 
 rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NULL*/)
@@ -204,11 +342,10 @@ rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NU
     return  rtObjectRef(0);// JUNK
   }
 
-  rtLogDebug(" %s  ... Running...",__PRETTY_FUNCTION__);
+  // rtLogDebug(" %s  ... Running...",__PRETTY_FUNCTION__);
 
   return runScript(std::string(script), args);
 }
-
 
 rtObjectRef rtNodeContext::runScript(const std::string &script, const char* /* args = NULL*/)
 {
@@ -240,7 +377,7 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char* /* a
     String::Utf8Value utf8(result);
   }//scope
 
-    return rtObjectRef(0);// JUNK
+  return rtObjectRef(0);// JUNK
 }
 
 std::string readFile(const char *file)
@@ -270,14 +407,23 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char* /*args = NULL*/
   return runScript(js_script);
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-rtNode::rtNode() : mPlatform(NULL)
+rtNode::rtNode() /*: mPlatform(NULL)*/
 {
+  char const* s = getenv("RT_TEST_GC");
+  if (s && strlen(s) > 0)
+    mTestGc = true;
+  else
+    mTestGc = false;
+
+  if (mTestGc)
+    rtLogWarn("*** PERFORMANCE WARNING *** : gc being invoked in render thread");
+
+// TODO Please make this better... less hard coded... 
+
                               //0123456 789ABCDEF012 345 67890ABCDEF
-  static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Intialized\");\0\0";
+  static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
   int          argc   = sizeof(argv2)/sizeof(char*) - 1;
 
@@ -312,17 +458,26 @@ void rtNode::pump()
   uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
 
   // Enable this to expedite garbage collection for testing... warning perf hit
-  #if 0
-  static int i = 0;
-
-  if (i++ > 100)
+  if (mTestGc)
   {
-    mIsolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
-    i++;
-  }
-  #endif
+    static int sGcTickCount = 0;
 
+    if (sGcTickCount++ > 60)
+    {
+      Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+      Context::Scope contextScope(local_context);
+      mIsolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
+      sGcTickCount = 0;
+    }
+  }
 }
+
+#if 0
+rtNode::forceGC()
+{
+  mIsolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
+}
+#endif
 
 void rtNode::nodePath()
 {
@@ -365,15 +520,36 @@ void rtNode::init(int argc, char** argv)
 
     V8::Initialize();
     node_is_initialized = true;
+
+    Locker locker(mIsolate);
+    Isolate::Scope isolateScope(mIsolate);
+
+    HandleScope handleScope(mIsolate);
+
+    Local<Context> ctx = Context::New(mIsolate);
+    ctx->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, 99));
+    mContext.Reset(mIsolate, ctx);
   }
 }
 
 void rtNode::term()
 {
+#ifdef USE_CONTEXTIFY_CLONES
+  if( mFastContext.getPtr() )
+  {
+    mFastContext->Release();
+
+    // rtLogError(" - %s - Release() >>>>  mFastContext", __PRETTY_FUNCTION__);
+  }
+#endif
+
   if(node_isolate)
   {
 // JRJRJR  Causing crash???  ask Hugh
-//    node_isolate->Dispose();
+
+    printf("\n++++++++++++++++++ DISPOSE");
+
+    node_isolate->Dispose();
     node_isolate = NULL;
     mIsolate = NULL;
   }
@@ -408,9 +584,33 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
 {
   UNUSED_PARAM(ownThread);    // not implemented yet.
 
-  rtNodeContextRef ctxref = new rtNodeContext(mIsolate);
+  rtNodeContextRef ctxref;
 
-  ctxref->node = this;
+#ifdef USE_CONTEXTIFY_CLONES
+  if(mFastContext.getPtr() == NULL)
+  {
+//    printf("\n createContext()  >>  REFERENCE CREATED  !!!!!!");
+
+    mFastContext       = new rtNodeContext(mIsolate);
+    mFastContext->node = this;
+
+    ctxref = mFastContext;
+
+    mFastContext->runFile("rcvrcore/sandbox.js");
+  }
+  else
+  {
+    printf("\n createContext()  >>  CLONE CREATED !!!!!!");
+
+    ctxref       = new rtNodeContext(mIsolate, mFastContext); // CLONE !!!
+    ctxref->node = this;
+  }
+#else
+
+    ctxref       = new rtNodeContext(mIsolate);
+    ctxref->node = this;
+
+#endif
 
   return ctxref;
 }

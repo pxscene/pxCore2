@@ -3,8 +3,7 @@
 
 #include "rtObject.h"
 #include "rtValue.h"
-
-#include <string>
+#include "rtAtomic.h"
 
 #ifndef WIN32
 #pragma GCC diagnostic push
@@ -15,11 +14,16 @@
 #include "include/v8.h"
 #include "include/libplatform/libplatform.h"
 
+#include "jsbindings/rtObjectWrapper.h"
+#include "jsbindings/rtFunctionWrapper.h"
+
 #if 1
 #ifndef WIN32
 #pragma GCC diagnostic pop
 #endif
 #endif
+
+//#define USE_CONTEXTIFY_CLONES
 
 namespace node
 {
@@ -51,6 +55,11 @@ class rtNodeContext  // V8
 {
 public:
   rtNodeContext(v8::Isolate *isolate);
+
+#ifdef USE_CONTEXTIFY_CLONES
+  rtNodeContext(v8::Isolate *isolate, rtNodeContextRef clone_me);
+#endif
+
   ~rtNodeContext();
 
   void add(const char *name, rtValue  const& val);
@@ -76,17 +85,26 @@ public:
   
   rtNode   *node;
 
+  v8::Isolate              *getIsolate()      const { return mIsolate; };
+  v8::Local<v8::Context>    getLocalContext() const { return PersistentToLocal<v8::Context>(mIsolate, mContext); };
+
 private:
   v8::Isolate                   *mIsolate;
+  v8::Persistent<v8::Object>     mSandbox;
   v8::Persistent<v8::Context>    mContext;
 
   node::Environment*             mEnv;
-  v8::Persistent<v8::Object>     rtWrappers;
+  v8::Persistent<v8::Object>     mRtWrappers;
 
   void createEnvironment();
 
+#ifdef USE_CONTEXTIFY_CLONES
+  void clonedEnvironment(rtNodeContextRef clone_me);
+#endif
+
   int mRefCount;
-  };
+  rtAtomic mId;
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -109,8 +127,16 @@ private:
 
   void nodePath();
 
-  v8::Isolate   *mIsolate;
-  v8::Platform  *mPlatform;
+  v8::Isolate                   *mIsolate;
+  v8::Platform                  *mPlatform;
+  v8::Persistent<v8::Context>    mContext;
+
+
+#ifdef USE_CONTEXTIFY_CLONES
+  rtNodeContextRef mFastContext;
+#endif
+
+  bool mTestGc;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
