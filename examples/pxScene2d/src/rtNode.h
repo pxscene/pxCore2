@@ -83,7 +83,7 @@ public:
   const char   *js_file;
   std::string   js_script;
   
-//  rtNode   *node;
+  rtNode   *node;
 
   v8::Isolate              *getIsolate()      const { return mIsolate; };
   v8::Local<v8::Context>    getLocalContext() const { return PersistentToLocal<v8::Context>(mIsolate, mContext); };

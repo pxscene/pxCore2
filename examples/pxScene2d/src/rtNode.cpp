@@ -563,7 +563,7 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
     // printf("\n createContext()  >>  REFERENCE CREATED  !!!!!!");
 
     mRefContext       = new rtNodeContext(mIsolate);
- //   mRefContext->node = this;
+    mRefContext->node = this;
 
     ctxref = mRefContext;
 
@@ -574,7 +574,7 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
     // printf("\n createContext()  >>  CLONE CREATED !!!!!!");
 
     ctxref       = new rtNodeContext(mIsolate, mRefContext); // CLONE !!!
-   // ctxref->node = this;
+    ctxref->node = this;
   }
 #else
 
