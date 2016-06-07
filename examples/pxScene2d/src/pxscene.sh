@@ -23,7 +23,7 @@ export LD_LIBRARY_PATH=$PathR
 #
 
 #valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./pxscene $1 $2 $3 $4 $5 $6 $7
-valgrind --leak-check=yes ./pxscene $1 $2 $3 $4 $5 $6 $7
+./pxscene $1 $2 $3 $4 $5 $6 $7
 
 #valgrind --tool=callgrind ./pxscene $1 $2
 
