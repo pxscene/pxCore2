@@ -25,6 +25,10 @@ extern rtNode script;
 #define EXITSCENELOCK()
 #endif
 
+#ifndef PX_SCENE_VERSION
+#define PX_SCENE_VERSION dev
+#endif
+
 
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
@@ -181,10 +185,17 @@ protected:
   rtRefT<pxIView> mView;
 };
 
+#define xstr(s) str(s)
+#define str(s) #s
+
 int pxMain(int argc, char* argv[])
 {
+  char buffer[256];
+  sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));
   sceneWindow win;
-  win.init(10, 10, 1280, 720, (argc >= 2)?argv[1]:"browser.js");
+  // OSX likes to pass us some weird parameter on first launch after internet install
+  win.init(10, 10, 1280, 720, (argc >= 2 && argv[1][0] != '-')?argv[1]:"browser.js");
+  win.setTitle(buffer);
   // JRJR TODO Why aren't these necessary for glut... pxCore bug
   win.setVisibility(true);
   win.setAnimationFPS(60);

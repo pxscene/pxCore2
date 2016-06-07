@@ -4,6 +4,7 @@ HNAME_S := $(shell hostname)
 
 ifeq ($(UNAME_S),Darwin)
 all: pxscene pxscene.app
+deploy: pxscene.dmg
 else
 all: pxscene
 endif
@@ -109,7 +110,14 @@ SEARCH=\
 
 
 #CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE 
-CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN
+CXXFLAGS2=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN
+
+ifdef PXVERSION
+CXXFLAGS=$(CXXFLAGS2) -DPX_SCENE_VERSION=$(PXVERSION)
+else
+CXXFLAGS=$(CXXFLAGS2)
+endif
+
 
 #CXXFLAGS=  $(SEARCH) -DENABLE_GLUT -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT
 #CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DENABLE_GLUT -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT
@@ -210,3 +218,12 @@ pxscene: $(OBJS)
 pxscene.app: pxscene
 	rm -rf pxscene.app
 	./mkapp.sh
+
+pxscene.dmg: 
+ifndef PXVERSION
+	$(error PXVERSION must be defined for the deploy target)
+endif
+	make clean
+	make PX_SCENE_VERSION2=PXVERSION pxscene.app
+	echo $(PXVERSION)
+	./mkdeploy.sh $(PXVERSION)

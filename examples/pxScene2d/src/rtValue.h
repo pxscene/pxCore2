@@ -31,6 +31,9 @@
 #define RT_voidPtrType            'z'
 
 // TODO JR Hack Only needed for reflection... method signature
+//Try #define CHARIZE(x) #x[0]
+//http://www.complete-concrete-concise.com/programming/c/preprocessor-%E2%80%93-understanding-the-stringizing-operator
+
 #define RT_voidType2               "\0"
 #define RT_valueType2              "v"
 #define RT_rtValueType2            "v"

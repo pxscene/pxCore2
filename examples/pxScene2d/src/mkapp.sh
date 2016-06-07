@@ -21,6 +21,7 @@ cp init.js $bundleBin
 cp shell.js $bundleBin
 cp pxscene $bundleBin
 cp macstuff/pxscene.sh $bundleBin
+cp macstuff/EngineRunner $bundleBin
 cp -a rcvrcore $bundleBin/rcvrcore
 cp -a node_modules $bundleBin/node_modules
-cp -a macstuff/Resources $bundleBin/Resources
+cp -a macstuff/Resources $bundle/Contents/Resources
