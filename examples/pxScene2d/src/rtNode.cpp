@@ -27,8 +27,6 @@
 #pragma GCC diagnostic pop
 #endif
 
-//#include "pxCore.h"
-
 #include "rtNode.h"
 
 #include "rtThreadQueue.h"
@@ -113,7 +111,7 @@ rtNodeContext::rtNodeContext(v8::Isolate *isolate, rtNodeContextRef clone_me) :
       mIsolate(isolate), mEnv(NULL), mRefCount(0)
 {
   assert(mIsolate); // MUST HAVE !
- mId = rtAtomicInc(&sNextId);
+  mId = rtAtomicInc(&sNextId);
 
   clonedEnvironment(clone_me);
 }
@@ -133,7 +131,6 @@ void rtNodeContext::createEnvironment()
     ctx->SetEmbedderData(HandleMap::kContextIdIndex, v8::Integer::New(mIsolate, mId));
     mContext.Reset(mIsolate, ctx);
   }
-
 
   // Get a Local context.
   Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
@@ -189,39 +186,16 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 
   mSandbox.Reset(mIsolate, Object::New( mIsolate )); // persistent
 
-/*
-
-var newSandbox = {
-      sandboxName: "InitialSandbox",
-      xmodule: xModule,
-      console: console,
-      runtime: apiForChild,
-      process: process,
-      theNamedContext: "Sandbox: " + uri,
-      Buffer: Buffer,
-      require: function (pkg) {
-         log.message(3, "old use of require not supported: " + pkg);
-         // TODO: remove
-         return requireIt(pkg);
-
-       },
-       setTimeout: setTimeout,
-       setInterval: setInterval,
-       clearInterval: clearInterval,
-       importTracking: {}
-    } // end sandbox
-*/
-
   // Create dummy sandbox for ContextiftContext::makeContext() ...
   Local<Object> sandbox = node::PersistentToLocal<Object>(mIsolate, mSandbox);
 
   // Module pairs...
   typedef struct mpair
   {
-     char *name;
-     char *module;
+     const char *name;
+     const char *module;
 
-     mpair(char *n, char *m) : name(n), module(m) {}
+     mpair(const char *n, const char *m) : name(n), module(m) {}
   } mpair;
 
   mpair items[] =
@@ -269,12 +243,12 @@ var newSandbox = {
 
 rtNodeContext::~rtNodeContext()
 {
-  Locker                locker(mIsolate);
-  Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);
-
   if(mEnv)
   {
+    Locker                locker(mIsolate);
+    Isolate::Scope isolate_scope(mIsolate);
+    HandleScope     handle_scope(mIsolate);
+      
     RunAtExit(mEnv);
 
     mEnv->Dispose();
@@ -296,8 +270,6 @@ rtNodeContext::~rtNodeContext()
 
   // clear out persistent javascript handles
   HandleMap::clearAllForContext(mId);
-
-  printf("\n##########   ~rtNodeContext() - kill SANDBOX and CONTEXT !!\n\n");
 
   mSandbox.Reset();
   mContext.Reset();
@@ -451,9 +423,9 @@ rtNode::~rtNode()
 
 void rtNode::pump()
 {
-  Locker                  locker(mIsolate);
-  Isolate::Scope   isolate_scope(mIsolate);
-  HandleScope       handle_scope(mIsolate);    // Create a stack-allocated handle scope.
+  Locker                locker(mIsolate);
+  Isolate::Scope isolate_scope(mIsolate);
+  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
   
   uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
 
@@ -521,10 +493,9 @@ void rtNode::init(int argc, char** argv)
     V8::Initialize();
     node_is_initialized = true;
 
-    Locker locker(mIsolate);
-    Isolate::Scope isolateScope(mIsolate);
-
-    HandleScope handleScope(mIsolate);
+    Locker                locker(mIsolate);
+    Isolate::Scope isolate_scope(mIsolate);
+    HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 
     Local<Context> ctx = Context::New(mIsolate);
     ctx->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, 99));
@@ -535,26 +506,26 @@ void rtNode::init(int argc, char** argv)
 void rtNode::term()
 {
 #ifdef USE_CONTEXTIFY_CLONES
-  if( mFastContext.getPtr() )
+  if( mRefContext.getPtr() )
   {
-    mFastContext->Release();
-
-    // rtLogError(" - %s - Release() >>>>  mFastContext", __PRETTY_FUNCTION__);
+    mRefContext->Release();
   }
 #endif
+
+return; // JUNK - Probably leaks like a sieve !!!!
 
   if(node_isolate)
   {
 // JRJRJR  Causing crash???  ask Hugh
 
-    printf("\n++++++++++++++++++ DISPOSE");
+    printf("\n++++++++++++++++++ DISPOSE\n\n");
 
     node_isolate->Dispose();
     node_isolate = NULL;
-    mIsolate = NULL;
+    mIsolate     = NULL;
   }
 
-  if(node_is_initialized )
+  if(node_is_initialized)
   {
     V8::Dispose();
 
@@ -587,23 +558,23 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
   rtNodeContextRef ctxref;
 
 #ifdef USE_CONTEXTIFY_CLONES
-  if(mFastContext.getPtr() == NULL)
+  if(mRefContext.getPtr() == NULL)
   {
-//    printf("\n createContext()  >>  REFERENCE CREATED  !!!!!!");
+    // printf("\n createContext()  >>  REFERENCE CREATED  !!!!!!");
 
-    mFastContext       = new rtNodeContext(mIsolate);
-    mFastContext->node = this;
+    mRefContext       = new rtNodeContext(mIsolate);
+ //   mRefContext->node = this;
 
-    ctxref = mFastContext;
+    ctxref = mRefContext;
 
-    mFastContext->runFile("rcvrcore/sandbox.js");
+    mRefContext->runFile("rcvrcore/sandbox.js");
   }
   else
   {
-    printf("\n createContext()  >>  CLONE CREATED !!!!!!");
+    // printf("\n createContext()  >>  CLONE CREATED !!!!!!");
 
-    ctxref       = new rtNodeContext(mIsolate, mFastContext); // CLONE !!!
-    ctxref->node = this;
+    ctxref       = new rtNodeContext(mIsolate, mRefContext); // CLONE !!!
+   // ctxref->node = this;
   }
 #else
 

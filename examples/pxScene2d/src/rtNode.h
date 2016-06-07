@@ -18,9 +18,9 @@
 #include "jsbindings/rtFunctionWrapper.h"
 
 #if 1
-#ifndef WIN32
-#pragma GCC diagnostic pop
-#endif
+ #ifndef WIN32
+  #pragma GCC diagnostic pop
+ #endif
 #endif
 
 //#define USE_CONTEXTIFY_CLONES
@@ -83,7 +83,7 @@ public:
   const char   *js_file;
   std::string   js_script;
   
-  rtNode   *node;
+//  rtNode   *node;
 
   v8::Isolate              *getIsolate()      const { return mIsolate; };
   v8::Local<v8::Context>    getLocalContext() const { return PersistentToLocal<v8::Context>(mIsolate, mContext); };
@@ -128,12 +128,13 @@ private:
   void nodePath();
 
   v8::Isolate                   *mIsolate;
-  v8::Platform                  *mPlatform;
+  //v8::Platform                  *mPlatform;
+   
   v8::Persistent<v8::Context>    mContext;
 
 
 #ifdef USE_CONTEXTIFY_CLONES
-  rtNodeContextRef mFastContext;
+  rtNodeContextRef mRefContext;
 #endif
 
   bool mTestGc;
