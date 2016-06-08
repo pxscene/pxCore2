@@ -1,0 +1,75 @@
+# pxCore Framebuffer Library
+# egl build
+
+OUTDIR=../build/egl
+OBJDIR=build/egl
+
+# egl supported targets
+# raspberry pi (rpi)
+
+# determine target
+UNAME := $(shell uname -s)
+HNAME := $(shell hostname) 
+
+ifeq ($(HNAME),raspberrypi )
+TARGET=rpi
+TARGETINCLUDE= -I/opt/vc/include \
+-I/opt/vc/include/interface/vcos/pthreads \
+-I/opt/vc/include/interface/vmcs_host/linux
+else
+TARGET=egl
+CXXFLAGS_PLATFORM=-DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL
+endif
+
+PLATFORM_SRCS=\
+  gles/pxOffscreenNative.cpp \
+  generic/pxWindowNative.cpp \
+  gles/pxTimerNative.cpp
+
+CXXFLAGS_PLATFORM+=-DPX_PLATFORM_GENERIC_EGL 
+
+CXXFLAGS=-Wall -Wextra -fPIC $(CXXFLAGS_PLATFORM) -g -I. -I./gles $(TARGETINCLUDE)
+
+GENERIC_SRCS=\
+  pxOffscreen.cpp \
+  pxViewWindow.cpp
+
+SRCS        =$(GENERIC_SRCS) 
+SRCS       +=$(PLATFORM_SRCS)
+OBJS        =$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS)))
+STATIC_LIB  =$(OBJDIR)/libpxCore.a
+SHLIB       =$(OBJDIR)/libpxCore.so
+
+all: $(OUTDIR)/libpxCore.a 
+clean: 
+	rm *.o
+	rm $(OUTDIR)/libpxCore.a
+
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxViewWindow.o  
+		       mkdir -p $(OUTDIR)    
+	    ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxViewWindow.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o  
+          
+pxOffscreen.o: pxOffscreen.cpp
+	$(CXX) -o pxOffscreen.o -Wall $(CXXFLAGS)  -c pxOffscreen.cpp
+
+pxViewWindow.o: pxViewWindow.cpp
+	$(CXX) -o pxViewWindow.o -Wall $(CXXFLAGS)  -c pxViewWindow.cpp
+
+pxBufferNative.o: gles/pxBufferNative.cpp
+	$(CXX) -o pxBufferNative.o -Wall $(CXXFLAGS)  -c gles/pxBufferNative.cpp
+
+pxOffscreenNative.o: gles/pxOffscreenNative.cpp
+	$(CXX) -o pxOffscreenNative.o -Wall  $(CXXFLAGS)  -c gles/pxOffscreenNative.cpp
+
+pxWindowNative.o: generic/pxWindowNative.cpp
+	$(CXX) -o pxWindowNative.o -Wall $(CXXFLAGS)  -c generic/pxWindowNative.cpp
+
+pxEventLoopNative.o: gles/pxEventLoopNative.cpp
+	$(CXX) -o pxEventLoopNative.o -Wall  $(CXXFLAGS)  -c gles/pxEventLoopNative.cpp
+
+pxTimerNative.o: gles/pxTimerNative.cpp
+	$(CXX) -o pxTimerNative.o -Wall  $(CXXFLAGS)  -c gles/pxTimerNative.cpp
+
+pxWindowUtil.o: pxWindowUtil.cpp
+	$(CXX) -o pxWindowUtil.o -Wall  $(CXXFLAGS)  -c pxWindowUtil.cpp
+

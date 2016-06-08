@@ -7,6 +7,7 @@ all: pxscene pxscene.app
 deploy: pxscene.dmg
 else
 all: pxscene
+libs: librtCore.so libpxscene.so
 endif
 
 clean:
@@ -34,7 +35,7 @@ endif
 
 
 VPATH=linux
-RT_SRCS=\
+RT_SRCS_FULL=\
     utf8.c\
     ioapi_mem.c\
     unzip.c\
@@ -60,7 +61,7 @@ RT_SRCS=\
     linux/rtThreadPoolNative.cpp \
     ../external/westeros-stub/westeros-stub.cpp
 
-PX_SRCS=\
+PX_SRCS_FULL=\
     pxScene2d.cpp \
     pxResource.cpp \
     pxConstants.cpp \
@@ -148,42 +149,116 @@ else
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform
 endif
 
+CXXFLAGS_FULL = $(CXXFLAGS)
+CLAGS_FULL = $(CFLAGS)
+LDFLAGS_FULL = $(LDFLAGS)
+
 OBJDIR=obj
 
+# rt core begin
+RTCORE_SRCS=\
+  ../utf8.c \
+  ../rtString.cpp \
+  ../rtLog.cpp \
+  ../rtValue.cpp \
+  ../rtObject.cpp \
+  ../rtError.cpp
+
+RTCORE_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RTCORE_SRCS)))
+RTCORE_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(RTCORE_OBJS)))
+RTCORE_OBJS:=$(patsubst   %.c, %.o        , $(notdir $(RTCORE_OBJS)))
+RTCORE_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(RTCORE_OBJS))
+# rt core end
+
+# pxscene so begin
+PXSCENE_LIB_SRCS=\
+           rtFile.cpp \
+           rtPathUtils.cpp \
+           rtThreadPool.cpp \
+           rtThreadTask.cpp \
+           rtThreadQueue.cpp \
+           rtLibrary.cpp \
+           rtZip.cpp \
+	   pxScene2d.cpp \
+           pxResource.cpp \
+           pxConstants.cpp \
+	   pxRectangle.cpp \
+           pxText.cpp \
+           pxTextBox.cpp \
+           pxWayland.cpp \
+           pxImage.cpp \
+           pxUtil.cpp \
+           pxContextGL.cpp \
+           pxImage9.cpp \
+           pxFileDownloader.cpp \
+           pxInterpolators.cpp \
+	   pxMatrix4T.cpp \
+           pxArchive.cpp \
+           pxFont.cpp \
+           rtNode.cpp \
+           ../external/westeros-stub/westeros-stub.cpp \
+           linux/rtMutexNative.cpp \
+           linux/rtThreadPoolNative.cpp \
+           jsbindings/rtWrapperUtils.cpp \
+           jsbindings/rtFunctionWrapper.cpp \
+           jsbindings/rtObjectWrapper.cpp \
+           jsbindings/jsCallback.cpp 
+
+PXSCENE_LIB_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(PXSCENE_LIB_SRCS)))
+PXSCENE_LIB_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(PXSCENE_LIB_OBJS)))
+PXSCENE_LIB_OBJS:=$(patsubst   %.c, %.o        , $(notdir $(PXSCENE_LIB_OBJS)))
+PXSCENE_LIB_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(PXSCENE_LIB_OBJS))
+
+PXSCENE_LIB_SEARCH=\
+  -Ilinux \
+  -I$(PXHDRS)\
+  -I./ \
+  -I$(NODEINC)/src \
+  -I$(NODEINC)/deps/uv/include \
+  -I$(NODEINC)/deps/v8 \
+  -I$(NODEINC)/deps/debugger-agent/include \
+  -I$(NODEINC)/deps/v8/include \
+  -I$(NODEINC)/deps/cares/include \
+  -I$(EXTDIR)/westeros/external/install/include \
+  -I$(EXTDIR)/westeros-stub \
+  $(PXCORE_INCLUDES) 
+
+# pxscene so end
+
 rtMutexNative.o: linux/rtMutexNative.cpp
-	g++ -o $(OBJDIR)/rtMutexNative.o -Wall $(CXXFLAGS) -c linux/rtMutexNative.cpp
+	$(CXX) -o $(OBJDIR)/rtMutexNative.o -Wall $(CXXFLAGS_FULL) -c linux/rtMutexNative.cpp
 
 rtThreadPoolNative.o: linux/rtThreadPoolNative.cpp
-	g++ -o $(OBJDIR)/rtThreadPoolNative.o -Wall $(CXXFLAGS) -c linux/rtThreadPoolNative.cpp
+	$(CXX) -o $(OBJDIR)/rtThreadPoolNative.o -Wall $(CXXFLAGS_FULL) -c linux/rtThreadPoolNative.cpp
 
 $(OBJDIR)/rtWrapperUtils.o: jsbindings/rtWrapperUtils.cpp
-	g++ -o $(OBJDIR)/rtWrapperUtils.o -Wall $(CXXFLAGS) -c jsbindings/rtWrapperUtils.cpp
+	$(CXX) -o $(OBJDIR)/rtWrapperUtils.o -Wall $(CXXFLAGS_FULL) -c jsbindings/rtWrapperUtils.cpp
 
 $(OBJDIR)/rtFunctionWrapper.o: jsbindings/rtFunctionWrapper.cpp
-	g++ -o $(OBJDIR)/rtFunctionWrapper.o -Wall $(CXXFLAGS) -c jsbindings/rtFunctionWrapper.cpp
+	$(CXX) -o $(OBJDIR)/rtFunctionWrapper.o -Wall $(CXXFLAGS_FULL) -c jsbindings/rtFunctionWrapper.cpp
 
 $(OBJDIR)/rtObjectWrapper.o: jsbindings/rtObjectWrapper.cpp
-	g++ -o $(OBJDIR)/rtObjectWrapper.o -Wall $(CXXFLAGS) -c jsbindings/rtObjectWrapper.cpp
+	$(CXX) -o $(OBJDIR)/rtObjectWrapper.o -Wall $(CXXFLAGS_FULL) -c jsbindings/rtObjectWrapper.cpp
 
 $(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
-	g++ -o $(OBJDIR)/jsCallback.o -Wall $(CXXFLAGS) -c jsbindings/jsCallback.cpp
+	$(CXX) -o $(OBJDIR)/jsCallback.o -Wall $(CXXFLAGS_FULL) -c jsbindings/jsCallback.cpp
 
 $(OBJDIR)/westeros-stub.o: $(EXTDIR)/westeros-stub/westeros-stub.cpp
-	g++ -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS) -c $(EXTDIR)/westeros-stub/westeros-stub.cpp
+	$(CXX) -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS_FULL) -c $(EXTDIR)/westeros-stub/westeros-stub.cpp
 
-SRCS=$(PX_SRCS) $(RT_SRCS) rtNode.cpp pxScene.cpp
+SRCS_FULL=$(PX_SRCS_FULL) $(RT_SRCS_FULL) rtNode.cpp pxScene.cpp
 
-OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS)))
+OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS_FULL)))
 OBJS:=$(patsubst %.c, $(OBJDIR)/%.o, $(OBJS))
-OBJS: $(SRCS)
+OBJS: $(SRCS_FULL)
 
 $(OBJDIR)/%.o : %.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
-	$(CXX) -c $(CXXFLAGS) $< -o $@
+	$(CXX) -c $(CXXFLAGS_FULL) $< -o $@
 
 $(OBJDIR)/%.o : %.c
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
-	$(CC) -c $(CXXFLAGS) $< -o $@
+	$(CC) -c $(CXXFLAGS_FULL) $< -o $@
 
 
 # Enable these. There are already a bunch of things 
@@ -213,7 +288,21 @@ analyze:
 	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) pxscene
 
 pxscene: $(OBJS)
-	$(CXX) $(OBJS) $(LDFLAGS) -o pxscene
+	$(CXX) $(OBJS) $(LDFLAGS_FULL) -o pxscene
+
+libpxscene.so: CFLAGS_FULL = $(CFLAGS)
+libpxscene.so: CXXFLAGS_FULL = -Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DAENABLE_PX_WAYLAND_RPC
+libpxscene.so: LDFLAGS_FULL = -L../../../build/egl -Wl,--whole-archive ../../../build/egl/libpxCore.a -Wl,--no-whole-archive -lnode -pthread -lpng16 -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8) -Lrpc/  -ldl -lrt -L./ -lrtCore -shared -lnexus -lnxclient -lnxpl -lGLESv2 -o libpxscene.so.1.0 
+libpxscene.so: $(PXSCENE_LIB_OBJS)
+	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL) 
+	ln -sf libpxscene.so.1.0 libpxscene.so.1
+	ln -sf libpxscene.so.1 libpxscene.so
+
+librtCore.so: CFLAGS_FULL = $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
+librtCore.so: CXXFLAGS_FULL = $(CXXFLAGS) -std=c++0x $(CFLAGS_FULL)
+librtCore.so: LDFLAGS_FULL = -pthread -ldl -luuid -shared -o $@ 
+librtCore.so: $(RTCORE_OBJS)
+	$(CXX) $(RTCORE_OBJS) $(LDFLAGS_FULL)
 
 pxscene.app: pxscene
 	rm -rf pxscene.app
