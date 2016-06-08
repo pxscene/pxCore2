@@ -10,6 +10,8 @@ all: pxscene
 libs: librtCore.so libpxscene.so
 endif
 
+HAVE_WESTEROS := $(shell test -f ../external/westeros/Makefile.ubuntu && echo 1)
+
 clean:
 	rm -rf $(OBJDIR)
 	rm -f pxscene
@@ -58,8 +60,12 @@ RT_SRCS_FULL=\
     rtLibrary.cpp \
     rtZip.cpp \
     linux/rtMutexNative.cpp \
-    linux/rtThreadPoolNative.cpp \
-    ../external/westeros-stub/westeros-stub.cpp
+    linux/rtThreadPoolNative.cpp
+
+ifeq ($(HAVE_WESTEROS),1)
+else
+RT_SRCS_FULL += ../external/westeros-stub/westeros-stub.cpp
+endif
 
 PX_SRCS_FULL=\
     pxScene2d.cpp \
@@ -140,8 +146,13 @@ LDNODEV8 = -L$(NODEDIR)/out/Release
 #LDNODE   = -L$(NODEDIR)/out/Debug/obj.target
 #LDNODEV8 = -L$(NODEDIR)/out/Debug
 
+LDWESTEROS = -L$(EXTDIR)/westeros/external/install/lib -lwesteros_compositor
+
 
 LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDNODE) $(LDNODEV8) $(LDZLIB)
+ifeq ($(HAVE_WESTEROS),1)
+LDEXT += $(LDWESTEROS)
+endif
 
 ifeq ($(UNAME_S),Darwin)
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread $(LDEXT) -ldl -lv8_libplatform -framework OpenGL -framework Cocoa -framework Foundation
@@ -196,13 +207,17 @@ PXSCENE_LIB_SRCS=\
            pxArchive.cpp \
            pxFont.cpp \
            rtNode.cpp \
-           ../external/westeros-stub/westeros-stub.cpp \
            linux/rtMutexNative.cpp \
            linux/rtThreadPoolNative.cpp \
            jsbindings/rtWrapperUtils.cpp \
            jsbindings/rtFunctionWrapper.cpp \
            jsbindings/rtObjectWrapper.cpp \
            jsbindings/jsCallback.cpp 
+
+ifeq ($(HAVE_WESTEROS),1)
+else
+PXSCENE_LIB_SRCS += ../external/westeros-stub/westeros-stub.cpp
+endif
 
 PXSCENE_LIB_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(PXSCENE_LIB_SRCS)))
 PXSCENE_LIB_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(PXSCENE_LIB_OBJS)))
