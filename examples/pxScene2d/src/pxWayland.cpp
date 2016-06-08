@@ -265,6 +265,8 @@ void pxWayland::onUpdate(double t)
 
 void pxWayland::onDraw()
 {
+  static pxTextureRef nullMaskRef;
+  
   if ( (mFBO->width() != mWidth) ||
        (mFBO->height() != mHeight) )
   {     
@@ -297,9 +299,8 @@ void pxWayland::onDraw()
   
   if ( needHolePunch )
   {
-     if ( mFillColor )
+     if ( mFillColor[3] != 0.0 )
      {
-        static pxTextureRef nullMaskRef;
         context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
      }
      GLfloat priorColor[4];
@@ -331,11 +332,7 @@ void pxWayland::onDraw()
         glDisable( GL_SCISSOR_TEST );
      }
   }
-  else
-  {
-     static pxTextureRef nullMaskRef;
-     context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
-  }
+  context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
 }
 
 void pxWayland::handleInvalidate()
