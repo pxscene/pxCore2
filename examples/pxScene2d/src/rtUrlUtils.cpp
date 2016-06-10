@@ -35,7 +35,7 @@ rtString rtUrlEncodeParameters(const char* url)
   } 
 */
   rtString tempStr = url;
-  size_t pos = tempStr.find(0,"?");
+  int32_t pos = tempStr.find(0,"?");
   if( pos != -1) {
     retVal = tempStr.substring(0, pos+1);
     tempStr = tempStr.substring(pos+1,0);
