@@ -115,7 +115,6 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
 
   var moduleLoader = new SceneModuleLoader();
 
-
   moduleLoader.loadScenePackage(this.innerscene, {fileUri:packageUri})
     .then(function processScenePackage() {
       _this.fileArchive = moduleLoader.getFileArchive();
@@ -147,6 +146,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
 
     })
     .catch(function(err) {
+      this.makeReady(false, {});
       console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=" + err );
     });
 

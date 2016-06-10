@@ -105,16 +105,16 @@ public:
   virtual void onInit();
 
   virtual void onSize(int32_t w, int32_t h);
-  virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags);
-  virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags);
-  virtual void onMouseEnter();
-  virtual void onMouseLeave();
-  virtual void onMouseMove(int32_t x, int32_t y);
-  virtual void onFocus();
-  virtual void onBlur();
-  virtual void onKeyDown(uint32_t keycode, uint32_t flags);
-  virtual void onKeyUp(uint32_t keycode, uint32_t flags);
-  virtual void onChar(uint32_t codepoint);
+  virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags);
+  virtual bool onMouseUp(int32_t x, int32_t y, uint32_t flags);
+  virtual bool onMouseEnter();
+  virtual bool onMouseLeave();
+  virtual bool onMouseMove(int32_t x, int32_t y);
+  virtual bool onFocus();
+  virtual bool onBlur();
+  virtual bool onKeyDown(uint32_t keycode, uint32_t flags);
+  virtual bool onKeyUp(uint32_t keycode, uint32_t flags);
+  virtual bool onChar(uint32_t codepoint);
   virtual void onUpdate(double t);
   virtual void onDraw();
 

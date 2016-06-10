@@ -86,5 +86,8 @@ public:
 #define PX_MOD_ALT          32
 #define PX_MOD_COMMAND      64
 
+// flag used in onKeyDown
+#define PX_KEYDOWN_REPEAT   128
+
 #endif
 

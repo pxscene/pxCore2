@@ -169,7 +169,7 @@ void pxWayland::onSize(int32_t w, int32_t h)
   mHeight = h;
 }
 
-void pxWayland::onMouseDown(int32_t x, int32_t y, uint32_t flags)
+bool pxWayland::onMouseDown(int32_t x, int32_t y, uint32_t flags)
 {
    UNUSED_PARAM(x);
    UNUSED_PARAM(y);
@@ -178,9 +178,10 @@ void pxWayland::onMouseDown(int32_t x, int32_t y, uint32_t flags)
    // TODO: 0x110 is BTN_LEFT : need mouse event to include button codes
    // perhaps with mapping from native to PX.  Wayland expects Linux button codes
    WstCompositorPointerButtonEvent( mWCtx, 0x110, WstPointer_buttonState_depressed );
+   return false;
 }
 
-void pxWayland::onMouseUp(int32_t x, int32_t y, uint32_t flags)
+bool pxWayland::onMouseUp(int32_t x, int32_t y, uint32_t flags)
 {
    UNUSED_PARAM(x);
    UNUSED_PARAM(y);
@@ -189,19 +190,22 @@ void pxWayland::onMouseUp(int32_t x, int32_t y, uint32_t flags)
    // TODO: 0x110 is BTN_LEFT : need mouse event to include button codes
    // perhaps with mapping from native to PX.  Wayland expects Linux button codes
    WstCompositorPointerButtonEvent( mWCtx, 0x110, WstPointer_buttonState_released );
+   return false;
 }
 
-void pxWayland::onMouseEnter()
+bool pxWayland::onMouseEnter()
 {
    WstCompositorPointerEnter( mWCtx );
+   return false;
 }
 
-void pxWayland::onMouseLeave()
+bool pxWayland::onMouseLeave()
 {
    WstCompositorPointerLeave( mWCtx );
+   return false;
 }
 
-void pxWayland::onMouseMove(int32_t x, int32_t y)
+bool pxWayland::onMouseMove(int32_t x, int32_t y)
 {
    int objX, objY;
    int resW, resH;
@@ -211,19 +215,22 @@ void pxWayland::onMouseMove(int32_t x, int32_t y)
    objY= (int)(y+0.5f);
    
    WstCompositorPointerMoveEvent( mWCtx, objX, objY );
+   return false;
 }
 
-void pxWayland::onFocus()
+bool pxWayland::onFocus()
 {
    // Nothing to do
+  return false;
 }
 
-void pxWayland::onBlur()
+bool pxWayland::onBlur()
 {
    // Nothing to do
+  return false;
 }
 
-void pxWayland::onKeyDown(uint32_t keycode, uint32_t flags)
+bool pxWayland::onKeyDown(uint32_t keycode, uint32_t flags)
 {
    int32_t linuxKeyCode;
    int32_t modifiers;
@@ -232,9 +239,10 @@ void pxWayland::onKeyDown(uint32_t keycode, uint32_t flags)
    linuxKeyCode= linuxFromPX( keycode );
    
    WstCompositorKeyEvent( mWCtx, linuxKeyCode, WstKeyboard_keyState_depressed, modifiers ); 
+   return false;
 }
 
-void pxWayland::onKeyUp(uint32_t keycode, uint32_t flags)
+bool pxWayland::onKeyUp(uint32_t keycode, uint32_t flags)
 {
    int32_t linuxKeyCode;
    int32_t modifiers;
@@ -243,13 +251,15 @@ void pxWayland::onKeyUp(uint32_t keycode, uint32_t flags)
    linuxKeyCode= linuxFromPX( keycode );
    
    WstCompositorKeyEvent( mWCtx, linuxKeyCode, WstKeyboard_keyState_released, modifiers ); 
+   return false;
 }
 
-void pxWayland::onChar(uint32_t codepoint)
+bool pxWayland::onChar(uint32_t codepoint)
 {
    UNUSED_PARAM(codepoint);
 
    // Nothing to do
+   return false;
 }
 
 void pxWayland::onUpdate(double t)

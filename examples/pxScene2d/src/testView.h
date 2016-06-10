@@ -25,57 +25,68 @@ testView(): mContainer(NULL),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) 
     mh = h;
   }
 
-  virtual void RT_STDCALL onMouseDown(int32_t x, int32_t y, uint32_t flags)
+  virtual bool RT_STDCALL onMouseDown(int32_t x, int32_t y, uint32_t flags)
   {
     rtLogInfo("testView::onMouseDown(%d, %d, %u)", x, y, flags);
+    return false;
   }
 
-  virtual void RT_STDCALL onMouseUp(int32_t x, int32_t y, uint32_t flags)
+  virtual bool RT_STDCALL onMouseUp(int32_t x, int32_t y, uint32_t flags)
   {
     rtLogInfo("testView::onMouseUp(%d, %d, %u)", x, y, flags);
+    return false;
   }
 
-  virtual void RT_STDCALL onMouseMove(int32_t x, int32_t y)
+  virtual bool RT_STDCALL onMouseMove(int32_t x, int32_t y)
   {
     rtLogInfo("testView::onMouseMove(%d, %d)", x, y);
     mMouseX = x;
     mMouseY = y;
+    return false;
   }
 
-  virtual void RT_STDCALL onMouseEnter()
+  virtual bool RT_STDCALL onMouseEnter()
   {
     rtLogInfo("testView::onMouseEnter()");
     mEntered = true;
+    return false;
   }
 
-  virtual void RT_STDCALL onMouseLeave()
+  virtual bool RT_STDCALL onMouseLeave()
   {
     rtLogInfo("testView::onMouseLeave()");
     mEntered = false;
+    return false;
   }
 
-  virtual void RT_STDCALL onFocus()
+  virtual bool RT_STDCALL onFocus()
   {
     rtLogInfo("testView::onFocus()");
+    return false;
   }
-  virtual void RT_STDCALL onBlur()
+
+  virtual bool RT_STDCALL onBlur()
   {
     rtLogInfo("testView::onBlur()");
-
+    return false;
   }
-  virtual void RT_STDCALL onKeyDown(uint32_t keycode, uint32_t flags)
+
+  virtual bool RT_STDCALL onKeyDown(uint32_t keycode, uint32_t flags)
   {
     rtLogInfo("testView::onKeyDown(%u, %u)", keycode, flags);
+    return false;
   }
 
-  virtual void RT_STDCALL onKeyUp(uint32_t keycode, uint32_t flags)
+  virtual bool RT_STDCALL onKeyUp(uint32_t keycode, uint32_t flags)
   {
     rtLogInfo("testView::onKeyUp(%u, %u)", keycode, flags);
+    return false;
   }
 
-  virtual void RT_STDCALL onChar(uint32_t codepoint)
+  virtual bool RT_STDCALL onChar(uint32_t codepoint)
   {
     rtLogInfo("testView::onChar(%u)", codepoint);
+    return false;
   }
 
   virtual void RT_STDCALL setViewContainer(pxIViewContainer* l)

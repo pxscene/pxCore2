@@ -1440,7 +1440,7 @@ void pxScene2d::onSize(int32_t w, int32_t h)
 #endif
 }
 
-void pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
+bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
 {
 #if 1
   {
@@ -1480,9 +1480,10 @@ void pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
       #endif
     }
   }
+  return false;
 }
 
-void pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
+bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
 {
 #if 1
   {
@@ -1530,6 +1531,7 @@ void pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     else
       setMouseEntered(NULL);
   }
+  return false;
 }
 
 // TODO rtRefT doesn't like non-const !=
@@ -1599,11 +1601,12 @@ rtError pxScene2d::setFocus(rtObjectRef o)
   return RT_OK;
 }
 
-void pxScene2d::onMouseEnter()
+bool pxScene2d::onMouseEnter()
 {
+  return false;
 }
 
-void pxScene2d::onMouseLeave()
+bool pxScene2d::onMouseLeave()
 {
   // top level scene event
   rtObjectRef e = new rtMapObject;
@@ -1612,23 +1615,25 @@ void pxScene2d::onMouseLeave()
   
   mMouseDown = NULL;
   setMouseEntered(NULL);
+  return false;
 }
 
-void pxScene2d::onFocus()
+bool pxScene2d::onFocus()
 {
   // top level scene event
   rtObjectRef e = new rtMapObject;
   e.set("name", "onFocus");
   mEmit.send("onFocus", e);
-
+  return false;
 }
-void pxScene2d::onBlur()
+
+bool pxScene2d::onBlur()
 {
   // top level scene event
   rtObjectRef e = new rtMapObject;
   e.set("name", "onBlur");
   mEmit.send("onBlur", e);
-
+  return false;
 }
 
 bool gStopPropagation;
@@ -1639,15 +1644,17 @@ rtError stopPropagation2(int /*numArgs*/, const rtValue* /*args*/, rtValue* /*re
   return RT_OK;
 }
 
-void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t, 
+bool pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t, 
                             const char* preEvent, const char* event) 
 {
+  bool consumed = false;
+  mStopPropagation = false;
   rtValue stop;
   if (e && t)
   {
-    mStopPropagation = false;
+    AddRef();  // TODO refactor? make sure scene stays alive while we bubble since we're using the address of mStopPropagation
 //    e.set("stopPropagation", get<rtFunctionRef>("stopPropagation"));
-    e.set("stopPropagation", new rtFunctionCallback(stopPropagation2, (void*)&gStopPropagation));
+    e.set("stopPropagation", new rtFunctionCallback(stopPropagation2, (void*)&mStopPropagation));
     
     vector<rtRefT<pxObject> > l;
     while(t)
@@ -1682,13 +1689,19 @@ void pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
         emit.sendReturns(event,e,stop);
 //      printf("mStopPropagation %d\n", mStopPropagation);
       if (mStopPropagation)
+      {
+        printf("Event bubble aborted\n");
         break;
+      }
     }
 //    printf("after %s bubble\n", event);
+    consumed = mStopPropagation;
+    Release();
   }
+  return consumed;
 }
 
-void pxScene2d::onMouseMove(int32_t x, int32_t y)
+bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 {
   #ifdef USE_SCENE_POINTER
   mPointerX= x;
@@ -1812,9 +1825,10 @@ void pxScene2d::onMouseMove(int32_t x, int32_t y)
     printf("found object id: %s\n", id.isEmpty()?"none":id.cString());
   }
 #endif
+  return false;
 }
 
-void pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags) 
+bool pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags) 
 {
   if (mFocusObj)
   {
@@ -1823,11 +1837,12 @@ void pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags)
     e.set("keyCode", keyCode);
     e.set("flags", (uint32_t)flags);
     rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
-    bubbleEvent(e, t, "onPreKeyDown", "onKeyDown");
+    return bubbleEvent(e, t, "onPreKeyDown", "onKeyDown");
   }
+  return false;
 }
 
-void pxScene2d::onKeyUp(uint32_t keyCode, uint32_t flags)
+bool pxScene2d::onKeyUp(uint32_t keyCode, uint32_t flags)
 {
   if (mFocusObj)
   {
@@ -1836,11 +1851,12 @@ void pxScene2d::onKeyUp(uint32_t keyCode, uint32_t flags)
     e.set("keyCode", keyCode);
     e.set("flags", (uint32_t)flags);
     rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
-    bubbleEvent(e, t, "onPreKeyUp", "onKeyUp");
+    return bubbleEvent(e, t, "onPreKeyUp", "onKeyUp");
   }
+  return false;
 }
 
-void pxScene2d::onChar(uint32_t c)
+bool pxScene2d::onChar(uint32_t c)
 {
   if (mFocusObj)
   {
@@ -1848,8 +1864,9 @@ void pxScene2d::onChar(uint32_t c)
     e.set("target",mFocusObj);
     e.set("charCode", c);
     rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
-    bubbleEvent(e, t, "onPreChar", "onChar");
+    return bubbleEvent(e, t, "onPreChar", "onChar");
   }
+  return false;
 }
 
 rtError pxScene2d::showOutlines(bool& v) const 
@@ -2130,7 +2147,6 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
-//    rtLogInfo("In Make Ready");
     if (numArgs >= 1)
     {
       if (args[0].toBool())
@@ -2141,7 +2157,7 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
         v->mReady.send("resolve", v->mApi);
       }
       else
-        v->mReady.send("reject", rtValue()); // JRJR  should declare an empty rtValue for this purpose
+        v->mReady.send("reject", new rtObject); // TODO JRJR  Why does this fail if I leave the argment as null... 
 
       return RT_OK;
     }

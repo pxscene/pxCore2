@@ -3,6 +3,8 @@ var root = scene.root;
 var bg = scene.create({t:"image",url:"../images/status_bg.png",parent:root,stretchX:scene.stretch.STRETCH,stretchY:scene.stretch.STRETCH});
 var inputRes = scene.create({t:"imageResource",url:"../images/input2.png"});
 var inputbg = scene.create({t:"image9",resource:inputRes,a:0.9,x:10,y:10,w:400,insetLeft:10,insetRight:10,insetTop:10,insetBottom:10,parent:bg});
+var spinner = scene.create({t:"image",url:"../images/spinningball2.png",cx:50,cy:50,y:-30,parent:inputbg,sx:0.3,sy:0.3,a:0});
+spinner.animateTo({r:360},1.0,scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP,scene.animation.COUNT_FOREVER);
 var prompt = scene.create({t:"text",text:"Enter Url to JS File or Package",parent:inputbg,pixelSize:24,textColor:0x869CB2ff,x:10,y:2});
 var url = scene.create({t:"text",text:"",parent:inputbg,pixelSize:24,textColor:0x303030ff,x:10,y:2});
 var cursor = scene.create({t:"rect", w:2, h:inputbg.h-10, parent:inputbg,x:10,y:5});
@@ -24,39 +26,43 @@ inputbg.on("onChar",function(e) {
   }
 });
 
+
+function reload(u) {
+  
+  spinner.a = 1;
+  if (!u)
+    u = url.text;
+  else
+    url.text = u;
+
+  // TODO Temporary hack
+  if (u.indexOf(':') == -1)
+    u = 'http://www.pxscene.org/examples/px-reference/gallery/' + u;
+  
+  content.url = u;
+  //scene.setFocus(content);
+  content.focus = true;
+  if (true)
+  {
+    content.ready.then(
+      function(o) {
+        spinner.a = 0;
+        spinner.r = 0;
+        console.log(o);
+        contentBG.draw = true;
+      },
+      function() {
+        spinner.a = 0;
+        spinner.r = 0;
+        contentBG.draw = false;
+      }
+    );
+  }
+}
+
 inputbg.on("onKeyDown", function(e) {
   if (e.keyCode == 13) { // <<<  ENTER KEY
-
-    var u = url.text;
-    // TODO Temporary hack
-    if (u.indexOf(':') == -1)
-      u = 'http://www.pxscene.org/examples/px-reference/gallery/' + u;
-
-    content.url = u;
-    //scene.setFocus(content);
-    content.focus = true;
-if (true)
-{
-    content.ready.then(function(o) {
-      
-      //o.foo();
-      console.log(o);
-      
-      contentBG.draw = true;
-/*
-      console.log("api after promise:"+content.api);
-      if (content.api) {
-        content.api.test("john");
-        content.api.middle.fillColor=0x000000ff;
-      }
-*/
-    },
-                       function() {
-                         contentBG.draw = false;
-                         console.log("scene load failed");
-                       }
-    );
-}
+    reload();
   }
   else if (e.keyCode == 8) { // <<<  BACKSPACE KEY
     var s = url.text.slice();
@@ -78,12 +84,10 @@ inputbg.on("onBlur", function(e) {
 });
 
 inputbg.on("onMouseUp", function(e) {
-  //scene.setFocus(inputbg);
   inputbg.focus = true;
 });
 
 content.on("onMouseUp", function(e) {
-  //scene.setFocus(content);
   content.focus=true;
 });
 
@@ -91,6 +95,7 @@ function updateSize(w,h) {
   bg.w = w;
   bg.h = h;
   inputbg.w = w-20;
+  spinner.x = w-100;
   content.w = w-20;
   content.h = h-70;
   contentBG.w = w-20;
@@ -109,6 +114,28 @@ scene.root.on("onPreKeyDown", function(e) {
     e.stopPropagation();
   }
 });
+
+
+if (true) {
+  scene.root.on("onKeyDown", function(e) {
+	  var code = e.keyCode; var flags = e.flags;
+    console.log("onKeyDown browser.js:", code, ", ", flags);
+    if (code == 82 && ((flags & 48) == 48)) {  // ctrl-alt-r
+      console.log("Browser.js Reloading");
+      reload();
+      e.stopPropagation();
+      console.log("Browser.js reload done");
+    }
+    else if (code == 72 && ((flags & 48)==48)) {  // ctrl-alt-h
+      var homeURL = "browser.js";
+      console.log("browser.js Loading home");
+      reload("gallery.js");
+      e.stopPropagation();
+    }
+  });
+}
+
+
 
 scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 updateSize(scene.w,scene.h);

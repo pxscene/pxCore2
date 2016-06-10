@@ -897,34 +897,59 @@ public:
     }
     return RT_OK;
   }
-  rtError onKeyDown(rtObjectRef o)
+  rtError onKeyDown(rtObjectRef e)
   {
     if (mView)
     {
-      uint32_t keyCode = o.get<uint32_t>("keyCode");
-      uint32_t flags = o.get<uint32_t>("flags");
-      mView->onKeyDown(keyCode, flags);
+      printf("pxViewContainer::onKeyDown enter\n");
+      uint32_t keyCode = e.get<uint32_t>("keyCode");
+      uint32_t flags = e.get<uint32_t>("flags");
+      bool consumed = mView->onKeyDown(keyCode, flags);
+      if (consumed)
+      {
+        rtFunctionRef stopPropagation = e.get<rtFunctionRef>("stopPropagation");
+        if (stopPropagation)
+        {
+          stopPropagation.send();
+        }
+      }
     }
     return RT_OK;
   }
 
-  rtError onKeyUp(rtObjectRef o)
+  rtError onKeyUp(rtObjectRef e)
   {
     if (mView)
     {
-      uint32_t keyCode = o.get<uint32_t>("keyCode");
-      uint32_t flags = o.get<uint32_t>("flags");
-      mView->onKeyUp(keyCode, flags);
+      uint32_t keyCode = e.get<uint32_t>("keyCode");
+      uint32_t flags = e.get<uint32_t>("flags");
+      bool consumed = mView->onKeyUp(keyCode, flags);
+      if (consumed)
+      {
+        rtFunctionRef stopPropagation = e.get<rtFunctionRef>("stopPropagation");
+        if (stopPropagation)
+        {
+          stopPropagation.send();
+        }
+      }
     }
     return RT_OK;
   }
 
-  rtError onChar(rtObjectRef o)
+  rtError onChar(rtObjectRef e)
   {
     if (mView)
     {
-      uint32_t codePoint = o.get<uint32_t>("charCode");
-      mView->onChar(codePoint);
+      uint32_t codePoint = e.get<uint32_t>("charCode");
+      bool consumed = mView->onChar(codePoint);
+      if (consumed)
+      {
+        rtFunctionRef stopPropagation = e.get<rtFunctionRef>("stopPropagation");
+        if (stopPropagation)
+        {
+          stopPropagation.send();
+        }
+      }
     }
     return RT_OK;
   }
@@ -1066,64 +1091,74 @@ protected:
       mView->onSize(w,h);
   }
 
-  virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags)
+  virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags)
   {
     if (mView)
-      mView->onMouseDown(x,y,flags);
+      return mView->onMouseDown(x,y,flags);
+    return false;
   }
 
-  virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)
+  virtual bool onMouseUp(int32_t x, int32_t y, uint32_t flags)
   {
     if (mView)
-      mView->onMouseUp(x,y,flags);
+      return mView->onMouseUp(x,y,flags);
+    return false;
   }
 
-  virtual void onMouseMove(int32_t x, int32_t y)
+  virtual bool onMouseMove(int32_t x, int32_t y)
   {
     if (mView)
-      mView->onMouseMove(x,y);
+      return mView->onMouseMove(x,y);
+    return false;
   }
 
-  virtual void onMouseEnter()
+  virtual bool onMouseEnter()
   {
     if (mView)
-      mView->onMouseEnter();
+      return mView->onMouseEnter();
+    return false;
   }
 
-  virtual void onMouseLeave()
+  virtual bool onMouseLeave()
   {
     if (mView)
-      mView->onMouseLeave();
+      return mView->onMouseLeave();
+    return false;
   }
 
-  virtual void onFocus()
+  virtual bool onFocus()
   {
     if (mView)
-      mView->onFocus();
+      return mView->onFocus();
+    return false;
   }
 
-  virtual void onBlur()
+  virtual bool onBlur()
   {
     if (mView)
-      mView->onBlur();
+      return mView->onBlur();
+    return false;
   }
 
-  virtual void onKeyDown(uint32_t keycode, uint32_t flags)
+  virtual bool onKeyDown(uint32_t keycode, uint32_t flags)
   {
     if (mView)
-      mView->onKeyDown(keycode, flags);
+      return mView->onKeyDown(keycode, flags);
+    return false;
   }
 
-  virtual void onKeyUp(uint32_t keycode, uint32_t flags)
+  virtual bool onKeyUp(uint32_t keycode, uint32_t flags)
   {
     if (mView)
-      mView->onKeyUp(keycode,flags);
+      return mView->onKeyUp(keycode,flags);
+    return false;
   }
 
-  virtual void onChar(uint32_t codepoint)
+  virtual bool onChar(uint32_t codepoint)
   {
     if (mView)
-      mView->onChar(codepoint);
+      return mView->onChar(codepoint);
+    return false;
   }
 
   virtual void onUpdate(double t)
@@ -1306,18 +1341,18 @@ public:
   // The following methods are delegated to the view
   virtual void onSize(int32_t w, int32_t h);
 
-  virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags);
-  virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags);
-  virtual void onMouseEnter();
-  virtual void onMouseLeave();
-  virtual void onMouseMove(int32_t x, int32_t y);
+  virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags);
+  virtual bool onMouseUp(int32_t x, int32_t y, uint32_t flags);
+  virtual bool onMouseEnter();
+  virtual bool onMouseLeave();
+  virtual bool onMouseMove(int32_t x, int32_t y);
 
-  virtual void onFocus();
-  virtual void onBlur();
+  virtual bool onFocus();
+  virtual bool onBlur();
 
-  virtual void onKeyDown(uint32_t keycode, uint32_t flags);
-  virtual void onKeyUp(uint32_t keycode, uint32_t flags);
-  virtual void onChar(uint32_t codepoint);
+  virtual bool onKeyDown(uint32_t keycode, uint32_t flags);
+  virtual bool onKeyUp(uint32_t keycode, uint32_t flags);
+  virtual bool onChar(uint32_t codepoint);
   
   virtual void onUpdate(double t);
   virtual void onDraw();
@@ -1361,7 +1396,7 @@ public:
   }
   
 private:
-  void bubbleEvent(rtObjectRef e, rtRefT<pxObject> t, 
+  bool bubbleEvent(rtObjectRef e, rtRefT<pxObject> t, 
                    const char* preEvent, const char* event) ;
 
   void draw();

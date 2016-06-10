@@ -64,18 +64,18 @@ if (false) {
       scene.showOutlines = !scene.showOutlines;
       e.stopPropagation();
     }
-    else if (code == 82 && ((flags & 56) == 56)) {  // ctrl-alt-r
+    else if (code == 82 && ((flags & 56) == 56)) {  // ctrl-alt-shift-r
       console.log("Reloading url: ", originalURL);
       childScene.url = originalURL;
       e.stopPropagation();
     }
-    else if (code == 72 && ((flags & 56)==56)) {  // ctrl-alt-h
+    else if (code == 72 && ((flags & 56)==56)) {  // ctrl-alt-shift-h
       var homeURL = "browser.js";
-      console.log("loading home url: ", homeURL);
+      console.log("Loading home url: ", homeURL);
       childScene.url = homeURL;
       e.stopPropagation();
     }
-    else if (code == 83 && ((flags & 48)==48)) { // ctrl-s
+    else if (code == 83 && ((flags & 48)==48)) { // ctrl-alt-s
       // This returns a data URI string with the image data
       var dataURI = scene.screenshot('image/png;base64');
       // convert the data URI by stripping off the scheme and type information
@@ -98,17 +98,17 @@ if (false) {
     // eat the ones we handle here
     if (code == 89 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-y
     else if (code == 79 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-o
-    else if (code == 82 && ((flags & 56)==56)) e.stopPropagation(); // ctrl-alt-r
-    else if (code == 72 && ((flags & 56)==56)) e.stopPropagation(); // ctrl-alt-r
+    else if (code == 82 && ((flags & 56)==56)) e.stopPropagation(); // ctrl-alt-shift-r
+    else if (code == 72 && ((flags & 56)==56)) e.stopPropagation(); // ctrl-alt-shift-h
     else if (code == 83 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-s
   });
 
-if (true) {
+  if (true) {
   scene.root.on("onKeyDown", function(e) {
 	  var code = e.keyCode; var flags = e.flags;
     console.log("onKeyDown shell:", code, ", ", flags);
     if (code == 82 && ((flags & 48) == 48)) {  // ctrl-alt-r
-      console.log("Reloading url: ", originalURL);
+      console.log("(shell.js) Reloading url: ", originalURL);
       childScene.url = originalURL;
       e.stopPropagation();
     }
