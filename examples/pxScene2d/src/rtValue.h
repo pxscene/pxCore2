@@ -58,9 +58,12 @@ class rtObject;
 class rtObjectRef;
 class rtFunctionRef;
 
+
+const char* rtStrType(char t); //fwd
+
 typedef void* voidPtr;
 
-union rtValue_ 
+union rtValue_
 {
   bool        boolValue;
   int8_t      int8Value;
@@ -79,7 +82,7 @@ union rtValue_
 
 typedef char rtType;
 
-class rtValue 
+class rtValue
 {
  public:
   rtValue();
@@ -142,6 +145,10 @@ class rtValue
 
   rtType getType() const { return mType; }
 
+  const char *getTypeStr() const { return ::rtStrType(mType); }
+
+  finline bool isEmpty() const { return mIsEmpty; };
+
   void setEmpty();
   void setValue(const rtValue& v);
   void setBool(bool v);
@@ -176,10 +183,10 @@ class rtValue
   rtError getVoidPtr(voidPtr& v)        const;
 
   // TODO rework this so we avoid a copy if the type matches
-  template <typename T> 
+  template <typename T>
     T convert() const { T t; cvt(t); return t; }
 
-  template <typename T> 
+  template <typename T>
     void assign(const T t) { asn(t); }
 
  protected:
@@ -222,12 +229,14 @@ class rtValue
 
   rtError coerceType(rtType newType);
 
-  rtType mType;
+  rtType   mType;
   rtValue_ mValue;
+
+  bool     mIsEmpty;
 };
 
 #define RT_TYPE_CASE(t) case t: s = # t; break;
 
-const char* rtStrType(char t);
+//const char* rtStrType(char t);
 
 #endif

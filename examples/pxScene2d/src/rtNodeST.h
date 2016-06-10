@@ -17,6 +17,9 @@
 #include "jsbindings/rtObjectWrapper.h"
 #include "jsbindings/rtFunctionWrapper.h"
 
+#define SANDBOX_IDENTIFIER  ( (const char*) "_sandboxStuff" )
+#define SANDBOX_JS          ( (const char*) "rcvrcore/sandbox.js")
+
 #if 1
 #ifndef WIN32
 #pragma GCC diagnostic pop
@@ -63,6 +66,8 @@ public:
   ~rtNodeContext();
 
   void add(const char *name, rtValue  const& val);
+  rtValue get(const char *name);
+
 
   rtObjectRef runScript(const char        *script,  const char *args = NULL); // BLOCKS
   rtObjectRef runScript(const std::string &script,  const char *args = NULL); // BLOCKS
@@ -128,12 +133,13 @@ private:
   void nodePath();
 
   v8::Isolate                   *mIsolate;
-  v8::Platform                  *mPlatform;
+  //v8::Platform                  *mPlatform;
+
   v8::Persistent<v8::Context>    mContext;
 
 
 #ifdef USE_CONTEXTIFY_CLONES
-  rtNodeContextRef mFastContext;
+  rtNodeContextRef mRefContext;
 #endif
 
   bool mTestGc;

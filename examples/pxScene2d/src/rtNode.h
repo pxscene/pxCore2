@@ -17,13 +17,16 @@
 #include "jsbindings/rtObjectWrapper.h"
 #include "jsbindings/rtFunctionWrapper.h"
 
+#define SANDBOX_IDENTIFIER  ( (const char*) "_sandboxStuff" )
+#define SANDBOX_JS          ( (const char*) "rcvrcore/sandbox.js")
+
 #if 1
  #ifndef WIN32
   #pragma GCC diagnostic pop
  #endif
 #endif
 
-//#define USE_CONTEXTIFY_CLONES
+#define USE_CONTEXTIFY_CLONES
 
 namespace node
 {
@@ -62,7 +65,9 @@ public:
 
   ~rtNodeContext();
 
-  void add(const char *name, rtValue  const& val);
+  void    add(const char *name, rtValue  const& val);
+  rtValue get(const char *name);
+
 
   rtObjectRef runScript(const char        *script,  const char *args = NULL); // BLOCKS
   rtObjectRef runScript(const std::string &script,  const char *args = NULL); // BLOCKS
@@ -82,7 +87,7 @@ public:
 
   const char   *js_file;
   std::string   js_script;
-  
+
   rtNode   *node;
 
   v8::Isolate              *getIsolate()      const { return mIsolate; };
@@ -120,7 +125,7 @@ public:
   rtNodeContextRef createContext(bool ownThread = false);
 
   v8::Isolate   *getIsolate() { return mIsolate; };
-  
+
 private:
   void init(int argc, char** argv);
   void term();
@@ -129,7 +134,7 @@ private:
 
   v8::Isolate                   *mIsolate;
   //v8::Platform                  *mPlatform;
-   
+
   v8::Persistent<v8::Context>    mContext;
 
 
