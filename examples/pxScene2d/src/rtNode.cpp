@@ -36,6 +36,8 @@ extern rtThreadQueue gUIThreadQueue;
 
 #ifdef USE_CONTEXTIFY_CLONES
 #warning Using USE_CONTEXTIFY_CLONES !!
+#else
+#warning NOT Using USE_CONTEXTIFY_CLONES !!
 #endif
 
 #ifdef RUNINMAIN

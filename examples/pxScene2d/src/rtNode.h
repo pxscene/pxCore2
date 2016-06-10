@@ -23,7 +23,7 @@
  #endif
 #endif
 
-#define USE_CONTEXTIFY_CLONES
+//#define USE_CONTEXTIFY_CLONES
 
 namespace node
 {
