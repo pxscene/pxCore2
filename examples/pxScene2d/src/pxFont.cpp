@@ -277,8 +277,17 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, flo
   h *= sy;
 }
 
+
+uint32_t npot(uint32_t i)
+{
+  uint32_t power = 1;
+  while(power < i)
+    power*=2;
+  return power;
+}
+
 void pxFont::renderText(const char *text, uint32_t size, float x, float y, 
-                        float sx, float sy, 
+                        float nsx, float nsy, 
                         float* color, float mw) 
 {
   if (!text || !mInitialized)
@@ -290,7 +299,14 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
   int i = 0;
   u_int32_t codePoint;
 
-  setPixelSize(size);
+  // TODO could be better performing....
+  // TODO probably should be the max of nsx and nsy
+  uint32_t size2 = npot(floor((double)size*nsx));
+  setPixelSize(size2);
+
+  float sx = (((double)size*nsx)/(float)size2)/nsx;
+  float sy = sx; // TODO should calculate this separately
+
   FT_Size_Metrics* metrics = &mFace->size->metrics;
 
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) 
@@ -299,11 +315,11 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
     if (!entry) 
       continue;
 
-    float x2 = x + entry->bitmap_left * sx;
+    float x2 = (float)x + (float)entry->bitmap_left * sx;
 //    float y2 = y - g->bitmap_top * sy;
-    float y2 = (y - entry->bitmap_top * sy) + (metrics->ascender>>6);
-    float w = entry->bitmapdotwidth * sx;
-    float h = entry->bitmapdotrows * sy;
+    float y2 = (float)((y - entry->bitmap_top) + (metrics->ascender>>6)) * sy;
+    float w = (float)entry->bitmapdotwidth * sx;
+    float h = (float)entry->bitmapdotrows * sy;
     
     if (codePoint != '\n')
     {

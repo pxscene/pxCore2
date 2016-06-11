@@ -119,7 +119,8 @@ void pxText::update(double t)
       setPainting(true);
 #else
     // TODO make this configurable
-    if (mText.length() >= 10)
+    // TODO make caching more intelligent given scaling
+    if (mText.length() >= 10 && msx == 1.0 && msy == 1.0)
     {
       mCached = NULL;
       pxContextFramebufferRef cached = context.createFramebuffer(getFBOWidth(),getFBOHeight());//mw,mh);
@@ -152,13 +153,14 @@ void pxText::draw() {
   static pxTextureRef nullMaskRef;
   if( getFontResource()->isFontLoaded())
   {
-    if (mCached.getPtr() && mCached->getTexture().getPtr())
+    // TODO not very intelligent given scaling
+    if (msx == 1.0 && msy == 1.0 && mCached.getPtr() && mCached->getTexture().getPtr())
     {
       context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef);
     }
     else
     {
-      getFontResource()->renderText(mText, mPixelSize, 0, 0, 1.0, 1.0, mTextColor, mw);
+      getFontResource()->renderText(mText, mPixelSize, 0, 0, msx, msy, mTextColor, mw);
     }
   }  
   //else {
