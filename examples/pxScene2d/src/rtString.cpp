@@ -119,7 +119,7 @@ bool rtString::beginsWith(const char* s) const
   return (strncmp(cString(),s,strlen(s))==0);
 }
 
-size_t rtString::find(size_t pos, const char* str) const
+int32_t rtString::find(size_t pos, const char* str) const
 {
   int haystack = 0;
   int old;
@@ -153,7 +153,7 @@ size_t rtString::find(size_t pos, const char* str) const
   return -1;
 }
 
-size_t rtString::find(size_t pos, uint32_t codePoint) const
+int32_t rtString::find(size_t pos, uint32_t codePoint) const
 {
   int i = 0;
   size_t p = 0;
