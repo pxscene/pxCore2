@@ -113,6 +113,7 @@ SEARCH=\
   -I$(NODEINC)/deps/cares/include \
   -I$(EXTDIR)/westeros/external/install/include \
   -I$(EXTDIR)/westeros-stub \
+  -Irpc/
    $(TARGETINCLUDE)
 
 
@@ -160,7 +161,7 @@ else
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform
 endif
 
-CXXFLAGS_FULL = $(CXXFLAGS)
+CXXFLAGS_FULL = $(CXXFLAGS) -fpermissive
 CLAGS_FULL = $(CFLAGS)
 LDFLAGS_FULL = $(LDFLAGS)
 
@@ -302,7 +303,7 @@ analyze:
 	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) pxscene
 
 pxscene: $(OBJS)
-	$(CXX) $(OBJS) $(LDFLAGS_FULL) -o pxscene
+	$(CXX) $(OBJS) $(LDFLAGS_FULL) -Lrpc/ -lrtRemote -o pxscene
 
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
 libpxscene.so: CXXFLAGS_FULL = -Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE

@@ -7,7 +7,7 @@ cd $THIS_DIR
 
 externalDir=../external
 
-externalLibs=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/westeros/external/install/lib/
+externalLibs=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/westeros/external/install/lib/:rpc/
 
 PathD=$externalLibs:$externalDir/libnode/out/Debug/obj.target
 PathR=$externalLibs:$externalDir/libnode/out/Release/obj.target
