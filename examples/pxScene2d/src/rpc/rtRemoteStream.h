@@ -51,6 +51,7 @@ public:
 private:
   rtError sendDocument(rapidjson::Document const& doc)
   {
+    std::unique_lock<std::mutex> lock(m_send_mutex);
     return rtSendDocument(doc, m_fd, nullptr);
   }
 
@@ -84,6 +85,8 @@ private:
   std::deque<WorkItem>      m_work_queue;
   std::mutex                m_work_mutex;
   std::condition_variable   m_work_cond;
+
+  std::mutex                m_send_mutex;
 };
 
 #endif

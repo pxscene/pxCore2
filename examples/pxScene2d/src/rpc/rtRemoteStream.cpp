@@ -289,6 +289,7 @@ rtError
 rtRemoteStream::send(rtRemoteMessage const& m)
 {
   m_last_message_time = time(0);
+  std::unique_lock<std::mutex> lock(m_send_mutex);
   return m.send(m_fd, NULL);
 }
 
@@ -374,7 +375,9 @@ rtRemoteStream::sendRequest(rtRemoteRequest const& req, MessageHandler handler, 
   }
 
   m_last_message_time = time(0);
+  m_send_mutex.lock();
   rtError e = req.send(m_fd, NULL);
+  m_send_mutex.unlock();
   if (e != RT_OK)
   {
     rtLogWarn("failed to send request: %d", e);
