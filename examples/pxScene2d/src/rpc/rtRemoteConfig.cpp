@@ -34,6 +34,10 @@ static inline std::string& trim(std::string& s)
 
 static std::string trim(char const* begin, char const* end)
 {
+<<<<<<< HEAD:examples/pxScene2d/src/rpc/rtRpcConfig.cpp
+  assert(begin != nullptr);
+  assert(end != nullptr);
+=======
   if (begin == nullptr)
   {
     rtLogError("invalid 'begin' pointer");
@@ -45,6 +49,7 @@ static std::string trim(char const* begin, char const* end)
     rtLogError("invalid 'end' pointer");
     return std::string();
   }
+>>>>>>> johnrobinsn/_temp_pxcore2_stage:examples/pxScene2d/src/rpc/rtRemoteConfig.cpp
 
   std::string s(begin, (end - begin));
   return trim(s);
@@ -76,7 +81,20 @@ static T numeric_cast(char const* s, std::function<T (const char *nptr, char **e
     return T();
   }
 
+<<<<<<< HEAD:examples/pxScene2d/src/rpc/rtRpcConfig.cpp
+  return l;
+}
+
+template<class T>
+static T numeric_cast(char const* s)
+{
+  long unsigned int l = to_long(s);
+  long unsigned int max = std::numeric_limits<T>::max();
+  assert(l <= max);
+  return static_cast<T>(l);
+=======
   return val;
+>>>>>>> johnrobinsn/_temp_pxcore2_stage:examples/pxScene2d/src/rpc/rtRemoteConfig.cpp
 }
 
 static std::shared_ptr<rtRemoteConfig> gConf;
@@ -204,7 +222,11 @@ rtRemoteConfig::fromFile(char const* file)
     return conf;
   }
 
+<<<<<<< HEAD:examples/pxScene2d/src/rpc/rtRpcConfig.cpp
+  FILE* f = fopen(file, "r");
+=======
   std::unique_ptr<FILE, int (*)(FILE *)> f(fopen(file, "r"), fclose);
+>>>>>>> johnrobinsn/_temp_pxcore2_stage:examples/pxScene2d/src/rpc/rtRemoteConfig.cpp
   if (!f)
   {
     rtLogDebug("can't open: %s. %s", file, strerror(errno));
@@ -237,12 +259,17 @@ rtRemoteConfig::fromFile(char const* file)
     while (end && (*end != '='))
       end++;
 
+<<<<<<< HEAD:examples/pxScene2d/src/rpc/rtRpcConfig.cpp
+    assert(end && *end == '=');
+
+=======
     if (end && *end != '=')
     {
       rtLogWarn("invalid configuration line: '%s'", p);
       continue;
     }
     
+>>>>>>> johnrobinsn/_temp_pxcore2_stage:examples/pxScene2d/src/rpc/rtRemoteConfig.cpp
     std::string name = trim(begin, end);
 
     begin = end + 1;

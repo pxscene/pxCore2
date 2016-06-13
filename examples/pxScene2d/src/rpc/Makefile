@@ -1,5 +1,9 @@
+<<<<<<< HEAD
+LIBRTRPC  = rtRpc
+=======
 
 LIBRTRPC  = rtRemote
+>>>>>>> johnrobinsn/_temp_pxcore2_stage
 LIBRTCORE = rtCore
 SAMPLEAPP = rpcSampleApp
 
