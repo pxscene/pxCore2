@@ -11,9 +11,7 @@
 #include "rtMutex.h"
 #include "pxTexture.h"
 #include "rtObject.h"
-#ifdef ENABLE_PX_WAYLAND_RPC
 #include "rtRemote.h"
-#endif //ENABLE_PX_WAYLAND_RPC
 
 #include "westeros-compositor.h"
 
@@ -30,6 +28,7 @@ public:
   virtual void clientStoppedNormal( int /*pid*/, int /*exitCode*/ ) {}
   virtual void clientStoppedAbnormal( int /*pid*/, int /*signo*/ ) {}
   virtual void isReady( bool /*ready*/ ) {}
+  virtual void isRemoteReady( bool /*ready*/ ) {}
 };
 
 class pxWayland: public pxIView {
@@ -118,6 +117,8 @@ public:
   virtual void onUpdate(double t);
   virtual void onDraw();
 
+  rtError setProperty(rtString &prop, rtString &val) const;
+
 private:
   rtAtomic mRefCount;
   pthread_t mClientMonitorThreadId;
@@ -163,9 +164,7 @@ protected:
 
   bool mHasApi;
   rtValue mAPI;
-#ifdef ENABLE_PX_WAYLAND_RPC
   rtObjectRef mRemoteObject;
-#endif
   rtString mRemoteObjectName;
   mutable rtMutex mRemoteObjectMutex;
 };
