@@ -10,6 +10,7 @@
 #include "pxBufferNative.h"
 #include "pxOffscreenNative.h"
 #include "pxWindowNative.h"
+#include "pxClipboardNative.h"
 #endif
 
 #endif
