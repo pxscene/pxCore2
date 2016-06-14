@@ -303,10 +303,10 @@ analyze:
 	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) pxscene
 
 pxscene: $(OBJS)
-	$(CXX) $(OBJS) $(LDFLAGS_FULL) -Lrpc/ -lrtRemote -o pxscene
+	$(CXX) $(OBJS) $(LDFLAGS_FULL) -o pxscene
 
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
-libpxscene.so: CXXFLAGS_FULL = -Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
+libpxscene.so: CXXFLAGS_FULL = -Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DENABLE_PX_WAYLAND_RPC
 libpxscene.so: LDFLAGS_FULL = -L../../../build/egl -Wl,--whole-archive ../../../build/egl/libpxCore.a -Wl,--no-whole-archive -lnode -pthread -lpng16 -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8) -Lrpc/  -ldl -lrt -L./ -lrtCore -shared -lnexus -lnxclient -lnxpl -lGLESv2 -lwesteros_compositor -Lrpc/ -lrtRemote -o libpxscene.so.1.0  
 libpxscene.so: $(PXSCENE_LIB_OBJS)
 	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL) 
