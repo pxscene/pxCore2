@@ -45,9 +45,9 @@ clean:
 	rm *.o
 	rm $(OUTDIR)/libpxCore.a
 
-$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxViewWindow.o  
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxViewWindow.o pxClipboardNative.o
 		       mkdir -p $(OUTDIR)    
-	    ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxViewWindow.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o  
+	    ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxViewWindow.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxClipboardNative.o
           
 pxOffscreen.o: pxOffscreen.cpp
 	$(CXX) -o pxOffscreen.o -Wall $(CXXFLAGS)  -c pxOffscreen.cpp
@@ -69,6 +69,9 @@ pxEventLoopNative.o: gles/pxEventLoopNative.cpp
 
 pxTimerNative.o: gles/pxTimerNative.cpp
 	$(CXX) -o pxTimerNative.o -Wall  $(CXXFLAGS)  -c gles/pxTimerNative.cpp
+
+pxClipboardNative.o: gles/pxClipboardNative.cpp
+	g++ -o pxClipboardNative.o -Wall $(CFLAGS) -c gles/pxClipboardNative.cpp
 
 pxWindowUtil.o: pxWindowUtil.cpp
 	$(CXX) -o pxWindowUtil.o -Wall  $(CXXFLAGS)  -c pxWindowUtil.cpp
