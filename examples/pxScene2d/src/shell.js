@@ -98,30 +98,12 @@ if (false) {
           console.log("Created screenshot.png");
       });
     }
-    else if (code == 67 && ((flags & 16)==16))  // ctrl-c
-    {
-        // On COPY ... access the Native CLIPBOARD and ADD to top!
-        //
-        var foo = scene.clipboardSet('clipString SET to Top');
-       // console.log("#######  CTRL C >>> COPY !!   foo: " + foo);
-        console.log("#######  CTRL C >>> COPY !!   ");
-    }
-//    else if (code == 86 && ((flags & 16)==16))  // ctrl-v
-//    {
-//        // On PASTE ... access the Native CLIPBOARD and GET the top!
-//        //
-//        var myString = "empty";
-//                
-//        var foo = scene.clipboardGet('clipString GET from Top', myString);
-//        console.log("SHELL #######  CTRL V >>> PASTE !!  myString: " + myString);
-//    }
   });
 
   scene.root.on("onPreKeyUp", function(e) {
     console.log("in onPreKeyUp", e.keyCode, e.flags);
 	  var code = e.keyCode; var flags = e.flags;
     console.log("onKeyUp:", code, ", ", flags);
-                
     // eat the ones we handle here
          if (code == 89 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-y
     else if (code == 79 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-o

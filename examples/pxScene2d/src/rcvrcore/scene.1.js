@@ -89,7 +89,6 @@ function Scene() {
       return nativeScene.clipboardGet(type);
   }
 
-  
   this.clipboardSet = function clipboardSet(type, clip) {
       return nativeScene.clipboardSet(type, clip);
   }
