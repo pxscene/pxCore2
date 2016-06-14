@@ -1,6 +1,6 @@
 
 UNAME_S := $(shell uname -s)
-HNAME_S := $(shell hostname) 
+HNAME_S := $(shell hostname)
 
 ifeq ($(UNAME_S),Darwin)
 all: pxscene pxscene.app
@@ -17,7 +17,7 @@ clean:
 	rm -f pxscene
 	rm -rf pxscene.app
 
-ifeq ($(HNAME_S),raspberrypi ) 
+ifeq ($(HNAME_S),raspberrypi )
 PX_PLATFORM=PX_PLATFORM_GENERIC_EGL
 PXLIBS=$(PXCOREDIR)/build/egl
 TARGETINCLUDE= -I/opt/vc/include \
@@ -117,7 +117,7 @@ SEARCH=\
    $(TARGETINCLUDE)
 
 
-#CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE 
+#CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE
 CXXFLAGS2=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN
 
 ifdef PXVERSION
@@ -213,7 +213,7 @@ PXSCENE_LIB_SRCS=\
            jsbindings/rtWrapperUtils.cpp \
            jsbindings/rtFunctionWrapper.cpp \
            jsbindings/rtObjectWrapper.cpp \
-           jsbindings/jsCallback.cpp 
+           jsbindings/jsCallback.cpp
 
 ifeq ($(HAVE_WESTEROS),1)
 else
@@ -236,7 +236,7 @@ PXSCENE_LIB_SEARCH=\
   -I$(NODEINC)/deps/v8/include \
   -I$(NODEINC)/deps/cares/include \
   -Irpc \
-  $(PXCORE_INCLUDES) 
+  $(PXCORE_INCLUDES)
 
 # pxscene so end
 
@@ -276,7 +276,7 @@ $(OBJDIR)/%.o : %.c
 	$(CC) -c $(CXXFLAGS_FULL) $< -o $@
 
 
-# Enable these. There are already a bunch of things 
+# Enable these. There are already a bunch of things
 # enabled by default. These are in addition to those.
 SCAN_CHECKS=\
   alpha.core.BoolAssignment\
@@ -302,20 +302,21 @@ analyze:
 	$(MAKE) clean
 	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) pxscene
 
-pxscene: $(OBJS)
+LINKLIBS := $(PXLIBS)/libpxCore.a
+pxscene: $(OBJS) $(LINKLIBS)
 	$(CXX) $(OBJS) $(LDFLAGS_FULL) -o pxscene
 
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
 libpxscene.so: CXXFLAGS_FULL = -Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DENABLE_PX_WAYLAND_RPC
-libpxscene.so: LDFLAGS_FULL = -L../../../build/egl -Wl,--whole-archive ../../../build/egl/libpxCore.a -Wl,--no-whole-archive -lnode -pthread -lpng16 -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8) -Lrpc/  -ldl -lrt -L./ -lrtCore -shared -lnexus -lnxclient -lnxpl -lGLESv2 -lwesteros_compositor -Lrpc/ -lrtRemote -o libpxscene.so.1.0  
+libpxscene.so: LDFLAGS_FULL = -L../../../build/egl -Wl,--whole-archive ../../../build/egl/libpxCore.a -Wl,--no-whole-archive -lnode -pthread -lpng16 -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8) -Lrpc/  -ldl -lrt -L./ -lrtCore -shared -lnexus -lnxclient -lnxpl -lGLESv2 -lwesteros_compositor -Lrpc/ -lrtRemote -o libpxscene.so.1.0
 libpxscene.so: $(PXSCENE_LIB_OBJS)
-	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL) 
+	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
 	ln -sf libpxscene.so.1 libpxscene.so
 
 librtCore.so: CFLAGS_FULL = $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
 librtCore.so: CXXFLAGS_FULL = $(CXXFLAGS) -std=c++0x $(CFLAGS_FULL)
-librtCore.so: LDFLAGS_FULL = -pthread -ldl -luuid -shared -o $@ 
+librtCore.so: LDFLAGS_FULL = -pthread -ldl -luuid -shared -o $@
 librtCore.so: $(RTCORE_OBJS)
 	$(CXX) $(RTCORE_OBJS) $(LDFLAGS_FULL)
 
@@ -323,7 +324,7 @@ pxscene.app: pxscene
 	rm -rf pxscene.app
 	./mkapp.sh
 
-pxscene.dmg: 
+pxscene.dmg:
 ifndef PXVERSION
 	$(error PXVERSION must be defined for the deploy target)
 endif
