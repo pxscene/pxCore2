@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4C7B860F1D10A45200C2489F /* pxClipboard.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B860E1D10A45200C2489F /* pxClipboard.h */; };
+		4C7B86131D10A47300C2489F /* pxClipboardNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4C7B86111D10A47300C2489F /* pxClipboardNative.mm */; };
+		4C7B86141D10A47300C2489F /* pxClipboardNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B86121D10A47300C2489F /* pxClipboardNative.h */; };
 		AE1D42DD1B7CF611002E7CAE /* Hover.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1D42DC1B7CF611002E7CAE /* Hover.cpp */; };
 		AE1D42DE1B7D048B002E7CAE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
 		AE1D42DF1B7D0493002E7CAE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
@@ -78,6 +81,16 @@
 		AEF5F6431C0C6B53005A642F /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBECD01B67979F00851BFE /* libpxCore.a */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		4C252C591D08A1FE0022A6C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4C252C551D08A1FE0022A6C9 /* pxScene.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4C252C4B1D08A1BA0022A6C9;
+			remoteInfo = pxScene;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		AE1D43AD1B7D5113002E7CAE /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -91,6 +104,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4C252C551D08A1FE0022A6C9 /* pxScene.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = pxScene.xcodeproj; path = examples/pxScene2d/pxScene.xcodeproj; sourceTree = "<group>"; };
+		4C7B860E1D10A45200C2489F /* pxClipboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboard.h; path = src/pxClipboard.h; sourceTree = SOURCE_ROOT; };
+		4C7B86111D10A47300C2489F /* pxClipboardNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxClipboardNative.mm; path = src/mac/pxClipboardNative.mm; sourceTree = SOURCE_ROOT; };
+		4C7B86121D10A47300C2489F /* pxClipboardNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboardNative.h; path = src/mac/pxClipboardNative.h; sourceTree = SOURCE_ROOT; };
 		AE1D42BC1B7CF5E0002E7CAE /* Hover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hover.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE1D42DC1B7CF611002E7CAE /* Hover.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Hover.cpp; path = examples/Hover/Hover.cpp; sourceTree = SOURCE_ROOT; };
 		AE1D42E51B7D2A23002E7CAE /* Multi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Multi.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -256,6 +273,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4C252C561D08A1FE0022A6C9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4C252C5A1D08A1FE0022A6C9 /* pxScene */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		AE1D42BD1B7CF5E0002E7CAE /* Hover */ = {
 			isa = PBXGroup;
 			children = (
@@ -346,6 +371,7 @@
 				AE1D43E91B7E8E11002E7CAE /* NativeDrawing */,
 				AE1D44121B809983002E7CAE /* SimpleOpenGL */,
 				AECBECAA1B6796DC00851BFE /* Products */,
+				4C252C551D08A1FE0022A6C9 /* pxScene.xcodeproj */,
 			);
 			sourceTree = "<group>";
 		};
@@ -374,6 +400,7 @@
 				AECBED501B67B09200851BFE /* pxColor.h */,
 				AECBED511B67B09200851BFE /* pxConfig.h */,
 				AECBED521B67B09200851BFE /* pxCore.h */,
+				4C7B860E1D10A45200C2489F /* pxClipboard.h */,
 				AECBED531B67B09200851BFE /* pxEventLoop.h */,
 				AECBED541B67B09200851BFE /* pxIView.h */,
 				AECBED551B67B09200851BFE /* pxKeycodes.h */,
@@ -399,6 +426,8 @@
 			children = (
 				AECBED731B67B0A800851BFE /* pxBufferNative.h */,
 				AECBED741B67B0A800851BFE /* pxBufferNative.mm */,
+				4C7B86111D10A47300C2489F /* pxClipboardNative.mm */,
+				4C7B86121D10A47300C2489F /* pxClipboardNative.h */,
 				AECBED751B67B0A800851BFE /* pxConfigNative.h */,
 				AECBED761B67B0A800851BFE /* pxEventLoopNative.mm */,
 				AECBED771B67B0A800851BFE /* pxOffscreenNative.h */,
@@ -432,6 +461,7 @@
 				AECBED6E1B67B09200851BFE /* pxViewWindow.h in Headers */,
 				AECBED841B67B0A800851BFE /* pxWindowNative.h in Headers */,
 				AECBED6B1B67B09200851BFE /* pxRect.h in Headers */,
+				4C7B860F1D10A45200C2489F /* pxClipboard.h in Headers */,
 				AECBED611B67B09200851BFE /* pxBuffer.h in Headers */,
 				AECBED651B67B09200851BFE /* pxEventLoop.h in Headers */,
 				AECBED671B67B09200851BFE /* pxKeycodes.h in Headers */,
@@ -444,6 +474,7 @@
 				AECBED6F1B67B09200851BFE /* pxWindow.h in Headers */,
 				AECBED7D1B67B0A800851BFE /* pxBufferNative.h in Headers */,
 				AECBED811B67B0A800851BFE /* pxOffscreenNative.h in Headers */,
+				4C7B86141D10A47300C2489F /* pxClipboardNative.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -681,7 +712,7 @@
 					};
 				};
 			};
-			buildConfigurationList = AECBECA41B6796DC00851BFE /* Build configuration list for PBXProject "pxcore" */;
+			buildConfigurationList = AECBECA41B6796DC00851BFE /* Build configuration list for PBXProject "pxCore" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -692,6 +723,12 @@
 			mainGroup = AECBECA01B6796DC00851BFE;
 			productRefGroup = AECBECAA1B6796DC00851BFE /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 4C252C561D08A1FE0022A6C9 /* Products */;
+					ProjectRef = 4C252C551D08A1FE0022A6C9 /* pxScene.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				AECBECCF1B67979F00851BFE /* pxCore Static Library */,
@@ -708,6 +745,16 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		4C252C5A1D08A1FE0022A6C9 /* pxScene */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = pxScene;
+			remoteRef = 4C252C591D08A1FE0022A6C9 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		AE1D42BA1B7CF5E0002E7CAE /* Resources */ = {
@@ -861,6 +908,7 @@
 				AECBED801B67B0A800851BFE /* pxEventLoopNative.mm in Sources */,
 				AECBED831B67B0A800851BFE /* pxTimerNative.mm in Sources */,
 				AECBED701B67B09200851BFE /* pxWindowUtil.cpp in Sources */,
+				4C7B86131D10A47300C2489F /* pxClipboardNative.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1369,7 +1417,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AECBECA41B6796DC00851BFE /* Build configuration list for PBXProject "pxcore" */ = {
+		AECBECA41B6796DC00851BFE /* Build configuration list for PBXProject "pxCore" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AECBECC41B6796DC00851BFE /* Debug */,
