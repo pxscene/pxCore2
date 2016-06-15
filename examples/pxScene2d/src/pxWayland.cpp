@@ -605,7 +605,7 @@ rtError pxWayland::setProperty(rtString &prop, rtString &val) const
 #ifdef ENABLE_PX_WAYLAND_RPC
   if(mRemoteObject)
       errorCode = mRemoteObject.set(prop, val);
-#endif ENABLE_PX_WAYLAND_RPC
+#endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
 }
 
