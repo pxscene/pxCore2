@@ -1928,7 +1928,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 
 rtError pxScene2d::clipboardSet(rtString type, rtString clipString)
 {
-    printf("\n ##########   clipboardSet()  >> %s ", type.cString() ); fflush(stdout);
+//    printf("\n ##########   clipboardSet()  >> %s ", type.cString() ); fflush(stdout);
     
     pxClipboard::instance()->setString("PX_CLIPBOARD_STRING", clipString.cString());// "The quick brown";
     
@@ -1937,7 +1937,7 @@ rtError pxScene2d::clipboardSet(rtString type, rtString clipString)
 
 rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 {
-    printf("\n ##########   clipboardGet()  >> %s ", type.cString() ); fflush(stdout);
+//    printf("\n ##########   clipboardGet()  >> %s ", type.cString() ); fflush(stdout);
     
     std::string retVal = pxClipboard::instance()->getString("PX_CLIPBOARD_STRING");//
     
