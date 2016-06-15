@@ -70,7 +70,7 @@ pxTimerNative.o: gles/pxTimerNative.cpp
 	$(CXX) -o pxTimerNative.o -Wall  $(CXXFLAGS)  -c gles/pxTimerNative.cpp
 
 pxClipboardNative.o: gles/pxClipboardNative.cpp
-	g++ -o pxClipboardNative.o -Wall $(CFLAGS) -c gles/pxClipboardNative.cpp
+	$(CXX) -o pxClipboardNative.o -Wall $(CXXFLAGS) -c gles/pxClipboardNative.cpp
 
 pxWindowUtil.o: pxWindowUtil.cpp
 	$(CXX) -o pxWindowUtil.o -Wall  $(CXXFLAGS)  -c pxWindowUtil.cpp
