@@ -448,7 +448,8 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
   return new Promise(function (onImportComplete, reject) {
     if( filePath === 'fs' || filePath === 'px' || filePath === 'http' || filePath === 'url' || filePath === 'os'
-      || filePath === 'events' || filePath === 'net' || filePath === 'querystring' || filePath === 'htmlparser') {
+      || filePath === 'events' || filePath === 'net' || filePath === 'querystring' || filePath === 'htmlparser'
+      || filePath === 'ws') {
       // built-ins
       var modData = require(filePath);
       onImportComplete([modData, origFilePath]);
