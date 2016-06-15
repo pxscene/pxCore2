@@ -6,7 +6,7 @@
 #ifndef PX_CLIPBOARDNATIVE_H
 #define PX_CLIPBOARDNATIVE_H
 
-#import <string>
+#include <string>
 
 class pxClipboardNative
 {
