@@ -1,7 +1,7 @@
 px.import("px:scene.1.js").then( function ready(scene)
 {
   var root = scene.root;
-      
+
   var pts      = 24;
   var bg       = scene.create({t:"image",url:"../images/status_bg.png",parent:root,stretchX:scene.stretch.STRETCH,stretchY:scene.stretch.STRETCH});
   var fontRes  = scene.create({t:"fontResource",url:"FreeSans.ttf"});
@@ -17,9 +17,9 @@ px.import("px:scene.1.js").then( function ready(scene)
 
   var contentBG = scene.create({t:"rect", x:10,y:60,parent:bg,fillColor:0xffffffff,a:0.05,draw:false});
   var content   = scene.create({t:"scene",x:10,y:60,parent:bg,clip:true});
-                                  
+
   var cursor_pos = 0;
-                                
+
   var selection       = scene.create({t:"rect", w:2, h:inputBg.h-10, parent:inputBg, fillColor:0xFCF2A488, x:10,y:5});
   var selection_x     = 0;
   var selection_start = 0;
@@ -32,7 +32,7 @@ px.import("px:scene.1.js").then( function ready(scene)
   {
     if (e.charCode == 13)  // <<<  ENTER KEY
       return;
-             
+
     // TODO should we be getting an onChar event for backspace
     if (e.charCode != 8 && e.charCode != 63234 && e.charCode != 63235)  // <<<  BACKSPACE KEY, LEFT ARROW, RIGHT ARROW
     {
@@ -40,14 +40,14 @@ px.import("px:scene.1.js").then( function ready(scene)
       url.text += String.fromCharCode(e.charCode);
       prompt.a = (url.text)?0:1; // hide placeholder
       cursor.x = url.x+url.w;
-             
+
       cursor_pos++;
     }
 });
 
 
 function reload(u) {
-  
+
   spinner.a = 1;
   if (!u)
     u = url.text;
@@ -57,7 +57,7 @@ function reload(u) {
   // TODO Temporary hack
   if (u.indexOf(':') == -1)
     u = 'http://www.pxscene.org/examples/px-reference/gallery/' + u;
-  
+
   content.url = u;
   //scene.setFocus(content);
   content.focus = true;
@@ -89,14 +89,14 @@ inputBg.on("onKeyDown", function(e)
     case 8:    // <<  BACKSPACE KEY
       {
         console.log("BACKSPACE " + url.text);
-           
+
         var s = url.text.slice();
-           
+
         if(selection_chars == 0)
         {
            var before_cursor = s.slice(0,cursor_pos-1);
            var  after_cursor = s.slice(cursor_pos);
-           
+
            url.text = before_cursor + after_cursor;
            cursor_pos--;
         }
@@ -108,11 +108,11 @@ inputBg.on("onKeyDown", function(e)
 
            clearSelection();
         }
-         
+
         updateCursor(cursor_pos);
       }
       break;
-           
+
     case 13:   // <<  ENTER KEY
       reload();
       break;
@@ -131,9 +131,9 @@ inputBg.on("onKeyDown", function(e)
 
           makeSelection();
         }
-           
+
         cursor_pos--;
-           
+
         updateCursor(cursor_pos);
       }
 
@@ -159,25 +159,25 @@ inputBg.on("onKeyDown", function(e)
         }
 
         cursor_pos++;
-        
+
         updateCursor(cursor_pos);
       }
-     
+
       if(flags != 8 && selection.w != 0)
       {
         clearSelection();
       }
       break;
-           
+
     case 67:   // << CTRL + "c"
       if( ((flags & 16)==16) )  // ctrl Pressed also
       {
          console.log("onKeyDown ....   CTRL-C >>> [" + selection_text + "]");
-           
+
          scene.clipboardSet('PX_CLIP_STRING', selection_text);
       }
     break;
-           
+
     case 86:   // << CTRL + "v"
       if( ((flags & 16)==16) )  // ctrl Pressed also
       {
@@ -193,11 +193,11 @@ inputBg.on("onKeyDown", function(e)
         cursor.x  = url.x + url.w;
 
         cursor_pos+= fromClip.length;
-           
+
         clearSelection();
       }
       break;
-           
+
     case 88:   // << CTRL + "x"
       if( ((flags & 16)==16) )  // ctrl Pressed also
       {
@@ -205,11 +205,14 @@ inputBg.on("onKeyDown", function(e)
         //
         console.log("onKeyDown ....   CTRL-X >>> [" + selection_text + "]");
         scene.clipboardSet('PX_CLIP_STRING', selection_text);
-        
+
         removeSelection();
       }
       break;
-           
+
+      case 0:
+       break; // only a modifer key ? Ignore
+
       default:
         prompt.a = (url.text)?0:1;
         cursor.x = url.x + url.w;
@@ -217,7 +220,7 @@ inputBg.on("onKeyDown", function(e)
   } // SWITCH
 });
 
-                                
+
 function updateCursor(pos)
 {
   var       s = url.text.slice();
@@ -225,7 +228,7 @@ function updateCursor(pos)
   var metrics = fontRes.measureText(pts, snip);
 
   cursor.x = url.x + metrics.w; // offset to cursor
-                                
+
   console.log("updateCursor() >>> pos = " + pos);
 }
 
@@ -239,13 +242,13 @@ function clearSelection()
   selection.x = 0;
   selection.w = 0;
 }
-         
+
 function removeSelection()
 {
   url.text = url.text.replace(selection_text,'');
-    
+
   cursor_pos -= selection_text.length;
-                                
+
   updateCursor(cursor_pos);
   clearSelection();
 }
@@ -254,13 +257,13 @@ function makeSelection()  // Selection made: left-to-right
 {
   var start = selection_start + 1;
   var end   = selection_chars + start;
-                                
+
   if(selection_chars < 0) // Selection made: right-to-left
   {
     end   = start - 1;  // original start is end .. left-to-right
     start = start + selection_chars - 1;
   }
-                                
+
   var          s = url.text.slice();
   selection_text = s.slice(start, end); // measure characters up to cursor
   var metrics = fontRes.measureText(pts, selection_text);
@@ -275,11 +278,11 @@ function makeSelection()  // Selection made: left-to-right
     selection.x -= metrics.w;
   }
 }
-                                
+
 inputBg.on("onFocus", function(e) {
   cursor.draw = true;
   clearSelection();
-           
+
   cursor_pos = url.text.length;
   updateCursor(cursor_pos);
 });

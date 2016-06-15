@@ -33,9 +33,10 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
   case PX_KEY_NATIVE_CLEAR:
     commonKeycode = PX_KEY_NATIVE_CLEAR; //TODO
     break;
-  case PX_KEY_NATIVE_SHIFT:
-    commonKeycode = PX_KEY_SHIFT;
-    break;
+    
+  // case PX_KEY_NATIVE_SHIFT:
+  //   commonKeycode = PX_KEY_SHIFT;
+  //   break;
   case PX_KEY_NATIVE_CONTROL:
     commonKeycode = PX_KEY_CTRL;
     break;
@@ -66,18 +67,18 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
   case PX_KEY_NATIVE_HOME:
     commonKeycode = PX_KEY_HOME;
     break;
-  case PX_KEY_NATIVE_LEFT:
-    commonKeycode = PX_KEY_LEFT;
-    break;
-  case PX_KEY_NATIVE_UP:
-    commonKeycode = PX_KEY_UP;
-    break;
-  case PX_KEY_NATIVE_RIGHT:
-    commonKeycode = PX_KEY_RIGHT;
-    break;
-  case PX_KEY_NATIVE_DOWN:
-    commonKeycode = PX_KEY_DOWN;
-    break;
+  // case PX_KEY_NATIVE_LEFT:
+  //   commonKeycode = PX_KEY_LEFT;
+  //   break;
+  // case PX_KEY_NATIVE_UP:
+  //   commonKeycode = PX_KEY_UP;
+  //   break;
+  // case PX_KEY_NATIVE_RIGHT:
+  //   commonKeycode = PX_KEY_RIGHT;
+  //   break;
+  // case PX_KEY_NATIVE_DOWN:
+  //   commonKeycode = PX_KEY_DOWN;
+  //   break;
   case PX_KEY_NATIVE_COMMA:
     commonKeycode = PX_KEY_COMMA;
     break;

@@ -390,7 +390,7 @@ void pxWindowNative::onGlutEntry(int state)
 }
 
 void pxWindowNative::onGlutKeyboardSpecial(int key, int x, int y)
-{
+{  
   int keycode = 0;
   switch (key)
   {
@@ -461,11 +461,16 @@ void pxWindowNative::onGlutKeyboardSpecial(int key, int x, int y)
       printf("unknown special key: %d\n",key);
   }
 
+  uint32_t flags = 0;
+  flags |= (glutGetModifiers() & GLUT_ACTIVE_SHIFT)?PX_MOD_SHIFT:0;
+  flags |= (glutGetModifiers() & GLUT_ACTIVE_CTRL)?PX_MOD_CONTROL:0;
+  flags |= (glutGetModifiers() & GLUT_ACTIVE_ALT)?PX_MOD_ALT:0;
+    
   pxWindowNative* w = getWindowFromGlutID(glutGetWindow());
-  if (w && keycode)
+  if (w)
   {
-    w->onKeyDown(keycodeFromNative((int)keycode), 0);
-    w->onKeyUp(keycodeFromNative((int)keycode), 0);
+    // JR Did I mention Glut keyboard support is not very good
+    w->onKeyDown(keycode, flags);
   }
 }
 
@@ -871,6 +876,8 @@ uint32_t getRawNativeKeycodeFromGlut(uint32_t key, uint32_t modifiers)
   bool ctrlPressed = (glutGetModifiers() & GLUT_ACTIVE_CTRL);
   //bool altPressed = (glutGetModifiers() & GLUT_ACTIVE_ALT);
   
+  printf("\n###  getRawNativeKeycodeFromGlut() - key = %d    shiftPressed = %d ",key, shiftPressed);
+
   uint32_t rawKeycode = key;
   
   if (ctrlPressed)
