@@ -11,7 +11,9 @@
 #include "rtMutex.h"
 #include "pxTexture.h"
 #include "rtObject.h"
+#ifdef ENABLE_PX_WAYLAND_RPC
 #include "rtRemote.h"
+#endif //ENABLE_PX_WAYLAND_RPC
 
 #include "westeros-compositor.h"
 
@@ -164,7 +166,9 @@ protected:
 
   bool mHasApi;
   rtValue mAPI;
+#ifdef ENABLE_PX_WAYLAND_RPC
   rtObjectRef mRemoteObject;
+#endif //ENABLE_PX_WAYLAND_RPC
   rtString mRemoteObjectName;
   mutable rtMutex mRemoteObjectMutex;
 };

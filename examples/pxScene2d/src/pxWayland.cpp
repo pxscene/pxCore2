@@ -44,7 +44,9 @@ pxWayland::pxWayland()
     mWCtx(0),
     mHasApi(false),
     mAPI(),
+#ifdef ENABLE_PX_WAYLAND_RPC
     mRemoteObject(),
+#endif //ENABLE_PX_WAYLAND_RPC
     mRemoteObjectMutex()
 {
   mFillColor[0]= 0.0; 
@@ -535,6 +537,7 @@ void* pxWayland::findRemoteThread( void *data )
 
 rtError pxWayland::startRemoteObjectLocator()
 {
+#ifdef ENABLE_PX_WAYLAND_RPC
   rtError errorCode = rtRemoteInit();
   if (errorCode != RT_OK)
   {
@@ -546,11 +549,15 @@ rtError pxWayland::startRemoteObjectLocator()
   }
 
   return errorCode;
+#else
+  return RT_FAIL;
+#endif //ENABLE_PX_WAYLAND_RPC
 }
 
 rtError pxWayland::connectToRemoteObject()
 {
   rtError errorCode = RT_FAIL;
+#ifdef ENABLE_PX_WAYLAND_RPC
   int findTime = 0;
 
   while (findTime < MAX_FIND_REMOTE_TIMEOUT_IN_MS)
@@ -588,14 +595,17 @@ rtError pxWayland::connectToRemoteObject()
   mRemoteObjectMutex.lock();
   mWaitingForRemoteObject = false;
   mRemoteObjectMutex.unlock();
+#endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
 }
 
 rtError pxWayland::setProperty(rtString &prop, rtString &val) const
 {
   rtError errorCode = RT_FAIL;
+#ifdef ENABLE_PX_WAYLAND_RPC
   if(mRemoteObject)
       errorCode = mRemoteObject.set(prop, val);
+#endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
 }
 
