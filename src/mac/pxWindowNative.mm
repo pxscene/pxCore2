@@ -18,25 +18,32 @@
 
 #endif
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 @interface WinDelegate : NSObject <NSWindowDelegate>
 @end
 
-@implementation WinDelegate {
+@implementation WinDelegate
+{
   pxWindowNative* mWindow;
 }
 
--(id)initWithPXWindow:(pxWindowNative*)window {
+-(id)initWithPXWindow:(pxWindowNative*)window
+{
   self = [super init];
   mWindow = window;
   return self;
 }
 
-- (void)windowDidResize: (NSNotification*)notification {
+- (void)windowDidResize: (NSNotification*)notification
+{
   NSSize s = [[[notification object] contentView] frame].size;
   pxWindowNative::_helper_onSize(mWindow, s.width, s.height);
 }
 
-- (BOOL)windowShouldClose:(id)sender {
+- (BOOL)windowShouldClose:(id)sender
+{
   if (mWindow)
     pxWindowNative::_helper_onCloseRequest(mWindow);
   return FALSE;
@@ -44,9 +51,16 @@
 
 @end
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #if 1
 
 @interface MyView : NSView
+
+- (IBAction)cut:   sender;
+- (IBAction)copy:  sender;
+- (IBAction)paste: sender;
 
 @end
 
@@ -84,14 +98,6 @@
 }
 #endif
 
-#if 0
-// This is the renderer output callback function
-static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* now, const CVTimeStamp* outputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext)
-{
-  CVReturn result = [(MyView*)displayLinkContext getFrameForTime:outputTime];
-  return result;
-}
-#endif
 
 #ifdef GLGL
 - (NSOpenGLContext*)openGLContext
@@ -179,7 +185,15 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 }
 #endif
 
+
 #if 0
+// This is the renderer output callback function
+static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* now, const CVTimeStamp* outputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext)
+{
+    CVReturn result = [(MyView*)displayLinkContext getFrameForTime:outputTime];
+    return result;
+}
+
 -(void)setupDisplayLink
 {
   // Create a display link capable of being used with all active displays
@@ -215,10 +229,10 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
   // Add an observer to NSViewGlobalFrameDidChangeNotification, which is posted
   // whenever an NSView that has an attached NSSurface changes size or changes screens
   // (thus potentially changing graphics hardware drivers).
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(surfaceNeedsUpdate:)
-                                               name:NSViewGlobalFrameDidChangeNotification
-                                             object:self];
+  [[NSNotificationCenter defaultCenter] addObserver: self
+                                           selector: @selector(surfaceNeedsUpdate:)
+                                               name: NSViewGlobalFrameDidChangeNotification
+                                             object: self];
   
   // Also register for changes to the display configuation using Quartz Display Services
   CGDisplayRegisterReconfigurationCallback(MyDisplayReconfigurationCallBack, self);
@@ -337,7 +351,6 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   
   
 #if 0
-  
   if (!renderer) //first time drawing
   {
     // Create a BoingRenderer object which handles the rendering of a Boing ball.
@@ -399,75 +412,125 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 }
 
 
-
--(id)initWithPXWindow:(pxWindow*)window {
+-(id)initWithPXWindow:(pxWindow*)window
+{
   self = [super init];
   mWindow = window;
   //[self updateTrackingAreas];
   return self;
 }
 
--(BOOL)isFlipped {
+-(BOOL)isFlipped
+{
   return YES;
 }
 
 #if 0
-#ifdef PX_OPENGL
--(void)prepareOpenGL {
-  pxWindowNative::_helper_onCreate(mWindow);
-}
-#endif
+ #ifdef PX_OPENGL
+ -(void)prepareOpenGL
+ {
+   pxWindowNative::_helper_onCreate(mWindow);
+ }
+ #endif
 #endif
 
--(void)mouseDown:(NSEvent*)event {
+- (IBAction)cut:sender
+{
+    NSLog(@"#### CUT - CUT - CUT - CUT - CUT - CUT - ");
+    
+ //   pxWindowNative::_helper_onCut(mWindow, "onCut !");
+}
+
+- (IBAction)copy:sender
+{
+    NSLog(@"#### COPY - COPY - COPY - COPY - COPY - COPY - Test Copied");
+    
+    NSPasteboard* myPasteboard = [NSPasteboard generalPasteboard];
+    
+    [myPasteboard declareTypes:[NSArray arrayWithObject:NSPasteboardTypeString] owner:nil];
+    
+    BOOL copied = [myPasteboard setString: @"Test Copied" forType: NSPasteboardTypeString];
+    
+    if(copied)
+    {
+        NSLog(@"### COPIED");
+    }
+    else
+    {
+        NSLog(@"### NOT COPIED");
+    }
+    
+//    pxWindowNative::_helper_onCopy(mWindow, "onCopied !");
+}
+
+- (IBAction)paste:sender
+{
+    NSLog(@"### PASTE - PASTE - PASTE - PASTE - PASTE - PASTE - ");
+    
+    NSPasteboard*  myPasteboard = [NSPasteboard generalPasteboard];
+    NSString*          myString = [myPasteboard  stringForType: NSPasteboardTypeString];
+    
+    if(myString)
+    {
+        NSLog(@"### myString = %@ ", myString);
+
+ //       pxWindowNative::_helper_onPaste(mWindow, "onPaste !");
+    }
+}
+
+
+-(void)mouseDown:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"mouseDown: %f, %f", p.x, p.y);
   pxWindowNative::_helper_onMouseDown(mWindow, p.x, p.y, PX_LEFTBUTTON);
 }
 
--(void)mouseUp:(NSEvent*)event {
+-(void)mouseUp:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"mouseUp: %f, %f", p.x, p.y);
   pxWindowNative::_helper_onMouseUp(mWindow, p.x, p.y, PX_LEFTBUTTON);
 }
 
--(void)rightMouseDown:(NSEvent*)event {
+-(void)rightMouseDown:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"rightMouseDown: %f, %f", p.x, p.y);
   pxWindowNative::_helper_onMouseDown(mWindow, p.x, p.y, PX_RIGHTBUTTON);
 }
 
--(void)rightMouseUp:(NSEvent*)event {
+-(void)rightMouseUp:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"rightMouseUp: %f, %f", p.x, p.y);
   pxWindowNative::_helper_onMouseUp(mWindow, p.x, p.y, PX_RIGHTBUTTON);
 }
 
--(void)mouseMoved:(NSEvent*)event {
+-(void)mouseMoved:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
-  NSLog(@"mouseMoved: %f, %f", p.x, p.y);
+  //NSLog(@"mouseMoved: %f, %f", p.x, p.y);
   pxWindowNative::_helper_onMouseMove(mWindow, p.x, p.y);
 }
 
--(void)keyDown:(NSEvent*)event {
+-(void)keyDown:(NSEvent*)event
+{
   //NSLog(@"keyDown, repeat:%s", event.ARepeat?"YES":"NO");
-  //if (!event.ARepeat) 
-  {
+  if (!event.ARepeat) {
     // send px key down
     uint32_t flags = 0;
     
-    if (event.modifierFlags & NSShiftKeyMask) flags |= PX_MOD_SHIFT;
-    if (event.modifierFlags & NSControlKeyMask) flags |= PX_MOD_CONTROL;
+    if (event.modifierFlags & NSShiftKeyMask)     flags |= PX_MOD_SHIFT;
+    if (event.modifierFlags & NSControlKeyMask)   flags |= PX_MOD_CONTROL;
     if (event.modifierFlags & NSAlternateKeyMask) flags |= PX_MOD_ALT;
-    if (event.modifierFlags & NSCommandKeyMask) flags |= PX_MOD_COMMAND;
-
-    if (event.ARepeat) flags |= PX_KEYDOWN_REPEAT;
-
+    if (event.modifierFlags & NSCommandKeyMask)   flags |= PX_MOD_COMMAND;
+    
     pxWindowNative::_helper_onKeyDown(mWindow, keycodeFromNative(event.keyCode), flags);
   }
   
@@ -476,34 +539,37 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   {
     uint32_t c = [s characterAtIndex:0];
     // filter out control characters
-    // TODO overfiltering... look at IMEs and unicode key input
-    if (!iscntrl(c) && c < 128)
+    if (!iscntrl(c))
       pxWindowNative::_helper_onChar(mWindow, c);
   }
 }
 
--(void)keyUp:(NSEvent*)event {
+-(void)keyUp:(NSEvent*)event
+{
   uint32_t flags = 0;
   
-  if (event.modifierFlags & NSShiftKeyMask) flags |= PX_MOD_SHIFT;
-  if (event.modifierFlags & NSControlKeyMask) flags |= PX_MOD_CONTROL;
+  if (event.modifierFlags & NSShiftKeyMask)     flags |= PX_MOD_SHIFT;
+  if (event.modifierFlags & NSControlKeyMask)   flags |= PX_MOD_CONTROL;
   if (event.modifierFlags & NSAlternateKeyMask) flags |= PX_MOD_ALT;
-  if (event.modifierFlags & NSCommandKeyMask) flags |= PX_MOD_COMMAND;
+  if (event.modifierFlags & NSCommandKeyMask)   flags |= PX_MOD_COMMAND;
   
   pxWindow::_helper_onKeyUp(mWindow,keycodeFromNative(event.keyCode), flags);
 }
 
--(void)mouseEntered:(NSEvent*)event {
+-(void)mouseEntered:(NSEvent*)event
+{
   NSLog(@"mouseEntered");
   pxWindowNative::_helper_onMouseEnter(mWindow);
 }
 
--(void)mouseExited:(NSEvent*)event {
+-(void)mouseExited:(NSEvent*)event
+{
   NSLog(@"mouseExited");
   pxWindowNative::_helper_onMouseLeave(mWindow);
 }
 
--(void)mouseDragged:(NSEvent*)event {
+-(void)mouseDragged:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"mouseDragged: %f, %f", p.x, p.y);
@@ -511,7 +577,8 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   pxWindowNative::_helper_onMouseMove(mWindow, p.x, p.y);
 }
 
--(void)rightMouseDragged:(NSEvent*)event {
+-(void)rightMouseDragged:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"rightMouseDragged: %f, %f", p.x, p.y);
@@ -519,13 +586,15 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   pxWindowNative::_helper_onMouseMove(mWindow, p.x, p.y);
 }
 
--(void)fireAnimationTimer:(NSTimer*)timer {
+-(void)fireAnimationTimer:(NSTimer*)timer
+{
   pxWindowNative::_helper_onAnimationTimer(mWindow);
 }
 
 -(void)updateTrackingAreas
 {
-  if(trackingArea != nil) {
+  if(trackingArea != nil)
+  {
     [self removeTrackingArea:trackingArea];
     [trackingArea release];
   }
@@ -539,13 +608,14 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 }
 
 
--(void)drawRect:(NSRect)dirtyRect {
+-(void)drawRect:(NSRect)dirtyRect
+{
 #ifdef GLGL
-#if 0
+ #if 0
     [self drawView];
-#else
+ #else
   [[self openGLContext] makeCurrentContext];
-#endif
+ #endif
 #endif
   
   pxWindowNative::_helper_onDraw(mWindow, (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort]);
@@ -559,11 +629,12 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
 }
 
-
 @end
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #else
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef PX_OPENGL
 @interface MyView: NSOpenGLView
@@ -573,12 +644,14 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 @end
 #endif
 
-@implementation MyView {
+@implementation MyView
+{
   pxWindow* mWindow;
   NSTrackingArea* trackingArea;
 }
 
--(id)initWithPXWindow:(pxWindow*)window {
+-(id)initWithPXWindow:(pxWindow*)window
+{
   self = [super init];
   mWindow = window;
   //[self updateTrackingAreas];
@@ -590,49 +663,57 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 }
 
 #ifdef PX_OPENGL
--(void)prepareOpenGL {
+-(void)prepareOpenGL
+{
   pxWindowNative::_helper_onCreate(mWindow);
 }
 #endif
 
--(void)mouseDown:(NSEvent*)event {
+-(void)mouseDown:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"mouseDown: %f, %f", p.x, p.y);
   pxWindowNative::_helper_onMouseDown(mWindow, p.x, p.y, PX_LEFTBUTTON);
 }
 
--(void)mouseUp:(NSEvent*)event {
+-(void)mouseUp:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"mouseUp: %f, %f", p.x, p.y);
   pxWindowNative::_helper_onMouseUp(mWindow, p.x, p.y, PX_LEFTBUTTON);
 }
 
--(void)rightMouseDown:(NSEvent*)event {
+-(void)rightMouseDown:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"rightMouseDown: %f, %f", p.x, p.y);
   pxWindowNative::_helper_onMouseDown(mWindow, p.x, p.y, PX_RIGHTBUTTON);
 }
 
--(void)rightMouseUp:(NSEvent*)event {
+-(void)rightMouseUp:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"rightMouseUp: %f, %f", p.x, p.y);
   pxWindowNative::_helper_onMouseUp(mWindow, p.x, p.y, PX_RIGHTBUTTON);
 }
 
--(void)mouseMoved:(NSEvent*)event {
+-(void)mouseMoved:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
-  NSLog(@"mouseMoved: %f, %f", p.x, p.y);
+//  NSLog(@"mouseMoved: %f, %f", p.x, p.y);
   pxWindowNative::_helper_onMouseMove(mWindow, p.x, p.y);
 }
 
--(void)keyDown:(NSEvent*)event {
+-(void)keyDown:(NSEvent*)event
+{
   //NSLog(@"keyDown, repeat:%s", event.ARepeat?"YES":"NO");
-  if (!event.ARepeat) {
+  if (!event.ARepeat)
+  {
     // send px key down
     uint32_t flags = 0;
     
@@ -654,28 +735,32 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   }
 }
 
--(void)keyUp:(NSEvent*)event {
+-(void)keyUp:(NSEvent*)event
+{
   uint32_t flags = 0;
-  
-  if (event.modifierFlags & NSShiftKeyMask) flags |= PX_MOD_SHIFT;
-  if (event.modifierFlags & NSControlKeyMask) flags |= PX_MOD_CONTROL;
+   
+  if (event.modifierFlags & NSShiftKeyMask)     flags |= PX_MOD_SHIFT;
+  if (event.modifierFlags & NSControlKeyMask)   flags |= PX_MOD_CONTROL;
   if (event.modifierFlags & NSAlternateKeyMask) flags |= PX_MOD_ALT;
-  if (event.modifierFlags & NSCommandKeyMask) flags |= PX_MOD_COMMAND;
+  if (event.modifierFlags & NSCommandKeyMask)   flags |= PX_MOD_COMMAND;
   
   pxWindow::_helper_onKeyUp(mWindow,keycodeFromNative(event.keyCode), flags);
 }
 
--(void)mouseEntered:(NSEvent*)event {
+-(void)mouseEntered:(NSEvent*)event
+{
   NSLog(@"mouseEntered");
   pxWindowNative::_helper_onMouseEnter(mWindow);
 }
 
--(void)mouseExited:(NSEvent*)event {
+-(void)mouseExited:(NSEvent*)event
+{
   NSLog(@"mouseExited");
   pxWindowNative::_helper_onMouseLeave(mWindow);
 }
 
--(void)mouseDragged:(NSEvent*)event {
+-(void)mouseDragged:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"mouseDragged: %f, %f", p.x, p.y);
@@ -683,7 +768,8 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   pxWindowNative::_helper_onMouseMove(mWindow, p.x, p.y);
 }
 
--(void)rightMouseDragged:(NSEvent*)event {
+-(void)rightMouseDragged:(NSEvent*)event
+{
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"rightMouseDragged: %f, %f", p.x, p.y);
@@ -691,22 +777,24 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   pxWindowNative::_helper_onMouseMove(mWindow, p.x, p.y);
 }
 
--(void)fireAnimationTimer:(NSTimer*)timer {
+-(void)fireAnimationTimer:(NSTimer*)timer
+{
   pxWindowNative::_helper_onAnimationTimer(mWindow);
 }
 
 -(void)updateTrackingAreas
 {
-  if(trackingArea != nil) {
+  if(trackingArea != nil)
+  {
     [self removeTrackingArea:trackingArea];
     [trackingArea release];
   }
   
   int opts = (NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInActiveApp |NSTrackingEnabledDuringMouseDrag);
-  trackingArea = [ [NSTrackingArea alloc] initWithRect:[self bounds]
-                                               options:opts
-                                                 owner:self
-                                              userInfo:nil];
+  trackingArea = [ [NSTrackingArea alloc] initWithRect: [self bounds]
+                                               options: opts
+                                                 owner: self
+                                              userInfo: nil];
   [self addTrackingArea:trackingArea];
 }
 
@@ -728,14 +816,16 @@ pxError pxWindow::init(int left, int top, int width, int height)
 {
   
   NSPoint pos;
-  pos.x = [[NSScreen mainScreen] frame].origin.x + [[NSScreen mainScreen] frame].size.width - width;
-  pos.y = [[NSScreen mainScreen] frame].origin.y + ([[NSScreen mainScreen] frame].size.height-[[[NSApplication sharedApplication] mainMenu  ]menuBarHeight]) - height;
+    
+  NSRect  frame = [[NSScreen mainScreen] frame];
+    
+  pos.x = frame.origin.x + frame.size.width - width;
+  pos.y = frame.origin.y + (frame.size.height-[[[NSApplication sharedApplication] mainMenu  ]menuBarHeight]) - height;
 
-  NSRect frame = NSMakeRect(left, pos.y-top, width, height);
-  NSWindow* window  = [[NSWindow alloc] initWithContentRect:frame
-                                                  styleMask:NSTitledWindowMask | NSClosableWindowMask |NSMiniaturizableWindowMask | NSResizableWindowMask
-                                                    backing:NSBackingStoreBuffered
-                                                      defer:NO];
+  NSWindow* window = [[NSWindow alloc] initWithContentRect: NSMakeRect(left, pos.y-top, width, height)
+                                                 styleMask: NSTitledWindowMask | NSClosableWindowMask |NSMiniaturizableWindowMask | NSResizableWindowMask
+                                                   backing: NSBackingStoreBuffered
+                                                     defer: NO];
   mWindow = (void*)window;
   
   WinDelegate* delegate = [[WinDelegate alloc] initWithPXWindow:this];
@@ -746,8 +836,6 @@ pxError pxWindow::init(int left, int top, int width, int height)
   
   [window makeFirstResponder:view];
     
-
-  
   [NSApp activateIgnoringOtherApps:YES];
   // TODO We get a GL crash if we don't show the window here... 
   //  [window makeKeyAndOrderFront:NSApp];
@@ -845,5 +933,7 @@ pxError pxWindow::endNativeDrawing(pxSurfaceNative& s)
 	return PX_OK;
 }
 
-// pxWindowNative
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// pxWindowNative

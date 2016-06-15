@@ -32,6 +32,8 @@
 
 #include "pxIView.h"
 
+#include "pxClipboard.h"
+
 rtThreadQueue gUIThreadQueue;
 
 // TODO move to rt*
@@ -1924,6 +1926,27 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
     return RT_FAIL;
 }
 
+rtError pxScene2d::clipboardSet(rtString type, rtString clipString)
+{
+    printf("\n ##########   clipboardSet()  >> %s ", type.cString() ); fflush(stdout);
+    
+    pxClipboard::instance()->setString("PX_CLIPBOARD_STRING", clipString.cString());// "The quick brown";
+    
+    return RT_OK;
+}
+
+rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
+{
+    printf("\n ##########   clipboardGet()  >> %s ", type.cString() ); fflush(stdout);
+    
+    std::string retVal = pxClipboard::instance()->getString("PX_CLIPBOARD_STRING");//
+    
+    retString = rtString(retVal.c_str());
+    
+    // retString = "The quick brown";
+    
+    return RT_OK;
+}
 
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
@@ -1939,6 +1962,10 @@ rtDefineMethod(pxScene2d, delListener);
 rtDefineMethod(pxScene2d, getFocus);
 //rtDefineMethod(pxScene2d, stopPropagation);
 rtDefineMethod(pxScene2d, screenshot);
+
+rtDefineMethod(pxScene2d, clipboardGet);
+rtDefineMethod(pxScene2d, clipboardSet);
+
 rtDefineMethod(pxScene2d, loadArchive);
 rtDefineProperty(pxScene2d, ctx);
 rtDefineProperty(pxScene2d, api);
@@ -2033,6 +2060,7 @@ rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
 rtDefineMethod(pxSceneContainer, makeReady);
 
+
 rtError pxSceneContainer::setUrl(rtString url)
 { 
   // If old promise is still unfulfilled reject it
@@ -2077,6 +2105,7 @@ rtError pxSceneContainer::makeReady(bool ready)
   return RT_OK;
 }
 
+
 #if 0
 void* gObjectFactoryContext = NULL;
 objectFactory gObjectFactory = NULL;
@@ -2101,6 +2130,7 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContaine
     {
       mCtx->add("getScene", new rtFunctionCallback(getScene, this));
       mCtx->add("makeReady", new rtFunctionCallback(makeReady, this));
+        
       mReady = new rtPromise;
 
       mCtx->runFile("init.js");    

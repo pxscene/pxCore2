@@ -84,7 +84,16 @@ function Scene() {
   this.screenshot = function screenshot(type, pngData) {
     return nativeScene.screenshot(type, pngData);
   }
+    
+  this.clipboardGet = function clipboardGet(type) {
+      return nativeScene.clipboardGet(type);
+  }
 
+  
+  this.clipboardSet = function clipboardSet(type, clip) {
+      return nativeScene.clipboardSet(type, clip);
+  }
+    
   this.setAppContext = function(appContextName, appContext) {
     if( !appContextMap.hasOwnProperty(appContextName) ) {
       appContextMap[appContextName] = appContext;

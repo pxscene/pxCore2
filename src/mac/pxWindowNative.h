@@ -5,6 +5,8 @@
 #ifndef PX_WINDOW_NATIVE_H
 #define PX_WINDOW_NATIVE_H
 
+#include <string>
+
 class pxWindowNative
 {
 public:
@@ -78,6 +80,25 @@ public:
     if (w)
       w->onAnimationTimer();
   }
+    
+  static void _helper_onCut(pxWindowNative* win, std::string pasteboard)
+  {
+      //      if (win)
+      //          win->onCut(pasteboard);
+  }
+    
+  static void _helper_onCopy(pxWindowNative* win, std::string pasteboard)
+  {
+      //      if (win)
+      //          win->onCopy(pasteboard);
+  }
+    
+  static void _helper_onPaste(pxWindowNative* win, std::string pasteboard)
+  {
+      //      if (win)
+      //          win->onPaste(pasteboard);
+  }
+
   
   
 protected:
