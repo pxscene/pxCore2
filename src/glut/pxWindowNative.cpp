@@ -876,7 +876,7 @@ uint32_t getRawNativeKeycodeFromGlut(uint32_t key, uint32_t modifiers)
   bool ctrlPressed = (glutGetModifiers() & GLUT_ACTIVE_CTRL);
   //bool altPressed = (glutGetModifiers() & GLUT_ACTIVE_ALT);
   
-  printf("\n###  getRawNativeKeycodeFromGlut() - key = %d    shiftPressed = %d ",key, shiftPressed);
+//  printf("\n###  getRawNativeKeycodeFromGlut() - key = %d    shiftPressed = %d ",key, shiftPressed);
 
   uint32_t rawKeycode = key;
   
