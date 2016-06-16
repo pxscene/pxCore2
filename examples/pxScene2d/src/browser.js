@@ -4,8 +4,8 @@
 
 px.import("px:scene.1.js").then( function ready(scene)
 {
-  var scene = imports.scene;
-  var keys  = imports.keys;
+  // var scene = imports.scene;
+  // var keys  = imports.keys;
 
   var root = scene.root;
 
