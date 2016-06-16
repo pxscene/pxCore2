@@ -436,46 +436,17 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
 - (IBAction)cut:sender
 {
-    NSLog(@"#### CUT - CUT - CUT - CUT - CUT - CUT - ");
-    
- //   pxWindowNative::_helper_onCut(mWindow, "onCut !");
+    pxWindowNative::_helper_onKeyDown(mWindow, 88, 16);  // Fake a CTRL-X
 }
 
 - (IBAction)copy:sender
 {
-    NSLog(@"#### COPY - COPY - COPY - COPY - COPY - COPY - Test Copied");
-    
-    NSPasteboard* myPasteboard = [NSPasteboard generalPasteboard];
-    
-    [myPasteboard declareTypes:[NSArray arrayWithObject:NSPasteboardTypeString] owner:nil];
-    
-    BOOL copied = [myPasteboard setString: @"Test Copied" forType: NSPasteboardTypeString];
-    
-    if(copied)
-    {
-        NSLog(@"### COPIED");
-    }
-    else
-    {
-        NSLog(@"### NOT COPIED");
-    }
-    
-//    pxWindowNative::_helper_onCopy(mWindow, "onCopied !");
+    pxWindowNative::_helper_onKeyDown(mWindow, 67, 16);  // Fake a CTRL-C
 }
 
 - (IBAction)paste:sender
 {
-    NSLog(@"### PASTE - PASTE - PASTE - PASTE - PASTE - PASTE - ");
-    
-    NSPasteboard*  myPasteboard = [NSPasteboard generalPasteboard];
-    NSString*          myString = [myPasteboard  stringForType: NSPasteboardTypeString];
-    
-    if(myString)
-    {
-        NSLog(@"### myString = %@ ", myString);
-
- //       pxWindowNative::_helper_onPaste(mWindow, "onPaste !");
-    }
+    pxWindowNative::_helper_onKeyDown(mWindow, 86, 16);  // Fake a CTRL-V
 }
 
 
@@ -530,7 +501,7 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
     if (event.modifierFlags & NSControlKeyMask)   flags |= PX_MOD_CONTROL;
     if (event.modifierFlags & NSAlternateKeyMask) flags |= PX_MOD_ALT;
     if (event.modifierFlags & NSCommandKeyMask)   flags |= PX_MOD_COMMAND;
-    
+
     pxWindowNative::_helper_onKeyDown(mWindow, keycodeFromNative(event.keyCode), flags);
   }
   
