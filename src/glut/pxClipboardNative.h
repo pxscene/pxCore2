@@ -11,7 +11,7 @@
 class pxClipboardNative
 {
 public:
-             pxClipboardNative()  {};
+             pxClipboardNative() ;// {};
     virtual ~pxClipboardNative()  {};
     
     

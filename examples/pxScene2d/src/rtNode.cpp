@@ -497,7 +497,7 @@ void rtNode::init(int argc, char** argv)
   argv = uv_setup_args(argc, argv);
 
 
-#if 1
+#if 0
 #warning Using DEBUG AGENT...
   use_debug_agent = true; // JUNK
 #endif
