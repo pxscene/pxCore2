@@ -1,8 +1,8 @@
-px.import({ scene: 'px:scene.1.js',
-             keys: './JSKeyCodes.js'
-}).then( function importsAreReady(imports)
+// px.import({ scene: 'px:scene.1.js',
+//              keys: './JSKeyCodes.js'
+// }).then( function importsAreReady(imports)
 
-//px.import("px:scene.1.js").then( function ready(scene)
+px.import("px:scene.1.js").then( function ready(scene)
 {
   var scene = imports.scene;
   var keys  = imports.keys;
@@ -37,8 +37,8 @@ px.import({ scene: 'px:scene.1.js',
 
   inputBg.on("onChar",function(e)
   {
-//    if (e.charCode == 13)  // <<<  ENTER KEY
-    if(e.charCode == keys.JS_KEY_ENTER)
+    if (e.charCode == 13)  // <<<  ENTER KEY
+//    if(e.charCode == keys.JS_KEY_ENTER)
       return;
 
     // TODO should we be getting an onChar event for backspace
@@ -94,8 +94,8 @@ inputBg.on("onKeyDown", function(e)
 
   switch(code)
   {
-    //case 8:    // <<  BACKSPACE KEY
-    case keys.JS_KEY_BACKSPACE:
+    case 8:    // <<  BACKSPACE KEY
+    //case keys.JS_KEY_BACKSPACE:
       {
         console.log("BACKSPACE " + url.text);
 
@@ -122,13 +122,13 @@ inputBg.on("onKeyDown", function(e)
       }
       break;
 
-    case keys.JS_KEY_ENTER:
-//    case 13:   // <<  ENTER KEY
+    //case keys.JS_KEY_ENTER:
+    case 13:   // <<  ENTER KEY
       reload();
       break;
 
-    case keys.JS_KEY_LEFT:
-//    case 37:   // << LEFT ARROW  KEY
+    //case keys.JS_KEY_LEFT:
+    case 37:   // << LEFT ARROW  KEY
       if(cursor_pos > 0)
       {
         if(flags == 8) // <<  SHIFT KEY
@@ -154,8 +154,8 @@ inputBg.on("onKeyDown", function(e)
       }
       break;
 
-    case keys.JS_KEY_RIGHT:
-//    case 39:   // << RIGHT ARROW KEY
+    //case keys.JS_KEY_RIGHT:
+    case 39:   // << RIGHT ARROW KEY
       if(cursor_pos < url.text.length)
       {
         if(flags == 8) // <<  SHIFT KEY
@@ -181,8 +181,8 @@ inputBg.on("onKeyDown", function(e)
       }
       break;
 
-    case keys.JS_KEY_C:
-//     case 67:   // << CTRL + "c"
+    //case keys.JS_KEY_C:
+     case 67:   // << CTRL + "c"
       if( ((flags & 16)==16) )  // ctrl Pressed also
       {
          console.log("onKeyDown ....   CTRL-C >>> [" + selection_text + "]");
@@ -191,8 +191,8 @@ inputBg.on("onKeyDown", function(e)
       }
     break;
 
-    case keys.JS_KEY_V:
-//    case 86:   // << CTRL + "v"
+    //case keys.JS_KEY_V:
+    case 86:   // << CTRL + "v"
       if( ((flags & 16)==16) )  // ctrl Pressed also
       {
         // On PASTE ... access the Native CLIPBOARD and GET the top!   fancy.js
@@ -212,8 +212,8 @@ inputBg.on("onKeyDown", function(e)
       }
       break;
 
-    case keys.JS_KEY_X:
-//    case 88:   // << CTRL + "x"
+    //case keys.JS_KEY_X:
+    case 88:   // << CTRL + "x"
       if( ((flags & 16)==16) )  // ctrl Pressed also
       {
         // On CUT ... access the Native CLIPBOARD and GET the top!   fancy.js
