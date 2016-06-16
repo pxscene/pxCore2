@@ -9,6 +9,9 @@
 #include <math.h>
 #include <map>
 
+#define UNUSED_PARAM(x) ((x)=(x))
+
+
 struct GlyphKey {
   uint32_t mFontId;
   uint32_t mPixelSize;
@@ -290,6 +293,9 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
                         float nsx, float nsy, 
                         float* color, float mw) 
 {
+  UNUSED_PARAM(nsx);
+  UNUSED_PARAM(nsy);
+    
   if (!text || !mInitialized)
   { 
     rtLogWarn("renderText called on font before it is initialized\n");

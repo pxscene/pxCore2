@@ -36,6 +36,8 @@
 
 rtThreadQueue gUIThreadQueue;
 
+#define UNUSED_PARAM(x) ((x)=(x))
+
 // TODO move to rt*
 // Taken from
 // http://stackoverflow.com/questions/342409/how-do-i-base64-encode-decode-in-c
@@ -1929,8 +1931,8 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 rtError pxScene2d::clipboardSet(rtString type, rtString clipString)
 {
 //    printf("\n ##########   clipboardSet()  >> %s ", type.cString() ); fflush(stdout);
-    
-    pxClipboard::instance()->setString("PX_CLIPBOARD_STRING", clipString.cString());// "The quick brown";
+
+    pxClipboard::instance()->setString(type.cString(), clipString.cString());
     
     return RT_OK;
 }
@@ -1939,11 +1941,9 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 {
 //    printf("\n ##########   clipboardGet()  >> %s ", type.cString() ); fflush(stdout);
     
-    std::string retVal = pxClipboard::instance()->getString("PX_CLIPBOARD_STRING");//
+    std::string retVal = pxClipboard::instance()->getString(type.cString());
     
     retString = rtString(retVal.c_str());
-    
-    // retString = "The quick brown";
     
     return RT_OK;
 }

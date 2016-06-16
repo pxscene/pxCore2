@@ -601,6 +601,9 @@ rtError pxWayland::connectToRemoteObject()
 
 rtError pxWayland::setProperty(rtString &prop, rtString &val) const
 {
+  UNUSED_PARAM(prop);
+  UNUSED_PARAM(val);
+    
   rtError errorCode = RT_FAIL;
 #ifdef ENABLE_PX_WAYLAND_RPC
   if(mRemoteObject)

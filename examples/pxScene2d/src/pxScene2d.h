@@ -982,6 +982,7 @@ public:
   rtProperty(url, url, setUrl, rtString);
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
+
   rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);
   
   pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
@@ -1225,7 +1226,8 @@ public:
 
   rtMethod1ArgAndReturn("clipboardGet", clipboardGet, rtString, rtString);
   rtMethod2ArgAndNoReturn("clipboardSet", clipboardSet, rtString, rtString);
-
+    
+    
   rtProperty(ctx, ctx, setCtx, rtValue);
   rtProperty(api, api, setAPI, rtValue);
 //  rtReadOnlyProperty(emit, emit, rtFunctionRef);
@@ -1411,8 +1413,8 @@ private:
   rtError screenshot(rtString type, rtString& pngData);
   rtError clipboardGet(rtString type, rtString& retString);
   rtError clipboardSet(rtString type, rtString clipString);
-
-
+  
+    
   rtRefT<pxObject> mRoot;
   rtObjectRef mFocusObj;
   double start, end2;
