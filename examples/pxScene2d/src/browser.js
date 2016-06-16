@@ -1,11 +1,13 @@
 // px.import({ scene: 'px:scene.1.js',
-//              keys: './JSKeyCodes.js'
+//              keys: 'JSKeyCodes.js'
 // }).then( function importsAreReady(imports)
+// {
+//   var scene = imports.scene;
+//   var keys  = imports.keys;
+
 
 px.import("px:scene.1.js").then( function ready(scene)
 {
-  // var scene = imports.scene;
-  // var keys  = imports.keys;
 
   var root = scene.root;
 
