@@ -100,7 +100,7 @@ protected:
 
     Window win;
     displayRef mDisplayRef;
-    int mTimerFPS;
+    uint32_t mTimerFPS;
     int lastWidth, lastHeight;
     bool resizeFlag;
     Atom closeatom;

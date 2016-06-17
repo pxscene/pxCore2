@@ -38,6 +38,5 @@ void pxEventLoop::exit()
 
 int main(int argc, char* argv[])
 {
-    pxMain();
-    return 0;
+  return pxMain(argc, argv);
 }

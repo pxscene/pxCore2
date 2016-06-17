@@ -133,14 +133,14 @@ void pxWindow::setVisibility(bool visible)
     }
 }
 
-pxError pxWindow::setAnimationFPS(long fps)
+pxError pxWindow::setAnimationFPS(uint32_t fps)
 {
     mTimerFPS = fps;
     mLastAnimationTime = pxMilliseconds();
     return PX_OK;
 }
 
-void pxWindow::setTitle(char* title)
+void pxWindow::setTitle(const char* title)
 {
     Display* d = mDisplayRef.getDisplay();
     XTextProperty tp;
