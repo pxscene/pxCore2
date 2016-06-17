@@ -209,7 +209,7 @@ rtMessage_GetPropertyName(rapidjson::Document const& doc)
 uint32_t
 rtMessage_GetPropertyIndex(rapidjson::Document const& doc)
 {
-  rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNamePropertyName);
+  rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNamePropertyIndex);
   return itr != doc.MemberEnd() 
     ? itr->value.GetUint()
     : kInvalidPropertyIndex;
