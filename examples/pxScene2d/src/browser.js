@@ -231,8 +231,8 @@ inputBg.on("onKeyDown", function(e)
        break; // only a modifer key ? Ignore
 
       default:
-        prompt.a = (url.text)?0:1;
-        cursor.x = url.x + url.w;
+        // prompt.a = (url.text)?0:1;
+        // cursor.x = url.x + url.w;
         break;
   } // SWITCH
 });

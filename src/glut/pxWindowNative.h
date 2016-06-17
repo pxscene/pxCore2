@@ -163,9 +163,9 @@ protected:
 #define PX_KEY_NATIVE_TAB          9
 #define PX_KEY_NATIVE_CANCEL       10001 //TODO
 #define PX_KEY_NATIVE_CLEAR        10002 //TODO
-#define PX_KEY_NATIVE_SHIFT        112 //10003 //TODO - special
-#define PX_KEY_NATIVE_SHIFT_LEFT   112 //10003 //TODO - special
-#define PX_KEY_NATIVE_SHIFT_RIGHT  113 //10003 //TODO - special
+#define PX_KEY_NATIVE_SHIFT        10003 //TODO - special
+#define PX_KEY_NATIVE_SHIFT_LEFT   10003 //TODO - special
+#define PX_KEY_NATIVE_SHIFT_RIGHT  10003 //TODO - special
 #define PX_KEY_NATIVE_CONTROL      10004 //TODO - special
 #define PX_KEY_NATIVE_ALT          10005 //TODO - special
 #define PX_KEY_NATIVE_PAUSE        19
@@ -176,10 +176,10 @@ protected:
 #define PX_KEY_NATIVE_PAGEDOWN     34
 #define PX_KEY_NATIVE_END          35
 #define PX_KEY_NATIVE_HOME         36
-#define PX_KEY_NATIVE_LEFT         37
-#define PX_KEY_NATIVE_UP           38
-#define PX_KEY_NATIVE_RIGHT        39
-#define PX_KEY_NATIVE_DOWN         40
+#define PX_KEY_NATIVE_LEFT         10006
+#define PX_KEY_NATIVE_UP           10007
+#define PX_KEY_NATIVE_RIGHT        10008
+#define PX_KEY_NATIVE_DOWN         10009
 #define PX_KEY_NATIVE_COMMA        ','
 #define PX_KEY_NATIVE_PERIOD       '.'
 #define PX_KEY_NATIVE_SLASH        '/'

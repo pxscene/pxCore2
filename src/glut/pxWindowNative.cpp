@@ -391,7 +391,9 @@ void pxWindowNative::onGlutEntry(int state)
 
 void pxWindowNative::onGlutKeyboardSpecial(int key, int x, int y)
 {  
-  int keycode = 0;
+  int      keycode = 0;
+  uint32_t   flags = 0;
+
   switch (key)
   {
     case GLUT_KEY_F1:
@@ -457,20 +459,37 @@ void pxWindowNative::onGlutKeyboardSpecial(int key, int x, int y)
     case GLUT_KEY_INSERT:
       keycode = PX_KEY_NATIVE_INSERT;
       break;
+    case 112: // LEFT SHIFT  (not defined in freeglut.h) 
+      flags |= PX_MOD_SHIFT;
+      break;      
+    case 113: // RIGHT SHIFT  (not defined in freeglut.h) 
+      flags |= PX_MOD_SHIFT;
+      break;
+    case 114: // CTRL  (not defined in freeglut.h) 
+      flags |= PX_MOD_CONTROL;
+      break;        
+    case 116: // ALT  (not defined in freeglut.h) 
+      keycode = PX_KEY_NATIVE_ALT;
+      break;        
     default:
       printf("unknown special key: %d\n",key);
   }
 
-  uint32_t flags = 0;
-  flags |= (glutGetModifiers() & GLUT_ACTIVE_SHIFT)?PX_MOD_SHIFT:0;
-  flags |= (glutGetModifiers() & GLUT_ACTIVE_CTRL)?PX_MOD_CONTROL:0;
-  flags |= (glutGetModifiers() & GLUT_ACTIVE_ALT)?PX_MOD_ALT:0;
+  if(flags == 0)
+  {
+    flags |= (glutGetModifiers() & GLUT_ACTIVE_SHIFT)?PX_MOD_SHIFT:0;
+    flags |= (glutGetModifiers() & GLUT_ACTIVE_CTRL)?PX_MOD_CONTROL:0;
+    flags |= (glutGetModifiers() & GLUT_ACTIVE_ALT)?PX_MOD_ALT:0;
+  }
     
+//  printf("\n onGlutKeyboardSpecial() - key = %d (0x%0X)    keycode = % d     flags = %d  PX_KEY_NATIVE_LEFT = %d\n",
+//      key, key, keycode, flags, PX_KEY_NATIVE_LEFT);
+
   pxWindowNative* w = getWindowFromGlutID(glutGetWindow());
   if (w)
   {
     // JR Did I mention Glut keyboard support is not very good
-    w->onKeyDown(keycode, flags);
+    w->onKeyDown(keycodeFromNative(keycode), flags);
   }
 }
 
