@@ -81,7 +81,12 @@ rtRemoteServer::~rtRemoteServer()
   if (m_shutdown_pipe[0] != -1)
   {
     char buff[] = {"shutdown"};
-    write(m_shutdown_pipe[1], buff, sizeof(buff));
+    ssize_t n = write(m_shutdown_pipe[1], buff, sizeof(buff));
+    if (n == -1)
+    {
+      int err = errno;
+      rtLogWarn("failed to write. %s", rtStrError(err).c_str());
+    }
 
     if (m_thread)
     {

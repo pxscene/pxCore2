@@ -114,10 +114,10 @@ rtObjectCache::removeUnused()
       itr = sRefMap.erase(itr);
     }
     else
-        ++itr;
+    {
+      ++itr;
+    }
   }
 
   return RT_OK;
 }
-
-
