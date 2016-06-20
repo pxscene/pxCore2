@@ -103,12 +103,9 @@ rtObjectCache::removeUnused()
   int const maxAge = rtRemoteSetting<int>("rt.rpc.cache.max_object_lifetime");
 
   std::unique_lock<std::mutex> lock(sMutex);
-  for (auto itr = sRefMap.begin(); itr != sRefMap.end(); ++itr)
+  for (auto itr = sRefMap.begin(); itr != sRefMap.end();)
   {
-    if (itr->second.MaxAge == -1)
-      continue;
-
-    if ((now - itr->second.LastUsed) > maxAge)
+    if (itr->second.MaxAge > -1 && (now - itr->second.LastUsed) > maxAge)
     {
       rtLogInfo("removing %s. It's last access time:%d is older max allowed: %d",
           itr->first.c_str(),
@@ -116,6 +113,8 @@ rtObjectCache::removeUnused()
           maxAge);
       itr = sRefMap.erase(itr);
     }
+    else
+        ++itr;
   }
 
   return RT_OK;
