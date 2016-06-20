@@ -24,7 +24,9 @@
 #include "pxImage.h"
 #include "pxImage9.h"
 
+#ifndef ENABLE_DFB
 #include "pxWayland.h"
+#endif //ENABLE_DFB
 
 #include "pxContext.h"
 #include "pxFileDownloader.h"
@@ -1238,12 +1240,16 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 {
+#ifdef ENABLE_DFB
+  return RT_FAIL;
+#else
   rtRefT<pxWaylandContainer> c = new pxWaylandContainer(this);
   c->setView(new pxWayland);
   o = c.getPtr();
   o.set(p);
   o.send("init");
   return RT_OK;
+#endif //ENABLE_DFB
 }
 
 void pxScene2d::draw()
@@ -1940,7 +1946,6 @@ rtError pxScene2d::clipboardSet(rtString type, rtString clipString)
 rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 {
 //    printf("\n ##########   clipboardGet()  >> %s ", type.cString() ); fflush(stdout);
-    
     std::string retVal = pxClipboard::instance()->getString(type.cString());
     
     retString = rtString(retVal.c_str());

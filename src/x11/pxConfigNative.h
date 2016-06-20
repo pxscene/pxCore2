@@ -32,7 +32,7 @@
   #include "pxWindowNative.h"
 
 #endif
-
+  #include "pxClipboardNative.h"
 #endif // PX_NATIVE
 
 #endif // PX_CONFIGNATIVE_H

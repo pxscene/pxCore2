@@ -29,9 +29,13 @@ PX_PLATFORM=PX_PLATFORM_MAC
 PXLIBS=$(PXCOREDIR)/build/mac
 TARGETINCLUDE=
 else
+ifeq ($(PX_PLATFORM),DirectFB)
+PX_PLATFORM=PX_PLATFORM_GENERIC_DFB
+else
 PX_PLATFORM=PX_PLATFORM_GLUT
 PXLIBS=$(PXCOREDIR)/build/glut
 TARGETINCLUDE=
+endif
 endif
 endif
 
@@ -174,7 +178,8 @@ RTCORE_SRCS=\
   ../rtLog.cpp \
   ../rtValue.cpp \
   ../rtObject.cpp \
-  ../rtError.cpp
+  ../rtError.cpp \
+  ../ioapi_mem.c
 
 RTCORE_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RTCORE_SRCS)))
 RTCORE_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(RTCORE_OBJS)))
@@ -197,10 +202,8 @@ PXSCENE_LIB_SRCS=\
 	   pxRectangle.cpp \
            pxText.cpp \
            pxTextBox.cpp \
-           pxWayland.cpp \
            pxImage.cpp \
            pxUtil.cpp \
-           pxContextGL.cpp \
            pxImage9.cpp \
            pxFileDownloader.cpp \
            pxInterpolators.cpp \
@@ -208,12 +211,20 @@ PXSCENE_LIB_SRCS=\
            pxArchive.cpp \
            pxFont.cpp \
            rtNode.cpp \
+           rtUrlUtils.cpp \
            linux/rtMutexNative.cpp \
            linux/rtThreadPoolNative.cpp \
            jsbindings/rtWrapperUtils.cpp \
            jsbindings/rtFunctionWrapper.cpp \
            jsbindings/rtObjectWrapper.cpp \
            jsbindings/jsCallback.cpp
+
+ifneq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
+PXSCENE_LIB_SRCS += pxContextGL.cpp pxWayland.cpp
+else
+PXSCENE_LIB_SRCS += pxContextDFB.cpp
+endif
+
 
 ifeq ($(HAVE_WESTEROS),1)
 else
@@ -298,6 +309,17 @@ SCAN_CHECKS=\
 
 LLVM_CHECKS=$(patsubst %, -enable-checker %, $(SCAN_CHECKS))
 
+ifeq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
+PXSCENE_LIBS=-lpng15 -ldirectfb -ldirect -lfusion
+PXSCENE_LIB_LINK_OPTIONS=$(PXSCENE_LIB_LINKING) -L../../../build/dfb -Wl,--whole-archive ../../../build/dfb/libpxCore.a
+PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_DFB -DENABLE_DFB
+else 
+PXSCENE_LIBS=-lpng16 -lnxpl -lGLESv2 -lwesteros_compositor -Lrpc/ -lrtRemote -luuid
+PXSCENE_LIB_LINK_OPTIONS=-L../../../build/egl -Wl,--whole-archive ../../../build/egl/libpxCore.a
+PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_EGL
+endif
+
+
 analyze:
 	$(MAKE) clean
 	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) pxscene
@@ -307,8 +329,8 @@ pxscene: $(OBJS) $(LINKLIBS)
 	$(CXX) $(OBJS) $(LDFLAGS_FULL) -o pxscene
 
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
-libpxscene.so: CXXFLAGS_FULL = -Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_GENERIC_EGL -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DENABLE_PX_WAYLAND_RPC
-libpxscene.so: LDFLAGS_FULL = -L../../../build/egl -Wl,--whole-archive ../../../build/egl/libpxCore.a -Wl,--no-whole-archive -lnode -pthread -lpng16 -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8) -Lrpc/  -ldl -lrt -L./ -lrtCore -shared -lnexus -lnxclient -lnxpl -lGLESv2 -lwesteros_compositor -Lrpc/ -lrtRemote -o libpxscene.so.1.0
+libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
+libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -lrtCore -shared -lnexus -lnxclient -o libpxscene.so.1.0  
 libpxscene.so: $(PXSCENE_LIB_OBJS)
 	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
@@ -316,7 +338,7 @@ libpxscene.so: $(PXSCENE_LIB_OBJS)
 
 librtCore.so: CFLAGS_FULL = $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
 librtCore.so: CXXFLAGS_FULL = $(CXXFLAGS) -std=c++0x $(CFLAGS_FULL)
-librtCore.so: LDFLAGS_FULL = -pthread -ldl -luuid -shared -o $@
+librtCore.so: LDFLAGS_FULL = -pthread -ldl -shared -o $@
 librtCore.so: $(RTCORE_OBJS)
 	$(CXX) $(RTCORE_OBJS) $(LDFLAGS_FULL)
 
