@@ -563,7 +563,7 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocP
       func = rtObjectCache::findFunction(function_name->value.GetString());
     }
 
-    if (err == RT_OK)
+    if (err == RT_OK && !!func)
     {
       // virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
       std::vector<rtValue> argv;
