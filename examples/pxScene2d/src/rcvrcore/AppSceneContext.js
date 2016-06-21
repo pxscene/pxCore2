@@ -464,8 +464,12 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       _this.sceneWrapper._setRPCController(_this.rpcController);
       onImportComplete([_this.sceneWrapper, origFilePath]);
       return;
+    } else if( filePath.substring(0,9) === "px:tools.") {
+      filePath = 'rcvrcore/tools/' + filePath.substring(9);
+      var modData = require(filePath);
+      onImportComplete([modData, origFilePath]);
+      return;
     }
-
     var fullIncludeUri;
     var resolvedModulePath;
     if( filePath.substring(0, 9) === "px:scene.") {
@@ -473,6 +477,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
     } else {
       resolvedModulePath = _this.resolveModulePath(filePath, currentXModule);
     }
+    
     if( resolvedModulePath.isJarFile ) {
       fullIncludeUri = resolvedModulePath.fileUri + "?module=" + resolvedModulePath.relativePath;
     } else {

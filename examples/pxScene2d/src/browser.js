@@ -1,15 +1,10 @@
-// px.import({ scene: 'px:scene.1.js',
-//              keys: 'JSKeyCodes.js'
-// }).then( function importsAreReady(imports)
-// {
-//   var scene = imports.scene;
-//   var keys  = imports.keys;
-
-
-px.import("px:scene.1.js").then( function ready(scene)
+px.import({ scene: 'px:scene.1.js',
+             keys: 'px:tools.keys.js'
+}).then( function importsAreReady(imports)
 {
-
-  var root = scene.root;
+  var scene = imports.scene;
+  var keys = imports.keys;
+  var root = imports.scene.root;
 
   var pts      = 24;
   var bg       = scene.create({t:"image",url:"../images/status_bg.png",parent:root,stretchX:scene.stretch.STRETCH,stretchY:scene.stretch.STRETCH});
@@ -22,7 +17,7 @@ px.import("px:scene.1.js").then( function ready(scene)
   var cursor   = scene.create({t:"rect", w:2, h:inputBg.h-10, parent:inputBg,x:10,y:5});
 
   spinner.animateTo({r:360},1.0, scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP,scene.animation.COUNT_FOREVER);
-   cursor.animateTo({a:0},0.5,   scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE,scene.animation.COUNT_FOREVER);
+  cursor.animateTo({a:0},0.5,   scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE,scene.animation.COUNT_FOREVER);
 
   var contentBG = scene.create({t:"rect", x:10,y:60,parent:bg,fillColor:0xffffffff,a:0.05,draw:false});
   var content   = scene.create({t:"scene",x:10,y:60,parent:bg,clip:true});
@@ -39,12 +34,11 @@ px.import("px:scene.1.js").then( function ready(scene)
 
   inputBg.on("onChar",function(e)
   {
-    if (e.charCode == 13)  // <<<  ENTER KEY
-//    if(e.charCode == keys.JS_KEY_ENTER)
+    if (e.charCode == keys.ENTER)  // <<<  ENTER KEY
       return;
 
     // TODO should we be getting an onChar event for backspace
-    if (e.charCode != 8 && e.charCode != 63234 && e.charCode != 63235)  // <<<  BACKSPACE KEY, LEFT ARROW, RIGHT ARROW
+    if (e.charCode != keys.BACKSPACE)  
     {
 //      console.log("onChar ....  e.charCode = " + e.charCode);
       url.text += String.fromCharCode(e.charCode);
@@ -96,8 +90,7 @@ inputBg.on("onKeyDown", function(e)
 
   switch(code)
   {
-    case 8:    // <<  BACKSPACE KEY
-    //case keys.JS_KEY_BACKSPACE:
+    case keys.BACKSPACE:    
       {
         console.log("BACKSPACE " + url.text);
 
@@ -124,13 +117,11 @@ inputBg.on("onKeyDown", function(e)
       }
       break;
 
-    //case keys.JS_KEY_ENTER:
-    case 13:   // <<  ENTER KEY
+    case keys.ENTER:  
       reload();
       break;
 
-    //case keys.JS_KEY_LEFT:
-    case 37:   // << LEFT ARROW  KEY
+    case keys.LEFT:   
       if(cursor_pos > 0)
       {
         if(flags == 8) // <<  SHIFT KEY
@@ -156,8 +147,7 @@ inputBg.on("onKeyDown", function(e)
       }
       break;
 
-    //case keys.JS_KEY_RIGHT:
-    case 39:   // << RIGHT ARROW KEY
+    case keys.RIGHT:   
       if(cursor_pos < url.text.length)
       {
         if(flags == 8) // <<  SHIFT KEY
@@ -183,8 +173,7 @@ inputBg.on("onKeyDown", function(e)
       }
       break;
 
-    //case keys.JS_KEY_C:
-     case 67:   // << CTRL + "c"
+     case keys.C:   // << CTRL + "c"
       if( ((flags & 16)==16) )  // ctrl Pressed also
       {
          console.log("onKeyDown ....   CTRL-C >>> [" + selection_text + "]");
@@ -193,8 +182,7 @@ inputBg.on("onKeyDown", function(e)
       }
     break;
 
-    //case keys.JS_KEY_V:
-    case 86:   // << CTRL + "v"
+    case keys.V:   // << CTRL + "v"
       if( ((flags & 16)==16) )  // ctrl Pressed also
       {
         // On PASTE ... access the Native CLIPBOARD and GET the top!   fancy.js
@@ -214,8 +202,7 @@ inputBg.on("onKeyDown", function(e)
       }
       break;
 
-    //case keys.JS_KEY_X:
-    case 88:   // << CTRL + "x"
+    case keys.X:   // << CTRL + "x"
       if( ((flags & 16)==16) )  // ctrl Pressed also
       {
         // On CUT ... access the Native CLIPBOARD and GET the top!   fancy.js
@@ -328,7 +315,7 @@ function updateSize(w,h) {
 }
 
 scene.root.on("onPreKeyDown", function(e) {
-  if (e.keyCode == 76 && e.flags == 16) { // ctrl-l
+  if (e.keyCode == keys.L && e.flags == 16) { // ctrl-l
     //console.log("api:"+content.api);
 //    if (content.api) content.api.test(32);
     //scene.setFocus(inputBg);
@@ -345,13 +332,13 @@ if (true) {
   scene.root.on("onKeyDown", function(e) {
 	  var code = e.keyCode; var flags = e.flags;
     console.log("onKeyDown browser.js:", code, ", ", flags);
-    if (code == 82 && ((flags & 48) == 48)) {  // ctrl-alt-r
+    if (code == keys.R && ((flags & 48) == 48)) {  // ctrl-alt-r
       console.log("Browser.js Reloading");
       reload();
       e.stopPropagation();
       console.log("Browser.js reload done");
     }
-    else if (code == 72 && ((flags & 48)==48)) {  // ctrl-alt-h
+    else if (code == keys.H && ((flags & 48)==48)) {  // ctrl-alt-h
       var homeURL = "browser.js";
       console.log("browser.js Loading home");
       reload("gallery.js");
