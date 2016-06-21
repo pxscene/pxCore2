@@ -14,15 +14,22 @@
 #define USE_DRAW_DIAG_LINE
 
 
+#ifdef ENABLE_DFB_GENERIC
+IDirectFB                *dfb = NULL;
+IDirectFBSurface         *dfbSurface = NULL;
+DFBSurfacePixelFormat     dfbPixelformat = DSPF_ABGR;
+bool needsFlip = true;
+IDirectFB                *outsideDfb = NULL;
+IDirectFBSurface         *outsideDfbSurface = NULL;
+pxContext context;
+#else
 extern IDirectFB                *dfb;
-extern IDirectFBDisplayLayer    *dfbLayer;
 
-extern DFBSurfaceDescription     dfbDescription;
 extern IDirectFBSurface         *dfbSurface;
-extern IDirectFBEventBuffer     *dfbBuffer;
 
 extern DFBSurfacePixelFormat     dfbPixelformat;
 extern bool needsFlip;
+#endif //ENABLE_DFB_GENERIC
 
 extern char* p2str(DFBSurfacePixelFormat fmt); // DEBUG
 
@@ -1087,6 +1094,11 @@ void pxContext::init()
     gContextInit = true;
 #endif
 
+#ifdef ENABLE_DFB_GENERIC
+   dfb = outsideDfb;
+   dfbSurface = outsideDfbSurface;
+#endif //ENABLE_DFB_GENERIC
+
    DFB_CHECK( dfbSurface->Clear( dfbSurface, 0x00, 0x00, 0x00, 0x00 ) ); // TRANSPARENT
 
    boundFramebuffer = dfbSurface;  // needed here.
@@ -1422,7 +1434,6 @@ void pxContext::getSize(int& w, int& h)
    w= gResW;
    h= gResH;
 }
-
 
 #if 0
 
