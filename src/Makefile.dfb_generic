@@ -1,0 +1,41 @@
+
+#CFLAGS= -DPX_PLATFORM_X11 -DENABLE_DFB -fPIC -g
+CFLAGS= -DENABLE_DFB -DENABLE_DFB_GENERIC -fPIC -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DENABLE_RT_NODE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DPX_PLATFORM_GENERIC_DFB
+
+OUTDIR=../build/dfb
+
+INCDIR=$(PXCORE_INCLUDES) -Igeneric/ -I/usr/X11R6/include -I/usr/local/include/directfb -I.
+
+all: $(OUTDIR)/libpxCore.a 
+
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o pxViewWindow.o pxClipboardNative.o
+	mkdir -p $(OUTDIR)    
+	ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o pxViewWindow.o pxClipboardNative.o
+
+pxViewWindow.o: pxViewWindow.cpp
+	$(CXX) -o pxViewWindow.o -Wall $(INCDIR) $(CFLAGS) -c pxViewWindow.cpp
+
+pxOffscreen.o: pxOffscreen.cpp
+	$(CXX) -o pxOffscreen.o -Wall $(INCDIR) $(CFLAGS) -c pxOffscreen.cpp
+
+pxBufferNativeDfb.o: x11/pxBufferNativeDfb.cpp
+	$(CXX) -o pxBufferNativeDfb.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxBufferNativeDfb.cpp
+
+pxOffscreenNativeDfb.o: x11/pxOffscreenNativeDfb.cpp
+	$(CXX) -o pxOffscreenNativeDfb.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxOffscreenNativeDfb.cpp
+
+pxWindowNativeDfb.o: generic/pxWindowNative.cpp
+	$(CXX) -o pxWindowNativeDfb.o -Wall $(INCDIR) $(CFLAGS) -c generic/pxWindowNative.cpp
+
+pxEventLoopNative.o: x11/pxEventLoopNative.cpp
+	$(CXX) -o pxEventLoopNative.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxEventLoopNative.cpp
+
+pxTimerNative.o: x11/pxTimerNative.cpp
+	$(CXX) -o pxTimerNative.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxTimerNative.cpp
+
+pxClipboardNative.o: x11/pxClipboardNative.cpp
+	$(CXX) -o pxClipboardNative.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxClipboardNative.cpp
+
+pxWindowUtil.o: pxWindowUtil.cpp
+	$(CXX) -o pxWindowUtil.o -Wall $(INCDIR) $(CFLAGS) -c pxWindowUtil.cpp
+

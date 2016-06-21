@@ -1,7 +1,11 @@
 #ifndef PX_WINDOW_NATIVE_H
 #define PX_WINDOW_NATIVE_H
 
+#ifdef ENABLE_DFB
+#include "LinuxKeyCodes.h"
+#else
 #include "pxBufferNative.h"
+#endif //ENABLE_DFB
 
 #include <vector>
 

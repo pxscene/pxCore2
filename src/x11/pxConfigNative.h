@@ -23,7 +23,11 @@
 
   #include "pxBufferNativeDfb.h"
   #include "pxOffscreenNativeDfb.h"
+#ifdef ENABLE_DFB_GENERIC
+  #include "../generic/pxWindowNative.h"
+#else
   #include "pxWindowNativeDfb.h"
+#endif //ENABLE_DFB_GENERIC
 
 #else
 

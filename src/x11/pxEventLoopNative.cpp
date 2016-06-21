@@ -14,7 +14,9 @@
 
 #if defined(ENABLE_GLUT)
   #include "pxWindowNativeGlut.h"
-#elif defined(ENABLE_DFB)
+#elif defined(ENABLE_DFB_GENERIC)
+  #include "pxWindowNative.h"
+#elif defined(ENABLE_DFB) 
   #include "pxWindowNativeDfb.h"
 #else
   #include "pxWindowNative.h"
