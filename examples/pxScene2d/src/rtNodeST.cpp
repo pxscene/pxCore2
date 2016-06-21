@@ -36,6 +36,8 @@ extern rtThreadQueue gUIThreadQueue;
 
 #ifdef USE_CONTEXTIFY_CLONES
 #warning Using USE_CONTEXTIFY_CLONES !!
+#else
+#warning NOT Using USE_CONTEXTIFY_CLONES !!
 #endif
 
 #ifdef RUNINMAIN
@@ -267,8 +269,12 @@ void rtNodeContext::add(const char *name, rtValue const& val)
 {
   if(name == NULL)
   {
-    rtLogError("no symbolic name for rtValue");
-    // TODO: test for uniquiness !
+    rtLogError(" rtNodeContext::add() - no symbolic name for rtValue");
+    return;
+  }
+  else if(this->has(name))
+  {
+    rtLogError(" rtNodeContext::add() - ALREADY HAS '%s' ...", name);
     return;
   }
 
@@ -276,15 +282,11 @@ void rtNodeContext::add(const char *name, rtValue const& val)
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 
-//  printf("\n#### [%p]  %s() >> Adding \"%s\"\n", this, __FUNCTION__, name);
-
   // Get a Local context...
   Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
   Context::Scope context_scope(local_context);
 
-  Handle<Object> global = local_context->Global();
-
-  global->Set(String::NewFromUtf8(mIsolate, name), rt2js(local_context, val));
+  local_context->Global()->Set( String::NewFromUtf8(mIsolate, name), rt2js(local_context, val));
 }
 
 
@@ -292,7 +294,7 @@ rtValue rtNodeContext::get(const char *name)
 {
   if(name == NULL)
   {
-    rtLogError("no symbolic name for rtValue");
+    rtLogError(" rtNodeContext::get() - no symbolic name for rtValue");
     return rtValue(0);
   }
 
@@ -305,7 +307,7 @@ rtValue rtNodeContext::get(const char *name)
   // Get the object
   Local<Value> object = global->Get( String::NewFromUtf8(mIsolate, name) );
 
-  if(object->IsUndefined())
+  if(object->IsUndefined() || object->IsNull() )
   {
     rtLogError("FATAL: '%s' is Undefined ", name);
     return rtValue();
@@ -315,6 +317,39 @@ rtValue rtNodeContext::get(const char *name)
     rtWrapperError error; // TODO - handle error
     return js2rt(local_context, object, &error);
   }
+}
+
+bool rtNodeContext::has(const char *name)
+{
+  if(name == NULL)
+  {
+    rtLogError(" rtNodeContext::has() - no symbolic name for rtValue");
+    return false;
+  }
+
+  Locker                locker(mIsolate);
+  Isolate::Scope isolate_scope(mIsolate);
+  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
+
+  // Get a Local context...
+  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+  Context::Scope context_scope(local_context);
+
+  Handle<Object> global = local_context->Global();
+
+  v8::TryCatch try_catch;
+  v8::Handle<v8::Value> value = global->Get(String::NewFromUtf8(mIsolate, name) );
+
+  if (try_catch.HasCaught())
+  {
+     printf("\n ## has() - HasCaught()  ... ERROR");
+     return false;
+  }
+
+  // No need to check if |value| is empty because it's taken care of
+  // by TryCatch above.
+
+  return ( !value->IsUndefined() && !value->IsNull() );
 }
 
 

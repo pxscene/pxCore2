@@ -17,5 +17,4 @@ var setTimeout  = this.setTimeout;
 var setInterval = this.setInterval;
 
 var _sandboxStuff = [ "console", "Buffer", "setTimeout", "setInterval",
-                      "clearInterval", "urlModule", "queryStringModule", "xmodule", "runtime", "require",  "makeReady"  ];
-
+                      "clearInterval", "urlModule", "queryStringModule", "xmodule", "runtime", "require" ];

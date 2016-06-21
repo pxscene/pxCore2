@@ -14,7 +14,7 @@ var log = new Logger('AppSceneContext');
 
 function AppSceneContext(params) { // container, innerscene, packageUrl) {
   //  this.container = params.sceneContainer;
-  this.makeReady - params.makeReady;
+  this.makeReady = params.makeReady;
   this.innerscene = params.scene;
   this.rpcController = params.rpcController;
   if( params.packageUrl.indexOf('?') != -1 ) {
@@ -81,7 +81,7 @@ if (false) {
 }
 
 if (false) {
-  // JRJRJR No longer get this event... 
+  // JRJRJR No longer get this event...
   this.innerscene.on('onComplete', function (e) {
 //    this.container = null;
     this.innerscene = null;
@@ -259,7 +259,7 @@ if (false) {
       //console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
       if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
 //        this.container.makeReady(true);
-        
+
 //        this.innerscene.api = {isReady:true};
         this.makeReady(true,{});
       } else {

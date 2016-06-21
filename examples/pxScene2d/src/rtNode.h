@@ -67,7 +67,7 @@ public:
 
   void    add(const char *name, rtValue  const& val);
   rtValue get(const char *name);
-
+  bool    has(const char *name);
 
   rtObjectRef runScript(const char        *script,  const char *args = NULL); // BLOCKS
   rtObjectRef runScript(const std::string &script,  const char *args = NULL); // BLOCKS
