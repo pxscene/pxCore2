@@ -154,9 +154,12 @@ LDNODEV8 = -L$(NODEDIR)/out/Release
 LDWESTEROS = -L$(EXTDIR)/westeros/external/install/lib -lwesteros_compositor
 
 
-LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDNODE) $(LDNODEV8) $(LDZLIB) -lX11
+LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDNODE) $(LDNODEV8) $(LDZLIB)
 ifeq ($(HAVE_WESTEROS),1)
 LDEXT += $(LDWESTEROS)
+endif
+ifeq ($(UNAME_S),Linux)
+LDEXT += -lX11
 endif
 
 ifeq ($(UNAME_S),Darwin)
