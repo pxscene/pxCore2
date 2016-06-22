@@ -55,8 +55,18 @@ const char* rtStrError_SystemError(int e)
   }
 
   assert(buff != NULL);
+
+  // TODO: The below #ifdef is not the best approach. @see man strerror_r and
+  // /usr/include/string.h for proper check of which version of strerror_r is 
+  // available. Need to check for osx portability also
   if (buff)
+  {
+    #ifdef __linux__
     buff = strerror_r(e, buff, 256);
+    #else
+    strerror_r(e, buff, 256);
+    #endif
+  }
 
   return buff;
 }
