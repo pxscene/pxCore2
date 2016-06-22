@@ -26,8 +26,9 @@ rtFindFirstInetInterface(char* name, size_t len)
   int ret = getifaddrs(&ifaddr);
   if (ret == -1)
   {
-    rtLogError("failed to get list of interfaces: %s", rtStrError(errno).c_str());
-    return RT_FAIL;
+    e = rtErrorFromErrno(errno);
+    rtLogError("failed to get list of interfaces: %s", rtStrError(e));
+    return e;
   }
 
   for (ifaddrs* i = ifaddr; i != nullptr; i = i->ifa_next)
@@ -82,7 +83,7 @@ rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* 
       // try hostname
       rtError err = rtGetInterfaceAddress(addr, ss);
       if (err != RT_OK)
-        return RT_FAIL;
+        return err;
 
       if (index != nullptr)
         *index = if_nametoindex(addr);
@@ -107,7 +108,7 @@ rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* 
   }
   else
   {
-    return RT_FAIL;
+    return rtErrorFromErrno(errno);
   }
   return RT_OK;
 }
@@ -138,8 +139,9 @@ rtGetInterfaceAddress(char const* name, sockaddr_storage& ss)
 
   if (ret == -1)
   {
-    rtLogError("failed to get list of interfaces. %s", rtStrError(errno).c_str());
-    return RT_FAIL;
+    error = rtErrorFromErrno(errno);
+    rtLogError("failed to get list of interfaces. %s", rtStrError(error));
+    return error;
   }
 
   for (ifaddrs* i = ifaddr; i != NULL; i = i->ifa_next)
@@ -164,6 +166,7 @@ rtGetInterfaceAddress(char const* name, sockaddr_storage& ss)
     ret = getnameinfo(i->ifa_addr, len, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICHOST);
     if (ret != 0)
     {
+      // TODO: add error class for gai errors
       rtLogError("failed to get address for %s. %s", name, gai_strerror(ret));
       error = RT_FAIL;
       goto out;
@@ -176,8 +179,9 @@ rtGetInterfaceAddress(char const* name, sockaddr_storage& ss)
       ret = inet_pton(ss.ss_family, host, addr);
       if (ret != 1)
       {
+        int err = errno;
         rtLogError("failed to parse: %s as valid ipv4 address", host);
-        error = RT_FAIL;
+        error = rtErrorFromErrno(err);
       }
       error = RT_OK;
       goto out;
@@ -244,8 +248,9 @@ rtReadUntil(int fd, char* buff, int n)
 
     if (n == -1)
     {
-      rtLogError("failed to read from fd %d. %s", fd, rtStrError(errno).c_str());
-      return RT_FAIL;;
+      rtError e = rtErrorFromErrno(errno);
+      rtLogError("failed to read from fd %d. %s", fd, rtStrError(e));
+      return e;
     }
 
     bytes_read += n;
@@ -312,10 +317,10 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
     if (sendto(fd, buff.GetString(), buff.GetSize(), flags,
           reinterpret_cast<sockaddr const *>(dest), len) < 0)
     {
-      rtLogError("sendto failed. %s. dest:%s family:%d", rtStrError(errno).c_str(), rtSocketToString(*dest).c_str(),
+      rtError e = rtErrorFromErrno(errno);
+      rtLogError("sendto failed. %s. dest:%s family:%d", rtStrError(e), rtSocketToString(*dest).c_str(),
         dest->ss_family);
-
-      return RT_FAIL;
+      return e;
     }
   }
   else
@@ -330,14 +335,16 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
     #endif
     if (send(fd, reinterpret_cast<char *>(&n), 4, flags) < 0)
     {
-      rtLogError("failed to send length of message. %s", rtStrError(errno).c_str());
-      return RT_FAIL;
+      rtError e = rtErrorFromErrno(errno);
+      rtLogError("failed to send length of message. %s", rtStrError(e));
+      return e;
     }
 
     if (send(fd, buff.GetString(), buff.GetSize(), flags) < 0)
     {
-      rtLogError("failed to send. %s", rtStrError(errno).c_str());
-      return RT_FAIL;
+      rtError e = rtErrorFromErrno(errno);
+      rtLogWarn("failed to send: %s", rtStrError(e));
+      return e;
     }
   }
 
@@ -437,8 +444,9 @@ rtGetPeerName(int fd, sockaddr_storage& endpoint)
   int ret = getpeername(fd, (sockaddr *)&addr, &len);
   if (ret == -1)
   {
-    rtLogWarn("failed to get the peername for fd:%d endpoint. %s", fd, rtStrError(errno).c_str());
-    return RT_FAIL;
+    rtError err = rtErrorFromErrno(errno);
+    rtLogWarn("failed to get the peername for fd:%d endpoint. %s", fd, rtStrError(err));
+    return err;
   }
 
   memcpy(&endpoint, &addr, sizeof(sockaddr_storage));
@@ -459,9 +467,9 @@ rtGetSockName(int fd, sockaddr_storage& endpoint)
   int ret = getsockname(fd, (sockaddr *)&addr, &len);
   if (ret == -1)
   {
-    rtLogWarn("failed to get the socket name for fd:%d endpoint. %s", fd, rtStrError(errno).c_str());
-    assert(false);
-    return RT_FAIL;
+    rtError err = rtErrorFromErrno(errno);
+    rtLogWarn("failed to get the socket name for fd:%d endpoint. %s", fd, rtStrError(err));
+    return err;
   }
 
   memcpy(&endpoint, &addr, sizeof(sockaddr_storage));

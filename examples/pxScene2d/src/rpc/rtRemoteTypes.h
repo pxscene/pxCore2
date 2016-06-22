@@ -18,6 +18,4 @@ using rtCorrelationKey = uint32_t;
 using rtRemoteMessageHandler = std::function<rtError (std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg)>;
 using rtRemoteInactivityHandler = std::function<rtError(time_t lastMessageTime, time_t now)>;
 
-std::string rtStrError(int e);
-
 #endif

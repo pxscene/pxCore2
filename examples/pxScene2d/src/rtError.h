@@ -6,6 +6,9 @@
 
 #include <stdint.h>
 
+#define RT_ERROR_CLASS_SYSERROR 0x8000
+#define RT_ERROR_CLASS_BUILTIN 0x00000000
+
 #define RT_OK                           0
 #define RT_ERROR                        1
 #define RT_FAIL                         1
@@ -25,5 +28,11 @@
 typedef uint32_t rtError;
 
 const char* rtStrError(rtError e);
+
+inline rtError rtErrorFromErrno(int err)
+{
+  // TODO: bounds check err <= uint16::max
+  return err == 0 ? RT_OK : (err | (RT_ERROR_CLASS_SYSERROR << 16));
+}
 
 #endif

@@ -19,7 +19,8 @@ public:
     int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
     if (ret == -1)
     {
-      rtLogError("failed to create pipe. %s", rtStrError(ret).c_str());
+      rtError e = rtErrorFromErrno(ret);
+      rtLogError("failed to create pipe. %s", rtStrError(e));
     }
   }
 
@@ -43,8 +44,8 @@ public:
       ssize_t n = write(m_shutdown_pipe[1], buff, sizeof(buff));
       if (n == -1)
       {
-        int err = errno;
-        rtLogWarn("failed to write. %s", rtStrError(err).c_str());
+        rtError e = rtErrorFromErrno(errno);
+        rtLogWarn("failed to write. %s", rtStrError(e));
       }
 
       m_thread->join();
@@ -88,7 +89,8 @@ private:
       int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, &timeout);
       if (ret == -1)
       {
-        rtLogWarn("select failed: %s", rtStrError(errno).c_str());
+        rtError e = rtErrorFromErrno(errno);
+        rtLogWarn("select failed: %s", rtStrError(e));
         continue;
       }
 
@@ -242,7 +244,10 @@ rtRemoteStream::close()
     
     ret = ::shutdown(m_fd, SHUT_RDWR);
     if (ret == -1)
-      rtLogDebug("shutdown failed on fd %d: %s", m_fd, rtStrError(errno).c_str());
+    {
+      rtError e = rtErrorFromErrno(errno);
+      rtLogDebug("shutdown failed on fd %d: %s", m_fd, rtStrError(e));
+    }
 
     rtCloseSocket(m_fd);
   }
@@ -263,8 +268,9 @@ rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
   m_fd = socket(endpoint.ss_family, SOCK_STREAM, 0);
   if (m_fd < 0)
   {
-    rtLogError("failed to create socket. %s", rtStrError(errno).c_str());
-    return RT_FAIL;
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to create socket. %s", rtStrError(e));
+    return e;
   }
   fcntl(m_fd, F_SETFD, fcntl(m_fd, F_GETFD) | FD_CLOEXEC);
 
@@ -274,9 +280,10 @@ rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
   int ret = ::connect(m_fd, reinterpret_cast<sockaddr const *>(&endpoint), len);
   if (ret < 0)
   {
-    rtLogError("failed to connect to remote rpc endpoint. %s", rtStrError(errno).c_str());
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to connect to remote rpc endpoint. %s", rtStrError(e));
     rtCloseSocket(m_fd);
-    return RT_FAIL;
+    return e;
   }
 
   rtGetSockName(m_fd, m_local_endpoint);
@@ -385,7 +392,7 @@ rtRemoteStream::sendRequest(rtRemoteRequest const& req, MessageHandler handler, 
   m_send_mutex.unlock();
   if (e != RT_OK)
   {
-    rtLogWarn("failed to send request: %d", e);
+    rtLogWarn("failed to send request: %s", rtStrError(e));
     return e;
   }
 

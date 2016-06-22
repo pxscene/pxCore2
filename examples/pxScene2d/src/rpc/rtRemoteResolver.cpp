@@ -97,7 +97,10 @@ rtRemoteMulticastResolver::rtRemoteMulticastResolver()
 
   int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
   if (ret == -1)
-    rtLogWarn("failed to create shutdown pipe. %s", rtStrError(ret).c_str());
+  {
+    rtError e = rtErrorFromErrno(ret);
+    rtLogWarn("failed to create shutdown pipe. %s", rtStrError(e));
+  }
 }
 
 rtRemoteMulticastResolver::~rtRemoteMulticastResolver()
@@ -195,15 +198,14 @@ rtError
 rtRemoteMulticastResolver::openUnicastSocket()
 {
   int ret = 0;
-  int err = 0;
 
   m_ucast_fd = socket(m_ucast_endpoint.ss_family, SOCK_DGRAM, 0);
   if (m_ucast_fd < 0)
   {
-    err = errno;
+    rtError e = rtErrorFromErrno(errno);
     rtLogError("failed to create unicast socket with family: %d. %s", 
-      m_ucast_endpoint.ss_family, rtStrError(errno).c_str());
-    return RT_FAIL;
+      m_ucast_endpoint.ss_family, rtStrError(e));
+    return e;
   }
   fcntl(m_ucast_fd, F_SETFD, fcntl(m_ucast_fd, F_GETFD) | FD_CLOEXEC);
 
@@ -213,9 +215,9 @@ rtRemoteMulticastResolver::openUnicastSocket()
   ret = bind(m_ucast_fd, reinterpret_cast<sockaddr *>(&m_ucast_endpoint), m_ucast_len);
   if (ret < 0)
   {
-    err = errno;
-    rtLogError("failed to bind unicast endpoint: %s", rtStrError(errno).c_str());
-    return RT_FAIL;
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to bind unicast endpoint: %s", rtStrError(e));
+    return e;
   }
 
   // now figure out which port we're bound to
@@ -223,9 +225,9 @@ rtRemoteMulticastResolver::openUnicastSocket()
   ret = getsockname(m_ucast_fd, reinterpret_cast<sockaddr *>(&m_ucast_endpoint), &m_ucast_len);
   if (ret < 0)
   {
-    err = errno;
-    rtLogError("failed to get socketname. %s", rtStrError(errno).c_str());
-    return RT_FAIL;
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to get socketname. %s", rtStrError(e));
+    return e;
   }
   else
   {
@@ -233,6 +235,7 @@ rtRemoteMulticastResolver::openUnicastSocket()
   }
 
   // btw, when we use this socket to send multicast, use the right interface
+  int err = 0;
   if (m_mcast_src.ss_family == AF_INET)
   {
     in_addr mcast_interface = reinterpret_cast<sockaddr_in *>(&m_mcast_src)->sin_addr;
@@ -247,17 +250,18 @@ rtRemoteMulticastResolver::openUnicastSocket()
 
   if (err < 0)
   {
-    err = errno;
-    rtLogError("failed to set outgoing multicast interface. %s", rtStrError(errno).c_str());
-    return RT_FAIL;
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to set outgoing multicast interface. %s", rtStrError(e));
+    return e;
   }
 
   #if 0
   char loop = 1;
   if (setsockopt(m_ucast_fd, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&loop, sizeof(loop)) < 0)
   {
-    rtLogError("failed to disable multicast loopback: %s", rtStrError(errno).c_str());
-    return RT_FAIL;
+    rtError err = rtErrorFromErrno(errno);
+    rtLogError("failed to disable multicast loopback: %s", rtStrError(err));
+    return err;
   }
   #endif
 
@@ -404,7 +408,8 @@ rtRemoteMulticastResolver::runListener()
     int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, NULL);
     if (ret == -1)
     {
-      rtLogWarn("select failed: %s", rtStrError(errno).c_str());
+      rtError e = rtErrorFromErrno(errno);
+      rtLogWarn("select failed: %s", rtStrError(e));
       continue;
     }
 
@@ -481,8 +486,8 @@ rtRemoteMulticastResolver::close()
     ssize_t n = write(m_shutdown_pipe[1], buff, sizeof(buff));
     if (n == -1)
     {
-      int err = errno;
-      rtLogWarn("failed to write. %s", rtStrError(err).c_str());
+      rtError e = rtErrorFromErrno(errno);
+      rtLogWarn("failed to write. %s", rtStrError(e));
     }
 
     if (m_read_thread)
@@ -526,10 +531,10 @@ rtRemoteMulticastResolver::openMulticastSocket()
   m_mcast_fd = socket(m_mcast_dest.ss_family, SOCK_DGRAM, 0);
   if (m_mcast_fd < 0)
   {
-    err = errno;
+    rtError e = rtErrorFromErrno(errno);
     rtLogError("failed to create datagram socket with family:%d. %s",
-      m_mcast_dest.ss_family, rtStrError(errno).c_str());
-    return RT_FAIL;
+      m_mcast_dest.ss_family, rtStrError(e));
+    return e;
   }
   fcntl(m_mcast_fd, F_SETFD, fcntl(m_mcast_fd, F_GETFD) | FD_CLOEXEC);
 
@@ -538,9 +543,9 @@ rtRemoteMulticastResolver::openMulticastSocket()
   err = setsockopt(m_mcast_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
   if (err < 0)
   {
-    err = errno;
-    rtLogError("failed to set reuseaddr. %s", rtStrError(errno).c_str());
-    return RT_FAIL;
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to set reuseaddr. %s", rtStrError(e));
+    return e;
   }
 
   if (m_mcast_src.ss_family == AF_INET)
@@ -558,10 +563,10 @@ rtRemoteMulticastResolver::openMulticastSocket()
 
   if (err < 0)
   {
-    err = errno;
+    rtError e = rtErrorFromErrno(errno);
     rtLogError("failed to bind multicast socket to %s. %s",
-        rtSocketToString(m_mcast_src).c_str(),  rtStrError(errno).c_str());
-    return RT_FAIL;
+        rtSocketToString(m_mcast_src).c_str(),  rtStrError(e));
+    return e;
   }
 
   // join group
@@ -583,10 +588,10 @@ rtRemoteMulticastResolver::openMulticastSocket()
 
   if (err < 0)
   {
-    err = errno;
+    rtError e = rtErrorFromErrno(errno);
     rtLogError("failed to join mcast group %s. %s", rtSocketToString(m_mcast_dest).c_str(),
-      rtStrError(errno).c_str());
-    return RT_FAIL;
+      rtStrError(e));
+    return e;
   }
 
   rtLogInfo("successfully joined multicast group: %s on interface: %s",

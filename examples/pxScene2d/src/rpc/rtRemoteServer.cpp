@@ -52,7 +52,10 @@ rtRemoteServer::rtRemoteServer()
 
   int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
   if (ret != 0)
-    rtLogWarn("failed to create shutdown pipe. %s", rtStrError(ret).c_str());
+  {
+    rtError e = rtErrorFromErrno(ret);
+    rtLogWarn("failed to create shutdown pipe. %s", rtStrError(e));
+  }
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeOpenSessionRequest,
     std::bind(&rtRemoteServer::onOpenSession, this, std::placeholders::_1, std::placeholders::_2)));
@@ -84,8 +87,8 @@ rtRemoteServer::~rtRemoteServer()
     ssize_t n = write(m_shutdown_pipe[1], buff, sizeof(buff));
     if (n == -1)
     {
-      int err = errno;
-      rtLogWarn("failed to write. %s", rtStrError(err).c_str());
+      rtError e = rtErrorFromErrno(errno);
+      rtLogWarn("failed to write. %s", rtStrError(e));
     }
 
     if (m_thread)
@@ -167,7 +170,8 @@ rtRemoteServer::runListener()
     int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, &timeout);
     if (ret == -1)
     {
-      rtLogWarn("select failed: %s", rtStrError(errno).c_str());
+      rtError e = rtErrorFromErrno(errno);
+      rtLogWarn("select failed: %s", rtStrError(e));
       continue;
     }
 
@@ -187,7 +191,7 @@ rtRemoteServer::runListener()
     {
       rtError err = removeStaleObjects();
       if (err == RT_OK)
-	lastKeepAliveCheck = now;
+        lastKeepAliveCheck = now;
     }
   }
 }
@@ -203,7 +207,8 @@ rtRemoteServer::doAccept(int fd)
   int ret = accept(fd, reinterpret_cast<sockaddr *>(&remote_endpoint), &len);
   if (ret == -1)
   {
-    rtLogWarn("error accepting new tcp connect. %s", rtStrError(errno).c_str());
+    rtError e = rtErrorFromErrno(errno);
+    rtLogWarn("error accepting new tcp connect. %s", rtStrError(e));
     return;
   }
   rtLogInfo("new connection from %s with fd:%d", rtSocketToString(remote_endpoint).c_str(), ret);
@@ -334,7 +339,9 @@ rtRemoteServer::openRpcListener()
   m_listen_fd = socket(m_rpc_endpoint.ss_family, SOCK_STREAM, 0);
   if (m_listen_fd < 0)
   {
-    rtLogError("failed to create TCP socket. %s", rtStrError(errno).c_str());
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to create TCP socket. %s", rtStrError(e));
+    return e;
   }
 
   fcntl(m_listen_fd, F_SETFD, fcntl(m_listen_fd, F_GETFD) | FD_CLOEXEC);
@@ -346,8 +353,9 @@ rtRemoteServer::openRpcListener()
   ret = ::bind(m_listen_fd, reinterpret_cast<sockaddr *>(&m_rpc_endpoint), len);
   if (ret < 0)
   {
-    rtLogError("failed to bind socket. %s", rtStrError(errno).c_str());
-    return RT_FAIL;
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to bind socket. %s", rtStrError(e));
+    return e;
   }
 
   rtGetSockName(m_listen_fd, m_rpc_endpoint);
@@ -356,15 +364,17 @@ rtRemoteServer::openRpcListener()
   ret = fcntl(m_listen_fd, F_SETFL, O_NONBLOCK);
   if (ret < 0)
   {
-    rtLogError("fcntl: %s", rtStrError(errno).c_str());
-    return RT_FAIL;
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("fcntl: %s", rtStrError(e));
+    return e;
   }
 
   ret = listen(m_listen_fd, 2);
   if (ret < 0)
   {
-    rtLogError("failed to put socket in listen mode. %s", rtStrError(errno).c_str());
-    return RT_FAIL;
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to put socket in listen mode. %s", rtStrError(e));
+    return e;
   }
 
   return RT_OK;
