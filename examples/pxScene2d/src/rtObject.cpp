@@ -130,6 +130,10 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
           ++it;
         }
       }
+      else
+      {
+        ++it;
+      }
     }
   }
   return RT_OK;
