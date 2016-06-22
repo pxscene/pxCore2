@@ -1,4 +1,4 @@
-// JSKeyCodes.js .... JavaScript Keycodes
+// keys.js .... JavaScript Keycodes
 
 var keys = {
     ENTER        : 13,
