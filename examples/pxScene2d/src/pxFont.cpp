@@ -9,9 +9,6 @@
 #include <math.h>
 #include <map>
 
-#define UNUSED_PARAM(x) ((x)=(x))
-
-
 struct GlyphKey {
   uint32_t mFontId;
   uint32_t mPixelSize;
@@ -236,15 +233,7 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
   return NULL;
 }
 
-uint32_t npot(uint32_t i)
-{
-  uint32_t power = 1;
-  while(power < i)
-    power*=2;
-  return power;
-}
-
-void pxFont::measureTextInternal(const char* text, uint32_t size,  float nsx, float nsy, 
+void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, float sy, 
                          float& w, float& h) 
 {
   if( !mInitialized) 
@@ -253,16 +242,8 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float nsx, fl
     return;
   }
 
-  // TODO could be better performing....
-  float nmax = (nsx > nsy)?nsx:nsy; 
-  uint32_t size2 = npot(floor((double)size*nmax));
-  // No need to have a pixelsize less than 8 as a texture
-  size2 = (size2 < 8)?8:size2;
-  setPixelSize(size2);
+  setPixelSize(size);
   
-  float sx = (((double)size*nmax)/(float)size2)/nmax;
-  float sy = (((double)size*nmax)/(float)size2)/nmax;
-
   w = 0; h = 0;
   if (!text) 
     return;
@@ -272,7 +253,7 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float nsx, fl
   
   FT_Size_Metrics* metrics = &mFace->size->metrics;
   
-  h = (float)(metrics->height>>6) * sy;
+  h = metrics->height>>6;
   float lw = 0;
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) 
   {
@@ -282,29 +263,24 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float nsx, fl
       
     if (codePoint != '\n')
     {
-//      lw += (float)(entry->advancedotx >> 6) * sx;
-      lw += ((float)entry->advancedotx / 64.0) * sx;
+      lw += (entry->advancedotx >> 6) * sx;
     }
     else
     {
-      h += (float)(metrics->height>>6) * sy;
+      h += (metrics->height>>6) *sy;
       lw = 0;
     }
     w = pxMax<float>(w, lw);
 //    h = pxMax<float>((g->advance.y >> 6) * sy, h);
 //    h = pxMax<float>((metrics->height >> 6) * sy, h);
   }
-//  h *= sy;
+  h *= sy;
 }
 
-
 void pxFont::renderText(const char *text, uint32_t size, float x, float y, 
-                        float nsx, float nsy, 
+                        float sx, float sy, 
                         float* color, float mw) 
 {
-  UNUSED_PARAM(nsx);
-  UNUSED_PARAM(nsy);
-    
   if (!text || !mInitialized)
   { 
     rtLogWarn("renderText called on font before it is initialized\n");
@@ -314,16 +290,7 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
   int i = 0;
   u_int32_t codePoint;
 
-  // TODO could be better performing....
-  float nmax = (nsx > nsy)?nsx:nsy; 
-  uint32_t size2 = npot(floor((double)size*nmax));
-  // No need to have a pixelsize less than 8 as a texture
-  size2 = (size2 < 8)?8:size2;
-  setPixelSize(size2);
-
-  float sx = (((double)size*nmax)/(float)size2)/nmax;
-  float sy = (((double)size*nmax)/(float)size2)/nmax;
-
+  setPixelSize(size);
   FT_Size_Metrics* metrics = &mFace->size->metrics;
 
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) 
@@ -332,27 +299,25 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
     if (!entry) 
       continue;
 
-    float x2 = (float)x + (float)entry->bitmap_left * sx;
+    float x2 = x + entry->bitmap_left * sx;
 //    float y2 = y - g->bitmap_top * sy;
-    float y2 = (float)((y - entry->bitmap_top) + (metrics->ascender>>6)) * sy;
-//    float y2 = (float)((float)(y - (float)entry->bitmap_top) + ((float)metrics->ascender/64.0)) * sy;
-    float w = (float)entry->bitmapdotwidth * sx;
-    float h = (float)entry->bitmapdotrows * sy;
+    float y2 = (y - entry->bitmap_top * sy) + (metrics->ascender>>6);
+    float w = entry->bitmapdotwidth * sx;
+    float h = entry->bitmapdotrows * sy;
     
     if (codePoint != '\n')
     {
       if (x == 0) 
       {
         float c[4] = {0, 1, 0, 1};
-        context.drawDiagLine(0, y+(metrics->ascender>>6)*sy, mw, 
-                             y+(metrics->ascender>>6)*sy, c);
+        context.drawDiagLine(0, y+(metrics->ascender>>6), mw, 
+                             y+(metrics->ascender>>6), c);
       }
       
       pxTextureRef texture = entry->mTexture;
       pxTextureRef nullImage;
       context.drawImage(x2,y2, w, h, texture, nullImage, false, color);
-      //x += (entry->advancedotx >> 6) * sx;
-      x += ((float)entry->advancedotx / 64.0) * sx;
+      x += (entry->advancedotx >> 6) * sx;
       // no change to y because we are not moving to next line yet
     }
     else
@@ -364,7 +329,7 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
   }
 }
 
-void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float nsx, float nsy, 
+void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
                          float& w, float& h) 
 {
   if( !mInitialized) {
@@ -372,33 +337,24 @@ void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float nsx, flo
     return;
   }
     
-  // TODO could be better performing....
-  float nmax = (nsx > nsy)?nsx:nsy; 
-  uint32_t size2 = npot(floor((double)size*nmax));
-  // No need to have a pixelsize less than 8 as a texture
-  size2 = (size2 < 8)?8:size2;
-  setPixelSize(size2);
-
-  float sx = (((double)size*nmax)/(float)size2)/nmax;
-  float sy = (((double)size*nmax)/(float)size2)/nmax;
+  setPixelSize(size);
   
   w = 0; h = 0;
   
   FT_Size_Metrics* metrics = &mFace->size->metrics;
   
-  h = (float)(metrics->height>>6) * sy;
+  h = metrics->height>>6;
   float lw = 0;
 
   const GlyphCacheEntry* entry = getGlyph(codePoint);
   if (!entry) 
     return;
 
-//  lw = (entry->advancedotx >> 6) * sx;
-  lw = ((float)entry->advancedotx / 64.0) * sx;
+  lw = (entry->advancedotx >> 6) * sx;
 
   w = pxMax<float>(w, lw);
 
-//  h *= sy;
+  h *= sy;
 }
 
 
@@ -451,7 +407,7 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
   }    
   
   float w, h;
-  measureTextInternal(stringToMeasure, pixelSize, 1.0, 1.0, w, h);
+  measureTextInternal(stringToMeasure, pixelSize, 1.0,1.0, w, h);
   //printf("pxFont::measureText returned %f and %f for pixelSize=%d and text \"%s\"\n",w, h,pixelSize, stringToMeasure.cString());
   measure->setW(w);
   measure->setH(h);
