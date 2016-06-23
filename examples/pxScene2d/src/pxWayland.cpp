@@ -29,6 +29,7 @@ extern pxContext context;
 
 pxWayland::pxWayland()
   :
+    mRefCount(0),
     mClientMonitorThreadId(0), 
     mFindRemoteThreadId(0),
     mContainer(NULL),
@@ -608,6 +609,37 @@ rtError pxWayland::setProperty(rtString &prop, rtString &val) const
 #ifdef ENABLE_PX_WAYLAND_RPC
   if(mRemoteObject)
       errorCode = mRemoteObject.set(prop, val);
+#endif //ENABLE_PX_WAYLAND_RPC
+  return errorCode;
+}
+
+rtError pxWayland::callMethod(const char* messageName, int numArgs, const rtValue* args)
+{
+  rtError errorCode = RT_FAIL;
+#ifdef ENABLE_PX_WAYLAND_RPC
+  if(mRemoteObject)
+      errorCode = mRemoteObject.Send(messageName, numArgs, args);
+#endif //ENABLE_PX_WAYLAND_RPC
+  return errorCode;
+}
+
+rtError pxWayland::addListener(const rtString& eventName, const rtFunctionRef& f)
+{
+  rtError errorCode = RT_FAIL;
+#ifdef ENABLE_PX_WAYLAND_RPC
+  if(mRemoteObject) {
+      errorCode = mRemoteObject.send("on", eventName, f);
+  }
+#endif //ENABLE_PX_WAYLAND_RPC
+  return errorCode;
+}
+
+rtError pxWayland::delListener(const rtString& eventName, const rtFunctionRef& f)
+{
+  rtError errorCode = RT_FAIL;
+#ifdef ENABLE_PX_WAYLAND_RPC
+  if(mRemoteObject)
+      errorCode = mRemoteObject.send("delListener", eventName, f);
 #endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
 }
