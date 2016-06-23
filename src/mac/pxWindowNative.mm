@@ -510,8 +510,11 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   {
     uint32_t c = [s characterAtIndex:0];
     // filter out control characters
-    if (!iscntrl(c))
+    // TODO overfiltering... look at IMEs and unicode key input
+    // NOTE that iscntrl does not filter out non-printable values like up/down arrows
+    if (!iscntrl(c) && c < 128)
       pxWindowNative::_helper_onChar(mWindow, c);
+
   }
 }
 

@@ -2,6 +2,7 @@
 // rtObject.cpp
 
 #include "rtObject.h"
+#include <errno.h>
 
 
 // rtEmit
@@ -93,27 +94,45 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
   {
     rtString eventName = args[0].toString();
     rtLogDebug("rtEmit::Send %s", eventName.cString());
-    for(vector<_rtEmitEntry>::iterator it = mEntries.begin(); 
-        it != mEntries.end(); it++)
+
+    vector<_rtEmitEntry>::iterator it = mEntries.begin();
+    while (it != mEntries.end())
     {
       _rtEmitEntry& e = (*it);
       if (e.n == eventName)
       {
         // Do this here to make interop synchronous
+        rtError err;
         rtValue discard;
         // have to invoke all no opportunity to return errors
         // SYNC EVENTS
 #ifndef DISABLE_SYNC_EVENTS
         // SYNC EVENTS ... enables stopPropagation() ...
         //
-        e.f->Send(numArgs-1, args+1, &discard);
+        err = e.f->Send(numArgs-1, args+1, &discard);
 #else
 
 #warning "  >>>>>>  No SYNC EVENTS... stopPropagation() will be broken !!"
 
-        e.f->Send(numArgs-1, args+1, NULL);
+        err = e.f->Send(numArgs-1, args+1, NULL);
 #endif
-        // TODO log error 
+        if (err != RT_OK)
+          rtLogInfo("failed to send. %s", rtStrError(err));
+
+        // EPIPE means it's disconnected
+        if (err == rtErrorFromErrno(EPIPE))
+        {
+          rtLogInfo("removing entry from remote client");
+          it = mEntries.erase(it);
+        }
+        else
+        {
+          ++it;
+        }
+      }
+      else
+      {
+        ++it;
       }
     }
   }

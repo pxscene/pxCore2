@@ -17,7 +17,6 @@ cp macstuff/Info.plist $bundle/Contents
 cp -a ../images $bundle/Contents
 cp FreeSans.ttf $bundleBin/FreeSans.ttf
 cp browser.js $bundleBin
-cp JSKeyCodes.js $bundleBin
 cp init.js $bundleBin
 cp shell.js $bundleBin
 cp pxscene $bundleBin
