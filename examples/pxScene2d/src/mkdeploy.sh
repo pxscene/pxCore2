@@ -6,7 +6,8 @@ function mkUpdate() {
 INFILE=macstuff/software_update.plist
 OUTFILE=deploy/mac/software_update.plist
 DMGFILE=deploy/mac/pxscene.dmg
-SIZE=`ls -l "${DMGFILE}" | cut -d" " -f7`
+
+SIZE=`stat -f "%z" deploy/mac/pxscene.dmg`
 HASH=`openssl sha1 -binary "${DMGFILE}" | openssl base64`
 VERS=$1
 
