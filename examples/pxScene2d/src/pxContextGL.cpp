@@ -1312,15 +1312,12 @@ void pxContext::clear(int left, int top, int right, int bottom)
 
   //map form screen to window coordinates
   glScissor(left, gResH-top-bottom, right, bottom);
-  glClear(GL_COLOR_BUFFER_BIT);
+  //glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void pxContext::setMatrix(pxMatrix4f& m)
 {
   gMatrix.multiply(m);
-  #ifdef PX_DIRTY_RECTANGLES
-  gMatrix.copy(m); //TODO - fix me
-  #endif //PX_DIRTY_RECTANGLES
 }
 
 pxMatrix4f pxContext::getMatrix()

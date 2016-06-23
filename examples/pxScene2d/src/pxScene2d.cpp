@@ -559,9 +559,15 @@ void pxObject::update(double t)
 
 
   #ifdef PX_DIRTY_RECTANGLES
+  pxMatrix4f m;
+  applyMatrix(m);
+  context.setMatrix(m);
   if (mIsDirty)
   {
+    //make the previous draw rect dirty
     mScene->mDirtyRect.unionRect(mScreenCoordinates);
+    //make the current draw rect dirty
+    mLastRenderMatrix = context.getMatrix();
     pxRect dirtyRect = getBoundingRectInScreenCoordinates();
     mScene->mDirtyRect.unionRect(dirtyRect);
     mIsDirty = false;
@@ -571,8 +577,15 @@ void pxObject::update(double t)
   // Recursively update children
   for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
+#ifdef PX_DIRTY_RECTANGLES
+    context.pushState();
+#endif //PX_DIRTY_RECTANGLES
     (*it)->update(t);
+#ifdef PX_DIRTY_RECTANGLES
+    context.popState();
+#endif //PX_DIRTY_RECTANGLES
   }
+
   // Send promise
   sendPromise();
 }
@@ -580,11 +593,13 @@ void pxObject::update(double t)
 #ifdef PX_DIRTY_RECTANGLES
 pxRect pxObject::getBoundingRectInScreenCoordinates()
 {
+  int w = getOnscreenWidth();
+  int h = getOnscreenHeight();
   int x[4], y[4];
   context.mapToScreenCoordinates(mLastRenderMatrix, 0,0,x[0],y[0]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, mw, mh, x[1], y[1]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, 0, mh, x[2], y[2]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, mw, 0, x[3], y[3]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, w, h, x[1], y[1]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, 0, h, x[2], y[2]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, w, 0, x[3], y[3]);
   int left, right, top, bottom;
 
   left = x[0];
@@ -1258,8 +1273,8 @@ void pxScene2d::draw()
   #ifdef PX_DIRTY_RECTANGLES
   int x = mDirtyRect.left();
   int y = mDirtyRect.top();
-  int w = mDirtyRect.right() - x;
-  int h = mDirtyRect.bottom() - y;
+  int w = mDirtyRect.right() - x+1;
+  int h = mDirtyRect.bottom() - y+1;
   if (mTop)
   {
     if (mShowDirtyRect)
@@ -1275,8 +1290,9 @@ void pxScene2d::draw()
 
   if (mRoot)
   {
-    pxMatrix4f m;
-    mRoot->drawInternal(m, 1.0);
+  context.pushState();
+    mRoot->drawInternal(1.0);
+    context.popState();
     mDirtyRect.setEmpty();
   }
 
@@ -1409,8 +1425,15 @@ void pxScene2d::onDraw()
 // t is assumed to be monotonically increasing
 void pxScene2d::update(double t)
 {
-  if (mRoot)
-    mRoot->update(t);
+  if (mRoot) {
+#ifdef PX_DIRTY_RECTANGLES
+      context.pushState();
+#endif //PX_DIRTY_RECTANGLES
+      mRoot->update(t);
+#ifdef PX_DIRTY_RECTANGLES
+      context.popState();
+#endif //PX_DIRTY_RECTANGLES
+  }
 }
 
 pxObject* pxScene2d::getRoot() const
