@@ -262,6 +262,8 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
     case RT_doubleType:   to.AddMember("value", from.toDouble(), doc.GetAllocator()); break;
     case RT_int32_tType:  to.AddMember("value", from.toInt32(), doc.GetAllocator()); break;
     case RT_uint32_tType: to.AddMember("value", from.toUInt32(), doc.GetAllocator()); break;
+    case RT_int64_tType:  to.AddMember("value", from.toInt64(), doc.GetAllocator()); break;
+    case RT_uint64_tType: to.AddMember("value", from.toUInt64(), doc.GetAllocator()); break;
     case RT_stringType:   to.AddMember("value", std::string(from.toString().cString()), doc.GetAllocator()); break;
     case RT_voidPtrType:
 #if __x86_64
