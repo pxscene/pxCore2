@@ -2,10 +2,15 @@
 #define __RT_REMOTE_OBJECT_RESOLVER_H__
 
 #include <string>
-
 #include <rtError.h>
 #include <sys/socket.h>
 #include <stdint.h>
+
+enum resolver_t
+{
+  MULTICAST_RESOLVER,
+  FILE_RESOLVER
+};
 
 class rtIRpcResolver
 {
@@ -17,6 +22,6 @@ public:
   virtual rtError locateObject(std::string const& name, sockaddr_storage& endpoint, uint32_t timeout) = 0;
 };
 
-rtIRpcResolver* rtRemoteCreateResolver();
+rtIRpcResolver* rtRemoteCreateResolver(resolver_t type);
 
 #endif

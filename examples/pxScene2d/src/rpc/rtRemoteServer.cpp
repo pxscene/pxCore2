@@ -119,7 +119,7 @@ rtRemoteServer::open()
   if (err != RT_OK)
     return err;
 
-  m_resolver = rtRemoteCreateResolver();
+  m_resolver = rtRemoteCreateResolver(FILE_RESOLVER);
   err = start();
   if (err != RT_OK)
   {

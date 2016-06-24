@@ -23,6 +23,12 @@
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/filewritestream.h>
+#include <rapidjson/pointer.h>
+
+
+#define db "./tmp/rtResolver.db"
 
 class rtRemoteMulticastResolver : public rtIRpcResolver
 {
@@ -600,7 +606,116 @@ rtRemoteMulticastResolver::openMulticastSocket()
   return RT_OK;
 }
 
-rtIRpcResolver* rtRemoteCreateResolver()
+class rtRemoteFileResolver : public rtIRpcResolver
 {
-  return new rtRemoteMulticastResolver();
+public:
+  rtRemoteFileResolver();
+  ~rtRemoteFileResolver();
+
+public:
+  virtual rtError open(sockaddr_storage const& rpc_endpoint) override;
+  virtual rtError close() override;
+  virtual rtError registerObject(std::string const& name, sockaddr_storage const& endpoint) override;
+  virtual rtError locateObject(std::string const& name, sockaddr_storage& endpoint,
+    uint32_t timeout) override;
+
+private:
+  using CommandHandler = rtError (rtRemoteMulticastResolver::*)(rtJsonDocPtr const&, sockaddr_storage const&);
+  using HostedObjectsMap = std::map< std::string, sockaddr_storage >;
+  using CommandHandlerMap = std::map< std::string, CommandHandler >;
+  using RequestMap = std::map< rtCorrelationKey, rtJsonDocPtr >;
+
+private:
+  std::string       m_rpc_addr;
+  uint16_t          m_rpc_port;
+};
+
+
+rtRemoteFileResolver::rtRemoteFileResolver()
+{ }
+
+rtRemoteFileResolver::~rtRemoteFileResolver()
+{ }
+
+
+rtError
+rtRemoteFileResolver::open(sockaddr_storage const& rpc_endpoint)
+{
+  char buff[128];
+  void* addr = nullptr;
+  rtGetInetAddr(rpc_endpoint, &addr);
+
+  socklen_t len;
+  rtSocketGetLength(rpc_endpoint, &len);
+  char const* p = inet_ntop(rpc_endpoint.ss_family, addr, buff, len);
+  if (p)
+    m_rpc_addr = p;
+
+  rtGetPort(rpc_endpoint, &m_rpc_port);
+  return RT_OK;
+}
+
+rtError
+rtRemoteFileResolver::registerObject(std::string const& name, sockaddr_storage const& endpoint)
+{
+  FILE* fpr = fopen(db, "r");
+  char readBuffer[65536];
+  rapidjson::FileReadStream is(fpr, readBuffer, sizeof(readBuffer));
+  rapidjson::Document doc;
+  doc.ParseStream(is);
+  fclose(fpr);
+
+  rapidjson::Pointer("/" + name + "/" + kFieldNameIp).Set(doc, m_rpc_addr);
+  rapidjson::Pointer("/" + name + "/" + kFieldNamePort).Set(doc, m_rpc_port);
+
+  FILE* fpw = fopen(db, "w");
+  char writeBuffer[65536];
+  rapidjson::FileWriteStream os(fpw, writeBuffer, sizeof(writeBuffer));
+  rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
+  doc.Accept(writer);
+  fclose(fpw);
+
+  return RT_OK;
+}
+
+rtError
+rtRemoteFileResolver::locateObject(std::string const& name, sockaddr_storage& endpoint,
+    uint32_t timeout)
+{
+  FILE* fp = fopen(db, "r"); // non-Windows use "r"
+  char readBuffer[65536];
+  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+  rapidjson::Document doc;
+  doc.ParseStream(is);
+  fclose(fp);
+
+  rapidjson::Value *ip = rapidjson::Pointer("/" + name + "/" + kFieldNameIp).Get(doc);
+  rapidjson::Value *port = rapidjson::Pointer("/" + name + "/" + kFieldNamePort).Get(doc);
+  //if (d.HasMember(name))
+  //{
+    rtError err = rtParseAddress(endpoint, ip->GetString(),
+        port->GetInt(), nullptr);
+    if (err != RT_OK)
+      return err;
+
+    return RT_OK;
+  //}
+  //else return RT_FAIL;
+}
+
+rtError
+rtRemoteFileResolver::close()
+{
+  return RT_OK;
+}
+
+
+rtIRpcResolver* rtRemoteCreateResolver(resolver_t type)
+{
+  switch (type)
+  {
+    case MULTICAST_RESOLVER : return new rtRemoteMulticastResolver();
+    case FILE_RESOLVER      : return new rtRemoteFileResolver();
+    default                 : return new rtRemoteMulticastResolver();
+  }
 }
