@@ -493,7 +493,8 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 -(void)keyDown:(NSEvent*)event
 {
   //NSLog(@"keyDown, repeat:%s", event.ARepeat?"YES":"NO");
-  if (!event.ARepeat) {
+  //if (!event.ARepeat) 
+  {
     // send px key down
     uint32_t flags = 0;
     
@@ -501,6 +502,9 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
     if (event.modifierFlags & NSControlKeyMask)   flags |= PX_MOD_CONTROL;
     if (event.modifierFlags & NSAlternateKeyMask) flags |= PX_MOD_ALT;
     if (event.modifierFlags & NSCommandKeyMask)   flags |= PX_MOD_COMMAND;
+
+    if (event.ARepeat)
+      flags |= PX_KEYDOWN_REPEAT;
 
     pxWindowNative::_helper_onKeyDown(mWindow, keycodeFromNative(event.keyCode), flags);
   }
