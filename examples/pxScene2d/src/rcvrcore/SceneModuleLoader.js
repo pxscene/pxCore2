@@ -76,7 +76,7 @@ SceneModuleLoader.prototype.loadScenePackage0 = function(scene, fileSpec) {
   var filePath = fileSpec.fileUri;
 
   return new Promise(function (resolve, reject) {
-    if (filePath.substring(0, 4) === "http") {
+    if (filePath.substring(0, 4) === "http" || filePath.substring(0,5) == "https") {
       _this.loadRemoteFile(filePath).then(function dataAvailable(data) {
         _this.processFileData(filePath, data);
         if(_this.processFileArchive() == 0) {
