@@ -32,6 +32,7 @@ RTRPC_SRCS=\
 SAMPLEAPP_SRCS=\
   rpc_main.cpp
 
+
 ifeq ($V, 1)
   CXX_PRETTY = $(CXX)
   LD_PRETTY = $(CXX)
@@ -52,7 +53,7 @@ endif
 
 CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
 CXXFLAGS+=-std=c++0x $(CFLAGS)
-LDFLAGS =-pthread -ldl -luuid
+LDFLAGS =-pthread -ldl -luuid -Wl,-rpath=../../,--enable-new-dtags
 OBJDIR=obj
 
 RTCORE_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RTCORE_SRCS)))
@@ -91,4 +92,4 @@ lib$(LIBRTRPC).so: $(RTRPC_OBJS)
 	$(CXX_PRETTY) $(RTRPC_OBJS) $(LDFLAGS) -shared -o $@
 
 $(SAMPLEAPP): $(SAMPLEAPP_OBJS) lib$(LIBRTRPC).so 
-	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../ -l$(LIBRTCORE) -l$(LIBRTRPC)
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -g -o $@ -L./ -L../ -l$(LIBRTCORE) -l$(LIBRTRPC)

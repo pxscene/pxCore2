@@ -620,12 +620,6 @@ public:
     uint32_t timeout) override;
 
 private:
-  using CommandHandler = rtError (rtRemoteMulticastResolver::*)(rtJsonDocPtr const&, sockaddr_storage const&);
-  using HostedObjectsMap = std::map< std::string, sockaddr_storage >;
-  using CommandHandlerMap = std::map< std::string, CommandHandler >;
-  using RequestMap = std::map< rtCorrelationKey, rtJsonDocPtr >;
-
-private:
   std::string       m_rpc_addr;
   uint16_t          m_rpc_port;
 };
@@ -656,19 +650,27 @@ rtRemoteFileResolver::open(sockaddr_storage const& rpc_endpoint)
 }
 
 rtError
-rtRemoteFileResolver::registerObject(std::string const& name, sockaddr_storage const& endpoint)
+rtRemoteFileResolver::registerObject(std::string const& name, sockaddr_storage const&)
 {
+  // read file into DOM object
   FILE* fpr = fopen(db, "r");
+  printf("gets here");
+  if (fpr == NULL)
+    return RT_FAIL;
   char readBuffer[65536];
   rapidjson::FileReadStream is(fpr, readBuffer, sizeof(readBuffer));
   rapidjson::Document doc;
   doc.ParseStream(is);
   fclose(fpr);
-
+  
+  // create entry for name or overwrite it if it's already there
   rapidjson::Pointer("/" + name + "/" + kFieldNameIp).Set(doc, m_rpc_addr);
   rapidjson::Pointer("/" + name + "/" + kFieldNamePort).Set(doc, m_rpc_port);
 
+  // write updated json back to file
   FILE* fpw = fopen(db, "w");
+  if (fpw == NULL)
+    return RT_FAIL;
   char writeBuffer[65536];
   rapidjson::FileWriteStream os(fpw, writeBuffer, sizeof(writeBuffer));
   rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
@@ -680,27 +682,30 @@ rtRemoteFileResolver::registerObject(std::string const& name, sockaddr_storage c
 
 rtError
 rtRemoteFileResolver::locateObject(std::string const& name, sockaddr_storage& endpoint,
-    uint32_t timeout)
+    uint32_t)
 {
-  FILE* fp = fopen(db, "r"); // non-Windows use "r"
+  // read file into DOM object
+  FILE* fp = fopen(db, "r");
+  if (fp == NULL)
+    return RT_FAIL;
   char readBuffer[65536];
   rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
   rapidjson::Document doc;
   doc.ParseStream(is);
   fclose(fp);
-
+  
+  // check if name is registered
+  if (!rapidjson::Pointer("/" + name).Get(doc))
+    return RT_FAIL;
+  
+  // pull registered IP and port
   rapidjson::Value *ip = rapidjson::Pointer("/" + name + "/" + kFieldNameIp).Get(doc);
   rapidjson::Value *port = rapidjson::Pointer("/" + name + "/" + kFieldNamePort).Get(doc);
-  //if (d.HasMember(name))
-  //{
-    rtError err = rtParseAddress(endpoint, ip->GetString(),
-        port->GetInt(), nullptr);
-    if (err != RT_OK)
-      return err;
-
-    return RT_OK;
-  //}
-  //else return RT_FAIL;
+  rtError err = rtParseAddress(endpoint, ip->GetString(), port->GetInt(), nullptr);
+  if (err != RT_OK)
+    return err;
+    
+  return RT_OK;
 }
 
 rtError
