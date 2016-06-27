@@ -2,22 +2,30 @@
 #define __RT_OBJECT_CACHE_H__
 
 #include <string>
+
+#include <assert.h>
 #include <rtError.h>
 #include <rtObject.h>
+
+class rtRemoteEnvironment;
 
 class rtObjectCache
 {
 public:
-  static rtObjectRef findObject(std::string const& id);
-  static rtFunctionRef findFunction(std::string const& id);
-  static rtError insert(std::string const& id, rtObjectRef const& ref, int maxAge);
-  static rtError insert(std::string const& id, rtFunctionRef const& ref, int maxAge);
-  static rtError touch(std::string const& id, time_t now);
-  static rtError erase(std::string const& id);
-  static rtError removeUnused();
+  rtObjectCache(rtRemoteEnvironment* env)
+    : m_env(env)
+  { }
+
+  rtObjectRef findObject(std::string const& id);
+  rtFunctionRef findFunction(std::string const& id);
+  rtError insert(std::string const& id, rtObjectRef const& ref, int maxAge);
+  rtError insert(std::string const& id, rtFunctionRef const& ref, int maxAge);
+  rtError touch(std::string const& id, time_t now);
+  rtError erase(std::string const& id);
+  rtError removeUnused();
 
 private:
-  rtObjectCache() { }
+  rtRemoteEnvironment* m_env;
 };
 
 #endif

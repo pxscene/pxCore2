@@ -24,7 +24,8 @@ class rtRemoteStream : public std::enable_shared_from_this<rtRemoteStream>
 public:
   using MessageHandler = std::function<rtError (rtJsonDocPtr const& doc)>;
 
-  rtRemoteStream(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint);
+  rtRemoteStream(rtRemoteEnvPtr env, int fd,
+    sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint);
   ~rtRemoteStream();
 
   rtRemoteStream(rtRemoteStream const&) = delete;
@@ -87,6 +88,27 @@ private:
   std::condition_variable   m_work_cond;
 
   std::mutex                m_send_mutex;
+  rtRemoteEnvPtr            m_env;
 };
+
+class rtRemoteStreamSelector
+{
+public:
+  rtRemoteStreamSelector();
+
+  rtError start();
+  rtError registerStream(std::shared_ptr<rtRemoteStream> const& s);
+  rtError shutdown();
+
+private:
+  rtError pollFds();
+
+private:
+  std::vector< std::shared_ptr<rtRemoteStream> >  m_streams;
+  std::shared_ptr< std::thread >                  m_thread;
+  std::mutex                                      m_mutex;
+  int                                             m_shutdown_pipe[2];
+};
+
 
 #endif

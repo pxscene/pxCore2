@@ -27,7 +27,7 @@
 class rtRemoteMulticastResolver : public rtIRpcResolver
 {
 public:
-  rtRemoteMulticastResolver();
+  rtRemoteMulticastResolver(rtRemoteEnvPtr env);
   ~rtRemoteMulticastResolver();
 
 public:
@@ -73,17 +73,19 @@ private:
   std::string       m_rpc_addr;
   uint16_t          m_rpc_port;
   HostedObjectsMap  m_hosted_objects;
-  RequestMap	    m_pending_searches;
-  int		    m_shutdown_pipe[2];
+  RequestMap	      m_pending_searches;
+  int		            m_shutdown_pipe[2];
+  rtRemoteEnvPtr    m_env;
 };
 
-rtRemoteMulticastResolver::rtRemoteMulticastResolver()
+rtRemoteMulticastResolver::rtRemoteMulticastResolver(rtRemoteEnvPtr env)
   : m_mcast_fd(-1)
   , m_mcast_src_index(-1)
   , m_ucast_fd(-1)
   , m_ucast_len(0)
   , m_pid(getpid())
   , m_command_handlers()
+  , m_env(env)
 {
   memset(&m_mcast_dest, 0, sizeof(m_mcast_dest));
   memset(&m_mcast_src, 0, sizeof(m_mcast_src));
@@ -115,8 +117,8 @@ rtRemoteMulticastResolver::init()
 {
   rtError err = RT_OK;
 
-  uint16_t port = rtRemoteSetting<uint16_t>("rt.rpc.resolver.multicast_port");
-  char const* dstaddr = rtRemoteSetting<char const *>("rt.rpc.resolver.multicast_address");
+  uint16_t const port = m_env->Config->getUInt16("rt.rpc.resolver.multicast_port");
+  char const* dstaddr = m_env->Config->getString("rt.rpc.resolver.multicast_address");
 
   err = rtParseAddress(m_mcast_dest, dstaddr, port, nullptr);
   if (err != RT_OK)
@@ -125,7 +127,7 @@ rtRemoteMulticastResolver::init()
     return err;
   }
 
-  char const* srcaddr = rtRemoteSetting<char const *>("rt.rpc.resolver.multicast_interface");
+  char const* srcaddr = m_env->Config->getString("rt.rpc.resolver.multicast_interface");
 
   err = rtParseAddress(m_mcast_src, srcaddr, port, &m_mcast_src_index);
   if (err != RT_OK)
@@ -600,7 +602,7 @@ rtRemoteMulticastResolver::openMulticastSocket()
   return RT_OK;
 }
 
-rtIRpcResolver* rtRemoteCreateResolver()
+rtIRpcResolver* rtRemoteCreateResolver(rtRemoteEnvPtr env)
 {
-  return new rtRemoteMulticastResolver();
+  return new rtRemoteMulticastResolver(env);
 }

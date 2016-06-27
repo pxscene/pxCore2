@@ -24,8 +24,9 @@
 class rtRemoteClient: public std::enable_shared_from_this<rtRemoteClient>
 {
 public:
-  rtRemoteClient(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint);
-  rtRemoteClient(sockaddr_storage const& remote_endpoint);
+  rtRemoteClient(rtRemoteEnvironment* env, int fd, sockaddr_storage const& local_endpoint,
+    sockaddr_storage const& remote_endpoint);
+  rtRemoteClient(rtRemoteEnvironment* env, sockaddr_storage const& remote_endpoint);
   ~rtRemoteClient();
 
   rtError open();
@@ -40,6 +41,9 @@ public:
 
   inline void keepAlive(std::string const& s)
     { m_object_list.push_back(s); }
+
+  inline rtRemoteEnvironment* getEnvironment() const
+    { return m_env; }
 
   rtError setMessageCallback(rtRemoteMessageHandler const& handler)
     { m_message_handler = handler; return RT_OK; } 
@@ -73,6 +77,7 @@ private:
   std::shared_ptr<rtRemoteStream>   m_stream;
   std::vector<std::string>          m_object_list;
   rtRemoteMessageHandler            m_message_handler;
+  rtRemoteEnvironment*              m_env;
 };
 
 #endif

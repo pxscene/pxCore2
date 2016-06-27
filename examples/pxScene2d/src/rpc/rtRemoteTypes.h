@@ -11,6 +11,25 @@
 #define kInvalidSocket (-1)
 
 class rtRemoteClient;
+class rtRemoteServer;
+class rtRemoteConfig;
+class rtRemoteStreamSelector;
+class rtObjectCache;
+
+struct rtRemoteEnvironment
+{
+  rtRemoteEnvironment();
+  ~rtRemoteEnvironment();
+
+  void shutdown();
+
+  rtRemoteConfig*           Config;
+  rtRemoteServer*           Server;
+  rtObjectCache*            ObjectCache;
+  rtRemoteStreamSelector*   StreamSelector;
+};
+
+using rtRemoteEnvPtr = rtRemoteEnvironment*;
 
 using rtSocketBuffer = std::vector<char>;
 using rtJsonDocPtr = std::shared_ptr< rapidjson::Document >;

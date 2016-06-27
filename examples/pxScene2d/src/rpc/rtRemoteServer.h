@@ -23,7 +23,7 @@ class rtRemoteServer
   friend class rtCommandDispatcher;
 
 public:
-  rtRemoteServer();
+  rtRemoteServer(rtRemoteEnvironment* env);
   ~rtRemoteServer();
 
 public:
@@ -79,6 +79,7 @@ private:
   ClientList                    m_connected_clients;
   int                           m_shutdown_pipe[2];
   uint32_t                      m_keep_alive_interval;
+  rtRemoteEnvironment*          m_env;
 };
 
 #endif

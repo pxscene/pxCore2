@@ -212,7 +212,8 @@ namespace
 }
 
 rtError
-rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Document& doc)
+rtValueWriter::write(rtRemoteEnvPtr env, rtValue const& from,
+  rapidjson::Value& to, rapidjson::Document& doc)
 {
   to.SetObject();
 
@@ -229,7 +230,9 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
     val.AddMember(kFieldNameFunctionName, id, doc.GetAllocator());
     to.AddMember("value", val, doc.GetAllocator());
 
-    rtObjectCache::insert(id, func, rtRemoteSetting<int>("rt.rpc.cache.max_object_lifetime"));
+    // TODO: why are we inserting this here?
+    int const lifetime = env->Config->getInt32("rt.rpc.cache.max_object_lifetime");
+    env->ObjectCache->insert(id, func, lifetime);
     return RT_OK;
   }
 
@@ -245,7 +248,9 @@ rtValueWriter::write(rtValue const& from, rapidjson::Value& to, rapidjson::Docum
     val.AddMember(kFieldNameObjectId, id, doc.GetAllocator());
     to.AddMember("value", val, doc.GetAllocator());
 
-    rtObjectCache::insert(id, obj, rtRemoteSetting<int>("rt.rpc.cache.max_object_lifetime"));
+    // TODO: why are we inserting this here
+    int const lifetime = env->Config->getInt32("rt.rpc.cache.max_object_lifetime");
+    env->ObjectCache->insert(id, obj, lifetime);
     return RT_OK;
   }
 

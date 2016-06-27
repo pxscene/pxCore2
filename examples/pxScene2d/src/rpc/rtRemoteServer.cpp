@@ -40,10 +40,11 @@ same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
   return false;
 }
 
-rtRemoteServer::rtRemoteServer()
+rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
   : m_listen_fd(-1)
   , m_resolver(nullptr)
   , m_keep_alive_interval(15)
+  , m_env(env)
 {
   memset(&m_rpc_endpoint, 0, sizeof(m_rpc_endpoint));
 
@@ -119,7 +120,7 @@ rtRemoteServer::open()
   if (err != RT_OK)
     return err;
 
-  m_resolver = rtRemoteCreateResolver();
+  m_resolver = rtRemoteCreateResolver(m_env);
   err = start();
   if (err != RT_OK)
   {
@@ -133,9 +134,9 @@ rtRemoteServer::open()
 rtError
 rtRemoteServer::registerObject(std::string const& name, rtObjectRef const& obj)
 {
-  rtObjectRef ref = rtObjectCache::findObject(name);
+  rtObjectRef ref = m_env->ObjectCache->findObject(name);
   if (!ref)
-    rtObjectCache::insert(name, obj, -1);
+    m_env->ObjectCache->insert(name, obj, -1);
   m_resolver->registerObject(name, m_rpc_endpoint);
   return RT_OK;
 }
@@ -217,7 +218,7 @@ rtRemoteServer::doAccept(int fd)
   memset(&local_endpoint, 0, sizeof(sockaddr_storage));
   rtGetSockName(fd, local_endpoint);
 
-  std::shared_ptr<rtRemoteClient> newClient(new rtRemoteClient(ret, local_endpoint, remote_endpoint));
+  std::shared_ptr<rtRemoteClient> newClient(new rtRemoteClient(m_env, ret, local_endpoint, remote_endpoint));
   newClient->setMessageCallback(std::bind(&rtRemoteServer::onIncomingMessage, this, std::placeholders::_1, std::placeholders::_2));
   newClient->open();
   m_connected_clients.push_back(newClient);
@@ -266,7 +267,7 @@ rtError
 rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout)
 {
   rtError err = RT_OK;
-  obj = rtObjectCache::findObject(name);
+  obj = m_env->ObjectCache->findObject(name);
 
   // if object is not registered with us locally, then check network
   if (!obj)
@@ -290,18 +291,18 @@ rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t t
       // then just re-use it
       for (auto i : m_object_map)
       {
-	if (same_endpoint(i.second->getRemoteEndpoint(), rpc_endpoint))
-	{
-	  client = i.second;
-	  break;
-	}
+        if (same_endpoint(i.second->getRemoteEndpoint(), rpc_endpoint))
+        {
+          client = i.second;
+          break;
+        }
       }
 
       if (!client)
       {
-        client.reset(new rtRemoteClient(rpc_endpoint));
-	client->setMessageCallback(std::bind(&rtRemoteServer::onIncomingMessage, this, 
-	  std::placeholders::_1, std::placeholders::_2));
+        client.reset(new rtRemoteClient(m_env, rpc_endpoint));
+        client->setMessageCallback(std::bind(&rtRemoteServer::onIncomingMessage, this, 
+              std::placeholders::_1, std::placeholders::_2));
         err = client->open();
         if (err != RT_OK)
         {
@@ -431,7 +432,7 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr cons
   res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
   res->AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
 
-  rtObjectRef obj = rtObjectCache::findObject(id);
+  rtObjectRef obj = m_env->ObjectCache->findObject(id);
   if (!obj)
   {
     res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
@@ -472,7 +473,7 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr cons
       }
       else
       {
-        err = rtValueWriter::write(value, val, *res);
+        err = rtValueWriter::write(m_env, value, val, *res);
         if (err != RT_OK)
           rtLogWarn("failed to write value: %d", err);
       }
@@ -502,7 +503,7 @@ rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr cons
   res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
   res->AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
 
-  rtObjectRef obj = rtObjectCache::findObject(id);
+  rtObjectRef obj = m_env->ObjectCache->findObject(id);
   if (!obj)
   {
     res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
@@ -554,7 +555,7 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocP
   res.AddMember(kFieldNameMessageType, kMessageTypeMethodCallResponse, res.GetAllocator());
   res.AddMember(kFieldNameCorrelationKey, key, res.GetAllocator());
 
-  rtObjectRef obj = rtObjectCache::findObject(id);
+  rtObjectRef obj = m_env->ObjectCache->findObject(id);
   if (!obj && (strcmp(id, "global") != 0))
   {
     rtMessage_SetStatus(res, 1, "failed to find object with id: %s", id);
@@ -575,7 +576,7 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocP
     }
     else
     {
-      func = rtObjectCache::findFunction(function_name->value.GetString());
+      func = m_env->ObjectCache->findFunction(function_name->value.GetString());
     }
 
     if (err == RT_OK && !!func)
@@ -586,23 +587,23 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocP
       auto itr = doc->FindMember(kFieldNameFunctionArgs);
       if (itr != doc->MemberEnd())
       {
-	// rapidjson::Value const& args = (*doc)[kFieldNameFunctionArgs];
-	rapidjson::Value const& args = itr->value;
-	for (rapidjson::Value::ConstValueIterator itr = args.Begin(); itr != args.End(); ++itr)
-	{
-	  rtValue arg;
-	  rtValueReader::read(arg, *itr, client);
-	  argv.push_back(arg);
-	}
+        // rapidjson::Value const& args = (*doc)[kFieldNameFunctionArgs];
+        rapidjson::Value const& args = itr->value;
+        for (rapidjson::Value::ConstValueIterator itr = args.Begin(); itr != args.End(); ++itr)
+        {
+          rtValue arg;
+          rtValueReader::read(arg, *itr, client);
+          argv.push_back(arg);
+        }
       }
 
       rtValue return_value;
       err = func->Send(static_cast<int>(argv.size()), &argv[0], &return_value);
       if (err == RT_OK)
       {
-	rapidjson::Value val;
-	rtValueWriter::write(return_value, val, res);
-	res.AddMember(kFieldNameFunctionReturn, val, res.GetAllocator());
+        rapidjson::Value val;
+        rtValueWriter::write(m_env, return_value, val, res);
+        res.AddMember(kFieldNameFunctionReturn, val, res.GetAllocator());
       }
 
       rtMessage_SetStatus(res, 0);
@@ -634,10 +635,10 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPt
     std::unique_lock<std::mutex> lock(m_mutex);
     for (rapidjson::Value::ConstValueIterator id  = itr->value.Begin(); id != itr->value.End(); ++id)
     {
-      rtError e = rtObjectCache::touch(id->GetString(), now);
+      rtError e = m_env->ObjectCache->touch(id->GetString(), now);
       if (e != RT_OK)
-	rtLogWarn("error updating last used time for: %s, %s", 
-	  id->GetString(), rtStrError(e));
+        rtLogWarn("error updating last used time for: %s, %s", 
+            id->GetString(), rtStrError(e));
     }
   }
   else
@@ -656,5 +657,5 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPt
 rtError
 rtRemoteServer::removeStaleObjects()
 {
-  return rtObjectCache::removeUnused(); // m_keep_alive_interval, num_removed);
+  return m_env->ObjectCache->removeUnused(); // m_keep_alive_interval, num_removed);
 }

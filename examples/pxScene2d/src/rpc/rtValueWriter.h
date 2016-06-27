@@ -6,10 +6,14 @@
 #include <rtError.h>
 #include <rapidjson/document.h>
 
+#include "rtRemoteTypes.h"
+
+
 class rtValueWriter
 {
 public:
-  static rtError write(rtValue const& from, rapidjson::Value& to, rapidjson::Document& parent);
+  static rtError write(rtRemoteEnvPtr env,
+    rtValue const& from, rapidjson::Value& to, rapidjson::Document& parent);
 };
 
 #endif

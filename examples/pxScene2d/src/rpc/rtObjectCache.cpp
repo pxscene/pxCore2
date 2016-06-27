@@ -1,6 +1,6 @@
 #include "rtObjectCache.h"
 #include "rtRemoteConfig.h"
-
+#include "rtRemoteTypes.h"
 
 #include <map>
 #include <mutex>
@@ -100,7 +100,7 @@ rtObjectCache::removeUnused()
 {
   time_t now = time(nullptr);
 
-  int const maxAge = rtRemoteSetting<int>("rt.rpc.cache.max_object_lifetime");
+  int const maxAge = m_env->Config->getInt32("rt.rpc.cache.max_object_lifetime");
 
   std::unique_lock<std::mutex> lock(sMutex);
   for (auto itr = sRefMap.begin(); itr != sRefMap.end();)

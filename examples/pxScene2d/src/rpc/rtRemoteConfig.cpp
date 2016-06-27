@@ -79,8 +79,6 @@ static T numeric_cast(char const* s, std::function<T (const char *nptr, char **e
   return val;
 }
 
-static std::shared_ptr<rtRemoteConfig> gConf;
-
 struct Setting
 {
   char const* name;
@@ -105,16 +103,13 @@ static Setting kDefaultSettings[] =
   { nullptr, nullptr }
 };
 
-std::shared_ptr<rtRemoteConfig>
-rtRemoteConfig::getInstance(bool reloadConfiguration)
+rtRemoteConfig*
+rtRemoteConfig::getInstance()
 {
-  if (gConf && !reloadConfiguration)
-    return gConf;
-
-  gConf.reset(new rtRemoteConfig());
+  rtRemoteConfig* conf = new rtRemoteConfig();
   for (int i = 0; kDefaultSettings[i].name; ++i)
   {
-    gConf->m_map.insert(std::map<std::string, std::string>::value_type(
+    conf->m_map.insert(std::map<std::string, std::string>::value_type(
       kDefaultSettings[i].name,
       kDefaultSettings[i].value));
   }
@@ -132,7 +127,7 @@ rtRemoteConfig::getInstance(bool reloadConfiguration)
   for (std::string const& fileName : configFiles)
   {
     // overrite any existing defaults from file
-    std::shared_ptr<rtRemoteConfig> confFromFile = rtRemoteConfig::fromFile(fileName.c_str());
+    rtRemoteConfig* confFromFile = rtRemoteConfig::fromFile(fileName.c_str());
     if (confFromFile)
     {
       rtLogInfo("loading configuration settings (%d) from: %s",
@@ -140,7 +135,7 @@ rtRemoteConfig::getInstance(bool reloadConfiguration)
       for (auto const& itr : confFromFile->m_map)
       {
         rtLogDebug("'%s' -> '%s'", itr.first.c_str(), itr.second.c_str());
-        gConf->m_map[itr.first] = itr.second;
+        conf->m_map[itr.first] = itr.second;
       }
       break;
     }
@@ -150,7 +145,7 @@ rtRemoteConfig::getInstance(bool reloadConfiguration)
     }
   }
 
-  return gConf;
+  return conf;
 }
 
 uint16_t
@@ -193,25 +188,23 @@ rtRemoteConfig::getString(char const* key)
 
 
 
-std::shared_ptr<rtRemoteConfig>
+rtRemoteConfig*
 rtRemoteConfig::fromFile(char const* file)
 {
-  std::shared_ptr<rtRemoteConfig> conf;
-
   if (file == nullptr)
   {
     rtLogError("null file path");
-    return conf;
+    return nullptr;
   }
 
   std::unique_ptr<FILE, int (*)(FILE *)> f(fopen(file, "r"), fclose);
   if (!f)
   {
     rtLogDebug("can't open: %s. %s", file, strerror(errno));
-    return conf;
+    return nullptr;
   }
 
-  conf.reset(new rtRemoteConfig());
+  rtRemoteConfig* conf = new rtRemoteConfig();
 
   std::vector<char> buff;
   buff.reserve(1024);

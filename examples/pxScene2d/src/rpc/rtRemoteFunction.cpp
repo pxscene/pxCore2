@@ -7,6 +7,7 @@ rtRemoteFunction::rtRemoteFunction(std::string const& id, std::string const& nam
   , m_id(id)
   , m_name(name)
   , m_rpc_client(client)
+  , m_timeout(client->getEnvironment()->Config->getUInt32("rt.rpc.default.request_timeout"))
 {
 }
 
@@ -18,8 +19,7 @@ rtRemoteFunction::~rtRemoteFunction()
 rtError
 rtRemoteFunction::Send(int argc, rtValue const* argv, rtValue* result)
 {
-  return m_rpc_client->send(m_id, m_name, argc, argv, result,
-    rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout"));
+  return m_rpc_client->send(m_id, m_name, argc, argv, result, m_timeout);
 }
 
 unsigned long

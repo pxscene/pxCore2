@@ -1,55 +1,101 @@
 #include "rtRemote.h"
 #include "rtRemoteClient.h"
 #include "rtRemoteConfig.h"
+#include "rtObjectCache.h"
 #include "rtRemoteServer.h"
+#include "rtRemoteStream.h"
 
 #include <rtLog.h>
 #include <mutex>
 #include <thread>
 
-static rtRemoteServer* gServer = nullptr;
 static std::mutex gMutex;
-std::shared_ptr<rtRemoteStreamSelector> gStreamSelector;
+static rtRemoteEnvironment* gEnv = nullptr;
+
+rtRemoteEnvironment::rtRemoteEnvironment()
+  : Config(nullptr)
+  , Server(nullptr)
+  , ObjectCache(nullptr)
+  , StreamSelector(nullptr)
+{
+  Config = rtRemoteConfig::getInstance();
+
+  StreamSelector = new rtRemoteStreamSelector();
+  StreamSelector->start();
+
+  Server = new rtRemoteServer(this);
+  ObjectCache = new rtObjectCache(this);
+}
+
+rtRemoteEnvironment::~rtRemoteEnvironment()
+{
+}
+
+void
+rtRemoteEnvironment::shutdown()
+{
+  std::lock_guard<std::mutex> lock(gMutex);
+
+  if (Server)
+  {
+    delete Server;
+    Server = nullptr;
+  }
+
+  if (StreamSelector)
+  {
+    rtError e = StreamSelector->shutdown();
+    if (e != RT_OK)
+      rtLogWarn("failed to shutdown StreamSelector. %s", rtStrError(e));
+
+    delete StreamSelector;
+    StreamSelector = nullptr;
+  }
+}
 
 rtError
 rtRemoteInit()
 {
-  rtError e = RT_OK;
-  rtRemoteConfig::getInstance(true);
+  return rtRemoteInitWithEnvironment(RT_REMOTE_DEFAULT_ENVIRONMENT);
+}
 
+rtError
+rtRemoteInitWithEnvironment(rtRemoteEnvironment* env)
+{
+  rtError e = RT_FAIL;
   std::lock_guard<std::mutex> lock(gMutex);
-  if (gServer == nullptr)
+
+  if (env == RT_REMOTE_DEFAULT_ENVIRONMENT)
   {
-    gServer = new rtRemoteServer();
-    e = gServer->open();
+    if (gEnv!= nullptr)
+    {
+      rtLogInfo("global context is already initialized");
+      return RT_OK;
+    }
+
+    gEnv = new rtRemoteEnvironment();
+
+    e = gEnv->Server->open();
     if (e != RT_OK)
       rtLogError("failed to open rtRemoteServer. %s", rtStrError(e));
-  };
-
-  if (gServer == nullptr)
+  }
+  else
   {
-    rtLogError("rtRemoteServer is null");
+    rtLogError("custom environment currently not supported");
     e = RT_FAIL;
   }
 
   return e;
 }
 
-extern rtError rtRemoteShutdownStreamSelector();
-
 rtError
 rtRemoteShutdown()
 {
-  rtError e = rtRemoteShutdownStreamSelector();
-  if (e != RT_OK)
+  if (gEnv != nullptr)
   {
-    rtLogWarn("error shutting down stream selector. %s", rtStrError(e));
-  }
-
-  if (gServer)
-  {
-    delete gServer;
-    gServer = nullptr;
+    gEnv->shutdown();
+    delete gEnv;
+    gEnv = nullptr;
   }
 
   return RT_OK;
@@ -58,7 +104,7 @@ rtRemoteShutdown()
 rtError
 rtRemoteRegisterObject(char const* id, rtObjectRef const& obj)
 {
-  if (gServer == nullptr)
+  if (gEnv == nullptr)
     return RT_FAIL;
 
   if (id == nullptr)
@@ -67,15 +113,15 @@ rtRemoteRegisterObject(char const* id, rtObjectRef const& obj)
   if (!obj)
     return RT_ERROR_INVALID_ARG;
 
-  return gServer->registerObject(id, obj);
+  return gEnv->Server->registerObject(id, obj);
 }
 
 rtError
 rtRemoteLocateObject(char const* id, rtObjectRef& obj)
 {
-  if (gServer == nullptr)
+  if (gEnv == nullptr)
   {
-    rtLogError("rtRemoteInit not called");
+    rtLogError("context is null");
     return RT_FAIL;
   }
 
@@ -85,5 +131,18 @@ rtRemoteLocateObject(char const* id, rtObjectRef& obj)
     return RT_ERROR_INVALID_ARG;
   }
 
-  return gServer->findObject(id, obj, 3000);
+  return gEnv->Server->findObject(id, obj, 3000);
 }
+
+rtError
+rtRemoteRuncOnce(uint32_t /*timeout*/)
+{
+  return RT_OK;
+}
+
+rtError
+rtRemoteRun(uint32_t /*timeout*/)
+{
+  return RT_OK;
+}
+

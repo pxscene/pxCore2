@@ -101,10 +101,11 @@ rtRemoteMethodCallRequest::setMethodName(std::string const& methodName)
 }
 
 void
-rtRemoteMethodCallRequest::addMethodArgument(rtValue const& arg)
+rtRemoteMethodCallRequest::addMethodArgument(rtRemoteEnvPtr env, rtValue const& arg)
 {
   rapidjson::Value jsonValue;
-  rtError err = rtValueWriter::write(arg, jsonValue, m_impl->d);
+  // TODO: rtValueWriter should be member of rtRemoteEnvironment
+  rtError err = rtValueWriter::write(env, arg, jsonValue, m_impl->d);
 
   if (err == RT_OK)
   {
@@ -147,10 +148,10 @@ rtRemoteSetRequest::rtRemoteSetRequest(std::string const& objectName, uint32_t f
 }
 
 rtError
-rtRemoteSetRequest::setValue(rtValue const& value)
+rtRemoteSetRequest::setValue(rtRemoteEnvPtr env, rtValue const& value)
 {
   rapidjson::Value jsonValue;
-  rtError e = rtValueWriter::write(value, jsonValue, m_impl->d);
+  rtError e = rtValueWriter::write(env, value, jsonValue, m_impl->d);
   if (e != RT_OK)
     return e;
   m_impl->d.AddMember(kFieldNameValue, jsonValue, m_impl->d.GetAllocator());

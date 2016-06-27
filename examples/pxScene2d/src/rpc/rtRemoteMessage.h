@@ -5,8 +5,10 @@
 #include <rapidjson/document.h>
 #include <rtError.h>
 #include <rtValue.h>
+
 #include "rtLog.h"
 #include "rtSocketUtils.h"
+#include "rtRemoteTypes.h"
 
 #define kFieldNameMessageType "message.type"
 #define kFieldNameCorrelationKey "correlation.key"
@@ -117,7 +119,7 @@ class rtRemoteMethodCallRequest : public rtRemoteRequest
 public:
   rtRemoteMethodCallRequest(std::string const& objectName);
   void setMethodName(std::string const& methodName);
-  void addMethodArgument(rtValue const& arg);
+  void addMethodArgument(rtRemoteEnvPtr env, rtValue const& arg);
 };
 
 class rtRemoteGetRequest : public rtRemoteRequest
@@ -132,7 +134,7 @@ class rtRemoteSetRequest : public rtRemoteRequest
 public:
   rtRemoteSetRequest(std::string const& objectName, std::string const& fieldName);
   rtRemoteSetRequest(std::string const& objectName, uint32_t fieldIndex);
-  rtError setValue(rtValue const& value);
+  rtError setValue(rtRemoteEnvPtr env, rtValue const& value);
 };
 
 char const* rtMessage_GetPropertyName(rapidjson::Document const& doc);
