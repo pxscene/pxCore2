@@ -7,6 +7,7 @@
 #include "rtValueReader.h"
 #include "rtValueWriter.h"
 #include "rtRemoteConfig.h"
+#include "rtRemoteFactory.h"
 
 #include <stdlib.h>
 #include <arpa/inet.h>
@@ -119,7 +120,7 @@ rtRemoteServer::open()
   if (err != RT_OK)
     return err;
 
-  m_resolver = rtRemoteCreateResolver(FILE_RESOLVER);
+  m_resolver = rtRemoteFactory::rtRemoteCreateResolver(FILE_RESOLVER);
   err = start();
   if (err != RT_OK)
   {
