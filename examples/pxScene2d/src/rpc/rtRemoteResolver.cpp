@@ -17,6 +17,10 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <ifaddrs.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include <rapidjson/document.h>
 #include <rapidjson/memorystream.h>
@@ -622,19 +626,32 @@ public:
 private:
   std::string       m_rpc_addr;
   uint16_t          m_rpc_port;
+  FILE*             m_db_fp; 
 };
 
 
 rtRemoteFileResolver::rtRemoteFileResolver()
-{ }
+: m_db_fp(NULL)
+{   
+}
 
 rtRemoteFileResolver::~rtRemoteFileResolver()
-{ }
-
+{
+  rtError err = this->close();
+  if (err != RT_OK)
+    rtLogWarn("failed to close resolver: %s", rtStrError(err));
+}
 
 rtError
 rtRemoteFileResolver::open(sockaddr_storage const& rpc_endpoint)
 {
+  m_db_fp = fopen("./tmp/rtResolver.db", "a+");
+  if (m_db_fp == NULL)
+  {
+    rtLogError("could not connect to database");
+    return RT_FAIL;
+  }
+
   char buff[128];
   void* addr = nullptr;
   rtGetInetAddr(rpc_endpoint, &addr);
@@ -652,30 +669,34 @@ rtRemoteFileResolver::open(sockaddr_storage const& rpc_endpoint)
 rtError
 rtRemoteFileResolver::registerObject(std::string const& name, sockaddr_storage const&)
 {
-  // read file into DOM object
-  FILE* fpr = fopen(db, "r");
-  printf("gets here");
-  if (fpr == NULL)
+  if (m_db_fp == NULL)
+  {
+    rtLogError("no database connection");
     return RT_FAIL;
-  char readBuffer[65536];
-  rapidjson::FileReadStream is(fpr, readBuffer, sizeof(readBuffer));
+  }
+
+  // read in existing records into DOM
   rapidjson::Document doc;
+  char readBuffer[65536];
+  fseek(m_db_fp, 0, SEEK_SET);
+  flock(fileno(m_db_fp), LOCK_EX);
+  rapidjson::FileReadStream is(m_db_fp, readBuffer, sizeof(readBuffer));
   doc.ParseStream(is);
-  fclose(fpr);
+  flock(fileno(m_db_fp), LOCK_UN);
   
   // create entry for name or overwrite it if it's already there
   rapidjson::Pointer("/" + name + "/" + kFieldNameIp).Set(doc, m_rpc_addr);
   rapidjson::Pointer("/" + name + "/" + kFieldNamePort).Set(doc, m_rpc_port);
 
   // write updated json back to file
-  FILE* fpw = fopen(db, "w");
-  if (fpw == NULL)
-    return RT_FAIL;
   char writeBuffer[65536];
-  rapidjson::FileWriteStream os(fpw, writeBuffer, sizeof(writeBuffer));
+  flock(fileno(m_db_fp), LOCK_EX);
+  fseek(m_db_fp, 0, SEEK_SET);  
+  rapidjson::FileWriteStream os(m_db_fp, writeBuffer, sizeof(writeBuffer));
   rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
   doc.Accept(writer);
-  fclose(fpw);
+  flock(fileno(m_db_fp), LOCK_UN);
+  fflush(m_db_fp);
 
   return RT_OK;
 }
@@ -684,15 +705,20 @@ rtError
 rtRemoteFileResolver::locateObject(std::string const& name, sockaddr_storage& endpoint,
     uint32_t)
 {
-  // read file into DOM object
-  FILE* fp = fopen(db, "r");
-  if (fp == NULL)
+  if (m_db_fp == NULL)
+  {
+    rtLogError("no database connection");
     return RT_FAIL;
-  char readBuffer[65536];
-  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+  }
+
+  // read file into DOM object
   rapidjson::Document doc;
+  char readBuffer[65536];
+  flock(fileno(m_db_fp), LOCK_EX);
+  fseek(m_db_fp, 0, SEEK_SET);  
+  rapidjson::FileReadStream is(m_db_fp, readBuffer, sizeof(readBuffer));
   doc.ParseStream(is);
-  fclose(fp);
+  flock(fileno(m_db_fp), LOCK_UN);
   
   // check if name is registered
   if (!rapidjson::Pointer("/" + name).Get(doc))
@@ -711,6 +737,7 @@ rtRemoteFileResolver::locateObject(std::string const& name, sockaddr_storage& en
 rtError
 rtRemoteFileResolver::close()
 {
+  fclose(m_db_fp);
   return RT_OK;
 }
 
