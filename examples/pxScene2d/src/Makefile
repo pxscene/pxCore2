@@ -13,6 +13,10 @@ endif
 
 HAVE_WESTEROS := $(shell test -f ../external/westeros/Makefile.ubuntu && echo 1)
 
+ifneq ($(HAVE_WESTEROS),1)
+HAVE_WESTEROS := $(shell pkg-config --exists westeros-compositor && echo 1)
+endif
+
 clean:
 	rm -rf $(OBJDIR)
 	rm -f pxscene
