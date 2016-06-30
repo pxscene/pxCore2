@@ -1397,11 +1397,13 @@ void pxScene2d::onUpdate(double t)
       double   dpf = rint( (double) glDrawCalls    / (double) frameCount ); // glDraw*()           - calls per frame
       double   bpf = rint( (double) glTexBindCalls / (double) frameCount ); // glBindTexture()     - calls per frame
       double   fpf = rint( (double) glFboBindCalls / (double) frameCount ); // glBindFramebuffer() - calls per frame
-      double draw_ms   = ( (double) sigma_draw     / (double) frameCount ) * 1000.0f; // Average frame  time
-      double update_ms = ( (double) sigma_update   / (double) frameCount ) * 1000.0f; // Average update time
+      // double draw_ms   = ( (double) sigma_draw     / (double) frameCount ) * 1000.0f; // Average frame  time
+      // double update_ms = ( (double) sigma_update   / (double) frameCount ) * 1000.0f; // Average update time
 
-      printf("%g fps   pxObjectCount: %d   Draw: %g   Tex: %g   Fbo: %g     draw_ms: %0.04g   update_ms: %0.04g\n",
-          fps, pxObjectCount, dpf, bpf, fpf, draw_ms, update_ms );
+      // printf("%g fps   pxObjectCount: %d   Draw: %g   Tex: %g   Fbo: %g     draw_ms: %0.04g   update_ms: %0.04g\n",
+      //     fps, pxObjectCount, dpf, bpf, fpf, draw_ms, update_ms );
+
+      printf("%g fps   pxObjectCount: %d   Draw: %g   Tex: %g   Fbo: %g \n", fps, pxObjectCount, dpf, bpf, fpf);
 
       glDrawCalls    = 0;
       glTexBindCalls = 0;
