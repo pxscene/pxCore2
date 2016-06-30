@@ -273,7 +273,7 @@ if (false) {
       else
       {
         var modulePromise = xModule.moduleReadyPromise;
-        var thisMakeReady = this.makeReady;
+        var thisMakeReady = this.makeReady; // NB:  capture for async then() closure.
 
         modulePromise.then( function(i)
         {
