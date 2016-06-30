@@ -30,6 +30,9 @@ extern rtNode script;
 #endif
 
 
+class rtPromise; //fwd
+uint32_t rtPromise::promiseID = 200;
+
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
 

@@ -36,7 +36,9 @@ rtError rtResolverFunction::Send(int numArgs, const rtValue* args, rtValue* /*re
   ctx->resolverFunc = rtFunctionRef(this);
 
   for (int i = 0; i < numArgs; ++i)
+  {
     ctx->args.push_back(args[i]);
+  }
 
   mReq.data = ctx;
   uv_queue_work(uv_default_loop(), &mReq, &workCallback, &afterWorkCallback);
@@ -63,8 +65,10 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
   Local<Context> creationContext = PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mContext);
   Context::Scope contextScope(creationContext);
 
+//DEBUG
   // uint32_t id = GetContextId(creationContext);
-  // rtLogInfo("Send:%u", id);
+  // rtLogInfo("rtResolverFunction:: >>> Send:%u", id);
+//DEBUG
 
   Handle<Value> value;
   if (ctx->args.size() > 0)
@@ -156,10 +160,10 @@ void rtFunctionWrapper::create(const FunctionCallbackInfo<Value>& args)
 
 Handle<Object> rtFunctionWrapper::createFromFunctionReference(Isolate* isolate, const rtFunctionRef& func)
 {
-  Locker                locker(isolate);
-  Isolate::Scope isolate_scope(isolate);
+  Locker                       locker(isolate);
+  Isolate::Scope        isolate_scope(isolate);
+  EscapableHandleScope          scope(isolate);
 
-  EscapableHandleScope scope(isolate);
   Local<Value> argv[1] =
   {
     External::New(isolate, func.getPtr())
@@ -174,9 +178,9 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
 {
   Isolate* isolate = args.GetIsolate();
 
-  Locker     locker(isolate);
-  Isolate::Scope isolateScope(isolate);
-  HandleScope handleScope(isolate);
+  Locker                  locker(isolate);
+  Isolate::Scope   isolate_scope(isolate);
+  HandleScope       handle_scope(isolate);  // Create a stack-allocated handle scope.
 
   // Local<Context> curr = isolate->GetCurrentContext();
 

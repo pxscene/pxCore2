@@ -99,7 +99,7 @@ static inline bool file_exists(const char *file)
 }
 #endif
 
-rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
+rtNodeContext::rtNodeContext(Isolate *isolate) :
      mIsolate(isolate), mEnv(NULL), mRefCount(0)
 {
   assert(isolate); // MUST HAVE !
@@ -109,7 +109,7 @@ rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
 }
 
 #ifdef USE_CONTEXTIFY_CLONES
-rtNodeContext::rtNodeContext(v8::Isolate *isolate, rtNodeContextRef clone_me) :
+rtNodeContext::rtNodeContext(Isolate *isolate, rtNodeContextRef clone_me) :
       mIsolate(isolate), mEnv(NULL), mRefCount(0)
 {
   assert(mIsolate); // MUST HAVE !
@@ -126,17 +126,12 @@ void rtNodeContext::createEnvironment()
   HandleScope     handle_scope(mIsolate);
 
   // Create a new context.
-  {
-    HandleScope tempScope(mIsolate);
+  Local<Context> local_context = Context::New(mIsolate);
 
-    Local<Context> ctx = Context::New(mIsolate);
-    ctx->SetEmbedderData(HandleMap::kContextIdIndex, v8::Integer::New(mIsolate, mId));
-    mContext.Reset(mIsolate, ctx);
-  }
+  local_context->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
 
+  mContext.Reset(mIsolate, local_context); // local to persistent
 
-  // Get a Local context.
-  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
   Context::Scope context_scope(local_context);
 
   Handle<Object> global = local_context->Global();
@@ -177,20 +172,16 @@ void rtNodeContext::createEnvironment()
 
 void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 {
-  mIsolate = clone_me->getIsolate();
-
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
+  HandleScope     handle_scope(mIsolate);
 
-  // Get a Local context...
+  // Get parent Local context...
   Local<Context> local_context = clone_me->getLocalContext();
   Context::Scope context_scope(local_context);
 
-  mSandbox.Reset(mIsolate, Object::New( mIsolate )); // persistent
-
-  // Create dummy sandbox for ContextiftContext::makeContext() ...
-  Local<Object> sandbox = node::PersistentToLocal<Object>(mIsolate, mSandbox);
+  // Create dummy sandbox for ContextifyContext::makeContext() ...
+  Local<Object> sandbox = Object::New(mIsolate);
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -202,27 +193,44 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
   rtString s;
   for(int i = 0; i < len; i++)
   {
-    array.get<rtString>( (uint32_t) i, s);  // get next 'name'
+    array.get<rtString>( (uint32_t) i, s);  // get 'name' for object
     rtValue obj = clone_me->get(s);         // get object for 'name'
 
-    if( obj.isEmpty() )
-    {
-      printf("## FATAL:   '%s' is empty !! - UNEXPECTED\n", s.cString()); fflush(stdout);
-    }
-    else
+    if( obj.isEmpty() == false)
     {
         // Copy to var/module 'sandbox' under construction...
         Local<Value> module = local_context->Global()->Get( String::NewFromUtf8(mIsolate, s.cString() ) );
         sandbox->Set( String::NewFromUtf8(mIsolate, s.cString()), module);
     }
+    else
+    {
+      printf("## FATAL:   '%s' is empty !! - UNEXPECTED\n", s.cString()); fflush(stdout);
+    }
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  // Clone a new context.
+  {
+    Local<Context>  clone_local = node::makeContext(mIsolate, sandbox); // contextify context with 'sandbox'
+    clone_local->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
 
-  Local<Context>  ctx = node::makeContext(mIsolate, sandbox);
+    mContext.Reset(mIsolate, clone_local); // local to persistent
 
-  mContext.Reset(mIsolate, ctx); // Local to Persistent
+    Context::Scope context_scope(clone_local);
+
+    Handle<Object> clone_global = clone_local->Global();
+
+    // Register wrappers in this cloned context...
+      rtObjectWrapper::exportPrototype(mIsolate, clone_global);
+    rtFunctionWrapper::exportPrototype(mIsolate, clone_global);
+
+    mRtWrappers.Reset(mIsolate, clone_global);
 }
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+}
+
 #endif // USE_CONTEXTIFY_CLONES
 
 rtNodeContext::~rtNodeContext()
@@ -255,7 +263,6 @@ rtNodeContext::~rtNodeContext()
   // clear out persistent javascript handles
   HandleMap::clearAllForContext(mId);
 
-  mSandbox.Reset();
   mContext.Reset();
   mRtWrappers.Reset();
 
@@ -274,8 +281,8 @@ void rtNodeContext::add(const char *name, rtValue const& val)
   }
   else if(this->has(name))
   {
-    rtLogError(" rtNodeContext::add() - ALREADY HAS '%s' ...", name);
-    return;
+    rtLogError(" rtNodeContext::add() - ALREADY HAS '%s' ... over-writing.", name);
+   // return; // Allow for "Null"-ing erasure.
   }
 
   Locker                locker(mIsolate);
@@ -337,8 +344,8 @@ bool rtNodeContext::has(const char *name)
 
   Handle<Object> global = local_context->Global();
 
-  v8::TryCatch try_catch;
-  v8::Handle<v8::Value> value = global->Get(String::NewFromUtf8(mIsolate, name) );
+  TryCatch try_catch;
+  Handle<Value> value = global->Get(String::NewFromUtf8(mIsolate, name) );
 
   if (try_catch.HasCaught())
   {
@@ -486,7 +493,7 @@ void rtNode::pump()
     {
       Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
       Context::Scope contextScope(local_context);
-      mIsolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
+      mIsolate->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
       sGcTickCount = 0;
     }
   }
@@ -495,7 +502,7 @@ void rtNode::pump()
 #if 0
 rtNode::forceGC()
 {
-  mIsolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
+  mIsolate->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
 }
 #endif
 
@@ -615,7 +622,6 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
     // printf("\n createContext()  >>  REFERENCE CREATED  !!!!!!");
 
     mRefContext       = new rtNodeContext(mIsolate);
-    mRefContext->node = this;
 
     ctxref = mRefContext;
 
@@ -627,12 +633,10 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
     // printf("\n createContext()  >>  CLONE CREATED !!!!!!");
 
     ctxref       = new rtNodeContext(mIsolate, mRefContext); // CLONE !!!
-    ctxref->node = this;
   }
 #else
 
     ctxref       = new rtNodeContext(mIsolate);
-    ctxref->node = this;
 
 #endif
 

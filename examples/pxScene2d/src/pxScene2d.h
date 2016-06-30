@@ -983,7 +983,7 @@ public:
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
 
-  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);
+//  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
   pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
   virtual ~pxSceneContainer() {/*printf("###############~pxSceneContainer\n");*/} 
@@ -1004,7 +1004,7 @@ public:
   rtError api(rtValue& v) const;
   rtError ready(rtObjectRef& o) const;
 
-  rtError makeReady(bool ready);
+//  rtError makeReady(bool ready);  // DEPRECATED ?
 
   // in the case of pxSceneContainer, the makeReady should be the  
   // catalyst for ready to fire, so override sendPromise and 
@@ -1036,6 +1036,8 @@ public:
     // can outlive this view
     mCtx->add("getScene", 0);
     mCtx->add("makeReady", 0);
+
+    mCtx->add("getContextID", 0);
     
     if (mView)
       setViewContainer(NULL);
@@ -1083,6 +1085,8 @@ protected:
 
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
+
+  static rtError getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx);
 
   virtual void onSize(int32_t w, int32_t h)
   {
@@ -1417,7 +1421,8 @@ private:
     
   rtRefT<pxObject> mRoot;
   rtObjectRef mFocusObj;
-  double start, end2;
+  double start, sigma_draw, sigma_update, end2;
+
   int frameCount;
   int mWidth;
   int mHeight;

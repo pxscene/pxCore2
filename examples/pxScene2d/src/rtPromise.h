@@ -4,40 +4,67 @@
 #ifndef _RT_PROMISE_H
 #define _RT_PROMISE_H
 
+#include <string>
+
 enum rtPromiseState {PENDING,FULFILLED,REJECTED};
 
 struct thenData
 {
   rtFunctionRef mResolve;
   rtFunctionRef mReject;
-  rtObjectRef mNextPromise;
+  rtObjectRef   mNextPromise;
+
+  thenData(rtFunctionRef resolve,
+           rtFunctionRef reject,
+           rtObjectRef   next) :
+      mResolve(resolve), mReject(reject), mNextPromise(next) {};
+
 };
 
 class rtPromise: public rtObject
 {
+  static uint32_t promiseID;
+
 public:
   rtDeclareObject(rtPromise,rtObject);
   rtMethod2ArgAndReturn("then",then,rtFunctionRef,rtFunctionRef,rtObjectRef);
   rtMethod1ArgAndNoReturn("resolve",resolve,rtValue);
   rtMethod1ArgAndNoReturn("reject",reject,rtValue);
 
-  rtPromise():mState(PENDING), mObject(NULL) {}
+  rtPromise() :  promise_id(promiseID++), promise_name(""), mState(PENDING), mObject(NULL)
+  {
+//    rtLogDebug("############# PROMISE >> CREATED   [ id: %d ]  \n", promise_id);
+  }
+
+  rtPromise(uint32_t id) : promise_id(id), promise_name("") , mState(PENDING), mObject(NULL)
+  {
+//    rtLogDebug("############# PROMISE >> CREATED   [ id: %d ]  \n", promise_id);
+  }
+
+  rtPromise(std::string name) : promise_id(promiseID++), promise_name(name), mState(PENDING), mObject(NULL)
+  {
+    rtLogDebug("############# PROMISE >> CREATED   [ id: %d  >> %s ]", promise_id, promise_name.c_str());
+  }
 
   rtError then(rtFunctionRef resolve, rtFunctionRef reject, 
                rtObjectRef& newPromise)
   {
     if (mState == PENDING)
     {
-      thenData d;
-      d.mResolve = resolve;
-      d.mReject = reject;
-      d.mNextPromise = new rtPromise;
-      mThenData.push_back(d);
+      thenData data(resolve, reject, new rtPromise);
 
-      newPromise = d.mNextPromise;
+      mThenData.push_back(data);
+
+      newPromise = data.mNextPromise;
+
+      rtLogDebug("############# PROMISE >> THEN >> PENDING       [ id: %d  >> %s ]",
+        promise_id, promise_name.c_str());
     }
     else if (mState == FULFILLED)
     {
+      rtLogDebug("############# PROMISE >> THEN >> FULFILLED     [ id: %d  >> %s ]",
+        promise_id, promise_name.c_str());
+
       if (resolve)
       {
         resolve.send(mObject);
@@ -55,7 +82,10 @@ public:
       }
     }
     else
+    {
       rtLogError("Invalid rtPromise state");
+    }
+
     return RT_OK;
   }
 
@@ -63,10 +93,15 @@ public:
   {
     if (mState != PENDING)
     {
-      return RT_OK;
+      rtLogDebug("############# ERROR:  resolve() >> [%s] != PENDING   [ id: %d  >> %s ]",
+        rtPromiseState2String(mState), promise_id,promise_name.c_str());
+
+      return RT_FAIL;
     }
+
     mState = FULFILLED;
     mObject = v.toObject().getPtr();
+
     for (vector<thenData>::iterator it = mThenData.begin();
          it != mThenData.end(); ++it)
     {
@@ -84,10 +119,15 @@ public:
   {
     if (mState != PENDING)
     {
-      return RT_OK;
+      rtLogDebug("############# ERROR:  reject() >>[%s] != PENDING   [ id: %d  >> %s ]",
+        rtPromiseState2String(mState), promise_id,promise_name.c_str());
+
+      return RT_FAIL;
     }
+
     mState = REJECTED;
     rtObjectRef objRef = v.toObject();
+
     if (objRef.getPtr() != NULL)
     {
       mObject = objRef.getPtr();
@@ -117,10 +157,27 @@ public:
       return true;
   }
   
+  const char* rtPromiseState2String(rtPromiseState s)
+  {
+    switch(s)
+    {
+      case PENDING:   return "PENDING";
+      case FULFILLED: return "FULFILLED";
+      case REJECTED:  return "REJECTED";
+      default:        return "(unknown rtPromiseState)";
+    }
+  }
+
+          int promise_id;
+  std::string promise_name;
+
 private:
   rtPromiseState mState;
   vector<thenData> mThenData;
   rtIObject* mObject;
 };
+
+// uint32_t rtPromise::promiseID = 0;
+
 
 #endif

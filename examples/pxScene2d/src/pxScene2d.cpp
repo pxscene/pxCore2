@@ -36,9 +36,15 @@
 
 #include "pxClipboard.h"
 
+
 rtThreadQueue gUIThreadQueue;
 
 #define UNUSED_PARAM(x) ((x)=(x))
+
+// Debug Statistics
+extern uint32_t glDrawCalls;
+extern uint32_t glTexBindCalls;
+extern uint32_t glFboBindCalls;
 
 // TODO move to rt*
 // Taken from
@@ -246,7 +252,7 @@ void pxObject::createNewPromise()
   if(((rtPromise*)mReady.getPtr())->status()) 
   {
     rtLogDebug("CREATING NEW PROMISE\n");
-    mReady = new rtPromise; 
+    mReady = new rtPromise(); 
   }
 }
 
@@ -295,7 +301,7 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
   if (!animationType) {animationType = pxConstantsAnimation::OPTION_LOOP;}
   if (!count) {count = 1;}
 
-  promise = new rtPromise;
+  promise = new rtPromise();
 
   rtObjectRef keys = props.get<rtObjectRef>("allKeys");
   if (keys)
@@ -1073,7 +1079,7 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top)
-  :start(0),frameCount(0), mContainer(NULL), mShowDirtyRect(false)
+  : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRect(false)
 { 
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1360,9 +1366,16 @@ void pxScene2d::onUpdate(double t)
   gUIThreadQueue.process(0.01);
 
   if (start == 0)
+  {
     start = pxSeconds();
+  }
+
+  double start_frame = pxSeconds(); //##
 
   update(t);
+
+  sigma_update += (pxSeconds() - start_frame); //##
+
   if (mDirty)
   {
     mDirty = false;
@@ -1372,19 +1385,39 @@ void pxScene2d::onUpdate(double t)
   // TODO get rid of mTop somehow
   if (mTop)
   {
-  if (frameCount >= 60)
-  {
-    end2 = pxSeconds();
+    extern unsigned int frame_ms;
+    int targetFPS = (1.0 / ((double) frame_ms)) * 1000;
 
-    double fps = rint((double)frameCount/(end2-start));
-    printf("%g fps pxObjectCount %d\n", fps, pxObjectCount);
+    if (frameCount >= targetFPS)
+    {
+      end2 = pxSeconds();
+
+      double fps = rint((double)frameCount/(end2-start));
+
+      double   dpf = rint( (double) glDrawCalls    / (double) frameCount ); // glDraw*()           - calls per frame
+      double   bpf = rint( (double) glTexBindCalls / (double) frameCount ); // glBindTexture()     - calls per frame
+      double   fpf = rint( (double) glFboBindCalls / (double) frameCount ); // glBindFramebuffer() - calls per frame
+      double draw_ms   = ( (double) sigma_draw     / (double) frameCount ) * 1000.0f; // Average frame  time
+      double update_ms = ( (double) sigma_update   / (double) frameCount ) * 1000.0f; // Average update time
+
+      printf("%g fps   pxObjectCount: %d   Draw: %g   Tex: %g   Fbo: %g     draw_ms: %0.04g   update_ms: %0.04g\n",
+          fps, pxObjectCount, dpf, bpf, fpf, draw_ms, update_ms );
+
+      glDrawCalls    = 0;
+      glTexBindCalls = 0;
+      glFboBindCalls = 0;
+
+      sigma_draw   = 0;
+      sigma_update = 0;
+
     // TODO FUTURES... might be nice to have "struct" style object's that get copied
     // at the interop layer so we don't get remoted calls back to the render thread
     // for accessing the values (events would be the primary usecase)
     rtObjectRef e = new rtMapObject;
     e.set("fps", fps);
     mEmit.send("onFPS", e);
-    start = end2;
+
+      start = end2; // start of frame
     frameCount = 0;
   }
 
@@ -1410,7 +1443,13 @@ void pxScene2d::onDraw()
     context.setSize(mWidth, mHeight);
   }  
 #if 1
-    draw();
+
+  double start_draw = pxSeconds(); //##
+
+  draw();
+
+  sigma_draw += (pxSeconds() - start_draw); //##
+
 #endif
   #ifdef ENABLE_RT_NODE
   if (mTop)
@@ -2086,7 +2125,7 @@ rtDefineObject(pxSceneContainer, pxViewContainer);
 rtDefineProperty(pxSceneContainer, url);
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
-rtDefineMethod(pxSceneContainer, makeReady);
+//rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
 
 
 rtError pxSceneContainer::setUrl(rtString url)
@@ -2094,7 +2133,7 @@ rtError pxSceneContainer::setUrl(rtString url)
   // If old promise is still unfulfilled reject it
   // and create a new promise for the context of this Url
   mReady.send("reject", this); 
-  mReady = new rtPromise;  
+  mReady = new rtPromise( std::string("pxSceneContainer >> ") + std::string(url) );
 
   mUrl = url;
   setScriptView(new pxScriptView(url.cString(),""));
@@ -2126,12 +2165,13 @@ rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
 }
 
 
-rtError pxSceneContainer::makeReady(bool ready)
-{
-  rtLogInfo("make ready: %d", ready);
-  mReady.send(ready?"resolve":"reject", this);
-  return RT_OK;
-}
+// rtError pxSceneContainer::makeReady(bool ready)
+// {
+//   //DEPRECATED ?
+//   rtLogInfo("make ready: %d", ready);
+//   mReady.send(ready?"resolve":"reject", this);
+//   return RT_OK;
+// }
 
 
 #if 0
@@ -2152,27 +2192,31 @@ rtError createObject2(const char* t, rtObjectRef& o)
 rtNode script;
 
 pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContainer(NULL), mRefCount(0)
+{
+  mCtx = script.createContext();
+  if (mCtx)
   {
-    mCtx = script.createContext();
-    if (mCtx)
-    {
-      mCtx->add("getScene", new rtFunctionCallback(getScene, this));
-      mCtx->add("makeReady", new rtFunctionCallback(makeReady, this));
-        
-      mReady = new rtPromise;
+    mCtx->add("getScene",  new rtFunctionCallback(getScene,  this));
+    mCtx->add("makeReady", new rtFunctionCallback(makeReady, this));
 
-      mCtx->runFile("init.js");    
-      char buffer[256];
-      sprintf(buffer, "loadUrl(\"%s\");", url);
-      mCtx->runScript(buffer);
-    }
+    mCtx->add("getContextID", new rtFunctionCallback(getContextID, this));
+
+    mReady = new rtPromise();
+
+    mCtx->runFile("init.js");
+
+    char buffer[256];
+    sprintf(buffer, "loadUrl(\"%s\");", url);
+    mCtx->runScript(buffer);
   }
+}
 
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
+
     if (numArgs == 1)
     {
       rtString sceneType = args[0].toString();
@@ -2200,22 +2244,57 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
 }
 
 
+
+rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+{
+  UNUSED_PARAM(numArgs);
+  UNUSED_PARAM(args);
+
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+
+    Locker                locker(v->mCtx->getIsolate());
+    Isolate::Scope isolate_scope(v->mCtx->getIsolate());
+    HandleScope     handle_scope(v->mCtx->getIsolate());
+
+    Local<Context> ctx = v->mCtx->getLocalContext();
+    uint32_t ctx_id = GetContextId( ctx );
+
+    if (result)
+    {
+      *result = rtValue(ctx_id);
+      return RT_OK;
+    }
+  }
+
+  rtLogError("############# printContextID() >> ctx: BAD !!\n");  fflush(stdout); // JUNK
+
+  return RT_FAIL;
+}
+
+
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
+
     if (numArgs >= 1)
     {
       if (args[0].toBool())
       {
         if (numArgs >= 2)
+        {
           v->mApi = args[1].toObject();
+        }
 
         v->mReady.send("resolve", v->mApi);
       }
       else
+      {
         v->mReady.send("reject", new rtObject); // TODO JRJR  Why does this fail if I leave the argment as null... 
+      }
 
       return RT_OK;
     }

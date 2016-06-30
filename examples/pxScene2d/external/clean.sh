@@ -4,8 +4,7 @@ set -e
 
 #--------- CURL 
 cd curl
-./configure
-make all -j3
+make clean -j3
 cd ..
 
 #--------- FT 
@@ -16,25 +15,21 @@ cd ..
 
 #--------- JPG 
 cd jpg
-./configure
-make all -j3
+make clean -j3
 cd ..
 
 #--------- PNG 
 cd png
-./configure
-make all -j3
+make clean -j3
 cd ..
 
 #--------- ZLIB 
 cd zlib
-./configure
-make all -j3
+make clean -j3
 cd ..
 
 #--------- LIBNODE 
 cd libnode
-./configure
-make all -j3
+make clean -j3
 cd ..
 
