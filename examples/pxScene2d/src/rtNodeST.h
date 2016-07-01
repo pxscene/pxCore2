@@ -21,12 +21,12 @@
 #define SANDBOX_JS          ( (const char*) "rcvrcore/sandbox.js")
 
 #if 1
-#ifndef WIN32
-#pragma GCC diagnostic pop
-#endif
+ #ifndef WIN32
+  #pragma GCC diagnostic pop
+ #endif
 #endif
 
-//#define USE_CONTEXTIFY_CLONES
+#define USE_CONTEXTIFY_CLONES
 
 namespace node
 {
@@ -65,7 +65,7 @@ public:
 
   ~rtNodeContext();
 
-  void add(const char *name, rtValue  const& val);
+  void    add(const char *name, rtValue  const& val);
   rtValue get(const char *name);
   bool    has(const char *name);
 
@@ -87,15 +87,12 @@ public:
 
   const char   *js_file;
   std::string   js_script;
-  
-  rtNode   *node;
 
   v8::Isolate              *getIsolate()      const { return mIsolate; };
   v8::Local<v8::Context>    getLocalContext() const { return PersistentToLocal<v8::Context>(mIsolate, mContext); };
 
 private:
   v8::Isolate                   *mIsolate;
-  v8::Persistent<v8::Object>     mSandbox;
   v8::Persistent<v8::Context>    mContext;
 
   node::Environment*             mEnv;
@@ -125,7 +122,7 @@ public:
   rtNodeContextRef createContext(bool ownThread = false);
 
   v8::Isolate   *getIsolate() { return mIsolate; };
-  
+
 private:
   void init(int argc, char** argv);
   void term();
