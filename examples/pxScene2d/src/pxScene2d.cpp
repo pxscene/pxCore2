@@ -38,6 +38,7 @@
 
 
 rtThreadQueue gUIThreadQueue;
+uint32_t rtPromise::promiseID = 200;
 
 #define UNUSED_PARAM(x) ((x)=(x))
 
