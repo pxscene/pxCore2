@@ -14,6 +14,23 @@
 #define USE_DRAW_DIAG_LINE
 
 
+// Debug Statistics
+#ifdef USE_RENDER_STATS
+  extern uint32_t gDrawCalls;
+  extern uint32_t gTexBindCalls;
+  extern uint32_t gFboBindCalls;
+
+  #define TRACK_DRAW_CALLS()   { gDrawCalls++    }
+  #define TRACK_TEX_CALLS()    { gTexBindCalls++ }
+  #define TRACK_FBO_CALLS()    { gFboBindCalls++ }
+#else
+  #define TRACK_DRAW_CALLS()
+  #define TRACK_TEX_CALLS()
+  #define TRACK_FBO_CALLS()
+#endif
+
+
+
 #ifdef ENABLE_DFB_GENERIC
 IDirectFB                *dfb = NULL;
 IDirectFBSurface         *dfbSurface = NULL;
@@ -197,7 +214,7 @@ public:
 
       gResW = mWidth;
       gResH = mHeight;
-    
+
       return PX_OK;
    }
 
@@ -213,7 +230,7 @@ public:
          return PX_NOTINITIALIZED;
       }
 
-      boundTexture = mTexture;
+      boundTexture = mTexture;  TRACK_TEX_CALLS();
 
       return PX_OK;
    }
@@ -228,7 +245,7 @@ public:
          return PX_NOTINITIALIZED;
       }
 
-      boundTextureMask = mTexture;
+      boundTextureMask = mTexture;  TRACK_TEX_CALLS();
 
       return PX_OK;
    }
@@ -301,7 +318,7 @@ private:
 
       DFB_CHECK(dfb->CreateSurface( dfb, &dsc, &mTexture ) );
 
-      DFB_CHECK(mTexture->Blit(mTexture, tmp, NULL, 0,0)); // blit copy to surface
+      DFB_CHECK(mTexture->Blit(mTexture, tmp, NULL, 0,0)); TRACK_DRAW_CALLS(); // blit copy to surface
 
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -340,7 +357,7 @@ public:
 
       // Flip the image data here so we match GL FBO layout
 //      mOffscreen.setUpsideDown(true);
-      o.blit(mOffscreen);
+      o.blit(mOffscreen); TRACK_DRAW_CALLS();
 
       // premultiply
       for (int y = 0; y < mOffscreen.height(); y++)
@@ -464,7 +481,7 @@ public:
     }
 
     o.init(mOffscreen.width(), mOffscreen.height());
-    mOffscreen.blit(o);
+    mOffscreen.blit(o);  TRACK_DRAW_CALLS();
 
     return PX_OK;
   }
@@ -513,7 +530,7 @@ private:
 
       DFB_CHECK(dfb->CreateSurface( dfb, &dsc, &mTexture ) );
 
-      DFB_CHECK(mTexture->Blit(mTexture, tmp, NULL, 0,0)); // blit copy to surface
+      DFB_CHECK(mTexture->Blit(mTexture, tmp, NULL, 0,0)); TRACK_DRAW_CALLS(); // blit copy to surface
 
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -451,10 +451,14 @@ class ContextifyContext {
 
 Handle<Context> makeContext(v8::Isolate *isolate, Handle<Object> sandbox)  // basically MakeContext()  circa line 268
 {
+  if (!isolate)
+  {
+    printf("\nERROR: bad isolate pointer.");
+    return Local<Context>(); // NULL;
+  }
+
     Environment* env = Environment::GetCurrent(isolate);
 //  HandleScope scope(env->isolate());
-
-    EscapableHandleScope  scope( env->isolate() );
 
   if (!sandbox->IsObject())
   {
@@ -462,10 +466,12 @@ Handle<Context> makeContext(v8::Isolate *isolate, Handle<Object> sandbox)  // ba
     return Local<Context>(); // NULL;
   }
   
+  EscapableHandleScope  scope( isolate );
+
   // Local<Object> sandbox = args[0].As<Object>();
 
   Local<String> hidden_name =
-      FIXED_ONE_BYTE_STRING(env->isolate(), "_contextifyHidden");
+      FIXED_ONE_BYTE_STRING(isolate, "_contextifyHidden");
 
   // Don't allow contextifying a sandbox multiple times.
   assert(sandbox->GetHiddenValue(hidden_name).IsEmpty());
@@ -484,7 +490,7 @@ Handle<Context> makeContext(v8::Isolate *isolate, Handle<Object> sandbox)  // ba
     return Local<Context>(); // NULL;
   }
   
-  Local<External> hidden_context = External::New(env->isolate(), context);
+  Local<External> hidden_context = External::New(isolate, context);
   sandbox->SetHiddenValue(hidden_name, hidden_context);
 
   Local<Context>  local_context = context->context(); // returns a local context 

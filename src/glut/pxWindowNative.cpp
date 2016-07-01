@@ -42,6 +42,9 @@
 #endif
 
 #if 1
+
+unsigned int frame_ms = 16;
+
 GLuint textureId1;
 GLuint mTextureName;
 static GLint u_resolution = -1;
@@ -288,7 +291,7 @@ void pxWindowNative::onGlutTimer(int v)
   if (w)
   {
     w->onAnimationTimer();
-    glutTimerFunc(16, onGlutTimer, 0);
+    glutTimerFunc(/*16*/ frame_ms, onGlutTimer, 0);
   }
 #else
   
@@ -301,7 +304,7 @@ void pxWindowNative::onGlutTimer(int v)
     glutSetWindow(w->mGlutWindowId);
     w->onAnimationTimer();
   }
-  glutTimerFunc(16, onGlutTimer, 0);
+  glutTimerFunc(/*16*/ frame_ms, onGlutTimer, 0);
 #endif
 }
 
@@ -674,6 +677,9 @@ void pxWindow::setVisibility(bool visible)
 pxError pxWindow::setAnimationFPS(uint32_t fps)
 {
   mTimerFPS = fps;
+      
+  frame_ms = ((1.0 / (double) mTimerFPS) * 1000.0);
+
   //mLastAnimationTime = pxMilliseconds();
 
   return PX_OK;

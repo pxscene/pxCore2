@@ -30,6 +30,8 @@ extern rtNode script;
 #endif
 
 
+class rtPromise; //fwd
+
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
 

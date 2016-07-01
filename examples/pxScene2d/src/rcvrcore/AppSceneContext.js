@@ -14,6 +14,8 @@ var log = new Logger('AppSceneContext');
 
 function AppSceneContext(params) { // container, innerscene, packageUrl) {
   //  this.container = params.sceneContainer;
+
+  this.getContextID = params.getContextID;
   this.makeReady = params.makeReady;
   this.innerscene = params.scene;
   this.rpcController = params.rpcController;
@@ -46,7 +48,7 @@ function AppSceneContext(params) { // container, innerscene, packageUrl) {
 }
 
 AppSceneContext.prototype.loadScene = function() {
-  log.info("loadScene() - begins");
+  log.info("loadScene() - begins    on ctx: " + getContextID() );
   var urlParts = url.parse(this.packageUrl, true);
   var fullPath = this.packageUrl;
   if (fullPath.substring(0, 4) !== "http") {
@@ -106,7 +108,7 @@ if (false) {
   }.bind(this));
 }
 
-  log.info("loadScene() - ends");
+  log.info("loadScene() - ends    on ctx: " + getContextID() );
 
 }
 
@@ -201,6 +203,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
     xModule.configImport(configImport);
   }
 
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   var self = this;
   var newSandbox;
   try {
@@ -225,6 +228,9 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       clearInterval: clearInterval,
       importTracking: {}
     } // end sandbox
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
     xModule.initSandbox(newSandbox);
     thisAppSceneContext.sandbox = newSandbox; //xModule.sandbox;
 
@@ -241,7 +247,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       var px = createModule_pxScope.call(this, xModule);
       var rtnObject = moduleFunc(px, xModule, fname, this.basePackageUri);
       rtnObject = xModule.exports;
-
+/*
 if (false) {
       // TODO do the old scenes context get released when we reload a scenes url??
       // TODO part of an experiment to eliminate intermediate rendering of the scene - from original load.js
@@ -255,22 +261,31 @@ if (false) {
         this.container.painting = true;
       }
 }
+*/
 
       //console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
       if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
-//        this.container.makeReady(true);
+//        this.container.makeReady(true); // DEPRECATED ?
 
 //        this.innerscene.api = {isReady:true};
         this.makeReady(true,{});
-      } else {
+      }
+      else
+      {
         var modulePromise = xModule.moduleReadyPromise;
-        modulePromise.then( function(i) {
+        var thisMakeReady = this.makeReady; // NB:  capture for async then() closure.
+
+        modulePromise.then( function(i)
+        {
           self.innerscene.api = xModule.exports;
-//          self.container.makeReady(true);
-          this.makeReady(true,xModule.exports);
-        }).catch( function(err) {
+
+          thisMakeReady(true,xModule.exports);
+
+        }).catch( function(err)
+        {
           console.error("Main module[" + self.packageUrl + "]" + " load has failed - on failed imports: " + ", err=" + err);
-//          self.container.makeReady(false);
+//          self.container.makeReady(false); // DEPRECATED ?
+
           this.makeReady(false,{});
         } );
       }
@@ -361,7 +376,6 @@ AppSceneContext.prototype.buildFullFilePath = function(filePath) {
   }
 
   return fullPath;
-
 }
 
 function getFile(filePath) {

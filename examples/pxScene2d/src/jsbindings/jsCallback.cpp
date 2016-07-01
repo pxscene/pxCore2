@@ -2,13 +2,14 @@
 #include "rtWrapperUtils.h"
 
 jsCallback::jsCallback(v8::Local<v8::Context>& ctx)
-  : mCompletionFunc(NULL)
+  : mFunctionLookup(NULL)
+  , mIsolate(ctx->GetIsolate())
+  , mCompletionFunc(NULL)
   , mCompletionContext(NULL)
 {
   mReq.data = this;
-  mContext.Reset(ctx->GetIsolate(), ctx);
-  mIsolate = ctx->GetIsolate();
-  mFunctionLookup = NULL;
+
+  mContext.Reset(mIsolate, ctx);
 }
 
 jsCallback::~jsCallback()
@@ -46,8 +47,12 @@ jsCallback* jsCallback::addArg(const rtValue& val)
 Handle<Value>* jsCallback::makeArgs(Local<Context>& ctx)
 {
   Handle<Value>* args = new Handle<Value>[mArgs.size()];
+
   for (size_t i = 0; i < mArgs.size(); ++i)
+  {
     args[i] = rt2js(ctx, mArgs[i]);
+  }
+
   return args;
 }
 
@@ -60,12 +65,16 @@ jsCallback* jsCallback::setFunctionLookup(jsIFunctionLookup* functionLookup)
 void jsCallback::doCallback(uv_work_t* req, int /* status */)
 {
   jsCallback* ctx = reinterpret_cast<jsCallback *>(req->data);
+
   assert(ctx != NULL);
   assert(ctx->mFunctionLookup != NULL);
 
   rtValue ret  = ctx->run();
+
   if (ctx->mCompletionFunc)
+  {
     ctx->mCompletionFunc(ctx->mCompletionContext, ret);
+  }
 
   delete ctx;
 }

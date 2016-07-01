@@ -36,9 +36,20 @@
 
 #include "pxClipboard.h"
 
+
 rtThreadQueue gUIThreadQueue;
+uint32_t rtPromise::promiseID = 200;
 
 #define UNUSED_PARAM(x) ((x)=(x))
+
+// Debug Statistics
+#ifdef USE_RENDER_STATS
+
+uint32_t gDrawCalls;
+uint32_t gTexBindCalls;
+uint32_t gFboBindCalls;
+
+#endif //USE_RENDER_STATS
 
 // TODO move to rt*
 // Taken from
@@ -98,7 +109,7 @@ char *base64_encode(const unsigned char *data,
     char *encoded_data = (char *)malloc(*output_length);
     if (encoded_data == NULL) return NULL;
 
-    for (uint32_t i = 0, j = 0; i < input_length;) 
+    for (uint32_t i = 0, j = 0; i < input_length;)
     {
 
         uint32_t octet_a = i < input_length ? (unsigned char)data[i++] : 0;
@@ -160,7 +171,7 @@ extern pxContext context;
 rtFunctionRef gOnScene;
 
 #if 0
-pxInterp interps[] = 
+pxInterp interps[] =
 {
   pxInterpLinear,
   easeOutElastic,
@@ -232,27 +243,27 @@ private:
 
 // pxObject methods
 void pxObject::sendPromise()
-{ 
+{
   if(mInitialized && !((rtPromise*)mReady.getPtr())->status())
   {
-    mReady.send("resolve",this); 
+    mReady.send("resolve",this);
   }
 }
 
 void pxObject::createNewPromise()
-{ 
-  // Only create a new promise if the existing one has been 
+{
+  // Only create a new promise if the existing one has been
   // resolved or rejected already.
-  if(((rtPromise*)mReady.getPtr())->status()) 
+  if(((rtPromise*)mReady.getPtr())->status())
   {
     rtLogDebug("CREATING NEW PROMISE\n");
-    mReady = new rtPromise; 
+    mReady = new rtPromise();
   }
 }
 
-/** since this is a boolean, we have to handle if someone sets it to 
+/** since this is a boolean, we have to handle if someone sets it to
  * false - for now, it will mean "set focus to my parent scene" */
-rtError pxObject::setFocus(bool v) 
+rtError pxObject::setFocus(bool v)
 {
   printf("pxObject::setFocus v=%d\n",v);
   if(v) {
@@ -261,7 +272,7 @@ rtError pxObject::setFocus(bool v)
   else {
     return mScene->setFocus(NULL);
   }
-  
+
 }
 
 rtError pxObject::Set(const char* name, const rtValue* value)
@@ -284,8 +295,8 @@ rtError pxObject::Set(const char* name, const rtValue* value)
   return rtObject::Set(name, value);
 }
 
-rtError pxObject::animateToP2(rtObjectRef props, double duration, 
-                              uint32_t interp, uint32_t animationType, 
+rtError pxObject::animateToP2(rtObjectRef props, double duration,
+                              uint32_t interp, uint32_t animationType,
                               int32_t count, rtObjectRef& promise)
 {
 
@@ -295,7 +306,7 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
   if (!animationType) {animationType = pxConstantsAnimation::OPTION_LOOP;}
   if (!count) {count = 1;}
 
-  promise = new rtPromise;
+  promise = new rtPromise();
 
   rtObjectRef keys = props.get<rtObjectRef>("allKeys");
   if (keys)
@@ -332,7 +343,7 @@ rtError pxObject::remove()
 {
   if (mParent)
   {
-    for(vector<rtRefT<pxObject> >::iterator it = mParent->mChildren.begin(); 
+    for(vector<rtRefT<pxObject> >::iterator it = mParent->mChildren.begin();
         it != mParent->mChildren.end(); ++it)
     {
       if ((it)->getPtr() == this)
@@ -355,7 +366,7 @@ rtError pxObject::removeAll()
 rtError pxObject::moveToFront()
 {
   pxObject* parent = this->parent();
- 
+
   remove();
   setParent(parent);
 
@@ -363,8 +374,8 @@ rtError pxObject::moveToFront()
 }
 
 rtError pxObject::animateTo(const char* prop, double to, double duration,
-                             uint32_t interp, uint32_t animationType, 
-                            int32_t count, rtObjectRef promise) 
+                             uint32_t interp, uint32_t animationType,
+                            int32_t count, rtObjectRef promise)
 {
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
             (pxConstantsAnimation::animationOptions)animationType, count, promise);
@@ -392,9 +403,9 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
       // Fastforward or rewind, if specified
       if( fastforward)
         set(prop, a.to);
-      else if( rewind) 
+      else if( rewind)
         set(prop, a.from);
-    
+
       // If animation was never-ending, promise was already resolved.
       // If not, send it now.
       if( a.count != pxConstantsAnimation::COUNT_FOREVER)
@@ -405,7 +416,7 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
         {
           if( resolve)
             a.promise.send("resolve",this);
-          else 
+          else
             a.promise.send("reject",this);
         }
       }
@@ -421,7 +432,7 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
       a.cancelled = true;
     }
     ++it;
-  }  
+  }
   mCancelInSet = f;
 }
 
@@ -430,7 +441,7 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
                          int32_t count, rtObjectRef promise)
 {
   cancelAnimation(prop,(at & pxConstantsAnimation::OPTION_FASTFORWARD), (at & pxConstantsAnimation::OPTION_REWIND));
-  
+
   // schedule animation
   animation a;
 
@@ -449,14 +460,14 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
   a.promise = promise;
 
   mAnimations.push_back(a);
-  
+
   // resolve promise immediately if this is COUNT_FOREVER
   if( count == pxConstantsAnimation::COUNT_FOREVER)
   {
     if (a.ended)
       a.ended.send(this);
     if (a.promise)
-      a.promise.send("resolve",this);  
+      a.promise.send("resolve",this);
   }
 }
 
@@ -470,15 +481,15 @@ void pxObject::update(double t)
     animation& a = (*it);
     if (a.start < 0) a.start = t;
     double end = a.start + a.duration;
-    
+
     // if duration has elapsed, increment the count for this animation
-    if( t >=end && a.count != pxConstantsAnimation::COUNT_FOREVER 
-        && !(a.at & pxConstantsAnimation::OPTION_OSCILLATE)) 
+    if( t >=end && a.count != pxConstantsAnimation::COUNT_FOREVER
+        && !(a.at & pxConstantsAnimation::OPTION_OSCILLATE))
     {
         a.actualCount++;
         a.start  = -1;
     }
-    // if duration has elapsed and count is met, end the animation    
+    // if duration has elapsed and count is met, end the animation
     if (t >= end && a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count)
     {
       // TODO this sort of blows since this triggers another
@@ -487,10 +498,10 @@ void pxObject::update(double t)
       cancelAnimation(a.prop, true, false, true);
 #else
       assert(mCancelInSet);
-      mCancelInSet = false;     
+      mCancelInSet = false;
       set(a.prop, a.to);
-      mCancelInSet = true;       
-        
+      mCancelInSet = true;
+
       if (a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
         if (a.ended)
@@ -506,13 +517,13 @@ void pxObject::update(double t)
 #endif
 
     }
-     
+
     if (a.cancelled)
     {
       it = mAnimations.erase(it);
       continue;
     }
-    
+
     double t1 = (t-a.start)/a.duration; // Some of this could be pushed into the end handling
     double t2 = floor(t1);
     t1 = t1-t2; // 0-1
@@ -533,22 +544,22 @@ void pxObject::update(double t)
         to   = a.from;
 
       }
-      else if( a.reversing && (fmod(t2,2) == 0)) 
+      else if( a.reversing && (fmod(t2,2) == 0))
       {
         a.reversing = false;
         a.actualCount++;
         a.start = -1;
       }
       // Prevent one more loop through oscillate
-      if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count ) 
-      { 
+      if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
+      {
         cancelAnimation(a.prop, false, false, true);
         it = mAnimations.erase(it);
         continue;
-      }     
+      }
 
     }
-    
+
     float v = from + (to - from) * d;
     assert(mCancelInSet);
     mCancelInSet = false;
@@ -573,7 +584,7 @@ void pxObject::update(double t)
     mIsDirty = false;
   }
   #endif //PX_DIRTY_RECTANGLES
-  
+
   // Recursively update children
   for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
@@ -635,10 +646,10 @@ const float alphaEpsilon = (1.0f/255.0f);
 void pxObject::drawInternal(bool maskPass)
 {
   //rtLogInfo("pxObject::drawInternal mw=%f mh=%f\n", mw, mh);
-  
+
   float w = getOnscreenWidth();
   float h = getOnscreenHeight();
-  
+
   if (!drawEnabled() && !maskPass)
   {
     return;
@@ -659,9 +670,9 @@ void pxObject::drawInternal(bool maskPass)
   //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
   if (mr) {
     m.rotateInDegrees(mr
-#ifdef ANIMATION_ROTATE_XYZ    
+#ifdef ANIMATION_ROTATE_XYZ
     , mrx, mry, mrz
-#endif //ANIMATION_ROTATE_XYZ    
+#endif //ANIMATION_ROTATE_XYZ
     );
   }
   //if (mr) m.rotateInDegrees(mr, 0, 0, 1);
@@ -676,9 +687,9 @@ void pxObject::drawInternal(bool maskPass)
   //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
   //  m.rotateInDegrees(mr, mrx, mry, mrz);
   m.rotateInDegrees(mr
-#ifdef ANIMATION_ROTATE_XYZ  
+#ifdef ANIMATION_ROTATE_XYZ
   , 0, 0, 1
-#endif // ANIMATION_ROTATE_XYZ  
+#endif // ANIMATION_ROTATE_XYZ
   );
   m.scale(msx, msy);
   m.translate(-mcx, -mcy);
@@ -706,7 +717,7 @@ void pxObject::drawInternal(bool maskPass)
   pxVector4f result2 = m.multiply(v2);
   printf("Print vector bottom after\n");
   result2.dump();
-  
+
 #endif
 
 
@@ -723,7 +734,7 @@ void pxObject::drawInternal(bool maskPass)
   mLastRenderMatrix = context.getMatrix();
   mScreenCoordinates = getBoundingRectInScreenCoordinates();
   #endif //PX_DIRTY_RECTANGLES
-  
+
   float c[4] = {1, 0, 0, 1};
   context.drawDiagRect(0, 0, w, h, c);
 
@@ -806,7 +817,7 @@ void pxObject::drawInternal(bool maskPass)
 }
 
 
-bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit, 
+bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit,
                    pxPoint2f& hitPt)
 {
 
@@ -816,11 +827,11 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hi
   m2.translate(mx+mcx, my+mcy);
 //  m.rotateInDegrees(mr, mrx, mry, mrz);
   m2.rotateInDegrees(mr
-#ifdef ANIMATION_ROTATE_XYZ  
+#ifdef ANIMATION_ROTATE_XYZ
   , 0, 0, 1
-#endif // ANIMATION_ROTATE_XYZ  
+#endif // ANIMATION_ROTATE_XYZ
   );
-  m2.scale(msx, msy);  
+  m2.scale(msx, msy);
   m2.translate(-mcx, -mcy);
 #else
   applyMatrix(m2);
@@ -869,7 +880,7 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
   pxMatrix4f m;
 
 //  float parentAlpha = ma;
-  
+
   float parentAlpha = 1.0;
 
   context.setMatrix(m);
@@ -922,7 +933,7 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
   float h = getOnscreenHeight();
 
   //rtLogInfo("createSnapshotOfChildren  w=%f h=%f\n", w, h);
-  
+
   if (drawableFbo.getPtr() == NULL || drawableFbo->width() != floor(w) || drawableFbo->height() != floor(h))
   {
     drawableFbo = context.createFramebuffer(floor(w), floor(h));
@@ -1073,8 +1084,8 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top)
-  :start(0),frameCount(0), mContainer(NULL), mShowDirtyRect(false)
-{ 
+  : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRect(false)
+{
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
   mEmit = new rtEmit();
@@ -1126,15 +1137,15 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
   else if (!strcmp("text",t.cString()))
     e = createText(p,o);
   else if (!strcmp("textBox",t.cString()))
-    e = createTextBox(p,o);    
+    e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageResource",t.cString()))
-    e = createImageResource(p,o);    
+    e = createImageResource(p,o);
   else if (!strcmp("fontResource",t.cString()))
-    e = createFontResource(p,o);        
+    e = createFontResource(p,o);
   else if (!strcmp("scene",t.cString()))
     e = createScene(p,o);
   else if (!strcmp("external",t.cString()))
@@ -1216,7 +1227,7 @@ rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 {
-  rtString url = p.get<rtString>("url"); 
+  rtString url = p.get<rtString>("url");
   o = pxImageManager::getImage(url);
   o.send("init");
   return RT_OK;
@@ -1224,7 +1235,7 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 {
-  rtString url = p.get<rtString>("url"); 
+  rtString url = p.get<rtString>("url");
   o = pxFontManager::getFont(url);
   return RT_OK;
 }
@@ -1240,7 +1251,7 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::clock(uint64_t & time)
 {
   time = (uint64_t)pxMilliseconds();
-  
+
   return RT_OK;
 }
 rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
@@ -1335,10 +1346,10 @@ void pxScene2d::draw()
   if ( (mPointerTexture.getPtr() != NULL) &&
        !mPointerHidden )
   {
-     context.drawImage( mPointerX-mPointerHotSpotX, mPointerY-mPointerHotSpotY, 
-                        mPointerW, mPointerH, 
+     context.drawImage( mPointerX-mPointerHotSpotX, mPointerY-mPointerHotSpotY,
+                        mPointerW, mPointerH,
                         mPointerTexture, mNullTexture);
-                        
+
   }
   #endif
 }
@@ -1360,9 +1371,16 @@ void pxScene2d::onUpdate(double t)
   gUIThreadQueue.process(0.01);
 
   if (start == 0)
+  {
     start = pxSeconds();
+  }
+
+  double start_frame = pxSeconds(); //##
 
   update(t);
+
+  sigma_update += (pxSeconds() - start_frame); //##
+
   if (mDirty)
   {
     mDirty = false;
@@ -1372,19 +1390,48 @@ void pxScene2d::onUpdate(double t)
   // TODO get rid of mTop somehow
   if (mTop)
   {
-  if (frameCount >= 60)
-  {
-    end2 = pxSeconds();
+    unsigned int target_frame_ms = 60;
+    int targetFPS = (1.0 / ((double) target_frame_ms)) * 1000;
+
+    if (frameCount >= targetFPS)
+    {
+      end2 = pxSeconds();
 
     double fps = rint((double)frameCount/(end2-start));
-    printf("%g fps pxObjectCount %d\n", fps, pxObjectCount);
+
+#ifdef USE_RENDER_STATS
+      double   dpf = rint( (double) gDrawCalls    / (double) frameCount ); // e.g.   glDraw*()           - calls per frame
+      double   bpf = rint( (double) gTexBindCalls / (double) frameCount ); // e.g.   glBindTexture()     - calls per frame
+      double   fpf = rint( (double) gFboBindCalls / (double) frameCount ); // e.g.   glBindFramebuffer() - calls per frame
+
+      // TODO:  update / render times need some work...
+
+      // double draw_ms   = ( (double) sigma_draw     / (double) frameCount ) * 1000.0f; // Average frame  time
+      // double update_ms = ( (double) sigma_update   / (double) frameCount ) * 1000.0f; // Average update time
+
+      // printf("%g fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g     draw_ms: %0.04g   update_ms: %0.04g\n",
+      //     fps, pxObjectCount, dpf, bpf, fpf, draw_ms, update_ms );
+
+      printf("%g fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g \n", fps, pxObjectCount, dpf, bpf, fpf);
+
+      gDrawCalls    = 0;
+      gTexBindCalls = 0;
+      gFboBindCalls = 0;
+
+      sigma_draw   = 0;
+      sigma_update = 0;
+#else
+    printf("%g fps   pxObjects: %d\n", fps, pxObjectCount);
+#endif //USE_RENDER_STATS
+
     // TODO FUTURES... might be nice to have "struct" style object's that get copied
     // at the interop layer so we don't get remoted calls back to the render thread
     // for accessing the values (events would be the primary usecase)
     rtObjectRef e = new rtMapObject;
     e.set("fps", fps);
     mEmit.send("onFPS", e);
-    start = end2;
+
+      start = end2; // start of frame
     frameCount = 0;
   }
 
@@ -1408,9 +1455,19 @@ void pxScene2d::onDraw()
     rtWrapperSceneUpdateEnter();
     #endif //ENABLE_RT_NODE
     context.setSize(mWidth, mHeight);
-  }  
+  }
 #if 1
-    draw();
+
+#ifdef USE_RENDER_STATS
+  double start_draw = pxSeconds(); //##
+#endif //USE_RENDER_STATS
+
+  draw();
+
+#ifdef USE_RENDER_STATS
+  sigma_draw += (pxSeconds() - start_draw); //##
+#endif //USE_RENDER_STATS
+
 #endif
   #ifdef ENABLE_RT_NODE
   if (mTop)
@@ -1492,7 +1549,7 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
     pxPoint2f pt(x,y), hitPt;
     //    pt.x = x; pt.y = y;
     rtRefT<pxObject> hit;
-    
+
     if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
       mMouseDown = hit;
@@ -1535,7 +1592,7 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     pxPoint2f pt(x,y), hitPt;
     rtRefT<pxObject> hit;
     rtRefT<pxObject> tMouseDown = mMouseDown;
-    
+
     mMouseDown = NULL;
 
     // TODO optimization... we really only need to check mMouseDown
@@ -1600,13 +1657,13 @@ void pxScene2d::setMouseEntered(pxObject* o)
     }
   }
 }
-/** This function is not exposed to javascript; it is called when 
+/** This function is not exposed to javascript; it is called when
  * mFocus = true is set for a pxObject whose parent scene is this scene
  **/
 rtError pxScene2d::setFocus(rtObjectRef o)
 {
   rtLogInfo("pxScene2d::setFocus");
-  if(mFocusObj) 
+  if(mFocusObj)
   {
     rtObjectRef e = new rtMapObject;
     ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(false);
@@ -1616,11 +1673,11 @@ rtError pxScene2d::setFocus(rtObjectRef o)
     bubbleEvent(e,t,"onPreBlur","onBlur");
   }
 
-  if (o) 
+  if (o)
   {
 	  mFocusObj = o;
   }
-  else 
+  else
   {
 	  mFocusObj = getRoot();
   }
@@ -1645,7 +1702,7 @@ bool pxScene2d::onMouseLeave()
   rtObjectRef e = new rtMapObject;
   e.set("name", "onMouseLeave");
   mEmit.send("onMouseLeave", e);
-  
+
   mMouseDown = NULL;
   setMouseEntered(NULL);
   return false;
@@ -1677,8 +1734,8 @@ rtError stopPropagation2(int /*numArgs*/, const rtValue* /*args*/, rtValue* /*re
   return RT_OK;
 }
 
-bool pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t, 
-                            const char* preEvent, const char* event) 
+bool pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
+                            const char* preEvent, const char* event)
 {
   bool consumed = false;
   mStopPropagation = false;
@@ -1688,7 +1745,7 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
     AddRef();  // TODO refactor? make sure scene stays alive while we bubble since we're using the address of mStopPropagation
 //    e.set("stopPropagation", get<rtFunctionRef>("stopPropagation"));
     e.set("stopPropagation", new rtFunctionCallback(stopPropagation2, (void*)&mStopPropagation));
-    
+
     vector<rtRefT<pxObject> > l;
     while(t)
     {
@@ -1770,8 +1827,8 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
       {
         pxVector4f validate;
         pxObject::transformPointFromObjectToScene(mMouseDown, to, validate);
-        if (fabs(validate.x()-(float)x)> 0.01 || 
-            fabs(validate.y()-(float)y) > 0.01) 
+        if (fabs(validate.x()-(float)x)> 0.01 ||
+            fabs(validate.y()-(float)y) > 0.01)
         {
           rtLogInfo("Error in point transformation (%d,%d) != (%f,%f); (%f, %f)",
                  x,y,validate.x(),validate.y(),to.x(),to.y());
@@ -1781,8 +1838,8 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
       {
         pxVector4f validate;
         pxObject::transformPointFromObjectToObject(mMouseDown, mMouseDown, to, validate);
-        if (fabs(validate.x()-(float)to.x())> 0.01 || 
-            fabs(validate.y()-(float)to.y()) > 0.01) 
+        if (fabs(validate.x()-(float)to.x())> 0.01 ||
+            fabs(validate.y()-(float)to.y()) > 0.01)
         {
           rtLogInfo("Error in point transformation (o2o) (%f,%f) != (%f,%f)",
                  to.x(),to.y(),validate.x(),validate.y());
@@ -1826,7 +1883,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
     {
       // This probably won't stay ... we can probably send onMouseMove to the child scene level
       // rather than the object... we can send objects enter/leave events
-      // and we can send drag events to objects that are being drug... 
+      // and we can send drag events to objects that are being drug...
 #if 1
       rtObjectRef e = new rtMapObject;
 //      e.set("name", "onMouseMove");
@@ -1838,7 +1895,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
       bubbleEvent(e, hit, "onPreMouseMove", "onMouseMove");
 #endif
 #endif
-      
+
       setMouseEntered(hit);
     }
     else
@@ -1861,7 +1918,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
   return false;
 }
 
-bool pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags) 
+bool pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags)
 {
   if (mFocusObj)
   {
@@ -1902,16 +1959,16 @@ bool pxScene2d::onChar(uint32_t c)
   return false;
 }
 
-rtError pxScene2d::showOutlines(bool& v) const 
-{ 
-  v=context.showOutlines(); 
+rtError pxScene2d::showOutlines(bool& v) const
+{
+  v=context.showOutlines();
   return RT_OK;
 }
 
-rtError pxScene2d::setShowOutlines(bool v) 
-{ 
-  context.setShowOutlines(v); 
-  return RT_OK; 
+rtError pxScene2d::setShowOutlines(bool v)
+{
+  context.setShowOutlines(v);
+  return RT_OK;
 }
 
 rtError pxScene2d::showDirtyRect(bool& v) const
@@ -1947,7 +2004,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
         free(d);
         return RT_OK;
       }
-      else 
+      else
         return RT_FAIL;
     }
     else
@@ -1962,7 +2019,7 @@ rtError pxScene2d::clipboardSet(rtString type, rtString clipString)
 //    printf("\n ##########   clipboardSet()  >> %s ", type.cString() ); fflush(stdout);
 
     pxClipboard::instance()->setString(type.cString(), clipString.cString());
-    
+
     return RT_OK;
 }
 
@@ -1970,9 +2027,9 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 {
 //    printf("\n ##########   clipboardGet()  >> %s ", type.cString() ); fflush(stdout);
     std::string retVal = pxClipboard::instance()->getString(type.cString());
-    
+
     retString = rtString(retVal.c_str());
-    
+
     return RT_OK;
 }
 
@@ -2039,7 +2096,7 @@ void RT_STDCALL testView::onDraw()
   float black[] = {0,0,0,1};
   float red[]= {1,0,0,1};
   float green[] = {0,1,0,1};
-  context.drawRect(mw, mh, 1, mEntered?green:red, white); 
+  context.drawRect(mw, mh, 1, mEntered?green:red, white);
   context.drawDiagLine(0,mMouseY,mw,mMouseY,black);
   context.drawDiagLine(mMouseX,0,mMouseX,mh,black);
 }
@@ -2086,28 +2143,28 @@ rtDefineObject(pxSceneContainer, pxViewContainer);
 rtDefineProperty(pxSceneContainer, url);
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
-rtDefineMethod(pxSceneContainer, makeReady);
+//rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
 
 
 rtError pxSceneContainer::setUrl(rtString url)
-{ 
+{
   // If old promise is still unfulfilled reject it
   // and create a new promise for the context of this Url
-  mReady.send("reject", this); 
-  mReady = new rtPromise;  
+  mReady.send("reject", this);
+  mReady = new rtPromise( std::string("pxSceneContainer >> ") + std::string(url) );
 
   mUrl = url;
   setScriptView(new pxScriptView(url.cString(),""));
 
-  return RT_OK; 
+  return RT_OK;
 }
 
-rtError pxSceneContainer::api(rtValue& v) const 
-{ 
+rtError pxSceneContainer::api(rtValue& v) const
+{
 //  return mScene->api(v);
   if (mScriptView)
     return mScriptView->api(v);
-  else 
+  else
     return RT_FAIL;
 }
 
@@ -2126,12 +2183,13 @@ rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
 }
 
 
-rtError pxSceneContainer::makeReady(bool ready)
-{
-  rtLogInfo("make ready: %d", ready);
-  mReady.send(ready?"resolve":"reject", this);
-  return RT_OK;
-}
+// rtError pxSceneContainer::makeReady(bool ready)
+// {
+//   //DEPRECATED ?
+//   rtLogInfo("make ready: %d", ready);
+//   mReady.send(ready?"resolve":"reject", this);
+//   return RT_OK;
+// }
 
 
 #if 0
@@ -2152,27 +2210,31 @@ rtError createObject2(const char* t, rtObjectRef& o)
 rtNode script;
 
 pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContainer(NULL), mRefCount(0)
+{
+  mCtx = script.createContext();
+  if (mCtx)
   {
-    mCtx = script.createContext();
-    if (mCtx)
-    {
-      mCtx->add("getScene", new rtFunctionCallback(getScene, this));
-      mCtx->add("makeReady", new rtFunctionCallback(makeReady, this));
-        
-      mReady = new rtPromise;
+    mCtx->add("getScene",  new rtFunctionCallback(getScene,  this));
+    mCtx->add("makeReady", new rtFunctionCallback(makeReady, this));
 
-      mCtx->runFile("init.js");    
-      char buffer[256];
-      sprintf(buffer, "loadUrl(\"%s\");", url);
-      mCtx->runScript(buffer);
-    }
+    mCtx->add("getContextID", new rtFunctionCallback(getContextID, this));
+
+    mReady = new rtPromise();
+
+    mCtx->runFile("init.js");
+
+    char buffer[256];
+    sprintf(buffer, "loadUrl(\"%s\");", url);
+    mCtx->runScript(buffer);
   }
+}
 
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
+
     if (numArgs == 1)
     {
       rtString sceneType = args[0].toString();
@@ -2184,11 +2246,11 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
         top = false;
         v->mView = scene;
         v->mScene = scene;
-        
+
         v->mView->setViewContainer(v->mViewContainer);
         v->mView->onSize(v->mWidth,v->mHeight);
       }
-      
+
       if (result)
       {
         *result = v->mScene;
@@ -2200,22 +2262,57 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
 }
 
 
+
+rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+{
+  UNUSED_PARAM(numArgs);
+  UNUSED_PARAM(args);
+
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+
+    Locker                locker(v->mCtx->getIsolate());
+    Isolate::Scope isolate_scope(v->mCtx->getIsolate());
+    HandleScope     handle_scope(v->mCtx->getIsolate());
+
+    Local<Context> ctx = v->mCtx->getLocalContext();
+    uint32_t ctx_id = GetContextId( ctx );
+
+    if (result)
+    {
+      *result = rtValue(ctx_id);
+      return RT_OK;
+    }
+  }
+
+  rtLogError("############# printContextID() >> ctx: BAD !!\n");  fflush(stdout); // JUNK
+
+  return RT_FAIL;
+}
+
+
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
+
     if (numArgs >= 1)
     {
       if (args[0].toBool())
       {
         if (numArgs >= 2)
+        {
           v->mApi = args[1].toObject();
+        }
 
         v->mReady.send("resolve", v->mApi);
       }
       else
-        v->mReady.send("reject", new rtObject); // TODO JRJR  Why does this fail if I leave the argment as null... 
+      {
+        v->mReady.send("reject", new rtObject); // TODO JRJR  Why does this fail if I leave the argment as null...
+      }
 
       return RT_OK;
     }

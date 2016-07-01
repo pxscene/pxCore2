@@ -26,7 +26,7 @@
  #endif
 #endif
 
-//#define USE_CONTEXTIFY_CLONES
+#define USE_CONTEXTIFY_CLONES
 
 namespace node
 {
@@ -88,14 +88,11 @@ public:
   const char   *js_file;
   std::string   js_script;
 
-  rtNode   *node;
-
   v8::Isolate              *getIsolate()      const { return mIsolate; };
   v8::Local<v8::Context>    getLocalContext() const { return PersistentToLocal<v8::Context>(mIsolate, mContext); };
 
 private:
   v8::Isolate                   *mIsolate;
-  v8::Persistent<v8::Object>     mSandbox;
   v8::Persistent<v8::Context>    mContext;
 
   node::Environment*             mEnv;
