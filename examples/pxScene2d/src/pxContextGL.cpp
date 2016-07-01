@@ -20,9 +20,21 @@
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
 
-uint32_t glDrawCalls;
-uint32_t glTexBindCalls;
-uint32_t glFboBindCalls;
+
+// Debug Statistics
+#ifdef USE_RENDER_STATS
+  extern uint32_t gDrawCalls;
+  extern uint32_t gTexBindCalls;
+  extern uint32_t gFboBindCalls;
+
+  #define TRACK_DRAW_CALLS()   { gDrawCalls++    }
+  #define TRACK_TEX_CALLS()    { gTexBindCalls++ }
+  #define TRACK_FBO_CALLS()    { gFboBindCalls++ }
+#else
+  #define TRACK_DRAW_CALLS()
+  #define TRACK_TEX_CALLS()
+  #define TRACK_FBO_CALLS()
+#endif
 
 pxContextSurfaceNativeDesc defaultContextSurface;
 pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
@@ -146,7 +158,7 @@ public:
     glGenFramebuffers(1, &mFramebufferId);
     glGenTextures(1, &mTextureId);
 
-    glBindTexture(GL_TEXTURE_2D, mTextureId); glTexBindCalls++;
+    glBindTexture(GL_TEXTURE_2D, mTextureId); TRACK_TEX_CALLS();
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                  width, height, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, NULL);
@@ -210,7 +222,7 @@ public:
 
   virtual pxError prepareForRendering()
   {
-    glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId);  glFboBindCalls++;
+    glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId);   TRACK_FBO_CALLS();
     if (mBindTexture)
     {
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
@@ -257,7 +269,7 @@ public:
     }
 
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, mTextureId);  glTexBindCalls++;
+    glBindTexture(GL_TEXTURE_2D, mTextureId);   TRACK_TEX_CALLS();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     glUniform1i(mLoc, 2);
@@ -363,7 +375,7 @@ public:
     if (!mTextureUploaded)
     {
       glGenTextures(1, &mTextureName);
-      glBindTexture(GL_TEXTURE_2D, mTextureName);  glTexBindCalls++;
+      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -376,7 +388,7 @@ public:
     }
     else
     {
-      glBindTexture(GL_TEXTURE_2D, mTextureName);  glTexBindCalls++;
+      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
     }
 
     glUniform1i(tLoc, 1);
@@ -395,7 +407,7 @@ public:
     if (!mTextureUploaded)
     {
       glGenTextures(1, &mTextureName);
-      glBindTexture(GL_TEXTURE_2D, mTextureName);  glTexBindCalls++;
+      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -408,7 +420,7 @@ public:
     }
     else
     {
-      glBindTexture(GL_TEXTURE_2D, mTextureName);  glTexBindCalls++;
+      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
     }
 
     glUniform1i(mLoc, 2);
@@ -495,7 +507,7 @@ public:
     mImageHeight = ih;
 
 //    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, mTextureId);  glTexBindCalls++;
+    glBindTexture(GL_TEXTURE_2D, mTextureId);   TRACK_TEX_CALLS();
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -536,7 +548,7 @@ public:
     }
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, mTextureId);  glTexBindCalls++;
+    glBindTexture(GL_TEXTURE_2D, mTextureId);   TRACK_TEX_CALLS();
     glUniform1i(tLoc, 1);
 
     return PX_OK;
@@ -550,7 +562,7 @@ public:
     }
 
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, mTextureId);  glTexBindCalls++;
+    glBindTexture(GL_TEXTURE_2D, mTextureId);   TRACK_TEX_CALLS();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     glUniform1i(mLoc, 2);
@@ -717,7 +729,7 @@ public:
 
     glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
     glEnableVertexAttribArray(mPosLoc);
-    glDrawArrays(mode, 0, count);  glDrawCalls++;
+    glDrawArrays(mode, 0, count);  ;
     glDisableVertexAttribArray(mPosLoc);
   }
 
@@ -779,7 +791,7 @@ public:
     glVertexAttribPointer(mUVLoc, 2, GL_FLOAT, GL_FALSE, 0, uv);
     glEnableVertexAttribArray(mPosLoc);
     glEnableVertexAttribArray(mUVLoc);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, count);  glDrawCalls++;
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, count);  TRACK_DRAW_CALLS();
     glDisableVertexAttribArray(mPosLoc);
     glDisableVertexAttribArray(mUVLoc);
 
@@ -847,7 +859,7 @@ public:
     glVertexAttribPointer(mUVLoc, 2, GL_FLOAT, GL_FALSE, 0, uv);
     glEnableVertexAttribArray(mPosLoc);
     glEnableVertexAttribArray(mUVLoc);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, count);  glDrawCalls++;
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, count);  TRACK_DRAW_CALLS();
     glDisableVertexAttribArray(mPosLoc);
     glDisableVertexAttribArray(mUVLoc);
 
@@ -917,7 +929,7 @@ public:
     glVertexAttribPointer(mUVLoc, 2, GL_FLOAT, GL_FALSE, 0, uv);
     glEnableVertexAttribArray(mPosLoc);
     glEnableVertexAttribArray(mUVLoc);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, count);  glDrawCalls++;
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, count);  TRACK_DRAW_CALLS();
     glDisableVertexAttribArray(mPosLoc);
     glDisableVertexAttribArray(mUVLoc);
 
@@ -1043,8 +1055,8 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 #if 0 // PX_TEXTURE_ANCHOR_BOTTOM
     th = h/ih;
 #else
-    
-    float temp = h/ih;    
+
+    float temp = h/ih;
     th = ceil(temp);
     tb = 1.0f-(temp-floor(temp));
 #endif
@@ -1378,7 +1390,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
     gResH = defaultContextSurface.height;
 
     // TODO probably need to save off the original FBO handle rather than assuming zero
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);  glFboBindCalls++;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);  TRACK_FBO_CALLS();
     currentFramebuffer = defaultFramebuffer;
     pxContextState contextState;
     currentFramebuffer->currentState(contextState);
