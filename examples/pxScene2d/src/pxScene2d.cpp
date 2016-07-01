@@ -42,9 +42,11 @@ rtThreadQueue gUIThreadQueue;
 #define UNUSED_PARAM(x) ((x)=(x))
 
 // Debug Statistics
+#ifdef ENABLE_DEBUG_RENDER_STATS
 extern uint32_t glDrawCalls;
 extern uint32_t glTexBindCalls;
 extern uint32_t glFboBindCalls;
+#endif //ENABLE_DEBUG_RENDER_STATS
 
 // TODO move to rt*
 // Taken from
@@ -1385,13 +1387,14 @@ void pxScene2d::onUpdate(double t)
   // TODO get rid of mTop somehow
   if (mTop)
   {
-    extern unsigned int frame_ms;
-    int targetFPS = (1.0 / ((double) frame_ms)) * 1000;
+    unsigned int target_frame_ms = 60;
+    int targetFPS = (1.0 / ((double) target_frame_ms)) * 1000;
 
     if (frameCount >= targetFPS)
     {
       end2 = pxSeconds();
 
+#ifdef ENABLE_DEBUG_RENDER_STATS
       double fps = rint((double)frameCount/(end2-start));
 
       double   dpf = rint( (double) glDrawCalls    / (double) frameCount ); // glDraw*()           - calls per frame
@@ -1411,6 +1414,10 @@ void pxScene2d::onUpdate(double t)
 
       sigma_draw   = 0;
       sigma_update = 0;
+#else
+    double fps = rint((double)frameCount/(end2-start));
+    printf("%g fps pxObjectCount %d\n", fps, pxObjectCount);
+#endif //ENABLE_DEBUG_RENDER_STATS
 
     // TODO FUTURES... might be nice to have "struct" style object's that get copied
     // at the interop layer so we don't get remoted calls back to the render thread
@@ -1446,11 +1453,15 @@ void pxScene2d::onDraw()
   }  
 #if 1
 
+#ifdef ENABLE_DEBUG_RENDER_STATS
   double start_draw = pxSeconds(); //##
+#endif //ENABLE_DEBUG_RENDER_STATS
 
   draw();
 
+#ifdef ENABLE_DEBUG_RENDER_STATS
   sigma_draw += (pxSeconds() - start_draw); //##
+#endif //ENABLE_DEBUG_RENDER_STATS
 
 #endif
   #ifdef ENABLE_RT_NODE
