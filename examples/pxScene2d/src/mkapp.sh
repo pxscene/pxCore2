@@ -14,8 +14,8 @@ cp $externalDir/libnode/out/Release/libnode.dylib $bundleLib
 cp $externalDir/ft/objs/.libs/libfreetype.6.dylib $bundleLib
 
 cp macstuff/Info.plist $bundle/Contents
-cp -a ../images $bundle/Contents
-cp FreeSans.ttf $bundleBin/FreeSans.ttf
+cp -a images $bundleBin/images
+cp FreeSans.ttf $bundleBin
 cp browser.js $bundleBin
 cp init.js $bundleBin
 cp shell.js $bundleBin
