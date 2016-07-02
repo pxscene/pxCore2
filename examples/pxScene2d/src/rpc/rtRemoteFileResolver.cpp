@@ -32,8 +32,6 @@
 #include <rapidjson/pointer.h>
 
 
-#define db "./tmp/rtResolver.db"
-
 rtRemoteFileResolver::rtRemoteFileResolver()
 : m_db_fp(NULL) {}
 
@@ -47,7 +45,8 @@ rtRemoteFileResolver::~rtRemoteFileResolver()
 rtError
 rtRemoteFileResolver::open(sockaddr_storage const& rpc_endpoint)
 {
-  m_db_fp = fopen("./tmp/rtResolver.db", "r+");
+  const char * const dbPath = rtRemoteSetting<uint16_t>("rt.rpc.resolver.file_path");
+  m_db_fp = fopen(dbPath, "r+");
   if (m_db_fp == NULL)
   {
     rtLogError("could not connect to database");
@@ -82,7 +81,6 @@ rtRemoteFileResolver::registerObject(std::string const& name, sockaddr_storage c
   char readBuffer[65536];
   fseek(m_db_fp, 0, SEEK_SET);
   flock(fileno(m_db_fp), LOCK_EX);
-  //read(fileno(m_db_fp), readBuffer, sizeof(readBuffer));
   rapidjson::FileReadStream is(m_db_fp, readBuffer, sizeof(readBuffer));
   doc.ParseStream(is);
   flock(fileno(m_db_fp), LOCK_UN);
