@@ -258,7 +258,7 @@ rtRemoteMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage co
 
     return rtSendDocument(doc, m_ucast_fd, &soc);
   }
-
+  
   return RT_OK;
 }
 

@@ -99,7 +99,7 @@ static rtError my_callback(int /*argc*/, rtValue const* /*argv*/, rtValue* resul
 }
 
 
-static char const* objectName = "com.xfinity.xsmart.Thermostat/JakesHouse";
+static char const* objectName = "com.xfinity.xsmart.Thermostat.JakesHouse";
 
 void Test_SetProperty_Basic_Client()
 {
