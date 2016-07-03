@@ -16,7 +16,6 @@ RTCORE_SRCS=\
 
 RTRPC_SRCS=\
   rtRemoteServer.cpp \
-  rtRemoteResolver.cpp \
   rtRemoteObject.cpp \
   rtRemoteFunction.cpp \
   rtRemoteMessage.cpp \

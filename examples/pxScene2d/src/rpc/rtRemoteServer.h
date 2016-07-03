@@ -13,7 +13,7 @@
 #include <rapidjson/document.h>
 
 #include "rtRemoteTypes.h"
-#include "rtRemoteResolver.h"
+#include "rtRemoteIResolver.h"
 #include "rtSocketUtils.h"
 
 class rtRemoteClient;

@@ -45,7 +45,7 @@ rtRemoteFileResolver::~rtRemoteFileResolver()
 rtError
 rtRemoteFileResolver::open(sockaddr_storage const& rpc_endpoint)
 {
-  const char * const dbPath = rtRemoteSetting<uint16_t>("rt.rpc.resolver.file_path");
+  const char * const dbPath = rtRemoteSetting<char const *>("rt.rpc.resolver.file_path");
   m_db_fp = fopen(dbPath, "r+");
   if (m_db_fp == NULL)
   {
@@ -85,22 +85,8 @@ rtRemoteFileResolver::registerObject(std::string const& name, sockaddr_storage c
   doc.ParseStream(is);
   flock(fileno(m_db_fp), LOCK_UN);
 
-  //rapidjson::Value* entry = Pointer("/" + name).Get(doc);
-  //if (entry)
-  //{
-
-  //rapidjson::Pointer("/" + name).Erase(doc);
   rapidjson::Pointer("/" + name + "/" + kFieldNameIp).Set(doc, m_rpc_addr);
   rapidjson::Pointer("/" + name + "/" + kFieldNamePort).Set(doc, m_rpc_port);
-  //}
-  //else
-  //{
-
-  //}
-  
-  // create entry for name or overwrite it if it's already there
-  //rapidjson::Pointer("/" + name + "/" + kFieldNameIp + "/" + m_rpc_addr).Create(doc);
-  //rapidjson::Pointer("/" + name + "/" + kFieldNamePort + "/" + m_rpc_addr).Create(doc);
 
   // write updated json back to file
   char writeBuffer[65536];
@@ -135,8 +121,8 @@ rtRemoteFileResolver::locateObject(std::string const& name, sockaddr_storage& en
   flock(fileno(m_db_fp), LOCK_UN);
   
   // check if name is registered
-//  if (!rapidjson::Pointer("/" + name).Get(doc))
- //   return RT_FAIL;
+  if (!rapidjson::Pointer("/" + name).Get(doc))
+    return RT_FAIL;
   
   // pull registered IP and port
   rapidjson::Value *ip = rapidjson::Pointer("/" + name + "/" + kFieldNameIp).Get(doc);

@@ -1,4 +1,4 @@
-#include "rtRemoteResolver.h"
+#include "rtRemoteIResolver.h"
 #include <condition_variable>
 #include <map>
 #include <mutex>
@@ -11,7 +11,7 @@
 #include <rapidjson/document.h>
 
 #include "rtRemoteTypes.h"
-#include "rtRemoteResolver.h"
+#include "rtRemoteIResolver.h"
 #include "rtSocketUtils.h"
 
 

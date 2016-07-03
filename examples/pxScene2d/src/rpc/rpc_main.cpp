@@ -269,14 +269,14 @@ int main(int argc, char* /*argv*/[])
   if (argc == 2)
   {
     //Test_FunctionReferences_Client();
-    Test_MethodCall_Client();
-    //Test_SetProperty_Object_Client();
+    //Test_MethodCall_Client();
+    Test_SetProperty_Object_Client();
   }
   else
   {
     // Test_FunctionReferences_Server();
-    //Test_SetProperty_Object_Server();
-    Test_MethodCall_Server();
+    Test_SetProperty_Object_Server();
+    //Test_MethodCall_Server();
   }
 
   rtRemoteShutdown();

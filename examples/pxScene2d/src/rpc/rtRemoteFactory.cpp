@@ -1,5 +1,5 @@
 #include "rtRemoteFactory.h"
-#include "rtRemoteResolver.h"
+#include "rtRemoteIResolver.h"
 #include "rtRemoteFileResolver.h"
 #include "rtRemoteMulticastResolver.h"
 

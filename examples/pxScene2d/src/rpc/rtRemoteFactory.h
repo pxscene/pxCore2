@@ -1,4 +1,4 @@
-#include "rtRemoteResolver.h"
+#include "rtRemoteIResolver.h"
 
 enum resolver_t { MULTICAST_RESOLVER, FILE_RESOLVER };
 
