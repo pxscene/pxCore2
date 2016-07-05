@@ -9,8 +9,6 @@
 
 typedef struct rtRemoteEnvironment rtRemoteEnvironment;
 
-#define RT_REMOTE_DEFAULT_ENVIRONMENT (rtRemoteEnvironment *) 0x9fe623173
-
 /**
  * Initailize the rtRemote sub-system
  * @returns RT_OK for success
@@ -19,7 +17,7 @@ rtError
 rtRemoteInit();
 
 rtError
-rtRemoteInitWithEnvironment(rtRemoteEnvironment* env);
+rtRemoteInit(rtRemoteEnvironment* env);
 
 /**
  * Register a remote object with the rtRemote sub-system for consumption
@@ -46,6 +44,9 @@ rtRemoteLocateObject(char const* id, rtObjectRef& obj);
  */
 rtError
 rtRemoteShutdown();
+
+rtError
+rtRemoteShutdown(rtRemoteEnvironment* env);
 
 /**
  * Use this when not running with a dedicated sub-system thread.

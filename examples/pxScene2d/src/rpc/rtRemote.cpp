@@ -17,6 +17,8 @@ rtRemoteEnvironment::rtRemoteEnvironment()
   , Server(nullptr)
   , ObjectCache(nullptr)
   , StreamSelector(nullptr)
+  , RefCount(1)
+  , Initialized(false)
 {
   Config = rtRemoteConfig::getInstance();
 
@@ -34,8 +36,6 @@ rtRemoteEnvironment::~rtRemoteEnvironment()
 void
 rtRemoteEnvironment::shutdown()
 {
-  std::lock_guard<std::mutex> lock(gMutex);
-
   if (Server)
   {
     delete Server;
@@ -56,33 +56,41 @@ rtRemoteEnvironment::shutdown()
 rtError
 rtRemoteInit()
 {
-  return rtRemoteInitWithEnvironment(RT_REMOTE_DEFAULT_ENVIRONMENT);
+  {
+    std::lock_guard<std::mutex> lock(gMutex);
+    if (gEnv == nullptr)
+    {
+      gEnv = new rtRemoteEnvironment();
+      rtLogDebug("global environment allocated: %p", gEnv);
+    }
+  }
+  return rtRemoteInit(gEnv);
 }
 
 rtError
-rtRemoteInitWithEnvironment(rtRemoteEnvironment* env)
+rtRemoteInit(rtRemoteEnvironment* env)
 {
   rtError e = RT_FAIL;
   std::lock_guard<std::mutex> lock(gMutex);
 
-  if (env == RT_REMOTE_DEFAULT_ENVIRONMENT)
+  rtLogDebug("initialize environment: %p", env);
+  if (!env->Initialized)
   {
-    if (gEnv!= nullptr)
-    {
-      rtLogInfo("global context is already initialized");
-      return RT_OK;
-    }
-
-    gEnv = new rtRemoteEnvironment();
-
-    e = gEnv->Server->open();
+    rtLogDebug("environment: %p not initialized, opening server", env);
+    e = env->Server->open();
     if (e != RT_OK)
       rtLogError("failed to open rtRemoteServer. %s", rtStrError(e));
   }
   else
   {
-    rtLogError("custom environment currently not supported");
-    e = RT_FAIL;
+    env->RefCount++;
+    e = RT_OK;
+  }
+
+  if (e == RT_OK)
+  {
+    rtLogDebug("environment is now initialized: %p", env);
+    env->Initialized = true;
   }
 
   return e;
@@ -91,14 +99,32 @@ rtRemoteInitWithEnvironment(rtRemoteEnvironment* env)
 rtError
 rtRemoteShutdown()
 {
-  if (gEnv != nullptr)
+  return rtRemoteShutdown(gEnv);
+}
+
+rtError
+rtRemoteShutdown(rtRemoteEnvironment* env)
+{
+  rtError e = RT_FAIL;
+  std::lock_guard<std::mutex> lock(gMutex);
+
+  env->RefCount--;
+  if (env->RefCount == 0)
   {
-    gEnv->shutdown();
-    delete gEnv;
-    gEnv = nullptr;
+    rtLogInfo("environment reference count is zero, deleting");
+    env->shutdown();
+    if (env == gEnv)
+      gEnv = nullptr;
+    delete env;
+    e = RT_OK;
+  }
+  else
+  {
+    rtLogInfo("environment reference count is non-zero. %u", gEnv->RefCount);
+    e = RT_OK;
   }
 
-  return RT_OK;
+  return e;
 }
 
 rtError

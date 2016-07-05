@@ -27,6 +27,9 @@ struct rtRemoteEnvironment
   rtRemoteServer*           Server;
   rtObjectCache*            ObjectCache;
   rtRemoteStreamSelector*   StreamSelector;
+
+  uint32_t RefCount;
+  bool     Initialized;
 };
 
 using rtRemoteEnvPtr = rtRemoteEnvironment*;
