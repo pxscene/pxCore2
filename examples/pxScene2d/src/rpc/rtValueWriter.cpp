@@ -55,6 +55,15 @@
 #define kInvalidPropertyIndex std::numeric_limits<uint32_t>::max()
 #define kInvalidCorrelationKey std::numeric_limits<uint32_t>::max()
 
+// added by Alex
+#define kMessageTypeNsLookup "ns.lookup"
+#define kMessageTypeNsDeregister "ns.deregister"
+#define kMessageTypeNsUpdate "ns.update"
+#define kMessageTypeNsRegister "ns.register"
+#define kMessageTypeNsFail "ns.fail"
+
+// TODO add ns error types
+
 class rtRemoteMessage
 {
 public:

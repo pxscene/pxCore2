@@ -150,6 +150,83 @@ rtRemoteMulticastResolver::open(sockaddr_storage const& rpc_endpoint)
 }
 
 rtError
+rtRemoteMulticastResolver::openMulticastSocket()
+{
+  int err = 0;
+
+  m_mcast_fd = socket(m_mcast_dest.ss_family, SOCK_DGRAM, 0);
+  if (m_mcast_fd < 0)
+  {
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to create datagram socket with family:%d. %s",
+      m_mcast_dest.ss_family, rtStrError(e));
+    return e;
+  }
+  fcntl(m_mcast_fd, F_SETFD, fcntl(m_mcast_fd, F_GETFD) | FD_CLOEXEC);
+
+  // re-use because multiple applications may want to join group on same machine
+  int reuse = 1;
+  err = setsockopt(m_mcast_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
+  if (err < 0)
+  {
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to set reuseaddr. %s", rtStrError(e));
+    return e;
+  }
+
+  if (m_mcast_src.ss_family == AF_INET)
+  {
+    sockaddr_in saddr = *(reinterpret_cast<sockaddr_in *>(&m_mcast_src));
+    saddr.sin_addr.s_addr = INADDR_ANY;
+    err = bind(m_mcast_fd, reinterpret_cast<sockaddr *>(&saddr), sizeof(sockaddr_in));
+  }
+  else
+  {
+    sockaddr_in6* v6 = reinterpret_cast<sockaddr_in6 *>(&m_mcast_src);
+    v6->sin6_addr = in6addr_any;
+    err = bind(m_mcast_fd, reinterpret_cast<sockaddr *>(v6), sizeof(sockaddr_in6));
+  }
+
+  if (err < 0)
+  {
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to bind multicast socket to %s. %s",
+        rtSocketToString(m_mcast_src).c_str(),  rtStrError(e));
+    return e;
+  }
+
+  // join group
+  if (m_mcast_src.ss_family == AF_INET)
+  {
+    ip_mreq group;
+    group.imr_multiaddr = reinterpret_cast<sockaddr_in *>(&m_mcast_dest)->sin_addr;
+    group.imr_interface = reinterpret_cast<sockaddr_in *>(&m_mcast_src)->sin_addr;
+
+    err = setsockopt(m_mcast_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&group, sizeof(group));
+  }
+  else
+  {
+    ipv6_mreq mreq;
+    mreq.ipv6mr_multiaddr = reinterpret_cast<sockaddr_in6 *>(&m_mcast_dest)->sin6_addr;
+    mreq.ipv6mr_interface = m_mcast_src_index;
+    err = setsockopt(m_mcast_fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq));
+  }
+
+  if (err < 0)
+  {
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to join mcast group %s. %s", rtSocketToString(m_mcast_dest).c_str(),
+      rtStrError(e));
+    return e;
+  }
+
+  rtLogInfo("successfully joined multicast group: %s on interface: %s",
+    rtSocketToString(m_mcast_dest).c_str(), rtSocketToString(m_mcast_src).c_str());
+
+  return RT_OK;
+}
+
+rtError
 rtRemoteMulticastResolver::openUnicastSocket()
 {
   int ret = 0;
@@ -234,7 +311,6 @@ rtRemoteMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage co
   }
 
   int key = rtMessage_GetCorrelationKey(*doc);
-
 
   auto itr = m_hosted_objects.end();
 
@@ -478,79 +554,3 @@ rtRemoteMulticastResolver::registerObject(std::string const& name, sockaddr_stor
   return RT_OK;
 }
 
-rtError
-rtRemoteMulticastResolver::openMulticastSocket()
-{
-  int err = 0;
-
-  m_mcast_fd = socket(m_mcast_dest.ss_family, SOCK_DGRAM, 0);
-  if (m_mcast_fd < 0)
-  {
-    rtError e = rtErrorFromErrno(errno);
-    rtLogError("failed to create datagram socket with family:%d. %s",
-      m_mcast_dest.ss_family, rtStrError(e));
-    return e;
-  }
-  fcntl(m_mcast_fd, F_SETFD, fcntl(m_mcast_fd, F_GETFD) | FD_CLOEXEC);
-
-  // re-use because multiple applications may want to join group on same machine
-  int reuse = 1;
-  err = setsockopt(m_mcast_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
-  if (err < 0)
-  {
-    rtError e = rtErrorFromErrno(errno);
-    rtLogError("failed to set reuseaddr. %s", rtStrError(e));
-    return e;
-  }
-
-  if (m_mcast_src.ss_family == AF_INET)
-  {
-    sockaddr_in saddr = *(reinterpret_cast<sockaddr_in *>(&m_mcast_src));
-    saddr.sin_addr.s_addr = INADDR_ANY;
-    err = bind(m_mcast_fd, reinterpret_cast<sockaddr *>(&saddr), sizeof(sockaddr_in));
-  }
-  else
-  {
-    sockaddr_in6* v6 = reinterpret_cast<sockaddr_in6 *>(&m_mcast_src);
-    v6->sin6_addr = in6addr_any;
-    err = bind(m_mcast_fd, reinterpret_cast<sockaddr *>(v6), sizeof(sockaddr_in6));
-  }
-
-  if (err < 0)
-  {
-    rtError e = rtErrorFromErrno(errno);
-    rtLogError("failed to bind multicast socket to %s. %s",
-        rtSocketToString(m_mcast_src).c_str(),  rtStrError(e));
-    return e;
-  }
-
-  // join group
-  if (m_mcast_src.ss_family == AF_INET)
-  {
-    ip_mreq group;
-    group.imr_multiaddr = reinterpret_cast<sockaddr_in *>(&m_mcast_dest)->sin_addr;
-    group.imr_interface = reinterpret_cast<sockaddr_in *>(&m_mcast_src)->sin_addr;
-
-    err = setsockopt(m_mcast_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&group, sizeof(group));
-  }
-  else
-  {
-    ipv6_mreq mreq;
-    mreq.ipv6mr_multiaddr = reinterpret_cast<sockaddr_in6 *>(&m_mcast_dest)->sin6_addr;
-    mreq.ipv6mr_interface = m_mcast_src_index;
-    err = setsockopt(m_mcast_fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq));
-  }
-
-  if (err < 0)
-  {
-    rtError e = rtErrorFromErrno(errno);
-    rtLogError("failed to join mcast group %s. %s", rtSocketToString(m_mcast_dest).c_str(),
-      rtStrError(e));
-    return e;
-  }
-
-  rtLogInfo("successfully joined multicast group: %s on interface: %s",
-    rtSocketToString(m_mcast_dest).c_str(), rtSocketToString(m_mcast_src).c_str());
-
-  return RT_OK;
-}

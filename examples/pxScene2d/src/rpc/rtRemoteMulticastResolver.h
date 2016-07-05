@@ -63,6 +63,6 @@ private:
   std::string       m_rpc_addr;
   uint16_t          m_rpc_port;
   HostedObjectsMap  m_hosted_objects;
-  RequestMap	    m_pending_searches;
-  int		    m_shutdown_pipe[2];
+  RequestMap	      m_pending_searches;
+  int		            m_shutdown_pipe[2];
 };
