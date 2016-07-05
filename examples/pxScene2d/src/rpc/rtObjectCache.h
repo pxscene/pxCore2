@@ -23,6 +23,7 @@ public:
   rtError touch(std::string const& id, time_t now);
   rtError erase(std::string const& id);
   rtError removeUnused();
+  rtError clear();
 
 private:
   rtRemoteEnvironment* m_env;

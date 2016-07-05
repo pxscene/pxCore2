@@ -51,6 +51,16 @@ rtRemoteEnvironment::shutdown()
     delete StreamSelector;
     StreamSelector = nullptr;
   }
+
+  if (ObjectCache)
+  {
+    rtError e = ObjectCache->clear();
+    if (e != RT_OK)
+      rtLogWarn("failed to clear object cache. %s", rtStrError(e));
+
+    delete ObjectCache;
+    ObjectCache = nullptr;
+  }
 }
 
 rtError

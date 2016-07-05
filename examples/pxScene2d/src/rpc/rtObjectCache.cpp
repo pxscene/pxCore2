@@ -80,6 +80,17 @@ rtObjectCache::touch(std::string const& id, time_t now)
 }
 
 rtError
+rtObjectCache::clear()
+{
+  rtLogInfo("clearing object cache");
+
+  std::unique_lock<std::mutex> lock(sMutex);
+  sRefMap.clear();
+
+  return RT_OK;
+}
+
+rtError
 rtObjectCache::erase(std::string const& id)
 {
   rtError e = RT_FAIL;
