@@ -18,6 +18,7 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
+#ifndef RT_REMOTE_LOOPBACK_ONLY
 static rtError
 rtFindFirstInetInterface(char* name, size_t len)
 {
@@ -50,6 +51,7 @@ rtFindFirstInetInterface(char* name, size_t len)
 
   return e;
 }
+#endif
 
 
 rtError
@@ -493,7 +495,12 @@ rtGetDefaultInterface(sockaddr_storage& addr, uint16_t port)
   char name[64];
   memset(name, 0, sizeof(name));
 
+  #ifdef RT_REMOTE_LOOPBACK_ONLY
+  rtError e = RT_OK;
+  strncpy(name, "127.0.0.1", sizeof(name));
+  #else
   rtError e = rtFindFirstInetInterface(name, sizeof(name));
+  #endif
   if (e == RT_OK)
   {
     sockaddr_storage temp;
