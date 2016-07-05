@@ -28,7 +28,7 @@ px.import({ scene: 'px:scene.1.js',
   var selection_x     = 0;
   var selection_start = 0;
   var selection_chars = 0; // number of characters selected  (-)ive is LEFT of cursor start position
-  var selection_text = "";
+  var selection_text  = "";
 
   url.moveToFront();
 
@@ -37,15 +37,28 @@ px.import({ scene: 'px:scene.1.js',
     if (e.charCode == keys.ENTER)  // <<<  ENTER KEY
       return;
 
-    // TODO should we be getting an onChar event for backspace
-    if (e.charCode != keys.BACKSPACE)  
+    if(selection_chars != 0)
     {
-//      console.log("onChar ....  e.charCode = " + e.charCode);
-      url.text += String.fromCharCode(e.charCode);
+      removeSelection(); // overwrote selection
+    }
+    // TODO should we be getting an onChar event for backspace
+    if (e.charCode != keys.BACKSPACE)
+    {
+      if(cursor_pos == 0)
+      {
+        // append character
+        url.text += String.fromCharCode(e.charCode);
+      }
+      else
+      {
+        // insert character
+        url.text = url.text.slice(0, cursor_pos) + String.fromCharCode(e.charCode) + url.text.slice(cursor_pos);
+      }
       prompt.a = (url.text)?0:1; // hide placeholder
-      cursor.x = url.x+url.w;
 
-      cursor_pos++;
+      cursor_pos += 1; // inserted 1 character
+
+      updateCursor(cursor_pos);
     }
 });
 
@@ -90,7 +103,7 @@ inputBg.on("onKeyDown", function(e)
 
   switch(code)
   {
-    case keys.BACKSPACE:    
+    case keys.BACKSPACE:
       {
         console.log("BACKSPACE " + url.text);
 
@@ -102,31 +115,28 @@ inputBg.on("onKeyDown", function(e)
            var  after_cursor = s.slice(cursor_pos);
 
            url.text = before_cursor + after_cursor;
-           cursor_pos--;
+
+           if(cursor_pos > 0) cursor_pos--;
         }
         else
         {
-           console.log("BACKSPACE  removeSelection: " + selection_text);
-
-           removeSelection();
-
-           clearSelection();
+           removeSelection();  // Delete selection
         }
 
         updateCursor(cursor_pos);
       }
       break;
 
-    case keys.ENTER:  
+    case keys.ENTER:
       reload();
       break;
 
-    case keys.LEFT:   
+    case keys.LEFT:
       if(cursor_pos > 0)
       {
         if(flags == 8) // <<  SHIFT KEY
         {
-          if(selection_chars == 0)
+          if(selection_chars == 0) // New selection ?
           {
              selection_start = cursor_pos;
              selection_x     = cursor.x + cursor.w; // Start selection
@@ -147,12 +157,12 @@ inputBg.on("onKeyDown", function(e)
       }
       break;
 
-    case keys.RIGHT:   
+    case keys.RIGHT:
       if(cursor_pos < url.text.length)
       {
         if(flags == 8) // <<  SHIFT KEY
         {
-          if(selection_chars == 0)
+          if(selection_chars == 0) // New selection ?
           {
             selection_start = cursor_pos - 1;
             selection_x     = cursor.x + cursor.w; // Start selection
@@ -198,6 +208,8 @@ inputBg.on("onKeyDown", function(e)
 
         cursor_pos+= fromClip.length;
 
+        updateCursor(cursor_pos);
+
         clearSelection();
       }
       break;
@@ -238,8 +250,7 @@ function updateCursor(pos)
 
 function clearSelection()
 {
-  selection_text = "";
-
+  selection_text  = "";
   selection_start = 0;
   selection_chars = 0;
 
@@ -251,7 +262,10 @@ function removeSelection()
 {
   url.text = url.text.replace(selection_text,'');
 
-  cursor_pos -= selection_text.length;
+  if(selection_chars > 0)
+  {
+    cursor_pos -= selection_text.length;
+  }
 
   updateCursor(cursor_pos);
   clearSelection();
