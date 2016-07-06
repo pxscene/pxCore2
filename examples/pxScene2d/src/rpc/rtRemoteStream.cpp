@@ -113,8 +113,9 @@ rtRemoteStreamSelector::pollFds()
         if (e != RT_OK)
           m_streams[i].reset();
       }
-      else if (now - s->m_last_message_time > 2)
+      if (s && (now - s->m_last_ka_message_time > 10))
       {
+        s->m_last_ka_message_time = time(0);
         e = s->onInactivity(now);
         if (e != RT_OK)
           m_streams[i].reset();
@@ -133,6 +134,7 @@ rtRemoteStreamSelector::pollFds()
 rtRemoteStream::rtRemoteStream(rtRemoteEnvPtr env, int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint)
   : m_fd(fd)
   , m_last_message_time(0)
+  , m_last_ka_message_time(0)
   , m_message_handler(nullptr)
   , m_running(false)
   , m_env(env)
