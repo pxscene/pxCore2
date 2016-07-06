@@ -214,6 +214,9 @@ rtRemoteStream::close()
 
   m_dispatch_threads.clear();
 
+  m_inactivity_handler = nullptr;
+  m_message_handler = nullptr;
+
   if (m_fd != kInvalidSocket)
   {
     int ret = 0;

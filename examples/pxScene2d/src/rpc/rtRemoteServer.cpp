@@ -283,6 +283,7 @@ rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t t
       std::shared_ptr<rtRemoteClient> client;
       std::string const endpointName = rtSocketToString(rpc_endpoint);
 
+      std::unique_lock<std::mutex> lock(m_mutex);
       auto itr = m_object_map.find(endpointName);
       if (itr != m_object_map.end())
         client = itr->second;
@@ -297,6 +298,7 @@ rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t t
           break;
         }
       }
+      m_mutex.unlock();
 
       if (!client)
       {
@@ -657,5 +659,14 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPt
 rtError
 rtRemoteServer::removeStaleObjects()
 {
+  std::unique_lock<std::mutex> lock(m_mutex);
+  for (auto itr = m_object_map.begin(); itr != m_object_map.end();)
+  {
+    if (itr->second.use_count() == 1)
+      itr = m_object_map.erase(itr);
+    else
+      ++itr;
+  }
+  lock.unlock();
   return m_env->ObjectCache->removeUnused(); // m_keep_alive_interval, num_removed);
 }
