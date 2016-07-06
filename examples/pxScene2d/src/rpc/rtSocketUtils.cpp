@@ -62,6 +62,14 @@ rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* 
   if (index != nullptr)
     *index = -1;
 
+  if (addr[0] == '/')
+  {
+    sockaddr_un *un_addr = reinterpret_cast<sockaddr_un*>(&ss);
+    un_addr->sun_family = AF_UNIX;
+    strncpy(un_addr->sun_path, addr, UNIX_PATH_MAX);
+    return RT_OK;
+  }
+
   sockaddr_in* v4 = reinterpret_cast<sockaddr_in *>(&ss);
   ret = inet_pton(AF_INET, addr, &v4->sin_addr);
 
@@ -125,8 +133,10 @@ rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len)
     *len = sizeof(sockaddr_in);
   else if (ss.ss_family == AF_INET6)
     *len = sizeof(sockaddr_in6);
+  else if (ss.ss_family == AF_UNIX)
+    *len = sizeof(sockaddr_un);
   else
-    *len = 0;
+    *len = sizeof(sockaddr_storage);
 
   return RT_OK;
 }
@@ -202,6 +212,14 @@ rtGetInetAddr(sockaddr_storage const& ss, void** addr)
 {
   sockaddr_in const* v4 = reinterpret_cast<sockaddr_in const*>(&ss);
   sockaddr_in6 const* v6 = reinterpret_cast<sockaddr_in6 const*>(&ss);
+  sockaddr_un const* un =  reinterpret_cast<sockaddr_un const*>(&ss);
+
+  if (ss.ss_family == AF_UNIX)
+  {
+    void const* p = reinterpret_cast<void const *>(&(un->sun_path));
+    *addr = const_cast<void *>(p);
+    return RT_OK;
+  }
 
   void const* p = (ss.ss_family == AF_INET)
     ? reinterpret_cast<void const *>(&(v4->sin_addr))
@@ -215,6 +233,11 @@ rtGetInetAddr(sockaddr_storage const& ss, void** addr)
 rtError
 rtGetPort(sockaddr_storage const& ss, uint16_t* port)
 {
+  if (ss.ss_family == AF_UNIX)
+  {
+    *port = 0;
+    return RT_OK;
+  }
   sockaddr_in const* v4 = reinterpret_cast<sockaddr_in const *>(&ss);
   sockaddr_in6 const* v6 = reinterpret_cast<sockaddr_in6 const *>(&ss);
   *port = ntohs((ss.ss_family == AF_INET) ? v4->sin_port : v6->sin6_port);
@@ -272,9 +295,19 @@ rtSocketToString(sockaddr_storage const& ss)
 
   char addr_buff[128];
   memset(addr_buff, 0, sizeof(addr_buff));
-  inet_ntop(ss.ss_family, addr, addr_buff, sizeof(addr_buff));
+  if (ss.ss_family == AF_UNIX)
+  {
+    strncpy(addr_buff, (const char*)addr, sizeof(addr_buff) -1);
+    port = 0;
+  }
+  else
+  {
+    inet_ntop(ss.ss_family, addr, addr_buff, sizeof(addr_buff));
+  }
 
   std::stringstream buff;
+  buff << (ss.ss_family == AF_UNIX ? "unix" : "inet");
+  buff << ':';
   buff << addr_buff;
   buff << ':';
   buff << port;
@@ -458,7 +491,7 @@ rtGetPeerName(int fd, sockaddr_storage& endpoint)
 rtError
 rtGetSockName(int fd, sockaddr_storage& endpoint)
 {
-  assert(fd > 2);
+  // assert(fd > 2);
 
   sockaddr_storage addr;
   memset(&addr, 0, sizeof(sockaddr_storage));

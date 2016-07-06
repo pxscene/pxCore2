@@ -36,6 +36,14 @@ same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
     return in1->sin_addr.s_addr == in2->sin_addr.s_addr;
   }
 
+  if (addr1.ss_family == AF_UNIX)
+  {
+    sockaddr_un const* un1 = reinterpret_cast<sockaddr_un const*>(&addr1);
+    sockaddr_un const* un2 = reinterpret_cast<sockaddr_un const*>(&addr2);
+
+    return 0 == strncmp(un1->sun_path, un2->sun_path, UNIX_PATH_MAX);
+  }
+
   assert(false);
   return false;
 }
@@ -337,7 +345,22 @@ rtRemoteServer::openRpcListener()
 {
   int ret = 0;
 
-  rtGetDefaultInterface(m_rpc_endpoint, 0);
+  char const* socket_family = m_env->Config->getString("rt.rpc.server.socket_family");
+  if (socket_family && !strcmp(socket_family, "unix"))
+  {
+    // TODO: cleanup on shutdown
+    char socket_path[UNIX_PATH_MAX];
+    snprintf(socket_path, sizeof(socket_path), "/tmp/rt.sock_%d", getpid());
+    unlink(socket_path); // reuse path if needed
+
+    struct sockaddr_un *un_addr = reinterpret_cast<sockaddr_un*>(&m_rpc_endpoint);
+    un_addr->sun_family = AF_UNIX;
+    strncpy(un_addr->sun_path, socket_path, UNIX_PATH_MAX);
+  }
+  else
+  {
+    rtGetDefaultInterface(m_rpc_endpoint, 0);
+  }
 
   m_listen_fd = socket(m_rpc_endpoint.ss_family, SOCK_STREAM, 0);
   if (m_listen_fd < 0)

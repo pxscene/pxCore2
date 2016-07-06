@@ -161,15 +161,22 @@ rtRemoteMulticastResolver::open(sockaddr_storage const& rpc_endpoint)
     void* addr = nullptr;
     rtGetInetAddr(rpc_endpoint, &addr);
 
-    socklen_t len;
-    rtSocketGetLength(rpc_endpoint, &len);
-    char const* p = inet_ntop(rpc_endpoint.ss_family, addr, buff, len);
-    if (p)
-      m_rpc_addr = p;
+    if (rpc_endpoint.ss_family == AF_UNIX)
+    {
+      m_rpc_addr = reinterpret_cast<const char*>(addr);
+      m_rpc_port = 0;
+    }
+    else
+    {
+      socklen_t len;
+      rtSocketGetLength(rpc_endpoint, &len);
+      char const* p = inet_ntop(rpc_endpoint.ss_family, addr, buff, len);
+      if (p)
+        m_rpc_addr = p;
 
-    rtGetPort(rpc_endpoint, &m_rpc_port);
+      rtGetPort(rpc_endpoint, &m_rpc_port);
+    }
   }
-
 
   rtError err = init();
   if (err != RT_OK)
