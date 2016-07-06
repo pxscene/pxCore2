@@ -2,6 +2,7 @@
 #include "rtRemoteIResolver.h"
 #include "rtRemoteFileResolver.h"
 #include "rtRemoteMulticastResolver.h"
+#include "rtRemoteNsResolver.h"
 
 rtRemoteFactory::rtRemoteFactory(){}
 
@@ -17,6 +18,7 @@ rtRemoteFactory::rtRemoteCreateResolver(resolver_t type) {
   {
     case MULTICAST_RESOLVER : return new rtRemoteMulticastResolver();
     case FILE_RESOLVER      : return new rtRemoteFileResolver();
+    case NS_RESOLVER        : return new rtRemoteNsResolver();
     default                 : return new rtRemoteMulticastResolver();
   }
 }

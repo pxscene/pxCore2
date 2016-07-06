@@ -68,7 +68,7 @@ rtRemoteNameService::openNsSocket()
 {
   int ret = 0;
 
-  m_ns_fd = socket(m_ucast_endpoint.ss_family, SOCK_DGRAM, 0);
+  m_ns_fd = socket(m_ns_endpoint.ss_family, SOCK_DGRAM, 0);
   if (m_ns_fd < 0)
   {
     rtError e = rtErrorFromErrno(errno);

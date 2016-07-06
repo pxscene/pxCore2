@@ -1,6 +1,6 @@
 #include "rtRemoteIResolver.h"
 
-enum resolver_t { MULTICAST_RESOLVER, FILE_RESOLVER };
+enum resolver_t { MULTICAST_RESOLVER, FILE_RESOLVER, NS_RESOLVER };
 
 class rtRemoteFactory
 {
