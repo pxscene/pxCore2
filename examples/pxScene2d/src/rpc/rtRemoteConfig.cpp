@@ -103,6 +103,8 @@ static Setting kDefaultSettings[] =
   { "rt.rpc.resolver.locate_timeout", "3000" },
   { "rt.rpc.cache.max_object_lifetime", "15" },
   { "rt.rpc.resolver.file_path", "./tmp/rtResolver.db"},
+  { "rt.rpc.resolver.ns_address", "127.0.0.2" },
+  { "rt.rpc.resolver.ns_port", "10004" },
   { nullptr, nullptr }
 };
 

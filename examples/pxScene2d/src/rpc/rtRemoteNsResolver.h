@@ -25,9 +25,10 @@ public:
   virtual rtError registerObject(std::string const& name, sockaddr_storage const& endpoint) override;
   virtual rtError locateObject(std::string const& name, sockaddr_storage& endpoint,
     uint32_t timeout) override;
+  rtError registerObject(std::string const& name, sockaddr_storage const& endpoint, uint32_t timeout);
 
 private:
-  using CommandHandler = rtError (rtRemoteMulticastResolver::*)(rtJsonDocPtr const&, sockaddr_storage const&);
+  using CommandHandler = rtError (rtRemoteNsResolver::*)(rtJsonDocPtr const&, sockaddr_storage const&);
   using HostedObjectsMap = std::map< std::string, sockaddr_storage >;
   using CommandHandlerMap = std::map< std::string, CommandHandler >;
   using RequestMap = std::map< rtCorrelationKey, rtJsonDocPtr >;

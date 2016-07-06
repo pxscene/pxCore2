@@ -1,3 +1,36 @@
+#include "rtRemoteNsResolver.h"
+#include "rtSocketUtils.h"
+#include "rtRemoteMessage.h"
+#include "rtRemoteConfig.h"
+
+#include <condition_variable>
+#include <thread>
+#include <mutex>
+
+#include <rtLog.h>
+
+#include <errno.h>
+#include <fcntl.h>
+#include <string.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <ifaddrs.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+#include <rapidjson/document.h>
+#include <rapidjson/memorystream.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/filewritestream.h>
+#include <rapidjson/pointer.h>
+
 rtRemoteNsResolver::rtRemoteNsResolver()
   : m_static_fd(-1)
   , m_pid(getpid())
@@ -5,7 +38,7 @@ rtRemoteNsResolver::rtRemoteNsResolver()
 {
   memset(&m_static_endpoint, 0, sizeof(m_static_endpoint));
 
-  m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeNsLookupResponse, &rtRemoteNsResolver::onLocate));
+  m_command_handlers.insert(CommandHandlerMap::value_type(kNsMessageTypeLookupResponse, &rtRemoteNsResolver::onLocate));
 
   m_shutdown_pipe[0] = -1; m_shutdown_pipe[1] = -1;
   
@@ -61,6 +94,12 @@ rtRemoteNsResolver::open(sockaddr_storage const& rpc_endpoint)
 rtError
 rtRemoteNsResolver::registerObject(std::string const& name, sockaddr_storage const& endpoint)
 {
+    return registerObject(name, endpoint, 3000);
+}
+
+rtError
+rtRemoteNsResolver::registerObject(std::string const& name, sockaddr_storage const& endpoint, uint32_t timeout)
+{
   if (m_static_fd == -1)
   {
     rtLogError("unicast socket not opened");
@@ -85,7 +124,7 @@ rtRemoteNsResolver::registerObject(std::string const& name, sockaddr_storage con
 
   rapidjson::Document doc;
   doc.SetObject();
-  doc.AddMember(kFieldNameMessageType, kMessageTypeNsRegister, doc.GetAllocator());
+  doc.AddMember(kFieldNameMessageType, kNsMessageTypeRegister, doc.GetAllocator());
   doc.AddMember(kFieldNameObjectId, name, doc.GetAllocator());
   doc.AddMember(kFieldNameIp, rpc_addr, doc.GetAllocator());
   doc.AddMember(kFieldNamePort, rpc_port, doc.GetAllocator());
@@ -95,6 +134,11 @@ rtRemoteNsResolver::registerObject(std::string const& name, sockaddr_storage con
   err = rtSendDocument(doc, m_static_fd, &m_ns_dest);
   if (err != RT_OK)
     return err;
+
+  rtJsonDocPtr searchResponse;
+  RequestMap::const_iterator itr;
+
+  auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
 
   // wait here until timeout expires or we get a response that matches out pid/seqid
   std::unique_lock<std::mutex> lock(m_mutex);
@@ -119,9 +163,9 @@ rtRemoteNsResolver::registerObject(std::string const& name, sockaddr_storage con
   {
     char const* message_type = rtMessage_GetMessageType(*searchResponse);
     
-    if (message_type == kNsMessageTypeRegisterResponse)
+    if (strcmp(message_type, kNsMessageTypeRegisterResponse) == 0)
     {    
-      if (rtMessage_GetStatusCode(*searchResponse) == kNsStatusFail)
+      if (strcmp(rtMessage_GetStatusMessage(*searchResponse), kNsStatusFail) == 0)
       {
         rtLogWarn("ns register failed");
         return RT_FAIL;
@@ -156,7 +200,7 @@ rtRemoteNsResolver::locateObject(std::string const& name, sockaddr_storage& endp
 
   rapidjson::Document doc;
   doc.SetObject();
-  doc.AddMember(kFieldNameMessageType, kMessageTypeNsLookup, doc.GetAllocator());
+  doc.AddMember(kFieldNameMessageType, kNsMessageTypeLookup, doc.GetAllocator());
   doc.AddMember(kFieldNameObjectId, name, doc.GetAllocator());
   doc.AddMember(kFieldNameSenderId, m_pid, doc.GetAllocator());
   doc.AddMember(kFieldNameCorrelationKey, seqId, doc.GetAllocator());
@@ -165,9 +209,15 @@ rtRemoteNsResolver::locateObject(std::string const& name, sockaddr_storage& endp
   if (err != RT_OK)
     return err;
 
+  rtJsonDocPtr searchResponse;
+  RequestMap::const_iterator itr;
+
+  auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
+
   // wait here until timeout expires or we get a response that matches out pid/seqid
   std::unique_lock<std::mutex> lock(m_mutex);
   itr = m_pending_searches.end();
+  
   m_cond.wait_until(lock, delay, [this, seqId, &searchResponse]
     {
       auto itr = this->m_pending_searches.find(seqId);
@@ -188,9 +238,9 @@ rtRemoteNsResolver::locateObject(std::string const& name, sockaddr_storage& endp
   {
     char const* message_type = rtMessage_GetMessageType(*searchResponse);
     
-    if (message_type == kNsMessageTypeRegisterResponse)
+    if (strcmp(message_type, kNsMessageTypeLookupResponse) == 0)
     {    
-      if (rtMessage_GetStatusCode(*searchResponse) == kNsStatusFail)
+      if (strcmp(rtMessage_GetStatusMessage(*searchResponse), kNsStatusFail) == 0)
       {
         rtLogWarn("ns register failed");
         return RT_FAIL;
@@ -322,7 +372,7 @@ rtRemoteNsResolver::openSocket()
 }
 
 rtError
-rtRemoteNsResolver::onLocate(rtJsonDocPtr const& doc, sockaddr_storage const& soc)
+rtRemoteNsResolver::onLocate(rtJsonDocPtr const& doc, sockaddr_storage const& /*soc*/)
 {
   int key = rtMessage_GetCorrelationKey(*doc);
 
@@ -334,6 +384,7 @@ rtRemoteNsResolver::onLocate(rtJsonDocPtr const& doc, sockaddr_storage const& so
   return RT_OK;
 }
 
+void
 rtRemoteNsResolver::runListener()
 {
   rtSocketBuffer buff;

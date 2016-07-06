@@ -7,10 +7,10 @@ rtRemoteNameService::rtRemoteNameService()
 {
   memset(&m_ns_endpoint, 0, sizeof(m_ns_endpoint));
 
-  m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeNsRegister, &rtRemoteNameService::onRegister));
-  m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeNsDeregister, &rtRemoteNameService::onDeregister));
-  m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeNsUpdate, &rtRemoteNameService::onUpdate));
-  m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeNsLookup, &rtRemoteNameService::onLookup));
+  m_command_handlers.insert(CommandHandlerMap::value_type(kNsMessageTypeRegister, &rtRemoteNameService::onRegister));
+  m_command_handlers.insert(CommandHandlerMap::value_type(kNsMessageTypeDeregister, &rtRemoteNameService::onDeregister));
+  m_command_handlers.insert(CommandHandlerMap::value_type(kNsMessageTypeUpdate, &rtRemoteNameService::onUpdate));
+  m_command_handlers.insert(CommandHandlerMap::value_type(kNsMessageTypeLookup, &rtRemoteNameService::onLookup));
 
   m_shutdown_pipe[0] = -1;
   m_shutdown_pipe[1] = -1;
@@ -36,8 +36,9 @@ rtRemoteNameService::init()
   // TODO eventually, use a db rather than map.  Open it here.
 
   // get socket info ready
-  char const* srcaddr = rtRemoteSetting<char const *>("rt.rpc.resolver.multicast_interface");
-  err = rtParseAddress(m_ns_endpoint, srcaddr, 0, nullptr);
+  uint16_t nsport = rtRemoteSetting<uint16_t>("rt.rpc.resolver.ns_port");
+  char const* nsaddr = rtRemoteSetting<char const *>("rt.rpc.resolver.ns_address");
+  err = rtParseAddress(m_ns_endpoint, nsaddr, nsport, nullptr);
   if (err != RT_OK)
   {
     err = rtGetDefaultInterface(m_ns_endpoint, 0);
@@ -187,6 +188,7 @@ rtRemoteNameService::onLookup(rtJsonDocPtr const& doc, sockaddr_storage const& s
     rapidjson::Document doc;
     doc.SetObject();
     doc.AddMember(kFieldNameMessageType, kMessageTypeLocate, doc.GetAllocator());
+    doc.AddMember(kFieldNameStatusCode, kNsStatusSuccess, doc.GetAllocator());
     doc.AddMember(kFieldNameObjectId, std::string(objectId), doc.GetAllocator());
     doc.AddMember(kFieldNameIp, ep_addr, doc.GetAllocator());
     doc.AddMember(kFieldNamePort, ep_port, doc.GetAllocator());

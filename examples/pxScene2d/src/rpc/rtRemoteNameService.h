@@ -1,3 +1,17 @@
+#include <condition_variable>
+#include <map>
+#include <mutex>
+#include <string>
+#include <thread>
+
+#include <stdint.h>
+#include <netinet/in.h>
+#include <rtObject.h>
+#include <rapidjson/document.h>
+
+#include "rtRemoteTypes.h"
+#include "rtSocketUtils.h"
+
 class rtRemoteNameService
 {
 public:
