@@ -372,6 +372,12 @@ rtRemoteServer::openRpcListener()
 
   fcntl(m_listen_fd, F_SETFD, fcntl(m_listen_fd, F_GETFD) | FD_CLOEXEC);
 
+  if (m_rpc_endpoint.ss_family != AF_UNIX)
+  {
+    uint32_t one = 1;
+    if (-1 == setsockopt(m_listen_fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+      rtLogError("setting TCP_NODELAY failed");
+  }
 
   socklen_t len;
   rtSocketGetLength(m_rpc_endpoint, &len);

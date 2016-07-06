@@ -3,12 +3,15 @@
 
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <rtError.h>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "rtRemoteTypes.h"
+
 #ifndef UNIX_PATH_MAX
 #define UNIX_PATH_MAX    108
 #endif
