@@ -1,9 +1,41 @@
+#include "rtRemoteNameService.h"
+#include "rtSocketUtils.h"
+#include "rtRemoteMessage.h"
+#include "rtRemoteConfig.h"
+
+#include <condition_variable>
+#include <thread>
+#include <mutex>
+
+#include <rtLog.h>
+
+#include <errno.h>
+#include <fcntl.h>
+#include <string.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <ifaddrs.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+#include <rapidjson/document.h>
+#include <rapidjson/memorystream.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/filewritestream.h>
+#include <rapidjson/pointer.h>
+
 rtRemoteNameService::rtRemoteNameService()
-{
   : m_ns_fd(-1)
   , m_ns_len(0)
-  , m_command_handlers()
   , m_pid(getpid())
+  , m_command_handlers()
 {
   memset(&m_ns_endpoint, 0, sizeof(m_ns_endpoint));
 
@@ -25,7 +57,9 @@ rtRemoteNameService::rtRemoteNameService()
 
 rtRemoteNameService::~rtRemoteNameService()
 {
-// TODO
+  rtError err = this->close();
+  if (err != RT_OK)
+    rtLogWarn("failed to close resolver: %s", rtStrError(err));
 }
 
 rtError
@@ -53,12 +87,44 @@ rtRemoteNameService::init()
       rtLogWarn("failed to open name service unicast socket. %s", rtStrError(err));
       return err;
   }
+
+  m_read_thread.reset(new std::thread(&rtRemoteNameService::runListener, this));
+  return err;
 }
 
 rtError
 rtRemoteNameService::close()
 {
-// TODO
+  if (m_shutdown_pipe[1] != -1)
+  {
+    char buff[] = {"shutdown"};
+    ssize_t n = write(m_shutdown_pipe[1], buff, sizeof(buff));
+    if (n == -1)
+    {
+      rtError e = rtErrorFromErrno(errno);
+      rtLogWarn("failed to write. %s", rtStrError(e));
+    }
+
+    if (m_read_thread)
+    {
+      m_read_thread->join();
+      m_read_thread.reset();
+    }
+
+    if (m_shutdown_pipe[0] != -1)
+      ::close(m_shutdown_pipe[0]);
+    if (m_shutdown_pipe[1] != -1)
+      ::close(m_shutdown_pipe[1]);
+  }
+
+  if (m_ns_fd != -1)
+    ::close(m_ns_fd);
+
+  m_ns_fd = -1;
+  m_shutdown_pipe[0] = -1;
+  m_shutdown_pipe[1] = -1;
+
+  return RT_OK;
 }
 
 // rtError 
@@ -111,7 +177,7 @@ rtRemoteNameService::openNsSocket()
  * Callback for registering objects and associated Well-known Endpoints
  */
 rtError
-rtRemoteNameService::onRegister(rtJsonDocPtr const& doc, sockaddr_storage const& soc)
+rtRemoteNameService::onRegister(rtJsonDocPtr const& doc, sockaddr_storage const& /*soc*/)
 {
   assert(doc->HasMember(kFieldNameIp));
   assert(doc->HasMember(kFieldNamePort));
@@ -123,8 +189,10 @@ rtRemoteNameService::onRegister(rtJsonDocPtr const& doc, sockaddr_storage const&
   if (err != RT_OK)
     return err;
   
+  char const* objectId = rtMessage_GetObjectId(*doc);
+  
   std::unique_lock<std::mutex> lock(m_mutex);
-  m_registered_objects[name] = endpoint;
+  m_registered_objects[objectId] = endpoint;
   return RT_OK;
 }
 
@@ -132,14 +200,14 @@ rtRemoteNameService::onRegister(rtJsonDocPtr const& doc, sockaddr_storage const&
  * Callback for deregistering objects
  */
 rtError
-rtRemoteNameService::onDeregister(rtJsonDocPtr const& doc, sockaddr_storage const& soc)
+rtRemoteNameService::onDeregister(rtJsonDocPtr const& /*doc*/, sockaddr_storage const& /*soc*/)
 {
   // TODO
   return RT_OK;
 }
 
 rtError
-rtRemoteNameService::onUpdate(rtJsonDocPtr const& doc, sockaddr_storage const& soc)
+rtRemoteNameService::onUpdate(rtJsonDocPtr const& /*doc*/, sockaddr_storage const& /*soc*/)
 {
   // TODO
   return RT_OK;
@@ -157,7 +225,7 @@ rtRemoteNameService::onLookup(rtJsonDocPtr const& doc, sockaddr_storage const& s
 
   int key = rtMessage_GetCorrelationKey(*doc);
 
-  auto itr = m_hosted_objects.end();
+  auto itr = m_registered_objects.end();
 
   char const* objectId = rtMessage_GetObjectId(*doc);
 
@@ -187,7 +255,7 @@ rtRemoteNameService::onLookup(rtJsonDocPtr const& doc, sockaddr_storage const& s
     // create and send response
     rapidjson::Document doc;
     doc.SetObject();
-    doc.AddMember(kFieldNameMessageType, kMessageTypeLocate, doc.GetAllocator());
+    doc.AddMember(kFieldNameMessageType, kNsMessageTypeLookupResponse, doc.GetAllocator());
     doc.AddMember(kFieldNameStatusCode, kNsStatusSuccess, doc.GetAllocator());
     doc.AddMember(kFieldNameObjectId, std::string(objectId), doc.GetAllocator());
     doc.AddMember(kFieldNameIp, ep_addr, doc.GetAllocator());
@@ -197,6 +265,7 @@ rtRemoteNameService::onLookup(rtJsonDocPtr const& doc, sockaddr_storage const& s
 
     return rtSendDocument(doc, m_ns_fd, &soc);
   }
+  return RT_OK;
 }
 
 void
@@ -208,6 +277,7 @@ rtRemoteNameService::runListener()
 
   while (true)
   {
+    rtLogInfo("listening");
     int maxFd = 0;
 
     fd_set read_fds;
@@ -242,6 +312,7 @@ rtRemoteNameService::runListener()
 void
 rtRemoteNameService::doRead(int fd, rtSocketBuffer& buff)
 {
+  rtLogInfo("doing read");
   // we only suppor v4 right now. not sure how recvfrom supports v6 and v4
   sockaddr_storage src;
   socklen_t len = sizeof(sockaddr_in);

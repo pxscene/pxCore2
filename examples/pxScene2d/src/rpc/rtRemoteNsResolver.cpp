@@ -231,7 +231,10 @@ rtRemoteNsResolver::locateObject(std::string const& name, sockaddr_storage& endp
   lock.unlock();
 
   if (!searchResponse)
+  {
+    rtLogInfo("no search response");
     return RT_FAIL;
+  }
 
   // response is in itr
   if (searchResponse)
@@ -307,6 +310,8 @@ rtRemoteNsResolver::init()
   rtError err = RT_OK;
   uint16_t dstport = rtRemoteSetting<uint16_t>("rt.rpc.resolver.ns_port");
   char const* dstaddr = rtRemoteSetting<char const *>("rt.rpc.resolver.ns_address");
+
+  rtLogInfo("dest address is %s", dstaddr);
 
   err = rtParseAddress(m_ns_dest, dstaddr, dstport, nullptr);
   if (err != RT_OK)
@@ -390,6 +395,7 @@ rtRemoteNsResolver::runListener()
   rtSocketBuffer buff;
   buff.reserve(1024 * 1024);
   buff.resize(1024 * 1024);
+  rtLogInfo("running listener");
 
   while (true)
   {

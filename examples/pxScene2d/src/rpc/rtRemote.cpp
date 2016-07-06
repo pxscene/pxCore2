@@ -2,12 +2,14 @@
 #include "rtRemoteClient.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteServer.h"
+#include "rtRemoteNameService.h"
 
 #include <rtLog.h>
 #include <mutex>
 #include <thread>
 
 static rtRemoteServer* gServer = nullptr;
+static rtRemoteNameService* gNs = nullptr;
 static std::mutex gMutex;
 std::shared_ptr<rtRemoteStreamSelector> gStreamSelector;
 
@@ -35,6 +37,20 @@ rtRemoteInit()
   return e;
 }
 
+rtError
+rtRemoteInitNs()
+{
+  rtError e = RT_OK;
+  rtRemoteConfig::getInstance(true);
+  if (gNs == nullptr)
+  {
+    gNs = new rtRemoteNameService();
+    e = gNs->init();
+  }
+
+  return e;
+}
+
 extern rtError rtRemoteShutdownStreamSelector();
 
 rtError
@@ -52,6 +68,17 @@ rtRemoteShutdown()
     gServer = nullptr;
   }
 
+  return RT_OK;
+}
+
+rtError
+rtRemoteShutdownNs()
+{
+  if (gNs)
+  {
+    delete gNs;
+    gNs = nullptr;
+  }
   return RT_OK;
 }
 

@@ -120,7 +120,7 @@ rtRemoteServer::open()
   if (err != RT_OK)
     return err;
 
-  m_resolver = rtRemoteFactory::rtRemoteCreateResolver(FILE_RESOLVER);
+  m_resolver = rtRemoteFactory::rtRemoteCreateResolver(NS_RESOLVER);
   err = start();
   if (err != RT_OK)
   {

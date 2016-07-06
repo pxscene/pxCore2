@@ -1,6 +1,7 @@
 
 #include "rtRemote.h"
 #include "rtRemoteConfig.h"
+#include "rtRemoteNameService.h"
 #include <rtObject.h>
 #include <functional>
 
@@ -263,6 +264,15 @@ std::map< int, TestCase > testCases;
 
 int main(int argc, char* /*argv*/[])
 {
+  if (argc == 3)
+  {
+    rtError e = rtRemoteInitNs();
+    while(1);
+    rtRemoteShutdownNs();
+    return 0;
+  }
+  else
+  {
   rtError e = rtRemoteInit();
   assert(e == RT_OK);
 
@@ -282,4 +292,5 @@ int main(int argc, char* /*argv*/[])
   rtRemoteShutdown();
 
   return 0;
+  }
 }

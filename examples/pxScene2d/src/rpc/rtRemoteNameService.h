@@ -23,7 +23,7 @@ public:
   rtError close();
 
 private:
-  using CommandHandler = rtError (rtRemoteMulticastResolver::*)(rtJsonDocPtr const&, sockaddr_storage const&);
+  using CommandHandler = rtError (rtRemoteNameService::*)(rtJsonDocPtr const&, sockaddr_storage const&);
   using CommandHandlerMap = std::map< std::string, CommandHandler >;
   using RequestMap = std::map< rtCorrelationKey, rtJsonDocPtr >;
   using RegisteredObjectsMap = std::map< std::string, sockaddr_storage >;
@@ -40,16 +40,16 @@ private:
   rtError openNsSocket();
 
 private:
+  sockaddr_storage  m_ns_endpoint;
+  int               m_ns_fd;
+  socklen_t         m_ns_len;
+  
+  pid_t                        m_pid;
   CommandHandlerMap    m_command_handlers;
   RequestMap           m_pending_requests;
   RegisteredObjectsMap m_registered_objects;
 
-  sockaddr_storage  m_ns_endpoint;
-  int               m_ns_fd;
-  socklen_t         m_ns_len;
-
   std::mutex                   m_mutex;
   std::unique_ptr<std::thread> m_read_thread;
   int		                       m_shutdown_pipe[2];
-  pid_t                        m_pid;
 };
