@@ -48,7 +48,7 @@ function AppSceneContext(params) { // container, innerscene, packageUrl) {
 }
 
 AppSceneContext.prototype.loadScene = function() {
-  log.info("loadScene() - begins    on ctx: " + getContextID() );
+  //log.info("loadScene() - begins    on ctx: " + getContextID() );
   var urlParts = url.parse(this.packageUrl, true);
   var fullPath = this.packageUrl;
   if (fullPath.substring(0, 4) !== "http") {
@@ -108,7 +108,7 @@ if (false) {
   }.bind(this));
 }
 
-  log.info("loadScene() - ends    on ctx: " + getContextID() );
+  //log.info("loadScene() - ends    on ctx: " + getContextID() );
 
 }
 
