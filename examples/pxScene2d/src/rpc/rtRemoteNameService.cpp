@@ -193,6 +193,7 @@ rtRemoteNameService::onRegister(rtJsonDocPtr const& doc, sockaddr_storage const&
   
   std::unique_lock<std::mutex> lock(m_mutex);
   m_registered_objects[objectId] = endpoint;
+  lock.unlock();
   return RT_OK;
 }
 
@@ -219,9 +220,7 @@ rtRemoteNameService::onLookup(rtJsonDocPtr const& doc, sockaddr_storage const& s
   auto senderId = doc->FindMember(kFieldNameSenderId);
   assert(senderId != doc->MemberEnd());
   if (senderId->value.GetInt() == m_pid)
-  {
     return RT_OK;
-  }
 
   int key = rtMessage_GetCorrelationKey(*doc);
 
@@ -256,7 +255,7 @@ rtRemoteNameService::onLookup(rtJsonDocPtr const& doc, sockaddr_storage const& s
     rapidjson::Document doc;
     doc.SetObject();
     doc.AddMember(kFieldNameMessageType, kNsMessageTypeLookupResponse, doc.GetAllocator());
-    doc.AddMember(kFieldNameStatusCode, kNsStatusSuccess, doc.GetAllocator());
+    doc.AddMember(kFieldNameStatusMessage, kNsStatusSuccess, doc.GetAllocator());
     doc.AddMember(kFieldNameObjectId, std::string(objectId), doc.GetAllocator());
     doc.AddMember(kFieldNameIp, ep_addr, doc.GetAllocator());
     doc.AddMember(kFieldNamePort, ep_port, doc.GetAllocator());

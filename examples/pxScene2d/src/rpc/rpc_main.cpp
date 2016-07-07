@@ -267,30 +267,31 @@ int main(int argc, char* /*argv*/[])
   if (argc == 3)
   {
     rtError e = rtRemoteInitNs();
+    assert(e == RT_OK);
     while(1);
     rtRemoteShutdownNs();
     return 0;
   }
   else
   {
-  rtError e = rtRemoteInit();
-  assert(e == RT_OK);
+    rtError e = rtRemoteInit();
+    assert(e == RT_OK);
 
-  if (argc == 2)
-  {
-    //Test_FunctionReferences_Client();
-    //Test_MethodCall_Client();
-    Test_SetProperty_Object_Client();
-  }
-  else
-  {
-    // Test_FunctionReferences_Server();
-    Test_SetProperty_Object_Server();
-    //Test_MethodCall_Server();
-  }
+    if (argc == 2)
+    {
+      //Test_FunctionReferences_Client();
+      Test_MethodCall_Client();
+      //Test_SetProperty_Object_Client();
+    }
+    else
+    {
+      // Test_FunctionReferences_Server();
+      //Test_SetProperty_Object_Server();
+      Test_MethodCall_Server();
+    }
 
-  rtRemoteShutdown();
+    rtRemoteShutdown();
 
-  return 0;
+    return 0;
   }
 }

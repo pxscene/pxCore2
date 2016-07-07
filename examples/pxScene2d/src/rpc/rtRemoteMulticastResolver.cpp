@@ -551,6 +551,7 @@ rtRemoteMulticastResolver::registerObject(std::string const& name, sockaddr_stor
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_hosted_objects[name] = endpoint;
+  lock.unlock(); // TODO this wasn't here before.  Make sure it's right to put it here
   return RT_OK;
 }
 
