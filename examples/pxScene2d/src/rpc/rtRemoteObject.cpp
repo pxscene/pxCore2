@@ -11,6 +11,7 @@ rtRemoteObject::rtRemoteObject(std::string const& id, std::shared_ptr<rtRemoteCl
 
 rtRemoteObject::~rtRemoteObject()
 {
+  m_rpc_client->removeKeepAlive(m_id);
   Release();
   // TODO: send deref here
 }

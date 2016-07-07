@@ -9,6 +9,10 @@ rtRemoteFunction::rtRemoteFunction(std::string const& id, std::string const& nam
   , m_rpc_client(client)
   , m_timeout(client->getEnvironment()->Config->getUInt32("rt.rpc.default.request_timeout"))
 {
+  if (!strcmp(id.c_str(), "global"))
+  {
+    m_rpc_client->keepAlive(m_name);
+  }
 }
 
 rtRemoteFunction::~rtRemoteFunction()

@@ -36,6 +36,14 @@ same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
     return in1->sin_addr.s_addr == in2->sin_addr.s_addr;
   }
 
+  if (addr1.ss_family == AF_UNIX)
+  {
+    sockaddr_un const* un1 = reinterpret_cast<sockaddr_un const*>(&addr1);
+    sockaddr_un const* un2 = reinterpret_cast<sockaddr_un const*>(&addr2);
+
+    return 0 == strncmp(un1->sun_path, un2->sun_path, UNIX_PATH_MAX);
+  }
+
   assert(false);
   return false;
 }
@@ -283,6 +291,7 @@ rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t t
       std::shared_ptr<rtRemoteClient> client;
       std::string const endpointName = rtSocketToString(rpc_endpoint);
 
+      std::unique_lock<std::mutex> lock(m_mutex);
       auto itr = m_object_map.find(endpointName);
       if (itr != m_object_map.end())
         client = itr->second;
@@ -297,6 +306,7 @@ rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t t
           break;
         }
       }
+      m_mutex.unlock();
 
       if (!client)
       {
@@ -335,7 +345,22 @@ rtRemoteServer::openRpcListener()
 {
   int ret = 0;
 
-  rtGetDefaultInterface(m_rpc_endpoint, 0);
+  char const* socket_family = m_env->Config->getString("rt.rpc.server.socket_family");
+  if (socket_family && !strcmp(socket_family, "unix"))
+  {
+    // TODO: cleanup on shutdown
+    char socket_path[UNIX_PATH_MAX];
+    snprintf(socket_path, sizeof(socket_path), "/tmp/rt.sock_%d", getpid());
+    unlink(socket_path); // reuse path if needed
+
+    struct sockaddr_un *un_addr = reinterpret_cast<sockaddr_un*>(&m_rpc_endpoint);
+    un_addr->sun_family = AF_UNIX;
+    strncpy(un_addr->sun_path, socket_path, UNIX_PATH_MAX);
+  }
+  else
+  {
+    rtGetDefaultInterface(m_rpc_endpoint, 0);
+  }
 
   m_listen_fd = socket(m_rpc_endpoint.ss_family, SOCK_STREAM, 0);
   if (m_listen_fd < 0)
@@ -347,6 +372,12 @@ rtRemoteServer::openRpcListener()
 
   fcntl(m_listen_fd, F_SETFD, fcntl(m_listen_fd, F_GETFD) | FD_CLOEXEC);
 
+  if (m_rpc_endpoint.ss_family != AF_UNIX)
+  {
+    uint32_t one = 1;
+    if (-1 == setsockopt(m_listen_fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+      rtLogError("setting TCP_NODELAY failed");
+  }
 
   socklen_t len;
   rtSocketGetLength(m_rpc_endpoint, &len);
@@ -657,5 +688,14 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPt
 rtError
 rtRemoteServer::removeStaleObjects()
 {
+  std::unique_lock<std::mutex> lock(m_mutex);
+  for (auto itr = m_object_map.begin(); itr != m_object_map.end();)
+  {
+    if (itr->second.use_count() == 1)
+      itr = m_object_map.erase(itr);
+    else
+      ++itr;
+  }
+  lock.unlock();
   return m_env->ObjectCache->removeUnused(); // m_keep_alive_interval, num_removed);
 }

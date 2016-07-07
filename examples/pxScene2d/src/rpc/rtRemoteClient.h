@@ -39,8 +39,9 @@ public:
   rtError send(std::string const& objectName, std::string const& name, int argc, rtValue const* argv,
     rtValue* result, uint32_t timeout);
 
-  inline void keepAlive(std::string const& s)
-    { m_object_list.push_back(s); }
+  void keepAlive(std::string const& s);
+
+  void removeKeepAlive(std::string const& s);
 
   inline rtRemoteEnvironment* getEnvironment() const
     { return m_env; }
@@ -76,6 +77,7 @@ private:
 private:
   std::shared_ptr<rtRemoteStream>   m_stream;
   std::vector<std::string>          m_object_list;
+  std::mutex                        m_mutex;
   rtRemoteMessageHandler            m_message_handler;
   rtRemoteEnvironment*              m_env;
 };

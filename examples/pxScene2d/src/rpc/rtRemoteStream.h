@@ -72,6 +72,7 @@ private:
 
   int                       m_fd;
   time_t                    m_last_message_time;
+  time_t                    m_last_ka_message_time;
   MessageHandler            m_message_handler;
   rtRemoteInactivityHandler m_inactivity_handler;
   std::mutex                m_mutex;

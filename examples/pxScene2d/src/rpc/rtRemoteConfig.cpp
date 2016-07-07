@@ -100,6 +100,7 @@ static Setting kDefaultSettings[] =
   { "rt.rpc.default.request_timeout", "3000" },
   { "rt.rpc.resolver.locate_timeout", "3000" },
   { "rt.rpc.cache.max_object_lifetime", "15" },
+  { "rt.rpc.server.socket_family", "inet" },
   { nullptr, nullptr }
 };
 

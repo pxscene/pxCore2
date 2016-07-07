@@ -2,12 +2,19 @@
 #define __RT_SOCKET_UTILS_H__
 
 #include <sys/socket.h>
+#include <sys/un.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <rtError.h>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "rtRemoteTypes.h"
+
+#ifndef UNIX_PATH_MAX
+#define UNIX_PATH_MAX    108
+#endif
 
 rtError rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* index);
 rtError rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len);

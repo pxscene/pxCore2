@@ -113,8 +113,9 @@ rtRemoteStreamSelector::pollFds()
         if (e != RT_OK)
           m_streams[i].reset();
       }
-      else if (now - s->m_last_message_time > 2)
+      if (s && (now - s->m_last_ka_message_time > 10))
       {
+        s->m_last_ka_message_time = time(0);
         e = s->onInactivity(now);
         if (e != RT_OK)
           m_streams[i].reset();
@@ -133,6 +134,7 @@ rtRemoteStreamSelector::pollFds()
 rtRemoteStream::rtRemoteStream(rtRemoteEnvPtr env, int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint)
   : m_fd(fd)
   , m_last_message_time(0)
+  , m_last_ka_message_time(0)
   , m_message_handler(nullptr)
   , m_running(false)
   , m_env(env)
@@ -212,6 +214,9 @@ rtRemoteStream::close()
 
   m_dispatch_threads.clear();
 
+  m_inactivity_handler = nullptr;
+  m_message_handler = nullptr;
+
   if (m_fd != kInvalidSocket)
   {
     int ret = 0;
@@ -247,6 +252,13 @@ rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
     return e;
   }
   fcntl(m_fd, F_SETFD, fcntl(m_fd, F_GETFD) | FD_CLOEXEC);
+
+  if (endpoint.ss_family != AF_UNIX)
+  {
+    uint32_t one = 1;
+    if (-1 == setsockopt(m_fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+      rtLogError("setting TCP_NODELAY failed");
+  }
 
   socklen_t len;
   rtSocketGetLength(endpoint, &len);

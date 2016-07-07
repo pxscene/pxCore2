@@ -16,6 +16,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include <algorithm>
 #include <rapidjson/document.h>
 
 rtRemoteClient::rtRemoteClient(rtRemoteEnvPtr env, int fd,
@@ -122,14 +123,29 @@ rtRemoteClient::startSession(std::string const& objectName, uint32_t timeout)
   return res != nullptr ? RT_OK : RT_FAIL;
 }
 
+void rtRemoteClient::keepAlive(std::string const& s)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  m_object_list.push_back(s);
+}
+
+void rtRemoteClient::removeKeepAlive(std::string const& s)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  auto it = std::find(m_object_list.begin(), m_object_list.end(), s);
+  if (it != m_object_list.end()) m_object_list.erase(it);
+}
+
 rtError
 rtRemoteClient::sendKeepAlive()
 {
+  std::unique_lock<std::mutex> lock(m_mutex);
   if (m_object_list.empty())
     return RT_OK;
   rtRemoteRequestKeepAlive req;
   for (auto const& name : m_object_list)
     req.addObjectName(name);
+  lock.unlock();
   return m_stream->send(req);
 }
 
