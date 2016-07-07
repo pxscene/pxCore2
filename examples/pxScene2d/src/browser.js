@@ -131,9 +131,44 @@ inputBg.on("onKeyDown", function(e)
       reload();
       break;
 
+    case keys.HOME:
+      if(flags == 8) // <<  SHIFT KEY
+      {
+        selectToHome();
+      }
+      else
+      {
+        cursor_pos = 0;
+        updateCursor(cursor_pos);
+
+        clearSelection();
+      }
+      break;
+
+    case keys.END:
+      if(flags == 8) // <<  SHIFT KEY
+      {
+        selectToEnd();
+      }
+      else
+      {
+        cursor_pos = url.text.length;
+        updateCursor(cursor_pos);
+
+        clearSelection();
+      }
+      break;
+
     case keys.LEFT:
       if(cursor_pos > 0)
       {
+        if(flags == 24) // <<  CTRL + SHIFT KEY
+        {
+          selectToHome();
+
+          cursor_pos = 1; // allow for decrement below
+        }
+
         if(flags == 8) // <<  SHIFT KEY
         {
           if(selection_chars == 0) // New selection ?
@@ -151,7 +186,7 @@ inputBg.on("onKeyDown", function(e)
         updateCursor(cursor_pos);
       }
 
-      if(flags != 8 && selection.w != 0)
+      if(flags != 8 && flags != 24 && selection.w != 0)
       {
         clearSelection();
       }
@@ -160,6 +195,11 @@ inputBg.on("onKeyDown", function(e)
     case keys.RIGHT:
       if(cursor_pos < url.text.length)
       {
+        if(flags == 24) // <<  CTRL + SHIFT KEY
+        {
+          selectToEnd();
+        }
+
         if(flags == 8) // <<  SHIFT KEY
         {
           if(selection_chars == 0) // New selection ?
@@ -177,7 +217,7 @@ inputBg.on("onKeyDown", function(e)
         updateCursor(cursor_pos);
       }
 
-      if(flags != 8 && selection.w != 0)
+      if(flags != 8 && flags != 24 && selection.w != 0)
       {
         clearSelection();
       }
@@ -186,7 +226,7 @@ inputBg.on("onKeyDown", function(e)
      case keys.C:   // << CTRL + "c"
       if( ((flags & 16)==16) )  // ctrl Pressed also
       {
-         console.log("onKeyDown ....   CTRL-C >>> [" + selection_text + "]");
+//         console.log("onKeyDown ....   CTRL-C >>> [" + selection_text + "]");
 
          scene.clipboardSet('PX_CLIP_STRING', selection_text);
       }
@@ -199,7 +239,7 @@ inputBg.on("onKeyDown", function(e)
         //
         var fromClip = scene.clipboardGet('PX_CLIP_STRING'); // TODO ... pass TYPE of clip to get.
 
-        console.log("onKeyDown ....   CTRL-V >>> [" + fromClip + "]");
+//        console.log("onKeyDown ....   CTRL-V >>> [" + fromClip + "]");
 
         url.text = url.text.slice(0, cursor_pos) + fromClip + url.text.slice(cursor_pos);
 
@@ -219,7 +259,7 @@ inputBg.on("onKeyDown", function(e)
       {
         // On CUT ... access the Native CLIPBOARD and GET the top!   fancy.js
         //
-        console.log("onKeyDown ....   CTRL-X >>> [" + selection_text + "]");
+//        console.log("onKeyDown ....   CTRL-X >>> [" + selection_text + "]");
         scene.clipboardSet('PX_CLIP_STRING', selection_text);
 
         removeSelection();
@@ -245,7 +285,7 @@ function updateCursor(pos)
 
   cursor.x = url.x + metrics.w; // offset to cursor
 
-  console.log("updateCursor() >>> pos = " + pos);
+//  console.log("updateCursor() >>> pos = " + pos);
 }
 
 function clearSelection()
@@ -295,6 +335,36 @@ function makeSelection()  // Selection made: left-to-right
   {
     selection.x -= metrics.w;
   }
+}
+
+function selectToHome()
+{
+  // Select from Cursor to End
+  selection_start = cursor_pos;
+  selection_x     = cursor.x + cursor.w; // Start selection
+
+  selection_chars = -cursor_pos;  // characters to the LEFT
+
+  makeSelection();
+
+  cursor_pos = 0;
+  updateCursor(cursor_pos);
+}
+
+function selectToEnd()
+{
+  // Select from Cursor to Start
+  selection_start = cursor_pos - 1;
+  selection_x     = cursor.x + cursor.w; // Start selection
+
+  selection_chars = url.text.length - cursor_pos; // characters to the RIGHT
+
+  cursor_pos += selection_chars - 1;
+
+  makeSelection();
+
+  cursor_pos = url.text.length;
+  updateCursor(cursor_pos);
 }
 
 inputBg.on("onFocus", function(e) {
