@@ -9,13 +9,13 @@
 
 typedef struct rtRemoteEnvironment rtRemoteEnvironment;
 
+rtRemoteEnvironment* rtGlobalEnvironment();
+
+
 /**
  * Initailize the rtRemote sub-system
  * @returns RT_OK for success
  */
-rtError
-rtRemoteInit();
-
 rtError
 rtRemoteInit(rtRemoteEnvironment* env);
 
@@ -27,7 +27,7 @@ rtRemoteInit(rtRemoteEnvironment* env);
  * @returns RT_OK for sucess
  */
 rtError
-rtRemoteRegisterObject(char const* id, rtObjectRef const& obj);
+rtRemoteRegisterObject(rtRemoteEnvironment* env, char const* id, rtObjectRef const& obj);
 
 /**
  * Locate a remote object by id.
@@ -36,15 +36,12 @@ rtRemoteRegisterObject(char const* id, rtObjectRef const& obj);
  * @returns RT_OK for success
  */
 rtError
-rtRemoteLocateObject(char const* id, rtObjectRef& obj);
+rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj);
 
 /**
  * Shutdown rtRemote sub-system
  * @returns RT_OK for success
  */
-rtError
-rtRemoteShutdown();
-
 rtError
 rtRemoteShutdown(rtRemoteEnvironment* env);
 
@@ -58,7 +55,7 @@ rtRemoteShutdown(rtRemoteEnvironment* env);
  * @returns RT_OK success
  */
 rtError
-rtRemoteRunOnce(uint32_t timeout);
+rtRemoteRunOnce(rtRemoteEnvironment* env, uint32_t timeout);
 
 /**
  * Same as rtRemoteRunOnce, except that it will dispatch messages until the timout
@@ -67,6 +64,6 @@ rtRemoteRunOnce(uint32_t timeout);
  * to run forever, or until another thread calls rtRemoteShutdown();
  */
 rtError
-rtRemoteRun(uint32_t timeout);
+rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout);
 
 #endif

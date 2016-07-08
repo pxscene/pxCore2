@@ -64,20 +64,6 @@ rtRemoteEnvironment::shutdown()
 }
 
 rtError
-rtRemoteInit()
-{
-  {
-    std::lock_guard<std::mutex> lock(gMutex);
-    if (gEnv == nullptr)
-    {
-      gEnv = new rtRemoteEnvironment();
-      rtLogDebug("global environment allocated: %p", gEnv);
-    }
-  }
-  return rtRemoteInit(gEnv);
-}
-
-rtError
 rtRemoteInit(rtRemoteEnvironment* env)
 {
   rtError e = RT_FAIL;
@@ -107,12 +93,6 @@ rtRemoteInit(rtRemoteEnvironment* env)
 }
 
 rtError
-rtRemoteShutdown()
-{
-  return rtRemoteShutdown(gEnv);
-}
-
-rtError
 rtRemoteShutdown(rtRemoteEnvironment* env)
 {
   rtError e = RT_FAIL;
@@ -130,7 +110,7 @@ rtRemoteShutdown(rtRemoteEnvironment* env)
   }
   else
   {
-    rtLogInfo("environment reference count is non-zero. %u", gEnv->RefCount);
+    rtLogInfo("environment reference count is non-zero. %u", env->RefCount);
     e = RT_OK;
   }
 
@@ -138,9 +118,9 @@ rtRemoteShutdown(rtRemoteEnvironment* env)
 }
 
 rtError
-rtRemoteRegisterObject(char const* id, rtObjectRef const& obj)
+rtRemoteRegisterObject(rtRemoteEnvironment* env, char const* id, rtObjectRef const& obj)
 {
-  if (gEnv == nullptr)
+  if (env == nullptr)
     return RT_FAIL;
 
   if (id == nullptr)
@@ -149,36 +129,38 @@ rtRemoteRegisterObject(char const* id, rtObjectRef const& obj)
   if (!obj)
     return RT_ERROR_INVALID_ARG;
 
-  return gEnv->Server->registerObject(id, obj);
+  return env->Server->registerObject(id, obj);
 }
 
 rtError
-rtRemoteLocateObject(char const* id, rtObjectRef& obj)
+rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj)
 {
-  if (gEnv == nullptr)
-  {
-    rtLogError("context is null");
-    return RT_FAIL;
-  }
+  if (env == nullptr)
+    return RT_ERROR_INVALID_ARG;
 
   if (id == nullptr)
-  {
-    rtLogError("invalid id (null)");
     return RT_ERROR_INVALID_ARG;
-  }
 
-  return gEnv->Server->findObject(id, obj, 3000);
+  return env->Server->findObject(id, obj, 3000);
 }
 
 rtError
-rtRemoteRuncOnce(uint32_t /*timeout*/)
+rtRemoteRuncOnce(rtRemoteEnvironment* env, uint32_t timeout)
 {
   return RT_OK;
 }
 
 rtError
-rtRemoteRun(uint32_t /*timeout*/)
+rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
 {
   return RT_OK;
 }
 
+rtRemoteEnvironment*
+rtGlobalEnvironment()
+{
+  std::lock_guard<std::mutex> lock(gMutex);
+  if (gEnv == nullptr)
+    gEnv = new rtRemoteEnvironment();
+  return gEnv;
+}

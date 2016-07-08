@@ -11,6 +11,8 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/prettywriter.h>
 
+rtRemoteEnvironment* env = nullptr;
+
 #define RT_ASSERT(E) if ((E) != RT_OK) { printf("failed: %d, %d\n", (E), __LINE__); assert(false); }
 
 class rtLcd : public rtObject
@@ -104,7 +106,7 @@ static char const* objectName = "com.xfinity.xsmart.Thermostat/JakesHouse";
 void Test_SetProperty_Basic_Client()
 {
   rtObjectRef objectRef;
-  rtError e = rtRemoteLocateObject(objectName, objectRef);
+  rtError e = rtRemoteLocateObject(env, objectName, objectRef);
   assert(e == RT_OK);
 
   int i = 10;
@@ -126,7 +128,7 @@ void Test_SetProperty_Basic_Client()
 void Test_SetProperty_Basic_Server()
 {
   rtObjectRef obj(new rtThermostat());
-  rtError e = rtRemoteRegisterObject(objectName, obj);
+  rtError e = rtRemoteRegisterObject(env, objectName, obj);
   assert(e == RT_OK);
   while (true)
     sleep(10);
@@ -135,7 +137,7 @@ void Test_SetProperty_Basic_Server()
 void Test_FunctionReferences_Client()
 {
   rtObjectRef objectRef;
-  rtError e = rtRemoteLocateObject(objectName, objectRef);
+  rtError e = rtRemoteLocateObject(env, objectName, objectRef);
   assert(e == RT_OK);
 
   e = objectRef.set("onTempChanged", new rtFunctionCallback(my_callback));
@@ -145,7 +147,7 @@ void Test_FunctionReferences_Client()
 void Test_FunctionReferences_Server()
 {
   rtObjectRef obj(new rtThermostat());
-  rtError e = rtRemoteRegisterObject(objectName, obj);
+  rtError e = rtRemoteRegisterObject(env, objectName, obj);
   assert(e == RT_OK);
 
   // locator.removeObject(objectName);
@@ -180,7 +182,7 @@ void
 Test_MethodCall_Client()
 {
   rtObjectRef objectRef;
-  rtError e = rtRemoteLocateObject(objectName, objectRef);
+  rtError e = rtRemoteLocateObject(env, objectName, objectRef);
   assert(e == RT_OK);
 
   int i = 1;
@@ -200,7 +202,7 @@ void
 Test_MethodCall_Server()
 {
   rtObjectRef obj(new rtThermostat());
-  rtError e = rtRemoteRegisterObject(objectName, obj);
+  rtError e = rtRemoteRegisterObject(env, objectName, obj);
   assert(e == RT_OK);
   while (true)
     sleep(10);
@@ -210,7 +212,7 @@ void
 Test_SetProperty_Object_Client()
 {
   rtObjectRef objectRef;
-  rtError e = rtRemoteLocateObject(objectName, objectRef);
+  rtError e = rtRemoteLocateObject(env, objectName, objectRef);
   assert(e == RT_OK);
 
   int n = 10;
@@ -246,7 +248,7 @@ Test_SetProperty_Object_Server()
 
   obj.set("lcd", lcd);
 
-  rtError e = rtRemoteRegisterObject(objectName, obj);
+  rtError e = rtRemoteRegisterObject(env, objectName, obj);
   assert(e == RT_OK);
   while (true)
     sleep(10);
@@ -263,7 +265,9 @@ std::map< int, TestCase > testCases;
 
 int main(int argc, char* /*argv*/[])
 {
-  rtError e = rtRemoteInit();
+  env = rtGlobalEnvironment();
+
+  rtError e = rtRemoteInit(env);
   assert(e == RT_OK);
 
   if (argc == 2)
@@ -279,7 +283,7 @@ int main(int argc, char* /*argv*/[])
     Test_MethodCall_Server();
   }
 
-  rtRemoteShutdown();
+  rtRemoteShutdown(env);
 
   return 0;
 }

@@ -8,6 +8,11 @@
 #include "rtValueWriter.h"
 #include "rtRemoteConfig.h"
 
+#include <sstream>
+#include <set>
+#include <algorithm>
+
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <errno.h>
@@ -16,8 +21,123 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <rtLog.h>
-#include <sstream>
-#include <algorithm>
+#include <dirent.h>
+
+static bool
+is_valid_pid(char const* s)
+{
+  while (s && *s)
+  {
+    if (!isdigit(*s++))
+      return false;
+  }
+  return true;
+}
+
+static int
+parse_pid(char const* s)
+{
+  int pid = -1;
+
+  char const* p = s + strlen(s) - 1;
+  while (p && *p)
+  {
+    if (!isdigit(*p))
+      break;
+    p--;
+  }
+  if (p)
+  {
+    p++;
+    pid = strtol(p, nullptr, 10);
+  }
+  return pid;
+}
+
+static void
+cleanup_stale_unix_sockets()
+{
+  DIR* d = opendir("/proc/");
+  if (!d)
+  {
+    rtError e = rtErrorFromErrno(errno);
+    rtLogWarn("failed to open directory /proc. %s", rtStrError(e));
+    return;
+  }
+
+  dirent* entry = reinterpret_cast<dirent *>(malloc(1024));
+  dirent* result = nullptr;
+
+  std::set<int> active_pids;
+
+  int ret = 0;
+  do
+  {
+    ret = readdir_r(d, entry, &result);
+    if (ret == 0 && (result != nullptr))
+    {
+      if (is_valid_pid(result->d_name))
+      {
+        int pid = static_cast<int>(strtol(result->d_name, nullptr, 10));
+        active_pids.insert(pid);
+      }
+    }
+  }
+  while ((result != nullptr) && ret == 0);
+  closedir(d);
+
+  d = opendir("/tmp");
+  if (!d)
+  {
+    rtError e = rtErrorFromErrno(errno);
+    rtLogWarn("failed to open directory /tmp. %s", rtStrError(e));
+    return;
+  }
+
+  char path[UNIX_PATH_MAX];
+  do
+  {
+    ret = readdir_r(d, entry, &result);
+    if (ret == 0 && (result != nullptr))
+    {
+      memset(path, 0, sizeof(path));
+      strcpy(path, "/tmp/");
+      strcat(path, result->d_name);
+      if (strncmp(path, kUnixSocketTemplateRoot, strlen(kUnixSocketTemplateRoot)) == 0)
+      {
+        int pid = parse_pid(result->d_name);
+        if (active_pids.find(pid) == active_pids.end())
+        {
+          rtLogInfo("removing inactive unix socket %s", path);
+          int ret = unlink(path);
+          if (ret == -1)
+          {
+            rtError e = rtErrorFromErrno(errno);
+            rtLogWarn("failed to remove inactive unix socket %s. %s",
+              path, rtStrError(e));
+          }
+        }
+      }
+    }
+  }
+  while ((result != nullptr) && ret == 0);
+
+  closedir(d);
+  free(entry);
+}
+
+static bool
+is_unix_domain(rtRemoteEnvironment* env)
+{
+  if (!env)
+    return false;
+ 
+  char const* s = env->Config->getString("rt.rpc.server.socket_family");
+  if (s && !strcmp(s, "unix"))
+    return true;
+
+  return false;
+}
 
 static bool
 same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
@@ -344,18 +464,27 @@ rtError
 rtRemoteServer::openRpcListener()
 {
   int ret = 0;
+  char path[UNIX_PATH_MAX];
 
-  char const* socket_family = m_env->Config->getString("rt.rpc.server.socket_family");
-  if (socket_family && !strcmp(socket_family, "unix"))
+  memset(path, 0, sizeof(path));
+  cleanup_stale_unix_sockets();
+
+  if (is_unix_domain(m_env))
   {
-    // TODO: cleanup on shutdown
-    char socket_path[UNIX_PATH_MAX];
-    snprintf(socket_path, sizeof(socket_path), "/tmp/rt.sock_%d", getpid());
-    unlink(socket_path); // reuse path if needed
+    rtError e = rtCreateUnixSocketName(0, path, sizeof(path));
+    if (e != RT_OK)
+      return e;
+
+    ret = unlink(path); // reuse path if needed
+    if (ret == -1 && errno != ENOENT)
+    {
+      rtError e = rtErrorFromErrno(errno);
+      rtLogInfo("error trying to remove %s. %s", path, rtStrError(e));
+    }
 
     struct sockaddr_un *un_addr = reinterpret_cast<sockaddr_un*>(&m_rpc_endpoint);
     un_addr->sun_family = AF_UNIX;
-    strncpy(un_addr->sun_path, socket_path, UNIX_PATH_MAX);
+    strncpy(un_addr->sun_path, path, UNIX_PATH_MAX);
   }
   else
   {
@@ -366,7 +495,7 @@ rtRemoteServer::openRpcListener()
   if (m_listen_fd < 0)
   {
     rtError e = rtErrorFromErrno(errno);
-    rtLogError("failed to create TCP socket. %s", rtStrError(e));
+    rtLogError("failed to create socket. %s", rtStrError(e));
     return e;
   }
 

@@ -16,6 +16,8 @@
 #define UNIX_PATH_MAX    108
 #endif
 
+#define kUnixSocketTemplateRoot "/tmp/rt_remote_soc"
+
 rtError rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* index);
 rtError rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len);
 rtError rtGetInterfaceAddress(char const* name, sockaddr_storage& ss);
@@ -33,5 +35,6 @@ rtError rtGetPeerName(int fd, sockaddr_storage& endpoint);
 rtError rtGetSockName(int fd, sockaddr_storage& endpoint);
 rtError	rtCloseSocket(int& fd);
 rtError rtGetDefaultInterface(sockaddr_storage& addr, uint16_t port);
+rtError rtCreateUnixSocketName(pid_t pid, char* buff, int n);
 
 #endif

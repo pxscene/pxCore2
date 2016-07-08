@@ -544,3 +544,24 @@ rtGetDefaultInterface(sockaddr_storage& addr, uint16_t port)
 
   return e;
 }
+
+rtError
+rtCreateUnixSocketName(pid_t pid, char* buff, int n)
+{
+  const char* kUnixSocketTemplate = kUnixSocketTemplateRoot ".%d";
+
+  if (!buff)
+    return RT_ERROR_INVALID_ARG;
+
+  if (pid == 0)
+    pid = getpid();
+
+  int count = snprintf(buff, n, kUnixSocketTemplate, pid);
+  if (count >= n)
+  {
+    rtLogError("truncated socket path %d <= %d", n, count);
+    return RT_FAIL;
+  }
+
+  return RT_OK;
+}

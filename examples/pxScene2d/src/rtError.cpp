@@ -92,4 +92,3 @@ const char* rtStrError_BuiltIn(rtError e)
   }
   return s;
 }
-
