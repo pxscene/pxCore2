@@ -16,7 +16,6 @@ RTCORE_SRCS=\
 
 RTRPC_SRCS=\
   rtRemoteServer.cpp \
-  rtRemoteResolver.cpp \
   rtRemoteObject.cpp \
   rtRemoteFunction.cpp \
   rtRemoteMessage.cpp \
@@ -27,10 +26,16 @@ RTRPC_SRCS=\
   rtRemoteStream.cpp \
   rtObjectCache.cpp \
   rtRemote.cpp \
-  rtRemoteConfig.cpp
+  rtRemoteConfig.cpp \
+  rtRemoteFactory.cpp \
+  rtRemoteFileResolver.cpp \
+  rtRemoteMulticastResolver.cpp \
+  rtRemoteNsResolver.cpp \
+  rtRemoteNameService.cpp
 
 SAMPLEAPP_SRCS=\
   rpc_main.cpp
+
 
 ifeq ($V, 1)
   CXX_PRETTY = $(CXX)
@@ -53,7 +58,7 @@ endif
 CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
 CFLAGS+=-DRT_REMOTE_LOOPBACK_ONLY
 CXXFLAGS+=-std=c++0x $(CFLAGS)
-LDFLAGS =-pthread -ldl -luuid
+LDFLAGS =-pthread -ldl -luuid -Wl,-rpath=../../,--enable-new-dtags
 OBJDIR=obj
 
 RTCORE_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RTCORE_SRCS)))
@@ -92,4 +97,4 @@ lib$(LIBRTRPC).so: $(RTRPC_OBJS)
 	$(CXX_PRETTY) $(RTRPC_OBJS) $(LDFLAGS) -shared -o $@
 
 $(SAMPLEAPP): $(SAMPLEAPP_OBJS) lib$(LIBRTRPC).so 
-	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../ -l$(LIBRTCORE) -l$(LIBRTRPC)
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -g -o $@ -L./ -L../ -l$(LIBRTCORE) -l$(LIBRTRPC)

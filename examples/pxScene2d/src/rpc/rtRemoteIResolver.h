@@ -3,23 +3,20 @@
 
 #include <memory>
 #include <string>
-
 #include <rtError.h>
 #include <sys/socket.h>
 #include <stdint.h>
 
 #include "rtRemoteTypes.h"
 
-class rtIRpcResolver
+class rtRemoteIResolver
 {
 public:
-  virtual ~rtIRpcResolver() { }
+  virtual ~rtRemoteIResolver() { }
   virtual rtError open(sockaddr_storage const& rpc_endpoint) = 0;
   virtual rtError close() = 0;
   virtual rtError registerObject(std::string const& name, sockaddr_storage const& endpoint) = 0;
   virtual rtError locateObject(std::string const& name, sockaddr_storage& endpoint, uint32_t timeout) = 0;
 };
-
-rtIRpcResolver* rtRemoteCreateResolver(rtRemoteEnvPtr env);
 
 #endif

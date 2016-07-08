@@ -50,6 +50,18 @@
 #define kInvalidPropertyIndex std::numeric_limits<uint32_t>::max()
 #define kInvalidCorrelationKey std::numeric_limits<uint32_t>::max()
 
+#define kNsMessageTypeLookup "ns.lookup"
+#define kNsMessageTypeLookupResponse "ns.lookup.response"
+#define kNsMessageTypeDeregister "ns.deregister"
+#define kNsMessageTypeDeregisterResponse "ns.deregister.response"
+#define kNsMessageTypeUpdate "ns.update"
+#define kNsMessageTypeUpdateResponse "ns.update.response"
+#define kNsMessageTypeRegister "ns.register"
+#define kNsMessageTypeRegisterResponse "ns.register.response"
+#define kNsFieldNameStatusCode "ns.status"
+#define kNsStatusSuccess "ns.status.success"
+#define kNsStatusFail "ns.status.fail"
+
 class rtRemoteMessage
 {
 public:
@@ -143,6 +155,7 @@ char const* rtMessage_GetMessageType(rapidjson::Document const& doc);
 uint32_t    rtMessage_GetCorrelationKey(rapidjson::Document const& doc);
 char const* rtMessage_GetObjectId(rapidjson::Document const& doc);
 rtError     rtMessage_GetStatusCode(rapidjson::Document const& doc);
+char const* rtMessage_GetStatusMessage(rapidjson::Document const& doc);
 rtError     rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out = stdout);
 rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...)
               RT_PRINTF_FORMAT(3, 4);

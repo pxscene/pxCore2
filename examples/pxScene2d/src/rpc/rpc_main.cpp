@@ -1,6 +1,7 @@
 
 #include "rtRemote.h"
 #include "rtRemoteConfig.h"
+#include "rtRemoteNameService.h"
 #include <rtObject.h>
 #include <functional>
 
@@ -101,7 +102,7 @@ static rtError my_callback(int /*argc*/, rtValue const* /*argv*/, rtValue* resul
 }
 
 
-static char const* objectName = "com.xfinity.xsmart.Thermostat/JakesHouse";
+static char const* objectName = "com.xfinity.xsmart.Thermostat.JakesHouse";
 
 void Test_SetProperty_Basic_Client()
 {
@@ -265,25 +266,36 @@ std::map< int, TestCase > testCases;
 
 int main(int argc, char* /*argv*/[])
 {
-  env = rtGlobalEnvironment();
-
-  rtError e = rtRemoteInit(env);
-  assert(e == RT_OK);
-
-  if (argc == 2)
+  if (argc == 3)
   {
-    // Test_FunctionReferences_Client();
-    Test_MethodCall_Client();
-    // Test_SetProperty_Object_Client();
+    rtError e = rtRemoteInitNs();
+    assert(e == RT_OK);
+    while(1);
+    rtRemoteShutdownNs();
+    return 0;
   }
   else
   {
-    // Test_FunctionReferences_Server();
-    // Test_SetProperty_Object_Server();
-    Test_MethodCall_Server();
+    env = rtGlobalEnvironment();
+
+    rtError e = rtRemoteInit(env);
+    assert(e == RT_OK);
+
+    if (argc == 2)
+    {
+      //Test_FunctionReferences_Client();
+      Test_MethodCall_Client();
+      //Test_SetProperty_Object_Client();
+    }
+    else
+    {
+      // Test_FunctionReferences_Server();
+      //Test_SetProperty_Object_Server();
+      Test_MethodCall_Server();
+    }
+
+    rtRemoteShutdown(env);
+
+    return 0;
   }
-
-  rtRemoteShutdown(env);
-
-  return 0;
 }

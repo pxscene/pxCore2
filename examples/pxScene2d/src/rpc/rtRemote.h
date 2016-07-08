@@ -66,4 +66,7 @@ rtRemoteRunOnce(rtRemoteEnvironment* env, uint32_t timeout);
 rtError
 rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout);
 
+rtError rtRemoteInitNs();
+rtError rtRemoteShutdownNs();
+
 #endif
