@@ -7,6 +7,7 @@
 #include "rtValueReader.h"
 #include "rtValueWriter.h"
 #include "rtRemoteConfig.h"
+#include "rtRemoteFactory.h"
 
 #include <sstream>
 #include <set>
@@ -248,7 +249,8 @@ rtRemoteServer::open()
   if (err != RT_OK)
     return err;
 
-  m_resolver = rtRemoteCreateResolver(m_env);
+  m_resolver = rtRemoteFactory::rtRemoteCreateResolver(MULTICAST_RESOLVER, m_env);
+  //m_resolver = rtRemoteFactory::rtRemoteCreateResolver(NS_RESOLVER);
   err = start();
   if (err != RT_OK)
   {

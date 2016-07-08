@@ -52,6 +52,18 @@
 #define kMessageTypeKeepAliveRequest "keep_alive.request"
 #define kMessageTypeOpenSessionRequest "session.open.request"
 
+#define kNsMessageTypeLookup "ns.lookup"
+#define kNsMessageTypeLookupResponse "ns.lookup.response"
+#define kNsMessageTypeDeregister "ns.deregister"
+#define kNsMessageTypeDeregisterResponse "ns.deregister.response"
+#define kNsMessageTypeUpdate "ns.update"
+#define kNsMessageTypeUpdateResponse "ns.update.response"
+#define kNsMessageTypeRegister "ns.register"
+#define kNsMessageTypeRegisterResponse "ns.register.response"
+#define kNsFieldNameStatusCode "ns.status"
+#define kNsStatusSuccess "ns.status.success"
+#define kNsStatusFail "ns.status.fail"
+
 #define kInvalidPropertyIndex std::numeric_limits<uint32_t>::max()
 #define kInvalidCorrelationKey std::numeric_limits<uint32_t>::max()
 

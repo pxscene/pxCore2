@@ -1,4 +1,4 @@
-#include "rtRemoteResolver.h"
+#include "rtRemoteMulticastResolver.h"
 #include "rtSocketUtils.h"
 #include "rtRemoteMessage.h"
 #include "rtRemoteConfig.h"
@@ -17,66 +17,19 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <ifaddrs.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include <rapidjson/document.h>
 #include <rapidjson/memorystream.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
-
-class rtRemoteMulticastResolver : public rtIRpcResolver
-{
-public:
-  rtRemoteMulticastResolver(rtRemoteEnvPtr env);
-  ~rtRemoteMulticastResolver();
-
-public:
-  virtual rtError open(sockaddr_storage const& rpc_endpoint) override;
-  virtual rtError close() override;
-  virtual rtError registerObject(std::string const& name, sockaddr_storage const& endpoint) override;
-  virtual rtError locateObject(std::string const& name, sockaddr_storage& endpoint,
-    uint32_t timeout) override;
-
-private:
-  using CommandHandler = rtError (rtRemoteMulticastResolver::*)(rtJsonDocPtr const&, sockaddr_storage const&);
-  using HostedObjectsMap = std::map< std::string, sockaddr_storage >;
-  using CommandHandlerMap = std::map< std::string, CommandHandler >;
-  using RequestMap = std::map< rtCorrelationKey, rtJsonDocPtr >;
-
-  void runListener();
-  void doRead(int fd, rtSocketBuffer& buff);
-  void doDispatch(char const* buff, int n, sockaddr_storage* peer);
-
-  rtError init();
-  rtError openUnicastSocket();
-  rtError openMulticastSocket();
-
-  // command handlers
-  rtError onSearch(rtJsonDocPtr const& doc, sockaddr_storage const& soc);
-  rtError onLocate(rtJsonDocPtr const& doc, sockaddr_storage const& soc);
-
-private:
-  sockaddr_storage  m_mcast_dest;
-  sockaddr_storage  m_mcast_src;
-  int               m_mcast_fd;
-  uint32_t          m_mcast_src_index;
-
-  sockaddr_storage  m_ucast_endpoint;
-  int               m_ucast_fd;
-  socklen_t         m_ucast_len;
-
-  std::unique_ptr<std::thread> m_read_thread;
-  std::condition_variable m_cond;
-  std::mutex        m_mutex;
-  pid_t             m_pid;
-  CommandHandlerMap m_command_handlers;
-  std::string       m_rpc_addr;
-  uint16_t          m_rpc_port;
-  HostedObjectsMap  m_hosted_objects;
-  RequestMap	      m_pending_searches;
-  int		            m_shutdown_pipe[2];
-  rtRemoteEnvPtr    m_env;
-};
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/filewritestream.h>
+#include <rapidjson/pointer.h>
 
 rtRemoteMulticastResolver::rtRemoteMulticastResolver(rtRemoteEnvPtr env)
   : m_mcast_fd(-1)
@@ -204,6 +157,83 @@ rtRemoteMulticastResolver::open(sockaddr_storage const& rpc_endpoint)
 }
 
 rtError
+rtRemoteMulticastResolver::openMulticastSocket()
+{
+  int err = 0;
+
+  m_mcast_fd = socket(m_mcast_dest.ss_family, SOCK_DGRAM, 0);
+  if (m_mcast_fd < 0)
+  {
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to create datagram socket with family:%d. %s",
+      m_mcast_dest.ss_family, rtStrError(e));
+    return e;
+  }
+  fcntl(m_mcast_fd, F_SETFD, fcntl(m_mcast_fd, F_GETFD) | FD_CLOEXEC);
+
+  // re-use because multiple applications may want to join group on same machine
+  int reuse = 1;
+  err = setsockopt(m_mcast_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
+  if (err < 0)
+  {
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to set reuseaddr. %s", rtStrError(e));
+    return e;
+  }
+
+  if (m_mcast_src.ss_family == AF_INET)
+  {
+    sockaddr_in saddr = *(reinterpret_cast<sockaddr_in *>(&m_mcast_src));
+    saddr.sin_addr.s_addr = INADDR_ANY;
+    err = bind(m_mcast_fd, reinterpret_cast<sockaddr *>(&saddr), sizeof(sockaddr_in));
+  }
+  else
+  {
+    sockaddr_in6* v6 = reinterpret_cast<sockaddr_in6 *>(&m_mcast_src);
+    v6->sin6_addr = in6addr_any;
+    err = bind(m_mcast_fd, reinterpret_cast<sockaddr *>(v6), sizeof(sockaddr_in6));
+  }
+
+  if (err < 0)
+  {
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to bind multicast socket to %s. %s",
+        rtSocketToString(m_mcast_src).c_str(),  rtStrError(e));
+    return e;
+  }
+
+  // join group
+  if (m_mcast_src.ss_family == AF_INET)
+  {
+    ip_mreq group;
+    group.imr_multiaddr = reinterpret_cast<sockaddr_in *>(&m_mcast_dest)->sin_addr;
+    group.imr_interface = reinterpret_cast<sockaddr_in *>(&m_mcast_src)->sin_addr;
+
+    err = setsockopt(m_mcast_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&group, sizeof(group));
+  }
+  else
+  {
+    ipv6_mreq mreq;
+    mreq.ipv6mr_multiaddr = reinterpret_cast<sockaddr_in6 *>(&m_mcast_dest)->sin6_addr;
+    mreq.ipv6mr_interface = m_mcast_src_index;
+    err = setsockopt(m_mcast_fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq));
+  }
+
+  if (err < 0)
+  {
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("failed to join mcast group %s. %s", rtSocketToString(m_mcast_dest).c_str(),
+      rtStrError(e));
+    return e;
+  }
+
+  rtLogInfo("successfully joined multicast group: %s on interface: %s",
+    rtSocketToString(m_mcast_dest).c_str(), rtSocketToString(m_mcast_src).c_str());
+
+  return RT_OK;
+}
+
+rtError
 rtRemoteMulticastResolver::openUnicastSocket()
 {
   int ret = 0;
@@ -289,7 +319,6 @@ rtRemoteMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage co
 
   int key = rtMessage_GetCorrelationKey(*doc);
 
-
   auto itr = m_hosted_objects.end();
 
   char const* objectId = rtMessage_GetObjectId(*doc);
@@ -312,7 +341,7 @@ rtRemoteMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage co
 
     return rtSendDocument(doc, m_ucast_fd, &soc);
   }
-
+  
   return RT_OK;
 }
 
@@ -529,87 +558,6 @@ rtRemoteMulticastResolver::registerObject(std::string const& name, sockaddr_stor
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_hosted_objects[name] = endpoint;
+  lock.unlock(); // TODO this wasn't here before.  Make sure it's right to put it here
   return RT_OK;
-}
-
-rtError
-rtRemoteMulticastResolver::openMulticastSocket()
-{
-  int err = 0;
-
-  m_mcast_fd = socket(m_mcast_dest.ss_family, SOCK_DGRAM, 0);
-  if (m_mcast_fd < 0)
-  {
-    rtError e = rtErrorFromErrno(errno);
-    rtLogError("failed to create datagram socket with family:%d. %s",
-      m_mcast_dest.ss_family, rtStrError(e));
-    return e;
-  }
-  fcntl(m_mcast_fd, F_SETFD, fcntl(m_mcast_fd, F_GETFD) | FD_CLOEXEC);
-
-  // re-use because multiple applications may want to join group on same machine
-  int reuse = 1;
-  err = setsockopt(m_mcast_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
-  if (err < 0)
-  {
-    rtError e = rtErrorFromErrno(errno);
-    rtLogError("failed to set reuseaddr. %s", rtStrError(e));
-    return e;
-  }
-
-  if (m_mcast_src.ss_family == AF_INET)
-  {
-    sockaddr_in saddr = *(reinterpret_cast<sockaddr_in *>(&m_mcast_src));
-    saddr.sin_addr.s_addr = INADDR_ANY;
-    err = bind(m_mcast_fd, reinterpret_cast<sockaddr *>(&saddr), sizeof(sockaddr_in));
-  }
-  else
-  {
-    sockaddr_in6* v6 = reinterpret_cast<sockaddr_in6 *>(&m_mcast_src);
-    v6->sin6_addr = in6addr_any;
-    err = bind(m_mcast_fd, reinterpret_cast<sockaddr *>(v6), sizeof(sockaddr_in6));
-  }
-
-  if (err < 0)
-  {
-    rtError e = rtErrorFromErrno(errno);
-    rtLogError("failed to bind multicast socket to %s. %s",
-        rtSocketToString(m_mcast_src).c_str(),  rtStrError(e));
-    return e;
-  }
-
-  // join group
-  if (m_mcast_src.ss_family == AF_INET)
-  {
-    ip_mreq group;
-    group.imr_multiaddr = reinterpret_cast<sockaddr_in *>(&m_mcast_dest)->sin_addr;
-    group.imr_interface = reinterpret_cast<sockaddr_in *>(&m_mcast_src)->sin_addr;
-
-    err = setsockopt(m_mcast_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&group, sizeof(group));
-  }
-  else
-  {
-    ipv6_mreq mreq;
-    mreq.ipv6mr_multiaddr = reinterpret_cast<sockaddr_in6 *>(&m_mcast_dest)->sin6_addr;
-    mreq.ipv6mr_interface = m_mcast_src_index;
-    err = setsockopt(m_mcast_fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq));
-  }
-
-  if (err < 0)
-  {
-    rtError e = rtErrorFromErrno(errno);
-    rtLogError("failed to join mcast group %s. %s", rtSocketToString(m_mcast_dest).c_str(),
-      rtStrError(e));
-    return e;
-  }
-
-  rtLogInfo("successfully joined multicast group: %s on interface: %s",
-    rtSocketToString(m_mcast_dest).c_str(), rtSocketToString(m_mcast_src).c_str());
-
-  return RT_OK;
-}
-
-rtIRpcResolver* rtRemoteCreateResolver(rtRemoteEnvPtr env)
-{
-  return new rtRemoteMulticastResolver(env);
 }

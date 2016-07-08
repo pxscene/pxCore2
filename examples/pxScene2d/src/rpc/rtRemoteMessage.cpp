@@ -252,6 +252,15 @@ rtMessage_GetStatusCode(rapidjson::Document const& doc)
   return static_cast<rtError>(itr->value.GetInt());
 }
 
+char const*
+rtMessage_GetStatusMessage(rapidjson::Document const& doc)
+{
+  rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNameStatusMessage);
+  return itr != doc.MemberEnd() 
+    ? itr->value.GetString()
+    : NULL;
+}
+
 #if 0
 rtError
 rtRemoteMessage::readMessage(int fd, rt_sockbuf_t& buff, rtRemoteMessage& m)
