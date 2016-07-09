@@ -5,7 +5,6 @@
 
 #include <arpa/inet.h>
 #include <rtLog.h>
-#include <assert.h>
 #include <stdarg.h>
 
 #include <atomic>
@@ -31,7 +30,7 @@ rtMessage_GetNextCorrelationKey()
 template<class T> T
 from_json(rapidjson::GenericValue<rapidjson::UTF8<> > const& /*v*/)
 {
-  assert(false);
+  RT_ASSERT(false);
 }
 
 template<> char const*
@@ -193,9 +192,8 @@ rtRemoteMessage::getObjectName() const
 rtCorrelationKey
 rtRemoteMessage::getCorrelationKey() const
 {
-  assert(m_correlation_key != 0);
+  RT_ASSERT(m_correlation_key != 0);
   return m_correlation_key;
-  // return from_json<uint32_t>(m_impl->d[kFieldNameCorrelationKey]);
 }
 
 char const*
@@ -229,7 +227,7 @@ uint32_t
 rtMessage_GetCorrelationKey(rapidjson::Document const& doc)
 {
   rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNameCorrelationKey);
-  assert(itr != doc.MemberEnd());
+  RT_ASSERT(itr != doc.MemberEnd());
   return itr != doc.MemberEnd() ?
     itr->value.GetUint()
     : kInvalidCorrelationKey;
@@ -248,7 +246,7 @@ rtError
 rtMessage_GetStatusCode(rapidjson::Document const& doc)
 {
   rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNameStatusCode);
-  assert(itr != doc.MemberEnd());
+  RT_ASSERT(itr != doc.MemberEnd());
   return static_cast<rtError>(itr->value.GetInt());
 }
 
@@ -283,7 +281,7 @@ rtRemoteMessage::readMessage(int fd, rt_sockbuf_t& buff, rtRemoteMessage& m)
   {
     rtLogWarn("buffer capacity %d not big enough for message size: %d", capacity, n);
     // TODO: should drain, and discard message
-    assert(false);
+    RT_ASSERT(false);
     return RT_FAIL;
   }
 
@@ -375,7 +373,7 @@ rtRemoteResponse::getStatusCode() const
   if (itr == m_impl->d.MemberEnd())
   {
     rtLogError("failed to find %s in rpc response", kFieldNameStatusCode);
-    assert(false);
+    RT_ASSERT(false);
     return RT_FAIL;
   }
   return static_cast<rtError>(itr->value.GetInt());

@@ -404,7 +404,7 @@ rtReadMessage(int fd, rtSocketBuffer& buff, rtJsonDocPtr& doc)
   {
     rtLogWarn("buffer capacity %d not big enough for message size: %d", capacity, n);
     // TODO: should drain, and discard message
-    assert(false);
+    RT_ASSERT(false);
     return RT_FAIL;
   }
 
@@ -491,8 +491,6 @@ rtGetPeerName(int fd, sockaddr_storage& endpoint)
 rtError
 rtGetSockName(int fd, sockaddr_storage& endpoint)
 {
-  // assert(fd > 2);
-
   sockaddr_storage addr;
   memset(&addr, 0, sizeof(sockaddr_storage));
 

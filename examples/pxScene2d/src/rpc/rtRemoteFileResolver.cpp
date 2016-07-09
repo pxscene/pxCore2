@@ -33,7 +33,7 @@
 
 
 rtRemoteFileResolver::rtRemoteFileResolver(rtRemoteEnvPtr env)
-: m_db_fp(NULL)
+: m_db_fp(nullptr)
 , m_env(env)
 {}
 
@@ -49,9 +49,10 @@ rtRemoteFileResolver::open(sockaddr_storage const& rpc_endpoint)
 {
   const char * const dbPath = m_env->Config->getString("rt.rpc.resolver.file.db_path");
   m_db_fp = fopen(dbPath, "r+");
-  if (m_db_fp == NULL)
+  if (m_db_fp == nullptr)
   {
-    rtLogError("could not connect to database");
+    rtError e = rtErrorFromErrno(errno);
+    rtLogError("could not open database file %s. %s", dbPath, rtStrError(e));
     return RT_FAIL;
   }
 
@@ -72,11 +73,13 @@ rtRemoteFileResolver::open(sockaddr_storage const& rpc_endpoint)
 rtError
 rtRemoteFileResolver::registerObject(std::string const& name, sockaddr_storage const&)
 {
-  if (m_db_fp == NULL)
+  if (m_db_fp == nullptr)
   {
     rtLogError("no database connection");
     return RT_FAIL;
   }
+
+  // TODO: don't put such large buffers on stack
 
   // read in existing records into DOM
   rapidjson::Document doc;
@@ -85,14 +88,12 @@ rtRemoteFileResolver::registerObject(std::string const& name, sockaddr_storage c
   flock(fileno(m_db_fp), LOCK_EX);
   rapidjson::FileReadStream is(m_db_fp, readBuffer, sizeof(readBuffer));
   doc.ParseStream(is);
-  flock(fileno(m_db_fp), LOCK_UN);
 
   rapidjson::Pointer("/" + name + "/" + kFieldNameIp).Set(doc, m_rpc_addr);
   rapidjson::Pointer("/" + name + "/" + kFieldNamePort).Set(doc, m_rpc_port);
 
   // write updated json back to file
   char writeBuffer[65536];
-  flock(fileno(m_db_fp), LOCK_EX);
   fseek(m_db_fp, 0, SEEK_SET);  
   rapidjson::FileWriteStream os(m_db_fp, writeBuffer, sizeof(writeBuffer));
   rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
@@ -107,7 +108,7 @@ rtError
 rtRemoteFileResolver::locateObject(std::string const& name, sockaddr_storage& endpoint,
     uint32_t)
 {
-  if (m_db_fp == NULL)
+  if (m_db_fp == nullptr)
   {
     rtLogError("no database connection");
     return RT_FAIL;
@@ -139,6 +140,7 @@ rtRemoteFileResolver::locateObject(std::string const& name, sockaddr_storage& en
 rtError
 rtRemoteFileResolver::close()
 {
-  fclose(m_db_fp);
+  if (m_db_fp != nullptr)
+    fclose(m_db_fp);
   return RT_OK;
 }

@@ -180,8 +180,8 @@ rtRemoteNameService::openNsSocket()
 rtError
 rtRemoteNameService::onRegister(rtJsonDocPtr const& doc, sockaddr_storage const& /*soc*/)
 {
-  assert(doc->HasMember(kFieldNameIp));
-  assert(doc->HasMember(kFieldNamePort));
+  RT_ASSERT(doc->HasMember(kFieldNameIp));
+  RT_ASSERT(doc->HasMember(kFieldNamePort));
   
   sockaddr_storage endpoint;
   rtError err = rtParseAddress(endpoint, (*doc)[kFieldNameIp].GetString(),
@@ -219,7 +219,7 @@ rtError
 rtRemoteNameService::onLookup(rtJsonDocPtr const& doc, sockaddr_storage const& soc)
 {
   auto senderId = doc->FindMember(kFieldNameSenderId);
-  assert(senderId != doc->MemberEnd());
+  RT_ASSERT(senderId != doc->MemberEnd());
   if (senderId->value.GetInt() == m_pid)
     return RT_OK;
 

@@ -106,17 +106,17 @@ void Test_SetProperty_Basic_Client()
 {
   rtObjectRef objectRef;
   rtError e = rtRemoteLocateObject(env, objectName, objectRef);
-  assert(e == RT_OK);
+  RT_ASSERT(e == RT_OK);
 
   int i = 10;
   while (true)
   {
     e = objectRef.set("prop1", i);
-    assert(e == RT_OK);
+    RT_ASSERT(e == RT_OK);
 
     uint32_t n = objectRef.get<uint32_t>("prop1");
     printf("prop1:%d\n", n);
-    assert(n == static_cast<uint32_t>(i));
+    RT_ASSERT(n == static_cast<uint32_t>(i));
 
     i++;
 
@@ -128,7 +128,7 @@ void Test_SetProperty_Basic_Server()
 {
   rtObjectRef obj(new rtThermostat());
   rtError e = rtRemoteRegisterObject(env, objectName, obj);
-  assert(e == RT_OK);
+  RT_ASSERT(e == RT_OK);
   while (true)
     sleep(10);
 }
@@ -137,17 +137,17 @@ void Test_FunctionReferences_Client()
 {
   rtObjectRef objectRef;
   rtError e = rtRemoteLocateObject(env, objectName, objectRef);
-  assert(e == RT_OK);
+  RT_ASSERT(e == RT_OK);
 
   e = objectRef.set("onTempChanged", new rtFunctionCallback(my_callback));
-  assert(e == RT_OK);
+  RT_ASSERT(e == RT_OK);
 }
 
 void Test_FunctionReferences_Server()
 {
   rtObjectRef obj(new rtThermostat());
   rtError e = rtRemoteRegisterObject(env, objectName, obj);
-  assert(e == RT_OK);
+  RT_ASSERT(e == RT_OK);
 
   // locator.removeObject(objectName);
   int temp = 50;
@@ -182,7 +182,7 @@ Test_MethodCall_Client()
 {
   rtObjectRef objectRef;
   rtError e = rtRemoteLocateObject(env, objectName, objectRef);
-  assert(e == RT_OK);
+  RT_ASSERT(e == RT_OK);
 
   int i = 1;
   while (true)
@@ -191,7 +191,7 @@ Test_MethodCall_Client()
     rtValue sum(0);
     rtError e = objectRef.sendReturns("add", val, val, sum);
     printf("%d + %d == %d\n", i, i, sum.toInt32());
-    assert(e == RT_OK);
+    RT_ASSERT(e == RT_OK);
     sleep(1);
     i += 1;
   }
@@ -202,7 +202,7 @@ Test_MethodCall_Server()
 {
   rtObjectRef obj(new rtThermostat());
   rtError e = rtRemoteRegisterObject(env, objectName, obj);
-  assert(e == RT_OK);
+  RT_ASSERT(e == RT_OK);
   while (true)
   {
     e = rtRemoteRunOnce(env, 1000);
@@ -215,7 +215,7 @@ Test_SetProperty_Object_Client()
 {
   rtObjectRef objectRef;
   rtError e = rtRemoteLocateObject(env, objectName, objectRef);
-  assert(e == RT_OK);
+  RT_ASSERT(e == RT_OK);
 
   int n = 10;
   char buff[256];
@@ -232,7 +232,7 @@ Test_SetProperty_Object_Client()
     s = buff;
     lcd.set("text", s);
 
-    assert(e == RT_OK);
+    RT_ASSERT(e == RT_OK);
 
     sleep(1);
   }
@@ -251,7 +251,7 @@ Test_SetProperty_Object_Server()
   obj.set("lcd", lcd);
 
   rtError e = rtRemoteRegisterObject(env, objectName, obj);
-  assert(e == RT_OK);
+  RT_ASSERT(e == RT_OK);
   while (true)
     sleep(10);
 }
@@ -270,7 +270,7 @@ int main(int argc, char* /*argv*/[])
   if (argc == 3)
   {
     rtError e = rtRemoteInitNs();
-    assert(e == RT_OK);
+    RT_ASSERT(e == RT_OK);
     while(1);
     rtRemoteShutdownNs();
     return 0;
@@ -280,7 +280,7 @@ int main(int argc, char* /*argv*/[])
     env = rtGlobalEnvironment();
 
     rtError e = rtRemoteInit(env);
-    assert(e == RT_OK);
+    RT_ASSERT(e == RT_OK);
 
     if (argc == 2)
     {

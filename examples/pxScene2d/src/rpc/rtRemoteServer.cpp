@@ -18,7 +18,6 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <string.h>
-#include <assert.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <rtLog.h>
@@ -165,7 +164,7 @@ same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
     return 0 == strncmp(un1->sun_path, un2->sun_path, UNIX_PATH_MAX);
   }
 
-  assert(false);
+  RT_ASSERT(false);
   return false;
 }
 
@@ -692,7 +691,7 @@ rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr cons
     rtValue value;
 
     auto itr = doc->FindMember(kFieldNameValue);
-    assert(itr != doc->MemberEnd());
+    RT_ASSERT(itr != doc->MemberEnd());
 
     if (itr != doc->MemberEnd())
       err = rtValueReader::read(value, itr->value, client);

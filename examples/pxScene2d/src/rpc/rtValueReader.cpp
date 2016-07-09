@@ -49,7 +49,7 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
     break;
 
     case RT_valueType:
-    assert(false);
+    RT_ASSERT(false);
     break;
 
     case RT_boolType:
@@ -97,12 +97,12 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
 
     case RT_objectType:
     {
-      assert(client != NULL);
+      RT_ASSERT(client != NULL);
       if (!client)
         return RT_FAIL;
 
       auto const& obj = from.FindMember("value");
-      assert(obj != from.MemberEnd());
+      RT_ASSERT(obj != from.MemberEnd());
 
       auto id = obj->value.FindMember(kFieldNameObjectId);
       to.setObject(new rtRemoteObject(id->value.GetString(), client));
@@ -111,7 +111,7 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
 
     case RT_functionType:
     {
-      assert(client != NULL);
+      RT_ASSERT(client != NULL);
       if (!client)
         return RT_FAIL;
 
@@ -122,21 +122,21 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
       if (func != from.MemberEnd())
       {
         auto itr = func->value.FindMember(kFieldNameObjectId);
-        assert(itr != func->value.MemberEnd());
+        RT_ASSERT(itr != func->value.MemberEnd());
         objectId = itr->value.GetString();
 
         itr = func->value.FindMember(kFieldNameFunctionName);
-        assert(itr != func->value.MemberEnd());
+        RT_ASSERT(itr != func->value.MemberEnd());
         functionId = itr->value.GetString();
       }
       else
       {
         auto itr = from.FindMember(kFieldNameObjectId);
-        assert(itr != from.MemberEnd());
+        RT_ASSERT(itr != from.MemberEnd());
         objectId = itr->value.GetString();
 
         itr = from.FindMember(kFieldNameFunctionName);
-        assert(itr != from.MemberEnd());
+        RT_ASSERT(itr != from.MemberEnd());
         functionId = itr->value.GetString();
       }
 	

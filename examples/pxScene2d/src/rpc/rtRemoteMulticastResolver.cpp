@@ -311,7 +311,7 @@ rtError
 rtRemoteMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage const& soc)
 {
   auto senderId = doc->FindMember(kFieldNameSenderId);
-  assert(senderId != doc->MemberEnd());
+  RT_ASSERT(senderId != doc->MemberEnd());
   if (senderId->value.GetInt() == m_pid)
   {
     return RT_OK;
@@ -407,8 +407,8 @@ rtRemoteMulticastResolver::locateObject(std::string const& name, sockaddr_storag
   // response is in itr
   if (searchResponse)
   {
-    assert(searchResponse->HasMember(kFieldNameIp));
-    assert(searchResponse->HasMember(kFieldNamePort));
+    RT_ASSERT(searchResponse->HasMember(kFieldNameIp));
+    RT_ASSERT(searchResponse->HasMember(kFieldNamePort));
 
     rtError err = rtParseAddress(endpoint, (*searchResponse)[kFieldNameIp].GetString(),
         (*searchResponse)[kFieldNamePort].GetInt(), nullptr);

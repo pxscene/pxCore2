@@ -271,7 +271,7 @@ rtValueWriter::write(rtRemoteEnvPtr env, rtValue const& from,
   switch (from.getType())
   {
     case RT_voidType:     break;
-    case RT_valueType:    assert(false); break;
+    case RT_valueType:    RT_ASSERT(false); break;
     case RT_boolType:     to.AddMember("value", from.toBool(), doc.GetAllocator()); break;
     case RT_int8_tType:   to.AddMember("value", from.toInt8(), doc.GetAllocator()); break;
     case RT_uint8_tType:  to.AddMember("value", from.toUInt8(), doc.GetAllocator()); break;

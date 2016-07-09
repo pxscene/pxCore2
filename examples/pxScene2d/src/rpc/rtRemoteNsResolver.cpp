@@ -250,8 +250,8 @@ rtRemoteNsResolver::locateObject(std::string const& name, sockaddr_storage& endp
       }
       else
       {
-        assert(searchResponse->HasMember(kFieldNameIp));
-        assert(searchResponse->HasMember(kFieldNamePort));
+        RT_ASSERT(searchResponse->HasMember(kFieldNameIp));
+        RT_ASSERT(searchResponse->HasMember(kFieldNamePort));
         rtError err = rtParseAddress(endpoint, (*searchResponse)[kFieldNameIp].GetString(),
           (*searchResponse)[kFieldNamePort].GetInt(), nullptr);
         

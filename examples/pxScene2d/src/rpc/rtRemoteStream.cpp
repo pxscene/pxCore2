@@ -237,7 +237,7 @@ rtRemoteStream::close()
 rtError
 rtRemoteStream::connect()
 {
-  assert(m_fd == kInvalidSocket);
+  RT_ASSERT(m_fd == kInvalidSocket);
   return connectTo(m_remote_endpoint);
 }
 
@@ -360,15 +360,15 @@ rtError
 rtRemoteStream::sendRequest(rtRemoteRequest const& req, MessageHandler handler, uint32_t timeout)
 {
   rtCorrelationKey key = req.getCorrelationKey();
-  assert(key != 0);
-  assert(m_fd != kInvalidSocket);
+  RT_ASSERT(key != 0);
+  RT_ASSERT(m_fd != kInvalidSocket);
 
   if (handler)
   {
     // prime outstanding request table. This indicates to the callbacks that someone
     // is waiting for a response
     std::unique_lock<std::mutex> lock(m_mutex);
-    assert(m_requests.find(key) == m_requests.end());
+    RT_ASSERT(m_requests.find(key) == m_requests.end());
     m_requests[key] = rtJsonDocPtr();
   }
 
