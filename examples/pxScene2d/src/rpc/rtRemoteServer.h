@@ -20,8 +20,6 @@ class rtRemoteClient;
 
 class rtRemoteServer
 {
-  friend class rtCommandDispatcher;
-
 public:
   rtRemoteServer(rtRemoteEnvironment* env);
   ~rtRemoteServer();
@@ -31,6 +29,7 @@ public:
   rtError registerObject(std::string const& name, rtObjectRef const& obj);
   rtError findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout);
   rtError removeStaleObjects();
+  rtError processMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg);
 
 private:
   struct connected_client
@@ -80,6 +79,7 @@ private:
   int                           m_shutdown_pipe[2];
   uint32_t                      m_keep_alive_interval;
   rtRemoteEnvironment*          m_env;
+  bool                          m_queueing_mode;
 };
 
 #endif

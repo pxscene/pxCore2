@@ -88,22 +88,31 @@ struct Setting
 static Setting kDefaultSettings[] =
 {
 #ifdef __APPLE__
-  { "rt.rpc.resolver.multicast_interface", "en0" },
+  { "rt.rpc.resolver.multicast.interface", "en0" },
   { "rt.rpc.server.listen_interface", "en0" },
 #else
-  { "rt.rpc.resolver.multicast_interface", "eth0" },
+  { "rt.rpc.resolver.multicast.interface", "eth0" },
   { "rt.rpc.server.listen_interface", "eth0" },
 #endif
-  { "rt.rpc.resolver.multicast_address", "224.10.0.12" },
-  { "rt.rpc.resolver.multicast_address6", "ff05:0:0:0:0:0:0:201" },
-  { "rt.rpc.resolver.multicast_port", "10004" },
   { "rt.rpc.default.request_timeout", "3000" },
-  { "rt.rpc.resolver.locate_timeout", "3000" },
   { "rt.rpc.cache.max_object_lifetime", "15" },
   { "rt.rpc.server.socket_family", "inet" },
-  { "rt.rpc.resolver.file_path", "./tmp/rtResolver.db"},
-  { "rt.rpc.resolver.ns_address", "10.21.33.37" },
-  { "rt.rpc.resolver.ns_port", "49118" },
+  { "rt.rpc.server.use_dispatch_thread", "false" },
+
+  // resolver settings
+  // one of multicast, fle, unicast
+  { "rt.rpc.resolver.type", "multicast" }, 
+  { "rt.rpc.resolver.locate_timeout", "3000" },
+
+  // multicast resolver
+  { "rt.rpc.resolver.multicast.address", "224.10.0.12" },
+  { "rt.rpc.resolver.multicast.address6", "ff05:0:0:0:0:0:0:201" },
+  { "rt.rpc.resolver.multicast.port", "10004" },
+
+  // unicast resolver settings
+  { "rt.rpc.resolver.file.db_path", "./tmp/rt_remote_resolver.json"},
+  { "rt.rpc.resolver.unicast.address", "127.0.0.1" },
+  { "rt.rpc.resolver.unicast.port", "49118" },
   { nullptr, nullptr }
 };
 
@@ -152,6 +161,16 @@ rtRemoteConfig::getInstance()
   return conf;
 }
 
+bool
+rtRemoteConfig::getBool(char const* key)
+{
+  bool b = false;
+  char const* val = getString(key);
+  if (val != nullptr)
+    b = strcasecmp(val, "true") == 0;
+  return b;
+}
+
 uint16_t
 rtRemoteConfig::getUInt16(char const* key)
 {
@@ -173,11 +192,14 @@ rtRemoteConfig::getUInt32(char const* key)
 char const*
 rtRemoteConfig::getString(char const* key)
 {
+  RT_ASSERT(key != nullptr);
+  RT_ASSERT(strlen(key) > 0);
+
   if (key == nullptr)
-  {
-    rtLogError("can't find null key");
     return nullptr;
-  }
+
+  if (strlen(key) == 0)
+    return nullptr;
 
   auto itr = m_map.find(key);
   if (itr == m_map.end())
@@ -186,7 +208,6 @@ rtRemoteConfig::getString(char const* key)
     return nullptr;
   }
 
-  // char const* val = itr->second.c_str();
   return itr->second.c_str();
 }
 

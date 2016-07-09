@@ -14,8 +14,6 @@
 
 rtRemoteEnvironment* env = nullptr;
 
-#define RT_ASSERT(E) if ((E) != RT_OK) { printf("failed: %d, %d\n", (E), __LINE__); assert(false); }
-
 class rtLcd : public rtObject
 {
   rtDeclareObject(rtLcd, rtObject);
@@ -206,7 +204,10 @@ Test_MethodCall_Server()
   rtError e = rtRemoteRegisterObject(env, objectName, obj);
   assert(e == RT_OK);
   while (true)
-    sleep(10);
+  {
+    e = rtRemoteRunOnce(env, 1000);
+    printf("e:%s\n", rtStrError(e));
+  }
 }
 
 void

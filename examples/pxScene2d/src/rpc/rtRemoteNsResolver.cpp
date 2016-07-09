@@ -308,8 +308,8 @@ rtError
 rtRemoteNsResolver::init()
 {
   rtError err = RT_OK;
-  uint16_t const dstport = m_env->Config->getUInt16("rt.rpc.resolver.ns_port");
-  char const* dstaddr = m_env->Config->getString("rt.rpc.resolver.ns_address");
+  uint16_t const dstport = m_env->Config->getUInt16("rt.rpc.resolver.unicast.port");
+  char const* dstaddr = m_env->Config->getString("rt.rpc.resolver.unicast.address");
 
   rtLogInfo("dest address is %s", dstaddr);
 
@@ -321,7 +321,7 @@ rtRemoteNsResolver::init()
   }
 
   // TODO change from multicast_interface eventually.  works for now
-  char const* srcaddr = m_env->Config->getString("rt.rpc.resolver.multicast_interface");
+  char const* srcaddr = m_env->Config->getString("rt.rpc.resolver.multicast.interface");
   err = rtParseAddress(m_static_endpoint, srcaddr, 0, nullptr);
   if (err != RT_OK)
   {

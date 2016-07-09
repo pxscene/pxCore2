@@ -70,8 +70,8 @@ rtRemoteMulticastResolver::init()
 {
   rtError err = RT_OK;
 
-  uint16_t const port = m_env->Config->getUInt16("rt.rpc.resolver.multicast_port");
-  char const* dstaddr = m_env->Config->getString("rt.rpc.resolver.multicast_address");
+  uint16_t const port = m_env->Config->getUInt16("rt.rpc.resolver.multicast.port");
+  char const* dstaddr = m_env->Config->getString("rt.rpc.resolver.multicast.address");
 
   err = rtParseAddress(m_mcast_dest, dstaddr, port, nullptr);
   if (err != RT_OK)
@@ -80,7 +80,7 @@ rtRemoteMulticastResolver::init()
     return err;
   }
 
-  char const* srcaddr = m_env->Config->getString("rt.rpc.resolver.multicast_interface");
+  char const* srcaddr = m_env->Config->getString("rt.rpc.resolver.multicast.interface");
 
   err = rtParseAddress(m_mcast_src, srcaddr, port, &m_mcast_src_index);
   if (err != RT_OK)

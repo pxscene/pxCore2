@@ -6,6 +6,13 @@
 
 #include <stdint.h>
 
+#ifdef RT_DEBUG
+#include <assert.h>
+#define RT_ASSERT(X) assert((X))
+#else
+#define RT_ASSERT(X) if (!(X)) rtLogError("rt assert: '%s' failed", #X);
+#endif
+
 #define RT_ERROR_CLASS_SYSERROR 0x8000
 #define RT_ERROR_CLASS_BUILTIN 0x00000000
 

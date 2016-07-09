@@ -48,7 +48,7 @@ else
 endif
 
 ifeq ($(DEBUG), 1)
-  CXXFLAGS += -DRT_RPC_DEBUG
+  CXXFLAGS += -DRT_RPC_DEBUG -DRT_DEBUG
   CFLAGS   += -g -O0 -fno-inline
 else
   CXXFLAGS += -O2

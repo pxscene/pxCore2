@@ -47,7 +47,7 @@ rtRemoteFileResolver::~rtRemoteFileResolver()
 rtError
 rtRemoteFileResolver::open(sockaddr_storage const& rpc_endpoint)
 {
-  const char * const dbPath = m_env->Config->getString("rt.rpc.resolver.file_path");
+  const char * const dbPath = m_env->Config->getString("rt.rpc.resolver.file.db_path");
   m_db_fp = fopen(dbPath, "r+");
   if (m_db_fp == NULL)
   {

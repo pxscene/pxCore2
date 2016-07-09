@@ -1,12 +1,16 @@
 #ifndef __RT_TYPES_H__
 #define __RT_TYPES_H__
 
+#include <chrono>
+#include <condition_variable>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <vector>
+
 #include <rtError.h>
 #include <rtObject.h>
 #include <rapidjson/document.h>
-
-#include <memory>
-#include <vector>
 
 #define kInvalidSocket (-1)
 
@@ -18,6 +22,9 @@ class rtObjectCache;
 
 struct rtRemoteEnvironment
 {
+  using client = std::shared_ptr<rtRemoteClient>;
+  using message = std::shared_ptr<rapidjson::Document>;
+
   rtRemoteEnvironment();
   ~rtRemoteEnvironment();
 
@@ -30,6 +37,20 @@ struct rtRemoteEnvironment
 
   uint32_t RefCount;
   bool     Initialized;
+
+  void enqueueWorkItem(client const& clnt, message const& msg);
+  rtError processSingleWorkItem(std::chrono::milliseconds timeout);
+
+private:
+  struct WorkItem
+  {
+    std::shared_ptr<rtRemoteClient> Client;
+    std::shared_ptr<rapidjson::Document> Message;
+  };
+
+  std::mutex              m_queue_mutex;
+  std::condition_variable m_queue_cond;
+  std::queue<WorkItem>    m_queue;
 };
 
 using rtRemoteEnvPtr = rtRemoteEnvironment*;

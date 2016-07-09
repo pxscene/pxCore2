@@ -25,6 +25,7 @@ public:
   uint16_t    getUInt16(char const* key);
   uint32_t    getUInt32(char const* key);
   int32_t     getInt32(char const* key);
+  bool        getBool(char const* key);
 
 private:
   std::map< std::string, std::string> m_map;

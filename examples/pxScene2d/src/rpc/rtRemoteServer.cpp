@@ -179,6 +179,7 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
 
   m_shutdown_pipe[0] = -1;
   m_shutdown_pipe[1] = -1;
+  m_queueing_mode = !m_env->Config->getBool("rt.rpc.server.use_dispatch_thread");
 
   int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
   if (ret != 0)
@@ -249,8 +250,7 @@ rtRemoteServer::open()
   if (err != RT_OK)
     return err;
 
-  m_resolver = rtRemoteFactory::rtRemoteCreateResolver(MULTICAST_RESOLVER, m_env);
-  //m_resolver = rtRemoteFactory::rtRemoteCreateResolver(NS_RESOLVER);
+  m_resolver = rtRemoteFactory::rtRemoteCreateResolver(m_env);
   err = start();
   if (err != RT_OK)
   {
@@ -357,17 +357,30 @@ rtRemoteServer::doAccept(int fd)
 rtError
 rtRemoteServer::onIncomingMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg)
 {
+  rtError e = RT_OK;
+  if (m_queueing_mode)
+    m_env->enqueueWorkItem(client, msg);
+  else
+    e = processMessage(client, msg);
+  return e;
+}
+
+rtError
+rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg)
+{
+  rtError e = RT_FAIL;
+
   char const* message_type = rtMessage_GetMessageType(*msg);
 
   auto itr = m_command_handlers.find(message_type);
   if (itr == m_command_handlers.end())
     return RT_OK;
 
-  rtError err = itr->second(client, msg);
-  if (err != RT_OK)
-    rtLogWarn("failed to run command for %s. %s", message_type, rtStrError(err));
+  e = itr->second(client, msg);
+  if (e != RT_OK)
+    rtLogWarn("failed to run command for %s. %s", message_type, rtStrError(e));
 
-  return err;
+  return e;
 }
 
 rtError

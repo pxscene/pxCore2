@@ -1,3 +1,7 @@
+#include <chrono>
+#include <mutex>
+#include <thread>
+
 #include "rtRemote.h"
 #include "rtRemoteClient.h"
 #include "rtRemoteConfig.h"
@@ -7,10 +11,7 @@
 #include "rtRemoteNameService.h"
 
 #include <rtLog.h>
-#include <mutex>
-#include <thread>
 
-static rtRemoteServer* gServer = nullptr;
 static rtRemoteNameService* gNs = nullptr;
 static std::mutex gMutex;
 static rtRemoteEnvironment* gEnv = nullptr;
@@ -175,15 +176,28 @@ rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj)
 }
 
 rtError
-rtRemoteRuncOnce(rtRemoteEnvironment* env, uint32_t timeout)
+rtRemoteRunOnce(rtRemoteEnvironment* env, uint32_t timeout)
 {
-  return RT_OK;
+  return env->processSingleWorkItem(std::chrono::milliseconds(timeout));
 }
 
 rtError
 rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
 {
-  return RT_OK;
+  rtError e = RT_OK;
+
+  auto time_remaining = std::chrono::milliseconds(timeout);
+  while ((time_remaining > std::chrono::milliseconds(0)) && (e == RT_OK))
+  {
+    auto start = std::chrono::steady_clock::now();
+    e = env->processSingleWorkItem(time_remaining);
+    if (e != RT_OK)
+      return e;
+    auto end = std::chrono::steady_clock::now();
+    time_remaining = std::chrono::milliseconds((end - start).count());
+  }
+
+  return e;
 }
 
 rtRemoteEnvironment*
@@ -193,4 +207,45 @@ rtGlobalEnvironment()
   if (gEnv == nullptr)
     gEnv = new rtRemoteEnvironment();
   return gEnv;
+}
+
+rtError
+rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout)
+{
+  rtError e = RT_OK;
+
+  WorkItem workItem;
+  auto delay = std::chrono::system_clock::now() + timeout;
+
+  std::unique_lock<std::mutex> lock(m_queue_mutex);
+  if (!m_queue_cond.wait_until(lock, delay, [this] { return !this->m_queue.empty(); }))
+  {
+    e = RT_TIMEOUT;
+  }
+  else
+  {
+    workItem = this->m_queue.front();
+    this->m_queue.pop();
+  }
+  lock.unlock();
+
+  if (workItem.Client != nullptr && workItem.Message != nullptr)
+  {
+    e = Server->processMessage(workItem.Client, workItem.Message);
+  }
+
+  return e;
+}
+
+void
+rtRemoteEnvironment::enqueueWorkItem(client const& clnt, message const& msg)
+{
+  WorkItem workItem;
+  workItem.Client = clnt;
+  workItem.Message = msg;
+
+  std::unique_lock<std::mutex> lock(m_queue_mutex);
+  m_queue.push(workItem);
+  lock.unlock();
+  m_queue_cond.notify_all();
 }
