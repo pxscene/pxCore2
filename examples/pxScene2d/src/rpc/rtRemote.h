@@ -10,6 +10,7 @@
 typedef struct rtRemoteEnvironment rtRemoteEnvironment;
 
 rtRemoteEnvironment* rtGlobalEnvironment();
+rtRemoteEnvironment* rtEnvironmentFromFile(char const* configFile);
 
 
 /**

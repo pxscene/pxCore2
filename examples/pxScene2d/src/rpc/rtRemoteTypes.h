@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <condition_variable>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -25,12 +26,12 @@ struct rtRemoteEnvironment
   using client = std::shared_ptr<rtRemoteClient>;
   using message = std::shared_ptr<rapidjson::Document>;
 
-  rtRemoteEnvironment();
+  rtRemoteEnvironment(rtRemoteConfig* config);
   ~rtRemoteEnvironment();
 
   void shutdown();
 
-  rtRemoteConfig*           Config;
+  rtRemoteConfig const*     Config;
   rtRemoteServer*           Server;
   rtObjectCache*            ObjectCache;
   rtRemoteStreamSelector*   StreamSelector;
@@ -51,6 +52,24 @@ private:
   std::mutex              m_queue_mutex;
   std::condition_variable m_queue_cond;
   std::queue<WorkItem>    m_queue;
+};
+
+class rtRemoteConfigBuilder
+{
+public:
+  static rtRemoteConfigBuilder* getDefaultConfig();
+  static rtRemoteConfigBuilder* fromFile(char const* file);
+
+  rtRemoteConfig* build() const;
+
+  char const* getString(char const* key) const;
+  uint16_t    getUInt16(char const* key) const;
+  uint32_t    getUInt32(char const* key) const;
+  int32_t     getInt32(char const* key) const;
+  bool        getBool(char const* key) const;
+
+private:
+  std::map< std::string, std::string > m_map;
 };
 
 using rtRemoteEnvPtr = rtRemoteEnvironment*;

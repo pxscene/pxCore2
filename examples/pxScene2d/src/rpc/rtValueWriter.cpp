@@ -243,7 +243,7 @@ rtValueWriter::write(rtRemoteEnvPtr env, rtValue const& from,
     to.AddMember("value", val, doc.GetAllocator());
 
     // TODO: why are we inserting this here?
-    int const lifetime = env->Config->getInt32("rt.rpc.cache.max_object_lifetime");
+    int const lifetime = env->Config->cache_max_object_lifetime();
     env->ObjectCache->insert(id, func, lifetime);
     return RT_OK;
   }
@@ -261,7 +261,7 @@ rtValueWriter::write(rtRemoteEnvPtr env, rtValue const& from,
     to.AddMember("value", val, doc.GetAllocator());
 
     // TODO: why are we inserting this here
-    int const lifetime = env->Config->getInt32("rt.rpc.cache.max_object_lifetime");
+    int const lifetime = env->Config->cache_max_object_lifetime();
     env->ObjectCache->insert(id, obj, lifetime);
     return RT_OK;
   }

@@ -70,19 +70,19 @@ rtRemoteMulticastResolver::init()
 {
   rtError err = RT_OK;
 
-  uint16_t const port = m_env->Config->getUInt16("rt.rpc.resolver.multicast.port");
-  char const* dstaddr = m_env->Config->getString("rt.rpc.resolver.multicast.address");
+  uint16_t const port = m_env->Config->resolver_multicast_port();
+  std::string dstaddr = m_env->Config->resolver_multicast_address();
+  std::string srcaddr = m_env->Config->resolver_multicast_interface();
 
-  err = rtParseAddress(m_mcast_dest, dstaddr, port, nullptr);
+  err = rtParseAddress(m_mcast_dest, dstaddr.c_str(), port, nullptr);
   if (err != RT_OK)
   {
-    rtLogWarn("failed to parse address: %s. %s", dstaddr, rtStrError(err));
+    rtLogWarn("failed to parse address: %s. %s", dstaddr.c_str(), rtStrError(err));
     return err;
   }
 
-  char const* srcaddr = m_env->Config->getString("rt.rpc.resolver.multicast.interface");
 
-  err = rtParseAddress(m_mcast_src, srcaddr, port, &m_mcast_src_index);
+  err = rtParseAddress(m_mcast_src, srcaddr.c_str(), port, &m_mcast_src_index);
   if (err != RT_OK)
   {
     err = rtGetDefaultInterface(m_mcast_src, port);
@@ -90,7 +90,7 @@ rtRemoteMulticastResolver::init()
       return err;
   }
 
-  err = rtParseAddress(m_ucast_endpoint, srcaddr, 0, nullptr);
+  err = rtParseAddress(m_ucast_endpoint, srcaddr.c_str(), 0, nullptr);
   if (err != RT_OK)
   {
     err = rtGetDefaultInterface(m_ucast_endpoint, 0);

@@ -16,16 +16,14 @@ static rtRemoteNameService* gNs = nullptr;
 static std::mutex gMutex;
 static rtRemoteEnvironment* gEnv = nullptr;
 
-rtRemoteEnvironment::rtRemoteEnvironment()
-  : Config(nullptr)
+rtRemoteEnvironment::rtRemoteEnvironment(rtRemoteConfig* config)
+  : Config(config)
   , Server(nullptr)
   , ObjectCache(nullptr)
   , StreamSelector(nullptr)
   , RefCount(1)
   , Initialized(false)
 {
-  Config = rtRemoteConfig::getInstance();
-
   StreamSelector = new rtRemoteStreamSelector();
   StreamSelector->start();
 
@@ -35,6 +33,7 @@ rtRemoteEnvironment::rtRemoteEnvironment()
 
 rtRemoteEnvironment::~rtRemoteEnvironment()
 {
+  delete Config;
 }
 
 void
@@ -205,7 +204,13 @@ rtGlobalEnvironment()
 {
   std::lock_guard<std::mutex> lock(gMutex);
   if (gEnv == nullptr)
-    gEnv = new rtRemoteEnvironment();
+  {
+    rtRemoteConfigBuilder* builder = rtRemoteConfigBuilder::getDefaultConfig();
+    rtRemoteConfig* conf = builder->build();
+    gEnv = new rtRemoteEnvironment(conf);
+    delete builder;
+
+  }
   return gEnv;
 }
 
@@ -220,7 +225,7 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout)
   std::unique_lock<std::mutex> lock(m_queue_mutex);
   if (!m_queue_cond.wait_until(lock, delay, [this] { return !this->m_queue.empty(); }))
   {
-    e = RT_TIMEOUT;
+    e = RT_ERROR_TIMEOUT;
   }
   else
   {

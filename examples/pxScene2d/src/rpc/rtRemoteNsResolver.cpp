@@ -308,21 +308,21 @@ rtError
 rtRemoteNsResolver::init()
 {
   rtError err = RT_OK;
-  uint16_t const dstport = m_env->Config->getUInt16("rt.rpc.resolver.unicast.port");
-  char const* dstaddr = m_env->Config->getString("rt.rpc.resolver.unicast.address");
+  uint16_t dstport = m_env->Config->resolver_unicast_port();
+  std::string dstaddr = m_env->Config->resolver_unicast_address();
 
-  rtLogInfo("dest address is %s", dstaddr);
+  rtLogInfo("dest address is %s", dstaddr.c_str());
 
-  err = rtParseAddress(m_ns_dest, dstaddr, dstport, nullptr);
+  err = rtParseAddress(m_ns_dest, dstaddr.c_str(), dstport, nullptr);
   if (err != RT_OK)
   {
-    rtLogWarn("failed to parse ns address: %s. %s", dstaddr, rtStrError(err));
+    rtLogWarn("failed to parse ns address: %s. %s", dstaddr.c_str(), rtStrError(err));
     return err;
   }
 
   // TODO change from multicast_interface eventually.  works for now
-  char const* srcaddr = m_env->Config->getString("rt.rpc.resolver.multicast.interface");
-  err = rtParseAddress(m_static_endpoint, srcaddr, 0, nullptr);
+  std::string srcaddr = m_env->Config->resolver_multicast_interface();
+  err = rtParseAddress(m_static_endpoint, srcaddr.c_str(), 0, nullptr);
   if (err != RT_OK)
   {
     err = rtGetDefaultInterface(m_static_endpoint, 0);

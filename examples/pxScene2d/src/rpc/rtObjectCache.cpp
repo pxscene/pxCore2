@@ -40,33 +40,43 @@ rtObjectCache::findFunction(std::string const& id)
 rtError
 rtObjectCache::insert(std::string const& id, rtFunctionRef const& ref, int maxAge)
 {
-  Entry e;
-  e.LastUsed = time(nullptr);
-  e.Function = ref;
-  e.MaxAge = maxAge;
+  rtError e = RT_OK;
+
+  Entry entry;
+  entry.LastUsed = time(nullptr);
+  entry.Function = ref;
+  entry.MaxAge = maxAge;
 
   std::unique_lock<std::mutex> lock(sMutex);
-  auto res = sRefMap.insert(refmap::value_type(id, e));
-  return res.second ? RT_OK : RT_FAIL;
+  auto res = sRefMap.insert(refmap::value_type(id, entry));
+  if (!res.second) // entry already exists
+    e = RT_ERROR_DUPLICATE_ENTRY;
+
+  return e;
 }
 
 rtError
 rtObjectCache::insert(std::string const& id, rtObjectRef const& ref, int maxAge)
 {
-  Entry e;
-  e.LastUsed = time(nullptr);
-  e.Object = ref;
-  e.MaxAge = maxAge;
+  rtError e = RT_OK;
+
+  Entry entry;
+  entry.LastUsed = time(nullptr);
+  entry.Object = ref;
+  entry.MaxAge = maxAge;
 
   std::unique_lock<std::mutex> lock(sMutex);
-  auto res = sRefMap.insert(refmap::value_type(id, e));
-  return res.second ? RT_OK : RT_FAIL;
+  auto res = sRefMap.insert(refmap::value_type(id, entry));
+  if (!res.second) // entry already exists
+    e = RT_ERROR_DUPLICATE_ENTRY;
+
+  return e;
 }
 
 rtError
 rtObjectCache::touch(std::string const& id, time_t now)
 {
-  rtError e = RT_FAIL;
+  rtError e = RT_OK;
 
   std::unique_lock<std::mutex> lock(sMutex);
   auto itr = sRefMap.find(id);
@@ -74,6 +84,10 @@ rtObjectCache::touch(std::string const& id, time_t now)
   {
     itr->second.LastUsed = now;
     e = RT_OK;
+  }
+  else
+  {
+    e = RT_ERROR_OBJECT_NOT_FOUND;
   }
 
   return e;
@@ -93,7 +107,7 @@ rtObjectCache::clear()
 rtError
 rtObjectCache::erase(std::string const& id)
 {
-  rtError e = RT_FAIL;
+  rtError e = RT_OK;
 
   std::unique_lock<std::mutex> lock(sMutex);
   auto itr = sRefMap.find(id);
@@ -101,6 +115,10 @@ rtObjectCache::erase(std::string const& id)
   {
     sRefMap.erase(itr);
     e = RT_OK;
+  }
+  else
+  {
+    e = RT_ERROR_OBJECT_NOT_FOUND;
   }
 
   return e;
@@ -111,7 +129,7 @@ rtObjectCache::removeUnused()
 {
   time_t now = time(nullptr);
 
-  int const maxAge = m_env->Config->getInt32("rt.rpc.cache.max_object_lifetime");
+  int const maxAge = m_env->Config->cache_max_object_lifetime();
 
   std::unique_lock<std::mutex> lock(sMutex);
   for (auto itr = sRefMap.begin(); itr != sRefMap.end();)

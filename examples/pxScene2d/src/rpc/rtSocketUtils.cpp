@@ -267,7 +267,7 @@ rtReadUntil(int fd, char* buff, int n)
     ssize_t n = read(fd, buff + bytes_read, (bytes_to_read - bytes_read));
     if (n == 0)
     {
-      rtLogWarn("tring to read from file descriptor: %d. It looks closed", fd);
+      rtLogInfo("tring to read from file descriptor: %d. It looks closed", fd);
       return RT_FAIL;
     }
 
@@ -428,6 +428,9 @@ rtReadMessage(int fd, rtSocketBuffer& buff, rtJsonDocPtr& doc)
 rtError
 rtParseMessage(char const* buff, int n, rtJsonDocPtr& doc)
 {
+  RT_ASSERT(buff != nullptr);
+  RT_ASSERT(n > 0);
+
   if (!buff)
     return RT_FAIL;
 
@@ -451,20 +454,6 @@ rtParseMessage(char const* buff, int n, rtJsonDocPtr& doc)
   }
   
   return RT_OK;
-}
-
-std::string
-rtStrError(int e)
-{
-  char buff[256];
-  memset(buff, 0, sizeof(buff));
-
-  char* s = strerror_r(e, buff, sizeof(buff));
-  if (s)
-    return std::string(s);
-
-  std::snprintf(buff, sizeof(buff), "unknown error: %d", e);
-  return std::string(buff);
 }
 
 rtError

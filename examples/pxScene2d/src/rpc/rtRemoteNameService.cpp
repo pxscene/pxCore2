@@ -71,9 +71,9 @@ rtRemoteNameService::init()
   // TODO eventually, use a db rather than map.  Open it here.
 
   // get socket info ready
-  uint16_t const nsport = m_env->Config->getUInt16("rt.rpc.resolver.ns_port");
-  char const* nsaddr = m_env->Config->getString("rt.rpc.resolver.ns_address");
-  err = rtParseAddress(m_ns_endpoint, nsaddr, nsport, nullptr);
+  uint16_t const nsport = m_env->Config->resolver_unicast_port();
+  std::string nsaddr = m_env->Config->resolver_unicast_address();
+  err = rtParseAddress(m_ns_endpoint, nsaddr.c_str(), nsport, nullptr);
   if (err != RT_OK)
   {
     err = rtGetDefaultInterface(m_ns_endpoint, 0);

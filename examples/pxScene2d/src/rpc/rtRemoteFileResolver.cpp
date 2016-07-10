@@ -47,13 +47,13 @@ rtRemoteFileResolver::~rtRemoteFileResolver()
 rtError
 rtRemoteFileResolver::open(sockaddr_storage const& rpc_endpoint)
 {
-  const char * const dbPath = m_env->Config->getString("rt.rpc.resolver.file.db_path");
-  m_db_fp = fopen(dbPath, "r+");
+  std::string dbPath = m_env->Config->resolver_file_db_path();
+  m_db_fp = fopen(dbPath.c_str(), "r+");
   if (m_db_fp == nullptr)
   {
     rtError e = rtErrorFromErrno(errno);
-    rtLogError("could not open database file %s. %s", dbPath, rtStrError(e));
-    return RT_FAIL;
+    rtLogError("could not open database file %s. %s", dbPath.c_str(), rtStrError(e));
+    return e;
   }
 
   char buff[128];
@@ -76,7 +76,7 @@ rtRemoteFileResolver::registerObject(std::string const& name, sockaddr_storage c
   if (m_db_fp == nullptr)
   {
     rtLogError("no database connection");
-    return RT_FAIL;
+    return RT_ERROR_INVALID_ARG;
   }
 
   // TODO: don't put such large buffers on stack
@@ -111,7 +111,7 @@ rtRemoteFileResolver::locateObject(std::string const& name, sockaddr_storage& en
   if (m_db_fp == nullptr)
   {
     rtLogError("no database connection");
-    return RT_FAIL;
+    return RT_ERROR_INVALID_ARG;
   }
 
   // read file into DOM object

@@ -7,7 +7,7 @@ rtRemoteFunction::rtRemoteFunction(std::string const& id, std::string const& nam
   , m_id(id)
   , m_name(name)
   , m_rpc_client(client)
-  , m_timeout(client->getEnvironment()->Config->getUInt32("rt.rpc.default.request_timeout"))
+  , m_timeout(client->getEnvironment()->Config->environment_request_timeout())
 {
   if (!strcmp(id.c_str(), "global"))
   {

@@ -2,6 +2,7 @@
 #include "rtRemoteClient.h"
 #include "rtValueReader.h"
 #include "rtValueWriter.h"
+#include "rtError.h"
 
 #include <arpa/inet.h>
 #include <rtLog.h>
@@ -259,67 +260,6 @@ rtMessage_GetStatusMessage(rapidjson::Document const& doc)
     : NULL;
 }
 
-#if 0
-rtError
-rtRemoteMessage::readMessage(int fd, rt_sockbuf_t& buff, rtRemoteMessage& m)
-{
-  rtError err = RT_OK;
-
-  int n = 0;
-  int capacity = static_cast<int>(buff.capacity());
-
-  err = rtReadUntil(fd, reinterpret_cast<char *>(&n), 4);
-  if (err != RT_OK)
-  {
-    rtLogWarn("error reading length from socket");
-    return err;
-  }
-
-  n = ntohl(n);
-
-  if (n > capacity)
-  {
-    rtLogWarn("buffer capacity %d not big enough for message size: %d", capacity, n);
-    // TODO: should drain, and discard message
-    RT_ASSERT(false);
-    return RT_FAIL;
-  }
-
-  buff.resize(n + 1);
-  buff[n] = '\0';
-
-  err = rtReadUntil(fd, &buff[0], n);
-  if (err != RT_OK)
-  {
-    rtLogError("failed to read payload message of length %d from socket", n);
-    return err;
-  }
-
-  #ifdef RT_RPC_DEBUG
-  rtLogDebug("read (%d):\n\t\"%.*s\"\n", static_cast<int>(buff.size()), static_cast<int>(buff.size()), &buff[0]);
-  #endif
-
-  rapidjson::MemoryStream stream(&buff[0], n);
-  if (m.m_impl->d.ParseStream<rapidjson::kParseDefaultFlags>(stream).HasParseError())
-  {
-    int begin = m.m_impl->d.GetErrorOffset() - 16;
-    if (begin < 0)
-      begin = 0;
-    int end = begin + 64;
-    if (end > n)
-      end = n;
-    int length = (end - begin);
-
-    rtLogWarn("unparsable JSON read:%d offset:%d", m.m_impl->d.GetParseError(), (int) m.m_impl->d.GetErrorOffset());
-    rtLogWarn("\"%.*s\"\n", length, &buff[0] + begin);
-
-    return RT_FAIL;
-  }
-
-  return RT_OK;
-}
-#endif
-
 rtError
 rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out)
 {
@@ -369,14 +309,22 @@ rtRemoteResponse::rtRemoteResponse(char const* messageType, std::string const& o
 rtError
 rtRemoteResponse::getStatusCode() const
 {
+  rtError e = RT_OK;
+
   auto itr = m_impl->d.FindMember(kFieldNameStatusCode);
+  RT_ASSERT(itr != m_impl->d.MemberEnd());
+
   if (itr == m_impl->d.MemberEnd())
   {
     rtLogError("failed to find %s in rpc response", kFieldNameStatusCode);
-    RT_ASSERT(false);
-    return RT_FAIL;
+    e = RT_FAIL;
   }
-  return static_cast<rtError>(itr->value.GetInt());
+  else
+  {
+    e = static_cast<rtError>(itr->value.GetInt());
+  }
+
+  return e;
 }
 
 rtRemoteGetResponse::rtRemoteGetResponse(std::string const& objectName)

@@ -5,6 +5,7 @@
 #include "rtString.h"
 #include "rtObject.h"
 #include "rtValue.h"
+#include "rtLog.h"
 
 rtValue::rtValue()                      :mType(0) { setEmpty();   }
 rtValue::rtValue(bool v)                :mType(0) { setBool(v);   }

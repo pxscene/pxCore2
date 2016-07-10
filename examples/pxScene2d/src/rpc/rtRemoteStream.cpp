@@ -388,7 +388,7 @@ rtRemoteStream::sendRequest(rtRemoteRequest const& req, MessageHandler handler, 
     if (doc)
       e = handler(doc);
     else
-      e = RT_TIMEOUT;
+      e = RT_ERROR_TIMEOUT;
   }
 
   return e;

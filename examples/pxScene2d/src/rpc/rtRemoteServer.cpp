@@ -132,8 +132,8 @@ is_unix_domain(rtRemoteEnvironment* env)
   if (!env)
     return false;
  
-  char const* s = env->Config->getString("rt.rpc.server.socket_family");
-  if (s && !strcmp(s, "unix"))
+  std::string family = env->Config->server_socket_family();
+  if (!strcmp(family.c_str(), "unix"))
     return true;
 
   return false;
@@ -178,7 +178,7 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
 
   m_shutdown_pipe[0] = -1;
   m_shutdown_pipe[1] = -1;
-  m_queueing_mode = !m_env->Config->getBool("rt.rpc.server.use_dispatch_thread");
+  m_queueing_mode = !m_env->Config->server_use_dispatch_thread();
 
   int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
   if (ret != 0)

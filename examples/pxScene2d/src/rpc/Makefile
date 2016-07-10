@@ -31,7 +31,8 @@ RTRPC_SRCS=\
   rtRemoteFileResolver.cpp \
   rtRemoteMulticastResolver.cpp \
   rtRemoteNsResolver.cpp \
-  rtRemoteNameService.cpp
+  rtRemoteNameService.cpp \
+  rtRemoteConfigBuilder.cpp
 
 SAMPLEAPP_SRCS=\
   rpc_main.cpp
@@ -72,6 +73,10 @@ RTRPC_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(RTRPC_OBJS))
 
 SAMPLEAPP_OBJS = $(OBJDIR)/rpc_main.o
 
+RT_REMOTE_CONFIG_GEN=$(OBJDIR)/rtRemoteConfigGen
+$(RT_REMOTE_CONFIG_GEN): rtRemoteConfigGen.cpp
+	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
+	$(CXX_PRETTY) $(CXXFLAGS) $< -o $@
 
 $(OBJDIR)/%.o: ../%.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
@@ -88,10 +93,23 @@ $(OBJDIR)/%.o : ../%.c
 debug:
 	@echo $(OBJS)
 
+$(RTRPC_OBJS): rtRemoteConfig.h rtremote.conf rtRemoteConfigBuilder.cpp
+
+rtremote.conf: rtremote.conf.ac
+	$(RT_REMOTE_CONFIG_GEN) -i rtremote.conf.ac -c -o rtremote.conf
+
+rtRemoteConfig.h: $(RT_REMOTE_CONFIG_GEN) rtremote.conf.ac
+	$(RT_REMOTE_CONFIG_GEN) -i rtremote.conf.ac -h -o rtRemoteConfig.h
+
+rtRemoteConfigBuilder.cpp: $(RT_REMOTE_CONFIG_GEN) rtremote.conf.ac
+	$(RT_REMOTE_CONFIG_GEN) -i rtremote.conf.ac -s -o rtRemoteConfigBuilder.cpp
+
 clean:
 	rm -rf obj
 	rm -f $(SAMPLEAPP)
 	rm -f *.so
+	rm -f rtremote.conf
+	rm -f rtRemoteConfig.h
 
 lib$(LIBRTRPC).so: $(RTRPC_OBJS)
 	$(CXX_PRETTY) $(RTRPC_OBJS) $(LDFLAGS) -shared -o $@

@@ -1,6 +1,7 @@
 #include "rtRemoteConfig.h"
-#include <rtLog.h>
+#include "rtRemoteTypes.h"
 
+#include <rtLog.h>
 #include <errno.h>
 #include <rtLog.h>
 #include <stdio.h>
@@ -9,6 +10,7 @@
 #include <limits.h>
 
 #include <algorithm>
+#include <functional>
 #include <limits>
 #include <vector>
 #include <iostream>
@@ -116,10 +118,10 @@ static Setting kDefaultSettings[] =
   { nullptr, nullptr }
 };
 
-rtRemoteConfig*
-rtRemoteConfig::getInstance()
+rtRemoteConfigBuilder*
+rtRemoteConfigBuilder::getDefaultConfig()
 {
-  rtRemoteConfig* conf = new rtRemoteConfig();
+  rtRemoteConfigBuilder* conf = new rtRemoteConfigBuilder();
   for (int i = 0; kDefaultSettings[i].name; ++i)
   {
     conf->m_map.insert(std::map<std::string, std::string>::value_type(
@@ -140,7 +142,7 @@ rtRemoteConfig::getInstance()
   for (std::string const& fileName : configFiles)
   {
     // overrite any existing defaults from file
-    rtRemoteConfig* confFromFile = rtRemoteConfig::fromFile(fileName.c_str());
+    rtRemoteConfigBuilder* confFromFile = rtRemoteConfigBuilder::fromFile(fileName.c_str());
     if (confFromFile)
     {
       rtLogInfo("loading configuration settings (%d) from: %s",
@@ -162,7 +164,7 @@ rtRemoteConfig::getInstance()
 }
 
 bool
-rtRemoteConfig::getBool(char const* key)
+rtRemoteConfigBuilder::getBool(char const* key) const
 {
   bool b = false;
   char const* val = getString(key);
@@ -172,25 +174,25 @@ rtRemoteConfig::getBool(char const* key)
 }
 
 uint16_t
-rtRemoteConfig::getUInt16(char const* key)
+rtRemoteConfigBuilder::getUInt16(char const* key) const
 {
   return numeric_cast<uint16_t>(getString(key), strtoul);
 }
 
 int32_t
-rtRemoteConfig::getInt32(char const* key)
+rtRemoteConfigBuilder::getInt32(char const* key) const
 {
   return numeric_cast<int32_t>(getString(key), strtol);
 }
 
 uint32_t
-rtRemoteConfig::getUInt32(char const* key)
+rtRemoteConfigBuilder::getUInt32(char const* key) const
 {
   return numeric_cast<uint32_t>(getString(key), strtoul);
 }
 
 char const*
-rtRemoteConfig::getString(char const* key)
+rtRemoteConfigBuilder::getString(char const* key) const
 {
   RT_ASSERT(key != nullptr);
   RT_ASSERT(strlen(key) > 0);
@@ -213,8 +215,8 @@ rtRemoteConfig::getString(char const* key)
 
 
 
-rtRemoteConfig*
-rtRemoteConfig::fromFile(char const* file)
+rtRemoteConfigBuilder*
+rtRemoteConfigBuilder::fromFile(char const* file)
 {
   if (file == nullptr)
   {
@@ -229,7 +231,7 @@ rtRemoteConfig::fromFile(char const* file)
     return nullptr;
   }
 
-  rtRemoteConfig* conf = new rtRemoteConfig();
+  rtRemoteConfigBuilder* builder(new rtRemoteConfigBuilder());
 
   std::vector<char> buff;
   buff.reserve(1024);
@@ -271,15 +273,15 @@ rtRemoteConfig::fromFile(char const* file)
     rtLogDebug("LINE:(%04d) '%s'", line++, p);
     rtLogDebug("'%s' == '%s'", name.c_str(), val.c_str());
 
-    auto itr = conf->m_map.find(name);
-    if (itr != conf->m_map.end())
+    auto itr = builder->m_map.find(name);
+    if (itr != builder->m_map.end())
     {
       rtLogInfo("overwriting configuration val '%s' -> '%s' with '%s'",
           itr->first.c_str(), itr->second.c_str(), val.c_str());
     }
 
-    conf->m_map[name] = val;
+    builder->m_map[name] = val;
   }
 
-  return conf;
+  return builder;
 }
