@@ -126,6 +126,9 @@ inputBg.on("onKeyDown", function(e)
         {
            removeSelection();  // Delete selection
         }
+
+        prompt.a = (url.text)?0:1; // hide placeholder
+
       }
       break;
 
