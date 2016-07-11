@@ -71,7 +71,7 @@ rtRemoteRegisterObject(char const* id, rtObjectRef const& obj)
 }
 
 rtError
-rtRemoteLocateObject(char const* id, rtObjectRef& obj)
+rtRemoteLocateObject(char const* id, rtObjectRef& obj, int timeout)
 {
   if (gServer == nullptr)
   {
@@ -85,5 +85,5 @@ rtRemoteLocateObject(char const* id, rtObjectRef& obj)
     return RT_ERROR_INVALID_ARG;
   }
 
-  return gServer->findObject(id, obj, 3000);
+  return gServer->findObject(id, obj, timeout);
 }

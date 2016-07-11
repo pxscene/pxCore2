@@ -6,7 +6,7 @@
 
 rtError rtRemoteInit();
 rtError rtRemoteRegisterObject(char const* id, rtObjectRef const& obj);
-rtError rtRemoteLocateObject(char const* id, rtObjectRef& obj);
+rtError rtRemoteLocateObject(char const* id, rtObjectRef& obj, int timeout = 3000);
 rtError rtRemoteShutdown();
 
 #endif
