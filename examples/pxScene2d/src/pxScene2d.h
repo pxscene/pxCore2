@@ -500,7 +500,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
     {
 #if 1
       // translate based on xy rotate/scale based on cx, cy
-      m.translate(mx+mcx, my+mcy);
+      m.translate((int)mx+(int)mcx, (int)my+(int)mcy);
       if (mr) {
         m.rotateInDegrees(mr
 #ifdef ANIMATION_ROTATE_XYZ
