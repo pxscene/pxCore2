@@ -15,6 +15,7 @@ px.import({ scene: 'px:scene.1.js',
   var prompt   = scene.create({t:"text",text:"Enter Url to JS File or Package",font:fontRes, parent:inputBg,pixelSize:pts,textColor:0x869CB2ff,x:10,y:2});
   var url      = scene.create({t:"text",text:"",font:fontRes, parent:inputBg,pixelSize:pts,textColor:0x303030ff,x:10,y:2});
   var cursor   = scene.create({t:"rect", w:2, h:inputBg.h-10, parent:inputBg,x:10,y:5});
+  var alert    = scene.create({t:"rect", w:inputBg.w, h:inputBg.h, parent:bg,x:0,y:0, fillColor:0xFF000088});
 
   spinner.animateTo({r:360},1.0, scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP,scene.animation.COUNT_FOREVER);
   cursor.animateTo({a:0},0.5,   scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE,scene.animation.COUNT_FOREVER);
@@ -30,6 +31,9 @@ px.import({ scene: 'px:scene.1.js',
   var selection_chars = 0; // number of characters selected  (-)ive is LEFT of cursor start position
   var selection_text  = "";
 
+  alert.a = 0.0;
+
+  inputBg.moveToFront();
   url.moveToFront();
 
   inputBg.on("onChar",function(e)
@@ -406,12 +410,20 @@ content.on("onMouseUp", function(e) {
 function updateSize(w,h) {
   bg.w = w;
   bg.h = h;
+
   inputBg.w = w-20;
   spinner.x = w-100;
   content.w = w-20;
   content.h = h-70;
+
   contentBG.w = w-20;
   contentBG.h = h-70;
+
+  alert.x = 0;
+  alert.y = 0;
+
+  alert.w = w;
+  alert.h = h;
 }
 
 scene.root.on("onPreKeyDown", function(e) {
@@ -444,10 +456,18 @@ if (true) {
       reload("gallery.js");
       e.stopPropagation();
     }
+    else if (inputBg.focus == false)
+    {
+      noFocusKeys();
+    }
   });
 }
 
-
+function noFocusKeys()
+{
+    alert.a = 0;
+    alert.animateTo({a:0.75},0.125, scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE | scene.animation.FASTFORWARD, 2);
+}
 
 scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 updateSize(scene.w,scene.h);
