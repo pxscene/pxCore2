@@ -267,18 +267,19 @@ std::map< int, TestCase > testCases;
 
 int main(int argc, char* /*argv*/[])
 {
+  env = rtEnvironmentGetGlobal();
+
+  // runs separate name server which communicates with resolver
   if (argc == 3)
   {
-    rtError e = rtRemoteInitNs();
+    rtError e = rtRemoteInitNs(env);
     RT_ASSERT(e == RT_OK);
     while(1);
-    rtRemoteShutdownNs();
+    rtRemoteShutdownNs(env);
     return 0;
   }
   else
   {
-    env = rtEnvironmentGetGlobal();
-
     rtError e = rtRemoteInit(env);
     RT_ASSERT(e == RT_OK);
 

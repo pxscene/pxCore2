@@ -96,13 +96,13 @@ rtRemoteInit(rtRemoteEnvironment* env)
 }
 
 rtError
-rtRemoteInitNs()
+rtRemoteInitNs(rtRemoteEnvironment* env)
 {
   rtError e = RT_OK;
   //rtRemoteConfig::getInstance();
   if (gNs == nullptr)
   {
-    gNs = new rtRemoteNameService(gEnv);
+    gNs = new rtRemoteNameService(env);
     e = gNs->init();
   }
 
