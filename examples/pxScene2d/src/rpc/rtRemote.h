@@ -9,8 +9,20 @@
 
 typedef struct rtRemoteEnvironment rtRemoteEnvironment;
 
-rtRemoteEnvironment* rtGlobalEnvironment();
-rtRemoteEnvironment* rtEnvironmentFromFile(char const* configFile);
+/**
+ * Get a pointer the global rtRemoteEnvironment
+ * Don't delete this!
+ */
+rtRemoteEnvironment*
+rtEnvironmentGetGlobal();
+
+/**
+ * Create a new rtRemoteEnvironment from a file
+ * @param configFile The rtremote configuration file to create the environment from
+ * @returns a newly allocated rtRemoteEnvironment. Caller must delete.
+ */
+rtRemoteEnvironment*
+rtEnvironmentFromFile(char const* configFile);
 
 
 /**

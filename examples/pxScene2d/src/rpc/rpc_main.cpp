@@ -277,7 +277,7 @@ int main(int argc, char* /*argv*/[])
   }
   else
   {
-    env = rtGlobalEnvironment();
+    env = rtEnvironmentGetGlobal();
 
     rtError e = rtRemoteInit(env);
     RT_ASSERT(e == RT_OK);

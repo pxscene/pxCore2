@@ -72,6 +72,7 @@ RTRPC_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(RTRPC_OBJS)))
 RTRPC_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(RTRPC_OBJS))
 
 SAMPLEAPP_OBJS = $(OBJDIR)/rpc_main.o
+$(OBJDIR)/rpc_main.o: rtRemoteConfig.h
 
 RT_REMOTE_CONFIG_GEN=$(OBJDIR)/rtRemoteConfigGen
 $(RT_REMOTE_CONFIG_GEN): rtRemoteConfigGen.cpp
@@ -95,7 +96,7 @@ debug:
 
 $(RTRPC_OBJS): rtRemoteConfig.h rtremote.conf rtRemoteConfigBuilder.cpp
 
-rtremote.conf: rtremote.conf.ac
+rtremote.conf: rtremote.conf.ac $(RT_REMOTE_CONFIG_GEN)
 	$(RT_REMOTE_CONFIG_GEN) -i rtremote.conf.ac -c -o rtremote.conf
 
 rtRemoteConfig.h: $(RT_REMOTE_CONFIG_GEN) rtremote.conf.ac

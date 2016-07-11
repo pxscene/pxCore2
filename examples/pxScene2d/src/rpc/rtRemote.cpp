@@ -200,7 +200,20 @@ rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
 }
 
 rtRemoteEnvironment*
-rtGlobalEnvironment()
+rtRemoteEnvironmentFromFile(char const* configFile)
+{
+  RT_ASSERT(configFile != nullptr);
+
+  rtRemoteConfigBuilder* builder(rtRemoteConfigBuilder::fromFile(configFile));
+  rtRemoteEnvironment* env(new rtRemoteEnvironment(builder->build()));
+  delete builder;
+
+  return env;
+
+}
+
+rtRemoteEnvironment*
+rtEnvironmentGetGlobal()
 {
   std::lock_guard<std::mutex> lock(gMutex);
   if (gEnv == nullptr)
