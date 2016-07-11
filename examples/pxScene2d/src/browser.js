@@ -3,8 +3,8 @@ px.import({ scene: 'px:scene.1.js',
 }).then( function importsAreReady(imports)
 {
   var scene = imports.scene;
-  var keys = imports.keys;
-  var root = imports.scene.root;
+  var keys  = imports.keys;
+  var root  = imports.scene.root;
 
   var pts      = 24;
   var bg       = scene.create({t:"image",url:"./images/status_bg.png",parent:root,stretchX:scene.stretch.STRETCH,stretchY:scene.stretch.STRETCH});
@@ -122,8 +122,6 @@ inputBg.on("onKeyDown", function(e)
         {
            removeSelection();  // Delete selection
         }
-
-        updateCursor(cursor_pos);
       }
       break;
 
@@ -138,10 +136,7 @@ inputBg.on("onKeyDown", function(e)
       }
       else
       {
-        cursor_pos = 0;
-        updateCursor(cursor_pos);
-
-        clearSelection();
+        moveToHome();
       }
       break;
 
@@ -152,38 +147,38 @@ inputBg.on("onKeyDown", function(e)
       }
       else
       {
-        cursor_pos = url.text.length;
-        updateCursor(cursor_pos);
-
-        clearSelection();
+        moveToEnd();
       }
       break;
 
     case keys.LEFT:
       if(cursor_pos > 0)
       {
+        if(flags == 16) // <<  CTRL KEY
+        {
+          moveToHome();
+        }
+        else
         if(flags == 24) // <<  CTRL + SHIFT KEY
         {
           selectToHome();
-
-          cursor_pos = 1; // allow for decrement below
         }
-
-        if(flags == 8) // <<  SHIFT KEY
+        else
         {
-          if(selection_chars == 0) // New selection ?
+          if(flags == 8) // <<  SHIFT KEY
           {
-             selection_start = cursor_pos;
-             selection_x     = cursor.x + cursor.w; // Start selection
+            if(selection_chars == 0) // New selection ?
+            {
+              selection_start = cursor_pos;
+              selection_x     = cursor.x + cursor.w; // Start selection
+            }
+            selection_chars--;
+
+            makeSelection();
           }
-          selection_chars--;
 
-          makeSelection();
+          cursor_pos--;
         }
-
-        cursor_pos--;
-
-        updateCursor(cursor_pos);
       }
 
       if(flags != 8 && flags != 24 && selection.w != 0)
@@ -195,26 +190,31 @@ inputBg.on("onKeyDown", function(e)
     case keys.RIGHT:
       if(cursor_pos < url.text.length)
       {
+        if(flags == 16) // <<  CTRL KEY
+        {
+           moveToEnd();
+        }
+        else
         if(flags == 24) // <<  CTRL + SHIFT KEY
         {
           selectToEnd();
         }
-
-        if(flags == 8) // <<  SHIFT KEY
+        else
         {
-          if(selection_chars == 0) // New selection ?
+          if(flags == 8) // <<  SHIFT KEY
           {
-            selection_start = cursor_pos - 1;
-            selection_x     = cursor.x + cursor.w; // Start selection
+            if(selection_chars == 0) // New selection ?
+            {
+              selection_start = cursor_pos - 1;
+              selection_x     = cursor.x + cursor.w; // Start selection
+            }
+            selection_chars++;
+
+            makeSelection();
           }
-          selection_chars++;
 
-          makeSelection();
+          cursor_pos++;
         }
-
-        cursor_pos++;
-
-        updateCursor(cursor_pos);
       }
 
       if(flags != 8 && flags != 24 && selection.w != 0)
@@ -248,8 +248,6 @@ inputBg.on("onKeyDown", function(e)
 
         cursor_pos+= fromClip.length;
 
-        updateCursor(cursor_pos);
-
         clearSelection();
       }
       break;
@@ -274,6 +272,8 @@ inputBg.on("onKeyDown", function(e)
         // cursor.x = url.x + url.w;
         break;
   } // SWITCH
+
+  updateCursor(cursor_pos);
 });
 
 
@@ -285,7 +285,7 @@ function updateCursor(pos)
 
   cursor.x = url.x + metrics.w; // offset to cursor
 
-//  console.log("updateCursor() >>> pos = " + pos);
+  //console.log("updateCursor() >>> pos = " + pos);
 }
 
 function clearSelection()
@@ -337,34 +337,50 @@ function makeSelection()  // Selection made: left-to-right
   }
 }
 
+function moveToHome()
+{
+  cursor_pos = 0;
+
+  clearSelection();
+}
+
 function selectToHome()
 {
   // Select from Cursor to End
-  selection_start = cursor_pos;
-  selection_x     = cursor.x + cursor.w; // Start selection
+  if(selection_chars == 0)
+  {
+    selection_start = cursor_pos; // new selection
+    selection_x     = cursor.x + cursor.w; // Extend selection
+  }
 
-  selection_chars = -cursor_pos;  // characters to the LEFT
+  selection_chars += -cursor_pos;  // characters to the LEFT
 
   makeSelection();
 
   cursor_pos = 0;
-  updateCursor(cursor_pos);
+}
+
+function moveToEnd()
+{
+  cursor_pos = url.text.length;
+
+  clearSelection();
 }
 
 function selectToEnd()
 {
   // Select from Cursor to Start
-  selection_start = cursor_pos - 1;
-  selection_x     = cursor.x + cursor.w; // Start selection
+  if(selection_chars == 0)
+  {
+    selection_start = cursor_pos - 1;
+    selection_x     = cursor.x + cursor.w; // Start selection
+  }
 
-  selection_chars = url.text.length - cursor_pos; // characters to the RIGHT
-
-  cursor_pos += selection_chars - 1;
+  selection_chars += (url.text.length - cursor_pos); // characters to the RIGHT
 
   makeSelection();
 
   cursor_pos = url.text.length;
-  updateCursor(cursor_pos);
 }
 
 inputBg.on("onFocus", function(e) {
