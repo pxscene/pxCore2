@@ -473,6 +473,7 @@ function noFocusKeys()
   }
   else
   {
+    // MANUAL VERSION OF "OSCILLATE" ... INTERRUPTIONS ARE HANDLED CORRECTLY BY FASTFORWARD
     alert.animateTo({a:0.5},0.125, scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP | scene.animation.FASTFORWARD, 1).then(function()
     {
       alert.animateTo({a:0},0.125, scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP | scene.animation.FASTFORWARD,1);
