@@ -58,7 +58,7 @@ px.import({ scene: 'px:scene.1.js',
         // insert character
         url.text = url.text.slice(0, cursor_pos) + String.fromCharCode(e.charCode) + url.text.slice(cursor_pos);
       }
-      prompt.a = (url.text)?0:1; // hide placeholder
+      prompt.a = (url.text)?0:1; // show/hide placeholder
 
       cursor_pos += 1; // inserted 1 character
 
@@ -127,7 +127,7 @@ inputBg.on("onKeyDown", function(e)
            removeSelection();  // Delete selection
         }
 
-        prompt.a = (url.text)?0:1; // hide placeholder
+        prompt.a = (url.text)?0:1; // show/hide placeholder
 
       }
       break;
@@ -316,6 +316,8 @@ function removeSelection()
 
   updateCursor(cursor_pos);
   clearSelection();
+
+  prompt.a = (url.text)?0:1; // show/hide placeholder
 }
 
 function makeSelection()  // Selection made: left-to-right
