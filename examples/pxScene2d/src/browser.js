@@ -465,9 +465,22 @@ if (true) {
 
 function noFocusKeys()
 {
-    alert.a = 0;
+  // See  XRE2-204 ...
+  if(true)
+  {
+    alert.a = 0; // SHOULD NOT BE NEEDED
     alert.animateTo({a:0.75},0.125, scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE | scene.animation.FASTFORWARD, 2);
+  }
+  else
+  {
+    alert.animateTo({a:0.5},0.125, scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP | scene.animation.FASTFORWARD, 1).then(function()
+    {
+      alert.animateTo({a:0},0.125, scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP | scene.animation.FASTFORWARD,1);
+    });
+  }
 }
+
+
 
 scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 updateSize(scene.w,scene.h);
