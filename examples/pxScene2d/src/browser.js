@@ -446,24 +446,34 @@ scene.root.on("onPreKeyDown", function(e) {
 
 
 if (true) {
-  scene.root.on("onKeyDown", function(e) {
-	  var code = e.keyCode; var flags = e.flags;
+  scene.root.on("onKeyDown", function(e)
+  {
+    var code = e.keyCode; var flags = e.flags;
     console.log("onKeyDown browser.js:", code, ", ", flags);
-    if (code == keys.R && ((flags & 48) == 48)) {  // ctrl-alt-r
-      console.log("Browser.js Reloading");
-      reload();
-      e.stopPropagation();
-      console.log("Browser.js reload done");
-    }
-    else if (code == keys.H && ((flags & 48)==48)) {  // ctrl-alt-h
-      var homeURL = "browser.js";
-      console.log("browser.js Loading home");
-      reload("gallery.js");
-      e.stopPropagation();
+
+    if ((flags & 48) == 48) // CTRL-ALT keys !!
+    {
+      if (code == keys.R)  //  CTRL-ALT-R
+      {
+        console.log("Browser.js Reloading");
+        reload();
+        e.stopPropagation();
+        console.log("Browser.js reload done");
+      }
+      else if (code == keys.H)  //  CTRL-ALT-H
+      {
+        var homeURL = "browser.js";
+        console.log("browser.js Loading home");
+        reload("gallery.js");
+        e.stopPropagation();
+      }
     }
     else if (inputBg.focus == false)
     {
+      if(code != keys.ENTER)
+      {
       noFocusKeys();
+      }
     }
   });
 }
