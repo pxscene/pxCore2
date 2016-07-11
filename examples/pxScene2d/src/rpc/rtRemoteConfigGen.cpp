@@ -1,3 +1,4 @@
+#include <exception>
 #include <memory>
 #include <map>
 #include <set>
@@ -17,6 +18,8 @@
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/error/error.h>
 #include <rapidjson/error/en.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 struct ConfigItem
 {
@@ -24,6 +27,7 @@ struct ConfigItem
   std::string DefaultValue;
   std::string Platform;
   std::string Type;
+  std::string Json;
 
   bool operator < (ConfigItem const& rhs) const
   {
@@ -125,6 +129,11 @@ static void processConfigParamList(FILE* f, rapidjson::Value const& configParams
     item.DefaultValue = configParam["default_value"].GetString();
     item.Type = configParam["type"].GetString();
 
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    configParam.Accept(writer);
+    item.Json = buffer.GetString();
+
     auto itr = configParam.FindMember("platform");
     if (itr != configParam.MemberEnd())
       item.Platform = itr->value.GetString();
@@ -132,6 +141,32 @@ static void processConfigParamList(FILE* f, rapidjson::Value const& configParams
     func(f, item);
   }
 }
+
+static std::set<ConfigItem> buildConfigItems(rapidjson::Value const& configParamsList)
+{
+  std::set<ConfigItem> configItems;
+  processConfigParamList(nullptr, configParamsList, [&configItems](FILE*, ConfigItem const& item)
+  {
+    if (item.Platform.size() > 0)
+    {
+    #ifdef __APPLE__
+      if (strcasecmp(item.Platform.c_str(), "mac") == 0)
+        configItems.insert(item);
+    #endif
+
+    #ifdef __linux__
+      if (strcasecmp(item.Platform.c_str(), "linux") == 0)
+        configItems.insert(item);
+    #endif
+    }
+    else
+    {
+      configItems.insert(item);
+    }
+  });
+  return std::move(configItems);
+}
+
 
 static int safeClose(FILE* f)
 {
@@ -178,14 +213,9 @@ static bool doGenConfig(rapidjson::Document const& doc, std::string const& outfi
     return false;
   }
 
+  std::set<ConfigItem> configItems = buildConfigItems(itr->value);
+
   std::unique_ptr<FILE, int (*)(FILE *)> out(fopen(outfile.c_str(), "w"), safeClose);
-
-  std::set<ConfigItem> configItems;
-  processConfigParamList(out.get(), itr->value, [&configItems](FILE* , ConfigItem const& item)
-  {
-    configItems.insert(item);
-  });
-
   for (auto i: configItems)
     fprintf(out.get(), "%s=%s\n", i.Name.c_str(), i.DefaultValue.c_str());
 
@@ -210,16 +240,12 @@ static bool doGenerateHeader(rapidjson::Document const& doc, std::string const& 
     return false;
   }
 
-  std::set<ConfigItem> configItems;
-  processConfigParamList(out.get(), itr->value, [&configItems](FILE* /*out*/, ConfigItem const& item)
-  {
-    configItems.insert(item);
-  });
+  std::set<ConfigItem> configItems = buildConfigItems(itr->value);
 
   fprintf(out.get(), "public:\n");
   for (auto i : configItems)
   {
-    fprintf(out.get(), "  // %s\n", i.Name.c_str());
+    fprintf(out.get(), "  // %s\n", i.Json.c_str());
     printGetter(out.get(), i);
     fprintf(out.get(), "  inline void set_%s(%s arg)\n", getMemberName(i).c_str(),
         getType(i).c_str());
@@ -258,15 +284,12 @@ static bool doGenerateSource(rapidjson::Document const& doc, std::string const& 
     return false;
   }
 
-  std::set<ConfigItem> configItems;
-  processConfigParamList(out.get(), itr->value, [&configItems](FILE* /*out*/, ConfigItem const& item)
-  {
-    configItems.insert(item);
-  });
+  std::set<ConfigItem> configItems = buildConfigItems(itr->value);
 
   for (auto i : configItems)
   {
-    fprintf(out.get(), "\n  // %s\n", i.Name.c_str());
+    fprintf(out.get(), "\n  // %s\n", i.Json.c_str());
+    fprintf(out.get(), "  // WARNING: default may have been overridden by configuration file\n");
     fprintf(out.get(), "  {\n");
     fprintf(out.get(), "    %s const val = this->%s(\"%s\");\n", getType(i).c_str(),
         getBuilderGetter(i).c_str(), i.Name.c_str());
@@ -275,6 +298,18 @@ static bool doGenerateSource(rapidjson::Document const& doc, std::string const& 
   }
 
   fprintf(out.get(), "\n  return conf;\n");
+  fprintf(out.get(), "}\n");
+
+  fprintf(out.get(), "\n\n");
+  fprintf(out.get(), "rtRemoteConfigBuilder::rtRemoteConfigBuilder()\n");
+  fprintf(out.get(), "{\n");
+  for (auto i : configItems)
+  {
+    fprintf(out.get(), "  // %s\n", i.Json.c_str());
+    fprintf(out.get(), "  m_map.insert(std::map<std::string, std::string>::value_type(\"%s\", \"%s\"));\n",
+      i.Name.c_str(), i.DefaultValue.c_str());
+    fprintf(out.get(), "\n");
+  }
   fprintf(out.get(), "}\n");
   fprintf(out.get(), "// END-OF-FILE\n");
 

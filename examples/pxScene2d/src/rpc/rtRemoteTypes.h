@@ -57,6 +57,8 @@ private:
 class rtRemoteConfigBuilder
 {
 public:
+  rtRemoteConfigBuilder();
+
   static rtRemoteConfigBuilder* getDefaultConfig();
   static rtRemoteConfigBuilder* fromFile(char const* file);
 

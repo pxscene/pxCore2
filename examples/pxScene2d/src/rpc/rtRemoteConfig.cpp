@@ -87,47 +87,11 @@ struct Setting
   char const* value;
 };
 
-static Setting kDefaultSettings[] =
-{
-#ifdef __APPLE__
-  { "rt.rpc.resolver.multicast.interface", "en0" },
-  { "rt.rpc.server.listen_interface", "en0" },
-#else
-  { "rt.rpc.resolver.multicast.interface", "eth0" },
-  { "rt.rpc.server.listen_interface", "eth0" },
-#endif
-  { "rt.rpc.default.request_timeout", "3000" },
-  { "rt.rpc.cache.max_object_lifetime", "15" },
-  { "rt.rpc.server.socket_family", "inet" },
-  { "rt.rpc.server.use_dispatch_thread", "false" },
-
-  // resolver settings
-  // one of multicast, fle, unicast
-  { "rt.rpc.resolver.type", "multicast" }, 
-  { "rt.rpc.resolver.locate_timeout", "3000" },
-
-  // multicast resolver
-  { "rt.rpc.resolver.multicast.address", "224.10.0.12" },
-  { "rt.rpc.resolver.multicast.address6", "ff05:0:0:0:0:0:0:201" },
-  { "rt.rpc.resolver.multicast.port", "10004" },
-
-  // unicast resolver settings
-  { "rt.rpc.resolver.file.db_path", "./tmp/rt_remote_resolver.json"},
-  { "rt.rpc.resolver.unicast.address", "127.0.0.1" },
-  { "rt.rpc.resolver.unicast.port", "49118" },
-  { nullptr, nullptr }
-};
-
 rtRemoteConfigBuilder*
 rtRemoteConfigBuilder::getDefaultConfig()
 {
+  // defaults are loaded in constructor
   rtRemoteConfigBuilder* conf = new rtRemoteConfigBuilder();
-  for (int i = 0; kDefaultSettings[i].name; ++i)
-  {
-    conf->m_map.insert(std::map<std::string, std::string>::value_type(
-      kDefaultSettings[i].name,
-      kDefaultSettings[i].value));
-  }
 
   std::vector<std::string> configFiles;
   char* file = getenv("RT_RPC_CONFIG");
