@@ -1,4 +1,10 @@
-px.import("px:scene.1.js").then(function ready(scene) {
+px.import({ scene: 'px:scene.1.js',
+             keys: 'px:tools.keys.js'
+}).then( function ready(imports)
+{
+  var scene = imports.scene;
+  var keys  = imports.keys;
+
 
   // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
@@ -58,31 +64,31 @@ if (false) {
 	  var code = e.keyCode; var flags = e.flags;
     console.log("onPreKeyDown:", code, ", ", flags);
        
-    if (code == 89 && ((flags & 48)==48))   // ctrl-alt-y
+    if (code == keys.Y && ((flags & 48)==48))   // ctrl-alt-y
     {
       showFPS = !showFPS
       fpsBg.a = (showFPS)?1.0:0;
       e.stopPropagation();
     }
-    if (code == 79 && ((flags & 48) == 48))   // ctrl-alt-o
+    else if (code == keys.O && ((flags & 48) == 48))   // ctrl-alt-o
     {
       scene.showOutlines = !scene.showOutlines;
       e.stopPropagation();
     }
-    else if (code == 82 && ((flags & 56) == 56))   // ctrl-alt-r
+    else if (code == keys.R && ((flags & 56) == 56))   // ctrl-alt-shft-r
     {
       console.log("Reloading url: ", originalURL);
       childScene.url = originalURL;
       e.stopPropagation();
     }
-    else if (code == 72 && ((flags & 56)==56))   // ctrl-alt-h
+    else if (code == keys.H && ((flags & 56)==56))   // ctrl-alt-shft-h
     {
       var homeURL = "browser.js";
       console.log("Loading home url: ", homeURL);
       childScene.url = homeURL;
       e.stopPropagation();
     }
-    else if (code == 83 && ((flags & 48)==48))  // ctrl-s
+    else if (code == keys.S && ((flags & 48)==48))  // ctrl-s
     {
       // This returns a data URI string with the image data
       var dataURI = scene.screenshot('image/png;base64');
@@ -105,23 +111,24 @@ if (false) {
 	  var code = e.keyCode; var flags = e.flags;
     console.log("onKeyUp:", code, ", ", flags);
     // eat the ones we handle here
-         if (code == 89 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-y
-    else if (code == 79 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-o
-    else if (code == 82 && ((flags & 56)==56)) e.stopPropagation(); // ctrl-alt-shift-r
-    else if (code == 72 && ((flags & 56)==56)) e.stopPropagation(); // ctrl-alt-shift-h
-    else if (code == 83 && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-s
+         if (code == keys.Y && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-y
+    else if (code == keys.O && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-o
+    else if (code == keys.R && ((flags & 56)==56)) e.stopPropagation(); // ctrl-alt-shift-r
+    else if (code == keys.H && ((flags & 56)==56)) e.stopPropagation(); // ctrl-alt-shift-h
+    else if (code == keys.S && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-s
   });
 
   if (true) {
-  scene.root.on("onKeyDown", function(e) {
+  scene.root.on("onKeyDown", function(e)
+  {
 	  var code = e.keyCode; var flags = e.flags;
     console.log("onKeyDown shell:", code, ", ", flags);
-    if (code == 82 && ((flags & 48) == 48)) {  // ctrl-alt-r
+    if (code == keys.R && ((flags & 48) == 48)) {  // ctrl-alt-r
       console.log("(shell.js) Reloading url: ", originalURL);
       childScene.url = originalURL;
       e.stopPropagation();
     }
-    else if (code == 72 && ((flags & 48)==48)) {  // ctrl-alt-h
+    else if (code == keys.H && ((flags & 48)==48)) {  // ctrl-alt-h
       var homeURL = "browser.js";
       console.log("Loading home url: ", homeURL);
       childScene.url = homeURL;
@@ -130,7 +137,8 @@ if (false) {
   });
 }
 
-  scene.root.on("onPreChar", function(e) {
+  scene.root.on("onPreChar", function(e)
+  {
     console.log("in onchar");
 	  var c = e.charCode;
     console.log("onChar:", c);
