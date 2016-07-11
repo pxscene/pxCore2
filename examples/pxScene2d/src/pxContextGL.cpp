@@ -310,11 +310,14 @@ public:
   virtual pxError bindGLTextureAsMask(int /*mLoc*/)   { return PX_FAIL; }
 };
 
+#define MAX_TEXTURE_WIDTH 2048
+#define MAX_TEXTURE_HEIGHT 2048
+
 class pxTextureOffscreen : public pxTexture
 {
 public:
   pxTextureOffscreen() : mOffscreen(), mInitialized(false),
-                         mTextureUploaded(false)
+                         mTextureUploaded(false), mWidth(0), mHeight(0)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
   }
@@ -330,10 +333,57 @@ public:
 
   void createTexture(pxOffscreen& o)
   {
+#ifdef ENABLE_MAX_TEXTURE_SIZE
+    int verticalScale = 1;
+    int horizontalScale = 1;
+    int srcTextureWidth = o.width();
+    int srcTextureHeight = o.height();
+    int newTextureWidth = srcTextureWidth;
+    int newTextureHeight = srcTextureHeight;
+    if ( ((srcTextureWidth > MAX_TEXTURE_WIDTH) || (srcTextureHeight > MAX_TEXTURE_HEIGHT)))
+    {
+      while (newTextureWidth > MAX_TEXTURE_WIDTH)
+      {
+        horizontalScale <<= 1;
+        newTextureWidth >>= 1;
+      }
+      while (newTextureHeight > MAX_TEXTURE_HEIGHT)
+      {
+        verticalScale <<= 1;
+        newTextureHeight >>= 1;
+      }
+    }
+    mWidth = srcTextureWidth;
+    mHeight = srcTextureHeight;
+    if ( (horizontalScale > 1) || (verticalScale > 1 ) )
+    {
+       mOffscreen.init(newTextureWidth, newTextureHeight);
+       mOffscreen.setUpsideDown(true);
+       int y = 0;
+       for (int j = 0; j < srcTextureHeight-1; j += verticalScale, y++ )
+       {
+          int x = 0;
+          for (int k = 0; k < srcTextureWidth-1; k += horizontalScale, x++)
+          {
+             o.blit(mOffscreen, x, y, 1,1,k,j);
+          }
+       }
+    }
+    else
+    {
+      mOffscreen.init(o.width(), o.height());
+      // Flip the image data here so we match GL FBO layout
+      mOffscreen.setUpsideDown(true);
+      o.blit(mOffscreen);
+    }
+#else
     mOffscreen.init(o.width(), o.height());
     // Flip the image data here so we match GL FBO layout
     mOffscreen.setUpsideDown(true);
     o.blit(mOffscreen);
+    mWidth = mOffscreen.width();
+    mHeight = mOffscreen.height();
+#endif //ENABLE_MAX_TEXTURE_SIZE
 
     // premultiply
     for (int y = 0; y < mOffscreen.height(); y++)
@@ -439,14 +489,16 @@ public:
     return PX_OK;
   }
 
-  virtual int width() { return mOffscreen.width(); }
-  virtual int height() { return mOffscreen.height(); }
+  virtual int width() { return mWidth; }
+  virtual int height() { return mHeight; }
 
 private:
   pxOffscreen mOffscreen;
   bool mInitialized;
   GLuint mTextureName;
   bool mTextureUploaded;
+  int mWidth;
+  int mHeight;
 };
 
 class pxTextureAlpha : public pxTexture
