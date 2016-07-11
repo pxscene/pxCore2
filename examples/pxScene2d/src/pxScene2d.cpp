@@ -560,7 +560,7 @@ void pxObject::update(double t)
 
     }
 
-    float v = from + (to - from) * d;
+    float v = round(from + (to - from) * d);
     assert(mCancelInSet);
     mCancelInSet = false;
     set(a.prop, v);
