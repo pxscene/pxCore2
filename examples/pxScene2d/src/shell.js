@@ -58,64 +58,82 @@ if (false) {
     });
   }
 }
-////
                                 
   scene.root.on("onPreKeyDown", function(e) {
 	  var code = e.keyCode; var flags = e.flags;
-    console.log("onPreKeyDown:", code, ", ", flags);
+    console.log("SHELL: onPreKeyDown:", code, " key: ", keys.name(code), ", ", flags);
        
-    if (code == keys.Y && ((flags & 48)==48))   // ctrl-alt-y
+    if( keys.is_CTRL_ALT( flags ) )
     {
+      if(code == keys.Y)  // ctrl-alt-y
+      {
+//        console.log("SHELL: onPreKeyDown: FPS !!!  ############# ");
+
       showFPS = !showFPS
       fpsBg.a = (showFPS)?1.0:0;
       e.stopPropagation();
-    }
-    else if (code == keys.O && ((flags & 48) == 48))   // ctrl-alt-o
-    {
-      scene.showOutlines = !scene.showOutlines;
-      e.stopPropagation();
-    }
-    else if (code == keys.R && ((flags & 56) == 56))   // ctrl-alt-shft-r
-    {
-      console.log("Reloading url: ", originalURL);
-      childScene.url = originalURL;
-      e.stopPropagation();
-    }
-    else if (code == keys.H && ((flags & 56)==56))   // ctrl-alt-shft-h
-    {
-      var homeURL = "browser.js";
-      console.log("Loading home url: ", homeURL);
-      childScene.url = homeURL;
-      e.stopPropagation();
-    }
-    else if (code == keys.S && ((flags & 48)==48))  // ctrl-s
-    {
-      // This returns a data URI string with the image data
-      var dataURI = scene.screenshot('image/png;base64');
-      // convert the data URI by stripping off the scheme and type information
-      // to a base64 encoded string with just the PNG image data
-      var base64PNGData = dataURI.slice(dataURI.indexOf(',')+1);
-      // decode the base64 data and write it to a file
-      fs.writeFile("screenshot.png", new Buffer(base64PNGData, 'base64'), function(err)
+      }
+      else
+      if(code == keys.O)  // ctrl-alt-o
       {
-        if (err)
-          console.log("Error creating screenshot.png");
-        else
-          console.log("Created screenshot.png");
-      });
-    }
+//        console.log("SHELL: onPreKeyDown: showOutlines !!!  ############# ");
+
+        scene.showOutlines = !scene.showOutlines;
+        e.stopPropagation();
+      }
+      else
+      if (code == keys.S)  // ctrl-alt-s
+      {
+        // This returns a data URI string with the image data
+        var dataURI = scene.screenshot('image/png;base64');
+        // convert the data URI by stripping off the scheme and type information
+        // to a base64 encoded string with just the PNG image data
+        var base64PNGData = dataURI.slice(dataURI.indexOf(',')+1);
+        // decode the base64 data and write it to a file
+        fs.writeFile("screenshot.png", new Buffer(base64PNGData, 'base64'), function(err)
+        {
+          if (err)
+            console.log("Error creating screenshot.png");
+          else
+            console.log("Created screenshot.png");
+        });
+      }
+    }// ctrl-alt
+    else
+    if( keys.is_CTRL_ALT_SHIFT( flags ) )
+    {
+      if(code == keys.R)  // ctrl-alt-shft-r
+      {
+        // console.log("SHELL: onPreKeyDown: Reloading url [ "+originalURL+" ] !!!  ############# ");
+
+        console.log("Reloading url: ", originalURL);
+        childScene.url = originalURL;
+        e.stopPropagation();
+      }
+      else
+      if(code == keys.H)  // ctrl-alt-shft-h
+      {
+        // console.log("SHELL: onPreKeyDown: Loading HOME url [ "+"browser.js"+" ] !!!  ############# ");
+
+        var homeURL = "browser.js";
+        console.log("Loading home url: ", homeURL);
+        childScene.url = homeURL;
+        e.stopPropagation();
+      }
+    }// ctrl-alt-shift
   });
 
-  scene.root.on("onPreKeyUp", function(e) {
+  scene.root.on("onPreKeyUp", function(e)
+  {
     console.log("in onPreKeyUp", e.keyCode, e.flags);
 	  var code = e.keyCode; var flags = e.flags;
     console.log("onKeyUp:", code, ", ", flags);
     // eat the ones we handle here
-         if (code == keys.Y && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-y
-    else if (code == keys.O && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-o
-    else if (code == keys.R && ((flags & 56)==56)) e.stopPropagation(); // ctrl-alt-shift-r
-    else if (code == keys.H && ((flags & 56)==56)) e.stopPropagation(); // ctrl-alt-shift-h
-    else if (code == keys.S && ((flags & 48)==48)) e.stopPropagation(); // ctrl-alt-s
+         if (code == keys.Y && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-y
+    else if (code == keys.O && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-o
+    else if (code == keys.S && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-s
+    else if (code == keys.R && keys.is_CTRL_ALT_SHIFT( flags ) ) e.stopPropagation(); // ctrl-alt-shift-r
+    else if (code == keys.H && keys.is_CTRL_ALT_SHIFT( flags ) ) e.stopPropagation(); // ctrl-alt-shift-h
   });
 
   if (true) {
@@ -123,20 +141,27 @@ if (false) {
   {
 	  var code = e.keyCode; var flags = e.flags;
     console.log("onKeyDown shell:", code, ", ", flags);
-    if (code == keys.R && ((flags & 48) == 48)) {  // ctrl-alt-r
-      console.log("(shell.js) Reloading url: ", originalURL);
-      childScene.url = originalURL;
-      e.stopPropagation();
-    }
-    else if (code == keys.H && ((flags & 48)==48)) {  // ctrl-alt-h
-      var homeURL = "browser.js";
-      console.log("Loading home url: ", homeURL);
-      childScene.url = homeURL;
-      e.stopPropagation();
-    }
+
+    if( keys.is_CTRL_ALT( flags ) )
+    {
+      if(code == keys.R)   // ctrl-alt-r
+      {
+        console.log("(shell.js) Reloading url: ", originalURL);
+        childScene.url = originalURL;
+        e.stopPropagation();
+      }
+      else
+      if (code == keys.H)  // ctrl-alt-h
+      {
+        var homeURL = "browser.js";
+        console.log("Loading home url: ", homeURL);
+        childScene.url = homeURL;
+        e.stopPropagation();
+      }
+    }// ctrl-alt
   });
 }
-
+  
   scene.root.on("onPreChar", function(e)
   {
     console.log("in onchar");

@@ -75,6 +75,8 @@ function reload(u) {
   else
     url.text = u;
 
+  console.log("RELOADING.... [ " + u + " ]");
+
   // TODO Temporary hack
   if (u.indexOf(':') == -1)
     u = 'http://www.pxscene.org/examples/px-reference/gallery/' + u;
@@ -451,7 +453,7 @@ if (true) {
     var code = e.keyCode; var flags = e.flags;
     console.log("onKeyDown browser.js  >> code: " + code + " key:" + keys.name(code) + " flags: " + flags);
 
-    if( keys.is_CTRL( flags ) ) // CTRL-ALT keys !!
+    if( keys.is_CTRL_ALT( flags ) ) // CTRL-ALT keys !!
     {
       if (code == keys.R)  //  CTRL-ALT-R
       {
@@ -468,7 +470,7 @@ if (true) {
         e.stopPropagation();
       }
     }
-    else if (inputBg.focus == false)
+    else if (inputBg.focus == false && flags == 0)
     {
       if(code != keys.ENTER)
       {

@@ -131,7 +131,8 @@ keys.is_CTRL = function(f)
 
 keys.is_CTRL_ALT = function(f)
 {
-    return ((f & 48)==16);
+    return (f==48);
+//    return ((f & 48)==48);
 }
 
 keys.is_SHIFT = function(f)
@@ -145,7 +146,8 @@ keys.is_CTRL_SHIFT = function(f)
 
 keys.is_CTRL_ALT_SHIFT = function(f)
 {
-    return ((f & 56)==16);
+//    return ((f & 56)==56);
+    return (f ==56);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
