@@ -1,6 +1,7 @@
 // keys.js .... JavaScript Keycodes
 
-var keys = {
+var keys =
+{
     ENTER        : 13,
     BACKSPACE    : 8,
     TAB          : 9,
@@ -105,4 +106,52 @@ var keys = {
     QUOTE        : 222
 };
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+keys.name = function(key)
+{
+  var all_keys = Object.keys(this);
+
+  for(var k in all_keys)
+  {
+    if( this[all_keys[k]] == key)
+    {
+      return all_keys[k];
+    }
+  }
+};
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Helper functions for testing Key Modifer FLAGS...
+
+keys.is_CTRL = function(f)
+{
+    return (f==16);
+}
+
+keys.is_CTRL_ALT = function(f)
+{
+    return ((f & 48)==16);
+}
+
+keys.is_SHIFT = function(f)
+{
+    return (f==8);
+}
+keys.is_CTRL_SHIFT = function(f)
+{
+    return (f==24);
+}
+
+keys.is_CTRL_ALT_SHIFT = function(f)
+{
+    return ((f & 56)==16);
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 module.exports = keys;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+

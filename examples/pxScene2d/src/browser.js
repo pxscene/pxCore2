@@ -137,7 +137,7 @@ inputBg.on("onKeyDown", function(e)
       break;
 
     case keys.HOME:
-      if(flags == 8) // <<  SHIFT KEY
+      if(keys.is_SHIFT( e.flags )) // <<  SHIFT KEY
       {
         selectToHome();
       }
@@ -148,7 +148,7 @@ inputBg.on("onKeyDown", function(e)
       break;
 
     case keys.END:
-      if(flags == 8) // <<  SHIFT KEY
+      if(keys.is_SHIFT( e.flags )) // <<  SHIFT KEY
       {
         selectToEnd();
       }
@@ -161,18 +161,18 @@ inputBg.on("onKeyDown", function(e)
     case keys.LEFT:
       if(cursor_pos > 0)
       {
-        if(flags == 16) // <<  CTRL KEY
+        if(keys.is_CTRL( e.flags )) // <<  CTRL KEY
         {
           moveToHome();
         }
         else
-        if(flags == 24) // <<  CTRL + SHIFT KEY
+        if(keys.is_CTRL_SHIFT( e.flags )) // <<  CTRL + SHIFT KEY
         {
           selectToHome();
         }
         else
         {
-          if(flags == 8) // <<  SHIFT KEY
+          if(keys.is_SHIFT( e.flags )) // <<  SHIFT KEY
           {
             if(selection_chars == 0) // New selection ?
             {
@@ -188,7 +188,7 @@ inputBg.on("onKeyDown", function(e)
         }
       }
 
-      if(flags != 8 && flags != 24 && selection.w != 0)
+      if(flags != 8 && !keys.is_CTRL_SHIFT( e.flags ) && selection.w != 0)
       {
         clearSelection();
       }
@@ -197,18 +197,18 @@ inputBg.on("onKeyDown", function(e)
     case keys.RIGHT:
       if(cursor_pos < url.text.length)
       {
-        if(flags == 16) // <<  CTRL KEY
+        if(keys.is_CTRL( e.flags )) // <<  CTRL KEY
         {
            moveToEnd();
         }
         else
-        if(flags == 24) // <<  CTRL + SHIFT KEY
+        if(keys.is_CTRL_SHIFT( e.flags )) // <<  CTRL + SHIFT KEY
         {
           selectToEnd();
         }
         else
         {
-          if(flags == 8) // <<  SHIFT KEY
+          if(keys.is_SHIFT( e.flags )) // <<  SHIFT KEY
           {
             if(selection_chars == 0) // New selection ?
             {
@@ -231,7 +231,7 @@ inputBg.on("onKeyDown", function(e)
       break;
 
      case keys.C:   // << CTRL + "c"
-      if( ((flags & 16)==16) )  // ctrl Pressed also
+      if( keys.is_CTRL( e.flags ) )  // ctrl Pressed also
       {
 //         console.log("onKeyDown ....   CTRL-C >>> [" + selection_text + "]");
 
@@ -240,7 +240,7 @@ inputBg.on("onKeyDown", function(e)
     break;
 
     case keys.V:   // << CTRL + "v"
-      if( ((flags & 16)==16) )  // ctrl Pressed also
+      if( keys.is_CTRL( e.flags ) )  // ctrl Pressed also
       {
         // On PASTE ... access the Native CLIPBOARD and GET the top!   fancy.js
         //
@@ -260,7 +260,7 @@ inputBg.on("onKeyDown", function(e)
       break;
 
     case keys.X:   // << CTRL + "x"
-      if( ((flags & 16)==16) )  // ctrl Pressed also
+      if( keys.is_CTRL( e.flags ) )  // ctrl Pressed also
       {
         // On CUT ... access the Native CLIPBOARD and GET the top!   fancy.js
         //
@@ -432,7 +432,7 @@ function updateSize(w,h) {
 }
 
 scene.root.on("onPreKeyDown", function(e) {
-  if (e.keyCode == keys.L && e.flags == 16) { // ctrl-l
+  if (e.keyCode == keys.L && keys.is_CTRL( e.flags )) { // ctrl-l
     //console.log("api:"+content.api);
 //    if (content.api) content.api.test(32);
     //scene.setFocus(inputBg);
@@ -449,9 +449,9 @@ if (true) {
   scene.root.on("onKeyDown", function(e)
   {
     var code = e.keyCode; var flags = e.flags;
-    console.log("onKeyDown browser.js:", code, ", ", flags);
+    console.log("onKeyDown browser.js  >> code: " + code + " key:" + keys.name(code) + " flags: " + flags);
 
-    if ((flags & 48) == 48) // CTRL-ALT keys !!
+    if( keys.is_CTRL( flags ) ) // CTRL-ALT keys !!
     {
       if (code == keys.R)  //  CTRL-ALT-R
       {
