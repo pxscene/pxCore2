@@ -77,6 +77,26 @@ function reload(u) {
 
   console.log("RELOADING.... [ " + u + " ]");
 
+  if (u.indexOf("local:") == 0) // LOCAL shorthand
+  {
+     var txt = u.slice(6, u.length);
+     var pos = txt.indexOf(':')
+     if ( pos == -1)
+     {
+       u = "http://localhost:8080/" + txt;   // SHORTCUT:   "local:filename.js""  >>  "http://localhost:8080/filename.js" (default to 8080)
+     }
+     else
+     {
+       var str = txt.split('');
+       str[pos] = "/"; // replace : with /
+       txt = str.join('');
+
+       u = "http://localhost:" + txt;       // SHORTCUT:   "local:8081:filename.js" >> "http://localhost:8080/filename.js""
+     }
+
+     url.text = u;
+  }
+
   // TODO Temporary hack
   if (u.indexOf(':') == -1)
     u = 'http://www.pxscene.org/examples/px-reference/gallery/' + u;
