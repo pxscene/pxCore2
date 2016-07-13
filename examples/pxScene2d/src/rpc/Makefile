@@ -2,6 +2,7 @@
 LIBRTRPC  = rtRemote
 LIBRTCORE = rtCore
 SAMPLEAPP = rpcSampleApp
+BUILD_CXX ?= $(CXX)
 
 all: lib$(LIBRTRPC).so $(SAMPLEAPP)
 
@@ -42,10 +43,12 @@ ifeq ($V, 1)
   CXX_PRETTY = $(CXX)
   LD_PRETTY = $(CXX)
   CC_PRETTY = $(CC)
+  BUILD_CXX_PRETTY = $(BUILD_CXX)
 else
   CXX_PRETTY = @echo " [CXX] $<" ; $(CXX)
   LD_PRETTY = @echo "[LINK] $@" ; $(CXX)
   CC_PRETTY = @echo " [CC] $<" ; $(CC)
+  BUILD_CXX_PRETTY = @echo " [CC] $<" ; $(BUILD_CXX)
 endif
 
 ifeq ($(DEBUG), 1)
@@ -77,7 +80,7 @@ $(OBJDIR)/rpc_main.o: rtRemoteConfig.h
 RT_REMOTE_CONFIG_GEN=$(OBJDIR)/rtRemoteConfigGen
 $(RT_REMOTE_CONFIG_GEN): rtRemoteConfigGen.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
-	$(CXX_PRETTY) $(CXXFLAGS) $< -o $@
+	$(BUILD_CXX_PRETTY) $(CXXFLAGS) $< -o $@
 
 $(OBJDIR)/%.o: ../%.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
