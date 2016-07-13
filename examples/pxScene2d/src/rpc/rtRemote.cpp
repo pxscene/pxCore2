@@ -200,7 +200,7 @@ rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
 }
 
 rtRemoteEnvironment*
-rtRemoteEnvironmentFromFile(char const* configFile)
+rtEnvironmentFromFile(char const* configFile)
 {
   RT_ASSERT(configFile != nullptr);
 
