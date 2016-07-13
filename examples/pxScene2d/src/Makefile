@@ -7,6 +7,7 @@ all: pxscene pxscene.app
 deploy: pxscene.dmg
 else
 all: pxscene
+dfb: pxscene-dfb
 libs: librtCore.so libpxscene.so
 endif
 
@@ -83,10 +84,8 @@ PX_SRCS_FULL=\
     pxFont.cpp \
     pxText.cpp \
     pxTextBox.cpp \
-    pxWayland.cpp \
     pxImage.cpp \
     pxUtil.cpp \
-    pxContextGL.cpp \
     pxImage9.cpp \
     pxFileDownloader.cpp \
     pxInterpolators.cpp \
@@ -279,11 +278,16 @@ $(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
 $(OBJDIR)/westeros-stub.o: $(EXTDIR)/westeros-stub/westeros-stub.cpp
 	$(CXX) -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS_FULL) -c $(EXTDIR)/westeros-stub/westeros-stub.cpp
 
-SRCS_FULL=$(PX_SRCS_FULL) $(RT_SRCS_FULL) rtNode.cpp pxScene.cpp
+SRCS_FULL_GL=$(PX_SRCS_FULL) $(RT_SRCS_FULL) pxContextGL.cpp pxWayland.cpp rtNode.cpp pxScene.cpp
+SRCS_FULL_DFB=$(PX_SRCS_FULL) $(RT_SRCS_FULL) pxContextDFB.cpp rtNode.cpp pxScene.cpp
 
-OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS_FULL)))
+OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS_FULL_GL)))
 OBJS:=$(patsubst %.c, $(OBJDIR)/%.o, $(OBJS))
-OBJS: $(SRCS_FULL)
+OBJS: $(SRCS_FULL_GL)
+
+OBJS_DFB=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS_FULL_DFB)))
+OBJS_DFB:=$(patsubst %.c, $(OBJDIR)/%.o, $(OBJS_DFB))
+OBJS_DFB: $(SRCS_FULL_DFB)
 
 $(OBJDIR)/%.o : %.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
@@ -334,6 +338,10 @@ analyze:
 LINKLIBS := $(PXLIBS)/libpxCore.a
 pxscene: $(OBJS) $(LINKLIBS)
 	$(CXX) $(OBJS) $(LDFLAGS_FULL) -o pxscene
+
+pxscene-dfb: CXXFLAGS_FULL = -fPIC -Wall -Wextra -g $(SEARCH) -I/usr/local/include/directfb -DRT_PLATFORM_LINUX -DPX_PLATFORM_X11 -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_DFB 
+pxscene-dfb: $(OBJS_DFB) $(PXCOREDIR)/build/dfb/libpxCore.a 
+	$(CXX) $(OBJS_DFB) -lnode -lpxCore -pthread -L/usr/local/lib -ldirectfb $(LDEXT) -L$(PXCOREDIR)/build/dfb -lpxCore -ldl -lrt -lv8_libplatform -o pxscene
 
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
 libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
