@@ -170,6 +170,7 @@ protected:
   bool mHasApi;
   rtValue mAPI;
 #ifdef ENABLE_PX_WAYLAND_RPC
+  rtRemoteEnvironment* mEnv;
   rtObjectRef mRemoteObject;
 #endif //ENABLE_PX_WAYLAND_RPC
   rtString mRemoteObjectName;

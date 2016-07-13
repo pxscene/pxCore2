@@ -46,6 +46,7 @@ pxWayland::pxWayland()
     mHasApi(false),
     mAPI(),
 #ifdef ENABLE_PX_WAYLAND_RPC
+    mEnv(NULL),
     mRemoteObject(),
 #endif //ENABLE_PX_WAYLAND_RPC
     mRemoteObjectMutex()
@@ -477,6 +478,17 @@ void pxWayland::terminateClient()
 
       pthread_join( mFindRemoteThreadId, NULL );
    }
+#ifdef ENABLE_PX_WAYLAND_RPC
+   if (!mEnv)
+   {
+     rtError errorCode = rtRemoteShutdown(mEnv);
+     if (errorCode != RT_OK)
+     {
+       rtLogError("pxWayland failed to shutdown rtRemote: %d", errorCode);
+     }
+     mEnv = NULL;
+   }
+#endif
 }
 
 void* pxWayland::clientMonitorThread( void *data )
@@ -539,7 +551,11 @@ void* pxWayland::findRemoteThread( void *data )
 rtError pxWayland::startRemoteObjectLocator()
 {
 #ifdef ENABLE_PX_WAYLAND_RPC
-  rtError errorCode = rtRemoteInit();
+  if (!mEnv)
+  {
+    mEnv = rtEnvironmentGetGlobal();
+  }
+  rtError errorCode = rtRemoteInit(mEnv);
   if (errorCode != RT_OK)
   {
     rtLogError("pxWayland failed to initialize rtRemoteInit: %d", errorCode);
@@ -565,7 +581,7 @@ rtError pxWayland::connectToRemoteObject()
   {
     findTime += FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS;
     rtLogInfo("Attempting to find remote object %s", mRemoteObjectName.cString());
-    errorCode = rtRemoteLocateObject(mRemoteObjectName.cString(), mRemoteObject);
+    errorCode = rtRemoteLocateObject(mEnv, mRemoteObjectName.cString(), mRemoteObject);
     if (errorCode != RT_OK)
     {
       rtLogError("XREBrowserPlugin failed to find object: %s errorCode %d\n",
