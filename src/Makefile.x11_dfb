@@ -7,6 +7,8 @@ OUTDIR=../build/dfb
 INCDIR=-I/usr/X11R6/include -I/usr/local/include/directfb
 
 all: $(OUTDIR)/libpxCore.a 
+x11: CFLAGS= -DPX_PLATFORM_X11 -DENABLE_DFB -fPIC -g
+x11: $(OUTDIR)/libpxCore.a
 
 $(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o pxViewWindow.o pxClipboardNative.o
 	mkdir -p $(OUTDIR)    
