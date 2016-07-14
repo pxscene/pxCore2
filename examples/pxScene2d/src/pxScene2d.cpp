@@ -2223,7 +2223,7 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContaine
 
     mCtx->runFile("init.js");
 
-    char buffer[256];
+    char buffer[1024];
     sprintf(buffer, "loadUrl(\"%s\");", url);
     mCtx->runScript(buffer);
   }
