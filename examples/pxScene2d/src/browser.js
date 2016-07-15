@@ -490,6 +490,7 @@ if (true) {
         e.stopPropagation();
       }
     }
+/*
     else if (inputBg.focus == false && flags == 0)
     {
       if(code != keys.ENTER)
@@ -497,6 +498,7 @@ if (true) {
       noFocusKeys();
       }
     }
+*/
   });
 }
 
