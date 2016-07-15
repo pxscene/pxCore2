@@ -242,6 +242,40 @@ PXSCENE_LIB_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(PXSCENE_LIB_OBJS)
 PXSCENE_LIB_OBJS:=$(patsubst   %.c, %.o        , $(notdir $(PXSCENE_LIB_OBJS)))
 PXSCENE_LIB_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(PXSCENE_LIB_OBJS))
 
+# pxWayland so begin
+PXWAYLAND_LIB_SRCS=\
+           rtFile.cpp \
+           rtPathUtils.cpp \
+           rtThreadPool.cpp \
+           rtThreadTask.cpp \
+           rtThreadQueue.cpp \
+           rtLibrary.cpp \
+           rtZip.cpp \
+           pxScene2d.cpp \
+           pxResource.cpp \
+           pxConstants.cpp \
+           pxRectangle.cpp \
+           pxText.cpp \
+           pxTextBox.cpp \
+           pxImage.cpp \
+           pxUtil.cpp \
+           pxImage9.cpp \
+           pxFileDownloader.cpp \
+           pxInterpolators.cpp \
+           pxMatrix4T.cpp \
+           pxArchive.cpp \
+           pxFont.cpp \
+           rtUrlUtils.cpp \
+           linux/rtMutexNative.cpp \
+           linux/rtThreadPoolNative.cpp \
+           pxContextGL.cpp \
+           pxWayland.cpp
+
+PXWAYLAND_LIB_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(PXWAYLAND_LIB_SRCS)))
+PXWAYLAND_LIB_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(PXWAYLAND_LIB_OBJS)))
+PXWAYLAND_LIB_OBJS:=$(patsubst   %.c, %.o        , $(notdir $(PXWAYLAND_LIB_OBJS)))
+PXWAYLAND_LIB_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(PXWAYLAND_LIB_OBJS))
+
 PXSCENE_LIB_SEARCH=\
   -Ilinux \
   -I$(PXHDRS)\
@@ -255,7 +289,7 @@ PXSCENE_LIB_SEARCH=\
   -Irpc \
   $(PXCORE_INCLUDES)
 
-# pxscene so end
+# pxScene and pxWayland so end
 
 rtMutexNative.o: linux/rtMutexNative.cpp
 	$(CXX) -o $(OBJDIR)/rtMutexNative.o -Wall $(CXXFLAGS_FULL) -c linux/rtMutexNative.cpp
@@ -343,6 +377,8 @@ pxscene-dfb: CXXFLAGS_FULL = -fPIC -Wall -Wextra -g $(SEARCH) -I/usr/local/inclu
 pxscene-dfb: $(OBJS_DFB) $(PXCOREDIR)/build/dfb/libpxCore.a 
 	$(CXX) $(OBJS_DFB) -lnode -lpxCore -pthread -L/usr/local/lib -ldirectfb $(LDEXT) -L$(PXCOREDIR)/build/dfb -lpxCore -ldl -lrt -lv8_libplatform -o pxscene
 
+libpxscene.so:
+	rm -rf $(OBJDIR)
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
 libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
 libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -lrtCore -shared -lnexus -lnxclient -o libpxscene.so.1.0  
@@ -350,6 +386,16 @@ libpxscene.so: $(PXSCENE_LIB_OBJS)
 	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
 	ln -sf libpxscene.so.1 libpxscene.so
+
+libpxwayland.so: 
+	rm -rf $(OBJDIR)
+libpxwayland.so: CFLAGS_FULL = $(CFLAGS)
+libpxwayland.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
+libpxwayland.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) -Lrpc/ -ldl -lrt -L./ -lrtCore -shared -lnexus -lnxclient -o libpxwayland.so.1.0
+libpxwayland.so: $(PXWAYLAND_LIB_OBJS)
+	$(CXX) $(PXWAYLAND_LIB_OBJS) $(LDFLAGS_FULL)
+	ln -sf libpxwayland.so.1.0 libpxwayland.so.1
+	ln -sf libpxwayland.so.1 libpxwayland.so
 
 librtCore.so: CFLAGS_FULL = $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
 librtCore.so: CXXFLAGS_FULL = $(CXXFLAGS) -std=c++0x $(CFLAGS_FULL)

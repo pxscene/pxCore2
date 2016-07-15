@@ -2207,10 +2207,13 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
+#ifdef ENABLE_RT_NODE
 rtNode script;
+#endif //ENABLE_RT_NODE
 
 pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContainer(NULL), mRefCount(0)
 {
+  #ifdef ENABLE_RT_NODE
   mCtx = script.createContext();
   if (mCtx)
   {
@@ -2227,6 +2230,7 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContaine
     sprintf(buffer, "loadUrl(\"%s\");", url);
     mCtx->runScript(buffer);
   }
+  #endif //ENABLE_RT_NODE
 }
 
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
@@ -2268,6 +2272,7 @@ rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* re
   UNUSED_PARAM(numArgs);
   UNUSED_PARAM(args);
 
+#ifdef ENABLE_RT_NODE
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
@@ -2285,6 +2290,7 @@ rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* re
       return RT_OK;
     }
   }
+#endif //ENABLE_RT_NODE
 
   rtLogError("############# printContextID() >> ctx: BAD !!\n");  fflush(stdout); // JUNK
 
