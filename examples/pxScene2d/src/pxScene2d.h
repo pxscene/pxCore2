@@ -48,7 +48,9 @@ using namespace std;
 
 #include "testView.h"
 
+#ifdef ENABLE_RT_NODE
 #include "rtNode.h"
+#endif //ENABLE_RT_NODE
 
 
 //Uncomment to enable display of pointer by pxScene
@@ -1034,10 +1036,12 @@ public:
 
     // Clear out these references since the script context
     // can outlive this view
+#ifdef ENABLE_RT_NODE
     mCtx->add("getScene", 0);
     mCtx->add("makeReady", 0);
 
     mCtx->add("getContextID", 0);
+#endif //ENABLE_RT_NODE
     
     if (mView)
       setViewContainer(NULL);
@@ -1191,7 +1195,9 @@ protected:
   rtObjectRef mReady;
   rtObjectRef mScene;
   rtRefT<pxIView> mView;
+#ifdef ENABLE_RT_NODE
   rtNodeContextRef mCtx;
+#endif //ENABLE_RT_NODE
   pxIViewContainer* mViewContainer;
   unsigned long mRefCount;
   rtString mUrl;
