@@ -1052,9 +1052,9 @@ static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat 
 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
                              pxTextureRef mask, bool useTextureDimsAlways, float* color,
-                             pxConstantsStretch::constants stretchX, pxConstantsStretch::constants stretchY)
+                             pxConstantsStretch::constants xStretch,
+                             pxConstantsStretch::constants yStretch)
 {
-
   if (texture.getPtr() == NULL)
   {
     return;
@@ -1075,18 +1075,16 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
       h = ih;
   }
 
-
-  const float verts[4][2] =
-  {
-
-    { x,y },
-    {  x+w, y },
-    {  x,  y+h },
-    {  x+w, y+h }
-  };
+   const float verts[4][2] =
+   {
+     { x,     y },
+     { x+w,   y },
+     { x,   y+h },
+     { x+w, y+h }
+   };
 
   float tw;
-  switch(stretchX) {
+  switch(xStretch) {
   case pxConstantsStretch::NONE:
   case pxConstantsStretch::STRETCH:
     tw = 1.0;
@@ -1098,7 +1096,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   float tb = 0;
   float th;
-  switch(stretchY) {
+  switch(yStretch) {
   case pxConstantsStretch::NONE:
   case pxConstantsStretch::STRETCH:
     th = 1.0;
@@ -1115,12 +1113,13 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     break;
   }
 
-  float firstTextureY = th;
+  float firstTextureY  = th;
   float secondTextureY = tb;
 
-  const float uv[4][2] = {
-    { 0,  firstTextureY },
-    { tw, firstTextureY },
+  const float uv[4][2] =
+  {
+    { 0,  firstTextureY  },
+    { tw, firstTextureY  },
     { 0,  secondTextureY },
     { tw, secondTextureY }
   };
@@ -1128,10 +1127,9 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   float colorPM[4];
   premultiply(colorPM,color);
 
-
   if (mask.getPtr() == NULL && texture->getType() != PX_TEXTURE_ALPHA)
   {
-    gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,stretchX,stretchY);
+    gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,xStretch,yStretch);
   }
   else if (mask.getPtr() == NULL && texture->getType() == PX_TEXTURE_ALPHA)
   {
