@@ -402,7 +402,7 @@ rtRemoteMulticastResolver::locateObject(std::string const& name, sockaddr_storag
   lock.unlock();
 
   if (!searchResponse)
-    return RT_FAIL;
+    return RT_RESOURCE_NOT_FOUND;
 
   // response is in itr
   if (searchResponse)

@@ -31,6 +31,50 @@
 #include <rapidjson/filewritestream.h>
 #include <rapidjson/pointer.h>
 
+class FileLocker
+{
+public:
+  FileLocker(FILE* f) : m_file(f)
+  {
+    lock();
+  }
+
+  ~FileLocker()
+  {
+    unlock();
+  }
+
+  void lock()
+  {
+    if (m_file)
+    {
+      int ret = flock(fileno(m_file), LOCK_EX);
+      if (ret == -1)
+      {
+        rtError e = rtErrorFromErrno(errno);
+        rtLogWarn("failed to lock file. %s", rtStrError(e));
+      }
+    }
+  }
+
+  void unlock()
+  {
+    if (m_file)
+    {
+      int ret = flock(fileno(m_file), LOCK_UN);
+      if (ret == -1)
+      {
+        rtError e = rtErrorFromErrno(errno);
+        rtLogWarn("failed to unlock file. %s", rtStrError(e));
+      }
+      m_file = nullptr;
+    }
+  }
+
+private:
+  FILE* m_file;
+};
+
 
 rtRemoteFileResolver::rtRemoteFileResolver(rtRemoteEnvPtr env)
 : m_db_fp(nullptr)
@@ -48,7 +92,7 @@ rtError
 rtRemoteFileResolver::open(sockaddr_storage const& rpc_endpoint)
 {
   std::string dbPath = m_env->Config->resolver_file_db_path();
-  m_db_fp = fopen(dbPath.c_str(), "r+");
+  m_db_fp = fopen(dbPath.c_str(), "w+");
   if (m_db_fp == nullptr)
   {
     rtError e = rtErrorFromErrno(errno);
@@ -79,26 +123,26 @@ rtRemoteFileResolver::registerObject(std::string const& name, sockaddr_storage c
     return RT_ERROR_INVALID_ARG;
   }
 
-  // TODO: don't put such large buffers on stack
-
   // read in existing records into DOM
-  rapidjson::Document doc;
-  char readBuffer[65536];
+  std::vector<char> buff(1024 * 64);
   fseek(m_db_fp, 0, SEEK_SET);
-  flock(fileno(m_db_fp), LOCK_EX);
-  rapidjson::FileReadStream is(m_db_fp, readBuffer, sizeof(readBuffer));
+
+  FileLocker fileLocker(m_db_fp);
+  rapidjson::FileReadStream is(m_db_fp, &buff[0], buff.capacity());
+
+  rapidjson::Document doc;
   doc.ParseStream(is);
 
   rapidjson::Pointer("/" + name + "/" + kFieldNameIp).Set(doc, m_rpc_addr);
   rapidjson::Pointer("/" + name + "/" + kFieldNamePort).Set(doc, m_rpc_port);
 
   // write updated json back to file
-  char writeBuffer[65536];
+  buff[0] = '\0';
+
   fseek(m_db_fp, 0, SEEK_SET);  
-  rapidjson::FileWriteStream os(m_db_fp, writeBuffer, sizeof(writeBuffer));
+  rapidjson::FileWriteStream os(m_db_fp, &buff[0], buff.capacity());
   rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
   doc.Accept(writer);
-  flock(fileno(m_db_fp), LOCK_UN);
   fflush(m_db_fp);
 
   return RT_OK;
@@ -114,18 +158,20 @@ rtRemoteFileResolver::locateObject(std::string const& name, sockaddr_storage& en
     return RT_ERROR_INVALID_ARG;
   }
 
-  // read file into DOM object
-  rapidjson::Document doc;
-  char readBuffer[65536];
-  flock(fileno(m_db_fp), LOCK_EX);
+  std::vector<char> buff(1024 * 64);
+
+  FileLocker fileLocker(m_db_fp);
   fseek(m_db_fp, 0, SEEK_SET);  
-  rapidjson::FileReadStream is(m_db_fp, readBuffer, sizeof(readBuffer));
+  rapidjson::FileReadStream is(m_db_fp, &buff[0], buff.capacity());
+
+  rapidjson::Document doc;
   doc.ParseStream(is);
-  flock(fileno(m_db_fp), LOCK_UN);
+
+  fileLocker.unlock();
   
   // check if name is registered
   if (!rapidjson::Pointer("/" + name).Get(doc))
-    return RT_FAIL;
+    return RT_RESOURCE_NOT_FOUND;
   
   // pull registered IP and port
   rapidjson::Value *ip = rapidjson::Pointer("/" + name + "/" + kFieldNameIp).Get(doc);

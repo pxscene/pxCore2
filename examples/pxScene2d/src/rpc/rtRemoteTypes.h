@@ -36,6 +36,7 @@ struct rtRemoteEnvironment
   rtObjectCache*            ObjectCache;
   rtRemoteStreamSelector*   StreamSelector;
 
+
   uint32_t RefCount;
   bool     Initialized;
 
