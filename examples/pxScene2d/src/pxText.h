@@ -75,6 +75,8 @@ public:
 
   virtual void resourceReady(rtString readyResolution);
   virtual void sendPromise();
+  virtual float getOnscreenWidth();
+  virtual float getOnscreenHeight();
 
  protected:
   virtual void draw();

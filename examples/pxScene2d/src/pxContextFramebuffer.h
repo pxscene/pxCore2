@@ -9,7 +9,11 @@
 typedef struct _pxContextState
 {
   _pxContextState() : matrix(), alpha(1.0){}
-  void copy(_pxContextState source){matrix = source.matrix; alpha = source.alpha;}
+  void copy(_pxContextState source)
+  {
+    matrix = source.matrix;
+    alpha = source.alpha;
+  }
   pxMatrix4f matrix;
   float alpha;
 } pxContextState;
@@ -17,8 +21,8 @@ typedef struct _pxContextState
 class pxContextFramebuffer
 {
 public:
-  pxContextFramebuffer() : mRef(0), m_framebufferTexture(), m_framebufferStateStack() {}
-  pxContextFramebuffer(pxTextureRef texture) : m_framebufferTexture(texture), m_framebufferStateStack() {}
+  pxContextFramebuffer() : mRef(0), m_framebufferTexture(), m_framebufferStateStack(), mDirtyRectanglesEnabled(false), mDirtyRectangle() {}
+  pxContextFramebuffer(pxTextureRef texture) : m_framebufferTexture(texture), m_framebufferStateStack(), mDirtyRectanglesEnabled(false), mDirtyRectangle() {}
   virtual ~pxContextFramebuffer() {}
 
   virtual unsigned long AddRef(){ return rtAtomicInc(&mRef);}
@@ -97,10 +101,31 @@ public:
     return PX_FAIL;
   }
 
+  void enableDirtyRectangles(bool enable)
+  {
+    mDirtyRectanglesEnabled = enable;
+  }
+
+  bool isDirtyRectanglesEnabled()
+  {
+    return mDirtyRectanglesEnabled;
+  }
+
+  void setDirtyRectangle(int left, int top, int right, int bottom)
+  {
+    mDirtyRectangle.set(left, top, right, bottom);
+  }
+  pxRect dirtyRectangle()
+  {
+    return mDirtyRectangle;
+  }
+
 protected:
   rtAtomic mRef;
   pxTextureRef m_framebufferTexture;
   std::vector<pxContextState> m_framebufferStateStack;
+  bool mDirtyRectanglesEnabled;
+  pxRect mDirtyRectangle;
 };
 
 typedef rtRefT<pxContextFramebuffer> pxContextFramebufferRef;

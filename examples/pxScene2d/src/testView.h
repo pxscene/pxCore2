@@ -49,12 +49,26 @@ testView(): mContainer(NULL),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) 
   {
     rtLogInfo("testView::onMouseEnter()");
     mEntered = true;
+#ifdef PX_DIRTY_RECTANGLES
+    if (mContainer)
+    {
+      pxRect dirtyRect(0,0,mw,mh);
+      mContainer->invalidateRect(&dirtyRect);
+    }
+#endif //PX_DIRTY_RECTANGLES
     return false;
   }
 
   virtual bool RT_STDCALL onMouseLeave()
   {
     rtLogInfo("testView::onMouseLeave()");
+#ifdef PX_DIRTY_RECTANGLES
+    if (mContainer)
+    {
+      pxRect dirtyRect(0,0,mw,mh);
+      mContainer->invalidateRect(&dirtyRect);
+    }
+#endif //PX_DIRTY_RECTANGLES
     mEntered = false;
     return false;
   }
@@ -62,12 +76,26 @@ testView(): mContainer(NULL),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) 
   virtual bool RT_STDCALL onFocus()
   {
     rtLogInfo("testView::onFocus()");
+#ifdef PX_DIRTY_RECTANGLES
+    if (mContainer)
+    {
+      pxRect dirtyRect(0,0,mw,mh);
+      mContainer->invalidateRect(&dirtyRect);
+    }
+#endif //PX_DIRTY_RECTANGLES
     return false;
   }
 
   virtual bool RT_STDCALL onBlur()
   {
     rtLogInfo("testView::onBlur()");
+#ifdef PX_DIRTY_RECTANGLES
+    if (mContainer)
+    {
+      pxRect dirtyRect(0,0,mw,mh);
+      mContainer->invalidateRect(&dirtyRect);
+    }
+#endif //PX_DIRTY_RECTANGLES
     return false;
   }
 

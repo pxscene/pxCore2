@@ -1617,6 +1617,11 @@ void pxContext::mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int 
   }
 }
 
+void pxContext::enableDirtyRectangles(bool enable)
+{
+  currentFramebuffer->enableDirtyRectangle(enable);
+}
+
 bool pxContext::isObjectOnScreen(float /*x*/, float /*y*/, float /*width*/, float /*height*/)
 {
 #if 1

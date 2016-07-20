@@ -510,8 +510,8 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
 #endif // ANIMATION_ROTATE_XYZ        
         );
       }
-      if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);  
-      m.translate(-mcx, -mcy);    
+      if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
+      m.translate(-mcx, -mcy);
 #else
       // translate/rotate/scale based on cx, cy
       m.translate(mx, my);
@@ -739,6 +739,7 @@ protected:
   void deleteSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES
   pxRect getBoundingRectInScreenCoordinates();
+  pxRect convertToScreenCoordinates(pxRect* r);
   #endif //PX_DIRTY_RECTANGLES
 
   pxScene2d* mScene;
@@ -1444,7 +1445,7 @@ private:
   bool mStopPropagation;
   int mTag;
   pxIViewContainer *mContainer;
-  bool mShowDirtyRect;
+  bool mShowDirtyRectangle;
   #ifdef USE_SCENE_POINTER
   pxTextureRef mNullTexture;
   rtObjectRef mPointerResource;
@@ -1464,7 +1465,7 @@ public:
   }
   bool mDirty;
   #ifdef PX_DIRTY_RECTANGLES
-  static pxRect mDirtyRect;
+  pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
 };
 

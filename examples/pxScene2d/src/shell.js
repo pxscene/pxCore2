@@ -98,6 +98,14 @@ if (false) {
             console.log("Created screenshot.png");
         });
       }
+      else
+      if(code == keys.D)  // ctrl-alt-d
+      {
+        // console.log("SHELL: onPreKeyDown: show dirty rect !!!  ############# ");
+
+        scene.showDirtyRect = !scene.showDirtyRect;
+        e.stopPropagation();
+      }
     }// ctrl-alt
     else
     if( keys.is_CTRL_ALT_SHIFT( flags ) )
@@ -132,6 +140,7 @@ if (false) {
          if (code == keys.Y && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-y
     else if (code == keys.O && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-o
     else if (code == keys.S && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-s
+    else if (code == keys.D && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-d
     else if (code == keys.R && keys.is_CTRL_ALT_SHIFT( flags ) ) e.stopPropagation(); // ctrl-alt-shift-r
     else if (code == keys.H && keys.is_CTRL_ALT_SHIFT( flags ) ) e.stopPropagation(); // ctrl-alt-shift-h
   });

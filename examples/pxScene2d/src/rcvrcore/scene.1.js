@@ -21,6 +21,8 @@ function Scene() {
       this.__defineGetter__("h", function() { return scene.h; });
       this.__defineGetter__("showOutlines", function() { return scene.showOutlines; });
       this.__defineSetter__("showOutlines", function(v) { scene.showOutlines = v; });
+      this.__defineGetter__("showDirtyRect", function() { return scene.showDirtyRect; });
+      this.__defineSetter__("showDirtyRect", function(v) { scene.showDirtyRect = v; });
       //this.w = scene.w;
       //this.h = scene.h;
     }

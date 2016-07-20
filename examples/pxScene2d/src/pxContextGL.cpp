@@ -1374,11 +1374,15 @@ void pxContext::clear(int /*w*/, int /*h*/, float *fillColor )
   glClearColor( fillColor[0], fillColor[1], fillColor[2], fillColor[3] );
   glClear(GL_COLOR_BUFFER_BIT);
   glClearColor( color[0], color[1], color[2], color[3] );
+  currentFramebuffer->enableDirtyRectangles(false);
 }
 
 void pxContext::clear(int left, int top, int right, int bottom)
 {
   glEnable(GL_SCISSOR_TEST); //todo - not set each frame
+
+  currentFramebuffer->setDirtyRectangle(left, gResH-top-bottom, right, bottom);
+  currentFramebuffer->enableDirtyRectangles(true);
 
   //map form screen to window coordinates
   glScissor(left, gResH-top-bottom, right, bottom);
@@ -1446,6 +1450,18 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
     currentFramebuffer->currentState(contextState);
     gAlpha = contextState.alpha;
     gMatrix = contextState.matrix;
+#ifdef PX_DIRTY_RECTANGLES
+    if (currentFramebuffer->isDirtyRectanglesEnabled())
+    {
+      glEnable(GL_SCISSOR_TEST);
+      pxRect dirtyRect = currentFramebuffer->dirtyRectangle();
+      glScissor(dirtyRect.left(), dirtyRect.top(), dirtyRect.right(), dirtyRect.bottom());
+    }
+    else
+    {
+      glDisable(GL_SCISSOR_TEST);
+    }
+#endif //PX_DIRTY_RECTANGLES
     return PX_OK;
   }
 
@@ -1454,6 +1470,18 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
   currentFramebuffer->currentState(contextState);
   gAlpha = contextState.alpha;
   gMatrix = contextState.matrix;
+#ifdef PX_DIRTY_RECTANGLES
+  if (currentFramebuffer->isDirtyRectanglesEnabled())
+  {
+    glEnable(GL_SCISSOR_TEST);
+    pxRect dirtyRect = currentFramebuffer->dirtyRectangle();
+    glScissor(dirtyRect.left(), dirtyRect.top(), dirtyRect.right(), dirtyRect.bottom());
+  }
+  else
+  {
+    glDisable(GL_SCISSOR_TEST);
+  }
+#endif //PX_DIRTY_RECTANGLES
   return fbo->getTexture()->prepareForRendering();
 }
 
@@ -1467,6 +1495,21 @@ pxError pxContext::deleteContextSurface(pxTextureRef texture)
   return texture->deleteTexture();
 }
 #endif
+
+void pxContext::enableDirtyRectangles(bool enable)
+{
+  currentFramebuffer->enableDirtyRectangles(enable);
+  if (enable)
+  {
+    glEnable(GL_SCISSOR_TEST);
+    pxRect dirtyRect = currentFramebuffer->dirtyRectangle();
+    glScissor(dirtyRect.left(), dirtyRect.top(), dirtyRect.right(), dirtyRect.bottom());
+  }
+  else
+  {
+    glDisable(GL_SCISSOR_TEST);
+  }
+}
 
 void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor)
 {

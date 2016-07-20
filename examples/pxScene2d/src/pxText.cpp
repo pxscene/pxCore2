@@ -197,6 +197,15 @@ rtError pxText::setFont(rtObjectRef o)
     
   return RT_OK; 
 }
+
+float pxText::getOnscreenWidth()
+{
+  return mw*msx;
+}
+float pxText::getOnscreenHeight()
+{
+  return mh*msy;
+}
   
 
 rtDefineObject(pxText, pxObject);
