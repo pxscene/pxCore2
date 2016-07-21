@@ -177,12 +177,19 @@ rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj)
 rtError
 rtRemoteRunOnce(rtRemoteEnvironment* env, uint32_t timeout)
 {
+  if (env->Config->server_use_dispatch_thread())
+    return RT_ERROR_INVALID_OPERATION;
+
   return env->processSingleWorkItem(std::chrono::milliseconds(timeout));
 }
 
 rtError
 rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
 {
+
+  if (env->Config->server_use_dispatch_thread())
+    return RT_ERROR_INVALID_OPERATION;
+
   rtError e = RT_OK;
 
   auto time_remaining = std::chrono::milliseconds(timeout);

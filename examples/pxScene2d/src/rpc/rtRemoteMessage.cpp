@@ -20,6 +20,23 @@
 namespace
 {
   std::atomic<rtCorrelationKey> s_next_key;
+
+  void dumpDoc(rapidjson::Document const& doc, char const* fmt, ...)
+  {
+    char msg[256];
+    memset(msg, 0, sizeof(msg));
+
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(msg, sizeof(msg), fmt, args);
+    msg[sizeof(msg) - 1] = '\0';
+    va_end(args);
+
+    rapidjson::StringBuffer buff;
+    rapidjson::Writer<rapidjson::StringBuffer> writer;
+    doc.Accept(writer);
+    rtLogInfo("%s\n--- BEGIN DOC ---\n%s\n--- END DOC ---", msg, buff.GetString());
+  }
 }
 
 rtCorrelationKey
@@ -247,6 +264,8 @@ rtError
 rtMessage_GetStatusCode(rapidjson::Document const& doc)
 {
   rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNameStatusCode);
+  if (itr == doc.MemberEnd())
+    dumpDoc(doc, "failed to get status code.");
   RT_ASSERT(itr != doc.MemberEnd());
   return static_cast<rtError>(itr->value.GetInt());
 }

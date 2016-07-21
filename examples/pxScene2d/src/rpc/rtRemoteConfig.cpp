@@ -240,7 +240,7 @@ rtRemoteConfigBuilder::fromFile(char const* file)
     auto itr = builder->m_map.find(name);
     if (itr != builder->m_map.end())
     {
-      rtLogInfo("overwriting configuration val '%s' -> '%s' with '%s'",
+      rtLogDebug("overwriting configuration val '%s' -> '%s' with '%s'",
           itr->first.c_str(), itr->second.c_str(), val.c_str());
     }
 

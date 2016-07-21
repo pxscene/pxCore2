@@ -97,10 +97,14 @@ $(OBJDIR)/%.o : ../%.c
 debug:
 	@echo $(OBJS)
 
-$(RTRPC_OBJS): rtRemoteConfig.h rtremote.conf rtRemoteConfigBuilder.cpp
+$(RTRPC_OBJS): rtRemoteConfig.h rtremote.conf.gen rtRemoteConfigBuilder.cpp
 
-rtremote.conf: rtremote.conf.ac $(RT_REMOTE_CONFIG_GEN)
+rtremote.conf.gen: rtremote.conf.ac $(RT_REMOTE_CONFIG_GEN)
 	$(RT_REMOTE_CONFIG_GEN) -i rtremote.conf.ac -c -o rtremote.conf
+	touch rtremote.conf.gen
+
+#rtremote.conf: rtremote.conf.ac $(RT_REMOTE_CONFIG_GEN)
+#	$(RT_REMOTE_CONFIG_GEN) -i rtremote.conf.ac -c -o rtremote.conf
 
 rtRemoteConfig.h: $(RT_REMOTE_CONFIG_GEN) rtremote.conf.ac
 	$(RT_REMOTE_CONFIG_GEN) -i rtremote.conf.ac -h -o rtRemoteConfig.h
@@ -112,6 +116,7 @@ clean:
 	rm -rf obj
 	rm -f $(SAMPLEAPP)
 	rm -f *.so
+	rm -f rtremote.conf.gen
 	rm -f rtremote.conf
 	rm -f rtRemoteConfig.h
 

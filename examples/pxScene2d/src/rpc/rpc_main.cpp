@@ -39,6 +39,47 @@ private:
   uint32_t m_height;
 };
 
+class rtEcho : public rtObject
+{
+  rtDeclareObject(rtEcho, rtEcho);
+  rtProperty(message, getMessage, setMessage, rtString);
+  rtProperty(onMessageChanged, getOnMessageChanged, setOnMessageChanged, rtFunctionRef);
+
+public:
+  rtError getMessage(rtString& s) const
+    { s = m_msg; return RT_OK; }
+
+  rtError setMessage(rtString const& s)
+  {
+    rtError e = RT_OK;
+    m_msg = s;
+    if (m_func)
+    {
+      e = m_func.send(s);
+      if (e != RT_OK)
+        rtLogError("failed to notify of message changed. %s", rtStrError(e));
+    }
+    return RT_OK;
+  }
+
+  rtError getOnMessageChanged(rtFunctionRef& func) const
+    { func = m_func; return RT_OK; }
+
+  rtError setOnMessageChanged(rtFunctionRef const& func)
+    { m_func = func; return RT_OK; }
+
+  static rtError handleMessageChanged(int /*argc*/, rtValue const* argv, rtValue* /*result*/, void* /*argp*/)
+  {
+    rtString s = argv[0].toString();
+    rtLogInfo("message has changed: %s", s.cString());
+    return RT_OK;
+  }
+
+private:
+  rtString m_msg;
+  rtFunctionRef m_func;
+};
+
 
 class rtThermostat : public rtObject
 {
@@ -66,7 +107,7 @@ public:
 
   rtError hello()
   {
-    printf("hello!\n");
+    rtLogInfo("hello");
     return RT_OK;
   }
 
@@ -80,6 +121,9 @@ rtDefineProperty(rtLcd, text);
 rtDefineProperty(rtLcd, width);
 rtDefineProperty(rtLcd, height);
 
+rtDefineObject(rtEcho, rtObject);
+rtDefineProperty(rtEcho, message);
+rtDefineProperty(rtEcho, onMessageChanged);
 
 rtDefineObject(rtThermostat, rtObject);
 rtDefineProperty(rtThermostat, lcd);
@@ -91,7 +135,7 @@ static rtError my_callback(int /*argc*/, rtValue const* /*argv*/, rtValue* resul
   static int i = 10;
 
   char buff[256];
-  snprintf(buff, sizeof(buff), "The temp has change by: %d", i++);
+  snprintf(buff, sizeof(buff), "Hello World again (%d) from:%d", i++, (int) getpid());
   if (result)
   {
     *result = rtValue(buff);
@@ -101,6 +145,38 @@ static rtError my_callback(int /*argc*/, rtValue const* /*argv*/, rtValue* resul
 
 
 static char const* objectName = "com.xfinity.xsmart.Thermostat.JakesHouse";
+
+void Test_Echo_Client()
+{
+  rtObjectRef obj;
+  rtError e = rtRemoteLocateObject(env, "echo.object", obj);
+  RT_ASSERT(e == RT_OK);
+
+  e = obj.set("onMessageChanged", new rtFunctionCallback(rtEcho::handleMessageChanged));
+  if (e != RT_OK)
+    rtLogError("failed to set message handler: %s", rtStrError(e));
+
+
+  int i = 0;
+  char buff[256];
+  while (true)
+  {
+    memset(buff, 0, sizeof(buff));
+    sprintf(buff, "hello:%06d", i++);
+    e = obj.set("message", rtString(buff));
+    rtLogInfo("set:%s", rtStrError(e));
+    sleep(1);
+  }
+}
+
+void Test_Echo_Server()
+{
+  rtObjectRef obj(new rtEcho());
+  rtError e = rtRemoteRegisterObject(env, "echo.object", obj);
+  RT_ASSERT(e == RT_OK);
+  while (true)
+    sleep(10);
+}
 
 void Test_SetProperty_Basic_Client()
 {
@@ -115,7 +191,7 @@ void Test_SetProperty_Basic_Client()
     RT_ASSERT(e == RT_OK);
 
     uint32_t n = objectRef.get<uint32_t>("prop1");
-    printf("prop1:%d\n", n);
+    rtLogInfo("prop1:%d", n);
     RT_ASSERT(n == static_cast<uint32_t>(i));
 
     i++;
@@ -141,6 +217,14 @@ void Test_FunctionReferences_Client()
 
   e = objectRef.set("onTempChanged", new rtFunctionCallback(my_callback));
   RT_ASSERT(e == RT_OK);
+
+  while (true)
+  {
+    e = rtRemoteRunOnce(env, 5000);
+    rtLogInfo("e:%s", rtStrError(e));
+  }
+
+  while (1) sleep(1);
 }
 
 void Test_FunctionReferences_Server()
@@ -164,14 +248,20 @@ void Test_FunctionReferences_Server()
       rtString s;
       rtError e = ref.sendReturns<rtString>(arg1, s);
       if (e != RT_OK)
-	return;
+      {
+        rtLogError("failed to send function: %s", rtStrError(e));
+        return;
+      }
 
-      printf("s:%s\n", s.cString());
+      rtLogInfo("s: %s", s.cString());
     }
     else
     {
-      printf("onTempChanged is null\n");
+      rtLogInfo("onTempChanged is null");
     }
+
+    e = rtRemoteRun(env, 2000);
+    rtLogInfo("rtRemoteRun:%s", rtStrError(e));
 
     sleep(1);
   }
@@ -190,7 +280,7 @@ Test_MethodCall_Client()
     rtValue val(i);
     rtValue sum(0);
     rtError e = objectRef.sendReturns("add", val, val, sum);
-    printf("%d + %d == %d\n", i, i, sum.toInt32());
+    rtLogInfo("%d + %d == %d", i, i, sum.toInt32());
     RT_ASSERT(e == RT_OK);
     sleep(1);
     i += 1;
@@ -205,8 +295,8 @@ Test_MethodCall_Server()
   RT_ASSERT(e == RT_OK);
   while (true)
   {
-    e = rtRemoteRunOnce(env, 1000);
-    printf("e:%s\n", rtStrError(e));
+    e = rtRemoteRunOnce(env, 5000);
+    rtLogInfo("e:%s", rtStrError(e));
   }
 }
 
@@ -226,7 +316,7 @@ Test_SetProperty_Object_Client()
     e = objectRef.get("lcd", lcd);
 
     rtString s = lcd.get<rtString>("text");
-    printf("text: %s\n", s.cString());
+    rtLogInfo("text: %s", s.cString());
 
     snprintf(buff, sizeof(buff), "hello from me:%d", n++);
     s = buff;
@@ -285,15 +375,17 @@ int main(int argc, char* /*argv*/[])
 
     if (argc == 2)
     {
-      //Test_FunctionReferences_Client();
-      Test_MethodCall_Client();
+      Test_Echo_Client();
+      // Test_FunctionReferences_Client();
+      // Test_MethodCall_Client();
       //Test_SetProperty_Object_Client();
     }
     else
     {
+      Test_Echo_Server();
       // Test_FunctionReferences_Server();
       //Test_SetProperty_Object_Server();
-      Test_MethodCall_Server();
+      // Test_MethodCall_Server();
     }
 
     rtRemoteShutdown(env);

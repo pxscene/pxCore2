@@ -3,3 +3,4 @@ rtremote.conf
 rtRemoteConfigBuilder.cpp
 obj/
 rpcSampleApp
+rtremote.conf.gen
