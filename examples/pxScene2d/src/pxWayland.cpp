@@ -22,7 +22,7 @@ using namespace std;
 extern pxContext context;
 
 #define MAX_FIND_REMOTE_TIMEOUT_IN_MS 5000
-#define FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS 500
+#define FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS 100
 #define TEST_REMOTE_OBJECT_NAME "waylandClient123" //TODO - update
 
 #define UNUSED_PARAM(x) ((x)=(x))
