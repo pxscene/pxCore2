@@ -9,6 +9,7 @@ else
 all: pxscene
 dfb: pxscene-dfb
 libs: librtCore.so libpxscene.so
+static-libs: librtCore.a libpxwayland.a
 endif
 
 HAVE_WESTEROS := $(shell test -f ../external/westeros/Makefile.ubuntu && echo 1)
@@ -397,11 +398,22 @@ libpxwayland.so: $(PXWAYLAND_LIB_OBJS)
 	ln -sf libpxwayland.so.1.0 libpxwayland.so.1
 	ln -sf libpxwayland.so.1 libpxwayland.so
 
+libpxwayland.a: CFLAGS_FULL = $(CFLAGS)
+libpxwayland.a: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
+libpxwayland.a: LDFLAGS_FULL =-ljpeg -lfreetype -lcurl -lpng16 -lnxpl -lGLESv2 -lwesteros_compositor -lnexus -lnxclient -lrt
+libpxwayland.a: $(PXWAYLAND_LIB_OBJS)
+	$(AR) rcs -o $@ $(PXWAYLAND_LIB_OBJS) $(patsubst -l%,$(PKG_CONFIG_SYSROOT_DIR)/usr/lib/lib%.so,$(LDFLAGS_FULL))
+
 librtCore.so: CFLAGS_FULL = $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
 librtCore.so: CXXFLAGS_FULL = $(CXXFLAGS) -std=c++0x $(CFLAGS_FULL)
 librtCore.so: LDFLAGS_FULL = -pthread -ldl -shared -o $@
 librtCore.so: $(RTCORE_OBJS)
 	$(CXX) $(RTCORE_OBJS) $(LDFLAGS_FULL)
+
+librtCore.a: CFLAGS_FULL = $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
+librtCore.a: CXXFLAGS_FULL = $(CXXFLAGS) -std=c++0x $(CFLAGS_FULL)
+librtCore.a: $(RTCORE_OBJS)
+	$(AR) rcs -o $@ $(RTCORE_OBJS)
 
 pxscene.app: pxscene
 	rm -rf pxscene.app
