@@ -18,7 +18,7 @@
 class rtRemoteFileResolver : public rtRemoteIResolver
 {
 public:
-  rtRemoteFileResolver(rtRemoteEnvPtr env);
+  rtRemoteFileResolver(rtRemoteEnvironment* env);
   ~rtRemoteFileResolver();
 
 public:
@@ -32,5 +32,5 @@ private:
   std::string       m_rpc_addr;
   uint16_t          m_rpc_port;
   FILE*             m_db_fp;
-  rtRemoteEnvPtr    m_env;
+  rtRemoteEnvironment* m_env;
 };

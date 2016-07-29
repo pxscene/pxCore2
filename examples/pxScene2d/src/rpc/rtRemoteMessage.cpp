@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <rtLog.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 #include <atomic>
 #include <memory>
@@ -42,7 +43,13 @@ namespace
 rtCorrelationKey
 rtMessage_GetNextCorrelationKey()
 {
-  return ++s_next_key;
+  static pid_t pid = getpid();
+  int p = pid;
+  p <<= 16;
+  p &= 0xffff0000;
+  int k = ++s_next_key;
+  p |= k;
+  return p;
 }
 
 template<class T> T
@@ -101,11 +108,6 @@ rtRemoteRequestOpenSession::rtRemoteRequestOpenSession(std::string const& object
 {
 }
 
-rtRemoteRequestKeepAlive::rtRemoteRequestKeepAlive()
-  : rtRemoteRequest(kMessageTypeKeepAliveRequest, "")
-{
-}
-
 rtRemoteMethodCallRequest::rtRemoteMethodCallRequest(std::string const& objectName)
   : rtRemoteRequest(kMessageTypeMethodCallRequest, objectName)
 {
@@ -118,7 +120,7 @@ rtRemoteMethodCallRequest::setMethodName(std::string const& methodName)
 }
 
 void
-rtRemoteMethodCallRequest::addMethodArgument(rtRemoteEnvPtr env, rtValue const& arg)
+rtRemoteMethodCallRequest::addMethodArgument(rtRemoteEnvironment* env, rtValue const& arg)
 {
   rapidjson::Value jsonValue;
   // TODO: rtValueWriter should be member of rtRemoteEnvironment
@@ -165,7 +167,7 @@ rtRemoteSetRequest::rtRemoteSetRequest(std::string const& objectName, uint32_t f
 }
 
 rtError
-rtRemoteSetRequest::setValue(rtRemoteEnvPtr env, rtValue const& value)
+rtRemoteSetRequest::setValue(rtRemoteEnvironment* env, rtValue const& value)
 {
   rapidjson::Value jsonValue;
   rtError e = rtValueWriter::write(env, value, jsonValue, m_impl->d);
@@ -173,22 +175,6 @@ rtRemoteSetRequest::setValue(rtRemoteEnvPtr env, rtValue const& value)
     return e;
   m_impl->d.AddMember(kFieldNameValue, jsonValue, m_impl->d.GetAllocator());
   return e;
-}
-
-void
-rtRemoteRequestKeepAlive::addObjectName(std::string const& name)
-{
-  auto itr = m_impl->d.FindMember(kFieldNameKeepAliveIds);
-  if (itr == m_impl->d.MemberEnd())
-  {
-    rapidjson::Value ids(rapidjson::kArrayType);
-    ids.PushBack(rapidjson::Value().SetString(name.c_str(), name.size()), m_impl->d.GetAllocator());
-    m_impl->d.AddMember(kFieldNameKeepAliveIds, ids, m_impl->d.GetAllocator());
-  }
-  else
-  {
-    itr->value.PushBack(rapidjson::Value().SetString(name.c_str(), name.size()), m_impl->d.GetAllocator());
-  }
 }
 
 rtRemoteMessage::~rtRemoteMessage()
@@ -241,14 +227,15 @@ rtMessage_GetMessageType(rapidjson::Document const& doc)
     : NULL;
 }
 
-uint32_t
+rtCorrelationKey
 rtMessage_GetCorrelationKey(rapidjson::Document const& doc)
 {
+  rtCorrelationKey k = kInvalidCorrelationKey;
   rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNameCorrelationKey);
   RT_ASSERT(itr != doc.MemberEnd());
-  return itr != doc.MemberEnd() ?
-    itr->value.GetUint()
-    : kInvalidCorrelationKey;
+  if (itr != doc.MemberEnd())
+    k = itr->value.GetUint();
+  return k;
 }
 
 char const*

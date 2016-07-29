@@ -1,5 +1,6 @@
 #include "rtRemoteStream.h"
 #include "rtRemoteMessage.h"
+#include "rtRemoteConfig.h"
 
 #include <algorithm>
 #include <memory>
@@ -21,36 +22,64 @@ rtRemoteStreamSelector::rtRemoteStreamSelector()
   }
 }
 
+void*
+rtRemoteStreamSelector::pollFds(void* argp)
+{
+  rtRemoteStreamSelector* selector = reinterpret_cast<rtRemoteStreamSelector *>(argp);
+  rtError e = selector->doPollFds();
+  if (e != RT_OK)
+    rtLogInfo("pollFds error. %s", rtStrError(e));
+  return nullptr;
+}
+
 rtError
 rtRemoteStreamSelector::start()
 {
-  m_thread.reset(new std::thread(&rtRemoteStreamSelector::pollFds, this));
+  rtLogInfo("starting StreamSelector");
+  pthread_create(&m_thread, nullptr, &rtRemoteStreamSelector::pollFds, this);
   return RT_OK;
 }
 
 rtError
 rtRemoteStreamSelector::registerStream(std::shared_ptr<rtRemoteStream> const& s)
 {
+  std::unique_lock<std::mutex> lock(m_mutex);
   m_streams.push_back(s);
   return RT_OK;
 }
 
 rtError
+rtRemoteStreamSelector::removeStream(std::shared_ptr<rtRemoteStream> const& stream)
+{
+  rtError e = RT_ERROR_OBJECT_NOT_FOUND;
+
+  std::unique_lock<std::mutex> lock(m_mutex);
+  auto itr = std::remove_if(
+    m_streams.begin(),
+    m_streams.end(),
+    [&stream](std::shared_ptr<rtRemoteStream> const& s) { return s.get() == stream.get(); });
+  if (itr != m_streams.end())
+  {
+    m_streams.erase(itr);
+    e = RT_OK;
+  }
+
+  return e;
+}
+
+rtError
 rtRemoteStreamSelector::shutdown()
 {
-  if (m_thread)
+  char buff[] = { "shudown" };
+  ssize_t n = write(m_shutdown_pipe[1], buff, sizeof(buff));
+  if (n == -1)
   {
-    char buff[] = { "shudown" };
-    ssize_t n = write(m_shutdown_pipe[1], buff, sizeof(buff));
-    if (n == -1)
-    {
-      rtError e = rtErrorFromErrno(errno);
-      rtLogWarn("failed to write. %s", rtStrError(e));
-    }
-
-    m_thread->join();
-    m_thread.reset();
+    rtError e = rtErrorFromErrno(errno);
+    rtLogWarn("failed to write. %s", rtStrError(e));
   }
+
+  void* retval = nullptr;
+  pthread_join(m_thread, &retval);
 
   ::close(m_shutdown_pipe[0]);
   ::close(m_shutdown_pipe[1]);
@@ -59,7 +88,7 @@ rtRemoteStreamSelector::shutdown()
 }
 
 rtError
-rtRemoteStreamSelector::pollFds()
+rtRemoteStreamSelector::doPollFds()
 {
   rtSocketBuffer buff;
   buff.reserve(1024 * 1024);
@@ -105,14 +134,22 @@ rtRemoteStreamSelector::pollFds()
     std::unique_lock<std::mutex> lock(m_mutex);
     for (int i = 0, n = static_cast<int>(m_streams.size()); i < n; ++i)
     {
+      // TODO: make sure stream is still registerd
+
       rtError e = RT_OK;
       std::shared_ptr<rtRemoteStream> const& s = m_streams[i];
       if (FD_ISSET(s->m_fd, &read_fds))
       {
         e = s->onIncomingMessage(buff, now);
         if (e != RT_OK)
+        {
+          rtLogWarn("error dispatching message. %s", rtStrError(e));
           m_streams[i].reset();
+        }
       }
+
+
+      #if 0
       if (s && (now - s->m_last_ka_message_time > 10))
       {
         s->m_last_ka_message_time = time(0);
@@ -120,23 +157,25 @@ rtRemoteStreamSelector::pollFds()
         if (e != RT_OK)
           m_streams[i].reset();
       }
+      #endif
     }
 
     // remove all dead streams
     auto end = std::remove_if(m_streams.begin(), m_streams.end(),
         [](std::shared_ptr<rtRemoteStream> const& s) { return s == nullptr; });
     m_streams.erase(end, m_streams.end());
+    rtLogDebug("streams size:%d", (int) m_streams.size());
+    lock.unlock();
   }
 
   return RT_OK;
 }
 
-rtRemoteStream::rtRemoteStream(rtRemoteEnvPtr env, int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint)
+rtRemoteStream::rtRemoteStream(rtRemoteEnvironment* env, int fd, sockaddr_storage const& local_endpoint,
+  sockaddr_storage const& remote_endpoint)
   : m_fd(fd)
   , m_last_message_time(0)
   , m_last_ka_message_time(0)
-  , m_message_handler(nullptr)
-  , m_running(false)
   , m_env(env)
 {
   memcpy(&m_remote_endpoint, &remote_endpoint, sizeof(m_remote_endpoint));
@@ -148,75 +187,17 @@ rtRemoteStream::~rtRemoteStream()
   this->close();
 }
 
-void
-rtRemoteStream::runMessageDispatch()
-{
-  WorkItem item;
-
-  while (true)
-  {
-    item.Doc = nullptr;
-    {
-      std::unique_lock<std::mutex> qlock(m_work_mutex);
-      m_work_cond.wait(qlock, [this] { return !this->m_running || !m_work_queue.empty(); });
-
-      if (!m_running)
-        return;
-
-      if (!m_work_queue.empty())
-      {
-        item = m_work_queue.front();
-        m_work_queue.pop_front();
-      }
-    }
-
-    if (item.Doc != nullptr)
-    {
-      if (m_message_handler)
-      {
-        rtError err = m_message_handler(item.Doc);
-        if (err != RT_OK)
-          rtLogWarn("error running message dispatcher: %s", rtStrError(err));
-      }
-    }
-  }
-}
-
 rtError
 rtRemoteStream::open()
 {
-  m_running = true;
-
-  int const kNumDispatcherThreads = 1;
-  for (int i = 0; i < kNumDispatcherThreads; ++i)
-  {
-    m_dispatch_threads.push_back(new std::thread(&rtRemoteStream::runMessageDispatch, this));
-  }
-
-  m_env->StreamSelector->registerStream(shared_from_this());
+  auto self = shared_from_this();
+  m_env->StreamSelector->registerStream(self);
   return RT_OK;
 }
 
 rtError
 rtRemoteStream::close()
 {
-  {
-    std::unique_lock<std::mutex> lock(m_work_mutex);
-    m_running = false;
-    m_work_cond.notify_all();
-  }
-
-  for (auto thread : m_dispatch_threads)
-  {
-    thread->join();
-    delete thread;
-  }
-
-  m_dispatch_threads.clear();
-
-  m_inactivity_handler = nullptr;
-  m_message_handler = nullptr;
-
   if (m_fd != kInvalidSocket)
   {
     int ret = 0;
@@ -284,98 +265,67 @@ rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
 }
 
 rtError
-rtRemoteStream::send(rtRemoteMessage const& m)
+rtRemoteStream::send(rtJsonDocPtr const& msg)
 {
   m_last_message_time = time(0);
-  std::unique_lock<std::mutex> lock(m_send_mutex);
-  return m.send(m_fd, NULL);
+  return rtSendDocument(*msg, m_fd, nullptr);
 }
 
 rtError
-rtRemoteStream::setMessageCallback(MessageHandler handler)
+rtRemoteStream::setStateChangedHandler(StateChangedHandler handler, void* argp)
 {
-  m_message_handler = handler;
+  m_state_changed_handler.Func = handler;
+  m_state_changed_handler.Arg = argp;
   return RT_OK;
 }
 
 rtError
-rtRemoteStream::setInactivityCallback(rtRemoteInactivityHandler handler)
+rtRemoteStream::setMessageHandler(MessageHandler handler, void* argp)
 {
-  m_inactivity_handler = handler;
-  return RT_OK;
-}
-
-rtError
-rtRemoteStream::onInactivity(time_t now)
-{
-  if (m_inactivity_handler)
-  {
-    m_inactivity_handler(m_last_message_time, now);
-    m_last_message_time = now;
-  }
+  m_message_handler.Func = handler;
+  m_message_handler.Arg = argp;
   return RT_OK;
 }
 
 rtError
 rtRemoteStream::onIncomingMessage(rtSocketBuffer& buff, time_t now)
 {
+  rtJsonDocPtr doc = nullptr;
   m_last_message_time = now;
-
-  rtJsonDocPtr doc;
-
-  rtError err = rtReadMessage(m_fd, buff, doc);
-  if (err != RT_OK)
+  rtError e = rtReadMessage(m_fd, buff, doc);
+  if (e != RT_OK)
   {
-    rtLogDebug("failed to read message from fd:%d. %s", m_fd, rtStrError(err));
-    return err;
-  }
+    if (e == rtErrorFromErrno(ENOTCONN) && m_state_changed_handler.Func)
+    { 
+      auto self = shared_from_this();
+      rtError err = m_state_changed_handler.Func(self, State::Closed, m_state_changed_handler.Arg);
+      if (err != RT_OK)
+        rtLogWarn("failed to invoke state changed handler. %s", rtStrError(err));
 
-  int const key = rtMessage_GetCorrelationKey(*doc);
-
-  // is someone waiting for a response
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    if (m_requests.find(key) != m_requests.end())
-    {
-      m_requests[key] = doc;
-      lock.unlock();
-      m_cond.notify_all();
+      // return the error back to the caller so they know that that stream is dead
+      return e;
     }
+    rtLogDebug("failed to read message. %s", rtStrError(e));
   }
 
-  // enqueue to dispatch on a worker thread
-  {
-    WorkItem item;
-    item.Doc = doc;
-
-    std::unique_lock<std::mutex> lock(m_work_mutex);
-    m_work_queue.push_back(item);
-    m_work_cond.notify_one();
-  }
-
+  if (e == RT_OK && m_message_handler.Func != nullptr)
+    e = m_message_handler.Func(doc, m_message_handler.Arg);
   return RT_OK;
 }
 
+#if 0
 rtError
-rtRemoteStream::sendRequest(rtRemoteRequest const& req, MessageHandler handler, uint32_t timeout)
+rtRemoteStream::sendRequest2(rtRemoteRequest const& req, MessageHandler handler, void* argp)
 {
   rtCorrelationKey key = req.getCorrelationKey();
   RT_ASSERT(key != 0);
   RT_ASSERT(m_fd != kInvalidSocket);
 
-  if (handler)
-  {
-    // prime outstanding request table. This indicates to the callbacks that someone
-    // is waiting for a response
-    std::unique_lock<std::mutex> lock(m_mutex);
-    RT_ASSERT(m_requests.find(key) == m_requests.end());
-    m_requests[key] = rtJsonDocPtr();
-  }
-
   m_last_message_time = time(0);
   m_send_mutex.lock();
   rtError e = req.send(m_fd, NULL);
   m_send_mutex.unlock();
+
   if (e != RT_OK)
   {
     rtLogWarn("failed to send request: %s", rtStrError(e));
@@ -384,35 +334,60 @@ rtRemoteStream::sendRequest(rtRemoteRequest const& req, MessageHandler handler, 
 
   if (handler)
   {
-    rtJsonDocPtr doc = waitForResponse(key, timeout);
-    if (doc)
-      e = handler(doc);
-    else
-      e = RT_ERROR_TIMEOUT;
+    Callback<MessageHandler> callback;
+    callback.Func = handler;
+    callback.Arg = argp;
+
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_callbacks.insert(CallbackMap::value_type(key, callback));
   }
 
-  return e;
+  return RT_OK;
 }
+#endif
 
+#if 0
 rtJsonDocPtr
-rtRemoteStream::waitForResponse(int key, uint32_t timeout)
+rtRemoteStream::waitForResponse(rtCorrelationKey key, uint32_t timeout)
 {
-  rtJsonDocPtr res;
+  rtJsonDocPtr res = nullptr;
 
-  auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
+  rtLogInfo("waiting for: %d", (int) key);
 
-  std::unique_lock<std::mutex> lock(m_mutex);
-  m_cond.wait_until(lock, delay, [this, key, &res] 
+  if (timeout == 0)
+    timeout = m_env->Config->environment_request_timeout();
+
+  std::chrono::system_clock::time_point delay =
+    std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
+
+  // if we're using internally dispatched threads, then things will arrive here from the
+  // background thread. Let's wait until we find our own response, otherwise, worker
+  // threads will process these items.
+  if (m_env->Config->server_use_dispatch_thread())
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_cond.wait_until(lock, delay, [this, key, &res] { return (res = getResponse(key)) != nullptr; });
+    lock.unlock();
+    return res;
+  }
+  else
+  {
+    // if we're the thread responsible for processing items in our queue, then
+    // we have to sort of preempt ourselves for incoming messages and process them,
+    // while also honoring the timeout.
+    while (delay > std::chrono::system_clock::now())
     {
-      auto itr = this->m_requests.find(key);
-      if (itr != this->m_requests.end())
-      {
-        res = itr->second;
-        if (res != nullptr)
-          this->m_requests.erase(itr);
-      }
-      return res != nullptr;
-    });
-  lock.unlock();
-  return res;
+      // wait for ANY incoming message. This is different that the previous
+      // branch where we wait for the response to the current 'key' in context
+      std::unique_lock<std::mutex> lock(m_mutex);
+      // delay is wall clock, not relative, so no need to update on each iteration
+      m_cond.wait_until(lock, delay, [this, key, &res] { !m_queue.empty(); });
+      lock.unlock();
+
+      return res;
+    }
+  }
+
+  return rtJsonDocPtr();
 }
+#endif

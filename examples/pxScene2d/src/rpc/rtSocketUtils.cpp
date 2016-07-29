@@ -266,10 +266,7 @@ rtReadUntil(int fd, char* buff, int n)
   {
     ssize_t n = read(fd, buff + bytes_read, (bytes_to_read - bytes_read));
     if (n == 0)
-    {
-      rtLogInfo("tring to read from file descriptor: %d. It looks closed", fd);
-      return RT_FAIL;
-    }
+      return rtErrorFromErrno(ENOTCONN);
 
     if (n == -1)
     {

@@ -76,7 +76,7 @@ private:
 };
 
 
-rtRemoteFileResolver::rtRemoteFileResolver(rtRemoteEnvPtr env)
+rtRemoteFileResolver::rtRemoteFileResolver(rtRemoteEnvironment* env)
 : m_db_fp(nullptr)
 , m_env(env)
 {}

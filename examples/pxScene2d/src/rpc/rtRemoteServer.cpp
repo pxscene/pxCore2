@@ -178,7 +178,6 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
 
   m_shutdown_pipe[0] = -1;
   m_shutdown_pipe[1] = -1;
-  m_queueing_mode = !m_env->Config->server_use_dispatch_thread();
 
   int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
   if (ret != 0)
@@ -187,26 +186,26 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
     rtLogWarn("failed to create shutdown pipe. %s", rtStrError(e));
   }
 
-  m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeOpenSessionRequest,
-    std::bind(&rtRemoteServer::onOpenSession, this, std::placeholders::_1, std::placeholders::_2)));
+  m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeOpenSessionRequest, 
+    Callback<MessageHandler>(&rtRemoteServer::onOpenSession_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeGetByNameRequest,
-    std::bind(&rtRemoteServer::onGet, this, std::placeholders::_1, std::placeholders::_2)));
+    Callback<MessageHandler>(&rtRemoteServer::onGet_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeGetByIndexRequest,
-    std::bind(&rtRemoteServer::onGet, this, std::placeholders::_1, std::placeholders::_2)));
+    Callback<MessageHandler>(&rtRemoteServer::onGet_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeSetByNameRequest,
-    std::bind(&rtRemoteServer::onSet, this, std::placeholders::_1, std::placeholders::_2)));
+    Callback<MessageHandler>(&rtRemoteServer::onSet_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeSetByIndexRequest,
-    std::bind(&rtRemoteServer::onSet, this, std::placeholders::_1, std::placeholders::_2)));
+    Callback<MessageHandler>(&rtRemoteServer::onSet_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeMethodCallRequest,
-    std::bind(&rtRemoteServer::onMethodCall, this, std::placeholders::_1, std::placeholders::_2)));
+    Callback<MessageHandler>(&rtRemoteServer::onMethodCall_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeKeepAliveRequest,
-    std::bind(&rtRemoteServer::onKeepAlive, this, std::placeholders::_1, std::placeholders::_2)));
+    Callback<MessageHandler>(&rtRemoteServer::onKeepAlive_Dispatch, this)));
 }
 
 rtRemoteServer::~rtRemoteServer()
@@ -348,16 +347,42 @@ rtRemoteServer::doAccept(int fd)
   rtGetSockName(fd, local_endpoint);
 
   std::shared_ptr<rtRemoteClient> newClient(new rtRemoteClient(m_env, ret, local_endpoint, remote_endpoint));
-  newClient->setMessageCallback(std::bind(&rtRemoteServer::onIncomingMessage, this, std::placeholders::_1, std::placeholders::_2));
+  newClient->setStateChangedHandler(&rtRemoteServer::onClientStateChanged_Dispatch, this);
   newClient->open();
   m_connected_clients.push_back(newClient);
+}
+
+rtError
+rtRemoteServer::onClientStateChanged(std::shared_ptr<rtRemoteClient> const& client,
+  rtRemoteClient::State state)
+{
+  rtError e = RT_ERROR_OBJECT_NOT_FOUND;
+
+  if (state == rtRemoteClient::State::Shutdown)
+  {
+    rtLogInfo("client shutdown");
+    std::unique_lock<std::mutex> lock(m_mutex);
+    auto itr = std::remove_if(
+      m_connected_clients.begin(),
+      m_connected_clients.end(),
+      [&client](std::shared_ptr<rtRemoteClient> const& c) { return c.get() == client.get(); }
+    );
+    if (itr != m_connected_clients.end())
+    {
+      rtLogInfo("removing reference to stream");
+      m_connected_clients.erase(itr);
+      e = RT_OK;
+    }
+  }
+
+  return e;
 }
 
 rtError
 rtRemoteServer::onIncomingMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg)
 {
   rtError e = RT_OK;
-  if (m_queueing_mode)
+  if (m_env->Config->server_use_dispatch_thread())
     m_env->enqueueWorkItem(client, msg);
   else
     e = processMessage(client, msg);
@@ -375,7 +400,12 @@ rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDo
   if (itr == m_command_handlers.end())
     return RT_OK;
 
-  e = itr->second(client, msg);
+  Callback<MessageHandler> handler = itr->second;
+  if (handler.Func != nullptr)
+    e = handler.Func(client, msg, handler.Arg);
+  else
+    e = RT_ERROR_INVALID_ARG;
+
   if (e != RT_OK)
     rtLogWarn("failed to run command for %s. %s", message_type, rtStrError(e));
 
@@ -445,8 +475,7 @@ rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t t
       if (!client)
       {
         client.reset(new rtRemoteClient(m_env, rpc_endpoint));
-        client->setMessageCallback(std::bind(&rtRemoteServer::onIncomingMessage, this, 
-              std::placeholders::_1, std::placeholders::_2));
+        client->setStateChangedHandler(&rtRemoteServer::onClientStateChanged_Dispatch, this);
         err = client->open();
         if (err != RT_OK)
         {
@@ -562,7 +591,6 @@ rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDoc
   char const* id = rtMessage_GetObjectId(*req);
 
   #if 0
-
   std::unique_lock<std::mutex> lock(m_mutex);
   auto itr = m_objects.find(id);
   if (itr != m_objects.end())
@@ -589,7 +617,7 @@ rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDoc
   res->AddMember(kFieldNameMessageType, kMessageTypeOpenSessionResponse, res->GetAllocator());
   res->AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
   res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
-  err = client->sendDocument(*res);
+  err = client->send(res);
 
   return err;
 }
@@ -659,7 +687,7 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr cons
       res->AddMember(kFieldNameStatusCode, static_cast<int32_t>(err), res->GetAllocator());
     }
 
-    err = client->sendDocument(*res);
+    err = client->send(res);
   }
 
   return RT_OK;
@@ -712,7 +740,7 @@ rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr cons
     }
 
     res->AddMember(kFieldNameStatusCode, static_cast<int>(err), res->GetAllocator());
-    err = client->sendDocument(*res);
+    err = client->send(res);
   }
   return RT_OK;
 }
@@ -724,15 +752,15 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocP
   char const* id = rtMessage_GetObjectId(*doc);
   rtError err   = RT_OK;
 
-  rapidjson::Document res;
-  res.SetObject();
-  res.AddMember(kFieldNameMessageType, kMessageTypeMethodCallResponse, res.GetAllocator());
-  res.AddMember(kFieldNameCorrelationKey, key, res.GetAllocator());
+  rtJsonDocPtr res(new rapidjson::Document());
+  res->SetObject();
+  res->AddMember(kFieldNameMessageType, kMessageTypeMethodCallResponse, res->GetAllocator());
+  res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
 
   rtObjectRef obj = m_env->ObjectCache->findObject(id);
   if (!obj && (strcmp(id, "global") != 0))
   {
-    rtMessage_SetStatus(res, 1, "failed to find object with id: %s", id);
+    rtMessage_SetStatus(*res, 1, "failed to find object with id: %s", id);
   }
   else
   {
@@ -776,20 +804,19 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocP
       if (err == RT_OK)
       {
         rapidjson::Value val;
-        rtValueWriter::write(m_env, return_value, val, res);
-        res.AddMember(kFieldNameFunctionReturn, val, res.GetAllocator());
+        rtValueWriter::write(m_env, return_value, val, *res);
+        res->AddMember(kFieldNameFunctionReturn, val, res->GetAllocator());
       }
 
-      rtMessage_SetStatus(res, 0);
+      rtMessage_SetStatus(*res, 0);
     }
     else
     {
-      rtMessage_SetStatus(res, 1, "object not found");
+      rtMessage_SetStatus(*res, 1, "object not found");
     }
   }
 
-  err = client->sendDocument(res);
-
+  err = client->send(res);
   if (err != RT_OK)
     rtLogWarn("failed to send response. %d", err);
 
@@ -820,12 +847,11 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPt
     rtLogInfo("got keep-alive without any interesting information");
   }
 
-  rapidjson::Document res;
-  res.SetObject();
-  res.AddMember(kFieldNameCorrelationKey, key, res.GetAllocator());
-  res.AddMember(kFieldNameMessageType, kMessageTypeKeepAliveResponse, res.GetAllocator());
-
-  return client->sendDocument(res);
+  rtJsonDocPtr res(new rapidjson::Document());
+  res->SetObject();
+  res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
+  res->AddMember(kFieldNameMessageType, kMessageTypeKeepAliveResponse, res->GetAllocator());
+  return client->send(res);
 }
 
 rtError

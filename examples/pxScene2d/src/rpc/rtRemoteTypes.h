@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <thread>
 #include <queue>
 #include <vector>
 
@@ -16,20 +17,39 @@
 #define kInvalidSocket (-1)
 
 class rtRemoteClient;
+class rtRemoteEnvironment;
 class rtRemoteServer;
 class rtRemoteConfig;
 class rtRemoteStreamSelector;
 class rtObjectCache;
 
+using rtSocketBuffer = std::vector<char>;
+using rtJsonDocPtr = std::shared_ptr< rapidjson::Document >;
+using rtCorrelationKey = uint32_t;
+using MessageHandler = rtError (*)(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg, void* argp);
+
+template<class TFunc>
+struct Callback
+{
+  Callback() : Func(nullptr), Arg(nullptr) { }
+  Callback(TFunc func, void* arg) : Func(func), Arg(arg) { }
+  TFunc Func;
+  void* Arg;
+};
+
+
 struct rtRemoteEnvironment
 {
-  using client = std::shared_ptr<rtRemoteClient>;
-  using message = std::shared_ptr<rapidjson::Document>;
-
   rtRemoteEnvironment(rtRemoteConfig* config);
   ~rtRemoteEnvironment();
 
   void shutdown();
+  void start();
+  bool isQueueEmpty() const
+  {
+    std::unique_lock<std::mutex> lock(m_queue_mutex);
+    return m_queue.empty();
+  }
 
   rtRemoteConfig const*     Config;
   rtRemoteServer*           Server;
@@ -40,8 +60,9 @@ struct rtRemoteEnvironment
   uint32_t RefCount;
   bool     Initialized;
 
-  void enqueueWorkItem(client const& clnt, message const& msg);
-  rtError processSingleWorkItem(std::chrono::milliseconds timeout);
+  void registerResponseHandler(MessageHandler handler, void* argp, rtCorrelationKey k);
+  void enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt, rtJsonDocPtr const& doc);
+  rtError processSingleWorkItem(std::chrono::milliseconds timeout, rtCorrelationKey* key = nullptr);
 
 private:
   struct WorkItem
@@ -50,9 +71,16 @@ private:
     std::shared_ptr<rapidjson::Document> Message;
   };
 
-  std::mutex              m_queue_mutex;
-  std::condition_variable m_queue_cond;
-  std::queue<WorkItem>    m_queue;
+  using ResponseHandlerMap = std::map< rtCorrelationKey, Callback<MessageHandler> >;
+
+  void processRunQueue();
+
+  mutable std::mutex            m_queue_mutex;
+  std::condition_variable       m_queue_cond;
+  std::queue<WorkItem>          m_queue;
+  std::unique_ptr<std::thread>  m_worker;
+  bool                          m_running;
+  ResponseHandlerMap            m_response_handlers;
 };
 
 class rtRemoteConfigBuilder
@@ -74,13 +102,5 @@ public:
 private:
   std::map< std::string, std::string > m_map;
 };
-
-using rtRemoteEnvPtr = rtRemoteEnvironment*;
-
-using rtSocketBuffer = std::vector<char>;
-using rtJsonDocPtr = std::shared_ptr< rapidjson::Document >;
-using rtCorrelationKey = uint32_t;
-using rtRemoteMessageHandler = std::function<rtError (std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg)>;
-using rtRemoteInactivityHandler = std::function<rtError(time_t lastMessageTime, time_t now)>;
 
 #endif

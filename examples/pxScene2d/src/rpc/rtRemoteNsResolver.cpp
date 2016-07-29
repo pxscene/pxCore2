@@ -31,7 +31,7 @@
 #include <rapidjson/filewritestream.h>
 #include <rapidjson/pointer.h>
 
-rtRemoteNsResolver::rtRemoteNsResolver(rtRemoteEnvPtr env)
+rtRemoteNsResolver::rtRemoteNsResolver(rtRemoteEnvironment* env)
   : m_static_fd(-1)
   , m_pid(getpid())
   , m_command_handlers()

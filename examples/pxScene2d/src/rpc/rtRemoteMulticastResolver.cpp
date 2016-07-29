@@ -31,7 +31,7 @@
 #include <rapidjson/filewritestream.h>
 #include <rapidjson/pointer.h>
 
-rtRemoteMulticastResolver::rtRemoteMulticastResolver(rtRemoteEnvPtr env)
+rtRemoteMulticastResolver::rtRemoteMulticastResolver(rtRemoteEnvironment* env)
   : m_mcast_fd(-1)
   , m_mcast_src_index(-1)
   , m_ucast_fd(-1)

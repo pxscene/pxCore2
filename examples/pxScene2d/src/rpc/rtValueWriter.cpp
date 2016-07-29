@@ -224,7 +224,7 @@ namespace
 }
 
 rtError
-rtValueWriter::write(rtRemoteEnvPtr env, rtValue const& from,
+rtValueWriter::write(rtRemoteEnvironment* env, rtValue const& from,
   rapidjson::Value& to, rapidjson::Document& doc)
 {
   to.SetObject();

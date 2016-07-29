@@ -156,7 +156,6 @@ void Test_Echo_Client()
   if (e != RT_OK)
     rtLogError("failed to set message handler: %s", rtStrError(e));
 
-
   int i = 0;
   char buff[256];
   while (true)
@@ -165,7 +164,8 @@ void Test_Echo_Client()
     sprintf(buff, "hello:%06d", i++);
     e = obj.set("message", rtString(buff));
     rtLogInfo("set:%s", rtStrError(e));
-    sleep(1);
+
+    e = rtRemoteRunOnce(env, 1000);
   }
 }
 
@@ -175,7 +175,10 @@ void Test_Echo_Server()
   rtError e = rtRemoteRegisterObject(env, "echo.object", obj);
   RT_ASSERT(e == RT_OK);
   while (true)
-    sleep(10);
+  {
+    e = rtRemoteRunOnce(env, 3000);
+    rtLogInfo("run:%s", rtStrError(e));
+  }
 }
 
 void Test_SetProperty_Basic_Client()

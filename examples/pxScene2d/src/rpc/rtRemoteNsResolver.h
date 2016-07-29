@@ -16,7 +16,7 @@
 class rtRemoteNsResolver : public rtRemoteIResolver
 {
 public:
-  rtRemoteNsResolver(rtRemoteEnvPtr env);
+  rtRemoteNsResolver(rtRemoteEnvironment* env);
   ~rtRemoteNsResolver();
 
 public:
@@ -61,7 +61,7 @@ private:
   int		        m_shutdown_pipe[2];
 
   sockaddr_storage  m_ns_dest;
-  rtRemoteEnvPtr    m_env;
+  rtRemoteEnvironment*  m_env;
 
   // endpointMapper;
   // 

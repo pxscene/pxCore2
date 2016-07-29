@@ -31,7 +31,7 @@
 #include <rapidjson/filewritestream.h>
 #include <rapidjson/pointer.h>
 
-rtRemoteNameService::rtRemoteNameService(rtRemoteEnvPtr env)
+rtRemoteNameService::rtRemoteNameService(rtRemoteEnvironment* env)
   : m_ns_fd(-1)
   , m_ns_len(0)
   , m_pid(getpid())

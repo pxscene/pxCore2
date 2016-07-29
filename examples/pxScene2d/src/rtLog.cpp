@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <sys/time.h>
 #include "rtLog.h"
 
 #ifndef WIN32
@@ -108,6 +109,15 @@ void rtLogPrintf(rtLogLevel level, const char* file, int line, const char* forma
 
   if (sLogHandler == NULL)
   {
+    {
+      char buff[16];
+      timeval now;
+      gettimeofday(&now, 0);
+      tm* tmp = localtime(&now.tv_sec);
+      strftime(buff, sizeof(buff), "%H:%M:%S", tmp);
+      printf("%s.%06ld ", buff, now.tv_usec);
+    }
+
     printf(RTLOGPREFIX "%5s %s:%d -- Thread-%" THREAD_ID_FORMAT ": ", logLevel, path, line, threadId);
 
     va_list ptr;
@@ -136,4 +146,7 @@ void rtLogPrintf(rtLogLevel level, const char* file, int line, const char* forma
   if (level == RT_LOG_FATAL)
     abort();
 }
+
+int rtLogEnterExit::s_enabled = 0;
+
 

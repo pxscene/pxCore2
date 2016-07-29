@@ -119,19 +119,12 @@ public:
   rtRemoteRequestOpenSession(std::string const& objectName);
 };
 
-class rtRemoteRequestKeepAlive : public rtRemoteRequest
-{
-public:
-  rtRemoteRequestKeepAlive();
-  void addObjectName(std::string const& name);
-};
-
 class rtRemoteMethodCallRequest : public rtRemoteRequest
 {
 public:
   rtRemoteMethodCallRequest(std::string const& objectName);
   void setMethodName(std::string const& methodName);
-  void addMethodArgument(rtRemoteEnvPtr env, rtValue const& arg);
+  void addMethodArgument(rtRemoteEnvironment* env, rtValue const& arg);
 };
 
 class rtRemoteGetRequest : public rtRemoteRequest
@@ -146,13 +139,13 @@ class rtRemoteSetRequest : public rtRemoteRequest
 public:
   rtRemoteSetRequest(std::string const& objectName, std::string const& fieldName);
   rtRemoteSetRequest(std::string const& objectName, uint32_t fieldIndex);
-  rtError setValue(rtRemoteEnvPtr env, rtValue const& value);
+  rtError setValue(rtRemoteEnvironment* env, rtValue const& value);
 };
 
 char const* rtMessage_GetPropertyName(rapidjson::Document const& doc);
 uint32_t    rtMessage_GetPropertyIndex(rapidjson::Document const& doc);
 char const* rtMessage_GetMessageType(rapidjson::Document const& doc);
-uint32_t    rtMessage_GetCorrelationKey(rapidjson::Document const& doc);
+rtCorrelationKey rtMessage_GetCorrelationKey(rapidjson::Document const& doc);
 char const* rtMessage_GetObjectId(rapidjson::Document const& doc);
 rtError     rtMessage_GetStatusCode(rapidjson::Document const& doc);
 char const* rtMessage_GetStatusMessage(rapidjson::Document const& doc);

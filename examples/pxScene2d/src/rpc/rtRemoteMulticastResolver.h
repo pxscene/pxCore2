@@ -17,7 +17,7 @@
 class rtRemoteMulticastResolver : public rtRemoteIResolver
 {
 public:
-  rtRemoteMulticastResolver(rtRemoteEnvPtr env);
+  rtRemoteMulticastResolver(rtRemoteEnvironment* env);
   ~rtRemoteMulticastResolver();
 
 public:
@@ -65,5 +65,5 @@ private:
   HostedObjectsMap  m_hosted_objects;
   RequestMap	      m_pending_searches;
   int		            m_shutdown_pipe[2];
-  rtRemoteEnvPtr    m_env;
+  rtRemoteEnvironment* m_env;
 };

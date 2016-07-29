@@ -12,7 +12,7 @@
 class rtValueWriter
 {
 public:
-  static rtError write(rtRemoteEnvPtr env,
+  static rtError write(rtRemoteEnvironment* env,
     rtValue const& from, rapidjson::Value& to, rapidjson::Document& parent);
 };
 

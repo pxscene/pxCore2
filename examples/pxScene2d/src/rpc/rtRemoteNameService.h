@@ -15,7 +15,7 @@
 class rtRemoteNameService
 {
 public:
-  rtRemoteNameService(rtRemoteEnvPtr env);
+  rtRemoteNameService(rtRemoteEnvironment* env);
   ~rtRemoteNameService();
 
 public:
@@ -52,5 +52,5 @@ private:
   std::mutex                   m_mutex;
   std::unique_ptr<std::thread> m_read_thread;
   int		                       m_shutdown_pipe[2];
-  rtRemoteEnvPtr               m_env;
+  rtRemoteEnvironment*         m_env;
 };
