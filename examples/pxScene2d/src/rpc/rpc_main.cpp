@@ -209,7 +209,11 @@ void Test_SetProperty_Basic_Server()
   rtError e = rtRemoteRegisterObject(env, objectName, obj);
   RT_ASSERT(e == RT_OK);
   while (true)
-    sleep(10);
+  {
+    rtError e = rtRemoteRunOnce(env, 5000);
+    if (e != RT_OK)
+      rtLogInfo("rtRemoteRun:%s", rtStrError(e));
+  }
 }
 
 void Test_FunctionReferences_Client()
@@ -346,7 +350,10 @@ Test_SetProperty_Object_Server()
   rtError e = rtRemoteRegisterObject(env, objectName, obj);
   RT_ASSERT(e == RT_OK);
   while (true)
-    sleep(10);
+  {
+    e = rtRemoteRunOnce(env, 5000);
+    rtLogInfo("rtRemoteRunOnce:%s", rtStrError(e));
+  }
 }
 
 struct TestCase
@@ -378,16 +385,16 @@ int main(int argc, char* /*argv*/[])
 
     if (argc == 2)
     {
-      Test_Echo_Client();
+      // Test_Echo_Client();
       // Test_FunctionReferences_Client();
       // Test_MethodCall_Client();
-      //Test_SetProperty_Object_Client();
+      Test_SetProperty_Object_Client();
     }
     else
     {
-      Test_Echo_Server();
+      // Test_Echo_Server();
       // Test_FunctionReferences_Server();
-      //Test_SetProperty_Object_Server();
+      Test_SetProperty_Object_Server();
       // Test_MethodCall_Server();
     }
 

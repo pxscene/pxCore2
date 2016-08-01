@@ -92,6 +92,7 @@ const char* rtStrError_BuiltIn(rtError e)
     RT_ERROR_CASE(RT_ERROR_OBJECT_NOT_FOUND);
     RT_ERROR_CASE(RT_ERROR_PROTOCOL_ERROR);
     RT_ERROR_CASE(RT_ERROR_INVALID_OPERATION);
+    RT_ERROR_CASE(RT_ERROR_IN_PROGRESS);
     default:
       break;
   }

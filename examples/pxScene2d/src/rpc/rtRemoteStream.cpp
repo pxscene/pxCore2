@@ -271,6 +271,17 @@ rtRemoteStream::send(rtJsonDocPtr const& msg)
   return rtSendDocument(*msg, m_fd, nullptr);
 }
 
+rtRemoteAsyncHandle
+rtRemoteStream::sendWithWait(rtJsonDocPtr const& msg)
+{
+  rtCorrelationKey k = rtMessage_GetCorrelationKey(*msg);
+  rtRemoteAsyncHandle asyncHandle(m_env, k);
+  rtError e = rtSendDocument(*msg, m_fd, nullptr);
+  if (e != RT_OK)
+    asyncHandle.complete(rtJsonDocPtr(), e);
+  return asyncHandle;
+}
+
 rtError
 rtRemoteStream::setStateChangedHandler(StateChangedHandler handler, void* argp)
 {
@@ -310,6 +321,7 @@ rtRemoteStream::onIncomingMessage(rtSocketBuffer& buff, time_t now)
 
   if (e == RT_OK && m_message_handler.Func != nullptr)
     e = m_message_handler.Func(doc, m_message_handler.Arg);
+
   return RT_OK;
 }
 

@@ -80,6 +80,15 @@ rtRemoteEnvironment::registerResponseHandler(MessageHandler handler, void* argp,
 }
 
 void
+rtRemoteEnvironment::removeResponseHandler(rtCorrelationKey k)
+{
+  std::unique_lock<std::mutex> lock(m_queue_mutex);
+  auto itr = m_response_handlers.find(k);
+  if (itr != m_response_handlers.end())
+    m_response_handlers.erase(itr);
+}
+
+void
 rtRemoteEnvironment::shutdown()
 {
   if (m_worker)
@@ -332,6 +341,7 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, rt
     {
       messageHandler = itr->second.Func;
       argp = itr->second.Arg;
+      m_response_handlers.erase(itr);
     }
     lock.unlock();
 
@@ -360,3 +370,4 @@ rtRemoteEnvironment::enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt
   lock.unlock();
   m_queue_cond.notify_all();
 }
+

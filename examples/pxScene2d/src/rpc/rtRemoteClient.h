@@ -39,11 +39,14 @@ public:
 
   rtError open();
   rtError startSession(std::string const& objectName, uint32_t timeout = 0);
-  rtError set(std::string const& objectName, uint32_t index, rtValue const& value, uint32_t timeout = 0);
-  rtError set(std::string const& objectName, char const* propertyName, rtValue const& value, uint32_t timeout = 0);
 
   rtError send(std::string const& objectName, std::string const& name, int argc, rtValue const* argv,
     rtValue* result, uint32_t timeout);
+
+  rtError sendSet(std::string const& objectId, uint32_t    propertyIdx , rtValue const& value);
+  rtError sendSet(std::string const& objectId, char const* propertyName, rtValue const& value);
+  rtError sendGet(std::string const& objectId, uint32_t    propertyIdx,  rtValue& result);
+  rtError sendGet(std::string const& objectId, char const* propertyName, rtValue& result);
 
   void keepAlive(std::string const& s);
   rtError setStateChangedHandler(StateChangedHandler handler, void* argp);
@@ -62,6 +65,9 @@ public:
     { return m_stream->getLocalEndpoint(); }
 
 private:
+  rtError sendGet(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& value);
+  rtError sendSet(rtJsonDocPtr const& req, rtCorrelationKey k); 
+
   static rtError onIncomingMessage_Dispatcher(rtJsonDocPtr const& doc, void* argp)
     { return reinterpret_cast<rtRemoteClient *>(argp)->onIncomingMessage(doc); }
 
@@ -75,20 +81,18 @@ private:
   rtError onIncomingMessage(rtJsonDocPtr const& msg);
   rtError onInactivity(time_t lastMessage, time_t now);
   rtError onStreamStateChanged(std::shared_ptr<rtRemoteStream> const& stream, rtRemoteStream::State state);
-  rtError sendSet(rtRemoteSetRequest const& req, uint32_t timeout);
   rtError connectRpcEndpoint();
   rtError sendKeepAlive();
 
-  // message handlers
-  static rtError responseHandler_Dispatcher(rtJsonDocPtr const& doc, void* argp)
-    { return reinterpret_cast<rtRemoteClient *>(argp)->responseHandler(doc); }
+  static rtError onSynchronousResponse_Handler(std::shared_ptr<rtRemoteClient>& client,
+        rtJsonDocPtr const& msg, void* argp)
+    { return reinterpret_cast<rtRemoteClient *>(argp)->onSynchronousResponse(client, msg); }
 
   rtError onStartSession(rtJsonDocPtr const& doc);
   rtError waitForResponse(rtCorrelationKey k, rtJsonDocPtr& res, int timeout);
-  rtError responseHandler(rtJsonDocPtr const& doc);
-  rtError sendSynchronousRequest(rtJsonDocPtr const& req, rtJsonDocPtr& res, int timeout);
-
-  bool moreToProcess(rtCorrelationKey k);
+  rtError onSynchronousResponse(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc);
+  // rtError sendSynchronousRequest(rtJsonDocPtr const& req, rtJsonDocPtr& res, int timeout);
+  // bool moreToProcess(rtCorrelationKey k);
 
 private:
   std::shared_ptr<rtRemoteStream>   m_stream;

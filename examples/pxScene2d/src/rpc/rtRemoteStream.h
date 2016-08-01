@@ -42,6 +42,7 @@ public:
   rtError connect();
   rtError connectTo(sockaddr_storage const& endpoint);
   rtError send(rtJsonDocPtr const& msg);
+  rtRemoteAsyncHandle sendWithWait(rtJsonDocPtr const& msg);
   rtError setMessageHandler(MessageHandler handler, void* argp);
   rtError setStateChangedHandler(StateChangedHandler handler, void* argp);
 

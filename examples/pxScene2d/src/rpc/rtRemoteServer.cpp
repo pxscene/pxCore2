@@ -381,6 +381,8 @@ rtRemoteServer::onClientStateChanged(std::shared_ptr<rtRemoteClient> const& clie
 rtError
 rtRemoteServer::onIncomingMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg)
 {
+  rtLogInfo("onIncomingMessage");
+
   rtError e = RT_OK;
   if (m_env->Config->server_use_dispatch_thread())
     m_env->enqueueWorkItem(client, msg);
@@ -393,7 +395,6 @@ rtError
 rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg)
 {
   rtError e = RT_FAIL;
-
   char const* message_type = rtMessage_GetMessageType(*msg);
 
   auto itr = m_command_handlers.find(message_type);

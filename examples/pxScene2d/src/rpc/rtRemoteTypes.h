@@ -38,6 +38,34 @@ struct Callback
 };
 
 
+class rtRemoteAsyncHandle
+{
+  friend class rtRemoteStream;
+
+public:
+  ~rtRemoteAsyncHandle();
+
+  rtJsonDocPtr response() const;
+  rtError wait(uint32_t timeoutInMilliSeconds);
+
+private:
+  rtRemoteAsyncHandle(rtRemoteEnvironment* env, rtCorrelationKey k);
+  void complete(rtJsonDocPtr const& doc, rtError e);
+
+  static rtError onResponseHandler_Dispatch(std::shared_ptr<rtRemoteClient>& client,
+        rtJsonDocPtr const& msg, void* argp)
+    { return reinterpret_cast<rtRemoteAsyncHandle *>(argp)->onResponseHandler(client, msg); }
+
+  rtError onResponseHandler(std::shared_ptr<rtRemoteClient>& client,
+    rtJsonDocPtr const& msg);
+
+private:
+  rtRemoteEnvironment*    m_env;
+  rtCorrelationKey        m_key;
+  rtJsonDocPtr            m_doc;
+  rtError                 m_error;
+};
+
 struct rtRemoteEnvironment
 {
   rtRemoteEnvironment(rtRemoteConfig* config);
@@ -61,6 +89,7 @@ struct rtRemoteEnvironment
   bool     Initialized;
 
   void registerResponseHandler(MessageHandler handler, void* argp, rtCorrelationKey k);
+  void removeResponseHandler(rtCorrelationKey k);
   void enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt, rtJsonDocPtr const& doc);
   rtError processSingleWorkItem(std::chrono::milliseconds timeout, rtCorrelationKey* key = nullptr);
 
@@ -72,6 +101,7 @@ private:
   };
 
   using ResponseHandlerMap = std::map< rtCorrelationKey, Callback<MessageHandler> >;
+  using ResponseMap = std::map< rtCorrelationKey, rtJsonDocPtr >;
 
   void processRunQueue();
 
