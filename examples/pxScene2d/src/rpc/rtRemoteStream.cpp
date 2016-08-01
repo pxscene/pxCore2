@@ -40,6 +40,8 @@ public:
   {
     if (m_thread)
     {
+      rtLogInfo("sending shutdown signal");
+
       char buff[] = { "shudown" };
       ssize_t n = write(m_shutdown_pipe[1], buff, sizeof(buff));
       if (n == -1)

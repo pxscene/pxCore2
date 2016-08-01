@@ -51,6 +51,7 @@ else
 endif
 
 CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
+CFLAGS+=-DRT_REMOTE_LOOPBACK_ONLY
 CXXFLAGS+=-std=c++0x $(CFLAGS)
 LDFLAGS =-pthread -ldl -luuid
 OBJDIR=obj
