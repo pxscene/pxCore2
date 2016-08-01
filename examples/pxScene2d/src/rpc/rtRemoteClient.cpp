@@ -261,6 +261,23 @@ rtRemoteClient::sendSet(std::string const& objectId, uint32_t propertyIdx, rtVal
 }
 
 rtError
+rtRemoteClient::sendSet(rtJsonDocPtr const& req, rtCorrelationKey k)
+{
+  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
+
+  rtError e = handle.wait(0);
+  if (e == RT_OK)
+  {
+    rtJsonDocPtr res = handle.response();
+    if (!res)
+      return RT_ERROR_PROTOCOL_ERROR;
+
+    e = rtMessage_GetStatusCode(*res);
+  }
+  return e;
+}
+
+rtError
 rtRemoteClient::sendGet(std::string const& objectId, char const* propertyName, rtValue& result)
 {
   rtCorrelationKey k = rtMessage_GetNextCorrelationKey();
@@ -309,23 +326,6 @@ rtRemoteClient::sendGet(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& va
     e = rtValueReader::read(value, itr->value, shared_from_this());
     if (e == RT_OK)
       e = rtMessage_GetStatusCode(*res);
-  }
-  return e;
-}
-
-rtError
-rtRemoteClient::sendSet(rtJsonDocPtr const& req, rtCorrelationKey k)
-{
-  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
-
-  rtError e = handle.wait(0);
-  if (e == RT_OK)
-  {
-    rtJsonDocPtr res = handle.response();
-    if (!res)
-      return RT_ERROR_PROTOCOL_ERROR;
-
-    e = rtMessage_GetStatusCode(*res);
   }
   return e;
 }

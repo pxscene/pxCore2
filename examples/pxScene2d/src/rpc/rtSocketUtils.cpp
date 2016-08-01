@@ -514,7 +514,7 @@ rtGetDefaultInterface(sockaddr_storage& addr, uint16_t port)
 
   #ifdef RT_REMOTE_LOOPBACK_ONLY
   rtError e = RT_OK;
-  strncpy(name, "127.0.0.1", sizeof(name));
+  strcpy(name, "127.0.0.1");
   #else
   rtError e = rtFindFirstInetInterface(name, sizeof(name));
   #endif
