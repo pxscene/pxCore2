@@ -127,21 +127,6 @@ public:
   void addMethodArgument(rtRemoteEnvironment* env, rtValue const& arg);
 };
 
-class rtRemoteGetRequest : public rtRemoteRequest
-{
-public:
-  rtRemoteGetRequest(std::string const& objectName, std::string const& fieldName);
-  rtRemoteGetRequest(std::string const& objectName, uint32_t fieldIndex);
-};
-
-class rtRemoteSetRequest : public rtRemoteRequest
-{
-public:
-  rtRemoteSetRequest(std::string const& objectName, std::string const& fieldName);
-  rtRemoteSetRequest(std::string const& objectName, uint32_t fieldIndex);
-  rtError setValue(rtRemoteEnvironment* env, rtValue const& value);
-};
-
 char const* rtMessage_GetPropertyName(rapidjson::Document const& doc);
 uint32_t    rtMessage_GetPropertyIndex(rapidjson::Document const& doc);
 char const* rtMessage_GetMessageType(rapidjson::Document const& doc);

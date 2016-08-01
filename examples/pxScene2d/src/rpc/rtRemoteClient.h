@@ -44,8 +44,8 @@ public:
   rtError sendSet(std::string const& objectId, char const* propertyName, rtValue const& value);
   rtError sendGet(std::string const& objectId, uint32_t    propertyIdx,  rtValue& result);
   rtError sendGet(std::string const& objectId, char const* propertyName, rtValue& result);
-  rtError sendCall(std::string const& objectId, std::string const& name, int argc, rtValue const* argv,
-    rtValue& result, uint32_t timeout);
+  rtError sendCall(std::string const& objectId, std::string const& methodName,
+    int argc, rtValue const* argv, rtValue& result);
 
   void keepAlive(std::string const& s);
   rtError setStateChangedHandler(StateChangedHandler handler, void* argp);

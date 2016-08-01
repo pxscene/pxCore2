@@ -174,7 +174,7 @@ rtRemoteClient::startSession(std::string const& objectName, uint32_t timeout)
   req->AddMember(kFieldNameCorrelationKey, k, req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectName, req->GetAllocator());
 
-  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req);
+  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
   rtError e = handle.wait(timeout);
   if (e == RT_OK)
   {
@@ -293,7 +293,7 @@ rtRemoteClient::sendGet(std::string const& objectId, uint32_t propertyIdx, rtVal
 rtError
 rtRemoteClient::sendGet(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& value)
 {
-  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req);
+  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
 
   rtError e = handle.wait(0);
   if (e == RT_OK)
@@ -316,7 +316,7 @@ rtRemoteClient::sendGet(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& va
 rtError
 rtRemoteClient::sendSet(rtJsonDocPtr const& req, rtCorrelationKey k)
 {
-  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req);
+  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
 
   rtError e = handle.wait(0);
   if (e == RT_OK)
@@ -332,7 +332,7 @@ rtRemoteClient::sendSet(rtJsonDocPtr const& req, rtCorrelationKey k)
 
 rtError
 rtRemoteClient::sendCall(std::string const& objectId, std::string const& methodName,
-  int argc, rtValue const* argv, rtValue& result, uint32_t timeout)
+  int argc, rtValue const* argv, rtValue& result)
 {
   rtCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
@@ -352,7 +352,7 @@ rtRemoteClient::sendCall(std::string const& objectId, std::string const& methodN
 rtError
 rtRemoteClient::sendCall(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& result)
 {
-  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req);
+  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
 
   rtError e = handle.wait(0);
   if (e == RT_OK)

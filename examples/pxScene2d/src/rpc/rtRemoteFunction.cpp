@@ -6,12 +6,12 @@ rtRemoteFunction::rtRemoteFunction(std::string const& id, std::string const& nam
   : m_ref_count(0)
   , m_id(id)
   , m_name(name)
-  , m_rpc_client(client)
+  , m_client(client)
   , m_timeout(client->getEnvironment()->Config->environment_request_timeout())
 {
   if (!strcmp(id.c_str(), "global"))
   {
-    m_rpc_client->keepAlive(m_name);
+    m_client->keepAlive(m_name);
   }
 }
 
@@ -23,7 +23,7 @@ rtRemoteFunction::~rtRemoteFunction()
 rtError
 rtRemoteFunction::Send(int argc, rtValue const* argv, rtValue* result)
 {
-  return m_rpc_client->sendCall(m_id, m_name, argc, argv, *result, m_timeout);
+  return m_client->sendCall(m_id, m_name, argc, argv, *result);
 }
 
 unsigned long

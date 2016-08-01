@@ -142,41 +142,6 @@ rtRemoteMethodCallRequest::addMethodArgument(rtRemoteEnvironment* env, rtValue c
   }
 }
 
-rtRemoteGetRequest::rtRemoteGetRequest(std::string const& objectName, std::string const& fieldName)
-  : rtRemoteRequest(kMessageTypeGetByNameRequest, objectName)
-{
-  m_impl->d.AddMember(kFieldNamePropertyName, fieldName, m_impl->d.GetAllocator());
-}
-
-rtRemoteGetRequest::rtRemoteGetRequest(std::string const& objectName, uint32_t fieldIndex)
-  : rtRemoteRequest(kMessageTypeGetByNameRequest, objectName)
-{
-  m_impl->d.AddMember(kFieldNamePropertyIndex, fieldIndex, m_impl->d.GetAllocator());
-}
-
-rtRemoteSetRequest::rtRemoteSetRequest(std::string const& objectName, std::string const& fieldName)
-  : rtRemoteRequest(kMessageTypeSetByNameRequest, objectName)
-{
-  m_impl->d.AddMember(kFieldNamePropertyName, fieldName, m_impl->d.GetAllocator());
-}
-
-rtRemoteSetRequest::rtRemoteSetRequest(std::string const& objectName, uint32_t fieldIndex)
-  : rtRemoteRequest(kMessageTypeSetByIndexRequest, objectName)
-{
-  m_impl->d.AddMember(kFieldNamePropertyIndex, fieldIndex, m_impl->d.GetAllocator());
-}
-
-rtError
-rtRemoteSetRequest::setValue(rtRemoteEnvironment* env, rtValue const& value)
-{
-  rapidjson::Value jsonValue;
-  rtError e = rtValueWriter::write(env, value, jsonValue, m_impl->d);
-  if (e != RT_OK)
-    return e;
-  m_impl->d.AddMember(kFieldNameValue, jsonValue, m_impl->d.GetAllocator());
-  return e;
-}
-
 rtRemoteMessage::~rtRemoteMessage()
 {
 }

@@ -272,9 +272,8 @@ rtRemoteStream::send(rtJsonDocPtr const& msg)
 }
 
 rtRemoteAsyncHandle
-rtRemoteStream::sendWithWait(rtJsonDocPtr const& msg)
+rtRemoteStream::sendWithWait(rtJsonDocPtr const& msg, rtCorrelationKey k)
 {
-  rtCorrelationKey k = rtMessage_GetCorrelationKey(*msg);
   rtRemoteAsyncHandle asyncHandle(m_env, k);
   rtError e = rtSendDocument(*msg, m_fd, nullptr);
   if (e != RT_OK)
