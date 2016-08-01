@@ -387,15 +387,15 @@ int main(int argc, char* /*argv*/[])
     {
       // Test_Echo_Client();
       // Test_FunctionReferences_Client();
-      // Test_MethodCall_Client();
-      Test_SetProperty_Object_Client();
+      Test_MethodCall_Client();
+      // Test_SetProperty_Object_Client();
     }
     else
     {
       // Test_Echo_Server();
       // Test_FunctionReferences_Server();
-      Test_SetProperty_Object_Server();
-      // Test_MethodCall_Server();
+      // Test_SetProperty_Object_Server();
+      Test_MethodCall_Server();
     }
 
     rtRemoteShutdown(env);

@@ -32,6 +32,29 @@ namespace
     if (e == RT_OK)
       doc->AddMember(kFieldNameValue, json_value, doc->GetAllocator());
   }
+
+  void
+  AddArgument(rtJsonDocPtr& doc, rtRemoteEnvironment* env, rtValue const& value)
+  {
+    rapidjson::Value json_value;
+    rtError e = rtValueWriter::write(env, value, json_value, *doc);
+
+    // TODO: better error handling
+    if (e == RT_OK)
+    {
+      auto itr = doc->FindMember(kFieldNameFunctionArgs);
+      if (itr == doc->MemberEnd())
+      {
+        rapidjson::Value args(rapidjson::kArrayType);
+        args.PushBack(json_value, doc->GetAllocator());
+        doc->AddMember(kFieldNameFunctionArgs, args, doc->GetAllocator());
+      }
+      else
+      {
+        itr->value.PushBack(json_value, doc->GetAllocator());
+      }
+    }
+  }
 }
 
 rtRemoteClient::rtRemoteClient(rtRemoteEnvironment* env, int fd,
@@ -232,6 +255,7 @@ rtRemoteClient::sendSet(std::string const& objectId, uint32_t propertyIdx, rtVal
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
   req->AddMember(kFieldNamePropertyIndex, propertyIdx, req->GetAllocator());
   req->AddMember(kFieldNameCorrelationKey, k, req->GetAllocator());
+  AddValue(req, m_env, value);
 
   return sendSet(req, k);
 }
@@ -307,35 +331,43 @@ rtRemoteClient::sendSet(rtJsonDocPtr const& req, rtCorrelationKey k)
 }
 
 rtError
-rtRemoteClient::send(std::string const& objectName, std::string const& methodName,
-  int argc, rtValue const* argv, rtValue* result, uint32_t timeout)
+rtRemoteClient::sendCall(std::string const& objectId, std::string const& methodName,
+  int argc, rtValue const* argv, rtValue& result, uint32_t timeout)
 {
-  rtRemoteMethodCallRequest req(objectName);
-  req.setMethodName(methodName);
-  for (int i = 0; i < argc; ++i)
-    req.addMethodArgument(m_env, argv[i]);
+  rtCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
-  rtJsonDocPtr res = nullptr;
-  rtError e = RT_FAIL; // sendSynchronousRequest(req, res, timeout);
-  assert(false);
-
-  if (e != RT_OK)
-    return e;
-
-  if (!res)
-    return RT_FAIL;
+  rtJsonDocPtr req(new rapidjson::Document());
+  req->SetObject();
+  req->AddMember(kFieldNameMessageType, kMessageTypeMethodCallRequest, req->GetAllocator());
+  req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k, req->GetAllocator());
+  req->AddMember(kFieldNameFunctionName, methodName, req->GetAllocator());
   
-  auto itr = res->FindMember(kFieldNameFunctionReturn);
-  if (itr == res->MemberEnd())
-    return RT_FAIL;
+  for (int i = 0; i < argc; ++i)
+    AddArgument(req, m_env, argv[i]);
+  
+  return sendCall(req, k, result);
+}
 
-  if (result)
+rtError
+rtRemoteClient::sendCall(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& result)
+{
+  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req);
+
+  rtError e = handle.wait(0);
+  if (e == RT_OK)
   {
-    auto self = shared_from_this();
-    e = rtValueReader::read(*result, itr->value, self);
-    if (e != RT_OK)
-      return e;
-  }
+    rtJsonDocPtr res = handle.response();
+    if (!res)
+      return RT_ERROR_PROTOCOL_ERROR;
 
-  return rtMessage_GetStatusCode(*res);
+    auto itr = res->FindMember(kFieldNameFunctionReturn);
+    if (itr == res->MemberEnd())
+      return RT_ERROR_PROTOCOL_ERROR;
+
+    e = rtValueReader::read(result, itr->value, shared_from_this());
+    if (e == RT_OK)
+      e = rtMessage_GetStatusCode(*res);
+  }
+  return e;
 }
