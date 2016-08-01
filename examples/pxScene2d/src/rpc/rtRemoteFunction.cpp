@@ -23,7 +23,7 @@ rtRemoteFunction::~rtRemoteFunction()
 rtError
 rtRemoteFunction::Send(int argc, rtValue const* argv, rtValue* result)
 {
-  return m_rpc_client->send(m_id, m_name, argc, argv, result, m_timeout);
+  return m_rpc_client->sendCall(m_id, m_name, argc, argv, *result, m_timeout);
 }
 
 unsigned long

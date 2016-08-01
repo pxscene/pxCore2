@@ -40,13 +40,12 @@ public:
   rtError open();
   rtError startSession(std::string const& objectName, uint32_t timeout = 0);
 
-  rtError send(std::string const& objectName, std::string const& name, int argc, rtValue const* argv,
-    rtValue* result, uint32_t timeout);
-
   rtError sendSet(std::string const& objectId, uint32_t    propertyIdx , rtValue const& value);
   rtError sendSet(std::string const& objectId, char const* propertyName, rtValue const& value);
   rtError sendGet(std::string const& objectId, uint32_t    propertyIdx,  rtValue& result);
   rtError sendGet(std::string const& objectId, char const* propertyName, rtValue& result);
+  rtError sendCall(std::string const& objectId, std::string const& name, int argc, rtValue const* argv,
+    rtValue& result, uint32_t timeout);
 
   void keepAlive(std::string const& s);
   rtError setStateChangedHandler(StateChangedHandler handler, void* argp);
@@ -66,7 +65,8 @@ public:
 
 private:
   rtError sendGet(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& value);
-  rtError sendSet(rtJsonDocPtr const& req, rtCorrelationKey k); 
+  rtError sendSet(rtJsonDocPtr const& req, rtCorrelationKey k);
+  rtError sendCall(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& result); 
 
   static rtError onIncomingMessage_Dispatcher(rtJsonDocPtr const& doc, void* argp)
     { return reinterpret_cast<rtRemoteClient *>(argp)->onIncomingMessage(doc); }
