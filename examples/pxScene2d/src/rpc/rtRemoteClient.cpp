@@ -175,6 +175,12 @@ rtRemoteClient::sendGet(rtRemoteGetRequest const& req, rtValue& value, uint32_t 
     return RT_FAIL;
   }
 
+  rtError statusCode = rtMessage_GetStatusCode(*res);
+  if (statusCode != RT_OK)
+  {
+    return statusCode;
+  }
+
   auto itr = res->FindMember(kFieldNameValue);
   if (itr == res->MemberEnd())
   {
