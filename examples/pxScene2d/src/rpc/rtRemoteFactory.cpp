@@ -5,6 +5,7 @@
 #include "rtRemoteMulticastResolver.h"
 #include "rtRemoteNsResolver.h"
 #include "rtRemoteTypes.h"
+#include "rtRemoteEnvironment.h"
 
 static rtResolverType
 rtResolverTypeFromString(std::string const& resolverType)

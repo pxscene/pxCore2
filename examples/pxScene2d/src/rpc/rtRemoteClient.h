@@ -99,7 +99,7 @@ private:
   std::vector<std::string>          m_object_list;
   std::mutex                        m_mutex;
   rtRemoteEnvironment*              m_env;
-  Callback<StateChangedHandler>     m_state_changed_handler;
+  rtRemoteCallback<StateChangedHandler>     m_state_changed_handler;
 };
 
 #endif

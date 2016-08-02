@@ -8,6 +8,9 @@ enum rtResolverType
   RT_RESOLVER_UNICAST
 };
 
+
+class rtRemoteEnvironment;
+
 class rtRemoteFactory
 {
 private:

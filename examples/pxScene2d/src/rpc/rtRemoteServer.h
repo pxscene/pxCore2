@@ -85,7 +85,7 @@ private:
 
   using ClientMap = std::map< std::string, std::shared_ptr<rtRemoteClient> >;
   using ClientList = std::vector< std::shared_ptr<rtRemoteClient > >;
-  using CommandHandlerMap = std::map< std::string, Callback<MessageHandler> >;
+  using CommandHandlerMap = std::map< std::string, rtRemoteCallback<MessageHandler> >;
   using ObjectRefeMap = std::map< std::string, ObjectReference >;
 
   sockaddr_storage              m_rpc_endpoint;

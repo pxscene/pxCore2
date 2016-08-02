@@ -2,6 +2,7 @@
 #include "rtSocketUtils.h"
 #include "rtRemoteMessage.h"
 #include "rtRemoteConfig.h"
+#include "rtRemoteEnvironment.h"
 
 #include <condition_variable>
 #include <thread>

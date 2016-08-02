@@ -1,3 +1,5 @@
+#include "rtRemoteAsyncHandle.h"
+#include "rtRemoteEnvironment.h"
 #include "rtRemoteTypes.h"
 #include "rtRemoteMessage.h"
 #include "rtRemoteConfig.h"
