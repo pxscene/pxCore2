@@ -1,36 +1,26 @@
 #include "rtRemoteEndpoint.h"
-#include "rtRemoteTypes.h"
-#include "rtRemoteUtils.h"
-#include "rtSocketUtils.h"
-#include <rtLog.h>
 
 #include <sstream>
 #include <string>
-#include <errno.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 // BASE //
 rtRemoteIEndpoint::rtRemoteIEndpoint(std::string const& scheme)
   : m_scheme(scheme)
-{ }
+{
+  // empty
+}
 
-rtRemoteIEndpoint::~rtRemoteIEndpoint() { }
+rtRemoteIEndpoint::~rtRemoteIEndpoint()
+{
+  // empty
+}
 
 // LOCAL //
 rtRemoteEndpointLocal::rtRemoteEndpointLocal(std::string const& scheme, std::string const& path)
   : rtRemoteIEndpoint(scheme)
   , m_path(path)
-{ }
-
-bool
-rtRemoteEndpointLocal::isSocket() const
 {
-  return m_scheme.compare("tcp") == 0 || m_scheme.compare("udp") == 0;
+  // empty
 }
 
 std::string
@@ -43,12 +33,14 @@ rtRemoteEndpointLocal::toUriString()
   return buff.str();
 }
 
-// NETWORK //
+// REMOTE //
 rtRemoteEndpointRemote::rtRemoteEndpointRemote(std::string const& scheme, std::string const& host, int port)
   : rtRemoteIEndpoint(scheme)
   , m_host(host)
   , m_port(port)
-{ }
+{
+  // empty
+}
 
 std::string
 rtRemoteEndpointRemote::toUriString()
@@ -62,12 +54,14 @@ rtRemoteEndpointRemote::toUriString()
   return buff.str();
 }
 
-// NETWORK + PATH
+// REMOTE + PATH //
 rtRemoteEndpointDistributed::rtRemoteEndpointDistributed(std::string const& scheme, std::string const& host, int port, std::string const& path)
   : rtRemoteIEndpoint(scheme)
   , rtRemoteEndpointRemote(scheme, host, port)
   , rtRemoteEndpointLocal(scheme, path)
-{ }
+{
+  // empty
+}
 
 std::string
 rtRemoteEndpointDistributed::toUriString()

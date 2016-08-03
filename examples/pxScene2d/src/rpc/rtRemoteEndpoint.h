@@ -1,10 +1,10 @@
 #ifndef __RT_REMOTE_ENDPOINT_H__
 #define __RT_REMOTE_ENDPOINT_H__
 
-#include "rtRemoteTypes.h"
-#include <sys/socket.h>
 #include <string>
 #include <stdint.h>
+
+////// BASE //////
 
 /* Abstract base class for endpoint addresses */
 class rtRemoteIEndpoint
@@ -22,6 +22,8 @@ protected:
 	std::string m_scheme;
 };
 
+////// LOCAL //////
+
 /* Local endpoints.
  * Used to stored address information for unix domain sockets,
  * named pipes, files, shared memory, etc.
@@ -33,7 +35,8 @@ public:
 	
 	virtual std::string toUriString() override;
 
-	bool isSocket() const;
+	inline bool isSocket() const
+    { return m_scheme.compare("tcp") == 0 || m_scheme.compare("udp") == 0; }
 
 	inline std::string path() const
 	  { return m_path; }
@@ -46,6 +49,8 @@ public:
 protected:
 	std::string m_path;
 };
+
+////// REMOTE //////
 
 /* Remote endpoints.
  * Used to stored address information for remote sockets
@@ -61,7 +66,7 @@ public:
 	inline std::string host() const
 	  { return m_host; }
 
-	inline int port() const
+	inline uint16_t port() const
 	  { return m_port; }
 	
 	inline bool operator==(rtRemoteEndpointRemote const& rhs) const
@@ -71,9 +76,11 @@ public:
 		}
 
 protected:
-	std::string         m_host;
-	int                 m_port;
+	std::string m_host;
+	uint16_t    m_port;
 };
+
+////// REMOTE + PATH //////
 
 /* Remote endpoints that include path information
  *
