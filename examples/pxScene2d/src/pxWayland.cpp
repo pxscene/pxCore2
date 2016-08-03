@@ -1241,4 +1241,4 @@ rtDefineProperty(pxWaylandContainer,displayName);
 rtDefineProperty(pxWaylandContainer,cmd);
 rtDefineProperty(pxWaylandContainer,clientPID);
 rtDefineProperty(pxWaylandContainer,fillColor);
-
+rtDefineProperty(pxWaylandContainer,api);
