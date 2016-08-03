@@ -25,8 +25,8 @@ public:
 
 public:
   rtError open();
-  rtError registerObject(std::string const& name, rtObjectRef const& obj);
-  rtError findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout);
+  rtError registerObject(std::string const& objectId, rtObjectRef const& obj);
+  rtError findObject(std::string const& objectId, rtObjectRef& obj, uint32_t timeout);
   rtError removeStaleObjects();
   rtError processMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg);
 

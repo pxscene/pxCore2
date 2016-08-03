@@ -24,150 +24,153 @@
 #include <rtLog.h>
 #include <dirent.h>
 
-static bool
-is_valid_pid(char const* s)
+namespace
 {
-  while (s && *s)
+  bool
+  isValidPid(char const* s)
   {
-    if (!isdigit(*s++))
-      return false;
-  }
-  return true;
-}
-
-static int
-parse_pid(char const* s)
-{
-  int pid = -1;
-
-  char const* p = s + strlen(s) - 1;
-  while (p && *p)
-  {
-    if (!isdigit(*p))
-      break;
-    p--;
-  }
-  if (p)
-  {
-    p++;
-    pid = strtol(p, nullptr, 10);
-  }
-  return pid;
-}
-
-static void
-cleanup_stale_unix_sockets()
-{
-  DIR* d = opendir("/proc/");
-  if (!d)
-  {
-    rtError e = rtErrorFromErrno(errno);
-    rtLogWarn("failed to open directory /proc. %s", rtStrError(e));
-    return;
-  }
-
-  dirent* entry = reinterpret_cast<dirent *>(malloc(1024));
-  dirent* result = nullptr;
-
-  std::set<int> active_pids;
-
-  int ret = 0;
-  do
-  {
-    ret = readdir_r(d, entry, &result);
-    if (ret == 0 && (result != nullptr))
+    while (s && *s)
     {
-      if (is_valid_pid(result->d_name))
+      if (!isdigit(*s++))
+        return false;
+    }
+    return true;
+  } // isValidPid
+
+  int
+  parsePid(char const* s)
+  {
+    int pid = -1;
+
+    char const* p = s + strlen(s) - 1;
+    while (p && *p)
+    {
+      if (!isdigit(*p))
+        break;
+      p--;
+    }
+    if (p)
+    {
+      p++;
+      pid = strtol(p, nullptr, 10);
+    }
+    return pid;
+  } // parsePid
+
+  void
+  cleanupStaleUnixSockets()
+  {
+    DIR* d = opendir("/proc/");
+    if (!d)
+    {
+      rtError e = rtErrorFromErrno(errno);
+      rtLogWarn("failed to open directory /proc. %s", rtStrError(e));
+      return;
+    }
+
+    dirent* entry = reinterpret_cast<dirent *>(malloc(1024));
+    dirent* result = nullptr;
+
+    std::set<int> active_pids;
+
+    int ret = 0;
+    do
+    {
+      ret = readdir_r(d, entry, &result);
+      if (ret == 0 && (result != nullptr))
       {
-        int pid = static_cast<int>(strtol(result->d_name, nullptr, 10));
-        active_pids.insert(pid);
+        if (isValidPid(result->d_name))
+        {
+          int pid = static_cast<int>(strtol(result->d_name, nullptr, 10));
+          active_pids.insert(pid);
+        }
       }
     }
-  }
-  while ((result != nullptr) && ret == 0);
-  closedir(d);
+    while ((result != nullptr) && ret == 0);
+    closedir(d);
 
-  d = opendir("/tmp");
-  if (!d)
-  {
-    rtError e = rtErrorFromErrno(errno);
-    rtLogWarn("failed to open directory /tmp. %s", rtStrError(e));
-    return;
-  }
-
-  char path[UNIX_PATH_MAX];
-  do
-  {
-    ret = readdir_r(d, entry, &result);
-    if (ret == 0 && (result != nullptr))
+    d = opendir("/tmp");
+    if (!d)
     {
-      memset(path, 0, sizeof(path));
-      strcpy(path, "/tmp/");
-      strcat(path, result->d_name);
-      if (strncmp(path, kUnixSocketTemplateRoot, strlen(kUnixSocketTemplateRoot)) == 0)
+      rtError e = rtErrorFromErrno(errno);
+      rtLogWarn("failed to open directory /tmp. %s", rtStrError(e));
+      return;
+    }
+
+    char path[UNIX_PATH_MAX];
+    do
+    {
+      ret = readdir_r(d, entry, &result);
+      if (ret == 0 && (result != nullptr))
       {
-        int pid = parse_pid(result->d_name);
-        if (active_pids.find(pid) == active_pids.end())
+        memset(path, 0, sizeof(path));
+        strcpy(path, "/tmp/");
+        strcat(path, result->d_name);
+        if (strncmp(path, kUnixSocketTemplateRoot, strlen(kUnixSocketTemplateRoot)) == 0)
         {
-          rtLogInfo("removing inactive unix socket %s", path);
-          int ret = unlink(path);
-          if (ret == -1)
+          int pid = parsePid(result->d_name);
+          if (active_pids.find(pid) == active_pids.end())
           {
-            rtError e = rtErrorFromErrno(errno);
-            rtLogWarn("failed to remove inactive unix socket %s. %s",
-              path, rtStrError(e));
+            rtLogInfo("removing inactive unix socket %s", path);
+            int ret = unlink(path);
+            if (ret == -1)
+            {
+              rtError e = rtErrorFromErrno(errno);
+              rtLogWarn("failed to remove inactive unix socket %s. %s",
+                path, rtStrError(e));
+            }
           }
         }
       }
     }
-  }
-  while ((result != nullptr) && ret == 0);
+    while ((result != nullptr) && ret == 0);
 
-  closedir(d);
-  free(entry);
-}
+    closedir(d);
+    free(entry);
+  } // cleanupStaleUnixSockets
 
-static bool
-is_unix_domain(rtRemoteEnvironment* env)
-{
-  if (!env)
-    return false;
- 
-  std::string family = env->Config->server_socket_family();
-  if (!strcmp(family.c_str(), "unix"))
-    return true;
-
-  return false;
-}
-
-static bool
-same_endpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
-{
-  if (addr1.ss_family != addr2.ss_family)
-    return false;
-
-  if (addr1.ss_family == AF_INET)
+  bool
+  isUnixDomain(rtRemoteEnvironment* env)
   {
-    sockaddr_in const* in1 = reinterpret_cast<sockaddr_in const*>(&addr1);
-    sockaddr_in const* in2 = reinterpret_cast<sockaddr_in const*>(&addr2);
+    if (!env)
+      return false;
+  
+    std::string family = env->Config->server_socket_family();
+    if (!strcmp(family.c_str(), "unix"))
+      return true;
 
-    if (in1->sin_port != in2->sin_port)
+    return false;
+  } // isUnixDomain
+
+  bool
+  sameEndpoint(sockaddr_storage const& addr1, sockaddr_storage const& addr2)
+  {
+    if (addr1.ss_family != addr2.ss_family)
       return false;
 
-    return in1->sin_addr.s_addr == in2->sin_addr.s_addr;
-  }
+    if (addr1.ss_family == AF_INET)
+    {
+      sockaddr_in const* in1 = reinterpret_cast<sockaddr_in const*>(&addr1);
+      sockaddr_in const* in2 = reinterpret_cast<sockaddr_in const*>(&addr2);
 
-  if (addr1.ss_family == AF_UNIX)
-  {
-    sockaddr_un const* un1 = reinterpret_cast<sockaddr_un const*>(&addr1);
-    sockaddr_un const* un2 = reinterpret_cast<sockaddr_un const*>(&addr2);
+      if (in1->sin_port != in2->sin_port)
+        return false;
 
-    return 0 == strncmp(un1->sun_path, un2->sun_path, UNIX_PATH_MAX);
-  }
+      return in1->sin_addr.s_addr == in2->sin_addr.s_addr;
+    }
 
-  RT_ASSERT(false);
-  return false;
-}
+    if (addr1.ss_family == AF_UNIX)
+    {
+      sockaddr_un const* un1 = reinterpret_cast<sockaddr_un const*>(&addr1);
+      sockaddr_un const* un2 = reinterpret_cast<sockaddr_un const*>(&addr2);
+
+      return 0 == strncmp(un1->sun_path, un2->sun_path, UNIX_PATH_MAX);
+    }
+
+    RT_ASSERT(false);
+    return false;
+  } // sameEndpoint
+} // namespace
 
 rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
   : m_listen_fd(-1)
@@ -261,12 +264,12 @@ rtRemoteServer::open()
 }
 
 rtError
-rtRemoteServer::registerObject(std::string const& name, rtObjectRef const& obj)
+rtRemoteServer::registerObject(std::string const& objectId, rtObjectRef const& obj)
 {
-  rtObjectRef ref = m_env->ObjectCache->findObject(name);
+  rtObjectRef ref = m_env->ObjectCache->findObject(objectId);
   if (!ref)
-    m_env->ObjectCache->insert(name, obj, -1);
-  m_resolver->registerObject(name, m_rpc_endpoint);
+    m_env->ObjectCache->insert(objectId, obj, -1);
+  m_resolver->registerObject(objectId, m_rpc_endpoint);
   return RT_OK;
 }
 
@@ -283,21 +286,21 @@ rtRemoteServer::runListener()
   {
     int maxFd = 0;
 
-    fd_set read_fds;
-    fd_set err_fds;
+    fd_set readFds;
+    fd_set errFds;
 
-    FD_ZERO(&read_fds);
-    rtPushFd(&read_fds, m_listen_fd, &maxFd);
-    rtPushFd(&read_fds, m_shutdown_pipe[0], &maxFd);
+    FD_ZERO(&readFds);
+    rtPushFd(&readFds, m_listen_fd, &maxFd);
+    rtPushFd(&readFds, m_shutdown_pipe[0], &maxFd);
 
-    FD_ZERO(&err_fds);
-    rtPushFd(&err_fds, m_listen_fd, &maxFd);
+    FD_ZERO(&errFds);
+    rtPushFd(&errFds, m_listen_fd, &maxFd);
 
     timeval timeout;
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
-    int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, &timeout);
+    int ret = select(maxFd + 1, &readFds, NULL, &errFds, &timeout);
     if (ret == -1)
     {
       rtError e = rtErrorFromErrno(errno);
@@ -307,13 +310,13 @@ rtRemoteServer::runListener()
 
     // right now we just use this to signal "hey" more fds added
     // later we'll use this to shutdown
-    if (FD_ISSET(m_shutdown_pipe[0], &read_fds))
+    if (FD_ISSET(m_shutdown_pipe[0], &readFds))
     {
       rtLogInfo("got shutdown signal");
       return;
     }
 
-    if (FD_ISSET(m_listen_fd, &read_fds))
+    if (FD_ISSET(m_listen_fd, &readFds))
       doAccept(m_listen_fd);
 
     time_t now = time(nullptr);
@@ -329,25 +332,25 @@ rtRemoteServer::runListener()
 void
 rtRemoteServer::doAccept(int fd)
 {
-  sockaddr_storage remote_endpoint;
-  memset(&remote_endpoint, 0, sizeof(remote_endpoint));
+  sockaddr_storage remoteEndpoint;
+  memset(&remoteEndpoint, 0, sizeof(remoteEndpoint));
 
   socklen_t len = sizeof(sockaddr_storage);
 
-  int ret = accept(fd, reinterpret_cast<sockaddr *>(&remote_endpoint), &len);
+  int ret = accept(fd, reinterpret_cast<sockaddr *>(&remoteEndpoint), &len);
   if (ret == -1)
   {
     rtError e = rtErrorFromErrno(errno);
     rtLogWarn("error accepting new tcp connect. %s", rtStrError(e));
     return;
   }
-  rtLogInfo("new connection from %s with fd:%d", rtSocketToString(remote_endpoint).c_str(), ret);
+  rtLogInfo("new connection from %s with fd:%d", rtSocketToString(remoteEndpoint).c_str(), ret);
 
-  sockaddr_storage local_endpoint;
-  memset(&local_endpoint, 0, sizeof(sockaddr_storage));
-  rtGetSockName(fd, local_endpoint);
+  sockaddr_storage localEndpoint;
+  memset(&localEndpoint, 0, sizeof(sockaddr_storage));
+  rtGetSockName(fd, localEndpoint);
 
-  std::shared_ptr<rtRemoteClient> newClient(new rtRemoteClient(m_env, ret, local_endpoint, remote_endpoint));
+  std::shared_ptr<rtRemoteClient> newClient(new rtRemoteClient(m_env, ret, localEndpoint, remoteEndpoint));
   newClient->setStateChangedHandler(&rtRemoteServer::onClientStateChanged_Dispatch, this);
   newClient->open();
   m_connected_clients.push_back(newClient);
@@ -396,9 +399,9 @@ rtError
 rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg)
 {
   rtError e = RT_FAIL;
-  char const* message_type = rtMessage_GetMessageType(*msg);
+  char const* msgType = rtMessage_GetMessageType(*msg);
 
-  auto itr = m_command_handlers.find(message_type);
+  auto itr = m_command_handlers.find(msgType);
   if (itr == m_command_handlers.end())
     return RT_OK;
 
@@ -409,7 +412,7 @@ rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDo
     e = RT_ERROR_INVALID_ARG;
 
   if (e != RT_OK)
-    rtLogWarn("failed to run command for %s. %s", message_type, rtStrError(e));
+    rtLogWarn("failed to run command for %s. %s", msgType, rtStrError(e));
 
   return e;
 }
@@ -438,24 +441,24 @@ rtRemoteServer::start()
 }
 
 rtError
-rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout)
+rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32_t timeout)
 {
   rtError err = RT_OK;
-  obj = m_env->ObjectCache->findObject(name);
+  obj = m_env->ObjectCache->findObject(objectId);
 
   // if object is not registered with us locally, then check network
   if (!obj)
   {
-    sockaddr_storage rpc_endpoint;
-    err = m_resolver->locateObject(name, rpc_endpoint, timeout);
+    sockaddr_storage objectEndpoint;
+    err = m_resolver->locateObject(objectId, objectEndpoint, timeout);
 
-    rtLogDebug("object %s found at endpoint: %s", name.c_str(),
-      rtSocketToString(rpc_endpoint).c_str());
+    rtLogDebug("object %s found at endpoint: %s", objectId.c_str(),
+      rtSocketToString(objectEndpoint).c_str());
 
     if (err == RT_OK)
     {
       std::shared_ptr<rtRemoteClient> client;
-      std::string const endpointName = rtSocketToString(rpc_endpoint);
+      std::string const endpointName = rtSocketToString(objectEndpoint);
 
       std::unique_lock<std::mutex> lock(m_mutex);
       auto itr = m_object_map.find(endpointName);
@@ -466,7 +469,7 @@ rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t t
       // then just re-use it
       for (auto i : m_object_map)
       {
-        if (same_endpoint(i.second->getRemoteEndpoint(), rpc_endpoint))
+        if (sameEndpoint(i.second->getRemoteEndpoint(), objectEndpoint))
         {
           client = i.second;
           break;
@@ -476,7 +479,7 @@ rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t t
 
       if (!client)
       {
-        client.reset(new rtRemoteClient(m_env, rpc_endpoint));
+        client.reset(new rtRemoteClient(m_env, objectEndpoint));
         client->setStateChangedHandler(&rtRemoteServer::onClientStateChanged_Dispatch, this);
         err = client->open();
         if (err != RT_OK)
@@ -494,8 +497,8 @@ rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t t
 
       if (client)
       {
-        rtRemoteObject* remote(new rtRemoteObject(name, client));
-        err = client->startSession(name);
+        rtRemoteObject* remote(new rtRemoteObject(objectId, client));
+        err = client->startSession(objectId);
         if (err == RT_OK)
           obj = remote;
       }
@@ -512,9 +515,9 @@ rtRemoteServer::openRpcListener()
   char path[UNIX_PATH_MAX];
 
   memset(path, 0, sizeof(path));
-  cleanup_stale_unix_sockets();
+  cleanupStaleUnixSockets();
 
-  if (is_unix_domain(m_env))
+  if (isUnixDomain(m_env))
   {
     rtError e = rtCreateUnixSocketName(0, path, sizeof(path));
     if (e != RT_OK)
@@ -527,9 +530,9 @@ rtRemoteServer::openRpcListener()
       rtLogInfo("error trying to remove %s. %s", path, rtStrError(e));
     }
 
-    struct sockaddr_un *un_addr = reinterpret_cast<sockaddr_un*>(&m_rpc_endpoint);
-    un_addr->sun_family = AF_UNIX;
-    strncpy(un_addr->sun_path, path, UNIX_PATH_MAX);
+    struct sockaddr_un *unAddr = reinterpret_cast<sockaddr_un*>(&m_rpc_endpoint);
+    unAddr->sun_family = AF_UNIX;
+    strncpy(unAddr->sun_path, path, UNIX_PATH_MAX);
   }
   else
   {
@@ -590,7 +593,7 @@ rtError
 rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& req)
 {
   rtCorrelationKey key = rtMessage_GetCorrelationKey(*req);
-  char const* id = rtMessage_GetObjectId(*req);
+  char const* objectId = rtMessage_GetObjectId(*req);
 
   #if 0
   std::unique_lock<std::mutex> lock(m_mutex);
@@ -600,7 +603,7 @@ rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDoc
     sockaddr_storage const soc = client->getRemoteEndpoint();
     for (auto const& c : m_clients)
     {
-      if (same_endpoint(soc, c.peer))
+      if (sameEndpoint(soc, c.peer))
       {
         rtLogInfo("new session for %s added to %s", rtSocketToString(soc).c_str(), id);
         itr->second.client_fds.push_back(c.fd);
@@ -617,7 +620,7 @@ rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDoc
   rtJsonDocPtr res(new rapidjson::Document());
   res->SetObject();
   res->AddMember(kFieldNameMessageType, kMessageTypeOpenSessionResponse, res->GetAllocator());
-  res->AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
+  res->AddMember(kFieldNameObjectId, std::string(objectId), res->GetAllocator());
   res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
   err = client->send(res);
 
@@ -628,15 +631,15 @@ rtError
 rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc)
 {
   uint32_t key = rtMessage_GetCorrelationKey(*doc);
-  char const* id = rtMessage_GetObjectId(*doc);
+  char const* objectId = rtMessage_GetObjectId(*doc);
 
   rtJsonDocPtr res(new rapidjson::Document());
   res->SetObject();
   res->AddMember(kFieldNameMessageType, kMessageTypeGetByNameResponse, res->GetAllocator());
   res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
-  res->AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
+  res->AddMember(kFieldNameObjectId, std::string(objectId), res->GetAllocator());
 
-  rtObjectRef obj = m_env->ObjectCache->findObject(id);
+  rtObjectRef obj = m_env->ObjectCache->findObject(objectId);
   if (!obj)
   {
     res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
@@ -668,7 +671,7 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr cons
       if (value.getType() == RT_functionType)
       {
         val.SetObject();
-        val.AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
+        val.AddMember(kFieldNameObjectId, std::string(objectId), res->GetAllocator());
         if (name)
           val.AddMember(kFieldNameFunctionName, std::string(name), res->GetAllocator());
         else
@@ -699,15 +702,15 @@ rtError
 rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc)
 {
   uint32_t key = rtMessage_GetCorrelationKey(*doc);
-  char const* id = rtMessage_GetObjectId(*doc);
+  char const* objectId = rtMessage_GetObjectId(*doc);
 
   rtJsonDocPtr res(new rapidjson::Document());
   res->SetObject();
   res->AddMember(kFieldNameMessageType, kMessageTypeSetByNameResponse, res->GetAllocator());
   res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
-  res->AddMember(kFieldNameObjectId, std::string(id), res->GetAllocator());
+  res->AddMember(kFieldNameObjectId, std::string(objectId), res->GetAllocator());
 
-  rtObjectRef obj = m_env->ObjectCache->findObject(id);
+  rtObjectRef obj = m_env->ObjectCache->findObject(objectId);
   if (!obj)
   {
     res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
@@ -751,7 +754,7 @@ rtError
 rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc)
 {
   uint32_t key = rtMessage_GetCorrelationKey(*doc);
-  char const* id = rtMessage_GetObjectId(*doc);
+  char const* objectId = rtMessage_GetObjectId(*doc);
   rtError err   = RT_OK;
 
   rtJsonDocPtr res(new rapidjson::Document());
@@ -759,10 +762,10 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocP
   res->AddMember(kFieldNameMessageType, kMessageTypeMethodCallResponse, res->GetAllocator());
   res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
 
-  rtObjectRef obj = m_env->ObjectCache->findObject(id);
-  if (!obj && (strcmp(id, "global") != 0))
+  rtObjectRef obj = m_env->ObjectCache->findObject(objectId);
+  if (!obj && (strcmp(objectId, "global") != 0))
   {
-    rtMessage_SetStatus(*res, 1, "failed to find object with id: %s", id);
+    rtMessage_SetStatus(*res, 1, "failed to find object with id: %s", objectId);
   }
   else
   {
