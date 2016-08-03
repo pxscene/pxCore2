@@ -64,9 +64,9 @@ rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* 
 
   if (addr[0] == '/')
   {
-    sockaddr_un *un_addr = reinterpret_cast<sockaddr_un*>(&ss);
-    un_addr->sun_family = AF_UNIX;
-    strncpy(un_addr->sun_path, addr, UNIX_PATH_MAX);
+    sockaddr_un *unAddr = reinterpret_cast<sockaddr_un*>(&ss);
+    unAddr->sun_family = AF_UNIX;
+    strncpy(unAddr->sun_path, addr, UNIX_PATH_MAX);
     return RT_OK;
   }
 
@@ -245,13 +245,13 @@ rtGetPort(sockaddr_storage const& ss, uint16_t* port)
 }
 
 rtError
-rtPushFd(fd_set* fds, int fd, int* max_fd)
+rtPushFd(fd_set* fds, int fd, int* maxFd)
 {
   if (fd != -1)
   {
     FD_SET(fd, fds);
-    if (max_fd && fd > *max_fd)
-      *max_fd = fd;
+    if (maxFd && fd > *maxFd)
+      *maxFd = fd;
   }
   return RT_OK;
 }
@@ -259,12 +259,12 @@ rtPushFd(fd_set* fds, int fd, int* max_fd)
 rtError
 rtReadUntil(int fd, char* buff, int n)
 {
-  ssize_t bytes_read = 0;
-  ssize_t bytes_to_read = n;
+  ssize_t bytesRead = 0;
+  ssize_t bytesToRead = n;
 
-  while (bytes_read < bytes_to_read)
+  while (bytesRead < bytesToRead)
   {
-    ssize_t n = read(fd, buff + bytes_read, (bytes_to_read - bytes_read));
+    ssize_t n = read(fd, buff + bytesRead, (bytesToRead - bytesRead));
     if (n == 0)
       return rtErrorFromErrno(ENOTCONN);
 
@@ -275,7 +275,7 @@ rtReadUntil(int fd, char* buff, int n)
       return e;
     }
 
-    bytes_read += n;
+    bytesRead += n;
   }
   return RT_OK;
 }
@@ -290,22 +290,22 @@ rtSocketToString(sockaddr_storage const& ss)
   uint16_t port;
   rtGetPort(ss, &port);
 
-  char addr_buff[128];
-  memset(addr_buff, 0, sizeof(addr_buff));
+  char addrBuff[128];
+  memset(addrBuff, 0, sizeof(addrBuff));
   if (ss.ss_family == AF_UNIX)
   {
-    strncpy(addr_buff, (const char*)addr, sizeof(addr_buff) -1);
+    strncpy(addrBuff, (const char*)addr, sizeof(addrBuff) -1);
     port = 0;
   }
   else
   {
-    inet_ntop(ss.ss_family, addr, addr_buff, sizeof(addr_buff));
+    inet_ntop(ss.ss_family, addr, addrBuff, sizeof(addrBuff));
   }
 
   std::stringstream buff;
   buff << (ss.ss_family == AF_UNIX ? "unix" : "inet");
   buff << ':';
-  buff << addr_buff;
+  buff << addrBuff;
   buff << ':';
   buff << port;
   return buff.str();
@@ -319,18 +319,18 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
   doc.Accept(writer);
 
   #ifdef RT_RPC_DEBUG
-  sockaddr_storage remote_endpoint;
-  memset(&remote_endpoint, 0, sizeof(sockaddr_storage));
+  sockaddr_storage remoteEndpoint;
+  memset(&remoteEndpoint, 0, sizeof(sockaddr_storage));
   if (dest)
-    remote_endpoint = *dest;
+    remoteEndpoint = *dest;
   else
-    rtGetPeerName(fd, remote_endpoint);
+    rtGetPeerName(fd, remoteEndpoint);
 
   char const* verb = (dest != NULL ? "sendto" : "send");
   rtLogDebug("%s [%d/%s] (%d):\n***OUT***\t\"%.*s\"\n",
     verb,
     fd,
-    rtSocketToString(remote_endpoint).c_str(),
+    rtSocketToString(remoteEndpoint).c_str(),
     static_cast<int>(buff.GetSize()),
     static_cast<int>(buff.GetSize()),
     buff.GetString());

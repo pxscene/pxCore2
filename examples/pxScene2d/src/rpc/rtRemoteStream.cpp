@@ -100,24 +100,24 @@ rtRemoteStreamSelector::doPollFds()
   {
     int maxFd = 0;
 
-    fd_set read_fds;
-    fd_set err_fds;
+    fd_set readFds;
+    fd_set errFds;
 
-    FD_ZERO(&read_fds);
-    FD_ZERO(&err_fds);
+    FD_ZERO(&readFds);
+    FD_ZERO(&errFds);
 
     for (auto const& s : m_streams)
     {
-      rtPushFd(&read_fds, s->m_fd, &maxFd);
-      rtPushFd(&err_fds, s->m_fd, &maxFd);
+      rtPushFd(&readFds, s->m_fd, &maxFd);
+      rtPushFd(&errFds, s->m_fd, &maxFd);
     }
-    rtPushFd(&read_fds, m_shutdown_pipe[0], &maxFd);
+    rtPushFd(&readFds, m_shutdown_pipe[0], &maxFd);
 
     timeval timeout;
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
-    int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, &timeout);
+    int ret = select(maxFd + 1, &readFds, NULL, &errFds, &timeout);
     if (ret == -1)
     {
       rtError e = rtErrorFromErrno(errno);
@@ -125,7 +125,7 @@ rtRemoteStreamSelector::doPollFds()
       continue;
     }
 
-    if (FD_ISSET(m_shutdown_pipe[0], &read_fds))
+    if (FD_ISSET(m_shutdown_pipe[0], &readFds))
     {
       rtLogInfo("got shutdown signal");
       return RT_OK;
@@ -140,7 +140,7 @@ rtRemoteStreamSelector::doPollFds()
 
       rtError e = RT_OK;
       std::shared_ptr<rtRemoteStream> const& s = m_streams[i];
-      if (FD_ISSET(s->m_fd, &read_fds))
+      if (FD_ISSET(s->m_fd, &readFds))
       {
         e = s->onIncomingMessage(buff, now);
         if (e != RT_OK)

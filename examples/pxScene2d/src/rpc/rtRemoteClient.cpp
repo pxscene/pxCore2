@@ -23,21 +23,21 @@
 namespace
 {
   void
-  AddValue(rtJsonDocPtr& doc, rtRemoteEnvironment* env, rtValue const& value)
+  addValue(rtJsonDocPtr& doc, rtRemoteEnvironment* env, rtValue const& value)
   {
-    rapidjson::Value json_value;
-    rtError e = rtValueWriter::write(env, value, json_value, *doc);
+    rapidjson::Value jsonValue;
+    rtError e = rtValueWriter::write(env, value, jsonValue, *doc);
 
     // TODO: better error handling
     if (e == RT_OK)
-      doc->AddMember(kFieldNameValue, json_value, doc->GetAllocator());
+      doc->AddMember(kFieldNameValue, jsonValue, doc->GetAllocator());
   }
 
   void
-  AddArgument(rtJsonDocPtr& doc, rtRemoteEnvironment* env, rtValue const& value)
+  addArgument(rtJsonDocPtr& doc, rtRemoteEnvironment* env, rtValue const& value)
   {
-    rapidjson::Value json_value;
-    rtError e = rtValueWriter::write(env, value, json_value, *doc);
+    rapidjson::Value jsonValue;
+    rtError e = rtValueWriter::write(env, value, jsonValue, *doc);
 
     // TODO: better error handling
     if (e == RT_OK)
@@ -46,28 +46,28 @@ namespace
       if (itr == doc->MemberEnd())
       {
         rapidjson::Value args(rapidjson::kArrayType);
-        args.PushBack(json_value, doc->GetAllocator());
+        args.PushBack(jsonValue, doc->GetAllocator());
         doc->AddMember(kFieldNameFunctionArgs, args, doc->GetAllocator());
       }
       else
       {
-        itr->value.PushBack(json_value, doc->GetAllocator());
+        itr->value.PushBack(jsonValue, doc->GetAllocator());
       }
     }
   }
 }
 
 rtRemoteClient::rtRemoteClient(rtRemoteEnvironment* env, int fd,
-  sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint)
-  : m_stream(new rtRemoteStream(env, fd, local_endpoint, remote_endpoint))
+  sockaddr_storage const& local_endpoint, sockaddr_storage const& remoteEndpoint)
+  : m_stream(new rtRemoteStream(env, fd, local_endpoint, remoteEndpoint))
   , m_env(env)
 {
   m_stream->setStateChangedHandler(&rtRemoteClient::onStreamStateChanged_Dispatcher, this);
   m_stream->setMessageHandler(&rtRemoteClient::onIncomingMessage_Dispatcher, this);
 }
 
-rtRemoteClient::rtRemoteClient(rtRemoteEnvironment* env, sockaddr_storage const& remote_endpoint)
-  : m_stream(new rtRemoteStream(env, -1, sockaddr_storage(), remote_endpoint))
+rtRemoteClient::rtRemoteClient(rtRemoteEnvironment* env, sockaddr_storage const& remoteEndpoint)
+  : m_stream(new rtRemoteStream(env, -1, sockaddr_storage(), remoteEndpoint))
   , m_env(env)
 {
   m_stream->setStateChangedHandler(&rtRemoteClient::onStreamStateChanged_Dispatcher, this);
@@ -164,7 +164,7 @@ rtRemoteClient::connectRpcEndpoint()
 }
 
 rtError
-rtRemoteClient::startSession(std::string const& objectName, uint32_t timeout)
+rtRemoteClient::startSession(std::string const& objectId, uint32_t timeout)
 {
   rtCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
@@ -172,7 +172,7 @@ rtRemoteClient::startSession(std::string const& objectName, uint32_t timeout)
   req->SetObject();
   req->AddMember(kFieldNameMessageType, kMessageTypeOpenSessionRequest, req->GetAllocator());
   req->AddMember(kFieldNameCorrelationKey, k, req->GetAllocator());
-  req->AddMember(kFieldNameObjectId, objectName, req->GetAllocator());
+  req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
 
   rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
   rtError e = handle.wait(timeout);
@@ -239,7 +239,7 @@ rtRemoteClient::sendSet(std::string const& objectId, char const* propertyName, r
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
   req->AddMember(kFieldNamePropertyName, std::string(propertyName), req->GetAllocator());
   req->AddMember(kFieldNameCorrelationKey, k, req->GetAllocator());
-  AddValue(req, m_env, value);
+  addValue(req, m_env, value);
 
   return sendSet(req, k);
 }
@@ -255,7 +255,7 @@ rtRemoteClient::sendSet(std::string const& objectId, uint32_t propertyIdx, rtVal
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
   req->AddMember(kFieldNamePropertyIndex, propertyIdx, req->GetAllocator());
   req->AddMember(kFieldNameCorrelationKey, k, req->GetAllocator());
-  AddValue(req, m_env, value);
+  addValue(req, m_env, value);
 
   return sendSet(req, k);
 }
@@ -344,7 +344,7 @@ rtRemoteClient::sendCall(std::string const& objectId, std::string const& methodN
   req->AddMember(kFieldNameFunctionName, methodName, req->GetAllocator());
   
   for (int i = 0; i < argc; ++i)
-    AddArgument(req, m_env, argv[i]);
+    addArgument(req, m_env, argv[i]);
   
   return sendCall(req, k, result);
 }

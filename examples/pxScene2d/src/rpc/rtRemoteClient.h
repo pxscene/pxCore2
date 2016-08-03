@@ -32,13 +32,13 @@ public:
   using StateChangedHandler = rtError (*)(std::shared_ptr<rtRemoteClient> const& client,
     State state, void* argp);
 
-  rtRemoteClient(rtRemoteEnvironment* env, int fd, sockaddr_storage const& local_endpoint,
-    sockaddr_storage const& remote_endpoint);
-  rtRemoteClient(rtRemoteEnvironment* env, sockaddr_storage const& remote_endpoint);
+  rtRemoteClient(rtRemoteEnvironment* env, int fd, sockaddr_storage const& localEndpoint,
+    sockaddr_storage const& remoteEndpoint);
+  rtRemoteClient(rtRemoteEnvironment* env, sockaddr_storage const& remoteEndpoint);
   ~rtRemoteClient();
 
   rtError open();
-  rtError startSession(std::string const& objectName, uint32_t timeout = 0);
+  rtError startSession(std::string const& objectId, uint32_t timeout = 0);
 
   rtError sendSet(std::string const& objectId, uint32_t    propertyIdx , rtValue const& value);
   rtError sendSet(std::string const& objectId, char const* propertyName, rtValue const& value);

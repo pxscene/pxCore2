@@ -24,10 +24,7 @@ protected:
 
 ////// LOCAL //////
 
-/* Local endpoints.
- * Used to stored address information for unix domain sockets,
- * named pipes, files, shared memory, etc.
- */
+/* stores address information for unix domain sockets, named pipes, files, shared memory, etc. */
 class rtRemoteEndpointLocal : public virtual rtRemoteIEndpoint
 {
 public:
@@ -52,10 +49,7 @@ protected:
 
 ////// REMOTE //////
 
-/* Remote endpoints.
- * Used to stored address information for remote sockets
- * (tcp, udp, http, etc.)
- */
+/* stores address information for remote sockets (tcp, udp, http, etc.) */
 class rtRemoteEndpointRemote : public virtual rtRemoteIEndpoint
 {
 public:
