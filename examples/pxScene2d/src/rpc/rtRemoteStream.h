@@ -3,6 +3,8 @@
 
 #include "rtRemoteTypes.h"
 #include "rtSocketUtils.h"
+#include "rtRemoteAsyncHandle.h"
+#include "rtRemoteCallback.h"
 
 #include <deque>
 #include <map>
@@ -59,8 +61,8 @@ private:
   int                           m_fd;
   time_t                        m_last_message_time;
   time_t                        m_last_ka_message_time;
-  Callback<MessageHandler>      m_message_handler;
-  Callback<StateChangedHandler> m_state_changed_handler;
+  rtRemoteCallback<MessageHandler>      m_message_handler;
+  rtRemoteCallback<StateChangedHandler> m_state_changed_handler;
   sockaddr_storage              m_local_endpoint;
   sockaddr_storage              m_remote_endpoint;
   rtRemoteEnvironment*          m_env;

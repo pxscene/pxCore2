@@ -62,83 +62,39 @@
 #define kNsStatusSuccess "ns.status.success"
 #define kNsStatusFail "ns.status.fail"
 
-class rtRemoteMessage
-{
-public:
-  virtual ~rtRemoteMessage();
-  bool isValid() const;
+char const*
+rtMessage_GetPropertyName(rapidjson::Document const& doc);
 
-protected:
-  rtRemoteMessage(char const* messageType, std::string const& objectName);
+uint32_t
+rtMessage_GetPropertyIndex(rapidjson::Document const& doc);
 
-private:
-  rtRemoteMessage() { }
+char const*
+rtMessage_GetMessageType(rapidjson::Document const& doc);
 
-public:
-  rtCorrelationKey getCorrelationKey() const;
-  char const* getMessageType() const;
-  char const* getObjectName() const;
+rtCorrelationKey
+rtMessage_GetCorrelationKey(rapidjson::Document const& doc);
 
-  rtError send(int fd, sockaddr_storage const* dest) const;
+char const*
+rtMessage_GetObjectId(rapidjson::Document const& doc);
 
-protected:
-  struct Impl;
-  std::shared_ptr<Impl> m_impl;
-  rtCorrelationKey      m_correlation_key;
-};
+rtError
+rtMessage_GetStatusCode(rapidjson::Document const& doc);
 
-class rtRemoteRequest : public rtRemoteMessage
-{
-protected:
-  rtRemoteRequest(char const* messageType, std::string const& objectName);
-};
+char const*
+rtMessage_GetStatusMessage(rapidjson::Document const& doc);
 
-class rtRemoteResponse : public rtRemoteMessage
-{
-public:
-  rtRemoteResponse(char const* messageType, std::string const& objectName);
-public:
-  rtError getStatusCode() const;
-  inline bool isValid() const
-    { return m_is_valid; }
-private:
-  bool m_is_valid;
-};
+rtError
+rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out = stdout);
 
-class rtRemoteGetResponse : public rtRemoteResponse
-{
-public:
-  rtRemoteGetResponse(std::string const& objectName);
-  rtValue getValue() const;
-};
+rtError
+rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...)
+  RT_PRINTF_FORMAT(3, 4);
 
+rtError
+rtMessage_SetStatus(rapidjson::Document& doc, rtError code);
 
-class rtRemoteRequestOpenSession : public rtRemoteRequest
-{
-public:
-  rtRemoteRequestOpenSession(std::string const& objectName);
-};
-
-class rtRemoteMethodCallRequest : public rtRemoteRequest
-{
-public:
-  rtRemoteMethodCallRequest(std::string const& objectName);
-  void setMethodName(std::string const& methodName);
-  void addMethodArgument(rtRemoteEnvironment* env, rtValue const& arg);
-};
-
-char const* rtMessage_GetPropertyName(rapidjson::Document const& doc);
-uint32_t    rtMessage_GetPropertyIndex(rapidjson::Document const& doc);
-char const* rtMessage_GetMessageType(rapidjson::Document const& doc);
-rtCorrelationKey rtMessage_GetCorrelationKey(rapidjson::Document const& doc);
-char const* rtMessage_GetObjectId(rapidjson::Document const& doc);
-rtError     rtMessage_GetStatusCode(rapidjson::Document const& doc);
-char const* rtMessage_GetStatusMessage(rapidjson::Document const& doc);
-rtError     rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out = stdout);
-rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...)
-              RT_PRINTF_FORMAT(3, 4);
-rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code);
-rtCorrelationKey rtMessage_GetNextCorrelationKey();
+rtCorrelationKey
+rtMessage_GetNextCorrelationKey();
 
 
 #endif

@@ -271,7 +271,8 @@ static bool doGenerateSource(rapidjson::Document const& doc, std::string const& 
   printHeader(out.get(), outfile.c_str());
 
   fprintf(out.get(), "#include \"rtRemoteConfig.h\"\n");
-  fprintf(out.get(), "#include \"rtRemoteTypes.h\"\n\n");
+  fprintf(out.get(), "#include \"rtRemoteTypes.h\"\n");
+  fprintf(out.get(), "#include \"rtRemoteConfigBuilder.h\"\n\n");
   fprintf(out.get(), "rtRemoteConfig*\n");
   fprintf(out.get(), "rtRemoteConfigBuilder::build() const\n");
   fprintf(out.get(), "{\n");

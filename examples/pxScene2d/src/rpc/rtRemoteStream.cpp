@@ -1,6 +1,7 @@
 #include "rtRemoteStream.h"
 #include "rtRemoteMessage.h"
 #include "rtRemoteConfig.h"
+#include "rtRemoteEnvironment.h"
 
 #include <algorithm>
 #include <memory>

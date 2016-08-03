@@ -13,6 +13,8 @@
 #include "rtRemoteTypes.h"
 #include "rtSocketUtils.h"
 
+class rtRemoteEnvironment;
+
 
 class rtRemoteMulticastResolver : public rtRemoteIResolver
 {

@@ -1,4 +1,5 @@
 #include "rtRemoteServer.h"
+#include "rtRemoteEnvironment.h"
 #include "rtRemoteObject.h"
 #include "rtObjectCache.h"
 #include "rtSocketUtils.h"
@@ -187,25 +188,25 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
   }
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeOpenSessionRequest, 
-    Callback<MessageHandler>(&rtRemoteServer::onOpenSession_Dispatch, this)));
+    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onOpenSession_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeGetByNameRequest,
-    Callback<MessageHandler>(&rtRemoteServer::onGet_Dispatch, this)));
+    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onGet_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeGetByIndexRequest,
-    Callback<MessageHandler>(&rtRemoteServer::onGet_Dispatch, this)));
+    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onGet_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeSetByNameRequest,
-    Callback<MessageHandler>(&rtRemoteServer::onSet_Dispatch, this)));
+    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onSet_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeSetByIndexRequest,
-    Callback<MessageHandler>(&rtRemoteServer::onSet_Dispatch, this)));
+    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onSet_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeMethodCallRequest,
-    Callback<MessageHandler>(&rtRemoteServer::onMethodCall_Dispatch, this)));
+    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onMethodCall_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeKeepAliveRequest,
-    Callback<MessageHandler>(&rtRemoteServer::onKeepAlive_Dispatch, this)));
+    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onKeepAlive_Dispatch, this)));
 }
 
 rtRemoteServer::~rtRemoteServer()
@@ -401,7 +402,7 @@ rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDo
   if (itr == m_command_handlers.end())
     return RT_OK;
 
-  Callback<MessageHandler> handler = itr->second;
+  rtRemoteCallback<MessageHandler> handler = itr->second;
   if (handler.Func != nullptr)
     e = handler.Func(client, msg, handler.Arg);
   else

@@ -1,6 +1,7 @@
 #include "rtRemoteFunction.h"
 #include "rtRemoteClient.h"
 #include "rtRemoteConfig.h"
+#include "rtRemoteEnvironment.h"
 
 rtRemoteFunction::rtRemoteFunction(std::string const& id, std::string const& name, std::shared_ptr<rtRemoteClient> const& client)
   : m_ref_count(0)

@@ -4,6 +4,7 @@
 #include "rtLog.h"
 #include "rtSocketUtils.h"
 #include "rtRemoteConfig.h"
+#include "rtRemoteEnvironment.h"
 
 #include <atomic>
 #include <cstdio>
@@ -66,93 +67,6 @@
 
 #define kInvalidPropertyIndex std::numeric_limits<uint32_t>::max()
 #define kInvalidCorrelationKey std::numeric_limits<uint32_t>::max()
-
-class rtRemoteMessage
-{
-public:
-  virtual ~rtRemoteMessage();
-  bool isValid() const;
-
-protected:
-  rtRemoteMessage(char const* messageType, std::string const& objectName);
-
-private:
-  rtRemoteMessage() { }
-
-public:
-  rtCorrelationKey getCorrelationKey() const;
-  char const* getMessageType() const;
-  char const* getObjectName() const;
-
-  rtError send(int fd, sockaddr_storage const* dest) const;
-
-protected:
-  struct Impl;
-  std::shared_ptr<Impl>   m_impl;
-  rtCorrelationKey      m_correlation_key;
-};
-
-class rtRemoteRequest : public rtRemoteMessage
-{
-protected:
-  rtRemoteRequest(char const* messageType, std::string const& objectName);
-};
-
-class rtRemoteResponse : public rtRemoteMessage
-{
-public:
-  rtRemoteResponse(char const* messageType, std::string const& objectName);
-public:
-  rtError getStatusCode() const;
-  inline bool isValid() const
-    { return m_is_valid; }
-private:
-  bool m_is_valid;
-};
-
-class rtRemoteGetResponse : public rtRemoteResponse
-{
-public:
-  rtRemoteGetResponse(std::string const& objectName);
-  rtValue getValue() const;
-};
-
-
-class rtRemoteRequestOpenSession : public rtRemoteRequest
-{
-public:
-  rtRemoteRequestOpenSession(std::string const& objectName);
-};
-
-class rtRemoteRequestKeepAlive : public rtRemoteRequest
-{
-public:
-  rtRemoteRequestKeepAlive();
-  void addObjectName(std::string const& name);
-};
-
-class rtRemoteMethodCallRequest : public rtRemoteRequest
-{
-public:
-  rtRemoteMethodCallRequest(std::string const& objectName);
-  void setMethodName(std::string const& methodName);
-  void addMethodArgument(rtValue const& arg);
-};
-
-class rtRemoteGetRequest : public rtRemoteRequest
-{
-public:
-  rtRemoteGetRequest(std::string const& objectName, std::string const& fieldName);
-  rtRemoteGetRequest(std::string const& objectName, uint32_t fieldIndex);
-};
-
-class rtRemoteSetRequest : public rtRemoteRequest
-{
-public:
-  rtRemoteSetRequest(std::string const& objectName, std::string const& fieldName);
-  rtRemoteSetRequest(std::string const& objectName, uint32_t fieldIndex);
-  rtError setValue(rtValue const& value);
-};
 
 char const* rtMessage_GetPropertyName(rapidjson::Document const& doc);
 uint32_t    rtMessage_GetPropertyIndex(rapidjson::Document const& doc);

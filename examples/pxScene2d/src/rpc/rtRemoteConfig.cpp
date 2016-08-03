@@ -1,5 +1,6 @@
 #include "rtRemoteConfig.h"
 #include "rtRemoteTypes.h"
+#include "rtRemoteConfigBuilder.h"
 
 #include <rtLog.h>
 #include <errno.h>

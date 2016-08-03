@@ -12,6 +12,8 @@
 #include "rtRemoteTypes.h"
 #include "rtSocketUtils.h"
 
+class rtRemoteEnvironment;
+
 class rtRemoteNameService
 {
 public:

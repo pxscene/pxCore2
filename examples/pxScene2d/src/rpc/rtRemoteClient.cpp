@@ -5,7 +5,7 @@
 #include "rtValueReader.h"
 #include "rtValueWriter.h"
 #include "rtRemoteConfig.h"
-#include "rtRemote.h"
+#include "rtRemoteEnvironment.h"
 
 #include "rapidjson/rapidjson.h"
 

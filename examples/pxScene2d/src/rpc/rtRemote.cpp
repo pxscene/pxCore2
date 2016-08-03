@@ -3,12 +3,15 @@
 #include <thread>
 
 #include "rtRemote.h"
+#include "rtRemoteCallback.h"
 #include "rtRemoteClient.h"
 #include "rtRemoteConfig.h"
 #include "rtObjectCache.h"
 #include "rtRemoteServer.h"
 #include "rtRemoteStream.h"
 #include "rtRemoteNameService.h"
+#include "rtRemoteEnvironment.h"
+#include "rtRemoteConfigBuilder.h"
 
 #include <rtLog.h>
 #include <unistd.h>
@@ -72,7 +75,7 @@ rtRemoteEnvironment::processRunQueue()
 void
 rtRemoteEnvironment::registerResponseHandler(MessageHandler handler, void* argp, rtCorrelationKey k)
 {
-  Callback<MessageHandler> callback;
+  rtRemoteCallback<MessageHandler> callback;
   callback.Func = handler;
   callback.Arg = argp;
   auto ret = m_response_handlers.insert(ResponseHandlerMap::value_type(k, callback));

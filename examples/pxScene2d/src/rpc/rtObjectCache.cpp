@@ -1,6 +1,7 @@
 #include "rtObjectCache.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteTypes.h"
+#include "rtRemoteEnvironment.h"
 
 #include <map>
 #include <mutex>
