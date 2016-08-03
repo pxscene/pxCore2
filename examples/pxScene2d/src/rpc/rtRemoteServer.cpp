@@ -283,21 +283,21 @@ rtRemoteServer::runListener()
   {
     int maxFd = 0;
 
-    fd_set read_fds;
-    fd_set err_fds;
+    fd_set readFds;
+    fd_set errFds;
 
-    FD_ZERO(&read_fds);
-    rtPushFd(&read_fds, m_listen_fd, &maxFd);
-    rtPushFd(&read_fds, m_shutdown_pipe[0], &maxFd);
+    FD_ZERO(&readFds);
+    rtPushFd(&readFds, m_listen_fd, &maxFd);
+    rtPushFd(&readFds, m_shutdown_pipe[0], &maxFd);
 
-    FD_ZERO(&err_fds);
-    rtPushFd(&err_fds, m_listen_fd, &maxFd);
+    FD_ZERO(&errFds);
+    rtPushFd(&errFds, m_listen_fd, &maxFd);
 
     timeval timeout;
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
-    int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, &timeout);
+    int ret = select(maxFd + 1, &readFds, NULL, &errFds, &timeout);
     if (ret == -1)
     {
       rtError e = rtErrorFromErrno(errno);
@@ -307,13 +307,13 @@ rtRemoteServer::runListener()
 
     // right now we just use this to signal "hey" more fds added
     // later we'll use this to shutdown
-    if (FD_ISSET(m_shutdown_pipe[0], &read_fds))
+    if (FD_ISSET(m_shutdown_pipe[0], &readFds))
     {
       rtLogInfo("got shutdown signal");
       return;
     }
 
-    if (FD_ISSET(m_listen_fd, &read_fds))
+    if (FD_ISSET(m_listen_fd, &readFds))
       doAccept(m_listen_fd);
 
     time_t now = time(nullptr);
@@ -329,25 +329,25 @@ rtRemoteServer::runListener()
 void
 rtRemoteServer::doAccept(int fd)
 {
-  sockaddr_storage remote_endpoint;
-  memset(&remote_endpoint, 0, sizeof(remote_endpoint));
+  sockaddr_storage remoteEndpoint;
+  memset(&remoteEndpoint, 0, sizeof(remoteEndpoint));
 
   socklen_t len = sizeof(sockaddr_storage);
 
-  int ret = accept(fd, reinterpret_cast<sockaddr *>(&remote_endpoint), &len);
+  int ret = accept(fd, reinterpret_cast<sockaddr *>(&remoteEndpoint), &len);
   if (ret == -1)
   {
     rtError e = rtErrorFromErrno(errno);
     rtLogWarn("error accepting new tcp connect. %s", rtStrError(e));
     return;
   }
-  rtLogInfo("new connection from %s with fd:%d", rtSocketToString(remote_endpoint).c_str(), ret);
+  rtLogInfo("new connection from %s with fd:%d", rtSocketToString(remoteEndpoint).c_str(), ret);
 
-  sockaddr_storage local_endpoint;
-  memset(&local_endpoint, 0, sizeof(sockaddr_storage));
-  rtGetSockName(fd, local_endpoint);
+  sockaddr_storage localEndpoint;
+  memset(&localEndpoint, 0, sizeof(sockaddr_storage));
+  rtGetSockName(fd, localEndpoint);
 
-  std::shared_ptr<rtRemoteClient> newClient(new rtRemoteClient(m_env, ret, local_endpoint, remote_endpoint));
+  std::shared_ptr<rtRemoteClient> newClient(new rtRemoteClient(m_env, ret, localEndpoint, remoteEndpoint));
   newClient->setStateChangedHandler(&rtRemoteServer::onClientStateChanged_Dispatch, this);
   newClient->open();
   m_connected_clients.push_back(newClient);
@@ -396,9 +396,9 @@ rtError
 rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg)
 {
   rtError e = RT_FAIL;
-  char const* message_type = rtMessage_GetMessageType(*msg);
+  char const* msgType = rtMessage_GetMessageType(*msg);
 
-  auto itr = m_command_handlers.find(message_type);
+  auto itr = m_command_handlers.find(msgType);
   if (itr == m_command_handlers.end())
     return RT_OK;
 
@@ -409,7 +409,7 @@ rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDo
     e = RT_ERROR_INVALID_ARG;
 
   if (e != RT_OK)
-    rtLogWarn("failed to run command for %s. %s", message_type, rtStrError(e));
+    rtLogWarn("failed to run command for %s. %s", msgType, rtStrError(e));
 
   return e;
 }
@@ -446,16 +446,16 @@ rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t t
   // if object is not registered with us locally, then check network
   if (!obj)
   {
-    sockaddr_storage rpc_endpoint;
-    err = m_resolver->locateObject(name, rpc_endpoint, timeout);
+    sockaddr_storage objEndpoint;
+    err = m_resolver->locateObject(name, objEndpoint, timeout);
 
     rtLogDebug("object %s found at endpoint: %s", name.c_str(),
-      rtSocketToString(rpc_endpoint).c_str());
+      rtSocketToString(objEndpoint).c_str());
 
     if (err == RT_OK)
     {
       std::shared_ptr<rtRemoteClient> client;
-      std::string const endpointName = rtSocketToString(rpc_endpoint);
+      std::string const endpointName = rtSocketToString(objEndpoint);
 
       std::unique_lock<std::mutex> lock(m_mutex);
       auto itr = m_object_map.find(endpointName);
@@ -466,7 +466,7 @@ rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t t
       // then just re-use it
       for (auto i : m_object_map)
       {
-        if (same_endpoint(i.second->getRemoteEndpoint(), rpc_endpoint))
+        if (same_endpoint(i.second->getRemoteEndpoint(), objEndpoint))
         {
           client = i.second;
           break;
@@ -476,7 +476,7 @@ rtRemoteServer::findObject(std::string const& name, rtObjectRef& obj, uint32_t t
 
       if (!client)
       {
-        client.reset(new rtRemoteClient(m_env, rpc_endpoint));
+        client.reset(new rtRemoteClient(m_env, objEndpoint));
         client->setStateChangedHandler(&rtRemoteServer::onClientStateChanged_Dispatch, this);
         err = client->open();
         if (err != RT_OK)
@@ -527,9 +527,9 @@ rtRemoteServer::openRpcListener()
       rtLogInfo("error trying to remove %s. %s", path, rtStrError(e));
     }
 
-    struct sockaddr_un *un_addr = reinterpret_cast<sockaddr_un*>(&m_rpc_endpoint);
-    un_addr->sun_family = AF_UNIX;
-    strncpy(un_addr->sun_path, path, UNIX_PATH_MAX);
+    struct sockaddr_un *unAddr = reinterpret_cast<sockaddr_un*>(&m_rpc_endpoint);
+    unAddr->sun_family = AF_UNIX;
+    strncpy(unAddr->sun_path, path, UNIX_PATH_MAX);
   }
   else
   {
