@@ -78,17 +78,43 @@ rtRemoteEnvironment::registerResponseHandler(MessageHandler handler, void* argp,
   rtRemoteCallback<MessageHandler> callback;
   callback.Func = handler;
   callback.Arg = argp;
-  auto ret = m_response_handlers.insert(ResponseHandlerMap::value_type(k, callback));
-  RT_ASSERT(ret.second);
+
+  std::unique_lock<std::mutex> lock(m_queue_mutex);
+
+  {
+    auto ret = m_response_handlers.insert(ResponseHandlerMap::value_type(k, callback));
+    if (!ret.second)
+      rtLogError("callback for %d already exists", k);
+    RT_ASSERT(ret.second);
+  }
+
+  // prime response map. An entry in this map indicates that a caller is waiting
+  // for a response
+  if (Config->server_use_dispatch_thread())
+  {
+    auto ret = m_waiters.insert(ResponseMap::value_type(k, ResponseState::Waiting));
+    if (!ret.second)
+      rtLogWarn("response indicator for %d already exists", k);
+    RT_ASSERT(ret.second);
+  }
 }
 
 void
 rtRemoteEnvironment::removeResponseHandler(rtCorrelationKey k)
 {
   std::unique_lock<std::mutex> lock(m_queue_mutex);
-  auto itr = m_response_handlers.find(k);
-  if (itr != m_response_handlers.end())
-    m_response_handlers.erase(itr);
+  {
+    auto itr = m_response_handlers.find(k);
+    if (itr != m_response_handlers.end())
+      m_response_handlers.erase(itr);
+  }
+
+  if (Config->server_use_dispatch_thread())
+  {
+    auto itr = m_waiters.find(k);
+    if (itr != m_waiters.end())
+      m_waiters.erase(itr);
+  }
 }
 
 void
@@ -243,14 +269,12 @@ rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj)
 rtError
 rtRemoteRunOnce(rtRemoteEnvironment* env, uint32_t timeout)
 {
-  // TODO: clean this up for shutdown.
-  if (env->Config->server_use_dispatch_thread())
+  // TODO: Is this the right thing to do?
+  if (!env->Config->server_use_dispatch_thread())
   {
-    // return RT_ERROR_INVALID_OPERATION;
-    sleep(timeout);
-    return RT_OK;
+    RT_ASSERT(false);
+    return RT_ERROR_INVALID_OPERATION;
   }
-
   return env->processSingleWorkItem(std::chrono::milliseconds(timeout));
 }
 
@@ -306,6 +330,25 @@ rtEnvironmentGetGlobal()
 }
 
 rtError
+rtRemoteEnvironment::waitForResponse(std::chrono::milliseconds timeout, rtCorrelationKey k)
+{
+  rtError e = RT_OK;
+
+  auto delay = std::chrono::system_clock::now() + timeout;
+  std::unique_lock<std::mutex> lock(m_queue_mutex);
+  if (!m_queue_cond.wait_until(lock, delay, [this, k] { return (haveResponse(k) || !m_running); }))
+  {
+    e = RT_ERROR_TIMEOUT;
+  }
+
+  // TODO: Is this the proper code?
+  if (!m_running)
+    e = RT_FAIL;
+
+  return e;
+}
+
+rtError
 rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, rtCorrelationKey* key)
 {
   rtError e = RT_ERROR_TIMEOUT;
@@ -355,6 +398,16 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, rt
 
     if (key)
       *key = k;
+
+    if (Config->server_use_dispatch_thread())
+    {
+      std::unique_lock<std::mutex> lock(m_queue_mutex);
+      auto itr = m_waiters.find(k);
+      if (itr != m_waiters.end())
+        itr->second = ResponseState::Dispatched;
+      lock.unlock();
+      m_queue_cond.notify_all();
+    }
   }
 
   return e;

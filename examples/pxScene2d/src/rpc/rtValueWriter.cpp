@@ -112,10 +112,11 @@ namespace
 
   std::string getId(rtFunctionRef const& /*ref*/)
   {
-    char buff[32] = {0};
+    char buff[37] = {0};
     uuid_t id;
     uuid_generate(id);
     uuid_unparse_lower(id, buff);
+    buff[36] = '\0';
 
     std::stringstream ss;
     ss << "func://";
@@ -125,10 +126,11 @@ namespace
  
   std::string getId(rtObjectRef const& /*ref*/)
   {
-    char buff[32] = {0};
+    char buff[37] = {0};
     uuid_t id;
     uuid_generate(id);
     uuid_unparse_lower(id, buff);
+    buff[36] = '\0';
 
     std::stringstream ss;
     ss << "obj://";

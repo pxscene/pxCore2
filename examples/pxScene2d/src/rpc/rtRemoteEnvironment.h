@@ -39,6 +39,7 @@ struct rtRemoteEnvironment
   void removeResponseHandler(rtCorrelationKey k);
   void enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt, rtJsonDocPtr const& doc);
   rtError processSingleWorkItem(std::chrono::milliseconds timeout, rtCorrelationKey* key = nullptr);
+  rtError waitForResponse(std::chrono::milliseconds timeout, rtCorrelationKey key);
 
 private:
   struct WorkItem
@@ -47,10 +48,19 @@ private:
     std::shared_ptr<rapidjson::Document> Message;
   };
 
+  enum class ResponseState
+  {
+    Waiting,
+    Dispatched
+  };
+
   using ResponseHandlerMap = std::map< rtCorrelationKey, rtRemoteCallback<MessageHandler> >;
-  using ResponseMap = std::map< rtCorrelationKey, rtJsonDocPtr >;
+  using ResponseMap = std::map< rtCorrelationKey, ResponseState >;
 
   void processRunQueue();
+
+  inline bool haveResponse(rtCorrelationKey k) const
+    { return m_waiters.find(k) != m_waiters.end(); }
 
   mutable std::mutex            m_queue_mutex;
   std::condition_variable       m_queue_cond;
@@ -58,6 +68,7 @@ private:
   std::unique_ptr<std::thread>  m_worker;
   bool                          m_running;
   ResponseHandlerMap            m_response_handlers;
+  ResponseMap                   m_waiters;
 };
 
 #endif

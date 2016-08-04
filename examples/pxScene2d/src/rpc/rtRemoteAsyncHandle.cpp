@@ -36,24 +36,27 @@ rtRemoteAsyncHandle::wait(uint32_t timeoutInMilliseconds)
   if (timeoutInMilliseconds == 0)
     timeoutInMilliseconds = m_env->Config->environment_request_timeout();
 
-  time_t timeout = time(nullptr) + (timeoutInMilliseconds * 1000);
-
-  rtCorrelationKey k = kInvalidCorrelationKey;
-  while (timeout > time(nullptr))
+  if (!m_env->Config->server_use_dispatch_thread())
   {
-    // timeout is broken @see impl of processSingleWorkItem
-    rtError e = m_env->processSingleWorkItem(
-      std::chrono::milliseconds(timeoutInMilliseconds), &k);
+    time_t timeout = time(nullptr) + ((timeoutInMilliseconds+500) / 1000);
 
-    if ((e == RT_OK) && (k == m_key))
+    rtCorrelationKey k = kInvalidCorrelationKey;
+    while (timeout > time(nullptr))
     {
-      m_env->removeResponseHandler(m_key);
-      m_key = kInvalidCorrelationKey;
-      return RT_OK;
+      // timeout is broken @see impl of processSingleWorkItem
+      rtError e = m_env->processSingleWorkItem(
+          std::chrono::milliseconds(timeoutInMilliseconds), &k);
+
+      if ((e == RT_OK) && (k == m_key))
+      {
+        m_env->removeResponseHandler(m_key);
+        m_key = kInvalidCorrelationKey;
+        return RT_OK;
+      }
     }
   }
 
-  return RT_ERROR_TIMEOUT;
+  return m_env->waitForResponse(std::chrono::milliseconds(timeoutInMilliseconds), m_key);
 }
 
 
