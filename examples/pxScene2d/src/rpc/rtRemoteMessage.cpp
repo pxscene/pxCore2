@@ -36,7 +36,7 @@ namespace
     va_end(args);
 
     rapidjson::StringBuffer buff;
-    rapidjson::Writer<rapidjson::StringBuffer> writer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buff);
     doc.Accept(writer);
     rtLogInfo("%s\n--- BEGIN DOC ---\n%s\n--- END DOC ---", msg, buff.GetString());
   }
