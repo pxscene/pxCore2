@@ -35,8 +35,10 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
     return RT_ERROR_PROTOCOL_ERROR;
   }
 
+  int const typeId = type->value.GetInt();
+
   auto val = from.FindMember(kFieldNameValueValue);
-  if (type->value.GetInt() != RT_functionType && val == from.MemberEnd())
+  if (((typeId != RT_functionType) && (typeId != RT_voidType)) && (val == from.MemberEnd()))
   {
     rtLogWarn("failed to find member: %s", kFieldNameValueValue);
     return RT_ERROR_PROTOCOL_ERROR;
@@ -45,7 +47,7 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
   switch (type->value.GetInt())
   {
     case RT_voidType:
-    to = rtValue();
+    to.setEmpty();
     break;
 
     case RT_valueType:

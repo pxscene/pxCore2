@@ -24,7 +24,14 @@ rtRemoteFunction::~rtRemoteFunction()
 rtError
 rtRemoteFunction::Send(int argc, rtValue const* argv, rtValue* result)
 {
-  return m_client->sendCall(m_id, m_name, argc, argv, *result);
+  rtValue res;
+  rtError e = m_client->sendCall(m_id, m_name, argc, argv, res);
+  if (e == RT_OK)
+  {
+    if (result != nullptr)
+      *result = res;
+  }
+  return e;
 }
 
 unsigned long

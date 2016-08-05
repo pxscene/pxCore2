@@ -1,114 +1,17 @@
-#ifndef __RT_RPC_MESSAGE_H__
-#define __RT_RPC_MESSAGE_H__
-
-#include "rtLog.h"
-#include "rtSocketUtils.h"
-#include "rtRemoteConfig.h"
-#include "rtRemoteEnvironment.h"
-
-#include <atomic>
-#include <cstdio>
-#include <limits>
-#include <sstream>
-
-#include <rtError.h>
-#include <rtValue.h>
-#include <uuid/uuid.h>
-#include <rapidjson/document.h>
-
-#define kFieldNameMessageType "message.type"
-#define kFieldNameCorrelationKey "correlation.key"
-#define kFieldNameObjectId "object.id"
-#define kFieldNamePropertyName "property.name"
-#define kFieldNamePropertyIndex "property.index"
-#define kFieldNameStatusCode "status.code"
-#define kFieldNameStatusMessage "status.message"
-#define kFieldNameFunctionName "function.name"
-#define kFieldNameFunctionIndex "function.index"
-#define kFieldNameFunctionArgs "function.args"
-#define kFieldNameFunctionReturn "function.return_value"
-#define kFieldNameValue "value"
-#define kFieldNameValueType "type"
-#define kFieldNameValueValue "value"
-#define kFieldNameSenderId "sender.id"
-#define kFieldNameKeepAliveIds "keep_alive.ids"
-#define kFieldNameIp "ip"
-#define kFieldNamePort "port"
-
-#define kMessageTypeInvalidResponse "invalid.response"
-#define kMessageTypeSetByNameRequest "set.byname.request"
-#define kMessageTypeSetByNameResponse "set.byname.response"
-#define kMessageTypeSetByIndexRequest "set.byindex.request"
-#define kMessageTypeSetByIndexResponse "set.byindex.response"
-#define kMessageTypeGetByNameRequest "get.byname.request"
-#define kMessageTypeGetByNameResponse "get.byname.response"
-#define kMessageTypeGetByIndexRequest "get.byindex.request"
-#define kMessageTypeGetByIndexResponse "get.byindex.response"
-#define kMessageTypeOpenSessionResponse "session.open.response"
-#define kMessageTypeMethodCallResponse "method.call.response"
-#define kMessageTypeKeepAliveResponse "keep_alive.response"
-#define kMessageTypeSearch "search"
-#define kMessageTypeLocate "locate"
-#define kMessageTypeMethodCallRequest "method.call.request"
-#define kMessageTypeKeepAliveRequest "keep_alive.request"
-#define kMessageTypeOpenSessionRequest "session.open.request"
-
-#define kNsMessageTypeLookup "ns.lookup"
-#define kNsMessageTypeLookupResponse "ns.lookup.response"
-#define kNsMessageTypeDeregister "ns.deregister"
-#define kNsMessageTypeDeregisterResponse "ns.deregister.response"
-#define kNsMessageTypeUpdate "ns.update"
-#define kNsMessageTypeUpdateResponse "ns.update.response"
-#define kNsMessageTypeRegister "ns.register"
-#define kNsMessageTypeRegisterResponse "ns.register.response"
-#define kNsFieldNameStatusCode "ns.status"
-#define kNsStatusSuccess "ns.status.success"
-#define kNsStatusFail "ns.status.fail"
-
-#define kInvalidPropertyIndex std::numeric_limits<uint32_t>::max()
-#define kInvalidCorrelationKey std::numeric_limits<uint32_t>::max()
-
-char const* rtMessage_GetPropertyName(rapidjson::Document const& doc);
-uint32_t    rtMessage_GetPropertyIndex(rapidjson::Document const& doc);
-char const* rtMessage_GetMessageType(rapidjson::Document const& doc);
-uint32_t    rtMessage_GetCorrelationKey(rapidjson::Document const& doc);
-char const* rtMessage_GetObjectId(rapidjson::Document const& doc);
-rtError     rtMessage_GetStatusCode(rapidjson::Document const& doc);
-rtError     rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out = stdout);
-rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...)
-              RT_PRINTF_FORMAT(3, 4);
-rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code);
-rtCorrelationKey rtMessage_GetNextCorrelationKey();
-
-
-#endif
-
 #include "rtValueWriter.h"
 #include "rtObjectCache.h"
+#include "rtRemoteConfig.h"
 #include "rtRemoteMessage.h"
+#include "rtRemoteEnvironment.h"
 
 #include <rtObject.h>
 #include <rapidjson/rapidjson.h>
-
-#if 0
-rapidjson::Value val;
-if (value.getType() == RT_functionType)
-{
-  val.SetObject();
-  val.AddMember(kFieldNameObjectId, std::string(id),
-      res->GetAllocator());
-  if (name)
-    val.AddMember(kFieldNameFunctionName, std::string(name), res->GetAllocator());
-  else
-    val.AddMember(kFieldNameFunctionIndex, index, res->GetAllocator());
-  val.AddMember(kFieldNameValueType, static_cast<int>(RT_functionType), res->GetAllocator());
-}
-#endif
-
+#include <uuid/uuid.h>
+#include <sstream>
 
 namespace
 {
-  static std::atomic<int> sNextFunctionId;
+//  static std::atomic<int> sNextFunctionId;
 
   std::string getId(rtFunctionRef const& /*ref*/)
   {
@@ -204,6 +107,11 @@ rtValueWriter::write(rtRemoteEnvironment* env, rtValue const& from,
 #else
       to.AddMember("value", (uint32_t)(from.toVoidPtr()), doc.GetAllocator());
 #endif
+      break;
+
+    default:
+      rtLogWarn("invalid type: %d", static_cast<int>(from.getType()));
+      RT_ASSERT(false);
       break;
   }
   return RT_OK;

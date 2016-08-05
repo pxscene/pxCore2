@@ -8,6 +8,8 @@
 
 #include "rtRemoteTypes.h"
 
+class rtRemoteEnvironment;
+
 
 class rtValueWriter
 {

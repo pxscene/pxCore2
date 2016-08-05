@@ -270,7 +270,7 @@ rtError
 rtRemoteRunOnce(rtRemoteEnvironment* env, uint32_t timeout)
 {
   // TODO: Is this the right thing to do?
-  if (!env->Config->server_use_dispatch_thread())
+  if (env->Config->server_use_dispatch_thread())
   {
     RT_ASSERT(false);
     return RT_ERROR_INVALID_OPERATION;
