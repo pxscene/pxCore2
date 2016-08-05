@@ -1,12 +1,13 @@
 #include "rtRemoteServer.h"
+#include "rtRemoteCorrelationKey.h"
 #include "rtRemoteEnvironment.h"
 #include "rtRemoteObject.h"
-#include "rtObjectCache.h"
-#include "rtSocketUtils.h"
+#include "rtRemoteObjectCache.h"
+#include "rtRemoteSocketUtils.h"
 #include "rtRemoteMessage.h"
 #include "rtRemoteClient.h"
-#include "rtValueReader.h"
-#include "rtValueWriter.h"
+#include "rtRemoteValueReader.h"
+#include "rtRemoteValueWriter.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteFactory.h"
 
@@ -592,7 +593,7 @@ rtRemoteServer::openRpcListener()
 rtError
 rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& req)
 {
-  rtCorrelationKey key = rtMessage_GetCorrelationKey(*req);
+  rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*req);
   char const* objectId = rtMessage_GetObjectId(*req);
 
   #if 0
@@ -621,7 +622,7 @@ rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDoc
   res->SetObject();
   res->AddMember(kFieldNameMessageType, kMessageTypeOpenSessionResponse, res->GetAllocator());
   res->AddMember(kFieldNameObjectId, std::string(objectId), res->GetAllocator());
-  res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
+  res->AddMember(kFieldNameCorrelationKey, key.toString(), res->GetAllocator());
   err = client->send(res);
 
   return err;
@@ -630,13 +631,13 @@ rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDoc
 rtError
 rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc)
 {
-  uint32_t key = rtMessage_GetCorrelationKey(*doc);
+  rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*doc);
   char const* objectId = rtMessage_GetObjectId(*doc);
 
   rtJsonDocPtr res(new rapidjson::Document());
   res->SetObject();
   res->AddMember(kFieldNameMessageType, kMessageTypeGetByNameResponse, res->GetAllocator());
-  res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
+  res->AddMember(kFieldNameCorrelationKey, key.toString(), res->GetAllocator());
   res->AddMember(kFieldNameObjectId, std::string(objectId), res->GetAllocator());
 
   rtObjectRef obj = m_env->ObjectCache->findObject(objectId);
@@ -680,7 +681,7 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr cons
       }
       else
       {
-        err = rtValueWriter::write(m_env, value, val, *res);
+        err = rtRemoteValueWriter::write(m_env, value, val, *res);
         if (err != RT_OK)
           rtLogWarn("failed to write value: %d", err);
       }
@@ -701,13 +702,13 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr cons
 rtError
 rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc)
 {
-  uint32_t key = rtMessage_GetCorrelationKey(*doc);
+  rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*doc);
   char const* objectId = rtMessage_GetObjectId(*doc);
 
   rtJsonDocPtr res(new rapidjson::Document());
   res->SetObject();
   res->AddMember(kFieldNameMessageType, kMessageTypeSetByNameResponse, res->GetAllocator());
-  res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
+  res->AddMember(kFieldNameCorrelationKey, key.toString(), res->GetAllocator());
   res->AddMember(kFieldNameObjectId, std::string(objectId), res->GetAllocator());
 
   rtObjectRef obj = m_env->ObjectCache->findObject(objectId);
@@ -727,7 +728,7 @@ rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr cons
     RT_ASSERT(itr != doc->MemberEnd());
 
     if (itr != doc->MemberEnd())
-      err = rtValueReader::read(value, itr->value, client);
+      err = rtRemoteValueReader::read(value, itr->value, client);
 
     if (err == RT_OK)
     {
@@ -753,14 +754,14 @@ rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr cons
 rtError
 rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc)
 {
-  uint32_t key = rtMessage_GetCorrelationKey(*doc);
+  rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*doc);
   char const* objectId = rtMessage_GetObjectId(*doc);
   rtError err   = RT_OK;
 
   rtJsonDocPtr res(new rapidjson::Document());
   res->SetObject();
   res->AddMember(kFieldNameMessageType, kMessageTypeMethodCallResponse, res->GetAllocator());
-  res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
+  res->AddMember(kFieldNameCorrelationKey, key.toString(), res->GetAllocator());
 
   rtObjectRef obj = m_env->ObjectCache->findObject(objectId);
   if (!obj && (strcmp(objectId, "global") != 0))
@@ -799,7 +800,7 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocP
         for (rapidjson::Value::ConstValueIterator itr = args.Begin(); itr != args.End(); ++itr)
         {
           rtValue arg;
-          rtValueReader::read(arg, *itr, client);
+          rtRemoteValueReader::read(arg, *itr, client);
           argv.push_back(arg);
         }
       }
@@ -809,7 +810,7 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocP
       if (err == RT_OK)
       {
         rapidjson::Value val;
-        rtValueWriter::write(m_env, return_value, val, *res);
+        rtRemoteValueWriter::write(m_env, return_value, val, *res);
         res->AddMember(kFieldNameFunctionReturn, val, res->GetAllocator());
       }
 
@@ -831,7 +832,7 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocP
 rtError
 rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& req)
 {
-  uint32_t key = rtMessage_GetCorrelationKey(*req);
+  rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*req);
 
   auto itr = req->FindMember(kFieldNameKeepAliveIds);
   if (itr != req->MemberEnd())
@@ -854,7 +855,7 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPt
 
   rtJsonDocPtr res(new rapidjson::Document());
   res->SetObject();
-  res->AddMember(kFieldNameCorrelationKey, key, res->GetAllocator());
+  res->AddMember(kFieldNameCorrelationKey, key.toString(), res->GetAllocator());
   res->AddMember(kFieldNameMessageType, kMessageTypeKeepAliveResponse, res->GetAllocator());
   return client->send(res);
 }

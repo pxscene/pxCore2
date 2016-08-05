@@ -1,3 +1,7 @@
+#include "rtRemoteCorrelationKey.h"
+#include "rtRemoteTypes.h"
+#include "rtRemoteSocketUtils.h"
+
 #include <condition_variable>
 #include <map>
 #include <mutex>
@@ -8,9 +12,6 @@
 #include <netinet/in.h>
 #include <rtObject.h>
 #include <rapidjson/document.h>
-
-#include "rtRemoteTypes.h"
-#include "rtSocketUtils.h"
 
 class rtRemoteEnvironment;
 
@@ -27,7 +28,7 @@ public:
 private:
   using CommandHandler = rtError (rtRemoteNameService::*)(rtJsonDocPtr const&, sockaddr_storage const&);
   using CommandHandlerMap = std::map< std::string, CommandHandler >;
-  using RequestMap = std::map< rtCorrelationKey, rtJsonDocPtr >;
+  using RequestMap = std::map< rtRemoteCorrelationKey, rtJsonDocPtr >;
   using RegisteredObjectsMap = std::map< std::string, sockaddr_storage >;
 
   rtError onRegister(rtJsonDocPtr const& doc, sockaddr_storage const& soc);

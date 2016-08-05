@@ -1,12 +1,12 @@
-#include "rtValueWriter.h"
-#include "rtObjectCache.h"
+#include "rtRemoteValueWriter.h"
+#include "rtRemoteObjectCache.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteMessage.h"
 #include "rtRemoteEnvironment.h"
+#include "rtGuid.h"
 
 #include <rtObject.h>
 #include <rapidjson/rapidjson.h>
-#include <uuid/uuid.h>
 #include <sstream>
 
 namespace
@@ -15,35 +15,27 @@ namespace
 
   std::string getId(rtFunctionRef const& /*ref*/)
   {
-    char buff[37] = {0};
-    uuid_t id;
-    uuid_generate(id);
-    uuid_unparse_lower(id, buff);
-    buff[36] = '\0';
+    rtGuid id = rtGuid::newRandom();
 
     std::stringstream ss;
     ss << "func://";
-    ss << buff;
+    ss << id.toString();
     return ss.str();
   }
  
   std::string getId(rtObjectRef const& /*ref*/)
   {
-    char buff[37] = {0};
-    uuid_t id;
-    uuid_generate(id);
-    uuid_unparse_lower(id, buff);
-    buff[36] = '\0';
+    rtGuid id = rtGuid::newRandom();
 
     std::stringstream ss;
     ss << "obj://";
-    ss << buff;
+    ss << id.toString();
     return ss.str();
    }
 }
 
 rtError
-rtValueWriter::write(rtRemoteEnvironment* env, rtValue const& from,
+rtRemoteValueWriter::write(rtRemoteEnvironment* env, rtValue const& from,
   rapidjson::Value& to, rapidjson::Document& doc)
 {
   to.SetObject();

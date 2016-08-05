@@ -1,5 +1,5 @@
 #include "rtRemoteMulticastResolver.h"
-#include "rtSocketUtils.h"
+#include "rtRemoteSocketUtils.h"
 #include "rtRemoteMessage.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteEnvironment.h"
@@ -318,7 +318,7 @@ rtRemoteMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage co
     return RT_OK;
   }
 
-  int key = rtMessage_GetCorrelationKey(*doc);
+  rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*doc);
 
   auto itr = m_hosted_objects.end();
 
@@ -336,9 +336,8 @@ rtRemoteMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage co
     doc.AddMember(kFieldNameObjectId, std::string(objectId), doc.GetAllocator());
     doc.AddMember(kFieldNameIp, m_rpc_addr, doc.GetAllocator());
     doc.AddMember(kFieldNamePort, m_rpc_port, doc.GetAllocator());
-    // echo kback to sender
     doc.AddMember(kFieldNameSenderId, senderId->value.GetInt(), doc.GetAllocator());
-    doc.AddMember(kFieldNameCorrelationKey, key, doc.GetAllocator());
+    doc.AddMember(kFieldNameCorrelationKey, key.toString(), doc.GetAllocator());
 
     return rtSendDocument(doc, m_ucast_fd, &soc);
   }
@@ -349,7 +348,7 @@ rtRemoteMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage co
 rtError
 rtRemoteMulticastResolver::onLocate(rtJsonDocPtr const& doc, sockaddr_storage const& /*soc*/)
 {
-  int key = rtMessage_GetCorrelationKey(*doc);
+  rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*doc);
 
   std::unique_lock<std::mutex> lock(m_mutex);
   m_pending_searches[key] = doc;
@@ -369,14 +368,14 @@ rtRemoteMulticastResolver::locateObject(std::string const& name, sockaddr_storag
   }
 
   rtError err = RT_OK;
-  rtCorrelationKey seqId = rtMessage_GetNextCorrelationKey();
+  rtRemoteCorrelationKey seqId = rtMessage_GetNextCorrelationKey();
 
   rapidjson::Document doc;
   doc.SetObject();
   doc.AddMember(kFieldNameMessageType, kMessageTypeSearch, doc.GetAllocator());
   doc.AddMember(kFieldNameObjectId, name, doc.GetAllocator());
   doc.AddMember(kFieldNameSenderId, m_pid, doc.GetAllocator());
-  doc.AddMember(kFieldNameCorrelationKey, seqId, doc.GetAllocator());
+  doc.AddMember(kFieldNameCorrelationKey, seqId.toString(), doc.GetAllocator());
 
   err = rtSendDocument(doc, m_ucast_fd, &m_mcast_dest);
   if (err != RT_OK)

@@ -2,6 +2,8 @@
 #define __RT_REMOTE_ENVIRONMENT_H__
 
 #include "rtRemoteCallback.h"
+#include "rtRemoteTypes.h"
+#include "rtRemoteCorrelationKey.h"
 
 #include <condition_variable>
 #include <mutex>
@@ -11,7 +13,7 @@
 class rtRemoteServer;
 class rtRemoteConfig;
 class rtRemoteStreamSelector;
-class rtObjectCache;
+class rtRemoteObjectCache;
 
 struct rtRemoteEnvironment
 {
@@ -28,18 +30,18 @@ struct rtRemoteEnvironment
 
   rtRemoteConfig const*     Config;
   rtRemoteServer*           Server;
-  rtObjectCache*            ObjectCache;
+  rtRemoteObjectCache*      ObjectCache;
   rtRemoteStreamSelector*   StreamSelector;
 
 
   uint32_t RefCount;
   bool     Initialized;
 
-  void registerResponseHandler(MessageHandler handler, void* argp, rtCorrelationKey k);
-  void removeResponseHandler(rtCorrelationKey k);
+  void registerResponseHandler(MessageHandler handler, void* argp, rtRemoteCorrelationKey k);
+  void removeResponseHandler(rtRemoteCorrelationKey k);
   void enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt, rtJsonDocPtr const& doc);
-  rtError processSingleWorkItem(std::chrono::milliseconds timeout, rtCorrelationKey* key = nullptr);
-  rtError waitForResponse(std::chrono::milliseconds timeout, rtCorrelationKey key);
+  rtError processSingleWorkItem(std::chrono::milliseconds timeout, rtRemoteCorrelationKey* key = nullptr);
+  rtError waitForResponse(std::chrono::milliseconds timeout, rtRemoteCorrelationKey key);
 
 private:
   struct WorkItem
@@ -54,12 +56,12 @@ private:
     Dispatched
   };
 
-  using ResponseHandlerMap = std::map< rtCorrelationKey, rtRemoteCallback<MessageHandler> >;
-  using ResponseMap = std::map< rtCorrelationKey, ResponseState >;
+  using ResponseHandlerMap = std::map< rtRemoteCorrelationKey, rtRemoteCallback<MessageHandler> >;
+  using ResponseMap = std::map< rtRemoteCorrelationKey, ResponseState >;
 
   void processRunQueue();
 
-  inline bool haveResponse(rtCorrelationKey k) const
+  inline bool haveResponse(rtRemoteCorrelationKey k) const
     { return m_waiters.find(k) != m_waiters.end(); }
 
   mutable std::mutex            m_queue_mutex;

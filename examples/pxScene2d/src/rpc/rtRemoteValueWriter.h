@@ -11,7 +11,7 @@
 class rtRemoteEnvironment;
 
 
-class rtValueWriter
+class rtRemoteValueWriter
 {
 public:
   static rtError write(rtRemoteEnvironment* env,

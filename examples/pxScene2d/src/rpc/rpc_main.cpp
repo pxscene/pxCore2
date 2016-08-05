@@ -162,7 +162,7 @@ void Test_Echo_Client()
   {
     memset(buff, 0, sizeof(buff));
     sprintf(buff, "hello:%06d", i++);
-    e = obj.set("message", rtString(buff));
+    e = obj.set("message", buff);
     rtLogInfo("set:%s", rtStrError(e));
 
     e = rtRemoteRunOnce(env, 1000);

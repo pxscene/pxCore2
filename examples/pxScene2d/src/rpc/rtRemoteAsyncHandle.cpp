@@ -4,7 +4,7 @@
 #include "rtRemoteMessage.h"
 #include "rtRemoteConfig.h"
 
-rtRemoteAsyncHandle::rtRemoteAsyncHandle(rtRemoteEnvironment* env, rtCorrelationKey k)
+rtRemoteAsyncHandle::rtRemoteAsyncHandle(rtRemoteEnvironment* env, rtRemoteCorrelationKey k)
   : m_env(env)
   , m_key(k)
   , m_error(RT_ERROR_IN_PROGRESS)
@@ -40,7 +40,7 @@ rtRemoteAsyncHandle::wait(uint32_t timeoutInMilliseconds)
   {
     time_t timeout = time(nullptr) + ((timeoutInMilliseconds+500) / 1000);
 
-    rtCorrelationKey k = kInvalidCorrelationKey;
+    rtRemoteCorrelationKey k = kInvalidCorrelationKey;
     while (timeout > time(nullptr))
     {
       // timeout is broken @see impl of processSingleWorkItem

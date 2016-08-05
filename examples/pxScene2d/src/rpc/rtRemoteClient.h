@@ -18,7 +18,8 @@
 #include "rtRemoteStream.h"
 #include "rtRemoteTypes.h"
 #include "rtRemoteMessage.h"
-#include "rtSocketUtils.h"
+#include "rtRemoteCorrelationKey.h"
+#include "rtRemoteSocketUtils.h"
 
 class rtRemoteClient: public std::enable_shared_from_this<rtRemoteClient>
 {
@@ -64,9 +65,9 @@ public:
     { return m_stream->getLocalEndpoint(); }
 
 private:
-  rtError sendGet(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& value);
-  rtError sendSet(rtJsonDocPtr const& req, rtCorrelationKey k);
-  rtError sendCall(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& result); 
+  rtError sendGet(rtJsonDocPtr const& req, rtRemoteCorrelationKey k, rtValue& value);
+  rtError sendSet(rtJsonDocPtr const& req, rtRemoteCorrelationKey k);
+  rtError sendCall(rtJsonDocPtr const& req, rtRemoteCorrelationKey k, rtValue& result); 
 
   static rtError onIncomingMessage_Dispatcher(rtJsonDocPtr const& doc, void* argp)
     { return reinterpret_cast<rtRemoteClient *>(argp)->onIncomingMessage(doc); }
@@ -89,10 +90,10 @@ private:
     { return reinterpret_cast<rtRemoteClient *>(argp)->onSynchronousResponse(client, msg); }
 
   rtError onStartSession(rtJsonDocPtr const& doc);
-  rtError waitForResponse(rtCorrelationKey k, rtJsonDocPtr& res, int timeout);
+  rtError waitForResponse(rtRemoteCorrelationKey k, rtJsonDocPtr& res, int timeout);
   rtError onSynchronousResponse(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc);
   // rtError sendSynchronousRequest(rtJsonDocPtr const& req, rtJsonDocPtr& res, int timeout);
-  // bool moreToProcess(rtCorrelationKey k);
+  // bool moreToProcess(rtRemoteCorrelationKey k);
 
 private:
   std::shared_ptr<rtRemoteStream>   m_stream;

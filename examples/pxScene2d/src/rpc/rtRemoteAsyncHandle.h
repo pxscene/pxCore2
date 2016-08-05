@@ -2,6 +2,7 @@
 #define __RT_REMOTE_ASYNC_HANDLE__
 
 #include "rtRemoteMessage.h"
+#include "rtRemoteCorrelationKey.h"
 
 class rtRemoteEnvironment;
 
@@ -16,7 +17,7 @@ public:
   rtError wait(uint32_t timeoutInMilliSeconds);
 
 private:
-  rtRemoteAsyncHandle(rtRemoteEnvironment* env, rtCorrelationKey k);
+  rtRemoteAsyncHandle(rtRemoteEnvironment* env, rtRemoteCorrelationKey k);
   void complete(rtJsonDocPtr const& doc, rtError e);
 
   static rtError onResponseHandler_Dispatch(std::shared_ptr<rtRemoteClient>& client,
@@ -28,7 +29,7 @@ private:
 
 private:
   rtRemoteEnvironment*    m_env;
-  rtCorrelationKey        m_key;
+  rtRemoteCorrelationKey       m_key;
   rtJsonDocPtr            m_doc;
   rtError                 m_error;
 };

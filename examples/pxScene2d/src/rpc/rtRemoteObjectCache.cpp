@@ -1,4 +1,4 @@
-#include "rtObjectCache.h"
+#include "rtRemoteObjectCache.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteTypes.h"
 #include "rtRemoteEnvironment.h"
@@ -23,7 +23,7 @@ namespace
 }
 
 rtObjectRef
-rtObjectCache::findObject(std::string const& id)
+rtRemoteObjectCache::findObject(std::string const& id)
 {
   std::unique_lock<std::mutex> lock(sMutex);
   auto itr = sRefMap.find(id);
@@ -31,7 +31,7 @@ rtObjectCache::findObject(std::string const& id)
 }
 
 rtFunctionRef
-rtObjectCache::findFunction(std::string const& id)
+rtRemoteObjectCache::findFunction(std::string const& id)
 {
   std::unique_lock<std::mutex> lock(sMutex);
   auto itr = sRefMap.find(id);
@@ -39,7 +39,7 @@ rtObjectCache::findFunction(std::string const& id)
 }
 
 rtError
-rtObjectCache::insert(std::string const& id, rtFunctionRef const& ref, int maxAge)
+rtRemoteObjectCache::insert(std::string const& id, rtFunctionRef const& ref, int maxAge)
 {
   rtError e = RT_OK;
 
@@ -57,7 +57,7 @@ rtObjectCache::insert(std::string const& id, rtFunctionRef const& ref, int maxAg
 }
 
 rtError
-rtObjectCache::insert(std::string const& id, rtObjectRef const& ref, int maxAge)
+rtRemoteObjectCache::insert(std::string const& id, rtObjectRef const& ref, int maxAge)
 {
   rtError e = RT_OK;
 
@@ -75,7 +75,7 @@ rtObjectCache::insert(std::string const& id, rtObjectRef const& ref, int maxAge)
 }
 
 rtError
-rtObjectCache::touch(std::string const& id, time_t now)
+rtRemoteObjectCache::touch(std::string const& id, time_t now)
 {
   rtError e = RT_OK;
 
@@ -95,7 +95,7 @@ rtObjectCache::touch(std::string const& id, time_t now)
 }
 
 rtError
-rtObjectCache::clear()
+rtRemoteObjectCache::clear()
 {
   rtLogInfo("clearing object cache");
 
@@ -106,7 +106,7 @@ rtObjectCache::clear()
 }
 
 rtError
-rtObjectCache::erase(std::string const& id)
+rtRemoteObjectCache::erase(std::string const& id)
 {
   rtError e = RT_OK;
 
@@ -126,7 +126,7 @@ rtObjectCache::erase(std::string const& id)
 }
 
 rtError
-rtObjectCache::removeUnused()
+rtRemoteObjectCache::removeUnused()
 {
   time_t now = time(nullptr);
 

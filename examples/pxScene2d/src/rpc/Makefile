@@ -21,11 +21,11 @@ RTRPC_SRCS=\
   rtRemoteFunction.cpp \
   rtRemoteMessage.cpp \
   rtRemoteClient.cpp \
-  rtValueReader.cpp \
-  rtValueWriter.cpp \
-  rtSocketUtils.cpp \
+  rtRemoteValueReader.cpp \
+  rtRemoteValueWriter.cpp \
+  rtRemoteSocketUtils.cpp \
   rtRemoteStream.cpp \
-  rtObjectCache.cpp \
+  rtRemoteObjectCache.cpp \
   rtRemote.cpp \
   rtRemoteConfig.cpp \
   rtRemoteFactory.cpp \
@@ -36,7 +36,10 @@ RTRPC_SRCS=\
   rtRemoteConfigBuilder.cpp \
   rtRemoteAsyncHandle.cpp \
   rtRemoteUtils.cpp \
-  rtRemoteEndpoint.cpp
+  rtRemoteEndpoint.cpp \
+  rtRemoteEnvironment.cpp \
+  rtRemoteStreamSelector.cpp \
+  rtGuid.cpp
 
 SAMPLEAPP_SRCS=\
   rpc_main.cpp

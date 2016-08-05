@@ -8,7 +8,7 @@
 
 class rtRemoteClient;
 
-class rtValueReader
+class rtRemoteValueReader
 {
 public:
   static rtError read(rtValue& val, rapidjson::Value const& from, std::shared_ptr<rtRemoteClient> const& client);

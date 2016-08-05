@@ -7,7 +7,8 @@
 #include <rtValue.h>
 
 #include "rtLog.h"
-#include "rtSocketUtils.h"
+#include "rtRemoteSocketUtils.h"
+#include "rtRemoteCorrelationKey.h"
 #include "rtRemoteTypes.h"
 
 #define kFieldNameMessageType "message.type"
@@ -53,7 +54,12 @@
 #define kMessageTypeOpenSessionRequest "session.open.request"
 
 #define kInvalidPropertyIndex std::numeric_limits<uint32_t>::max()
+
+#ifdef RT_REMOTE_CORRELATION_KEY_IS_INT
 #define kInvalidCorrelationKey std::numeric_limits<uint32_t>::max()
+#else
+#define kInvalidCorrelationKey rtGuid::null()
+#endif
 
 #define kNsMessageTypeLookup "ns.lookup"
 #define kNsMessageTypeLookupResponse "ns.lookup.response"
@@ -76,7 +82,7 @@ rtMessage_GetPropertyIndex(rapidjson::Document const& doc);
 char const*
 rtMessage_GetMessageType(rapidjson::Document const& doc);
 
-rtCorrelationKey
+rtRemoteCorrelationKey
 rtMessage_GetCorrelationKey(rapidjson::Document const& doc);
 
 char const*
@@ -98,7 +104,7 @@ rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...
 rtError
 rtMessage_SetStatus(rapidjson::Document& doc, rtError code);
 
-rtCorrelationKey
+rtRemoteCorrelationKey
 rtMessage_GetNextCorrelationKey();
 
 

@@ -1,7 +1,7 @@
 #include "rtRemoteUtils.h"
 #include "rtRemoteTypes.h"
 #include "rtRemoteEndpoint.h"
-#include "rtSocketUtils.h"
+#include "rtRemoteSocketUtils.h"
 #include "rtRemoteMessage.h"
 
 #include <sstream>

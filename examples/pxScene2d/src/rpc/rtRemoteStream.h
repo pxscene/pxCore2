@@ -2,7 +2,7 @@
 #define __RT_RPC_STREAM_H__
 
 #include "rtRemoteTypes.h"
-#include "rtSocketUtils.h"
+#include "rtRemoteSocketUtils.h"
 #include "rtRemoteAsyncHandle.h"
 #include "rtRemoteCallback.h"
 
@@ -44,7 +44,7 @@ public:
   rtError connect();
   rtError connectTo(sockaddr_storage const& endpoint);
   rtError send(rtJsonDocPtr const& msg);
-  rtRemoteAsyncHandle sendWithWait(rtJsonDocPtr const& msg, rtCorrelationKey k);
+  rtRemoteAsyncHandle sendWithWait(rtJsonDocPtr const& msg, rtRemoteCorrelationKey k);
   rtError setMessageHandler(MessageHandler handler, void* argp);
   rtError setStateChangedHandler(StateChangedHandler handler, void* argp);
 
@@ -67,27 +67,5 @@ private:
   sockaddr_storage              m_remote_endpoint;
   rtRemoteEnvironment*          m_env;
 };
-
-class rtRemoteStreamSelector
-{
-public:
-  rtRemoteStreamSelector();
-
-  rtError start();
-  rtError registerStream(std::shared_ptr<rtRemoteStream> const& s);
-  rtError removeStream(std::shared_ptr<rtRemoteStream> const& s);
-  rtError shutdown();
-
-private:
-  static void* pollFds(void* argp);
-  rtError doPollFds();
-
-private:
-  std::vector< std::shared_ptr<rtRemoteStream> >  m_streams;
-  pthread_t                                       m_thread;
-  std::mutex                                      m_mutex;
-  int                                             m_shutdown_pipe[2];
-};
-
 
 #endif

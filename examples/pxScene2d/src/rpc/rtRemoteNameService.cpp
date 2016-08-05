@@ -1,5 +1,5 @@
 #include "rtRemoteNameService.h"
-#include "rtSocketUtils.h"
+#include "rtRemoteSocketUtils.h"
 #include "rtRemoteMessage.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteEnvironment.h"
@@ -224,7 +224,7 @@ rtRemoteNameService::onLookup(rtJsonDocPtr const& doc, sockaddr_storage const& s
   if (senderId->value.GetInt() == m_pid)
     return RT_OK;
 
-  int key = rtMessage_GetCorrelationKey(*doc);
+  rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*doc);
 
   auto itr = m_registered_objects.end();
 
@@ -262,7 +262,7 @@ rtRemoteNameService::onLookup(rtJsonDocPtr const& doc, sockaddr_storage const& s
     doc.AddMember(kFieldNameIp, ep_addr, doc.GetAllocator());
     doc.AddMember(kFieldNamePort, ep_port, doc.GetAllocator());
     doc.AddMember(kFieldNameSenderId, senderId->value.GetInt(), doc.GetAllocator());
-    doc.AddMember(kFieldNameCorrelationKey, key, doc.GetAllocator());
+    doc.AddMember(kFieldNameCorrelationKey, key.toString(), doc.GetAllocator());
 
     return rtSendDocument(doc, m_ns_fd, &soc);
   }

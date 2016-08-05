@@ -9,10 +9,10 @@
 
 class rtRemoteEnvironment;
 
-class rtObjectCache
+class rtRemoteObjectCache
 {
 public:
-  rtObjectCache(rtRemoteEnvironment* env)
+  rtRemoteObjectCache(rtRemoteEnvironment* env)
     : m_env(env)
   { }
 

@@ -1,7 +1,7 @@
 #include "rtRemoteMessage.h"
 #include "rtRemoteClient.h"
-#include "rtValueReader.h"
-#include "rtValueWriter.h"
+#include "rtRemoteValueReader.h"
+#include "rtRemoteValueWriter.h"
 #include "rtError.h"
 
 #include <arpa/inet.h>
@@ -20,7 +20,9 @@
 
 namespace
 {
-  std::atomic<rtCorrelationKey> s_next_key;
+  #ifdef RT_REMOTE_CORRELATION_KEY_IS_INT
+  std::atomic<rtRemoteCorrelationKey> s_next_key;
+  #endif
 
   void dumpDoc(rapidjson::Document const& doc, char const* fmt, ...)
   {
@@ -40,9 +42,10 @@ namespace
   }
 }
 
-rtCorrelationKey
+rtRemoteCorrelationKey
 rtMessage_GetNextCorrelationKey()
 {
+  #ifdef RT_REMOTE_CORRELATION_KEY_IS_INT
   static pid_t pid = getpid();
   int p = pid;
   p <<= 16;
@@ -50,6 +53,9 @@ rtMessage_GetNextCorrelationKey()
   int k = ++s_next_key;
   p |= k;
   return p;
+  #else
+  return rtGuid::newRandom();
+  #endif
 }
 
 template<class T> T
@@ -97,14 +103,21 @@ rtMessage_GetMessageType(rapidjson::Document const& doc)
     : NULL;
 }
 
-rtCorrelationKey
+rtRemoteCorrelationKey
 rtMessage_GetCorrelationKey(rapidjson::Document const& doc)
 {
-  rtCorrelationKey k = kInvalidCorrelationKey;
+  rtRemoteCorrelationKey k = kInvalidCorrelationKey;
   rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNameCorrelationKey);
   RT_ASSERT(itr != doc.MemberEnd());
+
   if (itr != doc.MemberEnd())
+  {
+    #ifdef RT_REMOTE_CORRELATION_KEY_IS_INT
     k = itr->value.GetUint();
+    #else
+    k = rtGuid::fromString(itr->value.GetString());
+    #endif
+  }
   return k;
 }
 

@@ -1,9 +1,9 @@
 #include "rtRemoteClient.h"
 #include "rtRemoteClient.h"
-#include "rtSocketUtils.h"
+#include "rtRemoteSocketUtils.h"
 #include "rtRemoteMessage.h"
-#include "rtValueReader.h"
-#include "rtValueWriter.h"
+#include "rtRemoteValueReader.h"
+#include "rtRemoteValueWriter.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteEnvironment.h"
 
@@ -26,7 +26,7 @@ namespace
   addValue(rtJsonDocPtr& doc, rtRemoteEnvironment* env, rtValue const& value)
   {
     rapidjson::Value jsonValue;
-    rtError e = rtValueWriter::write(env, value, jsonValue, *doc);
+    rtError e = rtRemoteValueWriter::write(env, value, jsonValue, *doc);
 
     // TODO: better error handling
     if (e == RT_OK)
@@ -37,7 +37,7 @@ namespace
   addArgument(rtJsonDocPtr& doc, rtRemoteEnvironment* env, rtValue const& value)
   {
     rapidjson::Value jsonValue;
-    rtError e = rtValueWriter::write(env, value, jsonValue, *doc);
+    rtError e = rtRemoteValueWriter::write(env, value, jsonValue, *doc);
 
     // TODO: better error handling
     if (e == RT_OK)
@@ -166,12 +166,12 @@ rtRemoteClient::connectRpcEndpoint()
 rtError
 rtRemoteClient::startSession(std::string const& objectId, uint32_t timeout)
 {
-  rtCorrelationKey k = rtMessage_GetNextCorrelationKey();
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
   rtJsonDocPtr req(new rapidjson::Document());
   req->SetObject();
   req->AddMember(kFieldNameMessageType, kMessageTypeOpenSessionRequest, req->GetAllocator());
-  req->AddMember(kFieldNameCorrelationKey, k, req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
 
   rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
@@ -204,10 +204,12 @@ rtRemoteClient::sendKeepAlive()
   if (m_object_list.empty())
     return RT_OK;
 
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
+
   rtJsonDocPtr msg(new rapidjson::Document());
   msg->SetObject();
   msg->AddMember(kFieldNameMessageType, kMessageTypeKeepAliveRequest, msg->GetAllocator());
-  msg->AddMember(kFieldNameCorrelationKey, rtMessage_GetNextCorrelationKey(), msg->GetAllocator());
+  msg->AddMember(kFieldNameCorrelationKey,k.toString(), msg->GetAllocator());
 
   for (std::string const& name : m_object_list)
   {
@@ -231,14 +233,14 @@ rtRemoteClient::sendKeepAlive()
 rtError
 rtRemoteClient::sendSet(std::string const& objectId, char const* propertyName, rtValue const& value)
 {
-  rtCorrelationKey k = rtMessage_GetNextCorrelationKey();
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
   rtJsonDocPtr req(new rapidjson::Document());
   req->SetObject();
   req->AddMember(kFieldNameMessageType, kMessageTypeSetByNameRequest, req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
   req->AddMember(kFieldNamePropertyName, std::string(propertyName), req->GetAllocator());
-  req->AddMember(kFieldNameCorrelationKey, k, req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
   addValue(req, m_env, value);
 
   return sendSet(req, k);
@@ -247,21 +249,21 @@ rtRemoteClient::sendSet(std::string const& objectId, char const* propertyName, r
 rtError
 rtRemoteClient::sendSet(std::string const& objectId, uint32_t propertyIdx, rtValue const& value)
 {
-  rtCorrelationKey k = rtMessage_GetNextCorrelationKey();
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
   rtJsonDocPtr req(new rapidjson::Document());
   req->SetObject();
   req->AddMember(kFieldNameMessageType, kMessageTypeSetByIndexRequest, req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
   req->AddMember(kFieldNamePropertyIndex, propertyIdx, req->GetAllocator());
-  req->AddMember(kFieldNameCorrelationKey, k, req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
   addValue(req, m_env, value);
 
   return sendSet(req, k);
 }
 
 rtError
-rtRemoteClient::sendSet(rtJsonDocPtr const& req, rtCorrelationKey k)
+rtRemoteClient::sendSet(rtJsonDocPtr const& req, rtRemoteCorrelationKey k)
 {
   rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
 
@@ -280,14 +282,14 @@ rtRemoteClient::sendSet(rtJsonDocPtr const& req, rtCorrelationKey k)
 rtError
 rtRemoteClient::sendGet(std::string const& objectId, char const* propertyName, rtValue& result)
 {
-  rtCorrelationKey k = rtMessage_GetNextCorrelationKey();
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
   rtJsonDocPtr req(new rapidjson::Document());
   req->SetObject();
   req->AddMember(kFieldNameMessageType, kMessageTypeGetByNameRequest, req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
   req->AddMember(kFieldNamePropertyName, std::string(propertyName), req->GetAllocator());
-  req->AddMember(kFieldNameCorrelationKey, k, req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
 
   return sendGet(req, k, result);
 }
@@ -295,20 +297,20 @@ rtRemoteClient::sendGet(std::string const& objectId, char const* propertyName, r
 rtError
 rtRemoteClient::sendGet(std::string const& objectId, uint32_t propertyIdx, rtValue& result)
 {
-  rtCorrelationKey k = rtMessage_GetNextCorrelationKey();
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
   rtJsonDocPtr req(new rapidjson::Document());
   req->SetObject();
   req->AddMember(kFieldNameMessageType, kMessageTypeGetByNameRequest, req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
   req->AddMember(kFieldNamePropertyIndex, propertyIdx, req->GetAllocator());
-  req->AddMember(kFieldNameCorrelationKey, k, req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
 
   return sendGet(req, k, result);
 }
 
 rtError
-rtRemoteClient::sendGet(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& value)
+rtRemoteClient::sendGet(rtJsonDocPtr const& req, rtRemoteCorrelationKey k, rtValue& value)
 {
   rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
 
@@ -323,7 +325,7 @@ rtRemoteClient::sendGet(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& va
     if (itr == res->MemberEnd())
       return RT_ERROR_PROTOCOL_ERROR;
 
-    e = rtValueReader::read(value, itr->value, shared_from_this());
+    e = rtRemoteValueReader::read(value, itr->value, shared_from_this());
     if (e == RT_OK)
       e = rtMessage_GetStatusCode(*res);
   }
@@ -334,13 +336,13 @@ rtError
 rtRemoteClient::sendCall(std::string const& objectId, std::string const& methodName,
   int argc, rtValue const* argv, rtValue& result)
 {
-  rtCorrelationKey k = rtMessage_GetNextCorrelationKey();
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
   rtJsonDocPtr req(new rapidjson::Document());
   req->SetObject();
   req->AddMember(kFieldNameMessageType, kMessageTypeMethodCallRequest, req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
-  req->AddMember(kFieldNameCorrelationKey, k, req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
   req->AddMember(kFieldNameFunctionName, methodName, req->GetAllocator());
   
   for (int i = 0; i < argc; ++i)
@@ -350,7 +352,7 @@ rtRemoteClient::sendCall(std::string const& objectId, std::string const& methodN
 }
 
 rtError
-rtRemoteClient::sendCall(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& result)
+rtRemoteClient::sendCall(rtJsonDocPtr const& req, rtRemoteCorrelationKey k, rtValue& result)
 {
   rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
 
@@ -365,7 +367,7 @@ rtRemoteClient::sendCall(rtJsonDocPtr const& req, rtCorrelationKey k, rtValue& r
     if (itr == res->MemberEnd())
       return RT_ERROR_PROTOCOL_ERROR;
 
-    e = rtValueReader::read(result, itr->value, shared_from_this());
+    e = rtRemoteValueReader::read(result, itr->value, shared_from_this());
     if (e == RT_OK)
       e = rtMessage_GetStatusCode(*res);
   }

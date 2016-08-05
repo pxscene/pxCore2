@@ -1,5 +1,5 @@
 #include "rtRemoteFileResolver.h"
-#include "rtSocketUtils.h"
+#include "rtRemoteSocketUtils.h"
 #include "rtRemoteMessage.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteEnvironment.h"

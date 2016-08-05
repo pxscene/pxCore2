@@ -1,4 +1,8 @@
 #include "rtRemoteIResolver.h"
+#include "rtRemoteTypes.h"
+#include "rtRemoteCorrelationKey.h"
+#include "rtRemoteSocketUtils.h"
+
 #include <condition_variable>
 #include <map>
 #include <mutex>
@@ -8,10 +12,6 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include <rtObject.h>
-#include <rapidjson/document.h>
-
-#include "rtRemoteTypes.h"
-#include "rtSocketUtils.h"
 
 class rtRemoteEnvironment;
 
@@ -33,7 +33,7 @@ private:
   using CommandHandler = rtError (rtRemoteNsResolver::*)(rtJsonDocPtr const&, sockaddr_storage const&);
   using HostedObjectsMap = std::map< std::string, sockaddr_storage >;
   using CommandHandlerMap = std::map< std::string, CommandHandler >;
-  using RequestMap = std::map< rtCorrelationKey, rtJsonDocPtr >;
+  using RequestMap = std::map< rtRemoteCorrelationKey, rtJsonDocPtr >;
 
   void runListener();
   void doRead(int fd, rtSocketBuffer& buff);

@@ -1,5 +1,5 @@
 #include "rtRemoteNsResolver.h"
-#include "rtSocketUtils.h"
+#include "rtRemoteSocketUtils.h"
 #include "rtRemoteMessage.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteEnvironment.h"
@@ -121,7 +121,7 @@ rtRemoteNsResolver::registerObject(std::string const& name, sockaddr_storage con
   rtGetPort(endpoint, &rpc_port);
 
   rtError err = RT_OK;
-  rtCorrelationKey seqId = rtMessage_GetNextCorrelationKey();
+  rtRemoteCorrelationKey seqId = rtMessage_GetNextCorrelationKey();
 
   rapidjson::Document doc;
   doc.SetObject();
@@ -130,7 +130,7 @@ rtRemoteNsResolver::registerObject(std::string const& name, sockaddr_storage con
   doc.AddMember(kFieldNameIp, rpc_addr, doc.GetAllocator());
   doc.AddMember(kFieldNamePort, rpc_port, doc.GetAllocator());
   doc.AddMember(kFieldNameSenderId, m_pid, doc.GetAllocator());
-  doc.AddMember(kFieldNameCorrelationKey, seqId, doc.GetAllocator());
+  doc.AddMember(kFieldNameCorrelationKey, seqId.toString(), doc.GetAllocator());
 
   err = rtSendDocument(doc, m_static_fd, &m_ns_dest);
   if (err != RT_OK)
@@ -197,14 +197,14 @@ rtRemoteNsResolver::locateObject(std::string const& name, sockaddr_storage& endp
   }
 
   rtError err = RT_OK;
-  rtCorrelationKey seqId = rtMessage_GetNextCorrelationKey();
+  rtRemoteCorrelationKey seqId = rtMessage_GetNextCorrelationKey();
 
   rapidjson::Document doc;
   doc.SetObject();
   doc.AddMember(kFieldNameMessageType, kNsMessageTypeLookup, doc.GetAllocator());
   doc.AddMember(kFieldNameObjectId, name, doc.GetAllocator());
   doc.AddMember(kFieldNameSenderId, m_pid, doc.GetAllocator());
-  doc.AddMember(kFieldNameCorrelationKey, seqId, doc.GetAllocator());
+  doc.AddMember(kFieldNameCorrelationKey, seqId.toString(), doc.GetAllocator());
 
   err = rtSendDocument(doc, m_static_fd, &m_ns_dest);
   if (err != RT_OK)
@@ -380,7 +380,7 @@ rtRemoteNsResolver::openSocket()
 rtError
 rtRemoteNsResolver::onLocate(rtJsonDocPtr const& doc, sockaddr_storage const& /*soc*/)
 {
-  int key = rtMessage_GetCorrelationKey(*doc);
+  rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*doc);
 
   std::unique_lock<std::mutex> lock(m_mutex);
   m_pending_searches[key] = doc;

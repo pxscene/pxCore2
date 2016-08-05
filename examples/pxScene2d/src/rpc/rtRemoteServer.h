@@ -14,7 +14,7 @@
 
 #include "rtRemoteTypes.h"
 #include "rtRemoteIResolver.h"
-#include "rtSocketUtils.h"
+#include "rtRemoteSocketUtils.h"
 #include "rtRemoteClient.h"
 
 class rtRemoteServer
