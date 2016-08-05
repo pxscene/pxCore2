@@ -65,6 +65,11 @@ else
   CFLAGS   += -O2
 endif
 
+ifeq ($(PROFILE), 1)
+  CXXFLAGS += -pg
+endif
+
+
 CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
 CFLAGS+=-DRT_REMOTE_LOOPBACK_ONLY
 CXXFLAGS+=-std=c++0x $(CFLAGS)

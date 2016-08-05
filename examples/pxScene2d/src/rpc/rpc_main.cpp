@@ -184,29 +184,35 @@ void Test_Echo_Server()
 void Test_SetProperty_Basic_Client()
 {
   rtObjectRef objectRef;
-  rtError e = rtRemoteLocateObject(env, objectName, objectRef);
+  rtError e = rtRemoteLocateObject(env, "test.lcd", objectRef);
   RT_ASSERT(e == RT_OK);
 
   int i = 10;
   while (true)
   {
-    e = objectRef.set("prop1", i);
+    e = objectRef.set("height", i);
     RT_ASSERT(e == RT_OK);
 
-    uint32_t n = objectRef.get<uint32_t>("prop1");
-    rtLogInfo("prop1:%d", n);
+    if (i % 1000 == 0)
+      rtLogInfo("set:%d", i);
+
+    uint32_t n = objectRef.get<uint32_t>("height");
+
+    if (i % 1000 == 0)
+      rtLogInfo("get:%d", n);
+
     RT_ASSERT(n == static_cast<uint32_t>(i));
 
     i++;
 
-    sleep(1);
+    // sleep(1);
   }
 }
 
 void Test_SetProperty_Basic_Server()
 {
-  rtObjectRef obj(new rtThermostat());
-  rtError e = rtRemoteRegisterObject(env, objectName, obj);
+  rtObjectRef obj(new rtLcd());
+  rtError e = rtRemoteRegisterObject(env, "test.lcd", obj);
   RT_ASSERT(e == RT_OK);
   while (true)
   {
@@ -385,16 +391,18 @@ int main(int argc, char* /*argv*/[])
 
     if (argc == 2)
     {
-      Test_Echo_Client();
+      // Test_Echo_Client();
       // Test_FunctionReferences_Client();
       // Test_MethodCall_Client();
       // Test_SetProperty_Object_Client();
+      Test_SetProperty_Basic_Client();
     }
     else
     {
-      Test_Echo_Server();
+      Test_SetProperty_Basic_Server();
+      // Test_Echo_Server();
       // Test_FunctionReferences_Server();
-      // Test_SetProperty_Object_Server();
+      Test_SetProperty_Object_Server();
       // Test_MethodCall_Server();
     }
 
