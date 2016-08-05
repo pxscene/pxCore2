@@ -2,6 +2,7 @@
 
 var fs = require("fs");
 var http = require("http");
+var https = require("https");
 var url = require("url");
 
 var Logger = require('rcvrcore/Logger').Logger;
@@ -17,29 +18,32 @@ function loadFile(fileUri) {
     var code = [];
     if (fileUri.substring(0, 4) == "http") {
       var options = url.parse(fileUri);
+      var req = null;
+      var httpCallback = function (res) {
+        res.on('data', function (data) {
+          code += data;
+        });
+        res.on('end', function () {
+          if( res.statusCode == 200 ) {
+            log.message(3, "Got file[" + fileUri + "] from web service");
+            resolve(code);
+          } else {
+            log.error("StatusCode Bad: FAILED to read file[" + fileUri + "] from web service");
+            reject(res.statusCode);
+          }
+        });
+      };
       if (fileUri.substring(0, 5) == "https") {
-        throw 'not supported'
+        req = https.get(options, httpCallback);
       }
       else {
-        var req = http.get(options, function (res) {
-          res.on('data', function (data) {
-            code += data;
-          });
-          res.on('end', function () {
-            if( res.statusCode == 200 ) {
-              log.message(3, "Got file[" + fileUri + "] from web service");
-              resolve(code);
-            } else {
-              log.error("StatusCode Bad: FAILED to read file[" + fileUri + "] from web service");
-              reject(res.statusCode);
-            }
-          });
-        });
-        req.on('error', function (err) {
-          log.error("Error: FAILED to read file[" + fileUri + "] from web service");
-          reject(err);
-        });
+        req = http.get(options, httpCallback);
       }
+      req.on('error', function (err) {
+        log.error("Error: FAILED to read file[" + fileUri + "] from web service");
+        reject(err);
+      });
+      
     }
     else {
       if( fileUri.substring(0,5) === 'file:' ) {
