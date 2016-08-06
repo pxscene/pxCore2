@@ -1,11 +1,13 @@
 #ifndef __RT_REMOTE_UTILS_H__
 #define __RT_REMOTE_UTILS_H__
 
+#include "rtRemoteMessage.h"
 #include "rtRemoteTypes.h"
+
+#include <rtError.h>
 #include <string>
 #include <sys/socket.h>
 #include <stdint.h>
-#include <rapidjson/document.h>
 
 rtError rtRemoteEndpointAddressToSocket(rtRemoteEndpointPtr addr, sockaddr_storage& ss);
 rtError rtRemoteSocketToEndpointAddress(sockaddr_storage const& ss, rtConnType const& connType, rtRemoteEndpointPtr& endpoint);
@@ -17,8 +19,8 @@ bool    rtRemoteSameEndpoint(rtRemoteEndpointPtr const& first, rtRemoteEndpointP
 rtNetType  rtRemoteParseNetType(std::string const& host);
 rtCastType rtRemoteParseCastType(std::string const& host);
 
-rtError rtRemoteDocumentToEndpoint(rtJsonDocPtr const& doc, rtRemoteEndpointPtr& endpoint);
-rtError rtRemoteEndpointToDocument(rtRemoteEndpointPtr& endpoint, rtJsonDocPtr& doc);
-rtError rtRemoteCombineDocuments(rtJsonDocPtr& target, rtJsonDocPtr& source);
+rtError rtRemoteDocumentToEndpoint(rtRemoteMessagePtr const& doc, rtRemoteEndpointPtr& endpoint);
+rtError rtRemoteEndpointToDocument(rtRemoteEndpointPtr& endpoint, rtRemoteMessagePtr& doc);
+rtError rtRemoteCombineDocuments(rtRemoteMessagePtr& target, rtRemoteMessagePtr& source);
 
 #endif

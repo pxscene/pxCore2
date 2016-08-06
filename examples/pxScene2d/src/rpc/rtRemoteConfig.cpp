@@ -1,7 +1,7 @@
 #include "rtRemoteConfig.h"
-#include "rtRemoteTypes.h"
 #include "rtRemoteConfigBuilder.h"
 
+#include <rtError.h>
 #include <rtLog.h>
 #include <errno.h>
 #include <rtLog.h>
@@ -12,9 +12,10 @@
 
 #include <algorithm>
 #include <functional>
-#include <limits>
-#include <vector>
 #include <iostream>
+#include <limits>
+#include <memory>
+#include <vector>
 
 static inline std::string& ltrim(std::string& s)
 {

@@ -179,7 +179,7 @@ rtRemoteNameService::openNsSocket()
  * Callback for registering objects and associated Well-known Endpoints
  */
 rtError
-rtRemoteNameService::onRegister(rtJsonDocPtr const& doc, sockaddr_storage const& /*soc*/)
+rtRemoteNameService::onRegister(rtRemoteMessagePtr const& doc, sockaddr_storage const& /*soc*/)
 {
   RT_ASSERT(doc->HasMember(kFieldNameIp));
   RT_ASSERT(doc->HasMember(kFieldNamePort));
@@ -203,21 +203,21 @@ rtRemoteNameService::onRegister(rtJsonDocPtr const& doc, sockaddr_storage const&
  * Callback for deregistering objects
  */
 rtError
-rtRemoteNameService::onDeregister(rtJsonDocPtr const& /*doc*/, sockaddr_storage const& /*soc*/)
+rtRemoteNameService::onDeregister(rtRemoteMessagePtr const& /*doc*/, sockaddr_storage const& /*soc*/)
 {
   // TODO
   return RT_OK;
 }
 
 rtError
-rtRemoteNameService::onUpdate(rtJsonDocPtr const& /*doc*/, sockaddr_storage const& /*soc*/)
+rtRemoteNameService::onUpdate(rtRemoteMessagePtr const& /*doc*/, sockaddr_storage const& /*soc*/)
 {
   // TODO
   return RT_OK;
 }
 
 rtError
-rtRemoteNameService::onLookup(rtJsonDocPtr const& doc, sockaddr_storage const& soc)
+rtRemoteNameService::onLookup(rtRemoteMessagePtr const& doc, sockaddr_storage const& soc)
 {
   auto senderId = doc->FindMember(kFieldNameSenderId);
   RT_ASSERT(senderId != doc->MemberEnd());
@@ -336,7 +336,7 @@ rtRemoteNameService::doDispatch(char const* buff, int n, sockaddr_storage* peer)
   rtLogDebug("read:\n***IN***\t\"%.*s\"\n", n, buff); // static_cast<int>(m_read_buff.size()), &m_read_buff[0]);
   #endif
 
-  rtJsonDocPtr doc;
+  rtRemoteMessagePtr doc;
   rtError err = rtParseMessage(buff, n, doc);
   if (err != RT_OK)
     return;

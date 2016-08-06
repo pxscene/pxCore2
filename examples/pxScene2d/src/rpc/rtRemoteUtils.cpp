@@ -246,7 +246,7 @@ rtRemoteParseCastType(std::string const& host)
 }
 
 rtError
-rtRemoteEndpointToDocument(rtRemoteEndpointPtr& endpoint, rtJsonDocPtr& doc)
+rtRemoteEndpointToDocument(rtRemoteEndpointPtr& endpoint, rtRemoteMessagePtr& doc)
 {
   if (auto remoteEndpoint = std::dynamic_pointer_cast<rtRemoteEndpointRemote>(endpoint))
   {
@@ -271,7 +271,7 @@ rtRemoteEndpointToDocument(rtRemoteEndpointPtr& endpoint, rtJsonDocPtr& doc)
 }
 
 rtError
-rtRemoteDocumentToEndpoint(rtJsonDocPtr const& doc, rtRemoteEndpointPtr& endpoint)
+rtRemoteDocumentToEndpoint(rtRemoteMessagePtr const& doc, rtRemoteEndpointPtr& endpoint)
 {
   RT_ASSERT(doc->HasMember(kFieldNameScheme));
   RT_ASSERT(doc->HasMember(kFieldNameEndpointType));
@@ -309,7 +309,7 @@ rtRemoteDocumentToEndpoint(rtJsonDocPtr const& doc, rtRemoteEndpointPtr& endpoin
 }
 
 rtError
-rtRemoteCombineDocuments(rtJsonDocPtr& target, rtJsonDocPtr& source)
+rtRemoteCombineDocuments(rtRemoteMessagePtr& target, rtRemoteMessagePtr& source)
 {
   RT_ASSERT(target->IsObject());
   RT_ASSERT(source->IsObject());

@@ -58,9 +58,9 @@ rtRemoteEnvironment::processRunQueue()
 }
 
 void
-rtRemoteEnvironment::registerResponseHandler(MessageHandler handler, void* argp, rtRemoteCorrelationKey k)
+rtRemoteEnvironment::registerResponseHandler(rtRemoteMessageHandler handler, void* argp, rtRemoteCorrelationKey k)
 {
-  rtRemoteCallback<MessageHandler> callback;
+  rtRemoteCallback<rtRemoteMessageHandler> callback;
   callback.Func = handler;
   callback.Arg = argp;
 

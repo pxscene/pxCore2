@@ -23,7 +23,7 @@
 namespace
 {
   void
-  addValue(rtJsonDocPtr& doc, rtRemoteEnvironment* env, rtValue const& value)
+  addValue(rtRemoteMessagePtr& doc, rtRemoteEnvironment* env, rtValue const& value)
   {
     rapidjson::Value jsonValue;
     rtError e = rtRemoteValueWriter::write(env, value, jsonValue, *doc);
@@ -34,7 +34,7 @@ namespace
   }
 
   void
-  addArgument(rtJsonDocPtr& doc, rtRemoteEnvironment* env, rtValue const& value)
+  addArgument(rtRemoteMessagePtr& doc, rtRemoteEnvironment* env, rtValue const& value)
   {
     rapidjson::Value jsonValue;
     rtError e = rtRemoteValueWriter::write(env, value, jsonValue, *doc);
@@ -81,7 +81,7 @@ rtRemoteClient::~rtRemoteClient()
 }
 
 rtError
-rtRemoteClient::send(rtJsonDocPtr const& msg)
+rtRemoteClient::send(rtRemoteMessagePtr const& msg)
 {
   if (!m_stream)
     return RT_ERROR_INVALID_OPERATION;
@@ -89,7 +89,7 @@ rtRemoteClient::send(rtJsonDocPtr const& msg)
 }
 
 rtError
-rtRemoteClient::onIncomingMessage(rtJsonDocPtr const& doc)
+rtRemoteClient::onIncomingMessage(rtRemoteMessagePtr const& doc)
 {
   if (!m_stream)
     return RT_ERROR_INVALID_OPERATION;
@@ -168,7 +168,7 @@ rtRemoteClient::startSession(std::string const& objectId, uint32_t timeout)
 {
   rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
-  rtJsonDocPtr req(new rapidjson::Document());
+  rtRemoteMessagePtr req(new rapidjson::Document());
   req->SetObject();
   req->AddMember(kFieldNameMessageType, kMessageTypeOpenSessionRequest, req->GetAllocator());
   req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
@@ -178,7 +178,7 @@ rtRemoteClient::startSession(std::string const& objectId, uint32_t timeout)
   rtError e = handle.wait(timeout);
   if (e == RT_OK)
   {
-    rtJsonDocPtr res = handle.response();
+    rtRemoteMessagePtr res = handle.response();
   }
 
   return e;
@@ -206,7 +206,7 @@ rtRemoteClient::sendKeepAlive()
 
   rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
-  rtJsonDocPtr msg(new rapidjson::Document());
+  rtRemoteMessagePtr msg(new rapidjson::Document());
   msg->SetObject();
   msg->AddMember(kFieldNameMessageType, kMessageTypeKeepAliveRequest, msg->GetAllocator());
   msg->AddMember(kFieldNameCorrelationKey,k.toString(), msg->GetAllocator());
@@ -235,7 +235,7 @@ rtRemoteClient::sendSet(std::string const& objectId, char const* propertyName, r
 {
   rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
-  rtJsonDocPtr req(new rapidjson::Document());
+  rtRemoteMessagePtr req(new rapidjson::Document());
   req->SetObject();
   req->AddMember(kFieldNameMessageType, kMessageTypeSetByNameRequest, req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
@@ -251,7 +251,7 @@ rtRemoteClient::sendSet(std::string const& objectId, uint32_t propertyIdx, rtVal
 {
   rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
-  rtJsonDocPtr req(new rapidjson::Document());
+  rtRemoteMessagePtr req(new rapidjson::Document());
   req->SetObject();
   req->AddMember(kFieldNameMessageType, kMessageTypeSetByIndexRequest, req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
@@ -263,14 +263,14 @@ rtRemoteClient::sendSet(std::string const& objectId, uint32_t propertyIdx, rtVal
 }
 
 rtError
-rtRemoteClient::sendSet(rtJsonDocPtr const& req, rtRemoteCorrelationKey k)
+rtRemoteClient::sendSet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k)
 {
   rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
 
   rtError e = handle.wait(0);
   if (e == RT_OK)
   {
-    rtJsonDocPtr res = handle.response();
+    rtRemoteMessagePtr res = handle.response();
     if (!res)
       return RT_ERROR_PROTOCOL_ERROR;
 
@@ -284,7 +284,7 @@ rtRemoteClient::sendGet(std::string const& objectId, char const* propertyName, r
 {
   rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
-  rtJsonDocPtr req(new rapidjson::Document());
+  rtRemoteMessagePtr req(new rapidjson::Document());
   req->SetObject();
   req->AddMember(kFieldNameMessageType, kMessageTypeGetByNameRequest, req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
@@ -299,7 +299,7 @@ rtRemoteClient::sendGet(std::string const& objectId, uint32_t propertyIdx, rtVal
 {
   rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
-  rtJsonDocPtr req(new rapidjson::Document());
+  rtRemoteMessagePtr req(new rapidjson::Document());
   req->SetObject();
   req->AddMember(kFieldNameMessageType, kMessageTypeGetByNameRequest, req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
@@ -310,14 +310,14 @@ rtRemoteClient::sendGet(std::string const& objectId, uint32_t propertyIdx, rtVal
 }
 
 rtError
-rtRemoteClient::sendGet(rtJsonDocPtr const& req, rtRemoteCorrelationKey k, rtValue& value)
+rtRemoteClient::sendGet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k, rtValue& value)
 {
   rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
 
   rtError e = handle.wait(0);
   if (e == RT_OK)
   {
-    rtJsonDocPtr res = handle.response();
+    rtRemoteMessagePtr res = handle.response();
     if (!res)
       return RT_ERROR_PROTOCOL_ERROR;
 
@@ -338,7 +338,7 @@ rtRemoteClient::sendCall(std::string const& objectId, std::string const& methodN
 {
   rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
-  rtJsonDocPtr req(new rapidjson::Document());
+  rtRemoteMessagePtr req(new rapidjson::Document());
   req->SetObject();
   req->AddMember(kFieldNameMessageType, kMessageTypeMethodCallRequest, req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
@@ -352,14 +352,14 @@ rtRemoteClient::sendCall(std::string const& objectId, std::string const& methodN
 }
 
 rtError
-rtRemoteClient::sendCall(rtJsonDocPtr const& req, rtRemoteCorrelationKey k, rtValue& result)
+rtRemoteClient::sendCall(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k, rtValue& result)
 {
   rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
 
   rtError e = handle.wait(0);
   if (e == RT_OK)
   {
-    rtJsonDocPtr res = handle.response();
+    rtRemoteMessagePtr res = handle.response();
     if (!res)
       return RT_ERROR_PROTOCOL_ERROR;
 

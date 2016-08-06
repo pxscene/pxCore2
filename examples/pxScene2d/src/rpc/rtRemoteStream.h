@@ -25,7 +25,7 @@ public:
     Closed
   };
 
-  using MessageHandler = rtError (*)(rtJsonDocPtr const& doc, void* argp);
+  using MessageHandler = rtError (*)(rtRemoteMessagePtr const& doc, void* argp);
   using StateChangedHandler = rtError (*)(std::shared_ptr<rtRemoteStream> const& stream,
     State state, void* argp);
 
@@ -43,8 +43,8 @@ public:
   rtError close();
   rtError connect();
   rtError connectTo(sockaddr_storage const& endpoint);
-  rtError send(rtJsonDocPtr const& msg);
-  rtRemoteAsyncHandle sendWithWait(rtJsonDocPtr const& msg, rtRemoteCorrelationKey k);
+  rtError send(rtRemoteMessagePtr const& msg);
+  rtRemoteAsyncHandle sendWithWait(rtRemoteMessagePtr const& msg, rtRemoteCorrelationKey k);
   rtError setMessageHandler(MessageHandler handler, void* argp);
   rtError setStateChangedHandler(StateChangedHandler handler, void* argp);
 

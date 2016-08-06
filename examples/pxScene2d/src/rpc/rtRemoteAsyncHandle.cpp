@@ -1,6 +1,5 @@
 #include "rtRemoteAsyncHandle.h"
 #include "rtRemoteEnvironment.h"
-#include "rtRemoteTypes.h"
 #include "rtRemoteMessage.h"
 #include "rtRemoteConfig.h"
 
@@ -21,7 +20,7 @@ rtRemoteAsyncHandle::~rtRemoteAsyncHandle()
 
 rtError
 rtRemoteAsyncHandle::onResponseHandler(std::shared_ptr<rtRemoteClient>& /*client*/,
-  rtJsonDocPtr const& doc)
+  rtRemoteMessagePtr const& doc)
 {
   m_doc = doc;
   return RT_OK;
@@ -61,13 +60,13 @@ rtRemoteAsyncHandle::wait(uint32_t timeoutInMilliseconds)
 
 
 void
-rtRemoteAsyncHandle::complete(rtJsonDocPtr const& doc, rtError e)
+rtRemoteAsyncHandle::complete(rtRemoteMessagePtr const& doc, rtError e)
 {
   m_doc = doc;
   m_error = e;
 }
 
-rtJsonDocPtr
+rtRemoteMessagePtr
 rtRemoteAsyncHandle::response() const
 {
   return m_doc;

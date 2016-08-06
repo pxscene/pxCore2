@@ -1,17 +1,19 @@
-#include <chrono>
-#include <mutex>
-#include <thread>
-
 #include "rtRemote.h"
 #include "rtRemoteCallback.h"
 #include "rtRemoteClient.h"
 #include "rtRemoteConfig.h"
+#include "rtRemoteMessageHandler.h"
 #include "rtRemoteObjectCache.h"
 #include "rtRemoteServer.h"
 #include "rtRemoteStream.h"
 #include "rtRemoteNameService.h"
 #include "rtRemoteEnvironment.h"
 #include "rtRemoteConfigBuilder.h"
+
+#include <chrono>
+#include <mutex>
+#include <thread>
+
 
 #include <rtLog.h>
 #include <unistd.h>
@@ -242,7 +244,7 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, rt
 
   if (workItem.Message)
   {
-    MessageHandler messageHandler = nullptr;
+    rtRemoteMessageHandler messageHandler = nullptr;
     void* argp = nullptr;
 
     rtRemoteCorrelationKey const k = rtMessage_GetCorrelationKey(*workItem.Message);
@@ -279,7 +281,7 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, rt
 
 void
 rtRemoteEnvironment::enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt,
-  rtJsonDocPtr const& doc)
+  rtRemoteMessagePtr const& doc)
 {
   WorkItem workItem;
   workItem.Client = clnt;

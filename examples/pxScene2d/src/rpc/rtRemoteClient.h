@@ -1,5 +1,5 @@
-#ifndef __RT_RPC_TRANSPORT_H__
-#define __RT_RPC_TRANSPORT_H__
+#ifndef __RT_REMOTE_CLIENT_H__
+#define __RT_REMOTE_CLIENT_H__
 
 #include <atomic>
 #include <condition_variable>
@@ -13,13 +13,13 @@
 #include <rtValue.h>
 
 #include <sys/socket.h>
-#include <rapidjson/document.h>
 
-#include "rtRemoteStream.h"
-#include "rtRemoteTypes.h"
-#include "rtRemoteMessage.h"
 #include "rtRemoteCorrelationKey.h"
+#include "rtRemoteEnvironment.h"
+#include "rtRemoteMessage.h"
 #include "rtRemoteSocketUtils.h"
+#include "rtRemoteStream.h"
+
 
 class rtRemoteClient: public std::enable_shared_from_this<rtRemoteClient>
 {
@@ -56,7 +56,7 @@ public:
   inline rtRemoteEnvironment* getEnvironment() const
     { return m_env; }
 
-  rtError send(rtJsonDocPtr const& msg);
+  rtError send(rtRemoteMessagePtr const& msg);
 
   inline sockaddr_storage getRemoteEndpoint() const
     { return m_stream->getRemoteEndpoint(); }
@@ -65,11 +65,11 @@ public:
     { return m_stream->getLocalEndpoint(); }
 
 private:
-  rtError sendGet(rtJsonDocPtr const& req, rtRemoteCorrelationKey k, rtValue& value);
-  rtError sendSet(rtJsonDocPtr const& req, rtRemoteCorrelationKey k);
-  rtError sendCall(rtJsonDocPtr const& req, rtRemoteCorrelationKey k, rtValue& result); 
+  rtError sendGet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k, rtValue& value);
+  rtError sendSet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k);
+  rtError sendCall(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k, rtValue& result); 
 
-  static rtError onIncomingMessage_Dispatcher(rtJsonDocPtr const& doc, void* argp)
+  static rtError onIncomingMessage_Dispatcher(rtRemoteMessagePtr const& doc, void* argp)
     { return reinterpret_cast<rtRemoteClient *>(argp)->onIncomingMessage(doc); }
 
   static rtError onInactivity_Dispatcher(time_t lastMessage, time_t now, void* argp)
@@ -79,20 +79,20 @@ private:
       rtRemoteStream::State state, void* argp)
     { return reinterpret_cast<rtRemoteClient *>(argp)->onStreamStateChanged(stream, state); }
 
-  rtError onIncomingMessage(rtJsonDocPtr const& msg);
+  rtError onIncomingMessage(rtRemoteMessagePtr const& msg);
   rtError onInactivity(time_t lastMessage, time_t now);
   rtError onStreamStateChanged(std::shared_ptr<rtRemoteStream> const& stream, rtRemoteStream::State state);
   rtError connectRpcEndpoint();
   rtError sendKeepAlive();
 
   static rtError onSynchronousResponse_Handler(std::shared_ptr<rtRemoteClient>& client,
-        rtJsonDocPtr const& msg, void* argp)
+        rtRemoteMessagePtr const& msg, void* argp)
     { return reinterpret_cast<rtRemoteClient *>(argp)->onSynchronousResponse(client, msg); }
 
-  rtError onStartSession(rtJsonDocPtr const& doc);
-  rtError waitForResponse(rtRemoteCorrelationKey k, rtJsonDocPtr& res, int timeout);
-  rtError onSynchronousResponse(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc);
-  // rtError sendSynchronousRequest(rtJsonDocPtr const& req, rtJsonDocPtr& res, int timeout);
+  rtError onStartSession(rtRemoteMessagePtr const& doc);
+  rtError waitForResponse(rtRemoteCorrelationKey k, rtRemoteMessagePtr& res, int timeout);
+  rtError onSynchronousResponse(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc);
+  // rtError sendSynchronousRequest(rtRemoteMessagePtr const& req, rtRemoteMessagePtr& res, int timeout);
   // bool moreToProcess(rtRemoteCorrelationKey k);
 
 private:

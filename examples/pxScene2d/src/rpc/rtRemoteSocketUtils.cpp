@@ -384,7 +384,7 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
 }
 
 rtError
-rtReadMessage(int fd, rtSocketBuffer& buff, rtJsonDocPtr& doc)
+rtReadMessage(int fd, rtSocketBuffer& buff, rtRemoteMessagePtr& doc)
 {
   rtError err = RT_OK;
 
@@ -423,7 +423,7 @@ rtReadMessage(int fd, rtSocketBuffer& buff, rtJsonDocPtr& doc)
 }
 
 rtError
-rtParseMessage(char const* buff, int n, rtJsonDocPtr& doc)
+rtParseMessage(char const* buff, int n, rtRemoteMessagePtr& doc)
 {
   RT_ASSERT(buff != nullptr);
   RT_ASSERT(n > 0);

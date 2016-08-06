@@ -108,19 +108,19 @@ rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
 }
 
 rtError
-rtRemoteStream::send(rtJsonDocPtr const& msg)
+rtRemoteStream::send(rtRemoteMessagePtr const& msg)
 {
   m_last_message_time = time(0);
   return rtSendDocument(*msg, m_fd, nullptr);
 }
 
 rtRemoteAsyncHandle
-rtRemoteStream::sendWithWait(rtJsonDocPtr const& msg, rtRemoteCorrelationKey k)
+rtRemoteStream::sendWithWait(rtRemoteMessagePtr const& msg, rtRemoteCorrelationKey k)
 {
   rtRemoteAsyncHandle asyncHandle(m_env, k);
   rtError e = rtSendDocument(*msg, m_fd, nullptr);
   if (e != RT_OK)
-    asyncHandle.complete(rtJsonDocPtr(), e);
+    asyncHandle.complete(rtRemoteMessagePtr(), e);
   return asyncHandle;
 }
 
@@ -143,7 +143,7 @@ rtRemoteStream::setMessageHandler(MessageHandler handler, void* argp)
 rtError
 rtRemoteStream::onIncomingMessage(rtSocketBuffer& buff, time_t now)
 {
-  rtJsonDocPtr doc = nullptr;
+  rtRemoteMessagePtr doc = nullptr;
   m_last_message_time = now;
   rtError e = rtReadMessage(m_fd, buff, doc);
   if (e != RT_OK)
@@ -201,10 +201,10 @@ rtRemoteStream::sendRequest2(rtRemoteRequest const& req, MessageHandler handler,
 #endif
 
 #if 0
-rtJsonDocPtr
+rtRemoteMessagePtr
 rtRemoteStream::waitForResponse(rtRemoteCorrelationKey key, uint32_t timeout)
 {
-  rtJsonDocPtr res = nullptr;
+  rtRemoteMessagePtr res = nullptr;
 
   rtLogInfo("waiting for: %d", (int) key);
 
@@ -242,6 +242,6 @@ rtRemoteStream::waitForResponse(rtRemoteCorrelationKey key, uint32_t timeout)
     }
   }
 
-  return rtJsonDocPtr();
+  return rtRemoteMessagePtr();
 }
 #endif

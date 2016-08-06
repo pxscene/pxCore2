@@ -6,8 +6,6 @@
 #include <rtError.h>
 #include <rapidjson/document.h>
 
-#include "rtRemoteTypes.h"
-
 class rtRemoteEnvironment;
 
 

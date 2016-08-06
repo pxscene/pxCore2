@@ -309,7 +309,7 @@ rtRemoteMulticastResolver::openUnicastSocket()
 }
 
 rtError
-rtRemoteMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage const& soc)
+rtRemoteMulticastResolver::onSearch(rtRemoteMessagePtr const& doc, sockaddr_storage const& soc)
 {
   auto senderId = doc->FindMember(kFieldNameSenderId);
   RT_ASSERT(senderId != doc->MemberEnd());
@@ -346,7 +346,7 @@ rtRemoteMulticastResolver::onSearch(rtJsonDocPtr const& doc, sockaddr_storage co
 }
 
 rtError
-rtRemoteMulticastResolver::onLocate(rtJsonDocPtr const& doc, sockaddr_storage const& /*soc*/)
+rtRemoteMulticastResolver::onLocate(rtRemoteMessagePtr const& doc, sockaddr_storage const& /*soc*/)
 {
   rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*doc);
 
@@ -381,7 +381,7 @@ rtRemoteMulticastResolver::locateObject(std::string const& name, sockaddr_storag
   if (err != RT_OK)
     return err;
 
-  rtJsonDocPtr searchResponse;
+  rtRemoteMessagePtr searchResponse;
   RequestMap::const_iterator itr;
 
   auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
@@ -490,7 +490,7 @@ rtRemoteMulticastResolver::doDispatch(char const* buff, int n, sockaddr_storage*
   rtLogDebug("read:\n***IN***\t\"%.*s\"\n", n, buff); // static_cast<int>(m_read_buff.size()), &m_read_buff[0]);
   #endif
 
-  rtJsonDocPtr doc;
+  rtRemoteMessagePtr doc;
   rtError err = rtParseMessage(buff, n, doc);
   if (err != RT_OK)
     return;

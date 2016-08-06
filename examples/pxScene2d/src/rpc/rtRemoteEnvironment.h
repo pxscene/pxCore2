@@ -2,10 +2,11 @@
 #define __RT_REMOTE_ENVIRONMENT_H__
 
 #include "rtRemoteCallback.h"
-#include "rtRemoteTypes.h"
 #include "rtRemoteCorrelationKey.h"
+#include "rtRemoteMessageHandler.h"
 
 #include <condition_variable>
+#include <map>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -37,9 +38,9 @@ struct rtRemoteEnvironment
   uint32_t RefCount;
   bool     Initialized;
 
-  void registerResponseHandler(MessageHandler handler, void* argp, rtRemoteCorrelationKey k);
+  void registerResponseHandler(rtRemoteMessageHandler handler, void* argp, rtRemoteCorrelationKey k);
   void removeResponseHandler(rtRemoteCorrelationKey k);
-  void enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt, rtJsonDocPtr const& doc);
+  void enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt, rtRemoteMessagePtr const& doc);
   rtError processSingleWorkItem(std::chrono::milliseconds timeout, rtRemoteCorrelationKey* key = nullptr);
   rtError waitForResponse(std::chrono::milliseconds timeout, rtRemoteCorrelationKey key);
 
@@ -47,7 +48,7 @@ private:
   struct WorkItem
   {
     std::shared_ptr<rtRemoteClient> Client;
-    std::shared_ptr<rapidjson::Document> Message;
+    std::shared_ptr<rtRemoteMessage> Message;
   };
 
   enum class ResponseState
@@ -56,7 +57,7 @@ private:
     Dispatched
   };
 
-  using ResponseHandlerMap = std::map< rtRemoteCorrelationKey, rtRemoteCallback<MessageHandler> >;
+  using ResponseHandlerMap = std::map< rtRemoteCorrelationKey, rtRemoteCallback<rtRemoteMessageHandler> >;
   using ResponseMap = std::map< rtRemoteCorrelationKey, ResponseState >;
 
   void processRunQueue();

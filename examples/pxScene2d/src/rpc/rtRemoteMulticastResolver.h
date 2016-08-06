@@ -8,7 +8,6 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include <rtObject.h>
-#include <rapidjson/document.h>
 
 #include "rtRemoteCorrelationKey.h"
 #include "rtRemoteTypes.h"
@@ -31,10 +30,10 @@ public:
     uint32_t timeout) override;
 
 private:
-  using CommandHandler = rtError (rtRemoteMulticastResolver::*)(rtJsonDocPtr const&, sockaddr_storage const&);
+  using CommandHandler = rtError (rtRemoteMulticastResolver::*)(rtRemoteMessagePtr const&, sockaddr_storage const&);
   using HostedObjectsMap = std::map< std::string, sockaddr_storage >;
   using CommandHandlerMap = std::map< std::string, CommandHandler >;
-  using RequestMap = std::map< rtRemoteCorrelationKey, rtJsonDocPtr >;
+  using RequestMap = std::map< rtRemoteCorrelationKey, rtRemoteMessagePtr >;
 
   void runListener();
   void doRead(int fd, rtSocketBuffer& buff);
@@ -45,8 +44,8 @@ private:
   rtError openMulticastSocket();
 
   // command handlers
-  rtError onSearch(rtJsonDocPtr const& doc, sockaddr_storage const& soc);
-  rtError onLocate(rtJsonDocPtr const& doc, sockaddr_storage const& soc);
+  rtError onSearch(rtRemoteMessagePtr const& doc, sockaddr_storage const& soc);
+  rtError onLocate(rtRemoteMessagePtr const& doc, sockaddr_storage const& soc);
 
 private:
   sockaddr_storage  m_mcast_dest;

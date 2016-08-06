@@ -192,25 +192,25 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
   }
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeOpenSessionRequest, 
-    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onOpenSession_Dispatch, this)));
+    rtRemoteCallback<rtRemoteMessageHandler>(&rtRemoteServer::onOpenSession_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeGetByNameRequest,
-    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onGet_Dispatch, this)));
+    rtRemoteCallback<rtRemoteMessageHandler>(&rtRemoteServer::onGet_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeGetByIndexRequest,
-    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onGet_Dispatch, this)));
+    rtRemoteCallback<rtRemoteMessageHandler>(&rtRemoteServer::onGet_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeSetByNameRequest,
-    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onSet_Dispatch, this)));
+    rtRemoteCallback<rtRemoteMessageHandler>(&rtRemoteServer::onSet_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeSetByIndexRequest,
-    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onSet_Dispatch, this)));
+    rtRemoteCallback<rtRemoteMessageHandler>(&rtRemoteServer::onSet_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeMethodCallRequest,
-    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onMethodCall_Dispatch, this)));
+    rtRemoteCallback<rtRemoteMessageHandler>(&rtRemoteServer::onMethodCall_Dispatch, this)));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeKeepAliveRequest,
-    rtRemoteCallback<MessageHandler>(&rtRemoteServer::onKeepAlive_Dispatch, this)));
+    rtRemoteCallback<rtRemoteMessageHandler>(&rtRemoteServer::onKeepAlive_Dispatch, this)));
 }
 
 rtRemoteServer::~rtRemoteServer()
@@ -384,7 +384,7 @@ rtRemoteServer::onClientStateChanged(std::shared_ptr<rtRemoteClient> const& clie
 }
 
 rtError
-rtRemoteServer::onIncomingMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg)
+rtRemoteServer::onIncomingMessage(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& msg)
 {
   rtLogInfo("onIncomingMessage");
 
@@ -397,7 +397,7 @@ rtRemoteServer::onIncomingMessage(std::shared_ptr<rtRemoteClient>& client, rtJso
 }
 
 rtError
-rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg)
+rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& msg)
 {
   rtError e = RT_FAIL;
   char const* msgType = rtMessage_GetMessageType(*msg);
@@ -406,7 +406,7 @@ rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDo
   if (itr == m_command_handlers.end())
     return RT_OK;
 
-  rtRemoteCallback<MessageHandler> handler = itr->second;
+  rtRemoteCallback<rtRemoteMessageHandler> handler = itr->second;
   if (handler.Func != nullptr)
     e = handler.Func(client, msg, handler.Arg);
   else
@@ -591,7 +591,7 @@ rtRemoteServer::openRpcListener()
 }
 
 rtError
-rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& req)
+rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& req)
 {
   rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*req);
   char const* objectId = rtMessage_GetObjectId(*req);
@@ -618,7 +618,7 @@ rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDoc
 
   rtError err = RT_OK;
 
-  rtJsonDocPtr res(new rapidjson::Document());
+  rtRemoteMessagePtr res(new rapidjson::Document());
   res->SetObject();
   res->AddMember(kFieldNameMessageType, kMessageTypeOpenSessionResponse, res->GetAllocator());
   res->AddMember(kFieldNameObjectId, std::string(objectId), res->GetAllocator());
@@ -629,12 +629,12 @@ rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDoc
 }
 
 rtError
-rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc)
+rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc)
 {
   rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*doc);
   char const* objectId = rtMessage_GetObjectId(*doc);
 
-  rtJsonDocPtr res(new rapidjson::Document());
+  rtRemoteMessagePtr res(new rapidjson::Document());
   res->SetObject();
   res->AddMember(kFieldNameMessageType, kMessageTypeGetByNameResponse, res->GetAllocator());
   res->AddMember(kFieldNameCorrelationKey, key.toString(), res->GetAllocator());
@@ -700,12 +700,12 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr cons
 }
 
 rtError
-rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc)
+rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc)
 {
   rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*doc);
   char const* objectId = rtMessage_GetObjectId(*doc);
 
-  rtJsonDocPtr res(new rapidjson::Document());
+  rtRemoteMessagePtr res(new rapidjson::Document());
   res->SetObject();
   res->AddMember(kFieldNameMessageType, kMessageTypeSetByNameResponse, res->GetAllocator());
   res->AddMember(kFieldNameCorrelationKey, key.toString(), res->GetAllocator());
@@ -752,13 +752,13 @@ rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr cons
 }
 
 rtError
-rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc)
+rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc)
 {
   rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*doc);
   char const* objectId = rtMessage_GetObjectId(*doc);
   rtError err   = RT_OK;
 
-  rtJsonDocPtr res(new rapidjson::Document());
+  rtRemoteMessagePtr res(new rapidjson::Document());
   res->SetObject();
   res->AddMember(kFieldNameMessageType, kMessageTypeMethodCallResponse, res->GetAllocator());
   res->AddMember(kFieldNameCorrelationKey, key.toString(), res->GetAllocator());
@@ -830,7 +830,7 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocP
 }
 
 rtError
-rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& req)
+rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& req)
 {
   rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*req);
 
@@ -853,7 +853,7 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPt
     rtLogInfo("got keep-alive without any interesting information");
   }
 
-  rtJsonDocPtr res(new rapidjson::Document());
+  rtRemoteMessagePtr res(new rapidjson::Document());
   res->SetObject();
   res->AddMember(kFieldNameCorrelationKey, key.toString(), res->GetAllocator());
   res->AddMember(kFieldNameMessageType, kMessageTypeKeepAliveResponse, res->GetAllocator());

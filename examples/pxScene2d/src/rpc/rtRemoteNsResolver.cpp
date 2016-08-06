@@ -136,7 +136,7 @@ rtRemoteNsResolver::registerObject(std::string const& name, sockaddr_storage con
   if (err != RT_OK)
     return err;
 
-  rtJsonDocPtr searchResponse;
+  rtRemoteMessagePtr searchResponse;
   RequestMap::const_iterator itr;
 
   auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
@@ -210,7 +210,7 @@ rtRemoteNsResolver::locateObject(std::string const& name, sockaddr_storage& endp
   if (err != RT_OK)
     return err;
 
-  rtJsonDocPtr searchResponse;
+  rtRemoteMessagePtr searchResponse;
   RequestMap::const_iterator itr;
 
   auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
@@ -378,7 +378,7 @@ rtRemoteNsResolver::openSocket()
 }
 
 rtError
-rtRemoteNsResolver::onLocate(rtJsonDocPtr const& doc, sockaddr_storage const& /*soc*/)
+rtRemoteNsResolver::onLocate(rtRemoteMessagePtr const& doc, sockaddr_storage const& /*soc*/)
 {
   rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*doc);
 
@@ -456,7 +456,7 @@ rtRemoteNsResolver::doDispatch(char const* buff, int n, sockaddr_storage* peer)
   rtLogDebug("read:\n***IN***\t\"%.*s\"\n", n, buff); // static_cast<int>(m_read_buff.size()), &m_read_buff[0]);
   #endif
 
-  rtJsonDocPtr doc;
+  rtRemoteMessagePtr doc;
   rtError err = rtParseMessage(buff, n, doc);
   if (err != RT_OK)
     return;

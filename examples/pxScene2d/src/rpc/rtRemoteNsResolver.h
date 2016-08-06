@@ -30,10 +30,10 @@ public:
   rtError registerObject(std::string const& name, sockaddr_storage const& endpoint, uint32_t timeout);
 
 private:
-  using CommandHandler = rtError (rtRemoteNsResolver::*)(rtJsonDocPtr const&, sockaddr_storage const&);
+  using CommandHandler = rtError (rtRemoteNsResolver::*)(rtRemoteMessagePtr const&, sockaddr_storage const&);
   using HostedObjectsMap = std::map< std::string, sockaddr_storage >;
   using CommandHandlerMap = std::map< std::string, CommandHandler >;
-  using RequestMap = std::map< rtRemoteCorrelationKey, rtJsonDocPtr >;
+  using RequestMap = std::map< rtRemoteCorrelationKey, rtRemoteMessagePtr >;
 
   void runListener();
   void doRead(int fd, rtSocketBuffer& buff);
@@ -43,7 +43,7 @@ private:
   rtError openSocket();
 
   // command handlers
-  rtError onLocate(rtJsonDocPtr const& doc, sockaddr_storage const& soc);
+  rtError onLocate(rtRemoteMessagePtr const& doc, sockaddr_storage const& soc);
 
 private:
 
