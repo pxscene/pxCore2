@@ -87,7 +87,7 @@ rtRemoteStreamSelector::shutdown()
 rtError
 rtRemoteStreamSelector::doPollFds()
 {
-  rtSocketBuffer buff;
+  rtRemoteSocketBuffer buff;
   buff.reserve(1024 * 1024);
   buff.resize(1024 * 1024);
 

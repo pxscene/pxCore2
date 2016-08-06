@@ -36,7 +36,7 @@ private:
   using RequestMap = std::map< rtRemoteCorrelationKey, rtRemoteMessagePtr >;
 
   void runListener();
-  void doRead(int fd, rtSocketBuffer& buff);
+  void doRead(int fd, rtRemoteSocketBuffer& buff);
   void doDispatch(char const* buff, int n, sockaddr_storage* peer);
 
   rtError init();

@@ -393,7 +393,7 @@ rtRemoteNsResolver::onLocate(rtRemoteMessagePtr const& doc, sockaddr_storage con
 void
 rtRemoteNsResolver::runListener()
 {
-  rtSocketBuffer buff;
+  rtRemoteSocketBuffer buff;
   buff.reserve(1024 * 1024);
   buff.resize(1024 * 1024);
   rtLogInfo("running listener");
@@ -432,7 +432,7 @@ rtRemoteNsResolver::runListener()
 }
 
 void
-rtRemoteNsResolver::doRead(int fd, rtSocketBuffer& buff)
+rtRemoteNsResolver::doRead(int fd, rtRemoteSocketBuffer& buff)
 {
   // we only suppor v4 right now. not sure how recvfrom supports v6 and v4
   sockaddr_storage src;

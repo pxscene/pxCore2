@@ -27,7 +27,7 @@ rtError rtGetInetAddr(sockaddr_storage const& ss, void** addr);
 rtError rtGetPort(sockaddr_storage const& ss, uint16_t* port);
 rtError rtPushFd(fd_set* fds, int fd, int* maxFd);
 rtError rtReadUntil(int fd, char* buff, int n);
-rtError rtReadMessage(int fd, rtSocketBuffer& buff, rtRemoteMessagePtr& doc);
+rtError rtReadMessage(int fd, rtRemoteSocketBuffer& buff, rtRemoteMessagePtr& doc);
 rtError rtParseMessage(char const* buff, int n, rtRemoteMessagePtr& doc);
 std::string rtSocketToString(sockaddr_storage const& ss);
 

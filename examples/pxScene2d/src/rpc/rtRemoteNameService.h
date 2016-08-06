@@ -36,7 +36,7 @@ private:
   rtError onLookup(rtRemoteMessagePtr const& doc, sockaddr_storage const& soc);
 
   void runListener();
-  void doRead(int fd, rtSocketBuffer& buff);
+  void doRead(int fd, rtRemoteSocketBuffer& buff);
   void doDispatch(char const* buff, int n, sockaddr_storage* peer);
   // rtError openDbConnection();
   rtError openNsSocket();

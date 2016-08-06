@@ -141,7 +141,7 @@ rtRemoteStream::setMessageHandler(MessageHandler handler, void* argp)
 }
 
 rtError
-rtRemoteStream::onIncomingMessage(rtSocketBuffer& buff, time_t now)
+rtRemoteStream::onIncomingMessage(rtRemoteSocketBuffer& buff, time_t now)
 {
   rtRemoteMessagePtr doc = nullptr;
   m_last_message_time = now;

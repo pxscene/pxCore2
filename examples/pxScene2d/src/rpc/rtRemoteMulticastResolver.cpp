@@ -423,7 +423,7 @@ rtRemoteMulticastResolver::locateObject(std::string const& name, sockaddr_storag
 void
 rtRemoteMulticastResolver::runListener()
 {
-  rtSocketBuffer buff;
+  rtRemoteSocketBuffer buff;
   buff.reserve(1024 * 1024);
   buff.resize(1024 * 1024);
 
@@ -466,7 +466,7 @@ rtRemoteMulticastResolver::runListener()
 }
 
 void
-rtRemoteMulticastResolver::doRead(int fd, rtSocketBuffer& buff)
+rtRemoteMulticastResolver::doRead(int fd, rtRemoteSocketBuffer& buff)
 {
   // we only suppor v4 right now. not sure how recvfrom supports v6 and v4
   sockaddr_storage src;

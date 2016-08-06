@@ -55,7 +55,7 @@ public:
     { return m_remote_endpoint; }
 
 private:
-  rtError onIncomingMessage(rtSocketBuffer& buff, time_t now);
+  rtError onIncomingMessage(rtRemoteSocketBuffer& buff, time_t now);
 
 private:
   int                           m_fd;

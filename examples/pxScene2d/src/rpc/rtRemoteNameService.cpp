@@ -272,7 +272,7 @@ rtRemoteNameService::onLookup(rtRemoteMessagePtr const& doc, sockaddr_storage co
 void
 rtRemoteNameService::runListener()
 {
-  rtSocketBuffer buff;
+  rtRemoteSocketBuffer buff;
   buff.reserve(1024 * 1024);
   buff.resize(1024 * 1024);
 
@@ -311,7 +311,7 @@ rtRemoteNameService::runListener()
 }
 
 void
-rtRemoteNameService::doRead(int fd, rtSocketBuffer& buff)
+rtRemoteNameService::doRead(int fd, rtRemoteSocketBuffer& buff)
 {
   rtLogInfo("doing read");
   // we only suppor v4 right now. not sure how recvfrom supports v6 and v4

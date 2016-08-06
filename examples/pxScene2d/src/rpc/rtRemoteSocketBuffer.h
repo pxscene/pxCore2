@@ -3,6 +3,6 @@
 
 #include <vector>
 
-using rtSocketBuffer = std::vector<char>;
+using rtRemoteSocketBuffer = std::vector<char>;
 
 #endif
