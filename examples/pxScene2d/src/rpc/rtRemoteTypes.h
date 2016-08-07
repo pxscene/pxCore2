@@ -9,6 +9,6 @@ enum class rtConnType     { NONE, STREAM, DGRAM };
 
 class rtRemoteIEndpoint;
 
-using rtRemoteEndpointPtr = std::shared_ptr< rtRemoteIEndpoint >;
+
 
 #endif

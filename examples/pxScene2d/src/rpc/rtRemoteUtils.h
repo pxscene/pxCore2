@@ -3,6 +3,7 @@
 
 #include "rtRemoteMessage.h"
 #include "rtRemoteTypes.h"
+#include "rtRemoteEndpoint.h"
 
 #include <rtError.h>
 #include <string>

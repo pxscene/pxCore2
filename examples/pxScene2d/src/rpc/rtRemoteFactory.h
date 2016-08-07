@@ -1,5 +1,6 @@
 #include "rtRemoteIResolver.h"
 #include "rtRemoteTypes.h"
+#include "rtRemoteEnvironment.h"
 
 enum rtResolverType
 {
