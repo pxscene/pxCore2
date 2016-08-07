@@ -173,6 +173,7 @@ rtRemoteMapperFile::lookupEndpoint(std::string const& objectId, rtRemoteEndpoint
   // result contains endpoint's URI (if registered)
   if (!objectUri.empty())
     return RT_OK;
+    // TODO: need to wait till Factory changes are integrated into odessa
     //return m_env->Factory->createEndpoint(objectUri, endpoint);
   else
     return RT_FAIL;

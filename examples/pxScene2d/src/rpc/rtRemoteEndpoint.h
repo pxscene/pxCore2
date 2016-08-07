@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <stdint.h>
+#include <memory>
 
 /* Abstract base class for endpoint addresses */
 class rtRemoteIEndpoint
