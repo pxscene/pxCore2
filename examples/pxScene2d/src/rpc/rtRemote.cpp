@@ -132,18 +132,6 @@ rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj)
   return env->Server->findObject(id, obj, 3000);
 }
 
-// rtError
-// rtRemoteRunOnce(rtRemoteEnvironment* env, uint32_t timeout)
-// {
-//   // TODO: Is this the right thing to do?
-//   if (env->Config->server_use_dispatch_thread())
-//   {
-//     RT_ASSERT(false);
-//     return RT_ERROR_INVALID_OPERATION;
-//   }
-//   return env->processSingleWorkItem(std::chrono::milliseconds(timeout));
-// }
-
 rtError
 rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
 {
@@ -154,7 +142,9 @@ rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
   rtError e = RT_OK;
 
   auto time_remaining = std::chrono::milliseconds(timeout);
-  while ((time_remaining > std::chrono::milliseconds(0)) && (e == RT_OK))
+  
+  // should pull at least one item off queue (even if initial timeout is zero)
+  do
   {
     auto start = std::chrono::steady_clock::now();
     e = env->processSingleWorkItem();
@@ -162,7 +152,7 @@ rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
       return e;
     auto end = std::chrono::steady_clock::now();
     time_remaining -= std::chrono::milliseconds((end - start).count());
-  }
+  } while ((time_remaining > std::chrono::milliseconds(0)) && (e == RT_OK))
 
   return e;
 }
