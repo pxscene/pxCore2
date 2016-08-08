@@ -37,12 +37,12 @@ rtRemoteAsyncHandle::wait(uint32_t timeoutInMilliseconds)
 
   if (!m_env->Config->server_use_dispatch_thread())
   {
-    time_t timeout = time(nullptr) + ((timeoutInMilliseconds+500) / 1000);
+    timeoutInMilliseconds = 100000;
+    auto timeout = std::chrono::system_clock::now() + std::chrono::milliseconds(timeoutInMilliseconds);
 
     rtRemoteCorrelationKey k = kInvalidCorrelationKey;
-    while (timeout > time(nullptr))
+    while (std::chrono::system_clock::now() < timeout)
     {
-      // timeout is broken @see impl of processSingleWorkItem
       rtError e = m_env->processSingleWorkItem(&k);
 
       if ((e == RT_OK) && (k == m_key))

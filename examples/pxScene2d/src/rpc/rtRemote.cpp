@@ -133,7 +133,7 @@ rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj)
 }
 
 rtError
-rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
+rtRemoteRun(rtRemoteEnvironment* env, uint32_t delay)
 {
 
   if (env->Config->server_use_dispatch_thread())
@@ -141,18 +141,18 @@ rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
 
   rtError e = RT_OK;
 
-  auto time_remaining = std::chrono::milliseconds(timeout);
+  auto timeout = std::chrono::system_clock::now() + std::chrono::milliseconds(delay);
   
   // should pull at least one item off queue (even if initial timeout is zero)
   do
   {
-    auto start = std::chrono::steady_clock::now();
+    // auto start = std::chrono::steady_clock::now();
     e = env->processSingleWorkItem();
     if (e != RT_OK)
       return e;
     auto end = std::chrono::steady_clock::now();
-    time_remaining -= std::chrono::milliseconds((end - start).count());
-  } while ((time_remaining > std::chrono::milliseconds(0)) && (e == RT_OK));
+    // time_remaining -= std::chrono::milliseconds((end - start).count());
+  } while ((std::chrono::system_clock::now() < timeout) && (e == RT_OK));
 
   return e;
 }
