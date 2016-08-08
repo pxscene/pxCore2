@@ -1,6 +1,7 @@
 #include "rtRemoteCorrelationKey.h"
-#include "rtRemoteTypes.h"
+#include "rtRemoteEndpoint.h"
 #include "rtRemoteSocketUtils.h"
+#include "rtRemoteEnvironment.h"
 
 #include <condition_variable>
 #include <map>

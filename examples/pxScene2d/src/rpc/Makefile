@@ -36,10 +36,13 @@ RTRPC_SRCS=\
   rtRemoteConfigBuilder.cpp \
   rtRemoteAsyncHandle.cpp \
   rtRemoteUtils.cpp \
-  rtRemoteEndpoint.cpp \
   rtRemoteEnvironment.cpp \
   rtRemoteStreamSelector.cpp \
-  rtGuid.cpp
+  rtGuid.cpp \
+  rtRemoteMapperMap.cpp \
+  rtRemoteMapperFile.cpp \
+  rtRemoteMapperSql.cpp \
+  rtRemoteEndpointHandleStreamServer.cpp
 
 SAMPLEAPP_SRCS=\
   rpc_main.cpp
