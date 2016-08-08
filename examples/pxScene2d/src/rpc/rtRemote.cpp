@@ -152,7 +152,7 @@ rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
       return e;
     auto end = std::chrono::steady_clock::now();
     time_remaining -= std::chrono::milliseconds((end - start).count());
-  } while ((time_remaining > std::chrono::milliseconds(0)) && (e == RT_OK))
+  } while ((time_remaining > std::chrono::milliseconds(0)) && (e == RT_OK));
 
   return e;
 }
