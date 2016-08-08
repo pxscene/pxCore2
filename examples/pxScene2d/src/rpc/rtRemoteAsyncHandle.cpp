@@ -43,8 +43,7 @@ rtRemoteAsyncHandle::wait(uint32_t timeoutInMilliseconds)
     while (timeout > time(nullptr))
     {
       // timeout is broken @see impl of processSingleWorkItem
-      rtError e = m_env->processSingleWorkItem(
-          std::chrono::milliseconds(timeoutInMilliseconds), &k);
+      rtError e = m_env->processSingleWorkItem(&k);
 
       if ((e == RT_OK) && (k == m_key))
       {
