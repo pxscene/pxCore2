@@ -119,7 +119,7 @@ public:
   virtual void onUpdate(double t);
   virtual void onDraw();
 
-  rtError setProperty(rtString &prop, rtString &val) const;
+  rtError setProperty(const rtString &prop, const rtValue &val) const;
   rtError callMethod(const char* messageName, int numArgs, const rtValue* args);
   rtError addListener(const rtString& eventName, const rtFunctionRef& f);
   rtError delListener(const rtString& eventName, const rtFunctionRef& f);
