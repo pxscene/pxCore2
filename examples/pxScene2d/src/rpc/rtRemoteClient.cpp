@@ -320,7 +320,11 @@ rtRemoteClient::sendGet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k,
     rtRemoteMessagePtr res = handle.response();
     if (!res)
       return RT_ERROR_PROTOCOL_ERROR;
-
+    rtError statusCode = rtMessage_GetStatusCode(*res);
+    if (statusCode != RT_OK)
+    {
+       return statusCode;
+    }
     auto itr = res->FindMember(kFieldNameValue);
     if (itr == res->MemberEnd())
       return RT_ERROR_PROTOCOL_ERROR;
