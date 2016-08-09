@@ -163,7 +163,8 @@ void Test_Echo_Client()
     memset(buff, 0, sizeof(buff));
     sprintf(buff, "hello:%06d", i++);
     e = obj.set("message", buff);
-    rtLogInfo("set:%s", rtStrError(e));
+    if (e != RT_ERROR_QUEUE_EMPTY)
+      rtLogInfo("set:%s", rtStrError(e));
 
     e = rtRemoteRun(env, 1000);
   }
@@ -177,7 +178,8 @@ void Test_Echo_Server()
   while (true)
   {
     e = rtRemoteRun(env, 3000);
-    rtLogInfo("run:%s", rtStrError(e));
+    if (e != RT_ERROR_QUEUE_EMPTY)
+      rtLogInfo("run:%s", rtStrError(e));
   }
 }
 
@@ -392,8 +394,8 @@ int main(int argc, char* /*argv*/[])
 
     if (argc == 2)
     {
-      // Test_Echo_Client();
-      Test_FunctionReferences_Client();
+      Test_Echo_Client();
+      //Test_FunctionReferences_Client();
       //Test_MethodCall_Client();
       // Test_SetProperty_Object_Client();
       //Test_SetProperty_Basic_Client();
@@ -401,8 +403,8 @@ int main(int argc, char* /*argv*/[])
     else
     {
       //Test_SetProperty_Basic_Server();
-      // Test_Echo_Server();
-      Test_FunctionReferences_Server();
+      Test_Echo_Server();
+      //Test_FunctionReferences_Server();
       //Test_SetProperty_Object_Server();
       //Test_MethodCall_Server();
     }
