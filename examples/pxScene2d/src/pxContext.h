@@ -60,8 +60,8 @@ class pxContext {
 
   void drawImage(float x, float y, float w, float h, pxTextureRef t,
                  pxTextureRef mask, bool useTextureDimsAlways = true, float* color = NULL,
-                 pxConstantsStretch::constants xStretch = pxConstantsStretch::NONE,
-                 pxConstantsStretch::constants yStretch = pxConstantsStretch::NONE );
+                 pxConstantsStretch::constants xStretch = pxConstantsStretch::STRETCH,
+                 pxConstantsStretch::constants yStretch = pxConstantsStretch::STRETCH );
 
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxTextureRef texture);

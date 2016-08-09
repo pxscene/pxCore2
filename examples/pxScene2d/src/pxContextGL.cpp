@@ -1086,6 +1086,8 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   float tw;
   switch(xStretch) {
   case pxConstantsStretch::NONE:
+    tw = iw/w;
+    break;
   case pxConstantsStretch::STRETCH:
     tw = 1.0;
     break;
@@ -1098,6 +1100,8 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   float th;
   switch(yStretch) {
   case pxConstantsStretch::NONE:
+    th = ih/h;
+    break;
   case pxConstantsStretch::STRETCH:
     th = 1.0;
     break;
