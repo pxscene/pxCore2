@@ -4,7 +4,13 @@ set -e
 
 #--------- CURL 
 cd curl
+
+if [ "$(uname)" == "Darwin" ]; then
+./configure --with-darwinssl
+else
 ./configure
+fi
+
 make all -j3
 cd ..
 
