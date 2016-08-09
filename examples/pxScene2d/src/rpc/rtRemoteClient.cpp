@@ -176,6 +176,9 @@ rtRemoteClient::startSession(std::string const& objectId, uint32_t timeout)
 
   rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
   rtError e = handle.wait(timeout);
+  if (e != RT_OK)
+    rtLogDebug("e: %s", rtStrError(e));
+
   if (e == RT_OK)
   {
     rtRemoteMessagePtr res = handle.response();

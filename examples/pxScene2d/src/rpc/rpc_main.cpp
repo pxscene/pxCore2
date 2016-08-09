@@ -14,6 +14,21 @@
 
 rtRemoteEnvironment* env = nullptr;
 
+rtError
+rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow)
+{
+  rtError e = RT_OK;
+
+  auto endTime = std::chrono::milliseconds(millisecondsFromNow) + std::chrono::system_clock::now();
+  while (endTime > std::chrono::system_clock::now())
+  {
+    e = rtRemoteRun(env, 16);
+    if (e != RT_OK && e != RT_ERROR_QUEUE_EMPTY)
+      return e;
+  }
+  return e;
+}
+
 class rtLcd : public rtObject
 {
   rtDeclareObject(rtLcd, rtObject);
@@ -158,6 +173,7 @@ void Test_Echo_Client()
 
   int i = 0;
   char buff[256];
+
   while (true)
   {
     memset(buff, 0, sizeof(buff));
@@ -165,7 +181,8 @@ void Test_Echo_Client()
     e = obj.set("message", buff);
     rtLogInfo("set:%s", rtStrError(e));
 
-    e = rtRemoteRunOnce(env, 1000);
+    e = rtRemoteRunUntil(env, 1000);
+    rtLogInfo("rtRemoteRun:%s", rtStrError(e));
   }
 }
 
@@ -176,8 +193,8 @@ void Test_Echo_Server()
   RT_ASSERT(e == RT_OK);
   while (true)
   {
-    e = rtRemoteRunOnce(env, 3000);
-    rtLogInfo("run:%s", rtStrError(e));
+    e = rtRemoteRunUntil(env, 1000);
+    rtLogInfo("rtRemoteRun:%s", rtStrError(e));
   }
 }
 
@@ -216,9 +233,8 @@ void Test_SetProperty_Basic_Server()
   RT_ASSERT(e == RT_OK);
   while (true)
   {
-    rtError e = rtRemoteRunOnce(env, 5000);
-    if (e != RT_OK)
-      rtLogInfo("rtRemoteRun:%s", rtStrError(e));
+    rtError e = rtRemoteRunUntil(env, 1000);
+    rtLogInfo("rtRemoteRun:%s", rtStrError(e));
   }
 }
 
@@ -233,8 +249,8 @@ void Test_FunctionReferences_Client()
 
   while (true)
   {
-    e = rtRemoteRunOnce(env, 5000);
-    rtLogInfo("e:%s", rtStrError(e));
+    rtError e = rtRemoteRunUntil(env, 1000);
+    rtLogInfo("rtRemoteRun:%s", rtStrError(e));
   }
 
   while (1) sleep(1);
@@ -273,10 +289,8 @@ void Test_FunctionReferences_Server()
       rtLogInfo("onTempChanged is null");
     }
 
-    e = rtRemoteRun(env, 2000);
+    rtError e = rtRemoteRunUntil(env, 1000);
     rtLogInfo("rtRemoteRun:%s", rtStrError(e));
-
-    sleep(1);
   }
 }
 
@@ -308,8 +322,8 @@ Test_MethodCall_Server()
   RT_ASSERT(e == RT_OK);
   while (true)
   {
-    e = rtRemoteRunOnce(env, 5000);
-    rtLogInfo("e:%s", rtStrError(e));
+    rtError e = rtRemoteRunUntil(env, 1000);
+    rtLogInfo("rtRemoteRun:%s", rtStrError(e));
   }
 }
 
@@ -357,8 +371,8 @@ Test_SetProperty_Object_Server()
   RT_ASSERT(e == RT_OK);
   while (true)
   {
-    e = rtRemoteRunOnce(env, 5000);
-    rtLogInfo("rtRemoteRunOnce:%s", rtStrError(e));
+    rtError e = rtRemoteRunUntil(env, 1000);
+    rtLogInfo("rtRemoteRun:%s", rtStrError(e));
   }
 }
 
@@ -391,18 +405,18 @@ int main(int argc, char* /*argv*/[])
 
     if (argc == 2)
     {
-      // Test_Echo_Client();
+      Test_Echo_Client();
       // Test_FunctionReferences_Client();
       // Test_MethodCall_Client();
       // Test_SetProperty_Object_Client();
-      Test_SetProperty_Basic_Client();
+      // Test_SetProperty_Basic_Client();
     }
     else
     {
-      Test_SetProperty_Basic_Server();
-      // Test_Echo_Server();
+      // Test_SetProperty_Basic_Server();
+      Test_Echo_Server();
       // Test_FunctionReferences_Server();
-      Test_SetProperty_Object_Server();
+      // Test_SetProperty_Object_Server();
       // Test_MethodCall_Server();
     }
 

@@ -8,6 +8,7 @@ rtRemoteAsyncHandle::rtRemoteAsyncHandle(rtRemoteEnvironment* env, rtRemoteCorre
   , m_key(k)
   , m_error(RT_ERROR_IN_PROGRESS)
 {
+  RT_ASSERT(m_key != rtGuid::null());
   m_env->registerResponseHandler(&rtRemoteAsyncHandle::onResponseHandler_Dispatch,
     this, m_key);
 }
@@ -35,27 +36,32 @@ rtRemoteAsyncHandle::wait(uint32_t timeoutInMilliseconds)
   if (timeoutInMilliseconds == 0)
     timeoutInMilliseconds = m_env->Config->environment_request_timeout();
 
+  rtError e = RT_OK;
+
   if (!m_env->Config->server_use_dispatch_thread())
   {
     time_t timeout = time(nullptr) + ((timeoutInMilliseconds+500) / 1000);
+    e = m_error = RT_ERROR_TIMEOUT;
 
-    rtRemoteCorrelationKey k = kInvalidCorrelationKey;
     while (timeout > time(nullptr))
     {
-      // timeout is broken @see impl of processSingleWorkItem
-      rtError e = m_env->processSingleWorkItem(
-          std::chrono::milliseconds(timeoutInMilliseconds), &k);
-
+      rtRemoteCorrelationKey k = kInvalidCorrelationKey;
+      e = m_env->processSingleWorkItem(std::chrono::milliseconds(timeoutInMilliseconds), true, &k);
       if ((e == RT_OK) && (k == m_key))
       {
         m_env->removeResponseHandler(m_key);
         m_key = kInvalidCorrelationKey;
-        return RT_OK;
+        e = m_error = RT_OK;
+        break;
       }
     }
   }
+  else
+  {
+    e = m_env->waitForResponse(std::chrono::milliseconds(timeoutInMilliseconds), m_key);
+  }
 
-  return m_env->waitForResponse(std::chrono::milliseconds(timeoutInMilliseconds), m_key);
+  return e;
 }
 
 

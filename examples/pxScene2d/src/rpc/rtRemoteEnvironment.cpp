@@ -44,7 +44,7 @@ rtRemoteEnvironment::processRunQueue()
 
   while (true)
   {
-    rtError e = processSingleWorkItem(timeout, nullptr);
+    rtError e = processSingleWorkItem(timeout, true,  nullptr);
     if (e != RT_OK)
     {
       std::unique_lock<std::mutex> lock(m_queue_mutex);

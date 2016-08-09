@@ -41,7 +41,7 @@ struct rtRemoteEnvironment
   void registerResponseHandler(rtRemoteMessageHandler handler, void* argp, rtRemoteCorrelationKey k);
   void removeResponseHandler(rtRemoteCorrelationKey k);
   void enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt, rtRemoteMessagePtr const& doc);
-  rtError processSingleWorkItem(std::chrono::milliseconds timeout, rtRemoteCorrelationKey* key = nullptr);
+  rtError processSingleWorkItem(std::chrono::milliseconds timeout, bool wait, rtRemoteCorrelationKey* key);
   rtError waitForResponse(std::chrono::milliseconds timeout, rtRemoteCorrelationKey key);
 
 private:

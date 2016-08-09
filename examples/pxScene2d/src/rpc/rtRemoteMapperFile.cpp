@@ -134,7 +134,7 @@ rtRemoteMapperFile::deregisterEndpoint(std::string const& objectId)
 }
 
 rtError
-rtRemoteMapperFile::lookupEndpoint(std::string const& objectId, rtRemoteEndpointPtr& endpoint)
+rtRemoteMapperFile::lookupEndpoint(std::string const& objectId, rtRemoteEndpointPtr& /*endpoint*/)
 {
   FILE* fp;
   fp = fopen(m_file_path.c_str(), "r");

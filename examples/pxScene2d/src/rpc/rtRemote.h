@@ -59,18 +59,6 @@ rtError
 rtRemoteShutdown(rtRemoteEnvironment* env);
 
 /**
- * Use this when not running with a dedicated sub-system thread.
- * All incoming requests will execute on the thread calling this
- * function. It will execute a single incoming message. The timeout
- * is used to control the wait time for incoming messages, and cannot 
- * be used to accurately control how long before this function returns.
- * @param timeout The amount of time to wait for an incoming message to arrive
- * @returns RT_OK success
- */
-rtError
-rtRemoteRunOnce(rtRemoteEnvironment* env, uint32_t timeout);
-
-/**
  * Same as rtRemoteRunOnce, except that it will dispatch messages until the timout
  * is expired. Timeout duration is in milliseconds.
  * @param timeout The amount of time to run this function. Use RT_REMOTE_TIMEOUT_INIFINITE

@@ -93,6 +93,7 @@ const char* rtStrError_BuiltIn(rtError e)
     RT_ERROR_CASE(RT_ERROR_PROTOCOL_ERROR);
     RT_ERROR_CASE(RT_ERROR_INVALID_OPERATION);
     RT_ERROR_CASE(RT_ERROR_IN_PROGRESS);
+    RT_ERROR_CASE(RT_ERROR_QUEUE_EMPTY);
     default:
       break;
   }
