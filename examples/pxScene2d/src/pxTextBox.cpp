@@ -344,7 +344,8 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         // Note: Last line will never be set when truncation is NONE.
         if( lastLine)
         {
-          renderTextRowWithTruncation(accString, lineWidth, mx, tempY, sx, sy, size, color, render);
+          //printf("LastLine: Calling renderTextRowWithTruncation with mx=%f for string \"%s\"\n",mx,accString.cString());
+          renderTextRowWithTruncation(accString, lineWidth, 0, tempY, sx, sy, size, color, render);
           // Clear accString because we've rendered it
           accString = "";
           break; // break out of reading mText
@@ -406,11 +407,14 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
             {
               if( isSpaceChar(tempStr[n]))
               {
+                //printf("Attempting to move past leading space at %d in string \"%s\"\n",n, tempStr);
                 accString = tempStr+n+1;
               }
               else
               {
+                //printf("Is not leading space at %d in string \"%s\"\n",n, tempStr);
                 accString = tempStr+n;
+                //printf("So accString is now \"%s\"\n",accString.cString());
               }
             }
             else
@@ -420,6 +424,8 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
 
             if( !isSpaceChar(tempChar[0]) || (isSpaceChar(tempChar[0]) && accString.length() != 0))
             {
+              //printf("space char check to add to string: \"%s\"\n",accString.cString());
+              //printf("space char check: \"%s\"\n",tempChar);
               accString.append(tempChar);
             }
 
@@ -1055,9 +1061,19 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
       {
         // Look for word boundary on which to break
         int n = 1;
-        while(!isWordBoundary(tempStr[i-n]) && n <= i)
+        // printf("Start looking for wordBoundary at length %d in \"%s\"\n",length,tempStr);
+        // check if we're already at a word boundary in the original string
+        if( mEllipsis && (accString.find(length-1," ")==length || accString.find(length-1,"\t")==length) ) 
         {
-          n++;
+          //printf("Start looking for wordBoundary char= %s in \"%s\"\n",accString.substring(length-1,1).cString(),accString.cString());
+          n = 0;
+        } 
+        else 
+        {
+          while(!isWordBoundary(tempStr[i-n]) && n <= i)
+          {
+            n++;
+          }
         }
 
         if( isWordBoundary(tempStr[i-n]))
