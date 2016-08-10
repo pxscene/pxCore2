@@ -25,7 +25,7 @@ extern pxContext context;
 #define FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS 100
 #define TEST_REMOTE_OBJECT_NAME "waylandClient123" //TODO - update
 
-#define UNUSED_PARAM(x) ((x)=(x))
+#define UNUSED_PARAM(x) ((void)x)
 
 pxWayland::pxWayland()
   :
@@ -600,7 +600,7 @@ rtError pxWayland::connectToRemoteObject()
   return errorCode;
 }
 
-rtError pxWayland::setProperty(const rtString &prop, const rtValue &val) const
+rtError pxWayland::setProperty(const rtString &prop, const rtValue &val)
 {
   rtError errorCode = RT_FAIL;
 #ifdef ENABLE_PX_WAYLAND_RPC
