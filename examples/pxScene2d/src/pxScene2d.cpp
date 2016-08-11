@@ -9,6 +9,7 @@
 #include "rtLog.h"
 #include "rtRefT.h"
 #include "rtString.h"
+#include "rtNode.h"
 #include "rtPathUtils.h"
 
 #include "pxCore.h"
@@ -40,7 +41,7 @@
 rtThreadQueue gUIThreadQueue;
 uint32_t rtPromise::promiseID = 200;
 
-#define UNUSED_PARAM(x) ((x)=(x))
+//#define UNUSED_PARAM(x) ((x)=(x))
 
 // Debug Statistics
 #ifdef USE_RENDER_STATS

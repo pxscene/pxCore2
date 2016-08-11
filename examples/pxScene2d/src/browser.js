@@ -38,6 +38,8 @@ px.import({ scene: 'px:scene.1.js',
 
   inputBg.on("onChar",function(e)
   {
+    //console.log("#######  onChar ....  cursor_pos = " + cursor_pos);
+             
     if (e.charCode == keys.ENTER)  // <<<  ENTER KEY
       return;
 
@@ -48,16 +50,9 @@ px.import({ scene: 'px:scene.1.js',
     // TODO should we be getting an onChar event for backspace
     if (e.charCode != keys.BACKSPACE)
     {
-      if(cursor_pos == 0)
-      {
-        // append character
-        url.text += String.fromCharCode(e.charCode);
-      }
-      else
-      {
-        // insert character
-        url.text = url.text.slice(0, cursor_pos) + String.fromCharCode(e.charCode) + url.text.slice(cursor_pos);
-      }
+      // insert character
+      url.text = url.text.slice(0, cursor_pos) + String.fromCharCode(e.charCode) + url.text.slice(cursor_pos);
+
       prompt.a = (url.text)?0:1; // show/hide placeholder
 
       cursor_pos += 1; // inserted 1 character
@@ -127,6 +122,8 @@ inputBg.on("onKeyDown", function(e)
   var code  = e.keyCode;
   var flags = e.flags;
 
+  console.log("#######  onKeyDown ....  cursor_pos = " + cursor_pos);
+
   switch(code)
   {
     case keys.BACKSPACE:
@@ -137,7 +134,7 @@ inputBg.on("onKeyDown", function(e)
 
         if(selection_chars == 0)
         {
-           var before_cursor = s.slice(0,cursor_pos-1);
+           var before_cursor = s.slice(0,cursor_pos - 1);
            var  after_cursor = s.slice(cursor_pos);
 
            url.text = before_cursor + after_cursor;
@@ -155,6 +152,9 @@ inputBg.on("onKeyDown", function(e)
       break;
 
     case keys.ENTER:
+      // Trim leading + trailing whitespace
+      url.text = url.text.trim();
+      moveToEnd();
       reload();
       break;
 
@@ -183,12 +183,12 @@ inputBg.on("onKeyDown", function(e)
     case keys.LEFT:
       if(cursor_pos > 0)
       {
-        if(keys.is_CTRL( e.flags )) // <<  CTRL KEY
+        if(keys.is_CTRL( e.flags ) || keys.is_CMD( e.flags ) ) // <<  CTRL KEY
         {
           moveToHome();
         }
         else
-        if(keys.is_CTRL_SHIFT( e.flags )) // <<  CTRL + SHIFT KEY
+        if(keys.is_CTRL_SHIFT( e.flags ) || keys.is_CMD_SHIFT( e.flags ) ) // <<  CTRL + SHIFT KEY
         {
           selectToHome();
         }
@@ -210,7 +210,7 @@ inputBg.on("onKeyDown", function(e)
         }
       }
 
-      if(flags != 8 && !keys.is_CTRL_SHIFT( e.flags ) && selection.w != 0)
+      if(flags != 8 && !keys.is_CTRL_SHIFT( e.flags ) && !keys.is_CMD_SHIFT( e.flags ) && selection.w != 0)
       {
         clearSelection();
       }
@@ -219,12 +219,12 @@ inputBg.on("onKeyDown", function(e)
     case keys.RIGHT:
       if(cursor_pos < url.text.length)
       {
-        if(keys.is_CTRL( e.flags )) // <<  CTRL KEY
+        if(keys.is_CTRL( e.flags ) || keys.is_CMD( e.flags ) ) // <<  CTRL KEY
         {
            moveToEnd();
         }
         else
-        if(keys.is_CTRL_SHIFT( e.flags )) // <<  CTRL + SHIFT KEY
+        if(keys.is_CTRL_SHIFT( e.flags ) || keys.is_CMD_SHIFT( e.flags ) ) // <<  CTRL + SHIFT KEY
         {
           selectToEnd();
         }
@@ -246,7 +246,7 @@ inputBg.on("onKeyDown", function(e)
         }
       }
 
-      if(flags != 8 && flags != 24 && selection.w != 0)
+      if(flags != 8 && !keys.is_CTRL_SHIFT( e.flags ) && !keys.is_CMD_SHIFT( e.flags ) && selection.w != 0)
       {
         clearSelection();
       }
@@ -370,6 +370,8 @@ function makeSelection()  // Selection made: left-to-right
 
 function moveToHome()
 {
+  console.log("moveToHome() - ENTER");
+
   cursor_pos = 0;
 
   clearSelection();
