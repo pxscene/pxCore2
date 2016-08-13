@@ -600,50 +600,6 @@ rtError pxWayland::connectToRemoteObject()
   return errorCode;
 }
 
-rtError pxWayland::setProperty(const rtString &prop, const rtValue &val) const
-{
-  rtError errorCode = RT_FAIL;
-#ifdef ENABLE_PX_WAYLAND_RPC
-  if(mRemoteObject)
-      errorCode = mRemoteObject.set(prop, val);
-#else
-  UNUSED_PARAM(prop);
-  UNUSED_PARAM(val);
-#endif //ENABLE_PX_WAYLAND_RPC
-  return errorCode;
-}
-
-rtError pxWayland::callMethod(const char* messageName, int numArgs, const rtValue* args)
-{
-  rtError errorCode = RT_FAIL;
-#ifdef ENABLE_PX_WAYLAND_RPC
-  if(mRemoteObject)
-      errorCode = mRemoteObject.Send(messageName, numArgs, args);
-#endif //ENABLE_PX_WAYLAND_RPC
-  return errorCode;
-}
-
-rtError pxWayland::addListener(const rtString& eventName, const rtFunctionRef& f)
-{
-  rtError errorCode = RT_FAIL;
-#ifdef ENABLE_PX_WAYLAND_RPC
-  if(mRemoteObject) {
-      errorCode = mRemoteObject.send("on", eventName, f);
-  }
-#endif //ENABLE_PX_WAYLAND_RPC
-  return errorCode;
-}
-
-rtError pxWayland::delListener(const rtString& eventName, const rtFunctionRef& f)
-{
-  rtError errorCode = RT_FAIL;
-#ifdef ENABLE_PX_WAYLAND_RPC
-  if(mRemoteObject)
-      errorCode = mRemoteObject.send("delListener", eventName, f);
-#endif //ENABLE_PX_WAYLAND_RPC
-  return errorCode;
-}
-
 // These key codes are from linux/input.h which may not be available depending on what platform we are building for
 #define KEY_RESERVED            0
 #define KEY_ESC                 1

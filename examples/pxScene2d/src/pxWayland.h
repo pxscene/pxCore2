@@ -119,11 +119,6 @@ public:
   virtual void onUpdate(double t);
   virtual void onDraw();
 
-  rtError setProperty(const rtString &prop, const rtValue &val) const;
-  rtError callMethod(const char* messageName, int numArgs, const rtValue* args);
-  rtError addListener(const rtString& eventName, const rtFunctionRef& f);
-  rtError delListener(const rtString& eventName, const rtFunctionRef& f);
-
 private:
   rtAtomic mRefCount;
   pthread_t mClientMonitorThreadId;
