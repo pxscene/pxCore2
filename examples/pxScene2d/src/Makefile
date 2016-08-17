@@ -38,8 +38,13 @@ else
 ifeq ($(PX_PLATFORM),DirectFB)
 PX_PLATFORM=PX_PLATFORM_GENERIC_DFB
 else
+ifeq ($(PX_PLATFORM_WAYLAND_EGL),1)
+PX_PLATFORM=PX_PLATFORM_WAYLAND_EGL
+PXLIBS=$(PXCOREDIR)/build/wayland_egl
+else
 PX_PLATFORM=PX_PLATFORM_GLUT
 PXLIBS=$(PXCOREDIR)/build/glut
+endif
 TARGETINCLUDE=
 endif
 endif
@@ -124,9 +129,21 @@ SEARCH=\
   -Irpc/
    $(TARGETINCLUDE)
 
+ifeq ($(HAVE_WESTEROS),1)
+  SEARCH += -I$(EXTDIR)/westeros/external/curl/include
+  SEARCH += $(PXCORE_INCLUDES)
+  SEARCH += $(PXCORE_INCLUDES)/curl
+endif
 
 #CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE
 CXXFLAGS2=-fPIC -Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN
+ifeq ($(RTRPCENABLED),1)
+CXXFLAGS2 += -DENABLE_PX_WAYLAND_RPC
+endif
+
+ifeq ($(PX_PLATFORM),PX_PLATFORM_WAYLAND_EGL)
+CXXFLAGS2 += -DENABLE_PX_WAYLAND_EGL
+endif
 
 ifdef PXVERSION
 CXXFLAGS=$(CXXFLAGS2) -DPX_SCENE_VERSION=$(PXVERSION)
@@ -163,13 +180,22 @@ ifeq ($(HAVE_WESTEROS),1)
 LDEXT += $(LDWESTEROS)
 endif
 ifeq ($(UNAME_S),Linux)
+ifeq ($(USE_X11),1)
 LDEXT += -lX11
+endif
 endif
 
 ifeq ($(UNAME_S),Darwin)
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread $(LDEXT) -ldl -lv8_libplatform -framework OpenGL -framework Cocoa -framework Foundation
 else
+ifeq ($(PX_PLATFORM),PX_PLATFORM_WAYLAND_EGL)
+LDFLAGS = -L$(PXLIBS) -lnode -lwayland-egl -lwayland-client  -lEGL -lpxCore -pthread $(LDEXT) -ldl -lrt
+else
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform
+endif
+ifeq ($(RTRPCENABLED),1)
+LDFLAGS += -Lrpc -lrtRemote
+endif
 endif
 
 CXXFLAGS_FULL = $(CXXFLAGS) -fpermissive
@@ -361,8 +387,17 @@ PXSCENE_LIB_LINK_OPTIONS=$(PXSCENE_LIB_LINKING) -L../../../build/dfb -Wl,--whole
 PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_DFB -DENABLE_DFB -DENABLE_DFB_GENERIC
 else 
 PXSCENE_LIBS=-lpng16 -lnxpl -lGLESv2 -lwesteros_compositor -Lrpc/ -lrtRemote -luuid
-PXSCENE_LIB_LINK_OPTIONS=-L../../../build/egl -Wl,--whole-archive ../../../build/egl/libpxCore.a
+ifeq ($(PX_PLATFORM_WAYLAND_EGL),1)
+PXSCENE_LIB_LINK_OPTIONS=-L../../../build/wayland_egl -Wl,--whole-archive ../../../build/wayland_egl/libpxCore.a
 PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE
+else
+PXSCENE_LIB_LINK_OPTIONS=-L../../../build/egl -Wl,--whole-archive ../../../build/egl/libpxCore.a
+PXSCENE_LIB_DEFINES=-DPX_PLATFORM_WAYLAND_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE
+endif
+ifeq ($(RTRPCENABLED),1)
+PXSCENE_LIB_DEFINES+=-DENABLE_PX_WAYLAND_RPC
+endif
+PXSCENE_LIB_DEFINES+=-DENABLE_MAX_TEXTURE_SIZE
 endif
 
 
