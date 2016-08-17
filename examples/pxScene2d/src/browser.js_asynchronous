@@ -1,0 +1,81 @@
+px.import("px:scene.1.js").then( function ready(scene) {
+var root = scene.root;
+var browser="";
+var bg = scene.create({t:"image",url:process.cwd()+"/../../images/skulls.png",parent:root,stretchX:scene.stretch.STRETCH,stretchY:scene.stretch.STRETCH});
+
+var bgShade = scene.create({t:"image",url:process.cwd()+"/../../images/radial_gradient.png",parent:root,stretchX:scene.stretch.STRETCH,stretchY:scene.stretch.STRETCH});
+
+var txt1= scene.create( {t:"text", x:60, y:50, pixelSize: 30, h:40, text:"", parent:root} );
+var txt2= scene.create( {t:"text", x:60, y:90, pixelSize: 30, h:35, text:"", parent:root} );
+var txt3= scene.create( {t:"text", x:640, y:50, pixelSize: 30, h:40, text:"", parent:root} );
+var txt4= scene.create( {t:"text",x:640, y:90, pixelSize: 30, h:35, text:"", parent:root} );
+
+var wayland1,browser;
+var urlIndex = 0;
+var startTime, endTime;
+
+var urls = ["http://www.yahoo.com"
+    ,"http://www.helloracer.com/webgl"
+  ,"http://www.youtube.com/tv#"
+    ,"http://www.facebook.com"
+    ,"https://www.gmail.com"
+    ,"https://www.youtube.com/tv#/watch?v=eX_iASz1Si8"
+    ,"http://www.smashcat.org/av/canvas_test/"
+    ,"http://threejs.org/examples/webgl_geometry_colors_blender.html"
+    ,"http://threejs.org/examples/webgl_geometries.html"
+    ,"http://camendesign.com/code/video_for_everybody/test.html"
+    ,"https://vimeo.com/couchmode"
+    ,"http://s3.cf.web.us.aiv-cdn.net/HTML5PartnerTestPlayReady2.html?asin=B00TYBBNAW&trailer&logging"];
+
+function handleOnDocumentLoaded(e)
+{
+ if (e.name == "onHTMLDocumentLoaded")
+ {
+   endTime = new Date();
+   console.log("status code:" + e.params.httpStatus);
+   console.log("URL " + urls[urlIndex] + " took " + (Math.round((endTime.getTime() - startTime.getTime()) / 1000)) + " seconds");
+   browser.scrollTo(400,400);
+   urlIndex = (urlIndex + 1)%12;
+   startTime = new Date();
+   browser.url = urls[urlIndex];
+ }
+}
+
+
+function handleWaylandRemoteBrowser(wayland){
+  browser = wayland.api;
+  browser.on("onHTMLDocumentLoaded", handleOnDocumentLoaded);
+  startTime = new Date();
+  browser.url = urls[urlIndex];
+}
+
+function handleWaylandError(error){
+   console.log("Handle wayland error");
+}
+
+setTimeout(function(){
+  wayland1 = scene.create( {t:"wayland", x:0, y:0, w:1280, h:720, parent:root,cmd:"rdkbrowser2"} );
+  wayland1.remoteReady.then(handleWaylandRemoteBrowser, 
+                      handleWaylandError);
+  wayland1.focus = true;
+  wayland1.on("onClientConnected", function(e) { console.log("Client connected ");});
+  wayland1.on("onClientDisconnected", function(e) { console.log("Client disconnected ");});
+  wayland1.on("onSendEvent", function(e) { console.log("Load url is finished from wayland "); });
+  wayland1.animateTo({sx:0.3,sy:0.3},5,scene.PX_LINEAR,scene.animation.OPTION_OSCILLATE);
+  wayland1.animateTo({x:500,y:300},2,scene.PX_LINEAR,scene.animation.OPTION_OSCILLATE);
+}, 4000 );
+
+function updateSize(w, h) {
+    bg.w = w;
+    bg.h = h;
+    bgShade.w = w;
+    bgShade.h = h;
+}
+
+scene.on("onResize", function(e) {updateSize(e.w,e.h);});
+
+updateSize(1280, 720);
+}).catch( function importFailed(err){
+  console.error("Import failed for browser.js: " + err)
+});
+
