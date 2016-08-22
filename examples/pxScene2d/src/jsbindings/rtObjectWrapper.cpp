@@ -92,7 +92,8 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>
   // TODO: not sure this is good. Any object can have a 'length' property
   {
     rtValue length;
-    if (ref && ref->Get("length", &length) != RT_PROP_NOT_FOUND)
+    rtError ret =  ref->Get("length", &length);
+    if (ref && (ret != RT_PROP_NOT_FOUND) && (ret != RT_ERROR_TIMEOUT))
     {
       const int n = length.toInt32();
       Local<Array> arr = Array::New(isolate, n);
