@@ -20,16 +20,38 @@
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
 
+////////////////////////////////////////////////////////////////
+//
+// Debug macros...
 
+// NOTE:  Comment out these defines for 'normal' operation.
+//
+
+//#define DEBUG_SKIP_RECT
+//#define DEBUG_SKIP_IMAGE
+//#define DEBUG_SKIP_IMAGE9
+//#define DEBUG_SKIP_MATRIX
+
+//#define DEBUG_SKIP_DIAG_RECT
+//#define DEBUG_SKIP_DIAG_LINE
+
+//#define DEBUG_SKIP_FLIPPING
+//#define DEBUG_SKIP_BLIT
+//#define DEBUG_SKIP_ALPHA_BLEND
+
+// #define DEBUG_SKIP_CLEAR  // pseudo color
+
+////////////////////////////////////////////////////////////////
+//
 // Debug Statistics
 #ifdef USE_RENDER_STATS
   extern uint32_t gDrawCalls;
   extern uint32_t gTexBindCalls;
   extern uint32_t gFboBindCalls;
 
-  #define TRACK_DRAW_CALLS()   { gDrawCalls++    }
-  #define TRACK_TEX_CALLS()    { gTexBindCalls++ }
-  #define TRACK_FBO_CALLS()    { gFboBindCalls++ }
+  #define TRACK_DRAW_CALLS()   { gDrawCalls++;    }
+  #define TRACK_TEX_CALLS()    { gTexBindCalls++; }
+  #define TRACK_FBO_CALLS()    { gFboBindCalls++; }
 #else
   #define TRACK_DRAW_CALLS()
   #define TRACK_TEX_CALLS()
@@ -127,13 +149,15 @@ static const char *vShaderText =
   "}";
 
 
-void premultiply(float* d, const float* s)
+inline void premultiply(float* d, const float* s)
 {
   d[0] = s[0]*s[3];
   d[1] = s[1]*s[3];
   d[2] = s[2]*s[3];
   d[3] = s[3];
 }
+
+//====================================================================================================================================================================================
 
 class pxFBOTexture : public pxTexture
 {
@@ -145,22 +169,22 @@ public:
 
   ~pxFBOTexture() { deleteTexture(); }
 
-  void createTexture(int width, int height)
+  void createTexture(int w, int h)
   {
     if (mFramebufferId != 0 && mTextureId != 0)
     {
       deleteTexture();
     }
 
-    mWidth = width;
-    mHeight = height;
+    mWidth  = w;
+    mHeight = h;
 
     glGenFramebuffers(1, &mFramebufferId);
     glGenTextures(1, &mTextureId);
 
     glBindTexture(GL_TEXTURE_2D, mTextureId); TRACK_TEX_CALLS();
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                 width, height, 0, GL_RGBA,
+               mWidth, mHeight, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, NULL);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
@@ -170,12 +194,12 @@ public:
     mBindTexture = true;
   }
 
-  pxError resizeTexture(int width, int height)
+  pxError resizeTexture(int w, int h)
   {
-    if (mWidth != width || mHeight != height ||
+    if (mWidth != w || mHeight != h ||
         mFramebufferId == 0 || mTextureId == 0)
     {
-      createTexture(width, height);
+      createTexture(w, h);
       return PX_OK;
     }
 
@@ -294,21 +318,27 @@ private:
   GLuint mFramebufferId;
   GLuint mTextureId;
   bool mBindTexture;
-};
+
+};// CLASS - pxFBOTexture
+
+//====================================================================================================================================================================================
 
 class pxTextureNone : public pxTexture
 {
 public:
   pxTextureNone() {}
 
-  virtual pxError deleteTexture() {return PX_FAIL;}
-  virtual int width() {return 0;}
-  virtual int height() {return 0;}
+  virtual int width()                                 { return 0; }
+  virtual int height()                                { return 0; }
+  virtual pxError deleteTexture()                     { return PX_FAIL; }
   virtual pxError resizeTexture(int /*w*/, int /*h*/) { return PX_FAIL; }
   virtual pxError getOffscreen(pxOffscreen& /*o*/)    { return PX_FAIL; }
   virtual pxError bindGLTexture(int /*tLoc*/)         { return PX_FAIL; }
   virtual pxError bindGLTextureAsMask(int /*mLoc*/)   { return PX_FAIL; }
-};
+
+};// CLASS - pxTextureNone
+
+//====================================================================================================================================================================================
 
 #define MAX_TEXTURE_WIDTH 2048
 #define MAX_TEXTURE_HEIGHT 2048
@@ -499,20 +529,25 @@ private:
   bool mTextureUploaded;
   int mWidth;
   int mHeight;
-};
+
+}; // CLASS - pxTextureOffscreen
+
+//====================================================================================================================================================================================
 
 class pxTextureAlpha : public pxTexture
 {
 public:
-  pxTextureAlpha() : mDrawWidth(0.0), mDrawHeight (0.0), mImageWidth(0.0),
-                     mImageHeight(0.0), mTextureId(0), mInitialized(false)
+  pxTextureAlpha() :  mDrawWidth(0.0),  mDrawHeight(0.0),
+                     mImageWidth(0.0), mImageHeight(0.0),
+                     mTextureId(0), mInitialized(false), mBuffer(NULL)
   {
     mTextureType = PX_TEXTURE_ALPHA;
   }
 
   pxTextureAlpha(float w, float h, float iw, float ih, void* buffer)
-    : mDrawWidth(w), mDrawHeight (h), mImageWidth(iw),
-      mImageHeight(ih), mTextureId(0), mInitialized(false), mBuffer(NULL)
+    : mDrawWidth(w),    mDrawHeight(h),
+      mImageWidth(iw), mImageHeight(ih),
+      mTextureId(0), mInitialized(false), mBuffer(NULL)
   {
     mTextureType = PX_TEXTURE_ALPHA;
     // copy the pixels
@@ -524,15 +559,15 @@ public:
     int32_t bh = (int32_t)ih;
 
     //memcpy(mBuffer, buffer, bitmapSize);
-    // Flip here so that we match FBO layout...
-    for (int32_t i = 0; i < bh; i++)
-    {
-      uint8_t *s = (uint8_t*)buffer+(bw*i);
-      uint8_t *d = (uint8_t*)mBuffer+(bw*(bh-i-1));
-      uint8_t *de = d+bw;
-      while(d<de)
-        *d++ = *s++;
-    }
+      // Flip here so that we match FBO layout...
+      for (int32_t i = 0; i < bh; i++)
+      {
+        uint8_t *s = (uint8_t*)buffer+(bw*i);
+        uint8_t *d = (uint8_t*)mBuffer+(bw*(bh-i-1));
+        uint8_t *de = d+bw;
+        while(d<de)
+          *d++ = *s++;
+      }
 
 // TODO Moved this to bindTexture because of more pain from JS thread calls
 //    createTexture(w, h, iw, ih);
@@ -551,6 +586,13 @@ public:
     {
       deleteTexture();
     }
+
+    if(iw == 0 || ih == 0)
+    {
+      rtLogError("Error:  %s() .... WxH: 0x0 ", __PRETTY_FUNCTION__);
+      return;
+    }
+
     glGenTextures(1, &mTextureId);
 
     mDrawWidth = w;
@@ -642,7 +684,10 @@ private:
   GLuint mTextureId;
   bool mInitialized;
   void* mBuffer;
-};
+
+}; // CLASS - pxTextureAlpha
+
+//====================================================================================================================================================================================
 
 static GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
 {
@@ -1075,13 +1120,19 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
       h = ih;
   }
 
-   const float verts[4][2] =
-   {
-     { x,     y },
-     { x+w,   y },
-     { x,   y+h },
-     { x+w, y+h }
-   };
+  if (iw <= 0 || ih <= 0)
+  {
+    rtLogError("ERROR: drawImageTexture() >>>  WxH: 0x0   BAD !");
+    return;
+  }
+
+  const float verts[4][2] =
+  {
+    { x,     y },
+    { x+w,   y },
+    { x,   y+h },
+    { x+w, y+h }
+  };
 
   float tw;
   switch(xStretch) {
@@ -1128,34 +1179,37 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     { tw, secondTextureY }
   };
 
-  float colorPM[4];
-  premultiply(colorPM,color);
-
-  if (mask.getPtr() == NULL && texture->getType() != PX_TEXTURE_ALPHA)
+  if (mask.getPtr() != NULL)
   {
-    gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,xStretch,yStretch);
-  }
-  else if (mask.getPtr() == NULL && texture->getType() == PX_TEXTURE_ALPHA)
-  {
-    gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,colorPM);
-  }
-  else if (mask.getPtr() != NULL)
-  {
-    gTextureMaskedShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,mask);
+      gTextureMaskedShader->draw(gResW, gResH, gMatrix.data(), gAlpha, 4, verts, uv, texture, mask);
   }
   else
   {
-    rtLogError("Unhandled case");
+    if (texture->getType() != PX_TEXTURE_ALPHA)
+    {
+      gTextureShader->draw(gResW, gResH, gMatrix.data(), gAlpha, 4, verts, uv, texture, xStretch, yStretch);
+    }
+    else if (texture->getType() == PX_TEXTURE_ALPHA)
+    {
+      float colorPM[4];
+      premultiply(colorPM,color);
+
+      gATextureShader->draw(gResW, gResH, gMatrix.data(), gAlpha, 4, verts, uv, texture, colorPM);
+    }
+    else
+    {
+      rtLogError("Unhandled case");
+    }
   }
 }
 
-static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2,
-                        GLfloat y2, pxTextureRef texture)
+static void drawImage92(GLfloat x,  GLfloat y,  GLfloat w,  GLfloat h,
+                        GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, pxTextureRef texture)
 {
-
   if (texture.getPtr() == NULL)
+  {
     return;
-
+  }
 
   float ox1 = x;
   float ix1 = x+x1;
@@ -1350,6 +1404,7 @@ void pxContext::setSize(int w, int h)
   glViewport(0, 0, (GLint)w, (GLint)h);
   gResW = w;
   gResH = h;
+
   if (currentFramebuffer == defaultFramebuffer)
   {
     defaultContextSurface.width = w;
@@ -1395,6 +1450,11 @@ void pxContext::clear(int left, int top, int right, int bottom)
 
 void pxContext::setMatrix(pxMatrix4f& m)
 {
+#ifdef DEBUG_SKIP_MATRIX
+#warning " 'DEBUG_SKIP_MATRIX' is Enabled"
+  return;
+#endif
+
   gMatrix.multiply(m);
 }
 
@@ -1424,14 +1484,14 @@ pxContextFramebufferRef pxContext::createFramebuffer(int width, int height)
   return fbo;
 }
 
-pxError pxContext::updateFramebuffer(pxContextFramebufferRef fbo, int width, int height)
+pxError pxContext::updateFramebuffer(pxContextFramebufferRef fbo, int w, int h)
 {
   if (fbo.getPtr() == NULL || fbo->getTexture().getPtr() == NULL)
   {
     return PX_FAIL;
   }
 
-  return fbo->getTexture()->resizeTexture(width, height);
+  return fbo->getTexture()->resizeTexture(w, h);
 }
 
 pxContextFramebufferRef pxContext::getCurrentFramebuffer()
@@ -1450,8 +1510,10 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
     // TODO probably need to save off the original FBO handle rather than assuming zero
     glBindFramebuffer(GL_FRAMEBUFFER, 0);  TRACK_FBO_CALLS();
     currentFramebuffer = defaultFramebuffer;
+
     pxContextState contextState;
     currentFramebuffer->currentState(contextState);
+
     gAlpha = contextState.alpha;
     gMatrix = contextState.matrix;
 #ifdef PX_DIRTY_RECTANGLES
@@ -1474,6 +1536,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
   currentFramebuffer->currentState(contextState);
   gAlpha = contextState.alpha;
   gMatrix = contextState.matrix;
+
 #ifdef PX_DIRTY_RECTANGLES
   if (currentFramebuffer->isDirtyRectanglesEnabled())
   {
@@ -1486,6 +1549,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
     glDisable(GL_SCISSOR_TEST);
   }
 #endif //PX_DIRTY_RECTANGLES
+
   return fbo->getTexture()->prepareForRendering();
 }
 
@@ -1517,31 +1581,72 @@ void pxContext::enableDirtyRectangles(bool enable)
 
 void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor)
 {
+#ifdef DEBUG_SKIP_RECT
+#warning "DEBUG_SKIP_RECT enabled ... Skipping "
+  return;
+#endif
+
   float half = lineWidth/2;
   drawRect2(half, half, w-lineWidth, h-lineWidth, fillColor);
   if (lineWidth > 0)
+  {
     drawRectOutline(0, 0, w, h, lineWidth, lineColor);
+  }
 }
 
 
 void pxContext::drawImage9(float w, float h, float x1, float y1,
                            float x2, float y2, pxTextureRef texture)
 {
-  if (texture.getPtr() != NULL) {
+#ifdef DEBUG_SKIP_IMAGE9
+#warning "DEBUG_SKIP_IMAGE9 enabled ... Skipping "
+  return;
+#endif
+
+  if (texture.getPtr() != NULL)
+  {
     drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
   }
 }
 
-void pxContext::drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
+void pxContext::drawImage(float x, float y, float w, float h,
+                          pxTextureRef t, pxTextureRef mask,
                           bool useTextureDimsAlways, float* color,
-                          pxConstantsStretch::constants stretchX, pxConstantsStretch::constants stretchY)
+                          pxConstantsStretch::constants stretchX,
+                          pxConstantsStretch::constants stretchY)
 {
+#ifdef DEBUG_SKIP_IMAGE
+#warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
+  return;
+#endif
+
+  if(gAlpha == 0.0)
+  {
+    return;  // INVISIBLE 
+  }
+
+  if(w <= 0 || h <= 0)
+  {
+    return;  // DIMENSIONLESS
+  }
+
+  if (t.getPtr() == NULL)
+  {
+    return;  // TEXTURELESS
+  }
+
   float black[4] = {0,0,0,1};
-  drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways, color?color:black, stretchX, stretchY);
+  drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways,
+                   color?color:black, stretchX, stretchY);
 }
 
 void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 {
+#ifdef DEBUG_SKIP_DIAG_RECT
+#warning "DEBUG_SKIP_DIAG_RECT enabled ... Skipping "
+   return;
+#endif
+
   if (!mShowOutlines) return;
 
   const float verts[4][2] =
@@ -1561,6 +1666,11 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 
 void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* color)
 {
+#ifdef DEBUG_SKIP_DIAG_LINE
+#warning "DEBUG_SKIP_DIAG_LINE enabled ... Skipping "
+   return;
+#endif
+
   if (!mShowOutlines) return;
   const float verts[4][2] =
   {
