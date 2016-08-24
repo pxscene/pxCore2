@@ -904,7 +904,7 @@ void pxWindowNative::runEventLoop()
 
   int fps = 60;// mTimerFPS;
 
-  if( (draw_thread == NULL) &&
+  if( (draw_thread == 0) &&
       pthread_create(&draw_thread, NULL, &draw_func, (void *) &fps))
   {
     fprintf(stderr, "Error creating thread\n");
