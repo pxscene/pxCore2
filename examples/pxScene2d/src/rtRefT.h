@@ -9,9 +9,6 @@
 
 #include <stdlib.h>
 
-#define UNUSED_PARAM(x) (void (x))
-
-
 template <class T>
 class rtRefT
 {

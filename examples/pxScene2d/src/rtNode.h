@@ -38,6 +38,16 @@ class rtNodeContext;
 
 typedef rtRefT<rtNodeContext> rtNodeContextRef;
 
+//#define UNUSED_PARAM(x) ((x)=(x))
+
+
+//template <typename T>
+//void UNUSED_PARAM(T &&)
+//{ }
+
+
+#define UNUSED_PARAM(x) ((void *) x) 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct args_

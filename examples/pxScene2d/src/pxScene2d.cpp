@@ -9,6 +9,7 @@
 #include "rtLog.h"
 #include "rtRefT.h"
 #include "rtString.h"
+#include "rtNode.h"
 #include "rtPathUtils.h"
 
 #include "pxCore.h"
@@ -37,11 +38,10 @@
 #include "pxClipboard.h"
 
 
-// #define DEBUG_SKIP_DRAW
-// #define DEBUG_SKIP_UPDATE
-
 rtThreadQueue gUIThreadQueue;
 uint32_t rtPromise::promiseID = 200;
+
+//#define UNUSED_PARAM(x) ((x)=(x))
 
 // Debug Statistics
 #ifdef USE_RENDER_STATS
@@ -469,11 +469,6 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
 
 void pxObject::update(double t)
 {
-#ifdef DEBUG_SKIP_UPDATE
-#warning " 'DEBUG_SKIP_UPDATE' is Enabled"
-  return;
-#endif
-
   // Update animations
   vector<animation>::iterator it = mAnimations.begin();
 
@@ -701,46 +696,42 @@ void pxObject::drawInternal(bool maskPass)
   // TODO consistent behavior between clipping and no clipping when z is in use
 
   if (context.getAlpha() < alphaEpsilon)
-  {
     return;  // trivial reject for objects that are transparent
-  }
 
   pxMatrix4f m;
 
 #if 1
-  #if 1
-    #if 0
-      // translate based on xy rotate/scale based on cx, cy
-      m.translate(mx+mcx, my+mcy);
-      //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
-      if (mr) {
-        m.rotateInDegrees(mr
-    #ifdef ANIMATION_ROTATE_XYZ
-        , mrx, mry, mrz
-    #endif //ANIMATION_ROTATE_XYZ
-        );
-      }
-      //if (mr) m.rotateInDegrees(mr, 0, 0, 1);
-      if (msx != 1.0f || msy != 1.0f) m.scale(msx, msy);
-      m.translate(-mcx, -mcy);
-    #else
-
-    applyMatrix(m);  // ANIMATE !!!
-
-    #endif
-  #else
-    // translate/rotate/scale based on cx, cy
-    m.translate(mx, my);
-    //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
-    //  m.rotateInDegrees(mr, mrx, mry, mrz);
+#if 1
+#if 0
+  // translate based on xy rotate/scale based on cx, cy
+  m.translate(mx+mcx, my+mcy);
+  //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
+  if (mr) {
     m.rotateInDegrees(mr
-  #ifdef ANIMATION_ROTATE_XYZ
-    , 0, 0, 1
-  #endif // ANIMATION_ROTATE_XYZ
+#ifdef ANIMATION_ROTATE_XYZ
+    , mrx, mry, mrz
+#endif //ANIMATION_ROTATE_XYZ
     );
-    m.scale(msx, msy);
-    m.translate(-mcx, -mcy);
-  #endif
+  }
+  //if (mr) m.rotateInDegrees(mr, 0, 0, 1);
+  if (msx != 1.0f || msy != 1.0f) m.scale(msx, msy);
+  m.translate(-mcx, -mcy);
+#else
+  applyMatrix(m);
+#endif
+#else
+  // translate/rotate/scale based on cx, cy
+  m.translate(mx, my);
+  //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
+  //  m.rotateInDegrees(mr, mrx, mry, mrz);
+  m.rotateInDegrees(mr
+#ifdef ANIMATION_ROTATE_XYZ
+  , 0, 0, 1
+#endif // ANIMATION_ROTATE_XYZ
+  );
+  m.scale(msx, msy);
+  m.translate(-mcx, -mcy);
+#endif
 #endif
 
 #if 0
@@ -788,7 +779,6 @@ void pxObject::drawInternal(bool maskPass)
   //rtLogInfo("pxObject::drawInternal mPainting=%d mw=%f mh=%f\n", mPainting, mw, mh);
   if (mPainting)
   {
-    // MASKING ? ---------------------------------------------------------------------------------------------------
     bool maskFound = false;
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
@@ -799,44 +789,31 @@ void pxObject::drawInternal(bool maskPass)
         break;
       }
     }
-    // MASKING ? ---------------------------------------------------------------------------------------------------
     if (maskFound)
     {
       if (w>alphaEpsilon && h>alphaEpsilon)
-      {
         draw();
-      }
 
-      if(w > 0 && h > 0)
-      {
-        pxContextFramebufferRef drawableSnapshot = context.createFramebuffer(w, h);
-        pxContextFramebufferRef maskSnapshot = context.createFramebuffer(w, h);
-        createSnapshotOfChildren(drawableSnapshot, maskSnapshot);
-        context.setMatrix(m);
-        //rtLogInfo("context.drawImage\n");
-        context.drawImage(0, 0, w, h, drawableSnapshot->getTexture(), maskSnapshot->getTexture());
-      }
+      pxContextFramebufferRef drawableSnapshot = context.createFramebuffer(w, h);
+      pxContextFramebufferRef maskSnapshot = context.createFramebuffer(w, h);
+      createSnapshotOfChildren(drawableSnapshot, maskSnapshot);
+      context.setMatrix(m);
+      //rtLogInfo("context.drawImage\n");
+      context.drawImage(0, 0, w, h, drawableSnapshot->getTexture(), maskSnapshot->getTexture());
     }
-    // CLIPPING ? ---------------------------------------------------------------------------------------------------
     else if (mClip )
     {
       //rtLogInfo("calling createSnapshot for mw=%f mh=%f\n", mw, mh);
       mClipSnapshotRef = createSnapshot(mClipSnapshotRef);
-
+      context.setMatrix(m);
+      context.setAlpha(ma);
       if (mClipSnapshotRef.getPtr() != NULL)
       {
         //rtLogInfo("context.drawImage\n");
         static pxTextureRef nullMaskRef;
-
-        if(w > 0 && h > 0)
-        {
-          context.setMatrix(m);
-          context.setAlpha(ma);
-          context.drawImage(0, 0, w, h, mClipSnapshotRef->getTexture(), nullMaskRef);
-        }
+        context.drawImage(0, 0, w, h, mClipSnapshotRef->getTexture(), nullMaskRef);
       }
     }
-    // DRAWING ---------------------------------------------------------------------------------------------------
     else
     {
       // trivially reject things too small to be seen
@@ -846,20 +823,14 @@ void pxObject::drawInternal(bool maskPass)
         draw();
       }
 
-      // CHILDREN -------------------------------------------------------------------------------------
+
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
       {
-        if((*it)->drawEnabled() == false)
-        {
-          continue;
-        }
-
         context.pushState();
         //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
         context.popState();
       }
-      // ---------------------------------------------------------------------------------------------------
     }
   }
   else
@@ -869,7 +840,6 @@ void pxObject::drawInternal(bool maskPass)
     context.drawImage(0,0,w,h, mSnapshotRef->getTexture(), nullMaskRef);
   }
 
-  // ---------------------------------------------------------------------------------------------------
   if (!maskPass)
   {
     //TODO - remove need for mRepaintCount
@@ -882,7 +852,6 @@ void pxObject::drawInternal(bool maskPass)
       mRepaintCount++;
     }
   }
-  // ---------------------------------------------------------------------------------------------------
 }
 
 
@@ -1336,9 +1305,6 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 {
 #ifdef ENABLE_DFB
-  UNUSED_PARAM(p);
-  UNUSED_PARAM(o);
-
   return RT_FAIL;
 #else
   rtRefT<pxWaylandContainer> c = new pxWaylandContainer(this);
@@ -1352,13 +1318,8 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 
 void pxScene2d::draw()
 {
-#ifdef DEBUG_SKIP_DRAW
-#warning " 'DEBUG_SKIP_DRAW' is Enabled"
-  return;
-#endif
-
   //rtLogInfo("pxScene2d::draw()\n");
-#ifdef PX_DIRTY_RECTANGLES
+  #ifdef PX_DIRTY_RECTANGLES
   int x = mDirtyRect.left();
   int y = mDirtyRect.top();
   int w = mDirtyRect.right() - x+1;
@@ -1384,8 +1345,8 @@ void pxScene2d::draw()
 
   if (mRoot)
   {
-    context.pushState();
-    mRoot->drawInternal(true); // mask it !
+  context.pushState();
+    mRoot->drawInternal(1.0);
     context.popState();
     mDirtyRect.setEmpty();
   }
@@ -1405,23 +1366,19 @@ void pxScene2d::draw()
     glEnable(GL_SCISSOR_TEST);
   }
   previousShowDirtyRect = mShowDirtyRectangle;
-#else // Not ... PX_DIRTY_RECTANGLES
+  #else
   if (mTop)
-  {
     context.clear(mWidth, mHeight);
-  }
 
   if (mRoot)
   {
     pxMatrix4f m;
     context.pushState();
-
-    mRoot->drawInternal(true); // mask it !
+    mRoot->drawInternal(1.0);
     context.popState();
   }
-#endif //PX_DIRTY_RECTANGLES
-
-#ifdef USE_SCENE_POINTER
+  #endif //PX_DIRTY_RECTANGLES
+  #ifdef USE_SCENE_POINTER
   if (mPointerTexture.getPtr() == NULL)
   {
     mPointerTexture= ((rtImageResource*)mPointerResource.getPtr())->getTexture();
@@ -1437,8 +1394,9 @@ void pxScene2d::draw()
      context.drawImage( mPointerX-mPointerHotSpotX, mPointerY-mPointerHotSpotY,
                         mPointerW, mPointerH,
                         mPointerTexture, mNullTexture);
+
   }
-#endif //USE_SCENE_POINTER
+  #endif
 }
 
 
@@ -1562,6 +1520,7 @@ void pxScene2d::onDraw()
     rtWrapperSceneUpdateExit();
   }
   #endif //ENABLE_RT_NODE
+
 }
 
 // Does not draw updates scene to time t
@@ -1572,11 +1531,7 @@ void pxScene2d::update(double t)
 #ifdef PX_DIRTY_RECTANGLES
       context.pushState();
 #endif //PX_DIRTY_RECTANGLES
-
-#ifndef DEBUG_SKIP_UPDATE
       mRoot->update(t);
-#endif
-
 #ifdef PX_DIRTY_RECTANGLES
       context.popState();
 #endif //PX_DIRTY_RECTANGLES
@@ -2207,7 +2162,6 @@ void pxViewContainer::invalidateRect(pxRect* r)
     pxRect screenRect = convertToScreenCoordinates(r);
     mScene->invalidateRect(&screenRect);
 #else
-    UNUSED_PARAM(r);
     mScene->invalidateRect(NULL);
 #endif //PX_DIRTY_RECTANGLES
   }
@@ -2221,8 +2175,6 @@ void pxScene2d::invalidateRect(pxRect* r)
     mDirtyRect.unionRect(*r);
     mDirty = true;
   }
-#else
-  UNUSED_PARAM(r);
 #endif //PX_DIRTY_RECTANGLES
   if (mContainer && !mTop)
   {
