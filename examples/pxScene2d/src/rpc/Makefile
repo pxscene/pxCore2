@@ -3,7 +3,7 @@ LIBRTRPC  = rtRemote
 LIBRTCORE = rtCore
 SAMPLEAPP = rpcSampleApp
 
-all: lib$(LIBRTRPC).so lib$(LIBRTRPC).a $(SAMPLEAPP)
+all: lib$(LIBRTRPC).so lib$(LIBRTRPC)_s.a $(SAMPLEAPP)
 
 RTCORE_SRCS=\
   ../utf8.c \
@@ -91,7 +91,7 @@ clean:
 lib$(LIBRTRPC).so: $(RTRPC_OBJS)
 	$(CXX_PRETTY) $(RTRPC_OBJS) $(LDFLAGS) -shared -o $@
 
-lib$(LIBRTRPC).a: $(RTRPC_OBJS)
+lib$(LIBRTRPC)_s.a: $(RTRPC_OBJS)
 	$(AR) rcs -o $@ $(RTRPC_OBJS)
 
 $(SAMPLEAPP): $(SAMPLEAPP_OBJS) lib$(LIBRTRPC).so 
