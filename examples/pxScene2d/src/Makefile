@@ -38,8 +38,13 @@ else
 ifeq ($(PX_PLATFORM),DirectFB)
 PX_PLATFORM=PX_PLATFORM_GENERIC_DFB
 else
+ifeq ($(PX_PLATFORM_WAYLAND_EGL),1)
+PX_PLATFORM=PX_PLATFORM_WAYLAND_EGL
+PXLIBS=$(PXCOREDIR)/build/wayland_egl
+else
 PX_PLATFORM=PX_PLATFORM_GLUT
 PXLIBS=$(PXCOREDIR)/build/glut
+endif
 TARGETINCLUDE=
 endif
 endif
@@ -124,9 +129,21 @@ SEARCH=\
   -Irpc/
    $(TARGETINCLUDE)
 
+ifeq ($(HAVE_WESTEROS),1)
+  SEARCH += -I$(EXTDIR)/westeros/external/curl/include
+  SEARCH += $(PXCORE_INCLUDES)
+  SEARCH += $(PXCORE_INCLUDES)/curl
+endif
 
 #CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE
 CXXFLAGS2=-fPIC -Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN
+ifeq ($(RTRPCENABLED),1)
+CXXFLAGS2 += -DENABLE_PX_WAYLAND_RPC
+endif
+
+ifeq ($(PX_PLATFORM),PX_PLATFORM_WAYLAND_EGL)
+CXXFLAGS2 += -DENABLE_PX_WAYLAND_EGL
+endif
 
 ifdef PXVERSION
 CXXFLAGS=$(CXXFLAGS2) -DPX_SCENE_VERSION=$(PXVERSION)
@@ -163,15 +180,26 @@ ifeq ($(HAVE_WESTEROS),1)
 LDEXT += $(LDWESTEROS)
 endif
 ifeq ($(UNAME_S),Linux)
+ifeq ($(USE_X11),1)
 LDEXT += -lX11
+endif
 endif
 
 ifeq ($(UNAME_S),Darwin)
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread $(LDEXT) -ldl -lv8_libplatform -framework OpenGL -framework Cocoa -framework Foundation
 else
-LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform
+ifeq ($(PX_PLATFORM),PX_PLATFORM_WAYLAND_EGL)
+LDFLAGS = -L$(PXCORE_LIBS) -L$(PXLIBS) -lnode -lpxCore -pthread $(LDEXT) -lwayland-egl -lwayland-client -lEGL -ldl -lrt
+else
+LDFLAGS = -L$(PXCORE_LIBS) -L$(PXLIBS) -lnode -lpxCore -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform
 endif
-
+ifeq ($(RTRPCENABLED),1)
+LDFLAGS += -Lrpc -luuid -lrtRemote
+endif
+endif
+ifeq ($(USE_NEXUS_PLATFORM),0)
+LDFLAGS+=-lGL
+endif
 CXXFLAGS_FULL = $(CXXFLAGS) -fpermissive
 CLAGS_FULL = $(CFLAGS)
 LDFLAGS_FULL = $(LDFLAGS)
@@ -290,6 +318,14 @@ PXSCENE_LIB_SEARCH=\
   -Irpc \
   $(PXCORE_INCLUDES)
 
+ifeq ($(HAVE_WESTEROS),1)
+PXSCENE_LIB_SEARCH+=-I$(EXTDIR)/westeros/external/install/include
+endif
+PXSCENE_LIB_SEARCH+=-I$(EXTDIR)/jpg
+PXSCENE_LIB_SEARCH+=-I$(EXTDIR)/curl/include
+PXSCENE_LIB_SEARCH+=-I$(EXTDIR)/ft/include
+PXSCENE_LIB_SEARCH+=-I$(EXTDIR)/png
+
 # pxScene and pxWayland so end
 
 rtMutexNative.o: linux/rtMutexNative.cpp
@@ -357,12 +393,25 @@ LLVM_CHECKS=$(patsubst %, -enable-checker %, $(SCAN_CHECKS))
 
 ifeq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
 PXSCENE_LIBS=-lpng15 -ldirectfb -ldirect -lfusion
-PXSCENE_LIB_LINK_OPTIONS=$(PXSCENE_LIB_LINKING) -L../../../build/dfb -Wl,--whole-archive ../../../build/dfb/libpxCore.a
+PXSCENE_LIB_LINK_OPTIONS=$(PXCORE_LIBS) $(PXSCENE_LIB_LINKING) -L../../../build/dfb -Wl,--whole-archive ../../../build/dfb/libpxCore.a
 PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_DFB -DENABLE_DFB -DENABLE_DFB_GENERIC
 else 
+ifeq ($(USE_NEXUS_PLATFORM),1)
 PXSCENE_LIBS=-lpng16 -lnxpl -lGLESv2 -lwesteros_compositor -Lrpc/ -lrtRemote -luuid
+else
+PXSCENE_LIBS=-lpng16  -lGL -lGLESv2 -lwesteros_compositor -Lrpc/ -luuid -lrtRemote
+endif
+ifeq ($(PX_PLATFORM_WAYLAND_EGL),1)
+PXSCENE_LIB_LINK_OPTIONS=-L../../../build/wayland_egl -Wl,--whole-archive ../../../build/wayland_egl/libpxCore.a
+PXSCENE_LIB_DEFINES=-DPX_PLATFORM_WAYLAND_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE
+else
 PXSCENE_LIB_LINK_OPTIONS=-L../../../build/egl -Wl,--whole-archive ../../../build/egl/libpxCore.a
 PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE
+endif
+ifeq ($(RTRPCENABLED),1)
+PXSCENE_LIB_DEFINES+=-DENABLE_PX_WAYLAND_RPC
+endif
+PXSCENE_LIB_DEFINES+=-DENABLE_MAX_TEXTURE_SIZE
 endif
 
 
@@ -382,7 +431,11 @@ libpxscene.so:
 	rm -rf $(OBJDIR)
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
 libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
-libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -lrtCore -shared -lnexus -lnxclient -o libpxscene.so.1.0  
+ifeq ($(USE_NEXUS_PLATFORM),1)
+libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(LDEXT) $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -lrtCore -shared -lnexus -lnxclient -o libpxscene.so.1.0  
+else
+libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(LDEXT) $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -lrtCore -shared -o libpxscene.so.1.0  
+endif
 libpxscene.so: $(PXSCENE_LIB_OBJS)
 	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
@@ -400,7 +453,11 @@ libpxwayland.so: $(PXWAYLAND_LIB_OBJS)
 
 libpxwayland.a: CFLAGS_FULL = $(CFLAGS)
 libpxwayland.a: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
+ifeq ($(USE_NEXUS_PLATFORM),1)
 libpxwayland.a: LDFLAGS_FULL =-ljpeg -lfreetype -lcurl -lpng16 -lnxpl -lGLESv2 -lwesteros_compositor -lnexus -lnxclient -lrt
+else
+libpxwayland.a: LDFLAGS_FULL =-ljpeg -lfreetype -lcurl -lpng16 -lGL -lGLESv2 -lwesteros_compositor -lnexus -lnxclient -lrt
+endif
 libpxwayland.a: $(PXWAYLAND_LIB_OBJS)
 	$(AR) rcs -o $@ $(PXWAYLAND_LIB_OBJS) $(patsubst -l%,$(PKG_CONFIG_SYSROOT_DIR)/usr/lib/lib%.so,$(LDFLAGS_FULL))
 
