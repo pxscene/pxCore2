@@ -23,6 +23,7 @@ rtThreadPoolNative::~rtThreadPoolNative()
     {
         destroy();
     }
+    mThreads.clear();
 }
 
 bool rtThreadPoolNative::initialize()

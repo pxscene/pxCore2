@@ -6,11 +6,14 @@ extern rtThreadQueue gUIThreadQueue;
 
 #include "pxFileDownloader.h"
 
-pxArchive::pxArchive(): mIsFile(true) {}
+pxArchive::pxArchive(): mIsFile(true), mDownloadRequest(NULL) {}
 
 pxArchive::~pxArchive()
 {
   gUIThreadQueue.removeAllTasksForObject(this);
+  if (NULL != mDownloadRequest)
+    delete mDownloadRequest;
+  mDownloadRequest = NULL;
 }
 
 rtError pxArchive::initFromUrl(const rtString& url)

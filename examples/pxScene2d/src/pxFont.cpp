@@ -475,6 +475,15 @@ void pxFontManager::removeFont(rtString fontName)
   }
 }
 
+void pxFontManager::clearAllFonts()
+{
+  for (GlyphCache::iterator it =  gGlyphCache.begin(); it != gGlyphCache.end(); it++)
+  {
+    it->second->mTexture = NULL;
+    delete it->second;
+  }
+  gGlyphCache.clear();
+}
 
 // pxTextMetrics
 rtDefineObject(pxTextMetrics, pxResource);

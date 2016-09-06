@@ -97,6 +97,10 @@ protected:
 
   virtual void onCloseRequest() 
   {
+    ENTERSCENELOCK();
+    if (mView)
+      mView->onCloseRequest();
+    EXITSCENELOCK();
     eventLoop.exit();
   }
 

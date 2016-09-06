@@ -1,8 +1,10 @@
-
-#WAYLAND=`pkg-config wayland-client wayland-egl --cflags --libs`
-WAYLAND=
-CFLAGS= -DPX_PLATFORM_WAYLAND_EGL -Wall -O3 -fvisibility=hidden -g -fPIC
+CFLAGS= -DPX_PLATFORM_WAYLAND_EGL -Wall -O3 -fvisibility=hidden -g -fPIC $(PXCORE_INCLUDES) $(PXCORE_LIBS)
 OUTDIR=../build/wayland_egl
+
+INCLUDES :=
+ifeq ($(USE_X11),1)
+    INCLUDES := -I/usr/X11R6/include
+endif
 
 all: $(OUTDIR)/libpxCore.a 
 
@@ -12,26 +14,26 @@ $(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreen
           
 
 pxOffscreen.o: pxOffscreen.cpp
-	g++ -o pxOffscreen.o -Wall -I/usr/X11R6/include $(CFLAGS) $(WAYLAND) -c pxOffscreen.cpp
+	$(CXX) -o pxOffscreen.o -Wall $(INCLUDES) $(CFLAGS) -c pxOffscreen.cpp
 
 pxBufferNative.o: wayland_egl/pxBufferNative.cpp
-	g++ -o pxBufferNative.o -Wall -I/usr/X11R6/include $(CFLAGS) $(WAYLAND) -c wayland_egl/pxBufferNative.cpp
+	$(CXX) -o pxBufferNative.o -Wall $(INCLUDES) $(CFLAGS) -c wayland_egl/pxBufferNative.cpp
 
 pxOffscreenNative.o: wayland_egl/pxOffscreenNative.cpp
-	g++ -o pxOffscreenNative.o -Wall -I/usr/X11R6/include $(CFLAGS) $(WAYLAND) -c wayland_egl/pxOffscreenNative.cpp
+	$(CXX) -o pxOffscreenNative.o -Wall $(INCLUDES) $(CFLAGS) -c wayland_egl/pxOffscreenNative.cpp
 
 pxWindowNative.o: wayland_egl/pxWindowNative.cpp
-	g++ -o pxWindowNative.o -Wall -I/usr/X11R6/include $(CFLAGS) $(WAYLAND) -c wayland_egl/pxWindowNative.cpp
+	$(CXX) -o pxWindowNative.o -Wall $(INCLUDES) $(CFLAGS) -c wayland_egl/pxWindowNative.cpp
 
 pxEventLoopNative.o: wayland_egl/pxEventLoopNative.cpp
-	g++ -o pxEventLoopNative.o -Wall -I/usr/X11R6/include $(CFLAGS) $(WAYLAND) -c wayland_egl/pxEventLoopNative.cpp
+	$(CXX) -o pxEventLoopNative.o -Wall $(INCLUDES) $(CFLAGS) -c wayland_egl/pxEventLoopNative.cpp
 
 pxTimerNative.o: wayland_egl/pxTimerNative.cpp
-	g++ -o pxTimerNative.o -Wall -I/usr/X11R6/include $(CFLAGS) $(WAYLAND) -c wayland_egl/pxTimerNative.cpp
+	$(CXX) -o pxTimerNative.o -Wall $(INCLUDES) $(CFLAGS) -c wayland_egl/pxTimerNative.cpp
 
 pxClipboardNative.o: wayland_egl/pxClipboardNative.cpp
-	g++ -o pxClipboardNative.o -Wall $(CFLAGS) -c wayland_egl/pxClipboardNative.cpp
+	$(CXX) -o pxClipboardNative.o -Wall $(CFLAGS) -c wayland_egl/pxClipboardNative.cpp
 
 pxWindowUtil.o: pxWindowUtil.cpp
-	g++ -o pxWindowUtil.o -Wall -I/usr/X11R6/include $(CFLAGS) -c pxWindowUtil.cpp
+	$(CXX) -o pxWindowUtil.o -Wall $(CFLAGS) -c pxWindowUtil.cpp
 

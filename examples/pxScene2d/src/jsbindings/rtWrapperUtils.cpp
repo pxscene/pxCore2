@@ -111,9 +111,6 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
 void
 HandleMap::clearAllForContext(uint32_t contextId)
 {
-  // JRJR Bail for now a bit crashy
-  return;
-
   typedef ObjectReferenceMap::iterator iterator;
 
   int n = 0;
@@ -121,26 +118,35 @@ HandleMap::clearAllForContext(uint32_t contextId)
   pthread_mutex_lock(&sObjectMapMutex);
   rtLogInfo("clearing all persistent handles for: %u size:%u", contextId,
     static_cast<unsigned>(objectMap.size()));
-
+  vector<iterator> refs;
   for (iterator begin = objectMap.begin(), end = objectMap.end(); begin != end;)
   {
-    ObjectReference* ref = begin->second;
-    // rtLogInfo("looking at:%d == %d", ref->CreationContextId, contextId);
+      ObjectReference* ref = begin->second;
+      rtLogInfo("looking at:%d == %d", ref->CreationContextId, contextId);
 
-    if (ref->CreationContextId == contextId)
-    {
-      ref->PersistentObject.ClearWeak();
-      ref->PersistentObject.Reset();
-      delete ref;
-      objectMap.erase(begin++);
-      n++;
-    }
-    else
-    {
-      ++begin;
-    }
+      if (ref->CreationContextId == contextId)
+      {
+        refs.push_back(begin);
+        ref->PersistentObject.ClearWeak();
+        ref->PersistentObject.Reset();
+        delete ref;
+        ref = NULL;
+        begin++;
+        n++;
+      }
+      else
+      {
+        rtLogInfo("looping :%d == %d", ref->CreationContextId, contextId);
+        ++begin;
+      }
   }
-  rtLogInfo("clear complete. removed:%d size:%u", n,
+
+  for(int i=0; i<refs.size();i++)
+  {
+    objectMap.erase(refs[i]);
+  }
+  refs.clear();
+  rtLogInfo("clear complete for id[%d] . removed:%d size:%u", contextId, n,
       static_cast<unsigned>(objectMap.size()));
   pthread_mutex_unlock(&sObjectMapMutex);
 }
