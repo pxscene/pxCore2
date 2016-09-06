@@ -1122,7 +1122,7 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top)
-  : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRectangle(false)
+  : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRectangle(false), mTestView(NULL)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1147,6 +1147,22 @@ pxScene2d::pxScene2d(bool top)
   mPointerHidden= false;
   mPointerResource= pxImageManager::getImage("cursor.png");
   #endif
+}
+
+rtError pxScene2d::dispose()
+{
+    if (mRoot)
+      mRoot->dispose();
+    mEmit->clearListeners();
+    mRoot = NULL;
+    mFocusObj = NULL;
+    pxFontManager::clearAllFonts();
+    return RT_OK;
+}
+
+void pxScene2d::onCloseRequest()
+{
+  dispose();
 }
 
 #if 0
@@ -1295,7 +1311,8 @@ rtError pxScene2d::clock(uint64_t & time)
 rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 {
   rtRefT<pxViewContainer> c = new pxViewContainer(this);
-  c->setView(new testView);
+  mTestView = new testView;
+  c->setView(mTestView);
   o = c.getPtr();
   o.set(p);
   o.send("init");

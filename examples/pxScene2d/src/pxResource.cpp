@@ -24,6 +24,7 @@ pxResource::~pxResource()
     // if there is a previous request pending then set the callback to NULL
     // the previous request will not be processed and the memory will be freed when the download is complete
     mDownloadRequest->setCallbackFunctionThreadSafe(NULL);
+    delete mDownloadRequest;
     mDownloadRequest = 0;
   }
   gUIThreadQueue.removeAllTasksForObject(this);
@@ -100,6 +101,8 @@ void pxResource::removeListener(pxResourceListener* pListener)
   {
     mInitialized = false;
     mDownloadRequest->setCallbackFunctionThreadSafe(NULL);
+
+    delete mDownloadRequest;
     mDownloadRequest = 0;    
   }
   mListenersMutex.unlock();
@@ -302,7 +305,7 @@ void pxResource::onDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
     // Call directly rather than queuing
     ((pxResource*)fileDownloadRequest->getCallbackData())->processDownloadedResource(fileDownloadRequest);
     // Clear download data
-    ((pxResource*)fileDownloadRequest->getCallbackData())->mDownloadRequest = 0;
+    //((pxResource*)fileDownloadRequest->getCallbackData())->mDownloadRequest = 0;
   }
 }
 

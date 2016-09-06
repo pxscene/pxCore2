@@ -178,6 +178,7 @@ class pxFontManager
     
     static rtRefT<pxFont> getFont(const char* url);
     static void removeFont(rtString fontName);
+    static void clearAllFonts();
     
   protected: 
     static void initFT();  
