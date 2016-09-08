@@ -1,9 +1,18 @@
 
-LIBRTRPC  = rtRemote
-LIBRTCORE = rtCore
 SAMPLEAPP = rpcSampleApp
 
-all: lib$(LIBRTRPC).so lib$(LIBRTRPC)_s.a $(SAMPLEAPP)
+ifeq ($(PXCORE_STATIC_LIBS),1)
+LIBRTRPC  = rtRemote_s
+LIBRTCORE = rtCore_s
+LIBRTRPC_TARGET = librtRemote_s.a
+else
+LIBRTRPC  = rtRemote
+LIBRTCORE = rtCore
+LIBRTRPC_TARGET = librtRemote.so
+endif
+
+
+all: $(LIBRTRPC_TARGET)
 
 RTCORE_SRCS=\
   ../utf8.c \
@@ -91,8 +100,8 @@ clean:
 lib$(LIBRTRPC).so: $(RTRPC_OBJS)
 	$(CXX_PRETTY) $(RTRPC_OBJS) $(LDFLAGS) -shared -o $@
 
-lib$(LIBRTRPC)_s.a: $(RTRPC_OBJS)
+lib$(LIBRTRPC).a: $(RTRPC_OBJS)
 	$(AR) rcs -o $@ $(RTRPC_OBJS)
 
-$(SAMPLEAPP): $(SAMPLEAPP_OBJS) lib$(LIBRTRPC).so 
+$(SAMPLEAPP): $(SAMPLEAPP_OBJS) $(LIBRTRPC_TARGET)
 	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../ -l$(LIBRTCORE) -l$(LIBRTRPC)
