@@ -8,7 +8,7 @@ deploy: pxscene.dmg
 else
 all: pxscene
 dfb: pxscene-dfb
-libs: libpxscene.so
+libs: librtCore.so libpxscene.so
 endif
 
 HAVE_WESTEROS := $(shell test -f ../external/westeros/Makefile.ubuntu && echo 1)
@@ -354,12 +354,26 @@ SCAN_CHECKS=\
 
 LLVM_CHECKS=$(patsubst %, -enable-checker %, $(SCAN_CHECKS))
 
+ifeq ($(PXCORE_STATIC_LIBS),1)
+LIBRTCORE=rtCore_s
+LIBRTCORE_TARGET=lib$(LIBRTCORE).a
+LIBRTREMOTE=rtRemote_s
+LIBRTREMOTE_TARGET=lib$(LIBRTREMOTE).a
+else
+LIBRTCORE=rtCore
+LIBRTCORE_TARGET=lib$(LIBRTCORE).so
+LIBRTREMOTE=rtRemote
+LIBRTREMOTE_TARGET=lib$(LIBRTREMOTE).so
+endif
+
 ifeq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
 PXSCENE_LIBS=-lpng15 -ldirectfb -ldirect -lfusion
 PXSCENE_LIB_LINK_OPTIONS=$(PXSCENE_LIB_LINKING) -L../../../build/dfb -Wl,--whole-archive ../../../build/dfb/libpxCore.a
 PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_DFB -DENABLE_DFB -DENABLE_DFB_GENERIC
+LIBRTREMOTE=
+LIBRTREMOTE_TARGET=
 else 
-PXSCENE_LIBS=-lpng16 -lnxpl -lGLESv2 -lwesteros_compositor -Lrpc/ -lrtRemote_s -luuid
+PXSCENE_LIBS=-lpng16 -lnxpl -lGLESv2 -lwesteros_compositor -Lrpc/ -l$(LIBRTREMOTE) -luuid
 PXSCENE_LIB_LINK_OPTIONS=-L../../../build/egl -Wl,--whole-archive ../../../build/egl/libpxCore.a
 PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE
 endif
@@ -377,38 +391,41 @@ pxscene-dfb: CXXFLAGS_FULL = -fPIC -Wall -Wextra -g $(SEARCH) -I/usr/local/inclu
 pxscene-dfb: $(OBJS_DFB) $(PXCOREDIR)/build/dfb/libpxCore.a 
 	$(CXX) $(OBJS_DFB) -lnode -lpxCore -pthread -L/usr/local/lib -ldirectfb $(LDEXT) -L$(PXCOREDIR)/build/dfb -lpxCore -ldl -lrt -lv8_libplatform -o pxscene
 
+librtRemote.so:
+	$(MAKE) -C rpc/ librtRemote.so
+
 librtRemote_s.a:
 	$(MAKE) -C rpc/ librtRemote_s.a
 
 cleansceneobj:
 	rm -f $(PXSCENE_LIB_OBJS)
 
+cleanwaylandobj:
+	rm -f $(PXWAYLAND_LIB_OBJS)
+
 libpxscene.so:
 	rm -rf $(OBJDIR)
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
 libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
-libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -lrtCore_s -shared -lnexus -lnxclient -o libpxscene.so.1.0  
-libpxscene.so: cleansceneobj $(PXSCENE_LIB_OBJS) librtCore_s.a librtRemote_s.a
+libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) -shared -lnexus -lnxclient -o libpxscene.so.1.0  
+libpxscene.so: cleansceneobj $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
 	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
 	ln -sf libpxscene.so.1 libpxscene.so
-
-cleanwaylandobj:
-	rm -f $(PXWAYLAND_LIB_OBJS)
 
 libpxwayland.so: 
 	rm -rf $(OBJDIR)
 libpxwayland.so: CFLAGS_FULL = $(CFLAGS)
 libpxwayland.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
-libpxwayland.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) -Lrpc/ -ldl -lrt -L./ -lrtCore_s -shared -lnexus -lnxclient -o libpxwayland.so.1.0
-libpxwayland.so: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) librtCore_s.a librtRemote_s.a
+libpxwayland.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) -shared -lnexus -lnxclient -o libpxwayland.so.1.0
+libpxwayland.so: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
 	$(CXX) $(PXWAYLAND_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxwayland.so.1.0 libpxwayland.so.1
 	ln -sf libpxwayland.so.1 libpxwayland.so
 
 libpxwayland_s.a: CFLAGS_FULL = $(CFLAGS)
 libpxwayland_s.a: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
-libpxwayland_s.a: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) librtCore_s.a librtRemote_s.a
+libpxwayland_s.a: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
 	$(AR) rcs -o $@ $(PXWAYLAND_LIB_OBJS)
 
 librtCore.so: CFLAGS_FULL = $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
