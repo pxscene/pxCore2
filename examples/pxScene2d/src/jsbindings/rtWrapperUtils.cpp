@@ -147,7 +147,7 @@ HandleMap::clearAllForContext(uint32_t contextId)
   }
   refs.clear();
   //rtLogInfo("clear complete for id[%d] . removed:%d size:%u", contextId, n,
-      static_cast<unsigned>(objectMap.size()));
+      //static_cast<unsigned>(objectMap.size()));
   pthread_mutex_unlock(&sObjectMapMutex);
 }
 
