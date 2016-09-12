@@ -122,7 +122,7 @@ HandleMap::clearAllForContext(uint32_t contextId)
   for (iterator begin = objectMap.begin(), end = objectMap.end(); begin != end;)
   {
       ObjectReference* ref = begin->second;
-      rtLogInfo("looking at:%d == %d", ref->CreationContextId, contextId);
+      //rtLogInfo("looking at:%d == %d", ref->CreationContextId, contextId);
 
       if (ref->CreationContextId == contextId)
       {
@@ -136,7 +136,7 @@ HandleMap::clearAllForContext(uint32_t contextId)
       }
       else
       {
-        rtLogInfo("looping :%d == %d", ref->CreationContextId, contextId);
+        //rtLogInfo("looping :%d == %d", ref->CreationContextId, contextId);
         ++begin;
       }
   }
@@ -146,7 +146,7 @@ HandleMap::clearAllForContext(uint32_t contextId)
     objectMap.erase(refs[i]);
   }
   refs.clear();
-  rtLogInfo("clear complete for id[%d] . removed:%d size:%u", contextId, n,
+  //rtLogInfo("clear complete for id[%d] . removed:%d size:%u", contextId, n,
       static_cast<unsigned>(objectMap.size()));
   pthread_mutex_unlock(&sObjectMapMutex);
 }
