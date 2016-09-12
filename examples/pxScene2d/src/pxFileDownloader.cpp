@@ -217,9 +217,9 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
           else
           {
             //no listeners, delete request
-            delete downloadRequest;
           }
         }
+        delete downloadRequest;
         return;
     }
 
@@ -250,9 +250,9 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
       else
       {
         //no listeners, delete request
-        delete downloadRequest;
       }
     }
+    delete downloadRequest;
 }
 
 void pxFileDownloader::downloadFileInBackground(pxFileDownloadRequest* downloadRequest)

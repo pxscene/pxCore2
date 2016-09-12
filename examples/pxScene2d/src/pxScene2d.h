@@ -114,7 +114,7 @@ class pxFileDownloadRequest;
 
 class pxScene2d;
 class pxScriptView;
-
+class pxFontManager;
 class pxObject: public rtObject
 {
 public:
@@ -372,7 +372,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
   void moveForward();
   void moveBackward();
 
-  void dispose()
+  virtual void dispose()
   {
     vector<animation>::iterator it = mAnimations.begin();
     for(;it != mAnimations.end();it++)
@@ -998,7 +998,11 @@ public:
     return c;
   }
 
-
+  void dispose()
+  {
+     setScriptView(NULL);
+     pxObject::dispose();
+  }
   rtError url(rtString& v) const { v = mUrl; return RT_OK; }
   rtError setUrl(rtString v);
 
@@ -1099,6 +1103,11 @@ protected:
     mHeight = h;
     if (mView)
       mView->onSize(w,h);
+  }
+
+  virtual void onCloseRequest()
+  {
+    mScene.send("dispose");
   }
 
   virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags)
@@ -1255,6 +1264,11 @@ public:
   virtual ~pxScene2d() 
   {
     printf("***** deleting pxScene2d\n");
+    if (NULL != mTestView)
+    {
+       delete mTestView;
+       mTestView = NULL;
+    }
   }
   
   virtual unsigned long AddRef() 
@@ -1272,18 +1286,8 @@ public:
   }
 
 //  void init();
-
-  rtError dispose()
-  {
-    printf("*************** Dispose\n");
-    if (mRoot)
-      mRoot->dispose();
-    mEmit->clearListeners();
-    mRoot = NULL;
-    mFocusObj = NULL;
-    return RT_OK;
-  }
-
+  rtError dispose();
+  void onCloseRequest();
   int32_t w() const { return mWidth;  }
   rtError w(int32_t& v) const { v = mWidth;  return RT_OK; }
   int32_t h() const { return mHeight; }
@@ -1467,6 +1471,7 @@ public:
   #ifdef PX_DIRTY_RECTANGLES
   pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
+  testView* mTestView;
 };
 
 // TODO do we need this anymore?

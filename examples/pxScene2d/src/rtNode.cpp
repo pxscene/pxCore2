@@ -245,8 +245,15 @@ rtNodeContext::~rtNodeContext()
 
     mEnv->Dispose();
     mEnv = NULL;
+    #ifndef USE_CONTEXTIFY_CLONES
+    HandleMap::clearAllForContext(mId);
+    #endif
   }
-
+  else
+  {
+  // clear out persistent javascript handles
+    HandleMap::clearAllForContext(mId);
+  }
   if(exec_argv)
   {
     delete[] exec_argv;
@@ -259,9 +266,6 @@ rtNodeContext::~rtNodeContext()
   // Un-Register wrappers.
   // rtObjectWrapper::destroyPrototype();
   // rtFunctionWrapper::destroyPrototype();
-
-  // clear out persistent javascript handles
-  HandleMap::clearAllForContext(mId);
 
   mContext.Reset();
   mRtWrappers.Reset();
