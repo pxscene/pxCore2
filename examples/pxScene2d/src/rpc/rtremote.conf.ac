@@ -5,7 +5,7 @@
     "type":"string" },
 
 { "name":"rt.rpc.server.use_dispatch_thread",
-    "default_value":"false",
+    "default_value":"true",
     "type":"bool" },
 
 { "name":"rt.rpc.server.listen_interface",
