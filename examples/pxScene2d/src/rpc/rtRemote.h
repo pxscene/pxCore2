@@ -6,6 +6,8 @@
 #include <stdint.h>
 
 #define RT_REMOTE_TIMEOUT_INFINITE UINT32_MAX
+#define RT_REMOTE_API_VERSION 2.0
+#define RT_REMOTE_OLDSTYLE_API 1
 
 typedef struct rtRemoteEnvironment rtRemoteEnvironment;
 
@@ -69,5 +71,19 @@ rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout);
 
 rtError rtRemoteInitNs(rtRemoteEnvironment* env);
 rtError rtRemoteShutdownNs(rtRemoteEnvironment* env);
+
+#ifdef RT_REMOTE_OLDSTYLE_API
+rtError
+rtRemoteInit();
+
+rtError
+rtRemoteRegisterObject(char const* id, rtObjectRef const& obj);
+
+rtError
+rtRemoteLocateObject(char const* id, rtObjectRef& obj, int timeout = 3000);
+
+rtError
+rtRemoteShutdown();
+#endif
 
 #endif

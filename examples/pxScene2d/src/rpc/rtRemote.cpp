@@ -184,3 +184,27 @@ rtEnvironmentGetGlobal()
   }
   return gEnv;
 }
+
+rtError
+rtRemoteInit()
+{
+  return rtRemoteInit(rtEnvironmentGetGlobal());
+}
+
+rtError
+rtRemoteRegisterObject(char const* id, rtObjectRef const& obj)
+{
+  return rtRemoteRegisterObject(rtEnvironmentGetGlobal(), id, obj);
+}
+
+rtError
+rtRemoteLocateObject(char const* id, rtObjectRef& obj, int /*timeout*/)
+{
+  return rtRemoteLocateObject(rtEnvironmentGetGlobal(), id, obj);
+}
+
+rtError
+rtRemoteShutdown()
+{
+  return rtRemoteShutdown(rtEnvironmentGetGlobal());
+}
