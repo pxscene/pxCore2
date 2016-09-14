@@ -196,7 +196,8 @@ static void dumpOffset(FILE* f, int offset)
 
   char buff[64];
   memset(buff, 0, sizeof(buff));
-  fread(buff, sizeof(buff), 1, f);
+  int unused = fread(buff, sizeof(buff), 1, f);
+  (void)(unused);
   buff[63] = '\0';
   fprintf(stderr, "----- failed chunk ----\n");
   fprintf(stderr, "'%s'\n", buff);
