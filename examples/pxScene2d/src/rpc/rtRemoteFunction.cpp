@@ -18,6 +18,10 @@ rtRemoteFunction::rtRemoteFunction(std::string const& id, std::string const& nam
 
 rtRemoteFunction::~rtRemoteFunction()
 {
+  if (!strcmp(m_id.c_str(), "global"))
+  {
+    m_client->removeKeepAlive(m_name);
+  }
   Release();
 }
 
