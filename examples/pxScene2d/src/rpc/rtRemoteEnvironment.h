@@ -63,7 +63,10 @@ private:
   void processRunQueue();
 
   inline bool haveResponse(rtRemoteCorrelationKey k) const
-    { return m_waiters.find(k) != m_waiters.end(); }
+  {
+    auto itr = m_waiters.find(k);
+    return (itr != m_waiters.end()) && (itr->second == ResponseState::Dispatched);
+  }
 
   mutable std::mutex            m_queue_mutex;
   std::condition_variable       m_queue_cond;
