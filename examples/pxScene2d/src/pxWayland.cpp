@@ -95,7 +95,11 @@ void pxWayland::createDisplay(rtString displayName)
          error= true;
          goto exit;
       }
-      
+      #ifdef ENABLE_PX_WAYLAND_EGL
+      WstCompositorSetIsNested(mWCtx, true);
+      WstCompositorSetIsRepeater( mWCtx, true);
+      WstCompositorSetNestedDisplayName( mWCtx, "wayland-0"); //Need to remove hardcoding
+      #endif
       if ( !WstCompositorSetOutputSize( mWCtx, mWidth, mHeight ) )
       {
          error= true;
@@ -284,6 +288,7 @@ void pxWayland::onUpdate(double t)
 
 void pxWayland::onDraw()
 {
+#ifndef ENABLE_PX_WAYLAND_EGL
   static pxTextureRef nullMaskRef;
   
   if ( (mFBO->width() != mWidth) ||
@@ -352,6 +357,7 @@ void pxWayland::onDraw()
      }
   }
   context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
+#endif
 }
 
 void pxWayland::handleInvalidate()
@@ -1066,6 +1072,16 @@ pxWaylandContainer::pxWaylandContainer(pxScene2d* scene)
   addListener("onClientStopped", get<rtFunctionRef>("onClientStopped"));
   addListener("onClientConnected", get<rtFunctionRef>("onClientConnected"));
   addListener("onClientDisconnected", get<rtFunctionRef>("onClientDisconnected"));
+  mRemoteReady = new rtPromise();
+}
+
+pxWaylandContainer::~pxWaylandContainer()
+{
+  if (NULL != mRemoteReady)
+  {
+      delete mRemoteReady;
+  }
+  mRemoteReady = NULL;
 }
 
 void pxWaylandContainer::invalidate( pxRect* r )
@@ -1212,6 +1228,15 @@ rtError pxWaylandContainer::api(rtValue& v) const
   return RT_PROP_NOT_FOUND;
 }
 
+rtError pxWaylandContainer::remoteReady(rtValue& promise) const
+{
+  if (NULL != mRemoteReady)
+  {
+      promise = mRemoteReady;
+  }
+  return RT_OK;
+}
+
 rtError pxWaylandContainer::setView(pxWayland* v)
 {
   if (mWayland && (mWayland != v) )
@@ -1236,9 +1261,19 @@ void pxWaylandContainer::onInit()
   }
 }
 
+void pxWaylandContainer::isRemoteReady(bool ready)
+{
+  if (NULL != mRemoteReady)
+  {
+      mRemoteReady->send(ready?"resolve":"reject",this);
+  }
+}
+
+
 rtDefineObject(pxWaylandContainer,pxViewContainer);
 rtDefineProperty(pxWaylandContainer,displayName);
 rtDefineProperty(pxWaylandContainer,cmd);
 rtDefineProperty(pxWaylandContainer,clientPID);
 rtDefineProperty(pxWaylandContainer,fillColor);
 rtDefineProperty(pxWaylandContainer,api);
+rtDefineProperty(pxWaylandContainer,remoteReady);

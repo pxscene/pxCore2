@@ -4,7 +4,7 @@
 
 #ifndef PX_BUFFER_NATIVE_H
 #define PX_BUFFER_NATIVE_H
-
+#include <wayland-egl.h>
 #include <wayland-client.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
