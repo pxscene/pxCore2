@@ -316,6 +316,8 @@ void IncrementalMarking::Initialize() {
 void IncrementalMarking::SetOldSpacePageFlags(MemoryChunk* chunk,
                                               bool is_marking,
                                               bool is_compacting) {
+  if (NULL != chunk)
+  {
   if (is_marking) {
     chunk->SetFlag(MemoryChunk::POINTERS_TO_HERE_ARE_INTERESTING);
     chunk->SetFlag(MemoryChunk::POINTERS_FROM_HERE_ARE_INTERESTING);
@@ -333,6 +335,7 @@ void IncrementalMarking::SetOldSpacePageFlags(MemoryChunk* chunk,
   } else {
     chunk->ClearFlag(MemoryChunk::POINTERS_TO_HERE_ARE_INTERESTING);
     chunk->SetFlag(MemoryChunk::POINTERS_FROM_HERE_ARE_INTERESTING);
+  }
   }
 }
 
@@ -379,9 +382,10 @@ void IncrementalMarking::DeactivateIncrementalWriteBarrier() {
   DeactivateIncrementalWriteBarrierForSpace(heap_->new_space());
 
   LargePage* lop = heap_->lo_space()->first_page();
-  while (lop->is_valid()) {
+  while ((NULL != lop) && (lop->is_valid())) {
     SetOldSpacePageFlags(lop, false, false);
-    lop = lop->next_page();
+    if (NULL != lop)
+      lop = lop->next_page();
   }
 }
 
@@ -414,9 +418,10 @@ void IncrementalMarking::ActivateIncrementalWriteBarrier() {
   ActivateIncrementalWriteBarrier(heap_->new_space());
 
   LargePage* lop = heap_->lo_space()->first_page();
-  while (lop->is_valid()) {
+  while ((NULL != lop) && (lop->is_valid())) {
     SetOldSpacePageFlags(lop, true, is_compacting_);
-    lop = lop->next_page();
+    if (NULL != lop)
+      lop = lop->next_page();
   }
 }
 

@@ -147,9 +147,13 @@ Page* Page::Initialize(Heap* heap, MemoryChunk* chunk, Executability executable,
 
 
 bool PagedSpace::Contains(Address addr) {
+  if (NULL != addr)
+  {
   Page* p = Page::FromAddress(addr);
   if (!p->is_valid()) return false;
   return p->owner() == this;
+  }
+  return false;
 }
 
 
