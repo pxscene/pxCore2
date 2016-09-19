@@ -285,36 +285,50 @@ void pxTextBox::renderTextWithWordWrap(const char *text, float sx, float sy, flo
 void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY,
                                            uint32_t size, float* color, bool render)
 {
-  //printf(">>>>>>>>>>>>>>>>>>>> pxTextBox::measureTextWithWrapOrNewLine\n");
+    //printf(">>>>>>>>>>>>>>>>>>>> pxTextBox::measureTextWithWrapOrNewLine\n");
 
-  int i = 0;
-  u_int32_t charToMeasure;
-  float charW=0, charH=0;
+    u_int32_t charToMeasure;
+    float charW=0, charH=0;
 
-  rtString accString = "";
-  bool lastLine = false;
-  float lineWidth = mw;
+    rtString accString = "";
+    bool lastLine = false;
+    float lineWidth = mw;
 
-  // If really rendering, startY should reflect value for any verticalAlignment adjustments
-  if( render) {
-    tempY = startY;
-  }
-  if(lineNumber == 0) {
-    if( mAlignHorizontal == pxConstantsAlignHorizontal::LEFT)
-    {
- //     setLineMeasurements(true, mXStartPos, tempY);
-      tempX = mXStartPos;
+
+    // If really rendering, startY should reflect value for any verticalAlignment adjustments
+    if( render) {
+      tempY = startY;
     }
-    else {
-//      setLineMeasurements(true, tempX, tempY);
+    if(lineNumber == 0) {
+      if( mAlignHorizontal == pxConstantsAlignHorizontal::LEFT)
+      {
+   //     setLineMeasurements(true, mXStartPos, tempY);
+        tempX = mXStartPos;
+      }
+      else {
+  //      setLineMeasurements(true, tempX, tempY);
+      }
     }
-  }
+    
     // Read char by char to determine full line of text before rendering
+    int i = 0;
+    int lasti = 0;
+    int numbytes = 1;
     while((charToMeasure = u8_nextchar((char*)text, &i)) != 0)
     {
-      char tempChar[2];
-      tempChar[0] = charToMeasure;
-      tempChar[1] = 0;
+      // Determine if the character is multibyte
+      numbytes = i-lasti;
+      char tempChar[(numbytes) +1];
+      memset(tempChar, '\0', sizeof(tempChar));
+      if(numbytes == 1) {
+        tempChar[0] = charToMeasure;
+      } 
+      else {
+        for( int pos = 0; pos < numbytes ; pos++) {
+          tempChar[pos] = text[lasti+pos];
+        }
+      }
+      lasti = i;
 
       getFontResource()->measureTextChar(charToMeasure, size,  sx, sy, charW, charH);
       if( isNewline(charToMeasure))
