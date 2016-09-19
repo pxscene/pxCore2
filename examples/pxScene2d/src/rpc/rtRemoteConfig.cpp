@@ -108,7 +108,7 @@ rtRemoteConfigBuilder::getDefaultConfig()
   for (std::string const& fileName : configFiles)
   {
     // overrite any existing defaults from file
-    rtRemoteConfigBuilder* confFromFile = rtRemoteConfigBuilder::fromFile(fileName.c_str());
+    std::unique_ptr<rtRemoteConfigBuilder> confFromFile(rtRemoteConfigBuilder::fromFile(fileName.c_str()));
     if (confFromFile)
     {
       rtLogInfo("loading configuration settings (%d) from: %s",
@@ -118,7 +118,6 @@ rtRemoteConfigBuilder::getDefaultConfig()
         rtLogDebug("'%s' -> '%s'", itr.first.c_str(), itr.second.c_str());
         conf->m_map[itr.first] = itr.second;
       }
-      break;
     }
     else
     {
