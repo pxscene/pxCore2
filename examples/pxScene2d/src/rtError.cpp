@@ -1,4 +1,4 @@
-// rtCore Copyright 2007-2015 John Robinson
+  // rtCore Copyright 2007-2015 John Robinson
 // rtError.cpp
 
 #include "rtError.h"
@@ -94,6 +94,7 @@ const char* rtStrError_BuiltIn(rtError e)
     RT_ERROR_CASE(RT_ERROR_INVALID_OPERATION);
     RT_ERROR_CASE(RT_ERROR_IN_PROGRESS);
     RT_ERROR_CASE(RT_ERROR_QUEUE_EMPTY);
+    RT_ERROR_CASE(RT_ERROR_STREAM_CLOSED);
     default:
       break;
   }

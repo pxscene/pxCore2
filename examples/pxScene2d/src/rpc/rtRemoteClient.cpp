@@ -76,23 +76,31 @@ rtRemoteClient::rtRemoteClient(rtRemoteEnvironment* env, sockaddr_storage const&
 
 rtRemoteClient::~rtRemoteClient()
 {
-  if (m_stream)
-    m_stream->close();
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    if (m_stream)
+    {
+      m_stream->close();
+      m_stream.reset();
+    }
+  }
 }
 
 rtError
 rtRemoteClient::send(rtRemoteMessagePtr const& msg)
 {
-  if (!m_stream)
-    return RT_ERROR_INVALID_OPERATION;
-  return m_stream->send(msg);
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+  return s->send(msg);
 }
 
 rtError
 rtRemoteClient::onIncomingMessage(rtRemoteMessagePtr const& doc)
 {
-  if (!m_stream)
-    return RT_ERROR_INVALID_OPERATION;
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
 
   auto self = shared_from_this();
   m_env->enqueueWorkItem(self, doc);
@@ -120,8 +128,13 @@ rtRemoteClient::onStreamStateChanged(std::shared_ptr<rtRemoteStream> const& /*st
       if (e != RT_OK)
         rtLogWarn("failed to invoke state changed handler. %s", rtStrError(e));
     }
+
+    std::unique_lock<std::mutex> lock(m_mutex);
     if (m_stream)
+    {
+      m_stream->close();
       m_stream.reset();
+    }
   }
   return RT_OK;
 }
@@ -143,7 +156,12 @@ rtRemoteClient::open()
     rtLogWarn("failed to connect to rpc endpoint: %d", err);
     return err;
   }
-  err = m_stream->open();
+
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+
+  err = s->open();
   if (err != RT_OK)
   {
     rtLogError("failed to open stream for read/write: %d", err);
@@ -156,10 +174,11 @@ rtError
 rtRemoteClient::connectRpcEndpoint()
 {
   rtError e = RT_OK;
-  if (!m_stream->isConnected())
-  {
-    e = m_stream->connect();
-  }
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+  if (!s->isConnected())
+    e = s->connect();
   return e;
 }
 
@@ -174,7 +193,11 @@ rtRemoteClient::startSession(std::string const& objectId, uint32_t timeout)
   req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
 
-  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+
+  rtRemoteAsyncHandle handle = s->sendWithWait(req, k);
   rtError e = handle.wait(timeout);
   if (e != RT_OK)
     rtLogDebug("e: %s", rtStrError(e));
@@ -230,7 +253,10 @@ rtRemoteClient::sendKeepAlive()
   }
   lock.unlock();
 
-  return m_stream->send(msg);
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+  return s->send(msg);
 }
 
 rtError
@@ -268,7 +294,11 @@ rtRemoteClient::sendSet(std::string const& objectId, uint32_t propertyIdx, rtVal
 rtError
 rtRemoteClient::sendSet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k)
 {
-  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+
+  rtRemoteAsyncHandle handle = s->sendWithWait(req, k);
 
   rtError e = handle.wait(0);
   if (e == RT_OK)
@@ -315,7 +345,11 @@ rtRemoteClient::sendGet(std::string const& objectId, uint32_t propertyIdx, rtVal
 rtError
 rtRemoteClient::sendGet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k, rtValue& value)
 {
-  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+
+  rtRemoteAsyncHandle handle = s->sendWithWait(req, k);
 
   rtError e = handle.wait(0);
   if (e == RT_OK)
@@ -361,7 +395,11 @@ rtRemoteClient::sendCall(std::string const& objectId, std::string const& methodN
 rtError
 rtRemoteClient::sendCall(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k, rtValue& result)
 {
-  rtRemoteAsyncHandle handle = m_stream->sendWithWait(req, k);
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+
+  rtRemoteAsyncHandle handle = s->sendWithWait(req, k);
 
   rtError e = handle.wait(0);
   if (e == RT_OK)

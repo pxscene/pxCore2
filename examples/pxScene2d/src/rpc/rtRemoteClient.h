@@ -96,10 +96,19 @@ private:
   // bool moreToProcess(rtRemoteCorrelationKey k);
 
 private:
-  std::shared_ptr<rtRemoteStream>   m_stream;
-  std::vector<std::string>          m_object_list;
-  std::mutex                        m_mutex;
-  rtRemoteEnvironment*              m_env;
+  inline std::shared_ptr<rtRemoteStream> getStream()
+  {
+    std::shared_ptr<rtRemoteStream> s;
+    std::unique_lock<std::mutex> lock(m_mutex);
+    if (m_stream)
+      s = m_stream;
+    return s;
+  }
+
+  std::shared_ptr<rtRemoteStream>           m_stream;
+  std::vector<std::string>                  m_object_list;
+  std::mutex                                m_mutex;
+  rtRemoteEnvironment*                      m_env;
   rtRemoteCallback<StateChangedHandler>     m_state_changed_handler;
 };
 

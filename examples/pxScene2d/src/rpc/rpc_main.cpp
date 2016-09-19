@@ -19,12 +19,21 @@ rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow)
 {
   rtError e = RT_OK;
 
-  auto endTime = std::chrono::milliseconds(millisecondsFromNow) + std::chrono::system_clock::now();
-  while (endTime > std::chrono::system_clock::now())
+  bool hasDipatchThread = env->Config->server_use_dispatch_thread();
+  if (hasDipatchThread)
   {
-    e = rtRemoteRun(env, 16);
-    if (e != RT_OK && e != RT_ERROR_QUEUE_EMPTY)
-      return e;
+    usleep(millisecondsFromNow * 1000);
+    (void ) env;
+  }
+  else
+  {
+    auto endTime = std::chrono::milliseconds(millisecondsFromNow) + std::chrono::system_clock::now();
+    while (endTime > std::chrono::system_clock::now())
+    {
+      e = rtRemoteRun(env, 16);
+      if (e != RT_OK && e != RT_ERROR_QUEUE_EMPTY)
+        return e;
+    }
   }
   return e;
 }
