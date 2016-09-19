@@ -1474,7 +1474,7 @@ void pxScene2d::onUpdate(double t)
       // printf("%g fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g     draw_ms: %0.04g   update_ms: %0.04g\n",
       //     fps, pxObjectCount, dpf, bpf, fpf, draw_ms, update_ms );
 
-      printf("%g fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g \n", fps, pxObjectCount, dpf, bpf, fpf);
+      rtLogDebug("%g fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g \n", fps, pxObjectCount, dpf, bpf, fpf);
 
       gDrawCalls    = 0;
       gTexBindCalls = 0;
@@ -1483,7 +1483,7 @@ void pxScene2d::onUpdate(double t)
       sigma_draw   = 0;
       sigma_update = 0;
 #else
-    printf("%g fps   pxObjects: %d\n", fps, pxObjectCount);
+    rtLogDebug("%g fps   pxObjects: %d\n", fps, pxObjectCount);
 #endif //USE_RENDER_STATS
 
     // TODO FUTURES... might be nice to have "struct" style object's that get copied
