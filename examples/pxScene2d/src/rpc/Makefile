@@ -3,6 +3,7 @@ ifeq ($(PXCORE_STATIC_LIBS),1)
 LIBRTRPC  = rtRemote_s
 LIBRTCORE = rtCore_s
 LIBRTRPC_TARGET = librtRemote_s.a
+BUILD_CXX ?= $(CXX)
 else
 LIBRTRPC  = rtRemote
 LIBRTCORE = rtCore
@@ -11,7 +12,7 @@ BUILD_CXX ?= $(CXX)
 LIBRTRPC_TARGET = librtRemote.so
 endif
 
-all: lib$(LIBRTRPC).so lib$(LIBRTRPC)_s.a $(SAMPLEAPP)
+all: $(LIBRTRPC_TARGET) $(SAMPLEAPP)
 
 RTCORE_SRCS=\
   ../utf8.c \
@@ -136,7 +137,7 @@ rtRemoteConfigBuilder.cpp: $(RT_REMOTE_CONFIG_GEN) rtremote.conf.ac
 clean:
 	rm -rf obj
 	rm -f $(SAMPLEAPP)
-	rm -f *.so
+	rm -f *.so *.a
 	rm -f rtremote.conf.gen
 	rm -f rtremote.conf
 	rm -f rtRemoteConfig.h
