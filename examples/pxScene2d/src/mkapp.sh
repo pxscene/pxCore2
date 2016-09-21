@@ -12,6 +12,7 @@ cp $externalDir/png/.libs/libpng16.16.dylib $bundleLib
 cp $externalDir/curl/lib/.libs/libcurl.4.dylib $bundleLib
 cp $externalDir/libnode/out/Release/libnode.dylib $bundleLib
 cp $externalDir/ft/objs/.libs/libfreetype.6.dylib $bundleLib
+cp $externalDir/zlib/libz.a $bundleLib
 
 cp macstuff/Info.plist $bundle/Contents
 cp -a images $bundleBin/images
