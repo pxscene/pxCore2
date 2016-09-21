@@ -270,6 +270,8 @@ rtReadUntil(int fd, char* buff, int n)
 
     if (n == -1)
     {
+      if (errno == EINTR)
+        continue;
       rtError e = rtErrorFromErrno(errno);
       rtLogError("failed to read from fd %d. %s", fd, rtStrError(e));
       return e;
@@ -361,21 +363,27 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
     int n = buff.GetSize();
     n = htonl(n);
 
+    struct msghdr msg;
+    struct iovec iov[2];
+    memset (&msg, '\0', sizeof (msg));
+    msg.msg_iov = iov;
+    msg.msg_iovlen = 2;
+    iov[0].iov_base = &n;
+    iov[0].iov_len = sizeof(n);
+    iov[1].iov_base = const_cast<char*>(buff.GetString());
+    iov[1].iov_len = buff.GetSize();
+
     int flags = 0;
     #ifndef __APPLE__
     flags = MSG_NOSIGNAL;
     #endif
-    if (send(fd, reinterpret_cast<char *>(&n), 4, flags) < 0)
-    {
-      rtError e = rtErrorFromErrno(errno);
-      rtLogError("failed to send length of message. %s", rtStrError(e));
-      return e;
-    }
 
-    if (send(fd, buff.GetString(), buff.GetSize(), flags) < 0)
+    while (sendmsg (fd, &msg, flags) < 0)
     {
+      if (errno == EINTR)
+        continue;
       rtError e = rtErrorFromErrno(errno);
-      rtLogWarn("failed to send: %s", rtStrError(e));
+      rtLogError("failed to send message. %s", rtStrError(e));
       return e;
     }
   }
