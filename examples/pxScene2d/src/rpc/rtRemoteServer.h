@@ -1,6 +1,10 @@
 #ifndef __RT_REMOTE_OBJECT_LOCATOR_H__
 #define __RT_REMOTE_OBJECT_LOCATOR_H__
 
+#include "rtRemoteClient.h"
+#include "rtRemoteSocketUtils.h"
+#include "rtRemoteMessageHandler.h"
+
 #include <condition_variable>
 #include <map>
 #include <mutex>
@@ -10,27 +14,21 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include <rtObject.h>
-#include <rapidjson/document.h>
 
-#include "rtRemoteTypes.h"
-#include "rtRemoteResolver.h"
-#include "rtSocketUtils.h"
-
-class rtRemoteClient;
+class rtRemoteIResolver;
 
 class rtRemoteServer
 {
-  friend class rtCommandDispatcher;
-
 public:
-  rtRemoteServer();
+  rtRemoteServer(rtRemoteEnvironment* env);
   ~rtRemoteServer();
 
 public:
   rtError open();
-  rtError registerObject(std::string const& name, rtObjectRef const& obj);
-  rtError findObject(std::string const& name, rtObjectRef& obj, uint32_t timeout);
+  rtError registerObject(std::string const& objectId, rtObjectRef const& obj);
+  rtError findObject(std::string const& objectId, rtObjectRef& obj, uint32_t timeout);
   rtError removeStaleObjects();
+  rtError processMessage(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& msg);
 
 private:
   struct connected_client
@@ -42,16 +40,39 @@ private:
   void runListener();
   void doAccept(int fd);
 
-  rtError onIncomingMessage(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& msg);
+
+  static rtError onOpenSession_Dispatch(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc, void* argp)
+    { return reinterpret_cast<rtRemoteServer *>(argp)->onOpenSession(client, doc); }
+
+  static rtError onGet_Dispatch(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc, void* argp)
+    { return reinterpret_cast<rtRemoteServer *>(argp)->onGet(client, doc); }
+
+  static rtError onSet_Dispatch(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc, void* argp)
+    { return reinterpret_cast<rtRemoteServer *>(argp)->onSet(client, doc); }
+
+  static rtError onMethodCall_Dispatch(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc, void* argp)
+    { return reinterpret_cast<rtRemoteServer *>(argp)->onMethodCall(client, doc); }
+
+  static rtError onKeepAlive_Dispatch(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc, void* argp)
+    { return reinterpret_cast<rtRemoteServer *>(argp)->onKeepAlive(client, doc); }
+
+  static rtError onIncomingMessage_Dispatch(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc, void* argp)
+    { return reinterpret_cast<rtRemoteServer *>(argp)->onIncomingMessage(client, doc); }
+
+  static rtError onClientStateChanged_Dispatch(std::shared_ptr<rtRemoteClient> const& client,
+      rtRemoteClient::State state, void* argp)
+    { return reinterpret_cast<rtRemoteServer *>(argp)->onClientStateChanged(client, state); }
 
   // command handlers
   rtError start();
-  rtError onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc);
-  rtError onGet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc);
-  rtError onSet(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc);
-  rtError onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc);
-  rtError onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtJsonDocPtr const& doc);
+  rtError onIncomingMessage(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& msg);
+  rtError onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc);
+  rtError onGet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc);
+  rtError onSet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc);
+  rtError onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc);
+  rtError onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc);
   rtError openRpcListener();
+  rtError onClientStateChanged(std::shared_ptr<rtRemoteClient> const& client, rtRemoteClient::State state);
 
 private:
   struct ObjectReference
@@ -64,7 +85,7 @@ private:
 
   using ClientMap = std::map< std::string, std::shared_ptr<rtRemoteClient> >;
   using ClientList = std::vector< std::shared_ptr<rtRemoteClient > >;
-  using CommandHandlerMap = std::map< std::string, rtRemoteMessageHandler >;
+  using CommandHandlerMap = std::map< std::string, rtRemoteCallback<rtRemoteMessageHandler> >;
   using ObjectRefeMap = std::map< std::string, ObjectReference >;
 
   sockaddr_storage              m_rpc_endpoint;
@@ -74,11 +95,12 @@ private:
   mutable std::mutex            m_mutex;
   CommandHandlerMap             m_command_handlers;
 
-  rtIRpcResolver*               m_resolver;
+  rtRemoteIResolver*            m_resolver;
   ClientMap                     m_object_map;
   ClientList                    m_connected_clients;
   int                           m_shutdown_pipe[2];
   uint32_t                      m_keep_alive_interval;
+  rtRemoteEnvironment*          m_env;
 };
 
 #endif

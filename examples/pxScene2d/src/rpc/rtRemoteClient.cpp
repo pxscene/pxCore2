@@ -1,10 +1,11 @@
 #include "rtRemoteClient.h"
 #include "rtRemoteClient.h"
-#include "rtSocketUtils.h"
+#include "rtRemoteSocketUtils.h"
 #include "rtRemoteMessage.h"
-#include "rtValueReader.h"
-#include "rtValueWriter.h"
+#include "rtRemoteValueReader.h"
+#include "rtRemoteValueWriter.h"
 #include "rtRemoteConfig.h"
+#include "rtRemoteEnvironment.h"
 
 #include "rapidjson/rapidjson.h"
 
@@ -16,53 +17,133 @@
 #include <string.h>
 #include <errno.h>
 
+#include <algorithm>
 #include <rapidjson/document.h>
 
-rtRemoteClient::rtRemoteClient(int fd, sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint)
-  : m_stream(new rtRemoteStream(fd, local_endpoint, remote_endpoint))
-  , m_message_handler(nullptr)
+namespace
 {
-  m_stream->setMessageCallback(std::bind(&rtRemoteClient::onIncomingMessage, this,
-    std::placeholders::_1));
-  m_stream->setInactivityCallback(std::bind(&rtRemoteClient::onInactivity, this,
-    std::placeholders::_1, std::placeholders::_2));
+  void
+  addValue(rtRemoteMessagePtr& doc, rtRemoteEnvironment* env, rtValue const& value)
+  {
+    rapidjson::Value jsonValue;
+    rtError e = rtRemoteValueWriter::write(env, value, jsonValue, *doc);
+
+    // TODO: better error handling
+    if (e == RT_OK)
+      doc->AddMember(kFieldNameValue, jsonValue, doc->GetAllocator());
+  }
+
+  void
+  addArgument(rtRemoteMessagePtr& doc, rtRemoteEnvironment* env, rtValue const& value)
+  {
+    rapidjson::Value jsonValue;
+    rtError e = rtRemoteValueWriter::write(env, value, jsonValue, *doc);
+
+    // TODO: better error handling
+    if (e == RT_OK)
+    {
+      auto itr = doc->FindMember(kFieldNameFunctionArgs);
+      if (itr == doc->MemberEnd())
+      {
+        rapidjson::Value args(rapidjson::kArrayType);
+        args.PushBack(jsonValue, doc->GetAllocator());
+        doc->AddMember(kFieldNameFunctionArgs, args, doc->GetAllocator());
+      }
+      else
+      {
+        itr->value.PushBack(jsonValue, doc->GetAllocator());
+      }
+    }
+  }
 }
 
-rtRemoteClient::rtRemoteClient(sockaddr_storage const& remote_endpoint)
-  : m_stream(new rtRemoteStream(-1, sockaddr_storage(), remote_endpoint))
-  , m_message_handler(nullptr)
+rtRemoteClient::rtRemoteClient(rtRemoteEnvironment* env, int fd,
+  sockaddr_storage const& local_endpoint, sockaddr_storage const& remoteEndpoint)
+  : m_stream(new rtRemoteStream(env, fd, local_endpoint, remoteEndpoint))
+  , m_env(env)
 {
-  m_stream->setMessageCallback(std::bind(&rtRemoteClient::onIncomingMessage, this,
-    std::placeholders::_1));
-  m_stream->setInactivityCallback(std::bind(&rtRemoteClient::onInactivity, this,
-    std::placeholders::_1, std::placeholders::_2));
+  m_stream->setStateChangedHandler(&rtRemoteClient::onStreamStateChanged_Dispatcher, this);
+  m_stream->setMessageHandler(&rtRemoteClient::onIncomingMessage_Dispatcher, this);
+}
+
+rtRemoteClient::rtRemoteClient(rtRemoteEnvironment* env, sockaddr_storage const& remoteEndpoint)
+  : m_stream(new rtRemoteStream(env, -1, sockaddr_storage(), remoteEndpoint))
+  , m_env(env)
+{
+  m_stream->setStateChangedHandler(&rtRemoteClient::onStreamStateChanged_Dispatcher, this);
+  m_stream->setMessageHandler(&rtRemoteClient::onIncomingMessage_Dispatcher, this);
 }
 
 rtRemoteClient::~rtRemoteClient()
 {
-  m_stream->close();
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    if (m_stream)
+    {
+      m_stream->close();
+      m_stream.reset();
+    }
+  }
 }
 
 rtError
-rtRemoteClient::onIncomingMessage(rtJsonDocPtr const& msg)
+rtRemoteClient::send(rtRemoteMessagePtr const& msg)
 {
-  std::shared_ptr<rtRemoteClient> client = shared_from_this();
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+  return s->send(msg);
+}
 
-  rtError e = RT_OK;
-  if (m_message_handler)
-  {
-    e = m_message_handler(client, msg);
-    if (e != RT_OK)
-      rtLogWarn("error inoking message handler. %s", rtStrError(e));
-  }
+rtError
+rtRemoteClient::onIncomingMessage(rtRemoteMessagePtr const& doc)
+{
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
 
-  return e;
+  auto self = shared_from_this();
+  m_env->enqueueWorkItem(self, doc);
+  return RT_OK;
 }
 
 rtError
 rtRemoteClient::onInactivity(time_t /*lastMessage*/, time_t /*now*/)
 {
   sendKeepAlive();
+  return RT_OK;
+}
+
+rtError
+rtRemoteClient::onStreamStateChanged(std::shared_ptr<rtRemoteStream> const& /*stream*/,
+    rtRemoteStream::State state)
+{
+  if (state == rtRemoteStream::State::Closed)
+  {
+    rtLogInfo("stream closed");
+    if (m_state_changed_handler.Func)
+    {
+      auto self = shared_from_this();
+      rtError e = m_state_changed_handler.Func(self, State::Shutdown, m_state_changed_handler.Arg);
+      if (e != RT_OK)
+        rtLogWarn("failed to invoke state changed handler. %s", rtStrError(e));
+    }
+
+    std::unique_lock<std::mutex> lock(m_mutex);
+    if (m_stream)
+    {
+      m_stream->close();
+      m_stream.reset();
+    }
+  }
+  return RT_OK;
+}
+
+rtError
+rtRemoteClient::setStateChangedHandler(StateChangedHandler handler, void* argp)
+{
+  m_state_changed_handler.Func = handler;
+  m_state_changed_handler.Arg = argp;
   return RT_OK;
 }
 
@@ -75,7 +156,12 @@ rtRemoteClient::open()
     rtLogWarn("failed to connect to rpc endpoint: %d", err);
     return err;
   }
-  err = m_stream->open();
+
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+
+  err = s->open();
   if (err != RT_OK)
   {
     rtLogError("failed to open stream for read/write: %d", err);
@@ -88,197 +174,247 @@ rtError
 rtRemoteClient::connectRpcEndpoint()
 {
   rtError e = RT_OK;
-  if (!m_stream->isConnected())
-  {
-    e = m_stream->connect();
-  }
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+  if (!s->isConnected())
+    e = s->connect();
   return e;
 }
 
 rtError
-rtRemoteClient::startSession(std::string const& objectName, uint32_t timeout)
+rtRemoteClient::startSession(std::string const& objectId, uint32_t timeout)
 {
-  rtJsonDocPtr res;
-  rtRemoteRequestOpenSession req(objectName);
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
-  if (timeout == 0)
-    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
+  rtRemoteMessagePtr req(new rapidjson::Document());
+  req->SetObject();
+  req->AddMember(kFieldNameMessageType, kMessageTypeOpenSessionRequest, req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
+  req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
 
-  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc)
-  {
-    res = doc;
-    return RT_OK;
-  }, timeout);
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
 
+  rtRemoteAsyncHandle handle = s->sendWithWait(req, k);
+  rtError e = handle.wait(timeout);
   if (e != RT_OK)
+    rtLogDebug("e: %s", rtStrError(e));
+
+  if (e == RT_OK)
   {
-    rtLogError("failed to send request to start session. %s", rtStrError(e));
-    return e;
+    rtRemoteMessagePtr res = handle.response();
   }
 
-  return res != nullptr ? RT_OK : RT_FAIL;
+  return e;
+}
+
+void rtRemoteClient::keepAlive(std::string const& s)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  m_object_list.push_back(s);
+}
+
+void rtRemoteClient::removeKeepAlive(std::string const& s)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  auto it = std::find(m_object_list.begin(), m_object_list.end(), s);
+  if (it != m_object_list.end()) m_object_list.erase(it);
 }
 
 rtError
 rtRemoteClient::sendKeepAlive()
 {
+  std::unique_lock<std::mutex> lock(m_mutex);
   if (m_object_list.empty())
     return RT_OK;
-  rtRemoteRequestKeepAlive req;
-  for (auto const& name : m_object_list)
-    req.addObjectName(name);
-  return m_stream->send(req);
+
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
+
+  rtRemoteMessagePtr msg(new rapidjson::Document());
+  msg->SetObject();
+  msg->AddMember(kFieldNameMessageType, kMessageTypeKeepAliveRequest, msg->GetAllocator());
+  msg->AddMember(kFieldNameCorrelationKey,k.toString(), msg->GetAllocator());
+
+  for (std::string const& name : m_object_list)
+  {
+    auto itr = msg->FindMember(kFieldNameKeepAliveIds);
+    if (itr == msg->MemberEnd())
+    {
+      rapidjson::Value ids(rapidjson::kArrayType);
+      ids.PushBack(rapidjson::Value().SetString(name.c_str(), name.size()), msg->GetAllocator());
+      msg->AddMember(kFieldNameKeepAliveIds, ids, msg->GetAllocator());
+    }
+    else
+    {
+      itr->value.PushBack(rapidjson::Value().SetString(name.c_str(), name.size()), msg->GetAllocator());
+    }
+  }
+  lock.unlock();
+
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+  return s->send(msg);
 }
 
 rtError
-rtRemoteClient::get(std::string const& objectName, char const* propertyName, rtValue& value,
-  uint32_t timeout)
+rtRemoteClient::sendSet(std::string const& objectId, char const* propertyName, rtValue const& value)
 {
-  if (timeout == 0)
-    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
-  return sendGet(rtRemoteGetRequest(objectName, propertyName), value, timeout);
+  rtRemoteMessagePtr req(new rapidjson::Document());
+  req->SetObject();
+  req->AddMember(kFieldNameMessageType, kMessageTypeSetByNameRequest, req->GetAllocator());
+  req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
+  req->AddMember(kFieldNamePropertyName, std::string(propertyName), req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
+  addValue(req, m_env, value);
+
+  return sendSet(req, k);
 }
 
 rtError
-rtRemoteClient::get(std::string const& objectName, uint32_t index, rtValue& value,
-  uint32_t timeout)
+rtRemoteClient::sendSet(std::string const& objectId, uint32_t propertyIdx, rtValue const& value)
 {
-  if (timeout == 0)
-    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
-  return sendGet(rtRemoteGetRequest(objectName, index), value, timeout);
+  rtRemoteMessagePtr req(new rapidjson::Document());
+  req->SetObject();
+  req->AddMember(kFieldNameMessageType, kMessageTypeSetByIndexRequest, req->GetAllocator());
+  req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
+  req->AddMember(kFieldNamePropertyIndex, propertyIdx, req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
+  addValue(req, m_env, value);
+
+  return sendSet(req, k);
 }
 
 rtError
-rtRemoteClient::sendGet(rtRemoteGetRequest const& req, rtValue& value, uint32_t timeout)
+rtRemoteClient::sendSet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k)
 {
-  if (timeout == 0)
-    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
 
-  rtJsonDocPtr res;
-  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc)
-  {
-    res = doc;
-    return res != nullptr ? RT_OK : RT_FAIL;
-  }, timeout);
+  rtRemoteAsyncHandle handle = s->sendWithWait(req, k);
 
-  if (e != RT_OK)
+  rtError e = handle.wait(0);
+  if (e == RT_OK)
   {
-    rtLogDebug("get failed: %s", rtStrError(e));
-    return e;
+    rtRemoteMessagePtr res = handle.response();
+    if (!res)
+      return RT_ERROR_PROTOCOL_ERROR;
+
+    e = rtMessage_GetStatusCode(*res);
   }
-
-  if (!res)
-  {
-    rtLogDebug("get failed to return a response");
-    return RT_FAIL;
-  }
-
-  rtError statusCode = rtMessage_GetStatusCode(*res);
-  if (statusCode != RT_OK)
-  {
-    return statusCode;
-  }
-
-  auto itr = res->FindMember(kFieldNameValue);
-  if (itr == res->MemberEnd())
-  {
-    rtLogWarn("response doesn't contain: %s", kFieldNameValue);
-    return RT_FAIL;
-  }
-
-  e = rtValueReader::read(value, itr->value, shared_from_this());
-  if (e != RT_OK)
-  {
-    rtLogWarn("failed to read value from response");
-    return e;
-  }
-
-  return rtMessage_GetStatusCode(*res);
+  return e;
 }
+
+rtError
+rtRemoteClient::sendGet(std::string const& objectId, char const* propertyName, rtValue& result)
+{
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
+
+  rtRemoteMessagePtr req(new rapidjson::Document());
+  req->SetObject();
+  req->AddMember(kFieldNameMessageType, kMessageTypeGetByNameRequest, req->GetAllocator());
+  req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
+  req->AddMember(kFieldNamePropertyName, std::string(propertyName), req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
+
+  return sendGet(req, k, result);
+}
+
+rtError
+rtRemoteClient::sendGet(std::string const& objectId, uint32_t propertyIdx, rtValue& result)
+{
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
+
+  rtRemoteMessagePtr req(new rapidjson::Document());
+  req->SetObject();
+  req->AddMember(kFieldNameMessageType, kMessageTypeGetByNameRequest, req->GetAllocator());
+  req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
+  req->AddMember(kFieldNamePropertyIndex, propertyIdx, req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
+
+  return sendGet(req, k, result);
+}
+
+rtError
+rtRemoteClient::sendGet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k, rtValue& value)
+{
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+
+  rtRemoteAsyncHandle handle = s->sendWithWait(req, k);
+
+  rtError e = handle.wait(0);
+  if (e == RT_OK)
+  {
+    rtRemoteMessagePtr res = handle.response();
+    if (!res)
+      return RT_ERROR_PROTOCOL_ERROR;
+    rtError statusCode = rtMessage_GetStatusCode(*res);
+    if (statusCode != RT_OK)
+    {
+       return statusCode;
+    }
+    auto itr = res->FindMember(kFieldNameValue);
+    if (itr == res->MemberEnd())
+      return RT_ERROR_PROTOCOL_ERROR;
+
+    e = rtRemoteValueReader::read(value, itr->value, shared_from_this());
+    if (e == RT_OK)
+      e = rtMessage_GetStatusCode(*res);
+  }
+  return e;
+}
+
+rtError
+rtRemoteClient::sendCall(std::string const& objectId, std::string const& methodName,
+  int argc, rtValue const* argv, rtValue& result)
+{
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
+
+  rtRemoteMessagePtr req(new rapidjson::Document());
+  req->SetObject();
+  req->AddMember(kFieldNameMessageType, kMessageTypeMethodCallRequest, req->GetAllocator());
+  req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
+  req->AddMember(kFieldNameFunctionName, methodName, req->GetAllocator());
   
-rtError
-rtRemoteClient::set(std::string const& objectName, char const* propertyName, rtValue const& value,
-  uint32_t timeout)
-{
-  if (timeout == 0)
-    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
-
-  rtRemoteSetRequest req(objectName, propertyName);
-  req.setValue(value);
-  return sendSet(req, timeout);
-}
-
-rtError
-rtRemoteClient::set(std::string const& objectName, uint32_t propertyIndex, rtValue const& value,
-  uint32_t timeout)
-{
-  if (timeout == 0)
-    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
-
-  rtRemoteSetRequest req(objectName, propertyIndex);
-  req.setValue(value);
-  return sendSet(req, timeout);
-}
-
-rtError
-rtRemoteClient::sendSet(rtRemoteSetRequest const& req, uint32_t timeout)
-{
-  if (timeout == 0)
-    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
-
-  rtJsonDocPtr res;
-  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc) 
-  {
-    res = doc;
-    return RT_OK;
-  }, timeout);
-
-  if (e != RT_OK)
-    return e;
-
-  if (!res)
-    return RT_FAIL;
-
-  return rtMessage_GetStatusCode(*res);
-}
-
-rtError
-rtRemoteClient::send(std::string const& objectName, std::string const& methodName,
-  int argc, rtValue const* argv, rtValue* result, uint32_t timeout)
-{
-  if (timeout == 0)
-    timeout = rtRemoteSetting<uint32_t>("rt.rpc.default.request_timeout");
-
-  rtRemoteMethodCallRequest req(objectName);
-  req.setMethodName(methodName);
   for (int i = 0; i < argc; ++i)
-    req.addMethodArgument(argv[i]);
-
-  rtJsonDocPtr res;
-  rtError e = m_stream->sendRequest(req, [&res](rtJsonDocPtr const& doc)
-  {
-    res = doc;
-    return RT_OK;
-  }, timeout);
-
-  if (e != RT_OK)
-    return e;
-
-  if (!res)
-    return RT_FAIL;
+    addArgument(req, m_env, argv[i]);
   
-  auto itr = res->FindMember(kFieldNameFunctionReturn);
-  if (itr == res->MemberEnd())
-    return RT_FAIL;
+  return sendCall(req, k, result);
+}
 
-  if (result)
+rtError
+rtRemoteClient::sendCall(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k, rtValue& result)
+{
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  if (!s)
+    return RT_ERROR_STREAM_CLOSED;
+
+  rtRemoteAsyncHandle handle = s->sendWithWait(req, k);
+
+  rtError e = handle.wait(0);
+  if (e == RT_OK)
   {
-    e = rtValueReader::read(*result, itr->value, shared_from_this());
-    if (e != RT_OK)
-      return e;
-  }
+    rtRemoteMessagePtr res = handle.response();
+    if (!res)
+      return RT_ERROR_PROTOCOL_ERROR;
 
-  return rtMessage_GetStatusCode(*res);
+    auto itr = res->FindMember(kFieldNameFunctionReturn);
+    if (itr == res->MemberEnd())
+      return RT_ERROR_PROTOCOL_ERROR;
+
+    e = rtRemoteValueReader::read(result, itr->value, shared_from_this());
+    if (e == RT_OK)
+      e = rtMessage_GetStatusCode(*res);
+  }
+  return e;
 }

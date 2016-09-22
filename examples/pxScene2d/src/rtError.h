@@ -6,6 +6,13 @@
 
 #include <stdint.h>
 
+#ifdef RT_DEBUG
+#include <assert.h>
+#define RT_ASSERT(X) assert((X))
+#else
+#define RT_ASSERT(X) if (!(X)) rtLogError("rt assert: '%s' failed", #X);
+#endif
+
 #define RT_ERROR_CLASS_SYSERROR 0x8000
 #define RT_ERROR_CLASS_BUILTIN 0x00000000
 
@@ -23,15 +30,23 @@
 #define RT_NO_CONNECTION		9
 
 // errors specific to rtRemote
-#define RT_TIMEOUT 1000
+#define RT_ERROR_TIMEOUT 1000
+#define RT_ERROR_DUPLICATE_ENTRY 1001
+#define RT_ERROR_OBJECT_NOT_FOUND 1002
+#define RT_ERROR_PROTOCOL_ERROR 1003
+#define RT_ERROR_INVALID_OPERATION 1004
+#define RT_ERROR_IN_PROGRESS 1005
+#define RT_ERROR_QUEUE_EMPTY 1006
+#define RT_ERROR_STREAM_CLOSED 1007
 
 typedef uint32_t rtError;
 
 const char* rtStrError(rtError e);
 
-inline rtError rtErrorFromErrno(int err)
+inline rtError
+rtErrorFromErrno(int err)
 {
-  // TODO: bounds check err <= uint16::max
+  // RT_ASSERT(err <= 65535); // uint16_max
   return err == 0 ? RT_OK : (err | (RT_ERROR_CLASS_SYSERROR << 16));
 }
 

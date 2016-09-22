@@ -1,4 +1,4 @@
-#include "rtValueReader.h"
+#include "rtRemoteValueReader.h"
 #include "rtRemoteClient.h"
 #include "rtRemoteObject.h"
 #include "rtRemoteFunction.h"
@@ -26,30 +26,32 @@ static std::string toString(rapidjson::Value const& v)
 #endif
 
 rtError
-rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRemoteClient> const& client)
+rtRemoteValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRemoteClient> const& client)
 {
   auto type = from.FindMember(kFieldNameValueType);
   if (type  == from.MemberEnd())
   {
     rtLogWarn("failed to find member: %s", kFieldNameValueType);
-    return RT_FAIL;
+    return RT_ERROR_PROTOCOL_ERROR;
   }
 
+  int const typeId = type->value.GetInt();
+
   auto val = from.FindMember(kFieldNameValueValue);
-  if ((type->value.GetInt() != RT_functionType) && (type->value.GetInt() != RT_voidType) && val == from.MemberEnd())
+  if (((typeId != RT_functionType) && (typeId != RT_voidType)) && (val == from.MemberEnd()))
   {
     rtLogWarn("failed to find member: %s", kFieldNameValueValue);
-    return RT_FAIL;
+    return RT_ERROR_PROTOCOL_ERROR;
   }
 
   switch (type->value.GetInt())
   {
     case RT_voidType:
-    to = rtValue();
+    to.setEmpty();
     break;
 
     case RT_valueType:
-    assert(false);
+    RT_ASSERT(false);
     break;
 
     case RT_boolType:
@@ -97,12 +99,12 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
 
     case RT_objectType:
     {
-      assert(client != NULL);
+      RT_ASSERT(client != NULL);
       if (!client)
-        return RT_FAIL;
+        return RT_ERROR_PROTOCOL_ERROR;
 
       auto const& obj = from.FindMember("value");
-      assert(obj != from.MemberEnd());
+      RT_ASSERT(obj != from.MemberEnd());
 
       auto id = obj->value.FindMember(kFieldNameObjectId);
       to.setObject(new rtRemoteObject(id->value.GetString(), client));
@@ -111,9 +113,9 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
 
     case RT_functionType:
     {
-      assert(client != NULL);
+      RT_ASSERT(client != NULL);
       if (!client)
-        return RT_FAIL;
+        return RT_ERROR_PROTOCOL_ERROR;
 
       std::string objectId;
       std::string functionId;
@@ -122,21 +124,21 @@ rtValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<r
       if (func != from.MemberEnd())
       {
         auto itr = func->value.FindMember(kFieldNameObjectId);
-        assert(itr != func->value.MemberEnd());
+        RT_ASSERT(itr != func->value.MemberEnd());
         objectId = itr->value.GetString();
 
         itr = func->value.FindMember(kFieldNameFunctionName);
-        assert(itr != func->value.MemberEnd());
+        RT_ASSERT(itr != func->value.MemberEnd());
         functionId = itr->value.GetString();
       }
       else
       {
         auto itr = from.FindMember(kFieldNameObjectId);
-        assert(itr != from.MemberEnd());
+        RT_ASSERT(itr != from.MemberEnd());
         objectId = itr->value.GetString();
 
         itr = from.FindMember(kFieldNameFunctionName);
-        assert(itr != from.MemberEnd());
+        RT_ASSERT(itr != from.MemberEnd());
         functionId = itr->value.GetString();
       }
 	

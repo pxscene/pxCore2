@@ -1,0 +1,75 @@
+{ "config_params": [
+
+{ "name":"rt.rpc.server.socket_family",
+    "default_value":"unix",
+    "type":"string" },
+
+{ "name":"rt.rpc.server.use_dispatch_thread",
+    "default_value":"true",
+    "type":"bool" },
+
+{ "name":"rt.rpc.server.listen_interface",
+    "default_value":"en0",
+    "type":"string",
+    "platform":"mac" },
+
+{ "name":"rt.rpc.server.listen_interface",
+    "default_value":"lo",
+    "type":"string",
+    "platform":"linux" },
+
+{ "name":"rt.rpc.server.socket_family",
+    "default_value":"inet",
+    "type":"string" },
+
+{ "name":"rt.rpc.resolver.multicast.interface",
+    "default_value":"en0",
+    "type":"string",
+    "platform":"mac" },
+
+{ "name":"rt.rpc.resolver.multicast.interface",
+    "default_value":"lo",
+    "type":"string",
+    "platform":"linux" },
+
+{ "name":"rt.rpc.environment.request_timeout",
+    "default_value":"3000",
+    "type":"int32" },
+
+{ "name":"rt.rpc.cache.max_object_lifetime",
+    "default_value":"300000",
+    "type":"int32" },
+
+{ "name":"rt.rpc.resolver.type",
+    "default_value":"multicast",
+    "type":"string" },
+
+{ "name":"rt.rpc.resolver.locate_timeout",
+    "default_value":"3000",
+    "type":"int32" },
+
+{ "name":"rt.rpc.resolver.multicast.address",
+    "default_value":"224.10.0.12",
+    "type":"string" },
+
+{ "name":"rt.rpc.resolver.multicast.address6",
+    "default_value":"ff05:0:0:0:0:0:0:201",
+    "type":"string" },
+
+{ "name":"rt.rpc.resolver.multicast.port",
+    "default_value":"10004",
+    "type":"uint16" },
+
+{ "name":"rt.rpc.resolver.file.db_path",
+    "default_value":"/tmp/rt_remote_resolver.json",
+    "type":"string" },
+
+{ "name":"rt.rpc.resolver.unicast.address",
+    "default_value":"127.0.0.1",
+    "type":"string" },
+
+{ "name":"rt.rpc.resolver.unicast.port",
+    "default_value":"49118",
+    "type":"uint16" }
+
+] }

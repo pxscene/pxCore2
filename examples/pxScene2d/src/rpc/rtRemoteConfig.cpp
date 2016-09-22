@@ -1,6 +1,8 @@
 #include "rtRemoteConfig.h"
-#include <rtLog.h>
+#include "rtRemoteConfigBuilder.h"
 
+#include <rtError.h>
+#include <rtLog.h>
 #include <errno.h>
 #include <rtLog.h>
 #include <stdio.h>
@@ -9,9 +11,11 @@
 #include <limits.h>
 
 #include <algorithm>
-#include <limits>
-#include <vector>
+#include <functional>
 #include <iostream>
+#include <limits>
+#include <memory>
+#include <vector>
 
 static inline std::string& ltrim(std::string& s)
 {
@@ -79,45 +83,17 @@ static T numeric_cast(char const* s, std::function<T (const char *nptr, char **e
   return val;
 }
 
-static std::shared_ptr<rtRemoteConfig> gConf;
-
 struct Setting
 {
   char const* name;
   char const* value;
 };
 
-static Setting kDefaultSettings[] =
+rtRemoteConfigBuilder*
+rtRemoteConfigBuilder::getDefaultConfig()
 {
-#ifdef __APPLE__
-  { "rt.rpc.resolver.multicast_interface", "en0" },
-  { "rt.rpc.server.listen_interface", "en0" },
-#else
-  { "rt.rpc.resolver.multicast_interface", "eth0" },
-  { "rt.rpc.server.listen_interface", "eth0" },
-#endif
-  { "rt.rpc.resolver.multicast_address", "224.10.0.12" },
-  { "rt.rpc.resolver.multicast_address6", "ff05:0:0:0:0:0:0:201" },
-  { "rt.rpc.resolver.multicast_port", "10004" },
-  { "rt.rpc.default.request_timeout", "3000" },
-  { "rt.rpc.resolver.locate_timeout", "3000" },
-  { "rt.rpc.cache.max_object_lifetime", "15" },
-  { nullptr, nullptr }
-};
-
-std::shared_ptr<rtRemoteConfig>
-rtRemoteConfig::getInstance(bool reloadConfiguration)
-{
-  if (gConf && !reloadConfiguration)
-    return gConf;
-
-  gConf.reset(new rtRemoteConfig());
-  for (int i = 0; kDefaultSettings[i].name; ++i)
-  {
-    gConf->m_map.insert(std::map<std::string, std::string>::value_type(
-      kDefaultSettings[i].name,
-      kDefaultSettings[i].value));
-  }
+  // defaults are loaded in constructor
+  rtRemoteConfigBuilder* conf = new rtRemoteConfigBuilder();
 
   std::vector<std::string> configFiles;
   char* file = getenv("RT_RPC_CONFIG");
@@ -132,7 +108,7 @@ rtRemoteConfig::getInstance(bool reloadConfiguration)
   for (std::string const& fileName : configFiles)
   {
     // overrite any existing defaults from file
-    std::shared_ptr<rtRemoteConfig> confFromFile = rtRemoteConfig::fromFile(fileName.c_str());
+    rtRemoteConfigBuilder* confFromFile = rtRemoteConfigBuilder::fromFile(fileName.c_str());
     if (confFromFile)
     {
       rtLogInfo("loading configuration settings (%d) from: %s",
@@ -140,7 +116,7 @@ rtRemoteConfig::getInstance(bool reloadConfiguration)
       for (auto const& itr : confFromFile->m_map)
       {
         rtLogDebug("'%s' -> '%s'", itr.first.c_str(), itr.second.c_str());
-        gConf->m_map[itr.first] = itr.second;
+        conf->m_map[itr.first] = itr.second;
       }
       break;
     }
@@ -150,35 +126,48 @@ rtRemoteConfig::getInstance(bool reloadConfiguration)
     }
   }
 
-  return gConf;
+  return conf;
+}
+
+bool
+rtRemoteConfigBuilder::getBool(char const* key) const
+{
+  bool b = false;
+  char const* val = getString(key);
+  if (val != nullptr)
+    b = strcasecmp(val, "true") == 0;
+  return b;
 }
 
 uint16_t
-rtRemoteConfig::getUInt16(char const* key)
+rtRemoteConfigBuilder::getUInt16(char const* key) const
 {
   return numeric_cast<uint16_t>(getString(key), strtoul);
 }
 
 int32_t
-rtRemoteConfig::getInt32(char const* key)
+rtRemoteConfigBuilder::getInt32(char const* key) const
 {
   return numeric_cast<int32_t>(getString(key), strtol);
 }
 
 uint32_t
-rtRemoteConfig::getUInt32(char const* key)
+rtRemoteConfigBuilder::getUInt32(char const* key) const
 {
   return numeric_cast<uint32_t>(getString(key), strtoul);
 }
 
 char const*
-rtRemoteConfig::getString(char const* key)
+rtRemoteConfigBuilder::getString(char const* key) const
 {
+  RT_ASSERT(key != nullptr);
+  RT_ASSERT(strlen(key) > 0);
+
   if (key == nullptr)
-  {
-    rtLogError("can't find null key");
     return nullptr;
-  }
+
+  if (strlen(key) == 0)
+    return nullptr;
 
   auto itr = m_map.find(key);
   if (itr == m_map.end())
@@ -187,31 +176,28 @@ rtRemoteConfig::getString(char const* key)
     return nullptr;
   }
 
-  // char const* val = itr->second.c_str();
   return itr->second.c_str();
 }
 
 
 
-std::shared_ptr<rtRemoteConfig>
-rtRemoteConfig::fromFile(char const* file)
+rtRemoteConfigBuilder*
+rtRemoteConfigBuilder::fromFile(char const* file)
 {
-  std::shared_ptr<rtRemoteConfig> conf;
-
   if (file == nullptr)
   {
     rtLogError("null file path");
-    return conf;
+    return nullptr;
   }
 
   std::unique_ptr<FILE, int (*)(FILE *)> f(fopen(file, "r"), fclose);
   if (!f)
   {
     rtLogDebug("can't open: %s. %s", file, strerror(errno));
-    return conf;
+    return nullptr;
   }
 
-  conf.reset(new rtRemoteConfig());
+  rtRemoteConfigBuilder* builder(new rtRemoteConfigBuilder());
 
   std::vector<char> buff;
   buff.reserve(1024);
@@ -253,15 +239,18 @@ rtRemoteConfig::fromFile(char const* file)
     rtLogDebug("LINE:(%04d) '%s'", line++, p);
     rtLogDebug("'%s' == '%s'", name.c_str(), val.c_str());
 
-    auto itr = conf->m_map.find(name);
-    if (itr != conf->m_map.end())
+    auto itr = builder->m_map.find(name);
+    if (itr != builder->m_map.end())
     {
-      rtLogInfo("overwriting configuration val '%s' -> '%s' with '%s'",
-          itr->first.c_str(), itr->second.c_str(), val.c_str());
+      if (itr->second != val)
+      {
+        rtLogDebug("overwriting configuration val '%s' -> '%s' with '%s'",
+            itr->first.c_str(), itr->second.c_str(), val.c_str());
+      }
     }
+    builder->m_map[name] = val;
 
-    conf->m_map[name] = val;
   }
 
-  return conf;
+  return builder;
 }

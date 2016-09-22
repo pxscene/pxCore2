@@ -1,12 +1,14 @@
-#ifndef __RT_RPC_MESSAGE_H__
-#define __RT_RPC_MESSAGE_H__
+#ifndef __RT_REMOTE_MESSAGE_H__
+#define __RT_REMOTE_MESSAGE_H__
 
 #include <limits>
+#include <memory>
 #include <rapidjson/document.h>
 #include <rtError.h>
 #include <rtValue.h>
+
 #include "rtLog.h"
-#include "rtSocketUtils.h"
+#include "rtRemoteCorrelationKey.h"
 
 #define kFieldNameMessageType "message.type"
 #define kFieldNameCorrelationKey "correlation.key"
@@ -26,6 +28,11 @@
 #define kFieldNameKeepAliveIds "keep_alive.ids"
 #define kFieldNameIp "ip"
 #define kFieldNamePort "port"
+#define kFieldNamePath "path"
+#define kFieldNameScheme "scheme"
+#define kFieldNameEndpointType "endpoint.type"
+#define kEndpointTypeLocal "local.endpoint"
+#define kEndpointTypeRemote "net.endpoint"
 
 #define kMessageTypeInvalidResponse "invalid.response"
 #define kMessageTypeSetByNameRequest "set.byname.request"
@@ -46,106 +53,38 @@
 #define kMessageTypeOpenSessionRequest "session.open.request"
 
 #define kInvalidPropertyIndex std::numeric_limits<uint32_t>::max()
+
+#ifdef RT_REMOTE_CORRELATION_KEY_IS_INT
 #define kInvalidCorrelationKey std::numeric_limits<uint32_t>::max()
+#else
+#define kInvalidCorrelationKey rtGuid::null()
+#endif
 
-class rtRemoteMessage
-{
-public:
-  virtual ~rtRemoteMessage();
-  bool isValid() const;
+#define kNsMessageTypeLookup "ns.lookup"
+#define kNsMessageTypeLookupResponse "ns.lookup.response"
+#define kNsMessageTypeDeregister "ns.deregister"
+#define kNsMessageTypeDeregisterResponse "ns.deregister.response"
+#define kNsMessageTypeUpdate "ns.update"
+#define kNsMessageTypeUpdateResponse "ns.update.response"
+#define kNsMessageTypeRegister "ns.register"
+#define kNsMessageTypeRegisterResponse "ns.register.response"
+#define kNsFieldNameStatusCode "ns.status"
+#define kNsStatusSuccess "ns.status.success"
+#define kNsStatusFail "ns.status.fail"
 
-protected:
-  rtRemoteMessage(char const* messageType, std::string const& objectName);
+using rtRemoteMessage     = rapidjson::Document;
+using rtRemoteMessagePtr  = std::shared_ptr<rtRemoteMessage>;
 
-private:
-  rtRemoteMessage() { }
-
-public:
-  rtCorrelationKey getCorrelationKey() const;
-  char const* getMessageType() const;
-  char const* getObjectName() const;
-
-  rtError send(int fd, sockaddr_storage const* dest) const;
-
-protected:
-  struct Impl;
-  std::shared_ptr<Impl>   m_impl;
-  rtCorrelationKey      m_correlation_key;
-};
-
-class rtRemoteRequest : public rtRemoteMessage
-{
-protected:
-  rtRemoteRequest(char const* messageType, std::string const& objectName);
-};
-
-class rtRemoteResponse : public rtRemoteMessage
-{
-public:
-  rtRemoteResponse(char const* messageType, std::string const& objectName);
-public:
-  rtError getStatusCode() const;
-  inline bool isValid() const
-    { return m_is_valid; }
-private:
-  bool m_is_valid;
-};
-
-class rtRemoteGetResponse : public rtRemoteResponse
-{
-public:
-  rtRemoteGetResponse(std::string const& objectName);
-  rtValue getValue() const;
-};
-
-
-class rtRemoteRequestOpenSession : public rtRemoteRequest
-{
-public:
-  rtRemoteRequestOpenSession(std::string const& objectName);
-};
-
-class rtRemoteRequestKeepAlive : public rtRemoteRequest
-{
-public:
-  rtRemoteRequestKeepAlive();
-  void addObjectName(std::string const& name);
-};
-
-class rtRemoteMethodCallRequest : public rtRemoteRequest
-{
-public:
-  rtRemoteMethodCallRequest(std::string const& objectName);
-  void setMethodName(std::string const& methodName);
-  void addMethodArgument(rtValue const& arg);
-};
-
-class rtRemoteGetRequest : public rtRemoteRequest
-{
-public:
-  rtRemoteGetRequest(std::string const& objectName, std::string const& fieldName);
-  rtRemoteGetRequest(std::string const& objectName, uint32_t fieldIndex);
-};
-
-class rtRemoteSetRequest : public rtRemoteRequest
-{
-public:
-  rtRemoteSetRequest(std::string const& objectName, std::string const& fieldName);
-  rtRemoteSetRequest(std::string const& objectName, uint32_t fieldIndex);
-  rtError setValue(rtValue const& value);
-};
-
-char const* rtMessage_GetPropertyName(rapidjson::Document const& doc);
-uint32_t    rtMessage_GetPropertyIndex(rapidjson::Document const& doc);
-char const* rtMessage_GetMessageType(rapidjson::Document const& doc);
-uint32_t    rtMessage_GetCorrelationKey(rapidjson::Document const& doc);
-char const* rtMessage_GetObjectId(rapidjson::Document const& doc);
-rtError     rtMessage_GetStatusCode(rapidjson::Document const& doc);
-rtError     rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out = stdout);
-rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...)
-              RT_PRINTF_FORMAT(3, 4);
-rtError     rtMessage_SetStatus(rapidjson::Document& doc, rtError code);
-rtCorrelationKey rtMessage_GetNextCorrelationKey();
-
+char const*             rtMessage_GetPropertyName(rtRemoteMessage const& m);
+uint32_t                rtMessage_GetPropertyIndex(rtRemoteMessage const& m);
+char const*             rtMessage_GetMessageType(rtRemoteMessage const& m);
+rtRemoteCorrelationKey  rtMessage_GetCorrelationKey(rtRemoteMessage const& m);
+char const*             rtMessage_GetObjectId(rtRemoteMessage const& m);
+rtError                 rtMessage_GetStatusCode(rtRemoteMessage const& m);
+char const*             rtMessage_GetStatusMessage(rtRemoteMessage const& m);
+rtError                 rtMessage_Dump(rtRemoteMessage const& m, FILE* out = stdout);
+rtError                 rtMessage_SetStatus(rtRemoteMessage& m, rtError code, char const* fmt, ...) RT_PRINTF_FORMAT(3, 4);
+rtError                 rtMessage_SetStatus(rtRemoteMessage& m, rtError code);
+rtRemoteCorrelationKey  rtMessage_GetNextCorrelationKey();
 
 #endif

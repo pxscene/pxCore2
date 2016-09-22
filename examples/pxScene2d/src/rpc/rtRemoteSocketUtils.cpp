@@ -1,4 +1,4 @@
-#include "rtSocketUtils.h"
+#include "rtRemoteSocketUtils.h"
 
 #include <cstdio>
 #include <sstream>
@@ -61,6 +61,14 @@ rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* 
 
   if (index != nullptr)
     *index = -1;
+
+  if (addr[0] == '/')
+  {
+    sockaddr_un *unAddr = reinterpret_cast<sockaddr_un*>(&ss);
+    unAddr->sun_family = AF_UNIX;
+    strncpy(unAddr->sun_path, addr, UNIX_PATH_MAX);
+    return RT_OK;
+  }
 
   sockaddr_in* v4 = reinterpret_cast<sockaddr_in *>(&ss);
   ret = inet_pton(AF_INET, addr, &v4->sin_addr);
@@ -125,8 +133,10 @@ rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len)
     *len = sizeof(sockaddr_in);
   else if (ss.ss_family == AF_INET6)
     *len = sizeof(sockaddr_in6);
+  else if (ss.ss_family == AF_UNIX)
+    *len = sizeof(sockaddr_un);
   else
-    *len = 0;
+    *len = sizeof(sockaddr_storage);
 
   return RT_OK;
 }
@@ -202,6 +212,14 @@ rtGetInetAddr(sockaddr_storage const& ss, void** addr)
 {
   sockaddr_in const* v4 = reinterpret_cast<sockaddr_in const*>(&ss);
   sockaddr_in6 const* v6 = reinterpret_cast<sockaddr_in6 const*>(&ss);
+  sockaddr_un const* un =  reinterpret_cast<sockaddr_un const*>(&ss);
+
+  if (ss.ss_family == AF_UNIX)
+  {
+    void const* p = reinterpret_cast<void const *>(&(un->sun_path));
+    *addr = const_cast<void *>(p);
+    return RT_OK;
+  }
 
   void const* p = (ss.ss_family == AF_INET)
     ? reinterpret_cast<void const *>(&(v4->sin_addr))
@@ -215,6 +233,11 @@ rtGetInetAddr(sockaddr_storage const& ss, void** addr)
 rtError
 rtGetPort(sockaddr_storage const& ss, uint16_t* port)
 {
+  if (ss.ss_family == AF_UNIX)
+  {
+    *port = 0;
+    return RT_OK;
+  }
   sockaddr_in const* v4 = reinterpret_cast<sockaddr_in const *>(&ss);
   sockaddr_in6 const* v6 = reinterpret_cast<sockaddr_in6 const *>(&ss);
   *port = ntohs((ss.ss_family == AF_INET) ? v4->sin_port : v6->sin6_port);
@@ -222,13 +245,13 @@ rtGetPort(sockaddr_storage const& ss, uint16_t* port)
 }
 
 rtError
-rtPushFd(fd_set* fds, int fd, int* max_fd)
+rtPushFd(fd_set* fds, int fd, int* maxFd)
 {
   if (fd != -1)
   {
     FD_SET(fd, fds);
-    if (max_fd && fd > *max_fd)
-      *max_fd = fd;
+    if (maxFd && fd > *maxFd)
+      *maxFd = fd;
   }
   return RT_OK;
 }
@@ -236,26 +259,25 @@ rtPushFd(fd_set* fds, int fd, int* max_fd)
 rtError
 rtReadUntil(int fd, char* buff, int n)
 {
-  ssize_t bytes_read = 0;
-  ssize_t bytes_to_read = n;
+  ssize_t bytesRead = 0;
+  ssize_t bytesToRead = n;
 
-  while (bytes_read < bytes_to_read)
+  while (bytesRead < bytesToRead)
   {
-    ssize_t n = read(fd, buff + bytes_read, (bytes_to_read - bytes_read));
+    ssize_t n = read(fd, buff + bytesRead, (bytesToRead - bytesRead));
     if (n == 0)
-    {
-      rtLogWarn("tring to read from file descriptor: %d. It looks closed", fd);
-      return RT_FAIL;
-    }
+      return rtErrorFromErrno(ENOTCONN);
 
     if (n == -1)
     {
+      if (errno == EINTR)
+        continue;
       rtError e = rtErrorFromErrno(errno);
       rtLogError("failed to read from fd %d. %s", fd, rtStrError(e));
       return e;
     }
 
-    bytes_read += n;
+    bytesRead += n;
   }
   return RT_OK;
 }
@@ -270,12 +292,22 @@ rtSocketToString(sockaddr_storage const& ss)
   uint16_t port;
   rtGetPort(ss, &port);
 
-  char addr_buff[128];
-  memset(addr_buff, 0, sizeof(addr_buff));
-  inet_ntop(ss.ss_family, addr, addr_buff, sizeof(addr_buff));
+  char addrBuff[128];
+  memset(addrBuff, 0, sizeof(addrBuff));
+  if (ss.ss_family == AF_UNIX)
+  {
+    strncpy(addrBuff, (const char*)addr, sizeof(addrBuff) -1);
+    port = 0;
+  }
+  else
+  {
+    inet_ntop(ss.ss_family, addr, addrBuff, sizeof(addrBuff));
+  }
 
   std::stringstream buff;
-  buff << addr_buff;
+  buff << (ss.ss_family == AF_UNIX ? "unix" : "inet");
+  buff << ':';
+  buff << addrBuff;
   buff << ':';
   buff << port;
   return buff.str();
@@ -289,18 +321,18 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
   doc.Accept(writer);
 
   #ifdef RT_RPC_DEBUG
-  sockaddr_storage remote_endpoint;
-  memset(&remote_endpoint, 0, sizeof(sockaddr_storage));
+  sockaddr_storage remoteEndpoint;
+  memset(&remoteEndpoint, 0, sizeof(sockaddr_storage));
   if (dest)
-    remote_endpoint = *dest;
+    remoteEndpoint = *dest;
   else
-    rtGetPeerName(fd, remote_endpoint);
+    rtGetPeerName(fd, remoteEndpoint);
 
   char const* verb = (dest != NULL ? "sendto" : "send");
   rtLogDebug("%s [%d/%s] (%d):\n***OUT***\t\"%.*s\"\n",
     verb,
     fd,
-    rtSocketToString(remote_endpoint).c_str(),
+    rtSocketToString(remoteEndpoint).c_str(),
     static_cast<int>(buff.GetSize()),
     static_cast<int>(buff.GetSize()),
     buff.GetString());
@@ -331,21 +363,27 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
     int n = buff.GetSize();
     n = htonl(n);
 
+    struct msghdr msg;
+    struct iovec iov[2];
+    memset (&msg, '\0', sizeof (msg));
+    msg.msg_iov = iov;
+    msg.msg_iovlen = 2;
+    iov[0].iov_base = &n;
+    iov[0].iov_len = sizeof(n);
+    iov[1].iov_base = const_cast<char*>(buff.GetString());
+    iov[1].iov_len = buff.GetSize();
+
     int flags = 0;
     #ifndef __APPLE__
     flags = MSG_NOSIGNAL;
     #endif
-    if (send(fd, reinterpret_cast<char *>(&n), 4, flags) < 0)
-    {
-      rtError e = rtErrorFromErrno(errno);
-      rtLogError("failed to send length of message. %s", rtStrError(e));
-      return e;
-    }
 
-    if (send(fd, buff.GetString(), buff.GetSize(), flags) < 0)
+    while (sendmsg (fd, &msg, flags) < 0)
     {
+      if (errno == EINTR)
+        continue;
       rtError e = rtErrorFromErrno(errno);
-      rtLogWarn("failed to send: %s", rtStrError(e));
+      rtLogError("failed to send message. %s", rtStrError(e));
       return e;
     }
   }
@@ -354,7 +392,7 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
 }
 
 rtError
-rtReadMessage(int fd, rtSocketBuffer& buff, rtJsonDocPtr& doc)
+rtReadMessage(int fd, rtRemoteSocketBuffer& buff, rtRemoteMessagePtr& doc)
 {
   rtError err = RT_OK;
 
@@ -371,7 +409,7 @@ rtReadMessage(int fd, rtSocketBuffer& buff, rtJsonDocPtr& doc)
   {
     rtLogWarn("buffer capacity %d not big enough for message size: %d", capacity, n);
     // TODO: should drain, and discard message
-    assert(false);
+    RT_ASSERT(false);
     return RT_FAIL;
   }
 
@@ -393,8 +431,11 @@ rtReadMessage(int fd, rtSocketBuffer& buff, rtJsonDocPtr& doc)
 }
 
 rtError
-rtParseMessage(char const* buff, int n, rtJsonDocPtr& doc)
+rtParseMessage(char const* buff, int n, rtRemoteMessagePtr& doc)
 {
+  RT_ASSERT(buff != nullptr);
+  RT_ASSERT(n > 0);
+
   if (!buff)
     return RT_FAIL;
 
@@ -418,20 +459,6 @@ rtParseMessage(char const* buff, int n, rtJsonDocPtr& doc)
   }
   
   return RT_OK;
-}
-
-std::string
-rtStrError(int e)
-{
-  char buff[256];
-  memset(buff, 0, sizeof(buff));
-
-  char* s = strerror_r(e, buff, sizeof(buff));
-  if (s)
-    return std::string(s);
-
-  std::snprintf(buff, sizeof(buff), "unknown error: %d", e);
-  return std::string(buff);
 }
 
 rtError
@@ -458,8 +485,6 @@ rtGetPeerName(int fd, sockaddr_storage& endpoint)
 rtError
 rtGetSockName(int fd, sockaddr_storage& endpoint)
 {
-  assert(fd > 2);
-
   sockaddr_storage addr;
   memset(&addr, 0, sizeof(sockaddr_storage));
 
@@ -501,7 +526,6 @@ rtGetDefaultInterface(sockaddr_storage& addr, uint16_t port)
   #else
   rtError e = rtFindFirstInetInterface(name, sizeof(name));
   #endif
-
   if (e == RT_OK)
   {
     sockaddr_storage temp;
@@ -511,4 +535,25 @@ rtGetDefaultInterface(sockaddr_storage& addr, uint16_t port)
   }
 
   return e;
+}
+
+rtError
+rtCreateUnixSocketName(pid_t pid, char* buff, int n)
+{
+  const char* kUnixSocketTemplate = kUnixSocketTemplateRoot ".%d";
+
+  if (!buff)
+    return RT_ERROR_INVALID_ARG;
+
+  if (pid == 0)
+    pid = getpid();
+
+  int count = snprintf(buff, n, kUnixSocketTemplate, pid);
+  if (count >= n)
+  {
+    rtLogError("truncated socket path %d <= %d", n, count);
+    return RT_FAIL;
+  }
+
+  return RT_OK;
 }
