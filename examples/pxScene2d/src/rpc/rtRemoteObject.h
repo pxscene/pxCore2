@@ -27,7 +27,7 @@ public:
 private:
   rtAtomic                          m_ref_count;
   std::string                       m_id;
-  std::shared_ptr<rtRemoteClient>      m_rpc_client;
+  std::shared_ptr<rtRemoteClient>   m_client;
 };
 
 #endif

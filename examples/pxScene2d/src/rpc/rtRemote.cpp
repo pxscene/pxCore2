@@ -1,35 +1,67 @@
 #include "rtRemote.h"
+#include "rtRemoteCallback.h"
 #include "rtRemoteClient.h"
 #include "rtRemoteConfig.h"
+#include "rtRemoteMessageHandler.h"
+#include "rtRemoteObjectCache.h"
 #include "rtRemoteServer.h"
+#include "rtRemoteStream.h"
+#include "rtRemoteNameService.h"
+#include "rtRemoteEnvironment.h"
+#include "rtRemoteConfigBuilder.h"
 
-#include <rtLog.h>
+#include <chrono>
 #include <mutex>
 #include <thread>
 
-static rtRemoteServer* gServer = nullptr;
+
+#include <rtLog.h>
+#include <unistd.h>
+
+static rtRemoteNameService* gNs = nullptr;
 static std::mutex gMutex;
-std::shared_ptr<rtRemoteStreamSelector> gStreamSelector;
+static rtRemoteEnvironment* gEnv = nullptr;
 
 rtError
-rtRemoteInit()
+rtRemoteInit(rtRemoteEnvironment* env)
 {
-  rtError e = RT_OK;
-  rtRemoteConfig::getInstance(true);
-
+  rtError e = RT_FAIL;
   std::lock_guard<std::mutex> lock(gMutex);
-  if (gServer == nullptr)
+
+  rtLogDebug("initialize environment: %p", env);
+  if (!env->Initialized)
   {
-    gServer = new rtRemoteServer();
-    e = gServer->open();
+    rtLogDebug("environment: %p not initialized, opening server", env);
+    e = env->Server->open();
     if (e != RT_OK)
       rtLogError("failed to open rtRemoteServer. %s", rtStrError(e));
-  };
 
-  if (gServer == nullptr)
+    env->start();
+  }
+  else
   {
-    rtLogError("rtRemoteServer is null");
-    e = RT_FAIL;
+    env->RefCount++;
+    e = RT_OK;
+  }
+
+  if (e == RT_OK)
+  {
+    rtLogDebug("environment is now initialized: %p", env);
+    env->Initialized = true;
+  }
+
+  return e;
+}
+
+rtError
+rtRemoteInitNs(rtRemoteEnvironment* env)
+{
+  rtError e = RT_OK;
+  //rtRemoteConfig::getInstance();
+  if (gNs == nullptr)
+  {
+    gNs = new rtRemoteNameService(env);
+    e = gNs->init();
   }
 
   return e;
@@ -38,27 +70,45 @@ rtRemoteInit()
 extern rtError rtRemoteShutdownStreamSelector();
 
 rtError
-rtRemoteShutdown()
+rtRemoteShutdown(rtRemoteEnvironment* env)
 {
-  rtError e = rtRemoteShutdownStreamSelector();
-  if (e != RT_OK)
+  rtError e = RT_FAIL;
+  std::lock_guard<std::mutex> lock(gMutex);
+
+  env->RefCount--;
+  if (env->RefCount == 0)
   {
-    rtLogWarn("error shutting down stream selector. %s", rtStrError(e));
+    rtLogInfo("environment reference count is zero, deleting");
+    env->shutdown();
+    if (env == gEnv)
+      gEnv = nullptr;
+    delete env;
+    e = RT_OK;
+  }
+  else
+  {
+    rtLogInfo("environment reference count is non-zero. %u", env->RefCount);
+    e = RT_OK;
   }
 
-  if (gServer)
-  {
-    delete gServer;
-    gServer = nullptr;
-  }
+  return e;
+}
 
+rtError
+rtRemoteShutdownNs()
+{
+  if (gNs)
+  {
+    delete gNs;
+    gNs = nullptr;
+  }
   return RT_OK;
 }
 
 rtError
-rtRemoteRegisterObject(char const* id, rtObjectRef const& obj)
+rtRemoteRegisterObject(rtRemoteEnvironment* env, char const* id, rtObjectRef const& obj)
 {
-  if (gServer == nullptr)
+  if (env == nullptr)
     return RT_FAIL;
 
   if (id == nullptr)
@@ -67,23 +117,94 @@ rtRemoteRegisterObject(char const* id, rtObjectRef const& obj)
   if (!obj)
     return RT_ERROR_INVALID_ARG;
 
-  return gServer->registerObject(id, obj);
+  return env->Server->registerObject(id, obj);
 }
 
 rtError
-rtRemoteLocateObject(char const* id, rtObjectRef& obj, int timeout)
+rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj)
 {
-  if (gServer == nullptr)
-  {
-    rtLogError("rtRemoteInit not called");
-    return RT_FAIL;
-  }
+  if (env == nullptr)
+    return RT_ERROR_INVALID_ARG;
 
   if (id == nullptr)
-  {
-    rtLogError("invalid id (null)");
     return RT_ERROR_INVALID_ARG;
-  }
 
-  return gServer->findObject(id, obj, timeout);
+  return env->Server->findObject(id, obj, 3000);
+}
+
+rtError
+rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
+{
+
+  if (env->Config->server_use_dispatch_thread())
+    return RT_ERROR_INVALID_OPERATION;
+
+  rtError e = RT_OK;
+
+  auto time_remaining = std::chrono::milliseconds(timeout);
+
+  do
+  {
+    auto start = std::chrono::steady_clock::now();
+    e = env->processSingleWorkItem(time_remaining, false, nullptr);
+    if (e != RT_OK)
+      return e;
+    auto end = std::chrono::steady_clock::now();
+    time_remaining = std::chrono::milliseconds((end - start).count());
+  }
+  while ((time_remaining > std::chrono::milliseconds(0)) && (e == RT_OK));
+
+  return e;
+}
+
+rtRemoteEnvironment*
+rtEnvironmentFromFile(char const* configFile)
+{
+  RT_ASSERT(configFile != nullptr);
+
+  rtRemoteConfigBuilder* builder(rtRemoteConfigBuilder::fromFile(configFile));
+  rtRemoteEnvironment* env(new rtRemoteEnvironment(builder->build()));
+  delete builder;
+
+  return env;
+
+}
+
+rtRemoteEnvironment*
+rtEnvironmentGetGlobal()
+{
+  std::lock_guard<std::mutex> lock(gMutex);
+  if (gEnv == nullptr)
+  {
+    rtRemoteConfigBuilder* builder = rtRemoteConfigBuilder::getDefaultConfig();
+    rtRemoteConfig* conf = builder->build();
+    gEnv = new rtRemoteEnvironment(conf);
+    delete builder;
+
+  }
+  return gEnv;
+}
+
+rtError
+rtRemoteInit()
+{
+  return rtRemoteInit(rtEnvironmentGetGlobal());
+}
+
+rtError
+rtRemoteRegisterObject(char const* id, rtObjectRef const& obj)
+{
+  return rtRemoteRegisterObject(rtEnvironmentGetGlobal(), id, obj);
+}
+
+rtError
+rtRemoteLocateObject(char const* id, rtObjectRef& obj, int /*timeout*/)
+{
+  return rtRemoteLocateObject(rtEnvironmentGetGlobal(), id, obj);
+}
+
+rtError
+rtRemoteShutdown()
+{
+  return rtRemoteShutdown(rtEnvironmentGetGlobal());
 }
