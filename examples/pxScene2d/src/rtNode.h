@@ -130,6 +130,7 @@ public:
 
   v8::Isolate   *getIsolate() { return mIsolate; };
   void garbageCollect();
+  void setAllocatedMemoryAmountForContexts(int64_t sizeInBytes);
 private:
   void init(int argc, char** argv);
   void term();

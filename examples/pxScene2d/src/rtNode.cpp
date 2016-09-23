@@ -513,6 +513,17 @@ void rtNode::garbageCollect()
   mIsolate->LowMemoryNotification();
 }
 
+void rtNode::setAllocatedMemoryAmountForContexts(int64_t sizeInBytes)
+{
+  Locker                locker(mIsolate);
+  Isolate::Scope isolate_scope(mIsolate);
+  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
+
+  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+  Context::Scope contextScope(local_context);
+  mIsolate->AdjustAmountOfExternalAllocatedMemory(sizeInBytes);
+}
+
 #if 0
 rtNode::forceGC()
 {
