@@ -266,7 +266,6 @@ rtNodeContext::~rtNodeContext()
   // Un-Register wrappers.
   // rtObjectWrapper::destroyPrototype();
   // rtFunctionWrapper::destroyPrototype();
-
   mContext.Reset();
   mRtWrappers.Reset();
 
@@ -503,6 +502,17 @@ void rtNode::pump()
   }
 }
 
+void rtNode::garbageCollect()
+{
+  Locker                locker(mIsolate);
+  Isolate::Scope isolate_scope(mIsolate);
+  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
+
+  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+  Context::Scope contextScope(local_context);
+  mIsolate->LowMemoryNotification();
+}
+
 #if 0
 rtNode::forceGC()
 {
@@ -631,6 +641,7 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
 
     // Populate 'sandbox' vars in JS...
     mRefContext->runFile(SANDBOX_JS);
+    ctxref = new rtNodeContext(mIsolate, mRefContext);
   }
   else
   {

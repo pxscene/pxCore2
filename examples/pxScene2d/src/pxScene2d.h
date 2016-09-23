@@ -989,7 +989,7 @@ public:
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
   pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
-  virtual ~pxSceneContainer() {/*printf("###############~pxSceneContainer\n");*/} 
+  virtual ~pxSceneContainer() {/*printf("###############~pxSceneContainer\n");*/}
 
   virtual unsigned long Release()
   {
@@ -1056,6 +1056,8 @@ public:
     
     if (mScene)
       mScene.send("dispose");
+    mView = NULL;
+    mScene = NULL;
   }
 
   virtual unsigned long AddRef() 
@@ -1108,6 +1110,8 @@ protected:
   virtual void onCloseRequest()
   {
     mScene.send("dispose");
+    mScene = NULL;
+    mView = NULL;
   }
 
   virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags)
@@ -1264,11 +1268,7 @@ public:
   virtual ~pxScene2d() 
   {
     printf("***** deleting pxScene2d\n");
-    if (NULL != mTestView)
-    {
-       delete mTestView;
-       mTestView = NULL;
-    }
+    mTestView = NULL;
   }
   
   virtual unsigned long AddRef() 

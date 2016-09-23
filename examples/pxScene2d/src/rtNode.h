@@ -98,7 +98,6 @@ public:
 
   v8::Isolate              *getIsolate()      const { return mIsolate; };
   v8::Local<v8::Context>    getLocalContext() const { return PersistentToLocal<v8::Context>(mIsolate, mContext); };
-
 private:
   v8::Isolate                   *mIsolate;
   v8::Persistent<v8::Context>    mContext;
@@ -130,7 +129,7 @@ public:
   rtNodeContextRef createContext(bool ownThread = false);
 
   v8::Isolate   *getIsolate() { return mIsolate; };
-
+  void garbageCollect();
 private:
   void init(int argc, char** argv);
   void term();
