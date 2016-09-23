@@ -557,3 +557,30 @@ rtCreateUnixSocketName(pid_t pid, char* buff, int n)
 
   return RT_OK;
 }
+
+rtError
+rtParseAddress(sockaddr_storage& ss, char const* s)
+{
+  if (!s)
+    return RT_ERROR_INVALID_ARG;
+
+  // inet:127.0.0.1:37200
+  char const* p1 = strchr(s, ':');
+  if (!p1)
+  {
+    rtLogWarn("error parsing socket address '%s'", s);
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  char const* p2 = strchr(++p1, ':');
+  if (!p2)
+  {
+    rtLogWarn("error parsing socket address '%s'", s);
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  std::string addr(p1, (p2 - p1));
+  uint16_t    port = static_cast<uint16_t>(strtol(p2 + 1, nullptr, 10));
+
+  return rtParseAddress(ss, addr.c_str(), port, nullptr);
+}
