@@ -1121,6 +1121,15 @@ rtDefineObject(pxRoot,pxObject);
 
 int gTag = 0;
 
+#ifdef ENABLE_RT_NODE
+rtNode script;
+#endif //ENABLE_RT_NODE
+
+static void pxScene2d::garbageCollect()
+{
+  script.garbageCollect();
+}
+
 pxScene2d::pxScene2d(bool top)
   : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRectangle(false), mTestView(NULL)
 {
@@ -2285,9 +2294,6 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
-#ifdef ENABLE_RT_NODE
-rtNode script;
-#endif //ENABLE_RT_NODE
 
 pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContainer(NULL), mRefCount(0)
 {
