@@ -129,7 +129,7 @@ rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj)
   if (id == nullptr)
     return RT_ERROR_INVALID_ARG;
 
-  return env->Server->findObject(id, obj, 3000);
+  return env->Server->findObject(id, obj, 30);
 }
 
 rtError

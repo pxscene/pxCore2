@@ -31,6 +31,7 @@
 #define kFieldNamePath "path"
 #define kFieldNameScheme "scheme"
 #define kFieldNameEndpointType "endpoint.type"
+#define kFieldNameReplyTo "reply-to"
 #define kEndpointTypeLocal "local.endpoint"
 #define kEndpointTypeRemote "net.endpoint"
 

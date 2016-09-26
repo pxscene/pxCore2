@@ -21,6 +21,7 @@
 #define kUnixSocketTemplateRoot "/tmp/rt_remote_soc"
 
 rtError rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* index);
+rtError rtParseAddress(sockaddr_storage& ss, char const* s);
 rtError rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len);
 rtError rtGetInterfaceAddress(char const* name, sockaddr_storage& ss);
 rtError rtGetInetAddr(sockaddr_storage const& ss, void** addr);

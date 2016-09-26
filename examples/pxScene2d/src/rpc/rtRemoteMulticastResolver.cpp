@@ -309,7 +309,7 @@ rtRemoteMulticastResolver::openUnicastSocket()
 }
 
 rtError
-rtRemoteMulticastResolver::onSearch(rtRemoteMessagePtr const& doc, sockaddr_storage const& soc)
+rtRemoteMulticastResolver::onSearch(rtRemoteMessagePtr const& doc, sockaddr_storage const& /*soc*/)
 {
   auto senderId = doc->FindMember(kFieldNameSenderId);
   RT_ASSERT(senderId != doc->MemberEnd());
@@ -317,6 +317,9 @@ rtRemoteMulticastResolver::onSearch(rtRemoteMessagePtr const& doc, sockaddr_stor
   {
     return RT_OK;
   }
+
+  auto replyTo = doc->FindMember(kFieldNameReplyTo);
+  RT_ASSERT(replyTo != doc->MemberEnd());
 
   rtRemoteCorrelationKey key = rtMessage_GetCorrelationKey(*doc);
 
@@ -339,7 +342,16 @@ rtRemoteMulticastResolver::onSearch(rtRemoteMessagePtr const& doc, sockaddr_stor
     doc.AddMember(kFieldNameSenderId, senderId->value.GetInt(), doc.GetAllocator());
     doc.AddMember(kFieldNameCorrelationKey, key.toString(), doc.GetAllocator());
 
-    return rtSendDocument(doc, m_ucast_fd, &soc);
+    sockaddr_storage replyToAddress;
+    rtError err = rtParseAddress(replyToAddress, replyTo->value.GetString());
+    if (err != RT_OK)
+    {
+      rtLogWarn("failed to parse reply-to address. %s", rtStrError(err));
+      return err;
+    }
+
+
+    return rtSendDocument(doc, m_ucast_fd, &replyToAddress);
   }
   
   return RT_OK;
@@ -376,6 +388,12 @@ rtRemoteMulticastResolver::locateObject(std::string const& name, sockaddr_storag
   doc.AddMember(kFieldNameObjectId, name, doc.GetAllocator());
   doc.AddMember(kFieldNameSenderId, m_pid, doc.GetAllocator());
   doc.AddMember(kFieldNameCorrelationKey, seqId.toString(), doc.GetAllocator());
+
+  // m_ucast_endpoint
+  {
+    std::string responseEndpoint = rtSocketToString(m_ucast_endpoint);
+    doc.AddMember(kFieldNameReplyTo, responseEndpoint, doc.GetAllocator());
+  }
 
   err = rtSendDocument(doc, m_ucast_fd, &m_mcast_dest);
   if (err != RT_OK)
