@@ -51,7 +51,7 @@ rtRemoteRegisterObject(rtRemoteEnvironment* env, char const* id, rtObjectRef con
  * @returns RT_OK for success
  */
 rtError
-rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj);
+rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj, int timeout=3000);
 
 /**
  * Shutdown rtRemote sub-system
