@@ -25,7 +25,7 @@
 #include "pxImage.h"
 #include "pxImage9.h"
 
-#ifndef ENABLE_DFB
+#if !defined(ENABLE_DFB) && !defined(DISABLE_WAYLAND)
 #include "pxWayland.h"
 #endif //ENABLE_DFB
 
@@ -1325,7 +1325,7 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 {
-#ifdef ENABLE_DFB
+#if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
   return RT_FAIL;
 #else
   rtRefT<pxWaylandContainer> c = new pxWaylandContainer(this);
