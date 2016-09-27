@@ -455,7 +455,7 @@ rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32
     err = m_resolver->locateObject(objectId, objectEndpoint, timeout);
 
     rtLogDebug("object %s found at endpoint: %s", objectId.c_str(),
-      rtSocketToString(objectEndpoint).c_str());
+    rtSocketToString(objectEndpoint).c_str());
 
     if (err == RT_OK)
     {

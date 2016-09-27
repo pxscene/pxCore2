@@ -39,6 +39,8 @@ private:
   void doRead(int fd, rtRemoteSocketBuffer& buff);
   void doDispatch(char const* buff, int n, sockaddr_storage* peer);
 
+  rtError sendSearchAndWait(const std::string& name, const int timeout, rtRemoteMessagePtr& ret);
+
   rtError init();
   rtError openUnicastSocket();
   rtError openMulticastSocket();

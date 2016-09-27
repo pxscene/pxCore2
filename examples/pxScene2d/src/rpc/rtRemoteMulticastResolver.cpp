@@ -66,6 +66,71 @@ rtRemoteMulticastResolver::~rtRemoteMulticastResolver()
     rtLogWarn("failed to close resolver: %s", rtStrError(err));
 }
 
+rtError rtRemoteMulticastResolver::sendSearchAndWait(const std::string& name, const int timeout, rtRemoteMessagePtr& response)
+{
+
+  rtRemoteCorrelationKey seqId = rtMessage_GetNextCorrelationKey();
+
+  rapidjson::Document doc;
+  doc.SetObject();
+  doc.AddMember(kFieldNameMessageType, kMessageTypeSearch, doc.GetAllocator());
+  doc.AddMember(kFieldNameObjectId, name, doc.GetAllocator());
+  doc.AddMember(kFieldNameSenderId, m_pid, doc.GetAllocator());
+  doc.AddMember(kFieldNameCorrelationKey, seqId.toString(), doc.GetAllocator());
+
+  // m_ucast_endpoint
+  {
+    std::string responseEndpoint = rtSocketToString(m_ucast_endpoint);
+    doc.AddMember(kFieldNameReplyTo, responseEndpoint, doc.GetAllocator());
+  }
+
+
+  rtRemoteMessagePtr searchResponse;
+  RequestMap::const_iterator itr;
+
+  using namespace std::chrono;
+  // start with 30 and increase for 20 ms each time: 30..50..70..
+  auto iterationIncrement = milliseconds(30);
+  auto iterationTime = system_clock::now() + iterationIncrement;
+  auto timeout_ = system_clock::now() + milliseconds(timeout);
+
+  // wait here until timeout expires or we get a response that matches out pid/seqid
+  std::unique_lock<std::mutex> lock(m_mutex);
+  itr = m_pending_searches.end();
+  do {
+
+    rtError err = rtSendDocument(doc, m_ucast_fd, &m_mcast_dest);
+    if (err != RT_OK)
+      return err;
+
+    rtLogInfo("Spinning for %llu ms", milliseconds(iterationIncrement).count());
+
+    m_cond.wait_until(lock, iterationTime, [this, seqId, &searchResponse] {
+      auto itr = this->m_pending_searches.find(seqId);
+      if (itr != this->m_pending_searches.end()) {
+        searchResponse = itr->second;
+        this->m_pending_searches.erase(itr);
+      }
+      return searchResponse != nullptr;
+    });
+
+    if (searchResponse)
+    {
+      rtLogInfo("Search response received for %s", seqId.toString().c_str());
+      break;
+    }
+
+    iterationIncrement += milliseconds(20);
+    iterationTime = system_clock::now() + iterationIncrement;
+
+  } while (system_clock::now() < timeout_);
+
+  lock.unlock();
+
+  response = searchResponse;
+  return searchResponse ? RT_OK : RT_RESOURCE_NOT_FOUND;
+}
+
 rtError
 rtRemoteMulticastResolver::init()
 {
@@ -379,61 +444,20 @@ rtRemoteMulticastResolver::locateObject(std::string const& name, sockaddr_storag
     return RT_FAIL;
   }
 
-  rtError err = RT_OK;
-  rtRemoteCorrelationKey seqId = rtMessage_GetNextCorrelationKey();
-
-  rapidjson::Document doc;
-  doc.SetObject();
-  doc.AddMember(kFieldNameMessageType, kMessageTypeSearch, doc.GetAllocator());
-  doc.AddMember(kFieldNameObjectId, name, doc.GetAllocator());
-  doc.AddMember(kFieldNameSenderId, m_pid, doc.GetAllocator());
-  doc.AddMember(kFieldNameCorrelationKey, seqId.toString(), doc.GetAllocator());
-
-  // m_ucast_endpoint
-  {
-    std::string responseEndpoint = rtSocketToString(m_ucast_endpoint);
-    doc.AddMember(kFieldNameReplyTo, responseEndpoint, doc.GetAllocator());
-  }
-
-  err = rtSendDocument(doc, m_ucast_fd, &m_mcast_dest);
+  rtRemoteMessagePtr searchResponse;
+  rtError err = sendSearchAndWait(name, timeout, searchResponse);
   if (err != RT_OK)
     return err;
 
-  rtRemoteMessagePtr searchResponse;
-  RequestMap::const_iterator itr;
-
-  auto delay = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
-
-  // wait here until timeout expires or we get a response that matches out pid/seqid
-  std::unique_lock<std::mutex> lock(m_mutex);
-  itr = m_pending_searches.end();
-  m_cond.wait_until(lock, delay, [this, seqId, &searchResponse]
-    {
-      auto itr = this->m_pending_searches.find(seqId);
-      if (itr != this->m_pending_searches.end())
-      {
-        searchResponse = itr->second;
-        this->m_pending_searches.erase(itr);
-      }
-      return searchResponse != nullptr;
-    });
-  lock.unlock();
-
-  if (!searchResponse)
-    return RT_RESOURCE_NOT_FOUND;
-
   // response is in itr
-  if (searchResponse)
-  {
-    RT_ASSERT(searchResponse->HasMember(kFieldNameIp));
-    RT_ASSERT(searchResponse->HasMember(kFieldNamePort));
+  RT_ASSERT(searchResponse->HasMember(kFieldNameIp));
+  RT_ASSERT(searchResponse->HasMember(kFieldNamePort));
 
-    rtError err = rtParseAddress(endpoint, (*searchResponse)[kFieldNameIp].GetString(),
-        (*searchResponse)[kFieldNamePort].GetInt(), nullptr);
+  err = rtParseAddress(endpoint, (*searchResponse)[kFieldNameIp].GetString(),
+      (*searchResponse)[kFieldNamePort].GetInt(), nullptr);
 
-    if (err != RT_OK)
-      return err;
-  }
+  if (err != RT_OK)
+    return err;
 
   return RT_OK;
 }
