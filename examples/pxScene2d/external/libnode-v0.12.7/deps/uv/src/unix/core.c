@@ -662,9 +662,11 @@ void uv_disable_stdio_inheritance(void) {
   /* Set the CLOEXEC flag on all open descriptors. Unconditionally try the
    * first 16 file descriptors. After that, bail out after the first error.
    */
-  for (fd = 0; ; fd++)
+  /*MODIFIED CODE*/ for (fd = 3; ; fd++)
+    {
     if (uv__cloexec(fd, 1) && fd > 15)
       break;
+    }
 }
 
 
@@ -939,6 +941,7 @@ int uv__open_cloexec(const char* path, int flags) {
 
 int uv__dup2_cloexec(int oldfd, int newfd) {
   int r;
+/*MODIFIED CODE*/ int flags = 0;
 #if defined(__FreeBSD__) && __FreeBSD__ >= 10
   do
     r = dup3(oldfd, newfd, O_CLOEXEC);
@@ -959,8 +962,17 @@ int uv__dup2_cloexec(int oldfd, int newfd) {
   static int no_dup3;
   if (!no_dup3) {
     do
-      r = uv__dup3(oldfd, newfd, UV__O_CLOEXEC);
-    while (r == -1 && (errno == EINTR || errno == EBUSY));
+    {
+      /*MODIFIED CODE*/ if (newfd >=0  && newfd <= 2)
+      {
+	      flags = 0;
+      }
+      else
+      {
+	    flags = UV__O_CLOEXEC;
+      }
+      r = uv__dup3(oldfd, newfd, flags);
+    }while (r == -1 && (errno == EINTR || errno == EBUSY));
     if (r != -1)
       return r;
     if (errno != ENOSYS)
