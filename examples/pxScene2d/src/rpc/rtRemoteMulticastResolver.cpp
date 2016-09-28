@@ -89,8 +89,7 @@ rtError rtRemoteMulticastResolver::sendSearchAndWait(const std::string& name, co
   RequestMap::const_iterator itr;
 
   using namespace std::chrono;
-  // start with 30 and increase for 20 ms each time: 30..50..70..
-  auto iterationIncrement = milliseconds(30);
+  auto iterationIncrement = milliseconds(m_env->Config->resolver_spin_init_ms());
   auto iterationTime = system_clock::now() + iterationIncrement;
   auto timeout_ = system_clock::now() + milliseconds(timeout);
 
@@ -120,7 +119,7 @@ rtError rtRemoteMulticastResolver::sendSearchAndWait(const std::string& name, co
       break;
     }
 
-    iterationIncrement += milliseconds(20);
+    iterationIncrement += milliseconds(m_env->Config->resolver_spin_iteration_ms());
     iterationTime = system_clock::now() + iterationIncrement;
 
   } while (system_clock::now() < timeout_);

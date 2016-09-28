@@ -48,6 +48,14 @@
     "default_value":"3000",
     "type":"int32" },
 
+{ "name":"rt.rpc.resolver.spin_init_ms",
+    "default_value":"30",
+    "type":"uint16" },
+
+{ "name":"rt.rpc.resolver.spin_iteration_ms",
+    "default_value":"20",
+    "type":"uint16" },
+
 { "name":"rt.rpc.resolver.multicast.address",
     "default_value":"224.10.0.12",
     "type":"string" },
