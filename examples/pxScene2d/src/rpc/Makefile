@@ -13,7 +13,7 @@ LIBRTRPC_TARGET = librtRemote.so
 endif
 
 all: $(LIBRTRPC_TARGET) $(SAMPLEAPP)
-
+CXXFLAGS=
 RTCORE_SRCS=\
   ../utf8.c \
   ../rtString.cpp \
