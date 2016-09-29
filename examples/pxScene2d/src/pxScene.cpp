@@ -35,7 +35,6 @@ class rtPromise; //fwd
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
 
-pxContext context;
 
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
@@ -216,7 +215,7 @@ int pxMain(int argc, char* argv[])
 // JRJR TODO this needs happen after GL initialization which right now only happens after a pxWindow has been created.
 // Likely will move this to pxWindow...  as an option... a "context" type
 // would like to decouple it from pxScene2d specifically
-  context.init();
+  pxContext::instance().init();
 
   eventLoop.run();
 

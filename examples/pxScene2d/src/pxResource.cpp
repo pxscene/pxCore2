@@ -11,7 +11,6 @@
 #include "pxUtil.h"
 
 extern rtThreadQueue gUIThreadQueue;
-extern pxContext context;
 
 
 
@@ -280,7 +279,7 @@ void rtImageResource::loadResourceFromFile()
   else
   {
     // create offscreen texture for local image
-    mTexture = context.createTexture(imageOffscreen);
+    mTexture = pxContext::instance().createTexture(imageOffscreen);
     mLoadStatus.set("statusCode",0);
     // Since this object can be released before we get a async completion
     // We need to maintain this object's lifetime
@@ -313,7 +312,7 @@ bool rtImageResource::loadResourceData(pxFileDownloadRequest* fileDownloadReques
                       fileDownloadRequest->getDownloadedDataSize(),
                       imageOffscreen) == RT_OK)
       {
-        mTexture = context.createTexture(imageOffscreen);
+        mTexture = pxContext::instance().createTexture(imageOffscreen);
         return true;
       }
       
@@ -343,8 +342,8 @@ void pxResource::processDownloadedResource(pxFileDownloadRequest* fileDownloadRe
       else
       {
         //rtLogInfo("Image Decode Successful: %s", fileDownloadRequest->getFileUrl().cString());
-        // ToDo: Could context.createTexture ever fail and return null here?
-       // mTexture = context.createTexture(imageOffscreen);
+        // ToDo: Could pxContext::instance().createTexture ever fail and return null here?
+       // mTexture = pxContext::instance().createTexture(imageOffscreen);
         mLoadStatus.set("statusCode", 0);
         val = "resolve";
         // Since this object can be released before we get a async completion

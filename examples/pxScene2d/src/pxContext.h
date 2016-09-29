@@ -22,7 +22,9 @@ class pxContext {
   ~pxContext();
 
   void init();
-  
+
+  static pxContext& instance();
+
   // debugging outlines 
   bool showOutlines() { return mShowOutlines; }
   void setShowOutlines(bool v) { mShowOutlines = v; }

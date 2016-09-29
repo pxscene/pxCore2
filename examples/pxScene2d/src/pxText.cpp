@@ -7,8 +7,6 @@
 #include "pxFont.h"
 #include "pxContext.h"
 
-extern pxContext context;
-
 
 pxText::pxText(pxScene2d* scene):pxObject(scene), mListenerAdded(false)
 {
@@ -123,17 +121,17 @@ void pxText::update(double t)
     if (mText.length() >= 10 && msx == 1.0 && msy == 1.0)
     {
       mCached = NULL;
-      pxContextFramebufferRef cached = context.createFramebuffer(getFBOWidth(),getFBOHeight());//mw,mh);
+      pxContextFramebufferRef cached = pxContext::instance().createFramebuffer(getFBOWidth(),getFBOHeight());//mw,mh);
       if (cached.getPtr())
       {
-        pxContextFramebufferRef previousSurface = context.getCurrentFramebuffer();
-        context.setFramebuffer(cached);
+        pxContextFramebufferRef previousSurface = pxContext::instance().getCurrentFramebuffer();
+        pxContext::instance().setFramebuffer(cached);
         pxMatrix4f m;
-        context.setMatrix(m);
-        context.setAlpha(1.0);
-        context.clear(mw,mh);
+        pxContext::instance().setMatrix(m);
+        pxContext::instance().setAlpha(1.0);
+        pxContext::instance().clear(mw,mh);
         draw();
-        context.setFramebuffer(previousSurface);
+        pxContext::instance().setFramebuffer(previousSurface);
         mCached = cached;
       }
     }
@@ -156,7 +154,7 @@ void pxText::draw() {
     // TODO not very intelligent given scaling
     if (msx == 1.0 && msy == 1.0 && mCached.getPtr() && mCached->getTexture().getPtr())
     {
-      context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef);
+      pxContext::instance().drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef);
     }
     else
     {

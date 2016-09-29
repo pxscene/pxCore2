@@ -37,6 +37,7 @@ class pxWayland: public pxIView {
 
 public:
   pxWayland();
+  pxWayland(unsigned int w, unsigned int h);
   virtual ~pxWayland();
 
   virtual unsigned long AddRef() {

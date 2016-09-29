@@ -48,7 +48,6 @@ DFBSurfacePixelFormat     dfbPixelformat = DSPF_ABGR;
 bool needsFlip = true;
 IDirectFB                *outsideDfb = NULL;
 IDirectFBSurface         *outsideDfbSurface = NULL;
-pxContext context;
 #else
 extern IDirectFB                *dfb;
 
@@ -1164,6 +1163,12 @@ static void drawImage92(float x,  float y,  float w,  float h,
 }
 
 bool gContextInit = false;
+
+pxContext& pxContext::instance()
+{
+    static pxContext instance;
+    return instance;
+}
 
 pxContext::~pxContext()
 {

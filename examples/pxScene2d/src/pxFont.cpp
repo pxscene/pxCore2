@@ -35,7 +35,6 @@ GlyphCache gGlyphCache;
 
 #include "pxContext.h"
 
-extern pxContext context;
 
 // TODO can we eliminate direct utf8.h usage
 extern "C" {
@@ -222,7 +221,7 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
       entry->advancedoty = g->advance.y;
       entry->vertAdvance = g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
       
-      entry->mTexture = context.createTexture(g->bitmap.width, g->bitmap.rows, 
+      entry->mTexture = pxContext::instance().createTexture(g->bitmap.width, g->bitmap.rows, 
                                               g->bitmap.width, g->bitmap.rows, 
                                               g->bitmap.buffer);
       
@@ -310,13 +309,13 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
       if (x == 0) 
       {
         float c[4] = {0, 1, 0, 1};
-        context.drawDiagLine(0, y+(metrics->ascender>>6), mw, 
+        pxContext::instance().drawDiagLine(0, y+(metrics->ascender>>6), mw, 
                              y+(metrics->ascender>>6), c);
       }
       
       pxTextureRef texture = entry->mTexture;
       pxTextureRef nullImage;
-      context.drawImage(x2,y2, w, h, texture, nullImage, false, color);
+      pxContext::instance().drawImage(x2,y2, w, h, texture, nullImage, false, color);
       x += (entry->advancedotx >> 6) * sx;
       // no change to y because we are not moving to next line yet
     }

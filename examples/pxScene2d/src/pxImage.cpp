@@ -23,8 +23,6 @@ extern "C"
 //#include <map>
 using namespace std;
 
-extern pxContext context;
-
 pxImage::~pxImage()
 {
   rtLogDebug("~pxImage()");
@@ -154,7 +152,7 @@ float pxImage::getOnscreenHeight()
 void pxImage::draw() {
   //rtLogDebug("pxImage::draw() mw=%f mh=%f\n", mw, mh);
   static pxTextureRef nullMaskRef;
-  context.drawImage(0, 0, 
+  pxContext::instance().drawImage(0, 0, 
                     getOnscreenWidth(),
                     getOnscreenHeight(), 
                     getImageResource()->getTexture(), nullMaskRef, 

@@ -19,7 +19,9 @@ extern "C"
 #include <map>
 using namespace std;
 
-extern pxContext context;
+// TODO: move this to pxOffscreenNative.{cpp,mm} files
+int __pxMain(int , char*[]) {return 0;}
+int pxMain(int , char*[]) __attribute__ ((weak, alias ("_Z8__pxMainiPPc")));
 
 #define MAX_FIND_REMOTE_TIMEOUT_IN_MS 5000
 #define FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS 100
@@ -56,6 +58,13 @@ pxWayland::pxWayland()
   mFillColor[3]= 0.0; 
 }
 
+pxWayland::pxWayland(unsigned int w, unsigned int h)
+{
+  pxContext::instance().init();
+  pxContext::instance().setSize(w,h);
+  pxWayland();
+}
+
 pxWayland::~pxWayland()
 { 
   if ( mWCtx )
@@ -85,7 +94,7 @@ void pxWayland::createDisplay(rtString displayName)
 
    rtLogInfo("pxWayland::createDisplay: %s\n", (name ? name : "name not provided"));
    
-   mFBO= context.createFramebuffer( 0, 0 );
+   mFBO= pxContext::instance().createFramebuffer( 0, 0 );
    
    mWCtx= WstCompositorCreate();
    if ( mWCtx )
@@ -218,7 +227,7 @@ bool pxWayland::onMouseMove(int32_t x, int32_t y)
 {
    int objX, objY;
    int resW, resH;
-   context.getSize( resW, resH );
+   pxContext::instance().getSize( resW, resH );
    
    objX= (int)(x+0.5f);
    objY= (int)(y+0.5f);
@@ -289,7 +298,7 @@ void pxWayland::onDraw()
   if ( (mFBO->width() != mWidth) ||
        (mFBO->height() != mHeight) )
   {     
-     context.updateFramebuffer( mFBO, mWidth, mHeight );
+     pxContext::instance().updateFramebuffer( mFBO, mWidth, mHeight );
      WstCompositorSetOutputSize( mWCtx, mWidth, mHeight );
   }
   
@@ -298,29 +307,29 @@ void pxWayland::onDraw()
   
   bool needHolePunch;
   std::vector<WstRect> rects;
-  pxMatrix4f m= context.getMatrix();
-  context.pushState();
-  pxContextFramebufferRef previousFrameBuffer= context.getCurrentFramebuffer();
-  context.setFramebuffer( mFBO );
-  context.clear( mWidth, mHeight, mFillColor );
+  pxMatrix4f m= pxContext::instance().getMatrix();
+  pxContext::instance().pushState();
+  pxContextFramebufferRef previousFrameBuffer= pxContext::instance().getCurrentFramebuffer();
+  pxContext::instance().setFramebuffer( mFBO );
+  pxContext::instance().clear( mWidth, mHeight, mFillColor );
   WstCompositorComposeEmbedded( mWCtx, 
                                 mX,
                                 mY,
                                 mWidth,
                                 mHeight,
                                 m.data(),
-                                context.getAlpha(),
+                                pxContext::instance().getAlpha(),
                                 hints,
                                 &needHolePunch,
                                 rects );
-  context.setFramebuffer( previousFrameBuffer );
-  context.popState();
+  pxContext::instance().setFramebuffer( previousFrameBuffer );
+  pxContext::instance().popState();
   
   if ( needHolePunch )
   {
      if ( mFillColor[3] != 0.0 )
      {
-        context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
+        pxContext::instance().drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
      }
      GLfloat priorColor[4];
      GLint priorBox[4];
@@ -351,7 +360,7 @@ void pxWayland::onDraw()
         glDisable( GL_SCISSOR_TEST );
      }
   }
-  context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
+  pxContext::instance().drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
 }
 
 void pxWayland::handleInvalidate()
@@ -414,7 +423,7 @@ uint32_t pxWayland::getModifiers( uint32_t flags )
 
 bool pxWayland::isRotated()
 {
-   float *f= context.getMatrix().data();
+   float *f= pxContext::instance().getMatrix().data();
    const float e= 1.0e-2;
       
    if ( (fabsf(f[1]) > e) ||

@@ -16,7 +16,6 @@ extern "C"
 #include "utf8.h"
 }
 
-extern pxContext context;
 
 pxImage9::~pxImage9()
 {
@@ -74,7 +73,7 @@ void pxImage9::sendPromise()
 
 
 void pxImage9::draw() {
-  context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
+  pxContext::instance().drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
 }
 
 void pxImage9::resourceReady(rtString readyResolution)

@@ -4,11 +4,9 @@
 #include "pxRectangle.h"
 #include "pxContext.h"
 
-extern pxContext context;
-
 void pxRectangle::draw()
 {
-  context.drawRect(mw, mh, mLineWidth, mFillColor, mLineColor);
+  pxContext::instance().drawRect(mw, mh, mLineWidth, mFillColor, mLineColor);
 }
 
 rtDefineObject(pxRectangle, pxObject);

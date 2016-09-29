@@ -1257,6 +1257,12 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
 
 bool gContextInit = false;
 
+pxContext& pxContext::instance()
+{
+    static pxContext instance;
+    return instance;
+}
+
 pxContext::~pxContext()
 {
   if (gSolidShader)

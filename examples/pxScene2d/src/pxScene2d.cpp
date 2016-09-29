@@ -168,7 +168,6 @@ unsigned char *base64_decode(const unsigned char *data,
 }
 
 // TODO get rid of globals
-extern pxContext context;
 rtFunctionRef gOnScene;
 
 #if 0
@@ -568,11 +567,11 @@ void pxObject::update(double t)
   #ifdef PX_DIRTY_RECTANGLES
   pxMatrix4f m;
   applyMatrix(m);
-  context.setMatrix(m);
+  pxContext::instance().setMatrix(m);
   if (mIsDirty)
   {
     mScene->invalidateRect(&mScreenCoordinates);
-    mLastRenderMatrix = context.getMatrix();
+    mLastRenderMatrix = pxContext::instance().getMatrix();
     pxRect dirtyRect = getBoundingRectInScreenCoordinates();
     mScene->invalidateRect(&dirtyRect);
     mIsDirty = false;
@@ -583,11 +582,11 @@ void pxObject::update(double t)
   for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
 #ifdef PX_DIRTY_RECTANGLES
-    context.pushState();
+    pxContext::instance().pushState();
 #endif //PX_DIRTY_RECTANGLES
     (*it)->update(t);
 #ifdef PX_DIRTY_RECTANGLES
-    context.popState();
+    pxContext::instance().popState();
 #endif //PX_DIRTY_RECTANGLES
   }
 
@@ -601,10 +600,10 @@ pxRect pxObject::getBoundingRectInScreenCoordinates()
   int w = getOnscreenWidth();
   int h = getOnscreenHeight();
   int x[4], y[4];
-  context.mapToScreenCoordinates(mLastRenderMatrix, 0,0,x[0],y[0]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, w, h, x[1], y[1]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, 0, h, x[2], y[2]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, w, 0, x[3], y[3]);
+  pxContext::instance().mapToScreenCoordinates(mLastRenderMatrix, 0,0,x[0],y[0]);
+  pxContext::instance().mapToScreenCoordinates(mLastRenderMatrix, w, h, x[1], y[1]);
+  pxContext::instance().mapToScreenCoordinates(mLastRenderMatrix, 0, h, x[2], y[2]);
+  pxContext::instance().mapToScreenCoordinates(mLastRenderMatrix, w, 0, x[3], y[3]);
   int left, right, top, bottom;
 
   left = x[0];
@@ -645,10 +644,10 @@ pxRect pxObject::convertToScreenCoordinates(pxRect* r)
   int rectTop = r->top();
   int rectBottom = r->bottom();
   int x[4], y[4];
-  context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft,rectTop,x[0],y[0]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectBottom, x[1], y[1]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft, rectBottom, x[2], y[2]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectTop, x[3], y[3]);
+  pxContext::instance().mapToScreenCoordinates(mLastRenderMatrix, rectLeft,rectTop,x[0],y[0]);
+  pxContext::instance().mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectBottom, x[1], y[1]);
+  pxContext::instance().mapToScreenCoordinates(mLastRenderMatrix, rectLeft, rectBottom, x[2], y[2]);
+  pxContext::instance().mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectTop, x[3], y[3]);
   int left, right, top, bottom;
 
   left = x[0];
@@ -695,7 +694,7 @@ void pxObject::drawInternal(bool maskPass)
   // TODO what to do about multiple vanishing points in a given scene
   // TODO consistent behavior between clipping and no clipping when z is in use
 
-  if (context.getAlpha() < alphaEpsilon)
+  if (pxContext::instance().getAlpha() < alphaEpsilon)
     return;  // trivial reject for objects that are transparent
 
   pxMatrix4f m;
@@ -759,22 +758,22 @@ void pxObject::drawInternal(bool maskPass)
 #endif
 
 
-  context.setMatrix(m);
-  context.setAlpha(ma);
+  pxContext::instance().setMatrix(m);
+  pxContext::instance().setAlpha(ma);
 
-  if (mClip && !context.isObjectOnScreen(0,0,w,h))
+  if (mClip && !pxContext::instance().isObjectOnScreen(0,0,w,h))
   {
     //rtLogInfo("pxObject::drawInternal returning because object is not on screen mw=%f mh=%f\n", mw, mh);
     return;
   }
 
   #ifdef PX_DIRTY_RECTANGLES
-  mLastRenderMatrix = context.getMatrix();
+  mLastRenderMatrix = pxContext::instance().getMatrix();
   mScreenCoordinates = getBoundingRectInScreenCoordinates();
   #endif //PX_DIRTY_RECTANGLES
 
   float c[4] = {1, 0, 0, 1};
-  context.drawDiagRect(0, 0, w, h, c);
+  pxContext::instance().drawDiagRect(0, 0, w, h, c);
 
   //rtLogInfo("pxObject::drawInternal mPainting=%d mw=%f mh=%f\n", mPainting, mw, mh);
   if (mPainting)
@@ -794,30 +793,30 @@ void pxObject::drawInternal(bool maskPass)
       if (w>alphaEpsilon && h>alphaEpsilon)
         draw();
 
-      pxContextFramebufferRef drawableSnapshot = context.createFramebuffer(w, h);
-      pxContextFramebufferRef maskSnapshot = context.createFramebuffer(w, h);
+      pxContextFramebufferRef drawableSnapshot = pxContext::instance().createFramebuffer(w, h);
+      pxContextFramebufferRef maskSnapshot = pxContext::instance().createFramebuffer(w, h);
       createSnapshotOfChildren(drawableSnapshot, maskSnapshot);
-      context.setMatrix(m);
-      //rtLogInfo("context.drawImage\n");
-      context.drawImage(0, 0, w, h, drawableSnapshot->getTexture(), maskSnapshot->getTexture());
+      pxContext::instance().setMatrix(m);
+      //rtLogInfo("pxContext::instance().drawImage\n");
+      pxContext::instance().drawImage(0, 0, w, h, drawableSnapshot->getTexture(), maskSnapshot->getTexture());
     }
     else if (mClip )
     {
       //rtLogInfo("calling createSnapshot for mw=%f mh=%f\n", mw, mh);
       mClipSnapshotRef = createSnapshot(mClipSnapshotRef);
-      context.setMatrix(m);
-      context.setAlpha(ma);
+      pxContext::instance().setMatrix(m);
+      pxContext::instance().setAlpha(ma);
       if (mClipSnapshotRef.getPtr() != NULL)
       {
-        //rtLogInfo("context.drawImage\n");
+        //rtLogInfo("pxContext::instance().drawImage\n");
         static pxTextureRef nullMaskRef;
-        context.drawImage(0, 0, w, h, mClipSnapshotRef->getTexture(), nullMaskRef);
+        pxContext::instance().drawImage(0, 0, w, h, mClipSnapshotRef->getTexture(), nullMaskRef);
       }
     }
     else
     {
       // trivially reject things too small to be seen
-      if ( !mClip || (w>alphaEpsilon && h>alphaEpsilon && context.isObjectOnScreen(0, 0, w, h)))
+      if ( !mClip || (w>alphaEpsilon && h>alphaEpsilon && pxContext::instance().isObjectOnScreen(0, 0, w, h)))
       {
         //rtLogInfo("calling draw() mw=%f mh=%f\n", mw, mh);
         draw();
@@ -826,18 +825,18 @@ void pxObject::drawInternal(bool maskPass)
 
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
       {
-        context.pushState();
+        pxContext::instance().pushState();
         //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
-        context.popState();
+        pxContext::instance().popState();
       }
     }
   }
   else
   {
-    //rtLogInfo("context.drawImage mw=%f mh=%f\n", mw, mh);
+    //rtLogInfo("pxContext::instance().drawImage mw=%f mh=%f\n", mw, mh);
     static pxTextureRef nullMaskRef;
-    context.drawImage(0,0,w,h, mSnapshotRef->getTexture(), nullMaskRef);
+    pxContext::instance().drawImage(0,0,w,h, mSnapshotRef->getTexture(), nullMaskRef);
   }
 
   if (!maskPass)
@@ -921,8 +920,8 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
 
   float parentAlpha = 1.0;
 
-  context.setMatrix(m);
-  context.setAlpha(parentAlpha);
+  pxContext::instance().setMatrix(m);
+  pxContext::instance().setAlpha(parentAlpha);
 
 
   float w = getOnscreenWidth();
@@ -932,27 +931,27 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
   if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
   {
     //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
-    fbo = context.createFramebuffer(floor(w), floor(h));
+    fbo = pxContext::instance().createFramebuffer(floor(w), floor(h));
   }
   else
   {
     //rtLogInfo("updateFramebuffer  mw=%f mh=%f\n", w, h);
-    context.updateFramebuffer(fbo, floor(w), floor(h));
+    pxContext::instance().updateFramebuffer(fbo, floor(w), floor(h));
   }
-  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
-  if (mRepaint && context.setFramebuffer(fbo) == PX_OK)
+  pxContextFramebufferRef previousRenderSurface = pxContext::instance().getCurrentFramebuffer();
+  if (mRepaint && pxContext::instance().setFramebuffer(fbo) == PX_OK)
   {
-    context.clear(w, h);
+    pxContext::instance().clear(w, h);
     draw();
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      context.pushState();
+      pxContext::instance().pushState();
       (*it)->drawInternal();
-      context.popState();
+      pxContext::instance().popState();
     }
   }
-  context.setFramebuffer(previousRenderSurface);
+  pxContext::instance().setFramebuffer(previousRenderSurface);
 
   return fbo;
 }
@@ -963,9 +962,9 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
   pxMatrix4f m;
   float parentAlpha = ma;
 
-  context.setMatrix(m);
+  pxContext::instance().setMatrix(m);
 
-  context.setAlpha(parentAlpha);
+  pxContext::instance().setAlpha(parentAlpha);
 
   float w = getOnscreenWidth();
   float h = getOnscreenHeight();
@@ -974,54 +973,54 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
 
   if (drawableFbo.getPtr() == NULL || drawableFbo->width() != floor(w) || drawableFbo->height() != floor(h))
   {
-    drawableFbo = context.createFramebuffer(floor(w), floor(h));
+    drawableFbo = pxContext::instance().createFramebuffer(floor(w), floor(h));
   }
   else
   {
-    context.updateFramebuffer(drawableFbo, floor(w), floor(h));
+    pxContext::instance().updateFramebuffer(drawableFbo, floor(w), floor(h));
   }
 
   if (maskFbo.getPtr() == NULL || maskFbo->width() != floor(w) || maskFbo->height() != floor(h))
   {
-    maskFbo = context.createFramebuffer(floor(w), floor(h));
+    maskFbo = pxContext::instance().createFramebuffer(floor(w), floor(h));
   }
   else
   {
-    context.updateFramebuffer(maskFbo, floor(w), floor(h));
+    pxContext::instance().updateFramebuffer(maskFbo, floor(w), floor(h));
   }
 
-  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
-  if (context.setFramebuffer(maskFbo) == PX_OK)
+  pxContextFramebufferRef previousRenderSurface = pxContext::instance().getCurrentFramebuffer();
+  if (pxContext::instance().setFramebuffer(maskFbo) == PX_OK)
   {
-    context.clear(w, h);
+    pxContext::instance().clear(w, h);
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->mask())
       {
-        context.pushState();
+        pxContext::instance().pushState();
         (*it)->drawInternal(true);
-        context.popState();
+        pxContext::instance().popState();
       }
     }
   }
 
-  if (context.setFramebuffer(drawableFbo) == PX_OK)
+  if (pxContext::instance().setFramebuffer(drawableFbo) == PX_OK)
   {
-    context.clear(w, h);
+    pxContext::instance().clear(w, h);
 
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->drawEnabled())
       {
-        context.pushState();
+        pxContext::instance().pushState();
         (*it)->drawInternal();
-        context.popState();
+        pxContext::instance().popState();
       }
     }
   }
 
-  context.setFramebuffer(previousRenderSurface);
+  pxContext::instance().setFramebuffer(previousRenderSurface);
 }
 
 void pxObject::deleteSnapshot(pxContextFramebufferRef fbo)
@@ -1181,7 +1180,7 @@ void pxScene2d::init()
   rtLogInfo("pxText       : %zu", sizeof(pxText));
 
   // TODO move this to the window
-  context.init();
+  pxContext::instance().init();
 }
 #endif
 
@@ -1348,7 +1347,7 @@ void pxScene2d::draw()
   static bool previousShowDirtyRect = false;
   if (mShowDirtyRectangle || previousShowDirtyRect)
   {
-    context.enableDirtyRectangles(false);
+    pxContext::instance().enableDirtyRectangles(false);
   }
 
   if (mTop)
@@ -1356,19 +1355,19 @@ void pxScene2d::draw()
     if (mShowDirtyRectangle)
     {
       glDisable(GL_SCISSOR_TEST);
-      context.clear(mWidth, mHeight);
+      pxContext::instance().clear(mWidth, mHeight);
     }
     else
     {
-      context.clear(x, y, w, h);
+      pxContext::instance().clear(x, y, w, h);
     }
   }
 
   if (mRoot)
   {
-  context.pushState();
+  pxContext::instance().pushState();
     mRoot->drawInternal(1.0);
-    context.popState();
+    pxContext::instance().popState();
     mDirtyRect.setEmpty();
   }
 
@@ -1376,27 +1375,27 @@ void pxScene2d::draw()
   {
     pxMatrix4f identity;
     identity.identity();
-    pxMatrix4f currentMatrix = context.getMatrix();
-    context.setMatrix(identity);
+    pxMatrix4f currentMatrix = pxContext::instance().getMatrix();
+    pxContext::instance().setMatrix(identity);
     float red[]= {1,0,0,1};
-    bool showOutlines = context.showOutlines();
-    context.setShowOutlines(true);
-    context.drawDiagRect(x, y, w, h, red);
-    context.setShowOutlines(showOutlines);
-    context.setMatrix(currentMatrix);
+    bool showOutlines = pxContext::instance().showOutlines();
+    pxContext::instance().setShowOutlines(true);
+    pxContext::instance().drawDiagRect(x, y, w, h, red);
+    pxContext::instance().setShowOutlines(showOutlines);
+    pxContext::instance().setMatrix(currentMatrix);
     glEnable(GL_SCISSOR_TEST);
   }
   previousShowDirtyRect = mShowDirtyRectangle;
   #else
   if (mTop)
-    context.clear(mWidth, mHeight);
+    pxContext::instance().clear(mWidth, mHeight);
 
   if (mRoot)
   {
     pxMatrix4f m;
-    context.pushState();
+    pxContext::instance().pushState();
     mRoot->drawInternal(1.0);
-    context.popState();
+    pxContext::instance().popState();
   }
   #endif //PX_DIRTY_RECTANGLES
   #ifdef USE_SCENE_POINTER
@@ -1412,7 +1411,7 @@ void pxScene2d::draw()
   if ( (mPointerTexture.getPtr() != NULL) &&
        !mPointerHidden )
   {
-     context.drawImage( mPointerX-mPointerHotSpotX, mPointerY-mPointerHotSpotY,
+     pxContext::instance().drawImage( mPointerX-mPointerHotSpotX, mPointerY-mPointerHotSpotY,
                         mPointerW, mPointerH,
                         mPointerTexture, mNullTexture);
 
@@ -1520,7 +1519,7 @@ void pxScene2d::onDraw()
     #ifdef ENABLE_RT_NODE
     rtWrapperSceneUpdateEnter();
     #endif //ENABLE_RT_NODE
-    context.setSize(mWidth, mHeight);
+    pxContext::instance().setSize(mWidth, mHeight);
   }
 #if 1
 
@@ -1550,11 +1549,11 @@ void pxScene2d::update(double t)
 {
   if (mRoot) {
 #ifdef PX_DIRTY_RECTANGLES
-      context.pushState();
+      pxContext::instance().pushState();
 #endif //PX_DIRTY_RECTANGLES
       mRoot->update(t);
 #ifdef PX_DIRTY_RECTANGLES
-      context.popState();
+      pxContext::instance().popState();
 #endif //PX_DIRTY_RECTANGLES
   }
 }
@@ -1575,7 +1574,7 @@ void pxScene2d::onSize(int32_t w, int32_t h)
 {
 #if 0
   if (mTop)
-    context.setSize(w, h);
+    pxContext::instance().setSize(w, h);
 #endif
 
   mWidth  = w;
@@ -2027,13 +2026,13 @@ bool pxScene2d::onChar(uint32_t c)
 
 rtError pxScene2d::showOutlines(bool& v) const
 {
-  v=context.showOutlines();
+  v=pxContext::instance().showOutlines();
   return RT_OK;
 }
 
 rtError pxScene2d::setShowOutlines(bool v)
 {
-  context.setShowOutlines(v);
+  pxContext::instance().setShowOutlines(v);
   return RT_OK;
 }
 
@@ -2055,7 +2054,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
   if (type == "image/png;base64")
   {
     pxOffscreen o;
-    context.snapshot(o);
+    pxContext::instance().snapshot(o);
     o.setUpsideDown(true);
     rtData pngData2;
     if (pxStorePNGImage(o, pngData2) == RT_OK)
@@ -2162,9 +2161,9 @@ void RT_STDCALL testView::onDraw()
   float black[] = {0,0,0,1};
   float red[]= {1,0,0,1};
   float green[] = {0,1,0,1};
-  context.drawRect(mw, mh, 1, mEntered?green:red, white);
-  context.drawDiagLine(0,mMouseY,mw,mMouseY,black);
-  context.drawDiagLine(mMouseX,0,mMouseX,mh,black);
+  pxContext::instance().drawRect(mw, mh, 1, mEntered?green:red, white);
+  pxContext::instance().drawDiagLine(0,mMouseY,mw,mMouseY,black);
+  pxContext::instance().drawDiagLine(mMouseX,0,mMouseX,mh,black);
 }
 
 void pxViewContainer::invalidateRect(pxRect* r)

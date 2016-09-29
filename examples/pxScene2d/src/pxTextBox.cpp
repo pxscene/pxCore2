@@ -7,7 +7,6 @@
 #include "pxFileDownloader.h"
 #include "pxTimer.h"
 #include "pxContext.h"
-extern pxContext context;
 #include <math.h>
 #include <map>
 
@@ -175,11 +174,11 @@ void pxTextBox::draw() {
     if(!clip() && mTruncation == pxConstantsTruncation::NONE)
     {
       //printf("!CLF: pxTextBox::draw() with cachedPtr && noClip values x=%f y=%f w=%f h=%f\n",noClipX,noClipY,noClipW,noClipH);
-      context.drawImage(noClipX,noClipY,noClipW,noClipH,mCached->getTexture(),nullMaskRef,false);
+      pxContext::instance().drawImage(noClipX,noClipY,noClipW,noClipH,mCached->getTexture(),nullMaskRef,false);
     }
     else
     {
-      context.drawImage(0,0,mw,mh,mCached->getTexture(),nullMaskRef, true);
+      pxContext::instance().drawImage(0,0,mw,mh,mCached->getTexture(),nullMaskRef, true);
     }
   }
   else

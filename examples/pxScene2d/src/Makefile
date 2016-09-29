@@ -206,6 +206,8 @@ PXSCENE_LIB_SRCS=\
            rtThreadQueue.cpp \
            rtLibrary.cpp \
            rtZip.cpp \
+           ioapi.c \
+           unzip.c \
 	   pxScene2d.cpp \
            pxResource.cpp \
            pxConstants.cpp \
@@ -258,6 +260,8 @@ PXWAYLAND_LIB_SRCS=\
            rtThreadQueue.cpp \
            rtLibrary.cpp \
            rtZip.cpp \
+           ioapi.c \
+           unzip.c \
            pxScene2d.cpp \
            pxResource.cpp \
            pxConstants.cpp \
@@ -422,22 +426,23 @@ cleansceneobj:
 cleanwaylandobj:
 	rm -f $(PXWAYLAND_LIB_OBJS)
 
-libpxscene.so:
+cleanobjdir:
 	rm -rf $(OBJDIR)
+
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
 libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES)
 libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) -shared $(PLATFORM_LIBS) -o libpxscene.so.1.0  
-libpxscene.so: cleansceneobj $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
+libpxscene.so: LDFLAGS_FULL += -lGLESv2 -lpng -luuid -l$(LIBRTREMOTE) -z defs
+libpxscene.so: cleansceneobj cleanobjdir $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
 	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
 	ln -sf libpxscene.so.1 libpxscene.so
 
-libpxwayland.so: 
-	rm -rf $(OBJDIR)
 libpxwayland.so: CFLAGS_FULL = $(CFLAGS)
 libpxwayland.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
 libpxwayland.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) -shared $(PLATFORM_LIBS) -o libpxwayland.so.1.0
-libpxwayland.so: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
+libpxwayland.so: LDFLAGS_FULL += -lz -l$(LIBRTREMOTE) -lGLESv2 -lpng -luuid -z defs
+libpxwayland.so: cleanwaylandobj cleanobjdir $(PXWAYLAND_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
 	$(CXX) $(PXWAYLAND_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxwayland.so.1.0 libpxwayland.so.1
 	ln -sf libpxwayland.so.1 libpxwayland.so
@@ -450,6 +455,7 @@ libpxwayland_s.a: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) $(LIBRTCORE_TARGET) $(LI
 librtCore.so: CFLAGS_FULL = $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
 librtCore.so: CXXFLAGS_FULL = $(CXXFLAGS) -std=c++0x $(CFLAGS_FULL)
 librtCore.so: LDFLAGS_FULL = -pthread -ldl -shared -o $@
+librtCore.so: LDFLAGS_FULL += -z defs
 librtCore.so: $(RTCORE_OBJS)
 	$(CXX) $(RTCORE_OBJS) $(LDFLAGS_FULL)
 
