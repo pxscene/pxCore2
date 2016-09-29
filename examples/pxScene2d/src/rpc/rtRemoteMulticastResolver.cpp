@@ -103,7 +103,7 @@ rtError rtRemoteMulticastResolver::sendSearchAndWait(const std::string& name, co
     if (err != RT_OK)
       return err;
 
-    rtLogInfo("Spinning for %llu ms", milliseconds(iterationIncrement).count());
+    rtLogInfo("Spinning for %llu ms", static_cast<long long unsigned int>(milliseconds(iterationIncrement).count()));
 
     m_cond.wait_until(lock, iterationTime, [this, seqId, &searchResponse] {
       auto itr = this->m_pending_searches.find(seqId);

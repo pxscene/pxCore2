@@ -278,7 +278,7 @@ PXWAYLAND_LIB_SRCS=\
            pxContextGL.cpp
 
 ifneq ($(DISABLE_WAYLAND),TRUE)
-PXWAYLAND_LIB_SRCS:=pxWayland.cpp
+PXWAYLAND_LIB_SRCS += pxWayland.cpp
 endif
 
 PXWAYLAND_LIB_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(PXWAYLAND_LIB_SRCS)))
