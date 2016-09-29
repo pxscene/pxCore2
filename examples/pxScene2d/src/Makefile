@@ -170,6 +170,11 @@ else
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform
 endif
 
+PLATFORM_LIBS = -lnexus -lnxclient 
+ifdef PLATFORM_LIBS_OVERRIDE
+PLATFORM_LIBS = $(PLATFORM_LIBS_OVERRIDE)
+endif
+
 CXXFLAGS_FULL = $(CXXFLAGS) -fpermissive
 CLAGS_FULL = $(CFLAGS)
 LDFLAGS_FULL = $(LDFLAGS)
@@ -421,7 +426,7 @@ libpxscene.so:
 	rm -rf $(OBJDIR)
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
 libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES)
-libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) -shared -lnexus -lnxclient -o libpxscene.so.1.0  
+libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) -shared $(PLATFORM_LIBS) -o libpxscene.so.1.0  
 libpxscene.so: cleansceneobj $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
 	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
@@ -431,7 +436,7 @@ libpxwayland.so:
 	rm -rf $(OBJDIR)
 libpxwayland.so: CFLAGS_FULL = $(CFLAGS)
 libpxwayland.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
-libpxwayland.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) -shared -lnexus -lnxclient -o libpxwayland.so.1.0
+libpxwayland.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) -shared $(PLATFORM_LIBS) -o libpxwayland.so.1.0
 libpxwayland.so: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
 	$(CXX) $(PXWAYLAND_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxwayland.so.1.0 libpxwayland.so.1
