@@ -13,6 +13,8 @@ rtRemoteEnvironment::rtRemoteEnvironment(rtRemoteConfig* config)
   , RefCount(1)
   , Initialized(false)
   , m_running(false)
+  , m_queue_ready_handler(nullptr)
+  , m_queue_ready_context(nullptr)
 {
   StreamSelector = new rtRemoteStreamSelector();
   StreamSelector->start();
@@ -245,4 +247,16 @@ rtRemoteEnvironment::enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt
   m_queue.push(workItem);
   lock.unlock();
   m_queue_cond.notify_all();
+
+  if (m_queue_ready_handler != nullptr)
+  {
+    m_queue_ready_handler(m_queue_ready_context);
+  }
+}
+
+void
+rtRemoteEnvironment::registerQueueReadyHandler(rtRemoteQueueReady handler, void* argp)
+{
+  m_queue_ready_handler = handler;
+  m_queue_ready_context = argp;
 }

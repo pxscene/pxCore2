@@ -34,10 +34,12 @@ struct rtRemoteEnvironment
   rtRemoteObjectCache*      ObjectCache;
   rtRemoteStreamSelector*   StreamSelector;
 
+  using rtRemoteQueueReady = void (*)(void*);
 
   uint32_t RefCount;
   bool     Initialized;
 
+  void registerQueueReadyHandler(rtRemoteQueueReady handler, void* argp);
   void registerResponseHandler(rtRemoteMessageHandler handler, void* argp, rtRemoteCorrelationKey k);
   void removeResponseHandler(rtRemoteCorrelationKey k);
   void enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt, rtRemoteMessagePtr const& doc);
@@ -77,6 +79,8 @@ private:
   bool                          m_running;
   ResponseHandlerMap            m_response_handlers;
   ResponseMap                   m_waiters;
+  rtRemoteQueueReady            m_queue_ready_handler;
+  void*                         m_queue_ready_context;
 };
 
 #endif
