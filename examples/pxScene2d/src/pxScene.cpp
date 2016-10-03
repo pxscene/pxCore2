@@ -101,8 +101,11 @@ protected:
     if (mView)
       mView->onCloseRequest();
     EXITSCENELOCK();
-    delete mView;
-	mView = NULL;
+    // delete mView;
+
+   // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
+
+    mView = NULL;
     script.garbageCollect();
     eventLoop.exit();
   }
