@@ -38,10 +38,11 @@
 #include "pxClipboard.h"
 
 
+// #define DEBUG_SKIP_DRAW       // Skip DRAW   code - for testing.
+// #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
+
 rtThreadQueue gUIThreadQueue;
 uint32_t rtPromise::promiseID = 200;
-
-//#define UNUSED_PARAM(x) ((x)=(x))
 
 // Debug Statistics
 #ifdef USE_RENDER_STATS
@@ -469,6 +470,11 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
 
 void pxObject::update(double t)
 {
+#ifdef DEBUG_SKIP_UPDATE
+#warning " 'DEBUG_SKIP_UPDATE' is Enabled"
+  return;
+#endif
+
   // Update animations
   vector<animation>::iterator it = mAnimations.begin();
 
@@ -685,9 +691,6 @@ void pxObject::drawInternal(bool maskPass)
 {
   //rtLogInfo("pxObject::drawInternal mw=%f mh=%f\n", mw, mh);
 
-  float w = getOnscreenWidth();
-  float h = getOnscreenHeight();
-
   if (!drawEnabled() && !maskPass)
   {
     return;
@@ -696,7 +699,12 @@ void pxObject::drawInternal(bool maskPass)
   // TODO consistent behavior between clipping and no clipping when z is in use
 
   if (context.getAlpha() < alphaEpsilon)
+  {
     return;  // trivial reject for objects that are transparent
+  }
+
+  float w = getOnscreenWidth();
+  float h = getOnscreenHeight();
 
   pxMatrix4f m;
 
@@ -717,7 +725,9 @@ void pxObject::drawInternal(bool maskPass)
   if (msx != 1.0f || msy != 1.0f) m.scale(msx, msy);
   m.translate(-mcx, -mcy);
 #else
-  applyMatrix(m);
+
+    applyMatrix(m);  // ANIMATE !!!
+
 #endif
 #else
   // translate/rotate/scale based on cx, cy
@@ -746,7 +756,6 @@ void pxObject::drawInternal(bool maskPass)
   pxVector4f result1 = m.multiply(v1);
   printf("Print vector top after\n");
   result1.dump();
-
 
   pxVector4f v2(mx+w, my+mh, 0, 1);
   printf("Print vector bottom\n");
@@ -779,6 +788,7 @@ void pxObject::drawInternal(bool maskPass)
   //rtLogInfo("pxObject::drawInternal mPainting=%d mw=%f mh=%f\n", mPainting, mw, mh);
   if (mPainting)
   {
+    // MASKING ? ---------------------------------------------------------------------------------------------------
     bool maskFound = false;
     for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
@@ -789,10 +799,14 @@ void pxObject::drawInternal(bool maskPass)
         break;
       }
     }
+
+    // MASKING ? ---------------------------------------------------------------------------------------------------
     if (maskFound)
     {
       if (w>alphaEpsilon && h>alphaEpsilon)
+      {
         draw();
+      }
 
       pxContextFramebufferRef drawableSnapshot = context.createFramebuffer(w, h);
       pxContextFramebufferRef maskSnapshot = context.createFramebuffer(w, h);
@@ -801,12 +815,15 @@ void pxObject::drawInternal(bool maskPass)
       //rtLogInfo("context.drawImage\n");
       context.drawImage(0, 0, w, h, drawableSnapshot->getTexture(), maskSnapshot->getTexture());
     }
+    // CLIPPING ? ---------------------------------------------------------------------------------------------------
     else if (mClip )
     {
       //rtLogInfo("calling createSnapshot for mw=%f mh=%f\n", mw, mh);
       mClipSnapshotRef = createSnapshot(mClipSnapshotRef);
-      context.setMatrix(m);
-      context.setAlpha(ma);
+
+      context.setMatrix(m); // TODO: Move within if() below ?
+      context.setAlpha(ma); // TODO: Move within if() below ?
+
       if (mClipSnapshotRef.getPtr() != NULL)
       {
         //rtLogInfo("context.drawImage\n");
@@ -814,6 +831,7 @@ void pxObject::drawInternal(bool maskPass)
         context.drawImage(0, 0, w, h, mClipSnapshotRef->getTexture(), nullMaskRef);
       }
     }
+    // DRAWING ---------------------------------------------------------------------------------------------------
     else
     {
       // trivially reject things too small to be seen
@@ -823,14 +841,20 @@ void pxObject::drawInternal(bool maskPass)
         draw();
       }
 
-
+      // CHILDREN -------------------------------------------------------------------------------------
       for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
       {
+        if((*it)->drawEnabled() == false)
+        {
+          continue;
+        }
+
         context.pushState();
         //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
         context.popState();
       }
+      // ---------------------------------------------------------------------------------------------------
     }
   }
   else
@@ -840,6 +864,7 @@ void pxObject::drawInternal(bool maskPass)
     context.drawImage(0,0,w,h, mSnapshotRef->getTexture(), nullMaskRef);
   }
 
+  // ---------------------------------------------------------------------------------------------------
   if (!maskPass)
   {
     //TODO - remove need for mRepaintCount
@@ -852,6 +877,7 @@ void pxObject::drawInternal(bool maskPass)
       mRepaintCount++;
     }
   }
+  // ---------------------------------------------------------------------------------------------------
 }
 
 
@@ -923,7 +949,6 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
 
   context.setMatrix(m);
   context.setAlpha(parentAlpha);
-
 
   float w = getOnscreenWidth();
   float h = getOnscreenHeight();
@@ -1326,6 +1351,9 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 {
 #if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
+  UNUSED_PARAM(p);
+  UNUSED_PARAM(o);
+
   return RT_FAIL;
 #else
   rtRefT<pxWaylandContainer> c = new pxWaylandContainer(this);
@@ -1339,13 +1367,20 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 
 void pxScene2d::draw()
 {
+#ifdef DEBUG_SKIP_DRAW
+#warning " 'DEBUG_SKIP_DRAW' is Enabled"
+  return;
+#endif
+
   //rtLogInfo("pxScene2d::draw()\n");
   #ifdef PX_DIRTY_RECTANGLES
   int x = mDirtyRect.left();
   int y = mDirtyRect.top();
   int w = mDirtyRect.right() - x+1;
   int h = mDirtyRect.bottom() - y+1;
+
   static bool previousShowDirtyRect = false;
+
   if (mShowDirtyRectangle || previousShowDirtyRect)
   {
     context.enableDirtyRectangles(false);
@@ -1366,8 +1401,10 @@ void pxScene2d::draw()
 
   if (mRoot)
   {
-  context.pushState();
-    mRoot->drawInternal(1.0);
+    context.pushState();
+
+    mRoot->drawInternal(true);
+
     context.popState();
     mDirtyRect.setEmpty();
   }
@@ -1387,18 +1424,24 @@ void pxScene2d::draw()
     glEnable(GL_SCISSOR_TEST);
   }
   previousShowDirtyRect = mShowDirtyRectangle;
-  #else
+
+#else // Not ... PX_DIRTY_RECTANGLES
+
   if (mTop)
+  {
     context.clear(mWidth, mHeight);
+  }
 
   if (mRoot)
   {
     pxMatrix4f m;
     context.pushState();
-    mRoot->drawInternal(1.0);
+
+    mRoot->drawInternal(true); // mask it !
     context.popState();
   }
   #endif //PX_DIRTY_RECTANGLES
+
   #ifdef USE_SCENE_POINTER
   if (mPointerTexture.getPtr() == NULL)
   {
@@ -1415,11 +1458,9 @@ void pxScene2d::draw()
      context.drawImage( mPointerX-mPointerHotSpotX, mPointerY-mPointerHotSpotY,
                         mPointerW, mPointerH,
                         mPointerTexture, mNullTexture);
-
   }
-  #endif
+#endif //USE_SCENE_POINTER
 }
-
 
 void pxScene2d::onUpdate(double t)
 {
@@ -1541,7 +1582,6 @@ void pxScene2d::onDraw()
     rtWrapperSceneUpdateExit();
   }
   #endif //ENABLE_RT_NODE
-
 }
 
 // Does not draw updates scene to time t
@@ -1552,7 +1592,13 @@ void pxScene2d::update(double t)
 #ifdef PX_DIRTY_RECTANGLES
       context.pushState();
 #endif //PX_DIRTY_RECTANGLES
+
+#ifndef DEBUG_SKIP_UPDATE
       mRoot->update(t);
+#else
+      UNUSED_PARAM(t);
+#endif
+
 #ifdef PX_DIRTY_RECTANGLES
       context.popState();
 #endif //PX_DIRTY_RECTANGLES
@@ -2060,6 +2106,21 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
     rtData pngData2;
     if (pxStorePNGImage(o, pngData2) == RT_OK)
     {
+
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
+#if 0
+#warning " 'DEBUG_SKIP_MATRIX' is Enabled"
+    FILE *myFile = fopen("/opt/snap.png", "wb");
+    if( myFile != NULL)
+    {
+      fwrite( pngData2.data(), sizeof(char), pngData2.length(),myFile);
+      fclose(myFile);
+    }
+#endif    
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
+    
       size_t l;
       char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
       if (d)
@@ -2288,7 +2349,6 @@ rtError createObject2(const char* t, rtObjectRef& o)
   return gObjectFactory(gObjectFactoryContext, t, o);
 }
 #endif
-
 
 pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContainer(NULL), mRefCount(0)
 {

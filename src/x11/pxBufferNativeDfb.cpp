@@ -8,6 +8,9 @@
 
 #include "../pxOffscreen.h"
 
+#if _DEBUG
+
+#warning "DFB_CHECK() debug code included..."
 
 //---------------------------------------------------------------
 #define DFB_CHECK(x...)                                   \
@@ -25,6 +28,12 @@
   fprintf(stderr, "%s:%d - %s\n", __FILE__, __LINE__,     \
   DirectFBErrorString(err));
 //---------------------------------------------------------------
+#else
+
+#define DFB_CHECK(x...)   x;
+#define DFB_ERROR(err)    err;
+
+#endif
 
 
 void pxBuffer::blit(pxSurfaceNative s, int dstLeft, int dstTop,

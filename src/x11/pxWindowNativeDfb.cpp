@@ -47,6 +47,7 @@ IDirectFBInputDevice   *dfbKeyboard = NULL;
 
 #ifdef USE_DRAW_THREAD
 void *draw_func(void *ptr);
+static pthread_t draw_thread = 0;
 #endif
 
 // TODO ... probably better per window.
@@ -60,12 +61,9 @@ static int cursor_y = 0;
 #ifdef USE_DFB_LAYER
 DFBSurfacePixelFormat  dfbPixelformat = DFBSurfacePixelFormat(DSPF_ABGR); // DSPF_ABGR;// ** DSPF_ABGR **;  DSPF_ARGB;
 #else
-DFBSurfacePixelFormat  dfbPixelformat = DSPF_ABGR;//DSPF_ABGR; //DFBSurfacePixelFormat(0);
+DFBSurfacePixelFormat  dfbPixelformat = DSPF_ARGB;//DSPF_ABGR; //DFBSurfacePixelFormat(0);
 #endif
 
-#ifdef USE_DRAW_THREAD
-static pthread_t draw_thread;
-#endif
 
 bool needsFlip = true;
 bool exitFlag = false;
@@ -1040,7 +1038,6 @@ void pxWindowNative::runEventLoopOnce()
 */
 }
 
-
 char* p2str(DFBSurfacePixelFormat fmt)
 {
   switch(fmt)
@@ -1102,40 +1099,6 @@ char* p2str(DFBSurfacePixelFormat fmt)
 #ifdef USE_DRAW_THREAD
 
 #ifndef USE_DRAW_ALARM
-class Timer
-{
-    timeval timer[2];
-
-    struct timespec start_tm, end_tm;
-
-  public:
-
-    void start()
-    {
-        gettimeofday(&this->timer[0], NULL);
-    }
-
-    void stop()
-    {
-        gettimeofday(&this->timer[1], NULL);
-    }
-
-    long duration_ms() const // milliseconds
-    {
-        long secs( this->timer[1].tv_sec  - this->timer[0].tv_sec);
-        long usecs(this->timer[1].tv_usec - this->timer[0].tv_usec);
-
-        if(usecs < 0)
-        {
-            --secs;
-            usecs += 1000000;
-        }
-
-        return static_cast<long>( (secs * 1000) + ((double) usecs / 1000.0 + 0.5));
-    }
-};
-
-//#####
 
 void mysleep_ms(int32_t ms)
 {
@@ -1147,8 +1110,6 @@ void mysleep_ms(int32_t ms)
     clock_nanosleep(CLOCK_MONOTONIC, 0, &res, NULL);
 }
 
-static Timer  timer;
-
 void *draw_func(void *ptr)
 {
   double fps_rate = ptr ? *((int *) ptr) : 60.0;
@@ -1156,16 +1117,19 @@ void *draw_func(void *ptr)
 
   printf("\n\n\n SET fps = %f    %f ms\n\n\n", fps_rate, sleep_ms);
 
+  static double lastFrame_ms = pxMilliseconds();
+
   while(!exitFlag)
   {
-     timer.start();
-
      onTimer(0);
 
-     timer.stop();
+     double now_ms  = pxMilliseconds();
+     double elapsed = now_ms - lastFrame_ms;
+
+     lastFrame_ms = now_ms;
 
      // schedule next timer event
-     mysleep_ms(sleep_ms - timer.duration_ms() );
+    mysleep_ms( sleep_ms - elapsed );
   }
 
   return NULL;

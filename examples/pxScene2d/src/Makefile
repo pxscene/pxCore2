@@ -36,6 +36,7 @@ TARGETINCLUDE=
 else
 ifeq ($(PX_PLATFORM),DirectFB)
 PX_PLATFORM=PX_PLATFORM_GENERIC_DFB
+PXLIBS=$(PXCOREDIR)/build/dfb
 else
 PX_PLATFORM=PX_PLATFORM_GLUT
 PXLIBS=$(PXCOREDIR)/build/glut
@@ -378,7 +379,7 @@ endif
 
 ifeq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
 PXSCENE_LIBS=-lpng15 -ldirectfb -ldirect -lfusion
-PXSCENE_LIB_LINK_OPTIONS=$(PXSCENE_LIB_LINKING) -L../../../build/dfb -Wl,--whole-archive ../../../build/dfb/libpxCore.a
+PXSCENE_LIB_LINK_OPTIONS=$(PXSCENE_LIB_LINKING) -L$(PXLIBS)  -Wl,--whole-archive $(PXLIBS)/libpxCore.a
 PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_DFB -DENABLE_DFB -DENABLE_DFB_GENERIC
 LIBRTREMOTE=
 LIBRTREMOTE_TARGET=
@@ -388,7 +389,7 @@ PXSCENE_LIBS=-lpng16 -lnxpl -lGLESv2 -Lrpc/ -l$(LIBRTREMOTE) -luuid
 ifneq ($(DISABLE_WESTEROS),TRUE)
 PXSCENE_LIBS:=-lwesteros_compositor 
 endif
-PXSCENE_LIB_LINK_OPTIONS=-L../../../build/egl -Wl,--whole-archive ../../../build/egl/libpxCore.a
+PXSCENE_LIB_LINK_OPTIONS=-L$(PXCOREDIR)/build/egl -Wl,--whole-archive $(PXCOREDIR)/build/egl/libpxCore.a
 ifeq ($(DISABLE_WAYLAND),TRUE)
 PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE -DDISABLE_WAYLAND
 else
@@ -406,7 +407,9 @@ LINKLIBS := $(PXLIBS)/libpxCore.a
 pxscene: $(OBJS) $(LINKLIBS)
 	$(CXX) $(OBJS) $(LDFLAGS_FULL) -o pxscene
 
-pxscene-dfb: CXXFLAGS_FULL = -fPIC -Wall -Wextra -g $(SEARCH) -I/usr/local/include/directfb -DRT_PLATFORM_LINUX -DPX_PLATFORM_X11 -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_DFB 
+INC_DFB=-I/usr/local/include/directfb
+
+pxscene-dfb: CXXFLAGS_FULL = -fPIC -Wall -Wextra -g $(SEARCH) $(INC_DFB) -DRT_PLATFORM_LINUX -DPX_PLATFORM_X11 -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_DFB 
 pxscene-dfb: $(OBJS_DFB) $(PXCOREDIR)/build/dfb/libpxCore.a 
 	$(CXX) $(OBJS_DFB) -lnode -lpxCore -pthread -L/usr/local/lib -ldirectfb $(LDEXT) -L$(PXCOREDIR)/build/dfb -lpxCore -ldl -lrt -lv8_libplatform -o pxscene
 

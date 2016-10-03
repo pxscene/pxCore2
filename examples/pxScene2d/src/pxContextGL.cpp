@@ -1002,6 +1002,8 @@ private:
 
 textureMaskedShaderProgram *gTextureMaskedShader = NULL;
 
+//====================================================================================================================================================================================
+
 static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const float* c)
 {
   const float verts[4][2] =
@@ -1286,7 +1288,6 @@ pxContext::~pxContext()
 
 void pxContext::init()
 {
-
 #if 0
   if (gContextInit)
     return;
@@ -1536,6 +1537,25 @@ void pxContext::drawImage(float x, float y, float w, float h, pxTextureRef t, px
                           bool useTextureDimsAlways, float* color,
                           pxConstantsStretch::constants stretchX, pxConstantsStretch::constants stretchY)
 {
+#ifdef DEBUG_SKIP_IMAGE
+#warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
+  return;
+#endif
+
+  if(gAlpha == 0.0)
+  {
+    return;  // INVISIBLE
+  }
+
+  if(w <= 0 || h <= 0)
+  {
+    return;  // DIMENSIONLESS
+  }
+
+  if (t.getPtr() == NULL)
+  {
+    return;  // TEXTURELESS
+  }
   float black[4] = {0,0,0,1};
   drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways, color?color:black, stretchX, stretchY);
 }

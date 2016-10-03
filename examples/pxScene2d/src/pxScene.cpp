@@ -102,6 +102,7 @@ protected:
       mView->onCloseRequest();
     EXITSCENELOCK();
     delete mView;
+	mView = NULL;
     script.garbageCollect();
     eventLoop.exit();
   }

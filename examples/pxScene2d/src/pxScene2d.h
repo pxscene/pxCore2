@@ -1267,8 +1267,12 @@ public:
   pxScene2d(bool top = true);
   virtual ~pxScene2d() 
   {
-    printf("***** deleting pxScene2d\n");
-    mTestView = NULL;
+    // printf("***** deleting pxScene2d\n");
+    if (mTestView != NULL)
+    {
+       //delete mTestView; // HACK: Only used in testing... 'delete' causes unknown crash.
+       mTestView = NULL;
+    }
   }
   
   virtual unsigned long AddRef() 

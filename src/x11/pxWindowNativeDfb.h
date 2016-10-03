@@ -88,17 +88,14 @@ public:
 
 protected:
   virtual void onCreate() = 0;
-
   virtual void onCloseRequest() = 0;
   virtual void onClose() = 0;
-
   virtual void onDraw(pxSurfaceNative surface) = 0;
-
   virtual void onAnimationTimer() = 0;
 
   void onAnimationTimerInternal();
-
   void invalidateRectInternal(pxRect *r);
+
   double getLastAnimationTime();
   void setLastAnimationTime(double time);
   void drawFrame();

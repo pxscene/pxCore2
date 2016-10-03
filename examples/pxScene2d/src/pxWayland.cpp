@@ -25,7 +25,6 @@ extern pxContext context;
 #define FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS 100
 #define TEST_REMOTE_OBJECT_NAME "waylandClient123" //TODO - update
 
-#define UNUSED_PARAM(x) ((void)x)
 
 pxWayland::pxWayland()
   :
@@ -619,6 +618,10 @@ rtError pxWayland::callMethod(const char* messageName, int numArgs, const rtValu
 #ifdef ENABLE_PX_WAYLAND_RPC
   if(mRemoteObject)
       errorCode = mRemoteObject.Send(messageName, numArgs, args);
+#else
+  UNUSED_PARAM(messageName);
+  UNUSED_PARAM(numArgs);
+  UNUSED_PARAM(args);
 #endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
 }
@@ -630,6 +633,9 @@ rtError pxWayland::addListener(const rtString& eventName, const rtFunctionRef& f
   if(mRemoteObject) {
       errorCode = mRemoteObject.send("on", eventName, f);
   }
+#else
+  UNUSED_PARAM(eventName);
+  UNUSED_PARAM(f);
 #endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
 }
@@ -640,6 +646,9 @@ rtError pxWayland::delListener(const rtString& eventName, const rtFunctionRef& f
 #ifdef ENABLE_PX_WAYLAND_RPC
   if(mRemoteObject)
       errorCode = mRemoteObject.send("delListener", eventName, f);
+#else
+  UNUSED_PARAM(eventName);
+  UNUSED_PARAM(f);
 #endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
 }

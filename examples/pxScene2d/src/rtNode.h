@@ -38,16 +38,6 @@ class rtNodeContext;
 
 typedef rtRefT<rtNodeContext> rtNodeContextRef;
 
-//#define UNUSED_PARAM(x) ((x)=(x))
-
-
-//template <typename T>
-//void UNUSED_PARAM(T &&)
-//{ }
-
-
-#define UNUSED_PARAM(x) ((void *) x) 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct args_
@@ -98,6 +88,7 @@ public:
 
   v8::Isolate              *getIsolate()      const { return mIsolate; };
   v8::Local<v8::Context>    getLocalContext() const { return PersistentToLocal<v8::Context>(mIsolate, mContext); };
+
 private:
   v8::Isolate                   *mIsolate;
   v8::Persistent<v8::Context>    mContext;
