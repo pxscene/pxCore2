@@ -194,6 +194,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
 #ifdef PX_DIRTY_RECTANGLES
     , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
 #endif //PX_DIRTY_RECTANGLES
+    ,mDrawableSnapshotForMask(), mMaskSnapshot()
   {
     pxObjectCount++;
     mScene = scene;
@@ -735,7 +736,7 @@ protected:
   #endif //PX_DIRTY_RECTANGLES
 
   pxContextFramebufferRef createSnapshot(pxContextFramebufferRef fbo);
-  void createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxContextFramebufferRef maskFbo);
+  void createSnapshotOfChildren();
   void deleteSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES
   pxRect getBoundingRectInScreenCoordinates();
@@ -745,6 +746,8 @@ protected:
   pxScene2d* mScene;
 
   vector<animation> mAnimations;  
+  pxContextFramebufferRef mDrawableSnapshotForMask;
+  pxContextFramebufferRef mMaskSnapshot;
 
  private:
   rtError _pxObject(voidPtr& v) const {
