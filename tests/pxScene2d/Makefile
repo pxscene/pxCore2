@@ -23,6 +23,7 @@ SEARCH=\
         -I$(PXCOREDIR)examples/pxScene2d/external/googletest-release-1.8.0/googletest \
         -I$(PXCOREDIR)examples/pxScene2d/external/googletest-release-1.8.0/googlemock/include \
         -I$(PXCOREDIR)examples/pxScene2d/external/googletest-release-1.8.0/googlemock
+
 CXXFLAGS= $(SEARCH) -O3 -D$(PX_PLATFORM) -DRT_PLATFORM_LINUX
 #-Wall -Wextra -g 
 LDPNG    = -L$(EXTDIR)/png/.libs -lpng16
@@ -31,13 +32,16 @@ LDCURL   = -L$(EXTDIR)/curl/lib/.libs -lcurl
 LDZLIB   = -L$(EXTDIR)/zlib -lz
 LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDZLIB)
 LDFLAGS = -L$(PXCOREDIR)/examples/pxScene2d/src/ #-lpxscene 
+
 CXXFLAGS_FULL = $(CXXFLAGS) -Wno-write-strings -Wno-format-security 
 CLAGS_FULL = $(CFLAGS)
+
 LDFLAGS_FULL = $(LDFLAGS) -lpthread
 OBJDIR=obj
 OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS_FULL)))
 OBJS:=$(patsubst %.c, $(OBJDIR)/%.o, $(OBJS))
 OBJS: $(SRCS_FULL)
+
 $(OBJDIR)/%.o : %.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
 	$(CXX) -c $(CXXFLAGS_FULL) $< -o $@
