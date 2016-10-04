@@ -4,8 +4,8 @@
 bool outlinesTest(bool value)
 {
   pxContext a;
-  bool showOutlines = a.showOutlines();
-  return value * 2;
+  a.setShowOutlines(value);
+  return a.showOutlines(); 
 }
  
 TEST(pxScene2dTests, pxContextOutlinesTest)
