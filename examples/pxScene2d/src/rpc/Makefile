@@ -1,18 +1,6 @@
+all: rpcSampleApp rpcSampleApp_s
 
-ifeq ($(PXCORE_STATIC_LIBS),1)
-LIBRTRPC  = rtRemote_s
-LIBRTCORE = rtCore_s
-LIBRTRPC_TARGET = librtRemote_s.a
 BUILD_CXX ?= $(CXX)
-else
-LIBRTRPC  = rtRemote
-LIBRTCORE = rtCore
-SAMPLEAPP = rpcSampleApp
-BUILD_CXX ?= $(CXX)
-LIBRTRPC_TARGET = librtRemote.so
-endif
-
-all: $(LIBRTRPC_TARGET) $(SAMPLEAPP)
 
 RTCORE_SRCS=\
   ../utf8.c \
@@ -136,17 +124,21 @@ rtRemoteConfigBuilder.cpp: $(RT_REMOTE_CONFIG_GEN) rtremote.conf.ac
 
 clean:
 	rm -rf obj
-	rm -f $(SAMPLEAPP)
-	rm -f *.so *.a
+	rm -f *.a *.so rpcSampleApp*
 	rm -f rtremote.conf.gen
 	rm -f rtremote.conf
 	rm -f rtRemoteConfig.h
 
-lib$(LIBRTRPC).so: $(RTRPC_OBJS)
+librtRemote.so: $(RTRPC_OBJS)
 	$(CXX_PRETTY) $(RTRPC_OBJS) $(LDFLAGS) -shared -o $@
 
-lib$(LIBRTRPC).a: $(RTRPC_OBJS)
-	$(AR) rcs -o $@ $(RTRPC_OBJS)
+librtRemote_s.a: $(RTRPC_OBJS)
+	$(AR) rcs -o $@ $(RTRPC_OBJS) -o $@
 
-$(SAMPLEAPP): $(SAMPLEAPP_OBJS) $(LIBRTRPC_TARGET)
-	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../ -l$(LIBRTCORE) -l$(LIBRTRPC)
+rpcSampleApp: $(SAMPLEAPP_OBJS) librtRemote.so
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../ -lrtCore -lrtRemote
+
+rpcSampleApp_s: $(SAMPLEAPP_OBJS) librtRemote_s.a
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../ -lrtCore_s -lrtRemote_s
+
+.PHONY: all debug clean
