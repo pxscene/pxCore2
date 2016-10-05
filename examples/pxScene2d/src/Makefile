@@ -10,6 +10,7 @@ all: pxscene
 dfb: pxscene-dfb
 libs: librtCore.so libpxscene.so
 libs-glut: librtCore.so libpxscene-glut
+libs-dfbwindow: librtCore.so libpxscene-dfbwindow
 endif
 
 HAVE_WESTEROS := $(shell test -f ../external/westeros/Makefile.ubuntu && echo 1)
@@ -435,6 +436,24 @@ libpxscene-glut: cleansceneobj $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET)
 	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
 	ln -sf libpxscene.so.1 libpxscene.so
+
+libpxscene-dfbwindow:
+	rm -rf $(OBJDIR)
+libpxscene-dfbwindow: CFLAGS_FULL = $(CFLAGS)
+libpxscene-dfbwindow: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DENABLE_DFB -DPX_PLATFORM_DFB_NON_X11 -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES)
+libpxscene-dfbwindow: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -L../../../../workRNG150/rootfs/usr/local/lib/ -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) $(PLATFORM_LIBS) -lpng15 -ldirectfb -ldirect -lfusion -lz -lssl -lcrypto -shared -o libpxscene.so.1.0
+libpxscene-dfbwindow: cleansceneobj $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
+	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
+	ln -sf libpxscene.so.1.0 libpxscene.so.1
+	ln -sf libpxscene.so.1 libpxscene.so
+
+pxscene-with-so-dfb: CFLAGS_FULL = $(CFLAGS)
+pxscene-with-so-dfb: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DENABLE_DFB -DPX_PLATFORM_DFB_NON_X11 -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES)
+pxscene-with-so-dfb: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -L../../../../workRNG150/rootfs/usr/local/lib/ -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) $(PLATFORM_LIBS) -lpng15 -ldirectfb -ldirect -lfusion -lz -lssl -lcrypto -lpxscene -o pxscene
+pxscene-with-so-dfb: cleansceneobj $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
+	$(CXX) $(CXXFLAGS_FULL) pxScene.cpp $(LDFLAGS_FULL)
+
+ 
 
 libpxscene.so:
 	rm -rf $(OBJDIR)
