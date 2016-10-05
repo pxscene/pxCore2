@@ -1030,9 +1030,9 @@ static void drawRectOutline(float x, float y, float w, float h, float lw, const 
   DFBRectangle rects[4];
   
   rects[0].x = xx;            rects[0].y = yy;            rects[0].w = ww;    rects[0].h = llw;
-  rects[0].x = xx;            rects[0].y = yy+ hh - llw;  rects[0].w = ww;    rects[0].h = llw;
-  rects[0].x = xx;            rects[0].y = yy;            rects[0].w = llw;   rects[0].h = hh;
-  rects[0].x = xx + ww - llw; rects[0].y = yy;            rects[0].w = llw;   rects[0].h = hh;
+  rects[1].x = xx;            rects[1].y = yy+ hh - llw;  rects[1].w = ww;    rects[1].h = llw;
+  rects[2].x = xx;            rects[2].y = yy;            rects[2].w = llw;   rects[2].h = hh;
+  rects[3].x = xx + ww - llw; rects[3].y = yy;            rects[3].w = llw;   rects[3].h = hh;
 
 /*  
   C++11...
