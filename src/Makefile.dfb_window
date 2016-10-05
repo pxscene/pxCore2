@@ -1,5 +1,5 @@
 
-CFLAGS= -O3 -DENABLE_DFB -DENABLE_DFB_GENERIC -fPIC -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DENABLE_RT_NODE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DPX_PLATFORM_GENERIC_DFB
+CFLAGS= -DPX_PLATFORM_DFB_NON_X11 -DENABLE_DFB -fPIC -g -DRT_PLATFORM_LINUX -DENABLE_RT_NODE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
 
 OUTDIR=../build/dfb
 
@@ -23,8 +23,8 @@ pxBufferNativeDfb.o: x11/pxBufferNativeDfb.cpp
 pxOffscreenNativeDfb.o: x11/pxOffscreenNativeDfb.cpp
 	$(CXX) -o pxOffscreenNativeDfb.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxOffscreenNativeDfb.cpp
 
-pxWindowNativeDfb.o: generic/pxWindowNative.cpp
-	$(CXX) -o pxWindowNativeDfb.o -Wall $(INCDIR) $(CFLAGS) -c generic/pxWindowNative.cpp
+pxWindowNativeDfb.o: x11/pxWindowNativeDfb.cpp
+	$(CXX) -o pxWindowNativeDfb.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxWindowNativeDfb.cpp
 
 pxEventLoopNative.o: x11/pxEventLoopNative.cpp
 	$(CXX) -o pxEventLoopNative.o -Wall $(INCDIR) $(CFLAGS) -c x11/pxEventLoopNative.cpp
