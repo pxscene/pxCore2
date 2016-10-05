@@ -44,13 +44,14 @@
 
 ////////////////////////////////////////////////////////////////
 
-#define PIXEL_FMT  DSPF_ARGB  // DSPF_ARGB  // DSPF_ABGR
-
+// DSPF_ABGR == Ubuntu
+//
+// DSPF_ARGB == RNG150
 
 #ifdef ENABLE_DFB_GENERIC
 IDirectFB                *dfb            = NULL;
 IDirectFBSurface         *dfbSurface     = NULL;
-DFBSurfacePixelFormat     dfbPixelformat = PIXEL_FMT;
+DFBSurfacePixelFormat     dfbPixelformat = DSPF_ABGR;
 
 bool needsFlip = true;
 
@@ -900,7 +901,7 @@ void draw_MASK(int resW, int resH, float* matrix, float alpha,
     
     memset(&desc, 0, sizeof(desc));
     desc.flags       = DFBSurfaceDescriptionFlags(DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PIXELFORMAT);
-    desc.pixelformat = PIXEL_FMT;
+    desc.pixelformat = dfbPixelformat;
     desc.width       = w;
     desc.height      = h;
     
@@ -1309,6 +1310,8 @@ void pxContext::init()
   dfbSurface = outsideDfbSurface;
 #endif //ENABLE_DFB_GENERIC
 
+  DFB_CHECK( dfbSurface->GetPixelFormat(dfbSurface, &dfbPixelformat) );
+     
   DFB_CHECK( dfbSurface->Clear( dfbSurface, 0x00, 0x00, 0x00, 0x00 ) ); // TRANSPARENT
 
   boundFramebuffer = dfbSurface;  // needed here.
