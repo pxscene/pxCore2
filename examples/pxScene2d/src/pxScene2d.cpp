@@ -807,13 +807,10 @@ void pxObject::drawInternal(bool maskPass)
       {
         draw();
       }
-
-      pxContextFramebufferRef drawableSnapshot = context.createFramebuffer(w, h);
-      pxContextFramebufferRef maskSnapshot = context.createFramebuffer(w, h);
-      createSnapshotOfChildren(drawableSnapshot, maskSnapshot);
+      createSnapshotOfChildren();
       context.setMatrix(m);
       //rtLogInfo("context.drawImage\n");
-      context.drawImage(0, 0, w, h, drawableSnapshot->getTexture(), maskSnapshot->getTexture());
+      context.drawImage(0, 0, w, h, mDrawableSnapshotForMask->getTexture(), mMaskSnapshot->getTexture());
     }
     // CLIPPING ? ---------------------------------------------------------------------------------------------------
     else if (mClip )
@@ -982,7 +979,7 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
   return fbo;
 }
 
-void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxContextFramebufferRef maskFbo)
+void pxObject::createSnapshotOfChildren()
 {
   //rtLogInfo("pxObject::createSnapshotOfChildren\n");
   pxMatrix4f m;
@@ -997,26 +994,26 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
 
   //rtLogInfo("createSnapshotOfChildren  w=%f h=%f\n", w, h);
 
-  if (drawableFbo.getPtr() == NULL || drawableFbo->width() != floor(w) || drawableFbo->height() != floor(h))
+  if (mDrawableSnapshotForMask.getPtr() == NULL || mDrawableSnapshotForMask->width() != floor(w) || mDrawableSnapshotForMask->height() != floor(h))
   {
-    drawableFbo = context.createFramebuffer(floor(w), floor(h));
+    mDrawableSnapshotForMask = context.createFramebuffer(floor(w), floor(h));
   }
   else
   {
-    context.updateFramebuffer(drawableFbo, floor(w), floor(h));
+    context.updateFramebuffer(mDrawableSnapshotForMask, floor(w), floor(h));
   }
 
-  if (maskFbo.getPtr() == NULL || maskFbo->width() != floor(w) || maskFbo->height() != floor(h))
+  if (mMaskSnapshot.getPtr() == NULL || mMaskSnapshot->width() != floor(w) || mMaskSnapshot->height() != floor(h))
   {
-    maskFbo = context.createFramebuffer(floor(w), floor(h));
+    mMaskSnapshot = context.createFramebuffer(floor(w), floor(h));
   }
   else
   {
-    context.updateFramebuffer(maskFbo, floor(w), floor(h));
+    context.updateFramebuffer(mMaskSnapshot, floor(w), floor(h));
   }
 
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
-  if (context.setFramebuffer(maskFbo) == PX_OK)
+  if (context.setFramebuffer(mMaskSnapshot) == PX_OK)
   {
     context.clear(w, h);
 
@@ -1031,7 +1028,7 @@ void pxObject::createSnapshotOfChildren(pxContextFramebufferRef drawableFbo, pxC
     }
   }
 
-  if (context.setFramebuffer(drawableFbo) == PX_OK)
+  if (context.setFramebuffer(mDrawableSnapshotForMask) == PX_OK)
   {
     context.clear(w, h);
 

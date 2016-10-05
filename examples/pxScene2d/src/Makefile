@@ -8,11 +8,14 @@ deploy: pxscene.dmg
 else
 all: pxscene
 dfb: pxscene-dfb
-endif
-
-# Build libraries in both variants shared and static
+# Target libs - Make all libraries in both variants shared and static
 libs: libpxscene.so libpxscene_s.a
 libs: libpxwayland.so libpxwayland_s.a
+# Target libs-full - Full rebuild all libraries in both variants shared and static
+libs-full: clean libs
+# Target libs-glut - Full reuild libpxscene library in both variants shared and static
+libs-glut: clean libpxscene-glut
+endif
 
 HAVE_WESTEROS := $(shell test -f ../external/westeros/Makefile.ubuntu && echo 1)
 
@@ -21,7 +24,10 @@ HAVE_WESTEROS := $(shell pkg-config --exists westeros-compositor && echo 1)
 endif
 
 clean:
+	$(MAKE) -C rpc/ clean
 	rm -rf $(OBJDIR)
+	rm -f lib*.so*
+	rm -f lib*.a
 	rm -f pxscene
 	rm -rf pxscene.app
 
@@ -174,7 +180,7 @@ else
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform
 endif
 
-PLATFORM_LIBS = -lnexus -lnxclient 
+PLATFORM_LIBS = -lnexus -lnxclient
 ifdef PLATFORM_LIBS_OVERRIDE
 PLATFORM_LIBS = $(PLATFORM_LIBS_OVERRIDE)
 endif
@@ -195,10 +201,10 @@ RTCORE_SRCS=\
   ../rtError.cpp \
   ../ioapi_mem.c
 
-RTCORE_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RTCORE_SRCS)))
-RTCORE_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(RTCORE_OBJS)))
-RTCORE_OBJS:=$(patsubst   %.c, %.o        , $(notdir $(RTCORE_OBJS)))
-RTCORE_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(RTCORE_OBJS))
+RTCORE_OBJS:=$(notdir $(RTCORE_SRCS)) # Select just filenames without preceding paths
+RTCORE_OBJS:=$(patsubst %.cpp, %.o, $(RTCORE_OBJS)) # Replace .cpp by .o in filenames
+RTCORE_OBJS:=$(patsubst %.c,   %.o, $(RTCORE_OBJS)) # Replace .c   by .o in filenames
+RTCORE_OBJS:=$(patsubst %, $(OBJDIR)/%, $(RTCORE_OBJS)) # Prepend a path to filenames
 # rt core end
 
 # pxscene so begin
@@ -234,24 +240,23 @@ PXSCENE_LIB_SRCS=\
            jsbindings/jsCallback.cpp
 
 ifneq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
-PXSCENE_LIB_SRCS += pxContextGL.cpp 
+PXSCENE_LIB_SRCS += pxContextGL.cpp
 ifneq ($(DISABLE_WAYLAND),TRUE)
-PXSCENE_LIB_SRCS += pxWayland.cpp 
+PXSCENE_LIB_SRCS += pxWayland.cpp
 endif
 else
 PXSCENE_LIB_SRCS += pxContextDFB.cpp
 endif
 
 
-ifeq ($(HAVE_WESTEROS),1)
-else
+ifneq ($(HAVE_WESTEROS),1)
 PXSCENE_LIB_SRCS += ../external/westeros-stub/westeros-stub.cpp
 endif
 
-PXSCENE_LIB_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(PXSCENE_LIB_SRCS)))
-PXSCENE_LIB_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(PXSCENE_LIB_OBJS)))
-PXSCENE_LIB_OBJS:=$(patsubst   %.c, %.o        , $(notdir $(PXSCENE_LIB_OBJS)))
-PXSCENE_LIB_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(PXSCENE_LIB_OBJS))
+PXSCENE_LIB_OBJS:=$(notdir $(PXSCENE_LIB_SRCS)) # Select just filenames without preceding paths
+PXSCENE_LIB_OBJS:=$(patsubst %.cpp, %.o, $(PXSCENE_LIB_OBJS)) # Replace .cpp by .o in filenames
+PXSCENE_LIB_OBJS:=$(patsubst %.c,   %.o, $(PXSCENE_LIB_OBJS)) # Replace .c   by .o in filenames
+PXSCENE_LIB_OBJS:=$(patsubst %, $(OBJDIR)/%, $(PXSCENE_LIB_OBJS)) # Prepend a path to filenames
 
 # pxWayland so begin
 PXWAYLAND_LIB_SRCS=\
@@ -285,10 +290,10 @@ ifneq ($(DISABLE_WAYLAND),TRUE)
 PXWAYLAND_LIB_SRCS += pxWayland.cpp
 endif
 
-PXWAYLAND_LIB_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(PXWAYLAND_LIB_SRCS)))
-PXWAYLAND_LIB_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(PXWAYLAND_LIB_OBJS)))
-PXWAYLAND_LIB_OBJS:=$(patsubst   %.c, %.o        , $(notdir $(PXWAYLAND_LIB_OBJS)))
-PXWAYLAND_LIB_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(PXWAYLAND_LIB_OBJS))
+PXWAYLAND_LIB_OBJS:=$(notdir $(PXWAYLAND_LIB_SRCS)) # Select just filenames without preceding paths
+PXWAYLAND_LIB_OBJS:=$(patsubst %.cpp, %.o, $(PXWAYLAND_LIB_OBJS)) # Replace .cpp by .o in filenames
+PXWAYLAND_LIB_OBJS:=$(patsubst %.c,   %.o, $(PXWAYLAND_LIB_OBJS)) # Replace .c   by .o in filenames
+PXWAYLAND_LIB_OBJS:=$(patsubst %, $(OBJDIR)/%, $(PXWAYLAND_LIB_OBJS)) # Prepend a path to filenames
 
 PXSCENE_LIB_SEARCH=\
   -Ilinux \
@@ -380,17 +385,16 @@ LIBRTREMOTE_FLAG=
 LIBRTREMOTE_TARGET=
 LIBRTREMOTE_TARGET_S=
 PXSCENE_EXTRA_DEFINES=-DNEXUS_SERVER_SUPPORT=1 -D_GNU_SOURCE=1 -DLINUX -pipe -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -mips32 -DNEXUS_PLATFORM_VERSION_MAJOR=14 -DNEXUS_PLATFORM_VERSION_MINOR=4 -DNEXUS_PLATFORM_VERSION_NUMBER=3588 -DNEXUS_CONFIG_IMAGE -DNEXUS_MODE_proxy -DPLATFORM=97125 -DNEXUS_PLATFORM=97125 -DNEXUS_HAS_MPOD -DBCHP_CHIP=7125 -DBCHP_VER=BCHP_VER_C0 -DBMEM_REENTRANT_CONFIG=BMEM_REENTRANT -DBINT_REENTRANT_CONFIG=BINT_REENTRANT -DNEXUS_PROFILE_OS_linuxuser -DBBCP_SUPPORT -DNEXUS_FRONTEND_3412 -DNEXUS_FRONTEND_3255 -DNEXUS_FRONTEND_ACCUMULATE_STATISTICS=1 -DNEXUS_FRONTEND_7125 -DNEXUS_AMPLIFIER_SUPPORT -DNEXUS_TUNER_SUPPORT -DNEXUS_FRONTEND_3112 -DNEXUS_FRONTEND_3109 -DNEXUS_FRONTEND_31xx_B0 -DNEXUS_SECURITY_SC_VALUE -DNEXUS_SECURITY_EXT_KEY_IV -DNEXUS_SECURITY_SC_VALUE -DNEXUS_SECURITY_EXT_KEY_IV -DNEXUS_SECURITY_HAS_ASKM=1 -DNEXUS_SECURITY_CHIP_SIZE=65 -DNEXUS_KEYLADDER=1 -DNEXUS_HAS_KEYLADDER_SUPPORT=1 -DNEXUS_OTPMSP=1 -DNEXUS_OTPID=1 -DNEXUS_USERCMD=1 -DNEXUS_SECURITY_SECUREACCESS=1 -DNEXUS_SECURITY_SECURERSA=1 -DBXPT_MESG_DONT_AUTO_ENABLE_PID_CHANNEL -DB_REFSW_DSS_SUPPORT=1 -DNEXUS_OTFPVR=1 -DB_REFSW_DSS_SUPPORT=1 -DNEXUS_AC3 -DNEXUS_DDP -DNEXUS_AC3 -DMACROVISION_SUPPORT=1 -DNEXUS_HAS_PLATFORM -DNEXUS_HAS_CORE -DNEXUS_HAS_PWM -DNEXUS_HAS_I2C -DNEXUS_HAS_GPIO -DNEXUS_HAS_LED -DNEXUS_HAS_IR_INPUT -DNEXUS_HAS_IR_BLASTER -DNEXUS_HAS_INPUT_CAPTURE -DNEXUS_HAS_KEYPAD -DNEXUS_HAS_FRONTEND -DNEXUS_HAS_SPI -DNEXUS_HAS_SECURITY -DNEXUS_HAS_DMA -DNEXUS_HAS_TRANSPORT -DNEXUS_HAS_VIDEO_DECODER -DNEXUS_HAS_AUDIO -DNEXUS_HAS_SURFACE -DNEXUS_HAS_ASTM -DNEXUS_HAS_DISPLAY -DNEXUS_HAS_GRAPHICS2D -DNEXUS_HAS_SYNC_CHANNEL -DNEXUS_HAS_HDMI_OUTPUT -DNEXUS_HAS_CEC -DNEXUS_HAS_SMARTCARD -DNEXUS_HAS_SURFACE_COMPOSITOR -DNEXUS_HAS_INPUT_ROUTER -DNEXUS_HAS_SIMPLE_DECODER -DNEXUS_HAS_FILE -DNEXUS_HAS_PLAYBACK -DNEXUS_HAS_RECORD -DB_REFSW_DEBUG_FORCE_ENABLE_BDBG=1 -O3 -DB_REFSW_DEBUG_COMPACT_ASSERT=1 -DBDBG_NO_WRN=1 -DBDBG_NO_MSG=1 -DB_REFSW_DEBUG_COMPACT_ERR=1 -DB_REFSW_DEBUG_FORCE_ENABLE_BDBG=1 -DRDK_USE_NXCLIENT
-else 
+else
 PXSCENE_LIBS=-lpng16 -lnxpl -lGLESv2 -Lrpc/ -luuid
 ifneq ($(DISABLE_WESTEROS),TRUE)
-PXSCENE_LIBS:=-lwesteros_compositor 
+PXSCENE_LIBS:=-lwesteros_compositor
 LIBRTREMOTE_FLAG=
 endif
 PXSCENE_LIB_LINK_OPTIONS=-L$(PXCOREDIR)/build/egl -Wl,--whole-archive $(PXCOREDIR)/build/egl/libpxCore.a
-ifeq ($(DISABLE_WAYLAND),TRUE)
-PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE -DDISABLE_WAYLAND
-else
 PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE
+ifneq ($(DISABLE_WAYLAND),TRUE)
+PXSCENE_LIB_DEFINES+= -DDISABLE_WAYLAND
 endif
 PXSCENE_EXTRA_DEFINES=
 endif
@@ -406,8 +410,8 @@ pxscene: $(OBJS) $(LINKLIBS)
 
 INC_DFB=-I/usr/local/include/directfb
 
-pxscene-dfb: CXXFLAGS_FULL = -fPIC -Wall -Wextra -g $(SEARCH) $(INC_DFB) -DRT_PLATFORM_LINUX -DPX_PLATFORM_X11 -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_DFB 
-pxscene-dfb: $(OBJS_DFB) $(PXCOREDIR)/build/dfb/libpxCore.a 
+pxscene-dfb: CXXFLAGS_FULL = -fPIC -Wall -Wextra -g $(SEARCH) $(INC_DFB) -DRT_PLATFORM_LINUX -DPX_PLATFORM_X11 -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_DFB
+pxscene-dfb: $(OBJS_DFB) $(PXCOREDIR)/build/dfb/libpxCore.a
 	$(CXX) $(OBJS_DFB) -lnode -lpxCore -pthread -L/usr/local/lib -ldirectfb $(LDEXT) -L$(PXCOREDIR)/build/dfb -ldl -lrt -lv8_libplatform -o pxscene
 
 librtRemote.so:
@@ -417,41 +421,44 @@ librtRemote_s.a:
 	$(MAKE) -C rpc/ librtRemote_s.a
 
 cleansceneobj:
-#	rm -f $(PXSCENE_LIB_OBJS)
+	rm -f $(PXSCENE_LIB_OBJS)
 
 cleanwaylandobj:
-#	rm -f $(PXWAYLAND_LIB_OBJS)
+	rm -f $(PXWAYLAND_LIB_OBJS)
 
-libpxscene.so:
-#	rm -rf $(OBJDIR)
+libpxscene-glut: CFLAGS_FULL = $(CFLAGS)
+#libpxscene-glut: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC -g -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES)
+libpxscene-glut: LDFLAGS_FULL = $(LDEXT) -Wl,--no-whole-archive -lglut -lGLEW -lGL -lnode -pthread -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -lrtCore -shared
+libpxscene-glut: $(PXSCENE_LIB_OBJS) librtCore.so librtCore_s.a
+	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL) -o libpxscene.so.1.0
+	ln -sf libpxscene.so.1.0 libpxscene.so.1
+	ln -sf libpxscene.so.1 libpxscene.so
+	$(AR) rcs $(PXSCENE_LIB_OBJS) -o libpxscene_s.a
+
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
 libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES)
 libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LIBRTREMOTE_FLAG) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -lrtCore -shared $(PLATFORM_LIBS) -o libpxscene.so.1.0
-libpxscene.so: cleansceneobj $(PXSCENE_LIB_OBJS) librtCore.so $(LIBRTREMOTE_TARGET)
+libpxscene.so: $(PXSCENE_LIB_OBJS) librtCore.so $(LIBRTREMOTE_TARGET)
 	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
 	ln -sf libpxscene.so.1 libpxscene.so
 
-libpxscene_s.a:
-#	rm -rf $(OBJDIR)
 libpxscene_s.a: CFLAGS_FULL = $(CFLAGS)
 libpxscene_s.a: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES)
-libpxscene_s.a: cleansceneobj $(PXSCENE_LIB_OBJS) librtCore_s.a $(LIBRTREMOTE_TARGET_S)
+libpxscene_s.a: $(PXSCENE_LIB_OBJS) librtCore_s.a $(LIBRTREMOTE_TARGET_S)
 	$(AR) rcs -o $@ $(PXSCENE_LIB_OBJS)
 
-libpxwayland.so: 
-#	rm -rf $(OBJDIR)
 libpxwayland.so: CFLAGS_FULL = $(CFLAGS)
 libpxwayland.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
 libpxwayland.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LIBRTREMOTE_FLAG) -Lrpc/ -ldl -lrt -L./ -lrtCore -shared $(PLATFORM_LIBS) -o libpxwayland.so.1.0
-libpxwayland.so: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) librtCore.so $(LIBRTREMOTE_TARGET)
+libpxwayland.so: $(PXWAYLAND_LIB_OBJS) librtCore.so $(LIBRTREMOTE_TARGET)
 	$(CXX) $(PXWAYLAND_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxwayland.so.1.0 libpxwayland.so.1
 	ln -sf libpxwayland.so.1 libpxwayland.so
 
 libpxwayland_s.a: CFLAGS_FULL = $(CFLAGS)
 libpxwayland_s.a: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
-libpxwayland_s.a: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) librtCore_s.a $(LIBRTREMOTE_TARGET_S)
+libpxwayland_s.a: $(PXWAYLAND_LIB_OBJS) librtCore_s.a $(LIBRTREMOTE_TARGET_S)
 	$(AR) rcs -o $@ $(PXWAYLAND_LIB_OBJS)
 
 librtCore.so: CFLAGS_FULL = $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
@@ -478,4 +485,5 @@ endif
 	echo $(PXVERSION)
 	./mkdeploy.sh $(PXVERSION)
 
-.PHONY: all deploy dfb libs analyze clean cleansceneobj cleanwaylandobj
+.PHONY: all deploy dfb libs libs-full libs-glut libpxscene-glut
+.PHONY: analyze clean cleansceneobj cleanwaylandobj
