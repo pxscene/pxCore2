@@ -2242,6 +2242,7 @@ void pxViewContainer::invalidateRect(pxRect* r)
     mScene->invalidateRect(&screenRect);
 #else
     mScene->invalidateRect(NULL);
+    UNUSED_PARAM(r);    
 #endif //PX_DIRTY_RECTANGLES
   }
 }
@@ -2254,6 +2255,8 @@ void pxScene2d::invalidateRect(pxRect* r)
     mDirtyRect.unionRect(*r);
     mDirty = true;
   }
+#else
+  UNUSED_PARAM(r); 
 #endif //PX_DIRTY_RECTANGLES
   if (mContainer && !mTop)
   {

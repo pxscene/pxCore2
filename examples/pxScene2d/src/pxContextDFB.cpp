@@ -896,8 +896,6 @@ void draw_MASK(int resW, int resH, float* matrix, float alpha,
     // 
     //       boundFramebuffer == dfbSurface == 'primary' surface which does not seem to support direct masking.
     //
-
-    DFBResult ret;
     DFBSurfaceDescription desc;    
     
     memset(&desc, 0, sizeof(desc));
@@ -906,7 +904,7 @@ void draw_MASK(int resW, int resH, float* matrix, float alpha,
     desc.width       = w;
     desc.height      = h;
     
-    ret = dfb->CreateSurface( dfb, &desc, &tmpSurf );
+    DFB_CHECK( dfb->CreateSurface( dfb, &desc, &tmpSurf ) );
               
     // CLEAR EXTRA
     tmpSurf->Clear(tmpSurf, 0, 0, 0, 0); // CLEAR (transparent)
@@ -1020,13 +1018,20 @@ static void drawRectOutline(float x, float y, float w, float h, float lw, const 
   {
     lw = 0;
   }
-
-  DFBRectangle rects[] =  {
-                            { x,          y,            w, lw },
-                            { x,          y + h - lw,   w, lw },
-                            { x,          y,           lw, h  },
-                            { x + w - lw, y,           lw, h  },
-                          };
+  
+  // Avoid 'narrowing conversion' warning...
+  int xx  = (int) x;
+  int yy  = (int) y;
+  int ww  = (int) w;
+  int hh  = (int) h;
+  int llw = (int) lw;
+  
+  DFBRectangle rects[4];
+  
+  rects[0] = DFBRectangle( xx,            yy,              ww, llw );
+  rects[1] = DFBRectangle( xx,            yy + hh - llw,   ww, llw );
+  rects[2] = DFBRectangle( xx,            yy,             llw, hh  );
+  rects[3] = DFBRectangle( xx + ww - llw, yy,             llw, hh  );
 
   DFB_CHECK( boundFramebuffer->FillRectangles( boundFramebuffer, rects, 4 ) ); // border
 
