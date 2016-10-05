@@ -418,3 +418,29 @@ rtRemoteClient::sendCall(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k
   }
   return e;
 }
+
+sockaddr_storage
+rtRemoteClient::getRemoteEndpoint() const
+{
+  sockaddr_storage saddr;
+  memset(&saddr, 0, sizeof(sockaddr_storage));
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    if (m_stream)
+      saddr = m_stream->getRemoteEndpoint();
+  }
+  return std::move(saddr);
+}
+
+sockaddr_storage
+rtRemoteClient::getLocalEndpoint() const
+{
+  sockaddr_storage saddr;
+  memset(&saddr, 0, sizeof(sockaddr_storage));
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    if (m_stream)
+      m_stream->getLocalEndpoint();
+  }
+  return std::move(saddr);
+}
