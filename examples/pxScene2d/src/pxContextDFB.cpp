@@ -1020,6 +1020,7 @@ static void drawRectOutline(float x, float y, float w, float h, float lw, const 
     lw = 0;
   }
   
+/*  
   // Avoid 'narrowing conversion' warning...
   int xx  = (int) x;
   int yy  = (int) y;
@@ -1033,7 +1034,15 @@ static void drawRectOutline(float x, float y, float w, float h, float lw, const 
   rects[1] = DFBRectangle( xx,            yy + hh - llw,   ww, llw );
   rects[2] = DFBRectangle( xx,            yy,             llw, hh  );
   rects[3] = DFBRectangle( xx + ww - llw, yy,             llw, hh  );
+*/
 
+  DFBRectangle rects[] =  {
+                            { x,          y,            w, lw },
+                            { x,          y + h - lw,   w, lw },
+                            { x,          y,           lw, h  },
+                            { x + w - lw, y,           lw, h  },
+                          };
+                          
   DFB_CHECK( boundFramebuffer->FillRectangles( boundFramebuffer, rects, 4 ) ); // border
 
 #ifndef DEBUG_SKIP_FLIPPING
