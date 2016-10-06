@@ -864,15 +864,7 @@ void pxObject::drawInternal(bool maskPass)
   // ---------------------------------------------------------------------------------------------------
   if (!maskPass)
   {
-    //TODO - remove need for mRepaintCount
-    if (mRepaintCount > 0)
-    {
-      mRepaint = false;
-    }
-    else if (mRepaint)
-    {
-      mRepaintCount++;
-    }
+    mRepaint = false;
   }
   // ---------------------------------------------------------------------------------------------------
 }

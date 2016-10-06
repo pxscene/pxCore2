@@ -190,7 +190,6 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(), 
     mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
-      , mRepaintCount(0) //TODO - remove mRepaintCount as it's only needed on certain platforms
 #ifdef PX_DIRTY_RECTANGLES
     , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
 #endif //PX_DIRTY_RECTANGLES
@@ -697,7 +696,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
   rtError useMatrix(bool& v) const { v = mUseMatrix; return RT_OK; }
   rtError setUseMatrix(const bool& v) { mUseMatrix = v; return RT_OK; }
 
-  void repaint() { mRepaint = true; mRepaintCount = 0; }
+  void repaint() { mRepaint = true; }
 
 public:
   rtEmitRef mEmit;
@@ -728,7 +727,6 @@ protected:
   pxMatrix4f mMatrix;
   bool mUseMatrix;
   bool mRepaint;
-  int mRepaintCount;
   #ifdef PX_DIRTY_RECTANGLES
   bool mIsDirty;
   pxMatrix4f mLastRenderMatrix;
