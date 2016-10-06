@@ -453,8 +453,14 @@ rtNode::rtNode() /*: mPlatform(NULL)*/
 // TODO Please make this better... less hard coded...
 
                               //0123456 789ABCDEF012 345 67890ABCDEF
+#if ENABLE_V8_HEAP_PARAMS
+  printf("v8 old heap space configured to 64mb\n");
+  static const char *args2   = "rtNode\0--expose-gc\0--max_old_space_size=64\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[43], &args2[46], NULL};
+#else
   static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
+#endif //ENABLE_V8_HEAP_PARAMS
   int          argc   = sizeof(argv2)/sizeof(char*) - 1;
 
   static args_t aa(argc, (char**)argv2);
