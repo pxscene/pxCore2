@@ -133,7 +133,7 @@ librtRemote.so: $(RTRPC_OBJS)
 	$(CXX_PRETTY) $(RTRPC_OBJS) $(LDFLAGS) -shared -o $@
 
 librtRemote_s.a: $(RTRPC_OBJS)
-	$(AR) rcs -o $@ $(RTRPC_OBJS) -o $@
+	$(AR) rcs -o $@ $(RTRPC_OBJS)
 
 rpcSampleApp: $(SAMPLEAPP_OBJS) librtRemote.so
 	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../ -lrtCore -lrtRemote

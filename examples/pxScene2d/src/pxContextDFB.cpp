@@ -44,13 +44,14 @@
 
 ////////////////////////////////////////////////////////////////
 
-#define PIXEL_FMT  DSPF_ARGB  // DSPF_ARGB  // DSPF_ABGR
-
+// DSPF_ABGR == Ubuntu
+//
+// DSPF_ARGB == RNG150
 
 #ifdef ENABLE_DFB_GENERIC
 IDirectFB                *dfb            = NULL;
 IDirectFBSurface         *dfbSurface     = NULL;
-DFBSurfacePixelFormat     dfbPixelformat = PIXEL_FMT;
+DFBSurfacePixelFormat     dfbPixelformat = DSPF_ABGR;
 
 bool needsFlip = true;
 
@@ -896,17 +897,15 @@ void draw_MASK(int resW, int resH, float* matrix, float alpha,
     // 
     //       boundFramebuffer == dfbSurface == 'primary' surface which does not seem to support direct masking.
     //
-
-    DFBResult ret;
     DFBSurfaceDescription desc;    
     
     memset(&desc, 0, sizeof(desc));
     desc.flags       = DFBSurfaceDescriptionFlags(DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PIXELFORMAT);
-    desc.pixelformat = PIXEL_FMT;
+    desc.pixelformat = dfbPixelformat;
     desc.width       = w;
     desc.height      = h;
     
-    ret = dfb->CreateSurface( dfb, &desc, &tmpSurf );
+    DFB_CHECK( dfb->CreateSurface( dfb, &desc, &tmpSurf ) );
               
     // CLEAR EXTRA
     tmpSurf->Clear(tmpSurf, 0, 0, 0, 0); // CLEAR (transparent)
@@ -1020,6 +1019,23 @@ static void drawRectOutline(float x, float y, float w, float h, float lw, const 
   {
     lw = 0;
   }
+  
+  // Avoid 'narrowing conversion' warning...
+  int xx  = (int) x;
+  int yy  = (int) y;
+  int ww  = (int) w;
+  int hh  = (int) h;
+  int llw = (int) lw;
+  
+  DFBRectangle rects[4];
+  
+  rects[0].x = xx;            rects[0].y = yy;            rects[0].w = ww;    rects[0].h = llw;
+  rects[1].x = xx;            rects[1].y = yy+ hh - llw;  rects[1].w = ww;    rects[1].h = llw;
+  rects[2].x = xx;            rects[2].y = yy;            rects[2].w = llw;   rects[2].h = hh;
+  rects[3].x = xx + ww - llw; rects[3].y = yy;            rects[3].w = llw;   rects[3].h = hh;
+
+/*  
+  C++11...
 
   DFBRectangle rects[] =  {
                             { x,          y,            w, lw },
@@ -1027,7 +1043,8 @@ static void drawRectOutline(float x, float y, float w, float h, float lw, const 
                             { x,          y,           lw, h  },
                             { x + w - lw, y,           lw, h  },
                           };
-
+*/
+                          
   DFB_CHECK( boundFramebuffer->FillRectangles( boundFramebuffer, rects, 4 ) ); // border
 
 #ifndef DEBUG_SKIP_FLIPPING
@@ -1304,6 +1321,8 @@ void pxContext::init()
   dfbSurface = outsideDfbSurface;
 #endif //ENABLE_DFB_GENERIC
 
+  DFB_CHECK( dfbSurface->GetPixelFormat(dfbSurface, &dfbPixelformat) );
+     
   DFB_CHECK( dfbSurface->Clear( dfbSurface, 0x00, 0x00, 0x00, 0x00 ) ); // TRANSPARENT
 
   boundFramebuffer = dfbSurface;  // needed here.

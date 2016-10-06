@@ -58,11 +58,8 @@ public:
 
   rtError send(rtRemoteMessagePtr const& msg);
 
-  inline sockaddr_storage getRemoteEndpoint() const
-    { return m_stream->getRemoteEndpoint(); }
-
-  inline sockaddr_storage getLocalEndpoint() const
-    { return m_stream->getLocalEndpoint(); }
+  sockaddr_storage getRemoteEndpoint() const;
+  sockaddr_storage getLocalEndpoint() const;
 
 private:
   rtError sendGet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k, rtValue& value);
@@ -107,7 +104,7 @@ private:
 
   std::shared_ptr<rtRemoteStream>           m_stream;
   std::vector<std::string>                  m_object_list;
-  std::mutex                                m_mutex;
+  std::mutex mutable                        m_mutex;
   rtRemoteEnvironment*                      m_env;
   rtRemoteCallback<StateChangedHandler>     m_state_changed_handler;
 };
