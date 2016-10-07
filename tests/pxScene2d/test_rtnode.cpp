@@ -8,17 +8,18 @@
 
 rtNode mynode;
 
-/*
+
 bool rtNodeInit()
 {
     return true;
 }
  
-TEST(rtNodeTests, test_rtNode_Init)
+TEST(pxScene2dTests, rtNodeTests)
 { 
-    v8::Isolate *isolate = NULL;
+    v8::Isolate *isolate = mynode.getIsolate();
    
-    EXPECT_TRUE ( (isolate = node.getIsolate()) != NULL);    
+    EXPECT_TRUE ( isolate      != NULL);  
+    EXPECT_TRUE ( rtNodeInit() == true);  
 }
-*/
+
 
