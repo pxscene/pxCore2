@@ -7,9 +7,19 @@ cd $THIS_DIR
 
 pxScene2dDir=../../examples/pxScene2d
 pxScene2dSrc=$pxScene2dDir/src
+
 externalDir=$pxScene2dDir/external
 
-externalLibs=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/ft/objs/.libs/:$externalDir/zlib:$externalDir/westeros/external/install/lib/:rpc/
+# Path to externals Libs...
+pngLibs=$externalDir/png/.libs
+jpgLibs=$externalDir/jpg/.libs
+curlLibs=$externalDir/curl/lib/.libs
+ftLibs=$externalDir/ft/objs/.libs
+zLibs=$externalDir/zlib
+westerosLibs=$externalDir/westeros/external/install/lib
+
+# Aggregated Libs path
+externalLibs=$pngLibs/:$jpgLibs/:$curlLibs/:$ftLibs/:$zLibs:$westerosLibs/:rpc/
 
 PathD=$externalLibs:$pxScene2dSrc:$externalDir/libnode/out/Debug/obj.target
 PathR=$externalLibs:$pxScene2dSrc:$externalDir/libnode/out/Release/obj.target

@@ -7,24 +7,30 @@ clean:
 SRCS_FULL=\
 	pxscene2dtestsmain.cpp \
         test_example.cpp \
-        test_pxcontext.cpp
+        test_pxcontext.cpp \
+		test_rtnode.cpp
 
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PXCOREDIR=$(MAKEFILE_PATH)/../../
+PXSCENEDIR=$(PXCOREDIR)/examples/pxScene2d
 PX_PLATFORM=PX_PLATFORM_GLUT
 PXHDRS=$(PXCOREDIR)/src
 EXTDIR=$(PXCOREDIR)examples/pxScene2d/external
+
 ZLIB=$(EXTDIR)/zlib/
 SEARCH=\
 	-Ilinux \
 	-I$(PXHDRS) \
 	-I$(ZLIB) \
+	-I$(NODEDIR)/src \
+	-I$(NODEDIR)/deps/v8 \
+	-I$(NODEDIR)/deps/v8/include \
 	-I./ \
         -I$(PXCOREDIR)examples/pxScene2d/src \
-        -I$(PXCOREDIR)examples/pxScene2d/external/gtest/googletest/include \
-        -I$(PXCOREDIR)examples/pxScene2d/external/gtest/googletest \
-        -I$(PXCOREDIR)examples/pxScene2d/external/gtest/googlemock/include \
-        -I$(PXCOREDIR)examples/pxScene2d/external/gtest/googlemock
+        -I$(EXTDIR)/gtest/googletest/include \
+        -I$(EXTDIR)/gtest/googletest \
+        -I$(EXTDIR)/gtest/googlemock/include \
+        -I$(EXTDIR)/gtest/googlemock
 
 CXXFLAGS= $(SEARCH) -O3 -D$(PX_PLATFORM) -DRT_PLATFORM_LINUX
 #-Wall -Wextra -g 
@@ -37,7 +43,7 @@ LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDZLIB) $(LDJPG)
 NODEDIR = $(EXTDIR)/libnode
 LDNODE   = -L$(NODEDIR)/out/Release/obj.target
 LDNODEV8 = -L$(NODEDIR)/out/Release
-LDFLAGS = -L$(PXCOREDIR)/examples/pxScene2d/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode -lrtCore $(LDEXT) -L../../build/glut/ -lpxCore -lX11
+LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode -lrtCore $(LDEXT) -L../../build/glut/ -lpxCore -lX11
 
 CXXFLAGS_FULL = $(CXXFLAGS) -Wno-write-strings -Wno-format-security 
 CLAGS_FULL = $(CFLAGS)
@@ -56,11 +62,11 @@ $(OBJDIR)/%.o : %.c
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
 	$(CC) -c $(CXXFLAGS_FULL) $< -o $@
 
-$(OBJDIR)/gtest-all.o: $(PXCOREDIR)examples/pxScene2d/external/gtest/googletest/src/gtest-all.cc
-	$(CXX) -o $(OBJDIR)/gtest-all.o -Wall $(SEARCH) $(CFLAGS) -c $(PXCOREDIR)examples/pxScene2d/external/gtest/googletest/src/gtest-all.cc
+$(OBJDIR)/gtest-all.o: $(EXTDIR)/gtest/googletest/src/gtest-all.cc
+	$(CXX) -o $(OBJDIR)/gtest-all.o -Wall $(SEARCH) $(CFLAGS) -c $(EXTDIR)/gtest/googletest/src/gtest-all.cc
 
-$(OBJDIR)/gmock-all.o: $(PXCOREDIR)examples/pxScene2d/external/gtest/googlemock/src/gmock-all.cc 
-	$(CXX) -o $(OBJDIR)/gmock-all.o -Wall $(SEARCH) $(CFLAGS) -c $(PXCOREDIR)examples/pxScene2d/external/gtest/googlemock/src/gmock-all.cc
+$(OBJDIR)/gmock-all.o: $(EXTDIR)/gtest/googlemock/src/gmock-all.cc 
+	$(CXX) -o $(OBJDIR)/gmock-all.o -Wall $(SEARCH) $(CFLAGS) -c $(EXTDIR)/gtest/googlemock/src/gmock-all.cc
 
 pxscene2dtests: $(OBJS) $(OBJDIR)/gtest-all.o $(OBJDIR)/gmock-all.o $(LINKLIBS)
 	$(CXX) $(OBJS) $(OBJDIR)/gtest-all.o $(OBJDIR)/gmock-all.o $(LDFLAGS_FULL) -o pxscene2dtests
