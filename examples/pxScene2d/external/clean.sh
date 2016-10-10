@@ -10,7 +10,7 @@ cd ..
 #--------- FT 
 cd ft
 ./configure
-make all -j3
+make clean -j3
 cd ..
 
 #--------- JPG 
