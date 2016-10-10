@@ -185,29 +185,35 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  rtValue       val_array = clone_me->get(SANDBOX_IDENTIFIER);
-  rtObjectRef       array = val_array.toObject();
-
-  int len = array.get<int>("length");
-
-  rtString s;
-  for(int i = 0; i < len; i++)
+  if( clone_me->has(SANDBOX_IDENTIFIER) )
   {
-    array.get<rtString>( (uint32_t) i, s);  // get 'name' for object
-    rtValue obj = clone_me->get(s);         // get object for 'name'
+    rtValue       val_array = clone_me->get(SANDBOX_IDENTIFIER);
+    rtObjectRef       array = val_array.toObject();
 
-    if( obj.isEmpty() == false)
+    int len = array.get<int>("length");
+
+    rtString s;
+    for(int i = 0; i < len; i++)
     {
-        // Copy to var/module 'sandbox' under construction...
-        Local<Value> module = local_context->Global()->Get( String::NewFromUtf8(mIsolate, s.cString() ) );
-        sandbox->Set( String::NewFromUtf8(mIsolate, s.cString()), module);
-    }
-    else
-    {
-      printf("## FATAL:   '%s' is empty !! - UNEXPECTED\n", s.cString()); fflush(stdout);
+      array.get<rtString>( (uint32_t) i, s);  // get 'name' for object
+      rtValue obj = clone_me->get(s);         // get object for 'name'
+
+      if( obj.isEmpty() == false)
+      {
+          // Copy to var/module 'sandbox' under construction...
+          Local<Value> module = local_context->Global()->Get( String::NewFromUtf8(mIsolate, s.cString() ) );
+          sandbox->Set( String::NewFromUtf8(mIsolate, s.cString()), module);
+      }
+      else
+      {
+        rtLogError("## FATAL:   '%s' is empty !! - UNEXPECTED", s.cString());
+      }
     }
   }
-
+  else
+  {
+    rtLogError("## ERROR:   '%s' is undefined !! - UNEXPECTED", SANDBOX_IDENTIFIER);
+  }
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   //
   // Clone a new context.
@@ -305,8 +311,12 @@ rtValue rtNodeContext::get(const char *name)
   if(name == NULL)
   {
     rtLogError(" rtNodeContext::get() - no symbolic name for rtValue");
-    return rtValue(0);
+    return rtValue();
   }
+
+  Locker                locker(mIsolate);
+  Isolate::Scope isolate_scope(mIsolate);
+  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 
   // Get a Local context...
   Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
@@ -405,6 +415,12 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char* /* a
 
     // Convert the result to an UTF8 string and print it.
     String::Utf8Value utf8(result);
+    
+    // TODO: 
+    // printf("\n retVal \"%s\" = %s\n\n",script.c_str(), *result);
+    //  rtString foo ( (char *) *utf8);
+    //  return rtObjectRef( new rtValue( rtString( (char *) *utf8) ) );
+    
   }//scope
 
   return rtObjectRef(0);// JUNK
@@ -636,6 +652,13 @@ return; // JUNK - Probably leaks like a sieve !!!! Stops crash on STB
   }
 }
 
+
+inline bool fileExists(const std::string& name)
+{
+  struct stat buffer;   
+  return (stat (name.c_str(), &buffer) == 0); 
+}
+
 rtNodeContextRef rtNode::getGlobalContext() const
 {
   return rtNodeContextRef();
@@ -657,7 +680,15 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
     ctxref = mRefContext;
 
     // Populate 'sandbox' vars in JS...
-    mRefContext->runFile(SANDBOX_JS);
+    if(fileExists(SANDBOX_JS))
+    {
+      mRefContext->runFile(SANDBOX_JS);
+    }
+    else
+    {
+      rtLogError("## ERROR:   Could not find \"%s\" ...", SANDBOX_JS);
+    }
+
     ctxref = new rtNodeContext(mIsolate, mRefContext);
   }
   else

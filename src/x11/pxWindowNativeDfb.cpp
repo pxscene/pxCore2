@@ -61,7 +61,7 @@ static int cursor_y = 0;
 #ifdef USE_DFB_LAYER
 DFBSurfacePixelFormat  dfbPixelformat = DFBSurfacePixelFormat(DSPF_ABGR); // DSPF_ABGR;// ** DSPF_ABGR **;  DSPF_ARGB;
 #else
-DFBSurfacePixelFormat  dfbPixelformat = DSPF_ARGB;//DSPF_ABGR; //DFBSurfacePixelFormat(0);
+DFBSurfacePixelFormat  dfbPixelformat = DSPF_ABGR;//DSPF_ABGR; //DFBSurfacePixelFormat(0);
 #endif
 
 

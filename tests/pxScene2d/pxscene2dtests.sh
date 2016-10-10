@@ -25,8 +25,11 @@ PathD=$externalLibs:$pxScene2dSrc:$externalDir/libnode/out/Debug/obj.target
 PathR=$externalLibs:$pxScene2dSrc:$externalDir/libnode/out/Release/obj.target
 
 export LD_LIBRARY_PATH=$PathR
+export RT_LOG_LEVEL=error
 
 #echo $LD_LIBRARY_PATH
 
 ./pxscene2dtests
+
+#gdb ./pxscene2dtests core
 
