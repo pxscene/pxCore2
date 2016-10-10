@@ -212,7 +212,7 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
   }
   else
   {
-    rtLogError("## ERROR:   '%s' is undefined !! - UNEXPECTED", SANDBOX_IDENTIFIER);
+    rtLogWarn("## WARNING:   '%s' is undefined !! - UNEXPECTED", SANDBOX_IDENTIFIER);
   }
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   //
@@ -679,14 +679,23 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
 
     ctxref = mRefContext;
 
-    // Populate 'sandbox' vars in JS...
-    if(fileExists(SANDBOX_JS))
+    static std::string sandbox_path;
+
+    if(sandbox_path.empty()) // only once.
     {
-      mRefContext->runFile(SANDBOX_JS);
+      const std::string NODE_PATH = ::getenv("NODE_PATH");
+
+      sandbox_path = NODE_PATH + "/" + SANDBOX_JS;
+    }
+
+    // Populate 'sandbox' vars in JS...
+    if(fileExists(sandbox_path.c_str()))
+    {
+      mRefContext->runFile(sandbox_path.c_str());
     }
     else
     {
-      rtLogError("## ERROR:   Could not find \"%s\" ...", SANDBOX_JS);
+      rtLogError("## ERROR:   Could not find \"%s\" ...", sandbox_path.c_str());
     }
 
     ctxref = new rtNodeContext(mIsolate, mRefContext);

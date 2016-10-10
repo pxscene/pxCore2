@@ -24,8 +24,10 @@ externalLibs=$pngLibs/:$jpgLibs/:$curlLibs/:$ftLibs/:$zLibs:$westerosLibs/:rpc/
 PathD=$externalLibs:$pxScene2dSrc:$externalDir/libnode/out/Debug/obj.target
 PathR=$externalLibs:$pxScene2dSrc:$externalDir/libnode/out/Release/obj.target
 
+export NODE_PATH=$pxScene2dSrc
+
 export LD_LIBRARY_PATH=$PathR
-export RT_LOG_LEVEL=error
+export RT_LOG_LEVEL=warn
 
 #echo $LD_LIBRARY_PATH
 
