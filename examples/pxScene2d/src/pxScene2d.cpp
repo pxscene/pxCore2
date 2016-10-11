@@ -2099,7 +2099,6 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
 #if 0
-#warning " 'DEBUG_SKIP_MATRIX' is Enabled"
     FILE *myFile = fopen("/opt/snap.png", "wb");
     if( myFile != NULL)
     {
