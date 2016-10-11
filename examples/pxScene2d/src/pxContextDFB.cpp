@@ -14,7 +14,8 @@
 // #define DEBUG_SKIP_RECT
 // #define DEBUG_SKIP_IMAGE
 // #define DEBUG_SKIP_IMAGE9
-// #define DEBUG_SKIP_MATRIX
+// #define DEBUG_SKIP_MATRIX    // skip setMatrix()
+// #define DEBUG_SKIP_APPLY     // skip applyMatrix()
 
 // #define DEBUG_SKIP_DIAG_RECT
 // #define DEBUG_SKIP_DIAG_LINE
@@ -1416,6 +1417,11 @@ void pxContext::clear(int left, int top, int right, int bottom)
 
 inline void applyMatrix(IDirectFBSurface  *surface, const float *mm)
 {
+#ifdef DEBUG_SKIP_APPLY
+#warning " 'DEBUG_SKIP_APPLY' is Enabled"
+  return;
+#endif
+
   if(surface == NULL || mm == NULL)
   {
     rtLogError("cannot applyMatrix()  ... NULL params");
@@ -1424,7 +1430,9 @@ inline void applyMatrix(IDirectFBSurface  *surface, const float *mm)
 
   s32 matrix[9];
 
+#if 1
   // Convert to fixed point for DFB...
+  //
   matrix[0] = (s32)(mm[0]  * 0x10000);
   matrix[1] = (s32)(mm[4]  * 0x10000);
   matrix[2] = (s32)(mm[12] * 0x10000);
@@ -1435,6 +1443,22 @@ inline void applyMatrix(IDirectFBSurface  *surface, const float *mm)
   matrix[6] = 0x00000;
   matrix[7] = 0x00000;
   matrix[8] = 0x10000;
+#else
+  
+  // Identity Matrix ... for debugging.
+  //
+  matrix[0] = 0x10000;
+  matrix[1] = 0x00000;
+  matrix[2] = 0x00000;
+  
+  matrix[3] = 0x00000;
+  matrix[4] = 0x10000;
+  matrix[5] = 0x00000;
+  
+  matrix[6] = 0x00000;
+  matrix[7] = 0x00000;
+  matrix[8] = 0x10000;
+#endif
 
   DFB_CHECK(surface->SetMatrix(surface, matrix));
 }
