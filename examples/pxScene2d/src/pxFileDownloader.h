@@ -5,9 +5,10 @@
 #include <stdio.h>
 #include <string.h>
 
-//#include <string>
 #include "rtString.h"
 #include "rtCore.h"
+#include "pxFileCache.h"
+#include "pxHttpCache.h"
 
 using namespace std;
 
@@ -17,14 +18,16 @@ public:
     pxFileDownloadRequest(const char* imageUrl, void* callbackData) 
       : mFileUrl(imageUrl), mProxyServer(),
     mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL),
-    mDownloadedData(0), mDownloadedDataSize(),
-    mDownloadStatusCode(0), mCallbackData(callbackData), mCallbackFunctionMutex()
+    mDownloadedData(0), mDownloadedDataSize(),mHeaderData(0),
+    mHeaderDataSize(0), mDownloadStatusCode(0), mCallbackData(callbackData), mCallbackFunctionMutex()
   {} 
         
   ~pxFileDownloadRequest()
   {
     free(mDownloadedData);
     mDownloadedData = NULL;
+    free(mHeaderData);
+    mHeaderData = NULL;
   }
   
   void setFileUrl(const char* imageUrl) { mFileUrl = imageUrl; }
@@ -107,7 +110,23 @@ public:
   {
     return mDownloadedDataSize;
   }
-  
+
+  void setHeaderData(char* data, size_t size)
+  {
+    mHeaderData = data;
+    mHeaderDataSize = size;
+  }
+
+  char* getHeaderData()
+  {
+    return mHeaderData;
+  }
+
+  size_t getHeaderDataSize()
+  {
+    return mHeaderDataSize;
+  }
+
   void setDownloadStatusCode(int statusCode)
   {
     mDownloadStatusCode = statusCode;
@@ -139,6 +158,8 @@ private:
   int mDownloadStatusCode;
   void* mCallbackData;
   rtMutex mCallbackFunctionMutex;
+  char* mHeaderData;
+  size_t mHeaderDataSize;
 };
 
 class pxFileDownloader

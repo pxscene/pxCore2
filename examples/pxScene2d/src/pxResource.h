@@ -17,6 +17,7 @@
 #include "rtPromise.h"
 #include "pxTexture.h"
 #include "rtMutex.h"
+#include "pxFileCache.h"
 
 #include <map>
 class pxFileDownloadRequest;
@@ -74,7 +75,7 @@ public:
   void addListener(pxResourceListener* pListener);
   void removeListener(pxResourceListener* pListener);
   virtual void loadResource();
-  
+  virtual bool checkAndDownloadFromCache() { return false; }
 protected:   
   static void onDownloadComplete(pxFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
@@ -125,6 +126,7 @@ protected:
 private: 
 
   void loadResourceFromFile();
+  bool checkAndDownloadFromCache();
 
   pxTextureRef mTexture;
  

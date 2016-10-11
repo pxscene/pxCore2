@@ -234,9 +234,7 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     //todo read the header information before closing
     if (chunk.headerBuffer != NULL)
     {
-        //only free up header buffer because content buffer will be needed for image
-        free(chunk.headerBuffer);
-        chunk.headerBuffer = NULL;
+        downloadRequest->setHeaderData(chunk.headerBuffer, chunk.headerSize);
     }
 
     //don't free the downloaded data (contentsBuffer) because it will be used later
