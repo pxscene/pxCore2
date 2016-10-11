@@ -8,7 +8,8 @@ SRCS_FULL=\
 	pxscene2dtestsmain.cpp \
         test_example.cpp \
         test_pxcontext.cpp \
-		test_rtnode.cpp
+        test_imagecache.cpp \
+	test_rtnode.cpp
 
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PXCOREDIR=$(MAKEFILE_PATH)/../../
@@ -45,7 +46,7 @@ LDNODE   = -L$(NODEDIR)/out/Release/obj.target
 LDNODEV8 = -L$(NODEDIR)/out/Release
 LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode -lrtCore $(LDEXT) -L../../build/glut/ -lpxCore -lX11
 
-CXXFLAGS_FULL = $(CXXFLAGS) -Wno-write-strings -Wno-format-security 
+CXXFLAGS_FULL = $(CXXFLAGS) -Wno-write-strings -Wno-format-security -std=c++11
 CLAGS_FULL = $(CFLAGS)
 
 LDFLAGS_FULL = $(LDFLAGS) -lpthread

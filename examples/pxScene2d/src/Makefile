@@ -96,7 +96,9 @@ PX_SRCS_FULL=\
     pxFileDownloader.cpp \
     pxInterpolators.cpp \
     pxMatrix4T.cpp \
-    pxArchive.cpp
+    pxArchive.cpp \
+    pxFileCache.cpp \
+    pxHttpCache.cpp
 
 EXTDIR=../external
 PXCOREDIR=../../..
@@ -131,7 +133,7 @@ SEARCH=\
 
 
 #CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE
-CXXFLAGS2=-fPIC -Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN
+CXXFLAGS2=-fPIC -Wall -Wextra -std=c++11 -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN
 
 ifdef PXVERSION
 CXXFLAGS=$(CXXFLAGS2) -DPX_SCENE_VERSION=$(PXVERSION)
@@ -226,6 +228,8 @@ PXSCENE_LIB_SRCS=\
 	   pxMatrix4T.cpp \
            pxArchive.cpp \
            pxFont.cpp \
+           pxFileCache.cpp \
+           pxHttpCache.cpp \
            rtNode.cpp \
            rtUrlUtils.cpp \
            linux/rtMutexNative.cpp \
@@ -278,6 +282,8 @@ PXWAYLAND_LIB_SRCS=\
            pxMatrix4T.cpp \
            pxArchive.cpp \
            pxFont.cpp \
+           pxFileCache.cpp \
+           pxHttpCache.cpp \
            rtUrlUtils.cpp \
            linux/rtMutexNative.cpp \
            linux/rtThreadPoolNative.cpp \
@@ -457,7 +463,7 @@ pxscene-with-so-dfb: cleansceneobj $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIB
 libpxscene.so:
 	rm -rf $(OBJDIR)
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
-libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES)
+libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -std=c++11 -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES)
 libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) -shared $(PLATFORM_LIBS) -o libpxscene.so.1.0  
 libpxscene.so: cleansceneobj $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
 	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
@@ -467,7 +473,7 @@ libpxscene.so: cleansceneobj $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMO
 libpxwayland.so: 
 	rm -rf $(OBJDIR)
 libpxwayland.so: CFLAGS_FULL = $(CFLAGS)
-libpxwayland.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
+libpxwayland.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -std=c++11 -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
 libpxwayland.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) -shared $(PLATFORM_LIBS) -o libpxwayland.so.1.0
 libpxwayland.so: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
 	$(CXX) $(PXWAYLAND_LIB_OBJS) $(LDFLAGS_FULL)
@@ -475,7 +481,7 @@ libpxwayland.so: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIB
 	ln -sf libpxwayland.so.1 libpxwayland.so
 
 libpxwayland_s.a: CFLAGS_FULL = $(CFLAGS)
-libpxwayland_s.a: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
+libpxwayland_s.a: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -std=c++11 -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
 libpxwayland_s.a: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) $(LIBRTCORE_TARGET_S) $(LIBRTREMOTE_TARGET_S)
 	$(AR) rcs -o $@ $(PXWAYLAND_LIB_OBJS)
 
