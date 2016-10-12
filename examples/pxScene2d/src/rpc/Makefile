@@ -136,9 +136,9 @@ librtRemote_s.a: $(RTRPC_OBJS)
 	$(AR) rcs -o $@ $(RTRPC_OBJS)
 
 rpcSampleApp: $(SAMPLEAPP_OBJS) librtRemote.so
-	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../ -lrtCore -lrtRemote
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) -o $@ -L./ -L../ -lrtCore -lrtRemote $(LDFLAGS)
 
 rpcSampleApp_s: $(SAMPLEAPP_OBJS) librtRemote_s.a
-	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../ -lrtCore_s -lrtRemote_s
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) -o $@ -L./ -L../ -lrtCore_s -lrtRemote_s  $(LDFLAGS)
 
 .PHONY: all debug clean

@@ -11,6 +11,7 @@ dfb: pxscene-dfb
 libs: libpxscene.so
 libs-glut: libpxscene-glut
 libs-dfbwindow: libpxscene-dfbwindow
+rtremote:  rpcSampleApp rpcSampleApp_s
 endif
 
 HAVE_WESTEROS := $(shell test -f ../external/westeros/Makefile.ubuntu && echo 1)
@@ -419,6 +420,12 @@ librtRemote.so:
 
 librtRemote_s.a:
 	$(MAKE) -C rpc/ librtRemote_s.a
+
+rpcSampleApp: librtRemote.so librtCore.so
+	$(MAKE) -C rpc/ rpcSampleApp
+
+rpcSampleApp_s: librtRemote_s.a librtCore_s.a
+	$(MAKE) -C rpc/ rpcSampleApp_s
 
 cleansceneobj:
 	rm -f $(PXSCENE_LIB_OBJS)
