@@ -133,6 +133,22 @@ rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj,
 }
 
 rtError
+rtRemoteRegisterQueueReadyHandler ( rtRemoteEnvironment* env, rtRemoteQueueReady handler, void* argp)
+{
+  env->registerQueueReadyHandler(handler, argp);
+  return RT_OK;
+}
+
+rtError
+rtRemoteProcessSingleItem(rtRemoteEnvironment* env)
+{
+  using namespace std::chrono;
+  const uint32_t dummy_timeout_to_guarantee_one_item_processing = 0;
+
+  return env->processSingleWorkItem(milliseconds(dummy_timeout_to_guarantee_one_item_processing), false, nullptr);
+};
+
+rtError
 rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
 {
 
@@ -150,7 +166,7 @@ rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
     if (e != RT_OK)
       return e;
     auto end = std::chrono::steady_clock::now();
-    time_remaining = std::chrono::milliseconds((end - start).count());
+    time_remaining -= std::chrono::milliseconds((end - start).count());
   }
   while ((time_remaining > std::chrono::milliseconds(0)) && (e == RT_OK));
 
@@ -207,4 +223,10 @@ rtError
 rtRemoteShutdown()
 {
   return rtRemoteShutdown(rtEnvironmentGetGlobal());
+}
+
+rtError
+rtRemoteProcessSingleItem()
+{
+  return rtRemoteProcessSingleItem(rtEnvironmentGetGlobal());
 }
