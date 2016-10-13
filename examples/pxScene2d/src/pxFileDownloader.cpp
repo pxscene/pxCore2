@@ -6,6 +6,7 @@
 #include <curl/curl.h>
 #include <sstream>
 #include <iostream>
+#include <pxFileCache.h>
 
 using namespace std;
 
@@ -153,6 +154,13 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, kCurlTimeoutInSeconds);
     curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
 
+    struct curl_slist *list = NULL;
+    vector<rtString>& additionalHttpHeaders = downloadRequest->getAdditionalHttpHeaders();
+    for (int headerOption = 0;headerOption < additionalHttpHeaders.size();headerOption++)
+    {
+      list = curl_slist_append(list, additionalHttpHeaders[headerOption].cString());
+    }
+    curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
     //CA certificates
     // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
    // curl_easy_setopt(curl_handle,CURLOPT_CAINFO,CA_CERTIFICATE);
@@ -172,7 +180,6 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
 
     /* get it! */
     res = curl_easy_perform(curl_handle);
-    
     downloadRequest->setDownloadStatusCode(res);
 
     /* check for errors */
@@ -192,7 +199,7 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
         }
         
         downloadRequest->setErrorString(errorStringStream.str().c_str());
-
+        curl_slist_free_all(list);
         curl_easy_cleanup(curl_handle);
         
         //clean up contents on error
@@ -228,7 +235,7 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     {
         downloadRequest->setHttpStatusCode(httpCode);
     }
-
+    curl_slist_free_all(list);
     curl_easy_cleanup(curl_handle);
 
     //todo read the header information before closing

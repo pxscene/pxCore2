@@ -4,68 +4,30 @@
 #include <sstream>
 #include "rtLog.h"
 
-/* structure to maintain the response header and contents information for HTTP request */
-struct MemoryStruct {
-    MemoryStruct()
-        : headerSize(0)
-        , headerBuffer()
-        , contentsSize(0)
-        , contentsBuffer()
-    {
-        headerBuffer = (char*)malloc(1);
-        contentsBuffer = (char*)malloc(1);
-    }
-
-  size_t headerSize;
-  char* headerBuffer;
-  size_t contentsSize;
-  char* contentsBuffer;
-};
-
-static size_t HeaderCallback(void *contents, size_t size, size_t nmemb, void *userp)
+rtHttpCacheData::rtHttpCacheData():mExpirationDate(-1),mUpdated(false),mDownloadRequest(NULL)
 {
-  size_t downloadSize = size * nmemb;
-  struct MemoryStruct *mem = (struct MemoryStruct *)userp;
-  mem->headerBuffer = (char*)realloc(mem->headerBuffer, mem->headerSize + downloadSize + 1);
-  if(mem->headerBuffer == NULL) {
-    return 0;
-  }
-  memcpy(&(mem->headerBuffer[mem->headerSize]), contents, downloadSize);
-  mem->headerSize += downloadSize;
-  mem->headerBuffer[mem->headerSize] = 0;
-
-  return downloadSize;
-}
-
-static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
-{
-  size_t downloadSize = size * nmemb;
-  struct MemoryStruct *mem = (struct MemoryStruct *)userp;
-
-  mem->contentsBuffer = (char*)realloc(mem->contentsBuffer, mem->contentsSize + downloadSize + 1);
-  if(mem->contentsBuffer == NULL) {
-    return 0;
-  }
-
-  memcpy(&(mem->contentsBuffer[mem->contentsSize]), contents, downloadSize);
-  mem->contentsSize += downloadSize;
-  mem->contentsBuffer[mem->contentsSize] = 0;
-
-  return downloadSize;
-}
-
-rtHttpCacheData::rtHttpCacheData():mExpirationDate(-1),mUpdated(false)
-{
+#ifndef USE_STD_THREADS
+  pthread_mutex_init(&mMutex, NULL);
+  pthread_cond_init(&mCond, NULL);
+#endif
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url):mUrl(url),mExpirationDate(-1),mUpdated(false)
+rtHttpCacheData::rtHttpCacheData(const char* url):mUrl(url),mExpirationDate(-1),mUpdated(false),mDownloadRequest(NULL)
 {
+#ifndef USE_STD_THREADS
+  pthread_mutex_init(&mMutex, NULL);
+  pthread_cond_init(&mCond, NULL);
+#endif
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size):mUrl(url),mExpirationDate(-1),mUpdated(false)
+rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size):mUrl(url),mExpirationDate(-1),mUpdated(false),mDownloadRequest(NULL)
 {
+#ifndef USE_STD_THREADS
+  pthread_mutex_init(&mMutex, NULL);
+  pthread_cond_init(&mCond, NULL);
+#endif
   if ((NULL != headerMetadata) && (NULL != data))
   {
     mHeaderMetaData.init(headerMetadata,strlen(headerMetadata));
@@ -73,6 +35,16 @@ rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, co
     setExpirationDate();
     mData.init(data,size);
   }
+  fp = NULL;
+}
+
+rtHttpCacheData::~rtHttpCacheData()
+{
+#ifndef USE_STD_THREADS
+    pthread_mutex_destroy(&mMutex);
+    pthread_cond_destroy(&mCond);
+#endif
+    mDownloadRequest = NULL;
   fp = NULL;
 }
 
@@ -123,11 +95,6 @@ void rtHttpCacheData::populateHeaderMap()
     }
     attribute = headerString.substr(prevpos,(pos = headerString.find_first_of("\n",prevpos))-prevpos);
   } while(pos != string:: npos);
-  for (map<rtString,rtString>::iterator iter = mHeaderMap.begin(); iter != mHeaderMap.end(); iter++)
-  {
-    printf("key[%s] value[%s] \n",iter->first.cString(),iter->second.cString());
-    fflush(stdout);
-  }
 }
 
 rtString rtHttpCacheData::expirationDate()
@@ -200,13 +167,29 @@ rtError rtHttpCacheData::data(rtData& data)
 
   if (mHeaderMap.end() != mHeaderMap.find("ETag"))
   {
-    bool isUpdated = isDataUpdatedInServer();
-    if (isUpdated)
+    mDownloadRequest = new pxFileDownloadRequest(mUrl, this);
+    // setup for asynchronous load and callback
+    mDownloadRequest->setCallbackFunction(rtHttpCacheData::onDownloadComplete);
+    rtString headerOption = "If-None-Match:";
+    headerOption.append(mHeaderMap["ETag"].cString());
+    vector<rtString> headers;
+    headers.push_back(headerOption);
+    mDownloadRequest->setAdditionalHttpHeaders(headers);
+    pxFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
+#ifdef USE_STD_THREADS
+    std::unique_lock<std::mutex> lock(mMutex);
+    mCond.wait(lock);
+#else
+    pthread_mutex_lock(&mMutex);
+    pthread_cond_wait(&mCond, &mMutex);
+    pthread_mutex_unlock(&mMutex);
+#endif
+    // mutex lock
+    if (mUpdated)
     {
       populateHeaderMap();
       setExpirationDate();
       data.init(mData.data(),mData.length());
-      mUpdated = true;
       fclose(fp);
       return RT_OK;
     }
@@ -256,9 +239,9 @@ rtError rtHttpCacheData::url(rtString& url)
 
 rtError rtHttpCacheData::etag(rtString& tag) //returns the etag (if available)
 {
-  if (mHeaderMap.end() != mHeaderMap.find("Etag"))
+  if (mHeaderMap.end() != mHeaderMap.find("ETag"))
   {
-    tag = mHeaderMap["Etag"];   	
+    tag = mHeaderMap["ETag"];
     return RT_OK;
   }
   return RT_ERROR;
@@ -272,11 +255,6 @@ bool rtHttpCacheData::isUpdated()
 void rtHttpCacheData::setFilePointer(FILE* openedDescriptor)
 {
   fp = openedDescriptor;
-}
-
-void rtHttpCacheData::setProxy(rtString& proxyServer)
-{
-  mProxyServer = proxyServer;
 }
 
 void rtHttpCacheData::setExpirationDate()
@@ -309,100 +287,29 @@ void rtHttpCacheData::setExpirationDate()
   }
 }
 
-bool rtHttpCacheData::isDataUpdatedInServer()
+// Static callback that gets called when fileDownloadRequest completes
+void rtHttpCacheData::onDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
 {
-  CURL *curl_handle;
-  CURLcode res = CURLE_OK;
-
-  curl_global_init(CURL_GLOBAL_ALL);
-  curl_handle = curl_easy_init();
-
-  if (NULL == curl_handle)
-    return false;
-
-  bool isUpdated = false;
-  struct curl_slist *list = NULL;
-  bool useProxy = !mProxyServer.isEmpty();
-  MemoryStruct chunk;
-  long int httpCode = -1;
-
-   /* specify URL to get */
-  rtLogInfo("Url for curl request [%s]",mUrl.cString());
-  curl_easy_setopt(curl_handle, CURLOPT_URL, mUrl.cString());
-  curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1); //when redirected, follow the redirections
-  curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, HeaderCallback);
-  curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)&chunk);
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
-  curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 30);
-  curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
-  curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
-  curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, true);
-  curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-
-  if (useProxy)
+  if (fileDownloadRequest != NULL && fileDownloadRequest->getCallbackData() != NULL)
   {
-      curl_easy_setopt(curl_handle, CURLOPT_PROXY, mProxyServer.cString());
-      curl_easy_setopt(curl_handle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+    rtHttpCacheData* callbackData = (rtHttpCacheData*) fileDownloadRequest->getCallbackData();
+    if (NULL != callbackData)
+    {
+      if (fileDownloadRequest->getDownloadStatusCode() == 0 &&
+          fileDownloadRequest->getHttpStatusCode() == 200)
+      {
+        if (fileDownloadRequest->getHeaderData() != NULL)
+          callbackData->mHeaderMetaData.init(fileDownloadRequest->getHeaderData(), fileDownloadRequest->getHeaderDataSize());
+        if (fileDownloadRequest->getDownloadedData() != NULL)
+          callbackData->mData.init(fileDownloadRequest->getDownloadedData(), fileDownloadRequest->getDownloadedDataSize());
+        callbackData->mUpdated = true;
+      }
+    }
+    #ifdef USE_STD_THREADS
+    callbackData->mCond.notify_one();
+    #else
+    pthread_mutex_unlock(&callbackData->mMutex);
+    pthread_cond_signal(&callbackData->mCond);
+    #endif
   }
-
-  string headerOption = "If-None-Match:";
-  headerOption.append(mHeaderMap["ETag"].cString());
-  list = curl_slist_append(list, headerOption.c_str());
-  curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
-
-  /* get it! */
-  res = curl_easy_perform(curl_handle);
- 
-  /* check for errors */
-  if (res != CURLE_OK) 
-  {
-       stringstream errorStringStream;
-       
-       errorStringStream << "Download error for: " << mUrl.cString()
-               << ".  Error code : " << res << ".  Using proxy: ";
-       if (useProxy)
-       {
-           errorStringStream << "true - " << mProxyServer.cString();
-       }
-       else
-       {
-           errorStringStream << "false";
-       }
-   
-       goto exit;    
-   }
-
-   if (curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &httpCode) == CURLE_OK)
-   {
-     rtLogInfo("http code from server for image stored in cache(%d)",httpCode);
-     if (200 == httpCode)
-     {
-       if (chunk.headerBuffer != NULL)
-       {
-         mHeaderMetaData.init(chunk.headerBuffer, chunk.headerSize);
-       }
-       if (chunk.contentsBuffer != NULL)
-       {
-         mData.init(chunk.contentsBuffer, chunk.contentsSize);
-       }
-       isUpdated = true;
-     }
-   }
-
-exit:
-   curl_easy_cleanup(curl_handle);
-
-   if (chunk.contentsBuffer != NULL)
-   {
-      free(chunk.contentsBuffer);
-      chunk.contentsBuffer = NULL;
-   }
-  
-   if (chunk.headerBuffer != NULL)
-   {
-      free(chunk.headerBuffer);
-      chunk.headerBuffer = NULL;
-   }
-   return isUpdated;
 }

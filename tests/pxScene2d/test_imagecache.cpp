@@ -256,7 +256,7 @@ TEST_F(rtImageResourceTest, checkCacheTests)
   checkAndDownloadCacheDataUnAvailableTest();
   checkAndDownloadCacheDataImproperAvailableTest();
   checkAndDownloadCacheDataExpiredAvailableTest();
-  // checkAndDownloadCacheDataProperAvailableTest(); // jpeg version mismatch causing test fail
+  checkAndDownloadCacheDataProperAvailableTest();
 }
 
 
@@ -387,7 +387,7 @@ TEST_F(rtHttpCacheTest, httpCacheCompleteTest)
   expirationDateTest();
   dataWritableToCacheTrueTest();
   dataWritableToCacheFalseTest();
-  //setAttributesTest(); //attributes map size coming wrong with difference by 1 causing test fail
+  setAttributesTest();
   setDataTest();
   setHeaderTest();
 }

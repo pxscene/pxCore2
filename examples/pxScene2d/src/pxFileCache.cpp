@@ -3,7 +3,7 @@
 #include <pxUtil.h> 
 #include <string.h>
 #include <sstream>
-
+#include <dirent.h>
 #define DEFAULT_MAX_CACHE_SIZE 20971520
 
 rtFileCache* rtFileCache::getInstance()
@@ -28,13 +28,8 @@ rtFileCache* rtFileCache::mCache = NULL;
 rtFileCache::rtFileCache():mMaxSize(DEFAULT_MAX_CACHE_SIZE),mCurrentSize(0),mDirectory("/tmp/cache")
 {
   mFileSizeMap.clear();
-  struct stat st = {0};
-
-  if (stat(mDirectory.cString(), &st) == -1) {
-    mkdir(mDirectory.cString(), 0777);
-  }
-  else
-    clearCache();
+  mFileTimeMap.clear();
+  initCache();
 }
 
 rtFileCache::~rtFileCache()
@@ -43,6 +38,55 @@ rtFileCache::~rtFileCache()
   mCurrentSize = 0;
   mDirectory = "";
   mFileSizeMap.clear();
+  mFileTimeMap.clear();
+}
+
+void  rtFileCache::initCache()
+{
+  struct stat st = {0};
+
+  if (stat(mDirectory.cString(), &st) == -1) {
+    mkdir(mDirectory.cString(), 0777);
+  }
+  else
+  {
+    populateExistingFiles();
+  }
+}
+
+void rtFileCache::populateExistingFiles()
+{
+  mFileTimeMap.clear();
+  mFileSizeMap.clear();
+  DIR *directory;
+  struct dirent *direntry;
+  struct stat buf;
+  int exists = 0;
+  directory = opendir(mDirectory.cString());
+
+  if (NULL == directory) {
+    return;
+  }
+
+  for (direntry = readdir(directory); direntry != NULL; direntry = readdir(directory))
+  {
+    if ((strcmp(direntry->d_name,".") !=0 ) && (strcmp(direntry->d_name,"..") != 0))
+    {
+      rtString filename = mDirectory;
+      filename.append("/");
+      filename.append(direntry->d_name);
+      exists = stat(filename.cString(), &buf);
+      if (exists < 0)
+      {
+        rtLogWarn("Reading the cache directory is failed for file(%s)",filename.cString());
+        continue;
+      }
+      mFileTimeMap[buf.st_atim.tv_sec] = direntry->d_name;
+      mFileSizeMap[direntry->d_name] = buf.st_size;
+      mCurrentSize += buf.st_size;
+    }
+  }
+  closedir(directory);
 }
 
 rtError rtFileCache::setMaxCacheSize(int64_t bytes)
@@ -70,10 +114,14 @@ rtError rtFileCache::setCacheDirectory(const char* directory)
   mDirectory = directory;
 
   struct stat st = {0};
-  if (stat(mDirectory.cString(), &st) == -1) {
+  if (stat(mDirectory.cString(), &st) == -1)
+  {
     mkdir(mDirectory.cString(), 0777);
   }
-
+  else
+  {
+    populateExistingFiles();
+  }
   return RT_OK;
 }
 
@@ -99,8 +147,19 @@ rtError rtFileCache::removeData(const char* url)
       rtLogWarn("!!! deletion of cache failed for url(%s)",url);
       return RT_ERROR;
     }
-    mCurrentSize = mCurrentSize - mFileSizeMap[url];
-    mFileSizeMap.erase(url);
+    mCurrentSize = mCurrentSize - mFileSizeMap[filename];
+    mFileSizeMap.erase(filename);
+    map<time_t,rtString>::iterator iter = mFileTimeMap.begin();
+    while (iter != mFileTimeMap.end())
+    {
+      if (iter->second == filename.cString())
+      {
+        break;
+      }
+      iter++;
+    }
+    if (iter != mFileTimeMap.end())
+      mFileTimeMap.erase(iter);
   }
   else
   {
@@ -130,9 +189,8 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
   bool ret = writeFile(filename,data);
   if (true != ret)
      return RT_ERROR;
-  int64_t fileSize = getFileSize(filename);
-  mCurrentSize += fileSize;
-  mFileSizeMap[url] = fileSize;
+  setFileSizeAndTime(filename);
+  mCurrentSize += mFileSizeMap[filename];
   int64_t size = cleanup();
   rtLogWarn("current size after insertion and cleanup (%d)",size);
   return RT_OK;
@@ -164,27 +222,32 @@ void rtFileCache::clearCache()
 
 int64_t rtFileCache::cleanup()
 {
-  if ( (mCurrentSize > mMaxSize) && !(mFileSizeMap.empty()))
+  if ( (mCurrentSize > mMaxSize) && !(mFileTimeMap.empty()))
   {
-    map<rtString,int64_t>::iterator iter = mFileSizeMap.begin();
-   
+    map<time_t,rtString>::iterator iter = mFileTimeMap.begin();
+    vector <time_t> timeMapIters;
     do
     {
-      rtString filename = getHashedFileName(iter->first);
+      rtString filename = iter->second;
       if (! filename.isEmpty())
       {
-        if(false == deleteFile(filename))
-        {
-          rtLogWarn("!!! deletion of cache failed during cleanup for url(%s)",iter->first.cString());
-        }
-        else
-        {
-	  mCurrentSize = mCurrentSize - iter->second;
-          mFileSizeMap.erase(iter);
-        }
+          if(false == deleteFile(filename))
+          {
+            rtLogWarn("!!! deletion of cache failed during cleanup for file(%s)",filename.cString());
+          }
+          else
+          {
+            mCurrentSize = mCurrentSize - mFileSizeMap[filename];
+            timeMapIters.push_back(iter->first);
+            mFileSizeMap.erase(filename);
+          }
       }
       iter++;
-    } while ((mCurrentSize > mMaxSize) && (iter != mFileSizeMap.end()));
+    } while ((mCurrentSize > mMaxSize) && (iter != mFileTimeMap.end()));
+
+    for (int count =0; count < timeMapIters.size(); count++)
+      mFileTimeMap.erase(timeMapIters[count]);
+    timeMapIters.clear();
   }
   return mCurrentSize;
 }
@@ -197,18 +260,18 @@ rtString rtFileCache::getHashedFileName(const rtString& url)
   return stream.str().c_str();
 }
 
-int64_t rtFileCache::getFileSize(rtString& filename)
+void rtFileCache::setFileSizeAndTime(rtString& filename)
 {
-  if (mDirectory.isEmpty())
-    return 0;
-  struct stat statbuf;
-  int64_t size = 0;
-  rtString absPath  = getAbsPath(filename);
-  if (stat(absPath.cString(), &statbuf) == 0)
+  if (!mDirectory.isEmpty())
   {
-    size = statbuf.st_size;
+    struct stat statbuf;
+    rtString absPath  = getAbsPath(filename);
+    if (stat(absPath.cString(), &statbuf) == 0)
+    {
+      mFileSizeMap[filename] = statbuf.st_size;
+      mFileTimeMap[statbuf.st_atim.tv_sec] = filename;
+    }
   }
-  return size;
 }
 
 bool rtFileCache::writeFile(rtString& filename,const rtHttpCacheData& cacheData)

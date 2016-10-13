@@ -6,6 +6,7 @@
 #include "rtValue.h"
 #include <map>
 #include <time.h>
+#include <pxFileDownloader.h>
 
 using namespace std;
 
@@ -16,6 +17,7 @@ class rtHttpCacheData
     rtHttpCacheData(const char* url);
     rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size=0);
 
+    ~rtHttpCacheData();
     /* returns the expiration date of the cache data in localtime */
     rtString expirationDate();
 
@@ -57,7 +59,7 @@ class rtHttpCacheData
 
     void setFilePointer(FILE* fp);
 
-    void setProxy(rtString& proxy);
+    static void onDownloadComplete(pxFileDownloadRequest* downloadRequest);
   private:
     /* populates the map with header attribute and value */
     void populateHeaderMap();
@@ -65,9 +67,6 @@ class rtHttpCacheData
     /* set the expiration date of cache data based on max-age and expires field in header */
     void setExpirationDate();
 
-    /* send new http request to verify the updates on data */
-    bool isDataUpdatedInServer();
- 
     rtString mUrl;
     rtData mHeaderMetaData;
     rtData mData;
@@ -76,6 +75,13 @@ class rtHttpCacheData
     time_t mExpirationDate;
     FILE* fp;
     bool mUpdated;
-    rtString mProxyServer;
+#ifdef USE_STD_THREADS
+    std::mutex mMutex;
+    std::condition_variable mCond;
+#else
+    pthread_mutex_t mMutex;
+    pthread_cond_t mCond;
+#endif
+    pxFileDownloadRequest* mDownloadRequest;
 };
 #endif

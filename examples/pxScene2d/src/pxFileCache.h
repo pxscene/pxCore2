@@ -50,11 +50,14 @@ class rtFileCache
     rtFileCache();
     ~rtFileCache();
 
+    /* initialize the cache */
+    void initCache();
+
     /* cleans the cache till the size is more than cache data size and return the new size */
     int64_t cleanup(); 
 
-    /* get the file size in bytes associated with the file */
-    int64_t getFileSize(rtString& filename);
+    /* set the file size and time associated with the file */
+    void setFileSizeAndTime(rtString& filename);
 
     /* calculates and returns the hash value of the url */
     rtString getHashedFileName(const rtString& url);
@@ -71,11 +74,15 @@ class rtFileCache
     /* returns the filename in absolute path format */
     rtString getAbsPath(rtString& filename);
 
+    /* populate the existing files in cache along with size in mFileSizeMap */
+    void populateExistingFiles();
+
     /* member variables */
     int64_t mMaxSize;
     int64_t mCurrentSize;
     rtString mDirectory;
     hash<string> hashFn;
+    map<time_t,rtString> mFileTimeMap;
     map<rtString,int64_t> mFileSizeMap;
     static rtFileCache* mCache;
 };
