@@ -47,7 +47,6 @@ class rtObjectRef;
 class rtObjectBase
 {
 public:
-  virtual ~rtObjectBase() { }
 
   template<typename T>
     rtError get(const char* name, T& value) const;
@@ -135,7 +134,6 @@ public:
 class rtFunctionBase
 {
 public:
-  virtual ~rtFunctionBase() { }
   rtError send();
   rtError send(const rtValue& arg1);
   rtError send(const rtValue& arg1, const rtValue& arg2);
@@ -192,7 +190,6 @@ class rtObjectRef: public rtRefT<rtIObject>, public rtObjectBase
 
   // operator= is not inherited
   rtObjectRef& operator=(rtIObject* o) { asn(o); return *this; }
-  virtual ~rtObjectRef() { }
 
  private:
   virtual rtError Get(const char* name, rtValue* value) const;
@@ -206,7 +203,6 @@ class rtFunctionRef: public rtRefT<rtIFunction>, public rtFunctionBase
  public:
   rtFunctionRef() {}
   rtFunctionRef(const rtIFunction* f) { asn(f); }
-  virtual ~rtFunctionRef() { }
 
   // operator= is not inherited
   rtFunctionRef& operator=(rtIFunction* f) { asn(f); return *this; }
