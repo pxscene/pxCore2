@@ -26,6 +26,15 @@ rtEnvironmentGetGlobal();
 rtRemoteEnvironment*
 rtEnvironmentFromFile(char const* configFile);
 
+typedef void (*rtRemoteQueueReady)(void*);
+/**
+ * Register a handler to be called when item is ready to be processed
+ * @param handler the handler to be called by rtRemote
+ * @param argp context to pass to the handler
+ * @returns RT_OK for success
+ */
+rtError
+rtRemoteRegisterQueueReadyHandler ( rtRemoteEnvironment* env, rtRemoteQueueReady handler, void* argp);
 
 /**
  * Initailize the rtRemote sub-system
@@ -61,6 +70,13 @@ rtError
 rtRemoteShutdown(rtRemoteEnvironment* env);
 
 /**
+ * Processes a single queue item. This is an API to be called from main loop from queue callback.
+ * @returns RT_OK for success
+ */
+rtError
+rtRemoteProcessSingleItem(rtRemoteEnvironment* env);
+
+/**
  * Same as rtRemoteRunOnce, except that it will dispatch messages until the timout
  * is expired. Timeout duration is in milliseconds.
  * @param timeout The amount of time to run this function. Use RT_REMOTE_TIMEOUT_INIFINITE
@@ -84,6 +100,10 @@ rtRemoteLocateObject(char const* id, rtObjectRef& obj, int timeout = 3000);
 
 rtError
 rtRemoteShutdown();
+
+rtError
+rtRemoteProcessSingleItem();
+
 #endif
 
 #endif
