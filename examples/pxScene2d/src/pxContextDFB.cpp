@@ -433,6 +433,14 @@ public:
           d->r = (d->r * d->a)/255;
           d->g = (d->g * d->a)/255;
           d->b = (d->b * d->a)/255;
+          
+//JUNK SWIZZLE
+          float b = d->b;
+          
+          d->b = d->r;
+          d->r = b;          
+//JUNK SWIZZLE
+          
           d++;
         }
     }
@@ -1241,15 +1249,13 @@ static void drawImage92(float x,  float y,  float w,  float h,
   // TOP ROW
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  int k = 1; // HACK to prevent Zero dimensioned rectangles.
+  srcUL.w = x1;                    srcUM.w = iw - (x1 + x2);        srcUR.w = x2;
+  srcUL.h = y1;                    srcUM.h = srcUL.h;               srcUR.h = srcUL.h;
+  srcUL.x = 0;                     srcUM.x = x1;                    srcUR.x = srcUM.x + srcUM.w;
+  srcUL.y = 0;                     srcUM.y = srcUL.y;               srcUR.y = srcUL.y;
 
-  srcUL.w = x1;                    srcUM.w = (x2 - x1) + k;         srcUR.w = iw - x2;
-  srcUL.h = y1;                    srcUM.h = y1;                    srcUR.h = y1;
-  srcUL.x = 0;                     srcUM.x = x1;                    srcUR.x = x2;
-  srcUL.y = 0;                     srcUM.y = 0;                     srcUR.y = 0;
-
-  dstUL.w = x1;                    dstUM.w = w - (iw - x2) - x1;    dstUR.w = (iw - x2);
-  dstUL.h = y1;                    dstUM.h = y1;                    dstUR.h = y1;
+  dstUL.w = x1;                    dstUM.w = w - (x1 + x2);         dstUR.w = x2;
+  dstUL.h = y1;                    dstUM.h = dstUL.h;               dstUR.h = dstUL.h;
   dstUL.x = x;                     dstUM.x = dstUL.x + dstUL.w;     dstUR.x = dstUM.x + dstUM.w;
   dstUL.y = y;                     dstUM.y = dstUL.y;               dstUR.y = dstUL.y;
 
@@ -1257,13 +1263,13 @@ static void drawImage92(float x,  float y,  float w,  float h,
   // MIDDLE ROW
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  srcML.w = x1;                    srcMM.w = (x2 - x1) + k;        srcMR.w = (iw - x2);
-  srcML.h = (y2 - y1) + k;         srcMM.h = (y2 - y1) + k;        srcMR.h = (y2 - y1) + k;
-  srcML.x = 0;                     srcMM.x = x1;                   srcMR.x = x2;
-  srcML.y = y1;                    srcMM.y = y1 ;                  srcMR.y = y1;
+  srcML.w = srcUL.w;               srcMM.w = srcUM.w;               srcMR.w = srcUR.w;
+  srcML.h = ih - (y1 + y2);        srcMM.h = srcML.h;               srcMR.h = srcML.h;
+  srcML.x = 0;                     srcMM.x = x1;                    srcMR.x = srcMM.x + srcMM.w;
+  srcML.y = y1;                    srcMM.y = srcML.y;               srcMR.y = srcML.y;
 
   dstML.w = dstUL.w;               dstMM.w = dstUM.w;              dstMR.w = dstUR.w;
-  dstML.h = h - (ih - y2) - y1;    dstMM.h = dstML.h;              dstMR.h = dstML.h;
+  dstML.h = h - (y1 + y2);         dstMM.h = dstML.h;               dstMR.h = dstML.h;
   dstML.x = dstUL.x;               dstMM.x = dstUM.x;              dstMR.x = dstUR.x;
   dstML.y = dstUL.y + dstUL.h;     dstMM.y = dstUM.y + dstUM.h;    dstMR.y = dstUR.y + dstUR.h;
 
@@ -1271,13 +1277,13 @@ static void drawImage92(float x,  float y,  float w,  float h,
   // BOTTOM ROW
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  srcBL.w = x1;                    srcBM.w = (x2 - x1) + k;        srcBR.w = (iw - x2);
-  srcBL.h = (ih - y2);             srcBM.h = (ih - y2);            srcBR.h = (ih - y2);
-  srcBL.x = 0;                     srcBM.x = x1;                   srcBR.x = x2;
-  srcBL.y = y2;                    srcBM.y = y2;                   srcBR.y = y2;
+  srcBL.w = srcML.w;               srcBM.w = srcMM.w;               srcBR.w = srcMR.w;
+  srcBL.h = y2;                    srcBM.h = srcBL.h;               srcBR.h = srcBM.h; 
+  srcBL.x = 0;                     srcBM.x = x1;                    srcBR.x = srcBM.x + srcBM.w;
+  srcBL.y = (ih - y2);             srcBM.y = srcBL.y;               srcBR.y = srcBL.y;
 
-  dstBL.w = dstUL.w;               dstBM.w = dstMM.w;              dstBR.w = dstMR.w;
-  dstBL.h = (ih - y2);             dstBM.h = dstBL.h;              dstBR.h = dstBL.h;
+  dstBL.w = dstML.w;               dstBM.w = dstMM.w;               dstBR.w = dstMR.w;
+  dstBL.h = y2;                    dstBM.h = dstBL.h;               dstBR.h = dstBL.h;
   dstBL.x = dstUL.x;               dstBM.x = dstMM.x;              dstBR.x = dstMR.x;
   dstBL.y = dstML.y + dstML.h;     dstBM.y = dstMM.y + dstMM.h;    dstBR.y = dstMR.y + dstMR.h;
 
@@ -1290,10 +1296,10 @@ static void drawImage92(float x,  float y,  float w,  float h,
 #ifndef DEBUG_SKIP_BLIT
 
   //                                   UPPER ROW              MIDDLE ROW            BOTTOM ROW
-  const DFBRectangle src[9] = {srcUL, srcUM, srcUR,    srcML, srcMM, srcMR,    srcBL, srcBM, srcBR };
-  const DFBRectangle dst[9] = {dstUL, dstUM, dstUR,    dstML, dstMM, dstMR,    dstBL, dstBM, dstBR };
+  const DFBRectangle src[] = { srcUL, srcUM, srcUR,   srcML, srcMM, srcMR,    srcBL, srcBM, srcBR };
+  const DFBRectangle dst[] = { dstUL, dstUM, dstUR,   dstML, dstMM, dstMR,    dstBL, dstBM, dstBR };
 
-  DFB_CHECK(boundFramebuffer->BatchStretchBlit(boundFramebuffer, boundTexture, &src[0], &dst[0], 9));
+  DFB_CHECK(boundFramebuffer->BatchStretchBlit(boundFramebuffer, boundTexture, src, dst, sizeof(src)/sizeof(DFBRectangle) ));
 #endif
 }
 
