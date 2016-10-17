@@ -4,7 +4,7 @@
 #include <sstream>
 #include "rtLog.h"
 
-rtHttpCacheData::rtHttpCacheData():mExpirationDate(-1),mUpdated(false),mDownloadRequest(NULL)
+rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false),mDownloadRequest(NULL),mDownloadFailed(false)
 {
 #ifndef USE_STD_THREADS
   pthread_mutex_init(&mMutex, NULL);
@@ -13,7 +13,7 @@ rtHttpCacheData::rtHttpCacheData():mExpirationDate(-1),mUpdated(false),mDownload
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url):mUrl(url),mExpirationDate(-1),mUpdated(false),mDownloadRequest(NULL)
+rtHttpCacheData::rtHttpCacheData(const char* url):mUrl(url),mExpirationDate(0),mUpdated(false),mDownloadRequest(NULL),mDownloadFailed(false)
 {
 #ifndef USE_STD_THREADS
   pthread_mutex_init(&mMutex, NULL);
@@ -22,7 +22,7 @@ rtHttpCacheData::rtHttpCacheData(const char* url):mUrl(url),mExpirationDate(-1),
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size):mUrl(url),mExpirationDate(-1),mUpdated(false),mDownloadRequest(NULL)
+rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size):mUrl(url),mExpirationDate(0),mUpdated(false),mDownloadRequest(NULL),mDownloadFailed(false)
 {
 #ifndef USE_STD_THREADS
   pthread_mutex_init(&mMutex, NULL);
@@ -46,6 +46,7 @@ rtHttpCacheData::~rtHttpCacheData()
 #endif
     mDownloadRequest = NULL;
   fp = NULL;
+  mDownloadFailed = false;
 }
 
 void rtHttpCacheData::populateHeaderMap()
@@ -105,8 +106,16 @@ rtString rtHttpCacheData::expirationDate()
   return rtString(buffer);
 }
 
+time_t rtHttpCacheData::expirationDateUnix()
+{
+  return mExpirationDate;
+}
+
 bool rtHttpCacheData::isExpired()
 {
+  if (0 == mExpirationDate)
+    return true;
+
   time_t now = time(NULL);
   if (now >= mExpirationDate)
     return true;
@@ -165,63 +174,44 @@ rtError rtHttpCacheData::data(rtData& data)
   if (NULL == fp)
     return RT_ERROR;
 
+  populateExpirationDateFromCache();
+
+  bool revalidate =  false;
+  bool revalidateOnlyHeaders = false;
+
+  rtError res;
+  res = calculateRevalidationNeed(revalidate,revalidateOnlyHeaders);
+
+  if (RT_OK != res)
+    return res;
+
+  if (true == revalidate)
+    return performRevalidation(data);
+
+  if (true == revalidateOnlyHeaders)
+  {
+    if (RT_OK != performHeaderRevalidation())
+      return RT_ERROR;
+  }
+
   if (mHeaderMap.end() != mHeaderMap.find("ETag"))
   {
-    mDownloadRequest = new pxFileDownloadRequest(mUrl, this);
-    // setup for asynchronous load and callback
-    mDownloadRequest->setCallbackFunction(rtHttpCacheData::onDownloadComplete);
-    rtString headerOption = "If-None-Match:";
-    headerOption.append(mHeaderMap["ETag"].cString());
-    vector<rtString> headers;
-    headers.push_back(headerOption);
-    mDownloadRequest->setAdditionalHttpHeaders(headers);
-    pxFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
-#ifdef USE_STD_THREADS
-    std::unique_lock<std::mutex> lock(mMutex);
-    mCond.wait(lock);
-#else
-    pthread_mutex_lock(&mMutex);
-    pthread_cond_wait(&mCond, &mMutex);
-    pthread_mutex_unlock(&mMutex);
-#endif
-    // mutex lock
+    rtError res =  handleEtag(data);
+    if (RT_OK != res)
+      return RT_ERROR;
     if (mUpdated)
     {
-      populateHeaderMap();
-      setExpirationDate();
-      data.init(mData.data(),mData.length());
-      fclose(fp);
       return RT_OK;
     }
   }
 
-  char *contentsData = NULL;
-  char buffer[100];
-  int bytesCount = 0;
-  int totalBytes = 0;
-  while (!feof(fp))
+  if (false == readFileData())
+    return RT_ERROR;
+
+  data.init(mData.data(),mData.length());
+  if (true == revalidateOnlyHeaders)
   {
-    bytesCount = fread(buffer,1,100,fp);
-    if (NULL == contentsData)
-      contentsData = (char *)malloc(bytesCount);
-    else
-      contentsData = (char *)realloc(contentsData,totalBytes+bytesCount);
-    if (NULL == contentsData)
-    {
-      fclose(fp);
-      return RT_ERROR;
-    }
-    memcpy(contentsData+totalBytes,buffer,bytesCount);
-    totalBytes += bytesCount;
-    memset(buffer,0,100);
-  }
-  fclose(fp);
-  if (NULL != contentsData)
-  {
-    mData.init(contentsData,totalBytes);
-    free(contentsData);
-    contentsData = NULL;
-    data.init(mData.data(),mData.length());
+    mUpdated = true; //headers  modified , so rewriting the cache with new header data
   }
   return RT_OK;
 }
@@ -301,15 +291,217 @@ void rtHttpCacheData::onDownloadComplete(pxFileDownloadRequest* fileDownloadRequ
         if (fileDownloadRequest->getHeaderData() != NULL)
           callbackData->mHeaderMetaData.init(fileDownloadRequest->getHeaderData(), fileDownloadRequest->getHeaderDataSize());
         if (fileDownloadRequest->getDownloadedData() != NULL)
+        {
           callbackData->mData.init(fileDownloadRequest->getDownloadedData(), fileDownloadRequest->getDownloadedDataSize());
-        callbackData->mUpdated = true;
+          callbackData->mUpdated = true;
+        }
       }
+
+      if (fileDownloadRequest->getDownloadStatusCode() != 0)
+      {
+        callbackData->mDownloadFailed = true;
+      }
+      #ifdef USE_STD_THREADS
+      callbackData->mCond.notify_one();
+      #else
+      pthread_mutex_unlock(&callbackData->mMutex);
+      pthread_cond_signal(&callbackData->mCond);
+      #endif
     }
-    #ifdef USE_STD_THREADS
-    callbackData->mCond.notify_one();
-    #else
-    pthread_mutex_unlock(&callbackData->mMutex);
-    pthread_cond_signal(&callbackData->mCond);
-    #endif
   }
+}
+
+rtError rtHttpCacheData::calculateRevalidationNeed(bool& revalidate, bool& revalidateOnlyHeaders)
+{
+  if (isExpired())
+  {
+    if (mHeaderMap.end() != mHeaderMap.find("Cache-Control"))
+    {
+      string cacheControl = mHeaderMap["Cache-Control"].cString();
+      int pos = cacheControl.find("must-revalidate");
+      if (string::npos != pos)
+      {
+        revalidate = true;
+        return RT_OK;
+      }
+      else
+        return RT_ERROR; //expired cache data and need to be reloaded again
+    }
+  }
+
+  if (mHeaderMap.end() != mHeaderMap.find("Cache-Control"))
+  {
+    string cacheControl = mHeaderMap["Cache-Control"].cString();
+    int pos = 0,prevpos = 0;
+    while ((pos = cacheControl.find("no-cache",prevpos)) != string::npos)
+    {
+       //no-cache=<parameter>
+       printf("[%d]  [%s] [%c] \n",pos,  cacheControl.c_str(),cacheControl.at(pos+8));
+       fflush(stdout);
+       if (cacheControl.at(pos+8) == '=')
+       {
+         int noCacheEnd =  cacheControl.find_first_of(",",pos+9);
+         string parameter;
+         // no-cache can be last parameter
+         if (string::npos == noCacheEnd)
+         {
+           parameter = cacheControl.substr(pos+9);
+         }
+         else
+         {
+           parameter = cacheControl.substr(pos+9,noCacheEnd - (pos + 9));
+         }
+         printf("Erasing header [%s] \n",parameter.c_str());
+         fflush(stdout);
+         mHeaderMap.erase(parameter.c_str());
+         revalidateOnlyHeaders = true;
+         if (string::npos == noCacheEnd)
+           break;
+         prevpos = noCacheEnd;
+       }
+       else
+       {
+         //Revalidate the full contents, so download it completely newer
+         revalidate = true;
+         break;
+       }
+    }
+  }
+  return RT_OK;
+}
+
+bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downloadBody)
+{
+  pxFileDownloadRequest* mDownloadRequest = NULL;
+  mDownloadRequest = new pxFileDownloadRequest(mUrl, this);
+  // setup for asynchronous load and callback
+  mDownloadRequest->setCallbackFunction(rtHttpCacheData::onDownloadComplete);
+  mDownloadRequest->setAdditionalHttpHeaders(headers);
+  if (!downloadBody)
+    mDownloadRequest->setHeaderOnly(true);
+  pxFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
+  #ifdef USE_STD_THREADS
+  std::unique_lock<std::mutex> lock(mMutex);
+  mCond.wait(lock);
+  #else
+  pthread_mutex_lock(&mMutex);
+  pthread_cond_wait(&mCond, &mMutex);
+  pthread_mutex_unlock(&mMutex);
+  #endif
+  if (mDownloadFailed)
+     return false;
+  return true;
+}
+
+bool rtHttpCacheData::readFileData()
+{
+  char *contentsData = NULL;
+  char buffer[100];
+  int bytesCount = 0;
+  int totalBytes = 0;
+  while (!feof(fp))
+  {
+    bytesCount = fread(buffer,1,100,fp);
+    if (NULL == contentsData)
+      contentsData = (char *)malloc(bytesCount);
+    else
+      contentsData = (char *)realloc(contentsData,totalBytes+bytesCount);
+    if (NULL == contentsData)
+    {
+      fclose(fp);
+      return false;
+    }
+    memcpy(contentsData+totalBytes,buffer,bytesCount);
+    totalBytes += bytesCount;
+    memset(buffer,0,100);
+  }
+  fclose(fp);
+  if (NULL != contentsData)
+  {
+    mData.init(contentsData,totalBytes);
+    free(contentsData);
+    contentsData = NULL;
+  }
+  return true;
+}
+
+void rtHttpCacheData::populateExpirationDateFromCache()
+{
+  char buf;
+  string date;
+  while ( !feof(fp) )
+  {
+    buf = fgetc(fp);
+    if (buf == '|')
+    {
+      break;
+    }
+    date.append(1,buf);
+  }
+
+  stringstream stream(date);
+  stream >> mExpirationDate;
+}
+
+rtError rtHttpCacheData::performRevalidation(rtData& data)
+{
+  rtString headerOption = "Cache-Control: max-age=0";
+  vector<rtString> headers;
+  headers.push_back(headerOption);
+
+  if (!handleDownloadRequest(headers))
+  {
+    return RT_ERROR;
+  }
+
+  if (mUpdated)
+  {
+    populateHeaderMap();
+    setExpirationDate();
+    data.init(mData.data(),mData.length());
+    fclose(fp);
+    return RT_OK;
+  }
+  else
+  {
+    return RT_ERROR;
+  }
+}
+
+rtError rtHttpCacheData::performHeaderRevalidation()
+{
+  rtString headerOption = "Cache-Control: max-age=0";
+  vector<rtString> headers;
+  headers.push_back(headerOption);
+
+  if (!handleDownloadRequest(headers,false))
+  {
+    return RT_ERROR;
+  }
+
+  populateHeaderMap();
+  setExpirationDate();
+  return RT_OK;
+}
+
+rtError rtHttpCacheData::handleEtag(rtData& data)
+{
+  rtString headerOption = "If-None-Match:";
+  headerOption.append(mHeaderMap["ETag"].cString());
+  vector<rtString> headers;
+  headers.push_back(headerOption);
+
+  if (!handleDownloadRequest(headers))
+  {
+    return RT_ERROR;
+  }
+
+  if (mUpdated)
+  {
+    populateHeaderMap();
+    setExpirationDate();
+    data.init(mData.data(),mData.length());
+    fclose(fp);
+  }
+  return RT_OK;
 }

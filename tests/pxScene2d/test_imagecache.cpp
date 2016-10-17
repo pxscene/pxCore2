@@ -6,6 +6,7 @@
 #include "pxHttpCache.h"
 #include "pxResource.h"
 #include "rtString.h"
+#include <sstream>
 
 class commonTestFns
 {
@@ -74,7 +75,12 @@ class pxFileCacheTest : public testing::Test, public commonTestFns
       resetAndAddCacheData();
       addDataToCache("http://localhost/b.jpeg","Expires: Sun 02 Oct 2016 22:33:33 UTC","abcde",5);
       EXPECT_TRUE (rtFileCache::getInstance()->removeData("http://localhost/a.jpeg") == RT_OK); 
-      int expectedSize = strlen("Expires: Sun 02 Oct 2016 22:33:33 UTC") + 1 + strlen("abcde");
+      rtHttpCacheData data;
+      rtFileCache::getInstance()->getHttpCacheData("http://localhost/b.jpeg",data);
+      stringstream stream;
+      stream << data.expirationDateUnix();
+      string date = stream.str().c_str();
+      int expectedSize = strlen("Expires: Sun 02 Oct 2016 22:33:33 UTC") + 1 + strlen("abcde") + 1 + date.length();
       EXPECT_TRUE (rtFileCache::getInstance()->cacheSize() == expectedSize); 
     }
     
@@ -83,7 +89,12 @@ class pxFileCacheTest : public testing::Test, public commonTestFns
       resetAndAddCacheData();
       system("chmod 400 /tmp/cache");
       EXPECT_TRUE (rtFileCache::getInstance()->removeData(NULL) == RT_ERROR);
-      int expectedSize = strlen("Expires: Sun 02 Oct 2016 22:33:33 UTC") + 1 + strlen("abcde");
+      rtHttpCacheData data;
+      rtFileCache::getInstance()->getHttpCacheData("http://localhost/a.jpeg",data);
+      stringstream stream;
+      stream << data.expirationDateUnix();
+      string date = stream.str().c_str();
+      int expectedSize = strlen("Expires: Sun 02 Oct 2017 22:33:33 UTC") + 1 + strlen("abcde") + 1 + date.length(); //11 is the size of expiration date
       EXPECT_TRUE (rtFileCache::getInstance()->cacheSize() == expectedSize); 
       system("chmod 777 /tmp/cache");
     }
@@ -118,7 +129,9 @@ class pxFileCacheTest : public testing::Test, public commonTestFns
     void fileCacheAddProperUrlToCacheTest()
     {
       resetAndAddCacheData();
-      int expectedSize = strlen("Expires: Sun 02 Oct 2016 22:33:33 UTC") + 1 + strlen("abcde");
+      rtHttpCacheData data;
+      rtFileCache::getInstance()->getHttpCacheData("http://localhost/a.jpeg",data);
+      int expectedSize = strlen("Expires: Sun 02 Oct 2017 22:33:33 UTC") + 1 + + strlen("abcde") + 1 + to_string(data.expirationDateUnix()).length();
       EXPECT_TRUE (rtFileCache::getInstance()->cacheSize() == expectedSize);
     }
     
@@ -136,7 +149,7 @@ class pxFileCacheTest : public testing::Test, public commonTestFns
      void resetAndAddCacheData()
      {
        rtFileCache::getInstance()->clearCache();
-       addDataToCache("http://localhost/a.jpeg","Expires: Sun 02 Oct 2016 22:33:33 UTC\0","abcde",5);
+       addDataToCache("http://localhost/a.jpeg","Expires: Sun 02 Oct 2017 22:33:33 UTC\0","abcde",5);
      }
 };
 
@@ -164,11 +177,12 @@ class rtImageResourceTest : public testing::Test, public commonTestFns
     virtual void SetUp()
     {
       contentsData  = NULL;
+      expirationDate = 0;
     }
   
     virtual void TearDown()
     {
-      rtFileCache::getInstance()->clearCache();
+      //rtFileCache::getInstance()->clearCache();
       if (NULL != contentsData)
         free (contentsData);
       contentDataSize = 0; 
@@ -202,6 +216,7 @@ class rtImageResourceTest : public testing::Test, public commonTestFns
       readFile();
       addDataToCache("http://localhost/sampleimage.jpeg",headerData.c_str(),contentsData,contentDataSize);
       resource.setUrl("http://localhost/sampleimage.jpeg");
+      resource.checkAndDownloadFromCache();
       EXPECT_TRUE (resource.checkAndDownloadFromCache() == true);
     }
 
@@ -210,6 +225,7 @@ class rtImageResourceTest : public testing::Test, public commonTestFns
     string headerData;
     char *contentsData;
     int contentDataSize;
+    time_t expirationDate;
     void readFile();
 };
 
@@ -230,6 +246,21 @@ void rtImageResourceTest::readFile()
     }
     headerData.append(1,indChar);
   }
+
+  char buf;
+  string date;
+  while ( !feof(fp) )
+  {
+    buf = fgetc(fp);
+    if (buf == '|')
+    {
+      break;
+    }
+    date.append(1,buf);
+  }
+
+  stringstream stream(date);
+  stream >> expirationDate;
 
   while (!feof(fp) )
   {
@@ -362,7 +393,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
     void  setDataTest()
     {
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-store, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0"; 
-      const char* cacheData = "abcde"; 
+      const char* cacheData = "abcde";
       rtHttpCacheData data("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData)); 
       rtData& storedData = data.getContentsData();
       EXPECT_TRUE ( strcmp(cacheData,(const char*)storedData.data()) == 0);
@@ -371,9 +402,53 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
     void  setHeaderTest()
     {
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-store, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0"; 
-      const char* cacheData = "abcde"; 
+      const char* cacheData = "abcde";
       rtHttpCacheData data("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData)); 
       EXPECT_TRUE ( strcmp(cacheHeader,(const char*)data.getHeaderData().data()) == 0);
+    }
+
+    void nocacheCompleteResponseTest()
+    {
+      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-cache, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0"; 
+      const char* cacheData = "abcde";
+      addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
+      rtHttpCacheData data;
+      rtFileCache::getInstance()->getHttpCacheData("http://localhost/test.jpeg",data);
+      rtData contents;
+      EXPECT_TRUE (data.data(contents) == RT_ERROR); //This is test page, so verifying download is happening or not
+    }
+
+    void nocacheExpiresParamTest()
+    {
+      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-cache=Expires, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0"; 
+      const char* cacheData = "abcde";
+      addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
+      rtHttpCacheData data;
+      rtFileCache::getInstance()->getHttpCacheData("http://localhost/test.jpeg",data);
+      rtData contents;
+      EXPECT_TRUE (data.data(contents) == RT_ERROR);
+    }
+
+    void mustRevalidateUnExpiredTest()
+    {
+      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0"; 
+      const char* cacheData = "abcde";
+      addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
+      rtHttpCacheData data;
+      rtFileCache::getInstance()->getHttpCacheData("http://localhost/test.jpeg",data);
+      rtData contents;
+      EXPECT_TRUE (data.data(contents) == RT_ERROR);
+    }
+
+    void mustRevalidateExpiredTest()
+    {
+      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: public\nExpires: Mon, 10 Oct 2015 21:22:50 GMT\nContent-Type: image/jpeg\n\0"; 
+      const char* cacheData = "abcde";
+      addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
+      rtHttpCacheData data;
+      rtFileCache::getInstance()->getHttpCacheData("http://localhost/test.jpeg",data);
+      rtData contents;
+      EXPECT_TRUE (data.data(contents) == RT_ERROR);
     }
 };
 
@@ -390,4 +465,8 @@ TEST_F(rtHttpCacheTest, httpCacheCompleteTest)
   setAttributesTest();
   setDataTest();
   setHeaderTest();
+  nocacheCompleteResponseTest();
+  nocacheExpiresParamTest();
+  mustRevalidateUnExpiredTest();
+  mustRevalidateExpiredTest();
 }

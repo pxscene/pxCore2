@@ -139,7 +139,7 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     
     bool useProxy = !downloadRequest->getProxy().isEmpty();
     rtString proxyServer = downloadRequest->getProxy();
-
+    bool headerOnly = downloadRequest->getHeaderOnly();
     MemoryStruct chunk;
 
     curl_handle = curl_easy_init();
@@ -149,8 +149,11 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1); //when redirected, follow the redirections
     curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, HeaderCallback);
     curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)&chunk);
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
+    if (false == headerOnly)
+    {
+      curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+      curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
+    }
     curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, kCurlTimeoutInSeconds);
     curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
 
@@ -178,6 +181,10 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
         curl_easy_setopt(curl_handle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
     }
 
+    if (true == headerOnly)
+    {
+      curl_easy_setopt(curl_handle, CURLOPT_NOBODY, 1);
+    }
     /* get it! */
     res = curl_easy_perform(curl_handle);
     downloadRequest->setDownloadStatusCode(res);
@@ -199,7 +206,6 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
         }
         
         downloadRequest->setErrorString(errorStringStream.str().c_str());
-        curl_slist_free_all(list);
         curl_easy_cleanup(curl_handle);
         
         //clean up contents on error
@@ -245,7 +251,10 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     }
 
     //don't free the downloaded data (contentsBuffer) because it will be used later
-    downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
+    if (false == headerOnly)
+    {
+      downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
+    }
     if (!downloadRequest->executeCallback(res))
     {
       if (mDefaultCallbackFunction != NULL)
@@ -279,4 +288,3 @@ void pxFileDownloader::setDefaultCallbackFunction(void (*callbackFunction)(pxFil
 {
   mDefaultCallbackFunction = callbackFunction;
 }
-

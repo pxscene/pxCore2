@@ -20,6 +20,7 @@ class rtHttpCacheData
     ~rtHttpCacheData();
     /* returns the expiration date of the cache data in localtime */
     rtString expirationDate();
+    time_t expirationDateUnix();
 
     /* returns true if cache data is expired */
     bool isExpired(); 
@@ -59,6 +60,7 @@ class rtHttpCacheData
 
     void setFilePointer(FILE* fp);
 
+    /* callback function to get invoked on completion of http download */
     static void onDownloadComplete(pxFileDownloadRequest* downloadRequest);
   private:
     /* populates the map with header attribute and value */
@@ -66,6 +68,27 @@ class rtHttpCacheData
  
     /* set the expiration date of cache data based on max-age and expires field in header */
     void setExpirationDate();
+
+    /* calculate  any revalidation of cache data is needed based on no-cache, must-revalidate parameters */
+    rtError calculateRevalidationNeed(bool&,bool&);
+
+    /* initiate and handle download */
+    bool handleDownloadRequest(vector<rtString>& headers,bool downloadBody=true);
+
+    /* read the file data and populate it in mData. returns true on sucess and false on failure/empty data */
+    bool readFileData();
+
+    /* read the file and populate the previously calculated expiration date */
+    void populateExpirationDateFromCache();
+
+    /* perform revalidation of entire response by querying the server and populating new data */
+    rtError performRevalidation(rtData& data);
+
+    /* perform revalidation of header by querying the server and populating new data */
+    rtError performHeaderRevalidation();
+
+    /* perform etag handling */
+    rtError handleEtag(rtData& data);
 
     rtString mUrl;
     rtData mHeaderMetaData;
@@ -75,6 +98,7 @@ class rtHttpCacheData
     time_t mExpirationDate;
     FILE* fp;
     bool mUpdated;
+    bool mDownloadFailed;
 #ifdef USE_STD_THREADS
     std::mutex mMutex;
     std::condition_variable mCond;
