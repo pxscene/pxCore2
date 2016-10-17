@@ -52,6 +52,9 @@ extern rtThreadQueue gUIThreadQueue;
 #define EXITSCENELOCK()  rtWrapperSceneUpdateExit();
 #endif
 
+#define DEFAULT_V8_CONTEXT_POOL_SIZE 5
+#define DEFAULT_MAX_V8_CONTEXT_POOL_SIZE 7
+
 
 using namespace v8;
 using namespace node;
@@ -68,8 +71,12 @@ static int exec_argc;
 static const char** exec_argv;
 static rtAtomic sNextId = 100;
 
+uint32_t rtNode::sDefaultContextPoolSize = DEFAULT_V8_CONTEXT_POOL_SIZE;
+
 
 args_t *s_gArgs;
+
+extern rtNode script;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -415,7 +422,7 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char* /* a
 
     // Convert the result to an UTF8 string and print it.
     String::Utf8Value utf8(result);
-    
+
     // TODO: 
     // printf("\n retVal \"%s\" = %s\n\n",script.c_str(), *result);
     //  rtString foo ( (char *) *utf8);
@@ -455,7 +462,7 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char* /*args = NULL*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtNode::rtNode() /*: mPlatform(NULL)*/
+rtNode::rtNode() : mContextPool(), mContextPoolEnabled(false), mMaxContextPoolSize(DEFAULT_MAX_V8_CONTEXT_POOL_SIZE) /*: mPlatform(NULL)*/
 {
   char const* s = getenv("RT_TEST_GC");
   if (s && strlen(s) > 0)
@@ -492,6 +499,10 @@ rtNode::rtNode() /*: mPlatform(NULL)*/
 
   mIsolate     = Isolate::New();
   node_isolate = mIsolate; // Must come first !!
+
+#ifdef ENABLE_V8_CONTEXT_POOL
+  enableContextPool(true);
+#endif // ENABLE_V8_CONTEXT_POOL
 
   init(argc, argv);
 }
@@ -676,9 +687,9 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
     // printf("\n createContext()  >>  REFERENCE CREATED  !!!!!!");
 
     mRefContext = new rtNodeContext(mIsolate);
-
+    
     ctxref = mRefContext;
-
+    
     static std::string sandbox_path;
 
     if(sandbox_path.empty()) // only once.
@@ -697,22 +708,101 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
     {
       rtLogError("## ERROR:   Could not find \"%s\" ...", sandbox_path.c_str());
     }
-
+#ifdef ENABLE_V8_CONTEXT_POOL
+    for (unsigned int i = 0; i < sDefaultContextPoolSize; i++)
+    {
+      ctxref = new rtNodeContext(mIsolate, mRefContext);
+      addToContextPool(ctxref.getPtr());
+    }
+    ctxref = getContextFromPool();
+#else
     ctxref = new rtNodeContext(mIsolate, mRefContext);
+#endif //ENABLE_V8_CONTEXT_POOL
   }
   else
   {
     // printf("\n createContext()  >>  CLONE CREATED !!!!!!");
 
+#ifdef ENABLE_V8_CONTEXT_POOL
+    ctxref = getContextFromPool();
+#else
     ctxref = new rtNodeContext(mIsolate, mRefContext); // CLONE !!!
+#endif //ENABLE_V8_CONTEXT_POOL
   }
 #else
-
     ctxref = new rtNodeContext(mIsolate);
 
 #endif
 
   return ctxref;
+}
+
+rtError rtNode::addToContextPool(rtNodeContext* context)
+{
+  if (mContextPoolEnabled && mContextPool.size() < mMaxContextPoolSize)
+  {
+    mContextPool.push_back(context);
+    return RT_OK;
+  }
+  return RT_FAIL;
+}
+
+rtNodeContextRef rtNode::getContextFromPool()
+{
+  rtNodeContextRef ctxref;
+  if (mContextPool.size() > 0)
+  {
+    ctxref = mContextPool.at(mContextPool.size() - 1);
+    mContextPool.pop_back();
+  }
+  else
+  {
+    ctxref = new rtNodeContext(mIsolate, mRefContext);
+  }
+  return ctxref;
+}
+
+void rtNode::enableContextPool(bool enable)
+{
+  mContextPoolEnabled = enable;
+}
+
+bool rtNode::isContextPoolEnabled()
+{
+  return mContextPoolEnabled;
+}
+
+rtError rtNode::setMaxContextPoolSize(uint32_t size)
+{
+  mMaxContextPoolSize = size;
+  return RT_OK;
+}
+
+rtError rtNode::setDefaultContextPoolSize(uint32_t size)
+{
+  sDefaultContextPoolSize = size;
+  return RT_OK;
+}
+
+unsigned long rtNodeContext::Release()
+{
+    long l = rtAtomicDec(&mRefCount);
+    if (l == 0)
+    {
+#ifdef ENABLE_V8_CONTEXT_POOL
+      if (script.addToContextPool(this) == RT_OK)
+      {
+        //rtLogDebug("adding context back to context pool");
+      }
+      else
+      {
+        delete this;
+      }
+#else 
+     delete this;
+#endif // ENABLE_V8_CONTEXT_POOL
+    }
+    return l;
 }
 
 

@@ -76,12 +76,7 @@ public:
     return rtAtomicInc(&mRefCount);
   }
 
-  unsigned long Release()
-  {
-    long l = rtAtomicDec(&mRefCount);
-    if (l == 0) delete this;
-    return l;
-  }
+  unsigned long Release();
 
   const char   *js_file;
   std::string   js_script;
@@ -122,6 +117,12 @@ public:
   v8::Isolate   *getIsolate() { return mIsolate; };
   void garbageCollect();
   void setAllocatedMemoryAmountForContexts(int64_t sizeInBytes);
+  rtError addToContextPool(rtNodeContext* context);
+  rtNodeContextRef getContextFromPool();
+  void enableContextPool(bool enable);
+  bool isContextPoolEnabled();
+  rtError setMaxContextPoolSize(uint32_t size);
+  static rtError setDefaultContextPoolSize(uint32_t size);
 private:
   void init(int argc, char** argv);
   void term();
@@ -137,6 +138,12 @@ private:
 #ifdef USE_CONTEXTIFY_CLONES
   rtNodeContextRef mRefContext;
 #endif
+
+  vector<rtNodeContextRef> mContextPool;
+  bool mContextPoolEnabled;
+  uint32_t mMaxContextPoolSize;
+
+  static uint32_t sDefaultContextPoolSize;
 
   bool mTestGc;
 };

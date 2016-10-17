@@ -97,6 +97,7 @@ protected:
 
   virtual void onCloseRequest() 
   {
+    script.enableContextPool(false);
     ENTERSCENELOCK();
     if (mView)
       mView->onCloseRequest();
