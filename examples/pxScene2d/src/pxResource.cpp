@@ -229,11 +229,6 @@ bool rtImageResource::checkAndDownloadFromCache()
   rtError err;
   if ((NULL != rtFileCache::getInstance) && (RT_OK == rtFileCache::getInstance()->getHttpCacheData(mUrl,cachedData)))
   {
-    if (cachedData.isExpired())
-    {
-      return false;
-    }
-
     pxOffscreen imageOffscreen;
     rtData data;
     err = cachedData.data(data);
@@ -254,9 +249,12 @@ bool rtImageResource::checkAndDownloadFromCache()
         if (NULL == rtFileCache::getInstance)
           return false;
         rtFileCache::getInstance()->removeData(url);
-        err = rtFileCache::getInstance()->addToCache(cachedData);
-        if (RT_OK != err)
-          rtLogWarn("Adding url to cache failed ", url.cString());
+        if (cachedData.isWritableToCache())
+        {
+          err = rtFileCache::getInstance()->addToCache(cachedData);
+          if (RT_OK != err)
+            rtLogWarn("Adding url to cache failed ", url.cString());
+        }
       }
       return true;
     }
@@ -380,13 +378,16 @@ bool rtImageResource::loadResourceData(pxFileDownloadRequest* fileDownloadReques
       {
         hash<string> hashFn;
         mTexture = context.createTexture(imageOffscreen);
-        rtHttpCacheData downloadedData(mUrl,fileDownloadRequest->getHeaderData(),fileDownloadRequest->getDownloadedData(),fileDownloadRequest->getDownloadedDataSize());
-        if (downloadedData.isWritableToCache())
+        if ((fileDownloadRequest->getHttpStatusCode() != 206) && (fileDownloadRequest->getHttpStatusCode() != 302) && (fileDownloadRequest->getHttpStatusCode() != 307))
         {
-          if (NULL == rtFileCache::getInstance())
-            rtLogWarn("cache data not added");
-          else
-            rtFileCache::getInstance()->addToCache(downloadedData);
+          rtHttpCacheData downloadedData(mUrl,fileDownloadRequest->getHeaderData(),fileDownloadRequest->getDownloadedData(),fileDownloadRequest->getDownloadedDataSize());
+          if (downloadedData.isWritableToCache())
+          {
+            if (NULL == rtFileCache::getInstance())
+              rtLogWarn("cache data not added");
+            else
+              rtFileCache::getInstance()->addToCache(downloadedData);
+          }
         }
         return true;
       }

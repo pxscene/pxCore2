@@ -277,10 +277,13 @@ void rtFileCache::setFileSizeAndTime(rtString& filename)
 bool rtFileCache::writeFile(rtString& filename,const rtHttpCacheData& cacheData)
 {
   rtData data;
-  data.init(cacheData.getHeaderData().length() + cacheData.getContentsData().length() + 1);
+  string date = to_string(cacheData.expirationDateUnix());
+  data.init(cacheData.getHeaderData().length() + date.length() + 1 + cacheData.getContentsData().length() + 1);
   memcpy(data.data(),cacheData.getHeaderData().data(),cacheData.getHeaderData().length());
   memset(data.data()+cacheData.getHeaderData().length(),'|',1);
-  memcpy(data.data()+cacheData.getHeaderData().length()+1,cacheData.getContentsData().data(),cacheData.getContentsData().length());
+  memcpy(data.data()+cacheData.getHeaderData().length()+1,date.c_str(), date.length());
+  memset(data.data()+cacheData.getHeaderData().length() + date.length() + 1,'|',1);
+  memcpy(data.data()+cacheData.getHeaderData().length()+1+ date.length() + 1,cacheData.getContentsData().data(),cacheData.getContentsData().length());
   rtString absPath  = getAbsPath(filename);
   if (RT_OK != rtStoreFile(absPath.cString(),data))
     return false;

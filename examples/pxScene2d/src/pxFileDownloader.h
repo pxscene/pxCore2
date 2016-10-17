@@ -16,7 +16,7 @@ public:
       : mFileUrl(imageUrl), mProxyServer(),
     mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL),
     mDownloadedData(0), mDownloadedDataSize(),mHeaderData(0),
-    mHeaderDataSize(0), mDownloadStatusCode(0), mCallbackData(callbackData), mCallbackFunctionMutex()
+    mHeaderDataSize(0), mDownloadStatusCode(0), mCallbackData(callbackData), mCallbackFunctionMutex(),  mHeaderOnly(false)
   {
     mAdditionalHttpHeaders.clear();
   }
@@ -30,6 +30,7 @@ public:
       free(mHeaderData);
     mHeaderData = NULL;
     mAdditionalHttpHeaders.clear();
+    mHeaderOnly = false;
   }
   
   void setFileUrl(const char* imageUrl) { mFileUrl = imageUrl; }
@@ -129,6 +130,7 @@ public:
     return mHeaderDataSize;
   }
 
+  /*  Function to set additional http headers */
   void setAdditionalHttpHeaders(vector<rtString>& additionalHeaders)
   {
     mAdditionalHttpHeaders = additionalHeaders;
@@ -158,7 +160,17 @@ public:
   {
     mCallbackData = callbackData;
   }
-  
+
+  /* Function used to set to download only header or not */
+  void setHeaderOnly(bool val)
+  {
+    mHeaderOnly = val;
+  }
+
+  bool getHeaderOnly()
+  {
+    return mHeaderOnly;
+  }
 private:
   rtString mFileUrl;
   rtString mProxyServer;
@@ -173,6 +185,7 @@ private:
   char* mHeaderData;
   size_t mHeaderDataSize;
   vector<rtString> mAdditionalHttpHeaders;
+  bool mHeaderOnly;
 };
 
 class pxFileDownloader
