@@ -427,14 +427,14 @@ public:
           d->r = (d->r * d->a)/255;
           d->g = (d->g * d->a)/255;
           d->b = (d->b * d->a)/255;
-          
+
 //JUNK SWIZZLE
 #if 1
           float b = d->b;
           
           d->b = d->r;
-          d->r = b;          
-#endif                   
+          d->r = b;
+#endif
 //JUNK SWIZZLE
           
           d++;
@@ -809,8 +809,6 @@ inline void draw_SOLID(int resW, int resH, float* matrix, float alpha,
     DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
           DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_COLORIZE ) ));
        
-    boundFramebuffer->SetSrcBlendFunction(boundFramebuffer, DSBF_SRCALPHA);
-            
     boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);    
   }
   else
@@ -833,9 +831,7 @@ inline void draw_SOLID(int resW, int resH, float* matrix, float alpha,
   // Disable OPACTIY ??
   if(alpha < 0.99)
   {
-    // boundFramebuffer->SetDrawingFlags(boundFramebuffer,   DSDRAW_NOFX); //disable
-    // boundFramebuffer->SetSrcBlendFunction(boundFramebuffer,  DSBF_ONE); //disable
-    // boundFramebuffer->SetDstBlendFunction(boundFramebuffer, DSBF_ZERO); //disable
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX); //disable
   }
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   
@@ -864,9 +860,6 @@ inline void draw_TEXTURE(int resW, int resH, float* matrix, float alpha,
   {
     DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
           DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_BLEND_COLORALPHA ) ));
-       
-    boundFramebuffer->SetSrcBlendFunction(boundFramebuffer, DSBF_SRCALPHA);
-    boundFramebuffer->SetDstBlendFunction(boundFramebuffer, DSBF_INVSRCALPHA);
             
     boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);    
     boundFramebuffer->SetColor(boundFramebuffer, 255,255,255, alpha * 255 );
@@ -906,9 +899,7 @@ inline void draw_TEXTURE(int resW, int resH, float* matrix, float alpha,
   // Disable OPACTIY ??
   if(alpha < 0.99) 
   { 
-//    boundFramebuffer->SetDrawingFlags(boundFramebuffer,   DSDRAW_NOFX); //disable
-//    boundFramebuffer->SetSrcBlendFunction(boundFramebuffer,  DSBF_ONE); //disable
-//    boundFramebuffer->SetDstBlendFunction(boundFramebuffer, DSBF_ZERO); //disable
+      boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX); //disable
   }  
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1043,9 +1034,7 @@ static void drawRect2(float x, float y, float w, float h, const float* c)
   {
     DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL |  DSBLIT_BLEND_COLORALPHA | DSBLIT_COLORIZE ) ));
-       
-    boundFramebuffer->SetSrcBlendFunction(boundFramebuffer, DSBF_SRCALPHA);
-              
+
     boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);    
   } 
 
@@ -1055,6 +1044,11 @@ static void drawRect2(float x, float y, float w, float h, const float* c)
                                                            colorPM[3] * 255.0 * gAlpha));
 
   DFB_CHECK( boundFramebuffer->FillRectangle( boundFramebuffer, x, y, w, h));
+    
+  if( (colorPM[3] * gAlpha) < 0.99)
+  {              
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);    
+  } 
 }
 
 static void drawRectOutline(float x, float y, float w, float h, float lw, const float* c)
@@ -1340,10 +1334,7 @@ static void drawImage92(float x,  float y,  float w,  float h,
   {
     DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
           DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_BLEND_COLORALPHA ) ));
-       
-    boundFramebuffer->SetSrcBlendFunction(boundFramebuffer, DSBF_SRCALPHA);
-    boundFramebuffer->SetDstBlendFunction(boundFramebuffer, DSBF_INVSRCALPHA);
-            
+
     boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);    
     boundFramebuffer->SetColor( boundFramebuffer, 255,255,255, gAlpha * 255 );
   }
@@ -1351,21 +1342,19 @@ static void drawImage92(float x,  float y,  float w,  float h,
   {
     DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
             DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL ) ));    
-  }  
+  }
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   DFB_CHECK(boundFramebuffer->BatchStretchBlit(boundFramebuffer, boundTexture, src, dst, sizeof(src)/sizeof(DFBRectangle) ));
-          
+
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // Disable OPACTIY ??
   if(gAlpha < 0.99)
   {
-//    boundFramebuffer->SetDrawingFlags(boundFramebuffer,   DSDRAW_NOFX); //disable
-//    boundFramebuffer->SetSrcBlendFunction(boundFramebuffer,  DSBF_ONE); //disable
-//    boundFramebuffer->SetDstBlendFunction(boundFramebuffer, DSBF_ZERO); //disable
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX); //disable
   }
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    
+
   // Restore ?
   DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
           DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL /* DSBLIT_NOFX */ ) ));
@@ -1476,7 +1465,8 @@ void pxContext::clear(int /*w*/, int /*h*/, float* fillColor )
 
 void pxContext::clear(int left, int top, int right, int bottom)
 {
-  // TODO
+  // TODO - use FillRect(WxH, rgbClear) instead ?   Allow for a WxH clear... versus whole surface
+  // 
 #ifndef DEBUG_SKIP_CLEAR
   DFB_CHECK( boundFramebuffer->Clear( boundFramebuffer, 0x00, 0x00, 0x00, 0x00 ) ); // TRANSPARENT
 #else
