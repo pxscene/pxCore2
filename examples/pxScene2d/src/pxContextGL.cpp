@@ -21,20 +21,45 @@
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
 
 
+////////////////////////////////////////////////////////////////
+//
+// Debug macros...
+
+// NOTE:  Comment out these defines for 'normal' operation.
+//
+// #define DEBUG_SKIP_RECT
+// #define DEBUG_SKIP_IMAGE
+// #define DEBUG_SKIP_IMAGE9
+// #define DEBUG_SKIP_MATRIX    // skip setMatrix()
+// #define DEBUG_SKIP_APPLY     // skip applyMatrix()
+
+// #define DEBUG_SKIP_DIAG_RECT
+// #define DEBUG_SKIP_DIAG_LINE
+
+// #define DEBUG_SKIP_FLIPPING
+// #define DEBUG_SKIP_BLIT
+// #define DEBUG_SKIP_ALPHA_BLEND
+
+// #define DEBUG_SKIP_CLEAR  // pseudo color
+
+////////////////////////////////////////////////////////////////
+//
 // Debug Statistics
 #ifdef USE_RENDER_STATS
   extern uint32_t gDrawCalls;
   extern uint32_t gTexBindCalls;
   extern uint32_t gFboBindCalls;
 
-  #define TRACK_DRAW_CALLS()   { gDrawCalls++    }
-  #define TRACK_TEX_CALLS()    { gTexBindCalls++ }
-  #define TRACK_FBO_CALLS()    { gFboBindCalls++ }
+  #define TRACK_DRAW_CALLS()   { gDrawCalls++;    }
+  #define TRACK_TEX_CALLS()    { gTexBindCalls++; }
+  #define TRACK_FBO_CALLS()    { gFboBindCalls++; }
 #else
   #define TRACK_DRAW_CALLS()
   #define TRACK_TEX_CALLS()
   #define TRACK_FBO_CALLS()
 #endif
+
+////////////////////////////////////////////////////////////////
 
 pxContextSurfaceNativeDesc defaultContextSurface;
 pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
@@ -127,6 +152,8 @@ static const char *vShaderText =
   "}";
 
 
+//====================================================================================================================================================================================
+
 void premultiply(float* d, const float* s)
 {
   d[0] = s[0]*s[3];
@@ -134,6 +161,8 @@ void premultiply(float* d, const float* s)
   d[2] = s[2]*s[3];
   d[3] = s[3];
 }
+
+//====================================================================================================================================================================================
 
 class pxFBOTexture : public pxTexture
 {
@@ -294,21 +323,28 @@ private:
   GLuint mFramebufferId;
   GLuint mTextureId;
   bool mBindTexture;
-};
+
+};// CLASS - pxFBOTexture
+
+
+//====================================================================================================================================================================================
 
 class pxTextureNone : public pxTexture
 {
 public:
   pxTextureNone() {}
 
-  virtual pxError deleteTexture() {return PX_FAIL;}
-  virtual int width() {return 0;}
-  virtual int height() {return 0;}
+  virtual int width()                                 { return 0;}
+  virtual int height()                                { return 0;}
+  virtual pxError deleteTexture()                     { return PX_FAIL; }
   virtual pxError resizeTexture(int /*w*/, int /*h*/) { return PX_FAIL; }
   virtual pxError getOffscreen(pxOffscreen& /*o*/)    { return PX_FAIL; }
   virtual pxError bindGLTexture(int /*tLoc*/)         { return PX_FAIL; }
   virtual pxError bindGLTextureAsMask(int /*mLoc*/)   { return PX_FAIL; }
-};
+
+};// CLASS - pxTextureNone
+
+//====================================================================================================================================================================================
 
 #define MAX_TEXTURE_WIDTH 2048
 #define MAX_TEXTURE_HEIGHT 2048
@@ -499,7 +535,11 @@ private:
   bool mTextureUploaded;
   int mWidth;
   int mHeight;
-};
+
+}; // CLASS - pxTextureOffscreen
+
+
+//====================================================================================================================================================================================
 
 class pxTextureAlpha : public pxTexture
 {
@@ -642,7 +682,10 @@ private:
   GLuint mTextureId;
   bool mInitialized;
   void* mBuffer;
-};
+
+}; // CLASS - pxTextureAlpha
+
+//====================================================================================================================================================================================
 
 static GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
 {
@@ -708,6 +751,8 @@ void linkShaderProgram(GLuint program)
   }
 }
 
+//====================================================================================================================================================================================
+
 class shaderProgram
 {
 public:
@@ -741,7 +786,10 @@ protected:
   virtual void postlink() {}
 
   GLuint mProgram;
-};
+
+}; // CLASS - shaderProgram
+
+//====================================================================================================================================================================================
 
 class solidShaderProgram: public shaderProgram
 {
@@ -794,10 +842,12 @@ private:
 
   GLint mColorLoc;
   GLint mAlphaLoc;
-};
 
+}; //CLASS - solidShaderProgram
 
 solidShaderProgram *gSolidShader = NULL;
+
+//====================================================================================================================================================================================
 
 class aTextureShaderProgram: public shaderProgram
 {
@@ -860,10 +910,12 @@ private:
   GLint mAlphaLoc;
 
   GLint mTextureLoc;
-};
 
+}; //CLASS - aTextureShaderProgram
 
 aTextureShaderProgram *gATextureShader = NULL;
+
+//====================================================================================================================================================================================
 
 class textureShaderProgram: public shaderProgram
 {
@@ -927,10 +979,12 @@ private:
   GLint mAlphaLoc;
 
   GLint mTextureLoc;
-};
 
+}; //CLASS - textureShaderProgram
 
 textureShaderProgram *gTextureShader = NULL;
+
+//====================================================================================================================================================================================
 
 class textureMaskedShaderProgram: public shaderProgram
 {
@@ -998,7 +1052,8 @@ private:
 
   GLint mTextureLoc;
   GLint mMaskLoc;
-};
+
+}; //CLASS - textureMaskedShaderProgram
 
 textureMaskedShaderProgram *gTextureMaskedShader = NULL;
 
@@ -1006,12 +1061,14 @@ textureMaskedShaderProgram *gTextureMaskedShader = NULL;
 
 static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const float* c)
 {
+  // args are tested at call site...
+
   const float verts[4][2] =
   {
-    { x,y },
-    {  x+w, y },
-    {  x,  y+h },
-    {  x+w, y+h }
+    { x  , y   },
+    { x+w, y   },
+    { x  , y+h },
+    { x+w, y+h }
   };
 
   float colorPM[4];
@@ -1023,7 +1080,9 @@ static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const float* c
 
 static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw, const float* c)
 {
-   float ox1  = x;
+  // args are tested at call site...
+
+  float ox1  = x;
   float ix1  = x+lw;
   float ox2  = x+w;
   float ix2  = x+w-lw;
@@ -1057,10 +1116,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
                              pxConstantsStretch::constants xStretch,
                              pxConstantsStretch::constants yStretch)
 {
-  if (texture.getPtr() == NULL)
-  {
-    return;
-  }
+  // args are tested at call site...
 
   float iw = texture->width();
   float ih = texture->height();
@@ -1154,10 +1210,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2,
                         GLfloat y2, pxTextureRef texture)
 {
-
-  if (texture.getPtr() == NULL)
-    return;
-
+  // args are tested at call site...
 
   float ox1 = x;
   float ix1 = x+x1;
@@ -1351,6 +1404,7 @@ void pxContext::setSize(int w, int h)
   glViewport(0, 0, (GLint)w, (GLint)h);
   gResW = w;
   gResH = h;
+
   if (currentFramebuffer == defaultFramebuffer)
   {
     defaultContextSurface.width = w;
@@ -1451,10 +1505,13 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
     // TODO probably need to save off the original FBO handle rather than assuming zero
     glBindFramebuffer(GL_FRAMEBUFFER, 0);  TRACK_FBO_CALLS();
     currentFramebuffer = defaultFramebuffer;
+
     pxContextState contextState;
     currentFramebuffer->currentState(contextState);
+
     gAlpha = contextState.alpha;
     gMatrix = contextState.matrix;
+
 #ifdef PX_DIRTY_RECTANGLES
     if (currentFramebuffer->isDirtyRectanglesEnabled())
     {
@@ -1475,6 +1532,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
   currentFramebuffer->currentState(contextState);
   gAlpha = contextState.alpha;
   gMatrix = contextState.matrix;
+
 #ifdef PX_DIRTY_RECTANGLES
   if (currentFramebuffer->isDirtyRectanglesEnabled())
   {
@@ -1487,6 +1545,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
     glDisable(GL_SCISSOR_TEST);
   }
 #endif //PX_DIRTY_RECTANGLES
+
   return fbo->getTexture()->prepareForRendering();
 }
 
@@ -1518,58 +1577,119 @@ void pxContext::enableDirtyRectangles(bool enable)
 
 void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor)
 {
-  float half = lineWidth/2;
-  drawRect2(half, half, w-lineWidth, h-lineWidth, fillColor);
-  if (lineWidth > 0)
-    drawRectOutline(0, 0, w, h, lineWidth, lineColor);
-}
+#ifdef DEBUG_SKIP_RECT
+#warning "DEBUG_SKIP_RECT enabled ... Skipping "
+  return;
+#endif
 
+  // TRANSPARENT / DIMENSIONLESS 
+  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
+  {
+   // printf("\n drawRect() - TRANSPARENT");
+    return;
+  }
+
+  // COLORLESS
+  if(fillColor == NULL && lineColor == NULL || fillColor[3] == 0.0 || lineColor[3] == 0.0)
+  {
+    //rtLogError("cannot drawRect() on context surface because colors are NULL");
+    return;
+  }
+
+  // Fill ...
+  if(fillColor != NULL && fillColor[3] > 0.0) // with non-transparent color
+  {
+    float half = lineWidth/2;
+    drawRect2(half, half, w-lineWidth, h-lineWidth, fillColor);
+  }
+
+  // Frame ...
+  if(lineColor != NULL && lineColor[3] > 0.0 && lineWidth > 0) // with non-transparent color and non-zero stroke
+  {
+    drawRectOutline(0, 0, w, h, lineWidth, lineColor);
+  }
+}
 
 void pxContext::drawImage9(float w, float h, float x1, float y1,
                            float x2, float y2, pxTextureRef texture)
 {
-  if (texture.getPtr() != NULL) {
-    drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
+#ifdef DEBUG_SKIP_IMAGE9
+#warning "DEBUG_SKIP_IMAGE9 enabled ... Skipping "
+  return;
+#endif
+
+  // TRANSPARENT / DIMENSIONLESS 
+  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
+  {
+    return;
   }
+
+  // TEXTURELESS
+  if (texture.getPtr() == NULL)
+  {
+    return;
+  }
+
+  drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
 }
 
-void pxContext::drawImage(float x, float y, float w, float h, pxTextureRef t, pxTextureRef mask,
+void pxContext::drawImage(float x, float y, float w, float h,
+                          pxTextureRef t, pxTextureRef mask,
                           bool useTextureDimsAlways, float* color,
-                          pxConstantsStretch::constants stretchX, pxConstantsStretch::constants stretchY)
+                          pxConstantsStretch::constants stretchX,
+                          pxConstantsStretch::constants stretchY)
 {
 #ifdef DEBUG_SKIP_IMAGE
 #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
   return;
 #endif
 
-  if(gAlpha == 0.0)
+  // TRANSPARENT / DIMENSIONLESS 
+  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
-    return;  // INVISIBLE
+    return;
   }
 
-  if(w <= 0 || h <= 0)
-  {
-    return;  // DIMENSIONLESS
-  }
-
+  // TEXTURELESS
   if (t.getPtr() == NULL)
   {
-    return;  // TEXTURELESS
+    return;
   }
+
   float black[4] = {0,0,0,1};
-  drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways, color?color:black, stretchX, stretchY);
+  drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways,
+                  color? color : black, stretchX, stretchY);
 }
 
 void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 {
+#ifdef DEBUG_SKIP_DIAG_RECT
+#warning "DEBUG_SKIP_DIAG_RECT enabled ... Skipping "
+   return;
+#endif
+
   if (!mShowOutlines) return;
+
+  // TRANSPARENT / DIMENSIONLESS 
+  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
+  {
+    rtLogError("cannot drawDiagRect() - width/height/gAlpha cannot be Zero.");
+    return;
+  }
+
+  // COLORLESS
+  if(color == NULL || color[3] == 0.0)
+  {
+    return; 
+  }
+
 
   const float verts[4][2] =
   {
-    { x,y },
-    {  x+w, y },
-    {  x+w, y+h },
-    {  x,  y+h },
+    { x  , y   },
+    { x+w, y   },
+    { x+w, y+h },
+    { x  , y+h },
    };
 
 
@@ -1581,7 +1701,23 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 
 void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* color)
 {
+#ifdef DEBUG_SKIP_DIAG_LINE
+#warning "DEBUG_SKIP_DIAG_LINE enabled ... Skipping "
+   return;
+#endif
+
   if (!mShowOutlines) return;
+
+  if(gAlpha == 0.0)
+  {
+    return; // TRANSPARENT
+  }
+
+  if(color == NULL || color[3] == 0.0)
+  {
+    return; // COLORLESS
+  }
+
   const float verts[4][2] =
   {
     { x1, y1 },

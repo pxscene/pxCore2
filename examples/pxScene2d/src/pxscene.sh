@@ -13,17 +13,18 @@ PathD=$externalLibs:$externalDir/libnode/out/Debug/obj.target
 PathR=$externalLibs:$externalDir/libnode/out/Release/obj.target
 
 export LD_LIBRARY_PATH=$PathR
+export NODE_PATH=.
 
 #export RT_LOG_LEVEL=info
  
-#./pxscene $1 $2 $3 $4 $5 $6 $7
+./pxscene $1 $2 $3 $4 $5 $6 $7
 
 
 # Development stuff...
 #
 
 #valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./pxscene $1 $2 $3 $4 $5 $6 $7
-./pxscene $1 $2 $3 $4 $5 $6 $7
+#./pxscene $1 $2 $3 $4 $5 $6 $7
 
 #valgrind --tool=callgrind ./pxscene $1 $2
 

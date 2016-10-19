@@ -23,6 +23,8 @@
 #include "env.h"
 #include "env-inl.h"
 
+#include "jsbindings/rtWrapperUtils.h"
+
 #ifndef WIN32
 #pragma GCC diagnostic pop
 #endif
@@ -78,6 +80,7 @@ args_t *s_gArgs;
 
 extern rtNode script;
 
+rtNodeContexts  mNodeContexts;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,6 +139,8 @@ void rtNodeContext::createEnvironment()
   Local<Context> local_context = Context::New(mIsolate);
 
   local_context->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
+
+  mContextId = GetContextId(local_context);
 
   mContext.Reset(mIsolate, local_context); // local to persistent
 
@@ -228,6 +233,8 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
     Local<Context>  clone_local = node::makeContext(mIsolate, sandbox); // contextify context with 'sandbox'
     clone_local->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
 
+    mContextId = GetContextId(clone_local);
+  
     mContext.Reset(mIsolate, clone_local); // local to persistent
 
     Context::Scope context_scope(clone_local);
@@ -312,6 +319,10 @@ void rtNodeContext::add(const char *name, rtValue const& val)
   local_context->Global()->Set( String::NewFromUtf8(mIsolate, name), rt2js(local_context, val));
 }
 
+rtValue rtNodeContext::get(std::string name)
+{
+  return get( name.c_str() );
+}
 
 rtValue rtNodeContext::get(const char *name)
 {
@@ -344,6 +355,11 @@ rtValue rtNodeContext::get(const char *name)
     rtWrapperError error; // TODO - handle error
     return js2rt(local_context, object, &error);
   }
+}
+
+bool rtNodeContext::has(std::string name)
+{
+  return has( name.c_str() );
 }
 
 bool rtNodeContext::has(const char *name)
@@ -379,6 +395,24 @@ bool rtNodeContext::has(const char *name)
   return ( !value->IsUndefined() && !value->IsNull() );
 }
 
+bool rtNodeContext::find(const char *name)
+{    
+  rtNodeContexts_iterator it = mNodeContexts.begin();
+   
+  while(it != mNodeContexts.end())
+  {
+    rtNodeContextRef ctx = it->second;
+     
+    printf("\n ######## CONTEXT !!! ID: %d  %s  '%s'",
+      ctx->getContextId(), 
+      (ctx->has(name) ? "*HAS*" : "does NOT have"),
+      name);
+     
+    it++;
+  }
+  
+  printf("\n ");
+}
 
 rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NULL*/)
 {
@@ -455,6 +489,7 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char* /*args = NULL*/
   }
 
   // Read the script file
+  js_file   = file;
   js_script = readFile(file);
 
   return runScript(js_script);
@@ -575,18 +610,12 @@ void rtNode::nodePath()
     if (getcwd(cwd, sizeof(cwd)) != NULL)
     {
       ::setenv("NODE_PATH", cwd, 1); // last arg is 'overwrite' ... 0 means DON'T !
-
-      //printf("\n\n INFO: NODE_PATH = [%s] << NEW\n", cwd);
     }
     else
     {
       rtLogError(" - failed to set NODE_PATH");
     }
   }
-  // else
-  // {
-  //    printf("\nINFO:  NODE_PATH =  [%s]  <<<<< ALREADY SET !\n", NODE_PATH);
-  // }
 }
 
 void rtNode::init(int argc, char** argv)
@@ -684,8 +713,6 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
 #ifdef USE_CONTEXTIFY_CLONES
   if(mRefContext.getPtr() == NULL)
   {
-    // printf("\n createContext()  >>  REFERENCE CREATED  !!!!!!");
-
     mRefContext = new rtNodeContext(mIsolate);
     
     ctxref = mRefContext;
@@ -733,6 +760,9 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
     ctxref = new rtNodeContext(mIsolate);
 
 #endif
+    
+  // TODO: Handle refs in map ... don't leak ! 
+  // mNodeContexts[ ctxref->getContextId() ] = ctxref;  // ADD to map
 
   return ctxref;
 }

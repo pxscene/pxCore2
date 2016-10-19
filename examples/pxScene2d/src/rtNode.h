@@ -5,6 +5,9 @@
 #include "rtValue.h"
 #include "rtAtomic.h"
 
+#include <string>
+#include <map>
+
 #ifndef WIN32
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -65,7 +68,12 @@ public:
 
   void    add(const char *name, rtValue  const& val);
   rtValue get(const char *name);
+  rtValue get(std::string name);
+  
   bool    has(const char *name);
+  bool    has(std::string name);
+
+  bool   find(const char *name);
 
   rtObjectRef runScript(const char        *script,  const char *args = NULL); // BLOCKS
   rtObjectRef runScript(const std::string &script,  const char *args = NULL); // BLOCKS
@@ -84,9 +92,12 @@ public:
   v8::Isolate              *getIsolate()      const { return mIsolate; };
   v8::Local<v8::Context>    getLocalContext() const { return PersistentToLocal<v8::Context>(mIsolate, mContext); };
 
+  uint32_t                  getContextId()    const { return mContextId; };
+
 private:
   v8::Isolate                   *mIsolate;
   v8::Persistent<v8::Context>    mContext;
+  uint32_t                       mContextId;
 
   node::Environment*             mEnv;
   v8::Persistent<v8::Object>     mRtWrappers;
@@ -102,6 +113,9 @@ private:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef std::map<uint32_t, rtNodeContextRef> rtNodeContexts;
+typedef std::map<uint32_t, rtNodeContextRef>::const_iterator rtNodeContexts_iterator;
 
 class rtNode
 {
@@ -144,6 +158,8 @@ private:
   uint32_t mMaxContextPoolSize;
 
   static uint32_t sDefaultContextPoolSize;
+
+  // rtNodeContexts  mNodeContexts;
 
   bool mTestGc;
 };
