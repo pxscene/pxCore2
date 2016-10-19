@@ -204,6 +204,7 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, bo
     void* argp = nullptr;
 
     rtRemoteCorrelationKey const k = rtMessage_GetCorrelationKey(*workItem.Message);
+    rtLogDebug("got reply with key: %s", k.toString().c_str());
     auto itr = m_response_handlers.find(k);
     if (itr != m_response_handlers.end())
     {
