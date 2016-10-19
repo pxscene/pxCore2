@@ -794,9 +794,10 @@ inline void draw_SOLID(int resW, int resH, float* matrix, float alpha,
 {
   (void) resW; (void) resH; (void) src;
 
+  // TRANSPARENT
   if(!color || color[3] == 0.0)
   {
-    return; // INVISIBLE
+    return; 
   }
 
   texture->bindGLTexture(0);  // SETS >>  'boundTexture'
@@ -1027,6 +1028,8 @@ inline void draw_MASK(int resW, int resH, float* matrix, float alpha,
 
 static void drawRect2(float x, float y, float w, float h, const float* c)
 {
+  // args are tested at call site...
+
   if( boundFramebuffer == NULL)
   {
     rtLogError("cannot drawRect2() on context surface because surface is NULL");
@@ -1056,6 +1059,8 @@ static void drawRect2(float x, float y, float w, float h, const float* c)
 
 static void drawRectOutline(float x, float y, float w, float h, float lw, const float* c)
 {
+  // args are tested at call site...
+
   if( boundFramebuffer == NULL)
   {
     rtLogError("cannot drawRectOutline() on context surface because surface is NULL");
@@ -1111,10 +1116,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
                              pxConstantsStretch::constants xStretch,
                              pxConstantsStretch::constants yStretch)
 {
-  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
-  {
-    return; // INVISIBLE  /  DIMENSIONLESS
-  }
+  // args are tested at call site...
 
   if (boundFramebuffer == NULL)
   {
@@ -1682,13 +1684,6 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
   return;
 #endif
 
-  // COLORLESS
-  if(fillColor == NULL && lineColor == NULL || fillColor[3] == 0.0 || lineColor[3] == 0.0)
-  {
-    //rtLogError("cannot drawRect() on context surface because colors are NULL");
-    return;
-  }
-  
   // TRANSPARENT / DIMENSIONLESS 
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
@@ -1696,6 +1691,13 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
     return;
   }
 
+  // COLORLESS
+  if(fillColor == NULL && lineColor == NULL || fillColor[3] == 0.0 || lineColor[3] == 0.0)
+  {
+    //rtLogError("cannot drawRect() on context surface because colors are NULL");
+    return;
+  }
+  
   if(boundTexture == NULL)
   {
     rtLogError("cannot drawRect() on context surface because boundTexture is NULL");
@@ -1725,20 +1727,19 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
   return;
 #endif
 
-  if(gAlpha == 0.0)
+  // TRANSPARENT / DIMENSIONLESS 
+  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
-    return; // INVISIBLE
+    return;
+  }
+   
+  // TEXTURELESS
+  if (texture.getPtr() == NULL)
+  {
+    return;
   }
 
-  if(w <= 0 || h <= 0)
-  {
-    return; // DIMENSIONLESS
-  }
-
-  if (texture.getPtr() != NULL)
-  {
-    drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
-  }
+  drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
 }
 
 void pxContext::drawImage(float x, float y, float w, float h,
@@ -1752,19 +1753,16 @@ void pxContext::drawImage(float x, float y, float w, float h,
   return;
 #endif
 
-  if(gAlpha == 0.0)
+  // TRANSPARENT / DIMENSIONLESS 
+  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
-    return; // INVISIBLE
+    return;
   }
 
-  if(w <= 0 || h <= 0)
-  {
-    return; // DIMENSIONLESS
-  }
-
+  // TEXTURELESS
   if (t.getPtr() == NULL)
   {
-    return; // TEXTURELESS
+    return;
   }
 
   float black[4] = {0,0,0,1};
@@ -1781,20 +1779,17 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 
   if (!mShowOutlines) return;
 
-  if(gAlpha == 0.0)
+  // TRANSPARENT / DIMENSIONLESS 
+  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
-    return; // INVISIBLE
+    rtLogError("cannot drawDiagRect() - width/height/gAlpha cannot be Zero.");
+    return;
   }
 
+  // COLORLESS
   if(color == NULL || color[3] == 0.0)
   {
-    return; // COLORLESS
-  }
-
-  if(w == 0.0 || h == 0.0)
-  {
-    rtLogError("cannot drawDiagRect() - width/height cannot be Zero.");
-    return; // DIMENSIONLESS
+    return; 
   }
 
   if(boundTexture == NULL)
@@ -1841,7 +1836,7 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
 
   if(gAlpha == 0.0)
   {
-    return; // INVISIBLE
+    return; // TRANSPARENT
   }
 
   if(color == NULL || color[3] == 0.0)
