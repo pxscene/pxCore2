@@ -52,7 +52,7 @@ rtHttpCacheData::~rtHttpCacheData()
 void rtHttpCacheData::populateHeaderMap()
 {
   int pos=0,prevpos = 0;
-  string headerString = mHeaderMetaData.data();
+  string headerString((char*)mHeaderMetaData.data());
   pos = headerString.find_first_of("\n",0);
   string attribute = headerString.substr(prevpos,(pos = headerString.find_first_of("\n",prevpos))-prevpos);
   do
