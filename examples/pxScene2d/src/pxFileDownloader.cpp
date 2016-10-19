@@ -6,6 +6,7 @@
 #include <curl/curl.h>
 #include <sstream>
 #include <iostream>
+#include <pxFileCache.h>
 
 using namespace std;
 
@@ -138,7 +139,7 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     
     bool useProxy = !downloadRequest->getProxy().isEmpty();
     rtString proxyServer = downloadRequest->getProxy();
-
+    bool headerOnly = downloadRequest->getHeaderOnly();
     MemoryStruct chunk;
 
     curl_handle = curl_easy_init();
@@ -148,11 +149,21 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1); //when redirected, follow the redirections
     curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, HeaderCallback);
     curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)&chunk);
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
+    if (false == headerOnly)
+    {
+      curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+      curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
+    }
     curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, kCurlTimeoutInSeconds);
     curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
 
+    struct curl_slist *list = NULL;
+    vector<rtString>& additionalHttpHeaders = downloadRequest->getAdditionalHttpHeaders();
+    for (int headerOption = 0;headerOption < additionalHttpHeaders.size();headerOption++)
+    {
+      list = curl_slist_append(list, additionalHttpHeaders[headerOption].cString());
+    }
+    curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
     //CA certificates
     // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
    // curl_easy_setopt(curl_handle,CURLOPT_CAINFO,CA_CERTIFICATE);
@@ -170,9 +181,12 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
         curl_easy_setopt(curl_handle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
     }
 
+    if (true == headerOnly)
+    {
+      curl_easy_setopt(curl_handle, CURLOPT_NOBODY, 1);
+    }
     /* get it! */
     res = curl_easy_perform(curl_handle);
-    
     downloadRequest->setDownloadStatusCode(res);
 
     /* check for errors */
@@ -192,7 +206,6 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
         }
         
         downloadRequest->setErrorString(errorStringStream.str().c_str());
-
         curl_easy_cleanup(curl_handle);
         
         //clean up contents on error
@@ -228,19 +241,20 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     {
         downloadRequest->setHttpStatusCode(httpCode);
     }
-
+    curl_slist_free_all(list);
     curl_easy_cleanup(curl_handle);
 
     //todo read the header information before closing
     if (chunk.headerBuffer != NULL)
     {
-        //only free up header buffer because content buffer will be needed for image
-        free(chunk.headerBuffer);
-        chunk.headerBuffer = NULL;
+        downloadRequest->setHeaderData(chunk.headerBuffer, chunk.headerSize);
     }
 
     //don't free the downloaded data (contentsBuffer) because it will be used later
-    downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
+    if (false == headerOnly)
+    {
+      downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
+    }
     if (!downloadRequest->executeCallback(res))
     {
       if (mDefaultCallbackFunction != NULL)
@@ -274,4 +288,3 @@ void pxFileDownloader::setDefaultCallbackFunction(void (*callbackFunction)(pxFil
 {
   mDefaultCallbackFunction = callbackFunction;
 }
-

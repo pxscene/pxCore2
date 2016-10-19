@@ -213,6 +213,60 @@ rtError rtImageResource::h(int32_t& v) const
     v = 0;
   return RT_OK; 
 } 
+
+/**
+ * rtImageResource::checkAndDownloadFromCache()
+ *
+ * This method will check if the requested image data is present in cache.
+ *
+ * If image data present in cache, this method returns true else returns false
+ *
+ * */
+
+bool rtImageResource::checkAndDownloadFromCache()
+{
+  rtHttpCacheData cachedData(mUrl.cString());
+  rtError err;
+  if ((NULL != rtFileCache::getInstance) && (RT_OK == rtFileCache::getInstance()->getHttpCacheData(mUrl,cachedData)))
+  {
+    pxOffscreen imageOffscreen;
+    rtData data;
+    err = cachedData.data(data);
+    if (RT_OK !=  err)
+    {
+      return false;
+    }
+    rtError loadImageSuccess = pxLoadImage((char *)data.data(), data.length(), imageOffscreen);
+    if (RT_OK == loadImageSuccess)
+    {
+      mTexture = context.createTexture(imageOffscreen);
+      AddRef();
+      gUIThreadQueue.addTask(onDownloadCompleteUI, this,(void*)"resolve");
+      if (cachedData.isUpdated())
+      {
+        rtString url;
+        cachedData.url(url);
+        if (NULL == rtFileCache::getInstance)
+          return false;
+        rtFileCache::getInstance()->removeData(url);
+        if (cachedData.isWritableToCache())
+        {
+          err = rtFileCache::getInstance()->addToCache(cachedData);
+          if (RT_OK != err)
+            rtLogWarn("Adding url to cache failed ", url.cString());
+        }
+      }
+      return true;
+    }
+    //Lets not reject the request and let new download request goes
+    return false;
+ }
+ else
+ {
+   return false;
+ }
+}
+
 /** 
  * rtImageResource::loadResource()
  * 
@@ -228,11 +282,20 @@ void pxResource::loadResource()
   //printf("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
-    mLoadStatus.set("sourceType", "http");
-    mDownloadRequest = new pxFileDownloadRequest(mUrl, this);
-    // setup for asynchronous load and callback
-    mDownloadRequest->setCallbackFunction(pxResource::onDownloadComplete);
-    pxFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
+    if (true != checkAndDownloadFromCache())
+    {
+      mLoadStatus.set("sourceType", "http");
+      mDownloadRequest = new pxFileDownloadRequest(mUrl, this);
+      // setup for asynchronous load and callback
+      mDownloadRequest->setCallbackFunction(pxResource::onDownloadComplete);
+      pxFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
+    }
+    else
+    {
+      mLoadStatus.set("statusCode",0);
+      AddRef();
+      gUIThreadQueue.addTask(onDownloadCompleteUI, this,(void*)"resolve");
+    }
   }
   else
   {
@@ -313,7 +376,19 @@ bool rtImageResource::loadResourceData(pxFileDownloadRequest* fileDownloadReques
                       fileDownloadRequest->getDownloadedDataSize(),
                       imageOffscreen) == RT_OK)
       {
+        hash<string> hashFn;
         mTexture = context.createTexture(imageOffscreen);
+        if ((fileDownloadRequest->getHttpStatusCode() != 206) && (fileDownloadRequest->getHttpStatusCode() != 302) && (fileDownloadRequest->getHttpStatusCode() != 307))
+        {
+          rtHttpCacheData downloadedData(mUrl,fileDownloadRequest->getHeaderData(),fileDownloadRequest->getDownloadedData(),fileDownloadRequest->getDownloadedDataSize());
+          if (downloadedData.isWritableToCache())
+          {
+            if (NULL == rtFileCache::getInstance())
+              rtLogWarn("cache data not added");
+            else
+              rtFileCache::getInstance()->addToCache(downloadedData);
+          }
+        }
         return true;
       }
       
