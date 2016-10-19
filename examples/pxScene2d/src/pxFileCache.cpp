@@ -277,7 +277,9 @@ void rtFileCache::setFileSizeAndTime(rtString& filename)
 bool rtFileCache::writeFile(rtString& filename,const rtHttpCacheData& cacheData)
 {
   rtData data;
-  string date = to_string(cacheData.expirationDateUnix());
+  stringstream stream;
+  stream << cacheData.expirationDateUnix();
+  string date = stream.str().c_str();
   data.init(cacheData.getHeaderData().length() + date.length() + 1 + cacheData.getContentsData().length() + 1);
   memcpy(data.data(),cacheData.getHeaderData().data(),cacheData.getHeaderData().length());
   memset(data.data()+cacheData.getHeaderData().length(),'|',1);
