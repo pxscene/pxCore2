@@ -158,11 +158,11 @@ public:
 
     if(w <= 0 || h <= 0)
     {
-        //rtLogDebug("\nERROR:  %s(%d, %d) - INVALID",__PRETTY_FUNCTION__, w,h);
+        rtLogError("\nERROR:  %s(%d, %d) - INVALID",__PRETTY_FUNCTION__, w,h);
         return;
     }
 
-    rtLogDebug("############# this: %p >>  %s(%d, %d) \n", this, __PRETTY_FUNCTION__, w, h);
+//    rtLogDebug("############# this: %p >>  %s(%d, %d) \n", this, __PRETTY_FUNCTION__, w, h);
 
     mWidth  = w;
     mHeight = h;
@@ -1249,6 +1249,12 @@ static void drawImage92(float x,  float y,  float w,  float h,
 {
   // args are tested at call site...
 
+  if (boundFramebuffer == NULL)
+  {
+    rtLogError("cannot 'drawImage92()' on context surface because boundFramebuffer is NULL");
+    return; // Nowhere to Draw
+  }  
+    
   DFBRectangle srcUL, dstUL; // Upper Left;
   DFBRectangle srcUM, dstUM; // Upper Middle;
   DFBRectangle srcUR, dstUR; // Upper Right
@@ -1319,8 +1325,8 @@ static void drawImage92(float x,  float y,  float w,  float h,
 
   texture->bindGLTexture(0);
 
-  // TODO:   applyMatrix()
-
+  applyMatrix(boundFramebuffer, gMatrix.data());
+  
 #ifndef DEBUG_SKIP_BLIT
 
   //                                   UPPER ROW              MIDDLE ROW            BOTTOM ROW
