@@ -154,7 +154,7 @@ static const char *vShaderText =
 
 //====================================================================================================================================================================================
 
-void premultiply(float* d, const float* s)
+inline void premultiply(float* d, const float* s)
 {
   d[0] = s[0]*s[3];
   d[1] = s[1]*s[3];
@@ -174,22 +174,22 @@ public:
 
   ~pxFBOTexture() { deleteTexture(); }
 
-  void createTexture(int width, int height)
+  void createTexture(int w, int h)
   {
     if (mFramebufferId != 0 && mTextureId != 0)
     {
       deleteTexture();
     }
 
-    mWidth = width;
-    mHeight = height;
+    mWidth  = w;
+    mHeight = h;
 
     glGenFramebuffers(1, &mFramebufferId);
     glGenTextures(1, &mTextureId);
 
     glBindTexture(GL_TEXTURE_2D, mTextureId); TRACK_TEX_CALLS();
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                 width, height, 0, GL_RGBA,
+                 mWidth, mHeight, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, NULL);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
@@ -199,12 +199,12 @@ public:
     mBindTexture = true;
   }
 
-  pxError resizeTexture(int width, int height)
+  pxError resizeTexture(int w, int h)
   {
-    if (mWidth != width || mHeight != height ||
+    if (mWidth != w || mHeight != h ||
         mFramebufferId == 0 || mTextureId == 0)
     {
-      createTexture(width, height);
+      createTexture(w, h);
       return PX_OK;
     }
 
@@ -217,7 +217,7 @@ public:
     /*glBindTexture(GL_TEXTURE_2D, mTextureId);
 
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                 width, height, GL_RGBA,
+                 w, h, GL_RGBA,
                  GL_UNSIGNED_BYTE, NULL);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
@@ -284,7 +284,7 @@ public:
       return PX_NOTINITIALIZED;
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, mTextureId);
+    glBindTexture(GL_TEXTURE_2D, mTextureId);  TRACK_TEX_CALLS();
     glUniform1i(tLoc,1);
 
     return PX_OK;
@@ -441,7 +441,12 @@ public:
   virtual pxError deleteTexture()
   {
     rtLogDebug("pxTextureOffscreen::deleteTexture()");
-    if (mTextureName) glDeleteTextures(1, &mTextureName);
+
+    if (mTextureName)
+    {
+      glDeleteTextures(1, &mTextureName);
+    }
+
     mInitialized = false;
     return PX_OK;
   }
@@ -520,12 +525,14 @@ public:
     {
       return PX_NOTINITIALIZED;
     }
+
     o.init(mOffscreen.width(), mOffscreen.height());
     mOffscreen.blit(o);
+
     return PX_OK;
   }
 
-  virtual int width() { return mWidth; }
+  virtual int width()  { return mWidth;  }
   virtual int height() { return mHeight; }
 
 private:
@@ -551,10 +558,12 @@ public:
   }
 
   pxTextureAlpha(float w, float h, float iw, float ih, void* buffer)
-    : mDrawWidth(w), mDrawHeight (h), mImageWidth(iw),
-      mImageHeight(ih), mTextureId(0), mInitialized(false), mBuffer(NULL)
+    : mDrawWidth(w),    mDrawHeight (h),
+      mImageWidth(iw), mImageHeight(ih),
+      mTextureId(0), mInitialized(false), mBuffer(NULL)
   {
     mTextureType = PX_TEXTURE_ALPHA;
+
     // copy the pixels
     int bitmapSize = ih*iw;
     mBuffer = malloc(bitmapSize);
@@ -581,7 +590,9 @@ public:
   ~pxTextureAlpha()
   {
     if(mBuffer)
+    {
       free(mBuffer);
+    }
     deleteTexture();
   }
 
@@ -591,11 +602,18 @@ public:
     {
       deleteTexture();
     }
+
+    if(iw == 0 || ih == 0)
+    {
+      rtLogError("pxTextureAlpha::createTexture() - DIMENSIONLESS ");
+      return; // DIMENSIONLESS
+    }
+
     glGenTextures(1, &mTextureId);
 
-    mDrawWidth = w;
-    mDrawHeight = h;
-    mImageWidth = iw;
+    mDrawWidth   = w;
+    mDrawHeight  = h;
+    mImageWidth  = iw;
     mImageHeight = ih;
 
 //    glActiveTexture(GL_TEXTURE1);
@@ -616,6 +634,7 @@ public:
       GL_UNSIGNED_BYTE,
       mBuffer
     );
+
     mInitialized = true;
   }
 
@@ -671,8 +690,8 @@ public:
     return PX_FAIL;
   }
 
-  virtual int width()  {return mDrawWidth; }
-  virtual int height() {return mDrawHeight;}
+  virtual int width()  {return mDrawWidth;  }
+  virtual int height() {return mDrawHeight; }
 
 private:
   float mDrawWidth;
@@ -1112,7 +1131,7 @@ static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat 
 }
 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
-                             pxTextureRef mask, bool useTextureDimsAlways, float* color,
+                             pxTextureRef mask, bool useTextureDimsAlways, float* color, // default: "color = BLACK"
                              pxConstantsStretch::constants xStretch,
                              pxConstantsStretch::constants yStretch)
 {
@@ -1120,6 +1139,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   float iw = texture->width();
   float ih = texture->height();
+
   if( useTextureDimsAlways)
   {
       w = iw;
@@ -1416,8 +1436,8 @@ void pxContext::setSize(int w, int h)
 
 void pxContext::getSize(int& w, int& h)
 {
-   w= gResW;
-   h= gResH;
+   w = gResW;
+   h = gResH;
 }
 
 void pxContext::clear(int /*w*/, int /*h*/)
@@ -1472,6 +1492,7 @@ pxContextFramebufferRef pxContext::createFramebuffer(int width, int height)
 {
   pxContextFramebuffer* fbo = new pxContextFramebuffer();
   pxFBOTexture* texture = new pxFBOTexture();
+
   texture->createTexture(width, height);
 
   fbo->setTexture(texture);
@@ -1499,6 +1520,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
   if (fbo.getPtr() == NULL || fbo->getTexture().getPtr() == NULL)
   {
     glViewport ( 0, 0, defaultContextSurface.width, defaultContextSurface.height);
+
     gResW = defaultContextSurface.width;
     gResH = defaultContextSurface.height;
 

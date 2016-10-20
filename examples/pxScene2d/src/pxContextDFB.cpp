@@ -151,7 +151,7 @@ public:
   {
     //rtLogDebug("############# this: %p >>  %s  WxH: %d x %d \n", this, __PRETTY_FUNCTION__, w,h);
 
-    if (mTexture !=NULL)
+    if (mTexture != NULL)
     {
         deleteTexture();
     }
@@ -169,7 +169,7 @@ public:
 
     //boundTexture = mTexture; // it's an FBO
 
-    mOffscreen.init(w,h);
+    mOffscreen.init(mWidth, mHeight);
 
     createSurface(mOffscreen); // surface is framebuffer
 
@@ -186,22 +186,24 @@ public:
     if (mWidth != w || mHeight != h || !mTexture)
     {
         createTexture(w, h);
+
+        boundFramebuffer = mTexture;
         return PX_OK;
     }
 
     // TODO: Create new texture and "StretchBlit" onto it to scale it...
 
-    // glActiveTexture(GL_TEXTURE3);
-    // glBindTexture(GL_TEXTURE_2D, mTextureId);
-    // glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-    //              width, height, GL_RGBA,
-    //              GL_UNSIGNED_BYTE, NULL);
+    //TODO - remove commented out section
+    /*glBindTexture(GL_TEXTURE_2D, mTextureId);
 
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    // glUniform1f(u_alphatexture, 1.0);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+                 w, g, GL_RGBA,
+                 GL_UNSIGNED_BYTE, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
 
     boundFramebuffer = mTexture;
 
@@ -235,10 +237,10 @@ public:
 
   virtual pxError prepareForRendering()
   {
+    rtLogDebug("############# this: (virtual) >>  %s  ENTER\n", __PRETTY_FUNCTION__);
+
     boundFramebuffer = mTexture;
     boundTexture     = mTexture;
-
-    rtLogDebug("############# this: (virtual) >>  %s  ENTER\n", __PRETTY_FUNCTION__);
 
     gResW = mWidth;
     gResH = mHeight;
@@ -400,7 +402,6 @@ public:
                                       mTextureUploaded(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
-
     createTexture(o);
   }
 
@@ -506,12 +507,12 @@ public:
     {
         createSurface(mOffscreen); // JUNK
 
-        boundTextureMask = mTexture;
+        boundTextureMask = mTexture;   TRACK_TEX_CALLS();
         mTextureUploaded = true;
     }
     else
     {
-        boundTextureMask = mTexture;
+        boundTextureMask = mTexture;   TRACK_TEX_CALLS();
     }
 
     return PX_OK;
@@ -525,9 +526,7 @@ public:
     }
 
     o.init(mOffscreen.width(), mOffscreen.height());
-//#ifndef DEBUG_SKIP_BLIT
-    mOffscreen.blit(o);  TRACK_DRAW_CALLS();
-//#endif
+    mOffscreen.blit(o);
 
     return PX_OK;
   }
@@ -1431,9 +1430,9 @@ void pxContext::getSize(int& w, int& h)
 void pxContext::clear(int /*w*/, int /*h*/)
 {
   if(boundFramebuffer == NULL)
-{
+  {
     rtLogError("cannot 'clear(w,h)' on context surface because boundFramebuffer is NULL");
-      return;
+    return;
   }
 
 #ifndef DEBUG_SKIP_CLEAR
@@ -1461,6 +1460,7 @@ void pxContext::clear(int /*w*/, int /*h*/, float* fillColor )
 
   DFB_CHECK( boundFramebuffer->Clear( boundFramebuffer, 0x00, 0x00, 0x8F, 0xFF ) );  //  CLEAR_BLUE   << JUNK
 #endif
+  currentFramebuffer->enableDirtyRectangles(false);
 }
 
 void pxContext::clear(int left, int top, int right, int bottom)
@@ -1556,26 +1556,26 @@ float pxContext::getAlpha()
   return gAlpha;
 }
 
-pxContextFramebufferRef pxContext::createFramebuffer(int w, int h)
+pxContextFramebufferRef pxContext::createFramebuffer(int width, int height)
 {
   pxContextFramebuffer *fbo     = new pxContextFramebuffer();
   pxFBOTexture         *texture = new pxFBOTexture();
 
-  texture->createTexture(w, h);
+  texture->createTexture(width, height);
 
   fbo->setTexture(texture);
 
   return fbo;
 }
 
-pxError pxContext::updateFramebuffer(pxContextFramebufferRef fbo, int w, int h)
+pxError pxContext::updateFramebuffer(pxContextFramebufferRef fbo, int width, int height)
 {
   if (fbo.getPtr() == NULL || fbo->getTexture().getPtr() == NULL)
   {
     return PX_FAIL;
   }
 
-  return fbo->getTexture()->resizeTexture(w, h);
+  return fbo->getTexture()->resizeTexture(width, height);
 }
 
 pxContextFramebufferRef pxContext::getCurrentFramebuffer()
@@ -1677,7 +1677,7 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
   // TRANSPARENT / DIMENSIONLESS 
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
-   // printf("\n drawRect() - INVISIBLE");
+   // printf("\n drawRect() - TRANSPARENT");
     return;
   }
 
@@ -1697,7 +1697,6 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
   // Fill ...
   if(fillColor != NULL && fillColor[3] > 0.0) // with non-transparent color
   {
-    // Draw FILL rectangle for smaller FILL areas
     float half = lineWidth;///2;
     drawRect2(half, half, w-lineWidth, h-lineWidth, fillColor);
   }
