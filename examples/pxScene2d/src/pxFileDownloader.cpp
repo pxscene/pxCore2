@@ -159,7 +159,7 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
 
     struct curl_slist *list = NULL;
     vector<rtString>& additionalHttpHeaders = downloadRequest->getAdditionalHttpHeaders();
-    for (int headerOption = 0;headerOption < additionalHttpHeaders.size();headerOption++)
+    for (unsigned int headerOption = 0;headerOption < additionalHttpHeaders.size();headerOption++)
     {
       list = curl_slist_append(list, additionalHttpHeaders[headerOption].cString());
     }

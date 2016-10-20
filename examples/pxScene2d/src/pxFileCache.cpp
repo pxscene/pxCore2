@@ -43,8 +43,8 @@ rtFileCache::~rtFileCache()
 
 void  rtFileCache::initCache()
 {
-  struct stat st = {0};
-
+  struct stat st;
+  memset(&st,0,sizeof(struct stat));
   if (stat(mDirectory.cString(), &st) == -1) {
     mkdir(mDirectory.cString(), 0777);
   }
@@ -113,7 +113,8 @@ rtError rtFileCache::setCacheDirectory(const char* directory)
   }
   mDirectory = directory;
 
-  struct stat st = {0};
+  struct stat st;
+  memset(&st,0,sizeof(struct stat));
   if (stat(mDirectory.cString(), &st) == -1)
   {
     mkdir(mDirectory.cString(), 0777);
@@ -192,7 +193,7 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
   setFileSizeAndTime(filename);
   mCurrentSize += mFileSizeMap[filename];
   int64_t size = cleanup();
-  rtLogWarn("current size after insertion and cleanup (%d)",size);
+  rtLogWarn("current size after insertion and cleanup (%ld)",size);
   return RT_OK;
 }
 
@@ -245,7 +246,7 @@ int64_t rtFileCache::cleanup()
       iter++;
     } while ((mCurrentSize > mMaxSize) && (iter != mFileTimeMap.end()));
 
-    for (int count =0; count < timeMapIters.size(); count++)
+    for (unsigned int count =0; count < timeMapIters.size(); count++)
       mFileTimeMap.erase(timeMapIters[count]);
     timeMapIters.clear();
   }
@@ -274,18 +275,19 @@ void rtFileCache::setFileSizeAndTime(rtString& filename)
   }
 }
 
-bool rtFileCache::writeFile(rtString& filename,const rtHttpCacheData& cacheData)
+bool rtFileCache::writeFile(rtString& filename,const rtHttpCacheData& constCacheData)
 {
+  rtHttpCacheData* cacheData = const_cast<rtHttpCacheData*>(&constCacheData);
   rtData data;
   stringstream stream;
-  stream << cacheData.expirationDateUnix();
+  stream << cacheData->expirationDateUnix();
   string date = stream.str().c_str();
-  data.init(cacheData.getHeaderData().length() + date.length() + 1 + cacheData.getContentsData().length() + 1);
-  memcpy(data.data(),cacheData.getHeaderData().data(),cacheData.getHeaderData().length());
-  memset(data.data()+cacheData.getHeaderData().length(),'|',1);
-  memcpy(data.data()+cacheData.getHeaderData().length()+1,date.c_str(), date.length());
-  memset(data.data()+cacheData.getHeaderData().length() + date.length() + 1,'|',1);
-  memcpy(data.data()+cacheData.getHeaderData().length()+1+ date.length() + 1,cacheData.getContentsData().data(),cacheData.getContentsData().length());
+  data.init(cacheData->getHeaderData().length() + date.length() + 1 + cacheData->getContentsData().length() + 1);
+  memcpy(data.data(),cacheData->getHeaderData().data(),cacheData->getHeaderData().length());
+  memset(data.data()+cacheData->getHeaderData().length(),'|',1);
+  memcpy(data.data()+cacheData->getHeaderData().length()+1,date.c_str(), date.length());
+  memset(data.data()+cacheData->getHeaderData().length() + date.length() + 1,'|',1);
+  memcpy(data.data()+cacheData->getHeaderData().length()+1+ date.length() + 1,cacheData->getContentsData().data(),cacheData->getContentsData().length());
   rtString absPath  = getAbsPath(filename);
   if (RT_OK != rtStoreFile(absPath.cString(),data))
     return false;
@@ -331,7 +333,7 @@ bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
   }
   if (true == reachedHeaderEnd)
   {
-    cacheData.setAttributes(headerData.c_str());
+    cacheData.setAttributes((char *)headerData.c_str());
   }
   else
   {

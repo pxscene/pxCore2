@@ -63,7 +63,7 @@ class rtFileCache
     rtString getHashedFileName(const rtString& url);
 
     /* write the cache data to a file. Returns true on success and false on failure */
-    bool writeFile(rtString& filename,const rtHttpCacheData& cacheData);
+    bool writeFile(rtString& filename, const rtHttpCacheData& cacheData);
 
     /* delete the file from cache */
     bool deleteFile(rtString& filename);
