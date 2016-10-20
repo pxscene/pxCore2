@@ -50,10 +50,12 @@ endif
 endif
 endif
 
+ifneq  ($(UNAME_S),Darwin)
 ifeq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
 EXTRA_COMPILER_FLAGS=-std=c++0x
 else
 EXTRA_COMPILER_FLAGS=-std=c++11
+endif
 endif
 
 VPATH=linux

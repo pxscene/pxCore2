@@ -94,7 +94,6 @@ class rtHttpCacheData
     rtData mHeaderMetaData;
     rtData mData;
     map<rtString, rtString> mHeaderMap;
-    int mDataSize;
     time_t mExpirationDate;
     FILE* fp;
     bool mUpdated;

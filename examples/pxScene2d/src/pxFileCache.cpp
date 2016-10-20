@@ -81,7 +81,13 @@ void rtFileCache::populateExistingFiles()
         rtLogWarn("Reading the cache directory is failed for file(%s)",filename.cString());
         continue;
       }
-      mFileTimeMap[buf.st_atim.tv_sec] = direntry->d_name;
+#if defined(PX_PLATFORM_MAC)
+      mFileTimeMap[buf.st_atimespec.tv_sec] =  direntry->d_name;
+#elif !(defined(WIN32) || defined(_WIN32) || defined (WINDOWS) || defined (_WINDOWS))
+       mFileTimeMap[buf.st_atim.tv_sec] = direntry->d_name;
+#else
+       rtLogWarn("Platform not supported. Cache will not get cleared after cache limit is reached");
+#endif
       mFileSizeMap[direntry->d_name] = buf.st_size;
       mCurrentSize += buf.st_size;
     }
@@ -193,7 +199,7 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
   setFileSizeAndTime(filename);
   mCurrentSize += mFileSizeMap[filename];
   int64_t size = cleanup();
-  rtLogWarn("current size after insertion and cleanup (%ld)",size);
+  rtLogWarn("current size after insertion and cleanup (%lld)",size);
   return RT_OK;
 }
 
@@ -270,7 +276,13 @@ void rtFileCache::setFileSizeAndTime(rtString& filename)
     if (stat(absPath.cString(), &statbuf) == 0)
     {
       mFileSizeMap[filename] = statbuf.st_size;
+#if defined(PX_PLATFORM_MAC)
+      mFileTimeMap[statbuf.st_atimespec.tv_sec] = filename;
+#elif !(defined(WIN32) || defined(_WIN32) || defined (WINDOWS) || defined (_WINDOWS))
       mFileTimeMap[statbuf.st_atim.tv_sec] = filename;
+#else
+       rtLogWarn("Platform not supported. Cache will not get cleared after cache limit is reached");
+#endif
     }
   }
 }
