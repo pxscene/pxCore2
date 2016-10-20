@@ -2341,7 +2341,8 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
-pxScriptView::pxScriptView(const char* url, const char* /*lang*/): mViewContainer(NULL), mRefCount(0)
+pxScriptView::pxScriptView(const char* url, const char* /*lang*/) 
+     : mWidth(-1), mHeight(-1), mViewContainer(NULL), mRefCount(0)
 {
   #ifdef ENABLE_RT_NODE
   mCtx = script.createContext();
