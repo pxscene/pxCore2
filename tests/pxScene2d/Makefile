@@ -26,6 +26,7 @@ SEARCH=\
 	-I$(NODEDIR)/src \
 	-I$(NODEDIR)/deps/v8 \
 	-I$(NODEDIR)/deps/v8/include \
+        -I$(NODEDIR)/deps/uv/include \
 	-I./ \
         -I$(PXCOREDIR)examples/pxScene2d/src \
         -I$(EXTDIR)/gtest/googletest/include \
