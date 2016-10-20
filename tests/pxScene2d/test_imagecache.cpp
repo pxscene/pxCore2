@@ -367,7 +367,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
     {
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-store, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0"; 
       rtHttpCacheData data("http://localhost/a.jpeg"); 
-      data.setAttributes(cacheHeader);
+      data.setAttributes((char *)cacheHeader);
 
       map<rtString, rtString> retrivedAttributes;
       map<rtString, rtString> actualAttributes;

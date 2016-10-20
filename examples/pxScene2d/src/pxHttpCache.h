@@ -20,7 +20,7 @@ class rtHttpCacheData
     ~rtHttpCacheData();
     /* returns the expiration date of the cache data in localtime */
     rtString expirationDate();
-    time_t expirationDateUnix();
+    time_t expirationDateUnix() const;
 
     /* returns true if cache data is expired */
     bool isExpired(); 
@@ -32,7 +32,7 @@ class rtHttpCacheData
     bool isWritableToCache();
 
     /* sets the attributes.  the rawAttributes string contains the headers string. */
-    void setAttributes(const char* rawAttributes);
+    void setAttributes(char* rawAttributes);
 
     /* returns a map of all the headers associated with the cached data */
     rtError attributes(map<rtString, rtString>& cacheAttributes);
@@ -41,10 +41,10 @@ class rtHttpCacheData
     rtError data(rtData& data);
 
     /* sets the image file data to be stored in cache */
-    void setData(const rtData& cacheData); 
+    void setData(rtData& cacheData);
 
     /* returns the url associated with the cache */
-    rtError url(rtString& url);
+    rtError url(rtString& url) const;
 
     /* returns the Etag associated with the data */
     rtError etag(rtString& tag);

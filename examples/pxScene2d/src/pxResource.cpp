@@ -227,7 +227,7 @@ bool rtImageResource::checkAndDownloadFromCache()
 {
   rtHttpCacheData cachedData(mUrl.cString());
   rtError err;
-  if ((NULL != rtFileCache::getInstance) && (RT_OK == rtFileCache::getInstance()->getHttpCacheData(mUrl,cachedData)))
+  if ((NULL != rtFileCache::getInstance()) && (RT_OK == rtFileCache::getInstance()->getHttpCacheData(mUrl,cachedData)))
   {
     pxOffscreen imageOffscreen;
     rtData data;
@@ -246,14 +246,14 @@ bool rtImageResource::checkAndDownloadFromCache()
       {
         rtString url;
         cachedData.url(url);
-        if (NULL == rtFileCache::getInstance)
+        if (NULL == rtFileCache::getInstance())
           return false;
         rtFileCache::getInstance()->removeData(url);
         if (cachedData.isWritableToCache())
         {
           err = rtFileCache::getInstance()->addToCache(cachedData);
           if (RT_OK != err)
-            rtLogWarn("Adding url to cache failed ", url.cString());
+            rtLogWarn("Adding url to cache failed (%s)", url.cString());
         }
       }
       return true;
@@ -376,7 +376,6 @@ bool rtImageResource::loadResourceData(pxFileDownloadRequest* fileDownloadReques
                       fileDownloadRequest->getDownloadedDataSize(),
                       imageOffscreen) == RT_OK)
       {
-        hash<string> hashFn;
         mTexture = context.createTexture(imageOffscreen);
         if ((fileDownloadRequest->getHttpStatusCode() != 206) && (fileDownloadRequest->getHttpStatusCode() != 302) && (fileDownloadRequest->getHttpStatusCode() != 307))
         {

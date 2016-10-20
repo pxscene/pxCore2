@@ -4,7 +4,7 @@
 #include <sstream>
 #include "rtLog.h"
 
-rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false),mDownloadRequest(NULL),mDownloadFailed(false)
+rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false),mDownloadFailed(false),mDownloadRequest(NULL)
 {
 #ifndef USE_STD_THREADS
   pthread_mutex_init(&mMutex, NULL);
@@ -13,7 +13,7 @@ rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false),mDownloadR
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url):mUrl(url),mExpirationDate(0),mUpdated(false),mDownloadRequest(NULL),mDownloadFailed(false)
+rtHttpCacheData::rtHttpCacheData(const char* url):mUrl(url),mExpirationDate(0),mUpdated(false),mDownloadFailed(false),mDownloadRequest(NULL)
 {
 #ifndef USE_STD_THREADS
   pthread_mutex_init(&mMutex, NULL);
@@ -22,7 +22,7 @@ rtHttpCacheData::rtHttpCacheData(const char* url):mUrl(url),mExpirationDate(0),m
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size):mUrl(url),mExpirationDate(0),mUpdated(false),mDownloadRequest(NULL),mDownloadFailed(false)
+rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size):mUrl(url),mExpirationDate(0),mUpdated(false),mDownloadFailed(false),mDownloadRequest(NULL)
 {
 #ifndef USE_STD_THREADS
   pthread_mutex_init(&mMutex, NULL);
@@ -30,10 +30,10 @@ rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, co
 #endif
   if ((NULL != headerMetadata) && (NULL != data))
   {
-    mHeaderMetaData.init(headerMetadata,strlen(headerMetadata));
+    mHeaderMetaData.init((uint8_t *)headerMetadata,strlen(headerMetadata));
     populateHeaderMap();
     setExpirationDate();
-    mData.init(data,size);
+    mData.init((uint8_t *)data,size);
   }
   fp = NULL;
 }
@@ -51,7 +51,7 @@ rtHttpCacheData::~rtHttpCacheData()
 
 void rtHttpCacheData::populateHeaderMap()
 {
-  int pos=0,prevpos = 0;
+  size_t pos=0,prevpos = 0;
   string headerString((char*)mHeaderMetaData.data());
   pos = headerString.find_first_of("\n",0);
   string attribute = headerString.substr(prevpos,(pos = headerString.find_first_of("\n",prevpos))-prevpos);
@@ -63,7 +63,7 @@ void rtHttpCacheData::populateHeaderMap()
 
       //parsing the header attribute and value pair
       string key(""),value("");
-      int name_end_pos = attribute.find_first_of(":");
+      size_t name_end_pos = attribute.find_first_of(":");
       if (name_end_pos == string::npos)
       {
         key = attribute; 
@@ -72,7 +72,7 @@ void rtHttpCacheData::populateHeaderMap()
       {
         key = attribute.substr(0,name_end_pos);
       }
-      int cReturn_nwLnPos  = key.find_first_of("\r");
+      size_t cReturn_nwLnPos  = key.find_first_of("\r");
       if (string::npos != cReturn_nwLnPos)
         key.erase(cReturn_nwLnPos,1);
       cReturn_nwLnPos  = key.find_first_of("\n");
@@ -106,7 +106,7 @@ rtString rtHttpCacheData::expirationDate()
   return rtString(buffer);
 }
 
-time_t rtHttpCacheData::expirationDateUnix()
+time_t rtHttpCacheData::expirationDateUnix() const
 {
   return mExpirationDate;
 }
@@ -146,9 +146,9 @@ bool rtHttpCacheData::isWritableToCache()
   return false;
 }
 
-void rtHttpCacheData::setAttributes(const char* rawAttributes)
+void rtHttpCacheData::setAttributes(char* rawAttributes)
 {
-  mHeaderMetaData.init(rawAttributes,strlen(rawAttributes));
+  mHeaderMetaData.init((uint8_t*)rawAttributes,strlen(rawAttributes));
   populateHeaderMap();
   setExpirationDate();
 }
@@ -216,12 +216,12 @@ rtError rtHttpCacheData::data(rtData& data)
   return RT_OK;
 }
 
-void rtHttpCacheData::setData(const rtData& cacheData)
+void rtHttpCacheData::setData(rtData& cacheData)
 {
   mData.init(cacheData.data(),cacheData.length());
 }
 
-rtError rtHttpCacheData::url(rtString& url)
+rtError rtHttpCacheData::url(rtString& url) const
 {
   url = mUrl;
   return RT_OK;
@@ -254,7 +254,7 @@ void rtHttpCacheData::setExpirationDate()
   if (mHeaderMap.end() != mHeaderMap.find("Cache-Control"))
   {
     string cacheControl = mHeaderMap["Cache-Control"].cString();
-    int pos = cacheControl.find("max-age");
+    size_t pos = cacheControl.find("max-age");
     if (string::npos != pos)
     {
       foundMaxAge = true;
@@ -289,10 +289,10 @@ void rtHttpCacheData::onDownloadComplete(pxFileDownloadRequest* fileDownloadRequ
           fileDownloadRequest->getHttpStatusCode() == 200)
       {
         if (fileDownloadRequest->getHeaderData() != NULL)
-          callbackData->mHeaderMetaData.init(fileDownloadRequest->getHeaderData(), fileDownloadRequest->getHeaderDataSize());
+          callbackData->mHeaderMetaData.init((uint8_t*)fileDownloadRequest->getHeaderData(), fileDownloadRequest->getHeaderDataSize());
         if (fileDownloadRequest->getDownloadedData() != NULL)
         {
-          callbackData->mData.init(fileDownloadRequest->getDownloadedData(), fileDownloadRequest->getDownloadedDataSize());
+          callbackData->mData.init((uint8_t*)fileDownloadRequest->getDownloadedData(), fileDownloadRequest->getDownloadedDataSize());
           callbackData->mUpdated = true;
         }
       }
@@ -318,7 +318,7 @@ rtError rtHttpCacheData::calculateRevalidationNeed(bool& revalidate, bool& reval
     if (mHeaderMap.end() != mHeaderMap.find("Cache-Control"))
     {
       string cacheControl = mHeaderMap["Cache-Control"].cString();
-      int pos = cacheControl.find("must-revalidate");
+      size_t pos = cacheControl.find("must-revalidate");
       if (string::npos != pos)
       {
         revalidate = true;
@@ -332,15 +332,13 @@ rtError rtHttpCacheData::calculateRevalidationNeed(bool& revalidate, bool& reval
   if (mHeaderMap.end() != mHeaderMap.find("Cache-Control"))
   {
     string cacheControl = mHeaderMap["Cache-Control"].cString();
-    int pos = 0,prevpos = 0;
+    size_t pos = 0,prevpos = 0;
     while ((pos = cacheControl.find("no-cache",prevpos)) != string::npos)
     {
        //no-cache=<parameter>
-       printf("[%d]  [%s] [%c] \n",pos,  cacheControl.c_str(),cacheControl.at(pos+8));
-       fflush(stdout);
        if (cacheControl.at(pos+8) == '=')
        {
-         int noCacheEnd =  cacheControl.find_first_of(",",pos+9);
+         size_t noCacheEnd =  cacheControl.find_first_of(",",pos+9);
          string parameter;
          // no-cache can be last parameter
          if (string::npos == noCacheEnd)
@@ -418,7 +416,7 @@ bool rtHttpCacheData::readFileData()
   fclose(fp);
   if (NULL != contentsData)
   {
-    mData.init(contentsData,totalBytes);
+    mData.init((uint8_t*)contentsData,totalBytes);
     free(contentsData);
     contentsData = NULL;
   }

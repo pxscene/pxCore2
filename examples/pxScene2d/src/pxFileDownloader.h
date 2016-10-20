@@ -15,8 +15,8 @@ public:
     pxFileDownloadRequest(const char* imageUrl, void* callbackData) 
       : mFileUrl(imageUrl), mProxyServer(),
     mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL),
-    mDownloadedData(0), mDownloadedDataSize(),mHeaderData(0),
-    mHeaderDataSize(0), mDownloadStatusCode(0), mCallbackData(callbackData), mCallbackFunctionMutex(),  mHeaderOnly(false)
+    mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
+    mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false)
   {
     mAdditionalHttpHeaders.clear();
   }
