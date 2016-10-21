@@ -1,4 +1,3 @@
-#ifdef ENABLE_HTTP_CACHE
 #ifndef _PX_HTTPCACHE
 #define _PX_HTTPCACHE
 
@@ -108,5 +107,4 @@ class rtHttpCacheData
 #endif
     pxFileDownloadRequest* mDownloadRequest;
 };
-#endif
 #endif

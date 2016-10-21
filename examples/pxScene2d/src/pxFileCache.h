@@ -1,4 +1,3 @@
-#ifdef ENABLE_HTTP_CACHE
 #ifndef _PX_FILECACHE
 #define _PX_FILECACHE
 
@@ -87,5 +86,4 @@ class rtFileCache
     map<rtString,int64_t> mFileSizeMap;
     static rtFileCache* mCache;
 };
-#endif
 #endif
