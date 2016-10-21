@@ -1,3 +1,4 @@
+#ifdef ENABLE_HTTP_CACHE
 #include <pxFileCache.h>
 #include <pxOffscreen.h>
 #include <pxUtil.h> 
@@ -363,3 +364,4 @@ rtString rtFileCache::getAbsPath(rtString& filename)
   absPath.append(filename);
   return absPath;
 }
+#endif

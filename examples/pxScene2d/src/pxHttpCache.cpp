@@ -1,3 +1,4 @@
+#ifdef ENABLE_HTTP_CACHE
 #include <pxHttpCache.h>
 #include <string.h>
 #include <curl/curl.h>
@@ -505,3 +506,4 @@ rtError rtHttpCacheData::handleEtag(rtData& data)
   }
   return RT_OK;
 }
+#endif
