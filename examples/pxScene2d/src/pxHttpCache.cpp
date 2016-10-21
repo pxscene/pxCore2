@@ -1,3 +1,4 @@
+#ifdef ENABLE_HTTP_CACHE
 #include <pxHttpCache.h>
 #include <string.h>
 #include <curl/curl.h>
@@ -54,19 +55,18 @@ void rtHttpCacheData::populateHeaderMap()
   size_t pos=0,prevpos = 0;
   string headerString((char*)mHeaderMetaData.data());
   pos = headerString.find_first_of("\n",0);
-  string attribute = headerString.substr(prevpos,(pos = headerString.find_first_of("\n",prevpos))-prevpos);
-  do
+  string attribute("");
+  while (pos !=  string::npos)
   {
+    attribute = headerString.substr(prevpos,pos-prevpos);
     if (attribute.size() >  0)
     {
-      prevpos = pos+1;
-
       //parsing the header attribute and value pair
       string key(""),value("");
       size_t name_end_pos = attribute.find_first_of(":");
       if (name_end_pos == string::npos)
       {
-        key = attribute; 
+        key = attribute;
       }
       else
       {
@@ -80,7 +80,8 @@ void rtHttpCacheData::populateHeaderMap()
         key.erase(cReturn_nwLnPos,1);
       if (name_end_pos == string::npos)
       {
-        mHeaderMap.insert(std::pair<rtString, rtString>(key.c_str(),rtString("")));
+        if (key.size() > 0)
+          mHeaderMap.insert(std::pair<rtString, rtString>(key.c_str(),rtString("")));
       }
       else
       {
@@ -91,11 +92,13 @@ void rtHttpCacheData::populateHeaderMap()
        cReturn_nwLnPos  = value.find_first_of("\n");
        if (string::npos != cReturn_nwLnPos)
          value.erase(cReturn_nwLnPos,1);
-       mHeaderMap.insert(std::pair<rtString, rtString>(key.c_str(),value.c_str()));
+       if (key.size() > 0)
+         mHeaderMap.insert(std::pair<rtString, rtString>(key.c_str(),value.c_str()));
       }
     }
-    attribute = headerString.substr(prevpos,(pos = headerString.find_first_of("\n",prevpos))-prevpos);
-  } while(pos != string:: npos);
+    prevpos = pos+1;
+    pos = headerString.find_first_of("\n",prevpos);
+  }
 }
 
 rtString rtHttpCacheData::expirationDate()
@@ -503,3 +506,4 @@ rtError rtHttpCacheData::handleEtag(rtData& data)
   }
   return RT_OK;
 }
+#endif

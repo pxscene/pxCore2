@@ -1,3 +1,4 @@
+#ifdef ENABLE_HTTP_CACHE
 #include <pxFileCache.h>
 #include <pxOffscreen.h>
 #include <pxUtil.h> 
@@ -326,7 +327,7 @@ bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
 
   if (NULL == fp)
   {
-    rtLogWarn("Reading the file failed ");
+    rtLogWarn("Reading the cache file failed as the file is not there or cannot be opened");
     return false;
   }  
 
@@ -363,3 +364,4 @@ rtString rtFileCache::getAbsPath(rtString& filename)
   absPath.append(filename);
   return absPath;
 }
+#endif
