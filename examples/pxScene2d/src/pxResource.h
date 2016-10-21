@@ -17,8 +17,9 @@
 #include "rtPromise.h"
 #include "pxTexture.h"
 #include "rtMutex.h"
+#ifdef ENABLE_HTTP_CACHE
 #include "pxFileCache.h"
-
+#endif
 #include <map>
 class pxFileDownloadRequest;
 
@@ -126,7 +127,9 @@ protected:
 private: 
 
   void loadResourceFromFile();
+#ifdef ENABLE_HTTP_CACHE
   bool checkAndDownloadFromCache();
+#endif
 
   pxTextureRef mTexture;
  

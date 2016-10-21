@@ -214,6 +214,7 @@ rtError rtImageResource::h(int32_t& v) const
   return RT_OK; 
 } 
 
+#ifdef ENABLE_HTTP_CACHE
 /**
  * rtImageResource::checkAndDownloadFromCache()
  *
@@ -266,7 +267,7 @@ bool rtImageResource::checkAndDownloadFromCache()
    return false;
  }
 }
-
+#endif
 /** 
  * rtImageResource::loadResource()
  * 
@@ -282,13 +283,16 @@ void pxResource::loadResource()
   //printf("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
+#ifdef ENABLE_HTTP_CACHE
     if (true != checkAndDownloadFromCache())
     {
+#endif
       mLoadStatus.set("sourceType", "http");
       mDownloadRequest = new pxFileDownloadRequest(mUrl, this);
       // setup for asynchronous load and callback
       mDownloadRequest->setCallbackFunction(pxResource::onDownloadComplete);
       pxFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
+#ifdef ENABLE_HTTP_CACHE
     }
     else
     {
@@ -296,6 +300,7 @@ void pxResource::loadResource()
       AddRef();
       gUIThreadQueue.addTask(onDownloadCompleteUI, this,(void*)"resolve");
     }
+#endif
   }
   else
   {
@@ -377,6 +382,7 @@ bool rtImageResource::loadResourceData(pxFileDownloadRequest* fileDownloadReques
                       imageOffscreen) == RT_OK)
       {
         mTexture = context.createTexture(imageOffscreen);
+        #ifdef ENABLE_HTTP_CACHE
         if ((fileDownloadRequest->getHttpStatusCode() != 206) && (fileDownloadRequest->getHttpStatusCode() != 302) && (fileDownloadRequest->getHttpStatusCode() != 307))
         {
           rtHttpCacheData downloadedData(mUrl,fileDownloadRequest->getHeaderData(),fileDownloadRequest->getDownloadedData(),fileDownloadRequest->getDownloadedDataSize());
@@ -388,6 +394,7 @@ bool rtImageResource::loadResourceData(pxFileDownloadRequest* fileDownloadReques
               rtFileCache::getInstance()->addToCache(downloadedData);
           }
         }
+        #endif
         return true;
       }
       
