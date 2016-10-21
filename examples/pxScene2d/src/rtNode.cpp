@@ -54,8 +54,8 @@ extern rtThreadQueue gUIThreadQueue;
 #define EXITSCENELOCK()  rtWrapperSceneUpdateExit();
 #endif
 
-#define DEFAULT_V8_CONTEXT_POOL_SIZE 5
-#define DEFAULT_MAX_V8_CONTEXT_POOL_SIZE 7
+#define DEFAULT_MIN_V8_CONTEXT_POOL_SIZE 2
+#define DEFAULT_MAX_V8_CONTEXT_POOL_SIZE 5
 
 
 using namespace v8;
@@ -72,8 +72,6 @@ extern bool debug_wait_connect;
 static int exec_argc;
 static const char** exec_argv;
 static rtAtomic sNextId = 100;
-
-uint32_t rtNode::sDefaultContextPoolSize = DEFAULT_V8_CONTEXT_POOL_SIZE;
 
 
 args_t *s_gArgs;
@@ -736,11 +734,7 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
       rtLogError("## ERROR:   Could not find \"%s\" ...", sandbox_path.c_str());
     }
 #ifdef ENABLE_V8_CONTEXT_POOL
-    for (unsigned int i = 0; i < sDefaultContextPoolSize; i++)
-    {
-      ctxref = new rtNodeContext(mIsolate, mRefContext);
-      addToContextPool(ctxref.getPtr());
-    }
+    refillContextPool();
     ctxref = getContextFromPool();
 #else
     ctxref = new rtNodeContext(mIsolate, mRefContext);
@@ -789,7 +783,29 @@ rtNodeContextRef rtNode::getContextFromPool()
   {
     ctxref = new rtNodeContext(mIsolate, mRefContext);
   }
+
+  if (mContextPool.size() <= DEFAULT_MIN_V8_CONTEXT_POOL_SIZE)
+  {
+    refillContextPool();
+  }
   return ctxref;
+}
+
+uint32_t rtNode::currentContextPoolSize()
+{
+  return mContextPool.size();
+}
+
+rtError rtNode::refillContextPool()
+{
+  printf("refilling the context pool.  creating %u contexts\n", mMaxContextPoolSize - currentContextPoolSize());
+  rtNodeContextRef ctxref;
+  for (unsigned int i = mContextPool.size(); i < mMaxContextPoolSize; i++)
+  {
+    ctxref = new rtNodeContext(mIsolate, mRefContext);
+    addToContextPool(ctxref.getPtr());
+  }
+  return RT_OK;
 }
 
 void rtNode::enableContextPool(bool enable)
@@ -808,29 +824,12 @@ rtError rtNode::setMaxContextPoolSize(uint32_t size)
   return RT_OK;
 }
 
-rtError rtNode::setDefaultContextPoolSize(uint32_t size)
-{
-  sDefaultContextPoolSize = size;
-  return RT_OK;
-}
-
 unsigned long rtNodeContext::Release()
 {
     long l = rtAtomicDec(&mRefCount);
     if (l == 0)
     {
-#ifdef ENABLE_V8_CONTEXT_POOL
-      if (script.addToContextPool(this) == RT_OK)
-      {
-        //rtLogDebug("adding context back to context pool");
-      }
-      else
-      {
-        delete this;
-      }
-#else 
      delete this;
-#endif // ENABLE_V8_CONTEXT_POOL
     }
     return l;
 }

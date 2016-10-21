@@ -135,8 +135,9 @@ public:
   rtNodeContextRef getContextFromPool();
   void enableContextPool(bool enable);
   bool isContextPoolEnabled();
+  uint32_t currentContextPoolSize();
+  rtError refillContextPool();
   rtError setMaxContextPoolSize(uint32_t size);
-  static rtError setDefaultContextPoolSize(uint32_t size);
 private:
   void init(int argc, char** argv);
   void term();
