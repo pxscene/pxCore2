@@ -326,7 +326,7 @@ bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
 
   if (NULL == fp)
   {
-    rtLogWarn("Reading the file failed ");
+    rtLogWarn("Reading the cache file failed as the file is not there or cannot be opened");
     return false;
   }  
 

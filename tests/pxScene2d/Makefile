@@ -8,8 +8,11 @@ SRCS_FULL=\
 	pxscene2dtestsmain.cpp \
         test_example.cpp \
         test_pxcontext.cpp \
-        test_imagecache.cpp \
 	test_rtnode.cpp
+
+ifeq ($(USE_HTTP_CACHE),1)
+SRCS_FULL+=test_imagecache.cpp
+endif
 
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PXCOREDIR=$(MAKEFILE_PATH)/../../
