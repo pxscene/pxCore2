@@ -495,7 +495,7 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char* /*args = NULL*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtNode::rtNode() : mContextPool(), mContextPoolEnabled(false), mMaxContextPoolSize(DEFAULT_MAX_V8_CONTEXT_POOL_SIZE) /*: mPlatform(NULL)*/
+rtNode::rtNode() : mContextPool(), mContextPoolEnabled(false), mRefillContextPoolWhenLow(false), mMinContextPoolSize(DEFAULT_MIN_V8_CONTEXT_POOL_SIZE), mMaxContextPoolSize(DEFAULT_MAX_V8_CONTEXT_POOL_SIZE) /*: mPlatform(NULL)*/
 {
   char const* s = getenv("RT_TEST_GC");
   if (s && strlen(s) > 0)
@@ -784,7 +784,7 @@ rtNodeContextRef rtNode::getContextFromPool()
     ctxref = new rtNodeContext(mIsolate, mRefContext);
   }
 
-  if (mContextPool.size() <= DEFAULT_MIN_V8_CONTEXT_POOL_SIZE)
+  if (mRefillContextPoolWhenLow && mContextPool.size() <= mMinContextPoolSize)
   {
     refillContextPool();
   }
@@ -811,11 +811,28 @@ rtError rtNode::refillContextPool()
 void rtNode::enableContextPool(bool enable)
 {
   mContextPoolEnabled = enable;
+  if (!mContextPoolEnabled)
+  {
+    //empty the context pool
+    mContextPool.clear();
+  }
 }
 
 bool rtNode::isContextPoolEnabled()
 {
   return mContextPoolEnabled;
+}
+
+rtError rtNode::enableRefillContextPoolWhenLow(bool enable)
+{
+  mRefillContextPoolWhenLow = enable;
+  return RT_OK;
+}
+
+rtError rtNode::setMinContextPoolSize(uint32_t size)
+{
+  mMinContextPoolSize = size;
+  return RT_OK;
 }
 
 rtError rtNode::setMaxContextPoolSize(uint32_t size)

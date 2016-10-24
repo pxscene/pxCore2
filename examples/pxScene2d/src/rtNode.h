@@ -137,6 +137,8 @@ public:
   bool isContextPoolEnabled();
   uint32_t currentContextPoolSize();
   rtError refillContextPool();
+  rtError enableRefillContextPoolWhenLow(bool enable);
+  rtError setMinContextPoolSize(uint32_t size);
   rtError setMaxContextPoolSize(uint32_t size);
 private:
   void init(int argc, char** argv);
@@ -156,6 +158,8 @@ private:
 
   vector<rtNodeContextRef> mContextPool;
   bool mContextPoolEnabled;
+  bool mRefillContextPoolWhenLow;
+  uint32_t mMinContextPoolSize;
   uint32_t mMaxContextPoolSize;
 
   static uint32_t sDefaultContextPoolSize;
