@@ -1688,7 +1688,7 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
   }
 
   // COLORLESS
-  if(fillColor == NULL && lineColor == NULL || fillColor[3] == 0.0 || lineColor[3] == 0.0)
+  if(fillColor == NULL && lineColor == NULL)
   {
     //rtLogError("cannot drawRect() on context surface because colors are NULL");
     return;
