@@ -80,6 +80,11 @@ extern rtNode script;
 
 rtNodeContexts  mNodeContexts;
 
+#ifdef ENABLE_NODE_V_6_9
+ArrayBufferAllocator* array_buffer_allocator = NULL;
+bool bufferAllocatorIsSet = false;
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -136,6 +141,55 @@ void rtNodeContext::createEnvironment()
   // Create a new context.
   Local<Context> local_context = Context::New(mIsolate);
 
+#ifdef ENABLE_NODE_V_6_9
+
+  local_context->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
+
+  mContextId = GetContextId(local_context);
+
+  mContext.Reset(mIsolate, local_context); // local to persistent
+
+  Context::Scope context_scope(local_context);
+
+  Handle<Object> global = local_context->Global();
+
+  
+
+  mRtWrappers.Reset(mIsolate, global);
+
+  // Create Environment.
+
+  mEnv = CreateEnvironment(mIsolate,
+                           uv_default_loop(),
+                           local_context,
+                           s_gArgs->argc,
+                           s_gArgs->argv,
+                           exec_argc,
+                           exec_argv);
+
+   array_buffer_allocator->set_env(mEnv);
+
+  mIsolate->SetAbortOnUncaughtExceptionCallback(
+        ShouldAbortOnUncaughtException);
+
+  // Load Environment.
+  {
+    Environment::AsyncCallbackScope callback_scope(mEnv);
+    LoadEnvironment(mEnv);
+  }
+
+    rtObjectWrapper::exportPrototype(mIsolate, global);
+    rtFunctionWrapper::exportPrototype(mIsolate, global);
+
+    {
+      SealHandleScope seal(mIsolate);
+      bool more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
+      if (more == false)
+      {
+        EmitBeforeExit(mEnv);
+      }
+    }
+#else
   local_context->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
 
   mContextId = GetContextId(local_context);
@@ -176,6 +230,7 @@ void rtNodeContext::createEnvironment()
   {
     EnableDebug(mEnv);
   }
+#endif //ENABLE_NODE_V_6_9
 }
 
 #ifdef USE_CONTEXTIFY_CLONES
@@ -510,12 +565,22 @@ rtNode::rtNode() : mContextPool(), mContextPoolEnabled(false), mRefillContextPoo
 
                               //0123456 789ABCDEF012 345 67890ABCDEF
 #if ENABLE_V8_HEAP_PARAMS
+#ifdef ENABLE_NODE_V_6_9
+  static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
+#else
   printf("v8 old heap space configured to 64mb\n");
   static const char *args2   = "rtNode\0--expose-gc\0--max_old_space_size=64\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[43], &args2[46], NULL};
+#endif // ENABLE_NODE_V_6_9
+#else
+#ifdef ENABLE_NODE_V_6_9
+  static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
 #else
   static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
+#endif // ENABLE_NODE_V_6_9
 #endif //ENABLE_V8_HEAP_PARAMS
   int          argc   = sizeof(argv2)/sizeof(char*) - 1;
 
@@ -530,6 +595,10 @@ rtNode::rtNode() : mContextPool(), mContextPoolEnabled(false), mRefillContextPoo
 
   nodePath();
 
+
+#ifdef ENABLE_NODE_V_6_9
+  init(argc, argv);
+#else
   mIsolate     = Isolate::New();
   node_isolate = mIsolate; // Must come first !!
 
@@ -538,6 +607,7 @@ rtNode::rtNode() : mContextPool(), mContextPoolEnabled(false), mRefillContextPoo
 #endif // ENABLE_V8_CONTEXT_POOL
 
   init(argc, argv);
+#endif // ENABLE_NODE_V_6_9
 }
 
 rtNode::~rtNode()
@@ -634,7 +704,25 @@ void rtNode::init(int argc, char** argv)
 //    mPlatform = platform::CreateDefaultPlatform();
 //    V8::InitializePlatform(mPlatform);
 
+#ifdef ENABLE_NODE_V_6_9
+   printf("using node version 6.9\n");
+   V8::InitializeICU();
+   V8::InitializeExternalStartupData(argv[0]);
+   Platform* platform = platform::CreateDefaultPlatform();
+   V8::InitializePlatform(platform);
+   V8::Initialize();
+   Isolate::CreateParams params;
+   array_buffer_allocator = new ArrayBufferAllocator();
+   const char* source1 = "function pxSceneFooFunction(){ return 0;}";
+   static v8::StartupData data = v8::V8::CreateSnapshotDataBlob(source1);
+   params.snapshot_blob = &data;
+   params.array_buffer_allocator = array_buffer_allocator;
+   mIsolate     = Isolate::New(params);
+   node_isolate = mIsolate; // Must come first !!
+#else
     V8::Initialize();
+#endif // ENABLE_NODE_V_6_9
+
     node_is_initialized = true;
 
     Locker                locker(mIsolate);
@@ -763,11 +851,13 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
 
 rtError rtNode::addToContextPool(rtNodeContext* context)
 {
+#ifdef ENABLE_V8_CONTEXT_POOL
   if (mContextPoolEnabled && mContextPool.size() < mMaxContextPoolSize)
   {
     mContextPool.push_back(context);
     return RT_OK;
   }
+#endif // ENABLE_V8_CONTEXT_POOL
   return RT_FAIL;
 }
 
@@ -798,6 +888,7 @@ uint32_t rtNode::currentContextPoolSize()
 
 rtError rtNode::refillContextPool()
 {
+#ifdef ENABLE_V8_CONTEXT_POOL
   printf("refilling the context pool.  creating %u contexts\n", mMaxContextPoolSize - currentContextPoolSize());
   rtNodeContextRef ctxref;
   for (unsigned int i = mContextPool.size(); i < mMaxContextPoolSize; i++)
@@ -805,6 +896,7 @@ rtError rtNode::refillContextPool()
     ctxref = new rtNodeContext(mIsolate, mRefContext);
     addToContextPool(ctxref.getPtr());
   }
+#endif // ENABLE_V8_CONTEXT_POOL
   return RT_OK;
 }
 
