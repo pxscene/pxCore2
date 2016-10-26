@@ -40,7 +40,7 @@ pxWayland::pxWayland()
     mWidth(0),
     mHeight(0),
     mEvents(0),
-    mClientPID(-1),
+    mClientPID(0),
     mWCtx(0),
     mHasApi(false),
     mAPI(),
@@ -371,6 +371,7 @@ void pxWayland::handleHidePointer( bool hide )
 
 void pxWayland::handleClientStatus( int status, int pid, int detail )
 {
+   mClientPID = status == WstClient_stoppedAbnormal || status == WstClient_stoppedNormal ? -1 : pid;
    if ( mEvents )
    {
       switch ( status )
@@ -560,7 +561,7 @@ rtError pxWayland::connectToRemoteObject()
 #ifdef ENABLE_PX_WAYLAND_RPC
   int findTime = 0;
 
-  while (findTime < MAX_FIND_REMOTE_TIMEOUT_IN_MS)
+  while (findTime < MAX_FIND_REMOTE_TIMEOUT_IN_MS && mClientPID != -1)
   {
     findTime += FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS;
     rtLogInfo("Attempting to find remote object %s", mRemoteObjectName.cString());
