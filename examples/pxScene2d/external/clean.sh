@@ -29,7 +29,7 @@ make clean -j3
 cd ..
 
 #--------- LIBNODE 
-cd libnode
+cd libnode-v6.9.0
 make clean -j3
 cd ..
 
