@@ -37,7 +37,8 @@ SEARCH=\
         -I$(EXTDIR)/gtest/googlemock/include \
         -I$(EXTDIR)/gtest/googlemock
 
-CXXFLAGS= $(SEARCH) -O3 -D$(PX_PLATFORM) -DRT_PLATFORM_LINUX
+CXXFLAGS= $(SEARCH) -O3 -D$(PX_PLATFORM) -DRT_PLATFORM_LINUX -DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1
+
 #-Wall -Wextra -g 
 LDPNG    = -L$(EXTDIR)/png/.libs -lpng16
 LDFT     = -L$(EXTDIR)/ft/objs/.libs -lfreetype
@@ -45,7 +46,7 @@ LDCURL   = -L$(EXTDIR)/curl/lib/.libs -lcurl
 LDZLIB   = -L$(EXTDIR)/zlib -lz
 LDJPG    = -L$(EXTDIR)/jpg/.libs -ljpeg
 LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDZLIB) $(LDJPG)
-NODEDIR = $(EXTDIR)/libnode
+NODEDIR = $(EXTDIR)/libnode-v6.9.0
 LDNODE   = -L$(NODEDIR)/out/Release/obj.target
 LDNODEV8 = -L$(NODEDIR)/out/Release
 LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode -lrtCore $(LDEXT) -L../../build/glut/ -lpxCore -lX11

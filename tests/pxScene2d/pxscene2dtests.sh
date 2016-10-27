@@ -21,8 +21,8 @@ westerosLibs=$externalDir/westeros/external/install/lib
 # Aggregated Libs path
 externalLibs=$pngLibs/:$jpgLibs/:$curlLibs/:$ftLibs/:$zLibs:$westerosLibs/:rpc/
 
-PathD=$externalLibs:$pxScene2dSrc:$externalDir/libnode/out/Debug/obj.target
-PathR=$externalLibs:$pxScene2dSrc:$externalDir/libnode/out/Release/obj.target
+PathD=$externalLibs:$pxScene2dSrc:$externalDir/libnode-v6.9.0/out/Debug/obj.target
+PathR=$externalLibs:$pxScene2dSrc:$externalDir/libnode-v6.9.0/out/Release/obj.target
 
 export NODE_PATH=$pxScene2dSrc
 
