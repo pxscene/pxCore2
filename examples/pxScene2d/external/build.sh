@@ -39,8 +39,9 @@ make all -j3
 cd ..
 
 #--------- LIBNODE 
-cd libnode
-./configure
-make all -j3
+cd libnode--v6.9.0
+./configure --shared
+make -j3
+ln -s libnode.so.48 out/Release/obj.target/libnode.so
 cd ..
 
