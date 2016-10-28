@@ -859,6 +859,8 @@ rtError rtNode::addToContextPool(rtNodeContext* context)
     mContextPool.push_back(context);
     return RT_OK;
   }
+#else
+  UNUSED_PARAM(context);
 #endif // ENABLE_V8_CONTEXT_POOL
   return RT_FAIL;
 }
