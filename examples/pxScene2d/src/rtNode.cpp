@@ -465,6 +465,8 @@ bool rtNodeContext::find(const char *name)
   }
   
   printf("\n ");
+
+  return false;
 }
 
 rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NULL*/)
