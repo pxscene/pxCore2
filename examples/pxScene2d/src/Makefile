@@ -262,6 +262,7 @@ ifneq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
 PXSCENE_LIB_SRCS += pxContextGL.cpp 
 ifneq ($(DISABLE_WAYLAND),TRUE)
 PXSCENE_LIB_SRCS += pxWayland.cpp 
+PXSCENE_LIB_SRCS += pxWaylandContainer.cpp
 endif
 else
 PXSCENE_LIB_SRCS += pxContextDFB.cpp
@@ -280,32 +281,7 @@ PXSCENE_LIB_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(PXSCENE_LIB_OBJS))
 
 # pxWayland so begin
 PXWAYLAND_LIB_SRCS=\
-           rtFile.cpp \
-           rtPathUtils.cpp \
-           rtThreadPool.cpp \
-           rtThreadTask.cpp \
-           rtThreadQueue.cpp \
-           rtLibrary.cpp \
-           rtZip.cpp \
-           pxScene2d.cpp \
-           pxResource.cpp \
-           pxConstants.cpp \
-           pxRectangle.cpp \
-           pxText.cpp \
-           pxTextBox.cpp \
-           pxImage.cpp \
-           pxUtil.cpp \
-           pxImage9.cpp \
-           pxFileDownloader.cpp \
-           pxInterpolators.cpp \
-           pxMatrix4T.cpp \
-           pxArchive.cpp \
-           pxFont.cpp \
-           pxFileCache.cpp \
-           pxHttpCache.cpp \
-           rtUrlUtils.cpp \
            linux/rtMutexNative.cpp \
-           linux/rtThreadPoolNative.cpp \
            pxContextGL.cpp
 
 ifneq ($(DISABLE_WAYLAND),TRUE)
@@ -353,7 +329,7 @@ $(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
 $(OBJDIR)/westeros-stub.o: $(EXTDIR)/westeros-stub/westeros-stub.cpp
 	$(CXX) -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS_FULL) -c $(EXTDIR)/westeros-stub/westeros-stub.cpp
 
-SRCS_FULL_GL=$(PX_SRCS_FULL) $(RT_SRCS_FULL) pxContextGL.cpp pxWayland.cpp rtNode.cpp pxScene.cpp
+SRCS_FULL_GL=$(PX_SRCS_FULL) $(RT_SRCS_FULL) pxContextGL.cpp pxWayland.cpp pxWaylandContainer.cpp rtNode.cpp pxScene.cpp
 SRCS_FULL_DFB=$(PX_SRCS_FULL) $(RT_SRCS_FULL) pxContextDFB.cpp rtNode.cpp pxScene.cpp
 
 OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS_FULL_GL)))

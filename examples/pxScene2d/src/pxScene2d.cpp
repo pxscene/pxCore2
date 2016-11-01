@@ -26,7 +26,7 @@
 #include "pxImage9.h"
 
 #if !defined(ENABLE_DFB) && !defined(DISABLE_WAYLAND)
-#include "pxWayland.h"
+#include "pxWaylandContainer.h"
 #endif //ENABLE_DFB
 
 #include "pxContext.h"
