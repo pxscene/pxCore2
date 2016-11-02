@@ -2018,6 +2018,20 @@ bool pxContext::isObjectOnScreen(float /*x*/, float /*y*/, float /*width*/, floa
 #endif
 }
 
+void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
+{
+  mCurrentTextureMemorySizeInBytes += changeInBytes;
+  if (mCurrentTextureMemorySizeInBytes < 0)
+  {
+    mCurrentTextureMemorySizeInBytes = 0;
+  }
+}
+
+void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
+{
+  mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
+}
+
 //====================================================================================================================================================================================
 
 #ifdef DEBUG

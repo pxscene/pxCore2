@@ -13,12 +13,14 @@
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
 
+#define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (65 * 1024 * 1024)
+
 //enum pxStretch { PX_NONE = 0, PX_STRETCH = 1, PX_REPEAT = 2 };
 
 class pxContext {
  public:
 
-  pxContext(): mShowOutlines(false) {}
+  pxContext(): mShowOutlines(false), mCurrentTextureMemorySizeInBytes(0), mTextureMemoryLimitInBytes(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES) {}
   ~pxContext();
 
   void init();
@@ -70,9 +72,13 @@ class pxContext {
   void drawDiagRect(float x, float y, float w, float h, float* color);
   void drawDiagLine(float x1, float y1, float x2, float y2, float* color);
   void enableDirtyRectangles(bool enable);
+  void adjustCurrentTextureMemorySize(int64_t changeInBytes);
+  void setTextureMemoryLimit(int64_t textureMemoryLimitInBytes);
 
 private:
   bool mShowOutlines;
+  int64_t mCurrentTextureMemorySizeInBytes;
+  int64_t mTextureMemoryLimitInBytes;
 };
 
 

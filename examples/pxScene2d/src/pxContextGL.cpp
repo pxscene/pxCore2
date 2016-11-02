@@ -1,6 +1,7 @@
 #include "rtDefs.h"
 #include "rtLog.h"
 #include "pxContext.h"
+#include "rtNode.h"
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -66,6 +67,9 @@ pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
 
 pxContextFramebufferRef defaultFramebuffer(new pxContextFramebuffer());
 pxContextFramebufferRef currentFramebuffer = defaultFramebuffer;
+
+extern rtNode script;
+extern pxContext context;
 
 enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
     PROGRAM_TEXTURE_MASKED_SHADER};
@@ -196,6 +200,7 @@ public:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    context.adjustCurrentTextureMemorySize(mWidth*mHeight*4);
     mBindTexture = true;
   }
 
@@ -239,6 +244,7 @@ public:
     {
       glDeleteTextures(1, &mTextureId);
       mTextureId = 0;
+      context.adjustCurrentTextureMemorySize(-1*mWidth*mHeight*4);
     }
 
     return PX_OK;
@@ -445,6 +451,7 @@ public:
     if (mTextureName)
     {
       glDeleteTextures(1, &mTextureName);
+      context.adjustCurrentTextureMemorySize(-1*mWidth*mHeight*4);
     }
 
     mInitialized = false;
@@ -476,6 +483,7 @@ public:
                    mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
       mTextureUploaded = true;
+      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
     }
     else
     {
@@ -508,6 +516,7 @@ public:
                    mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
       mTextureUploaded = true;
+      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
     }
     else
     {
@@ -634,6 +643,7 @@ public:
       GL_UNSIGNED_BYTE,
       mBuffer
     );
+    context.adjustCurrentTextureMemorySize(iw*ih);
 
     mInitialized = true;
   }
@@ -644,6 +654,7 @@ public:
     {
       glDeleteTextures(1, &mTextureId);
       mTextureId = 0;
+      context.adjustCurrentTextureMemorySize(-1*mImageWidth*mImageHeight);
     }
     mInitialized = false;
     return PX_OK;
@@ -1854,3 +1865,23 @@ bool pxContext::isObjectOnScreen(float /*x*/, float /*y*/, float /*width*/, floa
   return true;
 #endif
 }
+
+void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
+{
+  mCurrentTextureMemorySizeInBytes += changeInBytes;
+  if (mCurrentTextureMemorySizeInBytes < 0)
+  {
+    mCurrentTextureMemorySizeInBytes = 0;
+  }
+  if (changeInBytes > 0 && mCurrentTextureMemorySizeInBytes > mTextureMemoryLimitInBytes)
+  {
+    rtLogWarn("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", mCurrentTextureMemorySizeInBytes);
+    script.garbageCollect();
+  }
+}
+
+void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
+{
+  mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
+}
+
