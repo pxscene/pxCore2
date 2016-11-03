@@ -50,13 +50,12 @@ endif
 endif
 endif
 
-ifneq  ($(UNAME_S),Darwin)
 ifeq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
 EXTRA_COMPILER_FLAGS=-std=c++0x
 else
 EXTRA_COMPILER_FLAGS=-std=c++11
 endif
-endif
+
 
 VPATH=linux
 RT_SRCS_FULL=\
@@ -152,7 +151,7 @@ SEARCH=\
 
 
 #CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE
-CXXFLAGS2=-fPIC -Wall -Wextra $(EXTRA_COMPILER_FLAGS) -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE $(NODE_V_6_9_DEFINES)
+CXXFLAGS2=-fPIC -Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE $(NODE_V_6_9_DEFINES) 
 
 ifdef PXVERSION
 CXXFLAGS=$(CXXFLAGS2) -DPX_SCENE_VERSION=$(PXVERSION)
@@ -309,25 +308,25 @@ PXSCENE_LIB_SEARCH=\
 # pxScene and pxWayland so end
 
 rtMutexNative.o: linux/rtMutexNative.cpp
-	$(CXX) -o $(OBJDIR)/rtMutexNative.o -Wall $(CXXFLAGS_FULL) -c linux/rtMutexNative.cpp
+	$(CXX) -o $(OBJDIR)/rtMutexNative.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c linux/rtMutexNative.cpp
 
 rtThreadPoolNative.o: linux/rtThreadPoolNative.cpp
-	$(CXX) -o $(OBJDIR)/rtThreadPoolNative.o -Wall $(CXXFLAGS_FULL) -c linux/rtThreadPoolNative.cpp
+	$(CXX) -o $(OBJDIR)/rtThreadPoolNative.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c linux/rtThreadPoolNative.cpp
 
 $(OBJDIR)/rtWrapperUtils.o: jsbindings/rtWrapperUtils.cpp
-	$(CXX) -o $(OBJDIR)/rtWrapperUtils.o -Wall $(CXXFLAGS_FULL) -c jsbindings/rtWrapperUtils.cpp
+	$(CXX) -o $(OBJDIR)/rtWrapperUtils.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c jsbindings/rtWrapperUtils.cpp
 
 $(OBJDIR)/rtFunctionWrapper.o: jsbindings/rtFunctionWrapper.cpp
-	$(CXX) -o $(OBJDIR)/rtFunctionWrapper.o -Wall $(CXXFLAGS_FULL) -c jsbindings/rtFunctionWrapper.cpp
+	$(CXX) -o $(OBJDIR)/rtFunctionWrapper.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c jsbindings/rtFunctionWrapper.cpp
 
 $(OBJDIR)/rtObjectWrapper.o: jsbindings/rtObjectWrapper.cpp
-	$(CXX) -o $(OBJDIR)/rtObjectWrapper.o -Wall $(CXXFLAGS_FULL) -c jsbindings/rtObjectWrapper.cpp
+	$(CXX) -o $(OBJDIR)/rtObjectWrapper.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c jsbindings/rtObjectWrapper.cpp
 
 $(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
-	$(CXX) -o $(OBJDIR)/jsCallback.o -Wall $(CXXFLAGS_FULL) -c jsbindings/jsCallback.cpp
+	$(CXX) -o $(OBJDIR)/jsCallback.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c jsbindings/jsCallback.cpp
 
 $(OBJDIR)/westeros-stub.o: $(EXTDIR)/westeros-stub/westeros-stub.cpp
-	$(CXX) -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS_FULL) -c $(EXTDIR)/westeros-stub/westeros-stub.cpp
+	$(CXX) -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c $(EXTDIR)/westeros-stub/westeros-stub.cpp
 
 SRCS_FULL_GL=$(PX_SRCS_FULL) $(RT_SRCS_FULL) pxContextGL.cpp pxWayland.cpp pxWaylandContainer.cpp rtNode.cpp pxScene.cpp
 SRCS_FULL_DFB=$(PX_SRCS_FULL) $(RT_SRCS_FULL) pxContextDFB.cpp rtNode.cpp pxScene.cpp
@@ -342,7 +341,7 @@ OBJS_DFB: $(SRCS_FULL_DFB)
 
 $(OBJDIR)/%.o : %.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
-	$(CXX) -c $(CXXFLAGS_FULL) $< -o $@
+	$(CXX) -c $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) $< -o $@
 
 $(OBJDIR)/%.o : %.c
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
