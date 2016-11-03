@@ -1874,11 +1874,13 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
   {
     mCurrentTextureMemorySizeInBytes = 0;
   }
+#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   if (changeInBytes > 0 && mCurrentTextureMemorySizeInBytes > mTextureMemoryLimitInBytes)
   {
     rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", mCurrentTextureMemorySizeInBytes);
     script.garbageCollect();
   }
+#endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
 }
 
 void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
