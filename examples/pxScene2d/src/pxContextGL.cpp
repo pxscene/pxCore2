@@ -1428,6 +1428,7 @@ void pxContext::init()
 //  glUseProgram(program);
 
 //  gprogram = program;
+  setTextureMemoryLimit(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES);
 }
 
 void pxContext::setSize(int w, int h)
@@ -1875,7 +1876,7 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
   }
   if (changeInBytes > 0 && mCurrentTextureMemorySizeInBytes > mTextureMemoryLimitInBytes)
   {
-    rtLogWarn("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", mCurrentTextureMemorySizeInBytes);
+    rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", mCurrentTextureMemorySizeInBytes);
     script.garbageCollect();
   }
 }
