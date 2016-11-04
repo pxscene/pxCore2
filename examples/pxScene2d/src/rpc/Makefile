@@ -1,7 +1,7 @@
 all: rpcSampleApp rpcSampleApp_s
 
 BUILD_CXX ?= $(CXX)
-
+CXXFLAGS=
 RTCORE_SRCS=\
   ../utf8.c \
   ../rtString.cpp \

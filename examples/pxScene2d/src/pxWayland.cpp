@@ -94,7 +94,11 @@ void pxWayland::createDisplay(rtString displayName)
          error= true;
          goto exit;
       }
-      
+      #ifdef ENABLE_PX_WAYLAND_EGL
+      WstCompositorSetIsNested(mWCtx, true);
+      WstCompositorSetIsRepeater( mWCtx, true);
+      WstCompositorSetNestedDisplayName( mWCtx, "wayland-0"); //Need to remove hardcoding
+      #endif
       if ( !WstCompositorSetOutputSize( mWCtx, mWidth, mHeight ) )
       {
          error= true;
@@ -283,6 +287,7 @@ void pxWayland::onUpdate(double t)
 
 void pxWayland::onDraw()
 {
+#ifndef ENABLE_PX_WAYLAND_EGL
   static pxTextureRef nullMaskRef;
   
   if ( (mFBO->width() != mWidth) ||
@@ -351,6 +356,7 @@ void pxWayland::onDraw()
      }
   }
   context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
+#endif
 }
 
 void pxWayland::handleInvalidate()

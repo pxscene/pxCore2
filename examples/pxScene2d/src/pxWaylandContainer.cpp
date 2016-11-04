@@ -36,6 +36,16 @@ pxWaylandContainer::pxWaylandContainer(pxScene2d* scene)
   addListener("onClientStopped", get<rtFunctionRef>("onClientStopped"));
   addListener("onClientConnected", get<rtFunctionRef>("onClientConnected"));
   addListener("onClientDisconnected", get<rtFunctionRef>("onClientDisconnected"));
+  mRemoteReady = new rtPromise();
+}
+
+pxWaylandContainer::~pxWaylandContainer()
+{
+  if (NULL != mRemoteReady)
+  {
+      delete mRemoteReady;
+  }
+  mRemoteReady = NULL;
 }
 
 void pxWaylandContainer::invalidate( pxRect* r )
@@ -182,6 +192,15 @@ rtError pxWaylandContainer::api(rtValue& v) const
   return RT_PROP_NOT_FOUND;
 }
 
+rtError pxWaylandContainer::remoteReady(rtValue& promise) const
+{
+  if (NULL != mRemoteReady)
+  {
+      promise = mRemoteReady;
+  }
+  return RT_OK;
+}
+
 rtError pxWaylandContainer::setView(pxWayland* v)
 {
   if (mWayland && (mWayland != v) )
@@ -206,9 +225,18 @@ void pxWaylandContainer::onInit()
   }
 }
 
+void pxWaylandContainer::isRemoteReady(bool ready)
+{
+  if (NULL != mRemoteReady)
+  {
+      mRemoteReady->send(ready?"resolve":"reject",this);
+  }
+}
+
 rtDefineObject(pxWaylandContainer,pxViewContainer);
 rtDefineProperty(pxWaylandContainer,displayName);
 rtDefineProperty(pxWaylandContainer,cmd);
 rtDefineProperty(pxWaylandContainer,clientPID);
 rtDefineProperty(pxWaylandContainer,fillColor);
 rtDefineProperty(pxWaylandContainer,api);
+rtDefineProperty(pxWaylandContainer,remoteReady);
