@@ -217,7 +217,7 @@ keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
         if (state)
         {
             w->onKeyDown(keycodeFromNative(key),flags);
-            w->onChar((char)key);
+            w->onChar((char)(keycodeToAscii(keycodeFromNative(key),flags))); 
         }
         else
         {
@@ -841,8 +841,6 @@ void pxWindowNative::drawFrame()
         wl_surface_set_opaque_region(waylandSurface, NULL);
     }
     eglSwapBuffers(wDisplay->egl.dpy, mEglSurface);
-
-    wl_surface_commit(waylandSurface);
 }
 
 //egl methods

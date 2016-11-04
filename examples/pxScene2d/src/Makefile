@@ -115,12 +115,12 @@ ifeq ($(PX_PLATFORM),PX_PLATFORM_MAC)
 NODEINC=$(EXTDIR)/libnode-v6.9.0
 NODEDIR=$(EXTDIR)/libnode-v6.9.0
 else
-ifeq ($(PX_PLATFORM),PX_PLATFORM_GLUT)
-NODEINC=$(EXTDIR)/libnode-v6.9.0
-NODEDIR=$(EXTDIR)/libnode-v6.9.0
-else
+ifeq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
 NODEINC=$(EXTDIR)/libnode
 NODEDIR=$(EXTDIR)/libnode
+else
+NODEINC=$(EXTDIR)/libnode-v6.9.0
+NODEDIR=$(EXTDIR)/libnode-v6.9.0
 endif
 endif
 
@@ -146,12 +146,14 @@ SEARCH=\
   -I$(NODEINC)/deps/cares/include \
   -I$(EXTDIR)/westeros/external/install/include \
   -I$(EXTDIR)/westeros-stub \
-  -Irpc/
+  -Irpc/ \
+  $(PXCORE_INCLUDES) \
+  $(PXCORE_INCLUDES)/curl \
    $(TARGETINCLUDE)
 
 
 #CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE
-CXXFLAGS2=-fPIC -Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE $(NODE_V_6_9_DEFINES) 
+CXXFLAGS2=-fPIC -Wall -Wextra $(EXTRA_COMPILER_FLAGS) -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE $(NODE_V_6_9_DEFINES)
 
 ifdef PXVERSION
 CXXFLAGS=$(CXXFLAGS2) -DPX_SCENE_VERSION=$(PXVERSION)
@@ -230,8 +232,11 @@ PXSCENE_LIB_SRCS=\
            rtThreadPool.cpp \
            rtThreadTask.cpp \
            rtThreadQueue.cpp \
-           rtLibrary.cpp \
            rtZip.cpp \
+           ioapi_mem.c\
+           unzip.c\
+           ioapi.c\
+           rtLibrary.cpp \
 	   pxScene2d.cpp \
            pxResource.cpp \
            pxConstants.cpp \
@@ -303,7 +308,15 @@ PXSCENE_LIB_SEARCH=\
   -I$(NODEINC)/deps/v8/include \
   -I$(NODEINC)/deps/cares/include \
   -Irpc \
-  $(PXCORE_INCLUDES)
+  $(PXCORE_INCLUDES) \
+  $(PXCORE_INCLUDES)/curl \
+  -I$(EXTDIR)/curl/include \
+  -I$(EXTDIR)/ft/include \
+  -I$(EXTDIR)/png
+
+ifeq ($(HAVE_WESTEROS),1)
+PXSCENE_LIB_SEARCH+=-I$(EXTDIR)/westeros/external/install/include
+endif
 
 # pxScene and pxWayland so end
 
@@ -331,6 +344,8 @@ $(OBJDIR)/westeros-stub.o: $(EXTDIR)/westeros-stub/westeros-stub.cpp
 SRCS_FULL_GL=$(PX_SRCS_FULL) $(RT_SRCS_FULL) pxContextGL.cpp pxWayland.cpp pxWaylandContainer.cpp rtNode.cpp pxScene.cpp
 SRCS_FULL_DFB=$(PX_SRCS_FULL) $(RT_SRCS_FULL) pxContextDFB.cpp rtNode.cpp pxScene.cpp
 
+SRCS_PXSCENE_APP=pxScene.cpp
+
 OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS_FULL_GL)))
 OBJS:=$(patsubst %.c, $(OBJDIR)/%.o, $(OBJS))
 OBJS: $(SRCS_FULL_GL)
@@ -338,6 +353,13 @@ OBJS: $(SRCS_FULL_GL)
 OBJS_DFB=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS_FULL_DFB)))
 OBJS_DFB:=$(patsubst %.c, $(OBJDIR)/%.o, $(OBJS_DFB))
 OBJS_DFB: $(SRCS_FULL_DFB)
+
+PXSCENE_APP_OBJS=$(OBJDIR)/pxScene-wayland.o
+PXSCENE_APP_OBJS: $(SRCS_PXSCENE_APP)
+
+$(OBJDIR)/pxScene-wayland.o : pxScene.cpp
+	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
+	$(CXX) -c -fPIC -Wall -Wextra $(EXTRA_COMPILER_FLAGS) -g $(SEARCH) -DRT_PLATFORM_LINUX -DPX_PLATFORM_WAYLAND_EGL -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE $(NODE_V_6_9_DEFINES) $< -o $@
 
 $(OBJDIR)/%.o : %.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
@@ -453,6 +475,14 @@ pxscene-with-so-dfb: cleansceneobj $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIB
 	$(CXX) $(CXXFLAGS_FULL) pxScene.cpp $(LDFLAGS_FULL)
 
  
+pxscene-wayland-nexus : PXLIBS=$(PXCOREDIR)/build/wayland_egl PX_PLATFORM_WAYLAND_EGL=1 -DPX_PLATFORM_WAYLAND_EGL=1 -DENABLE_PX_WAYLAND_RPC -DENABLE_PX_WAYLAND_EGL
+pxscene-wayland-nexus : CXXFLAGS_FULL =-fPIC -Wall -Wextra $(EXTRA_COMPILER_FLAGS) -g $(PXSCENE_LIB_SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE $(NODE_V_6_9_DEFINES)
+pxscene-wayland-nexus : $(PXCOREDIR)/build/wayland_egl/libpxCore.a libpxscene-wayland-nexus $(PXSCENE_APP_OBJS)
+	$(CXX) $(PXSCENE_APP_OBJS) -lwayland-egl -lEGL  -lwayland-client -lGLESv2 -L$(PXCOREDIR)/build/wayland_egl -lnode -lpxCore -pthread  $(LDPNG) $(LDJPG) $(LDZLIB) $(LDFT) $(LDCURL) $(LDNODE) $(LDNODEV8) -ldl -lrt -lv8_libplatform -L. -lpxscene-wayland -l$(LIBRTCORE) -Lrpc -l$(LIBRTREMOTE) -o pxscene
+
+pxscene-wayland-desktop : PXLIBS=$(PXCOREDIR)/build/wayland_egl PX_PLATFORM_WAYLAND_EGL=1 -DPX_PLATFORM_WAYLAND_EGL=1 -DENABLE_PX_WAYLAND_RPC -DENABLE_PX_WAYLAND_EGL
+pxscene-wayland-desktop : $(PXCOREDIR)/build/wayland_egl/libpxCore.a libpxscene-wayland-desktop $(PXSCENE_APP_OBJS)
+	$(CXX) $(PXSCENE_APP_OBJS) -L$(PXCOREDIR)/build/wayland_egl $(EXTDIR)/westeros/external/install/lib/libwayland-server.so -lnode -lpxCore -pthread $(LDEXT) -lwayland-egl -lEGL  -lwayland-client -lGLESv2 -ldl -lrt -lv8_libplatform -L. -lpxscene-wayland -l$(LIBRTCORE) -Lrpc -l$(LIBRTREMOTE) -o pxscene
 
 libpxscene.so-node-v6.9: PXSCENE_VERSION_DEFINES = $(PXSCENE_EXTRA_DEFINES) -DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1
 libpxscene.so-node-v6.9: libpxscene.so
@@ -492,6 +522,28 @@ librtCore_s.a: CFLAGS_FULL = $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -
 librtCore_s.a: CXXFLAGS_FULL = $(CXXFLAGS) -std=c++0x $(CFLAGS_FULL)
 librtCore_s.a: $(RTCORE_OBJS)
 	$(AR) rcs -o $@ $(RTCORE_OBJS)
+
+libpxscene-wayland-nexus:
+	rm -rf $(OBJDIR)
+
+libpxscene-wayland-nexus: CFLAGS_FULL = $(CFLAGS)
+libpxscene-wayland-nexus: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(EXTRA_COMPILER_FLAGS) $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_WAYLAND_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE -DENABLE_RT_NODE -DRUNINMAIN -BSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(NODE_V_6_9_DEFINES)
+libpxscene-wayland-nexus: LINKFLAGS=-L../../../build/wayland_egl -Wl,--whole-archive ../../../build/wayland_egl/libpxCore.a -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDNODE) $(LDNODEV8) $(LDZLIB) $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) -shared -lnexus -lnxclient -o libpxscene-wayland.so.1.0
+libpxscene-wayland-nexus: cleansceneobj $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
+	$(CXX) $(PXSCENE_LIB_OBJS) $(LINKFLAGS)
+	ln -sf libpxscene-wayland.so.1.0 libpxscene-wayland.so.1
+	ln -sf libpxscene-wayland.so.1 libpxscene-wayland.so
+
+libpxscene-wayland-desktop:
+	rm -rf $(OBJDIR)
+
+libpxscene-wayland-desktop: CFLAGS_FULL = $(CFLAGS)
+libpxscene-wayland-desktop: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(EXTRA_COMPILER_FLAGS) $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DPX_PLATFORM_WAYLAND_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE -DENABLE_RT_NODE -DRUNINMAIN -BSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
+libpxscene-wayland-desktop: LINKFLAGS=-L../../../build/wayland_egl -Wl,--whole-archive ../../../build/wayland_egl/libpxCore.a -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(LDEXT) $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) -shared -o libpxscene-wayland.so.1.0
+libpxscene-wayland-desktop: cleansceneobj $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET) $(LIBRTREMOTE_TARGET)
+	$(CXX) $(PXSCENE_LIB_OBJS) $(LINKFLAGS)
+	ln -sf libpxscene-wayland.so.1.0 libpxscene-wayland.so.1
+	ln -sf libpxscene-wayland.so.1 libpxscene-wayland.so
 
 pxscene.app: pxscene
 	rm -rf pxscene.app
