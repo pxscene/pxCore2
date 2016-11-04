@@ -18,32 +18,16 @@
 #define DFB_PX_CORE_FPS 30
 
 #define USE_DFB_FLIPPING
-//#define USE_DFB_WINDOW
-//#define USE_DFB_LAYER
 
 #define USE_DRAW_THREAD
 //#define USE_DRAW_ALARM   /// BAD >> Results in " Direct/Thread: Started 'SigHandler' " error when run with Node
 
 
-IDirectFB              *dfb         = NULL;
-
-#ifdef USE_DFB_WINDOW
-IDirectFBWindow        *dfbWindow   = NULL;
-#endif
-#ifdef USE_DFB_LAYER
-IDirectFBDisplayLayer  *dfbLayer    = NULL;
-#endif
+IDirectFB              *dfb        = NULL;
+IDirectFBSurface       *dfbSurface = NULL;
+IDirectFBEventBuffer   *dfbBuffer  = NULL;
 
 DFBSurfaceDescription   dfbDescription;
-
-IDirectFBSurface       *dfbSurface  = NULL;
-IDirectFBEventBuffer   *dfbBuffer   = NULL;
-
-#ifdef USE_DFB_WINDOW
-IDirectFBEventBuffer   *dfbIBuffer  = NULL;
-IDirectFBInputDevice   *dfbKeyboard = NULL;
-#endif
-
 
 #ifdef USE_DRAW_THREAD
 void *draw_func(void *ptr);
@@ -58,15 +42,10 @@ static int cursor_y = 0;
 //
 // DSPF_ARGB == RNG150
 
-#ifdef USE_DFB_LAYER
-DFBSurfacePixelFormat  dfbPixelformat = DFBSurfacePixelFormat(DSPF_ABGR); // DSPF_ABGR;// ** DSPF_ABGR **;  DSPF_ARGB;
-#else
-DFBSurfacePixelFormat  dfbPixelformat = DSPF_ABGR;//DSPF_ABGR; //DFBSurfacePixelFormat(0);
-#endif
-
+DFBSurfacePixelFormat  dfbPixelformat = DSPF_UNKNOWN;
 
 bool needsFlip = true;
-bool exitFlag = false;
+bool exitFlag  = false;
 
 #define DFB_CHECK(x...)                                   \
 {                                                         \
@@ -103,65 +82,9 @@ void onTimer(uint32_t v);
 void onMouseMotion(int32_t x, int32_t y);
 void onMouse(uint32_t button, int32_t state, int32_t x, int32_t y);
 
-#ifdef USE_DFB_WINDOW
-static void reshape(int32_t width, int32_t height);
-#endif
 
 //#define EPRINTF(...) printf(__VA_ARGS__)
 #define EPRINTF(f_, ...)
-
-#ifdef USE_DFB_WINDOW
-
-static void
-ProcessWindowEvent(DFBWindowEvent * evt)
-{
-  if (evt->clazz == DFEC_WINDOW)
-  {
-    switch (evt->type)
-    {
-      case DWET_BUTTONDOWN:  EPRINTF("\n DWET_BUTTONDOWN"); break;
-      case DWET_BUTTONUP:    EPRINTF("\n DWET_BUTTONUP");   break;
-      case DWET_MOTION:   /* EPRINTF("\n DWET_MOTION"); */  break;  // noisy in logs
-      case DWET_WHEEL:       EPRINTF("\n DWET_WHEEL");       break;
-      case DWET_KEYDOWN:     EPRINTF("\n DWET_KEYDOWN");    break;
-      case DWET_KEYUP:       EPRINTF("\n DWET_KEYUP");      break;
-
-      case DWET_POSITION:
-        EPRINTF("\n DWET_POSITION - (%d,%d)",evt->x, evt->y);
-
-        // Send to WINDOW - POSITION
-
-        break;
-      case DWET_POSITION_SIZE:
-        EPRINTF("\n DWET_POSITION_SIZE - (%d,%d) WxH: %d x %d",evt->x, evt->y,  evt->w, evt->h);;
-        // Send to WINDOW - POSITION + SIZE
-
-        /* fall through */
-      case DWET_SIZE:
-        {
-#ifdef USE_DFB_WINDOW
-          int ww = 0, hh = 0;
-          dfbWindow->GetSize(dfbWindow, &ww, &hh);
-
-          EPRINTF("\n DWET_SIZE - WxH: %d x %d", ww, hh);
-
-          reshape(ww, hh);
-#endif
-          // Send to WINDOW - SIZE
-        }
-        break;
-      case DWET_CLOSE:     EPRINTF("\n DWET_CLOSE");     break;
-      case DWET_GOTFOCUS:  EPRINTF("\n DWET_GOTFOCUS");  break;
-      case DWET_LOSTFOCUS: EPRINTF("\n DWET_LOSTFOCUS"); break;
-      case DWET_ENTER:     EPRINTF("\n DWET_ENTER");     break;
-      case DWET_LEAVE:     EPRINTF("\n DWET_LEAVE");     break;
-
-      default:
-        ;
-    }//SWITCH
-  }
-}
-#endif // USE_DFB_WINDOW
 
 static void
 ProcessInputEvent(DFBInputEvent *ievt)
@@ -237,19 +160,6 @@ ProcessInputEvent(DFBInputEvent *ievt)
 
 
 //start dfb callbacks
-#ifdef USE_DFB_WINDOW
-static void reshape(int32_t width, int32_t height)
-{
-  vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
-  vector<pxWindowNative*>::iterator i;
-
-  for (i = windowVector.begin(); i < windowVector.end(); i++)
-  {
-    pxWindowNative* w = (*i);
-    w->onSize(width, height);
-  }
-}
-#endif
 
 void eventLoop()
 {
@@ -259,26 +169,6 @@ void eventLoop()
   {
     DFB_CHECK (dfbBuffer->WaitForEvent(dfbBuffer)); // Block waiting for next event...
 
-#ifdef USE_DFB_WINDOW
-
-    DFBWindowEvent wEvent;
-    DFBInputEvent  iEvent;
-
-    // Get any WINDOW events in case we need them
-    while (dfbBuffer->GetEvent(dfbBuffer, DFB_EVENT(&wEvent)) == DFB_OK)
-    {
-      ProcessWindowEvent( &wEvent);
-    }
-
-    // Get any INPUT events in case we need them
-    while (dfbIBuffer->GetEvent(dfbIBuffer, DFB_EVENT(&iEvent)) == DFB_OK)
-    {
-      ProcessInputEvent( &iEvent);
-    }
-
-
-#else
-
     DFBInputEvent  iEvent;
 
     // Get any INPUT events in case we need them
@@ -286,8 +176,6 @@ void eventLoop()
     {
       ProcessInputEvent( &iEvent);
     }
-#endif
-
   }//WHILE
 
   printf("************************* %s ... exiting...\n",__PRETTY_FUNCTION__);// JUNK
@@ -307,7 +195,7 @@ void display()
 #ifdef USE_DFB_FLIPPING
   if(dfbSurface && needsFlip)
   {
-    dfbSurface->Flip( dfbSurface, NULL, (DFBSurfaceFlipFlags) DSFLIP_WAITFORSYNC );
+    dfbSurface->Flip( dfbSurface, NULL, (DFBSurfaceFlipFlags) DSFLIP_WAITFORSYNC);
 
     needsFlip = false;
   }
@@ -576,138 +464,24 @@ pxWindowNative::~pxWindowNative()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifdef USE_DFB_LAYER
-
-void pxWindowNative::createDfbWindow(int left, int top, int width, int height)
-{
-#ifdef USE_DFB_WINDOW
-  DFBWindowDescription wd;
-
-  // Create a window
-  wd.flags = (DFBWindowDescriptionFlags) ( DWDESC_POSX  | DWDESC_POSY
-                                         | DWDESC_WIDTH | DWDESC_HEIGHT
-                                         | DWDESC_PIXELFORMAT);
-//                                         | DWDESC_CAPS  | DWDESC_SURFACE_CAPS
-//                                         | DWDESC_STACKING );
-  // Position & Size
-  wd.posx   = left;
-  wd.posy   = top;
-  wd.width  = width;
-  wd.height = height;
-
-  wd.pixelformat = dfbPixelformat;
-
-//  wd.caps         = (DFBWindowCapabilities)  (DWCAPS_ALPHACHANNEL | DWCAPS_DOUBLEBUFFER);// | DWCAPS_NODECORATION);
-//  wd.surface_caps = (DFBSurfaceCapabilities) (DSCAPS_PRIMARY | DSCAPS_PREMULTIPLIED | DSCAPS_VIDEOONLY);
-//  wd.stacking     = DWSC_UPPER;
-
-  DFB_ERROR(dfbLayer->CreateWindow( dfbLayer, &wd, &dfbWindow ));
-  DFB_ERROR(dfbWindow->GetSurface( dfbWindow, &dfbSurface ));
-
-  DFB_ERROR(dfbWindow->SetOpacity( dfbWindow, 0xff )) ;
-
-  // Create window Eventbuffer
-  DFB_ERROR(dfbWindow->CreateEventBuffer(dfbWindow, &dfbBuffer));
-  DFB_ERROR(dfbWindow->EnableEvents(dfbWindow, DWET_ALL));
-#else
-
-  // Create an event buffer with key capable devices attached.
-  DFB_CHECK( dfb->CreateInputEventBuffer( dfb, DICAPS_ALL, DFB_TRUE, &dfbBuffer ) );
-
-#endif // USE_DFB_WINDOW
-
-//#ifdef USE_DFB_LAYER
-  dfbLayer->GetSurface(dfbLayer, &dfbSurface );
-//#endif
-
-  //DFB_CHECK( dfbSurface->Clear( dfbSurface, 0x00, 0x00, 0x00,  0x00 ) );
-  DFB_CHECK( dfbSurface->Clear( dfbSurface, 0xFF, 0x00, 0x00,  0xff ) );  // JUNK >>>  RED SCREEN
-
-  // Select events
-  //  dfbWindow->DisableEvents( dfbWindow, DWET_ALL );
-//    dfbWindow->EnableEvents( dfbWindow, (DFBWindowEventType) (DWET_BUTTONDOWN | DWET_BUTTONUP | DWET_KEYDOWN |
-//                          DWET_WHEEL  | DWET_POSITION | DWET_SIZE) );
-}
-
-pxError displayRef::createDfbDisplay()
-{
-  printf("\nDEBUG:   createDfbDisplay() ");
-
-  if (mDisplay == NULL)
-  {
-    mDisplay = new dfbDisplay();
-  }
-
-  DirectFBInit( NULL, NULL );
-  DirectFBCreate( &dfb );
-
-  if(dfb == NULL)
-  {
-    printf("\nERROR:  %s failed.  DFB == NULL\n", __PRETTY_FUNCTION__);
-    exit(-1);
-  }
-
-
-  DFB_CHECK( dfb->GetDisplayLayer(dfb, DLID_PRIMARY, &dfbLayer) );
-  DFB_CHECK( dfbLayer->SetCooperativeLevel(dfbLayer, DLSCL_ADMINISTRATIVE) );
-
-//  dfbLayer->EnableCursor ( dfbLayer, 0 );
-
-  DFBDisplayLayerConfig layer_config;
-
-  dfbLayer->GetConfiguration( dfbLayer, &layer_config );
-
-  printf("\n\n### Got Surface from Layer ... WxH: %d x %d >> %s\n\n",
-         layer_config.width,
-         layer_config.height,
-         p2str( layer_config.pixelformat) );
-
-  dfbPixelformat = layer_config.pixelformat;
-
-  dfbLayer->EnableCursor( dfbLayer, 1 );
-
-#ifdef USE_DFB_WINDOW
-  // KB and Mouse ...I/O Event buffers...
-  DFB_CHECK(dfb->GetInputDevice(dfb, DIDID_KEYBOARD, &dfbKeyboard));
-  DFB_CHECK(dfbKeyboard->CreateEventBuffer(dfbKeyboard, &dfbIBuffer));
-#endif
-
-  return PX_OK;
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#else // SURFACE only...
-
-
 void pxWindowNative::createDfbWindow(int left, int top, int width, int height)
 {
   (void) left;  (void) top;
 
-  // Fill the PRIMARY surface description.
-  dfbDescription.flags       = (DFBSurfaceDescriptionFlags) (DSDESC_CAPS    | DSDESC_PIXELFORMAT | DSDESC_WIDTH | DSDESC_HEIGHT);
-
-#ifdef USE_DFB_FLIPPING
-  dfbDescription.caps        = (DFBSurfaceCapabilities)     (DSCAPS_PRIMARY | DSCAPS_FLIPPING);
-#else
-  dfbDescription.caps        = (DFBSurfaceCapabilities)     (DSCAPS_PRIMARY);
-#endif
-
-  dfbDescription.pixelformat = dfbPixelformat;
-  dfbDescription.width       = width;
-  dfbDescription.height      = height;
-
-  DFB_CHECK( dfb->CreateSurface( dfb, &dfbDescription, &dfbSurface ) );
-
-  DFB_CHECK(dfbSurface->GetPixelFormat( dfbSurface, &dfbPixelformat ));
+  dfbDescription.flags = DFBSurfaceDescriptionFlags(DSDESC_CAPS | DSDESC_WIDTH | DSDESC_HEIGHT);
+  dfbDescription.caps  = DFBSurfaceCapabilities(DSCAPS_PRIMARY  | DSCAPS_DOUBLE );// | DSCAPS_FLIPPING);
 
   int SW = 0, SH = 0;
 
-  dfbSurface->GetSize( dfbSurface, &SW, &SH );
+  dfbDescription.width  = width;
+  dfbDescription.height = height;
 
-  printf("NOTE: WxH >> %d x %d ... pixelformat == %s \n", SW, SH, p2str(dfbPixelformat) );
+  DFB_CHECK( dfb->CreateSurface( dfb, &dfbDescription, &dfbSurface ) );
+  DFB_CHECK( dfbSurface->GetSize( dfbSurface, &SW, &SH )             );
+
+  DFB_CHECK(dfbSurface->GetPixelFormat( dfbSurface, &dfbPixelformat ));
+
+  printf("\n\n NOTE: WxH >> %d x %d ... pixelformat: %s ******* \n\n", SW, SH, p2str(dfbPixelformat) );
 
   // Clear initially
   DFB_CHECK( dfbSurface->Clear( dfbSurface, 0, 0, 0,  0 ) );
@@ -726,23 +500,21 @@ pxError displayRef::createDfbDisplay()
 
   DirectFBInit( NULL, NULL );
 
-//  DirectFBSetOption ("quiet",     NULL); // Suppress banner
-//  DirectFBSetOption ("hardware",  NULL);  // Enable hardware acceleration
-//  DirectFBSetOption ("software",  NULL);  // Enable software fallback
-//  DirectFBSetOption ("bg-none",   NULL);
-
-//  DirectFBSetOption ("dma",       NULL);
-//  DirectFBSetOption ("mmx",       NULL);
-
-  //  DirectFBSetOption ("gfxcard-stats", NULL);
-
-//DirectFBSetOption ("forcepremultiplied", NULL);
+  DirectFBSetOption ("quiet",              NULL); // Suppress banner
+//  DirectFBSetOption ("hardware",           NULL); // Enable hardware acceleration
+//  DirectFBSetOption ("software",           NULL); // Enable software fallback
+//  DirectFBSetOption ("bg-none",            NULL);
+//  DirectFBSetOption ("dma",                NULL);
+//  DirectFBSetOption ("mmx",                NULL);
+//  DirectFBSetOption ("gfxcard-stats",      NULL);
+//  DirectFBSetOption ("forcepremultiplied", NULL);
 
 #ifndef USE_DFB_FLIPPING
-  DirectFBSetOption ("autoflip-window",   "true");
+//  DirectFBSetOption ("autoflip-window",   "true");
 #endif
 
   DirectFBCreate( &dfb );
+  DFB_CHECK(dfb->SetCooperativeLevel (dfb, DFSCL_NORMAL));
 
   if(dfb == NULL)
   {
@@ -753,35 +525,22 @@ pxError displayRef::createDfbDisplay()
   // Create an event buffer with key capable devices attached.
   DFB_CHECK( dfb->CreateInputEventBuffer( dfb, DICAPS_ALL, DFB_FALSE, &dfbBuffer ) );
 
-  // Set the cooperative level to DFSCL_FULLSCREEN for exclusive access to the primary layer.
-  DFB_CHECK(dfb->SetCooperativeLevel( dfb, DFSCL_NORMAL ));// DFSCL_FULLSCREEN ));  DFSCL_NORMAL
-
-  // KB and Mouse ...I/O Event buffers...
-//  DFB_CHECK(dfb->GetInputDevice(dfb, DIDID_KEYBOARD, &dfbKeyboard));
-//  DFB_CHECK(dfbKeyboard->CreateEventBuffer(dfbKeyboard, &dfbIBuffer));
-
   return PX_OK;
 }
-#endif // NOT( USE_DFB_LAYER )
 
 void pxWindowNative::cleanupDfbWindow()
 {
-#ifdef USE_DFB_WINDOW
   if(dfbBuffer)
   {
     dfbBuffer->Release(dfbBuffer);
+    dfbBuffer = NULL;
   }
 
   if(dfbSurface)
   {
     dfbSurface->Release(dfbSurface);
+    dfbSurface = NULL;
   }
-
-  if(dfbWindow)
-  {
-    dfbWindow->Release(dfbWindow);
-  }
-#endif
 }
 
 
@@ -804,7 +563,7 @@ pxError pxWindow::init(int left, int top, int width, int height)
 
     createDfbWindow(left,top,width,height);
 
-    //    // XXX: Need to register callbacks after window is created
+    // XXX: Need to register callbacks after window is created
     // TODO   glutReshapeFunc(reshape);
 
     registerWindow(this);
@@ -839,20 +598,6 @@ bool pxWindow::visibility()
 void pxWindow::setVisibility(bool visible)
 {
   visible = visible;
-
-#ifdef USE_DFB_WINDOW
-  mVisible = visible;
-  if (mVisible)
-  {
-      dfbWindow->SetOpacity( dfbWindow, 0xff );
-//    dfbShowWindow();
-  }
-  else
-  {
-    dfbWindow->SetOpacity( dfbWindow, 0x0 );
-//    dfbHideWindow();
-  }
-#endif
 }
 
 pxError pxWindow::setAnimationFPS(uint32_t fps)
@@ -1004,38 +749,6 @@ void pxWindowNative::unregisterWindow(pxWindowNative* p)
 void pxWindowNative::runEventLoopOnce()
 {
    printf("************************* %s\n",__PRETTY_FUNCTION__);// JUNK
-/*
-   DFB_CHECK (dfbBuffer->WaitForEvent(dfbBuffer)); // Block waiting for next event...
-
-#ifdef USE_DFB_WINDOW
-
-   DFBWindowEvent wEvent = {};
-   DFBInputEvent  iEvent = {};
-
-   // Get any WINDOW events in case we need them
-   while (dfbBuffer->GetEvent(dfbBuffer, DFB_EVENT(&wEvent)) == DFB_OK)
-   {
-     ProcessWindowEvent( &wEvent);
-   }
-
-   // Get any INPUT events in case we need them
-   while (dfbIBuffer->GetEvent(dfbIBuffer, DFB_EVENT(&iEvent)) == DFB_OK)
-   {
-     ProcessInputEvent( &iEvent);
-   }
-
-
-#else
-
-   DFBInputEvent  iEvent;
-
-   // Get any INPUT events in case we need them
-   while (dfbBuffer->GetEvent(dfbBuffer, DFB_EVENT(&iEvent)) == DFB_OK)
-   {
-     ProcessInputEvent( &iEvent);
-   }
-#endif
-*/
 }
 
 char* p2str(DFBSurfacePixelFormat fmt)
@@ -1094,7 +807,7 @@ char* p2str(DFBSurfacePixelFormat fmt)
 
 
 
-//#####
+//###########################################################################
 
 #ifdef USE_DRAW_THREAD
 
@@ -1134,8 +847,9 @@ void *draw_func(void *ptr)
 
   return NULL;
 }
+//###########################################################################
 
-#else
+#else // USE_DRAW_ALARM
 
 timer_t fpsTimer;
 
@@ -1152,6 +866,8 @@ void setupFpsTimer(int fps)
    struct sigevent sevent;
    sigset_t set;
 //   int signum;
+
+  printf("\n\n\n ALARM - SET fps = %d\n\n\n", fps, sleep_ms);
 
    // SIGALRM for printing time
    memset(&action, 0, sizeof(struct sigaction));
@@ -1200,6 +916,8 @@ void *draw_func(void *ptr)
 
   return NULL;
 }
+//###########################################################################
+
 #endif //00
 
 #endif // USE_DRAW_THREAD

@@ -10,7 +10,9 @@
 class pxOffscreenNative: public pxBuffer
 {
 public:
-	pxOffscreenNative() {}
+	pxOffscreenNative() {};
+
+    void swizzleTo(rtPixelFmt /*fmt*/) {};
 };
 
 #endif

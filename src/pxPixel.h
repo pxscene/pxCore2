@@ -37,14 +37,17 @@ struct pxPixel {
       uint8_t b,g,r,a;
 #endif
 #else
-      uint8_t a: 8;
-      uint8_t r: 8;
+  #warning Using BIG Endian ARGB
+
+      uint8_t b: 8;   // LSB
       uint8_t g: 8;
-      uint8_t b: 8;
+      uint8_t r: 8;
+      uint8_t a: 8;   // MSB
 #endif
     };
     uint32_t u;
-  };
+    uint8_t  bytes[4];
+  };//UNION
 };
 
 typedef pxPixel pxColor;

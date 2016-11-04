@@ -16,6 +16,8 @@ pxOffscreenNative(): data(NULL) {}
 
   pxError term();
 
+  void swizzleTo(rtPixelFmt /*fmt*/) {};
+
 protected:
   char* data;
 };

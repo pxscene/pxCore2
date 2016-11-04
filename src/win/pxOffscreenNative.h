@@ -33,6 +33,8 @@ public:
 #endif
     }
 
+    void swizzleTo(rtPixelFmt /*fmt*/) {};
+
 protected:
 
     HBITMAP bitmap;

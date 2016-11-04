@@ -2,21 +2,20 @@
 // pxUtil.h
 
 #include "rtFile.h"
-//#include "pxCore.h"
 
 rtError pxLoadImage(const char* imageData, size_t imageDataSize, 
                     pxOffscreen& o);
 rtError pxLoadImage(const char* filename, pxOffscreen& b);
-rtError pxStoreImage(const char* filename, pxBuffer& b);
+rtError pxStoreImage(const char* filename, pxOffscreen& b);
 
 //bool pxIsPNGImage(const char* imageData, size_t imageDataSize);
 rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize, 
                        pxOffscreen& o);
 rtError pxLoadPNGImage(const char* filename, pxOffscreen& o);
-rtError pxStorePNGImage(const char* filename, pxBuffer& b, 
+rtError pxStorePNGImage(const char* filename, pxOffscreen& b,
                         bool grayscale = false, bool alpha=true);
 
-rtError pxStorePNGImage(pxBuffer& b, rtData& pngData);
+rtError pxStorePNGImage(pxOffscreen& b, rtData& pngData);
 
 #if 0
 bool pxIsJPGImage(const char* imageData, size_t imageDataSize);

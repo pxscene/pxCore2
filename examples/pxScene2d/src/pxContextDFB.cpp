@@ -25,6 +25,8 @@
 
 // #define DEBUG_SKIP_CLEAR  // pseudo color
 
+#define PREFERRED_MEMORY     DSCAPS_VIDEOONLY   // DSCAPS_VIDEOONLY  DSCAPS_SYSTEMONLY
+
 ////////////////////////////////////////////////////////////////
 //
 // Debug Statistics
@@ -337,7 +339,7 @@ private:
     //
     dsc.width                 = o.width();
     dsc.height                = o.height();
-    dsc.caps                  = DFBSurfaceCapabilities(DSCAPS_VIDEOONLY); // Use Video Memory //   DSCAPS_PREMULTIPLIED
+    dsc.caps                  = DFBSurfaceCapabilities(PREFERRED_MEMORY); // Use Video Memory //   DSCAPS_PREMULTIPLIED
     dsc.flags                 = DFBSurfaceDescriptionFlags(DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PIXELFORMAT | DSDESC_CAPS);
     dsc.pixelformat           = dfbPixelformat;
 
@@ -411,13 +413,11 @@ public:
   {
     mOffscreen.init(o.width(), o.height());
 
-    // Flip the image data here so we match GL FBO layout
-//      mOffscreen.setUpsideDown(true);
-
 //#ifndef DEBUG_SKIP_BLIT
-    o.blit(mOffscreen); TRACK_DRAW_CALLS();
+    o.blit(mOffscreen);
 //#endif
 
+#if 0
     // premultiply
     for (int y = 0; y < mOffscreen.height(); y++)
     {
@@ -428,19 +428,11 @@ public:
           d->r = (d->r * d->a)/255;
           d->g = (d->g * d->a)/255;
           d->b = (d->b * d->a)/255;
-
-//JUNK SWIZZLE
-#if 1
-          float b = d->b;
-          
-          d->b = d->r;
-          d->r = b;
-#endif
-//JUNK SWIZZLE
           
           d++;
         }
     }
+#endif
 
     createSurface(o);
 
@@ -568,7 +560,7 @@ private:
 
     dsc.width                 = o.width();
     dsc.height                = o.height();
-    dsc.caps                  = DSCAPS_VIDEOONLY;  // Use Video Memory  //   DSCAPS_PREMULTIPLIED
+    dsc.caps                  = PREFERRED_MEMORY;  // Use Video Memory  //   DSCAPS_PREMULTIPLIED
     dsc.flags                 = DFBSurfaceDescriptionFlags(DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PIXELFORMAT | DSDESC_CAPS);
     dsc.pixelformat           = dfbPixelformat;
 
@@ -683,12 +675,12 @@ public:
 
     dsc.width                 = iw;
     dsc.height                = ih;
-#if 1
+#if 0
     dsc.flags                 = DFBSurfaceDescriptionFlags( DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PREALLOCATED | DSDESC_PIXELFORMAT );// | DSDESC_CAPS);
     //      dsc.caps                  = DSCAPS_VIDEOONLY;  // GFX Memory  DSCAPS_VIDEOONLY;// DSCAPS_SYSTEMONLY; //DSCAPS_NONE;  //DSCAPS_VIDEOONLY
 #else
     dsc.flags                 = DFBSurfaceDescriptionFlags( DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PREALLOCATED | DSDESC_PIXELFORMAT | DSDESC_CAPS );
-    dsc.caps                  = DSCAPS_VIDEOONLY;//DSCAPS_VIDEOONLY;// DSCAPS_SYSTEMONLY; //DSCAPS_NONE;  //DSCAPS_VIDEOONLY
+    dsc.caps                  = DSCAPS_SYSTEMONLY;
 #endif
 
     dsc.pixelformat           = DSPF_A8;      // ALPHA !!
@@ -1188,14 +1180,14 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  DFBRectangle src;
+  DFBRectangle src; // uses INT for (x,y, w, h)
 
   src.x = 0;  src.y = 0;
   src.w = iw; src.h = ih;
 
-  DFBRectangle dst;
+  DFBRectangle dst; // uses INT for (x,y, w, h)
 
-  dst.x = x; dst.y = y;
+  dst.x = x + 0.5f; dst.y = y + 0.5f;
   dst.w = w; dst.h = h;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1324,6 +1316,10 @@ static void drawImage92(float x,  float y,  float w,  float h,
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   texture->bindGLTexture(0);
+
+//  boundFramebuffer->SetRenderOptions( boundFramebuffer, DSRO_MATRIX | DSRO_ANTIALIAS );
+//  boundFramebuffer->SetDrawingFlags(  boundFramebuffer, DSDRAW_BLEND );
+
 
   applyMatrix(boundFramebuffer, gMatrix.data());
   
@@ -1911,50 +1907,25 @@ void pxContext::snapshot(pxOffscreen& o)
   o.init(gResW,gResH);
   
   void *pSrc = NULL;
-  void *pDst = (void*)o.base();
-  
+  void *pDst = (void*)o.base();  
   int  pitch = 0;
   
   boundFramebuffer->Lock(boundFramebuffer, DSLF_READ, &pSrc, &pitch);
+
   // READ into pxOffscreen buffer
-  
-#if 1
-  memcpy(pDst, pSrc, gResW * gResH * 4); // WxH * RGBA in size
-#else
-  
-   printf("\n ##### %s ..   pitch = %d\n\n", __PRETTY_FUNCTION__, pitch); // JUNK
-   
-  // Swizzle >> DFB Pixel Format is likely DSPF_ABGR ... not GL_RGBA as expected
-  //
-  // Swizzle >> ABGR  to  RGBA  + flip !
-  //
-  unsigned int bytes =  gResW * gResH * 4;
-     
-  char *src = pSrc;
-  char *dst = pDst;
-  
-  for(int i=0; i < bytes; i+=4)    // RGBA << ABGR
-  {
-     int j = i;//bytes - i;  // Bottom to Top
-     
-     dst[j + 0] = src[i + 3];
-     dst[j + 1] = src[i + 2];  
-     dst[j + 2] = src[i + 1];
-     dst[j + 3] = src[i + 0];
-  }
-#endif
+  memcpy(pDst, pSrc, o.sizeInBytes() ); // WxH * RGBA in size
   
   boundFramebuffer->Unlock(boundFramebuffer);
-
+  
 //JUNK
-//     if(mTexture)
-//     {
-//        boundTexture = mTexture;
-
-//        mTexture->Dump(mTexture,
-//                      "/home/hfitzpatrick/projects/xre2/image_dumps",
-//                      "image_");
-//     }
+#if 0
+    if(boundFramebuffer)
+  {
+       boundFramebuffer->Dump(boundFramebuffer,
+                     "/mnt/nfs/env/",
+                     "screendump");
+  }
+#endif
 //JUNK
 }
 

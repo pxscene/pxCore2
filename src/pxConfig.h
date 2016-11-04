@@ -5,6 +5,9 @@
 #ifndef PX_CONFIG_H
 #define PX_CONFIG_H
 
+
+#define RT_DEFAULT_PIX  RT_PIX_RGBA
+
 #if defined(PX_PLATFORM_WIN)
 #elif defined(PX_PLATFORM_MAC)
 #elif defined(PX_PLATFORM_X11)

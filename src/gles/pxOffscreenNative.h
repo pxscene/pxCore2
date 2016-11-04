@@ -12,6 +12,8 @@ public:
 
     pxError term();
 
+    void swizzleTo(rtPixelFmt /*fmt*/) {};
+
 protected:
     char* mData;
 };

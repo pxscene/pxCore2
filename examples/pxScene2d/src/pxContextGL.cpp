@@ -1805,6 +1805,8 @@ void pxContext::snapshot(pxOffscreen& o)
 {
   o.init(gResW,gResH);
   glReadPixels(0,0,gResW,gResH,GL_RGBA,GL_UNSIGNED_BYTE,(void*)o.base());
+
+  o.setUpsideDown(true);
 }
 
 void pxContext::mapToScreenCoordinates(float inX, float inY, int &outX, int &outY)

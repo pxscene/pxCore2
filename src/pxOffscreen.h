@@ -28,6 +28,8 @@ public:
   
   pxError term();
   
+  void swizzleTo(rtPixelFmt fmt);
+
 };
 
 #endif // PXOFFSCREEN_H

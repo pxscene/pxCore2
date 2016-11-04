@@ -9,7 +9,30 @@
 #include "pxRect.h"
 #include "pxCore.h"
 
+#include <string.h> // memcpy
 #include <stdlib.h>
+
+
+typedef uint32_t rtPixelFmt;
+
+#define RT_PIX_RGBA  1
+#define RT_PIX_ARGB  2
+#define RT_PIX_BGRA  3
+#define RT_PIX_RGB   4
+#define RT_PIX_A8    5 // Alpha only
+
+inline const char* rtPixelFmt2str(rtPixelFmt f)
+{
+  switch(f)
+  {
+    case RT_PIX_RGBA: return "RT_PIX_RGBA";
+    case RT_PIX_ARGB: return "RT_PIX_ARGB";
+    case RT_PIX_BGRA: return "RT_PIX_BGRA";
+    case RT_PIX_RGB:  return "RT_PIX_RGB";
+    case RT_PIX_A8:   return "RT_PIX_A8";
+    default:          return "(unknown)";
+  }
+}
 
 // This class is used to point to and describe a 32bpp framebuffer
 // The memory for this framebuffer is allocated and managed external
@@ -20,7 +43,7 @@ class pxBuffer
 {
 public:
 
-pxBuffer(): mBase(NULL), mWidth(0), mHeight(0), mStride(0), mUpsideDown(false) {}
+pxBuffer(): mPixelFormat(RT_DEFAULT_PIX), mBase(NULL), mWidth(0), mHeight(0), mStride(0), mUpsideDown(false) {}
 
   void* base() const { return mBase; }
   void setBase(void* p) { mBase = p; }
@@ -36,6 +59,8 @@ pxBuffer(): mBase(NULL), mWidth(0), mHeight(0), mStride(0), mUpsideDown(false) {
   
   bool upsideDown() const { return mUpsideDown; }
   void setUpsideDown(bool upsideDown) { mUpsideDown = upsideDown; }
+
+  int32_t sizeInBytes() const { return mStride * mHeight; }
 
   inline uint32_t *scanlineInt32(uint32_t line) const
   {
@@ -159,6 +184,39 @@ pxBuffer(): mBase(NULL), mWidth(0), mHeight(0), mStride(0), mUpsideDown(false) {
   {
     return (mBase != 0);
   }
+
+  // TODO:  Needs work...
+  inline void flipVertical()
+  {
+//    printf("\n ##### %s .. FLIPPING !!! \n\n", __PRETTY_FUNCTION__);
+
+    unsigned int bytes = sizeInBytes();
+    unsigned int lw    = stride();
+
+    char *src  = (char *) base();
+    char *dst  = (char *) (src + bytes - lw); // last line
+
+    char *line = (char *) malloc( stride() ); // single line in bytes
+
+    for(int j=0; j < height(); j++, dst -= lw, src += lw)
+    {
+      // Copy line
+      memcpy(line, dst, lw); // save
+
+      memcpy(dst, src,  lw);
+      memcpy(src, line, lw);
+    }
+
+    free(line); //cleanup
+  }
+
+  virtual void swizzleTo(rtPixelFmt fmt) = 0;
+
+  rtPixelFmt mPixelFormat;
+
+  // Swizzle indexes
+  uint8_t mSrcIndexR, mSrcIndexG, mSrcIndexB, mSrcIndexA; // SRC
+  uint8_t mDstIndexR, mDstIndexG, mDstIndexB, mDstIndexA; // DST
 
 protected:
   void* mBase;

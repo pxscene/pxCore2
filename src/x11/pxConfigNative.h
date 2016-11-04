@@ -21,8 +21,12 @@
 
 #elif defined(ENABLE_DFB)
 
+#undef RT_DEFAULT_PIX
+#define RT_DEFAULT_PIX  RT_PIX_ARGB
+
   #include "pxBufferNativeDfb.h"
   #include "pxOffscreenNativeDfb.h"
+
 #ifdef ENABLE_DFB_GENERIC
   #include "../generic/pxWindowNative.h"
 #else

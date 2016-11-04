@@ -16,6 +16,8 @@ public:
     pxOffscreenNative(): image(NULL), data(NULL) {}
     virtual ~pxOffscreenNative() {}
 
+    void swizzleTo(rtPixelFmt fmt);
+
     pxError term();
 
 protected:

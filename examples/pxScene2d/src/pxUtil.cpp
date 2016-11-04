@@ -23,13 +23,22 @@
 rtError pxLoadImage(const char* imageData, size_t imageDataSize, 
                      pxOffscreen& o)
 {
-  // TODO more sane image type detection and flow
-  if (pxLoadPNGImage(imageData, imageDataSize, o) != RT_OK)
+  // Load as PNG...
+  rtError retVal = pxLoadPNGImage(imageData, imageDataSize, o);
+
+  if( retVal != RT_OK) // Failed ... trying as JPG
   {
-    // Failed to load %s as PNG trying as JPG
-    return pxLoadJPGImage(imageData, imageDataSize, o);
+     retVal = pxLoadJPGImage(imageData, imageDataSize, o);
   }
-  return RT_OK;
+
+  // TODO more sane image type detection and flow
+
+  if(o.mPixelFormat != RT_DEFAULT_PIX)
+  {
+    o.swizzleTo(RT_DEFAULT_PIX);
+  }
+
+   return retVal;
 }
 
 // TODO Detection needs to be improved...
@@ -48,7 +57,7 @@ rtError pxLoadImage(const char* filename, pxOffscreen& b)
   return e;
 }
 
-rtError pxStoreImage(const char* filename, pxBuffer& b)
+rtError pxStoreImage(const char* filename, pxOffscreen& b)
 {
   return pxStorePNGImage(filename, b);
 }
@@ -67,7 +76,9 @@ rtError pxLoadPNGImage(const char* filename, pxOffscreen& o)
     return pxLoadPNGImage((const char*)d.data(), d.length(), o);
   }
   else
+  {
     rtLogError("Failed to load image file, %s.", filename);
+  }
 
   return RT_OK;
 }
@@ -104,8 +115,16 @@ my_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 }
 
 // TODO rewrite this... 
-rtError pxStorePNGImage(pxBuffer& b, rtData& pngData)
+rtError pxStorePNGImage(pxOffscreen& b, rtData& pngData)
 {
+  if(b.mPixelFormat != RT_PIX_RGBA)
+  {
+//      printf("\nDEBUG:  SWIZZLE from:  %s  >>  %s \n",
+//        rtPixelFmt2str(b.mPixelFormat), rtPixelFmt2str(RT_PIX_RGBA) );
+
+    b.swizzleTo(RT_PIX_RGBA); // needed for PNG encoder
+  }
+
   png_structp png_ptr;
   png_infop info_ptr;
   png_bytep * row_pointers;
@@ -193,7 +212,7 @@ rtError pxStorePNGImage(pxBuffer& b, rtData& pngData)
 
 
 
-rtError pxStorePNGImage(const char* filename, pxBuffer& b, bool /*grayscale*/, 
+rtError pxStorePNGImage(const char* filename, pxOffscreen& b, bool /*grayscale*/,
                         bool /*alpha*/)
 {
   png_structp png_ptr;
@@ -701,7 +720,8 @@ rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
    * loop counter, so that we don't have to keep track ourselves.
    */
   int scanlinen = 0;
-  while (cinfo.output_scanline < cinfo.output_height) {
+  while (cinfo.output_scanline < cinfo.output_height)
+  {
     /* jpeg_read_scanlines expects an array of pointers to scanlines.
      * Here the array is only one element long, but you could ask for
      * more than one scanline at a time if that's more convenient.
@@ -723,8 +743,9 @@ rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
         p++;
       }
     }
-
   }
+
+  o.mPixelFormat = RT_PIX_ARGB;
 
   /* Step 7: Finish decompression */
 
@@ -892,6 +913,11 @@ rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize,
       }
       e = RT_OK;
     }
+  }
+
+  if(e == RT_OK)
+  {
+    o.mPixelFormat = RT_PIX_RGBA;
   }
 
   png_destroy_read_struct(&png_ptr, &info_ptr, NULL);

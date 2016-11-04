@@ -1577,7 +1577,8 @@ void pxScene2d::onDraw()
 // t is assumed to be monotonically increasing
 void pxScene2d::update(double t)
 {
-  if (mRoot) {
+  if (mRoot)
+  {
 #ifdef PX_DIRTY_RECTANGLES
       context.pushState();
 #endif //PX_DIRTY_RECTANGLES
@@ -2091,7 +2092,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
   {
     pxOffscreen o;
     context.snapshot(o);
-    o.setUpsideDown(true);
+
     rtData pngData2;
     if (pxStorePNGImage(o, pngData2) == RT_OK)
     {
@@ -2099,7 +2100,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
 #if 0
-    FILE *myFile = fopen("/opt/snap.png", "wb");
+    FILE *myFile = fopen("/mnt/nfs/env/snap.png", "wb");
     if( myFile != NULL)
     {
       fwrite( pngData2.data(), sizeof(char), pngData2.length(),myFile);
