@@ -18,10 +18,11 @@ public:
 
   rtObjectRef findObject(std::string const& id);
   rtFunctionRef findFunction(std::string const& id);
-  rtError insert(std::string const& id, rtObjectRef const& ref, int maxAge);
-  rtError insert(std::string const& id, rtFunctionRef const& ref, int maxAge);
+  rtError insert(std::string const& id, rtObjectRef const& ref);
+  rtError insert(std::string const& id, rtFunctionRef const& ref);
   rtError touch(std::string const& id, time_t now);
   rtError erase(std::string const& id);
+  rtError markForRemoval(std::string const& id);
   rtError removeUnused();
   rtError clear();
 

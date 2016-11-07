@@ -48,10 +48,10 @@ public:
   rtError sendCall(std::string const& objectId, std::string const& methodName,
     int argc, rtValue const* argv, rtValue& result);
 
-  void keepAlive(std::string const& s);
+  void registerKeepAliveForObject(std::string const& s);
   rtError setStateChangedHandler(StateChangedHandler handler, void* argp);
 
-  void removeKeepAlive(std::string const& s);
+  void removeKeepAliveForObject(std::string const& s);
 
   inline rtRemoteEnvironment* getEnvironment() const
     { return m_env; }
@@ -69,15 +69,11 @@ private:
   static rtError onIncomingMessage_Dispatcher(rtRemoteMessagePtr const& doc, void* argp)
     { return reinterpret_cast<rtRemoteClient *>(argp)->onIncomingMessage(doc); }
 
-  static rtError onInactivity_Dispatcher(time_t lastMessage, time_t now, void* argp)
-    { return reinterpret_cast<rtRemoteClient *>(argp)->onInactivity(lastMessage, now); }
-
   static rtError onStreamStateChanged_Dispatcher(std::shared_ptr<rtRemoteStream> const& stream,
       rtRemoteStream::State state, void* argp)
     { return reinterpret_cast<rtRemoteClient *>(argp)->onStreamStateChanged(stream, state); }
 
   rtError onIncomingMessage(rtRemoteMessagePtr const& msg);
-  rtError onInactivity(time_t lastMessage, time_t now);
   rtError onStreamStateChanged(std::shared_ptr<rtRemoteStream> const& stream, rtRemoteStream::State state);
   rtError connectRpcEndpoint();
   rtError sendKeepAlive();
@@ -103,7 +99,7 @@ private:
   }
 
   std::shared_ptr<rtRemoteStream>           m_stream;
-  std::vector<std::string>                  m_object_list;
+  std::vector<std::string>                  m_objects;
   std::mutex mutable                        m_mutex;
   rtRemoteEnvironment*                      m_env;
   rtRemoteCallback<StateChangedHandler>     m_state_changed_handler;

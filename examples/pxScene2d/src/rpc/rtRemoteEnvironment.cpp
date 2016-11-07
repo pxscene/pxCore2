@@ -16,7 +16,7 @@ rtRemoteEnvironment::rtRemoteEnvironment(rtRemoteConfig* config)
   , m_queue_ready_handler(nullptr)
   , m_queue_ready_context(nullptr)
 {
-  StreamSelector = new rtRemoteStreamSelector();
+  StreamSelector = new rtRemoteStreamSelector(this);
   StreamSelector->start();
 
   Server = new rtRemoteServer(this);

@@ -26,6 +26,7 @@ public:
 public:
   rtError open();
   rtError registerObject(std::string const& objectId, rtObjectRef const& obj);
+  rtError unregisterObject(std::string const& objectId);
   rtError findObject(std::string const& objectId, rtObjectRef& obj, uint32_t timeout);
   rtError removeStaleObjects();
   rtError processMessage(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& msg);

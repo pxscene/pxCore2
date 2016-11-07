@@ -28,6 +28,7 @@
 
 #define RT_RESOURCE_NOT_FOUND		8
 #define RT_NO_CONNECTION		9
+#define RT_ERROR_NOT_IMPLEMENTED 10
 
 // errors specific to rtRemote
 #define RT_ERROR_TIMEOUT 1000

@@ -53,6 +53,9 @@ rtRemoteInit(rtRemoteEnvironment* env);
 rtError
 rtRemoteRegisterObject(rtRemoteEnvironment* env, char const* id, rtObjectRef const& obj);
 
+rtError
+rtRemoteUnregisterObject(rtRemoteEnvironment* env, char const* id);
+
 /**
  * Locate a remote object by id.
  * @param id The id of the object to locate.
@@ -94,6 +97,9 @@ rtRemoteInit();
 
 rtError
 rtRemoteRegisterObject(char const* id, rtObjectRef const& obj);
+
+rtError
+rtRemoteUnregisterObject(char const* id);
 
 rtError
 rtRemoteLocateObject(char const* id, rtObjectRef& obj, int timeout = 3000);

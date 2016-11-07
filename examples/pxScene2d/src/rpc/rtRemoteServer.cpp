@@ -270,9 +270,37 @@ rtRemoteServer::registerObject(std::string const& objectId, rtObjectRef const& o
 {
   rtObjectRef ref = m_env->ObjectCache->findObject(objectId);
   if (!ref)
-    m_env->ObjectCache->insert(objectId, obj, -1);
+    m_env->ObjectCache->insert(objectId, obj);
   m_resolver->registerObject(objectId, m_rpc_endpoint);
   return RT_OK;
+}
+
+rtError
+rtRemoteServer::unregisterObject(std::string const& objectId)
+{
+  rtError e = RT_OK;
+
+  if (m_env)
+  {
+    m_env->ObjectCache->markForRemoval(objectId);
+    if (e != RT_OK)
+    {
+      rtLogInfo("failed to mark object %s for removal. %s",
+          objectId.c_str(), rtStrError(e));
+    }
+  }
+
+  if (m_resolver)
+  {
+    e = m_resolver->unregisterObject(objectId);
+    if (e != RT_OK)
+    {
+      rtLogInfo("failed to remove resolver entry for %s. %s", objectId.c_str(),
+          rtStrError(e));
+    }
+  }
+
+  return e;
 }
 
 void
@@ -299,7 +327,7 @@ rtRemoteServer::runListener()
     rtPushFd(&errFds, m_listen_fd, &maxFd);
 
     timeval timeout;
-    timeout.tv_sec = 1;
+    timeout.tv_sec = 1; // TODO: move to rtremote.conf (rt.remote.server.select.timeout)
     timeout.tv_usec = 0;
 
     int ret = select(maxFd + 1, &readFds, NULL, &errFds, &timeout);
@@ -845,13 +873,15 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtRemoteMes
     {
       rtError e = m_env->ObjectCache->touch(id->GetString(), now);
       if (e != RT_OK)
+      {
         rtLogWarn("error updating last used time for: %s, %s", 
             id->GetString(), rtStrError(e));
+      }
     }
   }
   else
   {
-    rtLogInfo("got keep-alive without any interesting information");
+    rtLogWarn("got keep-alive without any interesting information");
   }
 
   rtRemoteMessagePtr res(new rapidjson::Document());
@@ -867,6 +897,8 @@ rtRemoteServer::removeStaleObjects()
   std::unique_lock<std::mutex> lock(m_mutex);
   for (auto itr = m_object_map.begin(); itr != m_object_map.end();)
   {
+    // TODO: I'm not sure if this works. This is a map of connections to remote peers.
+    // when connecting to mulitple remote objects, we'll re-use the remote connection.
     if (itr->second.use_count() == 1)
       itr = m_object_map.erase(itr);
     else

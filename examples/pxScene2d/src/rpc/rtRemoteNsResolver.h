@@ -28,6 +28,7 @@ public:
   virtual rtError locateObject(std::string const& name, sockaddr_storage& endpoint,
     uint32_t timeout) override;
   rtError registerObject(std::string const& name, sockaddr_storage const& endpoint, uint32_t timeout);
+  virtual rtError unregisterObject(std::string const& name);
 
 private:
   using CommandHandler = rtError (rtRemoteNsResolver::*)(rtRemoteMessagePtr const&, sockaddr_storage const&);

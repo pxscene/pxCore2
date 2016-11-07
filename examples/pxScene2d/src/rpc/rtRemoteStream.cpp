@@ -17,10 +17,11 @@
 rtRemoteStream::rtRemoteStream(rtRemoteEnvironment* env, int fd, sockaddr_storage const& local_endpoint,
   sockaddr_storage const& remote_endpoint)
   : m_fd(fd)
-  , m_last_message_time(0)
-  , m_last_ka_message_time(0)
+  , m_last_message_time(time(0))
   , m_env(env)
 {
+  m_state_changed_handler.Func = nullptr;
+  m_state_changed_handler.Arg = nullptr;
   memcpy(&m_remote_endpoint, &remote_endpoint, sizeof(m_remote_endpoint));
   memcpy(&m_local_endpoint, &local_endpoint, sizeof(m_local_endpoint));
 }
@@ -139,6 +140,20 @@ rtRemoteStream::setMessageHandler(MessageHandler handler, void* argp)
   m_message_handler.Arg = argp;
   return RT_OK;
 }
+
+rtError
+rtRemoteStream::onInactivity(time_t /*now*/)
+{
+  auto self = shared_from_this();
+  if (m_state_changed_handler.Func)
+  {
+    rtError e = m_state_changed_handler.Func(self, State::Inactive, m_state_changed_handler.Arg);
+    if (e != RT_OK)
+      rtLogError("failed dispatching inactivity handler. %s", rtStrError(e));
+  }
+  return RT_OK;
+}
+
 
 rtError
 rtRemoteStream::onIncomingMessage(rtRemoteSocketBuffer& buff, time_t now)

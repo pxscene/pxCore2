@@ -480,3 +480,9 @@ rtRemoteNsResolver::doDispatch(char const* buff, int n, sockaddr_storage* peer)
     return;
   }
 }
+
+rtError
+rtRemoteNsResolver::unregisterObject(std::string const& /*name*/)
+{
+  return RT_ERROR_NOT_IMPLEMENTED;
+}

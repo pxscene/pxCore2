@@ -10,11 +10,12 @@
 
 
 class rtRemoteStream;
+class rtRemoteEnvironment;
 
 class rtRemoteStreamSelector
 {
 public:
-  rtRemoteStreamSelector();
+  rtRemoteStreamSelector(rtRemoteEnvironment* env);
 
   rtError start();
   rtError registerStream(std::shared_ptr<rtRemoteStream> const& s);
@@ -30,6 +31,7 @@ private:
   pthread_t                                       m_thread;
   std::mutex                                      m_mutex;
   int                                             m_shutdown_pipe[2];
+  rtRemoteEnvironment*                            m_env;
 };
 
 #endif

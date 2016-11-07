@@ -108,13 +108,6 @@ rtRemoteClient::onIncomingMessage(rtRemoteMessagePtr const& doc)
 }
 
 rtError
-rtRemoteClient::onInactivity(time_t /*lastMessage*/, time_t /*now*/)
-{
-  sendKeepAlive();
-  return RT_OK;
-}
-
-rtError
 rtRemoteClient::onStreamStateChanged(std::shared_ptr<rtRemoteStream> const& /*stream*/,
     rtRemoteStream::State state)
 {
@@ -134,6 +127,14 @@ rtRemoteClient::onStreamStateChanged(std::shared_ptr<rtRemoteStream> const& /*st
     {
       m_stream->close();
       m_stream.reset();
+    }
+  }
+  else if (state == rtRemoteStream::State::Inactive)
+  {
+    rtError e = sendKeepAlive();
+    if (e != RT_OK)
+    {
+      rtLogWarn("failed to send keep alive. %s", rtStrError(e));
     }
   }
   return RT_OK;
@@ -210,26 +211,31 @@ rtRemoteClient::startSession(std::string const& objectId, uint32_t timeout)
   return e;
 }
 
-void rtRemoteClient::keepAlive(std::string const& s)
+void rtRemoteClient::registerKeepAliveForObject(std::string const& s)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
-  m_object_list.push_back(s);
+  m_objects.push_back(s);
 }
 
-void rtRemoteClient::removeKeepAlive(std::string const& s)
+void rtRemoteClient::removeKeepAliveForObject(std::string const& s)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
-  auto it = std::find(m_object_list.begin(), m_object_list.end(), s);
-  if (it != m_object_list.end()) m_object_list.erase(it);
+  auto it = std::find(m_objects.begin(), m_objects.end(), s);
+  if (it != m_objects.end())
+  {
+    m_objects.erase(it);
+  }
 }
 
 rtError
 rtRemoteClient::sendKeepAlive()
 {
   std::unique_lock<std::mutex> lock(m_mutex);
-  if (m_object_list.empty())
+  if (m_objects.empty())
     return RT_OK;
 
+  // TODO: If m_objects has not changed, we can re-use that last message
+  // we sent, and simply update the correlation key
   rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
 
   rtRemoteMessagePtr msg(new rapidjson::Document());
@@ -237,7 +243,7 @@ rtRemoteClient::sendKeepAlive()
   msg->AddMember(kFieldNameMessageType, kMessageTypeKeepAliveRequest, msg->GetAllocator());
   msg->AddMember(kFieldNameCorrelationKey,k.toString(), msg->GetAllocator());
 
-  for (std::string const& name : m_object_list)
+  for (std::string const& name : m_objects)
   {
     auto itr = msg->FindMember(kFieldNameKeepAliveIds);
     if (itr == msg->MemberEnd())
@@ -256,6 +262,7 @@ rtRemoteClient::sendKeepAlive()
   std::shared_ptr<rtRemoteStream> s = getStream();
   if (!s)
     return RT_ERROR_STREAM_CLOSED;
+
   return s->send(msg);
 }
 

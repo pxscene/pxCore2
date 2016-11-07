@@ -1,4 +1,5 @@
 #include "rtRemoteStreamSelector.h"
+#include "rtRemoteConfig.h"
 #include "rtRemoteStream.h"
 #include "rtRemoteSocketUtils.h"
 #include "rtError.h"
@@ -8,7 +9,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-rtRemoteStreamSelector::rtRemoteStreamSelector()
+rtRemoteStreamSelector::rtRemoteStreamSelector(rtRemoteEnvironment* env)
+  : m_env(env)
 {
   int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
   if (ret == -1)
@@ -88,8 +90,11 @@ rtError
 rtRemoteStreamSelector::doPollFds()
 {
   rtRemoteSocketBuffer buff;
-  buff.reserve(1024 * 1024);
-  buff.resize(1024 * 1024);
+  buff.reserve(m_env->Config->stream_socket_buffer_size());
+  buff.resize(m_env->Config->stream_socket_buffer_size());
+
+  int const keepAliveInterval = m_env->Config->stream_keep_alive_interval();
+  time_t lastKeepAliveSent = time(0);
 
   while (true)
   {
@@ -109,7 +114,7 @@ rtRemoteStreamSelector::doPollFds()
     rtPushFd(&readFds, m_shutdown_pipe[0], &maxFd);
 
     timeval timeout;
-    timeout.tv_sec = 1;
+    timeout.tv_sec = m_env->Config->stream_select_interval();
     timeout.tv_usec = 0;
 
     int ret = select(maxFd + 1, &readFds, NULL, &errFds, &timeout);
@@ -127,14 +132,13 @@ rtRemoteStreamSelector::doPollFds()
     }
 
     time_t now = time(0);
+    bool sentKeepAlive = false;
 
     std::unique_lock<std::mutex> lock(m_mutex);
     for (int i = 0, n = static_cast<int>(m_streams.size()); i < n; ++i)
     {
-      // TODO: make sure stream is still registerd
-
       rtError e = RT_OK;
-      std::shared_ptr<rtRemoteStream> const& s = m_streams[i];
+      std::shared_ptr<rtRemoteStream> s = m_streams[i];
       if (FD_ISSET(s->m_fd, &readFds))
       {
         e = s->onIncomingMessage(buff, now);
@@ -144,24 +148,33 @@ rtRemoteStreamSelector::doPollFds()
           m_streams[i].reset();
         }
       }
-
-
-      #if 0
-      if (s && (now - s->m_last_ka_message_time > 10))
+      else if (FD_ISSET(s->m_fd, &errFds))
       {
-        s->m_last_ka_message_time = time(0);
+        // TODO
+        rtLogError("error on fd: %d", s->m_fd);
+      }
+
+      if ((now - lastKeepAliveSent) > keepAliveInterval)
+      {
+        sentKeepAlive = true;
+
+        // This really isn't inactivity, it's more like a timer enve
         e = s->onInactivity(now);
         if (e != RT_OK)
-          m_streams[i].reset();
+          rtLogWarn("error sending keep alive. %s", rtStrError(e));
       }
-      #endif
+    }
+
+    if (sentKeepAlive)
+    {
+      lastKeepAliveSent = now;
     }
 
     // remove all dead streams
     auto end = std::remove_if(m_streams.begin(), m_streams.end(),
         [](std::shared_ptr<rtRemoteStream> const& s) { return s == nullptr; });
     m_streams.erase(end, m_streams.end());
-    rtLogDebug("streams size:%d", (int) m_streams.size());
+    // rtLogDebug("streams size:%d", (int) m_streams.size());
     lock.unlock();
   }
 

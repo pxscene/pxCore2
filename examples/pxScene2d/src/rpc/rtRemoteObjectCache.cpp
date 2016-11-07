@@ -4,6 +4,7 @@
 
 #include <map>
 #include <mutex>
+#include <iostream>
 
 namespace
 {
@@ -12,7 +13,14 @@ namespace
     rtObjectRef     Object;
     rtFunctionRef   Function;
     time_t          LastUsed;
-    int             MaxAge;
+    int             MaxIdleTime;
+    bool            ShouldBeRemoved;
+
+    bool isActive(time_t now) const
+    {
+      return (now - LastUsed) < MaxIdleTime;
+    }
+
   };
 
   using refmap = std::map< std::string, Entry >;
@@ -38,14 +46,36 @@ rtRemoteObjectCache::findFunction(std::string const& id)
 }
 
 rtError
-rtRemoteObjectCache::insert(std::string const& id, rtFunctionRef const& ref, int maxAge)
+rtRemoteObjectCache::markForRemoval(std::string const& id)
+{
+  rtError e = RT_OK;
+
+  std::unique_lock<std::mutex> lock(sMutex);
+  auto itr = sRefMap.find(id);
+  if (itr != sRefMap.end())
+  {
+    itr->second.ShouldBeRemoved = true;
+    e = RT_OK;
+  }
+  else
+  {
+    e = RT_ERROR_OBJECT_NOT_FOUND;
+  }
+
+  return e;
+}
+
+
+rtError
+rtRemoteObjectCache::insert(std::string const& id, rtFunctionRef const& ref)
 {
   rtError e = RT_OK;
 
   Entry entry;
   entry.LastUsed = time(nullptr);
   entry.Function = ref;
-  entry.MaxAge = maxAge;
+  entry.MaxIdleTime = m_env->Config->cache_max_object_lifetime();
+  entry.ShouldBeRemoved = false;
 
   std::unique_lock<std::mutex> lock(sMutex);
   auto res = sRefMap.insert(refmap::value_type(id, entry));
@@ -56,14 +86,15 @@ rtRemoteObjectCache::insert(std::string const& id, rtFunctionRef const& ref, int
 }
 
 rtError
-rtRemoteObjectCache::insert(std::string const& id, rtObjectRef const& ref, int maxAge)
+rtRemoteObjectCache::insert(std::string const& id, rtObjectRef const& ref)
 {
   rtError e = RT_OK;
 
   Entry entry;
   entry.LastUsed = time(nullptr);
   entry.Object = ref;
-  entry.MaxAge = maxAge;
+  entry.MaxIdleTime = m_env->Config->cache_max_object_lifetime();
+  entry.ShouldBeRemoved = false;
 
   std::unique_lock<std::mutex> lock(sMutex);
   auto res = sRefMap.insert(refmap::value_type(id, entry));
@@ -129,23 +160,23 @@ rtRemoteObjectCache::removeUnused()
 {
   time_t now = time(nullptr);
 
-  int const maxAge = m_env->Config->cache_max_object_lifetime();
-
   std::unique_lock<std::mutex> lock(sMutex);
   for (auto itr = sRefMap.begin(); itr != sRefMap.end();)
   {
-    if (itr->second.MaxAge > -1 && (now - itr->second.LastUsed) > maxAge)
+    // rtLogInfo("IsActive:%s LastUsed:%ld MaxIdleTime:%d ShouldBeRemoved:%d", itr->first.c_str(),
+    //  itr->second.LastUsed, itr->second.MaxIdleTime, itr->second.ShouldBeRemoved);
+    #if 0
+    if (itr->second.ShouldBeRemoved && itr->second.isActive(now))
     {
-      rtLogInfo("removing %s. It's last access time:%d is older max allowed: %d",
-          itr->first.c_str(),
-          static_cast<int>(now - itr->second.LastUsed),
-          maxAge);
+      rtLogInfo("not removing:%s, should remove, but it's active",
+        itr->first.c_str());
+    }
+    #endif
+
+    if (!itr->second.isActive(now) && itr->second.ShouldBeRemoved)
       itr = sRefMap.erase(itr);
-    }
     else
-    {
       ++itr;
-    }
   }
 
   return RT_OK;

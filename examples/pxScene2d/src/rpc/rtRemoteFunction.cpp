@@ -12,7 +12,7 @@ rtRemoteFunction::rtRemoteFunction(std::string const& id, std::string const& nam
 {
   if (!strcmp(id.c_str(), "global"))
   {
-    m_client->keepAlive(m_name);
+    m_client->registerKeepAliveForObject(m_name);
   }
 }
 
@@ -20,7 +20,7 @@ rtRemoteFunction::~rtRemoteFunction()
 {
   if (!strcmp(m_id.c_str(), "global"))
   {
-    m_client->removeKeepAlive(m_name);
+    m_client->removeKeepAliveForObject(m_name);
   }
   Release();
 }

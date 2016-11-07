@@ -121,6 +121,18 @@ rtRemoteRegisterObject(rtRemoteEnvironment* env, char const* id, rtObjectRef con
 }
 
 rtError
+rtRemoteUnregisterObject(rtRemoteEnvironment* env, char const* id)
+{
+  if (env == nullptr)
+    return RT_ERROR_INVALID_ARG;
+
+  if (id == nullptr)
+    return RT_ERROR_INVALID_ARG;
+
+  return env->Server->unregisterObject(id);
+}
+
+rtError
 rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj, int timeout)
 {
   if (env == nullptr)
@@ -211,6 +223,12 @@ rtError
 rtRemoteRegisterObject(char const* id, rtObjectRef const& obj)
 {
   return rtRemoteRegisterObject(rtEnvironmentGetGlobal(), id, obj);
+}
+
+rtError
+rtRemoteUnregisterObject(char const* id)
+{
+  return rtRemoteUnregisterObject(rtEnvironmentGetGlobal(), id);
 }
 
 rtError

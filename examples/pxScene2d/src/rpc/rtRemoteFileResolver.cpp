@@ -191,3 +191,9 @@ rtRemoteFileResolver::close()
     fclose(m_db_fp);
   return RT_OK;
 }
+
+rtError
+rtRemoteFileResolver::unregisterObject(std::string const& /*name*/)
+{
+  return RT_ERROR_NOT_IMPLEMENTED;
+}

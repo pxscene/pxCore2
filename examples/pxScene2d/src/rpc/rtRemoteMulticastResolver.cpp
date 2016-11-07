@@ -602,3 +602,22 @@ rtRemoteMulticastResolver::registerObject(std::string const& name, sockaddr_stor
   lock.unlock(); // TODO this wasn't here before.  Make sure it's right to put it here
   return RT_OK;
 }
+
+rtError
+rtRemoteMulticastResolver::unregisterObject(std::string const& name)
+{
+  rtError e = RT_OK;
+
+  std::unique_lock<std::mutex> lock(m_mutex);
+  auto itr = m_hosted_objects.find(name);
+  if (itr != m_hosted_objects.end())
+  {
+    m_hosted_objects.erase(itr);
+    e = RT_OK;
+  }
+  else
+  {
+    e = RT_ERROR_OBJECT_NOT_FOUND;
+  }
+  return e;
+}
