@@ -158,6 +158,10 @@ void pxWayland::createDisplay(rtString displayName)
          rtLogDebug("pxWayland: launching client (%s)", cmd );
          rtLogInfo("remote client's id is %s", mRemoteObjectName.cString() );
          launchClient();
+      }
+
+      if ( !mRemoteObjectName.isEmpty() )
+      {
          mWaitingForRemoteObject = true;
          startRemoteObjectDetection();
       }

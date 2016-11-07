@@ -69,6 +69,12 @@ public:
      return RT_OK;
   }
 
+  rtError remoteObjectName(rtString& s) const { s = mRemoteObjectName; return RT_OK; }
+  rtError setRemoteObjectName(const char* s) {
+    mRemoteObjectName = s;
+    return RT_OK;
+  }
+
   rtError setFillColor(uint32_t c) 
   {
     mFillColor[0] = (float)((c>>24)&0xff)/255.0f;
