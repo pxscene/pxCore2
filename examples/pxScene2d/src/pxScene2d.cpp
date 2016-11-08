@@ -2278,8 +2278,15 @@ rtDefineObject(pxSceneContainer, pxViewContainer);
 rtDefineProperty(pxSceneContainer, url);
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
+rtDefineMethod(pxSceneContainer, release);
 //rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
 
+rtError pxSceneContainer::release()
+{
+  remove();
+  dispose();
+  return RT_OK;
+}
 
 rtError pxSceneContainer::setUrl(rtString url)
 {
