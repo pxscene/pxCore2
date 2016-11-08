@@ -352,12 +352,12 @@ void rtNodeContext::add(const char *name, rtValue const& val)
 {
   if(name == NULL)
   {
-    rtLogError(" rtNodeContext::add() - no symbolic name for rtValue");
+    rtLogDebug(" rtNodeContext::add() - no symbolic name for rtValue");
     return;
   }
   else if(this->has(name))
   {
-    rtLogError(" rtNodeContext::add() - ALREADY HAS '%s' ... over-writing.", name);
+    rtLogDebug(" rtNodeContext::add() - ALREADY HAS '%s' ... over-writing.", name);
    // return; // Allow for "Null"-ing erasure.
   }
 
