@@ -28,6 +28,14 @@ rtError pxArchive::initFromUrl(const rtString& url)
   if (url.beginsWith("http:") || url.beginsWith("https:"))
   {
     mLoadStatus.set("sourceType", "http");
+#ifdef ENABLE_HTTP_CACHE
+    if (true == checkAndDownloadFromCache())
+    {
+      mLoadStatus.set("statusCode",0);
+      process(mData.data(),mData.length());
+      return RT_OK;
+     }
+#endif
     mLoadStatus.set("statusCode", -1);
     mDownloadRequest = new pxFileDownloadRequest(url, this);
     mDownloadRequest->setCallbackFunction(pxArchive::onDownloadComplete);
@@ -154,6 +162,20 @@ void pxArchive::onDownloadComplete(pxFileDownloadRequest* downloadRequest)
     // TODO another copy here
     a->mData.init((uint8_t*)data,dataSize);
     a->process(a->mData.data(),a->mData.length());
+    #ifdef ENABLE_HTTP_CACHE
+    if ((downloadRequest->getHttpStatusCode() != 206) && (downloadRequest->getHttpStatusCode() != 302) && (downloadRequest->getHttpStatusCode() != 307))
+    {
+      rtHttpCacheData downloadedData(a->mUrl,downloadRequest->getHeaderData(),downloadRequest->getDownloadedData(),downloadRequest->getDownloadedDataSize());
+
+      if (downloadedData.isWritableToCache())
+      {
+        if (NULL == rtFileCache::getInstance())
+          rtLogWarn("cache data not added");
+        else
+          rtFileCache::getInstance()->addToCache(downloadedData);
+      }
+    }
+    #endif
   }
   else
     gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, a, NULL);
@@ -198,6 +220,49 @@ void pxArchive::process(void* data, size_t dataSize)
     gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, this, NULL);
   }
 }
+
+#ifdef ENABLE_HTTP_CACHE
+/**
+ * pxArchive::checkAndDownloadFromCache()
+ *
+ * This method will check if the requested file is present in cache.
+ *
+ * If file is present in cache, this method returns true else returns false
+ *
+ * */
+
+bool pxArchive::checkAndDownloadFromCache()
+{
+  rtHttpCacheData cachedData(mUrl.cString());
+  rtError err;
+  if ((NULL != rtFileCache::getInstance()) && (RT_OK == rtFileCache::getInstance()->getHttpCacheData(mUrl,cachedData)))
+  {
+    err = cachedData.data(mData);
+    if (RT_OK !=  err)
+    {
+      return false;
+    }
+
+    if (cachedData.isUpdated())
+    {
+      rtString url;
+      cachedData.url(url);
+
+      if (NULL == rtFileCache::getInstance())
+          return false;
+      rtFileCache::getInstance()->removeData(url);
+      if (cachedData.isWritableToCache())
+      {
+        err = rtFileCache::getInstance()->addToCache(cachedData);
+        if (RT_OK != err)
+          rtLogWarn("Adding url to cache failed (%s)", url.cString());
+      }
+    }
+    return true;
+  }
+  return false;
+}
+#endif
 
 rtDefineObject(pxArchive,rtObject);
 rtDefineProperty(pxArchive,ready);

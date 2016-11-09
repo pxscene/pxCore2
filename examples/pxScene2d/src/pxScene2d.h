@@ -986,6 +986,7 @@ public:
   rtProperty(url, url, setUrl, rtString);
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
+  rtMethodNoArgAndNoReturn("release",release);
 
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
@@ -999,6 +1000,7 @@ public:
     return c;
   }
 
+  rtError release();
   void dispose()
   {
      setScriptView(NULL);
