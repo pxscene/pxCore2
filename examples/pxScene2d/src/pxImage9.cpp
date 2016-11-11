@@ -72,6 +72,16 @@ void pxImage9::sendPromise()
   } 
 }
 
+float pxImage9::getOnscreenWidth() 
+{
+  return mw;
+
+}
+float pxImage9::getOnscreenHeight() 
+{ 
+  return mh;
+}
+
 
 void pxImage9::draw() {
   context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());

@@ -48,6 +48,8 @@ public:
   //virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject) {return true;}
   virtual void sendPromise();
   virtual void createNewPromise() { rtLogDebug("pxImage9 ignoring createNewPromise\n"); }
+  virtual float getOnscreenWidth();
+  virtual float getOnscreenHeight();
   
 protected:
   virtual void draw();
