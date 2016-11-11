@@ -1,6 +1,6 @@
 #include <pxFileCache.h>
 #include <pxOffscreen.h>
-#include <pxUtil.h> 
+#include <pxUtil.h>
 #include <string.h>
 #include <sstream>
 #include <dirent.h>
@@ -101,17 +101,17 @@ rtError rtFileCache::setMaxCacheSize(int64_t bytes)
   return RT_OK;
 }
 
-int64_t rtFileCache::maxCacheSize() 
+int64_t rtFileCache::maxCacheSize()
 {
   return mMaxSize;
 }
 
-int64_t rtFileCache::cacheSize() 
+int64_t rtFileCache::cacheSize()
 {
   return mCurrentSize;
 }
 
-rtError rtFileCache::setCacheDirectory(const char* directory) 
+rtError rtFileCache::setCacheDirectory(const char* directory)
 {
   if (NULL == directory)
   {
@@ -144,8 +144,8 @@ rtError rtFileCache::removeData(const char* url)
 {
   if (NULL == url)
     return RT_ERROR;
- 
-  rtString urlToRemove = url; 
+
+  rtString urlToRemove = url;
   rtString filename = getHashedFileName(urlToRemove);
   if (! filename.isEmpty())
   {
@@ -213,11 +213,11 @@ rtError rtFileCache::getHttpCacheData(const char* url, rtHttpCacheData& cacheDat
     return RT_ERROR;
   }
   if (false == readFileHeader(filename,cacheData))
-    return RT_ERROR; 
+    return RT_ERROR;
   return RT_OK;
 }
 
-void rtFileCache::clearCache() 
+void rtFileCache::clearCache()
 {
   string cmd = "rm -rf ";
   cmd.append(mDirectory.cString());
@@ -326,9 +326,9 @@ bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
 
   if (NULL == fp)
   {
-    rtLogWarn("Reading the cache file failed as the file is not there or cannot be opened");
+    rtLogDebug("Reading the cache file \"%s\" Failed - does not EXIST or OPEN already", filename.cString());
     return false;
-  }  
+  }
 
   bool reachedHeaderEnd = false;
   char buffer;
