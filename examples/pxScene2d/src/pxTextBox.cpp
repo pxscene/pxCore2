@@ -34,7 +34,6 @@ pxTextBox::pxTextBox(pxScene2d* s):pxText(s)
   mAlignHorizontal = pxConstantsAlignHorizontal::LEFT;
   mLeading = 0;
   mNeedsRecalc = true;
-
 }
 
 /** This signals that the font file loaded successfully; now we need to
@@ -50,14 +49,12 @@ void pxTextBox::resourceReady(rtString readyResolution)
       setNeedsRecalc(true);
       pxObject::onTextureReady();
     }
-
   }
   else
   {
       pxObject::onTextureReady();
       mReady.send("reject",this);
   }
-
 }
 
 float pxTextBox::getFBOWidth()
@@ -258,9 +255,7 @@ void pxTextBox::renderText(bool render)
   else
   {
     renderTextWithWordWrap(mText, sx, sy, tempX, mPixelSize, mTextColor, render);
-
   }
-
 }
 
 void pxTextBox::renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t size, float* color, bool render)
