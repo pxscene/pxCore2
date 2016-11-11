@@ -22,10 +22,14 @@
 // #define DEBUG_SKIP_FLIPPING
 // #define DEBUG_SKIP_BLIT
 // #define DEBUG_SKIP_ALPHA_BLEND
+// #define DEBUG_SKIP_ALPHA_BLEND_FUNC
+// #define DEBUG_SKIP_PORTER_DUFF
 
 // #define DEBUG_SKIP_CLEAR  // pseudo color
 
 #define PREFERRED_MEMORY     DSCAPS_VIDEOONLY   // DSCAPS_VIDEOONLY  DSCAPS_SYSTEMONLY
+
+#define F2F_SHIFT (0x10000)   //  Floating-Point to Fixed-Point shift.
 
 ////////////////////////////////////////////////////////////////
 //
@@ -60,7 +64,7 @@ bool needsFlip = true;
 IDirectFB                *outsideDfb        = NULL;
 IDirectFBSurface         *outsideDfbSurface = NULL;
 
-pxContext context; // needed here...  BUT - ".so" load fails if removed.  Must be referred to *somewhere* 
+pxContext context; // needed here...  BUT - ".so" load fails if removed.  Must be referred to *somewhere*
 
 #else
 
@@ -131,9 +135,9 @@ static IDirectFBSurface  *boundFramebuffer = NULL; // default
 
 inline void premultiply(float* d, const float* s)
 {
-   d[0] = s[0]*s[3];
-   d[1] = s[1]*s[3];
-   d[2] = s[2]*s[3];
+   d[0] = s[0] * s[3];
+   d[1] = s[1] * s[3];
+   d[2] = s[2] * s[3];
    d[3] = s[3];
 }
 
@@ -353,7 +357,7 @@ private:
     #warning " 'DEBUG_SKIP_BLIT' is Enabled"
 #endif
 
-    DFB_CHECK(mTexture->SetRenderOptions(mTexture, 
+    DFB_CHECK(mTexture->SetRenderOptions(mTexture,
             DFBSurfaceRenderOptions(DSRO_MATRIX /*| DSRO_ANTIALIAS*/) ));
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -395,13 +399,13 @@ class pxTextureOffscreen : public pxTexture
 {
 public:
   pxTextureOffscreen() : mOffscreen(), mInitialized(false),
-                        mTextureUploaded(false)
+                         mTextureUploaded(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
   }
 
   pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false),
-                                      mTextureUploaded(false)
+                                       mTextureUploaded(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     createTexture(o);
@@ -417,18 +421,18 @@ public:
     o.blit(mOffscreen);
 //#endif
 
-#if 0
     // premultiply
+#if 1
     for (int y = 0; y < mOffscreen.height(); y++)
     {
-        pxPixel* d = mOffscreen.scanline(y);
+        pxPixel* d  = mOffscreen.scanline(y);
         pxPixel* de = d + mOffscreen.width();
         while (d < de)
         {
           d->r = (d->r * d->a)/255;
           d->g = (d->g * d->a)/255;
           d->b = (d->b * d->a)/255;
-          
+
           d++;
         }
     }
@@ -572,7 +576,7 @@ private:
     DFB_CHECK(mTexture->Blit(mTexture, tmp, NULL, 0,0)); TRACK_DRAW_CALLS(); // blit copy to surface
 #endif
 
-//    DFB_CHECK(mTexture->SetRenderOptions(mTexture, 
+//    DFB_CHECK(mTexture->SetRenderOptions(mTexture,
 //            DFBSurfaceRenderOptions(DSRO_MATRIX /*| DSRO_ANTIALIAS*/) ));
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -591,7 +595,7 @@ private:
 class pxTextureAlpha : public pxTexture
 {
 public:
-  pxTextureAlpha() :  mDrawWidth(0.0),  mDrawHeight(0.0),
+  pxTextureAlpha() :   mDrawWidth(0.0),  mDrawHeight(0.0),
                       mImageWidth(0.0), mImageHeight(0.0),
                       mTexture(NULL),   mInitialized(false), mBuffer(NULL)
   {
@@ -640,16 +644,16 @@ public:
 //                        "image_alpha_");
 //       }
 //      //JUNK
-   }
+  }
 
-   ~pxTextureAlpha()
-   {
-      if(mBuffer)
-      {
-         free(mBuffer);
-      }
-      deleteTexture();
-   }
+  ~pxTextureAlpha()
+  {
+    if(mBuffer)
+    {
+      free(mBuffer);
+    }
+    deleteTexture();
+  }
 
   void createTexture(float w, float h, float iw, float ih)
   {
@@ -675,24 +679,18 @@ public:
 
     dsc.width                 = iw;
     dsc.height                = ih;
-#if 0
-    dsc.flags                 = DFBSurfaceDescriptionFlags( DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PREALLOCATED | DSDESC_PIXELFORMAT );// | DSDESC_CAPS);
-    //      dsc.caps                  = DSCAPS_VIDEOONLY;  // GFX Memory  DSCAPS_VIDEOONLY;// DSCAPS_SYSTEMONLY; //DSCAPS_NONE;  //DSCAPS_VIDEOONLY
-#else
     dsc.flags                 = DFBSurfaceDescriptionFlags( DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PREALLOCATED | DSDESC_PIXELFORMAT | DSDESC_CAPS );
-    dsc.caps                  = DSCAPS_SYSTEMONLY;
-#endif
-
-    dsc.pixelformat           = DSPF_A8;      // ALPHA !!
-    dsc.preallocated[0].data  = mBuffer;      // Buffer is your data
+    dsc.caps                  = DSCAPS_SYSTEMONLY; // Slow memory
+    dsc.pixelformat           = DSPF_A8;           // ALPHA !!
+    dsc.preallocated[0].data  = mBuffer;           // Buffer is your data
     dsc.preallocated[0].pitch = iw;
-    dsc.preallocated[1].data  = NULL;         // Not using a back buffer
+    dsc.preallocated[1].data  = NULL;              // Not using a back buffer
     dsc.preallocated[1].pitch = 0;
 
     DFB_CHECK (dfb->CreateSurface( dfb, &dsc, &mTexture));
 
    // mTexture->Clear(mTexture, 0, 0, 0, 0); // Transparent
-    
+
     DFB_CHECK(mTexture->SetRenderOptions(mTexture,
             DFBSurfaceRenderOptions(DSRO_MATRIX /*| DSRO_ANTIALIAS*/) ));
 
@@ -783,52 +781,28 @@ inline void draw_SOLID(int resW, int resH, float* matrix, float alpha,
                        DFBRectangle &src, DFBRectangle &dst,
                        pxTextureRef texture, const float* color)
 {
-  (void) resW; (void) resH; (void) src;
+  (void) resW; (void) resH; (void) src; (void) matrix; (void) texture;
 
   // TRANSPARENT
-  if(!color || color[3] == 0.0)
+  if(!color || color[3] == 0.0 || alpha == 0.0)
   {
-    return; 
+    return;
   }
 
-  texture->bindGLTexture(0);  // SETS >>  'boundTexture'
+  DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
+        DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_COLORIZE ) )); // | DSBLIT_BLEND_COLORALPHA | DSDRAW_SRC_PREMULTIPLY
 
-  applyMatrix(boundFramebuffer, matrix);
+   boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
 
-  if( (color[3] * alpha * gAlpha) < 0.99)
-  {
-    DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_COLORIZE ) ));
-       
-    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);    
-  }
-  else
-  {
-    DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-            DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_COLORIZE ) ));    
-  }  
-  
   DFB_CHECK(boundFramebuffer->SetColor( boundFramebuffer, color[0] * 255.0, // RGBA
                                                           color[1] * 255.0,
                                                           color[2] * 255.0,
-                                                          color[3] * 255.0 * alpha * gAlpha));
+                                                          color[3] * 255.0 * alpha));
 #ifndef DEBUG_SKIP_BLIT
   DFB_CHECK(boundFramebuffer->Blit(boundFramebuffer, boundTexture, NULL, dst.x , dst.y));
 #else
   UNUSED_PARAM(dst);
 #endif
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // Disable OPACTIY ??
-  if(alpha < 0.99)
-  {
-    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX); //disable
-  }
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  
-  // Restore ?
-  DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL /* DSBLIT_NOFX */ ) ));
 }
 
 //====================================================================================================================================================================================
@@ -839,28 +813,7 @@ inline void draw_TEXTURE(int resW, int resH, float* matrix, float alpha,
                          pxTextureRef texture,
                          int32_t xStretch = 0, int32_t yStretch = 0)
 {
-  (void) resW; (void) resH;
-
-  texture->bindGLTexture(0);
-
-  applyMatrix(boundFramebuffer, matrix);
-  
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // Enable OPACTIY ??
-  if(alpha < 0.99)
-  {
-    DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_BLEND_COLORALPHA ) ));
-            
-    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);    
-    boundFramebuffer->SetColor(boundFramebuffer, 255,255,255, alpha * 255 );
-  }
-  else
-  {
-    DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-            DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL ) ));    
-  }
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  (void) resW; (void) resH; (void) matrix; (void) texture;
 
 #ifndef DEBUG_SKIP_BLIT
   if(xStretch == pxConstantsStretch::REPEAT ||
@@ -885,18 +838,6 @@ inline void draw_TEXTURE(int resW, int resH, float* matrix, float alpha,
   UNUSED_PARAM(xStretch);
   UNUSED_PARAM(yStretch);
 #endif // DEBUG_SKIP_BLIT
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // Disable OPACTIY ??
-  if(alpha < 0.99) 
-  { 
-      boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX); //disable
-  }  
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-  // Restore ?
-  DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL /* DSBLIT_NOFX */ ) ));
 }
 
 //====================================================================================================================================================================================
@@ -906,19 +847,15 @@ inline void draw_MASK(int resW, int resH, float* matrix, float alpha,
                       DFBRectangle /*&src*/, DFBRectangle /*&dst*/,
                       pxTextureRef texture, pxTextureRef mask)
 {
-  (void) resW; (void) resH; (void) alpha; 
-
-  texture->bindGLTexture(0);     // SETS >> 'boundTexture'
+  (void) resW; (void) resH; (void) matrix; (void) alpha; (void) texture;
 
   mask->bindGLTextureAsMask(0);  // SETS >> 'boundTextureMask'
-  
+
   if(boundTextureMask == NULL)
   {
-    rtLogError("ERROR: draw_MASK(0 - no 'mask'");
+    rtLogError("ERROR: draw_MASK() - no 'mask'");
     return;
   }
- 
-  applyMatrix(boundFramebuffer, matrix);
 
 // TODO: ... Masking does not seem to work when blitting directly to the *primary* surface.
 // TODO:     Use a temporary intermediate surface for Masking. - Performance will take a hit.
@@ -933,22 +870,22 @@ inline void draw_MASK(int resW, int resH, float* matrix, float alpha,
     // -------------------------------------------------------------------------------------------------------
     //
     // HACK: Create temporary intermediate surface...
-    // 
+    //
     //       boundFramebuffer == dfbSurface == 'primary' surface which does not seem to support direct masking.
     //
-    DFBSurfaceDescription desc;    
-    
+    DFBSurfaceDescription desc;
+
     memset(&desc, 0, sizeof(desc));
     desc.flags       = DFBSurfaceDescriptionFlags(DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PIXELFORMAT);
     desc.pixelformat = dfbPixelformat;
     desc.width       = w;
     desc.height      = h;
-    
+
     DFB_CHECK( dfb->CreateSurface( dfb, &desc, &tmpSurf ) );
-              
+
     // CLEAR EXTRA
     tmpSurf->Clear(tmpSurf, 0, 0, 0, 0); // CLEAR (transparent)
-    
+
     // -------------------------------------------------------------------------------------------------------
     //
     // MASKING to offscreen surface
@@ -957,26 +894,26 @@ inline void draw_MASK(int resW, int resH, float* matrix, float alpha,
     {
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       // ReportSurfaceInfo("tmpSurf", tmpSurf);        // JUNK
-      // ReportSurfaceInfo("dfbSurface", dfbSurface);  // JUNK          
-      // ReportSurfaceInfo("outsideDfbSurface", outsideDfbSurface);  // JUNK          
+      // ReportSurfaceInfo("dfbSurface", dfbSurface);  // JUNK
+      // ReportSurfaceInfo("outsideDfbSurface", outsideDfbSurface);  // JUNK
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        
+
       tmpSurf->SetSourceMask(tmpSurf, boundTextureMask, 0, 0, DSMF_NONE);                 // Use 'maskSurf' as MASK
-      tmpSurf->SetBlittingFlags(tmpSurf, 
+      tmpSurf->SetBlittingFlags(tmpSurf,
           DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_SRC_MASK_ALPHA ) ); // Set BLEND + MASK flags !
-          
+
       tmpSurf->Blit(tmpSurf,   boundTexture, NULL, 0, 0);            // Mask 'imageSurf' -> 'tmpSurf' ... using 'maskSurf'
-      tmpSurf->SetSourceMask(tmpSurf, NULL, 0, 0, DSMF_NONE);        // Clear the mask            
+      tmpSurf->SetSourceMask(tmpSurf, NULL, 0, 0, DSMF_NONE);        // Clear the mask
       tmpSurf->SetBlittingFlags(tmpSurf, DSBLIT_BLEND_ALPHACHANNEL); // Restore the blitting flags
 
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       // Output....
-      DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer, 
-            DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL /* DSBLIT_NOFX */ ) ));
-            
+      DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
+            DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL) ));
+
       boundFramebuffer->Blit(boundFramebuffer, tmpSurf, NULL, 0, 0);   // Final Blit
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                
+
       tmpSurf->Release(tmpSurf);
       tmpSurf = NULL;
     }//ENDIF
@@ -995,15 +932,14 @@ inline void draw_MASK(int resW, int resH, float* matrix, float alpha,
 #endif
 
     boundFramebuffer->SetSourceMask(boundFramebuffer, NULL, 0, 0, DSMF_NONE); // Clear the mask
-    
+
 #ifndef DEBUG_SKIP_ALPHA_BLEND
-      DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer, 
-            DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL /* DSBLIT_NOFX */  ) )); // Restore 
+      DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
+            DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL) )); // Restore
 #endif
   }
-  
-#endif // 0
 
+#endif // 0
 }
 
 //====================================================================================================================================================================================
@@ -1019,15 +955,16 @@ static void drawRect2(float x, float y, float w, float h, const float* c)
   }
 
   float colorPM[4];
-  premultiply(colorPM,c);
-  
+  premultiply(colorPM, c);
+
+  // Opacity ?
   if( (colorPM[3] * gAlpha) < 0.99)
   {
     DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL |  DSBLIT_BLEND_COLORALPHA | DSBLIT_COLORIZE ) ));
 
-    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);    
-  } 
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
+  }
 
   DFB_CHECK( boundFramebuffer->SetColor( boundFramebuffer, colorPM[0] * 255.0, // RGBA
                                                            colorPM[1] * 255.0,
@@ -1035,11 +972,16 @@ static void drawRect2(float x, float y, float w, float h, const float* c)
                                                            colorPM[3] * 255.0 * gAlpha));
 
   DFB_CHECK( boundFramebuffer->FillRectangle( boundFramebuffer, x, y, w, h));
-    
+
+  // Turn off Alpha
   if( (colorPM[3] * gAlpha) < 0.99)
-  {              
-    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);    
-  } 
+  {
+  //  boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);
+  }
+
+  // Restore ?
+  DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
+          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL) ));
 }
 
 static void drawRectOutline(float x, float y, float w, float h, float lw, const float* c)
@@ -1055,30 +997,39 @@ static void drawRectOutline(float x, float y, float w, float h, float lw, const 
   float colorPM[4];
   premultiply(colorPM, c);
 
-  DFB_CHECK( boundFramebuffer->SetColor(  boundFramebuffer, colorPM[0] * 255.0, // RGBA
-                                                            colorPM[1] * 255.0,
-                                                            colorPM[2] * 255.0,
-                                                            colorPM[3] * 255.0));
+  // Opacity ?
+  if( (colorPM[3] * gAlpha) < 0.99)
+  {
+    DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
+         DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL |  DSBLIT_BLEND_COLORALPHA | DSBLIT_COLORIZE ) ));
+
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
+  }
+
+  DFB_CHECK( boundFramebuffer->SetColor( boundFramebuffer, colorPM[0] * 255.0, // RGBA
+                                                           colorPM[1] * 255.0,
+                                                           colorPM[2] * 255.0,
+                                                           colorPM[3] * 255.0 * gAlpha));
   if(lw >= w)
   {
     lw = 0;
   }
-  
+
   // Avoid 'narrowing conversion' warning...
   int xx  = (int) x;
   int yy  = (int) y;
   int ww  = (int) w;
   int hh  = (int) h;
   int llw = (int) lw;
-  
-  DFBRectangle rects[4];
-  
-  rects[0].x = xx;            rects[0].y = yy;            rects[0].w = ww;    rects[0].h = llw;
-  rects[1].x = xx;            rects[1].y = yy+ hh - llw;  rects[1].w = ww;    rects[1].h = llw;
-  rects[2].x = xx;            rects[2].y = yy;            rects[2].w = llw;   rects[2].h = hh;
-  rects[3].x = xx + ww - llw; rects[3].y = yy;            rects[3].w = llw;   rects[3].h = hh;
 
-/*  
+  DFBRectangle rects[4];
+
+  rects[0].x = xx + llw;      rects[0].y = yy;            rects[0].w = ww - 2 * llw;    rects[0].h = llw; // TOP
+  rects[1].x = xx + llw;      rects[1].y = yy+ hh - llw;  rects[1].w = ww - 2 * llw;    rects[1].h = llw; // Bottom
+  rects[2].x = xx;            rects[2].y = yy;            rects[2].w = llw;             rects[2].h = hh;  // Left
+  rects[3].x = xx + ww - llw; rects[3].y = yy;            rects[3].w = llw;             rects[3].h = hh;  // Right
+
+/*
   C++11...
 
   DFBRectangle rects[] =  {
@@ -1088,8 +1039,18 @@ static void drawRectOutline(float x, float y, float w, float h, float lw, const 
                             { x + w - lw, y,           lw, h  },
                           };
 */
-                          
+
   DFB_CHECK( boundFramebuffer->FillRectangles( boundFramebuffer, rects, 4 ) ); // border
+
+  // Turn off Alpha
+  if( (colorPM[3] * gAlpha) < 0.99)
+  {
+  //  boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);
+  }
+
+  // Restore ?
+  DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
+          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL ) ));
 
 #ifndef DEBUG_SKIP_FLIPPING
   needsFlip = true;
@@ -1106,8 +1067,8 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   if (boundFramebuffer == NULL)
   {
     return; // Nowhere to Draw
-  }  
-  
+  }
+
   // 'texture' not NULL... tested by caller
   float iw = texture->width();
   float ih = texture->height();
@@ -1208,6 +1169,33 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   }
 #endif
 
+  texture->bindGLTexture(0);    // SETS >> 'boundTexture'
+
+  applyMatrix(boundFramebuffer, gMatrix.data());
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // Enable OPACTIY ??
+  if(gAlpha < 0.99)
+  {
+    boundFramebuffer->SetBlittingFlags(boundFramebuffer,
+         DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL |  DSBLIT_BLEND_COLORALPHA) );
+  }
+  else
+  {
+    boundFramebuffer->SetBlittingFlags(boundFramebuffer,
+        DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL |  DSBLIT_BLEND_COLORALPHA) );
+  }
+
+#ifndef DEBUG_SKIP_ALPHA_BLEND_FUNC
+  boundFramebuffer->SetSrcBlendFunction(boundFramebuffer, DSBF_SRCALPHA);
+  boundFramebuffer->SetDstBlendFunction(boundFramebuffer, DSBF_INVSRCALPHA);
+#endif
+
+  boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
+  boundFramebuffer->SetColor( boundFramebuffer, 255,255,255, gAlpha * 255 ); // RGBA
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
   if (mask.getPtr() != NULL)
   {
       draw_MASK(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, mask);
@@ -1221,15 +1209,36 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     else if (texture->getType() == PX_TEXTURE_ALPHA)
     {
       float colorPM[4];
-      premultiply(colorPM,color);
+      premultiply(colorPM, color);
 
-      draw_SOLID(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, colorPM);
+      draw_SOLID(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, color); // colorPM
     }
     else
     {
       rtLogError("Unhandled case");
     }
   }
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // Disable OPACTIY ??
+  if(gAlpha < 0.99)
+  {
+//    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);
+
+// #ifndef DEBUG_SKIP_ALPHA_BLEND_FUNC
+//     boundFramebuffer->SetSrcBlendFunction(boundFramebuffer, DSBF_ONE);   // restore ?
+//     boundFramebuffer->SetDstBlendFunction(boundFramebuffer, DSBF_ZERO);
+// #endif
+  }
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+#ifndef DEBUG_SKIP_ALPHA_BLEND
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // Restore ?
+  DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
+          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL) )); // | DSBLIT_NOFX
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#endif
 
 #ifndef DEBUG_SKIP_FLIPPING
   needsFlip = true;
@@ -1245,8 +1254,8 @@ static void drawImage92(float x,  float y,  float w,  float h,
   {
     rtLogError("cannot 'drawImage92()' on context surface because boundFramebuffer is NULL");
     return; // Nowhere to Draw
-  }  
-    
+  }
+
   DFBRectangle srcUL, dstUL; // Upper Left;
   DFBRectangle srcUM, dstUM; // Upper Middle;
   DFBRectangle srcUR, dstUR; // Upper Right
@@ -1269,7 +1278,7 @@ static void drawImage92(float x,  float y,  float w,  float h,
   if(x2 <=0) x2 = 1;
   if(y2 <=0) y2 = 1;
 
-// printf("\n ###  drawImage92() >> WxH:  %f x %f     x1: %f  y1: %f    x2: %f y2: %f",w,h,  x1, y1,  x2, y2);
+//  printf("\n ###  drawImage92() >> WxH:  %f x %f     x1: %f  y1: %f    x2: %f y2: %f",w,h,  x1, y1,  x2, y2);
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // TOP ROW
@@ -1294,35 +1303,33 @@ static void drawImage92(float x,  float y,  float w,  float h,
   srcML.x = 0;                     srcMM.x = x1;                    srcMR.x = srcMM.x + srcMM.w;
   srcML.y = y1;                    srcMM.y = srcML.y;               srcMR.y = srcML.y;
 
-  dstML.w = dstUL.w;               dstMM.w = dstUM.w;              dstMR.w = dstUR.w;
+  dstML.w = dstUL.w;               dstMM.w = dstUM.w;               dstMR.w = dstUR.w;
   dstML.h = h - (y1 + y2);         dstMM.h = dstML.h;               dstMR.h = dstML.h;
-  dstML.x = dstUL.x;               dstMM.x = dstUM.x;              dstMR.x = dstUR.x;
-  dstML.y = dstUL.y + dstUL.h;     dstMM.y = dstUM.y + dstUM.h;    dstMR.y = dstUR.y + dstUR.h;
+  dstML.x = dstUL.x;               dstMM.x = dstUM.x;               dstMR.x = dstUR.x;
+  dstML.y = dstUL.y + dstUL.h;     dstMM.y = dstUM.y + dstUM.h;     dstMR.y = dstUR.y + dstUR.h;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // BOTTOM ROW
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   srcBL.w = srcML.w;               srcBM.w = srcMM.w;               srcBR.w = srcMR.w;
-  srcBL.h = y2;                    srcBM.h = srcBL.h;               srcBR.h = srcBM.h; 
+  srcBL.h = y2;                    srcBM.h = srcBL.h;               srcBR.h = srcBM.h;
   srcBL.x = 0;                     srcBM.x = x1;                    srcBR.x = srcBM.x + srcBM.w;
   srcBL.y = (ih - y2);             srcBM.y = srcBL.y;               srcBR.y = srcBL.y;
 
   dstBL.w = dstML.w;               dstBM.w = dstMM.w;               dstBR.w = dstMR.w;
   dstBL.h = y2;                    dstBM.h = dstBL.h;               dstBR.h = dstBL.h;
-  dstBL.x = dstUL.x;               dstBM.x = dstMM.x;              dstBR.x = dstMR.x;
-  dstBL.y = dstML.y + dstML.h;     dstBM.y = dstMM.y + dstMM.h;    dstBR.y = dstMR.y + dstMR.h;
+  dstBL.x = dstUL.x;               dstBM.x = dstMM.x;               dstBR.x = dstMR.x;
+  dstBL.y = dstML.y + dstML.h;     dstBM.y = dstMM.y + dstMM.h;     dstBR.y = dstMR.y + dstMR.h;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   texture->bindGLTexture(0);
 
 //  boundFramebuffer->SetRenderOptions( boundFramebuffer, DSRO_MATRIX | DSRO_ANTIALIAS );
-//  boundFramebuffer->SetDrawingFlags(  boundFramebuffer, DSDRAW_BLEND );
-
 
   applyMatrix(boundFramebuffer, gMatrix.data());
-  
+
 #ifndef DEBUG_SKIP_BLIT
 
   //                                   UPPER ROW              MIDDLE ROW            BOTTOM ROW
@@ -1334,15 +1341,15 @@ static void drawImage92(float x,  float y,  float w,  float h,
   if(gAlpha < 0.99)
   {
     DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_BLEND_COLORALPHA ) ));
+         DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_BLEND_COLORALPHA ) ));
 
-    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);    
-    boundFramebuffer->SetColor( boundFramebuffer, 255,255,255, gAlpha * 255 );
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
+    boundFramebuffer->SetColor( boundFramebuffer, 255,255,255, gAlpha * 255 ); // RGBA
   }
   else
   {
     DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-            DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL ) ));    
+            DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL ) ));
   }
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1352,14 +1359,15 @@ static void drawImage92(float x,  float y,  float w,  float h,
   // Disable OPACTIY ??
   if(gAlpha < 0.99)
   {
-    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX); //disable
+ //   boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX); //disable
   }
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   // Restore ?
   DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL /* DSBLIT_NOFX */ ) ));
+          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL) ));
 
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #endif
 }
 
@@ -1389,7 +1397,7 @@ void pxContext::init()
 #endif //ENABLE_DFB_GENERIC
 
   DFB_CHECK( dfbSurface->GetPixelFormat(dfbSurface, &dfbPixelformat) );
-     
+
   DFB_CHECK( dfbSurface->Clear( dfbSurface, 0x00, 0x00, 0x00, 0x00 ) ); // TRANSPARENT
 
   boundFramebuffer = dfbSurface;  // needed here.
@@ -1403,7 +1411,7 @@ void pxContext::init()
   DFB_CHECK( boundFramebuffer->Clear( boundFramebuffer, 0x00, 0xFF, 0x00, 0xFF ) );  //  CLEAR_GREEN   << JUNK
 #endif
 
-  DFB_CHECK(boundFramebuffer->SetRenderOptions(boundFramebuffer, 
+  DFB_CHECK(boundFramebuffer->SetRenderOptions(boundFramebuffer,
           DFBSurfaceRenderOptions(DSRO_MATRIX /*| DSRO_ANTIALIAS*/) ));
 
   rtLogSetLevel(RT_LOG_INFO); // LOG LEVEL
@@ -1451,7 +1459,7 @@ void pxContext::clear(int /*w*/, int /*h*/, float* fillColor )
     rtLogError("cannot 'clear(w,h, fill)' on context surface because boundFramebuffer is NULL");
     return;
   }
-  
+
 #ifndef DEBUG_SKIP_CLEAR
   DFB_CHECK( boundFramebuffer->Clear( boundFramebuffer,  fillColor[0] * 255.0, // RGBA
                                                          fillColor[1] * 255.0,
@@ -1468,7 +1476,7 @@ void pxContext::clear(int /*w*/, int /*h*/, float* fillColor )
 void pxContext::clear(int left, int top, int right, int bottom)
 {
   // TODO - use FillRect(WxH, rgbClear) instead ?   Allow for a WxH clear... versus whole surface
-  // 
+  //
 #ifndef DEBUG_SKIP_CLEAR
   DFB_CHECK( boundFramebuffer->Clear( boundFramebuffer, 0x00, 0x00, 0x00, 0x00 ) ); // TRANSPARENT
 #else
@@ -1482,6 +1490,50 @@ void pxContext::clear(int left, int top, int right, int bottom)
 //  glScissor(left, gResH-top-bottom, right, bottom);
   //glClear(GL_COLOR_BUFFER_BIT);
 }
+
+
+// JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+// JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+
+typedef uint32_t Fixed;
+
+#define FRACT_BITS 16
+#define FRACT_BITS_D2 8
+#define FIXED_ZERO       (0)
+#define FIXED_ONE        (1   << FRACT_BITS)
+#define INT2FIXED(x)     ((x) << FRACT_BITS)
+#define FLOAT2FIXED(x)   ((Fixed)((x) * (1 << FRACT_BITS)))
+#define FIXED2INT(x)     ((x) >> FRACT_BITS)
+#define FIXED2FLOAT(x)   ( ((float)  (x)) / (1 << FRACT_BITS) )
+#define FIXED2DOUBLE(x)  ( ((double) (x)) / (1 << FRACT_BITS) )
+#define MULT(x, y)       ( ((x) >> FRACT_BITS_D2) * ((y)>> FRACT_BITS_D2) )
+
+#define SHIFT_AMOUNT FRACT_BITS //16 // 2^16 = 65536
+#define SHIFT_MASK ((1 << SHIFT_AMOUNT) - 1) // 65535 (all LSB set, all MSB clear)
+
+
+/*
+ OUTPUT :-
+
+  float_val = 0.160000     fixed_val = 0.159988  (0.000012)       sorta_val =  0.159988  (0.000012)
+  float_val = 0.320000     fixed_val = 0.319992  (0.000008)       sorta_val =  0.319992  (0.000008)
+  float_val = 0.480000     fixed_val = 0.479996  (0.000004)       sorta_val =  0.479996  (0.000004)
+  float_val = 0.640000     fixed_val = 0.639999  (0.000001)       sorta_val =  0.639999  (0.000001)
+  float_val = 0.800000     fixed_val = 0.799988  (0.000012)       sorta_val =  0.799988  (0.000012)
+  float_val = 0.960000     fixed_val = 0.959991  (0.000009)       sorta_val =  0.959991  (0.000009)
+  float_val = 1.120000     fixed_val = 1.119995  (0.000005)       sorta_val =  1.119995  (0.000005)
+  float_val = 1.280000     fixed_val = 1.279999  (0.000001)       sorta_val =  1.279999  (0.000001)
+  float_val = 1.440000     fixed_val = 1.439987  (0.000013)       sorta_val =  1.439987  (0.000013)
+  float_val = 1.600000     fixed_val = 1.599991  (0.000009)       sorta_val =  1.599991  (0.000009)
+  float_val = 1.760000     fixed_val = 1.759995  (0.000005)       sorta_val =  1.759995  (0.000005)
+  float_val = 1.920000     fixed_val = 1.919998  (0.000002)       sorta_val =  1.919998  (0.000002)
+  float_val = 2.080000     fixed_val = 2.079987  (0.000013)       sorta_val =  2.079987  (0.000013)
+  float_val = 2.240000     fixed_val = 2.239990  (0.000010)       sorta_val =  2.239990  (0.000010)
+*/
+
+// JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+// JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+
 
 inline void applyMatrix(IDirectFBSurface  *surface, const float *mm)
 {
@@ -1501,31 +1553,44 @@ inline void applyMatrix(IDirectFBSurface  *surface, const float *mm)
 #if 1
   // Convert to fixed point for DFB...
   //
-  matrix[0] = (s32)(mm[0]  * 0x10000);
-  matrix[1] = (s32)(mm[4]  * 0x10000);
-  matrix[2] = (s32)(mm[12] * 0x10000);
-  matrix[3] = (s32)(mm[1]  * 0x10000);
-  matrix[4] = (s32)(mm[5]  * 0x10000);
-  matrix[5] = (s32)(mm[13] * 0x10000);
+  matrix[0] = (s32)(mm[0]  * F2F_SHIFT);
+  matrix[1] = (s32)(mm[4]  * F2F_SHIFT);
+  matrix[2] = (s32)(mm[12] * F2F_SHIFT);
+  matrix[3] = (s32)(mm[1]  * F2F_SHIFT);
+  matrix[4] = (s32)(mm[5]  * F2F_SHIFT);
+  matrix[5] = (s32)(mm[13] * F2F_SHIFT);
 
   matrix[6] = 0x00000;
   matrix[7] = 0x00000;
-  matrix[8] = 0x10000;
+  matrix[8] = F2F_SHIFT;
+
+//Fixed  matrix[9];
+
+  // matrix[0] = FIXED(mm[0] );
+  // matrix[1] = FIXED(mm[4] );
+  // matrix[2] = FIXED(mm[12]);
+  // matrix[3] = FIXED(mm[1] );
+  // matrix[4] = FIXED(mm[5] );
+  // matrix[5] = FIXED(mm[13]);
+
+  // matrix[6] = FIXED(0);
+  // matrix[7] = FIXED(0);
+  // matrix[8] = FIXED(1);
 #else
-  
+
   // Identity Matrix ... for debugging.
   //
-  matrix[0] = 0x10000;
+  matrix[0] = F2F_SHIFT;
   matrix[1] = 0x00000;
   matrix[2] = 0x00000;
-  
+
   matrix[3] = 0x00000;
-  matrix[4] = 0x10000;
+  matrix[4] = F2F_SHIFT;
   matrix[5] = 0x00000;
-  
+
   matrix[6] = 0x00000;
   matrix[7] = 0x00000;
-  matrix[8] = 0x10000;
+  matrix[8] = F2F_SHIFT;
 #endif
 
   DFB_CHECK(surface->SetMatrix(surface, matrix));
@@ -1676,10 +1741,9 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
   return;
 #endif
 
-  // TRANSPARENT / DIMENSIONLESS 
+  // TRANSPARENT / DIMENSIONLESS
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
-   // printf("\n drawRect() - TRANSPARENT");
     return;
   }
 
@@ -1689,7 +1753,7 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
     //rtLogError("cannot drawRect() on context surface because colors are NULL");
     return;
   }
-  
+
   if(boundTexture == NULL)
   {
     rtLogError("cannot drawRect() on context surface because boundTexture is NULL");
@@ -1699,7 +1763,7 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
   // Fill ...
   if(fillColor != NULL && fillColor[3] > 0.0) // with non-transparent color
   {
-    float half = lineWidth;///2;
+    float half = lineWidth/2;
     drawRect2(half, half, w-lineWidth, h-lineWidth, fillColor);
   }
 
@@ -1718,12 +1782,12 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
   return;
 #endif
 
-  // TRANSPARENT / DIMENSIONLESS 
+  // TRANSPARENT / DIMENSIONLESS
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
     return;
   }
-   
+
   // TEXTURELESS
   if (texture.getPtr() == NULL)
   {
@@ -1744,7 +1808,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
   return;
 #endif
 
-  // TRANSPARENT / DIMENSIONLESS 
+  // TRANSPARENT / DIMENSIONLESS
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
     return;
@@ -1758,7 +1822,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
 
   float black[4] = {0,0,0,1};
   drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways,
-                  color?color:black, stretchX, stretchY);
+                  color? color : black, stretchX, stretchY);
 }
 
 void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
@@ -1770,7 +1834,7 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 
   if (!mShowOutlines) return;
 
-  // TRANSPARENT / DIMENSIONLESS 
+  // TRANSPARENT / DIMENSIONLESS
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
     rtLogError("cannot drawDiagRect() - width/height/gAlpha cannot be Zero.");
@@ -1780,7 +1844,7 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
   // COLORLESS
   if(color == NULL || color[3] == 0.0)
   {
-    return; 
+    return;
   }
 
   if(boundTexture == NULL)
@@ -1808,10 +1872,10 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
   float colorPM[4];
   premultiply(colorPM, color);
 
-  DFB_CHECK (boundFramebuffer->SetColor(boundFramebuffer, colorPM[0] * 255.0, // RGBA
-                                                          colorPM[1] * 255.0,
-                                                          colorPM[2] * 255.0,
-                                                          colorPM[3] * 255.0));
+  DFB_CHECK (boundFramebuffer->SetColor( boundFramebuffer, colorPM[0] * 255.0, // RGBA
+                                                           colorPM[1] * 255.0,
+                                                           colorPM[2] * 255.0,
+                                                           colorPM[3] * 255.0 * gAlpha));
 
   DFB_CHECK (boundFramebuffer->DrawRectangle(boundFramebuffer, x, y, w, h));
 }
@@ -1855,12 +1919,12 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
   */
 
   float colorPM[4];
-  premultiply(colorPM,color);
+  premultiply(colorPM, color);
 
   DFB_CHECK (boundFramebuffer->SetColor(boundTexture, colorPM[0] * 255.0, // RGBA
                                                       colorPM[1] * 255.0,
                                                       colorPM[2] * 255.0,
-                                                      colorPM[3] * 255.0));
+                                                      colorPM[3] * 255.0 * gAlpha));
 
   DFB_CHECK (boundFramebuffer->DrawLine(boundFramebuffer, x1,y1, x2,y2));
 }
@@ -1902,29 +1966,29 @@ void pxContext::snapshot(pxOffscreen& o)
   {
     rtLogError("cannot snapshot() on context surface because boundFramebuffer is NULL");
     return;
-  } 
-   
+  }
+
   o.init(gResW,gResH);
-  
+
   void *pSrc = NULL;
-  void *pDst = (void*)o.base();  
+  void *pDst = (void*)o.base();
   int  pitch = 0;
-  
+
   boundFramebuffer->Lock(boundFramebuffer, DSLF_READ, &pSrc, &pitch);
 
   // READ into pxOffscreen buffer
   memcpy(pDst, pSrc, o.sizeInBytes() ); // WxH * RGBA in size
-  
+
   boundFramebuffer->Unlock(boundFramebuffer);
-  
+
 //JUNK
 #if 0
     if(boundFramebuffer)
-  {
+    {
        boundFramebuffer->Dump(boundFramebuffer,
                      "/mnt/nfs/env/",
                      "screendump");
-  }
+    }
 #endif
 //JUNK
 }
@@ -1989,20 +2053,6 @@ bool pxContext::isObjectOnScreen(float /*x*/, float /*y*/, float /*width*/, floa
 #endif
 }
 
-void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
-{
-  mCurrentTextureMemorySizeInBytes += changeInBytes;
-  if (mCurrentTextureMemorySizeInBytes < 0)
-  {
-    mCurrentTextureMemorySizeInBytes = 0;
-  }
-}
-
-void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
-{
-  mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
-}
-
 //====================================================================================================================================================================================
 
 #ifdef DEBUG
@@ -2010,22 +2060,22 @@ void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
 static void ReportSurfaceInfo(char* desc, IDirectFBSurface* surf)
 {
      int w = 0, h = 0;
-     
+
      DFBSurfacePixelFormat   fmt = 0;
      DFBSurfaceCapabilities caps = 0;
 
      printf("\n-------------------------------------------------------------\n");
      printf("Surface info for '%s': %p\n", desc ? desc:"(no name)", surf);
-     
+
      surf->GetSize(surf, &w, &h);
      printf("  WxH: %d x %d\n", w, h);
-     
+
      surf->GetPixelFormat(surf, &fmt);
      printf("  fmt: %d (0x%x) = %s\n", fmt, fmt, pix2str(fmt) );
-     
+
      surf->GetCapabilities(surf, &caps);
      printf(" caps: %d (0x%x) = %s\n", caps, caps, caps2str(caps) );
-     
+
      printf("\n");
 }
 
@@ -2088,12 +2138,12 @@ char* pix2str(DFBSurfacePixelFormat fmt)
 
 static std::string strcaps;
 static char *gCaps = NULL;
- 
+
 // DFBSurfaceCapabilities
 char* caps2str(DFBSurfaceCapabilities caps)
 {
   strcaps = "";
-  
+
   if( (caps & DSCAPS_NONE)          == DSCAPS_NONE)          strcaps += "DSCAPS_NONE  ";
   if( (caps & DSCAPS_PRIMARY)       == DSCAPS_PRIMARY)       strcaps += "DSCAPS_PRIMARY  ";
   if( (caps & DSCAPS_SYSTEMONLY)    == DSCAPS_SYSTEMONLY)    strcaps += "DSCAPS_SYSTEMONLY  ";
@@ -2109,13 +2159,13 @@ char* caps2str(DFBSurfaceCapabilities caps)
   if( (caps & DSCAPS_SHARED)        == DSCAPS_SHARED)        strcaps += "DSCAPS_SHARED  ";
   if( (caps & DSCAPS_ROTATED)       == DSCAPS_ROTATED)       strcaps += "DSCAPS_ROTATED  ";
   if( (caps & DSCAPS_ALL)           == DSCAPS_ALL)           strcaps += "DSCAPS_ALL  ";
-  if( (caps & DSCAPS_FLIPPING)      == DSCAPS_FLIPPING)      strcaps += "DSCAPS_FLIPPING  ";   
- 
+  if( (caps & DSCAPS_FLIPPING)      == DSCAPS_FLIPPING)      strcaps += "DSCAPS_FLIPPING  ";
+
   if(strcaps.length() <= 1)
   {
     return (char *) "NOT FOUND";
   }
-  
+
   return (gCaps = (char*) strcaps.c_str());
 }
 
