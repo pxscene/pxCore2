@@ -182,6 +182,9 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
 {
   memset(&m_rpc_endpoint, 0, sizeof(m_rpc_endpoint));
 
+  clientDisconnectedCB.func = NULL;
+  clientDisconnectedCB.data = NULL;
+
   m_shutdown_pipe[0] = -1;
   m_shutdown_pipe[1] = -1;
 
@@ -216,6 +219,8 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
 
 rtRemoteServer::~rtRemoteServer()
 {
+  clientDisconnectedCB.func = NULL;
+
   if (m_shutdown_pipe[0] != -1)
   {
     char buff[] = {"shutdown"};
@@ -407,6 +412,14 @@ rtRemoteServer::onClientStateChanged(std::shared_ptr<rtRemoteClient> const& clie
       m_connected_clients.erase(itr);
       e = RT_OK;
     }
+
+    auto ditr = m_disconnected_callback_map.find(client.get());
+    if (ditr != m_disconnected_callback_map.end())
+    {
+        if(ditr->second && ditr->second->func)
+            ditr->second->func(ditr->second->data);
+        m_disconnected_callback_map.erase(ditr);
+    }
   }
 
   return e;
@@ -471,7 +484,8 @@ rtRemoteServer::start()
 }
 
 rtError
-rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32_t timeout)
+rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32_t timeout,
+        clientDisconnectedCallback cb, void *cbdata)
 {
   rtError err = RT_OK;
   obj = m_env->ObjectCache->findObject(objectId);
@@ -523,6 +537,10 @@ rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32
         // sure that this really matters much
         std::unique_lock<std::mutex> lock(m_mutex);
         m_object_map.insert(ClientMap::value_type(endpointName, client));
+
+        clientDisconnectedCB.func = cb;
+        clientDisconnectedCB.data = cbdata;
+        m_disconnected_callback_map.insert(ClientDisconnectedCBMap::value_type(client.get(), &clientDisconnectedCB));
       }
 
       if (client)

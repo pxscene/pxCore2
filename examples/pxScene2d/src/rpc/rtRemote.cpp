@@ -133,7 +133,8 @@ rtRemoteUnregisterObject(rtRemoteEnvironment* env, char const* id)
 }
 
 rtError
-rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj, int timeout)
+rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj, int timeout,
+        remoteDisconnectedCallback cb, void *cbdata)
 {
   if (env == nullptr)
     return RT_ERROR_INVALID_ARG;
@@ -141,7 +142,7 @@ rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj,
   if (id == nullptr)
     return RT_ERROR_INVALID_ARG;
 
-  return env->Server->findObject(id, obj, timeout);
+  return env->Server->findObject(id, obj, timeout, cb, cbdata);
 }
 
 rtError
@@ -232,9 +233,10 @@ rtRemoteUnregisterObject(char const* id)
 }
 
 rtError
-rtRemoteLocateObject(char const* id, rtObjectRef& obj, int timeout)
+rtRemoteLocateObject(char const* id, rtObjectRef& obj, int timeout,
+        remoteDisconnectedCallback cb, void *cbdata)
 {
-  return rtRemoteLocateObject(rtEnvironmentGetGlobal(), id, obj, timeout);
+  return rtRemoteLocateObject(rtEnvironmentGetGlobal(), id, obj, timeout, cb, cbdata);
 }
 
 rtError
