@@ -17,9 +17,6 @@
 #include "pxFileDownloader.h"
 
 #include "rtZip.h"
-#ifdef ENABLE_HTTP_CACHE
-#include "pxFileCache.h"
-#endif
 class pxArchive: public rtObject
 {
 public:
@@ -43,9 +40,6 @@ public:
 private:
   static void onDownloadComplete(pxFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
-#ifdef ENABLE_HTTP_CACHE
-  bool checkAndDownloadFromCache();
-#endif
   void process(void* data, size_t dataSize);
 
   bool mIsFile;
