@@ -6,7 +6,6 @@
 #include <curl/curl.h>
 #include <sstream>
 #include <iostream>
-#include <pxFileCache.h>
 
 using namespace std;
 
@@ -134,6 +133,78 @@ void pxFileDownloader::clearFileCache()
 
 void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
 {
+#ifdef ENABLE_HTTP_CACHE
+    bool isDataInCache = false;
+#endif
+    bool nwDownloadSuccess = false;
+
+#ifdef ENABLE_HTTP_CACHE
+    rtHttpCacheData cachedData(downloadRequest->getFileUrl().cString());
+    if (true == downloadRequest->getCacheEnabled())
+    {
+      if (true == checkAndDownloadFromCache(downloadRequest,cachedData))
+      {
+        isDataInCache = true;
+      }
+    }
+
+    if (false == isDataInCache)
+#endif
+    {
+      nwDownloadSuccess = downloadFromNetwork(downloadRequest);
+    }
+
+    if (!downloadRequest->executeCallback(downloadRequest->getDownloadStatusCode()))
+    {
+      if (mDefaultCallbackFunction != NULL)
+      {
+        (*mDefaultCallbackFunction)(downloadRequest);
+      }
+    }
+
+#ifdef ENABLE_HTTP_CACHE
+    // Store the network data in cache
+    if ((true == nwDownloadSuccess) && (true == downloadRequest->getCacheEnabled()) && (downloadRequest->getHttpStatusCode() != 206) && (downloadRequest->getHttpStatusCode() != 302) && (downloadRequest->getHttpStatusCode() != 307))
+    {
+      rtHttpCacheData downloadedData(downloadRequest->getFileUrl(),downloadRequest->getHeaderData(),downloadRequest->getDownloadedData(),downloadRequest->getDownloadedDataSize());
+      if (downloadedData.isWritableToCache())
+      {
+        if (NULL == rtFileCache::getInstance())
+          rtLogWarn("cache data not added");
+        else
+          rtFileCache::getInstance()->addToCache(downloadedData);
+      }
+    }
+
+    // Store the updated data in cache
+    if ((true == isDataInCache) && (cachedData.isUpdated()))
+    {
+      rtString url;
+      cachedData.url(url);
+
+      if (NULL == rtFileCache::getInstance())
+          rtLogWarn("Adding url to cache failed (%s) due to in-process memory issues", url.cString());
+      rtFileCache::getInstance()->removeData(url);
+      if (cachedData.isWritableToCache())
+      {
+        rtError err = rtFileCache::getInstance()->addToCache(cachedData);
+        if (RT_OK != err)
+          rtLogWarn("Adding url to cache failed (%s)", url.cString());
+      }
+    }
+
+    if (true == isDataInCache)
+    {
+      downloadRequest->setHeaderData(NULL,0);
+      downloadRequest->setDownloadedData(NULL,0);
+    }
+#endif
+
+    delete downloadRequest;
+}
+
+bool pxFileDownloader::downloadFromNetwork(pxFileDownloadRequest* downloadRequest)
+{
     CURL *curl_handle = NULL;
     CURLcode res = CURLE_OK;
     
@@ -221,19 +292,7 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
             chunk.headerBuffer = NULL;
         }
         downloadRequest->setDownloadedData(NULL, 0);
-        if (!downloadRequest->executeCallback(res))
-        {
-          if (mDefaultCallbackFunction != NULL)
-          {
-            (*mDefaultCallbackFunction)(downloadRequest);
-          }
-          else
-          {
-            //no listeners, delete request
-          }
-        }
-        delete downloadRequest;
-        return;
+        return false;
     }
 
     long httpCode = -1;
@@ -255,19 +314,31 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     {
       downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
     }
-    if (!downloadRequest->executeCallback(res))
-    {
-      if (mDefaultCallbackFunction != NULL)
-      {
-        (*mDefaultCallbackFunction)(downloadRequest);
-      }
-      else
-      {
-        //no listeners, delete request
-      }
-    }
-    delete downloadRequest;
+    return true;
 }
+
+#ifdef ENABLE_HTTP_CACHE
+bool pxFileDownloader::checkAndDownloadFromCache(pxFileDownloadRequest* downloadRequest,rtHttpCacheData& cachedData)
+{
+  rtError err;
+  rtData data;
+  if ((NULL != rtFileCache::getInstance()) && (RT_OK == rtFileCache::getInstance()->getHttpCacheData(downloadRequest->getFileUrl(),cachedData)))
+  {
+    err = cachedData.data(data);
+    if (RT_OK !=  err)
+    {
+      return false;
+    }
+
+    downloadRequest->setHeaderData((char *)cachedData.getHeaderData().data(),cachedData.getHeaderData().length());
+    downloadRequest->setDownloadedData((char *)cachedData.getContentsData().data(),cachedData.getContentsData().length());
+    downloadRequest->setDownloadStatusCode(0);
+    downloadRequest->setHttpStatusCode(200);
+    return true;
+  }
+  return false;
+}
+#endif
 
 void pxFileDownloader::downloadFileInBackground(pxFileDownloadRequest* downloadRequest)
 {

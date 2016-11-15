@@ -6,7 +6,9 @@
 #include <string.h>
 #include "rtString.h"
 #include "rtCore.h"
-
+#ifdef ENABLE_HTTP_CACHE
+#include <pxFileCache.h>
+#endif
 using namespace std;
 
 class pxFileDownloadRequest
@@ -17,6 +19,9 @@ public:
     mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL),
     mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
     mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false)
+#ifdef ENABLE_HTTP_CACHE
+    , mCacheEnabled(true)
+#endif
   {
     mAdditionalHttpHeaders.clear();
   }
@@ -171,6 +176,19 @@ public:
   {
     return mHeaderOnly;
   }
+
+#ifdef ENABLE_HTTP_CACHE
+  /* Function used to enable or disable using file cache */
+  void setCacheEnabled(bool val)
+  {
+    mCacheEnabled = val;
+  }
+
+  bool getCacheEnabled()
+  {
+    return mCacheEnabled;
+  }
+#endif
 private:
   rtString mFileUrl;
   rtString mProxyServer;
@@ -186,6 +204,9 @@ private:
   size_t mHeaderDataSize;
   vector<rtString> mAdditionalHttpHeaders;
   bool mHeaderOnly;
+#ifdef ENABLE_HTTP_CACHE
+  bool mCacheEnabled;
+#endif
 };
 
 class pxFileDownloader
@@ -201,6 +222,7 @@ public:
     void clearFileCache();
     void downloadFile(pxFileDownloadRequest* downloadRequest);
     void setDefaultCallbackFunction(void (*callbackFunction)(pxFileDownloadRequest*));
+    bool downloadFromNetwork(pxFileDownloadRequest* downloadRequest);
 
 private:
     pxFileDownloader();
@@ -210,7 +232,9 @@ private:
     pxFileDownloadRequest* getNextDownloadRequest();
     void startNextDownloadInBackground();
     void downloadFileInBackground(pxFileDownloadRequest* downloadRequest);
-    
+#ifdef ENABLE_HTTP_CACHE
+    bool checkAndDownloadFromCache(pxFileDownloadRequest* downloadRequest,rtHttpCacheData& cachedData);
+#endif
     //todo: hash mPendingDownloadRequests;
     //todo: string list mPendingDownloadOrderList;
     //todo: list mActiveDownloads;

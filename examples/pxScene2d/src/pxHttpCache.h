@@ -5,8 +5,8 @@
 #include "rtString.h"
 #include "rtValue.h"
 #include <map>
+#include <vector>
 #include <time.h>
-#include <pxFileDownloader.h>
 
 using namespace std;
 
@@ -60,8 +60,6 @@ class rtHttpCacheData
 
     void setFilePointer(FILE* fp);
 
-    /* callback function to get invoked on completion of http download */
-    static void onDownloadComplete(pxFileDownloadRequest* downloadRequest);
   private:
     /* populates the map with header attribute and value */
     void populateHeaderMap();
@@ -97,14 +95,6 @@ class rtHttpCacheData
     time_t mExpirationDate;
     FILE* fp;
     bool mUpdated;
-    bool mDownloadFailed;
-#ifdef USE_STD_THREADS
-    std::mutex mMutex;
-    std::condition_variable mCond;
-#else
-    pthread_mutex_t mMutex;
-    pthread_cond_t mCond;
-#endif
-    pxFileDownloadRequest* mDownloadRequest;
+
 };
 #endif

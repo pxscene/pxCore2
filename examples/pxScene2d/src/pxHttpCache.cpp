@@ -3,31 +3,20 @@
 #include <curl/curl.h>
 #include <sstream>
 #include "rtLog.h"
+#include <pxFileDownloader.h>
 
-rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false),mDownloadFailed(false),mDownloadRequest(NULL)
+rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false)
 {
-#ifndef USE_STD_THREADS
-  pthread_mutex_init(&mMutex, NULL);
-  pthread_cond_init(&mCond, NULL);
-#endif
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url):mUrl(url),mExpirationDate(0),mUpdated(false),mDownloadFailed(false),mDownloadRequest(NULL)
+rtHttpCacheData::rtHttpCacheData(const char* url):mUrl(url),mExpirationDate(0),mUpdated(false)
 {
-#ifndef USE_STD_THREADS
-  pthread_mutex_init(&mMutex, NULL);
-  pthread_cond_init(&mCond, NULL);
-#endif
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size):mUrl(url),mExpirationDate(0),mUpdated(false),mDownloadFailed(false),mDownloadRequest(NULL)
+rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size):mUrl(url),mExpirationDate(0),mUpdated(false)
 {
-#ifndef USE_STD_THREADS
-  pthread_mutex_init(&mMutex, NULL);
-  pthread_cond_init(&mCond, NULL);
-#endif
   if ((NULL != headerMetadata) && (NULL != data))
   {
     mHeaderMetaData.init((uint8_t *)headerMetadata,strlen(headerMetadata));
@@ -40,13 +29,7 @@ rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, co
 
 rtHttpCacheData::~rtHttpCacheData()
 {
-#ifndef USE_STD_THREADS
-    pthread_mutex_destroy(&mMutex);
-    pthread_cond_destroy(&mCond);
-#endif
-    mDownloadRequest = NULL;
   fp = NULL;
-  mDownloadFailed = false;
 }
 
 void rtHttpCacheData::populateHeaderMap()
@@ -279,40 +262,6 @@ void rtHttpCacheData::setExpirationDate()
   }
 }
 
-// Static callback that gets called when fileDownloadRequest completes
-void rtHttpCacheData::onDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
-{
-  if (fileDownloadRequest != NULL && fileDownloadRequest->getCallbackData() != NULL)
-  {
-    rtHttpCacheData* callbackData = (rtHttpCacheData*) fileDownloadRequest->getCallbackData();
-    if (NULL != callbackData)
-    {
-      if (fileDownloadRequest->getDownloadStatusCode() == 0 &&
-          fileDownloadRequest->getHttpStatusCode() == 200)
-      {
-        if (fileDownloadRequest->getHeaderData() != NULL)
-          callbackData->mHeaderMetaData.init((uint8_t*)fileDownloadRequest->getHeaderData(), fileDownloadRequest->getHeaderDataSize());
-        if (fileDownloadRequest->getDownloadedData() != NULL)
-        {
-          callbackData->mData.init((uint8_t*)fileDownloadRequest->getDownloadedData(), fileDownloadRequest->getDownloadedDataSize());
-          callbackData->mUpdated = true;
-        }
-      }
-
-      if (fileDownloadRequest->getDownloadStatusCode() != 0)
-      {
-        callbackData->mDownloadFailed = true;
-      }
-      #ifdef USE_STD_THREADS
-      callbackData->mCond.notify_one();
-      #else
-      pthread_mutex_unlock(&callbackData->mMutex);
-      pthread_cond_signal(&callbackData->mCond);
-      #endif
-    }
-  }
-}
-
 rtError rtHttpCacheData::calculateRevalidationNeed(bool& revalidate, bool& revalidateOnlyHeaders)
 {
   if (isExpired())
@@ -372,24 +321,32 @@ rtError rtHttpCacheData::calculateRevalidationNeed(bool& revalidate, bool& reval
 
 bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downloadBody)
 {
-  pxFileDownloadRequest* mDownloadRequest = NULL;
-  mDownloadRequest = new pxFileDownloadRequest(mUrl, this);
-  // setup for asynchronous load and callback
-  mDownloadRequest->setCallbackFunction(rtHttpCacheData::onDownloadComplete);
-  mDownloadRequest->setAdditionalHttpHeaders(headers);
+  pxFileDownloadRequest* downloadRequest = NULL;
+  downloadRequest = new pxFileDownloadRequest(mUrl, this);
+  downloadRequest->setAdditionalHttpHeaders(headers);
+
   if (!downloadBody)
-    mDownloadRequest->setHeaderOnly(true);
-  pxFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
-  #ifdef USE_STD_THREADS
-  std::unique_lock<std::mutex> lock(mMutex);
-  mCond.wait(lock);
-  #else
-  pthread_mutex_lock(&mMutex);
-  pthread_cond_wait(&mCond, &mMutex);
-  pthread_mutex_unlock(&mMutex);
-  #endif
-  if (mDownloadFailed)
+    downloadRequest->setHeaderOnly(true);
+
+  if (false == pxFileDownloader::getInstance()->downloadFromNetwork(downloadRequest))
+  {
+     delete downloadRequest;
      return false;
+  }
+
+  if (downloadRequest->getDownloadStatusCode() == 0 &&
+       downloadRequest->getHttpStatusCode() == 200)
+  {
+    if (downloadRequest->getHeaderData() != NULL)
+      mHeaderMetaData.init((uint8_t*)downloadRequest->getHeaderData(), downloadRequest->getHeaderDataSize());
+    if (downloadRequest->getDownloadedData() != NULL)
+    {
+      mData.init((uint8_t*)downloadRequest->getDownloadedData(), downloadRequest->getDownloadedDataSize());
+      mUpdated = true;
+    }
+  }
+
+  delete downloadRequest;
   return true;
 }
 
