@@ -76,13 +76,12 @@ rtRemoteClient::rtRemoteClient(rtRemoteEnvironment* env, sockaddr_storage const&
 
 rtRemoteClient::~rtRemoteClient()
 {
+  std::unique_lock<std::recursive_mutex> lock(m_mutex);
+  setStateChangedHandler(NULL, NULL);
+  if (m_stream)
   {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    if (m_stream)
-    {
-      m_stream->close();
-      m_stream.reset();
-    }
+    m_stream->close();
+    m_stream.reset();
   }
 }
 
@@ -114,6 +113,7 @@ rtRemoteClient::onStreamStateChanged(std::shared_ptr<rtRemoteStream> const& /*st
   if (state == rtRemoteStream::State::Closed)
   {
     rtLogInfo("stream closed");
+    std::unique_lock<std::recursive_mutex> lock(m_mutex);
     if (m_state_changed_handler.Func)
     {
       auto self = shared_from_this();
@@ -122,7 +122,6 @@ rtRemoteClient::onStreamStateChanged(std::shared_ptr<rtRemoteStream> const& /*st
         rtLogWarn("failed to invoke state changed handler. %s", rtStrError(e));
     }
 
-    std::unique_lock<std::mutex> lock(m_mutex);
     if (m_stream)
     {
       m_stream->close();
@@ -143,6 +142,7 @@ rtRemoteClient::onStreamStateChanged(std::shared_ptr<rtRemoteStream> const& /*st
 rtError
 rtRemoteClient::setStateChangedHandler(StateChangedHandler handler, void* argp)
 {
+  std::unique_lock<std::recursive_mutex> lock(m_mutex);
   m_state_changed_handler.Func = handler;
   m_state_changed_handler.Arg = argp;
   return RT_OK;
@@ -213,13 +213,13 @@ rtRemoteClient::startSession(std::string const& objectId, uint32_t timeout)
 
 void rtRemoteClient::registerKeepAliveForObject(std::string const& s)
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock<std::recursive_mutex> lock(m_mutex);
   m_objects.push_back(s);
 }
 
 void rtRemoteClient::removeKeepAliveForObject(std::string const& s)
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock<std::recursive_mutex> lock(m_mutex);
   auto it = std::find(m_objects.begin(), m_objects.end(), s);
   if (it != m_objects.end())
   {
@@ -230,7 +230,7 @@ void rtRemoteClient::removeKeepAliveForObject(std::string const& s)
 rtError
 rtRemoteClient::sendKeepAlive()
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock<std::recursive_mutex> lock(m_mutex);
   if (m_objects.empty())
     return RT_OK;
 
@@ -432,7 +432,7 @@ rtRemoteClient::getRemoteEndpoint() const
   sockaddr_storage saddr;
   memset(&saddr, 0, sizeof(sockaddr_storage));
   {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::unique_lock<std::recursive_mutex> lock(m_mutex);
     if (m_stream)
       saddr = m_stream->getRemoteEndpoint();
   }
@@ -445,7 +445,7 @@ rtRemoteClient::getLocalEndpoint() const
   sockaddr_storage saddr;
   memset(&saddr, 0, sizeof(sockaddr_storage));
   {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::unique_lock<std::recursive_mutex> lock(m_mutex);
     if (m_stream)
       m_stream->getLocalEndpoint();
   }
