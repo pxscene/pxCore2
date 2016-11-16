@@ -49,7 +49,7 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
   Locker locker(data.GetIsolate());
   Isolate::Scope isolateScope(data.GetIsolate());
   HandleScope handleScope(data.GetIsolate());
-
+  rtObjectRef temp;
   // rtLogInfo("ptr: %p", data.GetParameter());
 
   Local<Object> obj = data.GetValue();
@@ -86,6 +86,7 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
     //
     j->second->PersistentObject.ClearWeak();
     j->second->PersistentObject.Reset();
+    temp = j->second->RTObject;
 #if 0
     if (!p->IsWeak())
       rtLogWarn("TODO: Why isn't this handle weak?");
@@ -106,6 +107,15 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
     rtLogWarn("failed to find:%p in map", data.GetParameter());
   }
   pthread_mutex_unlock(&sObjectMapMutex);
+  rtObjectRef parentRef;
+  rtError err = temp.get<rtObjectRef>("parent",parentRef);
+  if (err == RT_OK)
+  {
+    if (NULL == parentRef)
+    {
+      temp.send("dispose");
+    }
+  }
 }
 
 void
