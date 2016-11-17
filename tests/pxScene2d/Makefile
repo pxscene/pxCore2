@@ -49,7 +49,7 @@ LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDZLIB) $(LDJPG)
 NODEDIR = $(EXTDIR)/libnode-v6.9.0
 LDNODE   = -L$(NODEDIR)/out/Release/obj.target
 LDNODEV8 = -L$(NODEDIR)/out/Release
-LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode -lrtCore $(LDEXT) -L../../build/glut/ -lpxCore -lX11
+LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode -lrtCore $(LDEXT) -L../../build/glut/ -lpxCore -pthread -lglut -lGLEW -lGL -lX11
 
 CXXFLAGS_FULL = $(CXXFLAGS) -Wno-write-strings -Wno-format-security -std=c++11
 CLAGS_FULL = $(CFLAGS)

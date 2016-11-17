@@ -429,11 +429,9 @@ libpxscene-glut:
 	rm -rf $(OBJDIR)
 libpxscene-glut: CFLAGS_FULL = $(CFLAGS)
 #libpxscene-glut: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC -g -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES)
-libpxscene-glut: LDFLAGS_FULL = $(LDEXT) -Wl,--no-whole-archive -lglut -lGLEW -lGL -lnode -pthread -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) -shared -o libpxscene.so.1.0
+#libpxscene-glut: LDFLAGS_FULL = $(LDEXT) -Wl,--no-whole-archive -lglut -lGLEW -lGL -lnode -pthread -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -l$(LIBRTCORE) 
 libpxscene-glut: cleansceneobj $(PXSCENE_LIB_OBJS) $(LIBRTCORE_TARGET) 
-	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
-	ln -sf libpxscene.so.1.0 libpxscene.so.1
-	ln -sf libpxscene.so.1 libpxscene.so
+	$(AR) rc libpxscene.a $(PXSCENE_LIB_OBJS) 
 
 libpxscene-dfbwindow:
 	rm -rf $(OBJDIR)
