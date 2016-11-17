@@ -433,7 +433,12 @@ bool rtNodeContext::has(const char *name)
 
   Handle<Object> global = local_context->Global();
 
+#ifdef ENABLE_NODE_V_6_9
+  TryCatch try_catch(mIsolate);
+#else
   TryCatch try_catch;
+#endif // ENABLE_NODE_V_6_9
+
   Handle<Value> value = global->Get(String::NewFromUtf8(mIsolate, name) );
 
   if (try_catch.HasCaught())
