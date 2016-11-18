@@ -7,7 +7,7 @@
 #include <mutex>
 #include <vector>
 #include <thread>
-
+#include <condition_variable>
 
 class rtRemoteStream;
 class rtRemoteEnvironment;
@@ -30,6 +30,7 @@ private:
   std::vector< std::shared_ptr<rtRemoteStream> >  m_streams;
   pthread_t                                       m_thread;
   std::mutex                                      m_mutex;
+  std::condition_variable                         m_streams_cond;
   int                                             m_shutdown_pipe[2];
   rtRemoteEnvironment*                            m_env;
 };
