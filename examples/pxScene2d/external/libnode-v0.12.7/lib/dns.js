@@ -117,7 +117,12 @@ exports.lookup = function lookup(hostname, options, callback) {
     throw TypeError('invalid arguments: callback must be passed');
   } else if (util.isObject(options)) {
     hints = options.hints >>> 0;
-    family = options.family >>> 0;
+
+    if (options.family != null) {
+        family = options.family >>> 0;
+    } else {
+        family = 4;	//Default to Ip4 addresses if family is not defined
+    }
 
     if (hints !== 0 &&
         hints !== exports.ADDRCONFIG &&
