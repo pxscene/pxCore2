@@ -287,7 +287,7 @@ rtError rtHttpCacheData::calculateRevalidationNeed(bool& revalidate, bool& reval
     while ((pos = cacheControl.find("no-cache",prevpos)) != string::npos)
     {
        //no-cache=<parameter>
-       if (cacheControl.at(pos+8) == '=')
+       if ((cacheControl.find("=") != string::npos) && (cacheControl.at(pos+8) == '='))
        {
          size_t noCacheEnd =  cacheControl.find_first_of(",",pos+9);
          string parameter;
