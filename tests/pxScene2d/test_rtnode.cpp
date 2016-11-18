@@ -13,9 +13,9 @@ bool rtNodeInit()
 TEST(pxScene2dTests, rtNodeTests)
 {
     // Create rtNode
-    rtNode mynode;
+    extern rtNode script;
 
-    v8::Isolate *isolate = mynode.getIsolate();
+    v8::Isolate *isolate = script.getIsolate();
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Test as have isolate + init
@@ -25,7 +25,7 @@ TEST(pxScene2dTests, rtNodeTests)
     double s1 = pxMilliseconds();
 
     // Create rtNodeContextRef
-    rtNodeContextRef ctx = mynode.createContext();
+    rtNodeContextRef ctx = script.createContext();
 
     double e1 = pxMilliseconds();
 
@@ -62,7 +62,7 @@ TEST(pxScene2dTests, rtNodeTests)
         double s = pxMilliseconds();
 
         // Create rtNodeContextRef - CLONE
-        rtNodeContextRef ctx1 = mynode.createContext();
+        rtNodeContextRef ctx1 = script.createContext();
 
         double e = pxMilliseconds();
 

@@ -8,7 +8,8 @@ SRCS_FULL=\
 	pxscene2dtestsmain.cpp \
         test_example.cpp \
         test_pxcontext.cpp \
-	test_rtnode.cpp
+        test_memoryleak.cpp \
+        test_rtnode.cpp \
 
 ifeq ($(USE_HTTP_CACHE),1)
 SRCS_FULL+=test_imagecache.cpp
