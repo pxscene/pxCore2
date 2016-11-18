@@ -94,7 +94,6 @@ extern bool needsFlip;
 
 static void ReportSurfaceInfo(char* desc, IDirectFBSurface* surf); // DEBUG
 
-
 //static std::string DFBAccelerationMask2str(DFBAccelerationMask m); //fwd
 //static        void DFBAccelerationTest(IDirectFBSurface  *dst, IDirectFBSurface  *src); //fwd
 
@@ -172,8 +171,6 @@ public:
 
     mWidth  = w;
     mHeight = h;
-
-    //boundTexture = mTexture; // it's an FBO
 
     mOffscreen.init(mWidth, mHeight);
 
@@ -789,6 +786,7 @@ inline void draw_SOLID(int resW, int resH, float* matrix, float alpha,
     return;
   }
 
+  // Switch to COLORIZE for Glyphs...
   DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
         DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_COLORIZE ) )); // | DSBLIT_BLEND_COLORALPHA | DSDRAW_SRC_PREMULTIPLY
 
@@ -957,13 +955,22 @@ static void drawRect2(float x, float y, float w, float h, const float* c)
   float colorPM[4];
   premultiply(colorPM, c);
 
+  // 'applyMatrix()' performed by caller
+
   // Opacity ?
-  if( (colorPM[3] * gAlpha) < 0.99)
+  if( (/*colorPM[3] */ gAlpha) < 0.99)
   {
     DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL |  DSBLIT_BLEND_COLORALPHA | DSBLIT_COLORIZE ) ));
 
-    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND); // use alpha from color.
+  }
+  else
+  {
+    DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
+         DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_COLORIZE ) ));
+
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);
   }
 
   DFB_CHECK( boundFramebuffer->SetColor( boundFramebuffer, colorPM[0] * 255.0, // RGBA
@@ -974,15 +981,16 @@ static void drawRect2(float x, float y, float w, float h, const float* c)
   DFB_CHECK( boundFramebuffer->FillRectangle( boundFramebuffer, x, y, w, h));
 
   // Turn off Alpha
-  if( (colorPM[3] * gAlpha) < 0.99)
+ if( (/*colorPM[3] */ gAlpha) < 0.99)
   {
-  //  boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);
   }
 
   // Restore ?
   DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
           DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL) ));
 }
+
 
 static void drawRectOutline(float x, float y, float w, float h, float lw, const float* c)
 {
@@ -997,15 +1005,16 @@ static void drawRectOutline(float x, float y, float w, float h, float lw, const 
   float colorPM[4];
   premultiply(colorPM, c);
 
+  // 'applyMatrix()' performed by caller
+
   // Opacity ?
-  if( (colorPM[3] * gAlpha) < 0.99)
+//  if( (/* colorPM[3] */ gAlpha) < 0.99)
   {
     DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-         DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL |  DSBLIT_BLEND_COLORALPHA | DSBLIT_COLORIZE ) ));
-
-    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
+         DFBSurfaceBlittingFlags( DSBLIT_BLEND_COLORALPHA | DSBLIT_COLORIZE ) ));
   }
 
+  DFB_CHECK( boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND) );
   DFB_CHECK( boundFramebuffer->SetColor( boundFramebuffer, colorPM[0] * 255.0, // RGBA
                                                            colorPM[1] * 255.0,
                                                            colorPM[2] * 255.0,
@@ -1043,10 +1052,10 @@ static void drawRectOutline(float x, float y, float w, float h, float lw, const 
   DFB_CHECK( boundFramebuffer->FillRectangles( boundFramebuffer, rects, 4 ) ); // border
 
   // Turn off Alpha
-  // if( (colorPM[3] * gAlpha) < 0.99)
-  // {
-  //  boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);
-  // }
+ if( (/*colorPM[3] */ gAlpha) < 0.99)
+  {
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);
+  }
 
   // Restore ?
   DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
@@ -1148,7 +1157,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   DFBRectangle dst; // uses INT for (x,y, w, h)
 
-  dst.x = x + 0.5f; dst.y = y + 0.5f;
+  dst.x = x; dst.y = y;
   dst.w = w; dst.h = h;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1174,8 +1183,8 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   applyMatrix(boundFramebuffer, gMatrix.data());
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // Enable OPACTIY ??
-  if(gAlpha < 0.99)
+  // Enable OPACITY ??
+  if( (gAlpha * color[3]) < 0.99)
   {
     boundFramebuffer->SetBlittingFlags(boundFramebuffer,
          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL |  DSBLIT_BLEND_COLORALPHA) );
@@ -1183,7 +1192,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   else
   {
     boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-        DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL |  DSBLIT_BLEND_COLORALPHA) );
+        DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL) );
   }
 
 #ifndef DEBUG_SKIP_ALPHA_BLEND_FUNC
@@ -1191,8 +1200,12 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   boundFramebuffer->SetDstBlendFunction(boundFramebuffer, DSBF_INVSRCALPHA);
 #endif
 
-  boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
-  boundFramebuffer->SetColor( boundFramebuffer, 255,255,255, gAlpha * 255 ); // RGBA
+  // Opacity ?
+  if(gAlpha < 0.99)
+  {
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
+    boundFramebuffer->SetColor( boundFramebuffer, 255,255,255, gAlpha * 255 ); // RGBA
+  }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1211,7 +1224,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
       float colorPM[4];
       premultiply(colorPM, color);
 
-      draw_SOLID(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, colorPM); // colorPM
+      draw_SOLID(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, color); // colorPM
     }
     else
     {
@@ -1220,10 +1233,10 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // Disable OPACTIY ??
+  // Disable OPACITY ??
   if(gAlpha < 0.99)
   {
-//    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);
 
 #ifndef DEBUG_SKIP_ALPHA_BLEND_FUNC
     boundFramebuffer->SetSrcBlendFunction(boundFramebuffer, DSBF_ONE);   // restore ?
@@ -1236,7 +1249,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // Restore ?
   DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL) )); // | DSBLIT_NOFX
+          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL) ));
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #endif
 
@@ -1277,8 +1290,6 @@ static void drawImage92(float x,  float y,  float w,  float h,
   if(y1 <=0) y1 = 1;
   if(x2 <=0) x2 = 1;
   if(y2 <=0) y2 = 1;
-
-//  printf("\n ###  drawImage92() >> WxH:  %f x %f     x1: %f  y1: %f    x2: %f y2: %f",w,h,  x1, y1,  x2, y2);
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // TOP ROW
@@ -1326,53 +1337,56 @@ static void drawImage92(float x,  float y,  float w,  float h,
 
   texture->bindGLTexture(0);
 
-//  boundFramebuffer->SetRenderOptions( boundFramebuffer, DSRO_MATRIX | DSRO_ANTIALIAS );
-
-  applyMatrix(boundFramebuffer, gMatrix.data());
+  boundFramebuffer->SetRenderOptions( boundFramebuffer, DSRO_MATRIX );//| DSRO_ANTIALIAS );
 
   //                                   UPPER ROW              MIDDLE ROW            BOTTOM ROW
   const DFBRectangle src[] = { srcUL, srcUM, srcUR,   srcML, srcMM, srcMR,    srcBL, srcBM, srcBR };
   const DFBRectangle dst[] = { dstUL, dstUM, dstUR,   dstML, dstMM, dstMR,    dstBL, dstBM, dstBR };
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // Enable OPACTIY ??
-  // if(gAlpha < 0.99 )
-  // {
-  //   DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-  //        DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_BLEND_COLORALPHA ) ));
+  // Enable OPACITY ??
 
-  //   // boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
-  //   // boundFramebuffer->SetColor( boundFramebuffer, 255,255,255, gAlpha * 255 ); // RGBA
-  // }
-  // else
-  // {
-  //   DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-  //           DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL ) ));
-  // }
+  if(gAlpha < 0.99)
+  {
+#ifndef DEBUG_SKIP_ALPHA_BLEND_FUNC
+   boundFramebuffer->SetSrcBlendFunction(boundFramebuffer, DSBF_SRCALPHA);
+   boundFramebuffer->SetDstBlendFunction(boundFramebuffer, DSBF_INVSRCALPHA);
+#endif
 
     DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_BLEND_COLORALPHA ) ));
 
-    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
-    boundFramebuffer->SetColor( boundFramebuffer, 255,255,255, gAlpha * 255 ); // RGBA
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND); // use alpha from color.
+    boundFramebuffer->SetColor( boundFramebuffer, 255,255,255, 255 * gAlpha ); // RGBA
+  }
+  else
+  {
+    DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
+          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL ) ));
 
-
-#ifndef DEBUG_SKIP_ALPHA_BLEND_FUNC
-  boundFramebuffer->SetSrcBlendFunction(boundFramebuffer, DSBF_SRCALPHA);
-  boundFramebuffer->SetDstBlendFunction(boundFramebuffer, DSBF_INVSRCALPHA);
-#endif
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);
+  }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  applyMatrix(boundFramebuffer, gMatrix.data());
 
 #ifndef DEBUG_SKIP_BLIT
 
-  DFB_CHECK(boundFramebuffer->BatchStretchBlit(boundFramebuffer, boundTexture, src, dst, sizeof(src)/sizeof(DFBRectangle) ));
+  // BLIT the 9 SLICE
+  DFB_CHECK(boundFramebuffer->BatchStretchBlit(boundFramebuffer, boundTexture, src, dst,
+                                                    sizeof(src)/sizeof(DFBRectangle) ));
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // Disable OPACTIY ??
+  // Disable OPACITY ??
   if(gAlpha < 0.99)
   {
- //   boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX); //disable
+#ifndef DEBUG_SKIP_ALPHA_BLEND_FUNC
+    boundFramebuffer->SetSrcBlendFunction(boundFramebuffer, DSBF_SRCALPHA);   // restore ?
+    boundFramebuffer->SetDstBlendFunction(boundFramebuffer, DSBF_DESTALPHA);
+#endif
+
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX); //disable
   }
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1383,11 +1397,6 @@ static void drawImage92(float x,  float y,  float w,  float h,
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #endif
 
-
-#ifndef DEBUG_SKIP_ALPHA_BLEND_FUNC
-    boundFramebuffer->SetSrcBlendFunction(boundFramebuffer, DSBF_ONE);   // restore ?
-    boundFramebuffer->SetDstBlendFunction(boundFramebuffer, DSBF_ZERO);
-#endif
 }
 
 bool gContextInit = false;
@@ -1778,6 +1787,8 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
     rtLogError("cannot drawRect() on context surface because boundTexture is NULL");
     return;
   }
+
+  applyMatrix(boundFramebuffer,gMatrix.data());
 
   // Fill ...
   if(fillColor != NULL && fillColor[3] > 0.0) // with non-transparent color
