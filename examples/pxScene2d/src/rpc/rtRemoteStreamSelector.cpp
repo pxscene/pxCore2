@@ -43,6 +43,7 @@ rtRemoteStreamSelector::registerStream(std::shared_ptr<rtRemoteStream> const& s)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_streams.push_back(s);
+  m_streams_cond.notify_all();
   return RT_OK;
 }
 
@@ -61,6 +62,7 @@ rtRemoteStreamSelector::removeStream(std::shared_ptr<rtRemoteStream> const& stre
     m_streams.erase(itr);
     e = RT_OK;
   }
+  m_streams_cond.notify_all();
 
   return e;
 }
@@ -106,10 +108,17 @@ rtRemoteStreamSelector::doPollFds()
     FD_ZERO(&readFds);
     FD_ZERO(&errFds);
 
+    {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_streams_cond.wait(lock, [&](){
+         return !m_streams.empty();
+    });
+
     for (auto const& s : m_streams)
     {
       rtPushFd(&readFds, s->m_fd, &maxFd);
       rtPushFd(&errFds, s->m_fd, &maxFd);
+    }
     }
     rtPushFd(&readFds, m_shutdown_pipe[0], &maxFd);
 
