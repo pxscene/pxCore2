@@ -8,70 +8,73 @@ px.import({ scene: 'px:scene.1.js',
 
   // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
-  var originalURL = (!url || url=="")?"browser.js":url;
+  var originalURL = (!url || url=="") ? "browser.js":url;
   console.log("url:",originalURL);
 
-  var blackBg = scene.create({t:"rect", fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:1,parent:scene.root});
+  var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:1,parent:scene.root});
   var childScene = scene.create({t:"scene", url:originalURL,parent:scene.root});
   childScene.focus = true;
+
   var showFPS = false;
-  var fpsBg = scene.create({t:"rect", fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:showFPS?1:0,parent:scene.root});
+  var fpsBg      = scene.create({t:"rect", fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:showFPS?1:0,parent:scene.root});
   var fpsCounter = scene.create({t:"text", x:5,textColor:0xffffffff,pixelSize:24,text:"0fps",parent:fpsBg});
   fpsBg.w = fpsCounter.w+16;
   fpsBg.h = fpsCounter.h;
-  
+
   function updateSize(w, h) {
     childScene.w = w;
     childScene.h = h;
     blackBg.w = w;
     blackBg.h = h;
   }
-  
+
   // TODO if I log out event object e... there is extra stuff??
   scene.on("onResize", function(e) { updateSize(e.w, e.h);});
   updateSize(scene.w, scene.h);
-  
-  
-  scene.on("onFPS", function(e) { 
+
+  scene.on("onFPS", function(e) {
     if(showFPS) {
-      fpsCounter.text = ""+Math.floor(e.fps)+"fps"; 
+      fpsCounter.text = ""+Math.floor(e.fps)+"fps";
       fpsBg.w = fpsCounter.w+16;
       fpsBg.h = fpsCounter.h;
     }
   });
-                                
+
 ////
-if (false) {
+if (false)
+{
   // TODO Cursor emulation mostly for egl targets right now.
 
   // TODO hacky raspberry pi detection
   var os = require("os");
   var hostname = os.hostname();
-  
+
   if (hostname == "raspberrypi") {
     var cursor = scene.create({t:"image", url:"cursor.png",parent:scene.root,
-				                            interactive:false});
-    
+                               interactive:false});
+
     scene.on("onMouseMove", function(e) {
 	    cursor.x = e.x-23;
 	    cursor.y = e.y-10;
     });
   }
 }
-                                
+
   scene.root.on("onPreKeyDown", function(e) {
-	  var code = e.keyCode; var flags = e.flags;
+	  var code  = e.keyCode;
+    var flags = e.flags;
+
     console.log("SHELL: onPreKeyDown:", code, " key: ", keys.name(code), ", ", flags);
-       
+
     if( keys.is_CTRL_ALT( flags ) )
     {
       if(code == keys.Y)  // ctrl-alt-y
       {
 //        console.log("SHELL: onPreKeyDown: FPS !!!  ############# ");
 
-      showFPS = !showFPS
-      fpsBg.a = (showFPS)?1.0:0;
-      e.stopPropagation();
+        showFPS = !showFPS
+        fpsBg.a = (showFPS)?1.0:0;
+        e.stopPropagation();
       }
       else
       if(code == keys.O)  // ctrl-alt-o
@@ -86,9 +89,11 @@ if (false) {
       {
         // This returns a data URI string with the image data
         var dataURI = scene.screenshot('image/png;base64');
+
         // convert the data URI by stripping off the scheme and type information
         // to a base64 encoded string with just the PNG image data
         var base64PNGData = dataURI.slice(dataURI.indexOf(',')+1);
+
         // decode the base64 data and write it to a file
         fs.writeFile("screenshot.png", new Buffer(base64PNGData, 'base64'), function(err)
         {
@@ -97,6 +102,8 @@ if (false) {
           else
             console.log("Created screenshot.png");
         });
+
+        e.stopPropagation();
       }
       else
       if(code == keys.D)  // ctrl-alt-d
@@ -134,8 +141,11 @@ if (false) {
   scene.root.on("onPreKeyUp", function(e)
   {
     console.log("in onPreKeyUp", e.keyCode, e.flags);
-	  var code = e.keyCode; var flags = e.flags;
+	  var code  = e.keyCode;
+    var flags = e.flags;
+
     console.log("onKeyUp:", code, ", ", flags);
+
     // eat the ones we handle here
          if (code == keys.Y && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-y
     else if (code == keys.O && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-o
@@ -145,32 +155,33 @@ if (false) {
     else if (code == keys.H && keys.is_CTRL_ALT_SHIFT( flags ) ) e.stopPropagation(); // ctrl-alt-shift-h
   });
 
-  if (true) {
-  scene.root.on("onKeyDown", function(e)
+  if (true)
   {
-	  var code = e.keyCode; var flags = e.flags;
-    console.log("onKeyDown shell:", code, ", ", flags);
-
-    if( keys.is_CTRL_ALT( flags ) )
+    scene.root.on("onKeyDown", function(e)
     {
-      if(code == keys.R)   // ctrl-alt-r
+      var code = e.keyCode; var flags = e.flags;
+      console.log("onKeyDown shell:", code, ", ", flags);
+
+      if( keys.is_CTRL_ALT( flags ) )
       {
-        console.log("(shell.js) Reloading url: ", originalURL);
-        childScene.url = originalURL;
-        e.stopPropagation();
-      }
-      else
-      if (code == keys.H)  // ctrl-alt-h
-      {
-        var homeURL = "browser.js";
-        console.log("Loading home url: ", homeURL);
-        childScene.url = homeURL;
-        e.stopPropagation();
-      }
-    }// ctrl-alt
-  });
-}
-  
+        if(code == keys.R)   // ctrl-alt-r
+        {
+          console.log("(shell.js) Reloading url: ", originalURL);
+          childScene.url = originalURL;
+          e.stopPropagation();
+        }
+        else
+        if (code == keys.H)  // ctrl-alt-h
+        {
+          var homeURL = "browser.js";
+          console.log("Loading home url: ", homeURL);
+          childScene.url = homeURL;
+          e.stopPropagation();
+        }
+      }// ctrl-alt
+    });
+  }
+
   scene.root.on("onPreChar", function(e)
   {
     console.log("in onchar");
@@ -182,9 +193,33 @@ if (false) {
       e.stopPropagation()
     }
   });
-  
-  // TODO if I log out event object e... there is extra stuff??
+
+  // TODO if I log out event object ... there is extra stuff??
   scene.on("onResize", function(e) { updateSize(e.w, e.h);});
   updateSize(scene.w, scene.h);
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // Test for Clearscreen delegate...
+  childScene.ready.then( function()
+  {
+      // Use delegate if present...
+      //
+      if (typeof childScene.api                  !== undefined &&
+          typeof childScene.api.wantsClearscreen === 'function')
+      {
+        blackBg.draw = childScene.api.wantsClearscreen(); // use delegate preference - returns bool
+      }
+  });
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // Example of 'delegate' for childScene.
+  //
+  // Returns:   BOOL preference of 'shell' performing Clearscreen per frame.
+  /*
+  module.exports.wantsClearscreen1 = function()  // delegate
+  {
+    return false;
+  };
+  */
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 });
