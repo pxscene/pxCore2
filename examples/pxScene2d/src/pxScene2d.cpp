@@ -817,7 +817,7 @@ void pxObject::drawInternal(bool maskPass)
     else if (mClip )
     {
       //rtLogInfo("calling createSnapshot for mw=%f mh=%f\n", mw, mh);
-      mClipSnapshotRef = createSnapshot(mClipSnapshotRef);
+      createSnapshot(mClipSnapshotRef);
 
       context.setMatrix(m); // TODO: Move within if() below ?
       context.setAlpha(ma); // TODO: Move within if() below ?
@@ -951,7 +951,7 @@ bool pxObject::hitTest(pxPoint2f& pt)
 }
 
 
-pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
+void pxObject::createSnapshot(pxContextFramebufferRef& fbo)
 {
   pxMatrix4f m;
 
@@ -968,6 +968,7 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
   //rtLogInfo("createSnapshot  w=%f h=%f\n", w, h);
   if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
   {
+    deleteSnapshot(fbo);
     //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
     fbo = context.createFramebuffer(floor(w), floor(h));
   }
@@ -990,8 +991,6 @@ pxContextFramebufferRef pxObject::createSnapshot(pxContextFramebufferRef fbo)
     }
   }
   context.setFramebuffer(previousRenderSurface);
-
-  return fbo;
 }
 
 void pxObject::createSnapshotOfChildren()

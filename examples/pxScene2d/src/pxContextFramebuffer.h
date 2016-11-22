@@ -23,7 +23,7 @@ class pxContextFramebuffer
 public:
   pxContextFramebuffer() : mRef(0), m_framebufferTexture(), m_framebufferStateStack(), mDirtyRectanglesEnabled(false), mDirtyRectangle() {}
   pxContextFramebuffer(pxTextureRef texture) : m_framebufferTexture(texture), m_framebufferStateStack(), mDirtyRectanglesEnabled(false), mDirtyRectangle() {}
-  virtual ~pxContextFramebuffer() {}
+  virtual ~pxContextFramebuffer() {resetFbo();}
 
   virtual unsigned long AddRef(){ return rtAtomicInc(&mRef);}
 
@@ -40,6 +40,7 @@ public:
     if (m_framebufferTexture.getPtr() != NULL)
     {
       m_framebufferTexture->deleteTexture();
+      m_framebufferTexture = NULL;
     }
     m_framebufferStateStack.clear();
   }

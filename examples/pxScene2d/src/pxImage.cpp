@@ -34,6 +34,7 @@ pxImage::~pxImage()
     {
       getImageResource()->removeListener(this);
     }
+    mResource = NULL;
     mListenerAdded = false;
   }
 }
@@ -189,6 +190,20 @@ void pxImage::resourceReady(rtString readyResolution)
       pxObject::onTextureReady();
       mReady.send("reject",this);
   }
+}
+
+void pxImage::dispose()
+{
+  if (mListenerAdded)
+  {
+    if (getImageResource())
+    {
+      getImageResource()->removeListener(this);
+    }
+    mResource = NULL;
+    mListenerAdded = false;
+  }
+  pxObject::dispose();
 }
 
 rtDefineObject(pxImage,pxObject);

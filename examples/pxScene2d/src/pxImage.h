@@ -58,6 +58,7 @@ public:
   // !CLF: To Do: These names are terrible... find better ones!
   virtual float getOnscreenWidth();
   virtual float getOnscreenHeight();
+  virtual void dispose();
   
 protected:
   virtual void draw();

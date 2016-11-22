@@ -226,6 +226,12 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
     mReady.send("reject",nullValue); 
     deleteSnapshot(mSnapshotRef); 
     deleteSnapshot(mClipSnapshotRef);
+    deleteSnapshot(mDrawableSnapshotForMask);
+    deleteSnapshot(mMaskSnapshot);
+    mSnapshotRef = NULL;
+    mClipSnapshotRef = NULL;
+    mDrawableSnapshotForMask = NULL;
+    mMaskSnapshot = NULL;
   }
 
   
@@ -332,7 +338,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
       if (!mPainting)
       {
         //rtLogInfo("in setPainting and calling createSnapshot mw=%f mh=%f\n", mw, mh);
-        mSnapshotRef = createSnapshot(mSnapshotRef);
+        createSnapshot(mSnapshotRef);
       }
       else
       {
@@ -393,6 +399,14 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
     } 
     mChildren.clear();
+    deleteSnapshot(mSnapshotRef); 
+    deleteSnapshot(mClipSnapshotRef);
+    deleteSnapshot(mDrawableSnapshotForMask);
+    deleteSnapshot(mMaskSnapshot);
+    mSnapshotRef = NULL;
+    mClipSnapshotRef = NULL;
+    mDrawableSnapshotForMask = NULL;
+    mMaskSnapshot = NULL;
   }
 
   void drawInternal(bool maskPass=false);
@@ -733,7 +747,7 @@ protected:
   pxRect mScreenCoordinates;
   #endif //PX_DIRTY_RECTANGLES
 
-  pxContextFramebufferRef createSnapshot(pxContextFramebufferRef fbo);
+  void createSnapshot(pxContextFramebufferRef& fbo);
   void createSnapshotOfChildren();
   void deleteSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES
