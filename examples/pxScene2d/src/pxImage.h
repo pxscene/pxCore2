@@ -37,18 +37,10 @@ public:
   rtError setUrl(const char* s);
   
   rtError stretchX(int32_t& v) const { v = (int32_t)mStretchX; return RT_OK; }
-  rtError setStretchX(int32_t v)
-  {
-    mStretchX = (pxConstantsStretch::constants)v;
-    return RT_OK;
-  }
+  rtError setStretchX(int32_t v);
 
   rtError stretchY(int32_t& v) const { v = (int32_t)mStretchY; return RT_OK; }
-  rtError setStretchY(int32_t v)
-  {
-    mStretchY = (pxConstantsStretch::constants)v;
-    return RT_OK;
-  }
+  rtError setStretchY(int32_t v);
   
   rtError resource(rtObjectRef& o) const { /*printf("!!!!!!!!!!!!!!!!!!!!!!!pxImage getResource\n");*/o = mResource; return RT_OK; }
   rtError setResource(rtObjectRef o);
@@ -59,6 +51,8 @@ public:
   virtual float getOnscreenWidth();
   virtual float getOnscreenHeight();
   virtual void dispose();
+  void checkStretchX();
+  void checkStretchY();
   
 protected:
   virtual void draw();

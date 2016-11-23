@@ -25,6 +25,11 @@ using namespace std;
 
 extern pxContext context;
 
+bool isPowerOfTwo(int64_t number)
+{
+  return ((number & (number - 1)) == 0);
+}
+
 pxImage::~pxImage()
 {
   rtLogDebug("~pxImage()");
@@ -74,7 +79,9 @@ rtError pxImage::setResource(rtObjectRef o)
       imageLoaded = false;
       pxObject::createNewPromise();
       mListenerAdded = true;
-      getImageResource()->addListener(this); 
+      getImageResource()->addListener(this);
+      checkStretchX();
+      checkStretchY();
     }
     return RT_OK; 
   } 
@@ -168,6 +175,8 @@ void pxImage::draw() {
 }
 void pxImage::resourceReady(rtString readyResolution)
 {
+  checkStretchX();
+  checkStretchY();
   //printf("pxImage::resourceReady(%s) mInitialized=%d for \"%s\"\n",readyResolution.cString(),mInitialized,getImageResource()->getUrl().cString());
   if( !readyResolution.compare("resolve"))
   {
@@ -204,6 +213,46 @@ void pxImage::dispose()
     mListenerAdded = false;
   }
   pxObject::dispose();
+}
+
+void pxImage::checkStretchX()
+{
+  rtImageResource* imageResource = getImageResource();
+  if (mStretchX == pxConstantsStretch::REPEAT && imageResource != NULL)
+  {
+    pxTextureRef texture = imageResource->getTexture();
+    if (texture.getPtr() != NULL && (!isPowerOfTwo(texture->width()) || !isPowerOfTwo(texture->height())))
+    {
+      rtLogWarn("stretchX set to REPEAT but image is not a power of 2 for image: %s", imageResource->getUrl().cString());
+    }
+  }
+}
+
+void pxImage::checkStretchY()
+{
+  rtImageResource* imageResource = getImageResource();
+  if (mStretchY == pxConstantsStretch::REPEAT && imageResource != NULL)
+  {
+    pxTextureRef texture = imageResource->getTexture();
+    if (texture.getPtr() != NULL && (!isPowerOfTwo(texture->width()) || !isPowerOfTwo(texture->height())))
+    {
+      rtLogWarn("stretchY set to REPEAT but image is not a power of 2 for image: %s", imageResource->getUrl().cString());
+    }
+  }
+}
+
+rtError pxImage::setStretchX(int32_t v)
+{
+  mStretchX = (pxConstantsStretch::constants)v;
+  checkStretchX();
+  return RT_OK;
+}
+
+rtError pxImage::setStretchY(int32_t v)
+{
+  mStretchY = (pxConstantsStretch::constants)v;
+  checkStretchY();
+  return RT_OK;
 }
 
 rtDefineObject(pxImage,pxObject);
