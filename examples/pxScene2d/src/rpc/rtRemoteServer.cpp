@@ -182,9 +182,6 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
 {
   memset(&m_rpc_endpoint, 0, sizeof(m_rpc_endpoint));
 
-  clientDisconnectedCB.func = NULL;
-  clientDisconnectedCB.data = NULL;
-
   m_shutdown_pipe[0] = -1;
   m_shutdown_pipe[1] = -1;
 
@@ -219,8 +216,6 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
 
 rtRemoteServer::~rtRemoteServer()
 {
-  clientDisconnectedCB.func = NULL;
-
   if (m_shutdown_pipe[0] != -1)
   {
     char buff[] = {"shutdown"};
@@ -416,8 +411,13 @@ rtRemoteServer::onClientStateChanged(std::shared_ptr<rtRemoteClient> const& clie
     auto ditr = m_disconnected_callback_map.find(client.get());
     if (ditr != m_disconnected_callback_map.end())
     {
-        if(ditr->second && ditr->second->func)
-            ditr->second->func(ditr->second->data);
+        std::vector<ClientDisconnectedCB>::const_iterator cbitr;
+        for(cbitr = ditr->second.cbegin(); cbitr != ditr->second.cend(); ++cbitr)
+        {
+            if(cbitr->func)
+                cbitr->func(cbitr->data);
+        }
+        ditr->second.clear();
         m_disconnected_callback_map.erase(ditr);
     }
   }
@@ -537,10 +537,6 @@ rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32
         // sure that this really matters much
         std::unique_lock<std::mutex> lock(m_mutex);
         m_object_map.insert(ClientMap::value_type(endpointName, client));
-
-        clientDisconnectedCB.func = cb;
-        clientDisconnectedCB.data = cbdata;
-        m_disconnected_callback_map.insert(ClientDisconnectedCBMap::value_type(client.get(), &clientDisconnectedCB));
       }
 
       if (client)
@@ -549,6 +545,19 @@ rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32
         err = client->startSession(objectId);
         if (err == RT_OK)
           obj = remote;
+
+        ClientDisconnectedCB CB = {cb, cbdata};
+        auto ditr = m_disconnected_callback_map.find(client.get());
+        if (ditr == m_disconnected_callback_map.end())
+        {
+            std::vector<ClientDisconnectedCB> new_cb_vector;
+            new_cb_vector.push_back(CB);
+            m_disconnected_callback_map.insert(ClientDisconnectedCBMap::value_type(client.get(), new_cb_vector));
+        }
+        else
+        {
+            ditr->second.push_back(CB);
+        }
       }
     }
   }

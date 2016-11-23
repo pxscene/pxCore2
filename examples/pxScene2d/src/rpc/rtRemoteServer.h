@@ -94,7 +94,7 @@ private:
   } clientDisconnectedCB;
 
   using ClientMap = std::map< std::string, std::shared_ptr<rtRemoteClient> >;
-  using ClientDisconnectedCBMap = std::map< rtRemoteClient*, ClientDisconnectedCB* >;
+  using ClientDisconnectedCBMap = std::map< rtRemoteClient*, std::vector<ClientDisconnectedCB> >;
   using ClientList = std::vector< std::shared_ptr<rtRemoteClient > >;
   using CommandHandlerMap = std::map< std::string, rtRemoteCallback<rtRemoteMessageHandler> >;
   using ObjectRefeMap = std::map< std::string, ObjectReference >;
