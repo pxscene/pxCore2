@@ -556,7 +556,11 @@ rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32
         }
         else
         {
-            ditr->second.push_back(CB);
+            auto cbitr = std::find_if(ditr->second.begin(), ditr->second.end(),
+                    [CB](const ClientDisconnectedCB &cb) { return cb.func == CB.func && cb.data == CB.data; });
+
+            if(cbitr == ditr->second.end())
+                ditr->second.push_back(CB);
         }
       }
     }
