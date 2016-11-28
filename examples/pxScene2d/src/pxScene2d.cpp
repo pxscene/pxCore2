@@ -63,6 +63,7 @@ uint32_t gFboBindCalls;
 #ifdef ENABLE_RT_NODE
 extern void rtWrapperSceneUpdateEnter();
 extern void rtWrapperSceneUpdateExit();
+rtNode script;
 #endif //ENABLE_RT_NODE
 
 #ifdef ENABLE_VALGRIND
@@ -256,6 +257,39 @@ void pxObject::createNewPromise()
     rtLogDebug("CREATING NEW PROMISE\n");
     mReady = new rtPromise();
   }
+}
+
+void pxObject::dispose()
+{
+  vector<animation>::iterator it = mAnimations.begin();
+  for(;it != mAnimations.end();it++)
+  {
+    if ((*it).promise)
+      (*it).promise.send("reject",this);
+  }
+
+  rtValue nullValue;
+  mReady.send("reject",nullValue);
+#ifdef ENABLE_RT_NODE
+  script.pump();
+#endif // ENABLE_RT_NODE
+
+  mAnimations.clear();
+  mEmit->clearListeners();
+  for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  {
+    (*it)->dispose();
+    (*it)->mParent = NULL;  // setParent mutates the mChildren collection
+  } 
+  mChildren.clear();
+  deleteSnapshot(mSnapshotRef); 
+  deleteSnapshot(mClipSnapshotRef);
+  deleteSnapshot(mDrawableSnapshotForMask);
+  deleteSnapshot(mMaskSnapshot);
+  mSnapshotRef = NULL;
+  mClipSnapshotRef = NULL;
+  mDrawableSnapshotForMask = NULL;
+  mMaskSnapshot = NULL;
 }
 
 /** since this is a boolean, we have to handle if someone sets it to
@@ -1157,10 +1191,6 @@ rtDefineObject(pxRoot,pxObject);
 
 int gTag = 0;
 
-#ifdef ENABLE_RT_NODE
-rtNode script;
-#endif //ENABLE_RT_NODE
-
 pxScene2d::pxScene2d(bool top)
   : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRectangle(false), mTestView(NULL)
 {
@@ -1191,6 +1221,8 @@ pxScene2d::pxScene2d(bool top)
 
 rtError pxScene2d::dispose()
 {
+    rtObjectRef e = new rtMapObject;
+    mEmit.send("onClose", e);
     if (mRoot)
       mRoot->dispose();
     mEmit->clearListeners();

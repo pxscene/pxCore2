@@ -77,7 +77,6 @@ rtError createObject2(const char* t, rtObjectRef& o);
 
 typedef void (*pxAnimationEnded)(void* ctx);
 
-
 struct pxAnimationTarget 
 {
   char* prop;
@@ -378,36 +377,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
   void moveForward();
   void moveBackward();
 
-  virtual void dispose()
-  {
-    vector<animation>::iterator it = mAnimations.begin();
-    for(;it != mAnimations.end();it++)
-    {
-      if ((*it).promise)
-        (*it).promise.send("reject",this);
-    }
-
-    rtValue nullValue;
-    mReady.send("reject",nullValue);
-
-    mAnimations.clear();
-    mEmit->clearListeners();
-    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
-    {
-      (*it)->dispose();
-//      (*it)->setParent(NULL);
-      (*it)->mParent = NULL;  // setParent mutates the mChildren collection
-    } 
-    mChildren.clear();
-    deleteSnapshot(mSnapshotRef); 
-    deleteSnapshot(mClipSnapshotRef);
-    deleteSnapshot(mDrawableSnapshotForMask);
-    deleteSnapshot(mMaskSnapshot);
-    mSnapshotRef = NULL;
-    mClipSnapshotRef = NULL;
-    mDrawableSnapshotForMask = NULL;
-    mMaskSnapshot = NULL;
-  }
+  virtual void dispose();
 
   void drawInternal(bool maskPass=false);
   virtual void draw() {}
