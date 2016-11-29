@@ -84,6 +84,7 @@ rtNodeContexts  mNodeContexts;
 ArrayBufferAllocator* array_buffer_allocator = NULL;
 bool bufferAllocatorIsSet = false;
 #endif
+bool nodeTerminated = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -315,8 +316,18 @@ rtNodeContext::~rtNodeContext()
     HandleScope     handle_scope(mIsolate);
 
     RunAtExit(mEnv);
-
+#ifdef ENABLE_NODE_V_6_9
+    if (nodeTerminated)
+    {
+      array_buffer_allocator->set_env(NULL);
+    }
+    else
+    {
+      mEnv->Dispose();
+    }
+#else
     mEnv->Dispose();
+#endif // ENABLE_NODE_V_6_9
     mEnv = NULL;
     #ifndef USE_CONTEXTIFY_CLONES
     HandleMap::clearAllForContext(mId);
@@ -744,6 +755,7 @@ void rtNode::init(int argc, char** argv)
 
 void rtNode::term()
 {
+  nodeTerminated = true;
 #ifdef USE_CONTEXTIFY_CLONES
   if( mRefContext.getPtr() )
   {
