@@ -517,6 +517,13 @@ void pxWayland::clientStatus( WstCompositor *wctx, int status, int pid, int deta
    pxw->handleClientStatus( status, pid, detail );
 }
 
+void pxWayland::remoteDisconnectedCB(void *data)
+{
+    pxWayland *pxw = (pxWayland *)data;
+    if(pxw->mEvents)
+        pxw->mEvents->remoteDisconnected(data);
+}
+
 void pxWayland::startRemoteObjectDetection()
 {
   int rc= pthread_create( &mFindRemoteThreadId, NULL, findRemoteThread, this );
@@ -569,7 +576,8 @@ rtError pxWayland::connectToRemoteObject()
   {
     findTime += FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS;
     rtLogInfo("Attempting to find remote object %s", mRemoteObjectName.cString());
-    errorCode = rtRemoteLocateObject(mRemoteObjectName.cString(), mRemoteObject, 1000);
+    errorCode = rtRemoteLocateObject(mRemoteObjectName.cString(), mRemoteObject, 1000,
+                                     pxWayland::remoteDisconnectedCB, this);
     if (errorCode != RT_OK)
     {
       rtLogError("XREBrowserPlugin failed to find object: %s errorCode %d\n",

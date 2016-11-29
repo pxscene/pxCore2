@@ -15,6 +15,8 @@
 #include <netinet/in.h>
 #include <rtObject.h>
 
+typedef void(*clientDisconnectedCallback)(void *data);
+
 class rtRemoteIResolver;
 
 class rtRemoteServer
@@ -27,11 +29,12 @@ public:
   rtError open();
   rtError registerObject(std::string const& objectId, rtObjectRef const& obj);
   rtError unregisterObject(std::string const& objectId);
-  rtError findObject(std::string const& objectId, rtObjectRef& obj, uint32_t timeout);
+  rtError findObject(std::string const& objectId, rtObjectRef& obj, uint32_t timeout, clientDisconnectedCallback cb, void *cbdata);
   rtError removeStaleObjects();
   rtError processMessage(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& msg);
 
 private:
+
   struct connected_client
   {
     sockaddr_storage    peer;
@@ -84,7 +87,14 @@ private:
     bool              owner_removed;
   };
 
+  struct ClientDisconnectedCB
+  {
+      clientDisconnectedCallback func;
+      void*                      data;
+  } clientDisconnectedCB;
+
   using ClientMap = std::map< std::string, std::shared_ptr<rtRemoteClient> >;
+  using ClientDisconnectedCBMap = std::map< rtRemoteClient*, std::vector<ClientDisconnectedCB> >;
   using ClientList = std::vector< std::shared_ptr<rtRemoteClient > >;
   using CommandHandlerMap = std::map< std::string, rtRemoteCallback<rtRemoteMessageHandler> >;
   using ObjectRefeMap = std::map< std::string, ObjectReference >;
@@ -99,6 +109,7 @@ private:
   rtRemoteIResolver*            m_resolver;
   ClientMap                     m_object_map;
   ClientList                    m_connected_clients;
+  ClientDisconnectedCBMap       m_disconnected_callback_map;
   int                           m_shutdown_pipe[2];
   uint32_t                      m_keep_alive_interval;
   rtRemoteEnvironment*          m_env;

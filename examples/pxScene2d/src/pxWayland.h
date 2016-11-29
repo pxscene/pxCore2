@@ -31,6 +31,7 @@ public:
   virtual void clientStoppedAbnormal( int /*pid*/, int /*signo*/ ) {}
   virtual void isReady( bool /*ready*/ ) {}
   virtual void isRemoteReady( bool /*ready*/ ) {}
+  virtual void remoteDisconnected(void * /*data*/ ) {}
 };
 
 class pxWayland: public pxIView {
@@ -146,6 +147,7 @@ private:
   static void invalidate( WstCompositor *wctx, void *userData );
   static void hidePointer( WstCompositor *wctx, bool hide, void *userData );
   static void clientStatus( WstCompositor *wctx, int status, int pid, int detail, void *userData );
+  static void remoteDisconnectedCB(void *data);
 
   void handleInvalidate();  
   void handleHidePointer( bool hide );

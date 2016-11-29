@@ -10,6 +10,7 @@
 #define RT_REMOTE_OLDSTYLE_API 1
 
 typedef struct rtRemoteEnvironment rtRemoteEnvironment;
+typedef void(*remoteDisconnectedCallback)(void *data);
 
 /**
  * Get a pointer the global rtRemoteEnvironment
@@ -63,7 +64,8 @@ rtRemoteUnregisterObject(rtRemoteEnvironment* env, char const* id);
  * @returns RT_OK for success
  */
 rtError
-rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj, int timeout=3000);
+rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj, int timeout=3000,
+        remoteDisconnectedCallback cb=NULL, void *cbdata=NULL);
 
 /**
  * Shutdown rtRemote sub-system
@@ -102,7 +104,8 @@ rtError
 rtRemoteUnregisterObject(char const* id);
 
 rtError
-rtRemoteLocateObject(char const* id, rtObjectRef& obj, int timeout = 3000);
+rtRemoteLocateObject(char const* id, rtObjectRef& obj, int timeout = 3000,
+        remoteDisconnectedCallback cb=NULL, void *cbdata=NULL);
 
 rtError
 rtRemoteShutdown();

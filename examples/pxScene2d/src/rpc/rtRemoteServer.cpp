@@ -407,6 +407,19 @@ rtRemoteServer::onClientStateChanged(std::shared_ptr<rtRemoteClient> const& clie
       m_connected_clients.erase(itr);
       e = RT_OK;
     }
+
+    auto ditr = m_disconnected_callback_map.find(client.get());
+    if (ditr != m_disconnected_callback_map.end())
+    {
+        std::vector<ClientDisconnectedCB>::const_iterator cbitr;
+        for(cbitr = ditr->second.cbegin(); cbitr != ditr->second.cend(); ++cbitr)
+        {
+            if(cbitr->func)
+                cbitr->func(cbitr->data);
+        }
+        ditr->second.clear();
+        m_disconnected_callback_map.erase(ditr);
+    }
   }
 
   return e;
@@ -471,7 +484,8 @@ rtRemoteServer::start()
 }
 
 rtError
-rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32_t timeout)
+rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32_t timeout,
+        clientDisconnectedCallback cb, void *cbdata)
 {
   rtError err = RT_OK;
   obj = m_env->ObjectCache->findObject(objectId);
@@ -531,6 +545,23 @@ rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32
         err = client->startSession(objectId);
         if (err == RT_OK)
           obj = remote;
+
+        ClientDisconnectedCB CB = {cb, cbdata};
+        auto ditr = m_disconnected_callback_map.find(client.get());
+        if (ditr == m_disconnected_callback_map.end())
+        {
+            std::vector<ClientDisconnectedCB> new_cb_vector;
+            new_cb_vector.push_back(CB);
+            m_disconnected_callback_map.insert(ClientDisconnectedCBMap::value_type(client.get(), new_cb_vector));
+        }
+        else
+        {
+            auto cbitr = std::find_if(ditr->second.begin(), ditr->second.end(),
+                    [CB](const ClientDisconnectedCB &cb) { return cb.func == CB.func && cb.data == CB.data; });
+
+            if(cbitr == ditr->second.end())
+                ditr->second.push_back(CB);
+        }
       }
     }
   }
