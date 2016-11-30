@@ -233,6 +233,8 @@ PXSCENE_LIB_SRCS=\
            rtThreadQueue.cpp \
            rtLibrary.cpp \
            rtZip.cpp \
+           unzip.c \
+           ioapi.c \
 	   pxScene2d.cpp \
            pxResource.cpp \
            pxConstants.cpp \
