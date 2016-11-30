@@ -5,6 +5,9 @@
 #include "rtValue.h"
 #include "rtAtomic.h"
 
+#include <string>
+#include <map>
+
 #ifndef WIN32
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -38,8 +41,6 @@ class rtNodeContext;
 
 typedef rtRefT<rtNodeContext> rtNodeContextRef;
 
-#define UNUSED_PARAM(x) ((x)=(x))
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct args_
@@ -67,7 +68,12 @@ public:
 
   void    add(const char *name, rtValue  const& val);
   rtValue get(const char *name);
+  rtValue get(std::string name);
+  
   bool    has(const char *name);
+  bool    has(std::string name);
+
+  bool   find(const char *name);
 
   rtObjectRef runScript(const char        *script,  const char *args = NULL); // BLOCKS
   rtObjectRef runScript(const std::string &script,  const char *args = NULL); // BLOCKS
@@ -78,12 +84,7 @@ public:
     return rtAtomicInc(&mRefCount);
   }
 
-  unsigned long Release()
-  {
-    long l = rtAtomicDec(&mRefCount);
-    if (l == 0) delete this;
-    return l;
-  }
+  unsigned long Release();
 
   const char   *js_file;
   std::string   js_script;
@@ -91,9 +92,12 @@ public:
   v8::Isolate              *getIsolate()      const { return mIsolate; };
   v8::Local<v8::Context>    getLocalContext() const { return PersistentToLocal<v8::Context>(mIsolate, mContext); };
 
+  uint32_t                  getContextId()    const { return mContextId; };
+
 private:
   v8::Isolate                   *mIsolate;
   v8::Persistent<v8::Context>    mContext;
+  uint32_t                       mContextId;
 
   node::Environment*             mEnv;
   v8::Persistent<v8::Object>     mRtWrappers;
@@ -110,6 +114,9 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef std::map<uint32_t, rtNodeContextRef> rtNodeContexts;
+typedef std::map<uint32_t, rtNodeContextRef>::const_iterator rtNodeContexts_iterator;
+
 class rtNode
 {
 public:
@@ -122,7 +129,7 @@ public:
   rtNodeContextRef createContext(bool ownThread = false);
 
   v8::Isolate   *getIsolate() { return mIsolate; };
-
+  void garbageCollect();
 private:
   void init(int argc, char** argv);
   void term();

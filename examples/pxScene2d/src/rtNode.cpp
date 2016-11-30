@@ -54,10 +54,6 @@ extern rtThreadQueue gUIThreadQueue;
 #define EXITSCENELOCK()  rtWrapperSceneUpdateExit();
 #endif
 
-#define DEFAULT_MIN_V8_CONTEXT_POOL_SIZE 2
-#define DEFAULT_MAX_V8_CONTEXT_POOL_SIZE 5
-
-
 using namespace v8;
 using namespace node;
 
@@ -568,7 +564,7 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char* /*args = NULL*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtNode::rtNode() : mContextPool(), mContextPoolEnabled(false), mRefillContextPoolWhenLow(false), mMinContextPoolSize(DEFAULT_MIN_V8_CONTEXT_POOL_SIZE), mMaxContextPoolSize(DEFAULT_MAX_V8_CONTEXT_POOL_SIZE) /*: mPlatform(NULL)*/
+rtNode::rtNode() /*: mPlatform(NULL)*/
 {
   char const* s = getenv("RT_TEST_GC");
   if (s && strlen(s) > 0)
@@ -620,10 +616,6 @@ rtNode::rtNode() : mContextPool(), mContextPoolEnabled(false), mRefillContextPoo
   mIsolate     = Isolate::New();
   node_isolate = mIsolate; // Must come first !!
 
-#ifdef ENABLE_V8_CONTEXT_POOL
-  enableContextPool(true);
-#endif // ENABLE_V8_CONTEXT_POOL
-
   init(argc, argv);
 #endif // ENABLE_NODE_V_6_9
 }
@@ -665,17 +657,6 @@ void rtNode::garbageCollect()
   Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
   Context::Scope contextScope(local_context);
   mIsolate->LowMemoryNotification();
-}
-
-void rtNode::setAllocatedMemoryAmountForContexts(int64_t sizeInBytes)
-{
-  Locker                locker(mIsolate);
-  Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-
-  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
-  Context::Scope contextScope(local_context);
-  mIsolate->AdjustAmountOfExternalAllocatedMemory(sizeInBytes);
 }
 
 #if 0
@@ -840,22 +821,12 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
     {
       rtLogError("## ERROR:   Could not find \"%s\" ...", sandbox_path.c_str());
     }
-#ifdef ENABLE_V8_CONTEXT_POOL
-    refillContextPool();
-    ctxref = getContextFromPool();
-#else
     ctxref = new rtNodeContext(mIsolate, mRefContext);
-#endif //ENABLE_V8_CONTEXT_POOL
   }
   else
   {
     // printf("\n createContext()  >>  CLONE CREATED !!!!!!");
-
-#ifdef ENABLE_V8_CONTEXT_POOL
-    ctxref = getContextFromPool();
-#else
     ctxref = new rtNodeContext(mIsolate, mRefContext); // CLONE !!!
-#endif //ENABLE_V8_CONTEXT_POOL
   }
 #else
     ctxref = new rtNodeContext(mIsolate);
@@ -866,92 +837,6 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
   // mNodeContexts[ ctxref->getContextId() ] = ctxref;  // ADD to map
 
   return ctxref;
-}
-
-rtError rtNode::addToContextPool(rtNodeContext* context)
-{
-#ifdef ENABLE_V8_CONTEXT_POOL
-  if (mContextPoolEnabled && mContextPool.size() < mMaxContextPoolSize)
-  {
-    mContextPool.push_back(context);
-    return RT_OK;
-  }
-#else
-  UNUSED_PARAM(context);
-#endif // ENABLE_V8_CONTEXT_POOL
-  return RT_FAIL;
-}
-
-rtNodeContextRef rtNode::getContextFromPool()
-{
-  rtNodeContextRef ctxref;
-  if (mContextPool.size() > 0)
-  {
-    ctxref = mContextPool.at(mContextPool.size() - 1);
-    mContextPool.pop_back();
-  }
-  else
-  {
-    ctxref = new rtNodeContext(mIsolate, mRefContext);
-  }
-
-  if (mRefillContextPoolWhenLow && mContextPool.size() <= mMinContextPoolSize)
-  {
-    refillContextPool();
-  }
-  return ctxref;
-}
-
-uint32_t rtNode::currentContextPoolSize()
-{
-  return mContextPool.size();
-}
-
-rtError rtNode::refillContextPool()
-{
-#ifdef ENABLE_V8_CONTEXT_POOL
-  printf("refilling the context pool.  creating %u contexts\n", mMaxContextPoolSize - currentContextPoolSize());
-  rtNodeContextRef ctxref;
-  for (unsigned int i = mContextPool.size(); i < mMaxContextPoolSize; i++)
-  {
-    ctxref = new rtNodeContext(mIsolate, mRefContext);
-    addToContextPool(ctxref.getPtr());
-  }
-#endif // ENABLE_V8_CONTEXT_POOL
-  return RT_OK;
-}
-
-void rtNode::enableContextPool(bool enable)
-{
-  mContextPoolEnabled = enable;
-  if (!mContextPoolEnabled)
-  {
-    //empty the context pool
-    mContextPool.clear();
-  }
-}
-
-bool rtNode::isContextPoolEnabled()
-{
-  return mContextPoolEnabled;
-}
-
-rtError rtNode::enableRefillContextPoolWhenLow(bool enable)
-{
-  mRefillContextPoolWhenLow = enable;
-  return RT_OK;
-}
-
-rtError rtNode::setMinContextPoolSize(uint32_t size)
-{
-  mMinContextPoolSize = size;
-  return RT_OK;
-}
-
-rtError rtNode::setMaxContextPoolSize(uint32_t size)
-{
-  mMaxContextPoolSize = size;
-  return RT_OK;
 }
 
 unsigned long rtNodeContext::Release()

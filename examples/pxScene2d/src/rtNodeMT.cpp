@@ -58,9 +58,20 @@ namespace node
 
 static int exec_argc;
 static const char** exec_argv;
+static rtAtomic sNextId = 100;
 
 
 args_t *s_gArgs;
+
+extern rtNode script;
+
+rtNodeContexts  mNodeContexts;
+
+#ifdef ENABLE_NODE_V_6_9
+ArrayBufferAllocator* array_buffer_allocator = NULL;
+bool bufferAllocatorIsSet = false;
+#endif
+bool nodeTerminated = false;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,6 +197,8 @@ rtNodeContext::rtNodeContext(v8::Isolate *isolate) :
 {
   assert(isolate); // MUST HAVE !
 
+  mId = rtAtomicInc(&sNextId);
+
   createEnvironment();
 }
 
@@ -196,11 +209,58 @@ void rtNodeContext::createEnvironment()
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
 
+#ifdef ENABLE_NODE_V_6_9
+  Local<Context> local_context = Context::New(mIsolate);
+
+  local_context->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
+
+  mContextId = GetContextId(local_context);
+
+  mContext.Reset(mIsolate, local_context); // local to persistent
+
+  Context::Scope context_scope(local_context);
+
+  Handle<Object> global = local_context->Global();
+
+  // Create Environment.
+
+  mEnv = CreateEnvironment(mIsolate,
+                           uv_default_loop(),
+                           local_context,
+                           s_gArgs->argc,
+                           s_gArgs->argv,
+                           exec_argc,
+                           exec_argv);
+
+   array_buffer_allocator->set_env(mEnv);
+
+  mIsolate->SetAbortOnUncaughtExceptionCallback(
+        ShouldAbortOnUncaughtException);
+
+  // Load Environment.
+  {
+    Environment::AsyncCallbackScope callback_scope(mEnv);
+    LoadEnvironment(mEnv);
+  }
+
+    rtObjectWrapper::exportPrototype(mIsolate, global);
+    rtFunctionWrapper::exportPrototype(mIsolate, global);
+
+    {
+      SealHandleScope seal(mIsolate);
+      bool more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
+      if (more == false)
+      {
+        EmitBeforeExit(mEnv);
+      }
+    }
+#else
   // Create a new context.
   mContext.Reset(mIsolate, Context::New(mIsolate));
 
   // Get a Local context.
   Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+  
   Context::Scope context_scope(local_context);
 
   Handle<Object> global = local_context->Global();
@@ -232,6 +292,7 @@ void rtNodeContext::createEnvironment()
   {
     EnableDebug(mEnv);
   }
+#endif //ENABLE_NODE_V_6_9
 }
 
 rtNodeContext::~rtNodeContext()
@@ -248,7 +309,18 @@ rtNodeContext::~rtNodeContext()
    // EmitExit(mEnv);
     RunAtExit(mEnv);
 
-   // mEnv->Dispose();
+    #ifdef ENABLE_NODE_V_6_9
+    if (nodeTerminated)
+    {
+      array_buffer_allocator->set_env(NULL);
+    }
+    else
+    {
+      mEnv->Dispose();
+    }
+#else
+    // mEnv->Dispose();
+#endif // ENABLE_NODE_V_6_9
     mEnv = NULL;
   }
 
@@ -291,7 +363,109 @@ void rtNodeContext::add(const char *name, rtValue const& val)
 
   Handle<Object> global = local_context->Global();
 
-  global->Set(String::NewFromUtf8(mIsolate, name), rt2js(mIsolate, val));
+  local_context->Global()->Set( String::NewFromUtf8(mIsolate, name), rt2js(local_context, val));
+}
+
+rtValue rtNodeContext::get(std::string name)
+{
+  return get( name.c_str() );
+}
+
+rtValue rtNodeContext::get(const char *name)
+{
+  if(name == NULL)
+  {
+    rtLogError(" rtNodeContext::get() - no symbolic name for rtValue");
+    return rtValue();
+  }
+
+  Locker                locker(mIsolate);
+  Isolate::Scope isolate_scope(mIsolate);
+  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
+
+  // Get a Local context...
+  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+  Context::Scope context_scope(local_context);
+
+  Handle<Object> global = local_context->Global();
+
+  // Get the object
+  Local<Value> object = global->Get( String::NewFromUtf8(mIsolate, name) );
+
+  if(object->IsUndefined() || object->IsNull() )
+  {
+    rtLogError("FATAL: '%s' is Undefined ", name);
+    return rtValue();
+  }
+  else
+  {
+    rtWrapperError error; // TODO - handle error
+    return js2rt(local_context, object, &error);
+  }
+}
+
+bool rtNodeContext::has(std::string name)
+{
+  return has( name.c_str() );
+}
+
+bool rtNodeContext::has(const char *name)
+{
+  if(name == NULL)
+  {
+    rtLogError(" rtNodeContext::has() - no symbolic name for rtValue");
+    return false;
+  }
+
+  Locker                locker(mIsolate);
+  Isolate::Scope isolate_scope(mIsolate);
+  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
+
+  // Get a Local context...
+  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+  Context::Scope context_scope(local_context);
+
+  Handle<Object> global = local_context->Global();
+
+#ifdef ENABLE_NODE_V_6_9
+  TryCatch try_catch(mIsolate);
+#else
+  TryCatch try_catch;
+#endif // ENABLE_NODE_V_6_9
+
+  Handle<Value> value = global->Get(String::NewFromUtf8(mIsolate, name) );
+
+  if (try_catch.HasCaught())
+  {
+     printf("\n ## has() - HasCaught()  ... ERROR");
+     return false;
+  }
+
+  // No need to check if |value| is empty because it's taken care of
+  // by TryCatch above.
+
+  return ( !value->IsUndefined() && !value->IsNull() );
+}
+
+bool rtNodeContext::find(const char *name)
+{    
+  rtNodeContexts_iterator it = mNodeContexts.begin();
+   
+  while(it != mNodeContexts.end())
+  {
+    rtNodeContextRef ctx = it->second;
+     
+    printf("\n ######## CONTEXT !!! ID: %d  %s  '%s'",
+      ctx->getContextId(), 
+      (ctx->has(name) ? "*HAS*" : "does NOT have"),
+      name);
+     
+    it++;
+  }
+  
+  printf("\n ");
+
+  return false;
 }
 
 void rtNodeContext::startTimers()
@@ -405,6 +579,7 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char* /* args = NULL*
   }
 
   // Read the script file
+  js_file   = file;
   js_script = readFile(file);
 
   return runScript(js_script);
@@ -592,8 +767,24 @@ rtObjectRef rtNodeContext:: runThread(const char *file)  // DEPRECATED
 rtNode::rtNode() : mPlatform(NULL)
 {
                               //0123456 789ABCDEF012 345 67890ABCDEF
-  static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Intialized\");\0\0";
+#if ENABLE_V8_HEAP_PARAMS
+#ifdef ENABLE_NODE_V_6_9
+  static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
+#else
+  printf("v8 old heap space configured to 64mb\n");
+  static const char *args2   = "rtNode\0--expose-gc\0--max_old_space_size=64\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[43], &args2[46], NULL};
+#endif // ENABLE_NODE_V_6_9
+#else
+#ifdef ENABLE_NODE_V_6_9
+  static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
+#else
+  static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
+#endif // ENABLE_NODE_V_6_9
+#endif //ENABLE_V8_HEAP_PARAMS
   int                 argc   = sizeof(argv2)/sizeof(char*) - 1;
 
   static args_t aa(argc, (char**)argv2);
@@ -607,10 +798,14 @@ rtNode::rtNode() : mPlatform(NULL)
 
   nodePath();
 
+#ifdef ENABLE_NODE_V_6_9
+  init(argc, argv);
+#else
   mIsolate     = Isolate::New();
   node_isolate = mIsolate; // Must come first !!
 
   init(argc, argv);
+#endif // ENABLE_NODE_V_6_9
 }
 
 rtNode::~rtNode()
@@ -662,13 +857,31 @@ void rtNode::init(int argc, char** argv)
 //    mPlatform = platform::CreateDefaultPlatform();
 //    V8::InitializePlatform(mPlatform);
 
+#ifdef ENABLE_NODE_V_6_9
+   printf("using node version 6.9\n");
+   V8::InitializeICU();
+   V8::InitializeExternalStartupData(argv[0]);
+   Platform* platform = platform::CreateDefaultPlatform();
+   V8::InitializePlatform(platform);
+   V8::Initialize();
+   Isolate::CreateParams params;
+   array_buffer_allocator = new ArrayBufferAllocator();
+   const char* source1 = "function pxSceneFooFunction(){ return 0;}";
+   static v8::StartupData data = v8::V8::CreateSnapshotDataBlob(source1);
+   params.snapshot_blob = &data;
+   params.array_buffer_allocator = array_buffer_allocator;
+   mIsolate     = Isolate::New(params);
+   node_isolate = mIsolate; // Must come first !!
+#else
     V8::Initialize();
+#endif // ENABLE_NODE_V_6_9
     node_is_initialized = true;
   }
 }
 
 void rtNode::term()
 {
+  nodeTerminated = true;
   if(node_isolate)
   {
 // JRJRJR  Causing crash???  ask Hugh
@@ -698,6 +911,12 @@ void rtNode::term()
   }
 }
 
+inline bool fileExists(const std::string& name)
+{
+  struct stat buffer;   
+  return (stat (name.c_str(), &buffer) == 0); 
+}
+
 rtNodeContextRef rtNode::getGlobalContext() const
 {
   return rtNodeContextRef();
@@ -712,6 +931,25 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
   ctxref->node = this;
 
   return ctxref;
+}
+
+void rtNode::garbageCollect()
+{
+  Locker                locker(mIsolate);
+  Isolate::Scope isolate_scope(mIsolate);
+  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
+
+  mIsolate->LowMemoryNotification();
+}
+
+unsigned long rtNodeContext::Release()
+{
+    long l = rtAtomicDec(&mRefCount);
+    if (l == 0)
+    {
+     delete this;
+    }
+    return l;
 }
 
 
