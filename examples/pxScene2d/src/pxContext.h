@@ -13,7 +13,11 @@
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
 
-#define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (65 * 1024 * 1024)
+#ifndef ENABLE_DFB
+  #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (65 * 1024 * 1024)   // GL
+#else
+  #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (15 * 1024 * 1024)   // DFB .. Shoul be 40 ?
+#endif
 
 //enum pxStretch { PX_NONE = 0, PX_STRETCH = 1, PX_REPEAT = 2 };
 

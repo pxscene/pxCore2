@@ -1,6 +1,7 @@
 #include "rtDefs.h"
 #include "rtLog.h"
 #include "pxContext.h"
+#include "rtNode.h"
 
 #include <directfb.h>
 
@@ -68,6 +69,8 @@ pxContext context; // needed here...  BUT - ".so" load fails if removed.  Must b
 
 #else
 
+extern pxContext                context;
+
 extern IDirectFB                *dfb;
 extern IDirectFBSurface         *dfbSurface;
 extern DFBSurfacePixelFormat     dfbPixelformat;
@@ -75,6 +78,8 @@ extern DFBSurfacePixelFormat     dfbPixelformat;
 extern bool needsFlip;
 
 #endif //ENABLE_DFB_GENERIC
+
+extern rtNode                   script;
 
 
 #ifdef DEBUG
@@ -172,6 +177,8 @@ public:
     mWidth  = w;
     mHeight = h;
 
+    context.adjustCurrentTextureMemorySize(mWidth*mHeight*4);
+
     mOffscreen.init(mWidth, mHeight);
 
     createSurface(mOffscreen); // surface is framebuffer
@@ -200,7 +207,7 @@ public:
     /*glBindTexture(GL_TEXTURE_2D, mTextureId);
 
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                 w, g, GL_RGBA,
+                 w, h, GL_RGBA,
                  GL_UNSIGNED_BYTE, NULL);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
@@ -219,15 +226,16 @@ public:
 
     if(mTexture)
     {
-        // if(currentFramebuffer == this)
-        // {
-        //   // Is this sufficient ? or Dangerous ?
-        //   currentFramebuffer = NULL;
-        //   boundTexture = NULL;
-        // }
+      // if(currentFramebuffer == this)
+      // {
+      //   // Is this sufficient ? or Dangerous ?
+      //   currentFramebuffer = NULL;
+      //   boundTexture = NULL;
+      // }
 
-        mTexture->Release(mTexture);
-        mTexture = NULL;
+      mTexture->Release(mTexture);
+      mTexture = NULL;
+      context.adjustCurrentTextureMemorySize(-1*mWidth*mHeight*4);
     }
 
     return PX_OK;
@@ -422,16 +430,15 @@ public:
 #if 1
     for (int y = 0; y < mOffscreen.height(); y++)
     {
-        pxPixel* d  = mOffscreen.scanline(y);
-        pxPixel* de = d + mOffscreen.width();
-        while (d < de)
-        {
-          d->r = (d->r * d->a)/255;
-          d->g = (d->g * d->a)/255;
-          d->b = (d->b * d->a)/255;
-
-          d++;
-        }
+      pxPixel* d  = mOffscreen.scanline(y);
+      pxPixel* de = d + mOffscreen.width();
+      while (d < de)
+      {
+        d->r = (d->r * d->a)/255;
+        d->g = (d->g * d->a)/255;
+        d->b = (d->b * d->a)/255;
+        d++;
+      }
     }
 #endif
 
@@ -446,8 +453,11 @@ public:
 
     if(mTexture)
     {
-        mTexture->Release(mTexture);
-        mTexture = NULL;
+      mTexture->Release(mTexture);
+      mTexture = NULL;
+
+      int WxH = mOffscreen.width() * mOffscreen.height(); // Size? Bytes ?
+      context.adjustCurrentTextureMemorySize(-1 * WxH * 4);
     }
 
     mInitialized = false;
@@ -458,26 +468,28 @@ public:
   {
    if (!mInitialized)
     {
-        return PX_NOTINITIALIZED;
+      return PX_NOTINITIALIZED;
     }
 
     if (!mTexture)
     {
-        rtLogDebug("############# this: %p >>  %s  ENTER\n", this,__PRETTY_FUNCTION__);
-        return PX_NOTINITIALIZED;
+      rtLogDebug("############# this: %p >>  %s  ENTER\n", this,__PRETTY_FUNCTION__);
+      return PX_NOTINITIALIZED;
     }
 
     // TODO would be nice to do the upload in createTexture but right now it's getting called on wrong thread
     if (!mTextureUploaded)
     {
-        createSurface(mOffscreen); // JUNK
+      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
 
-        boundTexture = mTexture;  TRACK_TEX_CALLS();
-        mTextureUploaded = true;
+      createSurface(mOffscreen);
+
+      boundTexture = mTexture;  TRACK_TEX_CALLS();
+      mTextureUploaded = true;
     }
     else
     {
-        boundTexture = mTexture;  TRACK_TEX_CALLS();
+      boundTexture = mTexture;  TRACK_TEX_CALLS();
     }
 
     return PX_OK;
@@ -487,21 +499,22 @@ public:
   {
     if (!mInitialized)
     {
-        return PX_NOTINITIALIZED;
+      return PX_NOTINITIALIZED;
     }
 
     if (!mTexture)
     {
-        rtLogDebug("############# this: %p >>  %s  ENTER\n", this,__PRETTY_FUNCTION__);
-        return PX_NOTINITIALIZED;
+      rtLogDebug("############# this: %p >>  %s  ENTER\n", this,__PRETTY_FUNCTION__);
+      return PX_NOTINITIALIZED;
     }
 
     if (!mTextureUploaded)
     {
-        createSurface(mOffscreen); // JUNK
+      createSurface(mOffscreen); // JUNK
 
-        boundTextureMask = mTexture;   TRACK_TEX_CALLS();
-        mTextureUploaded = true;
+      boundTextureMask = mTexture;   TRACK_TEX_CALLS();
+      mTextureUploaded = true;
+      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
     }
     else
     {
@@ -691,6 +704,8 @@ public:
     DFB_CHECK(mTexture->SetRenderOptions(mTexture,
             DFBSurfaceRenderOptions(DSRO_MATRIX /*| DSRO_ANTIALIAS*/) ));
 
+    context.adjustCurrentTextureMemorySize(iw*ih);
+
     mInitialized = true;
   }
 
@@ -700,8 +715,9 @@ public:
 
     if (mTexture != NULL)
     {
-        mTexture->Release(mTexture);
-        mTexture = NULL;
+      mTexture->Release(mTexture);
+      mTexture = NULL;
+      context.adjustCurrentTextureMemorySize(-1*mImageWidth*mImageHeight);
     }
     mInitialized = false;
     return PX_OK;
@@ -713,9 +729,9 @@ public:
     if (!mInitialized) createTexture(mDrawWidth,mDrawHeight,mImageWidth,mImageHeight);
     if (!mInitialized)
     {
-        //rtLogDebug("############# this: %p >>  %s  PX_NOTINITIALIZED\n", this, __PRETTY_FUNCTION__);
+      //rtLogDebug("############# this: %p >>  %s  PX_NOTINITIALIZED\n", this, __PRETTY_FUNCTION__);
 
-        return PX_NOTINITIALIZED;
+      return PX_NOTINITIALIZED;
     }
 
     boundTexture = mTexture;
@@ -727,9 +743,9 @@ public:
   {
     if (!mInitialized)
     {
-        rtLogDebug("############# this: %p >>  %s  PX_NOTINITIALIZED\n", this, __PRETTY_FUNCTION__);
+      rtLogDebug("############# this: %p >>  %s  PX_NOTINITIALIZED\n", this, __PRETTY_FUNCTION__);
 
-        return PX_NOTINITIALIZED;
+      return PX_NOTINITIALIZED;
     }
 
     boundTextureMask = mTexture;
@@ -1442,6 +1458,8 @@ void pxContext::init()
   DFB_CHECK(boundFramebuffer->SetRenderOptions(boundFramebuffer,
           DFBSurfaceRenderOptions(DSRO_MATRIX /*| DSRO_ANTIALIAS*/) ));
 
+  setTextureMemoryLimit(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES );
+
   rtLogSetLevel(RT_LOG_INFO); // LOG LEVEL
 }
 
@@ -2081,6 +2099,45 @@ bool pxContext::isObjectOnScreen(float /*x*/, float /*y*/, float /*width*/, floa
   }
   return true;
 #endif
+}
+
+void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
+{
+  if (changeInBytes == 0)
+  {
+     return; // do nothing ... ever happen ?
+  }
+
+  float pc = 0.0;
+
+  mCurrentTextureMemorySizeInBytes += changeInBytes;
+  if (mCurrentTextureMemorySizeInBytes < 0)
+  {
+    mCurrentTextureMemorySizeInBytes = 0;
+  }
+  else
+  {
+     // Update Percentage
+     pc = ((float) mCurrentTextureMemorySizeInBytes /
+           (float) mTextureMemoryLimitInBytes       ) * 100.0;
+  }
+
+#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  if (pc >= 100.0f)
+  {
+    rtLogDebug("\n ###  Texture Memory: %3.2f %%  <<<   GARBAGE COLLECT", pc);
+    script.garbageCollect();
+  }
+  // else
+  // {
+  //     rtLogDebug("\n ###  Texture Memory: %3.2f %% ", pc);
+  // }
+#endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+}
+
+void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
+{
+  mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
 }
 
 //====================================================================================================================================================================================
