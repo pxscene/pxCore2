@@ -572,7 +572,7 @@ private:
   size_t mCompressedImageDataSize;
   bool        mInitialized;
   int mWidth;
-  int mHeight
+  int mHeight;
 
   bool        mTextureUploaded;
 
