@@ -29,6 +29,16 @@ public:
   pxError term();
   
   void swizzleTo(rtPixelFmt fmt);
+  
+  pxError compressedImageData(char*& data, size_t& dataSize);
+  void setCompressedImageData(const char* data, const size_t dataSize);
+  pxError moveCompressedImageDataTo(char*& destData, size_t& destDataSize);
+  pxError transferCompressedImageDataFrom(char*& srcData, size_t& srcDataSize);
+  
+
+private:
+  char* mCompressedImageData;
+  size_t mCompressedImageDataSize;
 
 };
 

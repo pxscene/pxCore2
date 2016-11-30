@@ -2,6 +2,7 @@
 #include "rtLog.h"
 #include "pxContext.h"
 #include "rtNode.h"
+#include "pxUtil.h"
 
 #include <directfb.h>
 
@@ -403,14 +404,14 @@ public:
 class pxTextureOffscreen : public pxTexture
 {
 public:
-  pxTextureOffscreen() : mOffscreen(), mInitialized(false),
-                         mTextureUploaded(false)
+  pxTextureOffscreen() : mOffscreen(NULL), mCompressedImageData(NULL), mCompressedImageDataSize(0), mInitialized(false),
+                         mTextureUploaded(false), mWidth(0), mHeight(0)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
   }
 
-  pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false),
-                                       mTextureUploaded(false)
+  pxTextureOffscreen(pxOffscreen& o) : mOffscreen(NULL), mCompressedImageData(NULL), mCompressedImageDataSize(0), mInitialized(false),
+                                       mTextureUploaded(false), mWidth(0), mHeight(0)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     createTexture(o);
@@ -420,18 +421,20 @@ public:
 
   void createTexture(pxOffscreen& o)
   {
-    mOffscreen.init(o.width(), o.height());
+    mOffscreen = new pxOffscreen();
+    mOffscreen->init(o.width(), o.height());
 
 //#ifndef DEBUG_SKIP_BLIT
-    o.blit(mOffscreen);
+    o.blit(*mOffscreen);
 //#endif
+
 
     // premultiply
 #if 1
-    for (int y = 0; y < mOffscreen.height(); y++)
+    for (int y = 0; y < mOffscreen->height(); y++)
     {
-      pxPixel* d  = mOffscreen.scanline(y);
-      pxPixel* de = d + mOffscreen.width();
+      pxPixel* d  = mOffscreen->scanline(y);
+      pxPixel* de = d + mOffscreen->width();
       while (d < de)
       {
         d->r = (d->r * d->a)/255;
@@ -442,7 +445,12 @@ public:
     }
 #endif
 
+    mWidth = mOffscreen->width();
+    mHeight = mOffscreen->height();
+
     createSurface(o);
+
+    mOffscreen->moveCompressedImageDataTo(mCompressedImageData, mCompressedImageDataSize);
 
     mInitialized = true;
   }
@@ -456,8 +464,19 @@ public:
       mTexture->Release(mTexture);
       mTexture = NULL;
 
-      int WxH = mOffscreen.width() * mOffscreen.height(); // Size? Bytes ?
+      int WxH = mWidth * mHeight; // Size? Bytes ?
       context.adjustCurrentTextureMemorySize(-1 * WxH * 4);
+    }
+
+    if (mOffscreen != NULL)
+    {
+      delete mOffscreen;
+      mOffscreen = NULL;
+    }
+    if (mCompressedImageData != NULL)
+    {
+      delete [] mCompressedImageData;
+      mCompressedImageData = NULL;
     }
 
     mInitialized = false;
@@ -480,12 +499,16 @@ public:
     // TODO would be nice to do the upload in createTexture but right now it's getting called on wrong thread
     if (!mTextureUploaded)
     {
-      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
+      context.adjustCurrentTextureMemorySize(mOffscreen->width()*mOffscreen->height()*4);
 
-      createSurface(mOffscreen);
+      createSurface(*mOffscreen);
 
       boundTexture = mTexture;  TRACK_TEX_CALLS();
       mTextureUploaded = true;
+
+      //free up unneeded offscreen
+      delete mOffscreen;
+      mOffscreen = NULL;
     }
     else
     {
@@ -510,11 +533,15 @@ public:
 
     if (!mTextureUploaded)
     {
-      createSurface(mOffscreen); // JUNK
+      createSurface(*mOffscreen); // JUNK
 
       boundTextureMask = mTexture;   TRACK_TEX_CALLS();
       mTextureUploaded = true;
-      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
+      context.adjustCurrentTextureMemorySize(mOffscreen->width()*mOffscreen->height()*4);
+      
+      //free up unneeded offscreen
+      delete mOffscreen;
+      mOffscreen = NULL;
     }
     else
     {
@@ -531,18 +558,21 @@ public:
       return PX_NOTINITIALIZED;
     }
 
-    o.init(mOffscreen.width(), mOffscreen.height());
-    mOffscreen.blit(o);
+    pxLoadImage(mCompressedImageData, mCompressedImageDataSize, o);
 
     return PX_OK;
   }
 
-  virtual int width()  { return mOffscreen.width();  }
-  virtual int height() { return mOffscreen.height(); }
+  virtual int width()  { return mWidth;  }
+  virtual int height() { return mHeight; }
 
 private:
-  pxOffscreen mOffscreen;
+  pxOffscreen* mOffscreen;
+  char* mCompressedImageData;
+  size_t mCompressedImageDataSize;
   bool        mInitialized;
+  int mWidth;
+  int mHeight
 
   bool        mTextureUploaded;
 

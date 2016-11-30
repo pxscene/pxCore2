@@ -2,6 +2,7 @@
 #include "rtLog.h"
 #include "pxContext.h"
 #include "rtNode.h"
+#include "pxUtil.h"
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -358,13 +359,13 @@ public:
 class pxTextureOffscreen : public pxTexture
 {
 public:
-  pxTextureOffscreen() : mOffscreen(), mInitialized(false),
+  pxTextureOffscreen() : mOffscreen(NULL), mCompressedImageData(NULL), mCompressedImageDataSize(0), mInitialized(false),
                          mTextureUploaded(false), mWidth(0), mHeight(0)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
   }
 
-  pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false),
+  pxTextureOffscreen(pxOffscreen& o) : mOffscreen(NULL), mCompressedImageData(NULL), mCompressedImageDataSize(0), mInitialized(false),
                                        mTextureUploaded(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
@@ -399,39 +400,42 @@ public:
     mHeight = srcTextureHeight;
     if ( (horizontalScale > 1) || (verticalScale > 1 ) )
     {
-       mOffscreen.init(newTextureWidth, newTextureHeight);
-       mOffscreen.setUpsideDown(true);
+       mOffscreen = new pxOffscreen();
+       mOffscreen->init(newTextureWidth, newTextureHeight);
+       mOffscreen->setUpsideDown(true);
        int y = 0;
        for (int j = 0; j < srcTextureHeight-1; j += verticalScale, y++ )
        {
           int x = 0;
           for (int k = 0; k < srcTextureWidth-1; k += horizontalScale, x++)
           {
-             o.blit(mOffscreen, x, y, 1,1,k,j);
+             o.blit(*mOffscreen, x, y, 1,1,k,j);
           }
        }
     }
     else
     {
-      mOffscreen.init(o.width(), o.height());
+      mOffscreen = new pxOffscreen();
+      mOffscreen->init(o.width(), o.height());
       // Flip the image data here so we match GL FBO layout
-      mOffscreen.setUpsideDown(true);
-      o.blit(mOffscreen);
+      mOffscreen->setUpsideDown(true);
+      o.blit(*mOffscreen);
     }
 #else
-    mOffscreen.init(o.width(), o.height());
+    mOffscreen = new pxOffscreen();
+    mOffscreen->init(o.width(), o.height());
     // Flip the image data here so we match GL FBO layout
-    mOffscreen.setUpsideDown(true);
-    o.blit(mOffscreen);
-    mWidth = mOffscreen.width();
-    mHeight = mOffscreen.height();
+    mOffscreen->setUpsideDown(true);
+    o.blit(*mOffscreen);
+    mWidth = mOffscreen->width();
+    mHeight = mOffscreen->height();
 #endif //ENABLE_MAX_TEXTURE_SIZE
 
     // premultiply
-    for (int y = 0; y < mOffscreen.height(); y++)
+    for (int y = 0; y < mOffscreen->height(); y++)
     {
-      pxPixel* d = mOffscreen.scanline(y);
-      pxPixel* de = d + mOffscreen.width();
+      pxPixel* d = mOffscreen->scanline(y);
+      pxPixel* de = d + mOffscreen->width();
       while (d < de)
       {
         d->r = (d->r * d->a)/255;
@@ -440,6 +444,8 @@ public:
         d++;
       }
     }
+
+    mOffscreen->moveCompressedImageDataTo(mCompressedImageData, mCompressedImageDataSize);
 
     mInitialized = true;
   }
@@ -455,6 +461,16 @@ public:
     }
 
     mInitialized = false;
+    if (mOffscreen != NULL)
+    {
+      delete mOffscreen;
+      mOffscreen = NULL;
+    }
+    if (mCompressedImageData != NULL)
+    {
+      delete [] mCompressedImageData;
+      mCompressedImageData = NULL;
+    }
     return PX_OK;
   }
 
@@ -480,10 +496,14 @@ public:
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
       glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                   mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
-                   GL_UNSIGNED_BYTE, mOffscreen.base());
+                   mOffscreen->width(), mOffscreen->height(), 0, GL_RGBA,
+                   GL_UNSIGNED_BYTE, mOffscreen->base());
       mTextureUploaded = true;
-      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
+      context.adjustCurrentTextureMemorySize(mOffscreen->width()*mOffscreen->height()*4);
+      
+      //free up unneeded offscreen
+      delete mOffscreen;
+      mOffscreen = NULL;
     }
     else
     {
@@ -513,10 +533,14 @@ public:
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
       glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                   mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
-                   GL_UNSIGNED_BYTE, mOffscreen.base());
+                   mOffscreen->width(), mOffscreen->height(), 0, GL_RGBA,
+                   GL_UNSIGNED_BYTE, mOffscreen->base());
       mTextureUploaded = true;
-      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
+      context.adjustCurrentTextureMemorySize(mOffscreen->width()*mOffscreen->height()*4);
+      
+      //free up unneeded offscreen
+      delete mOffscreen;
+      mOffscreen = NULL;
     }
     else
     {
@@ -535,8 +559,7 @@ public:
       return PX_NOTINITIALIZED;
     }
 
-    o.init(mOffscreen.width(), mOffscreen.height());
-    mOffscreen.blit(o);
+    pxLoadImage(mCompressedImageData, mCompressedImageDataSize, o);
 
     return PX_OK;
   }
@@ -545,7 +568,9 @@ public:
   virtual int height() { return mHeight; }
 
 private:
-  pxOffscreen mOffscreen;
+  pxOffscreen* mOffscreen;
+  char* mCompressedImageData;
+  size_t mCompressedImageDataSize;
   bool mInitialized;
   GLuint mTextureName;
   bool mTextureUploaded;

@@ -38,6 +38,8 @@ rtError pxLoadImage(const char* imageData, size_t imageDataSize,
     o.swizzleTo(RT_DEFAULT_PIX);
   }
 
+  o.setCompressedImageData(imageData, imageDataSize);
+
    return retVal;
 }
 
