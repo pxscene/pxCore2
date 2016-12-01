@@ -270,9 +270,6 @@ void pxObject::dispose()
 
   rtValue nullValue;
   mReady.send("reject",nullValue);
-#ifdef ENABLE_RT_NODE
-  script.pump();
-#endif // ENABLE_RT_NODE
 
   mAnimations.clear();
   mEmit->clearListeners();
