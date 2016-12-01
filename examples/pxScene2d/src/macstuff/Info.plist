@@ -19,7 +19,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.17</string>
+	<string>0.18</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -39,6 +39,6 @@
 	<key>LSMinimumSystemVersion</key>
 	<string>10.9</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2006-2015 John Robinson. All rights reserved.</string>
+	<string>Copyright © 2006-2016 John Robinson. All rights reserved.</string>
 </dict>
 </plist>
