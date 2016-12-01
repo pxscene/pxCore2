@@ -404,13 +404,13 @@ public:
 class pxTextureOffscreen : public pxTexture
 {
 public:
-  pxTextureOffscreen() : mOffscreen(NULL), mCompressedImageData(NULL), mCompressedImageDataSize(0), mInitialized(false),
+  pxTextureOffscreen() : mOffscreen(), mInitialized(false),
                          mTextureUploaded(false), mWidth(0), mHeight(0)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
   }
 
-  pxTextureOffscreen(pxOffscreen& o) : mOffscreen(NULL), mCompressedImageData(NULL), mCompressedImageDataSize(0), mInitialized(false),
+  pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false),
                                        mTextureUploaded(false), mWidth(0), mHeight(0)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
@@ -421,20 +421,19 @@ public:
 
   void createTexture(pxOffscreen& o)
   {
-    mOffscreen = new pxOffscreen();
-    mOffscreen->init(o.width(), o.height());
+    mOffscreen.init(o.width(), o.height());
 
 //#ifndef DEBUG_SKIP_BLIT
-    o.blit(*mOffscreen);
+    o.blit(mOffscreen);
 //#endif
 
 
     // premultiply
 #if 1
-    for (int y = 0; y < mOffscreen->height(); y++)
+    for (int y = 0; y < mOffscreen.height(); y++)
     {
-      pxPixel* d  = mOffscreen->scanline(y);
-      pxPixel* de = d + mOffscreen->width();
+      pxPixel* d  = mOffscreen.scanline(y);
+      pxPixel* de = d + mOffscreen.width();
       while (d < de)
       {
         d->r = (d->r * d->a)/255;
@@ -445,12 +444,10 @@ public:
     }
 #endif
 
-    mWidth = mOffscreen->width();
-    mHeight = mOffscreen->height();
+    mWidth = mOffscreen.width();
+    mHeight = mOffscreen.height();
 
     createSurface(o);
-
-    mOffscreen->moveCompressedImageDataTo(mCompressedImageData, mCompressedImageDataSize);
 
     mInitialized = true;
   }
@@ -468,16 +465,8 @@ public:
       context.adjustCurrentTextureMemorySize(-1 * WxH * 4);
     }
 
-    if (mOffscreen != NULL)
-    {
-      delete mOffscreen;
-      mOffscreen = NULL;
-    }
-    if (mCompressedImageData != NULL)
-    {
-      delete [] mCompressedImageData;
-      mCompressedImageData = NULL;
-    }
+    mOffscreen.term();
+    mOffscreen.freeCompressedData();
 
     mInitialized = false;
     return PX_OK;
@@ -499,16 +488,15 @@ public:
     // TODO would be nice to do the upload in createTexture but right now it's getting called on wrong thread
     if (!mTextureUploaded)
     {
-      context.adjustCurrentTextureMemorySize(mOffscreen->width()*mOffscreen->height()*4);
+      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
 
-      createSurface(*mOffscreen);
+      createSurface(mOffscreen);
 
       boundTexture = mTexture;  TRACK_TEX_CALLS();
       mTextureUploaded = true;
 
-      //free up unneeded offscreen
-      delete mOffscreen;
-      mOffscreen = NULL;
+      //free up unneeded offscreen memory
+      mOffscreen.term();
     }
     else
     {
@@ -533,15 +521,14 @@ public:
 
     if (!mTextureUploaded)
     {
-      createSurface(*mOffscreen); // JUNK
+      createSurface(mOffscreen); // JUNK
 
       boundTextureMask = mTexture;   TRACK_TEX_CALLS();
       mTextureUploaded = true;
-      context.adjustCurrentTextureMemorySize(mOffscreen->width()*mOffscreen->height()*4);
+      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
       
-      //free up unneeded offscreen
-      delete mOffscreen;
-      mOffscreen = NULL;
+      //free up unneeded offscreen memory
+      mOffscreen.term();
     }
     else
     {
@@ -558,7 +545,13 @@ public:
       return PX_NOTINITIALIZED;
     }
 
-    pxLoadImage(mCompressedImageData, mCompressedImageDataSize, o);
+    char* compressedImageData = NULL;
+    size_t compressedImageDataSize = 0;
+    mOffscreen.compressedDataWeakReference(compressedImageData, compressedImageDataSize);
+    if (compressedImageData != NULL)
+    {
+      pxLoadImage(compressedImageData, compressedImageDataSize, o);
+    }
 
     return PX_OK;
   }
@@ -567,9 +560,7 @@ public:
   virtual int height() { return mHeight; }
 
 private:
-  pxOffscreen* mOffscreen;
-  char* mCompressedImageData;
-  size_t mCompressedImageDataSize;
+  pxOffscreen mOffscreen;
   bool        mInitialized;
   int mWidth;
   int mHeight;

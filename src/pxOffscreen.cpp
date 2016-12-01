@@ -5,18 +5,14 @@
 #include "pxCore.h"
 #include "pxOffscreen.h"
 
-pxOffscreen::pxOffscreen() : mCompressedImageData(NULL), mCompressedImageDataSize(0)
+pxOffscreen::pxOffscreen() : mCompressedData(NULL), mCompressedDataSize(0)
 {
 }
 
 pxOffscreen::~pxOffscreen()
 {
   term();
-  if (mCompressedImageData != NULL)
-  {
-    delete [] mCompressedImageData;
-    mCompressedImageData = NULL;
-  }
+  freeCompressedData();
 }
 
 void pxOffscreen::swizzleTo(rtPixelFmt fmt)
@@ -31,9 +27,9 @@ pxError pxOffscreen::initWithColor(int32_t width, int32_t height, const pxColor&
   return e;
 }
 
-pxError pxOffscreen::compressedImageData(char*& data, size_t& dataSize)
+pxError pxOffscreen::compressedData(char*& data, size_t& dataSize)
 {
-  if (mCompressedImageData == NULL)
+  if (mCompressedData == NULL)
   {
      data = NULL;
      dataSize = 0;
@@ -44,45 +40,57 @@ pxError pxOffscreen::compressedImageData(char*& data, size_t& dataSize)
     {
       delete [] data;
     }
-    data = new char[mCompressedImageDataSize];
-    dataSize = mCompressedImageDataSize;
-    memcpy(data, mCompressedImageData, dataSize);
+    data = new char[mCompressedDataSize];
+    dataSize = mCompressedDataSize;
+    memcpy(data, mCompressedData, dataSize);
   }
   return PX_OK;
 }
 
-void pxOffscreen::setCompressedImageData(const char* data, const size_t dataSize)
+pxError pxOffscreen::compressedDataWeakReference(char*& data, size_t& dataSize)
 {
-  if (mCompressedImageData != NULL)
-  {
-    delete [] mCompressedImageData;
-  }
-  mCompressedImageData = new char[dataSize];
-  mCompressedImageDataSize = dataSize;
-  memcpy(mCompressedImageData, data, mCompressedImageDataSize);
+  data = mCompressedData;
+  dataSize = mCompressedDataSize;
+  return PX_OK;
 }
 
-pxError pxOffscreen::moveCompressedImageDataTo(char*& destData, size_t& destDataSize)
+void pxOffscreen::setCompressedData(const char* data, const size_t dataSize)
+{
+  freeCompressedData();
+  mCompressedData = new char[dataSize];
+  mCompressedDataSize = dataSize;
+  memcpy(mCompressedData, data, mCompressedDataSize);
+}
+
+pxError pxOffscreen::freeCompressedData()
+{
+  if (mCompressedData != NULL)
+  {
+    delete [] mCompressedData;
+    mCompressedData = NULL;
+  }
+  mCompressedDataSize = 0;
+  return PX_OK;
+}
+
+pxError pxOffscreen::moveCompressedDataTo(char*& destData, size_t& destDataSize)
 {
   if (destData != NULL)
   {
     delete [] destData;
   }
-  destData = mCompressedImageData;
-  destDataSize = mCompressedImageDataSize;
-  mCompressedImageData = NULL;
-  mCompressedImageDataSize = 0;
+  destData = mCompressedData;
+  destDataSize = mCompressedDataSize;
+  mCompressedData = NULL;
+  mCompressedDataSize = 0;
   return PX_OK;
 }
 
-pxError pxOffscreen::transferCompressedImageDataFrom(char*& srcData, size_t& srcDataSize)
+pxError pxOffscreen::transferCompressedDataFrom(char*& srcData, size_t& srcDataSize)
 {
-  if (mCompressedImageData != NULL)
-  {
-    delete [] mCompressedImageData;
-  }
-  mCompressedImageData = srcData;
-  mCompressedImageDataSize = srcDataSize;
+  freeCompressedData();
+  mCompressedData = srcData;
+  mCompressedDataSize = srcDataSize;
   srcData = NULL;
   srcDataSize = 0;
   return PX_OK;
