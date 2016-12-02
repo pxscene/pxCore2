@@ -305,6 +305,7 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 
 rtNodeContext::~rtNodeContext()
 {
+  runScript("var process = require('process');process._tickCallback();");
   if(mEnv)
   {
     Locker                locker(mIsolate);

@@ -287,6 +287,9 @@ void pxObject::dispose()
   mClipSnapshotRef = NULL;
   mDrawableSnapshotForMask = NULL;
   mMaskSnapshot = NULL;
+#ifdef ENABLE_RT_NODE
+  script.pump();
+#endif
 }
 
 /** since this is a boolean, we have to handle if someone sets it to
