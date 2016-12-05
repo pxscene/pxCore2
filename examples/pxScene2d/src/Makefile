@@ -14,6 +14,7 @@ libs-glut: libpxscene-glut
 libs-dfbwindow: libpxscene-dfbwindow
 endif
 
+HAVE_SYSTEM_WESTEROS := $(shell pkg-config --exists westeros-compositor && echo 1)
 HAVE_WESTEROS := $(shell test -f ../external/westeros/Makefile.ubuntu && echo 1)
 
 ifneq ($(HAVE_WESTEROS),1)
@@ -84,9 +85,11 @@ RT_SRCS_FULL=\
     linux/rtMutexNative.cpp \
     linux/rtThreadPoolNative.cpp
 
+ifneq ($(HAVE_SYSTEM_WESTEROS),1)
 ifeq ($(HAVE_WESTEROS),1)
 else
 RT_SRCS_FULL += ../external/westeros-stub/westeros-stub.cpp
+endif
 endif
 
 PX_SRCS_FULL=\
@@ -184,8 +187,10 @@ LDWESTEROS = -L$(EXTDIR)/westeros/external/install/lib -lwesteros_compositor
 
 
 LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDNODE) $(LDNODEV8) $(LDZLIB)
+ifneq ($(HAVE_SYSTEM_WESTEROS),1)
 ifeq ($(HAVE_WESTEROS),1)
 LDEXT += $(LDWESTEROS)
+endif
 endif
 ifeq ($(UNAME_S),Linux)
 LDEXT += -lX11
@@ -271,9 +276,11 @@ PXSCENE_LIB_SRCS += pxContextDFB.cpp
 endif
 
 
+ifneq ($(HAVE_SYSTEM_WESTEROS),1)
 ifeq ($(HAVE_WESTEROS),1)
 else
 PXSCENE_LIB_SRCS += ../external/westeros-stub/westeros-stub.cpp
+endif
 endif
 
 PXSCENE_LIB_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(PXSCENE_LIB_SRCS)))
