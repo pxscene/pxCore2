@@ -15,8 +15,10 @@
 
 #ifndef ENABLE_DFB
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (65 * 1024 * 1024)   // GL
+  #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES (5 * 1024 * 1024)
 #else
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (15 * 1024 * 1024)   // DFB .. Shoul be 40 ?
+  #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES (5 * 1024 * 1024)
 #endif
 
 //enum pxStretch { PX_NONE = 0, PX_STRETCH = 1, PX_REPEAT = 2 };
@@ -78,6 +80,7 @@ class pxContext {
   void enableDirtyRectangles(bool enable);
   void adjustCurrentTextureMemorySize(int64_t changeInBytes);
   void setTextureMemoryLimit(int64_t textureMemoryLimitInBytes);
+  bool isTextureSpaceAvailable(pxTextureRef texture);
 
 private:
   bool mShowOutlines;

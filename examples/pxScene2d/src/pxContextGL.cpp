@@ -959,7 +959,7 @@ protected:
   }
 
 public:
-  void draw(int resW, int resH, float* matrix, float alpha,
+  pxError draw(int resW, int resH, float* matrix, float alpha,
             GLenum mode,
             const void* pos,
             int count,
@@ -979,6 +979,8 @@ public:
     glEnableVertexAttribArray(mPosLoc);
     glDrawArrays(mode, 0, count);  ;
     glDisableVertexAttribArray(mPosLoc);
+
+    return PX_OK;
   }
 
 private:
@@ -1018,7 +1020,7 @@ protected:
   }
 
 public:
-  void draw(int resW, int resH, float* matrix, float alpha,
+  pxError draw(int resW, int resH, float* matrix, float alpha,
             int count,
             const void* pos,
             const void* uv,
@@ -1035,7 +1037,10 @@ public:
     glUniform1f(mAlphaLoc, alpha);
     glUniform4fv(mColorLoc, 1, color);
 
-    texture->bindGLTexture(mTextureLoc);
+    if (texture->bindGLTexture(mTextureLoc) != PX_OK)
+    {
+      return PX_FAIL;
+    }
 
     glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
     glVertexAttribPointer(mUVLoc, 2, GL_FLOAT, GL_FALSE, 0, uv);
@@ -1045,6 +1050,7 @@ public:
     glDisableVertexAttribArray(mPosLoc);
     glDisableVertexAttribArray(mUVLoc);
 
+    return PX_OK;
   }
 
 private:
@@ -1085,7 +1091,7 @@ protected:
   }
 
 public:
-  void draw(int resW, int resH, float* matrix, float alpha,
+  pxError draw(int resW, int resH, float* matrix, float alpha,
             int count,
             const void* pos, const void* uv,
             pxTextureRef texture,
@@ -1100,7 +1106,10 @@ public:
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
 
-    texture->bindGLTexture(mTextureLoc);
+    if (texture->bindGLTexture(mTextureLoc) != PX_OK)
+    {
+      return PX_FAIL;
+    }
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
 		    (stretchX==pxConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
@@ -1115,6 +1124,7 @@ public:
     glDisableVertexAttribArray(mPosLoc);
     glDisableVertexAttribArray(mUVLoc);
 
+    return PX_OK;
   }
 
 private:
@@ -1155,7 +1165,7 @@ protected:
   }
 
 public:
-  void draw(int resW, int resH, float* matrix, float alpha,
+  pxError draw(int resW, int resH, float* matrix, float alpha,
             int count,
             const void* pos,
             const void* uv,
@@ -1171,11 +1181,17 @@ public:
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
 
-    texture->bindGLTexture(mTextureLoc);
+    if (texture->bindGLTexture(mTextureLoc) != PX_OK)
+    {
+      return PX_FAIL;
+    }
 
     if (mask.getPtr() != NULL)
     {
-    mask->bindGLTextureAsMask(mMaskLoc);
+      if (mask->bindGLTextureAsMask(mMaskLoc) != PX_OK)
+      {
+        return PX_FAIL;
+      }
     }
 
 
@@ -1187,6 +1203,7 @@ public:
     glDisableVertexAttribArray(mPosLoc);
     glDisableVertexAttribArray(mUVLoc);
 
+    return PX_OK;
   }
 
 private:
@@ -1338,17 +1355,28 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   float colorPM[4];
   premultiply(colorPM,color);
 
+  static float blackColor[4] = {0.0, 0.0, 0.0, 1.0};
+
   if (mask.getPtr() == NULL && texture->getType() != PX_TEXTURE_ALPHA)
   {
-    gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,xStretch,yStretch);
+    if (gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,xStretch,yStretch) != PX_OK)
+    {
+      drawRect2(0, 0, iw, ih, blackColor);
+    }
   }
   else if (mask.getPtr() == NULL && texture->getType() == PX_TEXTURE_ALPHA)
   {
-    gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,colorPM);
+    if (gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,colorPM) != PX_OK)
+    {
+      drawRect2(0, 0, iw, ih, blackColor);
+    }
   }
   else if (mask.getPtr() != NULL)
   {
-    gTextureMaskedShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,mask);
+    if (gTextureMaskedShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,mask) != PX_OK)
+    {
+      drawRect2(0, 0, iw, ih, blackColor);
+    }
   }
   else
   {
@@ -2006,5 +2034,22 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
 void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
 {
   mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
+}
+
+bool pxContext::isTextureSpaceAvailable(pxTextureRef texture)
+{
+#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  int textureSize = (texture->width()*texture->height()*4);
+  if ((textureSize + mCurrentTextureMemorySizeInBytes) >
+             (mTextureMemoryLimitInBytes  + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
+  {
+    return false;
+  }
+  else
+  {
+    return true;
+  }
+#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  return true;
 }
 
