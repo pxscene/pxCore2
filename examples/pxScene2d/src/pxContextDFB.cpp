@@ -914,7 +914,7 @@ private:
 //====================================================================================================================================================================================
 
 // SOLID
-inline void draw_SOLID(int resW, int resH, float* matrix, float alpha,
+inline pxError draw_SOLID(int resW, int resH, float* matrix, float alpha,
                        DFBRectangle &src, DFBRectangle &dst,
                        pxTextureRef texture, const float* color)
 {
@@ -941,12 +941,13 @@ inline void draw_SOLID(int resW, int resH, float* matrix, float alpha,
 #else
   UNUSED_PARAM(dst);
 #endif
+  return PX_OK;
 }
 
 //====================================================================================================================================================================================
 
 // TEXTURE
-inline void draw_TEXTURE(int resW, int resH, float* matrix, float alpha,
+inline pxError draw_TEXTURE(int resW, int resH, float* matrix, float alpha,
                          DFBRectangle &src, DFBRectangle &dst,
                          pxTextureRef texture,
                          int32_t xStretch = 0, int32_t yStretch = 0)
@@ -976,23 +977,27 @@ inline void draw_TEXTURE(int resW, int resH, float* matrix, float alpha,
   UNUSED_PARAM(xStretch);
   UNUSED_PARAM(yStretch);
 #endif // DEBUG_SKIP_BLIT
+  return PX_OK;
 }
 
 //====================================================================================================================================================================================
 
 // MASK
-inline void draw_MASK(int resW, int resH, float* matrix, float alpha,
+inline pxError draw_MASK(int resW, int resH, float* matrix, float alpha,
                       DFBRectangle /*&src*/, DFBRectangle /*&dst*/,
                       pxTextureRef texture, pxTextureRef mask)
 {
   (void) resW; (void) resH; (void) matrix; (void) alpha; (void) texture;
 
-  mask->bindGLTextureAsMask(0);  // SETS >> 'boundTextureMask'
+  if (mask->bindGLTextureAsMask(0) != PX_OK)  // SETS >> 'boundTextureMask'
+  {
+    return PX_FAIL;
+  }
 
   if(boundTextureMask == NULL)
   {
     rtLogError("ERROR: draw_MASK() - no 'mask'");
-    return;
+    return PX_OK;
   }
 
 // TODO: ... Masking does not seem to work when blitting directly to the *primary* surface.
@@ -1078,6 +1083,7 @@ inline void draw_MASK(int resW, int resH, float* matrix, float alpha,
   }
 
 #endif // 0
+  return PX_OK;
 }
 
 //====================================================================================================================================================================================
@@ -1318,7 +1324,11 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   }
 #endif
 
-  texture->bindGLTexture(0);    // SETS >> 'boundTexture'
+  bool textureBindFailure = false;
+  if (texture->bindGLTexture(0) != PX_OK)    // SETS >> 'boundTexture'
+  {
+    textureBindFailure = true;
+  }
 
   applyMatrix(boundFramebuffer, gMatrix.data());
 
@@ -1349,22 +1359,33 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+  static float blackColor[4] = {0.0, 0.0, 0.0, 1.0};
+
   if (mask.getPtr() != NULL)
   {
-      draw_MASK(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, mask);
+      if (textureBindFailure || draw_MASK(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, mask) != PX_OK)
+      {
+        drawRect2(0, 0, iw, ih, blackColor);
+      }
   }
   else
   {
     if (texture->getType() != PX_TEXTURE_ALPHA)
     {
-      draw_TEXTURE(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, xStretch, yStretch);
+      if (textureBindFailure || draw_TEXTURE(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, xStretch, yStretch) != PX_OK)
+      {
+        drawRect2(0, 0, iw, ih, blackColor);
+      }
     }
-    else if (texture->getType() == PX_TEXTURE_ALPHA)
+    else if (textureBindFailure || texture->getType() == PX_TEXTURE_ALPHA)
     {
       float colorPM[4];
       premultiply(colorPM, color);
 
-      draw_SOLID(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, color); // colorPM
+      if (draw_SOLID(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, color) != PX_OK) // colorPM
+      {
+        drawRect2(0, 0, iw, ih, blackColor);
+      }
     }
     else
     {
@@ -1475,7 +1496,11 @@ static void drawImage92(float x,  float y,  float w,  float h,
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  texture->bindGLTexture(0);
+  bool textureBindFailure = false;
+  if (texture->bindGLTexture(0) != PX_OK)
+  {
+    textureBindFailure = true;
+  }
 
   boundFramebuffer->SetRenderOptions( boundFramebuffer, DSRO_MATRIX );//| DSRO_ANTIALIAS );
 
@@ -1514,8 +1539,16 @@ static void drawImage92(float x,  float y,  float w,  float h,
 #ifndef DEBUG_SKIP_BLIT
 
   // BLIT the 9 SLICE
-  DFB_CHECK(boundFramebuffer->BatchStretchBlit(boundFramebuffer, boundTexture, src, dst,
-                                                    sizeof(src)/sizeof(DFBRectangle) ));
+  if (textureBindFailure)
+  {
+    static float blackColor[4] = {0.0, 0.0, 0.0, 1.0};
+    drawRect2(0, 0, iw, ih, blackColor);
+  }
+  else
+  {
+    DFB_CHECK(boundFramebuffer->BatchStretchBlit(boundFramebuffer, boundTexture, src, dst,
+                                                 sizeof(src) / sizeof(DFBRectangle)));
+  }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // Disable OPACITY ??
@@ -2262,6 +2295,23 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
 void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
 {
   mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
+}
+
+bool pxContext::isTextureSpaceAvailable(pxTextureRef texture)
+{
+#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  int textureSize = (texture->width()*texture->height()*4);
+  if ((textureSize + mCurrentTextureMemorySizeInBytes) >
+             (mTextureMemoryLimitInBytes + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
+  {
+    return false;
+  }
+  else
+  {
+    return true;
+  }
+#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  return true;
 }
 
 //====================================================================================================================================================================================
