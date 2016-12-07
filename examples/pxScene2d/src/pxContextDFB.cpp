@@ -3,6 +3,9 @@
 #include "pxContext.h"
 #include "rtNode.h"
 #include "pxUtil.h"
+#include "rtThreadTask.h"
+#include "rtThreadPool.h"
+#include "rtThreadQueue.h"
 
 #include <directfb.h>
 
@@ -49,6 +52,8 @@
   #define TRACK_TEX_CALLS()
   #define TRACK_FBO_CALLS()
 #endif
+
+extern rtThreadQueue gUIThreadQueue;
 
 ////////////////////////////////////////////////////////////////
 
@@ -401,17 +406,80 @@ public:
 #define MAX_TEXTURE_WIDTH  2048
 #define MAX_TEXTURE_HEIGHT 2048
 
+class pxTextureOffscreen;
+
+struct DecodeImageData
+{
+    DecodeImageData(pxTextureRef t, pxOffscreen* o) : textureOffscreen(t), offscreen(o)
+    {
+    }
+    pxTextureRef textureOffscreen;
+    pxOffscreen* offscreen;
+
+};
+
+void onDecodeComplete(void* context, void* data)
+{
+  DecodeImageData* imageData = (DecodeImageData*)context;
+  pxOffscreen* decodedOffscreen = (pxOffscreen*)data;
+  if (imageData != NULL && decodedOffscreen != NULL)
+  {
+    pxTextureRef texture = imageData->textureOffscreen;
+    if (texture.getPtr() != NULL)
+    {
+      texture->createTexture(*decodedOffscreen);
+    }
+  }
+
+  if (decodedOffscreen != NULL)
+  {
+    delete decodedOffscreen;
+    decodedOffscreen = NULL;
+    data = NULL;
+  }
+
+  if (imageData != NULL)
+  {
+    delete imageData;
+    imageData = NULL;
+  }
+}
+
+void decodeTextureData(void* data)
+{
+  if (data != NULL)
+  {
+    DecodeImageData* imageData = (DecodeImageData*)data;
+    pxOffscreen* offscreen = imageData->offscreen;
+    if (offscreen != NULL)
+    {
+      char *compressedImageData = NULL;
+      size_t compressedImageDataSize = 0;
+      offscreen->compressedDataWeakReference(compressedImageData, compressedImageDataSize);
+      pxOffscreen *decodedOffscreen = new pxOffscreen();
+      pxLoadImage(compressedImageData, compressedImageDataSize, *decodedOffscreen);
+      gUIThreadQueue.addTask(onDecodeComplete, data, decodedOffscreen);
+    }
+    else
+    {
+      gUIThreadQueue.addTask(onDecodeComplete, data, NULL);
+    }
+  }
+}
+
 class pxTextureOffscreen : public pxTexture
 {
 public:
-  pxTextureOffscreen() : mOffscreen(), mInitialized(false),
-                         mTextureUploaded(false), mWidth(0), mHeight(0)
+  pxTextureOffscreen() : mOffscreen(), mInitialized(false), mWidth(0), mHeight(0),
+                         mTextureUploaded(false),
+                         mTextureDataAvailable(false), mLoadTextureRequested(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
   }
 
-  pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false),
-                                       mTextureUploaded(false), mWidth(0), mHeight(0)
+  pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false), mWidth(0), mHeight(0),
+                                       mTextureUploaded(false),
+                                       mTextureDataAvailable(false), mLoadTextureRequested(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     createTexture(o);
@@ -419,7 +487,7 @@ public:
 
 ~pxTextureOffscreen() { deleteTexture(); };
 
-  void createTexture(pxOffscreen& o)
+  virtual pxError createTexture(pxOffscreen& o)
   {
     mOffscreen.init(o.width(), o.height());
 
@@ -449,26 +517,59 @@ public:
 
     createSurface(o);
 
+    mOffscreen.transferCompressedDataFrom(o);
+
+    mTextureDataAvailable = true;
+    mLoadTextureRequested = false;
     mInitialized = true;
+
+    return PX_OK;
   }
 
   virtual pxError deleteTexture()
   {
     rtLogDebug("pxTextureOffscreen::deleteTexture()");
 
-    if(mTexture)
-    {
-      mTexture->Release(mTexture);
-      mTexture = NULL;
+    unloadTextureData();
 
-      int WxH = mWidth * mHeight; // Size? Bytes ?
-      context.adjustCurrentTextureMemorySize(-1 * WxH * 4);
-    }
-
-    mOffscreen.term();
     mOffscreen.freeCompressedData();
 
+    mTextureDataAvailable = false;
     mInitialized = false;
+    return PX_OK;
+  }
+
+  virtual pxError loadTextureData()
+  {
+    if (!mLoadTextureRequested && mTextureDataAvailable)
+    {
+      rtThreadPool *mainThreadPool = rtThreadPool::globalInstance();
+      DecodeImageData *decodeImageData = new DecodeImageData(this, &mOffscreen);
+      rtThreadTask *task = new rtThreadTask(decodeTextureData, decodeImageData, "");
+      mainThreadPool->executeTask(task);
+      mLoadTextureRequested = true;
+    }
+
+    return PX_OK;
+  }
+
+  virtual pxError unloadTextureData()
+  {
+    if (mInitialized)
+    {
+      if (mTexture)
+      {
+        mTexture->Release(mTexture);
+        mTexture = NULL;
+
+        int WxH = mWidth * mHeight; // Size? Bytes ?
+        context.adjustCurrentTextureMemorySize(-1 * WxH * 4);
+      }
+
+      mOffscreen.term();
+
+      mInitialized = false;
+    }
     return PX_OK;
   }
 
@@ -566,6 +667,8 @@ private:
   int mHeight;
 
   bool        mTextureUploaded;
+  bool        mTextureDataAvailable;
+  bool        mLoadTextureRequested;
 
   IDirectFBSurface       *mTexture;
   DFBSurfaceDescription   dsc;

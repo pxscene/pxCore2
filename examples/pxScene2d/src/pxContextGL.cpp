@@ -3,6 +3,9 @@
 #include "pxContext.h"
 #include "rtNode.h"
 #include "pxUtil.h"
+#include "rtThreadTask.h"
+#include "rtThreadPool.h"
+#include "rtThreadQueue.h"
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -71,6 +74,7 @@ pxContextFramebufferRef currentFramebuffer = defaultFramebuffer;
 
 extern rtNode script;
 extern pxContext context;
+extern rtThreadQueue gUIThreadQueue;
 
 enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
     PROGRAM_TEXTURE_MASKED_SHADER};
@@ -356,17 +360,80 @@ public:
 #define MAX_TEXTURE_WIDTH 2048
 #define MAX_TEXTURE_HEIGHT 2048
 
+class pxTextureOffscreen;
+
+struct DecodeImageData
+{
+    DecodeImageData(pxTextureRef t, pxOffscreen* o) : textureOffscreen(t), offscreen(o)
+    {
+    }
+    pxTextureRef textureOffscreen;
+    pxOffscreen* offscreen;
+
+};
+
+void onDecodeComplete(void* context, void* data)
+{
+  DecodeImageData* imageData = (DecodeImageData*)context;
+  pxOffscreen* decodedOffscreen = (pxOffscreen*)data;
+  if (imageData != NULL && decodedOffscreen != NULL)
+  {
+    pxTextureRef texture = imageData->textureOffscreen;
+    if (texture.getPtr() != NULL)
+    {
+      texture->createTexture(*decodedOffscreen);
+    }
+  }
+
+  if (decodedOffscreen != NULL)
+  {
+    delete decodedOffscreen;
+    decodedOffscreen = NULL;
+    data = NULL;
+  }
+
+  if (imageData != NULL)
+  {
+    delete imageData;
+    imageData = NULL;
+  }
+}
+
+void decodeTextureData(void* data)
+{
+  if (data != NULL)
+  {
+    DecodeImageData* imageData = (DecodeImageData*)data;
+    pxOffscreen* offscreen = imageData->offscreen;
+    if (offscreen != NULL)
+    {
+      char *compressedImageData = NULL;
+      size_t compressedImageDataSize = 0;
+      offscreen->compressedDataWeakReference(compressedImageData, compressedImageDataSize);
+      pxOffscreen *decodedOffscreen = new pxOffscreen();
+      pxLoadImage(compressedImageData, compressedImageDataSize, *decodedOffscreen);
+      gUIThreadQueue.addTask(onDecodeComplete, data, decodedOffscreen);
+    }
+    else
+    {
+      gUIThreadQueue.addTask(onDecodeComplete, data, NULL);
+    }
+  }
+}
+
 class pxTextureOffscreen : public pxTexture
 {
 public:
   pxTextureOffscreen() : mOffscreen(), mInitialized(false),
-                         mTextureUploaded(false), mWidth(0), mHeight(0)
+                         mTextureUploaded(false), mTextureDataAvailable(false),
+                         mLoadTextureRequested(false), mWidth(0), mHeight(0)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
   }
 
   pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false),
-                                       mTextureUploaded(false)
+                                       mTextureUploaded(false), mTextureDataAvailable(false),
+                                       mLoadTextureRequested(false), mWidth(0), mHeight(0)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     createTexture(o);
@@ -374,7 +441,7 @@ public:
 
   ~pxTextureOffscreen() { deleteTexture(); };
 
-  void createTexture(pxOffscreen& o)
+  virtual pxError createTexture(pxOffscreen& o)
   {
 #ifdef ENABLE_MAX_TEXTURE_SIZE
     int verticalScale = 1;
@@ -442,22 +509,56 @@ public:
       }
     }
 
+    mOffscreen.transferCompressedDataFrom(o);
+
+    mTextureDataAvailable = true;
+    mLoadTextureRequested = false;
     mInitialized = true;
+
+    return PX_OK;
   }
 
   virtual pxError deleteTexture()
   {
     rtLogDebug("pxTextureOffscreen::deleteTexture()");
 
-    if (mTextureName)
+    unloadTextureData();
+
+    mOffscreen.freeCompressedData();
+    mTextureDataAvailable = false;
+    mInitialized = false;
+    return PX_OK;
+  }
+
+  virtual pxError loadTextureData()
+  {
+    if (!mLoadTextureRequested && mTextureDataAvailable)
     {
-      glDeleteTextures(1, &mTextureName);
-      context.adjustCurrentTextureMemorySize(-1*mWidth*mHeight*4);
+      rtThreadPool *mainThreadPool = rtThreadPool::globalInstance();
+      DecodeImageData *decodeImageData = new DecodeImageData(this, &mOffscreen);
+      rtThreadTask *task = new rtThreadTask(decodeTextureData, decodeImageData, "");
+      mainThreadPool->executeTask(task);
+      mLoadTextureRequested = true;
     }
 
-    mInitialized = false;
-    mOffscreen.term();
-    mOffscreen.freeCompressedData();
+    return PX_OK;
+  }
+
+  virtual pxError unloadTextureData()
+  {
+    if (mInitialized)
+    {
+      if (mTextureName)
+      {
+        glDeleteTextures(1, &mTextureName);
+        context.adjustCurrentTextureMemorySize(-1 * mWidth * mHeight * 4);
+      }
+
+      mTextureName = 0;
+      mInitialized = false;
+      mTextureUploaded = false;
+      mOffscreen.term();
+    }
     return PX_OK;
   }
 
@@ -564,6 +665,8 @@ private:
   bool mInitialized;
   GLuint mTextureName;
   bool mTextureUploaded;
+  bool mTextureDataAvailable;
+  bool mLoadTextureRequested;
   int mWidth;
   int mHeight;
 

@@ -36,6 +36,7 @@ public:
   pxError freeCompressedData();
   pxError moveCompressedDataTo(char*& destData, size_t& destDataSize);
   pxError transferCompressedDataFrom(char*& srcData, size_t& srcDataSize);
+  pxError transferCompressedDataFrom(pxOffscreen& offscreen);
   
 
 private:

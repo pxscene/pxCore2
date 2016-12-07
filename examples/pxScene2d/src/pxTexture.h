@@ -46,6 +46,7 @@ public:
   
   virtual pxError bindTexture() { return PX_FAIL; }
   virtual pxError bindTextureAsMask() { return PX_FAIL; }
+  virtual pxError createTexture(pxOffscreen&) { return PX_FAIL; }
   virtual pxError deleteTexture() = 0;
   virtual int width() = 0;
   virtual int height() = 0;
@@ -54,6 +55,8 @@ public:
   virtual unsigned int getNativeId() { return 0; }
   pxTextureType getType() { return mTextureType; }
   virtual pxError prepareForRendering() { return PX_OK; }
+  virtual pxError loadTextureData() { return PX_OK; }
+  virtual pxError unloadTextureData() { return PX_OK; }
   bool premultipliedAlpha() { return mPremultipliedAlpha; }
   void enablePremultipliedAlpha(bool enable) { mPremultipliedAlpha = enable; }
 protected:

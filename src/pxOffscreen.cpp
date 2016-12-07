@@ -96,3 +96,13 @@ pxError pxOffscreen::transferCompressedDataFrom(char*& srcData, size_t& srcDataS
   return PX_OK;
 }
 
+pxError pxOffscreen::transferCompressedDataFrom(pxOffscreen& offscreen)
+{
+  freeCompressedData();
+  mCompressedData = offscreen.mCompressedData;
+  mCompressedDataSize = offscreen.mCompressedDataSize;
+  offscreen.mCompressedData = NULL;
+  offscreen.mCompressedDataSize = 0;
+  return PX_OK;
+}
+
