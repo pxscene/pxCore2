@@ -513,7 +513,11 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char* /* a
     // Get a Local context...
     Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
     Context::Scope context_scope(local_context);
-
+#ifdef ENABLE_NODE_V_6_9
+  TryCatch tryCatch(mIsolate);
+#else
+  TryCatch tryCatch;
+#endif // ENABLE_NODE_V_6_9
     Local<String> source = String::NewFromUtf8(mIsolate, script.c_str());
 
     // Compile the source code.
@@ -521,7 +525,11 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char* /* a
 
     // Run the script to get the result.
     Local<Value> result = run_script->Run();
-
+   if (tryCatch.HasCaught())
+    {
+      String::Utf8Value trace(tryCatch.StackTrace());
+      rtLogWarn("%s", *trace);
+    }
     // Convert the result to an UTF8 string and print it.
     String::Utf8Value utf8(result);
 
