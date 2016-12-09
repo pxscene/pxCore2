@@ -576,6 +576,12 @@ public:
 // TODO would be nice to do the upload in createTexture but right now it's getting called on wrong thread
     if (!mTextureUploaded)
     {
+      if (!context.isTextureSpaceAvailable(this))
+      {
+        rtLogError("not enough texture memory remaining to create texture");
+        unloadTextureData();
+        return PX_FAIL;
+      }
       glGenTextures(1, &mTextureName);
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
@@ -612,6 +618,12 @@ public:
 
     if (!mTextureUploaded)
     {
+      if (!context.isTextureSpaceAvailable(this))
+      {
+        rtLogError("not enough texture memory remaining to create texture");
+        unloadTextureData();
+        return PX_FAIL;
+      }
       glGenTextures(1, &mTextureName);
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);

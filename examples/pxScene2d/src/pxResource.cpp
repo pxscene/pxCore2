@@ -287,16 +287,7 @@ void rtImageResource::loadResourceFromFile()
     // We need to maintain this object's lifetime
     // TODO review overall flow and organization
     AddRef();
-    if (context.isTextureSpaceAvailable(mTexture))
-    {
-      gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void *) "resolve");
-    }
-    else
-    {
-      rtLogWarn("not enough texture space available.  rejecting promise");
-      mTexture->unloadTextureData();
-      gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"reject");
-    }
+    gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void *) "resolve");
 
   }
   
@@ -324,16 +315,7 @@ bool rtImageResource::loadResourceData(pxFileDownloadRequest* fileDownloadReques
                       imageOffscreen) == RT_OK)
       {
         mTexture = context.createTexture(imageOffscreen);
-        if (context.isTextureSpaceAvailable(mTexture))
-        {
-          return true;
-        }
-        else
-        {
-          rtLogWarn("not enough texture space available for downloaded image.  rejecting promise");
-          mTexture->unloadTextureData();
-          return false;
-        }
+        return true;
       }
       
       return false;

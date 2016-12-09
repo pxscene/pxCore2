@@ -589,6 +589,13 @@ public:
     // TODO would be nice to do the upload in createTexture but right now it's getting called on wrong thread
     if (!mTextureUploaded)
     {
+      if (!context.isTextureSpaceAvailable(this))
+      {
+        rtLogError("not enough texture memory remaining to create texture");
+        unloadTextureData();
+        return PX_FAIL;
+      }
+
       context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
 
       createSurface(mOffscreen);
@@ -622,6 +629,13 @@ public:
 
     if (!mTextureUploaded)
     {
+      if (!context.isTextureSpaceAvailable(this))
+      {
+        rtLogError("not enough texture memory remaining to create texture");
+        unloadTextureData();
+        return PX_FAIL;
+      }
+
       createSurface(mOffscreen); // JUNK
 
       boundTextureMask = mTexture;   TRACK_TEX_CALLS();
