@@ -603,6 +603,8 @@ rtError pxWayland::connectToRemoteObject()
   else
   {
     rtLogError("unable to connect to remote object");
+    if(mEvents)
+        mEvents->isRemoteReady(false);
   }
 
   mRemoteObjectMutex.lock();
