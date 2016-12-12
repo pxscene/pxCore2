@@ -74,7 +74,7 @@ pxContextFramebufferRef currentFramebuffer = defaultFramebuffer;
 
 extern rtNode script;
 extern pxContext context;
-extern rtThreadQueue gUIThreadQueue;
+rtThreadQueue gUIThreadQueue;
 
 enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
     PROGRAM_TEXTURE_MASKED_SHADER};

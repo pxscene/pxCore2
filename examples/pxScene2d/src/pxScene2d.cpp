@@ -41,7 +41,7 @@
 // #define DEBUG_SKIP_DRAW       // Skip DRAW   code - for testing.
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
 
-rtThreadQueue gUIThreadQueue;
+extern rtThreadQueue gUIThreadQueue;
 uint32_t rtPromise::promiseID = 200;
 
 // Debug Statistics

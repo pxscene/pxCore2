@@ -53,7 +53,7 @@
   #define TRACK_FBO_CALLS()
 #endif
 
-extern rtThreadQueue gUIThreadQueue;
+rtThreadQueue gUIThreadQueue;
 
 ////////////////////////////////////////////////////////////////
 
