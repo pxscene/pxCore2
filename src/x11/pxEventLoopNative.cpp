@@ -38,7 +38,9 @@ void pxEventLoop::exit()
 ///////////////////////////////////////////
 // Entry Point 
 
+#ifndef ENABLE_DFB_GENERIC
 int main(int argc, char* argv[])
 {
   return pxMain(argc, argv);
 }
+#endif

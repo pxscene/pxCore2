@@ -313,6 +313,11 @@ parser.add_option('--without-ssl3',
     dest='ssl3',
     help='Disable SSL v3')
 
+parser.add_option('--enable-static',
+    action='store_true',
+    dest='enable_static',
+    help='build as static library')
+
 parser.add_option('--xcode',
     action='store_true',
     dest='use_xcode',
@@ -584,6 +589,9 @@ def configure_node(o):
 
   if options.v8_options:
     o['variables']['node_v8_options'] = options.v8_options.replace('"', '\\"')
+
+  if options.enable_static:
+    o['variables']['node_target_type'] = 'static_library'
 
 
 def configure_libz(o):
