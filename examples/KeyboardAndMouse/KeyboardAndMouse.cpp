@@ -195,7 +195,7 @@ private:
     case PX_KEY_NUMPAD7: return "NumPad7";
     case PX_KEY_NUMPAD8: return "NumPad8";
     case PX_KEY_NUMPAD9: return "NumPad9";
-    case PX_KEY_NATIVE_SEPARATOR: return "Separator";
+//    case PX_KEY_NATIVE_SEPARATOR: return "Separator";
     case PX_KEY_ADD:       return "Add";
     case PX_KEY_SUBTRACT:  return "Subtract";
     case PX_KEY_DECIMAL:   return "Decimal";

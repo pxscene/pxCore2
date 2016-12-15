@@ -63,16 +63,16 @@ protected:
 
     virtual void onSize(int w, int h) = 0;
 
-    virtual void onMouseDown(int x, int y, unsigned long flags) = 0;
-    virtual void onMouseUp(int x, int y, unsigned long flags) = 0;
+    virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags) = 0;
+    virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags) = 0;
 
-    virtual void onMouseMove(int x, int y) = 0;
+    virtual void onMouseMove(int32_t x, int32_t y) = 0;
 
     virtual void onMouseLeave() = 0;
 
-    virtual void onKeyDown(int keycode, unsigned long flags) = 0;
-    virtual void onKeyUp(int keycode, unsigned long flags) = 0;
-    virtual void onChar(char c) = 0;
+    virtual void onKeyDown(uint32_t keycode, uint32_t flags) = 0;
+    virtual void onKeyUp(uint32_t keycode, uint32_t flags) = 0;
+    virtual void onChar(uint32_t c) = 0;
 
     virtual void onDraw(pxSurfaceNative surface) = 0;
 
