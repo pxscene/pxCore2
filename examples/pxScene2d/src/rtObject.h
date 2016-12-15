@@ -293,6 +293,9 @@ rtError rtObjectBase::get(const char* name, T& value) const
   rtError e = Get(name, &v);
   if (e == RT_OK) 
     value = v.convert<T>();
+
+  if (value.getPtr() == NULL)
+    e = RT_ERROR_TYPE_MISMATCH;
   return e;
 }
 
@@ -319,6 +322,10 @@ rtError rtObjectBase::get(uint32_t i, T& value) const
   rtError e = Get(i, &v);
   if (e == RT_OK) 
     value = v.convert<T>();
+
+  if (value.getPtr() == NULL)
+    e = RT_ERROR_TYPE_MISMATCH;
+
   return e;
 }
 
