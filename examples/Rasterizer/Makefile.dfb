@@ -1,0 +1,27 @@
+# pxCore FrameBuffer Library
+# Rasterizer Example
+
+CFLAGS= -I../../src $(PXCORE_INCLUDES) -DPX_PLATFORM_DFB_NON_X11 -DENABLE_DFB -Wno-write-strings 
+LIBDIR=../../build/dfb
+OUTDIR=.
+
+all: $(OUTDIR)/Rasterizer
+
+Rasterizer.o: Rasterizer.cpp 
+	$(CXX) -c $(CFLAGS) Rasterizer.cpp
+
+pxRasterizer.o: pxRasterizer.cpp 
+	$(CXX) -c $(CFLAGS) pxRasterizer.cpp
+
+pxCanvas.o: pxCanvas.cpp 
+	$(CXX) -c $(CFLAGS) pxCanvas.cpp
+
+xs_String.o: xs_String.cpp 
+	$(CXX) -c $(CFLAGS) xs_String.cpp
+
+Rasterizer: Rasterizer.o xs_String.o pxRasterizer.o pxCanvas.o
+	$(CXX) -o $(OUTDIR)/Rasterizer xs_String.o Rasterizer.o pxRasterizer.o pxCanvas.o $(PXSCENE_LIB_LINKING) -lnexus -lnxclient -ldirectfb -ldirect -lfusion -L$(LIBDIR) -lpxCore -lrt -lz
+
+
+
+
