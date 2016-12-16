@@ -292,7 +292,9 @@ rtError rtObjectBase::get(const char* name, T& value) const
   rtValue v;
   rtError e = Get(name, &v);
   if (e == RT_OK) 
-    value = v.convert<T>();
+  {
+    e = v.tryConvert<T>(value);
+  }
   return e;
 }
 
@@ -318,7 +320,7 @@ rtError rtObjectBase::get(uint32_t i, T& value) const
   rtValue v;
   rtError e = Get(i, &v);
   if (e == RT_OK) 
-    value = v.convert<T>();
+    e = v.tryConvert<T>(value);
   return e;
 }
 

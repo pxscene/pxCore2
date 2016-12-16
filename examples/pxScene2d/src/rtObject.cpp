@@ -411,7 +411,7 @@ rtError rtObjectBase::Send(const char* messageName, int numArgs,
   rtError e = RT_ERROR;
   rtFunctionRef f;
   e = get<rtFunctionRef>(messageName, f);
-  if (e == RT_OK) 
+  if (e == RT_OK)
     e = f->Send(numArgs, args, NULL);
   return e;
 }
@@ -422,7 +422,7 @@ rtError rtObjectBase::SendReturns(const char* messageName, int numArgs,
   rtError e = RT_ERROR;
   rtFunctionRef f;
   e = get<rtFunctionRef>(messageName, f);
-  if (e == RT_OK) 
+  if (e == RT_OK)
     e = f->Send(numArgs, args, &result);
   return e;
 }

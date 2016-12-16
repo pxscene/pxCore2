@@ -631,6 +631,7 @@ rtError rtValue::getObject(rtObjectRef& v) const
   {
     // No other types are convertable to object
     v = NULL;
+    return RT_ERROR_TYPE_MISMATCH;;
   }
   return RT_OK;
 }
@@ -643,6 +644,7 @@ rtError rtValue::getFunction(rtFunctionRef& v) const
   {
     // No other types are convertable to function
     v = NULL;
+    return RT_ERROR_TYPE_MISMATCH;;
   }
   return RT_OK;
 }
@@ -655,6 +657,7 @@ rtError rtValue::getVoidPtr(voidPtr& v) const
   {
     // No other types are convertable
     v = NULL;
+    return RT_ERROR_TYPE_MISMATCH;
   }
   return RT_OK;
 }
