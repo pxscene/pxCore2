@@ -187,6 +187,9 @@ class rtValue
     T convert() const { T t; cvt(t); return t; }
 
   template <typename T>
+  rtError tryConvert (T& t) { return cvt(t); }
+
+  template <typename T>
     void assign(const T t) { asn(t); }
 
  protected:
@@ -194,20 +197,20 @@ class rtValue
   // Both values must have the same type
   static bool compare(const rtValue& lhs, const rtValue& rhs);
 
-  void cvt(rtValue& v)                const { getValue(v);    }
-  void cvt(bool& v)                   const { getBool(v);     }
-  void cvt(int8_t& v)                 const { getInt8(v);     }
-  void cvt(uint8_t& v)                const { getUInt8(v);    }
-  void cvt(int32_t& v)                const { getInt32(v);    }
-  void cvt(uint32_t& v)               const { getUInt32(v);   }
-  void cvt(int64_t& v)                const { getInt64(v);    }
-  void cvt(uint64_t& v)               const { getUInt64(v);   }
-  void cvt(float& v)                  const { getFloat(v);    }
-  void cvt(double& v)                 const { getDouble(v);   }
-  void cvt(rtString& v)               const { getString(v);   }
-  void cvt(rtObjectRef& v)            const { getObject(v);   }
-  void cvt(rtFunctionRef& v)          const { getFunction(v); }
-  void cvt(voidPtr& v)                const { getVoidPtr(v);  }
+   rtError cvt(rtValue& v)                const { return getValue(v);    }
+   rtError cvt(bool& v)                   const { return getBool(v);     }
+   rtError cvt(int8_t& v)                 const { return getInt8(v);     }
+   rtError cvt(uint8_t& v)                const { return getUInt8(v);    }
+   rtError cvt(int32_t& v)                const { return getInt32(v);    }
+   rtError cvt(uint32_t& v)               const { return getUInt32(v);   }
+   rtError cvt(int64_t& v)                const { return getInt64(v);    }
+   rtError cvt(uint64_t& v)               const { return getUInt64(v);   }
+   rtError cvt(float& v)                  const { return getFloat(v);    }
+   rtError cvt(double& v)                 const { return getDouble(v);   }
+   rtError cvt(rtString& v)               const { return getString(v);   }
+   rtError cvt(rtObjectRef& v)            const { return getObject(v);   }
+   rtError cvt(rtFunctionRef& v)          const { return getFunction(v); }
+   rtError cvt(voidPtr& v)                const { return getVoidPtr(v);  }
 
   void asn(const rtValue& v)                { setValue(v);    }
   void asn(bool v)                          { setBool(v);     }
