@@ -10,6 +10,7 @@ class pxWaylandContainer: public pxViewContainer, pxWaylandEvents {
   rtDeclareObject(pxWaylandContainer, pxViewContainer);
   rtProperty(displayName, displayName, setDisplayName, rtString);
   rtProperty(cmd, cmd, setCmd, rtString);
+  rtProperty(server, remoteServer, setRemoteServer, rtString);
   rtReadOnlyProperty(clientPID, clientPID, int32_t);
   rtProperty(fillColor, fillColor, setFillColor, uint32_t);
   rtProperty(hasApi, hasApi, setHasApi, bool);
@@ -38,6 +39,9 @@ public:
   rtError cmd(rtString& s) const { s = mCmd; return RT_OK; }
   rtError setCmd(const char* s);
 
+  rtError remoteServer(rtString& s) const { s = mRemoteServer; return RT_OK; }
+  rtError setRemoteServer(const char* s);
+
   rtError clientPID(int32_t& pid) const { pid = mClientPID; return RT_OK; }
 
   rtError fillColor(uint32_t& c) const;
@@ -52,6 +56,7 @@ public:
 private:
   rtString mDisplayName;
   rtString mCmd;
+  rtString mRemoteServer;
   pxWaylandRef mWayland;
   int32_t mClientPID;
   uint32_t mFillColor;
