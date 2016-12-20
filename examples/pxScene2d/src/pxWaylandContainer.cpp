@@ -149,6 +149,16 @@ rtError pxWaylandContainer::setCmd(const char* s)
   return RT_OK;
 }
 
+rtError pxWaylandContainer::setRemoteServer(const char* s)
+{
+  mRemoteServer = s;
+  if ( mWayland )
+  {
+     mWayland->setRemoteObjectName(s);
+  }
+  return RT_OK;
+}
+
 rtError pxWaylandContainer::fillColor(uint32_t& c) const 
 {
   c= mFillColor;
@@ -238,3 +248,4 @@ rtDefineProperty(pxWaylandContainer,clientPID);
 rtDefineProperty(pxWaylandContainer,fillColor);
 rtDefineProperty(pxWaylandContainer,api);
 rtDefineProperty(pxWaylandContainer,remoteReady);
+rtDefineProperty(pxWaylandContainer,server);
