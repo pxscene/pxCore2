@@ -45,6 +45,8 @@ rtRemoteStream::close()
   if (m_fd != kInvalidSocket)
   {
     int ret = 0;
+    auto self = shared_from_this();
+    m_env->StreamSelector->removeStream(self);
     
     ret = ::shutdown(m_fd, SHUT_RDWR);
     if (ret == -1)
