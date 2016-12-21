@@ -57,6 +57,7 @@ public:
   virtual pxError prepareForRendering() { return PX_OK; }
   virtual pxError loadTextureData() { return PX_OK; }
   virtual pxError unloadTextureData() { return PX_OK; }
+  virtual pxError freeOffscreenData() { return PX_OK; }
   bool premultipliedAlpha() { return mPremultipliedAlpha; }
   void enablePremultipliedAlpha(bool enable) { mPremultipliedAlpha = enable; }
 protected:
