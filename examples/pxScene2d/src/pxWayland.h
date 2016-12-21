@@ -30,6 +30,7 @@ public:
   virtual void clientStoppedNormal( int /*pid*/, int /*exitCode*/ ) {}
   virtual void clientStoppedAbnormal( int /*pid*/, int /*signo*/ ) {}
   virtual void isReady( bool /*ready*/ ) {}
+  virtual void isRemoteReady( bool /*ready*/ ) {}
   virtual void remoteDisconnected(void * /*data*/ ) {}
 };
 
@@ -129,8 +130,8 @@ public:
   rtError callMethod(const char* messageName, int numArgs, const rtValue* args);
   rtError addListener(const rtString& eventName, const rtFunctionRef& f);
   rtError delListener(const rtString& eventName, const rtFunctionRef& f);
-  rtError connectToRemoteObject();
   rtError startRemoteObjectLocator();
+  rtError connectToRemoteObject(unsigned int timeout_ms);
 
 private:
   rtAtomic mRefCount;
@@ -139,6 +140,8 @@ private:
   pxIViewContainer *mContainer;
   bool mReadyEmitted;
   bool mClientMonitorStarted;
+  bool mWaitingForRemoteObject;
+  bool mUseDispatchThread;
   int mX;
   int mY;
   int mWidth;
@@ -156,9 +159,12 @@ private:
   void launchAndMonitorClient();
   void terminateClient();
   static void *clientMonitorThread( void *data );
+  static void *findRemoteThread(void *data);
   uint32_t getModifiers( uint32_t flags );
   bool isRotated();
   uint32_t linuxFromPX( uint32_t keyCode );
+  void startRemoteObjectDetection();
+  rtError connectToRemoteObject();
 
 protected:
   void createDisplay(rtString displayName);
