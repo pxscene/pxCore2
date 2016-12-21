@@ -6,6 +6,7 @@
 #include "rtThreadTask.h"
 #include "rtThreadPool.h"
 #include "rtThreadQueue.h"
+#include "rtMutex.h"
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -418,19 +419,48 @@ void decodeTextureData(void* data)
   }
 }
 
+void onOffscreenCleanupComplete(void* context, void*)
+{
+  DecodeImageData* imageData = (DecodeImageData*)context;
+  if (imageData != NULL)
+  {
+    delete imageData;
+    imageData = NULL;
+  }
+}
+
+void cleanupOffscreen(void* data)
+{
+  if (data != NULL)
+  {
+    DecodeImageData* imageData = (DecodeImageData*)data;
+    if (data != NULL && imageData->textureOffscreen.getPtr() != NULL)
+    {
+      imageData->textureOffscreen->freeOffscreenData();
+      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+    }
+    else
+    {
+      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+    }
+  }
+}
+
 class pxTextureOffscreen : public pxTexture
 {
 public:
   pxTextureOffscreen() : mOffscreen(), mInitialized(false),
                          mTextureUploaded(false), mTextureDataAvailable(false),
-                         mLoadTextureRequested(false), mWidth(0), mHeight(0)
+                         mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
+                         mFreeOffscreenDataRequested(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
   }
 
   pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false),
                                        mTextureUploaded(false), mTextureDataAvailable(false),
-                                       mLoadTextureRequested(false), mWidth(0), mHeight(0)
+                                       mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
+                                       mFreeOffscreenDataRequested(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     createTexture(o);
@@ -440,6 +470,7 @@ public:
 
   virtual pxError createTexture(pxOffscreen& o)
   {
+    mOffscreenMutex.lock();
 #ifdef ENABLE_MAX_TEXTURE_SIZE
     int verticalScale = 1;
     int horizontalScale = 1;
@@ -507,6 +538,8 @@ public:
     }
 
     mOffscreen.transferCompressedDataFrom(o);
+    mFreeOffscreenDataRequested = false;
+    mOffscreenMutex.unlock();
 
     mTextureDataAvailable = true;
     mLoadTextureRequested = false;
@@ -554,8 +587,24 @@ public:
       mTextureName = 0;
       mInitialized = false;
       mTextureUploaded = false;
+      mOffscreenMutex.lock();
+      mOffscreen.term();
+      mFreeOffscreenDataRequested = false;
+      mOffscreenMutex.unlock();
+    }
+    return PX_OK;
+  }
+
+  virtual pxError freeOffscreenData()
+  {
+    mOffscreenMutex.lock();
+    if (mFreeOffscreenDataRequested)
+    {
+      rtLogDebug("freeing offscreen data");
       mOffscreen.term();
     }
+    mFreeOffscreenDataRequested = false;
+    mOffscreenMutex.unlock();
     return PX_OK;
   }
 
@@ -576,7 +625,8 @@ public:
       if (!context.isTextureSpaceAvailable(this))
       {
         rtLogError("not enough texture memory remaining to create texture");
-        unloadTextureData();
+        mInitialized = false;
+        freeOffscreenDataInBackground();
         return PX_FAIL;
       }
       glGenTextures(1, &mTextureName);
@@ -591,9 +641,8 @@ public:
                    GL_UNSIGNED_BYTE, mOffscreen.base());
       mTextureUploaded = true;
       context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
-      
       //free up unneeded offscreen memory
-      mOffscreen.term();
+      freeOffscreenDataInBackground();
     }
     else
     {
@@ -618,7 +667,8 @@ public:
       if (!context.isTextureSpaceAvailable(this))
       {
         rtLogError("not enough texture memory remaining to create texture");
-        unloadTextureData();
+        mInitialized = false;
+        freeOffscreenDataInBackground();
         return PX_FAIL;
       }
       glGenTextures(1, &mTextureName);
@@ -635,7 +685,7 @@ public:
       context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
       
       //free up unneeded offscreen memory
-      mOffscreen.term();
+      freeOffscreenDataInBackground();
     }
     else
     {
@@ -669,6 +719,19 @@ public:
   virtual int height() { return mHeight; }
 
 private:
+
+  void freeOffscreenDataInBackground()
+  {
+    mOffscreenMutex.lock();
+    mFreeOffscreenDataRequested = true;
+    mOffscreenMutex.unlock();
+    rtLogDebug("request to free offscreen data");
+    rtThreadPool *mainThreadPool = rtThreadPool::globalInstance();
+    DecodeImageData *imageData = new DecodeImageData(this, NULL);
+    rtThreadTask *task = new rtThreadTask(cleanupOffscreen, imageData, "");
+    mainThreadPool->executeTask(task);
+  }
+
   pxOffscreen mOffscreen;
   
   bool mInitialized;
@@ -678,6 +741,8 @@ private:
   bool mLoadTextureRequested;
   int mWidth;
   int mHeight;
+  rtMutex mOffscreenMutex;
+  bool mFreeOffscreenDataRequested;
 
 }; // CLASS - pxTextureOffscreen
 

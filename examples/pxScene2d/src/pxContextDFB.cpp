@@ -6,6 +6,7 @@
 #include "rtThreadTask.h"
 #include "rtThreadPool.h"
 #include "rtThreadQueue.h"
+#include "rtMutex.h"
 
 #include <directfb.h>
 
@@ -464,19 +465,48 @@ void decodeTextureData(void* data)
   }
 }
 
+void onOffscreenCleanupComplete(void* context, void*)
+{
+  DecodeImageData* imageData = (DecodeImageData*)context;
+  if (imageData != NULL)
+  {
+    delete imageData;
+    imageData = NULL;
+  }
+}
+
+void cleanupOffscreen(void* data)
+{
+  if (data != NULL)
+  {
+    DecodeImageData* imageData = (DecodeImageData*)data;
+    if (data != NULL && imageData->textureOffscreen.getPtr() != NULL)
+    {
+      imageData->textureOffscreen->freeOffscreenData();
+      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+    }
+    else
+    {
+      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+    }
+  }
+}
+
 class pxTextureOffscreen : public pxTexture
 {
 public:
   pxTextureOffscreen() : mOffscreen(), mInitialized(false), mWidth(0), mHeight(0),
                          mTextureUploaded(false),
-                         mTextureDataAvailable(false), mLoadTextureRequested(false)
+                         mTextureDataAvailable(false), mLoadTextureRequested(false), mOffscreenMutex(),
+                         mFreeOffscreenDataRequested(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
   }
 
   pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false), mWidth(0), mHeight(0),
                                        mTextureUploaded(false),
-                                       mTextureDataAvailable(false), mLoadTextureRequested(false)
+                                       mTextureDataAvailable(false), mLoadTextureRequested(false), mOffscreenMutex(),
+                                       mFreeOffscreenDataRequested(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     createTexture(o);
@@ -486,6 +516,7 @@ public:
 
   virtual pxError createTexture(pxOffscreen& o)
   {
+    mOffscreenMutex.lock();
     mOffscreen.init(o.width(), o.height());
 
 //#ifndef DEBUG_SKIP_BLIT
@@ -515,6 +546,8 @@ public:
     createSurface(o);
 
     mOffscreen.transferCompressedDataFrom(o);
+    mFreeOffscreenDataRequested = false;
+    mOffscreenMutex.unlock();
 
     mTextureDataAvailable = true;
     mLoadTextureRequested = false;
@@ -563,10 +596,26 @@ public:
         context.adjustCurrentTextureMemorySize(-1 * WxH * 4);
       }
 
+      mOffscreenMutex.lock();
       mOffscreen.term();
+      mFreeOffscreenDataRequested = false;
+      mOffscreenMutex.unlock();
 
       mInitialized = false;
     }
+    return PX_OK;
+  }
+
+  virtual pxError freeOffscreenData()
+  {
+    mOffscreenMutex.lock();
+    if (mFreeOffscreenDataRequested)
+    {
+      rtLogDebug("freeing offscreen data");
+      mOffscreen.term();
+    }
+    mFreeOffscreenDataRequested = false;
+    mOffscreenMutex.unlock();
     return PX_OK;
   }
 
@@ -601,7 +650,7 @@ public:
       mTextureUploaded = true;
 
       //free up unneeded offscreen memory
-      mOffscreen.term();
+      freeOffscreenDataInBackground();
     }
     else
     {
@@ -640,7 +689,7 @@ public:
       context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
       
       //free up unneeded offscreen memory
-      mOffscreen.term();
+      freeOffscreenDataInBackground();
     }
     else
     {
@@ -672,6 +721,19 @@ public:
   virtual int height() { return mHeight; }
 
 private:
+
+  void freeOffscreenDataInBackground()
+  {
+    mOffscreenMutex.lock();
+    mFreeOffscreenDataRequested = true;
+    mOffscreenMutex.unlock();
+    rtLogDebug("request to free offscreen data");
+    rtThreadPool *mainThreadPool = rtThreadPool::globalInstance();
+    DecodeImageData *imageData = new DecodeImageData(this, NULL);
+    rtThreadTask *task = new rtThreadTask(cleanupOffscreen, imageData, "");
+    mainThreadPool->executeTask(task);
+  }
+
   pxOffscreen mOffscreen;
   bool        mInitialized;
   int mWidth;
@@ -680,6 +742,8 @@ private:
   bool        mTextureUploaded;
   bool        mTextureDataAvailable;
   bool        mLoadTextureRequested;
+  rtMutex mOffscreenMutex;
+  bool mFreeOffscreenDataRequested;
 
   IDirectFBSurface       *mTexture;
   DFBSurfaceDescription   dsc;
