@@ -13,6 +13,9 @@
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
 
+#define MAX_TEXTURE_WIDTH  2048
+#define MAX_TEXTURE_HEIGHT 2048
+
 #ifndef ENABLE_DFB
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (65 * 1024 * 1024)   // GL
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES (5 * 1024 * 1024)
