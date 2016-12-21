@@ -44,17 +44,15 @@ rtRemoteStream::close()
 {
   if (m_fd != kInvalidSocket)
   {
-    int ret = 0;
-    auto self = shared_from_this();
-    m_env->StreamSelector->removeStream(self);
-    
-    ret = ::shutdown(m_fd, SHUT_RDWR);
+    // rtRemoteStreamSelector will remove dead streams on its own
+    int ret = ::shutdown(m_fd, SHUT_RDWR);
     if (ret == -1)
     {
       rtError e = rtErrorFromErrno(errno);
       rtLogDebug("shutdown failed on fd %d: %s", m_fd, rtStrError(e));
     }
 
+    // sets m_fd to kInvalidSocket
     rtCloseSocket(m_fd);
   }
 

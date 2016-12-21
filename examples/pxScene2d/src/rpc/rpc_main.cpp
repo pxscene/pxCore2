@@ -209,30 +209,39 @@ void Test_Echo_Server()
 
 void Test_SetProperty_Basic_Client()
 {
-  rtObjectRef objectRef;
-  rtError e = rtRemoteLocateObject(env, "test.lcd", objectRef);
-  RT_ASSERT(e == RT_OK);
-
-  int i = 10;
   while (true)
   {
-    e = objectRef.set("height", i);
+    rtObjectRef objectRef;
+
+    rtLogInfo("looking for test.lcd");
+    rtError e = RT_OK;
+    while ((e = rtRemoteLocateObject(env, "test.lcd", objectRef)) != RT_OK)
+    {
+      rtLogInfo("failed to find test.lcd:%s\n", rtStrError(e));
+    }
+
     RT_ASSERT(e == RT_OK);
 
-   //  if (i % 1000 == 0)
-      rtLogInfo("set:%d", i);
+    for (int i = 0, j = 10; i < 5; ++i)
+    {
+      e = objectRef.set("height", j);
+      // RT_ASSERT(e == RT_OK);
 
-    uint32_t n = objectRef.get<uint32_t>("height");
+      //  if (i % 1000 == 0)
+      rtLogInfo("set:%d", j);
 
-  //   if (i % 1000 == 0)
+      uint32_t n = objectRef.get<uint32_t>("height");
+
+      //   if (i % 1000 == 0)
       rtLogInfo("get:%d", n);
 
-    RT_ASSERT(n == static_cast<uint32_t>(i));
+      // RT_ASSERT(n == static_cast<uint32_t>(j));
 
-    i++;
+      j++;
 
-    rtLogInfo("sleeping for 1");
-    sleep(1);
+      rtLogInfo("sleeping for 1");
+      sleep(1);
+    }
   }
 }
 
@@ -242,18 +251,19 @@ void Test_SetProperty_Basic_Server()
   rtError e = rtRemoteRegisterObject(env, "test.lcd", obj);
   RT_ASSERT(e == RT_OK);
 
-  int n = 0;
+  // int n = 0;
   while (true)
   {
     rtError e = rtRemoteRunUntil(env, 1000);
     rtLogInfo("rtRemoteRun:%s", rtStrError(e));
-
+#if 0
     if (n++ == 4)
     {
       rtLogInfo("removing registration");
       rtError e = rtRemoteUnregisterObject(env, "test.lcd");
       RT_ASSERT(e == RT_OK);
     }
+#endif
   }
 }
 

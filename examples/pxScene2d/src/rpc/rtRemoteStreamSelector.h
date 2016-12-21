@@ -19,7 +19,6 @@ public:
 
   rtError start();
   rtError registerStream(std::shared_ptr<rtRemoteStream> const& s);
-  rtError removeStream(std::shared_ptr<rtRemoteStream> const& s);
   rtError shutdown();
 
 private:

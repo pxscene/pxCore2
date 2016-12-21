@@ -49,6 +49,9 @@ public:
   rtError setMessageHandler(MessageHandler handler, void* argp);
   rtError setStateChangedHandler(StateChangedHandler handler, void* argp);
 
+  inline bool isOpen() const
+    { return m_fd != kInvalidSocket; }
+
   inline sockaddr_storage getLocalEndpoint() const
     { return m_local_endpoint; }
 

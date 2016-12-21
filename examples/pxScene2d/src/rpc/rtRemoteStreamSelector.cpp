@@ -48,26 +48,6 @@ rtRemoteStreamSelector::registerStream(std::shared_ptr<rtRemoteStream> const& s)
 }
 
 rtError
-rtRemoteStreamSelector::removeStream(std::shared_ptr<rtRemoteStream> const& stream)
-{
-  rtError e = RT_ERROR_OBJECT_NOT_FOUND;
-
-  std::unique_lock<std::mutex> lock(m_mutex);
-  auto itr = std::remove_if(
-    m_streams.begin(),
-    m_streams.end(),
-    [&stream](std::shared_ptr<rtRemoteStream> const& s) { return s.get() == stream.get(); });
-  if (itr != m_streams.end())
-  {
-    m_streams.erase(itr);
-    e = RT_OK;
-  }
-  m_streams_cond.notify_all();
-
-  return e;
-}
-
-rtError
 rtRemoteStreamSelector::shutdown()
 {
   char buff[] = { "shudown" };
@@ -113,6 +93,18 @@ rtRemoteStreamSelector::doPollFds()
     m_streams_cond.wait(lock, [&](){
          return !m_streams.empty();
     });
+
+    // remove dead streams
+    {
+      auto itr = std::remove_if(m_streams.begin(), m_streams.end(),
+          [](std::shared_ptr<rtRemoteStream> const& s)
+          {
+            return !s->isOpen();
+          });
+
+      if (itr != m_streams.end())
+        m_streams.erase(itr);
+    }
 
     for (auto const& s : m_streams)
     {
