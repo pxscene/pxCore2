@@ -2,8 +2,10 @@
 // pxWayland.cpp
 
 #include "rtString.h"
-#include "rtRemoteConfig.h"
-#include "rtRemoteEnvironment.h"
+#ifdef ENABLE_PX_WAYLAND_RPC
+#include "rpc/rtRemoteConfig.h"
+#include "rpc/rtRemoteEnvironment.h"
+#endif //ENABLE_PX_WAYLAND_RPC
 #include "rtRefT.h"
 #include "pxCore.h"
 #include "pxKeycodes.h"
@@ -37,7 +39,11 @@ pxWayland::pxWayland()
     mReadyEmitted(false),
     mClientMonitorStarted(false),
     mWaitingForRemoteObject(false),
+#ifdef ENABLE_PX_WAYLAND_RPC
     mUseDispatchThread(rtEnvironmentGetGlobal()->Config->server_use_dispatch_thread()),
+#else
+    mUseDispatchThread(true),
+#endif //ENABLE_PX_WAYLAND_RPC
     mX(0),
     mY(0),
     mWidth(0),
