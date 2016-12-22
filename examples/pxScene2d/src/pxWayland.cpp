@@ -2,6 +2,8 @@
 // pxWayland.cpp
 
 #include "rtString.h"
+#include "rtRemoteConfig.h"
+#include "rtRemoteEnvironment.h"
 #include "rtRefT.h"
 #include "pxCore.h"
 #include "pxKeycodes.h"
@@ -35,6 +37,7 @@ pxWayland::pxWayland()
     mReadyEmitted(false),
     mClientMonitorStarted(false),
     mWaitingForRemoteObject(false),
+    mUseDispatchThread(rtEnvironmentGetGlobal()->Config->server_use_dispatch_thread()),
     mX(0),
     mY(0),
     mWidth(0),
@@ -160,7 +163,7 @@ void pxWayland::createDisplay(rtString displayName)
          launchClient();
       }
 
-      if ( !mRemoteObjectName.isEmpty() )
+      if ( mUseDispatchThread && !mRemoteObjectName.isEmpty() )
       {
          mWaitingForRemoteObject = true;
          startRemoteObjectDetection();
@@ -278,7 +281,7 @@ void pxWayland::onUpdate(double t)
 {
    UNUSED_PARAM(t);
 
-  if(!mReadyEmitted && mEvents && mWCtx && !mWaitingForRemoteObject )
+  if(!mReadyEmitted && mEvents && mWCtx && (!mUseDispatchThread || !mWaitingForRemoteObject) )
   {
     mReadyEmitted= true;
     mEvents->isReady(true);
@@ -475,7 +478,7 @@ void pxWayland::terminateClient()
       pthread_join( mClientMonitorThreadId, NULL );      
    }
 
-   if (mWaitingForRemoteObject)
+   if (mUseDispatchThread && mWaitingForRemoteObject)
    {
       mWaitingForRemoteObject = false;
 
@@ -554,9 +557,12 @@ rtError pxWayland::startRemoteObjectLocator()
   if (errorCode != RT_OK)
   {
     rtLogError("pxWayland failed to initialize rtRemoteInit: %d", errorCode);
-    mRemoteObjectMutex.lock();
-    mWaitingForRemoteObject = false;
-    mRemoteObjectMutex.unlock();
+    if( mUseDispatchThread )
+    {
+      mRemoteObjectMutex.lock();
+      mWaitingForRemoteObject = false;
+      mRemoteObjectMutex.unlock();
+    }
     return errorCode;
   }
 
@@ -664,6 +670,36 @@ rtError pxWayland::delListener(const rtString& eventName, const rtFunctionRef& f
 #else
   UNUSED_PARAM(eventName);
   UNUSED_PARAM(f);
+#endif //ENABLE_PX_WAYLAND_RPC
+  return errorCode;
+}
+
+rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
+{
+  rtError errorCode = RT_FAIL;
+
+#ifdef ENABLE_PX_WAYLAND_RPC
+  rtLogInfo("Attempting to find remote object %s", mRemoteObjectName.cString());
+  errorCode = rtRemoteLocateObject(mRemoteObjectName.cString(), mRemoteObject, timeout_ms);
+  if (errorCode != RT_OK)
+  {
+    rtLogError("XREBrowserPlugin failed to find object: %s errorCode %d\n",
+        mRemoteObjectName.cString(), errorCode);
+  }
+  else
+  {
+    rtLogInfo("Remote object %s found.\n", mRemoteObjectName.cString());
+  }
+
+  if (errorCode == RT_OK)
+  {
+    mRemoteObject.send("init");
+    mAPI = mRemoteObject;
+  }
+  else
+  {
+    rtLogError("unable to connect to remote object");
+  }
 #endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
 }

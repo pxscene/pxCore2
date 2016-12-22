@@ -130,6 +130,8 @@ public:
   rtError callMethod(const char* messageName, int numArgs, const rtValue* args);
   rtError addListener(const rtString& eventName, const rtFunctionRef& f);
   rtError delListener(const rtString& eventName, const rtFunctionRef& f);
+  rtError startRemoteObjectLocator();
+  rtError connectToRemoteObject(unsigned int timeout_ms);
 
 private:
   rtAtomic mRefCount;
@@ -139,6 +141,7 @@ private:
   bool mReadyEmitted;
   bool mClientMonitorStarted;
   bool mWaitingForRemoteObject;
+  bool mUseDispatchThread;
   int mX;
   int mY;
   int mWidth;
@@ -162,7 +165,6 @@ private:
   uint32_t linuxFromPX( uint32_t keyCode );
   void startRemoteObjectDetection();
   rtError connectToRemoteObject();
-  rtError startRemoteObjectLocator();
 
 protected:
   void createDisplay(rtString displayName);
