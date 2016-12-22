@@ -268,7 +268,7 @@ if (false) {
 //        this.container.makeReady(true); // DEPRECATED ?
 
 //        this.innerscene.api = {isReady:true};
-        this.makeReady(true,{});
+        this.makeReady(true,xModule.exports);
       }
       else
       {
