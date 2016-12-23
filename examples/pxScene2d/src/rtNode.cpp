@@ -753,8 +753,6 @@ void rtNode::term()
   }
 #endif
 
-return; // JUNK - Probably leaks like a sieve !!!! Stops crash on STB
-
   if(node_isolate)
   {
 // JRJRJR  Causing crash???  ask Hugh
@@ -768,11 +766,11 @@ return; // JUNK - Probably leaks like a sieve !!!! Stops crash on STB
 
   if(node_is_initialized)
   {
-    V8::Dispose();
+    //V8::Dispose();
 
     node_is_initialized = false;
 
-  //  V8::ShutdownPlatform();
+    V8::ShutdownPlatform();
   //  if(mPlatform)
   //  {
   //    delete mPlatform;
