@@ -123,7 +123,7 @@ void pxText::update(double t)
     if (mText.length() >= 10 && msx == 1.0 && msy == 1.0)
     {
       mCached = NULL;
-      pxContextFramebufferRef cached = context.createFramebuffer(getFBOWidth(),getFBOHeight());//mw,mh);
+      pxContextFramebufferRef cached = context.createFramebuffer(getFBOWidth() > MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:getFBOWidth(),getFBOHeight() > MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:getFBOHeight());//mw,mh);
       if (cached.getPtr())
       {
         pxContextFramebufferRef previousSurface = context.getCurrentFramebuffer();
@@ -131,7 +131,7 @@ void pxText::update(double t)
         pxMatrix4f m;
         context.setMatrix(m);
         context.setAlpha(1.0);
-        context.clear(mw,mh);
+        context.clear((mw>MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:mw), (mh>MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:mh));
         draw();
         context.setFramebuffer(previousSurface);
         mCached = cached;
@@ -156,7 +156,7 @@ void pxText::draw() {
     // TODO not very intelligent given scaling
     if (msx == 1.0 && msy == 1.0 && mCached.getPtr() && mCached->getTexture().getPtr())
     {
-      context.drawImage(0, 0, mw, mh, mCached->getTexture(), nullMaskRef);
+      context.drawImage(0, 0, (mw>MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:mw), (mh>MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:mh), mCached->getTexture(), nullMaskRef);
     }
     else
     {
@@ -200,11 +200,11 @@ rtError pxText::setFont(rtObjectRef o)
 
 float pxText::getOnscreenWidth()
 {
-  return mw*msx;
+  return (mw > MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH*msx:mw*msx);
 }
 float pxText::getOnscreenHeight()
 {
-  return mh*msy;
+  return (mh > MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT*msy:mh*msy);
 }
   
 
