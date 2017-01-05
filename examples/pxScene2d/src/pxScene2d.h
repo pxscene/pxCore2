@@ -158,6 +158,7 @@ public:
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
+  rtMethodNoArgAndNoReturn("dispose",releaseResources);
  // rtProperty(onReady, onReady, setOnReady, rtFunctionRef);
 
 //  rtReadOnlyProperty(emit, emit, rtFunctionRef);
@@ -682,6 +683,12 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
 
   void repaint() { mRepaint = true; }
 
+  rtError releaseResources()
+  {
+     dispose();
+     return RT_OK;
+  }
+
 public:
   rtEmitRef mEmit;
 
@@ -970,7 +977,6 @@ public:
   rtProperty(url, url, setUrl, rtString);
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
-  rtMethodNoArgAndNoReturn("dispose",releaseResources);
 
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
@@ -982,12 +988,6 @@ public:
     unsigned long c = pxViewContainer::Release();
 //    printf("pxSceneContainer::Release(): %ld\n", c);
     return c;
-  }
-
-  rtError releaseResources()
-  {
-     dispose();
-     return RT_OK;
   }
 
   void dispose()
