@@ -1157,6 +1157,7 @@ rtDefineMethod(pxObject, getChild);
 rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, removeAll);
 rtDefineMethod(pxObject, moveToFront);
+rtDefineMethod(pxObject, releaseResources);
 //rtDefineMethod(pxObject, animateTo);
 #if 0
 //TODO - remove

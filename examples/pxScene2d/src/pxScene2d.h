@@ -158,6 +158,7 @@ public:
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
+  rtMethodNoArgAndNoReturn("dispose",releaseResources);
  // rtProperty(onReady, onReady, setOnReady, rtFunctionRef);
 
 //  rtReadOnlyProperty(emit, emit, rtFunctionRef);
@@ -681,6 +682,12 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
   rtError setUseMatrix(const bool& v) { mUseMatrix = v; return RT_OK; }
 
   void repaint() { mRepaint = true; }
+
+  rtError releaseResources()
+  {
+     dispose();
+     return RT_OK;
+  }
 
 public:
   rtEmitRef mEmit;
