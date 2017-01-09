@@ -52,6 +52,20 @@ using namespace std;
 #include "rtNode.h"
 #endif //ENABLE_RT_NODE
 
+#ifdef RUNINMAIN
+#define ENTERSCENELOCK()
+#define EXITSCENELOCK() 
+#else
+#define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
+#define EXITSCENELOCK() rtWrapperSceneUpdateExit(); 
+class pxScriptView;
+class AsyncScriptInfo {
+  public:
+    pxScriptView * m_pView;
+    //pxIViewContainer * m_pWindow;
+};
+#endif
+
 
 //Uncomment to enable display of pointer by pxScene
 //#define USE_SCENE_POINTER
@@ -342,7 +356,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
       }
       else
       {
-          deleteSnapshot(mSnapshotRef);
+        deleteSnapshot(mSnapshotRef);
       }
       return RT_OK;
   }
@@ -969,7 +983,7 @@ protected:
   rtString mUrl;
 };
 
-
+static int pxSceneContainerCount = 0;
 class pxSceneContainer: public pxViewContainer
 {
 public:
@@ -980,8 +994,8 @@ public:
 
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
-  pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){}
-  virtual ~pxSceneContainer() {/*printf("###############~pxSceneContainer\n");*/}
+  pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){  pxSceneContainerCount++;printf("###############pxSceneContainerCount=%d\n",pxSceneContainerCount);}
+  virtual ~pxSceneContainer() {printf("###############~pxSceneContainer\n");pxSceneContainerCount--;printf("###############pxSceneContainerCount=%d\n",pxSceneContainerCount);}
 
   virtual unsigned long Release()
   {
@@ -992,6 +1006,7 @@ public:
 
   void dispose()
   {
+     rtLogInfo(__FUNCTION__);
      setScriptView(NULL);
      pxObject::dispose();
   }
@@ -1026,18 +1041,22 @@ class pxScriptView: public pxIView
 {
 public:
   pxScriptView(const char* url, const char* /*lang*/);
-
+#ifndef RUNINMAIN
+  void runScript(); // Run the script
+#endif
   virtual ~pxScriptView()
   {
     rtLogInfo(__FUNCTION__);
-
+    printf("~pxScriptView for mUrl=%s\n",mUrl.cString());
     // Clear out these references since the script context
     // can outlive this view
 #ifdef ENABLE_RT_NODE
-    mCtx->add("getScene", 0);
-    mCtx->add("makeReady", 0);
+    if(mCtx) {
+      mCtx->add("getScene", 0);
+      mCtx->add("makeReady", 0);
 
-    mCtx->add("getContextID", 0);
+      mCtx->add("getContextID", 0);
+    }
 #endif //ENABLE_RT_NODE
     
     if (mView)
@@ -1048,17 +1067,20 @@ public:
     
     if (mScene)
       mScene.send("dispose");
+
     mView = NULL;
     mScene = NULL;
   }
 
   virtual unsigned long AddRef() 
   {
+    //rtLogInfo(__FUNCTION__);
     return rtAtomicInc(&mRefCount);
   }
   
   virtual unsigned long Release() 
   {
+    //rtLogInfo(__FUNCTION__);
     long l = rtAtomicDec(&mRefCount);
     //  printf("pxScene2d release %ld\n",l);
     if (l == 0)
@@ -1101,6 +1123,7 @@ protected:
 
   virtual void onCloseRequest()
   {
+    printf("pxScriptView::onCloseRequest()\n");
     mScene.send("dispose");
     mScene = NULL;
     mView = NULL;
@@ -1207,6 +1230,9 @@ protected:
   pxIViewContainer* mViewContainer;
   unsigned long mRefCount;
   rtString mUrl;
+#ifndef RUNINMAIN
+  rtString mLang;
+#endif
 };
 
 class pxScene2d: public rtObject, public pxIView 
@@ -1259,7 +1285,7 @@ public:
   pxScene2d(bool top = true);
   virtual ~pxScene2d() 
   {
-    // printf("***** deleting pxScene2d\n");
+     printf("***** deleting pxScene2d\n");
     if (mTestView != NULL)
     {
        //delete mTestView; // HACK: Only used in testing... 'delete' causes unknown crash.
@@ -1352,7 +1378,7 @@ public:
   rtError alignHorizontal(rtObjectRef& v) const {v = CONSTANTS.alignHorizontalConstants; return RT_OK;}
   rtError truncation(rtObjectRef& v) const {v = CONSTANTS.truncationConstants; return RT_OK;}
 
-  void setMouseEntered(pxObject* o);
+  void setMouseEntered(rtRefT<pxObject> o);//setMouseEntered(pxObject* o);
 
   // The following methods are delegated to the view
   virtual void onSize(int32_t w, int32_t h);

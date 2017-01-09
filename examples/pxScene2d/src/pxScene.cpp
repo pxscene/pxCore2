@@ -13,11 +13,15 @@
 
 #include "rtNode.h"
 
+#ifdef RUNINMAIN
 extern rtNode script;
+#else
+#include "rtNodeThread.h"
+#endif
 
 #include "jsbindings/rtWrapperUtils.h"
 
-#if 0
+#ifndef RUNINMAIN
 #define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
 #define EXITSCENELOCK()  rtWrapperSceneUpdateExit();
 #else
@@ -29,6 +33,11 @@ extern rtNode script;
 #define PX_SCENE_VERSION dev
 #endif
 
+#ifndef RUNINMAIN
+class AsyncScriptInfo;
+static vector<AsyncScriptInfo*> scriptsInfo;
+static uv_work_t nodeLoopReq;
+#endif
 
 class rtPromise; //fwd
 
@@ -49,21 +58,34 @@ public:
     
     char buffer[1024];
     sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(url).cString());
-    setView(new pxScriptView(buffer,"javascript/node/v8"));
+#ifdef RUNINMAIN
+    setView( new pxScriptView(buffer,"javascript/node/v8"));
+#else
+    pxScriptView * scriptView = new pxScriptView(buffer, "javascript/node/v8");
+    printf("new scriptView is %x\n",scriptView);
+    AsyncScriptInfo * info = new AsyncScriptInfo();
+    info->m_pView = scriptView;
+    uv_mutex_lock(&moreScriptsMutex);
+    scriptsInfo.push_back(info);
+    uv_mutex_unlock(&moreScriptsMutex);
+    printf("sceneWindow::script is pushed on vector\n");
+    uv_async_send(&asyncNewScript);
+    setView(scriptView);
+#endif
   }
 
   rtError setView(pxIView* v)
   {
-    ENTERSCENELOCK()
     mView = v;
 
     if (v)
     {
+      ENTERSCENELOCK()
       v->setViewContainer(this);
       onSize(mWidth, mHeight);
+      EXITSCENELOCK()
     }
-    EXITSCENELOCK()
-
+    
     return RT_OK;
   }
 
@@ -80,116 +102,130 @@ protected:
     {
       mWidth  = w;
       mHeight = h;
-      ENTERSCENELOCK();
+      ENTERSCENELOCK()
       if (mView)
         mView->onSize(w, h);
-      EXITSCENELOCK();
+      EXITSCENELOCK()
     }
   }
 
   virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags)
   {
-    ENTERSCENELOCK();
+    ENTERSCENELOCK()
     if (mView)
       mView->onMouseDown(x, y, flags);
-    EXITSCENELOCK();
+    EXITSCENELOCK()
   }
 
   virtual void onCloseRequest() 
   {
+    rtLogInfo(__FUNCTION__);
     ENTERSCENELOCK();
     if (mView)
       mView->onCloseRequest();
-    EXITSCENELOCK();
+    EXITSCENELOCK()
     // delete mView;
 
+#ifndef RUNINMAIN
+    uv_close((uv_handle_t*) &asyncNewScript, NULL);
+    uv_close((uv_handle_t*) &gcTrigger, NULL);
+#endif 
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
+#ifdef RUNINMAIN
+   script.garbageCollect();
+#endif
+ENTERSCENELOCK()
     mView = NULL;
-    script.garbageCollect();
     eventLoop.exit();
+EXITSCENELOCK()
+#ifndef RUNINMAIN
+   nodeLib->setNeedsToEnd(true); 
+#endif
   }
 
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)
   {
-    ENTERSCENELOCK();
+    ENTERSCENELOCK()
     if (mView)
       mView->onMouseUp(x, y, flags);
-    EXITSCENELOCK();
+    EXITSCENELOCK()
   }
 
   virtual void onMouseLeave()
   {
-    ENTERSCENELOCK();
+    ENTERSCENELOCK()
     if (mView)
       mView->onMouseLeave();
-    EXITSCENELOCK();
+    EXITSCENELOCK()
   }
 
   virtual void onMouseMove(int32_t x, int32_t y)
   {
-    ENTERSCENELOCK();
+    ENTERSCENELOCK()
     if (mView)
       mView->onMouseMove(x, y);
-    EXITSCENELOCK();
+    EXITSCENELOCK()
   }
 
   virtual void onFocus()
   {
-    ENTERSCENELOCK();
+    ENTERSCENELOCK()
     if (mView)
       mView->onFocus();
-    EXITSCENELOCK();
+    EXITSCENELOCK()
   }
   virtual void onBlur()
   {
-    ENTERSCENELOCK();
+    ENTERSCENELOCK()
     if (mView)
       mView->onBlur();
-    EXITSCENELOCK();
+    EXITSCENELOCK()
   }
 
   virtual void onKeyDown(uint32_t keycode, uint32_t flags)
   {
-    ENTERSCENELOCK();
+    ENTERSCENELOCK()
     if (mView)
     {
       mView->onKeyDown(keycode, flags);
     }
-    EXITSCENELOCK();
+    EXITSCENELOCK()
   }
 
   virtual void onKeyUp(uint32_t keycode, uint32_t flags)
   {
-    ENTERSCENELOCK();
+    ENTERSCENELOCK()
     if (mView)
       mView->onKeyUp(keycode, flags);
-    EXITSCENELOCK();
+    EXITSCENELOCK()
   }
 
   virtual void onChar(uint32_t c)
   {
-    ENTERSCENELOCK();
+    ENTERSCENELOCK()
     if (mView)
       mView->onChar(c);
-    EXITSCENELOCK();
+    EXITSCENELOCK()
   }
 
   virtual void onDraw(pxSurfaceNative )
   {
-    ENTERSCENELOCK();
+    ENTERSCENELOCK()
     if (mView)
       mView->onDraw();
-    EXITSCENELOCK();
+    EXITSCENELOCK()
   }
 
   virtual void onAnimationTimer()
   {
-    ENTERSCENELOCK();
+    ENTERSCENELOCK()
     if (mView)
       mView->onUpdate(pxSeconds());
-    EXITSCENELOCK();
+    EXITSCENELOCK()
+#ifdef RUNINMAIN
     script.pump();
+#endif
   }
 
   int mWidth;
@@ -202,6 +238,27 @@ protected:
 
 int pxMain(int argc, char* argv[])
 {
+#ifndef RUNINMAIN
+  printf("Setting  __rt_main_thread__ to be %x\n",pthread_self());
+   __rt_main_thread__ = pthread_self(); //  NB
+  printf("Now  __rt_main_thread__ is %x\n",__rt_main_thread__);
+  printf("rtIsMainThread() returns %d\n",rtIsMainThread());
+
+    #if PX_PLATFORM_X11
+    XInitThreads();
+    #endif
+
+  uv_mutex_init(&moreScriptsMutex);
+  uv_mutex_init(&threadMutex);
+
+  // Start nodeLib thread 
+  uv_queue_work(nodeLoop, &nodeLoopReq, nodeThread, nodeIsEndingCallback);
+  // init asynch that will get notifications about new scripts
+  uv_async_init(nodeLoop, &asyncNewScript, processNewScript);
+  uv_async_init(nodeLoop, &gcTrigger,garbageCollect);
+
+#endif
+
   char buffer[256];
   sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));
   sceneWindow win;

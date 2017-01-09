@@ -127,6 +127,11 @@ public:
 
   rtNodeContextRef getGlobalContext() const;
   rtNodeContextRef createContext(bool ownThread = false);
+#ifndef RUNINMAIN
+  bool isInitialized();
+  bool needsToEnd() { /*printf("needsToEnd returning %d\n",mNeedsToEnd);*/ return mNeedsToEnd;};
+  void setNeedsToEnd(bool end) { /*printf("needsToEnd being set to %d\n",end);*/ mNeedsToEnd = end;}
+#endif
 
   v8::Isolate   *getIsolate() { return mIsolate; };
   void garbageCollect();
@@ -147,6 +152,10 @@ private:
 #endif
 
   bool mTestGc;
+#ifndef RUNINMAIN
+  bool mNeedsToEnd;
+#endif
+
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

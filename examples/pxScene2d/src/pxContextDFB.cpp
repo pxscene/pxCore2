@@ -86,8 +86,11 @@ extern bool needsFlip;
 
 #endif //ENABLE_DFB_GENERIC
 
+#ifdef RUNINMAIN
 extern rtNode                   script;
-
+#else
+extern uv_async_t 				gcTrigger;
+#endif
 
 #ifdef DEBUG
 // Use div0 to trigger debugger to break...
@@ -2358,7 +2361,11 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
   if (pc >= 100.0f)
   {
     rtLogDebug("\n ###  Texture Memory: %3.2f %%  <<<   GARBAGE COLLECT", pc);
+#ifdef RUNINMAIN
     script.garbageCollect();
+#else
+    uv_async_send(&gcTrigger);
+#endif
   }
   // else
   // {

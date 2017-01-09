@@ -73,7 +73,11 @@ pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
 pxContextFramebufferRef defaultFramebuffer(new pxContextFramebuffer());
 pxContextFramebufferRef currentFramebuffer = defaultFramebuffer;
 
+#ifdef RUNINMAIN
 extern rtNode script;
+#else
+extern uv_async_t gcTrigger;
+#endif
 extern pxContext context;
 rtThreadQueue gUIThreadQueue;
 
@@ -2100,7 +2104,11 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
   if (changeInBytes > 0 && mCurrentTextureMemorySizeInBytes > mTextureMemoryLimitInBytes)
   {
     rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", mCurrentTextureMemorySizeInBytes);
-    script.garbageCollect();
+#ifdef RUNINMAIN
+	script.garbageCollect();
+#else
+  uv_async_send(&gcTrigger);
+#endif
   }
 #endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
 }

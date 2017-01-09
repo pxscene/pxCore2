@@ -1,7 +1,9 @@
 #include "rtWrapperUtils.h"
 #include "rtObjectWrapper.h"
 #include "rtFunctionWrapper.h"
-
+#ifndef RUNINMAIN
+extern uv_mutex_t threadMutex;
+#endif
 #include <rtMutex.h>
 
 #ifdef __APPLE__
@@ -49,7 +51,9 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
   Locker locker(data.GetIsolate());
   Isolate::Scope isolateScope(data.GetIsolate());
   HandleScope handleScope(data.GetIsolate());
+#ifndef RUNINMAIN
   rtObjectRef temp;
+#endif
   // rtLogInfo("ptr: %p", data.GetParameter());
 
   Local<Object> obj = data.GetValue();
@@ -74,8 +78,10 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
 
   // uint32_t contextId = GetContextId(ctx);
   // rtLogInfo("contextId: %u addr:%p", contextId, data.GetParameter());
-
+rtWrapperSceneUpdateEnter();
+#ifndef RUNINMAIN
   pthread_mutex_lock(&sObjectMapMutex);
+#endif
   ObjectReferenceMap::iterator j = objectMap.find(data.GetParameter());
   if (j != objectMap.end())
   {
@@ -86,7 +92,9 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
     //
     j->second->PersistentObject.ClearWeak();
     j->second->PersistentObject.Reset();
+#ifndef RUNINMAIN
     temp = j->second->RTObject;
+#endif
 #if 0
     if (!p->IsWeak())
       rtLogWarn("TODO: Why isn't this handle weak?");
@@ -106,6 +114,8 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
   {
     rtLogWarn("failed to find:%p in map", data.GetParameter());
   }
+rtWrapperSceneUpdateExit();
+#ifndef RUNINMAIN
   pthread_mutex_unlock(&sObjectMapMutex);
   rtObjectRef parentRef;
   rtError err = temp.get<rtObjectRef>("parent",parentRef);
@@ -116,6 +126,7 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
       temp.send("dispose");
     }
   }
+#endif
 }
 
 void
@@ -124,8 +135,10 @@ HandleMap::clearAllForContext(uint32_t contextId)
   typedef ObjectReferenceMap::iterator iterator;
 
   int n = 0;
-
+rtWrapperSceneUpdateEnter();
+#ifndef RUNINMAIN
   pthread_mutex_lock(&sObjectMapMutex);
+#endif
   rtLogInfo("clearing all persistent handles for: %u size:%u", contextId,
     static_cast<unsigned>(objectMap.size()));
   vector<iterator> refs;
@@ -158,7 +171,10 @@ HandleMap::clearAllForContext(uint32_t contextId)
   refs.clear();
   //rtLogInfo("clear complete for id[%d] . removed:%d size:%u", contextId, n,
       //static_cast<unsigned>(objectMap.size()));
+rtWrapperSceneUpdateExit();
+#ifndef RUNINMAIN
   pthread_mutex_unlock(&sObjectMapMutex);
+#endif
 }
 
 void HandleMap::addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, Local<Object>& to)
@@ -168,8 +184,10 @@ void HandleMap::addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, 
 
   uint32_t const contextIdCreation = GetContextId(creationContext);
   assert(contextIdCreation != 0);
-
+rtWrapperSceneUpdateEnter();
+#ifndef RUNINMAIN
   pthread_mutex_lock(&sObjectMapMutex);
+#endif
   ObjectReferenceMap::iterator i = objectMap.find(from.getPtr());
   assert(i == objectMap.end());
 
@@ -183,7 +201,10 @@ void HandleMap::addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, 
     entry->CreationContextId = contextIdCreation;
     objectMap.insert(std::make_pair(from.getPtr(), entry));
   }
+rtWrapperSceneUpdateExit(); 
+#ifndef RUNINMAIN 
   pthread_mutex_unlock(&sObjectMapMutex);
+#endif
 
   #if 0
   static FILE* f = NULL;
@@ -204,16 +225,24 @@ Local<Object> HandleMap::lookupSurrogate(v8::Local<v8::Context>& ctx, const rtOb
   Isolate* isolate = ctx->GetIsolate();
   EscapableHandleScope scope(isolate);
   Local<Object> obj;
-
+rtWrapperSceneUpdateEnter();
+#ifndef RUNINMAIN
   pthread_mutex_lock(&sObjectMapMutex);
+#endif
   ObjectReferenceMap::iterator i = objectMap.find(from.getPtr());
   if (i == objectMap.end())
   {
+    rtWrapperSceneUpdateExit();
+#ifndef RUNINMAIN
     pthread_mutex_unlock(&sObjectMapMutex);
+#endif
     return scope.Escape(obj);
   }
   obj = PersistentToLocal(isolate, i->second->PersistentObject);
+rtWrapperSceneUpdateExit();
+#ifndef RUNINMAIN
   pthread_mutex_unlock(&sObjectMapMutex);
+#endif
 
   #if 1
   if (!obj.IsEmpty())
@@ -256,12 +285,42 @@ bool rtWrapperSceneUpdateHasLock()
 #ifdef USE_STD_THREADS
   return std::this_thread::get_id() == sCurrentSceneThread;
 #else
-  return pthread_self() == sCurrentSceneThread;
+  return pthread_equal(pthread_self(),sCurrentSceneThread);
 #endif
 }
 
 void rtWrapperSceneUpdateEnter()
 {
+#ifndef RUNINMAIN
+  //printf("rtWrapperSceneUpdateEnter() pthread_self= %x\n",pthread_self());
+#ifdef USE_STD_THREADS
+  std::unique_lock<std::mutex> lock(sSceneLock);
+  sCurrentSceneThread = std::this_thread::get_id();
+  sLockCount++;
+#else
+  //assert(pthread_mutex_lock(&sSceneLock) == 0);
+  //sCurrentSceneThread = pthread_self();
+  // Main thread is now NOT the node thread
+  if(rtIsMainThread())
+  {
+    // Check if this thread already has a lock 
+    if(rtWrapperSceneUpdateHasLock()) 
+    {
+      //printf("increment lock count only\n");
+      sLockCount++;
+    } 
+    else 
+    {
+      //printf("rtWrapperSceneUpdateEnter locking\n");
+      uv_mutex_lock(&threadMutex);
+      //printf("rtWrapperSceneUpdateEnter GOT LOCK!!!\n");
+      sCurrentSceneThread = pthread_self();
+      sLockCount++;
+    }
+  }
+#endif //USE_STD_THREADS
+
+#else // RUNINMAIN
 #ifdef USE_STD_THREADS
   std::unique_lock<std::mutex> lock(sSceneLock);
   sCurrentSceneThread = std::this_thread::get_id();
@@ -270,10 +329,44 @@ void rtWrapperSceneUpdateEnter()
   sCurrentSceneThread = pthread_self();
 #endif
   sLockCount++;
+#endif // RUNINMAIN
+  
 }
 
 void rtWrapperSceneUpdateExit()
-{
+{ 
+#ifndef RUNINMAIN
+  //printf("rtWrapperSceneUpdateExit() pthread_self= %x\n",pthread_self());
+  if(rtIsMainThread()) {
+ 
+#ifndef RT_USE_SINGLE_RENDER_THREAD
+  assert(rtWrapperSceneUpdateHasLock());
+#endif //RT_USE_SINGLE_RENDER_THREAD
+
+  sLockCount--;
+
+#ifdef USE_STD_THREADS
+  if (sLockCount == 0)
+    sCurrentSceneThread = std::thread::id()
+#else
+  if (sLockCount == 0)
+    sCurrentSceneThread = 0;
+#endif
+
+#ifdef USE_STD_THREADS
+  std::unique_lock<std::mutex> lock(sSceneLock);
+#else
+  //assert(pthread_mutex_unlock(&sSceneLock) == 0);
+  // Main thread is now NOT the node thread
+  if (sLockCount == 0) {
+    //printf("rtWrapperSceneUpdateExit unlocking\n");
+    uv_mutex_unlock(&threadMutex);
+  }
+
+#endif
+  }
+
+#else RUNINMAIN
 #ifndef RT_USE_SINGLE_RENDER_THREAD
   assert(rtWrapperSceneUpdateHasLock());
 #endif //RT_USE_SINGLE_RENDER_THREAD
@@ -292,6 +385,7 @@ void rtWrapperSceneUpdateExit()
 #else
   assert(pthread_mutex_unlock(&sSceneLock) == 0);
 #endif
+#endif // RUNINMAIN
 }
 
 using namespace v8;

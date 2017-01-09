@@ -383,7 +383,8 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
       // don't block render thread while waiting for callback to complete
       rtWrapperSceneUnlocker unlocker;
 
-      *result = wait();
+      // !CLF: When/why was this wait() introduced?  Need fix for multi-thread solution
+     // *result = wait();
     }
   }
   else // just queue

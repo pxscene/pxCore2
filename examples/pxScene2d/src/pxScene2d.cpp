@@ -63,7 +63,16 @@ uint32_t gFboBindCalls;
 #ifdef ENABLE_RT_NODE
 extern void rtWrapperSceneUpdateEnter();
 extern void rtWrapperSceneUpdateExit();
+#ifdef RUNINMAIN
 rtNode script;
+#else
+extern rtNode * nodeLib;
+class AsyncScriptInfo;
+extern vector<AsyncScriptInfo*> scriptsInfo;
+extern uv_mutex_t moreScriptsMutex;
+extern uv_async_t asyncNewScript;
+extern uv_async_t gcTrigger;
+#endif // RUNINMAIN
 #endif //ENABLE_RT_NODE
 
 #ifdef ENABLE_VALGRIND
@@ -261,6 +270,7 @@ void pxObject::createNewPromise()
 
 void pxObject::dispose()
 {
+  //rtLogInfo(__FUNCTION__);
   vector<animation>::iterator it = mAnimations.begin();
   for(;it != mAnimations.end();it++)
   {
@@ -288,7 +298,11 @@ void pxObject::dispose()
   mDrawableSnapshotForMask = NULL;
   mMaskSnapshot = NULL;
 #ifdef ENABLE_RT_NODE
+#ifdef RUNINMAIN
   script.pump();
+#else
+  nodeLib->pump();
+#endif
 #endif
 }
 
@@ -626,7 +640,9 @@ void pxObject::update(double t)
 #ifdef PX_DIRTY_RECTANGLES
     context.pushState();
 #endif //PX_DIRTY_RECTANGLES
+ENTERSCENELOCK()
     (*it)->update(t);
+EXITSCENELOCK()
 #ifdef PX_DIRTY_RECTANGLES
     context.popState();
 #endif //PX_DIRTY_RECTANGLES
@@ -1235,6 +1251,7 @@ rtError pxScene2d::dispose()
 
 void pxScene2d::onCloseRequest()
 {
+  rtLogInfo(__FUNCTION__);
   dispose();
 }
 
@@ -1447,8 +1464,9 @@ void pxScene2d::draw()
   {
     context.pushState();
 
+ENTERSCENELOCK()
     mRoot->drawInternal(true);
-
+EXITSCENELOCK()
     context.popState();
     mDirtyRect.setEmpty();
   }
@@ -1480,8 +1498,9 @@ void pxScene2d::draw()
   {
     pxMatrix4f m;
     context.pushState();
-
+ENTERSCENELOCK()
     mRoot->drawInternal(true); // mask it !
+EXITSCENELOCK()
     context.popState();
   }
   #endif //PX_DIRTY_RECTANGLES
@@ -1782,7 +1801,7 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
 }
 
 // TODO rtRefT doesn't like non-const !=
-void pxScene2d::setMouseEntered(pxObject* o)
+void pxScene2d::setMouseEntered(rtRefT<pxObject> o)//pxObject* o)
 {
   if (mMouseEntered != o)
   {
@@ -2338,13 +2357,26 @@ rtDefineProperty(pxSceneContainer, ready);
 
 rtError pxSceneContainer::setUrl(rtString url)
 {
+  printf("pxSceneContainer::setUrl(%s)",url.cString());
   // If old promise is still unfulfilled reject it
   // and create a new promise for the context of this Url
   mReady.send("reject", this);
   mReady = new rtPromise( std::string("pxSceneContainer >> ") + std::string(url) );
 
   mUrl = url;
-  setScriptView(new pxScriptView(url.cString(),""));
+#ifdef RUNINMAIN
+    setScriptView(new pxScriptView(url.cString(), ""));
+#else
+    pxScriptView * scriptView = new pxScriptView(url.cString(),"");
+    AsyncScriptInfo * info = new AsyncScriptInfo();
+    info->m_pView = scriptView;
+    //info->m_pWindow = this;
+    uv_mutex_lock(&moreScriptsMutex);
+    scriptsInfo.push_back(info);
+    uv_mutex_unlock(&moreScriptsMutex);
+    uv_async_send(&asyncNewScript);
+    setScriptView(scriptView);
+#endif
 
   return RT_OK;
 }
@@ -2360,8 +2392,12 @@ rtError pxSceneContainer::api(rtValue& v) const
 
 rtError pxSceneContainer::ready(rtObjectRef& o) const
 {
-  if (mScriptView)
+  printf("pxSceneContainer::ready\n");
+  if (mScriptView) {
+    printf("mScriptView is set!\n");
     return mScriptView->ready(o);
+  } 
+  printf("mScriptView is NOT set!\n");
   return RT_FAIL;
 }
 
@@ -2371,17 +2407,6 @@ rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
   setView(scriptView);
   return RT_OK;
 }
-
-
-// rtError pxSceneContainer::makeReady(bool ready)
-// {
-//   //DEPRECATED ?
-//   rtLogInfo("make ready: %d", ready);
-//   mReady.send(ready?"resolve":"reject", this);
-//   return RT_OK;
-// }
-
-
 #if 0
 void* gObjectFactoryContext = NULL;
 objectFactory gObjectFactory = NULL;
@@ -2399,9 +2424,29 @@ rtError createObject2(const char* t, rtObjectRef& o)
 
 pxScriptView::pxScriptView(const char* url, const char* /*lang*/) 
      : mWidth(-1), mHeight(-1), mViewContainer(NULL), mRefCount(0)
+{ 
+  rtLogInfo(__FUNCTION__);
+  printf("pxScriptView::pxScriptView()entering\n");
+#ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
+  mUrl = url;
+  mReady = new rtPromise();
+ // mLang = lang;
+  printf("pxScriptView::pxScriptView() exiting\n");
+}
+
+void pxScriptView::runScript() 
 {
+  rtLogInfo(__FUNCTION__);
+#endif // ifndef RUNINMAIN
+
   #ifdef ENABLE_RT_NODE
+#ifdef RUNINMAIN
   mCtx = script.createContext();
+#else
+  printf("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
+  mCtx = nodeLib->createContext();
+#endif // ifdef RUNINMAIN
+
   if (mCtx)
   {
     mCtx->add("getScene",  new rtFunctionCallback(getScene,  this));
@@ -2409,19 +2454,27 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
 
     mCtx->add("getContextID", new rtFunctionCallback(getContextID, this));
 
+#ifdef RUNINMAIN
     mReady = new rtPromise();
-
+#endif
     mCtx->runFile("init.js");
 
     char buffer[1024];
+#ifdef RUNINMAIN
     sprintf(buffer, "loadUrl(\"%s\");", url);
+#else
+    sprintf(buffer, "loadUrl(\"%s\");", mUrl.cString());
+    printf("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
+#endif
     mCtx->runScript(buffer);
+    printf("pxScriptView::runScript() ending\n");
   }
   #endif //ENABLE_RT_NODE
 }
 
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
+  rtLogInfo(__FUNCTION__);
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
@@ -2441,6 +2494,7 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
         v->mView->setViewContainer(v->mViewContainer);
         v->mView->onSize(v->mWidth,v->mHeight);
       }
+      printf("pxScriptView::getScene() Almost done \n");
 
       if (result)
       {
@@ -2456,6 +2510,7 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
 
 rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
+  //rtLogInfo(__FUNCTION__);
   UNUSED_PARAM(numArgs);
   UNUSED_PARAM(args);
 
@@ -2487,6 +2542,7 @@ rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* re
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {
+  rtLogInfo(__FUNCTION__);
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
