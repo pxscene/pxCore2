@@ -164,7 +164,7 @@ rtWrapperSceneUpdateEnter();
       }
   }
 
-  for(int i=0; i<refs.size();i++)
+  for(unsigned int i=0; i<refs.size();i++)
   {
     objectMap.erase(refs[i]);
   }
@@ -366,7 +366,7 @@ void rtWrapperSceneUpdateExit()
 #endif
   }
 
-#else RUNINMAIN
+#else //RUNINMAIN
 #ifndef RT_USE_SINGLE_RENDER_THREAD
   assert(rtWrapperSceneUpdateHasLock());
 #endif //RT_USE_SINGLE_RENDER_THREAD

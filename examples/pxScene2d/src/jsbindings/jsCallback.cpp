@@ -104,7 +104,7 @@ rtValue jsCallback::run()
 
   Local<Value> val;
 
-  TryCatch tryCatch;
+  TryCatch tryCatch(mIsolate);
   if (!func.IsEmpty())
   {
     // TODO: check that first arg. Is that 'this' why are we using context->Global()?

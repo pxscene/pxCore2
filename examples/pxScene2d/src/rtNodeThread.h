@@ -66,9 +66,8 @@ struct asyncWindowInfo {
     void * window;
     void * view;
 };
-
-extern vector<AsyncScriptInfo*> scriptsInfo;
 class AsyncScriptInfo;
+extern vector<AsyncScriptInfo*> scriptsInfo;
 // !CLF: You will have to translate this for Win32 and OSX
 uv_mutex_t moreScriptsMutex;
 uv_timer_t nodeTimer;

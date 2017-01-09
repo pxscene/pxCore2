@@ -35,7 +35,7 @@ extern rtNode script;
 
 #ifndef RUNINMAIN
 class AsyncScriptInfo;
-static vector<AsyncScriptInfo*> scriptsInfo;
+vector<AsyncScriptInfo*> scriptsInfo;
 static uv_work_t nodeLoopReq;
 #endif
 
