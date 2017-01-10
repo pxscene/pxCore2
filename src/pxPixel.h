@@ -37,8 +37,6 @@ struct pxPixel {
       uint8_t b,g,r,a;
 #endif
 #else
-  #warning Using BIG Endian ARGB
-
       uint8_t b: 8;   // LSB
       uint8_t g: 8;
       uint8_t r: 8;
