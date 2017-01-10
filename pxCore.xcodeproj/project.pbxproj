@@ -3,586 +3,817 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 42;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		843867850FFB91DD00B47106 /* Hover.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 843867840FFB91DD00B47106 /* Hover.cpp */; };
-		8438678F0FFB921400B47106 /* ApplicationServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE910CC968EF003C29FE /* ApplicationServices */; };
-		843867900FFB921400B47106 /* Carbon in Frameworks */ = {isa = PBXBuildFile; fileRef = 90C98E270CC9685300FD8D08 /* Carbon */; };
-		843867910FFB921400B47106 /* CoreServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE930CC96909003C29FE /* CoreServices */; };
-		843867920FFB921400B47106 /* libpxCore Static Library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 90DAAE800CC963F400D12854 /* libpxCore Static Library.a */; };
-		843867AD0FFB926B00B47106 /* ApplicationServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE910CC968EF003C29FE /* ApplicationServices */; };
-		843867AE0FFB926B00B47106 /* Carbon in Frameworks */ = {isa = PBXBuildFile; fileRef = 90C98E270CC9685300FD8D08 /* Carbon */; };
-		843867AF0FFB926B00B47106 /* CoreServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE930CC96909003C29FE /* CoreServices */; };
-		843867B00FFB927900B47106 /* libpxCore Static Library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 90DAAE800CC963F400D12854 /* libpxCore Static Library.a */; };
-		843867B20FFB928800B47106 /* Sprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 843867B10FFB928800B47106 /* Sprite.cpp */; };
-		903EBE920CC968EF003C29FE /* ApplicationServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE910CC968EF003C29FE /* ApplicationServices */; };
-		903EBE940CC96909003C29FE /* CoreServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE930CC96909003C29FE /* CoreServices */; };
-		905F415F0D662A8300E15CE0 /* pxBufferNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 905F415D0D662A8300E15CE0 /* pxBufferNative.cpp */; };
-		905F41600D662A8300E15CE0 /* pxBufferNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 905F415E0D662A8300E15CE0 /* pxBufferNative.h */; };
-		905F41A10D66301200E15CE0 /* NativeDrawing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 905F41A00D66301200E15CE0 /* NativeDrawing.cpp */; };
-		905F41A60D66305900E15CE0 /* libpxCore Static Library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 90DAAE800CC963F400D12854 /* libpxCore Static Library.a */; };
-		905F41A70D66306600E15CE0 /* Carbon in Frameworks */ = {isa = PBXBuildFile; fileRef = 90C98E270CC9685300FD8D08 /* Carbon */; };
-		905F41A80D66306800E15CE0 /* ApplicationServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE910CC968EF003C29FE /* ApplicationServices */; };
-		905F41A90D66306A00E15CE0 /* CoreServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE930CC96909003C29FE /* CoreServices */; };
-		90C98E280CC9685300FD8D08 /* Carbon in Frameworks */ = {isa = PBXBuildFile; fileRef = 90C98E270CC9685300FD8D08 /* Carbon */; };
-		90CE88E90CCB30F8009442AC /* libpxCore Static Library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 90DAAE800CC963F400D12854 /* libpxCore Static Library.a */; };
-		90CE88EA0CCB30FD009442AC /* libpxCore Static Library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 90DAAE800CC963F400D12854 /* libpxCore Static Library.a */; };
-		90CE88EB0CCB3101009442AC /* Carbon in Frameworks */ = {isa = PBXBuildFile; fileRef = 90C98E270CC9685300FD8D08 /* Carbon */; };
-		90CE88EC0CCB3104009442AC /* ApplicationServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE910CC968EF003C29FE /* ApplicationServices */; };
-		90CE88ED0CCB3106009442AC /* CoreServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE930CC96909003C29FE /* CoreServices */; };
-		90CE88F00CCB316E009442AC /* KeyboardAndMouse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90CE88EE0CCB314E009442AC /* KeyboardAndMouse.cpp */; };
-		90CE8AB70CCE00ED009442AC /* Animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90CE8AB60CCE00ED009442AC /* Animation.cpp */; };
-		90CE8AB80CCE012B009442AC /* Timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90CE8AB20CCE00B1009442AC /* Timer.cpp */; };
-		90CE8AB90CCE0134009442AC /* Mandelbrot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90CE8AB40CCE00C5009442AC /* Mandelbrot.cpp */; };
-		90CE8ABA0CCE0162009442AC /* libpxCore Static Library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 90DAAE800CC963F400D12854 /* libpxCore Static Library.a */; };
-		90CE8ABB0CCE0162009442AC /* Carbon in Frameworks */ = {isa = PBXBuildFile; fileRef = 90C98E270CC9685300FD8D08 /* Carbon */; };
-		90CE8ABC0CCE0162009442AC /* ApplicationServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE910CC968EF003C29FE /* ApplicationServices */; };
-		90CE8ABD0CCE0162009442AC /* CoreServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE930CC96909003C29FE /* CoreServices */; };
-		90CE8ABE0CCE016B009442AC /* libpxCore Static Library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 90DAAE800CC963F400D12854 /* libpxCore Static Library.a */; };
-		90CE8ABF0CCE016B009442AC /* Carbon in Frameworks */ = {isa = PBXBuildFile; fileRef = 90C98E270CC9685300FD8D08 /* Carbon */; };
-		90CE8AC00CCE016B009442AC /* ApplicationServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE910CC968EF003C29FE /* ApplicationServices */; };
-		90CE8AC10CCE016B009442AC /* CoreServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE930CC96909003C29FE /* CoreServices */; };
-		90CE8AC20CCE018C009442AC /* libpxCore Static Library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 90DAAE800CC963F400D12854 /* libpxCore Static Library.a */; };
-		90CE8AC30CCE018C009442AC /* Carbon in Frameworks */ = {isa = PBXBuildFile; fileRef = 90C98E270CC9685300FD8D08 /* Carbon */; };
-		90CE8AC40CCE018C009442AC /* ApplicationServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE910CC968EF003C29FE /* ApplicationServices */; };
-		90CE8AC50CCE018C009442AC /* CoreServices in Frameworks */ = {isa = PBXBuildFile; fileRef = 903EBE930CC96909003C29FE /* CoreServices */; };
-		90DAAE860CC9642900D12854 /* pxOffscreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90DAAE850CC9642900D12854 /* pxOffscreen.cpp */; };
-		90DAAE8A0CC9644900D12854 /* pxEventLoopNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90DAAE870CC9644900D12854 /* pxEventLoopNative.cpp */; };
-		90DAAE8B0CC9644900D12854 /* pxOffscreenNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90DAAE880CC9644900D12854 /* pxOffscreenNative.cpp */; };
-		90DAAE8C0CC9644900D12854 /* pxWindowNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90DAAE890CC9644900D12854 /* pxWindowNative.cpp */; };
-		90DAAE8E0CC9648100D12854 /* pxTimerNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90DAAE8D0CC9648100D12854 /* pxTimerNative.cpp */; };
-		90DAAE9F0CC964D700D12854 /* Simple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90DAAE9E0CC964D700D12854 /* Simple.cpp */; };
+		4C7B860F1D10A45200C2489F /* pxClipboard.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B860E1D10A45200C2489F /* pxClipboard.h */; };
+		4C7B86131D10A47300C2489F /* pxClipboardNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4C7B86111D10A47300C2489F /* pxClipboardNative.mm */; };
+		4C7B86141D10A47300C2489F /* pxClipboardNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B86121D10A47300C2489F /* pxClipboardNative.h */; };
+		AE1D42DD1B7CF611002E7CAE /* Hover.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1D42DC1B7CF611002E7CAE /* Hover.cpp */; };
+		AE1D42DE1B7D048B002E7CAE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
+		AE1D42DF1B7D0493002E7CAE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
+		AE1D43051B7D2A6E002E7CAE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
+		AE1D43061B7D2A7F002E7CAE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
+		AE1D43091B7D2AB2002E7CAE /* Multi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1D43081B7D2AB2002E7CAE /* Multi.cpp */; };
+		AE1D43311B7D2B95002E7CAE /* Animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1D43301B7D2B95002E7CAE /* Animation.cpp */; };
+		AE1D43331B7D2C00002E7CAE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
+		AE1D43341B7D2C07002E7CAE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
+		AE1D435A1B7D4640002E7CAE /* Sprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1D43591B7D4640002E7CAE /* Sprite.cpp */; };
+		AE1D435C1B7D4B9C002E7CAE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
+		AE1D435D1B7D4BA4002E7CAE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
+		AE1D43831B7D4F8F002E7CAE /* Mandelbrot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1D43821B7D4F8F002E7CAE /* Mandelbrot.cpp */; };
+		AE1D43851B7D505F002E7CAE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
+		AE1D43861B7D5067002E7CAE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
+		AE1D43B81B7D5164002E7CAE /* Timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1D43B71B7D5164002E7CAE /* Timer.cpp */; };
+		AE1D43B91B7D5191002E7CAE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
+		AE1D43BA1B7D5197002E7CAE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
+		AE1D43E01B7D52B5002E7CAE /* KeyboardAndMouse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1D43DF1B7D52B5002E7CAE /* KeyboardAndMouse.cpp */; };
+		AE1D43E21B7D5317002E7CAE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
+		AE1D43E31B7D531D002E7CAE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
+		AE1D44091B7E8E40002E7CAE /* NativeDrawing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1D44081B7E8E40002E7CAE /* NativeDrawing.cpp */; };
+		AE1D440B1B7E8EE6002E7CAE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
+		AE1D440C1B7E8EEC002E7CAE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
+		AE1D44321B8099B0002E7CAE /* SimpleOpenGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1D44311B8099B0002E7CAE /* SimpleOpenGL.cpp */; };
+		AE1D44341B809B93002E7CAE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
+		AE1D44351B809B99002E7CAE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
+		AE1D44371B809BA8002E7CAE /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE1D44361B809BA8002E7CAE /* OpenGL.framework */; };
+		AE83DD1F1C08A2720035F5AF /* Simple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AECBEE031B683C2F00851BFE /* Simple.cpp */; };
+		AECBED611B67B09200851BFE /* pxBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED4F1B67B09200851BFE /* pxBuffer.h */; };
+		AECBED621B67B09200851BFE /* pxColor.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED501B67B09200851BFE /* pxColor.h */; };
+		AECBED631B67B09200851BFE /* pxConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED511B67B09200851BFE /* pxConfig.h */; };
+		AECBED641B67B09200851BFE /* pxCore.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED521B67B09200851BFE /* pxCore.h */; };
+		AECBED651B67B09200851BFE /* pxEventLoop.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED531B67B09200851BFE /* pxEventLoop.h */; };
+		AECBED661B67B09200851BFE /* pxIView.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED541B67B09200851BFE /* pxIView.h */; };
+		AECBED671B67B09200851BFE /* pxKeycodes.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED551B67B09200851BFE /* pxKeycodes.h */; };
+		AECBED681B67B09200851BFE /* pxOffscreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AECBED561B67B09200851BFE /* pxOffscreen.cpp */; };
+		AECBED691B67B09200851BFE /* pxOffscreen.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED571B67B09200851BFE /* pxOffscreen.h */; };
+		AECBED6A1B67B09200851BFE /* pxPixel.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED581B67B09200851BFE /* pxPixel.h */; };
+		AECBED6B1B67B09200851BFE /* pxRect.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED591B67B09200851BFE /* pxRect.h */; };
+		AECBED6C1B67B09200851BFE /* pxTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5A1B67B09200851BFE /* pxTimer.h */; };
+		AECBED6D1B67B09200851BFE /* pxViewWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AECBED5B1B67B09200851BFE /* pxViewWindow.cpp */; };
+		AECBED6E1B67B09200851BFE /* pxViewWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5C1B67B09200851BFE /* pxViewWindow.h */; };
+		AECBED6F1B67B09200851BFE /* pxWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5D1B67B09200851BFE /* pxWindow.h */; };
+		AECBED701B67B09200851BFE /* pxWindowUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AECBED5E1B67B09200851BFE /* pxWindowUtil.cpp */; };
+		AECBED711B67B09200851BFE /* pxWindowUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5F1B67B09200851BFE /* pxWindowUtil.h */; };
+		AECBED721B67B09200851BFE /* rtRefPtr.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED601B67B09200851BFE /* rtRefPtr.h */; };
+		AECBED7D1B67B0A800851BFE /* pxBufferNative.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED731B67B0A800851BFE /* pxBufferNative.h */; };
+		AECBED7E1B67B0A800851BFE /* pxBufferNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED741B67B0A800851BFE /* pxBufferNative.mm */; };
+		AECBED7F1B67B0A800851BFE /* pxConfigNative.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED751B67B0A800851BFE /* pxConfigNative.h */; };
+		AECBED801B67B0A800851BFE /* pxEventLoopNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED761B67B0A800851BFE /* pxEventLoopNative.mm */; };
+		AECBED811B67B0A800851BFE /* pxOffscreenNative.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED771B67B0A800851BFE /* pxOffscreenNative.h */; };
+		AECBED821B67B0A800851BFE /* pxOffscreenNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED781B67B0A800851BFE /* pxOffscreenNative.mm */; };
+		AECBED831B67B0A800851BFE /* pxTimerNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED791B67B0A800851BFE /* pxTimerNative.mm */; };
+		AECBED841B67B0A800851BFE /* pxWindowNative.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED7A1B67B0A800851BFE /* pxWindowNative.h */; };
+		AECBED851B67B0A800851BFE /* pxWindowNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED7B1B67B0A800851BFE /* pxWindowNative.mm */; };
+		AECBEE041B683C2F00851BFE /* Simple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AECBEE031B683C2F00851BFE /* Simple.cpp */; };
+		AECBEE0A1B685F1C00851BFE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
+		AECBEE0C1B685F2100851BFE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
+		AEF5F63A1C0C6B4B005A642F /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBECD01B67979F00851BFE /* libpxCore.a */; };
+		AEF5F63B1C0C6B4B005A642F /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBECD01B67979F00851BFE /* libpxCore.a */; };
+		AEF5F63C1C0C6B4C005A642F /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBECD01B67979F00851BFE /* libpxCore.a */; };
+		AEF5F63D1C0C6B4C005A642F /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBECD01B67979F00851BFE /* libpxCore.a */; };
+		AEF5F63E1C0C6B4D005A642F /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBECD01B67979F00851BFE /* libpxCore.a */; };
+		AEF5F63F1C0C6B4F005A642F /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBECD01B67979F00851BFE /* libpxCore.a */; };
+		AEF5F6401C0C6B50005A642F /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBECD01B67979F00851BFE /* libpxCore.a */; };
+		AEF5F6411C0C6B51005A642F /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBECD01B67979F00851BFE /* libpxCore.a */; };
+		AEF5F6421C0C6B52005A642F /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBECD01B67979F00851BFE /* libpxCore.a */; };
+		AEF5F6431C0C6B53005A642F /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBECD01B67979F00851BFE /* libpxCore.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		843867820FFB91B500B47106 /* PBXContainerItemProxy */ = {
+		4C252C591D08A1FE0022A6C9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 90DCA5610CC76A1700AF146D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 90DAAE7F0CC963F400D12854;
-			remoteInfo = "pxCore Static Library";
-		};
-		905F41A20D66302300E15CE0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 90DCA5610CC76A1700AF146D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 90DAAE7F0CC963F400D12854;
-			remoteInfo = "pxCore Static Library";
-		};
-		90C50F8F0CD4D9C0001BCD5A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 90DCA5610CC76A1700AF146D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 90DAAE7F0CC963F400D12854;
-			remoteInfo = "pxCore Static Library";
-		};
-		90C50F960CD4D9F5001BCD5A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 90DCA5610CC76A1700AF146D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 90DAAE7F0CC963F400D12854;
-			remoteInfo = "pxCore Static Library";
-		};
-		90C50F980CD4D9FA001BCD5A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 90DCA5610CC76A1700AF146D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 90DAAE7F0CC963F400D12854;
-			remoteInfo = "pxCore Static Library";
-		};
-		90C50F9A0CD4DA04001BCD5A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 90DCA5610CC76A1700AF146D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 90DAAE7F0CC963F400D12854;
-			remoteInfo = "pxCore Static Library";
-		};
-		90C50F9C0CD4DA07001BCD5A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 90DCA5610CC76A1700AF146D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 90DAAE7F0CC963F400D12854;
-			remoteInfo = "pxCore Static Library";
+			containerPortal = 4C252C551D08A1FE0022A6C9 /* pxScene.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4C252C4B1D08A1BA0022A6C9;
+			remoteInfo = pxScene;
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		AE1D43AD1B7D5113002E7CAE /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		8438677C0FFB916500B47106 /* Hover Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hover Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		8438677E0FFB916500B47106 /* Hover Example-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Hover Example-Info.plist"; sourceTree = "<group>"; };
-		843867840FFB91DD00B47106 /* Hover.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Hover.cpp; path = examples/Hover/Hover.cpp; sourceTree = "<group>"; };
-		843867A70FFB925400B47106 /* Sprite Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sprite Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		843867A90FFB925400B47106 /* Sprite Example-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Sprite Example-Info.plist"; sourceTree = "<group>"; };
-		843867B10FFB928800B47106 /* Sprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sprite.cpp; path = examples/Sprite/Sprite.cpp; sourceTree = "<group>"; };
-		9018E9000CD7067A0019855C /* pxOffscreenNative.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = pxOffscreenNative.h; path = src/mac/pxOffscreenNative.h; sourceTree = "<group>"; };
-		9018E9010CD7067F0019855C /* pxWindowNative.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = pxWindowNative.h; path = src/mac/pxWindowNative.h; sourceTree = "<group>"; };
-		90311FE10CD9894700E5663C /* pxConfigNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxConfigNative.h; path = src/mac/pxConfigNative.h; sourceTree = "<group>"; };
-		903EBE910CC968EF003C29FE /* ApplicationServices */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = ApplicationServices; path = /System/Library/Frameworks/ApplicationServices.framework/ApplicationServices; sourceTree = "<absolute>"; };
-		903EBE930CC96909003C29FE /* CoreServices */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = CoreServices; path = /System/Library/Frameworks/CoreServices.framework/CoreServices; sourceTree = "<absolute>"; };
-		905F415D0D662A8300E15CE0 /* pxBufferNative.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = pxBufferNative.cpp; path = src/mac/pxBufferNative.cpp; sourceTree = "<group>"; };
-		905F415E0D662A8300E15CE0 /* pxBufferNative.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = pxBufferNative.h; path = src/mac/pxBufferNative.h; sourceTree = "<group>"; };
-		905F419A0D662FD800E15CE0 /* NativeDrawing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NativeDrawing.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		905F419C0D662FD800E15CE0 /* NativeDrawing-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "NativeDrawing-Info.plist"; sourceTree = "<group>"; };
-		905F41A00D66301200E15CE0 /* NativeDrawing.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = NativeDrawing.cpp; path = examples/NativeDrawing/NativeDrawing.cpp; sourceTree = "<group>"; };
-		907A309C0CD54DED0029F94A /* pxConfig.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = pxConfig.h; path = src/pxConfig.h; sourceTree = "<group>"; };
-		907A309D0CD54DED0029F94A /* pxCore.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = pxCore.h; path = src/pxCore.h; sourceTree = "<group>"; };
-		907A309E0CD54DED0029F94A /* pxBuffer.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = pxBuffer.h; path = src/pxBuffer.h; sourceTree = "<group>"; };
-		907A309F0CD54DED0029F94A /* pxEventLoop.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = pxEventLoop.h; path = src/pxEventLoop.h; sourceTree = "<group>"; };
-		907A30A00CD54DED0029F94A /* pxOffscreen.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = pxOffscreen.h; path = src/pxOffscreen.h; sourceTree = "<group>"; };
-		907A30A10CD54DED0029F94A /* pxPixels.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = pxPixels.h; path = src/pxPixels.h; sourceTree = "<group>"; };
-		907A30A20CD54DED0029F94A /* pxTimer.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = pxTimer.h; path = src/pxTimer.h; sourceTree = "<group>"; };
-		907A30A30CD54DED0029F94A /* pxColors.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = pxColors.h; path = src/pxColors.h; sourceTree = "<group>"; };
-		907A30A40CD54DED0029F94A /* pxWindow.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = pxWindow.h; path = src/pxWindow.h; sourceTree = "<group>"; };
-		90C98E270CC9685300FD8D08 /* Carbon */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Carbon; path = /System/Library/Frameworks/Carbon.framework/Carbon; sourceTree = "<absolute>"; };
-		90CE88D20CCB3069009442AC /* KeyboardAndMouse Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "KeyboardAndMouse Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		90CE88D40CCB3069009442AC /* KeyboardAndMouse Example-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "KeyboardAndMouse Example-Info.plist"; sourceTree = "<group>"; };
-		90CE88EE0CCB314E009442AC /* KeyboardAndMouse.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = KeyboardAndMouse.cpp; path = examples/KeyboardAndMouse/KeyboardAndMouse.cpp; sourceTree = "<group>"; };
-		90CE8A860CCDFF4B009442AC /* Animation Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Animation Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		90CE8A880CCDFF4B009442AC /* Animation Example-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Animation Example-Info.plist"; sourceTree = "<group>"; };
-		90CE8A900CCDFFA0009442AC /* Mandelbrot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mandelbrot.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		90CE8A920CCDFFA0009442AC /* Mandelbrot-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Mandelbrot-Info.plist"; sourceTree = "<group>"; };
-		90CE8A990CCE0036009442AC /* Timer Example */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Timer Example"; sourceTree = BUILT_PRODUCTS_DIR; };
-		90CE8AB20CCE00B1009442AC /* Timer.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Timer.cpp; path = examples/Timer/Timer.cpp; sourceTree = "<group>"; };
-		90CE8AB40CCE00C5009442AC /* Mandelbrot.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Mandelbrot.cpp; path = examples/Mandelbrot/Mandelbrot.cpp; sourceTree = "<group>"; };
-		90CE8AB60CCE00ED009442AC /* Animation.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Animation.cpp; path = examples/Animation/Animation.cpp; sourceTree = "<group>"; };
-		90DAAE800CC963F400D12854 /* libpxCore Static Library.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libpxCore Static Library.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		90DAAE850CC9642900D12854 /* pxOffscreen.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = pxOffscreen.cpp; path = src/pxOffscreen.cpp; sourceTree = "<group>"; };
-		90DAAE870CC9644900D12854 /* pxEventLoopNative.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = pxEventLoopNative.cpp; path = src/mac/pxEventLoopNative.cpp; sourceTree = "<group>"; };
-		90DAAE880CC9644900D12854 /* pxOffscreenNative.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = pxOffscreenNative.cpp; path = src/mac/pxOffscreenNative.cpp; sourceTree = "<group>"; };
-		90DAAE890CC9644900D12854 /* pxWindowNative.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = pxWindowNative.cpp; path = src/mac/pxWindowNative.cpp; sourceTree = "<group>"; };
-		90DAAE8D0CC9648100D12854 /* pxTimerNative.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = pxTimerNative.cpp; path = src/mac/pxTimerNative.cpp; sourceTree = "<group>"; };
-		90DAAE980CC964BA00D12854 /* Simple Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Simple Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		90DAAE9A0CC964BA00D12854 /* Simple Example-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Simple Example-Info.plist"; sourceTree = "<group>"; };
-		90DAAE9E0CC964D700D12854 /* Simple.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Simple.cpp; path = examples/Simple/Simple.cpp; sourceTree = "<group>"; };
+		4C252C551D08A1FE0022A6C9 /* pxScene.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = pxScene.xcodeproj; path = examples/pxScene2d/pxScene.xcodeproj; sourceTree = "<group>"; };
+		4C7B860E1D10A45200C2489F /* pxClipboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboard.h; path = src/pxClipboard.h; sourceTree = SOURCE_ROOT; };
+		4C7B86111D10A47300C2489F /* pxClipboardNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxClipboardNative.mm; path = src/mac/pxClipboardNative.mm; sourceTree = SOURCE_ROOT; };
+		4C7B86121D10A47300C2489F /* pxClipboardNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboardNative.h; path = src/mac/pxClipboardNative.h; sourceTree = SOURCE_ROOT; };
+		AE1D42BC1B7CF5E0002E7CAE /* Hover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hover.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE1D42DC1B7CF611002E7CAE /* Hover.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Hover.cpp; path = examples/Hover/Hover.cpp; sourceTree = SOURCE_ROOT; };
+		AE1D42E51B7D2A23002E7CAE /* Multi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Multi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE1D43081B7D2AB2002E7CAE /* Multi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Multi.cpp; path = examples/Multi/Multi.cpp; sourceTree = SOURCE_ROOT; };
+		AE1D430E1B7D2B47002E7CAE /* Animation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Animation.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE1D43301B7D2B95002E7CAE /* Animation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Animation.cpp; path = examples/Animation/Animation.cpp; sourceTree = SOURCE_ROOT; };
+		AE1D43391B7D45EB002E7CAE /* Sprite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sprite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE1D43591B7D4640002E7CAE /* Sprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sprite.cpp; path = examples/Sprite/Sprite.cpp; sourceTree = SOURCE_ROOT; };
+		AE1D43621B7D4F6E002E7CAE /* Mandelbrot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mandelbrot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE1D43821B7D4F8F002E7CAE /* Mandelbrot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Mandelbrot.cpp; path = examples/Mandelbrot/Mandelbrot.cpp; sourceTree = SOURCE_ROOT; };
+		AE1D43AF1B7D5113002E7CAE /* Timer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Timer; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE1D43B71B7D5164002E7CAE /* Timer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Timer.cpp; path = examples/Timer/Timer.cpp; sourceTree = SOURCE_ROOT; };
+		AE1D43BF1B7D51BF002E7CAE /* KeyboardAndMouse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KeyboardAndMouse.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE1D43DF1B7D52B5002E7CAE /* KeyboardAndMouse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KeyboardAndMouse.cpp; path = examples/KeyboardAndMouse/KeyboardAndMouse.cpp; sourceTree = SOURCE_ROOT; };
+		AE1D43E81B7E8E11002E7CAE /* NativeDrawing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NativeDrawing.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE1D44081B7E8E40002E7CAE /* NativeDrawing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NativeDrawing.cpp; path = examples/NativeDrawing/NativeDrawing.cpp; sourceTree = SOURCE_ROOT; };
+		AE1D44111B809983002E7CAE /* SimpleOpenGL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SimpleOpenGL.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE1D44311B8099B0002E7CAE /* SimpleOpenGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SimpleOpenGL.cpp; path = examples/SimpleOpenGL/SimpleOpenGL.cpp; sourceTree = SOURCE_ROOT; };
+		AE1D44361B809BA8002E7CAE /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		AECBECD01B67979F00851BFE /* libpxCore.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpxCore.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		AECBED111B679A7500851BFE /* Simple.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Simple.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AECBED4F1B67B09200851BFE /* pxBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxBuffer.h; path = src/pxBuffer.h; sourceTree = SOURCE_ROOT; };
+		AECBED501B67B09200851BFE /* pxColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxColor.h; path = src/pxColor.h; sourceTree = SOURCE_ROOT; };
+		AECBED511B67B09200851BFE /* pxConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxConfig.h; path = src/pxConfig.h; sourceTree = SOURCE_ROOT; };
+		AECBED521B67B09200851BFE /* pxCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxCore.h; path = src/pxCore.h; sourceTree = SOURCE_ROOT; };
+		AECBED531B67B09200851BFE /* pxEventLoop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxEventLoop.h; path = src/pxEventLoop.h; sourceTree = SOURCE_ROOT; };
+		AECBED541B67B09200851BFE /* pxIView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxIView.h; path = src/pxIView.h; sourceTree = SOURCE_ROOT; };
+		AECBED551B67B09200851BFE /* pxKeycodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxKeycodes.h; path = src/pxKeycodes.h; sourceTree = SOURCE_ROOT; };
+		AECBED561B67B09200851BFE /* pxOffscreen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxOffscreen.cpp; path = src/pxOffscreen.cpp; sourceTree = SOURCE_ROOT; };
+		AECBED571B67B09200851BFE /* pxOffscreen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxOffscreen.h; path = src/pxOffscreen.h; sourceTree = SOURCE_ROOT; };
+		AECBED581B67B09200851BFE /* pxPixel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxPixel.h; path = src/pxPixel.h; sourceTree = SOURCE_ROOT; };
+		AECBED591B67B09200851BFE /* pxRect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxRect.h; path = src/pxRect.h; sourceTree = SOURCE_ROOT; };
+		AECBED5A1B67B09200851BFE /* pxTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxTimer.h; path = src/pxTimer.h; sourceTree = SOURCE_ROOT; };
+		AECBED5B1B67B09200851BFE /* pxViewWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxViewWindow.cpp; path = src/pxViewWindow.cpp; sourceTree = SOURCE_ROOT; };
+		AECBED5C1B67B09200851BFE /* pxViewWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxViewWindow.h; path = src/pxViewWindow.h; sourceTree = SOURCE_ROOT; };
+		AECBED5D1B67B09200851BFE /* pxWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxWindow.h; path = src/pxWindow.h; sourceTree = SOURCE_ROOT; };
+		AECBED5E1B67B09200851BFE /* pxWindowUtil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxWindowUtil.cpp; path = src/pxWindowUtil.cpp; sourceTree = SOURCE_ROOT; };
+		AECBED5F1B67B09200851BFE /* pxWindowUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxWindowUtil.h; path = src/pxWindowUtil.h; sourceTree = SOURCE_ROOT; };
+		AECBED601B67B09200851BFE /* rtRefPtr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtRefPtr.h; path = src/rtRefPtr.h; sourceTree = SOURCE_ROOT; };
+		AECBED731B67B0A800851BFE /* pxBufferNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxBufferNative.h; path = src/mac/pxBufferNative.h; sourceTree = SOURCE_ROOT; };
+		AECBED741B67B0A800851BFE /* pxBufferNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxBufferNative.mm; path = src/mac/pxBufferNative.mm; sourceTree = SOURCE_ROOT; };
+		AECBED751B67B0A800851BFE /* pxConfigNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxConfigNative.h; path = src/mac/pxConfigNative.h; sourceTree = SOURCE_ROOT; };
+		AECBED761B67B0A800851BFE /* pxEventLoopNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxEventLoopNative.mm; path = src/mac/pxEventLoopNative.mm; sourceTree = SOURCE_ROOT; };
+		AECBED771B67B0A800851BFE /* pxOffscreenNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxOffscreenNative.h; path = src/mac/pxOffscreenNative.h; sourceTree = SOURCE_ROOT; };
+		AECBED781B67B0A800851BFE /* pxOffscreenNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxOffscreenNative.mm; path = src/mac/pxOffscreenNative.mm; sourceTree = SOURCE_ROOT; };
+		AECBED791B67B0A800851BFE /* pxTimerNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxTimerNative.mm; path = src/mac/pxTimerNative.mm; sourceTree = SOURCE_ROOT; };
+		AECBED7A1B67B0A800851BFE /* pxWindowNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxWindowNative.h; path = src/mac/pxWindowNative.h; sourceTree = SOURCE_ROOT; };
+		AECBED7B1B67B0A800851BFE /* pxWindowNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxWindowNative.mm; path = src/mac/pxWindowNative.mm; sourceTree = SOURCE_ROOT; };
+		AECBEE031B683C2F00851BFE /* Simple.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Simple.cpp; path = examples/Simple/Simple.cpp; sourceTree = SOURCE_ROOT; };
+		AECBEE091B685F1C00851BFE /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		AECBEE0B1B685F2100851BFE /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		8438677A0FFB916500B47106 /* Frameworks */ = {
+		AE1D42B91B7CF5E0002E7CAE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8438678F0FFB921400B47106 /* ApplicationServices in Frameworks */,
-				843867900FFB921400B47106 /* Carbon in Frameworks */,
-				843867910FFB921400B47106 /* CoreServices in Frameworks */,
-				843867920FFB921400B47106 /* libpxCore Static Library.a in Frameworks */,
+				AE1D42DF1B7D0493002E7CAE /* Foundation.framework in Frameworks */,
+				AEF5F63B1C0C6B4B005A642F /* libpxCore.a in Frameworks */,
+				AE1D42DE1B7D048B002E7CAE /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		843867A50FFB925400B47106 /* Frameworks */ = {
+		AE1D42E21B7D2A23002E7CAE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				843867B00FFB927900B47106 /* libpxCore Static Library.a in Frameworks */,
-				843867AD0FFB926B00B47106 /* ApplicationServices in Frameworks */,
-				843867AE0FFB926B00B47106 /* Carbon in Frameworks */,
-				843867AF0FFB926B00B47106 /* CoreServices in Frameworks */,
+				AE1D43061B7D2A7F002E7CAE /* Foundation.framework in Frameworks */,
+				AEF5F63C1C0C6B4C005A642F /* libpxCore.a in Frameworks */,
+				AE1D43051B7D2A6E002E7CAE /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		905F41980D662FD800E15CE0 /* Frameworks */ = {
+		AE1D430B1B7D2B47002E7CAE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				905F41A90D66306A00E15CE0 /* CoreServices in Frameworks */,
-				905F41A80D66306800E15CE0 /* ApplicationServices in Frameworks */,
-				905F41A70D66306600E15CE0 /* Carbon in Frameworks */,
-				905F41A60D66305900E15CE0 /* libpxCore Static Library.a in Frameworks */,
+				AE1D43341B7D2C07002E7CAE /* Foundation.framework in Frameworks */,
+				AEF5F63D1C0C6B4C005A642F /* libpxCore.a in Frameworks */,
+				AE1D43331B7D2C00002E7CAE /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90CE88D00CCB3069009442AC /* Frameworks */ = {
+		AE1D43361B7D45EB002E7CAE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				90CE88E90CCB30F8009442AC /* libpxCore Static Library.a in Frameworks */,
-				90CE88EB0CCB3101009442AC /* Carbon in Frameworks */,
-				90CE88EC0CCB3104009442AC /* ApplicationServices in Frameworks */,
-				90CE88ED0CCB3106009442AC /* CoreServices in Frameworks */,
+				AE1D435D1B7D4BA4002E7CAE /* Foundation.framework in Frameworks */,
+				AEF5F63E1C0C6B4D005A642F /* libpxCore.a in Frameworks */,
+				AE1D435C1B7D4B9C002E7CAE /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90CE8A840CCDFF4B009442AC /* Frameworks */ = {
+		AE1D435F1B7D4F6E002E7CAE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				90CE8ABA0CCE0162009442AC /* libpxCore Static Library.a in Frameworks */,
-				90CE8ABB0CCE0162009442AC /* Carbon in Frameworks */,
-				90CE8ABC0CCE0162009442AC /* ApplicationServices in Frameworks */,
-				90CE8ABD0CCE0162009442AC /* CoreServices in Frameworks */,
+				AE1D43861B7D5067002E7CAE /* Foundation.framework in Frameworks */,
+				AEF5F63F1C0C6B4F005A642F /* libpxCore.a in Frameworks */,
+				AE1D43851B7D505F002E7CAE /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90CE8A8E0CCDFFA0009442AC /* Frameworks */ = {
+		AE1D43AC1B7D5113002E7CAE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				90CE8ABE0CCE016B009442AC /* libpxCore Static Library.a in Frameworks */,
-				90CE8ABF0CCE016B009442AC /* Carbon in Frameworks */,
-				90CE8AC00CCE016B009442AC /* ApplicationServices in Frameworks */,
-				90CE8AC10CCE016B009442AC /* CoreServices in Frameworks */,
+				AE1D43BA1B7D5197002E7CAE /* Foundation.framework in Frameworks */,
+				AEF5F6421C0C6B52005A642F /* libpxCore.a in Frameworks */,
+				AE1D43B91B7D5191002E7CAE /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90CE8A970CCE0036009442AC /* Frameworks */ = {
+		AE1D43BC1B7D51BF002E7CAE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				90CE8AC20CCE018C009442AC /* libpxCore Static Library.a in Frameworks */,
-				90CE8AC30CCE018C009442AC /* Carbon in Frameworks */,
-				90CE8AC40CCE018C009442AC /* ApplicationServices in Frameworks */,
-				90CE8AC50CCE018C009442AC /* CoreServices in Frameworks */,
+				AE1D43E31B7D531D002E7CAE /* Cocoa.framework in Frameworks */,
+				AEF5F6401C0C6B50005A642F /* libpxCore.a in Frameworks */,
+				AE1D43E21B7D5317002E7CAE /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90DAAE7E0CC963F400D12854 /* Frameworks */ = {
+		AE1D43E51B7E8E11002E7CAE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE1D440C1B7E8EEC002E7CAE /* Foundation.framework in Frameworks */,
+				AEF5F6411C0C6B51005A642F /* libpxCore.a in Frameworks */,
+				AE1D440B1B7E8EE6002E7CAE /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AE1D440E1B809983002E7CAE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE1D44371B809BA8002E7CAE /* OpenGL.framework in Frameworks */,
+				AE1D44351B809B99002E7CAE /* Foundation.framework in Frameworks */,
+				AEF5F6431C0C6B53005A642F /* libpxCore.a in Frameworks */,
+				AE1D44341B809B93002E7CAE /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AECBECCD1B67979F00851BFE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90DAAE960CC964BA00D12854 /* Frameworks */ = {
+		AECBED0E1B679A7500851BFE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				90CE88EA0CCB30FD009442AC /* libpxCore Static Library.a in Frameworks */,
-				90C98E280CC9685300FD8D08 /* Carbon in Frameworks */,
-				903EBE920CC968EF003C29FE /* ApplicationServices in Frameworks */,
-				903EBE940CC96909003C29FE /* CoreServices in Frameworks */,
+				AECBEE0C1B685F2100851BFE /* Cocoa.framework in Frameworks */,
+				AEF5F63A1C0C6B4B005A642F /* libpxCore.a in Frameworks */,
+				AECBEE0A1B685F1C00851BFE /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		901CEE6B0CD36CC00082DFB4 /* Examples */ = {
+		4C252C561D08A1FE0022A6C9 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				90CE88EE0CCB314E009442AC /* KeyboardAndMouse.cpp */,
-				843867840FFB91DD00B47106 /* Hover.cpp */,
-				843867B10FFB928800B47106 /* Sprite.cpp */,
-				90CE8AB20CCE00B1009442AC /* Timer.cpp */,
-				90DAAE9E0CC964D700D12854 /* Simple.cpp */,
-				90CE8AB40CCE00C5009442AC /* Mandelbrot.cpp */,
-				90CE8AB60CCE00ED009442AC /* Animation.cpp */,
-				905F41A00D66301200E15CE0 /* NativeDrawing.cpp */,
-			);
-			name = Examples;
-			sourceTree = "<group>";
-		};
-		907A30A60CD54DFF0029F94A /* Src */ = {
-			isa = PBXGroup;
-			children = (
-				907A309C0CD54DED0029F94A /* pxConfig.h */,
-				907A309D0CD54DED0029F94A /* pxCore.h */,
-				907A309E0CD54DED0029F94A /* pxBuffer.h */,
-				907A309F0CD54DED0029F94A /* pxEventLoop.h */,
-				907A30A00CD54DED0029F94A /* pxOffscreen.h */,
-				907A30A10CD54DED0029F94A /* pxPixels.h */,
-				907A30A20CD54DED0029F94A /* pxTimer.h */,
-				907A30A30CD54DED0029F94A /* pxColors.h */,
-				907A30A40CD54DED0029F94A /* pxWindow.h */,
-				90DAAE850CC9642900D12854 /* pxOffscreen.cpp */,
-				907A30A70CD54E0B0029F94A /* Native */,
-			);
-			name = Src;
-			sourceTree = "<group>";
-		};
-		907A30A70CD54E0B0029F94A /* Native */ = {
-			isa = PBXGroup;
-			children = (
-				905F415D0D662A8300E15CE0 /* pxBufferNative.cpp */,
-				905F415E0D662A8300E15CE0 /* pxBufferNative.h */,
-				90311FE10CD9894700E5663C /* pxConfigNative.h */,
-				9018E9010CD7067F0019855C /* pxWindowNative.h */,
-				9018E9000CD7067A0019855C /* pxOffscreenNative.h */,
-				90DAAE8D0CC9648100D12854 /* pxTimerNative.cpp */,
-				90DAAE870CC9644900D12854 /* pxEventLoopNative.cpp */,
-				90DAAE880CC9644900D12854 /* pxOffscreenNative.cpp */,
-				90DAAE890CC9644900D12854 /* pxWindowNative.cpp */,
-			);
-			name = Native;
-			sourceTree = "<group>";
-		};
-		90DAAE810CC963F400D12854 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				90DAAE800CC963F400D12854 /* libpxCore Static Library.a */,
-				90DAAE980CC964BA00D12854 /* Simple Example.app */,
-				90CE88D20CCB3069009442AC /* KeyboardAndMouse Example.app */,
-				90CE8A860CCDFF4B009442AC /* Animation Example.app */,
-				90CE8A900CCDFFA0009442AC /* Mandelbrot.app */,
-				90CE8A990CCE0036009442AC /* Timer Example */,
-				905F419A0D662FD800E15CE0 /* NativeDrawing.app */,
-				8438677C0FFB916500B47106 /* Hover Example.app */,
-				843867A70FFB925400B47106 /* Sprite Example.app */,
+				4C252C5A1D08A1FE0022A6C9 /* pxScene */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		90DCA55F0CC76A1700AF146D = {
+		AE1D42BD1B7CF5E0002E7CAE /* Hover */ = {
 			isa = PBXGroup;
 			children = (
-				907A30A60CD54DFF0029F94A /* Src */,
-				901CEE6B0CD36CC00082DFB4 /* Examples */,
-				903EBE930CC96909003C29FE /* CoreServices */,
-				903EBE910CC968EF003C29FE /* ApplicationServices */,
-				90C98E270CC9685300FD8D08 /* Carbon */,
-				90DAAE810CC963F400D12854 /* Products */,
-				90DAAE9A0CC964BA00D12854 /* Simple Example-Info.plist */,
-				90CE88D40CCB3069009442AC /* KeyboardAndMouse Example-Info.plist */,
-				90CE8A880CCDFF4B009442AC /* Animation Example-Info.plist */,
-				90CE8A920CCDFFA0009442AC /* Mandelbrot-Info.plist */,
-				905F419C0D662FD800E15CE0 /* NativeDrawing-Info.plist */,
-				8438677E0FFB916500B47106 /* Hover Example-Info.plist */,
-				843867A90FFB925400B47106 /* Sprite Example-Info.plist */,
+				AE1D42DC1B7CF611002E7CAE /* Hover.cpp */,
 			);
+			path = Hover;
+			sourceTree = "<group>";
+		};
+		AE1D42E61B7D2A23002E7CAE /* Multi */ = {
+			isa = PBXGroup;
+			children = (
+				AE1D43081B7D2AB2002E7CAE /* Multi.cpp */,
+			);
+			path = Multi;
+			sourceTree = "<group>";
+		};
+		AE1D430F1B7D2B47002E7CAE /* Animation */ = {
+			isa = PBXGroup;
+			children = (
+				AE1D43301B7D2B95002E7CAE /* Animation.cpp */,
+			);
+			path = Animation;
+			sourceTree = "<group>";
+		};
+		AE1D433A1B7D45EB002E7CAE /* Sprite */ = {
+			isa = PBXGroup;
+			children = (
+				AE1D43591B7D4640002E7CAE /* Sprite.cpp */,
+			);
+			path = Sprite;
+			sourceTree = "<group>";
+		};
+		AE1D43631B7D4F6E002E7CAE /* Mandelbrot */ = {
+			isa = PBXGroup;
+			children = (
+				AE1D43821B7D4F8F002E7CAE /* Mandelbrot.cpp */,
+			);
+			path = Mandelbrot;
+			sourceTree = "<group>";
+		};
+		AE1D43B01B7D5113002E7CAE /* Timer */ = {
+			isa = PBXGroup;
+			children = (
+				AE1D43B71B7D5164002E7CAE /* Timer.cpp */,
+			);
+			path = Timer;
+			sourceTree = "<group>";
+		};
+		AE1D43C01B7D51BF002E7CAE /* KeyboardAndMouse */ = {
+			isa = PBXGroup;
+			children = (
+				AE1D43DF1B7D52B5002E7CAE /* KeyboardAndMouse.cpp */,
+			);
+			path = KeyboardAndMouse;
+			sourceTree = "<group>";
+		};
+		AE1D43E91B7E8E11002E7CAE /* NativeDrawing */ = {
+			isa = PBXGroup;
+			children = (
+				AE1D44081B7E8E40002E7CAE /* NativeDrawing.cpp */,
+			);
+			path = NativeDrawing;
+			sourceTree = "<group>";
+		};
+		AE1D44121B809983002E7CAE /* SimpleOpenGL */ = {
+			isa = PBXGroup;
+			children = (
+				AE1D44311B8099B0002E7CAE /* SimpleOpenGL.cpp */,
+			);
+			path = SimpleOpenGL;
+			sourceTree = "<group>";
+		};
+		AECBECA01B6796DC00851BFE = {
+			isa = PBXGroup;
+			children = (
+				AE1D44361B809BA8002E7CAE /* OpenGL.framework */,
+				AECBEE0B1B685F2100851BFE /* Cocoa.framework */,
+				AECBEE091B685F1C00851BFE /* Foundation.framework */,
+				AECBECD11B67979F00851BFE /* Src */,
+				AECBED121B679A7600851BFE /* Simple */,
+				AE1D42BD1B7CF5E0002E7CAE /* Hover */,
+				AE1D42E61B7D2A23002E7CAE /* Multi */,
+				AE1D430F1B7D2B47002E7CAE /* Animation */,
+				AE1D433A1B7D45EB002E7CAE /* Sprite */,
+				AE1D43631B7D4F6E002E7CAE /* Mandelbrot */,
+				AE1D43B01B7D5113002E7CAE /* Timer */,
+				AE1D43C01B7D51BF002E7CAE /* KeyboardAndMouse */,
+				AE1D43E91B7E8E11002E7CAE /* NativeDrawing */,
+				AE1D44121B809983002E7CAE /* SimpleOpenGL */,
+				AECBECAA1B6796DC00851BFE /* Products */,
+				4C252C551D08A1FE0022A6C9 /* pxScene.xcodeproj */,
+			);
+			sourceTree = "<group>";
+		};
+		AECBECAA1B6796DC00851BFE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AECBECD01B67979F00851BFE /* libpxCore.a */,
+				AECBED111B679A7500851BFE /* Simple.app */,
+				AE1D42BC1B7CF5E0002E7CAE /* Hover.app */,
+				AE1D42E51B7D2A23002E7CAE /* Multi.app */,
+				AE1D430E1B7D2B47002E7CAE /* Animation.app */,
+				AE1D43391B7D45EB002E7CAE /* Sprite.app */,
+				AE1D43621B7D4F6E002E7CAE /* Mandelbrot.app */,
+				AE1D43AF1B7D5113002E7CAE /* Timer */,
+				AE1D43BF1B7D51BF002E7CAE /* KeyboardAndMouse.app */,
+				AE1D43E81B7E8E11002E7CAE /* NativeDrawing.app */,
+				AE1D44111B809983002E7CAE /* SimpleOpenGL.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AECBECD11B67979F00851BFE /* Src */ = {
+			isa = PBXGroup;
+			children = (
+				AECBED4F1B67B09200851BFE /* pxBuffer.h */,
+				AECBED501B67B09200851BFE /* pxColor.h */,
+				AECBED511B67B09200851BFE /* pxConfig.h */,
+				AECBED521B67B09200851BFE /* pxCore.h */,
+				4C7B860E1D10A45200C2489F /* pxClipboard.h */,
+				AECBED531B67B09200851BFE /* pxEventLoop.h */,
+				AECBED541B67B09200851BFE /* pxIView.h */,
+				AECBED551B67B09200851BFE /* pxKeycodes.h */,
+				AECBED561B67B09200851BFE /* pxOffscreen.cpp */,
+				AECBED571B67B09200851BFE /* pxOffscreen.h */,
+				AECBED581B67B09200851BFE /* pxPixel.h */,
+				AECBED591B67B09200851BFE /* pxRect.h */,
+				AECBED5A1B67B09200851BFE /* pxTimer.h */,
+				AECBED5B1B67B09200851BFE /* pxViewWindow.cpp */,
+				AECBED5C1B67B09200851BFE /* pxViewWindow.h */,
+				AECBED5D1B67B09200851BFE /* pxWindow.h */,
+				AECBED5E1B67B09200851BFE /* pxWindowUtil.cpp */,
+				AECBED5F1B67B09200851BFE /* pxWindowUtil.h */,
+				AECBED601B67B09200851BFE /* rtRefPtr.h */,
+				AECBECFC1B6798DC00851BFE /* Native */,
+			);
+			name = Src;
+			path = pxCore;
+			sourceTree = "<group>";
+		};
+		AECBECFC1B6798DC00851BFE /* Native */ = {
+			isa = PBXGroup;
+			children = (
+				AECBED731B67B0A800851BFE /* pxBufferNative.h */,
+				AECBED741B67B0A800851BFE /* pxBufferNative.mm */,
+				4C7B86111D10A47300C2489F /* pxClipboardNative.mm */,
+				4C7B86121D10A47300C2489F /* pxClipboardNative.h */,
+				AECBED751B67B0A800851BFE /* pxConfigNative.h */,
+				AECBED761B67B0A800851BFE /* pxEventLoopNative.mm */,
+				AECBED771B67B0A800851BFE /* pxOffscreenNative.h */,
+				AECBED781B67B0A800851BFE /* pxOffscreenNative.mm */,
+				AECBED791B67B0A800851BFE /* pxTimerNative.mm */,
+				AECBED7A1B67B0A800851BFE /* pxWindowNative.h */,
+				AECBED7B1B67B0A800851BFE /* pxWindowNative.mm */,
+			);
+			name = Native;
+			sourceTree = "<group>";
+		};
+		AECBED121B679A7600851BFE /* Simple */ = {
+			isa = PBXGroup;
+			children = (
+				AECBEE031B683C2F00851BFE /* Simple.cpp */,
+			);
+			path = Simple;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
-		90DAAE7C0CC963F400D12854 /* Headers */ = {
+		AECBECCE1B67979F00851BFE /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				905F41600D662A8300E15CE0 /* pxBufferNative.h in Headers */,
+				AECBED7F1B67B0A800851BFE /* pxConfigNative.h in Headers */,
+				AECBED6C1B67B09200851BFE /* pxTimer.h in Headers */,
+				AECBED621B67B09200851BFE /* pxColor.h in Headers */,
+				AECBED661B67B09200851BFE /* pxIView.h in Headers */,
+				AECBED6E1B67B09200851BFE /* pxViewWindow.h in Headers */,
+				AECBED841B67B0A800851BFE /* pxWindowNative.h in Headers */,
+				AECBED6B1B67B09200851BFE /* pxRect.h in Headers */,
+				4C7B860F1D10A45200C2489F /* pxClipboard.h in Headers */,
+				AECBED611B67B09200851BFE /* pxBuffer.h in Headers */,
+				AECBED651B67B09200851BFE /* pxEventLoop.h in Headers */,
+				AECBED671B67B09200851BFE /* pxKeycodes.h in Headers */,
+				AECBED631B67B09200851BFE /* pxConfig.h in Headers */,
+				AECBED691B67B09200851BFE /* pxOffscreen.h in Headers */,
+				AECBED721B67B09200851BFE /* rtRefPtr.h in Headers */,
+				AECBED711B67B09200851BFE /* pxWindowUtil.h in Headers */,
+				AECBED6A1B67B09200851BFE /* pxPixel.h in Headers */,
+				AECBED641B67B09200851BFE /* pxCore.h in Headers */,
+				AECBED6F1B67B09200851BFE /* pxWindow.h in Headers */,
+				AECBED7D1B67B0A800851BFE /* pxBufferNative.h in Headers */,
+				AECBED811B67B0A800851BFE /* pxOffscreenNative.h in Headers */,
+				4C7B86141D10A47300C2489F /* pxClipboardNative.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		8438677B0FFB916500B47106 /* Hover Example */ = {
+		AE1D42BB1B7CF5E0002E7CAE /* Hover */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 843867810FFB916600B47106 /* Build configuration list for PBXNativeTarget "Hover Example" */;
+			buildConfigurationList = AE1D42D61B7CF5E0002E7CAE /* Build configuration list for PBXNativeTarget "Hover" */;
 			buildPhases = (
-				843867780FFB916500B47106 /* Resources */,
-				843867790FFB916500B47106 /* Sources */,
-				8438677A0FFB916500B47106 /* Frameworks */,
+				AE1D42B81B7CF5E0002E7CAE /* Sources */,
+				AE1D42B91B7CF5E0002E7CAE /* Frameworks */,
+				AE1D42BA1B7CF5E0002E7CAE /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				843867830FFB91B500B47106 /* PBXTargetDependency */,
 			);
-			name = "Hover Example";
-			productName = "Hover Example";
-			productReference = 8438677C0FFB916500B47106 /* Hover Example.app */;
+			name = Hover;
+			productName = Hover;
+			productReference = AE1D42BC1B7CF5E0002E7CAE /* Hover.app */;
 			productType = "com.apple.product-type.application";
 		};
-		843867A60FFB925400B47106 /* Sprite Example */ = {
+		AE1D42E41B7D2A23002E7CAE /* Multi */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 843867AC0FFB925600B47106 /* Build configuration list for PBXNativeTarget "Sprite Example" */;
+			buildConfigurationList = AE1D42FF1B7D2A24002E7CAE /* Build configuration list for PBXNativeTarget "Multi" */;
 			buildPhases = (
-				843867A30FFB925400B47106 /* Resources */,
-				843867A40FFB925400B47106 /* Sources */,
-				843867A50FFB925400B47106 /* Frameworks */,
+				AE1D42E11B7D2A23002E7CAE /* Sources */,
+				AE1D42E21B7D2A23002E7CAE /* Frameworks */,
+				AE1D42E31B7D2A23002E7CAE /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = "Sprite Example";
-			productName = "Sprite Example";
-			productReference = 843867A70FFB925400B47106 /* Sprite Example.app */;
+			name = Multi;
+			productName = Multi;
+			productReference = AE1D42E51B7D2A23002E7CAE /* Multi.app */;
 			productType = "com.apple.product-type.application";
 		};
-		905F41990D662FD800E15CE0 /* NativeDrawing */ = {
+		AE1D430D1B7D2B47002E7CAE /* Animation */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 905F419D0D662FD900E15CE0 /* Build configuration list for PBXNativeTarget "NativeDrawing" */;
+			buildConfigurationList = AE1D43281B7D2B47002E7CAE /* Build configuration list for PBXNativeTarget "Animation" */;
 			buildPhases = (
-				905F41960D662FD800E15CE0 /* Resources */,
-				905F41970D662FD800E15CE0 /* Sources */,
-				905F41980D662FD800E15CE0 /* Frameworks */,
+				AE1D430A1B7D2B47002E7CAE /* Sources */,
+				AE1D430B1B7D2B47002E7CAE /* Frameworks */,
+				AE1D430C1B7D2B47002E7CAE /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				905F41A30D66302300E15CE0 /* PBXTargetDependency */,
 			);
-			name = NativeDrawing;
-			productName = NativeDrawing;
-			productReference = 905F419A0D662FD800E15CE0 /* NativeDrawing.app */;
+			name = Animation;
+			productName = Animation;
+			productReference = AE1D430E1B7D2B47002E7CAE /* Animation.app */;
 			productType = "com.apple.product-type.application";
 		};
-		90CE88D10CCB3069009442AC /* KeyboardAndMouse Example */ = {
+		AE1D43381B7D45EB002E7CAE /* Sprite */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 90CE88D50CCB306A009442AC /* Build configuration list for PBXNativeTarget "KeyboardAndMouse Example" */;
+			buildConfigurationList = AE1D43531B7D45EC002E7CAE /* Build configuration list for PBXNativeTarget "Sprite" */;
 			buildPhases = (
-				90CE88CE0CCB3069009442AC /* Resources */,
-				90CE88CF0CCB3069009442AC /* Sources */,
-				90CE88D00CCB3069009442AC /* Frameworks */,
+				AE1D43351B7D45EB002E7CAE /* Sources */,
+				AE1D43361B7D45EB002E7CAE /* Frameworks */,
+				AE1D43371B7D45EB002E7CAE /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				90C50F970CD4D9F5001BCD5A /* PBXTargetDependency */,
 			);
-			name = "KeyboardAndMouse Example";
-			productName = "KeyboardAndMouse Example";
-			productReference = 90CE88D20CCB3069009442AC /* KeyboardAndMouse Example.app */;
+			name = Sprite;
+			productName = Sprite;
+			productReference = AE1D43391B7D45EB002E7CAE /* Sprite.app */;
 			productType = "com.apple.product-type.application";
 		};
-		90CE8A850CCDFF4B009442AC /* Animation Example */ = {
+		AE1D43611B7D4F6E002E7CAE /* Mandelbrot */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 90CE8A890CCDFF4B009442AC /* Build configuration list for PBXNativeTarget "Animation Example" */;
+			buildConfigurationList = AE1D437C1B7D4F6E002E7CAE /* Build configuration list for PBXNativeTarget "Mandelbrot" */;
 			buildPhases = (
-				90CE8A820CCDFF4B009442AC /* Resources */,
-				90CE8A830CCDFF4B009442AC /* Sources */,
-				90CE8A840CCDFF4B009442AC /* Frameworks */,
+				AE1D435E1B7D4F6E002E7CAE /* Sources */,
+				AE1D435F1B7D4F6E002E7CAE /* Frameworks */,
+				AE1D43601B7D4F6E002E7CAE /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				90C50F990CD4D9FA001BCD5A /* PBXTargetDependency */,
-			);
-			name = "Animation Example";
-			productName = "Animation Example";
-			productReference = 90CE8A860CCDFF4B009442AC /* Animation Example.app */;
-			productType = "com.apple.product-type.application";
-		};
-		90CE8A8F0CCDFFA0009442AC /* Mandelbrot */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 90CE8A930CCDFFA0009442AC /* Build configuration list for PBXNativeTarget "Mandelbrot" */;
-			buildPhases = (
-				90CE8A8C0CCDFFA0009442AC /* Resources */,
-				90CE8A8D0CCDFFA0009442AC /* Sources */,
-				90CE8A8E0CCDFFA0009442AC /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				90C50F9B0CD4DA04001BCD5A /* PBXTargetDependency */,
 			);
 			name = Mandelbrot;
 			productName = Mandelbrot;
-			productReference = 90CE8A900CCDFFA0009442AC /* Mandelbrot.app */;
+			productReference = AE1D43621B7D4F6E002E7CAE /* Mandelbrot.app */;
 			productType = "com.apple.product-type.application";
 		};
-		90CE8A980CCE0036009442AC /* Timer Example */ = {
+		AE1D43AE1B7D5113002E7CAE /* Timer */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 90CE8AAF0CCE0055009442AC /* Build configuration list for PBXNativeTarget "Timer Example" */;
+			buildConfigurationList = AE1D43B31B7D5113002E7CAE /* Build configuration list for PBXNativeTarget "Timer" */;
 			buildPhases = (
-				90CE8A960CCE0036009442AC /* Sources */,
-				90CE8A970CCE0036009442AC /* Frameworks */,
+				AE1D43AB1B7D5113002E7CAE /* Sources */,
+				AE1D43AC1B7D5113002E7CAE /* Frameworks */,
+				AE1D43AD1B7D5113002E7CAE /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				90C50F9D0CD4DA07001BCD5A /* PBXTargetDependency */,
 			);
-			name = "Timer Example";
-			productName = "Timer Example";
-			productReference = 90CE8A990CCE0036009442AC /* Timer Example */;
+			name = Timer;
+			productName = Timer;
+			productReference = AE1D43AF1B7D5113002E7CAE /* Timer */;
 			productType = "com.apple.product-type.tool";
 		};
-		90DAAE7F0CC963F400D12854 /* pxCore Static Library */ = {
+		AE1D43BE1B7D51BF002E7CAE /* KeyboardAndMouse */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 90DAAE820CC963F500D12854 /* Build configuration list for PBXNativeTarget "pxCore Static Library" */;
+			buildConfigurationList = AE1D43D91B7D51BF002E7CAE /* Build configuration list for PBXNativeTarget "KeyboardAndMouse" */;
 			buildPhases = (
-				90DAAE7C0CC963F400D12854 /* Headers */,
-				90DAAE7D0CC963F400D12854 /* Sources */,
-				90DAAE7E0CC963F400D12854 /* Frameworks */,
+				AE1D43BB1B7D51BF002E7CAE /* Sources */,
+				AE1D43BC1B7D51BF002E7CAE /* Frameworks */,
+				AE1D43BD1B7D51BF002E7CAE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KeyboardAndMouse;
+			productName = KeyboardAndMouse;
+			productReference = AE1D43BF1B7D51BF002E7CAE /* KeyboardAndMouse.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AE1D43E71B7E8E11002E7CAE /* NativeDrawing */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AE1D44021B7E8E11002E7CAE /* Build configuration list for PBXNativeTarget "NativeDrawing" */;
+			buildPhases = (
+				AE1D43E41B7E8E11002E7CAE /* Sources */,
+				AE1D43E51B7E8E11002E7CAE /* Frameworks */,
+				AE1D43E61B7E8E11002E7CAE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NativeDrawing;
+			productName = NativeDrawing;
+			productReference = AE1D43E81B7E8E11002E7CAE /* NativeDrawing.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AE1D44101B809983002E7CAE /* SimpleOpenGL */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AE1D442B1B809983002E7CAE /* Build configuration list for PBXNativeTarget "SimpleOpenGL" */;
+			buildPhases = (
+				AE1D440D1B809983002E7CAE /* Sources */,
+				AE1D440E1B809983002E7CAE /* Frameworks */,
+				AE1D440F1B809983002E7CAE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SimpleOpenGL;
+			productName = SimpleOpenGL;
+			productReference = AE1D44111B809983002E7CAE /* SimpleOpenGL.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AECBECCF1B67979F00851BFE /* pxCore Static Library */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AECBECE11B67979F00851BFE /* Build configuration list for PBXNativeTarget "pxCore Static Library" */;
+			buildPhases = (
+				AECBECCC1B67979F00851BFE /* Sources */,
+				AECBECCD1B67979F00851BFE /* Frameworks */,
+				AECBECCE1B67979F00851BFE /* Headers */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = "pxCore Static Library";
-			productName = "pxCore Static Library";
-			productReference = 90DAAE800CC963F400D12854 /* libpxCore Static Library.a */;
+			productName = pxCore;
+			productReference = AECBECD01B67979F00851BFE /* libpxCore.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		90DAAE970CC964BA00D12854 /* Simple Example */ = {
+		AECBED101B679A7500851BFE /* Simple */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 90DAAE9B0CC964BB00D12854 /* Build configuration list for PBXNativeTarget "Simple Example" */;
+			buildConfigurationList = AECBED2B1B679A7600851BFE /* Build configuration list for PBXNativeTarget "Simple" */;
 			buildPhases = (
-				90DAAE940CC964BA00D12854 /* Resources */,
-				90DAAE950CC964BA00D12854 /* Sources */,
-				90DAAE960CC964BA00D12854 /* Frameworks */,
+				AECBED0D1B679A7500851BFE /* Sources */,
+				AECBED0E1B679A7500851BFE /* Frameworks */,
+				AECBED0F1B679A7500851BFE /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				90C50F900CD4D9C0001BCD5A /* PBXTargetDependency */,
 			);
-			name = "Simple Example";
-			productName = "Simple Example";
-			productReference = 90DAAE980CC964BA00D12854 /* Simple Example.app */;
+			name = Simple;
+			productName = Simple;
+			productReference = AECBED111B679A7500851BFE /* Simple.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		90DCA5610CC76A1700AF146D /* Project object */ = {
+		AECBECA11B6796DC00851BFE /* Project object */ = {
 			isa = PBXProject;
-			buildConfigurationList = 90DCA5620CC76A1700AF146D /* Build configuration list for PBXProject "pxCore" */;
-			compatibilityVersion = "Xcode 2.4";
+			attributes = {
+				LastUpgradeCheck = 0710;
+				ORGANIZATIONNAME = "John Robinson";
+				TargetAttributes = {
+					AE1D42BB1B7CF5E0002E7CAE = {
+						CreatedOnToolsVersion = 6.4;
+					};
+					AE1D42E41B7D2A23002E7CAE = {
+						CreatedOnToolsVersion = 6.4;
+					};
+					AE1D430D1B7D2B47002E7CAE = {
+						CreatedOnToolsVersion = 6.4;
+					};
+					AE1D43381B7D45EB002E7CAE = {
+						CreatedOnToolsVersion = 6.4;
+					};
+					AE1D43611B7D4F6E002E7CAE = {
+						CreatedOnToolsVersion = 6.4;
+					};
+					AE1D43AE1B7D5113002E7CAE = {
+						CreatedOnToolsVersion = 6.4;
+					};
+					AE1D43BE1B7D51BF002E7CAE = {
+						CreatedOnToolsVersion = 6.4;
+					};
+					AE1D43E71B7E8E11002E7CAE = {
+						CreatedOnToolsVersion = 6.4;
+					};
+					AE1D44101B809983002E7CAE = {
+						CreatedOnToolsVersion = 6.4;
+					};
+					AECBECCF1B67979F00851BFE = {
+						CreatedOnToolsVersion = 6.4;
+					};
+					AECBED101B679A7500851BFE = {
+						CreatedOnToolsVersion = 6.4;
+					};
+				};
+			};
+			buildConfigurationList = AECBECA41B6796DC00851BFE /* Build configuration list for PBXProject "pxCore" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
 			hasScannedForEncodings = 0;
-			mainGroup = 90DCA55F0CC76A1700AF146D;
-			productRefGroup = 90DAAE810CC963F400D12854 /* Products */;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AECBECA01B6796DC00851BFE;
+			productRefGroup = AECBECAA1B6796DC00851BFE /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 4C252C561D08A1FE0022A6C9 /* Products */;
+					ProjectRef = 4C252C551D08A1FE0022A6C9 /* pxScene.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
-				90DAAE7F0CC963F400D12854 /* pxCore Static Library */,
-				90DAAE970CC964BA00D12854 /* Simple Example */,
-				90CE88D10CCB3069009442AC /* KeyboardAndMouse Example */,
-				90CE8A850CCDFF4B009442AC /* Animation Example */,
-				90CE8A8F0CCDFFA0009442AC /* Mandelbrot */,
-				90CE8A980CCE0036009442AC /* Timer Example */,
-				905F41990D662FD800E15CE0 /* NativeDrawing */,
-				8438677B0FFB916500B47106 /* Hover Example */,
-				843867A60FFB925400B47106 /* Sprite Example */,
+				AECBECCF1B67979F00851BFE /* pxCore Static Library */,
+				AECBED101B679A7500851BFE /* Simple */,
+				AE1D42BB1B7CF5E0002E7CAE /* Hover */,
+				AE1D42E41B7D2A23002E7CAE /* Multi */,
+				AE1D430D1B7D2B47002E7CAE /* Animation */,
+				AE1D43381B7D45EB002E7CAE /* Sprite */,
+				AE1D43611B7D4F6E002E7CAE /* Mandelbrot */,
+				AE1D43BE1B7D51BF002E7CAE /* KeyboardAndMouse */,
+				AE1D43E71B7E8E11002E7CAE /* NativeDrawing */,
+				AE1D43AE1B7D5113002E7CAE /* Timer */,
+				AE1D44101B809983002E7CAE /* SimpleOpenGL */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXReferenceProxy section */
+		4C252C5A1D08A1FE0022A6C9 /* pxScene */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = pxScene;
+			remoteRef = 4C252C591D08A1FE0022A6C9 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
 /* Begin PBXResourcesBuildPhase section */
-		843867780FFB916500B47106 /* Resources */ = {
+		AE1D42BA1B7CF5E0002E7CAE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		843867A30FFB925400B47106 /* Resources */ = {
+		AE1D42E31B7D2A23002E7CAE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		905F41960D662FD800E15CE0 /* Resources */ = {
+		AE1D430C1B7D2B47002E7CAE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90CE88CE0CCB3069009442AC /* Resources */ = {
+		AE1D43371B7D45EB002E7CAE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90CE8A820CCDFF4B009442AC /* Resources */ = {
+		AE1D43601B7D4F6E002E7CAE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90CE8A8C0CCDFFA0009442AC /* Resources */ = {
+		AE1D43BD1B7D51BF002E7CAE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90DAAE940CC964BA00D12854 /* Resources */ = {
+		AE1D43E61B7E8E11002E7CAE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AE1D440F1B809983002E7CAE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AECBED0F1B679A7500851BFE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -592,810 +823,628 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		843867790FFB916500B47106 /* Sources */ = {
+		AE1D42B81B7CF5E0002E7CAE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				843867850FFB91DD00B47106 /* Hover.cpp in Sources */,
+				AE1D42DD1B7CF611002E7CAE /* Hover.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		843867A40FFB925400B47106 /* Sources */ = {
+		AE1D42E11B7D2A23002E7CAE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				843867B20FFB928800B47106 /* Sprite.cpp in Sources */,
+				AE1D43091B7D2AB2002E7CAE /* Multi.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		905F41970D662FD800E15CE0 /* Sources */ = {
+		AE1D430A1B7D2B47002E7CAE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				905F41A10D66301200E15CE0 /* NativeDrawing.cpp in Sources */,
+				AE1D43311B7D2B95002E7CAE /* Animation.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90CE88CF0CCB3069009442AC /* Sources */ = {
+		AE1D43351B7D45EB002E7CAE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				90CE88F00CCB316E009442AC /* KeyboardAndMouse.cpp in Sources */,
+				AE1D435A1B7D4640002E7CAE /* Sprite.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90CE8A830CCDFF4B009442AC /* Sources */ = {
+		AE1D435E1B7D4F6E002E7CAE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				90CE8AB70CCE00ED009442AC /* Animation.cpp in Sources */,
+				AE1D43831B7D4F8F002E7CAE /* Mandelbrot.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90CE8A8D0CCDFFA0009442AC /* Sources */ = {
+		AE1D43AB1B7D5113002E7CAE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				90CE8AB90CCE0134009442AC /* Mandelbrot.cpp in Sources */,
+				AE1D43B81B7D5164002E7CAE /* Timer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90CE8A960CCE0036009442AC /* Sources */ = {
+		AE1D43BB1B7D51BF002E7CAE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				90CE8AB80CCE012B009442AC /* Timer.cpp in Sources */,
+				AE1D43E01B7D52B5002E7CAE /* KeyboardAndMouse.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90DAAE7D0CC963F400D12854 /* Sources */ = {
+		AE1D43E41B7E8E11002E7CAE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				90DAAE860CC9642900D12854 /* pxOffscreen.cpp in Sources */,
-				90DAAE8A0CC9644900D12854 /* pxEventLoopNative.cpp in Sources */,
-				90DAAE8B0CC9644900D12854 /* pxOffscreenNative.cpp in Sources */,
-				90DAAE8C0CC9644900D12854 /* pxWindowNative.cpp in Sources */,
-				90DAAE8E0CC9648100D12854 /* pxTimerNative.cpp in Sources */,
-				905F415F0D662A8300E15CE0 /* pxBufferNative.cpp in Sources */,
+				AE1D44091B7E8E40002E7CAE /* NativeDrawing.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		90DAAE950CC964BA00D12854 /* Sources */ = {
+		AE1D440D1B809983002E7CAE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				90DAAE9F0CC964D700D12854 /* Simple.cpp in Sources */,
+				AE1D44321B8099B0002E7CAE /* SimpleOpenGL.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AECBECCC1B67979F00851BFE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AECBED851B67B0A800851BFE /* pxWindowNative.mm in Sources */,
+				AE83DD1F1C08A2720035F5AF /* Simple.cpp in Sources */,
+				AECBED6D1B67B09200851BFE /* pxViewWindow.cpp in Sources */,
+				AECBED681B67B09200851BFE /* pxOffscreen.cpp in Sources */,
+				AECBED821B67B0A800851BFE /* pxOffscreenNative.mm in Sources */,
+				AECBED7E1B67B0A800851BFE /* pxBufferNative.mm in Sources */,
+				AECBED801B67B0A800851BFE /* pxEventLoopNative.mm in Sources */,
+				AECBED831B67B0A800851BFE /* pxTimerNative.mm in Sources */,
+				AECBED701B67B09200851BFE /* pxWindowUtil.cpp in Sources */,
+				4C7B86131D10A47300C2489F /* pxClipboardNative.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AECBED0D1B679A7500851BFE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AECBEE041B683C2F00851BFE /* Simple.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-		843867830FFB91B500B47106 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 90DAAE7F0CC963F400D12854 /* pxCore Static Library */;
-			targetProxy = 843867820FFB91B500B47106 /* PBXContainerItemProxy */;
-		};
-		905F41A30D66302300E15CE0 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 90DAAE7F0CC963F400D12854 /* pxCore Static Library */;
-			targetProxy = 905F41A20D66302300E15CE0 /* PBXContainerItemProxy */;
-		};
-		90C50F900CD4D9C0001BCD5A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 90DAAE7F0CC963F400D12854 /* pxCore Static Library */;
-			targetProxy = 90C50F8F0CD4D9C0001BCD5A /* PBXContainerItemProxy */;
-		};
-		90C50F970CD4D9F5001BCD5A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 90DAAE7F0CC963F400D12854 /* pxCore Static Library */;
-			targetProxy = 90C50F960CD4D9F5001BCD5A /* PBXContainerItemProxy */;
-		};
-		90C50F990CD4D9FA001BCD5A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 90DAAE7F0CC963F400D12854 /* pxCore Static Library */;
-			targetProxy = 90C50F980CD4D9FA001BCD5A /* PBXContainerItemProxy */;
-		};
-		90C50F9B0CD4DA04001BCD5A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 90DAAE7F0CC963F400D12854 /* pxCore Static Library */;
-			targetProxy = 90C50F9A0CD4DA04001BCD5A /* PBXContainerItemProxy */;
-		};
-		90C50F9D0CD4DA07001BCD5A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 90DAAE7F0CC963F400D12854 /* pxCore Static Library */;
-			targetProxy = 90C50F9C0CD4DA07001BCD5A /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
 /* Begin XCBuildConfiguration section */
-		8438677F0FFB916600B47106 /* Debug */ = {
+		AE1D42D71B7CF5E0002E7CAE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INFOPLIST_FILE = "Hover Example-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "Hover Example";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/Hover/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.SimpleExample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
-		843867800FFB916600B47106 /* Release */ = {
+		AE1D42D81B7CF5E0002E7CAE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_MODEL_TUNING = G5;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INFOPLIST_FILE = "Hover Example-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "Hover Example";
-				ZERO_LINK = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/Hover/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.SimpleExample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
-		843867AA0FFB925500B47106 /* Debug */ = {
+		AE1D43001B7D2A24002E7CAE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INFOPLIST_FILE = "Sprite Example-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "Sprite Example";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/Multi/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SYMROOT = build;
 			};
 			name = Debug;
 		};
-		843867AB0FFB925500B47106 /* Release */ = {
+		AE1D43011B7D2A24002E7CAE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_MODEL_TUNING = G5;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INFOPLIST_FILE = "Sprite Example-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "Sprite Example";
-				ZERO_LINK = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/Multi/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SYMROOT = build;
 			};
 			name = Release;
 		};
-		905F419E0D662FD900E15CE0 /* Debug */ = {
+		AE1D43291B7D2B47002E7CAE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INFOPLIST_FILE = "NativeDrawing-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = NativeDrawing;
-				WRAPPER_EXTENSION = app;
-				ZERO_LINK = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/Animation/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
-		905F419F0D662FD900E15CE0 /* Release */ = {
+		AE1D432A1B7D2B47002E7CAE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INFOPLIST_FILE = "NativeDrawing-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = NativeDrawing;
-				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/Animation/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
-		90CE88D60CCB306A009442AC /* Debug */ = {
+		AE1D43541B7D45EC002E7CAE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INFOPLIST_FILE = "KeyboardAndMouse Example-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "KeyboardAndMouse Example";
-				WRAPPER_EXTENSION = app;
-				ZERO_LINK = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/Sprite/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
-		90CE88D70CCB306A009442AC /* Release */ = {
+		AE1D43551B7D45EC002E7CAE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INFOPLIST_FILE = "KeyboardAndMouse Example-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "KeyboardAndMouse Example";
-				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/Sprite/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
-		90CE8A8A0CCDFF4B009442AC /* Debug */ = {
+		AE1D437D1B7D4F6E002E7CAE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INFOPLIST_FILE = "Animation Example-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "Animation Example";
-				WRAPPER_EXTENSION = app;
-				ZERO_LINK = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/Mandelbrot/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
-		90CE8A8B0CCDFF4B009442AC /* Release */ = {
+		AE1D437E1B7D4F6E002E7CAE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INFOPLIST_FILE = "Animation Example-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "Animation Example";
-				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/Mandelbrot/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
-		90CE8A940CCDFFA0009442AC /* Debug */ = {
+		AE1D43B41B7D5113002E7CAE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INFOPLIST_FILE = "Mandelbrot-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = Mandelbrot;
-				WRAPPER_EXTENSION = app;
-				ZERO_LINK = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
-		90CE8A950CCDFFA0009442AC /* Release */ = {
+		AE1D43B51B7D5113002E7CAE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INFOPLIST_FILE = "Mandelbrot-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = Mandelbrot;
-				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
-		90CE8AB00CCE0055009442AC /* Debug */ = {
+		AE1D43DA1B7D51BF002E7CAE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INSTALL_PATH = "$(HOME)/bin";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "Timer Example";
-				ZERO_LINK = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/KeyboardAndMouse/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
-		90CE8AB10CCE0055009442AC /* Release */ = {
+		AE1D43DB1B7D51BF002E7CAE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INSTALL_PATH = "$(HOME)/bin";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "Timer Example";
-				ZERO_LINK = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/KeyboardAndMouse/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
-		90DAAE830CC963F500D12854 /* Debug */ = {
+		AE1D44031B7E8E11002E7CAE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INSTALL_PATH = /usr/local/lib;
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "pxCore Static Library";
-				ZERO_LINK = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/NativeDrawing/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
-		90DAAE840CC963F500D12854 /* Release */ = {
+		AE1D44041B7E8E11002E7CAE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				INSTALL_PATH = /usr/local/lib;
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "pxCore Static Library";
-				ZERO_LINK = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				INFOPLIST_FILE = examples/NativeDrawing/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
-		90DAAE9C0CC964BB00D12854 /* Debug */ = {
+		AE1D442C1B809983002E7CAE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				HEADER_SEARCH_PATHS = (
-					src,
-					src/mac,
-				);
-				INFOPLIST_FILE = "Simple Example-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "Simple Example";
-				WRAPPER_EXTENSION = app;
-				ZERO_LINK = YES;
-			};
-			name = Debug;
-		};
-		90DAAE9D0CC964BB00D12854 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
-				HEADER_SEARCH_PATHS = (
-					src,
-					src/mac,
-				);
-				INFOPLIST_FILE = "Simple Example-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework\"";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Carbon,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "Simple Example";
-				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
-			};
-			name = Release;
-		};
-		90DCA5630CC76A1700AF146D /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
-				COPY_PHASE_STRIP = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					PX_PLATFORM_MAC,
-					"$(inherited)",
+					PX_OPENGL,
 				);
-				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
-				HEADER_SEARCH_PATHS = src;
-				OBJROOT = temp;
-				SYMROOT = build/mac;
+				INFOPLIST_FILE = examples/SimpleOpenGL/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SYMROOT = build;
 			};
 			name = Debug;
 		};
-		90DCA5640CC76A1700AF146D /* Release */ = {
+		AE1D442D1B809983002E7CAE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
-				COPY_PHASE_STRIP = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					PX_PLATFORM_MAC,
-					"$(inherited)",
+					PX_OPENGL,
 				);
-				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
-				HEADER_SEARCH_PATHS = src;
-				OBJROOT = temp;
-				SYMROOT = build/mac;
+				INFOPLIST_FILE = examples/SimpleOpenGL/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SYMROOT = build;
+			};
+			name = Release;
+		};
+		AECBECC41B6796DC00851BFE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		AECBECC51B6796DC00851BFE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		AECBECE21B67979F00851BFE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				EXECUTABLE_PREFIX = lib;
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				OTHER_LDFLAGS = (
+					"-framwork",
+					Cocoa,
+					"-framework",
+					Foundation,
+				);
+				PRODUCT_NAME = pxCore;
+				SYMROOT = build;
+			};
+			name = Debug;
+		};
+		AECBECE31B67979F00851BFE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				EXECUTABLE_PREFIX = lib;
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				OTHER_LDFLAGS = (
+					"-framwork",
+					Cocoa,
+					"-framework",
+					Foundation,
+				);
+				PRODUCT_NAME = pxCore;
+				SYMROOT = build;
+			};
+			name = Release;
+		};
+		AECBED2C1B679A7600851BFE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_ARC = NO;
+				CLANG_MODULES_AUTOLINK = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					src/mac,
+				);
+				INFOPLIST_FILE = examples/Simple/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.SimpleExample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		AECBED2D1B679A7600851BFE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_ARC = NO;
+				CLANG_MODULES_AUTOLINK = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
+				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					src/mac,
+				);
+				INFOPLIST_FILE = examples/Simple/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.SimpleExample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		843867810FFB916600B47106 /* Build configuration list for PBXNativeTarget "Hover Example" */ = {
+		AE1D42D61B7CF5E0002E7CAE /* Build configuration list for PBXNativeTarget "Hover" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				8438677F0FFB916600B47106 /* Debug */,
-				843867800FFB916600B47106 /* Release */,
+				AE1D42D71B7CF5E0002E7CAE /* Debug */,
+				AE1D42D81B7CF5E0002E7CAE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		843867AC0FFB925600B47106 /* Build configuration list for PBXNativeTarget "Sprite Example" */ = {
+		AE1D42FF1B7D2A24002E7CAE /* Build configuration list for PBXNativeTarget "Multi" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				843867AA0FFB925500B47106 /* Debug */,
-				843867AB0FFB925500B47106 /* Release */,
+				AE1D43001B7D2A24002E7CAE /* Debug */,
+				AE1D43011B7D2A24002E7CAE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		905F419D0D662FD900E15CE0 /* Build configuration list for PBXNativeTarget "NativeDrawing" */ = {
+		AE1D43281B7D2B47002E7CAE /* Build configuration list for PBXNativeTarget "Animation" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				905F419E0D662FD900E15CE0 /* Debug */,
-				905F419F0D662FD900E15CE0 /* Release */,
+				AE1D43291B7D2B47002E7CAE /* Debug */,
+				AE1D432A1B7D2B47002E7CAE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		90CE88D50CCB306A009442AC /* Build configuration list for PBXNativeTarget "KeyboardAndMouse Example" */ = {
+		AE1D43531B7D45EC002E7CAE /* Build configuration list for PBXNativeTarget "Sprite" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				90CE88D60CCB306A009442AC /* Debug */,
-				90CE88D70CCB306A009442AC /* Release */,
+				AE1D43541B7D45EC002E7CAE /* Debug */,
+				AE1D43551B7D45EC002E7CAE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		90CE8A890CCDFF4B009442AC /* Build configuration list for PBXNativeTarget "Animation Example" */ = {
+		AE1D437C1B7D4F6E002E7CAE /* Build configuration list for PBXNativeTarget "Mandelbrot" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				90CE8A8A0CCDFF4B009442AC /* Debug */,
-				90CE8A8B0CCDFF4B009442AC /* Release */,
+				AE1D437D1B7D4F6E002E7CAE /* Debug */,
+				AE1D437E1B7D4F6E002E7CAE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		90CE8A930CCDFFA0009442AC /* Build configuration list for PBXNativeTarget "Mandelbrot" */ = {
+		AE1D43B31B7D5113002E7CAE /* Build configuration list for PBXNativeTarget "Timer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				90CE8A940CCDFFA0009442AC /* Debug */,
-				90CE8A950CCDFFA0009442AC /* Release */,
+				AE1D43B41B7D5113002E7CAE /* Debug */,
+				AE1D43B51B7D5113002E7CAE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		90CE8AAF0CCE0055009442AC /* Build configuration list for PBXNativeTarget "Timer Example" */ = {
+		AE1D43D91B7D51BF002E7CAE /* Build configuration list for PBXNativeTarget "KeyboardAndMouse" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				90CE8AB00CCE0055009442AC /* Debug */,
-				90CE8AB10CCE0055009442AC /* Release */,
+				AE1D43DA1B7D51BF002E7CAE /* Debug */,
+				AE1D43DB1B7D51BF002E7CAE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		90DAAE820CC963F500D12854 /* Build configuration list for PBXNativeTarget "pxCore Static Library" */ = {
+		AE1D44021B7E8E11002E7CAE /* Build configuration list for PBXNativeTarget "NativeDrawing" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				90DAAE830CC963F500D12854 /* Debug */,
-				90DAAE840CC963F500D12854 /* Release */,
+				AE1D44031B7E8E11002E7CAE /* Debug */,
+				AE1D44041B7E8E11002E7CAE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		90DAAE9B0CC964BB00D12854 /* Build configuration list for PBXNativeTarget "Simple Example" */ = {
+		AE1D442B1B809983002E7CAE /* Build configuration list for PBXNativeTarget "SimpleOpenGL" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				90DAAE9C0CC964BB00D12854 /* Debug */,
-				90DAAE9D0CC964BB00D12854 /* Release */,
+				AE1D442C1B809983002E7CAE /* Debug */,
+				AE1D442D1B809983002E7CAE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		90DCA5620CC76A1700AF146D /* Build configuration list for PBXProject "pxCore" */ = {
+		AECBECA41B6796DC00851BFE /* Build configuration list for PBXProject "pxCore" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				90DCA5630CC76A1700AF146D /* Debug */,
-				90DCA5640CC76A1700AF146D /* Release */,
+				AECBECC41B6796DC00851BFE /* Debug */,
+				AECBECC51B6796DC00851BFE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AECBECE11B67979F00851BFE /* Build configuration list for PBXNativeTarget "pxCore Static Library" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AECBECE21B67979F00851BFE /* Debug */,
+				AECBECE31B67979F00851BFE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AECBED2B1B679A7600851BFE /* Build configuration list for PBXNativeTarget "Simple" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AECBED2C1B679A7600851BFE /* Debug */,
+				AECBED2D1B679A7600851BFE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 90DCA5610CC76A1700AF146D /* Project object */;
+	rootObject = AECBECA11B6796DC00851BFE /* Project object */;
 }

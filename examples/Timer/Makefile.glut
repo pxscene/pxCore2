@@ -1,0 +1,21 @@
+# pxCore FrameBuffer Library
+# Timer Example
+
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Darwin)
+        OSCFLAGS= -framework GLUT -framework OpenGL
+else
+        OSCFLAGS= -lrt -lglut -lGL -lGLEW
+endif
+
+CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS)	
+OUTDIR=../../build/glut
+
+all: $(OUTDIR)/Timer
+
+$(OUTDIR)/Timer: Timer.cpp
+	g++ -o $(OUTDIR)/Timer -Wall Timer.cpp -lpxCore $(CFLAGS) -L$(OUTDIR)
+
+
+

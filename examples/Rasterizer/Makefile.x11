@@ -1,0 +1,27 @@
+# pxCore FrameBuffer Library
+# Rasterizer Example
+
+CFLAGS= -I../../src -DPX_PLATFORM_X11 -Wno-write-strings
+LIBDIR=../../build/x11
+OUTDIR=.
+
+all: $(OUTDIR)/Rasterizer
+
+Rasterizer.o: Rasterizer.cpp 
+	g++ -c $(CFLAGS) Rasterizer.cpp
+
+pxRasterizer.o: pxRasterizer.cpp 
+	g++ -c $(CFLAGS) pxRasterizer.cpp
+
+pxCanvas.o: pxCanvas.cpp 
+	g++ -c $(CFLAGS) pxCanvas.cpp
+
+xs_String.o: xs_String.cpp 
+	g++ -c $(CFLAGS) xs_String.cpp
+
+Rasterizer: Rasterizer.o xs_String.o pxRasterizer.o pxCanvas.o
+	g++ -o $(OUTDIR)/Rasterizer xs_String.o Rasterizer.o pxRasterizer.o pxCanvas.o -L/usr/lib/x86_64/ -lX11 -L$(LIBDIR) -lpxCore -lrt
+
+
+
+

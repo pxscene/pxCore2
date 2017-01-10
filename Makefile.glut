@@ -1,0 +1,47 @@
+# pxCore Copyright 2007-2015 John Robinson
+# Portable Framebuffer and Windowing Library
+# glut
+
+CFLAGS= -DPX_PLATFORM_GLUT -fPIC
+OUTDIR=build/x11
+
+all: lib examples
+
+clean:
+	rm -rf *.o; rm -rf src/*.o; rm -rf build
+
+lib:
+	cd src; make -f Makefile.glut
+
+examples: Simple Mandelbrot Animation KeyboardAndMouse Timer Hover Sprite
+
+Simple:
+	cd examples/Simple; make -f Makefile.glut
+
+NativeDrawing:
+	cd examples/NativeDrawing; make -f Makefile.glut
+
+Mandelbrot:
+	cd examples/Mandelbrot; make -f Makefile.glut
+
+Animation:
+	cd examples/Animation; make -f Makefile.glut
+
+KeyboardAndMouse:
+	cd examples/KeyboardAndMouse; make -f Makefile.glut
+
+Timer:
+	cd examples/Timer; make -f Makefile.glut
+
+Hover:
+	cd examples/Hover; make -f Makefile.glut
+
+Sprite:
+	cd examples/Sprite; make -f Makefile.glut
+
+
+
+
+
+
+

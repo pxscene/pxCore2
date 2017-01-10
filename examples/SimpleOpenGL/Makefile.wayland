@@ -1,0 +1,14 @@
+# pxCore FrameBuffer Library
+# Simple EGL Example
+WAYLAND=`pkg-config wayland-client --cflags --libs`
+
+CFLAGS= -I../../src -DPX_PLATFORM_WAYLAND -Wno-write-strings -Wall -O3 -fvisibility=hidden -g
+OUTDIR=../../build/wayland
+
+all: $(OUTDIR)/SimpleEgl
+
+$(OUTDIR)/SimpleEgl: SimpleEgl.cpp 
+	g++ -o $(OUTDIR)/SimpleEgl -Wall $(CFLAGS) SimpleEgl.cpp -L$(OUTDIR) -lpxCore -lrt $(WAYLAND)
+
+
+

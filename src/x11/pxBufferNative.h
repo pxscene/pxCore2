@@ -17,7 +17,10 @@ typedef struct
     Display* display;
     Drawable drawable;
     GC gc;
-} pxSurfaceNativeDesc;
+    int windowWidth;
+    int windowHeight;
+}
+pxSurfaceNativeDesc;
 
 typedef pxSurfaceNativeDesc* pxSurfaceNative;
 

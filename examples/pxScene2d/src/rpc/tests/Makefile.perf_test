@@ -1,0 +1,17 @@
+STAGING_DIR=-I../ -I../../
+CXXFLAGS += -g -std=c++11 -I. $(STAGING_DIR)
+LDFLAGS  += -L../ -L../../ -lrtRemote -lrtCore
+
+OBJECTS = perf_test.o
+
+all: perf_test
+
+%.o: %.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+perf_test: $(OBJECTS)
+	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
+
+clean:
+	-rm -f $(OBJECTS)
+	-rm -f perf_test

@@ -5,7 +5,7 @@
 #ifndef PX_OFFSCREEN_NATIVE_H
 #define PX_OFFSCREEN_NATIVE_H
 
-#define _WIN32_WINNT 0x400
+//#define _WIN32_WINNT 0x400
 
 #include <windows.h>
 
@@ -32,6 +32,8 @@ public:
         GdiFlush();
 #endif
     }
+
+    void swizzleTo(rtPixelFmt /*fmt*/) {};
 
 protected:
 

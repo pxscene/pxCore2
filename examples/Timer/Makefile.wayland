@@ -1,0 +1,14 @@
+# pxCore FrameBuffer Library
+# Timer Example
+WAYLAND=`pkg-config wayland-client --cflags --libs`
+
+CFLAGS= -I../../src -DPX_PLATFORM_WAYLAND -Wno-write-strings -Wall -O3 -fvisibility=hidden -g
+OUTDIR=../../build/wayland
+
+all: $(OUTDIR)/Timer
+
+$(OUTDIR)/Timer: Timer.cpp 
+	g++ -o $(OUTDIR)/Timer -Wall $(CFLAGS) Timer.cpp -L$(OUTDIR) -lpxCore -lrt $(WAYLAND)
+
+
+

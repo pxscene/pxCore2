@@ -17,101 +17,101 @@ pxEventLoop eventLoop;
 
 void drawBackground(pxBuffer& b, bool hovered)
 {
-    // Fill the buffer with a simple pattern as a function of f(x,y)
-    int w = b.width();
-    int h = b.height();
+  // Fill the buffer with a simple pattern as a function of f(x,y)
+  int w = b.width();
+  int h = b.height();
 
-    for (int y = 0; y < h; y++)
+  for (int y = 0; y < h; y++)
+  {
+    pxPixel* p = b.scanline(y);
+    if (hovered)
     {
-        pxPixel* p = b.scanline(y);
-        if (hovered)
-        {
-            for (int x = 0; x < w; x++)
-            {
-                p->r = pxClamp<int>(x+y, 255);
-                p->g = pxClamp<int>(y,   255);
-                p->b = pxClamp<int>(x,   255);
-                p++;
-            }
-        }
-        else
-        {
-            for (int x = 0; x < w; x++)
-            {
-                p->b = pxClamp<int>(x+y, 255);
-                p->r = pxClamp<int>(y,   255);
-                p->g = pxClamp<int>(x,   255);
-                p++;
-            }
-        }
+      for (int x = 0; x < w; x++)
+      {
+        p->r = pxClamp<int>(x+y, 255);
+        p->g = pxClamp<int>(y,   255);
+        p->b = pxClamp<int>(x,   255);
+        p++;
+      }
     }
+    else
+    {
+      for (int x = 0; x < w; x++)
+      {
+        p->b = pxClamp<int>(x+y, 255);
+        p->r = pxClamp<int>(y,   255);
+        p->g = pxClamp<int>(x,   255);
+        p++;
+      }
+    }
+  }
 }
 
 class myWindow: public pxWindow
 {
 private:
-    // Event Handlers - Look in pxWindow.h for more
-    void onCloseRequest()
+  // Event Handlers - Look in pxWindow.h for more
+  void onCloseRequest()
+  {
+    // When someone clicks the close box no policy is predefined.
+    // so we need to explicitly tell the event loop to exit
+    eventLoop.exit();
+  }
+
+  void onCreate()
+  {
+    hovered = false;
+  }
+
+  void onSize(int newWidth, int newHeight)
+  {
+    // When ever the window resizes (re)allocate a buffer big 
+    // enough for the entire client area and draw our pattern into it
+    mTexture.init(newWidth, newHeight);
+    drawBackground(mTexture, hovered);
+  }
+
+  void onDraw(pxSurfaceNative s)
+  {
+    drawBackground(mTexture, hovered);
+    // Draw the texture into this window
+    mTexture.blit(s);
+  }
+
+  void onMouseMove(int x, int y)
+  {
+    if (!hovered)
     {
-        // When someone clicks the close box no policy is predefined.
-        // so we need to explicitly tell the event loop to exit
-	    eventLoop.exit();
+      hovered = true;
+      invalidateRect();
     }
+  }
 
-    void onCreate()
+  void onMouseLeave()
+  {
+    if (hovered)
     {
-        hovered = false;
+      hovered = false;
+      invalidateRect();
     }
+  }
 
-    void onSize(int newWidth, int newHeight)
-    {
-        // When ever the window resizes (re)allocate a buffer big 
-	    // enough for the entire client area and draw our pattern into it
-	    mTexture.init(newWidth, newHeight);
-	    drawBackground(mTexture, hovered);
-    }
+  pxOffscreen mTexture;
 
-    void onDraw(pxSurfaceNative s)
-    {
-        drawBackground(mTexture, hovered);
-        // Draw the texture into this window
-	    mTexture.blit(s);
-    }
-
-    void onMouseMove(int x, int y)
-    {
-        if (!hovered)
-        {
-            hovered = true;
-            invalidateRect();
-        }
-    }
-
-    void onMouseLeave()
-    {
-        if (hovered)
-        {
-            hovered = false;
-            invalidateRect();
-        }
-    }
-
-    pxOffscreen mTexture;
-
-    bool hovered;
+  bool hovered;
 };
 
-int pxMain()
+int pxMain(int argc, char* argv[])
 {
-    myWindow win;
+  myWindow win;
 
-    win.init(10, 64, 640, 480);
-    win.setTitle("Hover");
-    win.setVisibility(true);
+  win.init(10, 64, 640, 480);
+  win.setTitle("Hover");
+  win.setVisibility(true);
 
-    eventLoop.run();
+  eventLoop.run();
 
-    return 0;
+  return 0;
 }
 
 

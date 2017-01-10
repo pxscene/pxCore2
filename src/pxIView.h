@@ -1,27 +1,23 @@
+// pxCore CopyRight 2007-2015 John Robinson
+// Portable Framebuffer and Windowing Library
+// pxIView.h
+
 #ifndef PXIVIEW_H
 #define PXIVIEW_H
 
 #include "pxCore.h"
 #include "pxRect.h"
 
-//#include "rt.h"
 #include "rtRefPtr.h"
 
-
-// A pxIViewListener must unregister itself
+// A pxIViewContainer must unregister itself
 // upon being destroyed
-class pxIViewListener
+class pxIViewContainer
 {
 public:    
-    // In view coordinates on pixel boundaries
-    virtual void __stdcall invalidateRect(pxRect* r) = 0;
-#if 0
-    //virtual void __stdcall setCapture(bool capture) = 0;
-    //  Like to eliminate these
-    // since they are platform specific
-    virtual void __stdcall beginDrawing(HDC& dc) = 0;
-    virtual void __stdcall endDrawing(HDC& dc) = 0;
-#endif
+  // In view coordinates on pixel boundaries
+  // NULL means invalidate everything
+  virtual void RT_STDCALL invalidateRect(pxRect* r) = 0;
 };
 
 // TODO no way to have a scene draw to an arbitrary rectangle
@@ -30,29 +26,36 @@ public:
 class pxIView
 {
 public:
-    virtual unsigned long __stdcall AddRef() = 0;
-    virtual unsigned long __stdcall Release() = 0;
+  virtual unsigned long RT_STDCALL AddRef() = 0;
+  virtual unsigned long RT_STDCALL Release() = 0;
 
-    // should make them __stdcall if I want it to be a binary
-    // contract
+  // should make them RT_STDCALL if I want it to be a binary
+  // contract
 
-    virtual void __stdcall onSize(int x, int y) = 0;
+  virtual void RT_STDCALL onSize(int32_t x, int32_t y) = 0;
 
-    virtual void __stdcall onMouseDown(int x, int y, unsigned long flags) = 0;
-    virtual void __stdcall onMouseUp(int x, int y, unsigned long flags) = 0;
-	virtual void __stdcall onMouseMove(int x, int y) = 0;
-	virtual void __stdcall onMouseLeave() = 0;
+  // events return true if the event was consumed by the view
+  virtual bool RT_STDCALL onMouseDown(int32_t x, int32_t y, uint32_t flags) = 0;
+  virtual bool RT_STDCALL onMouseUp(int32_t x, int32_t y, uint32_t flags) = 0;
+  virtual bool RT_STDCALL onMouseMove(int32_t x, int32_t y) = 0;
 
-    /* KEYS? */
+  virtual bool RT_STDCALL onMouseEnter() = 0;
+  virtual bool RT_STDCALL onMouseLeave() = 0;
 
-    virtual void __stdcall onDraw(pxBuffer& b, pxRect* r) = 0;
-   // virtual void __stdcall handleDraw(HDC dc, RECT* r) = 0;
+  virtual bool RT_STDCALL onFocus() = 0;
+  virtual bool RT_STDCALL onBlur() = 0;
 
-    virtual void __stdcall addListener(pxIViewListener* listener) = 0;
-    virtual void __stdcall removeListener(pxIViewListener* listener) = 0;
+  virtual bool RT_STDCALL onKeyDown(uint32_t keycode, uint32_t flags) = 0;
+  virtual bool RT_STDCALL onKeyUp(uint32_t keycode, uint32_t flags) = 0;
+  virtual bool RT_STDCALL onChar(uint32_t codepoint) = 0;
+
+  virtual void RT_STDCALL onUpdate(double t) = 0;
+  virtual void RT_STDCALL onDraw(/*pxBuffer& b, pxRect* r*/) = 0;
+
+  virtual void RT_STDCALL setViewContainer(pxIViewContainer* l) = 0;
+  virtual void RT_STDCALL onCloseRequest() {};
 #if 0
-    virtual rtError setBaseDirectory(const wchar_t* d) = 0;
-    virtual rtError __stdcall setSrc(const wchar_t* s) = 0;
+  virtual rtError RT_STDCALL setURI(const char* s) = 0;
 #endif
 };
 
@@ -60,10 +63,10 @@ typedef rtRefPtr<pxIView> pxViewRef;
 
 #if 0
 
-rtError createView(int version, pxIView** view);
+rtError createView(const char* viewType, pxIView** view);
 
-typedef unsigned (*fnGetKeyFlags)(int wflags);
-typedef rtError (*fnCreateView)(int version, pxIView** view);
+//typedef uint32_t (*fnGetKeyFlags)(int32_t wflags);
+typedef rtError (*fnCreateView)(const char* viewType, pxIView** view);
 #endif
 
 #endif // PXIVIEW_H

@@ -5,30 +5,55 @@
 #include "../pxTimer.h"
 
 #include <stdlib.h>
+
+#define USE_CGT
+
+#ifndef USE_CGT
 #include <sys/time.h>
+#else
+#include <time.h>
+#endif
 
 double  pxSeconds()
 {
+#ifndef USE_CGT
     timeval tv;
     gettimeofday(&tv, NULL);
-    return tv.tv_sec;
+    return tv.tv_sec + ((double)tv.tv_usec/1000000);
+#else
+    timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec + ((double)ts.tv_nsec/1000000000);
+#endif
 }
 
 double pxMilliseconds()
 {
+#ifndef USE_CGT
     timeval tv;
     gettimeofday(&tv, NULL);
     return ((double)(tv.tv_sec * 1000) + ((double)tv.tv_usec/1000));
+#else
+    timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ((double)(ts.tv_sec * 1000) + ((double)ts.tv_nsec/1000000));
+#endif
 }
 
 double  pxMicroseconds()
 {
+#ifndef USE_CGT
     timeval tv;
     gettimeofday(&tv, NULL);
     return (tv.tv_sec * 1000000) + tv.tv_usec;
+#else
+    timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ((double)(ts.tv_sec * 1000000) + ((double)ts.tv_nsec/1000));
+#endif
 }
 
-void pxSleepMS(unsigned long msToSleep)
+void pxSleepMS(uint32_t msToSleep)
 {
     timeval tv;
     tv.tv_sec = 0;

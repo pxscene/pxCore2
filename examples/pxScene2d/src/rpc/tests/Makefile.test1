@@ -1,0 +1,17 @@
+STAGING_DIR=-I../ -I../../
+CXXFLAGS += -g -std=c++11 $(shell pkg-config --cflags glib-2.0) -I. $(STAGING_DIR)
+LDFLAGS  += -g $(shell pkg-config --libs glib-2.0) -L../ -lrtRemote -lrtCore
+
+OBJECTS = main.o
+
+all: rttest
+
+%.o: %.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+rttest: $(OBJECTS)
+	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
+
+clean:
+	-rm -f $(OBJECTS)
+	-rm -f rt_test

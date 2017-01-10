@@ -87,7 +87,7 @@ private:
     pxOffscreen mTexture;
 };
 
-int pxMain()
+int pxMain(int argc, char* argv[])
 {
     myWindow win;
 
