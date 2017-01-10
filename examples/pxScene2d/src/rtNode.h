@@ -8,7 +8,7 @@
 #include <string>
 #include <map>
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(ENABLE_DFB)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
@@ -24,7 +24,7 @@
 #define SANDBOX_JS          ( (const char*) "rcvrcore/sandbox.js")
 
 #if 1
- #ifndef WIN32
+ #if !defined(WIN32) & !defined(ENABLE_DFB)
   #pragma GCC diagnostic pop
  #endif
 #endif

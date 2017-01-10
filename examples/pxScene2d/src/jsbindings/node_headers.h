@@ -1,7 +1,7 @@
 #ifndef NODE_HEADERS_H
 #define NODE_HEADERS_H
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(ENABLE_DFB)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
@@ -10,7 +10,7 @@
 #include <v8.h>
 #include <v8-util.h>
 #include <uv.h>
-#ifndef WIN32
+#if !defined(WIN32) && !defined(ENABLE_DFB)
 #pragma GCC diagnostic pop
 #endif
 
