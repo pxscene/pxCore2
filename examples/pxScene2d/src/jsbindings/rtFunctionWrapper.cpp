@@ -80,7 +80,11 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
   Local<Context> local_context = resolver->CreationContext();
   Context::Scope context_scope(local_context);
 
+#ifdef ENABLE_NODE_V_6_9
   TryCatch tryCatch(resolverFunc->mIsolate);
+#else
+  TryCatch tryCatch;
+#endif //ENABLE_NODE_V_6_9
   if (resolverFunc->mDisposition == DispositionResolve)
   {
     resolver->Resolve(value);
