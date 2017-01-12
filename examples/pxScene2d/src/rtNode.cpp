@@ -595,7 +595,11 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char* /*args = NULL*/
 
 rtNode::rtNode() 
 #ifndef RUNINMAIN
+#ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false)/*: mPlatform(NULL)*/
+#else
+: mNeedsToEnd(false)/*: mPlatform(NULL)*/
+#endif
 #endif
 {
   rtLogInfo(__FUNCTION__);
