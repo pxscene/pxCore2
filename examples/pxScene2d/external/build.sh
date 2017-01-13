@@ -39,11 +39,12 @@ make all -j3
 cd ..
 
 #--------- LIBJPEG TURBO
+if [ "$(uname)" != "Darwin" ]; then
 cd libjpeg-turbo
 ./configure
 make -j3
 cd ..
-
+fi
 
 #--------- LIBNODE 
 cd libnode-v6.9.0
