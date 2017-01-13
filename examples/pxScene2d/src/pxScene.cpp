@@ -12,6 +12,7 @@
 #include "rtUrlUtils.h"
 
 #include "rtNode.h"
+#include "pxUtil.h"
 
 #ifdef RUNINMAIN
 extern rtNode script;
@@ -142,6 +143,9 @@ EXITSCENELOCK()
 #ifndef RUNINMAIN
    nodeLib->setNeedsToEnd(true); 
 #endif
+#ifdef ENABLE_LIBJPEG_TURBO
+  pxCleanupJPGImageTurbo();
+#endif //ENABLE_LIBJPEG_TURBO
   }
 
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)

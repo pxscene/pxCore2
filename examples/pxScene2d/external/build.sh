@@ -38,6 +38,13 @@ cd zlib
 make all -j3
 cd ..
 
+#--------- LIBJPEG TURBO
+cd libjpeg-turbo
+./configure
+make -j3
+cd ..
+
+
 #--------- LIBNODE 
 cd libnode-v6.9.0
 ./configure --shared

@@ -28,7 +28,11 @@ rtError pxLoadImage(const char* imageData, size_t imageDataSize,
 
   if( retVal != RT_OK) // Failed ... trying as JPG
   {
+#ifdef ENABLE_LIBJPEG_TURBO
+     retVal = pxLoadJPGImageTurbo(imageData, imageDataSize, o);
+#else
      retVal = pxLoadJPGImage(imageData, imageDataSize, o);
+#endif //ENABLE_LIBJPEG_TURBO
   }
 
   // TODO more sane image type detection and flow
@@ -622,13 +626,105 @@ rtError pxLoadJPGImage(const char* filename, pxOffscreen& o)
   rtError e = rtLoadFile(filename, d);
   if (e == RT_OK)
   {
+#ifdef ENABLE_LIBJPEG_TURBO
+    return pxLoadJPGImageTurbo((const char*)d.data(), d.length(), o);
+#else
     return pxLoadJPGImage((const char*)d.data(), d.length(), o);
+#endif //ENABLE_LIBJPEG_TURBO
   }
   else
     rtLogError("Could not load JPG file: %s", filename);
 
   return e;
 }
+
+#ifdef ENABLE_LIBJPEG_TURBO
+extern "C" {
+#include <turbojpeg.h>
+}
+
+tjhandle jpegDecompressor = 0;
+bool jpegTurboInitialized = false;
+
+rtError pxInitializeJPGImageTurbo()
+{
+  if (!jpegTurboInitialized)
+  {
+    jpegDecompressor = tjInitDecompress();
+    jpegTurboInitialized = true;
+  }
+  return RT_OK;
+}
+rtError pxCleanupJPGImageTurbo()
+{
+  if (jpegTurboInitialized)
+  {
+    tjDestroy(jpegDecompressor);
+    jpegDecompressor = 0;
+    jpegTurboInitialized = false;
+  }
+  return RT_OK;
+}
+
+rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o)
+{
+  rtLogDebug("using pxLoadJPGImageTurbo");
+  if (!buf)
+  {
+    rtLogError("NULL buffer passed into pxLoadJPGImageTurbo");
+    return RT_FAIL;
+  }
+
+  if (!jpegTurboInitialized)
+  {
+    pxInitializeJPGImageTurbo();
+  }
+
+  int width, height, jpegSubsamp;
+
+  tjDecompressHeader2(jpegDecompressor, (unsigned char*)buf, buflen, &width, &height, &jpegSubsamp);
+
+  unsigned char* imageBuffer = tjAlloc(width*height*3);
+
+  int result = tjDecompress2(jpegDecompressor, (unsigned char*)buf, buflen, imageBuffer, width, 0, height, TJPF_RGB, TJFLAG_FASTDCT);
+  if (result != 0)
+  {
+    rtLogError("Error decompressing using libjpeg turbo");
+    tjFree(imageBuffer);
+    return RT_FAIL;
+  }
+
+  o.init(width, height);
+
+  int scanlinen = 0;
+  unsigned int bufferIndex = 0;
+  while (scanlinen < height)
+  {
+    pxPixel* p = o.scanline(scanlinen++);
+    {
+      char* b = (char*)&imageBuffer[bufferIndex];
+      char* bend = b+(width*3);
+      while(b < bend)
+      {
+        p->r = b[0];
+        p->g = b[1];
+        p->b = b[2];
+        p->a = 255;
+        b+=3; // next pixel
+        bufferIndex+=3;
+        p++;
+      }
+    }
+  }
+
+  o.mPixelFormat = RT_PIX_ARGB;
+
+  tjFree(imageBuffer);
+
+  /* And we're done! */
+  return RT_OK;
+}
+#endif //ENABLE_LIBJPEG_TURBO
 
 rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
 {
