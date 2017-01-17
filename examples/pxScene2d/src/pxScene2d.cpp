@@ -64,7 +64,11 @@ uint32_t gFboBindCalls;
 extern void rtWrapperSceneUpdateEnter();
 extern void rtWrapperSceneUpdateExit();
 #ifdef RUNINMAIN
+#ifdef ENABLE_DEBUG_MODE
+rtNode* script;
+#else
 rtNode script;
+#endif
 #else
 extern rtNode * nodeLib;
 class AsyncScriptInfo;
@@ -299,7 +303,11 @@ void pxObject::dispose()
   mMaskSnapshot = NULL;
 #ifdef ENABLE_RT_NODE
 #ifdef RUNINMAIN
+#ifdef ENABLE_DEBUG_MODE
+  script->pump();
+#else
   script.pump();
+#endif
 #else
   nodeLib->pump();
 #endif
@@ -2441,7 +2449,11 @@ void pxScriptView::runScript()
 
   #ifdef ENABLE_RT_NODE
 #ifdef RUNINMAIN
+#ifdef ENABLE_DEBUG_MODE
+  mCtx = script->createContext();
+#else
   mCtx = script.createContext();
+#endif
 #else
   printf("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
   mCtx = nodeLib->createContext();

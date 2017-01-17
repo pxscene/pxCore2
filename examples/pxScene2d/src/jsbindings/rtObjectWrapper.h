@@ -29,7 +29,9 @@ private:
   static void getPropertyByName(Local<String> prop, const PropertyCallbackInfo<Value>& info);
   static void setPropertyByName(Local<String> prop, Local<Value> val, const PropertyCallbackInfo<Value>& info);
   static void getEnumerablePropertyNames(const PropertyCallbackInfo<Array>& info);
-
+#ifdef ENABLE_DEBUG_MODE
+  static void queryPropertyByName(Local<String> prop, const PropertyCallbackInfo<Value>& info);
+#endif
   static void getPropertyByIndex(uint32_t index, const PropertyCallbackInfo<Value>& info);
   static void setPropertyByIndex(uint32_t index, Local<Value> val, const PropertyCallbackInfo<Value>& info);
   static void getEnumerablePropertyIndecies(const PropertyCallbackInfo<Array>& info);
@@ -42,6 +44,11 @@ private:
 
   typedef Handle<Value> (*enumerable_item_creator_t)(v8::Isolate* isolate, rtObjectRef& keys, uint32_t index);
   static void getEnumerable(const PropertyCallbackInfo<Array>& info, enumerable_item_creator_t create);
+
+#ifdef ENABLE_DEBUG_MODE
+  template<typename T>
+  static void queryProperty(const T& prop, const PropertyCallbackInfo<Value>& info);
+#endif
 };
 
 class jsObjectWrapper : public rtIObject
