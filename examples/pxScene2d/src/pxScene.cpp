@@ -15,7 +15,11 @@
 #include "pxUtil.h"
 
 #ifdef RUNINMAIN
+#ifdef ENABLE_DEBUG_MODE
+extern rtNode* script;
+#else
 extern rtNode script;
+#endif
 #else
 #include "rtNodeThread.h"
 #endif
@@ -46,6 +50,12 @@ pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
 
 pxContext context;
+#ifdef ENABLE_DEBUG_MODE
+char *g_debugPort = NULL;
+int g_argc = 0;
+char** g_argv;
+char *nodeInput = NULL;
+#endif
 
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
@@ -134,7 +144,11 @@ protected:
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
 #ifdef RUNINMAIN
+#ifdef ENABLE_DEBUG_MODE
+   script->garbageCollect();
+#else
    script.garbageCollect();
+#endif
 #endif
 ENTERSCENELOCK()
     mView = NULL;
@@ -228,7 +242,11 @@ EXITSCENELOCK()
       mView->onUpdate(pxSeconds());
     EXITSCENELOCK()
 #ifdef RUNINMAIN
+#ifdef ENABLE_DEBUG_MODE
+    script->pump();
+#else
     script.pump();
+#endif
 #endif
   }
 
@@ -262,12 +280,53 @@ int pxMain(int argc, char* argv[])
   uv_async_init(nodeLoop, &gcTrigger,garbageCollect);
 
 #endif
+#ifdef ENABLE_DEBUG_MODE
+  int urlIndex  = -1;
+  g_argv = (char**)malloc((argc+2) * sizeof(char*));
+  int size  = 0;
+  for (int i=1;i<argc;i++)
+  {
+    if (strstr(argv[i],"--"))
+    {
+      size += strlen(argv[i])+1;
+    }
+    else
+    {
+      if (strstr(argv[i],".js"))
+      {
+        urlIndex = i;
+      }
+    }
+  }
+  nodeInput = (char *)malloc(size+8);
+  memset(nodeInput,0,size+8);
+  int curpos = 0;
+  strcpy(nodeInput,"pxscene\0");
+  g_argc  = 0;
+  g_argv[g_argc++] = &nodeInput[0];
+  curpos += 8;
 
+  for (int i=1;i<argc;i++)
+  {
+    if (strstr(argv[i],"--"))
+    {
+      strcpy(nodeInput+curpos,argv[i]);
+      *(nodeInput+curpos+strlen(argv[i])) = '\0';
+      g_argv[g_argc++] = &nodeInput[curpos];
+      curpos = curpos + strlen(argv[i]) + 1;
+    }
+  }
+  script = new rtNode();
+#endif
   char buffer[256];
   sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));
   sceneWindow win;
   // OSX likes to pass us some weird parameter on first launch after internet install
+#ifdef ENABLE_DEBUG_MODE
+  win.init(10, 10, 1280, 720, (urlIndex != -1)?argv[urlIndex]:"browser.js");
+#else
   win.init(10, 10, 1280, 720, (argc >= 2 && argv[1][0] != '-')?argv[1]:"browser.js");
+#endif
   win.setTitle(buffer);
   // JRJR TODO Why aren't these necessary for glut... pxCore bug
   win.setVisibility(true);
