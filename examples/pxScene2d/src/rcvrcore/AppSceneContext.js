@@ -244,6 +244,14 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       //var moduleFunc = script.runInNewContext(newSandbox, {filename:fname, displayErrors:true});
 
       var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {filename:fname, displayErrors:true});
+
+      if (process._debugWaitConnect) {
+        // Set breakpoint on module start
+        delete process._debugWaitConnect;
+        const Debug = vm.runInDebugContext('Debug');
+        Debug.setBreakPoint(moduleFunc, 0, 0);
+      }
+
       var px = createModule_pxScope.call(this, xModule);
       var rtnObject = moduleFunc(px, xModule, fname, this.basePackageUri);
       rtnObject = xModule.exports;
