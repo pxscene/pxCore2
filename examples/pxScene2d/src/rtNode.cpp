@@ -59,8 +59,13 @@ extern uv_loop_t *nodeLoop;
 using namespace v8;
 using namespace node;
 
+#ifdef ENABLE_DEBUG_MODE
+extern char*  g_debugPort;
+extern char** g_argv;
+extern int g_argc;
+#else
 extern args_t *s_gArgs;
-
+#endif
 namespace node
 {
 extern bool use_debug_agent;
@@ -164,8 +169,13 @@ void rtNodeContext::createEnvironment()
   mEnv = CreateEnvironment(mIsolate,
                            uv_default_loop(),
                            local_context,
+#ifdef ENABLE_DEBUG_MODE
+                           g_argc,
+                           g_argv,
+#else
                            s_gArgs->argc,
                            s_gArgs->argv,
+#endif
                            exec_argc,
                            exec_argv);
 
@@ -173,13 +183,26 @@ void rtNodeContext::createEnvironment()
 
   mIsolate->SetAbortOnUncaughtExceptionCallback(
         ShouldAbortOnUncaughtException);
-
+#ifdef ENABLE_DEBUG_MODE
+  // Start debug agent when argv has --debug
+  if (use_debug_agent)
+  {
+    printf("use_debug_agent\n");
+    StartDebug(mEnv, NULL, debug_wait_connect);
+  }
+#endif
   // Load Environment.
   {
     Environment::AsyncCallbackScope callback_scope(mEnv);
     LoadEnvironment(mEnv);
   }
-
+#ifdef ENABLE_DEBUG_MODE
+  if (use_debug_agent)
+  {
+    printf("use_debug_agent\n");
+    EnableDebug(mEnv);
+  }
+#endif
     rtObjectWrapper::exportPrototype(mIsolate, global);
     rtFunctionWrapper::exportPrototype(mIsolate, global);
 
@@ -218,8 +241,13 @@ void rtNodeContext::createEnvironment()
   mEnv = CreateEnvironment(mIsolate,
                            uv_default_loop(),
                            local_context,
+#ifdef ENABLE_DEBUG_MODE
+                           g_argc,
+                           g_argv,
+#else
                            s_gArgs->argc,
                            s_gArgs->argv,
+#endif
                            exec_argc,
                            exec_argv);
 
@@ -633,6 +661,7 @@ rtNode::rtNode()
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
 #endif // ENABLE_NODE_V_6_9
 #endif //ENABLE_V8_HEAP_PARAMS
+#ifndef ENABLE_DEBUG_MODE
   int          argc   = sizeof(argv2)/sizeof(char*) - 1;
 
   static args_t aa(argc, (char**)argv2);
@@ -641,6 +670,7 @@ rtNode::rtNode()
 
 
   char **argv = aa.argv;
+#endif
 
 #ifdef RUNINMAIN
   __rt_main_thread__ = pthread_self(); //  NB
@@ -650,12 +680,20 @@ rtNode::rtNode()
 
 #ifdef ENABLE_NODE_V_6_9
   printf("rtNode::rtNode() calling init \n");
+#ifdef ENABLE_DEBUG_MODE
+  init();
+#else
   init(argc, argv);
+#endif
 #else
   mIsolate     = Isolate::New();
   node_isolate = mIsolate; // Must come first !!
 
+#ifdef ENABLE_DEBUG_MODE
+  init();
+#else
   init(argc, argv);
+#endif
 #endif // ENABLE_NODE_V_6_9
 }
 
@@ -739,10 +777,18 @@ bool rtNode::isInitialized()
   return node_is_initialized;
 }
 #endif
+#ifdef ENABLE_DEBUG_MODE
+void rtNode::init()
+#else
 void rtNode::init(int argc, char** argv)
+#endif
 {
   // Hack around with the argv pointer. Used for process.title = "blah".
+#ifdef ENABLE_DEBUG_MODE
+  g_argv = uv_setup_args(g_argc, g_argv);
+#else
   argv = uv_setup_args(argc, argv);
+#endif
 
   rtLogInfo(__FUNCTION__);
 
@@ -754,7 +800,11 @@ void rtNode::init(int argc, char** argv)
   if(node_is_initialized == false)
   {
     printf("About to Init\n");
+#ifdef ENABLE_DEBUG_MODE
+    Init(&g_argc, const_cast<const char**>(g_argv), &exec_argc, &exec_argv);
+#else
     Init(&argc, const_cast<const char**>(argv), &exec_argc, &exec_argv);
+#endif
 
 //    mPlatform = platform::CreateDefaultPlatform();
 //    V8::InitializePlatform(mPlatform);
@@ -762,7 +812,11 @@ void rtNode::init(int argc, char** argv)
 #ifdef ENABLE_NODE_V_6_9
    printf("using node version 6.9\n");
    V8::InitializeICU();
+#ifdef ENABLE_DEBUG_MODE
+   V8::InitializeExternalStartupData(g_argv[0]);
+#else
    V8::InitializeExternalStartupData(argv[0]);
+#endif
    Platform* platform = platform::CreateDefaultPlatform();
    V8::InitializePlatform(platform);
    V8::Initialize();
