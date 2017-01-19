@@ -60,7 +60,7 @@ uv_loop_t *nodeLoop = uv_default_loop();
 uv_async_t asyncNewScript;
 uv_async_t gcTrigger;
 
-rtNode * nodeLib = NULL;
+rtNode script(false);
 
 struct asyncWindowInfo {
     void * window;
@@ -110,43 +110,36 @@ void garbageCollect(uv_async_t *handle)
     rtLogInfo(__FUNCTION__);
 
     uv_mutex_lock(&threadMutex);
-    nodeLib->garbageCollect();
+    script.garbageCollect();
     uv_mutex_unlock(&threadMutex);
 }
 
 void nodeIsEndingCallback(uv_work_t *req, int status)
 {
     printf("nodeIsEndingCallback\n");
-    if( nodeLib != 0) {
-        uv_mutex_lock(&threadMutex);
-        nodeLib->pump();
-
-        //garbageCollect(NULL);
-
-        delete nodeLib;
-        nodeLib = 0;
-        uv_mutex_unlock(&threadMutex);
-    }
+    uv_mutex_lock(&threadMutex);
+    script.pump();
+    uv_mutex_unlock(&threadMutex);
 }
 
 void nodeThread(uv_work_t *req)
 {
     rtLogInfo(__FUNCTION__);
     // Node initialization runs once here!
-    nodeLib = new rtNode();
+    script.initializeNode();
 
     printf("Done with rtNode init\n");
    
-    while(!nodeLib->needsToEnd()) {
+    while(!script.needsToEnd()) {
 
-        if(nodeLib->isInitialized() )
+        if(script.isInitialized() )
         {
             //printf("nodeThread locking\n");
             uv_mutex_lock(&threadMutex); 
             //printf("nodeThread GOT LOCK\n");
-            Locker locker(nodeLib->getIsolate());
-            Isolate::Scope isolate_scope(nodeLib->getIsolate());
-            HandleScope handle_scope(nodeLib->getIsolate());
+            Locker locker(script.getIsolate());
+            Isolate::Scope isolate_scope(script.getIsolate());
+            HandleScope handle_scope(script.getIsolate());
             uv_run(nodeLoop, UV_RUN_NOWAIT);
             //printf("nodeThread unlocking\n");
             uv_mutex_unlock(&threadMutex);

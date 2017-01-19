@@ -102,9 +102,22 @@ static Handle<Object> DebugGetProperty(LookupIterator* it,
         // Ignore access checks.
         break;
       case LookupIterator::INTEGER_INDEXED_EXOTIC:
-      case LookupIterator::INTERCEPTOR:
+/* MODIFIED CODE BEGIN */
       case LookupIterator::JSPROXY:
         return it->isolate()->factory()->undefined_value();
+      case LookupIterator::INTERCEPTOR:
+      {
+        bool ret;
+        MaybeHandle<Object> maybe_result = JSObject::GetPropertyWithInterceptor(it,&ret);
+        Handle<Object> result;
+        if (!maybe_result.ToHandle(&result)) {
+          result = handle(it->isolate()->pending_exception(), it->isolate());
+          it->isolate()->clear_pending_exception();
+          if (has_caught != NULL) *has_caught = true;
+        }
+        return result;
+      }
+/* MODIFIED CODE END */
       case LookupIterator::ACCESSOR: {
         Handle<Object> accessors = it->GetAccessors();
         if (!accessors->IsAccessorInfo()) {
@@ -356,9 +369,9 @@ RUNTIME_FUNCTION(Runtime_DebugGetPropertyDetails) {
       isolate->factory()->NewFixedArray(has_js_accessors ? 6 : 3);
   details->set(0, *value);
   // TODO(verwaest): Get rid of this random way of handling interceptors.
-  PropertyDetails d = it.state() == LookupIterator::INTERCEPTOR
-                          ? PropertyDetails::Empty()
-                          : it.property_details();
+/* MODIFIED CODE BEGIN */
+  PropertyDetails d = it.property_details();
+/* MODIFIED CODE END */
   details->set(1, d.AsSmi());
   details->set(
       2, isolate->heap()->ToBoolean(it.state() == LookupIterator::INTERCEPTOR));
