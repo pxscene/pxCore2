@@ -69,7 +69,7 @@ ifeq ($(PROFILE), 1)
 endif
 
 
-CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Werror -Wall -Wextra -DRT_PLATFORM_LINUX -I../ -I. -fPIC
+CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Werror -Wall -Wextra -DRT_PLATFORM_LINUX -I../src -I. -fPIC
 CFLAGS+=-DRT_REMOTE_LOOPBACK_ONLY
 CXXFLAGS+=-std=c++0x $(CFLAGS)
 LDFLAGS =-pthread -ldl -luuid -Wl,-rpath=../../,--enable-new-dtags
@@ -136,9 +136,9 @@ librtRemote_s.a: $(RTRPC_OBJS)
 	$(AR) rcs -o $@ $(RTRPC_OBJS)
 
 rpcSampleApp: $(SAMPLEAPP_OBJS) librtRemote.so
-	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../ -lrtCore -lrtRemote
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/egl -lpxCore -lrtRemote -luuid
 
 rpcSampleApp_s: $(SAMPLEAPP_OBJS) librtRemote_s.a
-	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../ -lrtCore_s -lrtRemote_s
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/egl -lpxCore -lrtRemote_s -luuid
 
 .PHONY: all debug clean

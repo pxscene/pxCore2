@@ -13,6 +13,13 @@
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
 
+#ifdef ENABLE_DFB
+#include "pxContextDescDFB.h"
+#else
+#include "pxContextDescGL.h"
+#endif //ENABLE_DFB
+
+
 #define MAX_TEXTURE_WIDTH  2048
 #define MAX_TEXTURE_HEIGHT 2048
 

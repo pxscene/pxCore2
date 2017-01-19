@@ -7,6 +7,68 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		46B0773E1E30FF8000BC6B9C /* jsCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077331E30FF8000BC6B9C /* jsCallback.cpp */; };
+		46B0773F1E30FF8000BC6B9C /* jsCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077341E30FF8000BC6B9C /* jsCallback.h */; };
+		46B077401E30FF8000BC6B9C /* jsWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077351E30FF8000BC6B9C /* jsWindow.h */; };
+		46B077411E30FF8000BC6B9C /* node_headers.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077361E30FF8000BC6B9C /* node_headers.h */; };
+		46B077421E30FF8000BC6B9C /* rtFunctionWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077371E30FF8000BC6B9C /* rtFunctionWrapper.cpp */; };
+		46B077431E30FF8000BC6B9C /* rtFunctionWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077381E30FF8000BC6B9C /* rtFunctionWrapper.h */; };
+		46B077441E30FF8000BC6B9C /* rtObjectWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077391E30FF8000BC6B9C /* rtObjectWrapper.cpp */; };
+		46B077451E30FF8000BC6B9C /* rtObjectWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0773A1E30FF8000BC6B9C /* rtObjectWrapper.h */; };
+		46B077461E30FF8000BC6B9C /* rtWrapperInit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0773B1E30FF8000BC6B9C /* rtWrapperInit.cpp */; };
+		46B077471E30FF8000BC6B9C /* rtWrapperUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0773C1E30FF8000BC6B9C /* rtWrapperUtils.cpp */; };
+		46B077481E30FF8000BC6B9C /* rtWrapperUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0773D1E30FF8000BC6B9C /* rtWrapperUtils.h */; };
+		46B0777B1E30FFC700BC6B9C /* ioapi_mem.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077491E30FFC700BC6B9C /* ioapi_mem.c */; };
+		46B0777C1E30FFC700BC6B9C /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B0774A1E30FFC700BC6B9C /* ioapi.c */; };
+		46B0777D1E30FFC700BC6B9C /* ioapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774B1E30FFC700BC6B9C /* ioapi.h */; };
+		46B0777E1E30FFC700BC6B9C /* rtAtomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774C1E30FFC700BC6B9C /* rtAtomic.h */; };
+		46B0777F1E30FFC700BC6B9C /* rtConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774D1E30FFC700BC6B9C /* rtConfig.h */; };
+		46B077801E30FFC700BC6B9C /* rtCore.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774E1E30FFC700BC6B9C /* rtCore.h */; };
+		46B077811E30FFC700BC6B9C /* rtDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774F1E30FFC700BC6B9C /* rtDefs.h */; };
+		46B077821E30FFC700BC6B9C /* rtError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077501E30FFC700BC6B9C /* rtError.cpp */; };
+		46B077831E30FFC700BC6B9C /* rtError.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077511E30FFC700BC6B9C /* rtError.h */; };
+		46B077841E30FFC700BC6B9C /* rtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077521E30FFC700BC6B9C /* rtFile.cpp */; };
+		46B077851E30FFC700BC6B9C /* rtFile.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077531E30FFC700BC6B9C /* rtFile.h */; };
+		46B077861E30FFC700BC6B9C /* rtLibrary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077541E30FFC700BC6B9C /* rtLibrary.cpp */; };
+		46B077871E30FFC700BC6B9C /* rtLibrary.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077551E30FFC700BC6B9C /* rtLibrary.h */; };
+		46B077881E30FFC700BC6B9C /* rtLog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077561E30FFC700BC6B9C /* rtLog.cpp */; };
+		46B077891E30FFC700BC6B9C /* rtLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077571E30FFC700BC6B9C /* rtLog.h */; };
+		46B0778A1E30FFC700BC6B9C /* rtMutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077581E30FFC700BC6B9C /* rtMutex.h */; };
+		46B0778B1E30FFC700BC6B9C /* rtNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077591E30FFC700BC6B9C /* rtNode.cpp */; };
+		46B0778C1E30FFC700BC6B9C /* rtNode.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0775A1E30FFC700BC6B9C /* rtNode.h */; };
+		46B077911E30FFC700BC6B9C /* rtNodeThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0775F1E30FFC700BC6B9C /* rtNodeThread.h */; };
+		46B077921E30FFC700BC6B9C /* rtObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077601E30FFC700BC6B9C /* rtObject.cpp */; };
+		46B077931E30FFC700BC6B9C /* rtObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077611E30FFC700BC6B9C /* rtObject.h */; };
+		46B077941E30FFC700BC6B9C /* rtObjectMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077621E30FFC700BC6B9C /* rtObjectMacros.h */; };
+		46B077951E30FFC700BC6B9C /* rtPathUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077631E30FFC700BC6B9C /* rtPathUtils.cpp */; };
+		46B077961E30FFC700BC6B9C /* rtPathUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077641E30FFC700BC6B9C /* rtPathUtils.h */; };
+		46B077971E30FFC700BC6B9C /* rtPromise.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077651E30FFC700BC6B9C /* rtPromise.h */; };
+		46B077981E30FFC700BC6B9C /* rtRefT.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077661E30FFC700BC6B9C /* rtRefT.h */; };
+		46B077991E30FFC700BC6B9C /* rtString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077671E30FFC700BC6B9C /* rtString.cpp */; };
+		46B0779A1E30FFC700BC6B9C /* rtString.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077681E30FFC700BC6B9C /* rtString.h */; };
+		46B0779B1E30FFC700BC6B9C /* rtTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077691E30FFC700BC6B9C /* rtTest.cpp */; };
+		46B0779C1E30FFC700BC6B9C /* rtTest.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0776A1E30FFC700BC6B9C /* rtTest.h */; };
+		46B0779D1E30FFC700BC6B9C /* rtThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0776B1E30FFC700BC6B9C /* rtThreadPool.cpp */; };
+		46B0779E1E30FFC700BC6B9C /* rtThreadPool.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0776C1E30FFC700BC6B9C /* rtThreadPool.h */; };
+		46B0779F1E30FFC700BC6B9C /* rtThreadQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0776D1E30FFC700BC6B9C /* rtThreadQueue.cpp */; };
+		46B077A01E30FFC700BC6B9C /* rtThreadQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0776E1E30FFC700BC6B9C /* rtThreadQueue.h */; };
+		46B077A11E30FFC700BC6B9C /* rtThreadTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0776F1E30FFC700BC6B9C /* rtThreadTask.cpp */; };
+		46B077A21E30FFC700BC6B9C /* rtThreadTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077701E30FFC700BC6B9C /* rtThreadTask.h */; };
+		46B077A31E30FFC700BC6B9C /* rtUrlUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077711E30FFC700BC6B9C /* rtUrlUtils.cpp */; };
+		46B077A41E30FFC700BC6B9C /* rtUrlUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077721E30FFC700BC6B9C /* rtUrlUtils.h */; };
+		46B077A51E30FFC700BC6B9C /* rtValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077731E30FFC700BC6B9C /* rtValue.cpp */; };
+		46B077A61E30FFC700BC6B9C /* rtValue.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077741E30FFC700BC6B9C /* rtValue.h */; };
+		46B077A71E30FFC700BC6B9C /* rtZip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077751E30FFC700BC6B9C /* rtZip.cpp */; };
+		46B077A81E30FFC700BC6B9C /* rtZip.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077761E30FFC700BC6B9C /* rtZip.h */; };
+		46B077A91E30FFC700BC6B9C /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077771E30FFC700BC6B9C /* unzip.c */; };
+		46B077AA1E30FFC700BC6B9C /* unzip.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077781E30FFC700BC6B9C /* unzip.h */; };
+		46B077AB1E30FFC700BC6B9C /* utf8.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077791E30FFC700BC6B9C /* utf8.c */; };
+		46B077AC1E30FFC700BC6B9C /* utf8.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0777A1E30FFC700BC6B9C /* utf8.h */; };
+		46B077B21E30FFED00BC6B9C /* rtConfigNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077AD1E30FFED00BC6B9C /* rtConfigNative.h */; };
+		46B077B31E30FFED00BC6B9C /* rtMutexNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077AE1E30FFED00BC6B9C /* rtMutexNative.cpp */; };
+		46B077B41E30FFED00BC6B9C /* rtMutexNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077AF1E30FFED00BC6B9C /* rtMutexNative.h */; };
+		46B077B51E30FFED00BC6B9C /* rtThreadPoolNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077B01E30FFED00BC6B9C /* rtThreadPoolNative.cpp */; };
+		46B077B61E30FFED00BC6B9C /* rtThreadPoolNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077B11E30FFED00BC6B9C /* rtThreadPoolNative.h */; };
 		4C7B860F1D10A45200C2489F /* pxClipboard.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B860E1D10A45200C2489F /* pxClipboard.h */; };
 		4C7B86131D10A47300C2489F /* pxClipboardNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4C7B86111D10A47300C2489F /* pxClipboardNative.mm */; };
 		4C7B86141D10A47300C2489F /* pxClipboardNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B86121D10A47300C2489F /* pxClipboardNative.h */; };
@@ -104,6 +166,68 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		46B077331E30FF8000BC6B9C /* jsCallback.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsCallback.cpp; path = src/jsbindings/jsCallback.cpp; sourceTree = SOURCE_ROOT; };
+		46B077341E30FF8000BC6B9C /* jsCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsCallback.h; path = src/jsbindings/jsCallback.h; sourceTree = SOURCE_ROOT; };
+		46B077351E30FF8000BC6B9C /* jsWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsWindow.h; path = src/jsbindings/jsWindow.h; sourceTree = SOURCE_ROOT; };
+		46B077361E30FF8000BC6B9C /* node_headers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = node_headers.h; path = src/jsbindings/node_headers.h; sourceTree = SOURCE_ROOT; };
+		46B077371E30FF8000BC6B9C /* rtFunctionWrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtFunctionWrapper.cpp; path = src/jsbindings/rtFunctionWrapper.cpp; sourceTree = SOURCE_ROOT; };
+		46B077381E30FF8000BC6B9C /* rtFunctionWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtFunctionWrapper.h; path = src/jsbindings/rtFunctionWrapper.h; sourceTree = SOURCE_ROOT; };
+		46B077391E30FF8000BC6B9C /* rtObjectWrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtObjectWrapper.cpp; path = src/jsbindings/rtObjectWrapper.cpp; sourceTree = SOURCE_ROOT; };
+		46B0773A1E30FF8000BC6B9C /* rtObjectWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtObjectWrapper.h; path = src/jsbindings/rtObjectWrapper.h; sourceTree = SOURCE_ROOT; };
+		46B0773B1E30FF8000BC6B9C /* rtWrapperInit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtWrapperInit.cpp; path = src/jsbindings/rtWrapperInit.cpp; sourceTree = SOURCE_ROOT; };
+		46B0773C1E30FF8000BC6B9C /* rtWrapperUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtWrapperUtils.cpp; path = src/jsbindings/rtWrapperUtils.cpp; sourceTree = SOURCE_ROOT; };
+		46B0773D1E30FF8000BC6B9C /* rtWrapperUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtWrapperUtils.h; path = src/jsbindings/rtWrapperUtils.h; sourceTree = SOURCE_ROOT; };
+		46B077491E30FFC700BC6B9C /* ioapi_mem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ioapi_mem.c; path = src/ioapi_mem.c; sourceTree = SOURCE_ROOT; };
+		46B0774A1E30FFC700BC6B9C /* ioapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ioapi.c; path = src/ioapi.c; sourceTree = SOURCE_ROOT; };
+		46B0774B1E30FFC700BC6B9C /* ioapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ioapi.h; path = src/ioapi.h; sourceTree = SOURCE_ROOT; };
+		46B0774C1E30FFC700BC6B9C /* rtAtomic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtAtomic.h; path = src/rtAtomic.h; sourceTree = SOURCE_ROOT; };
+		46B0774D1E30FFC700BC6B9C /* rtConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtConfig.h; path = src/rtConfig.h; sourceTree = SOURCE_ROOT; };
+		46B0774E1E30FFC700BC6B9C /* rtCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtCore.h; path = src/rtCore.h; sourceTree = SOURCE_ROOT; };
+		46B0774F1E30FFC700BC6B9C /* rtDefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtDefs.h; path = src/rtDefs.h; sourceTree = SOURCE_ROOT; };
+		46B077501E30FFC700BC6B9C /* rtError.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtError.cpp; path = src/rtError.cpp; sourceTree = SOURCE_ROOT; };
+		46B077511E30FFC700BC6B9C /* rtError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtError.h; path = src/rtError.h; sourceTree = SOURCE_ROOT; };
+		46B077521E30FFC700BC6B9C /* rtFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtFile.cpp; path = src/rtFile.cpp; sourceTree = SOURCE_ROOT; };
+		46B077531E30FFC700BC6B9C /* rtFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtFile.h; path = src/rtFile.h; sourceTree = SOURCE_ROOT; };
+		46B077541E30FFC700BC6B9C /* rtLibrary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtLibrary.cpp; path = src/rtLibrary.cpp; sourceTree = SOURCE_ROOT; };
+		46B077551E30FFC700BC6B9C /* rtLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtLibrary.h; path = src/rtLibrary.h; sourceTree = SOURCE_ROOT; };
+		46B077561E30FFC700BC6B9C /* rtLog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtLog.cpp; path = src/rtLog.cpp; sourceTree = SOURCE_ROOT; };
+		46B077571E30FFC700BC6B9C /* rtLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtLog.h; path = src/rtLog.h; sourceTree = SOURCE_ROOT; };
+		46B077581E30FFC700BC6B9C /* rtMutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtMutex.h; path = src/rtMutex.h; sourceTree = SOURCE_ROOT; };
+		46B077591E30FFC700BC6B9C /* rtNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtNode.cpp; path = src/rtNode.cpp; sourceTree = SOURCE_ROOT; };
+		46B0775A1E30FFC700BC6B9C /* rtNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtNode.h; path = src/rtNode.h; sourceTree = SOURCE_ROOT; };
+		46B0775F1E30FFC700BC6B9C /* rtNodeThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtNodeThread.h; path = src/rtNodeThread.h; sourceTree = SOURCE_ROOT; };
+		46B077601E30FFC700BC6B9C /* rtObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtObject.cpp; path = src/rtObject.cpp; sourceTree = SOURCE_ROOT; };
+		46B077611E30FFC700BC6B9C /* rtObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtObject.h; path = src/rtObject.h; sourceTree = SOURCE_ROOT; };
+		46B077621E30FFC700BC6B9C /* rtObjectMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtObjectMacros.h; path = src/rtObjectMacros.h; sourceTree = SOURCE_ROOT; };
+		46B077631E30FFC700BC6B9C /* rtPathUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtPathUtils.cpp; path = src/rtPathUtils.cpp; sourceTree = SOURCE_ROOT; };
+		46B077641E30FFC700BC6B9C /* rtPathUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtPathUtils.h; path = src/rtPathUtils.h; sourceTree = SOURCE_ROOT; };
+		46B077651E30FFC700BC6B9C /* rtPromise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtPromise.h; path = src/rtPromise.h; sourceTree = SOURCE_ROOT; };
+		46B077661E30FFC700BC6B9C /* rtRefT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtRefT.h; path = src/rtRefT.h; sourceTree = SOURCE_ROOT; };
+		46B077671E30FFC700BC6B9C /* rtString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtString.cpp; path = src/rtString.cpp; sourceTree = SOURCE_ROOT; };
+		46B077681E30FFC700BC6B9C /* rtString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtString.h; path = src/rtString.h; sourceTree = SOURCE_ROOT; };
+		46B077691E30FFC700BC6B9C /* rtTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtTest.cpp; path = src/rtTest.cpp; sourceTree = SOURCE_ROOT; };
+		46B0776A1E30FFC700BC6B9C /* rtTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtTest.h; path = src/rtTest.h; sourceTree = SOURCE_ROOT; };
+		46B0776B1E30FFC700BC6B9C /* rtThreadPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtThreadPool.cpp; path = src/rtThreadPool.cpp; sourceTree = SOURCE_ROOT; };
+		46B0776C1E30FFC700BC6B9C /* rtThreadPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtThreadPool.h; path = src/rtThreadPool.h; sourceTree = SOURCE_ROOT; };
+		46B0776D1E30FFC700BC6B9C /* rtThreadQueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtThreadQueue.cpp; path = src/rtThreadQueue.cpp; sourceTree = SOURCE_ROOT; };
+		46B0776E1E30FFC700BC6B9C /* rtThreadQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtThreadQueue.h; path = src/rtThreadQueue.h; sourceTree = SOURCE_ROOT; };
+		46B0776F1E30FFC700BC6B9C /* rtThreadTask.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtThreadTask.cpp; path = src/rtThreadTask.cpp; sourceTree = SOURCE_ROOT; };
+		46B077701E30FFC700BC6B9C /* rtThreadTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtThreadTask.h; path = src/rtThreadTask.h; sourceTree = SOURCE_ROOT; };
+		46B077711E30FFC700BC6B9C /* rtUrlUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtUrlUtils.cpp; path = src/rtUrlUtils.cpp; sourceTree = SOURCE_ROOT; };
+		46B077721E30FFC700BC6B9C /* rtUrlUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtUrlUtils.h; path = src/rtUrlUtils.h; sourceTree = SOURCE_ROOT; };
+		46B077731E30FFC700BC6B9C /* rtValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtValue.cpp; path = src/rtValue.cpp; sourceTree = SOURCE_ROOT; };
+		46B077741E30FFC700BC6B9C /* rtValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtValue.h; path = src/rtValue.h; sourceTree = SOURCE_ROOT; };
+		46B077751E30FFC700BC6B9C /* rtZip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtZip.cpp; path = src/rtZip.cpp; sourceTree = SOURCE_ROOT; };
+		46B077761E30FFC700BC6B9C /* rtZip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtZip.h; path = src/rtZip.h; sourceTree = SOURCE_ROOT; };
+		46B077771E30FFC700BC6B9C /* unzip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = unzip.c; path = src/unzip.c; sourceTree = SOURCE_ROOT; };
+		46B077781E30FFC700BC6B9C /* unzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = unzip.h; path = src/unzip.h; sourceTree = SOURCE_ROOT; };
+		46B077791E30FFC700BC6B9C /* utf8.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = utf8.c; path = src/utf8.c; sourceTree = SOURCE_ROOT; };
+		46B0777A1E30FFC700BC6B9C /* utf8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utf8.h; path = src/utf8.h; sourceTree = SOURCE_ROOT; };
+		46B077AD1E30FFED00BC6B9C /* rtConfigNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtConfigNative.h; path = src/unix/rtConfigNative.h; sourceTree = SOURCE_ROOT; };
+		46B077AE1E30FFED00BC6B9C /* rtMutexNative.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtMutexNative.cpp; path = src/unix/rtMutexNative.cpp; sourceTree = SOURCE_ROOT; };
+		46B077AF1E30FFED00BC6B9C /* rtMutexNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtMutexNative.h; path = src/unix/rtMutexNative.h; sourceTree = SOURCE_ROOT; };
+		46B077B01E30FFED00BC6B9C /* rtThreadPoolNative.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtThreadPoolNative.cpp; path = src/unix/rtThreadPoolNative.cpp; sourceTree = SOURCE_ROOT; };
+		46B077B11E30FFED00BC6B9C /* rtThreadPoolNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtThreadPoolNative.h; path = src/unix/rtThreadPoolNative.h; sourceTree = SOURCE_ROOT; };
 		4C252C551D08A1FE0022A6C9 /* pxScene.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = pxScene.xcodeproj; path = examples/pxScene2d/pxScene.xcodeproj; sourceTree = "<group>"; };
 		4C7B860E1D10A45200C2489F /* pxClipboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboard.h; path = src/pxClipboard.h; sourceTree = SOURCE_ROOT; };
 		4C7B86111D10A47300C2489F /* pxClipboardNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxClipboardNative.mm; path = src/mac/pxClipboardNative.mm; sourceTree = SOURCE_ROOT; };
@@ -396,6 +520,68 @@
 		AECBECD11B67979F00851BFE /* Src */ = {
 			isa = PBXGroup;
 			children = (
+				46B077AD1E30FFED00BC6B9C /* rtConfigNative.h */,
+				46B077AE1E30FFED00BC6B9C /* rtMutexNative.cpp */,
+				46B077AF1E30FFED00BC6B9C /* rtMutexNative.h */,
+				46B077B01E30FFED00BC6B9C /* rtThreadPoolNative.cpp */,
+				46B077B11E30FFED00BC6B9C /* rtThreadPoolNative.h */,
+				46B077491E30FFC700BC6B9C /* ioapi_mem.c */,
+				46B0774A1E30FFC700BC6B9C /* ioapi.c */,
+				46B0774B1E30FFC700BC6B9C /* ioapi.h */,
+				46B0774C1E30FFC700BC6B9C /* rtAtomic.h */,
+				46B0774D1E30FFC700BC6B9C /* rtConfig.h */,
+				46B0774E1E30FFC700BC6B9C /* rtCore.h */,
+				46B0774F1E30FFC700BC6B9C /* rtDefs.h */,
+				46B077501E30FFC700BC6B9C /* rtError.cpp */,
+				46B077511E30FFC700BC6B9C /* rtError.h */,
+				46B077521E30FFC700BC6B9C /* rtFile.cpp */,
+				46B077531E30FFC700BC6B9C /* rtFile.h */,
+				46B077541E30FFC700BC6B9C /* rtLibrary.cpp */,
+				46B077551E30FFC700BC6B9C /* rtLibrary.h */,
+				46B077561E30FFC700BC6B9C /* rtLog.cpp */,
+				46B077571E30FFC700BC6B9C /* rtLog.h */,
+				46B077581E30FFC700BC6B9C /* rtMutex.h */,
+				46B077591E30FFC700BC6B9C /* rtNode.cpp */,
+				46B0775A1E30FFC700BC6B9C /* rtNode.h */,
+				46B0775F1E30FFC700BC6B9C /* rtNodeThread.h */,
+				46B077601E30FFC700BC6B9C /* rtObject.cpp */,
+				46B077611E30FFC700BC6B9C /* rtObject.h */,
+				46B077621E30FFC700BC6B9C /* rtObjectMacros.h */,
+				46B077631E30FFC700BC6B9C /* rtPathUtils.cpp */,
+				46B077641E30FFC700BC6B9C /* rtPathUtils.h */,
+				46B077651E30FFC700BC6B9C /* rtPromise.h */,
+				46B077661E30FFC700BC6B9C /* rtRefT.h */,
+				46B077671E30FFC700BC6B9C /* rtString.cpp */,
+				46B077681E30FFC700BC6B9C /* rtString.h */,
+				46B077691E30FFC700BC6B9C /* rtTest.cpp */,
+				46B0776A1E30FFC700BC6B9C /* rtTest.h */,
+				46B0776B1E30FFC700BC6B9C /* rtThreadPool.cpp */,
+				46B0776C1E30FFC700BC6B9C /* rtThreadPool.h */,
+				46B0776D1E30FFC700BC6B9C /* rtThreadQueue.cpp */,
+				46B0776E1E30FFC700BC6B9C /* rtThreadQueue.h */,
+				46B0776F1E30FFC700BC6B9C /* rtThreadTask.cpp */,
+				46B077701E30FFC700BC6B9C /* rtThreadTask.h */,
+				46B077711E30FFC700BC6B9C /* rtUrlUtils.cpp */,
+				46B077721E30FFC700BC6B9C /* rtUrlUtils.h */,
+				46B077731E30FFC700BC6B9C /* rtValue.cpp */,
+				46B077741E30FFC700BC6B9C /* rtValue.h */,
+				46B077751E30FFC700BC6B9C /* rtZip.cpp */,
+				46B077761E30FFC700BC6B9C /* rtZip.h */,
+				46B077771E30FFC700BC6B9C /* unzip.c */,
+				46B077781E30FFC700BC6B9C /* unzip.h */,
+				46B077791E30FFC700BC6B9C /* utf8.c */,
+				46B0777A1E30FFC700BC6B9C /* utf8.h */,
+				46B077331E30FF8000BC6B9C /* jsCallback.cpp */,
+				46B077341E30FF8000BC6B9C /* jsCallback.h */,
+				46B077351E30FF8000BC6B9C /* jsWindow.h */,
+				46B077361E30FF8000BC6B9C /* node_headers.h */,
+				46B077371E30FF8000BC6B9C /* rtFunctionWrapper.cpp */,
+				46B077381E30FF8000BC6B9C /* rtFunctionWrapper.h */,
+				46B077391E30FF8000BC6B9C /* rtObjectWrapper.cpp */,
+				46B0773A1E30FF8000BC6B9C /* rtObjectWrapper.h */,
+				46B0773B1E30FF8000BC6B9C /* rtWrapperInit.cpp */,
+				46B0773C1E30FF8000BC6B9C /* rtWrapperUtils.cpp */,
+				46B0773D1E30FF8000BC6B9C /* rtWrapperUtils.h */,
 				AECBED4F1B67B09200851BFE /* pxBuffer.h */,
 				AECBED501B67B09200851BFE /* pxColor.h */,
 				AECBED511B67B09200851BFE /* pxConfig.h */,
@@ -454,27 +640,63 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				46B077A81E30FFC700BC6B9C /* rtZip.h in Headers */,
+				46B077B41E30FFED00BC6B9C /* rtMutexNative.h in Headers */,
+				46B0777E1E30FFC700BC6B9C /* rtAtomic.h in Headers */,
+				46B0779E1E30FFC700BC6B9C /* rtThreadPool.h in Headers */,
 				AECBED7F1B67B0A800851BFE /* pxConfigNative.h in Headers */,
+				46B077871E30FFC700BC6B9C /* rtLibrary.h in Headers */,
 				AECBED6C1B67B09200851BFE /* pxTimer.h in Headers */,
 				AECBED621B67B09200851BFE /* pxColor.h in Headers */,
+				46B0779A1E30FFC700BC6B9C /* rtString.h in Headers */,
 				AECBED661B67B09200851BFE /* pxIView.h in Headers */,
+				46B077A01E30FFC700BC6B9C /* rtThreadQueue.h in Headers */,
+				46B077481E30FF8000BC6B9C /* rtWrapperUtils.h in Headers */,
+				46B077B21E30FFED00BC6B9C /* rtConfigNative.h in Headers */,
+				46B077811E30FFC700BC6B9C /* rtDefs.h in Headers */,
+				46B0778C1E30FFC700BC6B9C /* rtNode.h in Headers */,
+				46B077A61E30FFC700BC6B9C /* rtValue.h in Headers */,
+				46B0777F1E30FFC700BC6B9C /* rtConfig.h in Headers */,
+				46B077941E30FFC700BC6B9C /* rtObjectMacros.h in Headers */,
+				46B077851E30FFC700BC6B9C /* rtFile.h in Headers */,
+				46B077A41E30FFC700BC6B9C /* rtUrlUtils.h in Headers */,
+				46B0778A1E30FFC700BC6B9C /* rtMutex.h in Headers */,
 				AECBED6E1B67B09200851BFE /* pxViewWindow.h in Headers */,
 				AECBED841B67B0A800851BFE /* pxWindowNative.h in Headers */,
+				46B0777D1E30FFC700BC6B9C /* ioapi.h in Headers */,
 				AECBED6B1B67B09200851BFE /* pxRect.h in Headers */,
 				4C7B860F1D10A45200C2489F /* pxClipboard.h in Headers */,
+				46B0779C1E30FFC700BC6B9C /* rtTest.h in Headers */,
 				AECBED611B67B09200851BFE /* pxBuffer.h in Headers */,
 				AECBED651B67B09200851BFE /* pxEventLoop.h in Headers */,
 				AECBED671B67B09200851BFE /* pxKeycodes.h in Headers */,
 				AECBED631B67B09200851BFE /* pxConfig.h in Headers */,
 				AECBED691B67B09200851BFE /* pxOffscreen.h in Headers */,
+				46B077931E30FFC700BC6B9C /* rtObject.h in Headers */,
+				46B077411E30FF8000BC6B9C /* node_headers.h in Headers */,
+				46B077911E30FFC700BC6B9C /* rtNodeThread.h in Headers */,
+				46B077961E30FFC700BC6B9C /* rtPathUtils.h in Headers */,
+				46B077A21E30FFC700BC6B9C /* rtThreadTask.h in Headers */,
+				46B077891E30FFC700BC6B9C /* rtLog.h in Headers */,
+				46B077B61E30FFED00BC6B9C /* rtThreadPoolNative.h in Headers */,
 				AECBED721B67B09200851BFE /* rtRefPtr.h in Headers */,
+				46B0773F1E30FF8000BC6B9C /* jsCallback.h in Headers */,
 				AECBED711B67B09200851BFE /* pxWindowUtil.h in Headers */,
+				46B077451E30FF8000BC6B9C /* rtObjectWrapper.h in Headers */,
+				46B077AA1E30FFC700BC6B9C /* unzip.h in Headers */,
 				AECBED6A1B67B09200851BFE /* pxPixel.h in Headers */,
+				46B077AC1E30FFC700BC6B9C /* utf8.h in Headers */,
 				AECBED641B67B09200851BFE /* pxCore.h in Headers */,
 				AECBED6F1B67B09200851BFE /* pxWindow.h in Headers */,
+				46B077401E30FF8000BC6B9C /* jsWindow.h in Headers */,
+				46B077831E30FFC700BC6B9C /* rtError.h in Headers */,
+				46B077431E30FF8000BC6B9C /* rtFunctionWrapper.h in Headers */,
 				AECBED7D1B67B0A800851BFE /* pxBufferNative.h in Headers */,
 				AECBED811B67B0A800851BFE /* pxOffscreenNative.h in Headers */,
+				46B077971E30FFC700BC6B9C /* rtPromise.h in Headers */,
 				4C7B86141D10A47300C2489F /* pxClipboardNative.h in Headers */,
+				46B077801E30FFC700BC6B9C /* rtCore.h in Headers */,
+				46B077981E30FFC700BC6B9C /* rtRefT.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -899,15 +1121,41 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				46B077A91E30FFC700BC6B9C /* unzip.c in Sources */,
+				46B077B51E30FFED00BC6B9C /* rtThreadPoolNative.cpp in Sources */,
+				46B077881E30FFC700BC6B9C /* rtLog.cpp in Sources */,
+				46B077991E30FFC700BC6B9C /* rtString.cpp in Sources */,
 				AECBED851B67B0A800851BFE /* pxWindowNative.mm in Sources */,
 				AE83DD1F1C08A2720035F5AF /* Simple.cpp in Sources */,
+				46B077AB1E30FFC700BC6B9C /* utf8.c in Sources */,
 				AECBED6D1B67B09200851BFE /* pxViewWindow.cpp in Sources */,
 				AECBED681B67B09200851BFE /* pxOffscreen.cpp in Sources */,
+				46B077A51E30FFC700BC6B9C /* rtValue.cpp in Sources */,
 				AECBED821B67B0A800851BFE /* pxOffscreenNative.mm in Sources */,
+				46B077471E30FF8000BC6B9C /* rtWrapperUtils.cpp in Sources */,
+				46B077A31E30FFC700BC6B9C /* rtUrlUtils.cpp in Sources */,
 				AECBED7E1B67B0A800851BFE /* pxBufferNative.mm in Sources */,
 				AECBED801B67B0A800851BFE /* pxEventLoopNative.mm in Sources */,
+				46B0779F1E30FFC700BC6B9C /* rtThreadQueue.cpp in Sources */,
+				46B077421E30FF8000BC6B9C /* rtFunctionWrapper.cpp in Sources */,
+				46B077B31E30FFED00BC6B9C /* rtMutexNative.cpp in Sources */,
+				46B0773E1E30FF8000BC6B9C /* jsCallback.cpp in Sources */,
+				46B0779B1E30FFC700BC6B9C /* rtTest.cpp in Sources */,
+				46B077461E30FF8000BC6B9C /* rtWrapperInit.cpp in Sources */,
 				AECBED831B67B0A800851BFE /* pxTimerNative.mm in Sources */,
+				46B0777B1E30FFC700BC6B9C /* ioapi_mem.c in Sources */,
+				46B0779D1E30FFC700BC6B9C /* rtThreadPool.cpp in Sources */,
+				46B077A71E30FFC700BC6B9C /* rtZip.cpp in Sources */,
+				46B077861E30FFC700BC6B9C /* rtLibrary.cpp in Sources */,
+				46B077951E30FFC700BC6B9C /* rtPathUtils.cpp in Sources */,
+				46B077921E30FFC700BC6B9C /* rtObject.cpp in Sources */,
+				46B077441E30FF8000BC6B9C /* rtObjectWrapper.cpp in Sources */,
+				46B077821E30FFC700BC6B9C /* rtError.cpp in Sources */,
 				AECBED701B67B09200851BFE /* pxWindowUtil.cpp in Sources */,
+				46B077A11E30FFC700BC6B9C /* rtThreadTask.cpp in Sources */,
+				46B077841E30FFC700BC6B9C /* rtFile.cpp in Sources */,
+				46B0778B1E30FFC700BC6B9C /* rtNode.cpp in Sources */,
+				46B0777C1E30FFC700BC6B9C /* ioapi.c in Sources */,
 				4C7B86131D10A47300C2489F /* pxClipboardNative.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1260,7 +1508,55 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
 				EXECUTABLE_PREFIX = lib;
-				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"_DARWIN_USE_64_BIT_INODE=1",
+					"NODE_ARCH=\"x64\"",
+					"NODE_WANT_INTERNALS=1",
+					"V8_DEPRECATION_WARNINGS=",
+					NODE_SHARED_MODE,
+					"NODE_USE_V8_PLATFORM=1",
+					"NODE_HAVE_I18N_SUPPORT=1",
+					"NODE_HAVE_SMALL_ICU=1",
+					"HAVE_INSPECTOR=1",
+					"V8_INSPECTOR_USE_STL=1",
+					"V8_INSPECTOR_USE_OLD_STL=1",
+					"HAVE_OPENSSL=1",
+					"HAVE_DTRACE=1",
+					__POSIX__,
+					"NODE_PLATFORM=\"darwin\"",
+					"UCONFIG_NO_TRANSLITERATION=1",
+					"UCONFIG_NO_SERVICE=1",
+					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
+					"U_ENABLE_DYLOAD=0",
+					"U_STATIC_IMPLEMENTATION=1",
+					"U_HAVE_STD_STRING=0",
+					"UCONFIG_NO_BREAK_ITERATION=0",
+					"UCONFIG_NO_LEGACY_CONVERSION=1",
+					"UCONFIG_NO_CONVERSION=1",
+					"HTTP_PARSER_STRICT=0",
+					_LARGEFILE_SOURCE,
+					"_FILE_OFFSET_BITS=64",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+				);
+				HEADER_SEARCH_PATHS = (
+					"examples/pxScene2d/external/libnode-v6.9.0/src",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					examples/pxScene2d/external/zlib/,
+					examples/pxScene2d/external/curl/include,
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-std=c++11",
+				);
 				OTHER_LDFLAGS = (
 					"-framwork",
 					Cocoa,
@@ -1279,7 +1575,55 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
 				EXECUTABLE_PREFIX = lib;
-				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"_DARWIN_USE_64_BIT_INODE=1",
+					"NODE_ARCH=\"x64\"",
+					"NODE_WANT_INTERNALS=1",
+					"V8_DEPRECATION_WARNINGS=",
+					NODE_SHARED_MODE,
+					"NODE_USE_V8_PLATFORM=1",
+					"NODE_HAVE_I18N_SUPPORT=1",
+					"NODE_HAVE_SMALL_ICU=1",
+					"HAVE_INSPECTOR=1",
+					"V8_INSPECTOR_USE_STL=1",
+					"V8_INSPECTOR_USE_OLD_STL=1",
+					"HAVE_OPENSSL=1",
+					"HAVE_DTRACE=1",
+					__POSIX__,
+					"NODE_PLATFORM=\"darwin\"",
+					"UCONFIG_NO_TRANSLITERATION=1",
+					"UCONFIG_NO_SERVICE=1",
+					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
+					"U_ENABLE_DYLOAD=0",
+					"U_STATIC_IMPLEMENTATION=1",
+					"U_HAVE_STD_STRING=0",
+					"UCONFIG_NO_BREAK_ITERATION=0",
+					"UCONFIG_NO_LEGACY_CONVERSION=1",
+					"UCONFIG_NO_CONVERSION=1",
+					"HTTP_PARSER_STRICT=0",
+					_LARGEFILE_SOURCE,
+					"_FILE_OFFSET_BITS=64",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+				);
+				HEADER_SEARCH_PATHS = (
+					"examples/pxScene2d/external/libnode-v6.9.0/src",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					examples/pxScene2d/external/zlib/,
+					examples/pxScene2d/external/curl/include,
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-std=c++11",
+				);
 				OTHER_LDFLAGS = (
 					"-framwork",
 					Cocoa,

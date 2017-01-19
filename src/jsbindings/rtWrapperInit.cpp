@@ -3,7 +3,8 @@
 #include "jsCallback.h"
 
 #include <pxEventLoop.h>
-#include <pxScene2d.h>
+//#include <pxScene2d.h>
+#include <pxIView.h>
 #include <pxWindow.h>
 #include <pxWindowUtil.h>
 #include <pxTimer.h>
@@ -109,7 +110,7 @@ public:
   Local<Object> scene(Isolate* isolate) const
   {
     
-    if (!mView)
+    /*if (!mView)
     {
       // Lazy creation of scene
       jsWindow* this_ = const_cast<jsWindow*>(this);
@@ -121,7 +122,7 @@ public:
       this_->mView = scene;
       this_->mView->setViewContainer(this_);
       this_->mView->onSize(mWidth, mHeight);
-    }
+    }*/
 
     return PersistentToLocal(isolate, mJavaScene);
   }

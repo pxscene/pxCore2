@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 #include "rtLog.h"
-extern "C" 
+extern "C"
 {
 #include "utf8.h"
 }

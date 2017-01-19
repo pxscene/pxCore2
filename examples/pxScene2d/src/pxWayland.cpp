@@ -3,8 +3,8 @@
 
 #include "rtString.h"
 #ifdef ENABLE_PX_WAYLAND_RPC
-#include "rpc/rtRemoteConfig.h"
-#include "rpc/rtRemoteEnvironment.h"
+#include "rtRemoteConfig.h"
+#include "rtRemoteEnvironment.h"
 #endif //ENABLE_PX_WAYLAND_RPC
 #include "rtRefT.h"
 #include "pxCore.h"
