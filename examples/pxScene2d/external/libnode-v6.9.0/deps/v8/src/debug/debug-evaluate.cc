@@ -29,9 +29,13 @@ MaybeHandle<Object> DebugEvaluate::Global(
   // Enter the top context from before the debugger was invoked.
   SaveContext save(isolate);
   SaveContext* top = &save;
+/* MODIFIED CODE BEGIN */
+/*
   while (top != NULL && IsDebugContext(isolate, *top->context())) {
     top = top->prev();
   }
+*/
+/* MODIFIED CODE END */
   if (top != NULL) isolate->set_context(*top->context());
 
   // Get the native context now set to the top context from before the

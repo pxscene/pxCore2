@@ -46,6 +46,12 @@ pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
 
 pxContext context;
+#ifdef ENABLE_DEBUG_MODE
+char *g_debugPort = NULL;
+int g_argc = 0;
+char** g_argv;
+char *nodeInput = NULL;
+#endif
 
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
@@ -141,7 +147,7 @@ ENTERSCENELOCK()
     eventLoop.exit();
 EXITSCENELOCK()
 #ifndef RUNINMAIN
-   nodeLib->setNeedsToEnd(true); 
+   script.setNeedsToEnd(true);
 #endif
 #ifdef ENABLE_LIBJPEG_TURBO
   pxCleanupJPGImageTurbo();
@@ -255,19 +261,60 @@ int pxMain(int argc, char* argv[])
   uv_mutex_init(&moreScriptsMutex);
   uv_mutex_init(&threadMutex);
 
-  // Start nodeLib thread 
+  // Start script thread
   uv_queue_work(nodeLoop, &nodeLoopReq, nodeThread, nodeIsEndingCallback);
   // init asynch that will get notifications about new scripts
   uv_async_init(nodeLoop, &asyncNewScript, processNewScript);
   uv_async_init(nodeLoop, &gcTrigger,garbageCollect);
 
 #endif
+#ifdef ENABLE_DEBUG_MODE
+  int urlIndex  = -1;
+  g_argv = (char**)malloc((argc+2) * sizeof(char*));
+  int size  = 0;
+  for (int i=1;i<argc;i++)
+  {
+    if (strstr(argv[i],"--"))
+    {
+      size += strlen(argv[i])+1;
+    }
+    else
+    {
+      if (strstr(argv[i],".js"))
+      {
+        urlIndex = i;
+      }
+    }
+  }
+  nodeInput = (char *)malloc(size+8);
+  memset(nodeInput,0,size+8);
+  int curpos = 0;
+  strcpy(nodeInput,"pxscene\0");
+  g_argc  = 0;
+  g_argv[g_argc++] = &nodeInput[0];
+  curpos += 8;
 
+  for (int i=1;i<argc;i++)
+  {
+    if (strstr(argv[i],"--"))
+    {
+      strcpy(nodeInput+curpos,argv[i]);
+      *(nodeInput+curpos+strlen(argv[i])) = '\0';
+      g_argv[g_argc++] = &nodeInput[curpos];
+      curpos = curpos + strlen(argv[i]) + 1;
+    }
+  }
+  script.initializeNode();
+#endif
   char buffer[256];
   sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));
   sceneWindow win;
   // OSX likes to pass us some weird parameter on first launch after internet install
+#ifdef ENABLE_DEBUG_MODE
+  win.init(10, 10, 1280, 720, (urlIndex != -1)?argv[urlIndex]:"browser.js");
+#else
   win.init(10, 10, 1280, 720, (argc >= 2 && argv[1][0] != '-')?argv[1]:"browser.js");
+#endif
   win.setTitle(buffer);
   // JRJR TODO Why aren't these necessary for glut... pxCore bug
   win.setVisibility(true);

@@ -57,6 +57,14 @@ void rtObjectWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports)
 
   Local<ObjectTemplate> inst = tmpl->InstanceTemplate();
   inst->SetInternalFieldCount(1);
+#ifdef ENABLE_DEBUG_MODE
+  inst->SetNamedPropertyHandler(
+      &getPropertyByName,
+      &setPropertyByName,
+      &queryPropertyByName,
+      NULL,
+      &getEnumerablePropertyNames);
+#else
   inst->SetNamedPropertyHandler(
       &getPropertyByName,
       &setPropertyByName,
@@ -70,7 +78,7 @@ void rtObjectWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports)
       NULL,
       NULL,
       &getEnumerablePropertyIndecies);
-
+#endif
   ctor.Reset(isolate, tmpl->GetFunction());
   exports->Set(String::NewFromUtf8(isolate, kClassName), tmpl->GetFunction());
 }
@@ -255,6 +263,49 @@ void rtObjectWrapper::getPropertyByName(Local<String> prop, const PropertyCallba
   rtString name = toString(prop);
   getProperty(name.cString(), info);
 }
+
+#ifdef ENABLE_DEBUG_MODE
+template<typename T>
+void rtObjectWrapper::queryProperty(const  T& prop, const PropertyCallbackInfo<Value>& info)
+{
+  HandleScope handle_scope(info.GetIsolate());
+
+  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  if (!wrapper)
+  {
+    info.GetReturnValue().Set(64);
+    return;
+  }
+
+  rtObjectRef ref = wrapper->mWrappedObject;
+  if (!ref)
+  {
+    info.GetReturnValue().Set(64);
+    return;
+  }
+
+  rtValue value;
+  rtWrapperSceneUpdateEnter();
+  rtError err = ref->Get(prop, &value);
+  rtWrapperSceneUpdateExit();
+
+  if (err != RT_OK)
+  {
+    rtLogDebug("property/method not found ");
+    info.GetReturnValue().Set(64);
+  }
+  else
+  {
+    info.GetReturnValue().Set(v8::DontEnum);
+  }
+}
+
+void rtObjectWrapper::queryPropertyByName(Local<String> prop, const PropertyCallbackInfo<Value>& info)
+{
+  rtString name = toString(prop);
+  queryProperty(name.cString(), info);
+}
+#endif
 
 void rtObjectWrapper::getPropertyByIndex(uint32_t index, const PropertyCallbackInfo<Value>& info)
 {

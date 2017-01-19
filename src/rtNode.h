@@ -121,6 +121,8 @@ class rtNode
 {
 public:
   rtNode();
+  rtNode(bool initialize);
+  void initializeNode();
   ~rtNode();
 
   void pump();
@@ -136,7 +138,11 @@ public:
   v8::Isolate   *getIsolate() { return mIsolate; };
   void garbageCollect();
 private:
+#ifdef ENABLE_DEBUG_MODE
+  void init();
+#else
   void init(int argc, char** argv);
+#endif
   void term();
 
   void nodePath();
