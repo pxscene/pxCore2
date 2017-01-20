@@ -41,6 +41,7 @@ cd ..
 #--------- LIBJPEG TURBO
 if [ "$(uname)" != "Darwin" ]; then
 cd libjpeg-turbo
+autoreconf -f -i
 ./configure
 make -j3
 cd ..

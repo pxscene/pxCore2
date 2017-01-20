@@ -266,7 +266,7 @@ void rtObjectWrapper::getPropertyByName(Local<String> prop, const PropertyCallba
 
 #ifdef ENABLE_DEBUG_MODE
 template<typename T>
-void rtObjectWrapper::queryProperty(const  T& prop, const PropertyCallbackInfo<Value>& info)
+void rtObjectWrapper::queryProperty(const  T& prop, const PropertyCallbackInfo<Integer>& info)
 {
   HandleScope handle_scope(info.GetIsolate());
 
@@ -300,7 +300,7 @@ void rtObjectWrapper::queryProperty(const  T& prop, const PropertyCallbackInfo<V
   }
 }
 
-void rtObjectWrapper::queryPropertyByName(Local<String> prop, const PropertyCallbackInfo<Value>& info)
+void rtObjectWrapper::queryPropertyByName(Local<String> prop, const PropertyCallbackInfo<Integer>& info)
 {
   rtString name = toString(prop);
   queryProperty(name.cString(), info);

@@ -30,7 +30,7 @@ private:
   static void setPropertyByName(Local<String> prop, Local<Value> val, const PropertyCallbackInfo<Value>& info);
   static void getEnumerablePropertyNames(const PropertyCallbackInfo<Array>& info);
 #ifdef ENABLE_DEBUG_MODE
-  static void queryPropertyByName(Local<String> prop, const PropertyCallbackInfo<Value>& info);
+  static void queryPropertyByName(Local<String> prop, const PropertyCallbackInfo<Integer>& info);
 #endif
   static void getPropertyByIndex(uint32_t index, const PropertyCallbackInfo<Value>& info);
   static void setPropertyByIndex(uint32_t index, Local<Value> val, const PropertyCallbackInfo<Value>& info);
@@ -47,7 +47,7 @@ private:
 
 #ifdef ENABLE_DEBUG_MODE
   template<typename T>
-  static void queryProperty(const T& prop, const PropertyCallbackInfo<Value>& info);
+  static void queryProperty(const T& prop, const PropertyCallbackInfo<Integer>& info);
 #endif
 };
 
