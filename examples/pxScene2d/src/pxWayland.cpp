@@ -818,7 +818,7 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
 #define KEY_KPCOMMA             121
 #define KEY_LEFTMETA            125
 #define KEY_RIGHTMETA           126
-#define KEY_PLAYPAUSE   164
+#define KEY_PLAYPAUSE           164
 #define KEY_REWIND              168
 #define KEY_PLAY                207
 #define KEY_FASTFORWARD         208
