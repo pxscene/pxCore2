@@ -30,6 +30,10 @@ rtError pxLoadImage(const char* imageData, size_t imageDataSize,
   {
 #ifdef ENABLE_LIBJPEG_TURBO
      retVal = pxLoadJPGImageTurbo(imageData, imageDataSize, o);
+     if (retVal != RT_OK)
+     {
+       retVal = pxLoadJPGImage(imageData, imageDataSize, o);
+     }
 #else
      retVal = pxLoadJPGImage(imageData, imageDataSize, o);
 #endif //ENABLE_LIBJPEG_TURBO
@@ -627,7 +631,12 @@ rtError pxLoadJPGImage(const char* filename, pxOffscreen& o)
   if (e == RT_OK)
   {
 #ifdef ENABLE_LIBJPEG_TURBO
-    return pxLoadJPGImageTurbo((const char*)d.data(), d.length(), o);
+    rtError retVal = pxLoadJPGImageTurbo((const char*)d.data(), d.length(), o);
+    if (retVal != RT_OK)
+    {
+      retVal = pxLoadJPGImage((const char*)d.data(), d.length(), o); 
+    }
+    return retVal;
 #else
     return pxLoadJPGImage((const char*)d.data(), d.length(), o);
 #endif //ENABLE_LIBJPEG_TURBO
@@ -680,13 +689,20 @@ rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o)
     pxInitializeJPGImageTurbo();
   }
 
-  int width, height, jpegSubsamp;
+  int width, height, jpegSubsamp, jpegColorspace;
 
-  tjDecompressHeader2(jpegDecompressor, (unsigned char*)buf, buflen, &width, &height, &jpegSubsamp);
+  tjDecompressHeader3(jpegDecompressor, (unsigned char*)buf, buflen, &width, &height, &jpegSubsamp, &jpegColorspace);
 
-  unsigned char* imageBuffer = tjAlloc(width*height*3);
+  int colorComponent = 3;
 
-  int result = tjDecompress2(jpegDecompressor, (unsigned char*)buf, buflen, imageBuffer, width, 0, height, TJPF_RGB, TJFLAG_FASTDCT);
+  if (jpegColorspace == TJCS_GRAY)
+  {
+    colorComponent = 1;
+  }
+
+  unsigned char* imageBuffer = tjAlloc(width*height*colorComponent);
+
+  int result = tjDecompress2(jpegDecompressor, (unsigned char*)buf, buflen, imageBuffer, width, 0, height, jpegColorspace, TJFLAG_FASTDCT);
   if (result != 0)
   {
     rtLogError("Error decompressing using libjpeg turbo");
@@ -703,7 +719,7 @@ rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o)
     pxPixel* p = o.scanline(scanlinen++);
     {
       char* b = (char*)&imageBuffer[bufferIndex];
-      char* bend = b+(width*3);
+      char* bend = b+(width*colorComponent);
       while(b < bend)
       {
         p->r = b[0];
@@ -711,7 +727,7 @@ rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o)
         p->b = b[2];
         p->a = 255;
         b+=3; // next pixel
-        bufferIndex+=3;
+        bufferIndex+=colorComponent;
         p++;
       }
     }
