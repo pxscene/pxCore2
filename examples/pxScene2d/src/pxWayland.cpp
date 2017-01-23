@@ -818,6 +818,10 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
 #define KEY_KPCOMMA             121
 #define KEY_LEFTMETA            125
 #define KEY_RIGHTMETA           126
+#define KEY_PLAYPAUSE           164
+#define KEY_REWIND              168
+#define KEY_PLAY                207
+#define KEY_FASTFORWARD         208
 #define KEY_PRINT               210     /* AC Print */
 
 uint32_t pxWayland::linuxFromPX( uint32_t keyCode )
@@ -843,9 +847,6 @@ uint32_t pxWayland::linuxFromPX( uint32_t keyCode )
          break;
       case PX_KEY_ALT:
          linuxKeyCode= KEY_LEFTALT;
-         break;
-      case PX_KEY_PAUSE:
-         linuxKeyCode= KEY_PAUSE;
          break;
       case PX_KEY_CAPSLOCK:
          linuxKeyCode= KEY_CAPSLOCK;
@@ -1116,6 +1117,21 @@ uint32_t pxWayland::linuxFromPX( uint32_t keyCode )
          break;
       case PX_KEY_DASH:
          linuxKeyCode= KEY_MINUS;
+         break;
+      case PX_KEY_FASTFORWARD:
+         linuxKeyCode= KEY_FASTFORWARD;
+         break;
+      case PX_KEY_REWIND:
+         linuxKeyCode= KEY_REWIND;
+         break;
+      case PX_KEY_PAUSE:
+         linuxKeyCode= KEY_PAUSE;
+         break;
+      case PX_KEY_PLAY:
+         linuxKeyCode= KEY_PLAY;
+         break;
+      case PX_KEY_PLAYPAUSE:
+         linuxKeyCode= KEY_PLAYPAUSE;
          break;
       default:
          linuxKeyCode= -1;
