@@ -285,7 +285,10 @@ PXSCENE_LIB_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(PXSCENE_LIB_OBJS))
 # pxWayland so begin
 PXWAYLAND_LIB_SRCS=\
             linux/rtMutexNative.cpp \
+            linux/rtThreadPoolNative.cpp \
             pxContextGL.cpp \
+            rtThreadPool.cpp \
+            rtThreadTask.cpp \
             rtThreadQueue.cpp \
             pxUtil.cpp \
             rtFile.cpp
