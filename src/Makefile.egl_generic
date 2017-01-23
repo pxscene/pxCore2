@@ -54,19 +54,28 @@ OBJS        =$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS)))
 STATIC_LIB  =$(OBJDIR)/libpxCore.a
 SHLIB       =$(OBJDIR)/libpxCore.so
 
-all: $(OUTDIR)/libpxCore.a $(OUTDIR)/librtCore.a
+all: $(OUTDIR)/librtCore.so $(OUTDIR)/librtCore_s.a $(OUTDIR)/libpxCore.a
 clean: 
 	rm *.o
+	rm $(OUTDIR)/librtCore.so
+	rm $(OUTDIR)/librtCore_s.a
 	rm $(OUTDIR)/libpxCore.a
-	rm $(OUTDIR)/librtCore.a
 
-$(OUTDIR)/librtCore.a: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o 
-	mkdir -p $(OUTDIR)    
-	ar rc $(OUTDIR)/librtCore.a utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o
+$(OUTDIR)/librtCore_s.a: 
+	rm *.o
+$(OUTDIR)/librtCore_s.a: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o 
+	mkdir -p $(OUTDIR)
+	$(AR) rc $(OUTDIR)/librtCore_s.a utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o
+
+$(OUTDIR)/librtCore.so: 
+	rm *.o
+$(OUTDIR)/librtCore.so: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o 
+	mkdir -p $(OUTDIR)
+	$(CXX) utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o -pthread -ldl -shared -o $(OUTDIR)/librtCore.so
 
 $(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxViewWindow.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o
 		       mkdir -p $(OUTDIR)    
-	    ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxViewWindow.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o
+	    $(AR) rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxViewWindow.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o
           
 pxOffscreen.o: pxOffscreen.cpp
 	$(CXX) -o pxOffscreen.o -Wall $(CXXFLAGS)  -c pxOffscreen.cpp
@@ -104,21 +113,21 @@ rtObjectWrapper.o: jsbindings/rtObjectWrapper.cpp
 rtWrapperUtils.o: jsbindings/rtWrapperUtils.cpp
 	$(CXX) -o rtWrapperUtils.o -Wall $(CXXFLAGS) -c jsbindings/rtWrapperUtils.cpp
 rtError.o: rtError.cpp
-	$(CXX) -o rtError.o -Wall $(CXXFLAGS) -c rtError.cpp
+	$(CXX) -o rtError.o -Wall $(CXXFLAGS) -DRAPIDJSON_HAS_STDSTRING -c rtError.cpp
 rtFile.o: rtFile.cpp
 	$(CXX) -o rtFile.o -Wall $(CXXFLAGS) -c rtFile.cpp
 rtLibrary.o: rtLibrary.cpp
 	$(CXX) -o rtLibrary.o -Wall $(CXXFLAGS) -c rtLibrary.cpp
 rtLog.o: rtLog.cpp
-	$(CXX) -o rtLog.o -Wall $(CXXFLAGS) -c rtLog.cpp
+	$(CXX) -o rtLog.o -Wall $(CXXFLAGS) -DRAPIDJSON_HAS_STDSTRING -c rtLog.cpp
 rtNode.o: rtNode.cpp
 	$(CXX) -o rtNode.o -Wall $(CXXFLAGS) -c rtNode.cpp
 rtObject.o: rtObject.cpp
-	$(CXX) -o rtObject.o -Wall $(CXXFLAGS) -c rtObject.cpp
+	$(CXX) -o rtObject.o -Wall $(CXXFLAGS) -DRAPIDJSON_HAS_STDSTRING -c rtObject.cpp
 rtPathUtils.o: rtPathUtils.cpp
 	$(CXX) -o rtPathUtils.o -Wall $(CXXFLAGS) -c rtPathUtils.cpp
 rtString.o: rtString.cpp
-	$(CXX) -o rtString.o -Wall $(CXXFLAGS) -c rtString.cpp
+	$(CXX) -o rtString.o -Wall $(CXXFLAGS) -DRAPIDJSON_HAS_STDSTRING -c rtString.cpp
 rtTest.o: rtTest.cpp
 	$(CXX) -o rtTest.o -Wall $(CXXFLAGS) -c rtTest.cpp
 rtThreadPool.o: rtThreadPool.cpp
@@ -134,15 +143,15 @@ rtThreadPoolNative.o: unix/rtThreadPoolNative.cpp
 rtUrlUtils.o: rtUrlUtils.cpp
 	$(CXX) -o rtUrlUtils.o -Wall $(CXXFLAGS) -c rtUrlUtils.cpp
 rtValue.o: rtValue.cpp
-	$(CXX) -o rtValue.o -Wall $(CXXFLAGS) -c rtValue.cpp
+	$(CXX) -o rtValue.o -Wall $(CXXFLAGS) -DRAPIDJSON_HAS_STDSTRING -c rtValue.cpp
 rtZip.o: rtZip.cpp
 	$(CXX) -o rtZip.o -Wall $(CXXFLAGS) -c rtZip.cpp
 utf8.o: utf8.c
-	$(CC) -o utf8.o -Wall $(CFLAGS) -c utf8.c
+	$(CC) -o utf8.o -Wall $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -c utf8.c
 unzip.o: unzip.c
 	$(CC) -o unzip.o -Wall $(CFLAGS) -c unzip.c
 ioapi_mem.o: ioapi_mem.c
-	$(CC) -o ioapi_mem.o -Wall $(CFLAGS) -c ioapi_mem.c
+	$(CC) -o ioapi_mem.o -Wall $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -c ioapi_mem.c
 ioapi.o: ioapi.c
 	$(CC) -o ioapi.o -Wall $(CFLAGS) -c ioapi.c
 
