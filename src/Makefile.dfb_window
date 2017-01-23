@@ -17,16 +17,24 @@ OUTDIR=../build/dfb
 
 INCDIR=$(PXCORE_INCLUDES) -Igeneric/ -I/usr/X11R6/include -I/usr/local/include/directfb -I. $(INCLUDE_PATHS)
 
-all: $(OUTDIR)/libpxCore.a $(OUTDIR)/librtCore.a
+all: $(OUTDIR)/librtCore.so $(OUTDIR)/librtCore_s.a $(OUTDIR)/libpxCore.a
 clean: 
 	rm *.o
+	rm $(OUTDIR)/librtCore.so
+	rm $(OUTDIR)/librtCore_s.a
 	rm $(OUTDIR)/libpxCore.a
-	rm $(OUTDIR)/librtCore.a
 
-$(OUTDIR)/librtCore.a: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o 
-	mkdir -p $(OUTDIR)    
-	ar rc $(OUTDIR)/librtCore.a utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o
+$(OUTDIR)/librtCore_s.a: 
+	rm *.o
+$(OUTDIR)/librtCore_s.a: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o
+	mkdir -p $(OUTDIR)
+	$(AR) rc $(OUTDIR)/librtCore_s.a utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o
 
+$(OUTDIR)/librtCore.so: 
+	rm *.o
+$(OUTDIR)/librtCore.so: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o
+	mkdir -p $(OUTDIR)
+	$(CXX) utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o -pthread -ldl -shared -o $(OUTDIR)/librtCore.so
 
 $(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o pxViewWindow.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o
 	mkdir -p $(OUTDIR)    
