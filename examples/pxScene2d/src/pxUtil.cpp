@@ -652,29 +652,6 @@ extern "C" {
 #include <turbojpeg.h>
 }
 
-tjhandle jpegDecompressor = 0;
-bool jpegTurboInitialized = false;
-
-rtError pxInitializeJPGImageTurbo()
-{
-  if (!jpegTurboInitialized)
-  {
-    jpegDecompressor = tjInitDecompress();
-    jpegTurboInitialized = true;
-  }
-  return RT_OK;
-}
-rtError pxCleanupJPGImageTurbo()
-{
-  if (jpegTurboInitialized)
-  {
-    tjDestroy(jpegDecompressor);
-    jpegDecompressor = 0;
-    jpegTurboInitialized = false;
-  }
-  return RT_OK;
-}
-
 rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o)
 {
   rtLogDebug("using pxLoadJPGImageTurbo");
@@ -683,11 +660,8 @@ rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o)
     rtLogError("NULL buffer passed into pxLoadJPGImageTurbo");
     return RT_FAIL;
   }
-
-  if (!jpegTurboInitialized)
-  {
-    pxInitializeJPGImageTurbo();
-  }
+  
+  tjhandle jpegDecompressor = tjInitDecompress();
 
   int width, height, jpegSubsamp, jpegColorspace;
 
@@ -702,11 +676,13 @@ rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o)
 
   unsigned char* imageBuffer = tjAlloc(width*height*colorComponent);
 
-  int result = tjDecompress2(jpegDecompressor, (unsigned char*)buf, buflen, imageBuffer, width, 0, height, jpegColorspace, TJFLAG_FASTDCT);
+  int result = tjDecompress2(jpegDecompressor, (unsigned char*)buf, buflen, imageBuffer, width, 0, height, (colorComponent == 3) ? TJPF_RGB : jpegColorspace, TJFLAG_FASTDCT);
+
   if (result != 0)
   {
     rtLogError("Error decompressing using libjpeg turbo");
     tjFree(imageBuffer);
+    tjDestroy(jpegDecompressor);
     return RT_FAIL;
   }
 
@@ -736,6 +712,7 @@ rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o)
   o.mPixelFormat = RT_PIX_ARGB;
 
   tjFree(imageBuffer);
+  tjDestroy(jpegDecompressor);
 
   /* And we're done! */
   return RT_OK;
