@@ -22,7 +22,6 @@ HAVE_WESTEROS := $(shell pkg-config --exists westeros-compositor && echo 1)
 endif
 
 clean:
-	$(MAKE) -C rpc/ clean
 	rm -rf $(OBJDIR)
 	rm -f lib*.so*
 	rm -f lib*.a
@@ -151,8 +150,7 @@ SEARCH=\
   -I$(NODEINC)/deps/cares/include \
   -I$(EXTDIR)/westeros/external/install/include \
   -I$(EXTDIR)/westeros-stub \
-  -I$(EXTDIR)/libjpeg-turbo \
-  -Irpc/
+  -I$(EXTDIR)/libjpeg-turbo 
    $(TARGETINCLUDE)
 
 
@@ -279,7 +277,6 @@ PXSCENE_LIB_SEARCH=\
   -I$(NODEINC)/deps/debugger-agent/include \
   -I$(NODEINC)/deps/v8/include \
   -I$(NODEINC)/deps/cares/include \
-  -Irpc \
   -I../../../remote \
   $(PXCORE_INCLUDES)
 
@@ -357,7 +354,7 @@ LIBRTREMOTE_TARGET=
 LIBRTREMOTE_TARGET_S=
 PXSCENE_EXTRA_DEFINES=-DNEXUS_SERVER_SUPPORT=1 -D_GNU_SOURCE=1 -DLINUX -pipe -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -mips32 -DNEXUS_PLATFORM_VERSION_MAJOR=14 -DNEXUS_PLATFORM_VERSION_MINOR=4 -DNEXUS_PLATFORM_VERSION_NUMBER=3588 -DNEXUS_CONFIG_IMAGE -DNEXUS_MODE_proxy -DPLATFORM=97125 -DNEXUS_PLATFORM=97125 -DNEXUS_HAS_MPOD -DBCHP_CHIP=7125 -DBCHP_VER=BCHP_VER_C0 -DBMEM_REENTRANT_CONFIG=BMEM_REENTRANT -DBINT_REENTRANT_CONFIG=BINT_REENTRANT -DNEXUS_PROFILE_OS_linuxuser -DBBCP_SUPPORT -DNEXUS_FRONTEND_3412 -DNEXUS_FRONTEND_3255 -DNEXUS_FRONTEND_ACCUMULATE_STATISTICS=1 -DNEXUS_FRONTEND_7125 -DNEXUS_AMPLIFIER_SUPPORT -DNEXUS_TUNER_SUPPORT -DNEXUS_FRONTEND_3112 -DNEXUS_FRONTEND_3109 -DNEXUS_FRONTEND_31xx_B0 -DNEXUS_SECURITY_SC_VALUE -DNEXUS_SECURITY_EXT_KEY_IV -DNEXUS_SECURITY_SC_VALUE -DNEXUS_SECURITY_EXT_KEY_IV -DNEXUS_SECURITY_HAS_ASKM=1 -DNEXUS_SECURITY_CHIP_SIZE=65 -DNEXUS_KEYLADDER=1 -DNEXUS_HAS_KEYLADDER_SUPPORT=1 -DNEXUS_OTPMSP=1 -DNEXUS_OTPID=1 -DNEXUS_USERCMD=1 -DNEXUS_SECURITY_SECUREACCESS=1 -DNEXUS_SECURITY_SECURERSA=1 -DBXPT_MESG_DONT_AUTO_ENABLE_PID_CHANNEL -DB_REFSW_DSS_SUPPORT=1 -DNEXUS_OTFPVR=1 -DB_REFSW_DSS_SUPPORT=1 -DNEXUS_AC3 -DNEXUS_DDP -DNEXUS_AC3 -DMACROVISION_SUPPORT=1 -DNEXUS_HAS_PLATFORM -DNEXUS_HAS_CORE -DNEXUS_HAS_PWM -DNEXUS_HAS_I2C -DNEXUS_HAS_GPIO -DNEXUS_HAS_LED -DNEXUS_HAS_IR_INPUT -DNEXUS_HAS_IR_BLASTER -DNEXUS_HAS_INPUT_CAPTURE -DNEXUS_HAS_KEYPAD -DNEXUS_HAS_FRONTEND -DNEXUS_HAS_SPI -DNEXUS_HAS_SECURITY -DNEXUS_HAS_DMA -DNEXUS_HAS_TRANSPORT -DNEXUS_HAS_VIDEO_DECODER -DNEXUS_HAS_AUDIO -DNEXUS_HAS_SURFACE -DNEXUS_HAS_ASTM -DNEXUS_HAS_DISPLAY -DNEXUS_HAS_GRAPHICS2D -DNEXUS_HAS_SYNC_CHANNEL -DNEXUS_HAS_HDMI_OUTPUT -DNEXUS_HAS_CEC -DNEXUS_HAS_SMARTCARD -DNEXUS_HAS_SURFACE_COMPOSITOR -DNEXUS_HAS_INPUT_ROUTER -DNEXUS_HAS_SIMPLE_DECODER -DNEXUS_HAS_FILE -DNEXUS_HAS_PLAYBACK -DNEXUS_HAS_RECORD -DB_REFSW_DEBUG_FORCE_ENABLE_BDBG=1 -O3 -DB_REFSW_DEBUG_COMPACT_ASSERT=1 -DBDBG_NO_WRN=1 -DBDBG_NO_MSG=1 -DB_REFSW_DEBUG_COMPACT_ERR=1 -DB_REFSW_DEBUG_FORCE_ENABLE_BDBG=1 -DRDK_USE_NXCLIENT
 else 
-PXSCENE_LIBS=-lpng16 -lnxpl -lGLESv2 -Lrpc/ -l$(LIBRTREMOTE) -luuid
+PXSCENE_LIBS=-lpng16 -lnxpl -lGLESv2 -l$(LIBRTREMOTE) -luuid
 ifneq ($(DISABLE_WESTEROS),TRUE)
 PXSCENE_LIBS:=-lwesteros_compositor 
 endif
@@ -401,7 +398,7 @@ libpxscene-glut:
 	rm -rf $(OBJDIR)
 libpxscene-glut: CFLAGS_FULL = $(CFLAGS)
 #libpxscene-glut: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC -g -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES)
-#libpxscene-glut: LDFLAGS_FULL = $(LDEXT) -Wl,--no-whole-archive -lglut -lGLEW -lGL -lnode -pthread -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./  
+#libpxscene-glut: LDFLAGS_FULL = $(LDEXT) -Wl,--no-whole-archive -lglut -lGLEW -lGL -lnode -pthread -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8) -L./  
 libpxscene-glut: cleansceneobj $(PXSCENE_LIB_OBJS)  
 	$(AR) rc libpxscene.a $(PXSCENE_LIB_OBJS) 
 
@@ -409,7 +406,7 @@ libpxscene-dfbwindow:
 	rm -rf $(OBJDIR)
 libpxscene-dfbwindow: CFLAGS_FULL = $(CFLAGS)
 libpxscene-dfbwindow: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DENABLE_DFB -DPX_PLATFORM_DFB_NON_X11 -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES) -std=c++0x
-libpxscene-dfbwindow: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -L../../../../workRNG150/rootfs/usr/local/lib/ -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ $(PLATFORM_LIBS) -lpng15 -ldirectfb -ldirect -lfusion -lz -lssl -lcrypto -shared -o libpxscene.so.1.0
+libpxscene-dfbwindow: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -L../../../../workRNG150/rootfs/usr/local/lib/ -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -L./ $(PLATFORM_LIBS) -lpng15 -ldirectfb -ldirect -lfusion -lz -lssl -lcrypto -shared -o libpxscene.so.1.0
 libpxscene-dfbwindow: cleansceneobj $(PXSCENE_LIB_OBJS) 
 	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
@@ -417,7 +414,7 @@ libpxscene-dfbwindow: cleansceneobj $(PXSCENE_LIB_OBJS)
 
 pxscene-with-so-dfb: CFLAGS_FULL = $(CFLAGS)
 pxscene-with-so-dfb: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DENABLE_DFB -DPX_PLATFORM_DFB_NON_X11 -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES) -std=c++0x
-pxscene-with-so-dfb: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -L../../../../workRNG150/rootfs/usr/local/lib/ -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ $(PLATFORM_LIBS) -lpng15 -ldirectfb -ldirect -lfusion -lz -lssl -lcrypto -lpxscene -L../../../build/dfb/ -lrtCore -o pxscene
+pxscene-with-so-dfb: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -L../../../../workRNG150/rootfs/usr/local/lib/ -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -L./ $(PLATFORM_LIBS) -lpng15 -ldirectfb -ldirect -lfusion -lz -lssl -lcrypto -lpxscene -L../../../build/dfb/ -lrtCore -o pxscene
 pxscene-with-so-dfb: cleansceneobj $(PXSCENE_LIB_OBJS) 
 	$(CXX) $(CXXFLAGS_FULL) pxScene.cpp $(LDFLAGS_FULL)
 
@@ -430,7 +427,7 @@ libpxscene.so:
 	rm -rf $(OBJDIR)
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
 libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES) $(PXSCENE_VERSION_DEFINES)
-libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -shared $(PLATFORM_LIBS) -o libpxscene.so.1.0  
+libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -L./ -shared $(PLATFORM_LIBS) -o libpxscene.so.1.0  
 libpxscene.so: cleansceneobj $(PXSCENE_LIB_OBJS) 
 	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
@@ -448,7 +445,7 @@ libpxscene.a-dfb:
 	rm -rf $(OBJDIR)
 libpxscene.a-dfb: CFLAGS_FULL = $(CFLAGS)
 libpxscene.a-dfb: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES) $(PXSCENE_VERSION_DEFINES)
-libpxscene.a-dfb: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -Lrpc/ -ldl -lrt -L./ -shared $(PLATFORM_LIBS)  
+libpxscene.a-dfb: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -L./ -shared $(PLATFORM_LIBS)  
 libpxscene.a-dfb: cleansceneobj $(PXSCENE_LIB_OBJS) 
 	$(AR) rcs -o libpxscene.a $(PXSCENE_LIB_OBJS)
 
@@ -456,7 +453,7 @@ libpxwayland.so:
 	rm -rf $(OBJDIR)
 libpxwayland.so: CFLAGS_FULL = $(CFLAGS)
 libpxwayland.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
-libpxwayland.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) -Lrpc/ -ldl -lrt -L./ -shared $(PLATFORM_LIBS) -o libpxwayland.so.1.0
+libpxwayland.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) -L./ -shared $(PLATFORM_LIBS) -o libpxwayland.so.1.0
 libpxwayland.so: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) 
 	$(CXX) $(PXWAYLAND_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxwayland.so.1.0 libpxwayland.so.1
