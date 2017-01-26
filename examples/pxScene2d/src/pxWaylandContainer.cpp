@@ -237,6 +237,7 @@ void pxWaylandContainer::onInit()
   if ( mWayland )
   {
     mWayland->setPos( mx, my );
+    mWayland->useDispatchThread( true );
     mWayland->onInit();
   }
 }

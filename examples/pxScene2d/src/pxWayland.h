@@ -132,7 +132,7 @@ public:
   rtError delListener(const rtString& eventName, const rtFunctionRef& f);
   rtError startRemoteObjectLocator();
   rtError connectToRemoteObject(unsigned int timeout_ms);
-
+  rtError useDispatchThread(bool use);
 private:
   rtAtomic mRefCount;
   pthread_t mClientMonitorThreadId;
