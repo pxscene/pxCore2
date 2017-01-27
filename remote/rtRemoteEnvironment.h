@@ -16,8 +16,9 @@ class rtRemoteConfig;
 class rtRemoteStreamSelector;
 class rtRemoteObjectCache;
 
-struct rtRemoteEnvironment
+class rtRemoteEnvironment
 {
+public:
   rtRemoteEnvironment(rtRemoteConfig* config);
   ~rtRemoteEnvironment();
 
