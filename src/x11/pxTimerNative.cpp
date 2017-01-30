@@ -53,6 +53,23 @@ double  pxMicroseconds()
 #endif
 }
 
+
+#if 1
+
+void pxSleepMS(uint32_t msToSleep)
+{
+    uint32_t ms = msToSleep;
+
+    struct timespec res;
+
+    res.tv_sec  = (ms / 1000);
+    res.tv_nsec = (ms * 1000000) % 1000000000;
+
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &res, NULL);
+}
+
+#else
+
 void pxSleepMS(uint32_t msToSleep)
 {
     timeval tv;
@@ -60,3 +77,5 @@ void pxSleepMS(uint32_t msToSleep)
     tv.tv_usec = 1000 * msToSleep;
     select(0, NULL, NULL, NULL, &tv);
 }
+
+#endif

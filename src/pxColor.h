@@ -7,6 +7,8 @@
 
 #include "pxPixel.h"
 
+const pxColor pxClear(0, 0, 0, 0); // RGBA
+
 const pxColor pxWhite(255, 255, 255);
 const pxColor pxBlack(0, 0, 0);
 const pxColor pxRed(255, 0, 0);
