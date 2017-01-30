@@ -8,7 +8,7 @@ cd "$THIS_DIR"
 export DYLD_LIBRARY_PATH=./lib/
 export LD_LIBRARY_PATH=./lib/
 
-./pxscene $* >> /var/tmp/pxscene.log 2>&1 &
+./pxscene $* < /dev/zero >> /var/tmp/pxscene.log 2>&1 &
 
 # Software update below
 
