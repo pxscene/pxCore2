@@ -469,7 +469,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var _this = this;
   var origFilePath = filePath;
   return new Promise(function (onImportComplete, reject) {
-    if( filePath === 'fs' || filePath === 'px' || filePath === 'http' || filePath === 'url' || filePath === 'os'
+    if( filePath === 'fs' || filePath === 'px' || filePath === 'http' || filePath === 'https' || filePath === 'url' || filePath === 'os'
       || filePath === 'events' || filePath === 'net' || filePath === 'querystring' || filePath === 'htmlparser'
       || filePath === 'ws') {
       // built-ins
