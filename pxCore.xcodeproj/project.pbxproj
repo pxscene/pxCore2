@@ -1542,6 +1542,7 @@
 					"_FILE_OFFSET_BITS=64",
 					RT_PLATFORM_LINUX,
 					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
 				);
 				HEADER_SEARCH_PATHS = (
 					"examples/pxScene2d/external/libnode-v6.9.0/src",
@@ -1609,6 +1610,7 @@
 					"_FILE_OFFSET_BITS=64",
 					RT_PLATFORM_LINUX,
 					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
 				);
 				HEADER_SEARCH_PATHS = (
 					"examples/pxScene2d/external/libnode-v6.9.0/src",
