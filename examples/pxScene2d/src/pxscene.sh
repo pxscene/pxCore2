@@ -18,7 +18,8 @@ export NODE_PATH=.
 #export RT_LOG_LEVEL=info
  
 ./pxscene $1 $2 $3 $4 $5 $6 $7
-
+#To run pxscene as background process
+#./pxscene $1 $2 $3 $4 $5 $6 $7 < `tty` >> /var/tmp/pxscene.log 2>&1 &
 
 # Development stuff...
 #
