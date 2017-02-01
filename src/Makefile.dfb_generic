@@ -25,6 +25,8 @@ clean:
 	rm $(OUTDIR)/librtCore_s.a
 	rm $(OUTDIR)/libpxCore.a
 
+rtcore: $(OUTDIR)/librtCore_s.a $(OUTDIR)/librtCore.so
+
 $(OUTDIR)/librtCore_s.a: 
 	rm *.o
 $(OUTDIR)/librtCore_s.a: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o

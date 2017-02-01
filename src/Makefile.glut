@@ -16,10 +16,23 @@ OUTDIR=../build/glut
 
 
 all: $(OUTDIR)/libpxCore.a 
+rtcore: $(OUTDIR)/librtCore_s.a $(OUTDIR)/librtCore.so
 
 clean:
 	rm $(OUTDIR)/*
 	rm *.o
+
+$(OUTDIR)/librtCore_s.a: 
+	rm *.o
+$(OUTDIR)/librtCore_s.a: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o 
+	mkdir -p $(OUTDIR)
+	$(AR) rc $(OUTDIR)/librtCore_s.a utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o
+
+$(OUTDIR)/librtCore.so: 
+	rm *.o
+$(OUTDIR)/librtCore.so: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o 
+	mkdir -p $(OUTDIR)
+	$(CXX) utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o -pthread -ldl -shared -o $(OUTDIR)/librtCore.so
 
 $(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNativeGlut.o pxTimerNative.o pxViewWindow.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtError.o rtFile.o rtLibrary.o rtLog.o rtNode.o rtObject.o rtPathUtils.o rtString.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtValue.o rtZip.o utf8.o ioapi_mem.o unzip.o ioapi.o 
 		 mkdir -p $(OUTDIR)  
