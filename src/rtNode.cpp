@@ -346,53 +346,56 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 rtNodeContext::~rtNodeContext()
 {
   rtLogInfo(__FUNCTION__);
-  runScript("var process = require('process');process._tickCallback();");
-  if(mEnv)
+  //Make sure node is not destroyed abnormally 
+  if (true == node_is_initialized)
   {
-    Locker                locker(mIsolate);
-    Isolate::Scope isolate_scope(mIsolate);
-    HandleScope     handle_scope(mIsolate);
-
-    RunAtExit(mEnv);
-#ifdef ENABLE_NODE_V_6_9
-    if (nodeTerminated)
+    runScript("var process = require('process');process._tickCallback();");
+    if(mEnv)
     {
-      array_buffer_allocator->set_env(NULL);
+      Locker                locker(mIsolate);
+      Isolate::Scope isolate_scope(mIsolate);
+      HandleScope     handle_scope(mIsolate);
+
+      RunAtExit(mEnv);
+    #ifdef ENABLE_NODE_V_6_9
+      if (nodeTerminated)
+      {
+        array_buffer_allocator->set_env(NULL);
+      }
+      else
+      {
+        mEnv->Dispose();
+      }
+    #else
+      mEnv->Dispose();
+    #endif // ENABLE_NODE_V_6_9
+      mEnv = NULL;
+      #ifndef USE_CONTEXTIFY_CLONES
+      HandleMap::clearAllForContext(mId);
+      #endif
     }
     else
     {
-      mEnv->Dispose();
+    // clear out persistent javascript handles
+      HandleMap::clearAllForContext(mId);
     }
-#else
-    mEnv->Dispose();
-#endif // ENABLE_NODE_V_6_9
-    mEnv = NULL;
-    #ifndef USE_CONTEXTIFY_CLONES
-    HandleMap::clearAllForContext(mId);
-    #endif
-  }
-  else
-  {
-  // clear out persistent javascript handles
-    HandleMap::clearAllForContext(mId);
-  }
-  if(exec_argv)
-  {
-    delete[] exec_argv;
-    exec_argv = NULL;
-    exec_argc = 0;
-  }
+    if(exec_argv)
+    {
+      delete[] exec_argv;
+      exec_argv = NULL;
+      exec_argc = 0;
+    }
 
-  // TODO:  Might not be needed in ST case...
-  //
-  // Un-Register wrappers.
-  // rtObjectWrapper::destroyPrototype();
-  // rtFunctionWrapper::destroyPrototype();
-  mContext.Reset();
-  mRtWrappers.Reset();
+    // TODO:  Might not be needed in ST case...
+    //
+    // Un-Register wrappers.
+    // rtObjectWrapper::destroyPrototype();
+    // rtFunctionWrapper::destroyPrototype();
+    mContext.Reset();
+    mRtWrappers.Reset();
 
-  Release();
-
+    Release();
+  }
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
 }
 
