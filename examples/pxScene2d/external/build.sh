@@ -14,20 +14,22 @@ fi
 make all -j3
 cd ..
 
+#--------- PNG 
+cd png
+./configure
+make all -j3
+cd ..
+
 #--------- FT 
+
 cd ft
+export LIBPNG_LIBS="-L../png/.libs -lpng16"
 ./configure
 make all -j3
 cd ..
 
 #--------- JPG 
 cd jpg
-./configure
-make all -j3
-cd ..
-
-#--------- PNG 
-cd png
 ./configure
 make all -j3
 cd ..
