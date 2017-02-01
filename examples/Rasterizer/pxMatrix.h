@@ -3,6 +3,8 @@
 
 #define pxPI 3.141519
 
+#define PX_INLINE  inline
+
 class pxVertex
 {
 public:
@@ -22,17 +24,17 @@ class pxMatrix
 {
 public:
 
-  void identity()
+  PX_INLINE void identity()
   {
     mMatrix[0][0] = mMatrix[1][1] = mMatrix[2][2] = mMatrix[3][3] = 1.0;
 
-    mMatrix[0][1] = mMatrix[0][2] = mMatrix[0][3] = 
-      mMatrix[1][0] = mMatrix[1][2] = mMatrix[1][3] = 
-      mMatrix[2][0] = mMatrix[2][1] = mMatrix[2][3] =
-      mMatrix[3][0] = mMatrix[3][1] = mMatrix[3][2] = 0.0;
+    mMatrix[0][1] = mMatrix[0][2] = mMatrix[0][3] =
+    mMatrix[1][0] = mMatrix[1][2] = mMatrix[1][3] =
+    mMatrix[2][0] = mMatrix[2][1] = mMatrix[2][3] =
+    mMatrix[3][0] = mMatrix[3][1] = mMatrix[3][2] = 0.0;
   }
 
-  bool isIdentity()
+  PX_INLINE bool isIdentity()
   {
     return (mMatrix[0][0] == 1.0 && mMatrix[1][1] == 1.0 && mMatrix[2][2] == 1.0 && mMatrix[3][3] == 1.0 &&
             mMatrix[0][1] == 0.0 && mMatrix[0][2] == 0.0 && mMatrix[0][3] == 0.0 &&
@@ -42,15 +44,15 @@ public:
   }
 
 
-  bool isTranslatedOnly()
+  PX_INLINE bool isTranslatedOnly()
   {
     return (mMatrix[0][0] == 1.0 && mMatrix[1][1] == 1.0 && mMatrix[2][2] == 1.0 &&
-            mMatrix[0][1] == 0.0 && mMatrix[0][2] == 0.0 && 
+            mMatrix[0][1] == 0.0 && mMatrix[0][2] == 0.0 &&
             mMatrix[1][0] == 0.0 && mMatrix[1][2] == 0.0 &&
             mMatrix[2][0] == 0.0 && mMatrix[2][1] == 0.0);
   }
 
-  void multiply(const pxMatrix& mat1, const pxMatrix& mat2, pxMatrix& result)
+  PX_INLINE void multiply(const pxMatrix& mat1, const pxMatrix& mat2, pxMatrix& result)
   {
     int i,j;
     for(i=0; i<4; i++)
@@ -61,23 +63,24 @@ public:
           mat1.mMatrix[i][3]*mat2.mMatrix[3][j];
   }
 
-  void multiply(const pxVertex& ver, const pxMatrix& mat, pxVertex& result)
+  PX_INLINE void multiply(const pxVertex& ver, const pxMatrix& mat, pxVertex& result)
   {
-    result.x = ver.x * mat.mMatrix[0][0] + 
-      ver.y * mat.mMatrix[1][0] + 
-      ver.z * mat.mMatrix[2][0] + 
-      mat.mMatrix[3][0];
-    result.y = ver.x * mat.mMatrix[0][1] + 
-      ver.y * mat.mMatrix[1][1] + 
-      ver.z * mat.mMatrix[2][1] + 
-      mat.mMatrix[3][1];
-    result.z = ver.x * mat.mMatrix[0][2] + 
-      ver.y * mat.mMatrix[1][2] + 
-      ver.z * mat.mMatrix[2][2] + 
-      mat.mMatrix[3][2];
+    result.x = ver.x * mat.mMatrix[0][0] +
+               ver.y * mat.mMatrix[1][0] +
+               ver.z * mat.mMatrix[2][0] +
+                 mat.mMatrix[3][0];
+
+    result.y = ver.x * mat.mMatrix[0][1] +
+               ver.y * mat.mMatrix[1][1] +
+               ver.z * mat.mMatrix[2][1] +
+                 mat.mMatrix[3][1];
+    result.z = ver.x * mat.mMatrix[0][2] +
+               ver.y * mat.mMatrix[1][2] +
+               ver.z * mat.mMatrix[2][2] +
+                 mat.mMatrix[3][2];
   }
 
-  void rotateXY(double angle)
+  PX_INLINE void rotateXY(double angle)
   {
     pxMatrix t;
     t.identity();
@@ -86,26 +89,26 @@ public:
 
     cosValue = pxCos(angle);
     sinValue = pxSin(angle);
-        
+
 #if 0
-    t.mMatrix[0][0] = mMatrix[0][0] * cosValue + 
+    t.mMatrix[0][0] = mMatrix[0][0] * cosValue +
       mMatrix[0][1] * sinValue;
-    t.mMatrix[1][0] = mMatrix[1][0] * cosValue + 
+    t.mMatrix[1][0] = mMatrix[1][0] * cosValue +
       mMatrix[1][1] * sinValue;
-    t.mMatrix[2][0] = mMatrix[2][0] * cosValue + 
+    t.mMatrix[2][0] = mMatrix[2][0] * cosValue +
       mMatrix[2][1] * sinValue;
-    t.mMatrix[3][0] = mMatrix[3][0] * cosValue + 
-      mMatrix[3][1] * sinValue; 
-    	
-    t.mMatrix[0][1] = mMatrix[0][0] * -sinValue + 
+    t.mMatrix[3][0] = mMatrix[3][0] * cosValue +
+      mMatrix[3][1] * sinValue;
+
+    t.mMatrix[0][1] = mMatrix[0][0] * -sinValue +
       mMatrix[0][1] * cosValue;
-    t.mMatrix[1][1] = mMatrix[1][0] * -sinValue + 
+    t.mMatrix[1][1] = mMatrix[1][0] * -sinValue +
       mMatrix[1][1] * cosValue;
-    t.mMatrix[2][1] = mMatrix[2][0] * -sinValue + 
+    t.mMatrix[2][1] = mMatrix[2][0] * -sinValue +
       mMatrix[2][1] * cosValue;
-    t.mMatrix[3][1] = mMatrix[3][0] * -sinValue + 
-      mMatrix[3][1] * cosValue; 
-    	
+    t.mMatrix[3][1] = mMatrix[3][0] * -sinValue +
+      mMatrix[3][1] * cosValue;
+
     t.mMatrix[0][2] = mMatrix[0][2];
     t.mMatrix[1][2] = mMatrix[1][2];
     t.mMatrix[2][2] = mMatrix[2][2];
@@ -115,22 +118,22 @@ public:
 #else
 #if 1
     // z
-    t.mMatrix[0][0] = cosValue;
-    t.mMatrix[0][1] = sinValue;
+    t.mMatrix[0][0] =  cosValue;
+    t.mMatrix[0][1] =  sinValue;
     t.mMatrix[1][0] = -sinValue;
-    t.mMatrix[1][1] = cosValue;
+    t.mMatrix[1][1] =  cosValue;
 #elif 0
     // x
-    t.mMatrix[1][1] = cosValue;
-    t.mMatrix[1][2] = sinValue;
+    t.mMatrix[1][1] =  cosValue;
+    t.mMatrix[1][2] =  sinValue;
     t.mMatrix[2][1] = -sinValue;
-    t.mMatrix[2][2] = cosValue;
+    t.mMatrix[2][2] =  cosValue;
 #else
     // y
-    t.mMatrix[0][0] = cosValue;
+    t.mMatrix[0][0] =  cosValue;
     t.mMatrix[2][0] = -sinValue;
-    t.mMatrix[0][2] = sinValue;
-    t.mMatrix[2][2] = cosValue;
+    t.mMatrix[0][2] =  sinValue;
+    t.mMatrix[2][2] =  cosValue;
 #endif
 
     pxMatrix r;
@@ -138,12 +141,12 @@ public:
     multiply(*this, t, r);
     *this = r;
 #endif
-    	
-  }
-    
-  inline void rotate(double angle) { rotateXY(angle); }
 
-  void scale(double sx, double sy, double sz)
+  }
+
+  PX_INLINE void rotate(double angle) { rotateXY(angle); }
+
+  PX_INLINE void scale(double sx, double sy, double sz)
   {
     mMatrix[0][0] *= sx;
     mMatrix[1][0] *= sx;
@@ -156,35 +159,35 @@ public:
     mMatrix[0][2] *= sz;
     mMatrix[1][2] *= sz;
     mMatrix[2][2] *= sz;
-    	
+
     mMatrix[3][0] *= sx;
     mMatrix[3][1] *= sy;
     mMatrix[3][2] *= sz;
   }
 
-  inline void scale(double s)
+  PX_INLINE void scale(double s)
   {
     scale(s, s, s);
   }
 
-  void translate(double dx, double dy, double dz = 0.0)
+  PX_INLINE void translate(double dx, double dy, double dz = 0.0)
   {
     mMatrix[3][0] += dx;
     mMatrix[3][1] += dy;
     mMatrix[3][2] += dz;
   }
 
-  double translateX()
+  PX_INLINE double translateX()
   {
     return mMatrix[3][0];
   }
 
-  double translateY()
+  PX_INLINE double translateY()
   {
     return mMatrix[3][1];
   }
 
-  void transpose()
+  PX_INLINE void transpose()
   {
     double t;
     t = mMatrix[1][0];

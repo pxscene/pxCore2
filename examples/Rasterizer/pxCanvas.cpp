@@ -5,17 +5,20 @@
 
 #include "pxTimer.h"
 
+#define INCLUDE_PERF_TIMING
+
+//========================================================================================================================
+
 class Vector
 {
 public:
   float x_, y_;
 
-  Vector(float f = 0.0f)
-    : x_(f), y_(f) {}
-
-  Vector(float x, float y)
-    : x_(x), y_(y) {}
+  Vector(float f = 0.0f)   : x_(f), y_(f) { }
+  Vector(float x, float y) : x_(x), y_(y) { }
 };
+
+//========================================================================================================================
 
 class LineSegment
 {
@@ -31,13 +34,13 @@ public:
   IntersectResult Intersect(const LineSegment& other_line, Vector& intersection)
   {
     float denom = ((other_line.end_.y_ - other_line.begin_.y_)*(end_.x_ - begin_.x_)) -
-      ((other_line.end_.x_ - other_line.begin_.x_)*(end_.y_ - begin_.y_));
+                  ((other_line.end_.x_ - other_line.begin_.x_)*(end_.y_ - begin_.y_));
 
     float nume_a = ((other_line.end_.x_ - other_line.begin_.x_)*(begin_.y_ - other_line.begin_.y_)) -
-      ((other_line.end_.y_ - other_line.begin_.y_)*(begin_.x_ - other_line.begin_.x_));
+                   ((other_line.end_.y_ - other_line.begin_.y_)*(begin_.x_ - other_line.begin_.x_));
 
-    float nume_b = ((end_.x_ - begin_.x_)*(begin_.y_ - other_line.begin_.y_)) -
-      ((end_.y_ - begin_.y_)*(begin_.x_ - other_line.begin_.x_));
+    float nume_b = ((end_.x_ - begin_.x_) * (begin_.y_ - other_line.begin_.y_)) -
+                   ((end_.y_ - begin_.y_) * (begin_.x_ - other_line.begin_.x_));
 
     if(denom == 0.0f)
     {
@@ -62,7 +65,9 @@ public:
 
     return NOT_INTERESECTING;
   }
-};
+}; // CLASS - LineSegment
+
+//========================================================================================================================
 
 #if 0
 void DoLineSegmentIntersection(const Vector& p0, const Vector& p1, const Vector& p2, const Vector& p3)
@@ -93,9 +98,10 @@ void DoLineSegmentIntersection(const Vector& p0, const Vector& p1, const Vector&
 }
 #endif
 
-pxCanvas::pxCanvas(): mOffscreen(NULL)
+//========================================================================================================================
+
+pxCanvas::pxCanvas(): mOffscreen(NULL), mVertexCount(0)
 {
-  mVertexCount = 0;
 }
 
 pxCanvas::~pxCanvas()
@@ -155,7 +161,6 @@ pxError pxCanvas::initWithBuffer(pxBuffer* buffer)
   return e;
 }
 
-
 pxOffscreen* pxCanvas::offscreen()
 {
   return mOffscreen;
@@ -200,7 +205,7 @@ void pxCanvas::setMatrix(const pxMatrix& m)
 	mRasterizer.setMatrix(m);
 }
 
-void pxCanvas::matrix(pxMatrix& m) const 
+void pxCanvas::matrix(pxMatrix& m) const
 {
   m = mMatrix;
 }
@@ -332,17 +337,20 @@ void pxCanvas::fill(bool time)
   mRasterizer.setColor(mFillColor);
 //    setAlphaTexture(true);
 
+#ifdef INCLUDE_PERF_TIMING
   double startEdge;
   double endEdge;
+
   if (time)
   {
     startEdge = pxMilliseconds();
   }
+#endif // INCLUDE_PERF_TIMING
 
   double extentLeft, extentTop;
   double extentRight, extentBottom;
 
-  extentLeft = extentTop = 1000000;
+  extentLeft   = extentTop   =  1000000;
   extentRight = extentBottom = -1000000;
 
   if (mVertexCount > 1)
@@ -356,29 +364,32 @@ void pxCanvas::fill(bool time)
         for (i = 0; i < mVertexCount-1; i++)
         {
 #if 1
-          if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
-          if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
-          if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
+          if (mVertices[i].x < extentLeft)   extentLeft   = mVertices[i].x;
+          if (mVertices[i].x > extentRight)  extentRight  = mVertices[i].x;
+          if (mVertices[i].y < extentTop)    extentTop    = mVertices[i].y;
           if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
 #endif
 
           mRasterizer.addEdge(mVertices[i].x,mVertices[i].y,mVertices[i+1].x, mVertices[i+1].y);
         }
 #if 1
-        if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
-        if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
-        if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
+        if (mVertices[i].x < extentLeft)   extentLeft   = mVertices[i].x;
+        if (mVertices[i].x > extentRight)  extentRight  = mVertices[i].x;
+        if (mVertices[i].y < extentTop)    extentTop    = mVertices[i].y;
         if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
 #endif
 #endif
       }
       else
       {
+#ifdef INCLUDE_PERF_TIMING
         if (time)
         {
           startEdge = pxMilliseconds();
         }
-        pxVertex* vp = mVertices;
+#endif// INCLUDE_PERF_TIMING
+
+        pxVertex* vp    = mVertices;
         pxVertex* vlast = vp + mVertexCount-1;
 
         while(vp < vlast)
@@ -397,26 +408,29 @@ void pxCanvas::fill(bool time)
         pxVertex a;
         pxVertex b;
 
-        if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
-        if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
-        if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
+        if (mVertices[i].x < extentLeft)   extentLeft   = mVertices[i].x;
+        if (mVertices[i].x > extentRight)  extentRight  = mVertices[i].x;
+        if (mVertices[i].y < extentTop)    extentTop    = mVertices[i].y;
         if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
 
         mMatrix.multiply(mVertices[i], mMatrix, a);
         mMatrix.multiply(mVertices[i+1], mMatrix, b);
         mRasterizer.addEdge(a.x,a.y,b.x, b.y);
       }
-      if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
-      if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
-      if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
+      if (mVertices[i].x < extentLeft)   extentLeft   = mVertices[i].x;
+      if (mVertices[i].x > extentRight)  extentRight  = mVertices[i].x;
+      if (mVertices[i].y < extentTop)    extentTop    = mVertices[i].y;
       if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
     }
   }
 
+#ifdef INCLUDE_PERF_TIMING
   if (time)
   {
     endEdge = pxMilliseconds();
   }
+#endif //INCLUDE_PERF_TIMING
+
   if (mRasterizer.texture())
   {
 #if 1
@@ -436,8 +450,9 @@ void pxCanvas::fill(bool time)
     p4.x = extentLeft;
     p4.y = extentBottom;
 
-    extentRight -= extentLeft;
+    extentRight  -= extentLeft;
     extentBottom -= extentTop;
+
     extentLeft = extentTop = 0;
 
     t1.x = extentLeft;
@@ -467,6 +482,7 @@ void pxCanvas::fill(bool time)
 #endif
   }
 
+#ifdef INCLUDE_PERF_TIMING
   if (time)
   {
     double startScan = pxMilliseconds();
@@ -479,6 +495,7 @@ void pxCanvas::fill(bool time)
     printf("\tElapsed Scanning: %gms FPS: %g\n", (endScan-startScan), 1000/(endScan-startScan));
   }
   else
+#endif //INCLUDE_PERF_TIMING
   {
 
     mRasterizer.rasterize();
@@ -501,7 +518,7 @@ void pxCanvas::stroke()
 
   if (mVertexCount > 1)
   {
-    bool closed = mVertices[0].x == mVertices[mVertexCount-1].x && 
+    bool closed = mVertices[0].x == mVertices[mVertexCount-1].x &&
       mVertices[0].y == mVertices[mVertexCount-1].y;
 
 #if 1
@@ -562,7 +579,7 @@ void pxCanvas::stroke()
       mRasterizer.addEdge(a.x+dy1,a.y-dx1,b.x+dy1, b.y-dx1);
       mRasterizer.addEdge(b.x-dy1,b.y + dx1 ,a.x-dy1, a.y + dx1);
 
-      if (i == 0) 
+      if (i == 0)
       {
         firstA1.x = a.x + dy1;
         firstA1.y = a.y - dx1;
@@ -575,7 +592,7 @@ void pxCanvas::stroke()
       if (i > 0)
       {
         mRasterizer.addEdge(lastB1.x,lastB1.y,a.x+dy1,a.y-dx1);
-        mRasterizer.addEdge(a.x-dy1, a.y + dx1 ,lastB2.x, lastB2.y);                                
+        mRasterizer.addEdge(a.x-dy1, a.y + dx1 ,lastB2.x, lastB2.y);
       }
 #endif
 
@@ -601,7 +618,7 @@ void pxCanvas::stroke()
         if (i == mVertexCount-2)
         {
           mRasterizer.addEdge(lastB1.x,lastB1.y, firstA1.x, firstA1.y);
-          mRasterizer.addEdge(firstA2.x, firstA2.y ,lastB2.x, lastB2.y); 
+          mRasterizer.addEdge(firstA2.x, firstA2.y ,lastB2.x, lastB2.y);
         }
 #endif
       }
@@ -866,8 +883,6 @@ inline double pxCanvas::convertFixToFloat(const FIXED& fx)
   return (double)fx.value + (float)fx.fract/65536;
 }
 
-
-
 void pxCanvas::calcTextScale(int a, int ascent)
 {
 //    mTextScale = 2048/(float)mFontSize * ((float)ascent / (float)2048);
@@ -917,7 +932,7 @@ pxError pxCanvas::drawChar(const wchar_t c)
   HDC dc = GetDC(NULL);
 
   GLYPHMETRICS glyphMetrics;
-    
+
   MAT2 mat = {0};
 
   mat.eM11.value = 1;
@@ -927,7 +942,7 @@ pxError pxCanvas::drawChar(const wchar_t c)
 
   long bufferSize;
 
-	HFONT	font = ::CreateFont(-2048, 0, 0, 0, 0, FALSE, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, 
+	HFONT	font = ::CreateFont(-2048, 0, 0, 0, 0, FALSE, 0, 0, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS,
                             DEFAULT_QUALITY, DEFAULT_PITCH, mFont);
   if (font)
   {
@@ -939,7 +954,7 @@ pxError pxCanvas::drawChar(const wchar_t c)
     {
       calcTextScale(tm.tmAscent+tm.tmInternalLeading, tm.tmAscent-tm.tmInternalLeading-tm.tmExternalLeading);
     }
-    
+
 
     bufferSize	= ::GetGlyphOutline(dc, c, GGO_NATIVE, &glyphMetrics, 0, NULL, &mat);
 
@@ -986,7 +1001,7 @@ pxError pxCanvas::drawChar(const wchar_t c)
                 x3 = convertFixToFloat(c->apfx[i+1].x);
                 y3 = convertFixToFloat(c->apfx[i+1].y);
               }
-              TextCurveTo(convertFixToFloat(c->apfx[i].x), convertFixToFloat(c->apfx[i].y), 
+              TextCurveTo(convertFixToFloat(c->apfx[i].x), convertFixToFloat(c->apfx[i].y),
                           x3, y3);
             }
           }
@@ -1023,7 +1038,7 @@ pxError pxCanvas::drawChar(const wchar_t c)
 
 void pxCanvas::drawText(const wchar_t* t, double x, double y)
 {
-  // Is overall alignment... compare with flash etc... 
+  // Is overall alignment... compare with flash etc...
 #if 0
   textX = x-0.5;
   textY = y-0.5;

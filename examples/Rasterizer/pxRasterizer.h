@@ -3,7 +3,6 @@
 #ifndef  _H_PXRASTERIZER
 #define _H_PXRASTERIZER
 
-//#include "pxCore.h"
 #include "px2d.h"
 #include "pxMatrix.h"
 #include "pxOffscreen.h"
@@ -55,9 +54,9 @@ public:
 
 #if 0
   bool alphaTexture() const { return mAlphaTexture; }
-  void setAlphaTexture(bool f) 
-  { 
-    mAlphaTexture = f; 
+  void setAlphaTexture(bool f)
+  {
+    mAlphaTexture = f;
   }
 #else
   bool alphaTexture() const;
@@ -68,10 +67,10 @@ public:
                              pxVertex& t1, pxVertex& t2, pxVertex& t3, pxVertex& t4);
 
   bool textureClamp() const { return mTextureClamp; }
-  void setTextureClamp(bool f) { mTextureClamp = f; }
+  void setTextureClamp(bool f)     { mTextureClamp = f; }
 
   bool textureClampColor() const { return mTextureClampColor; }
-  void setTextureClampColor(bool f) { mTextureClampColor = f; }
+  void setTextureClampColor(bool f)     { mTextureClampColor = f; }
 
 	void matrix(pxMatrix& m) const;
 	void setMatrix(const pxMatrix& m);
@@ -80,10 +79,10 @@ public:
   void setTextureMatrix(const pxMatrix& m);
 
   bool biLerp() const { return mBiLerp; }
-  void setBiLerp(bool f) { mBiLerp = f; }
+  void setBiLerp(bool f)     { mBiLerp = f; }
 
   bool overdraw() const { return mOverdraw; }
-  void setOverdraw(bool f) { mOverdraw = f;; }
+  void setOverdraw(bool f)     { mOverdraw = f;; }
 
   void clear();
 
@@ -112,16 +111,16 @@ private:
   //void* mEnds;
 
 #ifndef EDGECLEANUP
-  void* mEdgeArray;
+  void * mEdgeArray;
   void * miStarts;
   void * miEnds;
-  int mEdgeCount;
+  int    mEdgeCount;
 #else
-  void* mEdgeManager;
+  void * mEdgeManager;
 #endif
 
 #ifdef USELONGCOVERAGE
-  char* mCoverage;
+  char * mCoverage;
 #else
   unsigned char* mCoverage;
 #endif
@@ -135,9 +134,9 @@ private:
   unsigned char mCoverage2Alpha[256];
 
   pxRect mClip;
-  bool mClipValid;
+  bool   mClipValid;
   pxRect mClipInternal;  // mClip interescted with the bounds of the current buffer.
-  bool mClipInternalCalculated;
+  bool   mClipInternalCalculated;
 
   int mCachedBufferHeight;
   int mCachedBufferWidth;

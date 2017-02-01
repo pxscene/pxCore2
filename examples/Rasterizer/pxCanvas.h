@@ -68,7 +68,7 @@ public:
   rtString font();
   void setFont(const rtString& font);
 #endif
-    
+
   void setFontSize(double s);
 
   pxFillMode fillMode();
@@ -156,13 +156,14 @@ public:
 
   double lastX, lastY;
 
-  int mVertexCount;
+  int      mVertexCount;
   pxVertex mVertices[200000];
+
   pxMatrix mMatrix;
   pxMatrix mTextureMatrix;
-  pxColor mFillColor;
-  pxColor mStrokeColor;
-  double mStrokeWidth;
+  pxColor  mFillColor;
+  pxColor  mStrokeColor;
+  double   mStrokeWidth;
 
 public: // BUGBUG
   pxRasterizer mRasterizer;
