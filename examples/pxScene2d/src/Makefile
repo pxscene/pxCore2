@@ -304,7 +304,7 @@ $(OBJDIR)/westeros-stub.o: $(EXTDIR)/westeros-stub/westeros-stub.cpp
 	$(CXX) -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c $(EXTDIR)/westeros-stub/westeros-stub.cpp
 
 SRCS_FULL_GL=$(PX_SRCS_FULL) ../external/westeros-stub/westeros-stub.cpp pxContextGL.cpp pxWayland.cpp pxWaylandContainer.cpp pxScene.cpp
-SRCS_FULL_DFB=$(PX_SRCS_FULL) $(RT_SRCS_FULL) pxContextDFB.cpp rtNode.cpp pxScene.cpp
+SRCS_FULL_DFB=$(PX_SRCS_FULL) $(RT_SRCS_FULL) pxContextDFB.cpp pxScene.cpp
 
 OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS_FULL_GL)))
 OBJS:=$(patsubst %.c, $(OBJDIR)/%.o, $(OBJS))
