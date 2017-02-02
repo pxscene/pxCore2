@@ -82,7 +82,7 @@ class rtFileCache
     int64_t mCurrentSize;
     rtString mDirectory;
     hash<string> hashFn;
-    map<time_t,rtString> mFileTimeMap;
+    multimap<time_t,rtString> mFileTimeMap;
     map<rtString,int64_t> mFileSizeMap;
     static rtFileCache* mCache;
 };

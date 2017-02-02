@@ -82,9 +82,9 @@ void rtFileCache::populateExistingFiles()
         continue;
       }
 #if defined(PX_PLATFORM_MAC)
-      mFileTimeMap[buf.st_atimespec.tv_sec] =  direntry->d_name;
+       mFileTimeMap.insert(make_pair(buf.st_atimespec.tv_sec,direntry->d_name));
 #elif !(defined(WIN32) || defined(_WIN32) || defined (WINDOWS) || defined (_WINDOWS))
-       mFileTimeMap[buf.st_atim.tv_sec] = direntry->d_name;
+       mFileTimeMap.insert(make_pair(buf.st_atim.tv_sec,direntry->d_name));
 #else
        rtLogWarn("Platform not supported. Cache will not get cleared after cache limit is reached");
 #endif
@@ -156,7 +156,7 @@ rtError rtFileCache::removeData(const char* url)
     }
     mCurrentSize = mCurrentSize - mFileSizeMap[filename];
     mFileSizeMap.erase(filename);
-    map<time_t,rtString>::iterator iter = mFileTimeMap.begin();
+    multimap<time_t,rtString>::iterator iter = mFileTimeMap.begin();
     while (iter != mFileTimeMap.end())
     {
       if (iter->second == filename.cString())
@@ -231,8 +231,8 @@ int64_t rtFileCache::cleanup()
 {
   if ( (mCurrentSize > mMaxSize) && !(mFileTimeMap.empty()))
   {
-    map<time_t,rtString>::iterator iter = mFileTimeMap.begin();
-    vector <time_t> timeMapIters;
+    multimap<time_t,rtString>::iterator iter = mFileTimeMap.begin();
+    vector <multimap<time_t,rtString>::iterator> timeMapIters;
     do
     {
       rtString filename = iter->second;
@@ -245,7 +245,7 @@ int64_t rtFileCache::cleanup()
           else
           {
             mCurrentSize = mCurrentSize - mFileSizeMap[filename];
-            timeMapIters.push_back(iter->first);
+            timeMapIters.push_back(iter);
             mFileSizeMap.erase(filename);
           }
       }
@@ -277,9 +277,9 @@ void rtFileCache::setFileSizeAndTime(rtString& filename)
     {
       mFileSizeMap[filename] = statbuf.st_size;
 #if defined(PX_PLATFORM_MAC)
-      mFileTimeMap[statbuf.st_atimespec.tv_sec] = filename;
+      mFileTimeMap.insert(make_pair(statbuf.st_atimespec.tv_sec,filename));
 #elif !(defined(WIN32) || defined(_WIN32) || defined (WINDOWS) || defined (_WINDOWS))
-      mFileTimeMap[statbuf.st_atim.tv_sec] = filename;
+      mFileTimeMap.insert(make_pair(statbuf.st_atim.tv_sec,filename));
 #else
        rtLogWarn("Platform not supported. Cache will not get cleared after cache limit is reached");
 #endif
