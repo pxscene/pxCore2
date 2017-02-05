@@ -1,3 +1,5 @@
 language: c++
+before_install:
+		- sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf
 install: $TRAVIS_BUILD_DIR/install_pxscene_deps.sh
 script:  $TRAVIS_BUILD_DIR/build_pxscene.sh
