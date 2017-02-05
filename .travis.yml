@@ -3,7 +3,7 @@ sudo: required
 dist: trusty
 before_install: sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf
 install: 
-- cd $TRAVIS_BUILD_DIR/examples/pxscene2d/external
+- cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
 - travis_wait 40 ./build.sh 1&>/dev/null
 - cd $TRAVIS_BUILD_DIR
 script:
