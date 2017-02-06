@@ -21,6 +21,7 @@ cp FreeSans.ttf $bundleBin
 cp browser.js $bundleBin
 cp init.js $bundleBin
 cp shell.js $bundleBin
+cp package.json $bundleBin
 cp pxscene $bundleBin
 cp macstuff/pxscene.sh $bundleBin
 cp macstuff/EngineRunner $bundleBin
