@@ -47,9 +47,8 @@ pxEventLoop* gLoop = &eventLoop;
 
 pxContext context;
 #ifdef ENABLE_DEBUG_MODE
-char *g_debugPort = NULL;
-int g_argc = 0;
-char** g_argv;
+extern int g_argc;
+extern char** g_argv;
 char *nodeInput = NULL;
 #endif
 
