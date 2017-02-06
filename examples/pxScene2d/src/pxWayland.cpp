@@ -688,7 +688,8 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
 
 #ifdef ENABLE_PX_WAYLAND_RPC
   rtLogInfo("Attempting to find remote object %s", mRemoteObjectName.cString());
-  errorCode = rtRemoteLocateObject(mRemoteObjectName.cString(), mRemoteObject, timeout_ms);
+  errorCode = rtRemoteLocateObject(mRemoteObjectName.cString(), mRemoteObject, timeout_ms,
+                                     pxWayland::remoteDisconnectedCB, this);
   if (errorCode != RT_OK)
   {
     rtLogError("XREBrowserPlugin failed to find object: %s errorCode %d\n",
