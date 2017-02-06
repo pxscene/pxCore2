@@ -25,7 +25,7 @@ void rtFileCache::destroy()
 }
 
 rtFileCache* rtFileCache::mCache = NULL;
-rtFileCache::rtFileCache():mMaxSize(DEFAULT_MAX_CACHE_SIZE),mCurrentSize(0),mDirectory("/tmp/cache")
+rtFileCache::rtFileCache():mMaxSize(DEFAULT_MAX_CACHE_SIZE),mCurrentSize(0),mDirectory("/tmp/cache"),mCacheMutex()
 {
   mFileSizeMap.clear();
   mFileTimeMap.clear();
@@ -154,6 +154,7 @@ rtError rtFileCache::removeData(const char* url)
       rtLogWarn("!!! deletion of cache failed for url(%s)",url);
       return RT_ERROR;
     }
+    mCacheMutex.lock();
     mCurrentSize = mCurrentSize - mFileSizeMap[filename];
     mFileSizeMap.erase(filename);
     multimap<time_t,rtString>::iterator iter = mFileTimeMap.begin();
@@ -167,6 +168,7 @@ rtError rtFileCache::removeData(const char* url)
     }
     if (iter != mFileTimeMap.end())
       mFileTimeMap.erase(iter);
+    mCacheMutex.unlock();
   }
   else
   {
@@ -197,8 +199,10 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
   if (true != ret)
      return RT_ERROR;
   setFileSizeAndTime(filename);
+  mCacheMutex.lock();
   mCurrentSize += mFileSizeMap[filename];
   int64_t size = cleanup();
+  mCacheMutex.unlock();
   rtLogWarn("current size after insertion and cleanup (%lld)",size);
   return RT_OK;
 }
@@ -275,6 +279,7 @@ void rtFileCache::setFileSizeAndTime(rtString& filename)
     rtString absPath  = getAbsPath(filename);
     if (stat(absPath.cString(), &statbuf) == 0)
     {
+      mCacheMutex.lock();
       mFileSizeMap[filename] = statbuf.st_size;
 #if defined(PX_PLATFORM_MAC)
       mFileTimeMap.insert(make_pair(statbuf.st_atimespec.tv_sec,filename));
@@ -283,6 +288,7 @@ void rtFileCache::setFileSizeAndTime(rtString& filename)
 #else
        rtLogWarn("Platform not supported. Cache will not get cleared after cache limit is reached");
 #endif
+      mCacheMutex.unlock();
     }
   }
 }
