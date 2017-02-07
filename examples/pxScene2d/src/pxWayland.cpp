@@ -294,11 +294,33 @@ void pxWayland::onDraw()
 {
   static pxTextureRef nullMaskRef;
   
-  if ( (mFBO->width() != mWidth) ||
-       (mFBO->height() != mHeight) )
-  {     
-     context.updateFramebuffer( mFBO, mWidth, mHeight );
+  int outputWidth, outputHeight;
+  
+  WstCompositorGetOutputSize( mWCtx, &outputWidth, &outputHeight );
+  
+  if ( (mWidth != outputWidth) ||
+       (mHeight != outputHeight) )
+  {
      WstCompositorSetOutputSize( mWCtx, mWidth, mHeight );
+  }
+
+  bool drawWithFBO= isRotated();
+    
+  if ( drawWithFBO )
+  {
+     if ( (mFBO->width() != mWidth) ||
+          (mFBO->height() != mHeight) )
+     {     
+        context.updateFramebuffer( mFBO, mWidth, mHeight );
+     }
+  }
+  else
+  {
+     if ( (mFBO->width() != 0) ||
+          (mFBO->height() != 0) )
+     {
+        context.updateFramebuffer( mFBO, 0, 0 );
+     }
   }
   
   int hints= 0;
@@ -306,11 +328,19 @@ void pxWayland::onDraw()
   
   bool needHolePunch;
   std::vector<WstRect> rects;
+  pxContextFramebufferRef previousFrameBuffer;
   pxMatrix4f m= context.getMatrix();
-  context.pushState();
-  pxContextFramebufferRef previousFrameBuffer= context.getCurrentFramebuffer();
-  context.setFramebuffer( mFBO );
-  context.clear( mWidth, mHeight, mFillColor );
+  if ( drawWithFBO )
+  {
+     context.pushState();
+     previousFrameBuffer= context.getCurrentFramebuffer();
+     context.setFramebuffer( mFBO );
+     context.clear( mWidth, mHeight, mFillColor );
+  }
+  else if ( mFillColor[3] != 0.0 )
+  {
+     context.drawRect(mWidth, mHeight, 0, mFillColor, NULL );
+  }
   WstCompositorComposeEmbedded( mWCtx, 
                                 mX,
                                 mY,
@@ -321,12 +351,15 @@ void pxWayland::onDraw()
                                 hints,
                                 &needHolePunch,
                                 rects );
-  context.setFramebuffer( previousFrameBuffer );
-  context.popState();
+  if ( drawWithFBO )
+  {
+     context.setFramebuffer( previousFrameBuffer );
+     context.popState();
+  }
   
   if ( needHolePunch )
   {
-     if ( mFillColor[3] != 0.0 )
+     if ( drawWithFBO && (mFillColor[3] != 0.0) )
      {
         context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
      }
@@ -359,7 +392,10 @@ void pxWayland::onDraw()
         glDisable( GL_SCISSOR_TEST );
      }
   }
-  context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
+  if ( drawWithFBO )
+  {
+     context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
+  }
 }
 
 void pxWayland::handleInvalidate()
