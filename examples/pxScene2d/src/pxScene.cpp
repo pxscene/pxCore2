@@ -323,7 +323,9 @@ int pxMain(int argc, char* argv[])
       g_argv[g_argc++] = &nodeInput[curpos];
       curpos = curpos + 35;
   }
+#ifdef RUNINMAIN
   script.initializeNode();
+#endif
 #endif
   char buffer[256];
   sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));
