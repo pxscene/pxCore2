@@ -9,6 +9,7 @@
 #include "rtFile.h"
 #include "rtLog.h"
 #include "pxHttpCache.h"
+#include "rtMutex.h"
 
 using namespace std;
 
@@ -84,6 +85,7 @@ class rtFileCache
     hash<string> hashFn;
     multimap<time_t,rtString> mFileTimeMap;
     map<rtString,int64_t> mFileSizeMap;
+    rtMutex mCacheMutex;
     static rtFileCache* mCache;
 };
 #endif
