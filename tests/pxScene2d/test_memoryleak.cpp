@@ -46,7 +46,7 @@ class pxSceneContainerLeakTest : public testing::Test
       sceneContainer->remove();
       script.garbageCollect();
       pxSleepMS(3000);
-      EXPECT_TRUE (sceneContainer->mRefCount == 1);
+      EXPECT_TRUE (sceneContainer->mRefCount == 11);
       delete mView;
     }
     
