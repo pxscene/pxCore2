@@ -294,12 +294,12 @@ void pxWayland::onDraw()
 {
   static pxTextureRef nullMaskRef;
   
-  int outputWidth, outputHeight;
+  unsigned int outputWidth, outputHeight;
   
   WstCompositorGetOutputSize( mWCtx, &outputWidth, &outputHeight );
   
-  if ( (mWidth != outputWidth) ||
-       (mHeight != outputHeight) )
+  if ( (mWidth != (int)outputWidth) ||
+       (mHeight != (int)outputHeight) )
   {
      WstCompositorSetOutputSize( mWCtx, mWidth, mHeight );
   }
@@ -745,6 +745,8 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
   {
     rtLogError("unable to connect to remote object");
   }
+#else
+  (void)timeout_ms;
 #endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
 }
