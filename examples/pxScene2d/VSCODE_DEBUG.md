@@ -12,9 +12,7 @@
 
 1. Download and install Visual Studio Code
 
-https://code.visualstudio.com/
-
-
+  https://code.visualstudio.com/
 
 2.  In Visual Studio Code use file->open menu to open the local directory where your pxscene js code resides and select the file that you want to debug.
 
