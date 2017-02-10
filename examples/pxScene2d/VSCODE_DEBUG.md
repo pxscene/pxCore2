@@ -69,9 +69,9 @@ https://code.visualstudio.com/
 
 eg.
 
-~~~~
+  ~~~~
 file:///Users/johnrobinson/Sites/pxscene/examples/px-reference/gallery/fancy.js
-~~~~
+  ~~~~
 
 
 
