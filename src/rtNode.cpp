@@ -60,10 +60,10 @@ using namespace v8;
 using namespace node;
 
 #ifdef ENABLE_DEBUG_MODE
-extern char*  g_debugPort;
-extern char** g_argv;
-extern int g_argc;
-#else
+int g_argc = 0;
+char** g_argv;
+#endif
+#ifndef ENABLE_DEBUG_MODE
 extern args_t *s_gArgs;
 #endif
 namespace node
