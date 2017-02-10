@@ -1,4 +1,3 @@
-madana
 px.import({ scene: 'px:scene.1.js',
              keys: 'px:tools.keys.js'
 }).then( function ready(imports)
