@@ -78,7 +78,19 @@ file:///Users/johnrobinson/Sites/pxscene/examples/px-reference/gallery/fancy.js
 6.  You should now be able to set and hit breakpoints in the debugger.
 
 
+## Attaching to a running instance of pxscene
 
+~~~~
+Note: You must have started pxscene with the --debug=5858 (5858 being the ip port specified in your .vscode/launch.json config file) command line option in order for this to work.  eg. ./pxscene.sh --debug=5858
+~~~~
+
+1.  Launch pxscene as described above.
+
+2.  Please set up your visual studio code launch.json as described above.  Go to the debugger and choose the "Attach pxscene" config option and click the debugger "green arrow".
+
+3.  Within pxscene enter the file: url of the js file that you want to debug.
+
+4.  Within visual studio code navigate to the source for the js file that you want to debug.  You should now be able to set and hit breakpoints.
 
 
 ## See Also
