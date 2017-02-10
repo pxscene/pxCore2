@@ -35,9 +35,10 @@ after_script:
 - ./deploy.sh 96.118.6.151 logs.tgz
 - rm -rf /tmp/pxscene-build.pem
 before_install:
-- sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf
-- openssl aes-256-cbc -K $encrypted_d403ced6b791_key -iv $encrypted_d403ced6b791_iv
+- openssl aes-256-cbc -K $encrypted_8b763c087de9_key -iv $encrypted_8b763c087de9_iv
   -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d
+- sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev
+  g++ libssl-dev nasm autoconf
 - eval "$(ssh-agent -s)"
 - chmod 600 /tmp/pxscene-build.pem
 - ssh-add /tmp/pxscene-build.pem
