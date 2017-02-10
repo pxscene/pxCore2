@@ -80,9 +80,9 @@ file:///Users/johnrobinson/Sites/pxscene/examples/px-reference/gallery/fancy.js
 
 ## Attaching to a running instance of pxscene
 
-~~~~
-Note: You must have started pxscene with the --debug=5858 (5858 being the ip port specified in your .vscode/launch.json config file) command line option in order for this to work.  eg. ./pxscene.sh --debug=5858
-~~~~
+
+> Note: You must have started pxscene with the --debug=5858 (5858 being the ip port specified in your .vscode/launch.json 
+> config file) command line option in order for this to work.  eg. ./pxscene.sh --debug=5858
 
 1.  Launch pxscene as described above.
 
