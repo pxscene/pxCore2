@@ -20,7 +20,7 @@ https://code.visualstudio.com/
 
 
 
-3. Click on the debug icon in Visual Studio Code (along the left-hand side) and then click on the gear (top of the left-most panel) this should open a file called launch.json.  Replace the contents of launch.json with the code block below.  **Note: "Attach pxscene" no worky yet**
+3. Click on the debug icon in Visual Studio Code (along the left-hand side) and then click on the gear (top of the left-most panel) this should open a file called launch.json.  Replace the contents of launch.json with the code block below.
 
 
 
