@@ -1,0 +1,43 @@
+language: c++
+sudo: required
+dist: trusty
+install:
+- mkdir $TRAVIS_BUILD_DIR/logs
+- touch $TRAVIS_BUILD_DIR/logs/build_logs
+- BUILDLOGS=$TRAVIS_BUILD_DIR/logs/build_logs
+- cd $TRAVIS_BUILD_DIR
+- echo "***************************** Building externals ****" > $BUILDLOGS
+- cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
+- ./build.sh>>$BUILDLOGS
+script:
+- BUILDLOGS=$TRAVIS_BUILD_DIR/logs/build_logs
+- cd $TRAVIS_BUILD_DIR/src
+- echo "***************************** Building pxcore and rtcore ****" >> $BUILDLOGS
+- make -f Makefile.glut all>>$BUILDLOGS 2>&1
+- make -f Makefile.glut rtcore>>$BUILDLOGS 2>&1
+- echo "***************************** Building libpxscene ****" >> $BUILDLOGS
+- cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
+- make libs-glut>>$BUILDLOGS 2>&1
+- echo "***************************** Building pxscene app ***" >> $BUILDLOGS
+- make pxscene>>$BUILDLOGS 2>&1
+- echo "***************************** Building unittests ***" >> $BUILDLOGS
+- cd $TRAVIS_BUILD_DIR/tests/pxScene2d
+- make>>$BUILDLOGS 2>&1
+- touch $TRAVIS_BUILD_DIR/logs/test_logs
+- TESTLOGS=$TRAVIS_BUILD_DIR/logs/test_logs
+- ./pxscene2dtests.sh>$TESTLOGS 2>&1
+- cd $TRAVIS_BUILD_DIR
+- tar -cvzf logs.tgz logs/*
+addons:
+  ssh_known_hosts: 96.118.6.151
+after_script:
+- cd $TRAVIS_BUILD_DIR
+- ./deploy.sh 96.118.6.151 logs.tgz
+- rm -rf /tmp/pxscene-build.pem
+before_install:
+- sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf
+- openssl aes-256-cbc -K $encrypted_d403ced6b791_key -iv $encrypted_d403ced6b791_iv
+  -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d
+- eval "$(ssh-agent -s)"
+- chmod 600 /tmp/pxscene-build.pem
+- ssh-add /tmp/pxscene-build.pem
