@@ -353,6 +353,7 @@ bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downl
 bool rtHttpCacheData::readFileData()
 {
   char *contentsData = NULL;
+  char* tmp = NULL;
   char buffer[100];
   int bytesCount = 0;
   int totalBytes = 0;
@@ -360,14 +361,22 @@ bool rtHttpCacheData::readFileData()
   {
     bytesCount = fread(buffer,1,100,fp);
     if (NULL == contentsData)
-      contentsData = (char *)malloc(bytesCount);
+      tmp = (char *)malloc(bytesCount);
     else
-      contentsData = (char *)realloc(contentsData,totalBytes+bytesCount);
-    if (NULL == contentsData)
     {
+      tmp = (char *)realloc(contentsData,totalBytes+bytesCount);
+    }
+    if (NULL == tmp)
+    {
+      printf("reading the cache data failed due to memory lack \n");
+      fflush(stdout);
       fclose(fp);
+      if (NULL != contentsData)
+        free(contentsData);
+      contentsData = NULL;
       return false;
     }
+    contentsData = tmp;
     memcpy(contentsData+totalBytes,buffer,bytesCount);
     totalBytes += bytesCount;
     memset(buffer,0,100);
@@ -378,6 +387,7 @@ bool rtHttpCacheData::readFileData()
     mData.init((uint8_t*)contentsData,totalBytes);
     free(contentsData);
     contentsData = NULL;
+    tmp = NULL;
   }
   return true;
 }
