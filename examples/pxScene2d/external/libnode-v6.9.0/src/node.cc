@@ -2570,8 +2570,9 @@ static void OnFatalError(const char* location, const char* message) {
   /* MODIFIED CODE END */
 }
 
-
-NO_RETURN void FatalError(const char* location, const char* message) {
+/* MODIFIED CODE BEGIN */
+/*NO_RETURN*/ void FatalError(const char* location, const char* message) {
+/* MODIFIED CODE END */
   OnFatalError(location, message);
   // to suppress compiler warning
   /* MODIFIED CODE BEGIN */

@@ -131,7 +131,9 @@ void AppendExceptionLine(Environment* env,
                          v8::Local<v8::Message> message,
                          enum ErrorHandlingMode mode);
 
-NO_RETURN void FatalError(const char* location, const char* message);
+/* MODIFIED CODE BEGIN */
+/*NO_RETURN*/ void FatalError(const char* location, const char* message);
+/* MODIFIED CODE END */
 
 v8::Local<v8::Value> BuildStatsObject(Environment* env, const uv_stat_t* s);
 
