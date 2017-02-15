@@ -9,15 +9,23 @@ language: c++
 install:
 - mkdir $TRAVIS_BUILD_DIR/logs
 - touch $TRAVIS_BUILD_DIR/logs/build_logs
+- touch $TRAVIS_BUILD_DIR/logs/run_logs;
 - BUILDLOGS=$TRAVIS_BUILD_DIR/logs/build_logs
 - cd $TRAVIS_BUILD_DIR
 - echo "***************************** Building externals ****" > $BUILDLOGS
 - cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
 - ./build.sh>>$BUILDLOGS
+before_script:
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then export DISPLAY=:99.0; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh -e /etc/init.d/xvfb start; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sleep 3; fi
 script:
 - cd $TRAVIS_BUILD_DIR
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh ./build_linux.sh; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sh ./build_osx.sh; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh ./testrunner_linux.sh; fi
+- if [ "$TRAVIS_OS_NAME" == "osx" ]; then sh ./testrunner_osx.sh; fi
+- cd $TRAVIS_BUILD_DIR
 - tar -cvzf logs.tgz logs/*
 addons:
   ssh_known_hosts: 96.118.6.151
