@@ -469,7 +469,7 @@ void pxWindowNative::createDfbWindow(int left, int top, int width, int height)
   (void) left;  (void) top;
 
   dfbDescription.flags = DFBSurfaceDescriptionFlags(DSDESC_CAPS | DSDESC_WIDTH | DSDESC_HEIGHT);
-  dfbDescription.caps  = DFBSurfaceCapabilities(DSCAPS_PRIMARY  | DSCAPS_DOUBLE );// | DSCAPS_FLIPPING);
+  dfbDescription.caps  = DFBSurfaceCapabilities(DSCAPS_PRIMARY);//  | DSCAPS_DOUBLE );// | DSCAPS_FLIPPING);
 
   int SW = 0, SH = 0;
 

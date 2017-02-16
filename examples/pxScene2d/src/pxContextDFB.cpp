@@ -310,7 +310,7 @@ public:
 
 //   void                    setSurface(IDirectFBSurface* s)     { mTexture  = s; };
 
-//   IDirectFBSurface*       getSurface()     { return mTexture; };
+   void*       getSurface()     { return (void*)mTexture; };
 //   DFBVertex*              getVetricies()   { return &v[0];   };
 //   DFBSurfaceDescription   getDescription() { return dsc;     };
 
@@ -1756,20 +1756,25 @@ void pxContext::clear(int /*w*/, int /*h*/, float* fillColor )
 
 void pxContext::clear(int left, int top, int right, int bottom)
 {
-  // TODO - use FillRect(WxH, rgbClear) instead ?   Allow for a WxH clear... versus whole surface
-  //
-#ifndef DEBUG_SKIP_CLEAR
-  DFB_CHECK( boundFramebuffer->Clear( boundFramebuffer, 0x00, 0x00, 0x00, 0x00 ) ); // TRANSPARENT
-#else
-  DFB_CHECK( boundFramebuffer->Clear( boundFramebuffer, 0x00, 0x00, 0x8F, 0xFF ) );  //  CLEAR_BLUE   << JUNK
+#ifdef PX_DIRTY_RECTANGLES
+  currentFramebuffer->setDirtyRectangle(left, top, right+left, bottom+top);
+  currentFramebuffer->enableDirtyRectangles(true);
 #endif
 
-  currentFramebuffer->setDirtyRectangle(left, gResH-top-bottom, right, bottom);
-  currentFramebuffer->enableDirtyRectangles(true);
+  right = right+left;
+  bottom = bottom+top;
+  left = left<0 ? 0 : left;
+  top = top < 0 ? 0 : top;
+  right = right > gResW ? gResW : right;
+  bottom = bottom > gResH ? gResH : bottom;
+  
+  DFBRegion clip= { left, top, right, bottom };
+  boundFramebuffer->SetClip( boundFramebuffer, &clip );
+}
 
-  //map form screen to window coordinates
-//  glScissor(left, gResH-top-bottom, right, bottom);
-  //glClear(GL_COLOR_BUFFER_BIT);
+void pxContext::enableClipping(bool)
+{
+  //not needed for DFB
 }
 
 
@@ -1955,13 +1960,14 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 #ifdef PX_DIRTY_RECTANGLES
     if (currentFramebuffer->isDirtyRectanglesEnabled())
     {
-//      glEnable(GL_SCISSOR_TEST);
       pxRect dirtyRect = currentFramebuffer->dirtyRectangle();
-//      glScissor(dirtyRect.left(), dirtyRect.top(), dirtyRect.right(), dirtyRect.bottom());
+      DFBRegion clip= { dirtyRect.left(), dirtyRect.top(), dirtyRect.right(), dirtyRect.bottom() };
+      boundFramebuffer->SetClip( boundFramebuffer, &clip );
     }
     else
     {
-//      glDisable(GL_SCISSOR_TEST);
+      DFBRegion clip= { 0, 0, gResW, gResH };
+      boundFramebuffer->SetClip( boundFramebuffer, &clip );
     }
 #endif //PX_DIRTY_RECTANGLES
     return PX_OK;
@@ -1976,13 +1982,14 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 #ifdef PX_DIRTY_RECTANGLES
   if (currentFramebuffer->isDirtyRectanglesEnabled())
   {
-//    glEnable(GL_SCISSOR_TEST);
     pxRect dirtyRect = currentFramebuffer->dirtyRectangle();
-//    glScissor(dirtyRect.left(), dirtyRect.top(), dirtyRect.right(), dirtyRect.bottom());
+    DFBRegion clip= { dirtyRect.left(), dirtyRect.top(), dirtyRect.right(), dirtyRect.bottom() };
+    boundFramebuffer->SetClip( boundFramebuffer, &clip );
   }
   else
   {
-//    glDisable(GL_SCISSOR_TEST);
+     DFBRegion clip= { 0, 0, gResW, gResH };
+     boundFramebuffer->SetClip( boundFramebuffer, &clip );
   }
 #endif //PX_DIRTY_RECTANGLES
 
@@ -2005,13 +2012,14 @@ void pxContext::enableDirtyRectangles(bool enable)
   currentFramebuffer->enableDirtyRectangles(enable);
   if (enable)
   {
-//    glEnable(GL_SCISSOR_TEST);
-//    pxRect dirtyRect = currentFramebuffer->dirtyRectangle();
-//    glScissor(dirtyRect.left(), dirtyRect.top(), dirtyRect.right(), dirtyRect.bottom());
+    pxRect dirtyRect = currentFramebuffer->dirtyRectangle();
+    DFBRegion clip= { dirtyRect.left(), dirtyRect.top(), dirtyRect.right(), dirtyRect.bottom() };
+    boundFramebuffer->SetClip( boundFramebuffer, &clip );
   }
   else
   {
-//    glDisable(GL_SCISSOR_TEST);
+    DFBRegion clip= { 0, 0, gResW, gResH };
+    boundFramebuffer->SetClip( boundFramebuffer, &clip );
   }
 }
 

@@ -60,6 +60,7 @@ public:
   virtual pxError freeOffscreenData() { return PX_OK; }
   bool premultipliedAlpha() { return mPremultipliedAlpha; }
   void enablePremultipliedAlpha(bool enable) { mPremultipliedAlpha = enable; }
+  virtual void* getSurface() { return NULL; }
 protected:
   rtAtomic mRef;
   pxTextureType mTextureType;
