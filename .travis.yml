@@ -9,29 +9,36 @@ language: c++
 install:
 - mkdir $TRAVIS_BUILD_DIR/logs
 - touch $TRAVIS_BUILD_DIR/logs/build_logs
+- touch $TRAVIS_BUILD_DIR/logs/run_logs;
 - BUILDLOGS=$TRAVIS_BUILD_DIR/logs/build_logs
 - cd $TRAVIS_BUILD_DIR
 - echo "***************************** Building externals ****" > $BUILDLOGS
 - cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
 - ./build.sh>>$BUILDLOGS
+before_script:
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then export DISPLAY=:99.0; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh -e /etc/init.d/xvfb start; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sleep 3; fi
 script:
 - cd $TRAVIS_BUILD_DIR
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh ./build_linux.sh; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sh ./build_osx.sh; fi
-- tar -cvzf logs.tgz logs/*
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh ./testrunner_linux.sh; fi
+- if [ "$TRAVIS_OS_NAME" == "osx" ]; then sh ./testrunner_osx.sh; fi
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then cd $TRAVIS_BUILD_DIR; fi
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then tar -cvzf logs.tgz logs/* ; fi
 addons:
   ssh_known_hosts: 96.118.6.151
 after_script:
-- cd $TRAVIS_BUILD_DIR
-- ./deploy.sh 96.118.6.151 logs.tgz
-- rm -rf /tmp/pxscene-build.pem
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then cd $TRAVIS_BUILD_DIR; fi
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./deploy.sh 96.118.6.151 logs.tgz; fi
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then rm -rf /tmp/pxscene-build.pem; fi
 before_install:
-- openssl aes-256-cbc -K $encrypted_8b763c087de9_key -iv $encrypted_8b763c087de9_iv
-  -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then openssl aes-256-cbc -K $encrypted_8b763c087de9_key -iv $encrypted_8b763c087de9_iv  -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf; fi
-- eval "$(ssh-agent -s)"
-- chmod 600 /tmp/pxscene-build.pem
-- ssh-add /tmp/pxscene-build.pem
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then eval "$(ssh-agent -s)"; fi
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then  chmod 600 /tmp/pxscene-build.pem; fi
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then  ssh-add /tmp/pxscene-build.pem; fi
 notifications:
   slack:
     secure: gQ7GjheuN4j98co71p1gO0QaIAX3xHnDE2JRTT5UopsPbhczBC3A6RlVhXBrIc9mDyt2AO/pTBOl68BGtwtb4NVhZo2fqCcoq4wk2U2bAH3OnQu5KE9fJxm1KdJi0WiFVy1pURQql1fUH800YqF1LOWbc9m8aexgcvtD6ghDFLCDStgqfNgRzSEbZ8YBP98FjkEHj/jjeqwdUaH0Aezv0n82Laev99KDveCTVMoKXcbyfBQK0ty3OFAg6nBrMWPx0RVDVOVFPjjXDFgC5UfS9FLA57bxRDVmDr8SMnS/7m26YH0jnqY4oS1QnEmrdUtp6UWNex8D88KCt+wXoOpd6Ca1DVHNnaFuotEVpJ8B3WEG3uiK6xvacpkMrtEuoswUIbOv8E1VdfF3eOSmSAneb09Nbs15U8yiBfNq4PLE8TYc22or5jDsksTyGgmOgE1m8teH4DQz+k5qhMihd9f88CqaWzkjNgucavr/QzXG16xt13unMmMD0/bzA7wDU3hprne5hycR0LDxFRlL5z5xdv4w9yseuFTYBRcQ5Lk9zA6gJUMCGcbCtfA2rYQS7lOul575EMX7SfagHMmn663QY3tzm+vsxF93Dib+xfsAI3xSxSKGeBNZ5H9MxUPNUcu1yxhDZIZX8HujsDVLfIm/VK9OS2ultBTYeKizlyPBBsM=
