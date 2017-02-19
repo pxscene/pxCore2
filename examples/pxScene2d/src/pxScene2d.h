@@ -1329,6 +1329,7 @@ public:
   rtError createTextBox(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
+  rtError createImageA(rtObjectRef p, rtObjectRef& o);
   rtError createImageResource(rtObjectRef p, rtObjectRef& o); 
   rtError createFontResource(rtObjectRef p, rtObjectRef& o);  
   rtError createScene(rtObjectRef p,rtObjectRef& o);

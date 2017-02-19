@@ -1,7 +1,62 @@
 // pxCore CopyRight 2007-2015 John Robinson
 // pxUtil.h
-
+#ifndef PX_UTIL_H
+#define PX_UTIL_H
 #include "rtFile.h"
+
+#include <vector>
+//using namespace std;
+
+class pxTimedOffscreenSequence
+{
+public:
+  pxTimedOffscreenSequence():mNumPlays(0) {}
+  ~pxTimedOffscreenSequence() {}
+
+  void clear();
+  void addBuffer(pxBuffer &b, double duration);
+
+  uint32_t numFrames()
+  {
+    return mSequence.size();
+  }
+
+  uint32_t numPlays()
+  {
+    return mNumPlays;
+  }
+
+  void setNumPlays(uint32_t numPlays)
+  {
+    mNumPlays = numPlays;
+  }
+
+  pxOffscreen &getFrameBuffer(int frameNum)
+  {
+    return mSequence[frameNum].mOffscreen;
+  }
+
+  double getDuration(int frameNum)
+  {
+    return mSequence[frameNum].mDuration;
+  }
+
+  double totalTime()
+  {
+    return mTotalTime;
+  }
+
+private:
+  struct entry
+  {
+    pxOffscreen mOffscreen;
+    double mDuration;
+  };
+
+  std::vector<entry> mSequence;
+  double mTotalTime;
+  uint32_t mNumPlays;
+};
 
 rtError pxLoadImage(const char* imageData, size_t imageDataSize, 
                     pxOffscreen& o);
@@ -9,6 +64,10 @@ rtError pxLoadImage(const char* filename, pxOffscreen& b);
 rtError pxStoreImage(const char* filename, pxOffscreen& b);
 
 //bool pxIsPNGImage(const char* imageData, size_t imageDataSize);
+
+rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
+                        pxTimedOffscreenSequence &s);
+
 rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize, 
                        pxOffscreen& o);
 rtError pxLoadPNGImage(const char* filename, pxOffscreen& o);
@@ -28,3 +87,4 @@ rtError pxLoadJPGImage(const char* imageData, size_t imageDataSize,
                        pxOffscreen& o);
 rtError pxLoadJPGImage(const char* filename, pxOffscreen& o);
 
+#endif

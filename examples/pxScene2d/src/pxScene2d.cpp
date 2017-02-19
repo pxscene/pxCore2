@@ -24,6 +24,7 @@
 #include "pxTextBox.h"
 #include "pxImage.h"
 #include "pxImage9.h"
+#include "pxImageA.h"
 
 #if !defined(ENABLE_DFB) && !defined(DISABLE_WAYLAND)
 #include "pxWaylandContainer.h"
@@ -1286,6 +1287,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createImage(p,o);
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
+  else if (!strcmp("imageA",t.cString()))
+    e = createImageA(p,o);
   else if (!strcmp("imageResource",t.cString()))
     e = createImageResource(p,o);
   else if (!strcmp("fontResource",t.cString()))
@@ -1364,6 +1367,14 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImage9(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+}
+
+rtError pxScene2d::createImageA(rtObjectRef p, rtObjectRef& o)
+{
+  o = new pxImageA(this);
   o.set(p);
   o.send("init");
   return RT_OK;

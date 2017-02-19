@@ -20,45 +20,45 @@
 #define SUPPORT_JPG
 
 // Assume alpha is not premultiplied
-rtError pxLoadImage(const char* imageData, size_t imageDataSize, 
-                     pxOffscreen& o)
+rtError pxLoadImage(const char *imageData, size_t imageDataSize,
+                    pxOffscreen &o)
 {
   // Load as PNG...
   rtError retVal = pxLoadPNGImage(imageData, imageDataSize, o);
 
-  if( retVal != RT_OK) // Failed ... trying as JPG
+  if (retVal != RT_OK) // Failed ... trying as JPG
   {
 #ifdef ENABLE_LIBJPEG_TURBO
-     retVal = pxLoadJPGImageTurbo(imageData, imageDataSize, o);
-     if (retVal != RT_OK)
-     {
-       retVal = pxLoadJPGImage(imageData, imageDataSize, o);
-     }
+    retVal = pxLoadJPGImageTurbo(imageData, imageDataSize, o);
+    if (retVal != RT_OK)
+    {
+      retVal = pxLoadJPGImage(imageData, imageDataSize, o);
+    }
 #else
-     retVal = pxLoadJPGImage(imageData, imageDataSize, o);
+    retVal = pxLoadJPGImage(imageData, imageDataSize, o);
 #endif //ENABLE_LIBJPEG_TURBO
   }
 
   // TODO more sane image type detection and flow
 
-  if(o.mPixelFormat != RT_DEFAULT_PIX)
+  if (o.mPixelFormat != RT_DEFAULT_PIX)
   {
     o.swizzleTo(RT_DEFAULT_PIX);
   }
 
   o.setCompressedData(imageData, imageDataSize);
 
-   return retVal;
+  return retVal;
 }
 
 // TODO Detection needs to be improved...
 // Handling jpeg as fallback now
-rtError pxLoadImage(const char* filename, pxOffscreen& b)
+rtError pxLoadImage(const char *filename, pxOffscreen &b)
 {
   rtData d;
   rtError e = rtLoadFile(filename, d);
   if (e == RT_OK)
-    return pxLoadImage((const char*)d.data(), d.length(), b);
+    return pxLoadImage((const char *)d.data(), d.length(), b);
   else
   {
     e = RT_RESOURCE_NOT_FOUND;
@@ -67,23 +67,23 @@ rtError pxLoadImage(const char* filename, pxOffscreen& b)
   return e;
 }
 
-rtError pxStoreImage(const char* filename, pxOffscreen& b)
+rtError pxStoreImage(const char *filename, pxOffscreen &b)
 {
   return pxStorePNGImage(filename, b);
 }
 
-bool pxIsPNGImage(const char* /*imageData*/, size_t /*imageDataSize*/)
+bool pxIsPNGImage(const char * /*imageData*/, size_t /*imageDataSize*/)
 {
   return true;
 }
 
-rtError pxLoadPNGImage(const char* filename, pxOffscreen& o)
+rtError pxLoadPNGImage(const char *filename, pxOffscreen &o)
 {
   rtData d;
   if (rtLoadFile(filename, d) == RT_OK)
   {
     // TODO get rid of the cast
-    return pxLoadPNGImage((const char*)d.data(), d.length(), o);
+    return pxLoadPNGImage((const char *)d.data(), d.length(), o);
   }
   else
   {
@@ -93,7 +93,6 @@ rtError pxLoadPNGImage(const char* filename, pxOffscreen& o)
   return RT_OK;
 }
 
-
 /* structure to store PNG image bytes */
 struct mem_encode
 {
@@ -101,22 +100,20 @@ struct mem_encode
   size_t size;
 };
 
-
 // TODO change this to using rtData more directly
-void
-my_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
+void my_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
   /* with libpng15 next line causes pointer deference error; use libpng12 */
-  struct mem_encode* p=(struct mem_encode*)png_get_io_ptr(png_ptr); /* was png_ptr->io_ptr */
+  struct mem_encode *p = (struct mem_encode *)png_get_io_ptr(png_ptr); /* was png_ptr->io_ptr */
   size_t nsize = p->size + length;
 
   /* allocate or grow buffer */
-  if(p->buffer)
-    p->buffer = (char*)realloc(p->buffer, nsize);
+  if (p->buffer)
+    p->buffer = (char *)realloc(p->buffer, nsize);
   else
-    p->buffer = (char*)malloc(nsize);
+    p->buffer = (char *)malloc(nsize);
 
-  if(!p->buffer)
+  if (!p->buffer)
     png_error(png_ptr, "Write Error");
 
   /* copy new bytes to end of buffer */
@@ -124,20 +121,19 @@ my_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
   p->size += length;
 }
 
-// TODO rewrite this... 
-rtError pxStorePNGImage(pxOffscreen& b, rtData& pngData)
+// TODO rewrite this...
+rtError pxStorePNGImage(pxOffscreen &b, rtData &pngData)
 {
-  if(b.mPixelFormat != RT_PIX_RGBA)
+  if (b.mPixelFormat != RT_PIX_RGBA)
   {
-//      printf("\nDEBUG:  SWIZZLE from:  %s  >>  %s \n",
-//        rtPixelFmt2str(b.mPixelFormat), rtPixelFmt2str(RT_PIX_RGBA) );
-
+    // TODO should not need swizzle... libpng should have
+    // have options to deal with this
     b.swizzleTo(RT_PIX_RGBA); // needed for PNG encoder
   }
 
   png_structp png_ptr;
   png_infop info_ptr;
-  png_bytep * row_pointers;
+  png_bytep *row_pointers;
 
   struct mem_encode state;
   state.buffer = NULL;
@@ -147,7 +143,7 @@ rtError pxStorePNGImage(pxOffscreen& b, rtData& pngData)
     // initialize stuff
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
-    if(!png_ptr)
+    if (!png_ptr)
     {
       rtLogError("FATAL: png_create_write_struct() - FAILED");
       return RT_FAIL;
@@ -155,7 +151,7 @@ rtError pxStorePNGImage(pxOffscreen& b, rtData& pngData)
 
     info_ptr = png_create_info_struct(png_ptr);
 
-    if(!info_ptr)
+    if (!info_ptr)
     {
       png_destroy_write_struct(&png_ptr, NULL);
       rtLogError("FATAL: png_create_info_struct() - FAILED");
@@ -179,19 +175,18 @@ rtError pxStorePNGImage(pxOffscreen& b, rtData& pngData)
 
         png_write_info(png_ptr, info_ptr);
 
-
         // setjmp() ... needed for 'libpng' error handling...
 
         // write bytes
         if (!setjmp(png_jmpbuf(png_ptr)))
         {
-          row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * b.height());
+          row_pointers = (png_bytep *)malloc(sizeof(png_bytep) * b.height());
 
           if (row_pointers)
           {
             for (int y = 0; y < b.height(); y++)
             {
-              row_pointers[y] = (png_byte*)b.scanline(y);
+              row_pointers[y] = (png_byte *)b.scanline(y);
             }
 
             png_write_image(png_ptr, row_pointers);
@@ -204,7 +199,7 @@ rtError pxStorePNGImage(pxOffscreen& b, rtData& pngData)
 
             free(row_pointers);
 
-          }//ENDIF - row_pointers
+          } //ENDIF - row_pointers
         }
       }
     }
@@ -212,7 +207,7 @@ rtError pxStorePNGImage(pxOffscreen& b, rtData& pngData)
     png_destroy_write_struct(&png_ptr, &info_ptr);
   }
 
-  pngData.init((uint8_t*)state.buffer, state.size);
+  pngData.init((uint8_t *)state.buffer, state.size);
 
   if (state.buffer)
     free(state.buffer);
@@ -220,14 +215,12 @@ rtError pxStorePNGImage(pxOffscreen& b, rtData& pngData)
   return RT_OK;
 }
 
-
-
-rtError pxStorePNGImage(const char* filename, pxOffscreen& b, bool /*grayscale*/,
+rtError pxStorePNGImage(const char *filename, pxOffscreen &b, bool /*grayscale*/,
                         bool /*alpha*/)
 {
   png_structp png_ptr;
   png_infop info_ptr;
-  png_bytep * row_pointers;
+  png_bytep *row_pointers;
 
   // create file
   rtFilePointer fp(fopen(filename, "wb"));
@@ -237,7 +230,7 @@ rtError pxStorePNGImage(const char* filename, pxOffscreen& b, bool /*grayscale*/
     // initialize stuff
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
-    if(!png_ptr)
+    if (!png_ptr)
     {
       rtLogError("FATAL: png_create_write_struct() - FAILED");
       return RT_FAIL;
@@ -245,7 +238,7 @@ rtError pxStorePNGImage(const char* filename, pxOffscreen& b, bool /*grayscale*/
 
     info_ptr = png_create_info_struct(png_ptr);
 
-    if(!info_ptr)
+    if (!info_ptr)
     {
       png_destroy_write_struct(&png_ptr, NULL);
       rtLogError("FATAL: png_create_info_struct() - FAILED");
@@ -263,7 +256,7 @@ rtError pxStorePNGImage(const char* filename, pxOffscreen& b, bool /*grayscale*/
         png_byte color_type = (grayscale?PNG_COLOR_MASK_ALPHA:0) |
             (alpha?PNG_COLOR_MASK_ALPHA:0);
 #endif
-//        png_set_bgr(png_ptr);
+        //        png_set_bgr(png_ptr);
 
         png_set_IHDR(png_ptr, info_ptr, b.width(), b.height(),
                      8, PNG_COLOR_TYPE_RGB_ALPHA, PNG_INTERLACE_NONE,
@@ -271,19 +264,18 @@ rtError pxStorePNGImage(const char* filename, pxOffscreen& b, bool /*grayscale*/
 
         png_write_info(png_ptr, info_ptr);
 
-
         // setjmp() ... needed for 'libpng' error handling...
 
         // write bytes
         if (!setjmp(png_jmpbuf(png_ptr)))
         {
-          row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * b.height());
+          row_pointers = (png_bytep *)malloc(sizeof(png_bytep) * b.height());
 
           if (row_pointers)
           {
             for (int y = 0; y < b.height(); y++)
             {
-              row_pointers[y] = (png_byte*)b.scanline(y);
+              row_pointers[y] = (png_byte *)b.scanline(y);
             }
 
             png_write_image(png_ptr, row_pointers);
@@ -296,7 +288,7 @@ rtError pxStorePNGImage(const char* filename, pxOffscreen& b, bool /*grayscale*/
 
             free(row_pointers);
 
-          }//ENDIF - row_pointers
+          } //ENDIF - row_pointers
         }
       }
     }
@@ -350,7 +342,6 @@ rtError pxStorePNGImage(const char* filename, pxOffscreen& b, bool /*grayscale*/
  */
 
 #include <setjmp.h>
-
 
 #if 0
 
@@ -543,7 +534,6 @@ write_JPEG_file (char * filename, int quality)
  * will go away automatically when the JPEG object is cleaned up.
  */
 
-
 /*
  * ERROR HANDLING:
  *
@@ -567,27 +557,28 @@ write_JPEG_file (char * filename, int quality)
  * Here's the extended error handler struct:
  */
 
-struct my_error_mgr {
-  struct jpeg_error_mgr pub;	/* "public" fields */
+struct my_error_mgr
+{
+  struct jpeg_error_mgr pub; /* "public" fields */
 
-  jmp_buf setjmp_buffer;	/* for return to caller */
+  jmp_buf setjmp_buffer; /* for return to caller */
 };
 
-typedef struct my_error_mgr * my_error_ptr;
+typedef struct my_error_mgr *my_error_ptr;
 
 /*
  * Here's the routine that will replace the standard error_exit method:
  */
 
 METHODDEF(void)
-my_error_exit (j_common_ptr cinfo)
+my_error_exit(j_common_ptr cinfo)
 {
   /* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
-  my_error_ptr myerr = (my_error_ptr) cinfo->err;
+  my_error_ptr myerr = (my_error_ptr)cinfo->err;
 
   /* Always display the message. */
   /* We could postpone this until after returning, if we chose. */
-  (*cinfo->err->output_message) (cinfo);
+  (*cinfo->err->output_message)(cinfo);
 
   /* Return control to the setjmp point */
   longjmp(myerr->setjmp_buffer, 1);
@@ -618,27 +609,26 @@ my_error_exit (j_common_ptr cinfo)
  * temporary files are deleted if the program is interrupted.  See libjpeg.txt.
  */
 
-
-bool pxIsJPGImage(const char* /*imageData*/, size_t /*imageDataSize*/)
+bool pxIsJPGImage(const char * /*imageData*/, size_t /*imageDataSize*/)
 {
   return false;
 }
 
-rtError pxLoadJPGImage(const char* filename, pxOffscreen& o)
+rtError pxLoadJPGImage(const char *filename, pxOffscreen &o)
 {
   rtData d;
   rtError e = rtLoadFile(filename, d);
   if (e == RT_OK)
   {
 #ifdef ENABLE_LIBJPEG_TURBO
-    rtError retVal = pxLoadJPGImageTurbo((const char*)d.data(), d.length(), o);
+    rtError retVal = pxLoadJPGImageTurbo((const char *)d.data(), d.length(), o);
     if (retVal != RT_OK)
     {
-      retVal = pxLoadJPGImage((const char*)d.data(), d.length(), o); 
+      retVal = pxLoadJPGImage((const char *)d.data(), d.length(), o);
     }
     return retVal;
 #else
-    return pxLoadJPGImage((const char*)d.data(), d.length(), o);
+    return pxLoadJPGImage((const char *)d.data(), d.length(), o);
 #endif //ENABLE_LIBJPEG_TURBO
   }
   else
@@ -652,7 +642,7 @@ extern "C" {
 #include <turbojpeg.h>
 }
 
-rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o)
+rtError pxLoadJPGImageTurbo(const char *buf, size_t buflen, pxOffscreen &o)
 {
   rtLogDebug("using pxLoadJPGImageTurbo");
   if (!buf)
@@ -660,12 +650,12 @@ rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o)
     rtLogError("NULL buffer passed into pxLoadJPGImageTurbo");
     return RT_FAIL;
   }
-  
+
   tjhandle jpegDecompressor = tjInitDecompress();
 
   int width, height, jpegSubsamp, jpegColorspace;
 
-  tjDecompressHeader3(jpegDecompressor, (unsigned char*)buf, buflen, &width, &height, &jpegSubsamp, &jpegColorspace);
+  tjDecompressHeader3(jpegDecompressor, (unsigned char *)buf, buflen, &width, &height, &jpegSubsamp, &jpegColorspace);
 
   int colorComponent = 3;
 
@@ -674,9 +664,9 @@ rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o)
     colorComponent = 1;
   }
 
-  unsigned char* imageBuffer = tjAlloc(width*height*colorComponent);
+  unsigned char *imageBuffer = tjAlloc(width * height * colorComponent);
 
-  int result = tjDecompress2(jpegDecompressor, (unsigned char*)buf, buflen, imageBuffer, width, 0, height, (colorComponent == 3) ? TJPF_RGB : jpegColorspace, TJFLAG_FASTDCT);
+  int result = tjDecompress2(jpegDecompressor, (unsigned char *)buf, buflen, imageBuffer, width, 0, height, (colorComponent == 3) ? TJPF_RGB : jpegColorspace, TJFLAG_FASTDCT);
 
   if (result != 0)
   {
@@ -692,18 +682,18 @@ rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o)
   unsigned int bufferIndex = 0;
   while (scanlinen < height)
   {
-    pxPixel* p = o.scanline(scanlinen++);
+    pxPixel *p = o.scanline(scanlinen++);
     {
-      char* b = (char*)&imageBuffer[bufferIndex];
-      char* bend = b+(width*colorComponent);
-      while(b < bend)
+      char *b = (char *)&imageBuffer[bufferIndex];
+      char *bend = b + (width * colorComponent);
+      while (b < bend)
       {
         p->r = b[0];
         p->g = b[1];
         p->b = b[2];
         p->a = 255;
-        b+=3; // next pixel
-        bufferIndex+=colorComponent;
+        b += 3; // next pixel
+        bufferIndex += colorComponent;
         p++;
       }
     }
@@ -719,7 +709,7 @@ rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o)
 }
 #endif //ENABLE_LIBJPEG_TURBO
 
-rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
+rtError pxLoadJPGImage(const char *buf, size_t buflen, pxOffscreen &o)
 {
   if (!buf)
   {
@@ -737,9 +727,9 @@ rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
    */
   struct my_error_mgr jerr;
   /* More stuff */
-//  FILE * infile;		/* source file */
-  JSAMPARRAY buffer;		/* Output row buffer */
-  int row_stride;		/* physical row width in output buffer */
+  //  FILE * infile;		/* source file */
+  JSAMPARRAY buffer; /* Output row buffer */
+  int row_stride;    /* physical row width in output buffer */
 
   /* In this example we want to open the input file before doing anything else,
    * so that the setjmp() error recovery below can assume the file is open.
@@ -753,12 +743,13 @@ rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
   cinfo.err = jpeg_std_error(&jerr.pub);
   jerr.pub.error_exit = my_error_exit;
   /* Establish the setjmp return context for my_error_exit to use. */
-  if (setjmp(jerr.setjmp_buffer)) {
+  if (setjmp(jerr.setjmp_buffer))
+  {
     /* If we get here, the JPEG code has signaled an error.
      * We need to clean up the JPEG object, close the input file, and return.
      */
     jpeg_destroy_decompress(&cinfo);
-//    fclose(infile);
+    //    fclose(infile);
     return RT_FAIL;
   }
   /* Now we can initialize the JPEG decompression object. */
@@ -766,11 +757,11 @@ rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
 
   /* Step 2: specify data source (eg, a file) */
 
-  jpeg_mem_src(&cinfo, (unsigned char*)buf, buflen);
+  jpeg_mem_src(&cinfo, (unsigned char *)buf, buflen);
 
   /* Step 3: read file parameters with jpeg_read_header() */
 
-  (void) jpeg_read_header(&cinfo, TRUE);
+  (void)jpeg_read_header(&cinfo, TRUE);
   /* We can ignore the return value from jpeg_read_header since
    *   (a) suspension is not possible with the stdio data source, and
    *   (b) we passed TRUE to reject a tables-only JPEG file as an error.
@@ -785,7 +776,7 @@ rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
 
   /* Step 5: Start decompressor */
 
-  (void) jpeg_start_decompress(&cinfo);
+  (void)jpeg_start_decompress(&cinfo);
   /* We can ignore the return value since suspension is not possible
    * with the stdio data source.
    */
@@ -795,12 +786,11 @@ rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
    * output image dimensions available, as well as the output colormap
    * if we asked for color quantization.
    * In this example, we need to make an output work buffer of the right size.
-   */ 
+   */
   /* JSAMPLEs per row in output buffer */
   row_stride = cinfo.output_width * cinfo.output_components;
   /* Make a one-row-high sample array that will go away when done with image */
-  buffer = (*cinfo.mem->alloc_sarray)
-		((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
+  buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr)&cinfo, JPOOL_IMAGE, row_stride, 1);
 
   o.init(cinfo.output_width, cinfo.output_height);
 
@@ -817,20 +807,20 @@ rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
      * Here the array is only one element long, but you could ask for
      * more than one scanline at a time if that's more convenient.
      */
-    (void) jpeg_read_scanlines(&cinfo, buffer, 1);
+    (void)jpeg_read_scanlines(&cinfo, buffer, 1);
     /* Assume put_scanline_someplace wants a pointer and sample count. */
 
-    pxPixel* p = o.scanline(scanlinen++);
+    pxPixel *p = o.scanline(scanlinen++);
     {
-      char* b = (char*)buffer[0];
-      char* bend = b+(cinfo.output_width*3);
-      while(b < bend)
+      char *b = (char *)buffer[0];
+      char *bend = b + (cinfo.output_width * 3);
+      while (b < bend)
       {
         p->r = b[0];
         p->g = b[1];
         p->b = b[2];
         p->a = 255;
-        b+=3; // next pixel
+        b += 3; // next pixel
         p++;
       }
     }
@@ -840,7 +830,7 @@ rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
 
   /* Step 7: Finish decompression */
 
-  (void) jpeg_finish_decompress(&cinfo);
+  (void)jpeg_finish_decompress(&cinfo);
   /* We can ignore the return value since suspension is not possible
    * with the stdio data source.
    */
@@ -857,7 +847,6 @@ rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
    */
   //fclose(infile);
 
-
   /* At this point you may want to check to see whether any corrupt-data
    * warnings occurred (test whether jerr.pub.num_warnings is nonzero).
    */
@@ -866,76 +855,74 @@ rtError pxLoadJPGImage(const char* buf, size_t buflen, pxOffscreen& o)
   return RT_OK;
 }
 
-rtError pxStoreJPGImage(char* /*filename*/, pxBuffer& /*b*/)
+rtError pxStoreJPGImage(char * /*filename*/, pxBuffer & /*b*/)
 {
   return RT_FAIL;
 }
 
 struct PngStruct
 {
-  PngStruct(char* data, size_t dataSize)
-    : imageData(data), imageDataSize(dataSize), readPosition(0)
+  PngStruct(char *data, size_t dataSize)
+      : imageData(data), imageDataSize(dataSize), readPosition(0)
   {
   }
 
-  char* imageData;
+  char *imageData;
   size_t imageDataSize;
   int readPosition;
 };
 
-
 void readPngData(png_structp pngPtr, png_bytep data, png_size_t length)
 {
-  png_voidp          a = png_get_io_ptr(pngPtr);
-  PngStruct* pngStruct = (PngStruct*)a;
+  png_voidp a = png_get_io_ptr(pngPtr);
+  PngStruct *pngStruct = (PngStruct *)a;
 
-  memcpy ( (char*)data, pngStruct->imageData+pngStruct->readPosition, length );
+  memcpy((char *)data, pngStruct->imageData + pngStruct->readPosition, length);
   pngStruct->readPosition += length;
 }
 
-
-rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize, 
-                       pxOffscreen& o)
+rtError pxLoadPNGImage(const char *imageData, size_t imageDataSize,
+                       pxOffscreen &o)
 {
   rtError e = RT_FAIL;
 
   png_structp png_ptr;
   png_infop info_ptr;
   //  int number_of_passes;
-  png_bytep * row_pointers;
-  PngStruct pngStruct((char*)imageData, imageDataSize);
+  png_bytep *row_pointers;
+  PngStruct pngStruct((char *)imageData, imageDataSize);
 
-  if(!imageData)
+  if (!imageData)
   {
     rtLogError("FATAL: Invalid arguments - imageData = NULL");
     return e;
   }
 
-  if(imageDataSize < 8)
+  if (imageDataSize < 8)
   {
     rtLogError("FATAL: Invalid arguments - imageDataSize < 8");
     return e;
   }
 
-  unsigned char header[8];    // 8 is the maximum size that can be checked
+  unsigned char header[8]; // 8 is the maximum size that can be checked
 
   // open file and test for it being a png
   memcpy(header, imageData, 8);
   pngStruct.readPosition += 8;
 
   // test PNG header
-  if(png_sig_cmp(header, 0, 8) != 0)
+  if (png_sig_cmp(header, 0, 8) != 0)
   {
-// TODO Improve Detection of different image types
-// Fail quietly so we fallback to JPG
-//    rtLogError("FATAL: Invalid PNG header");
+    // TODO Improve Detection of different image types
+    // Fail quietly so we fallback to JPG
+    //    rtLogError("FATAL: Invalid PNG header");
     return RT_FAIL;
   }
 
   // initialize stuff
   png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
-  if(!png_ptr)
+  if (!png_ptr)
   {
     rtLogError("FATAL: png_create_read_struct() - failed !");
     return e;
@@ -943,7 +930,7 @@ rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize,
 
   info_ptr = png_create_info_struct(png_ptr);
 
-  if(!info_ptr)
+  if (!info_ptr)
   {
     png_destroy_read_struct(&png_ptr, NULL, NULL);
     rtLogError("FATAL: png_create_info_struct() - failed !");
@@ -952,12 +939,12 @@ rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize,
 
   if (!setjmp(png_jmpbuf(png_ptr)))
   {
-    png_set_read_fn(png_ptr,(png_voidp)&pngStruct, readPngData);
+    png_set_read_fn(png_ptr, (png_voidp)&pngStruct, readPngData);
     png_set_sig_bytes(png_ptr, 8);
 
     png_read_info(png_ptr, info_ptr);
 
-    int width  = png_get_image_width(png_ptr, info_ptr);
+    int width = png_get_image_width(png_ptr, info_ptr);
     int height = png_get_image_height(png_ptr, info_ptr);
 
     png_byte color_type = png_get_color_type(png_ptr, info_ptr);
@@ -990,13 +977,13 @@ rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize,
     // read file
     if (!setjmp(png_jmpbuf(png_ptr)))
     {
-      row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
+      row_pointers = (png_bytep *)malloc(sizeof(png_bytep) * height);
 
       if (row_pointers)
       {
         for (int y = 0; y < height; y++)
         {
-          row_pointers[y] = (png_byte*)o.scanline(y);
+          row_pointers[y] = (png_byte *)o.scanline(y);
         }
 
         png_read_image(png_ptr, row_pointers);
@@ -1006,7 +993,7 @@ rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize,
     }
   }
 
-  if(e == RT_OK)
+  if (e == RT_OK)
   {
     o.mPixelFormat = RT_PIX_RGBA;
   }
@@ -1014,4 +1001,226 @@ rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize,
   png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
   return e;
+}
+
+void pxTimedOffscreenSequence::clear()
+{
+  mTotalTime = 0;
+  mNumPlays = 0;
+  mSequence.clear();
+}
+
+void pxTimedOffscreenSequence::addBuffer(pxBuffer &b, double d)
+{
+  entry e;
+  e.mOffscreen.init(b.width(), b.height());
+
+  b.blit(e.mOffscreen);
+
+  e.mDuration = d;
+
+  mSequence.push_back(e);
+  mTotalTime += d;
+}
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "png.h"
+
+#define PNG_APNG_SUPPORTED
+
+#ifdef PNG_APNG_SUPPORTED
+void BlendOver(unsigned char **rows_dst, unsigned char **rows_src, unsigned int x, unsigned int y, unsigned int w, unsigned int h)
+{
+  unsigned int i, j;
+  int u, v, al;
+
+  for (j = 0; j < h; j++)
+  {
+    unsigned char *sp = rows_src[j];
+    unsigned char *dp = rows_dst[j + y] + x * 4;
+
+    for (i = 0; i < w; i++, sp += 4, dp += 4)
+    {
+      if (sp[3] == 255)
+        memcpy(dp, sp, 4);
+      else if (sp[3] != 0)
+      {
+        if (dp[3] != 0)
+        {
+          u = sp[3] * 255;
+          v = (255 - sp[3]) * dp[3];
+          al = u + v;
+          dp[0] = (sp[0] * u + dp[0] * v) / al;
+          dp[1] = (sp[1] * u + dp[1] * v) / al;
+          dp[2] = (sp[2] * u + dp[2] * v) / al;
+          dp[3] = al / 255;
+        }
+        else
+          memcpy(dp, sp, 4);
+      }
+    }
+  }
+}
+#endif
+
+rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
+                        pxTimedOffscreenSequence &s)
+{
+  s.clear();
+
+  PngStruct pngStruct((char *)imageData, imageDataSize);
+
+  if (!imageData)
+  {
+    rtLogError("FATAL: Invalid arguments - imageData = NULL");
+    return RT_FAIL;
+  }
+
+  if (imageDataSize < 8)
+  {
+    rtLogError("FATAL: Invalid arguments - imageDataSize < 8");
+    return RT_FAIL;
+  }
+
+  unsigned char header[8]; // 8 is the maximum size that can be checked
+
+  // test for it being a png
+  memcpy(header, imageData, 8);
+  pngStruct.readPosition += 8;
+
+  // test PNG header
+  if (png_sig_cmp(header, 0, 8) != 0)
+  {
+    // TODO Improve Detection of different image types
+    //    rtLogError("FATAL: Invalid PNG header");
+    return RT_FAIL;
+  }
+
+  unsigned int width, height, channels, rowbytes, size, i, j;
+  png_bytepp rows_image;
+  png_bytepp rows_frame;
+  unsigned char *p_image;
+  unsigned char *p_frame;
+  unsigned char *p_temp;
+  unsigned char sig[8];
+
+  png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+  png_infop info_ptr = png_create_info_struct(png_ptr);
+  if (png_ptr && info_ptr)
+  {
+    if (setjmp(png_jmpbuf(png_ptr)))
+    {
+      png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+      return RT_FAIL;
+    }
+
+    png_set_read_fn(png_ptr, (png_voidp)&pngStruct, readPngData);
+    png_set_sig_bytes(png_ptr, 8);
+    png_read_info(png_ptr, info_ptr);
+    png_set_expand(png_ptr);
+    png_set_strip_16(png_ptr);
+    png_set_palette_to_rgb(png_ptr);
+    png_set_gray_to_rgb(png_ptr);
+    png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
+    (void)png_set_interlace_handling(png_ptr);
+    png_read_update_info(png_ptr, info_ptr);
+    width = png_get_image_width(png_ptr, info_ptr);
+    height = png_get_image_height(png_ptr, info_ptr);
+    channels = png_get_channels(png_ptr, info_ptr);
+    rowbytes = png_get_rowbytes(png_ptr, info_ptr);
+    size = height * rowbytes;
+    p_image = (unsigned char *)malloc(size);
+    p_frame = (unsigned char *)malloc(size);
+    p_temp = (unsigned char *)malloc(size);
+    rows_image = (png_bytepp)malloc(height * sizeof(png_bytep));
+    rows_frame = (png_bytepp)malloc(height * sizeof(png_bytep));
+    if (p_image && p_frame && p_temp && rows_image && rows_frame)
+    {
+      png_uint_32 frames = 1;
+      png_uint_32 x0 = 0;
+      png_uint_32 y0 = 0;
+      png_uint_32 w0 = width;
+      png_uint_32 h0 = height;
+#ifdef PNG_APNG_SUPPORTED
+      png_uint_32 plays = 0;
+      unsigned short delay_num = 1;
+      unsigned short delay_den = 10;
+      unsigned char dop = 0;
+      unsigned char bop = 0;
+      unsigned int first = (png_get_first_frame_is_hidden(png_ptr, info_ptr) != 0) ? 1 : 0;
+      if (png_get_valid(png_ptr, info_ptr, PNG_INFO_acTL))
+        png_get_acTL(png_ptr, info_ptr, &frames, &plays);
+
+      s.setNumPlays(plays);
+#endif
+      for (j = 0; j < height; j++)
+        rows_image[j] = p_image + j * rowbytes;
+
+      for (j = 0; j < height; j++)
+        rows_frame[j] = p_frame + j * rowbytes;
+
+      for (i = 0; i < frames; i++)
+      {
+#ifdef PNG_APNG_SUPPORTED
+        if (png_get_valid(png_ptr, info_ptr, PNG_INFO_acTL))
+        {
+          png_read_frame_head(png_ptr, info_ptr);
+          png_get_next_frame_fcTL(png_ptr, info_ptr, &w0, &h0, &x0, &y0, &delay_num, &delay_den, &dop, &bop);
+
+          if (!delay_den)
+            delay_den = 100;
+        }
+        if (i == first)
+        {
+          bop = PNG_BLEND_OP_SOURCE;
+          if (dop == PNG_DISPOSE_OP_PREVIOUS)
+            dop = PNG_DISPOSE_OP_BACKGROUND;
+        }
+#endif
+        png_read_image(png_ptr, rows_frame);
+
+#ifdef PNG_APNG_SUPPORTED
+        if (dop == PNG_DISPOSE_OP_PREVIOUS)
+          memcpy(p_temp, p_image, size);
+
+        if (bop == PNG_BLEND_OP_OVER)
+          BlendOver(rows_image, rows_frame, x0, y0, w0, h0);
+        else
+#endif
+          for (j = 0; j < h0; j++)
+            memcpy(rows_image[j + y0] + x0 * 4, rows_frame[j], w0 * 4);
+
+        // TODO Extra copy of frame going on here
+        if (i >= first)
+        {
+          pxOffscreen o;
+          o.init(width, height);
+          for (int i = 0; i < height; i++)
+          {
+            memcpy(o.scanline(i), rows_image[i], width * 4);
+          }
+          s.addBuffer(o, (double)delay_num / (double)delay_den);
+        }
+
+#ifdef PNG_APNG_SUPPORTED
+        if (dop == PNG_DISPOSE_OP_PREVIOUS)
+          memcpy(p_image, p_temp, size);
+        else if (dop == PNG_DISPOSE_OP_BACKGROUND)
+          for (j = 0; j < h0; j++)
+            memset(rows_image[j + y0] + x0 * 4, 0, w0 * 4);
+#endif
+      }
+      png_read_end(png_ptr, info_ptr);
+      free(rows_frame);
+      free(rows_image);
+      free(p_temp);
+      free(p_frame);
+      free(p_image);
+    }
+  }
+  png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+
+  return RT_OK;
 }

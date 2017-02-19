@@ -90,22 +90,23 @@ RT_SRCS_FULL += ../external/westeros-stub/westeros-stub.cpp
 endif
 
 PX_SRCS_FULL=\
-    pxScene2d.cpp \
-    pxResource.cpp \
-    pxConstants.cpp \
-    pxRectangle.cpp \
-    pxFont.cpp \
-    pxText.cpp \
-    pxTextBox.cpp \
-    pxImage.cpp \
-    pxUtil.cpp \
-    pxImage9.cpp \
-    pxFileDownloader.cpp \
-    pxInterpolators.cpp \
-    pxMatrix4T.cpp \
-    pxArchive.cpp \
-    pxFileCache.cpp \
-    pxHttpCache.cpp 
+  pxScene2d.cpp \
+  pxResource.cpp \
+  pxConstants.cpp \
+  pxRectangle.cpp \
+  pxFont.cpp \
+  pxText.cpp \
+  pxTextBox.cpp \
+  pxImage.cpp \
+  pxUtil.cpp \
+  pxImage9.cpp \
+  pxImageA.cpp \
+  pxFileDownloader.cpp \
+  pxInterpolators.cpp \
+  pxMatrix4T.cpp \
+  pxArchive.cpp \
+  pxFileCache.cpp \
+  pxHttpCache.cpp 
 
 EXTDIR=../external
 PXCOREDIR=../../..
@@ -215,22 +216,23 @@ OBJDIR=obj
 
 # pxscene so begin
 PXSCENE_LIB_SRCS=\
-	   pxScene2d.cpp \
-           pxResource.cpp \
-           pxConstants.cpp \
-	   pxRectangle.cpp \
-           pxText.cpp \
-           pxTextBox.cpp \
-           pxImage.cpp \
-           pxUtil.cpp \
-           pxImage9.cpp \
-           pxFileDownloader.cpp \
-           pxInterpolators.cpp \
-	   pxMatrix4T.cpp \
-           pxArchive.cpp \
-           pxFont.cpp \
-           pxFileCache.cpp \
-           pxHttpCache.cpp 
+  pxScene2d.cpp \
+  pxResource.cpp \
+  pxConstants.cpp \
+  pxRectangle.cpp \
+  pxText.cpp \
+  pxTextBox.cpp \
+  pxImage.cpp \
+  pxUtil.cpp \
+  pxImage9.cpp \
+  pxImageA.cpp \
+  pxFileDownloader.cpp \
+  pxInterpolators.cpp \
+  pxMatrix4T.cpp \
+  pxArchive.cpp \
+  pxFont.cpp \
+  pxFileCache.cpp \
+  pxHttpCache.cpp 
 
 ifneq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
 PXSCENE_LIB_SRCS += pxContextGL.cpp 
