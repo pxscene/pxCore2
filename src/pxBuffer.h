@@ -74,7 +74,7 @@ pxBuffer(): mPixelFormat(RT_DEFAULT_PIX), mBase(NULL), mWidth(0), mHeight(0), mS
                       ((mUpsideDown?(mHeight-line-1):line) * mStride));
   }
 
-  inline pxPixel *pixel(int32_t x, int32_t y)
+  inline pxPixel *pixel(int32_t x, int32_t y) const
   {
     return scanline(y) + x;
   }
@@ -140,9 +140,9 @@ pxBuffer(): mPixelFormat(RT_DEFAULT_PIX), mBase(NULL), mWidth(0), mHeight(0), mS
     blit(s, 0, 0, width(), height(), 0, 0);
   }
 
-  inline void blit(pxBuffer& b, int32_t dstLeft, int32_t dstTop,
+  inline void blit(const pxBuffer& b, int32_t dstLeft, int32_t dstTop,
                    int32_t dstWidth, int32_t dstHeight,
-                   int32_t srcLeft, int32_t srcTop)
+                   int32_t srcLeft, int32_t srcTop) const
   {
     pxRect srcBounds = bounds();
     pxRect dstBounds = b.bounds();
@@ -170,12 +170,12 @@ pxBuffer(): mPixelFormat(RT_DEFAULT_PIX), mBase(NULL), mWidth(0), mHeight(0), mS
     }
   }
 
-  inline void blit(pxBuffer& b)
+  inline void blit(const pxBuffer& b) const
   {
     blit(b, 0, 0, width(), height(), 0, 0);
   }
 
-  inline void blit(pxBuffer& b, int32_t x, int32_t y)
+  inline void blit(pxBuffer& b, int32_t x, int32_t y) const
   {
     blit(b, x, y, width(), height(), 0, 0);
   }
