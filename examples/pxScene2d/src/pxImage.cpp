@@ -15,10 +15,12 @@
 
 #include "pxFileDownloader.h"
 
+#if 0
 extern "C"
 {
 #include "utf8.h"
 }
+#endif
 
 //#include <map>
 using namespace std;

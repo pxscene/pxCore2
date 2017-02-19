@@ -13,8 +13,6 @@
 extern rtThreadQueue gUIThreadQueue;
 extern pxContext context;
 
-
-
 pxResource::~pxResource() 
 {
   //printf("pxResource::~pxResource()\n");

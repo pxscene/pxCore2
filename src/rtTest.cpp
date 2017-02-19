@@ -1,3 +1,6 @@
+// rtCore CopyRight 2005-2015 John Robinson
+// rtTest.cpp
+
 #include "rtTest.h"
 #include "stdio.h"
 

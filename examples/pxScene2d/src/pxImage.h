@@ -10,7 +10,8 @@
 //#include "pxTextureCacheObject.h"
 #include "pxResource.h"
 
-class pxImage: public pxObject, pxResourceListener {
+class pxImage: public pxObject, pxResourceListener 
+{
 public:
   rtDeclareObject(pxImage, pxObject);
   rtProperty(url, url, setUrl, rtString);
