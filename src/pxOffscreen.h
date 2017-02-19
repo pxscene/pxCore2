@@ -17,7 +17,20 @@ public:
   
   pxOffscreen();
   virtual ~pxOffscreen();
+
+  pxOffscreen(const pxOffscreen& o): mCompressedData(NULL), mCompressedDataSize(0)
+  {
+    init(o.width(),o.height());
+    o.blit(*this);
+  }
   
+  pxOffscreen& operator=(const pxOffscreen& rhs)
+  {
+    init(rhs.width(),rhs.height());
+    rhs.blit(*this);
+    return *this;
+  }
+
   // This will initialize the offscreen for the given height and width 
   // but will not clear it.
   pxError init(int width, int height);
