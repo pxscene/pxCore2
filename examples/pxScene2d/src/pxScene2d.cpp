@@ -1462,7 +1462,7 @@ void pxScene2d::draw()
   {
     if (mShowDirtyRectangle)
     {
-      glDisable(GL_SCISSOR_TEST);
+      context.enableClipping(false);
       context.clear(mWidth, mHeight);
     }
     else
@@ -1494,7 +1494,7 @@ EXITSCENELOCK()
     context.drawDiagRect(x, y, w, h, red);
     context.setShowOutlines(showOutlines);
     context.setMatrix(currentMatrix);
-    glEnable(GL_SCISSOR_TEST);
+    context.enableClipping(true);
   }
   previousShowDirtyRect = mShowDirtyRectangle;
 

@@ -994,8 +994,8 @@ public:
 
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
-  pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){  pxSceneContainerCount++;printf("###############pxSceneContainerCount=%d\n",pxSceneContainerCount);}
-  virtual ~pxSceneContainer() {printf("###############~pxSceneContainer\n");pxSceneContainerCount--;printf("###############pxSceneContainerCount=%d\n",pxSceneContainerCount);}
+  pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){  pxSceneContainerCount++;}
+  virtual ~pxSceneContainer() {printf("###############~pxSceneContainer\n");pxSceneContainerCount--;}
 
   virtual unsigned long Release()
   {

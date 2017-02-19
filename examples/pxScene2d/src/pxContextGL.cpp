@@ -1704,6 +1704,18 @@ void pxContext::clear(int left, int top, int right, int bottom)
   //glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void pxContext::enableClipping(bool enable)
+{
+  if (enable)
+  {
+    glEnable(GL_SCISSOR_TEST);
+  }
+  else
+  {
+    glDisable(GL_SCISSOR_TEST);
+  }
+}
+
 void pxContext::setMatrix(pxMatrix4f& m)
 {
   gMatrix.multiply(m);
