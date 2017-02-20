@@ -30,19 +30,29 @@
 {
   "version": "0.2.0",
   "configurations": [
-
     {
-      "name": "Debug pxscene",
-      "type": "node",
+      "name": "DBG file in pxscene",
+      "type": "node2",
       "request": "launch",
       "cwd": "/Applications/pxscene.app/Contents/MacOS",
       "runtimeExecutable": "/Applications/pxscene.app/Contents/MacOS/pxscene",
-      "program": "/Applications/pxscene.app/Contents/MacOS/browser.js",
+      "args":["${file}"],
       "env" : {
       "LD_LIBRARY_PATH":"/Applications/pxscene.app/Contents/MacOS/lib",
       "DYLD_LIBRARY_PATH":"/Applications/pxscene.app/Contents/MacOS/lib"
       }
     },
+    {
+      "name": "DBG pxscene",
+      "type": "node2",
+      "request": "launch",
+      "cwd": "/Applications/pxscene.app/Contents/MacOS",
+      "runtimeExecutable": "/Applications/pxscene.app/Contents/MacOS/pxscene",
+      "env" : {
+      "LD_LIBRARY_PATH":"/Applications/pxscene.app/Contents/MacOS/lib",
+      "DYLD_LIBRARY_PATH":"/Applications/pxscene.app/Contents/MacOS/lib"
+      }
+    },  
     {
     "name": "Attach pxscene",
     "type": "node",
