@@ -67,6 +67,8 @@
 
 6.  You should now be able to set and hit breakpoints in the debugger.
 
+> If you have set environment variable `BREAK_ON_SCRIPTSTART=1`, execution will get stopped as the javascript file loads; otherwise, execution will stop at breakpoints only.
+
 
 ## Attaching to a running instance of pxscene
 
