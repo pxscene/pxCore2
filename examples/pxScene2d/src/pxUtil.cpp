@@ -1104,7 +1104,6 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
   unsigned char *p_image;
   unsigned char *p_frame;
   unsigned char *p_temp;
-  unsigned char sig[8];
 
   png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   png_infop info_ptr = png_create_info_struct(png_ptr);
@@ -1197,7 +1196,7 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
         {
           pxOffscreen o;
           o.init(width, height);
-          for (int i = 0; i < height; i++)
+          for (uint32_t i = 0; i < height; i++)
           {
             memcpy(o.scanline(i), rows_image[i], width * 4);
           }

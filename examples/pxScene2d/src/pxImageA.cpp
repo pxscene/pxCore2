@@ -48,6 +48,8 @@ rtError pxImageA::setUrl(const char *s)
   }
   else
     mReady.send("resolve", this);
+
+  return RT_OK;
 }
 
 void pxImageA::onDownloadComplete(pxFileDownloadRequest* downloadRequest)
