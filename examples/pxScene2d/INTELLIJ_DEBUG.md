@@ -2,9 +2,10 @@
 # pxScene debugging with IntelliJ
 
 
+**NOTE: The preferred environment for debugging pxscene applications is VSCode.  Instructions are here: https://github.com/johnrobinsn/pxCore/blob/master/examples/pxScene2d/VSCODE_DEBUG.md**
+
 
 **Tested on OS X**
-
 
 
 IntelliJ is an IDE to write and execute applications written in Java, Javascript etc. It has NodeJS plugin support, through which any nodejs applications can be launched through IntelliJ.
