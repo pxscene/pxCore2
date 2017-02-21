@@ -200,7 +200,7 @@ endif
 ifeq ($(UNAME_S),Darwin)
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore $(LDEXT) -ldl -lv8_libplatform -framework OpenGL -framework Cocoa -framework Foundation
 else
-LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform 
+LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -lrtCore_s -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform 
 endif
 
 PLATFORM_LIBS = -lnexus -lnxclient 
