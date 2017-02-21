@@ -10,7 +10,7 @@
 #include <sys/mman.h>
 #endif
 #include <cstring>
-#include <vector>
+#include <std::vector>
 #include <iostream>
 //#include <linux/input.h>
 #include <time.h>
@@ -72,7 +72,7 @@ pxWindowNative(): mTimerFPS(0),/*, mLastWidth(-1), mLastHeight(-1),
 
   static void runEventLoopOnce();
 
-  static vector<pxWindowNative*> getNativeWindows(){return mWindowVector;}
+  static std::vector<pxWindowNative*> getNativeWindows(){return mWindowVector;}
 
   virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags) = 0;
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags) = 0;
@@ -152,7 +152,7 @@ protected:
 
   static void registerWindow(pxWindowNative* p);
   static void unregisterWindow(pxWindowNative* p); //call this method somewhere
-  static vector<pxWindowNative*> mWindowVector;
+  static std::vector<pxWindowNative*> mWindowVector;
 };
 
 // Key Codes
