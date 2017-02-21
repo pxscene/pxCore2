@@ -23,8 +23,6 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 
-using namespace std;
-
 // Since the lifetime of the Display should include the lifetime of all windows
 // and eventloop that uses it - refcounting is utilized through this
 // wrapper class.
@@ -67,7 +65,7 @@ public:
 
   static struct wl_shell_surface_listener mShellSurfaceListener;
 
-  static vector<pxWindowNative*> getNativeWindows(){return mWindowVector;}
+  static std::vector<pxWindowNative*> getNativeWindows(){return mWindowVector;}
 
   virtual void onMouseDown(int x, int y, unsigned long flags) = 0;
   virtual void onMouseUp(int x, int y, unsigned long flags) = 0;
@@ -122,7 +120,7 @@ protected:
 
   static void registerWindow(pxWindowNative* p);
   static void unregisterWindow(pxWindowNative* p); //call this method somewhere
-  static vector<pxWindowNative*> mWindowVector;
+  static std::vector<pxWindowNative*> mWindowVector;
 };
 
 // Key Codes

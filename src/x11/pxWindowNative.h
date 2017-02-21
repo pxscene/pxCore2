@@ -11,7 +11,6 @@
 #include <X11/Xatom.h>
 
 #include <vector>
-using namespace std;
 
 // Since the lifetime of the Display should include the lifetime of all windows
 // and eventloop that uses it - refcounting is utilized through this
@@ -96,7 +95,7 @@ protected:
     static pxWindowNative* getPXWindowFromX11Window(Window w);
     static void registerWindow(Window w, pxWindowNative* p);
     static void unregisterWindow(Window);
-    static vector<windowDesc> mWindowMap;
+    static std::vector<windowDesc> mWindowMap;
 
     Window win;
     displayRef mDisplayRef;

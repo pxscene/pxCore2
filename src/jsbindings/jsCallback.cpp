@@ -1,6 +1,8 @@
 #include "jsCallback.h"
 #include "rtWrapperUtils.h"
 
+using namespace v8;
+
 jsCallback::jsCallback(v8::Local<v8::Context>& ctx)
   : mFunctionLookup(NULL)
   , mIsolate(ctx->GetIsolate())

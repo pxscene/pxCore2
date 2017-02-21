@@ -5,14 +5,12 @@
 #include <rtValue.h>
 #include <vector>
 
-using namespace v8;
-
 typedef void (*jsCallbackCompletionFunc)(void* argp, rtValue const& result);
 
 struct jsIFunctionLookup
 {
   virtual ~jsIFunctionLookup() { }
-  virtual Local<Function> lookup(v8::Local<v8::Context>& ctx) = 0;
+  virtual v8::Local<v8::Function> lookup(v8::Local<v8::Context>& ctx) = 0;
 };
 
 struct jsCallback
@@ -35,7 +33,7 @@ struct jsCallback
   virtual ~jsCallback();
 
 protected:
-  virtual Handle<Value>* makeArgs(v8::Local<v8::Context>& ctx);
+  virtual v8::Handle<v8::Value>* makeArgs(v8::Local<v8::Context>& ctx);
 
 private:
 

@@ -11,10 +11,12 @@ extern pxContext context;
 #include <math.h>
 #include <map>
 
+#if 1
 // TODO can we eliminate direct utf8.h usage
 extern "C" {
 #include "utf8.h"
 }
+#endif
 
 
 pxTextBox::pxTextBox(pxScene2d* s):pxText(s)

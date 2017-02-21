@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+using namespace std;
+
 Display* displayRef::mDisplay = NULL;
 int displayRef::mRefCount = 0;
 

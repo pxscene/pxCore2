@@ -29,6 +29,8 @@
 #include "aygshell.h"
 #endif
 
+using namespace std;
+
 void setWindowPtr(HWND w, void* p)
 {
 #ifndef WINCE

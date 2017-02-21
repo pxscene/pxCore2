@@ -21,6 +21,8 @@ static pthread_t sCurrentSceneThread;
 static pthread_mutex_t sObjectMapMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
+using namespace std;
+
 static int sLockCount;
 
 const int HandleMap::kContextIdIndex = 2;

@@ -11,11 +11,6 @@
 #include "pxContext.h"
 #include "pxFileDownloader.h"
 
-extern "C"
-{
-#include "utf8.h"
-}
-
 extern pxContext context;
 
 pxImage9::~pxImage9()

@@ -4,8 +4,10 @@
 
 #include <vector>
 
+using namespace v8;
+
 static const char* kClassName = "Function";
-static Persistent<Function> ctor;
+static Persistent<v8::Function> ctor;
 
 static void jsFunctionCompletionHandler(void* argp, rtValue const& result)
 {
@@ -13,7 +15,7 @@ static void jsFunctionCompletionHandler(void* argp, rtValue const& result)
   wrapper->signal(result);
 }
 
-rtResolverFunction::rtResolverFunction(Disposition disp, v8::Local<v8::Context>& ctx, Local<Promise::Resolver>& resolver)
+rtResolverFunction::rtResolverFunction(Disposition disp, v8::Local<v8::Context>& ctx, Local<v8::Promise::Resolver>& resolver)
   : rtAbstractFunction()
   , mDisposition(disp)
   , mResolver(ctx->GetIsolate(), resolver)

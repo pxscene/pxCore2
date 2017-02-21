@@ -33,6 +33,8 @@
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
+using namespace std;
+
 #ifndef rtLogWarn
 #define rtLogWarn(...) (void)0
 #endif

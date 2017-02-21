@@ -4,11 +4,8 @@
 #include "../rtMutex.h"
 #include "../rtThreadTask.h"
 
-
 #include <vector>
 #include <deque>
-
-using namespace std;
 
 class rtThreadPoolNative
 {

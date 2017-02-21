@@ -11,11 +11,6 @@
 
 #include "pxContext.h"
 
-extern "C"
-{
-#include "utf8.h"
-}
-
 #include <map>
 using namespace std;
 

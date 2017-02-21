@@ -7,10 +7,6 @@
 #include "pxBufferNative.h"
 #endif //ENABLE_DFB
 
-#include <vector>
-
-using namespace std;
-
 class pxWindowNative
 {
 public:

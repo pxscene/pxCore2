@@ -15,7 +15,6 @@ extern "C"
 }
 
 #include <vector>
-using namespace std;
 
 class rtZip
 {
@@ -38,7 +37,7 @@ private:
   unzFile mUnzFile;
   rtData mData;
 
-  mutable vector<rtString> mFilePaths;
+  mutable std::vector<rtString> mFilePaths;
 };
 
 #endif

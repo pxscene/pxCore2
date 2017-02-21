@@ -10,19 +10,9 @@
 #include "pxOffscreen.h"
 
 #include "pxImage.h"
-
 #include "pxContext.h"
-
 #include "pxFileDownloader.h"
 
-#if 0
-extern "C"
-{
-#include "utf8.h"
-}
-#endif
-
-//#include <map>
 using namespace std;
 
 extern pxContext context;

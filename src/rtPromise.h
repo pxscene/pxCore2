@@ -102,7 +102,7 @@ public:
     mState = FULFILLED;
     mObject = v.toObject().getPtr();
 
-    for (vector<thenData>::iterator it = mThenData.begin();
+    for (std::vector<thenData>::iterator it = mThenData.begin();
          it != mThenData.end(); ++it)
     {
       if (it->mResolve)
@@ -134,7 +134,7 @@ public:
     }
     if (mObject != NULL)
     {
-      for (vector<thenData>::iterator it = mThenData.begin();
+      for (std::vector<thenData>::iterator it = mThenData.begin();
          it != mThenData.end(); ++it)
       {
         if (it->mReject)
@@ -173,7 +173,7 @@ public:
 
 private:
   rtPromiseState mState;
-  vector<thenData> mThenData;
+  std::vector<thenData> mThenData;
   rtIObject* mObject;
 };
 

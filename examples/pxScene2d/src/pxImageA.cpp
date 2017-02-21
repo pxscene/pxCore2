@@ -109,13 +109,14 @@ void pxImageA::onDownloadCompleteUI(void* context, void* data)
   }
 }
 
+// animation happens here
 void pxImageA::update(double t)
 {
   pxObject::update(t);
 
   uint32_t numFrames = mImageSequence.numFrames();
 
-  if (numFrames > 0)
+  if (numFrames > 1)
   {
     if (mFrameTime < 0)
     {

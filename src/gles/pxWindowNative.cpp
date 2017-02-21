@@ -18,6 +18,8 @@
 #include <ctype.h>
 #include <pthread.h>
 
+using namespace std;
+
 #ifndef NB_ENABLE
 #include <termios.h>
 #define NON_BLOCKING_ENABLED (0)

@@ -19,8 +19,6 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-using namespace std;
-
 #ifndef EGL_EXT_swap_buffers_with_damage
 #define EGL_EXT_swap_buffers_with_damage 1
 typedef EGLBoolean (EGLAPIENTRYP PFNEGLSWAPBUFFERSWITHDAMAGEEXTPROC)(EGLDisplay dpy, EGLSurface surface, EGLint *rects, EGLint n_rects);
@@ -102,7 +100,7 @@ pxWindowNative(): mTimerFPS(0), mLastWidth(-1), mLastHeight(-1),
 
     static struct wl_shell_surface_listener mShellSurfaceListener;
 
-    static vector<pxWindowNative*> getNativeWindows(){return mWindowVector;}
+    static std::vector<pxWindowNative*> getNativeWindows(){return mWindowVector;}
 
     virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags) =0;
     virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags) =0;
@@ -183,7 +181,7 @@ protected:
 
     static void registerWindow(pxWindowNative* p);
     static void unregisterWindow(pxWindowNative* p); //call this method somewhere
-    static vector<pxWindowNative*> mWindowVector;
+    static std::vector<pxWindowNative*> mWindowVector;
 };
 
 // Key Codes

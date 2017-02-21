@@ -14,7 +14,6 @@
 
 #include <string.h>
 #include <vector>
-using namespace std;
 
 // rtIObject and rtIFunction are designed to be an
 // Abstract Binary Interface(ABI)
@@ -511,7 +510,7 @@ public:
 public:
   virtual rtError Send(int numArgs,const rtValue* args,rtValue* result);
     
-  vector<_rtEmitEntry> mEntries;
+  std::vector<_rtEmitEntry> mEntries;
   rtAtomic mRefCount;
 };
 
@@ -542,7 +541,7 @@ public:
   virtual rtError Set(uint32_t i, const rtValue* value);
 
 private:
-  vector<rtValue> mElements;
+  std::vector<rtValue> mElements;
 };
 
 struct rtNamedValue
@@ -555,7 +554,7 @@ class rtMapObject: public rtObject
 {
 public:
 
-  vector<rtNamedValue>::iterator find(const char* name);
+  std::vector<rtNamedValue>::iterator find(const char* name);
 
   virtual rtError Get(const char* name, rtValue* value) const;
   virtual rtError Get(uint32_t /*i*/, rtValue* /*value*/) const;
@@ -563,7 +562,7 @@ public:
   virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/);
 
 private:
-  vector<rtNamedValue> mProps;
+  std::vector<rtNamedValue> mProps;
 };
 
 #endif

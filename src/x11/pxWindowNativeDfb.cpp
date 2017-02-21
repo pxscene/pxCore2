@@ -15,6 +15,8 @@
 #include <signal.h>
 #include <time.h>
 
+using namespace std;
+
 #define DFB_PX_CORE_FPS 30
 
 #define USE_DFB_FLIPPING

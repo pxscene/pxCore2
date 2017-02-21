@@ -7,7 +7,6 @@
 #include "rtMutex.h"
 
 #include <deque>
-using namespace std;
 
 typedef void (*rtThreadTaskCB)(void* context, void* data);
 
@@ -35,7 +34,7 @@ public:
   rtError process(double maxSeconds = 0);
 
 private:
-  deque<ThreadQueueEntry> mTasks;
+  std::deque<ThreadQueueEntry> mTasks;
   rtMutex mTaskMutex;
 };
 #endif //RT_THREAD_QUEUE_H

@@ -9,7 +9,8 @@
 #include <math.h>
 #include <map>
 
-struct GlyphKey {
+struct GlyphKey 
+{
   uint32_t mFontId;
   uint32_t mPixelSize;
   uint32_t mCodePoint;
@@ -37,18 +38,15 @@ GlyphCache gGlyphCache;
 
 extern pxContext context;
 
+#if 1
 // TODO can we eliminate direct utf8.h usage
 extern "C" {
 #include "utf8.h"
 }
-
-#if 0
-<link href='http://fonts.googleapis.com/css?family=Fontdiner+Swanky' rel='stylesheet' type='text/css'>
 #endif
 
 FT_Library ft;
 uint32_t gFontId = 0;
-
 
 pxFont::pxFont(rtString fontUrl):pxResource(),mPixelSize(0), mFontData(0)
 {  

@@ -2,8 +2,9 @@
 // rtThreadQueue.h
 
 #include "rtThreadQueue.h"
-
 #include "pxTimer.h"
+
+using namespace std;
 
 rtThreadQueue::rtThreadQueue(){}
 rtThreadQueue::~rtThreadQueue() {}
@@ -24,7 +25,7 @@ rtError rtThreadQueue::addTask(rtThreadTaskCB t, void* context, void* data)
 rtError rtThreadQueue::removeAllTasksForObject(void* context)
 {
   mTaskMutex.lock();
-  for(deque<ThreadQueueEntry>::iterator it = mTasks.begin(); 
+  for(deque<ThreadQueueEntry>::iterator it = mTasks.begin();
         it != mTasks.end(); ++it)
   {
     if ((it)->context == context)

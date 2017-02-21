@@ -4,6 +4,7 @@
 #include "rtObject.h"
 #include <errno.h>
 
+using namespace std;
 
 // rtEmit
 unsigned long rtEmit::AddRef() 
@@ -19,7 +20,7 @@ unsigned long rtEmit::Release() {
 
 rtError rtEmit::setListener(const char* eventName, rtIFunction* f)
 {
-  for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); 
+  for (vector<_rtEmitEntry>::iterator it = mEntries.begin();
        it != mEntries.end(); it++)
   {
     _rtEmitEntry& e = (*it);

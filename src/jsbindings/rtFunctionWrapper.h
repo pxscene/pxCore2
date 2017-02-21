@@ -4,8 +4,6 @@
 #include "rtWrapperUtils.h"
 #include "jsCallback.h"
 
-using namespace v8;
-
 class rtAbstractFunction : public rtIFunction
 {
 public:
@@ -36,20 +34,20 @@ public:
   virtual ~rtFunctionWrapper();
 
 public:
-  static void exportPrototype(v8::Isolate* isolate, Handle<Object> exports);
+  static void exportPrototype(v8::Isolate* isolate, v8::Handle<v8::Object> exports);
   static void destroyPrototype();
 
   static v8::Handle<v8::Object> createFromFunctionReference(v8::Isolate* isolate, const rtFunctionRef& func);
 
 private:
-  static void create(const FunctionCallbackInfo<Value>& args);
-  static void call(const FunctionCallbackInfo<Value>& args);
+  static void create(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void call(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 class jsFunctionWrapper : public rtIFunction
 {
 public:
-  jsFunctionWrapper(v8::Local<v8::Context>& ctx, const Handle<Value>& val);
+  jsFunctionWrapper(v8::Local<v8::Context>& ctx, const v8::Handle<v8::Value>& val);
   ~jsFunctionWrapper();
 
   virtual unsigned long AddRef();
@@ -70,7 +68,7 @@ private:
   {
   public:
     FunctionLookup(jsFunctionWrapper* parent) : mParent(parent) { }
-    virtual Local<Function> lookup(v8::Local<v8::Context>& ctx);
+    virtual v8::Local<v8::Function> lookup(v8::Local<v8::Context>& ctx);
   private:
     jsFunctionWrapper* mParent;
   };
@@ -79,10 +77,10 @@ private:
 
 private:
   unsigned long mRefCount;
-  Persistent<Function> mFunction;
-  Persistent<Context> mContext;
-  Isolate* mIsolate;
-  vector<rtValue> mArgs;
+  v8::Persistent<v8::Function> mFunction;
+  v8::Persistent<v8::Context> mContext;
+  v8::Isolate* mIsolate;
+  std::vector<rtValue> mArgs;
 
   bool mComplete;
   bool mTeardownThreadingPrimitives;
@@ -123,11 +121,11 @@ private:
   static void afterWorkCallback(uv_work_t* req, int status);
 
 private:
-  Disposition                     mDisposition;
-  Persistent<Promise::Resolver>   mResolver;
-  Persistent<v8::Context>         mContext;
-  v8::Isolate*                    mIsolate;
-  uv_work_t                       mReq;
+  Disposition                         mDisposition;
+  v8::Persistent<v8::Promise::Resolver>   mResolver;
+  v8::Persistent<v8::Context>         mContext;
+  v8::Isolate*                        mIsolate;
+  uv_work_t                           mReq;
 };
 
 #endif

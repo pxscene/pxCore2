@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include <signal.h>
 
+using namespace std;
+
 #define GLUT_PX_CORE_FPS 30
 
 glutDisplay* displayRef::mDisplay  = NULL;

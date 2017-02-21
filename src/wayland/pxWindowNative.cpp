@@ -13,6 +13,8 @@
 #include <unistd.h> //for close()
 #include <fcntl.h> //for files
 
+using namespace std;
+
 waylandDisplay* displayRef::mDisplay = NULL;
 struct wl_registry_listener displayRef::mWaylandRegistryListener;
 struct wl_pointer_listener displayRef::mWaylandPointerListener;
