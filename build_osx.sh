@@ -15,8 +15,10 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src;
 if [ "$TRAVIS_PULL_REQUEST" == "false" ]
 then
 echo "***************************** Building pxscene app ***" >> $BUILDLOGS
+make clean;
 make -j>>$BUILDLOGS 2>&1
 else
 echo "***************************** Building pxscene app ***"
+make clean;
 make -j 1>>$BUILDLOGS
 fi
