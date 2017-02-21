@@ -13,7 +13,7 @@ public:
   pxTimedOffscreenSequence():mNumPlays(0) {}
   ~pxTimedOffscreenSequence() {}
 
-  void clear();
+  void init();
   void addBuffer(pxBuffer &b, double duration);
 
   uint32_t numFrames()
@@ -65,8 +65,10 @@ rtError pxStoreImage(const char* filename, pxOffscreen& b);
 
 //bool pxIsPNGImage(const char* imageData, size_t imageDataSize);
 
+rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
+  pxTimedOffscreenSequence &s);
 rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
-                        pxTimedOffscreenSequence &s);
+  pxTimedOffscreenSequence &s);
 
 rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize, 
                        pxOffscreen& o);

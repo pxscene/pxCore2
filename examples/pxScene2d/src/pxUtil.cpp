@@ -51,6 +51,32 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
   return retVal;
 }
 
+rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
+  pxTimedOffscreenSequence &s)
+{
+  // Load as PNG...
+  rtError retVal = pxLoadAPNGImage(imageData, imageDataSize, s);
+
+  if (retVal != RT_OK) // Failed ... trying as JPG
+  {
+    pxOffscreen o;
+#ifdef ENABLE_LIBJPEG_TURBO
+    retVal = pxLoadJPGImageTurbo(imageData, imageDataSize, o);
+    if (retVal != RT_OK)
+    {
+      retVal = pxLoadJPGImage(imageData, imageDataSize, o);
+    }
+#else
+    retVal = pxLoadJPGImage(imageData, imageDataSize, o);
+#endif //ENABLE_LIBJPEG_TURBO
+    s.init();
+    s.addBuffer(o,0);
+  }
+  
+  return retVal;  
+}
+
+
 // TODO Detection needs to be improved...
 // Handling jpeg as fallback now
 rtError pxLoadImage(const char *filename, pxOffscreen &b)
@@ -1003,7 +1029,7 @@ rtError pxLoadPNGImage(const char *imageData, size_t imageDataSize,
   return e;
 }
 
-void pxTimedOffscreenSequence::clear()
+void pxTimedOffscreenSequence::init()
 {
   mTotalTime = 0;
   mNumPlays = 0;
@@ -1068,7 +1094,7 @@ void BlendOver(unsigned char **rows_dst, unsigned char **rows_src, unsigned int 
 rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
                         pxTimedOffscreenSequence &s)
 {
-  s.clear();
+  s.init();
 
   PngStruct pngStruct((char *)imageData, imageDataSize);
 

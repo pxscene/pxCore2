@@ -17,6 +17,12 @@ pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), mStretchX(pxConstantsStr
   mPlays = 0;
 }
 
+void pxImageA::onInit() 
+{
+  mw = mImageWidth;
+  mh = mImageHeight;
+}
+
 rtError pxImageA::url(rtString &s) const
 {
   s = mURL;
@@ -35,7 +41,7 @@ rtError pxImageA::setUrl(const char *s)
   mImageWidth = 0;
   mImageHeight = 0;
 
-  mImageSequence.clear();
+  mImageSequence.init();
   if (mURL)
   {
     // Since this object can be released before we get a async completion
@@ -54,7 +60,6 @@ rtError pxImageA::setUrl(const char *s)
 
 void pxImageA::onDownloadComplete(pxFileDownloadRequest* downloadRequest)
 {
-  printf("pxImageA::onDownloadComplete\n");
   pxImageA* image = (pxImageA*)downloadRequest->getCallbackData();
   if (image) 
   {
@@ -64,16 +69,15 @@ void pxImageA::onDownloadComplete(pxFileDownloadRequest* downloadRequest)
       size_t dataSize;
       downloadRequest->getDownloadedData(data, dataSize);
       pxTimedOffscreenSequence* s = new pxTimedOffscreenSequence;
-      if (pxLoadAPNGImage(data, dataSize, *s) == RT_OK)
+
+      if (pxLoadAImage(data, dataSize, *s) == RT_OK)
       {
-        printf("queue up onDownloadCompleteUI");
         gUIThreadQueue.addTask(pxImageA::onDownloadCompleteUI, image, s);
         return;  // Successful and done
       }
       else
         delete s;
     }
-    printf("onDownloadComplete fell thru failure\n");
     // If we fall through to here we've failed so send NULL to reject promise
     gUIThreadQueue.addTask(pxImageA::onDownloadCompleteUI, image, NULL);
   }
@@ -81,7 +85,6 @@ void pxImageA::onDownloadComplete(pxFileDownloadRequest* downloadRequest)
 
 void pxImageA::onDownloadCompleteUI(void* context, void* data)
 {
-  printf("pxImageA::onDownloadCompleteUI\n");
   pxImageA* image = (pxImageA*)context;
 
   if (image)
@@ -116,7 +119,7 @@ void pxImageA::update(double t)
 
   uint32_t numFrames = mImageSequence.numFrames();
 
-  if (numFrames > 1)
+  if (numFrames > 0)
   {
     if (mFrameTime < 0)
     {

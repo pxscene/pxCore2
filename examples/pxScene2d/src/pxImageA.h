@@ -9,7 +9,6 @@
 #include "pxFileDownloader.h"
 #include "pxUtil.h"
 
-
 class pxImageA: public pxObject
 {
 public:
@@ -21,14 +20,6 @@ public:
   //rtProperty(resource, resource, setResource, rtObjectRef);
 
   pxImageA(pxScene2d* scene);
-
-  virtual void onInit() 
-  {
-    mw = mImageWidth;
-    mh = mImageHeight;
-  }
-
-  void sendPromise() {} // shortcircuit  TODO...not sure if I like this pattern
   
   rtError url(rtString& s) const;
   rtError setUrl(const char* s);
@@ -42,7 +33,11 @@ public:
   virtual void update(double t);
   virtual void draw();
   
-private:
+protected:
+  virtual void onInit();
+
+  void sendPromise() {} // shortcircuit  TODO...not sure if I like this pattern
+
   static void onDownloadComplete(pxFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
   
