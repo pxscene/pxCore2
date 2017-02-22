@@ -1054,7 +1054,7 @@ void pxTimedOffscreenSequence::addBuffer(pxBuffer &b, double d)
 #include <string.h>
 #include "png.h"
 
-#define PNG_APNG_SUPPORTED
+//#define PNG_APNG_SUPPORTED
 
 #ifdef PNG_APNG_SUPPORTED
 void BlendOver(unsigned char **rows_dst, unsigned char **rows_src, unsigned int x, unsigned int y, unsigned int w, unsigned int h)
@@ -1168,13 +1168,14 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
       png_uint_32 y0 = 0;
       png_uint_32 w0 = width;
       png_uint_32 h0 = height;
-#ifdef PNG_APNG_SUPPORTED
+      unsigned int first = 0;
       png_uint_32 plays = 0;
       unsigned short delay_num = 1;
       unsigned short delay_den = 10;
       unsigned char dop = 0;
       unsigned char bop = 0;
-      unsigned int first = (png_get_first_frame_is_hidden(png_ptr, info_ptr) != 0) ? 1 : 0;
+#ifdef PNG_APNG_SUPPORTED
+      first = (png_get_first_frame_is_hidden(png_ptr, info_ptr) != 0) ? 1 : 0;
       if (png_get_valid(png_ptr, info_ptr, PNG_INFO_acTL))
         png_get_acTL(png_ptr, info_ptr, &frames, &plays);
 

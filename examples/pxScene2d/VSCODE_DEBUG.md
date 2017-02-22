@@ -2,7 +2,7 @@
 
 
 
-# pxScene debugging with Visual Studio Code
+# pxScene javascript debugging with Visual Studio Code
 
 
 
@@ -40,7 +40,7 @@
       "env" : {
       "LD_LIBRARY_PATH":"/Applications/pxscene.app/Contents/MacOS/lib",
       "DYLD_LIBRARY_PATH":"/Applications/pxscene.app/Contents/MacOS/lib"
-      //"BREAK_ON_SCRIPTSTART":1    
+      //,"BREAK_ON_SCRIPTSTART":1    
       }
     },
     {
@@ -51,10 +51,10 @@
       "runtimeExecutable": "/Applications/pxscene.app/Contents/MacOS/pxscene",
       "env" : {
       "LD_LIBRARY_PATH":"/Applications/pxscene.app/Contents/MacOS/lib",
-      "DYLD_LIBRARY_PATH":"/Applications/pxscene.app/Contents/MacOS/lib",
-      //"BREAK_ON_SCRIPTSTART":1      
+      "DYLD_LIBRARY_PATH":"/Applications/pxscene.app/Contents/MacOS/lib"
+      //,"BREAK_ON_SCRIPTSTART":1      
       }
-    },  
+    },   
     {
     "name": "Attach pxscene",
     "type": "node",
