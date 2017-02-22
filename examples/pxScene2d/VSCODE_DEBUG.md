@@ -16,6 +16,8 @@
 
 2.  In Visual Studio Code use file->open menu to open the local directory where your pxscene js code resides and select the file that you want to debug.
 
+> Note: Open the directory rather than just a single file; opening just a single file can cause issues in step #3.  
+
 
 
 3. Click on the debug icon in Visual Studio Code (along the left-hand side) and then click on the gear (top of the left-most panel) this should open a file called launch.json.  Replace the contents of launch.json with the code block below.
