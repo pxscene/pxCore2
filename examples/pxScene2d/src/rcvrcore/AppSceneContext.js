@@ -247,6 +247,8 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
 
       if (process._debugWaitConnect) {
         // Set breakpoint on module start
+        if (process.env.BREAK_ON_SCRIPTSTART != 1)
+          delete process._debugWaitConnect;
         const Debug = vm.runInDebugContext('Debug');
         Debug.setBreakPoint(moduleFunc, 0, 0);
       }
