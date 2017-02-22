@@ -20,6 +20,7 @@ public:
   //rtProperty(resource, resource, setResource, rtObjectRef);
 
   pxImageA(pxScene2d* scene);
+  virtual ~pxImageA();
   
   rtError url(rtString& s) const;
   rtError setUrl(const char* s);

@@ -17,6 +17,11 @@ pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), mStretchX(pxConstantsStr
   mPlays = 0;
 }
 
+pxImageA::~pxImageA()
+{
+  gUIThreadQueue.removeAllTasksForObject(this);
+}
+
 void pxImageA::onInit() 
 {
   mw = mImageWidth;
