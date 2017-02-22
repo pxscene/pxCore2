@@ -267,12 +267,6 @@ int pxMain(int argc, char* argv[])
 #ifdef ENABLE_DEBUG_MODE
   int urlIndex  = -1;
   bool isDebugging = false;
-  bool breakOnStartUp = false;
-  string debugString("");
-
-  char const* s = getenv("BREAK_ON_SCRIPTSTART");
-  if (s && (strcmp(s,"1")  == 0))
-    breakOnStartUp = true;
 
   g_argv = (char**)malloc((argc+2) * sizeof(char*));
   int size  = 0;
@@ -283,30 +277,8 @@ int pxMain(int argc, char* argv[])
       if (strstr(argv[i],"--debug"))
       {
         isDebugging = true;
-        if ((strstr(argv[i],"--debug-brk")) && (false == breakOnStartUp))
-        {
-          debugString.append("--debug");
-          if (strstr(argv[i],"=") != NULL)
-          {
-            char *subString =strtok(argv[i],"=");
-            subString =strtok(NULL,"=");
-            if (NULL != subString)
-            {
-              debugString.append("=");
-              debugString.append(subString);
-            }
-          }
-        }
-        else
-        {
-          debugString.append(argv[i]);
-        }
-        size += debugString.length() + 1;
       }
-      else
-      {
-        size += strlen(argv[i])+1;
-      }
+      size += strlen(argv[i])+1;
     }
     else
     {
@@ -336,20 +308,10 @@ int pxMain(int argc, char* argv[])
   {
     if (strstr(argv[i],"--"))
     {
-      if (strstr(argv[i],"--debug"))
-      {
-        strcpy(nodeInput+curpos,debugString.c_str());
-        *(nodeInput+curpos+debugString.length()) = '\0';
-        g_argv[g_argc++] = &nodeInput[curpos];
-        curpos = curpos + debugString.length() + 1;
-      }
-      else
-      {
         strcpy(nodeInput+curpos,argv[i]);
         *(nodeInput+curpos+strlen(argv[i])) = '\0';
         g_argv[g_argc++] = &nodeInput[curpos];
         curpos = curpos + strlen(argv[i]) + 1;
-      }
     }
   }
   if (false == isDebugging)
