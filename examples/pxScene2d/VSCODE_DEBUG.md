@@ -16,7 +16,7 @@
 
 2.  In Visual Studio Code use file->open menu to open the local directory where your pxscene js code resides and select the file that you want to debug.
 
-> Note: Open the directory rather than just a single file; opening just a single file can cause issues in step #3.  
+> Note: Open the directory rather than just a single file; opening the directory will create a ./vscode subdirectory within your js directory, and this is needed for the debug configuration in step #3.  
 
 
 
