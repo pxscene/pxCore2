@@ -477,6 +477,12 @@ public:
   {
     return mCB(numArgs, args, result, mContext);
   }
+  
+  void clearContext()
+  {
+    mContext = NULL;
+  }
+  
 
 private:  
   rtFunctionCB mCB;

@@ -1051,10 +1051,15 @@ public:
     // Clear out these references since the script context
     // can outlive this view
 #ifdef ENABLE_RT_NODE
-    if(mCtx) {
+    if(mCtx) 
+    {
+      mGetScene->clearContext();
+      mMakeReady->clearContext();
+      mGetContextID->clearContext();
+                                   
+      // TODO Given that the context is being cleared we likely don't need to zero these out
       mCtx->add("getScene", 0);
       mCtx->add("makeReady", 0);
-
       mCtx->add("getContextID", 0);
     }
 #endif //ENABLE_RT_NODE
@@ -1062,6 +1067,7 @@ public:
     if (mView)
       setViewContainer(NULL);
 
+    // TODO JRJR Do we have GC tests yet
     // Hack to try and reduce leaks until garbage collection can
     // be cleaned up
     
@@ -1224,6 +1230,10 @@ protected:
   rtObjectRef mReady;
   rtObjectRef mScene;
   rtRefT<pxIView> mView;
+  rtRefT<rtFunctionCallback> mGetScene;
+  rtRefT<rtFunctionCallback> mMakeReady;
+  rtRefT<rtFunctionCallback> mGetContextID;
+
 #ifdef ENABLE_RT_NODE
   rtNodeContextRef mCtx;
 #endif //ENABLE_RT_NODE

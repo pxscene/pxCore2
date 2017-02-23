@@ -2456,10 +2456,13 @@ void pxScriptView::runScript()
 
   if (mCtx)
   {
-    mCtx->add("getScene",  new rtFunctionCallback(getScene,  this));
-    mCtx->add("makeReady", new rtFunctionCallback(makeReady, this));
+    mGetScene = new rtFunctionCallback(getScene,  this);
+    mMakeReady = new rtFunctionCallback(makeReady, this);
+    mGetContextID = new rtFunctionCallback(getContextID, this);
 
-    mCtx->add("getContextID", new rtFunctionCallback(getContextID, this));
+    mCtx->add("getScene", mGetScene.getPtr());
+    mCtx->add("makeReady", mMakeReady.getPtr());
+    mCtx->add("getContextID", mGetContextID.getPtr());
 
 #ifdef RUNINMAIN
     mReady = new rtPromise();
@@ -2541,11 +2544,8 @@ rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* re
   }
 #endif //ENABLE_RT_NODE
 
-  rtLogError("############# printContextID() >> ctx: BAD !!\n");  fflush(stdout); // JUNK
-
   return RT_FAIL;
 }
-
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {
