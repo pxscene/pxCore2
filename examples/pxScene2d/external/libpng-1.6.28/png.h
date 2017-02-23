@@ -359,9 +359,17 @@
 #   include "pnglibconf.h"
 #endif
 
+#ifndef PNG_APNG_SUPPORTED
 #define PNG_APNG_SUPPORTED
+#endif
+
+#ifndef PNG_READ_APNG_SUPPORTED
 #define PNG_READ_APNG_SUPPORTED
+#endif
+
+#ifndef PNG_WRITE_APNG_SUPPORTED
 #define PNG_WRITE_APNG_SUPPORTED
+#endif
 
 #ifndef PNG_VERSION_INFO_ONLY
 /* Machine specific configuration. */
