@@ -188,7 +188,7 @@ public:
 
   ~pxFBOTexture() { deleteTexture(); }
 
-  void createTexture(int w, int h)
+  void createFboTexture(int w, int h)
   {
     if (mFramebufferId != 0 && mTextureId != 0)
     {
@@ -219,7 +219,7 @@ public:
     if (mWidth != w || mHeight != h ||
         mFramebufferId == 0 || mTextureId == 0)
     {
-      createTexture(w, h);
+      createFboTexture(w, h);
       return PX_OK;
     }
 
@@ -801,7 +801,7 @@ public:
     deleteTexture();
   }
 
-  void createTexture(float w, float h, float iw, float ih)
+  void createAlphaTexture(float w, float h, float iw, float ih)
   {
     if (mTextureId != 0)
     {
@@ -810,7 +810,7 @@ public:
 
     if(iw == 0 || ih == 0)
     {
-      rtLogError("pxTextureAlpha::createTexture() - DIMENSIONLESS ");
+      rtLogError("pxTextureAlpha::createAlphaTexture() - DIMENSIONLESS ");
       return; // DIMENSIONLESS
     }
 
@@ -859,7 +859,7 @@ public:
   virtual pxError bindGLTexture(int tLoc)
   {
     // TODO Moved to here because of js threading issues
-    if (!mInitialized) createTexture(mDrawWidth,mDrawHeight,mImageWidth,mImageHeight);
+    if (!mInitialized) createAlphaTexture(mDrawWidth,mDrawHeight,mImageWidth,mImageHeight);
     if (!mInitialized)
     {
       return PX_NOTINITIALIZED;
@@ -1741,7 +1741,7 @@ pxContextFramebufferRef pxContext::createFramebuffer(int width, int height)
   pxContextFramebuffer* fbo = new pxContextFramebuffer();
   pxFBOTexture* texture = new pxFBOTexture();
 
-  texture->createTexture(width, height);
+  texture->createFboTexture(width, height);
 
   fbo->setTexture(texture);
 
@@ -2130,7 +2130,11 @@ void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
   mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
 }
 
+#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
 bool pxContext::isTextureSpaceAvailable(pxTextureRef texture)
+#else
+bool pxContext::isTextureSpaceAvailable(pxTextureRef)
+#endif
 {
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   int textureSize = (texture->width()*texture->height()*4);
