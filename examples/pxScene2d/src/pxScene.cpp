@@ -40,8 +40,6 @@ vector<AsyncScriptInfo*> scriptsInfo;
 static uv_work_t nodeLoopReq;
 #endif
 
-//class rtPromise; //fwd
-
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
 
