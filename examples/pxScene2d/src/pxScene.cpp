@@ -40,7 +40,7 @@ vector<AsyncScriptInfo*> scriptsInfo;
 static uv_work_t nodeLoopReq;
 #endif
 
-class rtPromise; //fwd
+//class rtPromise; //fwd
 
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
@@ -88,7 +88,7 @@ public:
     {
       ENTERSCENELOCK()
       v->setViewContainer(this);
-      onSize(mWidth, mHeight);
+      v->onSize(mWidth, mHeight);
       EXITSCENELOCK()
     }
     
@@ -104,7 +104,7 @@ protected:
 
   virtual void onSize(int32_t w, int32_t h)
   {
-//    if (mWidth != w || mHeight != h)
+    if (mWidth != w || mHeight != h)
     {
       mWidth  = w;
       mHeight = h;
