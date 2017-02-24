@@ -28,7 +28,7 @@ clean:
 	rm -f pxscene
 	rm -rf pxscene.app
 
-ifeq ($(HNAME_S),raspberrypi )
+ifeq ($(HNAME_S),raspberrypi)
 PX_PLATFORM=PX_PLATFORM_GENERIC_EGL
 PXLIBS=$(PXCOREDIR)/build/egl
 TARGETINCLUDE= -I/opt/vc/include \
@@ -125,9 +125,16 @@ NODEDIR=$(EXTDIR)/libnode-v6.9.0
 NODE_V_6_9_DEFINES=-DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1
 PLATFORM_DEFINES=-DENABLE_DEBUG_MODE -DENABLE_LIBJPEG_TURBO -DPNG_APNG_SUPPORTED
 else
+ifeq ($(HNAME_S),raspberrypi)
+NODEINC=$(EXTDIR)/libnode-v6.9.0
+NODEDIR=$(EXTDIR)/libnode-v6.9.0
+NODE_V_6_9_DEFINES=-DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1
+PLATFORM_DEFINES=-DENABLE_DEBUG_MODE -DPNG_APNG_SUPPORTED
+else
 NODEINC=$(EXTDIR)/libnode
 NODEDIR=$(EXTDIR)/libnode
 PLATFORM_DEFINES=
+endif
 endif
 endif
 
@@ -151,12 +158,12 @@ SEARCH=\
   -I$(NODEINC)/deps/cares/include \
   -I$(EXTDIR)/westeros/external/install/include \
   -I$(EXTDIR)/westeros-stub \
-  -I$(EXTDIR)/libjpeg-turbo 
+  -I$(EXTDIR)/libjpeg-turbo \
    $(TARGETINCLUDE)
 
 
 #CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE
-CXXFLAGS2=-fPIC -Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE $(NODE_V_6_9_DEFINES) $(PLATFORM_DEFINES) 
+CXXFLAGS2=-fPIC -Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE $(NODE_V_6_9_DEFINES) $(PLATFORM_DEFINES)
 
 ifdef PXVERSION
 CXXFLAGS=$(CXXFLAGS2) -DPX_SCENE_VERSION=$(PXVERSION)
@@ -194,13 +201,19 @@ ifeq ($(HAVE_WESTEROS),1)
 LDEXT += $(LDWESTEROS)
 endif
 ifeq ($(UNAME_S),Linux)
+ifneq ($(HNAME_S),raspberrypi)
 LDEXT += -lX11 $(LDLIBJPEGTURBO)
+endif
 endif
 
 ifeq ($(UNAME_S),Darwin)
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore $(LDEXT) -ldl -lv8_libplatform -framework OpenGL -framework Cocoa -framework Foundation
 else
-LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -lrtCore_s -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform 
+ifeq ($(HNAME_S),raspberrypi)
+LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -lrtCore_s -pthread -L/opt/vc/lib/ -lbcm_host -lEGL -lGLESv2 $(LDEXT) -ldl -lrt -lv8_libplatform 
+else
+LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -lrtCore_s -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform
+endif
 endif
 
 PLATFORM_LIBS = -lnexus -lnxclient 
