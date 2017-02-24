@@ -4,12 +4,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <curl/curl.h>
+#include <vector>
 #include "rtString.h"
 #include "rtCore.h"
 #ifdef ENABLE_HTTP_CACHE
 #include <pxFileCache.h>
 #endif
-using namespace std;
 
 class pxFileDownloadRequest
 {
@@ -18,7 +19,7 @@ public:
       : mFileUrl(imageUrl), mProxyServer(),
     mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL),
     mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
-    mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false)
+    mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false), mDownloadHandleExpiresTime(-2)
 #ifdef ENABLE_HTTP_CACHE
     , mCacheEnabled(true)
 #endif
@@ -177,6 +178,16 @@ public:
     return mHeaderOnly;
   }
 
+  void setDownloadHandleExpiresTime(int timeInSeconds)
+  {
+    mDownloadHandleExpiresTime = timeInSeconds;
+  }
+
+  int downloadHandleExpiresTime()
+  {
+    return mDownloadHandleExpiresTime;
+  }
+
 #ifdef ENABLE_HTTP_CACHE
   /* Function used to enable or disable using file cache */
   void setCacheEnabled(bool val)
@@ -204,9 +215,18 @@ private:
   size_t mHeaderDataSize;
   vector<rtString> mAdditionalHttpHeaders;
   bool mHeaderOnly;
+  int mDownloadHandleExpiresTime;
 #ifdef ENABLE_HTTP_CACHE
   bool mCacheEnabled;
 #endif
+};
+
+struct pxFileDownloadHandle
+{
+  pxFileDownloadHandle(CURL* handle) : curlHandle(handle), expiresTime(-1) {}
+  pxFileDownloadHandle(CURL* handle, int time) : curlHandle(handle), expiresTime(time) {}
+  CURL* curlHandle;
+  int expiresTime;
 };
 
 class pxFileDownloader
@@ -223,6 +243,7 @@ public:
     void downloadFile(pxFileDownloadRequest* downloadRequest);
     void setDefaultCallbackFunction(void (*callbackFunction)(pxFileDownloadRequest*));
     bool downloadFromNetwork(pxFileDownloadRequest* downloadRequest);
+    void checkForExpiredHandles();
 
 private:
     pxFileDownloader();
@@ -235,12 +256,16 @@ private:
 #ifdef ENABLE_HTTP_CACHE
     bool checkAndDownloadFromCache(pxFileDownloadRequest* downloadRequest,rtHttpCacheData& cachedData);
 #endif
+    CURL* getDownloadHandle();
+    void releaseDownloadHandle(CURL* curlHandle, int expiresTime);
     //todo: hash mPendingDownloadRequests;
     //todo: string list mPendingDownloadOrderList;
     //todo: list mActiveDownloads;
     unsigned int mNumberOfCurrentDownloads;
     //todo: hash m_priorityDownloads;
     void (*mDefaultCallbackFunction)(pxFileDownloadRequest*);
+    std::vector<pxFileDownloadHandle> mDownloadHandles;
+    bool mReuseDownloadHandles;
     
     static pxFileDownloader* mInstance;
 };
