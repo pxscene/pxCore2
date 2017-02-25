@@ -19,25 +19,27 @@
 // Abstract Binary Interface(ABI)
 // suitable for providing stable inter-module contracts
 
-class rtIObject {
- public:
-  typedef unsigned long refcount_t;
+// Pure Virtual
+class rtIObject 
+{
+  public:
+    typedef unsigned long refcount_t;
 
-  virtual ~rtIObject() { }
-  virtual unsigned long AddRef() = 0;
-  virtual unsigned long Release() = 0;
-  virtual rtError Get(const char* name, rtValue* value) const = 0;
-  virtual rtError Get(uint32_t i, rtValue* value) const = 0;
-  virtual rtError Set(const char* name, const rtValue* value) = 0;
-  virtual rtError Set(uint32_t i, const rtValue* value) = 0;
+    virtual unsigned long AddRef() = 0;
+    virtual unsigned long Release() = 0;
+    virtual rtError Get(const char* name, rtValue* value) const = 0;
+    virtual rtError Get(uint32_t i, rtValue* value) const = 0;
+    virtual rtError Set(const char* name, const rtValue* value) = 0;
+    virtual rtError Set(uint32_t i, const rtValue* value) = 0;
 };
 
-class rtIFunction {
- public:
-  virtual ~rtIFunction() { }
-  virtual unsigned long AddRef() = 0;
-  virtual unsigned long Release() = 0;
-  virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
+// Pure Virtual
+class rtIFunction 
+{
+  public:
+    virtual unsigned long AddRef()=0;
+    virtual unsigned long Release()=0;
+    virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
 };
 
 class rtObjectRef;
@@ -46,7 +48,6 @@ class rtObjectRef;
 class rtObjectBase
 {
 public:
-  virtual ~rtObjectBase() { }
 
   template<typename T>
     rtError get(const char* name, T& value) const;
@@ -57,15 +58,14 @@ public:
   template<typename T>
     T get(uint32_t i) const;
 
+  // Enumerate the properties of o and set them on this object
   void set(rtObjectRef o);
 
-  finline rtError set(const char* name, const rtValue& value) {
-    return Set(name, &value);
-  }
-
-  finline rtError set(uint32_t i, const rtValue& value) {
-    return Set(i, &value);
-  }
+  finline rtError set(const char* name, const rtValue& value) 
+    {return Set(name, &value);}
+  // For array-like properties
+  finline rtError set(uint32_t i, const rtValue& value) 
+    {return Set(i, &value);}
 
   // convenience methods
   rtError send(const char* messageName);
@@ -116,6 +116,22 @@ public:
     rtError sendReturns(const char* messageName, const rtValue& arg1, 
 			const rtValue& arg2, const rtValue& arg3, 
 			const rtValue& arg4, T& result);
+  template <typename T> 
+    rtError sendReturns(const char* messageName, const rtValue& arg1, 
+			const rtValue& arg2, const rtValue& arg3, 
+			const rtValue& arg4, const rtValue& arg5,
+      T& result);
+  template <typename T> 
+    rtError sendReturns(const char* messageName, const rtValue& arg1, 
+			const rtValue& arg2, const rtValue& arg3, 
+			const rtValue& arg4, const rtValue& arg5,
+      const rtValue& arg6, T& result);
+  template <typename T> 
+    rtError sendReturns(const char* messageName, const rtValue& arg1, 
+			const rtValue& arg2, const rtValue& arg3, 
+			const rtValue& arg4, const rtValue& arg5,
+      const rtValue& arg6, const rtValue& arg7,
+      T& result);
 
   // General case
   virtual rtError Send(const char* messageName, int numArgs, const rtValue* args);
@@ -134,7 +150,6 @@ public:
 class rtFunctionBase
 {
 public:
-  virtual ~rtFunctionBase() { }
   rtError send();
   rtError send(const rtValue& arg1);
   rtError send(const rtValue& arg1, const rtValue& arg2);
@@ -167,17 +182,26 @@ public:
     rtError sendReturns(const rtValue& arg1, const rtValue& arg2, 
 			const rtValue& arg3, const rtValue& arg4, 
 			T& result);
-
+  template <typename T> 
+    rtError sendReturns(const rtValue& arg1, const rtValue& arg2, 
+			const rtValue& arg3, const rtValue& arg4, 
+			const rtValue& arg5, T& result);
+  template <typename T> 
+    rtError sendReturns(const rtValue& arg1, const rtValue& arg2, 
+			const rtValue& arg3, const rtValue& arg4, 
+			const rtValue& arg5, const rtValue& arg6, 
+      T& result);
+  template <typename T> 
+    rtError sendReturns(const rtValue& arg1, const rtValue& arg2, 
+			const rtValue& arg3, const rtValue& arg4, 
+			const rtValue& arg5, const rtValue& arg6,
+      const rtValue& arg7, T& result);            
   finline rtError Send(int numArgs, const rtValue* args) 
-  {
-    return Send(numArgs, args, NULL);
-  }
+    {return Send(numArgs, args, NULL);}
 
   finline rtError SendReturns(int numArgs, const rtValue* args, 
                               rtValue& result) 
-  {
-    return Send(numArgs, args, &result);
-  }
+    {return Send(numArgs, args, &result);}
 
  private:
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
@@ -187,11 +211,11 @@ class rtObjectRef: public rtRef<rtIObject>, public rtObjectBase
 {
  public:
   rtObjectRef() {}
-  rtObjectRef(const rtIObject* o) { asn(o); }
+  rtObjectRef(const rtIObject* o) {asn(o);}
 
   // operator= is not inherited
-  rtObjectRef& operator=(rtIObject* o) { asn(o); return *this; }
-  virtual ~rtObjectRef() { }
+  rtObjectRef& operator=(rtIObject* o) {asn(o);return *this;}
+  virtual ~rtObjectRef() {}
 
  private:
   virtual rtError Get(const char* name, rtValue* value) const;
@@ -384,6 +408,49 @@ rtError rtObjectBase::sendReturns(const char* messageName, const rtValue& arg1,
 }
 
 template <typename T> 
+rtError rtObjectBase::sendReturns(const char* messageName, const rtValue& arg1, 
+				  const rtValue& arg2, const rtValue& arg3, 
+				  const rtValue& arg4, const rtValue& arg5,
+          T& result)
+{
+  rtValue args[] = {arg1, arg2, arg3, arg4, arg5};
+  rtValue resultValue;
+  rtError e = SendReturns(messageName, 5, args, resultValue);
+  if (e == RT_OK) 
+    result = resultValue.convert<T>();
+  return e;
+}
+
+template <typename T> 
+rtError rtObjectBase::sendReturns(const char* messageName, const rtValue& arg1, 
+				  const rtValue& arg2, const rtValue& arg3, 
+				  const rtValue& arg4, const rtValue& arg5,
+          const rtValue& arg6, T& result)
+{
+  rtValue args[] = {arg1, arg2, arg3, arg4, arg5, arg6};
+  rtValue resultValue;
+  rtError e = SendReturns(messageName, 6, args, resultValue);
+  if (e == RT_OK) 
+    result = resultValue.convert<T>();
+  return e;
+}
+
+template <typename T> 
+rtError rtObjectBase::sendReturns(const char* messageName, const rtValue& arg1, 
+				  const rtValue& arg2, const rtValue& arg3, 
+				  const rtValue& arg4, const rtValue& arg5,
+          const rtValue& arg6, const rtValue& arg7,
+          T& result)
+{
+  rtValue args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7};
+  rtValue resultValue;
+  rtError e = SendReturns(messageName, 7, args, resultValue);
+  if (e == RT_OK) 
+    result = resultValue.convert<T>();
+  return e;
+}
+
+template <typename T> 
 rtError rtFunctionBase::sendReturns(T& result)
 {
   rtValue resultValue;
@@ -441,6 +508,46 @@ rtError rtFunctionBase::sendReturns(const rtValue& arg1, const rtValue& arg2,
   return e;
 }
 
+template <typename T> 
+rtError rtFunctionBase::sendReturns(const rtValue& arg1, const rtValue& arg2, 
+				    const rtValue& arg3, const rtValue& arg4, 
+				    const rtValue& arg5, T& result)
+{
+  rtValue args[] = {arg1, arg2, arg3, arg4, arg5};
+  rtValue resultValue;
+  rtError e = SendReturns(5, args, resultValue);
+  if (e == RT_OK) 
+    result = resultValue.convert<T>();
+  return e;
+}
+
+template <typename T> 
+rtError rtFunctionBase::sendReturns(const rtValue& arg1, const rtValue& arg2, 
+				    const rtValue& arg3, const rtValue& arg4, 
+				    const rtValue& arg5, const rtValue& arg6,
+            T& result)
+{
+  rtValue args[] = {arg1, arg2, arg3, arg4, arg5, arg6};
+  rtValue resultValue;
+  rtError e = SendReturns(6, args, resultValue);
+  if (e == RT_OK) 
+    result = resultValue.convert<T>();
+  return e;
+}
+
+template <typename T> 
+rtError rtFunctionBase::sendReturns(const rtValue& arg1, const rtValue& arg2, 
+				    const rtValue& arg3, const rtValue& arg4, 
+				    const rtValue& arg5, const rtValue& arg6,
+            const rtValue& arg7, T& result)
+{
+  rtValue args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7};
+  rtValue resultValue;
+  rtError e = SendReturns(7, args, resultValue);
+  if (e == RT_OK) 
+    result = resultValue.convert<T>();
+  return e;
+}
 
 typedef rtError (*rtFunctionCB)(int numArgs, const rtValue* args, rtValue* result, void* context);
 
@@ -490,12 +597,7 @@ private:
   rtAtomic mRefCount;
 };
 
-struct _rtEmitEntry 
-{
-  rtString n;
-  rtFunctionRef f;
-  bool isProp;
-};
+
 
 class rtEmit: public rtIFunction 
 {
@@ -513,9 +615,16 @@ public:
 
   rtError clearListeners() {mEntries.clear(); return RT_OK;}
 
-public:
   virtual rtError Send(int numArgs,const rtValue* args,rtValue* result);
-    
+
+protected:
+  struct _rtEmitEntry 
+  {
+    rtString n;
+    rtFunctionRef f;
+    bool isProp;
+  };
+  
   std::vector<_rtEmitEntry> mEntries;
   rtAtomic mRefCount;
 };
