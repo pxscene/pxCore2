@@ -2415,19 +2415,19 @@ static void ReportSurfaceInfo(char* desc, IDirectFBSurface* surf)
      DFBSurfacePixelFormat   fmt = 0;
      DFBSurfaceCapabilities caps = 0;
 
-     printf("\n-------------------------------------------------------------\n");
-     printf("Surface info for '%s': %p\n", desc ? desc:"(no name)", surf);
+     rtLogWarn("\n-------------------------------------------------------------\n");
+     rtLogWarn("Surface info for '%s': %p\n", desc ? desc:"(no name)", surf);
 
      surf->GetSize(surf, &w, &h);
-     printf("  WxH: %d x %d\n", w, h);
+     rtLogWarn("  WxH: %d x %d\n", w, h);
 
      surf->GetPixelFormat(surf, &fmt);
-     printf("  fmt: %d (0x%x) = %s\n", fmt, fmt, pix2str(fmt) );
+     rtLogWarn("  fmt: %d (0x%x) = %s\n", fmt, fmt, pix2str(fmt) );
 
      surf->GetCapabilities(surf, &caps);
-     printf(" caps: %d (0x%x) = %s\n", caps, caps, caps2str(caps) );
+     rtLogWarn(" caps: %d (0x%x) = %s\n", caps, caps, caps2str(caps) );
 
-     printf("\n");
+     rtLogWarn("\n");
 }
 
 //====================================================================================================================================================================================
@@ -2556,7 +2556,7 @@ static std::string DFBAccelerationMask2str(DFBAccelerationMask m)
 
 static void DFBAccelerationTest(IDirectFBSurface  *dst, IDirectFBSurface  *src)
 {
-  printf("\n #############  Enter DFBAccelerationTest()\n"); fflush(stdout);
+  rtLogDebug("\n #############  Enter DFBAccelerationTest()\n"); fflush(stdout);
 
   // DFBAccelerationMask ... see directfb.h
 
@@ -2571,15 +2571,15 @@ static void DFBAccelerationTest(IDirectFBSurface  *dst, IDirectFBSurface  *src)
   int k = 0;
   do
   {
-    printf("\n ## HW:   %20s - %6s ... H/W Accelerated",
+    rtLogDebug("\n ## HW:   %20s - %6s ... H/W Accelerated",
         DFBAccelerationMask2str(keys[k]).c_str(),
         ((mask & keys[k]) == keys[k]) ? "IS" : "IS NOT");
   }
   while(keys[k++] != DFXL_ALL_BLIT);
 
-  printf("\n\n");
+  rtLogDebug("\n\n");
 
-  printf("\n #############  Exit DFBAccelerationTest()\n"); fflush(stdout);
+  rtLogDebug("\n #############  Exit DFBAccelerationTest()\n"); fflush(stdout);
 }
 #endif
 

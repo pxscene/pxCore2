@@ -66,13 +66,13 @@ public:
     setView( new pxScriptView(buffer,"javascript/node/v8"));
 #else
     pxScriptView * scriptView = new pxScriptView(buffer, "javascript/node/v8");
-    printf("new scriptView is %x\n",scriptView);
+    rtLogInfo("new scriptView is %x\n",scriptView);
     AsyncScriptInfo * info = new AsyncScriptInfo();
     info->m_pView = scriptView;
     uv_mutex_lock(&moreScriptsMutex);
     scriptsInfo.push_back(info);
     uv_mutex_unlock(&moreScriptsMutex);
-    printf("sceneWindow::script is pushed on vector\n");
+    rtLogDebug("sceneWindow::script is pushed on vector\n");
     uv_async_send(&asyncNewScript);
     setView(scriptView);
 #endif
@@ -243,10 +243,10 @@ EXITSCENELOCK()
 int pxMain(int argc, char* argv[])
 {
 #ifndef RUNINMAIN
-  printf("Setting  __rt_main_thread__ to be %x\n",pthread_self());
+  rtLogWarn("Setting  __rt_main_thread__ to be %x\n",pthread_self());
    __rt_main_thread__ = pthread_self(); //  NB
-  printf("Now  __rt_main_thread__ is %x\n",__rt_main_thread__);
-  printf("rtIsMainThread() returns %d\n",rtIsMainThread());
+  rtLogWarn("Now  __rt_main_thread__ is %x\n",__rt_main_thread__);
+  rtLogWarn("rtIsMainThread() returns %d\n",rtIsMainThread());
 
     #if PX_PLATFORM_X11
     XInitThreads();

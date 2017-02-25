@@ -31,7 +31,7 @@ public:
 
   ~pxTransformData()
   {
-    printf("In ~pxTransformData\n");
+    //rtLogDebug("In ~pxTransformData\n");
 #if 0
     if (mRegData)
       free(mRegData);

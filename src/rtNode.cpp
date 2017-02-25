@@ -187,7 +187,7 @@ void rtNodeContext::createEnvironment()
   // Start debug agent when argv has --debug
   if (use_debug_agent)
   {
-    printf("use_debug_agent\n");
+    rtLogWarn("use_debug_agent\n");
     StartDebug(mEnv, NULL, debug_wait_connect);
   }
 #endif
@@ -199,7 +199,7 @@ void rtNodeContext::createEnvironment()
 #ifdef ENABLE_DEBUG_MODE
   if (use_debug_agent)
   {
-    printf("use_debug_agent\n");
+    rtLogWarn("use_debug_agent\n");
     EnableDebug(mEnv);
   }
 #endif
@@ -254,7 +254,7 @@ void rtNodeContext::createEnvironment()
   // Start debug agent when argv has --debug
   if (use_debug_agent)
   {
-    printf("use_debug_agent\n");
+    rtLogWarn("use_debug_agent\n");
     StartDebug(mEnv, debug_wait_connect);
   }
 
@@ -495,7 +495,7 @@ bool rtNodeContext::has(const char *name)
 
   if (try_catch.HasCaught())
   {
-     printf("\n ## has() - HasCaught()  ... ERROR");
+     rtLogError("\n ## has() - HasCaught()  ... ERROR");
      return false;
   }
 
@@ -513,7 +513,7 @@ bool rtNodeContext::find(const char *name)
   {
     rtNodeContextRef ctx = it->second;
      
-    printf("\n ######## CONTEXT !!! ID: %d  %s  '%s'",
+    rtLogWarn("\n ######## CONTEXT !!! ID: %d  %s  '%s'",
       ctx->getContextId(), 
       (ctx->has(name) ? "*HAS*" : "does NOT have"),
       name);
@@ -521,7 +521,7 @@ bool rtNodeContext::find(const char *name)
     it++;
   }
   
-  printf("\n ");
+  rtLogWarn("\n ");
 
   return false;
 }
@@ -585,7 +585,7 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char* /* a
     String::Utf8Value utf8(result);
 
     // TODO: 
-    // printf("\n retVal \"%s\" = %s\n\n",script.c_str(), *result);
+    // rtLogDebug("\n retVal \"%s\" = %s\n\n",script.c_str(), *result);
     //  rtString foo ( (char *) *utf8);
     //  return rtObjectRef( new rtValue( rtString( (char *) *utf8) ) );
     
@@ -673,7 +673,7 @@ void rtNode::initializeNode()
   static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
 #else
-  printf("v8 old heap space configured to 64mb\n");
+  rtLogWarn("v8 old heap space configured to 64mb\n");
   static const char *args2   = "rtNode\0--expose-gc\0--max_old_space_size=64\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[43], &args2[46], NULL};
 #endif // ENABLE_NODE_V_6_9
@@ -704,7 +704,7 @@ void rtNode::initializeNode()
 
 
 #ifdef ENABLE_NODE_V_6_9
-  printf("rtNode::rtNode() calling init \n");
+  rtLogWarn("rtNode::rtNode() calling init \n");
 #ifdef ENABLE_DEBUG_MODE
   init();
 #else
@@ -798,7 +798,7 @@ void rtNode::nodePath()
 #ifndef RUNINMAIN
 bool rtNode::isInitialized() 
 {
-  //printf("rtNode::isInitialized returning %d\n",node_is_initialized);
+  //rtLogDebug("rtNode::isInitialized returning %d\n",node_is_initialized);
   return node_is_initialized;
 }
 #endif
@@ -824,7 +824,7 @@ void rtNode::init(int argc, char** argv)
 
   if(node_is_initialized == false)
   {
-    printf("About to Init\n");
+    rtLogWarn("About to Init\n");
 #ifdef ENABLE_DEBUG_MODE
     Init(&g_argc, const_cast<const char**>(g_argv), &exec_argc, &exec_argv);
 #else
@@ -835,7 +835,7 @@ void rtNode::init(int argc, char** argv)
 //    V8::InitializePlatform(mPlatform);
 
 #ifdef ENABLE_NODE_V_6_9
-   printf("using node version 6.9\n");
+   rtLogWarn("using node version 6.9\n");
    V8::InitializeICU();
 #ifdef ENABLE_DEBUG_MODE
    V8::InitializeExternalStartupData(g_argv[0]);
@@ -856,7 +856,7 @@ void rtNode::init(int argc, char** argv)
 #else
     V8::Initialize();
 #endif // ENABLE_NODE_V_6_9
-    printf("rtNode::init() node_is_initialized=%d\n",node_is_initialized);
+    rtLogWarn("rtNode::init() node_is_initialized=%d\n",node_is_initialized);
     node_is_initialized = true;
 
     Locker                locker(mIsolate);
@@ -866,7 +866,7 @@ void rtNode::init(int argc, char** argv)
     Local<Context> ctx = Context::New(mIsolate);
     ctx->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, 99));
     mContext.Reset(mIsolate, ctx);
-    printf("DONE in rtNode::init()\n");
+    rtLogWarn("DONE in rtNode::init()\n");
   }
 }
 
@@ -885,7 +885,7 @@ void rtNode::term()
   {
 // JRJRJR  Causing crash???  ask Hugh
 
-    printf("\n++++++++++++++++++ DISPOSE\n\n");
+    rtLogWarn("\n++++++++++++++++++ DISPOSE\n\n");
 
     node_isolate->Dispose();
     node_isolate = NULL;
@@ -961,7 +961,7 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
   }
   else
   {
-    // printf("\n createContext()  >>  CLONE CREATED !!!!!!");
+    // rtLogInfo("\n createContext()  >>  CLONE CREATED !!!!!!");
     ctxref = new rtNodeContext(mIsolate, mRefContext); // CLONE !!!
   }
 #else

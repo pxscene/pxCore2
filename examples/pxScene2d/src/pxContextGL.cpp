@@ -1855,7 +1855,7 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
   // TRANSPARENT / DIMENSIONLESS 
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
-   // printf("\n drawRect() - TRANSPARENT");
+   // rtLogDebug("\n drawRect() - TRANSPARENT");
     return;
   }
 

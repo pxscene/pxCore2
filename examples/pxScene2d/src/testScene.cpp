@@ -41,7 +41,7 @@ rtError onSizeCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* co
 
 rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void* context)
 {
-  printf("in keydowncb\n");
+  rtLogDebug("in keydowncb\n");
   if (context) 
   {
     pxScene2d* s = (pxScene2d*)context;
@@ -53,17 +53,17 @@ rtError onKeyDownCB(int numArgs, const rtValue* args, rtValue* /*result*/, void*
     {
       rtObjectRef e = args[0].toObject();
       uint32_t keyCode = e.get<uint32_t>("keyCode");
-      printf("received keyCode %d\n", keyCode);
+      rtLogDebug("received keyCode %d\n", keyCode);
       switch(keyCode) 
       {
         // '1'
       case PX_KEY_ONE:
-        printf("banana\n");
+        rtLogInfo("banana\n");
         picture.set("url", bananaUrl);
         break;
         // '2'
       case PX_KEY_TWO:
-        printf("ball\n");
+        rtLogInfo("ball\n");
         picture.set("url", ballUrl);
         break;
       default:
@@ -113,12 +113,12 @@ pxScene2dRef testScene()
   bg1.set("h", scene->h());
   bg1.set("id", "bg1");
 
-  printf("Try enumerating properties on image.\n");
+  rtLogDebug("Try enumerating properties on image.\n");
   rtObjectRef keys = bg1.get<rtObjectRef>("allKeys");
   uint32_t length = keys.get<uint32_t>("length");
   for (uint32_t i = 0; i < length; i++)
   {
-    printf("i: %d key: %s\n", i, keys.get<rtString>(i).cString());
+    rtLogDebug("i: %d key: %s\n", i, keys.get<rtString>(i).cString());
   }
 
   props = new rtMapObject();
@@ -173,7 +173,7 @@ pxScene2dRef testScene()
   picture.set("id","picture");
 
 #if 1
-  printf("Enumerate children of root object\n");
+  rtLogInfo("Enumerate children of root object\n");
   rtObjectRef c = root.get<rtObjectRef>("children");
   uint32_t l = c.get<uint32_t>("length");
 #if 1
@@ -182,7 +182,7 @@ pxScene2dRef testScene()
     rtObjectRef o = c.get<rtObjectRef>(i);
     rtString s;
     o.sendReturns<rtString>("description", s);
-    printf("class description: %s\n", s.cString());
+    rtLogInfo("class description: %s\n", s.cString());
   }
 #endif
 #endif

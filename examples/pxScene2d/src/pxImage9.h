@@ -29,8 +29,8 @@ public:
   rtError url(rtString& s) const;
   rtError setUrl(const char* s);
 
-  rtError resource(rtObjectRef& o) const { /*printf("!!!!!!!!!!!!!!!!!!!!pxImage9 getResource\n");*/o = mResource; return RT_OK; }
-  rtError setResource(rtObjectRef o) { /*printf("!!!!!!!!!!!!!!!!!!!!!!!pxImage9 setResource\n");*/mResource = o; return RT_OK; }
+  rtError resource(rtObjectRef& o) const { /*rtLogDebug("!!!!!!!!!!!!!!!!!!!!pxImage9 getResource\n");*/o = mResource; return RT_OK; }
+  rtError setResource(rtObjectRef o) { /*rtLogDebug("!!!!!!!!!!!!!!!!!!!!!!!pxImage9 setResource\n");*/mResource = o; return RT_OK; }
     
   rtError insetLeft(float& v) const { v = mInsetLeft; return RT_OK; }
   rtError setInsetLeft(float v) { mInsetLeft = v; return RT_OK; }

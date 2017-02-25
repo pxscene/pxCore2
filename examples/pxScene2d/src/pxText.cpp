@@ -46,7 +46,7 @@ void pxText::sendPromise()
 { 
   if(mInitialized && mFontLoaded && !((rtPromise*)mReady.getPtr())->status()) 
   {
-    //printf("pxText SENDPROMISE\n");
+    //rtLogDebug("pxText SENDPROMISE\n");
     mReady.send("resolve",this); 
   }
 }
@@ -171,7 +171,7 @@ void pxText::draw() {
 
 rtError pxText::setFontUrl(const char* s)
 {
-  //printf("pxText::setFaceUrl for %s\n",s);
+  //rtLogInfo("pxText::setFaceUrl for %s\n",s);
   if (!s || !s[0]) {
     s = defaultFont;
   }

@@ -135,8 +135,8 @@ public:
   rtNodeContextRef createContext(bool ownThread = false);
 #ifndef RUNINMAIN
   bool isInitialized();
-  bool needsToEnd() { /*printf("needsToEnd returning %d\n",mNeedsToEnd);*/ return mNeedsToEnd;};
-  void setNeedsToEnd(bool end) { /*printf("needsToEnd being set to %d\n",end);*/ mNeedsToEnd = end;}
+  bool needsToEnd() { /*rtLogDebug("needsToEnd returning %d\n",mNeedsToEnd);*/ return mNeedsToEnd;};
+  void setNeedsToEnd(bool end) { /*rtLogDebug("needsToEnd being set to %d\n",end);*/ mNeedsToEnd = end;}
 #endif
 
   v8::Isolate   *getIsolate() { return mIsolate; };

@@ -59,7 +59,7 @@ rtError pxImage9::setUrl(const char* s)
 
 void pxImage9::sendPromise() 
 { 
-  //printf("image9 init=%d imageLoaded=%d\n",mInitialized,imageLoaded);
+  //rtLogDebug("image9 init=%d imageLoaded=%d\n",mInitialized,imageLoaded);
   if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status()) 
   { 
     rtLogDebug("pxImage9 SENDPROMISE for %s\n", getImageResource()->getUrl().cString()); 
@@ -84,7 +84,7 @@ void pxImage9::draw() {
 
 void pxImage9::resourceReady(rtString readyResolution)
 {
-  //printf("pxImage9::resourceReady()\n");
+  //rtLogDebug("pxImage9::resourceReady()\n");
   if( !readyResolution.compare("resolve"))
   {
     imageLoaded = true; 

@@ -223,7 +223,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
     unsigned long c =  rtObject::Release();
     #if 0
     if (c == 0)
-      printf("pxObject %s  %ld: %s\n", (c==0)?" *********** Destroyed":"Released",c, d2.cString());
+      rtLogDebug("pxObject %s  %ld: %s\n", (c==0)?" *********** Destroyed":"Released",c, d2.cString());
     #endif
     return c;
   }
@@ -233,7 +233,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
 //    rtString d;
     // TODO... why is this bad
 //    sendReturns<rtString>("description",d);
-//    printf("**************** pxObject destroyed: %s\n",getMap()->className); 
+//    rtLogDebug("**************** pxObject destroyed: %s\n",getMap()->className); 
     pxObjectCount--;
     rtValue nullValue; 
     mReady.send("reject",nullValue); 
@@ -460,7 +460,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
     i.set("ry",0);
     i.set("rz",1);
 #endif //ANIMATION_ROTATE_XYZ
-    printf("before initTransform\n");
+    rtLogDebug("before initTransform\n");
     t->initTransform(i, 
       "x cx + y cy + translateXY "
 #ifdef ANIMATION_ROTATE_XYZ
@@ -471,7 +471,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
       "sx sy scaleXY "
       "cx -1 * cy -1 * translateXY "
       );
-    printf("after initTransform\n");
+    rtLogDebug("after initTransform\n");
     pxTransformData* d = t->newData();
     if (d)
     {
@@ -485,13 +485,13 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
       d->get("x", v);
       d->get("cx", v);
       
-      printf("Before applyMatrix\n");    
+      rtLogDebug("Before applyMatrix\n");    
       d->applyMatrix(m);
-      printf("After applyMatrix\n");    
+      rtLogDebug("After applyMatrix\n");    
      
 #endif 
       t->deleteData(d);
-      printf("After deleteData\n");
+      rtLogDebug("After deleteData\n");
     }
     else
       rtLogError("Could not allocate pxTransformData");
@@ -797,7 +797,7 @@ public:
     addListener("onChar", get<rtFunctionRef>("onChar"));
   }
 
-  virtual ~pxViewContainer() { /*printf("#################~pxViewContainer\n");*/}
+  virtual ~pxViewContainer() { /*rtLogDebug("#################~pxViewContainer\n");*/}
 
   rtError setView(pxIView* v)
   {
@@ -909,7 +909,7 @@ public:
   {
     if (mView)
     {
-      printf("pxViewContainer::onKeyDown enter\n");
+      rtLogDebug("pxViewContainer::onKeyDown enter\n");
       uint32_t keyCode = e.get<uint32_t>("keyCode");
       uint32_t flags = e.get<uint32_t>("flags");
       bool consumed = mView->onKeyDown(keyCode, flags);
@@ -994,12 +994,12 @@ public:
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
   pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){  pxSceneContainerCount++;}
-  virtual ~pxSceneContainer() {printf("###############~pxSceneContainer\n");pxSceneContainerCount--;}
+  virtual ~pxSceneContainer() {rtLogDebug("###############~pxSceneContainer\n");pxSceneContainerCount--;}
 
   virtual unsigned long Release()
   {
     unsigned long c = pxViewContainer::Release();
-//    printf("pxSceneContainer::Release(): %ld\n", c);
+//    rtLogDebug("pxSceneContainer::Release(): %ld\n", c);
     return c;
   }
 
@@ -1046,7 +1046,7 @@ public:
   virtual ~pxScriptView()
   {
     rtLogInfo(__FUNCTION__);
-    printf("~pxScriptView for mUrl=%s\n",mUrl.cString());
+    rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
     // Clear out these references since the script context
     // can outlive this view
 #ifdef ENABLE_RT_NODE
@@ -1089,7 +1089,7 @@ public:
   {
     //rtLogInfo(__FUNCTION__);
     long l = rtAtomicDec(&mRefCount);
-    //  printf("pxScene2d release %ld\n",l);
+    //  rtLogDebug("pxScene2d release %ld\n",l);
     if (l == 0)
       delete this;
     return l;
@@ -1130,7 +1130,7 @@ protected:
 
   virtual void onCloseRequest()
   {
-    printf("pxScriptView::onCloseRequest()\n");
+    rtLogDebug("pxScriptView::onCloseRequest()\n");
     mScene.send("dispose");
     mScene = NULL;
     mView = NULL;
@@ -1296,7 +1296,7 @@ public:
   pxScene2d(bool top = true);
   virtual ~pxScene2d() 
   {
-     printf("***** deleting pxScene2d\n");
+     rtLogDebug("***** deleting pxScene2d\n");
     if (mTestView != NULL)
     {
        //delete mTestView; // HACK: Only used in testing... 'delete' causes unknown crash.
@@ -1312,7 +1312,7 @@ public:
   virtual unsigned long Release() 
   {
     long l = rtAtomicDec(&mRefCount);
-    //  printf("pxScene2d release %ld\n",l);
+    //  rtLogDebug("pxScene2d release %ld\n",l);
     if (l == 0)
       delete this;
     return l;
@@ -1370,7 +1370,7 @@ public:
 #if 0
   rtError stopPropagation()
   {
-    printf("stopPropagation()\n");
+    rtLogDebug("stopPropagation()\n");
     mStopPropagation = true;
     return RT_OK;
   }

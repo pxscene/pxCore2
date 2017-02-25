@@ -40,8 +40,8 @@ void pxImage::onInit()
 {
   //rtLogDebug("pxImage::onInit() mUrl=%s\n",mUrl.cString());
   mInitialized = true;
-  //printf("pxImage::onInit for mUrl=\n");
-  //printf("%s\n",getImageResource()->getUrl().cString());
+  //rtLogDebug("pxImage::onInit for mUrl=\n");
+  //rtLogDebug("%s\n",getImageResource()->getUrl().cString());
   setUrl(getImageResource()->getUrl());
 }
 
@@ -50,7 +50,7 @@ void pxImage::onInit()
  * */
 rtError pxImage::setResource(rtObjectRef o) 
 { 
-  //printf("!!!!!!!!!!!!!!!!!!!!!pxImage setResource\n");
+  //rtLogDebug("!!!!!!!!!!!!!!!!!!!!!pxImage setResource\n");
   if(!o)
   { 
     setUrl("");
@@ -169,7 +169,7 @@ void pxImage::resourceReady(rtString readyResolution)
 {
   checkStretchX();
   checkStretchY();
-  //printf("pxImage::resourceReady(%s) mInitialized=%d for \"%s\"\n",readyResolution.cString(),mInitialized,getImageResource()->getUrl().cString());
+  //rtLogDebug("pxImage::resourceReady(%s) mInitialized=%d for \"%s\"\n",readyResolution.cString(),mInitialized,getImageResource()->getUrl().cString());
   if( !readyResolution.compare("resolve"))
   {
     imageLoaded = true; 

@@ -151,7 +151,7 @@ void pxFont::setPixelSize(uint32_t s)
 {
   if (mPixelSize != s && mInitialized)
   {
-    //printf("pxFont::setPixelSize size=%d mPixelSize=%d mInitialized=%d and mFace=%d\n", s,mPixelSize,mInitialized, mFace);
+    //rtLogDebug("pxFont::setPixelSize size=%d mPixelSize=%d mInitialized=%d and mFace=%d\n", s,mPixelSize,mInitialized, mFace);
     FT_Set_Pixel_Sizes(mFace, 0, s);
     mPixelSize = s;
   }
@@ -368,7 +368,7 @@ void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, floa
 */
 rtError pxFont::getFontMetrics(uint32_t pixelSize, rtObjectRef& o) 
 {
-  //printf("pxFont::getFontMetrics\n");  
+  //rtLogDebug("pxFont::getFontMetrics\n");  
 	float height, ascent, descent, naturalLeading;
 	pxTextMetrics* metrics = new pxTextMetrics();
 
@@ -408,7 +408,7 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
   
   float w, h;
   measureTextInternal(stringToMeasure, pixelSize, 1.0,1.0, w, h);
-  //printf("pxFont::measureText returned %f and %f for pixelSize=%d and text \"%s\"\n",w, h,pixelSize, stringToMeasure.cString());
+  //rtLogDebug("pxFont::measureText returned %f and %f for pixelSize=%d and text \"%s\"\n",w, h,pixelSize, stringToMeasure.cString());
   measure->setW(w);
   measure->setH(h);
   o = measure;
@@ -426,7 +426,7 @@ void pxFontManager::initFT()
 {
   if (init) 
   {
-    //printf("initFT returning; already inited\n");
+    //rtLogDebug("initFT returning; already inited\n");
     return;
   }
   init = true;

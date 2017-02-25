@@ -312,7 +312,7 @@ void pxObject::dispose()
  * false - for now, it will mean "set focus to my parent scene" */
 rtError pxObject::setFocus(bool v)
 {
-  printf("pxObject::setFocus v=%d\n",v);
+  rtLogDebug("pxObject::setFocus v=%d\n",v);
   if(v) {
     return mScene->setFocus(this);
   }
@@ -814,23 +814,23 @@ void pxObject::drawInternal(bool maskPass)
 
 #if 0
 
-  printf("drawInternal: %s\n", mId.cString());
+  rtLogDebug("drawInternal: %s\n", mId.cString());
   m.dump();
 
   pxVector4f v1(mx+w, my, 0, 1);
-  printf("Print vector top\n");
+  rtLogDebug("Print vector top\n");
   v1.dump();
 
   pxVector4f result1 = m.multiply(v1);
-  printf("Print vector top after\n");
+  rtLogDebug("Print vector top after\n");
   result1.dump();
 
   pxVector4f v2(mx+w, my+mh, 0, 1);
-  printf("Print vector bottom\n");
+  rtLogDebug("Print vector bottom\n");
   v2.dump();
 
   pxVector4f result2 = m.multiply(v2);
-  printf("Print vector bottom after\n");
+  rtLogDebug("Print vector bottom after\n");
   result2.dump();
 
 #endif
@@ -1606,7 +1606,7 @@ void pxScene2d::onUpdate(double t)
       // double draw_ms   = ( (double) sigma_draw     / (double) frameCount ) * 1000.0f; // Average frame  time
       // double update_ms = ( (double) sigma_update   / (double) frameCount ) * 1000.0f; // Average update time
 
-      // printf("%g fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g     draw_ms: %0.04g   update_ms: %0.04g\n",
+      // rtLogDebug("%g fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g     draw_ms: %0.04g   update_ms: %0.04g\n",
       //     fps, pxObjectCount, dpf, bpf, fpf, draw_ms, update_ms );
 
       rtLogDebug("%g fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g \n", fps, pxObjectCount, dpf, bpf, fpf);
@@ -1644,7 +1644,7 @@ void pxScene2d::onUpdate(double t)
 
 void pxScene2d::onDraw()
 {
-//  printf("**** drawing \n");
+//  rtLogDebug("**** drawing \n");
 
   if (mTop)
   {
@@ -1956,7 +1956,7 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRef<pxObject> t,
       t = t->parent();
     }
 
-//    printf("before %s bubble\n", preEvent);
+//    rtLogDebug("before %s bubble\n", preEvent);
     e.set("name", preEvent);
     for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != l.rend();++it)
     {
@@ -1967,9 +1967,9 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRef<pxObject> t,
       if (mStopPropagation)
         break;
     }
-//    printf("after %s bubble\n", preEvent);
+//    rtLogDebug("after %s bubble\n", preEvent);
 
-//    printf("before %s bubble\n", event);
+//    rtLogDebug("before %s bubble\n", event);
     e.set("name", event);
     for (vector<rtRef<pxObject> >::iterator it = l.begin();!mStopPropagation && it != l.end();++it)
     {
@@ -1980,14 +1980,14 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRef<pxObject> t,
       // JRJR... not convinced on this comment please discus with me first.
       if (emit)
         emit.sendReturns(event,e,stop);
-//      printf("mStopPropagation %d\n", mStopPropagation);
+//      rtLogDebug("mStopPropagation %d\n", mStopPropagation);
       if (mStopPropagation)
       {
-        printf("Event bubble aborted\n");
+        rtLogDebug("Event bubble aborted\n");
         break;
       }
     }
-//    printf("after %s bubble\n", event);
+//    rtLogDebug("after %s bubble\n", event);
     consumed = mStopPropagation;
     Release();
   }
@@ -2115,7 +2115,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
   if (mRoot->hitTestInternal(m, pt, hit))
   {
     rtString id = hit->get<rtString>("id");
-    printf("found object id: %s\n", id.isEmpty()?"none":id.cString());
+    rtLogDebug("found object id: %s\n", id.isEmpty()?"none":id.cString());
   }
 #endif
   return false;
@@ -2233,7 +2233,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 
 rtError pxScene2d::clipboardSet(rtString type, rtString clipString)
 {
-//    printf("\n ##########   clipboardSet()  >> %s ", type.cString() ); fflush(stdout);
+//    rtLogDebug("\n ##########   clipboardSet()  >> %s ", type.cString() ); fflush(stdout);
 
     pxClipboard::instance()->setString(type.cString(), clipString.cString());
 
@@ -2242,7 +2242,7 @@ rtError pxScene2d::clipboardSet(rtString type, rtString clipString)
 
 rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 {
-//    printf("\n ##########   clipboardGet()  >> %s ", type.cString() ); fflush(stdout);
+//    rtLogDebug("\n ##########   clipboardGet()  >> %s ", type.cString() ); fflush(stdout);
     std::string retVal = pxClipboard::instance()->getString(type.cString());
 
     retString = rtString(retVal.c_str());
@@ -2384,7 +2384,7 @@ rtDefineProperty(pxSceneContainer, ready);
 
 rtError pxSceneContainer::setUrl(rtString url)
 {
-  printf("pxSceneContainer::setUrl(%s)",url.cString());
+  rtLogDebug("pxSceneContainer::setUrl(%s)",url.cString());
   // If old promise is still unfulfilled reject it
   // and create a new promise for the context of this Url
   mReady.send("reject", this);
@@ -2419,12 +2419,12 @@ rtError pxSceneContainer::api(rtValue& v) const
 
 rtError pxSceneContainer::ready(rtObjectRef& o) const
 {
-  printf("pxSceneContainer::ready\n");
+  rtLogInfo("pxSceneContainer::ready\n");
   if (mScriptView) {
-    printf("mScriptView is set!\n");
+    rtLogInfo("mScriptView is set!\n");
     return mScriptView->ready(o);
   } 
-  printf("mScriptView is NOT set!\n");
+  rtLogInfo("mScriptView is NOT set!\n");
   return RT_FAIL;
 }
 
@@ -2453,12 +2453,12 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
      : mWidth(-1), mHeight(-1), mViewContainer(NULL), mRefCount(0)
 { 
   rtLogInfo(__FUNCTION__);
-  printf("pxScriptView::pxScriptView()entering\n");
+  rtLogDebug("pxScriptView::pxScriptView()entering\n");
 #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   mUrl = url;
   mReady = new rtPromise();
  // mLang = lang;
-  printf("pxScriptView::pxScriptView() exiting\n");
+  rtLogDebug("pxScriptView::pxScriptView() exiting\n");
 }
 
 void pxScriptView::runScript() 
@@ -2467,7 +2467,7 @@ void pxScriptView::runScript()
 #endif // ifndef RUNINMAIN
 
   #ifdef ENABLE_RT_NODE
-  printf("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
+  rtLogWarn("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
   mCtx = script.createContext();
 
   if (mCtx)
@@ -2490,10 +2490,10 @@ void pxScriptView::runScript()
     sprintf(buffer, "loadUrl(\"%s\");", url);
 #else
     sprintf(buffer, "loadUrl(\"%s\");", mUrl.cString());
-    printf("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
+    rtLogWarn("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
 #endif
     mCtx->runScript(buffer);
-    printf("pxScriptView::runScript() ending\n");
+    rtLogInfo("pxScriptView::runScript() ending\n");
   }
   #endif //ENABLE_RT_NODE
 }
@@ -2520,7 +2520,7 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
         v->mView->setViewContainer(v->mViewContainer);
         v->mView->onSize(v->mWidth,v->mHeight);
       }
-      printf("pxScriptView::getScene() Almost done \n");
+      rtLogDebug("pxScriptView::getScene() Almost done \n");
 
       if (result)
       {

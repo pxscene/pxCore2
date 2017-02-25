@@ -17,10 +17,10 @@ extern pxContext context;
 
 pxResource::~pxResource() 
 {
-  //printf("pxResource::~pxResource()\n");
+  //rtLogDebug("pxResource::~pxResource()\n");
   if (mDownloadRequest != NULL)
   {
-    printf("pxResource::~pxResource(): mDownloadRequest not null\n");
+    rtLogInfo("pxResource::~pxResource(): mDownloadRequest not null\n");
     // if there is a previous request pending then set the callback to NULL
     // the previous request will not be processed and the memory will be freed when the download is complete
     mDownloadRequest->setCallbackFunctionThreadSafe(NULL);
@@ -28,12 +28,12 @@ pxResource::~pxResource()
   }
   gUIThreadQueue.removeAllTasksForObject(this);
   //mListeners.clear();
-  //printf("Leaving pxResource::~pxResource()\n");
+  //rtLogDebug("Leaving pxResource::~pxResource()\n");
 }
 
 rtError pxResource::setUrl(const char* url)
 {
-  //printf("pxResource::setUrl for url=\"%s\"\n",url);
+  //rtLogDebug("pxResource::setUrl for url=\"%s\"\n",url);
   mUrl = url;
   
   return RT_OK;
@@ -107,7 +107,7 @@ void pxResource::removeListener(pxResourceListener* pListener)
 
 void pxResource::notifyListeners(rtString readyResolution)
 {
-  //printf("notifyListeners for url=%s # of listeners=%d\n",mUrl.cString(),mListeners.size());
+  //rtLogDebug("notifyListeners for url=%s # of listeners=%d\n",mUrl.cString(),mListeners.size());
  
   mReady.send(readyResolution,this); 
   mListenersMutex.lock();
@@ -122,7 +122,7 @@ void pxResource::notifyListeners(rtString readyResolution)
     (*it)->resourceReady(readyResolution);
 
   }
-  //printf("notifyListeners for url=%s Ending\n");
+  //rtLogDebug("notifyListeners for url=%s Ending\n");
   mListeners.clear();
   mListenersMutex.unlock();
   
@@ -131,12 +131,12 @@ void pxResource::raiseDownloadPriority()
 {
   if (!priorityRaised && !mUrl.isEmpty() && mDownloadRequest != NULL)
   {
-    printf(">>>>>>>>>>>>>>>>>>>>>>>Inside pxResource::raiseDownloadPriority and download is in progress for %s\n",mUrl.cString());
+    rtLogWarn(">>>>>>>>>>>>>>>>>>>>>>>Inside pxResource::raiseDownloadPriority and download is in progress for %s\n",mUrl.cString());
     mListenersMutex.lock();
     int lisenersSize = mListeners.size();
     mListenersMutex.unlock();
     if( lisenersSize == 0) 
-      printf("But size is 0, so no one cares!!!!!\n");
+      rtLogInfo("But size is 0, so no one cares!!!!!\n");
     priorityRaised = true;
     pxFileDownloader::getInstance()->raiseDownloadPriority(mDownloadRequest);
   }
@@ -153,7 +153,7 @@ rtImageResource::rtImageResource(const char* url)
 }
 rtImageResource::~rtImageResource() 
 {
-  //printf("destructor for rtImageResource for %s\n",mUrl.cString());
+  //rtLogDebug("destructor for rtImageResource for %s\n",mUrl.cString());
   //pxImageManager::removeImage( mUrl);
 }
   
@@ -171,7 +171,7 @@ unsigned long rtImageResource::Release()
 }
 void rtImageResource::init()
 {
-  //printf("rtImageResource::init\n");
+  //rtLogDebug("rtImageResource::init\n");
   if( mInitialized) 
     return; 
     
@@ -181,7 +181,7 @@ void rtImageResource::init()
 
 int32_t rtImageResource::w() const 
 { 
-  //printf("tImageResource::w()\n");
+  //rtLogDebug("tImageResource::w()\n");
   if(mTexture.getPtr())  
     return mTexture->width(); 
   else 
@@ -189,7 +189,7 @@ int32_t rtImageResource::w() const
 }
 rtError rtImageResource::w(int32_t& v) const 
 { 
-  //printf("tImageResource::w(int32_t)\n");
+  //rtLogDebug("tImageResource::w(int32_t)\n");
   if(mTexture.getPtr()) 
     v = mTexture->width(); 
   else  
@@ -198,7 +198,7 @@ rtError rtImageResource::w(int32_t& v) const
 }
 int32_t rtImageResource::h() const 
 { 
-  //printf("tImageResource::h()\n");
+  //rtLogDebug("tImageResource::h()\n");
   if(mTexture.getPtr())
     return mTexture->height(); 
   else 
@@ -206,7 +206,7 @@ int32_t rtImageResource::h() const
 }
 rtError rtImageResource::h(int32_t& v) const 
 { 
-  //printf("tImageResource::h(int32_t)\n");
+  //rtLogDebug("tImageResource::h(int32_t)\n");
   if(mTexture.getPtr())
     v = mTexture->height(); 
   else 
@@ -226,7 +226,7 @@ rtError rtImageResource::h(int32_t& v) const
 void pxResource::loadResource()
 {
   mLoadStatus.set("statusCode", -1);
-  //printf("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
+  //rtLogDebug("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
       mLoadStatus.set("sourceType", "http");
@@ -380,15 +380,15 @@ rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
 /** static pxImageManager::getImage */
 rtRef<rtImageResource> pxImageManager::getImage(const char* url)
 {
-  //printf("pxImageManager::getImage\n");
+  //rtLogDebug("pxImageManager::getImage\n");
   // Handle empty url
   if(!url || strlen(url) == 0) {
     if( !emptyUrlResource) {
-      //printf("Creating empty Url rtImageResource\n");
+      //rtLogDebug("Creating empty Url rtImageResource\n");
       emptyUrlResource = new rtImageResource;
-      //printf("Done creating empty Url rtImageResource\n");
+      //rtLogDebug("Done creating empty Url rtImageResource\n");
     }
-    //printf("Returning empty Url rtImageResource\n");
+    //rtLogDebug("Returning empty Url rtImageResource\n");
     return emptyUrlResource;
   }
   
@@ -399,7 +399,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url)
   {
     //rtLogInfo("Found rtImageResource in map for \"%s\"\n",url);
     //if( it->second->getRefCount() == 0)
-      //printf("ZERO REF COUNT IN GETIMAGE!\n");
+      //rtLogDebug("ZERO REF COUNT IN GETIMAGE!\n");
     pResImage = it->second;
     //if(!pResImage->isInitialized()) {
       //pResImage->loadResource();
@@ -420,7 +420,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url)
 
 void pxImageManager::removeImage(rtString imageUrl)
 {
-  //printf("pxImageManager::removeImage(\"%s\")\n",imageUrl.cString());
+  //rtLogDebug("pxImageManager::removeImage(\"%s\")\n",imageUrl.cString());
   ImageMap::iterator it = mImageMap.find(imageUrl);
   if (it != mImageMap.end())
   {  

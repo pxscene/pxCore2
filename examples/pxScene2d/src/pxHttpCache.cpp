@@ -302,7 +302,7 @@ rtError rtHttpCacheData::calculateRevalidationNeed(bool& revalidate, bool& reval
          {
            parameter = cacheControl.substr(pos+9,noCacheEnd - (pos + 9));
          }
-         printf("Erasing header [%s] \n",parameter.c_str());
+         rtLogWarn("Erasing header [%s] \n",parameter.c_str());
          fflush(stdout);
          mHeaderMap.erase(parameter.c_str());
          revalidateOnlyHeaders = true;
@@ -370,7 +370,7 @@ bool rtHttpCacheData::readFileData()
     }
     if (NULL == tmp)
     {
-      printf("reading the cache data failed due to memory lack \n");
+      rtLogError("reading the cache data failed due to memory lack \n");
       fflush(stdout);
       fclose(fp);
       if (NULL != contentsData)
