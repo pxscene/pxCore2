@@ -8,7 +8,6 @@
 
 #include <vector>
 #include <list>
-using namespace std;
 
 #ifndef finline
 #ifdef WIN32
@@ -634,7 +633,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
     if (from->mId.cString() && !strcmp(id, from->mId.cString()))
       return from;
     
-    for(vector<rtRefT<pxObject> >::iterator it = from->mChildren.begin(); it != from->mChildren.end(); ++it)
+    for(std::vector<rtRefT<pxObject> >::iterator it = from->mChildren.begin(); it != from->mChildren.end(); ++it)
     {
       pxObject* o = getObjectById(id, (*it).getPtr());
       if (o)
@@ -710,7 +709,7 @@ protected:
   // TODO getting freaking huge... 
 //  rtRefT<pxObject> mParent;
   pxObject* mParent;
-  vector<rtRefT<pxObject> > mChildren;
+  std::vector<rtRefT<pxObject> > mChildren;
 //  vector<animation> mAnimations;
   float mcx, mcy, mx, my, ma, mr;
 #ifdef ANIMATION_ROTATE_XYZ
@@ -748,7 +747,7 @@ protected:
 
   pxScene2d* mScene;
 
-  vector<animation> mAnimations;  
+  std::vector<animation> mAnimations;  
   pxContextFramebufferRef mDrawableSnapshotForMask;
   pxContextFramebufferRef mMaskSnapshot;
 
@@ -1427,7 +1426,7 @@ public:
   void transformPointFromObjectToObject(pxObject* fromObject, pxObject* toObject,
 					pxPoint2f& from, pxPoint2f& to);
   
-  void hitTest(pxPoint2f p, vector<rtRefT<pxObject> > hitList);
+  void hitTest(pxPoint2f p, std::vector<rtRefT<pxObject> > hitList);
   
   pxObject* getRoot() const;
   rtError root(rtObjectRef& v) const 

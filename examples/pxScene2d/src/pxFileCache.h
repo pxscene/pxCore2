@@ -11,8 +11,6 @@
 #include "pxHttpCache.h"
 #include "rtMutex.h"
 
-using namespace std;
-
 class rtFileCache
 {
   public:
@@ -82,9 +80,9 @@ class rtFileCache
     int64_t mMaxSize;
     int64_t mCurrentSize;
     rtString mDirectory;
-    hash<string> hashFn;
-    multimap<time_t,rtString> mFileTimeMap;
-    map<rtString,int64_t> mFileSizeMap;
+    std::hash<std::string> hashFn;
+    std::multimap<time_t,rtString> mFileTimeMap;
+    std::map<rtString,int64_t> mFileSizeMap;
     rtMutex mCacheMutex;
     static rtFileCache* mCache;
 };

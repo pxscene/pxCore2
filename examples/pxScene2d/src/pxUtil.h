@@ -5,7 +5,6 @@
 #include "rtFile.h"
 
 #include <vector>
-//using namespace std;
 
 class pxTimedOffscreenSequence
 {

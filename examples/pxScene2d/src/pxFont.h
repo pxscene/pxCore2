@@ -169,7 +169,7 @@ private:
 };
 
 // Weak Map
-typedef map<rtString, pxFont*> FontMap;
+typedef std::map<rtString, pxFont*> FontMap;
 
 class pxFontManager
 {

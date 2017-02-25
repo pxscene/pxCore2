@@ -10,6 +10,8 @@
 #include "pxResource.h"
 #include "pxUtil.h"
 
+using namespace std;
+
 extern rtThreadQueue gUIThreadQueue;
 extern pxContext context;
 

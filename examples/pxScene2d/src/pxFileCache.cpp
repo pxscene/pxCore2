@@ -6,6 +6,8 @@
 #include <dirent.h>
 #define DEFAULT_MAX_CACHE_SIZE 20971520
 
+using namespace std;
+
 rtFileCache* rtFileCache::getInstance()
 {
   if (NULL == mCache)

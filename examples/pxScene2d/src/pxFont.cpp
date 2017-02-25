@@ -9,6 +9,8 @@
 #include <math.h>
 #include <map>
 
+using namespace std;
+
 struct GlyphKey 
 {
   uint32_t mFontId;

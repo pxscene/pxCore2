@@ -38,6 +38,7 @@
 
 #include "pxClipboard.h"
 
+using namespace std;
 
 // #define DEBUG_SKIP_DRAW       // Skip DRAW   code - for testing.
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.

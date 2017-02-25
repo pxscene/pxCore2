@@ -5,6 +5,8 @@
 #include "rtLog.h"
 #include <pxFileDownloader.h>
 
+using namespace std;
+
 rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false)
 {
   fp = NULL;

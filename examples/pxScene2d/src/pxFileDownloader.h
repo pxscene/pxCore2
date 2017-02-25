@@ -137,12 +137,12 @@ public:
   }
 
   /*  Function to set additional http headers */
-  void setAdditionalHttpHeaders(vector<rtString>& additionalHeaders)
+  void setAdditionalHttpHeaders(std::vector<rtString>& additionalHeaders)
   {
     mAdditionalHttpHeaders = additionalHeaders;
   }
 
-  vector<rtString>& getAdditionalHttpHeaders()
+  std::vector<rtString>& getAdditionalHttpHeaders()
   {
     return mAdditionalHttpHeaders;
   }
@@ -213,7 +213,7 @@ private:
   rtMutex mCallbackFunctionMutex;
   char* mHeaderData;
   size_t mHeaderDataSize;
-  vector<rtString> mAdditionalHttpHeaders;
+  std::vector<rtString> mAdditionalHttpHeaders;
   bool mHeaderOnly;
   int mDownloadHandleExpiresTime;
 #ifdef ENABLE_HTTP_CACHE

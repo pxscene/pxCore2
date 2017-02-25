@@ -8,8 +8,6 @@
 #include <vector>
 #include <time.h>
 
-using namespace std;
-
 class rtHttpCacheData
 {
   public:
@@ -35,7 +33,7 @@ class rtHttpCacheData
     void setAttributes(char* rawAttributes);
 
     /* returns a map of all the headers associated with the cached data */
-    rtError attributes(map<rtString, rtString>& cacheAttributes);
+    rtError attributes(std::map<rtString, rtString>& cacheAttributes);
 
     /* returns the file data in the cache.  This is a blocking call and will check the network for updated data if etag is used */
     rtError data(rtData& data);
@@ -71,7 +69,7 @@ class rtHttpCacheData
     rtError calculateRevalidationNeed(bool&,bool&);
 
     /* initiate and handle download */
-    bool handleDownloadRequest(vector<rtString>& headers,bool downloadBody=true);
+    bool handleDownloadRequest(std::vector<rtString>& headers,bool downloadBody=true);
 
     /* read the file data and populate it in mData. returns true on sucess and false on failure/empty data */
     bool readFileData();
@@ -91,7 +89,7 @@ class rtHttpCacheData
     rtString mUrl;
     rtData mHeaderMetaData;
     rtData mData;
-    map<rtString, rtString> mHeaderMap;
+    std::map<rtString, rtString> mHeaderMap;
     time_t mExpirationDate;
     FILE* fp;
     bool mUpdated;

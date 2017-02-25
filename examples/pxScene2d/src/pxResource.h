@@ -93,7 +93,7 @@ protected:
 
   rtObjectRef mLoadStatus;
   rtObjectRef mReady;
-  list<pxResourceListener*> mListeners;
+  std::list<pxResourceListener*> mListeners;
   rtMutex mListenersMutex;
 };
 
@@ -131,7 +131,7 @@ private:
 };
 
 // Weak Map
-typedef map<rtString, rtImageResource*> ImageMap;
+typedef std::map<rtString, rtImageResource*> ImageMap;
 class pxImageManager
 {
   
