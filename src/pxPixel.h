@@ -10,21 +10,16 @@
 
 #pragma pack(push, 4)
 
-struct pxPixel {
-
+struct pxPixel 
+{
   inline pxPixel() {}
-  inline pxPixel(uint32_t _u) {u=_u;}
-	inline pxPixel(const pxPixel& p) { u = p.u; }
+  inline pxPixel(uint32_t _u)      {u=_u;}
+	inline pxPixel(const pxPixel& p) {u=p.u;}
   
   inline pxPixel(uint8_t _r,uint8_t _g,uint8_t _b,uint8_t _a=255)     
-  {
-    r=_r; 
-    g=_g; 
-    b=_b; 
-    a=_a;
-  }
+    {r=_r;g=_g;b=_b;a=_a;}
 
-	pxPixel& operator=(const pxPixel& p) { u = p.u; return *this; }
+	pxPixel& operator=(const pxPixel& p) {u = p.u;return *this;}
 
   union 
   {
