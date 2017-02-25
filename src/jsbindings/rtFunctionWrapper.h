@@ -24,6 +24,7 @@ public:
     return mRefCount;
   }
 private:
+  virtual ~rtAbstractFunction() {}
   unsigned long mRefCount;
 };
 
