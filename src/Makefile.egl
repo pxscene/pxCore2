@@ -15,7 +15,8 @@ ifeq ($(HNAME),raspberrypi )
 TARGET=rpi
 TARGETINCLUDE= -I/opt/vc/include \
 -I/opt/vc/include/interface/vcos/pthreads \
--I/opt/vc/include/interface/vmcs_host/linux
+-I/opt/vc/include/interface/vmcs_host/linux \
+-I/opt/vc/include/
 else
 $(error Unsupported Target)
 endif
@@ -25,9 +26,25 @@ PLATFORM_SRCS=\
   gles/pxWindowNative.cpp \
   gles/pxTimerNative.cpp
 
-CXXFLAGS_PLATFORM=-DPX_PLATFORM_GENERIC_EGL 
+EXTDIR=../examples/pxScene2d/external
+NODEPATH=$(EXTDIR)/libnode-v6.9.0/
+NODEINC=\
+        -I$(NODEPATH)/src \
+        -I$(NODEPATH)/deps/uv/include \
+        -I$(NODEPATH)/deps/v8 \
+        -I$(NODEPATH)/deps/debugger-agent/include \
+        -I$(NODEPATH)/deps/v8/include \
+        -I$(NODEPATH)/deps/cares/include 
+ZLIBINC=-I$(EXTDIR)/zlib/
+CURLINC=-I$(EXTDIR)/curl/include
+INCLUDE_PATHS=$(NODEINC) $(ZLIBINC) $(CURLINC) -I.
+EXTRA_DEFINES=-DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN
 
-CXXFLAGS=-Wall -Wextra $(CXXFLAGS_PLATFORM) -g -I. -I./gles $(TARGETINCLUDE)
+
+CXXFLAGS_PLATFORM+=-DPX_PLATFORM_GENERIC_EGL -DRT_PLATFORM_LINUX -DENABLE_DEBUG_MODE
+
+CXXFLAGS=-Wall -Wextra -fPIC $(CXXFLAGS_PLATFORM) -g -I. -I./gles $(TARGETINCLUDE) $(INCLUDE_PATHS) $(EXTRA_DEFINES) -std=c++11
+CFLAGS=-Wall -Wextra -fPIC $(CXXFLAGS_PLATFORM) -g -I. -I./gles $(TARGETINCLUDE) $(INCLUDE_PATHS) $(EXTRA_DEFINES)
 
 GENERIC_SRCS=\
   pxOffscreen.cpp \
@@ -39,14 +56,30 @@ OBJS        =$(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRCS)))
 STATIC_LIB  =$(OBJDIR)/libpxCore.a
 SHLIB       =$(OBJDIR)/libpxCore.so
 
-all: $(OUTDIR)/libpxCore.a 
+all: $(OUTDIR)/librtCore.so $(OUTDIR)/librtCore_s.a $(OUTDIR)/libpxCore.a
 clean: 
 	rm *.o
+	rm $(OUTDIR)/librtCore.so
+	rm $(OUTDIR)/librtCore_s.a
 	rm $(OUTDIR)/libpxCore.a
 
-$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxEGLProviderRPi.o pxViewWindow.o LinuxInputEventDispatcher.o pxClipboardNative.o
+rtcore: $(OUTDIR)/librtCore_s.a $(OUTDIR)/librtCore.so
+
+$(OUTDIR)/librtCore_s.a: 
+	rm *.o
+$(OUTDIR)/librtCore_s.a: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o 
+	mkdir -p $(OUTDIR)
+	$(AR) rc $(OUTDIR)/librtCore_s.a utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o
+
+$(OUTDIR)/librtCore.so: 
+	rm *.o
+$(OUTDIR)/librtCore.so: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o 
+	mkdir -p $(OUTDIR)
+	$(CXX) utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o -pthread -ldl -shared -o $(OUTDIR)/librtCore.so
+
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxViewWindow.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxEGLProviderRPi.o LinuxInputEventDispatcher.o
 		       mkdir -p $(OUTDIR)    
-	    ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxViewWindow.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxEGLProviderRPi.o LinuxInputEventDispatcher.o pxClipboardNative.o
+	    $(AR) rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxViewWindow.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxEGLProviderRPi.o LinuxInputEventDispatcher.o
           
 pxOffscreen.o: pxOffscreen.cpp
 	$(CXX) -o pxOffscreen.o -Wall $(CXXFLAGS)  -c pxOffscreen.cpp
@@ -75,9 +108,57 @@ pxClipboardNative.o: gles/pxClipboardNative.cpp
 pxWindowUtil.o: pxWindowUtil.cpp
 	$(CXX) -o pxWindowUtil.o -Wall  $(CXXFLAGS)  -c pxWindowUtil.cpp
 
+jsCallback.o: jsbindings/jsCallback.cpp
+	$(CXX) -o jsCallback.o -Wall $(CXXFLAGS) -c jsbindings/jsCallback.cpp
+rtFunctionWrapper.o: jsbindings/rtFunctionWrapper.cpp
+	$(CXX) -o rtFunctionWrapper.o -Wall $(CXXFLAGS) -c jsbindings/rtFunctionWrapper.cpp
+rtObjectWrapper.o: jsbindings/rtObjectWrapper.cpp
+	$(CXX) -o rtObjectWrapper.o -Wall $(CXXFLAGS) -c jsbindings/rtObjectWrapper.cpp
+rtWrapperUtils.o: jsbindings/rtWrapperUtils.cpp
+	$(CXX) -o rtWrapperUtils.o -Wall $(CXXFLAGS) -c jsbindings/rtWrapperUtils.cpp
+rtError.o: rtError.cpp
+	$(CXX) -o rtError.o -Wall $(CXXFLAGS) -DRAPIDJSON_HAS_STDSTRING -c rtError.cpp
+rtFile.o: rtFile.cpp
+	$(CXX) -o rtFile.o -Wall $(CXXFLAGS) -c rtFile.cpp
+rtLibrary.o: rtLibrary.cpp
+	$(CXX) -o rtLibrary.o -Wall $(CXXFLAGS) -c rtLibrary.cpp
+rtLog.o: rtLog.cpp
+	$(CXX) -o rtLog.o -Wall $(CXXFLAGS) -DRAPIDJSON_HAS_STDSTRING -c rtLog.cpp
+rtNode.o: rtNode.cpp
+	$(CXX) -o rtNode.o -Wall $(CXXFLAGS) -c rtNode.cpp
+rtObject.o: rtObject.cpp
+	$(CXX) -o rtObject.o -Wall $(CXXFLAGS) -DRAPIDJSON_HAS_STDSTRING -c rtObject.cpp
+rtPathUtils.o: rtPathUtils.cpp
+	$(CXX) -o rtPathUtils.o -Wall $(CXXFLAGS) -c rtPathUtils.cpp
+rtString.o: rtString.cpp
+	$(CXX) -o rtString.o -Wall $(CXXFLAGS) -DRAPIDJSON_HAS_STDSTRING -c rtString.cpp
+rtTest.o: rtTest.cpp
+	$(CXX) -o rtTest.o -Wall $(CXXFLAGS) -c rtTest.cpp
+rtThreadPool.o: rtThreadPool.cpp
+	$(CXX) -o rtThreadPool.o -Wall $(CXXFLAGS) -c rtThreadPool.cpp
+rtThreadQueue.o: rtThreadQueue.cpp
+	$(CXX) -o rtThreadQueue.o -Wall $(CXXFLAGS) -c rtThreadQueue.cpp
+rtThreadTask.o: rtThreadTask.cpp
+	$(CXX) -o rtThreadTask.o -Wall $(CXXFLAGS) -c rtThreadTask.cpp
+rtMutexNative.o: unix/rtMutexNative.cpp
+	$(CXX) -o rtMutexNative.o -Wall $(CXXFLAGS) -c unix/rtMutexNative.cpp
+rtThreadPoolNative.o: unix/rtThreadPoolNative.cpp
+	$(CXX) -o rtThreadPoolNative.o -Wall $(CXXFLAGS) -c unix/rtThreadPoolNative.cpp
+rtUrlUtils.o: rtUrlUtils.cpp
+	$(CXX) -o rtUrlUtils.o -Wall $(CXXFLAGS) -c rtUrlUtils.cpp
+rtValue.o: rtValue.cpp
+	$(CXX) -o rtValue.o -Wall $(CXXFLAGS) -DRAPIDJSON_HAS_STDSTRING -c rtValue.cpp
+rtZip.o: rtZip.cpp
+	$(CXX) -o rtZip.o -Wall $(CXXFLAGS) -c rtZip.cpp
+utf8.o: utf8.c
+	$(CC) -o utf8.o -Wall $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -c utf8.c
+unzip.o: unzip.c
+	$(CC) -o unzip.o -Wall $(CFLAGS) -c unzip.c
+ioapi_mem.o: ioapi_mem.c
+	$(CC) -o ioapi_mem.o -Wall $(CFLAGS) -DRAPIDJSON_HAS_STDSTRING -c ioapi_mem.c
+ioapi.o: ioapi.c
+	$(CC) -o ioapi.o -Wall $(CFLAGS) -c ioapi.c
 pxEGLProviderRPi.o: gles/pxEGLProviderRPi.cpp
 	$(CXX) -o pxEGLProviderRPi.o -Wall  $(CXXFLAGS)  -c gles/pxEGLProviderRPi.cpp
-
 LinuxInputEventDispatcher.o: gles/LinuxInputEventDispatcher.cpp
-	$(CXX) -o LinuxInputEventDispatcher.o -Wall  $(CXXFLAGS)  -c gles/LinuxInputEventDispatcher.cpp			     
-
+	$(CXX) -o LinuxInputEventDispatcher.o -Wall  $(CXXFLAGS)  -c gles/LinuxInputEventDispatcher.cpp

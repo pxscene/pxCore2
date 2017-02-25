@@ -4,6 +4,7 @@
 #include "../pxWindow.h"
 #include "../pxWindowUtil.h"
 #include "../pxTimer.h"
+#include "../rtMutex.h"
 
 #include <dlfcn.h>
 #include <errno.h>
@@ -47,6 +48,10 @@ timer_t pxWindowNative::mRenderTimerId;
 
 typedef std::vector<pxWindowNative *> window_vector_t;
 static window_vector_t sWindowVector;
+
+rtMutex keyAndMouseMutex;
+vector <pxKeyEvent> keyEvents;
+vector <pxMouseEvent> mouseEvents;
 
 static void registerWindow(pxWindowNative* win)
 {
@@ -435,6 +440,44 @@ void pxWindowNative::exitEventLoop()
 
 void pxWindowNative::animateAndRender()
 {
+  keyAndMouseMutex.lock();
+  for (int i = 0; i < keyEvents.size(); i++)
+  {
+    pxKeyEvent evt = keyEvents.at(i);
+    uint32_t keycode = keycodeFromNative(evt.code);
+    if (evt.state == pxKeyStatePressed)
+      onKeyDown(keycode, evt.modifiers);
+  
+    if (evt.state == pxKeyStatePressed || evt.state == pxKeyStateRepeat)
+    {
+      uint32_t ascii = keycodeToAscii(keycode, evt.modifiers);
+      if (!iscntrl(ascii))
+        onChar(ascii);
+    }
+
+    if (evt.state == pxKeyStateRelease)
+      onKeyUp(keycode, evt.modifiers);
+  }
+
+  for (int i = 0; i < mouseEvents.size(); i++)
+  {
+    pxMouseEvent evt = mouseEvents.at(i);
+    if (evt.type == pxMouseEventTypeMove)
+    {
+      onMouseMove(evt.move.x, evt.move.y);
+    }
+    else if (evt.type == pxMouseEventTypeButton)
+    {
+      if (evt.button.state == pxKeyStatePressed)
+        onMouseDown(evt.button.x, evt.button.y, evt.modifiers);
+      else if (evt.button.state == pxKeyStateRelease)
+        onMouseUp(evt.button.x, evt.button.y, evt.modifiers);
+    }
+  }
+  keyEvents.clear();
+  mouseEvents.clear();
+
+  keyAndMouseMutex.unlock();
   static double lastAnimationTime = pxMilliseconds();
   double currentAnimationTime = pxMilliseconds();
   //drawFrame(); 
@@ -485,40 +528,17 @@ double pxWindowNative::getLastAnimationTime()
 void pxWindowNative::keyEventListener(const pxKeyEvent& evt, void* argp)
 {
   pxWindowNative* p = reinterpret_cast<pxWindowNative *>(argp);
-  uint32_t keycode = keycodeFromNative(evt.code);
-  if (evt.state == pxKeyStatePressed)
-    p->onKeyDown(keycode, evt.modifiers);
-  
-  if (evt.state == pxKeyStatePressed || evt.state == pxKeyStateRepeat)
-  {
-    // TODO keycodeToAscii should be avoided onChar should get a unicode
-    // codepoint
-    uint32_t ascii = keycodeToAscii(keycode, evt.modifiers);
-    if (!iscntrl(ascii))
-      p->onChar(ascii);
-  }
-
-  if (evt.state == pxKeyStateRelease)
-    p->onKeyUp(keycode, evt.modifiers);
+  keyAndMouseMutex.lock();
+  keyEvents.push_back(evt);
+  keyAndMouseMutex.unlock();
 }
 
 void pxWindowNative::mouseEventListener(const pxMouseEvent& evt, void* argp)
 {
   pxWindowNative* p = reinterpret_cast<pxWindowNative *>(argp);
-  if (evt.type == pxMouseEventTypeMove)
-  {
-    // rtLogInfo("move move: {x:%d y:%d}", evt.move.x, evt.move.y);
-    p->onMouseMove(evt.move.x, evt.move.y);
-  }
-  else if (evt.type == pxMouseEventTypeButton)
-  {
-    // rtLogInfo("mouse %s {x:%d y:%d}",
-    //   (evt.button.state == pxKeyStatePressed ? "press" : "release"), evt.button.x, evt.button.y);
-    if (evt.button.state == pxKeyStatePressed)
-      p->onMouseDown(evt.button.x, evt.button.y, evt.modifiers);
-    else if (evt.button.state == pxKeyStateRelease)
-      p->onMouseUp(evt.button.x, evt.button.y, evt.modifiers);
-  }
+  keyAndMouseMutex.lock();
+  mouseEvents.push_back(evt);
+  keyAndMouseMutex.unlock();
 }
 
 void* pxWindowNative::dispatchInput(void* argp)
