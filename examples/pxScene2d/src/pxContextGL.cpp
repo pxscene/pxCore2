@@ -1355,7 +1355,7 @@ static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat 
 }
 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
-                             pxTextureRef mask, bool useTextureDimsAlways, float* color, // default: "color = BLACK"
+                             pxTextureRef mask, bool /*useTextureDimsAlways*/, float* color, // default: "color = BLACK"
                              pxConstantsStretch::constants xStretch,
                              pxConstantsStretch::constants yStretch)
 {
@@ -1364,6 +1364,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   float iw = texture->width();
   float ih = texture->height();
 
+#if 0
   if( useTextureDimsAlways)
   {
       w = iw;
@@ -1376,6 +1377,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     if (h == -1)
       h = ih;
   }
+  #endif
 
    const float verts[4][2] =
    {
@@ -1386,9 +1388,11 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
    };
 
   float tw;
-  switch(xStretch) {
+  switch(xStretch) 
+  {
   case pxConstantsStretch::NONE:
-    tw = iw/w;
+//    tw = iw/w;
+    tw = w/iw;
     break;
   case pxConstantsStretch::STRETCH:
     tw = 1.0;
@@ -1398,20 +1402,21 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     break;
   }
 
-  float tb = 0;
+  //float tb = 0;
   float th;
-  switch(yStretch) {
+  switch(yStretch) 
+  {
   case pxConstantsStretch::NONE:
-    th = ih/h;
+//    th = ih/h;
+    th = h/ih;
     break;
   case pxConstantsStretch::STRETCH:
     th = 1.0;
     break;
   case pxConstantsStretch::REPEAT:
-#if 0 // PX_TEXTURE_ANCHOR_BOTTOM
+#if 1 // PX_TEXTURE_ANCHOR_BOTTOM
     th = h/ih;
 #else
-
     float temp = h/ih;
     th = ceil(temp);
     tb = 1.0f-(temp-floor(temp));
@@ -1419,8 +1424,13 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     break;
   }
 
+#if 0
   float firstTextureY  = th;
   float secondTextureY = tb;
+#else
+  float firstTextureY  = 1.0;
+  float secondTextureY = 1.0-th;  
+#endif
 
   const float uv[4][2] =
   {
@@ -1940,12 +1950,15 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 
   if (!mShowOutlines) return;
 
+// SPAM
+#if 0
   // TRANSPARENT / DIMENSIONLESS 
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
     rtLogError("cannot drawDiagRect() - width/height/gAlpha cannot be Zero.");
     return;
   }
+#endif
 
   // COLORLESS
   if(color == NULL || color[3] == 0.0)
