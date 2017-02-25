@@ -23,7 +23,7 @@ public:
   {
     return mRefCount;
   }
-private:
+protected:
   virtual ~rtAbstractFunction() {}
   unsigned long mRefCount;
 };
