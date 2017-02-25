@@ -43,7 +43,7 @@
 		46B077951E30FFC700BC6B9C /* rtPathUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077631E30FFC700BC6B9C /* rtPathUtils.cpp */; };
 		46B077961E30FFC700BC6B9C /* rtPathUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077641E30FFC700BC6B9C /* rtPathUtils.h */; };
 		46B077971E30FFC700BC6B9C /* rtPromise.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077651E30FFC700BC6B9C /* rtPromise.h */; };
-		46B077981E30FFC700BC6B9C /* rtRefT.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077661E30FFC700BC6B9C /* rtRefT.h */; };
+		46B077981E30FFC700BC6B9C /* rtRef.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077661E30FFC700BC6B9C /* rtRef.h */; };
 		46B077991E30FFC700BC6B9C /* rtString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077671E30FFC700BC6B9C /* rtString.cpp */; };
 		46B0779A1E30FFC700BC6B9C /* rtString.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077681E30FFC700BC6B9C /* rtString.h */; };
 		46B0779B1E30FFC700BC6B9C /* rtTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077691E30FFC700BC6B9C /* rtTest.cpp */; };
@@ -202,7 +202,7 @@
 		46B077631E30FFC700BC6B9C /* rtPathUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtPathUtils.cpp; path = src/rtPathUtils.cpp; sourceTree = SOURCE_ROOT; };
 		46B077641E30FFC700BC6B9C /* rtPathUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtPathUtils.h; path = src/rtPathUtils.h; sourceTree = SOURCE_ROOT; };
 		46B077651E30FFC700BC6B9C /* rtPromise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtPromise.h; path = src/rtPromise.h; sourceTree = SOURCE_ROOT; };
-		46B077661E30FFC700BC6B9C /* rtRefT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtRefT.h; path = src/rtRefT.h; sourceTree = SOURCE_ROOT; };
+		46B077661E30FFC700BC6B9C /* rtRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtRef.h; path = src/rtRef.h; sourceTree = SOURCE_ROOT; };
 		46B077671E30FFC700BC6B9C /* rtString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtString.cpp; path = src/rtString.cpp; sourceTree = SOURCE_ROOT; };
 		46B077681E30FFC700BC6B9C /* rtString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtString.h; path = src/rtString.h; sourceTree = SOURCE_ROOT; };
 		46B077691E30FFC700BC6B9C /* rtTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtTest.cpp; path = src/rtTest.cpp; sourceTree = SOURCE_ROOT; };
@@ -550,7 +550,7 @@
 				46B077631E30FFC700BC6B9C /* rtPathUtils.cpp */,
 				46B077641E30FFC700BC6B9C /* rtPathUtils.h */,
 				46B077651E30FFC700BC6B9C /* rtPromise.h */,
-				46B077661E30FFC700BC6B9C /* rtRefT.h */,
+				46B077661E30FFC700BC6B9C /* rtRef.h */,
 				46B077671E30FFC700BC6B9C /* rtString.cpp */,
 				46B077681E30FFC700BC6B9C /* rtString.h */,
 				46B077691E30FFC700BC6B9C /* rtTest.cpp */,
@@ -696,7 +696,7 @@
 				46B077971E30FFC700BC6B9C /* rtPromise.h in Headers */,
 				4C7B86141D10A47300C2489F /* pxClipboardNative.h in Headers */,
 				46B077801E30FFC700BC6B9C /* rtCore.h in Headers */,
-				46B077981E30FFC700BC6B9C /* rtRefT.h in Headers */,
+				46B077981E30FFC700BC6B9C /* rtRef.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

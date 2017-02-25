@@ -14,4 +14,8 @@
 #error "PX_PLATFORM NOT HANDLED"
 #endif
 
+#ifndef UNUSED_PARAM
+#define UNUSED_PARAM(x) (void (x))
+#endif
+
 #endif

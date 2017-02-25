@@ -438,11 +438,11 @@ void pxFontManager::initFT()
   }
   
 }
-rtRefT<pxFont> pxFontManager::getFont(const char* url)
+rtRef<pxFont> pxFontManager::getFont(const char* url)
 {
   initFT();
 
-  rtRefT<pxFont> pFont;
+  rtRef<pxFont> pFont;
 
   if (!url || !url[0])
     url = defaultFont;

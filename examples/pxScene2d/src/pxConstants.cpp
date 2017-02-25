@@ -3,15 +3,15 @@
 
 #include "pxConstants.h"
 
-rtRefT<pxConstantsAnimation> pxConstants::animationConstants = new pxConstantsAnimation();
-rtRefT<pxConstantsStretch> pxConstants::stretchConstants = new pxConstantsStretch();
-rtRefT<pxConstantsAlignVertical> pxConstants::alignVerticalConstants = new pxConstantsAlignVertical();
-rtRefT<pxConstantsAlignHorizontal> pxConstants::alignHorizontalConstants = new pxConstantsAlignHorizontal();
-rtRefT<pxConstantsTruncation> pxConstants::truncationConstants = new pxConstantsTruncation(); 
+rtRef<pxConstantsAnimation> pxConstants::animationConstants = new pxConstantsAnimation();
+rtRef<pxConstantsStretch> pxConstants::stretchConstants = new pxConstantsStretch();
+rtRef<pxConstantsAlignVertical> pxConstants::alignVerticalConstants = new pxConstantsAlignVertical();
+rtRef<pxConstantsAlignHorizontal> pxConstants::alignHorizontalConstants = new pxConstantsAlignHorizontal();
+rtRef<pxConstantsTruncation> pxConstants::truncationConstants = new pxConstantsTruncation(); 
   
 rtError pxConstantsAnimation::interpolators(rtObjectRef& v) const
 {
-  rtRefT<rtArrayObject> keys = new rtArrayObject;
+  rtRef<rtArrayObject> keys = new rtArrayObject;
   {
     rtMethodMap* m = getMap();      
 

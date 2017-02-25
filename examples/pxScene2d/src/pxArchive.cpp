@@ -99,7 +99,7 @@ rtError pxArchive::fileNames(rtObjectRef& array) const
 
   if (c->mLoadStatus.get<int32_t>("statusCode") == 0)
   {
-    rtRefT<rtArrayObject> f = new rtArrayObject;
+    rtRef<rtArrayObject> f = new rtArrayObject;
 
     if (mIsFile)
     {

@@ -186,7 +186,7 @@ protected:
   mutable rtMutex mRemoteObjectMutex;
 };
 
-typedef rtRefT<pxWayland> pxWaylandRef;
+typedef rtRef<pxWayland> pxWaylandRef;
 
 #endif
 

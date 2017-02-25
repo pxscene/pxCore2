@@ -1,6 +1,10 @@
+// rtCore Copyright 2007-2015 John Robinson
+// rtNode.h
+
 #ifndef RTNODE_H
 #define RTNODE_H
 
+#include "rtCore.h"
 #include "rtObject.h"
 #include "rtValue.h"
 #include "rtAtomic.h"
@@ -39,7 +43,7 @@ class Environment;
 class rtNode;
 class rtNodeContext;
 
-typedef rtRefT<rtNodeContext> rtNodeContextRef;
+typedef rtRef<rtNodeContext> rtNodeContextRef;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

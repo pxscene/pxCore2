@@ -7,7 +7,7 @@
 #include <assert.h>
 
 #include "rtLog.h"
-#include "rtRefT.h"
+#include "rtRef.h"
 #include "rtString.h"
 #include "rtNode.h"
 #include "rtPathUtils.h"
@@ -250,7 +250,7 @@ public:
   }
 
 private:
-  rtRefT<pxObject> mObject;
+  rtRef<pxObject> mObject;
 };
 
 
@@ -289,7 +289,7 @@ void pxObject::dispose()
 
   mAnimations.clear();
   mEmit->clearListeners();
-  for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
     (*it)->dispose();
     (*it)->mParent = NULL;  // setParent mutates the mChildren collection
@@ -375,7 +375,7 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
   return RT_OK;
 }
 
-void pxObject::setParent(rtRefT<pxObject>& parent)
+void pxObject::setParent(rtRef<pxObject>& parent)
 {
   if (mParent != parent)
   {
@@ -396,7 +396,7 @@ rtError pxObject::remove()
 {
   if (mParent)
   {
-    for(vector<rtRefT<pxObject> >::iterator it = mParent->mChildren.begin();
+    for(vector<rtRef<pxObject> >::iterator it = mParent->mChildren.begin();
         it != mParent->mChildren.end(); ++it)
     {
       if ((it)->getPtr() == this)
@@ -651,7 +651,7 @@ void pxObject::update(double t)
   #endif //PX_DIRTY_RECTANGLES
 
   // Recursively update children
-  for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
 #ifdef PX_DIRTY_RECTANGLES
     context.pushState();
@@ -858,7 +858,7 @@ void pxObject::drawInternal(bool maskPass)
   {
     // MASKING ? ---------------------------------------------------------------------------------------------------
     bool maskFound = false;
-    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->mask())
       {
@@ -907,7 +907,7 @@ void pxObject::drawInternal(bool maskPass)
       }
 
       // CHILDREN -------------------------------------------------------------------------------------
-      for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+      for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
       {
         if((*it)->drawEnabled() == false)
         {
@@ -960,7 +960,7 @@ void pxObject::drawInternal(bool maskPass)
 }
 
 
-bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit,
+bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRef<pxObject>& hit,
                    pxPoint2f& hitPt)
 {
 
@@ -983,7 +983,7 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hi
   m2.multiply(m);
 
   {
-    for(vector<rtRefT<pxObject> >::reverse_iterator it = mChildren.rbegin(); it != mChildren.rend(); ++it)
+    for(vector<rtRef<pxObject> >::reverse_iterator it = mChildren.rbegin(); it != mChildren.rend(); ++it)
     {
       if ((*it)->hitTestInternal(m2, pt, hit, hitPt))
         return true;
@@ -1050,7 +1050,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo)
     context.clear(w, h);
     draw();
 
-    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       context.pushState();
       (*it)->drawInternal();
@@ -1098,7 +1098,7 @@ void pxObject::createSnapshotOfChildren()
   {
     context.clear(w, h);
 
-    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->mask())
       {
@@ -1113,7 +1113,7 @@ void pxObject::createSnapshotOfChildren()
   {
     context.clear(w, h);
 
-    for(vector<rtRefT<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->drawEnabled())
       {
@@ -1238,7 +1238,7 @@ pxScene2d::pxScene2d(bool top)
   rtObjectRef e = new rtMapObject;
   mRoot->setFocusInternal(true);
   e.set("target",mFocusObj);
-  rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
+  rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
   t->mEmit.send("onFocus",e);
 
   #ifdef USE_SCENE_POINTER
@@ -1427,7 +1427,7 @@ rtError pxScene2d::clock(uint64_t & time)
 }
 rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 {
-  rtRefT<pxViewContainer> c = new pxViewContainer(this);
+  rtRef<pxViewContainer> c = new pxViewContainer(this);
   mTestView = new testView;
   c->setView(mTestView);
   o = c.getPtr();
@@ -1444,7 +1444,7 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 
   return RT_FAIL;
 #else
-  rtRefT<pxWaylandContainer> c = new pxWaylandContainer(this);
+  rtRef<pxWaylandContainer> c = new pxWaylandContainer(this);
   c->setView(new pxWayland);
   o = c.getPtr();
   o.set(p);
@@ -1751,7 +1751,7 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
     pxMatrix4f m;
     pxPoint2f pt(x,y), hitPt;
     //    pt.x = x; pt.y = y;
-    rtRefT<pxObject> hit;
+    rtRef<pxObject> hit;
 
     if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
@@ -1793,8 +1793,8 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     //Looking for an object
     pxMatrix4f m;
     pxPoint2f pt(x,y), hitPt;
-    rtRefT<pxObject> hit;
-    rtRefT<pxObject> tMouseDown = mMouseDown;
+    rtRef<pxObject> hit;
+    rtRef<pxObject> tMouseDown = mMouseDown;
 
     mMouseDown = NULL;
 
@@ -1827,8 +1827,8 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
   return false;
 }
 
-// TODO rtRefT doesn't like non-const !=
-void pxScene2d::setMouseEntered(rtRefT<pxObject> o)//pxObject* o)
+// TODO rtRef doesn't like non-const !=
+void pxScene2d::setMouseEntered(rtRef<pxObject> o)//pxObject* o)
 {
   if (mMouseEntered != o)
   {
@@ -1871,7 +1871,7 @@ rtError pxScene2d::setFocus(rtObjectRef o)
     rtObjectRef e = new rtMapObject;
     ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(false);
     e.set("target",mFocusObj);
-    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
+    rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
     //t->mEmit.send("onBlur",e);
     bubbleEvent(e,t,"onPreBlur","onBlur");
   }
@@ -1887,7 +1887,7 @@ rtError pxScene2d::setFocus(rtObjectRef o)
   rtObjectRef e = new rtMapObject;
   ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(true);
   e.set("target",mFocusObj);
-  rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
+  rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
   //t->mEmit.send("onFocus",e);
   bubbleEvent(e,t,"onPreFocus","onFocus");
 
@@ -1937,7 +1937,7 @@ rtError stopPropagation2(int /*numArgs*/, const rtValue* /*args*/, rtValue* /*re
   return RT_OK;
 }
 
-bool pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
+bool pxScene2d::bubbleEvent(rtObjectRef e, rtRef<pxObject> t,
                             const char* preEvent, const char* event)
 {
   bool consumed = false;
@@ -1949,7 +1949,7 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
 //    e.set("stopPropagation", get<rtFunctionRef>("stopPropagation"));
     e.set("stopPropagation", new rtFunctionCallback(stopPropagation2, (void*)&mStopPropagation));
 
-    vector<rtRefT<pxObject> > l;
+    vector<rtRef<pxObject> > l;
     while(t)
     {
       l.push_back(t);
@@ -1958,7 +1958,7 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
 
 //    printf("before %s bubble\n", preEvent);
     e.set("name", preEvent);
-    for (vector<rtRefT<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != l.rend();++it)
+    for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != l.rend();++it)
     {
       // TODO a bit messy
       rtFunctionRef emit = (*it)->mEmit.getPtr();
@@ -1971,7 +1971,7 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRefT<pxObject> t,
 
 //    printf("before %s bubble\n", event);
     e.set("name", event);
-    for (vector<rtRefT<pxObject> >::iterator it = l.begin();!mStopPropagation && it != l.end();++it)
+    for (vector<rtRef<pxObject> >::iterator it = l.begin();!mStopPropagation && it != l.end();++it)
     {
       // TODO a bit messy
       rtFunctionRef emit = (*it)->mEmit.getPtr();
@@ -2017,7 +2017,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
   //Looking for an object
   pxMatrix4f m;
   pxPoint2f pt(x,y), hitPt;
-  rtRefT<pxObject> hit;
+  rtRef<pxObject> hit;
 
   if (mMouseDown)
   {
@@ -2110,7 +2110,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
   pxMatrix4f m;
   pxPoint2f pt;
   pt.x = x; pt.y = y;
-  rtRefT<pxObject> hit;
+  rtRef<pxObject> hit;
 
   if (mRoot->hitTestInternal(m, pt, hit))
   {
@@ -2129,7 +2129,7 @@ bool pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags)
     e.set("target",mFocusObj);
     e.set("keyCode", keyCode);
     e.set("flags", (uint32_t)flags);
-    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
+    rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
     return bubbleEvent(e, t, "onPreKeyDown", "onKeyDown");
   }
   return false;
@@ -2143,7 +2143,7 @@ bool pxScene2d::onKeyUp(uint32_t keyCode, uint32_t flags)
     e.set("target",mFocusObj);
     e.set("keyCode", keyCode);
     e.set("flags", (uint32_t)flags);
-    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
+    rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
     return bubbleEvent(e, t, "onPreKeyUp", "onKeyUp");
   }
   return false;
@@ -2156,7 +2156,7 @@ bool pxScene2d::onChar(uint32_t c)
     rtObjectRef e = new rtMapObject;
     e.set("target",mFocusObj);
     e.set("charCode", c);
-    rtRefT<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
+    rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
     return bubbleEvent(e, t, "onPreChar", "onChar");
   }
   return false;

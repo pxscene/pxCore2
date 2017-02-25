@@ -2,7 +2,7 @@
 #define PX_TEXTURE_H
 
 #include "pxCore.h"
-#include "rtRefT.h"
+#include "rtRef.h"
 #include "pxOffscreen.h"
 #include "rtAtomic.h"
 
@@ -67,6 +67,6 @@ protected:
   bool mPremultipliedAlpha;
 };
 
-typedef rtRefT<pxTexture> pxTextureRef;
+typedef rtRef<pxTexture> pxTextureRef;
 
 #endif //PX_TEXTURE_H

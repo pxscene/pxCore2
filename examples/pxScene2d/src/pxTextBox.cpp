@@ -831,7 +831,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
 
 void pxTextBox::setMeasurementBoundsY(bool start, float yVal) {
 
-  rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
+  rtRef<pxTextBounds> bounds = getMeasurements()->getBounds();
   //printf("pxTextBox::setMeasurementBoundsY: start=%d yVal=%f and current vals y1=%f y2=%f\n",start, yVal,bounds->y1(),bounds->y2());
   if( start) {
     if( bounds->y1()== 0 || bounds->y1() > yVal) {
@@ -847,7 +847,7 @@ void pxTextBox::setMeasurementBoundsY(bool start, float yVal) {
 void pxTextBox::setMeasurementBoundsX(bool start, float xVal)
 {
 
-  rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
+  rtRef<pxTextBounds> bounds = getMeasurements()->getBounds();
   //printf("pxTextBox::setMeasurementBoundsX: start=%d xVal=%f already set to %f\n",start, xVal,bounds->x2());
   if( start) {
     if( bounds->x1() == 0 || (bounds->x1() > xVal)) {
@@ -863,7 +863,7 @@ void pxTextBox::setMeasurementBoundsX(bool start, float xVal)
 
 void pxTextBox::setMeasurementBounds(bool start, float xVal, float yVal)
 {
-  rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
+  rtRef<pxTextBounds> bounds = getMeasurements()->getBounds();
   //printf("pxTextBox::setMeasurementBounds: start=%d xVal=%f yVal%f\n",start, xVal,yVal);
   if( start) {
     if( bounds->x1() == 0 || (bounds->x1() > xVal)) {
@@ -886,7 +886,7 @@ void pxTextBox::setMeasurementBounds(float xPos, float width, float yPos, float 
 {
   //printf("pxTextBox::setMeasurementBounds\n");
   // Set the bounds for the text
-  rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
+  rtRef<pxTextBounds> bounds = getMeasurements()->getBounds();
   if( bounds->x2() < (xPos + width) ) {
     bounds->setX2(xPos + width);
   }

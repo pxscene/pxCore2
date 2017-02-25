@@ -4,7 +4,7 @@
 #ifndef PX_RESOURCE_H
 #define PX_RESOURCE_H
 
-#include "rtRefT.h"
+#include "rtRef.h"
 #include "rtString.h"
 
 // TODO rtDefs vs rtCore.h
@@ -136,12 +136,12 @@ class pxImageManager
 {
   
   public: 
-    static rtRefT<rtImageResource> getImage(const char* url);
+    static rtRef<rtImageResource> getImage(const char* url);
     static void removeImage(rtString imageUrl);
     
   private: 
     static ImageMap mImageMap;
-    static rtRefT<rtImageResource> emptyUrlResource;
+    static rtRef<rtImageResource> emptyUrlResource;
 
 };
 

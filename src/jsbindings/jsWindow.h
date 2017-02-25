@@ -253,7 +253,7 @@ protected:
     EXITSCENELOCK();
   }
 public:
-  rtRefT<pxIView> mView;
+  rtRef<pxIView> mView;
 private:
   // TODO consolidate with pxCore smart pointer
 
@@ -264,7 +264,7 @@ private:
 
 #ifdef USE_UV_DUMMY_EVENTS
 
-  rtRefT<pxIView> mView;
+  rtRef<pxIView> mView;
   pxEventLoop* mEventLoop;
  
 #ifndef RUNINMAIN

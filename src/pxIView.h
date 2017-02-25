@@ -8,7 +8,8 @@
 #include "pxCore.h"
 #include "pxRect.h"
 
-#include "rtRefPtr.h"
+//#include "rtRefPtr.h"
+#include "rtRef.h"
 
 // A pxIViewContainer must unregister itself
 // upon being destroyed
@@ -59,7 +60,7 @@ public:
 #endif
 };
 
-typedef rtRefPtr<pxIView> pxViewRef;
+typedef rtRef<pxIView> pxViewRef;
 
 #if 0
 

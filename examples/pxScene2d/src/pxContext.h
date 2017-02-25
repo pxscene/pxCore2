@@ -8,7 +8,7 @@
 #include "pxOffscreen.h"
 #include "pxMatrix4T.h"
 #include "rtCore.h"
-#include "rtRefT.h"
+#include "rtRef.h"
 #include "pxConstants.h"
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"

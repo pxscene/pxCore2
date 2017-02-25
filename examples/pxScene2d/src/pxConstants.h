@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-#include "rtRefT.h"
+#include "rtRef.h"
 
 // TODO rtDefs vs rtCore.h
 #include "rtDefs.h"
@@ -166,11 +166,11 @@ class pxConstants : public rtObject
   
 public: 
 
-  static rtRefT<pxConstantsAnimation> animationConstants;
-  static rtRefT<pxConstantsStretch> stretchConstants;
-  static rtRefT<pxConstantsAlignVertical> alignVerticalConstants;
-  static rtRefT<pxConstantsAlignHorizontal> alignHorizontalConstants;
-  static rtRefT<pxConstantsTruncation> truncationConstants;  
+  static rtRef<pxConstantsAnimation> animationConstants;
+  static rtRef<pxConstantsStretch> stretchConstants;
+  static rtRef<pxConstantsAlignVertical> alignVerticalConstants;
+  static rtRef<pxConstantsAlignHorizontal> alignHorizontalConstants;
+  static rtRef<pxConstantsTruncation> truncationConstants;  
   
 };
 

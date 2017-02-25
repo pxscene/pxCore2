@@ -17,7 +17,7 @@
 #endif
 #endif
 
-#include "rtRefT.h"
+#include "rtRef.h"
 #include "rtString.h"
 
 // TODO rtDefs vs rtCore.h
@@ -268,7 +268,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
   rtError children(rtObjectRef& v) const;
 
   // TODO clean this up
-  void setParent(rtRefT<pxObject>& parent);
+  void setParent(rtRef<pxObject>& parent);
   pxObject* parent() const
   {
     return mParent;
@@ -282,7 +282,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
 
   rtError setParent(rtObjectRef parent) 
   {
-    rtRefT<pxObject> p;
+    rtRef<pxObject> p;
 
     if (parent)
       p = (pxObject*)parent.get<voidPtr>("_pxObject");
@@ -398,7 +398,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
   virtual void sendPromise();
   virtual void createNewPromise();
 
-  bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRefT<pxObject>& hit, pxPoint2f& hitPt);
+  bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRef<pxObject>& hit, pxPoint2f& hitPt);
   virtual bool hitTest(pxPoint2f& pt);
 
   void setFocusInternal(bool focus) { mFocus = focus; }
@@ -446,7 +446,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
   virtual void applyMatrix(pxMatrix4f& m)
   {
 #if 0
-    rtRefT<pxTransform> t = new pxTransform;
+    rtRef<pxTransform> t = new pxTransform;
     rtObjectRef i = new rtMapObject();
     i.set("x",0);
     i.set("y",0);
@@ -566,17 +566,17 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
 #if 0
     m.identity();
     
-    vector<rtRefT<pxObject> > v;
-    rtRefT<pxObject> t = o;
+    vector<rtRef<pxObject> > v;
+    rtRef<pxObject> t = o;
     
     while(t) {
       v.push_back(t);
       t = t->mParent;
     }
     
-    for(vector<rtRefT<pxObject> >::reverse_iterator it = v.rbegin(); it != v.rend(); ++it) 
+    for(vector<rtRef<pxObject> >::reverse_iterator it = v.rbegin(); it != v.rend(); ++it) 
     {
-      rtRefT<pxObject>& j = *it;;
+      rtRef<pxObject>& j = *it;;
       pxMatrix4f m2;
       m2.translate(j->mx+j->mcx, j->my+j->mcy);
       if (j->mr) {
@@ -633,7 +633,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
     if (from->mId.cString() && !strcmp(id, from->mId.cString()))
       return from;
     
-    for(std::vector<rtRefT<pxObject> >::iterator it = from->mChildren.begin(); it != from->mChildren.end(); ++it)
+    for(std::vector<rtRef<pxObject> >::iterator it = from->mChildren.begin(); it != from->mChildren.end(); ++it)
     {
       pxObject* o = getObjectById(id, (*it).getPtr());
       if (o)
@@ -707,9 +707,9 @@ public:
 
 protected:
   // TODO getting freaking huge... 
-//  rtRefT<pxObject> mParent;
+//  rtRef<pxObject> mParent;
   pxObject* mParent;
-  std::vector<rtRefT<pxObject> > mChildren;
+  std::vector<rtRef<pxObject> > mChildren;
 //  vector<animation> mAnimations;
   float mcx, mcy, mx, my, ma, mr;
 #ifdef ANIMATION_ROTATE_XYZ
@@ -1026,12 +1026,12 @@ public:
   virtual void createNewPromise(){ rtLogDebug("pxSceneContainer ignoring createNewPromise\n"); }
   
 private:
-  rtRefT<pxScriptView> mScriptView;
+  rtRef<pxScriptView> mScriptView;
   rtString mUrl;
 };
 
 
-typedef rtRefT<pxObject> pxObjectRef;
+typedef rtRef<pxObject> pxObjectRef;
 
 // Important that this have a separate lifetime from scene object
 // and to not hold direct references to this objects from the script context
@@ -1228,10 +1228,10 @@ protected:
   rtObjectRef mApi;
   rtObjectRef mReady;
   rtObjectRef mScene;
-  rtRefT<pxIView> mView;
-  rtRefT<rtFunctionCallback> mGetScene;
-  rtRefT<rtFunctionCallback> mMakeReady;
-  rtRefT<rtFunctionCallback> mGetContextID;
+  rtRef<pxIView> mView;
+  rtRef<rtFunctionCallback> mGetScene;
+  rtRef<rtFunctionCallback> mMakeReady;
+  rtRef<rtFunctionCallback> mGetContextID;
 
 #ifdef ENABLE_RT_NODE
   rtNodeContextRef mCtx;
@@ -1388,7 +1388,7 @@ public:
   rtError alignHorizontal(rtObjectRef& v) const {v = CONSTANTS.alignHorizontalConstants; return RT_OK;}
   rtError truncation(rtObjectRef& v) const {v = CONSTANTS.truncationConstants; return RT_OK;}
 
-  void setMouseEntered(rtRefT<pxObject> o);//setMouseEntered(pxObject* o);
+  void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
 
   // The following methods are delegated to the view
   virtual void onSize(int32_t w, int32_t h);
@@ -1426,7 +1426,7 @@ public:
   void transformPointFromObjectToObject(pxObject* fromObject, pxObject* toObject,
 					pxPoint2f& from, pxPoint2f& to);
   
-  void hitTest(pxPoint2f p, std::vector<rtRefT<pxObject> > hitList);
+  void hitTest(pxPoint2f p, std::vector<rtRef<pxObject> > hitList);
   
   pxObject* getRoot() const;
   rtError root(rtObjectRef& v) const 
@@ -1438,7 +1438,7 @@ public:
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
     rtError e = RT_FAIL;
-    rtRefT<pxArchive> a = new pxArchive;
+    rtRef<pxArchive> a = new pxArchive;
     if (a->initFromUrl(url) == RT_OK)
     {
       archive = a;
@@ -1448,7 +1448,7 @@ public:
   }
   
 private:
-  bool bubbleEvent(rtObjectRef e, rtRefT<pxObject> t, 
+  bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
 
   void draw();
@@ -1462,7 +1462,7 @@ private:
   rtError clipboardSet(rtString type, rtString clipString);
   
     
-  rtRefT<pxObject> mRoot;
+  rtRef<pxObject> mRoot;
   rtObjectRef mFocusObj;
   double start, sigma_draw, sigma_update, end2;
 
@@ -1472,8 +1472,8 @@ private:
   rtEmitRef mEmit;
 
 // TODO Top level scene only
-  rtRefT<pxObject> mMouseEntered;
-  rtRefT<pxObject> mMouseDown;
+  rtRef<pxObject> mMouseEntered;
+  rtRef<pxObject> mMouseDown;
   pxPoint2f mMouseDownPt;
   rtValue mContext;
   rtValue mAPI;
@@ -1507,7 +1507,7 @@ public:
 };
 
 // TODO do we need this anymore?
-class pxScene2dRef: public rtRefT<pxScene2d>, public rtObjectBase
+class pxScene2dRef: public rtRef<pxScene2d>, public rtObjectBase
 {
  public:
   pxScene2dRef() {}

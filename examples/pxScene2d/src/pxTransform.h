@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <stdint.h>
 
-#include "rtRefT.h"
+#include "rtRef.h"
 #include "rtDefs.h"
 #include "rtCore.h"
 #include "rtError.h"
@@ -57,7 +57,7 @@ public:
   }
 
 private:
-  rtRefT<pxTransform> mTransform;
+  rtRef<pxTransform> mTransform;
   float* mRegData;
 };
 

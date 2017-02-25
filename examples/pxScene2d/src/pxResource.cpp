@@ -6,7 +6,7 @@
 #include "pxContext.h"
 #include "pxFileDownloader.h"
 #include "rtString.h"
-#include "rtRefT.h"
+#include "rtRef.h"
 #include "pxResource.h"
 #include "pxUtil.h"
 
@@ -376,9 +376,9 @@ void pxResource::processDownloadedResource(pxFileDownloadRequest* fileDownloadRe
  * rtImageResource 
  */
 ImageMap pxImageManager::mImageMap;
-rtRefT<rtImageResource> pxImageManager::emptyUrlResource = 0;
+rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
 /** static pxImageManager::getImage */
-rtRefT<rtImageResource> pxImageManager::getImage(const char* url)
+rtRef<rtImageResource> pxImageManager::getImage(const char* url)
 {
   //printf("pxImageManager::getImage\n");
   // Handle empty url
@@ -392,7 +392,7 @@ rtRefT<rtImageResource> pxImageManager::getImage(const char* url)
     return emptyUrlResource;
   }
   
-  rtRefT<rtImageResource> pResImage;
+  rtRef<rtImageResource> pResImage;
   
   ImageMap::iterator it = mImageMap.find(url);
   if (it != mImageMap.end())

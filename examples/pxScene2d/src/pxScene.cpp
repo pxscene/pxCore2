@@ -234,7 +234,7 @@ EXITSCENELOCK()
 
   int mWidth;
   int mHeight;
-  rtRefT<pxIView> mView;
+  rtRef<pxIView> mView;
 };
 
 #define xstr(s) str(s)

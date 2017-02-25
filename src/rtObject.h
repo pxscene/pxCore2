@@ -10,7 +10,7 @@
 #include "rtString.h"
 #include "rtValue.h"
 #include "rtObjectMacros.h"
-#include "rtRefT.h"
+#include "rtRef.h"
 
 #include <string.h>
 #include <vector>
@@ -183,7 +183,7 @@ public:
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
 };
 
-class rtObjectRef: public rtRefT<rtIObject>, public rtObjectBase
+class rtObjectRef: public rtRef<rtIObject>, public rtObjectBase
 {
  public:
   rtObjectRef() {}
@@ -200,7 +200,7 @@ class rtObjectRef: public rtRefT<rtIObject>, public rtObjectBase
   virtual rtError Set(uint32_t i, const rtValue* value);
 };
 
-class rtFunctionRef: public rtRefT<rtIFunction>, public rtFunctionBase
+class rtFunctionRef: public rtRef<rtIFunction>, public rtFunctionBase
 {
  public:
   rtFunctionRef() {}
@@ -234,7 +234,7 @@ public:
  private:
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
 
-  rtRefT<rtObject> mObject;
+  rtRef<rtObject> mObject;
   rtMethodThunk mThunk;
   unsigned long mRefCount;
 };
@@ -520,7 +520,7 @@ public:
   rtAtomic mRefCount;
 };
 
-class rtEmitRef: public rtRefT<rtEmit>, public rtFunctionBase
+class rtEmitRef: public rtRef<rtEmit>, public rtFunctionBase
 {
 public:
   rtEmitRef() {}

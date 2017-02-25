@@ -9,7 +9,7 @@
 #include FT_FREETYPE_H
 
 #include "rtString.h"
-#include "rtRefT.h"
+#include "rtRef.h"
 #include "pxScene2d.h"
 #include "pxFont.h"
 #include "pxResource.h"

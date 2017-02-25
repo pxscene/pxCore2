@@ -9,7 +9,7 @@
 #include FT_FREETYPE_H
 
 #include "rtString.h"
-#include "rtRefT.h"
+#include "rtRef.h"
 #include "pxScene2d.h"
 #include "pxText.h"
 
@@ -138,9 +138,9 @@ public:
     return RT_OK;
   } 
   
-  rtRefT<pxTextBounds> getBounds()      { return mBounds;}
-  rtRefT<pxCharPosition> getCharFirst() { return mCharFirst; }
-  rtRefT<pxCharPosition> getCharLast()  { return mCharLast; }
+  rtRef<pxTextBounds> getBounds()      { return mBounds;}
+  rtRef<pxCharPosition> getCharFirst() { return mCharFirst; }
+  rtRef<pxCharPosition> getCharLast()  { return mCharLast; }
   
   void clear() {
     mBounds->clear();
@@ -150,9 +150,9 @@ public:
       
   private:
    
-    rtRefT<pxTextBounds> mBounds;
-    rtRefT<pxCharPosition> mCharFirst;
-    rtRefT<pxCharPosition> mCharLast;
+    rtRef<pxTextBounds> mBounds;
+    rtRef<pxCharPosition> mCharFirst;
+    rtRef<pxCharPosition> mCharLast;
     
 };
 

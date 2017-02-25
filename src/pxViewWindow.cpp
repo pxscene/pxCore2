@@ -16,7 +16,7 @@ pxError pxViewWindow::view(pxViewRef& v)
 pxError pxViewWindow::setView(pxIView* v)
 {
 #if 1
-  if (mView.get())
+  if (mView)
   {
     mView->setViewContainer(NULL);
     mView = NULL;
@@ -28,7 +28,7 @@ pxError pxViewWindow::setView(pxIView* v)
   if (v)
   {
     v->setViewContainer(this);
-    onSize(mWidth,mHeight);
+    v->onSize(mWidth,mHeight);
   }
     
   return PX_OK;

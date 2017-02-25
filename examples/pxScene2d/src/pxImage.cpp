@@ -2,7 +2,7 @@
 // pxImage.cpp
 
 #include "rtString.h"
-#include "rtRefT.h"
+#include "rtRef.h"
 #include "pxCore.h"
 #include "pxOffscreen.h"
 #include "pxUtil.h"

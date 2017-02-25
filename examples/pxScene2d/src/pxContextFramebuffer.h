@@ -2,7 +2,7 @@
 #define PX_CONTEXT_FRAMEBUFFER_H
 
 #include "pxTexture.h"
-#include "rtRefT.h"
+#include "rtRef.h"
 #include "rtAtomic.h"
 #include "pxCore.h"
 
@@ -129,6 +129,6 @@ protected:
   pxRect mDirtyRectangle;
 };
 
-typedef rtRefT<pxContextFramebuffer> pxContextFramebufferRef;
+typedef rtRef<pxContextFramebuffer> pxContextFramebufferRef;
 
 #endif //PX_CONTEXT_FRAMEBUFFER_H

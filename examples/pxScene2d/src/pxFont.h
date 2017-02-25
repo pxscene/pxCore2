@@ -9,7 +9,7 @@
 #include FT_FREETYPE_H
 
 #include "rtString.h"
-#include "rtRefT.h"
+#include "rtRef.h"
 #include "pxScene2d.h"
 #include <map>
 
@@ -176,7 +176,7 @@ class pxFontManager
   
   public: 
     
-    static rtRefT<pxFont> getFont(const char* url);
+    static rtRef<pxFont> getFont(const char* url);
     static void removeFont(rtString fontName);
     static void clearAllFonts();
     
