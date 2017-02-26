@@ -455,7 +455,15 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"mouseDown: %f, %f", p.x, p.y);
-  pxWindowNative::_helper_onMouseDown(mWindow, p.x, p.y, PX_LEFTBUTTON);
+
+  uint32_t flags = PX_LEFTBUTTON;
+  
+  if (event.modifierFlags & NSShiftKeyMask)     flags |= PX_MOD_SHIFT;
+  if (event.modifierFlags & NSControlKeyMask)   flags |= PX_MOD_CONTROL;
+  if (event.modifierFlags & NSAlternateKeyMask) flags |= PX_MOD_ALT;
+  if (event.modifierFlags & NSCommandKeyMask)   flags |= PX_MOD_COMMAND;
+  
+  pxWindowNative::_helper_onMouseDown(mWindow, p.x, p.y, flags);
 }
 
 -(void)mouseUp:(NSEvent*)event
@@ -463,7 +471,15 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"mouseUp: %f, %f", p.x, p.y);
-  pxWindowNative::_helper_onMouseUp(mWindow, p.x, p.y, PX_LEFTBUTTON);
+
+  uint32_t flags = PX_LEFTBUTTON;
+  
+  if (event.modifierFlags & NSShiftKeyMask)     flags |= PX_MOD_SHIFT;
+  if (event.modifierFlags & NSControlKeyMask)   flags |= PX_MOD_CONTROL;
+  if (event.modifierFlags & NSAlternateKeyMask) flags |= PX_MOD_ALT;
+  if (event.modifierFlags & NSCommandKeyMask)   flags |= PX_MOD_COMMAND;
+  
+  pxWindowNative::_helper_onMouseUp(mWindow, p.x, p.y, flags);
 }
 
 -(void)rightMouseDown:(NSEvent*)event
@@ -471,7 +487,15 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"rightMouseDown: %f, %f", p.x, p.y);
-  pxWindowNative::_helper_onMouseDown(mWindow, p.x, p.y, PX_RIGHTBUTTON);
+
+  uint32_t flags = PX_RIGHTBUTTON;
+  
+  if (event.modifierFlags & NSShiftKeyMask)     flags |= PX_MOD_SHIFT;
+  if (event.modifierFlags & NSControlKeyMask)   flags |= PX_MOD_CONTROL;
+  if (event.modifierFlags & NSAlternateKeyMask) flags |= PX_MOD_ALT;
+  if (event.modifierFlags & NSCommandKeyMask)   flags |= PX_MOD_COMMAND;
+
+  pxWindowNative::_helper_onMouseDown(mWindow, p.x, p.y, flags);
 }
 
 -(void)rightMouseUp:(NSEvent*)event
@@ -479,7 +503,15 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   NSPoint p = [event locationInWindow];
   p = [self convertPoint:p fromView:nil];
   NSLog(@"rightMouseUp: %f, %f", p.x, p.y);
-  pxWindowNative::_helper_onMouseUp(mWindow, p.x, p.y, PX_RIGHTBUTTON);
+
+  uint32_t flags = PX_RIGHTBUTTON;
+  
+  if (event.modifierFlags & NSShiftKeyMask)     flags |= PX_MOD_SHIFT;
+  if (event.modifierFlags & NSControlKeyMask)   flags |= PX_MOD_CONTROL;
+  if (event.modifierFlags & NSAlternateKeyMask) flags |= PX_MOD_ALT;
+  if (event.modifierFlags & NSCommandKeyMask)   flags |= PX_MOD_COMMAND;
+
+  pxWindowNative::_helper_onMouseUp(mWindow, p.x, p.y, flags);
 }
 
 -(void)mouseMoved:(NSEvent*)event
