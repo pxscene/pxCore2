@@ -69,6 +69,8 @@ int main(int argc, char* argv[])
 
   [NSApp setDelegate: appDelegate];
   [NSApp run];
+  
+  [appDelegate release];
   [pool release];
 
   return 0;

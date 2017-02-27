@@ -3,21 +3,20 @@
 // pxBufferNative.cpp
 
 #include "../pxCore.h"
-#include "pxBufferNative.h"
 #include "../pxRect.h"
-
 #include "../pxOffscreen.h"
+
+#include "pxBufferNative.h"
 
 #import <Cocoa/Cocoa.h>
 
 void pxBuffer::blit(pxSurfaceNative s, int dstLeft, int dstTop, int dstWidth, int dstHeight, 
     int srcLeft, int srcTop)
 {
-  
   CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-  CGContextRef bitmapCtx = CGBitmapContextCreate(mBase, mWidth, mHeight, 8, mWidth*4, colorSpace, kCGImageAlphaNoneSkipLast);
+  CGContextRef     bitmapCtx = CGBitmapContextCreate(mBase, mWidth, mHeight, 8, mWidth*4, colorSpace, kCGImageAlphaNoneSkipLast);
 
-  CGImageRef ir = CGBitmapContextCreateImage(bitmapCtx);
+  CGImageRef    ir = CGBitmapContextCreateImage(bitmapCtx);
   CGRect imageRect = CGRectMake(dstLeft, dstTop, dstWidth, dstHeight);
   
   
@@ -28,4 +27,7 @@ void pxBuffer::blit(pxSurfaceNative s, int dstLeft, int dstTop, int dstWidth, in
   CGContextRestoreGState((CGContextRef)s);
 
   CGImageRelease(ir);
+
+  CGContextRelease(bitmapCtx);
+  CGColorSpaceRelease(colorSpace);
 }

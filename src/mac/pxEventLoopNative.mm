@@ -66,7 +66,9 @@
     [appMenu addItemWithTitle: [NSString stringWithFormat:@"Quit %@", appName]
                        action: @selector(terminate:)
                 keyEquivalent: @"q"];
-    
+  
+    [appMenu release];
+  
     // FILE ---------------------------------------------------------------------------------
     
     NSMenuItem *fileMenuItem =
@@ -91,7 +93,8 @@
                         action: @selector(arrangeInFront:)
                  keyEquivalent: @""];
 
-    
+    [fileMenu release];
+  
     // EDIT ---------------------------------------------------------------------------------
     
     NSMenuItem *editMenuItem =
@@ -115,7 +118,9 @@
                  keyEquivalent: @"v"];
     
     [editMenu addItem:[NSMenuItem separatorItem]]; // -----------
-    
+  
+    [editMenu release];
+  
     // WINDOW ---------------------------------------------------------------------------------
     
     NSMenuItem *windowMenuItem =
@@ -140,8 +145,11 @@
                           action:@selector(arrangeInFront:)
                    keyEquivalent:@""];
 
+    [windowMenu release];
+  
     // ---------------------------------------------------------------------------------
-    
+  
+    [bar release];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
@@ -164,6 +172,9 @@ void pxEventLoop::run()
   AppDelegate *appDelegate = [[AppDelegate alloc] init];
   [NSApp setDelegate:appDelegate];
   [NSApp run];
+  
+  [appDelegate release];
+  
   [pool release];
 }
 
@@ -180,6 +191,8 @@ void pxEventLoop::runOnce()
     AppDelegate *appDelegate = [[AppDelegate alloc] init];
     [NSApp setDelegate:appDelegate];
     
+    [appDelegate release];
+
 #if 1
     ProcessSerialNumber psn = { 0, kCurrentProcess };
     /*OSStatus returnCode = */TransformProcessType(& psn, kProcessTransformToForegroundApplication);

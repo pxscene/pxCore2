@@ -8,6 +8,13 @@
 
 #import <Cocoa/Cocoa.h>
 
+//
+// NOTE:   'PX_OPENGL' *and* 'GLGL' are needed for *pxScene2d* builds for OpenGL
+//
+
+//
+// NOTE:   'PX_OPENGL' *and* 'GLGL' are NOT needed for other example builds.
+//
 #define PX_OPENGL
 #define GLGL
 
@@ -17,6 +24,9 @@
 #include <OpenGL/glu.h>
 
 #endif
+
+#include "CoreFoundation/CoreFoundation.h"
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,7 +66,7 @@
 
 #if 1
 
-@interface MyView : NSView
+@interface MyView : NSView <NSDraggingDestination, NSPasteboardItemDataProvider>
 
 - (IBAction)cut:   sender;
 - (IBAction)copy:  sender;
@@ -159,10 +169,14 @@
   self = [super initWithFrame:frame];
   if (self)
   {
-    pixelFormat = [pf retain];
+    pixelFormat   = [pf retain];
     openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
     
     enableMultisample = YES;
+      
+    // Register for Drag'n'Drop events
+    [self registerForDraggedTypes:[NSArray arrayWithObjects:NSTIFFPboardType,
+                                 NSFilenamesPboardType, nil]];
   }
   
   [pf release];
@@ -414,10 +428,13 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
 -(id)initWithPXWindow:(pxWindow*)window
 {
-  self = [super init];
-  mWindow = window;
-  //[self updateTrackingAreas];
-  return self;
+  if(self = [super init])
+  {
+    mWindow = window;
+    //[self updateTrackingAreas];
+    return self;
+  }
+  return nil;
 }
 
 -(BOOL)isFlipped
@@ -434,6 +451,9 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
  #endif
 #endif
 
+
+#pragma mark - Cut and Paste Frist Responders
+
 - (IBAction)cut:sender
 {
     pxWindowNative::_helper_onKeyDown(mWindow, 88, 16);  // Fake a CTRL-X
@@ -449,6 +469,7 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
     pxWindowNative::_helper_onKeyDown(mWindow, 86, 16);  // Fake a CTRL-V
 }
 
+#pragma mark - Mouse Operations
 
 -(void)mouseDown:(NSEvent*)event
 {
@@ -639,6 +660,112 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#pragma mark - Dragging Operations
+
+- (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
+{
+    NSDragOperation sourceDragMask = [sender draggingSourceOperationMask];
+    NSPasteboard           *pboard = [sender draggingPasteboard];
+    
+    /*------------------------------------------------------
+     method called whenever a drag enters our drop zone
+     --------------------------------------------------------*/
+    
+    if ( pboard && [[pboard types] containsObject:NSFilenamesPboardType] )
+    {
+        if (sourceDragMask & NSDragOperationLink)
+        {
+            return NSDragOperationLink;
+        }
+        else if (sourceDragMask & NSDragOperationCopy)
+        {
+            return NSDragOperationCopy;
+        }
+    }
+    
+    return NSDragOperationNone;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+- (void)draggingExited:(id <NSDraggingInfo>)sender
+{
+    /*------------------------------------------------------
+     method called whenever a drag exits our drop zone
+     --------------------------------------------------------*/
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+- (BOOL)prepareForDragOperation:(id <NSDraggingInfo>)sender
+{
+    /*------------------------------------------------------
+     method to determine if we can accept the drop
+     --------------------------------------------------------*/
+    
+    return YES;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+- (BOOL)performDragOperation:(id <NSDraggingInfo>)sender
+{
+    /*------------------------------------------------------
+     method that should handle the drop data
+     --------------------------------------------------------*/
+    if ( [sender draggingSource] != self )
+    {
+        //if the drag comes from a file, set the window title to the filename
+        NSURL      *fileURL = [NSURL URLFromPasteboard: [sender draggingPasteboard]];
+        NSString  *filePath = [fileURL path];
+        NSString  *dropURL  = [NSString stringWithFormat:@"file://%@", filePath ];
+        
+//        NSLog(@"DRAG'n'DROP >>> %@", filePath);
+//        NSLog(@"DRAG'n'DROP >>> %@ << String", fileURL.absoluteString );
+//        NSLog(@"DRAG'n'DROP >>> %@", dropURL);
+        
+        pxClipboardNative *clip = pxClipboardNative::instance();
+        
+        clip->setString("TEXT", [dropURL UTF8String]);
+        
+        pxWindowNative::_helper_onKeyDown(mWindow, 86, 16);  // Fake a CTRL-V
+        
+        // Steal App Focus - become active App...
+        [[NSRunningApplication currentApplication] activateWithOptions:(NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
+        
+        return YES;
+    }
+    
+    return NO;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#pragma mark - Dragging Operations (optionals)
+
+-(void)draggingSession:(NSDraggingSession *)session willBeginAtPoint:(NSPoint)screenPoint
+{
+}
+
+- (void)draggingSession:(NSDraggingSession *)session movedToPoint:(NSPoint)screenPoint
+{
+}
+
+- (void)draggingSession:(NSDraggingSession *)session endedAtPoint:(NSPoint)screenPoint operation:(NSDragOperation)operation
+{
+}
+
+- (NSDragOperation)draggingSession:(NSDraggingSession *)session sourceOperationMaskForDraggingContext:(NSDraggingContext)context
+{
+    return NSDragOperationNone;
+}
+
+- (void)pasteboard:(NSPasteboard *)pasteboard item:(NSPasteboardItem *)item provideDataForType:(NSString *)type
+{    
+}
+
 @end
 
 
@@ -727,10 +854,10 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
     // send px key down
     uint32_t flags = 0;
     
-    if (event.modifierFlags & NSShiftKeyMask) flags |= PX_MOD_SHIFT;
-    if (event.modifierFlags & NSControlKeyMask) flags |= PX_MOD_CONTROL;
+    if (event.modifierFlags & NSShiftKeyMask)     flags |= PX_MOD_SHIFT;
+    if (event.modifierFlags & NSControlKeyMask)   flags |= PX_MOD_CONTROL;
     if (event.modifierFlags & NSAlternateKeyMask) flags |= PX_MOD_ALT;
-    if (event.modifierFlags & NSCommandKeyMask) flags |= PX_MOD_COMMAND;
+    if (event.modifierFlags & NSCommandKeyMask)   flags |= PX_MOD_COMMAND;
     
     pxWindowNative::_helper_onKeyDown(mWindow, keycodeFromNative(event.keyCode), flags);
   }
@@ -840,15 +967,18 @@ pxError pxWindow::init(int left, int top, int width, int height)
   
   WinDelegate* delegate = [[WinDelegate alloc] initWithPXWindow:this];
   [window setDelegate:delegate];
+   //[delegate release];  //<< TODO: Crashes if menus used.  Why ?
   
   MyView* view = [[MyView alloc] initWithPXWindow:this];
-  [window setContentView: view];
   
+  [window setContentView: view];
   [window makeFirstResponder:view];
-    
+  
+  [view release];
+
   [NSApp activateIgnoringOtherApps:YES];
   // TODO We get a GL crash if we don't show the window here... 
-  //  [window makeKeyAndOrderFront:NSApp];
+  //[window makeKeyAndOrderFront:NSApp];
   //[window orderOut: NSApp];
   
   onSize(width,height);
