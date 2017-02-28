@@ -131,3 +131,54 @@ file:///home/username/directory/filename.js
 7. Write your own app!
 
 
+## On Raspberry Pi
+
+
+1. Get source code
+  ~~~~
+  git clone https://github.com/johnrobinsn/pxCore.git
+  ~~~~
+  
+2. Checkout current development branch
+  ~~~~
+  cd pxCore
+  git checkout master
+  ~~~~
+  
+3. Build externals
+  ~~~~
+  cd examples/pxScene2d/external
+  ./build_rpi.sh
+  ~~~~
+
+1. Build pxCore
+  ~~~~
+cd ~/pxCore 
+make -f Makefile.egl
+  ~~~~
+
+1. Build pxscene
+  ~~~~
+cd ~/pxCore/examples/pxScene2d/src
+make
+  ~~~~
+
+1. Run a sample javascript file:
+  ~~~~
+cd ~/pxCore/examples/pxScene2d/src
+./pxscene.sh {path_to_javascript_file_name}.js
+  ~~~~
+Examples:
+  ~~~~
+./pxscene.sh http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
+./pxscene.sh http://www.pxscene.org/examples/px-reference/gallery/gallery.js
+  ~~~~
+Running ./pxscene.sh without a parameter will load the local browser.js that will take a .js pathname relative to http://www.pxscene.org/examples/px-reference/gallery to run.  Alternatively, a fully qualified url can be used, for example:
+  ~~~~
+http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
+http://www.pxscene.org/examples/px-reference/gallery/gallery.js
+file:///home/username/directory/filename.js
+  ~~~~
+1. Write your own app!
+
+
