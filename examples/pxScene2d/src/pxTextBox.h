@@ -232,7 +232,7 @@ public:
 
   virtual rtError Set(const char* name, const rtValue* value)
   {
-	  //printf("pxTextBox Set for %s\n", name );
+	  //rtLogDebug("pxTextBox Set for %s\n", name );
 
     mDirty = mDirty || (!strcmp(name,"wordWrap")        ||
                         !strcmp(name,"ellipsis")        ||
