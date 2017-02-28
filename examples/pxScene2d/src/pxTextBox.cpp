@@ -7,9 +7,16 @@
 #include "pxFileDownloader.h"
 #include "pxTimer.h"
 #include "pxContext.h"
+
 extern pxContext context;
 #include <math.h>
 #include <map>
+
+
+static const char      isNewline_chars[] = "\n\v\f\r";
+static const char isWordBoundary_chars[] = " \t/:&,;.";
+static const char    isSpaceChar_chars[] = " \t";
+
 
 #if 1
 // TODO can we eliminate direct utf8.h usage
@@ -19,23 +26,25 @@ extern "C" {
 #endif
 
 
-pxTextBox::pxTextBox(pxScene2d* s):pxText(s)
+pxTextBox::pxTextBox(pxScene2d* s): pxText(s)
 {
   measurements= new pxTextMeasurements();
 
-  mFontLoaded = false;
-  mInitialized = false;
-  mWordWrap = false;
-  mEllipsis = false;
-  lineNumber = 0;
-  lastLineNumber = 0;
-  mTruncation = pxConstantsTruncation::NONE;
-  mXStartPos = 0;
-  mXStopPos = 0;
-  mAlignVertical = pxConstantsAlignVertical::TOP;
+  mFontLoaded      = false;
+  mInitialized     = false;
+  mWordWrap        = false;
+  mEllipsis        = false;
+  mNeedsRecalc     = true;
+  
+  lineNumber       = 0;
+  lastLineNumber   = 0;
+  mXStartPos       = 0;
+  mXStopPos        = 0;
+  mLeading         = 0;
+  
+  mTruncation      = pxConstantsTruncation::NONE;
+  mAlignVertical   = pxConstantsAlignVertical::TOP;
   mAlignHorizontal = pxConstantsAlignHorizontal::LEFT;
-  mLeading = 0;
-  mNeedsRecalc = true;
 }
 
 /** This signals that the font file loaded successfully; now we need to
@@ -89,17 +98,24 @@ void pxTextBox::onInit()
 void pxTextBox::recalc()
 {
   if( mNeedsRecalc) {
+    
+     clearMeasurements();
+
+/*
+    // THIS IS ALREADY PERFORMED IN - renderText()
+    //
+
     if (!mText || !strcmp(mText.cString(),"")) {
-         clearMeasurements();
+//         clearMeasurements();
          setMeasurementBounds(mx, 0, my, 0);
        return;
     }
-
-    clearMeasurements();
+*/
+    
+//    clearMeasurements();
     renderText(false);
 
     setNeedsRecalc(false);
-
   }
 }
 void pxTextBox::setNeedsRecalc(bool recalc)
@@ -194,7 +210,8 @@ void pxTextBox::update(double t)
   //rtLogDebug("pxTextBox::update: mNeedsRecalc=%d\n",mNeedsRecalc);
   if( mNeedsRecalc ) {
     //rtLogDebug("pxTextBox::update: mNeedsRecalc=%d\n",mNeedsRecalc);
-    //rtLogDebug("pxTextBox::update: mInitialized=%d && mFontLoaded=%d\n",mInitialized, mFontLoaded);
+    
+    rtLogInfo("pxTextBox::update()  mAlignVertical=%d && mAlignHorizontal=%d\n",mAlignVertical, mAlignHorizontal);
 
     recalc();
 
@@ -239,6 +256,7 @@ void pxTextBox::renderText(bool render)
   float sy = 1.0;
   float tempX = 0;//mx;
   lineNumber = 0;
+  
   if (!mText || !strcmp(mText.cString(),""))
   {
      clearMeasurements();
@@ -249,7 +267,7 @@ void pxTextBox::renderText(bool render)
 
   if( !mWordWrap)
   {
-    //rtLogDebug("calling renderTextNoWordWrap\n");
+    rtLogDebug("calling renderTextNoWordWrap\n");
     //startY = 0;
     renderTextNoWordWrap(sx, sy, tempX, render);
 
@@ -528,7 +546,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       {
         if(!mWordWrap )
         {
-          startY = my+ (mh/2) - textHeight/2;
+          startY = my + (mh - textHeight)/2;
           if(!clip() && mTruncation == pxConstantsTruncation::NONE)
           {
             noClipY = my;
@@ -537,10 +555,10 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         }
         else
         {
-          startY = my + (mh-textHeight)/2;
+          startY = my + (mh - textHeight)/2;
           if(!clip())
           {
-            noClipY = (my + (mh/2)) - textHeight/2;
+            noClipY = my + (mh - textHeight)/2;
             if(mTruncation == pxConstantsTruncation::NONE)
             {
               startY = 0;//my;
@@ -585,9 +603,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
           setMeasurementBoundsY(false, textHeight>mh?mh:textHeight);
         }
       }
-
   }
-
 }
 
 
@@ -608,22 +624,24 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER )
       {
         if( charW < noClipW) {
-          xPos = (lineWidth/2) - charW/2;
+             xPos = (lineWidth - charW)/2;
           noClipX = tempX;
         }
         else {
-          xPos = tempX;
-          noClipX = (lineWidth/2) - charW/2;
+             xPos = tempX;
+          noClipX = (lineWidth - charW)/2;
         }
       }
       else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT)
       {
-        if( charW < noClipW) {
-          xPos = mw-charW;
-          noClipX =   tempX;
+        if( charW < noClipW)
+        {
+             xPos = mw-charW;
+          noClipX = tempX;
         }
-        else {
-          xPos = tempX;
+        else
+        {
+             xPos = tempX;
           noClipX = mw-charW;
         }
       }
@@ -632,12 +650,12 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
         if( lineNumber == 0)
         {
           //rtLogDebug("LineNumber is 0\n");
-          xPos = tempX;
+             xPos = tempX;
           noClipX = mXStartPos;
         }
         else
         {
-          xPos = tempX;
+             xPos = tempX;
           noClipX = tempX;
         }
       }
@@ -645,27 +663,27 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
     }
     else
     {
-      // mWordWrap is on - No Clip and No Truncation
+      // mWordWrap is "ON" >>>  No Clip and No Truncation
       if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER)
       {
-        xPos = (lineWidth/2) - charW/2;
+           xPos = (lineWidth - charW)/2;
         noClipX = tempX;
       }
       else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT)
       {
-        xPos = lineWidth - charW;
+           xPos = lineWidth - charW;
         noClipX = tempX;
       }
       else
       {
         if( lineNumber == 0)
         {
-          xPos = mXStartPos;
+             xPos = mXStartPos;
           noClipX = tempX;
         }
         else
         {
-          xPos = tempX;
+             xPos = tempX;
           noClipX = tempX;
         }
       }
@@ -673,10 +691,10 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   }
   else
   {
-    // If we're here, clip could be on or off
+    // If we're here, clip could be "ON" or "OFF"
     if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER)
     {
-      xPos = (lineWidth/2) - charW/2;
+       xPos = (lineWidth - charW)/2;
     }
     else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT)
     {
@@ -689,9 +707,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
         xPos = mXStartPos;
       }
     }
-
   }
-
 
 
    //If text is being clipped, then the last line measurements may not be the same as
@@ -701,12 +717,12 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
     if( !clip() && mTruncation == pxConstantsTruncation::NONE)
     {
       setMeasurementBoundsX(true, xPos);
-      if( lineNumber == lastLineNumber || mTruncation == pxConstantsTruncation::NONE) {
+      if( lineNumber == lastLineNumber || mTruncation == pxConstantsTruncation::NONE)
+      {
         //rtLogDebug("!CLF: calculating lineMeasurement! charH=%f pixelSize=%d noClipH=%f noClipY=%f lineNumber=%d\n",charH,mPixelSize,noClipH, noClipY, lineNumber);
         setLineMeasurements(false, xPos+charW, noClipY+noClipH-(noClipH/(lineNumber+1)));
         setMeasurementBoundsX(false, charW );
       }
-
     }
     else
     {
@@ -753,8 +769,6 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
           }
         }
         setLineMeasurements(false, noClipX+(charW+xPos), tempY);
-
-
       }
       else {
        // If we're here, clip could be on or off
@@ -780,7 +794,6 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
           }
         }
         setLineMeasurements(false, (xPos+width) > mw? mw:xPos+width, tempY);
-
       }
     }
     else
@@ -802,8 +815,6 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
           //rtLogDebug("setMeasurementBounds is using noClipW of %f\n",noClipW);
           //rtLogDebug("setMeasurementBounds charW of %f\n",charW);
           setMeasurementBoundsX(false, charW);//noClipW);//charW );  // Fix x2 bounds issue
-
-
       }
       else
       {
@@ -817,21 +828,20 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
           setMeasurementBoundsX(false, charW > mw? mw:charW );
         }
         setLineMeasurements(false, xPos+charW, tempY);
-
       }
-
     }
   }
 
   // Now, render the text
-  if( render) {getFontResource()->renderText(tempStr, size, xPos, tempY, sx, sy, color,lineWidth);}
-
-
+  if( render)
+  {
+    getFontResource()->renderText(tempStr, size, xPos, tempY, sx, sy, color,lineWidth);
+  }
 }
 
 void pxTextBox::setMeasurementBoundsY(bool start, float yVal) {
 
-  rtRef<pxTextBounds> bounds = getMeasurements()->getBounds();
+  rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
   //rtLogDebug("pxTextBox::setMeasurementBoundsY: start=%d yVal=%f and current vals y1=%f y2=%f\n",start, yVal,bounds->y1(),bounds->y2());
   if( start) {
     if( bounds->y1()== 0 || bounds->y1() > yVal) {
@@ -847,7 +857,7 @@ void pxTextBox::setMeasurementBoundsY(bool start, float yVal) {
 void pxTextBox::setMeasurementBoundsX(bool start, float xVal)
 {
 
-  rtRef<pxTextBounds> bounds = getMeasurements()->getBounds();
+  rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
   //rtLogDebug("pxTextBox::setMeasurementBoundsX: start=%d xVal=%f already set to %f\n",start, xVal,bounds->x2());
   if( start) {
     if( bounds->x1() == 0 || (bounds->x1() > xVal)) {
@@ -863,7 +873,7 @@ void pxTextBox::setMeasurementBoundsX(bool start, float xVal)
 
 void pxTextBox::setMeasurementBounds(bool start, float xVal, float yVal)
 {
-  rtRef<pxTextBounds> bounds = getMeasurements()->getBounds();
+  rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
   //rtLogDebug("pxTextBox::setMeasurementBounds: start=%d xVal=%f yVal%f\n",start, xVal,yVal);
   if( start) {
     if( bounds->x1() == 0 || (bounds->x1() > xVal)) {
@@ -882,11 +892,12 @@ void pxTextBox::setMeasurementBounds(bool start, float xVal, float yVal)
     }
   }
 }
+
 void pxTextBox::setMeasurementBounds(float xPos, float width, float yPos, float height)
 {
   //rtLogDebug("pxTextBox::setMeasurementBounds\n");
   // Set the bounds for the text
-  rtRef<pxTextBounds> bounds = getMeasurements()->getBounds();
+  rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
   if( bounds->x2() < (xPos + width) ) {
     bounds->setX2(xPos + width);
   }
@@ -940,6 +951,7 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
   float metricHeight=0;
   getFontResource()->getHeight(mPixelSize, metricHeight);
   //rtLogDebug(">>>>>>>>>>>>>> metric height is %f and charH is %f\n", metricHeight, charH);
+  
   if( charH > metricHeight) // There's a newline in the text somewhere
   {
     lineNumber = 0;
@@ -955,19 +967,21 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
     {
       if( mAlignVertical == pxConstantsAlignVertical::BOTTOM )
       {
-        tempY = my + (mh - charH); // could be negative
+        tempY = my + (mh - charH); // could be negative    // BOTTOM
       }
       else
       {
-        tempY = my+ (mh/2) - charH/2;
+//         tempY = my+ (mh/2) - charH/2;
+        tempY = (mh - charH)/2; // could be negative  // CENTER
       }
     }
-    if( mTruncation == pxConstantsTruncation::NONE && !clip() && charH > mh) {
+    if( mTruncation == pxConstantsTruncation::NONE && !clip() && charH > mh)
+    {
       noClipH = charH;
       noClipW = (noClipW < charW) ? charW:noClipW;
     }
     // Will it fit on one line OR is there no truncation, so we don't care...
-    if( (charW + tempXStartPos) <= lineWidth || mTruncation == pxConstantsTruncation::NONE)
+    if( mTruncation == pxConstantsTruncation::NONE || (charW + tempXStartPos) <= lineWidth)
     {
       lastLineNumber = lineNumber = 0;
       //rtLogDebug("pxTextBox::renderTextNoWordWrap setLineMeasurements tempXStartPos=%f tempY=%f before renderOneLine\n",tempXStartPos, tempY);
@@ -975,7 +989,6 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
       setMeasurementBounds(true, tempXStartPos, tempY);
 
       renderOneLine(mText, tempX, tempY, sx, sy, mPixelSize, mTextColor, lineWidth, render);
-
     }
     else
     {
@@ -986,7 +999,6 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
           renderTextRowWithTruncation(mText, lineWidth, tempX, tempY, sx, sy, mPixelSize, mTextColor, render);
       }
     }
-
   }
 }
 
@@ -1043,7 +1055,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         // Ignore xStartPos and xStopPos if H align is not LEFT
         if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER )
         {
-          xPos = (lineWidth/2) - ((charW+ellipsisW)/2);
+          xPos = (lineWidth - (charW + ellipsisW))/2;
         }
         else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT)
         {
@@ -1095,7 +1107,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           // Ignore xStartPos and xStopPos if H align is not LEFT
           if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER)
           {
-            xPos = (lineWidth/2) - ((charW+ellipsisW)/2);
+            xPos = (lineWidth - (charW+ellipsisW))/2;
           }
           else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT)
           {
@@ -1130,11 +1142,11 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
 
 bool pxTextBox::isWordBoundary( char ch )
 {
-    return (strchr(word_boundary_chars, ch) != NULL);
+    return (strchr(isWordBoundary_chars, ch) != NULL);
 }
 bool pxTextBox::isSpaceChar( char ch )
 {
-  return (strchr(space_chars, ch) != NULL);
+  return (strchr(isSpaceChar_chars, ch) != NULL);
 }
 /*-------------------------------------------------------------------------
  * the following characters are considered as white-space
@@ -1148,7 +1160,7 @@ bool pxTextBox::isSpaceChar( char ch )
 
 bool pxTextBox::isNewline( char ch )
 {
-    return (strchr(isnew_line_chars, ch) != 0);
+    return (strchr(isNewline_chars, ch) != 0);
 }
 /*
 #### getFontMetrics - returns information about the font (font and size).  It does not convey information about the text of the font.
