@@ -9,18 +9,13 @@
 #include FT_FREETYPE_H
 
 #include "rtString.h"
-#include "rtRef.h"
+#include "rtRefT.h"
 #include "pxScene2d.h"
 #include "pxText.h"
 
 
 #define ELLIPSIS_STR "\u2026"
 #define ELLIPSIS_LEN (sizeof(ELLIPSIS_STR)-1)	
-static const char isnew_line_chars[] = "\n\v\f\r";
-static const char word_boundary_chars[] = " \t/:&,;.";
-static const char space_chars[] = " \t";
-
-
 
 /**********************************************************************
  * 
@@ -38,12 +33,12 @@ public:
   rtReadOnlyProperty(y, y, float);
 
 	float x()             const { return mX; }
-	rtError x(float& v)   const { v = mX; return RT_OK;   }
-	rtError setX(float v)       { mX = v; return RT_OK;   }
+	rtError x(float& v)   const { v = mX; return RT_OK; }
+	rtError setX(float v)       { mX = v; return RT_OK; }
 
 	float y()             const { return mY; }
-	rtError y(float& v)   const { v = mY; return RT_OK;   }
-	rtError setY(float v)       { mY = v; return RT_OK;   }
+	rtError y(float& v)   const { v = mY; return RT_OK; }
+	rtError setY(float v)       { mY = v; return RT_OK; }
 
   void clear() {
     mX = 0;
@@ -74,20 +69,20 @@ public:
   rtReadOnlyProperty(y2, y2, float);
 
 	float x1()             const { return mX1; }
-	rtError x1(float& v)   const { v = mX1; return RT_OK;   }
-	rtError setX1(float v)       { mX1 = v; return RT_OK;   }
+	rtError x1(float& v)   const { v = mX1; return RT_OK; }
+	rtError setX1(float v)       { mX1 = v; return RT_OK; }
 
 	float y1()             const { return mY1; }
-	rtError y1(float& v)   const { v = mY1; return RT_OK;   }
-	rtError setY1(float v)       { mY1 = v; return RT_OK;   }
+	rtError y1(float& v)   const { v = mY1; return RT_OK; }
+	rtError setY1(float v)       { mY1 = v; return RT_OK; }
 
 	float x2()             const { return mX2; }
-	rtError x2(float& v)   const { v = mX2; return RT_OK;   }
-	rtError setX2(float v)       { mX2 = v; return RT_OK;   }
+	rtError x2(float& v)   const { v = mX2; return RT_OK; }
+	rtError setX2(float v)       { mX2 = v; return RT_OK; }
 
 	float y2()             const { return mY2; }
-	rtError y2(float& v)   const { v = mY2; return RT_OK;   }
-	rtError setY2(float v)       { mY2 = v; return RT_OK;   }
+	rtError y2(float& v)   const { v = mY2; return RT_OK; }
+	rtError setY2(float v)       { mY2 = v; return RT_OK; }
       
   void clear() {
     mX1 = 0;
@@ -107,20 +102,22 @@ public:
  * pxTextMeasurements
  * 
  **********************************************************************/
-class pxTextMeasurements: public rtObject {
-
+class pxTextMeasurements: public rtObject
+{
+  
 public:
-	pxTextMeasurements(){ 
-    mBounds = new pxTextBounds();
+	pxTextMeasurements()
+  {
+    mBounds    = new pxTextBounds();
     mCharFirst = new pxCharPosition();
-    mCharLast = new pxCharPosition();
+    mCharLast  = new pxCharPosition();
   }
 	virtual ~pxTextMeasurements() {}
 
 	rtDeclareObject(pxTextMeasurements, rtObject);
   rtReadOnlyProperty(bounds, bounds, rtObjectRef);
   rtReadOnlyProperty(charFirst, charFirst, rtObjectRef);
-  rtReadOnlyProperty(charLast, charLast, rtObjectRef);
+  rtReadOnlyProperty(charLast,  charLast,  rtObjectRef);
   
   rtError bounds(rtObjectRef& v) const
   {
@@ -138,9 +135,9 @@ public:
     return RT_OK;
   } 
   
-  rtRef<pxTextBounds> getBounds()      { return mBounds;}
-  rtRef<pxCharPosition> getCharFirst() { return mCharFirst; }
-  rtRef<pxCharPosition> getCharLast()  { return mCharLast; }
+  rtRefT<pxTextBounds>   getBounds()    { return mBounds;    }
+  rtRefT<pxCharPosition> getCharFirst() { return mCharFirst; }
+  rtRefT<pxCharPosition> getCharLast()  { return mCharLast;  }
   
   void clear() {
     mBounds->clear();
@@ -150,18 +147,19 @@ public:
       
   private:
    
-    rtRef<pxTextBounds> mBounds;
-    rtRef<pxCharPosition> mCharFirst;
-    rtRef<pxCharPosition> mCharLast;
+    rtRefT<pxTextBounds>   mBounds;
+    rtRefT<pxCharPosition> mCharFirst;
+    rtRefT<pxCharPosition> mCharLast;
     
 };
 
 /**********************************************************************
  * 
- * pxTex2
+ * pxTextBox
  * 
  **********************************************************************/
-class pxTextBox: public pxText {
+class pxTextBox: public pxText
+{
 public:
   rtDeclareObject(pxTextBox, pxText);
 
@@ -171,54 +169,57 @@ public:
   rtProperty(wordWrap, wordWrap, setWordWrap, bool);
   rtProperty(ellipsis, ellipsis, setEllipsis, bool);
   rtProperty(xStartPos, xStartPos, setXStartPos, float); 
-  rtProperty(xStopPos, xStopPos, setXStopPos, float);
+  rtProperty(xStopPos,  xStopPos,  setXStopPos,  float);
   rtProperty(truncation, truncation, setTruncation, uint32_t);
   rtProperty(alignVertical, alignVertical, setAlignVertical, uint32_t);
   rtProperty(alignHorizontal, alignHorizontal, setAlignHorizontal, uint32_t);
   rtProperty(leading, leading, setLeading, float); 	
   
-  bool wordWrap()            const { return mWordWrap;}
-  rtError wordWrap(bool& v)  const { v = mWordWrap; return RT_OK;  }
-  rtError setWordWrap(bool v) { mWordWrap = v; setNeedsRecalc(true); return RT_OK; }
+  bool wordWrap()                        const { return mWordWrap;             }
+  rtError wordWrap(bool& v)              const { v = mWordWrap; return RT_OK;  }
+  rtError setWordWrap(bool v)                  { mWordWrap = v; setNeedsRecalc(true); return RT_OK; }
   
-  bool ellipsis()            const { return mEllipsis;}
-  rtError ellipsis(bool& v)  const { v = mEllipsis; return RT_OK;  }
-  rtError setEllipsis(bool v) { mEllipsis = v; setNeedsRecalc(true); return RT_OK; }
+  bool ellipsis()                        const { return mEllipsis;             }
+  rtError ellipsis(bool& v)              const { v = mEllipsis; return RT_OK;  }
+  rtError setEllipsis(bool v)                  { mEllipsis = v; setNeedsRecalc(true); return RT_OK; }
   
-  float xStartPos()             const { return mXStartPos; }
-  rtError xStartPos(float& v)   const { v = mXStartPos; return RT_OK;   }
-  rtError setXStartPos(float v) { mXStartPos = v; setNeedsRecalc(true); return RT_OK; }
+  float xStartPos()                      const { return mXStartPos;              }
+  rtError xStartPos(float& v)            const { v = mXStartPos; return RT_OK;   }
+  rtError setXStartPos(float v)                { mXStartPos = v; setNeedsRecalc(true); return RT_OK; }
   
-  float xStopPos()             const { return mXStopPos; }
-  rtError xStopPos(float& v)   const { v = mXStopPos; return RT_OK;   }
-  rtError setXStopPos(float v) { mXStopPos = v; setNeedsRecalc(true); return RT_OK; }
+  float xStopPos()                       const { return mXStopPos;              }
+  rtError xStopPos(float& v)             const { v = mXStopPos; return RT_OK;   }
+  rtError setXStopPos(float v)                 { mXStopPos = v; setNeedsRecalc(true); return RT_OK; }
     
-  uint32_t truncation()             const { return mTruncation; }
-  rtError truncation(uint32_t& v)   const { v = mTruncation; return RT_OK;   }
-  rtError setTruncation(uint32_t v)       { mTruncation = v; setNeedsRecalc(true); return RT_OK;   }
+  uint32_t truncation()                  const { return mTruncation;              }
+  rtError truncation(uint32_t& v)        const { v = mTruncation; return RT_OK;   }
+  rtError setTruncation(uint32_t v)            { mTruncation = v; setNeedsRecalc(true); return RT_OK;   }
 
-  uint8_t alignVertical()             const { return mAlignVertical; }
-  rtError alignVertical(uint32_t& v)   const { v = mAlignVertical; return RT_OK;   }
-  rtError setAlignVertical(uint32_t v)       { mAlignVertical = v;  setNeedsRecalc(true); return RT_OK;   }
+  uint8_t alignVertical()                const { return mAlignVertical;              }
+  rtError alignVertical(uint32_t& v)     const { v = mAlignVertical; return RT_OK;   }
+  rtError setAlignVertical(uint32_t v)         { mAlignVertical = v;  setNeedsRecalc(true); return RT_OK;   }
   
-  uint8_t alignHorizontal()             const { return mAlignHorizontal; }
+  uint8_t alignHorizontal()              const { return mAlignHorizontal;              }
   rtError alignHorizontal(uint32_t& v)   const { v = mAlignHorizontal; return RT_OK;   }
   rtError setAlignHorizontal(uint32_t v)       { mAlignHorizontal = v;  setNeedsRecalc(true); return RT_OK;   }
   
-  float leading()             const { return mLeading; }
-  rtError leading(float& v)   const { v = mLeading; return RT_OK;   }
-  rtError setLeading(float v)       { mLeading = v;  setNeedsRecalc(true); return RT_OK;   }  
-  virtual rtError setText(const char* s); 
+  float leading()                        const { return mLeading;              }
+  rtError leading(float& v)              const { v = mLeading; return RT_OK;   }
+  rtError setLeading(float v)                  { mLeading = v;  setNeedsRecalc(true); return RT_OK; }
+  
+  virtual rtError setW(float v)                { setNeedsRecalc(true); return pxObject::setW(v);    }
+  virtual rtError setH(float v)                { setNeedsRecalc(true); return pxObject::setH(v);    }
+  virtual rtError setClip(bool v)              { mClip = v; setNeedsRecalc(true); return RT_OK;     }
+  virtual rtError setText(const char* s);
   virtual rtError setPixelSize(uint32_t v);
   virtual rtError setFontUrl(const char* s);
   virtual rtError setFont(rtObjectRef o);
-  virtual rtError setW(float v)       { setNeedsRecalc(true); return pxObject::setW(v);   }
-  virtual rtError setH(float v)       { setNeedsRecalc(true); return pxObject::setH(v);   }  
-  virtual rtError setClip(bool v) { mClip = v; setNeedsRecalc(true); return RT_OK; }
+  
   void renderText(bool render);
+  void determineMeasurementBounds();
+
   virtual void resourceReady(rtString readyResolution);
   virtual void sendPromise();
-  void determineMeasurementBounds();
   virtual void draw();
   virtual void onInit();
   virtual void update(double t);
@@ -231,14 +232,16 @@ public:
 
   virtual rtError Set(const char* name, const rtValue* value)
   {
-    mDirty = mDirty || (!strcmp(name,"wordWrap") ||
-              !strcmp(name,"ellipsis") ||
-              !strcmp(name,"xStartPos") ||
-              !strcmp(name,"xStopPos") ||
-              !strcmp(name,"truncation") ||
-              !strcmp(name,"alignVertical")||
-              !strcmp(name,"alignHorizontal") ||
-              !strcmp(name,"leading"));
+	  //printf("pxTextBox Set for %s\n", name );
+
+    mDirty = mDirty || (!strcmp(name,"wordWrap")        ||
+                        !strcmp(name,"ellipsis")        ||
+                        !strcmp(name,"xStartPos")       ||
+                        !strcmp(name,"xStopPos")        ||
+                        !strcmp(name,"truncation")      ||
+                        !strcmp(name,"alignVertical")   ||
+                        !strcmp(name,"alignHorizontal") ||
+                        !strcmp(name,"leading"));
 
     rtError e = pxText::Set(name, value);
 
@@ -251,12 +254,14 @@ public:
   pxTextMeasurements* getMeasurements() { return (pxTextMeasurements*)measurements.getPtr();}
     
 	uint32_t mTruncation;  
-	float mXStartPos;
+  uint32_t mAlignVertical;
+  uint32_t mAlignHorizontal;
+
+  float mXStartPos;
 	float mXStopPos;
-	uint32_t mAlignVertical;
-	uint32_t mAlignHorizontal;
 	float mLeading;
-	bool mWordWrap;
+
+  bool mWordWrap;
 	bool mEllipsis;
   
   bool mInitialized;
@@ -287,7 +292,7 @@ public:
   void clearMeasurements();
   void setMeasurementBoundsY(bool start, float yVal);
   void setMeasurementBoundsX(bool start, float xVal);  
-  void setMeasurementBounds(bool start, float xVal, float yVal);
+  void setMeasurementBounds( bool start, float xVal, float yVal);
   void setMeasurementBounds(float xPos, float width, float yPos, float height);
   void setLineMeasurements(bool firstLine, float xPos, float y);
 };
