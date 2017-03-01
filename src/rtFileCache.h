@@ -36,12 +36,12 @@ class rtFileCache
     rtError addToCache(const rtHttpCacheData& data); 
 
     /* get the header,image data corresponding to a url from file cache. Returns RT_OK on success and RT_ERROR on failure */
-    rtError getHttpCacheData(const char* url, rtHttpCacheData& cacheData);
+    rtError httpCacheData(const char* url, rtHttpCacheData& cacheData);
 
     /* clear the complete cache */
     void clearCache();
 
-    static rtFileCache* getInstance();
+    static rtFileCache* instance();
  
     static void destroy();
   private:
@@ -59,7 +59,7 @@ class rtFileCache
     void setFileSizeAndTime(rtString& filename);
 
     /* calculates and returns the hash value of the url */
-    rtString getHashedFileName(const rtString& url);
+    rtString hashedFileName(const rtString& url);
 
     /* write the cache data to a file. Returns true on success and false on failure */
     bool writeFile(rtString& filename, const rtHttpCacheData& cacheData);
@@ -71,7 +71,7 @@ class rtFileCache
     bool readFileHeader(rtString& filename,rtHttpCacheData& cacheData);
 
     /* returns the filename in absolute path format */
-    rtString getAbsPath(rtString& filename);
+    rtString absPath(rtString& filename);
 
     /* populate the existing files in cache along with size in mFileSizeMap */
     void populateExistingFiles();

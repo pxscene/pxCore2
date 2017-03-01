@@ -85,9 +85,9 @@ pxFont::~pxFont()
 bool pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       // Load the font data
-      init( (FT_Byte*)fileDownloadRequest->getDownloadedData(), 
-            (FT_Long)fileDownloadRequest->getDownloadedDataSize(), 
-            fileDownloadRequest->getFileUrl().cString());
+      init( (FT_Byte*)fileDownloadRequest->downloadedData(), 
+            (FT_Long)fileDownloadRequest->downloadedDataSize(), 
+            fileDownloadRequest->fileUrl().cString());
             
       return true;
 }

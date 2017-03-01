@@ -51,10 +51,10 @@ class rtHttpCacheData
     bool isUpdated();
 
     /* returns header data */
-    rtData& getHeaderData();
+    rtData& headerData();
 
     /* returns image data */
-    rtData& getContentsData();
+    rtData& contentsData();
 
     void setFilePointer(FILE* fp);
 

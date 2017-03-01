@@ -8,7 +8,7 @@
 
 using namespace std;
 
-rtFileCache* rtFileCache::getInstance()
+rtFileCache* rtFileCache::instance()
 {
   if (NULL == mCache)
   {
@@ -148,7 +148,7 @@ rtError rtFileCache::removeData(const char* url)
     return RT_ERROR;
 
   rtString urlToRemove = url;
-  rtString filename = getHashedFileName(urlToRemove);
+  rtString filename = hashedFileName(urlToRemove);
   if (! filename.isEmpty())
   {
     if (false == deleteFile(filename))
@@ -190,7 +190,7 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
   if  (url.isEmpty())
     return RT_ERROR;
 
-  rtString filename =  getHashedFileName(url);
+  rtString filename =  hashedFileName(url);
   if (filename.isEmpty())
   {
     rtLogWarn("Problem in getting hash from the url(%s) while adding to cache ",url.cString());
@@ -209,10 +209,10 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
   return RT_OK;
 }
 
-rtError rtFileCache::getHttpCacheData(const char* url, rtHttpCacheData& cacheData)
+rtError rtFileCache::httpCacheData(const char* url, rtHttpCacheData& cacheData)
 {
   rtString urlToQuery = url;
-  rtString filename =  getHashedFileName(urlToQuery);
+  rtString filename =  hashedFileName(urlToQuery);
   if (filename.isEmpty())
   {
     rtLogWarn("Problem in getting hash from the url(%s) while read from cache",url);
@@ -265,7 +265,7 @@ int64_t rtFileCache::cleanup()
   return mCurrentSize;
 }
 
-rtString rtFileCache::getHashedFileName(const rtString& url)
+rtString rtFileCache::hashedFileName(const rtString& url)
 {
   long int hash = hashFn(url.cString());
   stringstream stream;
@@ -278,8 +278,8 @@ void rtFileCache::setFileSizeAndTime(rtString& filename)
   if (!mDirectory.isEmpty())
   {
     struct stat statbuf;
-    rtString absPath  = getAbsPath(filename);
-    if (stat(absPath.cString(), &statbuf) == 0)
+    rtString absPathString  = absPath(filename);
+    if (stat(absPathString.cString(), &statbuf) == 0)
     {
       mCacheMutex.lock();
       mFileSizeMap[filename] = statbuf.st_size;
@@ -302,14 +302,14 @@ bool rtFileCache::writeFile(rtString& filename,const rtHttpCacheData& constCache
   stringstream stream;
   stream << cacheData->expirationDateUnix();
   string date = stream.str().c_str();
-  data.init(cacheData->getHeaderData().length() + date.length() + 1 + cacheData->getContentsData().length() + 1);
-  memcpy(data.data(),cacheData->getHeaderData().data(),cacheData->getHeaderData().length());
-  memset(data.data()+cacheData->getHeaderData().length(),'|',1);
-  memcpy(data.data()+cacheData->getHeaderData().length()+1,date.c_str(), date.length());
-  memset(data.data()+cacheData->getHeaderData().length() + date.length() + 1,'|',1);
-  memcpy(data.data()+cacheData->getHeaderData().length()+1+ date.length() + 1,cacheData->getContentsData().data(),cacheData->getContentsData().length());
-  rtString absPath  = getAbsPath(filename);
-  if (RT_OK != rtStoreFile(absPath.cString(),data))
+  data.init(cacheData->headerData().length() + date.length() + 1 + cacheData->contentsData().length() + 1);
+  memcpy(data.data(),cacheData->headerData().data(),cacheData->headerData().length());
+  memset(data.data()+cacheData->headerData().length(),'|',1);
+  memcpy(data.data()+cacheData->headerData().length()+1,date.c_str(), date.length());
+  memset(data.data()+cacheData->headerData().length() + date.length() + 1,'|',1);
+  memcpy(data.data()+cacheData->headerData().length()+1+ date.length() + 1,cacheData->contentsData().data(),cacheData->contentsData().length());
+  rtString absPathString  = absPath(filename);
+  if (RT_OK != rtStoreFile(absPathString.cString(),data))
     return false;
   return true;
 }
@@ -317,8 +317,8 @@ bool rtFileCache::writeFile(rtString& filename,const rtHttpCacheData& constCache
 bool rtFileCache::deleteFile(rtString& filename)
 {
   rtString cmd = "rm -rf ";
-  rtString absPath  = getAbsPath(filename);
-  cmd.append(absPath);
+  rtString absPathString  = absPath(filename);
+  cmd.append(absPathString);
   if (0 != system(cmd.cString()))
   {
     rtLogWarn("removal of file failed");
@@ -329,8 +329,8 @@ bool rtFileCache::deleteFile(rtString& filename)
 
 bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
 {
-  rtString absPath  = getAbsPath(filename);
-  FILE* fp  = fopen(absPath.cString(), "r");
+  rtString absPathString  = absPath(filename);
+  FILE* fp  = fopen(absPathString.cString(), "r");
 
   if (NULL == fp)
   {
@@ -364,10 +364,10 @@ bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
   return true;
 }
 
-rtString rtFileCache::getAbsPath(rtString& filename)
+rtString rtFileCache::absPath(rtString& filename)
 {
-  rtString absPath = mDirectory;
-  absPath.append("/");
-  absPath.append(filename);
-  return absPath;
+  rtString absPathString = mDirectory;
+  absPathString.append("/");
+  absPathString.append(filename);
+  return absPathString;
 }

@@ -55,7 +55,7 @@ rtError pxImageA::setUrl(const char *s)
     AddRef();
     mDownloadRequest = new rtFileDownloadRequest(mURL, this);
     mDownloadRequest->setCallbackFunction(pxImageA::onDownloadComplete);
-    rtFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
+    rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
   else
     mReady.send("resolve", this);
@@ -65,14 +65,14 @@ rtError pxImageA::setUrl(const char *s)
 
 void pxImageA::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
 {
-  pxImageA* image = (pxImageA*)downloadRequest->getCallbackData();
+  pxImageA* image = (pxImageA*)downloadRequest->callbackData();
   if (image) 
   {
-    if (downloadRequest->getDownloadStatusCode() == 0)
+    if (downloadRequest->downloadStatusCode() == 0)
     {
       char* data;
       size_t dataSize;
-      downloadRequest->getDownloadedData(data, dataSize);
+      downloadRequest->downloadedData(data, dataSize);
       pxTimedOffscreenSequence* s = new pxTimedOffscreenSequence;
 
       if (pxLoadAImage(data, dataSize, *s) == RT_OK)

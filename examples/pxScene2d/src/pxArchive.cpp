@@ -31,7 +31,7 @@ rtError pxArchive::initFromUrl(const rtString& url)
     mLoadStatus.set("statusCode", -1);
     mDownloadRequest = new rtFileDownloadRequest(url, this);
     mDownloadRequest->setCallbackFunction(pxArchive::onDownloadComplete);
-    rtFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
+    rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
   else
   {
@@ -139,17 +139,17 @@ rtError pxArchive::fileNames(rtObjectRef& array) const
 
 void pxArchive::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
 {
-  pxArchive* a = (pxArchive*)downloadRequest->getCallbackData();
+  pxArchive* a = (pxArchive*)downloadRequest->callbackData();
 
-  a->mLoadStatus.set("statusCode", downloadRequest->getDownloadStatusCode());
+  a->mLoadStatus.set("statusCode", downloadRequest->downloadStatusCode());
   // TODO rtValue doesn't like longs... rtValue and fix downloadRequest
-  a->mLoadStatus.set("httpStatusCode", (uint32_t)downloadRequest->getHttpStatusCode());
+  a->mLoadStatus.set("httpStatusCode", (uint32_t)downloadRequest->httpStatusCode());
 
-  if (downloadRequest->getDownloadStatusCode() == 0)
+  if (downloadRequest->downloadStatusCode() == 0)
   {
     char* data;
     size_t dataSize;
-    downloadRequest->getDownloadedData(data, dataSize);
+    downloadRequest->downloadedData(data, dataSize);
 
     // TODO another copy here
     a->mData.init((uint8_t*)data,dataSize);

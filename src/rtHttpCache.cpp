@@ -146,12 +146,12 @@ rtError rtHttpCacheData::attributes(map<rtString, rtString>& cacheAttributes)
   return RT_OK;
 }
 
-rtData& rtHttpCacheData::getHeaderData()
+rtData& rtHttpCacheData::headerData()
 {
   return mHeaderMetaData;
 }
 
-rtData& rtHttpCacheData::getContentsData()
+rtData& rtHttpCacheData::contentsData()
 {
   return mData;
 }
@@ -330,20 +330,20 @@ bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downl
   if (!downloadBody)
     downloadRequest->setHeaderOnly(true);
 
-  if (false == rtFileDownloader::getInstance()->downloadFromNetwork(downloadRequest))
+  if (false == rtFileDownloader::instance()->downloadFromNetwork(downloadRequest))
   {
      delete downloadRequest;
      return false;
   }
 
-  if (downloadRequest->getDownloadStatusCode() == 0 &&
-       downloadRequest->getHttpStatusCode() == 200)
+  if (downloadRequest->downloadStatusCode() == 0 &&
+       downloadRequest->httpStatusCode() == 200)
   {
-    if (downloadRequest->getHeaderData() != NULL)
-      mHeaderMetaData.init((uint8_t*)downloadRequest->getHeaderData(), downloadRequest->getHeaderDataSize());
-    if (downloadRequest->getDownloadedData() != NULL)
+    if (downloadRequest->headerData() != NULL)
+      mHeaderMetaData.init((uint8_t*)downloadRequest->headerData(), downloadRequest->headerDataSize());
+    if (downloadRequest->downloadedData() != NULL)
     {
-      mData.init((uint8_t*)downloadRequest->getDownloadedData(), downloadRequest->getDownloadedDataSize());
+      mData.init((uint8_t*)downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
       mUpdated = true;
     }
   }

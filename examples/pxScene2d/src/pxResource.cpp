@@ -138,7 +138,7 @@ void pxResource::raiseDownloadPriority()
     if( lisenersSize == 0) 
       rtLogInfo("But size is 0, so no one cares!!!!!\n");
     priorityRaised = true;
-    rtFileDownloader::getInstance()->raiseDownloadPriority(mDownloadRequest);
+    rtFileDownloader::instance()->raiseDownloadPriority(mDownloadRequest);
   }
 }
 /**********************************************************************/
@@ -233,7 +233,7 @@ void pxResource::loadResource()
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this);
       // setup for asynchronous load and callback
       mDownloadRequest->setCallbackFunction(pxResource::onDownloadComplete);
-      rtFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
+      rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
   else
   {
@@ -297,21 +297,21 @@ void rtImageResource::loadResourceFromFile()
 // Static callback that gets called when fileDownloadRequest completes 
 void pxResource::onDownloadComplete(rtFileDownloadRequest* fileDownloadRequest)
 {
-  if (fileDownloadRequest != NULL && fileDownloadRequest->getCallbackData() != NULL) 
+  if (fileDownloadRequest != NULL && fileDownloadRequest->callbackData() != NULL) 
   {
     // Call virtual processDownlodedResource for specialized handling - 
     // Call directly rather than queuing
-    ((pxResource*)fileDownloadRequest->getCallbackData())->processDownloadedResource(fileDownloadRequest);
+    ((pxResource*)fileDownloadRequest->callbackData())->processDownloadedResource(fileDownloadRequest);
     // Clear download data
-    ((pxResource*)fileDownloadRequest->getCallbackData())->mDownloadRequest = 0;
+    ((pxResource*)fileDownloadRequest->callbackData())->mDownloadRequest = 0;
   }
 }
 
 bool rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       pxOffscreen imageOffscreen;
-      if (pxLoadImage(fileDownloadRequest->getDownloadedData(),
-                      fileDownloadRequest->getDownloadedDataSize(),
+      if (pxLoadImage(fileDownloadRequest->downloadedData(),
+                      fileDownloadRequest->downloadedDataSize(),
                       imageOffscreen) == RT_OK)
       {
         mTexture = context.createTexture(imageOffscreen);
@@ -326,15 +326,15 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
   rtString val = "reject";
   if (fileDownloadRequest != NULL)
   {
-    if (fileDownloadRequest->getDownloadStatusCode() == 0 &&
-        fileDownloadRequest->getHttpStatusCode() == 200 &&
-        fileDownloadRequest->getDownloadedData() != NULL)
+    if (fileDownloadRequest->downloadStatusCode() == 0 &&
+        fileDownloadRequest->httpStatusCode() == 200 &&
+        fileDownloadRequest->downloadedData() != NULL)
     {
       if(!loadResourceData(fileDownloadRequest))
       {
-        rtLogError("Resource Decode Failed: %s", fileDownloadRequest->getFileUrl().cString());
+        rtLogError("Resource Decode Failed: %s", fileDownloadRequest->fileUrl().cString());
         mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
-        mLoadStatus.set("httpStatusCode", (uint32_t)fileDownloadRequest->getHttpStatusCode());
+        mLoadStatus.set("httpStatusCode", (uint32_t)fileDownloadRequest->httpStatusCode());
         // Since this object can be released before we get a async completion
         // We need to maintain this object's lifetime
         // TODO review overall flow and organization
@@ -358,11 +358,11 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
     else 
     {
       rtLogWarn("Resource Download Failed: %s Error: %s HTTP Status Code: %ld",
-                fileDownloadRequest->getFileUrl().cString(),
-                fileDownloadRequest->getErrorString().cString(),
-                fileDownloadRequest->getHttpStatusCode());
+                fileDownloadRequest->fileUrl().cString(),
+                fileDownloadRequest->errorString().cString(),
+                fileDownloadRequest->httpStatusCode());
       mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_HTTP_ERROR);
-      mLoadStatus.set("httpStatusCode",(uint32_t)fileDownloadRequest->getHttpStatusCode());
+      mLoadStatus.set("httpStatusCode",(uint32_t)fileDownloadRequest->httpStatusCode());
       // Since this object can be released before we get a async completion
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
