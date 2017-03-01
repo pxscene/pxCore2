@@ -1,8 +1,7 @@
-#include "pxCanvas.h"
-
 #include <stdio.h>
 #include "math.h"
 
+#include "pxCanvas.h"
 #include "pxTimer.h"
 
 #define INCLUDE_PERF_TIMING
@@ -355,32 +354,28 @@ void pxCanvas::fill(bool time)
 
   if (mVertexCount > 1)
   {
-    if (mMatrix.isIdentity())
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    if (mMatrix.isIdentity()) // NO TRANSFORMATION
     {
-      if (mRasterizer.texture())
+      if (mRasterizer.texture()) // TEXTURE Blit ?
       {
-#if 1
-        int i;
-        for (i = 0; i < mVertexCount-1; i++)
+        //int i;
+        for (int i = 0; i < mVertexCount-1; i++)
         {
-#if 1
           if (mVertices[i].x < extentLeft)   extentLeft   = mVertices[i].x;
           if (mVertices[i].x > extentRight)  extentRight  = mVertices[i].x;
           if (mVertices[i].y < extentTop)    extentTop    = mVertices[i].y;
           if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
-#endif
 
           mRasterizer.addEdge(mVertices[i].x,mVertices[i].y,mVertices[i+1].x, mVertices[i+1].y);
         }
-#if 1
-        if (mVertices[i].x < extentLeft)   extentLeft   = mVertices[i].x;
-        if (mVertices[i].x > extentRight)  extentRight  = mVertices[i].x;
-        if (mVertices[i].y < extentTop)    extentTop    = mVertices[i].y;
-        if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
-#endif
-#endif
+
+        // if (mVertices[i].x < extentLeft)   extentLeft   = mVertices[i].x;
+        // if (mVertices[i].x > extentRight)  extentRight  = mVertices[i].x;
+        // if (mVertices[i].y < extentTop)    extentTop    = mVertices[i].y;
+        // if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
       }
-      else
+      else // FILL
       {
 #ifdef INCLUDE_PERF_TIMING
         if (time)
@@ -394,16 +389,16 @@ void pxCanvas::fill(bool time)
 
         while(vp < vlast)
         {
-          mRasterizer.addEdge(vp->x,vp->y,(vp+1)->x, (vp+1)->y);
+          mRasterizer.addEdge(vp->x, vp->y, (vp+1)->x, (vp+1)->y);
           vp++;
         }
-
       }
     }
-    else
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    else // Non-Identity TFM
     {
-      int i;
-      for (i = 0; i < mVertexCount-1; i++)
+      //int i;
+      for (int i = 0; i < mVertexCount-1; i++)
       {
         pxVertex a;
         pxVertex b;
@@ -413,16 +408,19 @@ void pxCanvas::fill(bool time)
         if (mVertices[i].y < extentTop)    extentTop    = mVertices[i].y;
         if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
 
-        mMatrix.multiply(mVertices[i], mMatrix, a);
+        mMatrix.multiply(mVertices[i  ], mMatrix, a);
         mMatrix.multiply(mVertices[i+1], mMatrix, b);
+
         mRasterizer.addEdge(a.x,a.y,b.x, b.y);
       }
-      if (mVertices[i].x < extentLeft)   extentLeft   = mVertices[i].x;
-      if (mVertices[i].x > extentRight)  extentRight  = mVertices[i].x;
-      if (mVertices[i].y < extentTop)    extentTop    = mVertices[i].y;
-      if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
+
+      // if (mVertices[i].x < extentLeft)   extentLeft   = mVertices[i].x;
+      // if (mVertices[i].x > extentRight)  extentRight  = mVertices[i].x;
+      // if (mVertices[i].y < extentTop)    extentTop    = mVertices[i].y;
+      // if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
     }
-  }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  }//ENDIF - mVertexCount
 
 #ifdef INCLUDE_PERF_TIMING
   if (time)
@@ -465,6 +463,7 @@ void pxCanvas::fill(bool time)
     t4.y = extentBottom;
 
 #if 1
+    // Apply TFM ... verticies
     pxVertex o1, o2, o3, o4;
     mMatrix.multiply(p1, mMatrix, o1);
     mMatrix.multiply(p2, mMatrix, o2);
@@ -473,6 +472,7 @@ void pxCanvas::fill(bool time)
 
     pxVertex n1, n2, n3, n4;
 
+    // Apply TFM ... extents
     mTextureMatrix.multiply(t1, mTextureMatrix, n1);
     mTextureMatrix.multiply(t2, mTextureMatrix, n2);
     mTextureMatrix.multiply(t3, mTextureMatrix, n3);
@@ -498,14 +498,13 @@ void pxCanvas::fill(bool time)
 #endif //INCLUDE_PERF_TIMING
   {
 
-    mRasterizer.rasterize();
+    mRasterizer.rasterize(); // HEAVY LIFTING
   }
 
   //mRasterizer.reset();
 #else
   mRasterizer.reset();
 #endif
-
 }
 
 #endif

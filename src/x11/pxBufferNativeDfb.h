@@ -10,13 +10,18 @@
 #include "../pxCore.h"
 
 // Structure used to describe a window surface under X11
-typedef struct
+typedef struct _pxSurfaceNativeDesc
 {
   IDirectFB          *dfb;
   IDirectFBSurface   *surface;
 
   int windowWidth;
   int windowHeight;
+
+  void *windowBase;
+  int windowStride;
+
+  _pxSurfaceNativeDesc() : dfb(NULL), surface(NULL), windowWidth(0), windowHeight(0), windowBase(NULL), windowStride(123)  {};
 
 } pxSurfaceNativeDesc;
 

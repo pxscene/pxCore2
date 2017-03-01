@@ -1,0 +1,33 @@
+# pxCore FrameBuffer Library
+# Rasterizer Example
+
+# -O3 -g
+
+CFLAGS= -O3 -I../../../../src -I../.. $(PXCORE_INCLUDES) -DPX_PLATFORM_DFB_NON_X11 -DENABLE_DFB -Wno-write-strings
+LIBDIR=../../../../build/dfb
+OUTDIR=.
+
+#LDFLAGS = -ldirectfb -lfusion -ldirect -lz -lnexus -lnxclient
+LDFLAGS =  -ldirectfb -lfusion -ldirect -lz -lnexus -lnxclient -L$(LIBDIR) -lpxCore -lrt
+
+all: $(OUTDIR)/rasterPXC
+
+rasterPXC.o: rasterPXC.cpp
+	$(CXX) -c $(CFLAGS) rasterPXC.cpp
+
+pxRasterizer.o: ../../pxRasterizer.cpp
+	$(CXX) -c $(CFLAGS) ../../pxRasterizer.cpp
+
+pxCanvas.o: ../../pxCanvas.cpp
+	$(CXX) -c $(CFLAGS) ../../pxCanvas.cpp
+
+xs_String.o: ../../xs_String.cpp
+	$(CXX) -c $(CFLAGS) ../../xs_String.cpp
+
+rasterPXC: rasterPXC.o xs_String.o pxRasterizer.o pxCanvas.o
+#	$(CXX) -o $(OUTDIR)/rasterPXC xs_String.o rasterPXC.o pxRasterizer.o pxCanvas.o $(PXSCENE_LIB_LINKING) -lnexus -lnxclient -ldirectfb -ldirect -lfusion -L$(LIBDIR) -lpxCore -lrt -lz
+	$(CXX) $(CFLAGS) -o $(OUTDIR)/rasterPXC xs_String.o rasterPXC.o pxRasterizer.o pxCanvas.o $(PXSCENE_LIB_LINKING) $(LDFLAGS)
+
+
+
+

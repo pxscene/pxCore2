@@ -1001,7 +1001,7 @@ inline pxError draw_SOLID(int resW, int resH, float* matrix, float alpha,
   // TRANSPARENT
   if(!color || color[3] == 0.0 || alpha == 0.0)
   {
-    return;
+    return PX_FAIL;
   }
 
   // Switch to COLORIZE for Glyphs...
@@ -2035,16 +2035,16 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
     return;
   }
 
-  if(boundTexture == NULL)
-  {
-    rtLogError("cannot drawRect() on context surface because boundTexture is NULL");
-    return;
-  }
+  // if(boundTexture == NULL)
+  // {
+  //   rtLogError("cannot drawRect() on context surface because boundTexture is NULL");
+  //   return;
+  // }
 
   applyMatrix(boundFramebuffer,gMatrix.data());
 
   // Fill ...
-  if(fillColor != NULL && fillColor[3] > 0.0) // with non-transparent color
+ // if(fillColor != NULL && fillColor[3] > 0.0) // with non-transparent color
   {
     float half = lineWidth/2;
     drawRect2(half, half, w-lineWidth, h-lineWidth, fillColor);

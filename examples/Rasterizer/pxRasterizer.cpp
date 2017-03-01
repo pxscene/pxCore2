@@ -1,11 +1,11 @@
+#include <algorithm>
+
 #include "pxTimer.h"
 #include "pxRasterizer.h"
 
 #include "xs_Core.h"
 #include "xs_Float.h"
 //#include "rtLog.h"
-
-#include <algorithm>
 
 #define MINEDGES 200000
 
@@ -21,7 +21,57 @@
 #define FIXEDSCANLINE(y) (y >> fixedScanlineShift)
 #define FIXEDX(x) (x >> (12))  // hardcoded to 4 bits
 
+
+//JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+//JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+//JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+
+#ifdef LERP_PTR
+
+void pxLerp0(uint32_t a, uint32_t &d, const uint32_t s); //fwd
+void pxLerp2(uint32_t a, uint32_t &d, const uint32_t s); //fwd
+
+// Dumb copy
+void pxLerp0(uint32_t a, uint32_t &d, const uint32_t s)
+{
+	d = s; //DUMB COPY
+}
+
+// preserves alpha
+void pxLerp2(uint32_t a, uint32_t &d, const uint32_t s)
+{
+	register uint32 dstrb = (d     ) & 0xFF00FF;
+	register uint32 dstag = (d >> 8) & 0xFF00FF;
+
+	register uint32 srcrb = (s     ) & 0xFF00FF;
+	register uint32 srcag = (s >> 8) & 0xFF00FF;
+
+	register uint32 drb = srcrb - dstrb;
+	register uint32 dag = srcag - dstag;
+
+	drb *= a;
+	dag *= a;
+	drb >>= 8;
+	dag >>= 8;
+
+	const uint32_t rb  = (drb + dstrb)      & 0x00FF00FF;
+	const uint32_t ag  = (dag + dstag) << 8 & 0xFF00FF00;
+
+	d = rb | ag;
+}
+
+lerp_fn LERP = pxLerp2;
+
+
+//JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+//JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+//JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK JUNK
+
+#else
+
 #define LERP pxLerp2   // pxLerp2  pxLerp0
+
+#endif
 
 //#define OLDTEXTURE
 
@@ -370,6 +420,7 @@ private:
 
 };// CLASS - pxSpanBuffer
 
+//========================================================================================================================
 
 pxSpanBuffer mSpanBuffer;
 
@@ -1273,6 +1324,19 @@ pxRasterizer::~pxRasterizer()
   term();
 }
 
+//JUNK
+//JUNK
+#ifdef LERP_PTR
+void  pxRasterizer::setBiLerp(bool f)
+{
+   mBiLerp = false;
+
+   LERP = f ? pxLerp2 : pxLerp0;
+}
+#endif
+//JUNK
+//JUNK
+
 void pxRasterizer::init(pxBuffer* buffer)
 {
   term();
@@ -1876,6 +1940,8 @@ void pxRasterizer::rasterize()
           // NON-TEXTURE (FILL ?)
           if (!mTexture)
           {
+           // printf("\n -  NON-TEXTURE (FILL ?)");  //##??
+
             int ycount = bot-top;
             pxPixel* s = mBuffer->scanline(top) + left;
 
@@ -1889,7 +1955,9 @@ void pxRasterizer::rasterize()
             // NO OVERDRAW
             if (!mOverdraw)
             {
-              if (mEffectiveAlpha == 255)
+            //  printf("\n -  NO OVERDRAW !!");  //##??
+
+              if (mEffectiveAlpha == 255) // Full coverage contribution
               {
                 uint32_t *d, *ed;
                 while (ycount--)
@@ -1919,10 +1987,12 @@ void pxRasterizer::rasterize()
                   }
                   s += stride;
                 }
-              }
+              }// ENDIF - EffectiveAlpha
             }
             else //WITH OVERDRAW
             {
+//              printf("\n -  USE OVERDRAW !!");  //##??
+
               pxColor t = mColor;
               t.r = (int)t.r * t.a >> 8;
               t.g = (int)t.g * t.a >> 8;
@@ -1944,8 +2014,8 @@ void pxRasterizer::rasterize()
                 {
                   x0 >>= 4;
                   x1 >>= 4;
-                  r = (uint32_t*)mBuffer->scanline(y);
-                  d =  r + x0;
+                  r  = (uint32_t*)mBuffer->scanline(y);
+                  d  =  r + x0;
                   ed = r + x1;
                   int opaqueCount = 0;
                   int opaqueStart = x0;
@@ -1967,9 +2037,9 @@ void pxRasterizer::rasterize()
                       mSpanBuffer.addSpan(opaqueStart<<4, (opaqueStart+opaqueCount)<<4);
                     d++;
                   }
-                }
+                }//WHILE
 //                            mSpanBuffer.addSpan(left<<4, right<<4);
-              }
+              }//FOR
             }
 
             reset();
@@ -1981,6 +2051,8 @@ void pxRasterizer::rasterize()
           else if (           mMatrix.isTranslatedOnly()
                     && mTextureMatrix.isTranslatedOnly() )  // filtered // BUGBUG not taking non texture affine into account
           {
+//            printf("\n -  TRANSLATE ONLY ????");  //##??
+
             texLeft -= xs_RoundToInt(mTextureMatrix.translateX());
             texTop  -= xs_RoundToInt(mTextureMatrix.translateY());
 
@@ -2013,6 +2085,8 @@ void pxRasterizer::rasterize()
                   {
                     if (!mOverdraw)
                     {
+//                      printf("\n -  NO OVERDRAW  !!");  //##??
+
                       if (!mAlphaTexture)
                       {
                         if (mEffectiveAlpha == 255)
@@ -2059,6 +2133,8 @@ void pxRasterizer::rasterize()
                     }
                     else // overdraw
                     {
+                      // printf("\n -  OVERDRAW  !!");  //##??
+
                       int dw = ed - d;
                       pxPixel* sd = d;
                       int tw = te - t;
@@ -2132,7 +2208,7 @@ void pxRasterizer::rasterize()
                       t = t0;
                       te = t + mTexture->width();
                     }
-                  }
+                  }//WHILE
                   s += stride;
                   y++;
                 }
@@ -2315,6 +2391,8 @@ inline pxPixel* pxRasterizer::getTextureSample(int32_t maxU, int32_t maxV, int32
 
 void pxRasterizer::rasterizeComplex()
 {
+  //printf("\n -  rasterizeComplex()  !!");  //##??
+
   bool textureUpsideDown = false;
 
   int32_t maxU;
@@ -2372,6 +2450,8 @@ void pxRasterizer::rasterizeComplex()
     if (mLeftExtent <= clipRight && mRightExtent >= clipLeft)
 #endif //FIXEDPOINTEDGES
     {
+//        printf("\n -  rasterizeComplex() - trivial reject !!");  //##??
+
 #if 0
       edges* starts = (edges*) mStarts;
       edges*   ends = (edges*) mEnds;
@@ -2428,15 +2508,15 @@ void pxRasterizer::rasterizeComplex()
             {
               // BUGBUG Performance hit
               //memset(mCoverage, 0, mCachedBufferWidth+1);
-              mCoverageFirst = mCachedBufferWidth-1;
+              mCoverageFirst = mCachedBufferWidth - 1;
               mCoverageLast  = 0;
             }
 
-            mCoverageAmount = (overSampleAdd>>1)-1;
+            mCoverageAmount = (overSampleAdd >> 1) - 1;
           }
           else
           {
-            mCoverageAmount = overSampleAdd >> 1;
+            mCoverageAmount = (overSampleAdd >> 1);
           }
 
           // continue;
@@ -2526,6 +2606,7 @@ void pxRasterizer::rasterizeComplex()
           bool inside = false;
           bool done   = false;
 
+          // QQQ: What does this do ?
           while (!done)
           {
             // find candidate edges
@@ -2533,7 +2614,7 @@ void pxRasterizer::rasterizeComplex()
 
             int32_t p, pEnd;
 
-            if (mFillMode == fillWinding)
+            if (mFillMode == fillWinding)  // WINDING MODE ... WINDING MODE ... WINDING MODE ...
             {
               for (; z < mActiveCount; z++)
               {
@@ -2548,7 +2629,7 @@ void pxRasterizer::rasterizeComplex()
                   p = mActiveList[z]->mXCurrent;
 #endif
                 }
-                else if (inside && winding == 0)
+                else //if (inside && winding == 0)
                 {
                   inside = false;
 #ifdef FIXEDPOINTEDGES
@@ -2563,9 +2644,9 @@ void pxRasterizer::rasterizeComplex()
                     break;
                   }
                 }
-              }// FOR
+              }// FOR - mActiveCount
             }
-            else
+            else // fill mode  // FILL MODE ...  FILL MODE ...  FILL MODE ...  FILL MODE ...
             {
               if (z+1 < mActiveCount)
               {
@@ -2580,9 +2661,13 @@ void pxRasterizer::rasterizeComplex()
                 z += 2;
               }
               else foundEdges = false;
-            }
+            }// ENDIF
 
-            if (!foundEdges) done = true;
+            if (!foundEdges)
+            {
+              done = true;
+              continue; // to break while()...
+            }
             else
             {
               foundEdges = false;
@@ -2643,8 +2728,8 @@ void pxRasterizer::rasterizeComplex()
                 else if (cp+1 == pEnd)
                 {
 #if 1
-                  int pCoverage    = ltEdgeCover[p&0xf];
-                  int pEndCoverage = rtEdgeCover[pEndSave&0xf];
+                  int pCoverage    = ltEdgeCover[       p & 0xf];
+                  int pEndCoverage = rtEdgeCover[pEndSave & 0xf];
 #if 1
                   if (subline == 0)
                   {
@@ -2655,15 +2740,15 @@ void pxRasterizer::rasterizeComplex()
                   }
 #endif
                   mCoverage[cp]     += pCoverage;
-                  mCoverage[pEnd]   += (pEndCoverage-pCoverage);
+                  mCoverage[pEnd]   += (pEndCoverage - pCoverage);
                   mCoverage[pEnd+1] -= pEndCoverage;
 #endif
                 }
                 else
                 {
 #if 1
-                  int pCoverage    = ltEdgeCover[p&0xf];
-                  int pEndCoverage = rtEdgeCover[pEndSave&0xf];
+                  int pCoverage    = ltEdgeCover[       p & 0xf];
+                  int pEndCoverage = rtEdgeCover[pEndSave & 0xf];
 
 #if 1
                   if (subline == 0)
@@ -2861,8 +2946,8 @@ void pxRasterizer::rasterizeComplex()
 
                   if (widthXY > 0)
                   {
-                    int32_t du = (rightTexture.mCurrentU - leftTexture.mCurrentU) / widthXY;
-                    int32_t dv = (rightTexture.mCurrentV - leftTexture.mCurrentV) / widthXY;
+                    int32_t   du = (rightTexture.mCurrentU - leftTexture.mCurrentU) / widthXY;
+                    int32_t   dv = (rightTexture.mCurrentV - leftTexture.mCurrentV) / widthXY;
 
                     int32_t maxU = (mTexture->width()  << UVFIXEDSHIFT)-1;
                     int32_t maxV = (mTexture->height() << UVFIXEDSHIFT)-1;
@@ -2876,6 +2961,8 @@ void pxRasterizer::rasterizeComplex()
 #if 1
                     if (mOverdraw)
                     {
+//                      printf("\n -  OVERDRAW  (complex) !!");  //##??
+
                       mSpanBuffer.startClipRow(l>>overSampleShift);
                       mSpanBuffer.startClipSpan(mCoverageFirst<<4, mCoverageLast<<4);
                       if (mSpanBuffer.getClip(startSpan, endSpan))
@@ -2889,6 +2976,8 @@ void pxRasterizer::rasterizeComplex()
                     else
 #endif //1
                     {
+//                      printf("\n -  NO OVERDRAW  (complex) !!");  //##??
+
                       startSpan = mCoverageFirst;
                       endSpan   = mCoverageLast;
                     }
@@ -2942,6 +3031,8 @@ void pxRasterizer::rasterizeComplex()
                           curV += (mTexture->height() << UVFIXEDSHIFT);
                       }
 
+// #define EXPERIMENTAL
+
 #if 1
                       if (!mBiLerp)
                       {
@@ -2984,6 +3075,8 @@ void pxRasterizer::rasterizeComplex()
                           // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                           if (mOverdraw)
                           {
+                            printf("\n -  OVERDRAW  (complex) !!");  //##??
+
 #if 1
                             if (!mAlphaTexture && currentCoverage == 127)
                             {
@@ -3051,6 +3144,8 @@ void pxRasterizer::rasterizeComplex()
                           } // ELSE- mOverdraw
                           else
                           {
+                            printf("\n -  NO OVERDRAW (complex) !!");  //##??
+
                             if (currentCoverage == 127)
                             {
                               while(p < pe)

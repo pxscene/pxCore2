@@ -5,11 +5,6 @@
 #ifndef PX_WINDOW_NATIVE_DFB_H
 #define PX_WINDOW_NATIVE_DFB_H
 
-//#include <X11/Xlib.h>
-//#include <X11/Xutil.h>
-//#include <X11/keysymdef.h>
-//#include <X11/Xatom.h>
-
 #include <stdio.h>
 #include <sys/mman.h>
 #include <cstring>
@@ -17,6 +12,8 @@
 #include <iostream>
 #include <linux/input.h>
 #include <time.h>
+
+#include "pxColor.h"
 
 #include <directfb.h>
 
@@ -51,7 +48,7 @@ private:
 class pxWindowNative
 {
 public:
-  pxWindowNative(): mTimerFPS(0), mLastWidth(-1), mLastHeight(-1),
+  pxWindowNative(): mTimerFPS(30), mLastWidth(-1), mLastHeight(-1),
     mResizeFlag(false), mLastAnimationTime(0.0), mVisible(false),
     mDfbWindowId(0)
   { }
@@ -81,6 +78,8 @@ public:
   virtual void onSize(int w, int h) = 0;
 
   void animateAndRender();
+
+  void clearScreen(const pxColor &clr = pxClear);
 
   void blit(pxBuffer& b, int32_t dstLeft, int32_t dstTop,
             int32_t dstWidth, int32_t dstHeight,

@@ -79,10 +79,15 @@ public:
   void setTextureMatrix(const pxMatrix& m);
 
   bool biLerp() const { return mBiLerp; }
+
+#ifdef LERP_PTR
+  void setBiLerp(bool f);//     { mBiLerp = f; }
+#else
   void setBiLerp(bool f)     { mBiLerp = f; }
+#endif
 
   bool overdraw() const { return mOverdraw; }
-  void setOverdraw(bool f)     { mOverdraw = f;; }
+  void setOverdraw(bool f)     { mOverdraw = f; }
 
   void clear();
 

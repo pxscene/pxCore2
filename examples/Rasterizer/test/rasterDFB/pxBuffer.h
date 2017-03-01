@@ -97,7 +97,7 @@ pxBuffer(): mPixelFormat(RT_DEFAULT_PIX), mBase(NULL), mWidth(0), mHeight(0), mS
 
     for (int32_t i = c.top(); i < c.bottom(); i++)
     {
-      pxPixel *p = pixel(c.left(), i);
+      pxPixel *p  = pixel(c.left(), i);
       pxPixel *pe = p + c.width();
       while (p < pe)
       {
@@ -131,14 +131,14 @@ pxBuffer(): mPixelFormat(RT_DEFAULT_PIX), mBase(NULL), mWidth(0), mHeight(0), mS
     }
   }
 
-  void blit(pxSurfaceNative s, int32_t dstLeft, int32_t dstTop,
-            int32_t dstWidth, int32_t dstHeight,
-            int32_t srcLeft, int32_t srcTop);
+  // void blit(pxSurfaceNative s, int32_t dstLeft, int32_t dstTop,
+  //           int32_t dstWidth, int32_t dstHeight,
+  //           int32_t srcLeft, int32_t srcTop);
 
-  inline void blit(pxSurfaceNative s)
-  {
-    blit(s, 0, 0, width(), height(), 0, 0);
-  }
+  // inline void blit(pxSurfaceNative s)
+  // {
+  //   blit(s, 0, 0, width(), height(), 0, 0);
+  // }
 
   inline void blit(pxBuffer& b, int32_t dstLeft, int32_t dstTop,
                    int32_t dstWidth, int32_t dstHeight,
@@ -210,9 +210,8 @@ pxBuffer(): mPixelFormat(RT_DEFAULT_PIX), mBase(NULL), mWidth(0), mHeight(0), mS
     free(line); //cleanup
   }
 
-  virtual void clearSurface(pxSurfaceNative s, const pxColor &clr = pxClear);
-
-  virtual void swizzleTo(rtPixelFmt fmt) = 0;
+ // void clearSurface(pxSurfaceNative s, const pxColor &clr = pxClear);
+ // virtual void swizzleTo(rtPixelFmt fmt) = 0;
 
   rtPixelFmt mPixelFormat;
 
@@ -222,11 +221,9 @@ pxBuffer(): mPixelFormat(RT_DEFAULT_PIX), mBase(NULL), mWidth(0), mHeight(0), mS
 
 protected:
   void* mBase;
-
   int32_t mWidth;
   int32_t mHeight;
   int32_t mStride;
-
   bool mUpsideDown;
 };
 

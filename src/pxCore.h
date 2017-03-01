@@ -15,29 +15,52 @@ typedef int pxError;
 
 // Utility Functions
 
-template <typename t> 
+template <typename t>
 inline t pxMin(t a1, t a2)
 {
   return (a1 < a2)?a1:a2;
 }
 
-template <typename t> 
+template <typename t>
 inline t pxMax(t a1, t a2)
 {
   return (a1 > a2)?a1:a2;
 }
 
-template <typename t> 
+// /#define PX_CLAMP_ORG
+
+#ifdef PX_CLAMP_ORG
+// ORIGINAL
+//
+template <typename t>
 inline t pxClamp(t v, t min, t max)
 {
   return pxMin<t>(max, pxMax<t>(min, v));
 }
 
-template <typename t> 
+template <typename t>
 inline t pxClamp(t v, t max)
 {
   return pxMin<t>(max, pxMax<t>(0, v));
 }
+
+#else
+// REVISED
+//
+template <typename t>
+inline t pxClamp(t v, t min, t max)
+{
+  return (v <= min) ? min : ( (v >= max) ? max : v);
+}
+
+template <typename t>
+inline t pxClamp(t v, t max)
+{
+  return (v <= 0) ? 0 : ((v < max) ? v : max);
+}
+
+#endif // PX_CLAMP_ORG
+
 
 template <typename t>
 inline t pxAbs(t i)

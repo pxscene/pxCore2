@@ -22,6 +22,10 @@ inline double pxCos(double i)
   return cos(i);
 }
 
+//#define LERP_PTR
+#ifdef LERP_PTR
+typedef  void (*lerp_fn)(uint32_t a, uint32_t &d, const uint32_t s);
+#else
 
 // Dumb copy
 inline void pxLerp0(uint32_t a, uint32_t &d, const uint32_t s)
@@ -78,6 +82,8 @@ inline void pxLerp2(uint32 a, uint32 &d, const uint32 s)
 	d = rb | g;
 }
 #endif
+
+#endif // LERP_PTR
 
 // uses src alpha - doesn't preserve alpha
 inline void pxBlend(uint32 &d, const uint32 s)
@@ -217,6 +223,4 @@ inline pxPixel pxBlend4(const pxPixel& s1, const pxPixel& s2,
   return pxPixel(ag | rb);
 }
 
-#endif
-
-
+#endif //PX_2D_H

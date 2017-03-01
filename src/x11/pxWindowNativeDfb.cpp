@@ -19,9 +19,8 @@
 
 #define USE_DFB_FLIPPING
 
-#define USE_DRAW_THREAD
-//#define USE_DRAW_ALARM   /// BAD >> Results in " Direct/Thread: Started 'SigHandler' " error when run with Node
-
+int  gFrameNumber  = 0;
+bool gDirectRender = false;
 
 IDirectFB              *dfb        = NULL;
 IDirectFBSurface       *dfbSurface = NULL;
@@ -29,10 +28,10 @@ IDirectFBEventBuffer   *dfbBuffer  = NULL;
 
 DFBSurfaceDescription   dfbDescription;
 
-#ifdef USE_DRAW_THREAD
+static uint32_t gFpsRate = 30; // default
+
 void *draw_func(void *ptr);
 static pthread_t draw_thread = 0;
-#endif
 
 // TODO ... probably better per window.
 static int cursor_x = 0;
@@ -47,6 +46,11 @@ DFBSurfacePixelFormat  dfbPixelformat = DSPF_UNKNOWN;
 bool needsFlip = true;
 bool exitFlag  = false;
 
+#if _DEBUG_______
+
+#warning "DFB_CHECK() debug code included..."
+
+//---------------------------------------------------------------
 #define DFB_CHECK(x...)                                   \
 {                                                         \
   DFBResult err = x;                                      \
@@ -61,6 +65,16 @@ bool exitFlag  = false;
 #define DFB_ERROR(err)                                    \
   fprintf(stderr, "%s:%d - %s\n", __FILE__, __LINE__,     \
   DirectFBErrorString(err));
+//---------------------------------------------------------------
+
+#else
+
+#define DFB_CHECK(x...)   x;
+#define DFB_ERROR(err)    err;
+
+#endif
+//---------------------------------------------------------------
+
 
 
 dfbDisplay* displayRef::mDisplay  = NULL;
@@ -163,8 +177,6 @@ ProcessInputEvent(DFBInputEvent *ievt)
 
 void eventLoop()
 {
-  printf("************************* %s - STARTED\n",__PRETTY_FUNCTION__);// JUNK
-
   while (!exitFlag)
   {
     DFB_CHECK (dfbBuffer->WaitForEvent(dfbBuffer)); // Block waiting for next event...
@@ -178,10 +190,17 @@ void eventLoop()
     }
   }//WHILE
 
-  printf("************************* %s ... exiting...\n",__PRETTY_FUNCTION__);// JUNK
+  int exitVal = 0;
+
+  // wait for the draw thread to finish
+  if(draw_thread && pthread_join(draw_thread, (void **) &exitVal))
+  {
+    fprintf(stderr, "Error joining thread\n");
+    return;
+  }
 }
 
-void display()
+inline void display()
 {
   vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
   vector<pxWindowNative*>::iterator i;
@@ -195,7 +214,7 @@ void display()
 #ifdef USE_DFB_FLIPPING
   if(dfbSurface && needsFlip)
   {
-    dfbSurface->Flip( dfbSurface, NULL, (DFBSurfaceFlipFlags) DSFLIP_WAITFORSYNC);
+    dfbSurface->Flip( dfbSurface, NULL, (DFBSurfaceFlipFlags) DSFLIP_NONE);// DSFLIP_WAITFORSYNC);
 
     needsFlip = false;
   }
@@ -421,22 +440,15 @@ void onEntry(int32_t state)
 
 displayRef::displayRef()
 {
-  if (mRefCount == 0)
+  if (++mRefCount == 1) // test will always increment mRefCount ... create on 1st instance
   {
-    mRefCount++;
     createDfbDisplay();
-  }
-  else
-  {
-    mRefCount++;
   }
 }
 
 displayRef::~displayRef()
 {
-  mRefCount--;
-
-  if (mRefCount == 0)
+  if (--mRefCount == 0)
   {
     cleanupDfbDisplay();
   }
@@ -469,7 +481,7 @@ void pxWindowNative::createDfbWindow(int left, int top, int width, int height)
   (void) left;  (void) top;
 
   dfbDescription.flags = DFBSurfaceDescriptionFlags(DSDESC_CAPS | DSDESC_WIDTH | DSDESC_HEIGHT);
-  dfbDescription.caps  = DFBSurfaceCapabilities(DSCAPS_PRIMARY  | DSCAPS_DOUBLE );// | DSCAPS_FLIPPING);
+  dfbDescription.caps  = DFBSurfaceCapabilities(DSCAPS_PRIMARY  | DSCAPS_DOUBLE | DSCAPS_FLIPPING);
 
   int SW = 0, SH = 0;
 
@@ -481,13 +493,13 @@ void pxWindowNative::createDfbWindow(int left, int top, int width, int height)
 
   DFB_CHECK(dfbSurface->GetPixelFormat( dfbSurface, &dfbPixelformat ));
 
-  printf("\n\n NOTE: WxH >> %d x %d ... pixelformat: %s ******* \n\n", SW, SH, p2str(dfbPixelformat) );
+ // printf("\n\n NOTE: WxH >> %d x %d ... pixelformat: %s ******* \n\n", SW, SH, p2str(dfbPixelformat) );
 
   // Clear initially
   DFB_CHECK( dfbSurface->Clear( dfbSurface, 0, 0, 0,  0 ) );
 
   // Enable Alpha
-  DFB_CHECK (dfbSurface->SetBlittingFlags(dfbSurface, DSBLIT_BLEND_ALPHACHANNEL));
+ // DFB_CHECK (dfbSurface->SetBlittingFlags(dfbSurface, DSBLIT_BLEND_ALPHACHANNEL));
 }
 
 
@@ -502,6 +514,8 @@ pxError displayRef::createDfbDisplay()
 
   DirectFBSetOption ("quiet",              NULL); // Suppress banner
 //  DirectFBSetOption ("hardware",           NULL); // Enable hardware acceleration
+  DirectFBSetOption ("no-debug",           NULL);
+
 //  DirectFBSetOption ("software",           NULL); // Enable software fallback
 //  DirectFBSetOption ("bg-none",            NULL);
 //  DirectFBSetOption ("dma",                NULL);
@@ -540,6 +554,13 @@ void pxWindowNative::cleanupDfbWindow()
   {
     dfbSurface->Release(dfbSurface);
     dfbSurface = NULL;
+  }
+
+  if(dfb)
+  {
+    dfb->WaitIdle(dfb);
+    dfb->Release(dfb);
+    dfb = NULL;
   }
 }
 
@@ -605,25 +626,32 @@ pxError pxWindow::setAnimationFPS(uint32_t fps)
   mTimerFPS = (int) fps;
   mLastAnimationTime = pxMilliseconds();
 
+  gFpsRate = mTimerFPS;
+
   return PX_OK;
 }
 
 void pxWindow::setTitle(const char* title)
 {
   title = title;
-  //glutSetWindowTitle(title);
 }
 
-pxError pxWindow::beginNativeDrawing(pxSurfaceNative& /*s*/)
+pxError pxWindow::beginNativeDrawing(pxSurfaceNative& s)
 {
-  //TODO
+  if(s && s->surface)
+  {
+    s->surface->Lock(s->surface, (DFBSurfaceLockFlags) DSLF_WRITE, &s->windowBase, &s->windowStride);
+  }
 
   return PX_OK;
 }
 
-pxError pxWindow::endNativeDrawing(pxSurfaceNative& /*s*/)
+pxError pxWindow::endNativeDrawing(pxSurfaceNative& s)
 {
-  //TODO
+  if(s && s->surface)
+  {
+    s->surface->Unlock(s->surface);
+  }
 
   return PX_OK;
 }
@@ -632,28 +660,20 @@ pxError pxWindow::endNativeDrawing(pxSurfaceNative& /*s*/)
 
 void pxWindowNative::onAnimationTimerInternal()
 {
-  if (mTimerFPS)
-  {
     onAnimationTimer();
-  }
 }
 
 void pxWindowNative::runEventLoop()
 {
   exitFlag = false;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#ifdef USE_DRAW_THREAD
-
-  int fps = 60;// mTimerFPS;
+  int fps = gFpsRate;
 
   if( (draw_thread == 0) &&
       pthread_create(&draw_thread, NULL, &draw_func, (void *) &fps))
   {
     fprintf(stderr, "Error creating thread\n");
   }
-#endif
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   eventLoop();
 }
@@ -663,24 +683,20 @@ void pxWindowNative::exitEventLoop()
   exitFlag = true;
 
   DFB_CHECK (dfbBuffer->WakeUp(dfbBuffer)); // Unblock I/O
-
-  printf("************************* %s\n",__PRETTY_FUNCTION__);// JUNK
-
-#ifdef USE_DRAW_THREAD
-  // wait for the draw thread to finish
-  if(draw_thread && pthread_join(draw_thread, NULL))
-  {
-    fprintf(stderr, "Error joining thread\n");
-    return;
-  }
-#endif
-
 }
+
+
+void pxWindowNative::clearScreen(const pxColor &clr /* = pxClear*/)
+{
+  // Clear
+  DFB_CHECK( dfbSurface->Clear( dfbSurface, clr.r, clr.g, clr.b, clr.a ) );
+}
+
 
 void pxWindowNative::animateAndRender()
 {
   static double lastAnimationTime = pxMilliseconds();
-  double currentAnimationTime = pxMilliseconds();
+  double currentAnimationTime     = pxMilliseconds();
 
   drawFrame();
 
@@ -705,7 +721,7 @@ void pxWindowNative::animateAndRender()
   }
 }
 
-void pxWindowNative::setLastAnimationTime(double time)
+inline void pxWindowNative::setLastAnimationTime(double time)
 {
   mLastAnimationTime = time;
 }
@@ -803,121 +819,45 @@ char* p2str(DFBSurfacePixelFormat fmt)
   return (char *) "NOT FOUND";
 }
 
-
-
-
-
 //###########################################################################
-
-#ifdef USE_DRAW_THREAD
-
-#ifndef USE_DRAW_ALARM
-
-void mysleep_ms(int32_t ms)
-{
-    struct timespec res;
-
-    res.tv_sec  = (ms / 1000);
-    res.tv_nsec = (ms * 1000000) % 1000000000;
-
-    clock_nanosleep(CLOCK_MONOTONIC, 0, &res, NULL);
-}
 
 void *draw_func(void *ptr)
 {
   double fps_rate = ptr ? *((int *) ptr) : 60.0;
-  double sleep_ms = (1.0/(float) fps_rate) * 1000.0;
+  double frame_ms = (1.0/(float) fps_rate) * 1000.0;
 
-  printf("\n\n\n SET fps = %f    %f ms\n\n\n", fps_rate, sleep_ms);
+  // printf("\n NOTE:  fps = %f    %f ms  (DEBUG)", fps_rate, frame_ms);
 
   static double lastFrame_ms = pxMilliseconds();
 
   while(!exitFlag)
   {
-     onTimer(0);
+    double start_ms   = pxMilliseconds();
+    double elapsed_ms = start_ms - lastFrame_ms;  // Elapsed time sleeping
 
-     double now_ms  = pxMilliseconds();
-     double elapsed = now_ms - lastFrame_ms;
+    onTimer(0); // WORK   ... onTimer() >> display() >> animateAndRender() >>  drawFrame()
 
-     lastFrame_ms = now_ms;
+    double end_ms     = pxMilliseconds();
+    double onTimer_ms = end_ms   - start_ms; // time spent in onTimer()
+    double sleep_ms   = frame_ms - elapsed_ms - onTimer_ms;
 
-     // schedule next timer event
-    mysleep_ms( sleep_ms - elapsed );
+    lastFrame_ms = end_ms;
+
+    gFrameNumber++;
+
+    if( (sleep_ms <      0.0) ||
+        (sleep_ms > frame_ms) )
+    {
+      sleep_ms = frame_ms; // CLAMP
+    }
+
+    pxSleepMS( sleep_ms );
   }
 
-  return NULL;
-}
-//###########################################################################
+  dfb->WaitIdle( dfb ); // finish up...
 
-#else // USE_DRAW_ALARM
-
-timer_t fpsTimer;
-
-void drawFrame(int signum)
-{
-    //fprintf(stderr, "Tick ###");
-    onTimer(0);
-}
-
-void setupFpsTimer(int fps)
-{
-   struct itimerspec new_value, old_value;
-   struct sigaction action;
-   struct sigevent sevent;
-   sigset_t set;
-//   int signum;
-
-  printf("\n\n\n ALARM - SET fps = %d\n\n\n", fps, sleep_ms);
-
-   // SIGALRM for printing time
-   memset(&action, 0, sizeof(struct sigaction));
-   action.sa_handler = drawFrame;
-
-   if (sigaction(SIGALRM, &action, NULL) == -1)
-      perror ("sigaction");
-
-   // for program completion
-   memset (&sevent, 0, sizeof (struct sigevent));
-   sevent.sigev_notify = SIGEV_SIGNAL;
-   sevent.sigev_signo  = SIGRTMIN;
-
-   if (timer_create(CLOCK_MONOTONIC, NULL, &fpsTimer) == -1)
-      perror ("timer_create");
-
-   const float ns_per_second = 1.0e9f; // nanoseconds per seconds
-   float sleep_ns = (1.0f/(float) fps) * ns_per_second;
-
-   new_value.it_interval.tv_sec  = 0;
-   new_value.it_interval.tv_nsec = (long) sleep_ns; //###
-   new_value.it_value.tv_sec     = 0;
-   new_value.it_value.tv_nsec    = (long) sleep_ns; //###
-
-   if (timer_settime( fpsTimer, 0, &new_value, &old_value) == -1)
-      perror ("timer_settime");
-
-   if (sigemptyset (&set) == -1)
-      perror ("sigemptyset");
-
-   if (sigaddset (&set, SIGRTMIN) == -1)
-      perror ("sigaddset");
-
-   if (sigprocmask (SIG_BLOCK, &set, NULL) == -1)
-      perror ("sigprocmask");
-}
-
-void *draw_func(void *ptr)
-{
-  double fps_rate = ptr ? *((int *) ptr) : 60.0;
-  double sleep_ms = (1.0/(float) fps_rate) * 1000.0;
-
-  printf("\n\n\n SET fps = %f    %f ms\n\n\n", fps_rate, sleep_ms);
-
-  setupFpsTimer(fps_rate);
+  pthread_exit(0);
 
   return NULL;
 }
 //###########################################################################
-
-#endif //00
-
-#endif // USE_DRAW_THREAD

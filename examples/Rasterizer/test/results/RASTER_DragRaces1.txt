@@ -1,0 +1,1240 @@
+
+################################################################################
+#
+# 550 x 550 SOLID "texture"
+#
+
+#
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550 solid
+
+PXC DRAG RACE >> 100 frames in 2341.47 ms .... 42.71 FPS 
+PXC DRAG RACE >> 100 frames in 2299.84 ms .... 43.48 FPS 
+PXC DRAG RACE >> 100 frames in 1819.84 ms .... 54.95 FPS 
+PXC DRAG RACE >> 100 frames in 2187.92 ms .... 45.71 FPS 
+PXC DRAG RACE >> 100 frames in 3038.86 ms .... 32.91 FPS 
+PXC DRAG RACE >> 100 frames in 3170.85 ms .... 31.54 FPS 
+PXC DRAG RACE >> 100 frames in 3214.83 ms .... 31.11 FPS 
+PXC DRAG RACE >> 100 frames in 3182.88 ms .... 31.42 FPS 
+PXC DRAG RACE >> 100 frames in 3134.83 ms .... 31.90 FPS 
+PXC DRAG RACE >> 100 frames in 2771.88 ms .... 36.08 FPS 
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 550 solid
+
+DFB DRAG RACE >> 100 frames in 1757.77 ms .... 56.89 FPS 
+DFB DRAG RACE >> 100 frames in 1750.90 ms .... 57.11 FPS 
+DFB DRAG RACE >> 100 frames in 1764.64 ms .... 56.67 FPS 
+DFB DRAG RACE >> 100 frames in 1751.94 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1750.78 ms .... 57.12 FPS 
+DFB DRAG RACE >> 100 frames in 1751.71 ms .... 57.09 FPS 
+DFB DRAG RACE >> 100 frames in 1750.64 ms .... 57.12 FPS 
+DFB DRAG RACE >> 100 frames in 1752.09 ms .... 57.07 FPS 
+DFB DRAG RACE >> 100 frames in 1751.65 ms .... 57.09 FPS 
+DFB DRAG RACE >> 100 frames in 1751.87 ms .... 57.08 FPS 
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550 solid
+
+PXC DRAG RACE >> 100 frames in 2615.64 ms .... 38.23 FPS 
+PXC DRAG RACE >> 100 frames in 2120.73 ms .... 47.15 FPS 
+PXC DRAG RACE >> 100 frames in 2033.96 ms .... 49.17 FPS 
+PXC DRAG RACE >> 100 frames in 1837.05 ms .... 54.44 FPS 
+PXC DRAG RACE >> 100 frames in 1850.64 ms .... 54.04 FPS 
+PXC DRAG RACE >> 100 frames in 1868.17 ms .... 53.53 FPS 
+PXC DRAG RACE >> 100 frames in 1868.60 ms .... 53.52 FPS 
+PXC DRAG RACE >> 100 frames in 1817.88 ms .... 55.01 FPS 
+PXC DRAG RACE >> 100 frames in 1783.89 ms .... 56.06 FPS 
+PXC DRAG RACE >> 100 frames in 1902.12 ms .... 52.57 FPS 
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550 solid
+
+PXC DRAG RACE >> 100 frames in 2334.40 ms .... 42.84 FPS 
+PXC DRAG RACE >> 100 frames in 2018.82 ms .... 49.53 FPS 
+PXC DRAG RACE >> 100 frames in 1899.89 ms .... 52.63 FPS 
+PXC DRAG RACE >> 100 frames in 1819.88 ms .... 54.95 FPS 
+PXC DRAG RACE >> 100 frames in 1849.91 ms .... 54.06 FPS 
+PXC DRAG RACE >> 100 frames in 1802.86 ms .... 55.47 FPS 
+PXC DRAG RACE >> 100 frames in 1821.89 ms .... 54.89 FPS 
+PXC DRAG RACE >> 100 frames in 1864.84 ms .... 53.62 FPS 
+PXC DRAG RACE >> 100 frames in 1786.89 ms .... 55.96 FPS 
+PXC DRAG RACE >> 100 frames in 1866.88 ms .... 53.57 FPS 
+
+#
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 550 solid 
+
+DFB DRAG RACE >> 100 frames in 1848.38 ms .... 54.10 FPS 
+DFB DRAG RACE >> 100 frames in 1836.70 ms .... 54.45 FPS 
+DFB DRAG RACE >> 100 frames in 1828.64 ms .... 54.69 FPS 
+DFB DRAG RACE >> 100 frames in 1837.86 ms .... 54.41 FPS 
+DFB DRAG RACE >> 100 frames in 1819.04 ms .... 54.97 FPS 
+DFB DRAG RACE >> 100 frames in 1835.77 ms .... 54.47 FPS 
+DFB DRAG RACE >> 100 frames in 1852.54 ms .... 53.98 FPS 
+DFB DRAG RACE >> 100 frames in 1827.77 ms .... 54.71 FPS 
+DFB DRAG RACE >> 100 frames in 1871.94 ms .... 53.42 FPS 
+DFB DRAG RACE >> 100 frames in 1838.82 ms .... 54.38 FPS 
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550 solid
+
+PXC DRAG RACE >> 100 frames in 1826.35 ms .... 54.75 FPS 
+PXC DRAG RACE >> 100 frames in 1800.82 ms .... 55.53 FPS 
+PXC DRAG RACE >> 100 frames in 1766.95 ms .... 56.59 FPS 
+PXC DRAG RACE >> 100 frames in 1820.87 ms .... 54.92 FPS 
+PXC DRAG RACE >> 100 frames in 1766.92 ms .... 56.60 FPS 
+PXC DRAG RACE >> 100 frames in 1767.78 ms .... 56.57 FPS 
+PXC DRAG RACE >> 100 frames in 1805.83 ms .... 55.38 FPS 
+PXC DRAG RACE >> 100 frames in 1849.90 ms .... 54.06 FPS 
+PXC DRAG RACE >> 100 frames in 1918.11 ms .... 52.13 FPS 
+PXC DRAG RACE >> 100 frames in 1766.67 ms .... 56.60 FPS 
+
+
+################################################################################
+#
+# 550 x 550 SOLID TEXTURE - ROTATED
+#
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 550 solid -r
+
+DFB DRAG RACE >> 100 frames in 1791.35 ms .... 55.82 FPS 
+DFB DRAG RACE >> 100 frames in 2034.85 ms .... 49.14 FPS 
+DFB DRAG RACE >> 100 frames in 1784.84 ms .... 56.03 FPS 
+DFB DRAG RACE >> 100 frames in 1815.95 ms .... 55.07 FPS 
+DFB DRAG RACE >> 100 frames in 1803.82 ms .... 55.44 FPS 
+DFB DRAG RACE >> 100 frames in 2299.87 ms .... 43.48 FPS 
+DFB DRAG RACE >> 100 frames in 1769.94 ms .... 56.50 FPS 
+DFB DRAG RACE >> 100 frames in 1782.83 ms .... 56.09 FPS 
+DFB DRAG RACE >> 100 frames in 1772.87 ms .... 56.41 FPS 
+DFB DRAG RACE >> 100 frames in 1765.93 ms .... 56.63 FPS 
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 550 solid -vm -r 
+
+DFB DRAG RACE >> 100 frames in 1797.45 ms .... 55.63 FPS 
+DFB DRAG RACE >> 100 frames in 1782.83 ms .... 56.09 FPS 
+DFB DRAG RACE >> 100 frames in 1784.89 ms .... 56.03 FPS 
+DFB DRAG RACE >> 100 frames in 1770.91 ms .... 56.47 FPS 
+DFB DRAG RACE >> 100 frames in 1783.86 ms .... 56.06 FPS 
+DFB DRAG RACE >> 100 frames in 1784.89 ms .... 56.03 FPS 
+DFB DRAG RACE >> 100 frames in 1768.89 ms .... 56.53 FPS 
+DFB DRAG RACE >> 100 frames in 1815.88 ms .... 55.07 FPS 
+DFB DRAG RACE >> 100 frames in 1904.99 ms .... 52.49 FPS 
+DFB DRAG RACE >> 100 frames in 2018.77 ms .... 49.54 FPS
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550 solid -r
+
+PXC DRAG RACE >> 100 frames in 2753.94 ms .... 36.31 FPS 
+PXC DRAG RACE >> 100 frames in 2709.67 ms .... 36.90 FPS 
+PXC DRAG RACE >> 100 frames in 2864.94 ms .... 34.90 FPS 
+PXC DRAG RACE >> 100 frames in 2703.84 ms .... 36.98 FPS 
+PXC DRAG RACE >> 100 frames in 2755.90 ms .... 36.29 FPS 
+PXC DRAG RACE >> 100 frames in 2716.88 ms .... 36.81 FPS 
+PXC DRAG RACE >> 100 frames in 2706.89 ms .... 36.94 FPS 
+PXC DRAG RACE >> 100 frames in 2723.85 ms .... 36.71 FPS 
+PXC DRAG RACE >> 100 frames in 2789.90 ms .... 35.84 FPS 
+PXC DRAG RACE >> 100 frames in 2705.88 ms .... 36.96 FPS 
+
+################################################################################
+#
+# 550 x 550 MANDEL "texture"
+#
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 550 mandel
+
+DFB DRAG RACE >> 100 frames in 17561.20 ms .... 5.69 FPS 
+DFB DRAG RACE >> 100 frames in 14750.95 ms .... 6.78 FPS 
+DFB DRAG RACE >> 100 frames in 14390.92 ms .... 6.95 FPS 
+DFB DRAG RACE >> 100 frames in 15178.71 ms .... 6.59 FPS 
+DFB DRAG RACE >> 100 frames in 14535.82 ms .... 6.88 FPS 
+DFB DRAG RACE >> 100 frames in 14406.89 ms .... 6.94 FPS 
+DFB DRAG RACE >> 100 frames in 14973.88 ms .... 6.68 FPS 
+DFB DRAG RACE >> 100 frames in 18222.11 ms .... 5.49 FPS 
+DFB DRAG RACE >> 100 frames in 22517.73 ms .... 4.44 FPS 
+DFB DRAG RACE >> 100 frames in 22316.87 ms .... 4.48 FPS
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 550 mandel
+
+DFB DRAG RACE >> 100 frames in 14339.80 ms .... 6.97 FPS 
+DFB DRAG RACE >> 100 frames in 14100.81 ms .... 7.09 FPS 
+DFB DRAG RACE >> 100 frames in 14231.88 ms .... 7.03 FPS 
+DFB DRAG RACE >> 100 frames in 14768.88 ms .... 6.77 FPS 
+DFB DRAG RACE >> 100 frames in 14290.85 ms .... 7.00 FPS 
+DFB DRAG RACE >> 100 frames in 14178.88 ms .... 7.05 FPS 
+DFB DRAG RACE >> 100 frames in 14262.88 ms .... 7.01 FPS 
+DFB DRAG RACE >> 100 frames in 14631.89 ms .... 6.83 FPS 
+DFB DRAG RACE >> 100 frames in 14291.89 ms .... 7.00 FPS 
+DFB DRAG RACE >> 100 frames in 14149.87 ms .... 7.07 FPS
+
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 550 mandel
+
+DFB DRAG RACE >> 100 frames in 14787.40 ms .... 6.76 FPS 
+DFB DRAG RACE >> 100 frames in 14034.82 ms .... 7.13 FPS 
+DFB DRAG RACE >> 100 frames in 13671.89 ms .... 7.31 FPS 
+DFB DRAG RACE >> 100 frames in 13943.99 ms .... 7.17 FPS 
+DFB DRAG RACE >> 100 frames in 14257.78 ms .... 7.01 FPS 
+DFB DRAG RACE >> 100 frames in 13838.91 ms .... 7.23 FPS 
+DFB DRAG RACE >> 100 frames in 13774.86 ms .... 7.26 FPS 
+DFB DRAG RACE >> 100 frames in 13974.90 ms .... 7.16 FPS 
+DFB DRAG RACE >> 100 frames in 14894.88 ms .... 6.71 FPS 
+DFB DRAG RACE >> 100 frames in 14081.91 ms .... 7.10 FPS
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550 mandel
+
+PXC DRAG RACE >> 100 frames in 4973.27 ms .... 20.11 FPS 
+PXC DRAG RACE >> 100 frames in 4903.76 ms .... 20.39 FPS 
+PXC DRAG RACE >> 100 frames in 4398.82 ms .... 22.73 FPS 
+PXC DRAG RACE >> 100 frames in 4397.95 ms .... 22.74 FPS 
+PXC DRAG RACE >> 100 frames in 3908.76 ms .... 25.58 FPS 
+PXC DRAG RACE >> 100 frames in 3816.89 ms .... 26.20 FPS 
+PXC DRAG RACE >> 100 frames in 3810.88 ms .... 26.24 FPS 
+PXC DRAG RACE >> 100 frames in 3833.01 ms .... 26.09 FPS 
+PXC DRAG RACE >> 100 frames in 3835.75 ms .... 26.07 FPS 
+PXC DRAG RACE >> 100 frames in 3859.91 ms .... 25.91 FPS 
+
+#
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550 mandel 
+
+PXC DRAG RACE >> 100 frames in 4514.74 ms .... 22.15 FPS 
+PXC DRAG RACE >> 100 frames in 5516.63 ms .... 18.13 FPS 
+PXC DRAG RACE >> 100 frames in 3970.91 ms .... 25.18 FPS 
+PXC DRAG RACE >> 100 frames in 4131.81 ms .... 24.20 FPS 
+PXC DRAG RACE >> 100 frames in 3884.88 ms .... 25.74 FPS 
+PXC DRAG RACE >> 100 frames in 4615.88 ms .... 21.66 FPS 
+PXC DRAG RACE >> 100 frames in 4144.98 ms .... 24.13 FPS 
+PXC DRAG RACE >> 100 frames in 4048.79 ms .... 24.70 FPS 
+PXC DRAG RACE >> 100 frames in 3880.90 ms .... 25.77 FPS 
+PXC DRAG RACE >> 100 frames in 4376.87 ms .... 22.85 FPS
+
+#
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550 mandel 
+
+PXC DRAG RACE >> 100 frames in 4079.10 ms .... 24.52 FPS 
+PXC DRAG RACE >> 100 frames in 4003.86 ms .... 24.98 FPS 
+PXC DRAG RACE >> 100 frames in 3946.80 ms .... 25.34 FPS 
+PXC DRAG RACE >> 100 frames in 4244.89 ms .... 23.56 FPS 
+PXC DRAG RACE >> 100 frames in 3964.89 ms .... 25.22 FPS 
+PXC DRAG RACE >> 100 frames in 3935.76 ms .... 25.41 FPS 
+PXC DRAG RACE >> 100 frames in 3892.98 ms .... 25.69 FPS 
+PXC DRAG RACE >> 100 frames in 4157.91 ms .... 24.05 FPS 
+PXC DRAG RACE >> 100 frames in 4429.94 ms .... 22.57 FPS 
+PXC DRAG RACE >> 100 frames in 4484.48 ms .... 22.30 FPS
+ 
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550 mandel   
+
+PXC DRAG RACE >> 100 frames in 3826.41 ms .... 26.13 FPS 
+PXC DRAG RACE >> 100 frames in 3844.82 ms .... 26.01 FPS 
+PXC DRAG RACE >> 100 frames in 3815.03 ms .... 26.21 FPS 
+PXC DRAG RACE >> 100 frames in 3804.72 ms .... 26.28 FPS 
+PXC DRAG RACE >> 100 frames in 3820.89 ms .... 26.17 FPS 
+PXC DRAG RACE >> 100 frames in 3982.89 ms .... 25.11 FPS 
+PXC DRAG RACE >> 100 frames in 3840.90 ms .... 26.04 FPS 
+PXC DRAG RACE >> 100 frames in 3891.91 ms .... 25.69 FPS 
+PXC DRAG RACE >> 100 frames in 3844.84 ms .... 26.01 FPS 
+PXC DRAG RACE >> 100 frames in 3868.94 ms .... 25.85 FPS 
+
+
+################################################################################
+#
+# 550 x 550 MANDEL "texture" - ROTATED
+#
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 550 -r mandel
+
+DFB DRAG RACE >> 100 frames in 15286.54 ms .... 6.54 FPS 
+DFB DRAG RACE >> 100 frames in 16129.73 ms .... 6.20 FPS 
+DFB DRAG RACE >> 100 frames in 15240.83 ms .... 6.56 FPS 
+DFB DRAG RACE >> 100 frames in 15502.90 ms .... 6.45 FPS 
+DFB DRAG RACE >> 100 frames in 15231.90 ms .... 6.57 FPS 
+DFB DRAG RACE >> 100 frames in 16173.85 ms .... 6.18 FPS 
+DFB DRAG RACE >> 100 frames in 15303.88 ms .... 6.53 FPS 
+DFB DRAG RACE >> 100 frames in 15505.89 ms .... 6.45 FPS 
+DFB DRAG RACE >> 100 frames in 15344.97 ms .... 6.52 FPS 
+DFB DRAG RACE >> 100 frames in 15797.86 ms .... 6.33 FPS 
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550 -r mandel
+
+PXC DRAG RACE >> 100 frames in 13375.82 ms .... 7.48 FPS 
+PXC DRAG RACE >> 100 frames in 13849.76 ms .... 7.22 FPS 
+PXC DRAG RACE >> 100 frames in 13526.10 ms .... 7.39 FPS 
+PXC DRAG RACE >> 100 frames in 13319.67 ms .... 7.51 FPS 
+PXC DRAG RACE >> 100 frames in 13607.88 ms .... 7.35 FPS 
+PXC DRAG RACE >> 100 frames in 13376.89 ms .... 7.48 FPS 
+PXC DRAG RACE >> 100 frames in 14046.94 ms .... 7.12 FPS 
+PXC DRAG RACE >> 100 frames in 13297.83 ms .... 7.52 FPS 
+PXC DRAG RACE >> 100 frames in 13419.87 ms .... 7.45 FPS 
+PXC DRAG RACE >> 100 frames in 13505.01 ms .... 7.40 FPS 
+
+#
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 550 mandel     
+
+DFB DRAG RACE >> 100 frames in 14077.50 ms .... 7.10 FPS 
+DFB DRAG RACE >> 100 frames in 14212.59 ms .... 7.04 FPS 
+DFB DRAG RACE >> 100 frames in 14568.91 ms .... 6.86 FPS 
+DFB DRAG RACE >> 100 frames in 14283.87 ms .... 7.00 FPS 
+DFB DRAG RACE >> 100 frames in 14086.89 ms .... 7.10 FPS 
+DFB DRAG RACE >> 100 frames in 14173.89 ms .... 7.06 FPS 
+DFB DRAG RACE >> 100 frames in 14365.93 ms .... 6.96 FPS 
+DFB DRAG RACE >> 100 frames in 14396.81 ms .... 6.95 FPS 
+DFB DRAG RACE >> 100 frames in 14211.88 ms .... 7.04 FPS 
+DFB DRAG RACE >> 100 frames in 14203.87 ms .... 7.04 FPS
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550 mandel 
+
+PXC DRAG RACE >> 100 frames in 4187.00 ms .... 23.88 FPS 
+PXC DRAG RACE >> 100 frames in 3856.77 ms .... 25.93 FPS 
+PXC DRAG RACE >> 100 frames in 3878.88 ms .... 25.78 FPS 
+PXC DRAG RACE >> 100 frames in 3850.00 ms .... 25.97 FPS 
+PXC DRAG RACE >> 100 frames in 3797.78 ms .... 26.33 FPS 
+PXC DRAG RACE >> 100 frames in 3988.90 ms .... 25.07 FPS 
+PXC DRAG RACE >> 100 frames in 3806.89 ms .... 26.27 FPS 
+PXC DRAG RACE >> 100 frames in 3826.76 ms .... 26.13 FPS 
+PXC DRAG RACE >> 100 frames in 3842.89 ms .... 26.02 FPS 
+PXC DRAG RACE >> 100 frames in 3846.90 ms .... 25.99 FPS 
+
+
+################################################################################
+#
+# 550 x 550 FILL RECT
+#
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550 
+
+PXC DRAG RACE >> 100 frames in 1934.62 ms .... 51.69 FPS 
+PXC DRAG RACE >> 100 frames in 1782.84 ms .... 56.09 FPS 
+PXC DRAG RACE >> 100 frames in 1801.87 ms .... 55.50 FPS 
+PXC DRAG RACE >> 100 frames in 1799.88 ms .... 55.56 FPS 
+PXC DRAG RACE >> 100 frames in 1818.90 ms .... 54.98 FPS 
+PXC DRAG RACE >> 100 frames in 1867.87 ms .... 53.54 FPS 
+PXC DRAG RACE >> 100 frames in 1869.99 ms .... 53.48 FPS 
+PXC DRAG RACE >> 100 frames in 1786.07 ms .... 55.99 FPS 
+PXC DRAG RACE >> 100 frames in 1784.59 ms .... 56.04 FPS 
+PXC DRAG RACE >> 100 frames in 1800.99 ms .... 55.52 FPS 
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 550 
+
+DFB DRAG RACE >> 100 frames in 1767.76 ms .... 56.57 FPS 
+DFB DRAG RACE >> 100 frames in 1752.86 ms .... 57.05 FPS 
+DFB DRAG RACE >> 100 frames in 1751.96 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.76 ms .... 57.09 FPS 
+DFB DRAG RACE >> 100 frames in 1749.91 ms .... 57.15 FPS 
+DFB DRAG RACE >> 100 frames in 1751.85 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1752.88 ms .... 57.05 FPS 
+DFB DRAG RACE >> 100 frames in 1750.89 ms .... 57.11 FPS 
+DFB DRAG RACE >> 100 frames in 1753.02 ms .... 57.04 FPS 
+DFB DRAG RACE >> 100 frames in 1749.74 ms .... 57.15 FPS 
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550
+
+PXC DRAG RACE >> 100 frames in 1819.04 ms .... 54.97 FPS 
+PXC DRAG RACE >> 100 frames in 1802.82 ms .... 55.47 FPS 
+PXC DRAG RACE >> 100 frames in 1868.88 ms .... 53.51 FPS 
+PXC DRAG RACE >> 100 frames in 1986.89 ms .... 50.33 FPS 
+PXC DRAG RACE >> 100 frames in 1784.90 ms .... 56.03 FPS 
+PXC DRAG RACE >> 100 frames in 1848.87 ms .... 54.09 FPS 
+PXC DRAG RACE >> 100 frames in 1785.93 ms .... 55.99 FPS 
+PXC DRAG RACE >> 100 frames in 1869.85 ms .... 53.48 FPS 
+PXC DRAG RACE >> 100 frames in 2566.89 ms .... 38.96 FPS 
+PXC DRAG RACE >> 100 frames in 1818.84 ms .... 54.98 FPS 
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 550 -r
+
+PXC DRAG RACE >> 100 frames in 2720.73 ms .... 36.75 FPS 
+PXC DRAG RACE >> 100 frames in 2714.81 ms .... 36.83 FPS 
+PXC DRAG RACE >> 100 frames in 2784.89 ms .... 35.91 FPS 
+PXC DRAG RACE >> 100 frames in 2702.89 ms .... 37.00 FPS 
+PXC DRAG RACE >> 100 frames in 2691.90 ms .... 37.15 FPS 
+PXC DRAG RACE >> 100 frames in 2732.86 ms .... 36.59 FPS 
+PXC DRAG RACE >> 100 frames in 2864.94 ms .... 34.90 FPS 
+PXC DRAG RACE >> 100 frames in 2700.84 ms .... 37.03 FPS 
+PXC DRAG RACE >> 100 frames in 2714.90 ms .... 36.83 FPS 
+PXC DRAG RACE >> 100 frames in 2715.89 ms .... 36.82 FPS 
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 550 -r
+
+DFB DRAG RACE >> 100 frames in 1887.10 ms .... 52.99 FPS 
+DFB DRAG RACE >> 100 frames in 1803.81 ms .... 55.44 FPS 
+DFB DRAG RACE >> 100 frames in 1764.90 ms .... 56.66 FPS 
+DFB DRAG RACE >> 100 frames in 1770.87 ms .... 56.47 FPS 
+DFB DRAG RACE >> 100 frames in 1784.86 ms .... 56.03 FPS 
+DFB DRAG RACE >> 100 frames in 1816.89 ms .... 55.04 FPS 
+DFB DRAG RACE >> 100 frames in 2086.86 ms .... 47.92 FPS 
+DFB DRAG RACE >> 100 frames in 1801.89 ms .... 55.50 FPS 
+DFB DRAG RACE >> 100 frames in 1785.02 ms .... 56.02 FPS 
+DFB DRAG RACE >> 100 frames in 1765.75 ms .... 56.63 FPS 
+# 
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 550   
+
+DFB DRAG RACE >> 100 frames in 1768.43 ms .... 56.55 FPS 
+DFB DRAG RACE >> 100 frames in 1751.82 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1750.88 ms .... 57.11 FPS 
+DFB DRAG RACE >> 100 frames in 1753.88 ms .... 57.02 FPS 
+DFB DRAG RACE >> 100 frames in 1749.93 ms .... 57.15 FPS 
+DFB DRAG RACE >> 100 frames in 1751.84 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.88 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1752.89 ms .... 57.05 FPS 
+DFB DRAG RACE >> 100 frames in 1749.89 ms .... 57.15 FPS 
+DFB DRAG RACE >> 100 frames in 1751.90 ms .... 57.08 FPS 
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 550 -r -vm
+
+DFB DRAG RACE >> 100 frames in 1773.70 ms .... 56.38 FPS 
+DFB DRAG RACE >> 100 frames in 1801.79 ms .... 55.50 FPS 
+DFB DRAG RACE >> 100 frames in 1784.89 ms .... 56.03 FPS 
+DFB DRAG RACE >> 100 frames in 1766.10 ms .... 56.62 FPS 
+DFB DRAG RACE >> 100 frames in 1784.67 ms .... 56.03 FPS 
+DFB DRAG RACE >> 100 frames in 1817.94 ms .... 55.01 FPS 
+DFB DRAG RACE >> 100 frames in 1771.84 ms .... 56.44 FPS 
+DFB DRAG RACE >> 100 frames in 1765.93 ms .... 56.63 FPS 
+DFB DRAG RACE >> 100 frames in 2479.86 ms .... 40.32 FPS 
+DFB DRAG RACE >> 100 frames in 1842.86 ms .... 54.26 FPS
+
+
+################################################################################
+#
+# 250 x 250 FILL RECT
+#
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 
+
+DFB DRAG RACE >> 100 frames in 1767.59 ms .... 56.57 FPS 
+DFB DRAG RACE >> 100 frames in 1751.81 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1750.88 ms .... 57.11 FPS 
+DFB DRAG RACE >> 100 frames in 1752.88 ms .... 57.05 FPS 
+DFB DRAG RACE >> 100 frames in 1753.95 ms .... 57.01 FPS 
+DFB DRAG RACE >> 100 frames in 1751.85 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1750.81 ms .... 57.12 FPS 
+DFB DRAG RACE >> 100 frames in 1751.93 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.94 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.77 ms .... 57.09 FPS 
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 -r       
+
+DFB DRAG RACE >> 100 frames in 1773.17 ms .... 56.40 FPS 
+DFB DRAG RACE >> 100 frames in 1764.82 ms .... 56.66 FPS 
+DFB DRAG RACE >> 100 frames in 1768.88 ms .... 56.53 FPS 
+DFB DRAG RACE >> 100 frames in 1769.88 ms .... 56.50 FPS 
+DFB DRAG RACE >> 100 frames in 1766.88 ms .... 56.60 FPS 
+DFB DRAG RACE >> 100 frames in 1768.88 ms .... 56.53 FPS 
+DFB DRAG RACE >> 100 frames in 1768.87 ms .... 56.53 FPS 
+DFB DRAG RACE >> 100 frames in 1766.90 ms .... 56.60 FPS 
+DFB DRAG RACE >> 100 frames in 1767.87 ms .... 56.57 FPS 
+DFB DRAG RACE >> 100 frames in 1768.89 ms .... 56.53 FPS 
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 -vm      
+
+DFB DRAG RACE >> 100 frames in 1770.73 ms .... 56.47 FPS 
+DFB DRAG RACE >> 100 frames in 1750.84 ms .... 57.12 FPS 
+DFB DRAG RACE >> 100 frames in 1751.82 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.94 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.84 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1750.90 ms .... 57.11 FPS 
+DFB DRAG RACE >> 100 frames in 1751.86 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.90 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1752.04 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1750.74 ms .... 57.12 FPS 
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 -r -vm
+
+DFB DRAG RACE >> 100 frames in 1770.19 ms .... 56.49 FPS 
+DFB DRAG RACE >> 100 frames in 1766.68 ms .... 56.60 FPS 
+DFB DRAG RACE >> 100 frames in 1768.90 ms .... 56.53 FPS 
+DFB DRAG RACE >> 100 frames in 1767.92 ms .... 56.56 FPS 
+DFB DRAG RACE >> 100 frames in 1801.66 ms .... 55.50 FPS 
+DFB DRAG RACE >> 100 frames in 1767.88 ms .... 56.56 FPS 
+DFB DRAG RACE >> 100 frames in 1767.90 ms .... 56.56 FPS 
+DFB DRAG RACE >> 100 frames in 1768.85 ms .... 56.53 FPS 
+DFB DRAG RACE >> 100 frames in 1767.98 ms .... 56.56 FPS 
+DFB DRAG RACE >> 100 frames in 1767.83 ms .... 56.57 FPS 
+ 
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 250 
+
+PXC DRAG RACE >> 100 frames in 1770.25 ms .... 56.49 FPS 
+PXC DRAG RACE >> 100 frames in 1768.80 ms .... 56.54 FPS 
+PXC DRAG RACE >> 100 frames in 1766.89 ms .... 56.60 FPS 
+PXC DRAG RACE >> 100 frames in 1768.86 ms .... 56.53 FPS 
+PXC DRAG RACE >> 100 frames in 1767.89 ms .... 56.56 FPS 
+PXC DRAG RACE >> 100 frames in 1771.01 ms .... 56.47 FPS 
+PXC DRAG RACE >> 100 frames in 1783.71 ms .... 56.06 FPS 
+PXC DRAG RACE >> 100 frames in 1766.89 ms .... 56.60 FPS 
+PXC DRAG RACE >> 100 frames in 1769.87 ms .... 56.50 FPS 
+PXC DRAG RACE >> 100 frames in 1767.07 ms .... 56.59 FPS 
+
+# 
+# rasterPXC.sh solid -xl 10 -i 100 -n 1 -s 250 
+
+PXC DRAG RACE >> 100 frames in 1765.48 ms .... 56.64 FPS 
+PXC DRAG RACE >> 100 frames in 1766.77 ms .... 56.60 FPS 
+PXC DRAG RACE >> 100 frames in 1766.87 ms .... 56.60 FPS 
+PXC DRAG RACE >> 100 frames in 1773.55 ms .... 56.38 FPS 
+PXC DRAG RACE >> 100 frames in 1764.22 ms .... 56.68 FPS 
+PXC DRAG RACE >> 100 frames in 1768.88 ms .... 56.53 FPS 
+PXC DRAG RACE >> 100 frames in 1767.98 ms .... 56.56 FPS 
+PXC DRAG RACE >> 100 frames in 1767.78 ms .... 56.57 FPS 
+PXC DRAG RACE >> 100 frames in 1768.99 ms .... 56.53 FPS 
+PXC DRAG RACE >> 100 frames in 1767.75 ms .... 56.57 FPS 
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 250 -r     
+
+PXC DRAG RACE >> 100 frames in 1764.41 ms .... 56.68 FPS 
+PXC DRAG RACE >> 100 frames in 1769.07 ms .... 56.53 FPS 
+PXC DRAG RACE >> 100 frames in 1767.63 ms .... 56.57 FPS 
+PXC DRAG RACE >> 100 frames in 1770.88 ms .... 56.47 FPS 
+PXC DRAG RACE >> 100 frames in 1765.88 ms .... 56.63 FPS 
+PXC DRAG RACE >> 100 frames in 1768.89 ms .... 56.53 FPS 
+PXC DRAG RACE >> 100 frames in 1767.88 ms .... 56.57 FPS 
+PXC DRAG RACE >> 100 frames in 1768.99 ms .... 56.53 FPS 
+PXC DRAG RACE >> 100 frames in 1767.87 ms .... 56.57 FPS 
+PXC DRAG RACE >> 100 frames in 1772.78 ms .... 56.41 FPS 
+
+
+################################################################################
+#
+# 250 x 250 SOLID
+#
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 solid 
+
+DFB DRAG RACE >> 100 frames in 1766.60 ms .... 56.61 FPS 
+DFB DRAG RACE >> 100 frames in 1749.83 ms .... 57.15 FPS 
+DFB DRAG RACE >> 100 frames in 1751.86 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1752.87 ms .... 57.05 FPS 
+DFB DRAG RACE >> 100 frames in 1750.89 ms .... 57.11 FPS 
+DFB DRAG RACE >> 100 frames in 1750.90 ms .... 57.11 FPS 
+DFB DRAG RACE >> 100 frames in 1751.84 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.88 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.89 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1750.88 ms .... 57.11 FPS
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 solid  
+
+DFB DRAG RACE >> 100 frames in 1767.78 ms .... 56.57 FPS 
+DFB DRAG RACE >> 100 frames in 1751.82 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.88 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.89 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1750.97 ms .... 57.11 FPS 
+DFB DRAG RACE >> 100 frames in 1751.89 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1752.77 ms .... 57.05 FPS 
+DFB DRAG RACE >> 100 frames in 1750.90 ms .... 57.11 FPS 
+DFB DRAG RACE >> 100 frames in 1750.94 ms .... 57.11 FPS 
+DFB DRAG RACE >> 100 frames in 1751.82 ms .... 57.08 FPS 
+
+#
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 solid -r
+
+DFB DRAG RACE >> 100 frames in 1835.72 ms .... 54.47 FPS 
+DFB DRAG RACE >> 100 frames in 1762.92 ms .... 56.72 FPS 
+DFB DRAG RACE >> 100 frames in 1768.75 ms .... 56.54 FPS 
+DFB DRAG RACE >> 100 frames in 1767.89 ms .... 56.56 FPS 
+DFB DRAG RACE >> 100 frames in 1769.40 ms .... 56.52 FPS 
+DFB DRAG RACE >> 100 frames in 1767.38 ms .... 56.58 FPS 
+DFB DRAG RACE >> 100 frames in 1767.88 ms .... 56.57 FPS 
+DFB DRAG RACE >> 100 frames in 1768.89 ms .... 56.53 FPS 
+DFB DRAG RACE >> 100 frames in 1768.89 ms .... 56.53 FPS 
+DFB DRAG RACE >> 100 frames in 1767.89 ms .... 56.56 FPS 
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 solid -vm
+
+DFB DRAG RACE >> 100 frames in 1764.89 ms .... 56.66 FPS 
+DFB DRAG RACE >> 100 frames in 1750.84 ms .... 57.12 FPS 
+DFB DRAG RACE >> 100 frames in 1753.10 ms .... 57.04 FPS 
+DFB DRAG RACE >> 100 frames in 1750.77 ms .... 57.12 FPS 
+DFB DRAG RACE >> 100 frames in 1751.78 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.86 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.04 ms .... 57.11 FPS 
+DFB DRAG RACE >> 100 frames in 1751.70 ms .... 57.09 FPS 
+DFB DRAG RACE >> 100 frames in 1751.87 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.88 ms .... 57.08 FPS
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 solid -vm -r
+
+DFB DRAG RACE >> 100 frames in 1767.29 ms .... 56.58 FPS 
+DFB DRAG RACE >> 100 frames in 1804.28 ms .... 55.42 FPS 
+DFB DRAG RACE >> 100 frames in 1769.45 ms .... 56.51 FPS 
+DFB DRAG RACE >> 100 frames in 1764.81 ms .... 56.66 FPS 
+DFB DRAG RACE >> 100 frames in 1766.97 ms .... 56.59 FPS 
+DFB DRAG RACE >> 100 frames in 1767.81 ms .... 56.57 FPS 
+DFB DRAG RACE >> 100 frames in 1769.14 ms .... 56.52 FPS 
+DFB DRAG RACE >> 100 frames in 1767.62 ms .... 56.57 FPS 
+DFB DRAG RACE >> 100 frames in 1768.87 ms .... 56.53 FPS 
+DFB DRAG RACE >> 100 frames in 1770.89 ms .... 56.47 FPS
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 250 solid
+
+PXC DRAG RACE >> 100 frames in 1771.67 ms .... 56.44 FPS 
+PXC DRAG RACE >> 100 frames in 1785.95 ms .... 55.99 FPS 
+PXC DRAG RACE >> 100 frames in 1770.71 ms .... 56.47 FPS 
+PXC DRAG RACE >> 100 frames in 1798.98 ms .... 55.59 FPS 
+PXC DRAG RACE >> 100 frames in 1783.85 ms .... 56.06 FPS 
+PXC DRAG RACE >> 100 frames in 1768.84 ms .... 56.53 FPS 
+PXC DRAG RACE >> 100 frames in 1767.88 ms .... 56.57 FPS 
+PXC DRAG RACE >> 100 frames in 1767.87 ms .... 56.57 FPS 
+PXC DRAG RACE >> 100 frames in 1769.07 ms .... 56.53 FPS 
+PXC DRAG RACE >> 100 frames in 1768.71 ms .... 56.54 FPS 
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 250 solid -r
+
+PXC DRAG RACE >> 100 frames in 1772.36 ms .... 56.42 FPS 
+PXC DRAG RACE >> 100 frames in 1768.87 ms .... 56.53 FPS 
+PXC DRAG RACE >> 100 frames in 1936.89 ms .... 51.63 FPS 
+PXC DRAG RACE >> 100 frames in 1832.84 ms .... 54.56 FPS 
+PXC DRAG RACE >> 100 frames in 1767.96 ms .... 56.56 FPS 
+PXC DRAG RACE >> 100 frames in 1768.82 ms .... 56.54 FPS 
+PXC DRAG RACE >> 100 frames in 1768.90 ms .... 56.53 FPS 
+PXC DRAG RACE >> 100 frames in 1769.87 ms .... 56.50 FPS 
+PXC DRAG RACE >> 100 frames in 1766.88 ms .... 56.60 FPS 
+PXC DRAG RACE >> 100 frames in 1769.89 ms .... 56.50 FPS 
+
+
+################################################################################
+#
+# 250 x 250 MANDEL
+#
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 mandel 
+
+DFB DRAG RACE >> 100 frames in 4313.46 ms .... 23.18 FPS 
+DFB DRAG RACE >> 100 frames in 4333.88 ms .... 23.07 FPS 
+DFB DRAG RACE >> 100 frames in 4340.82 ms .... 23.04 FPS 
+DFB DRAG RACE >> 100 frames in 4393.88 ms .... 22.76 FPS 
+DFB DRAG RACE >> 100 frames in 4343.17 ms .... 23.02 FPS 
+DFB DRAG RACE >> 100 frames in 4610.60 ms .... 21.69 FPS 
+DFB DRAG RACE >> 100 frames in 4373.85 ms .... 22.86 FPS 
+DFB DRAG RACE >> 100 frames in 4310.89 ms .... 23.20 FPS 
+DFB DRAG RACE >> 100 frames in 4743.89 ms .... 21.08 FPS 
+DFB DRAG RACE >> 100 frames in 4321.90 ms .... 23.14 FPS 
+
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 mandel -r
+
+DFB DRAG RACE >> 100 frames in 4638.90 ms .... 21.56 FPS 
+DFB DRAG RACE >> 100 frames in 4519.76 ms .... 22.13 FPS 
+DFB DRAG RACE >> 100 frames in 4543.88 ms .... 22.01 FPS 
+DFB DRAG RACE >> 100 frames in 4713.87 ms .... 21.21 FPS 
+DFB DRAG RACE >> 100 frames in 4518.90 ms .... 22.13 FPS 
+DFB DRAG RACE >> 100 frames in 4545.86 ms .... 22.00 FPS 
+DFB DRAG RACE >> 100 frames in 4580.81 ms .... 21.83 FPS 
+DFB DRAG RACE >> 100 frames in 4642.99 ms .... 21.54 FPS 
+DFB DRAG RACE >> 100 frames in 4869.71 ms .... 20.54 FPS 
+DFB DRAG RACE >> 100 frames in 4553.94 ms .... 21.96 FPS 
+
+#
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 mandel -vm
+
+DFB DRAG RACE >> 100 frames in 1757.85 ms .... 56.89 FPS 
+DFB DRAG RACE >> 100 frames in 1749.81 ms .... 57.15 FPS 
+DFB DRAG RACE >> 100 frames in 1751.94 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.66 ms .... 57.09 FPS 
+DFB DRAG RACE >> 100 frames in 1751.92 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.84 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1751.87 ms .... 57.08 FPS 
+DFB DRAG RACE >> 100 frames in 1750.89 ms .... 57.11 FPS 
+DFB DRAG RACE >> 100 frames in 1752.89 ms .... 57.05 FPS 
+DFB DRAG RACE >> 100 frames in 1754.20 ms .... 57.01 FPS 
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 mandel -vm -r
+
+DFB DRAG RACE >> 100 frames in 6608.21 ms .... 15.13 FPS 
+DFB DRAG RACE >> 100 frames in 6362.88 ms .... 15.72 FPS 
+DFB DRAG RACE >> 100 frames in 6390.80 ms .... 15.65 FPS 
+DFB DRAG RACE >> 100 frames in 6482.18 ms .... 15.43 FPS 
+DFB DRAG RACE >> 100 frames in 6571.39 ms .... 15.22 FPS 
+DFB DRAG RACE >> 100 frames in 6499.83 ms .... 15.39 FPS 
+DFB DRAG RACE >> 100 frames in 6373.20 ms .... 15.69 FPS 
+DFB DRAG RACE >> 100 frames in 6403.41 ms .... 15.62 FPS 
+DFB DRAG RACE >> 100 frames in 6400.87 ms .... 15.62 FPS 
+DFB DRAG RACE >> 100 frames in 6542.94 ms .... 15.28 FPS 
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -n 1 -s 250 mandel -vm -r
+
+DFB DRAG RACE >> 100 frames in 4554.62 ms .... 21.96 FPS 
+DFB DRAG RACE >> 100 frames in 4480.58 ms .... 22.32 FPS 
+DFB DRAG RACE >> 100 frames in 4663.05 ms .... 21.45 FPS 
+DFB DRAG RACE >> 100 frames in 4592.70 ms .... 21.77 FPS 
+DFB DRAG RACE >> 100 frames in 4494.89 ms .... 22.25 FPS 
+DFB DRAG RACE >> 100 frames in 4531.89 ms .... 22.07 FPS 
+DFB DRAG RACE >> 100 frames in 4538.90 ms .... 22.03 FPS 
+DFB DRAG RACE >> 100 frames in 4500.87 ms .... 22.22 FPS 
+DFB DRAG RACE >> 100 frames in 4964.94 ms .... 20.14 FPS 
+DFB DRAG RACE >> 100 frames in 4662.84 ms .... 21.45 FPS
+ 
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 250 mandel 
+
+PXC DRAG RACE >> 100 frames in 1855.41 ms .... 53.90 FPS 
+PXC DRAG RACE >> 100 frames in 1767.69 ms .... 56.57 FPS 
+PXC DRAG RACE >> 100 frames in 1782.88 ms .... 56.09 FPS 
+PXC DRAG RACE >> 100 frames in 1769.89 ms .... 56.50 FPS 
+PXC DRAG RACE >> 100 frames in 1768.89 ms .... 56.53 FPS 
+PXC DRAG RACE >> 100 frames in 1781.86 ms .... 56.12 FPS 
+PXC DRAG RACE >> 100 frames in 1770.88 ms .... 56.47 FPS 
+PXC DRAG RACE >> 100 frames in 1768.89 ms .... 56.53 FPS 
+PXC DRAG RACE >> 100 frames in 1798.87 ms .... 55.59 FPS 
+PXC DRAG RACE >> 100 frames in 1770.89 ms .... 56.47 FPS 
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -n 1 -s 250 mandel -r
+
+PXC DRAG RACE >> 100 frames in 4183.48 ms .... 23.90 FPS 
+PXC DRAG RACE >> 100 frames in 4161.80 ms .... 24.03 FPS 
+PXC DRAG RACE >> 100 frames in 4127.89 ms .... 24.23 FPS 
+PXC DRAG RACE >> 100 frames in 4136.87 ms .... 24.17 FPS 
+PXC DRAG RACE >> 100 frames in 4398.90 ms .... 22.73 FPS 
+PXC DRAG RACE >> 100 frames in 4546.86 ms .... 21.99 FPS 
+PXC DRAG RACE >> 100 frames in 4175.88 ms .... 23.95 FPS 
+PXC DRAG RACE >> 100 frames in 4161.87 ms .... 24.03 FPS 
+PXC DRAG RACE >> 100 frames in 4190.89 ms .... 23.86 FPS 
+PXC DRAG RACE >> 100 frames in 4187.88 ms .... 23.88 FPS 
+
+################################################################################
+#
+# 450 x 450 MANDEL
+#
+# rasterDFB.sh mandel -xl 10 -i 100 -n 1 -s 450 -r
+
+DFB DRAG RACE >> 100 frames in 10657.65 ms .... 9.38 FPS 
+DFB DRAG RACE >> 100 frames in 11270.64 ms .... 8.87 FPS 
+DFB DRAG RACE >> 100 frames in 10868.02 ms .... 9.20 FPS 
+DFB DRAG RACE >> 100 frames in 10765.75 ms .... 9.29 FPS 
+DFB DRAG RACE >> 100 frames in 10557.89 ms .... 9.47 FPS 
+DFB DRAG RACE >> 100 frames in 10780.93 ms .... 9.28 FPS 
+DFB DRAG RACE >> 100 frames in 11236.17 ms .... 8.90 FPS 
+DFB DRAG RACE >> 100 frames in 10886.59 ms .... 9.19 FPS 
+DFB DRAG RACE >> 100 frames in 10839.81 ms .... 9.23 FPS 
+DFB DRAG RACE >> 100 frames in 10756.87 ms .... 9.30 FPS 
+
+# 
+# rasterDFB.sh mandel -xl 10 -i 100 -n 1 -s 450 -r -vm
+
+DFB DRAG RACE >> 100 frames in 10864.77 ms .... 9.20 FPS 
+DFB DRAG RACE >> 100 frames in 10790.82 ms .... 9.27 FPS 
+DFB DRAG RACE >> 100 frames in 10625.89 ms .... 9.41 FPS 
+DFB DRAG RACE >> 100 frames in 10878.96 ms .... 9.19 FPS 
+DFB DRAG RACE >> 100 frames in 11292.83 ms .... 8.86 FPS 
+DFB DRAG RACE >> 100 frames in 10610.88 ms .... 9.42 FPS 
+DFB DRAG RACE >> 100 frames in 10868.88 ms .... 9.20 FPS 
+DFB DRAG RACE >> 100 frames in 10727.88 ms .... 9.32 FPS 
+DFB DRAG RACE >> 100 frames in 10642.19 ms .... 9.40 FPS 
+DFB DRAG RACE >> 100 frames in 11078.62 ms .... 9.03 FPS 
+
+# rasterPXC.sh mandel -xl 10 -i 100 -n 1 -s 450 -r
+
+PXC DRAG RACE >> 100 frames in 9345.82 ms .... 10.70 FPS 
+PXC DRAG RACE >> 100 frames in 9308.70 ms .... 10.74 FPS 
+PXC DRAG RACE >> 100 frames in 9311.84 ms .... 10.74 FPS 
+PXC DRAG RACE >> 100 frames in 9434.88 ms .... 10.60 FPS 
+PXC DRAG RACE >> 100 frames in 9771.88 ms .... 10.23 FPS 
+PXC DRAG RACE >> 100 frames in 9167.88 ms .... 10.91 FPS 
+PXC DRAG RACE >> 100 frames in 9182.88 ms .... 10.89 FPS 
+PXC DRAG RACE >> 100 frames in 9497.88 ms .... 10.53 FPS 
+PXC DRAG RACE >> 100 frames in 9299.87 ms .... 10.75 FPS 
+PXC DRAG RACE >> 100 frames in 9276.88 ms .... 10.78 FPS
+
+
+################################################################################
+#
+# LOTS of SQUARES - FILL
+#
+
+#
+# rasterDFB.sh -xl 10 -i 100      
+
+DFB DRAG RACE >> 100 frames in 5476.78 ms .... 18.26 FPS 
+DFB DRAG RACE >> 100 frames in 5416.82 ms .... 18.46 FPS 
+DFB DRAG RACE >> 100 frames in 6238.87 ms .... 16.03 FPS 
+DFB DRAG RACE >> 100 frames in 5925.89 ms .... 16.88 FPS 
+DFB DRAG RACE >> 100 frames in 6019.89 ms .... 16.61 FPS 
+DFB DRAG RACE >> 100 frames in 5347.88 ms .... 18.70 FPS 
+DFB DRAG RACE >> 100 frames in 5422.88 ms .... 18.44 FPS 
+DFB DRAG RACE >> 100 frames in 5426.93 ms .... 18.43 FPS 
+DFB DRAG RACE >> 100 frames in 5514.81 ms .... 18.13 FPS 
+DFB DRAG RACE >> 100 frames in 5684.91 ms .... 17.59 FPS 
+
+# 
+# rasterDFB.sh -xl 10 -i 100 -vm
+
+DFB DRAG RACE >> 100 frames in 6407.58 ms .... 15.61 FPS 
+DFB DRAG RACE >> 100 frames in 9174.78 ms .... 10.90 FPS 
+DFB DRAG RACE >> 100 frames in 9470.92 ms .... 10.56 FPS 
+DFB DRAG RACE >> 100 frames in 9453.85 ms .... 10.58 FPS 
+DFB DRAG RACE >> 100 frames in 9488.00 ms .... 10.54 FPS 
+DFB DRAG RACE >> 100 frames in 9234.72 ms .... 10.83 FPS 
+DFB DRAG RACE >> 100 frames in 9683.81 ms .... 10.33 FPS 
+DFB DRAG RACE >> 100 frames in 9345.56 ms .... 10.70 FPS 
+DFB DRAG RACE >> 100 frames in 9207.22 ms .... 10.86 FPS 
+DFB DRAG RACE >> 100 frames in 9642.46 ms .... 10.37 FPS
+
+# 
+# rasterPXC.sh -xl 10 -i 100 
+
+PXC DRAG RACE >> 100 frames in 3353.20 ms .... 29.82 FPS 
+PXC DRAG RACE >> 100 frames in 3366.83 ms .... 29.70 FPS 
+PXC DRAG RACE >> 100 frames in 3559.83 ms .... 28.09 FPS 
+PXC DRAG RACE >> 100 frames in 3364.93 ms .... 29.72 FPS 
+PXC DRAG RACE >> 100 frames in 3390.88 ms .... 29.49 FPS 
+PXC DRAG RACE >> 100 frames in 3468.91 ms .... 28.83 FPS 
+PXC DRAG RACE >> 100 frames in 3411.79 ms .... 29.31 FPS 
+PXC DRAG RACE >> 100 frames in 3470.89 ms .... 28.81 FPS 
+PXC DRAG RACE >> 100 frames in 3400.89 ms .... 29.40 FPS 
+PXC DRAG RACE >> 100 frames in 3370.90 ms .... 29.67 FPS
+
+################################################################################
+#
+# LOTS of SQUARES - SOLID
+#
+
+# 
+# rasterDFB.sh -xl 10 -i 100 solid
+
+DFB DRAG RACE >> 100 frames in 5524.42 ms .... 18.10 FPS 
+DFB DRAG RACE >> 100 frames in 5531.82 ms .... 18.08 FPS 
+DFB DRAG RACE >> 100 frames in 5412.89 ms .... 18.47 FPS 
+DFB DRAG RACE >> 100 frames in 5575.87 ms .... 17.93 FPS 
+DFB DRAG RACE >> 100 frames in 5990.88 ms .... 16.69 FPS 
+DFB DRAG RACE >> 100 frames in 5545.05 ms .... 18.03 FPS 
+DFB DRAG RACE >> 100 frames in 7081.75 ms .... 14.12 FPS 
+DFB DRAG RACE >> 100 frames in 9041.88 ms .... 11.06 FPS 
+DFB DRAG RACE >> 100 frames in 8628.14 ms .... 11.59 FPS 
+DFB DRAG RACE >> 100 frames in 9165.63 ms .... 10.91 FPS
+
+# 
+# rasterDFB.sh -xl 10 -i 100 solid -vm
+
+DFB DRAG RACE >> 100 frames in 9709.29 ms .... 10.30 FPS 
+DFB DRAG RACE >> 100 frames in 9105.69 ms .... 10.98 FPS 
+DFB DRAG RACE >> 100 frames in 9394.96 ms .... 10.64 FPS 
+DFB DRAG RACE >> 100 frames in 9695.70 ms .... 10.31 FPS 
+DFB DRAG RACE >> 100 frames in 9364.92 ms .... 10.68 FPS 
+DFB DRAG RACE >> 100 frames in 9324.78 ms .... 10.72 FPS 
+DFB DRAG RACE >> 100 frames in 8831.91 ms .... 11.32 FPS 
+DFB DRAG RACE >> 100 frames in 8838.89 ms .... 11.31 FPS 
+DFB DRAG RACE >> 100 frames in 8930.88 ms .... 11.20 FPS 
+DFB DRAG RACE >> 100 frames in 9057.80 ms .... 11.04 FPS
+
+# 
+# rasterDFB.sh -xl 10 -i 100 solid
+
+DFB DRAG RACE >> 100 frames in 8685.71 ms .... 11.51 FPS 
+DFB DRAG RACE >> 100 frames in 8939.72 ms .... 11.19 FPS 
+DFB DRAG RACE >> 100 frames in 6415.85 ms .... 15.59 FPS 
+DFB DRAG RACE >> 100 frames in 5667.88 ms .... 17.64 FPS 
+DFB DRAG RACE >> 100 frames in 5482.91 ms .... 18.24 FPS 
+DFB DRAG RACE >> 100 frames in 6524.83 ms .... 15.33 FPS 
+DFB DRAG RACE >> 100 frames in 5503.89 ms .... 18.17 FPS 
+DFB DRAG RACE >> 100 frames in 5535.90 ms .... 18.06 FPS 
+DFB DRAG RACE >> 100 frames in 5555.87 ms .... 18.00 FPS 
+DFB DRAG RACE >> 100 frames in 5624.88 ms .... 17.78 FPS
+
+# 
+# rasterPXC.sh -xl 10 -i 100 solid
+
+PXC DRAG RACE >> 100 frames in 3435.63 ms .... 29.11 FPS 
+PXC DRAG RACE >> 100 frames in 3398.79 ms .... 29.42 FPS 
+PXC DRAG RACE >> 100 frames in 3711.89 ms .... 26.94 FPS 
+PXC DRAG RACE >> 100 frames in 3521.89 ms .... 28.39 FPS 
+PXC DRAG RACE >> 100 frames in 3384.94 ms .... 29.54 FPS 
+PXC DRAG RACE >> 100 frames in 3362.84 ms .... 29.74 FPS 
+PXC DRAG RACE >> 100 frames in 3384.87 ms .... 29.54 FPS 
+PXC DRAG RACE >> 100 frames in 3353.96 ms .... 29.82 FPS 
+PXC DRAG RACE >> 100 frames in 3378.82 ms .... 29.60 FPS 
+PXC DRAG RACE >> 100 frames in 3415.89 ms .... 29.27 FPS # 
+
+################################################################################
+#
+# LOTS of SQUARES - MANDEL
+#
+
+# 
+# rasterDFB.sh -xl 10 -i 100 mandel
+
+DFB DRAG RACE >> 100 frames in 25474.69 ms .... 3.93 FPS 
+DFB DRAG RACE >> 100 frames in 25044.83 ms .... 3.99 FPS 
+DFB DRAG RACE >> 100 frames in 24953.88 ms .... 4.01 FPS 
+DFB DRAG RACE >> 100 frames in 25561.90 ms .... 3.91 FPS 
+DFB DRAG RACE >> 100 frames in 25090.85 ms .... 3.99 FPS 
+DFB DRAG RACE >> 100 frames in 25406.88 ms .... 3.94 FPS 
+DFB DRAG RACE >> 100 frames in 25393.88 ms .... 3.94 FPS 
+DFB DRAG RACE >> 100 frames in 27196.86 ms .... 3.68 FPS 
+DFB DRAG RACE >> 100 frames in 25062.98 ms .... 3.99 FPS 
+DFB DRAG RACE >> 100 frames in 25054.84 ms .... 3.99 FPS
+
+# 
+# rasterDFB.sh -xl 10 -i 100 mandel -vm
+
+DFB DRAG RACE >> 100 frames in 6336.18 ms .... 15.78 FPS 
+DFB DRAG RACE >> 100 frames in 6237.82 ms .... 16.03 FPS 
+DFB DRAG RACE >> 100 frames in 6566.89 ms .... 15.23 FPS 
+DFB DRAG RACE >> 100 frames in 6333.89 ms .... 15.79 FPS 
+DFB DRAG RACE >> 100 frames in 6361.86 ms .... 15.72 FPS 
+DFB DRAG RACE >> 100 frames in 6335.89 ms .... 15.78 FPS 
+DFB DRAG RACE >> 100 frames in 6272.89 ms .... 15.94 FPS 
+DFB DRAG RACE >> 100 frames in 6500.88 ms .... 15.38 FPS 
+DFB DRAG RACE >> 100 frames in 7088.88 ms .... 14.11 FPS 
+DFB DRAG RACE >> 100 frames in 6253.87 ms .... 15.99 FPS
+
+# 
+# rasterPXC.sh -xl 10 -i 100 mandel
+
+PXC DRAG RACE >> 100 frames in 5472.10 ms .... 18.27 FPS 
+PXC DRAG RACE >> 100 frames in 5383.81 ms .... 18.57 FPS 
+PXC DRAG RACE >> 100 frames in 5390.90 ms .... 18.55 FPS 
+PXC DRAG RACE >> 100 frames in 5368.88 ms .... 18.63 FPS 
+PXC DRAG RACE >> 100 frames in 5412.91 ms .... 18.47 FPS 
+PXC DRAG RACE >> 100 frames in 5551.99 ms .... 18.01 FPS 
+PXC DRAG RACE >> 100 frames in 5857.75 ms .... 17.07 FPS 
+PXC DRAG RACE >> 100 frames in 5402.89 ms .... 18.51 FPS 
+PXC DRAG RACE >> 100 frames in 5417.90 ms .... 18.46 FPS 
+PXC DRAG RACE >> 100 frames in 5385.88 ms .... 18.57 FPS
+
+################################################################################
+#
+# LOTS of SQUARES - MANDEL (ROTATED)
+#
+
+# 
+# rasterPXC.sh -xl 10 -i 100 mandel -r
+
+PXC DRAG RACE >> 100 frames in 23384.97 ms .... 4.28 FPS 
+PXC DRAG RACE >> 100 frames in 33825.03 ms .... 2.96 FPS 
+PXC DRAG RACE >> 100 frames in 33709.76 ms .... 2.97 FPS 
+PXC DRAG RACE >> 100 frames in 33714.67 ms .... 2.97 FPS 
+PXC DRAG RACE >> 100 frames in 32845.89 ms .... 3.04 FPS 
+PXC DRAG RACE >> 100 frames in 32453.75 ms .... 3.08 FPS 
+PXC DRAG RACE >> 100 frames in 23948.89 ms .... 4.18 FPS 
+PXC DRAG RACE >> 100 frames in 23529.89 ms .... 4.25 FPS 
+PXC DRAG RACE >> 100 frames in 23514.90 ms .... 4.25 FPS 
+PXC DRAG RACE >> 100 frames in 23665.45 ms .... 4.23 FPS
+
+# 
+# rasterDFB.sh -xl 10 -i 100 mandel -r
+
+DFB DRAG RACE >> 100 frames in 30290.54 ms .... 3.30 FPS 
+DFB DRAG RACE >> 100 frames in 29980.03 ms .... 3.34 FPS 
+DFB DRAG RACE >> 100 frames in 30228.66 ms .... 3.31 FPS 
+DFB DRAG RACE >> 100 frames in 29844.90 ms .... 3.35 FPS 
+DFB DRAG RACE >> 100 frames in 30656.87 ms .... 3.26 FPS 
+DFB DRAG RACE >> 100 frames in 29829.89 ms .... 3.35 FPS 
+DFB DRAG RACE >> 100 frames in 30613.89 ms .... 3.27 FPS 
+DFB DRAG RACE >> 100 frames in 29604.88 ms .... 3.38 FPS 
+DFB DRAG RACE >> 100 frames in 30624.88 ms .... 3.27 FPS 
+DFB DRAG RACE >> 100 frames in 30000.89 ms .... 3.33 FPS
+ 
+# 
+# rasterDFB.sh -xl 10 -i 100 mandel -r -vw
+
+DFB DRAG RACE >> 100 frames in 48617.51 ms .... 2.06 FPS 
+DFB DRAG RACE >> 100 frames in 48650.29 ms .... 2.06 FPS 
+DFB DRAG RACE >> 100 frames in 33070.47 ms .... 3.02 FPS 
+DFB DRAG RACE >> 100 frames in 30594.88 ms .... 3.27 FPS 
+DFB DRAG RACE >> 100 frames in 29966.01 ms .... 3.34 FPS 
+DFB DRAG RACE >> 100 frames in 29940.78 ms .... 3.34 FPS 
+DFB DRAG RACE >> 100 frames in 29661.89 ms .... 3.37 FPS 
+DFB DRAG RACE >> 100 frames in 30365.87 ms .... 3.29 FPS 
+DFB DRAG RACE >> 100 frames in 29839.89 ms .... 3.35 FPS 
+DFB DRAG RACE >> 100 frames in 30506.01 ms .... 3.28 FPS 
+
+# 
+# rasterPXC.sh -xl 10 -i 100 mandel -r
+
+PXC DRAG RACE >> 100 frames in 24085.54 ms .... 4.15 FPS 
+PXC DRAG RACE >> 100 frames in 23300.80 ms .... 4.29 FPS 
+PXC DRAG RACE >> 100 frames in 24077.87 ms .... 4.15 FPS 
+PXC DRAG RACE >> 100 frames in 23378.89 ms .... 4.28 FPS 
+PXC DRAG RACE >> 100 frames in 23611.88 ms .... 4.24 FPS 
+PXC DRAG RACE >> 100 frames in 23795.07 ms .... 4.20 FPS 
+PXC DRAG RACE >> 100 frames in 23361.76 ms .... 4.28 FPS 
+PXC DRAG RACE >> 100 frames in 23813.83 ms .... 4.20 FPS 
+PXC DRAG RACE >> 100 frames in 23532.87 ms .... 4.25 FPS 
+PXC DRAG RACE >> 100 frames in 23701.85 ms .... 4.22 FPS
+
+
+################################################################################
+#
+# LOTS of SQUARES - ROTATED
+#
+
+# 
+# rasterPXC.sh -xl 10 -i 100 -r
+
+PXC DRAG RACE >> 100 frames in 7501.56 ms .... 13.33 FPS 
+PXC DRAG RACE >> 100 frames in 6968.45 ms .... 14.35 FPS 
+PXC DRAG RACE >> 100 frames in 7126.78 ms .... 14.03 FPS 
+PXC DRAG RACE >> 100 frames in 7077.92 ms .... 14.13 FPS 
+PXC DRAG RACE >> 100 frames in 7081.90 ms .... 14.12 FPS 
+PXC DRAG RACE >> 100 frames in 7031.89 ms .... 14.22 FPS 
+PXC DRAG RACE >> 100 frames in 7576.85 ms .... 13.20 FPS 
+PXC DRAG RACE >> 100 frames in 7213.89 ms .... 13.86 FPS 
+PXC DRAG RACE >> 100 frames in 7043.89 ms .... 14.20 FPS 
+PXC DRAG RACE >> 100 frames in 7069.87 ms .... 14.14 FPS 
+
+#
+# rasterDFB.sh -xl 10 -i 100 -vm -r
+
+DFB DRAG RACE >> 100 frames in 13728.43 ms .... 7.28 FPS 
+DFB DRAG RACE >> 100 frames in 13787.77 ms .... 7.25 FPS 
+DFB DRAG RACE >> 100 frames in 13555.11 ms .... 7.38 FPS 
+DFB DRAG RACE >> 100 frames in 11008.56 ms .... 9.08 FPS 
+DFB DRAG RACE >> 100 frames in 10415.86 ms .... 9.60 FPS 
+DFB DRAG RACE >> 100 frames in 9630.86 ms .... 10.38 FPS 
+DFB DRAG RACE >> 100 frames in 9365.09 ms .... 10.68 FPS 
+DFB DRAG RACE >> 100 frames in 9497.67 ms .... 10.53 FPS 
+DFB DRAG RACE >> 100 frames in 9363.88 ms .... 10.68 FPS 
+DFB DRAG RACE >> 100 frames in 9347.87 ms .... 10.70 FPS
+
+#
+#rasterPXC.sh -xl 10 -i 100 -r
+
+PXC DRAG RACE >> 100 frames in 7501.56 ms .... 13.33 FPS 
+PXC DRAG RACE >> 100 frames in 6968.45 ms .... 14.35 FPS 
+PXC DRAG RACE >> 100 frames in 7126.78 ms .... 14.03 FPS 
+PXC DRAG RACE >> 100 frames in 7077.92 ms .... 14.13 FPS 
+PXC DRAG RACE >> 100 frames in 7081.90 ms .... 14.12 FPS 
+PXC DRAG RACE >> 100 frames in 7031.89 ms .... 14.22 FPS 
+PXC DRAG RACE >> 100 frames in 7576.85 ms .... 13.20 FPS 
+PXC DRAG RACE >> 100 frames in 7213.89 ms .... 13.86 FPS 
+PXC DRAG RACE >> 100 frames in 7043.89 ms .... 14.20 FPS 
+PXC DRAG RACE >> 100 frames in 7069.87 ms .... 14.14 FPS
+
+
+################################################################################
+#
+# LOTS of SOLIDS - ROTATED
+#
+
+# 
+# rasterDFB.sh -xl 10 -i 100 solid -r     
+
+DFB DRAG RACE >> 100 frames in 9459.41 ms .... 10.57 FPS 
+DFB DRAG RACE >> 100 frames in 9640.81 ms .... 10.37 FPS 
+DFB DRAG RACE >> 100 frames in 9366.00 ms .... 10.68 FPS 
+DFB DRAG RACE >> 100 frames in 9338.76 ms .... 10.71 FPS 
+DFB DRAG RACE >> 100 frames in 9589.89 ms .... 10.43 FPS 
+DFB DRAG RACE >> 100 frames in 9338.91 ms .... 10.71 FPS 
+DFB DRAG RACE >> 100 frames in 10099.88 ms .... 9.90 FPS 
+DFB DRAG RACE >> 100 frames in 9646.87 ms .... 10.37 FPS 
+DFB DRAG RACE >> 100 frames in 9592.89 ms .... 10.42 FPS 
+DFB DRAG RACE >> 100 frames in 9425.94 ms .... 10.61 FPS 
+
+# 
+# rasterDFB.sh -xl 10 -i 100 solid -r -vm
+
+DFB DRAG RACE >> 100 frames in 10985.24 ms .... 9.10 FPS 
+DFB DRAG RACE >> 100 frames in 10289.24 ms .... 9.72 FPS 
+DFB DRAG RACE >> 100 frames in 9593.87 ms .... 10.42 FPS 
+DFB DRAG RACE >> 100 frames in 9470.84 ms .... 10.56 FPS 
+DFB DRAG RACE >> 100 frames in 9483.88 ms .... 10.54 FPS 
+DFB DRAG RACE >> 100 frames in 9379.91 ms .... 10.66 FPS 
+DFB DRAG RACE >> 100 frames in 9473.85 ms .... 10.56 FPS 
+DFB DRAG RACE >> 100 frames in 9939.89 ms .... 10.06 FPS 
+DFB DRAG RACE >> 100 frames in 9485.89 ms .... 10.54 FPS 
+DFB DRAG RACE >> 100 frames in 9622.89 ms .... 10.39 FPS
+
+# 
+# rasterPXC.sh -xl 10 -i 100 solid -r    
+
+PXC DRAG RACE >> 100 frames in 7064.88 ms .... 14.15 FPS 
+PXC DRAG RACE >> 100 frames in 6923.81 ms .... 14.44 FPS 
+PXC DRAG RACE >> 100 frames in 7129.89 ms .... 14.03 FPS 
+PXC DRAG RACE >> 100 frames in 6989.88 ms .... 14.31 FPS 
+PXC DRAG RACE >> 100 frames in 7116.85 ms .... 14.05 FPS 
+PXC DRAG RACE >> 100 frames in 6917.89 ms .... 14.46 FPS 
+PXC DRAG RACE >> 100 frames in 7266.90 ms .... 13.76 FPS 
+PXC DRAG RACE >> 100 frames in 7462.08 ms .... 13.40 FPS 
+PXC DRAG RACE >> 100 frames in 7094.65 ms .... 14.10 FPS 
+PXC DRAG RACE >> 100 frames in 6986.89 ms .... 14.31 FPS
+
+
+
+# 
+# rasterPXC.sh -xl 3 -i 100 solid
+
+PXC DRAG RACE >> 100 frames in 3355.50 ms .... 29.80 FPS 
+PXC DRAG RACE >> 100 frames in 3337.82 ms .... 29.96 FPS 
+PXC DRAG RACE >> 100 frames in 3349.87 ms .... 29.85 FPS 
+# 
+
+# rasterDFB.sh -xl 3 -i 100 solid -r 
+
+DFB DRAG RACE >> 100 frames in 9428.82 ms .... 10.61 FPS 
+DFB DRAG RACE >> 100 frames in 10033.82 ms .... 9.97 FPS 
+DFB DRAG RACE >> 100 frames in 9350.87 ms .... 10.69 FPS
+# 
+# rasterDFB.sh -xl 3 -i 100 solid -r -vm
+
+DFB DRAG RACE >> 100 frames in 9727.81 ms .... 10.28 FPS 
+DFB DRAG RACE >> 100 frames in 9420.84 ms .... 10.61 FPS 
+DFB DRAG RACE >> 100 frames in 9448.87 ms .... 10.58 FPS
+
+
+################################################################################
+#
+#
+# LOTS of SOLIDS - *NOT* ROTATED
+#
+#
+# rasterPXC.sh SOLID -xl 3 -i 100 
+
+PXC DRAG RACE >> 100 frames in 3355.50 ms .... 29.80 FPS 
+PXC DRAG RACE >> 100 frames in 3337.82 ms .... 29.96 FPS 
+PXC DRAG RACE >> 100 frames in 3349.87 ms .... 29.85 FPS 
+# 
+# 
+# 
+# rasterDFB.sh SOLID -xl 3 -i 100 
+
+DFB DRAG RACE >> 100 frames in 5489.88 ms .... 18.22 FPS 
+DFB DRAG RACE >> 100 frames in 5503.90 ms .... 18.17 FPS 
+DFB DRAG RACE >> 100 frames in 6344.82 ms .... 15.76 FPS 
+
+# 
+# rasterDFB.sh SOLID -xl 3 -i 100 -vm
+
+DFB DRAG RACE >> 100 frames in 5428.66 ms .... 18.42 FPS 
+DFB DRAG RACE >> 100 frames in 6195.00 ms .... 16.14 FPS 
+DFB DRAG RACE >> 100 frames in 5577.69 ms .... 17.93 FPS
+
+
+################################################################################
+#
+#
+# LOTS of FILL's - *NOT* ROTATED
+#
+# 
+# rasterPXC.sh -xl 3 -i 100    
+
+PXC DRAG RACE >> 100 frames in 3365.63 ms .... 29.71 FPS 
+PXC DRAG RACE >> 100 frames in 3424.81 ms .... 29.20 FPS 
+PXC DRAG RACE >> 100 frames in 3372.88 ms .... 29.65 FPS
+# 
+# 
+# rasterDFB.sh -xl 3 -i 100 
+
+DFB DRAG RACE >> 100 frames in 5496.05 ms .... 18.19 FPS 
+DFB DRAG RACE >> 100 frames in 5737.82 ms .... 17.43 FPS 
+DFB DRAG RACE >> 100 frames in 5467.86 ms .... 18.29 FPS
+# 
+# 
+# rasterDFB.sh -xl 3 -i 100 -vm
+
+DFB DRAG RACE >> 100 frames in 5904.63 ms .... 16.94 FPS 
+DFB DRAG RACE >> 100 frames in 5667.72 ms .... 17.64 FPS 
+DFB DRAG RACE >> 100 frames in 5685.90 ms .... 17.59 FPS
+# 
+
+
+
+################################################################################
+#
+#
+# LOTS of MANDELBROT's - ROTATED
+# 
+# rasterPXC.sh mandel -xl 3 -i 100 -r
+
+PXC DRAG RACE >> 100 frames in 24284.88 ms .... 4.12 FPS 
+PXC DRAG RACE >> 100 frames in 23660.82 ms .... 4.23 FPS 
+PXC DRAG RACE >> 100 frames in 24090.87 ms .... 4.15 FPS 
+
+# 
+# rasterDFB.sh mandel -xl 3 -i 100 -r
+
+DFB DRAG RACE >> 100 frames in 30518.70 ms .... 3.28 FPS 
+DFB DRAG RACE >> 100 frames in 30812.82 ms .... 3.25 FPS 
+DFB DRAG RACE >> 100 frames in 32168.88 ms .... 3.11 FPS
+
+# 
+# rasterDFB.sh mandel -xl 3 -i 100 -r -vm
+
+DFB DRAG RACE >> 100 frames in 35332.25 ms .... 2.83 FPS 
+DFB DRAG RACE >> 100 frames in 50028.69 ms .... 2.00 FPS 
+DFB DRAG RACE >> 100 frames in 48287.55 ms .... 2.07 FPS 
+
+
+
+################################################################################
+#
+#
+# LOTS of FILL's - ROTATED
+#
+# 
+# 
+# rasterPXC.sh -xl 3 -i 100 -r
+
+PXC DRAG RACE >> 100 frames in 7102.79 ms .... 14.08 FPS 
+PXC DRAG RACE >> 100 frames in 7159.86 ms .... 13.97 FPS 
+PXC DRAG RACE >> 100 frames in 7088.74 ms .... 14.11 FPS
+# 
+# 
+# rasterDFB.sh -xl 3 -i 100 -r
+
+DFB DRAG RACE >> 100 frames in 9608.09 ms .... 10.41 FPS 
+DFB DRAG RACE >> 100 frames in 9412.82 ms .... 10.62 FPS 
+DFB DRAG RACE >> 100 frames in 9923.10 ms .... 10.08 FPS
+# 
+# 
+# 
+# rasterDFB.sh -xl 3 -i 100 -r -vm
+
+DFB DRAG RACE >> 100 frames in 9460.52 ms .... 10.57 FPS 
+DFB DRAG RACE >> 100 frames in 9432.83 ms .... 10.60 FPS 
+DFB DRAG RACE >> 100 frames in 9383.88 ms .... 10.66 FPS
+
+
+
+################################################################################
+################################################################################
+#
+#
+# USAGE !
+#
+# rasterDFB.sh -?
+
+USAGE:  rasterDFB <args> 
+
+        -w       Show "work:"  per frame timings
+        -r       Use rotation Static of 15 Degrees
+        -a       Use rotation Animation
+        -b       Skip Alpha Blending
+        -c       Skip clearscreen
+        -d       Skip *ALL* Drawing
+        -m       Skip *ALL* Matrix Math
+        -x       Drag race... Don't SLEEP !
+        -xl NN   Drag race... NN times in one process
+        -vm      Use VIDEO memory for images
+        -csv     Output format in CSV
+        -s NN    Use NN for square dimension
+        -i NN    Exit after 'NN' Avg. Windows data points 
+        -t NN    Exit after 'NN ms' (Milliseconds) 
+        -n NN    Use NN squares in checherboard
+        -y NN    Use NN for OversampleY setting
+        -f NN    Use NN for FPS rate
+        -w NN    Use NN for FPS Avg. Window size
+
+        -fg CLR  Use Foreground color   (WHITE,BLACK,BLUE,RED,GREEN,GRAY)
+        -bg CLR  Use Background color   (WHITE,BLACK,BLUE,RED,GREEN,GRAY)
+
+        Use "mandel"  for Mandelbrot Set texture fill.
+        Use "solid"   for Solid Color    texture fill.
+
