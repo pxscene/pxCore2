@@ -7,6 +7,7 @@
 #include "pxWindowNative.h"
 #include "../pxTimer.h"
 #include "../pxWindowUtil.h"
+#include "pxKeycodes.h"
 
 #include "pxConfigNative.h"
 
