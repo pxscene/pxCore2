@@ -4,7 +4,7 @@
 #include "pxConstants.h"
 #include "pxText.h"
 #include "pxTextBox.h"
-#include "pxFileDownloader.h"
+#include "rtFileDownloader.h"
 #include "pxTimer.h"
 #include "pxContext.h"
 

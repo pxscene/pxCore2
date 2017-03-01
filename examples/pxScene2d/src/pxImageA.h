@@ -6,7 +6,7 @@
 
 #include "pxScene2d.h"
 
-#include "pxFileDownloader.h"
+#include "rtFileDownloader.h"
 #include "pxUtil.h"
 
 class pxImageA: public pxObject
@@ -39,7 +39,7 @@ protected:
 
   void sendPromise() {} // shortcircuit  TODO...not sure if I like this pattern
 
-  static void onDownloadComplete(pxFileDownloadRequest* downloadRequest);
+  static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
   
   pxTimedOffscreenSequence mImageSequence;
@@ -57,7 +57,7 @@ protected:
   pxConstantsStretch::constants mStretchX;
   pxConstantsStretch::constants mStretchY;
 
-  pxFileDownloadRequest* mDownloadRequest;
+  rtFileDownloadRequest* mDownloadRequest;
 };
 
 #endif

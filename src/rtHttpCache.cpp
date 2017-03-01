@@ -1,9 +1,9 @@
-#include <pxHttpCache.h>
+#include <rtHttpCache.h>
 #include <string.h>
 #include <curl/curl.h>
 #include <sstream>
 #include "rtLog.h"
-#include <pxFileDownloader.h>
+#include <rtFileDownloader.h>
 
 using namespace std;
 
@@ -323,14 +323,14 @@ rtError rtHttpCacheData::calculateRevalidationNeed(bool& revalidate, bool& reval
 
 bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downloadBody)
 {
-  pxFileDownloadRequest* downloadRequest = NULL;
-  downloadRequest = new pxFileDownloadRequest(mUrl, this);
+  rtFileDownloadRequest* downloadRequest = NULL;
+  downloadRequest = new rtFileDownloadRequest(mUrl, this);
   downloadRequest->setAdditionalHttpHeaders(headers);
 
   if (!downloadBody)
     downloadRequest->setHeaderOnly(true);
 
-  if (false == pxFileDownloader::getInstance()->downloadFromNetwork(downloadRequest))
+  if (false == rtFileDownloader::getInstance()->downloadFromNetwork(downloadRequest))
   {
      delete downloadRequest;
      return false;

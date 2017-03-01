@@ -2,7 +2,7 @@
 // pxFont.cpp
 
 #include "pxFont.h"
-#include "pxFileDownloader.h"
+#include "rtFileDownloader.h"
 #include "pxTimer.h"
 #include "pxText.h"
 
@@ -82,7 +82,7 @@ pxFont::~pxFont()
   } 
    
 }
-bool pxFont::loadResourceData(pxFileDownloadRequest* fileDownloadRequest)
+bool pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       // Load the font data
       init( (FT_Byte*)fileDownloadRequest->getDownloadedData(), 

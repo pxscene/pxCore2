@@ -11,7 +11,7 @@
 
 #include "pxImage.h"
 #include "pxContext.h"
-#include "pxFileDownloader.h"
+#include "rtFileDownloader.h"
 
 using namespace std;
 

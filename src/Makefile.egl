@@ -37,7 +37,9 @@ NODEINC=\
         -I$(NODEPATH)/deps/cares/include 
 ZLIBINC=-I$(EXTDIR)/zlib/
 CURLINC=-I$(EXTDIR)/curl/include
-INCLUDE_PATHS=$(NODEINC) $(ZLIBINC) $(CURLINC) -I.
+JPGINC=-I$(EXTDIR)/jpg
+PNGINC=-I$(EXTDIR)/png
+INCLUDE_PATHS=$(NODEINC) $(ZLIBINC) $(CURLINC) $(JPGINC) $(PNGINC) -I.
 EXTRA_DEFINES=-DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN
 
 
@@ -77,9 +79,9 @@ $(OUTDIR)/librtCore.so: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o
 	mkdir -p $(OUTDIR)
 	$(CXX) utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o -pthread -ldl -shared -o $(OUTDIR)/librtCore.so
 
-$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxViewWindow.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxEGLProviderRPi.o LinuxInputEventDispatcher.o
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxViewWindow.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxEGLProviderRPi.o LinuxInputEventDispatcher.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o
 		       mkdir -p $(OUTDIR)    
-	    $(AR) rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxViewWindow.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxEGLProviderRPi.o LinuxInputEventDispatcher.o
+	    $(AR) rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxViewWindow.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxEGLProviderRPi.o LinuxInputEventDispatcher.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o
           
 pxOffscreen.o: pxOffscreen.cpp
 	$(CXX) -o pxOffscreen.o -Wall $(CXXFLAGS)  -c pxOffscreen.cpp
@@ -162,3 +164,16 @@ pxEGLProviderRPi.o: gles/pxEGLProviderRPi.cpp
 	$(CXX) -o pxEGLProviderRPi.o -Wall  $(CXXFLAGS)  -c gles/pxEGLProviderRPi.cpp
 LinuxInputEventDispatcher.o: gles/LinuxInputEventDispatcher.cpp
 	$(CXX) -o LinuxInputEventDispatcher.o -Wall  $(CXXFLAGS)  -c gles/LinuxInputEventDispatcher.cpp
+pxInterpolators.o: pxInterpolators.cpp
+	$(CXX) -o pxInterpolators.o -Wall $(CXXFLAGS) -c pxInterpolators.cpp
+pxMatrix4T.o: pxMatrix4T.cpp
+	$(CXX) -o pxMatrix4T.o -Wall $(CXXFLAGS) -c pxMatrix4T.cpp
+pxUtil.o: pxUtil.cpp
+	$(CXX) -o pxUtil.o -Wall $(CXXFLAGS) -c pxUtil.cpp
+rtFileDownloader.o: rtFileDownloader.cpp
+	$(CXX) -o rtFileDownloader.o -Wall $(CXXFLAGS) -c rtFileDownloader.cpp
+rtFileCache.o: rtFileCache.cpp
+	$(CXX) -o rtFileCache.o -Wall $(CXXFLAGS) -c rtFileCache.cpp
+rtHttpCache.o: rtHttpCache.cpp
+	$(CXX) -o rtHttpCache.o -Wall $(CXXFLAGS) -c rtHttpCache.cpp
+

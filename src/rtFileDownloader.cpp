@@ -1,5 +1,5 @@
 #define XRELOG_NOCTRACE
-#include "pxFileDownloader.h"
+#include "rtFileDownloader.h"
 #include "rtThreadTask.h"
 #include "rtThreadPool.h"
 #include "pxTimer.h"
@@ -83,11 +83,11 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 
 void startFileDownloadInBackground(void* data)
 {
-    pxFileDownloadRequest* downloadRequest = (pxFileDownloadRequest*)data;
-    pxFileDownloader::getInstance()->downloadFile(downloadRequest);
+    rtFileDownloadRequest* downloadRequest = (rtFileDownloadRequest*)data;
+    rtFileDownloader::getInstance()->downloadFile(downloadRequest);
 }
 
-pxFileDownloader* pxFileDownloader::mInstance = NULL;
+rtFileDownloader* rtFileDownloader::mInstance = NULL;
 
 
 void onDownloadHandleCheck()
@@ -97,7 +97,7 @@ void onDownloadHandleCheck()
   while (checkHandles)
   {
     usleep(kDownloadHandleTimerIntervalInMilliSeconds * 1000);
-    pxFileDownloader::getInstance()->checkForExpiredHandles();
+    rtFileDownloader::getInstance()->checkForExpiredHandles();
     downloadHandleMutex.lock();
     checkHandles = continueDownloadHandleCheck;
     downloadHandleMutex.unlock();
@@ -105,24 +105,24 @@ void onDownloadHandleCheck()
 }
 
 
-pxFileDownloader::pxFileDownloader() 
+rtFileDownloader::rtFileDownloader() 
     : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false)
 {
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
   rtLogWarn("enabling curl handle reuse");
   for (int i = 0; i < kMaxDownloadHandles; i++)
   {
-    mDownloadHandles.push_back(pxFileDownloadHandle(curl_easy_init()));
+    mDownloadHandles.push_back(rtFileDownloadHandle(curl_easy_init()));
   }
   mReuseDownloadHandles = true;
 #endif
 }
 
-pxFileDownloader::~pxFileDownloader()
+rtFileDownloader::~rtFileDownloader()
 {
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
   downloadHandleMutex.lock();
-  for (vector<pxFileDownloadHandle>::iterator it = mDownloadHandles.begin(); it != mDownloadHandles.end();++it)
+  for (vector<rtFileDownloadHandle>::iterator it = mDownloadHandles.begin(); it != mDownloadHandles.end();++it)
   {
     CURL* curlHandle = (*it).curlHandle;
     if (curlHandle != NULL)
@@ -133,7 +133,7 @@ pxFileDownloader::~pxFileDownloader()
   }
   mReuseDownloadHandles = false;
   downloadHandleMutex.unlock();
-  if (pxFileDownloader::getInstance() == this)
+  if (rtFileDownloader::getInstance() == this)
   {
     //cleanup curl and shutdown the reuse handle thread if this is the singleton object
     downloadHandleMutex.lock();
@@ -151,11 +151,11 @@ pxFileDownloader::~pxFileDownloader()
 #endif
 }
 
-pxFileDownloader* pxFileDownloader::getInstance()
+rtFileDownloader* rtFileDownloader::getInstance()
 {
     if (mInstance == NULL)
     {
-        mInstance = new pxFileDownloader();
+        mInstance = new rtFileDownloader();
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
         downloadHandleExpiresCheckThread = new std::thread(onDownloadHandleCheck);
 #endif //PX_REUSE_DOWNLOAD_HANDLES
@@ -163,7 +163,7 @@ pxFileDownloader* pxFileDownloader::getInstance()
     return mInstance;
 }
 
-bool pxFileDownloader::addToDownloadQueue(pxFileDownloadRequest* downloadRequest)
+bool rtFileDownloader::addToDownloadQueue(rtFileDownloadRequest* downloadRequest)
 {
     bool submitted = false;
     //todo: check the download queue before starting download
@@ -173,12 +173,12 @@ bool pxFileDownloader::addToDownloadQueue(pxFileDownloadRequest* downloadRequest
     return submitted;
 }
 
-void pxFileDownloader::startNextDownloadInBackground()
+void rtFileDownloader::startNextDownloadInBackground()
 {
     //todo
 }
 
-void pxFileDownloader::raiseDownloadPriority(pxFileDownloadRequest* downloadRequest)
+void rtFileDownloader::raiseDownloadPriority(rtFileDownloadRequest* downloadRequest)
 {
   if (downloadRequest != NULL)
   {
@@ -187,18 +187,18 @@ void pxFileDownloader::raiseDownloadPriority(pxFileDownloadRequest* downloadRequ
   }
 }
 
-void pxFileDownloader::removeDownloadRequest(pxFileDownloadRequest* downloadRequest)
+void rtFileDownloader::removeDownloadRequest(rtFileDownloadRequest* downloadRequest)
 {
     (void)downloadRequest;
     //todo
 }
 
-void pxFileDownloader::clearFileCache()
+void rtFileDownloader::clearFileCache()
 {
     //todo
 }
 
-void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
+void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
 {
 #ifdef ENABLE_HTTP_CACHE
     bool isDataInCache = false;
@@ -270,7 +270,7 @@ void pxFileDownloader::downloadFile(pxFileDownloadRequest* downloadRequest)
     delete downloadRequest;
 }
 
-bool pxFileDownloader::downloadFromNetwork(pxFileDownloadRequest* downloadRequest)
+bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadRequest)
 {
     CURL *curl_handle = NULL;
     CURLcode res = CURLE_OK;
@@ -280,7 +280,7 @@ bool pxFileDownloader::downloadFromNetwork(pxFileDownloadRequest* downloadReques
     bool headerOnly = downloadRequest->getHeaderOnly();
     MemoryStruct chunk;
 
-    curl_handle = pxFileDownloader::getInstance()->getDownloadHandle();
+    curl_handle = rtFileDownloader::getInstance()->getDownloadHandle();
 
     /* specify URL to get */
     curl_easy_setopt(curl_handle, CURLOPT_URL, downloadRequest->getFileUrl().cString());
@@ -349,7 +349,7 @@ bool pxFileDownloader::downloadFromNetwork(pxFileDownloadRequest* downloadReques
         }
         
         downloadRequest->setErrorString(errorStringStream.str().c_str());
-        pxFileDownloader::getInstance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime);
+        rtFileDownloader::getInstance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime);
         
         //clean up contents on error
         if (chunk.contentsBuffer != NULL)
@@ -373,7 +373,7 @@ bool pxFileDownloader::downloadFromNetwork(pxFileDownloadRequest* downloadReques
         downloadRequest->setHttpStatusCode(httpCode);
     }
     curl_slist_free_all(list);
-    pxFileDownloader::getInstance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime);
+    rtFileDownloader::getInstance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime);
 
     //todo read the header information before closing
     if (chunk.headerBuffer != NULL)
@@ -390,7 +390,7 @@ bool pxFileDownloader::downloadFromNetwork(pxFileDownloadRequest* downloadReques
 }
 
 #ifdef ENABLE_HTTP_CACHE
-bool pxFileDownloader::checkAndDownloadFromCache(pxFileDownloadRequest* downloadRequest,rtHttpCacheData& cachedData)
+bool rtFileDownloader::checkAndDownloadFromCache(rtFileDownloadRequest* downloadRequest,rtHttpCacheData& cachedData)
 {
   rtError err;
   rtData data;
@@ -412,7 +412,7 @@ bool pxFileDownloader::checkAndDownloadFromCache(pxFileDownloadRequest* download
 }
 #endif
 
-void pxFileDownloader::downloadFileInBackground(pxFileDownloadRequest* downloadRequest)
+void rtFileDownloader::downloadFileInBackground(rtFileDownloadRequest* downloadRequest)
 {
     rtThreadPool* mainThreadPool = rtThreadPool::globalInstance();
 
@@ -426,18 +426,18 @@ void pxFileDownloader::downloadFileInBackground(pxFileDownloadRequest* downloadR
     mainThreadPool->executeTask(task);
 }
 
-pxFileDownloadRequest* pxFileDownloader::getNextDownloadRequest()
+rtFileDownloadRequest* rtFileDownloader::getNextDownloadRequest()
 {
     //todo
     return NULL;
 }
 
-void pxFileDownloader::setDefaultCallbackFunction(void (*callbackFunction)(pxFileDownloadRequest*))
+void rtFileDownloader::setDefaultCallbackFunction(void (*callbackFunction)(rtFileDownloadRequest*))
 {
   mDefaultCallbackFunction = callbackFunction;
 }
 
-CURL* pxFileDownloader::getDownloadHandle()
+CURL* rtFileDownloader::getDownloadHandle()
 {
   CURL* curlHandle = NULL;
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
@@ -462,7 +462,7 @@ CURL* pxFileDownloader::getDownloadHandle()
   return curlHandle;
 }
 
-void pxFileDownloader::releaseDownloadHandle(CURL* curlHandle, int expiresTime)
+void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, int expiresTime)
 {
   rtLogDebug("expires time: %d", expiresTime);
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
@@ -477,7 +477,7 @@ void pxFileDownloader::releaseDownloadHandle(CURL* curlHandle, int expiresTime)
         {
           expiresTime += (int)pxSeconds();
         }
-    	mDownloadHandles.push_back(pxFileDownloadHandle(curlHandle, expiresTime));
+    	mDownloadHandles.push_back(rtFileDownloadHandle(curlHandle, expiresTime));
     }
     downloadHandleMutex.unlock();
 #else
@@ -485,13 +485,13 @@ void pxFileDownloader::releaseDownloadHandle(CURL* curlHandle, int expiresTime)
 #endif //PX_REUSE_DOWNLOAD_HANDLES
 }
 
-void pxFileDownloader::checkForExpiredHandles()
+void rtFileDownloader::checkForExpiredHandles()
 {
   rtLogDebug("inside checkForExpiredHandles");
   downloadHandleMutex.lock();
-  for (vector<pxFileDownloadHandle>::iterator it = mDownloadHandles.begin(); it != mDownloadHandles.end();)
+  for (vector<rtFileDownloadHandle>::iterator it = mDownloadHandles.begin(); it != mDownloadHandles.end();)
   {
-    pxFileDownloadHandle fileDownloadHandle = (*it);
+    rtFileDownloadHandle fileDownloadHandle = (*it);
     rtLogDebug("expires time: %d\n", fileDownloadHandle.expiresTime);
     if (fileDownloadHandle.expiresTime < 0)
     {

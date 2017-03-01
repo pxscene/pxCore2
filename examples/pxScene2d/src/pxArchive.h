@@ -14,7 +14,7 @@
 #include "rtObject.h"
 #include "rtObjectMacros.h"
 #include "rtPromise.h"
-#include "pxFileDownloader.h"
+#include "rtFileDownloader.h"
 
 #include "rtZip.h"
 class pxArchive: public rtObject
@@ -38,7 +38,7 @@ public:
   rtError fileNames(rtObjectRef& names) const;
 
 private:
-  static void onDownloadComplete(pxFileDownloadRequest* downloadRequest);
+  static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
   void process(void* data, size_t dataSize);
 
@@ -49,7 +49,7 @@ private:
   rtObjectRef mReady;
 
   rtData mData;
-  pxFileDownloadRequest* mDownloadRequest;
+  rtFileDownloadRequest* mDownloadRequest;
 
   rtZip mZip;
 };

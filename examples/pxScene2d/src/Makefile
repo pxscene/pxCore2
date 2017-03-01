@@ -98,15 +98,9 @@ PX_SRCS_FULL=\
   pxText.cpp \
   pxTextBox.cpp \
   pxImage.cpp \
-  pxUtil.cpp \
   pxImage9.cpp \
   pxImageA.cpp \
-  pxFileDownloader.cpp \
-  pxInterpolators.cpp \
-  pxMatrix4T.cpp \
-  pxArchive.cpp \
-  pxFileCache.cpp \
-  pxHttpCache.cpp 
+  pxArchive.cpp 
 
 EXTDIR=../external
 PXCOREDIR=../../..
@@ -236,16 +230,10 @@ PXSCENE_LIB_SRCS=\
   pxText.cpp \
   pxTextBox.cpp \
   pxImage.cpp \
-  pxUtil.cpp \
   pxImage9.cpp \
   pxImageA.cpp \
-  pxFileDownloader.cpp \
-  pxInterpolators.cpp \
-  pxMatrix4T.cpp \
   pxArchive.cpp \
-  pxFont.cpp \
-  pxFileCache.cpp \
-  pxHttpCache.cpp 
+  pxFont.cpp 
 
 ifneq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
 PXSCENE_LIB_SRCS += pxContextGL.cpp 
@@ -270,8 +258,7 @@ PXSCENE_LIB_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(PXSCENE_LIB_OBJS))
 
 # pxWayland so begin
 PXWAYLAND_LIB_SRCS=\
-            pxContextGL.cpp \
-            pxUtil.cpp 
+            pxContextGL.cpp 
 
 ifneq ($(DISABLE_WAYLAND),TRUE)
 PXWAYLAND_LIB_SRCS += pxWayland.cpp

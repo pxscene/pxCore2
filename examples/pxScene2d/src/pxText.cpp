@@ -2,7 +2,7 @@
 // pxText.cpp
 
 #include "pxText.h"
-#include "pxFileDownloader.h"
+#include "rtFileDownloader.h"
 #include "pxTimer.h"
 #include "pxFont.h"
 #include "pxContext.h"

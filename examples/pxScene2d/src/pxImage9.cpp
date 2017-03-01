@@ -9,7 +9,7 @@
 #include "pxScene2d.h"
 #include "pxImage9.h"
 #include "pxContext.h"
-#include "pxFileDownloader.h"
+#include "rtFileDownloader.h"
 
 extern pxContext context;
 

@@ -122,7 +122,7 @@ struct pxPoint2f
 };
 
 
-class pxFileDownloadRequest;
+class rtFileDownloadRequest;
 
 class pxScene2d;
 class pxScriptView;

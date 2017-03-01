@@ -4,7 +4,7 @@
 
 #include "rtThreadQueue.h"
 #include "pxContext.h"
-#include "pxFileDownloader.h"
+#include "rtFileDownloader.h"
 #include "rtString.h"
 #include "rtRef.h"
 #include "pxResource.h"
@@ -138,7 +138,7 @@ void pxResource::raiseDownloadPriority()
     if( lisenersSize == 0) 
       rtLogInfo("But size is 0, so no one cares!!!!!\n");
     priorityRaised = true;
-    pxFileDownloader::getInstance()->raiseDownloadPriority(mDownloadRequest);
+    rtFileDownloader::getInstance()->raiseDownloadPriority(mDownloadRequest);
   }
 }
 /**********************************************************************/
@@ -230,10 +230,10 @@ void pxResource::loadResource()
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
       mLoadStatus.set("sourceType", "http");
-      mDownloadRequest = new pxFileDownloadRequest(mUrl, this);
+      mDownloadRequest = new rtFileDownloadRequest(mUrl, this);
       // setup for asynchronous load and callback
       mDownloadRequest->setCallbackFunction(pxResource::onDownloadComplete);
-      pxFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
+      rtFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
   }
   else
   {
@@ -295,7 +295,7 @@ void rtImageResource::loadResourceFromFile()
 
 
 // Static callback that gets called when fileDownloadRequest completes 
-void pxResource::onDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
+void pxResource::onDownloadComplete(rtFileDownloadRequest* fileDownloadRequest)
 {
   if (fileDownloadRequest != NULL && fileDownloadRequest->getCallbackData() != NULL) 
   {
@@ -307,7 +307,7 @@ void pxResource::onDownloadComplete(pxFileDownloadRequest* fileDownloadRequest)
   }
 }
 
-bool rtImageResource::loadResourceData(pxFileDownloadRequest* fileDownloadRequest)
+bool rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       pxOffscreen imageOffscreen;
       if (pxLoadImage(fileDownloadRequest->getDownloadedData(),
@@ -321,7 +321,7 @@ bool rtImageResource::loadResourceData(pxFileDownloadRequest* fileDownloadReques
       return false;
 }
 /** pxResource processDownloadedResource */
-void pxResource::processDownloadedResource(pxFileDownloadRequest* fileDownloadRequest)
+void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest)
 {
   rtString val = "reject";
   if (fileDownloadRequest != NULL)

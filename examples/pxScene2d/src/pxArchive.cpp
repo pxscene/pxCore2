@@ -4,7 +4,7 @@
 
 extern rtThreadQueue gUIThreadQueue;
 
-#include "pxFileDownloader.h"
+#include "rtFileDownloader.h"
 
 pxArchive::pxArchive(): mIsFile(true) {}
 
@@ -29,9 +29,9 @@ rtError pxArchive::initFromUrl(const rtString& url)
   {
     mLoadStatus.set("sourceType", "http");
     mLoadStatus.set("statusCode", -1);
-    mDownloadRequest = new pxFileDownloadRequest(url, this);
+    mDownloadRequest = new rtFileDownloadRequest(url, this);
     mDownloadRequest->setCallbackFunction(pxArchive::onDownloadComplete);
-    pxFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
+    rtFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
   }
   else
   {
@@ -137,7 +137,7 @@ rtError pxArchive::fileNames(rtObjectRef& array) const
   return e;
 }
 
-void pxArchive::onDownloadComplete(pxFileDownloadRequest* downloadRequest)
+void pxArchive::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
 {
   pxArchive* a = (pxArchive*)downloadRequest->getCallbackData();
 

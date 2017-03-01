@@ -1,5 +1,5 @@
-#ifndef _PX_FILECACHE
-#define _PX_FILECACHE
+#ifndef _RT_FILECACHE
+#define _RT_FILECACHE
 
 #include <stdlib.h>
 #include <string>
@@ -8,7 +8,7 @@
 #include "rtString.h"
 #include "rtFile.h"
 #include "rtLog.h"
-#include "pxHttpCache.h"
+#include "rtHttpCache.h"
 #include "rtMutex.h"
 
 class rtFileCache

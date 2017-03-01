@@ -95,7 +95,7 @@ public:
   uint32_t mPixelSize;
   bool mDirty;
   pxContextFramebufferRef mCached;
-  pxFileDownloadRequest* mFontDownloadRequest;
+  rtFileDownloadRequest* mFontDownloadRequest;
   
   virtual float getFBOWidth() { return mw; }
   virtual float getFBOHeight() { return mh; }

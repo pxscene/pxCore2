@@ -18,10 +18,10 @@
 #include "pxTexture.h"
 #include "rtMutex.h"
 #ifdef ENABLE_HTTP_CACHE
-#include "pxFileCache.h"
+#include "rtFileCache.h"
 #endif
 #include <map>
-class pxFileDownloadRequest;
+class rtFileDownloadRequest;
 
 #define PX_RESOURCE_STATUS_OK             0
 #define PX_RESOURCE_STATUS_DOWNLOADING    1
@@ -77,10 +77,10 @@ public:
   void removeListener(pxResourceListener* pListener);
   virtual void loadResource();
 protected:   
-  static void onDownloadComplete(pxFileDownloadRequest* downloadRequest);
+  static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
-  virtual void processDownloadedResource(pxFileDownloadRequest* fileDownloadRequest);
-  virtual bool loadResourceData(pxFileDownloadRequest* fileDownloadRequest) = 0;
+  virtual void processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest);
+  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest) = 0;
   
   void notifyListeners(rtString readyResolution);
 
@@ -88,7 +88,7 @@ protected:
 
   
   rtString mUrl;
-  pxFileDownloadRequest* mDownloadRequest;  
+  rtFileDownloadRequest* mDownloadRequest;  
   bool priorityRaised;
 
   rtObjectRef mLoadStatus;
@@ -121,7 +121,7 @@ public:
   virtual void init();
 
 protected:  
-  virtual bool loadResourceData(pxFileDownloadRequest* fileDownloadRequest);
+  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
   
 private: 
 

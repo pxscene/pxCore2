@@ -1,5 +1,5 @@
-#ifndef _PX_HTTPCACHE
-#define _PX_HTTPCACHE
+#ifndef _RT_HTTPCACHE
+#define _RT_HTTPCACHE
 
 #include "rtFile.h"
 #include "rtString.h"

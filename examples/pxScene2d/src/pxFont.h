@@ -20,7 +20,7 @@ class pxFont;
 #define defaultFont "FreeSans.ttf"
 
 
-class pxFileDownloadRequest;
+class rtFileDownloadRequest;
 
 struct GlyphCacheEntry
 {
@@ -153,7 +153,7 @@ public:
    
 protected:
   // Implementation for pxResource virtuals
-  virtual bool loadResourceData(pxFileDownloadRequest* fileDownloadRequest);
+  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
   
 private:
   void loadResourceFromFile();

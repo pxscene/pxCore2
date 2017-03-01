@@ -31,7 +31,7 @@
 #endif //ENABLE_DFB
 
 #include "pxContext.h"
-#include "pxFileDownloader.h"
+#include "rtFileDownloader.h"
 #include "rtMutex.h"
 
 #include "pxIView.h"

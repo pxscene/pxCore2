@@ -53,9 +53,9 @@ rtError pxImageA::setUrl(const char *s)
     // We need to maintain this object's lifetime
     // TODO review overall flow and organization  
     AddRef();
-    mDownloadRequest = new pxFileDownloadRequest(mURL, this);
+    mDownloadRequest = new rtFileDownloadRequest(mURL, this);
     mDownloadRequest->setCallbackFunction(pxImageA::onDownloadComplete);
-    pxFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
+    rtFileDownloader::getInstance()->addToDownloadQueue(mDownloadRequest);
   }
   else
     mReady.send("resolve", this);
@@ -63,7 +63,7 @@ rtError pxImageA::setUrl(const char *s)
   return RT_OK;
 }
 
-void pxImageA::onDownloadComplete(pxFileDownloadRequest* downloadRequest)
+void pxImageA::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
 {
   pxImageA* image = (pxImageA*)downloadRequest->getCallbackData();
   if (image) 
