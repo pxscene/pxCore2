@@ -39,9 +39,9 @@ $(OUTDIR)/librtCore.so: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o
 	mkdir -p $(OUTDIR)
 	$(CXX) utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o -pthread -ldl -shared -o $(OUTDIR)/librtCore.so
 
-$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o pxViewWindow.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxTimerNative.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o
 	mkdir -p $(OUTDIR)    
-	ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxWindowNativeDfb.o pxTimerNative.o pxViewWindow.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o
+	ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxTimerNative.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o
 
 pxViewWindow.o: pxViewWindow.cpp
 	$(CXX) -o pxViewWindow.o -Wall $(INCDIR) $(CXXFLAGS) -c pxViewWindow.cpp

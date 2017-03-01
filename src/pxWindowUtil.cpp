@@ -4,7 +4,6 @@
 
 #include <stdio.h>
 
-#include "pxWindow.h"
 #include "pxWindowUtil.h"
 #include "pxCore.h"
 #include "pxKeycodes.h"

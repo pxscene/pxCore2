@@ -75,19 +75,5 @@ public:
   
 };
 
-// flags used in onMouseDown and onMouseUp
-#define PX_LEFTBUTTON       1
-#define PX_MIDDLEBUTTON     2
-#define PX_RIGHTBUTTON      4
-
-// flags used in onMouseDown, onMouseUp, onKeyDown, onKeyUp
-#define PX_MOD_SHIFT        8
-#define PX_MOD_CONTROL      16
-#define PX_MOD_ALT          32
-#define PX_MOD_COMMAND      64
-
-// flag used in onKeyDown
-#define PX_KEYDOWN_REPEAT   128
-
 #endif
 
