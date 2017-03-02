@@ -57,12 +57,15 @@ AppSceneContext.prototype.loadScene = function() {
       this.defaultBaseUri = ".";
     }
     fullPath = urlParts.pathname;
-    this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
-    var fileName = this.packageUrl.substring(fullPath.lastIndexOf('/'));
+    if( fullPath !== null) {
+      this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
+      //var fileName = this.packageUrl.substring(fullPath.lastIndexOf('/'));
+    }
   } else {
     this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
   }
 
+if( fullPath !== null)
   this.loadPackage(fullPath);
 
 if (false) {
