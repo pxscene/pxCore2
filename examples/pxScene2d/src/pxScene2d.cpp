@@ -420,8 +420,25 @@ rtError pxObject::moveToFront()
 {
   pxObject* parent = this->parent();
 
+  if(!parent) return RT_OK;
+  
   remove();
   setParent(parent);
+
+  return RT_OK;
+}
+
+rtError pxObject::moveToBack()
+{
+  pxObject* parent = this->parent();
+  
+  if(!parent) return RT_OK;
+  
+  remove();
+  mParent = parent;
+  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
+  parent->mChildren.insert(it, this);
+
 
   return RT_OK;
 }
@@ -1190,6 +1207,7 @@ rtDefineMethod(pxObject, getChild);
 rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, removeAll);
 rtDefineMethod(pxObject, moveToFront);
+rtDefineMethod(pxObject, moveToBack);
 rtDefineMethod(pxObject, releaseResources);
 //rtDefineMethod(pxObject, animateTo);
 #if 0

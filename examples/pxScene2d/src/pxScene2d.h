@@ -165,6 +165,7 @@ public:
   rtMethodNoArgAndNoReturn("remove", remove);
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
   rtMethodNoArgAndNoReturn("moveToFront", moveToFront);
+  rtMethodNoArgAndNoReturn("moveToBack", moveToBack);
 
   rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
                         uint32_t, uint32_t, int32_t, rtObjectRef);
@@ -387,7 +388,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
   }
 
   rtError moveToFront();
-  void moveToBack();
+  rtError moveToBack();
   void moveForward();
   void moveBackward();
 
