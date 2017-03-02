@@ -24,7 +24,7 @@ cd ..
 
 cd ft
 export LIBPNG_LIBS="-L../png/.libs -lpng16"
-./configure
+./configure --with-png=no
 make all -j3
 cd ..
 
