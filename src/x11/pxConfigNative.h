@@ -28,7 +28,7 @@
   #include "pxOffscreenNativeDfb.h"
 
 #ifdef ENABLE_DFB_GENERIC
-  #include "../generic/pxWindowNative.h"
+  #include "../generic/LinuxKeyCodes.h"
 #else
   #include "pxWindowNativeDfb.h"
 #endif //ENABLE_DFB_GENERIC

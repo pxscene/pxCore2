@@ -23,7 +23,6 @@ endif
 
 PLATFORM_SRCS=\
   gles/pxOffscreenNative.cpp \
-  generic/pxWindowNative.cpp \
   gles/pxTimerNative.cpp
 
 EXTDIR=../examples/pxScene2d/external
@@ -45,8 +44,7 @@ CXXFLAGS=-Wall -Wextra -fPIC $(CXXFLAGS_PLATFORM) -g -I. -I./gles $(TARGETINCLUD
 CFLAGS=-Wall -Wextra -fPIC $(CXXFLAGS_PLATFORM) -g -I. -I./gles $(TARGETINCLUDE) $(INCLUDE_PATHS) $(EXTRA_DEFINES)
 
 GENERIC_SRCS=\
-  pxOffscreen.cpp \
-  pxViewWindow.cpp
+  pxOffscreen.cpp 
 
 SRCS        =$(GENERIC_SRCS) 
 SRCS       +=$(PLATFORM_SRCS)
@@ -75,9 +73,9 @@ $(OUTDIR)/librtCore.so: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o
 	mkdir -p $(OUTDIR)
 	$(CXX) utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o -pthread -ldl -shared -o $(OUTDIR)/librtCore.so
 
-$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxViewWindow.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxTimerNative.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o
 		       mkdir -p $(OUTDIR)    
-	    $(AR) rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxViewWindow.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxWindowNative.o pxTimerNative.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o
+	    $(AR) rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxWindowUtil.o pxBufferNative.o pxOffscreenNative.o pxEventLoopNative.o pxTimerNative.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o
           
 pxOffscreen.o: pxOffscreen.cpp
 	$(CXX) -o pxOffscreen.o -Wall $(CXXFLAGS)  -c pxOffscreen.cpp

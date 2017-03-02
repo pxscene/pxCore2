@@ -15,7 +15,7 @@
 #if defined(ENABLE_GLUT)
   #include "pxWindowNativeGlut.h"
 #elif defined(ENABLE_DFB_GENERIC)
-  #include "pxWindowNative.h"
+  #include "../generic/LinuxKeyCodes.h"
 #elif defined(ENABLE_DFB) 
   #include "pxWindowNativeDfb.h"
 #else
@@ -25,13 +25,17 @@
 void pxEventLoop::run()
 {
     // For now we delegate off to the x11 pxWindowNative class
+#ifndef ENABLE_DFB_GENERIC
     pxWindowNative::runEventLoop();
+#endif //!ENABLE_DFB_GENERIC
 }
 
 void pxEventLoop::exit()
 {
     // For now we delegate off to the x11 pxWindowNative class
+#ifndef ENABLE_DFB_GENERIC
     pxWindowNative::exitEventLoop();
+#endif //!ENABLE_DFB_GENERIC
 }
 
 

@@ -5,7 +5,6 @@
 #include "rtRef.h"
 #include "pxCore.h"
 #include "pxKeycodes.h"
-#include "pxWindow.h"
 
 #include "pxWayland.h"
 

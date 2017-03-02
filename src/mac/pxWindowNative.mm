@@ -4,6 +4,7 @@
 
 #include "pxWindow.h"
 #include "pxWindowNative.h"
+#include "pxKeycodes.h"
 #include "../pxWindowUtil.h"
 
 #import <Cocoa/Cocoa.h>
