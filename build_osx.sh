@@ -10,6 +10,9 @@ else
 echo "***************************** Building pxcore ****"
 xcodebuild -scheme "pxCore Static Library" 1>>$BUILDLOGS;
 fi
+
+checkError();
+
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src;
 
 if [ "$TRAVIS_PULL_REQUEST" == "false" ]

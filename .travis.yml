@@ -26,12 +26,18 @@ script:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh ./testrunner_linux.sh; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sh ./testrunner_osx.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then cd $TRAVIS_BUILD_DIR; fi
-- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then tar -cvzf logs.tgz logs/* ; fi
 addons:
   ssh_known_hosts: 96.118.6.151
 after_script:
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then cd $TRAVIS_BUILD_DIR; fi
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then tar -cvzf logs.tgz logs/* ; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./deploy.sh 96.118.6.151 logs.tgz; fi
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then rm -rf /tmp/pxscene-build.pem; fi
+after_failure:
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then cd $TRAVIS_BUILD_DIR; fi
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then tar -cvzf logs.tgz logs/* ; fi
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./deploy.sh 96.118.6.151 logs.tgz;
+  fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then rm -rf /tmp/pxscene-build.pem; fi
 before_install:
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then openssl aes-256-cbc -K $encrypted_8b763c087de9_key -iv $encrypted_8b763c087de9_iv  -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d; fi
