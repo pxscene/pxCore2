@@ -270,7 +270,10 @@ rtRemoteServer::registerObject(std::string const& objectId, rtObjectRef const& o
 {
   rtObjectRef ref = m_env->ObjectCache->findObject(objectId);
   if (!ref)
+  {
     m_env->ObjectCache->insert(objectId, obj);
+    m_env->ObjectCache->markUnevictable(objectId, true);
+  }
   m_resolver->registerObject(objectId, m_rpc_endpoint);
   return RT_OK;
 }
@@ -282,7 +285,7 @@ rtRemoteServer::unregisterObject(std::string const& objectId)
 
   if (m_env)
   {
-    m_env->ObjectCache->markForRemoval(objectId);
+    e = m_env->ObjectCache->markUnevictable(objectId, false);
     if (e != RT_OK)
     {
       rtLogInfo("failed to mark object %s for removal. %s",

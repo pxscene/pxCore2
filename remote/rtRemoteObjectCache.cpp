@@ -14,7 +14,7 @@ namespace
     rtFunctionRef   Function;
     time_t          LastUsed;
     int             MaxIdleTime;
-    bool            ShouldBeRemoved;
+    bool            Unevictable;
 
     bool isActive(time_t now) const
     {
@@ -46,7 +46,7 @@ rtRemoteObjectCache::findFunction(std::string const& id)
 }
 
 rtError
-rtRemoteObjectCache::markForRemoval(std::string const& id)
+rtRemoteObjectCache::markUnevictable(std::string const& id, bool state)
 {
   rtError e = RT_OK;
 
@@ -54,7 +54,7 @@ rtRemoteObjectCache::markForRemoval(std::string const& id)
   auto itr = sRefMap.find(id);
   if (itr != sRefMap.end())
   {
-    itr->second.ShouldBeRemoved = true;
+    itr->second.Unevictable = state;
     e = RT_OK;
   }
   else
@@ -75,7 +75,7 @@ rtRemoteObjectCache::insert(std::string const& id, rtFunctionRef const& ref)
   entry.LastUsed = time(nullptr);
   entry.Function = ref;
   entry.MaxIdleTime = m_env->Config->cache_max_object_lifetime();
-  entry.ShouldBeRemoved = false;
+  entry.Unevictable = false;
 
   std::unique_lock<std::mutex> lock(sMutex);
   auto res = sRefMap.insert(refmap::value_type(id, entry));
@@ -94,7 +94,7 @@ rtRemoteObjectCache::insert(std::string const& id, rtObjectRef const& ref)
   entry.LastUsed = time(nullptr);
   entry.Object = ref;
   entry.MaxIdleTime = m_env->Config->cache_max_object_lifetime();
-  entry.ShouldBeRemoved = false;
+  entry.Unevictable = false;
 
   std::unique_lock<std::mutex> lock(sMutex);
   auto res = sRefMap.insert(refmap::value_type(id, entry));
@@ -163,17 +163,17 @@ rtRemoteObjectCache::removeUnused()
   std::unique_lock<std::mutex> lock(sMutex);
   for (auto itr = sRefMap.begin(); itr != sRefMap.end();)
   {
-    // rtLogInfo("IsActive:%s LastUsed:%ld MaxIdleTime:%d ShouldBeRemoved:%d", itr->first.c_str(),
-    //  itr->second.LastUsed, itr->second.MaxIdleTime, itr->second.ShouldBeRemoved);
+    // rtLogInfo("IsActive:%s LastUsed:%ld MaxIdleTime:%d Unevictable:%d", itr->first.c_str(),
+    //  itr->second.LastUsed, itr->second.MaxIdleTime, itr->second.Unevictable);
     #if 0
-    if (itr->second.ShouldBeRemoved && itr->second.isActive(now))
+    if (!itr->second.Unevictable && itr->second.isActive(now))
     {
       rtLogInfo("not removing:%s, should remove, but it's active",
         itr->first.c_str());
     }
     #endif
 
-    if (!itr->second.isActive(now) && itr->second.ShouldBeRemoved)
+    if (!itr->second.Unevictable && !itr->second.isActive(now))
       itr = sRefMap.erase(itr);
     else
       ++itr;

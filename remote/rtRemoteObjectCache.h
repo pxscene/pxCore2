@@ -22,7 +22,7 @@ public:
   rtError insert(std::string const& id, rtFunctionRef const& ref);
   rtError touch(std::string const& id, time_t now);
   rtError erase(std::string const& id);
-  rtError markForRemoval(std::string const& id);
+  rtError markUnevictable(std::string const& id, bool state);
   rtError removeUnused();
   rtError clear();
 
