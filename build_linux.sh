@@ -26,7 +26,7 @@ make -f Makefile.glut all 1>>$BUILDLOGS;
 make -f Makefile.glut rtcore 1>>$BUILDLOGS;
 fi
 
-checkError();
+checkError
 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 if [ "$TRAVIS_PULL_REQUEST" == "false" ]
@@ -40,7 +40,7 @@ make clean;
 make libs-glut 1>>$BUILDLOGS;
 fi
 
-checkError();
+checkError
 
 if [ "$TRAVIS_PULL_REQUEST" == "false" ]
 then
@@ -51,7 +51,7 @@ echo "***************************** Building pxscene app ***"
 make -j 1>>$BUILDLOGS
 fi
 
-checkError();
+checkError
 
 cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
 if [ "$TRAVIS_PULL_REQUEST" == "false" ]
@@ -65,7 +65,7 @@ make clean;
 make 1>>$BUILDLOGS;
 fi
 
-checkError();
+checkError
 
 touch $TRAVIS_BUILD_DIR/logs/test_logs;
 TESTLOGS=$TRAVIS_BUILD_DIR/logs/test_logs;

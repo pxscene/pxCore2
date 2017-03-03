@@ -22,7 +22,7 @@ echo "***************************** Building pxcore ****"
 xcodebuild -scheme "pxCore Static Library" 1>>$BUILDLOGS;
 fi
 
-checkError();
+checkError
 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src;
 
