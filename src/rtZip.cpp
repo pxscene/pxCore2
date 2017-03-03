@@ -19,7 +19,7 @@ rtError rtZip::initFromBuffer(const void* buffer, size_t bufferSize)
   char path[64] = {0};
   zlib_filefunc64_def memory_file;
 
-  mData.init((uint8_t*)buffer, bufferSize);
+  mData.init((uint8_t*)buffer, (uint32_t)bufferSize);
   
   sprintf(path, "%p+%x", mData.data(), mData.length());
   
@@ -53,7 +53,7 @@ uint32_t rtZip::fileCount() const
   unz_global_info64 info;
   if (unzGetGlobalInfo64(mUnzFile, &info) == UNZ_OK)
   {
-    count = info.number_entry;
+    count = (uint32_t)info.number_entry;
   }
   return count;
 }

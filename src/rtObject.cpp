@@ -163,7 +163,7 @@ rtError rtArrayObject::Get(const char* name, rtValue* value) const
     return RT_FAIL;
   if (!strcmp(name, "length"))
   {
-    value->setUInt32(mElements.size());
+    value->setUInt32((uint32_t)mElements.size());
     return RT_OK;
   }
   else

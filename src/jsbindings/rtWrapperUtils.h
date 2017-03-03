@@ -120,7 +120,7 @@ inline int toInt32(const v8::FunctionCallbackInfo<v8::Value>& args, int which, i
 {
   int i = defaultValue;
   if (!args[which]->IsUndefined())
-    i = args[which]->IntegerValue();
+    i = (int)args[which]->IntegerValue();
   return i;
 }
 
