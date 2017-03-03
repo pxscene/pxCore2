@@ -296,8 +296,6 @@
 			isa = PBXGroup;
 			children = (
 				4C04660D1E574CAE00D59925 /* Resources */,
-				4C5137B21E5F81BE0052A99C /* pxImageA.cpp */,
-				4C5137B31E5F81BE0052A99C /* pxImageA.h */,
 				4C0C6D3F1E5218BB00BD8932 /* pxArchive.cpp */,
 				4C0C6D401E5218BB00BD8932 /* pxArchive.h */,
 				4C0C6D411E5218BB00BD8932 /* pxConstants.cpp */,
@@ -306,32 +304,20 @@
 				4C0C6D451E5218BB00BD8932 /* pxContextDescGL.h */,
 				4C0C6D471E5218BB00BD8932 /* pxContextFramebuffer.h */,
 				4C0C6D481E5218BB00BD8932 /* pxContextGL.cpp */,
-				4C0C6D4D1E5218BB00BD8932 /* pxFont.cpp */,
-				4C0C6D4E1E5218BB00BD8932 /* pxFont.cpp.scale */,
-				4C0C6D4F1E5218BB00BD8932 /* pxFont.h */,
-				4C0C6D521E5218BB00BD8932 /* pxImage.cpp */,
-				4C0C6D531E5218BB00BD8932 /* pxImage.h */,
-				4C0C6D541E5218BB00BD8932 /* pxImage9.cpp */,
-				4C0C6D551E5218BB00BD8932 /* pxImage9.h */,
-				4C0C6D5A1E5218BB00BD8932 /* pxRectangle.cpp */,
-				4C0C6D5B1E5218BB00BD8932 /* pxRectangle.h */,
 				4C0C6D5C1E5218BB00BD8932 /* pxResource.cpp */,
 				4C0C6D5D1E5218BB00BD8932 /* pxResource.h */,
 				4C0C6D5E1E5218BB00BD8932 /* pxScene.cpp */,
 				4C0C6D5F1E5218BB00BD8932 /* pxscene.sh */,
 				4C0C6D601E5218BB00BD8932 /* pxScene2d.cpp */,
 				4C0C6D611E5218BB00BD8932 /* pxScene2d.h */,
-				4C0C6D621E5218BB00BD8932 /* pxText.cpp */,
-				4C0C6D631E5218BB00BD8932 /* pxText.h */,
-				4C0C6D641E5218BB00BD8932 /* pxTextBox.cpp */,
-				4C0C6D651E5218BB00BD8932 /* pxTextBox.h */,
 				4C0C6D661E5218BB00BD8932 /* pxTexture.h */,
 				4C0C6D671E5218BB00BD8932 /* pxTransform.cpp */,
 				4C0C6D681E5218BB00BD8932 /* pxTransform.h */,
-				4C0C6D6B1E5218BB00BD8932 /* pxWayland.cpp */,
-				4C0C6D6C1E5218BB00BD8932 /* pxWayland.h */,
-				4C0C6D6D1E5218BB00BD8932 /* pxWaylandContainer.cpp */,
-				4C0C6D6E1E5218BB00BD8932 /* pxWaylandContainer.h */,
+				4C49A4FF1E69B53B00D5548B /* Rectangle */,
+				4C49A4FD1E69B4BA00D5548B /* Font */,
+				4C49A4FE1E69B4D400D5548B /* Image */,
+				4C49A4FC1E69B4AB00D5548B /* Text */,
+				4C49A4F01E69B49800D5548B /* Wayland */,
 			);
 			name = Src;
 			path = ../..;
@@ -351,6 +337,60 @@
 				4C38CDB31E538CF7003E4A35 /* OpenGL.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		4C49A4F01E69B49800D5548B /* Wayland */ = {
+			isa = PBXGroup;
+			children = (
+				4C0C6D6B1E5218BB00BD8932 /* pxWayland.cpp */,
+				4C0C6D6C1E5218BB00BD8932 /* pxWayland.h */,
+				4C0C6D6D1E5218BB00BD8932 /* pxWaylandContainer.cpp */,
+				4C0C6D6E1E5218BB00BD8932 /* pxWaylandContainer.h */,
+			);
+			name = Wayland;
+			sourceTree = "<group>";
+		};
+		4C49A4FC1E69B4AB00D5548B /* Text */ = {
+			isa = PBXGroup;
+			children = (
+				4C0C6D621E5218BB00BD8932 /* pxText.cpp */,
+				4C0C6D631E5218BB00BD8932 /* pxText.h */,
+				4C0C6D641E5218BB00BD8932 /* pxTextBox.cpp */,
+				4C0C6D651E5218BB00BD8932 /* pxTextBox.h */,
+			);
+			name = Text;
+			sourceTree = "<group>";
+		};
+		4C49A4FD1E69B4BA00D5548B /* Font */ = {
+			isa = PBXGroup;
+			children = (
+				4C0C6D4D1E5218BB00BD8932 /* pxFont.cpp */,
+				4C0C6D4E1E5218BB00BD8932 /* pxFont.cpp.scale */,
+				4C0C6D4F1E5218BB00BD8932 /* pxFont.h */,
+			);
+			name = Font;
+			sourceTree = "<group>";
+		};
+		4C49A4FE1E69B4D400D5548B /* Image */ = {
+			isa = PBXGroup;
+			children = (
+				4C0C6D521E5218BB00BD8932 /* pxImage.cpp */,
+				4C0C6D531E5218BB00BD8932 /* pxImage.h */,
+				4C0C6D541E5218BB00BD8932 /* pxImage9.cpp */,
+				4C0C6D551E5218BB00BD8932 /* pxImage9.h */,
+				4C5137B21E5F81BE0052A99C /* pxImageA.cpp */,
+				4C5137B31E5F81BE0052A99C /* pxImageA.h */,
+			);
+			name = Image;
+			sourceTree = "<group>";
+		};
+		4C49A4FF1E69B53B00D5548B /* Rectangle */ = {
+			isa = PBXGroup;
+			children = (
+				4C0C6D5A1E5218BB00BD8932 /* pxRectangle.cpp */,
+				4C0C6D5B1E5218BB00BD8932 /* pxRectangle.h */,
+			);
+			name = Rectangle;
 			sourceTree = "<group>";
 		};
 		4CF04F961E525739003FE926 /* Libraries */ = {

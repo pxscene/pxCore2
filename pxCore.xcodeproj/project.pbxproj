@@ -637,6 +637,21 @@
 			name = rtCode;
 			sourceTree = "<group>";
 		};
+		4C49A5001E69B7E600D5548B /* Other */ = {
+			isa = PBXGroup;
+			children = (
+				46B077771E30FFC700BC6B9C /* unzip.c */,
+				46B077781E30FFC700BC6B9C /* unzip.h */,
+				46B077791E30FFC700BC6B9C /* utf8.c */,
+				46B0777A1E30FFC700BC6B9C /* utf8.h */,
+				46B077331E30FF8000BC6B9C /* jsCallback.cpp */,
+				46B077341E30FF8000BC6B9C /* jsCallback.h */,
+				46B077351E30FF8000BC6B9C /* jsWindow.h */,
+				46B077361E30FF8000BC6B9C /* node_headers.h */,
+			);
+			name = Other;
+			sourceTree = "<group>";
+		};
 		4CF04F5B1E523642003FE926 /* westeros-stub */ = {
 			isa = PBXGroup;
 			children = (
@@ -761,17 +776,10 @@
 		AECBECD11B67979F00851BFE /* Src */ = {
 			isa = PBXGroup;
 			children = (
+				4C49A5001E69B7E600D5548B /* Other */,
 				4C12170A1E5745BF0088CF64 /* Resources */,
 				4C38CDC21E538D87003E4A35 /* rtCode */,
 				4CF04F5B1E523642003FE926 /* westeros-stub */,
-				46B077771E30FFC700BC6B9C /* unzip.c */,
-				46B077781E30FFC700BC6B9C /* unzip.h */,
-				46B077791E30FFC700BC6B9C /* utf8.c */,
-				46B0777A1E30FFC700BC6B9C /* utf8.h */,
-				46B077331E30FF8000BC6B9C /* jsCallback.cpp */,
-				46B077341E30FF8000BC6B9C /* jsCallback.h */,
-				46B077351E30FF8000BC6B9C /* jsWindow.h */,
-				46B077361E30FF8000BC6B9C /* node_headers.h */,
 				AECBED4F1B67B09200851BFE /* pxBuffer.h */,
 				AECBED501B67B09200851BFE /* pxColor.h */,
 				AECBED511B67B09200851BFE /* pxConfig.h */,
