@@ -103,6 +103,7 @@
 		4C20BEE11E5CE68E005ABBB7 /* window.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4C20BED51E5CE68E005ABBB7 /* window.mm */; };
 		4C20BEE51E5DE26D005ABBB7 /* pxWindowNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4C20BEE41E5DE26D005ABBB7 /* pxWindowNative.mm */; };
 		4C38CDB21E538CB5003E4A35 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE1D44361B809BA8002E7CAE /* OpenGL.framework */; };
+		4C49A4EF1E69B22C00D5548B /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C49A4EE1E69B22C00D5548B /* CoreGraphics.framework */; };
 		4C7B860F1D10A45200C2489F /* pxClipboard.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B860E1D10A45200C2489F /* pxClipboard.h */; };
 		4CE671F31E68D74900A7AB9A /* libpng16.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CE671F21E68D74900A7AB9A /* libpng16.a */; };
 		4CF04F5E1E523662003FE926 /* westeros-compositor.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CF04F5C1E523662003FE926 /* westeros-compositor.h */; };
@@ -301,6 +302,7 @@
 		4C20BED31E5CE68E005ABBB7 /* pxWindowNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxWindowNative.h; path = src/mac/pxWindowNative.h; sourceTree = SOURCE_ROOT; };
 		4C20BED51E5CE68E005ABBB7 /* window.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = window.mm; path = src/mac/window.mm; sourceTree = SOURCE_ROOT; };
 		4C20BEE41E5DE26D005ABBB7 /* pxWindowNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxWindowNative.mm; path = src/mac/pxWindowNative.mm; sourceTree = SOURCE_ROOT; };
+		4C49A4EE1E69B22C00D5548B /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		4C7B860E1D10A45200C2489F /* pxClipboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboard.h; path = src/pxClipboard.h; sourceTree = SOURCE_ROOT; };
 		4CE671F21E68D74900A7AB9A /* libpng16.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng16.a; path = "examples/pxScene2d/external/libpng-1.6.28/.libs/libpng16.a"; sourceTree = "<group>"; };
 		4CF04F5C1E523662003FE926 /* westeros-compositor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "westeros-compositor.h"; path = "examples/pxScene2d/external/westeros-stub/westeros-compositor.h"; sourceTree = SOURCE_ROOT; };
@@ -457,8 +459,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4CE671F31E68D74900A7AB9A /* libpng16.a in Frameworks */,
+				4C49A4EF1E69B22C00D5548B /* CoreGraphics.framework in Frameworks */,
 				4C38CDB21E538CB5003E4A35 /* OpenGL.framework in Frameworks */,
+				4CE671F31E68D74900A7AB9A /* libpng16.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -559,6 +562,7 @@
 		4C20BEEA1E5DE774005ABBB7 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4C49A4EE1E69B22C00D5548B /* CoreGraphics.framework */,
 				4CE671F21E68D74900A7AB9A /* libpng16.a */,
 				AE1D44361B809BA8002E7CAE /* OpenGL.framework */,
 				AECBEE0B1B685F2100851BFE /* Cocoa.framework */,
