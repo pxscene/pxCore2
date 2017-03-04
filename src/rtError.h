@@ -1,4 +1,21 @@
-// rtCore CopyRight 2005-2015 John Robinson
+/*
+
+ rtCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // rtError.h
 
 #ifndef RT_ERROR_H
@@ -13,6 +30,7 @@
 #define RT_ASSERT(X) if (!(X)) rtLogError("rt assert: '%s' failed", #X);
 #endif
 
+// TODO review base numbering scheme for different error classes... general vs rtremote vs... 
 #define RT_ERROR_CLASS_SYSERROR 0x8000
 #define RT_ERROR_CLASS_BUILTIN 0x00000000
 
@@ -30,6 +48,7 @@
 #define RT_NO_CONNECTION		9
 #define RT_ERROR_NOT_IMPLEMENTED 10
 #define RT_ERROR_TYPE_MISMATCH 11
+
 // errors specific to rtRemote
 #define RT_ERROR_TIMEOUT 1000
 #define RT_ERROR_DUPLICATE_ENTRY 1001
@@ -44,6 +63,7 @@ typedef uint32_t rtError;
 
 const char* rtStrError(rtError e);
 
+// TODO where all is this used??
 inline rtError
 rtErrorFromErrno(int err)
 {

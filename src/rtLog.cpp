@@ -1,5 +1,22 @@
-// rtLog.cpp CopyRight 2005-2015 John Robinson
-//#include "stdafx.h"
+/*
+
+ rtCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
+// rtLog.cpp
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,7 +103,7 @@ void rtLogSetLevel(rtLogLevel level)
   sLevel = level;
 }
 
-void rtLogPrintf(rtLogLevel level, const char* file, int line, const char* format, ...)
+void _rtLogPrintf(rtLogLevel level, const char* file, int line, const char* format, ...)
 {
   if (level < sLevel)
     return;
@@ -108,7 +125,7 @@ void rtLogPrintf(rtLogLevel level, const char* file, int line, const char* forma
 
   if (sLogHandler == NULL)
   {
-    printf(RTLOGPREFIX "%5s %s:%d -- Thread-%" THREAD_ID_FORMAT ": ", logLevel, path, line, threadId);
+    printf(RT_LOGPREFIX "%5s %s:%d -- Thread-%" THREAD_ID_FORMAT ": ", logLevel, path, line, threadId);
 
     va_list ptr;
     va_start(ptr, format);
