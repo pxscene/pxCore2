@@ -140,7 +140,7 @@ private:
 
 
 
-  std::vector<regInfo> mRegInfo;
+  vector<regInfo> mRegInfo;
 
   // execution context
   float* mStack;

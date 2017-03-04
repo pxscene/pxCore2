@@ -3,8 +3,8 @@
 // pwWindowNative.cpp
 
 #include "pxWindow.h"
-#include "pxKeycodes.h"
 #include "pxWindowNative.h"
+#include "pxKeycodes.h"
 #include "../pxWindowUtil.h"
 
 #import <Cocoa/Cocoa.h>
@@ -23,7 +23,6 @@
 
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
-#include <iostream>
 
 #endif
 
@@ -43,43 +42,9 @@
 
 -(id)initWithPXWindow:(pxWindowNative*)window
 {
-  if(self = [super init])
-  {
-    mWindow = window;
-    
-    // --------------------------------------------------------------------------------------------------------------------
-    // This makes relative paths work in C++ in Xcode by changing directory to the Resources folder inside the .app bundle
-
-    CFBundleRef mainBundle = CFBundleGetMainBundle();
-    CFURLRef  resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
-    
-    char path[PATH_MAX];
-    if (!CFURLGetFileSystemRepresentation(resourcesURL, TRUE, (UInt8 *)path, PATH_MAX))
-    {
-        // error!
-        std::cout << "ERROR: CFURLGetFileSystemRepresentation() - failed !";
-    }
-    CFRelease(resourcesURL);
-    
-    chdir(path);
-    std::cout << "Resource Path: [ " << path  << " ]" << std::endl;
-
-    // Set NODE_PATH env
-    char *key = (char *) "NODE_PATH", *value = path;
-    
-    char *val = (char *) getenv(key); // existing
-    std::cout << "NODE_PATH:  [ " << val << " ]" << std::endl;
-  
-    int overwrite = 1;
-    setenv(key, value, overwrite);
-    
-    std::cout << "NODE_PATH: " << value << std::endl;
-    // --------------------------------------------------------------------------------------------------------------------
-    
-    return self;
-  }
-  
-  return nil;
+  self = [super init];
+  mWindow = window;
+  return self;
 }
 
 - (void)windowDidResize: (NSNotification*)notification
