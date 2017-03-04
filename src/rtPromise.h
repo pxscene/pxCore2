@@ -21,6 +21,7 @@
 #ifndef _RT_PROMISE_H
 #define _RT_PROMISE_H
 
+// TODO Eliminate std::string
 #include <string>
 
 enum rtPromiseState {PENDING,FULFILLED,REJECTED};

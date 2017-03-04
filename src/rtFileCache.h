@@ -21,15 +21,16 @@
 #ifndef _RT_FILECACHE
 #define _RT_FILECACHE
 
-#include <stdlib.h>
-#include <string>
-#include <map>
 #include "rtRef.h"
 #include "rtString.h"
 #include "rtFile.h"
 #include "rtLog.h"
 #include "rtHttpCache.h"
 #include "rtMutex.h"
+
+#include <map>
+// TODO elimate std::string from headers and impl
+#include <string>
 
 class rtFileCache
 {

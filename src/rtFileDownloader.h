@@ -21,16 +21,17 @@
 #ifndef RT_FILE_DOWNLOADER_H
 #define RT_FILE_DOWNLOADER_H
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <curl/curl.h>
-#include <vector>
-#include "rtString.h"
 #include "rtCore.h"
+#include "rtString.h"
 #ifdef ENABLE_HTTP_CACHE
 #include <rtFileCache.h>
 #endif
+
+// TODO Eliminate std::string
+#include <string.h>
+#include <vector>
+
+#include <curl/curl.h>
 
 class rtFileDownloadRequest
 {

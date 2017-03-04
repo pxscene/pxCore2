@@ -23,6 +23,7 @@
 
 #include "rtConfig.h"
 
+// Assumed platform headers
 #include <stdint.h>
 #include "rtError.h"
 

@@ -18,9 +18,10 @@
 
 // rtString.h
 
-#ifndef _RT_STRING
-#define _RT_STRING
+#ifndef _RT_STRING_H
+#define _RT_STRING_H
 
+//#include "rtCore.h"
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -28,14 +29,23 @@
 #define finline
 #endif
 
+
+/**
+  A lightweight utf-8 string class.
+*/
 class rtString 
 {
 public:
 
   rtString();
+  
+  // Assumes utf-8 compatible encoding and null-terminated
   rtString(const char* s);
 
+  // Assumes utf-8 compatible encoding
+  // internal copy will be null-terminated
   rtString(const char* s, uint32_t byteLen);
+
   rtString(const rtString& s);
   
   ~rtString();

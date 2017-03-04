@@ -76,7 +76,6 @@ class rtObject;
 class rtObjectRef;
 class rtFunctionRef;
 
-
 const char* rtStrType(char t); //fwd
 
 typedef void* voidPtr;

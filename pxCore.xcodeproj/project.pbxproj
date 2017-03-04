@@ -24,7 +24,6 @@
 		46B0777E1E30FFC700BC6B9C /* rtAtomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774C1E30FFC700BC6B9C /* rtAtomic.h */; };
 		46B0777F1E30FFC700BC6B9C /* rtConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774D1E30FFC700BC6B9C /* rtConfig.h */; };
 		46B077801E30FFC700BC6B9C /* rtCore.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774E1E30FFC700BC6B9C /* rtCore.h */; };
-		46B077811E30FFC700BC6B9C /* rtDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774F1E30FFC700BC6B9C /* rtDefs.h */; };
 		46B077821E30FFC700BC6B9C /* rtError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077501E30FFC700BC6B9C /* rtError.cpp */; };
 		46B077831E30FFC700BC6B9C /* rtError.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077511E30FFC700BC6B9C /* rtError.h */; };
 		46B077841E30FFC700BC6B9C /* rtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077521E30FFC700BC6B9C /* rtFile.cpp */; };
@@ -195,7 +194,6 @@
 		46B0774C1E30FFC700BC6B9C /* rtAtomic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtAtomic.h; path = src/rtAtomic.h; sourceTree = SOURCE_ROOT; };
 		46B0774D1E30FFC700BC6B9C /* rtConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtConfig.h; path = src/rtConfig.h; sourceTree = SOURCE_ROOT; };
 		46B0774E1E30FFC700BC6B9C /* rtCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtCore.h; path = src/rtCore.h; sourceTree = SOURCE_ROOT; };
-		46B0774F1E30FFC700BC6B9C /* rtDefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtDefs.h; path = src/rtDefs.h; sourceTree = SOURCE_ROOT; };
 		46B077501E30FFC700BC6B9C /* rtError.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtError.cpp; path = src/rtError.cpp; sourceTree = SOURCE_ROOT; };
 		46B077511E30FFC700BC6B9C /* rtError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtError.h; path = src/rtError.h; sourceTree = SOURCE_ROOT; };
 		46B077521E30FFC700BC6B9C /* rtFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtFile.cpp; path = src/rtFile.cpp; sourceTree = SOURCE_ROOT; };
@@ -567,7 +565,6 @@
 				46B0774C1E30FFC700BC6B9C /* rtAtomic.h */,
 				46B0774D1E30FFC700BC6B9C /* rtConfig.h */,
 				46B0774E1E30FFC700BC6B9C /* rtCore.h */,
-				46B0774F1E30FFC700BC6B9C /* rtDefs.h */,
 				46B077501E30FFC700BC6B9C /* rtError.cpp */,
 				46B077511E30FFC700BC6B9C /* rtError.h */,
 				46B077521E30FFC700BC6B9C /* rtFile.cpp */,
@@ -691,7 +688,6 @@
 				46B077A01E30FFC700BC6B9C /* rtThreadQueue.h in Headers */,
 				46B077481E30FF8000BC6B9C /* rtWrapperUtils.h in Headers */,
 				46B077B21E30FFED00BC6B9C /* rtConfigNative.h in Headers */,
-				46B077811E30FFC700BC6B9C /* rtDefs.h in Headers */,
 				46B0778C1E30FFC700BC6B9C /* rtNode.h in Headers */,
 				46B077A61E30FFC700BC6B9C /* rtValue.h in Headers */,
 				46B0777F1E30FFC700BC6B9C /* rtConfig.h in Headers */,
