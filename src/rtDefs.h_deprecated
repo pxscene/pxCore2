@@ -1,6 +1,6 @@
 /*
 
- rtCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2017 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,14 +16,19 @@
 
 */
 
-// rtPathUtils.h
+// rtDefs.h
 
-#ifndef _RT_PATH_UTILS
-#define _RT_PATH_UTILS
+#ifndef _RT_DEFS
+#define _RT_DEFS
 
-#include "rtCore.h"
-#include "rtString.h"
+#include <stdint.h>
 
-rtError rtGetCurrentDirectory(rtString& d);
+#include "rtError.h"
+
+#if 1
+#ifndef finline
+#define finline inline
+#endif
+#endif
 
 #endif

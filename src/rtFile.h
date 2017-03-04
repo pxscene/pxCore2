@@ -1,22 +1,32 @@
-// rtCore CopyRight 2007-2015 John Robinson
+/*
+
+ rtCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // rtFile.h
 
 #ifndef _RT_FILE_H
 #define _RT_FILE_H
 
 #include <assert.h>
-#include <stdint.h>
-#include <stdio.h>
+#include <rtCore.h>
 
-#ifndef WIN32
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#endif
-
-#include "rtDefs.h"
-
+/**
+rtData is a wrapper that encapsulated an allocated buffer of bytes and owns the lifetime of those bytes.
+*/
 class rtData 
 {
  public:
@@ -24,7 +34,6 @@ class rtData
   ~rtData();
 
   // TODO copy constructor and assignment
-  
   rtError init(uint32_t length);
   rtError init(uint8_t* data, uint32_t length);
 
@@ -38,10 +47,10 @@ class rtData
   uint32_t mLength;
 };
 
+// Load or Store a file using an rtData managed buffer
 rtError rtLoadFile(const char* f, rtData& data);
 rtError rtStoreFile(const char* f, rtData& data);
 
-#if 1
 class rtFilePointer
 {
 public:
@@ -87,6 +96,5 @@ public:
 private:
   FILE* mFile;
 };
-#endif
 
 #endif
