@@ -241,6 +241,7 @@
 		46D304731E673978000C5A5B /* rtFileDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtFileDownloader.h; path = src/rtFileDownloader.h; sourceTree = SOURCE_ROOT; };
 		46D304741E673978000C5A5B /* rtHttpCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtHttpCache.cpp; path = src/rtHttpCache.cpp; sourceTree = SOURCE_ROOT; };
 		46D304751E673978000C5A5B /* rtHttpCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtHttpCache.h; path = src/rtHttpCache.h; sourceTree = SOURCE_ROOT; };
+		4C0086DE1E6C64C900DB42F4 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		4C7B860E1D10A45200C2489F /* pxClipboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboard.h; path = src/pxClipboard.h; sourceTree = SOURCE_ROOT; };
 		4C7B86111D10A47300C2489F /* pxClipboardNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxClipboardNative.mm; path = src/mac/pxClipboardNative.mm; sourceTree = SOURCE_ROOT; };
 		4C7B86121D10A47300C2489F /* pxClipboardNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboardNative.h; path = src/mac/pxClipboardNative.h; sourceTree = SOURCE_ROOT; };
@@ -590,6 +591,7 @@
 		AECBECA01B6796DC00851BFE = {
 			isa = PBXGroup;
 			children = (
+				4C0086DE1E6C64C900DB42F4 /* CoreFoundation.framework */,
 				AE1D44361B809BA8002E7CAE /* OpenGL.framework */,
 				AECBEE0B1B685F2100851BFE /* Cocoa.framework */,
 				AECBEE091B685F1C00851BFE /* Foundation.framework */,
