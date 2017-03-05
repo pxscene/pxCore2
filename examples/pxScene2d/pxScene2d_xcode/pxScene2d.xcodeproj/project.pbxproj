@@ -40,6 +40,7 @@
 		4C38CDB41E538CF7003E4A35 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDB31E538CF7003E4A35 /* OpenGL.framework */; };
 		4C38CDC01E538D19003E4A35 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDBF1E538D19003E4A35 /* Cocoa.framework */; };
 		4C5137B41E5F81BE0052A99C /* pxImageA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5137B21E5F81BE0052A99C /* pxImageA.cpp */; };
+		4C9F22AC1E6A24D200979F4E /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */; };
 		4CF6265D1E661D5000D70FB3 /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF626461E661CC600D70FB3 /* libpxCore.a */; };
 /* End PBXBuildFile section */
 
@@ -78,13 +79,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = AE1D43BF1B7D51BF002E7CAE;
 			remoteInfo = KeyboardAndMouse;
-		};
-		4CF6264D1E661CC600D70FB3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4C0C6DB41E52336300BD8932 /* pxCore.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 4C1216CF1E573D040088CF64;
-			remoteInfo = Rasterizer;
 		};
 		4CF6264F1E661CC600D70FB3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -215,6 +209,8 @@
 		4C38CDBF1E538D19003E4A35 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		4C5137B21E5F81BE0052A99C /* pxImageA.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImageA.cpp; path = src/pxImageA.cpp; sourceTree = "<group>"; };
 		4C5137B31E5F81BE0052A99C /* pxImageA.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxImageA.h; path = src/pxImageA.h; sourceTree = "<group>"; };
+		4C9F22AA1E6A24D200979F4E /* westeros-compositor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "westeros-compositor.h"; path = "external/westeros-stub/westeros-compositor.h"; sourceTree = "<group>"; };
+		4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "westeros-stub.cpp"; path = "external/westeros-stub/westeros-stub.cpp"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -342,6 +338,8 @@
 		4C49A4F01E69B49800D5548B /* Wayland */ = {
 			isa = PBXGroup;
 			children = (
+				4C9F22AA1E6A24D200979F4E /* westeros-compositor.h */,
+				4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */,
 				4C0C6D6B1E5218BB00BD8932 /* pxWayland.cpp */,
 				4C0C6D6C1E5218BB00BD8932 /* pxWayland.h */,
 				4C0C6D6D1E5218BB00BD8932 /* pxWaylandContainer.cpp */,
@@ -410,17 +408,16 @@
 			isa = PBXGroup;
 			children = (
 				4CF626461E661CC600D70FB3 /* libpxCore.a */,
-				4CF626481E661CC600D70FB3 /* Animation.app */,
-				4CF6264A1E661CC600D70FB3 /* Hover.app */,
-				4CF6264C1E661CC600D70FB3 /* KeyboardAndMouse.app */,
-				4CF6264E1E661CC600D70FB3 /* Rasterizer.app */,
-				4CF626501E661CC600D70FB3 /* Mandelbrot.app */,
-				4CF626521E661CC600D70FB3 /* NativeDrawing.app */,
-				4CF626541E661CC600D70FB3 /* Multi.app */,
-				4CF626561E661CC600D70FB3 /* Sprite.app */,
 				4CF626581E661CC600D70FB3 /* Simple.app */,
-				4CF6265A1E661CC600D70FB3 /* SimpleOpenGL.app */,
+				4CF6264A1E661CC600D70FB3 /* Hover.app */,
+				4CF626541E661CC600D70FB3 /* Multi.app */,
+				4CF626481E661CC600D70FB3 /* Animation.app */,
+				4CF626561E661CC600D70FB3 /* Sprite.app */,
+				4CF626501E661CC600D70FB3 /* Mandelbrot.app */,
+				4CF6264C1E661CC600D70FB3 /* KeyboardAndMouse.app */,
+				4CF626521E661CC600D70FB3 /* NativeDrawing.app */,
 				4CF6265C1E661CC600D70FB3 /* Timer */,
+				4CF6265A1E661CC600D70FB3 /* SimpleOpenGL.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -516,13 +513,6 @@
 			remoteRef = 4CF6264B1E661CC600D70FB3 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		4CF6264E1E661CC600D70FB3 /* Rasterizer.app */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.application;
-			path = Rasterizer.app;
-			remoteRef = 4CF6264D1E661CC600D70FB3 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		4CF626501E661CC600D70FB3 /* Mandelbrot.app */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.application;
@@ -614,7 +604,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\ncp -R $PROJECT_DIR/../src/images $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R $PROJECT_DIR/../src/rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R $PROJECT_DIR/../src/node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\ncp -R $PROJECT_DIR/../src/macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\n\ncp $PROJECT_DIR/../src/init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\ncp $PROJECT_DIR/../src/macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\n\n\n\n#cp -R $PROJECT_DIR/../src/images $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp -R $PROJECT_DIR/../src/rcvrcore $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp -R $PROJECT_DIR/../src/node_modules $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n\n#cp -R $PROJECT_DIR/../src/macstuff/Resources $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents\n\n#cp $PROJECT_DIR/../src/init.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/shell.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/browser.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/FreeSans.ttf $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n\n\n\n\n\necho $PROJECT_DIR/../lib\n\n#cp -R $PROJECT_DIR/../lib\n#mkdir $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#echo ${CONFIGURATION}${EFFECTIVE_PLATFORM_NAME}\n#echo $PROJECT_NAME\n#echo $BUILT_PRODUCTS_DIR\n#echo $CONFIGURATION_BUILD_DIR/$EXECUTABLE_FOLDER\n#echo $CONFIGURATION_BUILD_DIR/$EXECUTABLE_PATH\n#cp -R $PROJECT_DIR/../lib $CONFIGURATION_BUILD_DIR/$EXECUTABLE_PATH/libby";
+			shellScript = "\ncp -R $PROJECT_DIR/../src/images $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R $PROJECT_DIR/../src/rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R $PROJECT_DIR/../src/node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\ncp -R $PROJECT_DIR/../src/macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\n\ncp $PROJECT_DIR/../src/init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp $PROJECT_DIR/../src/macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\n\n\n\n#cp -R $PROJECT_DIR/../src/images $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp -R $PROJECT_DIR/../src/rcvrcore $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp -R $PROJECT_DIR/../src/node_modules $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n\n#cp -R $PROJECT_DIR/../src/macstuff/Resources $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents\n\n#cp $PROJECT_DIR/../src/init.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/shell.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/browser.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/FreeSans.ttf $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n\n\n\n\n\necho $PROJECT_DIR/../lib\n\n#cp -R $PROJECT_DIR/../lib\n#mkdir $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#echo ${CONFIGURATION}${EFFECTIVE_PLATFORM_NAME}\n#echo $PROJECT_NAME\n#echo $BUILT_PRODUCTS_DIR\n#echo $CONFIGURATION_BUILD_DIR/$EXECUTABLE_FOLDER\n#echo $CONFIGURATION_BUILD_DIR/$EXECUTABLE_PATH\n#cp -R $PROJECT_DIR/../lib $CONFIGURATION_BUILD_DIR/$EXECUTABLE_PATH/libby";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -625,6 +615,7 @@
 			files = (
 				4C0C6D791E5218BC00BD8932 /* pxImage.cpp in Sources */,
 				4C0C6D7A1E5218BC00BD8932 /* pxImage9.cpp in Sources */,
+				4C9F22AC1E6A24D200979F4E /* westeros-stub.cpp in Sources */,
 				4C0C6D871E5218BC00BD8932 /* pxWaylandContainer.cpp in Sources */,
 				4C20BEE91E5DE5F1005ABBB7 /* pxContextGL.cpp in Sources */,
 				4C0C6D701E5218BB00BD8932 /* pxArchive.cpp in Sources */,
@@ -791,7 +782,11 @@
 				);
 				INFOPLIST_FILE = pxScene2d/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/lib";
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/lib",
+					"$(PROJECT_DIR)/examples/pxScene2d/external/png/.libs",
+					"$(PROJECT_DIR)/examples/pxScene2d/external/libpng-1.6.28/.libs",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_LDFLAGS = (
 					"-rpath",
@@ -861,7 +856,11 @@
 				);
 				INFOPLIST_FILE = pxScene2d/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/lib";
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/lib",
+					"$(PROJECT_DIR)/examples/pxScene2d/external/png/.libs",
+					"$(PROJECT_DIR)/examples/pxScene2d/external/libpng-1.6.28/.libs",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_LDFLAGS = (
 					"-rpath",
