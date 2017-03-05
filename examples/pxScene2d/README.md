@@ -153,7 +153,7 @@ file:///home/username/directory/filename.js
 
 1. Build pxCore
   ~~~~
-cd ~/pxCore 
+cd ~/pxCore/src
 make -f Makefile.egl
   ~~~~
 
