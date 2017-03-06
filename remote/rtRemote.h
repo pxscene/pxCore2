@@ -9,7 +9,7 @@
 #define RT_REMOTE_API_VERSION 2.0
 #define RT_REMOTE_OLDSTYLE_API 1
 
-typedef struct rtRemoteEnvironment rtRemoteEnvironment;
+class   rtRemoteEnvironment;
 typedef void(*remoteDisconnectedCallback)(void *data);
 
 /**
