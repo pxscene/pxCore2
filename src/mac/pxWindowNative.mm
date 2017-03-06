@@ -3,8 +3,8 @@
 // pwWindowNative.cpp
 
 #include "pxWindow.h"
-#include "pxWindowNative.h"
 #include "pxKeycodes.h"
+#include "pxWindowNative.h"
 #include "../pxWindowUtil.h"
 
 #import <Cocoa/Cocoa.h>
@@ -23,6 +23,7 @@
 
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
+#include <iostream>
 
 #endif
 
@@ -42,9 +43,55 @@
 
 -(id)initWithPXWindow:(pxWindowNative*)window
 {
-  self = [super init];
-  mWindow = window;
-  return self;
+  if(self = [super init])
+  {
+    mWindow = window;
+
+    // --------------------------------------------------------------------------------------------------------------------
+    // This makes relative paths work in C++ in Xcode by changing directory to the Resources folder inside the App Bundle
+
+    CFBundleRef mainBundle = CFBundleGetMainBundle();
+    CFURLRef  resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
+    
+    char resourcesBundlePath[PATH_MAX];
+    if (!CFURLGetFileSystemRepresentation(resourcesURL, TRUE, (UInt8 *)resourcesBundlePath, PATH_MAX))
+    {
+        // error!
+        std::cout << "ERROR: CFURLGetFileSystemRepresentation() - failed !";
+    }
+    CFRelease(resourcesURL);
+
+    //
+    // Xcode DEBUG builds package the App Bundle a little differently.
+    //
+    NSString *init_js = [NSString stringWithFormat:@"%s/init.js", resourcesBundlePath];
+    
+    BOOL isXCodeBuild = [ [NSFileManager defaultManager] fileExistsAtPath: init_js isDirectory: nil];
+    
+    if(isXCodeBuild)
+    {
+      chdir(resourcesBundlePath); 
+
+      char *value = resourcesBundlePath;
+
+      char *key = (char *) "NODE_PATH";
+      char *val = (char *) getenv(key); // existing
+
+      std::cout << "NODE_PATH:  [ " << val << " ]" << std::endl;
+    
+      // Set NODE_PATH env
+      int overwrite = 1;
+      setenv(key, value, overwrite);
+      
+      std::cout << "NODE_PATH: " << value << std::endl;
+    }
+  
+    // --------------------------------------------------------------------------------------------------------------------
+    
+    return self;
+  }
+  
+  return nil;
 }
 
 - (void)windowDidResize: (NSNotification*)notification
