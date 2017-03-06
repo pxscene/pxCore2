@@ -1,11 +1,33 @@
-CXX=g++
-CXXFLAGS= -L /opt/gtest/lib ../librtCore.so ../librtRemote.so -lgtest -lgtest_main -std=c++11 -lm
-INCS= -I /opt/gtest/include
-OBJS=rtRpcTest.cpp
+#CXXFLAGS= -L /opt/gtest/lib ../librtCore.so ../librtRemote.so -lgtest -lgtest_main -std=c++11 -lm
+#INCS= -I /opt/gtest/include
+#OBJS=rtRpcTest.cpp
+OBJDIR   = obj
+PERF_CXXFLAGS = -Wall -Wextra -std=c++11 -I. -I../ -I../../src
 
-testAll:$(OBJS)
-	$(CXX) $(INCS) $(OBJS) $(CXXFLAGS) -o testAll
-.cpp.o:
-	$(CXX) $(CXXFLAGS) -c $< -o $@ $(INCS)
+# how are we supposed to know glut/gles? Why is libpxCore.so
+PERF_LDFLAGS  = -L. -L.. -lrtRemote -lrtCore_s -pthread
+
+ifeq ($V, 1)
+  CXX_PRETTY = $(CXX)
+  LD_PRETTY = $(CXX)
+  CC_PRETTY = $(CC)
+  BUILD_CXX_PRETTY = $(BUILD_CXX)
+else
+  CXX_PRETTY = @echo " [CXX] $<" ; $(CXX)
+  LD_PRETTY = @echo "[LINK] $@" ; $(CXX)
+  CC_PRETTY = @echo " [CC] $<" ; $(CC)
+  BUILD_CXX_PRETTY = @echo " [CC] $<" ; $(BUILD_CXX)
+endif
+
+perftest: perf_server
+
+perf_server: $(OBJDIR)/perf_server.o
+	$(CXX_PRETTY) $^ -o $@ $(PERF_LDFLAGS)
+
+$(OBJDIR)/%.o: %.cpp
+	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
+	$(CXX_PRETTY) -c $(PERF_CXXFLAGS) $< -o $@
+
 clean:
-	rm testAll *.o testAll.xml
+	$(RM) -rf obj
+	$(RM) perftest1
