@@ -1142,7 +1142,7 @@ struct endPointArray
     //else return m;
     return m;
 #else
-    int lastS = -1;
+   // int lastS = -1;
     int result = -1;
 
     if (mCount > 0)
@@ -1161,7 +1161,7 @@ struct endPointArray
       if (y > mEndPoints[s].mY) 
         result = s+1;
       else result = s;
-      lastS = s;
+  //    lastS = s;
     }
 
 #if 0
@@ -1848,7 +1848,7 @@ void pxRasterizer::rasterize()
   // trivial reject
   if (FIXEDX(mLeftExtent) <= clipRight && FIXEDX(mRightExtent) >= clipLeft)
   {
-    edgeManager* edgeMgr = (edgeManager*)mEdgeManager;
+ //   edgeManager* edgeMgr = (edgeManager*)mEdgeManager;
 
     edge* e1;
     edge* e2;
