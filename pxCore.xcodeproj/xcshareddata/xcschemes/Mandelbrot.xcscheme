@@ -17,7 +17,7 @@
                BlueprintIdentifier = "AE1D43611B7D4F6E002E7CAE"
                BuildableName = "Mandelbrot.app"
                BlueprintName = "Mandelbrot"
-               ReferencedContainer = "container:pxcore.xcodeproj">
+               ReferencedContainer = "container:pxCore.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -31,7 +31,7 @@
                BlueprintIdentifier = "AE1D43731B7D4F6E002E7CAE"
                BuildableName = "MandelbrotTests.xctest"
                BlueprintName = "MandelbrotTests"
-               ReferencedContainer = "container:pxcore.xcodeproj">
+               ReferencedContainer = "container:pxCore.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -49,7 +49,7 @@
                BlueprintIdentifier = "AE1D43731B7D4F6E002E7CAE"
                BuildableName = "MandelbrotTests.xctest"
                BlueprintName = "MandelbrotTests"
-               ReferencedContainer = "container:pxcore.xcodeproj">
+               ReferencedContainer = "container:pxCore.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -59,7 +59,7 @@
             BlueprintIdentifier = "AE1D43611B7D4F6E002E7CAE"
             BuildableName = "Mandelbrot.app"
             BlueprintName = "Mandelbrot"
-            ReferencedContainer = "container:pxcore.xcodeproj">
+            ReferencedContainer = "container:pxCore.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -82,7 +82,7 @@
             BlueprintIdentifier = "AE1D43611B7D4F6E002E7CAE"
             BuildableName = "Mandelbrot.app"
             BlueprintName = "Mandelbrot"
-            ReferencedContainer = "container:pxcore.xcodeproj">
+            ReferencedContainer = "container:pxCore.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -101,7 +101,7 @@
             BlueprintIdentifier = "AE1D43611B7D4F6E002E7CAE"
             BuildableName = "Mandelbrot.app"
             BlueprintName = "Mandelbrot"
-            ReferencedContainer = "container:pxcore.xcodeproj">
+            ReferencedContainer = "container:pxCore.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

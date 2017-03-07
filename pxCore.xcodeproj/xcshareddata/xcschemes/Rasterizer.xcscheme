@@ -7,14 +7,14 @@
       buildImplicitDependencies = "YES">
       <BuildActionEntries>
          <BuildActionEntry
-            buildForTesting = "NO"
+            buildForTesting = "YES"
             buildForRunning = "YES"
             buildForProfiling = "YES"
             buildForArchiving = "YES"
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "4C1216C31E573D040088CF64"
+               BlueprintIdentifier = "4C0C28F51E6F04C6007013C9"
                BuildableName = "Rasterizer.app"
                BlueprintName = "Rasterizer"
                ReferencedContainer = "container:pxCore.xcodeproj">
@@ -29,15 +29,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4C1216C31E573D040088CF64"
-            BuildableName = "Rasterizer.app"
-            BlueprintName = "Rasterizer"
-            ReferencedContainer = "container:pxCore.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -55,7 +46,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4C1216C31E573D040088CF64"
+            BlueprintIdentifier = "4C0C28F51E6F04C6007013C9"
             BuildableName = "Rasterizer.app"
             BlueprintName = "Rasterizer"
             ReferencedContainer = "container:pxCore.xcodeproj">
@@ -73,7 +64,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4C1216C31E573D040088CF64"
+            BlueprintIdentifier = "4C0C28F51E6F04C6007013C9"
             BuildableName = "Rasterizer.app"
             BlueprintName = "Rasterizer"
             ReferencedContainer = "container:pxCore.xcodeproj">
