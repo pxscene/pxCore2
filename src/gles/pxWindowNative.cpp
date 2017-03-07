@@ -345,12 +345,12 @@ void pxWindowNative::onAnimationTimerInternal()
 {
   if (mTimerFPS) onAnimationTimer();
   // TODO HACK
-  if (kbhit())
+  /*if (kbhit())
   {
     char c = fgetc(stdin);
     if (!iscntrl(c))
       onChar(c);
-  }
+  }*/
 }
 
 int pxWindowNative::createAndStartEventLoopTimer(int timeoutInMilliseconds )
