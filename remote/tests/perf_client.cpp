@@ -52,10 +52,10 @@ int main(int argc, char* argv[])
 		{
 			rtLogInfo("failed to find %s:%s\n",testId.c_str(), rtStrError(e));
 		}
-		e = objectRef.set("height", j);
+		e = objectRef.set("num", j);
 		rtLogInfo("set:%d", j);
 
-		uint32_t n = objectRef.get<uint32_t>("height");
+		uint32_t n = objectRef.get<uint32_t>("num");
 		rtLogInfo("get:%d", n);
 		// RT_ASSERT(n == static_cast<uint32_t>(j));
 		j++;
