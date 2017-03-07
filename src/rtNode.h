@@ -62,8 +62,7 @@ args_t;
 class rtNodeContext  // V8
 {
 public:
-  rtNodeContext(v8::Isolate *isolate);
-
+  rtNodeContext(v8::Isolate *isolate, v8::Platform* platform);
 #ifdef USE_CONTEXTIFY_CLONES
   rtNodeContext(v8::Isolate *isolate, rtNodeContextRef clone_me);
 #endif
@@ -114,6 +113,7 @@ private:
 
   int mRefCount;
   rtAtomic mId;
+  v8::Platform                  *mPlatform;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,6 +140,7 @@ public:
 #endif
 
   v8::Isolate   *getIsolate() { return mIsolate; };
+  v8::Platform   *getPlatform() { return mPlatform; };
   void garbageCollect();
 private:
 #ifdef ENABLE_DEBUG_MODE
@@ -152,8 +153,7 @@ private:
   void nodePath();
 
   v8::Isolate                   *mIsolate;
-  //v8::Platform                  *mPlatform;
-
+  v8::Platform                  *mPlatform;
   v8::Persistent<v8::Context>    mContext;
 
 

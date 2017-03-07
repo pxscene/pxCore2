@@ -69,6 +69,9 @@ extern args_t *s_gArgs;
 namespace node
 {
 extern bool use_debug_agent;
+#ifdef HAVE_INSPECTOR
+extern bool use_inspector;
+#endif
 extern bool debug_wait_connect;
 }
 
@@ -118,8 +121,8 @@ static inline bool file_exists(const char *file)
 }
 #endif
 
-rtNodeContext::rtNodeContext(Isolate *isolate) :
-     mIsolate(isolate), mEnv(NULL), mRefCount(0)
+rtNodeContext::rtNodeContext(Isolate *isolate,Platform* platform) :
+     mIsolate(isolate), mEnv(NULL), mRefCount(0),mPlatform(platform)
 {
   assert(isolate); // MUST HAVE !
   mId = rtAtomicInc(&sNextId);
@@ -188,7 +191,19 @@ void rtNodeContext::createEnvironment()
   if (use_debug_agent)
   {
     rtLogWarn("use_debug_agent\n");
-    StartDebug(mEnv, NULL, debug_wait_connect);
+#ifdef HAVE_INSPECTOR
+    if (use_inspector)
+    {
+      char currentPath[100];
+      memset(currentPath,0,sizeof(currentPath));
+      getcwd(currentPath,sizeof(currentPath));
+      StartDebug(mEnv, currentPath, debug_wait_connect, mPlatform);
+    }
+    else
+#endif
+    {
+      StartDebug(mEnv, NULL, debug_wait_connect);
+    }
   }
 #endif
   // Load Environment.
@@ -212,6 +227,7 @@ void rtNodeContext::createEnvironment()
       EmitBeforeExit(mEnv);
 #else
       bool more;
+      v8::platform::PumpMessageLoop(mPlatform, mIsolate);
       more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
       if (more == false)
       {
@@ -736,7 +752,7 @@ void rtNode::pump()
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-
+  v8::platform::PumpMessageLoop(mPlatform, mIsolate);
   uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
 
   // Enable this to expedite garbage collection for testing... warning perf hit
@@ -843,6 +859,7 @@ void rtNode::init(int argc, char** argv)
    V8::InitializeExternalStartupData(argv[0]);
 #endif
    Platform* platform = platform::CreateDefaultPlatform();
+   mPlatform = platform;
    V8::InitializePlatform(platform);
    V8::Initialize();
    Isolate::CreateParams params;
@@ -899,6 +916,7 @@ void rtNode::term()
     node_is_initialized = false;
 
     V8::ShutdownPlatform();
+    mPlatform = NULL;
   //  if(mPlatform)
   //  {
   //    delete mPlatform;
@@ -934,8 +952,7 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
 #ifdef USE_CONTEXTIFY_CLONES
   if(mRefContext.getPtr() == NULL)
   {
-    mRefContext = new rtNodeContext(mIsolate);
-    
+    mRefContext = new rtNodeContext(mIsolate,mPlatform);
     ctxref = mRefContext;
     
     static std::string sandbox_path;
@@ -965,7 +982,7 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
     ctxref = new rtNodeContext(mIsolate, mRefContext); // CLONE !!!
   }
 #else
-    ctxref = new rtNodeContext(mIsolate);
+    ctxref = new rtNodeContext(mIsolate,mPlatform);
 
 #endif
     
