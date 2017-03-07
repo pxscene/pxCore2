@@ -19,12 +19,12 @@ int main(int argc, char* argv[])
 
 	int optionIndex;
 	std::string testId;
-	unsigned int count;
+	unsigned int count=100;
 	rtError e;
 
 	while (true)
 	{
-		int c = getopt_long(argc, argv, "i:", longOptions, &optionIndex);
+		int c = getopt_long(argc, argv, "i:c:", longOptions, &optionIndex);
 		if (c == -1)
 			break;
 
