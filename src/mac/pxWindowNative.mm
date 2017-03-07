@@ -2,6 +2,8 @@
 // Portable Framebuffer and Windowing Library
 // pwWindowNative.cpp
 
+#include <iostream>
+
 #include "pxWindow.h"
 #include "pxKeycodes.h"
 #include "pxWindowNative.h"
@@ -23,11 +25,10 @@
 
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
-#include <iostream>
 
 #endif
 
-#include "CoreFoundation/CoreFoundation.h"
+#include <CoreFoundation/CoreFoundation.h>
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,7 +58,7 @@
     if (!CFURLGetFileSystemRepresentation(resourcesURL, TRUE, (UInt8 *)resourcesBundlePath, PATH_MAX))
     {
         // error!
-        std::cout << "ERROR: CFURLGetFileSystemRepresentation() - failed !";
+        NSLog(@"ERROR: CFURLGetFileSystemRepresentation() - failed !");
     }
     CFRelease(resourcesURL);
 
@@ -77,13 +78,13 @@
       char *key = (char *) "NODE_PATH";
       char *val = (char *) getenv(key); // existing
 
-      std::cout << "NODE_PATH:  [ " << val << " ]" << std::endl;
+      NSLog(@"NODE_PATH:  [ %s ]", val);
     
       // Set NODE_PATH env
       int overwrite = 1;
       setenv(key, value, overwrite);
       
-      std::cout << "NODE_PATH: " << value << std::endl;
+      NSLog(@"NODE_PATH:  [ %s ]", val);
     }
   
     // --------------------------------------------------------------------------------------------------------------------
