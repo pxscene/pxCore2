@@ -939,10 +939,28 @@ Socket.prototype.connect = function(options, cb) {
 
 function lookupAndConnect(self, options) {
   const dns = require('dns');
+  var fs = require('fs')
   var host = options.host || 'localhost';
   var port = options.port;
   var localAddress = options.localAddress;
   var localPort = options.localPort;
+  var ipMode = 0;
+
+  try {
+    fs.accessSync('/tmp/ipmode_v4');
+    ipMode = 4;
+  } catch(e) {
+    debug('/tmp/ipmode_v4 does not exist');
+  }
+
+  try {
+    fs.accessSync('/tmp/ipmode_v6');
+    ipMode = 6;
+  } catch(e) {
+    debug('/tmp/ipmode_v6 does not exist');
+  }
+
+  console.log("ipMode: " + ipMode);
 
   if (localAddress && !exports.isIP(localAddress))
     throw new TypeError('"localAddress" option must be a valid IP: ' +
@@ -980,6 +998,10 @@ function lookupAndConnect(self, options) {
 
   if (dnsopts.family !== 4 && dnsopts.family !== 6 && dnsopts.hints === 0) {
     dnsopts.hints = dns.ADDRCONFIG;
+  }
+
+  if (ipMode == 4 || ipMode == 6) {
+    dnsopts.family = ipMode;
   }
 
   debug('connect: find host ' + host);
