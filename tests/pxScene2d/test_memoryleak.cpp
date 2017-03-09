@@ -7,7 +7,9 @@
 #include "pxIView.h"
 #include "pxTimer.h"
 #include "rtObject.h"
-#include <rtRefT.h>
+#include <rtRef.h>
+
+using namespace std;
 
 extern rtNode script;
 
