@@ -77,6 +77,7 @@ int main(int argc, char* argv[])
 {
   int optionIndex;
   std::string testId;
+  rtError e;
 
   while (true)
   {
@@ -95,7 +96,9 @@ int main(int argc, char* argv[])
   rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
 
   rtObjectRef obj(new rtTestObject());
-  rtError e = rtRemoteRegisterObject(env, testId.c_str(), obj);
+  e = rtRemoteInit(env);
+  RT_ASSERT(e == RT_OK);
+  e = rtRemoteRegisterObject(env, testId.c_str(), obj);
   RT_ASSERT(e == RT_OK);
 
   bool running = true;

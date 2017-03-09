@@ -228,7 +228,7 @@ void pxTextBox::update(double t)
   if( mNeedsRecalc ) {
     //rtLogDebug("pxTextBox::update: mNeedsRecalc=%d\n",mNeedsRecalc);
     
-    rtLogInfo("pxTextBox::update()  mAlignVertical=%d && mAlignHorizontal=%d\n",mAlignVertical, mAlignHorizontal);
+    //rtLogInfo("pxTextBox::update()  mAlignVertical=%d && mAlignHorizontal=%d\n",mAlignVertical, mAlignHorizontal);
 
     recalc();
 
