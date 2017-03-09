@@ -1031,9 +1031,49 @@ exports.connect = function(/* [port, host], options, cb */) {
         localAddress: options.localAddress
       };
     }
-    socket.connect(connect_opt, function() {
-      socket._start();
-    });
+
+   net.lookupAllHost(connect_opt, function(addresses) {
+       if (addresses.length <= 0)
+           return;
+
+       var counter = 0;
+       var connectSuccess = false;
+       tryConnect();
+       function tryConnect() {
+           var socket_temp = new TLSSocket(options.socket, {
+               pipe: options.path && !options.port,
+               secureContext: context,
+               isServer: false,
+               requestCert: true,
+               rejectUnauthorized: options.rejectUnauthorized,
+               session: options.session,
+               NPNProtocols: NPN.NPNProtocols,
+               ALPNProtocols: ALPN.ALPNProtocols,
+               requestOCSP: options.requestOCSP
+           });
+           connect_opt.host = addresses[counter].address;
+           socket_temp.connect(connect_opt, function() {
+               connectSuccess = true;
+               socket.connect(connect_opt, function() {
+                   socket._start();
+               });
+           });
+
+           setTimeout(function() {
+               counter++;
+               if (connectSuccess != true) {
+                   if (addresses.length > counter) {
+                       tryConnect();
+                   }
+                   else {
+		       socket.connect(connect_opt, function() {
+		           socket._start();
+		       });
+                   }
+               }
+           }, 1000);
+       }
+   });
   }
 
   socket._releaseControl();
