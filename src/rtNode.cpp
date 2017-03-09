@@ -696,8 +696,10 @@ void rtNode::initializeNode()
 #endif // ENABLE_NODE_V_6_9
 #else
 #ifdef ENABLE_NODE_V_6_9
-  // static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
-  //  static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
+#ifndef ENABLE_DEBUG_MODE
+   static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
+   static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
+#endif //!ENABLE_DEBUG_MODE
 #else
   static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};

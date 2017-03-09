@@ -23,6 +23,7 @@
 
 #include <assert.h>
 #include <rtCore.h>
+#include <stdio.h> //TODO - needed for FILE, fopen, etc
 
 /**
 rtData is a wrapper that encapsulated an allocated buffer of bytes and owns the lifetime of those bytes.
