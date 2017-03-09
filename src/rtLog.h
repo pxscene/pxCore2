@@ -51,9 +51,10 @@ void rtLogSetLogHandler(rtLogHandler logHandler);
 #define RT_PRINTF_FORMAT(IDX, FIRST)
 #endif
 
-void _rtLogPrintf(rtLogLevel level, const char* file, int line, const char* format, ...) RT_PRINTF_FORMAT(4, 5);
+// TODO would like this for to be hidden/private... something from Igor broke... 
+void rtLogPrintf(rtLogLevel level, const char* file, int line, const char* format, ...) RT_PRINTF_FORMAT(4, 5);
 
-#define rtLog(LEVEL, FORMAT, ...) do { _rtLogPrintf(LEVEL, __FILE__, __LINE__, FORMAT, ## __VA_ARGS__); } while (0)
+#define rtLog(LEVEL, FORMAT, ...) do { rtLogPrintf(LEVEL, __FILE__, __LINE__, FORMAT, ## __VA_ARGS__); } while (0)
 #define rtLogDebug(FORMAT, ...) rtLog(RT_LOG_DEBUG, FORMAT, ## __VA_ARGS__)
 #define rtLogInfo(FORMAT, ...) rtLog(RT_LOG_INFO, FORMAT, ## __VA_ARGS__)
 #define rtLogWarn(FORMAT, ...) rtLog(RT_LOG_WARN, FORMAT, ## __VA_ARGS__)

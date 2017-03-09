@@ -103,7 +103,7 @@ void rtLogSetLevel(rtLogLevel level)
   sLevel = level;
 }
 
-void _rtLogPrintf(rtLogLevel level, const char* file, int line, const char* format, ...)
+void rtLogPrintf(rtLogLevel level, const char* file, int line, const char* format, ...)
 {
   if (level < sLevel)
     return;
