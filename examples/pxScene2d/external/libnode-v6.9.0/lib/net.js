@@ -9,6 +9,9 @@ const internalNet = require('internal/net');
 const assert = require('assert');
 const cares = process.binding('cares_wrap');
 const uv = process.binding('uv');
+/*MODIFIED CODE BEGIN*/
+const fileSystem = require('fs');
+/*MODIFIED CODE END*/
 
 const Buffer = require('buffer').Buffer;
 const TTYWrap = process.binding('tty_wrap');
@@ -947,14 +950,14 @@ function lookupAndConnect(self, options) {
 /*MODIFIED CODE BEGIN*/
   var ipMode = 0;
   try {
-    require('fs').accessSync('/tmp/ipmode_v4');
+    fileSystem.accessSync('/tmp/ipmode_v4');
     ipMode = 4;
   } catch(e) {
     debug('/tmp/ipmode_v4 does not exist');
   }
 
   try {
-    require('fs').accessSync('/tmp/ipmode_v6');
+    fileSystem.accessSync('/tmp/ipmode_v6');
     ipMode = 6;
   } catch(e) {
     debug('/tmp/ipmode_v6 does not exist');
