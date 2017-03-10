@@ -497,19 +497,14 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
       // If not, send it now.
       if( a.count != pxConstantsAnimation::COUNT_FOREVER)
       {
-        #if 0
         if (a.ended)
           a.ended.send(this);
-          #endif
         if (a.promise)
         {
           if( resolve)
             a.promise.send("resolve",this);
-            // TODO review this with Connie... this causes a hidden js exception not sure why interop issue... and should we really reject here... it likely is "user cancelled"
-        #if 0
           else
             a.promise.send("reject",this);
-        #endif
         }
       }
 #if 0
@@ -556,10 +551,8 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
   // resolve promise immediately if this is COUNT_FOREVER
   if( count == pxConstantsAnimation::COUNT_FOREVER)
   {
-    #if 0
     if (a.ended)
       a.ended.send(this);
-    #endif
     if (a.promise)
       a.promise.send("resolve",this);
   }
@@ -603,10 +596,8 @@ void pxObject::update(double t)
 
       if (a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
-    #if 0
         if (a.ended)
           a.ended.send(this);
-    #endif
         if (a.promise)
           a.promise.send("resolve",this);
 

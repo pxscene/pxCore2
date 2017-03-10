@@ -123,7 +123,7 @@ struct animation
   int32_t count;
   float actualCount;
   bool reversing;
-  //rtFunctionRef ended;
+  rtFunctionRef ended;
   rtObjectRef promise;
 };
 
