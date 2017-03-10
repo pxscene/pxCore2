@@ -962,8 +962,7 @@ function lookupAndConnect(self, options) {
   } catch(e) {
     debug('/tmp/ipmode_v6 does not exist');
   }
-  console.log("Using ipMode: " + ipMode);
-/*MODIFIED CODE END*/
+  /*MODIFIED CODE END*/
   if (localAddress && !exports.isIP(localAddress))
     throw new TypeError('"localAddress" option must be a valid IP: ' +
                         localAddress);
