@@ -141,9 +141,11 @@ static const char* eval_string = nullptr;
 static unsigned int preload_module_count = 0;
 static const char** preload_modules = nullptr;
 #if HAVE_INSPECTOR
-static bool use_inspector = false;
+/* MODIFIED CODE */
+bool use_inspector = false;
 #else
-static const bool use_inspector = false;
+/* MODIFIED CODE */
+const bool use_inspector = false;
 #endif
 /*MODIFIED CODE BEGIN*/
 //static bool use_debug_agent = false;
@@ -3928,13 +3930,14 @@ static void ParseArgs(int* argc,
   uv_async_send(&dispatch_debug_messages_async);
 }
 
-
-/*static - MODIFIED CODE*/ void StartDebug(Environment* env, const char* path, bool wait) {
+/* MODIFIED CODE BEGIN */ void StartDebug(Environment* env, const char* path, bool wait, v8::Platform* platform) {
   CHECK(!debugger_running);
+#ifdef HAVE_INSPECTOR
   if (use_inspector) {
-    debugger_running = v8_platform.StartInspector(env, path, inspector_port,
-                                                  wait);
-  } else {
+    debugger_running = env->inspector_agent()->Start(platform, path, inspector_port, wait);
+  } else
+#endif
+  {
     env->debugger_agent()->set_dispatch_handler(
           DispatchMessagesDebugAgentCallback);
     debugger_running =
@@ -3947,7 +3950,7 @@ static void ParseArgs(int* argc,
     }
   }
 }
-
+/* MODIFIED CODE END */
 
 // Called from the main thread.
 /*static - MODIFIED CODE*/ void EnableDebug(Environment* env) {

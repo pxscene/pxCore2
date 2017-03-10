@@ -203,7 +203,7 @@ NODE_EXTERN void Init(int* argc,
 class Environment;
 
 /*MODIFIED CODE BEGIN*/
-NODE_EXTERN void StartDebug(Environment* env, const char* path,bool wait);
+NODE_EXTERN void StartDebug(Environment* env, const char* path,bool wait,v8::Platform* platform = nullptr);
 NODE_EXTERN void EnableDebug(Environment* env);
 NODE_EXTERN v8::Isolate* CreateIsolate();
 NODE_EXTERN bool ShouldAbortOnUncaughtException(v8::Isolate* isolate);
