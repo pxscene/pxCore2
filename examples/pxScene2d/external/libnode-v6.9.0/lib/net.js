@@ -9,6 +9,9 @@ const internalNet = require('internal/net');
 const assert = require('assert');
 const cares = process.binding('cares_wrap');
 const uv = process.binding('uv');
+/*MODIFIED CODE BEGIN*/
+const fileSystem = require('fs');
+/*MODIFIED CODE END*/
 
 const Buffer = require('buffer').Buffer;
 const TTYWrap = process.binding('tty_wrap');
@@ -944,6 +947,22 @@ function lookupAndConnect(self, options) {
   var localAddress = options.localAddress;
   var localPort = options.localPort;
 
+/*MODIFIED CODE BEGIN*/
+  var ipMode = 0;
+  try {
+    fileSystem.accessSync('/tmp/ipmode_v4');
+    ipMode = 4;
+  } catch(e) {
+    debug('/tmp/ipmode_v4 does not exist');
+  }
+
+  try {
+    fileSystem.accessSync('/tmp/ipmode_v6');
+    ipMode = 6;
+  } catch(e) {
+    debug('/tmp/ipmode_v6 does not exist');
+  }
+  /*MODIFIED CODE END*/
   if (localAddress && !exports.isIP(localAddress))
     throw new TypeError('"localAddress" option must be a valid IP: ' +
                         localAddress);
@@ -982,6 +1001,11 @@ function lookupAndConnect(self, options) {
     dnsopts.hints = dns.ADDRCONFIG;
   }
 
+/*MODIFIED CODE BEGIN*/
+  if (ipMode == 4 || ipMode == 6) {
+    dnsopts.family = ipMode;
+  }
+/*MODIFIED CODE END*/
   debug('connect: find host ' + host);
   debug('connect: dns options', dnsopts);
   self._host = host;
