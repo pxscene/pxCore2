@@ -54,7 +54,7 @@ public:
 class pxWayland: public pxIView {
 
 public:
-  pxWayland();
+  pxWayland(bool usefbo=false);
   virtual ~pxWayland();
 
   virtual unsigned long AddRef() {
@@ -159,6 +159,7 @@ private:
   bool mClientMonitorStarted;
   bool mWaitingForRemoteObject;
   bool mUseDispatchThread;
+  bool mUseFbo;
   int mX;
   int mY;
   int mWidth;

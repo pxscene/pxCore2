@@ -1480,7 +1480,7 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   return RT_FAIL;
 #else
   rtRef<pxWaylandContainer> c = new pxWaylandContainer(this);
-  c->setView(new pxWayland);
+  c->setView(new pxWayland(true));
   o = c.getPtr();
   o.set(p);
   o.send("init");

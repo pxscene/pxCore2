@@ -37,7 +37,7 @@ extern pxContext context;
 #define TEST_REMOTE_OBJECT_NAME "waylandClient123" //TODO - update
 
 
-pxWayland::pxWayland()
+pxWayland::pxWayland(bool useFbo)
   :
     mRefCount(0),
     mClientMonitorThreadId(0), 
@@ -63,7 +63,8 @@ pxWayland::pxWayland()
 #ifdef ENABLE_PX_WAYLAND_RPC
     mRemoteObject(),
 #endif //ENABLE_PX_WAYLAND_RPC
-    mRemoteObjectMutex()
+    mRemoteObjectMutex(),
+    mUseFbo(useFbo)
 {
   mFillColor[0]= 0.0; 
   mFillColor[1]= 0.0; 
@@ -315,8 +316,7 @@ void pxWayland::onDraw()
      WstCompositorSetOutputSize( mWCtx, mWidth, mHeight );
   }
 
-  bool drawWithFBO= isRotated();
-    
+  bool drawWithFBO= isRotated() || mUseFbo;
   if ( drawWithFBO )
   {
      if ( (mFBO->width() != mWidth) ||
@@ -335,7 +335,7 @@ void pxWayland::onDraw()
   }
   
   int hints= 0;
-  if ( !isRotated() ) hints |= WstHints_noRotation;
+  if ( !drawWithFBO) hints |= WstHints_noRotation;
   
   bool needHolePunch;
   std::vector<WstRect> rects;
