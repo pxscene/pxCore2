@@ -138,7 +138,7 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
           rtLogInfo("failed to send. %s", rtStrError(err));
 
         // EPIPE means it's disconnected
-        if (err == rtErrorFromErrno(EPIPE))
+        if (err == rtErrorFromErrno(EPIPE) || err == RT_ERROR_STREAM_CLOSED)
         {
           rtLogInfo("removing entry from remote client");
           it = mEntries.erase(it);
