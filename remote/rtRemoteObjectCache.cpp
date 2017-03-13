@@ -27,6 +27,7 @@ namespace
 
   std::mutex    sMutex;
   refmap        sRefMap;
+  size_t        sHighMark = 10000;
 }
 
 rtObjectRef
@@ -177,6 +178,11 @@ rtRemoteObjectCache::removeUnused()
       itr = sRefMap.erase(itr);
     else
       ++itr;
+  }
+
+  if (sRefMap.size() > sHighMark)
+  {
+    rtLogWarn("Cache reached high mark, current size=%zu", sRefMap.size());
   }
 
   return RT_OK;
