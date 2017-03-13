@@ -155,7 +155,7 @@ rtRemoteStreamSelector::doPollFds()
         rtLogError("error on fd: %d", s->m_fd);
       }
 
-      if ((now - lastKeepAliveSent) > keepAliveInterval)
+      if (s && (now - lastKeepAliveSent) > keepAliveInterval)
       {
         sentKeepAlive = true;
 
