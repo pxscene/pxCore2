@@ -900,7 +900,7 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtRemoteMes
   auto itr = req->FindMember(kFieldNameKeepAliveIds);
   if (itr != req->MemberEnd())
   {
-    time_t now = time(nullptr);
+    auto now = std::chrono::steady_clock::now();
 
     std::unique_lock<std::mutex> lock(m_mutex);
     for (rapidjson::Value::ConstValueIterator id  = itr->value.Begin(); id != itr->value.End(); ++id)

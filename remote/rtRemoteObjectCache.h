@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <rtError.h>
 #include <rtObject.h>
+#include <chrono>
 
 class rtRemoteEnvironment;
 
@@ -20,7 +21,7 @@ public:
   rtFunctionRef findFunction(std::string const& id);
   rtError insert(std::string const& id, rtObjectRef const& ref);
   rtError insert(std::string const& id, rtFunctionRef const& ref);
-  rtError touch(std::string const& id, time_t now);
+  rtError touch(std::string const& id, std::chrono::steady_clock::time_point now);
   rtError erase(std::string const& id);
   rtError markUnevictable(std::string const& id, bool state);
   rtError removeUnused();
