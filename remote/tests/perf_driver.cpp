@@ -10,6 +10,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#define TEST_NAME "test"
+
 struct Settings
 {
   int NumIterations;
@@ -52,11 +54,15 @@ public:
     }
 
     results->push_back(duration);
+	dumpResults();
   }
 
   static void dumpResults()
   {
-    // TODO
+    rtLogInfo("Test results:" );
+	std::list<timeval>* result = m_results[TEST_NAME];
+	for (std::list<timeval>::iterator it = result->begin(); it != result->end(); it++)
+		rtLogInfo(" sec:%ld:  usec:%ld: ",(*it).tv_sec ,(*it).tv_usec );
   }
 
 private:
@@ -254,6 +260,7 @@ int main(int argc, char* argv[])
   rtLogInfo("current executable:%s", settings.PathToExe.c_str());
   settings.TestId = GetNextTestId();
 
+  rtPerformanceCounter  testrun(TEST_NAME);
   pid_t serverPid = StartChildProcess(&settings, false);
   pid_t clientPid = StartChildProcess(&settings, true);
 
