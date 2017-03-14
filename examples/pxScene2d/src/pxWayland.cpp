@@ -55,6 +55,7 @@ pxWayland::pxWayland(bool useFbo)
     mY(0),
     mWidth(0),
     mHeight(0),
+    mUseFbo(useFbo),
     mEvents(0),
     mClientPID(0),
     mWCtx(0),
@@ -63,8 +64,7 @@ pxWayland::pxWayland(bool useFbo)
 #ifdef ENABLE_PX_WAYLAND_RPC
     mRemoteObject(),
 #endif //ENABLE_PX_WAYLAND_RPC
-    mRemoteObjectMutex(),
-    mUseFbo(useFbo)
+    mRemoteObjectMutex()
 {
   mFillColor[0]= 0.0; 
   mFillColor[1]= 0.0; 
