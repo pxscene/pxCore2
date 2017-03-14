@@ -110,6 +110,7 @@ class pxContext {
   void adjustCurrentTextureMemorySize(int64_t changeInBytes);
   void setTextureMemoryLimit(int64_t textureMemoryLimitInBytes);
   bool isTextureSpaceAvailable(pxTextureRef texture);
+  int64_t currentTextureMemoryUsageInBytes();
 
 private:
   bool mShowOutlines;

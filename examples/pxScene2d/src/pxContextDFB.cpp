@@ -2426,6 +2426,11 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef texture)
   return true;
 }
 
+int64_t pxContext::currentTextureMemoryUsageInBytes()
+{
+  return mCurrentTextureMemorySizeInBytes;
+}
+
 //====================================================================================================================================================================================
 
 #ifdef DEBUG
