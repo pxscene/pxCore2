@@ -114,16 +114,20 @@ GetPathToExecutable(char const* p)
   RT_ASSERT(strlen(p) > 0);
 
   char* s = getcwd(nullptr, 0);
+  char* t = strdup(p);
+  char* v = strchr(t, '/');
+  if (v)
+    *v = '\0';
 
   std::stringstream buff;
   buff << s; 
   free(s);
 
   buff << '/';
-  if (strncmp(p, "./", 2) == 0)
-    p += 2;
+  if (strcmp(t, ".") != 0)
+    buff << t;
+  free(t);
 
-  buff << p;
   return buff.str();
 }
 
@@ -158,32 +162,6 @@ rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow)
 }
 
 
-
-void
-RunServer(rtRemoteEnvironment* env, Settings* settings)
-{
-  rtLogInfo("%s running server", settings->TestId.c_str());
-
-  rtObjectRef obj(new rtTestObject());
-  rtError e = rtRemoteRegisterObject(env, settings->TestId.c_str(), obj);
-  RT_ASSERT(e == RT_OK);
-
-  while (true)
-  {
-    {
-      std::unique_lock<std::mutex> lock(shutdownMutex);
-      if (testOver)
-      {
-        rtLogInfo("server shutting down");
-        return;
-      }
-    }
-
-    e = rtRemoteRunUntil(env, 1000);
-    rtLogInfo("[%s] rtRemoteRun:%s", settings->TestId.c_str(), rtStrError(e));
-  }
-}
-
 pid_t
 StartChildProcess(Settings* settings, bool isClient)
 {
@@ -196,90 +174,39 @@ StartChildProcess(Settings* settings, bool isClient)
 
   if (pid == 0)
   {
+    std::string path = settings->PathToExe;
+    if (path[path.size()-1] != '/')
+      path += "/";
+    if (isClient)
+      path += "perf_client";
+    else
+      path += "perf_server";
+
+    rtLogInfo("starting: %s", path.c_str());
     if (isClient)
     {
-      execl(settings->PathToExe.c_str(), settings->PathToExe.c_str(), "--client", "-i",
-        settings->TestId.c_str(), 0);
-      rtLogInfo("failed to execute client. %s", rtStrError(errno));
+      char num[8];
+      memset(num, 0, sizeof(num));
+      snprintf(num, sizeof(num), "%d", settings->NumIterations);
+
+      execl(path.c_str(), path.c_str(), "-i", settings->TestId.c_str(), "-n", num, 0);
     }
     else
     {
-      execl(settings->PathToExe.c_str(), settings->PathToExe.c_str(), "--server", "-i",
-        settings->TestId.c_str(), 0);
-
-      int e = errno;
-      rtLogInfo("failed to execute server. (%d) %s", e, rtStrError(e));
+      execl(path.c_str(), path.c_str(), "-i", settings->TestId.c_str(), 0);
     }
+
+    rtLogError("failed to exec:%s. %s", path.c_str(), strerror(errno));
     abort();
   }
 
   return pid;
 }
 
-void
-RunClient(rtRemoteEnvironment* env, Settings* settings)
-{
-  rtLogInfo("%s running client", settings->TestId.c_str());
-
-  rtObjectRef obj;
-  rtError e = RT_OK;
-
-  rtLogInfo("locating remote object:%s", settings->TestId.c_str());
-  {
-    rtPerformanceCounter("locate");
-    e = rtRemoteLocateObject(env, settings->TestId.c_str(), obj);
-  }
-
-  if (e != RT_OK)
-    rtLogInfo("failed to locate object. %s", rtStrError(e));
-
-  RT_ASSERT(e == RT_OK);
-  RT_ASSERT(obj != nullptr);
-
-  uint32_t num = 1000;
-  for (int i = 0; i < settings->NumIterations; ++i)
-  {
-    {
-      std::unique_lock<std::mutex> lock(shutdownMutex);
-      if (testOver)
-      {
-        rtLogInfo("client shutting down");
-        return;
-      }
-    }
-
-    {
-      rtPerformanceCounter("set");
-      e = obj.set("num", num);
-      RT_ASSERT(e == RT_OK);
-    }
-
-    {
-      rtPerformanceCounter("get");
-      uint32_t num2 = obj.get<uint32_t>("num");
-      RT_ASSERT(num2 == num);
-    }
-
-    num++;
-  }
-
-  // signal server to shutdown
-  rtLogInfo("sending shutdown signal to server");
-  if (e != RT_OK)
-    rtLogWarn("failed to send shutdown signal. %s", rtStrError(e));
-
-  e = obj.send("shutdown");
-  RT_ASSERT(e == RT_OK);
-}
-
-
 struct option longOptions[] = 
 {
   { "num", required_argument, 0, 'n' },
   { "help", no_argument, 0, 'h' },
-  { "test-id", required_argument, 0, 'i' },
-  { "client", no_argument, 0, 'c' },
-  { "server", no_argument, 0, 's' },
   { 0, 0, 0, 0 }
 };
 
@@ -296,12 +223,10 @@ int main(int argc, char* argv[])
 {
   Settings settings;
   int optionIndex = 0;
-  bool isClient = false;
-  bool isServer = false;
 
   while (true)
   {
-    int c = getopt_long(argc, argv, "n:hcsi:", longOptions, &optionIndex);
+    int c = getopt_long(argc, argv, "n:h", longOptions, &optionIndex);
     if (c == -1)
       break;
 
@@ -316,18 +241,6 @@ int main(int argc, char* argv[])
         exit(0);
         break;
 
-      case 'c':
-        isClient = true;
-        break;
-
-      case 's':
-        isServer = true;
-        break;
-
-      case 'i':
-        settings.TestId = optarg;
-        break;
-
       default:
         rtLogError("invalid argument");
         abort();
@@ -335,57 +248,22 @@ int main(int argc, char* argv[])
     }
   }
 
-  rtLogInfo("is_client:%d is_server:%d", isClient, isServer);
+  int status;
 
-  if (!isClient && !isServer)
-  {
-    settings.PathToExe = GetPathToExecutable(argv[0]);
+  settings.PathToExe = GetPathToExecutable(argv[0]);
+  rtLogInfo("current executable:%s", settings.PathToExe.c_str());
+  settings.TestId = GetNextTestId();
 
-    rtLogInfo("current executable:%s", settings.PathToExe.c_str());
-    settings.TestId = GetNextTestId();
+  pid_t serverPid = StartChildProcess(&settings, false);
+  pid_t clientPid = StartChildProcess(&settings, true);
 
-    pid_t serverPid = StartChildProcess(&settings, false);
+  rtLogInfo("waiting for server:%d", static_cast<int>(serverPid));
+  waitpid(serverPid, &status, 0);
+  rtLogInfo("server pid has exited:%d", static_cast<int>(serverPid));
 
-    rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
-    RT_ASSERT(env != nullptr);
-
-    rtError e = rtRemoteInit(env);
-    RT_ASSERT(e == RT_OK);
-
-    // running client in current process
-    // not how I want it, but it's easy for now
-    RunClient(env, &settings);
-
-    rtLogInfo("waiting for server:%d", static_cast<int>(serverPid));
-    int status;
-    waitpid(serverPid, &status, 0);
-    rtLogInfo("server pid has exited:%d", static_cast<int>(serverPid));
-  }
-
-  if (isClient || isServer)
-  {
-    RT_ASSERT(!settings.TestId.empty());
-
-    rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
-    RT_ASSERT(env != nullptr);
-
-    rtError e = rtRemoteInit(env);
-    RT_ASSERT(e == RT_OK);
-
-    if (isClient)
-    {
-      RunClient(env, &settings);
-    }
-
-    if (isServer)
-    {
-      RunServer(env, &settings);
-    }
-
-    rtLogInfo("invoking rtRemoteShutdown");
-    rtRemoteShutdown(env);
-    rtLogInfo("it's done");
-  }
+  rtLogInfo("waiting for client:%d", static_cast<int>(clientPid));
+  waitpid(clientPid, &status, 0);
+  rtLogInfo("client pid has exited:%d", static_cast<int>(clientPid));
 
   rtLogInfo("returning from main");
   return 0;

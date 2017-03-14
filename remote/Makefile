@@ -43,7 +43,6 @@ RTRPC_SRCS=\
 SAMPLEAPP_SRCS=\
   rpc_main.cpp
 
-
 ifeq ($V, 1)
   CXX_PRETTY = $(CXX)
   LD_PRETTY = $(CXX)
@@ -128,6 +127,9 @@ clean:
 	rm -f rtremote.conf.gen
 	rm -f rtremote.conf
 	rm -f rtRemoteConfig.h
+
+perftest:
+	$(MAKE) -C tests perftest
 
 librtRemote.so: $(RTRPC_OBJS)
 	$(CXX_PRETTY) $(RTRPC_OBJS) $(LDFLAGS) -shared -o $@

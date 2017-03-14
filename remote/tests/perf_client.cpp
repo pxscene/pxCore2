@@ -9,7 +9,7 @@
 struct option longOptions[] =
 {
 	{ "test-id", required_argument, 0, 'i' },
-	{ "count", required_argument, 0, 'c' },
+	{ "num-iterations", required_argument, 0, 'n' },
 	{ 0, 0, 0, 0 }
 };
 
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 
 	while (true)
 	{
-		int c = getopt_long(argc, argv, "i:c:", longOptions, &optionIndex);
+		int c = getopt_long(argc, argv, "i:n:", longOptions, &optionIndex);
 		if (c == -1)
 			break;
 
@@ -32,37 +32,42 @@ int main(int argc, char* argv[])
 			case 'i':
 				testId = optarg;
 				break;
-			case 'c':
+			case 'n':
 				count = atoi(optarg);
 				break;
 		}
 	}
-	rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
 
-	rtObjectRef objectRef;
+	rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
+  rtLogInfo("count:%d", count);
+  rtLogInfo("id:%s", testId.c_str());
+
 	e = rtRemoteInit(env);
 	RT_ASSERT(e == RT_OK);
 
-	e = rtRemoteLocateObject(env, testId.c_str(),objectRef );
+	rtObjectRef server;
+	e = rtRemoteLocateObject(env, testId.c_str(), server);
 	RT_ASSERT(e == RT_OK);
 
 	for (unsigned int j = 0; j < count; ++j)
 	{
-		while ((e = rtRemoteLocateObject(env, testId.c_str(), objectRef)) != RT_OK)
+		while ((e = rtRemoteLocateObject(env, testId.c_str(), server)) != RT_OK)
 		{
 			rtLogInfo("failed to find %s:%s\n",testId.c_str(), rtStrError(e));
 		}
-		e = objectRef.set("num", j);
+		e = server.set("num", j);
 		rtLogInfo("set:%d", j);
 
-		uint32_t n = objectRef.get<uint32_t>("num");
+		uint32_t n = server.get<uint32_t>("num");
 		rtLogInfo("get:%d", n);
 		// RT_ASSERT(n == static_cast<uint32_t>(j));
-		j++;
+
 		rtLogInfo("sleeping for 1");
 		sleep(1);
-	}   
+	}
 
-	rtLogInfo("server shutting down for %s", testId.c_str());
+  e = server.send("shutdown");
+  rtLogInfo("shutting down server: %s/%s", rtStrError(e), testId.c_str());
+
 	return 0;
 }
