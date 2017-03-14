@@ -159,11 +159,11 @@ private:
   bool mClientMonitorStarted;
   bool mWaitingForRemoteObject;
   bool mUseDispatchThread;
-  bool mUseFbo;
   int mX;
   int mY;
   int mWidth;
   int mHeight;
+  bool mUseFbo;
 
   static void invalidate( WstCompositor *wctx, void *userData );
   static void hidePointer( WstCompositor *wctx, bool hide, void *userData );
