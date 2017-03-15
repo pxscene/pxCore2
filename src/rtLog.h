@@ -31,6 +31,17 @@
 #define RT_LOGPREFIX "rt:"
 #endif
 
+#ifdef __APPLE__
+typedef uint64_t rtThreadId;
+#define RT_THREADID_FMT PRIu64
+#elif defined WIN32
+typedef DWORD rtThreadId;
+#define RT_THREADID_FMT "l"
+#else
+typedef int32_t rtThreadId;
+#define RT_THREADID_FMT "d"
+#endif
+
 enum rtLogLevel
 {
   RT_LOG_DEBUG = 0,
@@ -44,6 +55,11 @@ typedef void (*rtLogHandler)(rtLogLevel level, const char* file, int line, int t
 
 void rtLogSetLevel(rtLogLevel l);
 void rtLogSetLogHandler(rtLogHandler logHandler);
+const char* rtLogLevelToString(rtLogLevel level);
+rtLogLevel  rtLogLevelFromString(const char* s);
+
+rtThreadId rtThreadGetCurrentId();
+
 
 #ifdef __GNUC__
 #define RT_PRINTF_FORMAT(IDX, FIRST) __attribute__ ((format (printf, IDX, FIRST)))

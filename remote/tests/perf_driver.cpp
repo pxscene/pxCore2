@@ -12,12 +12,28 @@
 
 #define TEST_NAME "test"
 
+static bool testOver = false;
+static std::mutex shutdownMutex;
+static FILE* logFile = nullptr;
+
+
 struct Settings
 {
   int NumIterations;
   std::string TestId;
   std::string PathToExe;
 };
+
+void
+logFileWriter(rtLogLevel level, const char* path, int line, int threadId, char* message)
+{
+  if (logFile)
+  {
+    char const* logLevel = rtLogLevelToString(level);
+    fprintf(logFile, "%5s %s:%d -- Thread-%" RT_THREADID_FMT ": %s\n", logLevel, path, line,
+        threadId, message);
+  }
+}
 
 class rtPerformanceCounter
 {
@@ -38,7 +54,7 @@ public:
     timeval duration;
     memset(&duration, 0, sizeof(timeval));
 
-    timeval_subtract(&duration, &m_start, &end);
+    timeval_subtract(&duration, &end, &m_start);
 
     std::list<timeval>* results = nullptr;
 
@@ -54,15 +70,15 @@ public:
     }
 
     results->push_back(duration);
-	dumpResults();
+    dumpResults();
   }
 
   static void dumpResults()
   {
     rtLogInfo("Test results:" );
-	std::list<timeval>* result = m_results[TEST_NAME];
-	for (std::list<timeval>::iterator it = result->begin(); it != result->end(); it++)
-		rtLogInfo(" sec:%ld:  usec:%ld: ",(*it).tv_sec ,(*it).tv_usec );
+    std::list<timeval>* result = m_results[TEST_NAME];
+    for (std::list<timeval>::iterator it = result->begin(); it != result->end(); it++)
+      rtLogInfo("sec:%ld:  usec:%ld: ", (*it).tv_sec ,(*it).tv_usec);
   }
 
 private:
@@ -99,9 +115,6 @@ private:
 
 
 rtPerformanceCounter::ResultMap rtPerformanceCounter::m_results;
-
-bool testOver = false;
-std::mutex shutdownMutex;
 
 std::string
 GetNextTestId()
@@ -213,9 +226,9 @@ struct option longOptions[] =
 {
   { "num", required_argument, 0, 'n' },
   { "help", no_argument, 0, 'h' },
+  { "log-level", required_argument, 0, 'l' },
   { 0, 0, 0, 0 }
 };
-
 
 void PrintHelp()
 {
@@ -229,6 +242,8 @@ int main(int argc, char* argv[])
 {
   Settings settings;
   int optionIndex = 0;
+
+  rtLogLevel logLevel = RT_LOG_INFO;
 
   while (true)
   {
@@ -247,6 +262,10 @@ int main(int argc, char* argv[])
         exit(0);
         break;
 
+      case 'l':
+        logLevel = rtLogLevelFromString(optarg);
+        break;
+
       default:
         rtLogError("invalid argument");
         abort();
@@ -257,8 +276,14 @@ int main(int argc, char* argv[])
   int status;
 
   settings.PathToExe = GetPathToExecutable(argv[0]);
-  rtLogInfo("current executable:%s", settings.PathToExe.c_str());
   settings.TestId = GetNextTestId();
+
+  char logFileName[256];
+  snprintf(logFileName, sizeof(logFileName), "%s.driver.log", settings.TestId.c_str());
+  logFile = fopen(logFileName, "w");
+
+  rtLogSetLevel(logLevel);
+  rtLogSetLogHandler(logFileWriter);
 
   rtPerformanceCounter  testrun(TEST_NAME);
   pid_t serverPid = StartChildProcess(&settings, false);
@@ -273,5 +298,9 @@ int main(int argc, char* argv[])
   rtLogInfo("client pid has exited:%d", static_cast<int>(clientPid));
 
   rtLogInfo("returning from main");
+
+  if (logFile)
+    fclose(logFile);
+
   return 0;
 }

@@ -13,8 +13,22 @@ static bool testIsOver = false;
 struct option longOptions[] = 
 {
   { "test-id", required_argument, 0, 'i' },
+  { "log-level", required_argument, 0, 'l' },
   { 0, 0, 0, 0 }
 };
+
+static FILE* logFile = nullptr;
+
+void
+logFileWriter(rtLogLevel level, const char* path, int line, int threadId, char* message)
+{
+  if (logFile)
+  {
+    char const* logLevel = rtLogLevelToString(level);
+    fprintf(logFile, "%5s %s:%d -- Thread-%" RT_THREADID_FMT ": %s\n", logLevel, path, line,
+        threadId, message);
+  }
+}
 
 class rtTestObject : public rtObject
 {
@@ -77,7 +91,9 @@ int main(int argc, char* argv[])
 {
   int optionIndex;
   std::string testId;
+
   rtError e;
+  rtLogLevel logLevel = RT_LOG_INFO;
 
   while (true)
   {
@@ -90,8 +106,18 @@ int main(int argc, char* argv[])
       case 'i':
         testId = optarg;
         break;
+      case 'l':
+        logLevel = rtLogLevelFromString(optarg);
+        break;
     }
   }
+
+  char logFileName[256];
+  snprintf(logFileName, sizeof(logFileName), "%s.server.log", testId.c_str());
+  logFile = fopen(logFileName, "w");
+
+  rtLogSetLevel(logLevel);
+  rtLogSetLogHandler(logFileWriter);
 
   rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
 
@@ -117,5 +143,9 @@ int main(int argc, char* argv[])
   }
 
   rtLogInfo("server shutting down for %s", testId.c_str());
+
+  if (logFile)
+    fclose(logFile);
+
   return 0;
 }
