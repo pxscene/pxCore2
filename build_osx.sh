@@ -20,6 +20,7 @@ echo "***************************** Building pxcore ****" >> $BUILDLOGS
 xcodebuild clean
 xcodebuild -scheme "pxCore Static Library">>$BUILDLOGS 2>&1;
 checkError $? 0
+>>>>>>> 7810afe764436604a0f9c716091a7670cc237907
 else
 echo "***************************** Building pxcore ****"
 xcodebuild clean
