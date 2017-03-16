@@ -1,21 +1,19 @@
 #!/bin/sh
 BUILDLOGS=$TRAVIS_BUILD_DIR/logs/build_logs
 cd $TRAVIS_BUILD_DIR/src
-if [ "$TRAVIS_PULL_REQUEST" == "false" ]
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
 echo "***************************** Building pxcore and rtcore ****" >> $BUILDLOGS
-make clean;
 make -f Makefile.glut all>>$BUILDLOGS 2>&1;
 make -f Makefile.glut rtcore>>$BUILDLOGS 2>&1;
 else
 echo "***************************** Building pxcore and rtcore ****"
-make clean;
 make -f Makefile.glut all 1>>$BUILDLOGS;
 make -f Makefile.glut rtcore 1>>$BUILDLOGS;
 fi
 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-if [ "$TRAVIS_PULL_REQUEST" == "false" ]
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
 echo "***************************** Building libpxscene ****" >> $BUILDLOGS;
 make clean;
@@ -26,7 +24,7 @@ make clean;
 make libs-glut 1>>$BUILDLOGS;
 fi
 
-if [ "$TRAVIS_PULL_REQUEST" == "false" ]
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
 echo "***************************** Building pxscene app ***" >> $BUILDLOGS
 make -j>>$BUILDLOGS 2>&1
@@ -36,7 +34,7 @@ make -j 1>>$BUILDLOGS
 fi
 
 cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
-if [ "$TRAVIS_PULL_REQUEST" == "false" ]
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
 echo "***************************** Building unittests ***" >> $BUILDLOGS;
 make clean;
