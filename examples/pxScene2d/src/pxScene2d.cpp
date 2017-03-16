@@ -527,7 +527,7 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
                          pxInterp interp, pxConstantsAnimation::animationOptions at,
                          int32_t count, rtObjectRef promise)
 {
-  cancelAnimation(prop,(at & pxConstantsAnimation::OPTION_FASTFORWARD), (at & pxConstantsAnimation::OPTION_REWIND));
+  cancelAnimation(prop,(at & pxConstantsAnimation::OPTION_FASTFORWARD), (at & pxConstantsAnimation::OPTION_REWIND), true);
 
   // schedule animation
   animation a;
@@ -2411,9 +2411,9 @@ rtDefineProperty(pxSceneContainer, ready);
 rtError pxSceneContainer::setUrl(rtString url)
 {
   rtLogDebug("pxSceneContainer::setUrl(%s)",url.cString());
-  // If old promise is still unfulfilled reject it
+  // If old promise is still unfulfilled resolve it
   // and create a new promise for the context of this Url
-  mReady.send("reject", this);
+  mReady.send("resolve", this);
   mReady = new rtPromise( std::string("pxSceneContainer >> ") + std::string(url) );
 
   mUrl = url;
