@@ -6,4 +6,4 @@ then
 sh $2
 retval=$?
 fi
-return $retval;
+exit $retval;
