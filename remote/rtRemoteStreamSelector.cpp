@@ -148,6 +148,7 @@ rtRemoteStreamSelector::doPollFds()
         {
           rtLogWarn("error dispatching message. %s", rtStrError(e));
           m_streams[i].reset();
+          s.reset();
         }
       }
       else if (FD_ISSET(s->m_fd, &errFds))
@@ -156,7 +157,7 @@ rtRemoteStreamSelector::doPollFds()
         rtLogError("error on fd: %d", s->m_fd);
       }
 
-      if (s && (now - lastKeepAliveSent) > keepAliveInterval)
+      if (s && s->isOpen() && (now - lastKeepAliveSent) > keepAliveInterval)
       {
         sentKeepAlive = true;
 
