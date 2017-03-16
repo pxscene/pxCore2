@@ -473,10 +473,17 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var _this = this;
   var origFilePath = filePath;
   return new Promise(function (onImportComplete, reject) {
-    if( filePath === 'fs' || filePath === 'px' || filePath === 'http' || filePath === 'https' || filePath === 'url' || filePath === 'os'
-      || filePath === 'events' || filePath === 'net' || filePath === 'querystring' || filePath === 'htmlparser'
-      || filePath === 'ws') {
+    if( filePath === 'px' || filePath === 'url' || filePath === 'querystring' || filePath === 'htmlparser') {
       // built-ins
+      var modData = require(filePath);
+      onImportComplete([modData, origFilePath]);
+      return;
+    } else if( filePath === 'fs' || filePath === 'os' || filePath === 'events') {
+      console.log("Not permitted to use the module " + filePath);
+      reject("include failed due to module not permitted");
+      return;
+    } else if( filePath === 'http' || filePath === 'https' || filePath === 'net' || filePath === 'ws' ) {
+      filePath = 'rcvrcore/' + filePath + '_wrap';
       var modData = require(filePath);
       onImportComplete([modData, origFilePath]);
       return;
