@@ -20,7 +20,7 @@
 
 #ifndef RT_LOG_H_
 #define RT_LOG_H_
-
+#include <stdint.h>
 #ifdef RT_DEBUG
 #define RT_LOG rtLog
 #else
