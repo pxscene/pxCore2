@@ -1043,13 +1043,17 @@ bool pxObject::hitTest(pxPoint2f& pt)
 }
 
 
-void pxObject::createSnapshot(pxContextFramebufferRef& fbo)
+void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext)
 {
   pxMatrix4f m;
 
 //  float parentAlpha = ma;
 
   float parentAlpha = 1.0;
+  if (separateContext)
+  {
+    context.enableInternalContext(true);
+  }
 
   context.setMatrix(m);
   context.setAlpha(parentAlpha);
@@ -1083,6 +1087,10 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo)
     }
   }
   context.setFramebuffer(previousRenderSurface);
+  if (separateContext)
+  {
+    context.enableInternalContext(false);
+  }
 }
 
 void pxObject::createSnapshotOfChildren()

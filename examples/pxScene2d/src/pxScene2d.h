@@ -365,7 +365,11 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
       if (!mPainting)
       {
         //rtLogInfo("in setPainting and calling createSnapshot mw=%f mh=%f\n", mw, mh);
+#ifdef RUNINMAIN
         createSnapshot(mSnapshotRef);
+#else
+        createSnapshot(mSnapshotRef, true);
+#endif //RUNINMAIN
       }
       else
       {
@@ -751,7 +755,7 @@ protected:
   pxRect mScreenCoordinates;
   #endif //PX_DIRTY_RECTANGLES
 
-  void createSnapshot(pxContextFramebufferRef& fbo);
+  void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false);
   void createSnapshotOfChildren();
   void deleteSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES

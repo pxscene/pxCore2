@@ -2431,6 +2431,11 @@ int64_t pxContext::currentTextureMemoryUsageInBytes()
   return mCurrentTextureMemorySizeInBytes;
 }
 
+pxError pxContext::enableInternalContext(bool)
+{
+  return PX_OK;
+}
+
 //====================================================================================================================================================================================
 
 #ifdef DEBUG
