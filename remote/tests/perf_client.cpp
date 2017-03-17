@@ -17,6 +17,49 @@ struct option longOptions[] =
 
 static FILE* logFile = nullptr;
 
+class rtEcho : public rtObject
+{
+	rtDeclareObject(rtEcho, rtEcho);
+	rtProperty(message, getMessage, setMessage, rtString);
+	rtProperty(onMessageChanged, getOnMessageChanged, setOnMessageChanged, rtFunctionRef);
+
+public:
+	rtError getMessage(rtString& s) const
+		{ s = m_msg; return RT_OK; }
+
+	rtError setMessage(rtString const& s)
+	{
+		rtError e = RT_OK;
+		m_msg = s;
+		if (m_func)
+		{
+			e = m_func.send(s);
+			if (e != RT_OK)
+				rtLogError("failed to notify of message changed. %s", rtStrError(e));
+		}
+		return RT_OK;
+	}
+
+	rtError getOnMessageChanged(rtFunctionRef& func) const
+		{ func = m_func; return RT_OK; }
+
+	rtError setOnMessageChanged(rtFunctionRef const& func)
+		{ m_func = func; return RT_OK; }
+
+	static rtError handleMessageChanged(int /*argc*/, rtValue const* argv, rtValue* /*result*/, void* /*argp*/)
+	{
+		rtString s = argv[0].toString();
+		rtLogInfo("message has changed: %s", s.cString());
+		return RT_OK;
+	}
+
+private:
+	rtString m_msg;
+	rtFunctionRef m_func;
+};
+
+
+
 void
 logFileWriter(rtLogLevel level, const char* path, int line, int threadId, char* message)
 {
@@ -76,6 +119,11 @@ int main(int argc, char* argv[])
 	rtObjectRef server;
 	e = rtRemoteLocateObject(env, testId.c_str(), server);
 	RT_ASSERT(e == RT_OK);
+
+	e = server.set("onMessageChanged", new rtFunctionCallback(rtEcho::handleMessageChanged));
+		if (e != RT_OK)
+			rtLogError("failed to set message handler: %s", rtStrError(e));
+
 
 	for (unsigned int j = 0; j < count; ++j)
 	{
