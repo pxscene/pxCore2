@@ -5,9 +5,12 @@ px.import({ scene: 'px:scene.1.js',
   var scene = imports.scene;
   var keys  = imports.keys;
 
-  process.on('uncaughtException', function(err) {
+  function uncaughtException(err) {
     console.log("Received uncaught exception " + err.stack);
-  });
+  };
+
+
+  process.on('uncaughtException', uncaughtException);
 
   // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
@@ -229,5 +232,9 @@ if (false)
   };
   */
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function releaseResources() {
+    process.removeListener("uncaughtException", uncaughtException);
+  }
 
+  scene.on("onClose",releaseResources);
 });
