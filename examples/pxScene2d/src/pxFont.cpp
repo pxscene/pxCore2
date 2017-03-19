@@ -50,8 +50,10 @@ struct GlyphKey
 };
 
 typedef map<GlyphKey,GlyphCacheEntry*> GlyphCache;
+typedef map<GlyphKey,pxTextureRef> GlyphTextureCache;
 
 GlyphCache gGlyphCache;
+GlyphTextureCache gGlyphTextureCache;
 
 #include "pxContext.h"
 
@@ -67,11 +69,19 @@ extern "C" {
 FT_Library ft;
 uint32_t gFontId = 0;
 
+// TODO move out to rt* utility
+uint32_t npot(uint32_t i)
+{
+  uint32_t power = 1;
+  while(power < i)
+    power*=2;
+  return power;
+}
+
 pxFont::pxFont(rtString fontUrl):pxResource(),mPixelSize(0), mFontData(0)
 {  
   mFontId = gFontId++; 
   mUrl = fontUrl;
-
 }
 
 pxFont::~pxFont() 
@@ -99,6 +109,7 @@ pxFont::~pxFont()
   } 
    
 }
+
 bool pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       // Load the font data
@@ -211,6 +222,60 @@ void pxFont::getMetrics(uint32_t size, float& height, float& ascender, float& de
   naturalLeading = height - (ascender + descender);
 
 }
+
+pxTextureRef pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy)
+{
+  // Select a glyph texture better suited for rendering the glyph
+  // taking pixelSize and scale into account
+  uint32_t pixelSize=(uint32_t)ceil((sx>sy?sx:sy)*mPixelSize);
+  if (pixelSize <= 48)
+    pixelSize = (pixelSize + 7) & 0xfffffff8;    // next multiple of 8
+  else
+    pixelSize = npot(pixelSize);  // else next power of two
+ 
+  GlyphKey key; 
+  key.mFontId = mFontId; 
+  key.mPixelSize = pixelSize; 
+  key.mCodePoint = codePoint;
+  GlyphTextureCache::iterator it = gGlyphTextureCache.find(key);
+  if (it != gGlyphTextureCache.end())
+    return it->second;
+  else
+  {
+    // temporarily set pixel size to more optimal size for
+    // rendering texture 
+    FT_Set_Pixel_Sizes(mFace, 0, pixelSize);
+    // TODO only need to render glyph here
+    if(!FT_Load_Char(mFace, codePoint, FT_LOAD_RENDER))
+    {
+      rtLogDebug("glyph texture cache miss");
+
+      GlyphCacheEntry *entry = new GlyphCacheEntry;
+      FT_GlyphSlot g = mFace->glyph;
+      
+      entry->bitmap_left = g->bitmap_left;
+      entry->bitmap_top = g->bitmap_top;
+      entry->bitmapdotwidth = g->bitmap.width;
+      entry->bitmapdotrows = g->bitmap.rows;
+      entry->advancedotx = g->advance.x;
+      entry->advancedoty = g->advance.y;
+      entry->vertAdvance = g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
+
+      pxTextureRef texture = context.createTexture(g->bitmap.width, g->bitmap.rows, 
+                                              g->bitmap.width, g->bitmap.rows, 
+                                              g->bitmap.buffer);
+      
+      gGlyphTextureCache.insert(make_pair(key,texture));
+
+      // restore current pixelSize
+      FT_Set_Pixel_Sizes(mFace, 0, mPixelSize);
+      return texture;  
+    }
+    // restore current pixelSize
+    FT_Set_Pixel_Sizes(mFace, 0, mPixelSize);
+  }
+  return NULL;  
+}
   
 const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
 {
@@ -223,6 +288,7 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
     return it->second;
   else
   {
+    // TODO should not need to render here !
     if(FT_Load_Char(mFace, codePoint, FT_LOAD_RENDER))
       return NULL;
     else
@@ -238,12 +304,7 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
       entry->advancedotx = g->advance.x;
       entry->advancedoty = g->advance.y;
       entry->vertAdvance = g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
-      
-      entry->mTexture = context.createTexture(g->bitmap.width, g->bitmap.rows, 
-                                              g->bitmap.width, g->bitmap.rows, 
-                                              g->bitmap.buffer);
-      
-      gGlyphCache.insert(make_pair(key,entry));
+
       return entry;
     }
   }
@@ -253,6 +314,9 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
 void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, float sy, 
                          float& w, float& h) 
 {
+  // TODO ignoring sx and sy now
+  sx = 1.0;
+  sy = 1.0;
   if( !mInitialized) 
   {
     rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
@@ -295,7 +359,7 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, flo
 }
 
 void pxFont::renderText(const char *text, uint32_t size, float x, float y, 
-                        float sx, float sy, 
+                        float nsx, float nsy, 
                         float* color, float mw) 
 {
   if (!text || !mInitialized)
@@ -316,11 +380,11 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
     if (!entry) 
       continue;
 
-    float x2 = x + entry->bitmap_left * sx;
-//    float y2 = y - g->bitmap_top * sy;
-    float y2 = (y - entry->bitmap_top * sy) + (metrics->ascender>>6);
-    float w = entry->bitmapdotwidth * sx;
-    float h = entry->bitmapdotrows * sy;
+    float x2 = x + entry->bitmap_left;
+//    float y2 = y - g->bitmap_top;
+    float y2 = (y - entry->bitmap_top) + (metrics->ascender>>6);
+    float w = entry->bitmapdotwidth;
+    float h = entry->bitmapdotrows;
     
     if (codePoint != '\n')
     {
@@ -331,17 +395,18 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
                              y+(metrics->ascender>>6), c);
       }
       
-      pxTextureRef texture = entry->mTexture;
+      //pxTextureRef texture = entry->mTexture;
+      pxTextureRef texture = getGlyphTexture(codePoint, nsx, nsy);
       pxTextureRef nullImage;
       context.drawImage(x2,y2, w, h, texture, nullImage, false, color);
-      x += (entry->advancedotx >> 6) * sx;
+      x += (entry->advancedotx >> 6);
       // no change to y because we are not moving to next line yet
     }
     else
     {
       x = 0;
       // Use height to advance to next line
-      y += (metrics->height>>6) * sy;
+      y += (metrics->height>>6);
     }
   }
 }
@@ -349,6 +414,9 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
 void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
                          float& w, float& h) 
 {
+  // TODO ignoring sx and sy now
+  sx = 1.0;
+  sy = 1.0;
   if( !mInitialized) {
     rtLogWarn("measureTextChar called TOO EARLY -- not initialized or font not loaded!\n");
     return;
@@ -494,12 +562,8 @@ void pxFontManager::removeFont(rtString fontName)
 
 void pxFontManager::clearAllFonts()
 {
-  for (GlyphCache::iterator it =  gGlyphCache.begin(); it != gGlyphCache.end(); it++)
-  {
-    it->second->mTexture = NULL;
-    delete it->second;
-  }
   gGlyphCache.clear();
+  gGlyphTextureCache.clear();
 }
 
 // pxTextMetrics
