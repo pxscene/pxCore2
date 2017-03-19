@@ -394,6 +394,11 @@ rtError rtObject::Set(const char* name, const rtValue* value)
           rtSetPropertyThunk t = e->mSetThunk;
           hr = (*this.*t)(*value);
         }
+        else
+        {
+          hr = RT_FAIL;
+          rtLogError("setter for %s is missing thunk.", name);
+        }
         return hr;
       }
       e = e->mNext;
@@ -402,7 +407,7 @@ rtError rtObject::Set(const char* name, const rtValue* value)
     m = m->parentsMap;
   }
   
-  return RT_OK;
+  return hr;
 }
 
 // rtObjectBase
