@@ -1234,6 +1234,8 @@ public:
   rtReadOnlyProperty(root, root, rtObjectRef);
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);
+  rtReadOnlyProperty(showpxObjCount, showpxObjCount, int);
+  rtReadOnlyProperty(showTexMemUsage, showTexMemUsage, int64_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
@@ -1308,6 +1310,9 @@ public:
   int32_t h() const { return mHeight; }
   rtError h(int32_t& v) const { v = mHeight; return RT_OK; }
 
+  rtError showpxObjCount(int& v) const;
+  rtError showTexMemUsage(int64_t& v) const;
+
   rtError showOutlines(bool& v) const;
   rtError setShowOutlines(bool v);
 
@@ -1330,7 +1335,11 @@ public:
   rtError createWayland(rtObjectRef p, rtObjectRef& o);
 
   rtError clock(uint64_t & time);
+<<<<<<< HEAD
   rtError logDebugMetrics();
+=======
+  rtError gc();
+>>>>>>> 2ae30614f8454eac1bdabd6a18c82ecb3e7e22e9
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {

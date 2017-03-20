@@ -2242,6 +2242,18 @@ bool pxScene2d::onChar(uint32_t c)
   return false;
 }
 
+rtError pxScene2d::showpxObjCount(int& v) const
+{
+  v=pxObjectCount;
+  return RT_OK;
+}
+
+rtError pxScene2d::showTexMemUsage(int64_t& v) const
+{
+  v=context.currentTextureMemoryUsageInBytes();
+  return RT_OK;
+}
+
 rtError pxScene2d::showOutlines(bool& v) const
 {
   v=context.showOutlines();
@@ -2334,11 +2346,17 @@ rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
+rtDefineProperty(pxScene2d, showpxObjCount);
+rtDefineProperty(pxScene2d, showTexMemUsage);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
+<<<<<<< HEAD
 rtDefineMethod(pxScene2d, logDebugMetrics);
+=======
+rtDefineMethod(pxScene2d, gc);
+>>>>>>> 2ae30614f8454eac1bdabd6a18c82ecb3e7e22e9
 //rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
