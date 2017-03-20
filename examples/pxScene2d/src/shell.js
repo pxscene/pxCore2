@@ -9,6 +9,12 @@ px.import({ scene: 'px:scene.1.js',
     console.log("Received uncaught exception " + err.stack);
   };
 
+  function recordMemUsage()
+  {
+    scene.gc();
+    console.log("pxobject count is ", scene.showpxObjCount);
+    console.log("texture memory usage is ", scene.showTexMemUsage);
+  }
 
   process.on('uncaughtException', uncaughtException);
 
@@ -140,6 +146,14 @@ if (false)
         console.log("Loading home url: ", homeURL);
         childScene.url = homeURL;
         e.stopPropagation();
+      }
+      else
+      if(code == keys.D)  // ctrl-alt-shft-h
+      {
+        if (process.env.PX_DUMP_MEMUSAGE && (process.env.PX_DUMP_MEMUSAGE == "1"))
+        {
+          recordMemUsage();
+        }
       }
     }// ctrl-alt-shift
   });

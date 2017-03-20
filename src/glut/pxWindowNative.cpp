@@ -725,6 +725,7 @@ static bool gTimerSet = false;
 void pxWindowNative::runEventLoop()
 {
 //glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+  glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 
   exitFlag = false;
 

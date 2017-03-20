@@ -19,6 +19,8 @@ function Scene() {
       this.filePath = filePath;
       this.__defineGetter__("w", function() { return scene.w; });
       this.__defineGetter__("h", function() { return scene.h; });
+      this.__defineGetter__("showpxObjCount", function() { return scene.showpxObjCount; });
+      this.__defineGetter__("showTexMemUsage", function() { return scene.showTexMemUsage; });
       this.__defineGetter__("showOutlines", function() { return scene.showOutlines; });
       this.__defineSetter__("showOutlines", function(v) { scene.showOutlines = v; });
       this.__defineGetter__("showDirtyRect", function() { return scene.showDirtyRect; });
@@ -34,6 +36,10 @@ function Scene() {
 
   this.getRPCContext = function getRPCContext() {
     return rpcContext;
+  }
+
+  this.gc = function() {
+    return nativeScene.gc();
   }
 
   this.loadArchive = function(u) {

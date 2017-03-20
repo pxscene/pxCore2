@@ -110,7 +110,7 @@ void stopProfiling()
   CALLGRIND_STOP_INSTRUMENTATION;
 }
 #endif //ENABLE_VALGRIND
-
+int pxObjectCount = 0;
 static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
                                 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
@@ -272,6 +272,44 @@ private:
 
 
 // pxObject methods
+pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
+#ifdef ANIMATION_ROTATE_XYZ
+    mrx(0), mry(0), mrz(1.0),
+#endif //ANIMATION_ROTATE_XYZ
+    msx(1), msy(1), mw(0), mh(0),
+    mInteractive(true),
+    mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
+    mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
+#ifdef PX_DIRTY_RECTANGLES
+    , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
+#endif //PX_DIRTY_RECTANGLES
+    ,mDrawableSnapshotForMask(), mMaskSnapshot()
+  {
+    pxObjectCount++;
+    mScene = scene;
+    mReady = new rtPromise;
+    mEmit = new rtEmit;
+  }
+
+pxObject::~pxObject()
+{
+//    rtString d;
+    // TODO... why is this bad
+//    sendReturns<rtString>("description",d);
+    //rtLogDebug("**************** pxObject destroyed: %s\n",getMap()->className);
+    pxObjectCount--;
+    rtValue nullValue;
+    mReady.send("reject",nullValue);
+    deleteSnapshot(mSnapshotRef);
+    deleteSnapshot(mClipSnapshotRef);
+    deleteSnapshot(mDrawableSnapshotForMask);
+    deleteSnapshot(mMaskSnapshot);
+    mSnapshotRef = NULL;
+    mClipSnapshotRef = NULL;
+    mDrawableSnapshotForMask = NULL;
+    mMaskSnapshot = NULL;
+}
+
 void pxObject::sendPromise()
 {
   if(mInitialized && !((rtPromise*)mReady.getPtr())->status())
@@ -1453,6 +1491,12 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
+rtError pxScene2d::gc()
+{
+  script.garbageCollect();
+  return RT_OK;
+}
+
 rtError pxScene2d::clock(uint64_t & time)
 {
   time = (uint64_t)pxMilliseconds();
@@ -2196,6 +2240,18 @@ bool pxScene2d::onChar(uint32_t c)
   return false;
 }
 
+rtError pxScene2d::showpxObjCount(int& v) const
+{
+  v=pxObjectCount;
+  return RT_OK;
+}
+
+rtError pxScene2d::showTexMemUsage(int64_t& v) const
+{
+  v=context.currentTextureMemoryUsageInBytes();
+  return RT_OK;
+}
+
 rtError pxScene2d::showOutlines(bool& v) const
 {
   v=context.showOutlines();
@@ -2288,10 +2344,13 @@ rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
+rtDefineProperty(pxScene2d, showpxObjCount);
+rtDefineProperty(pxScene2d, showTexMemUsage);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
+rtDefineMethod(pxScene2d, gc);
 //rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
