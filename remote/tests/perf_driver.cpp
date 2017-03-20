@@ -211,14 +211,13 @@ StartChildProcess(Settings* settings, bool isClient)
       memset(num, 0, sizeof(num));
       snprintf(num, sizeof(num), "%d", settings->NumIterations);
 
-
       execl(path.c_str(), path.c_str(), "-i", settings->TestId.c_str(), "-n", num,
-        "-l", logLevel, 0);
+        "-l", logLevel , (char *) nullptr);
     }
     else
     {
       execl(path.c_str(), path.c_str(), "-i", settings->TestId.c_str(),
-        "-l", logLevel, 0);
+        "-l", logLevel , (char *) nullptr);
     }
 
     rtLogError("failed to exec:%s. %s", path.c_str(), strerror(errno));
