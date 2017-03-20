@@ -70,6 +70,10 @@ function reload(u) {
   else
     url.text = u;
 
+  // Remove Leading/Trailing whitespace...
+  u.trim();
+  url.text.trim();
+  
   console.log("RELOADING.... [ " + u + " ]");
 
   if (u.indexOf("local:") == 0) // LOCAL shorthand
