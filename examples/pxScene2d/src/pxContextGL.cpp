@@ -33,6 +33,7 @@
 #include <GLUT/glut.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
+#include "pxContextUtils.h"
 #else
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 #include <GLES2/gl2.h>
@@ -2379,6 +2380,7 @@ int64_t pxContext::currentTextureMemoryUsageInBytes()
 pxError pxContext::enableInternalContext(bool enable)
 {
 #if defined(PX_PLATFORM_GENERIC_EGL) && !defined(RUNINMAIN)
+  //TODO add EGL support to pxContextUtils
   if (enable)
   {
     if (!eglContextCreated)
@@ -2399,6 +2401,8 @@ pxError pxContext::enableInternalContext(bool enable)
   {
     pxDoneEglCurrent();
   }
+#elif defined(__APPLE__) && !defined(RUNINMAIN)
+    makeInternalGLContextCurrent(enable);
 #else
   (void)enable;
 #endif //PX_PLATFORM_GENERIC_EGL && !RUNINMAIN

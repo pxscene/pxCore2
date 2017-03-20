@@ -39,6 +39,7 @@ ifeq ($(UNAME_S),Darwin)
 PX_PLATFORM=PX_PLATFORM_MAC
 PXLIBS=$(PXCOREDIR)/build/mac
 TARGETINCLUDE=
+ADDITIONAL_OBJS=$(OBJDIR)/pxContextUtils.o
 else
 ifeq ($(PX_PLATFORM),DirectFB)
 PX_PLATFORM=PX_PLATFORM_GENERIC_DFB
@@ -47,6 +48,7 @@ else
 PX_PLATFORM=PX_PLATFORM_GLUT
 PXLIBS=$(PXCOREDIR)/build/glut
 TARGETINCLUDE=
+ADDITIONAL_OBJS=
 endif
 endif
 endif
@@ -284,6 +286,11 @@ PXSCENE_LIB_SEARCH=\
 
 # pxScene and pxWayland so end
 
+ifeq ($(UNAME_S),Darwin)
+$(OBJDIR)/pxContextUtils.o: mac/pxContextUtils.mm
+	$(CXX) -o $(OBJDIR)/pxContextUtils.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c mac/pxContextUtils.mm
+endif
+
 rtMutexNative.o: linux/rtMutexNative.cpp
 	$(CXX) -o $(OBJDIR)/rtMutexNative.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c linux/rtMutexNative.cpp
 
@@ -375,8 +382,8 @@ analyze:
 	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) pxscene
 
 LINKLIBS := $(PXLIBS)/libpxCore.a
-pxscene: $(OBJS) $(LINKLIBS)
-	$(CXX) $(OBJS) $(LDFLAGS_FULL) -o pxscene
+pxscene: $(OBJS) $(ADDITIONAL_OBJS) $(LINKLIBS)
+	$(CXX) $(OBJS) $(ADDITIONAL_OBJS)  $(LDFLAGS_FULL) -o pxscene
 
 INC_DFB=-I/usr/local/include/directfb
 

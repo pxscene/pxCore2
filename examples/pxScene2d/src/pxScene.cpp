@@ -34,6 +34,7 @@
 #ifdef RUNINMAIN
 extern rtNode script;
 #else
+using namespace std;
 #include "rtNodeThread.h"
 #endif
 
