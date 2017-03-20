@@ -17,48 +17,37 @@ struct option longOptions[] =
 
 static FILE* logFile = nullptr;
 
-class rtEcho : public rtObject
+static rtError
+messageHandler(int /*argc*/, rtValue const* /*argv*/, rtValue* /*result*/, void* /*argp*/)
 {
-	rtDeclareObject(rtEcho, rtEcho);
-	rtProperty(message, getMessage, setMessage, rtString);
-	rtProperty(onMessageChanged, getOnMessageChanged, setOnMessageChanged, rtFunctionRef);
+  // rtString s = argv[0].toString();
+  // rtLogInfo("messageHandler:%s", s.cString());
+  return RT_OK;
+}
 
-public:
-	rtError getMessage(rtString& s) const
-		{ s = m_msg; return RT_OK; }
+static rtError
+rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow)
+{
+  rtError e = RT_OK;
 
-	rtError setMessage(rtString const& s)
-	{
-		rtError e = RT_OK;
-		m_msg = s;
-		if (m_func)
-		{
-			e = m_func.send(s);
-			if (e != RT_OK)
-				rtLogError("failed to notify of message changed. %s", rtStrError(e));
-		}
-		return RT_OK;
-	}
-
-	rtError getOnMessageChanged(rtFunctionRef& func) const
-		{ func = m_func; return RT_OK; }
-
-	rtError setOnMessageChanged(rtFunctionRef const& func)
-		{ m_func = func; return RT_OK; }
-
-	static rtError handleMessageChanged(int /*argc*/, rtValue const* argv, rtValue* /*result*/, void* /*argp*/)
-	{
-		rtString s = argv[0].toString();
-		rtLogInfo("message has changed: %s", s.cString());
-		return RT_OK;
-	}
-
-private:
-	rtString m_msg;
-	rtFunctionRef m_func;
-};
-
-
+  bool hasDipatchThread = env->Config->server_use_dispatch_thread();
+  if (hasDipatchThread)
+  {
+    usleep(millisecondsFromNow * 1000);
+    (void ) env;
+  }
+  else
+  {
+    auto endTime = std::chrono::milliseconds(millisecondsFromNow) + std::chrono::system_clock::now();
+    while (endTime > std::chrono::system_clock::now())
+    {
+      e = rtRemoteRun(env, 16);
+      if (e != RT_OK && e != RT_ERROR_QUEUE_EMPTY)
+        return e;
+    }
+  }
+  return e;
+}
 
 void
 logFileWriter(rtLogLevel level, const char* path, int line, int threadId, char* message)
@@ -76,7 +65,7 @@ int main(int argc, char* argv[])
 
 	int optionIndex;
 	std::string testId;
-	unsigned int count=100;
+  int count = 1000;
 
 	rtError e;
   rtLogLevel logLevel = RT_LOG_INFO;
@@ -93,7 +82,7 @@ int main(int argc, char* argv[])
 				testId = optarg;
 				break;
 			case 'n':
-				count = atoi(optarg);
+				count = static_cast<int>(strtol(optarg, nullptr, 10));
 				break;
       case 'l':
         logLevel = rtLogLevelFromString(optarg);
@@ -120,27 +109,49 @@ int main(int argc, char* argv[])
 	e = rtRemoteLocateObject(env, testId.c_str(), server);
 	RT_ASSERT(e == RT_OK);
 
-	e = server.set("onMessageChanged", new rtFunctionCallback(rtEcho::handleMessageChanged));
-		if (e != RT_OK)
-			rtLogError("failed to set message handler: %s", rtStrError(e));
 
-
-	for (unsigned int j = 0; j < count; ++j)
+  // run get/set
+	for (int i = 0; i < count; ++i)
 	{
 		while ((e = rtRemoteLocateObject(env, testId.c_str(), server)) != RT_OK)
 		{
-			rtLogInfo("failed to find %s:%s\n",testId.c_str(), rtStrError(e));
+			rtLogInfo("failed to find %s:%s\n", testId.c_str(), rtStrError(e));
 		}
-		e = server.set("num", j);
-		rtLogInfo("set:%d", j);
+
+		e = server.set("num", static_cast<uint32_t>(i));
+    RT_ASSERT(e == RT_OK);
+
+		// rtLogInfo("set:%d. %s", i, rtStrError(e));
 
 		uint32_t n = server.get<uint32_t>("num");
-		rtLogInfo("get:%d", n);
-		// RT_ASSERT(n == static_cast<uint32_t>(j));
+    static_cast<void>(n);
+
+		// rtLogInfo("get:%d", n);
 	}
+
+  // set callback
+  e = server.set("onMessage", new rtFunctionCallback(messageHandler));
+  if (e != RT_OK)
+    rtLogError("failed to set message handler: %s", rtStrError(e));
+  else
+    rtLogInfo("message handler is set.");
 
   e = server.send("shutdown");
   rtLogInfo("shutting down server: %s/%s", rtStrError(e), testId.c_str());
+
+  // signal server to flood our callback
+  e = server.send("startCallbackTest");
+  RT_ASSERT(e == RT_OK);
+
+  time_t startTime = time(nullptr);
+  while (true)
+  {
+    e = rtRemoteRunUntil(env, 1000);
+    rtLogInfo("[%s] rtRemoteRun:%s", testId.c_str(), rtStrError(e));
+
+    if (time(nullptr) - startTime > 10)
+      break;
+  }
 
   if (logFile)
     fclose(logFile);
