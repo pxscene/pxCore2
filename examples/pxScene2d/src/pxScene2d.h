@@ -1234,6 +1234,8 @@ public:
   rtReadOnlyProperty(root, root, rtObjectRef);
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);
+  rtReadOnlyProperty(showpxObjCount, showpxObjCount, int);
+  rtReadOnlyProperty(showTexMemUsage, showTexMemUsage, int64_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
@@ -1307,6 +1309,9 @@ public:
   rtError w(int32_t& v) const { v = mWidth;  return RT_OK; }
   int32_t h() const { return mHeight; }
   rtError h(int32_t& v) const { v = mHeight; return RT_OK; }
+
+  rtError showpxObjCount(int& v) const;
+  rtError showTexMemUsage(int64_t& v) const;
 
   rtError showOutlines(bool& v) const;
   rtError setShowOutlines(bool v);
