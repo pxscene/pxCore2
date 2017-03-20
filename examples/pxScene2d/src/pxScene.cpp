@@ -66,7 +66,8 @@ extern int g_argc;
 extern char** g_argv;
 char *nodeInput = NULL;
 #endif
-
+bool gDumpMemUsage = false;
+extern int pxObjectCount;
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
 public:
@@ -279,6 +280,11 @@ int pxMain(int argc, char* argv[])
   uv_async_init(nodeLoop, &gcTrigger,garbageCollect);
 
 #endif
+char const* s = getenv("PX_DUMP_MEMUSAGE");
+if (s && (strcmp(s,"1") == 0))
+{
+  gDumpMemUsage = true;
+}
 #ifdef ENABLE_DEBUG_MODE
   int urlIndex  = -1;
   bool isDebugging = false;
@@ -367,6 +373,11 @@ int pxMain(int argc, char* argv[])
   context.init();
 
   eventLoop.run();
-
+  if (gDumpMemUsage)
+  {
+    script.garbageCollect();
+    rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+    rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+  }
   return 0;
 }
