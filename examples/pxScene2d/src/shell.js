@@ -9,7 +9,6 @@ px.import({ scene: 'px:scene.1.js',
     console.log("Received uncaught exception " + err.stack);
   };
 
-
   process.on('uncaughtException', uncaughtException);
 
   // JRJR TODO had to add more modules
@@ -144,6 +143,14 @@ if (false)
         console.log("Loading home url: ", homeURL);
         childScene.url = homeURL;
         e.stopPropagation();
+      }
+      else
+      if(code == keys.D)  // ctrl-alt-shft-h
+      {
+        if (process.env.PX_DUMP_MEMUSAGE && (process.env.PX_DUMP_MEMUSAGE == "1"))
+        {
+          scene.logDebugMetrics();
+        }
       }
     }// ctrl-alt-shift
   });
