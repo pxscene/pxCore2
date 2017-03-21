@@ -136,12 +136,13 @@ int main(int argc, char* argv[])
   else
     rtLogInfo("message handler is set.");
 
-  e = server.send("shutdown");
-  rtLogInfo("shutting down server: %s/%s", rtStrError(e), testId.c_str());
 
   // signal server to flood our callback
   e = server.send("startCallbackTest");
   RT_ASSERT(e == RT_OK);
+
+  e = server.send("shutdown");
+  rtLogInfo("shutting down server: %s/%s", rtStrError(e), testId.c_str());
 
   time_t startTime = time(nullptr);
   while (true)
