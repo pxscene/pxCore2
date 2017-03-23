@@ -145,6 +145,11 @@ if (false)
         childScene.url = homeURL;
         e.stopPropagation();
       }
+      else
+      if(code == keys.D)  // ctrl-alt-shft-d
+      {
+	scene.logDebugMetrics();
+      }
     }// ctrl-alt-shift
   });
 
