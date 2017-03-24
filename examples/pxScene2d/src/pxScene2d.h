@@ -1038,11 +1038,9 @@ public:
       mGetContextID->clearContext();
                                    
       // TODO Given that the context is being cleared we likely don't need to zero these out
-      #if 0
       mCtx->add("getScene", 0);
       mCtx->add("makeReady", 0);
       mCtx->add("getContextID", 0);
-      #endif
     }
 #endif //ENABLE_RT_NODE
     
