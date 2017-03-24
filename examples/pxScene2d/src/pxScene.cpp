@@ -67,6 +67,7 @@ pxContext context;
 extern int g_argc;
 extern char** g_argv;
 char *nodeInput = NULL;
+char** g_origArgv = NULL;
 #endif
 bool gDumpMemUsage = false;
 extern int pxObjectCount;
@@ -303,6 +304,7 @@ if (s && (strcmp(s,"1") == 0))
   bool isDebugging = false;
 
   g_argv = (char**)malloc((argc+2) * sizeof(char*));
+  g_origArgv = g_argv;
   int size  = 0;
   for (int i=1;i<argc;i++)
   {
@@ -385,9 +387,12 @@ if (s && (strcmp(s,"1") == 0))
   context.init();
 
   eventLoop.run();
+#ifdef ENABLE_DEBUG_MODE
+  free(g_origArgv);
+#endif
+  script.garbageCollect();
   if (gDumpMemUsage)
   {
-    script.garbageCollect();
     rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
     rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
   }

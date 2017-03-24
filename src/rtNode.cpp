@@ -935,12 +935,11 @@ void rtNode::term()
     node_is_initialized = false;
 
     V8::ShutdownPlatform();
-    mPlatform = NULL;
-  //  if(mPlatform)
-  //  {
-  //    delete mPlatform;
-  //    mPlatform = NULL;
-  //  }
+    if(mPlatform)
+    {
+      delete mPlatform;
+      mPlatform = NULL;
+    }
 
   //  if(mPxNodeExtension)
   //  {
