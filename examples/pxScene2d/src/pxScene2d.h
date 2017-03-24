@@ -93,8 +93,6 @@ extern rtThreadQueue gUIThreadQueue;
 static pxConstants CONSTANTS;
 
 
-static int pxObjectCount = 0;
-
 #if 0
 typedef rtError (*objectFactory)(void* context, const char* t, rtObjectRef& o);
 void registerObjectFactory(objectFactory f, void* context);
@@ -209,25 +207,7 @@ public:
   rtProperty(m44,m44,setM44,float);
   rtProperty(useMatrix,useMatrix,setUseMatrix,bool);
 
-pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
-#ifdef ANIMATION_ROTATE_XYZ  
-    mrx(0), mry(0), mrz(1.0), 
-#endif //ANIMATION_ROTATE_XYZ
-    msx(1), msy(1), mw(0), mh(0),
-    mInteractive(true),
-    mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(), 
-    mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
-#ifdef PX_DIRTY_RECTANGLES
-    , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
-#endif //PX_DIRTY_RECTANGLES
-    ,mDrawableSnapshotForMask(), mMaskSnapshot()
-  {
-    pxObjectCount++;
-    mScene = scene;
-    mReady = new rtPromise;
-    mEmit = new rtEmit;
-  }
-
+  pxObject(pxScene2d* scene);
   virtual unsigned long Release()
   {
     rtString d;
@@ -242,24 +222,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
     return c;
   }
 
-  virtual ~pxObject() 
-  { 
-//    rtString d;
-    // TODO... why is this bad
-//    sendReturns<rtString>("description",d);
-//    rtLogDebug("**************** pxObject destroyed: %s\n",getMap()->className); 
-    pxObjectCount--;
-    rtValue nullValue; 
-    mReady.send("reject",nullValue); 
-    deleteSnapshot(mSnapshotRef); 
-    deleteSnapshot(mClipSnapshotRef);
-    deleteSnapshot(mDrawableSnapshotForMask);
-    deleteSnapshot(mMaskSnapshot);
-    mSnapshotRef = NULL;
-    mClipSnapshotRef = NULL;
-    mDrawableSnapshotForMask = NULL;
-    mMaskSnapshot = NULL;
-  }
+  virtual ~pxObject() ;
 
   
 
@@ -1276,6 +1239,7 @@ public:
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
+  rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
@@ -1366,6 +1330,7 @@ public:
   rtError createWayland(rtObjectRef p, rtObjectRef& o);
 
   rtError clock(uint64_t & time);
+  rtError logDebugMetrics();
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {

@@ -39,7 +39,8 @@ using namespace std;
 #endif
 
 #include "jsbindings/rtWrapperUtils.h"
-
+#include <signal.h>
+#include <unistd.h>
 #ifndef RUNINMAIN
 #define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
 #define EXITSCENELOCK()  rtWrapperSceneUpdateExit();
@@ -67,7 +68,8 @@ extern int g_argc;
 extern char** g_argv;
 char *nodeInput = NULL;
 #endif
-
+bool gDumpMemUsage = false;
+extern int pxObjectCount;
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
 public:
@@ -116,6 +118,10 @@ public:
     pxWindow::invalidateRect(r);
   }
 
+  void close()
+  {
+    onCloseRequest();
+  }
 protected:
 
   virtual void onSize(int32_t w, int32_t h)
@@ -254,12 +260,19 @@ EXITSCENELOCK()
   int mHeight;
   rtRef<pxIView> mView;
 };
-
+sceneWindow win;
 #define xstr(s) str(s)
 #define str(s) #s
 
+void handleTerm(int)
+{
+  rtLogInfo("Signal TERM received. closing the window");
+  win.close();
+}
+
 int pxMain(int argc, char* argv[])
 {
+  signal(SIGTERM, handleTerm);
 #ifndef RUNINMAIN
   rtLogWarn("Setting  __rt_main_thread__ to be %x\n",pthread_self());
    __rt_main_thread__ = pthread_self(); //  NB
@@ -280,6 +293,11 @@ int pxMain(int argc, char* argv[])
   uv_async_init(nodeLoop, &gcTrigger,garbageCollect);
 
 #endif
+char const* s = getenv("PX_DUMP_MEMUSAGE");
+if (s && (strcmp(s,"1") == 0))
+{
+  gDumpMemUsage = true;
+}
 #ifdef ENABLE_DEBUG_MODE
   int urlIndex  = -1;
   bool isDebugging = false;
@@ -345,7 +363,6 @@ int pxMain(int argc, char* argv[])
 #endif
   char buffer[256];
   sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));
-  sceneWindow win;
   // OSX likes to pass us some weird parameter on first launch after internet install
 #ifdef ENABLE_DEBUG_MODE
   win.init(10, 10, 1280, 720, (urlIndex != -1)?argv[urlIndex]:"browser.js");
@@ -368,6 +385,11 @@ int pxMain(int argc, char* argv[])
   context.init();
 
   eventLoop.run();
-
+  if (gDumpMemUsage)
+  {
+    script.garbageCollect();
+    rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+    rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+  }
   return 0;
 }
