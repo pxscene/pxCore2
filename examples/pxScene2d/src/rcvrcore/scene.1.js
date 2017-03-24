@@ -36,6 +36,10 @@ function Scene() {
     return rpcContext;
   }
 
+  this.logDebugMetrics = function() {
+    return nativeScene.logDebugMetrics();
+  }
+
   this.loadArchive = function(u) {
     return nativeScene.loadArchive(u);
   }

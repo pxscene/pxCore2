@@ -11,6 +11,7 @@ install:
 - touch $TRAVIS_BUILD_DIR/logs/build_logs
 - touch $TRAVIS_BUILD_DIR/logs/run_logs;
 - BUILDLOGS=$TRAVIS_BUILD_DIR/logs/build_logs
+- touch $TRAVIS_BUILD_DIR/logs/pxcheck_logs;
 - cd $TRAVIS_BUILD_DIR
 - echo "***************************** Building externals ****" > $BUILDLOGS
 - cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
@@ -23,6 +24,7 @@ before_script:
 script:
 - cd $TRAVIS_BUILD_DIR
 - sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "testrunner_$TRAVIS_OS_NAME.sh"
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh pxleakcheck_linux.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then cd $TRAVIS_BUILD_DIR; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then tar -cvzf logs.tgz logs/* ; fi
 addons:
