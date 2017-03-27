@@ -354,7 +354,10 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
   // Clone a new context.
   {
     Local<Context>  clone_local = node::makeContext(mIsolate, sandbox); // contextify context with 'sandbox'
+
     clone_local->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
+    Local<String> hidden_name = FIXED_ONE_BYTE_STRING(mIsolate, "_contextifyHidden");
+    mContextifyContext = sandbox->GetHiddenValue(hidden_name).As<External>()->Value();
 
     mContextId = GetContextId(clone_local);
   
@@ -411,6 +414,7 @@ rtNodeContext::~rtNodeContext()
     {
     // clear out persistent javascript handles
       HandleMap::clearAllForContext(mId);
+      node::deleteContextifyContext(mContextifyContext);
     }
     if(exec_argv)
     {
@@ -922,7 +926,6 @@ void rtNode::term()
 // JRJRJR  Causing crash???  ask Hugh
 
     rtLogWarn("\n++++++++++++++++++ DISPOSE\n\n");
-
     node_isolate->Dispose();
     node_isolate = NULL;
     mIsolate     = NULL;

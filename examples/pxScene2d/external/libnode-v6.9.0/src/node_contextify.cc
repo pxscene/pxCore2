@@ -70,6 +70,7 @@ class ContextifyContext {
 
 
   ~ContextifyContext() {
+    context_.ClearWeak();
     context_.Reset();
   }
 
@@ -468,6 +469,11 @@ class ContextifyContext {
 };
 
 /*MODIFIED CODE BEGIN*/
+void deleteContextifyContext(void *ctx)
+{
+  ContextifyContext* context =  (ContextifyContext*)ctx;
+  delete context;
+}
 
 v8::Handle<Context> makeContext(v8::Isolate *isolate, v8::Handle<Object> sandbox)  // basically MakeContext()  circa line 268
 {
