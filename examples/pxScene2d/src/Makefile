@@ -468,15 +468,15 @@ libpxwayland.so:
 libpxwayland.so: CFLAGS_FULL = $(CFLAGS)
 libpxwayland.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
 libpxwayland.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) -L./ -shared $(PLATFORM_LIBS) -o libpxwayland.so.1.0
-libpxwayland.so: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) 
-	$(CXX) $(PXWAYLAND_LIB_OBJS) $(LDFLAGS_FULL)
+libpxwayland.so: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o 
+	$(CXX) $(PXWAYLAND_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o $(LDFLAGS_FULL)
 	ln -sf libpxwayland.so.1.0 libpxwayland.so.1
 	ln -sf libpxwayland.so.1 libpxwayland.so
 
 libpxwayland_s.a: CFLAGS_FULL = $(CFLAGS)
 libpxwayland_s.a: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
-libpxwayland_s.a: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) 
-	$(AR) rcs -o $@ $(PXWAYLAND_LIB_OBJS)
+libpxwayland_s.a: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o
+	$(AR) rcs -o $@ $(PXWAYLAND_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o
 
 pxscene.app: pxscene
 	rm -rf pxscene.app
