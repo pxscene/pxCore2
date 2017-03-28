@@ -7,7 +7,25 @@
   ...
 }
 {
-  shaderLeaksLinkShaderTravis
+  shaderLeaksCreateShaderTravisMalloc
+  Memcheck:Leak
+  match-leak-kinds:all
+  fun:malloc
+  ...
+  fun:createShaderProgram
+  ...
+}
+{
+  shaderLeaksCreateShaderTravisCalloc
+  Memcheck:Leak
+  match-leak-kinds:all
+  fun:calloc
+  ...
+  fun:createShaderProgram
+  ...
+}
+{
+  shaderLeaksLinkShaderTravisCalloc
   Memcheck:Leak
   match-leak-kinds:all
   fun:calloc
@@ -16,11 +34,11 @@
   ...
 }
 {
-  shaderLeaksCreateShaderTravis
+  shaderLeaksLinkShaderTravisMalloc
   Memcheck:Leak
   match-leak-kinds:all
   fun:malloc
   ...
-  fun:createShaderProgram
+  fun:linkShaderProgram
   ...
 }
