@@ -17,6 +17,8 @@ export NODE_PATH=.
 
 #export RT_LOG_LEVEL=info
 
+#valgrind integration
+#suppressions are enabled to ignore the errors not interested
 if [ $ENABLE_VALGRIND -eq 1 ]
 then
 if [ -z $VALGRINDLOGS ]
