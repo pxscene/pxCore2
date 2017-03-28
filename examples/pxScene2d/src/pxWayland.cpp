@@ -368,9 +368,9 @@ void pxWayland::onDraw()
      context.popState();
   }
   
-  if ( needHolePunch )
+  if ( drawWithFBO && needHolePunch )
   {
-     if ( drawWithFBO && (mFillColor[3] != 0.0) )
+     if ( mFillColor[3] != 0.0 )
      {
         context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
      }
