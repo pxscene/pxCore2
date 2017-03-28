@@ -1,0 +1,10 @@
+{
+  glutLeaks 
+  Memcheck:Leak
+  match-leak-kinds:definite
+  fun:malloc
+  ...
+  fun:glXMakeContextCurrent
+  fun:fgOpenWindow
+  ...
+}

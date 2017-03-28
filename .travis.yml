@@ -25,6 +25,7 @@ script:
 - cd $TRAVIS_BUILD_DIR
 - sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "testrunner_$TRAVIS_OS_NAME.sh"
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh pxleakcheck_linux.sh; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh valgrind_linux.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then cd $TRAVIS_BUILD_DIR; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then tar -cvzf logs.tgz logs/* ; fi
 addons:
