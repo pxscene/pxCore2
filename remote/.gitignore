@@ -4,3 +4,5 @@ rtRemoteConfig.h
 rtRemoteConfigBuilder.cpp
 rtremote.conf
 rtremote.conf.gen
+*.client.log
+*.driver.log
