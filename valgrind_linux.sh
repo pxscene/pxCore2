@@ -22,7 +22,7 @@ done
 #kill pxscene either after js terminates or no response for 5 minutes
 echo "`ps -ef | grep valgrind |grep -v grep|grep pxscene|grep -v pxscene.sh|awk '{print $2}'`"
 kill -15 `ps -ef | grep valgrind |grep -v grep|grep pxscene|grep  -v pxscene.sh|awk '{print $2}'`
-sleep 5s;
+sleep 20s;
 pkill -9 -f pxscene.sh
 
 #check whether valgrind got completed
