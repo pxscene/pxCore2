@@ -25,6 +25,7 @@ script:
 - cd $TRAVIS_BUILD_DIR
 - sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "testrunner_$TRAVIS_OS_NAME.sh"
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh pxleakcheck_linux.sh; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh valgrind_linux.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then cd $TRAVIS_BUILD_DIR; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then tar -cvzf logs.tgz logs/* ; fi
 addons:
@@ -37,7 +38,7 @@ after_script:
 before_install:
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then openssl aes-256-cbc -K $encrypted_8b763c087de9_key -iv $encrypted_8b763c087de9_iv  -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry sudo apt-get update; fi
-- if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf valgrind; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install --HEAD ccache; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ls -al $HOME/.ccache; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export PATH=/usr/local/opt/ccache/libexec:$PATH; fi

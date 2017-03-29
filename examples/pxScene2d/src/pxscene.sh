@@ -16,8 +16,25 @@ export LD_LIBRARY_PATH=$PathR
 export NODE_PATH=.
 
 #export RT_LOG_LEVEL=info
- 
+
+#valgrind integration
+#suppressions are enabled to ignore the errors not interested
+if [ $ENABLE_VALGRIND -eq 1 ]
+then
+if [ -z $VALGRINDLOGS ]
+then
+VALGRINDLOGS=valgrind_logs
+fi
+echo "valgrind --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./pxscene $1 $2 $3 $4 $5 $6 $7"
+if [ -z $SUPPRESSIONS ]
+then
+valgrind --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./pxscene $1 $2 $3 $4 $5 $6 $7
+else
+valgrind --tool=memcheck --suppressions=$SUPPRESSIONS  --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./pxscene $1 $2 $3 $4 $5 $6 $7
+fi
+else
 ./pxscene $1 $2 $3 $4 $5 $6 $7
+fi
 #To run pxscene as background process
 #./pxscene $1 $2 $3 $4 $5 $6 $7 < `tty` >> /var/tmp/pxscene.log 2>&1 &
 

@@ -7,6 +7,8 @@ var root = scene.root;
 // Info about tests to be run
 var testUrls = ["http://pxscene.org/examples/px-reference/gallery/fancy.js","http://pxscene.org/examples/px-reference/gallery/picturepile.js","http://pxscene.org/examples/px-reference/gallery/gallery.js"]; // See tests.json for test urls to be run
 
+//added different timeout for different pages, as travis server is bit slower and so getting more timeout errors for complex js pages
+var testTimeouts = [5000,5000,20000];
 var numUrls = testUrls.length;
 var lastSceneIndex = numUrls-1;
 var savedIndexForTimeout;
@@ -56,7 +58,7 @@ var runTests = function( i) {
                 {
                   runTests(savedIndexForTimeout+1);
                 }
-              },5000);
+              },testTimeouts[i]);
           },function() {
             console.log("promise failure for test "+myIndex);
           });
