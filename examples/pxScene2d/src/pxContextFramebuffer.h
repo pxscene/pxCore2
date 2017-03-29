@@ -42,8 +42,8 @@ typedef struct _pxContextState
 class pxContextFramebuffer
 {
 public:
-  pxContextFramebuffer() : mRef(0), m_framebufferTexture(), m_framebufferStateStack(), mDirtyRectanglesEnabled(false), mDirtyRectangle(), mWidth(0), mHeight(0) {}
-  pxContextFramebuffer(int w, int h) : mRef(0), m_framebufferTexture(), m_framebufferStateStack(), mDirtyRectanglesEnabled(false), mDirtyRectangle(), mWidth(w), mHeight(h) {}
+  pxContextFramebuffer() : mRef(0), m_framebufferTexture(), m_framebufferStateStack(), mDirtyRectanglesEnabled(false), mDirtyRectangle() {}
+  pxContextFramebuffer(pxTextureRef texture) : m_framebufferTexture(texture), m_framebufferStateStack(), mDirtyRectanglesEnabled(false), mDirtyRectangle() {}
   virtual ~pxContextFramebuffer() {resetFbo();}
 
   virtual unsigned long AddRef(){ return rtAtomicInc(&mRef);}
@@ -77,21 +77,22 @@ public:
     return m_framebufferTexture;
   }
 
-  pxError setDimensions(int w, int h)
-  {
-    mWidth = w;
-    mHeight = h;
-    return PX_OK;
-  }
-
   int width()
   {
-    return mWidth;
+    if (m_framebufferTexture.getPtr() != NULL)
+    {
+      return m_framebufferTexture->width();
+    }
+    return 0;
   }
 
   int height()
   {
-    return mHeight;
+    if (m_framebufferTexture.getPtr() != NULL)
+    {
+      return m_framebufferTexture->height();
+    }
+    return 0;
   }
 
   pxError currentState(pxContextState& state)
@@ -147,8 +148,6 @@ protected:
   std::vector<pxContextState> m_framebufferStateStack;
   bool mDirtyRectanglesEnabled;
   pxRect mDirtyRectangle;
-  int mWidth;
-  int mHeight;
 };
 
 typedef rtRef<pxContextFramebuffer> pxContextFramebufferRef;

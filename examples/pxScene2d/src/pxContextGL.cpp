@@ -1695,10 +1695,6 @@ void pxContext::setSize(int w, int h)
   glViewport(0, 0, (GLint)w, (GLint)h);
   gResW = w;
   gResH = h;
-  if (currentFramebuffer.getPtr() != NULL)
-  {
-    currentFramebuffer->setDimensions(w,h);
-  }
 
   if (currentFramebuffer == defaultFramebuffer)
   {
@@ -1777,7 +1773,7 @@ float pxContext::getAlpha()
 
 pxContextFramebufferRef pxContext::createFramebuffer(int width, int height)
 {
-  pxContextFramebuffer* fbo = new pxContextFramebuffer(width, height);
+  pxContextFramebuffer* fbo = new pxContextFramebuffer();
   pxFBOTexture* texture = new pxFBOTexture();
 
   texture->createFboTexture(width, height);
@@ -2078,16 +2074,8 @@ void pxContext::popState()
 
 void pxContext::snapshot(pxOffscreen& o)
 {
-  
-  int ssWidth = gResW;
-  int ssHeight = gResH;
-  if (currentFramebuffer.getPtr() != NULL)
-  {
-    ssWidth = currentFramebuffer->width();
-    ssHeight = currentFramebuffer->height();
-  }
-  o.init(ssWidth,ssHeight);
-  glReadPixels(0,0,ssWidth,ssHeight,GL_RGBA,GL_UNSIGNED_BYTE,(void*)o.base());
+  o.init(gResW,gResH);
+  glReadPixels(0,0,gResW,gResH,GL_RGBA,GL_UNSIGNED_BYTE,(void*)o.base());
 
   o.setUpsideDown(true);
 }
