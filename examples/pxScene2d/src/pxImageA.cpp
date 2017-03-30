@@ -26,17 +26,27 @@ extern pxContext context;
 //TODO UGH!!
 static pxTextureRef nullMaskRef;
 
-pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), mStretchX(pxConstantsStretch::NONE), mStretchY(pxConstantsStretch::NONE)
+pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), mStretchX(pxConstantsStretch::NONE), mStretchY(pxConstantsStretch::NONE),
+                                       mResource(), mImageLoaded(false), mListenerAdded(false)
 {
   mCurFrame = 0;
   mCachedFrame = UINT32_MAX;
   mFrameTime = -1;
   mPlays = 0;
+  mResource = pxImageManager::getImageA("");
 }
 
 pxImageA::~pxImageA()
 {
-  gUIThreadQueue.removeAllTasksForObject(this);
+  if (mListenerAdded)
+  {
+    if (getImageAResource())
+    {
+      getImageAResource()->removeListener(this);
+    }
+    mResource = NULL;
+    mListenerAdded = false;
+  }
 }
 
 void pxImageA::onInit() 
@@ -63,16 +73,23 @@ rtError pxImageA::setUrl(const char *s)
   mImageWidth = 0;
   mImageHeight = 0;
 
-  mImageSequence.init();
   if (mURL)
   {
-    // Since this object can be released before we get a async completion
-    // We need to maintain this object's lifetime
-    // TODO review overall flow and organization  
-    AddRef();
-    mDownloadRequest = new rtFileDownloadRequest(mURL, this);
-    mDownloadRequest->setCallbackFunction(pxImageA::onDownloadComplete);
-    rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
+    rtImageAResource* resourceObj = getImageAResource();
+    if( resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s) && mImageLoaded)
+    {
+      if(mImageLoaded)
+      {
+        mImageLoaded = false;
+        pxObject::createNewPromise();
+      }
+    }
+    mResource = pxImageManager::getImageA(s);
+
+    if(getImageAResource()->getUrl().length() > 0 && !mImageLoaded) {
+      mListenerAdded = true;
+      getImageAResource()->addListener(this);
+    }
   }
   else
     mReady.send("resolve", this);
@@ -80,66 +97,13 @@ rtError pxImageA::setUrl(const char *s)
   return RT_OK;
 }
 
-void pxImageA::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
-{
-  pxImageA* image = (pxImageA*)downloadRequest->callbackData();
-  if (image) 
-  {
-    if (downloadRequest->downloadStatusCode() == 0)
-    {
-      char* data;
-      size_t dataSize;
-      downloadRequest->downloadedData(data, dataSize);
-      pxTimedOffscreenSequence* s = new pxTimedOffscreenSequence;
-
-      if (pxLoadAImage(data, dataSize, *s) == RT_OK)
-      {
-        gUIThreadQueue.addTask(pxImageA::onDownloadCompleteUI, image, s);
-        return;  // Successful and done
-      }
-      else
-        delete s;
-    }
-    // If we fall through to here we've failed so send NULL to reject promise
-    gUIThreadQueue.addTask(pxImageA::onDownloadCompleteUI, image, NULL);
-  }
-}
-
-void pxImageA::onDownloadCompleteUI(void* context, void* data)
-{
-  pxImageA* image = (pxImageA*)context;
-
-  if (image)
-  {
-    if (data)
-    {
-      pxTimedOffscreenSequence* s = (pxTimedOffscreenSequence*)data;
-      image->mImageSequence = *s;
-      if (image->mImageSequence.numFrames() > 0)
-      {
-        pxOffscreen &o = image->mImageSequence.getFrameBuffer(0);
-        image->mImageWidth = o.width();
-        image->mImageHeight = o.height();
-        image->mw = image->mImageWidth;
-        image->mh = image->mImageHeight;
-      }
-      image->mReady.send("resolve", image);
-      delete s;
-    }
-    else
-      image->mReady.send("reject", image);
-
-    // Balancing explicit AddRef call
-    image->Release();
-  }
-}
-
 // animation happens here
 void pxImageA::update(double t)
 {
   pxObject::update(t);
 
-  uint32_t numFrames = mImageSequence.numFrames();
+  pxTimedOffscreenSequence& imageSequence = getImageAResource()->getTimedOffscreenSequence();
+  uint32_t numFrames = imageSequence.numFrames();
 
   if (numFrames > 0)
   {
@@ -151,7 +115,7 @@ void pxImageA::update(double t)
 
     for (; mCurFrame < numFrames; mCurFrame++)
     {
-      double d = mImageSequence.getDuration(mCurFrame);
+      double d = imageSequence.getDuration(mCurFrame);
       if (mFrameTime + d >= t)
         break;
       mFrameTime += d;
@@ -161,7 +125,7 @@ void pxImageA::update(double t)
     {
       mCurFrame = numFrames - 1; // snap animation to last frame
 
-      if (!mImageSequence.numPlays() || mPlays < mImageSequence.numPlays())
+      if (!imageSequence.numPlays() || mPlays < imageSequence.numPlays())
       {
         mFrameTime = -1; // reset animation
         mPlays++;
@@ -170,7 +134,7 @@ void pxImageA::update(double t)
 
     if (mCachedFrame != mCurFrame)
     {
-      pxOffscreen &o = mImageSequence.getFrameBuffer(mCurFrame);
+      pxOffscreen &o = imageSequence.getFrameBuffer(mCurFrame);
       mTexture = context.createTexture(o);
       mCachedFrame = mCurFrame;
       pxRect r(0, 0, mImageHeight, mImageWidth);
@@ -181,8 +145,23 @@ void pxImageA::update(double t)
 
 void pxImageA::draw()
 {
-  if (mImageSequence.numFrames() > 0)
+  pxTimedOffscreenSequence& imageSequence = getImageAResource()->getTimedOffscreenSequence();
+  if (imageSequence.numFrames() > 0)
     context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, false, NULL, mStretchX, mStretchY);
+}
+
+void pxImageA::dispose()
+{
+  if (mListenerAdded)
+  {
+    if (getImageAResource())
+    {
+      getImageAResource()->removeListener(this);
+    }
+    mResource = NULL;
+    mListenerAdded = false;
+  }
+  pxObject::dispose();
 }
 
 #if 0
@@ -227,8 +206,92 @@ rtError pxImageA::setStretchY(int32_t v)
   return RT_OK;
 }
 
+rtError pxImageA::setResource(rtObjectRef o)
+{
+  if(!o)
+  {
+    setUrl("");
+    return RT_OK;
+  }
+
+  rtString desc;
+  o.sendReturns("description",desc);
+  if(!desc.compare("rtImageAResource"))
+  {
+    rtString url;
+    url = o.get<rtString>("url");
+    // Only create new promise if url is different
+    if( getImageAResource()->getUrl().compare(o.get<rtString>("url")) )
+    {
+      mResource = o;
+      mImageLoaded = false;
+      pxObject::createNewPromise();
+      mListenerAdded = true;
+      getImageAResource()->addListener(this);
+#if 0
+      checkStretchX();
+      checkStretchY();
+#endif //0
+    }
+    return RT_OK;
+  }
+  else
+  {
+    rtLogError("Object passed as resource is not an imageAResource!\n");
+    return RT_ERROR;
+  }
+
+}
+
+void pxImageA::loadImageSequence()
+{
+  if (getImageAResource()->getLoadStatus("statusCode") == 0)
+  {
+    pxTimedOffscreenSequence& imageSequence = getImageAResource()->getTimedOffscreenSequence();
+    if (imageSequence.numFrames() > 0)
+    {
+      pxOffscreen &o = imageSequence.getFrameBuffer(0);
+      mImageWidth = o.width();
+      mImageHeight = o.height();
+      mw = mImageWidth;
+      mh = mImageHeight;
+    }
+    mReady.send("resolve", this);
+  }
+  else
+  {
+    mReady.send("reject", this);
+  }
+}
+
+void pxImageA::resourceReady(rtString readyResolution)
+{
+#if 0
+  checkStretchX();
+  checkStretchY();
+#endif //0
+  if( !readyResolution.compare("resolve"))
+  {
+    mImageLoaded = true;
+    pxObject::onTextureReady();
+    mScene->mDirty = true;
+    loadImageSequence();
+    pxObject* parent = mParent;
+    if( !parent)
+    {
+      //TODO - do we want to send promises this way or the way we have it?
+      //sendPromise();
+    }
+  }
+  else
+  {
+    pxObject::onTextureReady();
+    mReady.send("reject",this);
+  }
+}
+
 rtDefineObject(pxImageA, pxObject);
 rtDefineProperty(pxImageA, url);
-//rtDefineProperty(pxImage, resource);
+rtDefineProperty(pxImageA, resource);
 rtDefineProperty(pxImageA, stretchX);
 rtDefineProperty(pxImageA, stretchY);

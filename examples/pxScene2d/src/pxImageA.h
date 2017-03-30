@@ -23,18 +23,17 @@
 
 #include "pxScene2d.h"
 
-#include "rtFileDownloader.h"
 #include "pxUtil.h"
+#include "pxResource.h"
 
-class pxImageA: public pxObject
+class pxImageA: public pxObject, pxResourceListener
 {
 public:
   rtDeclareObject(pxImageA, pxObject);
   rtProperty(url, url, setUrl, rtString);
   rtProperty(stretchX, stretchX, setStretchX, int32_t);
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
-  // TODO resource (for animated images)
-  //rtProperty(resource, resource, setResource, rtObjectRef);
+  rtProperty(resource, resource, setResource, rtObjectRef);
 
   pxImageA(pxScene2d* scene);
   virtual ~pxImageA();
@@ -48,18 +47,21 @@ public:
   rtError stretchY(int32_t& v) const { v = (int32_t)mStretchY; return RT_OK; }
   rtError setStretchY(int32_t v);
 
+  rtError resource(rtObjectRef& o) const { o = mResource; return RT_OK; }
+  rtError setResource(rtObjectRef o);
+  virtual void resourceReady(rtString readyResolution);
+
   virtual void update(double t);
   virtual void draw();
+  virtual void dispose();
   
 protected:
   virtual void onInit();
+  inline rtImageAResource* getImageAResource() const { return (rtImageAResource*)mResource.getPtr(); }
 
   void sendPromise() {} // shortcircuit  TODO...not sure if I like this pattern
+  void loadImageSequence();
 
-  static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
-  static void onDownloadCompleteUI(void* context, void* data);
-  
-  pxTimedOffscreenSequence mImageSequence;
   uint32_t mCurFrame;
   uint32_t mCachedFrame;
   uint32_t mPlays;
@@ -74,7 +76,9 @@ protected:
   pxConstantsStretch::constants mStretchX;
   pxConstantsStretch::constants mStretchY;
 
-  rtFileDownloadRequest* mDownloadRequest;
+  rtObjectRef mResource;
+  bool mImageLoaded;
+  bool mListenerAdded;
 };
 
 #endif

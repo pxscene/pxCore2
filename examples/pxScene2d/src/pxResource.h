@@ -31,6 +31,7 @@
 #include "rtPromise.h"
 #include "pxTexture.h"
 #include "rtMutex.h"
+#include "pxUtil.h"
 #ifdef ENABLE_HTTP_CACHE
 #include "rtFileCache.h"
 #endif
@@ -144,18 +145,48 @@ private:
  
 };
 
+class rtImageAResource : public pxResource
+{
+public:
+  rtImageAResource(const char* url = 0);
+  ~rtImageAResource();
+
+  rtDeclareObject(rtImageAResource, pxResource);
+
+  virtual unsigned long Release() ;
+
+  virtual void init();
+  pxTimedOffscreenSequence& getTimedOffscreenSequence() { return mTimedOffscreenSequence; }
+
+protected:
+  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+
+private:
+
+  void loadResourceFromFile();
+  pxTimedOffscreenSequence mTimedOffscreenSequence;
+
+};
+
 // Weak Map
 typedef std::map<rtString, rtImageResource*> ImageMap;
+typedef std::map<rtString, rtImageAResource*> ImageAMap;
 class pxImageManager
 {
   
   public: 
     static rtRef<rtImageResource> getImage(const char* url);
     static void removeImage(rtString imageUrl);
+
+    static rtRef<rtImageAResource> getImageA(const char* url);
+    static void removeImageA(rtString imageAUrl);
     
   private: 
     static ImageMap mImageMap;
     static rtRef<rtImageResource> emptyUrlResource;
+
+    static ImageAMap mImageAMap;
+    static rtRef<rtImageAResource> emptyUrlImageAResource;
 
 };
 
