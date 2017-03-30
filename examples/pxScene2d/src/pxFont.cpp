@@ -305,6 +305,8 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
       entry->advancedoty = g->advance.y;
       entry->vertAdvance = g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
 
+      gGlyphCache.insert(make_pair(key,entry));
+
       return entry;
     }
   }

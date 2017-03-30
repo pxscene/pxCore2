@@ -1070,13 +1070,14 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
   }
 
 
+  // TODO this looks pretty inefficient... We should revisit... 
   for(int i = length; i > 0; i--)
   {
     tempStr[i] = '\0';
     charW = 0;
     charH = 0;
     getFontResource()->measureTextInternal(tempStr, pixelSize, sx, sy, charW, charH);
-    if( (tempX + charW + ellipsisW) <= lineWidth)
+    if ( (tempX + charW + ellipsisW) <= lineWidth)
     {
       float xPos = tempX;
       if( mTruncation == pxConstantsTruncation::TRUNCATE)
