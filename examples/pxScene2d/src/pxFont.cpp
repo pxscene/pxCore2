@@ -250,17 +250,8 @@ pxTextureRef pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy)
     {
       rtLogDebug("glyph texture cache miss");
 
-      GlyphCacheEntry *entry = new GlyphCacheEntry;
       FT_GlyphSlot g = mFace->glyph;
       
-      entry->bitmap_left = g->bitmap_left;
-      entry->bitmap_top = g->bitmap_top;
-      entry->bitmapdotwidth = g->bitmap.width;
-      entry->bitmapdotrows = g->bitmap.rows;
-      entry->advancedotx = g->advance.x;
-      entry->advancedoty = g->advance.y;
-      entry->vertAdvance = g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
-
       pxTextureRef texture = context.createTexture(g->bitmap.width, g->bitmap.rows, 
                                               g->bitmap.width, g->bitmap.rows, 
                                               g->bitmap.buffer);
