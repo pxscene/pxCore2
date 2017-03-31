@@ -119,6 +119,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
   var _this = this;
 
   var moduleLoader = new SceneModuleLoader();
+  var thisMakeReady = this.makeReady;
 
   moduleLoader.loadScenePackage(this.innerscene, {fileUri:packageUri})
     .then(function processScenePackage() {
@@ -151,7 +152,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
 
     })
     .catch(function(err) {
-      this.makeReady(false, {});
+      thisMakeReady(false,{});
       console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=" + err );
     });
 
@@ -296,9 +297,7 @@ if (false) {
         }).catch( function(err)
         {
           console.error("Main module[" + self.packageUrl + "]" + " load has failed - on failed imports: " + ", err=" + err);
-//          self.container.makeReady(false); // DEPRECATED ?
-
-          this.makeReady(false,{});
+          thisMakeReady(false,{});
         } );
       }
 
