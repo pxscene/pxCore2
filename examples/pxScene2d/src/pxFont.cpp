@@ -564,6 +564,9 @@ void pxFontManager::removeFont(rtString fontName)
 
 void pxFontManager::clearAllFonts()
 {
+  for (GlyphCache::iterator it =  gGlyphCache.begin(); it != gGlyphCache.end(); it++)
+    delete it->second;
+
   gGlyphCache.clear();
   gGlyphTextureCache.clear();
 }
