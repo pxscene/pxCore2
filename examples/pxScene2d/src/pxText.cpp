@@ -53,7 +53,7 @@ void pxText::onInit()
 {
   mInitialized = true;
 
-  if( getFontResource()->isFontLoaded()) {
+  if( getFontResource() != NULL && getFontResource()->isFontLoaded()) {
     resourceReady("resolve");
   }
 }
@@ -76,7 +76,7 @@ rtError pxText::setText(const char* s)
     return RT_OK;
   }
   mText = s; 
-  if( getFontResource()->isFontLoaded())
+  if( getFontResource() != NULL && getFontResource()->isFontLoaded())
   {
     createNewPromise();
     getFontResource()->measureTextInternal(s, mPixelSize, 1.0, 1.0, mw, mh);
@@ -88,7 +88,7 @@ rtError pxText::setPixelSize(uint32_t v)
 {   
   //rtLogInfo("pxText::setPixelSize\n");
   mPixelSize = v; 
-  if( getFontResource()->isFontLoaded())
+  if( getFontResource() != NULL && getFontResource()->isFontLoaded())
   {
     createNewPromise();
     getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
@@ -103,7 +103,9 @@ void pxText::resourceReady(rtString readyResolution)
     mFontLoaded=true;
     // pxText gets its height and width from the text itself, 
     // so measure it
-    getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
+    if (getFontResource() != NULL)
+      getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
+
     mDirty=true;  
     mScene->mDirty = true;
     // !CLF: ToDo Use pxObject::onTextureReady() and rename it.
@@ -168,7 +170,7 @@ void pxText::update(double t)
 
 void pxText::draw() {
   static pxTextureRef nullMaskRef;
-  if( getFontResource()->isFontLoaded())
+  if( getFontResource() != NULL && getFontResource()->isFontLoaded())
   {
     // TODO not very intelligent given scaling
     if (msx == 1.0 && msy == 1.0 && mCached.getPtr() && mCached->getTexture().getPtr())
@@ -180,7 +182,10 @@ void pxText::draw() {
     }
     else
     {
-      getFontResource()->renderText(mText, mPixelSize, 0, 0, msx, msy, mTextColor, mw);
+      if (getFontResource() != NULL)
+      {
+        getFontResource()->renderText(mText, mPixelSize, 0, 0, msx, msy, mTextColor, mw);
+      }
     }
   }  
   //else {
@@ -200,7 +205,10 @@ rtError pxText::setFontUrl(const char* s)
 
   mFont = pxFontManager::getFont(s);
   mListenerAdded = true;
-  getFontResource()->addListener(this);
+  if (getFontResource() != NULL)
+  {
+    getFontResource()->addListener(this);
+  }
   
   return RT_OK;
 }
@@ -213,7 +221,8 @@ rtError pxText::setFont(rtObjectRef o)
   // !CLF: TODO: Need validation/verification of o
   mFont = o; 
   mListenerAdded = true;
-  getFontResource()->addListener(this);
+  if (getFontResource() != NULL)
+    getFontResource()->addListener(this);
     
   return RT_OK; 
 }

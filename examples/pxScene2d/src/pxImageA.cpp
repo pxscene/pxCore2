@@ -76,7 +76,7 @@ rtError pxImageA::setUrl(const char *s)
   if (mURL)
   {
     rtImageAResource* resourceObj = getImageAResource();
-    if( resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s) && mImageLoaded)
+    if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s) && mImageLoaded)
     {
       if(mImageLoaded)
       {
@@ -86,7 +86,7 @@ rtError pxImageA::setUrl(const char *s)
     }
     mResource = pxImageManager::getImageA(s);
 
-    if(getImageAResource()->getUrl().length() > 0 && !mImageLoaded) {
+    if(getImageAResource() != NULL && getImageAResource()->getUrl().length() > 0 && !mImageLoaded) {
       mListenerAdded = true;
       getImageAResource()->addListener(this);
     }
@@ -101,6 +101,11 @@ rtError pxImageA::setUrl(const char *s)
 void pxImageA::update(double t)
 {
   pxObject::update(t);
+
+  if (getImageAResource() == NULL)
+  {
+    return;
+  }
 
   pxTimedOffscreenSequence& imageSequence = getImageAResource()->getTimedOffscreenSequence();
   uint32_t numFrames = imageSequence.numFrames();
@@ -145,9 +150,14 @@ void pxImageA::update(double t)
 
 void pxImageA::draw()
 {
-  pxTimedOffscreenSequence& imageSequence = getImageAResource()->getTimedOffscreenSequence();
-  if (imageSequence.numFrames() > 0)
-    context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, false, NULL, mStretchX, mStretchY);
+  if (getImageAResource() != NULL)
+  {
+    pxTimedOffscreenSequence &imageSequence = getImageAResource()->getTimedOffscreenSequence();
+    if (imageSequence.numFrames() > 0)
+    {
+      context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, false, NULL, mStretchX, mStretchY);
+    }
+  }
 }
 
 void pxImageA::dispose()
@@ -167,7 +177,7 @@ void pxImageA::dispose()
 #if 0
 void pxImageA::checkStretchX()
 {
-  rtImageResource* imageResource = getImageResource();
+  rtImageResource* imageResource = getImageAResource();
   if (mStretchX == pxConstantsStretch::REPEAT && imageResource != NULL)
   {
     pxTextureRef texture = imageResource->getTexture();
@@ -180,7 +190,7 @@ void pxImageA::checkStretchX()
 
 void pxImageA::checkStretchY()
 {
-  rtImageResource* imageResource = getImageResource();
+  rtImageResource* imageResource = getImageAResource();
   if (mStretchY == pxConstantsStretch::REPEAT && imageResource != NULL)
   {
     pxTextureRef texture = imageResource->getTexture();
@@ -221,7 +231,7 @@ rtError pxImageA::setResource(rtObjectRef o)
     rtString url;
     url = o.get<rtString>("url");
     // Only create new promise if url is different
-    if( getImageAResource()->getUrl().compare(o.get<rtString>("url")) )
+    if( getImageAResource() != NULL && getImageAResource()->getUrl().compare(o.get<rtString>("url")) )
     {
       mResource = o;
       mImageLoaded = false;
@@ -245,7 +255,7 @@ rtError pxImageA::setResource(rtObjectRef o)
 
 void pxImageA::loadImageSequence()
 {
-  if (getImageAResource()->getLoadStatus("statusCode") == 0)
+  if (getImageAResource() != NULL && getImageAResource()->getLoadStatus("statusCode") == 0)
   {
     pxTimedOffscreenSequence& imageSequence = getImageAResource()->getTimedOffscreenSequence();
     if (imageSequence.numFrames() > 0)

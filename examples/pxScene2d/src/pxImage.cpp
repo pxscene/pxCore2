@@ -60,7 +60,14 @@ void pxImage::onInit()
   mInitialized = true;
   //rtLogDebug("pxImage::onInit for mUrl=\n");
   //rtLogDebug("%s\n",getImageResource()->getUrl().cString());
-  setUrl(getImageResource()->getUrl());
+  if (getImageResource() != NULL)
+  {
+    setUrl(getImageResource()->getUrl());
+  }
+  else
+  {
+    setUrl("");
+  }
 }
 
 /**
@@ -83,7 +90,7 @@ rtError pxImage::setResource(rtObjectRef o)
     rtString url;
     url = o.get<rtString>("url");
     // Only create new promise if url is different 
-    if( getImageResource()->getUrl().compare(o.get<rtString>("url")) )
+    if( getImageResource() != NULL && getImageResource()->getUrl().compare(o.get<rtString>("url")) )
     {
       mResource = o; 
       imageLoaded = false;
@@ -103,7 +110,18 @@ rtError pxImage::setResource(rtObjectRef o)
 
 }
 
-rtError pxImage::url(rtString& s) const { s = getImageResource()->getUrl(); return RT_OK; }
+rtError pxImage::url(rtString& s) const
+{
+  if (getImageResource() != NULL)
+  {
+    s = getImageResource()->getUrl();
+  }
+  else
+  {
+    s = "";
+  }
+  return RT_OK;
+}
 rtError pxImage::setUrl(const char* s) 
 { 
   //rtLogInfo("pxImage::setUrl init=%d imageLoaded=%d \n", mInitialized, imageLoaded);
@@ -113,7 +131,7 @@ rtError pxImage::setUrl(const char* s)
   // url is initially being set because it's already created on construction
   // If mUrl is already set and loaded and s is different, create a new promise
   rtImageResource* resourceObj = getImageResource();
-  if( resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s) && imageLoaded)
+  if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s) && imageLoaded)
   {
     if(imageLoaded) 
     {
@@ -132,7 +150,7 @@ rtError pxImage::setUrl(const char* s)
 
   mResource = pxImageManager::getImage(s);
 
-  if(getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded) {
+  if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded) {
     mListenerAdded = true;
     getImageResource()->addListener(this);
   }
@@ -172,14 +190,17 @@ float pxImage::getOnscreenHeight()
 void pxImage::draw() {
   //rtLogDebug("pxImage::draw() mw=%f mh=%f\n", mw, mh);
   static pxTextureRef nullMaskRef;
-  context.drawImage(0, 0, 
-                    getOnscreenWidth(),
-                    getOnscreenHeight(), 
-                    getImageResource()->getTexture(), nullMaskRef, 
-                    false, NULL, mStretchX, mStretchY);
+  if (getImageResource() != NULL)
+  {
+    context.drawImage(0, 0,
+                      getOnscreenWidth(),
+                      getOnscreenHeight(),
+                      getImageResource()->getTexture(), nullMaskRef,
+                      false, NULL, mStretchX, mStretchY);
+  }
   // Raise the priority if we're still waiting on the image download    
 #if 0
-  if (!imageLoaded && getImageResource()->isDownloadInProgress())
+  if (!imageLoaded && getImageResource() != NULL && getImageResource()->isDownloadInProgress())
     getImageResource()->raiseDownloadPriority();
 #endif
 }
