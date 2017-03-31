@@ -10,6 +10,10 @@ public:
     ~rtThreadPool();
     
     static rtThreadPool* globalInstance();
+
+	void raisePriority(const rtString & url) {
+		//TODO
+	};
     
 private:
     

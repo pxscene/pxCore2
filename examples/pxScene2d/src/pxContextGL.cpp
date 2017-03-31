@@ -39,6 +39,9 @@
 #include <GLES2/gl2ext.h>
 #else
 #include <GL/glew.h>
+#ifdef WIN32 
+#include <GL/wglew.h>
+#endif // WIN32
 #include <GL/glut.h>
 #include <GL/gl.h>
 #endif //PX_PLATFORM_WAYLAND_EGL
@@ -1684,6 +1687,7 @@ void pxContext::init()
 
 //  gprogram = program;
   setTextureMemoryLimit(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES);
+
 #ifdef PX_PLATFORM_GENERIC_EGL
   defaultEglContext = eglGetCurrentContext();
   rtLogInfo("current context in init: %d", defaultEglContext);

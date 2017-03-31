@@ -35,6 +35,9 @@
 #define __FT2BUILD_H__
 
 #include <config/ftheader.h>
+#ifdef HAVE_OPENSSL
+#include "base\md5.h"
+#endif
 
 #endif /* __FT2BUILD_H__ */
 

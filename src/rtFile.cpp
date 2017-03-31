@@ -37,6 +37,7 @@
 #ifdef WIN32
 #include <Windows.h>
 #include <limits>
+#include <direct.h>
 #ifdef max
 #undef max
 #endif
@@ -103,26 +104,19 @@ rtError rtLoadFile(const char* f, rtData& data)
 {
   rtError e = RT_FAIL;
 #ifdef WIN32
-  HANDLE hFile = CreateFile(f, GENERIC_READ, 0, NULL, 0,
-    FILE_ATTRIBUTE_NORMAL, NULL);
-  if (hFile != INVALID_HANDLE_VALUE)
+  FILE * pFile = fopen(f, "rb");
+  if (pFile)
   {
-    LARGE_INTEGER size;
-    if (GetFileSizeEx(hFile, &size))
-    {
-      if (size.QuadPart < std::numeric_limits<uint32_t>::max())
-      {
-        uint32_t l = static_cast<uint32_t>(size.QuadPart);
-        data.init(l);
-
-        DWORD dwBytesRead = 0;
-        if (ReadFile(hFile, data.data(), l, &dwBytesRead, NULL))
-        {
-
-        }
-      }
-    }
-    CloseHandle(hFile);
+	fseek(pFile, 0, SEEK_END);
+	unsigned int lSize = ftell(pFile);
+	if (lSize < std::numeric_limits<int>::max()) {
+	  rewind(pFile);
+	  data.init(lSize);
+	  if (fread((void*)data.data(), 1, lSize, pFile) == lSize) {
+			e = RT_OK;
+	  }
+	}
+	fclose(pFile);
   }
 #else
   struct stat st;

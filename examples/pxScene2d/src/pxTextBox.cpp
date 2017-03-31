@@ -28,7 +28,7 @@
 extern pxContext context;
 #include <math.h>
 #include <map>
-
+#include <stdlib.h>
 
 static const char      isNewline_chars[] = "\n\v\f\r";
 static const char isWordBoundary_chars[] = " \t/:&,;.";
@@ -350,7 +350,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
     {
       // Determine if the character is multibyte
       numbytes = i-lasti;
-      char tempChar[(numbytes) +1];
+	  char *tempChar = (char*)malloc(sizeof(char)*(numbytes+1));
       memset(tempChar, '\0', sizeof(tempChar));
       if(numbytes == 1) {
         tempChar[0] = charToMeasure;
@@ -477,6 +477,8 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
 
             free(tempStr);
           }
+
+		  free(tempChar);
 
           // Now skip to next line
           tempY += (mLeading*sy) + charH;

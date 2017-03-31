@@ -2574,6 +2574,25 @@ void pxScriptView::runScript()
     sprintf(buffer, "loadUrl(\"%s\");", mUrl.cString());
     rtLogWarn("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
 #endif
+#ifdef WIN32 // process \\ to /
+		unsigned int bufferLen = strlen(buffer);
+		char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));
+		unsigned int newBufferLen = 0;
+		for (int i = 0; i < bufferLen - 1; i++) {
+			if (buffer[i] == '\\') {
+				newBuffer[newBufferLen++] = '/';
+				if (buffer[i + 1] == '\\') {
+					i = i + 1;
+				}
+			}
+			else {
+				newBuffer[newBufferLen++] = buffer[i];
+			}
+		}
+		newBuffer[newBufferLen++] = '\0';
+		strcpy(buffer, newBuffer);
+		free(newBuffer);
+#endif
     mCtx->runScript(buffer);
     rtLogInfo("pxScriptView::runScript() ending\n");
   }

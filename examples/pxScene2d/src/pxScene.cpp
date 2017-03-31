@@ -53,6 +53,7 @@ using namespace std;
 #define PX_SCENE_VERSION dev
 #endif
 
+
 #ifndef RUNINMAIN
 class AsyncScriptInfo;
 vector<AsyncScriptInfo*> scriptsInfo;
@@ -80,9 +81,15 @@ public:
   void init(int x, int y, int w, int h, const char* url = NULL)
   {
     pxWindow::init(x,y,w,h);
-    
+
     char buffer[1024];
-    sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(url).cString());
+		std::string urlStr(url);
+		if (urlStr.find("http")) {
+			sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(url).cString());
+		}
+		else {
+			sprintf(buffer, "shell.js?url=%s",url);
+		}
 #ifdef RUNINMAIN
     setView( new pxScriptView(buffer,"javascript/node/v8"));
 #else
@@ -376,6 +383,53 @@ if (s && (strcmp(s,"1") == 0))
   win.setVisibility(true);
   win.setAnimationFPS(60);
 
+
+#ifdef WIN32
+  HDC hdc = ::GetDC(win.mWindow);
+  HGLRC hrc;
+
+	static PIXELFORMATDESCRIPTOR pfd =
+	{
+		sizeof(PIXELFORMATDESCRIPTOR),
+		1,
+		PFD_DRAW_TO_WINDOW |
+		PFD_SUPPORT_OPENGL |
+		PFD_DOUBLEBUFFER |
+		PFD_SWAP_EXCHANGE,
+		PFD_TYPE_RGBA,
+		24,
+		0, 0, 0, 0, 0, 0,
+		8,
+		0,
+		0,
+		0, 0, 0, 0,
+		24,
+		8,
+		0,
+		PFD_MAIN_PLANE,
+		0,
+		0, 0, 0
+	};
+
+	int pixelFormat = ChoosePixelFormat(hdc, &pfd);
+  if (::SetPixelFormat(hdc, pixelFormat, &pfd)) {
+	  hrc = wglCreateContext(hdc);
+	  if (::wglMakeCurrent(hdc, hrc)) {
+			glewExperimental = GL_TRUE;
+			if (glewInit() != GLEW_OK)
+				throw std::runtime_error("glewInit failed");
+
+			char *GL_version = (char *)glGetString(GL_VERSION);
+			char *GL_vendor = (char *)glGetString(GL_VENDOR);
+			char *GL_renderer = (char *)glGetString(GL_RENDERER);
+
+
+			rtLogInfo("GL_version = %s", GL_version);
+			rtLogInfo("GL_vendor = %s", GL_vendor);
+			rtLogInfo("GL_renderer = %s", GL_renderer);
+	  }
+  }
+#endif
   #if 0
   sceneWindow win2;
   win2.init(50, 50, 1280, 720);

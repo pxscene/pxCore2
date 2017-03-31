@@ -46,7 +46,13 @@
 #endif
 
 #ifdef WIN32
+#include <Windows.h>
 static DWORD __rt_main_thread__;
+
+void sleep(float time) {
+  Sleep(time * 1000);
+}
+
 #else
 static pthread_t __rt_main_thread__;
 #endif

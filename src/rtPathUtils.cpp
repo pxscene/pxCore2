@@ -20,7 +20,11 @@
 
 #include "rtPathUtils.h"
 #include <stdlib.h>
+#if defined WIN32
+#include <direct.h>
+#else
 #include <unistd.h>
+#endif
 
 rtError rtGetCurrentDirectory(rtString& d) 
 {

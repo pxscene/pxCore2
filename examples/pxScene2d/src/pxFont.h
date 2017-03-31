@@ -40,6 +40,11 @@ class pxFont;
 
 class rtFileDownloadRequest;
 
+#if defined WIN32
+#include<inttypes.h>
+typedef uint32_t u_int32_t;
+#endif
+
 struct GlyphCacheEntry
 {
   int bitmap_left;

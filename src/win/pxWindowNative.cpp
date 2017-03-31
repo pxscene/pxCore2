@@ -8,6 +8,8 @@
 #include "../pxWindow.h"
 #include "../pxWindowUtil.h"
 
+#include "../pxKeycodes.h"
+
 #ifndef WINCE
 #include <tchar.h>
 #define _ATL_NO_HOSTING
@@ -70,7 +72,7 @@ pxError pxWindowNative::initNative(HWND parent, int left, int top, int width, in
     if (!::GetClassInfo(hInstance, className, &wc))
     {
 
-	wc.style         = CS_HREDRAW | CS_VREDRAW;
+	wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 	wc.lpfnWndProc   = (WNDPROC)windowProc;
 	wc.cbClsExtra    = 0;
 	wc.cbWndExtra    = 0;
@@ -218,6 +220,9 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
     int mouseButtonShift = 0;
 
     pxWindowNative* w;
+
+	static HDC hDC;
+	static HGLRC hRC;
     
 #ifndef WINCE
     if (msg == WM_NCCREATE)
@@ -304,6 +309,9 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
         case WM_DESTROY:
             w->onClose(); 
             //SetProp(hWnd, _T("wnWindow"), NULL);
+
+			wglMakeCurrent(hDC, nullptr);
+			wglDeleteContext(hRC);
 #ifdef WINCE
             setWindowPtr(hWnd, NULL);
 #endif
@@ -399,9 +407,12 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
                 }
 
                 w->onKeyDown(keycodeFromNative((int)wParam), flags);
-                w->onChar((char)wParam);
+                //w->onChar((char)wParam);
             }
             break;
+				case WM_CHAR: 
+					w->onChar((char)wParam);
+					break;
 
         case WM_KEYUP:
         case WM_SYSKEYUP:
@@ -430,6 +441,7 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
                 PAINTSTRUCT ps;
                 HDC dc = BeginPaint(w->mWindow, &ps);
                 w->onDraw(dc);
+								SwapBuffers(dc);
                 EndPaint(w->mWindow, &ps);
 				return 0;
             }
