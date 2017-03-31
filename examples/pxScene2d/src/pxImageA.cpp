@@ -102,7 +102,7 @@ void pxImageA::update(double t)
 {
   pxObject::update(t);
 
-  if (getImageAResource() == NULL)
+  if (getImageAResource() == NULL || !mImageLoaded)
   {
     return;
   }
@@ -150,7 +150,7 @@ void pxImageA::update(double t)
 
 void pxImageA::draw()
 {
-  if (getImageAResource() != NULL)
+  if (getImageAResource() != NULL && mImageLoaded)
   {
     pxTimedOffscreenSequence &imageSequence = getImageAResource()->getTimedOffscreenSequence();
     if (imageSequence.numFrames() > 0)
