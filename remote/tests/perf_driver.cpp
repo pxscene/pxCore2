@@ -22,6 +22,7 @@ struct Settings
   int NumIterations;
   std::string TestId;
   std::string PathToExe;
+  rtLogLevel LogLevel;
 };
 
 void
@@ -201,6 +202,8 @@ StartChildProcess(Settings* settings, bool isClient)
     else
       path += "perf_server";
 
+    char const* logLevel = rtLogLevelToString(settings->LogLevel);
+
     rtLogInfo("starting: %s", path.c_str());
     if (isClient)
     {
@@ -208,11 +211,13 @@ StartChildProcess(Settings* settings, bool isClient)
       memset(num, 0, sizeof(num));
       snprintf(num, sizeof(num), "%d", settings->NumIterations);
 
-      execl(path.c_str(), path.c_str(), "-i", settings->TestId.c_str(), "-n", num, 0);
+      execl(path.c_str(), path.c_str(), "-i", settings->TestId.c_str(), "-n", num,
+        "-l", logLevel , (char *) nullptr);
     }
     else
     {
-      execl(path.c_str(), path.c_str(), "-i", settings->TestId.c_str(), 0);
+      execl(path.c_str(), path.c_str(), "-i", settings->TestId.c_str(),
+        "-l", logLevel , (char *) nullptr);
     }
 
     rtLogError("failed to exec:%s. %s", path.c_str(), strerror(errno));
@@ -237,7 +242,6 @@ void PrintHelp()
   exit(0);
 }
 
-
 int main(int argc, char* argv[])
 {
   Settings settings;
@@ -247,7 +251,7 @@ int main(int argc, char* argv[])
 
   while (true)
   {
-    int c = getopt_long(argc, argv, "n:h", longOptions, &optionIndex);
+    int c = getopt_long(argc, argv, "n:h:l:", longOptions, &optionIndex);
     if (c == -1)
       break;
 
@@ -277,6 +281,7 @@ int main(int argc, char* argv[])
 
   settings.PathToExe = GetPathToExecutable(argv[0]);
   settings.TestId = GetNextTestId();
+  settings.LogLevel = logLevel;
 
   char logFileName[256];
   snprintf(logFileName, sizeof(logFileName), "%s.driver.log", settings.TestId.c_str());

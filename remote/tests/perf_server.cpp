@@ -33,13 +33,27 @@ logFileWriter(rtLogLevel level, const char* path, int line, int threadId, char* 
 class rtTestObject : public rtObject
 {
 public:
+  rtTestObject()
+    : m_callbackTestRunning(false)
+  {
+  }
+
   rtDeclareObject(rtTestObject, rtObject);
   rtProperty(num, num, setNum, uint32_t);
+  rtProperty(onMessage, onMessage, setOnMessage, rtFunctionRef);
   rtMethodNoArgAndNoReturn("shutdown", shutdown);
+  rtMethodNoArgAndNoReturn("startCallbackTest", startCallbackTest);
+  rtMethodNoArgAndNoReturn("stopCallbackTest", stopCallbackTest);
 
   uint32_t num() const { return m_num; }
   rtError  num(uint32_t& n) const { n = m_num; return RT_OK; }
   rtError  setNum(uint32_t n) { m_num = n; return RT_OK; }
+
+  rtError onMessage(rtFunctionRef& func) const
+    { func = m_func; return RT_OK; }
+
+  rtError setOnMessage(rtFunctionRef const& func)
+    { m_func = func; return RT_OK; }
 
   rtError shutdown()
   {
@@ -49,12 +63,56 @@ public:
     return RT_OK;
   }
 
+  rtError startCallbackTest()
+  {
+    rtLogInfo("starting callback test");
+    m_callbackThread.reset(new std::thread(&rtTestObject::floodCallback, this));
+    return RT_OK;
+  }
+
+  rtError stopCallbackTest()
+  {
+    rtLogInfo("stopping callback test");
+    return RT_OK;
+  }
+
+private:
+  void floodCallback()
+  {
+    rtString arg;
+
+    static int const kTestLogMessageLength = 250;
+    for (int i = 0; i < kTestLogMessageLength; ++i)
+      arg.append("x");
+
+    while (true)
+    {
+      {
+        std::unique_lock<std::mutex> lock(shutdownMutex);
+        if (testIsOver)
+        {
+          rtLogInfo("exiting floodCallback");
+          return;
+        }
+      }
+
+      RT_ASSERT(m_func);
+
+      rtError e = m_func.send(arg);
+      RT_ASSERT(e == RT_OK);
+    }
+  }
+
 private:
   uint32_t m_num;
+  bool m_callbackTestRunning;
+  std::unique_ptr<std::thread> m_callbackThread;
+  rtFunctionRef m_func;
 };
 
 rtDefineObject(rtTestObject, rtObject);
 rtDefineProperty(rtTestObject, num);
+rtDefineProperty(rtTestObject, onMessage);
 rtDefineMethod(rtTestObject, shutdown);
 
 rtError

@@ -44,6 +44,10 @@
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
+#ifndef RUNINMAIN
+#include "pxContextUtils.h"
+#endif //RUNINMAIN
+
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
 
@@ -108,7 +112,7 @@ enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_
 pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
 
 #ifdef PX_PLATFORM_GENERIC_EGL
-EGLContext defaultEglContext = 0;
+extern EGLContext defaultEglContext;
 #endif //PX_PLATFORM_GENERIC_EGL
 
 // TODO get rid of this global crap
@@ -202,199 +206,6 @@ inline void premultiply(float* d, const float* s)
 }
 
 //====================================================================================================================================================================================
-
-//============================================================================================
-#ifdef PX_PLATFORM_GENERIC_EGL
-EGLDisplay eglDisplay = 0;
-EGLSurface eglSurface = 0;
-EGLContext eglContext = 0;
-
-EGLDisplay prevEglDisplay = 0;
-EGLSurface prevEglDrawSurface = 0;
-EGLSurface prevEglReadSurface = 0;
-EGLContext prevEglContext = 0;
-
-bool eglContextCreated = false;
-bool eglContextIsCurrent = false;
-
-int pxCreateEglContext()
-{
-  if (eglContextCreated)
-  {
-    return PX_FAIL;
-  }
-  rtLogWarn("creating plugin context\n");
-  EGLDisplay egl_display      = 0;
-  EGLSurface egl_surface      = 0;
-  EGLContext egl_context      = 0;
-  EGLConfig *egl_config;
-  EGLint     major_version;
-  EGLint     minor_version;
-  int        config_select    = 0;
-  int        configs;
-
-  egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-  if (egl_display == EGL_NO_DISPLAY)
-  {
-    rtLogError("eglGetDisplay() failed, did you register any exclusive displays\n");
-    return PX_FAIL;
-  }
-
-  if (!eglInitialize(egl_display, &major_version, &minor_version))
-  {
-     rtLogError("eglInitialize() failed\n");
-     return PX_FAIL;
-  }
-
-  if (!eglGetConfigs(egl_display, NULL, 0, &configs))
-  {
-     rtLogError("eglGetConfigs() failed\n");
-     return PX_FAIL;
-  }
-
-  egl_config = (EGLConfig *)alloca(configs * sizeof(EGLConfig));
-
-  {
-    const int   NUM_ATTRIBS = 21;
-    EGLint      *attr = (EGLint *)malloc(NUM_ATTRIBS * sizeof(EGLint));
-    int         i = 0;
-
-    attr[i++] = EGL_RED_SIZE;        attr[i++] = 8;
-    attr[i++] = EGL_GREEN_SIZE;      attr[i++] = 8;
-    attr[i++] = EGL_BLUE_SIZE;       attr[i++] = 8;
-    attr[i++] = EGL_ALPHA_SIZE;      attr[i++] = 8;
-    attr[i++] = EGL_DEPTH_SIZE;      attr[i++] = 24;
-    attr[i++] = EGL_STENCIL_SIZE;    attr[i++] = 0;
-    attr[i++] = EGL_SURFACE_TYPE;    attr[i++] = EGL_PBUFFER_BIT;
-    attr[i++] = EGL_RENDERABLE_TYPE; attr[i++] = EGL_OPENGL_ES2_BIT;
-
-    attr[i++] = EGL_NONE;
-
-    if (!eglChooseConfig(egl_display, attr, egl_config, configs, &configs) || (configs == 0))
-    {
-      rtLogError("eglChooseConfig() failed");
-      return PX_FAIL;
-    }
-
-    free(attr);
-  }
-
-  for (config_select = 0; config_select < configs; config_select++)
-  {
-    EGLint red_size, green_size, blue_size, alpha_size, depth_size;
-
-    eglGetConfigAttrib(egl_display, egl_config[config_select], EGL_RED_SIZE,   &red_size);
-    eglGetConfigAttrib(egl_display, egl_config[config_select], EGL_GREEN_SIZE, &green_size);
-    eglGetConfigAttrib(egl_display, egl_config[config_select], EGL_BLUE_SIZE,  &blue_size);
-    eglGetConfigAttrib(egl_display, egl_config[config_select], EGL_ALPHA_SIZE, &alpha_size);
-    eglGetConfigAttrib(egl_display, egl_config[config_select], EGL_DEPTH_SIZE, &depth_size);
-
-    if ((red_size == 8) && (green_size == 8) && (blue_size == 8) && (alpha_size == 8))
-    {
-      rtLogInfo("Selected config: R=%d G=%d B=%d A=%d Depth=%d\n", red_size, green_size, blue_size, alpha_size, depth_size);
-      break;
-    }
-  }
-
-  if (config_select == configs)
-  {
-    rtLogError("No suitable configs found\n");
-    return PX_FAIL;
-  }
-
-  EGLint attribList[] =
-  {
-    EGL_WIDTH, 1280,
-    EGL_HEIGHT, 720,
-    EGL_LARGEST_PBUFFER, EGL_TRUE,
-    EGL_NONE
-  };
-  egl_surface = eglCreatePbufferSurface(egl_display, egl_config[config_select], attribList);
-  if (egl_surface == EGL_NO_SURFACE)
-  {
-    eglGetError(); /* Clear error */
-    egl_surface = eglCreateWindowSurface(egl_display, egl_config[config_select], NULL, NULL);
-  }
-
-  if (egl_surface == EGL_NO_SURFACE)
-  {
-    rtLogError("eglCreateWindowSurface() failed\n");
-    return PX_FAIL;
-  }
-
-  {
-    EGLint     ctx_attrib_list[3] =
-    {
-      EGL_CONTEXT_CLIENT_VERSION, 2, /* For ES2 */
-      EGL_NONE
-    };
-
-    egl_context = eglCreateContext(egl_display, egl_config[config_select], defaultEglContext /*EGL_NO_CONTEXT*/, ctx_attrib_list);
-    if (egl_context == EGL_NO_CONTEXT)
-    {
-      rtLogError("eglCreateContext() failed");
-      return PX_FAIL;
-    }
-  }
-
-  eglDisplay = egl_display;
-  eglSurface = egl_surface;
-  eglContext = egl_context;
-  rtLogInfo("display: %d surface: %d context: %d created\n", eglDisplay, eglSurface, eglContext);
-  eglContextCreated = true;
-
-  return PX_OK;
-}
-  
-void pxMakeEglCurrent()
-{
-  if (!eglContextIsCurrent)
-  {
-    prevEglDisplay = eglGetCurrentDisplay();
-    prevEglDrawSurface = eglGetCurrentSurface(EGL_DRAW);
-    prevEglReadSurface = eglGetCurrentSurface(EGL_READ);
-    prevEglContext = eglGetCurrentContext();
-    bool success = eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
-    if (!success)
-    {
-      int eglError = eglGetError();
-      rtLogWarn("make current error: %d\n", eglError);
-    }
-
-    eglContextIsCurrent = true;
-  }
-}
-
-void pxDoneEglCurrent()
-{
-  if (eglContextIsCurrent)
-  {
-    eglMakeCurrent(prevEglDisplay, prevEglDrawSurface, prevEglReadSurface, prevEglContext);
-    eglContextIsCurrent = false;
-  }
-}
-
-void pxDeleteEglContext()
-{
-  pxDoneEglCurrent();
-  if (eglContextCreated)
-  {
-    rtLogInfo("deleting pxscene context\n");
-    eglDestroySurface(eglDisplay, eglSurface);
-    eglDestroyContext(eglDisplay, eglContext);
-    eglDisplay = 0;
-    eglSurface = 0;
-    eglContext = 0;
-    prevEglDisplay = 0;
-    prevEglDrawSurface = 0;
-    prevEglReadSurface = 0;
-    prevEglContext = 0;
-    eglContextCreated = false;
-  }
-}
-#endif //PX_PLATFORM_GENERIC_EGL
-//============================================================================================
-
 
 class pxFBOTexture : public pxTexture
 {
@@ -490,6 +301,10 @@ public:
     {
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                              GL_TEXTURE_2D, mTextureId, 0);
+
+#if defined(PX_PLATFORM_GENERIC_EGL)
+      glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTextureId, 0, 4);
+#endif
 
       if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
       {
@@ -2378,27 +2193,8 @@ int64_t pxContext::currentTextureMemoryUsageInBytes()
 
 pxError pxContext::enableInternalContext(bool enable)
 {
-#if defined(PX_PLATFORM_GENERIC_EGL) && !defined(RUNINMAIN)
-  if (enable)
-  {
-    if (!eglContextCreated)
-    {
-      pxCreateEglContext();
-      pxMakeEglCurrent();
-
-      glEnable(GL_BLEND);
-      glClearColor(0, 0, 0, 0);
-      clear(defaultContextSurface.width,defaultContextSurface.height);
-    }
-    else
-    {
-      pxMakeEglCurrent();
-    }
-  }
-  else
-  {
-    pxDoneEglCurrent();
-  }
+#if !defined(RUNINMAIN)
+    makeInternalGLContextCurrent(enable);
 #else
   (void)enable;
 #endif //PX_PLATFORM_GENERIC_EGL && !RUNINMAIN

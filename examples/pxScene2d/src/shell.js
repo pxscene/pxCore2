@@ -27,6 +27,10 @@ px.import({ scene: 'px:scene.1.js',
   fpsBg.w = fpsCounter.w+16;
   fpsBg.h = fpsCounter.h;
 
+  // Prevent interaction with scenes...
+  fpsBg.interactive = false;
+  fpsCounter.interactive = false;
+
   function updateSize(w, h) {
     childScene.w = w;
     childScene.h = h;
@@ -140,6 +144,11 @@ if (false)
         console.log("Loading home url: ", homeURL);
         childScene.url = homeURL;
         e.stopPropagation();
+      }
+      else
+      if(code == keys.D)  // ctrl-alt-shft-d
+      {
+	scene.logDebugMetrics();
       }
     }// ctrl-alt-shift
   });
