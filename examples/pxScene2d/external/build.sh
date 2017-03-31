@@ -73,7 +73,9 @@ ln -sf libnode.48.dylib out/Release/libnode.dylib
 cd ..
 
 #-------- BREAKPAD
+if [ "$(uname)" != "Darwin" ]; then
 cd breakpad
 ./configure
 make
 cd ..
+fi
