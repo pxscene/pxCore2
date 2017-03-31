@@ -53,6 +53,10 @@ using namespace std;
 #define PX_SCENE_VERSION dev
 #endif
 
+#ifdef HAS_LINUX_BREAKPAD
+#include "client/linux/handler/exception_handler.h"
+#endif
+
 #ifndef RUNINMAIN
 class AsyncScriptInfo;
 vector<AsyncScriptInfo*> scriptsInfo;
@@ -71,6 +75,14 @@ char** g_origArgv = NULL;
 #endif
 bool gDumpMemUsage = false;
 extern int pxObjectCount;
+
+#ifdef HAS_LINUX_BREAKPAD
+static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
+void* context, bool succeeded) {
+  return succeeded;
+}
+#endif
+
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
 public:
@@ -273,6 +285,10 @@ void handleTerm(int)
 
 int pxMain(int argc, char* argv[])
 {
+#ifdef HAS_LINUX_BREAKPAD
+  google_breakpad::MinidumpDescriptor descriptor("/tmp");
+  google_breakpad::ExceptionHandler eh(descriptor, NULL, dumpCallback, NULL, true, -1);
+#endif
   signal(SIGTERM, handleTerm);
 #ifndef RUNINMAIN
   rtLogWarn("Setting  __rt_main_thread__ to be %x\n",pthread_self());

@@ -155,6 +155,7 @@ SEARCH=\
   -I$(EXTDIR)/westeros/external/install/include \
   -I$(EXTDIR)/westeros-stub \
   -I$(EXTDIR)/libjpeg-turbo \
+  -I$(EXTDIR)/breakpad/src \
    $(TARGETINCLUDE)
 
 
@@ -200,6 +201,12 @@ ifeq ($(UNAME_S),Linux)
 ifneq ($(HNAME_S),raspberrypi)
 LDEXT += -lX11 $(LDLIBJPEGTURBO)
 endif
+endif
+
+ifeq ($(UNAME_S),Linux)
+LDBREAKPAD = -L$(EXTDIR)/breakpad/src/client/linux $(EXTDIR)/breakpad/src/client/linux/libbreakpad_client.a
+LDEXT += $(LDBREAKPAD)
+CXXFLAGS += -DHAS_LINUX_BREAKPAD
 endif
 
 ifeq ($(UNAME_S),Darwin)
