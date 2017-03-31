@@ -63,6 +63,8 @@ using namespace std;
 extern rtThreadQueue gUIThreadQueue;
 uint32_t rtPromise::promiseID = 200;
 
+static int fpsWarningThreshold = 25;
+
 // Debug Statistics
 #ifdef USE_RENDER_STATS
 
@@ -1313,6 +1315,24 @@ pxScene2d::pxScene2d(bool top)
   rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
   t->mEmit.send("onFocus",e);
 
+  if (mTop)
+  {
+    static bool checkForFpsMinOverride = true;
+    if (checkForFpsMinOverride)
+    {
+      char const* s = getenv("PXSCENE_FPS_WARNING");
+      if (s)
+      {
+        int fpsWarnOverride = atoi(s);
+        if (fpsWarnOverride > 0)
+        {
+          fpsWarningThreshold = fpsWarnOverride;
+        }
+      }
+    }
+    checkForFpsMinOverride = false;
+  }
+
   #ifdef USE_SCENE_POINTER
   mPointerX= 0;
   mPointerY= 0;
@@ -1675,7 +1695,7 @@ void pxScene2d::onUpdate(double t)
     {
       end2 = pxSeconds();
 
-    double fps = rint((double)frameCount/(end2-start));
+    int fps = (int)rint((double)frameCount/(end2-start));
 
 #ifdef USE_RENDER_STATS
       double   dpf = rint( (double) gDrawCalls    / (double) frameCount ); // e.g.   glDraw*()           - calls per frame
@@ -1699,7 +1719,25 @@ void pxScene2d::onUpdate(double t)
       sigma_draw   = 0;
       sigma_update = 0;
 #else
-    rtLogDebug("%g fps   pxObjects: %d\n", fps, pxObjectCount);
+    static int previousFps = 60;
+    //only log fps if there is a change to avoid log flooding
+    if (previousFps != fps)
+    {
+      if (fps < fpsWarningThreshold && previousFps >= fpsWarningThreshold )
+      {
+        rtLogWarn("pxScene fps: %d  (below warn threshold of %d)", fps, fpsWarningThreshold);
+      }
+      else if (fps < fpsWarningThreshold)
+      {
+        rtLogDebug("pxScene fps: %d", fps);
+      }
+      else if (previousFps < fpsWarningThreshold)
+      {
+        rtLogWarn("pxScene fps: %d (above warn threshold of %d)", fps, fpsWarningThreshold);
+      }
+    }
+    previousFps = fps;
+    rtLogDebug("%d fps   pxObjects: %d\n", fps, pxObjectCount);
 #endif //USE_RENDER_STATS
 
     // TODO FUTURES... might be nice to have "struct" style object's that get copied
