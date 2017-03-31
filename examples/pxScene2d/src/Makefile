@@ -203,7 +203,7 @@ LDEXT += -lX11 $(LDLIBJPEGTURBO)
 endif
 endif
 
-ifeq ($(UNAME_S),Linux)
+ifeq ($(PX_PLATFORM),PX_PLATFORM_GLUT)
 LDBREAKPAD = -L$(EXTDIR)/breakpad/src/client/linux $(EXTDIR)/breakpad/src/client/linux/libbreakpad_client.a
 LDEXT += $(LDBREAKPAD)
 CXXFLAGS += -DHAS_LINUX_BREAKPAD
