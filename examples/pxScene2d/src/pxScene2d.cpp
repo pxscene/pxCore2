@@ -285,7 +285,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0),
 #ifdef PX_DIRTY_RECTANGLES
     , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
 #endif //PX_DIRTY_RECTANGLES
-    ,mDrawableSnapshotForMask(), mMaskSnapshot()
+    ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false)
   {
     pxObjectCount++;
     mScene = scene;
@@ -334,6 +334,7 @@ void pxObject::createNewPromise()
 void pxObject::dispose()
 {
   //rtLogInfo(__FUNCTION__);
+  mIsDisposed = true;
   vector<animation>::iterator it = mAnimations.begin();
   for(;it != mAnimations.end();it++)
   {
@@ -504,6 +505,11 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t animationType,
                             int32_t count, rtObjectRef promise)
 {
+  if (mIsDisposed)
+  {
+    promise.send("reject",this);
+    return RT_OK;
+  }
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
             (pxConstantsAnimation::animationOptions)animationType, count, promise);
   return RT_OK;

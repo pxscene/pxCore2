@@ -731,6 +731,7 @@ protected:
   std::vector<animation> mAnimations;  
   pxContextFramebufferRef mDrawableSnapshotForMask;
   pxContextFramebufferRef mMaskSnapshot;
+  bool mIsDisposed;
 
  private:
   rtError _pxObject(voidPtr& v) const {
