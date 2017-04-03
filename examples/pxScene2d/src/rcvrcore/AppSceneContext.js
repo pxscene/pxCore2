@@ -68,6 +68,41 @@ AppSceneContext.prototype.loadScene = function() {
 if( fullPath !== null)
   this.loadPackage(fullPath);
 
+this.innerscene.on('onClose', function (e) {
+
+    if (this.innerscene.api != undefined)
+    {
+      for(var k in this.innerscene.api) { delete this.innerscene.api[k]; }
+    }
+
+    this.innerscene.api = null;
+    this.innerscene = null;
+    this.sandbox.xmodule = null;
+    this.sandbox.require = null;
+    this.sandbox.sandboxName = null;
+    this.sandbox.runtime = null;
+    this.sandbox.theNamedContext = null;
+    this.sandbox.Buffer = null;
+    this.sandbox.setTimeout = null;
+    this.sandbox.setInterval = null;
+    this.sandbox.clearInterval = null;
+    this.sandbox.importTracking = {};
+    this.sandbox = null;
+    this.scriptMap = null;
+    for(var xmodule in this.xmoduleMap) {
+      this.xmoduleMap[xmodule].freeResources();
+    }
+    this.xmoduleMap = null;
+    this.topXModule = null;
+    this.jarFileMap = null;
+    for(var key in this.scriptMap) {
+      this.scriptMap[key].scriptObject = null;
+      this.scriptMap[key].readyListeners = null;
+    }
+    this.scriptMap = null;
+    this.sceneWrapper = null;
+  }.bind(this));
+
 if (false) {
 if (false) {
   // This no longer has access to the container
