@@ -230,6 +230,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       setTimeout: setTimeout,
       setInterval: setInterval,
       clearInterval: clearInterval,
+      clearTimeout: clearTimeout,
       importTracking: {}
     } // end sandbox
 
