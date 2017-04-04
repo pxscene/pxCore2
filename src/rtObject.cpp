@@ -208,14 +208,14 @@ rtError rtArrayObject::Set(const char* /*name*/,const rtValue* /*value*/)
 rtError rtArrayObject::Set(uint32_t i, const rtValue* value)
 {
   if (!value) 
-    return RT_FAIL;
-  if (i < mElements.size())
-  {
-    mElements[i] = *value;
-    return RT_OK;
-  }
-  else
-    return RT_PROP_NOT_FOUND;
+    return RT_ERROR_INVALID_ARG;
+
+  // zero-based index [0] -> mElements.size() == 1
+  if (i >= mElements.size())
+    mElements.resize(i + 1);
+
+  mElements[i] = *value;
+  return RT_OK;
 }
 
 // rtMapObject
@@ -634,5 +634,8 @@ rtDefineObjectPtr(rtObject, NULL);
 rtDefineMethod(rtObject, description);
 rtDefineProperty(rtObject, allKeys);
 rtDefineMethod(rtObject, init);
+
+rtDefineObject(rtArrayObject, rtObject);
+rtDefineProperty(rtArrayObject, length);
 
 

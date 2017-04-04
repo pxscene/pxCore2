@@ -36,9 +36,12 @@ namespace
 rtObjectRef
 rtRemoteObjectCache::findObject(std::string const& id)
 {
+  rtObjectRef obj;
   std::unique_lock<std::mutex> lock(sMutex);
   auto itr = sRefMap.find(id);
-  return (itr != sRefMap.end()) ? itr->second.Object : rtObjectRef();
+  if (itr != sRefMap.end())
+    obj = itr->second.Object;
+  return obj;
 }
 
 rtFunctionRef
@@ -75,6 +78,14 @@ rtRemoteObjectCache::insert(std::string const& id, rtFunctionRef const& ref)
 {
   rtError e = RT_OK;
 
+  if (!ref)
+  {
+    rtLogError("trying to insert null reference");
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  RT_ASSERT(!!ref);
+
   Entry entry;
   entry.LastUsed = std::chrono::steady_clock::now();
   entry.Function = ref;
@@ -93,6 +104,14 @@ rtError
 rtRemoteObjectCache::insert(std::string const& id, rtObjectRef const& ref)
 {
   rtError e = RT_OK;
+
+  if (!ref)
+  {
+    rtLogError("trying to insert null reference");
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  RT_ASSERT(!!ref);
 
   Entry entry;
   entry.LastUsed = std::chrono::steady_clock::now();
