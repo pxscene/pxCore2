@@ -354,10 +354,16 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
   // Clone a new context.
   {
     Local<Context>  clone_local = node::makeContext(mIsolate, sandbox); // contextify context with 'sandbox'
-
+    Local<Context> envCtx = Environment::GetCurrent(mIsolate)->context();
     clone_local->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
-    Local<String> hidden_name = FIXED_ONE_BYTE_STRING(mIsolate, "_contextifyHidden");
-    mContextifyContext = sandbox->GetHiddenValue(hidden_name).As<External>()->Value();
+    Local<String> symbol_name = FIXED_ONE_BYTE_STRING(mIsolate, "_contextifyPrivate");
+    auto private_symbol_name = Private::ForApi(mIsolate, symbol_name);
+    auto maybe_value = sandbox->GetPrivate(envCtx,private_symbol_name);
+    Local<Value> decorated;
+    if (true == maybe_value.ToLocal(&decorated))
+    {
+      mContextifyContext = decorated.As<External>()->Value();
+    }
 
     mContextId = GetContextId(clone_local);
   
