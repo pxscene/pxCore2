@@ -454,7 +454,8 @@ static unsigned char *
 wait_incr_selection (Atom selection, XSelectionEvent * xsl, int init_alloc)
 {
   XEvent event;
-  unsigned char *incr_base = NULL, *incr_ptr = NULL;
+  //unsigned char *incr_base = NULL, *incr_ptr = NULL;
+  unsigned char *incr_base = NULL;
   unsigned long incr_alloc = 0, incr_xfer = 0;
   Bool wait_prop = True;
 
@@ -465,7 +466,7 @@ wait_incr_selection (Atom selection, XSelectionEvent * xsl, int init_alloc)
 
   incr_alloc = init_alloc;
   incr_base = (unsigned char *) xs_malloc (incr_alloc);
-  incr_ptr = incr_base;
+  //incr_ptr = incr_base;
 
 //  printf("Deleting property that informed of INCR transfer");
   XDeleteProperty (xsl->display, xsl->requestor, xsl->property);

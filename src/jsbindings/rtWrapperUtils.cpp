@@ -20,7 +20,9 @@ static std::thread::id sCurrentSceneThread;
 #else
 static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static pthread_t sCurrentSceneThread;
+#ifndef RUNINMAIN
 static pthread_mutex_t sObjectMapMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+#endif //!RUNINMAIN
 #endif
 
 using namespace std;
@@ -49,39 +51,13 @@ GetContextId(Local<Context>& ctx)
   assert(!val.IsEmpty());
   return val->Uint32Value();
 }
-
-void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
-{
+static void WeakCallback(const WeakCallbackInfo<rtIObject>& data) {
   Locker locker(data.GetIsolate());
   Isolate::Scope isolateScope(data.GetIsolate());
   HandleScope handleScope(data.GetIsolate());
 #ifndef RUNINMAIN
   rtObjectRef temp;
 #endif
-  // rtLogInfo("ptr: %p", data.GetParameter());
-
-  Local<Object> obj = data.GetValue();
-  assert(!obj.IsEmpty());
-
-  Local<Context> ctx = obj->CreationContext();
-  assert(!ctx.IsEmpty());
-
-  #if 0
-  Local<String> s = obj->GetConstructorName();
-  String::Utf8Value v(s);
-  rtLogInfo("OBJ: %s", *v);
-
-  int index = 0;
-  rtIObject* rt = data.GetParameter();
-  rtValue value;
-  while (rt->Get(index++, &value) == RT_OK)
-  {
-    rtLogInfo("  type:%d", value.getType());
-  }
-  #endif
-
-  // uint32_t contextId = GetContextId(ctx);
-  // rtLogInfo("contextId: %u addr:%p", contextId, data.GetParameter());
 rtWrapperSceneUpdateEnter();
 #ifndef RUNINMAIN
   pthread_mutex_lock(&sObjectMapMutex);
@@ -98,18 +74,6 @@ rtWrapperSceneUpdateEnter();
     j->second->PersistentObject.Reset();
 #ifndef RUNINMAIN
     temp = j->second->RTObject;
-#endif
-#if 0
-    if (!p->IsWeak())
-      rtLogWarn("TODO: Why isn't this handle weak?");
-    if (p)
-    {
-      // delete p;
-    }
-    else
-    {
-      rtLogError("null handle in map");
-    }
 #endif
     delete j->second;
     objectMap.erase(j);
@@ -200,7 +164,7 @@ rtWrapperSceneUpdateEnter();
     // rtLogInfo("add id:%u addr:%p", contextIdCreation, from.getPtr());
     ObjectReference* entry(new ObjectReference());
     entry->PersistentObject.Reset(isolate, to);
-    entry->PersistentObject.SetWeak(from.getPtr(), &weakCallback_rt2v8);
+    entry->PersistentObject.SetWeak(from.getPtr(), WeakCallback, v8::WeakCallbackType::kParameter);
     entry->RTObject = from;
     entry->CreationContextId = contextIdCreation;
     objectMap.insert(std::make_pair(from.getPtr(), entry));
@@ -439,7 +403,7 @@ Handle<Value> rt2js(Local<Context>& ctx, const rtValue& v)
       }
       break;
     case RT_functionType:
-      return rtFunctionWrapper::createFromFunctionReference(isolate, v.toFunction());
+      return rtFunctionWrapper::createFromFunctionReference(ctx, isolate, v.toFunction());
       break;
     case RT_rtObjectRefType:
       return jsObjectWrapper::isJavaScriptObjectWrapper(v.toObject())
