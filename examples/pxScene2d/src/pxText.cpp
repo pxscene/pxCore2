@@ -142,7 +142,7 @@ void pxText::update(double t)
     if (mText.length() >= 10 && msx == 1.0 && msy == 1.0)
     {
       mCached = NULL;
-      pxContextFramebufferRef cached = context.createFramebuffer(getFBOWidth() > MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:getFBOWidth(),getFBOHeight() > MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:getFBOHeight());//mw,mh);
+      pxContextFramebufferRef cached = context.createFramebuffer(getFBOWidth(),getFBOHeight());
       if (cached.getPtr())
       {
         pxContextFramebufferRef previousSurface = context.getCurrentFramebuffer();
@@ -150,7 +150,7 @@ void pxText::update(double t)
         pxMatrix4f m;
         context.setMatrix(m);
         context.setAlpha(1.0);
-        context.clear((mw>MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:mw), (mh>MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:mh));
+        context.clear(getFBOWidth(),getFBOHeight());
         draw();
         context.setFramebuffer(previousSurface);
         mCached = cached;
@@ -237,7 +237,28 @@ float pxText::getOnscreenHeight()
   // TODO review max texture handling
   return (mh > MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:mh);
 }
-  
+
+float pxText::getFBOWidth() 
+{ 
+  if( mw > MAX_TEXTURE_WIDTH) 
+  {
+    rtLogWarn("Text width is larger than maximum texture allowed: %lf.  Maximum texture size of %d will be used.",mw, MAX_TEXTURE_WIDTH);  
+    return MAX_TEXTURE_WIDTH;
+  }
+  else 
+    return mw; 
+}
+
+float pxText::getFBOHeight() 
+{ 
+  if( mh > MAX_TEXTURE_HEIGHT) 
+  {
+    rtLogWarn("Text height is larger than maximum texture allowed: %lf.  Maximum texture size of %d will be used.",mh, MAX_TEXTURE_HEIGHT);
+    return MAX_TEXTURE_HEIGHT;
+  }
+  else 
+    return mh; 
+} 
 
 rtDefineObject(pxText, pxObject);
 rtDefineProperty(pxText, text);
