@@ -1,4 +1,21 @@
-// rtCore CopyRight 2005-2015 John Robinson
+ /*
+
+ rtCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // rtObject.h
 
 #ifndef RT_OBJECT_H
@@ -645,6 +662,9 @@ private:
 class rtArrayObject: public rtObject 
 {
 public:
+  rtDeclareObject(rtArrayObject, rtObject);
+  rtProperty(length, length, _setLength, uint32_t);
+
   rtArrayObject() {}
   
   void empty();
@@ -654,6 +674,15 @@ public:
   virtual rtError Get(uint32_t i, rtValue* value) const;
   virtual rtError Set(const char* /*name*/, const rtValue* /*value*/);
   virtual rtError Set(uint32_t i, const rtValue* value);
+
+  uint32_t length() const
+    { return static_cast<uint32_t>(mElements.size()); }
+  rtError  length(uint32_t& n) const
+    { n = static_cast<uint32_t>(mElements.size()); return RT_OK; }
+
+private:
+  rtError _setLength(rtValue const& /*v*/)
+    { return RT_ERROR_NOT_IMPLEMENTED; }
 
 private:
   std::vector<rtValue> mElements;

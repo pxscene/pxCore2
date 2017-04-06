@@ -107,7 +107,10 @@ rtRemoteValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared
       RT_ASSERT(obj != from.MemberEnd());
 
       auto id = obj->value.FindMember(kFieldNameObjectId);
-      to.setObject(new rtRemoteObject(id->value.GetString(), client));
+      if (strcmp(id->value.GetString(), kNullObjectId) == 0)
+        to.setObject(rtObjectRef());
+      else
+        to.setObject(new rtRemoteObject(id->value.GetString(), client));
     }
     break;
 
@@ -141,8 +144,11 @@ rtRemoteValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared
         RT_ASSERT(itr != from.MemberEnd());
         functionId = itr->value.GetString();
       }
-	
-      to.setFunction(new rtRemoteFunction(objectId, functionId, client));
+
+      if (strcmp(functionId.c_str(), kNullObjectId) == 0)
+        to.setFunction(rtFunctionRef());
+      else
+        to.setFunction(new rtRemoteFunction(objectId, functionId, client));
     }
     break;
 

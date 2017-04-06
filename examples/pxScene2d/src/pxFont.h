@@ -1,15 +1,33 @@
-// pxCore CopyRight 2007-2015 John Robinson
+/*
+
+ pxCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // pxFont.h
 
 #ifndef PX_FONT_H
 #define PX_FONT_H
 
+#include "rtString.h"
+#include "rtRef.h"
+
 // TODO it would be nice to push this back into implemention
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "rtString.h"
-#include "rtRef.h"
 #include "pxScene2d.h"
 #include <map>
 
@@ -18,7 +36,6 @@ class pxFont;
 
 #define defaultPixelSize 16
 #define defaultFont "FreeSans.ttf"
-
 
 class rtFileDownloadRequest;
 
@@ -31,8 +48,6 @@ struct GlyphCacheEntry
   int advancedotx;
   int advancedoty;
   int vertAdvance;
-
-  pxTextureRef mTexture;
 };
 
 
@@ -42,10 +57,11 @@ struct GlyphCacheEntry
  * pxTextMetrics
  * 
  **********************************************************************/
-class pxTextMetrics: public rtObject {
+class pxTextMetrics: public rtObject 
+{
 
 public:
-	pxTextMetrics(){  }
+	pxTextMetrics() {}
 	virtual ~pxTextMetrics() {}
 
 	rtDeclareObject(pxTextMetrics, rtObject);
@@ -88,12 +104,10 @@ public:
  * pxTextMeasurements
  * 
  **********************************************************************/
-class pxTextSimpleMeasurements: public rtObject {
-
+class pxTextSimpleMeasurements: public rtObject 
+{
 public:
-	pxTextSimpleMeasurements() { 
-
-  }
+	pxTextSimpleMeasurements() {}
 	virtual ~pxTextSimpleMeasurements() {}
 
 	rtDeclareObject(pxTextSimpleMeasurements, rtObject);
@@ -109,8 +123,6 @@ public:
   void setH(int32_t v) { mh = v; }  
     
 protected:
- 
-  
   int32_t mw;
   int32_t mh;
 };
@@ -136,7 +148,8 @@ public:
     
   // FT Face related functions
   void setPixelSize(uint32_t s);  
-  const GlyphCacheEntry* getGlyph(uint32_t codePoint);  
+  const GlyphCacheEntry* getGlyph(uint32_t codePoint);
+  pxTextureRef getGlyphTexture(uint32_t codePoint, float sx, float sy);  
   void getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading);
   void getHeight(uint32_t size, float& height);
   void measureText(const char* text, uint32_t size, float& w, float& h);

@@ -5,18 +5,21 @@
 #include <map>
 #include <mutex>
 #include <iostream>
+#include <chrono>
+
+using std::chrono::steady_clock;
 
 namespace
 {
   struct Entry
   {
-    rtObjectRef     Object;
-    rtFunctionRef   Function;
-    time_t          LastUsed;
-    int             MaxIdleTime;
-    bool            Unevictable;
+    rtObjectRef              Object;
+    rtFunctionRef            Function;
+    steady_clock::time_point LastUsed;
+    std::chrono::seconds     MaxIdleTime;
+    bool                     Unevictable;
 
-    bool isActive(time_t now) const
+    bool isActive(const steady_clock::time_point& now) const
     {
       return (now - LastUsed) < MaxIdleTime;
     }
@@ -27,14 +30,18 @@ namespace
 
   std::mutex    sMutex;
   refmap        sRefMap;
+  size_t        sHighMark = 10000;
 }
 
 rtObjectRef
 rtRemoteObjectCache::findObject(std::string const& id)
 {
+  rtObjectRef obj;
   std::unique_lock<std::mutex> lock(sMutex);
   auto itr = sRefMap.find(id);
-  return (itr != sRefMap.end()) ? itr->second.Object : rtObjectRef();
+  if (itr != sRefMap.end())
+    obj = itr->second.Object;
+  return obj;
 }
 
 rtFunctionRef
@@ -71,10 +78,18 @@ rtRemoteObjectCache::insert(std::string const& id, rtFunctionRef const& ref)
 {
   rtError e = RT_OK;
 
+  if (!ref)
+  {
+    rtLogError("trying to insert null reference");
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  RT_ASSERT(!!ref);
+
   Entry entry;
-  entry.LastUsed = time(nullptr);
+  entry.LastUsed = std::chrono::steady_clock::now();
   entry.Function = ref;
-  entry.MaxIdleTime = m_env->Config->cache_max_object_lifetime();
+  entry.MaxIdleTime = std::chrono::seconds(m_env->Config->cache_max_object_lifetime());
   entry.Unevictable = false;
 
   std::unique_lock<std::mutex> lock(sMutex);
@@ -90,10 +105,18 @@ rtRemoteObjectCache::insert(std::string const& id, rtObjectRef const& ref)
 {
   rtError e = RT_OK;
 
+  if (!ref)
+  {
+    rtLogError("trying to insert null reference");
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  RT_ASSERT(!!ref);
+
   Entry entry;
-  entry.LastUsed = time(nullptr);
+  entry.LastUsed = std::chrono::steady_clock::now();
   entry.Object = ref;
-  entry.MaxIdleTime = m_env->Config->cache_max_object_lifetime();
+  entry.MaxIdleTime = std::chrono::seconds(m_env->Config->cache_max_object_lifetime());
   entry.Unevictable = false;
 
   std::unique_lock<std::mutex> lock(sMutex);
@@ -105,7 +128,7 @@ rtRemoteObjectCache::insert(std::string const& id, rtObjectRef const& ref)
 }
 
 rtError
-rtRemoteObjectCache::touch(std::string const& id, time_t now)
+rtRemoteObjectCache::touch(std::string const& id, std::chrono::steady_clock::time_point now)
 {
   rtError e = RT_OK;
 
@@ -158,13 +181,14 @@ rtRemoteObjectCache::erase(std::string const& id)
 rtError
 rtRemoteObjectCache::removeUnused()
 {
-  time_t now = time(nullptr);
+  auto now = std::chrono::steady_clock::now();
 
   std::unique_lock<std::mutex> lock(sMutex);
   for (auto itr = sRefMap.begin(); itr != sRefMap.end();)
   {
-    // rtLogInfo("IsActive:%s LastUsed:%ld MaxIdleTime:%d Unevictable:%d", itr->first.c_str(),
-    //  itr->second.LastUsed, itr->second.MaxIdleTime, itr->second.Unevictable);
+    // rtLogInfo("IsActive:%s LifeTime:%lld MaxIdleTime:%lld Unevictable:%d", itr->first.c_str(),
+    //           std::chrono::duration_cast<std::chrono::seconds>(now - itr->second.LastUsed).count(),
+    //           itr->second.MaxIdleTime.count(), itr->second.Unevictable);
     #if 0
     if (!itr->second.Unevictable && itr->second.isActive(now))
     {
@@ -177,6 +201,11 @@ rtRemoteObjectCache::removeUnused()
       itr = sRefMap.erase(itr);
     else
       ++itr;
+  }
+
+  if (sRefMap.size() > sHighMark)
+  {
+    rtLogWarn("Cache reached high mark, current size=%zu", sRefMap.size());
   }
 
   return RT_OK;

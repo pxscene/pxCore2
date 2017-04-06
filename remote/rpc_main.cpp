@@ -40,10 +40,19 @@ rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow)
 
 class rtLcd : public rtObject
 {
+
   rtDeclareObject(rtLcd, rtObject);
   rtProperty(text, text, setText, rtString);
   rtProperty(height, height, setHeight, uint32_t);
   rtProperty(width, width, setWidth, uint32_t);
+  rtProperty(connections, connections, setConnections, rtObjectRef);
+
+public:
+  rtLcd()
+    : rtObject()
+    // , m_connections(new rtArrayObject())
+  {
+  }
 
   rtString text() const { return m_text; }
   rtError  text(rtString& s) const { s = m_text; return RT_OK; }
@@ -57,10 +66,15 @@ class rtLcd : public rtObject
   rtError  width(uint32_t& s) const { s = m_width; return RT_OK; }
   rtError  setWidth(uint32_t s) { m_width = s; return RT_OK; }
 
+  rtObjectRef   connections() const { return m_connections; }
+  rtError       connections(rtObjectRef& arr) const { arr = m_connections; return RT_OK; }
+  rtError       setConnections(rtObjectRef const& arr) { m_connections = arr; return RT_OK; }
+
 private:
-  rtString m_text;
-  uint32_t m_width;
-  uint32_t m_height;
+  rtString      m_text;
+  uint32_t      m_width;
+  uint32_t      m_height;
+  rtObjectRef   m_connections;
 };
 
 class rtEcho : public rtObject
@@ -144,6 +158,7 @@ rtDefineObject(rtLcd, 	rtObject);
 rtDefineProperty(rtLcd, text);
 rtDefineProperty(rtLcd, width);
 rtDefineProperty(rtLcd, height);
+rtDefineProperty(rtLcd, connections);
 
 rtDefineObject(rtEcho, rtObject);
 rtDefineProperty(rtEcho, message);
@@ -215,6 +230,7 @@ void Test_SetProperty_Basic_Client()
 
     rtLogInfo("looking for test.lcd");
     rtError e = RT_OK;
+
     while ((e = rtRemoteLocateObject(env, "test.lcd", objectRef)) != RT_OK)
     {
       rtLogInfo("failed to find test.lcd:%s\n", rtStrError(e));
@@ -222,6 +238,43 @@ void Test_SetProperty_Basic_Client()
 
     RT_ASSERT(e == RT_OK);
 
+    {
+      rtLogInfo("getting connections");
+      rtObjectRef cons = objectRef.get<rtObjectRef>("connections");
+      if (cons)
+      {
+        rtLogInfo("setting 1");
+        cons.set(1, "hello");
+
+        rtLogInfo("setting 2");
+        cons.set(2, "world");
+      }
+      else
+      {
+        rtLogInfo("remote object doesn't have property");
+      }
+    }
+
+    {
+      rtLogInfo("getting connections");
+      rtObjectRef cons = objectRef.get<rtObjectRef>("connections");
+      if (cons)
+      {
+        rtLogInfo("getting 1");
+        rtString s1 = cons.get<rtString>(1);
+        rtLogInfo("cons[1]:%s", s1.cString());
+
+        rtLogInfo("getting 2");
+        rtString s2 = cons.get<rtString>(2);
+        rtLogInfo("cons[2]:%s", s2.cString());
+      }
+      else
+      {
+        rtLogInfo("remote object doesn't have property");
+      }
+    }
+
+    #if 0
     for (int i = 0, j = 10; i < 5; ++i)
     {
       e = objectRef.set("height", j);
@@ -242,6 +295,10 @@ void Test_SetProperty_Basic_Client()
       rtLogInfo("sleeping for 1");
       sleep(1);
     }
+    #endif
+
+    rtLogInfo("sleeping for one second");
+    sleep(1);
   }
 }
 
@@ -416,41 +473,46 @@ std::map< int, TestCase > testCases;
 
 int main(int argc, char* /*argv*/[])
 {
+  rtObjectRef list(new rtArrayObject());
+  for (int i = 0; i < 10; ++i)
+  {
+    rtValue v("hello");
+    rtError e = list.set(i, v);
+    RT_ASSERT(e == RT_OK);
+  }
+
+  int n = list.get<int>("length");
+  for (int i = 0; i < n + 2; ++i)
+  {
+    rtString s = list.get<rtString>(i);
+    rtLogInfo("%d = '%s'.", i, s.cString());
+  }
+
   env = rtEnvironmentGetGlobal();
 
-  // runs separate name server which communicates with resolver
-  if (argc == 3)
+  rtError e = rtRemoteInit(env);
+  RT_ASSERT(e == RT_OK);
+
+  if (argc == 1)
   {
-    rtError e = rtRemoteInitNs(env);
-    RT_ASSERT(e == RT_OK);
-    while(1);
-    rtRemoteShutdownNs(env);
-    return 0;
+    rtLogInfo("starting client");
+
+    // Test_Echo_Client();
+    // Test_FunctionReferences_Client();
+    // Test_MethodCall_Client();
+    // Test_SetProperty_Object_Client();
+    Test_SetProperty_Basic_Client();
   }
   else
   {
-    rtError e = rtRemoteInit(env);
-    RT_ASSERT(e == RT_OK);
-
-    if (argc == 2)
-    {
-      // Test_Echo_Client();
-      // Test_FunctionReferences_Client();
-      // Test_MethodCall_Client();
-      // Test_SetProperty_Object_Client();
-      Test_SetProperty_Basic_Client();
-    }
-    else
-    {
-      Test_SetProperty_Basic_Server();
-      // Test_Echo_Server();
-      // Test_FunctionReferences_Server();
-      // Test_SetProperty_Object_Server();
-      // Test_MethodCall_Server();
-    }
-
-    rtRemoteShutdown(env);
-
-    return 0;
+    rtLogInfo("starting server");
+    Test_SetProperty_Basic_Server();
+    // Test_Echo_Server();
+    // Test_FunctionReferences_Server();
+    // Test_SetProperty_Object_Server();
+    // Test_MethodCall_Server();
   }
+
+  rtRemoteShutdown(env);
+  return 0;
 }

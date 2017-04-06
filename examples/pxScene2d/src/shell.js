@@ -5,9 +5,12 @@ px.import({ scene: 'px:scene.1.js',
   var scene = imports.scene;
   var keys  = imports.keys;
 
-  process.on('uncaughtException', function(err) {
+  function uncaughtException(err) {
     console.log("Received uncaught exception " + err.stack);
-  });
+  };
+
+
+  process.on('uncaughtException', uncaughtException);
 
   // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
@@ -23,6 +26,10 @@ px.import({ scene: 'px:scene.1.js',
   var fpsCounter = scene.create({t:"text", x:5,textColor:0xffffffff,pixelSize:24,text:"0fps",parent:fpsBg});
   fpsBg.w = fpsCounter.w+16;
   fpsBg.h = fpsCounter.h;
+
+  // Prevent interaction with scenes...
+  fpsBg.interactive = false;
+  fpsCounter.interactive = false;
 
   function updateSize(w, h) {
     childScene.w = w;
@@ -138,6 +145,11 @@ if (false)
         childScene.url = homeURL;
         e.stopPropagation();
       }
+      else
+      if(code == keys.D)  // ctrl-alt-shft-d
+      {
+	scene.logDebugMetrics();
+      }
     }// ctrl-alt-shift
   });
 
@@ -229,5 +241,9 @@ if (false)
   };
   */
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function releaseResources() {
+    process.removeListener("uncaughtException", uncaughtException);
+  }
 
+  scene.on("onClose",releaseResources);
 });

@@ -449,7 +449,10 @@ rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtRemote
 
   auto itr = m_command_handlers.find(msgType);
   if (itr == m_command_handlers.end())
-    return RT_OK;
+  {
+    rtLogWarn("no command handler for:%s", msgType);
+    return RT_ERROR_PROTOCOL_ERROR;
+  }
 
   rtRemoteCallback<rtRemoteMessageHandler> handler = itr->second;
   if (handler.Func != nullptr)
@@ -796,6 +799,7 @@ rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
     if (err == RT_OK)
     {
       char const* name = rtMessage_GetPropertyName(*doc);
+
       if (name)
       {
         err = obj->Set(name, &value);
@@ -900,7 +904,7 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtRemoteMes
   auto itr = req->FindMember(kFieldNameKeepAliveIds);
   if (itr != req->MemberEnd())
   {
-    time_t now = time(nullptr);
+    auto now = std::chrono::steady_clock::now();
 
     std::unique_lock<std::mutex> lock(m_mutex);
     for (rapidjson::Value::ConstValueIterator id  = itr->value.Begin(); id != itr->value.End(); ++id)

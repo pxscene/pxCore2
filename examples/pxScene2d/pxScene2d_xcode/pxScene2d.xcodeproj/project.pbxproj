@@ -40,6 +40,7 @@
 		4C38CDB41E538CF7003E4A35 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDB31E538CF7003E4A35 /* OpenGL.framework */; };
 		4C38CDC01E538D19003E4A35 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDBF1E538D19003E4A35 /* Cocoa.framework */; };
 		4C5137B41E5F81BE0052A99C /* pxImageA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5137B21E5F81BE0052A99C /* pxImageA.cpp */; };
+		4C63A6831E7878AA00313D9C /* package.json in Resources */ = {isa = PBXBuildFile; fileRef = 4C63A6821E7878AA00313D9C /* package.json */; };
 		4C9F22AC1E6A24D200979F4E /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */; };
 		4CF6265D1E661D5000D70FB3 /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF626461E661CC600D70FB3 /* libpxCore.a */; };
 /* End PBXBuildFile section */
@@ -51,6 +52,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = AECBECCF1B67979F00851BFE;
 			remoteInfo = "pxCore Static Library";
+		};
+		4C63A68F1E7878AA00313D9C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4C0C6DB41E52336300BD8932 /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4C0C29001E6F04C6007013C9;
+			remoteInfo = Rasterizer;
 		};
 		4CF626451E661CC600D70FB3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -165,7 +173,6 @@
 		4C0C6D471E5218BB00BD8932 /* pxContextFramebuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxContextFramebuffer.h; path = src/pxContextFramebuffer.h; sourceTree = "<group>"; };
 		4C0C6D481E5218BB00BD8932 /* pxContextGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxContextGL.cpp; path = src/pxContextGL.cpp; sourceTree = "<group>"; };
 		4C0C6D4D1E5218BB00BD8932 /* pxFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxFont.cpp; path = src/pxFont.cpp; sourceTree = "<group>"; };
-		4C0C6D4E1E5218BB00BD8932 /* pxFont.cpp.scale */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = pxFont.cpp.scale; path = src/pxFont.cpp.scale; sourceTree = "<group>"; };
 		4C0C6D4F1E5218BB00BD8932 /* pxFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxFont.h; path = src/pxFont.h; sourceTree = "<group>"; };
 		4C0C6D521E5218BB00BD8932 /* pxImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImage.cpp; path = src/pxImage.cpp; sourceTree = "<group>"; };
 		4C0C6D531E5218BB00BD8932 /* pxImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxImage.h; path = src/pxImage.h; sourceTree = "<group>"; };
@@ -209,6 +216,7 @@
 		4C38CDBF1E538D19003E4A35 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		4C5137B21E5F81BE0052A99C /* pxImageA.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImageA.cpp; path = src/pxImageA.cpp; sourceTree = "<group>"; };
 		4C5137B31E5F81BE0052A99C /* pxImageA.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxImageA.h; path = src/pxImageA.h; sourceTree = "<group>"; };
+		4C63A6821E7878AA00313D9C /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = package.json; path = ../../src/package.json; sourceTree = "<group>"; };
 		4C9F22AA1E6A24D200979F4E /* westeros-compositor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "westeros-compositor.h"; path = "external/westeros-stub/westeros-compositor.h"; sourceTree = "<group>"; };
 		4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "westeros-stub.cpp"; path = "external/westeros-stub/westeros-stub.cpp"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -277,6 +285,7 @@
 		4C0C6D311E52189500BD8932 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				4C63A6821E7878AA00313D9C /* package.json */,
 				4C1447701E687D5000610575 /* checkLocalLibs.sh */,
 				4C1447711E687D5000610575 /* getLocalLibs.sh */,
 				4C1447721E687D5000610575 /* makeLocalLibs.sh */,
@@ -363,7 +372,6 @@
 			isa = PBXGroup;
 			children = (
 				4C0C6D4D1E5218BB00BD8932 /* pxFont.cpp */,
-				4C0C6D4E1E5218BB00BD8932 /* pxFont.cpp.scale */,
 				4C0C6D4F1E5218BB00BD8932 /* pxFont.h */,
 			);
 			name = Font;
@@ -414,6 +422,7 @@
 				4CF626481E661CC600D70FB3 /* Animation.app */,
 				4CF626561E661CC600D70FB3 /* Sprite.app */,
 				4CF626501E661CC600D70FB3 /* Mandelbrot.app */,
+				4C63A6901E7878AA00313D9C /* Rasterizer.app */,
 				4CF6264C1E661CC600D70FB3 /* KeyboardAndMouse.app */,
 				4CF626521E661CC600D70FB3 /* NativeDrawing.app */,
 				4CF6265C1E661CC600D70FB3 /* Timer */,
@@ -485,6 +494,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		4C63A6901E7878AA00313D9C /* Rasterizer.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = Rasterizer.app;
+			remoteRef = 4C63A68F1E7878AA00313D9C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		4CF626461E661CC600D70FB3 /* libpxCore.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -569,6 +585,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4C63A6831E7878AA00313D9C /* package.json in Resources */,
 				4C04661D1E574CEE00D59925 /* init.js in Resources */,
 				4C04661E1E574CEE00D59925 /* browser.js in Resources */,
 				4C04661C1E574CEE00D59925 /* shell.js in Resources */,
@@ -604,7 +621,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\ncp -R $PROJECT_DIR/../src/images $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R $PROJECT_DIR/../src/rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R $PROJECT_DIR/../src/node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\ncp -R $PROJECT_DIR/../src/macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\n\ncp $PROJECT_DIR/../src/init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp $PROJECT_DIR/../src/macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\n\n\n\n#cp -R $PROJECT_DIR/../src/images $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp -R $PROJECT_DIR/../src/rcvrcore $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp -R $PROJECT_DIR/../src/node_modules $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n\n#cp -R $PROJECT_DIR/../src/macstuff/Resources $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents\n\n#cp $PROJECT_DIR/../src/init.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/shell.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/browser.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/FreeSans.ttf $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n\n\n\n\n\necho $PROJECT_DIR/../lib\n\n#cp -R $PROJECT_DIR/../lib\n#mkdir $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#echo ${CONFIGURATION}${EFFECTIVE_PLATFORM_NAME}\n#echo $PROJECT_NAME\n#echo $BUILT_PRODUCTS_DIR\n#echo $CONFIGURATION_BUILD_DIR/$EXECUTABLE_FOLDER\n#echo $CONFIGURATION_BUILD_DIR/$EXECUTABLE_PATH\n#cp -R $PROJECT_DIR/../lib $CONFIGURATION_BUILD_DIR/$EXECUTABLE_PATH/libby";
+			shellScript = "\ncp -R $PROJECT_DIR/../src/images $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R $PROJECT_DIR/../src/rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R $PROJECT_DIR/../src/node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\ncp -R $PROJECT_DIR/../src/macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\n\ncp $PROJECT_DIR/../src/init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp $PROJECT_DIR/../src/macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp $PROJECT_DIR/../src/package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\n\n\n\n#cp -R $PROJECT_DIR/../src/images $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp -R $PROJECT_DIR/../src/rcvrcore $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp -R $PROJECT_DIR/../src/node_modules $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n\n#cp -R $PROJECT_DIR/../src/macstuff/Resources $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents\n\n#cp $PROJECT_DIR/../src/init.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/shell.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/browser.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/FreeSans.ttf $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n\n\n\n\n\necho $PROJECT_DIR/../lib\n\n#cp -R $PROJECT_DIR/../lib\n#mkdir $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#echo ${CONFIGURATION}${EFFECTIVE_PLATFORM_NAME}\n#echo $PROJECT_NAME\n#echo $BUILT_PRODUCTS_DIR\n#echo $CONFIGURATION_BUILD_DIR/$EXECUTABLE_FOLDER\n#echo $CONFIGURATION_BUILD_DIR/$EXECUTABLE_PATH\n#cp -R $PROJECT_DIR/../lib $CONFIGURATION_BUILD_DIR/$EXECUTABLE_PATH/libby";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -615,21 +632,21 @@
 			files = (
 				4C0C6D791E5218BC00BD8932 /* pxImage.cpp in Sources */,
 				4C0C6D7A1E5218BC00BD8932 /* pxImage9.cpp in Sources */,
-				4C9F22AC1E6A24D200979F4E /* westeros-stub.cpp in Sources */,
-				4C0C6D871E5218BC00BD8932 /* pxWaylandContainer.cpp in Sources */,
+				4C5137B41E5F81BE0052A99C /* pxImageA.cpp in Sources */,
+				4C0C6D711E5218BC00BD8932 /* pxConstants.cpp in Sources */,
 				4C20BEE91E5DE5F1005ABBB7 /* pxContextGL.cpp in Sources */,
 				4C0C6D701E5218BB00BD8932 /* pxArchive.cpp in Sources */,
-				4C5137B41E5F81BE0052A99C /* pxImageA.cpp in Sources */,
 				4C0C6D811E5218BC00BD8932 /* pxScene2d.cpp in Sources */,
-				4C0C6D711E5218BC00BD8932 /* pxConstants.cpp in Sources */,
 				4C0C6D841E5218BC00BD8932 /* pxTransform.cpp in Sources */,
+				4C0C6D821E5218BC00BD8932 /* pxText.cpp in Sources */,
 				4C0C6D831E5218BC00BD8932 /* pxTextBox.cpp in Sources */,
+				4C0C6D7E1E5218BC00BD8932 /* pxResource.cpp in Sources */,
 				4C0C6D7D1E5218BC00BD8932 /* pxRectangle.cpp in Sources */,
 				4C0C6D761E5218BC00BD8932 /* pxFont.cpp in Sources */,
 				4C0C6D7F1E5218BC00BD8932 /* pxScene.cpp in Sources */,
 				4C0C6D861E5218BC00BD8932 /* pxWayland.cpp in Sources */,
-				4C0C6D821E5218BC00BD8932 /* pxText.cpp in Sources */,
-				4C0C6D7E1E5218BC00BD8932 /* pxResource.cpp in Sources */,
+				4C0C6D871E5218BC00BD8932 /* pxWaylandContainer.cpp in Sources */,
+				4C9F22AC1E6A24D200979F4E /* westeros-stub.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

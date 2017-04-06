@@ -1,4 +1,21 @@
-// rtCore Copyright 2007-2015 John Robinson
+/*
+
+ pxCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // rtString.h
 
 #include "rtString.h"
@@ -74,8 +91,8 @@ void rtString::term()
 
 void rtString::append(const char* s) 
 {
-  int sl = strlen(s);
-  int dl = strlen(mData);
+  size_t sl = strlen(s);
+  size_t dl = strlen(mData);
   mData = (char*)realloc((void*)mData, dl+sl+1);
   strcpy(mData+dl, s);
 }
@@ -110,7 +127,7 @@ int32_t rtString::length() const
 
 int32_t rtString::byteLength() const 
 {
-  return mData?strlen(mData):0;
+  return (int32_t)(mData?strlen(mData):0);
 }
 
 bool rtString::beginsWith(const char* s) const
@@ -146,7 +163,7 @@ int32_t rtString::find(size_t pos, const char* str) const
     if (nChar == 0)
     {
       // matched needle
-      return haystackPos;
+      return (int32_t)haystackPos;
     }
     // keep looking further in haystack
   }
@@ -173,7 +190,7 @@ int32_t rtString::find(size_t pos, uint32_t codePoint) const
       p++;
     }
     if (c == codePoint)
-      return p;
+      return (int32_t)p;
   }
 
   return -1;
@@ -183,13 +200,13 @@ rtString rtString::substring(size_t pos, size_t len) const
 {
   char* s = mData;
   if (pos>0)
-    s = s + u8_offset(s,pos);
+    s = s + u8_offset(s,(int)pos);
 
   if (len == 0)
     return rtString(s);
   else
   {
-    int byteEnd = u8_offset(s,len);
+    int byteEnd = u8_offset(s,(int)len);
     return rtString(s,byteEnd);
   }
 }

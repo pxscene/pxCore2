@@ -6,6 +6,7 @@
 #include "rtLog.h"
 
 #include <algorithm>
+#include <chrono>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -75,8 +76,8 @@ rtRemoteStreamSelector::doPollFds()
   buff.reserve(m_env->Config->stream_socket_buffer_size());
   buff.resize(m_env->Config->stream_socket_buffer_size());
 
-  int const keepAliveInterval = m_env->Config->stream_keep_alive_interval();
-  time_t lastKeepAliveSent = time(0);
+  const auto keepAliveInterval = std::chrono::seconds(m_env->Config->stream_keep_alive_interval());
+  auto lastKeepAliveSent = std::chrono::steady_clock::now();
 
   while (true)
   {
@@ -132,7 +133,7 @@ rtRemoteStreamSelector::doPollFds()
       return RT_OK;
     }
 
-    time_t now = time(0);
+    auto now = std::chrono::steady_clock::now();
     bool sentKeepAlive = false;
 
     std::unique_lock<std::mutex> lock(m_mutex);
@@ -142,11 +143,12 @@ rtRemoteStreamSelector::doPollFds()
       std::shared_ptr<rtRemoteStream> s = m_streams[i];
       if (FD_ISSET(s->m_fd, &readFds))
       {
-        e = s->onIncomingMessage(buff, now);
+        e = s->onIncomingMessage(buff);
         if (e != RT_OK)
         {
           rtLogWarn("error dispatching message. %s", rtStrError(e));
           m_streams[i].reset();
+          s.reset();
         }
       }
       else if (FD_ISSET(s->m_fd, &errFds))
@@ -155,12 +157,12 @@ rtRemoteStreamSelector::doPollFds()
         rtLogError("error on fd: %d", s->m_fd);
       }
 
-      if ((now - lastKeepAliveSent) > keepAliveInterval)
+      if (s && s->isOpen() && (now - lastKeepAliveSent) > keepAliveInterval)
       {
         sentKeepAlive = true;
 
         // This really isn't inactivity, it's more like a timer enve
-        e = s->onInactivity(now);
+        e = s->onInactivity();
         if (e != RT_OK)
           rtLogWarn("error sending keep alive. %s", rtStrError(e));
       }

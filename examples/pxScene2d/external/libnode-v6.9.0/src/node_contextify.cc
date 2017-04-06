@@ -43,6 +43,9 @@ using v8::UnboundScript;
 using v8::Value;
 using v8::WeakCallbackInfo;
 
+/* MODIFIED CODE BEGIN */
+extern bool use_inspector;
+/* MODIFIED CODE END */
 
 class ContextifyContext {
  protected:
@@ -67,6 +70,7 @@ class ContextifyContext {
 
 
   ~ContextifyContext() {
+    context_.ClearWeak();
     context_.Reset();
   }
 
@@ -224,6 +228,12 @@ class ContextifyContext {
     // directly in an Object, we instead hold onto the new context's global
     // object instead (which then has a reference to the context).
     ctx->SetEmbedderData(kSandboxObjectIndex, sandbox_obj);
+/*MODIFIED CODE BEGIN */
+    if (use_inspector)
+    {
+      ctx->SetEmbedderData(0, String::NewFromUtf8(env->isolate(), "1,1,Inspector"));
+    }
+/*MODIFIED CODE END */
     sandbox_obj->SetPrivate(env->context(),
                             env->contextify_global_private_symbol(),
                             ctx->Global());
@@ -459,6 +469,12 @@ class ContextifyContext {
 };
 
 /*MODIFIED CODE BEGIN*/
+void deleteContextifyContext(void *ctx)
+{
+  ContextifyContext* context =  (ContextifyContext*)ctx;
+  if (nullptr != context)
+    delete context;
+}
 
 v8::Handle<Context> makeContext(v8::Isolate *isolate, v8::Handle<Object> sandbox)  // basically MakeContext()  circa line 268
 {

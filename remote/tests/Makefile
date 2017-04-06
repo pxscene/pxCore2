@@ -2,10 +2,10 @@
 #INCS= -I /opt/gtest/include
 #OBJS=rtRpcTest.cpp
 OBJDIR   = obj
-PERF_CXXFLAGS = -Wall -Wextra -std=c++11 -I. -I../ -I../../src
+PERF_CXXFLAGS = -Wall -DRT_PLATFORM_LINUX -Wextra -std=c++11 -I. -I../ -I../../src
 
 # how are we supposed to know glut/gles? Why is libpxCore.so
-PERF_LDFLAGS  = -L. -L.. -lrtRemote -lrtCore_s -pthread
+PERF_LDFLAGS  = -L. -L.. -L../../build/egl -lrtRemote -lrtCore -pthread
 
 ifeq ($V, 1)
   CXX_PRETTY = $(CXX)
@@ -19,9 +19,21 @@ else
   BUILD_CXX_PRETTY = @echo " [CC] $<" ; $(BUILD_CXX)
 endif
 
-perftest: perf_server
+ifeq ($(DEBUG), 1)
+  PERF_CXXFLAGS += -g -O0 -fno-inline -DRT_RPC_DEBUG -DRT_DEBUG
+else
+  PERF_CXXFLAGS += -O2
+endif
+
+perftest: perf_server perf_client perf_driver
 
 perf_server: $(OBJDIR)/perf_server.o
+	$(CXX_PRETTY) $^ -o $@ $(PERF_LDFLAGS)
+
+perf_client: $(OBJDIR)/perf_client.o
+	$(CXX_PRETTY) $^ -o $@ $(PERF_LDFLAGS)
+
+perf_driver: $(OBJDIR)/perf_driver.o
 	$(CXX_PRETTY) $^ -o $@ $(PERF_LDFLAGS)
 
 $(OBJDIR)/%.o: %.cpp
@@ -30,4 +42,6 @@ $(OBJDIR)/%.o: %.cpp
 
 clean:
 	$(RM) -rf obj
-	$(RM) perftest1
+	$(RM) perf_driver
+	$(RM) perf_server
+	$(RM) perf_client

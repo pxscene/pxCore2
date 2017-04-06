@@ -1,4 +1,21 @@
-// pxCore CopyRight 2007-2015 John Robinson
+/*
+
+ pxCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // pxResource.cpp
 #include "pxScene2d.h"
 
@@ -375,6 +392,60 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
 /**
  * rtImageResource 
  */
+
+rtImageAResource::rtImageAResource(const char* url) : mTimedOffscreenSequence()
+{
+  mTimedOffscreenSequence.init();
+  setUrl(url);
+}
+
+rtImageAResource::~rtImageAResource()
+{
+}
+
+unsigned long rtImageAResource::Release()
+{
+  long l = rtAtomicDec(&mRefCount);
+  if (l == 0)
+  {
+    pxImageManager::removeImageA( mUrl);
+    delete this;
+
+  }
+  return l;
+}
+
+void rtImageAResource::init()
+{
+  if( mInitialized)
+    return;
+
+  mInitialized = true;
+}
+
+bool rtImageAResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
+{
+  if (fileDownloadRequest->downloadStatusCode() == 0)
+  {
+    char* data;
+    size_t dataSize;
+    fileDownloadRequest->downloadedData(data, dataSize);
+
+    if (pxLoadAImage(data, dataSize, mTimedOffscreenSequence) == RT_OK)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+void rtImageAResource::loadResourceFromFile()
+{
+  //TODO
+  mLoadStatus.set("statusCode",PX_RESOURCE_STATUS_UNKNOWN_ERROR);
+}
+
+
 ImageMap pxImageManager::mImageMap;
 rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
 /** static pxImageManager::getImage */
@@ -429,6 +500,45 @@ void pxImageManager::removeImage(rtString imageUrl)
   //mImageMap.erase(imageUrl);
 }
 
+ImageAMap pxImageManager::mImageAMap;
+rtRef<rtImageAResource> pxImageManager::emptyUrlImageAResource = 0;
+/** static pxImageManager::getImage */
+rtRef<rtImageAResource> pxImageManager::getImageA(const char* url)
+{
+  if(!url || strlen(url) == 0) {
+    if( !emptyUrlImageAResource) {
+      emptyUrlImageAResource = new rtImageAResource();
+    }
+    return emptyUrlImageAResource;
+  }
+
+  rtRef<rtImageAResource> pResImageA;
+
+  ImageAMap::iterator it = mImageAMap.find(url);
+  if (it != mImageAMap.end())
+  {
+    pResImageA = it->second;
+  }
+  else
+  {
+    pResImageA = new rtImageAResource(url);
+    mImageAMap.insert(make_pair(url, pResImageA));
+    pResImageA->loadResource();
+    pResImageA->init();
+  }
+
+  return pResImageA;
+}
+
+void pxImageManager::removeImageA(rtString imageUrl)
+{
+  ImageAMap::iterator it = mImageAMap.find(imageUrl);
+  if (it != mImageAMap.end())
+  {
+    mImageAMap.erase(it);
+  }
+}
+
 rtDefineObject(pxResource, rtObject);
 rtDefineProperty(pxResource,url);
 rtDefineProperty(pxResource,ready);
@@ -436,4 +546,6 @@ rtDefineProperty(pxResource,loadStatus);
 
 rtDefineObject(rtImageResource, pxResource);
 rtDefineProperty(rtImageResource, w);
-rtDefineProperty(rtImageResource, h); 
+rtDefineProperty(rtImageResource, h);
+
+rtDefineObject(rtImageAResource, pxResource);

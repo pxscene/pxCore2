@@ -68,6 +68,41 @@ AppSceneContext.prototype.loadScene = function() {
 if( fullPath !== null)
   this.loadPackage(fullPath);
 
+this.innerscene.on('onClose', function (e) {
+
+    if (this.innerscene.api != undefined)
+    {
+      for(var k in this.innerscene.api) { delete this.innerscene.api[k]; }
+    }
+
+    this.innerscene.api = null;
+    this.innerscene = null;
+    this.sandbox.xmodule = null;
+    this.sandbox.require = null;
+    this.sandbox.sandboxName = null;
+    this.sandbox.runtime = null;
+    this.sandbox.theNamedContext = null;
+    this.sandbox.Buffer = null;
+    this.sandbox.setTimeout = null;
+    this.sandbox.setInterval = null;
+    this.sandbox.clearInterval = null;
+    this.sandbox.importTracking = {};
+    this.sandbox = null;
+    this.scriptMap = null;
+    for(var xmodule in this.xmoduleMap) {
+      this.xmoduleMap[xmodule].freeResources();
+    }
+    this.xmoduleMap = null;
+    this.topXModule = null;
+    this.jarFileMap = null;
+    for(var key in this.scriptMap) {
+      this.scriptMap[key].scriptObject = null;
+      this.scriptMap[key].readyListeners = null;
+    }
+    this.scriptMap = null;
+    this.sceneWrapper = null;
+  }.bind(this));
+
 if (false) {
 if (false) {
   // This no longer has access to the container
@@ -119,6 +154,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
   var _this = this;
 
   var moduleLoader = new SceneModuleLoader();
+  var thisMakeReady = this.makeReady;
 
   moduleLoader.loadScenePackage(this.innerscene, {fileUri:packageUri})
     .then(function processScenePackage() {
@@ -151,7 +187,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
 
     })
     .catch(function(err) {
-      this.makeReady(false, {});
+      thisMakeReady(false,{});
       console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=" + err );
     });
 
@@ -229,6 +265,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       setTimeout: setTimeout,
       setInterval: setInterval,
       clearInterval: clearInterval,
+      clearTimeout: clearTimeout,
       importTracking: {}
     } // end sandbox
 
@@ -296,9 +333,7 @@ if (false) {
         }).catch( function(err)
         {
           console.error("Main module[" + self.packageUrl + "]" + " load has failed - on failed imports: " + ", err=" + err);
-//          self.container.makeReady(false); // DEPRECATED ?
-
-          this.makeReady(false,{});
+          thisMakeReady(false,{});
         } );
       }
 
@@ -473,10 +508,17 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var _this = this;
   var origFilePath = filePath;
   return new Promise(function (onImportComplete, reject) {
-    if( filePath === 'fs' || filePath === 'px' || filePath === 'http' || filePath === 'https' || filePath === 'url' || filePath === 'os'
-      || filePath === 'events' || filePath === 'net' || filePath === 'querystring' || filePath === 'htmlparser'
-      || filePath === 'ws') {
+    if( filePath === 'px' || filePath === 'url' || filePath === 'querystring' || filePath === 'htmlparser') {
       // built-ins
+      var modData = require(filePath);
+      onImportComplete([modData, origFilePath]);
+      return;
+    } else if( filePath === 'fs' || filePath === 'os' || filePath === 'events') {
+      console.log("Not permitted to use the module " + filePath);
+      reject("include failed due to module not permitted");
+      return;
+    } else if( filePath === 'http' || filePath === 'https' || filePath === 'net' || filePath === 'ws' ) {
+      filePath = 'rcvrcore/' + filePath + '_wrap';
       var modData = require(filePath);
       onImportComplete([modData, origFilePath]);
       return;

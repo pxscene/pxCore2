@@ -1,12 +1,33 @@
-#include "rtDefs.h"
+/*
+
+ pxCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
+// pxContextGL.cpp
+
+#include "rtCore.h"
 #include "rtLog.h"
-#include "pxContext.h"
-#include "rtNode.h"
-#include "pxUtil.h"
 #include "rtThreadTask.h"
 #include "rtThreadPool.h"
 #include "rtThreadQueue.h"
 #include "rtMutex.h"
+#include "rtNode.h"
+
+#include "pxContext.h"
+#include "pxUtil.h"
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -22,6 +43,10 @@
 #include <GL/gl.h>
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
+
+#ifndef RUNINMAIN
+#include "pxContextUtils.h"
+#endif //RUNINMAIN
 
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
@@ -85,6 +110,10 @@ enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_
     PROGRAM_TEXTURE_MASKED_SHADER};
 
 pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
+
+#ifdef PX_PLATFORM_GENERIC_EGL
+extern EGLContext defaultEglContext;
+#endif //PX_PLATFORM_GENERIC_EGL
 
 // TODO get rid of this global crap
 
@@ -272,6 +301,10 @@ public:
     {
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                              GL_TEXTURE_2D, mTextureId, 0);
+
+#if defined(PX_PLATFORM_GENERIC_EGL) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+      glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTextureId, 0, 4);
+#endif
 
       if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
       {
@@ -813,7 +846,6 @@ public:
       rtLogError("pxTextureAlpha::createAlphaTexture() - DIMENSIONLESS ");
       return; // DIMENSIONLESS
     }
-
     glGenTextures(1, &mTextureId);
 
     mDrawWidth   = w;
@@ -1652,6 +1684,10 @@ void pxContext::init()
 
 //  gprogram = program;
   setTextureMemoryLimit(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES);
+#ifdef PX_PLATFORM_GENERIC_EGL
+  defaultEglContext = eglGetCurrentContext();
+  rtLogInfo("current context in init: %d", defaultEglContext);
+#endif //PX_PLATFORM_GENERIC_EGL
 }
 
 void pxContext::setSize(int w, int h)
@@ -2149,4 +2185,21 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef)
 #endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   return true;
 }
+
+int64_t pxContext::currentTextureMemoryUsageInBytes()
+{
+  return mCurrentTextureMemorySizeInBytes;
+}
+
+pxError pxContext::enableInternalContext(bool enable)
+{
+#if !defined(RUNINMAIN)
+    makeInternalGLContextCurrent(enable);
+#else
+  (void)enable;
+#endif //PX_PLATFORM_GENERIC_EGL && !RUNINMAIN
+  return PX_OK;
+}
+
+
 

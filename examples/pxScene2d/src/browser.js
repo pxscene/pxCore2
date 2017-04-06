@@ -6,6 +6,10 @@ px.import({ scene: 'px:scene.1.js',
   var keys  = imports.keys;
   var root  = imports.scene.root;
 
+  var urlFocusColor = 0x303030ff;
+  var urlSucceededColor = 0x0c8508ff;
+  var urlFailedColor = 0xde0700ff;
+
   var pts      = 24;
   var bg       = scene.create({t:"image",url:"./images/status_bg.png",parent:root,stretchX:scene.stretch.STRETCH,stretchY:scene.stretch.STRETCH});
   var fontRes  = scene.create({t:"fontResource",url:"FreeSans.ttf"});
@@ -13,7 +17,7 @@ px.import({ scene: 'px:scene.1.js',
   var inputBg  = scene.create({t:"image9",resource:inputRes,a:0.9,x:10,y:10,w:400,insetLeft:10,insetRight:10,insetTop:10,insetBottom:10,parent:bg});
   var spinner  = scene.create({t:"image",url:"./images/spinningball2.png",cx:50,cy:50,y:-30,parent:inputBg,sx:0.3,sy:0.3,a:0});
   var prompt   = scene.create({t:"text",text:"Enter Url to JS File or Package",font:fontRes, parent:inputBg,pixelSize:pts,textColor:0x869CB2ff,x:10,y:2});
-  var url      = scene.create({t:"text",text:"",font:fontRes, parent:inputBg,pixelSize:pts,textColor:0x303030ff,x:10,y:2});
+  var url      = scene.create({t:"text",text:"",font:fontRes, parent:inputBg,pixelSize:pts,textColor:urlFocusColor,x:10,y:2});
   var cursor   = scene.create({t:"rect", w:2, h:inputBg.h-10, parent:inputBg,x:10,y:5});
   var alert    = scene.create({t:"rect", w:inputBg.w, h:inputBg.h, parent:bg,x:0,y:0, fillColor:0xFF000088});
 
@@ -70,6 +74,10 @@ function reload(u) {
   else
     url.text = u;
 
+  // Remove Leading/Trailing whitespace...
+  u.trim();
+  url.text.trim();
+  
   console.log("RELOADING.... [ " + u + " ]");
 
   if (u.indexOf("local:") == 0) // LOCAL shorthand
@@ -104,14 +112,16 @@ function reload(u) {
     content.ready.then(
       function(o) {
         spinner.a = 0;
-        spinner.r = 0;
         console.log(o);
         contentBG.draw = true;
+
+        url.textColor = urlSucceededColor;
       },
       function() {
         spinner.a = 0;
-        spinner.r = 0;
         contentBG.draw = false;
+
+        url.textColor = urlFailedColor;
       }
     );
   }
@@ -422,6 +432,8 @@ inputBg.on("onFocus", function(e) {
 
   cursor_pos = url.text.length;
   updateCursor(cursor_pos);
+
+  url.textColor = urlFocusColor;
 });
 
 inputBg.on("onBlur", function(e) {
@@ -462,6 +474,8 @@ scene.root.on("onPreKeyDown", function(e) {
     //scene.setFocus(inputBg);
     inputBg.focus = true;
     url.text = "";
+    // TODO cursor_pos handling a bit weak overall
+    cursor_pos = 0;    
     prompt.a = (url.text)?0:1;
     cursor.x = 10;
     e.stopPropagation();

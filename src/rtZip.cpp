@@ -1,4 +1,21 @@
-// rtCore CopyRight 2007-2015 John Robinson
+/*
+
+ pxCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // rtZip.h
 
 //https://www.iana.org/assignments/uri-schemes/prov/jar
@@ -19,7 +36,7 @@ rtError rtZip::initFromBuffer(const void* buffer, size_t bufferSize)
   char path[64] = {0};
   zlib_filefunc64_def memory_file;
 
-  mData.init((uint8_t*)buffer, bufferSize);
+  mData.init((uint8_t*)buffer, (uint32_t)bufferSize);
   
   sprintf(path, "%p+%x", mData.data(), mData.length());
   
@@ -53,7 +70,7 @@ uint32_t rtZip::fileCount() const
   unz_global_info64 info;
   if (unzGetGlobalInfo64(mUnzFile, &info) == UNZ_OK)
   {
-    count = info.number_entry;
+    count = (uint32_t)info.number_entry;
   }
   return count;
 }

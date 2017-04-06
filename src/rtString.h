@@ -1,9 +1,27 @@
-// rtCore Copyright 2007-2015 John Robinson
+/*
+
+ pxCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // rtString.h
 
-#ifndef _RT_STRING
-#define _RT_STRING
+#ifndef _RT_STRING_H
+#define _RT_STRING_H
 
+//#include "rtCore.h"
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -11,20 +29,23 @@
 #define finline
 #endif
 
-class rtString {
-public:
-  /**
-   * Default constructor
-   */
-  rtString();
 
-  /**
-   * Constructor
-   * @param s A c-style string that must be null-terminated
-   */
+/**
+  A lightweight utf-8 string class.
+*/
+class rtString 
+{
+public:
+
+  rtString();
+  
+  // Assumes utf-8 compatible encoding and null-terminated
   rtString(const char* s);
 
+  // Assumes utf-8 compatible encoding
+  // internal copy will be null-terminated
   rtString(const char* s, uint32_t byteLen);
+
   rtString(const rtString& s);
   
   ~rtString();

@@ -58,16 +58,12 @@ public:
   inline sockaddr_storage getRemoteEndpoint() const
     { return m_remote_endpoint; }
 
-  inline time_t getLastReceivedMessageTime() const
-    { return m_last_message_time; }
-
 private:
-  rtError onIncomingMessage(rtRemoteSocketBuffer& buff, time_t now);
-  rtError onInactivity(time_t now);
+  rtError onIncomingMessage(rtRemoteSocketBuffer& buff);
+  rtError onInactivity();
 
 private:
   int                                   m_fd;
-  time_t                                m_last_message_time;
   rtRemoteCallback<MessageHandler>      m_message_handler;
   rtRemoteCallback<MessageHandler>      m_inactivity_handler;
   rtRemoteCallback<StateChangedHandler> m_state_changed_handler;

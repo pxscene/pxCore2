@@ -43,7 +43,6 @@ RTRPC_SRCS=\
 SAMPLEAPP_SRCS=\
   rpc_main.cpp
 
-
 ifeq ($V, 1)
   CXX_PRETTY = $(CXX)
   LD_PRETTY = $(CXX)
@@ -129,6 +128,9 @@ clean:
 	rm -f rtremote.conf
 	rm -f rtRemoteConfig.h
 
+perftest:
+	$(MAKE) -C tests perftest
+
 librtRemote.so: $(RTRPC_OBJS)
 	$(CXX_PRETTY) $(RTRPC_OBJS) $(LDFLAGS) -shared -o $@
 
@@ -136,9 +138,9 @@ librtRemote_s.a: $(RTRPC_OBJS)
 	$(AR) rcs -o $@ $(RTRPC_OBJS)
 
 rpcSampleApp: $(SAMPLEAPP_OBJS) librtRemote.so
-	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/egl -lpxCore -lrtRemote -luuid
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/egl -lrtCore -lrtRemote -luuid
 
 rpcSampleApp_s: $(SAMPLEAPP_OBJS) librtRemote_s.a
-	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/egl -lpxCore -lrtRemote_s -luuid
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/egl -lrtCore_s -lrtRemote_s -luuid
 
 .PHONY: all debug clean

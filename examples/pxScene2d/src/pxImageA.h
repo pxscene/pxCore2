@@ -1,4 +1,21 @@
-// pxCore Copyright 2007-2015 John Robinson
+/*
+
+ pxCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // pxImageA.h
 
 #ifndef PX_IMAGEA_H
@@ -6,18 +23,17 @@
 
 #include "pxScene2d.h"
 
-#include "rtFileDownloader.h"
 #include "pxUtil.h"
+#include "pxResource.h"
 
-class pxImageA: public pxObject
+class pxImageA: public pxObject, pxResourceListener
 {
 public:
   rtDeclareObject(pxImageA, pxObject);
   rtProperty(url, url, setUrl, rtString);
   rtProperty(stretchX, stretchX, setStretchX, int32_t);
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
-  // TODO resource (for animated images)
-  //rtProperty(resource, resource, setResource, rtObjectRef);
+  rtProperty(resource, resource, setResource, rtObjectRef);
 
   pxImageA(pxScene2d* scene);
   virtual ~pxImageA();
@@ -31,18 +47,21 @@ public:
   rtError stretchY(int32_t& v) const { v = (int32_t)mStretchY; return RT_OK; }
   rtError setStretchY(int32_t v);
 
+  rtError resource(rtObjectRef& o) const { o = mResource; return RT_OK; }
+  rtError setResource(rtObjectRef o);
+  virtual void resourceReady(rtString readyResolution);
+
   virtual void update(double t);
   virtual void draw();
+  virtual void dispose();
   
 protected:
   virtual void onInit();
+  inline rtImageAResource* getImageAResource() const { return (rtImageAResource*)mResource.getPtr(); }
 
   void sendPromise() {} // shortcircuit  TODO...not sure if I like this pattern
+  void loadImageSequence();
 
-  static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
-  static void onDownloadCompleteUI(void* context, void* data);
-  
-  pxTimedOffscreenSequence mImageSequence;
   uint32_t mCurFrame;
   uint32_t mCachedFrame;
   uint32_t mPlays;
@@ -57,7 +76,9 @@ protected:
   pxConstantsStretch::constants mStretchX;
   pxConstantsStretch::constants mStretchY;
 
-  rtFileDownloadRequest* mDownloadRequest;
+  rtObjectRef mResource;
+  bool mImageLoaded;
+  bool mListenerAdded;
 };
 
 #endif

@@ -17,7 +17,6 @@
 rtRemoteStream::rtRemoteStream(rtRemoteEnvironment* env, int fd, sockaddr_storage const& local_endpoint,
   sockaddr_storage const& remote_endpoint)
   : m_fd(fd)
-  , m_last_message_time(time(0))
   , m_env(env)
 {
   m_state_changed_handler.Func = nullptr;
@@ -111,7 +110,6 @@ rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
 rtError
 rtRemoteStream::send(rtRemoteMessagePtr const& msg)
 {
-  m_last_message_time = time(0);
   return rtSendDocument(*msg, m_fd, nullptr);
 }
 
@@ -142,7 +140,7 @@ rtRemoteStream::setMessageHandler(MessageHandler handler, void* argp)
 }
 
 rtError
-rtRemoteStream::onInactivity(time_t /*now*/)
+rtRemoteStream::onInactivity()
 {
   auto self = shared_from_this();
   if (m_state_changed_handler.Func)
@@ -156,10 +154,9 @@ rtRemoteStream::onInactivity(time_t /*now*/)
 
 
 rtError
-rtRemoteStream::onIncomingMessage(rtRemoteSocketBuffer& buff, time_t now)
+rtRemoteStream::onIncomingMessage(rtRemoteSocketBuffer& buff)
 {
   rtRemoteMessagePtr doc = nullptr;
-  m_last_message_time = now;
   rtError e = rtReadMessage(m_fd, buff, doc);
   if (e != RT_OK)
   {

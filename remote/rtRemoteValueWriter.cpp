@@ -45,7 +45,7 @@ rtRemoteValueWriter::write(rtRemoteEnvironment* env, rtValue const& from,
     to.AddMember(kFieldNameValueType, static_cast<int>(RT_functionType), doc.GetAllocator());
 
     rtFunctionRef func = from.toFunction();
-    std::string id = getId(func);
+    std::string id = func ? getId(func) : kNullObjectId;
 
     rapidjson::Value val;
     val.SetObject();
@@ -53,8 +53,9 @@ rtRemoteValueWriter::write(rtRemoteEnvironment* env, rtValue const& from,
     val.AddMember(kFieldNameFunctionName, id, doc.GetAllocator());
     to.AddMember("value", val, doc.GetAllocator());
 
-    // TODO: why are we inserting this here?
-    env->ObjectCache->insert(id, func);
+    if (func)
+      env->ObjectCache->insert(id, func);
+
     return RT_OK;
   }
 
@@ -63,15 +64,16 @@ rtRemoteValueWriter::write(rtRemoteEnvironment* env, rtValue const& from,
     to.AddMember(kFieldNameValueType, static_cast<int>(RT_objectType), doc.GetAllocator());
 
     rtObjectRef obj = from.toObject();
-    std::string id = getId(obj);
+    std::string id = obj ? getId(obj) : kNullObjectId;
 
     rapidjson::Value val;
     val.SetObject();
     val.AddMember(kFieldNameObjectId, id, doc.GetAllocator());
     to.AddMember("value", val, doc.GetAllocator());
 
-    // TODO: why are we inserting this here
-    env->ObjectCache->insert(id, obj);
+    if (obj)
+      env->ObjectCache->insert(id, obj);
+
     return RT_OK;
   }
 

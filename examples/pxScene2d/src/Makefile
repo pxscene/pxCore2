@@ -39,6 +39,7 @@ ifeq ($(UNAME_S),Darwin)
 PX_PLATFORM=PX_PLATFORM_MAC
 PXLIBS=$(PXCOREDIR)/build/mac
 TARGETINCLUDE=
+ADDITIONAL_OBJS=$(OBJDIR)/pxContextUtils.o
 else
 ifeq ($(PX_PLATFORM),DirectFB)
 PX_PLATFORM=PX_PLATFORM_GENERIC_DFB
@@ -47,6 +48,7 @@ else
 PX_PLATFORM=PX_PLATFORM_GLUT
 PXLIBS=$(PXCOREDIR)/build/glut
 TARGETINCLUDE=
+ADDITIONAL_OBJS=$(OBJDIR)/pxContextUtils.o
 endif
 endif
 endif
@@ -153,6 +155,7 @@ SEARCH=\
   -I$(EXTDIR)/westeros/external/install/include \
   -I$(EXTDIR)/westeros-stub \
   -I$(EXTDIR)/libjpeg-turbo \
+  -I$(EXTDIR)/breakpad/src \
    $(TARGETINCLUDE)
 
 
@@ -198,6 +201,12 @@ ifeq ($(UNAME_S),Linux)
 ifneq ($(HNAME_S),raspberrypi)
 LDEXT += -lX11 $(LDLIBJPEGTURBO)
 endif
+endif
+
+ifeq ($(PX_PLATFORM),PX_PLATFORM_GLUT)
+LDBREAKPAD = -L$(EXTDIR)/breakpad/src/client/linux $(EXTDIR)/breakpad/src/client/linux/libbreakpad_client.a
+LDEXT += $(LDBREAKPAD)
+CXXFLAGS += -DHAS_LINUX_BREAKPAD
 endif
 
 ifeq ($(UNAME_S),Darwin)
@@ -284,6 +293,16 @@ PXSCENE_LIB_SEARCH=\
 
 # pxScene and pxWayland so end
 
+ifeq ($(UNAME_S),Darwin)
+$(OBJDIR)/pxContextUtils.o: mac/pxContextUtils.mm
+	$(CXX) -o $(OBJDIR)/pxContextUtils.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c mac/pxContextUtils.mm
+else
+$(OBJDIR)/pxContextUtils.o: glut/pxContextUtils.cpp
+	$(CXX) -o $(OBJDIR)/pxContextUtils.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c glut/pxContextUtils.cpp
+endif
+$(OBJDIR)/pxContextUtils_egl.o: egl/pxContextUtils.cpp
+	$(CXX) -o $(OBJDIR)/pxContextUtils_egl.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c egl/pxContextUtils.cpp
+
 rtMutexNative.o: linux/rtMutexNative.cpp
 	$(CXX) -o $(OBJDIR)/rtMutexNative.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c linux/rtMutexNative.cpp
 
@@ -362,11 +381,13 @@ PXSCENE_LIBS:=-lwesteros_compositor
 endif
 PXSCENE_LIB_LINK_OPTIONS=-L$(PXCOREDIR)/build/egl -Wl,--whole-archive $(PXCOREDIR)/build/egl/libpxCore.a
 ifeq ($(DISABLE_WAYLAND),TRUE)
-PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE -DDISABLE_WAYLAND
+PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE -DDISABLE_WAYLAND $(PXSCENE_PLATFORM_DEFINES)
 else
-PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE
+PXSCENE_LIB_DEFINES=-DPX_PLATFORM_GENERIC_EGL -DENABLE_PX_WAYLAND_RPC -DENABLE_MAX_TEXTURE_SIZE $(PXSCENE_PLATFORM_DEFINES)
 endif
-PXSCENE_EXTRA_DEFINES=
+ifneq ($(PXSCENE_DISABLE_APNG_SUPPORT),1)
+PXSCENE_EXTRA_DEFINES=-DPNG_APNG_SUPPORTED
+endif
 endif
 
 
@@ -375,8 +396,8 @@ analyze:
 	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) pxscene
 
 LINKLIBS := $(PXLIBS)/libpxCore.a
-pxscene: $(OBJS) $(LINKLIBS)
-	$(CXX) $(OBJS) $(LDFLAGS_FULL) -o pxscene
+pxscene: $(OBJS) $(ADDITIONAL_OBJS) $(LINKLIBS)
+	$(CXX) $(OBJS) $(ADDITIONAL_OBJS)  $(LDFLAGS_FULL) -o pxscene
 
 INC_DFB=-I/usr/local/include/directfb
 
@@ -430,8 +451,8 @@ libpxscene.so:
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
 libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES) $(PXSCENE_VERSION_DEFINES)
 libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -L./ -shared $(PLATFORM_LIBS) -o libpxscene.so.1.0  
-libpxscene.so: cleansceneobj $(PXSCENE_LIB_OBJS) 
-	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
+libpxscene.so: cleansceneobj $(PXSCENE_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o 
+	$(CXX) $(PXSCENE_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
 	ln -sf libpxscene.so.1 libpxscene.so
 
@@ -440,8 +461,8 @@ libpxscene.a:
 libpxscene.a: CFLAGS_FULL = $(CFLAGS)
 libpxscene.a: PXSCENE_VERSION_DEFINES = $(PXSCENE_EXTRA_DEFINES) -DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1
 libpxscene.a: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES) $(PXSCENE_VERSION_DEFINES)
-libpxscene.a: cleansceneobj $(PXSCENE_LIB_OBJS) 
-	$(AR) rcs -o $@ $(PXSCENE_LIB_OBJS)
+libpxscene.a: cleansceneobj $(PXSCENE_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o 
+	$(AR) rcs -o $@ $(PXSCENE_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o
 
 libpxscene.a-dfb:
 	rm -rf $(OBJDIR)
@@ -456,15 +477,15 @@ libpxwayland.so:
 libpxwayland.so: CFLAGS_FULL = $(CFLAGS)
 libpxwayland.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
 libpxwayland.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) -L./ -shared $(PLATFORM_LIBS) -o libpxwayland.so.1.0
-libpxwayland.so: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) 
-	$(CXX) $(PXWAYLAND_LIB_OBJS) $(LDFLAGS_FULL)
+libpxwayland.so: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o 
+	$(CXX) $(PXWAYLAND_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o $(LDFLAGS_FULL)
 	ln -sf libpxwayland.so.1.0 libpxwayland.so.1
 	ln -sf libpxwayland.so.1 libpxwayland.so
 
 libpxwayland_s.a: CFLAGS_FULL = $(CFLAGS)
 libpxwayland_s.a: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE
-libpxwayland_s.a: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) 
-	$(AR) rcs -o $@ $(PXWAYLAND_LIB_OBJS)
+libpxwayland_s.a: cleanwaylandobj $(PXWAYLAND_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o
+	$(AR) rcs -o $@ $(PXWAYLAND_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o
 
 pxscene.app: pxscene
 	rm -rf pxscene.app

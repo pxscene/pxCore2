@@ -123,12 +123,14 @@
 
 @end
 
+#ifdef GLGL
+NSOpenGLContext *openGLContext;
+#endif //GLGL
 
 @interface MyView()
 {
 #ifdef GLGL
   NSOpenGLPixelFormat *pixelFormat;
-  NSOpenGLContext *openGLContext;
   
   GLint virtualScreen;
   BOOL enableMultisample;

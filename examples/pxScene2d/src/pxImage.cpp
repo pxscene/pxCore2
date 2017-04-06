@@ -1,17 +1,35 @@
-// pxCore CopyRight 2007-2015 John Robinson
+/*
+
+ pxCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // pxImage.cpp
 
 #include "rtString.h"
 #include "rtRef.h"
+#include "rtFileDownloader.h"
+
 #include "pxCore.h"
 #include "pxOffscreen.h"
 #include "pxUtil.h"
 #include "pxScene2d.h"
-#include "pxOffscreen.h"
 
+// TODO why does pxfont refer to pxImage.h
 #include "pxImage.h"
 #include "pxContext.h"
-#include "rtFileDownloader.h"
 
 using namespace std;
 
@@ -42,7 +60,14 @@ void pxImage::onInit()
   mInitialized = true;
   //rtLogDebug("pxImage::onInit for mUrl=\n");
   //rtLogDebug("%s\n",getImageResource()->getUrl().cString());
-  setUrl(getImageResource()->getUrl());
+  if (getImageResource() != NULL)
+  {
+    setUrl(getImageResource()->getUrl());
+  }
+  else
+  {
+    setUrl("");
+  }
 }
 
 /**
@@ -65,7 +90,7 @@ rtError pxImage::setResource(rtObjectRef o)
     rtString url;
     url = o.get<rtString>("url");
     // Only create new promise if url is different 
-    if( getImageResource()->getUrl().compare(o.get<rtString>("url")) )
+    if( getImageResource() != NULL && getImageResource()->getUrl().compare(o.get<rtString>("url")) )
     {
       mResource = o; 
       imageLoaded = false;
@@ -85,7 +110,18 @@ rtError pxImage::setResource(rtObjectRef o)
 
 }
 
-rtError pxImage::url(rtString& s) const { s = getImageResource()->getUrl(); return RT_OK; }
+rtError pxImage::url(rtString& s) const
+{
+  if (getImageResource() != NULL)
+  {
+    s = getImageResource()->getUrl();
+  }
+  else
+  {
+    s = "";
+  }
+  return RT_OK;
+}
 rtError pxImage::setUrl(const char* s) 
 { 
   //rtLogInfo("pxImage::setUrl init=%d imageLoaded=%d \n", mInitialized, imageLoaded);
@@ -95,7 +131,7 @@ rtError pxImage::setUrl(const char* s)
   // url is initially being set because it's already created on construction
   // If mUrl is already set and loaded and s is different, create a new promise
   rtImageResource* resourceObj = getImageResource();
-  if( resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s) && imageLoaded)
+  if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s) && imageLoaded)
   {
     if(imageLoaded) 
     {
@@ -114,7 +150,7 @@ rtError pxImage::setUrl(const char* s)
 
   mResource = pxImageManager::getImage(s);
 
-  if(getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded) {
+  if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded) {
     mListenerAdded = true;
     getImageResource()->addListener(this);
   }
@@ -154,14 +190,17 @@ float pxImage::getOnscreenHeight()
 void pxImage::draw() {
   //rtLogDebug("pxImage::draw() mw=%f mh=%f\n", mw, mh);
   static pxTextureRef nullMaskRef;
-  context.drawImage(0, 0, 
-                    getOnscreenWidth(),
-                    getOnscreenHeight(), 
-                    getImageResource()->getTexture(), nullMaskRef, 
-                    false, NULL, mStretchX, mStretchY);
+  if (getImageResource() != NULL)
+  {
+    context.drawImage(0, 0,
+                      getOnscreenWidth(),
+                      getOnscreenHeight(),
+                      getImageResource()->getTexture(), nullMaskRef,
+                      false, NULL, mStretchX, mStretchY);
+  }
   // Raise the priority if we're still waiting on the image download    
 #if 0
-  if (!imageLoaded && getImageResource()->isDownloadInProgress())
+  if (!imageLoaded && getImageResource() != NULL && getImageResource()->isDownloadInProgress())
     getImageResource()->raiseDownloadPriority();
 #endif
 }

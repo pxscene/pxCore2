@@ -1,4 +1,21 @@
-// rtCore Copyright 2007-2015 John Robinson
+/*
+
+ rtCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // rtNode.h
 
 #ifndef RTNODE_H
@@ -9,6 +26,7 @@
 #include "rtValue.h"
 #include "rtAtomic.h"
 
+// TODO eliminate std::string
 #include <string>
 #include <map>
 
@@ -62,8 +80,7 @@ args_t;
 class rtNodeContext  // V8
 {
 public:
-  rtNodeContext(v8::Isolate *isolate);
-
+  rtNodeContext(v8::Isolate *isolate, v8::Platform* platform);
 #ifdef USE_CONTEXTIFY_CLONES
   rtNodeContext(v8::Isolate *isolate, rtNodeContextRef clone_me);
 #endif
@@ -114,6 +131,8 @@ private:
 
   int mRefCount;
   rtAtomic mId;
+  v8::Platform                  *mPlatform;
+  void* mContextifyContext;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,6 +159,7 @@ public:
 #endif
 
   v8::Isolate   *getIsolate() { return mIsolate; };
+  v8::Platform   *getPlatform() { return mPlatform; };
   void garbageCollect();
 private:
 #ifdef ENABLE_DEBUG_MODE
@@ -152,8 +172,7 @@ private:
   void nodePath();
 
   v8::Isolate                   *mIsolate;
-  //v8::Platform                  *mPlatform;
-
+  v8::Platform                  *mPlatform;
   v8::Persistent<v8::Context>    mContext;
 
 

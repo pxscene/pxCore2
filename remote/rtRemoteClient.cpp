@@ -257,7 +257,6 @@ rtRemoteClient::sendKeepAlive()
       itr->value.PushBack(rapidjson::Value().SetString(name.c_str(), name.size()), msg->GetAllocator());
     }
   }
-  lock.unlock();
 
   std::shared_ptr<rtRemoteStream> s = getStream();
   if (!s)

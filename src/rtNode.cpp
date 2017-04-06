@@ -1,4 +1,21 @@
-// pxCore CopyRight 2007-2015 John Robinson
+/*
+
+ rtCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // rtNode.cpp
 
 #include <unistd.h>
@@ -69,6 +86,9 @@ extern args_t *s_gArgs;
 namespace node
 {
 extern bool use_debug_agent;
+#ifdef HAVE_INSPECTOR
+extern bool use_inspector;
+#endif
 extern bool debug_wait_connect;
 }
 
@@ -118,8 +138,8 @@ static inline bool file_exists(const char *file)
 }
 #endif
 
-rtNodeContext::rtNodeContext(Isolate *isolate) :
-     mIsolate(isolate), mEnv(NULL), mRefCount(0)
+rtNodeContext::rtNodeContext(Isolate *isolate,Platform* platform) :
+     mIsolate(isolate), mEnv(NULL), mRefCount(0),mPlatform(platform)
 {
   assert(isolate); // MUST HAVE !
   mId = rtAtomicInc(&sNextId);
@@ -129,7 +149,7 @@ rtNodeContext::rtNodeContext(Isolate *isolate) :
 
 #ifdef USE_CONTEXTIFY_CLONES
 rtNodeContext::rtNodeContext(Isolate *isolate, rtNodeContextRef clone_me) :
-      mIsolate(isolate), mEnv(NULL), mRefCount(0)
+      mIsolate(isolate), mEnv(NULL), mRefCount(0), mContextifyContext(NULL)
 {
   assert(mIsolate); // MUST HAVE !
   mId = rtAtomicInc(&sNextId);
@@ -188,7 +208,19 @@ void rtNodeContext::createEnvironment()
   if (use_debug_agent)
   {
     rtLogWarn("use_debug_agent\n");
-    StartDebug(mEnv, NULL, debug_wait_connect);
+#ifdef HAVE_INSPECTOR
+    if (use_inspector)
+    {
+      char currentPath[100];
+      memset(currentPath,0,sizeof(currentPath));
+      getcwd(currentPath,sizeof(currentPath));
+      StartDebug(mEnv, currentPath, debug_wait_connect, mPlatform);
+    }
+    else
+#endif
+    {
+      StartDebug(mEnv, NULL, debug_wait_connect);
+    }
   }
 #endif
   // Load Environment.
@@ -212,6 +244,7 @@ void rtNodeContext::createEnvironment()
       EmitBeforeExit(mEnv);
 #else
       bool more;
+      v8::platform::PumpMessageLoop(mPlatform, mIsolate);
       more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
       if (more == false)
       {
@@ -321,7 +354,10 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
   // Clone a new context.
   {
     Local<Context>  clone_local = node::makeContext(mIsolate, sandbox); // contextify context with 'sandbox'
+
     clone_local->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
+    Local<String> hidden_name = FIXED_ONE_BYTE_STRING(mIsolate, "_contextifyHidden");
+    mContextifyContext = sandbox->GetHiddenValue(hidden_name).As<External>()->Value();
 
     mContextId = GetContextId(clone_local);
   
@@ -378,6 +414,8 @@ rtNodeContext::~rtNodeContext()
     {
     // clear out persistent javascript handles
       HandleMap::clearAllForContext(mId);
+      node::deleteContextifyContext(mContextifyContext);
+      mContextifyContext = NULL;
     }
     if(exec_argv)
     {
@@ -679,8 +717,10 @@ void rtNode::initializeNode()
 #endif // ENABLE_NODE_V_6_9
 #else
 #ifdef ENABLE_NODE_V_6_9
-  static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
-  static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
+#ifndef ENABLE_DEBUG_MODE
+   static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
+   static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
+#endif //!ENABLE_DEBUG_MODE
 #else
   static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
@@ -736,7 +776,7 @@ void rtNode::pump()
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-
+  v8::platform::PumpMessageLoop(mPlatform, mIsolate);
   uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
 
   // Enable this to expedite garbage collection for testing... warning perf hit
@@ -843,6 +883,7 @@ void rtNode::init(int argc, char** argv)
    V8::InitializeExternalStartupData(argv[0]);
 #endif
    Platform* platform = platform::CreateDefaultPlatform();
+   mPlatform = platform;
    V8::InitializePlatform(platform);
    V8::Initialize();
    Isolate::CreateParams params;
@@ -886,7 +927,6 @@ void rtNode::term()
 // JRJRJR  Causing crash???  ask Hugh
 
     rtLogWarn("\n++++++++++++++++++ DISPOSE\n\n");
-
     node_isolate->Dispose();
     node_isolate = NULL;
     mIsolate     = NULL;
@@ -899,11 +939,11 @@ void rtNode::term()
     node_is_initialized = false;
 
     V8::ShutdownPlatform();
-  //  if(mPlatform)
-  //  {
-  //    delete mPlatform;
-  //    mPlatform = NULL;
-  //  }
+    if(mPlatform)
+    {
+      delete mPlatform;
+      mPlatform = NULL;
+    }
 
   //  if(mPxNodeExtension)
   //  {
@@ -934,8 +974,7 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
 #ifdef USE_CONTEXTIFY_CLONES
   if(mRefContext.getPtr() == NULL)
   {
-    mRefContext = new rtNodeContext(mIsolate);
-    
+    mRefContext = new rtNodeContext(mIsolate,mPlatform);
     ctxref = mRefContext;
     
     static std::string sandbox_path;
@@ -965,7 +1004,7 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
     ctxref = new rtNodeContext(mIsolate, mRefContext); // CLONE !!!
   }
 #else
-    ctxref = new rtNodeContext(mIsolate);
+    ctxref = new rtNodeContext(mIsolate,mPlatform);
 
 #endif
     

@@ -1,4 +1,21 @@
-// pxCore CopyRight 2007-2015 John Robinson
+/*
+
+ pxCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // pxResource.h
 
 #ifndef PX_RESOURCE_H
@@ -7,16 +24,14 @@
 #include "rtRef.h"
 #include "rtString.h"
 
-// TODO rtDefs vs rtCore.h
-#include "rtDefs.h"
-//#include "rtCore.h"
-#include "rtError.h"
+#include "rtCore.h"
 #include "rtValue.h"
 #include "rtObject.h"
 #include "rtObjectMacros.h"
 #include "rtPromise.h"
 #include "pxTexture.h"
 #include "rtMutex.h"
+#include "pxUtil.h"
 #ifdef ENABLE_HTTP_CACHE
 #include "rtFileCache.h"
 #endif
@@ -130,18 +145,48 @@ private:
  
 };
 
+class rtImageAResource : public pxResource
+{
+public:
+  rtImageAResource(const char* url = 0);
+  ~rtImageAResource();
+
+  rtDeclareObject(rtImageAResource, pxResource);
+
+  virtual unsigned long Release() ;
+
+  virtual void init();
+  pxTimedOffscreenSequence& getTimedOffscreenSequence() { return mTimedOffscreenSequence; }
+
+protected:
+  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+
+private:
+
+  void loadResourceFromFile();
+  pxTimedOffscreenSequence mTimedOffscreenSequence;
+
+};
+
 // Weak Map
 typedef std::map<rtString, rtImageResource*> ImageMap;
+typedef std::map<rtString, rtImageAResource*> ImageAMap;
 class pxImageManager
 {
   
   public: 
     static rtRef<rtImageResource> getImage(const char* url);
     static void removeImage(rtString imageUrl);
+
+    static rtRef<rtImageAResource> getImageA(const char* url);
+    static void removeImageA(rtString imageAUrl);
     
   private: 
     static ImageMap mImageMap;
     static rtRef<rtImageResource> emptyUrlResource;
+
+    static ImageAMap mImageAMap;
+    static rtRef<rtImageAResource> emptyUrlImageAResource;
 
 };
 

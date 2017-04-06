@@ -1,4 +1,21 @@
-// pxCore CopyRight 2007-2015 John Robinson
+/*
+
+ pxCore Copyright 2005-2017 John Robinson
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
 // pxScene2d.h
 
 #ifndef PX_SCENE2D_H
@@ -20,10 +37,7 @@
 #include "rtRef.h"
 #include "rtString.h"
 
-// TODO rtDefs vs rtCore.h
-#include "rtDefs.h"
 #include "rtCore.h"
-#include "rtError.h"
 #include "rtValue.h"
 #include "rtObject.h"
 #include "rtObjectMacros.h"
@@ -40,7 +54,6 @@
 #include "pxMatrix4T.h"
 #include "pxInterpolators.h"
 #include "pxTexture.h"
-//#include "pxTextureCacheObject.h"
 #include "pxContextFramebuffer.h"
 
 #include "pxArchive.h"
@@ -80,8 +93,6 @@ extern rtThreadQueue gUIThreadQueue;
 static pxConstants CONSTANTS;
 
 
-static int pxObjectCount = 0;
-
 #if 0
 typedef rtError (*objectFactory)(void* context, const char* t, rtObjectRef& o);
 void registerObjectFactory(objectFactory f, void* context);
@@ -110,7 +121,7 @@ struct animation
   int32_t count;
   float actualCount;
   bool reversing;
-  //rtFunctionRef ended;
+  rtFunctionRef ended;
   rtObjectRef promise;
 };
 
@@ -196,25 +207,7 @@ public:
   rtProperty(m44,m44,setM44,float);
   rtProperty(useMatrix,useMatrix,setUseMatrix,bool);
 
-pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
-#ifdef ANIMATION_ROTATE_XYZ  
-    mrx(0), mry(0), mrz(1.0), 
-#endif //ANIMATION_ROTATE_XYZ
-    msx(1), msy(1), mw(0), mh(0),
-    mInteractive(true),
-    mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(), 
-    mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
-#ifdef PX_DIRTY_RECTANGLES
-    , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
-#endif //PX_DIRTY_RECTANGLES
-    ,mDrawableSnapshotForMask(), mMaskSnapshot()
-  {
-    pxObjectCount++;
-    mScene = scene;
-    mReady = new rtPromise;
-    mEmit = new rtEmit;
-  }
-
+  pxObject(pxScene2d* scene);
   virtual unsigned long Release()
   {
     rtString d;
@@ -229,24 +222,7 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
     return c;
   }
 
-  virtual ~pxObject() 
-  { 
-//    rtString d;
-    // TODO... why is this bad
-//    sendReturns<rtString>("description",d);
-//    rtLogDebug("**************** pxObject destroyed: %s\n",getMap()->className); 
-    pxObjectCount--;
-    rtValue nullValue; 
-    mReady.send("reject",nullValue); 
-    deleteSnapshot(mSnapshotRef); 
-    deleteSnapshot(mClipSnapshotRef);
-    deleteSnapshot(mDrawableSnapshotForMask);
-    deleteSnapshot(mMaskSnapshot);
-    mSnapshotRef = NULL;
-    mClipSnapshotRef = NULL;
-    mDrawableSnapshotForMask = NULL;
-    mMaskSnapshot = NULL;
-  }
+  virtual ~pxObject() ;
 
   
 
@@ -352,7 +328,11 @@ pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my
       if (!mPainting)
       {
         //rtLogInfo("in setPainting and calling createSnapshot mw=%f mh=%f\n", mw, mh);
+#ifdef RUNINMAIN
         createSnapshot(mSnapshotRef);
+#else
+        createSnapshot(mSnapshotRef, true);
+#endif //RUNINMAIN
       }
       else
       {
@@ -738,7 +718,7 @@ protected:
   pxRect mScreenCoordinates;
   #endif //PX_DIRTY_RECTANGLES
 
-  void createSnapshot(pxContextFramebufferRef& fbo);
+  void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false);
   void createSnapshotOfChildren();
   void deleteSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES
@@ -751,6 +731,7 @@ protected:
   std::vector<animation> mAnimations;  
   pxContextFramebufferRef mDrawableSnapshotForMask;
   pxContextFramebufferRef mMaskSnapshot;
+  bool mIsDisposed;
 
  private:
   rtError _pxObject(voidPtr& v) const {
@@ -1058,11 +1039,9 @@ public:
       mGetContextID->clearContext();
                                    
       // TODO Given that the context is being cleared we likely don't need to zero these out
-      #if 0
       mCtx->add("getScene", 0);
       mCtx->add("makeReady", 0);
       mCtx->add("getContextID", 0);
-      #endif
     }
 #endif //ENABLE_RT_NODE
     
@@ -1259,6 +1238,7 @@ public:
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
+  rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
@@ -1349,6 +1329,7 @@ public:
   rtError createWayland(rtObjectRef p, rtObjectRef& o);
 
   rtError clock(uint64_t & time);
+  rtError logDebugMetrics();
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
