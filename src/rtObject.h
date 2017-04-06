@@ -40,6 +40,7 @@
 class rtIObject 
 {
   public:
+    virtual ~rtIObject() {};
     typedef unsigned long refcount_t;
 
     virtual unsigned long AddRef() = 0;
@@ -54,6 +55,7 @@ class rtIObject
 class rtIFunction 
 {
   public:
+    virtual ~rtIFunction() {};
     virtual unsigned long AddRef()=0;
     virtual unsigned long Release()=0;
     virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
