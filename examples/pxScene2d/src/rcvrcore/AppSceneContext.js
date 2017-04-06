@@ -68,6 +68,12 @@ AppSceneContext.prototype.loadScene = function() {
 if( fullPath !== null)
   this.loadPackage(fullPath);
 
+  this.innerscene.on('onClose', function (e) {
+    if (this.innerscene.api != undefined)
+    {
+      for(var k in this.innerscene.api) { delete this.innerscene.api[k]; }
+    }
+  }.bind(this));
 if (false) {
 if (false) {
   // This no longer has access to the container
