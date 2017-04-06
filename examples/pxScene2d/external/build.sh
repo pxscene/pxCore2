@@ -1,7 +1,10 @@
 #!/bin/bash
 set -e
 # Any subsequent(*) commands which fail will cause the shell script to exit immediately
-
+# This is to  prevent build caching for some components for mac
+if [ "$(uname)" == "Darwin" ]; then
+export CCACHE_DISABLE=true
+fi
 #--------- CURL 
 cd curl
 
@@ -64,6 +67,7 @@ make -j3
 cd ..
 fi
 
+export CCACHE_DISABLE=false
 #--------- LIBNODE 
 cd libnode-v6.9.0
 ./configure --shared
