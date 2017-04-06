@@ -62,16 +62,12 @@ rtRemoteClient::rtRemoteClient(rtRemoteEnvironment* env, int fd,
   : m_stream(new rtRemoteStream(env, fd, local_endpoint, remoteEndpoint))
   , m_env(env)
 {
-  m_stream->setStateChangedHandler(&rtRemoteClient::onStreamStateChanged_Dispatcher, this);
-  m_stream->setMessageHandler(&rtRemoteClient::onIncomingMessage_Dispatcher, this);
 }
 
 rtRemoteClient::rtRemoteClient(rtRemoteEnvironment* env, sockaddr_storage const& remoteEndpoint)
   : m_stream(new rtRemoteStream(env, -1, sockaddr_storage(), remoteEndpoint))
   , m_env(env)
 {
-  m_stream->setStateChangedHandler(&rtRemoteClient::onStreamStateChanged_Dispatcher, this);
-  m_stream->setMessageHandler(&rtRemoteClient::onIncomingMessage_Dispatcher, this);
 }
 
 rtRemoteClient::~rtRemoteClient()
@@ -95,7 +91,7 @@ rtRemoteClient::send(rtRemoteMessagePtr const& msg)
 }
 
 rtError
-rtRemoteClient::onIncomingMessage(rtRemoteMessagePtr const& doc)
+rtRemoteClient::onMessage(rtRemoteMessagePtr const& doc)
 {
   std::shared_ptr<rtRemoteStream> s = getStream();
   if (!s)
@@ -107,7 +103,7 @@ rtRemoteClient::onIncomingMessage(rtRemoteMessagePtr const& doc)
 }
 
 rtError
-rtRemoteClient::onStreamStateChanged(std::shared_ptr<rtRemoteStream> const& /*stream*/,
+rtRemoteClient::onStateChanged(std::shared_ptr<rtRemoteStream> const& /*stream*/,
     rtRemoteStream::State state)
 {
   if (state == rtRemoteStream::State::Closed)
@@ -151,6 +147,9 @@ rtRemoteClient::setStateChangedHandler(StateChangedHandler handler, void* argp)
 rtError
 rtRemoteClient::open()
 {
+  auto self = shared_from_this();
+  m_stream->setCallbackHandler(self);
+
   rtError err = connectRpcEndpoint();
   if (err != RT_OK)
   {

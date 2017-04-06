@@ -26,9 +26,12 @@ public:
     Closed
   };
 
-  using MessageHandler = rtError (*)(rtRemoteMessagePtr const& doc, void* argp);
-  using StateChangedHandler = rtError (*)(std::shared_ptr<rtRemoteStream> const& stream,
-    State state, void* argp);
+  class CallbackHandler {
+  public:
+    virtual ~CallbackHandler() { }
+    virtual rtError onMessage(rtRemoteMessagePtr const& doc) = 0;
+    virtual rtError onStateChanged(std::shared_ptr<rtRemoteStream> const& stream, State state) = 0;
+  };
 
   rtRemoteStream(rtRemoteEnvironment* env, int fd,
     sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint);
@@ -46,8 +49,8 @@ public:
   rtError connectTo(sockaddr_storage const& endpoint);
   rtError send(rtRemoteMessagePtr const& msg);
   rtRemoteAsyncHandle sendWithWait(rtRemoteMessagePtr const& msg, rtRemoteCorrelationKey k);
-  rtError setMessageHandler(MessageHandler handler, void* argp);
-  rtError setStateChangedHandler(StateChangedHandler handler, void* argp);
+
+  rtError setCallbackHandler(std::shared_ptr<CallbackHandler> const& callbackHandler);
 
   inline bool isOpen() const
     { return m_fd != kInvalidSocket; }
@@ -64,9 +67,7 @@ private:
 
 private:
   int                                   m_fd;
-  rtRemoteCallback<MessageHandler>      m_message_handler;
-  rtRemoteCallback<MessageHandler>      m_inactivity_handler;
-  rtRemoteCallback<StateChangedHandler> m_state_changed_handler;
+  std::weak_ptr<CallbackHandler>        m_callback_handler;
   sockaddr_storage                      m_local_endpoint;
   sockaddr_storage                      m_remote_endpoint;
   rtRemoteEnvironment*                  m_env;

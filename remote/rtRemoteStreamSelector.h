@@ -26,6 +26,7 @@ private:
   rtError doPollFds();
 
 private:
+  // TODO: should this be std::weak_ptr
   std::vector< std::shared_ptr<rtRemoteStream> >  m_streams;
   pthread_t                                       m_thread;
   std::mutex                                      m_mutex;

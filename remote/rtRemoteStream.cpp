@@ -19,8 +19,6 @@ rtRemoteStream::rtRemoteStream(rtRemoteEnvironment* env, int fd, sockaddr_storag
   : m_fd(fd)
   , m_env(env)
 {
-  m_state_changed_handler.Func = nullptr;
-  m_state_changed_handler.Arg = nullptr;
   memcpy(&m_remote_endpoint, &remote_endpoint, sizeof(m_remote_endpoint));
   memcpy(&m_local_endpoint, &local_endpoint, sizeof(m_local_endpoint));
 }
@@ -124,28 +122,13 @@ rtRemoteStream::sendWithWait(rtRemoteMessagePtr const& msg, rtRemoteCorrelationK
 }
 
 rtError
-rtRemoteStream::setStateChangedHandler(StateChangedHandler handler, void* argp)
-{
-  m_state_changed_handler.Func = handler;
-  m_state_changed_handler.Arg = argp;
-  return RT_OK;
-}
-
-rtError
-rtRemoteStream::setMessageHandler(MessageHandler handler, void* argp)
-{
-  m_message_handler.Func = handler;
-  m_message_handler.Arg = argp;
-  return RT_OK;
-}
-
-rtError
 rtRemoteStream::onInactivity()
 {
-  auto self = shared_from_this();
-  if (m_state_changed_handler.Func)
+  std::shared_ptr<CallbackHandler> handler = m_callback_handler.lock();
+  if (handler)
   {
-    rtError e = m_state_changed_handler.Func(self, State::Inactive, m_state_changed_handler.Arg);
+    auto self = shared_from_this();
+    rtError e = handler->onStateChanged(self, State::Inactive);
     if (e != RT_OK)
       rtLogError("failed dispatching inactivity handler. %s", rtStrError(e));
   }
@@ -156,14 +139,16 @@ rtRemoteStream::onInactivity()
 rtError
 rtRemoteStream::onIncomingMessage(rtRemoteSocketBuffer& buff)
 {
+  std::shared_ptr<CallbackHandler> handler = m_callback_handler.lock();
+
   rtRemoteMessagePtr doc = nullptr;
   rtError e = rtReadMessage(m_fd, buff, doc);
   if (e != RT_OK)
   {
-    if (e == rtErrorFromErrno(ENOTCONN) && m_state_changed_handler.Func)
+    if (e == rtErrorFromErrno(ENOTCONN) && handler)
     { 
       auto self = shared_from_this();
-      rtError err = m_state_changed_handler.Func(self, State::Closed, m_state_changed_handler.Arg);
+      rtError err = handler->onStateChanged(self, State::Closed);
       if (err != RT_OK)
         rtLogWarn("failed to invoke state changed handler. %s", rtStrError(err));
 
@@ -173,8 +158,18 @@ rtRemoteStream::onIncomingMessage(rtRemoteSocketBuffer& buff)
     rtLogDebug("failed to read message. %s", rtStrError(e));
   }
 
-  if (e == RT_OK && m_message_handler.Func != nullptr)
-    e = m_message_handler.Func(doc, m_message_handler.Arg);
+  if (e == RT_OK && handler)
+    e = handler->onMessage(doc);
 
+  return RT_OK;
+}
+
+rtError
+rtRemoteStream::setCallbackHandler(std::shared_ptr<CallbackHandler> const& handler)
+{
+  if (!handler)
+    return RT_ERROR_INVALID_ARG;
+
+  m_callback_handler = handler;
   return RT_OK;
 }
