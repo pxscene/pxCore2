@@ -11,6 +11,11 @@ var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 
 var log = new Logger('AppSceneContext');
+//overriding original timeout and interval functions
+var SetTimeout = setTimeout;
+var ClearTimeout = clearTimeout;
+var SetInterval = setInterval;
+var ClearInterval = clearInterval;
 
 function AppSceneContext(params) { // container, innerscene, packageUrl) {
   //  this.container = params.sceneContainer;
@@ -44,6 +49,9 @@ function AppSceneContext(params) { // container, innerscene, packageUrl) {
   this.topXModule = null;
   this.jarFileMap = {};
   this.sceneWrapper = null;
+  this.timers = [];
+  this.timerIntervals = [];
+
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -67,6 +75,20 @@ AppSceneContext.prototype.loadScene = function() {
 
 if( fullPath !== null)
   this.loadPackage(fullPath);
+
+this.innerscene.on('onClose', function (e) {
+  //clear the timers and intervals on close
+  var ntimers = this.timers.length;
+  for (var i=0; i<ntimers; i++)
+  {
+    clearTimeout(this.timers.pop());
+  }
+  var ntimerIntervals = this.timerIntervals.length;
+  for (var i=0; i<ntimerIntervals; i++)
+  {
+    clearInterval(this.timerIntervals.pop());
+  }
+}.bind(this));
 
 if (false) {
 if (false) {
@@ -227,10 +249,32 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
         return requireIt(pkg);
 
       },
-      setTimeout: setTimeout,
-      setInterval: setInterval,
-      clearInterval: clearInterval,
-      clearTimeout: clearTimeout,
+      setTimeout: function (callback, after, arg1, arg2, arg3) {
+        var timerId = SetTimeout(callback, after, arg1, arg2, arg3);
+        this.timers.push(timerId);
+        return timerId;
+      }.bind(this),
+      clearTimeout: function (timer) {
+        var index = this.timers.indexOf(timer);
+        if (index != -1)
+        {
+          this.timers.splice(index,1);
+        }
+        ClearTimeout(timer);
+      }.bind(this),
+      setInterval: function (callback, repeat, arg1, arg2, arg3) {
+        var intervalId = SetInterval(callback, repeat, arg1, arg2, arg3);
+        this.timerIntervals.push(intervalId);
+        return intervalId;
+      }.bind(this),
+      clearInterval: function (timer) {
+        var index = this.timerIntervals.indexOf(timer);
+        if (index != -1)
+        {
+          this.timerIntervals.splice(index,1);
+        }
+        ClearInterval(timer);
+      }.bind(this),
       importTracking: {}
     } // end sandbox
 
