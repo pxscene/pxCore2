@@ -1141,7 +1141,8 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
     return RT_FAIL;
   }
 
-  unsigned int width, height, channels, rowbytes, size, i, j;
+  //unsigned int width, height, channels, rowbytes, size, i, j;
+  unsigned int width, height, rowbytes, size, i, j;
   png_bytepp rows_image;
   png_bytepp rows_frame;
   unsigned char *p_image;
@@ -1170,7 +1171,7 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
     png_read_update_info(png_ptr, info_ptr);
     width = png_get_image_width(png_ptr, info_ptr);
     height = png_get_image_height(png_ptr, info_ptr);
-    channels = png_get_channels(png_ptr, info_ptr);
+    //channels = png_get_channels(png_ptr, info_ptr);
     rowbytes = png_get_rowbytes(png_ptr, info_ptr);
     size = height * rowbytes;
     p_image = (unsigned char *)malloc(size);
