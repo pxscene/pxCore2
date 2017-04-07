@@ -86,8 +86,11 @@ void* context, bool succeeded) {
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
 public:
-  sceneWindow(): mWidth(-1),mHeight(-1) {}
-  virtual ~sceneWindow() {}
+  sceneWindow(): mWidth(-1),mHeight(-1),mClosed(false) {}
+  virtual ~sceneWindow()
+  {
+    mView = NULL;
+  }
 
   void init(int x, int y, int w, int h, const char* url = NULL)
   {
@@ -160,6 +163,9 @@ protected:
 
   virtual void onCloseRequest() 
   {
+    if (mClosed)
+      return;
+    mClosed = true;
     rtLogInfo(__FUNCTION__);
     ENTERSCENELOCK();
     if (mView)
@@ -173,16 +179,27 @@ protected:
 #endif 
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
-#ifdef RUNINMAIN
-   script.garbageCollect();
-#endif
-ENTERSCENELOCK()
-    mView = NULL;
-    eventLoop.exit();
-EXITSCENELOCK()
-#ifndef RUNINMAIN
-   script.setNeedsToEnd(true);
-#endif
+  #ifdef RUNINMAIN
+     script.garbageCollect();
+  #endif
+  ENTERSCENELOCK()
+      mView = NULL;
+  EXITSCENELOCK()
+  #ifndef RUNINMAIN
+     script.setNeedsToEnd(true);
+  #endif
+  #ifdef ENABLE_DEBUG_MODE
+    free(g_origArgv);
+  #endif
+    script.garbageCollect();
+    if (gDumpMemUsage)
+    {
+      rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+      rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+    }
+  ENTERSCENELOCK()
+      eventLoop.exit();
+  EXITSCENELOCK()
   }
 
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)
@@ -272,6 +289,7 @@ EXITSCENELOCK()
   int mWidth;
   int mHeight;
   rtRef<pxIView> mView;
+  bool mClosed;
 };
 sceneWindow win;
 #define xstr(s) str(s)
@@ -403,14 +421,5 @@ if (s && (strcmp(s,"1") == 0))
   context.init();
 
   eventLoop.run();
-#ifdef ENABLE_DEBUG_MODE
-  free(g_origArgv);
-#endif
-  script.garbageCollect();
-  if (gDumpMemUsage)
-  {
-    rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
-    rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
-  }
   return 0;
 }
