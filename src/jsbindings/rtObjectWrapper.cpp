@@ -152,7 +152,7 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>
   };
 
   Local<Function> func = PersistentToLocal(isolate, ctor);
-  obj = func->NewInstance(1, argv);
+  obj = (func->NewInstance(ctx, 1, argv)).FromMaybe(Local<Object>());
 
   // Local<Context> creationContext = obj->CreationContext();
   // rtLogInfo("add id:%u addr:%p", GetContextId(creationContext), ref.getPtr());
@@ -407,7 +407,7 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
     if (!strcmp(name, "length"))
       *value = rtValue(Array::Cast(*self)->Length());
     else
-      err = Get(s->ToArrayIndex()->Value(), value);
+      err = Get((s->ToArrayIndex(ctx)).FromMaybe(Local<Uint32>())->Value(), value);
   }
   else
   {
@@ -435,10 +435,10 @@ rtError jsObjectWrapper::Get(uint32_t i, rtValue* value) const
   HandleScope handleScope(mIsolate);
 
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
-  if (!self->Has(i))
-    return RT_PROPERTY_NOT_FOUND;
-
   Local<Context> ctx = self->CreationContext();
+
+  if (!(self->Has(ctx,i).FromMaybe(false)))
+    return RT_PROPERTY_NOT_FOUND;
 
   rtWrapperError error;
   *value = js2rt(ctx, self->Get(i), &error);
@@ -465,7 +465,7 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
 
   if (mIsArray)
   {
-    Local<Uint32> idx = s->ToArrayIndex();
+    Local<Uint32> idx = (s->ToArrayIndex(ctx)).FromMaybe(Local<Uint32>());
     if (idx.IsEmpty())
       err = RT_ERROR_INVALID_ARG;
     else

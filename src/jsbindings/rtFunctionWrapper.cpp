@@ -164,7 +164,7 @@ void rtFunctionWrapper::create(const FunctionCallbackInfo<Value>& args)
   wrapper->Wrap(args.This());
 }
 
-Handle<Object> rtFunctionWrapper::createFromFunctionReference(Isolate* isolate, const rtFunctionRef& func)
+Handle<Object> rtFunctionWrapper::createFromFunctionReference(v8::Local<v8::Context>& ctx, Isolate* isolate, const rtFunctionRef& func)
 {
   Locker                       locker(isolate);
   Isolate::Scope        isolate_scope(isolate);
@@ -177,7 +177,7 @@ Handle<Object> rtFunctionWrapper::createFromFunctionReference(Isolate* isolate, 
 
   Local<Function> c = PersistentToLocal(isolate, ctor);
 
-  return scope.Escape(c->NewInstance(1, argv));
+  return scope.Escape((c->NewInstance(ctx, 1, argv)).FromMaybe(Local<Object>()));
 }
 
 void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
