@@ -563,7 +563,7 @@ void pxFontManager::clearAllFonts()
 }
 
 // pxTextMetrics
-rtDefineObject(pxTextMetrics, pxResource);
+rtDefineObject(pxTextMetrics, rtObject);
 rtDefineProperty(pxTextMetrics, height); 
 rtDefineProperty(pxTextMetrics, ascent);
 rtDefineProperty(pxTextMetrics, descent);
@@ -575,6 +575,6 @@ rtDefineObject(pxFont, pxResource);
 rtDefineMethod(pxFont, getFontMetrics);
 rtDefineMethod(pxFont, measureText);
 
-rtDefineObject(pxTextSimpleMeasurements, pxResource);
+rtDefineObject(pxTextSimpleMeasurements, rtObject);
 rtDefineProperty(pxTextSimpleMeasurements, w);
 rtDefineProperty(pxTextSimpleMeasurements, h);
