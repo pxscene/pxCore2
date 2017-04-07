@@ -6,12 +6,14 @@
 #define PX_WINDOW_NATIVE_H
 
 #include <string>
+#include <algorithm>
+#include <vector>
 
 class pxWindowNative
 {
 public:
   pxWindowNative(): mWindow(NULL),mTimer(NULL)/*: mWindowRef(NULL), mTrackingRegion(NULL), theTimer(NULL), mLastModifierState(0), mDragging(false)*/ {}
-  virtual ~pxWindowNative() {}
+  virtual ~pxWindowNative();
   
   // The Joy of ObjectiveC++
   static void _helper_onCreate(pxWindowNative* w)
@@ -81,7 +83,10 @@ public:
       w->onAnimationTimer();
   }
 
-    
+  static void closeAllWindows();
+  static void registerWindow(pxWindowNative*);
+  static void unregisterWindow(pxWindowNative*);
+  static std::vector<pxWindowNative *> sWindowVector;
 protected:
   
   virtual void onCreate() = 0;

@@ -31,6 +31,32 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<pxWindowNative*> pxWindowNative::sWindowVector;
+void pxWindowNative::registerWindow(pxWindowNative* win)
+{
+  pxWindowNative::sWindowVector.push_back(win);
+}
+
+void pxWindowNative::unregisterWindow(pxWindowNative* win)
+{
+  std::vector<pxWindowNative*>::iterator i = std::find(pxWindowNative::sWindowVector.begin(), pxWindowNative::sWindowVector.end(), win);
+  if (i != pxWindowNative::sWindowVector.end())
+    pxWindowNative::sWindowVector.erase(i);
+}
+
+void pxWindowNative::closeAllWindows()
+{
+  for (int window=0; window<pxWindowNative::sWindowVector.size(); window++)
+  {
+    pxWindowNative::_helper_onCloseRequest(pxWindowNative::sWindowVector[window]);
+  }
+  pxWindowNative::sWindowVector.clear();
+}
+
+pxWindowNative::~pxWindowNative()
+{
+  unregisterWindow(this);
+}
 
 @interface WinDelegate : NSObject <NSWindowDelegate>
 @end
@@ -954,7 +980,7 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
 pxError pxWindow::init(int left, int top, int width, int height)
 {
-  
+  pxWindowNative::registerWindow(this);
   NSPoint pos;
     
   NSRect  frame = [[NSScreen mainScreen] frame];

@@ -3,6 +3,8 @@
 // pxEventLoopNative.cpp
 
 #include "pxEventLoop.h"
+#include <pxWindow.h>
+#include "pxWindowNative.h"
 
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
@@ -155,6 +157,7 @@
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
   // Insert code here to tear down your application
+  pxWindowNative::closeAllWindows();
 }
 
 @end
