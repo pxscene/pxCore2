@@ -497,13 +497,17 @@ v8::Handle<Context> makeContext(v8::Isolate *isolate, v8::Handle<Object> sandbox
 
   // Local<Object> sandbox = args[0].As<Object>();
 
-  Local<String> hidden_name =
-      FIXED_ONE_BYTE_STRING(isolate, "_contextifyHidden");
+  Local<String> symbol_name =
+      FIXED_ONE_BYTE_STRING(isolate, "_contextifyPrivate");
 
   // Don't allow contextifying a sandbox multiple times.
-  assert(sandbox->GetHiddenValue(hidden_name).IsEmpty());
+  Local<v8::Private> private_symbol_name = v8::Private::ForApi(isolate, symbol_name);
+  CHECK(
+      !sandbox->HasPrivate(
+          env->context(),
+          private_symbol_name).FromJust());
 
-  TryCatch try_catch;
+  TryCatch try_catch(isolate);
   ContextifyContext* context = new ContextifyContext(env, sandbox);
 
   if (try_catch.HasCaught())
@@ -518,7 +522,10 @@ v8::Handle<Context> makeContext(v8::Isolate *isolate, v8::Handle<Object> sandbox
   }
   
   Local<External> hidden_context = External::New(isolate, context);
-  sandbox->SetHiddenValue(hidden_name, hidden_context);
+  sandbox->SetPrivate(
+      env->context(),
+      private_symbol_name,
+      hidden_context);
 
   Local<Context>  local_context = context->context(); // returns a local context 
   

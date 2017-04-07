@@ -356,8 +356,20 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
     Local<Context>  clone_local = node::makeContext(mIsolate, sandbox); // contextify context with 'sandbox'
 
     clone_local->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
+#ifdef ENABLE_NODE_V_6_9
+    Local<Context> envCtx = Environment::GetCurrent(mIsolate)->context();
+    Local<String> symbol_name = FIXED_ONE_BYTE_STRING(mIsolate, "_contextifyPrivate");
+    Local<Private> private_symbol_name = Private::ForApi(mIsolate, symbol_name);
+    MaybeLocal<Value> maybe_value = sandbox->GetPrivate(envCtx,private_symbol_name);
+    Local<Value> decorated;
+    if (true == maybe_value.ToLocal(&decorated))
+    {
+      mContextifyContext = decorated.As<External>()->Value();
+    }
+#else
     Local<String> hidden_name = FIXED_ONE_BYTE_STRING(mIsolate, "_contextifyHidden");
     mContextifyContext = sandbox->GetHiddenValue(hidden_name).As<External>()->Value();
+#endif
 
     mContextId = GetContextId(clone_local);
   
@@ -414,7 +426,9 @@ rtNodeContext::~rtNodeContext()
     {
     // clear out persistent javascript handles
       HandleMap::clearAllForContext(mId);
+#ifdef ENABLE_NODE_V_6_9
       node::deleteContextifyContext(mContextifyContext);
+#endif
       mContextifyContext = NULL;
     }
     if(exec_argv)
