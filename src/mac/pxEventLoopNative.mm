@@ -3,6 +3,7 @@
 // pxEventLoopNative.cpp
 
 #include "pxEventLoop.h"
+#include <signal.h>
 
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
@@ -155,6 +156,7 @@
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
   // Insert code here to tear down your application
+    kill(getpid(),SIGTERM);
 }
 
 @end
