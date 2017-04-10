@@ -5,7 +5,8 @@ set -e
 
 #--------- CURL
 
-if [ ! -e ./curl/lib/.libs/libcurl.4.dylib ]
+if [ ! -e ./curl/lib/.libs/libcurl.4.dylib ] ||
+   [ "$(uname)" != "Darwin" ]
 then
 
   cd curl
@@ -23,7 +24,8 @@ fi
 
 #--------- PNG
 
-if [ ! -e ./libpng-1.6.28/.libs/libpng16.16.dylib ]
+if [ ! -e ./libpng-1.6.28/.libs/libpng16.16.dylib ] ||
+   [ "$(uname)" != "Darwin" ]
 then
 
   cd png
@@ -35,7 +37,8 @@ fi
 
 #--------- FT
 
-if [ ! -e ./ft/objs/.libs/libfreetype.6.dylib ]
+if [ ! -e ./ft/objs/.libs/libfreetype.6.dylib ] ||
+   [ "$(uname)" != "Darwin" ]
 then
 
   cd ft
@@ -48,7 +51,8 @@ fi
 
 #--------- JPG
 
-if [ ! -e ./jpg/.libs/libjpeg.9.dylib ]
+if [ ! -e ./jpg/.libs/libjpeg.9.dylib ] ||
+   [ "$(uname)" != "Darwin" ]
 then
 
   cd jpg
@@ -60,7 +64,8 @@ fi
 
 #--------- ZLIB
 
-if [ ! -e ./zlib/libz.1.2.8.dylib ]
+if [ ! -e ./zlib/libz.1.2.8.dylib ] ||
+   [ "$(uname)" != "Darwin" ]
 then
 
   cd zlib
@@ -101,7 +106,8 @@ fi
 
 #--------- LIBNODE
 
-if [ ! -e libnode-v6.9.0/out/Release/libnode.48.dylib ]
+if [ ! -e libnode-v6.9.0/out/Release/libnode.48.dylib ] ||
+   [ "$(uname)" != "Darwin" ]
 then
 
   cd libnode-v6.9.0
