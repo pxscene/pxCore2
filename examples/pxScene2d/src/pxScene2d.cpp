@@ -179,7 +179,7 @@ unsigned char *base64_decode(const unsigned char *data,
     if (data[input_length - 2] == '=') (*output_length)--;
 
     unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
-    if (decoded_data == NULL) return NULL;http://msdn.microsoft.com/en-us/library/6wtdswk0.aspx
+    if (decoded_data == NULL) return NULL;
 
     for (uint32_t i = 0, j = 0; i < input_length;) {
 
@@ -348,9 +348,9 @@ void pxObject::dispose()
   {
     (*it)->dispose();
     (*it)->mParent = NULL;  // setParent mutates the mChildren collection
-  } 
+  }
   mChildren.clear();
-  deleteSnapshot(mSnapshotRef); 
+  deleteSnapshot(mSnapshotRef);
   deleteSnapshot(mClipSnapshotRef);
   deleteSnapshot(mDrawableSnapshotForMask);
   deleteSnapshot(mMaskSnapshot);
@@ -382,7 +382,7 @@ rtError pxObject::Set(const char* name, const rtValue* value)
   #ifdef PX_DIRTY_RECTANGLES
   mIsDirty = true;
   //mScreenCoordinates = getBoundingRectInScreenCoordinates();
-  
+
   #endif //PX_DIRTY_RECTANGLES
   if (strcmp(name, "x") != 0 && strcmp(name, "y") != 0 &&  strcmp(name, "a") != 0)
   {
@@ -398,15 +398,15 @@ rtError pxObject::Set(const char* name, const rtValue* value)
   return rtObject::Set(name, value);
 }
 
-// TODO Cleanup animateTo methods... animateTo animateToP2 etc... 
+// TODO Cleanup animateTo methods... animateTo animateToP2 etc...
 rtError pxObject::animateToP2(rtObjectRef props, double duration,
                               uint32_t interp, uint32_t animationType,
                               int32_t count, rtObjectRef& promise)
 {
 
   if (!props) return RT_FAIL;
-  // TODO JR... not sure that we should do an early out here... thinking 
-  // we should still return a resolved promise given time... 
+  // TODO JR... not sure that we should do an early out here... thinking
+  // we should still return a resolved promise given time...
   // just going to get exceptions if you try to do a .then on the return result
   //if (!props) return RT_OK;
   // Default to Linear, Loop and count==1
@@ -476,7 +476,7 @@ rtError pxObject::moveToFront()
   pxObject* parent = this->parent();
 
   if(!parent) return RT_OK;
-  
+
   remove();
   setParent(parent);
 
@@ -486,9 +486,9 @@ rtError pxObject::moveToFront()
 rtError pxObject::moveToBack()
 {
   pxObject* parent = this->parent();
-  
+
   if(!parent) return RT_OK;
-  
+
   remove();
   mParent = parent;
   std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
@@ -2279,8 +2279,8 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
     if (pxStorePNGImage(o, pngData2) == RT_OK)
     {
 
-//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
-//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 #if 0
     FILE *myFile = fopen("/mnt/nfs/env/snap.png", "wb");
     if( myFile != NULL)
@@ -2288,10 +2288,10 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
       fwrite( pngData2.data(), sizeof(char), pngData2.length(),myFile);
       fclose(myFile);
     }
-#endif    
-//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
-//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
-    
+#endif
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
+
       size_t l;
       char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
       if (d)
@@ -2417,7 +2417,7 @@ void pxViewContainer::invalidateRect(pxRect* r)
     mScene->invalidateRect(&screenRect);
 #else
     mScene->invalidateRect(NULL);
-    UNUSED_PARAM(r);    
+    UNUSED_PARAM(r);
 #endif //PX_DIRTY_RECTANGLES
   }
 }
@@ -2431,7 +2431,7 @@ void pxScene2d::invalidateRect(pxRect* r)
     mDirty = true;
   }
 #else
-  UNUSED_PARAM(r); 
+  UNUSED_PARAM(r);
 #endif //PX_DIRTY_RECTANGLES
   if (mContainer && !mTop)
   {
@@ -2505,7 +2505,7 @@ rtError pxSceneContainer::ready(rtObjectRef& o) const
   if (mScriptView) {
     rtLogInfo("mScriptView is set!\n");
     return mScriptView->ready(o);
-  } 
+  }
   rtLogInfo("mScriptView is NOT set!\n");
   return RT_FAIL;
 }
@@ -2531,9 +2531,9 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
-pxScriptView::pxScriptView(const char* url, const char* /*lang*/) 
+pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
      : mWidth(-1), mHeight(-1), mViewContainer(NULL), mRefCount(0)
-{ 
+{
   rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
 #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
@@ -2543,7 +2543,7 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
   rtLogDebug("pxScriptView::pxScriptView() exiting\n");
 }
 
-void pxScriptView::runScript() 
+void pxScriptView::runScript()
 {
   rtLogInfo(__FUNCTION__);
 #endif // ifndef RUNINMAIN
@@ -2692,4 +2692,3 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
   }
   return RT_FAIL;
 }
-
