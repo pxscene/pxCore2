@@ -11,7 +11,7 @@ def remove(dirStr):
         pass
 
 def copyRes(baseDir):
-    for f in ["browser.js","init.js","shell.js","FreeSans.ttf"]:
+    for f in ["browser.js","init.js","shell.js","FreeSans.ttf", "package.json"]:
         shutil.copy(os.path.join(pxscene2d_srd_dir,f),os.path.join(baseDir,f))
     for d in ["rcvrcore","images","node_modules"]:
         shutil.copytree(os.path.join(pxscene2d_srd_dir,d),os.path.join(baseDir,d))
@@ -26,5 +26,5 @@ try:
     os.mkdir(build_dir+"\\exe")
 except:
     pass
-shutil.copy(build_dir+"\\build\\pxScene2d.exe",build_dir+"\\exe")
+shutil.copy(build_dir+"\\build\\pxScene.exe",build_dir+"\\exe")
 copyRes(build_dir+"\\exe")

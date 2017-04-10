@@ -14,6 +14,7 @@
     <ProjectGuid>{EEE2B0DD-4BF4-4EEB-BB67-D9A065583020}</ProjectGuid>
     <RootNamespace>pxScene2d</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>pxScene</ProjectName>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\..\examples\pxScene2d\external\vc.build\config.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -42,8 +43,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)\pxScene2d\build</OutDir>
-    <IntDir>$(SolutionDir)\pxScene2d\objs</IntDir>
+    <OutDir>$(SolutionDir)\pxScene2d\build\</OutDir>
+    <IntDir>$(SolutionDir)\pxScene2d\objs\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)\pxScene2d\build\</OutDir>
+    <IntDir>$(SolutionDir)\pxScene2d\objs\</IntDir>
+    <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -72,12 +78,18 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\examples\pxScene2d\external\westeros-stub;..\..\src;..\..\examples\pxScene2d\external\libnode-v6.9.0\src;..\..\examples\pxScene2d\external\libnode-v6.9.0\deps\uv\include;..\..\examples\pxScene2d\external\libnode-v6.9.0\deps\v8;..\..\examples\pxScene2d\external\libnode-v6.9.0\deps\debugger-agent\include;..\..\examples\pxScene2d\external\libnode-v6.9.0\deps\http_parser;..\..\examples\pxScene2d\external\libnode-v6.9.0\deps\icu-small\source\common;..\..\examples\pxScene2d\external\libnode-v6.9.0\deps\v8_inspector\third_party\v8_inspector;..\..\examples\pxScene2d\external\libnode-v6.9.0\deps\openssl\openssl\include;..\..\examples\pxScene2d\external\libnode-v6.9.0\deps\v8\include;..\..\examples\pxScene2d\external\pthread-2.9\prebuild\include;..\..\examples\pxScene2d\external\libnode-v6.9.0\deps\cares\include;..\..\examples\pxScene2d\external\zlib-1.2.8;..\..\examples\pxScene2d\external\curl-7.40.0\include;..\..\examples\pxScene2d\external\freetype-2.5.3\src;..\..\examples\pxScene2d\external\freetype-2.5.3\include;..\..\examples\pxScene2d\external\gles\include\OGLES;..\..\examples\pxScene2d\external\glut-3.7;..\..\examples\pxScene2d\external\libpng-1.6.28;..\..\examples\pxScene2d\external\jpeg-9a;..\..\examples\pxScene2d\external\libjpeg-turbo-1.5.1;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;PX_PLATFORM_WIN;RT_PLATFORM_WINDOWS;WIN32;WIN32_LEAN_AND_MEAN;_TIMESPEC_DEFINED;_CONSOLE;CURL_STATICLIB;RUNINMAIN;ENABLE_RT_NODE;DISABLE_WAYLAND;NODE_WANT_INTERNALS=1;ENABLE_NODE_V_6_9;ENABLE_V8_HEAP_PARAMS=1;V8_DEPRECATION_WARNINGS=1;NODE_SHARED_MODE;HAVE_INSPECTOR=1;V8_INSPECTOR_USE_STL=1;V8_INSPECTOR_USE_OLD_STL=1;ENABLE_DEBUG_MODE;PNG_APNG_SUPPORTED;ENABLE_MAX_TEXTURE_SIZE;HAVE_OPENSSL;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;BUILDING_V8_SHARED=1;BUILDING_UV_SHARED=1;NODE_ARCH="ia32";NODE_USE_V8_PLATFORM=1;NODE_HAVE_I18N_SUPPORT=1;NODE_HAVE_SMALL_ICU=1;HAVE_OPENSSL=1;HAVE_ETW=1;HAVE_PERFCTR=1;FD_SETSIZE=1024;NODE_PLATFORM="win32";_UNICODE=1;UCONFIG_NO_TRANSLITERATION=1;UCONFIG_NO_SERVICE=1;UCONFIG_NO_REGULAR_EXPRESSIONS=1;U_ENABLE_DYLOAD=0;U_STATIC_IMPLEMENTATION=1;U_HAVE_STD_STRING=0;UCONFIG_NO_BREAK_ITERATION=0;UCONFIG_NO_LEGACY_CONVERSION=1;UCONFIG_NO_CONVERSION=1;HTTP_PARSER_STRICT=0;USE_RENDER_STATS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>No</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>..\..\examples\pxScene2d\external\libnode-v6.9.0\build\Release\lib;$(SolutionDir)\x86\$(Configuration)\;..\..\examples\pxScene2d\external\vc.build\builds;..\..\examples\pxScene2d\external\pthread-2.9\prebuild\lib\x86;..\..\examples\pxScene2d\external\gles\prebuilt;..\..\examples\pxScene2d\external\glut-3.7;..\..\examples\pxScene2d\external\libnode-v6.9.0\Release\lib;..\..\examples\pxScene2d\external\libnode-v6.9.0\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>pxCore.lib;pthreadVC2.lib;zlib.lib;freetype253MT_D.lib;libcurld.lib;Ws2_32.lib;Wldap32.lib;glew32.lib;glut32.lib;libpng16.lib;libjpeg.lib;msvcrt.lib;psapi.lib;iphlpapi.lib;userenv.lib;v8_libplatform.lib;v8_libbase.lib;v8_nosnapshot.lib;v8_snapshot.lib;v8_base_0.lib;v8_base_1.lib;v8_base_2.lib;v8_base_3.lib;gtest.lib;cares.lib;http_parser.lib;icutools.lib;icustubdata.lib;icudata.lib;icuucx.lib;icui18n.lib;libuv.lib;openssl.lib;v8_inspector_stl.lib;node.lib;cctest.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -233,6 +245,13 @@
     <ClInclude Include="..\..\src\utf8.h" />
     <ClInclude Include="..\..\src\win\pxClipboardNative.h" />
     <ClInclude Include="..\..\src\win\rtConfigNative.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="pxScene.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="pxscene.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

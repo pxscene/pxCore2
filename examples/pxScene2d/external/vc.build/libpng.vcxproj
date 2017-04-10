@@ -69,8 +69,9 @@
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <TargetName>$(ProjectName)16</TargetName>
-    <OutDir>$(SolutionDir)\builds</OutDir>
-    <IntDir>$(SolutionDir)\objs\libpng</IntDir>
+    <OutDir>$(SolutionDir)\builds\</OutDir>
+    <IntDir>$(SolutionDir)\objs\libpng\</IntDir>
+    <IncludePath>..\libpng-1.6.28;$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Library|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -82,6 +83,9 @@
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <TargetName>$(ProjectName)16</TargetName>
+    <OutDir>$(SolutionDir)\builds\</OutDir>
+    <IntDir>$(SolutionDir)\objs\libpng\</IntDir>
+    <IncludePath>..\libpng-1.6.28;$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Library|Win32'">
     <LinkIncremental>false</LinkIncremental>

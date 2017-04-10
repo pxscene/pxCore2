@@ -23,4 +23,9 @@ pxCore.sdf
 pxCore.vcxproj.filters
 pxcore.v12.suo
 x64/
-x86/
+pxScene2d/Output/
+pxScene2d/build/
+pxScene2d/objs/
+pxScene2d/exe/
+pxScene2d/Release/
+pxScene2d/Debug/

@@ -473,5 +473,12 @@
     <ClInclude Include="..\..\src\unix\rtThreadPoolNative.h">
       <Filter>native</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="pxScene.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="pxscene.ico" />
   </ItemGroup>
 </Project>

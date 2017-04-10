@@ -179,7 +179,7 @@ unsigned char *base64_decode(const unsigned char *data,
     if (data[input_length - 2] == '=') (*output_length)--;
 
     unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
-    if (decoded_data == NULL) return NULL;
+    if (decoded_data == NULL) return NULL;http://msdn.microsoft.com/en-us/library/6wtdswk0.aspx
 
     for (uint32_t i = 0, j = 0; i < input_length;) {
 

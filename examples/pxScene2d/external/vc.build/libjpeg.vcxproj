@@ -41,12 +41,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>..\jpeg-9a;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)\builds</OutDir>
-    <IntDir>$(SolutionDir)\objs\libjpg</IntDir>
+    <OutDir>$(SolutionDir)\builds\</OutDir>
+    <IntDir>$(SolutionDir)\objs\libjpeg\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)\builds\</OutDir>
-    <IntDir>$(SolutionDir)\objs\libjpeg</IntDir>
+    <IntDir>$(SolutionDir)\objs\libjpeg\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

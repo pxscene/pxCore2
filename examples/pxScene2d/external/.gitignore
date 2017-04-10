@@ -23,7 +23,7 @@ libpng-1.6.28/pngcp
 libpng-1.6.28/pngfix
 libpng-1.6.28/pngimage
 libpng-1.6.28/pnglibconf.c
-libpng-1.6.28/pnglibconf.h
+;libpng-1.6.28/pnglibconf.h
 libpng-1.6.28/png-fix-itxt
 libpng-1.6.28/pngprefix.h
 libpng-1.6.28/pngtest
@@ -31,3 +31,5 @@ libpng-1.6.28/pngstest
 libpng-1.6.28/pngunknown
 libpng-1.6.28/pngvalid
 curl-7.40.0/src/tool_hugehelp.c
+vc.build/builds
+vc.build/objs

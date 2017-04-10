@@ -40,7 +40,9 @@ using namespace std;
 
 #include "jsbindings/rtWrapperUtils.h"
 #include <signal.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
 #ifndef RUNINMAIN
 #define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
 #define EXITSCENELOCK()  rtWrapperSceneUpdateExit();
