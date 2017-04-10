@@ -19,6 +19,7 @@ cp macstuff/Info.plist $bundle/Contents
 cp -a images $bundleBin/images
 cp FreeSans.ttf $bundleBin
 cp browser.js $bundleBin
+cp testRunner_memcheck.js $bundleBin
 cp init.js $bundleBin
 cp shell.js $bundleBin
 cp package.json $bundleBin
