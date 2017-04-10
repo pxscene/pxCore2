@@ -60,6 +60,9 @@ private:
   static rtError onKeepAlive_Dispatch(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc, void* argp)
     { return reinterpret_cast<rtRemoteServer *>(argp)->onKeepAlive(client, doc); }
 
+  static rtError onKeepAliveResponse_Dispatch(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc, void* argp)
+    { return reinterpret_cast<rtRemoteServer *>(argp)->onKeepAliveResponse(client, doc); }
+
   static rtError onIncomingMessage_Dispatch(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc, void* argp)
     { return reinterpret_cast<rtRemoteServer *>(argp)->onIncomingMessage(client, doc); }
 
@@ -75,6 +78,7 @@ private:
   rtError onSet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc);
   rtError onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc);
   rtError onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc);
+  rtError onKeepAliveResponse(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc);
   rtError openRpcListener();
   rtError onClientStateChanged(std::shared_ptr<rtRemoteClient> const& client, rtRemoteClient::State state);
 

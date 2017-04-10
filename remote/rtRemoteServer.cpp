@@ -212,6 +212,9 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeKeepAliveRequest,
     rtRemoteCallback<rtRemoteMessageHandler>(&rtRemoteServer::onKeepAlive_Dispatch, this)));
+
+  m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeKeepAliveResponse,
+    rtRemoteCallback<rtRemoteMessageHandler>(&rtRemoteServer::onKeepAliveResponse_Dispatch, this)));
 }
 
 rtRemoteServer::~rtRemoteServer()
@@ -927,6 +930,12 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtRemoteMes
   res->AddMember(kFieldNameCorrelationKey, key.toString(), res->GetAllocator());
   res->AddMember(kFieldNameMessageType, kMessageTypeKeepAliveResponse, res->GetAllocator());
   return client->send(res);
+}
+
+rtError
+rtRemoteServer::onKeepAliveResponse(std::shared_ptr<rtRemoteClient>& /*client*/, rtRemoteMessagePtr const& /*req*/)
+{
+    return RT_OK;
 }
 
 rtError
