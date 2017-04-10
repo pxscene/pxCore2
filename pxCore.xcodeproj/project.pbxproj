@@ -1002,6 +1002,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = AECBECE11B67979F00851BFE /* Build configuration list for PBXNativeTarget "pxCore Static Library" */;
 			buildPhases = (
+				4CA4D6791E9BC95A0069CAB3 /* Run Script - Build Externals */,
 				AECBECCC1B67979F00851BFE /* Sources */,
 				AECBECCD1B67979F00851BFE /* Frameworks */,
 				AECBECCE1B67979F00851BFE /* Headers */,
@@ -1177,6 +1178,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		4CA4D6791E9BC95A0069CAB3 /* Run Script - Build Externals */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Run Script - Build Externals";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd $PROJECT_DIR/examples/pxScene2d/external\npwd\n./build.sh";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4C0C28F61E6F04C6007013C9 /* Sources */ = {
