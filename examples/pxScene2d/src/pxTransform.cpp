@@ -19,6 +19,8 @@
 // pxTransform.h
 
 #include "pxTransform.h"
+#include "errno.h"
+
 #include <ctype.h>
 
 // non-destructive applies transform on top of provided matrix

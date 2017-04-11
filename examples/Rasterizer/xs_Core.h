@@ -322,6 +322,8 @@ finline int32 xs_Memcmp__(uint8* dst, uint8* src, int32 len)
 	xs_DuffRepeat (xs_COMPARE_MEM, len);
 	#undef xs_COMPARE_MEM
 	#undef xs_COMPARE_MEM_L
+  
+  return 0;
 }
 
 inline void  xs_Incomplete()

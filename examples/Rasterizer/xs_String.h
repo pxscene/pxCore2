@@ -84,7 +84,7 @@ public:
 	finline bool		IsEmpty			() const		{return Length()==0;}
 	finline bool		Update			()				{return SetLength(xs_Strlen(Ptr(),Space()));}
 															
-	finline bool		SetLength		(int32 len)		{return SetCount(len ? (IsAlias()?len:len+1) : 0);}
+	finline bool		SetLength		(int32 len)		{return BaseClass::SetCount(len ? (IsAlias()?len:len+1) : 0);}
 	finline bool		SetSpace		(int32 len)		{return BaseClass::SetSpace(len?(IsAlias()?len:len+1):0);}
 	finline bool		Compact			()				{return BaseClass::Compact();}
 															
