@@ -1,4 +1,8 @@
 #!/bin/sh
+# 
+# TODO: Add more comments
+#
+
 BUILDLOGS=$TRAVIS_BUILD_DIR/logs/build_logs
 checkError()
 {
