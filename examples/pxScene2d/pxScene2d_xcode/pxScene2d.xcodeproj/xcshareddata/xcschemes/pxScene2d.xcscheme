@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0710"
+   LastUpgradeVersion = "0720"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,24 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "AE1D43611B7D4F6E002E7CAE"
-               BuildableName = "Mandelbrot.app"
-               BlueprintName = "Mandelbrot"
-               ReferencedContainer = "container:pxCore.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "AE1D43731B7D4F6E002E7CAE"
-               BuildableName = "MandelbrotTests.xctest"
-               BlueprintName = "MandelbrotTests"
-               ReferencedContainer = "container:pxCore.xcodeproj">
+               BlueprintIdentifier = "4C0C6D2A1E52189500BD8932"
+               BuildableName = "pxscene.app"
+               BlueprintName = "pxScene2d"
+               ReferencedContainer = "container:pxScene2d.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -42,24 +28,14 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "AE1D43731B7D4F6E002E7CAE"
-               BuildableName = "MandelbrotTests.xctest"
-               BlueprintName = "MandelbrotTests"
-               ReferencedContainer = "container:pxCore.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AE1D43611B7D4F6E002E7CAE"
-            BuildableName = "Mandelbrot.app"
-            BlueprintName = "Mandelbrot"
-            ReferencedContainer = "container:pxCore.xcodeproj">
+            BlueprintIdentifier = "4C0C6D2A1E52189500BD8932"
+            BuildableName = "pxscene.app"
+            BlueprintName = "pxScene2d"
+            ReferencedContainer = "container:pxScene2d.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -79,10 +55,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AE1D43611B7D4F6E002E7CAE"
-            BuildableName = "Mandelbrot.app"
-            BlueprintName = "Mandelbrot"
-            ReferencedContainer = "container:pxCore.xcodeproj">
+            BlueprintIdentifier = "4C0C6D2A1E52189500BD8932"
+            BuildableName = "pxscene.app"
+            BlueprintName = "pxScene2d"
+            ReferencedContainer = "container:pxScene2d.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -98,10 +74,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AE1D43611B7D4F6E002E7CAE"
-            BuildableName = "Mandelbrot.app"
-            BlueprintName = "Mandelbrot"
-            ReferencedContainer = "container:pxCore.xcodeproj">
+            BlueprintIdentifier = "4C0C6D2A1E52189500BD8932"
+            BuildableName = "pxscene.app"
+            BlueprintName = "pxScene2d"
+            ReferencedContainer = "container:pxScene2d.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
