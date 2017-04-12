@@ -97,7 +97,7 @@ file:///home/username/directory/filename.js
   
       ~~~~
       cd ~/pxCore
-      xcodebuild -scheme "pxCore Static Library"
+      xcodebuild -scheme "pxCore Static Library" -project pxCore.xcodeproj
       ~~~~
 
    2. Build **pxCore** using Xcode
