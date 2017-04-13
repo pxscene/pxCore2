@@ -575,6 +575,7 @@ public:
   {
    if (!mInitialized)
     {
+      loadTextureData();
       return PX_NOTINITIALIZED;
     }
 
@@ -616,6 +617,7 @@ public:
   {
     if (!mInitialized)
     {
+      loadTextureData();
       return PX_NOTINITIALIZED;
     }
 
