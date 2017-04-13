@@ -55,6 +55,11 @@ LDNODEV8 = -L$(NODEDIR)/out/Release
 LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode -L../../build/glut/ -lpxCore -lrtCore_s  $(LDEXT) -pthread -lglut -lGLEW -lGL -lX11
 
 CXXFLAGS_FULL = $(CXXFLAGS) -Wno-write-strings -Wno-format-security -std=c++11
+ifeq ($(CODE_COVERAGE), 1)
+CXXFLAGS_FULL += -fprofile-arcs -ftest-coverage
+LDFLAGS += -lgcov
+endif
+
 CLAGS_FULL = $(CFLAGS)
 
 LDFLAGS_FULL = $(LDFLAGS) -lpthread

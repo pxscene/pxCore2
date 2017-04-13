@@ -8,6 +8,7 @@ matrix:
 language: c++
 install:
 - mkdir $TRAVIS_BUILD_DIR/logs
+- mkdir $TRAVIS_BUILD_DIR/logs/codecoverage
 - touch $TRAVIS_BUILD_DIR/logs/build_logs
 - touch $TRAVIS_BUILD_DIR/logs/run_logs;
 - BUILDLOGS=$TRAVIS_BUILD_DIR/logs/build_logs
@@ -23,13 +24,16 @@ before_script:
 - ccache -s
 script:
 - cd $TRAVIS_BUILD_DIR
-- sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "testrunner_$TRAVIS_OS_NAME.sh" "pxleakcheck_$TRAVIS_OS_NAME.sh"
+- sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "testrunner_$TRAVIS_OS_NAME.sh" "code_coverage_$TRAVIS_OS_NAME.sh" "unittests_$TRAVIS_OS_NAME.sh" "pxleakcheck_$TRAVIS_OS_NAME.sh"
+- cd $TRAVIS_BUILD_DIR
+- coveralls --build-root $TRAVIS_BUILD_DIR --no-gcov --lcov-file tracefile
+- genhtml -o $TRAVIS_BUILD_DIR/logs/codecoverage tracefile
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh valgrind_linux.sh; fi
-- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then cd $TRAVIS_BUILD_DIR; fi
-- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then tar -cvzf logs.tgz logs/* ; fi
 addons:
   ssh_known_hosts: 96.118.6.151
 after_script:
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then cd $TRAVIS_BUILD_DIR; fi
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then tar -cvzf logs.tgz logs/* ; fi
 - ccache -s
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then cd $TRAVIS_BUILD_DIR; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./deploy.sh 96.118.6.151 logs.tgz; fi
@@ -37,7 +41,11 @@ after_script:
 before_install:
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then openssl aes-256-cbc -K $encrypted_8b763c087de9_key -iv $encrypted_8b763c087de9_iv  -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry sudo apt-get update; fi
-- if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf valgrind; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf valgrind libyaml-dev lcov; fi
+- if [ "$TRAVIS_OS_NAME" == "osx" ];  then brew update; fi
+- if [ "$TRAVIS_OS_NAME" == "osx" ];  then brew install gcovr; fi
+- if [ "$TRAVIS_OS_NAME" == "osx" ];  then brew install lcov; fi
+- pip install cpp-coveralls
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install --HEAD ccache; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ls -al $HOME/.ccache; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export PATH=/usr/local/opt/ccache/libexec:$PATH; fi
