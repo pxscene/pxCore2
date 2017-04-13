@@ -430,92 +430,21 @@ public:
 //====================================================================================================================================================================================
 
 class pxTextureOffscreen;
+typedef rtRef<pxTextureOffscreen> pxTextureOffscreenRef;
 
 struct DecodeImageData
 {
-    DecodeImageData(pxTextureRef t, pxOffscreen* o) : textureOffscreen(t), offscreen(o)
-    {
-    }
-    pxTextureRef textureOffscreen;
-    pxOffscreen* offscreen;
+  DecodeImageData(pxTextureOffscreenRef t) : textureOffscreen(t)
+  {
+  }
+  pxTextureOffscreenRef textureOffscreen;
 
 };
 
-void onDecodeComplete(void* context, void* data)
-{
-  DecodeImageData* imageData = (DecodeImageData*)context;
-  pxOffscreen* decodedOffscreen = (pxOffscreen*)data;
-  if (imageData != NULL && decodedOffscreen != NULL)
-  {
-    pxTextureRef texture = imageData->textureOffscreen;
-    if (texture.getPtr() != NULL)
-    {
-      texture->createTexture(*decodedOffscreen);
-    }
-  }
-
-  if (decodedOffscreen != NULL)
-  {
-    delete decodedOffscreen;
-    decodedOffscreen = NULL;
-    data = NULL;
-  }
-
-  if (imageData != NULL)
-  {
-    delete imageData;
-    imageData = NULL;
-  }
-}
-
-void decodeTextureData(void* data)
-{
-  if (data != NULL)
-  {
-    DecodeImageData* imageData = (DecodeImageData*)data;
-    pxOffscreen* offscreen = imageData->offscreen;
-    if (offscreen != NULL)
-    {
-      char *compressedImageData = NULL;
-      size_t compressedImageDataSize = 0;
-      offscreen->compressedDataWeakReference(compressedImageData, compressedImageDataSize);
-      pxOffscreen *decodedOffscreen = new pxOffscreen();
-      pxLoadImage(compressedImageData, compressedImageDataSize, *decodedOffscreen);
-      gUIThreadQueue.addTask(onDecodeComplete, data, decodedOffscreen);
-    }
-    else
-    {
-      gUIThreadQueue.addTask(onDecodeComplete, data, NULL);
-    }
-  }
-}
-
-void onOffscreenCleanupComplete(void* context, void*)
-{
-  DecodeImageData* imageData = (DecodeImageData*)context;
-  if (imageData != NULL)
-  {
-    delete imageData;
-    imageData = NULL;
-  }
-}
-
-void cleanupOffscreen(void* data)
-{
-  if (data != NULL)
-  {
-    DecodeImageData* imageData = (DecodeImageData*)data;
-    if (data != NULL && imageData->textureOffscreen.getPtr() != NULL)
-    {
-      imageData->textureOffscreen->freeOffscreenData();
-      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
-    }
-    else
-    {
-      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
-    }
-  }
-}
+void onDecodeComplete(void* context, void* data);
+void decodeTextureData(void* data);
+void onOffscreenCleanupComplete(void* context, void*);
+void cleanupOffscreen(void* data);
 
 class pxTextureOffscreen : public pxTexture
 {
@@ -523,17 +452,19 @@ public:
   pxTextureOffscreen() : mOffscreen(), mInitialized(false), mWidth(0), mHeight(0),
                          mTextureUploaded(false),
                          mTextureDataAvailable(false), mLoadTextureRequested(false), mOffscreenMutex(),
-                         mFreeOffscreenDataRequested(false)
+                         mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
   }
 
-  pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false), mWidth(0), mHeight(0),
+  pxTextureOffscreen(pxOffscreen& o, const char *compressedData = NULL, size_t compressedDataSize = 0) 
+                                     : mOffscreen(), mInitialized(false), mWidth(0), mHeight(0),
                                        mTextureUploaded(false),
                                        mTextureDataAvailable(false), mLoadTextureRequested(false), mOffscreenMutex(),
-                                       mFreeOffscreenDataRequested(false)
+                                       mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
+    setCompressedData(compressedData, compressedDataSize);
     createTexture(o);
   }
 
@@ -570,11 +501,9 @@ public:
 
     createSurface(o);
 
-    mOffscreen.transferCompressedDataFrom(o);
     mFreeOffscreenDataRequested = false;
     mOffscreenMutex.unlock();
 
-    mTextureDataAvailable = true;
     mLoadTextureRequested = false;
     mInitialized = true;
 
@@ -587,9 +516,7 @@ public:
 
     unloadTextureData();
 
-    mOffscreen.freeCompressedData();
-
-    mTextureDataAvailable = false;
+    freeCompressedData();
     mInitialized = false;
     return PX_OK;
   }
@@ -599,7 +526,7 @@ public:
     if (!mLoadTextureRequested && mTextureDataAvailable)
     {
       rtThreadPool *mainThreadPool = rtThreadPool::globalInstance();
-      DecodeImageData *decodeImageData = new DecodeImageData(this, &mOffscreen);
+      DecodeImageData *decodeImageData = new DecodeImageData(this);
       rtThreadTask *task = new rtThreadTask(decodeTextureData, decodeImageData, "");
       mainThreadPool->executeTask(task);
       mLoadTextureRequested = true;
@@ -731,12 +658,9 @@ public:
       return PX_NOTINITIALIZED;
     }
 
-    char* compressedImageData = NULL;
-    size_t compressedImageDataSize = 0;
-    mOffscreen.compressedDataWeakReference(compressedImageData, compressedImageDataSize);
-    if (compressedImageData != NULL)
+    if (mCompressedData != NULL)
     {
-      pxLoadImage(compressedImageData, compressedImageDataSize, o);
+      pxLoadImage(mCompressedData, mCompressedDataSize, o);
     }
 
     return PX_OK;
@@ -744,6 +668,13 @@ public:
 
   virtual int width()  { return mWidth;  }
   virtual int height() { return mHeight; }
+
+  pxError compressedDataWeakReference(char*& data, size_t& dataSize)
+  {
+    data = mCompressedData;
+    dataSize = mCompressedDataSize;
+    return PX_OK;
+  }
 
 private:
 
@@ -754,9 +685,38 @@ private:
     mOffscreenMutex.unlock();
     rtLogDebug("request to free offscreen data");
     rtThreadPool *mainThreadPool = rtThreadPool::globalInstance();
-    DecodeImageData *imageData = new DecodeImageData(this, NULL);
+    DecodeImageData *imageData = new DecodeImageData(this);
     rtThreadTask *task = new rtThreadTask(cleanupOffscreen, imageData, "");
     mainThreadPool->executeTask(task);
+  }
+
+  void setCompressedData(const char* data, const size_t dataSize)
+  {
+    freeCompressedData();
+    if (data == NULL)
+    {
+      mCompressedData = NULL;
+      mCompressedDataSize = 0;
+    }
+    else
+    {
+      mCompressedData = new char[dataSize];
+      mCompressedDataSize = dataSize;
+      memcpy(mCompressedData, data, mCompressedDataSize);
+      mTextureDataAvailable = true;
+    }
+  }
+
+  pxError freeCompressedData()
+  {
+    if (mCompressedData != NULL)
+    {
+      delete [] mCompressedData;
+      mCompressedData = NULL;
+    }
+    mCompressedDataSize = 0;
+    mTextureDataAvailable = false;
+    return PX_OK;
   }
 
   pxOffscreen mOffscreen;
@@ -769,6 +729,8 @@ private:
   bool        mLoadTextureRequested;
   rtMutex mOffscreenMutex;
   bool mFreeOffscreenDataRequested;
+  char* mCompressedData;
+  size_t mCompressedDataSize;
 
   IDirectFBSurface       *mTexture;
   DFBSurfaceDescription   dsc;
@@ -823,6 +785,81 @@ private:
   }
 
 }; // CLASS - pxTextureOffscreen
+
+void onDecodeComplete(void* context, void* data)
+{
+  DecodeImageData* imageData = (DecodeImageData*)context;
+  pxOffscreen* decodedOffscreen = (pxOffscreen*)data;
+  if (imageData != NULL && decodedOffscreen != NULL)
+  {
+    pxTextureOffscreenRef texture = imageData->textureOffscreen;
+    if (texture.getPtr() != NULL)
+    {
+      texture->createTexture(*decodedOffscreen);
+    }
+  }
+
+  if (decodedOffscreen != NULL)
+  {
+    delete decodedOffscreen;
+    decodedOffscreen = NULL;
+    data = NULL;
+  }
+
+  if (imageData != NULL)
+  {
+    delete imageData;
+    imageData = NULL;
+  }
+}
+
+void decodeTextureData(void* data)
+{
+  if (data != NULL)
+  {
+    DecodeImageData* imageData = (DecodeImageData*)data;
+    char *compressedImageData = NULL;
+    size_t compressedImageDataSize = 0;
+    imageData->textureOffscreen->compressedDataWeakReference(compressedImageData, compressedImageDataSize);
+    if (compressedImageData != NULL)
+    {
+      pxOffscreen *decodedOffscreen = new pxOffscreen();
+      pxLoadImage(compressedImageData, compressedImageDataSize, *decodedOffscreen);
+      gUIThreadQueue.addTask(onDecodeComplete, data, decodedOffscreen);
+    }
+    else
+    {
+      gUIThreadQueue.addTask(onDecodeComplete, data, NULL);
+    }
+  }
+}
+
+void onOffscreenCleanupComplete(void* context, void*)
+{
+  DecodeImageData* imageData = (DecodeImageData*)context;
+  if (imageData != NULL)
+  {
+    delete imageData;
+    imageData = NULL;
+  }
+}
+
+void cleanupOffscreen(void* data)
+{
+  if (data != NULL)
+  {
+    DecodeImageData* imageData = (DecodeImageData*)data;
+    if (data != NULL && imageData->textureOffscreen.getPtr() != NULL)
+    {
+      imageData->textureOffscreen->freeOffscreenData();
+      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+    }
+    else
+    {
+      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+    }
+  }
+}
 
 //====================================================================================================================================================================================
 
@@ -1023,7 +1060,7 @@ inline pxError draw_SOLID(int resW, int resH, float* matrix, float alpha,
   // TRANSPARENT
   if(!color || color[3] == 0.0 || alpha == 0.0)
   {
-    return;
+    return PX_OK;
   }
 
   // Switch to COLORIZE for Glyphs...
@@ -2245,6 +2282,12 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
 pxTextureRef pxContext::createTexture(pxOffscreen& o)
 {
   pxTextureOffscreen* offscreenTexture = new pxTextureOffscreen(o);
+  return offscreenTexture;
+}
+
+pxTextureRef pxContext::createTexture(pxOffscreen& o, const char *compressedData, size_t compressedDataSize)
+{
+  pxTextureOffscreen* offscreenTexture = new pxTextureOffscreen(o, compressedData, compressedDataSize);
   return offscreenTexture;
 }
 
