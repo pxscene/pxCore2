@@ -62,7 +62,7 @@ rtError rtEmit::setListener(const char* eventName, rtIFunction* f)
 
 rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
 {
-  if (!f) 
+  if (!eventName || !f)
     return RT_ERROR;
   // Only allow unique entries
   bool found = false;
