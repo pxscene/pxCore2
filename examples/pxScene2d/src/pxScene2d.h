@@ -238,7 +238,7 @@ public:
 
   rtError getChild(int32_t i, rtObjectRef& r) const 
   {
-    if(i < 0 || i > mChildren.size())
+    if(i < 0 || i >= mChildren.size())
     {
       return RT_ERROR_INVALID_ARG;
     }
