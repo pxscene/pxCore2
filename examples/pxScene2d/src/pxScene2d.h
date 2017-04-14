@@ -238,6 +238,11 @@ public:
 
   rtError getChild(int32_t i, rtObjectRef& r) const 
   {
+    if(i < 0 || i > mChildren.size())
+    {
+      return RT_ERROR_INVALID_ARG;
+    }
+    
     r = mChildren[i];
     return RT_OK;
   }
@@ -610,6 +615,11 @@ public:
   
   static pxObject* getObjectById(const char* id, pxObject* from)
   {
+    if(id == NULL || from == NULL)
+    {
+      return NULL; // bad args
+    }
+    
     // TODO fix rtString empty check
     if (from->mId.cString() && !strcmp(id, from->mId.cString()))
       return from;
