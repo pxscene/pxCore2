@@ -66,7 +66,7 @@ rtRemoteEnvironment::processRunQueue()
 }
 
 void
-rtRemoteEnvironment::registerResponseHandler(rtRemoteMessageHandler handler, void* argp, rtRemoteCorrelationKey k)
+rtRemoteEnvironment::registerResponseHandler(rtRemoteMessageHandler handler, void* argp, rtRemoteCorrelationKey const& k)
 {
   rtRemoteCallback<rtRemoteMessageHandler> callback;
   callback.Func = handler;
@@ -93,7 +93,7 @@ rtRemoteEnvironment::registerResponseHandler(rtRemoteMessageHandler handler, voi
 }
 
 void
-rtRemoteEnvironment::removeResponseHandler(rtRemoteCorrelationKey k)
+rtRemoteEnvironment::removeResponseHandler(rtRemoteCorrelationKey const& k)
 {
   std::unique_lock<std::mutex> lock(m_queue_mutex);
   {
