@@ -492,16 +492,27 @@ Handle<Value> rt2js(Local<Context>& ctx, const rtValue& v)
       }
       break;
     case RT_functionType:
+      {
+        rtFunctionRef func = v.toFunction();
+        if (!func)
+          return v8::Null(isolate);
 #ifdef ENABLE_NODE_V_6_9
-      return rtFunctionWrapper::createFromFunctionReference(ctx, isolate, v.toFunction());
+        return rtFunctionWrapper::createFromFunctionReference(ctx, isolate, func);
 #else
-      return rtFunctionWrapper::createFromFunctionReference(isolate, v.toFunction());
+        return rtFunctionWrapper::createFromFunctionReference(isolate, func);
 #endif
+      }
       break;
     case RT_rtObjectRefType:
-      return jsObjectWrapper::isJavaScriptObjectWrapper(v.toObject())
-        ? static_cast<jsObjectWrapper *>(v.toObject().getPtr())->getWrappedObject()
-        : rtObjectWrapper::createFromObjectReference(ctx, v.toObject());
+      {
+        rtObjectRef obj = v.toObject();
+        if (!obj)
+          return v8::Null(isolate);
+
+        return jsObjectWrapper::isJavaScriptObjectWrapper(obj)
+          ? static_cast<jsObjectWrapper *>(obj.getPtr())->getWrappedObject()
+          : rtObjectWrapper::createFromObjectReference(ctx, obj);
+      }
       break;
     case RT_boolType:
       return Boolean::New(isolate, v.toBool());
