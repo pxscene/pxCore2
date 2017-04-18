@@ -5,11 +5,12 @@ clean:
 	rm -f pxscene2dtests
 
 SRCS_FULL=\
-	pxscene2dtestsmain.cpp \
-        test_example.cpp \
-        test_pxcontext.cpp \
-        test_memoryleak.cpp \
-        test_rtnode.cpp \
+    pxscene2dtestsmain.cpp \
+    test_example.cpp \
+    test_api.cpp \
+    test_pxcontext.cpp \
+    test_memoryleak.cpp \
+    test_rtnode.cpp \
 
 ifeq ($(USE_HTTP_CACHE),1)
 SRCS_FULL+=test_imagecache.cpp
@@ -41,7 +42,7 @@ SEARCH=\
 
 CXXFLAGS= $(SEARCH) -O3 -D$(PX_PLATFORM) -DRT_PLATFORM_LINUX -DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_HTTP_CACHE  -DENABLE_DEBUG_MODE -DENABLE_LIBJPEG_TURBO -DPNG_APNG_SUPPORTED
 
-#-Wall -Wextra -g 
+#-Wall -Wextra -g
 LDPNG    = -L$(EXTDIR)/png/.libs -lpng16
 LDFT     = -L$(EXTDIR)/ft/objs/.libs -lfreetype
 LDCURL   = -L$(EXTDIR)/curl/lib/.libs -lcurl
@@ -74,7 +75,7 @@ $(OBJDIR)/%.o : %.c
 $(OBJDIR)/gtest-all.o: $(EXTDIR)/gtest/googletest/src/gtest-all.cc
 	$(CXX) -o $(OBJDIR)/gtest-all.o -Wall $(SEARCH) $(CFLAGS) -c $(EXTDIR)/gtest/googletest/src/gtest-all.cc
 
-$(OBJDIR)/gmock-all.o: $(EXTDIR)/gtest/googlemock/src/gmock-all.cc 
+$(OBJDIR)/gmock-all.o: $(EXTDIR)/gtest/googlemock/src/gmock-all.cc
 	$(CXX) -o $(OBJDIR)/gmock-all.o -Wall $(SEARCH) $(CFLAGS) -c $(EXTDIR)/gtest/googlemock/src/gmock-all.cc
 
 pxscene2dtests: $(OBJS) $(OBJDIR)/gtest-all.o $(OBJDIR)/gmock-all.o $(LINKLIBS)
