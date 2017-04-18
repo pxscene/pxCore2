@@ -58,7 +58,7 @@ SceneModuleLoader.prototype.loadScenePackage = function(scene, fileSpec) {
         reject(a.loadStatus);
       });
   });
-}
+};
 
 function isFileInList(fileName, list) {
   for(var k = 0; k < list.length; ++k) {
@@ -79,7 +79,7 @@ SceneModuleLoader.prototype.loadScenePackage0 = function(scene, fileSpec) {
     if (filePath.substring(0, 4) === "http" || filePath.substring(0,5) == "https") {
       _this.loadRemoteFile(filePath).then(function dataAvailable(data) {
         _this.processFileData(filePath, data);
-        if(_this.processFileArchive() == 0) {
+        if(_this.processFileArchive() === 0) {
           resolve();
         } else {
           reject();
@@ -94,7 +94,7 @@ SceneModuleLoader.prototype.loadScenePackage0 = function(scene, fileSpec) {
       }
       _this.loadLocalFile(filePath).then(function dataAvailable(data) {
         _this.processFileData(filePath, data);
-        if(_this.processFileArchive() == 0) {
+        if(_this.processFileArchive() === 0) {
           resolve();
         } else {
           reject();
@@ -105,7 +105,7 @@ SceneModuleLoader.prototype.loadScenePackage0 = function(scene, fileSpec) {
       });
     }
   });
-}
+};
 
 SceneModuleLoader.prototype.processFileData = function(filePath, data) {
   this.fileArchive = new FileArchive(filePath);
@@ -116,7 +116,7 @@ SceneModuleLoader.prototype.processFileData = function(filePath, data) {
     this.fileArchive.addFile(filePath, data);
     this.defaultManifest = true;
   }
-}
+};
 
 
 SceneModuleLoader.prototype.loadRemoteFile = function(filePath) {
@@ -154,8 +154,7 @@ SceneModuleLoader.prototype.loadRemoteFile = function(filePath) {
       reject("Timeout on http.get(" + filePath +")");
     });
   });
-
-}
+};
 
 SceneModuleLoader.prototype.loadLocalFile = function(filePath) {
   var _this = this;
@@ -174,7 +173,7 @@ SceneModuleLoader.prototype.loadLocalFile = function(filePath) {
 SceneModuleLoader.prototype.processFileArchive = function() {
   if( this.fileArchive.getFileCount() >= 2 ) {
     var packageFileContents = this.fileArchive.getFileContents("package.json");
-    if( packageFileContents != null ) {
+    if( packageFileContents !== null ) {
       this.manifest = new SceneModuleManifest();
       this.manifest.loadFromJSON(packageFileContents);
       this.fileArchive.removeFile("package.json");
@@ -187,24 +186,23 @@ SceneModuleLoader.prototype.processFileArchive = function() {
     console.error("Expected archive to have at least two files.");
     return -1;
   }
-
-}
+};
 
 SceneModuleLoader.prototype.getFileArchive = function() {
   return this.fileArchive;
-}
+};
 
 SceneModuleLoader.prototype.getManifest = function() {
   return this.manifest;
-}
+};
 
 SceneModuleLoader.prototype.isDefaultManifest = function() {
   return this.defaultManifest;
-}
+};
 
 SceneModuleLoader.prototype.jarFileWasLoaded = function() {
   return this.loadedJarFile;
-}
+};
 
 module.exports = SceneModuleLoader;
 

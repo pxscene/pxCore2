@@ -7,14 +7,14 @@ px.import({ scene: 'px:scene.1.js',
 
   function uncaughtException(err) {
     console.log("Received uncaught exception " + err.stack);
-  };
+  }
 
 
   process.on('uncaughtException', uncaughtException);
 
   // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
-  var originalURL = (!url || url=="") ? "browser.js":url;
+  var originalURL = (!url || url==="") ? "browser.js":url;
   console.log("url:",originalURL);
 
   var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
@@ -82,7 +82,7 @@ if (false)
       {
 //        console.log("SHELL: onPreKeyDown: FPS !!!  ############# ");
 
-        showFPS = !showFPS
+        showFPS = !showFPS;
         fpsBg.a = (showFPS)?1.0:0;
         e.stopPropagation();
       }
@@ -205,7 +205,7 @@ if (false)
 	  // TODO eating some "undesired" chars for now... need to redo this
     if (c<32) {
       console.log("stop onChar");
-      e.stopPropagation()
+      e.stopPropagation();
     }
   });
 
