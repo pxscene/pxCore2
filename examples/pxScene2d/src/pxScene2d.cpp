@@ -113,6 +113,80 @@ void stopProfiling()
 }
 #endif //ENABLE_VALGRIND
 int pxObjectCount = 0;
+
+#include <rapidjson/document.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/error/en.h>
+
+// store the mapping between wayland app names and binary paths
+map<string, string> gWaylandAppsMap;
+#define WAYLAND_APP_CONFIG_FILE "/home/root/waylandregistry.conf"
+#define OVERRIDE_WAYLAND_APP_CONFIG_FILE "/opt/waylandregistry.conf"
+
+void populateWaylandAppsConfig()
+{
+  FILE* fp = fopen(OVERRIDE_WAYLAND_APP_CONFIG_FILE, "rb");
+  if (NULL == fp)
+  {
+    fp = fopen(WAYLAND_APP_CONFIG_FILE, "rb");
+    if (NULL == fp)
+    {
+      rtLogInfo("Wayland config read error : [unable to read waylandregistry.conf]\n");
+      return;
+    }
+  }
+  char readBuffer[65536];
+  memset(readBuffer, 0, sizeof(readBuffer));
+  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+  rapidjson::Document doc;
+  rapidjson::ParseResult result = doc.ParseStream(is);
+  if (!result)
+  {
+    rapidjson::ParseErrorCode e = doc.GetParseError();
+    rtLogInfo("Wayland config read error : [JSON parse error while reading waylandregistry.conf: %s (%d)]\n",rapidjson::GetParseError_En(e), result.Offset());
+    fclose(fp);
+    return;
+  }
+  fclose(fp);
+
+  if (! doc.HasMember("waylandapps"))
+  {
+    rtLogInfo("Wayland config read error : [waylandapps element not found]\n");
+    return;
+  }
+
+  const rapidjson::Value& appList = doc["waylandapps"];
+  for (rapidjson::SizeType i = 0; i < appList.Size(); i++)
+  {
+    if (appList[i].IsObject())
+    {
+      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("binary")) && (appList[i]["binary"].IsString()))
+      {
+        string appName = appList[i]["name"].GetString();
+        string binary = appList[i]["binary"].GetString();
+        if ((appName.length() != 0) && (binary.length() != 0))
+        {
+          gWaylandAppsMap[appName] = binary;
+          rtLogInfo("Mapped wayland app [%s] to path [%s] \n",appName.c_str(),binary.c_str());
+        }
+        else
+        {
+          rtLogInfo("Wayland config read error : [one of the entry not added due to name/binary is empty]\n");
+        }
+      }
+      else
+      {
+        rtLogInfo("Wayland config read error : [one of the entry not added due to name/binary not present]\n");
+      }
+    }
+  }
+}
+
+void clearWaylandAppsConfig()
+{
+  gWaylandAppsMap.clear();
+}
+
 static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
                                 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
