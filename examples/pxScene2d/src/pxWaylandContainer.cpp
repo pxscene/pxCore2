@@ -30,6 +30,7 @@
 #include <map>
 using namespace std;
 
+extern map<string, string> gWaylandAppsMap;
 // // TODO: move this to pxOffscreenNative.{cpp,mm} files
 // int __pxMain(int , char*[]) {return 0;}
 // int pxMain(int , char*[]) __attribute__ ((weak, alias ("_Z8__pxMainiPPc")));
@@ -153,9 +154,21 @@ rtError pxWaylandContainer::setDisplayName(const char* s)
 rtError pxWaylandContainer::setCmd(const char* s)
 {
   mCmd = s;
+  std::map<string, string>::iterator it = gWaylandAppsMap.find(s);
+  rtString binary;
+  if (it != gWaylandAppsMap.end())
+  {
+    binary = it->second.c_str();
+  }
+  else
+  {
+    rtLogError("Wayland app \"%s\" does not exist , please verify the app name or add entry in waylandregistry.conf \n",s);
+    return RT_ERROR;
+  }
+
   if ( mWayland )
   {
-     mWayland->setCmd(s);
+     mWayland->setCmd(binary);
   }
   return RT_OK;
 }
