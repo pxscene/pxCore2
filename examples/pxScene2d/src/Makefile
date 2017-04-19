@@ -156,6 +156,7 @@ SEARCH=\
   -I$(EXTDIR)/westeros-stub \
   -I$(EXTDIR)/libjpeg-turbo \
   -I$(EXTDIR)/breakpad/src \
+  -I$(PXCOREDIR)/remote/ \
    $(TARGETINCLUDE)
 
 
