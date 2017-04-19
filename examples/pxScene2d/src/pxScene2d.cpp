@@ -2705,7 +2705,7 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
           v->mApi = args[1].toObject();
         }
 
-        v->mReady.send("resolve", v->mApi);
+        v->mReady.send("resolve", v->mScene);
       }
       else
       {
