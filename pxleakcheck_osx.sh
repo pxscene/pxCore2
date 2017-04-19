@@ -1,7 +1,10 @@
 #!/bin/sh
+#This script is used to detect leaked px objects or textures
 export PX_DUMP_MEMUSAGE=1
 export RT_LOG_LEVEL=info
 PXCHECKLOGS=$TRAVIS_BUILD_DIR/logs/pxcheck_logs
+
+rm -rf /var/tmp/pxscene.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
 ./pxscene.sh testRunner_memcheck.js &
 grep "RUN COMPLETED" /var/tmp/pxscene.log
