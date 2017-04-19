@@ -124,7 +124,7 @@ int pxObjectCount = 0;
 // store the mapping between wayland app names and binary paths
 map<string, string> gWaylandAppsMap;
 static bool gWaylandAppsConfigLoaded = false;
-#define DEFAULT_WAYLAND_APP_CONFIG_FILE "/home/root/waylandregistry.conf"
+#define DEFAULT_WAYLAND_APP_CONFIG_FILE "./waylandregistry.conf"
 
 void populateWaylandAppsConfig()
 {
