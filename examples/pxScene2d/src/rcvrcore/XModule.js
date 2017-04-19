@@ -26,7 +26,7 @@ function XModule(name, appSceneContext, fromJarFile, basePath) {
 XModule.prototype.load = function(uri) {
   global.exports = self.exports;
   global.module = self;
-}
+};
 
 XModule.prototype.freeResources = function() {
   this.appSandbox = null;
@@ -40,22 +40,22 @@ XModule.prototype.freeResources = function() {
   this.imports = null;
   this.log = null;
   this.importReplacementMap = null;
-}
+};
 
 XModule.prototype.getBasePath = function() {
   return this.basePath;
-}
+};
 
 XModule.prototype.initSandbox = function(otherSandbox) {
   this.appSandbox = otherSandbox;
   this.log = new Logger(this.name);
-}
+};
 
 XModule.prototype.include = function(filePath) {
   var rtnPromise = this.appSceneContext.include(filePath, this);
   this.pendingIncludes[filePath] = rtnPromise;
   return rtnPromise;
-}
+};
 
 function importModule(requiredModuleSet, params) {
   return this.importModule(requiredModuleSet, params);
@@ -69,9 +69,9 @@ XModule.prototype.importModule = function(requiredModuleSet, params) {
     }) ,
       function failureCallback(error) {
         reject(error);
-      }
+      };
   } );
-}
+};
 
 XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, failedCallback, params) {
   var isSingleStringImportType = false;
@@ -100,9 +100,9 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
 
   }
 
-  if( requiredModules.length == 0 ) {
+  if( requiredModules.length === 0 ) {
     log.message(5, "XModule:  No includes are required for " + this.name);
-    if( readyCallBack != null && readyCallBack != 'undefined' ) {
+    if( readyCallBack !== null && readyCallBack != 'undefined' ) {
       readyCallBack();
     }
     this.moduleReadyPromise = null;
@@ -129,7 +129,7 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
 
     if( this.appSandbox.importTracking.hasOwnProperty(requiredModules[k]) ) {
       var reqArr = this.appSandbox.importTracking[requiredModules[k]];
-      if( reqArr.length != 0) {
+      if( reqArr.length !== 0) {
         for(var j = 0; j < reqArr.length; ++j) {
           if( bPath === reqArr[j]) {
             console.trace("Found circular dependency: " + bPath + " requires " + requiredModules[k] + " which requires " + bPath);
@@ -171,7 +171,7 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
         }
       }
       log.message(7, "XMODULE ABOUT TO NOTIFY [" + _this.name + "] that all its imports are Ready");
-      if( readyCallBack != null && readyCallBack != 'undefined' ) {
+      if( readyCallBack !== null && readyCallBack != 'undefined' ) {
         readyCallBack(exportsMap);
       }
       moduleBuildResolve();
@@ -179,7 +179,7 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
     }).catch(function (error) {
       console.error("Error - failed to get Remote modules for: " + _this.name + ", error=" + error);
       // notify that the promise can't be kept
-      if( failedCallback != null && failedCallback != 'undefined' ) {
+      if( failedCallback !== null && failedCallback != 'undefined' ) {
         failedCallback();
       }
       moduleBuildReject(error);
@@ -188,12 +188,12 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
 
   this.moduleReadyPromise = promise;
   return this.getInstance;
-}
+};
 
 
 XModule.prototype.configImport = function(replacementMap) {
   this.importReplacementMap = replacementMap;
-}
+};
 
 XModule.prototype.findImportReplacementMatch = function(path) {
   if( this.importReplacementMap === null ) {
@@ -210,7 +210,7 @@ XModule.prototype.findImportReplacementMatch = function(path) {
   }
 
   return null;
-}
+};
 
 function getFile(filePath) {
   this.getFile(filePath);
@@ -218,7 +218,7 @@ function getFile(filePath) {
 
 XModule.prototype.getFile = function(filePath) {
   return this.appSceneContext.getModuleFile(filePath, this);
-}
+};
 
 function resolveFilePath(filePath) {
   this.getFile(filePath);
@@ -226,7 +226,7 @@ function resolveFilePath(filePath) {
 
 XModule.prototype.resolveFilePath = function(filePath) {
   return this.appSceneContext.resolveModulePath(filePath, this);
-}
+};
 
 module.exports = {
   importModule: importModule,

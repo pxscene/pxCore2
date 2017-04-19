@@ -47,7 +47,7 @@ px.import({ scene: 'px:scene.1.js',
     if (e.charCode == keys.ENTER)  // <<<  ENTER KEY
       return;
 
-    if(selection_chars != 0)
+    if(selection_chars !== 0)
     {
       removeSelection(); // overwrote selection
     }
@@ -80,10 +80,10 @@ function reload(u) {
   
   console.log("RELOADING.... [ " + u + " ]");
 
-  if (u.indexOf("local:") == 0) // LOCAL shorthand
+  if (u.indexOf("local:") === 0) // LOCAL shorthand
   {
      var txt = u.slice(6, u.length);
-     var pos = txt.indexOf(':')
+     var pos = txt.indexOf(':');
      if ( pos == -1)
      {
        u = "http://localhost:8080/" + txt;   // SHORTCUT:   "local:filename.js""  >>  "http://localhost:8080/filename.js" (default to 8080)
@@ -142,7 +142,7 @@ inputBg.on("onKeyDown", function(e)
 
         var s = url.text.slice();
 
-        if(selection_chars == 0)
+        if(selection_chars === 0)
         {
            var before_cursor = s.slice(0,cursor_pos - 1);
            var  after_cursor = s.slice(cursor_pos);
@@ -206,7 +206,7 @@ inputBg.on("onKeyDown", function(e)
         {
           if(keys.is_SHIFT( e.flags )) // <<  SHIFT KEY
           {
-            if(selection_chars == 0) // New selection ?
+            if(selection_chars === 0) // New selection ?
             {
               selection_start = cursor_pos;
               selection_x     = cursor.x + cursor.w; // Start selection
@@ -220,7 +220,7 @@ inputBg.on("onKeyDown", function(e)
         }
       }
 
-      if(flags != 8 && !keys.is_CTRL_SHIFT( e.flags ) && !keys.is_CMD_SHIFT( e.flags ) && selection.w != 0)
+      if(flags != 8 && !keys.is_CTRL_SHIFT( e.flags ) && !keys.is_CMD_SHIFT( e.flags ) && selection.w !== 0)
       {
         clearSelection();
       }
@@ -242,7 +242,7 @@ inputBg.on("onKeyDown", function(e)
         {
           if(keys.is_SHIFT( e.flags )) // <<  SHIFT KEY
           {
-            if(selection_chars == 0) // New selection ?
+            if(selection_chars === 0) // New selection ?
             {
               selection_start = cursor_pos - 1;
               selection_x     = cursor.x + cursor.w; // Start selection
@@ -256,7 +256,7 @@ inputBg.on("onKeyDown", function(e)
         }
       }
 
-      if(flags != 8 && !keys.is_CTRL_SHIFT( e.flags ) && !keys.is_CMD_SHIFT( e.flags ) && selection.w != 0)
+      if(flags != 8 && !keys.is_CTRL_SHIFT( e.flags ) && !keys.is_CMD_SHIFT( e.flags ) && selection.w !== 0)
       {
         clearSelection();
       }
@@ -390,7 +390,7 @@ function moveToHome()
 function selectToHome()
 {
   // Select from Cursor to End
-  if(selection_chars == 0)
+  if(selection_chars === 0)
   {
     selection_start = cursor_pos; // new selection
     selection_x     = cursor.x + cursor.w; // Extend selection
@@ -413,7 +413,7 @@ function moveToEnd()
 function selectToEnd()
 {
   // Select from Cursor to Start
-  if(selection_chars == 0)
+  if(selection_chars === 0)
   {
     selection_start = cursor_pos - 1;
     selection_x     = cursor.x + cursor.w; // Start selection
@@ -544,6 +544,6 @@ updateSize(scene.w,scene.h);
 //scene.setFocus(inputBg);
 inputBg.focus = true;
 }).catch( function importFailed(err){
-  console.error("Import failed for browser.js: " + err)
+  console.error("Import failed for browser.js: " + err);
 });
 

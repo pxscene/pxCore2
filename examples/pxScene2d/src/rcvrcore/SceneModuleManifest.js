@@ -7,7 +7,7 @@ function SceneModuleManifest() {
 
 SceneModuleManifest.prototype.loadFromJSON = function(fileContents) {
   this.jsonData = JSON.parse(fileContents);
-  this.main = this.jsonData['main'];
+  this.main = this.jsonData.main;
 };
 
 SceneModuleManifest.prototype.getMain = function() {

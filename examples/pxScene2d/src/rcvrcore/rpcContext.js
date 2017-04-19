@@ -61,7 +61,7 @@ function RPCContext(theScene) {
   };
 
   function isSourceDomainAllowed(sourceTarget, domainFiltersArray) {
-    if( domainFiltersArray === undefined || domainFiltersArray === null || domainFiltersArray.length == 0
+    if( domainFiltersArray === undefined || domainFiltersArray === null || domainFiltersArray.length === 0
       || (domainFiltersArray.length === 1 && domainFiltersArray[0][1] === "*") ) {
       return true;
     }
@@ -91,7 +91,7 @@ function RPCContext(theScene) {
 
   this._setRPCController = function(rpcCtlr) {
     rpcController = rpcCtlr;
-  }
+  };
 
 }
 
