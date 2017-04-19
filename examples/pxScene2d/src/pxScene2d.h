@@ -486,7 +486,7 @@ public:
     {
 #if 1
       // translate based on xy rotate/scale based on cx, cy
-      m.translate((int)mx+(int)mcx, (int)my+(int)mcy);
+      m.translate(mx+mcx, my+mcy);
       if (mr) {
         m.rotateInDegrees(mr
 #ifdef ANIMATION_ROTATE_XYZ
