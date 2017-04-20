@@ -19,7 +19,7 @@ export NODE_PATH=.
 
 #valgrind integration
 #suppressions are enabled to ignore the errors not interested
-if [ $ENABLE_VALGRIND -eq 1 ]
+if [[ ! -z $ENABLE_VALGRIND ]] && [[ $ENABLE_VALGRIND -eq 1 ]]
 then
 if [ -z $VALGRINDLOGS ]
 then
