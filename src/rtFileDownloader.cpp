@@ -25,32 +25,10 @@
 #include "rtThreadTask.h"
 #include "rtThreadPool.h"
 #include "pxTimer.h"
-
+#include "rtLog.h"
 #include <sstream>
 #include <iostream>
 #include <thread>
-
-#ifdef WIN32
-
-#include <windows.h>
-#include "rtLog.h"
-void usleep(__int64 usec)
-{
-	HANDLE timer;
-	LARGE_INTEGER ft;
-
-	ft.QuadPart = -(10 * usec); // Convert to 100 nanosecond interval, negative value indicates relative time
-
-	timer = CreateWaitableTimer(NULL, TRUE, NULL);
-	SetWaitableTimer(timer, &ft, 0, NULL, NULL, 0);
-	WaitForSingleObject(timer, INFINITE);
-	CloseHandle(timer);
-}
-
-#else
-#include "unistd.h"
-#endif
-
 using namespace std;
 
 #define CA_CERTIFICATE "cacert.pem"
@@ -140,7 +118,7 @@ void onDownloadHandleCheck()
   bool checkHandles = true;
   while (checkHandles)
   {
-    usleep(kDownloadHandleTimerIntervalInMilliSeconds * 1000);
+	pxSleepMS(kDownloadHandleTimerIntervalInMilliSeconds);
     rtFileDownloader::instance()->checkForExpiredHandles();
     downloadHandleMutex.lock();
     checkHandles = continueDownloadHandleCheck;

@@ -2,23 +2,26 @@
 
 ## env
 - win 10
-- vs 2015
+- vs 2017 with `Desktop development with C++` workload
+- [windows sdk 10.0.15063.0](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk),it is included in VS2017 with above workload and only necessary if you have issue to install with VS2017)
 - python 2.7.x , make sure python can work in cmd.
 - git for windows , make sure git can work in cmd.
--  Inno setup Compiler 5.5.9 , http://www.jrsoftware.org/isdl.php
+- Inno setup Compiler 5.5.9 , http://www.jrsoftware.org/isdl.php
 
 ## build
 ### build pxscene  basic deps
-- open`pxCore\examples\pxScene2d\external\vc.build\external.sln`  , if popup some confirm dialog , please click ok.
-- don't modify any config(make sure to use Release mode, similar for below projects) , use `ctrl+shift+b` or `build->build solution` to build static libs.
-- after build success , you can close vs2015(if missing some header files you have to copy missing headers from exist folder).
+- `cd pxCore\pxCore.vsbuild`
+- `python pxScene2d/beforeBuild.py` , after success run this, you can get necessary headers for basic deps.
+- open`pxCore\examples\pxScene2d\external\vc.build\external.sln`, if popup some confirm dialog , please click ok.
+- don't modify any config(make sure to use Release mode, similar for below projects) , use `ctrl+shift+b` or `build->build solution` to build static/dynamic libs.
+- after build success , you can close vs2017.
 
 ### build node 6.9.0
-- open cmd , and `cd pxCore\examples\pxScene2d\external\libnode-v6.9.0`
+- open Developer Command Prompt for VS 2017, and `cd pxCore\examples\pxScene2d\external\libnode-v6.9.0`
 - use `vcbuild.bat x86 nosign` to build nodejs static lib and exe.
 
 ### build pxscene
-- open `pxCore\pxCore.vsbuild\pxscene.sln` ,  pxcore is vs2013 project, when open it, you need upgrade it to vs2015.
+- open `pxCore\pxCore.vsbuild\pxscene.sln` ,  pxcore is vs2013 project, when open it, you need upgrade it to vs2017.
 - make sure to use Release mode, use `ctrl+shift+b` or `build->build solution` to build pxscene
 - `cd pxCore\pxCore.vsbuild`
 - `python pxScene2d/afterBuild.py` , after success run this, you can get a full pxscene2d program at `pxCore\pxCore.vsbuild\pxScene2d\exe`.
@@ -108,8 +111,11 @@
 }
 ```
 - open any files in `examples\demos` folder and start `DBG file in pxscene`, you will be break on any breakpoint to test.
-- start `DBG pxscene` ,input `files://C:\examples\fancy.js` in pxscene, you will be break on any previous breakpoint to test.
+- start `DBG pxscene` ,input `file://C:\examples\fancy.js` in pxscene, you will be break on any previous breakpoint to test.
 - `cd C:\Program Files (x86)\pxScene`, `pxScene.exe --debug=5858`. and use `Attach pxscene` can attach pxscene.
+
+# Glut
+Project pxScene2d has been configured to use `glut32.lib` or focuses on win32 for now as primary target, extra files in folder `pxCore\examples\pxScene2d\external\glut-3.7` have been removed.
 
 # additional
 1. Clipboard in browser.js does not work , because the base code cpp code didn't implement , I implement it .

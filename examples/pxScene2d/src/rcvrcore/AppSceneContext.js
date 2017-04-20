@@ -60,8 +60,10 @@ AppSceneContext.prototype.loadScene = function() {
     // fix not working in not same driver
     if(!urlParts.protocol){
         fullPath = urlParts.pathname;
-    } else if(urlParts.protocol ==="files:"){
-        fullPath = fullPath.substring(8);
+    } else if(urlParts.protocol ==="file:"){
+        // get real file path after file:// and start index of string is zero so use magic number 7 here
+        // for example file://C:\examples\fancy.js will get C:\examples\fancy.js
+        fullPath = fullPath.substring(7);
     }
     if( fullPath !== null) {
       this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));

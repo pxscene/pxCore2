@@ -24,7 +24,7 @@
 #include "rtObject.h"
 #include "rtValue.h"
 #include "rtAtomic.h"
-
+#include "pxTimer.h"
 
 #include <string>
 #include <map>
@@ -46,13 +46,7 @@
 #endif
 
 #ifdef WIN32
-#include <Windows.h>
 static DWORD __rt_main_thread__;
-
-void sleep(float time) {
-  Sleep(time * 1000);
-}
-
 #else
 static pthread_t __rt_main_thread__;
 #endif
@@ -170,7 +164,7 @@ void nodeThread(uv_work_t *req)
             //printf("nodeThread unlocking\n");
             uv_mutex_unlock(&threadMutex);
         }
-        sleep(0.05);
+		pxSleepMS(50);
     }
     printf("nodeThread is terminating\n");
     

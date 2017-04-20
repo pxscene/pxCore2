@@ -58,7 +58,7 @@ const
   {Visual C++ 2010 SP1 Redist(x86) 10.0.40219} 
   VC_2010_SP1_REDIST_X86 = '{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}';
  
-  { Visual C++ 2015 SP3 Redist(x86) 14.0.24215 }
+  {Visual C++ 2015 SP3 Redist(x86) 14.0.24215}
   VC_2015_SP3_REDIST_X86 = '{BBF2AC74-720C-3CB3-8291-5E34039232FA}';
 
 function MsiQueryProductState(szProduct: string): INSTALLSTATE; 

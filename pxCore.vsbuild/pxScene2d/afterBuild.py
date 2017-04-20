@@ -18,7 +18,7 @@ def copyRes(baseDir):
     
     shutil.copy(os.path.join(external_dir,"libnode-v6.9.0","Release","node.exe"),os.path.join(baseDir,"node.exe"))
     shutil.copy(os.path.join(external_dir,"gles\\prebuilt\\glew32.dll"),baseDir)
-    shutil.copy(os.path.join(external_dir,"pthread-2.9","prebuild\\dll\\x86\\pthreadVC2.dll"),baseDir)
+    shutil.copy(os.path.join(external_dir,"vc.build","builds\\pthreadVC2.dll"),baseDir)
 
 
 remove(build_dir+"\\exe")

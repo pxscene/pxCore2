@@ -23,7 +23,7 @@ libpng-1.6.28/pngcp
 libpng-1.6.28/pngfix
 libpng-1.6.28/pngimage
 libpng-1.6.28/pnglibconf.c
-;libpng-1.6.28/pnglibconf.h
+libpng-1.6.28/pnglibconf.h
 libpng-1.6.28/png-fix-itxt
 libpng-1.6.28/pngprefix.h
 libpng-1.6.28/pngtest
@@ -33,3 +33,13 @@ libpng-1.6.28/pngvalid
 curl-7.40.0/src/tool_hugehelp.c
 vc.build/builds
 vc.build/objs
+vc.build/.vs
+libnode-v6.9.0/build
+libnode-v6.9.0/Release
+libnode-v6.9.0/deps/openssl/Release
+libnode-v6.9.0/deps/zlib/Release
+libnode-v6.9.0/deps/gtest/Release
+libnode-v6.9.0/deps/http_parser/Release
+libnode-v6.9.0/deps/v8_inspector/third_party/v8_inspector/platform/v8_inspector/Release
+libnode-v6.9.0/tools/icu/Release
+libnode-v6.9.0/tools/msvs/genfiles
