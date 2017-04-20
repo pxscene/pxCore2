@@ -208,15 +208,25 @@ ifeq ($(PX_PLATFORM),PX_PLATFORM_GLUT)
 LDBREAKPAD = -L$(EXTDIR)/breakpad/src/client/linux $(EXTDIR)/breakpad/src/client/linux/libbreakpad_client.a
 LDEXT += $(LDBREAKPAD)
 CXXFLAGS += -DHAS_LINUX_BREAKPAD
+ifeq ($(CODE_COVERAGE), 1)
+CXXFLAGS += -fprofile-arcs -ftest-coverage
+endif
 endif
 
 ifeq ($(UNAME_S),Darwin)
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore $(LDEXT) -ldl -lv8_libplatform -framework OpenGL -framework Cocoa -framework Foundation
+ifeq ($(CODE_COVERAGE), 1)
+CXXFLAGS += -fprofile-arcs -ftest-coverage -DENABLE_CODE_COVERAGE
+LDFLAGS += -lclang_rt.profile_osx -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/8.0.0/lib/darwin
+endif
 else
 ifeq ($(HNAME_S),raspberrypi)
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -lrtCore_s -pthread -L/opt/vc/lib/ -lbcm_host -lEGL -lGLESv2 $(LDEXT) -ldl -lrt -lv8_libplatform 
 else
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore -lrtCore_s -pthread -lglut -lGLEW -lGL $(LDEXT) -ldl -lrt -lv8_libplatform
+ifeq ($(CODE_COVERAGE), 1)
+LDFLAGS += -lgcov
+endif
 endif
 endif
 

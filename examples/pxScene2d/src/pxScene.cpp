@@ -83,6 +83,9 @@ void* context, bool succeeded) {
 }
 #endif
 
+#ifdef ENABLE_CODE_COVERAGE
+extern "C" void __gcov_flush();
+#endif
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
 public:
@@ -197,6 +200,9 @@ protected:
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
       rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
     }
+    #ifdef ENABLE_CODE_COVERAGE
+    __gcov_flush();
+    #endif
   ENTERSCENELOCK()
       eventLoop.exit();
   EXITSCENELOCK()
