@@ -1045,7 +1045,7 @@ pxError pxWindow::init(int left, int top, int width, int height)
   WinDelegate* delegate = [[WinDelegate alloc] initWithPXWindow:this];
   [window setDelegate:delegate];
    //[delegate release];  //<< TODO: Crashes if menus used.  Why ?
-  
+  mDelegate = (void*)delegate;
   MyView* view = [[MyView alloc] initWithPXWindow:this];
   
   [window setContentView: view];
@@ -1067,6 +1067,8 @@ pxError pxWindow::init(int left, int top, int width, int height)
 pxError pxWindow::term()
 {
   NSWindow* window = (NSWindow*)mWindow;
+  WinDelegate* delegate = (WinDelegate*)mDelegate;
+  [delegate release];
   [window close];
   
   return PX_OK;
