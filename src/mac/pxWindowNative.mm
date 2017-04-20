@@ -1068,9 +1068,10 @@ pxError pxWindow::term()
 {
   NSWindow* window = (NSWindow*)mWindow;
   WinDelegate* delegate = (WinDelegate*)mDelegate;
+  [window setDelegate:nil];
   [delegate release];
+  mDelegate = nil;
   [window close];
-  
   return PX_OK;
 }
 
