@@ -29,6 +29,9 @@
 
 #include "pxContext.h"
 #include "pxUtil.h"
+#include <algorithm>
+#include <ctime>
+#include <cstdlib>
 
 #include <directfb.h>
 
@@ -158,6 +161,61 @@ pxContextFramebufferRef currentFramebuffer = defaultFramebuffer;
 static int gResW, gResH;
 static pxMatrix4f gMatrix;
 static float gAlpha = 1.0;
+uint32_t gRenderTick = 0;
+std::vector<pxTexture*> textureList;
+
+pxError addToTextureList(pxTexture* texture)
+{
+  textureList.push_back(texture);
+  return PX_OK;
+}
+
+pxError removeFromTextureList(pxTexture* texture)
+{
+  for(std::vector<pxTexture*>::iterator it = textureList.begin(); it != textureList.end(); ++it)
+  {
+    if ((*it) == texture)
+    {
+      textureList.erase(it);
+      return PX_OK;
+    }
+  }
+  return PX_OK;
+}
+
+pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5)
+{
+#if defined(ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING) && !defined(DISABLE_TEXTURE_EJECTION)
+  rtLogDebug("attempting to eject %d bytes of texture memory", bytesNeeded);
+  int numberEjected = 0;
+  int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+
+  std::random_shuffle(textureList.begin(), textureList.end());
+  for(std::vector<pxTexture*>::iterator it = textureList.begin(); it != textureList.end(); ++it)
+  {
+    pxTexture* texture = (*it);
+    uint32_t lastRenderTickAge = gRenderTick - texture->lastRenderTick();
+    if (lastRenderTickAge >= maxAge)
+    {
+      numberEjected++;
+      texture->unloadTextureData();
+      int64_t currentTextureMemory = context.currentTextureMemoryUsageInBytes();
+      if ((beforeTextureMemoryUsage - currentTextureMemory) > bytesNeeded)
+      {
+        break;
+      }
+    }
+  }
+
+  if (numberEjected > 0)
+  {
+    int64_t afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+    rtLogWarn("%d textures have been ejected and %d bytes of texture memory has been freed",
+        numberEjected, (beforeTextureMemoryUsage - afterTextureMemoryUsage));
+  }
+#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING && !DISABLE_TEXTURE_EJECTION
+  return PX_OK;
+}
 
 
 static inline void applyMatrix(IDirectFBSurface  *surface, const float *mm);
@@ -455,6 +513,7 @@ public:
                          mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
+    addToTextureList(this);
   }
 
   pxTextureOffscreen(pxOffscreen& o, const char *compressedData = NULL, size_t compressedDataSize = 0) 
@@ -466,9 +525,10 @@ public:
     mTextureType = PX_TEXTURE_OFFSCREEN;
     setCompressedData(compressedData, compressedDataSize);
     createTexture(o);
+    addToTextureList(this);
   }
 
-~pxTextureOffscreen() { deleteTexture(); };
+~pxTextureOffscreen() { deleteTexture(); removeFromTextureList(this);};
 
   virtual pxError createTexture(pxOffscreen& o)
   {
@@ -590,9 +650,20 @@ public:
     {
       if (!context.isTextureSpaceAvailable(this))
       {
-        rtLogError("not enough texture memory remaining to create texture");
-        unloadTextureData();
-        return PX_FAIL;
+        //attempt to free texture memory
+        int64_t textureMemoryNeeded = context.textureMemoryOverflow(this);
+        context.ejectTextureMemory(textureMemoryNeeded);
+        if (!context.isTextureSpaceAvailable(this))
+        {
+          rtLogError("not enough texture memory remaining to create texture");
+          mInitialized = false;
+          unloadTextureData();
+          return PX_FAIL;
+        }
+        else if (!mInitialized)
+        {
+          return PX_NOTINITIALIZED;
+        }
       }
 
       context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
@@ -631,9 +702,20 @@ public:
     {
       if (!context.isTextureSpaceAvailable(this))
       {
-        rtLogError("not enough texture memory remaining to create texture");
-        unloadTextureData();
-        return PX_FAIL;
+        //attempt to free texture memory
+        int64_t textureMemoryNeeded = context.textureMemoryOverflow(this);
+        context.ejectTextureMemory(textureMemoryNeeded);
+        if (!context.isTextureSpaceAvailable(this))
+        {
+          rtLogError("not enough texture memory remaining to create texture");
+          mInitialized = false;
+          unloadTextureData();
+          return PX_FAIL;
+        }
+        else if (!mInitialized)
+        {
+          return PX_NOTINITIALIZED;
+        }
       }
 
       createSurface(mOffscreen); // JUNK
@@ -1757,6 +1839,8 @@ void pxContext::init()
   setTextureMemoryLimit(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES );
 
   rtLogSetLevel(RT_LOG_INFO); // LOG LEVEL
+
+  std::srand(unsigned (std::time(0)));
 }
 
 void pxContext::setSize(int w, int h)
@@ -2146,6 +2230,8 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
     return;
   }
 
+  texture->setLastRenderTick(gRenderTick);
+
   drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
 }
 
@@ -2170,6 +2256,13 @@ void pxContext::drawImage(float x, float y, float w, float h,
   if (t.getPtr() == NULL)
   {
     return;
+  }
+
+  t->setLastRenderTick(gRenderTick);
+
+  if (mask.getPtr() != NULL)
+  {
+    mask->setLastRenderTick(gRenderTick);
   }
 
   float black[4] = {0,0,0,1};
@@ -2431,7 +2524,7 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
      pc = ((float) mCurrentTextureMemorySizeInBytes /
            (float) mTextureMemoryLimitInBytes       ) * 100.0;
   }
-
+  //rtLogDebug("the current texture size: %" PRId64 ".", mCurrentTextureMemorySizeInBytes);
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   if (pc >= 100.0f)
   {
@@ -2474,6 +2567,38 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef texture)
 int64_t pxContext::currentTextureMemoryUsageInBytes()
 {
   return mCurrentTextureMemorySizeInBytes;
+}
+
+int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
+{
+  int64_t textureSize = (texture->width()*texture->height()*4);
+  int64_t availableBytes = mTextureMemoryLimitInBytes - mCurrentTextureMemorySizeInBytes;
+  if (textureSize > availableBytes)
+  {
+    return (textureSize - availableBytes);
+  }
+  return 0;
+}
+
+int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
+{
+  int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+  if (!forceEject)
+  {
+    ejectNotRecentlyUsedTextureMemory(bytesRequested, mEjectTextureAge);
+  }
+  else
+  {
+    ejectNotRecentlyUsedTextureMemory(bytesRequested, 0);
+  }
+  int64_t afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+  return (beforeTextureMemoryUsage-afterTextureMemoryUsage);
+}
+
+pxError pxContext::setEjectTextureAge(uint32_t age)
+{
+  mEjectTextureAge = age;
+  return PX_OK;
 }
 
 pxError pxContext::enableInternalContext(bool)
