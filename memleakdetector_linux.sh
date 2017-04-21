@@ -5,6 +5,7 @@ export PX_DUMP_MEMUSAGE=1
 export SUPPRESSIONS=$TRAVIS_BUILD_DIR/leak.supp
 VALGRINDPXCORELOGS=$TRAVIS_BUILD_DIR/logs/valgrind_pxcore_logs
 
+touch $VALGRINDLOGS
 #run valgrind and monitor for completion
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 ./pxscene.sh testRunner_memcheck.js > $VALGRINDPXCORELOGS &
@@ -39,6 +40,7 @@ fi
 exit 1;
 fi
 
+chmod 444 $VALGRINDLOGS
 #check for memory leak
 grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
 retVal=$?
