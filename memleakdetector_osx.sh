@@ -25,7 +25,7 @@ done
 echo "`ps -ef | grep -v grep|grep pxscene|grep -v pxscene.sh|awk '{print $2}'`"
 kill -15 `ps -ef | grep -v grep|grep pxscene|grep  -v pxscene.sh|awk '{print $2}'`
 #wait for few seconds to get the application terminate completely
-leakcount=`leaks pxscene|grep -v WinDelegate|grep Leak|wc -l`
+leakcount=`leaks pxscene|grep Leak|wc -l`
 echo "leakcount during termination $leakcount"
 sleep 5s;
 pkill -9 -f pxscene.sh
