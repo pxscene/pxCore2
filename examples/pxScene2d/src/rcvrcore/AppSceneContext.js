@@ -306,8 +306,6 @@ if (false) {
         }).catch( function(err)
         {
           console.error("Main module[" + self.packageUrl + "]" + " load has failed - on failed imports: " + ", err=" + err);
-//          self.container.makeReady(false); // DEPRECATED ?
-
           thisMakeReady(false,{});
         } );
       }

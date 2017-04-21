@@ -105,7 +105,7 @@ void pxText::resourceReady(rtString readyResolution)
     // so measure it
     if (getFontResource() != NULL) {
        getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
-	}
+	  }
 	
     mDirty=true;  
     mScene->mDirty = true;
@@ -176,12 +176,17 @@ void pxText::draw() {
     // TODO not very intelligent given scaling
     if (msx == 1.0 && msy == 1.0 && mCached.getPtr() && mCached->getTexture().getPtr())
     {
+      // TODO review the max texure size handling
+      // Should be pushed into context properly  not 1 off on every
+      // callsite
       context.drawImage(0, 0, (mw>MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:mw), (mh>MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:mh), mCached->getTexture(), nullMaskRef);
     }
     else 
     {
-      
-      getFontResource()->renderText(mText, mPixelSize, 0, 0, msx, msy, mTextColor, mw);
+      if (getFontResource() != NULL)
+      {
+        getFontResource()->renderText(mText, mPixelSize, 0, 0, msx, msy, mTextColor, mw);
+      }
     }
   }  
   //else {
@@ -203,7 +208,7 @@ rtError pxText::setFontUrl(const char* s)
   mListenerAdded = true;
   if (getFontResource() != NULL)
   {
-     getFontResource()->addListener(this);
+    getFontResource()->addListener(this);
   }
   
   return RT_OK;
@@ -226,11 +231,13 @@ rtError pxText::setFont(rtObjectRef o)
 
 float pxText::getOnscreenWidth()
 {
-  return (mw > MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH*msx:mw*msx);
+  // TODO review max texture handling
+  return (mw > MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:mw);
 }
 float pxText::getOnscreenHeight()
 {
-  return (mh > MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT*msy:mh*msy);
+  // TODO review max texture handling
+  return (mh > MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:mh);
 }
   
 

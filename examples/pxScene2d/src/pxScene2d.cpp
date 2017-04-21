@@ -2536,8 +2536,8 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
 {
   rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
-#ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   mUrl = url;
+#ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   mReady = new rtPromise();
  // mLang = lang;
   rtLogDebug("pxScriptView::pxScriptView() exiting\n");
