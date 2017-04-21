@@ -7,9 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4C04661C1E574CEE00D59925 /* shell.js in Resources */ = {isa = PBXBuildFile; fileRef = 4C0466191E574CEE00D59925 /* shell.js */; };
-		4C04661D1E574CEE00D59925 /* init.js in Resources */ = {isa = PBXBuildFile; fileRef = 4C04661A1E574CEE00D59925 /* init.js */; };
-		4C04661E1E574CEE00D59925 /* browser.js in Resources */ = {isa = PBXBuildFile; fileRef = 4C04661B1E574CEE00D59925 /* browser.js */; };
 		4C0C6D701E5218BB00BD8932 /* pxArchive.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D3F1E5218BB00BD8932 /* pxArchive.cpp */; };
 		4C0C6D711E5218BC00BD8932 /* pxConstants.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D411E5218BB00BD8932 /* pxConstants.cpp */; };
 		4C0C6D761E5218BC00BD8932 /* pxFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D4D1E5218BB00BD8932 /* pxFont.cpp */; };
@@ -586,9 +583,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				4C63A6831E7878AA00313D9C /* package.json in Resources */,
-				4C04661D1E574CEE00D59925 /* init.js in Resources */,
-				4C04661E1E574CEE00D59925 /* browser.js in Resources */,
-				4C04661C1E574CEE00D59925 /* shell.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -621,7 +615,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\ncp -R $PROJECT_DIR/../src/images $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R $PROJECT_DIR/../src/rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R $PROJECT_DIR/../src/node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\ncp -R $PROJECT_DIR/../src/macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\n\ncp $PROJECT_DIR/../src/init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp $PROJECT_DIR/../src/macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp $PROJECT_DIR/../src/macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp $PROJECT_DIR/../src/package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\n\n\n\n#cp -R $PROJECT_DIR/../src/images $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp -R $PROJECT_DIR/../src/rcvrcore $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp -R $PROJECT_DIR/../src/node_modules $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n\n#cp -R $PROJECT_DIR/../src/macstuff/Resources $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents\n\n#cp $PROJECT_DIR/../src/init.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/shell.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/browser.js $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/FreeSans.ttf $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#cp $PROJECT_DIR/../src/macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n\n\n\n\n\necho $PROJECT_DIR/../lib\n\n#cp -R $PROJECT_DIR/../lib\n#mkdir $BUILT_PRODUCTS_DIR/${PROJECT_NAME}.app/Contents/MacOS\n#echo ${CONFIGURATION}${EFFECTIVE_PLATFORM_NAME}\n#echo $PROJECT_NAME\n#echo $BUILT_PRODUCTS_DIR\n#echo $CONFIGURATION_BUILD_DIR/$EXECUTABLE_FOLDER\n#echo $CONFIGURATION_BUILD_DIR/$EXECUTABLE_PATH\n#cp -R $PROJECT_DIR/../lib $CONFIGURATION_BUILD_DIR/$EXECUTABLE_PATH/libby";
+			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R images $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\nminifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n  # Minify JS to App Bundle\n  printf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n  ./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/rcvrcore\n\n  ./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/init.js\n  ./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/shell.js\n  ./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser.js\nelse\n\n  # Skip JS Minify - just copy\n  printf \"\\n ###  Skip JS Minify - just copy\\n\"\n\n  cp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  cp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\nfi\n\necho $PROJECT_DIR/../lib\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -796,6 +790,7 @@
 					"$(PROJECT_DIR)/../external/curl/include",
 					"$(PROJECT_DIR)/../external/ft/include",
 					"$(PROJECT_DIR)/../external/westeros-stub",
+					"$(PROJECT_DIR)/../../../remote",
 				);
 				INFOPLIST_FILE = pxScene2d/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
@@ -870,6 +865,7 @@
 					"$(PROJECT_DIR)/../external/curl/include",
 					"$(PROJECT_DIR)/../external/ft/include",
 					"$(PROJECT_DIR)/../external/westeros-stub",
+					"$(PROJECT_DIR)/../../../remote",
 				);
 				INFOPLIST_FILE = pxScene2d/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
