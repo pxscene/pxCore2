@@ -29,7 +29,7 @@ script:
 - cd $TRAVIS_BUILD_DIR
 - coveralls --build-root $TRAVIS_BUILD_DIR --no-gcov --lcov-file tracefile
 - genhtml -o $TRAVIS_BUILD_DIR/logs/codecoverage tracefile > coveralls_trace
-- TRAVIS_MESSAGE="code coverage for $TRAVIS_OS_NAME is `grep \"lines...\" coveralls_trace|awk '{print $2}'`"
+- export TRAVIS_MESSAGE="code coverage for $TRAVIS_OS_NAME is `grep \"lines...\" coveralls_trace|awk '{print $2}'`"
 - sh memleakdetector_$TRAVIS_OS_NAME.sh
 addons:
   ssh_known_hosts: 96.118.6.151
@@ -59,4 +59,7 @@ before_install:
 notifications:
   slack:
     secure: gQ7GjheuN4j98co71p1gO0QaIAX3xHnDE2JRTT5UopsPbhczBC3A6RlVhXBrIc9mDyt2AO/pTBOl68BGtwtb4NVhZo2fqCcoq4wk2U2bAH3OnQu5KE9fJxm1KdJi0WiFVy1pURQql1fUH800YqF1LOWbc9m8aexgcvtD6ghDFLCDStgqfNgRzSEbZ8YBP98FjkEHj/jjeqwdUaH0Aezv0n82Laev99KDveCTVMoKXcbyfBQK0ty3OFAg6nBrMWPx0RVDVOVFPjjXDFgC5UfS9FLA57bxRDVmDr8SMnS/7m26YH0jnqY4oS1QnEmrdUtp6UWNex8D88KCt+wXoOpd6Ca1DVHNnaFuotEVpJ8B3WEG3uiK6xvacpkMrtEuoswUIbOv8E1VdfF3eOSmSAneb09Nbs15U8yiBfNq4PLE8TYc22or5jDsksTyGgmOgE1m8teH4DQz+k5qhMihd9f88CqaWzkjNgucavr/QzXG16xt13unMmMD0/bzA7wDU3hprne5hycR0LDxFRlL5z5xdv4w9yseuFTYBRcQ5Lk9zA6gJUMCGcbCtfA2rYQS7lOul575EMX7SfagHMmn663QY3tzm+vsxF93Dib+xfsAI3xSxSKGeBNZ5H9MxUPNUcu1yxhDZIZX8HujsDVLfIm/VK9OS2ultBTYeKizlyPBBsM=
+    template:
+      - "%{repository} (%{commit}) : %{message} Madana Gopal"
+      - "Build details: %{build_url}"
 cache: ccache
