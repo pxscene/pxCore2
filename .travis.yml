@@ -28,7 +28,8 @@ script:
   "unittests_$TRAVIS_OS_NAME.sh" "pxleakcheck_$TRAVIS_OS_NAME.sh"
 - cd $TRAVIS_BUILD_DIR
 - coveralls --build-root $TRAVIS_BUILD_DIR --no-gcov --lcov-file tracefile
-- genhtml -o $TRAVIS_BUILD_DIR/logs/codecoverage tracefile
+- genhtml -o $TRAVIS_BUILD_DIR/logs/codecoverage tracefile > coveralls_trace
+- TRAVIS_MESSAGE="code coverage for $TRAVIS_OS_NAME is `grep \"lines...\" coveralls_trace|awk '{print $2}'`"
 - sh memleakdetector_$TRAVIS_OS_NAME.sh
 addons:
   ssh_known_hosts: 96.118.6.151
