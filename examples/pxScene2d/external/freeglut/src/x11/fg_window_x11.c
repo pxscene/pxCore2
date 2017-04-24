@@ -461,6 +461,15 @@ void fgPlatformCloseWindow( SFG_Window* window )
 #ifdef EGL_VERSION_1_0
     fghPlatformCloseWindowEGL(window);
 #else
+/* MODIFIED CODE BEGIN */
+// unlink the GLX drawables from context
+    glXMakeContextCurrent(
+        fgDisplay.pDisplay.Display,
+        NULL,
+        NULL,
+        NULL
+    );
+/* MODIFIED CODE END */
     if( window->Window.Context )
         glXDestroyContext( fgDisplay.pDisplay.Display, window->Window.Context );
     window->Window.pContext.FBConfig = NULL;
