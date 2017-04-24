@@ -45,6 +45,9 @@ ifeq ($(PX_PLATFORM),DirectFB)
 PX_PLATFORM=PX_PLATFORM_GENERIC_DFB
 PXLIBS=$(PXCOREDIR)/build/dfb
 else
+ifndef USE_EXTERNALS_GLUT
+USE_EXTERNALS_GLUT=true
+endif
 PX_PLATFORM=PX_PLATFORM_GLUT
 PXLIBS=$(PXCOREDIR)/build/glut
 TARGETINCLUDE=
@@ -160,6 +163,9 @@ SEARCH=\
    $(TARGETINCLUDE)
 
 
+ifeq ($(USE_EXTERNALS_GLUT), true)
+SEARCH += -I$(EXTDIR)/freeglut/include
+endif
 #CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE
 CXXFLAGS2=-fPIC -Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE $(NODE_V_6_9_DEFINES) $(PLATFORM_DEFINES)
 
@@ -206,7 +212,10 @@ endif
 
 ifeq ($(PX_PLATFORM),PX_PLATFORM_GLUT)
 LDBREAKPAD = -L$(EXTDIR)/breakpad/src/client/linux $(EXTDIR)/breakpad/src/client/linux/libbreakpad_client.a
-LDEXT += $(LDBREAKPAD)
+ifeq ($(USE_EXTERNALS_GLUT), true)
+LDGLUT = -L$(EXTDIR)/freeglut/lib -lglut
+endif
+LDEXT += $(LDBREAKPAD) $(LDGLUT)
 CXXFLAGS += -DHAS_LINUX_BREAKPAD
 ifeq ($(CODE_COVERAGE), 1)
 CXXFLAGS += -fprofile-arcs -ftest-coverage
