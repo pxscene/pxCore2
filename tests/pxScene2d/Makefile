@@ -19,6 +19,9 @@ endif
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PXCOREDIR=$(MAKEFILE_PATH)/../../
 PXSCENEDIR=$(PXCOREDIR)/examples/pxScene2d
+ifndef USE_EXTERNALS_GLUT
+USE_EXTERNALS_GLUT=true
+endif
 PX_PLATFORM=PX_PLATFORM_GLUT
 PXHDRS=$(PXCOREDIR)/src
 EXTDIR=$(PXCOREDIR)examples/pxScene2d/external
@@ -39,6 +42,9 @@ SEARCH=\
         -I$(EXTDIR)/gtest/googlemock/include \
         -I$(EXTDIR)/gtest/googlemock \
         -I$(EXTDIR)/curl/include
+ifeq ($(USE_EXTERNALS_GLUT), true)
+SEARCH += -I$(EXTDIR)/freeglut/include
+endif
 
 CXXFLAGS= $(SEARCH) -O3 -D$(PX_PLATFORM) -DRT_PLATFORM_LINUX -DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_HTTP_CACHE  -DENABLE_DEBUG_MODE -DENABLE_LIBJPEG_TURBO -DPNG_APNG_SUPPORTED
 
@@ -49,7 +55,10 @@ LDCURL   = -L$(EXTDIR)/curl/lib/.libs -lcurl
 LDZLIB   = -L$(EXTDIR)/zlib -lz
 LDJPG    = -L$(EXTDIR)/jpg/.libs -ljpeg
 LDLIBJPEGTURBO = -L$(EXTDIR)/libjpeg-turbo/.libs/ -lturbojpeg
-LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDZLIB) $(LDJPG) $(LDLIBJPEGTURBO)
+ifeq ($(USE_EXTERNALS_GLUT), true)
+LDGLUT = -L$(EXTDIR)/freeglut/lib
+endif
+LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDZLIB) $(LDJPG) $(LDLIBJPEGTURBO) $(LDGLUT)
 NODEDIR = $(EXTDIR)/libnode-v6.9.0
 LDNODE   = -L$(NODEDIR)/out/Release/obj.target
 LDNODEV8 = -L$(NODEDIR)/out/Release

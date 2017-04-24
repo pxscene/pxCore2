@@ -130,3 +130,15 @@ if [ "$(uname)" != "Darwin" ]; then
 fi
 
 #--------
+
+#--------- GLUT  (Non -macOS)
+
+if [ "$(uname)" != "Darwin" ]
+then
+ cd freeglut
+ cmake .
+ make freeglut -j3
+ cd ..
+fi
+
+#--------
