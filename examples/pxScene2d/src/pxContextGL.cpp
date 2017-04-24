@@ -42,7 +42,9 @@
 #ifdef WIN32 
 #include <GL/wglew.h>
 #endif // WIN32
+#ifdef PX_PLATFORM_GLUT
 #include <GL/glut.h>
+#endif
 #include <GL/gl.h>
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
