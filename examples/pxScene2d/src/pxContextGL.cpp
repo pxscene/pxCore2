@@ -1062,9 +1062,16 @@ private:
 }; // CLASS - pxTextureAlpha
 
 //====================================================================================================================================================================================
-
-static GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
+struct glShaderProgDetails
 {
+  GLuint program;
+  GLuint fragShader;
+  GLuint vertShader;
+};
+
+static glShaderProgDetails  createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
+{
+  struct glShaderProgDetails details = {};
   GLuint fragShader, vertShader, program = 0;
   GLint stat;
 
@@ -1106,8 +1113,10 @@ static GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt
   program = glCreateProgram();
   glAttachShader(program, fragShader);
   glAttachShader(program, vertShader);
-
-  return program;
+  details.program = program;
+  details.fragShader = fragShader;
+  details.vertShader = vertShader;
+  return details;
 }
 
 void linkShaderProgram(GLuint program)
@@ -1132,11 +1141,20 @@ void linkShaderProgram(GLuint program)
 class shaderProgram
 {
 public:
-  virtual ~shaderProgram() {}
+  virtual ~shaderProgram() {
+   glDetachShader(mProgram, mFragShader);
+   glDetachShader(mProgram, mVertShader);
+   glDeleteShader(mFragShader);
+   glDeleteShader(mVertShader);
+   glDeleteProgram(mProgram);
+  }
   virtual void init(const char* v, const char* f)
   {
-    mProgram = createShaderProgram(v, f);
-
+    glShaderProgDetails details = {};
+    details = createShaderProgram(v, f);
+    mProgram = details.program;
+    mFragShader = details.fragShader;
+    mVertShader = details.vertShader;
     prelink();
     linkShaderProgram(mProgram);
     postlink();
@@ -1161,8 +1179,7 @@ protected:
   virtual void prelink() {}
   virtual void postlink() {}
 
-  GLuint mProgram;
-
+  GLuint mProgram,mFragShader,mVertShader;
 }; // CLASS - shaderProgram
 
 //====================================================================================================================================================================================
