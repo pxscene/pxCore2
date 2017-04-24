@@ -29,6 +29,16 @@ PathR=$externalLibs:$pxScene2dSrc:$externalDir/libnode-v6.9.0/out/Release/obj.ta
 export NODE_PATH=$pxScene2dSrc
 
 export LD_LIBRARY_PATH=$PathR:$pxCoreLibs
+EXTERNALS_GLUT=true
+if [[ ! -z "$USE_EXTERNALS_GLUT" ]]
+then
+EXTERNALS_GLUT=$USE_EXTERNALS_GLUT
+fi
+if [ "$EXTERNALS_GLUT" ==  true ]
+then
+echo "using externals glut"
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$externalDir/freeglut/lib/
+fi
 export RT_LOG_LEVEL=warn
 
 #echo $LD_LIBRARY_PATH

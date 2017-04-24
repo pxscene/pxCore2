@@ -26,3 +26,12 @@
   fun:*pxMain*
   ...
 }
+{
+  openglQryExtnsLeaks
+  Memcheck:Leak
+  match-leak-kinds:all
+  ...
+  fun:*glXQueryExtensionsString*
+  fun:*fgPlatformInitialize*
+  ...
+}
