@@ -244,9 +244,9 @@ void rtNodeContext::createEnvironment()
       EmitBeforeExit(mEnv);
 #else
       bool more;
-#ifndef ENABLE_DFB
+#ifdef ENABLE_NODE_V_6_9
       v8::platform::PumpMessageLoop(mPlatform, mIsolate);
-#endif //!ENABLE_DFB
+#endif //ENABLE_NODE_V_6_9
       more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
       if (more == false)
       {
@@ -792,9 +792,9 @@ void rtNode::pump()
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-#ifndef ENABLE_DFB
+#ifdef ENABLE_NODE_V_6_9
   v8::platform::PumpMessageLoop(mPlatform, mIsolate);
-#endif //!ENABLE_DFB
+#endif //ENABLE_NODE_V_6_9
   uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
 
   // Enable this to expedite garbage collection for testing... warning perf hit
