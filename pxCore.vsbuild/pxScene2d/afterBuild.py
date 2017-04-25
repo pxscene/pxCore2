@@ -17,7 +17,6 @@ def copyRes(baseDir):
         shutil.copytree(os.path.join(pxscene2d_srd_dir,d),os.path.join(baseDir,d))
     
     shutil.copy(os.path.join(external_dir,"libnode-v6.9.0","Release","node.exe"),os.path.join(baseDir,"node.exe"))
-    shutil.copy(os.path.join(external_dir,"gles\\prebuilt\\glew32.dll"),baseDir)
     shutil.copy(os.path.join(external_dir,"vc.build","builds\\pthreadVC2.dll"),baseDir)
 
 
