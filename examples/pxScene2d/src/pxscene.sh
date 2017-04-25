@@ -13,6 +13,17 @@ PathD=$externalLibs:$externalDir/libnode-v6.9.0/out/Debug/obj.target
 PathR=$externalLibs:$externalDir/libnode-v6.9.0/out/Release/obj.target
 
 export LD_LIBRARY_PATH=$PathR
+
+EXTERNALS_GLUT=true
+if [[ ! -z "$USE_EXTERNALS_GLUT" ]]
+then
+EXTERNALS_GLUT=$USE_EXTERNALS_GLUT
+fi
+if [ "$EXTERNALS_GLUT" ==  true ]
+then
+echo "using externals glut"
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$externalDir/freeglut/lib/
+fi
 export NODE_PATH=.
 
 #export RT_LOG_LEVEL=info
