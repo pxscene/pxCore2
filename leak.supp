@@ -16,13 +16,3 @@
   fun:*pxMain*
   ...
 }
-{
-  shaderLeaksCreateShaderTravis
-  Memcheck:Leak
-  match-leak-kinds:all
-  ...
-  fun:*createShaderProgram*
-  ...
-  fun:*pxMain*
-  ...
-}
