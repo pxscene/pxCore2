@@ -200,4 +200,27 @@ void FGAPIENTRY glutCopyColormap( int window )
     /* We really need to do something here. */
 }
 
+/* MODIFIED CODE BEGIN */
+/* Map keys for ctrl+2, ctrl+3 */
+void FGAPIENTRY glutRemapKeys()
+{
+    KeySym modlist[1];
+    unsigned int string_length;
+    unsigned int list_length;
+    const unsigned char two = '2';
+    const unsigned char three = '3';
+    string_length = 1;
+    list_length = 1;
+    modlist[0] = XK_Control_L;
+    XRebindKeysym(fgDisplay.pDisplay.Display, XK_2, modlist, list_length, &two,
+      string_length);
+    XRebindKeysym(fgDisplay.pDisplay.Display, XK_3, modlist, list_length, &three,
+      string_length);
+    modlist[0] = XK_Control_R;
+    XRebindKeysym(fgDisplay.pDisplay.Display, XK_2, modlist, list_length, &two,
+      string_length);
+    XRebindKeysym(fgDisplay.pDisplay.Display, XK_3, modlist, list_length, &three,
+      string_length);
+}
+/* MODIFIED CODE END */
 /*** END OF FILE ***/
