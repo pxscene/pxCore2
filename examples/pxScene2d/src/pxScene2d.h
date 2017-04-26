@@ -748,6 +748,7 @@ protected:
     v = (void*)this;
     return RT_OK;
   }
+  void repaintParents();
 };
 
 class pxRoot: public pxObject
