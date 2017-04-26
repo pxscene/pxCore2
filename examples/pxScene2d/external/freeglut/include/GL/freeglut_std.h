@@ -485,6 +485,10 @@ FGAPI void    FGAPIENTRY glutDetachMenu( int button );
 FGAPI void    FGAPIENTRY glutTimerFunc( unsigned int time, void (* callback)( int ), int value );
 FGAPI void    FGAPIENTRY glutIdleFunc( void (* callback)( void ) );
 
+/* MODIFIED CODE BEGIN */
+FGAPI void FGAPIENTRY glutRemapKeys();
+/* MODIFIED CODE END */
+
 /*
  * Window-specific callback functions, see fg_callbacks.c
  */

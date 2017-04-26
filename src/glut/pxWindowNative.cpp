@@ -610,7 +610,7 @@ pxError pxWindow::init(int left, int top, int width, int height)
     glutMotionFunc(onGlutMouseMotion);
     glutPassiveMotionFunc(onGlutMousePassiveMotion);
     glutKeyboardFunc(onGlutKeyboard);
-
+    glutRemapKeys();
 //#ifdef PX_USE_GLUT_ON_CLOSE
     glutWMCloseFunc(onGlutClose);
 //#endif
