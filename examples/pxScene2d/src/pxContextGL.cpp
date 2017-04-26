@@ -1062,40 +1062,47 @@ private:
 }; // CLASS - pxTextureAlpha
 
 //====================================================================================================================================================================================
-
-static GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
+// store shader and program details
+struct glShaderProgDetails
 {
-  GLuint fragShader, vertShader, program = 0;
+  GLuint program;
+  GLuint fragShader;
+  GLuint vertShader;
+};
+
+static glShaderProgDetails  createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
+{
+  struct glShaderProgDetails details = {};
   GLint stat;
 
-  fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragShader, 1, (const char **) &fShaderTxt, NULL);
-  glCompileShader(fragShader);
-  glGetShaderiv(fragShader, GL_COMPILE_STATUS, &stat);
+  details.fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(details.fragShader, 1, (const char **) &fShaderTxt, NULL);
+  glCompileShader(details.fragShader);
+  glGetShaderiv(details.fragShader, GL_COMPILE_STATUS, &stat);
 
   if (!stat)
   {
     rtLogError("Error: fragment shader did not compile: %d", glGetError());
 
     GLint maxLength = 0;
-    glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &maxLength);
+    glGetShaderiv(details.fragShader, GL_INFO_LOG_LENGTH, &maxLength);
 
     //The maxLength includes the NULL character
     std::vector<char> errorLog(maxLength);
-    glGetShaderInfoLog(fragShader, maxLength, &maxLength, &errorLog[0]);
+    glGetShaderInfoLog(details.fragShader, maxLength, &maxLength, &errorLog[0]);
 
     rtLogWarn("%s", &errorLog[0]);
     //Exit with failure.
-    glDeleteShader(fragShader); //Don't leak the shader.
+    glDeleteShader(details.fragShader); //Don't leak the shader.
 
     //TODO get rid of exit
     exit(1);
   }
 
-  vertShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertShader, 1, (const char **) &vShaderTxt, NULL);
-  glCompileShader(vertShader);
-  glGetShaderiv(vertShader, GL_COMPILE_STATUS, &stat);
+  details.vertShader = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(details.vertShader, 1, (const char **) &vShaderTxt, NULL);
+  glCompileShader(details.vertShader);
+  glGetShaderiv(details.vertShader, GL_COMPILE_STATUS, &stat);
 
   if (!stat)
   {
@@ -1103,11 +1110,10 @@ static GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt
     exit(1);
   }
 
-  program = glCreateProgram();
-  glAttachShader(program, fragShader);
-  glAttachShader(program, vertShader);
-
-  return program;
+  details.program = glCreateProgram();
+  glAttachShader(details.program, details.fragShader);
+  glAttachShader(details.program, details.vertShader);
+  return details;
 }
 
 void linkShaderProgram(GLuint program)
@@ -1132,11 +1138,19 @@ void linkShaderProgram(GLuint program)
 class shaderProgram
 {
 public:
-  virtual ~shaderProgram() {}
+  virtual ~shaderProgram() {
+   glDetachShader(mProgram, mFragShader);
+   glDetachShader(mProgram, mVertShader);
+   glDeleteShader(mFragShader);
+   glDeleteShader(mVertShader);
+   glDeleteProgram(mProgram);
+  }
   virtual void init(const char* v, const char* f)
   {
-    mProgram = createShaderProgram(v, f);
-
+    glShaderProgDetails details = createShaderProgram(v, f);
+    mProgram = details.program;
+    mFragShader = details.fragShader;
+    mVertShader = details.vertShader;
     prelink();
     linkShaderProgram(mProgram);
     postlink();
@@ -1161,8 +1175,7 @@ protected:
   virtual void prelink() {}
   virtual void postlink() {}
 
-  GLuint mProgram;
-
+  GLuint mProgram,mFragShader,mVertShader;
 }; // CLASS - shaderProgram
 
 //====================================================================================================================================================================================
