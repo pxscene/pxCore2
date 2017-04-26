@@ -536,8 +536,8 @@ Global
 		{DA6F56B4-06A4-441D-AD70-AC5A7D51FADB}.Release Singlethreaded|Win32.Build.0 = LIB Release|Win32
 		{DA6F56B4-06A4-441D-AD70-AC5A7D51FADB}.Release Singlethreaded|x64.ActiveCfg = LIB Release|x64
 		{DA6F56B4-06A4-441D-AD70-AC5A7D51FADB}.Release Singlethreaded|x64.Build.0 = LIB Release|x64
-		{DA6F56B4-06A4-441D-AD70-AC5A7D51FADB}.Release|Win32.ActiveCfg = LIB Release - DLL OpenSSL|Win32
-		{DA6F56B4-06A4-441D-AD70-AC5A7D51FADB}.Release|Win32.Build.0 = LIB Release - DLL OpenSSL|Win32
+		{DA6F56B4-06A4-441D-AD70-AC5A7D51FADB}.Release|Win32.ActiveCfg = LIB Release - DLL Windows SSPI|Win32
+		{DA6F56B4-06A4-441D-AD70-AC5A7D51FADB}.Release|Win32.Build.0 = LIB Release - DLL Windows SSPI|Win32
 		{DA6F56B4-06A4-441D-AD70-AC5A7D51FADB}.Release|x64.ActiveCfg = LIB Release - LIB OpenSSL - LIB LibSSH2|x64
 		{DA6F56B4-06A4-441D-AD70-AC5A7D51FADB}.Release|x64.Build.0 = LIB Release - LIB OpenSSL - LIB LibSSH2|x64
 		{DA6F56B4-06A4-441D-AD70-AC5A7D51FADB}.RelWithDebInfo|Win32.ActiveCfg = LIB Release|Win32
