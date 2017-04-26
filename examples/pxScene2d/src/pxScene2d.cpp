@@ -510,6 +510,44 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
   return RT_OK;
 }
 
+rtError pxObject::animateToObj(rtObjectRef props, double duration,
+                              uint32_t interp, uint32_t animationType,
+                              int32_t count, rtObjectRef& animateObj)
+{
+
+  if (!props) return RT_FAIL;
+  // TODO JR... not sure that we should do an early out here... thinking
+  // we should still return a resolved promise given time...
+  // just going to get exceptions if you try to do a .then on the return result
+  //if (!props) return RT_OK;
+  // Default to Linear, Loop and count==1
+  if (!interp) {interp = pxConstantsAnimation::TWEEN_LINEAR;}
+  if (!animationType) {animationType = pxConstantsAnimation::OPTION_LOOP;}
+  if (!count) {count = 1;}
+
+  rtObjectRef promise = new rtPromise();
+  animateObj = new pxAnimate(props, interp, (pxConstantsAnimation::animationOptions)animationType, duration, count, promise, this);
+  if (mIsDisposed)
+  {
+    promise.send("reject",this);
+    return RT_OK;
+  }
+
+  rtObjectRef keys = props.get<rtObjectRef>("allKeys");
+  if (keys)
+  {
+    uint32_t len = keys.get<uint32_t>("length");
+    for (uint32_t i = 0; i < len; i++)
+    {
+      rtString key = keys.get<rtString>(i);
+      animateToInternal(key, props.get<float>(key), duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp), (pxConstantsAnimation::animationOptions)animationType, count,(i==0)?promise:rtObjectRef(),animateObj);
+    }
+  }
+  if (NULL != animateObj.getPtr())
+    ((pxAnimate*)animateObj.getPtr())->setStatus(pxConstantsAnimation::STATUS_INPROGRESS);
+  return RT_OK;
+}
+
 void pxObject::setParent(rtRef<pxObject>& parent)
 {
   if (mParent != parent)
@@ -588,7 +626,7 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
     return RT_OK;
   }
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
-            (pxConstantsAnimation::animationOptions)animationType, count, promise);
+            (pxConstantsAnimation::animationOptions)animationType, count, promise, rtObjectRef());
   return RT_OK;
 }
 
@@ -628,6 +666,8 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
             a.promise.send("resolve",this);
           else
             a.promise.send("reject",this);
+          if (NULL != a.animateObj.getPtr())
+            ((pxAnimate*)a.animateObj.getPtr())->setStatus(pxConstantsAnimation::STATUS_CANCELLED);
         }
       }
 #if 0
@@ -640,6 +680,8 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
       }
 #endif
       a.cancelled = true;
+      if (NULL != a.animateObj.getPtr())
+        ((pxAnimate *)a.animateObj.getPtr())->update(prop, &a, pxConstantsAnimation::STATUS_CANCELLED);
     }
     ++it;
   }
@@ -648,7 +690,7 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
 
 void pxObject::animateToInternal(const char* prop, double to, double duration,
                          pxInterp interp, pxConstantsAnimation::animationOptions at,
-                         int32_t count, rtObjectRef promise)
+                         int32_t count, rtObjectRef promise, rtObjectRef animateObj)
 {
   cancelAnimation(prop,(at & pxConstantsAnimation::OPTION_FASTFORWARD), (at & pxConstantsAnimation::OPTION_REWIND), true);
 
@@ -668,8 +710,10 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
   a.reversing = false;
 //  a.ended = onEnd;
   a.promise = promise;
-
+  a.animateObj = animateObj;
   mAnimations.push_back(a);
+  if (NULL != a.animateObj.getPtr())
+    ((pxAnimate *)a.animateObj.getPtr())->update(prop, &a, pxConstantsAnimation::STATUS_INPROGRESS);
 
   // resolve promise immediately if this is COUNT_FOREVER
   if( count == pxConstantsAnimation::COUNT_FOREVER)
@@ -722,10 +766,15 @@ void pxObject::update(double t)
         if (a.ended)
           a.ended.send(this);
         if (a.promise)
+        {
           a.promise.send("resolve",this);
-
+          if (NULL != a.animateObj.getPtr())
+            ((pxAnimate*)a.animateObj.getPtr())->setStatus(pxConstantsAnimation::STATUS_ENDED);
+        }
         // Erase making sure to push the iterator forward before
         a.cancelled = true;
+        if (NULL != a.animateObj.getPtr())
+          ((pxAnimate *)a.animateObj.getPtr())->update(a.prop, &a, pxConstantsAnimation::STATUS_ENDED);
         it = mAnimations.erase(it);
         continue;
       }
@@ -735,6 +784,8 @@ void pxObject::update(double t)
 
     if (a.cancelled)
     {
+      if (NULL != a.animateObj.getPtr())
+        ((pxAnimate *)a.animateObj.getPtr())->update(a.prop, &a, pxConstantsAnimation::STATUS_CANCELLED);
       it = mAnimations.erase(it);
       continue;
     }
@@ -769,6 +820,8 @@ void pxObject::update(double t)
       if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
         cancelAnimation(a.prop, false, false, true);
+        if (NULL != a.animateObj.getPtr())
+          ((pxAnimate *)a.animateObj.getPtr())->update(a.prop, &a, pxConstantsAnimation::STATUS_ENDED);
         it = mAnimations.erase(it);
         continue;
       }
@@ -780,6 +833,8 @@ void pxObject::update(double t)
     mCancelInSet = false;
     set(a.prop, v);
     mCancelInSet = true;
+    if (NULL != a.animateObj.getPtr())
+      ((pxAnimate *)a.animateObj.getPtr())->update(a.prop, &a, pxConstantsAnimation::STATUS_INPROGRESS);
     ++it;
   }
 
@@ -1354,6 +1409,7 @@ rtDefineMethod(pxObject, releaseResources);
 rtDefineMethod(pxObject, animateToF2);
 #endif
 rtDefineMethod(pxObject, animateToP2);
+rtDefineMethod(pxObject, animateToObj);
 rtDefineMethod(pxObject, addListener);
 rtDefineMethod(pxObject, delListener);
 //rtDefineProperty(pxObject, emit);
@@ -2799,4 +2855,3 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
   }
   return RT_FAIL;
 }
-

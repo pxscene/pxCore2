@@ -57,7 +57,7 @@
 #include "pxContextFramebuffer.h"
 
 #include "pxArchive.h"
-
+#include "pxAnimate.h"
 #include "testView.h"
 
 #ifdef ENABLE_RT_NODE
@@ -123,6 +123,7 @@ struct animation
   bool reversing;
   rtFunctionRef ended;
   rtObjectRef promise;
+  rtObjectRef animateObj;
 };
 
 struct pxPoint2f 
@@ -181,6 +182,8 @@ public:
   rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
                         uint32_t, uint32_t, int32_t, rtObjectRef);
 
+  rtMethod5ArgAndReturn("animate", animateToObj, rtObjectRef, double,
+                        uint32_t, uint32_t, int32_t, rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
   rtMethodNoArgAndNoReturn("dispose",releaseResources);
@@ -397,9 +400,13 @@ public:
                       uint32_t interp, uint32_t animationType,
                       int32_t count, rtObjectRef& promise);
 
+  rtError animateToObj(rtObjectRef props, double duration,
+                      uint32_t interp, uint32_t animationType,
+                      int32_t count, rtObjectRef& promise);
+
   void animateToInternal(const char* prop, double to, double duration,
                  pxInterp interp, pxConstantsAnimation::animationOptions,
-                 int32_t count, rtObjectRef promise);
+                 int32_t count, rtObjectRef promise, rtObjectRef animateObj);
 
   void cancelAnimation(const char* prop, bool fastforward = false, bool rewind = false, bool resolve = false);
 
