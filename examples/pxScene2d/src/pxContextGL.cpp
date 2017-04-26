@@ -1062,6 +1062,7 @@ private:
 }; // CLASS - pxTextureAlpha
 
 //====================================================================================================================================================================================
+// store shader and program details
 struct glShaderProgDetails
 {
   GLuint program;
