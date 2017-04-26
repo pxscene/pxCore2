@@ -28,7 +28,7 @@
 
 
 ## package setup.exe
--  Download 32 bit version of these libs [VSC++2015 SP3](https://www.microsoft.com/en-us/download/details.aspx?id=53840), [VSC++2010Sp1](https://www.microsoft.com/en-us/download/details.aspx?id=26999) and put in folder `pxCore\pxCore.vsbuild\pxScene2d`.
+-  Download 32 bit version of [VSC++2017](https://go.microsoft.com/fwlink/?LinkId=746571), and put in folder `pxCore\pxCore.vsbuild\pxScene2d`.
 -  use inno setup Compiler open `pxCore\pxCore.vsbuild\pxScene2d\make_package.iss`
 -  modify `Files` section,  `Source` to your exe path.
 -  use `build->Compile` , after that , you can find `setup.exe` at `pxCore\pxCore.vsbuild\pxScene2d\Output` ,you can double click to install pxscene
