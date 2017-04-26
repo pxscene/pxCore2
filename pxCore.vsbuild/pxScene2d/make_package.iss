@@ -14,7 +14,7 @@ AppSupportURL=http://www.example.com/
 AppUpdatesURL=http://www.example.com/
 DefaultDirName={pf}\pxScene
 DisableProgramGroupPage=yes
-OutputBaseFilename=setup
+OutputBaseFilename=pxSetup
 Compression=lzma
 SolidCompression=yes  
 
@@ -25,20 +25,16 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; Visual C++ 2010 SP1 Redist(x86) installer
-Source: "C:\wk\pxCore\pxCore.vsbuild\pxScene2d\vcredist_x86.exe"; DestDir: {tmp}; Flags: deleteafterinstall
 ; Visual C++ 2015 SP3 Redist(x86)installer
-Source: "C:\wk\pxCore\pxCore.vsbuild\pxScene2d\vc_redist.x86.exe"; DestDir: {tmp}; Flags: deleteafterinstall
-Source: "C:\wk\pxCore\pxCore.vsbuild\pxScene2d\exe\pxScene.exe"; DestDir: "{app}"; Flags: ignoreversion;
-Source: "C:\wk\pxCore\pxCore.vsbuild\pxScene2d\exe\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "vc_redist.x86.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+Source: "exe\pxScene.exe"; DestDir: "{app}"; Flags: ignoreversion;
+Source: "exe\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Run]
 ; the conditional installation Check
-; install  Visual C++ 2010 SP1 Redist(x86) if not exist
-Filename: "{tmp}\vcredist_x86.exe"; Parameters: "/q /norestart"; StatusMsg: "Installing Microsoft Visual C++ 2010 SP1 Runtime ..."; Check: VC2010SP1RedistNeedsInstall
-; install  Visual C++ 2015 SP3 Redist(x86) if not exist
-Filename: "{tmp}\vc_redist.x86.exe"; Parameters: "/q /norestart"; StatusMsg: "Installing Microsoft Visual C++ 2015 SP3 Runtime ..."; Check: VC2015SP3RedistNeedsInstall
+; install  Visual C++ 2017 Redist(x86) if not exist
+Filename: "{tmp}\vc_redist.x86.exe"; Parameters: "/q /norestart"; StatusMsg: "Installing Microsoft Visual C++ 2017 Runtime ..."; Check: VC2017RedistNeedsInstall
 
 [Code]
 #IFDEF UNICODE
@@ -55,11 +51,8 @@ const
   INSTALLSTATE_ABSENT = 2;       { The product is installed for a different user. }
   INSTALLSTATE_DEFAULT = 5;      { The product is installed for the current user. }
 
-  {Visual C++ 2010 SP1 Redist(x86) 10.0.40219} 
-  VC_2010_SP1_REDIST_X86 = '{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}';
- 
-  {Visual C++ 2015 SP3 Redist(x86) 14.0.24215}
-  VC_2015_SP3_REDIST_X86 = '{BBF2AC74-720C-3CB3-8291-5E34039232FA}';
+  {Visual C++ 2017 Redist(x86) 14.10.25017}
+  VC_2017_REDIST_X86 = '{582EA838-9199-3518-A05C-DB09462F68EC}';
 
 function MsiQueryProductState(szProduct: string): INSTALLSTATE; 
   external 'MsiQueryProductState{#AW}@msi.dll stdcall';
@@ -69,14 +62,9 @@ begin
   Result := not (MsiQueryProductState(ProductID) = INSTALLSTATE_DEFAULT);
 end;
 
-function VC2010SP1RedistNeedsInstall: Boolean;
+function VC2017RedistNeedsInstall: Boolean;
 begin
-  Result := VCVersionInstalled(VC_2010_SP1_REDIST_X86);
-end;
-
-function VC2015SP3RedistNeedsInstall: Boolean;
-begin
-  Result := VCVersionInstalled(VC_2015_SP3_REDIST_X86);
+  Result := VCVersionInstalled(VC_2017_REDIST_X86);
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
