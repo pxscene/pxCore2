@@ -168,6 +168,7 @@ protected:
   {
     if (mClosed)
       return;
+    pxWindow::close();
     mClosed = true;
     rtLogInfo(__FUNCTION__);
     ENTERSCENELOCK();
