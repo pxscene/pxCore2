@@ -30,7 +30,7 @@ cp macstuff/Info.plist $bundle/Contents
 
 # Copy RESOURCES to Bundle...
 #
-cp -a images $bundleRes/images
+cp -a browser $bundleRes
 cp FreeSans.ttf $bundleRes
 cp testRunner_memcheck.js $bundleRes
 
@@ -49,6 +49,8 @@ cp macstuff/EngineRunner $bundleBin
 ./jsMin.sh init.js $bundleRes/init.js
 ./jsMin.sh shell.js $bundleRes/shell.js
 ./jsMin.sh browser.js $bundleRes/browser.js
+./jsMin.sh browser/editbox.js $bundleRes/browser/editbox.js
+#./jsMinFolder.sh browser $bundleRes/browser
 
 cp -a node_modules $bundleRes/node_modules
 
