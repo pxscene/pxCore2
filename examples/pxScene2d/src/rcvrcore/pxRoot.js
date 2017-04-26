@@ -87,7 +87,7 @@ pxRoot.prototype.initialize = function(x, y, width, height) {
         this.childScene.url = this.originalUrl;
         break;
       case VirtualKeyCode.ACCELERATOR_FPS:
-        this.showFpsView(this.fpsBg === null || this.fpsBg.a==0);
+        this.showFpsView(this.fpsBg === null || this.fpsBg.a===0);
         break;
       case VirtualKeyCode.ACCELERATOR_SCREENSHOT:
         // This returns a data URI string with the image data
@@ -102,6 +102,7 @@ pxRoot.prototype.initialize = function(x, y, width, height) {
           else
             console.log("Created screenshot.png");
         });
+        break;
       default:
         return;
     }
@@ -140,7 +141,7 @@ pxRoot.prototype.initialize = function(x, y, width, height) {
       self.createNewAppContext({sceneContainer:container, scene:innerscene, packageUrl:url, rpcController:self.rpcController});
 
     }, 10);
-  }
+  };
 
 
   this.rootScene.on("onResize", function(e) {
@@ -168,12 +169,12 @@ pxRoot.prototype.showFpsView = function(show) {
         this.fpsBg.h = fpsCounter.h;
       }
     }.bind(this));
-  } else if( show == true ) {
+  } else if( show === true ) {
     this.fpsBg.a = 1.0;
   } else {
     this.fpsBg.a = 0;
   }
-}
+};
 
 pxRoot.prototype.createNewAppContext = function(params) {
   log.message(2, "Create New Scene Context: url=" + params.packageUrl);
@@ -186,12 +187,12 @@ pxRoot.prototype.createNewAppContext = function(params) {
     //this.rootScene.setFocus(params.sceneContainer);
     params.sceneContainer.focus=true;
   }
-}
+};
 
 
 function getVirtualKeyCode(keyCode, flags) {
   var vkCode = keyCode;
-  if (typeof flags !== 'undefined ') {
+  if (typeof flags !== undefined) {
     if (flags & 0x10) {
       vkCode += CTRL_CODE;
     }
@@ -205,7 +206,7 @@ function getVirtualKeyCode(keyCode, flags) {
 
 
 pxRoot.prototype.addScene = function(params) {
-  if( this.rootScene == null ) {
+  if( this.rootScene === null ) {
     console.error("Root scene has not been created.  Has PxRoot been initialized?");
     return null;
   }
@@ -226,11 +227,11 @@ pxRoot.prototype.addScene = function(params) {
 
 pxRoot.prototype.setOriginalUrl = function(origUrl) {
   this.originalUrl = origUrl;
-}
+};
 
 pxRoot.prototype.setUrl = function(url) {
   this.childScene.url = url;
-}
+};
 
 module.exports = function(x, y, width, height) {
   pxroot = new pxRoot();

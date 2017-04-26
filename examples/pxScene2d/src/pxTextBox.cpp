@@ -87,17 +87,25 @@ void pxTextBox::resourceReady(rtString readyResolution)
 
 float pxTextBox::getFBOWidth()
 {
-  if( !clip() && mTruncation == pxConstantsTruncation::NONE && !mWordWrap)
-     return noClipW;
-  else
-    return mw;
+  if( !clip() && mTruncation == pxConstantsTruncation::NONE && !mWordWrap) {
+     if( noClipW > MAX_TEXTURE_WIDTH) rtLogWarn("Text width is larger than maximum texture allowed: %lf.  Maximum texture size of %d will be used.",noClipW, MAX_TEXTURE_WIDTH);
+     return noClipW > MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:noClipW;
+  }
+  else 
+  {
+    return pxText::getFBOWidth();
+  }
 }
 float pxTextBox::getFBOHeight()
 {
-  if( !clip() && mTruncation == pxConstantsTruncation::NONE)
-     return noClipH;
+  if( !clip() && mTruncation == pxConstantsTruncation::NONE) {
+    if( noClipH > MAX_TEXTURE_HEIGHT) rtLogWarn("Text height is larger than maximum texture allowed: %lf.  Maximum texture size of %d will be used.",noClipH, MAX_TEXTURE_HEIGHT);
+    return noClipH > MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:noClipH;
+  }
   else
-    return mh;
+  {
+    return pxText::getFBOHeight();
+  }
 }
 
 void pxTextBox::onInit()
@@ -212,7 +220,7 @@ void pxTextBox::draw()
     }
     else
     {
-      context.drawImage(0,0,mw,mh,mCached->getTexture(),nullMaskRef, true);
+      context.drawImage(0,0,getFBOWidth(),getFBOHeight(),mCached->getTexture(),nullMaskRef, true);
     }
   }
   else
@@ -659,6 +667,33 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
     noClipW = (noClipW < charW) ? charW:noClipW;
     if( !mWordWrap)
     {
+      // If any one line exceeds texture maximums, warn and calculate text that will fit
+      if( charW > MAX_TEXTURE_WIDTH) 
+      {
+        rtLogWarn("Text width is larger than maximum texture allowed: %lf.  Maximum texture size of %d will be used.",charW, MAX_TEXTURE_WIDTH);
+        float tempWidthRatio = charW/MAX_TEXTURE_WIDTH;
+        uint32_t strLen = strlen(tempStr);
+        uint32_t tempNewLen = (uint32_t) strLen/tempWidthRatio;
+        char* trimmedTempStr = (char *)malloc(tempNewLen+1);
+        memset(trimmedTempStr,'\0',tempNewLen+1);
+
+        uint32_t tmpPos = 0;
+        if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER )
+          tmpPos = (strlen(tempStr)/2)-(tempNewLen/2); // Take middle of tempStr
+        else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT)
+          tmpPos = (strlen(tempStr)-(tempNewLen)); // Take end of tempStr
+
+        strncpy(trimmedTempStr, tempStr+tmpPos,tempNewLen);
+        getFontResource()->measureTextInternal(trimmedTempStr, size, sx, sy, charW, charH);
+        noClipW = charW;
+        // Render with new, trimmed string
+        renderOneLine(trimmedTempStr, tempX, tempY, sx, sy, size, color, lineWidth, render);
+
+        free(trimmedTempStr);   
+        return;
+      }   
+
+
       if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER )
       {
         if( charW < noClipW) {
@@ -831,7 +866,12 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
             setMeasurementBounds(false, (xPos+width) > mw? mw:xPos+width, charH);
           }
         }
-        setLineMeasurements(false, (xPos+width) > mw? mw:xPos+width, tempY);
+        if( !clip())
+          setLineMeasurements(false, width > mw? mw:width, tempY);
+        else {
+          float tmpX = xPos<mx?mx:xPos;
+          setLineMeasurements(false, (tmpX+width) > mw? mw:tmpX+width, tempY);
+        }
       }
     }
     else

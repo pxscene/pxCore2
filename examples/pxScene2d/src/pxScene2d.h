@@ -170,7 +170,7 @@ public:
   rtReadOnlyProperty(ready, ready, rtObjectRef);
 
   rtReadOnlyProperty(numChildren, numChildren, int32_t);
-  rtMethod1ArgAndReturn("getChild", getChild, int32_t, rtObjectRef);
+  rtMethod1ArgAndReturn("getChild", getChild, uint32_t, rtObjectRef);
   rtReadOnlyProperty(children, children, rtObjectRef);
 
   rtMethodNoArgAndNoReturn("remove", remove);
@@ -236,8 +236,13 @@ public:
 
   virtual rtError Set(const char* name, const rtValue* value);
 
-  rtError getChild(int32_t i, rtObjectRef& r) const 
+  rtError getChild(uint32_t i, rtObjectRef& r) const
   {
+    if(i >= mChildren.size())
+    {
+      return RT_ERROR_INVALID_ARG;
+    }
+    
     r = mChildren[i];
     return RT_OK;
   }
@@ -481,7 +486,7 @@ public:
     {
 #if 1
       // translate based on xy rotate/scale based on cx, cy
-      m.translate((int)mx+(int)mcx, (int)my+(int)mcy);
+      m.translate(mx+mcx, my+mcy);
       if (mr) {
         m.rotateInDegrees(mr
 #ifdef ANIMATION_ROTATE_XYZ
@@ -610,6 +615,11 @@ public:
   
   static pxObject* getObjectById(const char* id, pxObject* from)
   {
+    if(id == NULL || from == NULL)
+    {
+      return NULL; // bad args
+    }
+    
     // TODO fix rtString empty check
     if (from->mId.cString() && !strcmp(id, from->mId.cString()))
       return from;
@@ -731,6 +741,7 @@ protected:
   std::vector<animation> mAnimations;  
   pxContextFramebufferRef mDrawableSnapshotForMask;
   pxContextFramebufferRef mMaskSnapshot;
+  bool mIsDisposed;
 
  private:
   rtError _pxObject(voidPtr& v) const {

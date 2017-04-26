@@ -55,6 +55,9 @@ using namespace std;
 #define PX_SCENE_VERSION dev
 #endif
 
+#ifdef HAS_LINUX_BREAKPAD
+#include "client/linux/handler/exception_handler.h"
+#endif
 
 #ifndef RUNINMAIN
 class AsyncScriptInfo;
@@ -74,20 +77,33 @@ char** g_origArgv = NULL;
 #endif
 bool gDumpMemUsage = false;
 extern int pxObjectCount;
+#ifdef HAS_LINUX_BREAKPAD
+static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
+void* context, bool succeeded) {
+  return succeeded;
+}
+#endif
+
+#ifdef ENABLE_CODE_COVERAGE
+extern "C" void __gcov_flush();
+#endif
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
 public:
-  sceneWindow(): mWidth(-1),mHeight(-1) {}
-  virtual ~sceneWindow() {}
+  sceneWindow(): mWidth(-1),mHeight(-1),mClosed(false) {}
+  virtual ~sceneWindow()
+  {
+    mView = NULL;
+  }
 
   void init(int x, int y, int w, int h, const char* url = NULL)
   {
     pxWindow::init(x,y,w,h);
-
+    
     char buffer[1024];
 		std::string urlStr(url);
 		if (urlStr.find("http")) {
-			sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(url).cString());
+    sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(url).cString());
 		}
 		else {
 			sprintf(buffer, "shell.js?url=%s",url);
@@ -157,6 +173,9 @@ protected:
 
   virtual void onCloseRequest() 
   {
+    if (mClosed)
+      return;
+    mClosed = true;
     rtLogInfo(__FUNCTION__);
     ENTERSCENELOCK();
     if (mView)
@@ -175,11 +194,25 @@ protected:
 #endif
 ENTERSCENELOCK()
     mView = NULL;
-    eventLoop.exit();
 EXITSCENELOCK()
 #ifndef RUNINMAIN
    script.setNeedsToEnd(true);
 #endif
+  #ifdef ENABLE_DEBUG_MODE
+    free(g_origArgv);
+  #endif
+    script.garbageCollect();
+    if (gDumpMemUsage)
+    {
+      rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+      rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+    }
+    #ifdef ENABLE_CODE_COVERAGE
+    __gcov_flush();
+    #endif
+  ENTERSCENELOCK()
+      eventLoop.exit();
+  EXITSCENELOCK()
   }
 
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)
@@ -269,6 +302,7 @@ EXITSCENELOCK()
   int mWidth;
   int mHeight;
   rtRef<pxIView> mView;
+  bool mClosed;
 };
 sceneWindow win;
 #define xstr(s) str(s)
@@ -282,6 +316,10 @@ void handleTerm(int)
 
 int pxMain(int argc, char* argv[])
 {
+#ifdef HAS_LINUX_BREAKPAD
+  google_breakpad::MinidumpDescriptor descriptor("/tmp");
+  google_breakpad::ExceptionHandler eh(descriptor, NULL, dumpCallback, NULL, true, -1);
+#endif
   signal(SIGTERM, handleTerm);
 #ifndef RUNINMAIN
   rtLogWarn("Setting  __rt_main_thread__ to be %x\n",pthread_self());
@@ -385,7 +423,6 @@ if (s && (strcmp(s,"1") == 0))
   win.setVisibility(true);
   win.setAnimationFPS(60);
 
-
 #ifdef WIN32
   HDC hdc = ::GetDC(win.mWindow);
   HGLRC hrc;
@@ -443,14 +480,5 @@ if (s && (strcmp(s,"1") == 0))
   context.init();
 
   eventLoop.run();
-#ifdef ENABLE_DEBUG_MODE
-  free(g_origArgv);
-#endif
-  script.garbageCollect();
-  if (gDumpMemUsage)
-  {
-    rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
-    rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
-  }
   return 0;
 }

@@ -34,6 +34,7 @@
 #define kFieldNameReplyTo "reply-to"
 #define kEndpointTypeLocal "local.endpoint"
 #define kEndpointTypeRemote "net.endpoint"
+#define kNullObjectId "nil"
 
 #define kMessageTypeInvalidResponse "invalid.response"
 #define kMessageTypeSetByNameRequest "set.byname.request"

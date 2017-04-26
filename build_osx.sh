@@ -18,12 +18,12 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
 echo "***************************** Building pxcore ****" >> $BUILDLOGS
 xcodebuild clean
-xcodebuild -scheme "pxCore Static Library">>$BUILDLOGS 2>&1;
+xcodebuild -scheme "pxCore Static Library" OTHER_CPLUSPLUSFLAGS="-fprofile-arcs -ftest-coverage">>$BUILDLOGS 2>&1;
 checkError $? 0
 else
 echo "***************************** Building pxcore ****"
 xcodebuild clean
-xcodebuild -scheme "pxCore Static Library" 1>>$BUILDLOGS;
+xcodebuild -scheme "pxCore Static Library" OTHER_CPLUSPLUSFLAGS="-fprofile-arcs -ftest-coverage" 1>>$BUILDLOGS;
 checkError $? 1
 fi
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src;
@@ -32,11 +32,11 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
 echo "***************************** Building pxscene app ***" >> $BUILDLOGS
 make clean;
-make -j>>$BUILDLOGS 2>&1
+make -j CODE_COVERAGE=1 >>$BUILDLOGS 2>&1
 checkError $? 0
 else
 echo "***************************** Building pxscene app ***"
 make clean;
-make -j 1>>$BUILDLOGS
+make -j CODE_COVERAGE=1 1>>$BUILDLOGS
 checkError $? 0
 fi

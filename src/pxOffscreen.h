@@ -34,7 +34,7 @@ public:
   pxOffscreen();
   virtual ~pxOffscreen();
 
-  pxOffscreen(const pxOffscreen& o): mCompressedData(NULL), mCompressedDataSize(0)
+  pxOffscreen(const pxOffscreen& o)
   {
     init(o.width(),o.height());
     o.blit(*this);
@@ -58,19 +58,6 @@ public:
   pxError term();
   
   void swizzleTo(rtPixelFmt fmt);
-  
-  pxError compressedData(char*& data, size_t& dataSize);
-  pxError compressedDataWeakReference(char*& data, size_t& dataSize);
-  void setCompressedData(const char* data, const size_t dataSize);
-  pxError freeCompressedData();
-  pxError moveCompressedDataTo(char*& destData, size_t& destDataSize);
-  pxError transferCompressedDataFrom(char*& srcData, size_t& srcDataSize);
-  pxError transferCompressedDataFrom(pxOffscreen& offscreen);
-  
-
-private:
-  char* mCompressedData;
-  size_t mCompressedDataSize;
 
 };
 

@@ -1,4 +1,15 @@
+# This script runs testrunner in  linux and it is used for code coverage
 #!/bin/sh
+cd $TRAVIS_BUILD_DIR
+currentdir="$(pwd)"
+
+
+cd src
+lcov -d obj/ --zerocounters 
+cd ../examples/pxScene2d/src
+lcov -d obj/ --zerocounters 
+
+cd $currentdir
 TESTRUNLOGS=$TRAVIS_BUILD_DIR/logs/run_logs
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js >> $TESTRUNLOGS 2>&1 &
@@ -12,8 +23,9 @@ retVal=$?
 count=$((count+60))
 done
 
-pkill -9 -f pxscene
-pkill -9 -f pxscene.sh
+kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
+sleep 5s;
+pkill -15 -f pxscene.sh
 
 
 

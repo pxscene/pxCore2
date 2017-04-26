@@ -26,23 +26,23 @@ function Scene() {
       //this.w = scene.w;
       //this.h = scene.h;
     }
-  }
+  };
 
   this._setRPCController = function(rpcController) {
     rpcContext._setRPCController(rpcController);
-  }
+  };
 
   this.getRPCContext = function getRPCContext() {
     return rpcContext;
-  }
+  };
 
   this.logDebugMetrics = function() {
     return nativeScene.logDebugMetrics();
-  }
+  };
 
   this.loadArchive = function(u) {
     return nativeScene.loadArchive(u);
-  }
+  };
 
   this.getX = function() { return nativeScene.x; };
   this.getY = function() {
@@ -66,40 +66,40 @@ function Scene() {
     } else {
       return nativeScene.create(params);
     }
-  }
+  };
   
   this.stopPropagation = function() {
     return nativeScene.stopPropagation();
-  }
+  };
   
   this.getFocus = function(element) {
     return nativeScene.getFocus(element);
-  }
+  };
 
   this.on = function(eventType, func) {
     return nativeScene.on(eventType, func);
-  }
+  };
 
   this.defineStyle = function(paramMatchSet, styleParams) {
     var entry = [paramMatchSet,styleParams];
     stylePatterns.push([paramMatchSet,styleParams]);
-  }
+  };
 
   this.clock = function clock() {
     return nativeScene.clock();
-  }
+  };
 
   this.screenshot = function screenshot(type, pngData) {
     return nativeScene.screenshot(type, pngData);
-  }
+  };
     
   this.clipboardGet = function clipboardGet(type) {
       return nativeScene.clipboardGet(type);
-  }
+  };
 
   this.clipboardSet = function clipboardSet(type, clip) {
       return nativeScene.clipboardSet(type, clip);
-  }
+  };
     
   this.setAppContext = function(appContextName, appContext) {
     if( !appContextMap.hasOwnProperty(appContextName) ) {
@@ -108,15 +108,15 @@ function Scene() {
     }
 
     return false;
-  }
+  };
 
   this.getAppContext = function(appContextName) {
     return appContextMap[appContextName];
-  }
+  };
 
   this.addComponentDefinitions = function(appComponentDefinitions) {
     componentDefinitions = appComponentDefinitions;
-  }
+  };
 
   function createComponent(params) {
     if( componentDefinitions === null ) {

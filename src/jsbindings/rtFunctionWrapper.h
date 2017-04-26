@@ -37,8 +37,11 @@ public:
 public:
   static void exportPrototype(v8::Isolate* isolate, v8::Handle<v8::Object> exports);
   static void destroyPrototype();
-
+#ifdef ENABLE_NODE_V_6_9
+  static v8::Handle<v8::Object> createFromFunctionReference(v8::Local<v8::Context>& ctx, v8::Isolate* isolate, const rtFunctionRef& func);
+#else
   static v8::Handle<v8::Object> createFromFunctionReference(v8::Isolate* isolate, const rtFunctionRef& func);
+#endif
 
 private:
   static void create(const v8::FunctionCallbackInfo<v8::Value>& args);

@@ -228,8 +228,15 @@ pxTextureRef pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy)
   // Select a glyph texture better suited for rendering the glyph
   // taking pixelSize and scale into account
   uint32_t pixelSize=(uint32_t)ceil((sx>sy?sx:sy)*mPixelSize);
-  if (pixelSize <= 48)
+  if (pixelSize < 8)
+  {
     pixelSize = (pixelSize + 7) & 0xfffffff8;    // next multiple of 8
+  }
+  else if (pixelSize <= 32)
+  {
+    //pixelSize = (pixelSize + 7) & 0xfffffff8;    // next multiple of 8
+    pixelSize += (pixelSize % 2);
+  }
   else
     pixelSize = npot(pixelSize);  // else next power of two
  
@@ -563,7 +570,7 @@ void pxFontManager::clearAllFonts()
 }
 
 // pxTextMetrics
-rtDefineObject(pxTextMetrics, pxResource);
+rtDefineObject(pxTextMetrics, rtObject);
 rtDefineProperty(pxTextMetrics, height); 
 rtDefineProperty(pxTextMetrics, ascent);
 rtDefineProperty(pxTextMetrics, descent);
@@ -575,6 +582,6 @@ rtDefineObject(pxFont, pxResource);
 rtDefineMethod(pxFont, getFontMetrics);
 rtDefineMethod(pxFont, measureText);
 
-rtDefineObject(pxTextSimpleMeasurements, pxResource);
+rtDefineObject(pxTextSimpleMeasurements, rtObject);
 rtDefineProperty(pxTextSimpleMeasurements, w);
 rtDefineProperty(pxTextSimpleMeasurements, h);

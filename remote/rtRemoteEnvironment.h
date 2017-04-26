@@ -41,8 +41,8 @@ public:
   bool     Initialized;
 
   void registerQueueReadyHandler(rtRemoteQueueReady handler, void* argp);
-  void registerResponseHandler(rtRemoteMessageHandler handler, void* argp, rtRemoteCorrelationKey k);
-  void removeResponseHandler(rtRemoteCorrelationKey k);
+  void registerResponseHandler(rtRemoteMessageHandler handler, void* argp, rtRemoteCorrelationKey const& k);
+  void removeResponseHandler(rtRemoteCorrelationKey const& k);
   void enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt, rtRemoteMessagePtr const& doc);
   rtError processSingleWorkItem(std::chrono::milliseconds timeout, bool wait, rtRemoteCorrelationKey* key);
   rtError waitForResponse(std::chrono::milliseconds timeout, rtRemoteCorrelationKey key);

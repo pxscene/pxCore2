@@ -21,7 +21,9 @@
 #include "rtRemoteStream.h"
 
 
-class rtRemoteClient: public std::enable_shared_from_this<rtRemoteClient>
+class rtRemoteClient
+  : public std::enable_shared_from_this<rtRemoteClient>
+  , public rtRemoteStream::CallbackHandler
 {
 public:
   enum class State
@@ -66,15 +68,10 @@ private:
   rtError sendSet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k);
   rtError sendCall(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k, rtValue& result); 
 
-  static rtError onIncomingMessage_Dispatcher(rtRemoteMessagePtr const& doc, void* argp)
-    { return reinterpret_cast<rtRemoteClient *>(argp)->onIncomingMessage(doc); }
+  // from rtRemoteStream::CallbackHandler
+  virtual rtError onMessage(rtRemoteMessagePtr const& msg);
+  virtual rtError onStateChanged(std::shared_ptr<rtRemoteStream> const& stream, rtRemoteStream::State state);
 
-  static rtError onStreamStateChanged_Dispatcher(std::shared_ptr<rtRemoteStream> const& stream,
-      rtRemoteStream::State state, void* argp)
-    { return reinterpret_cast<rtRemoteClient *>(argp)->onStreamStateChanged(stream, state); }
-
-  rtError onIncomingMessage(rtRemoteMessagePtr const& msg);
-  rtError onStreamStateChanged(std::shared_ptr<rtRemoteStream> const& stream, rtRemoteStream::State state);
   rtError connectRpcEndpoint();
   rtError sendKeepAlive();
 
