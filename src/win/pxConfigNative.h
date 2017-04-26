@@ -7,6 +7,7 @@
 
 #define PXCALL __stdcall
 #define PX_LITTLEENDIAN_PIXELS
+#define PX_LITTLEENDIAN_RGBA_PIXELS
 
 #include "win/pxBufferNative.h"
 #include "win/pxOffscreenNative.h"

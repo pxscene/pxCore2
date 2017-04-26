@@ -35,11 +35,14 @@ int CALLBACK WinMain(
 #ifdef UNDER_CE
     LPWSTR lpCmdLine,
 #else
+
     LPSTR lpCmdLine,
 #endif
   int       nCmdShow)
 {
-	pxMain();
+	extern int __argc;          /* count of cmd line args */
+	extern char ** __argv;      /* pointer to table of cmd line args */
+	pxMain(__argc,__argv);
 	return 0;
 }
 
@@ -50,6 +53,11 @@ int wmain(int argc, wchar_t** argv)
 int main(int argc, char** argv)
 #endif
 {
-    pxMain();
-    return 0;
+	for (int i = 0; i < argc; i++) {
+		if (!strcmp(argv[i], "-hide-console")) {
+			ShowWindow(GetConsoleWindow(), SW_HIDE);
+		}
+	}
+  pxMain(argc,argv);
+  return 0;
 }

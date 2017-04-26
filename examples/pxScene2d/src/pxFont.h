@@ -37,8 +37,12 @@ class pxFont;
 #define defaultPixelSize 16
 #define defaultFont "FreeSans.ttf"
 
-
 class rtFileDownloadRequest;
+
+#if defined WIN32
+#include<inttypes.h>
+typedef uint32_t u_int32_t;
+#endif
 
 struct GlyphCacheEntry
 {
@@ -49,8 +53,6 @@ struct GlyphCacheEntry
   int advancedotx;
   int advancedoty;
   int vertAdvance;
-
-  pxTextureRef mTexture;
 };
 
 
@@ -60,10 +62,11 @@ struct GlyphCacheEntry
  * pxTextMetrics
  * 
  **********************************************************************/
-class pxTextMetrics: public rtObject {
+class pxTextMetrics: public rtObject 
+{
 
 public:
-	pxTextMetrics(){  }
+	pxTextMetrics() {}
 	virtual ~pxTextMetrics() {}
 
 	rtDeclareObject(pxTextMetrics, rtObject);
@@ -106,12 +109,10 @@ public:
  * pxTextMeasurements
  * 
  **********************************************************************/
-class pxTextSimpleMeasurements: public rtObject {
-
+class pxTextSimpleMeasurements: public rtObject 
+{
 public:
-	pxTextSimpleMeasurements() { 
-
-  }
+	pxTextSimpleMeasurements() {}
 	virtual ~pxTextSimpleMeasurements() {}
 
 	rtDeclareObject(pxTextSimpleMeasurements, rtObject);
@@ -127,8 +128,6 @@ public:
   void setH(int32_t v) { mh = v; }  
     
 protected:
- 
-  
   int32_t mw;
   int32_t mh;
 };
@@ -154,7 +153,8 @@ public:
     
   // FT Face related functions
   void setPixelSize(uint32_t s);  
-  const GlyphCacheEntry* getGlyph(uint32_t codePoint);  
+  const GlyphCacheEntry* getGlyph(uint32_t codePoint);
+  pxTextureRef getGlyphTexture(uint32_t codePoint, float sx, float sy);  
   void getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading);
   void getHeight(uint32_t size, float& height);
   void measureText(const char* text, uint32_t size, float& w, float& h);

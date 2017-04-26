@@ -1,3 +1,4 @@
+.DS_Store
 *.app
 /deploy
 *.so*
@@ -18,7 +19,7 @@ examples/pxScene2d/external/libpng-1.6.12/libtool/*
 examples/pxScene2d/external/libpng-1.6.12/libtool
 examples/pxScene2d/external/libpng-1.6.12/arm/*
 
-/examples/pxScene2d/external/freetype-2.5.3/builds/unix/freetype-config
+examples/pxScene2d/external/freetype-2.5.3/builds/unix/freetype-config
 examples/pxScene2d/external/freetype-2.5.3/builds/unix/config.status
 examples/pxScene2d/external/freetype-2.5.3/builds/unix/libtool
 examples/pxScene2d/external/freetype-2.5.3/builds/unix/config.log
@@ -96,3 +97,5 @@ examples/pxScene2d/external/libjpeg-turbo-1.5.1/ltmain.sh
 examples/pxScene2d/external/libjpeg-turbo-1.5.1/md5/Makefile.in
 examples/pxScene2d/external/libjpeg-turbo-1.5.1/missing
 examples/pxScene2d/external/libjpeg-turbo-1.5.1/simd/Makefile.in
+examples/pxScene2d/external/libjpeg-turbo-1.5.1/jconfig.h
+examples/pxScene2d/external/libjpeg-turbo-1.5.1/jconfigint.h

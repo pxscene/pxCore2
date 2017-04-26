@@ -1,6 +1,7 @@
 //"use strict";
 
 var url = require('url');
+var path = require('path');
 var vm = require('vm');
 var Logger = require('rcvrcore/Logger').Logger;
 var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
@@ -56,7 +57,14 @@ AppSceneContext.prototype.loadScene = function() {
       // local file system
       this.defaultBaseUri = ".";
     }
-    fullPath = urlParts.pathname;
+    // fix not working in not same driver
+    if(!urlParts.protocol){
+        fullPath = urlParts.pathname;
+    } else if(urlParts.protocol ==="file:"){
+        // get real file path after file:// and start index of string is zero so use magic number 7 here
+        // for example file://C:\examples\fancy.js will get C:\examples\fancy.js
+        fullPath = fullPath.substring(7);
+    }
     if( fullPath !== null) {
       this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
       //var fileName = this.packageUrl.substring(fullPath.lastIndexOf('/'));
@@ -119,6 +127,8 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
   var _this = this;
 
   var moduleLoader = new SceneModuleLoader();
+  // Fixed scene loading promise rejection
+  var thisMakeReady = this.makeReady;
 
   moduleLoader.loadScenePackage(this.innerscene, {fileUri:packageUri})
     .then(function processScenePackage() {
@@ -151,7 +161,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
 
     })
     .catch(function(err) {
-      this.makeReady(false, {});
+      thisMakeReady(false, {});
       console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=" + err );
     });
 
@@ -245,8 +255,8 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
       var sourceCode = AppSceneContext.wrap(code);
       //var script = new vm.Script(sourceCode, fname);
       //var moduleFunc = script.runInNewContext(newSandbox, {filename:fname, displayErrors:true});
-
-      var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {filename:fname, displayErrors:true});
+      // fix debug under windows issue
+      var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {filename:path.normalize(fname), displayErrors:true});
 
       if (process._debugWaitConnect) {
         // Set breakpoint on module start
@@ -296,9 +306,7 @@ if (false) {
         }).catch( function(err)
         {
           console.error("Main module[" + self.packageUrl + "]" + " load has failed - on failed imports: " + ", err=" + err);
-//          self.container.makeReady(false); // DEPRECATED ?
-
-          this.makeReady(false,{});
+          thisMakeReady(false,{});
         } );
       }
 
