@@ -274,7 +274,17 @@ void rtImageResource::loadResourceFromFile()
 {
   pxOffscreen imageOffscreen;
   rtString status = "resolve";
-  rtError loadImageSuccess = pxLoadImage(mUrl, imageOffscreen);
+  rtData d;
+  rtError loadImageSuccess = rtLoadFile(mUrl, d);
+  if (loadImageSuccess == RT_OK)
+  {
+    loadImageSuccess = pxLoadImage((const char *) d.data(), d.length(), imageOffscreen);
+  }
+  else
+  {
+    loadImageSuccess = RT_RESOURCE_NOT_FOUND;
+    rtLogError("Could not load image file %s.", mUrl.cString());
+  }
   if ( loadImageSuccess != RT_OK)
   {
     rtLogWarn("image load failed"); // TODO: why?
@@ -298,7 +308,7 @@ void rtImageResource::loadResourceFromFile()
   else
   {
     // create offscreen texture for local image
-    mTexture = context.createTexture(imageOffscreen);
+    mTexture = context.createTexture(imageOffscreen, (const char *) d.data(), d.length());
     mLoadStatus.set("statusCode",0);
     // Since this object can be released before we get a async completion
     // We need to maintain this object's lifetime
@@ -331,7 +341,8 @@ bool rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadReques
                       fileDownloadRequest->downloadedDataSize(),
                       imageOffscreen) == RT_OK)
       {
-        mTexture = context.createTexture(imageOffscreen);
+        mTexture = context.createTexture(imageOffscreen, fileDownloadRequest->downloadedData(),
+                                         fileDownloadRequest->downloadedDataSize());
         return true;
       }
       

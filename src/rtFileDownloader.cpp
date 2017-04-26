@@ -506,9 +506,11 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     }
     curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, kCurlTimeoutInSeconds);
     curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
+#if !defined(PX_PLATFORM_GENERIC_DFB) && !defined(PX_PLATFORM_DFB_NON_X11)
     curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPALIVE, 1);
     curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPIDLE, 60);
     curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPINTVL, 30);
+#endif //!PX_PLATFORM_GENERIC_DFB && !PX_PLATFORM_DFB_NON_X11
     
     int downloadHandleExpiresTime = downloadRequest->downloadHandleExpiresTime();
     

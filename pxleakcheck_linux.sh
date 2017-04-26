@@ -1,6 +1,7 @@
 #!/bin/sh
 export PX_DUMP_MEMUSAGE=1
 export ENABLE_VALGRIND=0
+export RT_LOG_LEVEL=info
 PXCHECKLOGS=$TRAVIS_BUILD_DIR/logs/pxcheck_logs
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 ./pxscene.sh testRunner_memcheck.js > $PXCHECKLOGS 2>&1 &

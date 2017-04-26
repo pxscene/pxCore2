@@ -3,6 +3,9 @@
 // pxEventLoopNative.cpp
 
 #include "pxEventLoop.h"
+#include <pxWindow.h>
+#include "pxWindowNative.h"
+#include <unistd.h>
 
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
@@ -155,6 +158,14 @@
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
   // Insert code here to tear down your application
+  pxWindowNative::closeAllWindows();
+  //sleep for few seconds to detect leak
+  char const* s = getenv("ENABLE_MEMLEAK_CHECK");
+  if (s && (strcmp(s,"1") == 0))
+  {
+    NSLog(@"   willTerminate  sleep so, valgrind can take memory report");
+    sleep(30);
+  }
 }
 
 @end

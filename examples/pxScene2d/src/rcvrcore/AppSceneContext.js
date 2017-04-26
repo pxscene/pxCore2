@@ -12,6 +12,11 @@ var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 
 var log = new Logger('AppSceneContext');
+//overriding original timeout and interval functions
+var SetTimeout = setTimeout;
+var ClearTimeout = clearTimeout;
+var SetInterval = setInterval;
+var ClearInterval = clearInterval;
 
 function AppSceneContext(params) { // container, innerscene, packageUrl) {
   //  this.container = params.sceneContainer;
@@ -45,6 +50,9 @@ function AppSceneContext(params) { // container, innerscene, packageUrl) {
   this.topXModule = null;
   this.jarFileMap = {};
   this.sceneWrapper = null;
+  this.timers = [];
+  this.timerIntervals = [];
+
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -75,6 +83,51 @@ AppSceneContext.prototype.loadScene = function() {
 
 if( fullPath !== null)
   this.loadPackage(fullPath);
+
+this.innerscene.on('onClose', function (e) {
+    //clear the timers and intervals on close
+    var ntimers = this.timers.length;
+    for (var i=0; i<ntimers; i++)
+    {
+      clearTimeout(this.timers.pop());
+    }
+    var ntimerIntervals = this.timerIntervals.length;
+    for (var i=0; i<ntimerIntervals; i++)
+    {
+      clearInterval(this.timerIntervals.pop());
+    }
+    if (this.innerscene.api !== undefined)
+    {
+      for(var k in this.innerscene.api) { delete this.innerscene.api[k]; }
+    }
+
+    this.innerscene.api = null;
+    this.innerscene = null;
+    this.sandbox.xmodule = null;
+    this.sandbox.require = null;
+    this.sandbox.sandboxName = null;
+    this.sandbox.runtime = null;
+    this.sandbox.theNamedContext = null;
+    this.sandbox.Buffer = null;
+    this.sandbox.setTimeout = null;
+    this.sandbox.setInterval = null;
+    this.sandbox.clearInterval = null;
+    this.sandbox.importTracking = {};
+    this.sandbox = null;
+    this.scriptMap = null;
+    for(var xmodule in this.xmoduleMap) {
+      this.xmoduleMap[xmodule].freeResources();
+    }
+    this.xmoduleMap = null;
+    this.topXModule = null;
+    this.jarFileMap = null;
+    for(var key in this.scriptMap) {
+      this.scriptMap[key].scriptObject = null;
+      this.scriptMap[key].readyListeners = null;
+    }
+    this.scriptMap = null;
+    this.sceneWrapper = null;
+  }.bind(this));
 
 if (false) {
 if (false) {
@@ -121,7 +174,7 @@ if (false) {
 
   //log.info("loadScene() - ends    on ctx: " + getContextID() );
 
-}
+};
 
 AppSceneContext.prototype.loadPackage = function(packageUri) {
   var _this = this;
@@ -165,7 +218,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
       console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=" + err );
     });
 
-}
+};
 
 AppSceneContext.prototype.getModuleBasePath = function(moduleUri) {
   var questionMarkIndex = moduleUri.lastIndexOf('?');
@@ -180,7 +233,7 @@ AppSceneContext.prototype.getModuleBasePath = function(moduleUri) {
   }
 
   return {baseUri:moduleUri.substring(0, moduleUri.lastIndexOf('/')), isJarFile:false};
-}
+};
 
 function createModule_pxScope(xModule) {
   return {
@@ -236,11 +289,34 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (code, uri, fromJar
         return requireIt(pkg);
 
       },
-      setTimeout: setTimeout,
-      setInterval: setInterval,
-      clearInterval: clearInterval,
+      setTimeout: function (callback, after, arg1, arg2, arg3) {
+        var timerId = SetTimeout(callback, after, arg1, arg2, arg3);
+        this.timers.push(timerId);
+        return timerId;
+      }.bind(this),
+      clearTimeout: function (timer) {
+        var index = this.timers.indexOf(timer);
+        if (index != -1)
+        {
+          this.timers.splice(index,1);
+        }
+        ClearTimeout(timer);
+      }.bind(this),
+      setInterval: function (callback, repeat, arg1, arg2, arg3) {
+        var intervalId = SetInterval(callback, repeat, arg1, arg2, arg3);
+        this.timerIntervals.push(intervalId);
+        return intervalId;
+      }.bind(this),
+      clearInterval: function (timer) {
+        var index = this.timerIntervals.indexOf(timer);
+        if (index != -1)
+        {
+          this.timerIntervals.splice(index,1);
+        }
+        ClearInterval(timer);
+      }.bind(this),
       importTracking: {}
-    } // end sandbox
+    }; // end sandbox
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -333,7 +409,7 @@ if (false) {
     console.error(err);
     // TODO: scene.onError(err); ???
   }
-}
+};
 
 AppSceneContext.prototype.getPackageBaseFilePath = function() {
   var fullPath;
@@ -354,7 +430,7 @@ AppSceneContext.prototype.getPackageBaseFilePath = function() {
   }
 
   return fullPath;
-}
+};
 
 function getPackageBaseFilePath() {
   return this.getPackageBaseFilePath();
@@ -364,7 +440,7 @@ AppSceneContext.prototype.buildFullFilePath = function(filePath) {
   var urlParts = url.parse(filePath, true);
   var fullPath = filePath;
 
-  if( urlParts.hasOwnProperty('protocol') && urlParts['protocol'] != null ) {
+  if( urlParts.hasOwnProperty('protocol') && urlParts['protocol'] !== null ) {
     var protocol = urlParts['protocol'];
 
     if( protocol !== 'undefined' && protocol.length > 0 ) {
@@ -396,7 +472,7 @@ AppSceneContext.prototype.buildFullFilePath = function(filePath) {
   }
 
   return fullPath;
-}
+};
 
 function getFile(filePath) {
   return this.getFile(filePath);
@@ -423,7 +499,7 @@ AppSceneContext.prototype.getModuleFile = function(filePath, xModule) {
     log.message(3, "TJC: getModuleFile("+filePath + "): resolves to " + resolvedModulePath.fileUri);
     return this.getFile(resolvedModulePath.fileUri);
   }
-}
+};
 
 AppSceneContext.prototype.getFile_deprecated = function(filePath) {
   var _this = this;
@@ -437,14 +513,14 @@ AppSceneContext.prototype.getFile_deprecated = function(filePath) {
     });
   }
   return loadFile(fullPath);
-}
+};
 
 AppSceneContext.prototype.getFile = function(filePath) {
   var _this = this;
   log.message(4, "getFile: requestedFile=" + filePath);
 
   return loadFile(filePath);
-}
+};
 
 AppSceneContext.prototype.resolveModulePath = function(filePath, currentXModule) {
   var replacementMatch = currentXModule.findImportReplacementMatch(filePath);
@@ -474,7 +550,7 @@ AppSceneContext.prototype.resolveModulePath = function(filePath, currentXModule)
 
     return {fileUri:fileUri, isJarFile:false};
   }
-}
+};
 
 AppSceneContext.prototype.include = function(filePath, currentXModule) {
   log.message(4, ">>> include(" + filePath + ") for " + currentXModule.name + " <<<");
@@ -536,7 +612,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
 
     var haveFile = _this.isScriptLoaded(fullIncludeUri);
 
-    if (haveFile == false) {
+    if (haveFile === false) {
       if( resolvedModulePath.isJarFile ) {
         var theFileArchive = _this.jarFileMap[resolvedModulePath.fileUri];
         if( theFileArchive.hasFileContents(resolvedModulePath.relativePath) ) {
@@ -595,7 +671,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
     }
   });
 
-}
+};
 
 AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, moduleBasePath, currentXModule, codeBuffer, fromJarFile, onImportComplete, onImportRejected) {
   var _this = this;
@@ -627,7 +703,7 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, m
 
     // Set up a async wait until module indicates it's completly ready
     var modReadyPromise = xModule.moduleReadyPromise;
-    if( modReadyPromise == null ) {
+    if( modReadyPromise === null ) {
       // No use of px.import or it's possible that these exports have already been added
       _this.addScript(filePath, 'ready', xModule.exports);
 
@@ -655,7 +731,7 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, m
 
   }
 
-}
+};
 
 /*
 AppSceneContext.prototype.setFocus = function() {
@@ -671,7 +747,7 @@ AppSceneContext.prototype.onResize = function(resizeEvent) {
   var deltaMillis = (hrTime[0] * 1000 + hrTime[1] / 1000000);
   this.lastHrTime = process.hrtime();
   if( deltaMillis > 300 ) {
-    if( this.resizeTimer != null ) {
+    if( this.resizeTimer !== null ) {
       clearTimeout(this.resizeTimer);
       this.resizeTimer = null;
     }
@@ -685,7 +761,7 @@ AppSceneContext.prototype.onResize = function(resizeEvent) {
 //      this.container.h = lastHeight;
     }.bind(this), 500);
   }
-}
+};
 
 AppSceneContext.prototype.addModuleReadyListener = function(moduleName, callback) {
   if( this.scriptMap.hasOwnProperty(moduleName) ) {
@@ -693,13 +769,13 @@ AppSceneContext.prototype.addModuleReadyListener = function(moduleName, callback
   } else {
     console.trace('AppSceneContext#addModuleReadyListener: no entry in map for module [' + moduleName + ']');
   }
-}
+};
 
 AppSceneContext.prototype.callModuleReadyListeners = function(moduleName, moduleExports) {
   log.message(4, "Call ModuleReadyListeners for module: " + moduleName);
   if( this.scriptMap.hasOwnProperty(moduleName) ) {
     var listeners = this.scriptMap[moduleName].readyListeners;
-    if( listeners != null && listeners.length != 0 ) {
+    if( listeners !== null && listeners.length !== 0 ) {
       for(var k = 0; k < listeners.length; ++k) {
         listeners[k](moduleExports);
       }
@@ -708,11 +784,11 @@ AppSceneContext.prototype.callModuleReadyListeners = function(moduleName, module
   } else {
     console.trace('AppSceneContext#callModuleReadyListeners: no entry in map for module [' + moduleName + ']');
   }
-}
+};
 
 AppSceneContext.prototype.setXModule = function(name, xmod) {
   this.xmoduleMap[name] = xmod;
-}
+};
 
 AppSceneContext.prototype.getXModule = function(name) {
   if( this.xmoduleMap.hasOwnProperty(name) ) {
@@ -720,22 +796,22 @@ AppSceneContext.prototype.getXModule = function(name) {
   }
 
   return 'undefined';
-}
+};
 
 AppSceneContext.prototype.addScript = function(name, status, scriptObject) {
     if( this.scriptMap.hasOwnProperty(name) ) {
     var curData = this.scriptMap[name];
     curData.status = status;
-    if( status == 'ready' && (typeof scriptObject == 'undefined' || scriptObject == null) ) {
+    if( status == 'ready' && (typeof scriptObject == 'undefined' || scriptObject === null) ) {
       console.trace("Whoa: seting Ready state but there is no scriptObject");
     }
-    if( scriptObject != null && scriptObject !== 'undefined' ) {
+    if( scriptObject !== null && scriptObject !== 'undefined' ) {
       curData.scriptObject = scriptObject;
-      log.message(4, "ADDED UPDATED script: " + name + ", status=" + status)
+      log.message(4, "ADDED UPDATED script: " + name + ", status=" + status);
     }
 
-    var oldScriptObject = this.scriptMap[name].scriptObject;;
-    if( oldScriptObject == null && scriptObject != null ) {
+    var oldScriptObject = this.scriptMap[name].scriptObject;
+    if( oldScriptObject === null && scriptObject !== null ) {
       console.trace("Script object changing from null, but isn't being set");
     }
 
@@ -743,9 +819,9 @@ AppSceneContext.prototype.addScript = function(name, status, scriptObject) {
 
   } else {
     this.scriptMap[name] = {status: status, scriptObject: scriptObject, readyListeners:[]};
-    log.message(4, "ADDED NEW script: " + name + ", status=" + status)
+    log.message(4, "ADDED NEW script: " + name + ", status=" + status);
   }
-}
+};
 
 AppSceneContext.prototype.getScriptContents = function(name) {
   if( this.scriptMap.hasOwnProperty(name) ) {
@@ -753,13 +829,13 @@ AppSceneContext.prototype.getScriptContents = function(name) {
   } else {
     return null;
   }
-}
+};
 
 AppSceneContext.prototype.setScriptStatus = function(name, status) {
   if( this.scriptMap.hasOwnProperty(name) ) {
     this.scriptMap[name].status = status;
     var scriptObject = this.scriptMap[name].scriptObject;
-    if( status == 'ready' && (typeof scriptObject == 'undefined' || scriptObject == null) ) {
+    if( status == 'ready' && (typeof scriptObject == 'undefined' || scriptObject === null) ) {
       console.trace("Whoa: seting Ready state but there is no scriptObject");
     }
 
@@ -769,7 +845,7 @@ AppSceneContext.prototype.setScriptStatus = function(name, status) {
     log.message(8, "0) SetScriptStatus " + name + ", status=" + status + ", null");
     this.addScript(name, status, null);
   }
-}
+};
 
 AppSceneContext.prototype.getScriptStatus = function(name) {
   if( this.scriptMap.hasOwnProperty(name) ) {
@@ -777,7 +853,7 @@ AppSceneContext.prototype.getScriptStatus = function(name) {
   }
 
   return 'undefined';
-}
+};
 
 AppSceneContext.prototype.isScriptDownloading = function(name) {
   if( this.scriptMap.hasOwnProperty(name) && this.scriptMap[name].status === "downloading" ) {
@@ -787,7 +863,7 @@ AppSceneContext.prototype.isScriptDownloading = function(name) {
 
   log.message(4, "isScriptDownloading(" + name + ")? NOT DOWNLOADED YET");
   return false;
-}
+};
 
 AppSceneContext.prototype.isScriptLoaded = function(name) {
   if( this.scriptMap.hasOwnProperty(name) && (this.scriptMap[name].status === "loaded" || this.scriptMap[name].status === "ready") ) {
@@ -797,7 +873,7 @@ AppSceneContext.prototype.isScriptLoaded = function(name) {
 
   log.message(4, "isScriptLoaded(" + name + ")? NOT LOADED YET");
   return false;
-}
+};
 
 AppSceneContext.prototype.isScriptReady = function(name) {
   if( this.scriptMap.hasOwnProperty(name) && this.scriptMap[name].status === "ready" ) {
@@ -807,7 +883,7 @@ AppSceneContext.prototype.isScriptReady = function(name) {
 
   log.message(4, "isScriptReady(" + name + ")?  NOT READY YET");
   return false;
-}
+};
 
 function AsyncFileAcquisition(scene) {
   this.scene = scene;
@@ -838,7 +914,7 @@ AsyncFileAcquisition.prototype.acquire = function(uri) {
           log.message(4, "---> ACQUIRED: " + uri);
           resolve(moduleLoader);
           var listeners = self.requestMap[uri].listeners;
-          if( listeners != null && listeners.length != 0 ) {
+          if( listeners !== null && listeners.length !== 0 ) {
             for(var k = 0; k < listeners.length; ++k) {
               listeners[k]('resolve');
             }
@@ -851,7 +927,7 @@ AsyncFileAcquisition.prototype.acquire = function(uri) {
           console.error("AsyncFileAcquisition - Error: could not load file " + uri  + ", error=" + error);
           reject(error);
           var listeners = self.requestMap[uri].listeners;
-          if( listeners != null && listeners.length != 0 ) {
+          if( listeners !== null && listeners.length !== 0 ) {
             for(var k = 0; k < listeners.length; ++k) {
               listeners[k]('reject', error);
             }
@@ -862,7 +938,7 @@ AsyncFileAcquisition.prototype.acquire = function(uri) {
     }
   });
 
-}
+};
 
 AppSceneContext.wrap = function(script) {
   return AppSceneContext.wrapper[0] + script + AppSceneContext.wrapper[1];

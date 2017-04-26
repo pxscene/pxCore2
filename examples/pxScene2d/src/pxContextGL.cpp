@@ -28,6 +28,9 @@
 
 #include "pxContext.h"
 #include "pxUtil.h"
+#include <algorithm>
+#include <ctime>
+#include <cstdlib>
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -125,6 +128,61 @@ extern EGLContext defaultEglContext;
 static int gResW, gResH;
 static pxMatrix4f gMatrix;
 static float gAlpha = 1.0;
+uint32_t gRenderTick = 0;
+std::vector<pxTexture*> textureList;
+
+pxError addToTextureList(pxTexture* texture)
+{
+  textureList.push_back(texture);
+  return PX_OK;
+}
+
+pxError removeFromTextureList(pxTexture* texture)
+{
+  for(std::vector<pxTexture*>::iterator it = textureList.begin(); it != textureList.end(); ++it)
+  {
+    if ((*it) == texture)
+    {
+      textureList.erase(it);
+      return PX_OK;
+    }
+  }
+  return PX_OK;
+}
+
+pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5)
+{
+  rtLogDebug("attempting to eject %" PRId64 " bytes of texture memory with max age %u", bytesNeeded, maxAge);
+#if defined(ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING) && !defined(DISABLE_TEXTURE_EJECTION)
+  int numberEjected = 0;
+  int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+
+  std::random_shuffle(textureList.begin(), textureList.end());
+  for(std::vector<pxTexture*>::iterator it = textureList.begin(); it != textureList.end(); ++it)
+  {
+    pxTexture* texture = (*it);
+    uint32_t lastRenderTickAge = gRenderTick - texture->lastRenderTick();
+    if (lastRenderTickAge >= maxAge)
+    {
+      numberEjected++;
+      texture->unloadTextureData();
+      int64_t currentTextureMemory = context.currentTextureMemoryUsageInBytes();
+      if ((beforeTextureMemoryUsage - currentTextureMemory) > bytesNeeded)
+      {
+        break;
+      }
+    }
+  }
+
+  if (numberEjected > 0)
+  {
+    int64_t afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+    rtLogWarn("%d textures have been ejected and %" PRId64 " bytes of texture memory has been freed",
+        numberEjected, (beforeTextureMemoryUsage - afterTextureMemoryUsage));
+  }
+#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING && !DISABLE_TEXTURE_EJECTION
+  return PX_OK;
+}
 
 // assume premultiplied
 static const char *fSolidShaderText =
@@ -399,94 +457,22 @@ public:
 };// CLASS - pxTextureNone
 
 //====================================================================================================================================================================================
-
 class pxTextureOffscreen;
+typedef rtRef<pxTextureOffscreen> pxTextureOffscreenRef;
 
 struct DecodeImageData
 {
-    DecodeImageData(pxTextureRef t, pxOffscreen* o) : textureOffscreen(t), offscreen(o)
-    {
-    }
-    pxTextureRef textureOffscreen;
-    pxOffscreen* offscreen;
+  DecodeImageData(pxTextureOffscreenRef t) : textureOffscreen(t)
+  {
+  }
+  pxTextureOffscreenRef textureOffscreen;
 
 };
 
-void onDecodeComplete(void* context, void* data)
-{
-  DecodeImageData* imageData = (DecodeImageData*)context;
-  pxOffscreen* decodedOffscreen = (pxOffscreen*)data;
-  if (imageData != NULL && decodedOffscreen != NULL)
-  {
-    pxTextureRef texture = imageData->textureOffscreen;
-    if (texture.getPtr() != NULL)
-    {
-      texture->createTexture(*decodedOffscreen);
-    }
-  }
-
-  if (decodedOffscreen != NULL)
-  {
-    delete decodedOffscreen;
-    decodedOffscreen = NULL;
-    data = NULL;
-  }
-
-  if (imageData != NULL)
-  {
-    delete imageData;
-    imageData = NULL;
-  }
-}
-
-void decodeTextureData(void* data)
-{
-  if (data != NULL)
-  {
-    DecodeImageData* imageData = (DecodeImageData*)data;
-    pxOffscreen* offscreen = imageData->offscreen;
-    if (offscreen != NULL)
-    {
-      char *compressedImageData = NULL;
-      size_t compressedImageDataSize = 0;
-      offscreen->compressedDataWeakReference(compressedImageData, compressedImageDataSize);
-      pxOffscreen *decodedOffscreen = new pxOffscreen();
-      pxLoadImage(compressedImageData, compressedImageDataSize, *decodedOffscreen);
-      gUIThreadQueue.addTask(onDecodeComplete, data, decodedOffscreen);
-    }
-    else
-    {
-      gUIThreadQueue.addTask(onDecodeComplete, data, NULL);
-    }
-  }
-}
-
-void onOffscreenCleanupComplete(void* context, void*)
-{
-  DecodeImageData* imageData = (DecodeImageData*)context;
-  if (imageData != NULL)
-  {
-    delete imageData;
-    imageData = NULL;
-  }
-}
-
-void cleanupOffscreen(void* data)
-{
-  if (data != NULL)
-  {
-    DecodeImageData* imageData = (DecodeImageData*)data;
-    if (data != NULL && imageData->textureOffscreen.getPtr() != NULL)
-    {
-      imageData->textureOffscreen->freeOffscreenData();
-      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
-    }
-    else
-    {
-      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
-    }
-  }
-}
+void onDecodeComplete(void* context, void* data);
+void decodeTextureData(void* data);
+void onOffscreenCleanupComplete(void* context, void*);
+void cleanupOffscreen(void* data);
 
 class pxTextureOffscreen : public pxTexture
 {
@@ -494,21 +480,25 @@ public:
   pxTextureOffscreen() : mOffscreen(), mInitialized(false),
                          mTextureUploaded(false), mTextureDataAvailable(false),
                          mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
-                         mFreeOffscreenDataRequested(false)
+                         mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
+    addToTextureList(this);
   }
 
-  pxTextureOffscreen(pxOffscreen& o) : mOffscreen(), mInitialized(false),
+  pxTextureOffscreen(pxOffscreen& o, const char *compressedData = NULL, size_t compressedDataSize = 0)
+                                     : mOffscreen(), mInitialized(false),
                                        mTextureUploaded(false), mTextureDataAvailable(false),
                                        mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
-                                       mFreeOffscreenDataRequested(false)
+                                       mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
+    setCompressedData(compressedData, compressedDataSize);
     createTexture(o);
+    addToTextureList(this);
   }
 
-  ~pxTextureOffscreen() { deleteTexture(); };
+  ~pxTextureOffscreen() { deleteTexture(); removeFromTextureList(this);};
 
   virtual pxError createTexture(pxOffscreen& o)
   {
@@ -579,11 +569,9 @@ public:
       }
     }
 
-    mOffscreen.transferCompressedDataFrom(o);
     mFreeOffscreenDataRequested = false;
     mOffscreenMutex.unlock();
 
-    mTextureDataAvailable = true;
     mLoadTextureRequested = false;
     mInitialized = true;
 
@@ -596,8 +584,7 @@ public:
 
     unloadTextureData();
 
-    mOffscreen.freeCompressedData();
-    mTextureDataAvailable = false;
+    freeCompressedData();
     mInitialized = false;
     return PX_OK;
   }
@@ -607,7 +594,7 @@ public:
     if (!mLoadTextureRequested && mTextureDataAvailable)
     {
       rtThreadPool *mainThreadPool = rtThreadPool::globalInstance();
-      DecodeImageData *decodeImageData = new DecodeImageData(this, &mOffscreen);
+      DecodeImageData *decodeImageData = new DecodeImageData(this);
       rtThreadTask *task = new rtThreadTask(decodeTextureData, decodeImageData, "");
       mainThreadPool->executeTask(task);
       mLoadTextureRequested = true;
@@ -654,6 +641,7 @@ public:
   {
     if (!mInitialized)
     {
+      loadTextureData();
       return PX_NOTINITIALIZED;
     }
 
@@ -666,10 +654,20 @@ public:
     {
       if (!context.isTextureSpaceAvailable(this))
       {
-        rtLogError("not enough texture memory remaining to create texture");
-        mInitialized = false;
-        freeOffscreenDataInBackground();
-        return PX_FAIL;
+        //attempt to free texture memory
+        int64_t textureMemoryNeeded = context.textureMemoryOverflow(this);
+        context.ejectTextureMemory(textureMemoryNeeded);
+        if (!context.isTextureSpaceAvailable(this))
+        {
+          rtLogError("not enough texture memory remaining to create texture");
+          mInitialized = false;
+          freeOffscreenDataInBackground();
+          return PX_FAIL;
+        }
+        else if (!mInitialized)
+        {
+          return PX_NOTINITIALIZED;
+        }
       }
       glGenTextures(1, &mTextureName);
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
@@ -699,6 +697,7 @@ public:
   {
     if (!mInitialized)
     {
+      loadTextureData();
       return PX_NOTINITIALIZED;
     }
 
@@ -708,10 +707,20 @@ public:
     {
       if (!context.isTextureSpaceAvailable(this))
       {
-        rtLogError("not enough texture memory remaining to create texture");
-        mInitialized = false;
-        freeOffscreenDataInBackground();
-        return PX_FAIL;
+        //attempt to free texture memory
+        int64_t textureMemoryNeeded = context.textureMemoryOverflow(this);
+        context.ejectTextureMemory(textureMemoryNeeded);
+        if (!context.isTextureSpaceAvailable(this))
+        {
+          rtLogError("not enough texture memory remaining to create texture");
+          mInitialized = false;
+          freeOffscreenDataInBackground();
+          return PX_FAIL;
+        }
+        else if (!mInitialized)
+        {
+          return PX_NOTINITIALIZED;
+        }
       }
       glGenTextures(1, &mTextureName);
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
@@ -746,12 +755,9 @@ public:
       return PX_NOTINITIALIZED;
     }
 
-    char* compressedImageData = NULL;
-    size_t compressedImageDataSize = 0;
-    mOffscreen.compressedDataWeakReference(compressedImageData, compressedImageDataSize);
-    if (compressedImageData != NULL)
+    if (mCompressedData != NULL)
     {
-      pxLoadImage(compressedImageData, compressedImageDataSize, o);
+      pxLoadImage(mCompressedData, mCompressedDataSize, o);
     }
 
     return PX_OK;
@@ -759,6 +765,13 @@ public:
 
   virtual int width()  { return mWidth;  }
   virtual int height() { return mHeight; }
+
+  pxError compressedDataWeakReference(char*& data, size_t& dataSize)
+  {
+    data = mCompressedData;
+    dataSize = mCompressedDataSize;
+    return PX_OK;
+  }
 
 private:
 
@@ -769,9 +782,38 @@ private:
     mOffscreenMutex.unlock();
     rtLogDebug("request to free offscreen data");
     rtThreadPool *mainThreadPool = rtThreadPool::globalInstance();
-    DecodeImageData *imageData = new DecodeImageData(this, NULL);
+    DecodeImageData *imageData = new DecodeImageData(this);
     rtThreadTask *task = new rtThreadTask(cleanupOffscreen, imageData, "");
     mainThreadPool->executeTask(task);
+  }
+
+  void setCompressedData(const char* data, const size_t dataSize)
+  {
+    freeCompressedData();
+    if (data == NULL)
+    {
+      mCompressedData = NULL;
+      mCompressedDataSize = 0;
+    }
+    else
+    {
+      mCompressedData = new char[dataSize];
+      mCompressedDataSize = dataSize;
+      memcpy(mCompressedData, data, mCompressedDataSize);
+      mTextureDataAvailable = true;
+    }
+  }
+
+  pxError freeCompressedData()
+  {
+    if (mCompressedData != NULL)
+    {
+      delete [] mCompressedData;
+      mCompressedData = NULL;
+    }
+    mCompressedDataSize = 0;
+    mTextureDataAvailable = false;
+    return PX_OK;
   }
 
   pxOffscreen mOffscreen;
@@ -785,9 +827,85 @@ private:
   int mHeight;
   rtMutex mOffscreenMutex;
   bool mFreeOffscreenDataRequested;
+  char* mCompressedData;
+  size_t mCompressedDataSize;
 
 }; // CLASS - pxTextureOffscreen
 
+void onDecodeComplete(void* context, void* data)
+{
+  DecodeImageData* imageData = (DecodeImageData*)context;
+  pxOffscreen* decodedOffscreen = (pxOffscreen*)data;
+  if (imageData != NULL && decodedOffscreen != NULL)
+  {
+    pxTextureOffscreenRef texture = imageData->textureOffscreen;
+    if (texture.getPtr() != NULL)
+    {
+      texture->createTexture(*decodedOffscreen);
+    }
+  }
+
+  if (decodedOffscreen != NULL)
+  {
+    delete decodedOffscreen;
+    decodedOffscreen = NULL;
+    data = NULL;
+  }
+
+  if (imageData != NULL)
+  {
+    delete imageData;
+    imageData = NULL;
+  }
+}
+
+void decodeTextureData(void* data)
+{
+  if (data != NULL)
+  {
+    DecodeImageData* imageData = (DecodeImageData*)data;
+    char *compressedImageData = NULL;
+    size_t compressedImageDataSize = 0;
+    imageData->textureOffscreen->compressedDataWeakReference(compressedImageData, compressedImageDataSize);
+    if (compressedImageData != NULL)
+    {
+      pxOffscreen *decodedOffscreen = new pxOffscreen();
+      pxLoadImage(compressedImageData, compressedImageDataSize, *decodedOffscreen);
+      gUIThreadQueue.addTask(onDecodeComplete, data, decodedOffscreen);
+    }
+    else
+    {
+      gUIThreadQueue.addTask(onDecodeComplete, data, NULL);
+    }
+  }
+}
+
+void onOffscreenCleanupComplete(void* context, void*)
+{
+  DecodeImageData* imageData = (DecodeImageData*)context;
+  if (imageData != NULL)
+  {
+    delete imageData;
+    imageData = NULL;
+  }
+}
+
+void cleanupOffscreen(void* data)
+{
+  if (data != NULL)
+  {
+    DecodeImageData* imageData = (DecodeImageData*)data;
+    if (data != NULL && imageData->textureOffscreen.getPtr() != NULL)
+    {
+      imageData->textureOffscreen->freeOffscreenData();
+      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+    }
+    else
+    {
+      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+    }
+  }
+}
 
 //====================================================================================================================================================================================
 
@@ -1694,6 +1812,8 @@ void pxContext::init()
   defaultEglContext = eglGetCurrentContext();
   rtLogInfo("current context in init: %d", defaultEglContext);
 #endif //PX_PLATFORM_GENERIC_EGL
+
+  std::srand(unsigned (std::time(0)));
 }
 
 void pxContext::setSize(int w, int h)
@@ -1941,6 +2061,8 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
     return;
   }
 
+  texture->setLastRenderTick(gRenderTick);
+
   drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
 }
 
@@ -1965,6 +2087,13 @@ void pxContext::drawImage(float x, float y, float w, float h,
   if (t.getPtr() == NULL)
   {
     return;
+  }
+
+  t->setLastRenderTick(gRenderTick);
+
+  if (mask.getPtr() != NULL)
+  {
+    mask->setLastRenderTick(gRenderTick);
   }
 
   float black[4] = {0,0,0,1};
@@ -2050,6 +2179,12 @@ pxTextureRef pxContext::createTexture()
 pxTextureRef pxContext::createTexture(pxOffscreen& o)
 {
   pxTextureOffscreen* offscreenTexture = new pxTextureOffscreen(o);
+  return offscreenTexture;
+}
+
+pxTextureRef pxContext::createTexture(pxOffscreen& o, const char *compressedData, size_t compressedDataSize)
+{
+  pxTextureOffscreen* offscreenTexture = new pxTextureOffscreen(o, compressedData, compressedDataSize);
   return offscreenTexture;
 }
 
@@ -2153,6 +2288,7 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
   {
     mCurrentTextureMemorySizeInBytes = 0;
   }
+  //rtLogDebug("the current texture size: %" PRId64 ".", mCurrentTextureMemorySizeInBytes);
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   if (changeInBytes > 0 && mCurrentTextureMemorySizeInBytes > mTextureMemoryLimitInBytes)
   {
@@ -2195,6 +2331,38 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef)
 int64_t pxContext::currentTextureMemoryUsageInBytes()
 {
   return mCurrentTextureMemorySizeInBytes;
+}
+
+int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
+{
+  int64_t textureSize = (texture->width()*texture->height()*4);
+  int64_t availableBytes = mTextureMemoryLimitInBytes - mCurrentTextureMemorySizeInBytes;
+  if (textureSize > availableBytes)
+  {
+    return (textureSize - availableBytes);
+  }
+  return 0;
+}
+
+int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
+{
+  int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+  if (!forceEject)
+  {
+    ejectNotRecentlyUsedTextureMemory(bytesRequested, mEjectTextureAge);
+  }
+  else
+  {
+    ejectNotRecentlyUsedTextureMemory(bytesRequested, 0);
+  }
+  int64_t afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+  return (beforeTextureMemoryUsage-afterTextureMemoryUsage);
+}
+
+pxError pxContext::setEjectTextureAge(uint32_t age)
+{
+  mEjectTextureAge = age;
+  return PX_OK;
 }
 
 pxError pxContext::enableInternalContext(bool enable)

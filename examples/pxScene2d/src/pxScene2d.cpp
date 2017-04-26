@@ -54,6 +54,9 @@
 #include "pxIView.h"
 
 #include "pxClipboard.h"
+#include <rapidjson/document.h>
+#include <rapidjson/filereadstream.h>
+using namespace rapidjson;
 
 using namespace std;
 
@@ -62,6 +65,8 @@ using namespace std;
 
 extern rtThreadQueue gUIThreadQueue;
 uint32_t rtPromise::promiseID = 200;
+
+static int fpsWarningThreshold = 25;
 
 // Debug Statistics
 #ifdef USE_RENDER_STATS
@@ -111,6 +116,80 @@ void stopProfiling()
 }
 #endif //ENABLE_VALGRIND
 int pxObjectCount = 0;
+
+#include <rapidjson/document.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/error/en.h>
+
+// store the mapping between wayland app names and binary paths
+map<string, string> gWaylandAppsMap;
+static bool gWaylandAppsConfigLoaded = false;
+#define DEFAULT_WAYLAND_APP_CONFIG_FILE "./waylandregistry.conf"
+
+void populateWaylandAppsConfig()
+{
+  FILE* fp = NULL;
+  char const* s = getenv("WAYLAND_APPS_CONFIG");
+  if (s)
+  {
+    fp = fopen(s, "rb");
+  }
+  if (NULL == fp)
+  {
+    fp = fopen(DEFAULT_WAYLAND_APP_CONFIG_FILE, "rb");
+    if (NULL == fp)
+    {
+      rtLogInfo("Wayland config read error : [unable to read waylandregistry.conf]\n");
+      return;
+    }
+  }
+  char readBuffer[65536];
+  memset(readBuffer, 0, sizeof(readBuffer));
+  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+  rapidjson::Document doc;
+  rapidjson::ParseResult result = doc.ParseStream(is);
+  if (!result)
+  {
+    rapidjson::ParseErrorCode e = doc.GetParseError();
+    rtLogInfo("Wayland config read error : [JSON parse error while reading waylandregistry.conf: %s (%ld)]\n",rapidjson::GetParseError_En(e), result.Offset());
+    fclose(fp);
+    return;
+  }
+  fclose(fp);
+
+  if (! doc.HasMember("waylandapps"))
+  {
+    rtLogInfo("Wayland config read error : [waylandapps element not found]\n");
+    return;
+  }
+
+  const rapidjson::Value& appList = doc["waylandapps"];
+  for (rapidjson::SizeType i = 0; i < appList.Size(); i++)
+  {
+    if (appList[i].IsObject())
+    {
+      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("binary")) && (appList[i]["binary"].IsString()))
+      {
+        string appName = appList[i]["name"].GetString();
+        string binary = appList[i]["binary"].GetString();
+        if ((appName.length() != 0) && (binary.length() != 0))
+        {
+          gWaylandAppsMap[appName] = binary;
+          rtLogInfo("Mapped wayland app [%s] to path [%s] \n",appName.c_str(),binary.c_str());
+        }
+        else
+        {
+          rtLogInfo("Wayland config read error : [one of the entry not added due to name/binary is empty]\n");
+        }
+      }
+      else
+      {
+        rtLogInfo("Wayland config read error : [one of the entry not added due to name/binary not present]\n");
+      }
+    }
+  }
+}
+
 static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
                                 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
@@ -283,7 +362,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0),
 #ifdef PX_DIRTY_RECTANGLES
     , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
 #endif //PX_DIRTY_RECTANGLES
-    ,mDrawableSnapshotForMask(), mMaskSnapshot()
+    ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false)
   {
     pxObjectCount++;
     mScene = scene;
@@ -332,6 +411,7 @@ void pxObject::createNewPromise()
 void pxObject::dispose()
 {
   //rtLogInfo(__FUNCTION__);
+  mIsDisposed = true;
   vector<animation>::iterator it = mAnimations.begin();
   for(;it != mAnimations.end();it++)
   {
@@ -502,6 +582,11 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t animationType,
                             int32_t count, rtObjectRef promise)
 {
+  if (mIsDisposed)
+  {
+    promise.send("reject",this);
+    return RT_OK;
+  }
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
             (pxConstantsAnimation::animationOptions)animationType, count, promise);
   return RT_OK;
@@ -1313,6 +1398,24 @@ pxScene2d::pxScene2d(bool top)
   rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
   t->mEmit.send("onFocus",e);
 
+  if (mTop)
+  {
+    static bool checkForFpsMinOverride = true;
+    if (checkForFpsMinOverride)
+    {
+      char const* s = getenv("PXSCENE_FPS_WARNING");
+      if (s)
+      {
+        int fpsWarnOverride = atoi(s);
+        if (fpsWarnOverride > 0)
+        {
+          fpsWarningThreshold = fpsWarnOverride;
+        }
+      }
+    }
+    checkForFpsMinOverride = false;
+  }
+
   #ifdef USE_SCENE_POINTER
   mPointerX= 0;
   mPointerY= 0;
@@ -1525,6 +1628,11 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 
   return RT_FAIL;
 #else
+  if (false == gWaylandAppsConfigLoaded)
+  {
+    populateWaylandAppsConfig();
+    gWaylandAppsConfigLoaded = true;
+  }
   rtRef<pxWaylandContainer> c = new pxWaylandContainer(this);
   c->setView(new pxWayland(true));
   o = c.getPtr();
@@ -1675,7 +1783,7 @@ void pxScene2d::onUpdate(double t)
     {
       end2 = pxSeconds();
 
-    double fps = rint((double)frameCount/(end2-start));
+    int fps = (int)rint((double)frameCount/(end2-start));
 
 #ifdef USE_RENDER_STATS
       double   dpf = rint( (double) gDrawCalls    / (double) frameCount ); // e.g.   glDraw*()           - calls per frame
@@ -1699,7 +1807,25 @@ void pxScene2d::onUpdate(double t)
       sigma_draw   = 0;
       sigma_update = 0;
 #else
-    rtLogDebug("%g fps   pxObjects: %d\n", fps, pxObjectCount);
+    static int previousFps = 60;
+    //only log fps if there is a change to avoid log flooding
+    if (previousFps != fps)
+    {
+      if (fps < fpsWarningThreshold && previousFps >= fpsWarningThreshold )
+      {
+        rtLogWarn("pxScene fps: %d  (below warn threshold of %d)", fps, fpsWarningThreshold);
+      }
+      else if (fps < fpsWarningThreshold)
+      {
+        rtLogDebug("pxScene fps: %d", fps);
+      }
+      else if (previousFps < fpsWarningThreshold)
+      {
+        rtLogWarn("pxScene fps: %d (above warn threshold of %d)", fps, fpsWarningThreshold);
+      }
+    }
+    previousFps = fps;
+    rtLogDebug("%d fps   pxObjects: %d\n", fps, pxObjectCount);
 #endif //USE_RENDER_STATS
 
     // TODO FUTURES... might be nice to have "struct" style object's that get copied
@@ -2680,7 +2806,7 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
           v->mApi = args[1].toObject();
         }
 
-        v->mReady.send("resolve", v->mApi);
+        v->mReady.send("resolve", v->mScene);
       }
       else
       {

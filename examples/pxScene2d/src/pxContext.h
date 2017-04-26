@@ -41,6 +41,8 @@
 #define MAX_TEXTURE_WIDTH  2048
 #define MAX_TEXTURE_HEIGHT 2048
 
+#define DEFAULT_EJECT_TEXTURE_AGE 5
+
 #ifndef ENABLE_DFB
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (65 * 1024 * 1024)   // GL
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES (5 * 1024 * 1024)
@@ -54,7 +56,7 @@
 class pxContext {
  public:
 
-  pxContext(): mShowOutlines(false), mCurrentTextureMemorySizeInBytes(0), mTextureMemoryLimitInBytes(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES) {}
+  pxContext(): mShowOutlines(false), mCurrentTextureMemorySizeInBytes(0), mTextureMemoryLimitInBytes(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES), mEjectTextureAge(DEFAULT_EJECT_TEXTURE_AGE) {}
   ~pxContext();
 
   void init();
@@ -89,6 +91,7 @@ class pxContext {
 
   pxTextureRef createTexture(); // default to use before image load is complete
   pxTextureRef createTexture(pxOffscreen& o);
+  pxTextureRef createTexture(pxOffscreen& o, const char *compressedData, size_t compressedDataSize);
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer);
 
   void snapshot(pxOffscreen& o);
@@ -111,12 +114,16 @@ class pxContext {
   void setTextureMemoryLimit(int64_t textureMemoryLimitInBytes);
   bool isTextureSpaceAvailable(pxTextureRef texture);
   int64_t currentTextureMemoryUsageInBytes();
+  int64_t textureMemoryOverflow(pxTextureRef texture);
+  int64_t ejectTextureMemory(int64_t bytesRequested, bool forceEject=false);
+  pxError setEjectTextureAge(uint32_t age);
   pxError enableInternalContext(bool enable);
 
 private:
   bool mShowOutlines;
   int64_t mCurrentTextureMemorySizeInBytes;
   int64_t mTextureMemoryLimitInBytes;
+  uint32_t mEjectTextureAge;
 };
 
 

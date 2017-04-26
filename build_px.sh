@@ -1,9 +1,17 @@
+#This script is changed to accomodate running multiple scripts
 #!/bin/sh
-CCACHE_DISABLE=true sh $1
+export CCACHE_DISABLE=true
+retval=0
+for var in "$@"
+do
+sh $var
 retval=$?
 if [ "$retval" -eq 0 ]
 then
-sh $2
-retval=$?
+echo "$var succeeded !!!"
+else
+echo "$var failed !!!"
+exit $retval;
 fi
+done
 exit $retval;

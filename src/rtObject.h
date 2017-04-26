@@ -662,6 +662,9 @@ private:
 class rtArrayObject: public rtObject 
 {
 public:
+  rtDeclareObject(rtArrayObject, rtObject);
+  rtProperty(length, length, _setLength, uint32_t);
+
   rtArrayObject() {}
   
   void empty();
@@ -671,6 +674,15 @@ public:
   virtual rtError Get(uint32_t i, rtValue* value) const;
   virtual rtError Set(const char* /*name*/, const rtValue* /*value*/);
   virtual rtError Set(uint32_t i, const rtValue* value);
+
+  uint32_t length() const
+    { return static_cast<uint32_t>(mElements.size()); }
+  rtError  length(uint32_t& n) const
+    { n = static_cast<uint32_t>(mElements.size()); return RT_OK; }
+
+private:
+  rtError _setLength(rtValue const& /*v*/)
+    { return RT_ERROR_NOT_IMPLEMENTED; }
 
 private:
   std::vector<rtValue> mElements;

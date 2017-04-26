@@ -212,6 +212,9 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeKeepAliveRequest,
     rtRemoteCallback<rtRemoteMessageHandler>(&rtRemoteServer::onKeepAlive_Dispatch, this)));
+
+  m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeKeepAliveResponse,
+    rtRemoteCallback<rtRemoteMessageHandler>(&rtRemoteServer::onKeepAliveResponse_Dispatch, this)));
 }
 
 rtRemoteServer::~rtRemoteServer()
@@ -449,7 +452,10 @@ rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtRemote
 
   auto itr = m_command_handlers.find(msgType);
   if (itr == m_command_handlers.end())
-    return RT_OK;
+  {
+    rtLogWarn("no command handler for:%s", msgType);
+    return RT_ERROR_PROTOCOL_ERROR;
+  }
 
   rtRemoteCallback<rtRemoteMessageHandler> handler = itr->second;
   if (handler.Func != nullptr)
@@ -796,6 +802,7 @@ rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
     if (err == RT_OK)
     {
       char const* name = rtMessage_GetPropertyName(*doc);
+
       if (name)
       {
         err = obj->Set(name, &value);
@@ -923,6 +930,12 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtRemoteMes
   res->AddMember(kFieldNameCorrelationKey, key.toString(), res->GetAllocator());
   res->AddMember(kFieldNameMessageType, kMessageTypeKeepAliveResponse, res->GetAllocator());
   return client->send(res);
+}
+
+rtError
+rtRemoteServer::onKeepAliveResponse(std::shared_ptr<rtRemoteClient>& /*client*/, rtRemoteMessagePtr const& /*req*/)
+{
+    return RT_OK;
 }
 
 rtError

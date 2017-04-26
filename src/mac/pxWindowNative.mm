@@ -2,9 +2,11 @@
 // Portable Framebuffer and Windowing Library
 // pwWindowNative.cpp
 
+#include <iostream>
+
 #include "pxWindow.h"
-#include "pxWindowNative.h"
 #include "pxKeycodes.h"
+#include "pxWindowNative.h"
 #include "../pxWindowUtil.h"
 
 #import <Cocoa/Cocoa.h>
@@ -31,6 +33,32 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<pxWindowNative*> pxWindowNative::sWindowVector;
+void pxWindowNative::registerWindow(pxWindowNative* win)
+{
+  pxWindowNative::sWindowVector.push_back(win);
+}
+
+void pxWindowNative::unregisterWindow(pxWindowNative* win)
+{
+  std::vector<pxWindowNative*>::iterator i = std::find(pxWindowNative::sWindowVector.begin(), pxWindowNative::sWindowVector.end(), win);
+  if (i != pxWindowNative::sWindowVector.end())
+    pxWindowNative::sWindowVector.erase(i);
+}
+
+void pxWindowNative::closeAllWindows()
+{
+  for (int window=0; window<pxWindowNative::sWindowVector.size(); window++)
+  {
+    pxWindowNative::_helper_onCloseRequest(pxWindowNative::sWindowVector[window]);
+  }
+  pxWindowNative::sWindowVector.clear();
+}
+
+pxWindowNative::~pxWindowNative()
+{
+  unregisterWindow(this);
+}
 
 @interface WinDelegate : NSObject <NSWindowDelegate>
 @end
@@ -42,9 +70,55 @@
 
 -(id)initWithPXWindow:(pxWindowNative*)window
 {
-  self = [super init];
-  mWindow = window;
-  return self;
+  if(self = [super init])
+  {
+    mWindow = window;
+
+    // --------------------------------------------------------------------------------------------------------------------
+    // This makes relative paths work in C++ in Xcode by changing directory to the Resources folder inside the App Bundle
+
+    CFBundleRef mainBundle = CFBundleGetMainBundle();
+    CFURLRef  resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
+    
+    char resourcesBundlePath[PATH_MAX];
+    if (!CFURLGetFileSystemRepresentation(resourcesURL, TRUE, (UInt8 *)resourcesBundlePath, PATH_MAX))
+    {
+        // error!
+        NSLog(@"ERROR: CFURLGetFileSystemRepresentation() - failed !");
+    }
+    CFRelease(resourcesURL);
+
+    //
+    // Xcode DEBUG builds package the App Bundle a little differently.
+    //
+    NSString *init_js = [NSString stringWithFormat:@"%s/init.js", resourcesBundlePath];
+    
+    BOOL isXCodeBuild = [ [NSFileManager defaultManager] fileExistsAtPath: init_js isDirectory: nil];
+    
+    if(isXCodeBuild)
+    {
+      chdir(resourcesBundlePath); 
+
+      char *value = resourcesBundlePath;
+
+      char *key = (char *) "NODE_PATH";
+      char *val = (char *) getenv(key); // existing
+
+      NSLog(@"NODE_PATH:  [ %s ]", val);
+    
+      // Set NODE_PATH env
+      int overwrite = 1;
+      setenv(key, value, overwrite);
+      
+      NSLog(@"NODE_PATH:  [ %s ]", val);
+    }
+  
+    // --------------------------------------------------------------------------------------------------------------------
+    
+    return self;
+  }
+  
+  return nil;
 }
 
 - (void)windowDidResize: (NSNotification*)notification
@@ -954,7 +1028,7 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
 pxError pxWindow::init(int left, int top, int width, int height)
 {
-  
+  pxWindowNative::registerWindow(this);
   NSPoint pos;
     
   NSRect  frame = [[NSScreen mainScreen] frame];
@@ -971,7 +1045,7 @@ pxError pxWindow::init(int left, int top, int width, int height)
   WinDelegate* delegate = [[WinDelegate alloc] initWithPXWindow:this];
   [window setDelegate:delegate];
    //[delegate release];  //<< TODO: Crashes if menus used.  Why ?
-  
+  mDelegate = (void*)delegate;
   MyView* view = [[MyView alloc] initWithPXWindow:this];
   
   [window setContentView: view];
@@ -993,8 +1067,11 @@ pxError pxWindow::init(int left, int top, int width, int height)
 pxError pxWindow::term()
 {
   NSWindow* window = (NSWindow*)mWindow;
+  WinDelegate* delegate = (WinDelegate*)mDelegate;
+  [window setDelegate:nil];
+  [delegate release];
+  mDelegate = nil;
   [window close];
-  
   return PX_OK;
 }
 
