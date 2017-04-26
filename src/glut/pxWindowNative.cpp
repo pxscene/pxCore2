@@ -560,7 +560,6 @@ bool exitFlag = false;
 
 pxWindowNative::~pxWindowNative()
 {
-  cleanupGlutWindow();
 }
 
 void pxWindowNative::createGlutWindow(int left, int top, int width, int height)
@@ -571,7 +570,6 @@ void pxWindowNative::createGlutWindow(int left, int top, int width, int height)
   glutInitWindowSize (width, height);
 
   mGlutWindowId = glutCreateWindow ("pxWindow");
-
   #ifndef __APPLE__
   glutSetOption(GLUT_RENDERING_CONTEXT ,GLUT_USE_CURRENT_CONTEXT );
   #endif
@@ -642,7 +640,7 @@ pxError pxWindow::init(int left, int top, int width, int height)
 
 pxError pxWindow::term()
 {
-  cleanupGlutWindow();
+  unregisterWindow((pxWindowNative*)this);
   return PX_OK;
 }
 

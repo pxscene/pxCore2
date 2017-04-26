@@ -29,7 +29,7 @@ class pxWindow: public pxWindowNative
 {
 public:
   pxWindow() {}
-  virtual ~pxWindow() {term();}
+  virtual ~pxWindow() {}
   
   // Windows are always created hidden
   // use setVisibility to show
