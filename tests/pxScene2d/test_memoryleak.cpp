@@ -48,7 +48,9 @@ class pxSceneContainerLeakTest : public testing::Test
       sceneContainer->remove();
       script.garbageCollect();
       pxSleepMS(3000);
-      EXPECT_TRUE (sceneContainer->mRefCount == 11);
+      printf("Scene container ref count is [%d] \n",sceneContainer->mRefCount);
+      fflush(stdout);
+      EXPECT_TRUE (sceneContainer->mRefCount == 0);
       delete mView;
     }
     
