@@ -1039,6 +1039,53 @@ function lookupAndConnect(self, options) {
   });
 }
 
+exports.lookupAllHost = function lookupAllHost(options, cb) {
+  const dns = require('dns');
+  var host = options.host || 'localhost';
+  var port = options.port;
+
+  if (typeof port !== 'undefined') {
+    if (typeof port !== 'number' && typeof port !== 'string')
+      throw new TypeError('"port" option should be a number or string: ' +
+                          port);
+    if (!isLegalPort(port))
+      throw new RangeError('"port" option should be >= 0 and < 65536: ' + port);
+  }
+  port |= 0;
+
+  // If host is an IP, skip performing a lookup
+  var addressType = exports.isIP(host);
+  if (addressType) {
+    return;
+  }
+
+  if (options.lookup && typeof options.lookup !== 'function')
+    throw new TypeError('"lookup" option should be a function');
+
+  var dnsopts = {
+    family: options.family,
+    hints: options.hints || 0
+  };
+
+  if (dnsopts.family !== 4 && dnsopts.family !== 6 && dnsopts.hints === 0) {
+    dnsopts.hints = dns.ADDRCONFIG;
+  }
+
+  dnsopts.all = true;
+  debug('connect: find host ' + host);
+  debug('connect: dns options', dnsopts);
+  var lookup = options.lookup || dns.lookup;
+  lookup(host, dnsopts, function(err, addresses) {
+    if (err) {
+      err.host = options.host;
+      err.port = options.port;
+      err.message = err.message + ' ' + options.host + ':' + options.port;
+      cb(null);
+    } else {
+      cb(addresses);
+    }
+  });
+}
 
 function connectErrorNT(self, err) {
   self.emit('error', err);
