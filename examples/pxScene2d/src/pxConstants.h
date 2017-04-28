@@ -60,6 +60,13 @@ public:
     COUNT_FOREVER = -1
   };
 
+  enum animationStatus {
+    STATUS_IDLE = 0,
+    STATUS_INPROGRESS,
+    STATUS_CANCELLED,
+    STATUS_ENDED
+  };
+
   rtDeclareObject(pxConstantsAnimation, rtObject);
   
   rtConstantProperty(TWEEN_LINEAR, TWEEN_LINEAR, uint32_t);
@@ -81,6 +88,11 @@ public:
   rtConstantProperty(OPTION_FASTFORWARD, OPTION_FASTFORWARD, uint32_t);
   rtConstantProperty(OPTION_REWIND, OPTION_REWIND, uint32_t);
   rtConstantProperty(COUNT_FOREVER, COUNT_FOREVER, int32_t);
+
+  rtConstantProperty(STATUS_IDLE, STATUS_IDLE, uint32_t);
+  rtConstantProperty(STATUS_INPROGRESS, STATUS_INPROGRESS, uint32_t);
+  rtConstantProperty(STATUS_CANCELLED, STATUS_CANCELLED, uint32_t);
+  rtConstantProperty(STATUS_ENDED, STATUS_ENDED, uint32_t);
 
   rtReadOnlyProperty(interpolators, interpolators, rtObjectRef);
   

@@ -68,6 +68,10 @@ rtDefineProperty(pxConstantsAnimation, OPTION_FASTFORWARD);
 rtDefineProperty(pxConstantsAnimation, OPTION_REWIND);
 rtDefineProperty(pxConstantsAnimation, COUNT_FOREVER);
 rtDefineProperty(pxConstantsAnimation, interpolators);
+rtDefineProperty(pxConstantsAnimation, STATUS_IDLE);
+rtDefineProperty(pxConstantsAnimation, STATUS_INPROGRESS);
+rtDefineProperty(pxConstantsAnimation, STATUS_CANCELLED);
+rtDefineProperty(pxConstantsAnimation, STATUS_ENDED);
 // Constants for Stretch
 rtDefineObject(pxConstantsStretch, rtObject);
 rtDefineProperty(pxConstantsStretch,NONE);
