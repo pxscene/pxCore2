@@ -1,4 +1,4 @@
-// pxCore CopyRight 2007 John Robinson
+// pxCore CopyRight 2005-2007 John Robinson
 // Portable Framebuffer and Windowing Library
 // pxOffscreenNative.h
 
@@ -10,10 +10,9 @@
 class pxOffscreenNative: public pxBuffer
 {
 public:
-	pxOffscreenNative(): gworld(NULL), data(NULL) {}
-protected:
-	GWorldPtr gworld;
-	char* data;
+	pxOffscreenNative() {};
+
+    void swizzleTo(rtPixelFmt /*fmt*/) {};
 };
 
 #endif

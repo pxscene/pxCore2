@@ -1,0 +1,21 @@
+# pxCore FrameBuffer Library
+# Animation Example
+
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Darwin)
+        OSCFLAGS= -framework GLUT -framework OpenGL
+else
+        OSCFLAGS= -lrt -lglut -lGL -lGLEW
+endif
+
+CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS)	
+OUTDIR=../../build/glut
+
+all: $(OUTDIR)/Animation
+
+$(OUTDIR)/Animation: Animation.cpp
+	g++ -o $(OUTDIR)/Animation -Wall Animation.cpp -lpxCore $(CFLAGS) -L$(OUTDIR)
+
+
+

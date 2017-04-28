@@ -1,0 +1,29 @@
+{
+  shaderLeaksLinkShaderTravis
+  Memcheck:Leak
+  match-leak-kinds:all
+  ...
+  fun:*linkShaderProgram*
+  ...
+  fun:*pxMain*
+  ...
+}
+{
+  shaderLeaksCreateShaderTravis		
+  Memcheck:Leak		
+  match-leak-kinds:all		
+  ...		
+  fun:*createShaderProgram*		
+  ...		
+  fun:*pxMain*		
+  ...		
+}
+{
+  openglQryExtnsLeaks
+  Memcheck:Leak
+  match-leak-kinds:all
+  ...
+  fun:*glXQueryExtensionsString*
+  fun:*fgPlatformInitialize*
+  ...
+}

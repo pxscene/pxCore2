@@ -1,0 +1,14 @@
+# pxCore FrameBuffer Library
+# Animation Example
+WAYLAND=`pkg-config wayland-client --cflags --libs`
+
+CFLAGS= -I../../src -DPX_PLATFORM_WAYLAND -Wno-write-strings -Wall -O3 -fvisibility=hidden -g
+OUTDIR=../../build/wayland
+
+all: $(OUTDIR)/Animation
+
+$(OUTDIR)/Animation: Animation.cpp 
+	g++ -o $(OUTDIR)/Animation -Wall $(CFLAGS) Animation.cpp -L$(OUTDIR) -lpxCore -lrt $(WAYLAND)
+
+
+

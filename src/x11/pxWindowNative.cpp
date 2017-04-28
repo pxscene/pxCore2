@@ -6,9 +6,12 @@
 #include "../pxWindow.h"
 #include "pxWindowNative.h"
 #include "../pxTimer.h"
+#include "../pxWindowUtil.h"
 
 #include <stdlib.h>
 #include <string.h>
+
+using namespace std;
 
 Display* displayRef::mDisplay = NULL;
 int displayRef::mRefCount = 0;
@@ -132,14 +135,14 @@ void pxWindow::setVisibility(bool visible)
     }
 }
 
-pxError pxWindow::setAnimationFPS(long fps)
+pxError pxWindow::setAnimationFPS(uint32_t fps)
 {
     mTimerFPS = fps;
     mLastAnimationTime = pxMilliseconds();
     return PX_OK;
 }
 
-void pxWindow::setTitle(char* title)
+void pxWindow::setTitle(const char* title)
 {
     Display* d = mDisplayRef.getDisplay();
     XTextProperty tp;
@@ -290,7 +293,8 @@ void pxWindowNative::runEventLoop()
 		    flags |= (ke->state & ShiftMask)?PX_MOD_SHIFT:0;
 		    flags |= (ke->state & ControlMask)?PX_MOD_CONTROL:0;
 		    flags |= (ke->state & Mod1Mask)?PX_MOD_ALT:0;
-		    w->onKeyDown(keySym, flags);
+        w->onKeyDown(keycodeFromNative(keySym), flags);
+        w->onChar((char)keySym);
 		}
 		break;
 

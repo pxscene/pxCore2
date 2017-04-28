@@ -1,0 +1,156 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXFileReference section */
+		AE8EE04B1E8E70E100C19ED5 /* pxArchive.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxArchive.cpp; sourceTree = "<group>"; };
+		AE8EE04C1E8E70E100C19ED5 /* pxArchive.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxArchive.h; sourceTree = "<group>"; };
+		AE8EE04D1E8E70E100C19ED5 /* pxConstants.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxConstants.cpp; sourceTree = "<group>"; };
+		AE8EE04E1E8E70E100C19ED5 /* pxConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxConstants.h; sourceTree = "<group>"; };
+		AE8EE04F1E8E70E100C19ED5 /* pxContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxContext.h; sourceTree = "<group>"; };
+		AE8EE0501E8E70E100C19ED5 /* pxContextDescDFB.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxContextDescDFB.h; sourceTree = "<group>"; };
+		AE8EE0511E8E70E100C19ED5 /* pxContextDescGL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxContextDescGL.h; sourceTree = "<group>"; };
+		AE8EE0521E8E70E100C19ED5 /* pxContextDFB.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxContextDFB.cpp; sourceTree = "<group>"; };
+		AE8EE0531E8E70E100C19ED5 /* pxContextFramebuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxContextFramebuffer.h; sourceTree = "<group>"; };
+		AE8EE0541E8E70E100C19ED5 /* pxContextGL.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxContextGL.cpp; sourceTree = "<group>"; };
+		AE8EE0551E8E70E100C19ED5 /* pxContextUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxContextUtils.h; sourceTree = "<group>"; };
+		AE8EE0561E8E70E100C19ED5 /* pxFont.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxFont.cpp; sourceTree = "<group>"; };
+		AE8EE0571E8E70E100C19ED5 /* pxFont.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxFont.h; sourceTree = "<group>"; };
+		AE8EE0581E8E70E100C19ED5 /* pxImage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxImage.cpp; sourceTree = "<group>"; };
+		AE8EE0591E8E70E100C19ED5 /* pxImage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxImage.h; sourceTree = "<group>"; };
+		AE8EE05A1E8E70E100C19ED5 /* pxImage9.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxImage9.cpp; sourceTree = "<group>"; };
+		AE8EE05B1E8E70E100C19ED5 /* pxImage9.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxImage9.h; sourceTree = "<group>"; };
+		AE8EE05C1E8E70E100C19ED5 /* pxImageA.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxImageA.cpp; sourceTree = "<group>"; };
+		AE8EE05D1E8E70E100C19ED5 /* pxImageA.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxImageA.h; sourceTree = "<group>"; };
+		AE8EE05E1E8E70E100C19ED5 /* pxRectangle.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxRectangle.cpp; sourceTree = "<group>"; };
+		AE8EE05F1E8E70E100C19ED5 /* pxRectangle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxRectangle.h; sourceTree = "<group>"; };
+		AE8EE0601E8E70E100C19ED5 /* pxResource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxResource.cpp; sourceTree = "<group>"; };
+		AE8EE0611E8E70E100C19ED5 /* pxResource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxResource.h; sourceTree = "<group>"; };
+		AE8EE0621E8E70F800C19ED5 /* pxScene.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxScene.cpp; sourceTree = "<group>"; };
+		AE8EE0631E8E70F800C19ED5 /* pxScene2d.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxScene2d.cpp; sourceTree = "<group>"; };
+		AE8EE0641E8E70F800C19ED5 /* pxScene2d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxScene2d.h; sourceTree = "<group>"; };
+		AE8EE0651E8E70F800C19ED5 /* pxText.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxText.cpp; sourceTree = "<group>"; };
+		AE8EE0661E8E70F800C19ED5 /* pxText.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxText.h; sourceTree = "<group>"; };
+		AE8EE0671E8E70F800C19ED5 /* pxTextBox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxTextBox.cpp; sourceTree = "<group>"; };
+		AE8EE0681E8E70F800C19ED5 /* pxTextBox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxTextBox.h; sourceTree = "<group>"; };
+		AE8EE0691E8E70F800C19ED5 /* pxTexture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxTexture.h; sourceTree = "<group>"; };
+		AE8EE06A1E8E70F800C19ED5 /* pxTransform.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxTransform.cpp; sourceTree = "<group>"; };
+		AE8EE06B1E8E70F800C19ED5 /* pxTransform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxTransform.h; sourceTree = "<group>"; };
+		AE8EE06C1E8E70F800C19ED5 /* pxWayland.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxWayland.cpp; sourceTree = "<group>"; };
+		AE8EE06D1E8E70F800C19ED5 /* pxWayland.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxWayland.h; sourceTree = "<group>"; };
+		AE8EE06E1E8E70F800C19ED5 /* pxWaylandContainer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxWaylandContainer.cpp; sourceTree = "<group>"; };
+		AE8EE06F1E8E70F800C19ED5 /* pxWaylandContainer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxWaylandContainer.h; sourceTree = "<group>"; };
+		AE8EE0701E8E70F800C19ED5 /* testScene.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = testScene.cpp; sourceTree = "<group>"; };
+		AE8EE0711E8E70F800C19ED5 /* testScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = testScene.h; sourceTree = "<group>"; };
+		AE8EE0721E8E70F800C19ED5 /* testView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = testView.h; sourceTree = "<group>"; };
+		AE8EE0731E8E78F600C19ED5 /* rtObject.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtObject.cpp; path = ../../../src/rtObject.cpp; sourceTree = "<group>"; };
+		AE8EE0741E8E78F600C19ED5 /* rtObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtObject.h; path = ../../../src/rtObject.h; sourceTree = "<group>"; };
+		AE8EE0751E8E78F600C19ED5 /* rtPromise.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtPromise.h; path = ../../../src/rtPromise.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		AE0663891E5DB3B900928DC5 = {
+			isa = PBXGroup;
+			children = (
+				AE8EE0731E8E78F600C19ED5 /* rtObject.cpp */,
+				AE8EE0741E8E78F600C19ED5 /* rtObject.h */,
+				AE8EE0751E8E78F600C19ED5 /* rtPromise.h */,
+				AE8EE0621E8E70F800C19ED5 /* pxScene.cpp */,
+				AE8EE0631E8E70F800C19ED5 /* pxScene2d.cpp */,
+				AE8EE0641E8E70F800C19ED5 /* pxScene2d.h */,
+				AE8EE0651E8E70F800C19ED5 /* pxText.cpp */,
+				AE8EE0661E8E70F800C19ED5 /* pxText.h */,
+				AE8EE0671E8E70F800C19ED5 /* pxTextBox.cpp */,
+				AE8EE0681E8E70F800C19ED5 /* pxTextBox.h */,
+				AE8EE0691E8E70F800C19ED5 /* pxTexture.h */,
+				AE8EE06A1E8E70F800C19ED5 /* pxTransform.cpp */,
+				AE8EE06B1E8E70F800C19ED5 /* pxTransform.h */,
+				AE8EE06C1E8E70F800C19ED5 /* pxWayland.cpp */,
+				AE8EE06D1E8E70F800C19ED5 /* pxWayland.h */,
+				AE8EE06E1E8E70F800C19ED5 /* pxWaylandContainer.cpp */,
+				AE8EE06F1E8E70F800C19ED5 /* pxWaylandContainer.h */,
+				AE8EE0701E8E70F800C19ED5 /* testScene.cpp */,
+				AE8EE0711E8E70F800C19ED5 /* testScene.h */,
+				AE8EE0721E8E70F800C19ED5 /* testView.h */,
+				AE8EE04B1E8E70E100C19ED5 /* pxArchive.cpp */,
+				AE8EE04C1E8E70E100C19ED5 /* pxArchive.h */,
+				AE8EE04D1E8E70E100C19ED5 /* pxConstants.cpp */,
+				AE8EE04E1E8E70E100C19ED5 /* pxConstants.h */,
+				AE8EE04F1E8E70E100C19ED5 /* pxContext.h */,
+				AE8EE0501E8E70E100C19ED5 /* pxContextDescDFB.h */,
+				AE8EE0511E8E70E100C19ED5 /* pxContextDescGL.h */,
+				AE8EE0521E8E70E100C19ED5 /* pxContextDFB.cpp */,
+				AE8EE0531E8E70E100C19ED5 /* pxContextFramebuffer.h */,
+				AE8EE0541E8E70E100C19ED5 /* pxContextGL.cpp */,
+				AE8EE0551E8E70E100C19ED5 /* pxContextUtils.h */,
+				AE8EE0561E8E70E100C19ED5 /* pxFont.cpp */,
+				AE8EE0571E8E70E100C19ED5 /* pxFont.h */,
+				AE8EE0581E8E70E100C19ED5 /* pxImage.cpp */,
+				AE8EE0591E8E70E100C19ED5 /* pxImage.h */,
+				AE8EE05A1E8E70E100C19ED5 /* pxImage9.cpp */,
+				AE8EE05B1E8E70E100C19ED5 /* pxImage9.h */,
+				AE8EE05C1E8E70E100C19ED5 /* pxImageA.cpp */,
+				AE8EE05D1E8E70E100C19ED5 /* pxImageA.h */,
+				AE8EE05E1E8E70E100C19ED5 /* pxRectangle.cpp */,
+				AE8EE05F1E8E70E100C19ED5 /* pxRectangle.h */,
+				AE8EE0601E8E70E100C19ED5 /* pxResource.cpp */,
+				AE8EE0611E8E70E100C19ED5 /* pxResource.h */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		AE06638A1E5DB3B900928DC5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0820;
+			};
+			buildConfigurationList = AE06638D1E5DB3B900928DC5 /* Build configuration list for PBXProject "pxscene_debug" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = AE0663891E5DB3B900928DC5;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		AE06638E1E5DB3B900928DC5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		AE06638F1E5DB3B900928DC5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AE06638D1E5DB3B900928DC5 /* Build configuration list for PBXProject "pxscene_debug" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE06638E1E5DB3B900928DC5 /* Debug */,
+				AE06638F1E5DB3B900928DC5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AE06638A1E5DB3B900928DC5 /* Project object */;
+}

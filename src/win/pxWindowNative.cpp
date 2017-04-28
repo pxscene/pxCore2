@@ -6,11 +6,12 @@
 #include "pxOffscreenNative.h"
 #include "pxWindowNative.h"
 #include "../pxWindow.h"
+#include "../pxWindowUtil.h"
 
 #ifndef WINCE
 #include <tchar.h>
 #define _ATL_NO_HOSTING
-#include <atlconv.h>
+//#include <atlconv.h>
 #endif
 
 #include "windowsx.h"
@@ -27,6 +28,8 @@
 #define MOBILE
 #include "aygshell.h"
 #endif
+
+using namespace std;
 
 void setWindowPtr(HWND w, void* p)
 {
@@ -136,7 +139,7 @@ void pxWindow::setVisibility(bool visible)
     ShowWindow(mWindow, visible?SW_SHOW:SW_HIDE);
 }
 
-pxError pxWindow::setAnimationFPS(long fps)
+pxError pxWindow::setAnimationFPS(uint32_t fps)
 {
 #if 0
     if (mTimerId)
@@ -171,7 +174,7 @@ pxError pxWindowNative::setAnimationFPS(long fps)
     return PX_OK;
 }
 
-void pxWindow::setTitle(char* title)
+void pxWindow::setTitle(const char* title)
 {
 #if 0
 	USES_CONVERSION;
@@ -395,7 +398,8 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
                     flags |= PX_MOD_ALT;
                 }
 
-                w->onKeyDown((int)wParam, flags);
+                w->onKeyDown(keycodeFromNative((int)wParam), flags);
+                w->onChar((char)wParam);
             }
             break;
 
@@ -417,7 +421,7 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
                     flags |= PX_MOD_ALT;
                 }
 
-                w->onKeyUp((int)wParam, flags);
+                w->onKeyUp(keycodeFromNative((int)wParam), flags);
             }
             break;
         case WM_PAINT:

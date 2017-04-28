@@ -1,0 +1,14 @@
+# pxCore FrameBuffer Library
+# Simple Example
+
+CFLAGS= -I../../src -I/usr/include/directfb -DPX_PLATFORM_X11 -DENABLE_DFB -Wno-write-strings
+OUTDIR=../../build/x11
+LIBDIR= -L/usr/lib/x86_64-linux-gnu -L/usr/local/lib/
+
+all: $(OUTDIR)/Simple_dfb
+
+$(OUTDIR)/Simple_dfb: Simple.cpp 
+	g++ -o $(OUTDIR)/Simple_dfb -Wall $(CFLAGS) Simple.cpp -L$(LIBDIR) -L$(OUTDIR) -lX11 -lpxCore -lrt -ldirectfb
+
+
+
