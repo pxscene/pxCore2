@@ -103,6 +103,7 @@ this.innerscene.on('onClose', function (e) {
     this.sandbox.Buffer = null;
     this.sandbox.setTimeout = null;
     this.sandbox.setInterval = null;
+    this.sandbox.clearTimeout = null;
     this.sandbox.clearInterval = null;
     this.sandbox.importTracking = {};
     this.sandbox = null;
