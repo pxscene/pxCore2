@@ -8,7 +8,7 @@ var root = scene.root;
 var testUrls = ["https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js", "http://pxscene.org/examples/px-reference/gallery/fancy.js","http://pxscene.org/examples/px-reference/gallery/picturepile.js","http://pxscene.org/examples/px-reference/gallery/gallery.js" ]; // See tests.json for test urls to be run
 
 //added different timeout for different pages, as travis server is bit slower and so getting more timeout errors for complex js pages
-var testTimeouts = [60000, 5000, 5000, 20000];
+var testTimeouts = [240000, 5000, 5000, 20000];
 var numUrls = testUrls.length;
 var lastSceneIndex = numUrls-1;
 var savedIndexForTimeout;
