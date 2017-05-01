@@ -216,7 +216,7 @@ ifeq ($(USE_EXTERNALS_GLUT), true)
 LDGLUT = -L$(EXTDIR)/freeglut/lib -lglut
 endif
 LDEXT += $(LDBREAKPAD) $(LDGLUT)
-CXXFLAGS += -DHAS_LINUX_BREAKPAD
+CXXFLAGS += -DHAS_BREAKPAD
 ifeq ($(CODE_COVERAGE), 1)
 CXXFLAGS += -fprofile-arcs -ftest-coverage
 endif
