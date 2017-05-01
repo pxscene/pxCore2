@@ -140,8 +140,8 @@ px.import({ scene: 'px:scene.1.js',
 
         var ss = scene.stretch.STRETCH;
 
-        var container = scene.create({ t: "object", parent: parent, x: this._x, y: this._y, w: this._w, h: this._h });
-        var clipRect  = scene.create({ t: "object", parent: container, x: 0, y: 0, w: this._w-2, h: this._h, clip: true} );
+        var container = scene.create({ t: "object", parent: parent,    x: this._x, y: this._y, w: this._w,   h: this._h });
+        var clipRect  = scene.create({ t: "object", parent: container, x: 0,       y: 0,       w: this._w-2, h: this._h, clip: true} );
         var fontRes   = scene.create({ t: "fontResource",  url: font });
         var inputRes  = scene.create({ t: "imageResource", url: params.url });
 
@@ -165,6 +165,8 @@ px.import({ scene: 'px:scene.1.js',
                 console.log(">>> Loading Assets ... err = " + err);
             })
             .then((success, failure) => {
+
+                onSize(self.w, self.h);
 
                 // Adjust TEXT for font size ... center VERTICALLY in background
                 var text = fontRes.measureText(pts, "ABCdef123'");
@@ -525,13 +527,16 @@ px.import({ scene: 'px:scene.1.js',
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         function onSize(w, h) {
-            console.log("onSize() >>> WxH = " + w + " x " + h);
+//            console.log("onSize() >>> ## WxH = " + w + " x " + h);
 
             container.w = w;
             container.h = h;
 
             inputBg.w = w;
             inputBg.h = h;
+
+            textInput.w = w;
+            clipRect.w  = w;
         }
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
