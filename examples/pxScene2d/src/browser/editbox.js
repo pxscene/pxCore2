@@ -60,11 +60,13 @@ px.import({ scene: 'px:scene.1.js',
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Object.defineProperty(this, "text",
         {
-            set: function (val) { textInput.text = val; notify("setText( " + val + " )"); },
+            set: function (val) { 
+                textInput.text = val;                                   
+                prompt.a = (textInput.text.length > 0) ? 0 : 1; // show/hide placeholder
+            },
             get: function () { 
                   // Remove Leading/Trailing whitespace...
                   var txt = textInput.text.trim();
-
                   return txt; },
         });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -105,14 +107,19 @@ px.import({ scene: 'px:scene.1.js',
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
         var self       = this;
-        var mouseDown  = false;
-        var mouseDownTime;
+        var buttonDown = false;
+        var buttonDownTime;
         var cursor_pos = 0;
 
         var selection_x     = 0;
         var selection_start = 0;
         var selection_chars = 0; // number of characters selected  (-)ive is LEFT of cursor start position
         var selection_text  = "";
+
+        var lastScroll = 0;
+        var scrollPos  = true;
+
+        var scrollOffset = 0;
 
         var default_insets = {l: 10, r: 10, t: 10, b: 10};
 
@@ -134,58 +141,80 @@ px.import({ scene: 'px:scene.1.js',
         var ss = scene.stretch.STRETCH;
 
         var container = scene.create({ t: "object", parent: parent, x: this._x, y: this._y, w: this._w, h: this._h });
+        var clipRect  = scene.create({ t: "object", parent: container, x: 0, y: 0, w: this._w-2, h: this._h, clip: true} );
         var fontRes   = scene.create({ t: "fontResource",  url: font });
         var inputRes  = scene.create({ t: "imageResource", url: params.url });
 
         var inputBg = scene.create({
-            t: "image9", resource: inputRes, a: 0.9, x: 0, y: 0, w: this._w, h: this._h,
+            t: "image9", resource: inputRes, a: 0.9, x: 0, y: 0, w: this._w, h: this._h,// insets: insets,
             insetLeft: insets.l, insetRight: insets.r, insetTop: insets.t, insetBottom: insets.b, 
-            parent: container, stretchX: ss, stretchY: ss
+            parent: clipRect, stretchX: ss, stretchY: ss
         });
 
-        var prompt    = scene.create({ t: "text", text: prompt_text, font: fontRes, parent: inputBg, pixelSize: pts, textColor: prompt_color, x: 10, y: -1 });
-        var textInput = scene.create({ t: "text", text: "", font: fontRes, parent: inputBg, pixelSize: pts, textColor: text_color, x: 10, y: -1 });
-        var cursor    = scene.create({ t: "rect", w: 2, h: inputBg.h - 10, parent: inputBg, x: 10, y: 5 });
-        var selection = scene.create({ t: "rect", w: 2, h: inputBg.h - 10, parent: inputBg, fillColor: selection_color, x: 10, y: 5, a: 0 });  // highlight rect
+        var prompt    = scene.create({ t: "text", text: prompt_text, font: fontRes, parent: clipRect, pixelSize: pts, textColor: prompt_color, x: 0, y: 0 });
+        var textInput = scene.create({ t: "text", text: "",          font: fontRes, parent: clipRect, pixelSize: pts, textColor: text_color,   x: 0, y: 0 });
+        var cursor    = scene.create({ t: "rect", w: 2, h: inputBg.h, parent: textInput, x: 0, y: 0 });
+        var selection = scene.create({ t: "rect", w: 0, h: inputBg.h, parent: textInput, fillColor: selection_color, x: 0, y: 0, a: 0 });  // highlight rect
 
-        var assets = [fontRes, inputRes, inputBg, prompt, textInput, cursor, selection];
+      //  var dots = scene.create({ t: "text", text: "...", font: fontRes, parent: inputBg, pixelSize: pts, textColor: text_color, x: 1, y: -1 });
+
+        var assets = [fontRes, inputRes, inputBg, clipRect, prompt, textInput, cursor, selection];
 
         Promise.all(assets)
             .catch((err) => {
                 console.log(">>> Loading Assets ... err = " + err);
             })
             .then((success, failure) => {
-                textInput.moveToFront();
+
+                // Adjust TEXT for font size ... center VERTICALLY in background
+                var text = fontRes.measureText(pts, "ABCdef123'");
+
+                textInput.y = (inputBg.h - text.h) / 2;
+
+                selection.h = inputBg.h * 0.85;
+                selection.y = (inputBg.h - selection.h) / 2 - textInput.y;
+
+                cursor.h    = text.h * 0.65;
+                cursor.y    = (inputBg.h - cursor.h) / 2 - textInput.y;
+
+                prompt.y    = textInput.y;
 
                 updateCursor(0);
 
-                cursor.animateTo({ a: 0 }, 0.5, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_OSCILLATE, scene.animation.COUNT_FOREVER);
+                animateCursor();
             });
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        inputBg.on("onMouseDown", function (e) {
+        textInput.on("onMouseDown", function (e) {
+
+            // cursor.a = 1;
+            textInput.focus = true;
 
             if(textInput.text.length > 0)
             {
                 var now = new Date().getTime();
-                if( mouseDownTime !== undefined)
+                if( buttonDownTime !== undefined)
                 {
-                    if((now - mouseDownTime) < 200)
+                    if((now - buttonDownTime) < 200)
                     {
-                        console.log(" DOUBLE CLICK " );
+                        // DOUBLE CLICKED
                         selectAll();
                         
+                        buttonDown = false;
+
                         return;
                     }
                 }
 
-                mouseDownTime = now;
+                buttonDownTime = now;
             }
 
-            clearSelection();
+            buttonDown = true;
 
-            mouseDown = true;
+ //console.log("#######  onMouseDown ....  buttonDown = " + buttonDown);
+
+            clearSelection();
 
             var ptc = pointToCursor(e.x, e.y); // returns a tuple
 
@@ -210,9 +239,34 @@ px.import({ scene: 'px:scene.1.js',
                 selection_start = cursor_pos;
             }
         });
+ 
+         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        inputBg.on("onMouseMove", function (e) {
-            if (self._enableCopy && mouseDown) {
+        textInput.on("onMouseUp", function (e) {
+
+            buttonDown = false;
+
+// console.log("#######  onMouseUp ....  buttonDown = " + buttonDown);
+
+        });
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        textInput.on("onMouseLeave", function (e) {
+
+// console.log("#######  onMouseLeave ....  buttonDown = " + buttonDown);
+
+            //cursor.a = 0;
+            //textInput.focus = false;
+            buttonDown      = false;
+        });
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        textInput.on("onMouseMove", function (e) {
+            if (self._enableCopy && buttonDown) {
+
+ //console.log("#######  onMouseMove ....  buttonDown = " + buttonDown);
 
                 // Selecting by mouse drag
                 var ptc = pointToCursor(e.x, e.y); // returns a tuple
@@ -224,13 +278,19 @@ px.import({ scene: 'px:scene.1.js',
             }
         });
 
-        inputBg.on("onMouseUp", function (e) {
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            textInput.focus = true;
-            mouseDown = false;
+        container.on("onFocus", function (e) {
+
+                cursor.a = 1;
+                animateCursor();
+
+// console.log(" OnFocus()    textInput.focus ");// = " + textInput.focus);
         });
 
-        inputBg.on("onChar", function (e) {
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        textInput.on("onChar", function (e) {
             //console.log("#######  onChar ....  cursor_pos = " + cursor_pos);
 
             if (e.charCode == keys.ENTER)  // <<<  ENTER KEY
@@ -247,7 +307,7 @@ px.import({ scene: 'px:scene.1.js',
                 // insert character
                 textInput.text = textInput.text.slice(0, cursor_pos) + String.fromCharCode(e.charCode) + textInput.text.slice(cursor_pos);
 
-                prompt.a = (textInput.text) ? 0 : 1; // show/hide placeholder
+                prompt.a = (textInput.text.length > 0) ? 0 : 1; // show/hide placeholder
 
                 cursor_pos += 1; // inserted 1 character
 
@@ -257,13 +317,14 @@ px.import({ scene: 'px:scene.1.js',
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        inputBg.on("onKeyDown", function (e) {
-            var code = e.keyCode;
+        textInput.on("onKeyDown", function (e) {
+            var code  = e.keyCode;
             var flags = e.flags;
 
             //    console.log("#######  onKeyDown ....  cursor_pos = " + cursor_pos);
 
             switch (code) {
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case keys.BACKSPACE:
                     {
 //                        console.log("BACKSPACE " + textInput.text);
@@ -272,10 +333,10 @@ px.import({ scene: 'px:scene.1.js',
 
                         if (selection_chars === 0) {
                             // Delete ... possibly in the middle of string.
-                            var before_cursor = s.slice(0, cursor_pos - 1);
-                            var after_cursor  = s.slice(cursor_pos);
+                            var lhs_w_cursor = s.slice(0, cursor_pos - 1);
+                            var rhs_w_cursor  = s.slice(cursor_pos);
 
-                            textInput.text = before_cursor + after_cursor;
+                            textInput.text = lhs_w_cursor + rhs_w_cursor;
 
                             if (cursor_pos > 0)
                                 cursor_pos--;
@@ -284,13 +345,13 @@ px.import({ scene: 'px:scene.1.js',
                             removeSelection();  // Delete selection
                         }
 
-                        prompt.a = (textInput.text) ? 0 : 1; // show/hide placeholder
+                        prompt.a = (textInput.text.length > 0) ? 0 : 1; // show/hide placeholder
                     }
                     break;
-
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case keys.ENTER:   // bubble up !!
                     break;
-
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case keys.HOME:
                     if (self._enableCopy && keys.is_SHIFT(e.flags))
                     {
@@ -300,7 +361,7 @@ px.import({ scene: 'px:scene.1.js',
                         moveToHome();
                     }
                     break;
-
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case keys.END:
                     if (self._enableCopy && keys.is_SHIFT(e.flags)) 
                     {
@@ -310,8 +371,9 @@ px.import({ scene: 'px:scene.1.js',
                         moveToEnd();
                     }
                     break;
-
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case keys.LEFT:
+
                     if (cursor_pos === 0)
                     {
                         // Already at START !
@@ -349,12 +411,13 @@ px.import({ scene: 'px:scene.1.js',
                         cursor_pos--;
                     }
                     break;
-
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case keys.RIGHT:
 
                     if (cursor_pos === textInput.text.length)
                     {
                         // Already at END !
+                        console.log("DEBUG:  EDITBOX >> Already at END ! " );
                         break;
                     }
 
@@ -389,7 +452,7 @@ px.import({ scene: 'px:scene.1.js',
                         cursor_pos++; 
                     }
                     break;
-
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case keys.A:   // << CTRL + A 
                     if (self._enableCopy && (keys.is_CTRL(e.flags) || keys.is_CMD(e.flags)) )  // ctrl Pressed also
                     {
@@ -403,7 +466,7 @@ px.import({ scene: 'px:scene.1.js',
                         makeSelection(selection_start, selection_chars);
                     }
                     break;
-
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case keys.C:   // << CTRL + C
                     if (self._enableCopy && (keys.is_CTRL(e.flags) || keys.is_CMD(e.flags)) )  // ctrl Pressed also
                     {
@@ -412,7 +475,7 @@ px.import({ scene: 'px:scene.1.js',
                         scene.clipboardSet('PX_CLIP_STRING', selection_text);
                     }
                     break;
-
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case keys.V:   // << CTRL + V
                     if (self._enablePaste && (keys.is_CTRL(e.flags) || keys.is_CMD(e.flags)) )  // ctrl Pressed also
                     {
@@ -422,11 +485,9 @@ px.import({ scene: 'px:scene.1.js',
                         //
                         var fromClip = scene.clipboardGet('PX_CLIP_STRING'); // TODO ... pass TYPE of clip to get.
 
-                        // console.log("onKeyDown ....   CTRL-V >>> [" + fromClip + "]");
-
                         textInput.text = textInput.text.slice(0, cursor_pos) + fromClip + textInput.text.slice(cursor_pos);
 
-                        prompt.a = (textInput.text) ? 0 : 1;
+                        prompt.a = (textInput.text.length > 0) ? 0 : 1;
                         cursor.x = textInput.x + textInput.w;
 
                         cursor_pos += fromClip.length;
@@ -434,18 +495,18 @@ px.import({ scene: 'px:scene.1.js',
                         clearSelection();
                     }
                     break;
-
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case keys.X:   // << CTRL + X
                     if (keys.is_CTRL(e.flags))  // ctrl Pressed also
                     {
                         // On CUT ... access the Native CLIPBOARD and GET the top!   fancy.js
                         //
-                        //        console.log("onKeyDown ....   CTRL-X >>> [" + selection_text + "]");
                         scene.clipboardSet('PX_CLIP_STRING', selection_text);
 
                         removeSelection();
                     }
                     break;
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
                 case 0: // zero value
                     break; // only a modifer key ? Ignore
@@ -481,26 +542,45 @@ px.import({ scene: 'px:scene.1.js',
             var snip     = textInput.text;
             var metrics  = fontRes.measureText(pts, snip);
             var full_w   = metrics.w;
-            var return_x = textInput.x + metrics.w; // default to RHS/END of text
+            var return_x = metrics.w; // default to RHS/END of text
 
             if (x <= full_w)
             {
-                var guess_x = textInput.text.length * (x / full_w) + 0.5; // grab 'proportion' of string based on click x-pos
+               if(textInput.text.length > 0)
+                {
+                    // Coarse JUMP to get close !
+                    var index  = textInput.text.length * ( x / full_w) - 0.1; // guess Glyph index click x-pos
+                    var this_w = 0;
+                    var last_w = 0;
 
-                snip = textInput.text.slice(0, guess_x);
-                metrics = fontRes.measureText(pts, snip); // re-measure length of substring
+                    while( (index <= textInput.text.length) && (this_w < x) )
+                    {
+                        snip    = textInput.text.slice(0,  index++);
+                        metrics = fontRes.measureText(pts, snip);
 
-                return_x = textInput.x + metrics.w;
+                        last_w = this_w;
+                        this_w = metrics.w;
+                    }
+
+                    return_x = metrics.w; // may have answer, check for overshot ?
+
+                    var lhs_w = (x    - last_w);  // Click is 'within Glyph' - closer to LHS
+                    var rhs_w = (metrics.w - x);  // Click is 'within Glyph' - closer to RHS
+
+                    if(lhs_w <= rhs_w) // Closer to start..
+                    {
+                        snip     = textInput.text.slice(0, (index - 2) ); // 1 for exit of loop, 1 for previous
+                        return_x = last_w;
+                    }                    
+                }
             }
 
             return [snip.length, return_x];  // return tuple [pos,x]
         }
 
         function cursorToPoint(pos) {
-            var snip = textInput.text.slice(0, pos);
 
-            console.log("cursorToPoint() >>> snip = " + snip);
-
+            var snip    = textInput.text.slice(0, pos);
             var metrics = fontRes.measureText(pts, snip);
             var pos_w   = metrics.w;
 
@@ -512,14 +592,58 @@ px.import({ scene: 'px:scene.1.js',
             return [return_x, return_y]; // return tuple [x,y]
         }
 
+        function updateScrollView() {
+
+            var      cw  = cursor.w * 4;
+            var scrollBy = clipRect.w - cursor.x - cw;
+
+            var scrollLeft  = (lastScroll <= scrollBy);
+            var scrollRight = !scrollLeft;
+
+            var clip_w = clipRect.w - cw; // allow a little room for cursor
+
+            var scrollBit = Math.abs(scrollBy - lastScroll);
+            
+            lastScroll = scrollBy;
+
+            // Cursor beyond 'clipRect' bounds... slide `textInput` into view
+            //
+            if( cursor.x > clip_w ) // Need to Scroll ? 
+            {
+                if (scrollLeft)
+                {              
+                    if( scrollOffset < (clip_w - cw - 20) )
+                    {  
+                        scrollOffset += scrollBit;  // Move Cursor Offset to the RIGHT 
+                    }
+                }
+                else
+                if (scrollRight)
+                {                
+                    if( scrollOffset > cw) 
+                    {  
+                        scrollOffset -= scrollBit;  // Move Cursor Offset to the LEFT 
+                    }
+                }   
+                textInput.x = scrollBy - scrollOffset;
+            }       
+            else
+            {
+                textInput.x  = 0;
+                scrollOffset = 0;
+            }
+        }
+
+
         function updateCursor(pos) {
-            var s = textInput.text.slice();
-            var snip = s.slice(0, pos); // measure characters to the left of cursor
+
+            var s       = textInput.text.slice();
+            var snip    = s.slice(0, pos); // measure characters to the left of cursor
             var metrics = fontRes.measureText(pts, snip);
+          
+            cursor.x = metrics.w; // offset to cursor
 
-            cursor.x = textInput.x + metrics.w; // offset to cursor
-
-            console.log("##  updateCursor() >>> pos = " + pos);
+            updateScrollView();
         }
 
         function clearSelection() {
@@ -546,21 +670,20 @@ px.import({ scene: 'px:scene.1.js',
             updateCursor(cursor_pos);
             clearSelection();
 
-            prompt.a = (textInput.text) ? 0 : 1; // show/hide placeholder
+            prompt.a = (textInput.text.length > 0) ? 0 : 1; // show/hide placeholder
         }
 
-        function makeSelection(start, length) {  // Selection made: left-to-right
+        function makeSelection(start, length) {
 
             var end = start + length;
 
+            selection.a = (length === 0) ? 0 : 0.75;
+
             if (length === 0)
             {
-                selection.a = 0;
-                console.log("ERROR: makeSelection(start, length) >>>  s: " + start + "  e: " + end + " selection_text = [" + selection_text + "]");
+//                console.log("ERROR: makeSelection(start, length) >>>  s: " + start + "  e: " + end + " selection_text = [" + selection_text + "]");
                 return;
             }
-
-            selection.a = 1;
 
             if (length < 0) // Selection made: right-to-left
             {
@@ -572,7 +695,7 @@ px.import({ scene: 'px:scene.1.js',
             selection_text = s.slice(start, end); // measure characters up to cursor
             var metrics = fontRes.measureText(pts, selection_text);
 
-            console.log("makeSelection(start, length) >>>  s: " + start + "  e: " + end + " selection_text = [" + selection_text + "]");
+//            console.log("makeSelection(start, length) >>>  s: " + start + "  e: " + end + " selection_text = [" + selection_text + "]");
 
             selection.x = selection_x - cursor.w/2;
             selection.w = metrics.w   + cursor.w/2; 
@@ -586,8 +709,8 @@ px.import({ scene: 'px:scene.1.js',
             cursor_pos = (length > 0) ? end : start;//+= length;
 
             updateCursor(cursor_pos);
-           // cursor.x = selection.x + ((length > 0) ? selection.w : 0);
         }
+
 
         function moveToHome() {
             cursor_pos = 0;
@@ -626,7 +749,7 @@ px.import({ scene: 'px:scene.1.js',
         function selectToEnd() {
             // Select from Cursor to Start
             if (selection_chars === 0) {
-                selection_start = cursor_pos;// - 1;
+                selection_start = cursor_pos;
                 selection_x = cursor.x + cursor.w; // Start selection
             }
             selection_chars += (textInput.text.length - cursor_pos); // characters to the RIGHT
@@ -636,6 +759,10 @@ px.import({ scene: 'px:scene.1.js',
             cursor_pos = textInput.text.length;
         }
 
+        function animateCursor()
+        {
+            cursor.animateTo({ a: 0 }, 0.5, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_OSCILLATE, scene.animation.COUNT_FOREVER);
+        }
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
