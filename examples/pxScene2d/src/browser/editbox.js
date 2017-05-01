@@ -552,19 +552,21 @@ px.import({ scene: 'px:scene.1.js',
             if (x <= full_w)
             {
                if(textInput.text.length > 0)
-                {
-                    // Coarse JUMP to get close !
-                    var index  = textInput.text.length * ( x / full_w) - 0.1; // guess Glyph index click x-pos
-                    var this_w = 0;
-                    var last_w = 0;
+                { 
+                    var narrow  = fontRes.measureText(pts, "i"); // narrow character
+                    var wide    = fontRes.measureText(pts, "W"); // WIDE   character
+                    var average = (narrow.w + wide.w) /2;
+
+                    var index   = x / average; //  Coarse JUMP to get close - assume all 'average' width chars !
+                    var this_w  = 0;
+                    var last_w  = 0;
 
                     while( (index <= textInput.text.length) && (this_w < x) )
                     {
                         snip    = textInput.text.slice(0,  index++);
                         metrics = fontRes.measureText(pts, snip);
-
-                        last_w = this_w;
-                        this_w = metrics.w;
+                        last_w  = this_w;
+                        this_w  = metrics.w;
                     }
 
                     return_x = metrics.w; // may have answer, check for overshot ?
