@@ -40,6 +40,9 @@ Filename: "{tmp}\vcredist_x86.exe"; Parameters: "/q /norestart"; StatusMsg: "Ins
 ; install  Visual C++ 2015 SP3 Redist(x86) if not exist
 Filename: "{tmp}\vc_redist.x86.exe"; Parameters: "/q /norestart"; StatusMsg: "Installing Microsoft Visual C++ 2015 SP3 Runtime ..."; Check: VC2015SP3RedistNeedsInstall
 
+[Registry]
+Root: HKCU; Subkey: "Software\pxScene.org"; Flags: uninsdeletekey
+
 [Code]
 #IFDEF UNICODE
   #DEFINE AW "W"

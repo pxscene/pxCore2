@@ -43,6 +43,12 @@ using namespace std;
 #ifndef WIN32
 #include <unistd.h>
 #endif
+
+#ifdef WIN32
+#include <winsparkle.h>
+#include "../../../pxCore.vsbuild/pxScene2d/resource.h"
+#endif
+
 #ifndef RUNINMAIN
 #define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
 #define EXITSCENELOCK()  rtWrapperSceneUpdateExit();
@@ -424,6 +430,7 @@ if (s && (strcmp(s,"1") == 0))
   win.setAnimationFPS(60);
 
 #ifdef WIN32
+
   HDC hdc = ::GetDC(win.mWindow);
   HGLRC hrc;
 
@@ -468,6 +475,8 @@ if (s && (strcmp(s,"1") == 0))
 			rtLogInfo("GL_renderer = %s", GL_renderer);
 	  }
   }
+
+
 #endif
   #if 0
   sceneWindow win2;
@@ -479,6 +488,35 @@ if (s && (strcmp(s,"1") == 0))
 // would like to decouple it from pxScene2d specifically
   context.init();
 
+#ifdef WIN32
+
+  // Initialize WinSparkle as soon as the app itself is initialized, right
+  // before entering the event loop:
+  //win_sparkle_set_app_details(L"pxScene.org", L"pxScene", L"0.0.0");
+  //win_sparkle_set_registry_path("Software\\pxScene.org\\pxScene Example App\\WinSparkle");
+  win_sparkle_set_appcast_url("http://10.41.93.236/appcast.xml");
+  win_sparkle_init(); 
+
+#endif
+
   eventLoop.run();
+<<<<<<< Updated upstream
+=======
+#ifdef ENABLE_DEBUG_MODE
+  free(g_origArgv);
+#endif
+  script.garbageCollect();
+  if (gDumpMemUsage)
+  {
+    rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+    rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+  }
+
+
+#ifdef WIN32
+  win_sparkle_cleanup();
+#endif
+
+>>>>>>> Stashed changes
   return 0;
 }

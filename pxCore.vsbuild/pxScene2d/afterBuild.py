@@ -18,6 +18,7 @@ def copyRes(baseDir):
     
     shutil.copy(os.path.join(external_dir,"libnode-v6.9.0","Release","node.exe"),os.path.join(baseDir,"node.exe"))
     shutil.copy(os.path.join(external_dir,"vc.build","builds\\pthreadVC2.dll"),baseDir)
+    shutil.copy(os.path.join(external_dir,"WinSparkle-0.5.3\\Release\\WinSparkle.dll"),baseDir)
 
 
 remove(build_dir+"\\exe")
