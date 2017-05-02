@@ -11,6 +11,7 @@ SRCS_FULL=\
     test_pxcontext.cpp \
     test_memoryleak.cpp \
     test_rtnode.cpp \
+    test_pxAnimate.cpp \
 
 ifeq ($(USE_HTTP_CACHE),1)
 SRCS_FULL+=test_imagecache.cpp

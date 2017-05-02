@@ -34,7 +34,7 @@ class pxSceneContainerLeakTest : public testing::Test
       sceneContainer->remove();
       EXPECT_TRUE (sceneContainer->mRefCount > 1);
       EXPECT_TRUE (sceneContainer->parent() == NULL);
-      delete mView;
+      script.garbageCollect();
     }
     
     void withParentRemovedGCHappenedTest()
@@ -49,7 +49,7 @@ class pxSceneContainerLeakTest : public testing::Test
       script.garbageCollect();
       pxSleepMS(3000);
       EXPECT_TRUE (sceneContainer->mRefCount == 1);
-      delete mView;
+      script.garbageCollect();
     }
     
     void withoutParentRemovedGCNotHappenedTest()
@@ -61,7 +61,7 @@ class pxSceneContainerLeakTest : public testing::Test
       pxObject* sceneContainer = mSceneContainer[0];
       EXPECT_TRUE (sceneContainer->mRefCount > 1);
       EXPECT_TRUE (sceneContainer->parent() != NULL);
-      delete mView;
+      script.garbageCollect();
     }
     
     void withoutParentRemovedGCHappenedTest()
@@ -71,12 +71,9 @@ class pxSceneContainerLeakTest : public testing::Test
       populateObjects();
 
       pxObject* sceneContainer = mSceneContainer[0];
-
       script.garbageCollect();
-
       EXPECT_TRUE (sceneContainer->mRefCount > 1);
       EXPECT_TRUE (sceneContainer->parent() != NULL);
-      delete mView;
     }
 
 private:
