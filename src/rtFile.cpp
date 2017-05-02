@@ -1,18 +1,18 @@
 /*
 
-rtCore Copyright 2005-2017 John Robinson
+ rtCore Copyright 2005-2017 John Robinson
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 
 */
 
@@ -30,35 +30,35 @@ limitations under the License.
 #include "rtFile.h"
 // remove unused headers
 
-rtData::rtData() : mData(NULL), mLength(0) {}
+rtData::rtData(): mData(NULL), mLength(0) {}
 rtData::~rtData() { term(); }
 
 rtError rtData::init(uint32_t length) {
-	term();
-	mData = new uint8_t[length];
-	if (mData) {
-		mLength = length;
-		return RT_OK;
-	}
-	else return RT_FAIL;
+  term();
+  mData = new uint8_t[length];
+  if (mData) {
+    mLength = length;
+    return RT_OK;
+  }
+  else return RT_FAIL;
 }
 
 rtError rtData::init(uint8_t* data, uint32_t length) {
-	rtError e = RT_FAIL;
-	if (init(length) == RT_OK) {
-		memcpy(mData, data, length);
-		e = RT_OK;
-	}
-	return e;
+  rtError e = RT_FAIL;
+  if (init(length) == RT_OK) {
+    memcpy(mData, data, length);
+    e = RT_OK;
+  }
+  return e;
 }
 
-rtError rtData::term() { delete[] mData; mLength = 0; return RT_OK; }
+rtError rtData::term() { delete [] mData; mLength = 0; return RT_OK; }
 uint8_t* rtData::data() { return mData; }
 uint32_t rtData::length() { return mLength; }
 
 rtError rtStoreFile(const char* f, rtData& data)
 {
-	rtError e = RT_FAIL;
+  rtError e = RT_FAIL;
 	// use fopen fwrite fclose from stdio.h
 	FILE * fd = fopen(f, "wb");
 	if (fd)
