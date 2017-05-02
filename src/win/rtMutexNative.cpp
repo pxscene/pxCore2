@@ -40,8 +40,8 @@ rtThreadConditionNative::~rtThreadConditionNative()
 
 void rtThreadConditionNative::wait(rtMutexNativeDesc mutexNativeDesc)
 {
-	std::unique_lock<std::mutex> lock(*mutexNativeDesc.Mutex);
-	mCondition.wait(lock);
+  std::unique_lock<std::mutex> lock(*mutexNativeDesc.Mutex);
+  mCondition.wait(lock);
 }
 
 void rtThreadConditionNative::signal()
