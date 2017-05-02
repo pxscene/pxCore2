@@ -245,7 +245,7 @@
     <ClInclude Include="..\..\src\utf8.h" />
     <ClInclude Include="..\..\src\win\pxClipboardNative.h" />
     <ClInclude Include="..\..\src\win\rtConfigNative.h" />
-    <ClInclude Include="breakpadSupport.h" />
+    <ClInclude Include="..\..\examples\pxScene2d\src\breakpadSupport.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

@@ -477,7 +477,7 @@
       <Filter>native</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="breakpadSupport.h">
+    <ClInclude Include="..\..\examples\pxScene2d\src\breakpadSupport.h">
       <Filter>breakpad</Filter>
     </ClInclude>
   </ItemGroup>
