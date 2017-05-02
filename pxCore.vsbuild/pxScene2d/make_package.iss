@@ -14,7 +14,7 @@ AppSupportURL=http://www.example.com/
 AppUpdatesURL=http://www.example.com/
 DefaultDirName={pf}\pxScene
 DisableProgramGroupPage=yes
-OutputBaseFilename=setup
+OutputBaseFilename=pxscene-setup
 Compression=lzma
 SolidCompression=yes
 
