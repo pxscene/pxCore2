@@ -492,8 +492,6 @@ if (s && (strcmp(s,"1") == 0))
 
   // Initialize WinSparkle as soon as the app itself is initialized, right
   // before entering the event loop:
-  //win_sparkle_set_app_details(L"pxScene.org", L"pxScene", L"0.0.0");
-  //win_sparkle_set_registry_path("Software\\pxScene.org\\pxScene Example App\\WinSparkle");
   win_sparkle_set_appcast_url("http://jmgasper.gitlab.io/appcast.xml");
   win_sparkle_init(); 
 
