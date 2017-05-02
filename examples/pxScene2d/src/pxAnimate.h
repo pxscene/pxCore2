@@ -46,10 +46,11 @@ class pxAnimate: public rtObject
     rtReadOnlyProperty(status, status, rtString);
     rtReadOnlyProperty(provduration, provduration, double);
     rtReadOnlyProperty(provcount, provcount, int32_t);
-    rtProperty(cancel, cancel, setCancel, bool);
+    rtReadOnlyProperty(cancelled, cancelled, bool);
     rtReadOnlyProperty(props, props, rtObjectRef);
     // property to describe the animation status of the properties mentioned in animate call
     rtReadOnlyProperty(details, details, rtObjectRef);
+    rtMethodNoArgAndNoReturn("cancel", cancel);
 
     rtError done(rtObjectRef& v)   const { v = mDonePromise; return RT_OK;   }
     rtError type(uint32_t& v)   const { v = (uint32_t) mType; return RT_OK;   }
@@ -57,11 +58,11 @@ class pxAnimate: public rtObject
     rtError status(rtString& v) const { v = mStatus; return RT_OK; };
     rtError provduration(double& v)   const { v = mProvisionedDuration; return RT_OK;   }
     rtError provcount(int32_t& v)   const { v = mProvisionedCount; return RT_OK;   }
+    rtError cancelled(bool& v) const { v = mCancelled; return RT_OK; }
     rtError props(rtObjectRef& v)   const { v = mProps; return RT_OK;   }
     rtError details(rtObjectRef& v) const { v = mCurrDetails; return RT_OK; }
-    rtError cancel(bool& v)   const { v = mCancelled; return RT_OK;   }
+    rtError cancel();
 
-    rtError setCancel(bool v);
 
     // internal public methods
     void setStatus(uint32_t v);
