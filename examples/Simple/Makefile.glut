@@ -11,12 +11,22 @@ endif
 
 CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS)	
 
+ifndef USE_EXTERNALS_GLUT
+USE_EXTERNALS_GLUT=true
+endif
+
+ifeq ($(USE_EXTERNALS_GLUT), true)
+CFLAGS += -I../pxScene2d/external/freeglut/include -DUSE_EXTERNALS_GLUT
+LDGLUT = -L../pxScene2d/external/freeglut/lib -lglut
+endif
+
+
 OUTDIR=../../build/glut
 
 all: $(OUTDIR)/Simple
 
 $(OUTDIR)/Simple: Simple.cpp 
-	g++ -o $(OUTDIR)/Simple -Wall Simple.cpp -lpxCore $(CFLAGS) -L$(OUTDIR)
+	g++ -o $(OUTDIR)/Simple -Wall Simple.cpp -lpxCore -lrtCore_s $(CFLAGS) -L$(OUTDIR) $(LDGLUT)
 
 
 
