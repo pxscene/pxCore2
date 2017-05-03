@@ -15,11 +15,10 @@ def copyRes(baseDir):
         shutil.copy(os.path.join(pxscene2d_srd_dir,f),os.path.join(baseDir,f))
     for d in ["rcvrcore","images","node_modules"]:
         shutil.copytree(os.path.join(pxscene2d_srd_dir,d),os.path.join(baseDir,d))
-    
+
     shutil.copy(os.path.join(external_dir,"libnode-v6.9.0","Release","node.exe"),os.path.join(baseDir,"node.exe"))
     shutil.copy(os.path.join(external_dir,"vc.build","builds\\pthreadVC2.dll"),baseDir)
-    shutil.copy(os.path.join(external_dir,"WinSparkle-0.5.3\\Release\\WinSparkle.dll"),baseDir)
-
+    shutil.copy(os.path.join(external_dir,"vc.build","builds\\WinSparkle.dll"),baseDir)
 
 remove(build_dir+"\\exe")
 try:
