@@ -8,10 +8,6 @@
 - git for windows , make sure git can work in cmd.
 - Inno setup Compiler 5.5.9 , http://www.jrsoftware.org/isdl.php
 
-# Checkout
-
-Note that the installer script (make_package.iss) expects the code to be in "C:\\projects\\pxCore".  You are free to changes this, but note you may have to change the make_package.iss file for the installer if you want to use a different location.  The current location in the make_package.iss file is needed for the AppVeyor CI build setup.
-
 
 ## build
 ### build pxscene  basic deps
@@ -33,9 +29,8 @@ Note that the installer script (make_package.iss) expects the code to be in "C:\
 
 
 ## package setup.exe
-- Download https://download.microsoft.com/download/C/6/D/C6D0FD4E-9E53-4897-9B91-836EBA2AACD3/vcredist_x86.exe and put in folder `pxCore`
-- Download https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x86.exe and put in folder `pxCore`
-- Use inno setup Compiler open `pxCore\pxCore.vsbuild\pxScene2d\make_package.iss`  This can be done on the command line: ``` iscc pxCore.vsbuild\pxScene2d\make_package.iss ``` 
+- Download https://go.microsoft.com/fwlink/?LinkId=746571 and put in folder `pxCore\pxScene2d`
+- Use inno setup Compiler open `pxCore\pxCore.vsbuild\pxScene2d\make_package.iss`  This can be done on the command line: ``` iscc pxCore.vsbuild\pxScene2d\make_package.iss ```
 - modify `Files` section,  `Source` to your exe path.
 - use `build->Compile` , after that , you can find `setup.exe` at `pxCore\pxCore.vsbuild\pxScene2d\Output` ,you can double click to install pxscene
 
