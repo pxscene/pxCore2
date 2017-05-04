@@ -20,7 +20,6 @@
 
 #include "rtCore.h"
 #include "rtLog.h"
-
 #include "rtThreadTask.h"
 #include "rtThreadPool.h"
 #include "rtThreadQueue.h"
@@ -1149,14 +1148,12 @@ inline pxError draw_SOLID(int resW, int resH, float* matrix, float alpha,
 
   // Switch to COLORIZE for Glyphs...
   DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
-        DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_COLORIZE ) )); // | DSBLIT_BLEND_COLORALPHA | DSDRAW_SRC_PREMULTIPLY
-
-   boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
+        DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL | DSBLIT_COLORIZE | DSBLIT_BLEND_COLORALPHA | DSDRAW_SRC_PREMULTIPLY) ));
 
   DFB_CHECK(boundFramebuffer->SetColor( boundFramebuffer, color[0] * 255.0, // RGBA
                                                           color[1] * 255.0,
                                                           color[2] * 255.0,
-                                                          color[3] * 255.0 * alpha));
+                                               /*color[3] */ alpha * 255.0 ));
 #ifndef DEBUG_SKIP_BLIT
   DFB_CHECK(boundFramebuffer->Blit(boundFramebuffer, boundTexture, NULL, dst.x , dst.y));
 #else
@@ -1483,7 +1480,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   float tw;
   switch(xStretch) {
   case pxConstantsStretch::NONE:
-    tw = iw/w;
+    tw = w/iw;
     break;
   case pxConstantsStretch::STRETCH:
     tw = 1.0;
@@ -1493,17 +1490,16 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     break;
   }
 
-  float tb = 0;
   float th;
   switch(yStretch) {
   case pxConstantsStretch::NONE:
-    th = ih/h;
+    th = h/ih;
     break;
   case pxConstantsStretch::STRETCH:
     th = 1.0;
     break;
   case pxConstantsStretch::REPEAT:
-#if 0 // PX_TEXTURE_ANCHOR_BOTTOM
+#if 1 // PX_TEXTURE_ANCHOR_BOTTOM
     th = h/ih;
 #else
 
@@ -1557,6 +1553,9 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   // Enable OPACITY ??
   if( (gAlpha * color[3]) < 0.99)
   {
+    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
+    boundFramebuffer->SetColor( boundFramebuffer, 255,255,255, gAlpha * 255 ); // RGBA
+
     boundFramebuffer->SetBlittingFlags(boundFramebuffer,
          DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL |  DSBLIT_BLEND_COLORALPHA) );
   }
@@ -1571,13 +1570,6 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   boundFramebuffer->SetDstBlendFunction(boundFramebuffer, DSBF_INVSRCALPHA);
 #endif
 
-  // Opacity ?
-  if(gAlpha < 0.99)
-  {
-    boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_BLEND);
-    boundFramebuffer->SetColor( boundFramebuffer, 255,255,255, gAlpha * 255 ); // RGBA
-  }
-
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   static float blackColor[4] = {0.0, 0.0, 0.0, 1.0};
@@ -1590,33 +1582,27 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
       }
   }
   else
+  if (texture->getType() != PX_TEXTURE_ALPHA)
   {
-    if (texture->getType() != PX_TEXTURE_ALPHA)
+    if (textureBindFailure || draw_TEXTURE(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, xStretch, yStretch) != PX_OK)
     {
-      if (textureBindFailure || draw_TEXTURE(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, xStretch, yStretch) != PX_OK)
-      {
-        drawRect2(0, 0, iw, ih, blackColor);
-      }
+      drawRect2(0, 0, iw, ih, blackColor);
     }
-    else if (textureBindFailure || texture->getType() == PX_TEXTURE_ALPHA)
-    {
-      float colorPM[4];
-      premultiply(colorPM, color);
+  }
+  else // PX_TEXTURE_ALPHA
+  {
+    float colorPM[4];
+    premultiply(colorPM, color);
 
-      if (draw_SOLID(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, color) != PX_OK) // colorPM
-      {
-        drawRect2(0, 0, iw, ih, blackColor);
-      }
-    }
-    else
+    if (draw_SOLID(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, colorPM) != PX_OK)
     {
-      rtLogError("Unhandled case");
+      drawRect2(0, 0, iw, ih, blackColor);
     }
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // Disable OPACITY ??
-  if(gAlpha < 0.99)
+  if( (gAlpha * color[3]) < 0.99)
   {
     boundFramebuffer->SetDrawingFlags(boundFramebuffer, DSDRAW_NOFX);
 
