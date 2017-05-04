@@ -1654,7 +1654,7 @@ rtError pxScene2d::logDebugMetrics()
 {
   script.garbageCollect();
   rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
-  rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+  rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
   return RT_OK;
 }
 

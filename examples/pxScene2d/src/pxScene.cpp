@@ -198,7 +198,7 @@ protected:
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
-      rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+      rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
     }
     #ifdef ENABLE_CODE_COVERAGE
     __gcov_flush();
