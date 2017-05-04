@@ -40,6 +40,7 @@
 		4C63A6831E7878AA00313D9C /* package.json in Resources */ = {isa = PBXBuildFile; fileRef = 4C63A6821E7878AA00313D9C /* package.json */; };
 		4C9F22AC1E6A24D200979F4E /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */; };
 		4CF6265D1E661D5000D70FB3 /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF626461E661CC600D70FB3 /* libpxCore.a */; };
+		783C7DB01EBB6A440079FBE5 /* pxAnimate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -216,6 +217,8 @@
 		4C63A6821E7878AA00313D9C /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = package.json; path = ../../src/package.json; sourceTree = "<group>"; };
 		4C9F22AA1E6A24D200979F4E /* westeros-compositor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "westeros-compositor.h"; path = "external/westeros-stub/westeros-compositor.h"; sourceTree = "<group>"; };
 		4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "westeros-stub.cpp"; path = "external/westeros-stub/westeros-stub.cpp"; sourceTree = "<group>"; };
+		783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxAnimate.cpp; path = src/pxAnimate.cpp; sourceTree = "<group>"; };
+		783C7DAF1EBB6A440079FBE5 /* pxAnimate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxAnimate.h; path = src/pxAnimate.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -241,6 +244,8 @@
 		4C04660D1E574CAE00D59925 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */,
+				783C7DAF1EBB6A440079FBE5 /* pxAnimate.h */,
 				4C0466191E574CEE00D59925 /* shell.js */,
 				4C04661A1E574CEE00D59925 /* init.js */,
 				4C04661B1E574CEE00D59925 /* browser.js */,
@@ -631,6 +636,7 @@
 				4C20BEE91E5DE5F1005ABBB7 /* pxContextGL.cpp in Sources */,
 				4C0C6D701E5218BB00BD8932 /* pxArchive.cpp in Sources */,
 				4C0C6D811E5218BC00BD8932 /* pxScene2d.cpp in Sources */,
+				783C7DB01EBB6A440079FBE5 /* pxAnimate.cpp in Sources */,
 				4C0C6D841E5218BC00BD8932 /* pxTransform.cpp in Sources */,
 				4C0C6D821E5218BC00BD8932 /* pxText.cpp in Sources */,
 				4C0C6D831E5218BC00BD8932 /* pxTextBox.cpp in Sources */,
