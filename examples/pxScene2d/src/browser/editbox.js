@@ -195,6 +195,13 @@ px.import({ scene: 'px:scene.1.js',
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+        inputBg.on("onMouseDown", function (e) {
+
+            textInput.focus = true;
+        });
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         textInput.on("onMouseDown", function (e) {
 
             // cursor.a = 1;
@@ -561,8 +568,6 @@ px.import({ scene: 'px:scene.1.js',
 
                 snip    = array.slice(0, mi ); 
                 metrics = fontRes.measureText(pts, snip);
-
-//console.log("binarySearch() .... lo: "+mi+"  snip[ " + snip  + " ]    metrics.w: " + metrics.w + "  x: " + x);
 
                 if (metrics.w > x) // Test 
                 {
