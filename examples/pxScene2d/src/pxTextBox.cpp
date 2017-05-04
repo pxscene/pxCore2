@@ -28,7 +28,7 @@
 extern pxContext context;
 #include <math.h>
 #include <map>
-
+#include <stdlib.h>
 
 static const char      isNewline_chars[] = "\n\v\f\r";
 static const char isWordBoundary_chars[] = " \t/:&,;.";
@@ -361,7 +361,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
     {
       // Determine if the character is multibyte
       numbytes = i-lasti;
-      char tempChar[(numbytes) +1];
+	  char *tempChar = (char*)malloc(sizeof(char)*(numbytes+1));
       memset(tempChar, '\0', sizeof(tempChar));
       if(numbytes == 1) {
         tempChar[0] = charToMeasure;
@@ -491,6 +491,8 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
 
             free(tempStr);
           }
+
+		  free(tempChar);
 
           // Now skip to next line
           tempY += (mLeading*sy) + charH;
@@ -997,6 +999,7 @@ void pxTextBox::setLineMeasurements(bool firstLine, float xPos, float yPos)
   {
     getFontResource()->getMetrics(mPixelSize, height, ascent, descent, naturalLeading);
   }
+  
   if(!firstLine) {
     getMeasurements()->getCharLast()->setX(xPos);
     getMeasurements()->getCharLast()->setY(yPos + ascent);
@@ -1144,7 +1147,8 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
     {
       getFontResource()->measureTextInternal(tempStr, pixelSize, sx, sy, charW, charH);
     }
-    if ( (tempX + charW + ellipsisW) <= lineWidth)
+	
+    if( (tempX + charW + ellipsisW) <= lineWidth)
     {
       float xPos = tempX;
       if( mTruncation == pxConstantsTruncation::TRUNCATE)

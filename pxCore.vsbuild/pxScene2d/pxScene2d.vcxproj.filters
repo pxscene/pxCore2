@@ -1,0 +1,486 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="westeros">
+      <UniqueIdentifier>{28c36c85-6da8-424d-bde4-8d02efcd469d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="rt">
+      <UniqueIdentifier>{ef2e1f43-169f-4789-b01c-a718f0997aa5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="px">
+      <UniqueIdentifier>{8a934d0c-29b9-4a5e-99d6-548e081cf2ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="native">
+      <UniqueIdentifier>{814d91e3-1796-4887-91a7-d603e6f2ab8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="jsb">
+      <UniqueIdentifier>{966b4b91-f0c3-4717-a1cc-eec59b26fb51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="node">
+      <UniqueIdentifier>{05e37478-e341-4634-b304-0936818cb315}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\ioapi.c">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ioapi_mem.c">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtError.cpp">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtFile.cpp">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtLibrary.cpp">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtLog.cpp">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtObject.cpp">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtPathUtils.cpp">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtString.cpp">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtTest.cpp">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtUrlUtils.cpp">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtValue.cpp">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtZip.cpp">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\unzip.c">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\utf8.c">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxArchive.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxConstants.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxFont.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxImage.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxImage9.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxImageA.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxRectangle.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxResource.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxScene.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxScene2d.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxText.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxTextBox.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxTransform.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\win\pxClipboardNative.cpp">
+      <Filter>native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\src\pxContextGL.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\pxInterpolators.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtFileDownloader.cpp">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\pxUtil.cpp">
+      <Filter>px</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtNode.cpp">
+      <Filter>rt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\westeros-stub\westeros-stub.cpp">
+      <Filter>westeros</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jsbindings\jsCallback.cpp">
+      <Filter>jsb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jsbindings\rtFunctionWrapper.cpp">
+      <Filter>jsb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jsbindings\rtObjectWrapper.cpp">
+      <Filter>jsb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jsbindings\rtWrapperUtils.cpp">
+      <Filter>jsb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\async-wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\backtrace_win32.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\cares_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\connect_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\connection_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\debug-agent.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\env.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\fs_event_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\handle_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\inspector_agent.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\inspector_socket.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\js_stream.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_buffer.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_config.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_constants.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_contextify.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_crypto_clienthello.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_dtrace.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_file.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_os.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_revert.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_stat_watcher.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_util.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_v8.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_watchdog.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_zlib.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\pipe_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\process_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\signal_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\spawn_sync.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\stream_base.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\stream_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\string_bytes.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\string_search.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\tcp_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\timer_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\tty_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\udp_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\util.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\uv.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_crypto.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_crypto_bio.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_javascript.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_i18n.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtThreadQueue.cpp">
+      <Filter>native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtThreadTask.cpp">
+      <Filter>native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_http_parser.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\rtThreadPool.cpp">
+      <Filter>native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\unix\rtMutexNative.cpp">
+      <Filter>native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\unix\rtThreadPoolNative.cpp">
+      <Filter>native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_win32_etw_provider.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_win32_perfctr_provider.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\node_counters.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\pxScene2d\external\libnode-v6.9.0\src\tls_wrap.cc">
+      <Filter>node</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\ioapi.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtAtomic.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtCore.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtError.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtFile.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtLibrary.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtLog.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtMutex.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtNodeThread.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtObject.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtObjectMacros.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtPathUtils.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtPromise.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtRef.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtString.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtTest.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtUrlUtils.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtValue.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtZip.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\unzip.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\utf8.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\win\rtConfigNative.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxArchive.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxConstants.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxFont.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxImage.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxImage9.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxImageA.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxRectangle.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxResource.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxScene2d.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxText.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxTextBox.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxTexture.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxTransform.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\win\pxClipboardNative.h">
+      <Filter>native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxContext.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxContextDescGL.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxContextFramebuffer.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\src\pxContextUtils.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\pxInterpolators.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtFileDownloader.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\pxUtil.h">
+      <Filter>px</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtNode.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\pxScene2d\external\westeros-stub\westeros-compositor.h">
+      <Filter>westeros</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jsbindings\jsCallback.h">
+      <Filter>jsb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jsbindings\jsWindow.h">
+      <Filter>jsb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jsbindings\node_headers.h">
+      <Filter>jsb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jsbindings\rtFunctionWrapper.h">
+      <Filter>jsb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jsbindings\rtObjectWrapper.h">
+      <Filter>jsb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jsbindings\rtWrapperUtils.h">
+      <Filter>jsb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtThreadPool.h">
+      <Filter>native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtThreadQueue.h">
+      <Filter>native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\rtThreadTask.h">
+      <Filter>native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\unix\rtMutexNative.h">
+      <Filter>native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\unix\rtThreadPoolNative.h">
+      <Filter>native</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="resource1.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="pxScene.rc" />
+    <ResourceCompile Include="pxScene1.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="pxscene.ico" />
+  </ItemGroup>
+</Project>

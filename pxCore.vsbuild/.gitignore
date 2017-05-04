@@ -24,3 +24,12 @@ pxCore.vcxproj.filters
 pxcore.v12.suo
 x64/
 x86/
+.vs/
+pxScene2d/Output/
+pxScene2d/build/
+pxScene2d/objs/
+pxScene2d/exe/
+pxScene2d/Release/
+pxScene2d/Debug/
+pxScene2d/vc_redist.x86.exe
+pxScene2d/vcredist_x86.exe

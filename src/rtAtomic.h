@@ -24,8 +24,8 @@
 #ifdef WIN32
 #include <Windows.h>
 #define rtAtomic          volatile int32_t
-#define rtAtomicInc(ptr)  (InterlockedIncrement(ptr))
-#define rtAtomicDec(ptr)  (InterlockedDecrement(ptr))
+#define rtAtomicInc(ptr)  (InterlockedIncrement((volatile unsigned int *)ptr))
+#define rtAtomicDec(ptr)  (InterlockedDecrement((volatile unsigned int *)ptr))
 #else
 #define rtAtomic          volatile int32_t
 #define rtAtomicInc(ptr)  (__sync_add_and_fetch(ptr, 1))

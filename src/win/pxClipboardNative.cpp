@@ -8,26 +8,35 @@
 #include "pxClipboardNative.h"
 
 pxClipboardNative *pxClipboardNative::s_instance;
-
+#include "windows.h"
 
 std::string pxClipboardNative::getString(std::string type)
 {
-    printf("pxClipboardNative::getString() - ENTER\n");
-    
-    // NSPasteboard*  pasteBoard = [NSPasteboard generalPasteboard];
-    // NSString*        myString = [pasteBoard  stringForType: NSPasteboardTypeString];
-    
-    return std::string("(empty)");
+	std::string ret = "";
+  printf("pxClipboardNative::getString() - ENTER\n");
+	OpenClipboard(NULL);
+	if (IsClipboardFormatAvailable(CF_TEXT))
+	{
+		HANDLE h = GetClipboardData(CF_TEXT);  
+		char* p = (char*)GlobalLock(h);
+		ret = std::string(p);
+		GlobalUnlock(h);
+	}	
+	CloseClipboard();
+	return ret;
 }
 
 void pxClipboardNative::setString(std::string type, std::string clip)
 {
     printf("pxClipboardNative::setString() - ENTER\n");
 
-    // NSString *stringToWrite = [NSString stringWithUTF8String: clip.c_str()];
-    
-    // NSPasteboard*  pasteBoard = [NSPasteboard generalPasteboard];
+		OpenClipboard(NULL);  
+		EmptyClipboard();  
+		HANDLE hHandle = GlobalAlloc(GMEM_FIXED, clip.length() + 1);
+		char* pData = (char*)GlobalLock(hHandle);  
+		strcpy(pData, clip.c_str());
+		SetClipboardData(CF_TEXT, hHandle);  
+		GlobalUnlock(hHandle);
+		CloseClipboard();  
 
-    // [pasteBoard declareTypes:[NSArray arrayWithObject:NSStringPboardType] owner:nil];
-    // [pasteBoard setString:stringToWrite forType:NSStringPboardType];
 }
