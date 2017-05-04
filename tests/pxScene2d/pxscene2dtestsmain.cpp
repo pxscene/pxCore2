@@ -3,6 +3,8 @@
 #include <rtNode.h>
 
 pxContext context;
+int gargc;
+char** gargv;
 #ifdef ENABLE_DEBUG_MODE
 extern int g_argc;
 extern char** g_argv;
@@ -12,6 +14,8 @@ extern rtNode script;
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  gargc = argc;
+  gargv = argv;
 #ifdef ENABLE_DEBUG_MODE
   int urlIndex  = -1;
   bool isDebugging = false;

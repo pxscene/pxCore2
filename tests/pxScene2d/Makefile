@@ -12,6 +12,7 @@ SRCS_FULL=\
     test_memoryleak.cpp \
     test_rtnode.cpp \
     test_pxAnimate.cpp \
+    test_jsfiles.cpp \
 
 ifeq ($(USE_HTTP_CACHE),1)
 SRCS_FULL+=test_imagecache.cpp
