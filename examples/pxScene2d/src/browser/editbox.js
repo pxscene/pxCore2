@@ -195,8 +195,8 @@ px.import({ scene: 'px:scene.1.js',
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        inputBg.on("onMouseDown", function (e) {
-
+        clipRect.on("onMouseDown", function (e) {
+            // Pass thru'
             textInput.focus = true;
         });
 
