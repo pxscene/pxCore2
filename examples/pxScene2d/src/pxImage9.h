@@ -33,10 +33,15 @@ public:
   rtProperty(insetTop, insetTop, setInsetTop, float);
   rtProperty(insetRight, insetRight, setInsetRight, float);
   rtProperty(insetBottom, insetBottom, setInsetBottom, float);
-  rtProperty(resource, resource, setResource, rtObjectRef);  
+  rtProperty(sourceLeft, sourceLeft, setSourceLeft, float);
+  rtProperty(sourceTop, sourceTop, setSourceTop, float);
+  rtProperty(sourceRight, sourceRight, setSourceRight, float);
+  rtProperty(sourceBottom, sourceBottom, setSourceBottom, float);
+  rtProperty(resource, resource, setResource, rtObjectRef);
 
   pxImage9(pxScene2d* scene) : pxObject(scene),mInsetLeft(0),mInsetTop(0),mInsetRight(0),mInsetBottom(0), 
-                               imageLoaded(false), mListenerAdded(false) 
+                               mSourceLeft(0),mSourceTop(0),mSourceRight(0),mSourceBottom(0),imageLoaded(false),
+                               mListenerAdded(false) 
   { 
     mResource = pxImageManager::getImage("");
     mw = -1;
@@ -58,6 +63,14 @@ public:
   rtError insetBottom(float& v) const { v = mInsetBottom; return RT_OK; }
   rtError setInsetBottom(float v) { mInsetBottom = v; return RT_OK; }
 
+  rtError sourceLeft(float& v) const { v = mSourceLeft; return RT_OK; }
+  rtError setSourceLeft(float v) { mSourceLeft = v; return RT_OK; }
+  rtError sourceTop(float& v) const { v = mSourceTop; return RT_OK; }
+  rtError setSourceTop(float v) { mSourceTop = v; return RT_OK; }
+  rtError sourceRight(float& v) const { v = mSourceRight; return RT_OK; }
+  rtError setSourceRight(float v) { mSourceRight = v; return RT_OK; }
+  rtError sourceBottom(float& v) const { v = mSourceBottom; return RT_OK; }
+  rtError setSourceBottom(float v) { mSourceBottom = v; return RT_OK; }
 
   virtual ~pxImage9();
   virtual void onInit();
@@ -74,8 +87,9 @@ protected:
   inline rtImageResource* getImageResource() const { return (rtImageResource*)mResource.getPtr(); }
   
   float mInsetLeft, mInsetTop, mInsetRight, mInsetBottom;
-  rtObjectRef mResource;  
-  
+  float mSourceLeft, mSourceTop, mSourceRight, mSourceBottom;
+  rtObjectRef mResource;
+
   bool imageLoaded;
   bool mListenerAdded;
 };

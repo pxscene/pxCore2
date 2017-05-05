@@ -2432,8 +2432,9 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
   }
 }
 
-void pxContext::drawImage9(float w, float h, float x1, float y1,
-                           float x2, float y2, pxTextureRef texture)
+void pxContext::drawImage9(float w, float h, float ox1, float oy1,
+                           float ox2, float oy2, float /*ix1*/, float /*iy1*/,
+                           float /*ix2*/, float /*iy2*/, pxTextureRef texture)
 {
 #ifdef DEBUG_SKIP_IMAGE9
 #warning "DEBUG_SKIP_IMAGE9 enabled ... Skipping "
@@ -2454,7 +2455,7 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
 
   texture->setLastRenderTick(gRenderTick);
 
-  drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
+  drawImage92(0, 0, w, h, ox1, oy1, ox2, oy2, texture);
 }
 
 void pxContext::drawImage(float x, float y, float w, float h,
