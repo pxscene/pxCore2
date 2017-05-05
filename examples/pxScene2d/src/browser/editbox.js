@@ -170,6 +170,13 @@ px.import({ scene: 'px:scene.1.js',
             })
             .then((success, failure) => {
 
+                clipRect.interactive  = false;
+                inputBg.interactive   = false;
+                prompt.interactive    = false;
+                textView.interactive  = false;
+                selection.interactive = false;
+                cursor.interactive    = false;
+                
                 onSize(self.w, self.h);
 
                 // Adjust TEXT for font size ... center VERTICALLY in background
@@ -193,12 +200,6 @@ px.import({ scene: 'px:scene.1.js',
                 animateCursor();
             });
 
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        clipRect.on("onMouseDown", function (e) {
-            // Pass thru'
-            textInput.focus = true;
-        });
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -347,9 +348,9 @@ px.import({ scene: 'px:scene.1.js',
                         var s = textInput.text.slice();
 
                         if (selection_chars === 0) {
-                            // Delete ... possibly in the middle of string.
+                            // Delete ... possibly in the middle of string. Splice out char
                             var lhs_w_cursor = s.slice(0, cursor_pos - 1);
-                            var rhs_w_cursor  = s.slice(cursor_pos);
+                            var rhs_w_cursor = s.slice(cursor_pos);
 
                             textInput.text = lhs_w_cursor + rhs_w_cursor;
 
@@ -363,6 +364,29 @@ px.import({ scene: 'px:scene.1.js',
                         prompt.a = (textInput.text.length > 0) ? 0 : 1; // show/hide placeholder
                     }
                     break;
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                case keys.DELETE:
+                    {
+//                        console.log("DELETE " + textInput.text);
+
+                        var s = textInput.text.slice();
+
+                        if (selection_chars === 0) {
+                            // Delete Forwards... possibly in the middle of string.
+                            var lhs_w_cursor = s.slice(0, cursor_pos);
+                            var rhs_w_cursor = s.slice(cursor_pos + 1);
+
+                            textInput.text = lhs_w_cursor + rhs_w_cursor;
+
+                        }
+                        else {
+                            removeSelection();  // Delete selection
+                        }
+
+                        prompt.a = (textInput.text.length > 0) ? 0 : 1; // show/hide placeholder
+                    }
+                    break;
+                    
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case keys.ENTER:   // bubble up !!
                     break;
