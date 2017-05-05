@@ -41,22 +41,48 @@ px.import({ scene: 'px:scene.1.js',
         this._w = 0;
         Object.defineProperty(this, "w",
         {
-            set: function (val) { this._w = val; notify("setW( " + val + " )\n"); onSize(this._w, this._h); },
+            set: function (val) { this._w = val; onSize(this._w, this._h); },
             get: function () { return this._w; },
         });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         this._h = 0;
         Object.defineProperty(this, "h",
         {
-            set: function (val) { this._h = val; notify("setH( " + val + " )\n"); onSize(this._w, this._h); },
+            set: function (val) { this._h = val; onSize(this._w, this._h); },
             get: function () { return this._h; },
         });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Object.defineProperty(this, "focus",
         {
-            set: function (val) { textInput.focus = val; notify("setFocus( " + val + " )"); },
-            get: function () { return textInput.focus; },
+            set: function (val) { textInput.focus = val;  },
+            get: function () { return textInput.focus;    },
         });
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        this._keepFocus = true; // Lose focus on MouseLeave
+        Object.defineProperty(this, "keepFocus",
+        {
+            set: function (val) { this._keepFocus = val;  },
+            get: function () { return this._keepFocus;    },
+        });
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        this._showFocus = false; // Highlight focus 
+        Object.defineProperty(this, "showFocus",
+        {
+            set: function (val) { this._showFocus = val; },
+            get: function () { return this._showFocus;   },
+        });    
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        Object.defineProperty(this, "interactive",
+        {
+            set: function (val) {    textInput.interactive = val; 
+                                      textView.interactive = val; 
+                                 
+                                 console.log(">>> interactive = " + val);
+
+                                 },
+
+            get: function () { return textInput.interactive ;      },
+        });        
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Object.defineProperty(this, "text",
         {
@@ -70,24 +96,35 @@ px.import({ scene: 'px:scene.1.js',
                   return txt; },
         });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        Object.defineProperty(this, "prompt",
+        {
+            set: function (val) { 
+                prompt.text = val;                                                   
+            },
+            get: function () { 
+                  // Remove Leading/Trailing whitespace...
+                  var txt = prompt.text.trim();
+                  return txt; },
+        });        
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Object.defineProperty(this, "textColor",
         {
-            set: function (val) { textInput.textColor = val; },
-            get: function ()    { return textInput.textColor ; },
+            set: function (val) { textInput.textColor = val;  },
+            get: function ()    { return textInput.textColor; },
         });        
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         this._enableCopy = true;
         Object.defineProperty(this, "enableCopy",
         {
-            set: function (val) { this._enableCopy = val; notify("setEnableCopy( " + val + " )"); },
-            get: function () { return this._enableCopy; },
+            set: function (val) { this._enableCopy = val; },
+            get: function () { return this._enableCopy;   },
         });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         this._enablePaste = true;
         Object.defineProperty(this, "enablePaste",
         {
-            set: function (val) { this._enablePaste = val; notify("setEnablePaste( " + val + " )"); },
-            get: function () { return this._enablePaste; },
+            set: function (val) { this._enablePaste = val; },
+            get: function () { return this._enablePaste;   },
         });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         //
@@ -97,6 +134,8 @@ px.import({ scene: 'px:scene.1.js',
         this.moveToEnd      = moveToEnd;        
         this.selectAll      = selectAll;
         this.clearSelection = clearSelection;
+        this.hideCursor     = hideCursor;
+        this.showCursor     = showCursor;
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -134,9 +173,10 @@ px.import({ scene: 'px:scene.1.js',
         var             pts =             "pts" in params ? params.pts             : 24;
         var            font =            "font" in params ? params.font            : "FreeSans.ttf";
         var     prompt_text =     "prompt_text" in params ? params.prompt_text     : "Enter Url to JS File or Package";
-        var selection_color = "selection_color" in params ? params.selection_color : 0xFCF2A488;  // yellow
         var    prompt_color =    "prompt_color" in params ? params.prompt_color    : 0x869CB2ff;  // gray ?
+        var selection_color = "selection_color" in params ? params.selection_color : 0xFCF2A488;  // yellow
         var      text_color =      "text_color" in params ? params.text_color      : 0x303030ff;  // black
+        var      show_focus =      "show_focus" in params ? params.show_focus      : false;
 
         var ss = scene.stretch.STRETCH;
 
@@ -153,14 +193,13 @@ px.import({ scene: 'px:scene.1.js',
 
         var textView  = scene.create({ t: "object", parent: clipRect, x: 0, y: 0, w: this._w, h: this._h});
 
-        var prompt    = scene.create({ t: "text", text: prompt_text, font: fontRes, parent: textView, pixelSize: pts, textColor: prompt_color, x: 2, y: 0 });
-        var selection = scene.create({ t: "rect", w: 0, h: inputBg.h,               parent: textView, fillColor: selection_color, x: 0, y: 0, a: 0 });  // highlight rect
-        var textInput = scene.create({ t: "text", text: "", font: fontRes,          parent: textView, pixelSize: pts, textColor: text_color,   x: 2, y: 0 });
-        var cursor    = scene.create({ t: "rect", w: 2, h: inputBg.h,               parent: textInput, x: 0, y: 0 });
+        var textInputBG = scene.create({ t: "rect", w: textView.w, h: textView.h,     parent: textView, fillColor: 0xFFFFFFf0,     x: 0, y: 0, a: show_focus ? 0.25 : 0.0 });
+        var prompt      = scene.create({ t: "text", text: prompt_text, font: fontRes, parent: textView, pixelSize: pts, textColor: prompt_color, x: 2, y: 0 });
+        var selection   = scene.create({ t: "rect", w: 0, h: inputBg.h,               parent: textView, fillColor: selection_color, x: 0, y: 0, a: 0 });  // highlight rect
+        var textInput   = scene.create({ t: "text", text: "", font: fontRes,          parent: textView, pixelSize: pts, textColor: text_color,   x: 2, y: 0 });
+        var cursor      = scene.create({ t: "rect", w: 2, h: inputBg.h,               parent: textInput, x: 0, y: 0 });
 
-        var cursorW2  = (cursor.w / 2);
-
-    //    var dots = scene.create({ t: "text", text: "...", font: fontRes, parent: inputBg, pixelSize: pts, textColor: text_color, x: inputBg.w - 30, y: -1 });
+        var cursorW2   = (cursor.w / 2);
 
         var assets = [fontRes, inputRes, inputBg, clipRect, prompt, textInput, textView, cursor, selection];
 
@@ -171,18 +210,21 @@ px.import({ scene: 'px:scene.1.js',
             .then((success, failure) => {
 
                 clipRect.interactive  = false;
-                inputBg.interactive   = false;
                 prompt.interactive    = false;
-                textView.interactive  = false;
                 selection.interactive = false;
                 cursor.interactive    = false;
                 
+                textInputBG.interactive = false;
+
                 onSize(self.w, self.h);
 
                 // Adjust TEXT for font size ... center VERTICALLY in background
                 var text = fontRes.measureText(pts, "ABCdef123'");
 
                 textInput.y = (inputBg.h - text.h) / 2;
+
+                textInputBG.h = text.h;
+                textInputBG.y = textInput.y;
 
                 var metrics = fontRes.measureText(pts, textInput.text);
                 textView.w  = metrics.w;
@@ -200,12 +242,17 @@ px.import({ scene: 'px:scene.1.js',
                 animateCursor();
             });
 
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        container.on("onMouseDown", function (e) {
+     
+            textInput.focus = true;
+        });
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        textInput.on("onMouseDown", function (e) {
-
-            // cursor.a = 1;
+        textView.on("onMouseDown", function (e) {
+     
             textInput.focus = true;
 
             if(textInput.text.length > 0)
@@ -240,7 +287,6 @@ px.import({ scene: 'px:scene.1.js',
             if (self._enableCopy && keys.is_SHIFT(e.flags & 0x8)) // <<  SHIFT KEY    TODO: Fix "is_SHIFT()"
             {
                 selection_chars = cursor_pos - selection_start;
-
                 makeSelection(selection_start, selection_chars);
             }           
             else
@@ -256,25 +302,45 @@ px.import({ scene: 'px:scene.1.js',
             }
         });
  
-         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         textInput.on("onMouseUp", function (e) {
 
             buttonDown = false;
-
-// console.log("#######  onMouseUp ....  buttonDown = " + buttonDown);
-
         });
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        textInput.on("onMouseLeave", function (e) {
+        textView.on("onMouseEnter", function (e) {
 
-// console.log("#######  onMouseLeave ....  buttonDown = " + buttonDown);
+             console.log(">>> textView.onMouseEnter   SHOW FOCUS:" + self.showFocus );
 
-            //cursor.a = 0;
-            //textInput.focus = false;
-            buttonDown      = false;
+            if(self.showFocus)
+            {
+                textInputBG.a = 0.5;
+            }
+        });
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        textView.on("onMouseLeave", function (e) {
+
+//            console.log(">>> textView.onMouseLeave   SHOW:" + self.showFocus + " KEEP:  " + self.keepFocus);
+
+            if(self.showFocus)
+            {
+                textInputBG.a = 0.25;
+            }
+
+            buttonDown = false;
+
+            if(self.keepFocus === false)
+            {
+                hideCursor();
+                clearSelection();
+
+                textView.focus = false;
+            }
         });
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -298,8 +364,8 @@ px.import({ scene: 'px:scene.1.js',
 
         container.on("onFocus", function (e) {
 
-                cursor.a = 1;
-                animateCursor();
+            showCursor();
+            animateCursor();
 
 // console.log(" OnFocus()    textInput.focus ");// = " + textInput.focus);
         });
@@ -799,6 +865,15 @@ console.log(">>> makeSelection() ... selection.x = " + selection.x + "   selecti
             updateCursor(cursor_pos);
         }
 
+        function hideCursor()
+        {
+            cursor.a = 0;
+        }
+        
+        function showCursor()
+        {
+            cursor.a = 1;
+        }
 
         function moveToHome() {
             cursor_pos = 0;
