@@ -19,6 +19,9 @@
     <Filter Include="node">
       <UniqueIdentifier>{05e37478-e341-4634-b304-0936818cb315}</UniqueIdentifier>
     </Filter>
+    <Filter Include="breakpad">
+      <UniqueIdentifier>{04ab5568-7e07-4f91-a702-76798f976567}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\ioapi.c">
@@ -474,11 +477,12 @@
       <Filter>native</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="resource1.h" />
+    <ClInclude Include="..\..\examples\pxScene2d\src\breakpadSupport.h">
+      <Filter>breakpad</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pxScene.rc" />
-    <ResourceCompile Include="pxScene1.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="pxscene.ico" />
