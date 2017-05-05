@@ -98,5 +98,5 @@ TEST_F(jsFilesTest, jsTests)
   test("shell.js?url=http://www.pxscene.org/examples/px-reference/gallery/fancy.js",5.0);
   test("shell.js?url=http://www.pxscene.org/examples/px-reference/gallery/picturepile.js",5.0);
   test("shell.js?url=http://www.pxscene.org/examples/px-reference/gallery/gallery.js",20.0);
-  test("shell.js?url=https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js",180.0);
+  //test("shell.js?url=https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js",180.0);
 }
