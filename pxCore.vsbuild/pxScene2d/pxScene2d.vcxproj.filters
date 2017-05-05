@@ -474,11 +474,10 @@
       <Filter>native</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="resource1.h" />
+    <ClInclude Include="..\..\examples\pxScene2d\src\breakpadSupport.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pxScene.rc" />
-    <ResourceCompile Include="pxScene1.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="pxscene.ico" />
