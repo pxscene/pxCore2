@@ -45,6 +45,10 @@ function Scene() {
     return nativeScene.loadArchive(u);
   };
 
+  this.setCustomAnimator = function( f ) {
+    return nativeScene.setCustomAnimator( f );
+  }
+
   this.getX = function() { return nativeScene.x; };
   this.getY = function() {
     return nativeScene.y; };

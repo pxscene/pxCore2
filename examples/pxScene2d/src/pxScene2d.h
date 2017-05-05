@@ -1266,6 +1266,7 @@ public:
                         rtObjectRef);
 */
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
+  rtMethod1ArgAndNoReturn("setCustomAnimator", setCustomAnimator, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
 
   // TODO make this a property
@@ -1354,6 +1355,11 @@ public:
 
   rtError clock(uint64_t & time);
   rtError logDebugMetrics();
+
+  rtError setCustomAnimator(const rtFunctionRef& f) {
+      mCustomAnimator = f;
+      return RT_OK;
+  }
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
@@ -1519,6 +1525,7 @@ private:
   #endif
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
+  rtFunctionRef mCustomAnimator;
 public:
   void hidePointer( bool hide )
   {
