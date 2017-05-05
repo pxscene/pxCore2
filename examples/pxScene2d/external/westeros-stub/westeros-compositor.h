@@ -49,7 +49,11 @@ typedef enum _WstClient_status
 typedef enum _WstHints
 {
    WstHints_none= 0,
-   WstHints_noRotation= (1<<0)
+   WstHints_noRotation= (1<<0),
+   WstHints_holePunch= (1<<1),
+   WstHints_fboTarget= (1<<2),
+   WstHints_applyTransform= (1<<3),
+   WstHints_animating= (1<<4)
 } WstHints;
 
 typedef void (*WstTerminatedCallback)( WstCompositor *ctx, void *userData );

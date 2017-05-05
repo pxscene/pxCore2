@@ -70,6 +70,11 @@ pxWayland::pxWayland(bool useFbo)
   mFillColor[1]= 0.0; 
   mFillColor[2]= 0.0; 
   mFillColor[3]= 0.0; 
+
+  mClearColor[0]= 0.0;
+  mClearColor[1]= 0.0;
+  mClearColor[2]= 0.0;
+  mClearColor[3]= 0.0;
 }
 
 pxWayland::~pxWayland()
@@ -316,7 +321,8 @@ void pxWayland::onDraw()
      WstCompositorSetOutputSize( mWCtx, mWidth, mHeight );
   }
 
-  bool drawWithFBO= isRotated() || mUseFbo;
+  bool rotated= isRotated();
+  bool drawWithFBO= rotated || mUseFbo;
   if ( drawWithFBO )
   {
      if ( (mFBO->width() != mWidth) ||
@@ -334,24 +340,39 @@ void pxWayland::onDraw()
      }
   }
   
-  int hints= 0;
-  if ( !drawWithFBO) hints |= WstHints_noRotation;
+  int hints= WstHints_none;
   
   bool needHolePunch;
   std::vector<WstRect> rects;
   pxContextFramebufferRef previousFrameBuffer;
   pxMatrix4f m= context.getMatrix();
+
   if ( drawWithFBO )
   {
-     context.pushState();
-     previousFrameBuffer= context.getCurrentFramebuffer();
-     context.setFramebuffer( mFBO );
-     context.clear( mWidth, mHeight, mFillColor );
+     hints |= WstHints_fboTarget;
   }
-  else if ( mFillColor[3] != 0.0 )
+  else
+  {
+     hints |= WstHints_applyTransform;
+     hints |= WstHints_holePunch;
+  }
+  if ( !rotated ) hints |= WstHints_noRotation;
+  if ( memcmp( mLastMatrix.data(), m.data(), 16*sizeof(float) ) != 0 ) hints |= WstHints_animating;
+  mLastMatrix= m;
+
+  if ( mFillColor[3] != 0.0 )
   {
      context.drawRect(mWidth, mHeight, 0, mFillColor, NULL );
   }
+
+  context.pushState();
+  if ( drawWithFBO )
+  {
+     previousFrameBuffer= context.getCurrentFramebuffer();
+     context.setFramebuffer( mFBO );
+     context.clear( mWidth, mHeight, mClearColor );
+  }
+
   WstCompositorComposeEmbedded( mWCtx, 
                                 mX,
                                 mY,
@@ -365,15 +386,10 @@ void pxWayland::onDraw()
   if ( drawWithFBO )
   {
      context.setFramebuffer( previousFrameBuffer );
-     context.popState();
   }
   
   if ( drawWithFBO && needHolePunch )
   {
-     if ( mFillColor[3] != 0.0 )
-     {
-        context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
-     }
      GLfloat priorColor[4];
      GLint priorBox[4];
      GLint viewport[4];
@@ -393,6 +409,7 @@ void pxWayland::onDraw()
            glClear( GL_COLOR_BUFFER_BIT );
         }
      }
+     glClearColor( priorColor[0], priorColor[1], priorColor[2], priorColor[3] );
      
      if ( wasEnabled )
      {
@@ -403,6 +420,8 @@ void pxWayland::onDraw()
         glDisable( GL_SCISSOR_TEST );
      }
   }
+  context.popState();
+
   if ( drawWithFBO )
   {
      context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);

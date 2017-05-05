@@ -164,6 +164,7 @@ private:
   int mWidth;
   int mHeight;
   bool mUseFbo;
+  pxMatrix4f mLastMatrix;
 
   static void invalidate( WstCompositor *wctx, void *userData );
   static void hidePointer( WstCompositor *wctx, bool hide, void *userData );
@@ -194,6 +195,7 @@ protected:
   pxContextFramebufferRef mFBO;
   WstCompositor *mWCtx;
   float mFillColor[4];
+  float mClearColor[4];
 
   bool mHasApi;
   rtValue mAPI;
