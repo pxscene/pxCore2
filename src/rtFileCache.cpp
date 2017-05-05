@@ -141,7 +141,7 @@ int64_t rtFileCache::cacheSize()
 
 rtError rtFileCache::setCacheDirectory(const char* directory)
 {
-  if (NULL == directory)
+  if ((NULL == directory) || (0 == strlen(directory)))
   {
     return RT_ERROR;
   }
@@ -251,12 +251,15 @@ rtError rtFileCache::httpCacheData(const char* url, rtHttpCacheData& cacheData)
 
 void rtFileCache::clearCache()
 {
-  string cmd = "rm -rf ";
-  cmd.append(mDirectory.cString());
-  cmd.append("/*");
-  system(cmd.c_str());
-  mFileSizeMap.clear();
-  mCurrentSize = 0;
+  if (! mDirectory.isEmpty())
+  {
+    string cmd = "rm -rf ";
+    cmd.append(mDirectory.cString());
+    cmd.append("/*");
+    system(cmd.c_str());
+    mFileSizeMap.clear();
+    mCurrentSize = 0;
+  }
 }
 
 int64_t rtFileCache::cleanup()

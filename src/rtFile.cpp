@@ -49,7 +49,8 @@ rtData::~rtData() { term(); }
 
 rtError rtData::init(uint32_t length) {
   term();
-  mData = new uint8_t[length];
+  mData = new uint8_t[length+1];
+  memset(mData, 0, length+1);
   if (mData) {
     mLength = length;
     return RT_OK;
