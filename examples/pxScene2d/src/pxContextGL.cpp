@@ -1591,26 +1591,10 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     { tw, secondTextureY }
   };
 
-  float colorPM[4];
-  premultiply(colorPM,color);
 
   static float blackColor[4] = {0.0, 0.0, 0.0, 1.0};
 
-  if (mask.getPtr() == NULL && texture->getType() != PX_TEXTURE_ALPHA)
-  {
-    if (gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,xStretch,yStretch) != PX_OK)
-    {
-      drawRect2(0, 0, iw, ih, blackColor);
-    }
-  }
-  else if (mask.getPtr() == NULL && texture->getType() == PX_TEXTURE_ALPHA)
-  {
-    if (gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,colorPM) != PX_OK)
-    {
-      drawRect2(0, 0, iw, ih, blackColor);
-    }
-  }
-  else if (mask.getPtr() != NULL)
+  if (mask.getPtr() != NULL)
   {
     if (gTextureMaskedShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,mask) != PX_OK)
     {
@@ -1618,8 +1602,22 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     }
   }
   else
+  if (texture->getType() != PX_TEXTURE_ALPHA)
   {
-    rtLogError("Unhandled case");
+    if (gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,xStretch,yStretch) != PX_OK)
+    {
+      drawRect2(0, 0, iw, ih, blackColor);
+    }
+  }
+  else //PX_TEXTURE_ALPHA
+  {
+    float colorPM[4];
+    premultiply(colorPM,color);
+
+    if (gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,colorPM) != PX_OK)
+    {
+      drawRect2(0, 0, iw, ih, blackColor);
+    }
   }
 }
 
