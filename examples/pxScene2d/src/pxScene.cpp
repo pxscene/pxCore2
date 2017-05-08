@@ -195,27 +195,12 @@ protected:
 #endif 
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
-#ifdef RUNINMAIN
-   script.garbageCollect();
-#endif
 ENTERSCENELOCK()
     mView = NULL;
 EXITSCENELOCK()
 #ifndef RUNINMAIN
    script.setNeedsToEnd(true);
 #endif
-  #ifdef ENABLE_DEBUG_MODE
-    free(g_origArgv);
-  #endif
-    script.garbageCollect();
-    if (gDumpMemUsage)
-    {
-      rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
-      rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
-    }
-    #ifdef ENABLE_CODE_COVERAGE
-    __gcov_flush();
-    #endif
   ENTERSCENELOCK()
       eventLoop.exit();
   EXITSCENELOCK()
@@ -498,6 +483,7 @@ if (s && (strcmp(s,"1") == 0))
 #endif
 
   eventLoop.run();
+
 #ifdef ENABLE_DEBUG_MODE
   free(g_origArgv);
 #endif
@@ -507,6 +493,10 @@ if (s && (strcmp(s,"1") == 0))
     rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
     rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
   }
+#ifdef ENABLE_CODE_COVERAGE
+    __gcov_flush();
+#endif
+
 
 
 #ifdef WIN32
