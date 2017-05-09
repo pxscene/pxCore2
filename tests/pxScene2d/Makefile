@@ -13,10 +13,10 @@ SRCS_FULL=\
     test_rtnode.cpp \
     test_pxAnimate.cpp \
     test_jsfiles.cpp \
-
-ifeq ($(USE_HTTP_CACHE),1)
-SRCS_FULL+=test_imagecache.cpp
-endif
+    test_imagecache.cpp \
+    test_rtError.cpp \
+    test_rtFile.cpp \
+    test_pxUtil.cpp \
 
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PXCOREDIR=$(MAKEFILE_PATH)/../../
@@ -29,10 +29,12 @@ PXHDRS=$(PXCOREDIR)/src
 EXTDIR=$(PXCOREDIR)examples/pxScene2d/external
 
 ZLIB=$(EXTDIR)/zlib/
+PNG=$(EXTDIR)/png/
 SEARCH=\
 	-Ilinux \
 	-I$(PXHDRS) \
 	-I$(ZLIB) \
+	-I$(PNG) \
 	-I$(NODEDIR)/src \
 	-I$(NODEDIR)/deps/v8 \
 	-I$(NODEDIR)/deps/v8/include \
@@ -64,7 +66,7 @@ LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDZLIB) $(LDJPG) $(LDLIBJPEGTURB
 NODEDIR = $(EXTDIR)/libnode-v6.9.0
 LDNODE   = -L$(NODEDIR)/out/Release/obj.target
 LDNODEV8 = -L$(NODEDIR)/out/Release
-LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode -L../../build/glut/ -lpxCore -lrtCore_s  $(LDEXT) -pthread -lglut -lGLEW -lGL -lX11 
+LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode -L../../build/glut/ -lpxCore -lrtCore_s  $(LDEXT) -pthread -lglut -lGLEW -lGL -lX11 -ldl
 ifeq ($(CODE_COVERAGE), 1)
 LDFLAGS +=  -lgcov
 endif
