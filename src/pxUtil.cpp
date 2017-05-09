@@ -121,17 +121,18 @@ bool pxIsPNGImage(const char * /*imageData*/, size_t /*imageDataSize*/)
 rtError pxLoadPNGImage(const char *filename, pxOffscreen &o)
 {
   rtData d;
-  if (rtLoadFile(filename, d) == RT_OK)
+  rtError e = rtLoadFile(filename, d);
+  if (e == RT_OK)
   {
     // TODO get rid of the cast
-    return pxLoadPNGImage((const char *)d.data(), d.length(), o);
+    e = pxLoadPNGImage((const char *)d.data(), d.length(), o);
   }
   else
   {
     rtLogError("Failed to load image file, %s.", filename);
   }
 
-  return RT_OK;
+  return e;
 }
 
 /* structure to store PNG image bytes */
