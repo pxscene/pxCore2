@@ -14,7 +14,7 @@ CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS)
 OUTDIR=../../build/glut
 
 ifndef USE_EXTERNALS_GLUT
-USE_EXTERNALS_GLUT=true
+USE_EXTERNALS_GLUT=false
 endif
 
 ifeq ($(USE_EXTERNALS_GLUT), true)

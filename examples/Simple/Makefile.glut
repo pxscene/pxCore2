@@ -12,7 +12,7 @@ endif
 CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS)	
 
 ifndef USE_EXTERNALS_GLUT
-USE_EXTERNALS_GLUT=true
+USE_EXTERNALS_GLUT=false
 endif
 
 ifeq ($(USE_EXTERNALS_GLUT), true)
