@@ -14,7 +14,7 @@ PathR=$externalLibs:$externalDir/libnode-v6.9.0/out/Release/obj.target
 
 export LD_LIBRARY_PATH=$PathR
 
-EXTERNALS_GLUT=true
+EXTERNALS_GLUT=false
 if [[ ! -z "$USE_EXTERNALS_GLUT" ]]
 then
 EXTERNALS_GLUT=$USE_EXTERNALS_GLUT
