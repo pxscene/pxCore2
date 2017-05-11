@@ -1,0 +1,105 @@
+cmake_minimum_required(VERSION 2.8)
+project(pxscene)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+
+set(PXCOREDIR ${CMAKE_SOURCE_DIR}/../../..)
+set(EXTDIR "${CMAKE_SOURCE_DIR}/../external")
+set(NODEDIR "${EXTDIR}/libnode-v6.9.0/")
+set(NODEINC "${NODEDIR}/src ${NODEDIR}/deps/uv/include ${NODEDIR}/deps/v8 ${NODEDIR}/deps/debugger-agent/include ${NODEDIR}/deps/v8/include ${NODEDIR}/deps/cares/include")
+set(ZLIBINC "${EXTDIR}/zlib/")
+set(CURLINC "${EXTDIR}/curl/include")
+set(JPGINC "${EXTDIR}/jpg")
+set(JPGTURBOINC "${EXTDIR}/libjpeg-turbo")
+set(PNGINC "${EXTDIR}/png")
+set(FREETYPEINC "${EXTDIR}/ft/include")
+set(WESTEROSINC ${EXTDIR}/westeros/external/install/include)
+set(WESTEROSSTUBINC ${EXTDIR}/westeros-stub)
+set(JPEGTURBOINC ${EXTDIR}/libjpeg-turbo)
+set(BREAKPADINC ${EXTDIR}/breakpad/src)
+set(RTREMOTEINC ${PXCOREDIR}/remote)
+
+if (APPLE)
+        message ("building pxscene for mac")
+        set(PX_PLATFORM PX_PLATFORM_MAC)
+        set(PXSCENE_LINK_DIRECTORIES ${PXCOREDIR}/build/mac)
+        add_definitions(-DENABLE_NODE_V_6_9 -D_DARWIN_USE_64_BIT_INODE=1 -DNODE_ARCH="x64" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS= -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DHAVE_OPENSSL=1 -DHAVE_DTRACE=1 -D__POSIX__ -DNODE_PLATFORM="darwin" -DUCONFIG_NO_TRANSLITERATION=1 -DUCONFIG_NO_SERVICE=1 -DUCONFIG_NO_REGULAR_EXPRESSIONS=1 -DU_ENABLE_DYLOAD=0 -DU_STATIC_IMPLEMENTATION=1 -DU_HAVE_STD_STRING=0 -DUCONFIG_NO_BREAK_ITERATION=0 -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_CONVERSION=1 -DHTTP_PARSER_STRICT=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64)
+        set(PLATFORM_SOURCES mac/pxContextUtils.mm)
+        set(PXSCENE_LINKER_OPTIONS "-framework OpenGL -framework Cocoa -framework Foundation")
+        set(PXSCENE_LINK_LIBRARIES )
+        set(PLATFORM_LIBRARIES )
+        if (DEFINED ENV{CODE_COVERAGE})
+                message("enabling code coverage support")
+                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+                add_definitions(-DENABLE_CODE_COVERAGE)
+                set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/8.0.0/lib/darwin)
+                set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} clang_rt.profile_osx)
+        endif()
+        add_custom_target(pxsceneDone ALL DEPENDS ${CMAKE_SOURCE_DIR}/pxscene)
+        add_custom_command(TARGET pxsceneDone COMMENT "making app bundle" POST_BUILD COMMAND ${CMAKE_SOURCE_DIR}/mkapp.sh WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+else (APPLE)
+        message ("building pxscene for glut")
+        set(PX_PLATFORM PX_PLATFORM_GLUT)
+        set(PXSCENE_LINK_DIRECTORIES ${PXCOREDIR}/build/glut)
+        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libjpeg-turbo/.libs)
+        add_definitions(-DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1)
+        add_definitions(-DENABLE_LIBJPEG_TURBO -DHAS_LINUX_BREAKPAD)
+        set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
+        set(PXSCENE_LINKER_OPTIONS "")
+        set(PXSCENE_LINK_LIBRARIES pthread breakpad_client)
+        set(PLATFORM_LIBRARIES X11 glut GLEW GL dl rt turbojpeg)
+        if (DEFINED ENV{CODE_COVERAGE})
+                message("enabling code coverage support")
+                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+                add_definitions(-DENABLE_CODE_COVERAGE)
+                set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} gcov)
+        endif()
+endif(APPLE)
+
+set (TARGETINCLUDE "")
+set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/png/.libs)
+set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/jpg/.libs)
+set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/ft/objs/.libs)
+set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/curl/lib/.libs)
+set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/zlib)
+set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODEDIR}/out/Release/obj.target ${NODEDIR}/out/Release ${NODEDIR}/out/Release/obj.target/deps/v8/tools/gyp)
+set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/breakpad/src/client/linux)
+
+set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} node pxCore rtCore_s v8_libplatform)
+set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} png16 jpeg freetype curl z)
+set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} ${PLATFORM_LIBRARIES})
+
+add_definitions(-DENABLE_DEBUG_MODE -DPNG_APNG_SUPPORTED)
+add_definitions(-DRT_PLATFORM_LINUX -D${PX_PLATFORM} -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE)
+
+#todo add code coverage check
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+#set(PXSCENE_LINKER_OPTIONS "${PXSCENE_LINKER_OPTIONS} -lgcov")
+
+
+include_directories(AFTER ${NODEDIR}/src ${NODEDIR}/deps/uv/include ${NODEDIR}/deps/v8 ${NODEDIR}/deps/debugger-agent/include ${NODEDIR}/deps/v8/include ${NODEDIR}/deps/cares/include)
+include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${GLUTINC} ${FREETYPEINC})
+include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${JPEGTURBOINC} ${BREAKPADINC} ${RTREMOTEINC} ${PXCOREDIR}/src)
+include_directories(AFTER ${CMAKE_SOURCE_DIR})
+
+set(PXSCENE_FILES pxScene2d.cpp pxResource.cpp  pxConstants.cpp  pxRectangle.cpp  pxFont.cpp  pxText.cpp
+        pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxArchive.cpp pxAnimate.cpp)
+
+set(PXSCENE_FILES ${PXSCENE_FILES} ../external/westeros-stub/westeros-stub.cpp pxContextGL.cpp pxWayland.cpp pxWaylandContainer.cpp pxScene.cpp)
+set(PXSCENE_FILES ${PXSCENE_FILES} ${PLATFORM_SOURCES})
+
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wno-deprecated -fpermissive -std=c++11")
+
+set(CMAKE_EXE_LINKER_FLAGS  ${CMAKE_EXE_LINKER_FLAGS} ${PXSCENE_LINKER_OPTIONS} )
+link_directories(${PXSCENE_LINK_DIRECTORIES})
+#link_libraries(${PXSCENE_LINK_LIBRARIES})
+
+
+
+add_executable(pxscene ${PXSCENE_FILES})
+target_link_libraries(pxscene ${PXSCENE_LINK_LIBRARIES})
