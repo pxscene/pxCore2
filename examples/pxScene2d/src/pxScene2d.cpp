@@ -1266,7 +1266,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   {
     deleteSnapshot(fbo);
     //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
-    fbo = context.createFramebuffer(floor(w), floor(h));
+    fbo = context.createFramebuffer(floor(w), floor(h), antiAliasing);
   }
   else
   {
