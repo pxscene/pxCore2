@@ -2040,7 +2040,7 @@ float pxContext::getAlpha()
   return gAlpha;
 }
 
-pxContextFramebufferRef pxContext::createFramebuffer(int width, int height)
+pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool /*antiAliasing*/)
 {
   pxContextFramebuffer *fbo     = new pxContextFramebuffer();
   pxFBOTexture         *texture = new pxFBOTexture();
