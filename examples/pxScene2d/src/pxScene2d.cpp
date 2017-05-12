@@ -468,12 +468,7 @@ rtError pxObject::Set(const char* name, const rtValue* value)
   {
     repaint();
   }
-  pxObject* parent = mParent;
-  while (parent)
-  {
-    parent->repaint();
-    parent = parent->parent();
-  }
+  repaintParents();
   mScene->mDirty = true;
   return rtObject::Set(name, value);
 }
@@ -574,8 +569,12 @@ rtError pxObject::remove()
     {
       if ((it)->getPtr() == this)
       {
+        pxObject* parent = mParent;
         mParent->mChildren.erase(it);
         mParent = NULL;
+        parent->repaint();
+        parent->repaintParents();
+        mScene->mDirty = true;
         return RT_OK;
       }
     }
@@ -586,6 +585,9 @@ rtError pxObject::remove()
 rtError pxObject::removeAll()
 {
   mChildren.clear();
+  repaint();
+  repaintParents();
+  mScene->mDirty = true;
   return RT_OK;
 }
 
@@ -1351,16 +1353,21 @@ void pxObject::deleteSnapshot(pxContextFramebufferRef fbo)
 bool pxObject::onTextureReady()
 {
   repaint();
+  repaintParents();
+  #ifdef PX_DIRTY_RECTANGLES
+  mIsDirty = true;
+  #endif //PX_DIRTY_RECTANGLES
+  return false;
+}
+
+void pxObject::repaintParents()
+{
   pxObject* parent = mParent;
   while (parent)
   {
     parent->repaint();
     parent = parent->parent();
   }
-  #ifdef PX_DIRTY_RECTANGLES
-  mIsDirty = true;
-  #endif //PX_DIRTY_RECTANGLES
-  return false;
 }
 
 rtDefineObject(rtPromise, rtObject);
