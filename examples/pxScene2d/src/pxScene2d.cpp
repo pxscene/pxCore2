@@ -40,6 +40,7 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
+#include "pxServiceManager.h"
 #include "pxImage9.h"
 #include "pxImageA.h"
 
@@ -1532,6 +1533,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
+  else if (!strcmp("serviceManager",t.cString()))
+    e = createServiceManager(p,o);
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
@@ -1608,6 +1611,12 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
   o = new pxImage(this);
   o.set(p);
   o.send("init");
+  return RT_OK;
+}
+
+rtError pxScene2d::createServiceManager(rtObjectRef p, rtObjectRef& o)
+{
+  pxServiceManager::findServiceManager(o);  
   return RT_OK;
 }
 

@@ -106,6 +106,7 @@ PX_SRCS_FULL=\
   pxImage9.cpp \
   pxImageA.cpp \
   pxArchive.cpp \
+  pxServiceManager.cpp \
   pxAnimate.cpp
 
 EXTDIR=../external
@@ -264,6 +265,7 @@ PXSCENE_LIB_SRCS=\
   pxImageA.cpp \
   pxArchive.cpp \
   pxFont.cpp \
+  pxServiceManager.cpp \
   pxAnimate.cpp
 
 ifneq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
