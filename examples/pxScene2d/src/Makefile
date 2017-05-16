@@ -15,11 +15,14 @@ libs-glut: libpxscene-glut
 libs-dfbwindow: libpxscene-dfbwindow
 endif
 
+
 HAVE_WESTEROS := $(shell test -f ../external/westeros/Makefile.ubuntu && echo 1)
 
 ifneq ($(HAVE_WESTEROS),1)
 HAVE_WESTEROS := $(shell pkg-config --exists westeros-compositor && echo 1)
 endif
+
+HAVE_RT_REMOTE := $(shell test -f ../../../remote/librtRemote.so -o -f ../../../remote/librtRemote_s.a && echo 1)
 
 clean:
 	rm -rf $(OBJDIR)
@@ -416,6 +419,10 @@ PXSCENE_EXTRA_DEFINES=-DPNG_APNG_SUPPORTED
 endif
 endif
 
+ifeq ($(HAVE_RT_REMOTE),1)
+EXTRA_COMPILER_FLAGS:=$(EXTRA_COMPILER_FLAGS) -DUSE_RT_REMOTE 
+LDFLAGS_FULL:=$(LDFLAGS_FULL) -L../../../remote -lrtRemote
+endif
 
 analyze:
 	$(MAKE) clean

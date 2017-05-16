@@ -1337,7 +1337,9 @@ public:
   rtError createText(rtObjectRef p, rtObjectRef& o);
   rtError createTextBox(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
+#ifdef USE_RT_REMOTE
   rtError createServiceManager(rtObjectRef p, rtObjectRef& o);
+#endif
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
   rtError createImageA(rtObjectRef p, rtObjectRef& o);
   rtError createImageResource(rtObjectRef p, rtObjectRef& o); 
