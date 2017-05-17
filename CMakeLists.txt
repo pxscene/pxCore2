@@ -21,17 +21,36 @@ if (APPLE)
                 src/mac/pxEventLoopNative.mm src/mac/pxTimerNative.mm src/mac/pxTimerNative.mm
                 src/mac/pxClipboardNative.mm src/mac/window.mm)
         set(PLATFORM_LINKER_FLAGS "-framework Cocoa -framework Foundation")
+elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+        execute_process(COMMAND "hostname" OUTPUT_VARIABLE HOSTNAME)
+        string(STRIP ${HOSTNAME} HOSTNAME)
+        if (HOSTNAME STREQUAL "raspberrypi")
+                 message("Building pxcore for raspberry pi")
+                 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build/egl)
+                 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build/egl)
+                 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build/egl)
+                 add_definitions(-DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_DEBUG_MODE)
+                 add_definitions(-DPX_PLATFORM_GENERIC_EGL -DRT_PLATFORM_LINUX -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN -DPNG_APNG_SUPPORTED)
+                 set(PXCORE_FILES src/gles/pxBufferNative.cpp src/gles/pxOffscreenNative.cpp src/gles/pxWindowNative.cpp
+                       src/gles/pxEventLoopNative.cpp src/gles/pxTimerNative.cpp src/gles/pxTimerNative.cpp
+                       src/gles/pxClipboardNative.cpp src/gles/pxEGLProviderRPi.cpp src/gles/LinuxInputEventDispatcher.cpp)
+                 set(PLATFORM_LINKER_FLAGS )
+                 include_directories(AFTER /opt/vc/include /opt/vc/include/interface/vcos/pthreads 
+                        /opt/vc/include/interface/vmcs_host/linux /opt/vc/include)
+        else(HOSTNAME STREQUAL "raspberrypi")
+                 message("Building pxcore for glut")
+                 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build/glut)
+                 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build/glut)
+                 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build/glut)
+                 add_definitions(-DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_DEBUG_MODE)
+                 add_definitions(-DPX_PLATFORM_GLUT -DRT_PLATFORM_LINUX -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN -DENABLE_LIBJPEG_TURBO -DPNG_APNG_SUPPORTED)
+                 set(PXCORE_FILES src/glut/pxBufferNative.cpp src/glut/pxOffscreenNative.cpp src/glut/pxWindowNative.cpp 
+                       src/glut/pxEventLoopNative.cpp src/glut/pxTimerNative.cpp src/glut/pxTimerNative.cpp
+                       src/glut/pxClipboardNative.cpp)
+                 set(PLATFORM_LINKER_FLAGS )
+        endif(HOSTNAME STREQUAL "raspberrypi")
 else (APPLE)
-        message("Building pxcore for glut")
-        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build/glut)
-        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build/glut)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build/glut)
-        add_definitions(-DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_DEBUG_MODE)
-        add_definitions(-DPX_PLATFORM_GLUT -DRT_PLATFORM_LINUX -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN -DENABLE_LIBJPEG_TURBO -DPNG_APNG_SUPPORTED)
-        set(PXCORE_FILES src/glut/pxBufferNative.cpp src/glut/pxOffscreenNative.cpp src/glut/pxWindowNative.cpp
-                src/glut/pxEventLoopNative.cpp src/glut/pxTimerNative.cpp src/glut/pxTimerNative.cpp
-                src/glut/pxClipboardNative.cpp)
-        set(PLATFORM_LINKER_FLAGS )
+        message(FATAL_ERROR "Cannot build pxcore.  Unknown platform")
 endif(APPLE)
 
 
