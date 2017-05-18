@@ -23,6 +23,7 @@ retVal=$?
 count=$((count+60))
 done
 
+echo "kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`"
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 sleep 5s;
 pkill -15 -f pxscene.sh

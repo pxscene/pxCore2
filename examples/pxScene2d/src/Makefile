@@ -227,7 +227,8 @@ ifeq ($(UNAME_S),Darwin)
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore $(LDEXT) -ldl -lv8_libplatform -framework OpenGL -framework Cocoa -framework Foundation
 ifeq ($(CODE_COVERAGE), 1)
 CXXFLAGS += -fprofile-arcs -ftest-coverage -DENABLE_CODE_COVERAGE
-LDFLAGS += -lclang_rt.profile_osx -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/8.0.0/lib/darwin
+LLVM_VERSION := $(shell clang --version|grep "LLVM version"|awk '{print $$4}')
+LDFLAGS += -lclang_rt.profile_osx -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/$(LLVM_VERSION)/lib/darwin
 endif
 else
 ifeq ($(HNAME_S),raspberrypi)
