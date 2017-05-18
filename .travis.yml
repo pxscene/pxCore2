@@ -24,8 +24,8 @@ before_script:
 - ccache -s
 script:
 - cd $TRAVIS_BUILD_DIR
-- sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "testrunner_$TRAVIS_OS_NAME.sh" "code_coverage_$TRAVIS_OS_NAME.sh"
-  "unittests_$TRAVIS_OS_NAME.sh" "pxleakcheck_$TRAVIS_OS_NAME.sh"
+- sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "testrunner_$TRAVIS_OS_NAME.sh" "unittests_$TRAVIS_OS_NAME.sh"
+   "code_coverage_$TRAVIS_OS_NAME.sh" "pxleakcheck_$TRAVIS_OS_NAME.sh"
 - cd $TRAVIS_BUILD_DIR
 - coveralls --build-root $TRAVIS_BUILD_DIR --no-gcov --lcov-file tracefile
 - genhtml -o $TRAVIS_BUILD_DIR/logs/codecoverage tracefile
@@ -44,7 +44,7 @@ before_install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry sudo apt-get update; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry sudo apt-get install git
   libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm
-  autoconf valgrind libyaml-dev lcov cmake x11proto-input-dev; fi
+  autoconf valgrind libyaml-dev lcov cmake x11proto-input-dev lighttpd; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cd /usr/include/X11/extensions && sudo
   ln -s XI.h XInput.h; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ];  then brew update; fi
