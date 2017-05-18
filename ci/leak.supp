@@ -1,12 +1,4 @@
 {
-  glutLeaks
-  Memcheck:Leak
-  match-leak-kinds:all
-  ...
-  fun:fgOpenWindow
-  ...
-}
-{
   shaderLeaksLinkShaderTravis
   Memcheck:Leak
   match-leak-kinds:all

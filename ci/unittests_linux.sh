@@ -1,4 +1,5 @@
 #!/bin/sh
+
 cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
 touch $TRAVIS_BUILD_DIR/logs/test_logs;
 TESTLOGS=$TRAVIS_BUILD_DIR/logs/test_logs;
