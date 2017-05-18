@@ -986,12 +986,7 @@ public:
     return c;
   }
 
-  void dispose()
-  {
-     rtLogInfo(__FUNCTION__);
-     setScriptView(NULL);
-     pxObject::dispose();
-  }
+  void dispose();
   rtError url(rtString& v) const { v = mUrl; return RT_OK; }
   rtError setUrl(rtString v);
 
@@ -1431,7 +1426,24 @@ public:
     }
     return e;
   }
-  
+
+  void sceneContainerDisposed(pxSceneContainer* ref)
+  {
+    // this is to make sure, we are not clearing the scene containers vector, while it is under process from scene dispose
+    if (!mDisposed)
+    {
+      unsigned int pos = 0;
+      for (; pos<mSceneConts.size(); pos++)
+      {
+        if (mSceneConts[pos] == ref)
+          break;
+      }
+      if (pos != mSceneConts.size())
+      {
+        mSceneConts.erase(mSceneConts.begin()+pos);
+      }
+    }
+  }
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
@@ -1479,6 +1491,7 @@ private:
   int32_t mPointerHotSpotY;
   #endif
   bool mPointerHidden;
+  std::vector<pxSceneContainer*> mSceneConts;
 public:
   void hidePointer( bool hide )
   {
@@ -1489,6 +1502,7 @@ public:
   pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
   testView* mTestView;
+  bool mDisposed;
 };
 
 // TODO do we need this anymore?
