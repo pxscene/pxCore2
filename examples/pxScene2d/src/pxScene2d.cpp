@@ -2746,6 +2746,7 @@ void pxSceneContainer::dispose()
   if (!mIsDisposed)
   {
     rtLogInfo(__FUNCTION__);
+    //Adding ref to make sure, object not destroyed from event listeners 	  
     AddRef();
     mScene->sceneContainerDisposed(this);
     setScriptView(NULL);
