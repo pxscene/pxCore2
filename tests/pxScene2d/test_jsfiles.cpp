@@ -2,8 +2,6 @@
 #include "gtest/gtest.h"
 #define private public
 #define protected public
-#include <GL/glew.h>
-#include <GL/freeglut.h>
 #include "pxScene2d.h"
 #include <string.h>
 #include "pxIView.h"
@@ -12,6 +10,8 @@
 #include <pxContext.h>
 #include <rtRef.h>
 #include <stdlib.h>
+#include <pxCore.h>
+#include <pxWindow.h>
 
 using namespace std;
 
@@ -19,32 +19,58 @@ extern rtNode script;
 extern int gargc;
 extern char** gargv;
 extern int pxObjectCount;
+
+class sceneWindow : public pxWindow, public pxIViewContainer
+{
+public:
+  void init(int x, int y, int w, int h, const char* url = NULL)
+  {
+    mWidth = w;
+    mHeight = h;
+    pxWindow::init(x,y,w,h);
+  }
+
+  virtual void invalidateRect(pxRect* r)
+  {
+    pxWindow::invalidateRect(r);
+  }
+
+  rtError setView(pxIView* v)
+  {
+    mView = v;
+    if (v)
+    {
+      v->setViewContainer(this);
+      v->onSize(mWidth, mHeight);
+    }
+    return RT_OK;
+  }
+
+  virtual void onAnimationTimer()
+  {
+    if (mView)
+      mView->onUpdate(pxSeconds());
+    script.pump();
+  }
+
+private:
+  pxIView* mView;
+  int mWidth;
+  int mHeight;
+};
+
 class jsFilesTest : public testing::Test
 {
   public:
     virtual void SetUp()
     {
-      glutInit(&gargc,gargv);
-      glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGBA);
-      glutInitWindowPosition (0, 0);
-      glutInitWindowSize (1024, 768);
-      mGlutWindowId = glutCreateWindow ("pxWindow");
-      glutSetOption(GLUT_RENDERING_CONTEXT ,GLUT_USE_CURRENT_CONTEXT );
-      glClearColor(0, 0, 0, 1);
-  
-      GLenum err = glewInit();
-
-      if (err != GLEW_OK)
-      {
-        printf("error with glewInit() [%s] [%d] \n",glewGetErrorString(err), err);
-        fflush(stdout);
-      }
+      mSceneWin = new sceneWindow();
+      mSceneWin->init(0,0,1280,720);
       mContext.init();
     }
   
     virtual void TearDown()
     {
-      glutDestroyWindow(mGlutWindowId);
     }
 
     void test(char* file, float timeout)
@@ -54,6 +80,8 @@ class jsFilesTest : public testing::Test
       long oldtextMem = mContext.currentTextureMemoryUsageInBytes();
       startJsFile(file);
       process(timeout);
+      mView->setViewContainer(NULL);
+      mSceneWin->setView(NULL);
       mView->onCloseRequest();
       script.garbageCollect();
       //currently we are getting the count +1 , due to which test is failing
@@ -71,6 +99,7 @@ private:
     {
       mUrl = jsfile;
       mView = new pxScriptView(mUrl,"");
+      mSceneWin->setView(mView);
     }
 
     void process(float timeout)
@@ -80,18 +109,15 @@ private:
       {
         if (NULL != mView)
         {
-          mView->onDraw();
-          mView->onUpdate(pxSeconds());
-          script.pump();
-          glutSwapBuffers();
+          mSceneWin->onAnimationTimer();
         }
       }
     }
 
     pxScriptView* mView;
     rtString mUrl;
-    int mGlutWindowId;
     pxContext mContext;
+    sceneWindow* mSceneWin;
 };
 
 TEST_F(jsFilesTest, jsTests)
