@@ -1,5 +1,5 @@
 
-CFLAGS= -DPX_PLATFORM_X11 -fPIC
+CFLAGS= -DPX_PLATFORM_X11 -fPIC -Werror
 OUTDIR=../build/x11
 
 INCDIR=-I/usr/X11R6/include 
