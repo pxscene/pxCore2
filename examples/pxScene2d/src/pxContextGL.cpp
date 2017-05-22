@@ -271,9 +271,14 @@ inline void premultiply(float* d, const float* s)
 class pxFBOTexture : public pxTexture
 {
 public:
-  pxFBOTexture(bool antiAliasing) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true),
-                                    mAntiAliasing(antiAliasing)
+  pxFBOTexture(bool antiAliasing) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true)
+
+#if defined(PX_PLATFORM_GENERIC_EGL) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+        ,mAntiAliasing(antiAliasing)
+#endif        
   {
+    UNUSED_PARAM(antiAliasing);                             
+
     mTextureType = PX_TEXTURE_FRAME_BUFFER;
   }
 
@@ -449,7 +454,10 @@ private:
   GLuint mFramebufferId;
   GLuint mTextureId;
   bool mBindTexture;
+
+#if defined(PX_PLATFORM_GENERIC_EGL) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)  
   bool mAntiAliasing;
+#endif
 
 };// CLASS - pxFBOTexture
 

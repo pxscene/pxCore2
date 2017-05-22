@@ -33,7 +33,11 @@
 #if !defined(WIN32) && !defined(ENABLE_DFB)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+
+#ifndef PX_PLATFORM_MAC
 #pragma GCC diagnostic ignored "-Werror"
+#endif
+
 #pragma GCC diagnostic ignored "-Wall"
 #endif
 
@@ -47,11 +51,10 @@
 #define SANDBOX_IDENTIFIER  ( (const char*) "_sandboxStuff" )
 #define SANDBOX_JS          ( (const char*) "rcvrcore/sandbox.js")
 
-#if 1
- #if !defined(WIN32) & !defined(ENABLE_DFB)
-  #pragma GCC diagnostic pop
- #endif
+#if !defined(WIN32) & !defined(ENABLE_DFB)
+#pragma GCC diagnostic pop
 #endif
+
 
 #define USE_CONTEXTIFY_CLONES
 
