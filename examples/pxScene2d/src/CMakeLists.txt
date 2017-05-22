@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 2.8)
 project(pxscene)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 
-set(PXCOREDIR ${CMAKE_SOURCE_DIR}/../../..)
-set(EXTDIR "${CMAKE_SOURCE_DIR}/../external")
+set(PXCOREDIR ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
+set(EXTDIR "${CMAKE_CURRENT_SOURCE_DIR}/../external")
 set(NODEDIR "${EXTDIR}/libnode-v6.9.0/")
 set(NODEINC "${NODEDIR}/src ${NODEDIR}/deps/uv/include ${NODEDIR}/deps/v8 ${NODEDIR}/deps/debugger-agent/include ${NODEDIR}/deps/v8/include ${NODEDIR}/deps/cares/include")
 set(ZLIBINC "${EXTDIR}/zlib/")
@@ -58,8 +58,8 @@ if (APPLE)
                 set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/8.0.0/lib/darwin)
                 set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} clang_rt.profile_osx)
         endif()
-        add_custom_target(pxsceneDone ALL DEPENDS ${CMAKE_SOURCE_DIR}/pxscene)
-        add_custom_command(TARGET pxsceneDone COMMENT "making app bundle" POST_BUILD COMMAND ${CMAKE_SOURCE_DIR}/mkapp.sh WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+        add_custom_target(pxsceneDone ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/pxscene)
+        add_custom_command(TARGET pxsceneDone COMMENT "making app bundle" POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/mkapp.sh WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
         set(PX_LIBRARY_SUPPORT 0)
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         execute_process(COMMAND "hostname" OUTPUT_VARIABLE HOSTNAME)
@@ -146,7 +146,7 @@ add_definitions(-DRT_PLATFORM_LINUX -D${PX_PLATFORM} -DENABLE_RT_NODE -DRUNINMAI
 
 include_directories(AFTER ${NODEDIR}/src ${NODEDIR}/deps/uv/include ${NODEDIR}/deps/v8 ${NODEDIR}/deps/debugger-agent/include ${NODEDIR}/deps/v8/include ${NODEDIR}/deps/cares/include)
 include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${JPEGTURBOINC} ${BREAKPADINC} ${RTREMOTEINC} ${PXCOREDIR}/src)
-include_directories(AFTER ${CMAKE_SOURCE_DIR})
+include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(PXSCENE_COMMON_FILES pxScene2d.cpp pxResource.cpp  pxConstants.cpp  pxRectangle.cpp  pxFont.cpp  pxText.cpp
         pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxArchive.cpp pxAnimate.cpp)
