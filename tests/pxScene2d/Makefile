@@ -80,7 +80,7 @@ LDNODEV8 = -L$(NODEDIR)/out/Release
 ifeq ($(UNAME_S),Darwin)
 LDPLATFORM=-L../../build/mac/ -framework OpenGL -framework Cocoa -framework Foundation
 else
-LDPLATFORM=-L../../build/glut/ -lglut -lGL -lX11 -lrtCore_s -pthread
+LDPLATFORM=-L../../build/glut/ -lglut -lGLEW -lGL -lX11 -lrtCore_s -pthread
 endif
 LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode $(LDPLATFORM) -lpxCore $(LDEXT) -ldl
 ifeq ($(CODE_COVERAGE), 1)
