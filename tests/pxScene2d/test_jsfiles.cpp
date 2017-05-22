@@ -1,7 +1,8 @@
 #define ENABLE_RT_NODE
-#include "gtest/gtest.h"
+
 #define private public
 #define protected public
+
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include "pxScene2d.h"
@@ -12,6 +13,8 @@
 #include <pxContext.h>
 #include <rtRef.h>
 #include <stdlib.h>
+
+#include "test_includes.h" // Needs to be included last
 
 using namespace std;
 
@@ -31,7 +34,7 @@ class jsFilesTest : public testing::Test
       mGlutWindowId = glutCreateWindow ("pxWindow");
       glutSetOption(GLUT_RENDERING_CONTEXT ,GLUT_USE_CURRENT_CONTEXT );
       glClearColor(0, 0, 0, 1);
-  
+
       GLenum err = glewInit();
 
       if (err != GLEW_OK)
@@ -41,7 +44,7 @@ class jsFilesTest : public testing::Test
       }
       mContext.init();
     }
-  
+
     virtual void TearDown()
     {
       glutDestroyWindow(mGlutWindowId);
@@ -57,13 +60,13 @@ class jsFilesTest : public testing::Test
       mView->onCloseRequest();
       script.garbageCollect();
       //currently we are getting the count +1 , due to which test is failing
-      //suspecting this is due to scenecontainer without parent leak. 
+      //suspecting this is due to scenecontainer without parent leak.
       //EXPECT_TRUE (pxObjectCount == oldpxCount);
       printf("old px count [%d] new px count [%d] \n",oldpxCount,pxObjectCount);
       fflush(stdout);
       EXPECT_TRUE (mContext.currentTextureMemoryUsageInBytes() == oldtextMem);
     }
-    
+
 
 private:
 

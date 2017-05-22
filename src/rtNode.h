@@ -33,6 +33,8 @@
 #if !defined(WIN32) && !defined(ENABLE_DFB)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Werror"
+#pragma GCC diagnostic ignored "-Wall"
 #endif
 
 #include "uv.h"
@@ -90,7 +92,7 @@ public:
   void    add(const char *name, rtValue  const& val);
   rtValue get(const char *name);
   rtValue get(std::string name);
-  
+
   bool    has(const char *name);
   bool    has(std::string name);
 
