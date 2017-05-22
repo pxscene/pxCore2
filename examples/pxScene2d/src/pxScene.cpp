@@ -200,7 +200,12 @@ protected:
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+
+#ifdef PX_PLATFORM_MAC
       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
+#else
+      rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+#endif
     }
     #ifdef ENABLE_CODE_COVERAGE
     __gcov_flush();
