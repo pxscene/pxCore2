@@ -17,6 +17,7 @@ SRCS_FULL=\
     test_rtError.cpp \
     test_rtFile.cpp \
     test_pxUtil.cpp \
+    test_pxImage.cpp 
 
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PXCOREDIR=$(MAKEFILE_PATH)/../../
