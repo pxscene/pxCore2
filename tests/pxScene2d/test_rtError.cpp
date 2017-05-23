@@ -1,16 +1,21 @@
-#include "gtest/gtest.h"
+
 #define private public
 #define protected public
+
 #include <rtError.h>
 #include "rtString.h"
 #include <string.h>
 #include <map>
+
+#include "test_includes.h" // Needs to be included last
+
+
 using namespace std;
 
 #define RT_ERROR_CLASS(ERR) (((ERR) >> 16) & 0x0000ffff)
 map <int, const char*> rtBuiltinErrors;
 
-class rtErrorTest : public ::testing::TestWithParam<rtError> 
+class rtErrorTest : public ::testing::TestWithParam<rtError>
 {
   public:
     virtual void SetUp()

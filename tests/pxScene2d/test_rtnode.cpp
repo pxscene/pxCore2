@@ -1,8 +1,7 @@
-#include "gtest/gtest.h"
-
 #include "rtNode.h"
-
 #include "pxTimer.h"
+
+#include "test_includes.h" // Needs to be included last
 
 
 bool rtNodeInit()

@@ -1,6 +1,10 @@
-#include "gtest/gtest.h"
+
 #include "pxContext.h"
 #include <rtNode.h>
+
+#include "test_includes.h" // Needs to be included last
+
+
 
 pxContext context;
 int gargc;

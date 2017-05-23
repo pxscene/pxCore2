@@ -1,7 +1,8 @@
-#include "gtest/gtest.h"
 #include <list>
+
 #define private public
 #define protected public
+
 #include "pxResource.h"
 #include "rtFileDownloader.h"
 #include "rtString.h"
@@ -12,6 +13,8 @@
 #include <pxCore.h>
 #include <dlfcn.h>
 #include <png.h>
+
+#include "test_includes.h" // Needs to be included last
 
 using namespace std;
 bool failPngCreateWriteStruct = false;
@@ -81,7 +84,7 @@ class pxUtilTest : public testing::Test
     {
       bool sysRet = system("wget http://apng.onevcat.com/assets/elephant.png");
       mDownloadImageFailed = sysRet;
-      if (false == mDownloadImageFailed)	 
+      if (false == mDownloadImageFailed)
         sysRet = system("mv elephant.png supportfiles/apngimage.png");
       else
       {
@@ -89,7 +92,7 @@ class pxUtilTest : public testing::Test
         fflush(stdout);
       }
     }
-  
+
     virtual void TearDown()
     {
       bool sysRet;
@@ -176,7 +179,7 @@ class pxUtilTest : public testing::Test
 
     void pxStorePngImageToDataSuccessTest ()
     {
-      rtData d; 
+      rtData d;
       rtError ret = pxStorePNGImage(mPngData,d);
       EXPECT_TRUE (ret == RT_OK);
       EXPECT_TRUE (d.length() > 0);

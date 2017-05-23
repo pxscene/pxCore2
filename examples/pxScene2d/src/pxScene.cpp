@@ -41,6 +41,10 @@ using namespace std;
 #include "jsbindings/rtWrapperUtils.h"
 #include <signal.h>
 #include <unistd.h>
+
+#include <stdint.h>    // for PRId64
+#include <inttypes.h>  // for PRId64
+
 #ifndef RUNINMAIN
 #define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
 #define EXITSCENELOCK()  rtWrapperSceneUpdateExit();
@@ -79,6 +83,8 @@ extern int pxObjectCount;
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void* context, bool succeeded) {
+  UNUSED_PARAM(descriptor);
+  UNUSED_PARAM(context);
   return succeeded;
 }
 #endif
@@ -98,7 +104,7 @@ public:
   void init(int x, int y, int w, int h, const char* url = NULL)
   {
     pxWindow::init(x,y,w,h);
-    
+
     char buffer[1024];
     sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(url).cString());
 #ifdef RUNINMAIN
@@ -128,7 +134,7 @@ public:
       v->onSize(mWidth, mHeight);
       EXITSCENELOCK()
     }
-    
+
     return RT_OK;
   }
 
@@ -164,7 +170,7 @@ protected:
     EXITSCENELOCK()
   }
 
-  virtual void onCloseRequest() 
+  virtual void onCloseRequest()
   {
     if (mClosed)
       return;
@@ -179,7 +185,7 @@ protected:
 #ifndef RUNINMAIN
     uv_close((uv_handle_t*) &asyncNewScript, NULL);
     uv_close((uv_handle_t*) &gcTrigger, NULL);
-#endif 
+#endif
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
   #ifdef RUNINMAIN
@@ -198,7 +204,13 @@ protected:
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
-      rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+      rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
+
+// #ifdef PX_PLATFORM_MAC
+//       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
+// #else
+//       rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+// #endif
     }
     #ifdef ENABLE_CODE_COVERAGE
     __gcov_flush();

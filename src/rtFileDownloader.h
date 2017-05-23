@@ -31,7 +31,16 @@
 #include <string.h>
 #include <vector>
 
+#if !defined(WIN32) && !defined(ENABLE_DFB)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wall"
+#endif
+
 #include <curl/curl.h>
+
+#if !defined(WIN32) && !defined(ENABLE_DFB)
+#pragma GCC diagnostic pop
+#endif
 
 class rtFileDownloadRequest
 {
@@ -138,7 +147,7 @@ private:
     void (*mDefaultCallbackFunction)(rtFileDownloadRequest*);
     std::vector<rtFileDownloadHandle> mDownloadHandles;
     bool mReuseDownloadHandles;
-    
+
     static rtFileDownloader* mInstance;
 };
 

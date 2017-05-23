@@ -54,13 +54,6 @@ extern uv_loop_t *nodeLoop;
 
 //extern rtThreadQueue gUIThreadQueue;
 
-
-#ifdef USE_CONTEXTIFY_CLONES
-#warning Using USE_CONTEXTIFY_CLONES !!
-#else
-#warning NOT Using USE_CONTEXTIFY_CLONES !!
-#endif
-
 #ifdef RUNINMAIN
 
 //#include "pxEventLoop.h"
@@ -180,7 +173,7 @@ void rtNodeContext::createEnvironment()
 
   Handle<Object> global = local_context->Global();
 
-  
+
 
   mRtWrappers.Reset(mIsolate, global);
 
@@ -374,7 +367,7 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 #endif
 
     mContextId = GetContextId(clone_local);
-  
+
     mContext.Reset(mIsolate, clone_local); // local to persistent
 
     Context::Scope context_scope(clone_local);
@@ -396,7 +389,7 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 rtNodeContext::~rtNodeContext()
 {
   rtLogInfo(__FUNCTION__);
-  //Make sure node is not destroyed abnormally 
+  //Make sure node is not destroyed abnormally
   if (true == node_is_initialized)
   {
     runScript("var process = require('process');process._tickCallback();");
@@ -560,21 +553,21 @@ bool rtNodeContext::has(const char *name)
 }
 
 bool rtNodeContext::find(const char *name)
-{    
+{
   rtNodeContexts_iterator it = mNodeContexts.begin();
-   
+
   while(it != mNodeContexts.end())
   {
     rtNodeContextRef ctx = it->second;
-     
+
     rtLogWarn("\n ######## CONTEXT !!! ID: %d  %s  '%s'",
-      ctx->getContextId(), 
+      ctx->getContextId(),
       (ctx->has(name) ? "*HAS*" : "does NOT have"),
       name);
-     
+
     it++;
   }
-  
+
   rtLogWarn("\n ");
 
   return false;
@@ -638,11 +631,11 @@ rtObjectRef rtNodeContext::runScript(const std::string &script, const char* /* a
     // Convert the result to an UTF8 string and print it.
     String::Utf8Value utf8(result);
 
-    // TODO: 
+    // TODO:
     // rtLogDebug("\n retVal \"%s\" = %s\n\n",script.c_str(), *result);
     //  rtString foo ( (char *) *utf8);
     //  return rtObjectRef( new rtValue( rtString( (char *) *utf8) ) );
-    
+
   }//scope
 
   return rtObjectRef(0);// JUNK
@@ -678,7 +671,7 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char* /*args = NULL*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtNode::rtNode() 
+rtNode::rtNode()
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false)/*: mPlatform(NULL)*/
@@ -854,7 +847,7 @@ void rtNode::nodePath()
   }
 }
 #ifndef RUNINMAIN
-bool rtNode::isInitialized() 
+bool rtNode::isInitialized()
 {
   //rtLogDebug("rtNode::isInitialized returning %d\n",node_is_initialized);
   return node_is_initialized;
@@ -974,8 +967,8 @@ void rtNode::term()
 
 inline bool fileExists(const std::string& name)
 {
-  struct stat buffer;   
-  return (stat (name.c_str(), &buffer) == 0); 
+  struct stat buffer;
+  return (stat (name.c_str(), &buffer) == 0);
 }
 
 rtNodeContextRef rtNode::getGlobalContext() const
@@ -994,7 +987,7 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
   {
     mRefContext = new rtNodeContext(mIsolate,mPlatform);
     ctxref = mRefContext;
-    
+
     static std::string sandbox_path;
 
     if(sandbox_path.empty()) // only once.
@@ -1025,8 +1018,8 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
     ctxref = new rtNodeContext(mIsolate,mPlatform);
 
 #endif
-    
-  // TODO: Handle refs in map ... don't leak ! 
+
+  // TODO: Handle refs in map ... don't leak !
   // mNodeContexts[ ctxref->getContextId() ] = ctxref;  // ADD to map
 
   return ctxref;
