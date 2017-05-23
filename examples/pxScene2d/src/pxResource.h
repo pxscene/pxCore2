@@ -126,10 +126,10 @@ public:
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);  
 
-  int32_t w() const;
-  rtError w(int32_t& v) const;
-  int32_t h() const;
-  rtError h(int32_t& v) const; 
+  virtual int32_t w() const;
+  virtual rtError w(int32_t& v) const;
+  virtual int32_t h() const;
+  virtual rtError h(int32_t& v) const; 
 
   pxTextureRef getTexture() { return mTexture; }  
  
