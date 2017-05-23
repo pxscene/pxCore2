@@ -1,5 +1,7 @@
 #!/bin/sh
+
 BUILDLOGS=$TRAVIS_BUILD_DIR/logs/build_logs
+
 checkError()
 {
   if [ "$1" -ne 0 ]
@@ -12,14 +14,20 @@ checkError()
   exit 1;
   fi
 }
-cd $TRAVIS_BUILD_DIR/src
+
 cd $TRAVIS_BUILD_DIR;
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
 echo "***************************** Building pxcore ****" >> $BUILDLOGS
 xcodebuild clean
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
+then
+xcodebuild -scheme "pxCore Static Library" >>$BUILDLOGS 2>&1;
+checkError $? 0
+else
 xcodebuild -scheme "pxCore Static Library" OTHER_CPLUSPLUSFLAGS="-fprofile-arcs -ftest-coverage">>$BUILDLOGS 2>&1;
 checkError $? 0
+fi
 else
 echo "***************************** Building pxcore ****"
 xcodebuild clean
@@ -32,8 +40,31 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
 echo "***************************** Building pxscene app ***" >> $BUILDLOGS
 make clean;
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
+then
+if [[ ! -z $PX_VERSION ]]
+then
+make PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
+checkError $? 0
+else
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ]
+then
+export linenumber=`awk '/CFBundleShortVersionString/{ print NR; exit }' $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist`
+checkError $? 0
+echo $linenumber
+export PX_VERSION=`sed -n "\`echo $((linenumber+1))\`p" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist|awk -F '<string>' '{print $2}'|awk -F'</string>' '{print $1}'`
+checkError $?
+make PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
+checkError $? 0
+else
+echo "Deploy terminated as pxversion environment is not set ************* " >> $BUILDLOGS
+checkError 1 1
+fi
+fi
+else
 make -j CODE_COVERAGE=1 >>$BUILDLOGS 2>&1
 checkError $? 0
+fi
 else
 echo "***************************** Building pxscene app ***"
 make clean;

@@ -2,7 +2,7 @@
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export ENABLE_VALGRIND=1
 export PX_DUMP_MEMUSAGE=1
-export SUPPRESSIONS=$TRAVIS_BUILD_DIR/leak.supp
+export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 VALGRINDPXCORELOGS=$TRAVIS_BUILD_DIR/logs/valgrind_pxcore_logs
 
 touch $VALGRINDLOGS

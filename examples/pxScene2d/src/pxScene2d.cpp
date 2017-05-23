@@ -468,12 +468,7 @@ rtError pxObject::Set(const char* name, const rtValue* value)
   {
     repaint();
   }
-  pxObject* parent = mParent;
-  while (parent)
-  {
-    parent->repaint();
-    parent = parent->parent();
-  }
+  repaintParents();
   mScene->mDirty = true;
   return rtObject::Set(name, value);
 }
@@ -574,8 +569,12 @@ rtError pxObject::remove()
     {
       if ((it)->getPtr() == this)
       {
+        pxObject* parent = mParent;
         mParent->mChildren.erase(it);
         mParent = NULL;
+        parent->repaint();
+        parent->repaintParents();
+        mScene->mDirty = true;
         return RT_OK;
       }
     }
@@ -586,6 +585,9 @@ rtError pxObject::remove()
 rtError pxObject::removeAll()
 {
   mChildren.clear();
+  repaint();
+  repaintParents();
+  mScene->mDirty = true;
   return RT_OK;
 }
 
@@ -1220,8 +1222,28 @@ bool pxObject::hitTest(pxPoint2f& pt)
   return (pt.x >= 0 && pt.y >= 0 && pt.x <= mw && pt.y <= mh);
 }
 
+rtError pxObject::setPainting(bool v)
+{
+  mPainting = v;
+  if (!mPainting)
+  {
+    //rtLogInfo("in setPainting and calling createSnapshot mw=%f mh=%f\n", mw, mh);
+#ifdef RUNINMAIN
+    createSnapshot(mSnapshotRef, false, true);
+#else
+    createSnapshot(mSnapshotRef, true, true);
+#endif //RUNINMAIN
+  }
+  else
+  {
+    deleteSnapshot(mSnapshotRef);
+  }
+  return RT_OK;
+}
 
-void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext)
+
+void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext,
+                              bool antiAliasing)
 {
   pxMatrix4f m;
 
@@ -1244,7 +1266,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   {
     deleteSnapshot(fbo);
     //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
-    fbo = context.createFramebuffer(floor(w), floor(h));
+    fbo = context.createFramebuffer(floor(w), floor(h), antiAliasing);
   }
   else
   {
@@ -1351,16 +1373,21 @@ void pxObject::deleteSnapshot(pxContextFramebufferRef fbo)
 bool pxObject::onTextureReady()
 {
   repaint();
+  repaintParents();
+  #ifdef PX_DIRTY_RECTANGLES
+  mIsDirty = true;
+  #endif //PX_DIRTY_RECTANGLES
+  return false;
+}
+
+void pxObject::repaintParents()
+{
   pxObject* parent = mParent;
   while (parent)
   {
     parent->repaint();
     parent = parent->parent();
   }
-  #ifdef PX_DIRTY_RECTANGLES
-  mIsDirty = true;
-  #endif //PX_DIRTY_RECTANGLES
-  return false;
 }
 
 rtDefineObject(rtPromise, rtObject);

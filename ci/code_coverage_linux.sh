@@ -1,3 +1,5 @@
+cd $TRAVIS_BUILD_DIR
+
 rm -rf reports
 rm -rf tracefile
 

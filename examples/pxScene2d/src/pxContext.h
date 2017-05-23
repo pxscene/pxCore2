@@ -80,7 +80,7 @@ class pxContext {
   void pushState();
   void popState();
 
-  pxContextFramebufferRef createFramebuffer(int width, int height);
+  pxContextFramebufferRef createFramebuffer(int width, int height, bool antiAliasing=false);
   pxError updateFramebuffer(pxContextFramebufferRef fbo, int width, int height);
   pxError setFramebuffer(pxContextFramebufferRef fbo);
   pxContextFramebufferRef getCurrentFramebuffer();

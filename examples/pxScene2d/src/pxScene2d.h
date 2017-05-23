@@ -330,24 +330,7 @@ public:
 #endif // ANIMATION_ROTATE_XYZ
   bool painting()            const { return mPainting;}
   rtError painting(bool& v)  const { v = mPainting; return RT_OK;  }
-  rtError setPainting(bool v)
-  { 
-      mPainting = v; 
-      if (!mPainting)
-      {
-        //rtLogInfo("in setPainting and calling createSnapshot mw=%f mh=%f\n", mw, mh);
-#ifdef RUNINMAIN
-        createSnapshot(mSnapshotRef);
-#else
-        createSnapshot(mSnapshotRef, true);
-#endif //RUNINMAIN
-      }
-      else
-      {
-        deleteSnapshot(mSnapshotRef);
-      }
-      return RT_OK;
-  }
+  rtError setPainting(bool v);
 
   bool clip()            const { return mClip;}
   rtError clip(bool& v)  const { v = mClip; return RT_OK;  }
@@ -735,7 +718,7 @@ protected:
   pxRect mScreenCoordinates;
   #endif //PX_DIRTY_RECTANGLES
 
-  void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false);
+  void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
   void createSnapshotOfChildren();
   void deleteSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES
@@ -755,6 +738,7 @@ protected:
     v = (void*)this;
     return RT_OK;
   }
+  void repaintParents();
 };
 
 class pxRoot: public pxObject

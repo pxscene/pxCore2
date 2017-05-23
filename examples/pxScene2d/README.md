@@ -12,6 +12,9 @@
     Execute below command:
     
     cd /usr/include/X11/extensions && sudo ln -s XI.h XInput.h
+    
+    To use glut in externals, set below environment variable:
+    export USE_EXTERNALS_GLUT=true
     ~~~~
 
 1. Get source code:

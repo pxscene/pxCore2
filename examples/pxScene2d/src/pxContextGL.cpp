@@ -271,7 +271,8 @@ inline void premultiply(float* d, const float* s)
 class pxFBOTexture : public pxTexture
 {
 public:
-  pxFBOTexture() : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true)
+  pxFBOTexture(bool antiAliasing) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true),
+                                    mAntiAliasing(antiAliasing)
   {
     mTextureType = PX_TEXTURE_FRAME_BUFFER;
   }
@@ -336,6 +337,18 @@ public:
   {
     if (mFramebufferId!= 0)
     {
+#if defined(PX_PLATFORM_GENERIC_EGL) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+      if (mAntiAliasing)
+      {
+        GLint currentFBO = 0;
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId);
+        GLenum discardAttachments[] = { GL_DEPTH_ATTACHMENT };
+        glDiscardFramebufferEXT(GL_FRAMEBUFFER, 1, discardAttachments);
+        glBindFramebuffer(GL_FRAMEBUFFER, currentFBO);
+      }
+#endif
+
       glDeleteFramebuffers(1, &mFramebufferId);
       mFramebufferId = 0;
     }
@@ -364,7 +377,10 @@ public:
                              GL_TEXTURE_2D, mTextureId, 0);
 
 #if defined(PX_PLATFORM_GENERIC_EGL) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
-      glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTextureId, 0, 4);
+      if (mAntiAliasing)
+      {
+        glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTextureId, 0, 2);
+      }
 #endif
 
       if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -433,6 +449,7 @@ private:
   GLuint mFramebufferId;
   GLuint mTextureId;
   bool mBindTexture;
+  bool mAntiAliasing;
 
 };// CLASS - pxFBOTexture
 
@@ -1904,10 +1921,10 @@ float pxContext::getAlpha()
   return gAlpha;
 }
 
-pxContextFramebufferRef pxContext::createFramebuffer(int width, int height)
+pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing)
 {
   pxContextFramebuffer* fbo = new pxContextFramebuffer();
-  pxFBOTexture* texture = new pxFBOTexture();
+  pxFBOTexture* texture = new pxFBOTexture(antiAliasing);
 
   texture->createFboTexture(width, height);
 
