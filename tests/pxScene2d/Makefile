@@ -78,11 +78,13 @@ NODEDIR = $(EXTDIR)/libnode-v6.9.0
 LDNODE   = -L$(NODEDIR)/out/Release/obj.target
 LDNODEV8 = -L$(NODEDIR)/out/Release
 ifeq ($(UNAME_S),Darwin)
-LDPLATFORM=-L../../build/mac/ -framework OpenGL -framework Cocoa -framework Foundation
+PXCOREBUILDDIR=-L../../build/mac
+LDPLATFORM=-framework OpenGL -framework Cocoa -framework Foundation
 else
-LDPLATFORM=-L../../build/glut/ -lglut -lGLEW -lGL -lX11 -lrtCore_s -pthread
+PXCOREBUILDDIR=-L../../build/glut
+LDPLATFORM=-pthread -lglut -lGLEW -lGL -lX11 -lrtCore_s
 endif
-LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode $(LDPLATFORM) -lpxCore $(LDEXT) -ldl
+LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode $(PXCOREBUILDDIR) -lpxCore $(LDEXT) $(LDPLATFORM) -ldl
 ifeq ($(CODE_COVERAGE), 1)
 LDFLAGS +=  -lgcov
 endif

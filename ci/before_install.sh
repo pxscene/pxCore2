@@ -70,8 +70,8 @@ then
   elif [ "$TRAVIS_OS_NAME" = "osx" ] ;
   then
     sudo brew services stop lighttpd
-    sudo mv /usr/loca/etc/init.d/lighttpd/modules.conf /usr/loca/etc/init.d/lighttpd/modules.conf_old
-    sudo ln -s $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/modules.conf_osx /usr/loca/etc/init.d/lighttpd/modules.conf
+    sudo mv /usr/local/etc/init.d/lighttpd/modules.conf /usr/local/etc/init.d/lighttpd/modules.conf_old
+    sudo ln -s $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/modules.conf_osx /usr/local/etc/init.d/lighttpd/modules.conf
     sudo brew services start lighttpd
   fi
 fi
