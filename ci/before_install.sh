@@ -64,6 +64,7 @@ then
     sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/status_bg.png /var/www/.
     sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/testRevalidation /var/www/.
     sudo /etc/init.d/lighttpd stop
+    find / -name lighttpd.conf
     sudo mv /etc/init.d/lighttpd/lighttpd.conf /etc/init.d/lighttpd/lighttpd.conf_old
     sudo ln -s $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/lighttpd.conf_linux /etc/init.d/lighttpd/lighttpd.conf
     sudo /etc/init.d/lighttpd start
