@@ -411,36 +411,39 @@ void pxObject::createNewPromise()
 void pxObject::dispose()
 {
   //rtLogInfo(__FUNCTION__);
-  mIsDisposed = true;
-  vector<animation>::iterator it = mAnimations.begin();
-  for(;it != mAnimations.end();it++)
+  if (!mIsDisposed)
   {
-    if ((*it).promise)
-      (*it).promise.send("reject",this);
-  }
+    mIsDisposed = true;
+    vector<animation>::iterator it = mAnimations.begin();
+    for(;it != mAnimations.end();it++)
+    {
+      if ((*it).promise)
+        (*it).promise.send("reject",this);
+    }
 
-  rtValue nullValue;
-  mReady.send("reject",nullValue);
+    rtValue nullValue;
+    mReady.send("reject",nullValue);
 
-  mAnimations.clear();
-  mEmit->clearListeners();
-  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
-  {
-    (*it)->dispose();
-    (*it)->mParent = NULL;  // setParent mutates the mChildren collection
-  } 
-  mChildren.clear();
-  deleteSnapshot(mSnapshotRef); 
-  deleteSnapshot(mClipSnapshotRef);
-  deleteSnapshot(mDrawableSnapshotForMask);
-  deleteSnapshot(mMaskSnapshot);
-  mSnapshotRef = NULL;
-  mClipSnapshotRef = NULL;
-  mDrawableSnapshotForMask = NULL;
-  mMaskSnapshot = NULL;
+    mAnimations.clear();
+    mEmit->clearListeners();
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      (*it)->dispose();
+      (*it)->mParent = NULL;  // setParent mutates the mChildren collection
+    } 
+    mChildren.clear();
+    deleteSnapshot(mSnapshotRef); 
+    deleteSnapshot(mClipSnapshotRef);
+    deleteSnapshot(mDrawableSnapshotForMask);
+    deleteSnapshot(mMaskSnapshot);
+    mSnapshotRef = NULL;
+    mClipSnapshotRef = NULL;
+    mDrawableSnapshotForMask = NULL;
+    mMaskSnapshot = NULL;
 #ifdef ENABLE_RT_NODE
-  script.pump();
+    script.pump();
 #endif
+ }
 }
 
 /** since this is a boolean, we have to handle if someone sets it to
@@ -1466,7 +1469,7 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top)
-  : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRectangle(false), mTestView(NULL)
+  : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRectangle(false), mSceneContainers(), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1513,8 +1516,19 @@ pxScene2d::pxScene2d(bool top)
 
 rtError pxScene2d::dispose()
 {
+    mDisposed = true;
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
+
+    for (unsigned int i=0; i<mSceneContainers.size(); i++)
+    {
+      pxSceneContainer* temp = mSceneContainers[i];
+      if ((NULL != temp) && (NULL == temp->parent()))
+      {
+        temp->dispose();
+      }
+    }
+    mSceneContainers.clear();
     if (mRoot)
       mRoot->dispose();
     mEmit->clearListeners();
@@ -1674,6 +1688,7 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
   o = new pxSceneContainer(this);
   o.set(p);
   o.send("init");
+  mSceneContainers.push_back((pxSceneContainer*)o.getPtr());
   return RT_OK;
 }
 
@@ -2725,6 +2740,21 @@ rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
   setView(scriptView);
   return RT_OK;
 }
+
+void pxSceneContainer::dispose()
+{
+  if (!mIsDisposed)
+  {
+    rtLogInfo(__FUNCTION__);
+    //Adding ref to make sure, object not destroyed from event listeners 	  
+    AddRef();
+    mScene->sceneContainerDisposed(this);
+    setScriptView(NULL);
+    pxObject::dispose();
+    Release();
+  }
+}
+
 #if 0
 void* gObjectFactoryContext = NULL;
 objectFactory gObjectFactory = NULL;
