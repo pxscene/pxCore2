@@ -27,7 +27,7 @@ if (APPLE)
                 -DUCONFIG_NO_TRANSLITERATION=1 -DUCONFIG_NO_SERVICE=1 -DUCONFIG_NO_REGULAR_EXPRESSIONS=1 -DU_ENABLE_DYLOAD=0 
                 -DU_STATIC_IMPLEMENTATION=1 -DU_HAVE_STD_STRING=0 -DUCONFIG_NO_BREAK_ITERATION=0 -DUCONFIG_NO_LEGACY_CONVERSION=1 
                 -DUCONFIG_NO_CONVERSION=1 -DHTTP_PARSER_STRICT=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 
-                -DRT_PLATFORM_LINUX -DENABLE_NODE_V_6_9 -DENABLE_DEBUG_MODE)
+                -DRT_PLATFORM_LINUX -DENABLE_NODE_V_6_9 -DENABLE_DEBUG_MODE -DPNG_APNG_SUPPORTED)
         set(PXCORE_FILES mac/pxBufferNative.mm mac/pxOffscreenNative.mm mac/pxWindowNative.mm
                 mac/pxEventLoopNative.mm mac/pxTimerNative.mm mac/pxTimerNative.mm
                 mac/pxClipboardNative.mm mac/window.mm)
@@ -42,7 +42,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
                  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/egl)
                  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/egl)
                  add_definitions(-DENABLE_NODE_V_6_9 -DNODE_PLATFORM=linux -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_DEBUG_MODE)
-                 add_definitions(-DPX_PLATFORM_GENERIC_EGL -DRT_PLATFORM_LINUX -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN)
+                 add_definitions(-DPX_PLATFORM_GENERIC_EGL -DRT_PLATFORM_LINUX -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN -DPNG_APNG_SUPPORTED)
                  set(PXCORE_FILES gles/pxBufferNative.cpp gles/pxOffscreenNative.cpp gles/pxWindowNative.cpp
                        gles/pxEventLoopNative.cpp gles/pxTimerNative.cpp
                        gles/pxClipboardNative.cpp gles/pxEGLProviderRPi.cpp gles/LinuxInputEventDispatcher.cpp pxViewWindow.cpp)
@@ -61,7 +61,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
                          message("Not including APNG support")
                  else()
                          message("Including APNG support")
-                         #add_definitions(-DPNG_APNG_SUPPORTED)
+                         add_definitions(-DPNG_APNG_SUPPORTED)
                  endif(DEFINED ENV{PXSCENE_DISABLE_APNG_SUPPORT})
                  set(PXCORE_STAGING_LIST $ENV{PXCORE_STAGING})
                  separate_arguments(PXCORE_STAGING_LIST)
