@@ -271,9 +271,14 @@ inline void premultiply(float* d, const float* s)
 class pxFBOTexture : public pxTexture
 {
 public:
-  pxFBOTexture(bool antiAliasing) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true),
-                                    mAntiAliasing(antiAliasing)
+  pxFBOTexture(bool antiAliasing) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true)
+
+#if defined(PX_PLATFORM_GENERIC_EGL) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+        ,mAntiAliasing(antiAliasing)
+#endif        
   {
+    UNUSED_PARAM(antiAliasing);                             
+
     mTextureType = PX_TEXTURE_FRAME_BUFFER;
   }
 
@@ -449,7 +454,10 @@ private:
   GLuint mFramebufferId;
   GLuint mTextureId;
   bool mBindTexture;
+
+#if defined(PX_PLATFORM_GENERIC_EGL) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)  
   bool mAntiAliasing;
+#endif
 
 };// CLASS - pxFBOTexture
 
@@ -749,7 +757,7 @@ public:
                    GL_UNSIGNED_BYTE, mOffscreen.base());
       mTextureUploaded = true;
       context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
-      
+
       //free up unneeded offscreen memory
       freeOffscreenDataInBackground();
     }
@@ -832,7 +840,7 @@ private:
   }
 
   pxOffscreen mOffscreen;
-  
+
   bool mInitialized;
   GLuint mTextureName;
   bool mTextureUploaded;
@@ -1091,7 +1099,7 @@ struct glShaderProgDetails
 
 static glShaderProgDetails  createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
 {
-  struct glShaderProgDetails details = {};
+  struct glShaderProgDetails details = { 0,0,0 };
   GLint stat;
 
   details.fragShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -2037,7 +2045,7 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
   return;
 #endif
 
-  // TRANSPARENT / DIMENSIONLESS 
+  // TRANSPARENT / DIMENSIONLESS
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
    // rtLogDebug("\n drawRect() - TRANSPARENT");
@@ -2073,7 +2081,7 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
   return;
 #endif
 
-  // TRANSPARENT / DIMENSIONLESS 
+  // TRANSPARENT / DIMENSIONLESS
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
     return;
@@ -2101,7 +2109,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
   return;
 #endif
 
-  // TRANSPARENT / DIMENSIONLESS 
+  // TRANSPARENT / DIMENSIONLESS
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
     return;
@@ -2134,7 +2142,7 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 
   if (!mShowOutlines) return;
 
-  // TRANSPARENT / DIMENSIONLESS 
+  // TRANSPARENT / DIMENSIONLESS
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
     rtLogError("cannot drawDiagRect() - width/height/gAlpha cannot be Zero.");
@@ -2144,7 +2152,7 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
   // COLORLESS
   if(color == NULL || color[3] == 0.0)
   {
-    return; 
+    return;
   }
 
 

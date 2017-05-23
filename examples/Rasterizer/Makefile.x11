@@ -1,7 +1,7 @@
 # pxCore FrameBuffer Library
 # Rasterizer Example
 
-CFLAGS= -I../../src -DPX_PLATFORM_X11 -Wno-write-strings
+CFLAGS= -I../../src -DPX_PLATFORM_X11 -Wno-write-strings -Werror
 LIBDIR=../../build/x11
 OUTDIR=.
 
