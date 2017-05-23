@@ -41,6 +41,10 @@ using namespace std;
 #include "jsbindings/rtWrapperUtils.h"
 #include <signal.h>
 #include <unistd.h>
+
+#include <stdint.h>    // for PRId64
+#include <inttypes.h>  // for PRId64
+
 #ifndef RUNINMAIN
 #define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
 #define EXITSCENELOCK()  rtWrapperSceneUpdateExit();
@@ -200,12 +204,13 @@ protected:
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+      rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
 
-#ifdef PX_PLATFORM_MAC
-      rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
-#else
-      rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
-#endif
+// #ifdef PX_PLATFORM_MAC
+//       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
+// #else
+//       rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+// #endif
     }
     #ifdef ENABLE_CODE_COVERAGE
     __gcov_flush();
