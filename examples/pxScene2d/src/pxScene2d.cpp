@@ -821,6 +821,8 @@ void pxObject::update(double t)
       // Prevent one more loop through oscillate
       if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
+        if (NULL != a.animateObj.getPtr())
+          ((pxAnimate*)a.animateObj.getPtr())->setStatus(pxConstantsAnimation::STATUS_ENDED);
         cancelAnimation(a.prop, false, false, true);
         if (NULL != a.animateObj.getPtr())
           ((pxAnimate *)a.animateObj.getPtr())->update(a.prop, &a, pxConstantsAnimation::STATUS_ENDED);
