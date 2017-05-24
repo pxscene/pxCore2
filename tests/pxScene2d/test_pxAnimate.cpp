@@ -30,7 +30,7 @@ class pxAnimateTest : public testing::Test
          mAnimate = new pxAnimate(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1,  rtObjectRef(), (pxImage*)mImage.getPtr());
          validateReadOnlyMembers(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1);
          EXPECT_TRUE (mAnimate->mCancelled == false);
-         EXPECT_TRUE (mAnimate->mStatus == "IDLE");
+         EXPECT_TRUE (mAnimate->mStatus == pxConstantsAnimation::STATUS_IDLE);
     }
 
     void pxAnimateCancelTest ()
@@ -39,17 +39,17 @@ class pxAnimateTest : public testing::Test
          mAnimate->cancel();
          validateReadOnlyMembers(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1);
          EXPECT_TRUE (mAnimate->mCancelled == true);
-         EXPECT_TRUE (mAnimate->mStatus == "CANCELLED");
+         EXPECT_TRUE (mAnimate->mStatus == pxConstantsAnimation::STATUS_CANCELLED);
     }
 
     void pxAnimateMapStatusTest ()
     {
          mAnimate = new pxAnimate(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1,  rtObjectRef(), (pxImage*)mImage.getPtr());
          validateReadOnlyMembers(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1);
-         EXPECT_TRUE (mAnimate->mapStatus(pxConstantsAnimation::STATUS_IDLE) == "IDLE");
-         EXPECT_TRUE (mAnimate->mapStatus(pxConstantsAnimation::STATUS_ENDED) == "ENDED");
-         EXPECT_TRUE (mAnimate->mapStatus(pxConstantsAnimation::STATUS_CANCELLED) == "CANCELLED");
-         EXPECT_TRUE (mAnimate->mapStatus(pxConstantsAnimation::STATUS_INPROGRESS) == "INPROGRESS");
+         EXPECT_TRUE (mapStatus(pxConstantsAnimation::STATUS_IDLE) == "IDLE");
+         EXPECT_TRUE (mapStatus(pxConstantsAnimation::STATUS_ENDED) == "ENDED");
+         EXPECT_TRUE (mapStatus(pxConstantsAnimation::STATUS_CANCELLED) == "CANCELLED");
+         EXPECT_TRUE (mapStatus(pxConstantsAnimation::STATUS_INPROGRESS) == "INPROGRESS");
     }
 
     void pxAnimatePropsUpdateTest ()
@@ -75,7 +75,7 @@ class pxAnimateTest : public testing::Test
          EXPECT_TRUE(propParamsPtr->mCount == 1);
          EXPECT_TRUE(propParamsPtr->mFrom == 10.0);
          EXPECT_TRUE(propParamsPtr->mDuration == 1);
-         EXPECT_TRUE(propParamsPtr->mStatus == "INPROGRESS");
+         EXPECT_TRUE(propParamsPtr->mStatus == pxConstantsAnimation::STATUS_INPROGRESS);
     }
 
     void pxAnimateSetStatusTest ()
@@ -83,7 +83,7 @@ class pxAnimateTest : public testing::Test
          mAnimate = new pxAnimate(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1,  rtObjectRef(), (pxImage*)mImage.getPtr());
          mAnimate->setStatus(pxConstantsAnimation::STATUS_INPROGRESS);
          validateReadOnlyMembers(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1);
-         EXPECT_TRUE (mAnimate->mStatus == "INPROGRESS");
+         EXPECT_TRUE (mAnimate->mStatus == pxConstantsAnimation::STATUS_INPROGRESS);
     }
 
     private:
