@@ -61,7 +61,7 @@ public:
 
   void term();
 
-  void append(const char* s);
+  void append(const char* s, size_t length = 0);
 
   int compare(const char* s) const;
 
