@@ -159,11 +159,11 @@ rtError pxWaylandContainer::setCmd(const char* s)
   if (it != gWaylandAppsMap.end())
   {
     binary = it->second.c_str();
+    rtLogInfo( "waylandregistry.conf maps wayland app \"%s\ to \"%s\"\n",s, it->second.c_str());
   }
   else
   {
-    rtLogError("Unrecognised wayland app \"%s\". please verify the app name or add entry in waylandregistry.conf \n",s);
-    return RT_ERROR;
+    binary = s;
   }
 
   if ( mWayland )
