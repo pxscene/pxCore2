@@ -59,7 +59,7 @@ class rtDataTest : public testing::Test
     void initDataLengthFailureTest()
     {
       char data[] = "test";
-      rtError ret = mData.init((uint8_t*) &data, 50000000000);
+      rtError ret = mData.init((uint8_t*) &data, 500000000);
       EXPECT_TRUE(mData.length() == 0);
       EXPECT_TRUE( (char *)mData.data() == NULL);
       EXPECT_TRUE(ret == RT_FAIL);
