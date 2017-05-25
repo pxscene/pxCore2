@@ -21,6 +21,21 @@
 #include "pxAnimate.h"
 #include "pxScene2d.h"
 
+static rtString mapStatus(pxConstantsAnimation::animationStatus status)
+{
+  switch(status) 
+  { 
+    case pxConstantsAnimation::STATUS_IDLE: 
+      return "IDLE"; 
+    case pxConstantsAnimation::STATUS_CANCELLED: 
+      return "CANCELLED"; 
+    case pxConstantsAnimation::STATUS_ENDED: 
+      return "ENDED"; 
+    default: 
+      return "UNKNOWN"; 
+  }
+}
+
 pxAnimate::pxAnimate (rtObjectRef props, uint32_t interp, pxConstantsAnimation::animationOptions type, double duration, int32_t count, rtObjectRef promise, rtRef<pxObject> animateObj):mProps(props), mInterp(interp), mType(type), mProvisionedDuration(duration), mProvisionedCount(count), mCancelled(false), mStatus(pxConstantsAnimation::STATUS_IDLE), mDonePromise(promise), mAnimatedObj(animateObj)
 {
   if (NULL != props.getPtr())
@@ -75,13 +90,13 @@ rtError pxAnimate::cancel ()
   return RT_OK;
 }
 
-void pxAnimate::setStatus (uint32_t status)
+void pxAnimate::setStatus (pxConstantsAnimation::animationStatus status)
 {
   if (status > mStatus)
     mStatus = status;
 }
 
-void pxAnimate::update (const char* prop, struct animation* params, uint32_t status)
+void pxAnimate::update (const char* prop, struct animation* params, pxConstantsAnimation::animationStatus status)
 {
   if (NULL != mCurrDetails.getPtr())
   {
@@ -99,6 +114,18 @@ void pxAnimate::update (const char* prop, struct animation* params, uint32_t sta
     }
   }
 }
+
+rtError pxAnimate::status(rtString& v) const
+{ 
+  v = mapStatus(mStatus);
+  return RT_OK;
+};
+
+rtError pxAnimate::pxAnimationParams::status(rtString& v) const
+{
+  v = mapStatus(mStatus);
+  return RT_OK;
+};
 
 rtDefineObject(pxAnimate, rtObject);
 

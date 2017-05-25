@@ -25,28 +25,6 @@
 class pxObject;
 struct animation;
 
-static rtString mapStatus(uint32_t status)
-{
-   pxConstantsAnimation::animationStatus v = (pxConstantsAnimation::animationStatus) status;
-   if (v == pxConstantsAnimation::STATUS_IDLE)
-   {
-     return "IDLE";
-   }
-   else if ( v == pxConstantsAnimation::STATUS_INPROGRESS)
-   {
-     return "INPROGRESS";
-   }
-   else if ( v == pxConstantsAnimation::STATUS_CANCELLED)
-   {
-     return "CANCELLED";
-   }
-   else if ( v == pxConstantsAnimation::STATUS_ENDED)
-   {
-     return "ENDED";
-   }
-   return "UNKNOWN";
-}
-
 /**********************************************************************
  * 
  * pxAnimate
@@ -78,7 +56,7 @@ class pxAnimate: public rtObject
     rtError done(rtObjectRef& v)   const { v = mDonePromise; return RT_OK;   }
     rtError type(uint32_t& v)   const { v = (uint32_t) mType; return RT_OK;   }
     rtError interp(uint32_t& v)   const { v = mInterp; return RT_OK;   }
-    rtError status(rtString& v) const { v = mapStatus(mStatus); return RT_OK; };
+    rtError status(rtString& v) const; 
     rtError provduration(double& v)   const { v = mProvisionedDuration; return RT_OK;   }
     rtError provcount(int32_t& v)   const { v = mProvisionedCount; return RT_OK;   }
     rtError cancelled(bool& v) const { v = mCancelled; return RT_OK; }
@@ -88,10 +66,10 @@ class pxAnimate: public rtObject
 
 
     // internal public methods
-    void setStatus(uint32_t v);
+    void setStatus(pxConstantsAnimation::animationStatus v);
     // update the animation details of every parameter
     // this is invoked on every parameter update during the process of animation
-    void update(const char* prop, struct animation* params, uint32_t status);
+    void update(const char* prop, struct animation* params, pxConstantsAnimation::animationStatus status);
 
     class pxAnimationParams : public rtObject
     {
@@ -108,10 +86,10 @@ class pxAnimate: public rtObject
         rtError to(double& v)   const { v = (uint32_t) mTo; return RT_OK;   }
         rtError duration(double& v)   const { v = mDuration; return RT_OK; }
         rtError count(int32_t& v)   const { v = mCount; return RT_OK;   }
-        rtError status(rtString& v)   const { v = mapStatus(mStatus); return RT_OK;   }
+        rtError status(rtString& v)   const;
         rtError cancelled(bool& v)   const { v = mCancelled; return RT_OK;   }
    
-        uint32_t mStatus;
+        pxConstantsAnimation::animationStatus mStatus;
         int32_t mCount;
         bool mCancelled;
         double mDuration;
@@ -126,7 +104,7 @@ class pxAnimate: public rtObject
     double mProvisionedDuration;
     int32_t mProvisionedCount;
     bool mCancelled;
-    uint32_t mStatus;
+    pxConstantsAnimation::animationStatus mStatus;
     rtObjectRef mDonePromise;
     rtRef<pxObject> mAnimatedObj;
 };

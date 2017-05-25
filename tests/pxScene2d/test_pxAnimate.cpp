@@ -41,17 +41,7 @@ class pxAnimateTest : public testing::Test
          EXPECT_TRUE (mAnimate->mCancelled == true);
          EXPECT_TRUE (mAnimate->mStatus == pxConstantsAnimation::STATUS_CANCELLED);
     }
-
-    void pxAnimateMapStatusTest ()
-    {
-         mAnimate = new pxAnimate(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1,  rtObjectRef(), (pxImage*)mImage.getPtr());
-         validateReadOnlyMembers(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1);
-         EXPECT_TRUE (mapStatus(pxConstantsAnimation::STATUS_IDLE) == "IDLE");
-         EXPECT_TRUE (mapStatus(pxConstantsAnimation::STATUS_ENDED) == "ENDED");
-         EXPECT_TRUE (mapStatus(pxConstantsAnimation::STATUS_CANCELLED) == "CANCELLED");
-         EXPECT_TRUE (mapStatus(pxConstantsAnimation::STATUS_INPROGRESS) == "INPROGRESS");
-    }
-
+   
     void pxAnimatePropsUpdateTest ()
     {
          rtObjectRef props = new rtMapObject;
@@ -106,7 +96,6 @@ TEST_F(pxAnimateTest, pxAnimateCompleteTest)
 {
     pxAnimateMembersSetTest();
     pxAnimateCancelTest();
-    pxAnimateMapStatusTest();
     pxAnimatePropsUpdateTest();
     pxAnimateSetStatusTest();
 }
