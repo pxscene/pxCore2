@@ -241,6 +241,10 @@ char *base64_encode(const unsigned char *data,
     for (int i = 0; i < mod_table[input_length % 3]; i++)
         encoded_data[*output_length - 1 - i] = '=';
 
+#ifdef PX_PLATFORM_MAC
+    encoded_data[*output_length] = '\0';
+#endif //PX_PLATFORM_MAC
+
     return encoded_data;
 }
 
