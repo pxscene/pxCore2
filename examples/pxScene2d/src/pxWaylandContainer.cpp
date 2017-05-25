@@ -159,7 +159,7 @@ rtError pxWaylandContainer::setCmd(const char* s)
   if (it != gWaylandAppsMap.end())
   {
     binary = it->second.c_str();
-    rtLogInfo( "waylandregistry.conf maps wayland app \"%s\ to \"%s\"\n",s, it->second.c_str());
+    rtLogInfo( "waylandregistry.conf maps wayland app \"%s\" to \"%s\"\n",s, it->second.c_str());
   }
   else
   {
