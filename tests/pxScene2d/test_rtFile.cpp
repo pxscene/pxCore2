@@ -14,7 +14,7 @@ using namespace std;
 bool failAlloc = false;
 //typedef void* (*new_t)(size_t);
 /*
-void* operator new (size_t size)
+void* operator new (size_t size) 
 {
   static new_t newp = (new_t) dlsym(RTLD_NEXT, "new");
   if (!failAlloc)
@@ -59,12 +59,12 @@ class rtDataTest : public testing::Test
     void initDataLengthFailureTest()
     {
       char data[] = "test";
-      rtError ret = mData.init((uint8_t*) &data, 500000000);
+      rtError ret = mData.init((uint8_t*) &data, 50000000000);
       EXPECT_TRUE(mData.length() == 0);
       EXPECT_TRUE( (char *)mData.data() == NULL);
       EXPECT_TRUE(ret == RT_FAIL);
     }
-
+ 
     void termTest()
     {
       char data[] = "test";
@@ -142,10 +142,8 @@ class rtFilePointerTest : public testing::Test
 
     void initTest()
     {
-      printf("Madana running .... \n");
-      fflush(stdout);
       FILE* fptr = fopen("supportfiles/file.txt","w");
-      rtFilePointer fp(fptr);
+      rtFilePointer fp(fptr); 
       EXPECT_TRUE (fp.getPtr() != NULL);
     }
 };

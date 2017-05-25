@@ -42,15 +42,46 @@ then
   brew update;
 fi
 
-#install code coverage binaries for mac
+#install lighttpd,code coverage binaries for mac
 if [ "$TRAVIS_OS_NAME" = "osx" ] ; 
 then
   if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]
   then
+    brew install lighttpd
     brew install gcovr
     brew install lcov
     brew install --HEAD ccache
     ls -al $HOME/.ccache
+  fi
+fi
+
+#setup lighttpd server
+if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]
+then
+  if [ "$TRAVIS_OS_NAME" = "linux" ] ; 
+  then
+    sudo /etc/init.d/lighttpd stop
+    sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/test.html /var/www/.
+    sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/status_bg.png /var/www/.
+    sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/testRevalidation /var/www/.
+    sudo mv /etc/lighttpd/lighttpd.conf /etc/lighttpd/lighttpd.conf_old
+    sudo ln -s $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/lighttpd.conf_linux /etc/lighttpd/lighttpd.conf
+    sudo /etc/init.d/lighttpd start
+  elif [ "$TRAVIS_OS_NAME" = "osx" ] ;
+  then
+    brew services stop lighttpd
+    sudo mkdir -p /usr/local/var/www
+    sudo mkdir -p /var
+    sudo ln -s /usr/local/var/www /var/www
+    sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/test.html /var/www/.
+    sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/status_bg.png /var/www/.
+    sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/testRevalidation /var/www/.
+    sudo mv /usr/local/etc/lighttpd/modules.conf /usr/local/etc/lighttpd/modules.conf_old
+    sudo ln -s $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/modules.conf_osx /usr/local/etc/lighttpd/modules.conf
+    cat /usr/local/etc/lighttpd/lighttpd.conf
+    brew services start lighttpd
+    brew services reload lighttpd
+    ps -aef|grep lighttpd
   fi
 fi
 
