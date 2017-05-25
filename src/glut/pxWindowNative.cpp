@@ -560,7 +560,7 @@ bool exitFlag = false;
 
 pxWindowNative::~pxWindowNative()
 {
-  cleanupGlutWindow();
+  
 }
 
 void pxWindowNative::createGlutWindow(int left, int top, int width, int height)
@@ -583,7 +583,7 @@ void pxWindowNative::createGlutWindow(int left, int top, int width, int height)
 
 void pxWindowNative::cleanupGlutWindow()
 {
-  glutDestroyWindow(mGlutWindowId);
+  // NOOP
 }
 
 pxError pxWindow::init(int left, int top, int width, int height)
@@ -642,7 +642,6 @@ pxError pxWindow::init(int left, int top, int width, int height)
 
 pxError pxWindow::term()
 {
-  cleanupGlutWindow();
   return PX_OK;
 }
 
