@@ -16,6 +16,7 @@ SRCS_FULL=\
     test_imagecache.cpp \
     test_rtError.cpp \
     test_rtFile.cpp \
+    test_rtString.cpp \
     test_pxUtil.cpp \
     test_pxImage.cpp 
 
