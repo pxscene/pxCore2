@@ -705,12 +705,12 @@ rtError pxLoadJPGImageTurbo(const char *buf, size_t buflen, pxOffscreen &o)
   {
     colorComponent = 1;
     tjDestroy(jpegDecompressor);
-    return RT_FAIL;// TODO : add grayscale support for libjpeg turbo
+    return RT_FAIL;// TODO : add grayscale support for libjpeg turbo.  falling back to libjpeg for now
   }
 
   unsigned char *imageBuffer = tjAlloc(width * height * 3);
 
-  int result = tjDecompress2(jpegDecompressor, (unsigned char *)buf, buflen, imageBuffer, width, 0, height, (colorComponent == 3) ? TJPF_RGB : jpegColorspace, TJFLAG_FASTDCT);
+  int result = tjDecompress2(jpegDecompressor, (unsigned char *)buf, buflen, imageBuffer, width, 0, height, TJPF_RGB /*(colorComponent == 3) ? TJPF_RGB : jpegColorspace*/, TJFLAG_FASTDCT);
 
   if (result != 0)
   {
