@@ -2,9 +2,13 @@
 
 #define private public
 #define protected public
-
+#ifdef __APPLE__
+#include <pxCore.h>
+#include <pxWindow.h>
+#else
 #include <GL/glew.h>
 #include <GL/freeglut.h>
+#endif
 #include "pxScene2d.h"
 #include <string.h>
 #include "pxIView.h"
@@ -22,11 +26,56 @@ extern rtNode script;
 extern int gargc;
 extern char** gargv;
 extern int pxObjectCount;
+
+#ifdef __APPLE__
+class sceneWindow : public pxWindow, public pxIViewContainer
+{
+public:
+  void init(int x, int y, int w, int h, const char* url = NULL)
+  {
+    mWidth = w;
+    mHeight = h;
+    pxWindow::init(x,y,w,h);
+  }
+
+  virtual void invalidateRect(pxRect* r)
+  {
+    pxWindow::invalidateRect(r);
+  }
+
+  rtError setView(pxIView* v)
+  {
+    mView = v;
+    if (v)
+    {
+      v->setViewContainer(this);
+      v->onSize(mWidth, mHeight);
+    }
+    return RT_OK;
+  }
+
+  virtual void onAnimationTimer()
+  {
+    if (mView)
+      mView->onUpdate(pxSeconds());
+    script.pump();
+  }
+
+private:
+  pxIView* mView;
+  int mWidth;
+  int mHeight;
+};
+#endif
 class jsFilesTest : public testing::Test
 {
   public:
     virtual void SetUp()
     {
+#ifdef __APPLE__
+      mSceneWin = new sceneWindow();
+      mSceneWin->init(0,0,1280,720);
+#else
       glutInit(&gargc,gargv);
       glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGBA);
       glutInitWindowPosition (0, 0);
@@ -42,12 +91,15 @@ class jsFilesTest : public testing::Test
         printf("error with glewInit() [%s] [%d] \n",glewGetErrorString(err), err);
         fflush(stdout);
       }
+#endif
       mContext.init();
     }
 
     virtual void TearDown()
     {
-      glutDestroyWindow(mGlutWindowId);
+#ifdef __APPLE__
+      delete mSceneWin;
+#endif
     }
 
     void test(char* file, float timeout)
@@ -60,7 +112,7 @@ class jsFilesTest : public testing::Test
       mView->onCloseRequest();
       script.garbageCollect();
       //currently we are getting the count +1 , due to which test is failing
-      //suspecting this is due to scenecontainer without parent leak.
+      //suspecting this is due to scenecontainer without parent leak. 
       //EXPECT_TRUE (pxObjectCount == oldpxCount);
       printf("old px count [%d] new px count [%d] \n",oldpxCount,pxObjectCount);
       fflush(stdout);
@@ -74,6 +126,9 @@ private:
     {
       mUrl = jsfile;
       mView = new pxScriptView(mUrl,"");
+#ifdef __APPLE__
+      mSceneWin->setView(mView);
+#endif
     }
 
     void process(float timeout)
@@ -83,17 +138,25 @@ private:
       {
         if (NULL != mView)
         {
+#ifdef __APPLE__
+          mSceneWin->onAnimationTimer();
+#else
           mView->onDraw();
           mView->onUpdate(pxSeconds());
           script.pump();
           glutSwapBuffers();
+#endif
         }
       }
     }
 
     pxScriptView* mView;
     rtString mUrl;
+#ifdef __APPLE__
+    sceneWindow* mSceneWin;
+#else
     int mGlutWindowId;
+#endif
     pxContext mContext;
 };
 
