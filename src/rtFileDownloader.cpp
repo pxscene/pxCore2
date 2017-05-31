@@ -36,7 +36,7 @@ using namespace std;
 
 #define CA_CERTIFICATE "cacert.pem"
 
-//#define PX_REUSE_DOWNLOAD_HANDLES
+#define PX_REUSE_DOWNLOAD_HANDLES
 
 const int kCurlTimeoutInSeconds = 30;
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
@@ -321,7 +321,7 @@ bool rtFileDownloadRequest::cacheEnabled()
 
 
 rtFileDownloader::rtFileDownloader() 
-    : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false)
+    : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false), mCaCertFile(CA_CERTIFICATE)
 {
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
   rtLogWarn("enabling curl handle reuse");
@@ -331,6 +331,11 @@ rtFileDownloader::rtFileDownloader()
   }
   mReuseDownloadHandles = true;
 #endif
+  char const* s = getenv("CA_CERTIFICATE_FILE");
+  if (s)
+  {
+    mCaCertFile = s;
+  }
 }
 
 rtFileDownloader::~rtFileDownloader()
@@ -364,6 +369,7 @@ rtFileDownloader::~rtFileDownloader()
     }
   }
 #endif
+  mCaCertFile = "";
 }
 
 rtFileDownloader* rtFileDownloader::instance()
@@ -526,7 +532,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
     //CA certificates
     // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
-   // curl_easy_setopt(curl_handle,CURLOPT_CAINFO,CA_CERTIFICATE);
+    curl_easy_setopt(curl_handle,CURLOPT_CAINFO,mCaCertFile.cString());
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, true);
 
