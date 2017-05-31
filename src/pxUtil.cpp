@@ -699,11 +699,11 @@ rtError pxLoadJPGImageTurbo(const char *buf, size_t buflen, pxOffscreen &o)
 
   tjDecompressHeader3(jpegDecompressor, (unsigned char *)buf, buflen, &width, &height, &jpegSubsamp, &jpegColorspace);
 
-  int colorComponent = 3;
+  //int colorComponent = 3;
 
   if (jpegColorspace == TJCS_GRAY)
   {
-    colorComponent = 1;
+    //colorComponent = 1;
     tjDestroy(jpegDecompressor);
     return RT_FAIL;// TODO : add grayscale support for libjpeg turbo.  falling back to libjpeg for now
   }
