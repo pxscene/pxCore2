@@ -147,7 +147,7 @@ private:
     void (*mDefaultCallbackFunction)(rtFileDownloadRequest*);
     std::vector<rtFileDownloadHandle> mDownloadHandles;
     bool mReuseDownloadHandles;
-
+    std::string mCaCertFile;
     static rtFileDownloader* mInstance;
 };
 
