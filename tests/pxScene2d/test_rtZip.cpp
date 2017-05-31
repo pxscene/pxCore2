@@ -44,17 +44,34 @@ class rtZipTest : public testing::Test
 
     void termTest()
     {
-      rtError ret = mData.initFromBuffer(testBuffer, 256);
-              ret = mData.term();
+      rtData  buffer;
+      rtError ret;
+      
+      ret = rtLoadFile("supportfiles/sample.zip", buffer);
+      EXPECT_TRUE(ret == RT_OK);
+      
+      ret = mData.initFromBuffer(buffer.data(), buffer.length());
+      EXPECT_TRUE(ret == RT_OK);
+
+      ret = mData.term();
       EXPECT_TRUE(ret == RT_OK);
     }
 
     void fileCountTest()
     {
-      rtError    ret = mData.initFromBuffer(testBuffer, 256);
+      rtData  buffer;
+      rtError ret;
+
+      ret = rtLoadFile("supportfiles/sample.zip", buffer);
+      EXPECT_TRUE(ret == RT_OK);
+
+      ret = mData.initFromBuffer(buffer.data(), buffer.length());
+      EXPECT_TRUE(ret == RT_OK);
+
       uint32_t count = mData.fileCount();
 
-      EXPECT_TRUE(count == 0);
+      EXPECT_FALSE(count == 0);
+      EXPECT_TRUE( count == 1);
     }
 
     void getFilePathAtIndexTest()
@@ -69,7 +86,7 @@ class rtZipTest : public testing::Test
 
       ret = mData.getFilePathAtIndex(0, path);
       EXPECT_TRUE(ret == RT_OK);
-      
+
       EXPECT_TRUE ( path == "test.html");  // << 'test.html' is file within 'sample.zip'
     }
 
@@ -77,8 +94,6 @@ class rtZipTest : public testing::Test
     {
       rtError ret = mData.initFromFile("supportfiles/sample.zip");
       rtData data;
-
-      printf("\n JUNK >> ret [%d] \n", ret);
 
       ret = mData.getFileData("does_not_exist.html", data);
       EXPECT_TRUE(ret == RT_FAIL);
