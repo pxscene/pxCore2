@@ -105,9 +105,11 @@ void pxAnimate::update (const char* prop, struct animation* params, pxConstantsA
 
     if (propParamsPtr != NULL)
     {
-      propParamsPtr->mStatus = status;
+      if (status > propParamsPtr->mStatus)
+        propParamsPtr->mStatus = status;
       propParamsPtr->mCount = params->actualCount;
-      propParamsPtr->mCancelled = params->cancelled;
+      if (propParamsPtr->mStatus != pxConstantsAnimation::STATUS_ENDED)
+        propParamsPtr->mCancelled = params->cancelled;
       propParamsPtr->mDuration = params->duration;
       propParamsPtr->mFrom = params->from;
       propParamsPtr->mTo = params->to;
