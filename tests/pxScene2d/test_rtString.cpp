@@ -1,3 +1,4 @@
+#include <sstream>
 
 #define private public
 #define protected public
