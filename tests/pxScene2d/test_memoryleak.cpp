@@ -122,10 +122,10 @@ private:
     rtString mUrl;
 };
 
-TEST_F(pxSceneContainerLeakTest, sceneContainerTest)
+/*TEST_F(pxSceneContainerLeakTest, sceneContainerTest)
 {
   withParentRemovedGCNotHappenedTest();
   withParentRemovedGCHappenedTest();
   withoutParentRemovedGCNotHappenedTest();
   withoutParentRemovedGCHappenedTest();
-}
+}*/

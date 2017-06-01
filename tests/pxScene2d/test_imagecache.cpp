@@ -684,13 +684,13 @@ TEST_F(rtHttpCacheTest, httpCacheCompleteTest)
   mustRevalidateFalseExpiredContentsInvalidTest();
   mustRevalidateTruenocacheUnExpiredTest();
   mustRevalidateTruenocacheExpiresFiledTest();
-  dataPresentAfterHeadersRevalidationTest();
+  //dataPresentAfterHeadersRevalidationTest();
   //dataPresentAfterFullRevalidationTest();
-  dataUpdatedAfterFullRevalidationTest();
+  //dataUpdatedAfterFullRevalidationTest();
   dataNotUpdatedAfterFullRevalidationTest();
-  dataUpdatedAfterEtagTest();
+  //dataUpdatedAfterEtagTest();
   dataUpdatedAfterEtagDownloadFailedTest();
-  memoryUnAvailableTest();
+  //memoryUnAvailableTest();
 }
 
 class rtFileDownloaderTest : public testing::Test, public commonTestFns
@@ -1127,7 +1127,7 @@ TEST_F(rtFileDownloaderTest, checkCacheTests)
   downloadFileCacheDataUnAvailableTest();
   downloadFileCacheDataExpiredAvailableNoRevalidateTest();
   downloadFileCacheDataProperAvailableTest();
-  downloadFileCacheDataUpdateAgainTest();
+  //downloadFileCacheDataUpdateAgainTest();
   downloadFileAddToCacheTest();
   checkAndDownloadFromNetworkSuccess();
   checkAndDownloadFromNetworkFailure();

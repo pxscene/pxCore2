@@ -13,9 +13,10 @@ SRCS_FULL=\
     test_rtnode.cpp \
     test_pxAnimate.cpp \
     test_jsfiles.cpp \
-    test_imagecache.cpp \
     test_rtError.cpp \
     test_rtFile.cpp \
+    test_rtZip.cpp \
+    test_rtString.cpp \
     test_pxUtil.cpp \
     test_pxImage.cpp 
 
