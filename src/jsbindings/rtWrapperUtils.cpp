@@ -56,9 +56,7 @@ static void WeakCallback(const WeakCallbackInfo<rtIObject>& data) {
   Locker locker(data.GetIsolate());
   Isolate::Scope isolateScope(data.GetIsolate());
   HandleScope handleScope(data.GetIsolate());
-#ifndef RUNINMAIN
   rtObjectRef temp;
-#endif
 rtWrapperSceneUpdateEnter();
 #ifndef RUNINMAIN
   pthread_mutex_lock(&sObjectMapMutex);
@@ -73,9 +71,7 @@ rtWrapperSceneUpdateEnter();
     //
     j->second->PersistentObject.ClearWeak();
     j->second->PersistentObject.Reset();
-#ifndef RUNINMAIN
     temp = j->second->RTObject;
-#endif
     delete j->second;
     objectMap.erase(j);
   }
@@ -86,16 +82,21 @@ rtWrapperSceneUpdateEnter();
 rtWrapperSceneUpdateExit();
 #ifndef RUNINMAIN
   pthread_mutex_unlock(&sObjectMapMutex);
-  rtObjectRef parentRef;
-  rtError err = temp.get<rtObjectRef>("parent",parentRef);
-  if (err == RT_OK)
+#endif
+
+  if (NULL != temp)
   {
-    if (NULL == parentRef)
+    rtObjectRef parentRef;
+    rtError err = temp.get<rtObjectRef>("parent",parentRef);
+    if (err == RT_OK)
     {
-      temp.send("dispose");
+      if (NULL == parentRef)
+      {
+        temp.send("dispose");
+      }
     }
   }
-#endif
+
 }
 #else
 void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
@@ -103,9 +104,7 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
   Locker locker(data.GetIsolate());
   Isolate::Scope isolateScope(data.GetIsolate());
   HandleScope handleScope(data.GetIsolate());
-#ifndef RUNINMAIN
   rtObjectRef temp;
-#endif
   // rtLogInfo("ptr: %p", data.GetParameter());
 
   Local<Object> obj = data.GetValue();
@@ -144,9 +143,7 @@ rtWrapperSceneUpdateEnter();
     //
     j->second->PersistentObject.ClearWeak();
     j->second->PersistentObject.Reset();
-#ifndef RUNINMAIN
     temp = j->second->RTObject;
-#endif
 #if 0
     if (!p->IsWeak())
       rtLogWarn("TODO: Why isn't this handle weak?");
@@ -169,16 +166,19 @@ rtWrapperSceneUpdateEnter();
 rtWrapperSceneUpdateExit();
 #ifndef RUNINMAIN
   pthread_mutex_unlock(&sObjectMapMutex);
-  rtObjectRef parentRef;
-  rtError err = temp.get<rtObjectRef>("parent",parentRef);
-  if (err == RT_OK)
+#endif
+  if (NULL != temp)
   {
-    if (NULL == parentRef)
+    rtObjectRef parentRef;
+    rtError err = temp.get<rtObjectRef>("parent",parentRef);
+    if (err == RT_OK)
     {
-      temp.send("dispose");
+      if (NULL == parentRef)
+      {
+        temp.send("dispose");
+      }
     }
   }
-#endif
 }
 #endif
 
