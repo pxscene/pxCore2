@@ -1,5 +1,3 @@
-#ifdef USE_RT_REMOTE
-
 #include "pxServiceManager.h"
 
 rtRemoteEnvironment* pxServiceManager::mEnv = nullptr;
@@ -25,5 +23,3 @@ rtError pxServiceManager::findServiceManager(rtObjectRef &result)
 
   return e;
 }
-
-#endif

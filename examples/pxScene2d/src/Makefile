@@ -22,7 +22,7 @@ ifneq ($(HAVE_WESTEROS),1)
 HAVE_WESTEROS := $(shell pkg-config --exists westeros-compositor && echo 1)
 endif
 
-HAVE_RT_REMOTE := $(shell test -f ../../../remote/librtRemote.so -o -f ../../../remote/librtRemote_s.a && echo 1)
+ENABLE_SERVICE_MANAGER := $(shell echo $$SERVICE_MANAGER)
 
 clean:
 	rm -rf $(OBJDIR)
@@ -109,8 +109,12 @@ PX_SRCS_FULL=\
   pxImage9.cpp \
   pxImageA.cpp \
   pxArchive.cpp \
-  pxServiceManager.cpp \
   pxAnimate.cpp
+
+
+ifeq ($(ENABLE_SERVICE_MANAGER),1)
+PX_SRCS_FULL += pxServiceManager.cpp
+endif
 
 EXTDIR=../external
 PXCOREDIR=../../..
@@ -268,7 +272,6 @@ PXSCENE_LIB_SRCS=\
   pxImageA.cpp \
   pxArchive.cpp \
   pxFont.cpp \
-  pxServiceManager.cpp \
   pxAnimate.cpp
 
 ifneq ($(PX_PLATFORM),PX_PLATFORM_GENERIC_DFB)
@@ -285,6 +288,10 @@ endif
 ifeq ($(HAVE_WESTEROS),1)
 else
 PXSCENE_LIB_SRCS += ../external/westeros-stub/westeros-stub.cpp
+endif
+
+ifeq ($(ENABLE_SERVICE_MANAGER),1)
+PXSCENE_LIB_SRCS += pxServiceManager.cpp
 endif
 
 PXSCENE_LIB_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(PXSCENE_LIB_SRCS)))
@@ -419,8 +426,8 @@ PXSCENE_EXTRA_DEFINES=-DPNG_APNG_SUPPORTED
 endif
 endif
 
-ifeq ($(HAVE_RT_REMOTE),1)
-RT_REMOTE_COMPILER_FLAGS:=-DUSE_RT_REMOTE 
+ifeq ($(ENABLE_SERVICE_MANAGER),1)
+RT_REMOTE_COMPILER_FLAGS:=-DPX_SERVICE_MANAGER
 RT_REMOTE_LDFLAGS:=-L../../../remote -lrtRemote
 endif
 

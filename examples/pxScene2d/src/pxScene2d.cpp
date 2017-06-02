@@ -40,7 +40,7 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
-#ifdef USE_RT_REMOTE
+#ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
 #endif
 #include "pxImage9.h"
@@ -1535,7 +1535,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
-#ifdef USE_RT_REMOTE
+#ifdef PX_SERVICE_MANAGER
   else if (!strcmp("serviceManager",t.cString()))
     e = createServiceManager(p,o);
 #endif
@@ -1618,7 +1618,7 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
-#ifdef USE_RT_REMOTE
+#ifdef PX_SERVICE_MANAGER
 rtError pxScene2d::createServiceManager(rtObjectRef p, rtObjectRef& o)
 {
   pxServiceManager::findServiceManager(o);  
