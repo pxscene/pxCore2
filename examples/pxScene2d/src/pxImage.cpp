@@ -122,7 +122,7 @@ rtError pxImage::url(rtString& s) const
   }
   return RT_OK;
 }
-rtError pxImage::setUrl(const char* s) 
+rtError pxImage::setUrl(const char* s)
 { 
   //rtLogInfo("pxImage::setUrl init=%d imageLoaded=%d \n", mInitialized, imageLoaded);
   //rtLogDebug("pxImage::setUrl for s=%s mUrl=%s\n", s, mUrl.cString());
@@ -158,7 +158,7 @@ rtError pxImage::setUrl(const char* s)
   return RT_OK;
 }
 
-void pxImage::sendPromise() 
+void pxImage::sendPromise()
 { 
   if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status()) 
   {
