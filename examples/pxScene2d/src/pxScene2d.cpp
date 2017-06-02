@@ -1571,6 +1571,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createImageA(p,o);
   else if (!strcmp("imageResource",t.cString()))
     e = createImageResource(p,o);
+  else if (!strcmp("imageAResource",t.cString()))
+    e = createImageAResource(p,o);
   else if (!strcmp("fontResource",t.cString()))
     e = createFontResource(p,o);
   else if (!strcmp("scene",t.cString()))
@@ -1663,7 +1665,17 @@ rtError pxScene2d::createImageA(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString url = p.get<rtString>("url");
-  o = pxImageManager::getImage(url);
+  rtString proxy = p.get<rtString>("proxy");
+  o = pxImageManager::getImage(url, proxy);
+  o.send("init");
+  return RT_OK;
+}
+
+rtError pxScene2d::createImageAResource(rtObjectRef p, rtObjectRef& o)
+{
+  rtString url = p.get<rtString>("url");
+  rtString proxy = p.get<rtString>("proxy");
+  o = pxImageManager::getImageA(url, proxy);
   o.send("init");
   return RT_OK;
 }
@@ -1671,7 +1683,8 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString url = p.get<rtString>("url");
-  o = pxFontManager::getFont(url);
+  rtString proxy = p.get<rtString>("proxy");
+  o = pxFontManager::getFont(url, proxy);
   return RT_OK;
 }
 

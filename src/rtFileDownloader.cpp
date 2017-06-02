@@ -532,7 +532,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
     //CA certificates
     // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
-    curl_easy_setopt(curl_handle,CURLOPT_CAINFO,mCaCertFile.cString());
+    //curl_easy_setopt(curl_handle,CURLOPT_CAINFO,mCaCertFile.cString());
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, true);
 
@@ -545,6 +545,10 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     {
         curl_easy_setopt(curl_handle, CURLOPT_PROXY, proxyServer.cString());
         curl_easy_setopt(curl_handle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+    }
+    else
+    {
+      curl_easy_setopt(curl_handle, CURLOPT_PROXY, "");
     }
 
     if (true == headerOnly)
