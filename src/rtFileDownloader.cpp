@@ -36,7 +36,7 @@ using namespace std;
 
 #define CA_CERTIFICATE "cacert.pem"
 
-#define PX_REUSE_DOWNLOAD_HANDLES
+//#define PX_REUSE_DOWNLOAD_HANDLES
 
 const int kCurlTimeoutInSeconds = 30;
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
