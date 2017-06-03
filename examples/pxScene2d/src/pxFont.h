@@ -135,7 +135,7 @@ protected:
 class pxFont: public pxResource {
 
 public:
-	pxFont(rtString fontUrl);
+	pxFont(rtString fontUrl, rtString proxyUrl);
 	virtual ~pxFont() ;
 
 	rtDeclareObject(pxFont, pxResource);
@@ -189,7 +189,7 @@ class pxFontManager
   
   public: 
     
-    static rtRef<pxFont> getFont(const char* url);
+    static rtRef<pxFont> getFont(const char* url, const char* proxy = NULL);
     static void removeFont(rtString fontName);
     static void clearAllFonts();
     

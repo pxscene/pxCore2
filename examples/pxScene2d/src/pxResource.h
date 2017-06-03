@@ -59,6 +59,7 @@ public:
   rtDeclareObject(pxResource, rtObject);
   
   rtReadOnlyProperty(url,url,rtString);
+  rtReadOnlyProperty(proxy,proxy,rtString);
   rtReadOnlyProperty(ready,ready,rtObjectRef);
   rtReadOnlyProperty(loadStatus,loadStatus,rtObjectRef);
     
@@ -71,8 +72,11 @@ public:
 
   
   rtError url(rtString& s) const { s = mUrl; return RT_OK;}
-  rtError setUrl(const char* s);
+  rtError setUrl(const char* s, const char* proxy = NULL);
   rtString getUrl() { return mUrl;}
+
+  rtError proxy(rtString& s) const { s = mProxy; return RT_OK;}
+  rtString getProxy() { return mProxy;}
 
   rtError ready(rtObjectRef& r) const;
   rtError loadStatus(rtObjectRef& v) const;
@@ -103,6 +107,7 @@ protected:
 
   
   rtString mUrl;
+  rtString mProxy;
   rtFileDownloadRequest* mDownloadRequest;  
   bool priorityRaised;
 
@@ -115,7 +120,7 @@ protected:
 class rtImageResource : public pxResource
 {
 public:
-  rtImageResource(const char* url = 0);
+  rtImageResource(const char* url = 0, const char* proxy = 0);
   ~rtImageResource(); 
   
   rtDeclareObject(rtImageResource, pxResource);
@@ -148,7 +153,7 @@ private:
 class rtImageAResource : public pxResource
 {
 public:
-  rtImageAResource(const char* url = 0);
+  rtImageAResource(const char* url = 0, const char* proxy = 0);
   ~rtImageAResource();
 
   rtDeclareObject(rtImageAResource, pxResource);
@@ -175,10 +180,10 @@ class pxImageManager
 {
   
   public: 
-    static rtRef<rtImageResource> getImage(const char* url);
+    static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL);
     static void removeImage(rtString imageUrl);
 
-    static rtRef<rtImageAResource> getImageA(const char* url);
+    static rtRef<rtImageAResource> getImageA(const char* url, const char* proxy = NULL);
     static void removeImageA(rtString imageAUrl);
     
   private: 
