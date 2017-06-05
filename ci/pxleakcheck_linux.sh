@@ -14,7 +14,6 @@ grep "RUN COMPLETED" $PXCHECKLOGS
 retVal=$?
 count=$((count+30))
 done
-cat $PXCHECKLOGS
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
 sleep 5s;
