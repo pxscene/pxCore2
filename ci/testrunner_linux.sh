@@ -12,7 +12,7 @@ lcov -d obj/ --zerocounters
 cd $currentdir
 TESTRUNLOGS=$TRAVIS_BUILD_DIR/logs/run_logs
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js >> $TESTRUNLOGS 2>&1 &
+./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json >> $TESTRUNLOGS 2>&1 &
 grep "Failures:" $TESTRUNLOGS
 retVal=$?
 count=0

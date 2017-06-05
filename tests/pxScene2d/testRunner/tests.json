@@ -1,0 +1,7 @@
+[
+      {"url":"https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/gallery/coverflowtest_v2.js","title":"coverflow", "timeToRun":"10000"},
+      {"url":"http://pxscene.org/examples/px-reference/gallery/fancy.js", "title":"fancy","timeToRun":"10000"},
+      {"ur":"http://pxscene.org/examples/px-reference/gallery/fancy.js", "title":"fancy","useBaseURI":"false","timeToRun":"10000"},
+      {"ur":"http://pxscene.org/examples/px-reference/gallery/picturepile.js", "title":"picturepile","useBaseURI":"false","timeToRun":"10000"},
+      {"ur":"http://pxscene.org/examples/px-reference/gallery/gallery.js", "title":"gallery","useBaseURI":"false","timeToRun":"10000"}
+]

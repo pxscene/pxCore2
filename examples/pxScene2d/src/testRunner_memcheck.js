@@ -4,8 +4,13 @@ px.import("px:scene.1.js").then( function ready(scene) {
 
 var root = scene.root;
 
+var testRunnerUrl = "https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js";
+
+if( px.appQueryParams.tests !== undefined) {
+  testRunnerUrl += "?"+px.appQueryParams.tests;
+}
 // Info about tests to be run
-var testUrls = ["https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js", "http://pxscene.org/examples/px-reference/gallery/fancy.js","http://pxscene.org/examples/px-reference/gallery/picturepile.js","http://pxscene.org/examples/px-reference/gallery/gallery.js" ]; // See tests.json for test urls to be run
+var testUrls = [testRunnerUrl,"http://pxscene.org/examples/px-reference/gallery/fancy.js","http://pxscene.org/examples/px-reference/gallery/picturepile.js","http://pxscene.org/examples/px-reference/gallery/gallery.js" ]; // See tests.json for test urls to be run
 
 //added different timeout for different pages, as travis server is bit slower and so getting more timeout errors for complex js pages
 var testTimeouts = [240000, 5000, 5000, 20000];
