@@ -720,7 +720,7 @@ protected:
 
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
   void createSnapshotOfChildren();
-  void deleteSnapshot(pxContextFramebufferRef fbo);
+  void clearSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES
   pxRect getBoundingRectInScreenCoordinates();
   pxRect convertToScreenCoordinates(pxRect* r);
@@ -986,12 +986,7 @@ public:
     return c;
   }
 
-  void dispose()
-  {
-     rtLogInfo(__FUNCTION__);
-     setScriptView(NULL);
-     pxObject::dispose();
-  }
+  void dispose();
   rtError url(rtString& v) const { v = mUrl; return RT_OK; }
   rtError setUrl(rtString v);
 
@@ -1012,7 +1007,7 @@ private:
   rtRef<pxScriptView> mScriptView;
   rtString mUrl;
 };
-
+typedef rtRef<pxSceneContainer> pxSceneContainerRef;
 
 typedef rtRef<pxObject> pxObjectRef;
 
@@ -1432,7 +1427,8 @@ public:
     }
     return e;
   }
-  
+
+  void sceneContainerDisposed(pxSceneContainerRef ref);
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
@@ -1480,6 +1476,7 @@ private:
   int32_t mPointerHotSpotY;
   #endif
   bool mPointerHidden;
+  std::vector<pxSceneContainerRef> mSceneContainers;
 public:
   void hidePointer( bool hide )
   {
@@ -1490,6 +1487,7 @@ public:
   pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
   testView* mTestView;
+  bool mDisposed;
 };
 
 // TODO do we need this anymore?
