@@ -1,11 +1,11 @@
 #!/bin/sh
+exit 0;
 export PX_DUMP_MEMUSAGE=1
 export ENABLE_VALGRIND=0
 export RT_LOG_LEVEL=info
 PXCHECKLOGS=$TRAVIS_BUILD_DIR/logs/pxcheck_logs
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-#./pxscene.sh testRunner_memcheck.js > $PXCHECKLOGS 2>&1 &
-./pxscene.sh testRunner_memcheck.js
+./pxscene.sh testRunner_memcheck.js > $PXCHECKLOGS 2>&1 &
 grep "RUN COMPLETED" $PXCHECKLOGS
 retVal=$?
 count=0
@@ -19,8 +19,6 @@ kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}
 echo "Sleeping to make terminate complete ......";
 sleep 5s;
 pkill -9 -f pxscene.sh
-#madanhack
-exit 0;
 grep "pxobjectcount is \[0\]" $PXCHECKLOGS
 pxRetVal=$?
 grep "texture memory usage is \[0\]" $PXCHECKLOGS
