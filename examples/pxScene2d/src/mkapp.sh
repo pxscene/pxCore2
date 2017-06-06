@@ -6,6 +6,9 @@ bundleBin=$bundle/Contents/MacOS
 
 #bundleRes=$bundle/Contents/Resources
 bundleRes=$bundle/Contents/MacOS
+bundleCore=$bundleRes/rcvrcore
+bundleUtils=$bundleCore/utils
+bundleTools=$bundleCore/tools
 
 bundleLib=$bundleBin/lib
 
@@ -28,6 +31,13 @@ cp $externalDir/zlib/libz.a $bundleLib
 # Copy OTHER to Bundle...
 #
 cp macstuff/Info.plist $bundle/Contents
+
+# Make the RES folders...
+#
+[ -d $bundleRes ] || mkdir -p $bundleRes
+[ -d $bundleCore ] || mkdir -p $bundleCore
+[ -d $bundleUtils ] || mkdir -p $bundleUtils
+[ -d $bundleTools ] || mkdir -p $bundleTools
 
 # Copy RESOURCES to Bundle...
 #
