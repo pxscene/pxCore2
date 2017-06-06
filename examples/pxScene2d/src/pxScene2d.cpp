@@ -418,6 +418,8 @@ void pxObject::createNewPromise()
 void pxObject::dispose()
 {
   //rtLogInfo(__FUNCTION__);
+  if (!mIsDisposed)
+  {
   mIsDisposed = true;
   vector<animation>::iterator it = mAnimations.begin();
   for(;it != mAnimations.end();it++)
@@ -448,6 +450,7 @@ void pxObject::dispose()
 #ifdef ENABLE_RT_NODE
   script.pump();
 #endif
+ }
 }
 
 /** since this is a boolean, we have to handle if someone sets it to
@@ -1475,7 +1478,7 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top)
-  : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRectangle(false), mTestView(NULL)
+  : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRectangle(false), mSceneConts(), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1522,8 +1525,19 @@ pxScene2d::pxScene2d(bool top)
 
 rtError pxScene2d::dispose()
 {
+    mDisposed = true;
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
+
+    for (unsigned int i=0; i<mSceneConts.size(); i++)
+    {
+      pxSceneContainer* temp = mSceneConts[i];
+      if ((NULL != temp) && (NULL == temp->parent()))
+      {
+        temp->dispose();
+      }
+    }
+    mSceneConts.clear();
     if (mRoot)
       mRoot->dispose();
     mEmit->clearListeners();
@@ -1708,6 +1722,7 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
   o = new pxSceneContainer(this);
   o.set(p);
   o.send("init");
+  mSceneConts.push_back((pxSceneContainer*)o.getPtr());
   return RT_OK;
 }
 
@@ -2764,6 +2779,20 @@ rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
   setView(scriptView);
   return RT_OK;
 }
+
+void pxSceneContainer::dispose()
+{
+  if (!mIsDisposed)
+  {
+    rtLogInfo(__FUNCTION__);
+    AddRef();
+    mScene->sceneContainerDisposed(this);
+    setScriptView(NULL);
+    pxObject::dispose();
+    Release();
+  }
+}
+
 #if 0
 void* gObjectFactoryContext = NULL;
 objectFactory gObjectFactory = NULL;
