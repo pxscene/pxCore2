@@ -4,6 +4,7 @@ export CCACHE_DISABLE=true
 retval=0
 for var in "$@"
 do
+echo "Starting $var..."
 sh $var
 retval=$?
 if [ "$retval" -eq 0 ]
