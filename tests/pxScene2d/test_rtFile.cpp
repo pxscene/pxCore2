@@ -142,8 +142,6 @@ class rtFilePointerTest : public testing::Test
 
     void initTest()
     {
-      printf("Madana running .... \n");
-      fflush(stdout);
       FILE* fptr = fopen("supportfiles/file.txt","w");
       rtFilePointer fp(fptr);
       EXPECT_TRUE (fp.getPtr() != NULL);

@@ -366,6 +366,12 @@ bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downl
      return false;
   }
 
+  if ((downloadRequest->httpStatusCode() == 404) || (downloadRequest->httpStatusCode() == 403))
+  {
+    delete downloadRequest;
+    return false;
+  }
+
   if (downloadRequest->downloadStatusCode() == 0 &&
        downloadRequest->httpStatusCode() == 200)
   {

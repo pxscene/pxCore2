@@ -5,13 +5,14 @@ HNAME_S := $(shell hostname)
 ifeq ($(UNAME_S),Darwin)
 all: pxscene pxscene.app
 deploy: pxscene.dmg
+libs-mac: libpxscene-desktop
 else
 all: pxscene
 dfb: pxscene-dfb
 libs: libpxscene.so
 static-libs: libpxscene.a
 static-libs-dfb: libpxscene.a-dfb
-libs-glut: libpxscene-glut
+libs-glut: libpxscene-desktop
 libs-dfbwindow: libpxscene-dfbwindow
 endif
 
@@ -459,13 +460,11 @@ cleansceneobj:
 cleanwaylandobj:
 	rm -f $(PXWAYLAND_LIB_OBJS)
 
-libpxscene-glut:
+libpxscene-desktop:
 	rm -rf $(OBJDIR)
-libpxscene-glut: CFLAGS_FULL = $(CFLAGS)
-#libpxscene-glut: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC -g -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES)
-#libpxscene-glut: LDFLAGS_FULL = $(LDEXT) -Wl,--no-whole-archive -lglut -lGLEW -lGL -lnode -pthread -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8) -L./  
-libpxscene-glut: cleansceneobj $(PXSCENE_LIB_OBJS)  
-	$(AR) rc libpxscene.a $(PXSCENE_LIB_OBJS) 
+libpxscene-desktop: CFLAGS_FULL = $(CFLAGS)
+libpxscene-desktop: cleansceneobj $(PXSCENE_LIB_OBJS)
+	$(AR) rc libpxscene.a $(PXSCENE_LIB_OBJS)
 
 libpxscene-dfbwindow:
 	rm -rf $(OBJDIR)

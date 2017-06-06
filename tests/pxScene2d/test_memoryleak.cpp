@@ -117,7 +117,7 @@ private:
     }
 
     pxObject* mRoot;
-    pxObject* mSceneContainer[];
+    pxObject* mSceneContainer[100];
     pxScriptView* mView;
     rtString mUrl;
 };
