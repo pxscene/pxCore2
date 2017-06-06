@@ -8,8 +8,9 @@ cd $currentdir
 TESTRUNLOGS=$TRAVIS_BUILD_DIR/logs/run_logs
 
 rm -rf /var/tmp/pxscene.log
+TESTRUNNERTESTS=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
-./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js &
+./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=$TESTRUNNERTESTS &
 grep "Failures:" /var/tmp/pxscene.log
 retVal=$?
 count=0

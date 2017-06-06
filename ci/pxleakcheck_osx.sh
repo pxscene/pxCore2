@@ -6,7 +6,7 @@ PXCHECKLOGS=$TRAVIS_BUILD_DIR/logs/pxcheck_logs
 
 rm -rf /var/tmp/pxscene.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
-./pxscene.sh testRunner_memcheck.js &
+./pxscene.sh testRunner_memcheck.js?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json &
 grep "RUN COMPLETED" /var/tmp/pxscene.log
 retVal=$?
 count=0
