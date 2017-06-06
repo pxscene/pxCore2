@@ -89,12 +89,23 @@ void rtString::term()
   mData = 0;
 }
 
-void rtString::append(const char* s) 
+void rtString::append(const char* s, size_t length)
 {
-  size_t sl = strlen(s);
+  size_t sl = length;
+  if (length <= 0)
+  {
+    sl = strlen(s);
+  }
   size_t dl = strlen(mData);
   mData = (char*)realloc((void*)mData, dl+sl+1);
-  strcpy(mData+dl, s);
+  if (length > 0)
+  {
+    strncpy(mData + dl, s, dl+sl+1);
+  }
+  else
+  {
+    strcpy(mData + dl, s);
+  }
 }
 
 int rtString::compare(const char* s) const 

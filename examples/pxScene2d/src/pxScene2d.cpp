@@ -2546,7 +2546,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
       {
         // We return a data Url string containing the image data
         pngData = "data:image/png;base64,";
-        pngData.append(d);
+        pngData.append(d,l);
         free(d);
         return RT_OK;
       }
