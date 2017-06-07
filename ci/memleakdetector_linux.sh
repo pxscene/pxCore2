@@ -9,7 +9,7 @@ VALGRINDPXCORELOGS=$TRAVIS_BUILD_DIR/logs/valgrind_pxcore_logs
 touch $VALGRINDLOGS
 #run valgrind and monitor for completion
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-./pxscene.sh testRunner_memcheck.js > $VALGRINDPXCORELOGS &
+./pxscene.sh testRunner_memcheck.js?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $VALGRINDPXCORELOGS &
 grep "RUN COMPLETED" $VALGRINDPXCORELOGS
 retVal=$?
 count=0
@@ -34,6 +34,10 @@ retVal=$?
 if [ "$retVal" -ne 0 ]
 then
 echo "Valgrind execution got stuck and not terminated in 5 minutes";
+if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+then
+cat $VALGRINDLOGS
+fi
 exit 1;
 fi
 
@@ -46,5 +50,9 @@ then
 exit 0;
 else
 echo "!!!!!!!!!!!!! Memory leak present !!!!!!!!!!!!!!!!!!!";
+if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+then
+cat $VALGRINDLOGS
+fi
 exit 1;
 fi
