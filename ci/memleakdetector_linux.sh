@@ -1,4 +1,5 @@
 #!/bin/sh
+sudo rm -rf /tmp/cache/*
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export ENABLE_VALGRIND=1
 export PX_DUMP_MEMUSAGE=1
@@ -8,7 +9,7 @@ VALGRINDPXCORELOGS=$TRAVIS_BUILD_DIR/logs/valgrind_pxcore_logs
 touch $VALGRINDLOGS
 #run valgrind and monitor for completion
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-./pxscene.sh testRunner_memcheck.js > $VALGRINDPXCORELOGS &
+./pxscene.sh testRunner_memcheck.js?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $VALGRINDPXCORELOGS &
 grep "RUN COMPLETED" $VALGRINDPXCORELOGS
 retVal=$?
 count=0
