@@ -591,6 +591,10 @@ rtError pxObject::remove()
 
 rtError pxObject::removeAll()
 {
+  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  {
+    (*it)->mParent = NULL;
+  }
   mChildren.clear();
   repaint();
   repaintParents();
