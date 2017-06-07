@@ -682,7 +682,7 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, m
 
     //var script = new vm.Script(sourceCode, filePath);
     //var moduleFunc = script.runInContext(_this.sandbox);
-    moduleFunc = vm.runInContext(sourceCode, _this.sandbox, {filename:filePath, displayErrors:true});
+    var moduleFunc = vm.runInContext(sourceCode, _this.sandbox, {filename:filePath, displayErrors:true});
 
     var px = createModule_pxScope.call(this, xModule);
 
