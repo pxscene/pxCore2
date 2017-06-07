@@ -1,4 +1,5 @@
 #!/bin/sh
+sudo rm -rf /tmp/cache/*
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export ENABLE_VALGRIND=1
 export PX_DUMP_MEMUSAGE=1
@@ -33,10 +34,6 @@ retVal=$?
 if [ "$retVal" -ne 0 ]
 then
 echo "Valgrind execution got stuck and not terminated in 5 minutes";
-if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-then
-cat $VALGRINDLOGS
-fi
 exit 1;
 fi
 
@@ -49,9 +46,5 @@ then
 exit 0;
 else
 echo "!!!!!!!!!!!!! Memory leak present !!!!!!!!!!!!!!!!!!!";
-if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-then
-cat $VALGRINDLOGS
-fi
 exit 1;
 fi

@@ -18,13 +18,10 @@ then
 fi
 
 cd $TRAVIS_BUILD_DIR
-if [ "$TRAVIS_EVENT_TYPE" = "push" ] ;
-then
-  tar -cvzf logs.tgz logs/*
-  checkError $?
-  ./ci/deploy_files.sh 96.118.6.151 logs.tgz;
-  checkError $?
-fi
+tar -cvzf logs.tgz logs/*
+checkError $?
+./ci/deploy_files.sh 96.118.6.151 logs.tgz;
+checkError $?
 
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
 then

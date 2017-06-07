@@ -1,4 +1,5 @@
 #!/bin/sh
+sudo rm -rf /tmp/cache/*
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
 export ENABLE_MEMLEAK_CHECK=1
 export PX_DUMP_MEMUSAGE=1
