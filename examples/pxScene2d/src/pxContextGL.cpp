@@ -128,10 +128,13 @@ static pxMatrix4f gMatrix;
 static float gAlpha = 1.0;
 uint32_t gRenderTick = 0;
 std::vector<pxTexture*> textureList;
+rtMutex textureListMutex;
 
 pxError addToTextureList(pxTexture* texture)
 {
+  textureListMutex.lock();
   textureList.push_back(texture);
+  textureListMutex.unlock();
   return PX_OK;
 }
 
@@ -141,7 +144,9 @@ pxError removeFromTextureList(pxTexture* texture)
   {
     if ((*it) == texture)
     {
+      textureListMutex.lock();
       textureList.erase(it);
+      textureListMutex.unlock();
       return PX_OK;
     }
   }
@@ -155,6 +160,7 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5
   int numberEjected = 0;
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
 
+  textureListMutex.lock();
   std::random_shuffle(textureList.begin(), textureList.end());
   for(std::vector<pxTexture*>::iterator it = textureList.begin(); it != textureList.end(); ++it)
   {
@@ -171,6 +177,7 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5
       }
     }
   }
+  textureListMutex.unlock();
 
   if (numberEjected > 0)
   {
