@@ -208,7 +208,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
   rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rtGA(5).convert<arg6type>(), rtGA(6).convert<arg7type>(), rv); if (&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk8ArgAndReturn(method, arg1type, arg2type, arg3type, arg4type, arg5type, arg6type, arg7type, arg8type, returntype) \
-  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rgGA(4).convert<arg5type>(), rtGA(5).convert<arg6type>(), rtGA(6).convert<arg7type>(), rtGA(7).convert<arg8type>(), rv); if (&r) r.assign<returntype>(rv); return e;}
+  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rtGA(5).convert<arg6type>(), rtGA(6).convert<arg7type>(), rtGA(7).convert<arg8type>(), rv); if (&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk9ArgAndReturn(method, arg1type, arg2type, arg3type, arg4type, arg5type, arg6type, arg7type, arg8type, arg9type, returntype) \
   rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rtGA(5).convert<arg6type>(), rtGA(6).convert<arg7type>(), rtGA(7).convert<arg8type>(), rtGA(8).convert<arg9type>(), rv); if (&r) r.assign<returntype>(rv); return e;}
@@ -594,7 +594,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
-            entry.init(name, RT_##arg1type##type2 RT_##arg2type##type2 RT_##arg3type##type2 RT_##arg4type##type2 RT_##arg5type##type2 RT_##arg6type##type2 RT_##arg7type##type2 RT_##arg8type##type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
+            entry.init(name, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2 RT_##arg6type##Type2 RT_##arg7type##Type2 RT_##arg8type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
         } \
         rtMethodEntry entry; \
     }; \
@@ -609,7 +609,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
-            entry.init(name, RT_##arg1type##type2 RT_##arg2type##type2 RT_##arg3type##type2 RT_##arg4type##type2 RT_##arg5type##type2 RT_##arg6type##type2 RT_##arg7type##type2 RT_##arg8type##type2 RT_##arg9type##type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
+            entry.init(name, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##type2 RT_##arg5type##Type2 RT_##arg6type##Type2 RT_##arg7type##Type2 RT_##arg8type##Type2 RT_##arg9type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
         } \
         rtMethodEntry entry; \
     }; \
