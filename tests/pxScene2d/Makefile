@@ -13,10 +13,12 @@ SRCS_FULL=\
     test_rtnode.cpp \
     test_pxAnimate.cpp \
     test_jsfiles.cpp \
-
-ifeq ($(USE_HTTP_CACHE),1)
-SRCS_FULL+=test_imagecache.cpp
-endif
+    test_rtError.cpp \
+    test_rtFile.cpp \
+    test_rtZip.cpp \
+    test_rtString.cpp \
+    test_pxUtil.cpp \
+    test_pxImage.cpp 
 
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PXCOREDIR=$(MAKEFILE_PATH)/../../
@@ -29,10 +31,12 @@ PXHDRS=$(PXCOREDIR)/src
 EXTDIR=$(PXCOREDIR)examples/pxScene2d/external
 
 ZLIB=$(EXTDIR)/zlib/
+PNG=$(EXTDIR)/png/
 SEARCH=\
 	-Ilinux \
 	-I$(PXHDRS) \
 	-I$(ZLIB) \
+	-I$(PNG) \
 	-I$(NODEDIR)/src \
 	-I$(NODEDIR)/deps/v8 \
 	-I$(NODEDIR)/deps/v8/include \
@@ -48,7 +52,7 @@ ifeq ($(USE_EXTERNALS_GLUT), true)
 SEARCH += -I$(EXTDIR)/freeglut/include
 endif
 
-CXXFLAGS= $(SEARCH) -O3 -D$(PX_PLATFORM) -DRT_PLATFORM_LINUX -DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_HTTP_CACHE  -DENABLE_DEBUG_MODE -DENABLE_LIBJPEG_TURBO -DPNG_APNG_SUPPORTED
+CXXFLAGS= $(SEARCH) -O3 -Werror -D$(PX_PLATFORM) -DRT_PLATFORM_LINUX -DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_HTTP_CACHE  -DENABLE_DEBUG_MODE -DENABLE_LIBJPEG_TURBO -DPNG_APNG_SUPPORTED
 
 #-Wall -Wextra -g
 LDPNG    = -L$(EXTDIR)/png/.libs -lpng16
@@ -64,7 +68,7 @@ LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDZLIB) $(LDJPG) $(LDLIBJPEGTURB
 NODEDIR = $(EXTDIR)/libnode-v6.9.0
 LDNODE   = -L$(NODEDIR)/out/Release/obj.target
 LDNODEV8 = -L$(NODEDIR)/out/Release
-LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode -L../../build/glut/ -lpxCore -lrtCore_s  $(LDEXT) -pthread -lglut -lGLEW -lGL -lX11 
+LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode -L../../build/glut/ -lpxCore -lrtCore_s  $(LDEXT) -pthread -lglut -lGLEW -lGL -lX11 -ldl
 ifeq ($(CODE_COVERAGE), 1)
 LDFLAGS +=  -lgcov
 endif
@@ -86,7 +90,7 @@ $(OBJDIR)/%.o : %.cpp
 
 $(OBJDIR)/%.o : %.c
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
-	$(CC) -c $(CXXFLAGS_FULL) $< -o $@
+	$(CC) -c $(CLAGS_FULL) $< -o $@
 
 $(OBJDIR)/gtest-all.o: $(EXTDIR)/gtest/googletest/src/gtest-all.cc
 	$(CXX) -o $(OBJDIR)/gtest-all.o -Wall $(SEARCH) $(CFLAGS) -c $(EXTDIR)/gtest/googletest/src/gtest-all.cc

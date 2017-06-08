@@ -40,6 +40,9 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
+#ifdef PX_SERVICE_MANAGER
+#include "pxServiceManager.h"
+#endif
 #include "pxImage9.h"
 #include "pxImageA.h"
 
@@ -241,6 +244,10 @@ char *base64_encode(const unsigned char *data,
     for (int i = 0; i < mod_table[input_length % 3]; i++)
         encoded_data[*output_length - 1 - i] = '=';
 
+#ifdef PX_PLATFORM_MAC
+    encoded_data[*output_length] = '\0';
+#endif //PX_PLATFORM_MAC
+
     return encoded_data;
 }
 
@@ -379,10 +386,10 @@ pxObject::~pxObject()
     pxObjectCount--;
     rtValue nullValue;
     mReady.send("reject",nullValue);
-    deleteSnapshot(mSnapshotRef);
-    deleteSnapshot(mClipSnapshotRef);
-    deleteSnapshot(mDrawableSnapshotForMask);
-    deleteSnapshot(mMaskSnapshot);
+    clearSnapshot(mSnapshotRef);
+    clearSnapshot(mClipSnapshotRef);
+    clearSnapshot(mDrawableSnapshotForMask);
+    clearSnapshot(mMaskSnapshot);
     mSnapshotRef = NULL;
     mClipSnapshotRef = NULL;
     mDrawableSnapshotForMask = NULL;
@@ -410,37 +417,40 @@ void pxObject::createNewPromise()
 
 void pxObject::dispose()
 {
-  //rtLogInfo(__FUNCTION__);
-  mIsDisposed = true;
-  vector<animation>::iterator it = mAnimations.begin();
-  for(;it != mAnimations.end();it++)
+  if (!mIsDisposed)
   {
-    if ((*it).promise)
-      (*it).promise.send("reject",this);
-  }
+    //rtLogInfo(__FUNCTION__);
+    mIsDisposed = true;
+    vector<animation>::iterator it = mAnimations.begin();
+    for(;it != mAnimations.end();it++)
+    {
+      if ((*it).promise)
+        (*it).promise.send("reject",this);
+    }
 
-  rtValue nullValue;
-  mReady.send("reject",nullValue);
+    rtValue nullValue;
+    mReady.send("reject",nullValue);
 
-  mAnimations.clear();
-  mEmit->clearListeners();
-  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
-  {
-    (*it)->dispose();
-    (*it)->mParent = NULL;  // setParent mutates the mChildren collection
-  } 
-  mChildren.clear();
-  deleteSnapshot(mSnapshotRef); 
-  deleteSnapshot(mClipSnapshotRef);
-  deleteSnapshot(mDrawableSnapshotForMask);
-  deleteSnapshot(mMaskSnapshot);
-  mSnapshotRef = NULL;
-  mClipSnapshotRef = NULL;
-  mDrawableSnapshotForMask = NULL;
-  mMaskSnapshot = NULL;
+    mAnimations.clear();
+    mEmit->clearListeners();
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      (*it)->dispose();
+      (*it)->mParent = NULL;  // setParent mutates the mChildren collection
+    }
+    mChildren.clear();
+    clearSnapshot(mSnapshotRef);
+    clearSnapshot(mClipSnapshotRef);
+    clearSnapshot(mDrawableSnapshotForMask);
+    clearSnapshot(mMaskSnapshot);
+    mSnapshotRef = NULL;
+    mClipSnapshotRef = NULL;
+    mDrawableSnapshotForMask = NULL;
+    mMaskSnapshot = NULL;
 #ifdef ENABLE_RT_NODE
-  script.pump();
+    script.pump();
 #endif
+ }
 }
 
 /** since this is a boolean, we have to handle if someone sets it to
@@ -462,7 +472,7 @@ rtError pxObject::Set(const char* name, const rtValue* value)
   #ifdef PX_DIRTY_RECTANGLES
   mIsDirty = true;
   //mScreenCoordinates = getBoundingRectInScreenCoordinates();
-  
+
   #endif //PX_DIRTY_RECTANGLES
   if (strcmp(name, "x") != 0 && strcmp(name, "y") != 0 &&  strcmp(name, "a") != 0)
   {
@@ -473,15 +483,15 @@ rtError pxObject::Set(const char* name, const rtValue* value)
   return rtObject::Set(name, value);
 }
 
-// TODO Cleanup animateTo methods... animateTo animateToP2 etc... 
+// TODO Cleanup animateTo methods... animateTo animateToP2 etc...
 rtError pxObject::animateToP2(rtObjectRef props, double duration,
                               uint32_t interp, uint32_t animationType,
                               int32_t count, rtObjectRef& promise)
 {
 
   if (!props) return RT_FAIL;
-  // TODO JR... not sure that we should do an early out here... thinking 
-  // we should still return a resolved promise given time... 
+  // TODO JR... not sure that we should do an early out here... thinking
+  // we should still return a resolved promise given time...
   // just going to get exceptions if you try to do a .then on the return result
   //if (!props) return RT_OK;
   // Default to Linear, Loop and count==1
@@ -584,6 +594,10 @@ rtError pxObject::remove()
 
 rtError pxObject::removeAll()
 {
+  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  {
+    (*it)->mParent = NULL;
+  }
   mChildren.clear();
   repaint();
   repaintParents();
@@ -596,7 +610,7 @@ rtError pxObject::moveToFront()
   pxObject* parent = this->parent();
 
   if(!parent) return RT_OK;
-  
+
   remove();
   setParent(parent);
 
@@ -606,9 +620,9 @@ rtError pxObject::moveToFront()
 rtError pxObject::moveToBack()
 {
   pxObject* parent = this->parent();
-  
+
   if(!parent) return RT_OK;
-  
+
   remove();
   mParent = parent;
   std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
@@ -821,6 +835,8 @@ void pxObject::update(double t)
       // Prevent one more loop through oscillate
       if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
+        if (NULL != a.animateObj.getPtr())
+          ((pxAnimate*)a.animateObj.getPtr())->setStatus(pxConstantsAnimation::STATUS_ENDED);
         cancelAnimation(a.prop, false, false, true);
         if (NULL != a.animateObj.getPtr())
           ((pxAnimate *)a.animateObj.getPtr())->update(a.prop, &a, pxConstantsAnimation::STATUS_ENDED);
@@ -1236,7 +1252,7 @@ rtError pxObject::setPainting(bool v)
   }
   else
   {
-    deleteSnapshot(mSnapshotRef);
+    clearSnapshot(mSnapshotRef);
   }
   return RT_OK;
 }
@@ -1264,7 +1280,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   //rtLogInfo("createSnapshot  w=%f h=%f\n", w, h);
   if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
   {
-    deleteSnapshot(fbo);
+    clearSnapshot(fbo);
     //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
     fbo = context.createFramebuffer(floor(w), floor(h), antiAliasing);
   }
@@ -1360,7 +1376,7 @@ void pxObject::createSnapshotOfChildren()
   context.setFramebuffer(previousRenderSurface);
 }
 
-void pxObject::deleteSnapshot(pxContextFramebufferRef fbo)
+void pxObject::clearSnapshot(pxContextFramebufferRef fbo)
 {
   if (fbo.getPtr() != NULL)
   {
@@ -1466,7 +1482,7 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top)
-  : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRectangle(false), mTestView(NULL)
+  : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRectangle(false), mSceneContainers(), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1513,8 +1529,20 @@ pxScene2d::pxScene2d(bool top)
 
 rtError pxScene2d::dispose()
 {
+    mDisposed = true;
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
+
+    for (unsigned int i=0; i<mSceneContainers.size(); i++)
+    {
+      pxSceneContainer* temp = mSceneContainers[i];
+      if ((NULL != temp) && (NULL == temp->parent()))
+      {
+        temp->dispose();
+      }
+    }
+    mSceneContainers.clear();
+
     if (mRoot)
       mRoot->dispose();
     mEmit->clearListeners();
@@ -1559,12 +1587,18 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
+#ifdef PX_SERVICE_MANAGER
+  else if (!strcmp("serviceManager",t.cString()))
+    e = createServiceManager(p,o);
+#endif
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
     e = createImageA(p,o);
   else if (!strcmp("imageResource",t.cString()))
     e = createImageResource(p,o);
+  else if (!strcmp("imageAResource",t.cString()))
+    e = createImageAResource(p,o);
   else if (!strcmp("fontResource",t.cString()))
     e = createFontResource(p,o);
   else if (!strcmp("scene",t.cString()))
@@ -1638,6 +1672,14 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
+#ifdef PX_SERVICE_MANAGER
+rtError pxScene2d::createServiceManager(rtObjectRef p, rtObjectRef& o)
+{
+  pxServiceManager::findServiceManager(o);  
+  return RT_OK;
+}
+#endif
+
 rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImage9(this);
@@ -1657,7 +1699,17 @@ rtError pxScene2d::createImageA(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString url = p.get<rtString>("url");
-  o = pxImageManager::getImage(url);
+  rtString proxy = p.get<rtString>("proxy");
+  o = pxImageManager::getImage(url, proxy);
+  o.send("init");
+  return RT_OK;
+}
+
+rtError pxScene2d::createImageAResource(rtObjectRef p, rtObjectRef& o)
+{
+  rtString url = p.get<rtString>("url");
+  rtString proxy = p.get<rtString>("proxy");
+  o = pxImageManager::getImageA(url, proxy);
   o.send("init");
   return RT_OK;
 }
@@ -1665,7 +1717,8 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString url = p.get<rtString>("url");
-  o = pxFontManager::getFont(url);
+  rtString proxy = p.get<rtString>("proxy");
+  o = pxFontManager::getFont(url, proxy);
   return RT_OK;
 }
 
@@ -1674,6 +1727,7 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
   o = new pxSceneContainer(this);
   o.set(p);
   o.send("init");
+  mSceneContainers.push_back((pxSceneContainer*)o.getPtr());
   return RT_OK;
 }
 
@@ -1681,7 +1735,12 @@ rtError pxScene2d::logDebugMetrics()
 {
   script.garbageCollect();
   rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+
+#ifdef PX_PLATFORM_MAC
+  rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
+#else
   rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+#endif
   return RT_OK;
 }
 
@@ -2488,8 +2547,8 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
     if (pxStorePNGImage(o, pngData2) == RT_OK)
     {
 
-//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
-//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 #if 0
     FILE *myFile = fopen("/mnt/nfs/env/snap.png", "wb");
     if( myFile != NULL)
@@ -2497,10 +2556,10 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
       fwrite( pngData2.data(), sizeof(char), pngData2.length(),myFile);
       fclose(myFile);
     }
-#endif    
-//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
-//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
-    
+#endif
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
+
       size_t l;
       char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
       if (d)
@@ -2626,7 +2685,7 @@ void pxViewContainer::invalidateRect(pxRect* r)
     mScene->invalidateRect(&screenRect);
 #else
     mScene->invalidateRect(NULL);
-    UNUSED_PARAM(r);    
+    UNUSED_PARAM(r);
 #endif //PX_DIRTY_RECTANGLES
   }
 }
@@ -2640,7 +2699,7 @@ void pxScene2d::invalidateRect(pxRect* r)
     mDirty = true;
   }
 #else
-  UNUSED_PARAM(r); 
+  UNUSED_PARAM(r);
 #endif //PX_DIRTY_RECTANGLES
   if (mContainer && !mTop)
   {
@@ -2649,6 +2708,24 @@ void pxScene2d::invalidateRect(pxRect* r)
 #else
     mContainer->invalidateRect(NULL);
 #endif //PX_DIRTY_RECTANGLES
+  }
+}
+
+void pxScene2d::sceneContainerDisposed(pxSceneContainerRef ref)
+{
+  // this is to make sure, we are not clearing the scene containers vector, while it is under process from scene dispose
+  if (!mDisposed)
+  {
+    unsigned int pos = 0;
+    for (; pos<mSceneContainers.size(); pos++)
+    {
+      if (mSceneContainers[pos] == ref)
+        break;
+    }
+    if (pos != mSceneContainers.size())
+    {
+      mSceneContainers.erase(mSceneContainers.begin()+pos);
+    }
   }
 }
 
@@ -2714,7 +2791,7 @@ rtError pxSceneContainer::ready(rtObjectRef& o) const
   if (mScriptView) {
     rtLogInfo("mScriptView is set!\n");
     return mScriptView->ready(o);
-  } 
+  }
   rtLogInfo("mScriptView is NOT set!\n");
   return RT_FAIL;
 }
@@ -2725,6 +2802,22 @@ rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
   setView(scriptView);
   return RT_OK;
 }
+
+void pxSceneContainer::dispose()
+{
+  if (!mIsDisposed)
+  {
+    rtLogInfo(__FUNCTION__);
+    //Adding ref to make sure, object not destroyed from event listeners
+    AddRef();
+    mScene->sceneContainerDisposed(this);
+    setScriptView(NULL);
+    pxObject::dispose();
+    Release();
+  }
+}
+
+
 #if 0
 void* gObjectFactoryContext = NULL;
 objectFactory gObjectFactory = NULL;
@@ -2740,9 +2833,9 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
-pxScriptView::pxScriptView(const char* url, const char* /*lang*/) 
+pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
      : mWidth(-1), mHeight(-1), mViewContainer(NULL), mRefCount(0)
-{ 
+{
   rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
   mUrl = url;
@@ -2752,7 +2845,7 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
   rtLogDebug("pxScriptView::pxScriptView() exiting\n");
 }
 
-void pxScriptView::runScript() 
+void pxScriptView::runScript()
 {
   rtLogInfo(__FUNCTION__);
 #endif // ifndef RUNINMAIN

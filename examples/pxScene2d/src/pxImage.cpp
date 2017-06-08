@@ -122,7 +122,7 @@ rtError pxImage::url(rtString& s) const
   }
   return RT_OK;
 }
-rtError pxImage::setUrl(const char* s) 
+rtError pxImage::setUrl(const char* s)
 { 
   //rtLogInfo("pxImage::setUrl init=%d imageLoaded=%d \n", mInitialized, imageLoaded);
   //rtLogDebug("pxImage::setUrl for s=%s mUrl=%s\n", s, mUrl.cString());
@@ -158,7 +158,7 @@ rtError pxImage::setUrl(const char* s)
   return RT_OK;
 }
 
-void pxImage::sendPromise() 
+void pxImage::sendPromise()
 { 
   if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status()) 
   {
@@ -167,9 +167,9 @@ void pxImage::sendPromise()
   }
 }
 
-float pxImage::getOnscreenWidth() 
-{ 
-  if(mw == -1 ) 
+float pxImage::getOnscreenWidth()
+{
+  if(mw == -1 || mStretchX == pxConstantsStretch::NONE)
   {
     return mResource.get<float>("w");
   }
@@ -179,13 +179,13 @@ float pxImage::getOnscreenWidth()
 }
 float pxImage::getOnscreenHeight() 
 { 
-  if(mh == -1) 
+  if(mh == -1 || mStretchY == pxConstantsStretch::NONE)
   {
     return mResource.get<float>("h");
   }
   else  
     return mh;  
- }
+}
       
 void pxImage::draw() {
   //rtLogDebug("pxImage::draw() mw=%f mh=%f\n", mw, mh);

@@ -720,7 +720,7 @@ protected:
 
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
   void createSnapshotOfChildren();
-  void deleteSnapshot(pxContextFramebufferRef fbo);
+  void clearSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES
   pxRect getBoundingRectInScreenCoordinates();
   pxRect convertToScreenCoordinates(pxRect* r);
@@ -986,12 +986,7 @@ public:
     return c;
   }
 
-  void dispose()
-  {
-     rtLogInfo(__FUNCTION__);
-     setScriptView(NULL);
-     pxObject::dispose();
-  }
+  void dispose();
   rtError url(rtString& v) const { v = mUrl; return RT_OK; }
   rtError setUrl(rtString v);
 
@@ -1012,7 +1007,7 @@ private:
   rtRef<pxScriptView> mScriptView;
   rtString mUrl;
 };
-
+typedef rtRef<pxSceneContainer> pxSceneContainerRef;
 
 typedef rtRef<pxObject> pxObjectRef;
 
@@ -1321,9 +1316,13 @@ public:
   rtError createText(rtObjectRef p, rtObjectRef& o);
   rtError createTextBox(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
+#ifdef PX_SERVICE_MANAGER
+  rtError createServiceManager(rtObjectRef p, rtObjectRef& o);
+#endif
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
   rtError createImageA(rtObjectRef p, rtObjectRef& o);
-  rtError createImageResource(rtObjectRef p, rtObjectRef& o); 
+  rtError createImageResource(rtObjectRef p, rtObjectRef& o);
+  rtError createImageAResource(rtObjectRef p, rtObjectRef& o);
   rtError createFontResource(rtObjectRef p, rtObjectRef& o);  
   rtError createScene(rtObjectRef p,rtObjectRef& o);
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
@@ -1431,7 +1430,8 @@ public:
     }
     return e;
   }
-  
+
+  void sceneContainerDisposed(pxSceneContainerRef ref);
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
@@ -1479,6 +1479,7 @@ private:
   int32_t mPointerHotSpotY;
   #endif
   bool mPointerHidden;
+  std::vector<pxSceneContainerRef> mSceneContainers;
 public:
   void hidePointer( bool hide )
   {
@@ -1489,6 +1490,7 @@ public:
   pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
   testView* mTestView;
+  bool mDisposed;
 };
 
 // TODO do we need this anymore?

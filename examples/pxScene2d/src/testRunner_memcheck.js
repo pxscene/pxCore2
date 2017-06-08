@@ -4,11 +4,23 @@ px.import("px:scene.1.js").then( function ready(scene) {
 
 var root = scene.root;
 
+console.log("Starting testRunner_memcheck.js...");
+
+var testRunnerUrl = "https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js";
+
+if( px.appQueryParams.tests !== undefined) {
+  testRunnerUrl += "?tests="+px.appQueryParams.tests;
+}
+console.log("testRunnerUrl is: "+testRunnerUrl);
 // Info about tests to be run
-var testUrls = ["http://pxscene.org/examples/px-reference/gallery/fancy.js","http://pxscene.org/examples/px-reference/gallery/picturepile.js","http://pxscene.org/examples/px-reference/gallery/gallery.js"]; // See tests.json for test urls to be run
+var testUrls = ["http://pxscene.org/examples/px-reference/gallery/fancy.js",
+                "http://pxscene.org/examples/px-reference/gallery/picturepile.js",
+                "http://pxscene.org/examples/px-reference/gallery/gallery.js",
+                testRunnerUrl 
+                ]; // See tests.json for test urls to be run
 
 //added different timeout for different pages, as travis server is bit slower and so getting more timeout errors for complex js pages
-var testTimeouts = [5000,5000,20000];
+var testTimeouts = [5000, 5000, 20000, 50000];
 var numUrls = testUrls.length;
 var lastSceneIndex = numUrls-1;
 var savedIndexForTimeout;
@@ -24,6 +36,7 @@ var mainPageProgress4 = scene.create({t:"text", parent:mainPage,pixelSize:25,tex
 
 var runTests = function( i) {  
   //  for( var i = 0; i < numUrls; i ++) {
+    console.log("runTests() for index "+i);
   if( i < numUrls) {
       var url = testUrls[i];
       if( prevTest != undefined) {

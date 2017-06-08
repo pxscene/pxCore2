@@ -1,13 +1,16 @@
-#include "gtest/gtest.h"
 #include <list>
+
 #define private public
 #define protected public
+
 #include "pxAnimate.h"
 #include "rtString.h"
 #include "pxScene2d.h"
 #include "pxImage.h"
 #include <string.h>
 #include <sstream>
+
+#include "test_includes.h" // Needs to be included last
 
 class pxAnimateTest : public testing::Test
 {
@@ -17,40 +20,30 @@ class pxAnimateTest : public testing::Test
       mScene = new pxScene2d(false);
       mImage = new pxImage(mScene);
     }
-  
+
     virtual void TearDown()
     {
     }
 
     void pxAnimateMembersSetTest ()
-    { 
+    {
          mAnimate = new pxAnimate(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1,  rtObjectRef(), (pxImage*)mImage.getPtr());
          validateReadOnlyMembers(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1);
          EXPECT_TRUE (mAnimate->mCancelled == false);
-         EXPECT_TRUE (mAnimate->mStatus == "IDLE");
+         EXPECT_TRUE (mAnimate->mStatus == pxConstantsAnimation::STATUS_IDLE);
     }
 
     void pxAnimateCancelTest ()
-    { 
+    {
          mAnimate = new pxAnimate(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1,  rtObjectRef(), (pxImage*)mImage.getPtr());
          mAnimate->cancel();
          validateReadOnlyMembers(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1);
          EXPECT_TRUE (mAnimate->mCancelled == true);
-         EXPECT_TRUE (mAnimate->mStatus == "CANCELLED");
+         EXPECT_TRUE (mAnimate->mStatus == pxConstantsAnimation::STATUS_CANCELLED);
     }
    
-    void pxAnimateMapStatusTest ()
-    { 
-         mAnimate = new pxAnimate(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1,  rtObjectRef(), (pxImage*)mImage.getPtr());
-         validateReadOnlyMembers(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1);
-         EXPECT_TRUE (mAnimate->mapStatus(pxConstantsAnimation::STATUS_IDLE) == "IDLE");
-         EXPECT_TRUE (mAnimate->mapStatus(pxConstantsAnimation::STATUS_ENDED) == "ENDED");
-         EXPECT_TRUE (mAnimate->mapStatus(pxConstantsAnimation::STATUS_CANCELLED) == "CANCELLED");
-         EXPECT_TRUE (mAnimate->mapStatus(pxConstantsAnimation::STATUS_INPROGRESS) == "INPROGRESS");
-    }
-
     void pxAnimatePropsUpdateTest ()
-    { 
+    {
          rtObjectRef props = new rtMapObject;
          props.set("x",10.0);
          props.set("y",5.0);
@@ -72,19 +65,19 @@ class pxAnimateTest : public testing::Test
          EXPECT_TRUE(propParamsPtr->mCount == 1);
          EXPECT_TRUE(propParamsPtr->mFrom == 10.0);
          EXPECT_TRUE(propParamsPtr->mDuration == 1);
-         EXPECT_TRUE(propParamsPtr->mStatus == "INPROGRESS");
+         EXPECT_TRUE(propParamsPtr->mStatus == pxConstantsAnimation::STATUS_INPROGRESS);
     }
 
     void pxAnimateSetStatusTest ()
-    { 
+    {
          mAnimate = new pxAnimate(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1,  rtObjectRef(), (pxImage*)mImage.getPtr());
          mAnimate->setStatus(pxConstantsAnimation::STATUS_INPROGRESS);
          validateReadOnlyMembers(rtObjectRef(), 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1);
-         EXPECT_TRUE (mAnimate->mStatus == "INPROGRESS");
+         EXPECT_TRUE (mAnimate->mStatus == pxConstantsAnimation::STATUS_INPROGRESS);
     }
 
-    private:  
-  
+    private:
+
       void validateReadOnlyMembers(rtObjectRef props, uint32_t interp, pxConstantsAnimation::animationOptions type, double duration, int32_t count)
       {
          EXPECT_TRUE (mAnimate->mInterp == interp);
@@ -98,13 +91,12 @@ class pxAnimateTest : public testing::Test
       rtObjectRef mImage;
       pxAnimateRef mAnimate;
 }  ;
-   
+
 TEST_F(pxAnimateTest, pxAnimateCompleteTest)
-{  
+{
     pxAnimateMembersSetTest();
     pxAnimateCancelTest();
-    pxAnimateMapStatusTest();
     pxAnimatePropsUpdateTest();
     pxAnimateSetStatusTest();
-}  
-   
+}
+

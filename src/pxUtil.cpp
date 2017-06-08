@@ -699,16 +699,18 @@ rtError pxLoadJPGImageTurbo(const char *buf, size_t buflen, pxOffscreen &o)
 
   tjDecompressHeader3(jpegDecompressor, (unsigned char *)buf, buflen, &width, &height, &jpegSubsamp, &jpegColorspace);
 
-  int colorComponent = 3;
+  //int colorComponent = 3;
 
   if (jpegColorspace == TJCS_GRAY)
   {
-    colorComponent = 1;
+    //colorComponent = 1;
+    tjDestroy(jpegDecompressor);
+    return RT_FAIL;// TODO : add grayscale support for libjpeg turbo.  falling back to libjpeg for now
   }
 
-  unsigned char *imageBuffer = tjAlloc(width * height * colorComponent);
+  unsigned char *imageBuffer = tjAlloc(width * height * 3);
 
-  int result = tjDecompress2(jpegDecompressor, (unsigned char *)buf, buflen, imageBuffer, width, 0, height, (colorComponent == 3) ? TJPF_RGB : jpegColorspace, TJFLAG_FASTDCT);
+  int result = tjDecompress2(jpegDecompressor, (unsigned char *)buf, buflen, imageBuffer, width, 0, height, TJPF_RGB /*(colorComponent == 3) ? TJPF_RGB : jpegColorspace*/, TJFLAG_FASTDCT);
 
   if (result != 0)
   {
@@ -727,7 +729,7 @@ rtError pxLoadJPGImageTurbo(const char *buf, size_t buflen, pxOffscreen &o)
     pxPixel *p = o.scanline(scanlinen++);
     {
       char *b = (char *)&imageBuffer[bufferIndex];
-      char *bend = b + (width * colorComponent);
+      char *bend = b + (width * 3);
       while (b < bend)
       {
         p->r = b[0];
@@ -735,7 +737,7 @@ rtError pxLoadJPGImageTurbo(const char *buf, size_t buflen, pxOffscreen &o)
         p->b = b[2];
         p->a = 255;
         b += 3; // next pixel
-        bufferIndex += colorComponent;
+        bufferIndex += 3;
         p++;
       }
     }
@@ -804,6 +806,8 @@ rtError pxLoadJPGImage(const char *buf, size_t buflen, pxOffscreen &o)
   /* Step 3: read file parameters with jpeg_read_header() */
 
   (void)jpeg_read_header(&cinfo, TRUE);
+  cinfo.out_color_space = JCS_RGB;
+
   /* We can ignore the return value from jpeg_read_header since
    *   (a) suspension is not possible with the stdio data source, and
    *   (b) we passed TRUE to reject a tables-only JPEG file as an error.

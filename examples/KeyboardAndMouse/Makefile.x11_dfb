@@ -2,7 +2,7 @@
 # pxCore FrameBuffer Library
 # KeyboardAndMouse Example
 
-CFLAGS= -I../../src -DPX_PLATFORM_X11 -DENABLE_DFB -Wno-write-strings -g
+CFLAGS= -I../../src -DPX_PLATFORM_X11 -DENABLE_DFB -Wno-write-strings -g -Werror
 OUTDIR=../../build/x11
 LIBDIR= -L/usr/lib/x86_64-linux-gnu -L/usr/local/lib/
 INCDIR=-I/usr/X11R6/include -I/usr/include/directfb 

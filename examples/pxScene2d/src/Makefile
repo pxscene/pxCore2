@@ -21,6 +21,8 @@ ifneq ($(HAVE_WESTEROS),1)
 HAVE_WESTEROS := $(shell pkg-config --exists westeros-compositor && echo 1)
 endif
 
+ENABLE_SERVICE_MANAGER := $(shell echo $$SERVICE_MANAGER)
+
 clean:
 	rm -rf $(OBJDIR)
 	rm -f lib*.so*
@@ -107,6 +109,11 @@ PX_SRCS_FULL=\
   pxImageA.cpp \
   pxArchive.cpp \
   pxAnimate.cpp
+
+
+ifeq ($(ENABLE_SERVICE_MANAGER),1)
+PX_SRCS_FULL += pxServiceManager.cpp
+endif
 
 EXTDIR=../external
 PXCOREDIR=../../..
@@ -227,7 +234,8 @@ ifeq ($(UNAME_S),Darwin)
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore $(LDEXT) -ldl -lv8_libplatform -framework OpenGL -framework Cocoa -framework Foundation
 ifeq ($(CODE_COVERAGE), 1)
 CXXFLAGS += -fprofile-arcs -ftest-coverage -DENABLE_CODE_COVERAGE
-LDFLAGS += -lclang_rt.profile_osx -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/8.0.0/lib/darwin
+LLVM_VERSION := $(shell clang --version|grep "LLVM version"|awk '{print $$4}')
+LDFLAGS += -lclang_rt.profile_osx -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/$(LLVM_VERSION)/lib/darwin
 endif
 else
 ifeq ($(HNAME_S),raspberrypi)
@@ -245,7 +253,7 @@ ifdef PLATFORM_LIBS_OVERRIDE
 PLATFORM_LIBS = $(PLATFORM_LIBS_OVERRIDE)
 endif
 
-CXXFLAGS_FULL = $(CXXFLAGS) -fpermissive
+CXXFLAGS_FULL = $(CXXFLAGS) -fpermissive -Werror
 CLAGS_FULL = $(CFLAGS)
 LDFLAGS_FULL = $(LDFLAGS)
 
@@ -280,6 +288,10 @@ endif
 ifeq ($(HAVE_WESTEROS),1)
 else
 PXSCENE_LIB_SRCS += ../external/westeros-stub/westeros-stub.cpp
+endif
+
+ifeq ($(ENABLE_SERVICE_MANAGER),1)
+PXSCENE_LIB_SRCS += pxServiceManager.cpp
 endif
 
 PXSCENE_LIB_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(PXSCENE_LIB_SRCS)))
@@ -414,12 +426,18 @@ PXSCENE_EXTRA_DEFINES=-DPNG_APNG_SUPPORTED
 endif
 endif
 
+ifeq ($(ENABLE_SERVICE_MANAGER),1)
+RT_REMOTE_COMPILER_FLAGS:=-DPX_SERVICE_MANAGER
+RT_REMOTE_LDFLAGS:=-L../../../remote -lrtRemote
+endif
 
 analyze:
 	$(MAKE) clean
 	scan-build-3.5 $(LLVM_CHECKS) $(MAKE) pxscene
 
 LINKLIBS := $(PXLIBS)/libpxCore.a
+pxscene: EXTRA_COMPILER_FLAGS:=$(EXTRA_COMPILER_FLAGS) $(RT_REMOTE_COMPILER_FLAGS)
+pxscene: LDFLAGS_FULL:=$(LDFLAGS_FULL) $(RT_REMOTE_LDFLAGS)
 pxscene: $(OBJS) $(ADDITIONAL_OBJS) $(LINKLIBS)
 	$(CXX) $(OBJS) $(ADDITIONAL_OBJS)  $(LDFLAGS_FULL) -o pxscene
 
@@ -473,8 +491,8 @@ libpxscene.so-node-v6.9: libpxscene.so
 libpxscene.so:
 	rm -rf $(OBJDIR)
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
-libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES) $(PXSCENE_VERSION_DEFINES)
-libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -L./ -shared $(PLATFORM_LIBS) -o libpxscene.so.1.0  
+libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES) $(PXSCENE_VERSION_DEFINES) $(RT_REMOTE_COMPILER_FLAGS)
+libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) $(RT_REMOTE_LDFLAGS) -L./ -shared $(PLATFORM_LIBS) -o libpxscene.so.1.0  
 libpxscene.so: cleansceneobj $(PXSCENE_LIB_OBJS) $(EXTRA_PXOBJECTS)
 	$(CXX) $(PXSCENE_LIB_OBJS) $(EXTRA_PXOBJECTS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
@@ -484,7 +502,7 @@ libpxscene.a:
 	rm -rf $(OBJDIR)
 libpxscene.a: CFLAGS_FULL = $(CFLAGS)
 libpxscene.a: PXSCENE_VERSION_DEFINES = $(PXSCENE_EXTRA_DEFINES) -DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1
-libpxscene.a: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES) $(PXSCENE_VERSION_DEFINES)
+libpxscene.a: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES) $(PXSCENE_VERSION_DEFINES) $(RT_REMOTE_COMPILER_FLAGS)
 libpxscene.a: cleansceneobj $(PXSCENE_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o 
 	$(AR) rcs -o $@ $(PXSCENE_LIB_OBJS) $(OBJDIR)/pxContextUtils_egl.o
 
