@@ -443,7 +443,7 @@ AppSceneContext.prototype.resolveModulePath = function(filePath, currentXModule)
     // temporary for now
     fileUri = filePath.substring(1);
     if (this.basePackageUri) {
-      fileUri = url.resolve(this.basePackageUri + "/", filePath);
+      fileUri = url.resolve(this.basePackageUri + "/", fileUri);
     }
   } else {
     // relative to current module's folder
