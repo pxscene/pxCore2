@@ -25,12 +25,10 @@ static rtString mapStatus(pxConstantsAnimation::animationStatus status)
 {
   switch(status) 
   { 
-    case pxConstantsAnimation::STATUS_IDLE: 
-      return "IDLE"; 
-    case pxConstantsAnimation::STATUS_CANCELLED: 
-      return "CANCELLED"; 
-    case pxConstantsAnimation::STATUS_ENDED: 
-      return "ENDED"; 
+     case pxConstantsAnimation::STATUS_IDLE:        return "IDLE"; // aka "STOPPED"
+     case pxConstantsAnimation::STATUS_CANCELLED:   return "CANCELLED";
+     case pxConstantsAnimation::STATUS_ENDED:       return "ENDED";
+ 
     default: 
       return "UNKNOWN"; 
   }
@@ -52,15 +50,17 @@ pxAnimate::pxAnimate (rtObjectRef props, uint32_t interp, pxConstantsAnimation::
         if (NULL != propParamsPtr)
         {
           rtString key = keys.get<rtString>(i);
-          propParamsPtr->mStatus = pxConstantsAnimation::STATUS_IDLE;
+
+          propParamsPtr->mStatus    = pxConstantsAnimation::STATUS_IDLE;
           propParamsPtr->mCancelled = false;
-          propParamsPtr->mCount = 0;
-          propParamsPtr->mFrom = 0;
-          propParamsPtr->mTo = 0;
-          propParamsPtr->mDuration = 0;
+          propParamsPtr->mCount     = 0;
+          propParamsPtr->mFrom      = 0;
+          propParamsPtr->mTo        = 0;
+          propParamsPtr->mDuration  = 0;
+
           mCurrDetails.set(key,params);
         }
-      }
+      }//FOR
     }
   }
 }
@@ -93,7 +93,9 @@ rtError pxAnimate::cancel ()
 void pxAnimate::setStatus (pxConstantsAnimation::animationStatus status)
 {
   if (status > mStatus)
+  {
     mStatus = status;
+  }
 }
 
 void pxAnimate::update (const char* prop, struct animation* params, pxConstantsAnimation::animationStatus status)
@@ -106,13 +108,19 @@ void pxAnimate::update (const char* prop, struct animation* params, pxConstantsA
     if (propParamsPtr != NULL)
     {
       if (status > propParamsPtr->mStatus)
+      {
         propParamsPtr->mStatus = status;
-      propParamsPtr->mCount = params->actualCount;
+      }
+
       if (propParamsPtr->mStatus != pxConstantsAnimation::STATUS_ENDED)
+      {
         propParamsPtr->mCancelled = params->cancelled;
+      }
+
+      propParamsPtr->mCount    = params->actualCount;
       propParamsPtr->mDuration = params->duration;
-      propParamsPtr->mFrom = params->from;
-      propParamsPtr->mTo = params->to;
+      propParamsPtr->mFrom     = params->from;
+      propParamsPtr->mTo       = params->to;
     }
   }
 }
@@ -140,6 +148,7 @@ rtDefineProperty(pxAnimate, provduration);
 rtDefineProperty(pxAnimate, provcount);
 rtDefineProperty(pxAnimate, cancelled);
 rtDefineProperty(pxAnimate, details);
+
 rtDefineMethod(pxAnimate, cancel);
 
 rtDefineObject(pxAnimate::pxAnimationParams, rtObject);

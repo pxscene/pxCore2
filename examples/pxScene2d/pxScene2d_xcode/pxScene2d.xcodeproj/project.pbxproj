@@ -244,8 +244,6 @@
 		4C04660D1E574CAE00D59925 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */,
-				783C7DAF1EBB6A440079FBE5 /* pxAnimate.h */,
 				4C0466191E574CEE00D59925 /* shell.js */,
 				4C04661A1E574CEE00D59925 /* init.js */,
 				4C04661B1E574CEE00D59925 /* browser.js */,
@@ -303,6 +301,8 @@
 			isa = PBXGroup;
 			children = (
 				4C04660D1E574CAE00D59925 /* Resources */,
+				783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */,
+				783C7DAF1EBB6A440079FBE5 /* pxAnimate.h */,
 				4C0C6D3F1E5218BB00BD8932 /* pxArchive.cpp */,
 				4C0C6D401E5218BB00BD8932 /* pxArchive.h */,
 				4C0C6D411E5218BB00BD8932 /* pxConstants.cpp */,

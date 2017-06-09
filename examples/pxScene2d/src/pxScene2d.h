@@ -110,20 +110,27 @@ struct pxAnimationTarget
 struct animation 
 {
   bool cancelled;
+  bool flip;
+  bool reversing;
+
   rtString prop;
+
   float from;
   float to;
-  bool flip;
+
   double start;
   double duration;
-  pxConstantsAnimation::animationOptions at;
-  pxInterp interp;
+
+  pxConstantsAnimation::animationOptions  options;
+  
+  pxInterp interpFunc;
+
   int32_t count;
   float actualCount;
-  bool reversing;
+  
   rtFunctionRef ended;
-  rtObjectRef promise;
-  rtObjectRef animateObj;
+  rtObjectRef   promise;
+  rtObjectRef   animateObj;
 };
 
 struct pxPoint2f 
@@ -145,16 +152,16 @@ public:
   rtDeclareObject(pxObject, rtObject);
   rtReadOnlyProperty(_pxObject, _pxObject, voidPtr);
   rtProperty(parent, parent, setParent, rtObjectRef);
-  rtProperty(x, x, setX, float); 
-  rtProperty(y, y, setY, float);
-  rtProperty(w, w, setW, float);
-  rtProperty(h, h, setH, float);
+  rtProperty(x,   x, setX,  float);
+  rtProperty(y,   y, setY,  float);
+  rtProperty(w,   w, setW,  float);
+  rtProperty(h,   h, setH,  float);
   rtProperty(cx, cx, setCX, float);
   rtProperty(cy, cy, setCY, float);
   rtProperty(sx, sx, setSX, float);
   rtProperty(sy, sy, setSY, float);
-  rtProperty(a, a, setA, float);
-  rtProperty(r, r, setR, float);
+  rtProperty(a,   a, setA,  float);
+  rtProperty(r,   r, setR,  float);
 #ifdef ANIMATION_ROTATE_XYZ
   rtProperty(rx, rx, setRX, float);
   rtProperty(ry, ry, setRY, float);
@@ -178,7 +185,7 @@ public:
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
   rtMethodNoArgAndNoReturn("moveToFront", moveToFront);
   rtMethodNoArgAndNoReturn("moveToBack", moveToBack);
-
+  
   rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
                         uint32_t, uint32_t, int32_t, rtObjectRef);
 
@@ -376,19 +383,19 @@ public:
   void setFocusInternal(bool focus) { mFocus = focus; }
   
   rtError animateTo(const char* prop, double to, double duration,
-                     uint32_t interp, uint32_t animationType, 
+                     uint32_t interp, uint32_t options,
                      int32_t count, rtObjectRef promise);
 
   rtError animateToP2(rtObjectRef props, double duration, 
-                      uint32_t interp, uint32_t animationType,
+                      uint32_t interp, uint32_t options,
                       int32_t count, rtObjectRef& promise);
 
   rtError animateToObj(rtObjectRef props, double duration,
-                      uint32_t interp, uint32_t animationType,
+                      uint32_t interp, uint32_t options,
                       int32_t count, rtObjectRef& promise);
 
   void animateToInternal(const char* prop, double to, double duration,
-                 pxInterp interp, pxConstantsAnimation::animationOptions,
+                 pxInterp interp, pxConstantsAnimation::animationOptions options,
                  int32_t count, rtObjectRef promise, rtObjectRef animateObj);
 
   void cancelAnimation(const char* prop, bool fastforward = false, bool rewind = false, bool resolve = false);
