@@ -19,6 +19,7 @@ sleep 60;
 grep "Failures:" /var/tmp/pxscene.log
 retVal=$?
 count=$((count+60))
+echo "testrunner running for $count seconds"
 done
 
 sleep 5s;
