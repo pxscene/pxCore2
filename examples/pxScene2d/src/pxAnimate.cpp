@@ -34,7 +34,9 @@ static rtString mapStatus(pxConstantsAnimation::animationStatus status)
   }
 }
 
-pxAnimate::pxAnimate (rtObjectRef props, uint32_t interp, pxConstantsAnimation::animationOptions type, double duration, int32_t count, rtObjectRef promise, rtRef<pxObject> animateObj):mProps(props), mInterp(interp), mType(type), mProvisionedDuration(duration), mProvisionedCount(count), mCancelled(false), mStatus(pxConstantsAnimation::STATUS_IDLE), mDonePromise(promise), mAnimatedObj(animateObj)
+pxAnimate::pxAnimate (rtObjectRef props, uint32_t interp, pxConstantsAnimation::animationOptions type, double duration, int32_t count, rtObjectRef promise, rtRef<pxObject> animateObj)
+  : mCancelled(false), mType(type), mStatus(pxConstantsAnimation::STATUS_IDLE), mProps(props), mInterp(interp), mProvisionedDuration(duration), mProvisionedCount(count),
+    mDonePromise(promise), mAnimatedObj(animateObj)
 {
   if (NULL != props.getPtr())
   {
