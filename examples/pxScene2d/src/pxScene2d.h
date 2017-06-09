@@ -127,10 +127,10 @@ struct animation
 
   int32_t count;
   float actualCount;
-  
+
   rtFunctionRef ended;
-  rtObjectRef   promise;
-  rtObjectRef   animateObj;
+  rtObjectRef promise;
+  rtObjectRef animateObj;
 };
 
 struct pxPoint2f 
@@ -152,16 +152,16 @@ public:
   rtDeclareObject(pxObject, rtObject);
   rtReadOnlyProperty(_pxObject, _pxObject, voidPtr);
   rtProperty(parent, parent, setParent, rtObjectRef);
-  rtProperty(x,   x, setX,  float);
-  rtProperty(y,   y, setY,  float);
-  rtProperty(w,   w, setW,  float);
-  rtProperty(h,   h, setH,  float);
+  rtProperty(x, x, setX, float); 
+  rtProperty(y, y, setY, float);
+  rtProperty(w, w, setW, float);
+  rtProperty(h, h, setH, float);
   rtProperty(cx, cx, setCX, float);
   rtProperty(cy, cy, setCY, float);
   rtProperty(sx, sx, setSX, float);
   rtProperty(sy, sy, setSY, float);
-  rtProperty(a,   a, setA,  float);
-  rtProperty(r,   r, setR,  float);
+  rtProperty(a, a, setA, float);
+  rtProperty(r, r, setR, float);
 #ifdef ANIMATION_ROTATE_XYZ
   rtProperty(rx, rx, setRX, float);
   rtProperty(ry, ry, setRY, float);
@@ -185,7 +185,7 @@ public:
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
   rtMethodNoArgAndNoReturn("moveToFront", moveToFront);
   rtMethodNoArgAndNoReturn("moveToBack", moveToBack);
-  
+
   rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
                         uint32_t, uint32_t, int32_t, rtObjectRef);
 

@@ -550,12 +550,8 @@ rtError pxObject::animateToObj(rtObjectRef props, double duration,
       animateToInternal(key, props.get<float>(key), duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp), (pxConstantsAnimation::animationOptions)options, count,(i==0)?promise:rtObjectRef(),animateObj);
     }
   }
-  
-  if (NULL != animateObj.getPtr()) // IF needed ?
-  {
-    ((pxAnimate*)animateObj.getPtr())->setStatus(pxConstantsAnimation::STATUS_INPROGRESS);
-  }
-  
+  if (NULL != animateObj.getPtr())
+    ((pxAnimate*)animateObj.getPtr())->setStatus(pxConstantsAnimation::STATUS_INPROGRESS);  
   return RT_OK;
 }
 
@@ -704,7 +700,7 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
       }
 #endif
       a.cancelled = true;
-      
+
       if (NULL != pAnimateObj)
       {
         pAnimateObj->update(prop, &a, pxConstantsAnimation::STATUS_CANCELLED);
@@ -725,20 +721,20 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
   // schedule animation
   animation a;
 
-  a.cancelled   = false;
-  a.prop        = prop;
-  a.from        = get<float>(prop);
-  a.to          = to;
-  a.start       = -1;
-  a.duration    = duration;
+  a.cancelled = false;
+  a.prop     = prop;
+  a.from     = get<float>(prop);
+  a.to       = to;
+  a.start    = -1;
+  a.duration = duration;
   a.interpFunc  = interp ? interp : pxInterpLinear;
   a.options     = options;
-  a.count       = count;
+  a.count    = count;
   a.actualCount = 0;
-  a.reversing   = false;
+  a.reversing = false;
 //  a.ended = onEnd;
-  a.promise     = promise;
-  a.animateObj  = animateObj;
+  a.promise = promise;
+  a.animateObj = animateObj;
 
   mAnimations.push_back(a);
   
@@ -772,7 +768,7 @@ void pxObject::update(double t)
   while (it != mAnimations.end())
   {
     animation& a = (*it);
-  
+
     pxAnimate *animObj = (pxAnimate *)a.animateObj.getPtr();
 
     if (a.start < 0) a.start = t;
@@ -885,11 +881,10 @@ void pxObject::update(double t)
 
     float v = from + (to - from) * d;
     assert(mCancelInSet);
-    
     mCancelInSet = false;
     set(a.prop, v);
     mCancelInSet = true;
-    
+
     if (NULL != animObj)
     {
       animObj->update(a.prop, &a, pxConstantsAnimation::STATUS_INPROGRESS);
@@ -906,7 +901,7 @@ void pxObject::update(double t)
   {
     mScene->invalidateRect(&mScreenCoordinates);
     mLastRenderMatrix = context.getMatrix();
-    pxRect dirtyRect  = getBoundingRectInScreenCoordinates();
+    pxRect dirtyRect = getBoundingRectInScreenCoordinates();
     mScene->invalidateRect(&dirtyRect);
     mIsDirty = false;
   }

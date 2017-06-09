@@ -41,35 +41,32 @@ class pxAnimate: public rtObject
     rtDeclareObject(pxAnimate, rtObject);
 
     // common properties of animation
-    rtReadOnlyProperty(done,         done,         rtObjectRef);
-    rtReadOnlyProperty(type,         type,         uint32_t);
-    rtReadOnlyProperty(interp,       interp,       uint32_t);
-    rtReadOnlyProperty(status,       status,       rtString);
+    rtReadOnlyProperty(done, done, rtObjectRef);
+    rtReadOnlyProperty(type, type, uint32_t);
+    rtReadOnlyProperty(interp, interp, uint32_t);
+    rtReadOnlyProperty(status, status, rtString);
     rtReadOnlyProperty(provduration, provduration, double);
-    rtReadOnlyProperty(provcount,    provcount,    int32_t);
-    rtReadOnlyProperty(cancelled,    cancelled,    bool);
-  
+    rtReadOnlyProperty(provcount, provcount, int32_t);
+    rtReadOnlyProperty(cancelled, cancelled, bool);
     rtReadOnlyProperty(props, props, rtObjectRef);
     // property to describe the animation status of the properties mentioned in animate call
     rtReadOnlyProperty(details, details, rtObjectRef);
     rtMethodNoArgAndNoReturn("cancel", cancel);
 
-    rtError done( rtObjectRef&    v)  const { v = mDonePromise;         return RT_OK; }
-    rtError type( uint32_t&       v)  const { v = (uint32_t) mType;     return RT_OK; }
-    rtError interp( uint32_t&     v)  const { v = mInterp;              return RT_OK; }
-    rtError status(rtString& v) const;
-    rtError provduration( double& v)  const { v = mProvisionedDuration; return RT_OK; }
-    rtError provcount( int32_t&   v)  const { v = mProvisionedCount;    return RT_OK; }
-    rtError cancelled( bool&      v)  const { v = mCancelled;           return RT_OK; }
-    rtError props( rtObjectRef&   v)  const { v = mProps;               return RT_OK; }
-    rtError details( rtObjectRef& v)  const { v = mCurrDetails;         return RT_OK; }
-
+    rtError done(rtObjectRef& v)   const { v = mDonePromise; return RT_OK;   }
+    rtError type(uint32_t& v)   const { v = (uint32_t) mType; return RT_OK;   }
+    rtError interp(uint32_t& v)   const { v = mInterp; return RT_OK;   }
+    rtError status(rtString& v) const; 
+    rtError provduration(double& v)   const { v = mProvisionedDuration; return RT_OK;   }
+    rtError provcount(int32_t& v)   const { v = mProvisionedCount; return RT_OK;   }
+    rtError cancelled(bool& v) const { v = mCancelled; return RT_OK; }
+    rtError props(rtObjectRef& v)   const { v = mProps; return RT_OK;   }
+    rtError details(rtObjectRef& v) const { v = mCurrDetails; return RT_OK; }
     rtError cancel();
 
 
     // internal public methods
     void setStatus(pxConstantsAnimation::animationStatus v);
-
     // update the animation details of every parameter
     // this is invoked on every parameter update during the process of animation
     void update(const char* prop, struct animation* params, pxConstantsAnimation::animationStatus status);
@@ -78,29 +75,27 @@ class pxAnimate: public rtObject
     {
       public:
         rtDeclareObject(pxAnimate::pxAnimationParams, rtObject);
-      
-        rtReadOnlyProperty(from,      from,      double);
-        rtReadOnlyProperty(to,        to,        double);
-        rtReadOnlyProperty(duration,  duration,  double);
-        rtReadOnlyProperty(count,     count,     int32_t);
-        rtReadOnlyProperty(status,    status,    rtString);
+        rtReadOnlyProperty(from, from, double); 
+        rtReadOnlyProperty(to, to, double); 
+        rtReadOnlyProperty(duration, duration, double);
+        rtReadOnlyProperty(count, count, int32_t);
+        rtReadOnlyProperty(status, status, rtString);
         rtReadOnlyProperty(cancelled, cancelled, bool);
-      
-        rtError from( double&     v)   const { v = mFrom;          return RT_OK; }
-        rtError to( double&       v)   const { v = (uint32_t) mTo; return RT_OK; }
-        rtError duration( double& v)   const { v = mDuration;      return RT_OK; }
-        rtError count( int32_t&   v)   const { v = mCount;         return RT_OK; }
+        
+        rtError from(double& v)   const { v = mFrom; return RT_OK;   }
+        rtError to(double& v)   const { v = (uint32_t) mTo; return RT_OK;   }
+        rtError duration(double& v)   const { v = mDuration; return RT_OK; }
+        rtError count(int32_t& v)   const { v = mCount; return RT_OK;   }
         rtError status(rtString& v)   const;
-        rtError cancelled( bool&  v)   const { v = mCancelled;     return RT_OK; }
+        rtError cancelled(bool& v)   const { v = mCancelled; return RT_OK;   }
    
         pxConstantsAnimation::animationStatus mStatus;
-        int32_t  mCount;
-        bool     mCancelled;
-        double   mDuration;
-        double   mFrom;
-        double   mTo;
+        int32_t mCount;
+        bool mCancelled;
+        double mDuration;
+        double mFrom;
+        double mTo;
     };
-
   private:
     bool mCancelled;
 
