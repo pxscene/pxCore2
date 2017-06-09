@@ -17,7 +17,7 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 grep "Failures:" $TESTRUNLOGS
 retVal=$?
 count=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 480 ]; do
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 600 ]; do
 sleep 60;
 grep "Failures:" $TESTRUNLOGS
 retVal=$?
