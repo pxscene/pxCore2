@@ -1,17 +1,5 @@
 [
       {"url":"http://pxscene.org/examples/px-reference/gallery/fancy.js", "title":"fancy","useBaseURI":"false","timeToRun":"20000"},
       {"url":"http://pxscene.org/examples/px-reference/gallery/picturepile.js", "title":"picturepile","useBaseURI":"false","timeToRun":"20000"},
-      {"url":"http://pxscene.org/examples/px-reference/gallery/gallery.js", "title":"gallery","useBaseURI":"false","timeToRun":"20000"},
-      {"url":"../tests/simpleTestApi.js", "title":"simpleTestApi","useBaseURI":"true"},
-      {"url":"../tests/textbox_auto.js", "title":"textbox auto","useBaseURI":"true"},
-      {"url":"../tests/text2tests.js", "title":"text2tests","useBaseURI":"true"},
-      {"url":"../tests/test_xre2-85.js", "title":"test_XRE2-85","useBaseURI":"true"},
-      {"url":"../tests/test_y_coords.js", "title":"test_y_coords","useBaseURI":"true"},
-      {"url":"../tests/test_animationRejection.js", "title":"test_animationRejection","useBaseURI":"true"},
-      {"url":"../tests/test_reloadRejection.js", "title":"test_reloadRejection","useBaseURI":"true"},
-      {"url":"../tests/test_getObjectById.js", "title":"test_getObjectById","useBaseURI":"true"},
-      {"url":"https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/gallery/coverflowtest_v2.js","title":"coverflow", "timeToRun":"10000"},
-      {"url":"../tests/test_fancyNewAnimate.js", "title":"fancyNewAnimate","useBaseURI":"true","timeToRun":"10000"},
-      {"url":"../tests/test_pxConstants.js", "title":"test_pxConstants","useBaseURI":"true"},
-      {"url":"../tests/test_pxImageA.js", "title":"test_pxImageA","useBaseURI":"true"}
+      {"url":"http://pxscene.org/examples/px-reference/gallery/gallery.js", "title":"gallery","useBaseURI":"false","timeToRun":"20000"}
 ]
