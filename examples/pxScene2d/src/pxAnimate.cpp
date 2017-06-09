@@ -25,18 +25,18 @@ static rtString mapStatus(pxConstantsAnimation::animationStatus status)
 {
   switch(status) 
   { 
-    case pxConstantsAnimation::STATUS_IDLE: 
-      return "IDLE"; 
-    case pxConstantsAnimation::STATUS_CANCELLED: 
-      return "CANCELLED"; 
-    case pxConstantsAnimation::STATUS_ENDED: 
-      return "ENDED"; 
+     case pxConstantsAnimation::STATUS_IDLE:        return "IDLE"; // aka "STOPPED"
+     case pxConstantsAnimation::STATUS_CANCELLED:   return "CANCELLED";
+     case pxConstantsAnimation::STATUS_ENDED:       return "ENDED";
+ 
     default: 
       return "UNKNOWN"; 
   }
 }
 
-pxAnimate::pxAnimate (rtObjectRef props, uint32_t interp, pxConstantsAnimation::animationOptions type, double duration, int32_t count, rtObjectRef promise, rtRef<pxObject> animateObj):mProps(props), mInterp(interp), mType(type), mProvisionedDuration(duration), mProvisionedCount(count), mCancelled(false), mStatus(pxConstantsAnimation::STATUS_IDLE), mDonePromise(promise), mAnimatedObj(animateObj)
+pxAnimate::pxAnimate (rtObjectRef props, uint32_t interp, pxConstantsAnimation::animationOptions type, double duration, int32_t count, rtObjectRef promise, rtRef<pxObject> animateObj)
+  : mCancelled(false), mType(type), mStatus(pxConstantsAnimation::STATUS_IDLE), mProps(props), mInterp(interp), mProvisionedDuration(duration), mProvisionedCount(count),
+    mDonePromise(promise), mAnimatedObj(animateObj)
 {
   if (NULL != props.getPtr())
   {
@@ -60,7 +60,7 @@ pxAnimate::pxAnimate (rtObjectRef props, uint32_t interp, pxConstantsAnimation::
           propParamsPtr->mDuration = 0;
           mCurrDetails.set(key,params);
         }
-      }
+      }//FOR
     }
   }
 }

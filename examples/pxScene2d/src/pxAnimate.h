@@ -97,15 +97,18 @@ class pxAnimate: public rtObject
         double mTo;
     };
   private:
-    rtObjectRef mProps;
-    rtObjectRef mCurrDetails;
-    uint32_t mInterp;
-    pxConstantsAnimation::animationOptions mType;
-    double mProvisionedDuration;
-    int32_t mProvisionedCount;
     bool mCancelled;
-    pxConstantsAnimation::animationStatus mStatus;
-    rtObjectRef mDonePromise;
+
+    pxConstantsAnimation::animationOptions mType;
+    pxConstantsAnimation::animationStatus  mStatus;
+
+    rtObjectRef     mProps;
+    rtObjectRef     mCurrDetails;
+    uint32_t        mInterp;
+    double          mProvisionedDuration;
+    int32_t         mProvisionedCount;
+
+    rtObjectRef     mDonePromise;
     rtRef<pxObject> mAnimatedObj;
 };
 
