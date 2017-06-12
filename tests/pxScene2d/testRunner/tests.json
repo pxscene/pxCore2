@@ -7,7 +7,6 @@
       {"url":"../tests/text2tests.js", "title":"text2tests","useBaseURI":"true"},
       {"url":"../tests/test_xre2-85.js", "title":"test_XRE2-85","useBaseURI":"true"},
       {"url":"../tests/test_y_coords.js", "title":"test_y_coords","useBaseURI":"true"},
-      {"url":"../tests/test_moveToBackFront.js", "title":"test_moveToBackFront","useBaseURI":"true"},
       {"url":"../tests/test_animationRejection.js", "title":"test_animationRejection","useBaseURI":"true"},
       {"url":"../tests/test_reloadRejection.js", "title":"test_reloadRejection","useBaseURI":"true"},
       {"url":"../tests/test_getObjectById.js", "title":"test_getObjectById","useBaseURI":"true"},
