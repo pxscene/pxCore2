@@ -72,6 +72,8 @@ px.import({ scene:      'px:scene.1.js',
           contentBG.draw = true;
 
           inputBox.textColor = urlSucceededColor;
+                         
+          inputBox.hideCursor();
         },
         function() {
           spinner.a = 0;
@@ -81,6 +83,8 @@ px.import({ scene:      'px:scene.1.js',
 
           content.focus = false;
           inputBox.focus = true;
+                         
+          inputBox.showCursor();
         }
       );
     }
@@ -155,7 +159,8 @@ px.import({ scene:      'px:scene.1.js',
      else
      {
        inputBox.textColor = urlFocusColor;
-     }     
+       inputBox.showCursor();
+     }
   });
 
   scene.on("onResize", function(e) { updateSize(e.w,e.h); });
