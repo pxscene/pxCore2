@@ -47,7 +47,6 @@ class jsFilesTest : public testing::Test
 
     virtual void TearDown()
     {
-      glutDestroyWindow(mGlutWindowId);
     }
 
     void test(char* file, float timeout)
