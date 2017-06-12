@@ -17,11 +17,12 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 grep "Failures:" $TESTRUNLOGS
 retVal=$?
 count=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 480 ]; do
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 600 ]; do
 sleep 60;
 grep "Failures:" $TESTRUNLOGS
 retVal=$?
 count=$((count+60))
+echo "testrunner running for $count seconds"
 done
 
 echo "kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`"

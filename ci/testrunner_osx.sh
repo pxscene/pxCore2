@@ -14,11 +14,12 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
 grep "Failures:" /var/tmp/pxscene.log
 retVal=$?
 count=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 480 ]; do
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 600 ]; do
 sleep 60;
 grep "Failures:" /var/tmp/pxscene.log
 retVal=$?
 count=$((count+60))
+echo "testrunner running for $count seconds"
 done
 
 sleep 5s;

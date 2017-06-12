@@ -1,4 +1,5 @@
 #!/bin/sh
+sudo rm -rf /tmp/cache/*
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
 export ENABLE_MEMLEAK_CHECK=1
 export PX_DUMP_MEMUSAGE=1
@@ -8,7 +9,7 @@ LEAKPXCORELOGS=$TRAVIS_BUILD_DIR/logs/leak_pxcore_logs
 #run leak detector and monitor for completion
 rm /var/tmp/pxscene.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
-./pxscene.sh testRunner_memcheck.js &
+./pxscene.sh testRunner_memcheck.js?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json &
 grep "RUN COMPLETED" /var/tmp/pxscene.log
 retVal=$?
 count=0
