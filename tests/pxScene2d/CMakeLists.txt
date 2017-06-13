@@ -51,7 +51,7 @@ endif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 add_definitions(-D${PX_PLATFORM} -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE)
 
 set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp test_example.cpp test_api.cpp test_pxcontext.cpp test_memoryleak.cpp test_rtnode.cpp
-        test_pxAnimate.cpp test_jsfiles.cpp test_pxWayland.cpp)
+        test_pxAnimate.cpp test_jsfiles.cpp test_pxWayland.cpp test_pxWaylandContainer.cpp)
 
 if (DEFINED ENV{USE_HTTP_CACHE})
     message("Include http cache tests")

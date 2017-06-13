@@ -19,7 +19,8 @@ SRCS_FULL=\
     test_rtString.cpp \
     test_pxUtil.cpp \
     test_pxImage.cpp \
-    test_pxWayland.cpp
+    test_pxWayland.cpp \
+    test_pxWaylandContainer.cpp
 
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PXCOREDIR=$(MAKEFILE_PATH)/../../

@@ -54,7 +54,10 @@ pxWaylandContainer::pxWaylandContainer(pxScene2d* scene)
 
 pxWaylandContainer::~pxWaylandContainer()
 {
-  mWayland->setEvents(NULL);
+  if ( mWayland )
+  {
+     mWayland->setEvents(NULL);
+  }
   mRemoteReady = NULL;
   mWayland = NULL;
 }
@@ -314,6 +317,12 @@ void pxWaylandContainer::onInit()
     mWayland->setPos( mx, my );
     mWayland->useDispatchThread( true );
     mWayland->onInit();
+
+    rtString name;
+    if ( RT_OK == mWayland->displayName( name ) )
+    {
+       mDisplayName = name;
+    }
   }
 }
 
