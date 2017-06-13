@@ -58,6 +58,12 @@ pxWaylandContainer::~pxWaylandContainer()
   mWayland = NULL;
 }
 
+void pxWaylandContainer::dispose()
+{
+   setView(NULL);
+   pxObject::dispose();
+}
+
 void pxWaylandContainer::invalidate( pxRect* r )
 {   
    invalidateRect(r);
