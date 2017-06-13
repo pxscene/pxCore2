@@ -18,7 +18,8 @@ SRCS_FULL=\
     test_rtZip.cpp \
     test_rtString.cpp \
     test_pxUtil.cpp \
-    test_pxImage.cpp 
+    test_pxImage.cpp \
+    test_pxWayland.cpp
 
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PXCOREDIR=$(MAKEFILE_PATH)/../../
@@ -47,7 +48,8 @@ SEARCH=\
         -I$(EXTDIR)/gtest/googletest \
         -I$(EXTDIR)/gtest/googlemock/include \
         -I$(EXTDIR)/gtest/googlemock \
-        -I$(EXTDIR)/curl/include
+        -I$(EXTDIR)/curl/include \
+        -I$(EXTDIR)/westeros-stub
 ifeq ($(USE_EXTERNALS_GLUT), true)
 SEARCH += -I$(EXTDIR)/freeglut/include
 endif
