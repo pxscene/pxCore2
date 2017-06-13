@@ -19,6 +19,15 @@ grep "RUN COMPLETED" $VALGRINDPXCORELOGS
 retVal=$?
 count=$((count+30))
 echo "Valgrind execution going on for $count seconds";
+if [ "$retVal" -ne 0 ]
+then
+ls -lrt core
+retVal=$?
+if [ "$retVal" -ne 0 ]
+then
+retVal=0
+fi
+fi
 done
 
 #kill pxscene either after js terminates or no response for 5 minutes
@@ -41,6 +50,7 @@ fi
 exit 1;
 fi
 
+$TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene $VALGRINDPXCORELOGS
 chmod 444 $VALGRINDLOGS
 #check for memory leak
 grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS

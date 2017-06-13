@@ -13,12 +13,22 @@ sleep 30;
 grep "RUN COMPLETED" $PXCHECKLOGS
 retVal=$?
 count=$((count+30))
+if [ "$retVal" -ne 0 ]
+then
+ls -lrt core
+retVal=$?
+if [ "$retVal" -ne 0 ]
+then
+retVal=0
+fi
+fi
 done
 
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
 sleep 5s;
 pkill -9 -f pxscene.sh
+$TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene $PXCHECKLOGS
 grep "pxobjectcount is \[0\]" $PXCHECKLOGS
 pxRetVal=$?
 grep "texture memory usage is \[0\]" $PXCHECKLOGS

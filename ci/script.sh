@@ -29,6 +29,7 @@ then
 fi
 
 retval=0
+ulimit -c unlimited
 cd $TRAVIS_BUILD_DIR/ci
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ;
 then

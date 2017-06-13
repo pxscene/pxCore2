@@ -23,6 +23,15 @@ grep "Failures:" $TESTRUNLOGS
 retVal=$?
 count=$((count+60))
 echo "testrunner running for $count seconds"
+if [ "$retVal" -ne 0 ]
+then
+ls -lrt core
+retVal=$?
+if [ "$retVal" -ne 0 ]
+then
+retVal=0
+fi
+fi
 done
 
 echo "kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`"
@@ -31,6 +40,7 @@ sleep 5s;
 pkill -15 -f pxscene.sh
 
 
+$TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene $TESTRUNLOGS
 
 grep "Failures: 0" $TESTRUNLOGS
 retVal=$?
