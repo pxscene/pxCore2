@@ -5,7 +5,7 @@ var hasExtension = require('rcvrcore/utils/FileUtils').hasExtension;
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('XModule');
 
-function XModule(name, appSceneContext, fromJarFile, basePath) {
+function XModule(name, appSceneContext, basePath, jarName) {
   log.message(5, "Create new XModule for " + name);
   this.name = name;
   this.appSandbox = null;
@@ -18,8 +18,8 @@ function XModule(name, appSceneContext, fromJarFile, basePath) {
   this.appSceneContext = appSceneContext;
   this.imports = {};
   this.log = null;
-  this.fromJarFile = fromJarFile;
   this.basePath = basePath;
+  this.jarName = jarName;
   this.importReplacementMap = {};
 }
 
@@ -44,6 +44,10 @@ XModule.prototype.freeResources = function() {
 
 XModule.prototype.getBasePath = function() {
   return this.basePath;
+};
+
+XModule.prototype.getJarName = function() {
+  return this.jarName;
 };
 
 XModule.prototype.initSandbox = function(otherSandbox) {
