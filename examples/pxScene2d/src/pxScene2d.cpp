@@ -71,6 +71,8 @@ uint32_t rtPromise::promiseID = 200;
 
 static int fpsWarningThreshold = 25;
 
+rtEmitRef pxScriptView::mEmit = new rtEmit();
+
 // Debug Statistics
 #ifdef USE_RENDER_STATS
 
@@ -2992,19 +2994,24 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
 
     if (numArgs >= 1)
     {
+      bool success = false;
       if (args[0].toBool())
       {
         if (numArgs >= 2)
         {
           v->mApi = args[1].toObject();
         }
-
+        success = true;
         v->mReady.send("resolve", v->mScene);
       }
       else
       {
+        success = false;
         v->mReady.send("reject", new rtObject); // TODO JRJR  Why does this fail if I leave the argment as null...
       }
+
+      rtValue urlValue(v->mUrl);
+      mEmit.send("onSceneReady", v->mScene, urlValue, success);
 
       return RT_OK;
     }

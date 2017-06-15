@@ -1035,26 +1035,28 @@ public:
     // Clear out these references since the script context
     // can outlive this view
 #ifdef ENABLE_RT_NODE
-    if(mCtx) 
+    if(mCtx)
     {
       mGetScene->clearContext();
       mMakeReady->clearContext();
       mGetContextID->clearContext();
-                                   
+
       // TODO Given that the context is being cleared we likely don't need to zero these out
       mCtx->add("getScene", 0);
       mCtx->add("makeReady", 0);
       mCtx->add("getContextID", 0);
     }
 #endif //ENABLE_RT_NODE
-    
+
     if (mView)
       mView->setViewContainer(NULL);
 
     // TODO JRJR Do we have GC tests yet
     // Hack to try and reduce leaks until garbage collection can
     // be cleaned up
-    
+
+    mEmit.send("onSceneRemoved", mScene);
+
     if (mScene)
       mScene.send("dispose");
 
@@ -1094,6 +1096,16 @@ public:
     
     o = mReady;
     return RT_OK;
+  }
+
+  static rtError addListener(rtString  eventName, const rtFunctionRef& f)
+  {
+    return mEmit->addListener(eventName, f);
+  }
+
+  static rtError delListener(rtString  eventName, const rtFunctionRef& f)
+  {
+    return mEmit->delListener(eventName, f);
   }
   
 protected:
@@ -1227,6 +1239,7 @@ protected:
 #ifndef RUNINMAIN
   rtString mLang;
 #endif
+  static rtEmitRef mEmit;
 };
 
 class pxScene2d: public rtObject, public pxIView 
