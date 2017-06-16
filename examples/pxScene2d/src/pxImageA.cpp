@@ -76,9 +76,9 @@ rtError pxImageA::setUrl(const char *s)
   if (mURL)
   {
     rtImageAResource* resourceObj = getImageAResource();
-    if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s) && mImageLoaded)
+    if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
     {
-      if(mImageLoaded)
+      if(mImageLoaded || ((rtPromise*)mReady.getPtr())->status())
       {
         mImageLoaded = false;
         pxObject::createNewPromise();
