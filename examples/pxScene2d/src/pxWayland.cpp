@@ -953,7 +953,7 @@ uint32_t pxWayland::linuxFromPX( uint32_t keyCode )
          linuxKeyCode= KEY_PAGEUP;
          break;
       case PX_KEY_PAGEDOWN:
-         linuxKeyCode= KEY_SPACE;
+         linuxKeyCode= KEY_PAGEDOWN;
          break;
       case PX_KEY_END:
          linuxKeyCode= KEY_END;
