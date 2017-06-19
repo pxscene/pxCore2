@@ -5,6 +5,9 @@ checkError()
   if [ "$1" -ne 0 ]
   then
     echo "script stage failed with errors !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo "CI failure reason: $2"
+    echo "Cause: $3"
+    echo "Reproduction/How to fix: $4"
     exit 1
   fi
 }
@@ -13,6 +16,7 @@ if [ "$TRAVIS_OS_NAME" = "linux" ]
 then
     if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ]
     then
+      echo "Ignoring script stage for $TRAVIS_EVENT_TYPE event";
       exit 0
     fi
 fi
@@ -37,15 +41,15 @@ then
 else
   sh build_px.sh "build_$TRAVIS_OS_NAME.sh"
 fi
-checkError $?
+checkError $? "Build/unittests/testrunner/pxleakcheck/memleak detection failed" "Either build problem/execution problem" "Analyze corresponding log file"
 
 
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
 then
   cp $TRAVIS_BUILD_DIR/examples/pxScene2d/src/deploy/mac/*.dmg $TRAVIS_BUILD_DIR/artifacts/.
-  checkError $?
+  checkError $? "Copying dmg file failed" "Could be build problem or file not generated" "Analyze build logs"
   cp $TRAVIS_BUILD_DIR/examples/pxScene2d/src/deploy/mac/software_update.plist $TRAVIS_BUILD_DIR/artifacts/.
-  checkError $?
+  checkError $? "Copying software_update.plist failed" "Could be build problem or file not generated" "Analyze build logs"
 fi
 
 exit 0;

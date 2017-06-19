@@ -35,11 +35,14 @@ cp /var/tmp/pxscene.log $LEAKPXCORELOGS
 #check whether leak is present
 if [ "$leakcount" -ne 0 ]
 then
-echo "Memory leak present !!!!!!!!!!!!!!1";
+echo "CI failure reason: Valgrind execution reported memory leaks";
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
+echo "Cause: Check the below logs"
 cat $LEAKLOGS
+echo "Cause: Check the file $LEAKLOGS and $LEAKPXCORELOGS"
 fi
+echo "How to fix: run locally with these steps: export ENABLE_MEMLEAK_CHECK=1;export MallocStackLogging=1;export PX_DUMP_MEMUSAGE=1;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json &; run leaks -nocontext pxscene >logfile continuously until the testrunner execution completes; Analyse the logfile"
 exit 1;
 fi
 exit 0;
