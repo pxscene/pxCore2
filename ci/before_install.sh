@@ -54,7 +54,7 @@ then
   fi
 fi
 
-#install coveralls
+#install codecov
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]
 then
 if [ "$TRAVIS_OS_NAME" = "osx" ] ; 
@@ -65,6 +65,5 @@ elif [ "$TRAVIS_OS_NAME" = "linux" ] ;
 then
   sudo apt-get install python-pip
 fi
-  mkdir $TRAVIS_BUILD_DIR/cpp-coveralls
-  sudo pip install cpp-coveralls
+  sudo pip install codecov
 fi
