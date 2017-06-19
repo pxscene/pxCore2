@@ -488,10 +488,10 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
               //rtLogDebug("space char check: \"%s\"\n",tempChar);
               accString.append(tempChar);
             }
-
-            free(tempStr);
+            
           }
-
+          // Free tempStr
+          free(tempStr);
           // Now skip to next line
           tempY += (mLeading*sy) + charH;
           tempX = 0;
