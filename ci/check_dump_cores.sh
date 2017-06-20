@@ -14,6 +14,7 @@ gdb -q --command="$TRAVIS_BUILD_DIR/ci/gdbcmds" -c core $binary  2&>gdblogs
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
 echo "Core stack details ---------------------------------------- from $path"
+cat $logfile
 cat $tempLogFile
 else
 echo "Core stack details ---------------------------------------- from $path" >> $logfile
