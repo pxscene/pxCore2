@@ -21,6 +21,7 @@ cat "$tempLogFile" >> $logfile
 fi
 rm -rf "$tempLogFile"
 rm -rf gdblogs
+exit 1;
 else
 echo "No core files generated in $path"
 fi

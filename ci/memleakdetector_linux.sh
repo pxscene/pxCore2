@@ -38,15 +38,28 @@ grep "definitely lost" $VALGRINDLOGS
 retVal=$?
 if [ "$retVal" -ne 0 ]
 then
-echo "Valgrind execution got stuck and not terminated in 5 minutes";
+echo "CI failure reason: Valgrind execution got stuck and not terminated in 5 minutes";
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
-cat $VALGRINDLOGS
+echo "Cause: Check the below logs"
+cat $VALGRINDPXCORELOGS
+else
+echo "Cause: Check the file $VALGRINDPXCORELOGS and $VALGRINDLOGS and see where the execution is stucked"
 fi
+echo "How to fix: run locally with these steps: export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and check wteher it is stucked or not. If stucked, fix it. Else,retry in travis again"
 exit 1;
 fi
 
 $TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene $VALGRINDPXCORELOGS
+retVal=$?
+if [ "$retVal" -eq 1 ]
+then
+chmod 444 $VALGRINDLOGS
+echo "CI failure reason: memleak detection execution failed"
+echo "Cause: core dump"
+echo "Reproduction/How to fix: run locally with these steps: export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json"
+exit 1;
+fi
 chmod 444 $VALGRINDLOGS
 #check for memory leak
 grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
@@ -55,10 +68,14 @@ if [ "$retVal" -eq 0 ]
 then
 exit 0;
 else
-echo "!!!!!!!!!!!!! Memory leak present !!!!!!!!!!!!!!!!!!!";
+echo "CI failure reason: Valgrind execution reported memory leaks";
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
+echo "Cause: Check the below logs"
 cat $VALGRINDLOGS
+else
+echo "Cause: Check the file $VALGRINDLOGS and see for definitely lost count"
 fi
+echo "How to fix: run locally with these steps: export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix the leaks"
 exit 1;
 fi

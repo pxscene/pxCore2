@@ -30,9 +30,14 @@ if [[ "$pxRetVal" == 0 ]] && [[ "$texRetVal" == 0 ]] ; then
 exit 0;
 else
 echo "!!!!!!!!!!!!! pxobject leak or texture leak present !!!!!!!!!!!!!!!!";
+echo "CI failure reason: Texture leak or pxobject leak"
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
+echo "Cause: Check the below logs"
 cat $PXCHECKLOGS
+else
+echo "Cause: Check the $PXCHECKLOGS file"
 fi 
+echo "Reproduction/How to fix: Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'texture memory usage is' and 'pxobjectcount is' in logs and see which is non-zero"
 exit 1;
 fi
