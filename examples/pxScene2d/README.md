@@ -20,7 +20,7 @@
 1. Get source code:
 
     ~~~~
-    git clone https://github.com/johnrobinsn/pxCore.git
+    git clone https://github.com/pxscene/pxCore.git
     ~~~~
   
 1. Checkout current development branch
@@ -78,7 +78,7 @@ file:///home/username/directory/filename.js
 1. Get source code
 
     ~~~~
-    git clone https://github.com/johnrobinsn/pxCore.git
+    git clone https://github.com/pxscene/pxCore.git
     ~~~~
   
 2. Checkout current development branch
@@ -160,7 +160,7 @@ file:///home/username/directory/filename.js
 1. Get source code
   
    ~~~~
-   git clone https://github.com/johnrobinsn/pxCore.git
+   git clone https://github.com/pxscene/pxCore.git
    ~~~~
   
 2. Checkout current development branch
@@ -181,7 +181,7 @@ file:///home/username/directory/filename.js
 1. Get source code
   
    ~~~~
-   git clone https://github.com/johnrobinsn/pxCore.git
+   git clone https://github.com/pxscene/pxCore.git
    ~~~~
   
 2. Checkout current development branch
