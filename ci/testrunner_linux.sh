@@ -44,9 +44,14 @@ if [ "$retVal" -eq 0 ]
 then
 exit 0;
 else
+echo "CI failure reason: testrunner execution failed"
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
+echo "Cause: Either one or more tests failed. Check the below logs"
 cat $TESTRUNLOGS
+else
+echo "Cause: Either one or more tests failed. Check the log file $TESTRUNLOGS"
 fi 
+echo "Reproduction/How to fix: run pxscene with testrunner.js locally as ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=<pxcore dir>tests/pxScene2d/testRunner/tests.json"
 exit 1;
 fi
