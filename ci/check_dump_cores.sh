@@ -1,6 +1,6 @@
 #!/bin/bash
 #script to check for corefile and get the corestack reported
-
+echo "Checking for availability of core file in path $1"
 path="$1"
 binary="$2"
 logfile="$3"
