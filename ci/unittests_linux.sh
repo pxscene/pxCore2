@@ -13,6 +13,7 @@ $TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene2dtests $TESTLOGS
 retVal=$?
 if [ "$retVal" -eq 1 ]
 then
+gdb --command="$TRAVIS_BUILD_DIR/ci/gdbcmds" -c core pxscene
 echo "CI failure reason: unittests execution failed"
 echo "Cause: core dump"
 echo "Reproduction/How to fix: run unittests locally"
