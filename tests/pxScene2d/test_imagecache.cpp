@@ -301,6 +301,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void  dataValiditySuccessTest()
     {
+      printf("1\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2016 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: max-age=2000, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "This is image data";
       rtHttpCacheData data("http://localhost/a.jpeg",cacheHeader, cacheData, strlen(cacheData));
@@ -309,12 +311,16 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void  dataValidityFailureEmptyImageTest()
     {
+      printf("2\n");
+      fflush(stdout); 
       rtHttpCacheData data("http://localhost/a.jpeg");
       EXPECT_TRUE (data.isValid() == false);
     }
 
     void  dataValidityFailureExpiredImageTest()
     {
+      printf("3\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2016 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: max-age=0, public\nExpires: Mon, 10 Oct 2016 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "This is image data";
       rtHttpCacheData data("http://localhost/a.jpeg",cacheHeader, cacheData, strlen(cacheData));
@@ -323,6 +329,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void  dataExpiredTrueTest()
     {
+      printf("4\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2016 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: max-age=0, public\nExpires: Mon, 10 Oct 2016 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "This is image data";
       rtHttpCacheData data("http://localhost/a.jpeg",cacheHeader, cacheData, strlen(cacheData));
@@ -331,6 +339,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void  dataExpiredFalseTest()
     {
+      printf("5\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: max-age=2000, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "This is image data";
       rtHttpCacheData data("http://localhost/a.jpeg",cacheHeader, cacheData, strlen(cacheData));
@@ -339,6 +349,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void  expirationDateTest()
     {
+      printf("6\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "This is image data";
       rtHttpCacheData data("http://localhost/a.jpeg",cacheHeader, cacheData, strlen(cacheData));
@@ -356,6 +368,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void  dataWritableToCacheTrueTest()
     {
+      printf("7\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: max-age=2000, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg";
       const char* cacheData = "This is image data";
       rtHttpCacheData data("http://localhost/a.jpeg",cacheHeader, cacheData, strlen(cacheData));
@@ -364,6 +378,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void  dataZeroLengthWritableToCacheFalseTest()
     {
+      printf("8\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-store, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg";
       rtHttpCacheData data("http://localhost/a.jpeg",cacheHeader, NULL, 0);
       EXPECT_TRUE (data.isWritableToCache() == false);
@@ -371,6 +387,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void  dataNoStoreWritableToCacheFalseTest()
     {
+      printf("9\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-store, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg";
       rtHttpCacheData data("http://localhost/a.jpeg",cacheHeader, "abcde", 5);
       EXPECT_TRUE (data.isWritableToCache() == false);
@@ -378,6 +396,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void  setAttributesTest()
     {
+      printf("10\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-store, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       rtHttpCacheData data("http://localhost/a.jpeg");
       data.setAttributes((char *)cacheHeader);
@@ -404,6 +424,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void  initDataTest()
     {
+      printf("11\n");
+      fflush(stdout); 
       const char* cacheHeader = "\nHTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-store, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "abcde";
       rtHttpCacheData data("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -413,6 +435,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void  setDataTest()
     {
+      printf("12\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-store, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "abcde";
       rtHttpCacheData data("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -426,6 +450,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void  readEtagTest()
     {
+      printf("13\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2016 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: max-age=2000, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "This is image data";
       rtHttpCacheData data("http://localhost/a.jpeg",cacheHeader, cacheData, strlen(cacheData));
@@ -437,6 +463,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void  readEtagNotPresentTest()
     {
+      printf("14\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2016 02:46:40 GMT\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: max-age=2000, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "This is image data";
       rtHttpCacheData data("http://localhost/a.jpeg",cacheHeader, cacheData, strlen(cacheData));
@@ -447,6 +475,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void readDataFileAccessFailedTest()
     {
+      printf("15\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2016 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: max-age=2000, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "This is image data";
       rtHttpCacheData data("http://localhost/a.jpeg",cacheHeader, cacheData, strlen(cacheData));
@@ -456,6 +486,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void nocacheCompleteResponseTest()
     {
+      printf("16\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-cache, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "abcde";
       addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -467,6 +499,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void nocacheExpiresParamTest()
     {
+      printf("17\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-cache=Expires, public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "abcde";
       addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -478,6 +512,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void mustRevalidateUnExpiredTest()
     {
+      printf("18\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-cache\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "abcde";
       addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -492,6 +528,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void mustRevalidateTrueExpiredTest()
     {
+      printf("19\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: public must-revalidate\nExpires: Mon, 10 Oct 2015 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "abcde";
       addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -504,6 +542,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void mustRevalidateFalseExpiredTest()
     {
+      printf("20\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: public\nExpires: Mon, 10 Oct 2015 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "abcde";
       addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -516,6 +556,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
    void mustRevalidateFalseExpiredContentsInvalidTest()
    {
+      printf("21\n");
+      fflush(stdout); 
      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: public\nExpires: Mon, 10 Oct 2015 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -528,6 +570,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
    void mustRevalidateTruenocacheUnExpiredTest()
    {
+      printf("22\n");
+      fflush(stdout); 
      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-cache\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -540,6 +584,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
    void mustRevalidateTruenocacheExpiresFiledTest()
    {
+      printf("23\n");
+      fflush(stdout); 
      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\nCache-Control: public no-cache=Expires\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -553,6 +599,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
    void dataPresentAfterHeadersRevalidationTest()
    {
+      printf("24\n");
+      fflush(stdout); 
      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\nCache-Control: public no-cache=Expires\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -572,6 +620,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
    void dataPresentAfterFullRevalidationTest()
    {
+      printf("25\n");
+      fflush(stdout); 
      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-cache\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/test1.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -591,6 +641,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
    void dataUpdatedAfterFullRevalidationTest()
    {
+      printf("26\n");
+      fflush(stdout); 
      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-cache\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/testRevalidationUpdate",cacheHeader,cacheData,strlen(cacheData));
@@ -611,6 +663,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
    void dataNotUpdatedAfterFullRevalidationTest()
    {
+      printf("27\n");
+      fflush(stdout); 
      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-cache\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/testRevalidationUpdateFailed",cacheHeader,cacheData,strlen(cacheData));
@@ -622,6 +676,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void dataUpdatedAfterEtagTest()
     {
+      printf("28\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/testEtag",cacheHeader,cacheData,strlen(cacheData));
@@ -641,6 +697,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void dataUpdatedAfterEtagDownloadFailedTest()
     {
+      printf("29\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/testEtag",cacheHeader,cacheData,strlen(cacheData));
@@ -652,6 +710,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void memoryUnAvailableTest()
     {
+      printf("30\n");
+      fflush(stdout); 
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
       const char* cacheData = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\nabcdefghijklmnopqrstuvwxyz\0";
       addDataToCache("http://localhost/testEtag",cacheHeader,cacheData,strlen(cacheData));
