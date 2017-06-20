@@ -4,6 +4,7 @@ project(pxcore)
 set(CMAKE_CXX_STANDARD 11)
 
 option(WINDOWLESS_EGL "WINDOWLESS_EGL" OFF)
+option(PXCORE_COMPILE_WARNINGS_AS_ERRORS "PXCORE_COMPILE_WARNINGS_AS_ERRORS" ON)
 
 set(EXTDIR "${CMAKE_CURRENT_SOURCE_DIR}/../examples/pxScene2d/external")
 set(NODEPATH "${EXTDIR}/libnode-v6.9.0/")
@@ -88,6 +89,11 @@ endif (APPLE)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -g")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wno-deprecated -fpermissive -std=c++11 -g")
+
+if (PX_COMPILE_WARNINGS_AS_ERRORS)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+endif (PX_COMPILE_WARNINGS_AS_ERRORS)
 
 include_directories(AFTER ${NODEPATH}/src ${NODEPATH}/deps/uv/include ${NODEPATH}/deps/v8 ${NODEPATH}/deps/debugger-agent/include ${NODEPATH}/deps/v8/include ${NODEPATH}/deps/cares/include)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
