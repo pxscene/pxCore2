@@ -1,6 +1,6 @@
 #!/bin/bash
 #script to check for corefile and get the corestack reported
-
+echo "Checking for availability of core file in $1"
 path="$1"
 binary="$2"
 logfile="$3"
@@ -11,6 +11,7 @@ if [ "$retVal" -eq 0 ]
 then
 tempLogFile="gdb.txt"
 gdb -q --command="$TRAVIS_BUILD_DIR/ci/gdbcmds" -c core $binary  2&>gdblogs
+cat gdblogs
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
 echo "Core stack details ---------------------------------------- from $path"
