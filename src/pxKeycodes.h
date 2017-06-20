@@ -140,4 +140,8 @@
 // flag used in onKeyDown
 #define PX_KEYDOWN_REPEAT   128
 
+#define PX_KEY_YELLOW       403
+#define PX_KEY_BLUE         404
+#define PX_KEY_RED          405
+#define PX_KEY_GREEN        406
 #endif //PX_KEYCODES_H
