@@ -78,7 +78,7 @@ uint32_t npot(uint32_t i)
   return power;
 }
 
-pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mPixelSize(0), mFontData(0)
+pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0)
 {  
   mFontId = gFontId++; 
   mUrl = fontUrl;
