@@ -26,7 +26,9 @@ extern pxContext context;
 //TODO UGH!!
 static pxTextureRef nullMaskRef;
 
-pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), mStretchX(pxConstantsStretch::NONE), mStretchY(pxConstantsStretch::NONE),
+pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), 
+                                       mImageWidth(0), mImageHeight(0),
+                                       mStretchX(pxConstantsStretch::NONE), mStretchY(pxConstantsStretch::NONE),
                                        mResource(), mImageLoaded(false), mListenerAdded(false)
 {
   mCurFrame = 0;
