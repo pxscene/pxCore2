@@ -1,4 +1,5 @@
 #!/bin/sh
+ulimit -c unlimited
 sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/* /var/www/.
 sudo /etc/init.d/lighttpd stop
 sudo rm -rf /etc/lighttpd/lighttpd.conf
@@ -13,7 +14,8 @@ $TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene2dtests $TESTLOGS
 retVal=$?
 if [ "$retVal" -eq 1 ]
 then
-gdb --command="$TRAVIS_BUILD_DIR/ci/gdbcmds" -c core pxscene
+sudo gdb --command="$TRAVIS_BUILD_DIR/ci/gdbcmds" -c core pxscene2dtests 2&>testlogs
+sudo cat testlogs
 echo "CI failure reason: unittests execution failed"
 echo "Cause: core dump"
 echo "Reproduction/How to fix: run unittests locally"
