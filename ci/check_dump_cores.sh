@@ -12,6 +12,7 @@ then
 tempLogFile="gdb.txt"
 sudo chmod 777 gdb
 gdb -q --command="$TRAVIS_BUILD_DIR/ci/gdbcmds" -c core $binary  2&>gdblogs
+cat gdblogs
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
 echo "Core stack details ---------------------------------------- from $path"
