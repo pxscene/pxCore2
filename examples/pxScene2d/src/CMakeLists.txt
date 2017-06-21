@@ -219,9 +219,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
 
 if (PXSCENE_COMPILE_WARNINGS_AS_ERRORS)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-endif (PX_COMPILE_WARNINGS_AS_ERRORS)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+endif (PXSCENE_COMPILE_WARNINGS_AS_ERRORS)
 
 if (BUILD_WITH_CXX_11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")

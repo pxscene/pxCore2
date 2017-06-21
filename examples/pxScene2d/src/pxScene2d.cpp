@@ -1806,6 +1806,8 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   UNUSED_PARAM(p);
   UNUSED_PARAM(o);
 
+  UNUSED_PARAM(gWaylandAppsConfigLoaded);
+
   return RT_FAIL;
 #else
   if (false == gWaylandAppsConfigLoaded)
