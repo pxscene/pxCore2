@@ -2,9 +2,10 @@
 
 #define private public
 #define protected public
-
-#include <GL/glew.h>
-#include <GL/freeglut.h>
+#include <pxCore.h>
+#include <pxWindow.h>
+//#include <GL/glew.h>
+//#include <GL/freeglut.h>
 #include "pxScene2d.h"
 #include <string.h>
 #include "pxIView.h"
@@ -22,11 +23,61 @@ extern rtNode script;
 extern int gargc;
 extern char** gargv;
 extern int pxObjectCount;
+
+void fgDeinitialize( void )
+{
+  printf("fgdeinitialize called locally \n");
+  fflush(stdout);
+  _exit(2);
+}
+
+class sceneWindow : public pxWindow, public pxIViewContainer
+{
+  public:
+    void init(int x, int y, int w, int h, const char* url = NULL)
+    {
+      mWidth = w;
+      mHeight = h;
+      pxWindow::init(x,y,w,h);
+    }
+  
+    virtual void invalidateRect(pxRect* r)
+    {
+      pxWindow::invalidateRect(r);
+    }
+    
+    rtError setView(pxIView* v)
+    { 
+      mView = v;
+      if (v)
+      {
+        v->setViewContainer(this);
+        v->onSize(mWidth, mHeight);
+      }
+      return RT_OK;
+    }
+    
+    virtual void onAnimationTimer()
+    {
+      if (mView)
+        mView->onUpdate(pxSeconds());
+      script.pump();
+    }
+    
+  private:
+    pxIView* mView;
+    int mWidth;
+    int mHeight;
+};
+
 class jsFilesTest : public testing::Test
 {
   public:
     virtual void SetUp()
     {
+      mSceneWin = new sceneWindow();
+      mSceneWin->init(0,0,1280,720);
+/*
       glutInit(&gargc,gargv);
       glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGBA);
       glutInitWindowPosition (0, 0);
@@ -42,6 +93,8 @@ class jsFilesTest : public testing::Test
         printf("error with glewInit() [%s] [%d] \n",glewGetErrorString(err), err);
         fflush(stdout);
       }
+*/
+      atexit(fgDeinitialize);
       mContext.init();
     }
 
@@ -73,6 +126,7 @@ private:
     {
       mUrl = jsfile;
       mView = new pxScriptView(mUrl,"");
+      mSceneWin->setView(mView);
     }
 
     void process(float timeout)
@@ -82,16 +136,20 @@ private:
       {
         if (NULL != mView)
         {
+          mSceneWin->onAnimationTimer();
+/*
           mView->onDraw();
           mView->onUpdate(pxSeconds());
           script.pump();
           glutSwapBuffers();
+*/
         }
       }
     }
 
     pxScriptView* mView;
     rtString mUrl;
+    sceneWindow* mSceneWin;
     int mGlutWindowId;
     pxContext mContext;
 };
