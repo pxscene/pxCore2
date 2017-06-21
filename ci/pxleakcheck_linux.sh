@@ -25,6 +25,14 @@ echo "Sleeping to make terminate complete ......";
 sleep 5s;
 pkill -9 -f pxscene.sh
 $TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene $PXCHECKLOGS
+retVal=$?
+if [ "$retVal" -eq 1 ]
+then
+echo "CI failure reason: pxleakcheck detection execution failed"
+echo "Cause: core dump"
+echo "Reproduction/How to fix: Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'texture memory usage is' in logs. Analyze why the usage is not 0"
+exit 1;
+fi
 grep "pxobjectcount is \[0\]" $PXCHECKLOGS
 pxRetVal=$?
 grep "texture memory usage is \[0\]" $PXCHECKLOGS

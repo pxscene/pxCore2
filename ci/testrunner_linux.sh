@@ -37,6 +37,14 @@ pkill -15 -f pxscene.sh
 
 
 $TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene $TESTRUNLOGS
+retVal=$?
+if [ "$retVal" -eq 1 ]
+then
+echo "CI failure reason: testrunner execution failed"
+echo "Cause: core dump"
+echo "Reproduction/How to fix: run pxscene with testrunner.js locally as ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=<pxcore dir>tests/pxScene2d/testRunner/tests.json"
+exit 1;
+fi
 
 grep "Failures: 0" $TESTRUNLOGS
 retVal=$?

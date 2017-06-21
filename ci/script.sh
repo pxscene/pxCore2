@@ -37,7 +37,8 @@ ulimit -c unlimited
 cd $TRAVIS_BUILD_DIR/ci
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ;
 then
-  sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "testrunner_$TRAVIS_OS_NAME.sh" "unittests_$TRAVIS_OS_NAME.sh" "code_coverage_$TRAVIS_OS_NAME.sh" "pxleakcheck_$TRAVIS_OS_NAME.sh" "memleakdetector_$TRAVIS_OS_NAME.sh"
+  sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "unittests_$TRAVIS_OS_NAME.sh"
+ # sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "testrunner_$TRAVIS_OS_NAME.sh" "unittests_$TRAVIS_OS_NAME.sh" "code_coverage_$TRAVIS_OS_NAME.sh" "pxleakcheck_$TRAVIS_OS_NAME.sh" "memleakdetector_$TRAVIS_OS_NAME.sh"
 else
   sh build_px.sh "build_$TRAVIS_OS_NAME.sh"
 fi

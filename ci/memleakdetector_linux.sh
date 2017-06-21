@@ -51,6 +51,15 @@ exit 1;
 fi
 
 $TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene $VALGRINDPXCORELOGS
+retVal=$?
+if [ "$retVal" -eq 1 ]
+then
+chmod 444 $VALGRINDLOGS
+echo "CI failure reason: memleak detection execution failed"
+echo "Cause: core dump"
+echo "Reproduction/How to fix: run locally with these steps: export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json"
+exit 1;
+fi
 chmod 444 $VALGRINDLOGS
 #check for memory leak
 grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
