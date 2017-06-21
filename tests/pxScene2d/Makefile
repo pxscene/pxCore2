@@ -20,6 +20,7 @@ SRCS_FULL=\
     test_pxUtil.cpp \
     test_pxImage.cpp \
     test_pxWayland.cpp \
+    test_pxWaylandContainer.cpp \
     test_imagecache.cpp
 
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
