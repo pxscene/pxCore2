@@ -251,10 +251,8 @@ px.import({ scene: 'px:scene.1.js',
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        textView.on("onMouseDown", function (e) {
-     
-            textInput.focus = true;
-
+        clipRect.on("onMouseDown", function (e) {
+                    
             if(textInput.text.length > 0)
             {
                 var now = new Date().getTime();
@@ -271,6 +269,13 @@ px.import({ scene: 'px:scene.1.js',
 
                 buttonDownTime = now;
             }
+        });
+        
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+        textView.on("onMouseDown", function (e) {
+     
+            textInput.focus = true;
 
             buttonDown = true;
 
@@ -365,7 +370,6 @@ px.import({ scene: 'px:scene.1.js',
         container.on("onFocus", function (e) {
 
             showCursor();
-            animateCursor();
 
 // console.log(" OnFocus()    textInput.focus ");// = " + textInput.focus);
         });
@@ -873,6 +877,7 @@ console.log(">>> makeSelection() ... selection.x = " + selection.x + "   selecti
         function showCursor()
         {
             cursor.a = 1;
+            animateCursor();
         }
 
         function moveToHome() {
