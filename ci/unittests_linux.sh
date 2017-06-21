@@ -22,9 +22,9 @@ echo "unittests running for $count seconds"
 done
 
 echo "kill -15 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`"
-kill -15 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`
+sudo kill -15 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`
 sleep 5s;
-pkill -15 -f pxscene2dtests.sh
+sudo pkill -15 -f pxscene2dtests.sh
 
 #check for process hung
 grep "Global test environment tear-down" $TESTLOGS
