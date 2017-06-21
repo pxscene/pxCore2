@@ -61,7 +61,7 @@ class pxTextMetrics: public rtObject
 {
 
 public:
-	pxTextMetrics() {}
+	pxTextMetrics():mHeight(0),mAscent(0),mDescent(0),mNaturalLeading(0),mBaseline(0) {}
 	virtual ~pxTextMetrics() {}
 
 	rtDeclareObject(pxTextMetrics, rtObject);
@@ -107,7 +107,7 @@ public:
 class pxTextSimpleMeasurements: public rtObject 
 {
 public:
-	pxTextSimpleMeasurements() {}
+	pxTextSimpleMeasurements():mw(0),mh(0) {}
 	virtual ~pxTextSimpleMeasurements() {}
 
 	rtDeclareObject(pxTextSimpleMeasurements, rtObject);

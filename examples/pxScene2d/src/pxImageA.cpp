@@ -26,7 +26,9 @@ extern pxContext context;
 //TODO UGH!!
 static pxTextureRef nullMaskRef;
 
-pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), mStretchX(pxConstantsStretch::NONE), mStretchY(pxConstantsStretch::NONE),
+pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), 
+                                       mImageWidth(0), mImageHeight(0),
+                                       mStretchX(pxConstantsStretch::NONE), mStretchY(pxConstantsStretch::NONE),
                                        mResource(), mImageLoaded(false), mListenerAdded(false)
 {
   mCurFrame = 0;
@@ -76,9 +78,9 @@ rtError pxImageA::setUrl(const char *s)
   if (mURL)
   {
     rtImageAResource* resourceObj = getImageAResource();
-    if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s) && mImageLoaded)
+    if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
     {
-      if(mImageLoaded)
+      if(mImageLoaded || ((rtPromise*)mReady.getPtr())->status())
       {
         mImageLoaded = false;
         pxObject::createNewPromise();

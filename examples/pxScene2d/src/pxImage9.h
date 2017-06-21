@@ -36,7 +36,7 @@ public:
   rtProperty(resource, resource, setResource, rtObjectRef);  
 
   pxImage9(pxScene2d* scene) : pxObject(scene),mInsetLeft(0),mInsetTop(0),mInsetRight(0),mInsetBottom(0), 
-                               imageLoaded(false) 
+                               imageLoaded(false), mListenerAdded(false) 
   { 
     mResource = pxImageManager::getImage("");
     mw = -1;

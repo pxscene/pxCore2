@@ -39,16 +39,26 @@ echo "texture size success *****************";
 exit 0;
 fi
 echo "!!!!!!!!!!!!! texture size leaked !!!!!!!!!!!!!!!!";
+echo "CI failure reason: Texture leak"
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
+echo "Cause: Check the below logs"
 cat $PXCHECKLOGS
+else
+echo "Cause: Check the $PXCHECKLOGS file"
 fi
+echo "Reproduction/How to fix: Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'texture memory usage is' in logs. Analyze why the usage is not 0"
 exit 1;
 else
 echo "!!!!!!!!!!!!! pxobject leaked !!!!!!!!!!!!!!!!";
+echo "CI failure reason: pxobject leak"
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
+echo "Cause: Check the below logs"
 cat $PXCHECKLOGS
+else
+echo "Cause: Check the $PXCHECKLOGS file"
 fi
+echo "Reproduction/How to fix: Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'pxobjectcount is' in logs. Analyze why the count is not 0?"
 exit 1;
 fi
