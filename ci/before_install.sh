@@ -41,6 +41,10 @@ fi
 if [ "$TRAVIS_OS_NAME" = "osx" ] ;
 then
   brew update;
+  sudo /usr/sbin/DevToolsSecurity --enable
+  lldb --version
+  lldb --help
+  man lldb
 fi
 
 #install code coverage binaries for mac

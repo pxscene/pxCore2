@@ -1,7 +1,10 @@
 #!/bin/sh
 #This script is used to detect leaked px objects or textures
+ulimit -c unlimited
+cored=0
 export PX_DUMP_MEMUSAGE=1
 export RT_LOG_LEVEL=info
+export HANDLE_SIGNALS=1
 PXCHECKLOGS=$TRAVIS_BUILD_DIR/logs/pxcheck_logs
 
 rm -rf /var/tmp/pxscene.log
@@ -14,14 +17,48 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 5400 ]; do
 sleep 30;
 grep "RUN COMPLETED" /var/tmp/pxscene.log
 retVal=$?
+
+#check any crash happened, if so stop the loop
+if [ "$retVal" -ne 0 ]
+then
+if [ -f "/tmp/pxscenecrash" ]
+then
+cored=1
+sudo rm -rf /tmp/pxscenecrash
+break
+fi
+fi
+#crash check ends
+
 count=$((count+30))
 done
+
+echo "core happened during pxleak checks - $cored"
+if [ "$cored" -eq 1 ]
+then
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'` /var/tmp/pxscene.log
+echo "CI failure reason: pxleakcheck execution failed"
+echo "Cause: core dump"
+echo "Reproduction/How to fix: run pxleakcheck test locally"
+fi
 
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
 sleep 5s;
 pkill -9 -f pxscene.sh
 cp /var/tmp/pxscene.log $PXCHECKLOGS
+
+#crash handling begin
+if [ "$cored" -eq 1 ]
+then
+if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+then
+cat $PXCHECKLOGS
+fi
+exit 1;
+fi
+#crash handling end
+
 grep "pxobjectcount is \[0\]" $PXCHECKLOGS
 pxRetVal=$?
 grep "texture memory usage is \[0\]" $PXCHECKLOGS
