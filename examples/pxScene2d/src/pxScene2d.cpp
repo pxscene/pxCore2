@@ -1520,7 +1520,8 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top)
-  : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRectangle(false), mSceneContainers(), mTestView(NULL), mDisposed(false)
+  : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false), 
+    mSceneContainers(), mDirty(true), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1553,6 +1554,7 @@ pxScene2d::pxScene2d(bool top)
     checkForFpsMinOverride = false;
   }
 
+  mPointerHidden= false;
   #ifdef USE_SCENE_POINTER
   mPointerX= 0;
   mPointerY= 0;
@@ -1560,7 +1562,6 @@ pxScene2d::pxScene2d(bool top)
   mPointerH= 0;
   mPointerHotSpotX= 40;
   mPointerHotSpotY= 16;
-  mPointerHidden= false;
   mPointerResource= pxImageManager::getImage("cursor.png");
   #endif
 }
@@ -2710,7 +2711,10 @@ void RT_STDCALL testView::onDraw()
 
 void pxViewContainer::invalidateRect(pxRect* r)
 {
-  mScene->mDirty = true;
+  if (mScene)
+  {
+    mScene->mDirty = true;
+  }
   repaint();
   pxObject* parent = this->parent();
   while (parent)

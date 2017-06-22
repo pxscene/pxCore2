@@ -135,7 +135,7 @@ struct animation
 
 struct pxPoint2f 
 {
-  pxPoint2f() {}
+  pxPoint2f():x(0),y(0) {}
   pxPoint2f(float _x, float _y) { x = _x; y = _y; } 
   float x, y;
 };

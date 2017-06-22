@@ -27,7 +27,7 @@
 extern pxContext context;
 
 
-pxText::pxText(pxScene2d* scene):pxObject(scene), mListenerAdded(false)
+pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mListenerAdded(false)
 {
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
