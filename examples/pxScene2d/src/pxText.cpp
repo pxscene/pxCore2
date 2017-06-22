@@ -139,7 +139,7 @@ void pxText::update(double t)
 #else
     // TODO make this configurable
     // TODO make caching more intelligent given scaling
-    if (mText.length() >= 10 && msx == 1.0 && msy == 1.0)
+    if (mText.length() >= 10 && msx == 1.0 && msy == 1.0 && mw < MAX_TEXTURE_WIDTH && mh < MAX_TEXTURE_HEIGHT)
     {
       mCached = NULL;
       pxContextFramebufferRef cached = context.createFramebuffer(getFBOWidth(),getFBOHeight());
