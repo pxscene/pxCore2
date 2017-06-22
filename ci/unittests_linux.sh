@@ -1,5 +1,8 @@
 #!/bin/sh
 ulimit -c unlimited
+ls -lrt /etc/lighttpd/lighttpd.conf
+cat /etc/lighttpd/lighttpd.conf
+echo "============================"
 sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/* /var/www/.
 sudo /etc/init.d/lighttpd stop
 echo "setenv.add-response-header += (\"Cache-Control\" => \"public, max-age=1000\")"|sudo tee -a /etc/lighttpd/lighttpd.conf
