@@ -43,25 +43,19 @@ extern "C" {
 #endif
 
 
-pxTextBox::pxTextBox(pxScene2d* s): pxText(s)
+pxTextBox::pxTextBox(pxScene2d* s): pxText(s),
+                                    mTruncation(pxConstantsTruncation::NONE),
+                                    mAlignVertical(pxConstantsAlignVertical::TOP),
+                                    mAlignHorizontal(pxConstantsAlignHorizontal::LEFT),
+                                    mXStartPos(0),  mXStopPos(0), mLeading(0), 
+                                    mWordWrap(false), mEllipsis(false), mInitialized(false), mNeedsRecalc(true),
+                                    lineNumber(0), lastLineNumber(0),
+                                    noClipX(0), noClipY(0), noClipW(0), noClipH(0), startY(0)
 {
   measurements= new pxTextMeasurements();
 
   mFontLoaded      = false;
-  mInitialized     = false;
-  mWordWrap        = false;
-  mEllipsis        = false;
-  mNeedsRecalc     = true;
   
-  lineNumber       = 0;
-  lastLineNumber   = 0;
-  mXStartPos       = 0;
-  mXStopPos        = 0;
-  mLeading         = 0;
-  
-  mTruncation      = pxConstantsTruncation::NONE;
-  mAlignVertical   = pxConstantsAlignVertical::TOP;
-  mAlignHorizontal = pxConstantsAlignHorizontal::LEFT;
 }
 
 /** This signals that the font file loaded successfully; now we need to

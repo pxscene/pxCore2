@@ -43,7 +43,7 @@ extern map<string, string> gWaylandAppsMap;
 // #define UNUSED_PARAM(x) ((void)x)
 
 pxWaylandContainer::pxWaylandContainer(pxScene2d* scene)
-   : pxViewContainer(scene), mWayland(NULL)
+   : pxViewContainer(scene), mWayland(NULL),mClientPID(0),mFillColor(0),mHasApi(false)
 {
   addListener("onClientStarted", get<rtFunctionRef>("onClientStarted"));
   addListener("onClientStopped", get<rtFunctionRef>("onClientStopped"));

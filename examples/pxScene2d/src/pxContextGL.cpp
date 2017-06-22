@@ -507,7 +507,7 @@ void cleanupOffscreen(void* data);
 class pxTextureOffscreen : public pxTexture
 {
 public:
-  pxTextureOffscreen() : mOffscreen(), mInitialized(false),
+  pxTextureOffscreen() : mOffscreen(), mInitialized(false), mTextureName(0),
                          mTextureUploaded(false), mTextureDataAvailable(false),
                          mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
                          mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0)
@@ -517,7 +517,7 @@ public:
   }
 
   pxTextureOffscreen(pxOffscreen& o, const char *compressedData = NULL, size_t compressedDataSize = 0)
-                                     : mOffscreen(), mInitialized(false),
+                                     : mOffscreen(), mInitialized(false), mTextureName(0),
                                        mTextureUploaded(false), mTextureDataAvailable(false),
                                        mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
                                        mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0)
@@ -943,7 +943,8 @@ class pxTextureAlpha : public pxTexture
 {
 public:
   pxTextureAlpha() : mDrawWidth(0.0), mDrawHeight (0.0), mImageWidth(0.0),
-                     mImageHeight(0.0), mTextureId(0), mInitialized(false)
+                     mImageHeight(0.0), mTextureId(0), mInitialized(false),
+                     mBuffer(NULL)
   {
     mTextureType = PX_TEXTURE_ALPHA;
   }
@@ -983,6 +984,7 @@ public:
     if(mBuffer)
     {
       free(mBuffer);
+      mBuffer  = 0;
     }
     deleteTexture();
   }
@@ -2374,7 +2376,7 @@ int64_t pxContext::currentTextureMemoryUsageInBytes()
 
 int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 {
-  int64_t textureSize = (texture->width()*texture->height()*4);
+  int64_t textureSize = (((int64_t)texture->width())*((int64_t)texture->height())*4);
   int64_t availableBytes = mTextureMemoryLimitInBytes - mCurrentTextureMemorySizeInBytes;
   if (textureSize > availableBytes)
   {
