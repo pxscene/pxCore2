@@ -2376,7 +2376,7 @@ int64_t pxContext::currentTextureMemoryUsageInBytes()
 
 int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 {
-  int64_t textureSize = (int64_t)(texture->width()*texture->height()*4);
+  int64_t textureSize = (((int64_t)texture->width())*((int64_t)texture->height())*4);
   int64_t availableBytes = mTextureMemoryLimitInBytes - mCurrentTextureMemorySizeInBytes;
   if (textureSize > availableBytes)
   {
