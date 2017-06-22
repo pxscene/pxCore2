@@ -24,7 +24,21 @@ kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}
 echo "Sleeping to make terminate complete ......";
 sleep 5s;
 pkill -9 -f pxscene.sh
-$TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene $PXCHECKLOGS
+
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $PXCHECKLOGS
+retVal=$?
+if [ "$retVal" -eq 1 ]
+then
+echo "CI failure reason: pxleakchecks execution failed"
+echo "Cause: core dump"
+echo "Reproduction/How to fix: run pxleakchecks test locally"
+if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+then
+cat $PXCHECKLOGS
+fi
+exit 1;
+fi
+
 grep "pxobjectcount is \[0\]" $PXCHECKLOGS
 pxRetVal=$?
 grep "texture memory usage is \[0\]" $PXCHECKLOGS

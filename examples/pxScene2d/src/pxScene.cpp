@@ -319,6 +319,22 @@ void handleTerm(int)
   win.close();
 }
 
+void handleSegv(int)
+{
+  FILE* fp = fopen("/tmp/pxscenecrash","w");
+  fclose(fp);
+  rtLogInfo("Signal SEGV received. sleeping to collect data");
+  sleep(1800);
+}
+
+void handleAbrt(int)
+{
+  FILE* fp = fopen("/tmp/pxscenecrash","w");
+  fclose(fp);
+  rtLogInfo("Signal ABRT received. sleeping to collect data");
+  sleep(1800);
+}
+
 int pxMain(int argc, char* argv[])
 {
 #ifdef HAS_LINUX_BREAKPAD
@@ -326,6 +342,12 @@ int pxMain(int argc, char* argv[])
   google_breakpad::ExceptionHandler eh(descriptor, NULL, dumpCallback, NULL, true, -1);
 #endif
   signal(SIGTERM, handleTerm);
+  char const* handle_signals = getenv("HANDLE_SIGNALS");
+  if (handle_signals && (strcmp(handle_signals,"1") == 0))
+  {
+    signal(SIGSEGV, handleSegv);
+    signal(SIGABRT, handleAbrt);
+  }
 #ifndef RUNINMAIN
   rtLogWarn("Setting  __rt_main_thread__ to be %x\n",pthread_self());
    __rt_main_thread__ = pthread_self(); //  NB

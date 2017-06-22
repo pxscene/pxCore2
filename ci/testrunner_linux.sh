@@ -36,7 +36,15 @@ sleep 5s;
 pkill -15 -f pxscene.sh
 
 
-$TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene $TESTRUNLOGS
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $TESTRUNLOGS
+retVal=$?
+if [ "$retVal" -eq 1 ]
+then
+echo "CI failure reason: testrunner execution failed"
+echo "Cause: core dump"
+echo "Reproduction/How to fix: run testrunner locally"
+exit 1;
+fi
 
 grep "Failures: 0" $TESTRUNLOGS
 retVal=$?
