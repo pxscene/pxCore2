@@ -4,6 +4,7 @@ sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/* /var/www/.
 sudo /etc/init.d/lighttpd stop
 echo "setenv.add-response-header += (\"Cache-Control\" => \"public, max-age=1000\")"|sudo tee -a /etc/lighttpd/lighttpd.conf
 cat /etc/lighttpd/lighttpd.conf
+echo "Printed "
 sudo /etc/init.d/lighttpd start
 cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
 touch $TRAVIS_BUILD_DIR/logs/test_logs;
