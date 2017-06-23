@@ -1260,12 +1260,14 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
 #endif
       }
       png_read_end(png_ptr, info_ptr);
-      free(rows_frame);
-      free(rows_image);
-      free(p_temp);
-      free(p_frame);
-      free(p_image);
+
     }
+
+    free(rows_frame);
+    free(rows_image);
+    free(p_temp);
+    free(p_frame);
+    free(p_image);
   }
   png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
