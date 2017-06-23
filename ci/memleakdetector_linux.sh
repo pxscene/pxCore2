@@ -33,6 +33,22 @@ kill -15 `ps -ef | grep valgrind |grep -v grep|grep pxscene|grep  -v pxscene.sh|
 sleep 20s;
 pkill -9 -f pxscene.sh
 
+#check whether crash happened begin
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $VALGRINDPXCORELOGS
+retVal=$?
+if [ "$retVal" -eq 1 ]
+then
+echo "CI failure reason: memleakdetection execution failed"
+echo "Cause: core dump"
+echo "Reproduction/How to fix: run memleakdetection test locally"
+if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+then
+cat $VALGRINDPXCORELOGS
+fi
+exit 1;
+fi
+#check whether crash happened end
+
 #check whether valgrind got completed
 grep "definitely lost" $VALGRINDLOGS
 retVal=$?
@@ -50,7 +66,6 @@ echo "How to fix: run locally with these steps: export ENABLE_VALGRIND=1;export 
 exit 1;
 fi
 
-$TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene $VALGRINDPXCORELOGS
 chmod 444 $VALGRINDLOGS
 #check for memory leak
 grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS

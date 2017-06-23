@@ -26,7 +26,23 @@ sudo kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.
 sleep 5s;
 sudo pkill -9 -f pxscene2dtests.sh
 
-#check for process hung
+#check for corefile presence
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene2dtests $TESTLOGS
+retVal=$?
+if [ "$retVal" -eq 1 ]
+then
+echo "CI failure reason: unittests execution failed"
+echo "Cause: core dump"
+echo "Reproduction/How to fix: run unittests locally"
+if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+then
+cat $TESTLOGS
+fi
+exit 1;
+fi
+#check for corefile presence end
+
+#check for process hung begin
 grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
 if [ "$retVal" -ne 0 ]
@@ -42,19 +58,9 @@ fi
 echo "Reproduction/How to fix: run unittests locally"
 exit 1;
 fi
+#check for process hung end
 
-#check for corefile presence
-$TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene2dtests $TESTLOGS
-retVal=$?
-if [ "$retVal" -eq 1 ]
-then
-echo "CI failure reason: unittests execution failed"
-echo "Cause: core dump"
-echo "Reproduction/How to fix: run unittests locally"
-exit 1;
-fi
-
-#check for failed test
+#check for failed test begin
 grep "FAILED TEST" $TESTLOGS
 retVal=$?
 cd $TRAVIS_BUILD_DIR;
@@ -73,3 +79,4 @@ exit 1;
 else
 exit 0;
 fi
+#check for failed test end
