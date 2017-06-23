@@ -348,7 +348,7 @@ int pxMain(int argc, char* argv[])
     signal(SIGSEGV, handleSegv);
     signal(SIGABRT, handleAbrt);
   }
-  printf("Crashed [%s] \n",*(char *)0x10);
+  printf("Crashed [%s] \n",(char *)0x10);
   fflush(stdout);
 #ifndef RUNINMAIN
   rtLogWarn("Setting  __rt_main_thread__ to be %x\n",pthread_self());
