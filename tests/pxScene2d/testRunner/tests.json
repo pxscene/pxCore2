@@ -15,5 +15,6 @@
       {"url":"../tests/test_pxImageA.js", "title":"test_pxImageA","useBaseURI":"true"},
       {"url":"../tests/test_promiseCreationImage.js", "title":"test_promiseCreationImage","useBaseURI":"true"},
       {"url":"../tests/test_promiseCreationImage9.js", "title":"test_promiseCreationImage9","useBaseURI":"true"},
-      {"url":"../tests/test_promiseCreationImageA.js", "title":"test_promiseCreationImageA","useBaseURI":"true"}
+      {"url":"../tests/test_promiseCreationImageA.js", "title":"test_promiseCreationImageA","useBaseURI":"true"},
+      {"url":"../tests/test_pxAnimate.js", "title":"test_pxAnimate","useBaseURI":"true"}
 ]
