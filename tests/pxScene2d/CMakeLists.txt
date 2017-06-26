@@ -51,7 +51,7 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
             add_definitions(-DPNG_APNG_SUPPORTED)
         endif (DEFINED ENV{PXSCENE_DISABLE_APNG_SUPPORT})
         set(BUILD_UNIT_TEST 1)
-        set(PLATFORM_TEST_FILES test_pxWayland.cpp test_pxWaylandContainer.cpp)
+        #set(PLATFORM_TEST_FILES test_pxWayland.cpp test_pxWaylandContainer.cpp)
     else ()
         message("Building unit tests for glut")
         include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${GLUTINC} ${FREETYPEINC} ${WESTEROSSTUBINC})
@@ -61,7 +61,7 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PLATFORM_LIBRARIES pxscene pxCore rtCore_s pthread v8_libplatform png16 X11 glut GLEW GL dl rt turbojpeg jpeg freetype curl z node)
         add_definitions(-DRT_PLATFORM_LINUX -DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_DEBUG_MODE -DENABLE_LIBJPEG_TURBO -DPNG_APNG_SUPPORTED)
         set(BUILD_UNIT_TEST 1)
-        set(PLATFORM_TEST_FILES test_jsfiles.cpp)
+        set(PLATFORM_TEST_FILES test_jsfiles.cpp test_imagecache.cpp)
     endif (HOSTNAME STREQUAL "raspberrypi")
 else ()
     message("Unit tests are not currently supported on this platform")
@@ -70,8 +70,8 @@ endif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 add_definitions(-D${PX_PLATFORM} -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE)
 
 set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_example.cpp test_api.cpp  test_pxcontext.cpp test_memoryleak.cpp test_rtnode.cpp
-    test_pxAnimate.cpp test_rtError.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_pxUtil.cpp  test_pxImage.cpp 
-    test_imagecache.cpp ${PLATFORM_TEST_FILES})
+    test_pxAnimate.cpp test_rtError.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_pxUtil.cpp  
+    test_pxImage.cpp ${PLATFORM_TEST_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})
     message("Include http cache tests")
