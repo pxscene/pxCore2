@@ -10,7 +10,11 @@ retVal=$?
 if [ "$retVal" -eq 0 ]
 then
 tempLogFile="gdb.txt"
-gdb -q --command="$TRAVIS_BUILD_DIR/ci/gdbcmds" -c core $binary  2&>gdblogs
+coreFileName="core"
+sudo chmod 777 $coreFileName
+echo "gdb -q --command=\"$TRAVIS_BUILD_DIR/ci/debuggercmds_linux\" -c $coreFileName $binary  2&>gdblogs"
+gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" -c $coreFileName $binary  2&>gdblogs
+cat gdblogs
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
 echo "Core stack details ---------------------------------------- from $path"

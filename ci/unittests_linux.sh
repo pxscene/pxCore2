@@ -44,7 +44,7 @@ exit 1;
 fi
 
 #check for corefile presence
-$TRAVIS_BUILD_DIR/ci/check_dump_cores.sh `pwd` pxscene2dtests $TESTLOGS
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene2dtests $TESTLOGS
 retVal=$?
 if [ "$retVal" -eq 1 ]
 then
