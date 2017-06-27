@@ -1,4 +1,5 @@
 #This script runs testrunner app in osx and it is used for code coverage
+
 #!/bin/sh
 cd $TRAVIS_BUILD_DIR
 currentdir="$(pwd)" 
