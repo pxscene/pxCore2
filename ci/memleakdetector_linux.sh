@@ -13,7 +13,7 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 grep "RUN COMPLETED" $VALGRINDPXCORELOGS
 retVal=$?
 count=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -lt 600 ]; do
+while [ "$retVal" -ne 0 ] &&  [ "$count" -lt 900 ]; do
 sleep 30;
 grep "RUN COMPLETED" $VALGRINDPXCORELOGS
 retVal=$?
