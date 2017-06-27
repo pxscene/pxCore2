@@ -910,12 +910,12 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
 #define KEY_KPCOMMA             121
 #define KEY_LEFTMETA            125
 #define KEY_RIGHTMETA           126
-#define KEY_YELLOW              148
-#define KEY_BLUE                149
+#define KEY_YELLOW              0x18e
+#define KEY_BLUE                0x18f
 #define KEY_PLAYPAUSE           164
 #define KEY_REWIND              168
-#define KEY_RED                 202
-#define KEY_GREEN               203
+#define KEY_RED                 0x190
+#define KEY_GREEN               0x191
 #define KEY_PLAY                207
 #define KEY_FASTFORWARD         208
 #define KEY_PRINT               210     /* AC Print */
