@@ -2,7 +2,6 @@
 #!/bin/sh
 cd $TRAVIS_BUILD_DIR
 currentdir="$(pwd)"
-
 cd src
 lcov -d obj/ --zerocounters 
 cd ../examples/pxScene2d/src
