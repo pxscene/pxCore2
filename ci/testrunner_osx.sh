@@ -1,4 +1,5 @@
 #This script runs testrunner app in osx and it is used for code coverage
+
 #!/bin/sh
 ulimit -c unlimited
 cd $TRAVIS_BUILD_DIR
@@ -17,7 +18,7 @@ export RT_LOG_LEVEL=info
 grep "Failures:" /var/tmp/pxscene.log
 retVal=$?
 count=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 600 ]; do
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 900 ]; do
 sleep 60;
 grep "Failures:" /var/tmp/pxscene.log
 retVal=$?

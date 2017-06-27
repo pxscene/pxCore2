@@ -2,8 +2,6 @@
 #!/bin/sh
 cd $TRAVIS_BUILD_DIR
 currentdir="$(pwd)"
-
-
 cd src
 lcov -d obj/ --zerocounters 
 cd ../examples/pxScene2d/src
@@ -17,7 +15,7 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 grep "Failures:" $TESTRUNLOGS
 retVal=$?
 count=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 600 ]; do
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 900 ]; do
 sleep 60;
 grep "Failures:" $TESTRUNLOGS
 retVal=$?
