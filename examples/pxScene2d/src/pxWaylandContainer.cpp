@@ -306,7 +306,8 @@ void pxWaylandContainer::isRemoteReady(bool ready)
 {
   if (NULL != mRemoteReady)
   {
-      mRemoteReady->send(ready?"resolve":"reject",this);
+      rtPromise* remoteReady = mRemoteReady.getPtr();
+      remoteReady->send(ready?"resolve":"reject",this);
   }
 }
 
