@@ -80,7 +80,7 @@ private:
   uint32_t mFillColor;
   bool mHasApi;
   rtValue mAPI;  
-  rtObjectRef mRemoteReady;
+  rtPromise* mRemoteReady;
 };
 
 typedef rtRef<pxWayland> pxWaylandRef;

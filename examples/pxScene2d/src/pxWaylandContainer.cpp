@@ -58,6 +58,7 @@ pxWaylandContainer::~pxWaylandContainer()
   {
      mWayland->setEvents(NULL);
   }
+  delete mRemoteReady;
   mRemoteReady = NULL;
   mWayland = NULL;
 }
@@ -304,12 +305,7 @@ rtError pxWaylandContainer::remoteReady(rtValue& promise) const
 
 void pxWaylandContainer::isRemoteReady(bool ready)
 {
-  if (NULL != mRemoteReady)
-  {
-      rtPromise* remoteReady = (rtPromise*) mRemoteReady.getPtr();
-      if (NULL != remoteReady)
-        remoteReady->send(ready?"resolve":"reject",this);
-  }
+  mRemoteReady->send(ready?"resolve":"reject",this);
 }
 
 void pxWaylandContainer::onInit()
