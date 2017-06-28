@@ -304,9 +304,12 @@ rtError pxWaylandContainer::remoteReady(rtValue& promise) const
 
 void pxWaylandContainer::isRemoteReady(bool ready)
 {
-  rtPromise* promise = (rtPromise*) mRemoteReady.getPtr();
-  if (NULL != promise)
-    promise->send(ready?"resolve":"reject",this);
+  if (NULL != mRemoteReady)
+  {
+      rtPromise* remoteReady = (rtPromise*) mRemoteReady.getPtr();
+      if (NULL != remoteReady)
+        remoteReady->send(ready?"resolve":"reject",this);
+  }
 }
 
 void pxWaylandContainer::onInit()
