@@ -1,9 +1,11 @@
 #!/bin/sh
 ulimit -c unlimited
+ls -lrt /etc/lighttpd/lighttpd.conf
 sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/* /var/www/.
 sudo /etc/init.d/lighttpd stop
-sudo rm -rf /etc/lighttpd/lighttpd.conf
-sudo ln -s $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/lighttpd.conf /etc/lighttpd/lighttpd.conf
+sudo sed -i "s/server.modules = (/server.modules = (\n\t\"mod_setenv\"\,/g" /etc/lighttpd/lighttpd.conf
+echo "setenv.add-response-header += (\"Cache-Control\" => \"public, max-age=1000\")"|sudo tee -a /etc/lighttpd/lighttpd.conf
+cat /etc/lighttpd/lighttpd.conf
 sudo /etc/init.d/lighttpd start
 cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
 touch $TRAVIS_BUILD_DIR/logs/test_logs;
