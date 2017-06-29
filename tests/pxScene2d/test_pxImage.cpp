@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"  // Brings in Google Mock.
 #define private public

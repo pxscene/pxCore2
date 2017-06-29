@@ -1,5 +1,7 @@
 #define ENABLE_RT_NODE
 
+#include <sstream>
+
 #define private public
 #define protected public
 #include <pxCore.h>
