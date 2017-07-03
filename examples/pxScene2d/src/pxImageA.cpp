@@ -59,29 +59,37 @@ void pxImageA::onInit()
 
 rtError pxImageA::url(rtString &s) const
 {
-  s = mURL;
+  if (getImageAResource() != NULL)
+  {
+    s = getImageAResource()->getUrl();
+  }
+  else
+  {
+    s = "";
+  }
   return RT_OK;
 }
 
 rtError pxImageA::setUrl(const char *s)
 {
-  mURL = s;
-  pxObject::createNewPromise();
+ // url = s;
+ // pxObject::createNewPromise();
 
-  mCurFrame = 0;
-  mCachedFrame = UINT32_MAX;
-  mFrameTime = -1;
-  mPlays = 0;
-  mImageWidth = 0;
-  mImageHeight = 0;
 
-  if (mURL)
-  {
+
+  //if (url)
+ // {
     rtImageAResource* resourceObj = getImageAResource();
     if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
     {
       if(mImageLoaded || ((rtPromise*)mReady.getPtr())->status())
       {
+        mCurFrame = 0;
+        mCachedFrame = UINT32_MAX;
+        mFrameTime = -1;
+        mPlays = 0;
+        mImageWidth = 0;
+        mImageHeight = 0;
         mImageLoaded = false;
         pxObject::createNewPromise();
       }
@@ -92,9 +100,9 @@ rtError pxImageA::setUrl(const char *s)
       mListenerAdded = true;
       getImageAResource()->addListener(this);
     }
-  }
-  else
-    mReady.send("resolve", this);
+ // }
+ // else
+ //   mReady.send("resolve", this);
 
   return RT_OK;
 }

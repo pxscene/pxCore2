@@ -72,7 +72,6 @@ protected:
   pxTextureRef mTexture;
 
   double mFrameTime;
-  rtString mURL;
   pxConstantsStretch::constants mStretchX;
   pxConstantsStretch::constants mStretchY;
 
