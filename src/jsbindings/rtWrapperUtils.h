@@ -41,9 +41,17 @@ template <class TypeName>
 inline v8::Local<TypeName> PersistentToLocal(v8::Isolate* isolate, const v8::Persistent<TypeName>& persistent) 
 {
   if (persistent.IsWeak()) 
+  {
     return WeakPersistentToLocal(isolate, persistent);
+  }
+  else if (persistent.IsNearDeath())
+  {
+    return v8::Local<TypeName>();
+  }
   else 
+  {
     return StrongPersistentToLocal(persistent);
+  }
 }
 
 uint32_t GetContextId(v8::Local<v8::Context>& ctx);
