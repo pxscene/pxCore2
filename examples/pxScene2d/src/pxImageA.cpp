@@ -72,37 +72,28 @@ rtError pxImageA::url(rtString &s) const
 
 rtError pxImageA::setUrl(const char *s)
 {
- // url = s;
- // pxObject::createNewPromise();
 
-
-
-  //if (url)
- // {
-    rtImageAResource* resourceObj = getImageAResource();
-    if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
+  rtImageAResource* resourceObj = getImageAResource();
+  if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
+  {
+    if(mImageLoaded || ((rtPromise*)mReady.getPtr())->status())
     {
-      if(mImageLoaded || ((rtPromise*)mReady.getPtr())->status())
-      {
-        mCurFrame = 0;
-        mCachedFrame = UINT32_MAX;
-        mFrameTime = -1;
-        mPlays = 0;
-        mImageWidth = 0;
-        mImageHeight = 0;
-        mImageLoaded = false;
-        pxObject::createNewPromise();
-      }
+      mCurFrame = 0;
+      mCachedFrame = UINT32_MAX;
+      mFrameTime = -1;
+      mPlays = 0;
+      mImageWidth = 0;
+      mImageHeight = 0;
+      mImageLoaded = false;
+      pxObject::createNewPromise();
     }
-    mResource = pxImageManager::getImageA(s);
+  }
+  mResource = pxImageManager::getImageA(s);
 
-    if(getImageAResource() != NULL && getImageAResource()->getUrl().length() > 0 && !mImageLoaded) {
-      mListenerAdded = true;
-      getImageAResource()->addListener(this);
-    }
- // }
- // else
- //   mReady.send("resolve", this);
+  if(getImageAResource() != NULL && getImageAResource()->getUrl().length() > 0 && !mImageLoaded) {
+    mListenerAdded = true;
+    getImageAResource()->addListener(this);
+  }
 
   return RT_OK;
 }
