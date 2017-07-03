@@ -250,6 +250,8 @@ rtError pxImageA::setResource(rtObjectRef o)
   else
   {
     rtLogError("Object passed as resource is not an imageAResource!\n");
+    pxObject::onTextureReady();
+    mReady.send("reject",this);
     return RT_ERROR;
   }
 
