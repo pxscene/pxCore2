@@ -81,7 +81,6 @@ checkError $? 0 "make command failed for pxscene target" "Compilation error" "ch
 fi
 else
 echo "***************************** Building pxscene app ***"
-make clean;
 make -j CODE_COVERAGE=1 1>>$BUILDLOGS
 checkError $? 0 "make command failed for pxscene target" "Compilation error" "check the errors displayed in this window"
 fi
