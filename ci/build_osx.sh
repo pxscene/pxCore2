@@ -85,3 +85,18 @@ make clean;
 make -j CODE_COVERAGE=1 1>>$BUILDLOGS
 checkError $? 0 "make command failed for pxscene target" "Compilation error" "check the errors displayed in this window"
 fi
+
+ls -lrt $TRAVIS_BUILD_DIR/examples/pxScene2d/src
+cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]
+then
+echo "***************************** Building unittests ***" >> $BUILDLOGS;
+make clean;
+make CODE_COVERAGE=1 >>$BUILDLOGS 2>&1;
+checkError $? 0 "make command failed for pxscene unittests target" "Compilation error" "check the $BUILDLOGS file"
+else
+echo "***************************** Building unittests ***";
+make clean;
+make CODE_COVERAGE=1 1>>$BUILDLOGS;
+checkError $? 0 "make command failed for pxscene unittests target" "Compilation error" "check the errors displayed in this window"
+fi
