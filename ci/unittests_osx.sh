@@ -11,7 +11,7 @@ sudo ./pxscene2dtests.sh>$TESTLOGS 2>&1 &
 grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
 count=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ]; do
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 300 ]; do
 sleep 60;
 grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
