@@ -1,5 +1,4 @@
 #!/bin/sh
-
 #make arrangements for ignoring pxwayland tests for osx
 if [ "$TRAVIS_OS_NAME" = "osx" ]
 then
