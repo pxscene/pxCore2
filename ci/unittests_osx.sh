@@ -32,10 +32,13 @@ fi
 done
 
 #check for corefile presence
-echo "core happened during pxleak checks - $cored"
+echo "core happened during unittests execution - $cored"
 if [ "$cored" -eq 1 ]
 then
 $TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'` $TESTLOGS
+retVal=$?
+if [ "$retVal" -eq 1 ]
+then
 echo "CI failure reason: unittests execution failed"
 echo "Cause: core dump"
 echo "Reproduction/How to fix: run unittests locally"
