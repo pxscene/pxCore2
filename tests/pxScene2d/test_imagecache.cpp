@@ -42,6 +42,7 @@ void* realloc(void *ptr, size_t size)
       return reallocp(ptr,size);
     }
   }
+  return NULL;
 }
 
 class commonTestFns
@@ -712,7 +713,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
   public:
     virtual void SetUp()
     {
-      sem_init(&testSem, 0, 1);
+      testSem = sem_open("/semaphore", O_CREAT, 0644, 1);
       contentsData  = NULL;
       expirationDate = 0;
       expectedStatusCode = 0;
@@ -735,7 +736,8 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       if (NULL != contentsData)
         free (contentsData);
       contentDataSize = 0;
-      sem_destroy(&testSem);
+      int ret = sem_close(testSem);
+      ret = sem_unlink("/semaphore");
       mDownloadImageFailed = true;
     }
 
@@ -747,7 +749,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedHttpCode = 404;
       expectedCachePresence = false;
       rtFileDownloader::instance()->downloadFile(request);
-      sem_wait(&testSem);
+      sem_wait(testSem);
     }
 
     void downloadFileCacheDataExpiredAvailableNoRevalidateTest()
@@ -760,7 +762,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedHttpCode = 200;
       expectedCachePresence = true;
       rtFileDownloader::instance()->downloadFile(request);
-      sem_wait(&testSem);
+      sem_wait(testSem);
     }
 
     void downloadFileCacheDataProperAvailableTest()
@@ -774,7 +776,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedHttpCode = 200;
       expectedCachePresence = true;
       rtFileDownloader::instance()->downloadFile(request);
-      sem_wait(&testSem);
+      sem_wait(testSem);
     }
 
     void downloadFileAddToCacheTest()
@@ -788,7 +790,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedHttpCode = 200;
       expectedCachePresence = false;
       rtFileDownloader::instance()->downloadFile(request);
-      sem_wait(&testSem);
+      sem_wait(testSem);
 
       rtHttpCacheData data("http://localhost/test.html");
       EXPECT_TRUE (RT_OK ==rtFileCache::instance()->httpCacheData("http://localhost/test.html",data));
@@ -811,7 +813,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       rtFileDownloadRequest* request = new rtFileDownloadRequest("http://localhost/testRevalidationUpdate", this);
       request->setCallbackFunction(NULL);
       rtFileDownloader::instance()->downloadFile(request);
-      sem_wait(&testSem);
+      sem_wait(testSem);
       sysret = system("rm -rf /var/www/testRevalidationUpdate");
    }
 
@@ -847,7 +849,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedHttpCode = 404;
       expectedCachePresence = false;
       rtFileDownloader::instance()->downloadFile(request);
-      sem_wait(&testSem);
+      sem_wait(testSem);
     }
 
     void startFileDownloadInBackgroundTest()
@@ -861,7 +863,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
         expectedStatusCode = 0;
         expectedHttpCode = 200;
         startFileDownloadInBackground(request);
-        sem_wait(&testSem);
+        sem_wait(testSem);
       }
     }
 
@@ -877,7 +879,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
         expectedStatusCode = 0;
         expectedHttpCode = 200;
         startFileDownloadInBackground(request);
-        sem_wait(&testSem);
+        sem_wait(testSem);
       }
     }
 
@@ -912,7 +914,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedCachePresence = false;
       expectedHttpCode = 0;
       EXPECT_TRUE (request->executeCallback(0) == true);
-      sem_wait(&testSem);
+      sem_wait(testSem);
     }
 
     void setCallbackFunctionNullTest()
@@ -932,7 +934,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
         request->setCallbackFunctionThreadSafe(NULL);
         rtFileDownloader::instance()->setDefaultCallbackFunction(rtFileDownloaderTest::defaultDownloadCallback);
         rtFileDownloader::instance()->downloadFile(request);
-        sem_wait(&testSem);
+        sem_wait(testSem);
         EXPECT_TRUE (defaultCallbackExecuted ==true);
         defaultCallbackExecuted = false;
         rtFileDownloader::instance()->setDefaultCallbackFunction(callbackFunction);
@@ -963,7 +965,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedCachePresence = false;
       expectedHttpCode = 0;
       EXPECT_TRUE (request->executeCallback(0) == true);
-      sem_wait(&testSem);
+      sem_wait(testSem);
     }
 
     void setDownloadHandleExpiresTimeTest()
@@ -985,7 +987,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       memset (data, 0, 1000);
       request->downloadedData(data, size);
       EXPECT_TRUE (size > 0);
-      delete data;
+      delete[] data;
     }
 
     void addToDownloadQueueTest()
@@ -999,7 +1001,8 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedStatusCode = 0;
       expectedHttpCode = 200;
       expectedCachePresence = true;
-      sem_wait(&testSem);
+      sleep(5);
+      sem_wait(testSem);
     }
 
     void startNextDownloadInBackgroundTest()
@@ -1020,7 +1023,8 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
         expectedStatusCode = 0;
         expectedHttpCode = 200;
         expectedCachePresence = false;
-        sem_wait(&testSem);
+        sleep(5);
+        sem_wait(testSem);
       }
     }
 
@@ -1055,7 +1059,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
         EXPECT_TRUE (callbackData->expectedHttpCode == fileDownloadRequest->httpStatusCode());
         EXPECT_TRUE (callbackData->expectedStatusCode ==  fileDownloadRequest->downloadStatusCode());
         EXPECT_TRUE (callbackData->expectedCachePresence == rtFileDownloader::instance()->checkAndDownloadFromCache(fileDownloadRequest,cachedData));
-        sem_post(&(callbackData->testSem));
+        sem_post(callbackData->testSem);
       }
     }
 
@@ -1066,7 +1070,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       {
         rtFileDownloaderTest* callbackData = (rtFileDownloaderTest*) fileDownloadRequest->callbackData();
         defaultCallbackExecuted = true;
-        sem_post(&(callbackData->testSem));
+        sem_post(callbackData->testSem);
       }
     }
 
@@ -1079,7 +1083,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     int contentDataSize;
     time_t expirationDate;
     void readFile();
-    sem_t testSem;
+    sem_t* testSem;
     bool mDownloadImageFailed;
 };
 

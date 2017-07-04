@@ -44,6 +44,7 @@ echo "Cause: core dump"
 echo "Reproduction/How to fix: run unittests locally"
 exit 1;
 fi
+fi
 
 echo "kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`"
 sudo kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`
