@@ -1,6 +1,5 @@
 
 #include <list>
-#include <sstream>
 
 #define private public
 #define protected public
@@ -17,6 +16,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <semaphore.h>
 
 #include "test_includes.h" // Needs to be included last
