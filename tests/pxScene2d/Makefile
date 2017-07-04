@@ -5,6 +5,14 @@ clean:
 	rm -rf $(OBJDIR)
 	rm -f pxscene2dtests
 
+ifeq ($(UNAME_S),Darwin)
+SRCS_WAYLAND=
+else
+SRCS_WAYLAND=\
+    test_pxWayland.cpp \
+    test_pxWaylandContainer.cpp
+endif
+
 SRCS_FULL=\
     pxscene2dtestsmain.cpp \
     test_example.cpp \
@@ -20,9 +28,8 @@ SRCS_FULL=\
     test_rtString.cpp \
     test_pxUtil.cpp \
     test_pxImage.cpp \
-    test_pxWayland.cpp \
-    test_pxWaylandContainer.cpp \
-    test_imagecache.cpp
+    test_imagecache.cpp \
+    $(SRCS_WAYLAND)
 
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PXCOREDIR=$(MAKEFILE_PATH)/../../
@@ -35,6 +42,8 @@ USE_EXTERNALS_GLUT=false
 endif
 PX_PLATFORM=PX_PLATFORM_GLUT
 endif
+
+
 PXHDRS=$(PXCOREDIR)/src
 EXTDIR=$(PXCOREDIR)examples/pxScene2d/external
 
