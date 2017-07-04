@@ -41,8 +41,19 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src;
 
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
-echo "***************************** Building pxscene app ***" >> $BUILDLOGS
+echo "***************************** Building libpxscene ****" >> $BUILDLOGS;
 make clean;
+make libs-mac CODE_COVERAGE=1 >>$BUILDLOGS 2>&1;
+checkError $? 0
+else
+echo "***************************** Building libpxscene ****";
+make clean;
+make libs-mac CODE_COVERAGE=1 1>>$BUILDLOGS;
+checkError $? 0
+fi
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]
+then
+echo "***************************** Building pxscene app ***" >> $BUILDLOGS
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
 then
 if [[ ! -z $PX_VERSION ]]
