@@ -79,7 +79,7 @@ then
     sudo mkdir -p /var
     sudo ln -s /usr/local/var/www /var/www
     sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/* /var/www/.
-    sudo sed -n -i "s/server.modules = (/server.modules = (\n\t\"mod_setenv\"\,\n/g" /usr/local/etc/lighttpd/modules.conf
+    sudo sed -i -n "s/#  \"mod_setenv\"/   \"mod_setenv\"/g" /usr/local/etc/lighttpd/modules.conf
     echo "setenv.add-response-header += (\"Cache-Control\" => \"public, max-age=1000\")"|sudo tee -a /usr/local/etc/lighttpd/modules.conf
     cat /usr/local/etc/lighttpd/modules.conf
     brew services start lighttpd
