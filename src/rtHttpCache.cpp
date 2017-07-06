@@ -368,6 +368,8 @@ bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downl
 
   if ((downloadRequest->httpStatusCode() == 404) || (downloadRequest->httpStatusCode() == 403))
   {
+    printf("status code is [%d] \n",downloadRequest->httpStatusCode());
+    fflush(stdout);
     delete downloadRequest;
     return false;
   }
