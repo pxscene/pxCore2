@@ -555,6 +555,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
    void dataPresentAfterHeadersRevalidationTest()
    {
+     printf("entered dataPresentAfterHeadersRevalidationTest ................... \n");
+     fflush(stdout);
      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\nCache-Control: public no-cache=Expires\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -570,6 +572,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      data.data(contents);
      EXPECT_TRUE ( strcmp(cacheData,(const char*)contents.data()) == 0);
      sysret = system("rm -rf /var/www/test.jpeg");
+     printf("exited dataPresentAfterHeadersRevalidationTest ................... \n");
+     fflush(stdout);
    }
 
    void dataPresentAfterFullRevalidationTest()
