@@ -1,6 +1,9 @@
 #This script runs testrunner app in osx and it is used for code coverage
 
 #!/bin/sh
+#testing
+exit 0;
+
 ulimit -c unlimited
 cd $TRAVIS_BUILD_DIR
 currentdir="$(pwd)" 
