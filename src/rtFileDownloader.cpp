@@ -572,7 +572,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     /* get it! */
     res = curl_easy_perform(curl_handle);
     downloadRequest->setDownloadStatusCode(res);
-
+    printf("curl error handle is [%d] \n",res);
+    fflush(stdout);
     /* check for errors */
     if (res != CURLE_OK) 
     {
@@ -604,6 +605,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
             free(chunk.headerBuffer);
             chunk.headerBuffer = NULL;
         }
+        printf("curl error string is [%d] \n",errorStringStream.str().c_str());
+        fflush(stdout);
         downloadRequest->setDownloadedData(NULL, 0);
         return false;
     }
