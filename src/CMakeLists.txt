@@ -40,7 +40,8 @@ if (APPLE)
     set(PXCORE_FILES mac/pxBufferNative.mm mac/pxOffscreenNative.mm mac/pxWindowNative.mm
             mac/pxEventLoopNative.mm mac/pxTimerNative.mm mac/pxTimerNative.mm
             mac/pxClipboardNative.mm mac/window.mm
-            unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp)
+            unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
+            rtFileCache.cpp rtHttpCache.cpp)
     set(PLATFORM_LINKER_FLAGS "-framework Cocoa -framework Foundation")
     include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC})
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
@@ -58,7 +59,8 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PXCORE_FILES gles/pxBufferNative.cpp gles/pxOffscreenNative.cpp gles/pxWindowNative.cpp
                 gles/pxEventLoopNative.cpp gles/pxTimerNative.cpp
                 gles/pxClipboardNative.cpp gles/pxEGLProviderRPi.cpp gles/LinuxInputEventDispatcher.cpp pxViewWindow.cpp
-                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp)
+                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
+                rtFileCache.cpp rtHttpCache.cpp)
         set(PLATFORM_LINKER_FLAGS)
         include_directories(AFTER /opt/vc/include /opt/vc/include/interface/vcos/pthreads
                 /opt/vc/include/interface/vmcs_host/linux /opt/vc/include)
@@ -81,7 +83,8 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         include_directories(AFTER ${PXCORE_STAGING_LIST})
         set(PXCORE_FILES gles/pxBufferNative.cpp gles/pxOffscreenNative.cpp
                 gles/pxEventLoopNative.cpp gles/pxTimerNative.cpp gles/pxClipboardNative.cpp
-                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp)
+                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
+                rtFileCache.cpp rtHttpCache.cpp)
         set(PLATFORM_LINKER_FLAGS)
     else ()
         message("Building pxcore for glut")
@@ -92,7 +95,8 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         add_definitions(-DPX_PLATFORM_GLUT -DRT_PLATFORM_LINUX -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN -DENABLE_LIBJPEG_TURBO -DPNG_APNG_SUPPORTED)
         set(PXCORE_FILES glut/pxBufferNative.cpp glut/pxOffscreenNative.cpp glut/pxWindowNative.cpp
                 glut/pxEventLoopNative.cpp glut/pxTimerNative.cpp glut/pxClipboardNative.cpp pxViewWindow.cpp
-                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp)
+                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
+                rtFileCache.cpp rtHttpCache.cpp)
         set(PLATFORM_LINKER_FLAGS)
         include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${GLUTINC})
     endif (HOSTNAME STREQUAL "raspberrypi")
@@ -141,7 +145,7 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
         rtPathUtils.cpp rtTest.cpp rtThreadPool.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
         rtZip.cpp pxInterpolators.cpp pxMatrix4T.cpp pxUtil.cpp
-        rtFileDownloader.cpp rtFileCache.cpp rtHttpCache.cpp unzip.c ioapi.c
+        rtFileDownloader.cpp unzip.c ioapi.c
         jsbindings/jsCallback.cpp jsbindings/rtFunctionWrapper.cpp jsbindings/rtObjectWrapper.cpp
         jsbindings/rtWrapperUtils.cpp)
 
