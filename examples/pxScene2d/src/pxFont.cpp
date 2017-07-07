@@ -26,8 +26,6 @@
 #include <math.h>
 #include <map>
 
-#include "../../../src/utf8.h"
-
 using namespace std;
 
 struct GlyphKey 
@@ -64,7 +62,7 @@ extern pxContext context;
 #if 1
 // TODO can we eliminate direct utf8.h usage
 extern "C" {
-#include "utf8.h"
+#include "../../../src/utf8.h"
 }
 #endif
 

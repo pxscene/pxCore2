@@ -201,9 +201,6 @@ protected:
 #endif
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
-#ifdef RUNINMAIN
-   script.garbageCollect();
-#endif
 ENTERSCENELOCK()
     mView = NULL;
 EXITSCENELOCK()
@@ -535,7 +532,7 @@ if (s && (strcmp(s,"1") == 0))
 #ifdef ENABLE_DEBUG_MODE
   free(g_origArgv);
 #endif
-  script.garbageCollect();
+  //script.garbageCollect();
   if (gDumpMemUsage)
   {
     rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
