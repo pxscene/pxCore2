@@ -85,6 +85,16 @@ then
     sudo sed -i -n "s/#  \"mod_setenv\"/   \"mod_setenv\"/g" /usr/local/etc/lighttpd/modules.conf
     echo "setenv.add-response-header += (\"Cache-Control\" => \"public, max-age=1000\")"|sudo tee -a /usr/local/etc/lighttpd/modules.conf
     find / -name lighttpd.conf|xargs ls -lrt
+    echo "lighttpd log dir ***************************"
+    ls -lrt /usr/local/var/log
+    echo "lighttpd dir ***************************"
+    ls -lrt /usr/local/var/log/lighttpd
+    echo "var dir ***************************"
+    ls -lrt /usr/local/var
+    echo "local dir ***************************"
+    ls -lrt /usr/local/
+    echo "usr dir ***************************"
+    ls -lrt /usr/
     echo "Displaying lighttpd file ***************************"
     cat /usr/local/etc/lighttpd/lighttpd.conf
     echo "Displaying modules.conf file ***************************"
