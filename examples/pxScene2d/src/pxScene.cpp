@@ -46,7 +46,8 @@ using namespace std;
 
 #ifdef WIN32
 #include <winsparkle.h>
-#include "../../../pxCore.vsbuild/pxScene2d/resource.h"
+//todo: is this resource file needed?  if so, uncomment
+//#include "../../../pxCore.vsbuild/pxScene2d/resource.h"
 #endif
 
 #ifndef RUNINMAIN
@@ -195,26 +196,27 @@ protected:
 #endif 
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
+#ifdef RUNINMAIN
+   script.garbageCollect();
+#endif
 ENTERSCENELOCK()
     mView = NULL;
 EXITSCENELOCK()
 #ifndef RUNINMAIN
-    script.setNeedsToEnd(true);
+   script.setNeedsToEnd(true);
 #endif
-
-#ifdef ENABLE_DEBUG_MODE
+  #ifdef ENABLE_DEBUG_MODE
     free(g_origArgv);
-#endif
+  #endif
     script.garbageCollect();
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
       rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
     }
-#ifdef ENABLE_CODE_COVERAGE
+    #ifdef ENABLE_CODE_COVERAGE
     __gcov_flush();
-#endif
-
+    #endif
   ENTERSCENELOCK()
       eventLoop.exit();
   EXITSCENELOCK()
@@ -497,6 +499,15 @@ if (s && (strcmp(s,"1") == 0))
 #endif
 
   eventLoop.run();
+#ifdef ENABLE_DEBUG_MODE
+  free(g_origArgv);
+#endif
+  script.garbageCollect();
+  if (gDumpMemUsage)
+  {
+    rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+    rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+  }
 
 
 #ifdef WIN32

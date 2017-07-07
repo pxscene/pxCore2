@@ -26,6 +26,8 @@
 #include <math.h>
 #include <map>
 
+#include "../../../src/utf8.h"
+
 using namespace std;
 
 struct GlyphKey 
