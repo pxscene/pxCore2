@@ -81,6 +81,7 @@ then
     sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/* /var/www/.
     sudo mv /usr/local/etc/lighttpd/modules.conf /usr/local/etc/lighttpd/modules.conf_old
     sudo ln -s $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/modules.conf_osx /usr/local/etc/lighttpd/modules.conf
+    sudo sed -i -n "s/server.port = 8080/server.port = 80/g" /usr/local/etc/lighttpd/lighttpd.conf
     #sudo sed -i -n "s/#  \"mod_setenv\"/   \"mod_setenv\"/g" /usr/local/etc/lighttpd/modules.conf
     #echo "setenv.add-response-header += (\"Cache-Control\" => \"public, max-age=1000\")"|sudo tee -a /usr/local/etc/lighttpd/modules.conf
     find / -name lighttpd.conf|xargs ls -lrt
@@ -89,9 +90,9 @@ then
     echo "Displaying modules.conf file ***************************"
     cat /usr/local/etc/lighttpd/modules.conf
     echo "Displaying modules.conf file completed ***************************"
-    brew services start lighttpd
-    brew services reload lighttpd
-    ps -aef|grep lighttpd
+    sudo brew services start lighttpd
+    sudo brew services reload lighttpd
+    sudo ps -aef|grep lighttpd
     sudo netstat -a
   fi
 fi
