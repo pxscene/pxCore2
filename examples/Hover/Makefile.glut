@@ -9,13 +9,23 @@ else
         OSCFLAGS= -lrt -lglut -lGL -lGLEW
 endif
 
-CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS)	
+CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS) -Werror	
 OUTDIR=../../build/glut
+
+ifndef USE_EXTERNALS_GLUT
+USE_EXTERNALS_GLUT=false
+endif
+
+ifeq ($(USE_EXTERNALS_GLUT), true)
+CFLAGS += -I../pxScene2d/external/freeglut/include -DUSE_EXTERNALS_GLUT
+LDGLUT = -L../pxScene2d/external/freeglut/lib -lglut
+endif
+
 
 all: $(OUTDIR)/Hover
 
 $(OUTDIR)/Hover: Hover.cpp 
-	g++ -o $(OUTDIR)/Hover -Wall Hover.cpp -lpxCore $(CFLAGS) -L$(OUTDIR)
+	g++ -o $(OUTDIR)/Hover -Wall Hover.cpp -lpxCore $(CFLAGS) -L$(OUTDIR) $(LDGLUT)
 
 
 

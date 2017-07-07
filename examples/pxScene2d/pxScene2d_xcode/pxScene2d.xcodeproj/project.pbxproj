@@ -34,12 +34,14 @@
 		4C1447F01E68BAD700610575 /* libpng16.16.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; };
 		4C1447F11E68BAE400610575 /* libpng16.16.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4C20BEE91E5DE5F1005ABBB7 /* pxContextGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D481E5218BB00BD8932 /* pxContextGL.cpp */; };
+		4C2F20D41EEF1C250099DAE6 /* browser in Resources */ = {isa = PBXBuildFile; fileRef = 4C2F20D31EEF1C250099DAE6 /* browser */; };
 		4C38CDB41E538CF7003E4A35 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDB31E538CF7003E4A35 /* OpenGL.framework */; };
 		4C38CDC01E538D19003E4A35 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDBF1E538D19003E4A35 /* Cocoa.framework */; };
 		4C5137B41E5F81BE0052A99C /* pxImageA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5137B21E5F81BE0052A99C /* pxImageA.cpp */; };
 		4C63A6831E7878AA00313D9C /* package.json in Resources */ = {isa = PBXBuildFile; fileRef = 4C63A6821E7878AA00313D9C /* package.json */; };
 		4C9F22AC1E6A24D200979F4E /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */; };
 		4CF6265D1E661D5000D70FB3 /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF626461E661CC600D70FB3 /* libpxCore.a */; };
+		783C7DB01EBB6A440079FBE5 /* pxAnimate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -209,6 +211,7 @@
 		4C20BEAB1E5B85CC005ABBB7 /* EngineRunner */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = EngineRunner; path = ../EngineRunner; sourceTree = "<group>"; };
 		4C20BEAD1E5B8638005ABBB7 /* pxscene.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = pxscene.sh; path = ../pxscene.sh; sourceTree = "<group>"; };
 		4C20BEB11E5CDE01005ABBB7 /* pxScene2d.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = pxScene2d.xcconfig; sourceTree = SOURCE_ROOT; };
+		4C2F20D31EEF1C250099DAE6 /* browser */ = {isa = PBXFileReference; lastKnownFileType = folder; name = browser; path = src/browser; sourceTree = "<group>"; };
 		4C38CDB31E538CF7003E4A35 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		4C38CDBF1E538D19003E4A35 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		4C5137B21E5F81BE0052A99C /* pxImageA.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImageA.cpp; path = src/pxImageA.cpp; sourceTree = "<group>"; };
@@ -216,6 +219,8 @@
 		4C63A6821E7878AA00313D9C /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = package.json; path = ../../src/package.json; sourceTree = "<group>"; };
 		4C9F22AA1E6A24D200979F4E /* westeros-compositor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "westeros-compositor.h"; path = "external/westeros-stub/westeros-compositor.h"; sourceTree = "<group>"; };
 		4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "westeros-stub.cpp"; path = "external/westeros-stub/westeros-stub.cpp"; sourceTree = "<group>"; };
+		783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxAnimate.cpp; path = src/pxAnimate.cpp; sourceTree = "<group>"; };
+		783C7DAF1EBB6A440079FBE5 /* pxAnimate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxAnimate.h; path = src/pxAnimate.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -244,6 +249,7 @@
 				4C0466191E574CEE00D59925 /* shell.js */,
 				4C04661A1E574CEE00D59925 /* init.js */,
 				4C04661B1E574CEE00D59925 /* browser.js */,
+				4C2F20D31EEF1C250099DAE6 /* browser */,
 				4C1217151E5746450088CF64 /* rcvrcore */,
 				4C1217131E57462E0088CF64 /* images */,
 			);
@@ -298,6 +304,8 @@
 			isa = PBXGroup;
 			children = (
 				4C04660D1E574CAE00D59925 /* Resources */,
+				783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */,
+				783C7DAF1EBB6A440079FBE5 /* pxAnimate.h */,
 				4C0C6D3F1E5218BB00BD8932 /* pxArchive.cpp */,
 				4C0C6D401E5218BB00BD8932 /* pxArchive.h */,
 				4C0C6D411E5218BB00BD8932 /* pxConstants.cpp */,
@@ -583,6 +591,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4C63A6831E7878AA00313D9C /* package.json in Resources */,
+				4C2F20D41EEF1C250099DAE6 /* browser in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -615,7 +624,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R images $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\nminifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n  # Minify JS to App Bundle\n  printf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n  ./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/rcvrcore\n\n  ./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/init.js\n  ./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/shell.js\n  ./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser.js\nelse\n\n  # Skip JS Minify - just copy\n  printf \"\\n ###  Skip JS Minify - just copy\\n\"\n\n  cp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  cp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\nfi\n\necho $PROJECT_DIR/../lib\n";
+			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\nminifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n  # Minify JS to App Bundle\n  printf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n  ./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/rcvrcore\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  ./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/init.js\n  ./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/shell.js\n  ./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser.js\n  ./jsMin.sh browser/editbox.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser/editbox.js\nelse\n\n  # Skip JS Minify - just copy\n  printf \"\\n ###  Skip JS Minify - just copy\\n\"\n\n  cp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  cp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\nfi\n\necho $PROJECT_DIR/../lib\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -631,6 +640,7 @@
 				4C20BEE91E5DE5F1005ABBB7 /* pxContextGL.cpp in Sources */,
 				4C0C6D701E5218BB00BD8932 /* pxArchive.cpp in Sources */,
 				4C0C6D811E5218BC00BD8932 /* pxScene2d.cpp in Sources */,
+				783C7DB01EBB6A440079FBE5 /* pxAnimate.cpp in Sources */,
 				4C0C6D841E5218BC00BD8932 /* pxTransform.cpp in Sources */,
 				4C0C6D821E5218BC00BD8932 /* pxText.cpp in Sources */,
 				4C0C6D831E5218BC00BD8932 /* pxTextBox.cpp in Sources */,

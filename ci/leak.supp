@@ -1,0 +1,52 @@
+{
+  glutLeaks
+  Memcheck:Leak
+  match-leak-kinds:all
+  ...
+  fun:fgOpenWindow
+  ...
+}
+{
+  shaderLeaksLinkShaderTravis
+  Memcheck:Leak
+  match-leak-kinds:all
+  ...
+  fun:*linkShaderProgram*
+  ...
+  fun:*pxMain*
+  ...
+}
+{
+  shaderLeaksCreateShaderTravis		
+  Memcheck:Leak		
+  match-leak-kinds:all		
+  ...		
+  fun:*createShaderProgram*		
+  ...		
+  fun:*pxMain*		
+  ...		
+}
+{
+  openglQryExtnsLeaks
+  Memcheck:Leak
+  match-leak-kinds:all
+  ...
+  fun:*glXQueryExtensionsString*
+  fun:*fgPlatformInitialize*
+  ...
+}
+{
+  fileCacheInitLeaks
+  Memcheck:Leak
+  match-leak-kinds:definite
+  fun:_Znwm
+  fun:_ZN11rtFileCache8instanceEv
+  fun:_ZN16rtFileDownloader25checkAndDownloadFromCacheEP21rtFileDownloadRequestR15rtHttpCacheData
+  fun:_ZN16rtFileDownloader12downloadFileEP21rtFileDownloadRequest
+  fun:_Z29startFileDownloadInBackgroundPv
+  fun:_ZN12rtThreadTask7executeEv
+  fun:_ZN18rtThreadPoolNative11startThreadEv
+  fun:_Z12launchThreadPv
+  fun:start_thread
+  fun:clone
+}

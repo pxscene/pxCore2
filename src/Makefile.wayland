@@ -1,6 +1,6 @@
 
 WAYLAND=`pkg-config wayland-client --cflags --libs`
-CFLAGS= -DPX_PLATFORM_WAYLAND -Wall -O3 -fvisibility=hidden -g
+CFLAGS= -DPX_PLATFORM_WAYLAND -Wall -O3 -fvisibility=hidden -g -Werror
 OUTDIR=../build/wayland
 
 all: $(OUTDIR)/libpxCore.a 

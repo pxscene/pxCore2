@@ -52,7 +52,7 @@ class jsFunctionWrapper : public rtIFunction
 {
 public:
   jsFunctionWrapper(v8::Local<v8::Context>& ctx, const v8::Handle<v8::Value>& val);
-  ~jsFunctionWrapper();
+  virtual ~jsFunctionWrapper();
 
   virtual unsigned long AddRef();
   virtual unsigned long Release();

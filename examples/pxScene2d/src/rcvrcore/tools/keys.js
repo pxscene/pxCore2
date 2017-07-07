@@ -138,7 +138,7 @@ keys.is_CTRL_ALT = function(f)
 
 keys.is_SHIFT = function(f)
 {
-    return (f==8);
+    return (f==8 || f==136);
 };
 
 keys.is_CTRL_SHIFT = function(f)

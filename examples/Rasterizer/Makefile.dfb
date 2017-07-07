@@ -1,7 +1,7 @@
 # pxCore FrameBuffer Library
 # Rasterizer Example
 
-CFLAGS= -I../../src $(PXCORE_INCLUDES) -DPX_PLATFORM_DFB_NON_X11 -DENABLE_DFB -Wno-write-strings 
+CFLAGS= -I../../src $(PXCORE_INCLUDES) -DPX_PLATFORM_DFB_NON_X11 -DENABLE_DFB -Wno-write-strings  -Werror
 LIBDIR=../../build/dfb
 OUTDIR=.
 

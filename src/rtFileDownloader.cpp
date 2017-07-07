@@ -50,13 +50,27 @@ struct MemoryStruct
 {
     MemoryStruct()
         : headerSize(0)
-        , headerBuffer()
+        , headerBuffer(NULL)
         , contentsSize(0)
-        , contentsBuffer()
+        , contentsBuffer(NULL)
     {
         headerBuffer = (char*)malloc(1);
         contentsBuffer = (char*)malloc(1);
-    } 
+    }
+
+    ~MemoryStruct()
+    {
+      if (headerBuffer != NULL)
+      {
+        free(headerBuffer);
+        headerBuffer = NULL;
+      }
+      if (contentsBuffer != NULL)
+      {
+        free(contentsBuffer);
+        contentsBuffer = NULL;
+      }
+    }
 
   size_t headerSize;
   char* headerBuffer;
@@ -318,7 +332,7 @@ bool rtFileDownloadRequest::cacheEnabled()
 
 
 rtFileDownloader::rtFileDownloader() 
-    : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false)
+    : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false), mCaCertFile(CA_CERTIFICATE)
 {
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
   rtLogWarn("enabling curl handle reuse");
@@ -328,6 +342,11 @@ rtFileDownloader::rtFileDownloader()
   }
   mReuseDownloadHandles = true;
 #endif
+  char const* s = getenv("CA_CERTIFICATE_FILE");
+  if (s)
+  {
+    mCaCertFile = s;
+  }
 }
 
 rtFileDownloader::~rtFileDownloader()
@@ -361,6 +380,7 @@ rtFileDownloader::~rtFileDownloader()
     }
   }
 #endif
+  mCaCertFile = "";
 }
 
 rtFileDownloader* rtFileDownloader::instance()
@@ -523,7 +543,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
     //CA certificates
     // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
-   // curl_easy_setopt(curl_handle,CURLOPT_CAINFO,CA_CERTIFICATE);
+    //curl_easy_setopt(curl_handle,CURLOPT_CAINFO,mCaCertFile.cString());
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, true);
 
@@ -536,6 +556,10 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     {
         curl_easy_setopt(curl_handle, CURLOPT_PROXY, proxyServer.cString());
         curl_easy_setopt(curl_handle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+    }
+    else
+    {
+      curl_easy_setopt(curl_handle, CURLOPT_PROXY, "");
     }
 
     if (true == headerOnly)
@@ -600,6 +624,13 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     {
       downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
     }
+    else if (chunk.contentsBuffer != NULL)
+    {
+        free(chunk.contentsBuffer);
+        chunk.contentsBuffer = NULL;
+    }
+    chunk.headerBuffer = NULL;
+    chunk.contentsBuffer = NULL;
     return true;
 }
 

@@ -20,10 +20,20 @@
 
 #include <rtHttpCache.h>
 #include <string.h>
-#include <curl/curl.h>
 #include <sstream>
 #include "rtLog.h"
 #include <rtFileDownloader.h>
+
+#if !defined(WIN32) && !defined(ENABLE_DFB)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wall"
+#endif
+
+#include <curl/curl.h>
+
+#if !defined(WIN32) && !defined(ENABLE_DFB)
+#pragma GCC diagnostic pop
+#endif
 
 using namespace std;
 
@@ -308,7 +318,7 @@ void rtHttpCacheData::setExpirationDate()
       mExpirationDate = time(NULL) + maxAgeInt;
     }
   }
-  if (false == foundMaxAge) 
+  if (false == foundMaxAge)
   {
     if (mHeaderMap.end() != mHeaderMap.find("Expires"))
     {
@@ -390,6 +400,12 @@ bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downl
   {
      delete downloadRequest;
      return false;
+  }
+
+  if (downloadRequest->httpStatusCode() == 404)
+  {
+    delete downloadRequest;
+    return false;
   }
 
   if (downloadRequest->downloadStatusCode() == 0 &&

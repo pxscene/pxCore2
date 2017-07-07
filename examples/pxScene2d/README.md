@@ -7,13 +7,20 @@
 1. Install required packages:
     
     ~~~~
-    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev     g++ libssl-dev nasm autoconf libtool
+    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev     g++ libssl-dev nasm autoconf libtool cmake x11proto-input-dev
+    
+    Execute below command:
+    
+    cd /usr/include/X11/extensions && sudo ln -s XI.h XInput.h
+    
+    To use glut in externals, set below environment variable:
+    export USE_EXTERNALS_GLUT=true
     ~~~~
 
 1. Get source code:
 
     ~~~~
-    git clone https://github.com/johnrobinsn/pxCore.git
+    git clone https://github.com/pxscene/pxCore.git
     ~~~~
   
 1. Checkout current development branch
@@ -71,7 +78,7 @@ file:///home/username/directory/filename.js
 1. Get source code
 
     ~~~~
-    git clone https://github.com/johnrobinsn/pxCore.git
+    git clone https://github.com/pxscene/pxCore.git
     ~~~~
   
 2. Checkout current development branch
@@ -153,7 +160,7 @@ file:///home/username/directory/filename.js
 1. Get source code
   
    ~~~~
-   git clone https://github.com/johnrobinsn/pxCore.git
+   git clone https://github.com/pxscene/pxCore.git
    ~~~~
   
 2. Checkout current development branch
@@ -174,7 +181,7 @@ file:///home/username/directory/filename.js
 1. Get source code
   
    ~~~~
-   git clone https://github.com/johnrobinsn/pxCore.git
+   git clone https://github.com/pxscene/pxCore.git
    ~~~~
   
 2. Checkout current development branch

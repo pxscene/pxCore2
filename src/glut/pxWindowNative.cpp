@@ -283,7 +283,10 @@ void pxWindowNative::onGlutClose()
 {
   pxWindowNative* w = getWindowFromGlutID(glutGetWindow());
   if (w)
+  {
+    unregisterWindow(w);
     w->onCloseRequest();
+  }
 }
 
 void pxWindowNative::onGlutTimer(int v)
@@ -297,7 +300,6 @@ void pxWindowNative::onGlutTimer(int v)
     glutTimerFunc(/*16*/ frame_ms, onGlutTimer, 0);
   }
 #else
-  
   vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
   vector<pxWindowNative*>::iterator i;
   for (i = windowVector.begin(); i < windowVector.end(); i++)
@@ -560,7 +562,6 @@ bool exitFlag = false;
 
 pxWindowNative::~pxWindowNative()
 {
-  
 }
 
 void pxWindowNative::createGlutWindow(int left, int top, int width, int height)
@@ -610,7 +611,9 @@ pxError pxWindow::init(int left, int top, int width, int height)
     glutMotionFunc(onGlutMouseMotion);
     glutPassiveMotionFunc(onGlutMousePassiveMotion);
     glutKeyboardFunc(onGlutKeyboard);
-
+    #ifdef USE_EXTERNALS_GLUT
+    glutRemapKeys();
+    #endif
 //#ifdef PX_USE_GLUT_ON_CLOSE
     glutWMCloseFunc(onGlutClose);
 //#endif
@@ -649,6 +652,7 @@ void pxWindow::invalidateRect(pxRect *r)
 {
   invalidateRectInternal(r);
 }
+
 
 // This can be improved by collecting the dirty regions and painting
 // when the event loop goes idle

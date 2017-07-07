@@ -37,6 +37,7 @@ public:
   pxWaylandContainer(pxScene2d* scene);
   ~pxWaylandContainer();
   rtError setView(pxWayland* v);
+  virtual void dispose();
 
   virtual void onInit();
 
@@ -79,7 +80,7 @@ private:
   uint32_t mFillColor;
   bool mHasApi;
   rtValue mAPI;  
-  rtPromise* mRemoteReady;
+  rtObjectRef mRemoteReady;
 };
 
 typedef rtRef<pxWayland> pxWaylandRef;

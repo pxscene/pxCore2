@@ -9,13 +9,23 @@ else
         OSCFLAGS= -lrt -lglut -lGL -lGLEW
 endif
 
-CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS)	
+CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS) -Werror
 OUTDIR=../../build/glut
+
+ifndef USE_EXTERNALS_GLUT
+USE_EXTERNALS_GLUT=true
+endif
+
+ifeq ($(USE_EXTERNALS_GLUT), true)
+CFLAGS += -I../pxScene2d/external/freeglut/include -DUSE_EXTERNALS_GLUT
+LDGLUT = -L../pxScene2d/external/freeglut/lib -lglut
+endif
+
 
 all: $(OUTDIR)/Multi
 
 $(OUTDIR)/Multi: Multi.cpp 
-	g++ -o $(OUTDIR)/Multi -Wall Multi.cpp -lpxCore $(CFLAGS) -L$(OUTDIR)
+	g++ -o $(OUTDIR)/Multi -Wall Multi.cpp -lpxCore $(CFLAGS) -L$(OUTDIR) $(LDGLUT)
 
 
 

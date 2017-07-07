@@ -18,6 +18,7 @@
 
 // pxWaylandContainer.cpp
 
+#include <stdlib.h>
 #include "rtString.h"
 #include "rtRef.h"
 #include "pxCore.h"
@@ -42,7 +43,7 @@ extern map<string, string> gWaylandAppsMap;
 // #define UNUSED_PARAM(x) ((void)x)
 
 pxWaylandContainer::pxWaylandContainer(pxScene2d* scene)
-   : pxViewContainer(scene), mWayland(NULL)
+   : pxViewContainer(scene), mWayland(NULL),mClientPID(0),mFillColor(0),mHasApi(false)
 {
   addListener("onClientStarted", get<rtFunctionRef>("onClientStarted"));
   addListener("onClientStopped", get<rtFunctionRef>("onClientStopped"));
@@ -53,9 +54,18 @@ pxWaylandContainer::pxWaylandContainer(pxScene2d* scene)
 
 pxWaylandContainer::~pxWaylandContainer()
 {
-  mWayland->setEvents(NULL);
+  if ( mWayland )
+  {
+     mWayland->setEvents(NULL);
+  }
   mRemoteReady = NULL;
   mWayland = NULL;
+}
+
+void pxWaylandContainer::dispose()
+{
+   setView(NULL);
+   pxObject::dispose();
 }
 
 void pxWaylandContainer::invalidate( pxRect* r )
@@ -153,19 +163,63 @@ rtError pxWaylandContainer::setDisplayName(const char* s)
 
 rtError pxWaylandContainer::setCmd(const char* s)
 {
-  mCmd = s;
-  std::map<string, string>::iterator it = gWaylandAppsMap.find(s);
+  int regcmdlen;
+  const char *regcmd;
+  const char *p= strpbrk( s, " ");
+  std::map<string, string>::iterator it= gWaylandAppsMap.end();
   rtString binary;
-  if (it != gWaylandAppsMap.end())
+  mCmd = s;
+  if ( !p )
   {
-    binary = it->second.c_str();
+    // Requested cmd has no args - use it as registry key
+    it  = gWaylandAppsMap.find(s);
+    if (it != gWaylandAppsMap.end())
+    {
+      regcmd= it->second.c_str();
+      regcmdlen= strlen(regcmd);
+      if ( regcmd[regcmdlen-1] == '%' )
+      {
+         // If matched registry item is marked as allowing args
+         // remove the '%' suffix.
+         regcmdlen -= 1;
+      }
+      if ( regcmdlen > 0 )
+      {
+         binary = rtString(regcmd, regcmdlen);
+      }
+    }
   }
   else
+  {
+    // Requested cmd has args - use the cmd without args as a registry key
+    const char *cmd= strndup( s, (p-s) );
+    if ( cmd )
+    {
+       it  = gWaylandAppsMap.find(cmd);
+       if (it != gWaylandAppsMap.end())
+       {
+          // If the registry entry permits arguments (has a '%' suffix) then form
+          // the actual command to use from the registry entry and
+          // the supplied arguments.
+          const char *args= p;
+          regcmd= it->second.c_str();
+          regcmdlen= strlen(regcmd);
+          if ( (strlen( args ) > 0) &&
+               (regcmdlen > 1) &&
+               (regcmd[regcmdlen-1] == '%'))
+          {
+             binary = rtString(regcmd, regcmdlen-1);
+             binary.append( args );
+          }
+       }
+       free( (void*)cmd );
+    }
+  }
+  if (it == gWaylandAppsMap.end())
   {
     rtLogError("Unrecognised wayland app \"%s\". please verify the app name or add entry in waylandregistry.conf \n",s);
     return RT_ERROR;
   }
-
   if ( mWayland )
   {
      mWayland->setCmd(binary);
@@ -252,7 +306,9 @@ void pxWaylandContainer::isRemoteReady(bool ready)
 {
   if (NULL != mRemoteReady)
   {
-      mRemoteReady->send(ready?"resolve":"reject",this);
+      rtPromise* remoteReady = (rtPromise*) mRemoteReady.getPtr();
+      if (NULL != remoteReady)
+        remoteReady->send(ready?"resolve":"reject",this);
   }
 }
 
@@ -263,6 +319,12 @@ void pxWaylandContainer::onInit()
     mWayland->setPos( mx, my );
     mWayland->useDispatchThread( true );
     mWayland->onInit();
+
+    rtString name;
+    if ( RT_OK == mWayland->displayName( name ) )
+    {
+       mDisplayName = name;
+    }
   }
 }
 
