@@ -53,27 +53,13 @@ struct MemoryStruct
 {
     MemoryStruct()
         : headerSize(0)
-        , headerBuffer(NULL)
+        , headerBuffer()
         , contentsSize(0)
-        , contentsBuffer(NULL)
+        , contentsBuffer()
     {
         headerBuffer = (char*)malloc(1);
         contentsBuffer = (char*)malloc(1);
-    }
-
-    ~MemoryStruct()
-    {
-      if (headerBuffer != NULL)
-      {
-        free(headerBuffer);
-        headerBuffer = NULL;
-      }
-      if (contentsBuffer != NULL)
-      {
-        free(contentsBuffer);
-        contentsBuffer = NULL;
-      }
-    }
+    } 
 
   size_t headerSize;
   char* headerBuffer;
@@ -572,8 +558,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     /* get it! */
     res = curl_easy_perform(curl_handle);
     downloadRequest->setDownloadStatusCode(res);
-    printf("curl error handle is [%d] \n",res);
-    fflush(stdout);
+
     /* check for errors */
     if (res != CURLE_OK) 
     {
@@ -605,8 +590,6 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
             free(chunk.headerBuffer);
             chunk.headerBuffer = NULL;
         }
-        printf("curl error string is [%d] \n",errorStringStream.str().c_str());
-        fflush(stdout);
         downloadRequest->setDownloadedData(NULL, 0);
         return false;
     }
@@ -630,13 +613,6 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     {
       downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
     }
-    else if (chunk.contentsBuffer != NULL)
-    {
-        free(chunk.contentsBuffer);
-        chunk.contentsBuffer = NULL;
-    }
-    chunk.headerBuffer = NULL;
-    chunk.contentsBuffer = NULL;
     return true;
 }
 

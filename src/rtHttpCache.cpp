@@ -190,8 +190,6 @@ rtError rtHttpCacheData::data(rtData& data)
 {
   if (NULL == fp)
   {
-    printf("Error from fp NULL \n");
-    fflush(stdout);
     return RT_ERROR;
   }
   populateExpirationDateFromCache();
@@ -204,14 +202,10 @@ rtError rtHttpCacheData::data(rtData& data)
 
   if (RT_OK != res)
   {
-    printf("Error from revalidation needed \n");
-    fflush(stdout);
     return res;
   }
   if (true == revalidate)
   {
-    printf("Error from revalidate true \n");
-    fflush(stdout);
     return performRevalidation(data);
   }
 
@@ -219,8 +213,6 @@ rtError rtHttpCacheData::data(rtData& data)
   {
     if (RT_OK != performHeaderRevalidation())
     {
-      printf("Error from revalidate headers \n");
-      fflush(stdout);
       return RT_ERROR;
     }
   }
@@ -238,8 +230,6 @@ rtError rtHttpCacheData::data(rtData& data)
 
   if (false == readFileData())
   {
-    printf("Error from read file data \n");
-    fflush(stdout);
     return RT_ERROR;
   }
   data.init(mData.data(),mData.length());
@@ -385,8 +375,6 @@ bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downl
 
   if ((downloadRequest->httpStatusCode() == 404) || (downloadRequest->httpStatusCode() == 403))
   {
-    printf("status code is [%d] \n",downloadRequest->httpStatusCode());
-    fflush(stdout);
     delete downloadRequest;
     return false;
   }
@@ -431,8 +419,6 @@ bool rtHttpCacheData::readFileData()
       if (NULL != contentsData)
         free(contentsData);
       contentsData = NULL;
-      printf("readfile data errored due to lack of memory \n");
-      fflush(stdout);
       return false;
     }
     contentsData = tmp;
@@ -477,8 +463,6 @@ rtError rtHttpCacheData::performRevalidation(rtData& data)
 
   if (!handleDownloadRequest(headers))
   {
-    printf("Error from rtHttpCacheData::performRevalidation \n");
-    fflush(stdout);
     return RT_ERROR;
   }
 
@@ -492,8 +476,6 @@ rtError rtHttpCacheData::performRevalidation(rtData& data)
   }
   else
   {
-    printf("Error from rtHttpCacheData::performRevalidation no update \n");
-    fflush(stdout);
     return RT_ERROR;
   }
 }
@@ -506,8 +488,6 @@ rtError rtHttpCacheData::performHeaderRevalidation()
 
   if (!handleDownloadRequest(headers,false))
   {
-    printf("Error from rtHttpCacheData::performheaderRevalidation handle download request \n");
-    fflush(stdout);
     return RT_ERROR;
   }
 

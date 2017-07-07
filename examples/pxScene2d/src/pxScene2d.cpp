@@ -385,11 +385,6 @@ pxObject::~pxObject()
     // TODO... why is this bad
 //    sendReturns<rtString>("description",d);
     //rtLogDebug("**************** pxObject destroyed: %s\n",getMap()->className);
-    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
-    {
-      (*it)->mParent = NULL;  // setParent mutates the mChildren collection
-    }
-    mChildren.clear();
     pxObjectCount--;
     rtValue nullValue;
     mReady.send("reject",nullValue);
@@ -1526,7 +1521,7 @@ int gTag = 0;
 
 pxScene2d::pxScene2d(bool top)
   : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false), 
-    mInnerObjs(), mDirty(true), mTestView(NULL), mDisposed(false)
+    mSceneContainers(), mDirty(true), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1577,15 +1572,15 @@ rtError pxScene2d::dispose()
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
 
-    for (unsigned int i=0; i<mInnerObjs.size(); i++)
+    for (unsigned int i=0; i<mSceneContainers.size(); i++)
     {
-      pxObject* temp = (pxObject *) (mInnerObjs[i].getPtr());
+      pxSceneContainer* temp = mSceneContainers[i];
       if ((NULL != temp) && (NULL == temp->parent()))
       {
         temp->dispose();
       }
     }
-    mInnerObjs.clear();
+    mSceneContainers.clear();
 
     if (mRoot)
       mRoot->dispose();
@@ -1771,7 +1766,7 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
   o = new pxSceneContainer(this);
   o.set(p);
   o.send("init");
-  mInnerObjs.push_back((pxObject*)o.getPtr());
+  mSceneContainers.push_back((pxSceneContainer*)o.getPtr());
   return RT_OK;
 }
 
@@ -2760,20 +2755,20 @@ void pxScene2d::invalidateRect(pxRect* r)
   }
 }
 
-void pxScene2d::innerObjDisposed(rtObjectRef ref)
+void pxScene2d::sceneContainerDisposed(pxSceneContainerRef ref)
 {
-  // this is to make sure, we are not clearing the rtobject references, while it is under process from scene dispose
+  // this is to make sure, we are not clearing the scene containers vector, while it is under process from scene dispose
   if (!mDisposed)
   {
     unsigned int pos = 0;
-    for (; pos<mInnerObjs.size(); pos++)
+    for (; pos<mSceneContainers.size(); pos++)
     {
-      if (mInnerObjs[pos] == ref)
+      if (mSceneContainers[pos] == ref)
         break;
     }
-    if (pos != mInnerObjs.size())
+    if (pos != mSceneContainers.size())
     {
-      mInnerObjs.erase(mInnerObjs.begin()+pos);
+      mSceneContainers.erase(mSceneContainers.begin()+pos);
     }
   }
 }
@@ -2859,7 +2854,7 @@ void pxSceneContainer::dispose()
     rtLogInfo(__FUNCTION__);
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
-    mScene->innerObjDisposed(this);
+    mScene->sceneContainerDisposed(this);
     setScriptView(NULL);
     pxObject::dispose();
     Release();

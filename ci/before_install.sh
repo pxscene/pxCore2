@@ -79,22 +79,9 @@ then
     sudo mkdir -p /var
     sudo ln -s /usr/local/var/www /var/www
     sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/* /var/www/.
-    #sudo mv /usr/local/etc/lighttpd/modules.conf /usr/local/etc/lighttpd/modules.conf_old
-    #sudo ln -s $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/modules.conf_osx /usr/local/etc/lighttpd/modules.conf
     sudo sed -i -n "s/server.port = 8080/server.port = 80/g" /usr/local/etc/lighttpd/lighttpd.conf
     sudo sed -i -n "s/#  \"mod_setenv\"/   \"mod_setenv\"/g" /usr/local/etc/lighttpd/modules.conf
     echo "setenv.add-response-header += (\"Cache-Control\" => \"public, max-age=1000\")"|sudo tee -a /usr/local/etc/lighttpd/modules.conf
-    find / -name lighttpd.conf|xargs ls -lrt
-    echo "lighttpd log dir ***************************"
-    ls -lrt /usr/local/var/log
-    echo "lighttpd dir ***************************"
-    ls -lrt /usr/local/var/log/lighttpd
-    echo "var dir ***************************"
-    ls -lrt /usr/local/var
-    echo "local dir ***************************"
-    ls -lrt /usr/local/
-    echo "usr dir ***************************"
-    ls -lrt /usr/
     echo "Displaying lighttpd file ***************************"
     cat /usr/local/etc/lighttpd/lighttpd.conf
     echo "Displaying modules.conf file ***************************"
@@ -103,8 +90,6 @@ then
     sudo chmod -R 777 /usr/local
     ls -lrt /usr/local/var/
     sudo lighttpd -f /usr/local/etc/lighttpd/lighttpd.conf &
-    #brew services start lighttpd
-    #brew services reload lighttpd
     ps -aef|grep lighttpd
     sudo netstat -a
   fi

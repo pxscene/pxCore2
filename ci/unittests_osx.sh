@@ -46,6 +46,7 @@ exit 1;
 fi
 fi
 
+ps -ef | grep -i pxscene2dtests
 echo "kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`"
 sudo kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`
 sleep 5s;

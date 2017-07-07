@@ -1451,7 +1451,7 @@ public:
     return e;
   }
 
-  void innerObjDisposed(rtObjectRef ref);
+  void sceneContainerDisposed(pxSceneContainerRef ref);
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
@@ -1499,7 +1499,7 @@ private:
   int32_t mPointerHotSpotY;
   #endif
   bool mPointerHidden;
-  std::vector<rtObjectRef> mInnerObjs;
+  std::vector<pxSceneContainerRef> mSceneContainers;
 public:
   void hidePointer( bool hide )
   {
