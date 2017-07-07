@@ -90,8 +90,9 @@ then
     echo "Displaying modules.conf file ***************************"
     cat /usr/local/etc/lighttpd/modules.conf
     echo "Displaying modules.conf file completed ***************************"
-    brew services start lighttpd
-    brew services reload lighttpd
+    sudo lighttpd -f /usr/local/etc/lighttpd/lighttpd.conf &
+    #brew services start lighttpd
+    #brew services reload lighttpd
     ps -aef|grep lighttpd
     sudo netstat -a
   fi
