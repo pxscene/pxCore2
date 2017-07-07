@@ -40,9 +40,10 @@ int CALLBACK WinMain(
 #endif
   int       nCmdShow)
 {
-	extern int __argc;          /* count of cmd line args */
-	extern char ** __argv;      /* pointer to table of cmd line args */
-	pxMain(__argc,__argv);
+	//extern int __argc;          /* count of cmd line args */
+	//extern char ** __argv;      /* pointer to table of cmd line args */
+	//pxMain(__argc,__argv);
+	pxMain(0, NULL);
 	return 0;
 }
 

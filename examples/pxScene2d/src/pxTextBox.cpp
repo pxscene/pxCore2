@@ -38,7 +38,7 @@ static const char    isSpaceChar_chars[] = " \t";
 #if 1
 // TODO can we eliminate direct utf8.h usage
 extern "C" {
-#include "utf8.h"
+#include "../../../src/utf8.h"
 }
 #endif
 

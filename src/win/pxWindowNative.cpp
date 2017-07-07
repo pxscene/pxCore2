@@ -63,13 +63,15 @@ pxError pxWindow::init(int left, int top, int width, int height)
 #endif
 }
 
+#include <string>
+
 pxError pxWindowNative::initNative(HWND parent, int left, int top, int width, int height, DWORD style, DWORD styleEx)
 {
     HINSTANCE hInstance = ::GetModuleHandle(NULL);
 
-    TCHAR* className = _T("pxWindow");
+    std::string className = "pxWindow";
     WNDCLASS wc;
-    if (!::GetClassInfo(hInstance, className, &wc))
+    if (!::GetClassInfo(hInstance, className.c_str(), &wc))
     {
 
 	wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -81,16 +83,16 @@ pxError pxWindowNative::initNative(HWND parent, int left, int top, int width, in
 	wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground = (HBRUSH) GetStockObject(WHITE_BRUSH);
 	wc.lpszMenuName  = 0;
-	wc.lpszClassName = className;
+	wc.lpszClassName = className.c_str();
 
 	RegisterClass(&wc);
     }
 
 #ifndef MOBILE
-    mWindow = ::CreateWindowEx(styleEx, className, _T(""), style, left, top, width, height, parent, NULL, 
+    mWindow = ::CreateWindowEx(styleEx, "pxWindow", "", style, left, top, width, height, parent, NULL,
         hInstance, (pxWindowNative*)this);
 #else
-    mWindow = CreateWindow(className, L"", style,
+    mWindow = CreateWindow(className.c_str(), L"", style,
         CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInstance, (pxWindowNative*)this);
 
     if (mWindow)
