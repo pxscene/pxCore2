@@ -532,13 +532,6 @@ if (s && (strcmp(s,"1") == 0))
 #ifdef ENABLE_DEBUG_MODE
   free(g_origArgv);
 #endif
-  //script.garbageCollect();
-  if (gDumpMemUsage)
-  {
-    rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
-    rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
-  }
-
 
 #ifdef WIN32
   win_sparkle_cleanup();
