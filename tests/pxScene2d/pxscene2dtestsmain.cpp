@@ -1,6 +1,8 @@
 
 #include "pxContext.h"
 #include <rtNode.h>
+#include <signal.h>
+#include <unistd.h>
 
 #include "test_includes.h" // Needs to be included last
 
@@ -16,8 +18,30 @@ char *nodeInput = NULL;
 extern rtNode script;
 #endif
 
+void handleSegv(int)
+{
+  FILE* fp = fopen("/tmp/pxscenecrash","w");
+  fclose(fp);
+  rtLogInfo("Signal SEGV received. sleeping to collect data");
+  sleep(1800);
+}
+
+void handleAbrt(int)
+{
+  FILE* fp = fopen("/tmp/pxscenecrash","w");
+  fclose(fp);
+  rtLogInfo("Signal ABRT received. sleeping to collect data");
+  sleep(1800);
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  char const* handle_signals = getenv("HANDLE_SIGNALS");
+  if (handle_signals && (strcmp(handle_signals,"1") == 0))
+  {
+    signal(SIGSEGV, handleSegv);
+    signal(SIGABRT, handleAbrt);
+  }
   gargc = argc;
   gargv = argv;
 #ifdef ENABLE_DEBUG_MODE

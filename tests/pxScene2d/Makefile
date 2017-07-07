@@ -1,8 +1,17 @@
+UNAME_S := $(shell uname -s)
 all: pxscene2dtests
 
 clean:
 	rm -rf $(OBJDIR)
 	rm -f pxscene2dtests
+
+ifeq ($(UNAME_S),Darwin)
+SRCS_WAYLAND=
+else
+SRCS_WAYLAND=\
+    test_pxWayland.cpp \
+    test_pxWaylandContainer.cpp
+endif
 
 SRCS_FULL=\
     pxscene2dtestsmain.cpp \
@@ -19,17 +28,22 @@ SRCS_FULL=\
     test_rtString.cpp \
     test_pxUtil.cpp \
     test_pxImage.cpp \
-    test_pxWayland.cpp \
-    test_pxWaylandContainer.cpp \
-    test_imagecache.cpp
+    test_imagecache.cpp \
+    $(SRCS_WAYLAND)
 
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PXCOREDIR=$(MAKEFILE_PATH)/../../
 PXSCENEDIR=$(PXCOREDIR)/examples/pxScene2d
+ifeq ($(UNAME_S),Darwin)
+PX_PLATFORM=PX_PLATFORM_MAC
+else
 ifndef USE_EXTERNALS_GLUT
 USE_EXTERNALS_GLUT=false
 endif
 PX_PLATFORM=PX_PLATFORM_GLUT
+endif
+
+
 PXHDRS=$(PXCOREDIR)/src
 EXTDIR=$(PXCOREDIR)examples/pxScene2d/external
 
@@ -63,18 +77,38 @@ LDPNG    = -L$(EXTDIR)/png/.libs -lpng16
 LDFT     = -L$(EXTDIR)/ft/objs/.libs -lfreetype
 LDCURL   = -L$(EXTDIR)/curl/lib/.libs -lcurl
 LDZLIB   = -L$(EXTDIR)/zlib -lz
+ifeq ($(UNAME_S),Darwin)
+LDJPG    = $(EXTDIR)/jpg/.libs/libjpeg.a
+else
 LDJPG    = -L$(EXTDIR)/jpg/.libs -ljpeg
+endif
+ifeq ($(UNAME_S),Linux)
 LDLIBJPEGTURBO = -L$(EXTDIR)/libjpeg-turbo/.libs/ -lturbojpeg
 ifeq ($(USE_EXTERNALS_GLUT), true)
 LDGLUT = -L$(EXTDIR)/freeglut/lib
+endif
 endif
 LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDZLIB) $(LDJPG) $(LDLIBJPEGTURBO) $(LDGLUT)
 NODEDIR = $(EXTDIR)/libnode-v6.9.0
 LDNODE   = -L$(NODEDIR)/out/Release/obj.target
 LDNODEV8 = -L$(NODEDIR)/out/Release
-LDFLAGS = -L$(PXSCENEDIR)/src/ -lpxscene $(LDNODE) $(LDNODEV8) -lnode -L../../build/glut/ -lpxCore -lrtCore_s  $(LDEXT) -pthread -lglut -lGLEW -lGL -lX11 -ldl
+ifeq ($(UNAME_S),Darwin)
+PXCOREBUILDDIR=-L../../build/mac
+LDPLATFORM=-framework OpenGL -framework Cocoa -framework Foundation
+else
+PXCOREBUILDDIR=-L../../build/glut
+LDPLATFORM=-pthread -lglut -lGLEW -lGL -lX11 -lrtCore_s
+endif
+LDPXSCENE=$(PXCOREDIR)examples/pxScene2d/src/libpxscene.a
+LDFLAGS = $(LDPXSCENE) $(LDNODE) $(LDNODEV8) -lnode $(PXCOREBUILDDIR) -lpxCore $(LDEXT) $(LDPLATFORM) -ldl
 ifeq ($(CODE_COVERAGE), 1)
+CXXFLAGS += -DENABLE_CODE_COVERAGE
+ifeq ($(UNAME_S),Darwin)
+LLVM_VERSION := $(shell clang --version|grep "LLVM version"|awk '{print $$4}')
+LDFLAGS += -lclang_rt.profile_osx -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/$(LLVM_VERSION)/lib/darwin
+else
 LDFLAGS +=  -lgcov
+endif
 endif
 CXXFLAGS_FULL = $(CXXFLAGS) -Wno-write-strings -Wno-format-security -std=c++11
 ifeq ($(CODE_COVERAGE), 1)

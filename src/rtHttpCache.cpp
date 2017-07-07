@@ -189,8 +189,9 @@ rtData& rtHttpCacheData::contentsData()
 rtError rtHttpCacheData::data(rtData& data)
 {
   if (NULL == fp)
+  {
     return RT_ERROR;
-
+  }
   populateExpirationDateFromCache();
 
   bool revalidate =  false;
@@ -200,15 +201,20 @@ rtError rtHttpCacheData::data(rtData& data)
   res = calculateRevalidationNeed(revalidate,revalidateOnlyHeaders);
 
   if (RT_OK != res)
+  {
     return res;
-
+  }
   if (true == revalidate)
+  {
     return performRevalidation(data);
+  }
 
   if (true == revalidateOnlyHeaders)
   {
     if (RT_OK != performHeaderRevalidation())
+    {
       return RT_ERROR;
+    }
   }
 
   if (mHeaderMap.end() != mHeaderMap.find("ETag"))
@@ -223,8 +229,9 @@ rtError rtHttpCacheData::data(rtData& data)
   }
 
   if (false == readFileData())
+  {
     return RT_ERROR;
-
+  }
   data.init(mData.data(),mData.length());
   if (true == revalidateOnlyHeaders)
   {
@@ -366,7 +373,7 @@ bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downl
      return false;
   }
 
-  if (downloadRequest->httpStatusCode() == 404)
+  if ((downloadRequest->httpStatusCode() == 404) || (downloadRequest->httpStatusCode() == 403))
   {
     delete downloadRequest;
     return false;

@@ -53,27 +53,13 @@ struct MemoryStruct
 {
     MemoryStruct()
         : headerSize(0)
-        , headerBuffer(NULL)
+        , headerBuffer()
         , contentsSize(0)
-        , contentsBuffer(NULL)
+        , contentsBuffer()
     {
         headerBuffer = (char*)malloc(1);
         contentsBuffer = (char*)malloc(1);
-    }
-
-    ~MemoryStruct()
-    {
-      if (headerBuffer != NULL)
-      {
-        free(headerBuffer);
-        headerBuffer = NULL;
-      }
-      if (contentsBuffer != NULL)
-      {
-        free(contentsBuffer);
-        contentsBuffer = NULL;
-      }
-    }
+    } 
 
   size_t headerSize;
   char* headerBuffer;
@@ -627,13 +613,6 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     {
       downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
     }
-    else if (chunk.contentsBuffer != NULL)
-    {
-        free(chunk.contentsBuffer);
-        chunk.contentsBuffer = NULL;
-    }
-    chunk.headerBuffer = NULL;
-    chunk.contentsBuffer = NULL;
     return true;
 }
 

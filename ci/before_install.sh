@@ -47,15 +47,51 @@ then
   man lldb
 fi
 
-#install code coverage binaries for mac
+#install lighttpd, code coverage binaries for mac
 if [ "$TRAVIS_OS_NAME" = "osx" ] ; 
 then
   if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]
   then
+    brew install lighttpd
     brew install gcovr
     brew install lcov
     brew install --HEAD ccache
     ls -al $HOME/.ccache
+  fi
+fi
+
+#setup lighttpd server
+if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]
+then
+  if [ "$TRAVIS_OS_NAME" = "linux" ] ;
+  then
+    sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/* /var/www/.
+    ls -lrt /etc/lighttpd/lighttpd.conf
+    sudo /etc/init.d/lighttpd stop
+    sudo sed -i "s/server.modules = (/server.modules = (\n\t\"mod_setenv\"\,/g" /etc/lighttpd/lighttpd.conf
+    echo "setenv.add-response-header += (\"Cache-Control\" => \"public, max-age=1000\")"|sudo tee -a /etc/lighttpd/lighttpd.conf
+    cat /etc/lighttpd/lighttpd.conf
+    sudo /etc/init.d/lighttpd start
+  elif [ "$TRAVIS_OS_NAME" = "osx" ] ;
+  then
+    brew services stop lighttpd
+    sudo mkdir -p /usr/local/var/www
+    sudo mkdir -p /var
+    sudo ln -s /usr/local/var/www /var/www
+    sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/* /var/www/.
+    sudo sed -i -n "s/server.port = 8080/server.port = 80/g" /usr/local/etc/lighttpd/lighttpd.conf
+    sudo sed -i -n "s/#  \"mod_setenv\"/   \"mod_setenv\"/g" /usr/local/etc/lighttpd/modules.conf
+    echo "setenv.add-response-header += (\"Cache-Control\" => \"public, max-age=1000\")"|sudo tee -a /usr/local/etc/lighttpd/modules.conf
+    echo "Displaying lighttpd file ***************************"
+    cat /usr/local/etc/lighttpd/lighttpd.conf
+    echo "Displaying modules.conf file ***************************"
+    cat /usr/local/etc/lighttpd/modules.conf
+    echo "Displaying modules.conf file completed ***************************"
+    sudo chmod -R 777 /usr/local
+    ls -lrt /usr/local/var/
+    sudo lighttpd -f /usr/local/etc/lighttpd/lighttpd.conf &
+    ps -aef|grep lighttpd
+    sudo netstat -a
   fi
 fi
 
