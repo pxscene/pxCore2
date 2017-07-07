@@ -204,6 +204,9 @@ protected:
 ENTERSCENELOCK()
     mView = NULL;
 EXITSCENELOCK()
+  #ifdef RUNINMAIN
+     script.garbageCollect();
+  #endif
 #ifndef RUNINMAIN
    script.setNeedsToEnd(true);
 #endif
@@ -529,9 +532,6 @@ if (s && (strcmp(s,"1") == 0))
 #endif
 
   eventLoop.run();
-#ifdef ENABLE_DEBUG_MODE
-  free(g_origArgv);
-#endif
 
 #ifdef WIN32
   win_sparkle_cleanup();
