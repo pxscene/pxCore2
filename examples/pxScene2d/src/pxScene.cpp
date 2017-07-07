@@ -337,7 +337,9 @@ void handleSegv(int)
   FILE* fp = fopen("/tmp/pxscenecrash","w");
   fclose(fp);
   rtLogInfo("Signal SEGV received. sleeping to collect data");
+#ifndef WIN32
   sleep(1800);
+#endif //WIN32
 }
 
 void handleAbrt(int)
@@ -345,7 +347,9 @@ void handleAbrt(int)
   FILE* fp = fopen("/tmp/pxscenecrash","w");
   fclose(fp);
   rtLogInfo("Signal ABRT received. sleeping to collect data");
+#ifndef WIN32
   sleep(1800);
+#endif //WIN32
 }
 
 int pxMain(int argc, char* argv[])

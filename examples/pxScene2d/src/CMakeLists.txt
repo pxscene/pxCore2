@@ -11,17 +11,20 @@ set(PXCOREDIR ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 set(EXTDIR "${CMAKE_CURRENT_SOURCE_DIR}/../external")
 set(NODEDIR "${EXTDIR}/libnode-v6.9.0/")
 set(NODEINC "${NODEDIR}/src ${NODEDIR}/deps/uv/include ${NODEDIR}/deps/v8 ${NODEDIR}/deps/debugger-agent/include ${NODEDIR}/deps/v8/include ${NODEDIR}/deps/cares/include")
-set(ZLIBINC "${EXTDIR}/zlib/")
-set(CURLINC "${EXTDIR}/curl/include")
-set(JPGINC "${EXTDIR}/jpg")
+set(ZLIBINC "${EXTDIR}/zlib-1.2.8/")
+set(CURLINC "${EXTDIR}/curl-7.40.0/include")
+set(JPGINC "${EXTDIR}/jpeg-9a")
 set(JPGTURBOINC "${EXTDIR}/libjpeg-turbo")
-set(PNGINC "${EXTDIR}/png")
-set(FREETYPEINC "${EXTDIR}/ft/include")
+set(PNGINC "${EXTDIR}/libpng-1.6.28")
+set(FREETYPEINC "${EXTDIR}/freetype-2.5.2/include")
 set(WESTEROSINC ${EXTDIR}/westeros/external/install/include)
 set(WESTEROSSTUBINC ${EXTDIR}/westeros-stub)
 set(JPEGTURBOINC ${EXTDIR}/libjpeg-turbo)
 set(BREAKPADINC ${EXTDIR}/breakpad/src)
 set(RTREMOTEINC ${PXCOREDIR}/remote)
+set(GLEWINC ${EXTDIR}/glew-2.0.0/include)
+set(WINSPARKLEINC ${EXTDIR}/WinSparkle/include)
+set(PTHREADINC ${EXTDIR}/pthread-2.9/)
 
 set(PX_LIBRARY_SUPPORT 1)
 set(PXWAYLAND_LIBRARY_SUPPORT 0)
@@ -36,18 +39,25 @@ option(BUILD_WITH_WINDOWLESS_EGL "BUILD_WITH_WINDOWLESS_EGL" OFF)
 option(BUILD_WITH_WINDOWLESS_DFB "BUILD_WITH_WINDOWLESS_DFB" OFF)
 option(BUILD_WITH_SERVICE_MANAGER "BUILD_WITH_SERVICE_MANAGER" OFF)
 option(BUILD_PXSCENE_APP "BUILD_PXSCENE_APP" ON)
-option(BUILD_PXSCENE_SHARED_LIB "BUILD_PXSCENE_SHARED_LIB" ON)
-option(BUILD_PXSCENE_STATIC_LIB "BUILD_PXSCENE_STATIC_LIB" ON)
+option(BUILD_PXSCENE_SHARED_LIB "BUILD_PXSCENE_SHARED_LIB" OFF)
+option(BUILD_PXSCENE_STATIC_LIB "BUILD_PXSCENE_STATIC_LIB" OFF)
 option(BUILD_PXWAYLAND_SHARED_LIB "BUILD_PXWAYLAND_SHARED_LIB" OFF)
 option(BUILD_PXWAYLAND_STATIC_LIB "BUILD_PXWAYLAND_STATIC_LIB" ON)
-option(PXSCENE_COMPILE_WARNINGS_AS_ERRORS "PXSCENE_COMPILE_WARNINGS_AS_ERRORS" ON)
+if(WIN32)
+    option(PXSCENE_COMPILE_WARNINGS_AS_ERRORS "PXSCENE_COMPILE_WARNINGS_AS_ERRORS" OFF)
+else()
+    option(PXSCENE_COMPILE_WARNINGS_AS_ERRORS "PXSCENE_COMPILE_WARNINGS_AS_ERRORS" ON)
+endif(WIN32)
 
 set(PXSCENE_DEFINITIONS )
 
 if (APPLE)
     message("building pxscene for mac")
     set(PX_PLATFORM PX_PLATFORM_MAC)
+    set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} RT_PLATFORM_LINUX)
     set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/mac)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
     set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_NODE_V_6_9 _DARWIN_USE_64_BIT_INODE=1 NODE_ARCH="x64" NODE_WANT_INTERNALS=1 V8_DEPRECATION_WARNINGS= NODE_SHARED_MODE NODE_USE_V8_PLATFORM=1 NODE_HAVE_I18N_SUPPORT=1 NODE_HAVE_SMALL_ICU=1 HAVE_INSPECTOR=1 V8_INSPECTOR_USE_STL=1 V8_INSPECTOR_USE_OLD_STL=1 HAVE_OPENSSL=1 HAVE_DTRACE=1 __POSIX__ NODE_PLATFORM=darwin DUCONFIG_NO_TRANSLITERATION=1 UCONFIG_NO_SERVICE=1 UCONFIG_NO_REGULAR_EXPRESSIONS=1 U_ENABLE_DYLOAD=0 U_STATIC_IMPLEMENTATION=1 U_HAVE_STD_STRING=0 UCONFIG_NO_BREAK_ITERATION=0 UCONFIG_NO_LEGACY_CONVERSION=1 UCONFIG_NO_CONVERSION=1 HTTP_PARSER_STRICT=0 _LARGEFILE_SOURCE _FILE_OFFSET_BITS=64)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_DEBUG_MODE PNG_APNG_SUPPORTED)
@@ -72,8 +82,11 @@ if (APPLE)
     add_custom_command(TARGET pxsceneDone COMMENT "making app bundle" POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/mkapp.sh WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     set(PX_LIBRARY_SUPPORT 0)
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
     execute_process(COMMAND "hostname" OUTPUT_VARIABLE HOSTNAME)
     string(STRIP ${HOSTNAME} HOSTNAME)
+    set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} RT_PLATFORM_LINUX)
     if (HOSTNAME STREQUAL "raspberrypi")
         message("building pxscene for raspberrypi")
         set(PX_PLATFORM PX_PLATFORM_GENERIC_EGL)
@@ -151,7 +164,71 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_CODE_COVERAGE)
         set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} gcov)
     endif ()
-else (APPLE)
+elseif (WIN32)
+    add_definitions(-DWIN32 -D_LIB -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /EHs-c-")
+    set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/win/Release)
+    set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
+    set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
+    set(PLATFORM_SOURCES ${PLATFORM_SOURCES} ${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
+            ${NODEDIR}/src/cares_wrap.cc ${NODEDIR}/src/connection_wrap.cc ${NODEDIR}/src/connect_wrap.cc
+            ${NODEDIR}/src/debug-agent.cc ${NODEDIR}/src/env.cc ${NODEDIR}/src/fs_event_wrap.cc ${NODEDIR}/src/handle_wrap.cc
+            ${NODEDIR}/src/inspector_agent.cc ${NODEDIR}/src/inspector_socket.cc ${NODEDIR}/src/js_stream.cc ${NODEDIR}/src/node.cc
+            ${NODEDIR}/src/node_buffer.cc ${NODEDIR}/src/node_config.cc ${NODEDIR}/src/node_constants.cc
+            ${NODEDIR}/src/node_contextify.cc ${NODEDIR}/src/node_counters.cc ${NODEDIR}/src/node_crypto.cc
+            ${NODEDIR}/src/node_crypto_bio.cc ${NODEDIR}/src/node_crypto_clienthello.cc ${NODEDIR}/src/node_dtrace.cc
+            ${NODEDIR}/src/node_file.cc ${NODEDIR}/src/node_http_parser.cc ${NODEDIR}/src/node_i18n.cc
+            ${NODEDIR}/src/node_javascript.cc ${NODEDIR}/src/node_os.cc ${NODEDIR}/src/node_revert.cc
+            ${NODEDIR}/src/node_stat_watcher.cc ${NODEDIR}/src/node_util.cc ${NODEDIR}/src/node_v8.cc ${NODEDIR}/src/node_watchdog.cc
+            ${NODEDIR}/src/node_win32_etw_provider.cc ${NODEDIR}/src/node_win32_perfctr_provider.cc ${NODEDIR}/src/node_zlib.cc
+            ${NODEDIR}/src/pipe_wrap.cc ${NODEDIR}/src/process_wrap.cc ${NODEDIR}/src/signal_wrap.cc ${NODEDIR}/src/spawn_sync.cc
+            ${NODEDIR}/src/stream_base.cc ${NODEDIR}/src/stream_wrap.cc ${NODEDIR}/src/string_bytes.cc ${NODEDIR}/src/string_search.cc
+            ${NODEDIR}/src/tcp_wrap.cc ${NODEDIR}/src/timer_wrap.cc ${NODEDIR}/src/tls_wrap.cc ${NODEDIR}/src/tty_wrap.cc
+            ${NODEDIR}/src/udp_wrap.cc ${NODEDIR}/src/util.cc ${NODEDIR}/src/uv.cc ${PXCOREDIR}/src/utf8.c)
+    set_source_files_properties(utf8.c PROPERTIES LANGUAGE CXX)
+    set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_DEBUG_MODE PNG_APNG_SUPPORTED)
+    add_definitions(-DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS -DWIN32 -DWIN32_LEAN_AND_MEAN -DGLEW_STATIC -D_TIMESPEC_DEFINED -D_CONSOLE
+            -DCURL_STATICLIB -DRUNINMAIN -DENABLE_RT_NODE -DDISABLE_WAYLAND -DNODE_WANT_INTERNALS=1
+            -DENABLE_NODE_V_6_9 -DENABLE_V8_HEAP_PARAMS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DHAVE_INSPECTOR=1
+            -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_DEBUG_MODE -DPNG_APNG_SUPPORTED -DENABLE_MAX_TEXTURE_SIZE
+            -DHAVE_OPENSSL -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D_HAS_EXCEPTIONS=0 -DBUILDING_V8_SHARED=1
+            -DBUILDING_UV_SHARED=1 -DNODE_ARCH="ia32" -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1
+            -DHAVE_OPENSSL=1 -DHAVE_ETW=1 -DHAVE_PERFCTR=1 -DFD_SETSIZE=1024 -DNODE_PLATFORM="win32" -D_UNICODE=1 -DUCONFIG_NO_TRANSLITERATION=1
+            -DUCONFIG_NO_SERVICE=1 -DUCONFIG_NO_REGULAR_EXPRESSIONS=1 -DU_ENABLE_DYLOAD=0 -DU_STATIC_IMPLEMENTATION=1
+            -DU_HAVE_STD_STRING=0 -DUCONFIG_NO_BREAK_ITERATION=0 -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_CONVERSION=1
+            -DHTTP_PARSER_STRICT=0 -DUSE_RENDER_STATS -D_HAS_EXCEPTIONS=0)
+    include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${FREETYPEINC} ${GLEWINC} ${WINSPARKLEINC})
+
+    include_directories(AFTER ${NODEDIR}/deps/openssl/openssl/include ${NODEDIR}/deps/http_parser
+            ${NODEDIR}/deps/v8_inspector/third_party/v8_inspector/
+            ${NODEDIR}/deps/icu-small/source/common/unicode
+            ${NODEDIR}/Release/obj/global_intermediate/blink
+            ${NODEDIR}/Release/obj/global_intermediate
+            ${NODEDIR}/Release/obj/gen/blink
+            ${NODEDIR}/deps/icu-small/source/common
+            ${NODEDIR}/tools/msvs/genfiles)
+
+    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/vc.build/builds)
+    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/build/Release/lib
+            ${EXTDIR}/vc.build/builds ${EXTDIR}/libnode-v6.9.0/Release/lib ${EXTDIR}/libnode-v6.9.0/Release)
+
+
+    set(PLATFORM_LIBRARIES pxCore.lib pthreadVC2.lib opengl32.lib Winmm.lib zlib.lib freetype253MT_D.lib  libcurld.lib
+                    Ws2_32.lib Wldap32.lib glew32s.lib libpng16.lib libjpeg.lib msvcrt.lib psapi.lib iphlpapi.lib
+                    userenv.lib v8_libplatform.lib v8_libbase.lib v8_nosnapshot.lib v8_snapshot.lib v8_base_0.lib
+                    v8_base_1.lib v8_base_2.lib v8_base_3.lib gtest.lib cares.lib http_parser.lib
+                    icutools.lib icustubdata.lib icudata.lib icuucx.lib icui18n.lib libuv.lib openssl.lib v8_inspector_stl.lib
+                    node.lib cctest.lib rtCore_s.lib)
+
+    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/build/Release/lib)
+    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/Release/lib)
+    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/Release)
+
+    set(PX_LIBRARY_LINK_PXCORE 0)
+    set(PX_LIBRARY_SUPPORT 0)
+    set(PXSCENE_LINKER_OPTIONS "")
+else ()
     message(FATAL_ERROR "Cannot build pxscene.  Unknown platform")
 endif (APPLE)
 
@@ -161,7 +238,7 @@ set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/breakpad/src/
 
 set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} ${PLATFORM_LIBRARIES})
 
-set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} RT_PLATFORM_LINUX ${PX_PLATFORM} ENABLE_RT_NODE RUNINMAIN ENABLE_HTTP_CACHE)
+set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ${PX_PLATFORM} ENABLE_RT_NODE RUNINMAIN ENABLE_HTTP_CACHE)
 
 #todo add code coverage check
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
@@ -213,10 +290,6 @@ set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${PLATFORM_SOURCES})
 
 set(PXSCENE_APP_FILES ${PXSCENE_COMMON_FILES} pxScene.cpp)
 set(PXSCENE_LIB_FILES ${PXSCENE_COMMON_FILES})
-
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
 
 if (PXSCENE_COMPILE_WARNINGS_AS_ERRORS)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
