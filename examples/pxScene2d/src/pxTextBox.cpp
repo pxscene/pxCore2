@@ -356,7 +356,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       // Determine if the character is multibyte
       numbytes = i-lasti;
 	  char *tempChar = (char*)malloc(sizeof(char)*(numbytes+1));
-      memset(tempChar, '\0', sizeof(tempChar));
+      memset(tempChar, '\0', sizeof(char)*(numbytes+1));
       if(numbytes == 1) {
         tempChar[0] = charToMeasure;
       } 

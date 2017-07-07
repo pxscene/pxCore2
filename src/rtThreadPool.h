@@ -11,7 +11,7 @@ public:
     
     static rtThreadPool* globalInstance();
 
-	void raisePriority(const rtString & url) {
+	void raisePriority(const rtString & /*url*/) {
 		//TODO
 	};
     
