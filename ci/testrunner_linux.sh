@@ -10,6 +10,7 @@ lcov -d obj/ --zerocounters
 cd $currentdir
 TESTRUNLOGS=$TRAVIS_BUILD_DIR/logs/run_logs
 TESTRUNNERTESTS=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json
+isCored=1
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=$TESTRUNNERTESTS >> $TESTRUNLOGS 2>&1 &
 grep "Failures:" $TESTRUNLOGS
@@ -25,6 +26,7 @@ if [ "$retVal" -ne 0 ]
 then
 ls -lrt core
 retVal=$?
+isCored=$retVal
 fi
 done
 
@@ -33,6 +35,10 @@ kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}
 sleep 5s;
 pkill -15 -f pxscene.sh
 
+if [ "$isCored" -ne 0 ]
+then
+rm -rf core
+fi
 
 $TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $TESTRUNLOGS
 retVal=$?
