@@ -244,7 +244,7 @@ rtWrapperSceneUpdateEnter();
   {
     if (!(i->second->PersistentObject.IsNearDeath()))
     {
-      assert(false);
+      rtLogError("About to add weak reference which is already present");
     }
   }
   //assert(i == objectMap.end());
