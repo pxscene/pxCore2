@@ -59,42 +59,41 @@ void pxImageA::onInit()
 
 rtError pxImageA::url(rtString &s) const
 {
-  s = mURL;
+  if (getImageAResource() != NULL)
+  {
+    s = getImageAResource()->getUrl();
+  }
+  else
+  {
+    s = "";
+  }
   return RT_OK;
 }
 
 rtError pxImageA::setUrl(const char *s)
 {
-  mURL = s;
-  pxObject::createNewPromise();
 
-  mCurFrame = 0;
-  mCachedFrame = UINT32_MAX;
-  mFrameTime = -1;
-  mPlays = 0;
-  mImageWidth = 0;
-  mImageHeight = 0;
-
-  if (mURL)
+  rtImageAResource* resourceObj = getImageAResource();
+  if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
   {
-    rtImageAResource* resourceObj = getImageAResource();
-    if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
+    if(mImageLoaded || ((rtPromise*)mReady.getPtr())->status())
     {
-      if(mImageLoaded || ((rtPromise*)mReady.getPtr())->status())
-      {
-        mImageLoaded = false;
-        pxObject::createNewPromise();
-      }
-    }
-    mResource = pxImageManager::getImageA(s);
-
-    if(getImageAResource() != NULL && getImageAResource()->getUrl().length() > 0 && !mImageLoaded) {
-      mListenerAdded = true;
-      getImageAResource()->addListener(this);
+      mCurFrame = 0;
+      mCachedFrame = UINT32_MAX;
+      mFrameTime = -1;
+      mPlays = 0;
+      mImageWidth = 0;
+      mImageHeight = 0;
+      mImageLoaded = false;
+      pxObject::createNewPromise();
     }
   }
-  else
-    mReady.send("resolve", this);
+  mResource = pxImageManager::getImageA(s);
+
+  if(getImageAResource() != NULL && getImageAResource()->getUrl().length() > 0 && !mImageLoaded) {
+    mListenerAdded = true;
+    getImageAResource()->addListener(this);
+  }
 
   return RT_OK;
 }
@@ -250,6 +249,8 @@ rtError pxImageA::setResource(rtObjectRef o)
   else
   {
     rtLogError("Object passed as resource is not an imageAResource!\n");
+    pxObject::onTextureReady();
+    mReady.send("reject",this);
     return RT_ERROR;
   }
 
