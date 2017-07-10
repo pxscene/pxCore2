@@ -1,0 +1,291 @@
+From 72ec7e4facec62272c7b8ea552cf1759e6e12ec7 Mon Sep 17 00:00:00 2001
+From: madanagopalt <madanagopal123@gmail.com>
+Date: Mon, 10 Jul 2017 09:43:50 +0530
+Subject: [PATCH] fix for pxobjcets leak
+
+---
+ ci/testrunner_linux.sh               |  6 +++++
+ examples/pxScene2d/src/pxScene2d.cpp | 30 +++++++++++++----------
+ examples/pxScene2d/src/pxScene2d.h   |  4 +--
+ src/jsbindings/rtWrapperUtils.cpp    | 47 ++++++++++++++++++++----------------
+ src/jsbindings/rtWrapperUtils.h      |  2 ++
+ 5 files changed, 53 insertions(+), 36 deletions(-)
+
+diff --git a/ci/testrunner_linux.sh b/ci/testrunner_linux.sh
+index dd2bdbe..540a5cb 100755
+--- a/ci/testrunner_linux.sh
++++ b/ci/testrunner_linux.sh
+@@ -10,6 +10,7 @@ lcov -d obj/ --zerocounters
+ cd $currentdir
+ TESTRUNLOGS=$TRAVIS_BUILD_DIR/logs/run_logs
+ TESTRUNNERTESTS=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json
++isCored=1
+ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
+ ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=$TESTRUNNERTESTS >> $TESTRUNLOGS 2>&1 &
+ grep "Failures:" $TESTRUNLOGS
+@@ -25,6 +26,7 @@ if [ "$retVal" -ne 0 ]
+ then
+ ls -lrt core
+ retVal=$?
++isCored=$retVal
+ fi
+ done
+ 
+@@ -33,6 +35,10 @@ kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}
+ sleep 5s;
+ pkill -15 -f pxscene.sh
+ 
++if [ "$isCored" -ne 0 ]
++then
++rm -rf core
++fi
+ 
+ $TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $TESTRUNLOGS
+ retVal=$?
+diff --git a/examples/pxScene2d/src/pxScene2d.cpp b/examples/pxScene2d/src/pxScene2d.cpp
+index 9a25f1a..1c5cc92 100644
+--- a/examples/pxScene2d/src/pxScene2d.cpp
++++ b/examples/pxScene2d/src/pxScene2d.cpp
+@@ -385,6 +385,11 @@ pxObject::~pxObject()
+     // TODO... why is this bad
+ //    sendReturns<rtString>("description",d);
+     //rtLogDebug("**************** pxObject destroyed: %s\n",getMap()->className);
++    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
++    {
++      (*it)->mParent = NULL;  // setParent mutates the mChildren collection
++    }
++    mChildren.clear();
+     pxObjectCount--;
+     rtValue nullValue;
+     mReady.send("reject",nullValue);
+@@ -1521,7 +1526,7 @@ int gTag = 0;
+ 
+ pxScene2d::pxScene2d(bool top)
+   : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false), 
+-    mSceneContainers(), mDirty(true), mTestView(NULL), mDisposed(false)
++    mInnerpxObjects(), mDirty(true), mTestView(NULL), mDisposed(false)
+ {
+   mRoot = new pxRoot(this);
+   mFocusObj = mRoot;
+@@ -1572,15 +1577,15 @@ rtError pxScene2d::dispose()
+     rtObjectRef e = new rtMapObject;
+     mEmit.send("onClose", e);
+ 
+-    for (unsigned int i=0; i<mSceneContainers.size(); i++)
++    for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
+     {
+-      pxSceneContainer* temp = mSceneContainers[i];
++      pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
+       if ((NULL != temp) && (NULL == temp->parent()))
+       {
+         temp->dispose();
+       }
+     }
+-    mSceneContainers.clear();
++    mInnerpxObjects.clear();
+ 
+     if (mRoot)
+       mRoot->dispose();
+@@ -1667,7 +1672,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
+         break;
+     }
+   }
+-
++  mInnerpxObjects.push_back((pxObject*)o.getPtr());
+   return e;
+ }
+ 
+@@ -1766,7 +1771,6 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
+   o = new pxSceneContainer(this);
+   o.set(p);
+   o.send("init");
+-  mSceneContainers.push_back((pxSceneContainer*)o.getPtr());
+   return RT_OK;
+ }
+ 
+@@ -2755,20 +2759,20 @@ void pxScene2d::invalidateRect(pxRect* r)
+   }
+ }
+ 
+-void pxScene2d::sceneContainerDisposed(pxSceneContainerRef ref)
++void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
+ {
+-  // this is to make sure, we are not clearing the scene containers vector, while it is under process from scene dispose
++  // this is to make sure, we are not clearing the rtobject references, while it is under process from scene dispose
+   if (!mDisposed)
+   {
+     unsigned int pos = 0;
+-    for (; pos<mSceneContainers.size(); pos++)
++    for (; pos<mInnerpxObjects.size(); pos++)
+     {
+-      if (mSceneContainers[pos] == ref)
++      if (mInnerpxObjects[pos] == ref)
+         break;
+     }
+-    if (pos != mSceneContainers.size())
++    if (pos != mInnerpxObjects.size())
+     {
+-      mSceneContainers.erase(mSceneContainers.begin()+pos);
++      mInnerpxObjects.erase(mInnerpxObjects.begin()+pos);
+     }
+   }
+ }
+@@ -2854,7 +2858,7 @@ void pxSceneContainer::dispose()
+     rtLogInfo(__FUNCTION__);
+     //Adding ref to make sure, object not destroyed from event listeners
+     AddRef();
+-    mScene->sceneContainerDisposed(this);
++    mScene->innerpxObjectDisposed(this);
+     setScriptView(NULL);
+     pxObject::dispose();
+     Release();
+diff --git a/examples/pxScene2d/src/pxScene2d.h b/examples/pxScene2d/src/pxScene2d.h
+index 0728df5..ad82b72 100644
+--- a/examples/pxScene2d/src/pxScene2d.h
++++ b/examples/pxScene2d/src/pxScene2d.h
+@@ -1451,7 +1451,7 @@ public:
+     return e;
+   }
+ 
+-  void sceneContainerDisposed(pxSceneContainerRef ref);
++  void innerpxObjectDisposed(rtObjectRef ref);
+ private:
+   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
+                    const char* preEvent, const char* event) ;
+@@ -1499,7 +1499,7 @@ private:
+   int32_t mPointerHotSpotY;
+   #endif
+   bool mPointerHidden;
+-  std::vector<pxSceneContainerRef> mSceneContainers;
++  std::vector<rtObjectRef> mInnerpxObjects;
+ public:
+   void hidePointer( bool hide )
+   {
+diff --git a/src/jsbindings/rtWrapperUtils.cpp b/src/jsbindings/rtWrapperUtils.cpp
+index 846f76c..3da1486 100644
+--- a/src/jsbindings/rtWrapperUtils.cpp
++++ b/src/jsbindings/rtWrapperUtils.cpp
+@@ -56,9 +56,7 @@ static void WeakCallback(const WeakCallbackInfo<rtIObject>& data) {
+   Locker locker(data.GetIsolate());
+   Isolate::Scope isolateScope(data.GetIsolate());
+   HandleScope handleScope(data.GetIsolate());
+-#ifndef RUNINMAIN
+   rtObjectRef temp;
+-#endif
+ rtWrapperSceneUpdateEnter();
+ #ifndef RUNINMAIN
+   pthread_mutex_lock(&sObjectMapMutex);
+@@ -73,9 +71,7 @@ rtWrapperSceneUpdateEnter();
+     //
+     j->second->PersistentObject.ClearWeak();
+     j->second->PersistentObject.Reset();
+-#ifndef RUNINMAIN
+     temp = j->second->RTObject;
+-#endif
+     delete j->second;
+     objectMap.erase(j);
+   }
+@@ -86,16 +82,19 @@ rtWrapperSceneUpdateEnter();
+ rtWrapperSceneUpdateExit();
+ #ifndef RUNINMAIN
+   pthread_mutex_unlock(&sObjectMapMutex);
+-  rtObjectRef parentRef;
+-  rtError err = temp.get<rtObjectRef>("parent",parentRef);
+-  if (err == RT_OK)
++#endif
++  if (NULL != temp.getPtr())
+   {
+-    if (NULL == parentRef)
++    rtObjectRef parentRef;
++    rtError err = temp.get<rtObjectRef>("parent",parentRef);
++    if (err == RT_OK)
+     {
+-      temp.send("dispose");
++        if (NULL == parentRef)
++        {
++          temp.send("dispose");
++        }
+     }
+   }
+-#endif
+ }
+ #else
+ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
+@@ -103,9 +102,7 @@ void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
+   Locker locker(data.GetIsolate());
+   Isolate::Scope isolateScope(data.GetIsolate());
+   HandleScope handleScope(data.GetIsolate());
+-#ifndef RUNINMAIN
+   rtObjectRef temp;
+-#endif
+   // rtLogInfo("ptr: %p", data.GetParameter());
+ 
+   Local<Object> obj = data.GetValue();
+@@ -144,9 +141,7 @@ rtWrapperSceneUpdateEnter();
+     //
+     j->second->PersistentObject.ClearWeak();
+     j->second->PersistentObject.Reset();
+-#ifndef RUNINMAIN
+     temp = j->second->RTObject;
+-#endif
+ #if 0
+     if (!p->IsWeak())
+       rtLogWarn("TODO: Why isn't this handle weak?");
+@@ -169,16 +164,19 @@ rtWrapperSceneUpdateEnter();
+ rtWrapperSceneUpdateExit();
+ #ifndef RUNINMAIN
+   pthread_mutex_unlock(&sObjectMapMutex);
+-  rtObjectRef parentRef;
+-  rtError err = temp.get<rtObjectRef>("parent",parentRef);
+-  if (err == RT_OK)
++#endif
++  if (NULL != temp.getPtr())
+   {
+-    if (NULL == parentRef)
++    rtObjectRef parentRef;
++    rtError err = temp.get<rtObjectRef>("parent",parentRef);
++    if (err == RT_OK)
+     {
+-      temp.send("dispose");
++        if (NULL == parentRef)
++        {
++          temp.send("dispose");
++        }
+     }
+   }
+-#endif
+ }
+ #endif
+ 
+@@ -242,7 +240,14 @@ rtWrapperSceneUpdateEnter();
+   pthread_mutex_lock(&sObjectMapMutex);
+ #endif
+   ObjectReferenceMap::iterator i = objectMap.find(from.getPtr());
+-  assert(i == objectMap.end());
++  if (i != objectMap.end())
++  {
++    if (!(i->second->PersistentObject.IsNearDeath()))
++    {
++      assert(false);
++    }
++  }
++  //assert(i == objectMap.end());
+ 
+   if (i == objectMap.end())
+   {
+diff --git a/src/jsbindings/rtWrapperUtils.h b/src/jsbindings/rtWrapperUtils.h
+index 93b1ef1..7601a2b 100644
+--- a/src/jsbindings/rtWrapperUtils.h
++++ b/src/jsbindings/rtWrapperUtils.h
+@@ -42,6 +42,8 @@ inline v8::Local<TypeName> PersistentToLocal(v8::Isolate* isolate, const v8::Per
+ {
+   if (persistent.IsWeak()) 
+     return WeakPersistentToLocal(isolate, persistent);
++  else if (persistent.IsNearDeath())
++    return v8::Local<TypeName>();
+   else 
+     return StrongPersistentToLocal(persistent);
+ }
+-- 
+2.7.4
+
