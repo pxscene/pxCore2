@@ -44,6 +44,7 @@ png_structp png_create_write_struct(png_const_charp user_png_ver, png_voidp erro
       return png_create_write_struct_p(user_png_ver,error_ptr,error_fn,warn_fn);
     }
   }
+  return NULL;
 }
 
 png_structp png_create_read_struct(png_const_charp user_png_ver, png_voidp error_ptr, png_error_ptr error_fn, png_error_ptr warn_fn)
@@ -60,6 +61,7 @@ png_structp png_create_read_struct(png_const_charp user_png_ver, png_voidp error
       return png_create_read_struct_p(user_png_ver,error_ptr,error_fn,warn_fn);
     }
   }
+  return NULL;
 }
 
 png_infop png_create_info_struct(png_structp png_ptr)
@@ -76,6 +78,7 @@ png_infop png_create_info_struct(png_structp png_ptr)
       return png_create_info_struct_p(png_ptr);
     }
   }
+  return NULL;
 }
 
 class pxUtilTest : public testing::Test
