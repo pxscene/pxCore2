@@ -6,7 +6,9 @@
 
 #include "test_includes.h" // Needs to be included last
 
-
+#ifdef ENABLE_CODE_COVERAGE
+extern "C" void __gcov_flush();
+#endif
 
 pxContext context;
 int gargc;
@@ -104,5 +106,9 @@ int main(int argc, char **argv) {
   }
   script.initializeNode();
 #endif
-  return RUN_ALL_TESTS();
+  int retTests = RUN_ALL_TESTS();
+  rtLogInfo("Tests executed with retuen code [%d]", retTests);
+  #ifdef ENABLE_CODE_COVERAGE
+  __gcov_flush();
+  #endif
 }
