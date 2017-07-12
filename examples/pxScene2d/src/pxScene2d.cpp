@@ -42,7 +42,7 @@
 #include "pxImage.h"
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
-#endif
+#endif //PX_SERVICE_MANAGER
 #include "pxImage9.h"
 #include "pxImageA.h"
 
@@ -385,6 +385,11 @@ pxObject::~pxObject()
     // TODO... why is this bad
 //    sendReturns<rtString>("description",d);
     //rtLogDebug("**************** pxObject destroyed: %s\n",getMap()->className);
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      (*it)->mParent = NULL;  // setParent mutates the mChildren collection
+    }
+    mChildren.clear();
     pxObjectCount--;
     rtValue nullValue;
     mReady.send("reject",nullValue);
@@ -1521,7 +1526,7 @@ int gTag = 0;
 
 pxScene2d::pxScene2d(bool top)
   : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false), 
-    mSceneContainers(), mDirty(true), mTestView(NULL), mDisposed(false)
+    mInnerpxObjects(), mDirty(true), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1572,15 +1577,15 @@ rtError pxScene2d::dispose()
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
 
-    for (unsigned int i=0; i<mSceneContainers.size(); i++)
+    for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
-      pxSceneContainer* temp = mSceneContainers[i];
+      pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
       if ((NULL != temp) && (NULL == temp->parent()))
       {
         temp->dispose();
       }
     }
-    mSceneContainers.clear();
+    mInnerpxObjects.clear();
 
     if (mRoot)
       mRoot->dispose();
@@ -1617,6 +1622,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
   rtError e = RT_OK;
   rtString t = p.get<rtString>("t");
+  bool needpxObjectTracking = true;
 
   if (!strcmp("rect",t.cString()))
     e = createRectangle(p,o);
@@ -1626,20 +1632,25 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
-#ifdef PX_SERVICE_MANAGER
-  else if (!strcmp("serviceManager",t.cString()))
-    e = createServiceManager(p,o);
-#endif
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
     e = createImageA(p,o);
   else if (!strcmp("imageResource",t.cString()))
+  {
     e = createImageResource(p,o);
+    needpxObjectTracking = false;
+  }
   else if (!strcmp("imageAResource",t.cString()))
+  {
     e = createImageAResource(p,o);
+    needpxObjectTracking = false;
+  }
   else if (!strcmp("fontResource",t.cString()))
+  {
     e = createFontResource(p,o);
+    needpxObjectTracking = false;
+  }
   else if (!strcmp("scene",t.cString()))
     e = createScene(p,o);
   else if (!strcmp("external",t.cString()))
@@ -1668,6 +1679,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     }
   }
 
+  if (needpxObjectTracking)
+    mInnerpxObjects.push_back((pxObject*)o.getPtr());
   return e;
 }
 
@@ -1710,14 +1723,6 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 }
-
-#ifdef PX_SERVICE_MANAGER
-rtError pxScene2d::createServiceManager(rtObjectRef p, rtObjectRef& o)
-{
-  pxServiceManager::findServiceManager(o);  
-  return RT_OK;
-}
-#endif
 
 rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 {
@@ -1766,7 +1771,6 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
   o = new pxSceneContainer(this);
   o.set(p);
   o.send("init");
-  mSceneContainers.push_back((pxSceneContainer*)o.getPtr());
   return RT_OK;
 }
 
@@ -2640,6 +2644,28 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
     return RT_OK;
 }
 
+rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
+{
+  rtLogInfo("trying to get service for name: %s", name.cString());
+#ifdef PX_SERVICE_MANAGER
+  rtObjectRef serviceManager;
+  rtError result = pxServiceManager::findServiceManager(serviceManager);
+  if (result != RT_OK)
+  {
+    rtLogWarn("service manager not found");
+    return result;
+  }
+  result = serviceManager.sendReturns<rtObjectRef>("createService", name, returnObject);
+  rtLogInfo("create %s service result: %d", name.cString(), result);
+  return result;
+#else
+  rtLogInfo("service manager not supported");
+  (void)name;
+  (void)returnObject;
+  return RT_FAIL;
+#endif //PX_SERVICE_MANAGER
+}
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, w);
@@ -2658,6 +2684,7 @@ rtDefineMethod(pxScene2d, screenshot);
 
 rtDefineMethod(pxScene2d, clipboardGet);
 rtDefineMethod(pxScene2d, clipboardSet);
+rtDefineMethod(pxScene2d, getService);
 
 rtDefineMethod(pxScene2d, loadArchive);
 rtDefineProperty(pxScene2d, ctx);
@@ -2755,20 +2782,20 @@ void pxScene2d::invalidateRect(pxRect* r)
   }
 }
 
-void pxScene2d::sceneContainerDisposed(pxSceneContainerRef ref)
+void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
 {
-  // this is to make sure, we are not clearing the scene containers vector, while it is under process from scene dispose
+  // this is to make sure, we are not clearing the rtobject references, while it is under process from scene dispose
   if (!mDisposed)
   {
     unsigned int pos = 0;
-    for (; pos<mSceneContainers.size(); pos++)
+    for (; pos<mInnerpxObjects.size(); pos++)
     {
-      if (mSceneContainers[pos] == ref)
+      if (mInnerpxObjects[pos] == ref)
         break;
     }
-    if (pos != mSceneContainers.size())
+    if (pos != mInnerpxObjects.size())
     {
-      mSceneContainers.erase(mSceneContainers.begin()+pos);
+      mInnerpxObjects.erase(mInnerpxObjects.begin()+pos);
     }
   }
 }
@@ -2854,7 +2881,7 @@ void pxSceneContainer::dispose()
     rtLogInfo(__FUNCTION__);
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
-    mScene->sceneContainerDisposed(this);
+    mScene->innerpxObjectDisposed(this);
     setScriptView(NULL);
     pxObject::dispose();
     Release();
