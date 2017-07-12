@@ -398,7 +398,7 @@ public:
                  pxInterp interp, pxConstantsAnimation::animationOptions options,
                  int32_t count, rtObjectRef promise, rtObjectRef animateObj);
 
-  void cancelAnimation(const char* prop, bool fastforward = false, bool rewind = false, bool resolve = false);
+  void cancelAnimation(const char* prop, bool fastforward = false, bool rewind = false);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
