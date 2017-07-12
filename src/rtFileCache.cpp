@@ -231,7 +231,7 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
   mCurrentSize += mFileSizeMap[filename];
   int64_t size = cleanup();
   mCacheMutex.unlock();
-  rtLogInfo("current size after insertion and cleanup (%ld)",size);
+  rtLogInfo("current size after insertion and cleanup (%lld)",size);
   return RT_OK;
 }
 
@@ -256,8 +256,10 @@ void rtFileCache::clearCache()
     stringstream buff;
     buff << "rm -rf " << mDirectory.cString() << "/*" ;
     system(buff.str().c_str());
+    mCacheMutex.lock();
     mFileSizeMap.clear();
     mCurrentSize = 0;
+    mCacheMutex.unlock();
   }
 }
 
@@ -386,6 +388,7 @@ bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
   else
   {
     rtLogWarn("Logfile is not proper");
+    fclose(fp);
     return false;
   }
   cacheData.setFilePointer(fp);

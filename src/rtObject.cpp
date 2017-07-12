@@ -248,7 +248,7 @@ rtError rtMapObject::Get(const char* name, rtValue* value) const
   {
     rtRefT<rtArrayObject> keys = new rtArrayObject;
     vector<rtNamedValue>::const_iterator it = this_->mProps.begin();
-    while(it != mProps.end())
+    while(it != this_->mProps.end())
     {
       // exclude allKeys
       if (it->n != "allKeys")

@@ -249,7 +249,7 @@ rtError pxStorePNGImage(pxOffscreen &b, rtData &pngData)
     png_destroy_write_struct(&png_ptr, &info_ptr);
   }
 
-  pngData.init((uint8_t *)state.buffer, state.size);
+  pngData.init((uint8_t *)state.buffer, (uint32_t)state.size);
 
   if (state.buffer)
     free(state.buffer);
@@ -1145,7 +1145,7 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
   }
 
   //unsigned int width, height, channels, rowbytes, size, i, j;
-  unsigned int width, height, rowbytes, size, i, j;
+  uint32_t width, height, rowbytes, size, i, j;
   png_bytepp rows_image;
   png_bytepp rows_frame;
   unsigned char *p_image;
@@ -1175,7 +1175,7 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
     width = png_get_image_width(png_ptr, info_ptr);
     height = png_get_image_height(png_ptr, info_ptr);
     //channels = png_get_channels(png_ptr, info_ptr);
-    rowbytes = png_get_rowbytes(png_ptr, info_ptr);
+    rowbytes = (uint32_t)png_get_rowbytes(png_ptr, info_ptr);
     size = height * rowbytes;
     p_image = (unsigned char *)malloc(size);
     p_frame = (unsigned char *)malloc(size);
