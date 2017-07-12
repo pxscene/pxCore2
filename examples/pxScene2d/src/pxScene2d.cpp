@@ -42,7 +42,7 @@
 #include "pxImage.h"
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
-#endif
+#endif //PX_SERVICE_MANAGER
 #include "pxImage9.h"
 #include "pxImageA.h"
 
@@ -1632,10 +1632,6 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
-#ifdef PX_SERVICE_MANAGER
-  else if (!strcmp("serviceManager",t.cString()))
-    e = createServiceManager(p,o);
-#endif
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
@@ -1727,14 +1723,6 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 }
-
-#ifdef PX_SERVICE_MANAGER
-rtError pxScene2d::createServiceManager(rtObjectRef p, rtObjectRef& o)
-{
-  pxServiceManager::findServiceManager(o);  
-  return RT_OK;
-}
-#endif
 
 rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 {
@@ -2656,6 +2644,28 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
     return RT_OK;
 }
 
+rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
+{
+  rtLogInfo("trying to get service for name: %s", name.cString());
+#ifdef PX_SERVICE_MANAGER
+  rtObjectRef serviceManager;
+  rtError result = pxServiceManager::findServiceManager(serviceManager);
+  if (result != RT_OK)
+  {
+    rtLogWarn("service manager not found");
+    return result;
+  }
+  result = serviceManager.sendReturns<rtObjectRef>("createService", name, returnObject);
+  rtLogInfo("create %s service result: %d", name.cString(), result);
+  return result;
+#else
+  rtLogInfo("service manager not supported");
+  (void)name;
+  (void)returnObject;
+  return RT_FAIL;
+#endif //PX_SERVICE_MANAGER
+}
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, w);
@@ -2674,6 +2684,7 @@ rtDefineMethod(pxScene2d, screenshot);
 
 rtDefineMethod(pxScene2d, clipboardGet);
 rtDefineMethod(pxScene2d, clipboardSet);
+rtDefineMethod(pxScene2d, getService);
 
 rtDefineMethod(pxScene2d, loadArchive);
 rtDefineProperty(pxScene2d, ctx);
