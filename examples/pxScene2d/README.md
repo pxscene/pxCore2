@@ -39,7 +39,7 @@
 1. Build **pxCore**
 
     ~~~~
-    cd ~/pxCore 
+    cd ~/pxCore/src 
     make -f Makefile.glut
     ~~~~
 
