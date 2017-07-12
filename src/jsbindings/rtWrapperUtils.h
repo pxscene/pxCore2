@@ -42,6 +42,8 @@ inline v8::Local<TypeName> PersistentToLocal(v8::Isolate* isolate, const v8::Per
 {
   if (persistent.IsWeak()) 
     return WeakPersistentToLocal(isolate, persistent);
+  else if (persistent.IsNearDeath())
+    return v8::Local<TypeName>();
   else 
     return StrongPersistentToLocal(persistent);
 }
