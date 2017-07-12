@@ -1276,6 +1276,8 @@ public:
 
   rtMethod1ArgAndReturn("clipboardGet", clipboardGet, rtString, rtString);
   rtMethod2ArgAndNoReturn("clipboardSet", clipboardSet, rtString, rtString);
+
+  rtMethod1ArgAndReturn("getService", getService, rtString, rtObjectRef);
     
     
   rtProperty(ctx, ctx, setCtx, rtValue);
@@ -1336,9 +1338,6 @@ public:
   rtError createText(rtObjectRef p, rtObjectRef& o);
   rtError createTextBox(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
-#ifdef PX_SERVICE_MANAGER
-  rtError createServiceManager(rtObjectRef p, rtObjectRef& o);
-#endif
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
   rtError createImageA(rtObjectRef p, rtObjectRef& o);
   rtError createImageResource(rtObjectRef p, rtObjectRef& o);
@@ -1465,6 +1464,7 @@ private:
   rtError screenshot(rtString type, rtString& pngData);
   rtError clipboardGet(rtString type, rtString& retString);
   rtError clipboardSet(rtString type, rtString clipString);
+  rtError getService(rtString name, rtObjectRef& returnObject);
   
     
   rtRef<pxObject> mRoot;
