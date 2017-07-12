@@ -1,7 +1,14 @@
 cd $TRAVIS_BUILD_DIR
+find . -name *.gcda
+find . -name *.gcno
+echo "gcda printed"
 
 rm -rf reports
 rm -rf tracefile
+
+pwd
+ls -lrt src/obj
+ls -lrt examples/pxScene2d/src/obj/
 
 lcov -c -d src/obj/ -o tracefile
 lcov --remove tracefile '/usr/include/*' '*external*' -o tracefile_pxcore

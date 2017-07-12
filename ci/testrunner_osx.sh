@@ -3,7 +3,12 @@
 #!/bin/sh
 ulimit -c unlimited
 cd $TRAVIS_BUILD_DIR
-currentdir="$(pwd)" 
+currentdir="$(pwd)"
+cd src
+lcov -d obj/ --zerocounters
+cd ../examples/pxScene2d/src
+lcov -d obj/ --zerocounters
+cd $currentdir
 cored=0
 
 cd $currentdir

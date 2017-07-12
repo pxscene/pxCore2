@@ -66,6 +66,8 @@ then
   if [ "$TRAVIS_OS_NAME" = "linux" ] ;
   then
     sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/* /var/www/.
+    sudo chmod -R 777 $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/
+    sudo chmod -R 777 /var/www
     ls -lrt /etc/lighttpd/lighttpd.conf
     sudo /etc/init.d/lighttpd stop
     sudo sed -i "s/server.modules = (/server.modules = (\n\t\"mod_setenv\"\,/g" /etc/lighttpd/lighttpd.conf
@@ -79,6 +81,8 @@ then
     sudo mkdir -p /var
     sudo ln -s /usr/local/var/www /var/www
     sudo cp $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/* /var/www/.
+    sudo chmod -R 777 $TRAVIS_BUILD_DIR/tests/pxScene2d/supportfiles/
+    sudo chmod -R 777 /var/www
     sudo sed -i -n "s/server.port = 8080/server.port = 80/g" /usr/local/etc/lighttpd/lighttpd.conf
     sudo sed -i -n "s/#  \"mod_setenv\"/   \"mod_setenv\"/g" /usr/local/etc/lighttpd/modules.conf
     echo "setenv.add-response-header += (\"Cache-Control\" => \"public, max-age=1000\")"|sudo tee -a /usr/local/etc/lighttpd/modules.conf

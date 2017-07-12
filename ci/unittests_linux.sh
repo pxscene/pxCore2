@@ -3,7 +3,7 @@ ulimit -c unlimited
 cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
 touch $TRAVIS_BUILD_DIR/logs/test_logs;
 TESTLOGS=$TRAVIS_BUILD_DIR/logs/test_logs;
-sudo ./pxscene2dtests.sh>$TESTLOGS 2>&1 &
+./pxscene2dtests.sh>$TESTLOGS 2>&1 &
 
 grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
@@ -17,9 +17,9 @@ echo "unittests running for $count seconds"
 done
 
 echo "kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`"
-sudo kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`
+kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`
 sleep 5s;
-sudo pkill -9 -f pxscene2dtests.sh
+pkill -9 -f pxscene2dtests.sh
 
 #check for process hung
 grep "Global test environment tear-down" $TESTLOGS
