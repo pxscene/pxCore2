@@ -29,6 +29,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#if !defined(ENABLE_DFB)
+#include <inttypes.h> // for logging int64
+#endif //ENABLE_DFB
 
 #define DEFAULT_MAX_CACHE_SIZE 20971520
 
@@ -231,7 +234,11 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
   mCurrentSize += mFileSizeMap[filename];
   int64_t size = cleanup();
   mCacheMutex.unlock();
-  rtLogInfo("current size after insertion and cleanup (%lld)",size);
+#if !defined(ENABLE_DFB)
+  rtLogInfo("current size after insertion and cleanup (%" PRId64 ")",size);
+#else
+  rtLogInfo("current size after insertion and cleanup (%ld)",size);
+#endif //ENABLE_DFB
   return RT_OK;
 }
 
