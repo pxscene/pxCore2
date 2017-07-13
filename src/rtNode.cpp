@@ -18,7 +18,14 @@
 
 // rtNode.cpp
 
+#if defined WIN32
+#include <Windows.h>
+#include <direct.h>
+#define __PRETTY_FUNCTION__ __FUNCTION__
+#else
 #include <unistd.h>
+#endif
+
 #include <stdio.h>
 #include <errno.h>
 
@@ -747,7 +754,11 @@ void rtNode::initializeNode()
 #endif
 
 #ifdef RUNINMAIN
+#ifdef WIN32
+  __rt_main_thread__ = GetCurrentThreadId();
+#else
   __rt_main_thread__ = pthread_self(); //  NB
+#endif
 #endif
   nodePath();
 
@@ -838,7 +849,12 @@ void rtNode::nodePath()
 
     if (getcwd(cwd, sizeof(cwd)) != NULL)
     {
-      ::setenv("NODE_PATH", cwd, 1); // last arg is 'overwrite' ... 0 means DON'T !
+#ifdef WIN32
+	  _putenv_s("NODE_PATH", cwd);
+#else
+	  ::setenv("NODE_PATH", cwd, 1); // last arg is 'overwrite' ... 0 means DON'T !
+#endif
+	  rtLogInfo("NODE_PATH=%s", cwd);
     }
     else
     {

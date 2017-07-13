@@ -582,6 +582,11 @@ void pxWindowNative::createGlutWindow(int left, int top, int width, int height)
   glClearColor(0, 0, 0, 1);
 }
 
+void pxWindowNative::cleanupGlutWindow()
+{
+  // NOOP
+}
+
 pxError pxWindow::init(int left, int top, int width, int height)
 {
   glutDisplay* d = mDisplayRef.getDisplay();
