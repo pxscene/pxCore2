@@ -1,8 +1,10 @@
 @where msbuild 2> nul
 @if %errorlevel% neq 0 (
+ @echo.
  @echo Please execute this file from inside Visual Studio's Developer Command Prompt
+ @echo.
  pause
- exit
+ goto :eof
 )
 
 copy /y libjpeg-turbo-1.5.1\win_temp\* libjpeg-turbo-1.5.1\

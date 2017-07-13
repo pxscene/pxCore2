@@ -1,14 +1,18 @@
 @where msbuild 2> nul
 @if %errorlevel% neq 0 (
+ @echo.
  @echo Please execute this file from inside the Developer Command Prompt for Visual Studio
+ @echo.
  pause
- exit
+ goto :eof
 )
 
 @if not exist "examples\pxScene2d\external\libnode-v6.9.0\Release\node.exe" (
+  @echo.
   echo Externals must be built first.  Please run examples\pxScene2d\external\buildWindows.bat first
+  @echo.
   pause
-  exit
+  goto :eof
 ) else (
   mkdir temp
   cd temp
