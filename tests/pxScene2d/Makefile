@@ -29,6 +29,7 @@ SRCS_FULL=\
     test_pxUtil.cpp \
     test_pxImage.cpp \
     test_imagecache.cpp \
+    test_unzip.cpp \
     $(SRCS_WAYLAND)
 
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
