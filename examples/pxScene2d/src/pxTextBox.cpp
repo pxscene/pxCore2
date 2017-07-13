@@ -351,11 +351,16 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
     int i = 0;
     int lasti = 0;
     int numbytes = 1;
+    char* tempChar = NULL;
     while((charToMeasure = u8_nextchar((char*)text, &i)) != 0)
     {
       // Determine if the character is multibyte
       numbytes = i-lasti;
-	  char *tempChar = (char*)malloc(sizeof(char)*(numbytes+1));
+      if (tempChar != NULL)
+      {
+        delete [] tempChar;
+      }
+      tempChar = new char[numbytes+1];
       memset(tempChar, '\0', sizeof(char)*(numbytes+1));
       if(numbytes == 1) {
         tempChar[0] = charToMeasure;
@@ -485,7 +490,8 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
             
           }
 
-          free(tempChar);
+          delete [] tempChar;
+          tempChar = NULL;
 
           // Free tempStr
           free(tempStr);
@@ -514,6 +520,11 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         }
       }
     }//WHILE
+    if (tempChar != NULL)
+    {
+      delete [] tempChar;
+      tempChar = NULL;
+    }
 
     if(accString.length() > 0) {
       lastLineNumber = lineNumber;

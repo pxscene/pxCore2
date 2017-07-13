@@ -201,15 +201,15 @@ protected:
 #endif
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
-ENTERSCENELOCK()
-    mView = NULL;
-EXITSCENELOCK()
   #ifdef RUNINMAIN
      script.garbageCollect();
   #endif
-#ifndef RUNINMAIN
+  ENTERSCENELOCK()
+    mView = NULL;
+  EXITSCENELOCK()
+  #ifndef RUNINMAIN
    script.setNeedsToEnd(true);
-#endif
+  #endif
   #ifdef ENABLE_DEBUG_MODE
     free(g_origArgv);
   #endif
