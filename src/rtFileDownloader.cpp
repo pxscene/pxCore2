@@ -25,13 +25,10 @@
 #include "rtThreadTask.h"
 #include "rtThreadPool.h"
 #include "pxTimer.h"
-
+#include "rtLog.h"
 #include <sstream>
 #include <iostream>
 #include <thread>
-
-#include "unistd.h"
-
 using namespace std;
 
 #define CA_CERTIFICATE "cacert.pem"
@@ -135,7 +132,7 @@ void onDownloadHandleCheck()
   bool checkHandles = true;
   while (checkHandles)
   {
-    usleep(kDownloadHandleTimerIntervalInMilliSeconds * 1000);
+	pxSleepMS(kDownloadHandleTimerIntervalInMilliSeconds);
     rtFileDownloader::instance()->checkForExpiredHandles();
     downloadHandleMutex.lock();
     checkHandles = continueDownloadHandleCheck;

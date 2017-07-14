@@ -81,7 +81,7 @@ const char* rtStrError_SystemError(int e)
     #ifdef __linux__
     buff = strerror_r(e, buff, 256);
     #else
-    strerror_r(e, buff, 256);
+    strerror(e);
     #endif
   }
 

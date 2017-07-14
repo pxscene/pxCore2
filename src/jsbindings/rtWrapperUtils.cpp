@@ -436,7 +436,7 @@ void rtWrapperSceneUpdateExit()
   sLockCount--;
 #ifdef USE_STD_THREADS
   if (sLockCount == 0)
-    sCurrentSceneThread = std::thread::id()
+    sCurrentSceneThread = std::thread::id();
 #else
   if (sLockCount == 0)
     sCurrentSceneThread = 0;

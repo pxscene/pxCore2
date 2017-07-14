@@ -40,7 +40,15 @@ using namespace std;
 
 #include "jsbindings/rtWrapperUtils.h"
 #include <signal.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
+
+#ifdef WIN32
+#include <winsparkle.h>
+//todo: is this resource file needed?  if so, uncomment
+//#include "../../../pxCore.vsbuild/pxScene2d/resource.h"
+#endif
 
 #include <stdint.h>    // for PRId64
 #include <inttypes.h>  // for PRId64
@@ -79,7 +87,6 @@ char** g_origArgv = NULL;
 #endif
 bool gDumpMemUsage = false;
 extern int pxObjectCount;
-
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void* context, bool succeeded) {
@@ -106,7 +113,13 @@ public:
     pxWindow::init(x,y,w,h);
 
     char buffer[1024];
+		std::string urlStr(url);
+		if (urlStr.find("http")) {
     sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(url).cString());
+		}
+		else {
+			sprintf(buffer, "shell.js?url=%s",url);
+		}
 #ifdef RUNINMAIN
     setView( new pxScriptView(buffer,"javascript/node/v8"));
 #else
@@ -192,10 +205,10 @@ protected:
      script.garbageCollect();
   #endif
   ENTERSCENELOCK()
-      mView = NULL;
+    mView = NULL;
   EXITSCENELOCK()
   #ifndef RUNINMAIN
-     script.setNeedsToEnd(true);
+   script.setNeedsToEnd(true);
   #endif
   #ifdef ENABLE_DEBUG_MODE
     free(g_origArgv);
@@ -324,7 +337,9 @@ void handleSegv(int)
   FILE* fp = fopen("/tmp/pxscenecrash","w");
   fclose(fp);
   rtLogInfo("Signal SEGV received. sleeping to collect data");
+#ifndef WIN32
   sleep(1800);
+#endif //WIN32
 }
 
 void handleAbrt(int)
@@ -332,7 +347,9 @@ void handleAbrt(int)
   FILE* fp = fopen("/tmp/pxscenecrash","w");
   fclose(fp);
   rtLogInfo("Signal ABRT received. sleeping to collect data");
+#ifndef WIN32
   sleep(1800);
+#endif //WIN32
 }
 
 int pxMain(int argc, char* argv[])
@@ -450,6 +467,55 @@ if (s && (strcmp(s,"1") == 0))
   win.setVisibility(true);
   win.setAnimationFPS(60);
 
+#ifdef WIN32
+
+  HDC hdc = ::GetDC(win.mWindow);
+  HGLRC hrc;
+
+	static PIXELFORMATDESCRIPTOR pfd =
+	{
+		sizeof(PIXELFORMATDESCRIPTOR),
+		1,
+		PFD_DRAW_TO_WINDOW |
+		PFD_SUPPORT_OPENGL |
+		PFD_DOUBLEBUFFER |
+		PFD_SWAP_EXCHANGE,
+		PFD_TYPE_RGBA,
+		24,
+		0, 0, 0, 0, 0, 0,
+		8,
+		0,
+		0,
+		0, 0, 0, 0,
+		24,
+		8,
+		0,
+		PFD_MAIN_PLANE,
+		0,
+		0, 0, 0
+	};
+
+	int pixelFormat = ChoosePixelFormat(hdc, &pfd);
+  if (::SetPixelFormat(hdc, pixelFormat, &pfd)) {
+	  hrc = wglCreateContext(hdc);
+	  if (::wglMakeCurrent(hdc, hrc)) {
+			glewExperimental = GL_TRUE;
+			if (glewInit() != GLEW_OK)
+				throw std::runtime_error("glewInit failed");
+
+			char *GL_version = (char *)glGetString(GL_VERSION);
+			char *GL_vendor = (char *)glGetString(GL_VENDOR);
+			char *GL_renderer = (char *)glGetString(GL_RENDERER);
+
+
+			rtLogInfo("GL_version = %s", GL_version);
+			rtLogInfo("GL_vendor = %s", GL_vendor);
+			rtLogInfo("GL_renderer = %s", GL_renderer);
+	  }
+  }
+
+
+#endif
   #if 0
   sceneWindow win2;
   win2.init(50, 50, 1280, 720);
@@ -460,6 +526,20 @@ if (s && (strcmp(s,"1") == 0))
 // would like to decouple it from pxScene2d specifically
   context.init();
 
+#ifdef WIN32
+
+  // Initialize WinSparkle as soon as the app itself is initialized, right
+  // before entering the event loop:
+  win_sparkle_set_appcast_url("http://jmgasper.gitlab.io/appcast.xml");
+  win_sparkle_init(); 
+
+#endif
+
   eventLoop.run();
+
+#ifdef WIN32
+  win_sparkle_cleanup();
+#endif
+
   return 0;
 }
