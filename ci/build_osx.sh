@@ -39,12 +39,20 @@ checkError $? 1 "Building pxcore static library failed" "Compilation error" "che
 fi
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src;
 
-if [ "$TRAVIS_PULL_REQUEST" = "false" ]
+if [ "$TRAVIS_PULL_REQUEST" = "false" ] ;
 then
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
+then
+echo "***************************** Building libpxscene release ****" >> $BUILDLOGS;
+make clean;
+make libs-mac >>$BUILDLOGS 2>&1;
+checkError $? 0
+else
 echo "***************************** Building libpxscene ****" >> $BUILDLOGS;
 make clean;
 make libs-mac CODE_COVERAGE=1 >>$BUILDLOGS 2>&1;
 checkError $? 0
+fi
 else
 echo "***************************** Building libpxscene ****";
 make clean;
@@ -85,6 +93,8 @@ make -j CODE_COVERAGE=1 1>>$BUILDLOGS
 checkError $? 0 "make command failed for pxscene target" "Compilation error" "check the errors displayed in this window"
 fi
 
+if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
+then
 ls -lrt $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
@@ -99,4 +109,4 @@ make clean;
 make CODE_COVERAGE=1 1>>$BUILDLOGS;
 checkError $? 0 "make command failed for pxscene unittests target" "Compilation error" "check the errors displayed in this window"
 fi
-
+fi
