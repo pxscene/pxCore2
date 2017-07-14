@@ -34,7 +34,7 @@ public:
 
   uint32_t numFrames()
   {
-    return mSequence.size();
+    return (uint32_t)mSequence.size();
   }
 
   uint32_t numPlays()

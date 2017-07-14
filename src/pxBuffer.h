@@ -59,7 +59,10 @@ class pxBuffer
 {
 public:
 
-pxBuffer(): mPixelFormat(RT_DEFAULT_PIX), mBase(NULL), mWidth(0), mHeight(0), mStride(0), mUpsideDown(false) {}
+pxBuffer(): mPixelFormat(RT_DEFAULT_PIX), 
+            mSrcIndexR(0), mSrcIndexG(0), mSrcIndexB(0), mSrcIndexA(0),
+            mDstIndexR(0), mDstIndexG(0), mDstIndexB(0), mDstIndexA(0),
+            mBase(NULL), mWidth(0), mHeight(0), mStride(0), mUpsideDown(false) {}
 
   void* base() const { return mBase; }
   void setBase(void* p) { mBase = p; }
