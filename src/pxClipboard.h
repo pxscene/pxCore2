@@ -21,6 +21,11 @@
 #ifndef PX_CLIPBOARD_H
 #define PX_CLIPBOARD_H
 
+
+#ifdef WIN32
+#include "win\pxClipboardNative.h"
+#endif
+
 class pxClipboard: public pxClipboardNative
 {
 public:

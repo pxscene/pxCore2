@@ -24,7 +24,7 @@
 #include "rtObject.h"
 #include "rtValue.h"
 #include "rtAtomic.h"
-
+#include "pxTimer.h"
 
 #include <string>
 #include <map>
@@ -164,7 +164,7 @@ void nodeThread(uv_work_t *req)
             //printf("nodeThread unlocking\n");
             uv_mutex_unlock(&threadMutex);
         }
-        sleep(0.05);
+		pxSleepMS(50);
     }
     printf("nodeThread is terminating\n");
     

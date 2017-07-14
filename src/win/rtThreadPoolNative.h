@@ -25,7 +25,7 @@ protected:
   bool mRunning;
   rtMutex mThreadTaskMutex;
   rtThreadCondition mThreadTaskCondition;
-  std::vector<HANDLE> mThreads;
+  std::vector<void*> mThreads;
   std::deque<rtThreadTask*> mThreadTasks;
 };
 

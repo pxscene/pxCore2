@@ -18,7 +18,11 @@
 
 // rtNode.cpp
 
+#if defined WIN32
+#define __PRETTY_FUNCTION__ __FUNCTION__
+#else
 #include <unistd.h>
+#endif
 #include <stdio.h>
 #include <errno.h>
 
