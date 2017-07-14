@@ -22,14 +22,17 @@ SRCS_FULL=\
     test_rtnode.cpp \
     test_pxAnimate.cpp \
     test_jsfiles.cpp \
-    test_rtError.cpp \
     test_rtFile.cpp \
     test_rtZip.cpp \
     test_rtString.cpp \
-    test_pxUtil.cpp \
     test_pxImage.cpp \
-    test_imagecache.cpp \
     $(SRCS_WAYLAND)
+
+ifneq ($(UNAME_S),Darwin)
+SRCS_FULL+= test_pxUtil.cpp \
+    test_imagecache.cpp \
+    test_rtError.cpp
+endif
 
 MAKEFILE_PATH:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PXCOREDIR=$(MAKEFILE_PATH)/../../
