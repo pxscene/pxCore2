@@ -74,7 +74,11 @@ void  rtFileCache::initCache()
   struct stat st;
   memset(&st,0,sizeof(struct stat));
   if (stat(mDirectory.cString(), &st) == -1) {
+#ifdef RT_PLATFORM_WINDOWS
+    mkdir(mDirectory.cString());
+#else
     mkdir(mDirectory.cString(), 0777);
+#endif
   }
   else
   {
@@ -151,7 +155,11 @@ rtError rtFileCache::setCacheDirectory(const char* directory)
   memset(&st,0,sizeof(struct stat));
   if (stat(mDirectory.cString(), &st) == -1)
   {
-    mkdir(mDirectory.cString(), 0777);
+#ifdef RT_PLATFORM_WINDOWS
+  mkdir(mDirectory.cString());
+#else
+  mkdir(mDirectory.cString(), 0777);
+#endif //RT_PLATFORM_WINDOWS
   }
   else
   {

@@ -73,7 +73,9 @@ void rtThreadPoolNative::startThread()
         mThreadTaskMutex.lock();
         while (mRunning && (mThreadTasks.empty()))
         {
+			mThreadTaskMutex.unlock();
             mThreadTaskCondition.wait(mThreadTaskMutex.getNativeMutexDescription());
+			mThreadTaskMutex.lock();
         }
         if (!mRunning)
         {

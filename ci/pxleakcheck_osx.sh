@@ -1,4 +1,6 @@
 #!/bin/sh
+echo "disabling pxleakcheck for mac";
+exit 0;
 #This script is used to detect leaked px objects or textures
 ulimit -c unlimited
 cored=0
