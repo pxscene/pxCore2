@@ -39,7 +39,9 @@
 #include <GLES2/gl2ext.h>
 #else
 #include <GL/glew.h>
+#ifdef PX_PLATFORM_GLUT
 #include <GL/glut.h>
+#endif
 #include <GL/gl.h>
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif

@@ -35,7 +35,7 @@
 typedef uint64_t rtThreadId;
 #define RT_THREADID_FMT PRIu64
 #elif defined WIN32
-typedef DWORD rtThreadId;
+typedef unsigned long rtThreadId;
 #define RT_THREADID_FMT "l"
 #else
 typedef int32_t rtThreadId;

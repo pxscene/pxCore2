@@ -15,6 +15,7 @@
 #include <stdarg.h>
 
 #ifdef WIN32
+#include <inttypes.h>
 typedef uint32_t u_int32_t;
 #endif
 
