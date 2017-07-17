@@ -44,7 +44,6 @@ ls -rlt
 ls -rlt src/
 ls -rlt examples/pxScene2d/src/
 ls -lrt tests/pxScene2d/
-
 cmake --build src/ 1>>$BUILDLOGS;
 checkError $? "cmake build failed for pxcore or rtcore" "Compilation error" "Check the errors displayed in this window"
 
