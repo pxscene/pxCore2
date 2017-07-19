@@ -468,7 +468,7 @@ bool rtHttpCacheData::readFileData()
 
 void rtHttpCacheData::populateExpirationDateFromCache()
 {
-  char buf;
+  int buf;
   string date;
   while ( !feof(fp) )
   {
@@ -477,7 +477,7 @@ void rtHttpCacheData::populateExpirationDateFromCache()
     {
       break;
     }
-    date.append(1,buf);
+    date.append(1,(char)buf);
   }
 
   stringstream stream(date);

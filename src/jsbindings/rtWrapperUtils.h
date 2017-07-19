@@ -167,7 +167,7 @@ protected:
     else
     {
       strcat(buff, ": ");
-      strcat(buff, rtStrError(err));
+      strncat(buff, rtStrError(err), kBuffSize - strlen(buff) - 1);
     }
     va_end(ptr);
 
