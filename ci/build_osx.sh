@@ -22,7 +22,6 @@ if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
 then
 export CODE_COVERAGE=1
 fi
-
 cd $TRAVIS_BUILD_DIR;
 cp examples/pxScene2d/src/Makefile examples/pxScene2d/src/Makefile_orig
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
