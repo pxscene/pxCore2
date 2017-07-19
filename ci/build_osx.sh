@@ -45,6 +45,7 @@ echo "***************************** Building pxcore,rtcore,pxscene app,libpxscen
 pwd
 ls -lrt examples/pxScene2d/src
 ls -lrt examples/pxScene2d/src/CMakeFiles
+cat examples/pxScene2d/src/CMakeFiles/pxscene_app.dir/build.make
 cmake --build  . 
 #1>>$BUILDLOGS;
 checkError $? 1 "cmake build failed for pxcore or rtcore" "Compilation error" "Check the errors displayed in this window"
