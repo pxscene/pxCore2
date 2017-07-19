@@ -26,6 +26,7 @@ SRCS_FULL=\
     test_rtZip.cpp \
     test_rtString.cpp \
     test_pxImage.cpp \
+    test_unzip.cpp \
     $(SRCS_WAYLAND)
 
 ifneq ($(UNAME_S),Darwin)
