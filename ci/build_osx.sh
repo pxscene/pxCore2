@@ -43,8 +43,8 @@ echo "***************************** Generating config files ****"
 cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON . 1>>$BUILDLOGS;
 checkError $? "cmake config failed" "Config error" "Check the errors displayed in this window"
 echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene, unitttests ****" >> $BUILDLOGS
-cmake --build . --clean-first 1>>$BUILDLOGS;
-checkError $? "cmake build failed for pxcore or rtcore" "Compilation error" "Check the errors displayed in this window"
+cmake --build . 1>>$BUILDLOGS;
+checkError $? 1 "cmake build failed for pxcore or rtcore" "Compilation error" "Check the errors displayed in this window"
 fi
 
 
