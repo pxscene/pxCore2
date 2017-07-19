@@ -139,7 +139,7 @@ static inline bool file_exists(const char *file)
 #endif
 
 rtNodeContext::rtNodeContext(Isolate *isolate,Platform* platform) :
-     mIsolate(isolate), mEnv(NULL), mRefCount(0),mPlatform(platform)
+     js_file(NULL), mIsolate(isolate), mEnv(NULL), mRefCount(0),mPlatform(platform), mContextifyContext(NULL)
 {
   assert(isolate); // MUST HAVE !
   mId = rtAtomicInc(&sNextId);
@@ -149,7 +149,7 @@ rtNodeContext::rtNodeContext(Isolate *isolate,Platform* platform) :
 
 #ifdef USE_CONTEXTIFY_CLONES
 rtNodeContext::rtNodeContext(Isolate *isolate, rtNodeContextRef clone_me) :
-      mIsolate(isolate), mEnv(NULL), mRefCount(0), mContextifyContext(NULL)
+      js_file(NULL), mIsolate(isolate), mEnv(NULL), mRefCount(0), mPlatform(NULL), mContextifyContext(NULL)
 {
   assert(mIsolate); // MUST HAVE !
   mId = rtAtomicInc(&sNextId);
@@ -681,26 +681,32 @@ rtObjectRef rtNodeContext::runFile(const char *file, const char* /*args = NULL*/
 rtNode::rtNode()
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false)/*: mPlatform(NULL)*/
+: mRefContext(), mNeedsToEnd(false)
 #else
-: mNeedsToEnd(false)/*: mPlatform(NULL)*/
+: mNeedsToEnd(false)
 #endif
 #endif
 {
   rtLogInfo(__FUNCTION__);
+  mTestGc = false;
+  mIsolate = NULL;
+  mPlatform = NULL;
   initializeNode();
 }
 
 rtNode::rtNode(bool initialize)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false)/*: mPlatform(NULL)*/
+: mRefContext(), mNeedsToEnd(false)
 #else
-: mNeedsToEnd(false)/*: mPlatform(NULL)*/
+: mNeedsToEnd(false)
 #endif
 #endif
 {
   rtLogInfo(__FUNCTION__);
+  mTestGc = false;
+  mIsolate = NULL;
+  mPlatform = NULL;
   if (true == initialize)
   {
     initializeNode();
@@ -1008,9 +1014,12 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
 
     if(sandbox_path.empty()) // only once.
     {
-      const std::string NODE_PATH = ::getenv("NODE_PATH");
-
-      sandbox_path = NODE_PATH + "/" + SANDBOX_JS;
+      char *nodePath = ::getenv("NODE_PATH");
+      if (NULL != nodePath)
+      {
+        const std::string NODE_PATH = nodePath;
+        sandbox_path = NODE_PATH + "/" + SANDBOX_JS;
+      }
     }
 
     // Populate 'sandbox' vars in JS...

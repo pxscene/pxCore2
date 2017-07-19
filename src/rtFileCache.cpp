@@ -71,19 +71,15 @@ rtFileCache::~rtFileCache()
 
 void  rtFileCache::initCache()
 {
-  struct stat st;
-  memset(&st,0,sizeof(struct stat));
-  if (stat(mDirectory.cString(), &st) == -1) {
+  int retVal = -1;
 #ifdef RT_PLATFORM_WINDOWS
-    mkdir(mDirectory.cString());
+  retVal  = mkdir(mDirectory.cString());
 #else
-    mkdir(mDirectory.cString(), 0777);
+  retVal = mkdir(mDirectory.cString(), 0777);
 #endif
-  }
-  else
-  {
-    populateExistingFiles();
-  }
+  if (0 != retVal)
+    rtLogWarn("creation of cache directory failed");
+  populateExistingFiles();
 }
 
 void rtFileCache::populateExistingFiles()
@@ -151,20 +147,15 @@ rtError rtFileCache::setCacheDirectory(const char* directory)
   }
   mDirectory = directory;
 
-  struct stat st;
-  memset(&st,0,sizeof(struct stat));
-  if (stat(mDirectory.cString(), &st) == -1)
-  {
+  int retVal = -1;
 #ifdef RT_PLATFORM_WINDOWS
-  mkdir(mDirectory.cString());
+  retVal = mkdir(mDirectory.cString());
 #else
-  mkdir(mDirectory.cString(), 0777);
+  retVal = mkdir(mDirectory.cString(), 0777);
 #endif //RT_PLATFORM_WINDOWS
-  }
-  else
-  {
-    populateExistingFiles();
-  }
+  if (0 != retVal)
+    rtLogWarn("creation of cache directory failed");
+  populateExistingFiles();
   return RT_OK;
 }
 
@@ -265,7 +256,9 @@ void rtFileCache::clearCache()
     buff << "rm -rf " << mDirectory.cString() << "/*" ;
     system(buff.str().c_str());
     mFileSizeMap.clear();
+    mCacheMutex.lock();
     mCurrentSize = 0;
+    mCacheMutex.unlock();
   }
 }
 
@@ -375,7 +368,7 @@ bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
   }
 
   bool reachedHeaderEnd = false;
-  char buffer;
+  int buffer;
   string headerData;
   while ( !feof(fp) && (reachedHeaderEnd == false))
   {
@@ -385,7 +378,7 @@ bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
       reachedHeaderEnd = true;
       break;
     }
-    headerData.append(1,buffer);
+    headerData.append(1,(char)buffer);
   }
   if (true == reachedHeaderEnd)
   {
@@ -394,6 +387,10 @@ bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
   else
   {
     rtLogWarn("Logfile is not proper");
+    int closeret = fclose(fp);
+    if (0 != closeret)
+      rtLogWarn("improper logfile close failed");
+    fp  =  NULL;
     return false;
   }
   cacheData.setFilePointer(fp);

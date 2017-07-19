@@ -114,7 +114,7 @@ public:
 
     char buffer[1024];
 		std::string urlStr(url);
-		if (urlStr.find("http")) {
+		if (std::string::npos != urlStr.find("http")) {
     sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(url).cString());
 		}
 		else {
