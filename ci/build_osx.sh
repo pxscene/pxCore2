@@ -18,10 +18,10 @@ checkError()
   fi
 }
 
-if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
-then
-export CODE_COVERAGE=1
-fi
+#if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
+#then
+#export CODE_COVERAGE=1
+#fi
 cd $TRAVIS_BUILD_DIR;
 cp examples/pxScene2d/src/Makefile examples/pxScene2d/src/Makefile_orig
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
@@ -35,7 +35,7 @@ cmake . >>$BUILDLOGS 2>&1;
 fi
 checkError $? 0 "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
 echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
-cmake --build .  >>$BUILDLOGS 2>&1;
+cmake . >>$BUILDLOGS 2>&1;
 checkError $? 0 "Building pxcore static library failed" "Compilation error" "check the $BUILDLOGS file"
 else
 echo "***************************** Generating config files ****"
@@ -45,11 +45,8 @@ echo "***************************** Building pxcore,rtcore,pxscene app,libpxscen
 pwd
 ls -lrt examples/pxScene2d/src
 ls -lrt examples/pxScene2d/src/CMakeFiles
-cmake --build src 1>>$BUILDLOGS;
-checkError $? 1 "cmake build failed for pxcore or rtcore" "Compilation error" "Check the errors displayed in this window"
-cmake --build examples/pxScene2d/src 1>>$BUILDLOGS;
-checkError $? 1 "cmake build failed for pxcore or rtcore" "Compilation error" "Check the errors displayed in this window"
-cmake --build tests/pxScene2d 1>>$BUILDLOGS;
+cmake . 
+#1>>$BUILDLOGS;
 checkError $? 1 "cmake build failed for pxcore or rtcore" "Compilation error" "Check the errors displayed in this window"
 fi
 
