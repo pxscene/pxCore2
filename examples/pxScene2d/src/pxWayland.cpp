@@ -24,6 +24,9 @@
 #include "pxKeycodes.h"
 #include <sys/types.h>
 #include <signal.h>
+#if defined(RT_PLATFORM_LINUX) || defined(PX_PLATFORM_MAC)
+#include <unistd.h>
+#endif //RT_PLATFORM_LINUX || PX_PLATFORM_MAC
 
 #include "pxWayland.h"
 
