@@ -39,18 +39,42 @@ make >>$BUILDLOGS 2>&1;
 checkError $? 0 "Building pxcore static library failed" "Compilation error" "check the $BUILDLOGS file"
 else
 echo "***************************** Generating config files ****"
+
+cd $TRAVIS_BUILD_DIR/src
 cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON . 1>>$BUILDLOGS;
 checkError $? 1  "cmake config failed" "Config error" "Check the errors displayed in this window"
+
+cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
+cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON . 1>>$BUILDLOGS;
+checkError $? 1  "cmake config failed" "Config error" "Check the errors displayed in this window"
+
+#cd $TRAVIS_BUILD_DIR/tests/pxScene2d/
+#cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON . 1>>$BUILDLOGS;
+#checkError $? 1  "cmake config failed" "Config error" "Check the errors displayed in this window"
+
 echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
+
 pwd
 ls -lrt examples/pxScene2d/src
 ls -lrt examples/pxScene2d/src/CMakeFiles
 cat examples/pxScene2d/src/CMakeFiles/pxscene_app.dir/build.make
-make
-#1>>$BUILDLOGS;
-checkError $? 1 "cmake build failed for pxcore or rtcore" "Compilation error" "Check the errors displayed in this window"
-fi
 
+cd $TRAVIS_BUILD_DIR/src
+cmake --build .
+checkError $? 1 "cmake build failed for pxcore or rtcore" "Compilation error" "Check the errors displayed in this window"
+#1>>$BUILDLOGS;
+
+cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
+cmake --build .
+checkError $? 1 "cmake build failed for pxcore or rtcore" "Compilation error" "Check the errors displayed in this window"
+#1>>$BUILDLOGS;
+
+#cd $TRAVIS_BUILD_DIR/tests/pxScene2d/
+#cmake --build .
+#checkError $? 1 "cmake build failed for pxcore or rtcore" "Compilation error" "Check the errors displayed in this window"
+#1>>$BUILDLOGS;
+fi
+cd $TRAVIS_BUILD_DIR
 
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
