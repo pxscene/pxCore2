@@ -1,5 +1,7 @@
 cd $TRAVIS_BUILD_DIR
-
+echo "---------------------------------- printing gcd files ---------------------------"
+find . -name "*.gc*"
+echo "---------------------------------- printing gcd files after ---------------------------"
 rm -rf reports
 rm -rf tracefile
 
