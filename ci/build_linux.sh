@@ -32,6 +32,6 @@ checkError $? "cmake config failed" "Config error" "Check the errors displayed i
 
 echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene, unitttests ****"
 cmake --build . --clean-first 1>>$BUILDLOGS;
-checkError $? "cmake build failed for pxcore or rtcore" "Compilation error" "Check the errors displayed in this window"
+checkError $? "cmake build failed for pxcore,rtcore,pxscene app,libpxscene or unitttests" "Compilation error" "Check the errors displayed in this window"
 
 fi
