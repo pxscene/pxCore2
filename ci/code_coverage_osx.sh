@@ -5,15 +5,27 @@ echo "---------------------------------- printing gcd files after --------------
 rm -rf reports
 rm -rf tracefile
 
-lcov -d ./build/pxCore.build/Debug/pxCore\ Static\ Library.build/Objects-normal/x86_64/ -c -o tracefile
+lcov -d src/CMakeFiles/rtCore_s.dir -c -o tracefile
+lcov --remove tracefile '/usr/include/*' '*external*' '*Applications*' -o tracefile_rtcore_static
+rm -rf tracefile
+
+lcov -d src/CMakeFiles/rtCore.dir -c -o tracefile
+lcov --remove tracefile '/usr/include/*' '*external*' '*Applications*' -o tracefile_rtcore
+rm -rf tracefile
+
+lcov -d src/CMakeFiles/pxCore.dir -c -o tracefile
 lcov --remove tracefile '/usr/include/*' '*external*' '*Applications*' -o tracefile_pxcore
 rm -rf tracefile
 
-lcov -c -d examples/pxScene2d/src/obj/ -o tracefile
-lcov --remove tracefile '/usr/include/*' '*external*' '*Applications*' -o tracefile_pxscene
+lcov -c -d examples/pxScene2d/src/CMakeFiles/pxscene_app.dir -o tracefile
+lcov --remove tracefile '/usr/include/*' '*external*' '*Applications*' -o tracefile_pxscene_app
 rm -rf tracefile
 
-lcov -a tracefile_pxcore -a tracefile_pxscene -o tracefile
+lcov -c -d examples/pxScene2d/src/CMakeFiles/pxscene_static.dir -o tracefile
+lcov --remove tracefile '/usr/include/*' '*external*' '*Applications*' -o tracefile_pxscene_static
+rm -rf tracefile
+
+lcov -a tracefile_rtcore -a tracefile_rtcore_static -a tracefile_pxcore -a tracefile_pxscene_app -a tracefile_pxscene_static -o tracefile
 
 if [ "$#" -ne  "0" ]
 then
@@ -23,4 +35,4 @@ mkdir reports
 genhtml -o reports tracefile
 fi
 fi
-rm -rf tracefile_pxcore tracefile_pxscene
+rm -rf tracefile_rtcore tracefile_rtcore_static tracefile_pxcore tracefile_pxscene_app tracefile_pxscene_static
