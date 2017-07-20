@@ -49,7 +49,6 @@ checkError $? 1  "cmake config failed" "Config error" "Check the errors displaye
 echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
 cmake --build . 1>>$BUILDLOGS;
 checkError $? 1 "cmake build failed for pxcore or rtcore" "Compilation error" "Check the errors displayed in this window"
-find . -name "*.gc*"
 fi
 
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
