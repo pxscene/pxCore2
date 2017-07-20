@@ -29,7 +29,6 @@ else
 echo "***************************** Generating config files ****"
 cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON . 1>>$BUILDLOGS;
 checkError $? "cmake config failed" "Config error" "Check the errors displayed in this window"
-cat $BUILDLOGS
 
 echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene, unitttests ****"
 cmake --build . --clean-first 1>>$BUILDLOGS;
