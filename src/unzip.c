@@ -602,7 +602,7 @@ local unzFile unzOpenInternal (const void *path,
 
     if (unz_copyright[0]!=' ')
         return NULL;
-
+    us.num_file = 0;
     us.z_filefunc.zseek32_file = NULL;
     us.z_filefunc.ztell32_file = NULL;
     if (pzlib_filefunc64_32_def==NULL)
@@ -784,6 +784,7 @@ extern unzFile ZEXPORT unzOpen2_64 (const void *path,
         zlib_filefunc64_32_def_fill.zfile_func64 = *pzlib_filefunc_def;
         zlib_filefunc64_32_def_fill.ztell32_file = NULL;
         zlib_filefunc64_32_def_fill.zseek32_file = NULL;
+        zlib_filefunc64_32_def_fill.zopen32_file = NULL;
         return unzOpenInternal(path, &zlib_filefunc64_32_def_fill, 1);
     }
     else

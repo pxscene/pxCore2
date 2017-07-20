@@ -43,7 +43,7 @@ rtError rtZip::initFromBuffer(const void* buffer, size_t bufferSize)
   fill_memory_filefunc64(&memory_file);
   mUnzFile = unzOpen2_64(path, &memory_file);
 
-  mFilePaths.empty();
+  mFilePaths.clear();
 
   return mUnzFile?RT_OK:RT_FAIL;
 } 
@@ -51,7 +51,7 @@ rtError rtZip::initFromBuffer(const void* buffer, size_t bufferSize)
 rtError rtZip::initFromFile(const char* fileName)
 {
   mUnzFile = unzOpen64(fileName);
-  mFilePaths.empty();
+  mFilePaths.clear();
   return mUnzFile?RT_OK:RT_FAIL;
 }
 
