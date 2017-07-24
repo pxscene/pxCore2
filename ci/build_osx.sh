@@ -18,57 +18,55 @@ checkError()
   fi
 }
 
-cd $TRAVIS_BUILD_DIR;
-if [ "$TRAVIS_PULL_REQUEST" = "false" ]
+if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
 then
-echo "***************************** Building pxcore ****" >> $BUILDLOGS
-xcodebuild clean
-if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
-then
-xcodebuild -scheme "pxCore Static Library" >>$BUILDLOGS 2>&1;
-checkError $? 0 "Building pxcore static library failed" "Compilation error" "check the $BUILDLOGS file"
-else
-xcodebuild -scheme "pxCore Static Library" OTHER_CPLUSPLUSFLAGS="-fprofile-arcs -ftest-coverage">>$BUILDLOGS 2>&1;
-checkError $? 0 "Building pxcore static library failed" "Compilation error" "check the $BUILDLOGS file"
+export CODE_COVERAGE=1
 fi
-else
-echo "***************************** Building pxcore ****"
-xcodebuild clean
-xcodebuild -scheme "pxCore Static Library" OTHER_CPLUSPLUSFLAGS="-fprofile-arcs -ftest-coverage" 1>>$BUILDLOGS;
-checkError $? 1 "Building pxcore static library failed" "Compilation error" "check the logs displayed in this window"
-fi
-cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src;
 
-if [ "$TRAVIS_PULL_REQUEST" = "false" ] ;
-then
-if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
-then
-echo "***************************** Building libpxscene release ****" >> $BUILDLOGS;
-make clean;
-make libs-mac >>$BUILDLOGS 2>&1;
-checkError $? 0
-else
-echo "***************************** Building libpxscene ****" >> $BUILDLOGS;
-make clean;
-make libs-mac CODE_COVERAGE=1 >>$BUILDLOGS 2>&1;
-checkError $? 0
-fi
-else
-echo "***************************** Building libpxscene ****";
-make clean;
-make libs-mac CODE_COVERAGE=1 1>>$BUILDLOGS;
-checkError $? 0
-fi
+cd $TRAVIS_BUILD_DIR;
+cp examples/pxScene2d/src/Makefile examples/pxScene2d/src/Makefile_orig
+
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
-echo "***************************** Building pxscene app ***" >> $BUILDLOGS
+
+echo "***************************** Generating config files ****" >> $BUILDLOGS
+if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
+then
+cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON . >>$BUILDLOGS 2>&1;
+else
+cmake . >>$BUILDLOGS 2>&1;
+fi
+checkError $? 0 "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
+echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
+cmake --build . >>$BUILDLOGS 2>&1;
+checkError $? 0 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "check the $BUILDLOGS file"
+
+else
+
+echo "***************************** Generating config files ****"
+cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON . 1>>$BUILDLOGS;
+checkError $? 1  "cmake config failed" "Config error" "Check the errors displayed in this window"
+echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
+cmake --build . 1>>$BUILDLOGS;
+checkError $? 1 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "Check the errors displayed in this window"
+fi
+
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]
+then
+echo "***************************** Building pxscene deploy app ***" >> $BUILDLOGS
+
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
 then
+
+cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
+
 if [[ ! -z $PX_VERSION ]]
 then
-make PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
+make -f Makefile_orig PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
 checkError $? 0 "make command failed for deploy target" "Compilation error" "check the $BUILDLOGS file"
+
 else
+
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ]
 then
 export linenumber=`awk '/CFBundleShortVersionString/{ print NR; exit }' $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist`
@@ -76,37 +74,17 @@ checkError $? 0 "unable to read string CFBundleShortVersionString from Info.plis
 echo $linenumber
 export PX_VERSION=`sed -n "\`echo $((linenumber+1))\`p" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist|awk -F '<string>' '{print $2}'|awk -F'</string>' '{print $1}'`
 checkError $? 0 "unable to read version from Info.plist file" "Parse error" "check whether the Info.plist file in pxscene repo is having version details or not?"
-make PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
+make -f Makefile_orig PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
 checkError $? 0 "make command failed for deploy target" "Compilation error" "check the $BUILDLOGS file"
+
 else
-echo "Deploy terminated as pxversion environment is not set ************* " >> $BUILDLOGS
+echo "Deploy terminated as pxversion environment is not set for api event type ************* " >> $BUILDLOGS
 checkError 1 1 "Deploy terminated as pxversion environment is not set" "PX_VERSION environment variable not set" "Set PX_VERSION environment variable and retrigger"
 fi
-fi
-else
-make -j CODE_COVERAGE=1 >>$BUILDLOGS 2>&1
-checkError $? 0 "make command failed for pxscene target" "Compilation error" "check the $BUILDLOGS file"
-fi
-else
-echo "***************************** Building pxscene app ***"
-make -j CODE_COVERAGE=1 1>>$BUILDLOGS
-checkError $? 0 "make command failed for pxscene target" "Compilation error" "check the errors displayed in this window"
+
 fi
 
-if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
-then
-ls -lrt $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
-if [ "$TRAVIS_PULL_REQUEST" = "false" ]
-then
-echo "***************************** Building unittests ***" >> $BUILDLOGS;
-make clean;
-make CODE_COVERAGE=1 >>$BUILDLOGS 2>&1;
-checkError $? 0 "make command failed for pxscene unittests target" "Compilation error" "check the $BUILDLOGS file"
-else
-echo "***************************** Building unittests ***";
-make clean;
-make CODE_COVERAGE=1 1>>$BUILDLOGS;
-checkError $? 0 "make command failed for pxscene unittests target" "Compilation error" "check the errors displayed in this window"
 fi
+
 fi
+cd $TRAVIS_BUILD_DIR
