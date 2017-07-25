@@ -129,6 +129,18 @@ if [ "$(uname)" != "Darwin" ]; then
 
 fi
 
+#-------- BODYMOVIN
+
+cd bodymovin
+if [ ! -e node_modules ] ||
+  [ "$(uname)" != "Darwin" ]
+then
+  npm install
+fi
+
+gulp
+cd ..
+
 #--------
 
 #--------- GLUT  (Non -macOS)
