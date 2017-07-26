@@ -12,57 +12,28 @@ checkError()
   fi
 }
 
-cd $TRAVIS_BUILD_DIR/src
+export CODE_COVERAGE=1
+cd $TRAVIS_BUILD_DIR
+mkdir temp
+cd temp
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
-echo "***************************** Building pxcore and rtcore ****" >> $BUILDLOGS
-make -f Makefile.glut all CODE_COVERAGE=1 >>$BUILDLOGS 2>&1;
-checkError $? "Makefile.glut build failed for target all" "Compilation error" "Check the error in $BUILDLOGS"
-make -f Makefile.glut rtcore CODE_COVERAGE=1 >>$BUILDLOGS 2>&1;
-checkError $? "Makefile.glut build failed for target rtcore" "Compilation error" "Check the error in $BUILDLOGS"
-else
-echo "***************************** Building pxcore and rtcore ****"
-make -f Makefile.glut all CODE_COVERAGE=1 1>>$BUILDLOGS;
-checkError $? "Makefile.glut build failed for target all" "Compilation error" "Check the errors displayed in this window"
-make -f Makefile.glut rtcore CODE_COVERAGE=1 1>>$BUILDLOGS;
-checkError $? "Makefile.glut build failed for target rtcore" "Compilation error" "Check the errors displayed in this window"
-fi
+echo "***************************** Generating config files ****" >> $BUILDLOGS
+cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON .. >>$BUILDLOGS 2>&1;
+checkError $? "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
 
-cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-if [ "$TRAVIS_PULL_REQUEST" = "false" ]
-then
-echo "***************************** Building libpxscene ****" >> $BUILDLOGS;
-make clean;
-make libs-glut CODE_COVERAGE=1 >>$BUILDLOGS 2>&1;
-checkError $? "Makefile build failed for target libs-glut" "Compilation error" "Check the error in $BUILDLOGS"
-else
-echo "***************************** Building libpxscene ****";
-make clean;
-make libs-glut CODE_COVERAGE=1 1>>$BUILDLOGS;
-checkError $? "Makefile build failed for target libs-glut" "Compilation error" "Check the errors displayed in this window"
-fi
+echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene, unitttests ****" >> $BUILDLOGS
+cmake --build . --clean-first >>$BUILDLOGS 2>&1;
+checkError $? "cmake build failed for pxcore or rtcore" "Compilation error" "Check the error in $BUILDLOGS"
 
-if [ "$TRAVIS_PULL_REQUEST" = "false" ]
-then
-echo "***************************** Building pxscene app ***" >> $BUILDLOGS
-make -j CODE_COVERAGE=1 >>$BUILDLOGS 2>&1
-checkError $? "Makefile build failed for target pxscene app" "Compilation error" "Check the error in $BUILDLOGS"
 else
-echo "***************************** Building pxscene app ***"
-make -j CODE_COVERAGE=1 1>>$BUILDLOGS
-checkError $? "Makefile build failed for target pxscene app" "Compilation error" "Check the errors displayed in this window"
-fi
+echo "***************************** Generating config files ****"
+cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON .. 1>>$BUILDLOGS;
+checkError $? "cmake config failed" "Config error" "Check the errors displayed in this window"
 
-cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
-if [ "$TRAVIS_PULL_REQUEST" = "false" ]
-then
-echo "***************************** Building unittests ***" >> $BUILDLOGS;
-make clean;
-make CODE_COVERAGE=1 >>$BUILDLOGS 2>&1;
-checkError $? "Makefile build failed for unittests" "Compilation error" "Check the error in $BUILDLOGS"
-else
-echo "***************************** Building unittests ***";
-make clean;
-make CODE_COVERAGE=1 1>>$BUILDLOGS;
-checkError $? "Makefile build failed for unittests" "Compilation error" "Check the errors displayed in this window"
+echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene, unitttests ****"
+cmake --build . --clean-first 1>>$BUILDLOGS;
+checkError $? "cmake build failed for pxcore,rtcore,pxscene app,libpxscene or unitttests" "Compilation error" "Check the errors displayed in this window"
+
 fi
+cd $TRAVIS_BUILD_DIR

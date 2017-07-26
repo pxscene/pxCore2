@@ -3,15 +3,8 @@
 #!/bin/sh
 ulimit -c unlimited
 cd $TRAVIS_BUILD_DIR
-currentdir="$(pwd)"
-cd src
-lcov -d obj/ --zerocounters
-cd ../examples/pxScene2d/src
-lcov -d obj/ --zerocounters
-cd $currentdir
 cored=0
 
-cd $currentdir
 TESTRUNLOGS=$TRAVIS_BUILD_DIR/logs/run_logs
 
 rm -rf /var/tmp/pxscene.log
