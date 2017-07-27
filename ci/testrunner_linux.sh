@@ -1,13 +1,6 @@
 # This script runs testrunner in  linux and it is used for code coverage
 #!/bin/sh
 cd $TRAVIS_BUILD_DIR
-currentdir="$(pwd)"
-cd src
-lcov -d obj/ --zerocounters 
-cd ../examples/pxScene2d/src
-lcov -d obj/ --zerocounters 
-
-cd $currentdir
 TESTRUNLOGS=$TRAVIS_BUILD_DIR/logs/run_logs
 TESTRUNNERTESTS=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json
 isCored=1

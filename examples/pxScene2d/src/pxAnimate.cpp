@@ -26,6 +26,7 @@ static rtString mapStatus(pxConstantsAnimation::animationStatus status)
   switch(status) 
   { 
      case pxConstantsAnimation::STATUS_IDLE:        return "IDLE"; // aka "STOPPED"
+     case pxConstantsAnimation::STATUS_INPROGRESS:  return "INPROGRESS";
      case pxConstantsAnimation::STATUS_CANCELLED:   return "CANCELLED";
      case pxConstantsAnimation::STATUS_ENDED:       return "ENDED";
  
