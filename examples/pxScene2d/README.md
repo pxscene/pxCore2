@@ -70,7 +70,7 @@
     ~~~~
     ./build_rpi.sh
     ~~~~
-    For Windows (**Run all these commands from a Visual Studio Command Promit**):
+    For Windows (**Run from inside a Visual Studio Command Promit**):
     ~~~~
     buildWindows.bat
     ~~~~
@@ -87,7 +87,7 @@
     ~~~~
     cmake --build . --config Release
     ~~~~
-    For Windows (**Run all these commands from a Visual Studio Command Promit**):
+    For Windows (**Run from inside a Visual Studio Command Promit**):
     ~~~~
     cmake --build . --config Release -- /m
     ~~~~
