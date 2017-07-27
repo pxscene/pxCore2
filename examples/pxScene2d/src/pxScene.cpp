@@ -1,4 +1,4 @@
-/*
+﻿/*
 
  pxCore Copyright 2005-2017 John Robinson
 
@@ -530,7 +530,7 @@ if (s && (strcmp(s,"1") == 0))
 
   // Initialize WinSparkle as soon as the app itself is initialized, right
   // before entering the event loop:
-  win_sparkle_set_appcast_url("http://jmgasper.gitlab.io/appcast.xml");
+  win_sparkle_set_appcast_url("https://github.com/pxscene/pxscene/tree/gh-pages/dist/windows/appcast.xml");
   win_sparkle_init(); 
 
 #endif
