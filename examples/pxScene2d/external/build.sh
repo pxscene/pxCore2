@@ -129,6 +129,21 @@ if [ "$(uname)" != "Darwin" ]; then
 
 fi
 
+#-------- BODYMOVIN
+#
+# TODO:  ensure that "npm" is installed ... possibly via "brew install npm" (on Mac)
+#
+
+# cd bodymovin
+# if [ ! -e node_modules ] ||
+#   [ "$(uname)" != "Darwin" ]
+# then
+#   npm install
+# fi
+
+# gulp
+# cd ..
+
 #--------
 
 #--------- GLUT  (Non -macOS)
