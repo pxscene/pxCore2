@@ -41,7 +41,7 @@
 >   * git for windows , make sure git can work in cmd (setup environment variables depending on install location)
 >   * Download and install cmake for windows from https://cmake.org/download/
 >   * Download and install NSIS installer from http://nsis.sourceforge.net/Download
->   * **Run all these commands from a Visual Studio Command Promit**
+>   * **Run all these commands from a Visual Studio Command Prompt**
 
 
 ## Building with CMake (this will work for all platforms after setup is complete)
@@ -70,7 +70,7 @@
     ~~~~
     ./build_rpi.sh
     ~~~~
-    For Windows (**Run from inside a Visual Studio Command Promit**):
+    For Windows (**Run from inside a Visual Studio Command Prompt**):
     ~~~~
     buildWindows.bat
     ~~~~
@@ -87,7 +87,7 @@
     ~~~~
     cmake --build . --config Release
     ~~~~
-    For Windows (**Run from inside a Visual Studio Command Promit**):
+    For Windows (**Run from inside a Visual Studio Command Prompt**):
     ~~~~
     cmake --build . --config Release -- /m
     ~~~~
