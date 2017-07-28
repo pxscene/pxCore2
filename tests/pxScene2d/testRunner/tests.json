@@ -22,8 +22,6 @@
       {"url":"../tests/test_pxScene2d.js", "title":"test_pxScene2d","useBaseURI":"true"},
       {"url":"../tests/test_pxImage.js", "title":"test_pxImage","useBaseURI":"true"},
       {"url":"../tests/test_pxImageA_2.js", "title":"test_pxImageA_2","useBaseURI":"true"},
-      {"url":"../tests/test_pxImage9.js", "title":"test_pxImage9","useBaseURI":"true"},
-      {"url":"../tests/test_promiseRejectionAnimation.js", "title":"test_promiseRejectionAnimation","useBaseURI":"true"},
-      {"url":"../tests/test_promiseRejectionImage.js", "title":"test_promiseRejectionImage","useBaseURI":"true"},
-      {"url":"../tests/test_promiseRejectionReload.js", "title":"test_promiseRejectionReload","useBaseURI":"true"}
+      {"url":"../tests/test_pxImage9.js", "title":"test_pxImage9","useBaseURI":"true"}
+
 ]

@@ -83,7 +83,7 @@ rtError pxAnimate::cancel ()
       for (uint32_t i = 0; i < len; i++)
       {
         rtString key = keys.get<rtString>(i);
-        mAnimatedObj.getPtr()->cancelAnimation(key, (mType & pxConstantsAnimation::OPTION_FASTFORWARD), (mType & pxConstantsAnimation::OPTION_REWIND));
+        mAnimatedObj.getPtr()->cancelAnimation(key, (mType & pxConstantsAnimation::OPTION_FASTFORWARD), (mType & pxConstantsAnimation::OPTION_REWIND), true);
       }
     }
   }
