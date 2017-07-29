@@ -112,14 +112,33 @@ public:
   {
     pxWindow::init(x,y,w,h);
 
-    char buffer[1024];
-		std::string urlStr(url);
-		if (std::string::npos != urlStr.find("http")) {
-    sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(url).cString());
-		}
-		else {
-			sprintf(buffer, "shell.js?url=%s",url);
-		}
+    // escape url begin
+    string escapedUrl;
+    string origUrl = url;
+    for (string::iterator it=origUrl.begin(); it!=origUrl.end(); ++it)
+    {
+      char currChar = *it;
+      if ((currChar == '"') || (currChar == '\\'))
+      {
+        escapedUrl.append(1, '\\');
+      }
+      escapedUrl.append(1, currChar);
+    }
+    if (escapedUrl.length() > MAX_URL_SIZE)
+    {
+      rtLogWarn("url size greater than 8000 bytes, so restting url to browser.js");
+      escapedUrl = "browser.js";
+    }
+    // escape url end
+    char buffer[MAX_URL_SIZE + 50];
+    memset (buffer, 0, sizeof(buffer));
+
+    if (std::string::npos != escapedUrl.find("http")) {
+      snprintf(buffer,sizeof(buffer),"shell.js?url=%s",rtUrlEncodeParameters(escapedUrl.c_str()).cString());
+    }
+    else {
+      snprintf(buffer,sizeof(buffer),"shell.js?url=%s",escapedUrl.c_str());
+    }
 #ifdef RUNINMAIN
     setView( new pxScriptView(buffer,"javascript/node/v8"));
 #else
