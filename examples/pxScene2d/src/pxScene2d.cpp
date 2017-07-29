@@ -2909,7 +2909,6 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
 {
   rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
-  mUrl = url;
 #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   mReady = new rtPromise();
  // mLang = lang;
@@ -2920,6 +2919,21 @@ void pxScriptView::runScript()
 {
   rtLogInfo(__FUNCTION__);
 #endif // ifndef RUNINMAIN
+
+// escape url begin
+  string escapedUrl;
+  string origUrl = url;
+  for (size_t index=0; index<origUrl.length(); index++)
+  {
+    char currChar = origUrl.at(index);
+    if ((currChar == '"') || (currChar == '\\'))
+    {
+      escapedUrl.append(1, '\\');
+    }
+    escapedUrl.append(1, currChar);
+  }
+  mUrl = escapedUrl.c_str();
+// escape url end
 
   #ifdef ENABLE_RT_NODE
   rtLogWarn("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
@@ -2942,9 +2956,9 @@ void pxScriptView::runScript()
 
     char buffer[1024];
 #ifdef RUNINMAIN
-    sprintf(buffer, "loadUrl(\"%s\");", url);
+    snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
 #else
-    sprintf(buffer, "loadUrl(\"%s\");", mUrl.cString());
+    snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
     rtLogWarn("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
 #endif
 #ifdef WIN32 // process \\ to /

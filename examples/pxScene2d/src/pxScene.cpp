@@ -112,14 +112,26 @@ public:
   {
     pxWindow::init(x,y,w,h);
 
+    // escape url begin
+    string escapedUrl;
+    string origUrl = url;
+    for (size_t index=0; index<origUrl.length(); index++)
+    {
+      char currChar = origUrl.at(index);
+      if ((currChar == '"') || (currChar == '\\'))
+      {
+        escapedUrl.append(1, '\\');
+      }
+      escapedUrl.append(1, currChar);
+    }
+    // escape url end
     char buffer[1024];
-		std::string urlStr(url);
-		if (std::string::npos != urlStr.find("http")) {
-    sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(url).cString());
-		}
-		else {
-			sprintf(buffer, "shell.js?url=%s",url);
-		}
+    if (std::string::npos != escapedUrl.find("http")) {
+      sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(escapedUrl.c_str()).cString());
+    }
+    else {
+      sprintf(buffer, "shell.js?url=%s",escapedUrl.c_str());
+    }
 #ifdef RUNINMAIN
     setView( new pxScriptView(buffer,"javascript/node/v8"));
 #else
