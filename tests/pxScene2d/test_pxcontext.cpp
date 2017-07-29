@@ -25,11 +25,6 @@ using namespace std;
 
 #include "test_includes.h" // Needs to be included last
 
-class A:public pxTexture
-{
-
-};
-
 void fgDeinitializeLocal( void )
 {
   printf("fgdeinitialize called locally \n");
