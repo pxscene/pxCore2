@@ -113,8 +113,8 @@ public:
     pxWindow::init(x,y,w,h);
 
     // escape url begin
-    string escapedUrl;
-    string origUrl = url;
+    std::string escapedUrl;
+    std::string origUrl = url;
     for (size_t index=0; index<origUrl.length(); index++)
     {
       char currChar = origUrl.at(index);
