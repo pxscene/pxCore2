@@ -649,9 +649,6 @@ rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= 
 
     if(retVal)
     {
-      // Convert the result to an UTF8 string.
-      String::Utf8Value utf8(result);
-
       // Return val
       rtWrapperError error;
       *retVal = js2rt(local_context, result, &error);
