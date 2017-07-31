@@ -4,6 +4,7 @@ project(pxcore)
 set(CMAKE_CXX_STANDARD 11)
 
 option(WINDOWLESS_EGL "WINDOWLESS_EGL" OFF)
+option(PXCORE_MATRIX_HELPERS "PXCORE_MATRIX_HELPERS" ON)
 if(WIN32)
     option(PXCORE_COMPILE_WARNINGS_AS_ERRORS "PXCORE_COMPILE_WARNINGS_AS_ERRORS" OFF)
 elseif (APPLE)
@@ -159,10 +160,14 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
         rtFile.cpp rtLibrary.cpp rtNode.cpp
         rtPathUtils.cpp rtTest.cpp rtThreadPool.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
-        rtZip.cpp pxInterpolators.cpp pxMatrix4T.cpp pxUtil.cpp
+        rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
         jsbindings/jsCallback.cpp jsbindings/rtFunctionWrapper.cpp jsbindings/rtObjectWrapper.cpp
         jsbindings/rtWrapperUtils.cpp)
+
+if (PXCORE_MATRIX_HELPERS)
+  set(PXCORE_FILES ${PXCORE_FILES} pxMatrix4T.cpp)
+endif(PXCORE_MATRIX_HELPERS)
 
 set(RTCORE_FILES utf8.c rtString.cpp rtLog.cpp rtValue.cpp rtObject.cpp rtError.cpp ioapi_mem.c)
 
