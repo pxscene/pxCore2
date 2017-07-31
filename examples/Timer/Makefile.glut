@@ -12,20 +12,10 @@ endif
 CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS) -Werror
 OUTDIR=../../build/glut
 
-ifndef USE_EXTERNALS_GLUT
-USE_EXTERNALS_GLUT=false
-endif
-
-ifeq ($(USE_EXTERNALS_GLUT), true)
-CFLAGS += -I../pxScene2d/external/freeglut/include -DUSE_EXTERNALS_GLUT
-LDGLUT = -L../pxScene2d/external/freeglut/lib -lglut
-endif
-
-
 all: $(OUTDIR)/Timer
 
 $(OUTDIR)/Timer: Timer.cpp
-	g++ -o $(OUTDIR)/Timer -Wall Timer.cpp -lpxCore $(CFLAGS) -L$(OUTDIR) $(LDGLUT)
+	g++ -o $(OUTDIR)/Timer -Wall Timer.cpp -lpxCore $(CFLAGS) -L$(OUTDIR)
 
 
 
