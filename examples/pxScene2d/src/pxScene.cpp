@@ -113,9 +113,9 @@ public:
     pxWindow::init(x,y,w,h);
 
     // escape url begin
-    string escapedUrl;
-    string origUrl = url;
-    for (string::iterator it=origUrl.begin(); it!=origUrl.end(); ++it)
+    std::string escapedUrl;
+    std::string origUrl = url;
+    for (std::string::iterator it=origUrl.begin(); it!=origUrl.end(); ++it)
     {
       char currChar = *it;
       if ((currChar == '"') || (currChar == '\\'))
