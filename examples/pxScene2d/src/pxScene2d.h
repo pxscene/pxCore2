@@ -78,6 +78,7 @@ class AsyncScriptInfo {
 };
 #endif
 
+#define MAX_URL_SIZE 8000
 
 //Uncomment to enable display of pointer by pxScene
 //#define USE_SCENE_POINTER
