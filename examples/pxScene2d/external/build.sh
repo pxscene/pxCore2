@@ -5,6 +5,14 @@ set -e
 
 #--------- CURL
 
+make_parallel=3
+
+if [ "$(uname)" == "Darwin" ]; then
+    make_parallel="$(sysctl -n hw.ncpu)"
+elif [ "$(uname)" == "Linux" ]; then
+    make_parallel="$(cat /proc/cpuinfo | grep '^processor' | wc --lines)"
+fi
+
 if [ ! -e ./curl/lib/.libs/libcurl.4.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
@@ -14,10 +22,20 @@ then
   if [ "$(uname)" == "Darwin" ]; then
     ./configure --with-darwinssl
   else
-    ./configure
+      if [ $(echo "$(openssl version | cut -d' ' -f 2 | cut -d. -f1-2)>1.0" | bc) ]; then
+          echo "Openssl is too new for this version of libcurl.  Opting for gnutls instead..."
+          ./configure --with-gnutls
+      else
+          echo "Using openssl < 1.1.*"
+          ./configure --with-ssl
+      fi
+
+      if [ "$(cat config.log | grep '^SSL_ENABLED' | cut -d= -f 2)" != "'1'" ]; then
+          echo "Failed to configure libcurl with SSL support" && exit 1
+      fi
   fi
 
-  make all -j3
+  make all "-j${make_parallel}"
   cd ..
 
 fi
@@ -30,7 +48,7 @@ then
 
   cd png
   ./configure
-  make all -j3
+  make all "-j${make_parallel}"
   cd ..
 
 fi
@@ -44,7 +62,7 @@ then
   cd ft
   export LIBPNG_LIBS="-L../png/.libs -lpng16"
   ./configure --with-png=no
-  make all -j3
+  make all "-j${make_parallel}"
   cd ..
 
 fi
@@ -57,7 +75,7 @@ then
 
   cd jpg
   ./configure
-  make all -j3
+  make all "-j${make_parallel}"
   cd ..
 
 fi
@@ -70,7 +88,7 @@ then
 
   cd zlib
   ./configure
-  make all -j3
+  make all "-j${make_parallel}"
   cd ..
 
 fi
@@ -99,7 +117,7 @@ then
 
   autoreconf -f -i
   ./configure
-  make -j3
+  make "-j${make_parallel}"
   cd ..
 
 fi
@@ -112,7 +130,7 @@ then
 
   cd libnode-v6.9.0
   ./configure --shared
-  make -j3
+  make "-j${make_parallel}"
   ln -sf libnode.so.48 out/Release/obj.target/libnode.so
   ln -sf libnode.48.dylib out/Release/libnode.dylib
   cd ..
