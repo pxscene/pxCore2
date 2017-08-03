@@ -38,9 +38,6 @@
         './crash_generation/crash_generation.gyp:*',
         './handler/exception_handler.gyp:*',
         './sender/crash_report_sender.gyp:*',
-        './unittests/client_tests.gyp:*',
-        './unittests/testing.gyp:*',
-        './tests/crash_generation_app/crash_generation_app.gyp:*',
       ]
     },
     {
