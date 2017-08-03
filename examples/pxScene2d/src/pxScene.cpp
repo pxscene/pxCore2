@@ -1,4 +1,4 @@
-/*
+﻿/*
 
  pxCore Copyright 2005-2017 John Robinson
 
@@ -112,14 +112,33 @@ public:
   {
     pxWindow::init(x,y,w,h);
 
-    char buffer[1024];
-		std::string urlStr(url);
-		if (std::string::npos != urlStr.find("http")) {
-    sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(url).cString());
-		}
-		else {
-			sprintf(buffer, "shell.js?url=%s",url);
-		}
+    // escape url begin
+    std::string escapedUrl;
+    std::string origUrl = url;
+    for (std::string::iterator it=origUrl.begin(); it!=origUrl.end(); ++it)
+    {
+      char currChar = *it;
+      if ((currChar == '"') || (currChar == '\\'))
+      {
+        escapedUrl.append(1, '\\');
+      }
+      escapedUrl.append(1, currChar);
+    }
+    if (escapedUrl.length() > MAX_URL_SIZE)
+    {
+      rtLogWarn("url size greater than 8000 bytes, so restting url to browser.js");
+      escapedUrl = "browser.js";
+    }
+    // escape url end
+    char buffer[MAX_URL_SIZE + 50];
+    memset (buffer, 0, sizeof(buffer));
+
+    if (std::string::npos != escapedUrl.find("http")) {
+      snprintf(buffer,sizeof(buffer),"shell.js?url=%s",rtUrlEncodeParameters(escapedUrl.c_str()).cString());
+    }
+    else {
+      snprintf(buffer,sizeof(buffer),"shell.js?url=%s",escapedUrl.c_str());
+    }
 #ifdef RUNINMAIN
     setView( new pxScriptView(buffer,"javascript/node/v8"));
 #else
@@ -530,7 +549,7 @@ if (s && (strcmp(s,"1") == 0))
 
   // Initialize WinSparkle as soon as the app itself is initialized, right
   // before entering the event loop:
-  win_sparkle_set_appcast_url("http://jmgasper.gitlab.io/appcast.xml");
+  win_sparkle_set_appcast_url("https://github.com/pxscene/pxscene/tree/gh-pages/dist/windows/appcast.xml");
   win_sparkle_init(); 
 
 #endif
