@@ -25,6 +25,7 @@ SRCS_FULL=\
     test_rtFile.cpp \
     test_rtZip.cpp \
     test_rtString.cpp \
+    test_rtValue.cpp \
     test_pxImage.cpp \
     test_unzip.cpp \
     $(SRCS_WAYLAND)
