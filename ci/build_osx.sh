@@ -63,8 +63,9 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
 
 if [[ ! -z $PX_VERSION ]]
 then
-make PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
-checkError $? 0 "make command failed for deploy target" "Compilation error" "check the $BUILDLOGS file"
+#make PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
+#checkError $? 0 "make command failed for deploy target" "Compilation error" "check the $BUILDLOGS file"
+echo "built with cmake"
 
 else
 
@@ -75,7 +76,8 @@ checkError $? 0 "unable to read string CFBundleShortVersionString from Info.plis
 echo $linenumber
 export PX_VERSION=`sed -n "\`echo $((linenumber+1))\`p" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist|awk -F '<string>' '{print $2}'|awk -F'</string>' '{print $1}'`
 checkError $? 0 "unable to read version from Info.plist file" "Parse error" "check whether the Info.plist file in pxscene repo is having version details or not?"
-make PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
+#make PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
+./mkdeploy.sh $PX_VERSION >>$BUILDLOGS 2>&1
 checkError $? 0 "make command failed for deploy target" "Compilation error" "check the $BUILDLOGS file"
 
 else
