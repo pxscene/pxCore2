@@ -88,7 +88,7 @@
     ~~~~
     For Linux, Mac, and Raspberry Pi run: 
     ~~~~
-    cmake --build . --config Release
+    cmake --build . --config Release -- -j1
     ~~~~
     For Windows (**Run from inside a Visual Studio Command Prompt**):
     ~~~~
