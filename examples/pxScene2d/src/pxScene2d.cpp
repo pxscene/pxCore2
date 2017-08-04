@@ -2909,7 +2909,6 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
 {
   rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
-  mUrl = url;
 #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   mReady = new rtPromise();
  // mLang = lang;
@@ -2920,6 +2919,26 @@ void pxScriptView::runScript()
 {
   rtLogInfo(__FUNCTION__);
 #endif // ifndef RUNINMAIN
+
+// escape url begin
+  string escapedUrl;
+  string origUrl = url;
+  for (string::iterator it=origUrl.begin(); it!=origUrl.end(); ++it)
+  {
+    char currChar = *it;
+    if ((currChar == '"') || (currChar == '\\'))
+    {
+      escapedUrl.append(1, '\\');
+    }
+    escapedUrl.append(1, currChar);
+  }
+  mUrl = escapedUrl.c_str();
+  if (mUrl.length() > MAX_URL_SIZE)
+  {
+    rtLogWarn("url size greater than 8000 bytes, so restting url to empty");
+    mUrl = "";
+  }
+// escape url end
 
   #ifdef ENABLE_RT_NODE
   rtLogWarn("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
@@ -2940,13 +2959,10 @@ void pxScriptView::runScript()
 #endif
     mCtx->runFile("init.js");
 
-    char buffer[1024];
-#ifdef RUNINMAIN
-    sprintf(buffer, "loadUrl(\"%s\");", url);
-#else
-    sprintf(buffer, "loadUrl(\"%s\");", mUrl.cString());
+    char buffer[MAX_URL_SIZE + 50];
+    memset(buffer, 0, sizeof(buffer));
+    snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
     rtLogWarn("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
-#endif
 #ifdef WIN32 // process \\ to /
 		unsigned int bufferLen = strlen(buffer);
 		char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));

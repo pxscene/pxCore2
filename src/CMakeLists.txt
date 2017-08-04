@@ -4,6 +4,8 @@ project(pxcore)
 set(CMAKE_CXX_STANDARD 11)
 
 option(WINDOWLESS_EGL "WINDOWLESS_EGL" OFF)
+option(PXCORE_WAYLAND_EGL "PXCORE_WAYLAND_EGL" OFF)
+option(PXCORE_MATRIX_HELPERS "PXCORE_MATRIX_HELPERS" ON)
 if(WIN32)
     option(PXCORE_COMPILE_WARNINGS_AS_ERRORS "PXCORE_COMPILE_WARNINGS_AS_ERRORS" OFF)
 elseif (APPLE)
@@ -49,6 +51,7 @@ if (APPLE)
     if (DEFINED ENV{CODE_COVERAGE})
         message("enabling code coverage support")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-arcs -ftest-coverage")
         add_definitions(-DENABLE_CODE_COVERAGE=1)
     endif ()
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
@@ -72,13 +75,12 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         include_directories(AFTER /opt/vc/include /opt/vc/include/interface/vcos/pthreads
                 /opt/vc/include/interface/vmcs_host/linux /opt/vc/include)
         include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC})
-    elseif (WINDOWLESS_EGL)
-        message("Building pxcore for windowless egl")
+    elseif (WINDOWLESS_EGL OR PXCORE_WAYLAND_EGL)
         set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/egl)
         set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/egl)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/egl)
         add_definitions(-DENABLE_NODE_V_6_9 -DNODE_PLATFORM=linux -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1)
-        add_definitions(-DPX_PLATFORM_GENERIC_EGL -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN -DRAPIDJSON_HAS_STDSTRING)
+        add_definitions(-DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN -DRAPIDJSON_HAS_STDSTRING)
         if (DEFINED ENV{PXSCENE_DISABLE_APNG_SUPPORT})
             message("Not including APNG support")
         else ()
@@ -88,10 +90,19 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PXCORE_STAGING_LIST $ENV{PXCORE_STAGING})
         separate_arguments(PXCORE_STAGING_LIST)
         include_directories(AFTER ${PXCORE_STAGING_LIST})
-        set(PXCORE_FILES gles/pxBufferNative.cpp gles/pxOffscreenNative.cpp
-                gles/pxEventLoopNative.cpp gles/pxTimerNative.cpp gles/pxClipboardNative.cpp
-                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
+        set(PXCORE_FILES unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
                 rtFileCache.cpp rtHttpCache.cpp)
+        if (PXCORE_WAYLAND_EGL)
+            message("Building pxcore for wayland windows")
+            add_definitions(-DPX_PLATFORM_WAYLAND_EGL)
+            set(PXCORE_FILES ${PXCORE_FILES} wayland_egl/pxWindowNative.cpp wayland_egl/pxBufferNative.cpp wayland_egl/pxOffscreenNative.cpp
+                wayland_egl/pxEventLoopNative.cpp wayland_egl/pxTimerNative.cpp wayland_egl/pxClipboardNative.cpp)
+        elseif (WINDOWLESS_EGL)
+            message("Building pxcore for windowless egl")
+            add_definitions(-DPX_PLATFORM_GENERIC_EGL)
+            set(PXCORE_FILES ${PXCORE_FILES} gles/pxBufferNative.cpp gles/pxOffscreenNative.cpp
+                gles/pxEventLoopNative.cpp gles/pxTimerNative.cpp gles/pxClipboardNative.cpp)
+        endif (PXCORE_WAYLAND_EGL)
         set(PLATFORM_LINKER_FLAGS)
     else ()
         message("Building pxcore for glut")
@@ -109,6 +120,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         if (DEFINED ENV{CODE_COVERAGE})
             message("enabling code coverage support")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-arcs -ftest-coverage")
             add_definitions(-DENABLE_CODE_COVERAGE=1)
         endif ()
     endif (HOSTNAME STREQUAL "raspberrypi")
@@ -157,10 +169,14 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
         rtFile.cpp rtLibrary.cpp rtNode.cpp
         rtPathUtils.cpp rtTest.cpp rtThreadPool.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
-        rtZip.cpp pxInterpolators.cpp pxMatrix4T.cpp pxUtil.cpp
+        rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
         jsbindings/jsCallback.cpp jsbindings/rtFunctionWrapper.cpp jsbindings/rtObjectWrapper.cpp
         jsbindings/rtWrapperUtils.cpp)
+
+if (PXCORE_MATRIX_HELPERS)
+  set(PXCORE_FILES ${PXCORE_FILES} pxMatrix4T.cpp)
+endif(PXCORE_MATRIX_HELPERS)
 
 set(RTCORE_FILES utf8.c rtString.cpp rtLog.cpp rtValue.cpp rtObject.cpp rtError.cpp ioapi_mem.c)
 
