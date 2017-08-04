@@ -1,5 +1,8 @@
 #Build Instructions for pxScene
 
+## Supported Platforms
+>   * macOS, Windows, Linux, and Raspberry Pi
+
 ## Ubuntu Setup
 >Setup Ubuntu
 >   * Create a linux VM.  The following version is recommended:  ubuntu-14.04.1-desktop-amd64
