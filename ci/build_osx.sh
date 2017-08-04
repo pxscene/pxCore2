@@ -38,7 +38,7 @@ cmake .. >>$BUILDLOGS 2>&1;
 fi
 checkError $? 0 "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
 echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
-cmake --build . >>$BUILDLOGS 2>&1;
+cmake --build . -- -j1 >>$BUILDLOGS 2>&1;
 checkError $? 0 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "check the $BUILDLOGS file"
 
 else
@@ -47,7 +47,7 @@ echo "***************************** Generating config files ****"
 cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON .. 1>>$BUILDLOGS;
 checkError $? 1  "cmake config failed" "Config error" "Check the errors displayed in this window"
 echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
-cmake --build . 1>>$BUILDLOGS;
+cmake --build . -- -j1 1>>$BUILDLOGS;
 checkError $? 1 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "Check the errors displayed in this window"
 fi
 
