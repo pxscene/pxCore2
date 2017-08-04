@@ -66,6 +66,7 @@ then
 #make PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
 #checkError $? 0 "make command failed for deploy target" "Compilation error" "check the $BUILDLOGS file"
 echo "built with cmake"
+./mkdeploy.sh $PX_VERSION >>$BUILDLOGS 2>&1
 
 else
 
