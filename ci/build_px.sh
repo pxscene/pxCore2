@@ -9,7 +9,7 @@ begin=$(date +%s)
 sh $var
 retval=$?
 end=$(date +%s)
-tottime=$(expr $end - $begin
+tottime=$(expr $end - $begin)
 echo "script $var took $tottime seconds"
 if [ "$retval" -eq 0 ]
 then
