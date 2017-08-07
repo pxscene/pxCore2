@@ -5,8 +5,12 @@ retval=0
 for var in "$@"
 do
 echo "Starting $var..."
+begin=$(date +%s)
 sh $var
 retval=$?
+end=$(date +%s)
+tottime=$(expr $end - $begin
+echo "script $var took $tottime seconds"
 if [ "$retval" -eq 0 ]
 then
 echo "$var succeeded !!!"

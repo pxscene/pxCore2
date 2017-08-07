@@ -33,6 +33,7 @@ then
     fi
 fi
 
+begin=$(date +%s)
 #install necessary basic packages for linux and mac 
 if [ "$TRAVIS_OS_NAME" = "linux" ] ; 
 then 
@@ -63,7 +64,11 @@ then
     ls -al $HOME/.ccache
   fi
 fi
+end=$(date +%s)
+tottime=$(expr $end - $begin)
+echo "package install took $tottime seconds"
 
+begin=$(date +%s)
 #setup lighttpd server
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]
 then
@@ -102,8 +107,12 @@ then
     sudo netstat -a
   fi
 fi
+end=$(date +%s)
+tottime=$(expr $end - $begin)
+echo "lighttpd installation took $tottime seconds"
 
 
+begin=$(date +%s)
 #install codecov
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]
 then
@@ -117,3 +126,6 @@ then
 fi
   sudo pip install codecov
 fi
+end=$(date +%s)
+tottime=$(expr $end - $begin)
+echo "codecov installation took $tottime seconds"
