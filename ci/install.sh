@@ -43,6 +43,10 @@ fi
 
 echo "***************************** Building externals ****" > $BUILDLOGS
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
+begin=$(date +%s)
 ./build.sh>>$BUILDLOGS
 checkError $? "building externals failed" "compilation error" "Need to build the externals directory locally in $TRAVIS_OS_NAME"
+end=$(date +%s)
+tottime=$(expr $end - $begin)
+echo "externals took $tottime seconds to build"
 exit 0;

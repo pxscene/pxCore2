@@ -21,6 +21,7 @@ then
     fi
 fi
 
+begin=$(date +%s)
 cd $TRAVIS_BUILD_DIR
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] ;
 then
@@ -29,6 +30,9 @@ then
   ./ci/deploy_files.sh 96.118.6.151 logs.tgz;
   checkError $? "Unable to send log files to 96.118.6.151" "Possible reason - Server could be down" "Retry"
 fi
+end=$(date +%s)
+tottime=$(expr $end - $begin)
+echo "data transfer took $tottime seconds"
 
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
 then
