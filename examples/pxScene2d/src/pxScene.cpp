@@ -99,6 +99,7 @@ void* context, bool succeeded) {
   return succeeded;
 }
 #elif HAS_WINDOWS_BREAKPAD
+//callback function to get called when minidump is generated
 bool dumpCallback(const wchar_t* dump_path,
                      const wchar_t* minidump_id,
                      void* context,
