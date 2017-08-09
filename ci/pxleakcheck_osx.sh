@@ -1,5 +1,6 @@
 #!/bin/sh
 #This script is used to detect leaked px objects or textures
+exit 0;
 ulimit -c unlimited
 cored=0
 export PX_DUMP_MEMUSAGE=1
