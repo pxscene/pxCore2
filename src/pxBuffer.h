@@ -122,7 +122,7 @@ pxBuffer(): mPixelFormat(RT_DEFAULT_PIX), mSrcIndexR(0), mSrcIndexG(0), mSrcInde
     }
   }
 
-  void fill(const pxColor& color)
+  virtual void fill(const pxColor& color)
   {
     for (int32_t i = 0; i < height(); i++)
     {
