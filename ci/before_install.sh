@@ -43,12 +43,9 @@ fi
 
 if [ "$TRAVIS_OS_NAME" = "osx" ] ;
 then
-  brew update;
-  brew upgrade cmake;
+  brew update
+  brew outdated cmake || brew upgrade cmake;
   sudo /usr/sbin/DevToolsSecurity --enable
-  lldb --version
-  lldb --help
-  man lldb
 fi
 
 #install lighttpd, code coverage binaries for mac
