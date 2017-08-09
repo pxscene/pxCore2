@@ -1,4 +1,5 @@
 #!/bin/sh
+exit 0;
 ulimit -c unlimited
 cored=0
 sudo rm -rf /tmp/cache/*
