@@ -2,6 +2,11 @@
 
 BUILDLOGS=$TRAVIS_BUILD_DIR/logs/build_logs
 
+if [[ ! -z $PX_VERSION ]]
+then
+  export PX_BUILD_VERSION=$PX_VERSION
+fi
+
 checkError()
 {
   if [ "$1" -ne 0 ]
