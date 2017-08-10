@@ -9,7 +9,7 @@ VALGRINDPXCORELOGS=$TRAVIS_BUILD_DIR/logs/valgrind_pxcore_logs
 touch $VALGRINDLOGS
 #run valgrind and monitor for completion
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-./pxscene.sh testRunner_memcheck.js?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $VALGRINDPXCORELOGS &
+./pxscene.sh $TRAVIS_BUILD_DIR/testRunner_memcheck_$TRAVIS_OS_NAME.js?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $VALGRINDPXCORELOGS &
 grep "RUN COMPLETED" $VALGRINDPXCORELOGS
 retVal=$?
 count=0
