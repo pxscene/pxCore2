@@ -55,10 +55,12 @@ public:
   void setErrorString(const char* errorString);
   rtString errorString();
   void setCallbackFunction(void (*callbackFunction)(rtFileDownloadRequest*));
+  void setDownloadProgressCallbackFunction(size_t (*callbackFunction)(void *ptr, size_t size, size_t nmemb, void *userData), void *userPtr);
   void setCallbackFunctionThreadSafe(void (*callbackFunction)(rtFileDownloadRequest*));
   long httpStatusCode();
   void setHttpStatusCode(long statusCode);
   bool executeCallback(int statusCode);
+  bool executeDownloadProgressCallback(void *ptr, size_t size, size_t nmemb);
   void setDownloadedData(char* data, size_t size);
   void downloadedData(char*& data, size_t& size);
   char* downloadedData();
@@ -79,6 +81,8 @@ public:
 #ifdef ENABLE_HTTP_CACHE
   void setCacheEnabled(bool val);
   bool cacheEnabled();
+  void setDataCache(bool val);
+  bool dataCached();
 #endif
 
 private:
@@ -87,6 +91,8 @@ private:
   rtString mErrorString;
   long mHttpStatusCode;
   void (*mCallbackFunction)(rtFileDownloadRequest*);
+  size_t (*mDownloadProgressCallbackFunction)(void *ptr, size_t size, size_t nmemb, void *userData);
+  void *mDownloadProgressUserPtr;
   char* mDownloadedData;
   size_t mDownloadedDataSize;
   int mDownloadStatusCode;
@@ -99,6 +105,7 @@ private:
   int mDownloadHandleExpiresTime;
 #ifdef ENABLE_HTTP_CACHE
   bool mCacheEnabled;
+  bool mIsDataInCache;
 #endif
 };
 

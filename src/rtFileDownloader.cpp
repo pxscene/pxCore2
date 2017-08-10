@@ -76,6 +76,7 @@ struct MemoryStruct
   char* headerBuffer;
   size_t contentsSize;
   char* contentsBuffer;
+  rtFileDownloadRequest *rtFileDownloadReq;
 };
 
 static size_t HeaderCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -101,6 +102,8 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 {
   size_t downloadSize = size * nmemb;
   struct MemoryStruct *mem = (struct MemoryStruct *)userp;
+
+  mem->rtFileDownloadReq->executeDownloadProgressCallback(contents, size, nmemb );
 
   mem->contentsBuffer = (char*)realloc(mem->contentsBuffer, mem->contentsSize + downloadSize + 1);
   if(mem->contentsBuffer == NULL) {
@@ -142,11 +145,11 @@ void onDownloadHandleCheck()
 
 rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbackData) 
       : mFileUrl(imageUrl), mProxyServer(),
-    mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL),
+    mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL), mDownloadProgressCallbackFunction(NULL), mDownloadProgressUserPtr(NULL),
     mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
     mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false), mDownloadHandleExpiresTime(-2)
 #ifdef ENABLE_HTTP_CACHE
-    , mCacheEnabled(true)
+    , mCacheEnabled(true), mIsDataInCache(false)
 #endif
 {
   mAdditionalHttpHeaders.clear();
@@ -196,6 +199,12 @@ void rtFileDownloadRequest::setCallbackFunction(void (*callbackFunction)(rtFileD
   mCallbackFunction = callbackFunction;
 }
 
+void rtFileDownloadRequest::setDownloadProgressCallbackFunction(size_t (*callbackFunction)(void *ptr, size_t size, size_t nmemb, void *userData), void *userPtr)
+{
+  mDownloadProgressCallbackFunction = callbackFunction;
+  mDownloadProgressUserPtr = userPtr;
+}
+
 void rtFileDownloadRequest::setCallbackFunctionThreadSafe(void (*callbackFunction)(rtFileDownloadRequest*))
 {
   mCallbackFunctionMutex.lock();
@@ -225,6 +234,12 @@ bool rtFileDownloadRequest::executeCallback(int statusCode)
   }
   mCallbackFunctionMutex.unlock();
   return false;
+}
+
+bool rtFileDownloadRequest::executeDownloadProgressCallback(void * ptr, size_t size, size_t nmemb)
+{
+  if(mDownloadProgressCallbackFunction)
+    mDownloadProgressCallbackFunction(ptr, size, nmemb, mDownloadProgressUserPtr);
 }
   
 void rtFileDownloadRequest::setDownloadedData(char* data, size_t size)
@@ -327,6 +342,16 @@ void rtFileDownloadRequest::setCacheEnabled(bool val)
 bool rtFileDownloadRequest::cacheEnabled()
 {
   return mCacheEnabled;
+}
+
+void rtFileDownloadRequest::setDataCache(bool val)
+{
+  mIsDataInCache = val;
+}
+
+bool rtFileDownloadRequest::dataCached()
+{
+  return mIsDataInCache;
 }
 #endif //ENABLE_HTTP_CACHE
 
@@ -444,6 +469,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
       if (true == checkAndDownloadFromCache(downloadRequest,cachedData))
       {
         isDataInCache = true;
+        downloadRequest->setDataCache(true);
       }
     }
 
@@ -521,6 +547,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)&chunk);
     if (false == headerOnly)
     {
+      chunk.rtFileDownloadReq = downloadRequest;
       curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
       curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
     }
