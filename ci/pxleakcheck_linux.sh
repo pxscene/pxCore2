@@ -8,8 +8,14 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 grep "RUN COMPLETED" $PXCHECKLOGS
 retVal=$?
 count=0
+##testing puepose
+cat $PXCHECKLOGS
+##testing puepose
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 5400 ]; do
 sleep 30;
+##testing puepose
+cat $PXCHECKLOGS
+##testing puepose
 grep "RUN COMPLETED" $PXCHECKLOGS
 retVal=$?
 count=$((count+30))
