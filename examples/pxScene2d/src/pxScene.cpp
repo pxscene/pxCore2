@@ -390,7 +390,7 @@ int pxMain(int argc, char* argv[])
   google_breakpad::MinidumpDescriptor descriptor("/tmp");
   google_breakpad::ExceptionHandler eh(descriptor, NULL, dumpCallback, NULL, true, -1);
 #elif HAS_WINDOWS_BREAKPAD
-  //register exception handler 
+  //register exception handler for breakpad
   google_breakpad::ExceptionHandler* handler = NULL;
   handler = new google_breakpad::ExceptionHandler(L"C:\\dumps\\",
                                    NULL,
