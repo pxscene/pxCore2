@@ -1,3 +1,4 @@
+// testrunner file without main testrunner tests to minimize time
 "use strict";
 
 px.import("px:scene.1.js").then( function ready(scene) {
