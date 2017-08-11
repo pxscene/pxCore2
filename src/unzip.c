@@ -602,6 +602,7 @@ local unzFile unzOpenInternal (const void *path,
 
     if (unz_copyright[0]!=' ')
         return NULL;
+    us.pos_in_central_dir = 0;
     us.num_file = 0;
     us.z_filefunc.zseek32_file = NULL;
     us.z_filefunc.ztell32_file = NULL;
