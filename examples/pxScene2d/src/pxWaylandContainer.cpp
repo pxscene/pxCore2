@@ -314,7 +314,6 @@ void pxWaylandContainer::isRemoteReady(bool ready)
 
 rtError pxWaylandContainer::suspend(bool& b)
 {
-  printf("inside suspend!!!\n");
   b = false;
   if ( mWayland )
   {
@@ -326,7 +325,6 @@ rtError pxWaylandContainer::suspend(bool& b)
 
 rtError pxWaylandContainer::resume(bool& b)
 {
-  printf("inside resume!!!\n");
   b = false;
   if ( mWayland )
   {
@@ -338,7 +336,6 @@ rtError pxWaylandContainer::resume(bool& b)
 
 rtError pxWaylandContainer::destroy(bool& b)
 {
-  printf("inside destroy!!!\n");
   b = false;
   if ( mWayland )
   {
