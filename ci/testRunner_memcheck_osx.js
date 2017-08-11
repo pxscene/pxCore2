@@ -1,4 +1,3 @@
-//testrunner customized for osx
 "use strict";
 
 px.import("px:scene.1.js").then( function ready(scene) {
