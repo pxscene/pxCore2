@@ -83,7 +83,8 @@ pxWayland::pxWayland(bool useFbo)
 }
 
 pxWayland::~pxWayland()
-{ 
+{
+  rtRemoteUnregisterDisconnectedCallback(pxWayland::remoteDisconnectedCB, this);
   if ( mWCtx )
   {
      WstCompositorDestroy(mWCtx);
