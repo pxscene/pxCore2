@@ -312,6 +312,45 @@ void pxWaylandContainer::isRemoteReady(bool ready)
   }
 }
 
+rtError pxWaylandContainer::suspend(bool& b)
+{
+  printf("inside suspend!!!\n");
+  b = false;
+  if ( mWayland )
+  {
+    mWayland->suspend();
+    b = true;
+  }
+  return RT_OK;
+}
+
+rtError pxWaylandContainer::resume(bool& b)
+{
+  printf("inside resume!!!\n");
+  b = false;
+  if ( mWayland )
+  {
+    mWayland->resume();
+    b = true;
+  }
+  return RT_OK;
+}
+
+rtError pxWaylandContainer::destroy(bool& b)
+{
+  printf("inside destroy!!!\n");
+  b = false;
+  if ( mWayland )
+  {
+    mWayland->setEvents(NULL);
+    setView(NULL);
+    b = true;
+  }
+  mRemoteReady = NULL;
+  mWayland = NULL;
+  return RT_OK;
+}
+
 void pxWaylandContainer::onInit()
 {
   if ( mWayland )
@@ -336,3 +375,6 @@ rtDefineProperty(pxWaylandContainer,fillColor);
 rtDefineProperty(pxWaylandContainer,api);
 rtDefineProperty(pxWaylandContainer,remoteReady);
 rtDefineProperty(pxWaylandContainer,server);
+rtDefineMethod(pxWaylandContainer, suspend);
+rtDefineMethod(pxWaylandContainer, resume);
+rtDefineMethod(pxWaylandContainer, destroy);
