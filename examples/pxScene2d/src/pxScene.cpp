@@ -67,6 +67,10 @@ using namespace std;
 
 #ifdef HAS_LINUX_BREAKPAD
 #include "client/linux/handler/exception_handler.h"
+#elif HAS_WINDOWS_BREAKPAD
+#include <windows.h>
+#include <wchar.h>
+#include <client/windows/handler/exception_handler.h>
 #endif
 
 #ifndef RUNINMAIN
@@ -92,6 +96,15 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void* context, bool succeeded) {
   UNUSED_PARAM(descriptor);
   UNUSED_PARAM(context);
+  return succeeded;
+}
+#elif HAS_WINDOWS_BREAKPAD
+bool dumpCallback(const wchar_t* dump_path,
+                     const wchar_t* minidump_id,
+                     void* context,
+                     EXCEPTION_POINTERS* exinfo,
+                     MDRawAssertionInfo* assertion,
+                     bool succeeded) {
   return succeeded;
 }
 #endif
@@ -376,6 +389,17 @@ int pxMain(int argc, char* argv[])
 #ifdef HAS_LINUX_BREAKPAD
   google_breakpad::MinidumpDescriptor descriptor("/tmp");
   google_breakpad::ExceptionHandler eh(descriptor, NULL, dumpCallback, NULL, true, -1);
+#elif HAS_WINDOWS_BREAKPAD
+  //register exception handler for breakpad
+  google_breakpad::ExceptionHandler* handler = NULL;
+  handler = new google_breakpad::ExceptionHandler(L"C:\\dumps\\",
+                                   NULL,
+                                   dumpCallback,
+                                   NULL,
+                                   google_breakpad::ExceptionHandler::HANDLER_ALL,
+                                   MiniDumpNormal,
+                                   L"",
+                                   NULL);
 #endif
   signal(SIGTERM, handleTerm);
   char const* handle_signals = getenv("HANDLE_SIGNALS");
