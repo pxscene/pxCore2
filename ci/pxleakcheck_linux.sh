@@ -4,7 +4,7 @@ export ENABLE_VALGRIND=0
 export RT_LOG_LEVEL=info
 PXCHECKLOGS=$TRAVIS_BUILD_DIR/logs/pxcheck_logs
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-./pxscene.sh testRunner_memcheck.js?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $PXCHECKLOGS 2>&1 &
+./pxscene.sh $TRAVIS_BUILD_DIR/ci/testRunner_memcheck_$TRAVIS_OS_NAME.js?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $PXCHECKLOGS 2>&1 &
 grep "RUN COMPLETED" $PXCHECKLOGS
 retVal=$?
 count=0
