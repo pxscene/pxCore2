@@ -408,17 +408,11 @@ typedef uLong FAR uLongf;
    typedef unsigned long z_crc_t;
 #endif
 
-/* Restore orginal way of zlib source (download at https://sourceforge.net/projects/libpng/files/zlib/1.2.8/).
- * Make sure  it could work under mac,linux and windows at same time
- */
-#ifdef HAVE_UNISTD_H    /* was set to #if 1 by ./configure */
+#if 1    /* was set to #if 1 by ./configure */
 #  define Z_HAVE_UNISTD_H
 #endif
 
-/* Restore orginal way of zlib source (download at https://sourceforge.net/projects/libpng/files/zlib/1.2.8/).
- * Make sure  it could work under mac,linux and windows at same time
- */
-#ifdef HAVE_STDARG_H    /* was set to #if 1 by ./configure */
+#if 1    /* was set to #if 1 by ./configure */
 #  define Z_HAVE_STDARG_H
 #endif
 

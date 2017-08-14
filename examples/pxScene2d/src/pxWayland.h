@@ -150,6 +150,8 @@ public:
   rtError startRemoteObjectLocator();
   rtError connectToRemoteObject(unsigned int timeout_ms);
   rtError useDispatchThread(bool use);
+  rtError resume();
+  rtError suspend();
 private:
   rtAtomic mRefCount;
   pthread_t mClientMonitorThreadId;
@@ -164,6 +166,7 @@ private:
   int mWidth;
   int mHeight;
   bool mUseFbo;
+  bool mSuspended;
   pxMatrix4f mLastMatrix;
 
   static void invalidate( WstCompositor *wctx, void *userData );

@@ -33,6 +33,9 @@ class pxWaylandContainer: public pxViewContainer, pxWaylandEvents {
   rtProperty(hasApi, hasApi, setHasApi, bool);
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(remoteReady, remoteReady, rtValue);
+  rtMethodNoArgAndReturn("suspend", suspend, bool);
+  rtMethodNoArgAndReturn("resume", resume, bool);
+  rtMethodNoArgAndReturn("destroy", destroy, bool);
 public:
   pxWaylandContainer(pxScene2d* scene);
   ~pxWaylandContainer();
@@ -70,6 +73,10 @@ public:
 
   rtError api(rtValue& v) const;
   rtError remoteReady(rtValue& v) const;
+
+  rtError suspend(bool& b);
+  rtError resume(bool& b);
+  rtError destroy(bool& b);
 
 private:
   rtString mDisplayName;
