@@ -634,42 +634,6 @@ rtError pxObject::moveToFront()
   return RT_OK;
 }
 
-rtError pxObject::moveToCenter()
-{
-  pxObject* parent = this->parent();
-  
-  float cx = (parent->w() - mw)/2;
-  float cy = (parent->h() - mh)/2;
-  
-  setX(cx);  setY(cy);
-  
-  return RT_OK;
-}
-
-
-rtError pxObject::moveToCenterH()
-{
-  pxObject* parent = this->parent();
-  
-  float cx = (parent->w() - mw)/2;
-  
-  setX(cx);
-  
-  return RT_OK;
-}
-
-
-rtError pxObject::moveToCenterV()
-{
-  pxObject* parent = this->parent();
-  
-  float cy = (parent->h() - mh)/2;
-  
-  setY(cy);
-  
-  return RT_OK;
-}
-
 rtError pxObject::moveToBack()
 {
   pxObject* parent = this->parent();
@@ -1531,9 +1495,6 @@ rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, removeAll);
 rtDefineMethod(pxObject, moveToFront);
 rtDefineMethod(pxObject, moveToBack);
-rtDefineMethod(pxObject, moveToCenter);
-rtDefineMethod(pxObject, moveToCenterH);
-rtDefineMethod(pxObject, moveToCenterV);
 rtDefineMethod(pxObject, releaseResources);
 //rtDefineMethod(pxObject, animateTo);
 #if 0

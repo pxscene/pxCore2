@@ -89,7 +89,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
     {
         logo.x  = (panel.w - logo.resource.w)/2;
 
-        panel.moveToCenterH(); // center horizontally in parent
+        panel.x = (w - panel.w)/2; // center horizontally in parent
         panel.a = 1.0;
         panel.focus = true;
 
@@ -103,7 +103,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
     {
       var cy = (scene.h - panel.h)/2;                // offscreen top
            
-      panel.moveToCenterH(); // center horizontally in parent
+      panel.x = (scene.w - panel.w)/2; // center horizontally in parent
       panel.animateTo({ y: cy }, 1.25, scene.animation.EASE_OUT_ELASTIC,
                                        scene.animation.OPTION_FASTFORWARD, 1);
              

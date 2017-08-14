@@ -186,9 +186,6 @@ public:
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
   rtMethodNoArgAndNoReturn("moveToFront", moveToFront);
   rtMethodNoArgAndNoReturn("moveToBack", moveToBack);
-  rtMethodNoArgAndNoReturn("moveToCenter", moveToCenter);
-  rtMethodNoArgAndNoReturn("moveToCenterH", moveToCenterH);
-  rtMethodNoArgAndNoReturn("moveToCenterV", moveToCenterV);
 
   rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
                         uint32_t, uint32_t, int32_t, rtObjectRef);
@@ -373,9 +370,6 @@ public:
   void    moveBackward();
   rtError moveToFront();
   rtError moveToBack();
-  rtError moveToCenter();  // HV center within (W x H) of parent
-  rtError moveToCenterH(); // H  center within (W x H) of parent
-  rtError moveToCenterV(); // V  center within (W x H) of parent
 
   virtual void dispose();
 
