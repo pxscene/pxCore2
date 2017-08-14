@@ -95,7 +95,7 @@ private:
   {
       clientDisconnectedCallback func;
       void*                      data;
-  } clientDisconnectedCB;
+  };
 
   using ClientMap = std::map< std::string, std::shared_ptr<rtRemoteClient> >;
   using ClientDisconnectedCBMap = std::map< rtRemoteClient*, std::vector<ClientDisconnectedCB> >;
