@@ -49,7 +49,7 @@ public:
 
   // This will initialize the offscreen for the given height and width 
   // but will not clear it.
-  virtual pxError init(int width, int height);
+  pxError init(int width, int height);
     
   // This will initialize the offscreen for the given height and width and
   // will clear it with the provided color.
