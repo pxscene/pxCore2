@@ -6,6 +6,11 @@ px.import({ scene: 'px:scene.1.js',
     var scene = imports.scene;
     var keys  = imports.keys;
 
+    var laterTimer = null;
+    var wideAnim   = null;
+
+    var didNarrow = false;
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // EXAMPLE:  
@@ -136,6 +141,9 @@ px.import({ scene: 'px:scene.1.js',
         this.clearSelection = clearSelection;
         this.hideCursor     = hideCursor;
         this.showCursor     = showCursor;
+
+        this.doLater        = doLater;
+        this.cancelLater    = cancelLater;
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -933,6 +941,67 @@ px.import({ scene: 'px:scene.1.js',
         {
             cursor.animateTo({ a: 0 }, 0.5, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_OSCILLATE, scene.animation.COUNT_FOREVER);
         }
+
+        function cancelLater(fn)
+        {
+            clearTimeout(laterTimer);
+            laterTimer = null;
+
+            if(wideAnim !== null)
+            {
+                console.log("\n######### CANCEL ANIM");
+                wideAnim.cancel();
+                console.log("\n######### CANCEL ANIM - Done");
+            }
+
+            if(didNarrow)
+            {
+                widenURL(fn);
+            }
+        }
+
+        function doLater(fn, delay_ms)
+        {
+            if(laterTimer === null)
+            {
+               laterTimer = setTimeout(function delayShow() { narrowURL(fn) }, delay_ms);
+            }
+        }
+
+        function narrowURL(fn)
+        {
+            wideAnim = inputBg.animate({w: inputBg.w - 30}, 0.1,
+                                            scene.animation.TWEEN_LINEAR,
+                                            scene.animation.OPTION_FASTFORWARD, 1);
+            wideAnim.done.then(
+                function(o)
+                {
+                    if(fn) fn();  // delegate
+
+                    wideAnim  = null;
+                    didNarrow = true;
+
+                 }, function(o) {}
+            );
+        }
+
+        function widenURL(fn)
+        {
+            wideAnim = inputBg.animate({w: inputBg.w + 30}, 0.1,
+                                            scene.animation.TWEEN_LINEAR,
+                                            scene.animation.OPTION_FASTFORWARD, 1);
+            wideAnim.done.then(
+                function(o)
+                {
+                    if(fn) fn();  // delegate
+
+                    wideAnim  = null;
+                    didNarrow = false;
+
+                }, function(o) {}
+            );
+        }
+
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -

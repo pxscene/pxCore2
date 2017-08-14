@@ -63,6 +63,14 @@ using namespace rapidjson;
 
 using namespace std;
 
+
+#define xstr(s) str(s)
+#define str(s) #s
+
+#ifndef PX_SCENE_VERSION
+#define PX_SCENE_VERSION dev_ver
+#endif
+
 // #define DEBUG_SKIP_DRAW       // Skip DRAW   code - for testing.
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
 
@@ -626,6 +634,42 @@ rtError pxObject::moveToFront()
   return RT_OK;
 }
 
+rtError pxObject::moveToCenter()
+{
+  pxObject* parent = this->parent();
+  
+  float cx = (parent->w() - mw)/2;
+  float cy = (parent->h() - mh)/2;
+  
+  setX(cx);  setY(cy);
+  
+  return RT_OK;
+}
+
+
+rtError pxObject::moveToCenterH()
+{
+  pxObject* parent = this->parent();
+  
+  float cx = (parent->w() - mw)/2;
+  
+  setX(cx);
+  
+  return RT_OK;
+}
+
+
+rtError pxObject::moveToCenterV()
+{
+  pxObject* parent = this->parent();
+  
+  float cy = (parent->h() - mh)/2;
+  
+  setY(cy);
+  
+  return RT_OK;
+}
+
 rtError pxObject::moveToBack()
 {
   pxObject* parent = this->parent();
@@ -636,7 +680,6 @@ rtError pxObject::moveToBack()
   mParent = parent;
   std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
   parent->mChildren.insert(it, this);
-
 
   return RT_OK;
 }
@@ -1488,6 +1531,9 @@ rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, removeAll);
 rtDefineMethod(pxObject, moveToFront);
 rtDefineMethod(pxObject, moveToBack);
+rtDefineMethod(pxObject, moveToCenter);
+rtDefineMethod(pxObject, moveToCenterH);
+rtDefineMethod(pxObject, moveToCenterV);
 rtDefineMethod(pxObject, releaseResources);
 //rtDefineMethod(pxObject, animateTo);
 #if 0
@@ -1569,6 +1615,41 @@ pxScene2d::pxScene2d(bool top)
   mPointerHotSpotY= 16;
   mPointerResource= pxImageManager::getImage("cursor.png");
   #endif
+  
+  
+  
+#if defined(PX_PLATFORM_WIN)
+  #define __PX_PLATFORM__  "Windows"
+#elif defined(PX_PLATFORM_MAC)
+  #define __PX_PLATFORM__  "Mac"
+#elif defined(PX_PLATFORM_X11)
+  #define __PX_PLATFORM__  "X11"
+#elif defined(PX_PLATFORM_GENERIC_DFB)
+  #define __PX_PLATFORM__  "GENERIC DFB"
+#elif defined (PX_PLATFORM_DFB_NON_X11)
+  #define __PX_PLATFORM__  "NON X11 DFB"
+#elif defined (PX_PLATFORM_GLUT)
+  #define __PX_PLATFORM__  "GLUT"
+#elif defined(PX_PLATFORM_WAYLAND)
+  #define __PX_PLATFORM__  "Wayland"
+#elif defined(PX_PLATFORM_WAYLAND_EGL)
+  #define __PX_PLATFORM__  "Wayland EGL"
+#elif defined(PX_PLATFORM_GENERIC_EGL)
+  #define __PX_PLATFORM__  "Generic EGL"
+#else
+  #define __PX_PLATFORM__  "-UNKNOWN-"
+#endif  
+  
+  mInfo = new rtMapObject;
+  mInfo.set("version", xstr(PX_SCENE_VERSION));
+  
+    rtObjectRef build = new rtMapObject;
+    build.set("date",     xstr(__DATE__));
+    build.set("time",     xstr(__TIME__));
+    build.set("platform", xstr(__PX_PLATFORM__));
+  
+  mInfo.set("build", build);
+  mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
 }
 
 rtError pxScene2d::dispose()
@@ -1591,6 +1672,9 @@ rtError pxScene2d::dispose()
       mRoot->dispose();
     mEmit->clearListeners();
     mRoot = NULL;
+  
+    mInfo = NULL;
+  
     mFocusObj = NULL;
     pxFontManager::clearAllFonts();
     return RT_OK;
@@ -2093,6 +2177,11 @@ void pxScene2d::update(double t)
 pxObject* pxScene2d::getRoot() const
 {
   return mRoot;
+}
+
+rtObjectRef pxScene2d::getInfo() const
+{
+  return mInfo;
 }
 
 void pxScene2d::onComplete()
@@ -2668,6 +2757,7 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
+rtDefineProperty(pxScene2d, info);
 rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
