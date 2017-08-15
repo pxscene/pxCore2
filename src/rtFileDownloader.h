@@ -81,8 +81,8 @@ public:
 #ifdef ENABLE_HTTP_CACHE
   void setCacheEnabled(bool val);
   bool cacheEnabled();
-  void setDataCache(bool val);
-  bool dataCached();
+  void setDataIsCached(bool val);
+  bool dataCache();
 #endif
 
 private:
