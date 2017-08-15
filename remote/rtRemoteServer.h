@@ -30,6 +30,7 @@ public:
   rtError registerObject(std::string const& objectId, rtObjectRef const& obj);
   rtError unregisterObject(std::string const& objectId);
   rtError findObject(std::string const& objectId, rtObjectRef& obj, uint32_t timeout, clientDisconnectedCallback cb, void *cbdata);
+  rtError unregisterDisconnectedCallback( clientDisconnectedCallback cb, void *cbdata );
   rtError removeStaleObjects();
   rtError processMessage(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& msg);
 
@@ -95,6 +96,7 @@ private:
   {
       clientDisconnectedCallback func;
       void*                      data;
+      bool operator == (const ClientDisconnectedCB& other) const {return func == other.func && data == other.data;}
   };
 
   using ClientMap = std::map< std::string, std::shared_ptr<rtRemoteClient> >;
