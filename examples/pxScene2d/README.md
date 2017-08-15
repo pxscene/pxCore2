@@ -1,5 +1,8 @@
 #Build Instructions for pxScene
 
+## Supported Platforms
+>   * macOS, Windows, Linux, and Raspberry Pi
+
 ## Ubuntu Setup
 >Setup Ubuntu
 >   * Create a linux VM.  The following version is recommended:  ubuntu-14.04.1-desktop-amd64
@@ -83,16 +86,20 @@
     cd temp
     cmake ..
     ~~~~
+    If you wish to build the unit tests then run
+    ~~~~
+    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON ..
+    ~~~~
     For Linux, Mac, and Raspberry Pi run: 
     ~~~~
-    cmake --build . --config Release
+    cmake --build . --config Release -- -j1
     ~~~~
     For Windows (**Run from inside a Visual Studio Command Prompt**):
     ~~~~
     cmake --build . --config Release -- /m
     ~~~~
 
-4. Run a sample javascript file:
+5. Run a sample javascript file:
 
     On Linux
     ~~~~
@@ -125,8 +132,23 @@ http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
 http://www.pxscene.org/examples/px-reference/gallery/gallery.js
 file:///home/username/directory/filename.js
   ~~~~
-7. Write your own app!
+6. Write your own app!
 
+7. Run the unit tests (if they were built using the configuration in step 4)
+   
+    ~~~~
+    cd pxCore/tests/pxScene2d
+    ~~~~
+
+    On Linux, Mac, and Raspberry Pi run: 
+    ~~~~
+    ./pxscene2dtests.sh
+    ~~~~
+
+    On Windows
+    ~~~~
+    pxscene2dtests.exe
+    ~~~~
 
 
 

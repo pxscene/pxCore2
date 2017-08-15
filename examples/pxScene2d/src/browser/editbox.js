@@ -54,11 +54,11 @@ px.import({ scene: 'px:scene.1.js',
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Object.defineProperty(this, "focus",
         {
-            set: function (val) { textInput.focus = val;  },
+            set: function (val) { textInput.focus = val; val ? showCursor() : hideCursor(); },
             get: function () { return textInput.focus;    },
         });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        this._keepFocus = true; // Lose focus on MouseLeave
+        this._keepFocus = false; // Keep focus on MouseLeave
         Object.defineProperty(this, "keepFocus",
         {
             set: function (val) { this._keepFocus = val;  },
@@ -318,9 +318,9 @@ px.import({ scene: 'px:scene.1.js',
 
         textView.on("onMouseEnter", function (e) {
 
-             console.log(">>> textView.onMouseEnter   SHOW FOCUS:" + self.showFocus );
+//             console.log(">>> textView.onMouseEnter   showFocus:" + showFocus );
 
-            if(self.showFocus)
+            if(showFocus)
             {
                 textInputBG.a = 0.5;
             }
@@ -330,16 +330,16 @@ px.import({ scene: 'px:scene.1.js',
 
         textView.on("onMouseLeave", function (e) {
 
-//            console.log(">>> textView.onMouseLeave   SHOW:" + self.showFocus + " KEEP:  " + self.keepFocus);
+//            console.log(">>> textView.onMouseLeave   showFocus:" + showFocus + " keepFocus:  " + keepFocus);
 
-            if(self.showFocus)
+            if(showFocus)
             {
                 textInputBG.a = 0.25;
             }
 
             buttonDown = false;
 
-            if(self.keepFocus === false)
+            if(keepFocus === false)
             {
                 hideCursor();
                 clearSelection();
@@ -864,7 +864,7 @@ px.import({ scene: 'px:scene.1.js',
             // Position cursor at "start" of selection .. dependin on direction
             cursor_pos = (length > 0) ? end : start;//+= length;
 
-console.log(">>> makeSelection() ... selection.x = " + selection.x + "   selection.w = " + selection.w + "  selection.h = " + selection.h);
+// console.log(">>> makeSelection() ... selection.x = " + selection.x + "   selection.w = " + selection.w + "  selection.h = " + selection.h);
 
             updateCursor(cursor_pos);
         }

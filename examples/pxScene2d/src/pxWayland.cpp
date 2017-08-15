@@ -61,6 +61,7 @@ pxWayland::pxWayland(bool useFbo)
     mWidth(0),
     mHeight(0),
     mUseFbo(useFbo),
+    mSuspended(false),
     mEvents(0),
     mClientPID(0),
     mWCtx(0),
@@ -315,6 +316,11 @@ void pxWayland::onUpdate(double t)
 
 void pxWayland::onDraw()
 {
+  if (mSuspended)
+  {
+    // do not draw if the app is in a suspended states
+    return;
+  }
   static pxTextureRef nullMaskRef;
   
   unsigned int outputWidth, outputHeight;
@@ -716,6 +722,22 @@ rtError pxWayland::connectToRemoteObject()
 rtError pxWayland::useDispatchThread(bool use)
 {
   mUseDispatchThread = use;
+  return RT_OK;
+}
+
+rtError pxWayland::resume()
+{
+  mSuspended = false;
+  rtValue args;
+  callMethod("resume", 0, &args);
+  return RT_OK;
+}
+
+rtError pxWayland::suspend()
+{
+  mSuspended = true;
+  rtValue args;
+  callMethod("suspend", 0, &args);
   return RT_OK;
 }
 

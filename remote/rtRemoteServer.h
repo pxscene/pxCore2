@@ -97,7 +97,7 @@ private:
       clientDisconnectedCallback func;
       void*                      data;
       bool operator == (const ClientDisconnectedCB& other) const {return func == other.func && data == other.data;}
-  } clientDisconnectedCB;
+  };
 
   using ClientMap = std::map< std::string, std::shared_ptr<rtRemoteClient> >;
   using ClientDisconnectedCBMap = std::map< rtRemoteClient*, std::vector<ClientDisconnectedCB> >;
