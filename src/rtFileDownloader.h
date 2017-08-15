@@ -82,7 +82,7 @@ public:
   void setCacheEnabled(bool val);
   bool cacheEnabled();
   void setDataIsCached(bool val);
-  bool dataCache();
+  bool isDataCached();
 #endif
 
 private:
