@@ -7,10 +7,8 @@ matrix:
     osx_image: xcode6.4
 language: c++
 before_install:
-- openssl aes-256-cbc -K $encrypted_169a15101c41_key -iv $encrypted_169a15101c41_iv
-  -in pxscene-build.pem.enc -out pxscene-build.pem -d
-- if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then openssl aes-256-cbc -K $encrypted_8b763c087de9_key
-  -iv $encrypted_8b763c087de9_iv -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem
+- if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then openssl aes-256-cbc -K $encrypted_169a15101c41_key
+  -iv $encrypted_169a15101c41_iv -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem
   -d; fi
 - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  eval "$(ssh-agent -s)"; fi
 - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  chmod 0600 /tmp/pxscene-build.pem;
