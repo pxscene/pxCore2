@@ -240,7 +240,11 @@ bool rtFileDownloadRequest::executeCallback(int statusCode)
 bool rtFileDownloadRequest::executeDownloadProgressCallback(void * ptr, size_t size, size_t nmemb)
 {
   if(mDownloadProgressCallbackFunction)
+  {
     mDownloadProgressCallbackFunction(ptr, size, nmemb, mDownloadProgressUserPtr);
+    return true;
+  }
+  return false;
 }
   
 void rtFileDownloadRequest::setDownloadedData(char* data, size_t size)
