@@ -1,6 +1,7 @@
 #This script runs testrunner app in osx and it is used for code coverage
 
 #!/bin/sh
+sed -i -n "s/var loggingLevel = 1/var loggingLevel = 5/g" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/rcvrcore/Logger.js
 ulimit -c unlimited
 cd $TRAVIS_BUILD_DIR
 cored=0

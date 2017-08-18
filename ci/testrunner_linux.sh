@@ -1,5 +1,6 @@
 # This script runs testrunner in  linux and it is used for code coverage
 #!/bin/sh
+sed -i "s/var loggingLevel = 1/var loggingLevel = 5/g" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/rcvrcore/Logger.js
 cd $TRAVIS_BUILD_DIR
 TESTRUNLOGS=$TRAVIS_BUILD_DIR/logs/run_logs
 TESTRUNNERTESTS=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json
