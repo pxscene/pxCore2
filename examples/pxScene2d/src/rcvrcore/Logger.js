@@ -2,7 +2,7 @@
  * Created by tcarro004 on 7/18/15.
  */
 
-var loggingLevel = 1;
+var loggingLevel = 5;
 
 function Logger(name) {
   this.name = name;
