@@ -146,6 +146,12 @@ rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj,
 }
 
 rtError
+rtRemoteUnregisterDisconnectedCallback( rtRemoteEnvironment* env, remoteDisconnectedCallback cb, void *cbdata )
+{
+    return env->Server->unregisterDisconnectedCallback( cb, cbdata );
+}
+
+rtError
 rtRemoteRegisterQueueReadyHandler ( rtRemoteEnvironment* env, rtRemoteQueueReady handler, void* argp)
 {
   env->registerQueueReadyHandler(handler, argp);
@@ -237,6 +243,12 @@ rtRemoteLocateObject(char const* id, rtObjectRef& obj, int timeout,
         remoteDisconnectedCallback cb, void *cbdata)
 {
   return rtRemoteLocateObject(rtEnvironmentGetGlobal(), id, obj, timeout, cb, cbdata);
+}
+
+rtError
+rtRemoteUnregisterDisconnectedCallback( remoteDisconnectedCallback cb, void *cbdata )
+{
+    return rtRemoteUnregisterDisconnectedCallback( rtEnvironmentGetGlobal(), cb, cbdata );
 }
 
 rtError

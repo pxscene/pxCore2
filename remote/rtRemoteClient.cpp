@@ -434,7 +434,7 @@ rtRemoteClient::getRemoteEndpoint() const
     if (m_stream)
       saddr = m_stream->getRemoteEndpoint();
   }
-  return std::move(saddr);
+  return saddr;
 }
 
 sockaddr_storage
@@ -447,5 +447,5 @@ rtRemoteClient::getLocalEndpoint() const
     if (m_stream)
       m_stream->getLocalEndpoint();
   }
-  return std::move(saddr);
+  return saddr;
 }

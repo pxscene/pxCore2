@@ -31,7 +31,7 @@ px.import({ scene:      'px:scene.1.js',
       u = inputBox.text;
     else
       inputBox.text = u;
-          
+
     spinner.a = 1;
 
     if (u.indexOf("local:") === 0) // LOCAL shorthand
@@ -48,7 +48,7 @@ px.import({ scene:      'px:scene.1.js',
         str[pos] = "/"; // replace : with /
         txt = str.join('');
 
-        u = "http://localhost:" + txt;       // SHORTCUT:   "local:8081:filename.js" >> "http://localhost:8080/filename.js""
+        u = "http://localhost:" + txt;       // SHORTCUT:   "local:8081:filename.js" >> "http://localhost:8081/filename.js""
       }
 
       url = u;
@@ -60,9 +60,11 @@ px.import({ scene:      'px:scene.1.js',
 
     console.log("RELOADING.... [ " + u + " ]");
 
-    content.url = u;
-    //scene.setFocus(content);
-    content.focus = true;
+
+    content.url    = u;
+    content.focus  = true;
+    inputBox.focus = false;
+
     if (true)
     {
       content.ready.then(
@@ -94,16 +96,18 @@ px.import({ scene:      'px:scene.1.js',
 
   content.on("onMouseUp", function(e)
   {
+    inputBox.focus = false;
     content.focus=true;
   });  
 
   function updateSize(w,h)
   {
-    console.log("Resizing...");
+    // console.log("Resizing...");
 
     bg.w = w;
     bg.h = h;
 
+    // Apply insets
     content.w   = w - 20;
     content.h   = h - 70;
 
@@ -121,11 +125,11 @@ px.import({ scene:      'px:scene.1.js',
     if (e.keyCode == keys.L && keys.is_CTRL( e.flags )) { // ctrl-l
 
       inputBox.focus = true;
+      inputBox.selectAll();
 
       e.stopPropagation();
     }
   });
-
 
   scene.root.on("onKeyDown", function(e)
   {
