@@ -272,7 +272,9 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       },
       setTimeout: function (callback, after, arg1, arg2, arg3) {
         var timerId = SetTimeout(callback, after, arg1, arg2, arg3);
+      console.log("push 8");
         this.timers.push(timerId);
+      console.log("push 9");
         return timerId;
       }.bind(this),
       clearTimeout: function (timer) {
@@ -285,7 +287,9 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       }.bind(this),
       setInterval: function (callback, repeat, arg1, arg2, arg3) {
         var intervalId = SetInterval(callback, repeat, arg1, arg2, arg3);
+      console.log("push 13");
         this.timerIntervals.push(intervalId);
+      console.log("push 14");
         return intervalId;
       }.bind(this),
       clearInterval: function (timer) {
@@ -648,7 +652,9 @@ AppSceneContext.prototype.onResize = function(resizeEvent) {
 
 AppSceneContext.prototype.addModuleReadyListener = function(moduleName, callback) {
   if( this.scriptMap.hasOwnProperty(moduleName) ) {
+      console.log("push 10");
     this.scriptMap[moduleName].readyListeners.push(callback);
+      console.log("push 11");
   } else {
     console.trace('AppSceneContext#addModuleReadyListener: no entry in map for module [' + moduleName + ']');
   }

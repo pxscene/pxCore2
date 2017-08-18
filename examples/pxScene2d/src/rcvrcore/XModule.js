@@ -87,12 +87,16 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
   var pathToNameMap = {};
   var requiredModules = [];
   if( typeof requiredModuleSet === 'string' ) {
+      console.log("push 18");
     requiredModules.push(requiredModuleSet);
+      console.log("push 19");
     isSingleStringImportType = true;
   } else if( !Array.isArray(requiredModuleSet) ) {
     requiredModules = [];
     for(var key in requiredModuleSet) {
+      console.log("push 20");
       requiredModules.push(requiredModuleSet[key]);
+      console.log("push 21");
       pathToNameMap[requiredModuleSet[key]] = key;
     }
   } else {
@@ -129,7 +133,9 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
   }
   for (var k = 0; k < requiredModules.length; ++k) {
     log.message(9, bPath + " REQUIRES " + requiredModules[k]);
+      console.log("push 30");
     this.appSandbox.importTracking[bPath].push(requiredModules[k]);
+      console.log("push 31");
 
     if( this.appSandbox.importTracking.hasOwnProperty(requiredModules[k]) ) {
       var reqArr = this.appSandbox.importTracking[requiredModules[k]];

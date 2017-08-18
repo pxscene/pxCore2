@@ -16,6 +16,7 @@ AsyncFileAcquisition.prototype.acquire = function(uri) {
       // already waiting on file
       log.message(4, "ACQUISITION: adding listener for existing request: " + uri);
       var requestData = _this.requestMap[uri];
+      console.log("push 6");
       requestData.listeners.push(function(status, error){
         if( status === 'resolve' ) {
           resolve(requestData.moduleLoader);
@@ -23,6 +24,7 @@ AsyncFileAcquisition.prototype.acquire = function(uri) {
           reject(error);
         }
       });
+      console.log("push 7");
     } else {
       var moduleLoader = new SceneModuleLoader();
       _this.requestMap[uri] = {status: "acquiring", moduleLoader: moduleLoader, listeners: []};

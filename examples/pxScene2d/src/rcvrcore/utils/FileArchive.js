@@ -108,7 +108,9 @@ FileArchive.prototype.loadRemoteJarFile = function(filePath) {
 
       // don't set the encoding, it will break everything !
       res.on("data", function (chunk) {
+        console.log("push 5");
         data.push(chunk);
+        console.log("push 6");
         dataLen += chunk.length;
       });
 

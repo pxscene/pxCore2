@@ -9,8 +9,11 @@ function evalArgument(arg, processArgs) {
   var index = arg.indexOf("=");
   if( index != -1 ) {
     var parts = [];
+    console.log("push 1");
     parts.push(arg.substring(0,index));
+    console.log("push 2");
     parts.push(arg.substr(index+1));
+    console.log("push 3");
     if( parts.length == 2 ) {
       log.message(2, "key=" + parts[0] + ", value=" + parts[1]);
       processArgs[parts[0]] = parts[1];
