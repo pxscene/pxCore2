@@ -43,7 +43,6 @@ cp macstuff/Info.plist $bundle/Contents
 #
 cp -a browser $bundleRes
 cp FreeSans.ttf $bundleRes
-cp testRunner_memcheck.js $bundleRes
 
 cp package.json $bundleRes
 cp pxscene $bundleBin
