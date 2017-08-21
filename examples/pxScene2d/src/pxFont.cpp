@@ -62,7 +62,7 @@ extern pxContext context;
 #if 1
 // TODO can we eliminate direct utf8.h usage
 extern "C" {
-#include "utf8.h"
+#include "../../../src/utf8.h"
 }
 #endif
 
@@ -78,10 +78,11 @@ uint32_t npot(uint32_t i)
   return power;
 }
 
-pxFont::pxFont(rtString fontUrl):pxResource(),mPixelSize(0), mFontData(0)
+pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0)
 {  
   mFontId = gFontId++; 
   mUrl = fontUrl;
+  mProxy = proxyUrl;
 }
 
 pxFont::~pxFont() 
@@ -523,7 +524,7 @@ void pxFontManager::initFT()
   }
   
 }
-rtRef<pxFont> pxFontManager::getFont(const char* url)
+rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
 {
   initFT();
 
@@ -543,7 +544,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url)
   else 
   {
     rtLogDebug("Create pxFont in map for %s\n",url);
-    pFont = new pxFont(url);
+    pFont = new pxFont(url, proxy);
     mFontMap.insert(make_pair(url, pFont));
     pFont->loadResource();
   }

@@ -21,7 +21,23 @@
 #include "pxAnimate.h"
 #include "pxScene2d.h"
 
-pxAnimate::pxAnimate (rtObjectRef props, uint32_t interp, pxConstantsAnimation::animationOptions type, double duration, int32_t count, rtObjectRef promise, rtRef<pxObject> animateObj):mProps(props), mInterp(interp), mType(type), mProvisionedDuration(duration), mProvisionedCount(count), mCancelled(false), mStatus("IDLE"), mDonePromise(promise), mAnimatedObj(animateObj)
+static rtString mapStatus(pxConstantsAnimation::animationStatus status)
+{
+  switch(status) 
+  { 
+     case pxConstantsAnimation::STATUS_IDLE:        return "IDLE"; // aka "STOPPED"
+     case pxConstantsAnimation::STATUS_INPROGRESS:  return "INPROGRESS";
+     case pxConstantsAnimation::STATUS_CANCELLED:   return "CANCELLED";
+     case pxConstantsAnimation::STATUS_ENDED:       return "ENDED";
+ 
+    default: 
+      return "UNKNOWN"; 
+  }
+}
+
+pxAnimate::pxAnimate (rtObjectRef props, uint32_t interp, pxConstantsAnimation::animationOptions type, double duration, int32_t count, rtObjectRef promise, rtRef<pxObject> animateObj)
+  : mCancelled(false), mType(type), mStatus(pxConstantsAnimation::STATUS_IDLE), mProps(props), mInterp(interp), mProvisionedDuration(duration), mProvisionedCount(count),
+    mDonePromise(promise), mAnimatedObj(animateObj)
 {
   if (NULL != props.getPtr())
   {
@@ -37,7 +53,7 @@ pxAnimate::pxAnimate (rtObjectRef props, uint32_t interp, pxConstantsAnimation::
         if (NULL != propParamsPtr)
         {
           rtString key = keys.get<rtString>(i);
-          propParamsPtr->mStatus = "IDLE";
+          propParamsPtr->mStatus = pxConstantsAnimation::STATUS_IDLE;
           propParamsPtr->mCancelled = false;
           propParamsPtr->mCount = 0;
           propParamsPtr->mFrom = 0;
@@ -45,7 +61,7 @@ pxAnimate::pxAnimate (rtObjectRef props, uint32_t interp, pxConstantsAnimation::
           propParamsPtr->mDuration = 0;
           mCurrDetails.set(key,params);
         }
-      }
+      }//FOR
     }
   }
 }
@@ -71,16 +87,17 @@ rtError pxAnimate::cancel ()
       }
     }
   }
-  mStatus = "CANCELLED";
+  mStatus = pxConstantsAnimation::STATUS_CANCELLED;
   return RT_OK;
 }
 
-void pxAnimate::setStatus (uint32_t status)
+void pxAnimate::setStatus (pxConstantsAnimation::animationStatus status)
 {
-  mStatus = mapStatus(status);
+  if (status > mStatus)
+    mStatus = status;
 }
 
-void pxAnimate::update (const char* prop, struct animation* params, uint32_t status)
+void pxAnimate::update (const char* prop, struct animation* params, pxConstantsAnimation::animationStatus status)
 {
   if (NULL != mCurrDetails.getPtr())
   {
@@ -89,9 +106,11 @@ void pxAnimate::update (const char* prop, struct animation* params, uint32_t sta
 
     if (propParamsPtr != NULL)
     {
-      propParamsPtr->mStatus = mapStatus(status);
+      if (status > propParamsPtr->mStatus)
+        propParamsPtr->mStatus = status;
       propParamsPtr->mCount = params->actualCount;
-      propParamsPtr->mCancelled = params->cancelled;
+      if (propParamsPtr->mStatus != pxConstantsAnimation::STATUS_ENDED)
+        propParamsPtr->mCancelled = params->cancelled;
       propParamsPtr->mDuration = params->duration;
       propParamsPtr->mFrom = params->from;
       propParamsPtr->mTo = params->to;
@@ -99,27 +118,17 @@ void pxAnimate::update (const char* prop, struct animation* params, uint32_t sta
   }
 }
 
-rtString pxAnimate::mapStatus(uint32_t status)
+rtError pxAnimate::status(rtString& v) const
+{ 
+  v = mapStatus(mStatus);
+  return RT_OK;
+};
+
+rtError pxAnimate::pxAnimationParams::status(rtString& v) const
 {
-   pxConstantsAnimation::animationStatus v = (pxConstantsAnimation::animationStatus) status;
-   if (v == pxConstantsAnimation::STATUS_IDLE)
-   {
-     return "IDLE";
-   }
-   else if ( v == pxConstantsAnimation::STATUS_INPROGRESS)
-   {
-     return "INPROGRESS";
-   }
-   else if ( v == pxConstantsAnimation::STATUS_CANCELLED)
-   {
-     return "CANCELLED";
-   }
-   else if ( v == pxConstantsAnimation::STATUS_ENDED)
-   {
-     return "ENDED";
-   }
-   return "UNKNOWN";
-}
+  v = mapStatus(mStatus);
+  return RT_OK;
+};
 
 rtDefineObject(pxAnimate, rtObject);
 

@@ -1733,6 +1733,7 @@
 					RT_PLATFORM_LINUX,
 					ENABLE_NODE_V_6_9,
 					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
 				);
 				HEADER_SEARCH_PATHS = (
 					"examples/pxScene2d/external/libnode-v6.9.0/src",
@@ -1803,6 +1804,7 @@
 					RT_PLATFORM_LINUX,
 					ENABLE_NODE_V_6_9,
 					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
 				);
 				HEADER_SEARCH_PATHS = (
 					"examples/pxScene2d/external/libnode-v6.9.0/src",

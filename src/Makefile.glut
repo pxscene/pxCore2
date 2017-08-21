@@ -1,6 +1,3 @@
-ifndef USE_EXTERNALS_GLUT
-USE_EXTERNALS_GLUT=false
-endif
 EXTDIR=../examples/pxScene2d/external
 NODEPATH=$(EXTDIR)/libnode-v6.9.0/
 NODEINC=\
@@ -9,21 +6,16 @@ NODEINC=\
         -I$(NODEPATH)/deps/v8 \
         -I$(NODEPATH)/deps/debugger-agent/include \
         -I$(NODEPATH)/deps/v8/include \
-        -I$(NODEPATH)/deps/cares/include 
+        -I$(NODEPATH)/deps/cares/include
 ZLIBINC=-I$(EXTDIR)/zlib/
 CURLINC=-I$(EXTDIR)/curl/include
-JPGINC=-I$(EXTDIR)/jpg 
+JPGINC=-I$(EXTDIR)/jpg
 JPGTURBOINC=-I$(EXTDIR)/libjpeg-turbo
 PNGINC=-I$(EXTDIR)/png
-ifeq ($(USE_EXTERNALS_GLUT), true)
-GLUTINC=-I$(EXTDIR)/freeglut/include
-endif
-INCLUDE_PATHS=$(NODEINC) $(ZLIBINC) $(CURLINC) $(JPGINC) $(JPGTURBOINC) $(PNGINC) $(GLUTINC) -I.
+INCLUDE_PATHS=$(NODEINC) $(ZLIBINC) $(CURLINC) $(JPGINC) $(JPGTURBOINC) $(PNGINC) -I.
 EXTRA_DEFINES=-DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_DEBUG_MODE
-CFLAGS= -DPX_PLATFORM_GLUT -DRT_PLATFORM_LINUX -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN -DENABLE_LIBJPEG_TURBO -DPNG_APNG_SUPPORTED -fPIC -Wno-deprecated $(INCLUDE_PATHS) $(EXTRA_DEFINES) -std=c++11 -fpermissive
-ifeq ($(USE_EXTERNALS_GLUT), true)
-CFLAGS += -DUSE_EXTERNALS_GLUT
-endif
+CXXFLAGS=-std=c++11 -fpermissive
+CFLAGS= -DPX_PLATFORM_GLUT -DRT_PLATFORM_LINUX -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN -DENABLE_LIBJPEG_TURBO -DPNG_APNG_SUPPORTED -fPIC -Wno-deprecated $(INCLUDE_PATHS) $(EXTRA_DEFINES) -Werror
 ifeq ($(CODE_COVERAGE), 1)
 CFLAGS += -fprofile-arcs -ftest-coverage
 endif
@@ -31,7 +23,7 @@ OUTDIR=../build/glut
 
 OBJDIR=obj
 
-all: createobjdir $(OUTDIR)/librtCore_s.a $(OUTDIR)/libpxCore.a 
+all: createobjdir $(OUTDIR)/librtCore_s.a $(OUTDIR)/libpxCore.a
 rtcore: createobjdir $(OUTDIR)/librtCore_s.a $(OUTDIR)/librtCore.so
 
 clean:
@@ -41,104 +33,104 @@ clean:
 createobjdir:
 	mkdir -p $(OBJDIR)
 
-$(OUTDIR)/librtCore_s.a: 
+$(OUTDIR)/librtCore_s.a:
 	rm $(OBJDIR)/*.o
 $(OUTDIR)/librtCore_s.a: $(OBJDIR)/utf8.o $(OBJDIR)/rtString.o $(OBJDIR)/rtLog.o $(OBJDIR)/rtValue.o $(OBJDIR)/rtObject.o $(OBJDIR)/rtError.o $(OBJDIR)/ioapi_mem.o
 	mkdir -p $(OUTDIR)
-	$(AR) rc $(OUTDIR)/librtCore_s.a $(OBJDIR)/utf8.o $(OBJDIR)/rtString.o $(OBJDIR)/rtLog.o $(OBJDIR)/rtValue.o $(OBJDIR)/rtObject.o $(OBJDIR)/rtError.o $(OBJDIR)/ioapi_mem.o 
+	$(AR) rc $(OUTDIR)/librtCore_s.a $(OBJDIR)/utf8.o $(OBJDIR)/rtString.o $(OBJDIR)/rtLog.o $(OBJDIR)/rtValue.o $(OBJDIR)/rtObject.o $(OBJDIR)/rtError.o $(OBJDIR)/ioapi_mem.o
 
-$(OUTDIR)/librtCore.so: 
+$(OUTDIR)/librtCore.so:
 	rm $(OBJDIR)/*.o
-$(OUTDIR)/librtCore.so: $(OBJDIR)/utf8.o $(OBJDIR)/rtString.o $(OBJDIR)/rtLog.o $(OBJDIR)/rtValue.o $(OBJDIR)/rtObject.o $(OBJDIR)/rtError.o $(OBJDIR)/ioapi_mem.o 
+$(OUTDIR)/librtCore.so: $(OBJDIR)/utf8.o $(OBJDIR)/rtString.o $(OBJDIR)/rtLog.o $(OBJDIR)/rtValue.o $(OBJDIR)/rtObject.o $(OBJDIR)/rtError.o $(OBJDIR)/ioapi_mem.o
 	mkdir -p $(OUTDIR)
 	$(CXX) $(OBJDIR)/utf8.o $(OBJDIR)/rtString.o $(OBJDIR)/rtLog.o $(OBJDIR)/rtValue.o $(OBJDIR)/rtObject.o $(OBJDIR)/rtError.o $(OBJDIR)/ioapi_mem.o -pthread -ldl -shared -o $(OUTDIR)/librtCore.so
 
 $(OUTDIR)/libpxCore.a:
-$(OUTDIR)/libpxCore.a: $(OBJDIR)/pxOffscreen.o $(OBJDIR)/pxWindowUtil.o $(OBJDIR)/pxBufferNative.o $(OBJDIR)/pxOffscreenNative.o $(OBJDIR)/pxEventLoopNative.o $(OBJDIR)/pxWindowNativeGlut.o $(OBJDIR)/pxTimerNative.o $(OBJDIR)/pxViewWindow.o $(OBJDIR)/pxClipboardNative.o $(OBJDIR)/jsCallback.o $(OBJDIR)/rtFunctionWrapper.o $(OBJDIR)/rtObjectWrapper.o $(OBJDIR)/rtWrapperUtils.o $(OBJDIR)/rtFile.o $(OBJDIR)/rtLibrary.o $(OBJDIR)/rtNode.o $(OBJDIR)/rtPathUtils.o $(OBJDIR)/rtTest.o $(OBJDIR)/rtThreadPool.o $(OBJDIR)/rtThreadQueue.o $(OBJDIR)/rtThreadTask.o $(OBJDIR)/rtMutexNative.o $(OBJDIR)/rtThreadPoolNative.o $(OBJDIR)/rtUrlUtils.o $(OBJDIR)/rtZip.o $(OBJDIR)/unzip.o $(OBJDIR)/ioapi.o $(OBJDIR)/pxInterpolators.o $(OBJDIR)/pxMatrix4T.o $(OBJDIR)/pxUtil.o $(OBJDIR)/rtFileDownloader.o $(OBJDIR)/rtFileCache.o $(OBJDIR)/rtHttpCache.o 
-		 mkdir -p $(OUTDIR)  
+$(OUTDIR)/libpxCore.a: $(OBJDIR)/pxOffscreen.o $(OBJDIR)/pxWindowUtil.o $(OBJDIR)/pxBufferNative.o $(OBJDIR)/pxOffscreenNative.o $(OBJDIR)/pxEventLoopNative.o $(OBJDIR)/pxWindowNativeGlut.o $(OBJDIR)/pxTimerNative.o $(OBJDIR)/pxViewWindow.o $(OBJDIR)/pxClipboardNative.o $(OBJDIR)/jsCallback.o $(OBJDIR)/rtFunctionWrapper.o $(OBJDIR)/rtObjectWrapper.o $(OBJDIR)/rtWrapperUtils.o $(OBJDIR)/rtFile.o $(OBJDIR)/rtLibrary.o $(OBJDIR)/rtNode.o $(OBJDIR)/rtPathUtils.o $(OBJDIR)/rtTest.o $(OBJDIR)/rtThreadPool.o $(OBJDIR)/rtThreadQueue.o $(OBJDIR)/rtThreadTask.o $(OBJDIR)/rtMutexNative.o $(OBJDIR)/rtThreadPoolNative.o $(OBJDIR)/rtUrlUtils.o $(OBJDIR)/rtZip.o $(OBJDIR)/unzip.o $(OBJDIR)/ioapi.o $(OBJDIR)/pxInterpolators.o $(OBJDIR)/pxMatrix4T.o $(OBJDIR)/pxUtil.o $(OBJDIR)/rtFileDownloader.o $(OBJDIR)/rtFileCache.o $(OBJDIR)/rtHttpCache.o
+		 mkdir -p $(OUTDIR)
 		 ar rc $(OUTDIR)/libpxCore.a $(OBJDIR)/pxOffscreen.o $(OBJDIR)/pxWindowUtil.o $(OBJDIR)/pxBufferNative.o $(OBJDIR)/pxOffscreenNative.o $(OBJDIR)/pxEventLoopNative.o $(OBJDIR)/pxWindowNativeGlut.o $(OBJDIR)/pxTimerNative.o $(OBJDIR)/pxViewWindow.o $(OBJDIR)/pxClipboardNative.o $(OBJDIR)/jsCallback.o $(OBJDIR)/rtFunctionWrapper.o $(OBJDIR)/rtObjectWrapper.o $(OBJDIR)/rtWrapperUtils.o $(OBJDIR)/rtFile.o $(OBJDIR)/rtLibrary.o $(OBJDIR)/rtNode.o $(OBJDIR)/rtPathUtils.o $(OBJDIR)/rtTest.o $(OBJDIR)/rtThreadPool.o $(OBJDIR)/rtThreadQueue.o $(OBJDIR)/rtThreadTask.o $(OBJDIR)/rtMutexNative.o $(OBJDIR)/rtThreadPoolNative.o $(OBJDIR)/rtUrlUtils.o $(OBJDIR)/rtZip.o $(OBJDIR)/unzip.o $(OBJDIR)/ioapi.o $(OBJDIR)/pxInterpolators.o $(OBJDIR)/pxMatrix4T.o $(OBJDIR)/pxUtil.o $(OBJDIR)/rtFileDownloader.o $(OBJDIR)/rtFileCache.o $(OBJDIR)/rtHttpCache.o
 
 $(OBJDIR)/pxViewWindow.o: pxViewWindow.cpp
-	$(CXX) -o $(OBJDIR)/pxViewWindow.o -Wall $(CFLAGS) -c pxViewWindow.cpp
-          
+	$(CXX) -o $(OBJDIR)/pxViewWindow.o -Wall $(CFLAGS) $(CXXFLAGS) -c pxViewWindow.cpp
+
 $(OBJDIR)/pxOffscreen.o: pxOffscreen.cpp
-	$(CXX) -o $(OBJDIR)/pxOffscreen.o -Wall $(CFLAGS) -c pxOffscreen.cpp
+	$(CXX) -o $(OBJDIR)/pxOffscreen.o -Wall $(CFLAGS) $(CXXFLAGS) -c pxOffscreen.cpp
 
 $(OBJDIR)/pxBufferNative.o: glut/pxBufferNative.cpp
-	$(CXX) -o $(OBJDIR)/pxBufferNative.o -Wall $(CFLAGS) -c glut/pxBufferNative.cpp
+	$(CXX) -o $(OBJDIR)/pxBufferNative.o -Wall $(CFLAGS) $(CXXFLAGS) -c glut/pxBufferNative.cpp
 
 $(OBJDIR)/pxOffscreenNative.o: glut/pxOffscreenNative.cpp
-	$(CXX) -o $(OBJDIR)/pxOffscreenNative.o -Wall $(CFLAGS) -c glut/pxOffscreenNative.cpp
+	$(CXX) -o $(OBJDIR)/pxOffscreenNative.o -Wall $(CFLAGS) $(CXXFLAGS) -c glut/pxOffscreenNative.cpp
 
 $(OBJDIR)/pxWindowNativeGlut.o: glut/pxWindowNative.cpp
-	$(CXX) -o $(OBJDIR)/pxWindowNativeGlut.o -Wall $(CFLAGS) -c glut/pxWindowNative.cpp
+	$(CXX) -o $(OBJDIR)/pxWindowNativeGlut.o -Wall $(CFLAGS) $(CXXFLAGS) -c glut/pxWindowNative.cpp
 
 $(OBJDIR)/pxEventLoopNative.o: glut/pxEventLoopNative.cpp
-	$(CXX) -o $(OBJDIR)/pxEventLoopNative.o -Wall $(CFLAGS) -c glut/pxEventLoopNative.cpp
+	$(CXX) -o $(OBJDIR)/pxEventLoopNative.o -Wall $(CFLAGS) $(CXXFLAGS) -c glut/pxEventLoopNative.cpp
 
 $(OBJDIR)/pxTimerNative.o: glut/pxTimerNative.cpp
-	$(CXX) -o $(OBJDIR)/pxTimerNative.o -Wall $(CFLAGS) -c glut/pxTimerNative.cpp
+	$(CXX) -o $(OBJDIR)/pxTimerNative.o -Wall $(CFLAGS) $(CXXFLAGS) -c glut/pxTimerNative.cpp
 
 $(OBJDIR)/pxClipboardNative.o: glut/pxClipboardNative.cpp
-	$(CXX) -o $(OBJDIR)/pxClipboardNative.o -Wall $(CFLAGS) -c glut/pxClipboardNative.cpp
+	$(CXX) -o $(OBJDIR)/pxClipboardNative.o -Wall $(CFLAGS) $(CXXFLAGS) -c glut/pxClipboardNative.cpp
 
 $(OBJDIR)/pxWindowUtil.o: pxWindowUtil.cpp
-	$(CXX) -o $(OBJDIR)/pxWindowUtil.o -Wall $(CFLAGS) -c pxWindowUtil.cpp
+	$(CXX) -o $(OBJDIR)/pxWindowUtil.o -Wall $(CFLAGS) $(CXXFLAGS) -c pxWindowUtil.cpp
 
 $(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
-	$(CXX) -o $(OBJDIR)/jsCallback.o -Wall $(CFLAGS) -c jsbindings/jsCallback.cpp
+	$(CXX) -o $(OBJDIR)/jsCallback.o -Wall $(CFLAGS) $(CXXFLAGS) -c jsbindings/jsCallback.cpp
 $(OBJDIR)/rtFunctionWrapper.o: jsbindings/rtFunctionWrapper.cpp
-	$(CXX) -o $(OBJDIR)/rtFunctionWrapper.o -Wall $(CFLAGS) -c jsbindings/rtFunctionWrapper.cpp
+	$(CXX) -o $(OBJDIR)/rtFunctionWrapper.o -Wall $(CFLAGS) $(CXXFLAGS) -c jsbindings/rtFunctionWrapper.cpp
 $(OBJDIR)/rtObjectWrapper.o: jsbindings/rtObjectWrapper.cpp
-	$(CXX) -o $(OBJDIR)/rtObjectWrapper.o -Wall $(CFLAGS) -c jsbindings/rtObjectWrapper.cpp
+	$(CXX) -o $(OBJDIR)/rtObjectWrapper.o -Wall $(CFLAGS) $(CXXFLAGS) -c jsbindings/rtObjectWrapper.cpp
 $(OBJDIR)/rtWrapperUtils.o: jsbindings/rtWrapperUtils.cpp
-	$(CXX) -o $(OBJDIR)/rtWrapperUtils.o -Wall $(CFLAGS) -c jsbindings/rtWrapperUtils.cpp
+	$(CXX) -o $(OBJDIR)/rtWrapperUtils.o -Wall $(CFLAGS) $(CXXFLAGS) -c jsbindings/rtWrapperUtils.cpp
 $(OBJDIR)/rtError.o: rtError.cpp
-	$(CXX) -o $(OBJDIR)/rtError.o -Wall $(CFLAGS) -c rtError.cpp
+	$(CXX) -o $(OBJDIR)/rtError.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtError.cpp
 $(OBJDIR)/rtFile.o: rtFile.cpp
-	$(CXX) -o $(OBJDIR)/rtFile.o -Wall $(CFLAGS) -c rtFile.cpp
+	$(CXX) -o $(OBJDIR)/rtFile.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtFile.cpp
 $(OBJDIR)/rtLibrary.o: rtLibrary.cpp
-	$(CXX) -o $(OBJDIR)/rtLibrary.o -Wall $(CFLAGS) -c rtLibrary.cpp
+	$(CXX) -o $(OBJDIR)/rtLibrary.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtLibrary.cpp
 $(OBJDIR)/rtLog.o: rtLog.cpp
-	$(CXX) -o $(OBJDIR)/rtLog.o -Wall $(CFLAGS) -c rtLog.cpp
+	$(CXX) -o $(OBJDIR)/rtLog.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtLog.cpp
 $(OBJDIR)/rtNode.o: rtNode.cpp
-	$(CXX) -o $(OBJDIR)/rtNode.o -Wall $(CFLAGS) -c rtNode.cpp
+	$(CXX) -o $(OBJDIR)/rtNode.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtNode.cpp
 $(OBJDIR)/rtObject.o: rtObject.cpp
-	$(CXX) -o $(OBJDIR)/rtObject.o -Wall $(CFLAGS) -c rtObject.cpp
+	$(CXX) -o $(OBJDIR)/rtObject.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtObject.cpp
 $(OBJDIR)/rtPathUtils.o: rtPathUtils.cpp
-	$(CXX) -o $(OBJDIR)/rtPathUtils.o -Wall $(CFLAGS) -c rtPathUtils.cpp
+	$(CXX) -o $(OBJDIR)/rtPathUtils.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtPathUtils.cpp
 $(OBJDIR)/rtString.o: rtString.cpp
-	$(CXX) -o $(OBJDIR)/rtString.o -Wall $(CFLAGS) -c rtString.cpp
+	$(CXX) -o $(OBJDIR)/rtString.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtString.cpp
 $(OBJDIR)/rtTest.o: rtTest.cpp
-	$(CXX) -o $(OBJDIR)/rtTest.o -Wall $(CFLAGS) -c rtTest.cpp
+	$(CXX) -o $(OBJDIR)/rtTest.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtTest.cpp
 $(OBJDIR)/rtThreadPool.o: rtThreadPool.cpp
-	$(CXX) -o $(OBJDIR)/rtThreadPool.o -Wall $(CFLAGS) -c rtThreadPool.cpp
+	$(CXX) -o $(OBJDIR)/rtThreadPool.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtThreadPool.cpp
 $(OBJDIR)/rtThreadQueue.o: rtThreadQueue.cpp
-	$(CXX) -o $(OBJDIR)/rtThreadQueue.o -Wall $(CFLAGS) -c rtThreadQueue.cpp
+	$(CXX) -o $(OBJDIR)/rtThreadQueue.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtThreadQueue.cpp
 $(OBJDIR)/rtThreadTask.o: rtThreadTask.cpp
-	$(CXX) -o $(OBJDIR)/rtThreadTask.o -Wall $(CFLAGS) -c rtThreadTask.cpp
+	$(CXX) -o $(OBJDIR)/rtThreadTask.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtThreadTask.cpp
 $(OBJDIR)/rtMutexNative.o: unix/rtMutexNative.cpp
-	$(CXX) -o $(OBJDIR)/rtMutexNative.o -Wall $(CFLAGS) -c unix/rtMutexNative.cpp
+	$(CXX) -o $(OBJDIR)/rtMutexNative.o -Wall $(CFLAGS) $(CXXFLAGS) -c unix/rtMutexNative.cpp
 $(OBJDIR)/rtThreadPoolNative.o: unix/rtThreadPoolNative.cpp
-	$(CXX) -o $(OBJDIR)/rtThreadPoolNative.o -Wall $(CFLAGS) -c unix/rtThreadPoolNative.cpp
+	$(CXX) -o $(OBJDIR)/rtThreadPoolNative.o -Wall $(CFLAGS) $(CXXFLAGS) -c unix/rtThreadPoolNative.cpp
 $(OBJDIR)/rtUrlUtils.o: rtUrlUtils.cpp
-	$(CXX) -o $(OBJDIR)/rtUrlUtils.o -Wall $(CFLAGS) -c rtUrlUtils.cpp
+	$(CXX) -o $(OBJDIR)/rtUrlUtils.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtUrlUtils.cpp
 $(OBJDIR)/rtValue.o: rtValue.cpp
-	$(CXX) -o $(OBJDIR)/rtValue.o -Wall $(CFLAGS) -c rtValue.cpp
+	$(CXX) -o $(OBJDIR)/rtValue.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtValue.cpp
 $(OBJDIR)/rtZip.o: rtZip.cpp
-	$(CXX) -o $(OBJDIR)/rtZip.o -Wall $(CFLAGS) -c rtZip.cpp
+	$(CXX) -o $(OBJDIR)/rtZip.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtZip.cpp
 $(OBJDIR)/pxInterpolators.o: pxInterpolators.cpp
-	$(CXX) -o $(OBJDIR)/pxInterpolators.o -Wall $(CFLAGS) -c pxInterpolators.cpp
+	$(CXX) -o $(OBJDIR)/pxInterpolators.o -Wall $(CFLAGS) $(CXXFLAGS) -c pxInterpolators.cpp
 $(OBJDIR)/pxMatrix4T.o: pxMatrix4T.cpp
-	$(CXX) -o $(OBJDIR)/pxMatrix4T.o -Wall $(CFLAGS) -c pxMatrix4T.cpp
+	$(CXX) -o $(OBJDIR)/pxMatrix4T.o -Wall $(CFLAGS) $(CXXFLAGS) -c pxMatrix4T.cpp
 $(OBJDIR)/pxUtil.o: pxUtil.cpp
-	$(CXX) -o $(OBJDIR)/pxUtil.o -Wall $(CFLAGS) -c pxUtil.cpp
+	$(CXX) -o $(OBJDIR)/pxUtil.o -Wall $(CFLAGS) $(CXXFLAGS) -c pxUtil.cpp
 $(OBJDIR)/rtFileDownloader.o: rtFileDownloader.cpp
-	$(CXX) -o $(OBJDIR)/rtFileDownloader.o -Wall $(CFLAGS) -c rtFileDownloader.cpp
+	$(CXX) -o $(OBJDIR)/rtFileDownloader.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtFileDownloader.cpp
 $(OBJDIR)/rtFileCache.o: rtFileCache.cpp
-	$(CXX) -o $(OBJDIR)/rtFileCache.o -Wall $(CFLAGS) -c rtFileCache.cpp
+	$(CXX) -o $(OBJDIR)/rtFileCache.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtFileCache.cpp
 $(OBJDIR)/rtHttpCache.o: rtHttpCache.cpp
-	$(CXX) -o $(OBJDIR)/rtHttpCache.o -Wall $(CFLAGS) -c rtHttpCache.cpp
+	$(CXX) -o $(OBJDIR)/rtHttpCache.o -Wall $(CFLAGS) $(CXXFLAGS) -c rtHttpCache.cpp
 $(OBJDIR)/utf8.o: utf8.c
 	$(CC) -o $(OBJDIR)/utf8.o -Wall $(CFLAGS) -c utf8.c
 $(OBJDIR)/unzip.o: unzip.c

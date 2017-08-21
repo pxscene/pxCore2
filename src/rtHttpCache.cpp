@@ -20,12 +20,58 @@
 
 #include <rtHttpCache.h>
 #include <string.h>
-#include <curl/curl.h>
 #include <sstream>
 #include "rtLog.h"
 #include <rtFileDownloader.h>
 
+#if !defined(WIN32) && !defined(ENABLE_DFB)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wall"
+#endif
+
+#include <curl/curl.h>
+
+#if !defined(WIN32) && !defined(ENABLE_DFB)
+#pragma GCC diagnostic pop
+#endif
+
 using namespace std;
+
+#if defined WIN32 
+#include <time.h>
+#include <iomanip>
+#include <sstream>
+
+extern "C" char* strptime(const char* s, const char* f, struct tm* tm) {
+	// Isn't the C++ standard lib nice? std::get_time is defined such that its
+	// format parameters are the exact same as strptime. Of course, we have to
+	// create a string stream first, and imbue it with the current C locale, and
+	// we also have to make sure we return the right things if it fails, or
+	// if it succeeds, but this is still far simpler an implementation than any
+	// of the versions in any of the C standard libraries.
+	std::istringstream input(s);
+	input.imbue(std::locale(setlocale(LC_ALL, nullptr)));
+	input >> std::get_time(tm, f);
+	if (input.fail()) {
+		return nullptr;
+	}
+	return (char*)(s + input.tellg());
+}
+
+extern "C" time_t timegm(struct tm * a_tm)
+{
+	time_t ltime = mktime(a_tm);
+	struct tm tm_val;
+	gmtime_s(&tm_val, &ltime);
+	int offset = (tm_val.tm_hour - a_tm->tm_hour);
+	if (offset > 12)
+	{
+		offset = 24 - offset;
+	}
+	time_t utc = mktime(a_tm) - offset * 3600;
+	return utc;
+}
+#endif
 
 rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false)
 {
@@ -272,7 +318,7 @@ void rtHttpCacheData::setExpirationDate()
       mExpirationDate = time(NULL) + maxAgeInt;
     }
   }
-  if (false == foundMaxAge) 
+  if (false == foundMaxAge)
   {
     if (mHeaderMap.end() != mHeaderMap.find("Expires"))
     {
@@ -356,6 +402,12 @@ bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downl
      return false;
   }
 
+  if ((downloadRequest->httpStatusCode() == 404) || (downloadRequest->httpStatusCode() == 403))
+  {
+    delete downloadRequest;
+    return false;
+  }
+
   if (downloadRequest->downloadStatusCode() == 0 &&
        downloadRequest->httpStatusCode() == 200)
   {
@@ -416,7 +468,7 @@ bool rtHttpCacheData::readFileData()
 
 void rtHttpCacheData::populateExpirationDateFromCache()
 {
-  char buf;
+  int buf;
   string date;
   while ( !feof(fp) )
   {
@@ -425,7 +477,7 @@ void rtHttpCacheData::populateExpirationDateFromCache()
     {
       break;
     }
-    date.append(1,buf);
+    date.append(1,(char)buf);
   }
 
   stringstream stream(date);

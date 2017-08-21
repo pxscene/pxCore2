@@ -22,6 +22,11 @@
 #include "rtRef.h"
 #include "pxCore.h"
 #include "pxKeycodes.h"
+#include <sys/types.h>
+#include <signal.h>
+#if defined(RT_PLATFORM_LINUX) || defined(PX_PLATFORM_MAC)
+#include <unistd.h>
+#endif //RT_PLATFORM_LINUX || PX_PLATFORM_MAC
 
 #include "pxWayland.h"
 
@@ -56,6 +61,7 @@ pxWayland::pxWayland(bool useFbo)
     mWidth(0),
     mHeight(0),
     mUseFbo(useFbo),
+    mSuspended(false),
     mEvents(0),
     mClientPID(0),
     mWCtx(0),
@@ -78,7 +84,10 @@ pxWayland::pxWayland(bool useFbo)
 }
 
 pxWayland::~pxWayland()
-{ 
+{
+#ifdef ENABLE_PX_WAYLAND_RPC
+  rtRemoteUnregisterDisconnectedCallback(pxWayland::remoteDisconnectedCB, this);
+#endif //ENABLE_PX_WAYLAND_RPC
   if ( mWCtx )
   {
      WstCompositorDestroy(mWCtx);
@@ -309,6 +318,11 @@ void pxWayland::onUpdate(double t)
 
 void pxWayland::onDraw()
 {
+  if (mSuspended)
+  {
+    // do not draw if the app is in a suspended states
+    return;
+  }
   static pxTextureRef nullMaskRef;
   
   unsigned int outputWidth, outputHeight;
@@ -542,7 +556,26 @@ void pxWayland::terminateClient()
       mClientMonitorStarted= false;
       
       // Destroying compositor above should result in client 
-      // process ending
+      // process ending.  If it hasn't ended, kill it
+      if ( mClientPID >= 0 )
+      {
+         int retry= 30;
+         while( retry-- > 0 )
+         {
+            usleep( 10000 );
+            if ( mClientPID <= 0 )
+            {
+               break;
+            }
+            if ( retry <= 0 )
+            {
+               rtLogInfo("pxWayland::terminateClient: client pid %d still alive - killing...", mClientPID);
+               kill( mClientPID, SIGKILL);
+               rtLogInfo("pxWayland::terminateClient: client pid %d killed", mClientPID);
+               mClientPID= -1;
+            }
+         }
+      }
       pthread_join( mClientMonitorThreadId, NULL );      
    }
 
@@ -691,6 +724,22 @@ rtError pxWayland::connectToRemoteObject()
 rtError pxWayland::useDispatchThread(bool use)
 {
   mUseDispatchThread = use;
+  return RT_OK;
+}
+
+rtError pxWayland::resume()
+{
+  mSuspended = false;
+  rtValue args;
+  callMethod("resume", 0, &args);
+  return RT_OK;
+}
+
+rtError pxWayland::suspend()
+{
+  mSuspended = true;
+  rtValue args;
+  callMethod("suspend", 0, &args);
   return RT_OK;
 }
 
@@ -889,8 +938,12 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
 #define KEY_KPCOMMA             121
 #define KEY_LEFTMETA            125
 #define KEY_RIGHTMETA           126
+#define KEY_YELLOW              0x18e
+#define KEY_BLUE                0x18f
 #define KEY_PLAYPAUSE           164
 #define KEY_REWIND              168
+#define KEY_RED                 0x190
+#define KEY_GREEN               0x191
 #define KEY_PLAY                207
 #define KEY_FASTFORWARD         208
 #define KEY_PRINT               210     /* AC Print */
@@ -932,7 +985,7 @@ uint32_t pxWayland::linuxFromPX( uint32_t keyCode )
          linuxKeyCode= KEY_PAGEUP;
          break;
       case PX_KEY_PAGEDOWN:
-         linuxKeyCode= KEY_SPACE;
+         linuxKeyCode= KEY_PAGEDOWN;
          break;
       case PX_KEY_END:
          linuxKeyCode= KEY_END;
@@ -1204,6 +1257,18 @@ uint32_t pxWayland::linuxFromPX( uint32_t keyCode )
       case PX_KEY_PLAYPAUSE:
          linuxKeyCode= KEY_PLAYPAUSE;
          break;
+      case PX_KEY_YELLOW:
+         linuxKeyCode = KEY_YELLOW;
+         break;
+      case PX_KEY_BLUE:
+         linuxKeyCode = KEY_BLUE;
+         break;
+      case PX_KEY_RED:
+         linuxKeyCode = KEY_RED;
+         break;
+      case PX_KEY_GREEN:
+         linuxKeyCode = KEY_GREEN;
+         break;         
       default:
          linuxKeyCode= -1;
          break;

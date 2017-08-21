@@ -5,13 +5,14 @@ HNAME_S := $(shell hostname)
 ifeq ($(UNAME_S),Darwin)
 all: pxscene pxscene.app
 deploy: pxscene.dmg
+libs-mac: libpxscene-desktop
 else
 all: pxscene
 dfb: pxscene-dfb
 libs: libpxscene.so
 static-libs: libpxscene.a
 static-libs-dfb: libpxscene.a-dfb
-libs-glut: libpxscene-glut
+libs-glut: libpxscene-desktop
 libs-dfbwindow: libpxscene-dfbwindow
 endif
 
@@ -47,9 +48,6 @@ ifeq ($(PX_PLATFORM),DirectFB)
 PX_PLATFORM=PX_PLATFORM_GENERIC_DFB
 PXLIBS=$(PXCOREDIR)/build/dfb
 else
-ifndef USE_EXTERNALS_GLUT
-USE_EXTERNALS_GLUT=false
-endif
 PX_PLATFORM=PX_PLATFORM_GLUT
 PXLIBS=$(PXCOREDIR)/build/glut
 TARGETINCLUDE=
@@ -171,9 +169,6 @@ SEARCH=\
    $(TARGETINCLUDE)
 
 
-ifeq ($(USE_EXTERNALS_GLUT), true)
-SEARCH += -I$(EXTDIR)/freeglut/include
-endif
 #CXXFLAGS=-Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE
 CXXFLAGS2=-fPIC -Wall -Wextra -g $(SEARCH) -DRT_PLATFORM_LINUX -D$(PX_PLATFORM) -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE $(NODE_V_6_9_DEFINES) $(PLATFORM_DEFINES)
 
@@ -220,10 +215,7 @@ endif
 
 ifeq ($(PX_PLATFORM),PX_PLATFORM_GLUT)
 LDBREAKPAD = -L$(EXTDIR)/breakpad/src/client/linux $(EXTDIR)/breakpad/src/client/linux/libbreakpad_client.a
-ifeq ($(USE_EXTERNALS_GLUT), true)
-LDGLUT = -L$(EXTDIR)/freeglut/lib -lglut
-endif
-LDEXT += $(LDBREAKPAD) $(LDGLUT)
+LDEXT += $(LDBREAKPAD)
 CXXFLAGS += -DHAS_LINUX_BREAKPAD
 ifeq ($(CODE_COVERAGE), 1)
 CXXFLAGS += -fprofile-arcs -ftest-coverage
@@ -234,7 +226,8 @@ ifeq ($(UNAME_S),Darwin)
 LDFLAGS = -L$(PXLIBS) -lnode -lpxCore $(LDEXT) -ldl -lv8_libplatform -framework OpenGL -framework Cocoa -framework Foundation
 ifeq ($(CODE_COVERAGE), 1)
 CXXFLAGS += -fprofile-arcs -ftest-coverage -DENABLE_CODE_COVERAGE
-LDFLAGS += -lclang_rt.profile_osx -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/8.0.0/lib/darwin
+LLVM_VERSION := $(shell clang --version|grep "LLVM version"|awk '{print $$4}')
+LDFLAGS += -lclang_rt.profile_osx -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/$(LLVM_VERSION)/lib/darwin
 endif
 else
 ifeq ($(HNAME_S),raspberrypi)
@@ -252,7 +245,7 @@ ifdef PLATFORM_LIBS_OVERRIDE
 PLATFORM_LIBS = $(PLATFORM_LIBS_OVERRIDE)
 endif
 
-CXXFLAGS_FULL = $(CXXFLAGS) -fpermissive
+CXXFLAGS_FULL = $(CXXFLAGS) -fpermissive -Werror
 CLAGS_FULL = $(CFLAGS)
 LDFLAGS_FULL = $(LDFLAGS)
 
@@ -458,12 +451,10 @@ cleansceneobj:
 cleanwaylandobj:
 	rm -f $(PXWAYLAND_LIB_OBJS)
 
-libpxscene-glut:
+libpxscene-desktop:
 	rm -rf $(OBJDIR)
-libpxscene-glut: CFLAGS_FULL = $(CFLAGS)
-#libpxscene-glut: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC -g -DRT_PLATFORM_LINUX -DPX_PLATFORM_GLUT -DENABLE_RT_NODE -DRUNINMAIN -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES)
-#libpxscene-glut: LDFLAGS_FULL = $(LDEXT) -Wl,--no-whole-archive -lglut -lGLEW -lGL -lnode -pthread -ljpeg -lfreetype -lcurl $(LDNODE) $(LDNODEV8) -L./  
-libpxscene-glut: cleansceneobj $(PXSCENE_LIB_OBJS)  
+libpxscene-desktop: CFLAGS_FULL = $(CFLAGS)
+libpxscene-desktop: cleansceneobj $(PXSCENE_LIB_OBJS)  
 	$(AR) rc libpxscene.a $(PXSCENE_LIB_OBJS) 
 
 libpxscene-dfbwindow:

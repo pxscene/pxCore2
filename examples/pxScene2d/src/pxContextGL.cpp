@@ -45,7 +45,12 @@
 #include <GLES2/gl2ext.h>
 #else
 #include <GL/glew.h>
+#ifdef WIN32 
+#include <GL/wglew.h>
+#endif // WIN32
+#ifdef PX_PLATFORM_GLUT
 #include <GL/glut.h>
+#endif
 #include <GL/gl.h>
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
@@ -128,10 +133,13 @@ static pxMatrix4f gMatrix;
 static float gAlpha = 1.0;
 uint32_t gRenderTick = 0;
 std::vector<pxTexture*> textureList;
+rtMutex textureListMutex;
 
 pxError addToTextureList(pxTexture* texture)
 {
+  textureListMutex.lock();
   textureList.push_back(texture);
+  textureListMutex.unlock();
   return PX_OK;
 }
 
@@ -141,7 +149,9 @@ pxError removeFromTextureList(pxTexture* texture)
   {
     if ((*it) == texture)
     {
+      textureListMutex.lock();
       textureList.erase(it);
+      textureListMutex.unlock();
       return PX_OK;
     }
   }
@@ -150,11 +160,12 @@ pxError removeFromTextureList(pxTexture* texture)
 
 pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5)
 {
-  rtLogDebug("attempting to eject %" PRId64 " bytes of texture memory with max age %u", bytesNeeded, maxAge);
+  //rtLogDebug("attempting to eject %" PRId64 " bytes of texture memory with max age %u", bytesNeeded, maxAge);
 #if defined(ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING) && !defined(DISABLE_TEXTURE_EJECTION)
   int numberEjected = 0;
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
 
+  textureListMutex.lock();
   std::random_shuffle(textureList.begin(), textureList.end());
   for(std::vector<pxTexture*>::iterator it = textureList.begin(); it != textureList.end(); ++it)
   {
@@ -171,6 +182,7 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5
       }
     }
   }
+  textureListMutex.unlock();
 
   if (numberEjected > 0)
   {
@@ -178,6 +190,9 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5
     rtLogWarn("%d textures have been ejected and %" PRId64 " bytes of texture memory has been freed",
         numberEjected, (beforeTextureMemoryUsage - afterTextureMemoryUsage));
   }
+#else
+  (void)bytesNeeded;
+  (void)maxAge;
 #endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING && !DISABLE_TEXTURE_EJECTION
   return PX_OK;
 }
@@ -271,8 +286,14 @@ inline void premultiply(float* d, const float* s)
 class pxFBOTexture : public pxTexture
 {
 public:
-  pxFBOTexture() : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true)
+  pxFBOTexture(bool antiAliasing) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true)
+
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+        ,mAntiAliasing(antiAliasing)
+#endif        
   {
+    UNUSED_PARAM(antiAliasing);                             
+
     mTextureType = PX_TEXTURE_FRAME_BUFFER;
   }
 
@@ -336,6 +357,18 @@ public:
   {
     if (mFramebufferId!= 0)
     {
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+      if (mAntiAliasing)
+      {
+        GLint currentFBO = 0;
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId);
+        GLenum discardAttachments[] = { GL_DEPTH_ATTACHMENT };
+        glDiscardFramebufferEXT(GL_FRAMEBUFFER, 1, discardAttachments);
+        glBindFramebuffer(GL_FRAMEBUFFER, currentFBO);
+      }
+#endif
+
       glDeleteFramebuffers(1, &mFramebufferId);
       mFramebufferId = 0;
     }
@@ -363,8 +396,11 @@ public:
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                              GL_TEXTURE_2D, mTextureId, 0);
 
-#if defined(PX_PLATFORM_GENERIC_EGL) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
-      glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTextureId, 0, 4);
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+      if (mAntiAliasing)
+      {
+        glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTextureId, 0, 2);
+      }
 #endif
 
       if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -434,6 +470,10 @@ private:
   GLuint mTextureId;
   bool mBindTexture;
 
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+  bool mAntiAliasing;
+#endif
+
 };// CLASS - pxFBOTexture
 
 
@@ -475,7 +515,7 @@ void cleanupOffscreen(void* data);
 class pxTextureOffscreen : public pxTexture
 {
 public:
-  pxTextureOffscreen() : mOffscreen(), mInitialized(false),
+  pxTextureOffscreen() : mOffscreen(), mInitialized(false), mTextureName(0),
                          mTextureUploaded(false), mTextureDataAvailable(false),
                          mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
                          mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0)
@@ -485,7 +525,7 @@ public:
   }
 
   pxTextureOffscreen(pxOffscreen& o, const char *compressedData = NULL, size_t compressedDataSize = 0)
-                                     : mOffscreen(), mInitialized(false),
+                                     : mOffscreen(), mInitialized(false), mTextureName(0),
                                        mTextureUploaded(false), mTextureDataAvailable(false),
                                        mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
                                        mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0)
@@ -732,7 +772,7 @@ public:
                    GL_UNSIGNED_BYTE, mOffscreen.base());
       mTextureUploaded = true;
       context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
-      
+
       //free up unneeded offscreen memory
       freeOffscreenDataInBackground();
     }
@@ -815,7 +855,7 @@ private:
   }
 
   pxOffscreen mOffscreen;
-  
+
   bool mInitialized;
   GLuint mTextureName;
   bool mTextureUploaded;
@@ -911,7 +951,8 @@ class pxTextureAlpha : public pxTexture
 {
 public:
   pxTextureAlpha() : mDrawWidth(0.0), mDrawHeight (0.0), mImageWidth(0.0),
-                     mImageHeight(0.0), mTextureId(0), mInitialized(false)
+                     mImageHeight(0.0), mTextureId(0), mInitialized(false),
+                     mBuffer(NULL)
   {
     mTextureType = PX_TEXTURE_ALPHA;
   }
@@ -951,6 +992,7 @@ public:
     if(mBuffer)
     {
       free(mBuffer);
+      mBuffer  = 0;
     }
     deleteTexture();
   }
@@ -1074,7 +1116,7 @@ struct glShaderProgDetails
 
 static glShaderProgDetails  createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
 {
-  struct glShaderProgDetails details = {};
+  struct glShaderProgDetails details = { 0,0,0 };
   GLint stat;
 
   details.fragShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -1815,6 +1857,7 @@ void pxContext::init()
 
 //  gprogram = program;
   setTextureMemoryLimit(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES);
+
 #ifdef PX_PLATFORM_GENERIC_EGL
   defaultEglContext = eglGetCurrentContext();
   rtLogInfo("current context in init: %d", defaultEglContext);
@@ -1904,10 +1947,10 @@ float pxContext::getAlpha()
   return gAlpha;
 }
 
-pxContextFramebufferRef pxContext::createFramebuffer(int width, int height)
+pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing)
 {
   pxContextFramebuffer* fbo = new pxContextFramebuffer();
-  pxFBOTexture* texture = new pxFBOTexture();
+  pxFBOTexture* texture = new pxFBOTexture(antiAliasing);
 
   texture->createFboTexture(width, height);
 
@@ -1933,6 +1976,7 @@ pxContextFramebufferRef pxContext::getCurrentFramebuffer()
 
 pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 {
+  currentGLProgram = PROGRAM_UNKNOWN;
   if (fbo.getPtr() == NULL || fbo->getTexture().getPtr() == NULL)
   {
     glViewport ( 0, 0, defaultContextSurface.width, defaultContextSurface.height);
@@ -2020,7 +2064,7 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
   return;
 #endif
 
-  // TRANSPARENT / DIMENSIONLESS 
+  // TRANSPARENT / DIMENSIONLESS
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
    // rtLogDebug("\n drawRect() - TRANSPARENT");
@@ -2056,7 +2100,7 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
   return;
 #endif
 
-  // TRANSPARENT / DIMENSIONLESS 
+  // TRANSPARENT / DIMENSIONLESS
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
     return;
@@ -2084,7 +2128,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
   return;
 #endif
 
-  // TRANSPARENT / DIMENSIONLESS 
+  // TRANSPARENT / DIMENSIONLESS
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
     return;
@@ -2117,7 +2161,7 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 
   if (!mShowOutlines) return;
 
-  // TRANSPARENT / DIMENSIONLESS 
+  // TRANSPARENT / DIMENSIONLESS
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
     rtLogError("cannot drawDiagRect() - width/height/gAlpha cannot be Zero.");
@@ -2127,7 +2171,7 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
   // COLORLESS
   if(color == NULL || color[3] == 0.0)
   {
-    return; 
+    return;
   }
 
 
@@ -2342,7 +2386,7 @@ int64_t pxContext::currentTextureMemoryUsageInBytes()
 
 int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 {
-  int64_t textureSize = (texture->width()*texture->height()*4);
+  int64_t textureSize = (((int64_t)texture->width())*((int64_t)texture->height())*4);
   int64_t availableBytes = mTextureMemoryLimitInBytes - mCurrentTextureMemorySizeInBytes;
   if (textureSize > availableBytes)
   {
@@ -2378,7 +2422,7 @@ pxError pxContext::enableInternalContext(bool enable)
     makeInternalGLContextCurrent(enable);
 #else
   (void)enable;
-#endif //PX_PLATFORM_GENERIC_EGL && !RUNINMAIN
+#endif //!RUNINMAIN
   return PX_OK;
 }
 

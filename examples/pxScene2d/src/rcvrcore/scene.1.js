@@ -100,6 +100,10 @@ function Scene() {
   this.clipboardSet = function clipboardSet(type, clip) {
       return nativeScene.clipboardSet(type, clip);
   };
+
+  this.getService = function getService(name, serviceObject) {
+    return nativeScene.getService(name, serviceObject);
+  };
     
   this.setAppContext = function(appContextName, appContext) {
     if( !appContextMap.hasOwnProperty(appContextName) ) {

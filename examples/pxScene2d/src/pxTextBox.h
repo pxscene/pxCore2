@@ -42,7 +42,7 @@
 class pxCharPosition: public rtObject {
 
 public:
-	pxCharPosition() {  }
+	pxCharPosition():mX(0),mY(0) {  }
 	virtual ~pxCharPosition() {}
 
 	rtDeclareObject(pxCharPosition, rtObject);

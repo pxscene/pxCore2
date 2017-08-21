@@ -39,6 +39,11 @@ class pxFont;
 
 class rtFileDownloadRequest;
 
+#if defined WIN32
+#include<inttypes.h>
+typedef uint32_t u_int32_t;
+#endif
+
 struct GlyphCacheEntry
 {
   int bitmap_left;
@@ -61,7 +66,7 @@ class pxTextMetrics: public rtObject
 {
 
 public:
-	pxTextMetrics() {}
+	pxTextMetrics():mHeight(0),mAscent(0),mDescent(0),mNaturalLeading(0),mBaseline(0) {}
 	virtual ~pxTextMetrics() {}
 
 	rtDeclareObject(pxTextMetrics, rtObject);
@@ -107,7 +112,7 @@ public:
 class pxTextSimpleMeasurements: public rtObject 
 {
 public:
-	pxTextSimpleMeasurements() {}
+	pxTextSimpleMeasurements():mw(0),mh(0) {}
 	virtual ~pxTextSimpleMeasurements() {}
 
 	rtDeclareObject(pxTextSimpleMeasurements, rtObject);
@@ -135,7 +140,7 @@ protected:
 class pxFont: public pxResource {
 
 public:
-	pxFont(rtString fontUrl);
+	pxFont(rtString fontUrl, rtString proxyUrl);
 	virtual ~pxFont() ;
 
 	rtDeclareObject(pxFont, pxResource);
@@ -189,7 +194,7 @@ class pxFontManager
   
   public: 
     
-    static rtRef<pxFont> getFont(const char* url);
+    static rtRef<pxFont> getFont(const char* url, const char* proxy = NULL);
     static void removeFont(rtString fontName);
     static void clearAllFonts();
     

@@ -105,6 +105,8 @@ rtError pxImage::setResource(rtObjectRef o)
   else 
   {
     rtLogError("Object passed as resource is not an imageResource!\n");
+    pxObject::onTextureReady();
+    mReady.send("reject",this);
     return RT_ERROR; 
   }
 
@@ -122,7 +124,7 @@ rtError pxImage::url(rtString& s) const
   }
   return RT_OK;
 }
-rtError pxImage::setUrl(const char* s) 
+rtError pxImage::setUrl(const char* s)
 { 
   //rtLogInfo("pxImage::setUrl init=%d imageLoaded=%d \n", mInitialized, imageLoaded);
   //rtLogDebug("pxImage::setUrl for s=%s mUrl=%s\n", s, mUrl.cString());
@@ -131,21 +133,25 @@ rtError pxImage::setUrl(const char* s)
   // url is initially being set because it's already created on construction
   // If mUrl is already set and loaded and s is different, create a new promise
   rtImageResource* resourceObj = getImageResource();
-  if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s) && imageLoaded)
+  if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
   {
-    if(imageLoaded) 
+    // This could be an error case where the url was invalid and promise was rejected.
+    // If promise was already fulfilled/rejected, create a new one since the url is changing
+    if(imageLoaded || ((rtPromise*)mReady.getPtr())->status())
     {
       imageLoaded = false;
       //rtLogDebug("pxImage calling pxObject::createPromise for %s\n",resourceObj->getUrl().cString());
       pxObject::createNewPromise();
     }
-    //else 
-    //{
-      //// Stop listening for the old resource that this image was using
-      //resourceObj->removeListener(this);
-      //mReady.send("reject",this); // reject the original promise for old image
-    //}
+    // ToDo Need to cancel the download if url is reassigned before its done
+    /*else if(!imageLoaded)
+    {
+      // Stop listening for the old resource that this image was using
+      resourceObj->removeListener(this);
+      mReady.send("reject",this); // reject the original promise for old image
+    } */
   }
+
 
 
   mResource = pxImageManager::getImage(s);
@@ -158,7 +164,7 @@ rtError pxImage::setUrl(const char* s)
   return RT_OK;
 }
 
-void pxImage::sendPromise() 
+void pxImage::sendPromise()
 { 
   if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status()) 
   {
@@ -167,9 +173,9 @@ void pxImage::sendPromise()
   }
 }
 
-float pxImage::getOnscreenWidth() 
-{ 
-  if(mw == -1 ) 
+float pxImage::getOnscreenWidth()
+{
+  if(mw == -1 || mStretchX == pxConstantsStretch::NONE)
   {
     return mResource.get<float>("w");
   }
@@ -179,13 +185,13 @@ float pxImage::getOnscreenWidth()
 }
 float pxImage::getOnscreenHeight() 
 { 
-  if(mh == -1) 
+  if(mh == -1 || mStretchY == pxConstantsStretch::NONE)
   {
     return mResource.get<float>("h");
   }
   else  
     return mh;  
- }
+}
       
 void pxImage::draw() {
   //rtLogDebug("pxImage::draw() mw=%f mh=%f\n", mw, mh);

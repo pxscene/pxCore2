@@ -83,20 +83,18 @@ rtWrapperSceneUpdateExit();
 #ifndef RUNINMAIN
   pthread_mutex_unlock(&sObjectMapMutex);
 #endif
-
-  if (NULL != temp)
+  if (NULL != temp.getPtr())
   {
     rtObjectRef parentRef;
     rtError err = temp.get<rtObjectRef>("parent",parentRef);
     if (err == RT_OK)
     {
-      if (NULL == parentRef)
-      {
-        temp.send("dispose");
-      }
+        if (NULL == parentRef)
+        {
+          temp.send("dispose");
+        }
     }
   }
-
 }
 #else
 void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
@@ -167,16 +165,16 @@ rtWrapperSceneUpdateExit();
 #ifndef RUNINMAIN
   pthread_mutex_unlock(&sObjectMapMutex);
 #endif
-  if (NULL != temp)
+  if (NULL != temp.getPtr())
   {
     rtObjectRef parentRef;
     rtError err = temp.get<rtObjectRef>("parent",parentRef);
     if (err == RT_OK)
     {
-      if (NULL == parentRef)
-      {
-        temp.send("dispose");
-      }
+        if (NULL == parentRef)
+        {
+          temp.send("dispose");
+        }
     }
   }
 }
@@ -242,7 +240,14 @@ rtWrapperSceneUpdateEnter();
   pthread_mutex_lock(&sObjectMapMutex);
 #endif
   ObjectReferenceMap::iterator i = objectMap.find(from.getPtr());
-  assert(i == objectMap.end());
+  if (i != objectMap.end())
+  {
+    if (!(i->second->PersistentObject.IsNearDeath()))
+    {
+      rtLogError("About to add weak reference which is already present");
+    }
+  }
+  //assert(i == objectMap.end());
 
   if (i == objectMap.end())
   {
@@ -431,7 +436,7 @@ void rtWrapperSceneUpdateExit()
   sLockCount--;
 #ifdef USE_STD_THREADS
   if (sLockCount == 0)
-    sCurrentSceneThread = std::thread::id()
+    sCurrentSceneThread = std::thread::id();
 #else
   if (sLockCount == 0)
     sCurrentSceneThread = 0;

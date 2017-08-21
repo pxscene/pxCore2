@@ -68,7 +68,7 @@ ifeq ($(PROFILE), 1)
 endif
 
 
-CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Werror -Wall -Wextra -DRT_PLATFORM_LINUX -I../src -I. -fPIC
+CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Werror -Wall -Wextra -DRT_PLATFORM_LINUX -I../src -I. -fPIC -Wno-deprecated-declarations
 CFLAGS+=-DRT_REMOTE_LOOPBACK_ONLY
 CXXFLAGS+=-std=c++0x $(CFLAGS)
 LDFLAGS =-pthread -ldl -luuid -Wl,-rpath=../../,--enable-new-dtags

@@ -21,6 +21,7 @@ rtResolverFunction::rtResolverFunction(Disposition disp, v8::Local<v8::Context>&
   , mResolver(ctx->GetIsolate(), resolver)
   , mContext(ctx->GetIsolate(), ctx)
   , mIsolate(ctx->GetIsolate())
+  , mReq()
 {
 }
 
@@ -285,11 +286,18 @@ jsFunctionWrapper::~jsFunctionWrapper()
 
 void jsFunctionWrapper::setupSynchronousWait()
 {
-  mComplete = false;
   mTeardownThreadingPrimitives = true;
 #ifndef USE_STD_THREADS
   pthread_mutex_init(&mMutex, NULL);
   pthread_cond_init(&mCond, NULL);
+#endif
+#ifdef USE_STD_THREADS
+  std::unique_lock<std::mutex> lock(mMutex);
+  mComplete = false;
+#else
+  pthread_mutex_lock(&mMutex);
+  mComplete = false;
+  pthread_mutex_unlock(&mMutex);
 #endif
 }
 

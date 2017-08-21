@@ -257,6 +257,8 @@ class rtValue
 
 #define RT_TYPE_CASE(t) case t: s = # t; break;
 
+#define RT_TYPE_NAME(t) (# t)
+
 //const char* rtStrType(char t);
 
 #endif

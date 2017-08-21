@@ -582,6 +582,11 @@ void pxWindowNative::createGlutWindow(int left, int top, int width, int height)
   glClearColor(0, 0, 0, 1);
 }
 
+void pxWindowNative::cleanupGlutWindow()
+{
+  // NOOP
+}
+
 pxError pxWindow::init(int left, int top, int width, int height)
 {
   glutDisplay* d = mDisplayRef.getDisplay();
@@ -606,9 +611,6 @@ pxError pxWindow::init(int left, int top, int width, int height)
     glutMotionFunc(onGlutMouseMotion);
     glutPassiveMotionFunc(onGlutMousePassiveMotion);
     glutKeyboardFunc(onGlutKeyboard);
-    #ifdef USE_EXTERNALS_GLUT
-    glutRemapKeys();
-    #endif
 //#ifdef PX_USE_GLUT_ON_CLOSE
     glutWMCloseFunc(onGlutClose);
 //#endif

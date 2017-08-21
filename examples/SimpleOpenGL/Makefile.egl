@@ -20,7 +20,7 @@ else
 $(error Unsupported Target)
 endif
 
-CFLAGS= -DPX_PLATFORM_GENERIC_EGL -Wall -O3 -g
+CFLAGS= -DPX_PLATFORM_GENERIC_EGL -Wall -O3 -g -Werror
 INCPATH= -I../../src $(TARGETINCLUDE)
 LIBS= $(SUBLIBS) -lpxCore -lrt -lm -ldl -lpthread $(TARGETLIB)
 

@@ -6,7 +6,7 @@ extern rtThreadQueue gUIThreadQueue;
 
 #include "rtFileDownloader.h"
 
-pxArchive::pxArchive(): mIsFile(true) {}
+pxArchive::pxArchive(): mIsFile(true),mDownloadRequest(NULL) {}
 
 pxArchive::~pxArchive()
 {

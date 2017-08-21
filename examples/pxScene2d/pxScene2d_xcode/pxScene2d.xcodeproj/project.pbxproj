@@ -34,6 +34,7 @@
 		4C1447F01E68BAD700610575 /* libpng16.16.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; };
 		4C1447F11E68BAE400610575 /* libpng16.16.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4C20BEE91E5DE5F1005ABBB7 /* pxContextGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D481E5218BB00BD8932 /* pxContextGL.cpp */; };
+		4C2F20D41EEF1C250099DAE6 /* browser in Resources */ = {isa = PBXBuildFile; fileRef = 4C2F20D31EEF1C250099DAE6 /* browser */; };
 		4C38CDB41E538CF7003E4A35 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDB31E538CF7003E4A35 /* OpenGL.framework */; };
 		4C38CDC01E538D19003E4A35 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDBF1E538D19003E4A35 /* Cocoa.framework */; };
 		4C5137B41E5F81BE0052A99C /* pxImageA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5137B21E5F81BE0052A99C /* pxImageA.cpp */; };
@@ -210,6 +211,7 @@
 		4C20BEAB1E5B85CC005ABBB7 /* EngineRunner */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = EngineRunner; path = ../EngineRunner; sourceTree = "<group>"; };
 		4C20BEAD1E5B8638005ABBB7 /* pxscene.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = pxscene.sh; path = ../pxscene.sh; sourceTree = "<group>"; };
 		4C20BEB11E5CDE01005ABBB7 /* pxScene2d.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = pxScene2d.xcconfig; sourceTree = SOURCE_ROOT; };
+		4C2F20D31EEF1C250099DAE6 /* browser */ = {isa = PBXFileReference; lastKnownFileType = folder; name = browser; path = src/browser; sourceTree = "<group>"; };
 		4C38CDB31E538CF7003E4A35 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		4C38CDBF1E538D19003E4A35 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		4C5137B21E5F81BE0052A99C /* pxImageA.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImageA.cpp; path = src/pxImageA.cpp; sourceTree = "<group>"; };
@@ -244,11 +246,10 @@
 		4C04660D1E574CAE00D59925 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */,
-				783C7DAF1EBB6A440079FBE5 /* pxAnimate.h */,
 				4C0466191E574CEE00D59925 /* shell.js */,
 				4C04661A1E574CEE00D59925 /* init.js */,
 				4C04661B1E574CEE00D59925 /* browser.js */,
+				4C2F20D31EEF1C250099DAE6 /* browser */,
 				4C1217151E5746450088CF64 /* rcvrcore */,
 				4C1217131E57462E0088CF64 /* images */,
 			);
@@ -303,6 +304,8 @@
 			isa = PBXGroup;
 			children = (
 				4C04660D1E574CAE00D59925 /* Resources */,
+				783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */,
+				783C7DAF1EBB6A440079FBE5 /* pxAnimate.h */,
 				4C0C6D3F1E5218BB00BD8932 /* pxArchive.cpp */,
 				4C0C6D401E5218BB00BD8932 /* pxArchive.h */,
 				4C0C6D411E5218BB00BD8932 /* pxConstants.cpp */,
@@ -588,6 +591,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4C63A6831E7878AA00313D9C /* package.json in Resources */,
+				4C2F20D41EEF1C250099DAE6 /* browser in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
