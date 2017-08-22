@@ -1524,9 +1524,9 @@ rtDefineObject(pxRoot,pxObject);
 
 int gTag = 0;
 
-pxScene2d::pxScene2d(bool top)
+pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false), 
-    mInnerpxObjects(), mDirty(true), mTestView(NULL), mDisposed(false)
+    mInnerpxObjects(), mDirty(true), mTestView(NULL), mDisposed(false), mScriptView(scriptView)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -2655,7 +2655,7 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
     rtLogWarn("service manager not found");
     return result;
   }
-  result = serviceManager.sendReturns<rtObjectRef>("createService", name, returnObject);
+  result = serviceManager.sendReturns<rtObjectRef>("createService", mScriptView != NULL ? mScriptView->getUrl() : "", name, returnObject);
   rtLogInfo("create %s service result: %d", name.cString(), result);
   return result;
 #else
@@ -2909,6 +2909,7 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
 {
   rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
+  mUrl = url;
 #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   mReady = new rtPromise();
  // mLang = lang;
@@ -3002,7 +3003,7 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
       if (!v->mScene)
       {
         static bool top = true;
-        pxScene2dRef scene = new pxScene2d(top);
+        pxScene2dRef scene = new pxScene2d(top, v);
         top = false;
         v->mView = scene;
         v->mScene = scene;
