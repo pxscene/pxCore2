@@ -230,7 +230,7 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
   mCurrentSize += mFileSizeMap[filename];
   int64_t size = cleanup();
   mCacheMutex.unlock();
-  rtLogInfo("current size after insertion and cleanup (%ld)",size);
+  rtLogInfo("current size after insertion and cleanup (%ld)",(long) size);
   return RT_OK;
 }
 
