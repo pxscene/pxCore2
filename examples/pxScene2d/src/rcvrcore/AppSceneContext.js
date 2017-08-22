@@ -19,6 +19,36 @@ var ClearTimeout = clearTimeout;
 var SetInterval = setInterval;
 var ClearInterval = clearInterval;
 
+var http_wrap = require('rcvrcore/http_wrap');
+var https_wrap = require('rcvrcore/https_wrap');
+
+// function to check whether the page being loaded is from local machine or remote machine
+function isLocalApp(loadurl)
+{
+    if (loadurl.substring(0, 4) === "http")
+    {
+      if (loadurl.length > 17)
+      {
+        if ((loadurl.substring(0, 16) === "http://localhost") || (loadurl.substring(0, 17) === "https://localhost")) {
+          return true;
+         }
+
+         if ((loadurl.substring(0, 16) === "http://127.0.0.1") || (loadurl.substring(0, 17) === "https://127.0.0.1"))  {
+          return true;
+          }
+       }
+       return false;
+    }
+
+    else if (loadurl.length > 9)
+    {
+      if ((loadurl.substring(0, 9) === "localhost") || (loadurl.substring(0, 17) === "127.0.0.1")) {
+        return true;
+      }
+    }
+    return true;
+}
+
 function AppSceneContext(params) { // container, innerscene, packageUrl) {
   //  this.container = params.sceneContainer;
 
@@ -472,8 +502,21 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       console.log("Not permitted to use the module " + filePath);
       reject("include failed due to module not permitted");
       return;
-    } else if( filePath === 'http' || filePath === 'https' || filePath === 'net' || filePath === 'ws' ) {
+    } else if( filePath === 'net' || filePath === 'ws' ) {
       modData = require('rcvrcore/' + filePath + '_wrap');
+      onImportComplete([modData, origFilePath]);
+      return;
+    } else if( filePath === 'http' || filePath === 'https' ) {
+      if (filePath === 'http')
+      {
+        modData = new http_wrap();
+      }
+      else
+      {
+        modData = new https_wrap();
+      }
+      var localapp = isLocalApp(_this.packageUrl);
+      modData.setLocalApp(localapp);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
