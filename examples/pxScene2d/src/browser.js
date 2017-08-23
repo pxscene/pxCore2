@@ -90,7 +90,6 @@ px.import({ scene:      'px:scene.1.js',
       content.url = u;
     }
 
-    content.focus  = true;
     inputBox.focus = false;
 
     if (true)
@@ -100,6 +99,7 @@ px.import({ scene:      'px:scene.1.js',
         {
           console.log(o);
           contentBG.draw = true;
+          content.focus = true;
 
           inputBox.textColor = urlSucceededColor;
                          

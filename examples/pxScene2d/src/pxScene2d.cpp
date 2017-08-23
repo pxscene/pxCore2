@@ -1577,37 +1577,12 @@ pxScene2d::pxScene2d(bool top)
   mPointerResource= pxImageManager::getImage("cursor.png");
   #endif
   
-  
-  
-#if defined(PX_PLATFORM_WIN)
-  #define __PX_PLATFORM__  "Windows"
-#elif defined(PX_PLATFORM_MAC)
-  #define __PX_PLATFORM__  "Mac"
-#elif defined(PX_PLATFORM_X11)
-  #define __PX_PLATFORM__  "X11"
-#elif defined(PX_PLATFORM_GENERIC_DFB)
-  #define __PX_PLATFORM__  "GENERIC DFB"
-#elif defined (PX_PLATFORM_DFB_NON_X11)
-  #define __PX_PLATFORM__  "NON X11 DFB"
-#elif defined (PX_PLATFORM_GLUT)
-  #define __PX_PLATFORM__  "GLUT"
-#elif defined(PX_PLATFORM_WAYLAND)
-  #define __PX_PLATFORM__  "Wayland"
-#elif defined(PX_PLATFORM_WAYLAND_EGL)
-  #define __PX_PLATFORM__  "Wayland EGL"
-#elif defined(PX_PLATFORM_GENERIC_EGL)
-  #define __PX_PLATFORM__  "Generic EGL"
-#else
-  #define __PX_PLATFORM__  "-UNKNOWN-"
-#endif  
-  
   mInfo = new rtMapObject;
   mInfo.set("version", xstr(PX_SCENE_VERSION));
   
     rtObjectRef build = new rtMapObject;
-    build.set("date",     xstr(__DATE__));
-    build.set("time",     xstr(__TIME__));
-    build.set("platform", xstr(__PX_PLATFORM__));
+    build.set("date", xstr(__DATE__));
+    build.set("time", xstr(__TIME__));
   
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());

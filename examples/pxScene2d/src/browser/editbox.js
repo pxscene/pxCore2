@@ -964,7 +964,7 @@ px.import({ scene: 'px:scene.1.js',
         {
             if(laterTimer === null)
             {
-               laterTimer = setTimeout(function delayShow() { narrowURL(fn) }, delay_ms);
+               laterTimer = setTimeout(function delayShow() { narrowURL(fn); }, delay_ms);
             }
         }
 
