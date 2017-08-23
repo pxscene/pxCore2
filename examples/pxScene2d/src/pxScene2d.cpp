@@ -1526,12 +1526,13 @@ int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false), 
-    mInnerpxObjects(), mDirty(true), mTestView(NULL), mDisposed(false), mScriptView(scriptView)
+    mInnerpxObjects(), mDirty(true), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
   mEmit = new rtEmit();
   mTop = top;
+  mScriptView = scriptView;
   mTag = gTag++;
 
   // make sure that initial onFocus is sent
