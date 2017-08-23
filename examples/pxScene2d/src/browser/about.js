@@ -25,8 +25,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
   var max_h     = 175;
   var title_dy  = 30;
 
-  var logo_url  = "https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/images/pxscene1.png";
-  //var logo_url  = "browser/pxscene.png";
+  var logo_url  = "https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/images/pxscene.png";
                                            
   var fontRes   = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
   var panel     = scene.create({ t: "object",  parent: root, x: 40, y: -720, w: (max_w + 4), h: max_h, a: 0.0 });
@@ -42,10 +41,10 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
                             alignHorizontal: scene.alignHorizontal.CENTER,
                             alignVertical:   scene.alignVertical.CENTER})
   logo.ready.then(
-                    function(o) { console.log(" GOT IT !");  },
-                    function(o) { console.log(" LOST IT !"); max_h -= 170; title_dy = 10; }
+                    function(o) { },
+                    function(o) { max_h -= 170; title_dy = 10; }
                   );
-                                           
+
   var textPts   = 16;
   var titlePts  = 28;
                                            
@@ -93,7 +92,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
   function createPanel()
   {
     var gfx = parseInt( parseInt( scene.info.gfxmemory ) / 1024);
-            
+
     addRow(rows, "InfoBuildVersion", "Version: ",         scene.info.version);
     addRow(rows, "InfoBuildDate",    "Build Date: ",      scene.info.build.date.replace(/"/g, '') ); // global RegEx
     addRow(rows, "InfoBuildTime",    "Build Time: ",      scene.info.build.time.replace(/"/g, '') ); // global RegEx
@@ -117,7 +116,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
   {
     if(autoDismiss === null)
     {
-      var cy = (scene.h - panel.h)/2;                // offscreen top
+      var cy = (scene.h - panel.h)/2;  // offscreen top
            
       panel.x = (scene.w - panel.w)/2; // center horizontally in parent
       panel.animateTo({ y: cy }, 1.25, scene.animation.EASE_OUT_ELASTIC,
@@ -139,7 +138,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 
   scene.on("onResize",  function(e) { updateSize(e.w,e.h); });
   //panel.on("onMouseUp", function(e) { console.log("PANEL onMouseUp"); hidePanel() } );
-  panel_bg.on("onFocus",   function(e) { console.log("PANEL focus"); /*showPanel(5000);*/ } );
+  panel_bg.on("onFocus",   function(e) { /*showPanel(5000);*/ } );
   panel_bg.on("onKeyDown", function(e) { if(e.keyCode) { hidePanel();  }  });
            
   Promise.all([fontRes.ready, logo.ready, title_bg.ready, panel.ready]).catch( (err) =>
@@ -162,18 +161,17 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 
         max_h += title.h;
         max_h += dismissTXT.h + 15;
-                  
+
         createPanel();
-                   
+
         dismissTXT.y = max_h - dismissTXT.h - 10;
-                  
+          
         panel.h    = max_h;
         panel_bg.h = max_h;
                    
         updateSize(scene.w, scene.h);
-                 
-        panel_bg.focus = true;
 
+        panel_bg.focus = true;
     });
   }); // PROMISE.ALL
 
