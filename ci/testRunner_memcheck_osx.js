@@ -6,14 +6,16 @@ var root = scene.root;
 
 console.log("Starting testRunner_memcheck.js...");
 
+var testRunnerUrl = "https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js";
 // Info about tests to be run
 var testUrls = ["http://pxscene.org/examples/px-reference/gallery/fancy.js",
                 "http://pxscene.org/examples/px-reference/gallery/picturepile.js",
-                "http://pxscene.org/examples/px-reference/gallery/gallery.js"
+                "http://pxscene.org/examples/px-reference/gallery/gallery.js",
+                testRunnerUrl 
                 ];
 
 //added different timeout for different pages, as travis server is bit slower and so getting more timeout errors for complex js pages
-var testTimeouts = [5000, 5000, 20000];
+var testTimeouts = [5000, 5000, 20000, 300000];
 var numUrls = testUrls.length;
 var lastSceneIndex = numUrls-1;
 var savedIndexForTimeout;
