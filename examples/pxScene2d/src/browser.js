@@ -61,7 +61,7 @@ px.import({ scene:      'px:scene.1.js',
     // TODO Temporary hack
     if(u == "about.js")
     {
-        u = "browser/about.js";
+        u = "about.js";
     }
     else        
     if (u.indexOf(':') == -1)
