@@ -65,7 +65,7 @@ var runTests = function( i) {
                   test.url = "";
                   stopProgressAnimation();
                   mainPage.a = 0;
-                  console.log("RUN COMPLETED");
+                  console.log("RUN COMPLETED FROM MAIN");
                 }
                 else
                 {
