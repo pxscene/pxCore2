@@ -10,12 +10,12 @@ touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 ./pxscene.sh $TRAVIS_BUILD_DIR/ci/testRunner_memcheck_$TRAVIS_OS_NAME.js?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $EXECLOGS 2>&1 &
-grep "RUN COMPLETED" $EXECLOGS
+grep "RUN COMPLETED FROM MAIN" $EXECLOGS
 retVal=$?
 count=0
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 5400 ]; do
 sleep 30;
-grep "RUN COMPLETED" $EXECLOGS
+grep "RUN COMPLETED FROM MAIN" $EXECLOGS
 retVal=$?
 count=$((count+30))
 if [ "$retVal" -ne 0 ]
