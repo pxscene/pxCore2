@@ -1,9 +1,43 @@
-#include "pxCanvas.h"
+/*
+ 
+ pxCore Copyright 2005-2017 John Robinson
+ 
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+ http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ 
+ */
+
+#include "rtString.h"
+#include "rtRef.h"
+#include "rtFileDownloader.h"
+
+#include "pxCore.h"
+#include "pxOffscreen.h"
+#include "pxUtil.h"
+#include "pxScene2d.h"
+
+#include "pxCanvas2d.h"
+#include "pxContext.h"
 
 #include <stdio.h>
 #include "math.h"
 
+
+extern pxContext context;
+
+#ifdef USE_PERF_TIMERS
 #include "pxTimer.h"
+#endif
+
 
 class Vector
 {
@@ -93,34 +127,43 @@ void DoLineSegmentIntersection(const Vector& p0, const Vector& p1, const Vector&
 }
 #endif
 
-pxCanvas::pxCanvas(): mOffscreen(NULL)
+
+
+pxCanvas2d::pxCanvas2d(): mOffscreen(NULL), mVertexCount(0) //pxScene2d* scene): pxObject(scene), mOffscreen(NULL)
 {
-  mVertexCount = 0;
 }
 
-pxCanvas::~pxCanvas()
+pxCanvas2d::~pxCanvas2d()
 {
   term();
 }
 
-pxError pxCanvas::term()
+pxError pxCanvas2d::term()
 {
   delete mOffscreen;
   mOffscreen = NULL;
 
+  mVertexCount = 0;
+  
   return PX_OK;
 }
 
-pxError pxCanvas::init(int width, int height)
+//====================================================================================================================================
+//====================================================================================================================================
+
+pxError pxCanvas2d::init(int width, int height)
 {
   pxError e = PX_FAIL;
 
   term();
 
+  mw = width;
+  mh = height;
+  
   mOffscreen = new pxOffscreen;
   if (mOffscreen)
   {
-    mOffscreen->initWithColor(width, height, pxBlue.u);
+    mOffscreen->initWithColor(width, height, pxClear.u);  // pxBlue pxClear
     mRasterizer.init(mOffscreen);
 
     e = PX_OK;
@@ -128,14 +171,14 @@ pxError pxCanvas::init(int width, int height)
 
   mMatrix.identity();
   mTextureMatrix.identity();
-  setFillColor(0, 0, 0);
+  setFillColor(0, 0, 0, 0);
   setStrokeColor(0, 0, 0);
   setAlpha(1.0);
 
   return e;
 }
 
-pxError pxCanvas::initWithBuffer(pxBuffer* buffer)
+pxError pxCanvas2d::initWithBuffer(pxBuffer* buffer)
 {
   pxError e = PX_FAIL;
   term();
@@ -156,32 +199,36 @@ pxError pxCanvas::initWithBuffer(pxBuffer* buffer)
 }
 
 
-pxOffscreen* pxCanvas::offscreen()
+pxOffscreen* pxCanvas2d::offscreen()
 {
   return mOffscreen;
 }
 
-void pxCanvas::newPath()
+void pxCanvas2d::newPath()
 {
   mVertexCount = 0;
 }
 
-void pxCanvas::moveTo(double x, double y)
+double pxCanvas2d::getPenX()
 {
-//  mVertices[mVertexCount].x = x;
-//  mVertices[mVertexCount].y = y;
-  
+  return (mVertexCount > 0) ? mVertices[mVertexCount-1].x() : 0;
+}
+
+double pxCanvas2d::getPenY()
+{
+  return (mVertexCount > 0) ? mVertices[mVertexCount-1].y() : 0;
+}
+
+void pxCanvas2d::moveTo(double x, double y)
+{
   mVertices[mVertexCount].setX(x);
   mVertices[mVertexCount].setY(y);
   
   mVertexCount++;
 }
 
-void pxCanvas::lineTo(double x, double y)
+void pxCanvas2d::lineTo(double x, double y)
 {
-//  mVertices[mVertexCount].x = x;
-//  mVertices[mVertexCount].y = y;
-  
   mVertices[mVertexCount].setX(x);
   mVertices[mVertexCount].setY(y);
   
@@ -189,43 +236,59 @@ void pxCanvas::lineTo(double x, double y)
 }
 
 // Cubic
-void pxCanvas::curveTo(double x2, double y2, double x3, double y3)
+void pxCanvas2d::curveTo(double x2, double y2, double x3, double y3, double x4, double y4)  // uses preceeding vertex as (x1,y1)
 {
   if (mVertexCount > 0)
   {
-//    addCurve2(mVertices[mVertexCount-1].x, mVertices[mVertexCount-1].y,  x2, y2, x3, y3);
-    addCurve2(mVertices[mVertexCount-1].x(), mVertices[mVertexCount-1].y(),  x2, y2, x3, y3);
+    addCurve22(mVertices[mVertexCount-1].x(), mVertices[mVertexCount-1].y(),  x2, y2,  x3, y3,  x4, y4);
   }
 }
 
-void pxCanvas::closePath()
+
+// Quadtatic
+void pxCanvas2d::curveTo(double x2, double y2, double x3, double y3)  // uses preceeding vertex as (x1,y1)
 {
+  if (mVertexCount > 0)
+  {
+    addCurve2(mVertices[mVertexCount-1].x(), mVertices[mVertexCount-1].y(),  x2, y2,  x3, y3);
+  }
 }
 
-void pxCanvas::setMatrix(const MATRIX_T& m)
+void pxCanvas2d::closePath()
+{
+  if(mVertexCount > 0)
+  {
+    mVertices[mVertexCount].setX( mVertices[0].x() );
+    mVertices[mVertexCount].setY( mVertices[0].y() );
+    
+    mVertexCount++;
+  }
+}
+
+void pxCanvas2d::setMatrix(const pxMatrix4T<float>& m)
 {
   mMatrix = m;
 	mRasterizer.setMatrix(m);
 }
 
-void pxCanvas::matrix(MATRIX_T& m) const 
+void pxCanvas2d::matrix(pxMatrix4T<float>& m) const
 {
   m = mMatrix;
 }
 
-void pxCanvas::setTextureMatrix(const MATRIX_T& m)
+void pxCanvas2d::setTextureMatrix(const pxMatrix4T<float>& m)
 {
   mTextureMatrix = m;
   mRasterizer.setTextureMatrix(m);
 }
 
-void pxCanvas::textureMatrix(MATRIX_T& m) const
+void pxCanvas2d::textureMatrix(pxMatrix4T<float>& m) const
 {
   m = mTextureMatrix;
 }
 
 #if 0
-void pxCanvas::fill(bool time)
+void pxCanvas2d::fill(bool time)
 {
   double extentLeft, extentTop;
   double extentRight, extentBottom;
@@ -335,18 +398,22 @@ void pxCanvas::fill(bool time)
 
 #else
 
-void pxCanvas::fill(bool time)
+void pxCanvas2d::fill(bool time)
 {
   mRasterizer.setColor(mFillColor);
 //    setAlphaTexture(true);
 
-  double startEdge;
-  double endEdge;
+//  double startEdge;
+//  double endEdge;
+
+#ifdef USE_PERF_TIMERS
   if (time)
   {
     startEdge = pxMilliseconds();
   }
-
+#endif // USE_PERF_TIMERS
+  
+  
   double extentLeft, extentTop;
   double extentRight, extentBottom;
 
@@ -364,11 +431,6 @@ void pxCanvas::fill(bool time)
         for (i = 0; i < mVertexCount-1; i++)
         {
 #if 1
-//          if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
-//          if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
-//          if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
-//          if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
-
           if (mVertices[i].x() < extentLeft)     extentLeft = mVertices[i].x();
           if (mVertices[i].x() > extentRight)   extentRight = mVertices[i].x();
           if (mVertices[i].y() < extentTop)       extentTop = mVertices[i].y();
@@ -376,15 +438,9 @@ void pxCanvas::fill(bool time)
           
 #endif
 
-//          mRasterizer.addEdge(mVertices[i].x,mVertices[i].y,mVertices[i+1].x, mVertices[i+1].y);
           mRasterizer.addEdge(mVertices[i].x(), mVertices[i].y(), mVertices[i+1].x(), mVertices[i+1].y() );
         }
 #if 1
-//        if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
-//        if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
-//        if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
-//        if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
-        
         if (mVertices[i].x() < extentLeft)     extentLeft = mVertices[i].x();
         if (mVertices[i].x() > extentRight)   extentRight = mVertices[i].x();
         if (mVertices[i].y() < extentTop)       extentTop = mVertices[i].y();
@@ -395,16 +451,18 @@ void pxCanvas::fill(bool time)
       }
       else
       {
+#ifdef USE_PERF_TIMERS
         if (time)
         {
           startEdge = pxMilliseconds();
         }
+#endif // USE_PERF_TIMERS
+        
         pxVertex* vp = mVertices;
         pxVertex* vlast = vp + mVertexCount-1;
 
         while(vp < vlast)
         {
-//          mRasterizer.addEdge(vp->x,vp->y,(vp+1)->x, (vp+1)->y);
           mRasterizer.addEdge(vp->x(), vp->y(), (vp+1)->x(), (vp+1)->y() );
           vp++;
         }
@@ -416,34 +474,16 @@ void pxCanvas::fill(bool time)
       int i;
       for (i = 0; i < mVertexCount-1; i++)
       {
-        pxVertex a;
-        pxVertex b;
-
-//        if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
-//        if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
-//        if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
-//        if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
-
         if (mVertices[i].x() < extentLeft)     extentLeft = mVertices[i].x();
         if (mVertices[i].x() > extentRight)   extentRight = mVertices[i].x();
         if (mVertices[i].y() < extentTop)       extentTop = mVertices[i].y();
         if (mVertices[i].y() > extentBottom) extentBottom = mVertices[i].y();
 
-        
-//        mMatrix.multiply(mVertices[i], mMatrix, a);
-//        mMatrix.multiply(mVertices[i+1], mMatrix, b);
+        pxVertex a = mMatrix.multiply(mVertices[i]);
+        pxVertex b = mMatrix.multiply(mVertices[i+1]);
 
-        a = mMatrix.multiply(mVertices[i]);
-        b = mMatrix.multiply(mVertices[i+1]);
-
-//        mRasterizer.addEdge(a.x,a.y,b.x, b.y);
         mRasterizer.addEdge(a.x(), a.y(), b.x(), b.y() );
       }
-//      if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
-//      if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
-//      if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
-//      if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
-      
       
       if (mVertices[i].x() < extentLeft)     extentLeft = mVertices[i].x();
       if (mVertices[i].x() > extentRight)   extentRight = mVertices[i].x();
@@ -452,10 +492,13 @@ void pxCanvas::fill(bool time)
     }
   }
 
+#ifdef USE_PERF_TIMERS
   if (time)
   {
     endEdge = pxMilliseconds();
   }
+#endif // USE_PERF_TIMERS
+
   if (mRasterizer.texture())
   {
 #if 1
@@ -465,15 +508,6 @@ void pxCanvas::fill(bool time)
     pxVertex t2;
     pxVertex t3;
     pxVertex t4;
-    
-//    p1.x = extentLeft;
-//    p1.y = extentTop;
-//    p2.x = extentRight;
-//    p2.y = extentTop;
-//    p3.x = extentRight;
-//    p3.y = extentBottom;
-//    p4.x = extentLeft;
-//    p4.y = extentBottom;
     
     p1.setX( extentLeft   );
     p1.setY( extentTop    );
@@ -487,15 +521,6 @@ void pxCanvas::fill(bool time)
     extentRight  -= extentLeft;
     extentBottom -= extentTop;
     extentLeft = extentTop = 0;
-
-//    t1.x = extentLeft;
-//    t1.y = extentTop;
-//    t2.x = extentRight;
-//    t2.y = extentTop;
-//    t3.x = extentRight;
-//    t3.y = extentBottom;
-//    t4.x = extentLeft;
-//    t4.y = extentBottom;
   
     t1.setX( extentLeft   );
     t1.setY( extentTop    );
@@ -507,28 +532,15 @@ void pxCanvas::fill(bool time)
     t4.setY( extentBottom );
 
 #if 1
-    pxVertex o1, o2, o3, o4;
-//    mMatrix.multiply(p1, mMatrix, o1);
-//    mMatrix.multiply(p2, mMatrix, o2);
-//    mMatrix.multiply(p3, mMatrix, o3);
-//    mMatrix.multiply(p4, mMatrix, o4);
+    pxVertex o1 = mMatrix.multiply(p1);
+    pxVertex o2 = mMatrix.multiply(p2);
+    pxVertex o3 = mMatrix.multiply(p3);
+    pxVertex o4 = mMatrix.multiply(p4);
     
-    o1 = mMatrix.multiply(p1);
-    o2 = mMatrix.multiply(p2);
-    o3 = mMatrix.multiply(p3);
-    o4 = mMatrix.multiply(p4);
-    
-    pxVertex n1, n2, n3, n4;
-
-//    mTextureMatrix.multiply(t1, mTextureMatrix, n1);
-//    mTextureMatrix.multiply(t2, mTextureMatrix, n2);
-//    mTextureMatrix.multiply(t3, mTextureMatrix, n3);
-//    mTextureMatrix.multiply(t4, mTextureMatrix, n4);
-    
-    n1 = mTextureMatrix.multiply(t1);
-    n2 = mTextureMatrix.multiply(t2);
-    n3 = mTextureMatrix.multiply(t3);
-    n4 = mTextureMatrix.multiply(t4);
+    pxVertex n1 = mTextureMatrix.multiply(t1);
+    pxVertex n2 = mTextureMatrix.multiply(t2);
+    pxVertex n3 = mTextureMatrix.multiply(t3);
+    pxVertex n4 = mTextureMatrix.multiply(t4);
     
     mRasterizer.setTextureCoordinates(o1, o2, o3, o4, n1, n2, n3, n4);
 #endif
@@ -536,14 +548,20 @@ void pxCanvas::fill(bool time)
 
   if (time)
   {
+#ifdef USE_PERF_TIMERS
     double startScan = pxMilliseconds();
+#endif
     mRasterizer.rasterize();
+    
+#ifdef USE_PERF_TIMERS
+    
     double endScan = pxMilliseconds();
-
-    double total = (endEdge-startEdge) + (endScan-startScan);
+    double total   = (endEdge - startEdge) + (endScan - startScan);
     printf("Elapsed Total Fill: %gms FPS: %g\n", total, 1000/total);
-    printf("\tElapsed Edge Setup: %gms FPS: %g\n", (endEdge-startEdge), 1000/(endEdge-startEdge));
-    printf("\tElapsed Scanning: %gms FPS: %g\n", (endScan-startScan), 1000/(endScan-startScan));
+    printf("\tElapsed Edge Setup: %gms FPS: %g\n", (endEdge-startEdge), 1000/(endEdge - startEdge));
+    printf("\tElapsed Scanning: %gms FPS: %g\n",   (endScan-startScan), 1000/(endScan - startScan));
+    
+#endif // USE_PERF_TIMERS
   }
   else
   {
@@ -560,7 +578,7 @@ void pxCanvas::fill(bool time)
 
 #endif
 
-void pxCanvas::stroke()
+void pxCanvas2d::stroke()
 {
   double halfStrokeWidth = mStrokeWidth / 2;
   pxFillMode oldFillMode = mRasterizer.fillMode();
@@ -568,9 +586,6 @@ void pxCanvas::stroke()
 
   if (mVertexCount > 1)
   {
-//    bool closed = mVertices[0].x == mVertices[mVertexCount-1].x &&
-//                  mVertices[0].y == mVertices[mVertexCount-1].y;
-    
     bool closed = mVertices[0].x() == mVertices[mVertexCount-1].x() &&
                   mVertices[0].y() == mVertices[mVertexCount-1].y();
     
@@ -607,17 +622,8 @@ void pxCanvas::stroke()
 
     for (int i = 0; i < mVertexCount-1; i++)
     {
-      pxVertex a;
-      pxVertex b;
-      
-//      mMatrix.multiply(mVertices[i], mMatrix, a);
-//      mMatrix.multiply(mVertices[i+1], mMatrix, b);
-      
-      a = mMatrix.multiply(mVertices[i]);
-      b = mMatrix.multiply(mVertices[i+1]);
-      
-//      double dx1 = (b.x - a.x);
-//      double dy1 = (b.y - a.y);
+      pxVertex a = mMatrix.multiply(mVertices[i]);
+      pxVertex b = mMatrix.multiply(mVertices[i+1]);
       
       double dx1 = (b.x() - a.x() );
       double dy1 = (b.y() - a.y() );
@@ -633,21 +639,12 @@ void pxCanvas::stroke()
 
       dx1 *= halfStrokeWidth;
       dy1 *= halfStrokeWidth;
-
-
-//      mRasterizer.addEdge(a.x+dy1,a.y-dx1,b.x+dy1, b.y-dx1);
-//      mRasterizer.addEdge(b.x-dy1,b.y + dx1 ,a.x-dy1, a.y + dx1);
       
       mRasterizer.addEdge(a.x() + dy1, a.y() - dx1, b.x() + dy1, b.y() - dx1);
       mRasterizer.addEdge(b.x() - dy1, b.y() + dx1, a.x() - dy1, a.y() + dx1);
       
       if (i == 0)
       {
-//        firstA1.x = a.x + dy1;
-//        firstA1.y = a.y - dx1;   /// HUGH /// BUG ?
-//        firstA2.x = a.x - dy1;
-//        firstA2.y = a.y + dx1;
-
         firstA1.setX( a.x() + dy1 );
         firstA1.setY( a.y() - dx1 );
         firstA2.setX( a.x() - dy1 );
@@ -658,19 +655,11 @@ void pxCanvas::stroke()
       // join this segment to the last segment
       if (i > 0)
       {
-//        mRasterizer.addEdge(lastB1.x,lastB1.y,a.x+dy1,a.y-dx1);
-//        mRasterizer.addEdge(a.x-dy1, a.y + dx1 ,lastB2.x, lastB2.y);                                
-
         mRasterizer.addEdge(lastB1.x()  , lastB1.y()  , a.x() + dy1 , a.y() - dx1);
         mRasterizer.addEdge(a.x() - dy1 , a.y() + dx1 , lastB2.x()  , lastB2.y() );
         
       }
 #endif
-
-//      lastB1.x = b.x + dy1;
-//      lastB1.y = b.y - dx1;
-//      lastB2.x = b.x - dy1;
-//      lastB2.y = b.y + dx1;
 
       lastB1.setX( b.x() + dy1 );
       lastB1.setY( b.y() - dx1 );
@@ -682,11 +671,9 @@ void pxCanvas::stroke()
       {
         // buttcaps
         if (i == 0)
-//          mRasterizer.addEdge(a.x-dy1, a.y + dx1,a.x+dy1, a.y-dx1);
           mRasterizer.addEdge(a.x() - dy1, a.y() + dx1, a.x() + dy1, a.y() - dx1);
 
         if (i == mVertexCount-2)
-//          mRasterizer.addEdge(b.x+dy1,b.y - dx1 ,b.x-dy1,b.y+dx1);
           mRasterizer.addEdge(b.x() + dy1, b.y() - dx1, b.x() - dy1, b.y() + dx1);
       }
       else
@@ -695,9 +682,6 @@ void pxCanvas::stroke()
 #if 1
         if (i == mVertexCount-2)
         {
-//          mRasterizer.addEdge(lastB1.x,lastB1.y, firstA1.x, firstA1.y);
-//          mRasterizer.addEdge(firstA2.x, firstA2.y ,lastB2.x, lastB2.y);
-
           mRasterizer.addEdge(lastB1.x(),   lastB1.y(), firstA1.x(), firstA1.y() );
           mRasterizer.addEdge(firstA2.x(), firstA2.y(),  lastB2.x(),  lastB2.y() );
         }
@@ -763,9 +747,7 @@ void pxCanvas::stroke()
 
 #if 0
       mRasterizer.addEdge(b.x-dy1,b.y + dx1 ,a.x-dy1, a.y + dx1);
-      // mRasterizer.addEdge(a.x-dy1, a.y + dx1,a.x+dy1, a.y-dx1);
       mRasterizer.addEdge(a.x+dy1,a.y-dx1,b.x+dy1, b.y-dx1);
-      // mRasterizer.addEdge(b.x+dy1,b.y - dx1 ,b.x-dy1,b.y+dx1);
 #else
 #if 1
       {
@@ -776,7 +758,7 @@ void pxCanvas::stroke()
         l1.Intersect(l2, i1);
         l3.Intersect(l2, i2);
 
-        //            mRasterizer.addEdge(c.x-dy2,c.y + dx2 ,b.x-dy2, b.y + dx2);
+        // mRasterizer.addEdge(c.x-dy2,c.y + dx2 ,b.x-dy2, b.y + dx2);
         mRasterizer.addEdge(i2.x_, i2.y_ , i1.x_ , i1.y_);
       }
 #endif
@@ -788,7 +770,7 @@ void pxCanvas::stroke()
         l1.Intersect(l2, i1);
         l3.Intersect(l2, i2);
 
-        //            mRasterizer.addEdge(c.x-dy2,c.y + dx2 ,b.x-dy2, b.y + dx2);
+        // mRasterizer.addEdge(c.x-dy2,c.y + dx2 ,b.x-dy2, b.y + dx2);
         //mRasterizer.addEdge(i2.x_, i2.y_ , i1.x_ , i1.y_);
         mRasterizer.addEdge(i1.x_, i1.y_ , i2.x_ , i2.y_);
       }
@@ -812,35 +794,35 @@ void pxCanvas::stroke()
 }
 
 #ifdef RTPLATFORM_WINDOWS
-rtString pxCanvas::font()
+rtString pxCanvas2d::font()
 {
   return mFont;
 }
 
-void pxCanvas::setFont(const rtString& font)
+void pxCanvas2d::setFont(const rtString& font)
 {
   mFont = font;
 }
 
 #endif
 
-void pxCanvas::setFontSize(double s)
+void pxCanvas2d::setFontSize(double s)
 {
   mFontSize = s;
 }
 
-void pxCanvas::setFillMode(const pxFillMode& mode)
+void pxCanvas2d::setFillMode(const pxFillMode& mode)
 {
   mRasterizer.setFillMode(mode);
 }
 
-void pxCanvas::setFillColor(int gray, int a)
+void pxCanvas2d::setFillColor(int gray, int a)
 {
   mFillColor.r = mFillColor.g = mFillColor.b = gray;
   mFillColor.a = a;
 }
 
-void pxCanvas::setFillColor(int r, int g, int b, int a)
+void pxCanvas2d::setFillColor(int r, int g, int b, int a)
 {
   mFillColor.r = r;
   mFillColor.g = g;
@@ -848,28 +830,28 @@ void pxCanvas::setFillColor(int r, int g, int b, int a)
   mFillColor.a = a;
 }
 
-void pxCanvas::setFillColor(const pxColor& c)
+void pxCanvas2d::setFillColor(const pxColor& c)
 {
   mFillColor = c;
 }
 
-void pxCanvas::setStrokeColor(const pxColor& c)
+void pxCanvas2d::setStrokeColor(const pxColor& c)
 {
   mStrokeColor = c;
 }
 
-void pxCanvas::setStrokeColor(int gray, int a)
+void pxCanvas2d::setStrokeColor(int gray, int a)
 {
   mStrokeColor.r = mStrokeColor.g = mFillColor.b = gray;
   mStrokeColor.a = a;
 }
 
-pxPixel pxCanvas::fillColor()
+pxPixel pxCanvas2d::fillColor()
 {
   return mFillColor;
 }
 
-void pxCanvas::setStrokeColor(int r, int g, int b, int a)
+void pxCanvas2d::setStrokeColor(int r, int g, int b, int a)
 {
   mStrokeColor.r = r;
   mStrokeColor.g = g;
@@ -877,32 +859,34 @@ void pxCanvas::setStrokeColor(int r, int g, int b, int a)
   mStrokeColor.a = a;
 }
 
-pxPixel pxCanvas::strokeColor()
+pxPixel pxCanvas2d::strokeColor()
 {
   return mStrokeColor;
 }
 
-double pxCanvas::alpha() const
+double pxCanvas2d::alpha() const
 {
   return mRasterizer.alpha();
 }
 
-void pxCanvas::setAlpha(double alpha)
+void pxCanvas2d::setAlpha(double alpha)
 {
   mRasterizer.setAlpha(alpha);
 }
 
 
-void pxCanvas::setStrokeWidth(double w)
+void pxCanvas2d::setStrokeWidth(double w)
 {
   mStrokeWidth = w;
 }
 
-void pxCanvas::addCurve(double x1, double y1, double x2, double y2, double x3, double y3)
+// Quadratic
+void pxCanvas2d::addCurve(double x1, double y1, double x2, double y2, double x3, double y3)
 {
   addCurve(x1, y1, x2, y2, x3, y3, 0);
 }
-void pxCanvas::addCurve(double x1, double y1, double x2, double y2, double x3, double y3, int depth)
+
+void pxCanvas2d::addCurve(double x1, double y1, double x2, double y2, double x3, double y3, int depth)
 {
   if (depth > 3)
   {
@@ -911,6 +895,7 @@ void pxCanvas::addCurve(double x1, double y1, double x2, double y2, double x3, d
     return;
   }
 
+  // subdivide
   double x15 = (x1 + x2) / 2.0;
   double y15 = (y1 + y2) / 2.0;
   double x25 = (x2 + x3) / 2.0;
@@ -923,11 +908,14 @@ void pxCanvas::addCurve(double x1, double y1, double x2, double y2, double x3, d
   addCurve(x2p, y2p, x25, y25, x3, y3, depth+1);
 }
 
-void pxCanvas::addCurve2(double x1, double y1, double x2, double y2, double x3, double y3)
+
+// Quadratic
+void pxCanvas2d::addCurve2(double x1, double y1, double x2, double y2, double x3, double y3)
 {
   addCurve2(x1, y1, x2, y2, x3, y3, 0);
 }
-void pxCanvas::addCurve2(double x1, double y1, double x2, double y2, double x3, double y3, int depth)
+
+void pxCanvas2d::addCurve2(double x1, double y1, double x2, double y2, double x3, double y3, int depth)
 {
   if (depth > 3)
   {
@@ -941,11 +929,14 @@ void pxCanvas::addCurve2(double x1, double y1, double x2, double y2, double x3, 
     return;
   }
 
+  // Subdivide ... Casteljau algorithm
   double x15 = (x1 + x2) / 2.0;
   double y15 = (y1 + y2) / 2.0;
+  
   double x25 = (x2 + x3) / 2.0;
   double y25 = (y2 + y3) / 2.0;
 
+  // New point
   double x2p = (x15 + x25) / 2.0;
   double y2p = (y15 + y25) / 2.0;
 
@@ -953,20 +944,65 @@ void pxCanvas::addCurve2(double x1, double y1, double x2, double y2, double x3, 
   addCurve2(x2p, y2p, x25, y25, x3, y3, depth+1);
 }
 
-void pxCanvas::setClip(const pxRect* r)
+
+
+// Cubic ??
+void pxCanvas2d::addCurve22(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
+{
+  addCurve22(x1, y1, x2, y2, x3, y3, x4, y4, 0);
+}
+
+void pxCanvas2d::addCurve22(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, int depth)
+{
+  if (depth > 3)
+  {
+#if 0
+    mRasterizer.addEdge(x1, y1, x2, y2);
+    mRasterizer.addEdge(x2, y2, x3, y3);
+#else
+    lineTo(x2, y2);
+    lineTo(x3, y3);
+#endif
+    return;
+  }
+  
+  // Subdivide ... Casteljau algorithm
+  double x15 = (x1 + x2) / 2.0;
+  double y15 = (y1 + y2) / 2.0;
+  
+  double x25 = (x2 + x3) / 2.0;
+  double y25 = (y2 + y3) / 2.0;
+  
+  double x35 = (x3 + x4) / 2.0;
+  double y35 = (y3 + y4) / 2.0;
+  
+  // New points
+  double x2p = (x15 + x25) / 2.0;
+  double y2p = (y15 + y25) / 2.0;
+  
+  double x3p = (x25 + x35) / 2.0;
+  double y3p = (y25 + y35) / 2.0;
+  
+  addCurve2(x1,   y1, x15, y15, x2p, y2p, depth+1);
+  addCurve2(x2p, y2p, x25, y25, x3p, y3p, depth+1);
+  addCurve2(x3p, y3p, x35, y35, x4,   y4, depth+1);
+}
+
+
+void pxCanvas2d::setClip(const pxRect* r)
 {
   mRasterizer.setClip(r);
 }
 
 #ifdef RTPLATFORM_WINDOWS
-inline double pxCanvas::convertFixToFloat(const FIXED& fx)
+inline double pxCanvas2d::convertFixToFloat(const FIXED& fx)
 {
   return (double)fx.value + (float)fx.fract/65536;
 }
 
 
 
-void pxCanvas::calcTextScale(int a, int ascent)
+void pxCanvas2d::calcTextScale(int a, int ascent)
 {
 //    mTextScale = 2048/(float)mFontSize * ((float)ascent / (float)2048);
   //mTextScale = (float)ascent/2048 * mFontSize;
@@ -979,13 +1015,13 @@ void pxCanvas::calcTextScale(int a, int ascent)
   //mTextScale = 2048/mFontSize;
 }
 
-void pxCanvas::TextMoveTo(double x, double y)
+void pxCanvas2d::TextMoveTo(double x, double y)
 {
   lastX = x/mTextScale;
   lastY = (2048-y)/mTextScale;
 }
 
-void pxCanvas::TextLineTo(double x, double y)
+void pxCanvas2d::TextLineTo(double x, double y)
 {
   x = x/mTextScale;
   y = (2048-y)/mTextScale;
@@ -995,7 +1031,7 @@ void pxCanvas::TextLineTo(double x, double y)
   lastY = y;
 }
 
-void pxCanvas::TextCurveTo(double x2, double y2, double x3, double y3)
+void pxCanvas2d::TextCurveTo(double x2, double y2, double x3, double y3)
 {
   x2 = x2 / mTextScale;
   y2 = (2048-y2)/mTextScale;
@@ -1008,7 +1044,7 @@ void pxCanvas::TextCurveTo(double x2, double y2, double x3, double y3)
   lastY = y3;
 }
 
-pxError pxCanvas::drawChar(const wchar_t c)
+pxError pxCanvas2d::drawChar(const wchar_t c)
 {
   pxError e = RT_ERROR;
 
@@ -1119,7 +1155,7 @@ pxError pxCanvas::drawChar(const wchar_t c)
   return e;
 }
 
-void pxCanvas::drawText(const wchar_t* t, double x, double y)
+void pxCanvas2d::drawText(const wchar_t* t, double x, double y)
 {
   // Is overall alignment... compare with flash etc... 
 #if 0
@@ -1133,12 +1169,12 @@ void pxCanvas::drawText(const wchar_t* t, double x, double y)
 }
 #endif
 
-pxBuffer* pxCanvas::texture() const
+pxBuffer* pxCanvas2d::texture() const
 {
   return mRasterizer.texture();
 }
 
-void pxCanvas::setTexture(pxBuffer* texture)
+void pxCanvas2d::setTexture(pxBuffer* texture)
 {
 	if (texture && (texture->width() && texture->height()))
 		mRasterizer.setTexture(texture);
@@ -1146,38 +1182,67 @@ void pxCanvas::setTexture(pxBuffer* texture)
 		mRasterizer.setTexture(NULL);
 }
 
-void pxCanvas::clear()
+void pxCanvas2d::clear()
 {
-  //mOffscreen->fill(0xffffffff);
   mRasterizer.clear();
 }
 
-bool pxCanvas::alphaTexture() const { return mRasterizer.alphaTexture(); }
-void pxCanvas::setAlphaTexture(bool f) { mRasterizer.setAlphaTexture(f); }
+bool pxCanvas2d::alphaTexture() const    { return mRasterizer.alphaTexture(); }
+void pxCanvas2d::setAlphaTexture(bool f) { mRasterizer.setAlphaTexture(f); }
 
 
-void pxCanvas::roundRect(/*pxCanvas& c, */double x, double y, double w, double h, double rad)
+void pxCanvas2d::roundRect(double x, double y, double w, double h, double rx, double ry)
 {
   newPath();
-	moveTo(x+rad, y);
-	lineTo(x+w-rad, y);
-	curveTo(x+w, y, x+w, y+rad);
-	lineTo(x+w, y+h-rad);
-	curveTo(x+w, y+h, x+w-rad, y+h);
-	lineTo(x+rad, y+h);
-	curveTo(x, y+h, x, y+h-rad);
-	lineTo(x, y+rad);
-	curveTo(x, y, x+rad, y);
+	moveTo(x+rx, y);
+  
+	lineTo(x+w-rx, y);
+	curveTo(x+w, y, x+w, y+ry);
+  
+	lineTo(x+w, y+h-ry);
+	curveTo(x+w, y+h, x+w-rx, y+h);
+  
+	lineTo(x+rx, y+h);
+	curveTo(x, y+h, x, y+h-rx);
+  
+	lineTo(x, y+ry);
+	curveTo(x, y, x+rx, y);
+  
   closePath();
 }
 
-void pxCanvas::rectangle(double x1, double y1, double x2, double y2)
+void pxCanvas2d::rectangle(double x1, double y1, double x2, double y2)
 {
 	newPath();
 	moveTo(x1, y1);
 	lineTo(x2, y1);
 	lineTo(x2, y2);
 	lineTo(x1, y2);
-	lineTo(x1, y1);
+//	lineTo(x1, y1);
 	closePath();
+}
+
+void pxCanvas2d::needsRedraw()
+{
+  mNeedsRedraw = true;
+}
+
+void pxCanvas2d::draw()
+{
+  if(mOffscreen)
+  {
+    if(mNeedsRedraw)
+    {
+      mNeedsRedraw = false;
+      mTexture = context.createTexture(*mOffscreen); // UPLOAD TO GPU
+    }
+    
+    static pxTextureRef nullMaskRef;
+    
+    context.drawImage(0, 0, mw, mh,
+                      mTexture, nullMaskRef,
+                      false, NULL,
+                      pxConstantsStretch::NONE,
+                      pxConstantsStretch::NONE);
+  }
 }

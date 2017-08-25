@@ -1,8 +1,8 @@
 #include "pxTimer.h"
 #include "pxRasterizer.h"
 
-#include "xs_code/xs_Core.h"
-#include "xs_code/xs_Float.h"
+#include "xs_Core.h"
+#include "xs_Float.h"
 //#include "rtLog.h"
 
 #include <algorithm>
@@ -3623,22 +3623,22 @@ void pxRasterizer::setTexture(pxBuffer* texture)
   mTexture = texture;
 }
 
-void pxRasterizer::setMatrix(const MATRIX_T& m)
+void pxRasterizer::setMatrix(const pxMatrix4T<float>& m)
 {
   mMatrix = m;
 }
 
-void pxRasterizer::matrix(MATRIX_T& m) const
+void pxRasterizer::matrix(pxMatrix4T<float>& m) const
 {
   m = mMatrix;
 }
 
-void pxRasterizer::setTextureMatrix(const MATRIX_T& m)
+void pxRasterizer::setTextureMatrix(const pxMatrix4T<float>& m)
 {
   mTextureMatrix = m;
 }
 
-void pxRasterizer::textureMatrix(MATRIX_T& m) const
+void pxRasterizer::textureMatrix(pxMatrix4T<float>& m) const
 {
   m = mTextureMatrix;
 }

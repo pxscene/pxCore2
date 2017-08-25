@@ -1,26 +1,32 @@
-#ifndef _PX_CANVAS_H
-#define _PX_CANVAS_H
+/*
+ 
+ pxCore Copyright 2005-2017 John Robinson
+ 
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+ http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ 
+ */
+
+#ifndef _PX_CANVAS2D_H
+#define _PX_CANVAS2D_H
 
 #ifdef _WINDOWS_
 #define RTPLATFORM_WINDOWS
 #endif
 
 
-///
-///
-//#define MATRIX_T  pxMatrix
-//#include "pxMatrix.h"
-///
-///
-#define MATRIX_T  pxMatrix4T<float>
-#include "pxMatrix4T.h"
-///
-///
-
-
-
 #include "px2d.h"
-//#include "pxMatrix.h"
+#include "pxContext.h"
+#include "pxMatrix4T.h"
 #include "pxRasterizer.h"
 
 
@@ -28,26 +34,29 @@
 #include "rtString.h"
 #endif
 
-class pxCanvas
+class pxCanvas2d
 {
-public:
-  pxCanvas();
-  ~pxCanvas();
 
+public:
+  pxCanvas2d();
+  ~pxCanvas2d();
+
+  void needsRedraw();
+  
   pxError init(int width, int height);
   pxError initWithBuffer(pxBuffer* buffer);
 
   pxError term();
-
+  
   pxOffscreen* offscreen();
 
   void newPath();
   void moveTo(double x, double y);
   void lineTo(double x, double y);
-  // Quadratic
-  void curveTo(double x2, double y2, double x3, double y3);
-  // Cubic
-  //void curveTo(double x2, double y2, double x3, double y3, double x4, double y4);
+  
+  void curveTo(double x2, double y2, double x3, double y3);                       // Quadratic
+  void curveTo(double x2, double y2, double x3, double y3, double x4, double y4); // Cubic
+  
   void closePath();
 
   // The following methods create a path for the associated shape
@@ -61,11 +70,11 @@ public:
   void translate(double dx, double dy);
 #endif
 
-  void matrix(MATRIX_T& matrix) const;
-  void setMatrix(const MATRIX_T& matrix);
+  void matrix(pxMatrix4T<float>& matrix) const;
+  void setMatrix(const pxMatrix4T<float>& matrix);
 
-  void textureMatrix(MATRIX_T& m) const;
-  void setTextureMatrix(const MATRIX_T& m);
+  void textureMatrix(pxMatrix4T<float>& m) const;
+  void setTextureMatrix(const pxMatrix4T<float>& m);
 
   // Fill the current path
   void fill(bool time = false);
@@ -117,43 +126,51 @@ public:
   pxBuffer* texture() const;
   void setTexture(pxBuffer* texture);
 
-  bool textureClamp() const { return mRasterizer.textureClamp(); }
-  void setTextureClamp(bool f) { mRasterizer.setTextureClamp(f); }
+  bool textureClamp() const    { return mRasterizer.textureClamp(); }
+  void setTextureClamp(bool f) {        mRasterizer.setTextureClamp(f); }
 
-  bool textureClampColor() const { return mRasterizer.textureClampColor(); }
-  void setTextureClampColor(bool f) { mRasterizer.setTextureClampColor(f); }
+  bool textureClampColor() const    { return mRasterizer.textureClampColor(); }
+  void setTextureClampColor(bool f) {        mRasterizer.setTextureClampColor(f); }
 
   bool biLerp() const { return mRasterizer.biLerp(); }
   void setBiLerp(bool f) { mRasterizer.setBiLerp(f); }
 
 #if 0
-  bool alphaTexture() const { return mRasterizer.alphaTexture(); }
-  void setAlphaTexture(bool f) { mRasterizer.setAlphaTexture(f); }
+  bool alphaTexture() const    { return mRasterizer.alphaTexture();     }
+  void setAlphaTexture(bool f) {        mRasterizer.setAlphaTexture(f); }
 #else
   bool alphaTexture() const;
   void setAlphaTexture(bool f);
 #endif
 
-  bool overdraw() const { return mRasterizer.overdraw(); }
-  void setOverdraw(bool f) { mRasterizer.setOverdraw(f); }
+  bool overdraw() const    { return mRasterizer.overdraw();     }
+  void setOverdraw(bool f) {        mRasterizer.setOverdraw(f); }
 
-  void roundRect(/*pxCanvas& c, */double x, double y, double w, double h, double rad);
+  void roundRect(double x, double y, double w, double h, double rx, double ry);
   //void roundRectangle(double x, double y, double w, double h, double rad);
 	void rectangle(double x1, double y1, double x2, double y2);
 
   void clear();
 
 //private:
-  void addCurve(double x1, double y1, double x2, double y2, double x3, double y3);
-  void addCurve(double x1, double y1, double x2, double y2, double x3, double y3, int depth);
+  
+  // Quadratic
+  void addCurve (double x1, double y1, double x2, double y2, double x3, double y3);
+  void addCurve (double x1, double y1, double x2, double y2, double x3, double y3, int depth);
+
+  // Quadratic
   void addCurve2(double x1, double y1, double x2, double y2, double x3, double y3);
   void addCurve2(double x1, double y1, double x2, double y2, double x3, double y3, int depth);
-
-
+  
+  // Cubic
+  void addCurve22(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4);
+  void addCurve22(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, int depth);
+  
 
 #ifdef RTPLATFORM_WINDOWS
   inline double convertFixToFloat(const FIXED& fx);
   void calcTextScale(int a, int ascent);
+  
   void TextMoveTo(double x, double y);
   void TextLineTo(double x, double y);
   void TextCurveTo(double x2, double y2, double x3, double y3);
@@ -167,21 +184,36 @@ public:
   double mFontSize;
 
   double textX, textY;
-
   double lastX, lastY;
-
+  
+  double getPenX();
+  double getPenY();
+  
   int mVertexCount;
   pxVertex mVertices[200000];
-  MATRIX_T mMatrix;
-  MATRIX_T mTextureMatrix;
+
+  int vertexCount() const    { return mVertexCount; }
+
+  pxMatrix4T<float> mMatrix;
+  pxMatrix4T<float> mTextureMatrix;
+  
   pxColor mFillColor;
+  
   pxColor mStrokeColor;
-  double mStrokeWidth;
+  double  mStrokeWidth;
+
+  virtual void draw();
 
 public: // BUGBUG
   pxRasterizer mRasterizer;
-
   pxOffscreen* mOffscreen;
-};
+  pxTextureRef mTexture;
+  
+  bool    mNeedsRedraw;
+  
+  int mw;
+  int mh;
+  
+};//CLASS
 
-#endif
+#endif // _PX_CANVAS2D_H

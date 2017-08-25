@@ -2,33 +2,49 @@
 #include "pxEventLoop.h"
 #include "pxWindow.h"
 #include "pxKeycodes.h"
-#include "pxOffscreen.h"
-#include "pxTimer.h"
-#include "rtData.h"
+//#include "pxOffscreen.h"
+//#include "pxTimer.h"
+//#include "rtData.h"
 
-#include "xs_StringUtil.h"
+#define USE_PX_CANVAS
+//#define USE_XS_STRING
 
-#include "stdio.h"
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+
+#ifdef USE_XS_STRING
 
 #ifndef PX_PLATFORM_WIN
-#include <unistd.h>
+  #include <unistd.h>
 #else
-#include <io.h>
-#define open _open
-#define close _close
-#define read _read
-#define fstat _fstat
-#define stat _stat
+  #include <io.h>
+  #define open _open
+  #define close _close
+  #define read _read
+  #define fstat _fstat
+  #define stat _stat
 #endif
 
-#define JOHNS
+  #include "stdio.h"
+  #include <sys/types.h>
+  #include <sys/stat.h>
+  #include <fcntl.h>
 
-#ifdef JOHNS
-#include "pxCanvas.h"
+  #include "xs_code/xs_StringUtil.h"
 #endif
+
+#ifdef USE_PX_CANVAS
+ #include "pxCanvas.h"
+#endif
+
+///
+///
+//#define MATRIX_T  pxMatrix
+//#include "pxMatrix.h"
+///
+///
+#define MATRIX_T  pxMatrix4T<float>
+#include "pxMatrix4T.h"
+///
+///
 
 //#endif
 
@@ -111,6 +127,7 @@ void drawBackground(pxBuffer& b)
   }
 }
 
+#ifdef USE_XS_STRING
 bool rtLoadFileUnix(const char* file, rtData& data)
 {
   bool e = false;
@@ -136,6 +153,7 @@ bool rtLoadFileUnix(const char* file, rtData& data)
   }
   return e;
 }
+#endif // USE_XS_STRING
 
 
 class myWindow: public pxWindow
@@ -156,7 +174,7 @@ public:
     // Init Offscreen
     offscreen.init(800, 800);
 
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
     canvasPtr = new pxCanvas;
     pxCanvas& canvas = *canvasPtr;
 
@@ -166,24 +184,31 @@ public:
     canvas.setTexture(&textureOffscreen);
 #endif
 
+#ifndef USE_XS_STRING
+    mShapeIndex = 5;
+#endif
+      
+      
 		loadShape();
   }
 
   ~myWindow()
   {
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
     delete canvasPtr;
 #endif
   }
 
-
   void loadShape()
 	{
+#ifdef USE_XS_STRING
     if (mShapeIndex >= 1 && mShapeIndex <= 4)
     {
       readFile(mShapeIndex);
     }
     else if (mShapeIndex == 5)
+#endif // USE_XS_STRING
+
     {
       testLargeFill();
     }
@@ -194,14 +219,15 @@ public:
 		}
 #endif
 	}
-	
+
+  
 	void drawFrame()
   {
     // Draw the current shape
     drawBackground(offscreen);
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
 
-    pxMatrix m;
+    MATRIX_T m;
     m.identity();
     m.rotate(gTextureRotate);
     canvasPtr->setTextureMatrix(m);
@@ -282,8 +308,8 @@ public:
     case PX_KEY_LEFT:
     {
       // Rotate Texture
-#ifdef JOHNS
-      pxMatrix m;
+#ifdef USE_PX_CANVAS
+      MATRIX_T m;
       m.identity();
       m.rotate(gTextureRotate+=gRotateDelta);
       canvasPtr->setTextureMatrix(m);
@@ -294,8 +320,8 @@ public:
     case PX_KEY_RIGHT:
     {
       // Rotate Texture
-#ifdef JOHNS
-      pxMatrix m;
+#ifdef USE_PX_CANVAS
+      MATRIX_T m;
       m.identity();
       m.rotate(gTextureRotate-=gRotateDelta);
       canvasPtr->setTextureMatrix(m);
@@ -307,7 +333,7 @@ public:
       // Increase Quality
       gQuality++;
       if (gQuality > 4) gQuality = 4;
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
       canvasPtr->setYOversample(1<<gQuality);
       printf("Oversample => %d\n", 1 << gQuality);
 #endif
@@ -316,7 +342,7 @@ public:
       // Decrease Quality
       gQuality--;
       if (gQuality < 0) gQuality = 0;
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
       canvasPtr->setYOversample(1<<gQuality);
       printf("Oversample => %d\n", 1 << gQuality);
 #endif
@@ -342,7 +368,7 @@ public:
     case PX_KEY_T:
     {
       // Toogle Filtering
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
       if (!canvasPtr->texture())
       {
         canvasPtr->setTexture(&textureOffscreen);
@@ -356,7 +382,7 @@ public:
       // Time Filling Shape
       //double start = pxMilliseconds();
       // drawFrame
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
       canvasPtr->fill(true);
 #endif
       // double end = pxMilliseconds();
@@ -365,19 +391,19 @@ public:
     break;
     case PX_KEY_C:
       // Toggle Texture Clamp
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
       canvasPtr->setTextureClamp(!canvasPtr->textureClamp());
 #endif
       break;
     case PX_KEY_B:
       // Toggle Bilerp
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
       canvasPtr->setBiLerp(!canvasPtr->biLerp());
 #endif
       break;
     case PX_KEY_M:
       // Toggle Alpha Texture
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
       canvasPtr->setAlphaTexture(!canvasPtr->alphaTexture());
 #endif
       break;
@@ -401,7 +427,7 @@ public:
   void testLargeFill()
   {
     // Draw a filled 640x480
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
     pxCanvas& canvas = *canvasPtr;
 
     canvas.newPath();
@@ -417,17 +443,18 @@ public:
   void testText()
   {
     // Draw a filled 640x480
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
     pxCanvas& canvas = *canvasPtr;
 
 //		canvas.drawText(L"Hello John", 100, 100);
 #endif
   }
 
-
+#ifdef USE_XS_STRING
+  
   void readFile(int test)
   {
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
     pxCanvas& canvas = *canvasPtr;
 #endif
 
@@ -461,7 +488,7 @@ public:
                         
                   if (pathNum == test) 
                   {
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
                     canvas.newPath();
 #endif
                   }
@@ -481,14 +508,14 @@ public:
                     {
                       if (first) 
                       {
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
                         canvas.moveTo(x,y);
 #endif
                         first = false;
                       }
                       else
                       {
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
                         canvas.lineTo(x,y);
 #endif
                       }
@@ -504,6 +531,8 @@ public:
       }
     }
   }
+#endif // USE_XS_STRING
+  
 
 private:
   int mShapeIndex;
@@ -516,7 +545,7 @@ private:
   pxOffscreen textureOffscreen;
   pxOffscreen offscreen;
 
-#ifdef JOHNS
+#ifdef USE_PX_CANVAS
   pxCanvas* canvasPtr;
 #endif
 };
@@ -540,6 +569,17 @@ void usage()
 
 int pxMain(int, char **)
 {
+  
+  pxMatrix4T<float> xx;
+  
+  xx.identity();
+  
+  bool foo1 = xx.isIdentity();
+  
+  xx.translate(5, 4);
+  
+  bool foo2 = xx.isTranslatedOnly();
+  
   usage();
 
   myWindow win;
