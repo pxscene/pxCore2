@@ -74,10 +74,11 @@ echo "Values are $pxRetVal and $texRetVal";
 if [ "$pxRetVal" -eq 0 ]
 then
 echo "pxobject count success *****************";
+
 if [ "$texRetVal" -eq 0 ]
 then
 echo "texture size success *****************";
-fi
+else
 echo "!!!!!!!!!!!!! texture size leaked !!!!!!!!!!!!!!!!";
 echo "CI failure reason: Texture leak"
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
@@ -89,6 +90,7 @@ echo "Cause: Check the $EXECLOGS file"
 fi
 echo "Reproduction/How to fix: Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'texture memory usage is' in logs. Analyze why the usage is not 0"
 exit 1;
+fi
 else
 echo "!!!!!!!!!!!!! pxobject leaked !!!!!!!!!!!!!!!!";
 echo "CI failure reason: pxobject leak"
