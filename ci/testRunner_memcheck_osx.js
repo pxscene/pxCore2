@@ -15,7 +15,7 @@ var testUrls = ["http://pxscene.org/examples/px-reference/gallery/fancy.js",
                 ];
 
 //added different timeout for different pages, as travis server is bit slower and so getting more timeout errors for complex js pages
-var testTimeouts = [5000, 5000, 20000, 360000];
+var testTimeouts = [5000, 5000, 20000, 420000];
 var numUrls = testUrls.length;
 var lastSceneIndex = numUrls-1;
 var savedIndexForTimeout;
