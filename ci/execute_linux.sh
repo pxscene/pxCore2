@@ -1,4 +1,5 @@
 #!/bin/sh
+
 sudo rm -rf /tmp/cache/*
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export PX_DUMP_MEMUSAGE=1
