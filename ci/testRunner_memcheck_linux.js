@@ -20,7 +20,7 @@ var testUrls = ["http://pxscene.org/examples/px-reference/gallery/fancy.js",
                 ]; // See tests.json for test urls to be run
 
 //added different timeout for different pages, as travis server is bit slower and so getting more timeout errors for complex js pages
-var testTimeouts = [5000, 5000, 20000, 180000];
+var testTimeouts = [5000, 5000, 20000, 360000];
 var numUrls = testUrls.length;
 var lastSceneIndex = numUrls-1;
 var savedIndexForTimeout;
