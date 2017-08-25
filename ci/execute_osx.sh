@@ -54,7 +54,7 @@ leakcount=`leaks pxscene|grep Leak|wc -l`
 echo "leakcount during termination $leakcount"
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
-sleep 5s;
+sleep 20s;
 pkill -9 -f pxscene.sh
 cp /var/tmp/pxscene.log $EXECLOGS
 if [ "$cored" -eq 1 ]
