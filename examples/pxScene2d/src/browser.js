@@ -256,6 +256,7 @@ px.import({ scene:      'px:scene.1.js',
         helpBox = scene.create({t:"textBox", parent: bg, textColor: 0x202020ff,
                                       x: 20, y: 100,  w: 350, h: 520, a: 0.0,
                                       font: fontRes, pixelSize: 14, wordWrap: true,
+                                      interactive: false,  // <<< Essential !
                                       text: " BROWSER: \n\n"+
                                             "  CTRL-ALT-K        ...  Show Keys \n" +
                                             "\n"+
