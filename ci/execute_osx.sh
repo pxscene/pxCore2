@@ -67,7 +67,7 @@ fi
 grep "Failures: 0" $EXECLOGS
 retVal=$?
 if [ "$retVal" -ne 0 ]
-#then
+then
 echo "CI failure reason: testrunner execution failed"
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
