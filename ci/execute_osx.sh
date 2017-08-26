@@ -1,4 +1,5 @@
 #!/bin/sh
+#This script executes necessary javascript files and mesaures pxleak checks and memory leaks checks
 ulimit -c unlimited
 cored=0
 export PX_DUMP_MEMUSAGE=1

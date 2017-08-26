@@ -1,4 +1,5 @@
 #!/bin/sh
+#This script executes necessary javascript files and mesaures pxleak checks and memory leaks checks
 sudo rm -rf /tmp/cache/*
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export PX_DUMP_MEMUSAGE=1
