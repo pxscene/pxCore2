@@ -67,12 +67,12 @@ fi
 grep "Failures: 0" $EXECLOGS
 retVal=$?
 if [ "$retVal" -ne 0 ]
-then
+#then
 echo "CI failure reason: testrunner execution failed"
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
 echo "Cause: Either one or more tests failed. Check the below logs"
-cat $EXECLOGS
+#cat $EXECLOGS
 else
 echo "Cause: Either one or more tests failed. Check the log file $EXECLOGS"
 fi
@@ -93,7 +93,8 @@ echo "CI failure reason: Texture leak or pxobject leak"
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
 echo "Cause: Check the below logs"
-cat $EXECLOGS
+cat /var/tmp/pxscene.log
+#cat $EXECLOGS
 else
 echo "Cause: Check the $EXECLOGS file"
 fi 
@@ -108,7 +109,7 @@ echo "CI failure reason: execution reported memory leaks";
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
 echo "Cause: Check the below logs"
-cat $LEAKLOGS
+#cat $LEAKLOGS
 else
 echo "Cause: Check the file $LEAKLOGS and $EXECLOGS"
 fi
