@@ -54,7 +54,7 @@ leakcount=`leaks pxscene|grep Leak|wc -l`
 echo "leakcount during termination $leakcount"
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
-sleep 20s;
+sleep 40s;
 pkill -9 -f pxscene.sh
 cp /var/tmp/pxscene.log $EXECLOGS
 if [ "$cored" -eq 1 ]
@@ -93,8 +93,7 @@ echo "CI failure reason: Texture leak or pxobject leak"
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 then
 echo "Cause: Check the below logs"
-cat /var/tmp/pxscene.log
-#cat $EXECLOGS
+cat $EXECLOGS
 else
 echo "Cause: Check the $EXECLOGS file"
 fi 
