@@ -27,12 +27,10 @@ BUILDLOGS=$TRAVIS_BUILD_DIR/logs/build_logs
 
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ;
 then
-  touch $TRAVIS_BUILD_DIR/logs/run_logs
-  checkError $? "unable to create run_logs file" "could be permission issue" "Retry trigerring travis build"
   mkdir $TRAVIS_BUILD_DIR/logs/codecoverage
   checkError $? "unable to create codecoverage file" "could be permission issue" "Retry trigerring travis build"
-  touch $TRAVIS_BUILD_DIR/logs/pxcheck_logs
-  checkError $? "unable to create pxcheck logs file" "could be permission issue" "Retry trigerring travis build"
+  touch $TRAVIS_BUILD_DIR/logs/exec_logs
+  checkError $? "unable to create exec logs file" "could be permission issue" "Retry trigerring travis build"
 fi
 
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
