@@ -366,10 +366,10 @@ public:
     return RT_OK;
   }
 
+  void    moveForward();
+  void    moveBackward();
   rtError moveToFront();
   rtError moveToBack();
-  void moveForward();
-  void moveBackward();
 
   virtual void dispose();
 
@@ -1256,6 +1256,7 @@ public:
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
+  rtReadOnlyProperty(info, info, rtObjectRef);
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
@@ -1439,6 +1440,13 @@ public:
     return RT_OK;
   }
 
+  rtObjectRef  getInfo() const;
+  rtError info(rtObjectRef& v) const
+  {
+    v = getInfo();
+    return RT_OK;
+  }
+
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
     rtError e = RT_FAIL;
@@ -1469,6 +1477,7 @@ private:
   
     
   rtRef<pxObject> mRoot;
+  rtObjectRef mInfo;
   rtObjectRef mFocusObj;
   double start, sigma_draw, sigma_update, end2;
 
