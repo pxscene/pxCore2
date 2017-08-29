@@ -69,7 +69,7 @@ rtRemoteAsyncHandle::wait(uint32_t timeoutInMilliseconds)
 
   if ((e != RT_OK) || (m_error != RT_OK))
   {
-      rtLogError("Got error response with key = '%s', m_error = %d, error = %d", k.toString().c_str(), m_error, e);
+      rtLogError("Got error response m_error = %d, error = %d", m_error, e);
   }
 
   return e;
