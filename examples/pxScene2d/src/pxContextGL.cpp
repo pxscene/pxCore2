@@ -528,7 +528,8 @@ public:
                                      : mOffscreen(), mInitialized(false), mTextureName(0),
                                        mTextureUploaded(false), mTextureDataAvailable(false),
                                        mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
-                                       mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0)
+                                       mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0),
+                                       mMipmapCreated(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     setCompressedData(compressedData, compressedDataSize);
@@ -722,6 +723,7 @@ public:
       {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glGenerateMipmap(GL_TEXTURE_2D);
+        mMipmapCreated = true;
       }
       mTextureUploaded = true;
       context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
@@ -731,6 +733,12 @@ public:
     else
     {
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+      if (mDownscaleSmooth && !mMipmapCreated)
+      {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        mMipmapCreated = true;
+      }
     }
 
     glUniform1i(tLoc, 1);
@@ -873,6 +881,7 @@ private:
   bool mFreeOffscreenDataRequested;
   char* mCompressedData;
   size_t mCompressedDataSize;
+  bool mMipmapCreated;
 
 }; // CLASS - pxTextureOffscreen
 
