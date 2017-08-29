@@ -46,6 +46,11 @@ function isLocalApp(loadurl)
     {
         return true;
     }
+    //check for a filename as url
+    else if ((loadurl.length > 0) && (((loadurl.charCodeAt(0) >= 65) && (loadurl.charCodeAt(0) <= 90)) || ((loadurl.charCodeAt(0) >= 97) && (loadurl.charCodeAt(0) <= 122))))
+    {
+        return true;
+    }
     return false;
 }
 
@@ -80,6 +85,11 @@ function isLocalIPV6App(loadurl)
     else if ((loadurl.length >= 17) && (loadurl.substring(0, 17) === "[0:0:0:0:0:0:0:1]"))
     {
       return true;
+    }
+    //check for a filename as url
+    else if ((loadurl.length > 0) && (((loadurl.charCodeAt(0) >= 65) && (loadurl.charCodeAt(0) <= 90)) || ((loadurl.charCodeAt(0) >= 97) && (loadurl.charCodeAt(0) <= 122))))
+    {
+        return true;
     }
     return false;
 }
