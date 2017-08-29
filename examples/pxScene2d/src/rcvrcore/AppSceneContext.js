@@ -49,6 +49,7 @@ function isLocalApp(loadurl)
     return false;
 }
 
+// function to check whether the page being loaded is from local machine or remote machine for IPV6 machines
 function isLocalIPV6App(loadurl)
 {
     if ((loadurl.length > 4) && (loadurl.substring(0, 4) === "http"))
