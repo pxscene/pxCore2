@@ -202,7 +202,7 @@ void pxImage::draw() {
                       getOnscreenWidth(),
                       getOnscreenHeight(),
                       getImageResource()->getTexture(), nullMaskRef,
-                      false, NULL, mStretchX, mStretchY);
+                      false, NULL, mStretchX, mStretchY, mDownscaleSmooth);
   }
   // Raise the priority if we're still waiting on the image download    
 #if 0
@@ -292,10 +292,23 @@ rtError pxImage::setStretchY(int32_t v)
   return RT_OK;
 }
 
+rtError pxImage::downscaleSmooth(bool& v) const
+{
+    v = mDownscaleSmooth;
+    return RT_OK;
+}
+
+rtError pxImage::setDownscaleSmooth(bool v)
+{
+    mDownscaleSmooth = v;
+    return RT_OK;
+}
+
 rtDefineObject(pxImage,pxObject);
 rtDefineProperty(pxImage,url);
 rtDefineProperty(pxImage, resource);
 rtDefineProperty(pxImage,stretchX);
 rtDefineProperty(pxImage,stretchY);
+rtDefineProperty(pxImage,downscaleSmooth);
 
 

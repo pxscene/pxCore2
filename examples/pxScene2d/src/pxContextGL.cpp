@@ -713,10 +713,16 @@ public:
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
       glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                    mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
+      if (mDownscaleSmooth)
+      {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+      }
       mTextureUploaded = true;
       context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
       //free up unneeded offscreen memory
@@ -2121,7 +2127,8 @@ void pxContext::drawImage(float x, float y, float w, float h,
                           pxTextureRef t, pxTextureRef mask,
                           bool useTextureDimsAlways, float* color,
                           pxConstantsStretch::constants stretchX,
-                          pxConstantsStretch::constants stretchY)
+                          pxConstantsStretch::constants stretchY,
+                          bool downscaleSmooth)
 {
 #ifdef DEBUG_SKIP_IMAGE
 #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
@@ -2141,6 +2148,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
   }
 
   t->setLastRenderTick(gRenderTick);
+  t->setDownscaleSmooth(downscaleSmooth);
 
   if (mask.getPtr() != NULL)
   {
