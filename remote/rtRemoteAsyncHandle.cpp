@@ -67,6 +67,11 @@ rtRemoteAsyncHandle::wait(uint32_t timeoutInMilliseconds)
     e = m_env->waitForResponse(std::chrono::milliseconds(timeoutInMilliseconds), m_key);
   }
 
+  if ((e != RT_OK) || (m_error != RT_OK))
+  {
+      rtLogError("Got error response with key = '%s', m_error = %d, error = %d", k.toString().c_str(), m_error, e);
+  }
+
   return e;
 }
 
