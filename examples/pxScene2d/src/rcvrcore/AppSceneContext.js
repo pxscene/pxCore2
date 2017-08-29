@@ -86,6 +86,14 @@ function isLocalIPV6App(loadurl)
     {
       return true;
     }
+    else if ((loadurl.length >= 4) && (loadurl.substring(0, 4) === "::1"))
+    {
+      return true;
+    }
+    else if ((loadurl.length >= 16) && (loadurl.substring(0, 16) === "0:0:0:0:0:0:0:1"))
+    {
+      return true;
+    }
     //check for a filename as url
     else if ((loadurl.length > 0) && (((loadurl.charCodeAt(0) >= 65) && (loadurl.charCodeAt(0) <= 90)) || ((loadurl.charCodeAt(0) >= 97) && (loadurl.charCodeAt(0) <= 122))))
     {

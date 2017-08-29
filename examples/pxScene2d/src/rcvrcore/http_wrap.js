@@ -12,6 +12,10 @@ function isLocalAccess(reqOptions)
   {
     return true;
   }
+  else if (((reqOptions.hostname) && ((reqOptions.hostname === "::1") || (reqOptions.hostname === "0:0:0:0:0:0:0:1"))) || ((reqOptions.host) && ((reqOptions.host === "::1") || (reqOptions.host === "0:0:0:0:0:0:0:1"))))
+  {
+    return true;
+  }
   return false;
 }
 
