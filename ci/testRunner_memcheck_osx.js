@@ -6,14 +6,16 @@ var root = scene.root;
 
 console.log("Starting testRunner_memcheck.js...");
 
+var testRunnerUrl = "https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js";
 // Info about tests to be run
 var testUrls = ["http://pxscene.org/examples/px-reference/gallery/fancy.js",
                 "http://pxscene.org/examples/px-reference/gallery/picturepile.js",
-                "http://pxscene.org/examples/px-reference/gallery/gallery.js"
+                "http://pxscene.org/examples/px-reference/gallery/gallery.js",
+                testRunnerUrl 
                 ];
 
 //added different timeout for different pages, as travis server is bit slower and so getting more timeout errors for complex js pages
-var testTimeouts = [5000, 5000, 20000];
+var testTimeouts = [5000, 5000, 20000, 420000];
 var numUrls = testUrls.length;
 var lastSceneIndex = numUrls-1;
 var savedIndexForTimeout;
@@ -29,7 +31,7 @@ var mainPageProgress4 = scene.create({t:"text", parent:mainPage,pixelSize:25,tex
 
 var runTests = function( i) {  
   //  for( var i = 0; i < numUrls; i ++) {
-    console.log("runTests() for index "+i);
+    console.log("runTests() for index from main"+i);
   if( i < numUrls) {
       var url = testUrls[i];
       if( prevTest != undefined) {
@@ -48,17 +50,17 @@ var runTests = function( i) {
           Promise.all([testScene.ready,sceneReady]).then(function() {
             console.log("test "+ myIndex +" is ready");
             testScene.focus = true;
-              console.log(">>>>>>>>>>>>STARTING TIMEOUT");
+              console.log(">>>>>>>>>>>>STARTING TIMEOUT FROM MAIN");
               savedIndexForTimeout = i;
               setTimeout(function() {
-                console.log(">>>>>>>>>>>>INSIDE TIMEOUT");
+                console.log(">>>>>>>>>>>>INSIDE TIMEOUT FROM MAIN");
                 if (savedIndexForTimeout+1 == numUrls)
                 {
                   test.a = 0;
                   test.url = "";
                   stopProgressAnimation();
                   mainPage.a = 0;
-                  console.log("RUN COMPLETED");
+                  console.log("RUN COMPLETED FROM MAIN");
                 }
                 else
                 {
@@ -66,7 +68,7 @@ var runTests = function( i) {
                 }
               },testTimeouts[i]);
           },function() {
-            console.log("promise failure for test "+myIndex);
+            console.log("promise failure for test from main"+myIndex);
           });
       });
       prevTest = test;
@@ -129,12 +131,12 @@ runTests(0);
 
 function updateSize(w,h) {
 
-  console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> updateSize w="+w+" h="+h);
+  console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> updateSize from main w="+w+" h="+h);
 
 }
 
 scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 
   }).catch( function importFailed(err){
-  console.error("Import for tests.js failed: " + err)
+  console.error("Import for tests.js failed from main: " + err)
 });
