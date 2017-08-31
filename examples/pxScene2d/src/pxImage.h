@@ -35,9 +35,10 @@ public:
   rtProperty(stretchX, stretchX, setStretchX, int32_t);
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
   rtProperty(resource, resource, setResource, rtObjectRef);
+  rtProperty(downscaleSmooth, downscaleSmooth, setDownscaleSmooth, bool);
   
   pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(pxConstantsStretch::NONE),mStretchY(pxConstantsStretch::NONE), 
-    imageLoaded(false), mListenerAdded(false)
+    imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false)
   { 
     mw = -1;
     mh = -1;
@@ -63,6 +64,9 @@ public:
   rtError resource(rtObjectRef& o) const { /*rtLogDebug("!!!!!!!!!!!!!!!!!!!!!!!pxImage getResource\n");*/o = mResource; return RT_OK; }
   rtError setResource(rtObjectRef o);
 
+  rtError downscaleSmooth(bool& v) const;
+  rtError setDownscaleSmooth(bool v);
+
   virtual void resourceReady(rtString readyResolution);
   //virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject) {return true;}
   // !CLF: To Do: These names are terrible... find better ones!
@@ -83,6 +87,7 @@ protected:
   
   bool imageLoaded;
   bool mListenerAdded;
+  bool mDownscaleSmooth;
 };
 
 #endif

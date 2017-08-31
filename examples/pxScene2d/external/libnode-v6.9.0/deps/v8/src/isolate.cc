@@ -1017,7 +1017,13 @@ Object* Isolate::Throw(Object* exception, MessageLocation* location) {
 
   HandleScope scope(this);
   Handle<Object> exception_handle(exception, this);
-
+  /* MODIFIED CODE BEGIN */
+  char const* stack_on_exception_enabled = getenv("DUMP_STACK_ON_EXCEPTION");
+  if (stack_on_exception_enabled && (strcmp(stack_on_exception_enabled,"1") == 0))
+  {
+    PrintCurrentStackTrace(stderr);
+  }
+  /* MODIFIED CODE END */
   // Determine whether a message needs to be created for the given exception
   // depending on the following criteria:
   // 1) External v8::TryCatch missing: Always create a message because any

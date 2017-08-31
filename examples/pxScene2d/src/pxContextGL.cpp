@@ -528,7 +528,8 @@ public:
                                      : mOffscreen(), mInitialized(false), mTextureName(0),
                                        mTextureUploaded(false), mTextureDataAvailable(false),
                                        mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
-                                       mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0)
+                                       mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0),
+                                       mMipmapCreated(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     setCompressedData(compressedData, compressedDataSize);
@@ -713,10 +714,17 @@ public:
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
       glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                    mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
+      if (mDownscaleSmooth)
+      {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        mMipmapCreated = true;
+      }
       mTextureUploaded = true;
       context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
       //free up unneeded offscreen memory
@@ -725,6 +733,12 @@ public:
     else
     {
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+      if (mDownscaleSmooth && !mMipmapCreated)
+      {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        mMipmapCreated = true;
+      }
     }
 
     glUniform1i(tLoc, 1);
@@ -867,6 +881,7 @@ private:
   bool mFreeOffscreenDataRequested;
   char* mCompressedData;
   size_t mCompressedDataSize;
+  bool mMipmapCreated;
 
 }; // CLASS - pxTextureOffscreen
 
@@ -2121,7 +2136,8 @@ void pxContext::drawImage(float x, float y, float w, float h,
                           pxTextureRef t, pxTextureRef mask,
                           bool useTextureDimsAlways, float* color,
                           pxConstantsStretch::constants stretchX,
-                          pxConstantsStretch::constants stretchY)
+                          pxConstantsStretch::constants stretchY,
+                          bool downscaleSmooth)
 {
 #ifdef DEBUG_SKIP_IMAGE
 #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
@@ -2141,6 +2157,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
   }
 
   t->setLastRenderTick(gRenderTick);
+  t->setDownscaleSmooth(downscaleSmooth);
 
   if (mask.getPtr() != NULL)
   {

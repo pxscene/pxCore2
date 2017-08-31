@@ -2284,7 +2284,8 @@ void pxContext::drawImage(float x, float y, float w, float h,
                         pxTextureRef t, pxTextureRef mask,
                         bool useTextureDimsAlways, float* color,
                         pxConstantsStretch::constants stretchX,
-                        pxConstantsStretch::constants stretchY)
+                        pxConstantsStretch::constants stretchY,
+                        bool downscaleSmooth)
 {
 #ifdef DEBUG_SKIP_IMAGE
 #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "

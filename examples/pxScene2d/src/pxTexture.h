@@ -45,7 +45,8 @@ public:
 class pxTexture: public pxTextureNative
 {
 public:
-  pxTexture() : mRef(0), mTextureType(PX_TEXTURE_UNKNOWN), mPremultipliedAlpha(false), mLastRenderTick(0)
+  pxTexture() : mRef(0), mTextureType(PX_TEXTURE_UNKNOWN), mPremultipliedAlpha(false), mLastRenderTick(0),
+                mDownscaleSmooth(false)
   { }
   virtual ~pxTexture() {}
 
@@ -81,11 +82,13 @@ public:
   virtual void* getSurface() { return NULL; }
   uint32_t lastRenderTick() { return mLastRenderTick; }
   void setLastRenderTick(uint32_t renderTick) { mLastRenderTick = renderTick; }
+  void setDownscaleSmooth(bool downscaleSmooth) { mDownscaleSmooth = downscaleSmooth; }
 protected:
   rtAtomic mRef;
   pxTextureType mTextureType;
   bool mPremultipliedAlpha;
   uint32_t mLastRenderTick;
+  bool mDownscaleSmooth;
 };
 
 typedef rtRef<pxTexture> pxTextureRef;
