@@ -26,11 +26,11 @@ git fetch
 # optionally, we can also fetch the tags
 # git fetch --tags
 
-git checkout jr_master
+git checkout master
 git checkout coverity_scan
 
 #git status
-git merge -q jr_master
+git merge -q master
 
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] ;
 then
