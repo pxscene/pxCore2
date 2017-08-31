@@ -518,7 +518,8 @@ public:
   pxTextureOffscreen() : mOffscreen(), mInitialized(false), mTextureName(0),
                          mTextureUploaded(false), mTextureDataAvailable(false),
                          mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
-                         mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0)
+                         mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0),
+                         mMipmapCreated(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     addToTextureList(this);
