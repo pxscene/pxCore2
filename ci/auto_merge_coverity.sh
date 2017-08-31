@@ -27,7 +27,9 @@ git fetch
 # git fetch --tags
 
 git checkout master
+git pull
 git checkout coverity_scan
+git pull
 
 #git status
 git merge -q master
