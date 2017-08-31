@@ -34,6 +34,7 @@ fi
 
 retval=0
 ulimit -c unlimited
+export DUMP_STACK_ON_EXCEPTION=1
 cd $TRAVIS_BUILD_DIR/ci
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ;
 then
