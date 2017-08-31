@@ -132,7 +132,9 @@ SceneModuleLoader.prototype.loadRemoteFile = function(filePath) {
 
       // don't set the encoding, it will break everything !
       res.on("data", function (chunk) {
+      console.log("push 16");
         data.push(chunk);
+      console.log("push 17");
         dataLen += chunk.length;
       });
 

@@ -83,7 +83,9 @@ function Scene() {
 
   this.defineStyle = function(paramMatchSet, styleParams) {
     var entry = [paramMatchSet,styleParams];
+      console.log("push 32");
     stylePatterns.push([paramMatchSet,styleParams]);
+      console.log("push 33");
   };
 
   this.clock = function clock() {
