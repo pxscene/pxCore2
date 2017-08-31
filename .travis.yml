@@ -11,18 +11,16 @@ before_install:
 #  - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  ssh-add /tmp/pxscene-build.pem; fi
   - if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then ./ci/auto_merge_coverity.sh; fi
   - ./ci/before_install.sh
-  - if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then export PATH=/usr/local/opt/ccache/libexec:$PATH; fi
-  - if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-; fi
+  - if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && {[ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]}; then export PATH=/usr/local/opt/ccache/libexec:$PATH; fi
+  - if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && {[ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]}; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-; fi
 
 install:
-  - ./ci/install.sh
-
+  - if [ "$TRAVIS_EVENT_TYPE" != "cron" ]; then ./ci/install.sh; fi
 before_script:
   - if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then ccache -s; fi
-  - ./ci/before_script.sh
-
+  - if [ "$TRAVIS_EVENT_TYPE" != "cron" ]; then ./ci/before_script.sh; fi
 script:
- - ./ci/clean_coverity.sh
+  - if [ "$TRAVIS_EVENT_TYPE" != "cron" ]; then ./ci/clean_coverity.sh; fi
 
 addons:
   ssh_known_hosts: 96.118.6.151

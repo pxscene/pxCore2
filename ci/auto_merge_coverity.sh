@@ -27,20 +27,35 @@ git fetch
 # git fetch --tags
 
 git checkout master
+git status
 git pull
+echo 'status for master after pull'
+git status
+
 git checkout coverity_scan
+echo 'status for coverity_scan before pull'
+git status
 git pull
+echo 'status for coverity_scan after pull'
+git status
 
 #git status
+echo 'Doing merge'
 git merge -q master
+echo 'status for coverity_scan after merge'
+git status 
 
+echo Doing push
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] ;
 then
+  echo using TRAVIS_REPO_SLUG
   git push --repo="https://$GH_TOKEN@github.com/$TRAVIS_REPO_SLUG.git"
 else
+  echo not cron job
   git push --repo="https://$GH_TOKEN@github.com/$REPO_USER_NAME/$REPO_NAME.git"
 fi
 checkError $? "unable to commit data to repo" "" "check the credentials"
 
+echo Done with push
 # finally, checkout the branch at HEAD to get our last commit
 git checkout coverity_scan
