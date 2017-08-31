@@ -5,13 +5,14 @@ matrix:
     sudo: required
 language: c++
 before_install:
-  - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then openssl aes-256-cbc -K $encrypted_8b763c087de9_key -iv $encrypted_8b763c087de9_iv -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d; fi
-  - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  eval "$(ssh-agent -s)"; fi
-  - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  chmod 0600 /tmp/pxscene-build.pem; fi
-  - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  ssh-add /tmp/pxscene-build.pem; fi
+#  - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then openssl aes-256-cbc -K $encrypted_8b763c087de9_key -iv $encrypted_8b763c087de9_iv -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d; fi
+#  - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  eval "$(ssh-agent -s)"; fi
+#  - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  chmod 0600 /tmp/pxscene-build.pem; fi
+#  - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  ssh-add /tmp/pxscene-build.pem; fi
+  - if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then ./ci/auto_merge_coverity.sh; fi
   - ./ci/before_install.sh
   - if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then export PATH=/usr/local/opt/ccache/libexec:$PATH; fi
-  - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-; fi
+  - if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-; fi
 
 install:
   - ./ci/install.sh
