@@ -6,9 +6,9 @@ from pprint import pprint
 def handleRequest(argv):
 	"""Function to read user request, form http message and send it"""
 	try:
-		opts, args = getopt.getopt(argv,"",["help","repo=","user=","apitoken="])
+		opts, args = getopt.getopt(argv,"",["help","repo=","org=","user=","apitoken="])
 	except getopt.GetoptError:
-		print 'usage: python generate_cache.py --repo=<repo> --user=<user> --apitoken=<apitoken>'
+		print 'usage: python generate_cache.py --repo=<repo> --org=<org> --user=<user> --apitoken=<apitoken>'
 		exit (1)
 	
 	#initialize input values
@@ -19,7 +19,7 @@ def handleRequest(argv):
 	#read input values
 	for opt, arg in opts:
 		if opt == "--help":
-			print 'python generate_cache.py --repo=<repo> --user=<user> --apitoken=<apitoken>'
+			print 'python generate_cache.py --repo=<repo> --org=<org> --user=<user> --apitoken=<apitoken>'
 			exit (1)
 		elif len(arg) == 0:
 			print "argument cannot be empty for option", opt
@@ -30,9 +30,11 @@ def handleRequest(argv):
 			user_name=arg;
 		elif opt == "--apitoken":
 			api_token=arg;
+		elif opt == "--org":
+			org_name=arg;
 
 	if user_name=="" or api_token=="":
-		print 'usage: python generate_cache.py --repo=<repo> --user=<user> --apitoken=<apitoken>'
+		print 'usage: python generate_cache.py --repo=<repo> --org=<org> --user=<user> --apitoken=<apitoken>'
 		exit (1)
 
 	with open('pxscene_generate_cache.json') as data_file:
@@ -53,7 +55,7 @@ def handleRequest(argv):
 	headers["Travis-API-Version"] = "3";
 	headers["Authorization"] = tokendata;
 	
-	url = "https://api.travis-ci.org/repo/" + str(user_name) + "%2F" + str(repo_name) + "/requests";
+	url = "https://api.travis-ci.org/repo/" + str(org_name) + "%2F" + str(repo_name) + "/requests";
 	
 	#send http request
 	response = requests.post(url, headers=headers, data=string)
