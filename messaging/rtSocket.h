@@ -21,24 +21,36 @@
 
 typedef int rtSocketHandle;
 
+class rtSocket;
+class rtTcpListener;
+class rtTcpClient;
+
 class rtSocket
 {
+  friend class rtTcpListener;
+  friend class rtTcpClient;
+
 public:
   rtSocket();
-  ~rtSocket();
+  virtual ~rtSocket();
 
   rtError close();
   rtError connect(rtIpEndPoint const& e);
+  rtError connect(char const* addr, uint16_t port);
   rtError bind(rtIpEndPoint const& e);
   rtError listen();
 
   rtIpEndPoint localEndPoint() const;
   rtIpEndPoint remoteEndPoint() const;
 
-  rtSocket accept();
+  rtSocket* accept();
 
   int send(void* buff, int n);
   int recv(void* buff, int n);
+
+private:
+  rtSocket(rtSocket const& rhs);
+  rtSocket const& operator = (rtSocket const& rhs);
 
 private:
   rtError createSocket(int family);
@@ -48,6 +60,46 @@ private:
   rtSocketHandle m_handle;
   rtIpEndPoint  m_localEndPoint;
   rtIpEndPoint  m_remoteEndPoint;
+};
+
+class rtTcpClient
+{
+public:
+  rtTcpClient(rtSocket* soc);
+  ~rtTcpClient();
+
+  rtError read(void* buff, int n);
+  rtError send(void* buff, int n);
+
+  inline rtIpEndPoint localEndPoint() const
+    { return m_soc->localEndPoint(); }
+
+  inline rtIpEndPoint remoteEndPoint() const
+    { return m_soc->remoteEndPoint(); }
+
+private:
+  rtSocket* m_soc;
+};
+
+class rtTcpListener
+{
+public:
+  rtTcpListener();
+  rtTcpListener(rtIpEndPoint const& bindEndpoint);
+  ~rtTcpListener();
+
+public:
+  rtError start();
+  rtTcpClient* acceptClient();
+
+  inline rtIpEndPoint localEndPoint() const
+    { return m_soc->localEndPoint(); }
+
+  inline rtIpEndPoint remoteEndPoint() const
+    { return m_soc->remoteEndPoint(); }
+
+private:
+  rtSocket* m_soc;
 };
 
 #endif

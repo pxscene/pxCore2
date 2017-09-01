@@ -21,27 +21,7 @@
 
 static const rtSocketHandle rtSocketInvalidSocketHandle = -1;
 
-rtError
-rtSocket::getBindInterface(int fd, rtIpEndPoint& endpoint, socklen_t len, bool local)
-{
-  sockaddr_storage& addr = endpoint.m_addr.m_addr;
-  memset(&addr, 0, sizeof(sockaddr_storage));
-
-  int ret = 0;
-  if (local)
-    ret = getsockname(fd, reinterpret_cast<sockaddr *>(&addr), &len);
-  else
-    ret = getpeername(fd, reinterpret_cast<sockaddr *>(&addr), &len);
-
-  if (ret == -1)
-  {
-    rtError err = rtErrorFromErrno(errno);
-    return err;
-  }
-
-  memcpy(&endpoint, &addr, sizeof(sockaddr_storage));
-  return RT_OK;
-}
+#define RT_ERROR_CODE(ERR) ((ERR) & 0x0000ffff)
 
 rtSocket::rtSocket()
   : m_handle(rtSocketInvalidSocketHandle)
@@ -50,9 +30,24 @@ rtSocket::rtSocket()
 {
 }
 
+rtSocket::rtSocket(rtSocket const& /*rhs*/)
+  : m_handle(rtSocketInvalidSocketHandle)
+  , m_localEndPoint(rtIpAddress::fromString(NULL), 0)
+  , m_remoteEndPoint(rtIpAddress::fromString(NULL), 0)
+{
+  RT_ASSERT(false);
+}
+
 rtSocket::~rtSocket()
 {
   this->close();
+}
+
+rtSocket const&
+rtSocket::operator = (rtSocket const& /*rhs*/)
+{
+  RT_ASSERT(false);
+  return *this;
 }
 
 
@@ -95,6 +90,12 @@ rtSocket::send(void* buff, int n)
   return static_cast<int>(ret);
 }
 
+int
+rtSocket::recv(void* buff, int n)
+{
+  return static_cast<int>(::recv(m_handle, buff, n, 0));
+}
+
 
 rtError
 rtSocket::createSocket(int family)
@@ -104,6 +105,14 @@ rtSocket::createSocket(int family)
   if (m_handle == -1)
     e = rtErrorFromErrno(errno);
   return e;
+}
+
+rtError
+rtSocket::connect(char const* addr, uint16_t port)
+{
+  rtIpAddress ip = rtIpAddress::fromString(addr);
+  rtIpEndPoint endpoint(ip, port);
+  return this->connect(endpoint);
 }
 
 rtError
@@ -144,7 +153,7 @@ rtSocket::bind(rtIpEndPoint const& endpoint)
   {
     int ret = ::bind(m_handle, reinterpret_cast<sockaddr *>(&addr.m_addr), addr.length());
     if (ret == 0)
-      memcpy(&m_localEndPoint.m_addr.m_addr, &endpoint.m_addr.m_addr, sizeof(sockaddr_storage));
+      getBindInterface(m_handle, m_localEndPoint, addr.length(), true);
     else if (ret == -1)
       e = rtErrorFromErrno(errno);
   }
@@ -164,22 +173,22 @@ rtSocket::listen()
   return e;
 }
 
-rtSocket
+rtSocket*
 rtSocket::accept()
 {
-  rtSocket soc;
+  rtSocket* soc = new rtSocket();
 
   socklen_t len = sizeof(sockaddr_storage);
-  int ret = ::accept(m_handle, reinterpret_cast<sockaddr *>(&soc.m_remoteEndPoint.m_addr.m_addr), &len);
+  int ret = ::accept(m_handle, reinterpret_cast<sockaddr *>(&soc->m_remoteEndPoint.m_addr.m_addr), &len);
   if (ret != -1)
   {
-    soc.m_handle = ret;
+    soc->m_handle = ret;
 
     // get local interface in use length of socket structure for local interface should
     // match that of remote 
     rtError e = RT_OK;
     
-    e = getBindInterface(soc.m_handle, soc.m_localEndPoint, len, true);
+    e = getBindInterface(soc->m_handle, soc->m_localEndPoint, len, true);
     if (e != RT_OK)
       rtLogWarn("failed to get locally bound interface. %s", rtStrError(e));
   }
@@ -201,3 +210,106 @@ rtSocket::remoteEndPoint() const
 {
   return m_remoteEndPoint;
 }
+
+rtError
+rtSocket::getBindInterface(int fd, rtIpEndPoint& endpoint, socklen_t len, bool local)
+{
+  sockaddr_storage& addr = endpoint.m_addr.m_addr;
+  memset(&addr, 0, sizeof(sockaddr_storage));
+
+  int ret = 0;
+  if (local)
+    ret = getsockname(fd, reinterpret_cast<sockaddr *>(&addr), &len);
+  else
+    ret = getpeername(fd, reinterpret_cast<sockaddr *>(&addr), &len);
+
+  if (ret == -1)
+  {
+    rtError err = rtErrorFromErrno(errno);
+    return err;
+  }
+
+  memcpy(&endpoint, &addr, sizeof(sockaddr_storage));
+  return RT_OK;
+}
+
+
+rtTcpListener::rtTcpListener()
+{
+}
+
+rtTcpListener::rtTcpListener(rtIpEndPoint const& bindEndpoint)
+  : m_soc(new rtSocket())
+{
+  m_soc->m_localEndPoint = bindEndpoint;
+}
+
+rtTcpListener::~rtTcpListener()
+{
+  m_soc->close();
+  delete m_soc;
+}
+
+rtError
+rtTcpListener::start()
+{
+  rtError e = RT_OK;
+  e = m_soc->bind(m_soc->m_localEndPoint);
+  if (e == RT_OK)
+    e = m_soc->listen();
+  return e;
+}
+
+rtTcpClient*
+rtTcpListener::acceptClient()
+{
+  return new rtTcpClient(m_soc->accept());
+}
+
+rtTcpClient::rtTcpClient(rtSocket* soc)
+  : m_soc(soc)
+{
+}
+
+rtTcpClient::~rtTcpClient()
+{
+  m_soc->close();
+  delete m_soc;
+}
+
+rtError
+rtTcpClient::read(void* buff, int n)
+{
+  int bytesRead = 0;
+  int bytesToRead = n;
+  uint8_t* p = reinterpret_cast<uint8_t *>(buff);
+
+  while (bytesRead < bytesToRead)
+  {
+    int n = m_soc->recv(p + bytesRead, (bytesToRead - bytesRead));
+    if (n == 0)
+      return rtErrorGetLastError();
+
+    if (n == -1)
+    {
+      rtError e = rtErrorGetLastError();
+      if (e == rtErrorFromErrno(EINTR))
+        continue;
+      return e;
+    }
+
+    bytesRead += n;
+  }
+
+  return RT_OK;
+}
+
+rtError
+rtTcpClient::send(void* buff, int n)
+{
+  rtError e = RT_OK;
+  if (m_soc->send(buff, n) != n)
+    e = rtErrorGetLastError();
+  return e;
+}
+
