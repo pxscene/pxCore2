@@ -35,9 +35,32 @@ static pthread_key_t key;
 static const char* rtStrError_BuiltIn(rtError e);
 static const char* rtStrError_SystemError(int e);
 
-void rtErrorInitThreadSpecificKey()
+struct rtErrorThreadSpecific
+{
+  char error_message[256];
+  rtError last_error;
+};
+
+static void rtErrorInitThreadSpecificKey()
 {
   pthread_key_create(&key, NULL);
+}
+
+rtErrorThreadSpecific* getThreadSpecific()
+{
+  pthread_once(&once, rtErrorInitThreadSpecificKey);
+
+  rtErrorThreadSpecific* specific = reinterpret_cast<rtErrorThreadSpecific *>(pthread_getspecific(key));
+  if (specific == NULL)
+  {
+    specific = new rtErrorThreadSpecific();
+    specific->last_error = 0;
+    specific->error_message[0] = '\0';
+    pthread_setspecific(key, specific);
+    // TODO: probably need pthread_cleanup_push() to delete the thread specific data on
+    // thread exit
+  }
+  return specific;
 }
 
 const char* rtStrError(rtError e)
@@ -54,34 +77,46 @@ const char* rtStrError(rtError e)
     case RT_ERROR_CLASS_SYSERROR:
     s = rtStrError_SystemError(RT_ERROR_CODE(e));
     break;
+
+    default:
+      return "UNKNOWN_ERROR";
+      break;
   }
   return s;
+
+}
+
+rtError rtErrorGetLastError()
+{
+  rtError current = 0;
+  rtErrorThreadSpecific* specific = getThreadSpecific();
+  if (specific)
+    current = specific->last_error;
+  return current;
+}
+
+void rtErrorSetLastError(rtError e)
+{
+  rtErrorThreadSpecific* specific = getThreadSpecific();
+  if (specific)
+    specific->last_error = e;
 }
 
 const char* rtStrError_SystemError(int e)
 {
-  pthread_once(&once, rtErrorInitThreadSpecificKey);
+  rtErrorThreadSpecific* specific = getThreadSpecific();
 
-  char* buff = reinterpret_cast<char *>(pthread_getspecific(key));
-  if (buff == NULL)
-  {
-    buff = reinterpret_cast<char *>(malloc(256));
-    if (buff)
-      buff[0] = '\0';
-    pthread_setspecific(key, buff);
-  }
-
-  assert(buff != NULL);
+  char* buff = NULL;
 
   // TODO: The below #ifdef is not the best approach. @see man strerror_r and
   // /usr/include/string.h for proper check of which version of strerror_r is 
   // available. Need to check for osx portability also
-  if (buff)
+  if (specific->error_message)
   {
     #ifdef __linux__
-    buff = strerror_r(e, buff, 256);
+    buff = strerror_r(e, specific->error_message, 256);
     #else
-    strerror_r(e, buff, 256);
+    buff = strerror(e);
     #endif
   }
 
