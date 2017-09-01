@@ -117,6 +117,7 @@ const char* rtStrError_SystemError(int e)
     buff = strerror_r(e, specific->error_message, 256);
     #else
     strerror_r(e, specific->error_message, 256);
+    buff = specific->error_message;
     #endif
   }
 
