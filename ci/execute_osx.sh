@@ -18,7 +18,7 @@ grep "RUN COMPLETED" /var/tmp/pxscene.log
 retVal=$?
 count=0
 leakcount=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 5400 ]; do
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 6000 ]; do
 leaks -nocontext pxscene > $LEAKLOGS
 sleep 30;
 grep "RUN COMPLETED" /var/tmp/pxscene.log
