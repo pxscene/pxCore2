@@ -116,7 +116,7 @@ const char* rtStrError_SystemError(int e)
     #ifdef __linux__
     buff = strerror_r(e, specific->error_message, 256);
     #else
-    buff = strerror(e);
+    strerror_r(e, specific->error_message, 256);
     #endif
   }
 
