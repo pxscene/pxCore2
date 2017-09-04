@@ -1,6 +1,4 @@
 /* 
- * Copyright [2017] [Comcast, Corp.]
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +33,7 @@ class rtIpAddress
 public:
   std::string toString() const;
   socklen_t length() const;
+  bool operator == (rtIpAddress const & rhs) const;
 
 public:
   static rtIpAddress fromString(char const* s);
@@ -58,9 +57,15 @@ public:
   rtIpEndPoint(rtIpAddress const& addr, uint16_t port);
 
 public:
+  bool operator == (rtIpEndPoint const& rhs) const;
+
+public:
   rtIpAddress address() const;
   uint16_t port() const;
   std::string toString() const;
+
+  static rtIpEndPoint fromString(char const* s);
+  static rtIpEndPoint const& invalid();
 
 private:
   rtIpAddress m_addr;

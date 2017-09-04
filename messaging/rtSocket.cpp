@@ -1,6 +1,4 @@
 /* 
- * Copyright [2017] [Comcast, Corp.]
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +14,7 @@
 #include "rtSocket.h"
 #include "rtLog.h"
 
+#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -27,6 +26,7 @@ rtSocket::rtSocket()
   : m_handle(rtSocketInvalidSocketHandle)
   , m_localEndPoint(rtIpAddress::fromString(NULL), 0)
   , m_remoteEndPoint(rtIpAddress::fromString(NULL), 0)
+  , m_passiveListen(false)
 {
 }
 
@@ -34,6 +34,7 @@ rtSocket::rtSocket(rtSocket const& /*rhs*/)
   : m_handle(rtSocketInvalidSocketHandle)
   , m_localEndPoint(rtIpAddress::fromString(NULL), 0)
   , m_remoteEndPoint(rtIpAddress::fromString(NULL), 0)
+  , m_passiveListen(false)
 {
   RT_ASSERT(false);
 }
@@ -41,6 +42,47 @@ rtSocket::rtSocket(rtSocket const& /*rhs*/)
 rtSocket::~rtSocket()
 {
   this->close();
+}
+
+rtSocketHandle
+rtSocket::handle() const
+{
+  return m_handle;
+}
+
+rtError
+rtSocket::onReadyRead(void* argp)
+{
+  rtLogDebug("no handler for onReadyRead: %p", argp);
+  return RT_OK;
+}
+
+rtError
+rtSocket::onReadyWrite(void* argp)
+{
+  rtLogDebug("no handler for onReadyWrite: %p", argp);
+  return RT_OK;
+}
+
+rtError
+rtSocket::onReadyAccept(void* argp)
+{
+  rtLogDebug("no handler for onReadyAccept: %p", argp);
+  return RT_OK;
+}
+
+rtError
+rtSocket::onReadyConnect(void* argp)
+{
+  rtLogDebug("no handler for onReadyConnect: %p", argp);
+  return RT_OK;
+}
+
+rtError
+rtSocket::onError(rtError e, void* argp)
+{
+  rtLogDebug("no handler for onError: %s, %p", rtStrError(e), argp);
+  return RT_OK;
 }
 
 rtSocket const&
@@ -169,19 +211,53 @@ rtSocket::listen()
   int ret = ::listen(m_handle, 3);
   if (ret != 0)
     e = rtErrorFromErrno(errno);
+  else
+    m_passiveListen = true;
 
   return e;
+}
+
+bool
+rtSocket::blocking() const
+{
+  int flags = fcntl(m_handle, F_GETFL, 0);
+  return (flags & O_NONBLOCK) == O_NONBLOCK;
+}
+
+rtError
+rtSocket::setBlocking(bool b)
+{
+  rtError e = RT_OK;
+
+  int flags = fcntl(m_handle, F_GETFL, 0);
+  if (b)
+    flags |= O_NONBLOCK;
+  else
+    flags &= ~O_NONBLOCK;
+  flags = fcntl(m_handle, F_SETFL, flags);
+
+  if (flags == -1)
+    e = rtErrorFromErrno(errno);
+
+  return  e;
 }
 
 rtSocket*
 rtSocket::accept()
 {
-  rtSocket* soc = new rtSocket();
+  rtSocket* soc = NULL;
+
+  sockaddr_storage remote_endpoint;
+  memset(&remote_endpoint, 0, sizeof(remote_endpoint));
 
   socklen_t len = sizeof(sockaddr_storage);
-  int ret = ::accept(m_handle, reinterpret_cast<sockaddr *>(&soc->m_remoteEndPoint.m_addr.m_addr), &len);
+//  int ret = ::accept(m_handle, reinterpret_cast<sockaddr *>(&soc->m_remoteEndPoint.m_addr.m_addr), &len);
+  int ret = ::accept(m_handle, reinterpret_cast<sockaddr *>(&remote_endpoint), &len);
   if (ret != -1)
   {
+    rtLogInfo("accepted ok: %d", ret);
+
+    soc = new rtSocket();
     soc->m_handle = ret;
 
     // get local interface in use length of socket structure for local interface should
@@ -191,11 +267,17 @@ rtSocket::accept()
     e = getBindInterface(soc->m_handle, soc->m_localEndPoint, len, true);
     if (e != RT_OK)
       rtLogWarn("failed to get locally bound interface. %s", rtStrError(e));
+
+    memset(&soc->m_remoteEndPoint.m_addr.m_addr, 0, sizeof(soc->m_remoteEndPoint.m_addr.m_addr));
+    memcpy(&soc->m_remoteEndPoint.m_addr.m_addr, &remote_endpoint, sizeof(sockaddr_storage));
   }
   else
   {
-    rtErrorSetLastError(rtErrorFromErrno(errno));
+    rtError e = rtErrorFromErrno(errno);
+    rtLogWarn("failed to accept new connection: %s", rtStrError(e));
+    rtErrorSetLastError(e);
   }
+
   return soc;
 }
 
@@ -234,82 +316,55 @@ rtSocket::getBindInterface(int fd, rtIpEndPoint& endpoint, socklen_t len, bool l
 }
 
 
-rtTcpListener::rtTcpListener()
-{
-}
-
 rtTcpListener::rtTcpListener(rtIpEndPoint const& bindEndpoint)
-  : m_soc(new rtSocket())
 {
-  m_soc->m_localEndPoint = bindEndpoint;
+  m_localEndPoint = bindEndpoint;
 }
 
 rtTcpListener::~rtTcpListener()
 {
-  m_soc->close();
-  delete m_soc;
+  close();
 }
 
 rtError
-rtTcpListener::start()
+rtTcpListener::start(bool blocking)
 {
   rtError e = RT_OK;
-  e = m_soc->bind(m_soc->m_localEndPoint);
+  e = this->bind(m_localEndPoint);
+  if (e != RT_OK)
+  {
+    rtLogWarn("failed to bind socket to %s. %s", m_localEndPoint.toString().c_str(), rtStrError(e));
+    return e;
+  }
+
   if (e == RT_OK)
-    e = m_soc->listen();
+  {
+    e = this->listen();
+    rtLogDebug("listener returned:%s", rtStrError(e));
+  }
+
+  if (e == RT_OK)
+  {
+    e = this->setBlocking(blocking);
+    rtLogDebug("set to blocking (%d) returned:%s", blocking, rtStrError(e));
+  }
+
   return e;
 }
 
 rtTcpClient*
 rtTcpListener::acceptClient()
 {
-  return new rtTcpClient(m_soc->accept());
-}
-
-rtTcpClient::rtTcpClient(rtSocket* soc)
-  : m_soc(soc)
-{
+  rtTcpClient* client = NULL;
+  #if 0
+  rtSocket* soc = m_soc->accept();
+  if (soc)
+    client = new rtTcpClient(soc);
+  #endif
+  return client;
 }
 
 rtTcpClient::~rtTcpClient()
 {
-  m_soc->close();
-  delete m_soc;
+  close();
 }
-
-rtError
-rtTcpClient::read(void* buff, int n)
-{
-  int bytesRead = 0;
-  int bytesToRead = n;
-  uint8_t* p = reinterpret_cast<uint8_t *>(buff);
-
-  while (bytesRead < bytesToRead)
-  {
-    int n = m_soc->recv(p + bytesRead, (bytesToRead - bytesRead));
-    if (n == 0)
-      return rtErrorGetLastError();
-
-    if (n == -1)
-    {
-      rtError e = rtErrorGetLastError();
-      if (e == rtErrorFromErrno(EINTR))
-        continue;
-      return e;
-    }
-
-    bytesRead += n;
-  }
-
-  return RT_OK;
-}
-
-rtError
-rtTcpClient::send(void* buff, int n)
-{
-  rtError e = RT_OK;
-  if (m_soc->send(buff, n) != n)
-    e = rtErrorGetLastError();
-  return e;
-}
-

@@ -1,7 +1,9 @@
-all: librtMessaging
 
-RTMSG_TARGET=librtMessaging
-RTMSG_LIBNAME=$(RTMSG_TARGET).so
+RTMSG_TARGET=rtMessaging
+RTMSG_LIBNAME=lib$(RTMSG_TARGET).so
+RTMSGD_TARGET=rtmsgd
+
+all: $(RTMSG_LIBNAME) $(RTMSGD_TARGET)
 
 BUILD_CXX ?= $(CXX)
 
@@ -15,7 +17,12 @@ RTCORE_SRCS=\
 
 RTMSG_SRCS=\
   rtIpAddress.cpp \
-  rtSocket.cpp
+  rtSocket.cpp \
+  rtBuffer.cpp \
+  rtSelector.cpp
+
+RTMSGD_SRCS=\
+  rtmsgd.cpp
 
 ifeq ($V, 1)
   CXX_PRETTY = $(CXX)
@@ -56,13 +63,11 @@ RTMSG_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RTMSG_SRCS)))
 RTMSG_OBJS:=$(patsubst    %.cpp, %.o        , $(notdir $(RTMSG_OBJS)))
 RTMSG_OBJS:=$(patsubst        %, $(OBJDIR)/%, $(RTMSG_OBJS))
 
+RTMSGD_OBJS=$(patsubst %.cpp, %.o, $(notdir $(RTMSGD_SRCS)))
+$(RTMSGD_OBJS): $(CXXFLAGS)+=-I../src
+
 SAMPLEAPP_OBJS = $(OBJDIR)/rpc_main.o
 $(OBJDIR)/rpc_main.o: rtRemoteConfig.h
-
-RT_REMOTE_CONFIG_GEN=$(OBJDIR)/rtRemoteConfigGen
-$(RT_REMOTE_CONFIG_GEN): rtRemoteConfigGen.cpp
-	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
-	$(BUILD_CXX_PRETTY) $(CXXFLAGS) $< -o $@
 
 $(OBJDIR)/%.o: ../%.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
@@ -79,11 +84,15 @@ $(OBJDIR)/%.o : ../%.c
 debug:
 	@echo $(OBJS)
 
-$(RTMSG_TARGET): $(RTMSG_OBJS)
+$(RTMSG_LIBNAME): $(RTMSG_OBJS)
 	$(CXX_PRETTY) $(RTMSG_OBJS) $(LDFLAGS) -shared -o $(RTMSG_LIBNAME)
+
+$(RTMSGD_TARGET): $(RTMSGD_OBJS) $(RTMSG_LIBNAME)
+	$(CXX_PRETTY) $(RTMSGD_OBJS) -L. -l$(RTMSG_TARGET) -L../build/egl -lrtCore -o $(RTMSGD_TARGET)
 
 clean:
 	$(RM) -rf $(OBJDIR)
 	$(RM) -f $(RTMSG_LIBNAME)
+	$(RM) -f $(RTMSGD_TARGET)
 
 .PHONY: all debug clean

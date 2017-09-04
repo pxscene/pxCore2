@@ -1,6 +1,4 @@
 /* 
- * Copyright [2017] [Comcast, Corp.]
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,16 +14,15 @@
 #ifndef __RT_SOCKET_H__
 #define __RT_SOCKET_H__
 
+#include "rtSelector.h"
 #include "rtIpAddress.h"
 #include "rtError.h"
-
-typedef int rtSocketHandle;
 
 class rtSocket;
 class rtTcpListener;
 class rtTcpClient;
 
-class rtSocket
+class rtSocket : public rtSelectable
 {
   friend class rtTcpListener;
   friend class rtTcpClient;
@@ -40,8 +37,18 @@ public:
   rtError bind(rtIpEndPoint const& e);
   rtError listen();
 
+  bool blocking() const;
+  rtError setBlocking(bool b);
+
   rtIpEndPoint localEndPoint() const;
   rtIpEndPoint remoteEndPoint() const;
+
+  virtual rtSocketHandle handle() const;
+  virtual rtError onReadyRead(void* argp);
+  virtual rtError onReadyWrite(void* argp);
+  virtual rtError onReadyAccept(void* argp);
+  virtual rtError onReadyConnect(void* argp);
+  virtual rtError onError(rtError e, void* argp);
 
   rtSocket* accept();
 
@@ -57,49 +64,30 @@ private:
   rtError getBindInterface(int fd, rtIpEndPoint& endpoint, socklen_t len, bool local);
 
 private:
-  rtSocketHandle m_handle;
-  rtIpEndPoint  m_localEndPoint;
-  rtIpEndPoint  m_remoteEndPoint;
+  rtSocketHandle  m_handle;
+  rtIpEndPoint    m_localEndPoint;
+  rtIpEndPoint    m_remoteEndPoint;
+  bool            m_passiveListen; // @see man 2 listen
 };
 
-class rtTcpClient
+class rtTcpClient : public rtSocket
 {
 public:
-  rtTcpClient(rtSocket* soc);
-  ~rtTcpClient();
-
-  rtError read(void* buff, int n);
-  rtError send(void* buff, int n);
-
-  inline rtIpEndPoint localEndPoint() const
-    { return m_soc->localEndPoint(); }
-
-  inline rtIpEndPoint remoteEndPoint() const
-    { return m_soc->remoteEndPoint(); }
-
-private:
-  rtSocket* m_soc;
+  rtTcpClient();
+  virtual ~rtTcpClient();
 };
 
-class rtTcpListener
+class rtTcpListener : public rtSocket
 {
 public:
-  rtTcpListener();
   rtTcpListener(rtIpEndPoint const& bindEndpoint);
   ~rtTcpListener();
 
 public:
-  rtError start();
+  rtError start(bool blocking = true);
+
+  virtual rtError onReadyAccept(void* argp);
   rtTcpClient* acceptClient();
-
-  inline rtIpEndPoint localEndPoint() const
-    { return m_soc->localEndPoint(); }
-
-  inline rtIpEndPoint remoteEndPoint() const
-    { return m_soc->remoteEndPoint(); }
-
-private:
-  rtSocket* m_soc;
 };
 
 #endif

@@ -3,9 +3,16 @@
 
 #include <iostream>
 #include <stdlib.h>
+#include <arpa/inet.h>
+#include <stdio.h>
 
 int main(int argc, char* argv[])
 {
+  uint16_t n = 0xabcd;
+  uint16_t p = htons(n);
+  printf("0x%02x\n", p);
+  return 0;
+
 
 #if 0
   rtTcpListener listener;

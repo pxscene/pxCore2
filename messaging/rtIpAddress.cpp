@@ -1,6 +1,4 @@
 /* 
- * Copyright [2017] [Comcast, Corp.]
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +13,7 @@
  */
 #include "rtIpAddress.h"
 #include "rtError.h"
+#include "rtLog.h"
 
 #include <sstream>
 
@@ -106,6 +105,16 @@ rtIpAddress::toString() const
   return s;
 }
 
+bool
+rtIpAddress::operator == (rtIpAddress const& rhs) const
+{
+  if (this == &rhs)
+    return true;
+
+  // TODO: hack for now
+  return toString() == rhs.toString();
+}
+
 socklen_t
 rtIpAddress::length() const
 {
@@ -125,8 +134,7 @@ rtIpAddress::fromString(char const* s)
 
   rtIpAddress addr;
   rtError e = rtParseAddress(addr.m_addr, s);
-  if (e != RT_OK)
-    rtErrorSetLastError(e);
+  rtErrorSetLastError(e);
   return addr;
 }
 
@@ -164,4 +172,43 @@ rtIpEndPoint::toString() const
   buff << ':';
   buff << port();
   return buff.str();
+}
+
+rtIpEndPoint
+rtIpEndPoint::fromString(char const* s)
+{
+  char buff[256];
+  memset(buff, 0, sizeof(buff));
+
+  char const* p = strchr(s, ':');
+  strncpy(buff, s, (p-s));
+
+  rtIpAddress addr = rtIpAddress::fromString(buff);
+  if (rtErrorGetLastError() != RT_OK)
+    return rtIpEndPoint::invalid();
+
+  long int port = strtol(p + 1, NULL, 10);
+  if (errno == ERANGE)
+  {
+  }
+
+  // TODO: check uint16_t bounds
+
+  return rtIpEndPoint(addr, static_cast<uint16_t>(port));
+}
+
+rtIpEndPoint const&
+rtIpEndPoint::invalid()
+{
+  static rtIpEndPoint _invalid(rtIpAddress::fromString("1.1.1.1"), 11111);
+  return _invalid;
+}
+
+bool
+rtIpEndPoint::operator == (rtIpEndPoint const& rhs) const
+{
+  if (this == &rhs)
+    return true;
+  return this->address() == rhs.address() &&
+    this->port() == rhs.port();
 }
