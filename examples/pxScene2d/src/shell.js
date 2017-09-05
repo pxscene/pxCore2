@@ -74,8 +74,6 @@ if (false)
 	  var code  = e.keyCode;
     var flags = e.flags;
 
-    console.log("SHELL: onPreKeyDown:", code, " key: ", keys.name(code), ", ", flags);
-
     if( keys.is_CTRL_ALT( flags ) )
     {
       if(code == keys.Y)  // ctrl-alt-y
@@ -155,11 +153,8 @@ if (false)
 
   scene.root.on("onPreKeyUp", function(e)
   {
-    console.log("in onPreKeyUp", e.keyCode, e.flags);
 	  var code  = e.keyCode;
     var flags = e.flags;
-
-    console.log("onKeyUp:", code, ", ", flags);
 
     // eat the ones we handle here
          if (code == keys.Y && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-y
@@ -175,7 +170,6 @@ if (false)
     scene.root.on("onKeyDown", function(e)
     {
       var code = e.keyCode; var flags = e.flags;
-      console.log("onKeyDown shell:", code, ", ", flags);
 
       if( keys.is_CTRL_ALT( flags ) )
       {
@@ -199,12 +193,9 @@ if (false)
 
   scene.root.on("onPreChar", function(e)
   {
-    console.log("in onchar");
 	  var c = e.charCode;
-    console.log("onChar:", c);
 	  // TODO eating some "undesired" chars for now... need to redo this
     if (c<32) {
-      console.log("stop onChar");
       e.stopPropagation();
     }
   });

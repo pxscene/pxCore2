@@ -6,7 +6,7 @@ px.import({ scene:      'px:scene.1.js',
              keys:      'px:tools.keys.js',
              EditBox: 'browser:editbox.js'
 }).then( function importsAreReady(imports)
-{  
+{
   var url   = "";
   var helpShown = false;
 
@@ -26,7 +26,7 @@ px.import({ scene:      'px:scene.1.js',
   var contentBG = scene.create({t:"rect",  parent: bg, x:10, y:60, fillColor: 0xffffffff, a: 0.05, draw: false});
   var content   = scene.create({t:"scene", parent: bg, x:10, y:60, clip:true});
   var spinner   = scene.create({t:"image", url:"browser/images/spinningball2.png",cx:50,cy:50,y:-80,parent:bg,sx:0.3,sy:0.3,a:0.0});
-   
+
   var inputBox = new imports.EditBox( { parent: bg, url: "browser/images/input2.png", x: 10, y: 10, w: 800, h: 35, pts: 24 });
   var helpBox   = null;
 
@@ -63,7 +63,7 @@ px.import({ scene:      'px:scene.1.js',
     {
         u = "about.js";
     }
-    else        
+    else
     if (u.indexOf(':') == -1)
     {
       u = 'http://www.pxscene.org/examples/px-reference/gallery/' + u;
@@ -97,12 +97,11 @@ px.import({ scene:      'px:scene.1.js',
       content.ready.then(
         function(o)
         {
-          console.log(o);
           contentBG.draw = true;
           content.focus = true;
 
           inputBox.textColor = urlSucceededColor;
-                         
+
           inputBox.hideCursor();
           inputBox.cancelLater( function() { spinner.a = 0;} );
         },
@@ -114,7 +113,7 @@ px.import({ scene:      'px:scene.1.js',
 
           content.focus = false;
           inputBox.focus = true;
-                         
+
           inputBox.showCursor();
           inputBox.cancelLater( function() { spinner.a = 0;} );
         }
@@ -128,7 +127,7 @@ px.import({ scene:      'px:scene.1.js',
   {
     inputBox.focus = false;
     content.focus=true;
-  });  
+  });
 
   function updateSize(w,h)
   {
@@ -142,7 +141,7 @@ px.import({ scene:      'px:scene.1.js',
     content.h   = h - 70;
 
     contentBG.w = w - 20;
-    contentBG.h = h - 70;  
+    contentBG.h = h - 70;
 
     inputBox.w  = w - 20;
 
@@ -192,7 +191,6 @@ px.import({ scene:      'px:scene.1.js',
   scene.root.on("onKeyDown", function(e)
   {
     var code = e.keyCode; var flags = e.flags;
-   // console.log("onKeyDown browser.js  >> code: " + code + " key:" + keys.name(code) + " flags: " + flags);
 
     if( keys.is_CTRL_ALT( flags ) ) // CTRL-ALT keys !!
     {
@@ -220,7 +218,7 @@ px.import({ scene:      'px:scene.1.js',
       if(e.keyCode == keys.K)  //  CTRL-ALT-K
       {
         helpShown ? hideHelp(0) : showHelp(4500); // Hide / Show
-      
+
         e.stopPropagation();
     }
     }
@@ -242,7 +240,7 @@ px.import({ scene:      'px:scene.1.js',
   scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 
   Promise.all([inputBox, bg, spinner, content, fontRes])
-      .catch( (err) => 
+      .catch( (err) =>
       {
           console.log(">>> Loading Assets ... err = " + err);
       })

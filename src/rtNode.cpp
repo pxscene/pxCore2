@@ -796,7 +796,6 @@ void rtNode::initializeNode()
 
 
 #ifdef ENABLE_NODE_V_6_9
-  rtLogWarn("rtNode::rtNode() calling init \n");
 #ifdef ENABLE_DEBUG_MODE
   init();
 #else
@@ -923,7 +922,6 @@ void rtNode::init(int argc, char** argv)
 
   if(node_is_initialized == false)
   {
-    rtLogWarn("About to Init\n");
 #ifdef ENABLE_DEBUG_MODE
     Init(&g_argc, const_cast<const char**>(g_argv), &exec_argc, &exec_argv);
 #else
@@ -934,7 +932,6 @@ void rtNode::init(int argc, char** argv)
 //    V8::InitializePlatform(mPlatform);
 
 #ifdef ENABLE_NODE_V_6_9
-   rtLogWarn("using node version 6.9\n");
    V8::InitializeICU();
 #ifdef ENABLE_DEBUG_MODE
    V8::InitializeExternalStartupData(g_argv[0]);
@@ -956,7 +953,6 @@ void rtNode::init(int argc, char** argv)
 #else
     V8::Initialize();
 #endif // ENABLE_NODE_V_6_9
-    rtLogWarn("rtNode::init() node_is_initialized=%d\n",node_is_initialized);
     node_is_initialized = true;
 
     Locker                locker(mIsolate);
@@ -966,7 +962,6 @@ void rtNode::init(int argc, char** argv)
     Local<Context> ctx = Context::New(mIsolate);
     ctx->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, 99));
     mContext.Reset(mIsolate, ctx);
-    rtLogWarn("DONE in rtNode::init()\n");
   }
 }
 
