@@ -197,7 +197,9 @@ function freeParser(parser, req, socket) {
     parser.outgoing = null;
     parser[kOnExecute] = null;
     if (parsers.free(parser) === false)
+    {
       parser.close();
+    }
     parser = null;
   }
   if (req) {

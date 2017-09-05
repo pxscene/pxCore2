@@ -281,7 +281,9 @@ typedef int sig_atomic_t;
 
 /* Define globals.  They are protected by a lock */
 #ifdef SIGACTION
-static struct sigaction savsig[NX509_SIG];
+/* MODIFIED CODE BEGIN */
+//static struct sigaction savsig[NX509_SIG];
+/* MODIFIED CODE END */
 #else
 static void (*savsig[NX509_SIG]) (int);
 #endif
@@ -305,7 +307,9 @@ static int is_a_tty;
 /* Declare static functions */
 #if !defined(OPENSSL_SYS_WIN16) && !defined(OPENSSL_SYS_WINCE)
 static int read_till_nl(FILE *);
-static void recsig(int);
+/* MODIFIED CODE BEGIN */
+//static void recsig(int);
+/*MODIFIED CODE END */
 static void pushsig(void);
 static void popsig(void);
 #endif
@@ -591,6 +595,8 @@ static int close_console(UI *ui)
 /* Internal functions to handle signals and act on them */
 static void pushsig(void)
 {
+/* MODIFIED CODE BEGIN */
+/*
 # ifndef OPENSSL_SYS_WIN32
     int i;
 # endif
@@ -619,7 +625,7 @@ static void pushsig(void)
             continue;
 #  endif
 #  ifdef SIGKILL
-        if (i == SIGKILL)       /* We can't make any action on that. */
+        if (i == SIGKILL)       // We can't make any action on that.
             continue;
 #  endif
 #  ifdef SIGACTION
@@ -633,10 +639,14 @@ static void pushsig(void)
 # ifdef SIGWINCH
     signal(SIGWINCH, SIG_DFL);
 # endif
+*/
+/* MODIFIED CODE ENDS */
 }
 
 static void popsig(void)
 {
+/* MODIFIED CODE BEGIN */
+/*
 # ifdef OPENSSL_SYS_WIN32
     signal(SIGABRT, savsig[SIGABRT]);
     signal(SIGFPE, savsig[SIGFPE]);
@@ -662,12 +672,18 @@ static void popsig(void)
 #  endif
     }
 # endif
+*/
+/* MODIFIED CODE ENDS */
 }
 
+/* MODIFIED CODE BEGIN */
+/*
 static void recsig(int i)
 {
     intr_signal = i;
 }
+*/
+/* MODIFIED CODE END */
 #endif
 
 /* Internal functions specific for Windows */

@@ -1087,8 +1087,12 @@ static pid_t ExecDeathTestSpawnChild(char* const* argv, int close_fd) {
   }
 #  endif  // GTEST_OS_QNX
 #  if GTEST_OS_LINUX
+/* MODIFIED CODE BEGIN */
+/*
   GTEST_DEATH_TEST_CHECK_SYSCALL_(
       sigaction(SIGPROF, &saved_sigprof_action, NULL));
+*/
+/* MODIFIED CODE END */
 #  endif  // GTEST_OS_LINUX
 
   GTEST_DEATH_TEST_CHECK_(child_pid != -1);

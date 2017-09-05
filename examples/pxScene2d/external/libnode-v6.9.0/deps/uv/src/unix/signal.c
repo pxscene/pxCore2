@@ -116,8 +116,9 @@ static void uv__signal_unlock_and_unblock(sigset_t* saved_sigmask) {
 }
 
 
+/* MODIFIED CODE BEGIN */
+/*
 static uv_signal_t* uv__signal_first_handle(int signum) {
-  /* This function must be called with the signal lock held. */
   uv_signal_t lookup;
   uv_signal_t* handle;
 
@@ -154,10 +155,6 @@ static void uv__signal_handler(int signum) {
     msg.signum = signum;
     msg.handle = handle;
 
-    /* write() should be atomic for small data chunks, so the entire message
-     * should be written at once. In theory the pipe could become full, in
-     * which case the user is out of luck.
-     */
     do {
       r = write(handle->loop->signal_pipefd[1], &msg, sizeof msg);
     } while (r == -1 && errno == EINTR);
@@ -175,37 +172,30 @@ static void uv__signal_handler(int signum) {
 
 
 static int uv__signal_register_handler(int signum) {
-  /* When this function is called, the signal lock must be held. */
   struct sigaction sa;
 
-  /* XXX use a separate signal stack? */
   memset(&sa, 0, sizeof(sa));
   if (sigfillset(&sa.sa_mask))
     abort();
   sa.sa_handler = uv__signal_handler;
 
-  /* XXX save old action so we can restore it later on? */
   if (sigaction(signum, &sa, NULL))
     return -errno;
 
   return 0;
 }
 
-
 static void uv__signal_unregister_handler(int signum) {
-  /* When this function is called, the signal lock must be held. */
   struct sigaction sa;
 
   memset(&sa, 0, sizeof(sa));
   sa.sa_handler = SIG_DFL;
 
-  /* sigaction can only fail with EINVAL or EFAULT; an attempt to deregister a
-   * signal implies that it was successfully registered earlier, so EINVAL
-   * should never happen.
-   */
   if (sigaction(signum, &sa, NULL))
     abort();
 }
+*/
+/* MODIFIED CODE END */
 
 
 static int uv__signal_loop_once_init(uv_loop_t* loop) {
@@ -288,7 +278,10 @@ void uv__signal_close(uv_signal_t* handle) {
 
 int uv_signal_start(uv_signal_t* handle, uv_signal_cb signal_cb, int signum) {
   sigset_t saved_sigmask;
-  int err;
+  /* MODIFIED CODE BEGIN */
+  /* int err; */
+  /* MODIFIED CODE END */
+
 
   assert(!(handle->flags & (UV_CLOSING | UV_CLOSED)));
 
@@ -319,15 +312,17 @@ int uv_signal_start(uv_signal_t* handle, uv_signal_cb signal_cb, int signum) {
   /* If at this point there are no active signal watchers for this signum (in
    * any of the loops), it's time to try and register a handler for it here.
    */
+  /* MODIFIED CODE BEGIN */
+  /*
   if (uv__signal_first_handle(signum) == NULL) {
     err = uv__signal_register_handler(signum);
     if (err) {
-      /* Registering the signal handler failed. Must be an invalid signal. */
       uv__signal_unlock_and_unblock(&saved_sigmask);
       return err;
     }
   }
-
+  */
+  /* MODIFIED CODE END */
   handle->signum = signum;
   RB_INSERT(uv__signal_tree_s, &uv__signal_tree, handle);
 
@@ -457,9 +452,12 @@ static void uv__signal_stop(uv_signal_t* handle) {
   /* Check if there are other active signal watchers observing this signal. If
    * not, unregister the signal handler.
    */
+  /* MODIFIED CODE BEGIN */
+  /*
   if (uv__signal_first_handle(handle->signum) == NULL)
     uv__signal_unregister_handler(handle->signum);
-
+  */
+  /* MODIFIED CODE END */
   uv__signal_unlock_and_unblock(&saved_sigmask);
 
   handle->signum = 0;

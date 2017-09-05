@@ -87,8 +87,12 @@ static unsigned long (*getauxval) (unsigned long) = NULL;
 void OPENSSL_cpuid_setup(void)
 {
     char *e;
+/* MODIFIED CODE BEGIN */
+/*
     struct sigaction ill_oact, ill_act;
     sigset_t oset;
+*/
+/* MODIFIED CODE END */
     static int trigger = 0;
 
     if (trigger)
@@ -100,21 +104,29 @@ void OPENSSL_cpuid_setup(void)
         return;
     }
 
+/* MODIFIED CODE BEGIN */
+/*
     sigfillset(&all_masked);
     sigdelset(&all_masked, SIGILL);
     sigdelset(&all_masked, SIGTRAP);
     sigdelset(&all_masked, SIGFPE);
     sigdelset(&all_masked, SIGBUS);
     sigdelset(&all_masked, SIGSEGV);
+*/
+/* MODIFIED CODE END */
 
     OPENSSL_armcap_P = 0;
 
+/* MODIFIED CODE BEGIN */
+/*
     memset(&ill_act, 0, sizeof(ill_act));
     ill_act.sa_handler = ill_handler;
     ill_act.sa_mask = all_masked;
 
     sigprocmask(SIG_SETMASK, &ill_act.sa_mask, &oset);
     sigaction(SIGILL, &ill_act, &ill_oact);
+*/
+/* MODIFIED CODE END */
 
     if (getauxval != NULL) {
         if (getauxval(HWCAP) & HWCAP_NEON) {
@@ -158,7 +170,11 @@ void OPENSSL_cpuid_setup(void)
         OPENSSL_armcap_P |= ARMV7_TICK;
     }
 
+/* MODIFIED CODE BEGIN */
+/*
     sigaction(SIGILL, &ill_oact, NULL);
     sigprocmask(SIG_SETMASK, &oset, NULL);
+*/
+/* MODIFIED CODE END */
 }
 #endif

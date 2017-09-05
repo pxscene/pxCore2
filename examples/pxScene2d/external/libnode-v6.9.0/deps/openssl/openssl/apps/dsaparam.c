@@ -288,6 +288,8 @@ int MAIN(int argc, char **argv)
         BIO_printf(bio_err, "This could take some time\n");
 # ifdef GENCB_TEST
         if (timebomb > 0) {
+            /* MODIFIED CODE BEGIN */
+            /*
             struct sigaction act;
             act.sa_handler = timebomb_sigalarm;
             act.sa_flags = 0;
@@ -298,6 +300,8 @@ int MAIN(int argc, char **argv)
                 BIO_printf(bio_err, "Error, couldn't set SIGALRM handler\n");
                 goto end;
             }
+            */
+            /* MODIFIED CODE END */
             alarm(timebomb);
         }
 # endif

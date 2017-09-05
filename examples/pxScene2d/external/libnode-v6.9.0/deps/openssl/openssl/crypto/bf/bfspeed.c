@@ -118,7 +118,11 @@ double Time_F(int s);
 SIGRETTYPE sig_done(int sig);
 SIGRETTYPE sig_done(int sig)
 {
+/* MODIFIED CODE BEGINS */
+/*
     signal(SIGALRM, sig_done);
+*/
+/* MODIFIED CODE ENDS */
     run = 0;
 # ifdef LINT
     sig = sig;

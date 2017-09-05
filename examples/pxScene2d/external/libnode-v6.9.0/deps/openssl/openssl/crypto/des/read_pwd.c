@@ -430,6 +430,8 @@ int des_read_pw(char *buf, char *buff, int size, const char *prompt,
 
 static void pushsig(void)
 {
+/* MODIFIED CODE BEGIN */
+    /*
     int i;
 # ifdef SIGACTION
     struct sigaction sa;
@@ -457,10 +459,14 @@ static void pushsig(void)
 # ifdef SIGWINCH
     signal(SIGWINCH, SIG_DFL);
 # endif
+    */
+/* MODIFIED CODE END */
 }
 
 static void popsig(void)
 {
+/* MODIFIED CODE BEGIN */
+    /*
     int i;
 
     for (i = 1; i < NX509_SIG; i++) {
@@ -478,6 +484,8 @@ static void popsig(void)
         signal(i, savsig[i]);
 # endif
     }
+    */
+/* MODIFIED CODE END */
 }
 
 static void recsig(int i)

@@ -288,6 +288,8 @@ static int rnd_fake = 0;
 #   define SIGRETTYPE int
 #  endif
 
+/* MODIFIED CODE BEGIN */
+/*
 static SIGRETTYPE sig_done(int sig);
 static SIGRETTYPE sig_done(int sig)
 {
@@ -297,6 +299,8 @@ static SIGRETTYPE sig_done(int sig)
     sig = sig;
 #  endif
 }
+*/
+/* MODIFIED CODE END */
 # endif
 
 # define START   0
@@ -1541,7 +1545,11 @@ int MAIN(int argc, char **argv)
 #  define COND(c) (run && count<0x7fffffff)
 #  define COUNT(d) (count)
 #  ifndef _WIN32
+/* MODIFIED CODE BEGIN */
+/*
     signal(SIGALRM, sig_done);
+*/
+/* MODIFIED CODE END */
 #  endif
 # endif                         /* SIGALRM */
 

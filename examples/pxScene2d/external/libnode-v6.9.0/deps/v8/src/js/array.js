@@ -519,6 +519,7 @@ function ObservedArrayPush() {
 // Appends the arguments to the end of the array and returns the new
 // length of the array. See ECMA-262, section 15.4.4.7.
 function ArrayPush() {
+  throw MakeTypeError(1);
   CHECK_OBJECT_COERCIBLE(this, "Array.prototype.push");
 
   if (%IsObserved(this))

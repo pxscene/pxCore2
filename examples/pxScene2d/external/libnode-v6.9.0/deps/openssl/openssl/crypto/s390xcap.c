@@ -30,7 +30,9 @@ void OPENSSL_cpuid_setup(void)
     sigdelset(&ill_act.sa_mask, SIGILL);
     sigdelset(&ill_act.sa_mask, SIGTRAP);
     sigprocmask(SIG_SETMASK, &ill_act.sa_mask, &oset);
-    sigaction(SIGILL, &ill_act, &oact);
+/* MODIFIED CODE BEGIN */
+//    sigaction(SIGILL, &ill_act, &oact);
+/* MODIFIED CODE END */
 
     /* protection against missing store-facility-list-extended */
     if (sigsetjmp(ill_jmp, 1) == 0)

@@ -118,7 +118,11 @@ double Time_F(int s);
 SIGRETTYPE sig_done(int sig);
 SIGRETTYPE sig_done(int sig)
 {
+/* MODIFIED CODE BEGINS */
+/*
     signal(SIGALRM, sig_done);
+*/
+/* MODIFIED CODE ENDS */
     run = 0;
 # ifdef LINT
     sig = sig;
@@ -201,7 +205,11 @@ int main(int argc, char **argv)
 #else
 # define COND(c) (run)
 # define COUNT(d) (count)
+/* MODIFIED CODE BEGINS */
+/*
     signal(SIGALRM, sig_done);
+*/
+/* MODIFIED CODE ENDS */
     printf("Doing RC5_32_set_key for 10 seconds\n");
     alarm(10);
 #endif
