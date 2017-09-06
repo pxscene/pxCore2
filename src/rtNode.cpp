@@ -796,6 +796,7 @@ void rtNode::initializeNode()
 
 
 #ifdef ENABLE_NODE_V_6_9
+  rtLogInfo("rtNode::rtNode() calling init");
 #ifdef ENABLE_DEBUG_MODE
   init();
 #else
@@ -922,6 +923,7 @@ void rtNode::init(int argc, char** argv)
 
   if(node_is_initialized == false)
   {
+    rtLogInfo("About to init");
 #ifdef ENABLE_DEBUG_MODE
     Init(&g_argc, const_cast<const char**>(g_argv), &exec_argc, &exec_argv);
 #else
@@ -932,6 +934,7 @@ void rtNode::init(int argc, char** argv)
 //    V8::InitializePlatform(mPlatform);
 
 #ifdef ENABLE_NODE_V_6_9
+    rtLogInfo("using node version 6.9");
    V8::InitializeICU();
 #ifdef ENABLE_DEBUG_MODE
    V8::InitializeExternalStartupData(g_argv[0]);
@@ -953,6 +956,7 @@ void rtNode::init(int argc, char** argv)
 #else
     V8::Initialize();
 #endif // ENABLE_NODE_V_6_9
+    rtLogInfo("rtNode::init() node_is_initialized = %d", node_is_initialized);
     node_is_initialized = true;
 
     Locker                locker(mIsolate);
@@ -962,6 +966,7 @@ void rtNode::init(int argc, char** argv)
     Local<Context> ctx = Context::New(mIsolate);
     ctx->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, 99));
     mContext.Reset(mIsolate, ctx);
+    rtLogInfo("DONE in rtNode::init()");
   }
 }
 
@@ -980,7 +985,7 @@ void rtNode::term()
   {
 // JRJRJR  Causing crash???  ask Hugh
 
-    rtLogWarn("\n++++++++++++++++++ DISPOSE\n\n");
+    rtLogInfo("\n++++++++++++++++++ DISPOSE\n\n");
     node_isolate->Dispose();
     node_isolate = NULL;
     mIsolate     = NULL;
