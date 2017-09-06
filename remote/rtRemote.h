@@ -125,6 +125,9 @@ rtRemoteShutdown();
 rtError
 rtRemoteProcessSingleItem();
 
+rtError
+rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow);
+
 #endif
 
 #endif
