@@ -2311,6 +2311,16 @@ void pxContext::drawImage(float x, float y, float w, float h,
     mask->setLastRenderTick(gRenderTick);
   }
 
+  if (stretchX < pxConstantsStretch::NONE || stretchX > pxConstantsStretch::REPEAT)
+  {
+    stretchX = pxConstantsStretch::NONE;
+  }
+
+  if (stretchY < pxConstantsStretch::NONE || stretchY > pxConstantsStretch::REPEAT)
+  {
+    stretchY = pxConstantsStretch::NONE;
+  }
+
   float black[4] = {0,0,0,1};
   drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways,
                   color? color : black, stretchX, stretchY);
