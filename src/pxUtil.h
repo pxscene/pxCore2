@@ -26,7 +26,7 @@
 class pxTimedOffscreenSequence
 {
 public:
-  pxTimedOffscreenSequence():mNumPlays(0) {}
+  pxTimedOffscreenSequence():mTotalTime(0),mNumPlays(0) {}
   ~pxTimedOffscreenSequence() {}
 
   void init();

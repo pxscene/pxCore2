@@ -9,7 +9,7 @@ else
         OSCFLAGS= -lrt -lglut -lGL -lGLEW
 endif
 
-CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS)	
+CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS) -Werror
 OUTDIR=../../build/glut
 
 all: $(OUTDIR)/Timer

@@ -25,7 +25,7 @@ public:
   virtual rtError registerObject(std::string const& name, sockaddr_storage const& endpoint) override;
   virtual rtError locateObject(std::string const& name, sockaddr_storage& endpoint,
     uint32_t timeout) override;
-  virtual rtError unregisterObject(std::string const& name);
+  virtual rtError unregisterObject(std::string const& name) override;
 
 private:
   std::string       m_rpc_addr;

@@ -9,13 +9,13 @@ else
         OSCFLAGS= -lrt -lglut -lGL -lGLEW
 endif
 
-CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS)	
+CFLAGS= -I../../src -DPX_PLATFORM_GLUT $(OSCFLAGS) -Werror
 OUTDIR=../../build/glut
 
 all: $(OUTDIR)/Sprite
 
 $(OUTDIR)/Sprite: Sprite.cpp 
-	g++ -o $(OUTDIR)/Sprite -Wall Sprite.cpp -lpxCore $(CFLAGS) -L$(OUTDIR) 
+	g++ -o $(OUTDIR)/Sprite -Wall Sprite.cpp -lpxCore $(CFLAGS) -L$(OUTDIR)
 
 
 

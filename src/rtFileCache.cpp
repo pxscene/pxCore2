@@ -71,15 +71,15 @@ rtFileCache::~rtFileCache()
 
 void  rtFileCache::initCache()
 {
-  struct stat st;
-  memset(&st,0,sizeof(struct stat));
-  if (stat(mDirectory.cString(), &st) == -1) {
-    mkdir(mDirectory.cString(), 0777);
-  }
-  else
-  {
-    populateExistingFiles();
-  }
+  int retVal = -1;
+#ifdef RT_PLATFORM_WINDOWS
+  retVal  = mkdir(mDirectory.cString());
+#else
+  retVal = mkdir(mDirectory.cString(), 0777);
+#endif
+  if (0 != retVal)
+    rtLogWarn("creation of cache directory failed");
+  populateExistingFiles();
 }
 
 void rtFileCache::populateExistingFiles()
@@ -141,22 +141,21 @@ int64_t rtFileCache::cacheSize()
 
 rtError rtFileCache::setCacheDirectory(const char* directory)
 {
-  if (NULL == directory)
+  if ((NULL == directory) || (0 == strlen(directory)))
   {
     return RT_ERROR;
   }
   mDirectory = directory;
 
-  struct stat st;
-  memset(&st,0,sizeof(struct stat));
-  if (stat(mDirectory.cString(), &st) == -1)
-  {
-    mkdir(mDirectory.cString(), 0777);
-  }
-  else
-  {
-    populateExistingFiles();
-  }
+  int retVal = -1;
+#ifdef RT_PLATFORM_WINDOWS
+  retVal = mkdir(mDirectory.cString());
+#else
+  retVal = mkdir(mDirectory.cString(), 0777);
+#endif //RT_PLATFORM_WINDOWS
+  if (0 != retVal)
+    rtLogWarn("creation of cache directory failed");
+  populateExistingFiles();
   return RT_OK;
 }
 
@@ -231,7 +230,7 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
   mCurrentSize += mFileSizeMap[filename];
   int64_t size = cleanup();
   mCacheMutex.unlock();
-  rtLogInfo("current size after insertion and cleanup (%ld)",size);
+  rtLogInfo("current size after insertion and cleanup (%ld)",(long) size);
   return RT_OK;
 }
 
@@ -251,12 +250,16 @@ rtError rtFileCache::httpCacheData(const char* url, rtHttpCacheData& cacheData)
 
 void rtFileCache::clearCache()
 {
-  string cmd = "rm -rf ";
-  cmd.append(mDirectory.cString());
-  cmd.append("/*");
-  system(cmd.c_str());
-  mFileSizeMap.clear();
-  mCurrentSize = 0;
+  if (! mDirectory.isEmpty())
+  {
+    stringstream buff;
+    buff << "rm -rf " << mDirectory.cString() << "/*" ;
+    system(buff.str().c_str());
+    mFileSizeMap.clear();
+    mCacheMutex.lock();
+    mCurrentSize = 0;
+    mCacheMutex.unlock();
+  }
 }
 
 int64_t rtFileCache::cleanup()
@@ -365,7 +368,7 @@ bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
   }
 
   bool reachedHeaderEnd = false;
-  char buffer;
+  int buffer;
   string headerData;
   while ( !feof(fp) && (reachedHeaderEnd == false))
   {
@@ -375,7 +378,7 @@ bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
       reachedHeaderEnd = true;
       break;
     }
-    headerData.append(1,buffer);
+    headerData.append(1,(char)buffer);
   }
   if (true == reachedHeaderEnd)
   {
@@ -384,6 +387,10 @@ bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
   else
   {
     rtLogWarn("Logfile is not proper");
+    int closeret = fclose(fp);
+    if (0 != closeret)
+      rtLogWarn("improper logfile close failed");
+    fp  =  NULL;
     return false;
   }
   cacheData.setFilePointer(fp);

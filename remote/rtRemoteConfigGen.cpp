@@ -394,7 +394,7 @@ int main(int argc, char* argv[])
   else
   {
     rapidjson::ParseErrorCode e = doc.GetParseError();
-    fprintf(stderr, "JSON parse error: %s (%lu)\n",
+    fprintf(stderr, "JSON parse error: %s (%zu)\n",
       rapidjson::GetParseError_En(e), result.Offset());
 
     dumpOffset(f.get(), result.Offset());

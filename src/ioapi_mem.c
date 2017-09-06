@@ -87,8 +87,11 @@ voidpf ZCALLBACK fopen_mem_func (voidpf opaque, const void* filename, int mode)
    * architectures
    */
   if (sscanf(filename,"%p+%lx",&mem->base,&mem->size)!=2)
+  {
+    free(mem);
+    mem = NULL;
     return NULL;
-  
+  }
   if (mode & ZLIB_FILEFUNC_MODE_CREATE)
     mem->limit=0; /* When writing we start with 0 bytes written */
   else

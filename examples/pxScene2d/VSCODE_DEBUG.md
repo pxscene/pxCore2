@@ -73,7 +73,7 @@
 
 4.  Go back to the file that you'd like to debug (click on the explorer icon top left-hand side).  Set a breakpoint by clicking to the left of the appropriate source line.
 
-5. Go back to the debugger.  Choose the "DBG pxscene" configuration and then click the green "debug arrow".  You should see the pxscene application launch and in the browser url bar enter the file url that cooresponds to the js file that you want to debug.  
+5. Go back to the debugger.  Choose the "DBG pxscene" configuration and then click the green "debug arrow".  You should see the pxscene application launch and in the browser url bar enter the file url that cooresponds to the js file that you want to debug.  Alternatively, choose the "DBG file in pxscene" configuration, make sure the js file you want to launch is the focused file in the IDE, then click the green "debug arrow". This will launch the focused file directly without displaying the pxscene browser url bar.
 
   ~~~~
   eg. file:///Users/johnrobinson/Sites/pxscene/examples/px-reference/gallery/fancy.js

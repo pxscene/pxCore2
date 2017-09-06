@@ -22,6 +22,11 @@
 #include "rtRef.h"
 #include "pxCore.h"
 #include "pxKeycodes.h"
+#include <sys/types.h>
+#include <signal.h>
+#if defined(RT_PLATFORM_LINUX) || defined(PX_PLATFORM_MAC)
+#include <unistd.h>
+#endif //RT_PLATFORM_LINUX || PX_PLATFORM_MAC
 
 #include "pxWayland.h"
 
@@ -56,6 +61,7 @@ pxWayland::pxWayland(bool useFbo)
     mWidth(0),
     mHeight(0),
     mUseFbo(useFbo),
+    mSuspended(false),
     mEvents(0),
     mClientPID(0),
     mWCtx(0),
@@ -70,10 +76,18 @@ pxWayland::pxWayland(bool useFbo)
   mFillColor[1]= 0.0; 
   mFillColor[2]= 0.0; 
   mFillColor[3]= 0.0; 
+
+  mClearColor[0]= 0.0;
+  mClearColor[1]= 0.0;
+  mClearColor[2]= 0.0;
+  mClearColor[3]= 0.0;
 }
 
 pxWayland::~pxWayland()
-{ 
+{
+#ifdef ENABLE_PX_WAYLAND_RPC
+  rtRemoteUnregisterDisconnectedCallback(pxWayland::remoteDisconnectedCB, this);
+#endif //ENABLE_PX_WAYLAND_RPC
   if ( mWCtx )
   {
      WstCompositorDestroy(mWCtx);
@@ -304,6 +318,11 @@ void pxWayland::onUpdate(double t)
 
 void pxWayland::onDraw()
 {
+  if (mSuspended)
+  {
+    // do not draw if the app is in a suspended states
+    return;
+  }
   static pxTextureRef nullMaskRef;
   
   unsigned int outputWidth, outputHeight;
@@ -316,7 +335,8 @@ void pxWayland::onDraw()
      WstCompositorSetOutputSize( mWCtx, mWidth, mHeight );
   }
 
-  bool drawWithFBO= isRotated() || mUseFbo;
+  bool rotated= isRotated();
+  bool drawWithFBO= rotated || mUseFbo;
   if ( drawWithFBO )
   {
      if ( (mFBO->width() != mWidth) ||
@@ -334,24 +354,39 @@ void pxWayland::onDraw()
      }
   }
   
-  int hints= 0;
-  if ( !drawWithFBO) hints |= WstHints_noRotation;
+  int hints= WstHints_none;
   
   bool needHolePunch;
   std::vector<WstRect> rects;
   pxContextFramebufferRef previousFrameBuffer;
   pxMatrix4f m= context.getMatrix();
+
   if ( drawWithFBO )
   {
-     context.pushState();
-     previousFrameBuffer= context.getCurrentFramebuffer();
-     context.setFramebuffer( mFBO );
-     context.clear( mWidth, mHeight, mFillColor );
+     hints |= WstHints_fboTarget;
   }
-  else if ( mFillColor[3] != 0.0 )
+  else
+  {
+     hints |= WstHints_applyTransform;
+     hints |= WstHints_holePunch;
+  }
+  if ( !rotated ) hints |= WstHints_noRotation;
+  if ( memcmp( mLastMatrix.data(), m.data(), 16*sizeof(float) ) != 0 ) hints |= WstHints_animating;
+  mLastMatrix= m;
+
+  if ( mFillColor[3] != 0.0 )
   {
      context.drawRect(mWidth, mHeight, 0, mFillColor, NULL );
   }
+
+  context.pushState();
+  if ( drawWithFBO )
+  {
+     previousFrameBuffer= context.getCurrentFramebuffer();
+     context.setFramebuffer( mFBO );
+     context.clear( mWidth, mHeight, mClearColor );
+  }
+
   WstCompositorComposeEmbedded( mWCtx, 
                                 mX,
                                 mY,
@@ -365,15 +400,10 @@ void pxWayland::onDraw()
   if ( drawWithFBO )
   {
      context.setFramebuffer( previousFrameBuffer );
-     context.popState();
   }
   
   if ( drawWithFBO && needHolePunch )
   {
-     if ( mFillColor[3] != 0.0 )
-     {
-        context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
-     }
      GLfloat priorColor[4];
      GLint priorBox[4];
      GLint viewport[4];
@@ -393,6 +423,7 @@ void pxWayland::onDraw()
            glClear( GL_COLOR_BUFFER_BIT );
         }
      }
+     glClearColor( priorColor[0], priorColor[1], priorColor[2], priorColor[3] );
      
      if ( wasEnabled )
      {
@@ -403,6 +434,8 @@ void pxWayland::onDraw()
         glDisable( GL_SCISSOR_TEST );
      }
   }
+  context.popState();
+
   if ( drawWithFBO )
   {
      context.drawImage(0, 0, mWidth, mHeight, mFBO->getTexture(), nullMaskRef);
@@ -523,7 +556,26 @@ void pxWayland::terminateClient()
       mClientMonitorStarted= false;
       
       // Destroying compositor above should result in client 
-      // process ending
+      // process ending.  If it hasn't ended, kill it
+      if ( mClientPID >= 0 )
+      {
+         int retry= 30;
+         while( retry-- > 0 )
+         {
+            usleep( 10000 );
+            if ( mClientPID <= 0 )
+            {
+               break;
+            }
+            if ( retry <= 0 )
+            {
+               rtLogInfo("pxWayland::terminateClient: client pid %d still alive - killing...", mClientPID);
+               kill( mClientPID, SIGKILL);
+               rtLogInfo("pxWayland::terminateClient: client pid %d killed", mClientPID);
+               mClientPID= -1;
+            }
+         }
+      }
       pthread_join( mClientMonitorThreadId, NULL );      
    }
 
@@ -672,6 +724,22 @@ rtError pxWayland::connectToRemoteObject()
 rtError pxWayland::useDispatchThread(bool use)
 {
   mUseDispatchThread = use;
+  return RT_OK;
+}
+
+rtError pxWayland::resume()
+{
+  mSuspended = false;
+  rtValue args;
+  callMethod("resume", 0, &args);
+  return RT_OK;
+}
+
+rtError pxWayland::suspend()
+{
+  mSuspended = true;
+  rtValue args;
+  callMethod("suspend", 0, &args);
   return RT_OK;
 }
 
@@ -870,8 +938,12 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
 #define KEY_KPCOMMA             121
 #define KEY_LEFTMETA            125
 #define KEY_RIGHTMETA           126
+#define KEY_YELLOW              0x18e
+#define KEY_BLUE                0x18f
 #define KEY_PLAYPAUSE           164
 #define KEY_REWIND              168
+#define KEY_RED                 0x190
+#define KEY_GREEN               0x191
 #define KEY_PLAY                207
 #define KEY_FASTFORWARD         208
 #define KEY_PRINT               210     /* AC Print */
@@ -913,7 +985,7 @@ uint32_t pxWayland::linuxFromPX( uint32_t keyCode )
          linuxKeyCode= KEY_PAGEUP;
          break;
       case PX_KEY_PAGEDOWN:
-         linuxKeyCode= KEY_SPACE;
+         linuxKeyCode= KEY_PAGEDOWN;
          break;
       case PX_KEY_END:
          linuxKeyCode= KEY_END;
@@ -1185,6 +1257,18 @@ uint32_t pxWayland::linuxFromPX( uint32_t keyCode )
       case PX_KEY_PLAYPAUSE:
          linuxKeyCode= KEY_PLAYPAUSE;
          break;
+      case PX_KEY_YELLOW:
+         linuxKeyCode = KEY_YELLOW;
+         break;
+      case PX_KEY_BLUE:
+         linuxKeyCode = KEY_BLUE;
+         break;
+      case PX_KEY_RED:
+         linuxKeyCode = KEY_RED;
+         break;
+      case PX_KEY_GREEN:
+         linuxKeyCode = KEY_GREEN;
+         break;         
       default:
          linuxKeyCode= -1;
          break;

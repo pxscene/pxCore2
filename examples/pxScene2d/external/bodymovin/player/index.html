@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <style>
+        body, html{
+            background-color:#ddd;
+            margin: 0px;
+            height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        #bodymovin{
+            background-color:#333;
+            width:100%;
+            height:100%;
+            /*width:800px;
+            height:500px;*/
+            display:block;
+            overflow: hidden;
+            transform: translate3d(0,0,0);
+            margin: auto;
+        }
+
+        .botas_loop_3,.botas_loop_2{
+            display:none
+        }
+
+    </style>
+    <!-- build:js bodymovin.js -->
+
+     <script src="js/main.js"></script>
+    <script src="js/utils/common.js"></script>
+    <script src="js/3rd_party/transformation-matrix.js"></script>
+    <script src="js/3rd_party/seedrandom.js"></script>
+    <script src="js/3rd_party/BezierEaser.js"></script>
+    <script src="js/utils/MatrixManager.js"></script>
+    <script src="js/utils/animationFramePolyFill.js"></script>
+    <script src="js/utils/functionExtensions.js"></script>
+    <script src="js/utils/bez.js"></script>
+    <script src="js/utils/DataManager.js"></script>
+    <script src="js/utils/FontManager.js"></script>
+    <script src="js/utils/PropertyFactory.js"></script>
+    <script src="js/utils/shapes/ShapePath.js"></script>
+    <script src="js/utils/shapes/ShapeProperty.js"></script>
+    <script src="js/utils/shapes/ShapeModifiers.js"></script>
+    <script src="js/utils/shapes/TrimModifier.js"></script>
+    <script src="js/utils/shapes/RoundCornersModifier.js"></script>
+    <script src="js/utils/shapes/RepeaterModifier.js"></script>
+    <script src="js/utils/shapes/ShapeCollection.js"></script>
+    <script src="js/utils/imagePreloader.js"></script>
+    <script src="js/utils/featureSupport.js"></script>
+    <script src="js/utils/filters.js"></script>
+    <script src="js/utils/pooling/pooling.js"></script>
+    <script src="js/utils/pooling/point_pool.js"></script>
+    <script src="js/utils/pooling/shape_pool.js"></script>
+    <script src="js/utils/pooling/shapeCollection_pool.js"></script>
+    <script src="js/renderers/BaseRenderer.js"></script>
+    <script src="js/renderers/SVGRenderer.js"></script>
+
+    <script src="js/mask.js"></script>
+    <script src="js/elements/BaseElement.js"></script>
+    <script src="js/elements/TextElement.js"></script>
+    <script src="js/elements/svgElements/SVGBaseElement.js"              ren1derer="svg"></script>
+    <script src="js/elements/svgElements/SVGTextElement.js"              renderer="svg"></script>
+    <script src="js/elements/svgElements/effects/SVGTintEffect.js"       renderer="svg"></script>
+    <script src="js/elements/svgElements/effects/SVGFillFilter.js"       renderer="svg"></script>
+    <script src="js/elements/svgElements/effects/SVGStrokeEffect.js"     renderer="svg"></script>
+    <script src="js/elements/svgElements/effects/SVGTritoneFilter.js"    renderer="svg"></script>
+    <script src="js/elements/svgElements/effects/SVGProLevelsFilter.js"  renderer="svg"></script>
+    <script src="js/elements/svgElements/effects/SVGDropShadowEffect.js" renderer="svg"></script>
+    <script src="js/elements/svgElements/SVGEffects.js"                  renderer="svg"></script>
+    <script src="js/elements/CompElement.js"></script>
+    <script src="js/elements/ImageElement.js"></script>
+    <script src="js/elements/ShapeElement.js"></script>
+    <script src="js/elements/SolidElement.js"></script>
+
+    <script src="js/animation/AnimationManager.js"></script>
+    <script src="js/animation/AnimationItem.js"></script>
+    
+    <script src="js/renderers/CanvasRenderer.js" data-light-skip="true"></script>
+    <script src="js/renderers/PxSceneRenderer.js" data-light-skip="true"></script>
+    <script src="js/renderers/HybridRenderer.js" data-light-skip="true"></script>
+
+    <script src="js/elements/canvasElements/CVBaseElement.js" data-light-skip="true"  renderer="canvas"></script>
+    <script src="js/elements/canvasElements/CVCompElement.js" data-light-skip="true"  renderer="canvas"></script>
+    <script src="js/elements/canvasElements/CVImageElement.js" data-light-skip="true" renderer="canvas"></script>
+    <script src="js/elements/canvasElements/CVMaskElement.js" data-light-skip="true"  renderer="canvas"></script>
+    <script src="js/elements/canvasElements/CVShapeElement.js" data-light-skip="true" renderer="canvas"></script>
+    <script src="js/elements/canvasElements/CVSolidElement.js" data-light-skip="true" renderer="canvas"></script>
+    <script src="js/elements/canvasElements/CVTextElement.js" data-light-skip="true"  renderer="canvas"></script>
+
+    <script src="js/elements/pxsceneElements/PXBaseElement.js" data-light-skip="true"  renderer="pxscene"></script>
+    <script src="js/elements/pxsceneElements/PXCompElement.js" data-light-skip="true"  renderer="pxscene"></script>
+    <script src="js/elements/pxsceneElements/PXImageElement.js" data-light-skip="true" renderer="pxscene"></script>
+    <script src="js/elements/pxsceneElements/PXMaskElement.js" data-light-skip="true"  renderer="pxscene"></script>
+    <script src="js/elements/pxsceneElements/PXShapeElement.js" data-light-skip="true" renderer="pxscene"></script>
+    <script src="js/elements/pxsceneElements/PXSolidElement.js" data-light-skip="true" renderer="pxscene"></script>
+    <script src="js/elements/pxsceneElements/PXTextElement.js" data-light-skip="true"  renderer="pxscene"></script>
+
+    <script src="js/elements/htmlElements/HBaseElement.js" data-light-skip="true"   renderer="hybrid"></script>
+    <script src="js/elements/htmlElements/HSolidElement.js" data-light-skip="true"  renderer="hybrid"></script>
+    <script src="js/elements/htmlElements/HCompElement.js" data-light-skip="true"   renderer="hybrid"></script>
+    <script src="js/elements/htmlElements/HShapeElement.js" data-light-skip="true"  renderer="hybrid"></script>
+    <script src="js/elements/htmlElements/HTextElement.js" data-light-skip="true"   renderer="hybrid"></script>
+    <script src="js/elements/htmlElements/HImageElement.js" data-light-skip="true"  renderer="hybrid"></script>
+    <script src="js/elements/htmlElements/HCameraElement.js" data-light-skip="true" renderer="hybrid"></script>
+
+    <!-- Expressions -->
+    <script src="js/utils/expressions/Expressions.js" data-light-skip="true"></script>
+    <script src="js/utils/expressions/ExpressionPropertyDecorator.js" data-light-skip="true"></script>
+    <script src="js/utils/expressions/ExpressionManager.js" data-light-skip="true"></script>
+    <script src="js/utils/expressions/ShapeInterface.js" data-light-skip="true"></script>
+    <script src="js/utils/expressions/TextInterface.js" data-light-skip="true"></script>
+    <script src="js/utils/expressions/LayerInterface.js" data-light-skip="true"></script>
+    <script src="js/utils/expressions/CompInterface.js" data-light-skip="true"></script>
+    <script src="js/utils/expressions/TransformInterface.js" data-light-skip="true"></script>
+    <script src="js/utils/expressions/ProjectInterface.js" data-light-skip="true"></script>
+    <script src="js/utils/expressions/EffectInterface.js" data-light-skip="true"></script>
+    <script src="js/utils/expressions/ExpressionValue.js" data-light-skip="true"></script>
+    <script src="js/effects/SliderEffect.js" data-light-skip="true"></script>
+    <script src="js/effects.js" data-light-skip="true"></script>
+
+    <!-- end Expressions -->
+    <!-- endbuild -->
+    <script src="js/module.js" data-skip="true"></script>
+    <!-- <script src="bodymovin.js"></script> -->
+    <!-- <script src="bodymovin_light.js"></script> -->
+</head>
+<body>
+<div id="bodymovin"></div>
+
+<script>
+
+    var anim;
+    var elem = document.getElementById('bodymovin')
+    var animData = {
+        container: elem,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        rendererSettings: {
+            progressiveLoad:false
+        },
+        path: 'exports/render/data.json'
+    };
+    anim = bodymovin.loadAnimation(animData);
+
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 # pxCore FrameBuffer Library
 # Simple Example
 
-CFLAGS= -I../../src -DPX_PLATFORM_X11
+CFLAGS= -I../../src -DPX_PLATFORM_X11 -Werror
 OUTDIR=../../build/x11
 
 all: $(OUTDIR)/Timer

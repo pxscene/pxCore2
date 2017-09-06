@@ -2,7 +2,7 @@
 # Simple OpenGL Example
 WAYLAND=`pkg-config wayland-client wayland-egl --cflags --libs`
 
-CFLAGS= -I../../src -DPX_PLATFORM_WAYLAND_EGL -Wno-write-strings -Wall -O3 -fvisibility=hidden -g
+CFLAGS= -I../../src -DPX_PLATFORM_WAYLAND_EGL -Wno-write-strings -Wall -O3 -fvisibility=hidden -g -Werror
 OUTDIR=../../build/wayland_egl
 
 all: $(OUTDIR)/SimpleOpenGL

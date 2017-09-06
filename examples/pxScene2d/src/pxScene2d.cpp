@@ -40,6 +40,9 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
+#ifdef PX_SERVICE_MANAGER
+#include "pxServiceManager.h"
+#endif //PX_SERVICE_MANAGER
 #include "pxImage9.h"
 #include "pxImageA.h"
 
@@ -54,8 +57,19 @@
 #include "pxIView.h"
 
 #include "pxClipboard.h"
+#include <rapidjson/document.h>
+#include <rapidjson/filereadstream.h>
+using namespace rapidjson;
 
 using namespace std;
+
+
+#define xstr(s) str(s)
+#define str(s) #s
+
+#ifndef PX_SCENE_VERSION
+#define PX_SCENE_VERSION dev_ver
+#endif
 
 // #define DEBUG_SKIP_DRAW       // Skip DRAW   code - for testing.
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
@@ -64,6 +78,8 @@ extern rtThreadQueue gUIThreadQueue;
 uint32_t rtPromise::promiseID = 200;
 
 static int fpsWarningThreshold = 25;
+
+rtEmitRef pxScriptView::mEmit = new rtEmit();
 
 // Debug Statistics
 #ifdef USE_RENDER_STATS
@@ -113,6 +129,80 @@ void stopProfiling()
 }
 #endif //ENABLE_VALGRIND
 int pxObjectCount = 0;
+
+#include <rapidjson/document.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/error/en.h>
+
+// store the mapping between wayland app names and binary paths
+map<string, string> gWaylandAppsMap;
+static bool gWaylandAppsConfigLoaded = false;
+#define DEFAULT_WAYLAND_APP_CONFIG_FILE "./waylandregistry.conf"
+
+void populateWaylandAppsConfig()
+{
+  FILE* fp = NULL;
+  char const* s = getenv("WAYLAND_APPS_CONFIG");
+  if (s)
+  {
+    fp = fopen(s, "rb");
+  }
+  if (NULL == fp)
+  {
+    fp = fopen(DEFAULT_WAYLAND_APP_CONFIG_FILE, "rb");
+    if (NULL == fp)
+    {
+      rtLogInfo("Wayland config read error : [unable to read waylandregistry.conf]\n");
+      return;
+    }
+  }
+  char readBuffer[65536];
+  memset(readBuffer, 0, sizeof(readBuffer));
+  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+  rapidjson::Document doc;
+  rapidjson::ParseResult result = doc.ParseStream(is);
+  if (!result)
+  {
+    rapidjson::ParseErrorCode e = doc.GetParseError();
+    rtLogInfo("Wayland config read error : [JSON parse error while reading waylandregistry.conf: %s (%ld)]\n",rapidjson::GetParseError_En(e), result.Offset());
+    fclose(fp);
+    return;
+  }
+  fclose(fp);
+
+  if (! doc.HasMember("waylandapps"))
+  {
+    rtLogInfo("Wayland config read error : [waylandapps element not found]\n");
+    return;
+  }
+
+  const rapidjson::Value& appList = doc["waylandapps"];
+  for (rapidjson::SizeType i = 0; i < appList.Size(); i++)
+  {
+    if (appList[i].IsObject())
+    {
+      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("binary")) && (appList[i]["binary"].IsString()))
+      {
+        string appName = appList[i]["name"].GetString();
+        string binary = appList[i]["binary"].GetString();
+        if ((appName.length() != 0) && (binary.length() != 0))
+        {
+          gWaylandAppsMap[appName] = binary;
+          rtLogInfo("Mapped wayland app [%s] to path [%s] \n",appName.c_str(),binary.c_str());
+        }
+        else
+        {
+          rtLogInfo("Wayland config read error : [one of the entry not added due to name/binary is empty]\n");
+        }
+      }
+      else
+      {
+        rtLogInfo("Wayland config read error : [one of the entry not added due to name/binary not present]\n");
+      }
+    }
+  }
+}
+
 static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
                                 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
@@ -163,6 +253,10 @@ char *base64_encode(const unsigned char *data,
 
     for (int i = 0; i < mod_table[input_length % 3]; i++)
         encoded_data[*output_length - 1 - i] = '=';
+
+#ifdef PX_PLATFORM_MAC
+    encoded_data[*output_length] = '\0';
+#endif //PX_PLATFORM_MAC
 
     return encoded_data;
 }
@@ -299,13 +393,18 @@ pxObject::~pxObject()
     // TODO... why is this bad
 //    sendReturns<rtString>("description",d);
     //rtLogDebug("**************** pxObject destroyed: %s\n",getMap()->className);
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      (*it)->mParent = NULL;  // setParent mutates the mChildren collection
+    }
+    mChildren.clear();
     pxObjectCount--;
     rtValue nullValue;
     mReady.send("reject",nullValue);
-    deleteSnapshot(mSnapshotRef);
-    deleteSnapshot(mClipSnapshotRef);
-    deleteSnapshot(mDrawableSnapshotForMask);
-    deleteSnapshot(mMaskSnapshot);
+    clearSnapshot(mSnapshotRef);
+    clearSnapshot(mClipSnapshotRef);
+    clearSnapshot(mDrawableSnapshotForMask);
+    clearSnapshot(mMaskSnapshot);
     mSnapshotRef = NULL;
     mClipSnapshotRef = NULL;
     mDrawableSnapshotForMask = NULL;
@@ -333,37 +432,40 @@ void pxObject::createNewPromise()
 
 void pxObject::dispose()
 {
-  //rtLogInfo(__FUNCTION__);
-  mIsDisposed = true;
-  vector<animation>::iterator it = mAnimations.begin();
-  for(;it != mAnimations.end();it++)
+  if (!mIsDisposed)
   {
-    if ((*it).promise)
-      (*it).promise.send("reject",this);
-  }
+    //rtLogInfo(__FUNCTION__);
+    mIsDisposed = true;
+    vector<animation>::iterator it = mAnimations.begin();
+    for(;it != mAnimations.end();it++)
+    {
+      if ((*it).promise)
+        (*it).promise.send("reject",this);
+    }
 
-  rtValue nullValue;
-  mReady.send("reject",nullValue);
+    rtValue nullValue;
+    mReady.send("reject",nullValue);
 
-  mAnimations.clear();
-  mEmit->clearListeners();
-  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
-  {
-    (*it)->dispose();
-    (*it)->mParent = NULL;  // setParent mutates the mChildren collection
-  } 
-  mChildren.clear();
-  deleteSnapshot(mSnapshotRef); 
-  deleteSnapshot(mClipSnapshotRef);
-  deleteSnapshot(mDrawableSnapshotForMask);
-  deleteSnapshot(mMaskSnapshot);
-  mSnapshotRef = NULL;
-  mClipSnapshotRef = NULL;
-  mDrawableSnapshotForMask = NULL;
-  mMaskSnapshot = NULL;
+    mAnimations.clear();
+    mEmit->clearListeners();
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      (*it)->dispose();
+      (*it)->mParent = NULL;  // setParent mutates the mChildren collection
+    }
+    mChildren.clear();
+    clearSnapshot(mSnapshotRef);
+    clearSnapshot(mClipSnapshotRef);
+    clearSnapshot(mDrawableSnapshotForMask);
+    clearSnapshot(mMaskSnapshot);
+    mSnapshotRef = NULL;
+    mClipSnapshotRef = NULL;
+    mDrawableSnapshotForMask = NULL;
+    mMaskSnapshot = NULL;
 #ifdef ENABLE_RT_NODE
-  script.pump();
+    script.pump();
 #endif
+ }
 }
 
 /** since this is a boolean, we have to handle if someone sets it to
@@ -385,37 +487,33 @@ rtError pxObject::Set(const char* name, const rtValue* value)
   #ifdef PX_DIRTY_RECTANGLES
   mIsDirty = true;
   //mScreenCoordinates = getBoundingRectInScreenCoordinates();
-  
+
   #endif //PX_DIRTY_RECTANGLES
   if (strcmp(name, "x") != 0 && strcmp(name, "y") != 0 &&  strcmp(name, "a") != 0)
   {
     repaint();
   }
-  pxObject* parent = mParent;
-  while (parent)
-  {
-    parent->repaint();
-    parent = parent->parent();
-  }
+  repaintParents();
   mScene->mDirty = true;
   return rtObject::Set(name, value);
 }
 
-// TODO Cleanup animateTo methods... animateTo animateToP2 etc... 
+// TODO Cleanup animateTo methods... animateTo animateToP2 etc...
 rtError pxObject::animateToP2(rtObjectRef props, double duration,
-                              uint32_t interp, uint32_t animationType,
+                              uint32_t interp, uint32_t options,
                               int32_t count, rtObjectRef& promise)
 {
 
   if (!props) return RT_FAIL;
-  // TODO JR... not sure that we should do an early out here... thinking 
-  // we should still return a resolved promise given time... 
+
+  // TODO JR... not sure that we should do an early out here... thinking
+  // we should still return a resolved promise given time...
   // just going to get exceptions if you try to do a .then on the return result
   //if (!props) return RT_OK;
   // Default to Linear, Loop and count==1
-  if (!interp) {interp = pxConstantsAnimation::TWEEN_LINEAR;}
-  if (!animationType) {animationType = pxConstantsAnimation::OPTION_LOOP;}
-  if (!count) {count = 1;}
+  if (!interp)  { interp = pxConstantsAnimation::TWEEN_LINEAR;}
+  if (!options) {options = pxConstantsAnimation::OPTION_LOOP;}
+  if (!count)   {  count = 1;}
 
   promise = new rtPromise();
 
@@ -426,10 +524,49 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
     for (uint32_t i = 0; i < len; i++)
     {
       rtString key = keys.get<rtString>(i);
-      animateTo(key, props.get<float>(key), duration, interp, animationType, count,(i==0)?promise:rtObjectRef());
+      animateTo(key, props.get<float>(key), duration, interp, options, count,(i==0)?promise:rtObjectRef());
     }
   }
 
+  return RT_OK;
+}
+
+rtError pxObject::animateToObj(rtObjectRef props, double duration,
+                              uint32_t interp, uint32_t options,
+                              int32_t count, rtObjectRef& animateObj)
+{
+
+  if (!props) return RT_FAIL;
+  // TODO JR... not sure that we should do an early out here... thinking
+  // we should still return a resolved promise given time...
+  // just going to get exceptions if you try to do a .then on the return result
+  //if (!props) return RT_OK;
+  // Default to Linear, Loop and count==1
+
+  if (!interp)  {  interp = pxConstantsAnimation::TWEEN_LINEAR;}
+  if (!options) { options = pxConstantsAnimation::OPTION_LOOP; }
+  if (!count)   {   count = 1;}
+
+  rtObjectRef promise = new rtPromise();
+  animateObj = new pxAnimate(props, interp, (pxConstantsAnimation::animationOptions)options, duration, count, promise, this);
+  if (mIsDisposed)
+  {
+    promise.send("reject",this);
+    return RT_OK;
+  }
+
+  rtObjectRef keys = props.get<rtObjectRef>("allKeys");
+  if (keys)
+  {
+    uint32_t len = keys.get<uint32_t>("length");
+    for (uint32_t i = 0; i < len; i++)
+    {
+      rtString key = keys.get<rtString>(i);
+      animateToInternal(key, props.get<float>(key), duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp), (pxConstantsAnimation::animationOptions)options, count,(i==0)?promise:rtObjectRef(),animateObj);
+    }
+  }
+  if (NULL != animateObj.getPtr())
+    ((pxAnimate*)animateObj.getPtr())->setStatus(pxConstantsAnimation::STATUS_INPROGRESS);  
   return RT_OK;
 }
 
@@ -459,8 +596,12 @@ rtError pxObject::remove()
     {
       if ((it)->getPtr() == this)
       {
+        pxObject* parent = mParent;
         mParent->mChildren.erase(it);
         mParent = NULL;
+        parent->repaint();
+        parent->repaintParents();
+        mScene->mDirty = true;
         return RT_OK;
       }
     }
@@ -470,7 +611,14 @@ rtError pxObject::remove()
 
 rtError pxObject::removeAll()
 {
+  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  {
+    (*it)->mParent = NULL;
+  }
   mChildren.clear();
+  repaint();
+  repaintParents();
+  mScene->mDirty = true;
   return RT_OK;
 }
 
@@ -479,7 +627,7 @@ rtError pxObject::moveToFront()
   pxObject* parent = this->parent();
 
   if(!parent) return RT_OK;
-  
+
   remove();
   setParent(parent);
 
@@ -489,20 +637,19 @@ rtError pxObject::moveToFront()
 rtError pxObject::moveToBack()
 {
   pxObject* parent = this->parent();
-  
+
   if(!parent) return RT_OK;
-  
+
   remove();
   mParent = parent;
   std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
   parent->mChildren.insert(it, this);
 
-
   return RT_OK;
 }
 
 rtError pxObject::animateTo(const char* prop, double to, double duration,
-                             uint32_t interp, uint32_t animationType,
+                             uint32_t interp, uint32_t options,
                             int32_t count, rtObjectRef promise)
 {
   if (mIsDisposed)
@@ -511,7 +658,7 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
     return RT_OK;
   }
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
-            (pxConstantsAnimation::animationOptions)animationType, count, promise);
+            (pxConstantsAnimation::animationOptions)options, count, promise, rtObjectRef());
   return RT_OK;
 }
 
@@ -533,6 +680,8 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
     animation& a = (*it);
     if (!a.cancelled && a.prop == prop)
     {
+      pxAnimate* pAnimateObj = (pxAnimate*) a.animateObj.getPtr();
+      
       // Fastforward or rewind, if specified
       if( fastforward)
         set(prop, a.to);
@@ -547,10 +696,12 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
           a.ended.send(this);
         if (a.promise)
         {
-          if( resolve)
-            a.promise.send("resolve",this);
-          else
-            a.promise.send("reject",this);
+          a.promise.send(resolve ? "resolve" : "reject", this);
+          
+          if (NULL != pAnimateObj)
+          {
+            pAnimateObj->setStatus(pxConstantsAnimation::STATUS_CANCELLED);
+          }
         }
       }
 #if 0
@@ -563,6 +714,11 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
       }
 #endif
       a.cancelled = true;
+
+      if (NULL != pAnimateObj)
+      {
+        pAnimateObj->update(prop, &a, pxConstantsAnimation::STATUS_CANCELLED);
+      }
     }
     ++it;
   }
@@ -570,10 +726,11 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
 }
 
 void pxObject::animateToInternal(const char* prop, double to, double duration,
-                         pxInterp interp, pxConstantsAnimation::animationOptions at,
-                         int32_t count, rtObjectRef promise)
+                         pxInterp interp, pxConstantsAnimation::animationOptions options,
+                         int32_t count, rtObjectRef promise, rtObjectRef animateObj)
 {
-  cancelAnimation(prop,(at & pxConstantsAnimation::OPTION_FASTFORWARD), (at & pxConstantsAnimation::OPTION_REWIND), true);
+  cancelAnimation(prop,(options & pxConstantsAnimation::OPTION_FASTFORWARD),
+                       (options & pxConstantsAnimation::OPTION_REWIND), true);
 
   // schedule animation
   animation a;
@@ -584,15 +741,23 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
   a.to       = to;
   a.start    = -1;
   a.duration = duration;
-  a.interp   = interp?interp:pxInterpLinear;
-  a.at       = at;
+  a.interpFunc  = interp ? interp : pxInterpLinear;
+  a.options     = options;
   a.count    = count;
   a.actualCount = 0;
   a.reversing = false;
 //  a.ended = onEnd;
   a.promise = promise;
+  a.animateObj = animateObj;
 
   mAnimations.push_back(a);
+  
+  pxAnimate *animObj = (pxAnimate *)a.animateObj.getPtr();
+  
+  if (NULL != animObj)
+  {
+    animObj->update(prop, &a, pxConstantsAnimation::STATUS_INPROGRESS);
+  }
 
   // resolve promise immediately if this is COUNT_FOREVER
   if( count == pxConstantsAnimation::COUNT_FOREVER)
@@ -617,12 +782,15 @@ void pxObject::update(double t)
   while (it != mAnimations.end())
   {
     animation& a = (*it);
+
+    pxAnimate *animObj = (pxAnimate *)a.animateObj.getPtr();
+
     if (a.start < 0) a.start = t;
     double end = a.start + a.duration;
 
     // if duration has elapsed, increment the count for this animation
     if( t >=end && a.count != pxConstantsAnimation::COUNT_FOREVER
-        && !(a.at & pxConstantsAnimation::OPTION_OSCILLATE))
+        && !(a.options & pxConstantsAnimation::OPTION_OSCILLATE))
     {
         a.actualCount++;
         a.start  = -1;
@@ -645,10 +813,19 @@ void pxObject::update(double t)
         if (a.ended)
           a.ended.send(this);
         if (a.promise)
+        {
           a.promise.send("resolve",this);
-
+          if (NULL != animObj)
+          {
+            animObj->setStatus(pxConstantsAnimation::STATUS_ENDED);
+          }
+        }
         // Erase making sure to push the iterator forward before
         a.cancelled = true;
+        if (NULL != animObj)
+        {
+          animObj->update(a.prop, &a, pxConstantsAnimation::STATUS_ENDED);
+        }
         it = mAnimations.erase(it);
         continue;
       }
@@ -658,18 +835,25 @@ void pxObject::update(double t)
 
     if (a.cancelled)
     {
-      it = mAnimations.erase(it);
+      if (NULL != animObj)
+      {
+        animObj->update(a.prop, &a, pxConstantsAnimation::STATUS_CANCELLED);
+      }
+
+      it = mAnimations.erase(it);  // returns next element
       continue;
     }
 
     double t1 = (t-a.start)/a.duration; // Some of this could be pushed into the end handling
     double t2 = floor(t1);
     t1 = t1-t2; // 0-1
-    double d = a.interp(t1);
-    float from, to;
-    from = a.from;
-    to = a.to;
-    if (a.at & pxConstantsAnimation::OPTION_OSCILLATE)
+
+    double d = a.interpFunc(t1);
+    
+    float from = a.from;
+    float   to = a.to;
+
+    if (a.options & pxConstantsAnimation::OPTION_OSCILLATE)
     {
       if( (fmod(t2,2) != 0))  // TODO perf chk ?
       {
@@ -691,7 +875,18 @@ void pxObject::update(double t)
       // Prevent one more loop through oscillate
       if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
+        if (NULL != animObj)
+        {
+          animObj->setStatus(pxConstantsAnimation::STATUS_ENDED);
+        }
+
         cancelAnimation(a.prop, false, false, true);
+
+        if (NULL != animObj)
+        {
+          animObj->update(a.prop, &a, pxConstantsAnimation::STATUS_ENDED);
+        }
+
         it = mAnimations.erase(it);
         continue;
       }
@@ -703,6 +898,11 @@ void pxObject::update(double t)
     mCancelInSet = false;
     set(a.prop, v);
     mCancelInSet = true;
+
+    if (NULL != animObj)
+    {
+      animObj->update(a.prop, &a, pxConstantsAnimation::STATUS_INPROGRESS);
+    }
     ++it;
   }
 
@@ -1088,8 +1288,28 @@ bool pxObject::hitTest(pxPoint2f& pt)
   return (pt.x >= 0 && pt.y >= 0 && pt.x <= mw && pt.y <= mh);
 }
 
+rtError pxObject::setPainting(bool v)
+{
+  mPainting = v;
+  if (!mPainting)
+  {
+    //rtLogInfo("in setPainting and calling createSnapshot mw=%f mh=%f\n", mw, mh);
+#ifdef RUNINMAIN
+    createSnapshot(mSnapshotRef, false, true);
+#else
+    createSnapshot(mSnapshotRef, true, true);
+#endif //RUNINMAIN
+  }
+  else
+  {
+    clearSnapshot(mSnapshotRef);
+  }
+  return RT_OK;
+}
 
-void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext)
+
+void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext,
+                              bool antiAliasing)
 {
   pxMatrix4f m;
 
@@ -1110,9 +1330,9 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   //rtLogInfo("createSnapshot  w=%f h=%f\n", w, h);
   if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
   {
-    deleteSnapshot(fbo);
+    clearSnapshot(fbo);
     //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
-    fbo = context.createFramebuffer(floor(w), floor(h));
+    fbo = context.createFramebuffer(floor(w), floor(h), antiAliasing);
   }
   else
   {
@@ -1206,7 +1426,7 @@ void pxObject::createSnapshotOfChildren()
   context.setFramebuffer(previousRenderSurface);
 }
 
-void pxObject::deleteSnapshot(pxContextFramebufferRef fbo)
+void pxObject::clearSnapshot(pxContextFramebufferRef fbo)
 {
   if (fbo.getPtr() != NULL)
   {
@@ -1219,16 +1439,21 @@ void pxObject::deleteSnapshot(pxContextFramebufferRef fbo)
 bool pxObject::onTextureReady()
 {
   repaint();
+  repaintParents();
+  #ifdef PX_DIRTY_RECTANGLES
+  mIsDirty = true;
+  #endif //PX_DIRTY_RECTANGLES
+  return false;
+}
+
+void pxObject::repaintParents()
+{
   pxObject* parent = mParent;
   while (parent)
   {
     parent->repaint();
     parent = parent->parent();
   }
-  #ifdef PX_DIRTY_RECTANGLES
-  mIsDirty = true;
-  #endif //PX_DIRTY_RECTANGLES
-  return false;
 }
 
 rtDefineObject(rtPromise, rtObject);
@@ -1277,6 +1502,7 @@ rtDefineMethod(pxObject, releaseResources);
 rtDefineMethod(pxObject, animateToF2);
 #endif
 rtDefineMethod(pxObject, animateToP2);
+rtDefineMethod(pxObject, animateToObj);
 rtDefineMethod(pxObject, addListener);
 rtDefineMethod(pxObject, delListener);
 //rtDefineProperty(pxObject, emit);
@@ -1306,7 +1532,8 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top)
-  : start(0), sigma_draw(0), sigma_update(0), frameCount(0), mContainer(NULL), mShowDirtyRectangle(false), mTestView(NULL)
+  : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false), 
+    mInnerpxObjects(), mDirty(true), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1339,6 +1566,7 @@ pxScene2d::pxScene2d(bool top)
     checkForFpsMinOverride = false;
   }
 
+  mPointerHidden= false;
   #ifdef USE_SCENE_POINTER
   mPointerX= 0;
   mPointerY= 0;
@@ -1346,19 +1574,43 @@ pxScene2d::pxScene2d(bool top)
   mPointerH= 0;
   mPointerHotSpotX= 40;
   mPointerHotSpotY= 16;
-  mPointerHidden= false;
   mPointerResource= pxImageManager::getImage("cursor.png");
   #endif
+  
+  mInfo = new rtMapObject;
+  mInfo.set("version", xstr(PX_SCENE_VERSION));
+  
+    rtObjectRef build = new rtMapObject;
+    build.set("date", xstr(__DATE__));
+    build.set("time", xstr(__TIME__));
+  
+  mInfo.set("build", build);
+  mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
 }
 
 rtError pxScene2d::dispose()
 {
+    mDisposed = true;
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
+
+    for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
+    {
+      pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
+      if ((NULL != temp) && (NULL == temp->parent()))
+      {
+        temp->dispose();
+      }
+    }
+    mInnerpxObjects.clear();
+
     if (mRoot)
       mRoot->dispose();
     mEmit->clearListeners();
     mRoot = NULL;
+  
+    mInfo = NULL;
+  
     mFocusObj = NULL;
     pxFontManager::clearAllFonts();
     return RT_OK;
@@ -1390,6 +1642,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
   rtError e = RT_OK;
   rtString t = p.get<rtString>("t");
+  bool needpxObjectTracking = true;
 
   if (!strcmp("rect",t.cString()))
     e = createRectangle(p,o);
@@ -1404,9 +1657,20 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
   else if (!strcmp("imageA",t.cString()))
     e = createImageA(p,o);
   else if (!strcmp("imageResource",t.cString()))
+  {
     e = createImageResource(p,o);
+    needpxObjectTracking = false;
+  }
+  else if (!strcmp("imageAResource",t.cString()))
+  {
+    e = createImageAResource(p,o);
+    needpxObjectTracking = false;
+  }
   else if (!strcmp("fontResource",t.cString()))
+  {
     e = createFontResource(p,o);
+    needpxObjectTracking = false;
+  }
   else if (!strcmp("scene",t.cString()))
     e = createScene(p,o);
   else if (!strcmp("external",t.cString()))
@@ -1435,6 +1699,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     }
   }
 
+  if (needpxObjectTracking)
+    mInnerpxObjects.push_back((pxObject*)o.getPtr());
   return e;
 }
 
@@ -1497,7 +1763,17 @@ rtError pxScene2d::createImageA(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString url = p.get<rtString>("url");
-  o = pxImageManager::getImage(url);
+  rtString proxy = p.get<rtString>("proxy");
+  o = pxImageManager::getImage(url, proxy);
+  o.send("init");
+  return RT_OK;
+}
+
+rtError pxScene2d::createImageAResource(rtObjectRef p, rtObjectRef& o)
+{
+  rtString url = p.get<rtString>("url");
+  rtString proxy = p.get<rtString>("proxy");
+  o = pxImageManager::getImageA(url, proxy);
   o.send("init");
   return RT_OK;
 }
@@ -1505,7 +1781,8 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString url = p.get<rtString>("url");
-  o = pxFontManager::getFont(url);
+  rtString proxy = p.get<rtString>("proxy");
+  o = pxFontManager::getFont(url, proxy);
   return RT_OK;
 }
 
@@ -1521,7 +1798,12 @@ rtError pxScene2d::logDebugMetrics()
 {
   script.garbageCollect();
   rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+
+#ifdef PX_PLATFORM_MAC
+  rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
+#else
   rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+#endif
   return RT_OK;
 }
 
@@ -1549,8 +1831,15 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   UNUSED_PARAM(p);
   UNUSED_PARAM(o);
 
+  UNUSED_PARAM(gWaylandAppsConfigLoaded);
+
   return RT_FAIL;
 #else
+  if (false == gWaylandAppsConfigLoaded)
+  {
+    populateWaylandAppsConfig();
+    gWaylandAppsConfigLoaded = true;
+  }
   rtRef<pxWaylandContainer> c = new pxWaylandContainer(this);
   c->setView(new pxWayland(true));
   o = c.getPtr();
@@ -1824,6 +2113,11 @@ void pxScene2d::update(double t)
 pxObject* pxScene2d::getRoot() const
 {
   return mRoot;
+}
+
+rtObjectRef pxScene2d::getInfo() const
+{
+  return mInfo;
 }
 
 void pxScene2d::onComplete()
@@ -2323,8 +2617,8 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
     if (pxStorePNGImage(o, pngData2) == RT_OK)
     {
 
-//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
-//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 #if 0
     FILE *myFile = fopen("/mnt/nfs/env/snap.png", "wb");
     if( myFile != NULL)
@@ -2332,10 +2626,10 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
       fwrite( pngData2.data(), sizeof(char), pngData2.length(),myFile);
       fclose(myFile);
     }
-#endif    
-//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
-//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK 
-    
+#endif
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
+//HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
+
       size_t l;
       char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
       if (d)
@@ -2375,8 +2669,31 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
     return RT_OK;
 }
 
+rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
+{
+  rtLogInfo("trying to get service for name: %s", name.cString());
+#ifdef PX_SERVICE_MANAGER
+  rtObjectRef serviceManager;
+  rtError result = pxServiceManager::findServiceManager(serviceManager);
+  if (result != RT_OK)
+  {
+    rtLogWarn("service manager not found");
+    return result;
+  }
+  result = serviceManager.sendReturns<rtObjectRef>("createService", name, returnObject);
+  rtLogInfo("create %s service result: %d", name.cString(), result);
+  return result;
+#else
+  rtLogInfo("service manager not supported");
+  (void)name;
+  (void)returnObject;
+  return RT_FAIL;
+#endif //PX_SERVICE_MANAGER
+}
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
+rtDefineProperty(pxScene2d, info);
 rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
@@ -2393,6 +2710,7 @@ rtDefineMethod(pxScene2d, screenshot);
 
 rtDefineMethod(pxScene2d, clipboardGet);
 rtDefineMethod(pxScene2d, clipboardSet);
+rtDefineMethod(pxScene2d, getService);
 
 rtDefineMethod(pxScene2d, loadArchive);
 rtDefineProperty(pxScene2d, ctx);
@@ -2446,7 +2764,10 @@ void RT_STDCALL testView::onDraw()
 
 void pxViewContainer::invalidateRect(pxRect* r)
 {
-  mScene->mDirty = true;
+  if (mScene)
+  {
+    mScene->mDirty = true;
+  }
   repaint();
   pxObject* parent = this->parent();
   while (parent)
@@ -2461,7 +2782,7 @@ void pxViewContainer::invalidateRect(pxRect* r)
     mScene->invalidateRect(&screenRect);
 #else
     mScene->invalidateRect(NULL);
-    UNUSED_PARAM(r);    
+    UNUSED_PARAM(r);
 #endif //PX_DIRTY_RECTANGLES
   }
 }
@@ -2475,7 +2796,7 @@ void pxScene2d::invalidateRect(pxRect* r)
     mDirty = true;
   }
 #else
-  UNUSED_PARAM(r); 
+  UNUSED_PARAM(r);
 #endif //PX_DIRTY_RECTANGLES
   if (mContainer && !mTop)
   {
@@ -2484,6 +2805,24 @@ void pxScene2d::invalidateRect(pxRect* r)
 #else
     mContainer->invalidateRect(NULL);
 #endif //PX_DIRTY_RECTANGLES
+  }
+}
+
+void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
+{
+  // this is to make sure, we are not clearing the rtobject references, while it is under process from scene dispose
+  if (!mDisposed)
+  {
+    unsigned int pos = 0;
+    for (; pos<mInnerpxObjects.size(); pos++)
+    {
+      if (mInnerpxObjects[pos] == ref)
+        break;
+    }
+    if (pos != mInnerpxObjects.size())
+    {
+      mInnerpxObjects.erase(mInnerpxObjects.begin()+pos);
+    }
   }
 }
 
@@ -2549,7 +2888,7 @@ rtError pxSceneContainer::ready(rtObjectRef& o) const
   if (mScriptView) {
     rtLogInfo("mScriptView is set!\n");
     return mScriptView->ready(o);
-  } 
+  }
   rtLogInfo("mScriptView is NOT set!\n");
   return RT_FAIL;
 }
@@ -2560,6 +2899,22 @@ rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
   setView(scriptView);
   return RT_OK;
 }
+
+void pxSceneContainer::dispose()
+{
+  if (!mIsDisposed)
+  {
+    rtLogInfo(__FUNCTION__);
+    //Adding ref to make sure, object not destroyed from event listeners
+    AddRef();
+    mScene->innerpxObjectDisposed(this);
+    setScriptView(NULL);
+    pxObject::dispose();
+    Release();
+  }
+}
+
+
 #if 0
 void* gObjectFactoryContext = NULL;
 objectFactory gObjectFactory = NULL;
@@ -2575,22 +2930,41 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
-pxScriptView::pxScriptView(const char* url, const char* /*lang*/) 
+pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
      : mWidth(-1), mHeight(-1), mViewContainer(NULL), mRefCount(0)
-{ 
+{
   rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
-  mUrl = url;
 #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   mReady = new rtPromise();
  // mLang = lang;
   rtLogDebug("pxScriptView::pxScriptView() exiting\n");
 }
 
-void pxScriptView::runScript() 
+void pxScriptView::runScript()
 {
   rtLogInfo(__FUNCTION__);
 #endif // ifndef RUNINMAIN
+
+// escape url begin
+  string escapedUrl;
+  string origUrl = url;
+  for (string::iterator it=origUrl.begin(); it!=origUrl.end(); ++it)
+  {
+    char currChar = *it;
+    if ((currChar == '"') || (currChar == '\\'))
+    {
+      escapedUrl.append(1, '\\');
+    }
+    escapedUrl.append(1, currChar);
+  }
+  mUrl = escapedUrl.c_str();
+  if (mUrl.length() > MAX_URL_SIZE)
+  {
+    rtLogWarn("url size greater than 8000 bytes, so restting url to empty");
+    mUrl = "";
+  }
+// escape url end
 
   #ifdef ENABLE_RT_NODE
   rtLogWarn("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
@@ -2611,12 +2985,28 @@ void pxScriptView::runScript()
 #endif
     mCtx->runFile("init.js");
 
-    char buffer[1024];
-#ifdef RUNINMAIN
-    sprintf(buffer, "loadUrl(\"%s\");", url);
-#else
-    sprintf(buffer, "loadUrl(\"%s\");", mUrl.cString());
+    char buffer[MAX_URL_SIZE + 50];
+    memset(buffer, 0, sizeof(buffer));
+    snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
     rtLogWarn("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
+#ifdef WIN32 // process \\ to /
+		unsigned int bufferLen = strlen(buffer);
+		char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));
+		unsigned int newBufferLen = 0;
+		for (int i = 0; i < bufferLen - 1; i++) {
+			if (buffer[i] == '\\') {
+				newBuffer[newBufferLen++] = '/';
+				if (buffer[i + 1] == '\\') {
+					i = i + 1;
+				}
+			}
+			else {
+				newBuffer[newBufferLen++] = buffer[i];
+			}
+		}
+		newBuffer[newBufferLen++] = '\0';
+		strcpy(buffer, newBuffer);
+		free(newBuffer);
 #endif
     mCtx->runScript(buffer);
     rtLogInfo("pxScriptView::runScript() ending\n");
@@ -2698,23 +3088,27 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
 
     if (numArgs >= 1)
     {
+      bool success = false;
       if (args[0].toBool())
       {
         if (numArgs >= 2)
         {
           v->mApi = args[1].toObject();
         }
-
-        v->mReady.send("resolve", v->mApi);
+        success = true;
+        v->mReady.send("resolve", v->mScene);
       }
       else
       {
+        success = false;
         v->mReady.send("reject", new rtObject); // TODO JRJR  Why does this fail if I leave the argment as null...
       }
+
+      rtValue urlValue(v->mUrl);
+      mEmit.send("onSceneReady", v->mScene, urlValue, success);
 
       return RT_OK;
     }
   }
   return RT_FAIL;
 }
-

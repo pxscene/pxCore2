@@ -1,493 +1,198 @@
-px.import({ scene: 'px:scene.1.js',
-             keys: 'px:tools.keys.js'
+
+px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
+
+
+px.import({ scene:      'px:scene.1.js',
+             keys:      'px:tools.keys.js',
+             EditBox: 'browser:editbox.js'
 }).then( function importsAreReady(imports)
-{
+{  
+  var url   = "";
+  var helpShown = false;
+
   var scene = imports.scene;
   var keys  = imports.keys;
   var root  = imports.scene.root;
 
-  var urlFocusColor = 0x303030ff;
+  var urlFocusColor     = 0x303030ff;
   var urlSucceededColor = 0x0c8508ff;
-  var urlFailedColor = 0xde0700ff;
+  var urlFailedColor    = 0xde0700ff;
 
-  var pts      = 24;
-  var bg       = scene.create({t:"image",url:"./images/status_bg.png",parent:root,stretchX:scene.stretch.STRETCH,stretchY:scene.stretch.STRETCH});
-  var fontRes  = scene.create({t:"fontResource",url:"FreeSans.ttf"});
-  var inputRes = scene.create({t:"imageResource",url:"./images/input2.png"});
-  var inputBg  = scene.create({t:"image9",resource:inputRes,a:0.9,x:10,y:10,w:400,insetLeft:10,insetRight:10,insetTop:10,insetBottom:10,parent:bg});
-  var spinner  = scene.create({t:"image",url:"./images/spinningball2.png",cx:50,cy:50,y:-30,parent:inputBg,sx:0.3,sy:0.3,a:0});
-  var prompt   = scene.create({t:"text",text:"Enter Url to JS File or Package",font:fontRes, parent:inputBg,pixelSize:pts,textColor:0x869CB2ff,x:10,y:2});
-  var url      = scene.create({t:"text",text:"",font:fontRes, parent:inputBg,pixelSize:pts,textColor:urlFocusColor,x:10,y:2});
-  var cursor   = scene.create({t:"rect", w:2, h:inputBg.h-10, parent:inputBg,x:10,y:5});
-  var alert    = scene.create({t:"rect", w:inputBg.w, h:inputBg.h, parent:bg,x:0,y:0, fillColor:0xFF000088});
+  var myStretch = scene.stretch.STRETCH;
 
-  spinner.animateTo({r:360},1.0, scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP,scene.animation.COUNT_FOREVER);
-  cursor.animateTo({a:0},0.5,   scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE,scene.animation.COUNT_FOREVER);
+  var fontRes   = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
 
-  var contentBG = scene.create({t:"rect", x:10,y:60,parent:bg,fillColor:0xffffffff,a:0.05,draw:false});
-  var content   = scene.create({t:"scene",x:10,y:60,parent:bg,clip:true});
+  var bg        = scene.create({t:"image", parent: root, url:"browser/images/status_bg.png", stretchX: myStretch, stretchY: myStretch});
+  var contentBG = scene.create({t:"rect",  parent: bg, x:10, y:60, fillColor: 0xffffffff, a: 0.05, draw: false});
+  var content   = scene.create({t:"scene", parent: bg, x:10, y:60, clip:true});
+  var spinner   = scene.create({t:"image", url:"browser/images/spinningball2.png",cx:50,cy:50,y:-80,parent:bg,sx:0.3,sy:0.3,a:0.0});
+   
+  var inputBox = new imports.EditBox( { parent: bg, url: "browser/images/input2.png", x: 10, y: 10, w: 800, h: 35, pts: 24 });
+  var helpBox   = null;
 
-  var cursor_pos = 0;
 
-  var selection       = scene.create({t:"rect", w:2, h:inputBg.h-10, parent:inputBg, fillColor:0xFCF2A488, x:10,y:5});
-  var selection_x     = 0;
-  var selection_start = 0;
-  var selection_chars = 0; // number of characters selected  (-)ive is LEFT of cursor start position
-  var selection_text  = "";
-
-  alert.a = 0.0;
-
-  inputBg.moveToFront();
-  url.moveToFront();
-
-  inputBg.on("onChar",function(e)
+  function reload(u)
   {
-    //console.log("#######  onChar ....  cursor_pos = " + cursor_pos);
-             
-    if (e.charCode == keys.ENTER)  // <<<  ENTER KEY
-      return;
+    if (!u)
+      u = inputBox.text;
+    else
+      inputBox.text = u;
 
-    if(selection_chars != 0)
+    if (u.indexOf("local:") === 0) // LOCAL shorthand
     {
-      removeSelection(); // overwrote selection
+      var txt = u.slice(6, u.length);
+      var pos = txt.indexOf(':');
+      if ( pos == -1)
+      {
+        u = "http://localhost:8080/" + txt;   // SHORTCUT:   "local:filename.js""  >>  "http://localhost:8080/filename.js" (default to 8080)
+      }
+      else
+      {
+        var str = txt.split('');
+        str[pos] = "/"; // replace : with /
+        txt = str.join('');
+
+        u = "http://localhost:" + txt;       // SHORTCUT:   "local:8081:filename.js" >> "http://localhost:8081/filename.js""
+      }
+
+      url = u;
     }
-    // TODO should we be getting an onChar event for backspace
-    if (e.charCode != keys.BACKSPACE)
+
+    // TODO Temporary hack
+    if(u == "about.js")
     {
-      // insert character
-      url.text = url.text.slice(0, cursor_pos) + String.fromCharCode(e.charCode) + url.text.slice(cursor_pos);
-
-      prompt.a = (url.text)?0:1; // show/hide placeholder
-
-      cursor_pos += 1; // inserted 1 character
-
-      updateCursor(cursor_pos);
+        u = "about.js";
     }
-});
+    else        
+    if (u.indexOf(':') == -1)
+    {
+      u = 'http://www.pxscene.org/examples/px-reference/gallery/' + u;
+      //  inputBox.text = u;
+    }
 
+    console.log("RELOADING.... [ " + u + " ]");
 
-function reload(u) {
+    // Prime the Spinner !
+    inputBox.doLater( function() { spinner.a = 1.0; }, 1500 ); // 1500 ms
 
-  spinner.a = 1;
-  if (!u)
-    u = url.text;
-  else
-    url.text = u;
+    if(false)
+    {
+      // DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
+      setTimeout(function delayLoadURL() { // Simulate latency in URL loading
 
-  // Remove Leading/Trailing whitespace...
-  u.trim();
-  url.text.trim();
-  
-  console.log("RELOADING.... [ " + u + " ]");
+          content.url = u;
+          inputBox.cancelLater( function() { spinner.a = 0;} );
+      }, 3000);
+      // DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
+    }
+    else
+    {
+      content.url = u;
+    }
 
-  if (u.indexOf("local:") == 0) // LOCAL shorthand
+    inputBox.focus = false;
+
+    if (true)
+    {
+      content.ready.then(
+        function(o)
+        {
+          console.log(o);
+          contentBG.draw = true;
+          content.focus = true;
+
+          inputBox.textColor = urlSucceededColor;
+                         
+          inputBox.hideCursor();
+          inputBox.cancelLater( function() { spinner.a = 0;} );
+        },
+        function()
+        {
+          contentBG.draw = false;
+
+          inputBox.textColor = urlFailedColor;
+
+          content.focus = false;
+          inputBox.focus = true;
+                         
+          inputBox.showCursor();
+          inputBox.cancelLater( function() { spinner.a = 0;} );
+        }
+      );
+    }
+  }//reload()
+
+//##################################################################################################################################
+
+  content.on("onMouseUp", function(e)
   {
-     var txt = u.slice(6, u.length);
-     var pos = txt.indexOf(':')
-     if ( pos == -1)
-     {
-       u = "http://localhost:8080/" + txt;   // SHORTCUT:   "local:filename.js""  >>  "http://localhost:8080/filename.js" (default to 8080)
-     }
-     else
-     {
-       var str = txt.split('');
-       str[pos] = "/"; // replace : with /
-       txt = str.join('');
+    inputBox.focus = false;
+    content.focus=true;
+  });  
 
-       u = "http://localhost:" + txt;       // SHORTCUT:   "local:8081:filename.js" >> "http://localhost:8080/filename.js""
-     }
+  function updateSize(w,h)
+  {
+    // console.log("Resizing...");
 
-     url.text = u;
+    bg.w = w;
+    bg.h = h;
+
+    // Apply insets
+    content.w   = w - 20;
+    content.h   = h - 70;
+
+    contentBG.w = w - 20;
+    contentBG.h = h - 70;  
+
+    inputBox.w  = w - 20;
+
+    helpBox.x   = inputBox.x;
+    helpBox.y   = inputBox.y + 20;
+
+    spinner.x   = inputBox.x + inputBox.w - 60;
+    spinner.y  = inputBox.y - inputBox.h;
   }
 
-  // TODO Temporary hack
-  if (u.indexOf(':') == -1)
-    u = 'http://www.pxscene.org/examples/px-reference/gallery/' + u;
-
-  content.url = u;
-  //scene.setFocus(content);
-  content.focus = true;
-  if (true)
+  scene.root.on("onPreKeyDown", function(e)
   {
-    content.ready.then(
+    if(keys.is_CTRL( e.flags ))
+    {
+      if (e.keyCode == keys.L )
+      {
+      inputBox.focus = true;
+      inputBox.selectAll();
+
+      e.stopPropagation();
+      }
+    }
+  });
+
+  function showHelp(delay_ms)
+  {
+    helpBox.animateTo({ a: 1.0  }, 0.75, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_FASTFORWARD, 1).then
+    (
       function(o) {
-        spinner.a = 0;
-        console.log(o);
-        contentBG.draw = true;
-
-        url.textColor = urlSucceededColor;
-      },
-      function() {
-        spinner.a = 0;
-        contentBG.draw = false;
-
-        url.textColor = urlFailedColor;
+        helpShown = true;
+        hideHelp(delay_ms);  // auto hide
       }
     );
   }
-}
 
-inputBg.on("onKeyDown", function(e)
-{
-  var code  = e.keyCode;
-  var flags = e.flags;
-
-  console.log("#######  onKeyDown ....  cursor_pos = " + cursor_pos);
-
-  switch(code)
+  function hideHelp(delay_ms)
   {
-    case keys.BACKSPACE:
+      setTimeout(function()
       {
-        console.log("BACKSPACE " + url.text);
-
-        var s = url.text.slice();
-
-        if(selection_chars == 0)
-        {
-           var before_cursor = s.slice(0,cursor_pos - 1);
-           var  after_cursor = s.slice(cursor_pos);
-
-           url.text = before_cursor + after_cursor;
-
-           if(cursor_pos > 0) cursor_pos--;
-        }
-        else
-        {
-           removeSelection();  // Delete selection
-        }
-
-        prompt.a = (url.text)?0:1; // show/hide placeholder
-
-      }
-      break;
-
-    case keys.ENTER:
-      // Trim leading + trailing whitespace
-      url.text = url.text.trim();
-      moveToEnd();
-      reload();
-      break;
-
-    case keys.HOME:
-      if(keys.is_SHIFT( e.flags )) // <<  SHIFT KEY
-      {
-        selectToHome();
-      }
-      else
-      {
-        moveToHome();
-      }
-      break;
-
-    case keys.END:
-      if(keys.is_SHIFT( e.flags )) // <<  SHIFT KEY
-      {
-        selectToEnd();
-      }
-      else
-      {
-        moveToEnd();
-      }
-      break;
-
-    case keys.LEFT:
-      if(cursor_pos > 0)
-      {
-        if(keys.is_CTRL( e.flags ) || keys.is_CMD( e.flags ) ) // <<  CTRL KEY
-        {
-          moveToHome();
-        }
-        else
-        if(keys.is_CTRL_SHIFT( e.flags ) || keys.is_CMD_SHIFT( e.flags ) ) // <<  CTRL + SHIFT KEY
-        {
-          selectToHome();
-        }
-        else
-        {
-          if(keys.is_SHIFT( e.flags )) // <<  SHIFT KEY
-          {
-            if(selection_chars == 0) // New selection ?
-            {
-              selection_start = cursor_pos;
-              selection_x     = cursor.x + cursor.w; // Start selection
-            }
-            selection_chars--;
-
-            makeSelection();
-          }
-
-          cursor_pos--;
-        }
-      }
-
-      if(flags != 8 && !keys.is_CTRL_SHIFT( e.flags ) && !keys.is_CMD_SHIFT( e.flags ) && selection.w != 0)
-      {
-        clearSelection();
-      }
-      break;
-
-    case keys.RIGHT:
-      if(cursor_pos < url.text.length)
-      {
-        if(keys.is_CTRL( e.flags ) || keys.is_CMD( e.flags ) ) // <<  CTRL KEY
-        {
-           moveToEnd();
-        }
-        else
-        if(keys.is_CTRL_SHIFT( e.flags ) || keys.is_CMD_SHIFT( e.flags ) ) // <<  CTRL + SHIFT KEY
-        {
-          selectToEnd();
-        }
-        else
-        {
-          if(keys.is_SHIFT( e.flags )) // <<  SHIFT KEY
-          {
-            if(selection_chars == 0) // New selection ?
-            {
-              selection_start = cursor_pos - 1;
-              selection_x     = cursor.x + cursor.w; // Start selection
-            }
-            selection_chars++;
-
-            makeSelection();
-          }
-
-          cursor_pos++;
-        }
-      }
-
-      if(flags != 8 && !keys.is_CTRL_SHIFT( e.flags ) && !keys.is_CMD_SHIFT( e.flags ) && selection.w != 0)
-      {
-        clearSelection();
-      }
-      break;
-
-     case keys.C:   // << CTRL + "c"
-      if( keys.is_CTRL( e.flags ) )  // ctrl Pressed also
-      {
-//         console.log("onKeyDown ....   CTRL-C >>> [" + selection_text + "]");
-
-         scene.clipboardSet('PX_CLIP_STRING', selection_text);
-      }
-    break;
-
-    case keys.V:   // << CTRL + "v"
-      if( keys.is_CTRL( e.flags ) )  // ctrl Pressed also
-      {
-        // On PASTE ... access the Native CLIPBOARD and GET the top!   fancy.js
-        //
-        var fromClip = scene.clipboardGet('PX_CLIP_STRING'); // TODO ... pass TYPE of clip to get.
-
-//        console.log("onKeyDown ....   CTRL-V >>> [" + fromClip + "]");
-
-        url.text = url.text.slice(0, cursor_pos) + fromClip + url.text.slice(cursor_pos);
-
-        prompt.a  = (url.text)?0:1;
-        cursor.x  = url.x + url.w;
-
-        cursor_pos+= fromClip.length;
-
-        clearSelection();
-      }
-      break;
-
-    case keys.X:   // << CTRL + "x"
-      if( keys.is_CTRL( e.flags ) )  // ctrl Pressed also
-      {
-        // On CUT ... access the Native CLIPBOARD and GET the top!   fancy.js
-        //
-//        console.log("onKeyDown ....   CTRL-X >>> [" + selection_text + "]");
-        scene.clipboardSet('PX_CLIP_STRING', selection_text);
-
-        removeSelection();
-      }
-      break;
-
-      case 0: // zero value
-       break; // only a modifer key ? Ignore
-
-      default:
-        // prompt.a = (url.text)?0:1;
-        // cursor.x = url.x + url.w;
-        break;
-  } // SWITCH
-
-  updateCursor(cursor_pos);
-});
-
-
-function updateCursor(pos)
-{
-  var       s = url.text.slice();
-  var    snip = s.slice(0, pos); // measure characters to the left of cursor
-  var metrics = fontRes.measureText(pts, snip);
-
-  cursor.x = url.x + metrics.w; // offset to cursor
-
-  //console.log("updateCursor() >>> pos = " + pos);
-}
-
-function clearSelection()
-{
-  selection_text  = "";
-  selection_start = 0;
-  selection_chars = 0;
-
-  selection.x = 0;
-  selection.w = 0;
-}
-
-function removeSelection()
-{
-  url.text = url.text.replace(selection_text,'');
-
-  if(selection_chars > 0)
-  {
-    cursor_pos -= selection_text.length;
+          helpBox.animateTo({ a: 0 }, 0.75, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_FASTFORWARD, 1).then
+          (
+            function(o) { helpShown = false; }
+          )
+      }, delay_ms);
   }
 
-  updateCursor(cursor_pos);
-  clearSelection();
-
-  prompt.a = (url.text)?0:1; // show/hide placeholder
-}
-
-function makeSelection()  // Selection made: left-to-right
-{
-  var start = selection_start + 1;
-  var end   = selection_chars + start;
-
-  if(selection_chars < 0) // Selection made: right-to-left
-  {
-    end   = start - 1;  // original start is end .. left-to-right
-    start = start + selection_chars - 1;
-  }
-
-  var          s = url.text.slice();
-  selection_text = s.slice(start, end); // measure characters up to cursor
-  var metrics = fontRes.measureText(pts, selection_text);
-
-  console.log("makeSelection() >>>  s: "+start+"  e: "+end+" selection_text = [" + selection_text + "]");
-
-  selection.x = selection_x;
-  selection.w = metrics.w;
-
-  if(selection_chars < 0) // selecting towards LEFT
-  {
-    selection.x -= metrics.w;
-  }
-}
-
-function moveToHome()
-{
-  console.log("moveToHome() - ENTER");
-
-  cursor_pos = 0;
-
-  clearSelection();
-}
-
-function selectToHome()
-{
-  // Select from Cursor to End
-  if(selection_chars == 0)
-  {
-    selection_start = cursor_pos; // new selection
-    selection_x     = cursor.x + cursor.w; // Extend selection
-  }
-
-  selection_chars += -cursor_pos;  // characters to the LEFT
-
-  makeSelection();
-
-  cursor_pos = 0;
-}
-
-function moveToEnd()
-{
-  cursor_pos = url.text.length;
-
-  clearSelection();
-}
-
-function selectToEnd()
-{
-  // Select from Cursor to Start
-  if(selection_chars == 0)
-  {
-    selection_start = cursor_pos - 1;
-    selection_x     = cursor.x + cursor.w; // Start selection
-  }
-
-  selection_chars += (url.text.length - cursor_pos); // characters to the RIGHT
-
-  makeSelection();
-
-  cursor_pos = url.text.length;
-}
-
-inputBg.on("onFocus", function(e) {
-  cursor.draw = true;
-  clearSelection();
-
-  cursor_pos = url.text.length;
-  updateCursor(cursor_pos);
-
-  url.textColor = urlFocusColor;
-});
-
-inputBg.on("onBlur", function(e) {
-  cursor.draw = false;
-});
-
-inputBg.on("onMouseUp", function(e) {
-  inputBg.focus = true;
-});
-
-content.on("onMouseUp", function(e) {
-  content.focus=true;
-});
-
-function updateSize(w,h) {
-  bg.w = w;
-  bg.h = h;
-
-  inputBg.w = w-20;
-  spinner.x = w-100;
-  content.w = w-20;
-  content.h = h-70;
-
-  contentBG.w = w-20;
-  contentBG.h = h-70;
-
-  alert.x = 0;
-  alert.y = 0;
-
-  alert.w = w;
-  alert.h = h;
-}
-
-scene.root.on("onPreKeyDown", function(e) {
-  if (e.keyCode == keys.L && keys.is_CTRL( e.flags )) { // ctrl-l
-    //console.log("api:"+content.api);
-//    if (content.api) content.api.test(32);
-    //scene.setFocus(inputBg);
-    inputBg.focus = true;
-    url.text = "";
-    // TODO cursor_pos handling a bit weak overall
-    cursor_pos = 0;    
-    prompt.a = (url.text)?0:1;
-    cursor.x = 10;
-    e.stopPropagation();
-  }
-});
-
-
-if (true) {
   scene.root.on("onKeyDown", function(e)
   {
     var code = e.keyCode; var flags = e.flags;
-    console.log("onKeyDown browser.js  >> code: " + code + " key:" + keys.name(code) + " flags: " + flags);
+   // console.log("onKeyDown browser.js  >> code: " + code + " key:" + keys.name(code) + " flags: " + flags);
 
     if( keys.is_CTRL_ALT( flags ) ) // CTRL-ALT keys !!
     {
@@ -498,6 +203,12 @@ if (true) {
         e.stopPropagation();
         console.log("Browser.js reload done");
       }
+      else if (code == keys.A)  //  CTRL-ALT-A
+      {
+        console.log("about.js Loading about");
+        reload("about.js");
+        e.stopPropagation();
+      }
       else if (code == keys.H)  //  CTRL-ALT-H
       {
         var homeURL = "browser.js";
@@ -505,45 +216,69 @@ if (true) {
         reload("gallery.js");
         e.stopPropagation();
       }
-    }
-/*
-    else if (inputBg.focus == false && flags == 0)
-    {
-      if(code != keys.ENTER)
+      else
+      if(e.keyCode == keys.K)  //  CTRL-ALT-K
       {
-      noFocusKeys();
-      }
+        helpShown ? hideHelp(0) : showHelp(4500); // Hide / Show
+      
+        e.stopPropagation();
     }
-*/
-  });
-}
-
-function noFocusKeys()
-{
-  // See  XRE2-204 ...
-  if(true)
-  {
-    alert.a = 0; // SHOULD NOT BE NEEDED
-    alert.animateTo({a:0.75},0.125, scene.animation.TWEEN_LINEAR,scene.animation.OPTION_OSCILLATE | scene.animation.FASTFORWARD, 2);
-  }
-  else
-  {
-    // MANUAL VERSION OF "OSCILLATE" ... INTERRUPTIONS ARE HANDLED CORRECTLY BY FASTFORWARD
-    alert.animateTo({a:0.5},0.125, scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP | scene.animation.FASTFORWARD, 1).then(function()
+    }
+    else
+    if( code == keys.ENTER)
     {
-      alert.animateTo({a:0},0.125, scene.animation.TWEEN_LINEAR,scene.animation.OPTION_LOOP | scene.animation.FASTFORWARD,1);
-    });
-  }
-}
+      url = inputBox.text;
+      inputBox.moveToEnd();
 
+      reload(url);
+     }
+     else
+     {
+       inputBox.textColor = urlFocusColor;
+       inputBox.showCursor();
+     }
+  });
 
+  scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 
-scene.on("onResize", function(e) { updateSize(e.w,e.h); });
-updateSize(scene.w,scene.h);
+  Promise.all([inputBox, bg, spinner, content, fontRes])
+      .catch( (err) => 
+      {
+          console.log(">>> Loading Assets ... err = " + err);
+      })
+      .then( (success, failure) =>
+      {
+        inputBox.focus = true;
+        spinner.animateTo({r:360},1.0, scene.animation.TWEEN_LINEAR,
+                                       scene.animation.OPTION_LOOP,
+                                       scene.animation.COUNT_FOREVER);
 
-//scene.setFocus(inputBg);
-inputBg.focus = true;
+        helpBox = scene.create({t:"textBox", parent: bg, textColor: 0x202020ff,
+                                      x: 20, y: 100,  w: 350, h: 520, a: 0.0,
+                                      font: fontRes, pixelSize: 14, wordWrap: true,
+                                      interactive: false,  // <<< Essential !
+                                      text: " BROWSER: \n\n"+
+                                            "  CTRL-ALT-K        ...  Show Keys \n" +
+                                            "\n"+
+                                            "  CTRL-ALT-A        ...  Show About.js \n" +
+                                            "  CTRL-ALT-R        ...  Reload URL \n" +
+                                            "  CTRL-ALT-H        ...  Load 'Browser.js' \n\n" +
+                                            " SHELL:   \n\n"+
+                                            "  CTRL-ALT-D        ...  Toggle Dirty Rectangles \n" +
+                                            "  CTRL-ALT-O        ...  Toggle Outlines \n" +
+                                            "  CTRL-ALT-S        ...  Screenshot > screenshot.png \n" +
+                                            "  CTRL-ALT-Y        ...  Toggle FPS \n" +
+                                            "\n"+
+                                            "  CTRL-ALT-SHIFT-H  ...  Log Debug Metrics \n" +
+                                            "  CTRL-ALT-SHIFT-H  ...  Reload HOME \n" +
+                                            "  CTRL-ALT-SHIFT-R  ...  Reload BROWSER \n",
+                                      alignHorizontal: scene.alignHorizontal.LEFT,
+                                      alignVertical:   scene.alignVertical.CENTER})
+
+        updateSize(scene.w, scene.h);
+      });
+
 }).catch( function importFailed(err){
-  console.error("Import failed for browser.js: " + err)
+  console.error("Import failed for browser.js: " + err);
 });
 

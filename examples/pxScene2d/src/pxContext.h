@@ -41,6 +41,8 @@
 #define MAX_TEXTURE_WIDTH  2048
 #define MAX_TEXTURE_HEIGHT 2048
 
+#define DEFAULT_EJECT_TEXTURE_AGE 5
+
 #ifndef ENABLE_DFB
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (65 * 1024 * 1024)   // GL
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES (5 * 1024 * 1024)
@@ -54,7 +56,7 @@
 class pxContext {
  public:
 
-  pxContext(): mShowOutlines(false), mCurrentTextureMemorySizeInBytes(0), mTextureMemoryLimitInBytes(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES) {}
+  pxContext(): mShowOutlines(false), mCurrentTextureMemorySizeInBytes(0), mTextureMemoryLimitInBytes(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES), mEjectTextureAge(DEFAULT_EJECT_TEXTURE_AGE) {}
   ~pxContext();
 
   void init();
@@ -78,7 +80,7 @@ class pxContext {
   void pushState();
   void popState();
 
-  pxContextFramebufferRef createFramebuffer(int width, int height);
+  pxContextFramebufferRef createFramebuffer(int width, int height, bool antiAliasing=false);
   pxError updateFramebuffer(pxContextFramebufferRef fbo, int width, int height);
   pxError setFramebuffer(pxContextFramebufferRef fbo);
   pxContextFramebufferRef getCurrentFramebuffer();
@@ -99,7 +101,8 @@ class pxContext {
   void drawImage(float x, float y, float w, float h, pxTextureRef t,
                  pxTextureRef mask, bool useTextureDimsAlways = true, float* color = NULL,
                  pxConstantsStretch::constants xStretch = pxConstantsStretch::STRETCH,
-                 pxConstantsStretch::constants yStretch = pxConstantsStretch::STRETCH );
+                 pxConstantsStretch::constants yStretch = pxConstantsStretch::STRETCH,
+                 bool downscaleSmooth = false);
 
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxTextureRef texture);
@@ -112,12 +115,16 @@ class pxContext {
   void setTextureMemoryLimit(int64_t textureMemoryLimitInBytes);
   bool isTextureSpaceAvailable(pxTextureRef texture);
   int64_t currentTextureMemoryUsageInBytes();
+  int64_t textureMemoryOverflow(pxTextureRef texture);
+  int64_t ejectTextureMemory(int64_t bytesRequested, bool forceEject=false);
+  pxError setEjectTextureAge(uint32_t age);
   pxError enableInternalContext(bool enable);
 
 private:
   bool mShowOutlines;
   int64_t mCurrentTextureMemorySizeInBytes;
   int64_t mTextureMemoryLimitInBytes;
+  uint32_t mEjectTextureAge;
 };
 
 

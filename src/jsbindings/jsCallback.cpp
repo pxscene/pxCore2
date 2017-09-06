@@ -4,7 +4,8 @@
 using namespace v8;
 
 jsCallback::jsCallback(v8::Local<v8::Context>& ctx)
-  : mFunctionLookup(NULL)
+  : mReq()
+  , mFunctionLookup(NULL)
   , mIsolate(ctx->GetIsolate())
   , mCompletionFunc(NULL)
   , mCompletionContext(NULL)

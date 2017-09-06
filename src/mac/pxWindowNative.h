@@ -113,6 +113,7 @@ protected:
   virtual void onAnimationTimer() = 0;
   
   void* mWindow;
+  void* mDelegate;
   void* mTimer;
 };
 

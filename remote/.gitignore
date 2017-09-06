@@ -6,3 +6,6 @@ rtremote.conf
 rtremote.conf.gen
 *.client.log
 *.driver.log
+rpcSampleApp_s
+rtSampleClient
+rtSampleServer

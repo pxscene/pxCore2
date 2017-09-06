@@ -6,6 +6,7 @@
 #include "../pxWindow.h"
 #include "../pxTimer.h"
 #include "../pxWindowUtil.h"
+#include "../pxKeycodes.h"
 
 #include "pxWindowNativeDfb.h"
 

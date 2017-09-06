@@ -25,7 +25,7 @@ function RPCController() {
     if( callback !== undefined && callback !== null ) {
       callback(rtnValue);
     }
-  }
+  };
 }
 
 module.exports = RPCController;

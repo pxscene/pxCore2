@@ -1,0 +1,3 @@
+set logging on
+thread apply all bt
+quit

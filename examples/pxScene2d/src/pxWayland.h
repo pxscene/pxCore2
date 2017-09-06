@@ -150,6 +150,8 @@ public:
   rtError startRemoteObjectLocator();
   rtError connectToRemoteObject(unsigned int timeout_ms);
   rtError useDispatchThread(bool use);
+  rtError resume();
+  rtError suspend();
 private:
   rtAtomic mRefCount;
   pthread_t mClientMonitorThreadId;
@@ -164,6 +166,8 @@ private:
   int mWidth;
   int mHeight;
   bool mUseFbo;
+  bool mSuspended;
+  pxMatrix4f mLastMatrix;
 
   static void invalidate( WstCompositor *wctx, void *userData );
   static void hidePointer( WstCompositor *wctx, bool hide, void *userData );
@@ -194,6 +198,7 @@ protected:
   pxContextFramebufferRef mFBO;
   WstCompositor *mWCtx;
   float mFillColor[4];
+  float mClearColor[4];
 
   bool mHasApi;
   rtValue mAPI;

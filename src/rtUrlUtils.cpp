@@ -20,18 +20,29 @@
 
 #include "rtUrlUtils.h"
 #include <string.h>
+
+
+#if !defined(WIN32) && !defined(ENABLE_DFB)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wall"
+#endif
+
 #include <curl/curl.h>
 
+#if !defined(WIN32) && !defined(ENABLE_DFB)
+#pragma GCC diagnostic pop
+#endif
+
 /*
- * rtUrlEncodeParameters: Takes an url in the form of 
- *  "http://blahblah/index.js?some=some1&parm=value" and  
+ * rtUrlEncodeParameters: Takes an url in the form of
+ *  "http://blahblah/index.js?some=some1&parm=value" and
  *  returns an rtString with the query parameters url-encoded.
  */
 rtString rtUrlEncodeParameters(const char* url)
 {
   rtString retVal;
 
-/*  
+/*
   char * pch;
   pch = strtok ((char *)url,"?");
   if (pch != NULL) {
@@ -49,7 +60,7 @@ rtString rtUrlEncodeParameters(const char* url)
         curl_free(output);
       }
     }
-  } 
+  }
 */
   rtString tempStr = url;
   int32_t pos = tempStr.find(0,"?");
@@ -64,6 +75,8 @@ rtString rtUrlEncodeParameters(const char* url)
       }
       curl_free(output);
     }
+    if (curl)
+      curl_easy_cleanup(curl);
   }
   else {
     retVal = url;

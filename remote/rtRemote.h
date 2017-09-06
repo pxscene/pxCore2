@@ -49,7 +49,7 @@ rtRemoteInit(rtRemoteEnvironment* env);
  * by clients.
  * @param id The id of the object
  * @param obj The reference to the object
- * @returns RT_OK for sucess
+ * @returns RT_OK for success
  */
 rtError
 rtRemoteRegisterObject(rtRemoteEnvironment* env, char const* id, rtObjectRef const& obj);
@@ -66,6 +66,15 @@ rtRemoteUnregisterObject(rtRemoteEnvironment* env, char const* id);
 rtError
 rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj, int timeout=3000,
         remoteDisconnectedCallback cb=NULL, void *cbdata=NULL);
+
+/**
+ * Removes the pair {cb, data} from a client's disconnected callback list.
+ * @param cb callback pointer
+ * @param cbdata callback data pointer
+ * @returns RT_OK for success, RT_ERROR_INVALID_ARG if {cb, cbdata} could not be found
+ */
+rtError
+rtRemoteUnregisterDisconnectedCallback( rtRemoteEnvironment* env, remoteDisconnectedCallback cb=NULL, void *cbdata=NULL );
 
 /**
  * Shutdown rtRemote sub-system
@@ -108,10 +117,16 @@ rtRemoteLocateObject(char const* id, rtObjectRef& obj, int timeout = 3000,
         remoteDisconnectedCallback cb=NULL, void *cbdata=NULL);
 
 rtError
+rtRemoteUnregisterDisconnectedCallback( remoteDisconnectedCallback cb=NULL, void *cbdata=NULL );
+
+rtError
 rtRemoteShutdown();
 
 rtError
 rtRemoteProcessSingleItem();
+
+rtError
+rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow);
 
 #endif
 

@@ -22,11 +22,11 @@ function FileArchive(filePath, nativeFileArchive) {
 
 FileArchive.prototype.getFilePath = function() {
   return this.filePath;
-}
+};
 
 FileArchive.prototype.getBaseFilePath = function() {
   return this.baseFilePath;
-}
+};
 
 FileArchive.prototype.loadFromJarFile = function(filePath) {
   var _this = this;
@@ -36,22 +36,22 @@ FileArchive.prototype.loadFromJarFile = function(filePath) {
   } else {
     return _this.loadLocalJarFile(filePath);
   }
-}
+};
 
 FileArchive.prototype.getFileCount = function() {
   return this.numEntries;
-}
+};
 
 FileArchive.prototype.directoryIterator = function(callback) {
   var directoryMap = this.directory;
-  if (directoryMap != null && directoryMap !== 'undefined' ) {
+  if (directoryMap !== null && directoryMap !== 'undefined' ) {
     for (var key in directoryMap) {
       if (this.hasOwnProperty(key)) {
         callback(key, directoryMap[key]);
       }
     }
   }
-}
+};
 
 FileArchive.prototype.removeFile = function(filename) {
   if( this.directory.hasOwnProperty(filename) ) {
@@ -62,8 +62,7 @@ FileArchive.prototype.removeFile = function(filename) {
   } else {
     return false;
   }
-
-}
+};
 
 FileArchive.prototype.getFileContents = function(filename) {
   log.message(10, "FileArchive::getFileContents<" + filename + ">");
@@ -84,7 +83,7 @@ FileArchive.prototype.getFileContents = function(filename) {
 
     return fileContents;
   }
-}
+};
 
 FileArchive.prototype.addFile = function(filename, contents) {
   var wasNewFile = true;
@@ -95,7 +94,7 @@ FileArchive.prototype.addFile = function(filename, contents) {
   this.directory[filename] = contents;
   ++this.numEntries;
   return wasNewFile;
-}
+};
 
 
 FileArchive.prototype.loadRemoteJarFile = function(filePath) {
@@ -131,7 +130,7 @@ FileArchive.prototype.loadRemoteJarFile = function(filePath) {
     });
   });
 
-}
+};
 
 FileArchive.prototype.loadLocalJarFile = function(jarFilePath) {
   var _this = this;
@@ -152,7 +151,7 @@ FileArchive.prototype.loadFromJarData = function(dataBuf) {
   var jar = new JSZip(dataBuf);
   this.processJar(jar);
   this.loadedJarFile = true;
-}
+};
 
 FileArchive.prototype.processJar = function(jar) {
   for(var file in jar.files) {
@@ -162,17 +161,17 @@ FileArchive.prototype.processJar = function(jar) {
     }
     this.addArchiveEntry(file, fileEntry.asText());
   }
-}
+};
 
 
 FileArchive.prototype.addArchiveEntry = function(filename, data) {
   ++this.numEntries;
   this.directory[filename] = data;
-}
+};
 
 FileArchive.prototype.hasFileContents = function(filename) {
   var hasFile = this.directory.hasOwnProperty(filename);
-  if( hasFile == false ) {
+  if( hasFile === false ) {
     if (this.nativeFileArchive !== undefined) {
       hasFile = isFileInList(filename, this.nativeFileArchive.fileNames);
     }
@@ -181,7 +180,7 @@ FileArchive.prototype.hasFileContents = function(filename) {
   log.message(10, "hasFileContents(" + filename + ") = " + hasFile);
 
   return hasFile;
-}
+};
 
 
 function isFileInList(fileName, list) {

@@ -62,7 +62,7 @@ rtError rtEmit::setListener(const char* eventName, rtIFunction* f)
 
 rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
 {
-  if (!f) 
+  if (!eventName || !f)
     return RT_ERROR;
   // Only allow unique entries
   bool found = false;
@@ -166,7 +166,7 @@ rtError rtEmitRef::Send(int numArgs,const rtValue* args,rtValue* result)
 // rtArrayObject
 void rtArrayObject::empty()
 {
-  mElements.empty();
+  mElements.clear();
 }
 
 void rtArrayObject::pushBack(rtValue v)
@@ -248,7 +248,7 @@ rtError rtMapObject::Get(const char* name, rtValue* value) const
   {
     rtRefT<rtArrayObject> keys = new rtArrayObject;
     vector<rtNamedValue>::const_iterator it = this_->mProps.begin();
-    while(it != mProps.end())
+    while(it != this_->mProps.end())
     {
       // exclude allKeys
       if (it->n != "allKeys")

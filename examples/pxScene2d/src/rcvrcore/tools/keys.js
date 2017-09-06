@@ -129,28 +129,29 @@ keys.is_CTRL = function(f)
 //    console.log("\n\n ### keys.is_CTRL .... f = " + f + " (16) \n\n");
 
     return (f==16);
-}
+};
 
 keys.is_CTRL_ALT = function(f)
 {
     return (f==48);
-}
+};
 
 keys.is_SHIFT = function(f)
 {
-    return (f==8);
-}
+    return (f==8 || f==136);
+};
+
 keys.is_CTRL_SHIFT = function(f)
 {
 //    console.log("\n\n ### keys.is_CTRL_SHIFT .... f = " + f + " (24) \n\n");
 
     return (f==24);
-}
+};
 
 keys.is_CTRL_ALT_SHIFT = function(f)
 {
     return (f==56);
-}
+};
 
 
 keys.is_CMD = function(f)   // OSX
@@ -158,19 +159,19 @@ keys.is_CMD = function(f)   // OSX
 //    console.log("\n\n ### keys.is_CMD .... f = " + f + " (64) \n\n");
 
     return (f==64);
-}
+};
 
 keys.is_CMD_SHIFT = function(f)   // OSX
 {
 //    console.log("\n\n ### keys.is_CMD_SHIFT .... f = " + f + " (72) \n\n");
 
     return (f==72);
-}
+};
 
 keys.is_CMD_OPTION_SHIFT = function(f)   // OSX
 {
     return (f==104);
-}
+};
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
