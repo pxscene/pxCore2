@@ -143,4 +143,10 @@ rpcSampleApp: $(SAMPLEAPP_OBJS) librtRemote.so
 rpcSampleApp_s: $(SAMPLEAPP_OBJS) librtRemote_s.a
 	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/egl -lrtCore_s -lrtRemote_s -luuid
 
+rpcSampleSimple: librtRemote.so
+	$(CXX_PRETTY) rtSampleClient.cpp -DRT_PLATFORM_LINUX -I. -DRAPIDJSON_HAS_STDSTRING\
+    -o rtSampleClient -I../src -L. -L../build/egl -lrtCore -lrtRemote -l uuid -std=c++11
+	$(CXX_PRETTY) rtSampleServer.cpp -DRT_PLATFORM_LINUX -I. -DRAPIDJSON_HAS_STDSTRING\
+    -o rtSampleServer -I../src -L. -L../build/egl -lrtCore -lrtRemote -l uuid -std=c++11
+
 .PHONY: all debug clean
