@@ -376,6 +376,8 @@ class SignalHandler : public AllStatic {
 
  private:
   static void Install() {
+/* MODIFIED CODE BEGIN */
+/*
 #if !V8_OS_NACL
     struct sigaction sa;
     sa.sa_sigaction = &HandleProfilerSignal;
@@ -388,15 +390,21 @@ class SignalHandler : public AllStatic {
     signal_handler_installed_ =
         (sigaction(SIGPROF, &sa, &old_signal_handler_) == 0);
 #endif
+*/
+/* MODIFIED CODE END */
   }
 
   static void Restore() {
+/* MODIFIED CODE BEGIN */
+/*
 #if !V8_OS_NACL
     if (signal_handler_installed_) {
       sigaction(SIGPROF, &old_signal_handler_, 0);
       signal_handler_installed_ = false;
     }
 #endif
+*/
+/* MODIFIED CODE END */
   }
 
 #if !V8_OS_NACL

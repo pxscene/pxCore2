@@ -2306,6 +2306,8 @@ static void WaitForInspectorDisconnect(Environment* env) {
   if (env->inspector_agent()->IsConnected()) {
     // Restore signal dispositions, the app is done and is no longer
     // capable of handling signals.
+  /* MODIFIED CODE BEGIN */
+  /*
 #ifdef __POSIX__
     struct sigaction act;
     memset(&act, 0, sizeof(act));
@@ -2316,6 +2318,8 @@ static void WaitForInspectorDisconnect(Environment* env) {
       CHECK_EQ(0, sigaction(nr, &act, nullptr));
     }
 #endif
+  */
+  /* MODIFIED CODE END */
     env->inspector_agent()->WaitForDisconnect();
   }
 #endif
@@ -3488,6 +3492,8 @@ static void AtProcessExit() {
 
 
 void SignalExit(int signo) {
+  /* MODIFIED CODE BEGIN */
+  /*
   uv_tty_reset_mode();
 #ifdef __FreeBSD__
   // FreeBSD has a nasty bug, see RegisterSignalHandler for details
@@ -3497,6 +3503,8 @@ void SignalExit(int signo) {
   CHECK_EQ(sigaction(signo, &sa, nullptr), 0);
 #endif
   raise(signo);
+  */
+  /* MODIFIED CODE END */
 }
 
 
@@ -4009,14 +4017,20 @@ static void TryStartDebugger() {
 
 
 #ifdef __POSIX__
+/* MODIFIED CODE BEGIN */
+/*
 static void EnableDebugSignalHandler(int signo) {
   uv_sem_post(&debug_semaphore);
 }
+*/
+/* MODIFIED CODE END */
 
 
 void RegisterSignalHandler(int signal,
                            void (*handler)(int signal),
                            bool reset_handler) {
+  /* MODIFIED CODE BEGIN */
+  /*
   struct sigaction sa;
   memset(&sa, 0, sizeof(sa));
   sa.sa_handler = handler;
@@ -4028,6 +4042,8 @@ void RegisterSignalHandler(int signal,
 #endif
   sigfillset(&sa.sa_mask);
   CHECK_EQ(sigaction(signal, &sa, nullptr), 0);
+  */
+  /* MODIFIED CODE END */
 }
 
 
@@ -4087,11 +4103,15 @@ static int RegisterDebugSignalHandler() {
     // receiving the signal would terminate the process.
     return -err;
   }
+  /* MODIFIED CODE BEGIN */
+  /*
   RegisterSignalHandler(SIGUSR1, EnableDebugSignalHandler);
   // Unblock SIGUSR1.  A pending SIGUSR1 signal will now be delivered.
   sigemptyset(&sigmask);
   sigaddset(&sigmask, SIGUSR1);
   CHECK_EQ(0, pthread_sigmask(SIG_UNBLOCK, &sigmask, nullptr));
+  */
+  /* MODIFIED CODE END */
   return 0;
 }
 #endif  // __POSIX__
@@ -4287,6 +4307,8 @@ inline void PlatformInit() {
 
   CHECK_EQ(err, 0);
 
+  /* MODIFIED CODE BEGIN */
+  /*
   // Restore signal dispositions, the parent process may have changed them.
   struct sigaction act;
   memset(&act, 0, sizeof(act));
@@ -4303,6 +4325,8 @@ inline void PlatformInit() {
 
   RegisterSignalHandler(SIGINT, SignalExit, true);
   RegisterSignalHandler(SIGTERM, SignalExit, true);
+  */
+  /* MODIFIED CODE END */
 
   // Raise the open file descriptor limit.
   struct rlimit lim;

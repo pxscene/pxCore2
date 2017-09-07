@@ -656,7 +656,6 @@ static void LoadIC_PushArgs(MacroAssembler* masm) {
 
 void LoadIC::GenerateMiss(MacroAssembler* masm) {
   // The return address is on the stack.
-
   Counters* counters = masm->isolate()->counters();
   __ IncrementCounter(counters->ic_load_miss(), 1);
 
