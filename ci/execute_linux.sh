@@ -14,7 +14,7 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 grep "RUN COMPLETED FROM MAIN" $EXECLOGS
 retVal=$?
 count=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 5400 ]; do
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 6000 ]; do
 sleep 30;
 grep "RUN COMPLETED FROM MAIN" $EXECLOGS
 retVal=$?
