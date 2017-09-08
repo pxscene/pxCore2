@@ -86,14 +86,20 @@ void OPENSSL_crypto207_probe(void);
 void OPENSSL_cpuid_setup(void)
 {
     char *e;
+    /* MODIFIED CODE BEGIN */
+    /*
     struct sigaction ill_oact, ill_act;
     sigset_t oset;
+    */
+    /* MODIFIED CODE END */
     static int trigger = 0;
 
     if (trigger)
         return;
     trigger = 1;
 
+    /* MODIFIED CODE BEGIN */
+    /*
     sigfillset(&all_masked);
     sigdelset(&all_masked, SIGILL);
     sigdelset(&all_masked, SIGTRAP);
@@ -103,6 +109,8 @@ void OPENSSL_cpuid_setup(void)
     sigdelset(&all_masked, SIGFPE);
     sigdelset(&all_masked, SIGBUS);
     sigdelset(&all_masked, SIGSEGV);
+    */
+    /* MODIFIED CODE END */
 
     if ((e = getenv("OPENSSL_ppccap"))) {
         OPENSSL_ppccap_P = strtoul(e, NULL, 0);
@@ -123,6 +131,8 @@ void OPENSSL_cpuid_setup(void)
     }
 #endif
 
+    /* MODIFIED CODE BEGIN */
+    /*
     memset(&ill_act, 0, sizeof(ill_act));
     ill_act.sa_handler = ill_handler;
     ill_act.sa_mask = all_masked;
@@ -140,9 +150,6 @@ void OPENSSL_cpuid_setup(void)
                 OPENSSL_ppccap_P |= PPC_FPU64;
             }
     } else {
-        /*
-         * Wanted code detecting POWER6 CPU and setting PPC_FPU64
-         */
     }
 
     if (sigsetjmp(ill_jmp, 1) == 0) {
@@ -156,4 +163,6 @@ void OPENSSL_cpuid_setup(void)
 
     sigaction(SIGILL, &ill_oact, NULL);
     sigprocmask(SIG_SETMASK, &oset, NULL);
+    */
+    /* MODIFIED CODE END */
 }

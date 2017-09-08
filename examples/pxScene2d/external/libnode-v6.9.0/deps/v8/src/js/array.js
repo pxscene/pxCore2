@@ -520,7 +520,7 @@ function ObservedArrayPush() {
 // length of the array. See ECMA-262, section 15.4.4.7.
 function ArrayPush() {
   CHECK_OBJECT_COERCIBLE(this, "Array.prototype.push");
-
+  console.log("Madana ....................");
   if (%IsObserved(this))
     return ObservedArrayPush.apply(this, arguments);
 

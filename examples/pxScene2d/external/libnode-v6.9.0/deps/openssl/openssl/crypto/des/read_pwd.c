@@ -447,6 +447,10 @@ static void pushsig(void)
         if (i == SIGUSR2)
             continue;
 # endif
+/* MODIFIED CODE BEGIN */
+if ( (i == SIGCHLD) || (i == SIGINT) || (i == SIGQUIT) || (i == SIGTERM) || (i == SIGILL) || (i == SIGABRT) || (i == SIGFPE) || (i == SIGSEGV))
+	continue;
+/* MODIFIED CODE END */
 # ifdef SIGACTION
         sigaction(i, &sa, &savsig[i]);
 # else
@@ -472,6 +476,10 @@ static void popsig(void)
         if (i == SIGUSR2)
             continue;
 # endif
+/* MODIFIED CODE BEGIN */
+if ( (i == SIGCHLD) || (i == SIGINT) || (i == SIGQUIT) || (i == SIGTERM) || (i == SIGILL) || (i == SIGABRT) || (i == SIGFPE) || (i == SIGSEGV))
+	continue;
+/* MODIFIED CODE END */
 # ifdef SIGACTION
         sigaction(i, &savsig[i], NULL);
 # else

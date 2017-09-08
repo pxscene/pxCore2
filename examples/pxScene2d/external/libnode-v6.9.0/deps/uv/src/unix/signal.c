@@ -117,7 +117,6 @@ static void uv__signal_unlock_and_unblock(sigset_t* saved_sigmask) {
 
 
 static uv_signal_t* uv__signal_first_handle(int signum) {
-  /* This function must be called with the signal lock held. */
   uv_signal_t lookup;
   uv_signal_t* handle;
 
@@ -154,10 +153,6 @@ static void uv__signal_handler(int signum) {
     msg.signum = signum;
     msg.handle = handle;
 
-    /* write() should be atomic for small data chunks, so the entire message
-     * should be written at once. In theory the pipe could become full, in
-     * which case the user is out of luck.
-     */
     do {
       r = write(handle->loop->signal_pipefd[1], &msg, sizeof msg);
     } while (r == -1 && errno == EINTR);
@@ -175,36 +170,40 @@ static void uv__signal_handler(int signum) {
 
 
 static int uv__signal_register_handler(int signum) {
-  /* When this function is called, the signal lock must be held. */
+/* MODIFIED CODE BEGIN */
+  if ((signum == SIGCHLD) || (signum == SIGINT) || (signum == SIGQUIT) || (signum == SIGTERM) || (signum == SIGILL) || (signum == SIGABRT) || (signum == SIGFPE) || (signum == SIGSEGV))
+  {
+    return 0;
+  }
+/* MODIFIED CODE END */
   struct sigaction sa;
 
-  /* XXX use a separate signal stack? */
   memset(&sa, 0, sizeof(sa));
   if (sigfillset(&sa.sa_mask))
     abort();
   sa.sa_handler = uv__signal_handler;
 
-  /* XXX save old action so we can restore it later on? */
   if (sigaction(signum, &sa, NULL))
     return -errno;
 
   return 0;
 }
 
-
 static void uv__signal_unregister_handler(int signum) {
-  /* When this function is called, the signal lock must be held. */
-  struct sigaction sa;
+/* MODIFIED CODE BEGIN */
+  if ((signum != SIGCHLD) && (signum != SIGINT) && (signum != SIGQUIT) && (signum != SIGTERM) && (signum != SIGILL) && (signum != SIGABRT) && (signum != SIGFPE) && (signum != SIGSEGV))
+  {
+/* MODIFIED CODE END */
+    struct sigaction sa;
 
-  memset(&sa, 0, sizeof(sa));
-  sa.sa_handler = SIG_DFL;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_DFL;
 
-  /* sigaction can only fail with EINVAL or EFAULT; an attempt to deregister a
-   * signal implies that it was successfully registered earlier, so EINVAL
-   * should never happen.
-   */
-  if (sigaction(signum, &sa, NULL))
-    abort();
+    if (sigaction(signum, &sa, NULL))
+      abort();
+/* MODIFIED CODE BEGIN */
+  }
+/* MODIFIED CODE END */
 }
 
 
@@ -287,8 +286,15 @@ void uv__signal_close(uv_signal_t* handle) {
 
 
 int uv_signal_start(uv_signal_t* handle, uv_signal_cb signal_cb, int signum) {
+  /* MODIFIED CODE BEGIN */
+  if ((signum == SIGCHLD) || (signum == SIGINT) || (signum == SIGQUIT) || (signum == SIGTERM) || (signum == SIGILL) || (signum == SIGABRT) || (signum == SIGFPE) || (signum == SIGSEGV))
+  {
+    return 0;
+  }
+  /* MODIFIED CODE END */
   sigset_t saved_sigmask;
   int err;
+
 
   assert(!(handle->flags & (UV_CLOSING | UV_CLOSED)));
 
@@ -322,12 +328,10 @@ int uv_signal_start(uv_signal_t* handle, uv_signal_cb signal_cb, int signum) {
   if (uv__signal_first_handle(signum) == NULL) {
     err = uv__signal_register_handler(signum);
     if (err) {
-      /* Registering the signal handler failed. Must be an invalid signal. */
       uv__signal_unlock_and_unblock(&saved_sigmask);
       return err;
     }
   }
-
   handle->signum = signum;
   RB_INSERT(uv__signal_tree_s, &uv__signal_tree, handle);
 
@@ -441,6 +445,13 @@ int uv_signal_stop(uv_signal_t* handle) {
 
 
 static void uv__signal_stop(uv_signal_t* handle) {
+  /* MODIFIED CODE BEGIN */
+  int signum = handle->signum;
+  if ((signum == SIGCHLD) || (signum == SIGINT) || (signum == SIGQUIT) || (signum == SIGTERM) || (signum == SIGILL) || (signum == SIGABRT) || (signum == SIGFPE) || (signum == SIGSEGV))
+  {
+    return;
+  }
+  /* MODIFIED CODE END */
   uv_signal_t* removed_handle;
   sigset_t saved_sigmask;
 
@@ -459,7 +470,6 @@ static void uv__signal_stop(uv_signal_t* handle) {
    */
   if (uv__signal_first_handle(handle->signum) == NULL)
     uv__signal_unregister_handler(handle->signum);
-
   uv__signal_unlock_and_unblock(&saved_sigmask);
 
   handle->signum = 0;

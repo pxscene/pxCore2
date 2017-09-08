@@ -189,7 +189,9 @@ static int ssl_sock_init(void)
         int err;
 
 #  ifdef SIGINT
-        signal(SIGINT, (void (*)(int))ssl_sock_cleanup);
+/* MODIFIED CODE BEGIN */
+//        signal(SIGINT, (void (*)(int))ssl_sock_cleanup);
+/* MODIFIED CODE END */
 #  endif
         wsa_init_done = 1;
         memset(&wsa_state, 0, sizeof(wsa_state));
@@ -215,7 +217,9 @@ static int ssl_sock_init(void)
     if (!wsa_init_done) {
 
 #  ifdef SIGINT
-        signal(SIGINT, (void (*)(int))sock_cleanup);
+/* MODIFIED CODE BEGIN */
+//        signal(SIGINT, (void (*)(int))sock_cleanup);
+/* MODIFIED CODE END */
 #  endif
 
         wsa_init_done = 1;
