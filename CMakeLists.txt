@@ -4,11 +4,17 @@ project(pxscene2d)
 option(BUILD_PXCORE "BUILD_PXCORE" ON)
 option(BUILD_PXSCENE "BUILD_PXSCENE" ON)
 option(BUILD_PX_TESTS "BUILD_PX_TESTS" OFF)
+option(BUILD_RTREMOTE_LIBS "BUILD_RTREMOTE_LIBS" OFF)
 
 if (BUILD_PXCORE)
     message("Building pxcore")
     add_subdirectory(src)
 endif (BUILD_PXCORE)
+
+if (BUILD_RTREMOTE_LIBS)
+    message("Building rtRemote")
+    add_subdirectory(remote)
+endif (BUILD_RTREMOTE_LIBS)
 
 if (BUILD_PXSCENE)
     message("Building pxscene")
