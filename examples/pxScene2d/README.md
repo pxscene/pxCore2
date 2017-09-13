@@ -156,7 +156,7 @@ file:///home/username/directory/filename.js
    git clone https://github.com/pxscene/pxCore
    ~~~~
 
-2. Build rtRemote
+2. Build
    ~~~~
    cd pxCore/
    mkdir temp
