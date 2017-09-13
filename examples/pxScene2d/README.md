@@ -150,7 +150,7 @@ file:///home/username/directory/filename.js
     pxscene2dtests.exe
     ~~~~
 
-## Building rtRemote (Linux only)
+## Building with rtRemote support (Linux only)
 1. Get source code
    ~~~~
    git clone https://github.com/pxscene/pxCore
@@ -161,7 +161,7 @@ file:///home/username/directory/filename.js
    cd pxCore/
    mkdir temp
    cd temp
-   cmake -DBUILD_PXCORE_LIBS=OFF -DBUILD_PXSCENE=OFF -DBUILD_RTREMOTE_LIBS=ON ..
+   cmake -DBUILD_RTREMOTE_LIBS=ON ..
    cmake --build . --config Release
    ~~~~
 
@@ -177,6 +177,8 @@ file:///home/username/directory/filename.js
    Disable librtremote shared library building: -DBUILD_RTREMOTE_SHARED_LIB=OFF
    Disable librtremote static library building: -DBUILD_RTREMOTE_STATIC_LIB=OFF
    Output pxCore libs locallay: -DOUTPUT_LIBS_LOCAL=ON
+   Disable building pxCore libs: -DBUILD_PXCORE_LIBS=OFF
+   Disable building pxscene: -DBUILD_PXSCENE=OFF
    ~~~~
 
 ## On Mac OS X - Xcode Workspace 
