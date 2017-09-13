@@ -28,6 +28,7 @@ set(PXSCENEINC ${PXCOREDIR}/examples/pxScene2d/src)
 set(BUILD_UNIT_TEST 0)
 
 option(BUILD_WITH_WINDOWLESS_EGL "BUILD_WITH_WINDOWLESS_EGL" OFF)
+option(PXSCENE_TEST_HTTP_CACHE "PXSCENE_TEST_HTTP_CACHE" ON)
 
 
 include_directories(AFTER ${GOOGLETESTINC} ${PXCOREINC} ${PXSCENEINC} ${NODEINC})
@@ -108,6 +109,11 @@ if (DEFINED ENV{USE_HTTP_CACHE})
     message("Include http cache tests")
     set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_imagecache.cpp)
 endif (DEFINED ENV{USE_HTTP_CACHE})
+
+if (PXSCENE_TEST_HTTP_CACHE)
+    message("Enabling http cache tests")
+    set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_imagecache.cpp)
+endif (PXSCENE_TEST_HTTP_CACHE)
 
 set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} ${EXTDIR}/gtest/googletest/src/gtest-all.cc ${EXTDIR}/gtest/googlemock/src/gmock-all.cc)
 
