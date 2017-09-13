@@ -150,6 +150,28 @@ file:///home/username/directory/filename.js
     pxscene2dtests.exe
     ~~~~
 
+## Building and running unit tests
+1. Get source code
+   ~~~~
+   git clone https://github.com/pxscene/pxCore
+   ~~~~
+
+2. Build
+   ~~~~
+   cd pxCore/
+   mkdir temp
+   cd temp
+   cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON ..
+   cmake --build . --config Release
+   ~~~~
+
+3. Run
+   ~~~~
+   cd pxCore/tests/pxScene2d
+   ./pxscene2dtests.sh
+   ~~~~
+
+
 ## Building with rtRemote support (Linux only)
 1. Get source code
    ~~~~
