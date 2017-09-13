@@ -167,7 +167,7 @@ file:///home/username/directory/filename.js
 
    The rtRemote libs will be located in pxCore/remote
 
-   Additional build configurations for rtRemote are
+   Additional build configurations for rtRemote are:
    ~~~~
    Build rpcSampleApp: -DBUILD_RTREMOTE_SAMPLE_APP_SHARED=ON
    Build rpcSampleApp_s: -DBUILD_RTREMOTE_SAMPLE_APP_STATIC=ON
