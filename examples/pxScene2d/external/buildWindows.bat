@@ -12,11 +12,16 @@ copy /y curl-7.40.0\include\curl\curlbuild-win.h curl-7.40.0\include\curl\curlbu
 copy /y libpng-1.6.28\scripts\pnglibconf.h.prebuilt libpng-1.6.28\pnglibconf.h
 copy /y jpeg-9a\jconfig.vc jpeg-9a\jconfig.h
 
-
 cd vc.build\
 msbuild external.sln /m
 cd ..
 
+cd breakpad-chrome_55
+CALL gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check
+cd src\client\windows
+msbuild breakpad_client.sln /p:Configuration=Release /m
+cd ..\..\..\..\
+
 cd libnode-v6.9.0
-vcbuild.bat x86 nosign
+CALL vcbuild.bat x86 nosign
 cd ..

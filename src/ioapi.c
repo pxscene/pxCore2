@@ -48,7 +48,12 @@ long call_zseek64 (const zlib_filefunc64_32_def* pfilefunc,voidpf filestream, ZP
         if (offsetTruncated != offset)
             return -1;
         else
-            return (*(pfilefunc->zseek32_file))(pfilefunc->zfile_func64.opaque,filestream,offsetTruncated,origin);
+        {
+            if (pfilefunc->zseek32_file != NULL)
+              return (*(pfilefunc->zseek32_file))(pfilefunc->zfile_func64.opaque,filestream,offsetTruncated,origin);
+            else
+              return -1;
+        }
     }
 }
 
@@ -58,11 +63,15 @@ ZPOS64_T call_ztell64 (const zlib_filefunc64_32_def* pfilefunc,voidpf filestream
         return (*(pfilefunc->zfile_func64.ztell64_file)) (pfilefunc->zfile_func64.opaque,filestream);
     else
     {
-        uLong tell_uLong = (*(pfilefunc->ztell32_file))(pfilefunc->zfile_func64.opaque,filestream);
-        if ((tell_uLong) == MAXU32)
-            return (ZPOS64_T)-1;
-        else
-            return tell_uLong;
+        if (pfilefunc->ztell32_file != NULL)
+        {
+          uLong tell_uLong = (*(pfilefunc->ztell32_file))(pfilefunc->zfile_func64.opaque,filestream);
+          if ((tell_uLong) == MAXU32)
+              return (ZPOS64_T)-1;
+          else
+              return tell_uLong;
+        }
+        return (ZPOS64_T)-1;
     }
 }
 
