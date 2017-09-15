@@ -3,13 +3,14 @@
 //  xs_Core.h
 // ====================================================================================================================
 // ====================================================================================================================
-#ifndef _xs_Core_H_
-#define _xs_Core_H_
 
 #ifdef PX_PLATFORM_MAC
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
 #endif
+
+#ifndef _xs_Core_H_
+#define _xs_Core_H_
 
 #undef Windows_
 #if 0

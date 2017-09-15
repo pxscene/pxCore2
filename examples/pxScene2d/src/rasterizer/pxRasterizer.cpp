@@ -1883,7 +1883,8 @@ void pxRasterizer::rasterize()
       int32_t e2y1 = FIXEDSCANLINE(e1->mY1);
       int32_t e2y2 = FIXEDSCANLINE(e2->mY2);
 
-      if ((e1x1 == e1x2 && e2x2 == e2x2 && e1y1 == e2y1 && e1y2 == e2y2) &&
+      if ((e1x1 == e1x2 && e1x2 == e2x2  &&
+           e1y1 == e2y1 && e1y2 == e2y2) &&
           (!(e1x1 & 0xf) && !(e2x1 & 0xf) && !(e1y1 & overSampleMask) && !(e1y2 & overSampleMask)))
 #else
         if ((e1->mX1 == e1->mX2 && e2->mX1 == e2->mX2 && e1->mY1 == e2->mY1 && e1->mY2 == e2->mY2) &&                (!(e1->mX1 & 0xf) && !(e2->mX1 & 0xf) && !(e1->mY1 & overSampleMask) && !(e1->mY2 & overSampleMask)))
