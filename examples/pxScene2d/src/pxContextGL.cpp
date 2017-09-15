@@ -893,7 +893,7 @@ extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
 class pxSwTexture: public pxTexture
 {
 public:
-  pxSwTexture()  : mOffscreen(), mInitialized(false), mTextureName(0), mRasterTextureCreated(false)
+  pxSwTexture()  : mOffscreen(), mTextureName(0), mRasterTextureCreated(false),  mInitialized(false)
   {
     //ctor
   };
@@ -981,10 +981,10 @@ public:
   };
   
   // baggage
-  virtual inline int width()                    { return mWidth;  };
-  virtual inline int height()                   { return mHeight; };
-  virtual pxError getOffscreen(pxOffscreen& o)  { return PX_FAIL; };
-  virtual pxError bindGLTextureAsMask(int mLoc) { return PX_FAIL; };
+  virtual inline int width()                        { return mWidth;  };
+  virtual inline int height()                       { return mHeight; };
+  virtual pxError getOffscreen(pxOffscreen& /*o*/)  { return PX_FAIL; };
+  virtual pxError bindGLTextureAsMask(int /*mLoc*/) { return PX_FAIL; };
 
   virtual pxError deleteTexture()
   {

@@ -1,13 +1,3 @@
-#ifndef PX_2D_H
-#define PX_2D_H
-
-#include <math.h>
-
-typedef unsigned long uint32;
-#include "pxCore.h"
-
-//#include "pxPixels.h"
-
 
 #ifdef PX_PLATFORM_MAC
 #pragma clang diagnostic push
@@ -16,6 +6,14 @@ typedef unsigned long uint32;
 #endif
 
 
+
+#ifndef PX_2D_H
+#define PX_2D_H
+
+#include <math.h>
+
+typedef unsigned long uint32;
+#include "pxCore.h"
 
 enum pxFillMode
 {
@@ -227,7 +225,7 @@ inline pxPixel pxBlend4(const pxPixel& s1, const pxPixel& s2,
   return pxPixel(ag | rb);
 }
 
-#endif
+#endif //PX_2D_H
 
 #ifdef PX_PLATFORM_MAC
 #pragma clang diagnostic pop
