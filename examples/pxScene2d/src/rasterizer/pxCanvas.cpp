@@ -42,8 +42,8 @@ rtDefineMethod(pxCanvas, drawPath);
 
 pxCanvas::pxCanvas(pxScene2d* scene): pxObject(scene)
 {
-  mw = scene->w();
-  mh = scene->h();
+  mw = 1280;// scene->w();
+  mh =  720;// scene->h();
 }
 
 pxCanvas::~pxCanvas()
@@ -53,7 +53,10 @@ pxCanvas::~pxCanvas()
 
 void pxCanvas::draw()
 {
-  mCanvasCtx.draw();
+  // NO OP
+  
+//  mCanvasCtx.draw();
+//  mCanvasCtx.clear(); // HACK
 }
 
 void pxCanvas::onInit()
@@ -61,11 +64,8 @@ void pxCanvas::onInit()
   mInitialized = true;
   
   mCanvasCtx.init(mw, mh);
-  
-//  this->setX(0);
-//  this->setY(0);
-//  this->setW(mw);
-//  this->setH(mh);
+//  initOffscreen(mw, mh);
+  setUpsideDown(true);
 }
 
 void pxCanvas::sendPromise()
@@ -83,12 +83,15 @@ rtError pxCanvas::drawPath(rtObjectRef path)
     return RT_FAIL;
   }
   
-  uint8_t *op  = p->getStream();
-  uint8_t *fin = p->getLength() + op;
-
   uint8_t opcode = 0;
+  uint8_t *op    = p->getStream();
+  uint8_t *fin   = p->getLength() + op;
  
   mCanvasCtx.newPath();
+  
+  float x0, y0, x1, y1, x2, y2;
+  
+  x0 = y0 = x1 = y1 = x2 = y2 = 0.0;
   
   while(op < fin)
   {
@@ -99,24 +102,24 @@ rtError pxCanvas::drawPath(rtObjectRef path)
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       case SVG_OP_MOVE:
       {
-//        uint8_t len = p->getByteAt(op);  op += sizeof(uint8_t);
-        float   x   = p->getFloatAt(op); op += sizeof(float);
-        float   y   = p->getFloatAt(op); op += sizeof(float);
+        x0 = p->getFloatAt(op); op += sizeof(float);
+        y0 = p->getFloatAt(op); op += sizeof(float);
         
-        mCanvasCtx.moveTo(x, y);
+        mCanvasCtx.moveTo(x0, y0);
         
-//        printf("\n SVG_OP_MOVE( %f, %f ) ", x,y);
+//        printf("\nCanvas: SVG_OP_MOVE( %.0f, %.0f ) ", x0,y0);
       }
       break;
       
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       case SVG_OP_LINE:
       {
-//        uint8_t len = p->getFloatAt(op); op += sizeof(uint8_t);
-        float   x   = p->getFloatAt(op); op += sizeof(float);
-        float   y   = p->getFloatAt(op); op += sizeof(float);
+        x0 = p->getFloatAt(op); op += sizeof(float);
+        y0 = p->getFloatAt(op); op += sizeof(float);
         
-        mCanvasCtx.moveTo(x, y);
+        mCanvasCtx.moveTo(x0, y0);
+        
+//        printf("\nCanvas: SVG_OP_LINE( x0: %.0f, y0: %.0f) ", x0, y0);
         
 //        printf("\n SVG_OP_LINE( %f, %f ) ", x,y);
       }
@@ -125,44 +128,42 @@ rtError pxCanvas::drawPath(rtObjectRef path)
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       case SVG_OP_Q_CURVE:
       {
-//        uint8_t len = p->getFloatAt(op); op += sizeof(uint8_t);
-        float   x1  = p->getFloatAt(op); op += sizeof(float);
-        float   y1  = p->getFloatAt(op); op += sizeof(float);
-        float   x   = p->getFloatAt(op); op += sizeof(float);
-        float   y   = p->getFloatAt(op); op += sizeof(float);
+        x1 = p->getFloatAt(op); op += sizeof(float);
+        y1 = p->getFloatAt(op); op += sizeof(float);
+        x0 = p->getFloatAt(op); op += sizeof(float);
+        y0 = p->getFloatAt(op); op += sizeof(float);
         
-        mCanvasCtx.curveTo(x1, y1, x, y);
+        mCanvasCtx.curveTo(x1, y1, x0, y0);
         
-//        printf("\n SVG_OP_Q_CURVE( x1: %f, y1: %f,  x: %f, y: %f) ", x1, y1, x, y);
+//        printf("\nCanvas: SVG_OP_Q_CURVE( x1: %.0f, y1: %.0f,  x0: %.0f, y0: %.0f) ", x1, y1, x0, y0);
       }
       break;
       
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       case SVG_OP_C_CURVE:
       {
-//        uint8_t len = p->getFloatAt(op); op += sizeof(uint8_t);
-        float   x1  = p->getFloatAt(op); op += sizeof(float);
-        float   y1  = p->getFloatAt(op); op += sizeof(float);
-        float   x2  = p->getFloatAt(op); op += sizeof(float);
-        float   y2  = p->getFloatAt(op); op += sizeof(float);
-        float   x   = p->getFloatAt(op); op += sizeof(float);
-        float   y   = p->getFloatAt(op); op += sizeof(float);
+        x1 = p->getFloatAt(op); op += sizeof(float);
+        y1 = p->getFloatAt(op); op += sizeof(float);
+        x2 = p->getFloatAt(op); op += sizeof(float);
+        y2 = p->getFloatAt(op); op += sizeof(float);
+        x0 = p->getFloatAt(op); op += sizeof(float);
+        y0 = p->getFloatAt(op); op += sizeof(float);
         
-        mCanvasCtx.curveTo(x1, y1, x2, y2, x, y);
+        mCanvasCtx.curveTo(x1, y1, x2, y2, x0, y0);
         
-//        printf("\n SVG_OP_C_CURVE( x1: %f, y1: %f,  x2: %f, y2: %f,  x: %f, y: %f) ", x1, y1, x2, y2, x, y);
+//        printf("\nCanvas: SVG_OP_C_CURVE( x1: %.0f, y1: %.0f,  x2: %.0f, y2: %.0f,  x0: %.0f, y0: %.0f) ", x1, y1, x2, y2, x0, y0);
       }
       break;
    
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       case SVG_OP_CLOSE:
       {
-//        uint8_t len = p->getFloatAt(op); op += sizeof(uint8_t);
         mCanvasCtx.closePath();
       }
+      break;
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       default:
-        rtLogError(" unrecoginzed OpCode: %0x02X", opcode);
+        rtLogError(" unrecoginzed OpCode: [%C] 0x%02X", (wchar_t)opcode, opcode);
       
     }//SWITCH
   }//WHILE
@@ -188,20 +189,17 @@ rtError pxCanvas::drawPath(rtObjectRef path)
   // Drawing
   if(needsFill || needsStroke)
   {
-    pxMatrix4f currentM;
-    mCanvasCtx.matrix(currentM);
-
-    mCanvasCtx.setMatrix(context.getMatrix());  // Apply CTM
-
+//    pxMatrix4f currentM;
+//    mCanvasCtx.matrix(currentM);
+//
+//    mCanvasCtx.setMatrix(context.getMatrix());  // Apply TCM
+    
     // - - - - - - - - - - - - - - - - - - -
     if(needsFill)   mCanvasCtx.fill();
     if(needsStroke) mCanvasCtx.stroke();
     // - - - - - - - - - - - - - - - - - - -
-    
-    mCanvasCtx.needsRedraw();
-//    mRepaint = true;
 
-    mCanvasCtx.setMatrix(currentM);  // Restore CTM
+//    mCanvasCtx.setMatrix(currentM);  // Restore TCM
  }
   
   return RT_OK;
@@ -214,3 +212,4 @@ rtDefineObject(pxCanvas, pxObject);
 
 //====================================================================================================================================
 //====================================================================================================================================
+

@@ -6,6 +6,11 @@
 #ifndef _xs_Core_H_
 #define _xs_Core_H_
 
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
+#endif
+
 #undef Windows_
 #if 0
 #ifndef Windows_
@@ -333,3 +338,7 @@ inline void  xs_Incomplete()
 // ====================================================================================================================
 // ====================================================================================================================
 #endif // _xs_Core_H_
+
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic pop
+#endif

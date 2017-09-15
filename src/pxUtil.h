@@ -23,6 +23,12 @@
 
 #include <vector>
 
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#pragma clang diagnostic ignored "-Wconversion"
+#endif
+
 class pxTimedOffscreenSequence
 {
 public:
@@ -105,4 +111,8 @@ rtError pxLoadJPGImage(const char* imageData, size_t imageDataSize,
                        pxOffscreen& o);
 rtError pxLoadJPGImage(const char* filename, pxOffscreen& o);
 
+#endif
+
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic pop
 #endif

@@ -8,6 +8,15 @@ typedef unsigned long uint32;
 
 //#include "pxPixels.h"
 
+
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#pragma clang diagnostic ignored "-Wconversion"
+#endif
+
+
+
 enum pxFillMode
 {
   fillEvenOdd = 1,
@@ -115,13 +124,14 @@ inline bool pxBlendBehind (
     return 1;
 
   uint32 sa = dst1>>24;
-
+  
   register		uint32 alpha1	= 256-da;
 	register		uint32 agd1		= (dst1&0xff00)>>8;
 	register		uint32 rbd1		=  dst1&_rbmask;
 
 	register		uint32 ags1		=  src1&_agmask;
 	register		uint32 rbs1		=  src1&_rbmask;
+  
 #if 1
   rbd1 *= sa;
   rbd1 >>= 8;
@@ -218,5 +228,10 @@ inline pxPixel pxBlend4(const pxPixel& s1, const pxPixel& s2,
 }
 
 #endif
+
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic pop
+#endif
+
 
 

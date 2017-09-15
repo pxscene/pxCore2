@@ -9,6 +9,11 @@
 #include "xs_Array.h"
 #include "xs_Hash.h"
 
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
+#endif
+
 // ====================================================================================================================
 // Basic string functions
 // ====================================================================================================================
@@ -284,3 +289,7 @@ template<class T, class BaseClass> bool xs_String<T, BaseClass>::Alias (const T*
 }
 
 #endif // for entire file
+
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic pop
+#endif

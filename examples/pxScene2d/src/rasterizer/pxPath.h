@@ -42,19 +42,21 @@ floatBytes_t;
 
 #define SVG_OP_MOVE           ((uint8_t) 'M') // MOVE
 #define SVG_OP_LINE           ((uint8_t) 'L') // LINE
+#define SVG_OP_ARC            ((uint8_t) 'A') // ARC
 #define SVG_OP_Q_CURVE        ((uint8_t) 'Q') // QUADRATIC
 #define SVG_OP_C_CURVE        ((uint8_t) 'C') // CUBIC
 #define SVG_OP_CLOSE          ((uint8_t) 'Z') // CLOSE
 
 #define SVG_OP_move           ((uint8_t) 'm') // MOVE       (relative)
+#define SVG_OP_arc            ((uint8_t) 'a') // ARC        (relative)
 #define SVG_OP_line           ((uint8_t) 'l') // LINE       (relative)
 #define SVG_OP_q_curve        ((uint8_t) 'q') // QUADRATIC  (relative)
 #define SVG_OP_c_curve        ((uint8_t) 'c') // CUBIC      (relative)
 
-#define SVG_LEN_MOVE          ((uint8_t) sizeof(float) * 2 ) // MOVE
-#define SVG_LEN_LINE          ((uint8_t) sizeof(float) * 2 ) // LINE
-#define SVG_LEN_Q_CURVE       ((uint8_t) sizeof(float) * 4 ) // QUADRATIC
-#define SVG_LEN_C_CURVE       ((uint8_t) sizeof(float) * 6 ) // CUBIC
+//#define SVG_LEN_MOVE          ((uint8_t) sizeof(float) * 2 ) // MOVE
+//#define SVG_LEN_LINE          ((uint8_t) sizeof(float) * 2 ) // LINE
+//#define SVG_LEN_Q_CURVE       ((uint8_t) sizeof(float) * 4 ) // QUADRATIC
+//#define SVG_LEN_C_CURVE       ((uint8_t) sizeof(float) * 6 ) // CUBIC
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
