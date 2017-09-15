@@ -39,7 +39,6 @@
 		4C38CDC01E538D19003E4A35 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDBF1E538D19003E4A35 /* Cocoa.framework */; };
 		4C5137B41E5F81BE0052A99C /* pxImageA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5137B21E5F81BE0052A99C /* pxImageA.cpp */; };
 		4C5B75AC1F475F3E00664DC6 /* pxPath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5B75AB1F475F3E00664DC6 /* pxPath.cpp */; };
-		4C5B75C01F4FB0C800664DC6 /* svgtest.js in Resources */ = {isa = PBXBuildFile; fileRef = 4C5B75BF1F4FB0C800664DC6 /* svgtest.js */; };
 		4C63A6831E7878AA00313D9C /* package.json in Resources */ = {isa = PBXBuildFile; fileRef = 4C63A6821E7878AA00313D9C /* package.json */; };
 		4C9F22AC1E6A24D200979F4E /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */; };
 		4CE99F681F389F8400BA95C2 /* xs_String.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CE99F651F389F8400BA95C2 /* xs_String.cpp */; };
@@ -217,6 +216,7 @@
 		4C20BEAD1E5B8638005ABBB7 /* pxscene.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = pxscene.sh; path = ../pxscene.sh; sourceTree = "<group>"; };
 		4C20BEB11E5CDE01005ABBB7 /* pxScene2d.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = pxScene2d.xcconfig; sourceTree = SOURCE_ROOT; };
 		4C2F20D31EEF1C250099DAE6 /* browser */ = {isa = PBXFileReference; lastKnownFileType = folder; name = browser; path = src/browser; sourceTree = "<group>"; };
+		4C35273D1F6B16100061D8A3 /* svgtest.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = svgtest.js; path = src/rasterizer/svgtest.js; sourceTree = "<group>"; };
 		4C38CDB31E538CF7003E4A35 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		4C38CDBF1E538D19003E4A35 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		4C5137B21E5F81BE0052A99C /* pxImageA.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImageA.cpp; path = src/pxImageA.cpp; sourceTree = "<group>"; };
@@ -433,6 +433,7 @@
 		4CE99F391F30B37900BA95C2 /* Rasterizer */ = {
 			isa = PBXGroup;
 			children = (
+				4C35273D1F6B16100061D8A3 /* svgtest.js */,
 				4CE99F691F389F9200BA95C2 /* px2d.h */,
 				4CE99F6A1F389F9200BA95C2 /* pxCanvas.cpp */,
 				4CE99F6B1F389F9200BA95C2 /* pxCanvas.h */,
@@ -649,7 +650,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				4C63A6831E7878AA00313D9C /* package.json in Resources */,
-				4C5B75C01F4FB0C800664DC6 /* svgtest.js in Resources */,
 				4C2F20D41EEF1C250099DAE6 /* browser in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

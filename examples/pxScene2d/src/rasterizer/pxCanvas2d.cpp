@@ -129,7 +129,7 @@ void DoLineSegmentIntersection(const Vector& p0, const Vector& p1, const Vector&
 
 
 
-pxCanvas2d::pxCanvas2d(): mOffscreen(NULL), mVertexCount(0) //pxScene2d* scene): pxObject(scene), mOffscreen(NULL)
+pxCanvas2d::pxCanvas2d(): mOffscreen(/*NULL*/), mVertexCount(0) //pxScene2d* scene): pxObject(scene), mOffscreen(NULL)
 {
 }
 
@@ -140,8 +140,10 @@ pxCanvas2d::~pxCanvas2d()
 
 pxError pxCanvas2d::term()
 {
-  delete mOffscreen;
-  mOffscreen = NULL;
+//  delete mOffscreen;
+//  mOffscreen = NULL;
+  
+  mOffscreen.term();
 
   mVertexCount = 0;
   
@@ -154,20 +156,25 @@ pxError pxCanvas2d::term()
 pxError pxCanvas2d::init(int width, int height)
 {
   pxError e = PX_FAIL;
-
   term();
 
   mw = width;
   mh = height;
   
-  mOffscreen = new pxOffscreen;
-  if (mOffscreen)
-  {
-    mOffscreen->initWithColor(width, height, pxClear.u);  // pxBlue pxClear
-    mRasterizer.init(mOffscreen);
+//  mOffscreen.initWithColor(width, height, pxRed.u); // HACK
+  mOffscreen.initWithColor(width, height, pxClear.u);
+  mRasterizer.init(&mOffscreen);
 
-    e = PX_OK;
-  }
+  e = PX_OK;
+  
+//  mOffscreen = new pxOffscreen;
+//  if (mOffscreen)
+//  {
+//    mOffscreen->initWithColor(width, height, pxClear.u);  // pxBlue pxClear
+//    mRasterizer.init(mOffscreen);
+//
+//    e = PX_OK;
+//  }
 
   mMatrix.identity();
   mTextureMatrix.identity();
@@ -196,12 +203,6 @@ pxError pxCanvas2d::initWithBuffer(pxBuffer* buffer)
   setAlpha(1.0);
 
   return e;
-}
-
-
-pxOffscreen* pxCanvas2d::offscreen()
-{
-  return mOffscreen;
 }
 
 void pxCanvas2d::newPath()
@@ -888,7 +889,7 @@ void pxCanvas2d::addCurve(double x1, double y1, double x2, double y2, double x3,
 
 void pxCanvas2d::addCurve(double x1, double y1, double x2, double y2, double x3, double y3, int depth)
 {
-  if (depth > 3)
+  if (depth > 4)//3)
   {
     mRasterizer.addEdge(x1, y1, x2, y2);
     mRasterizer.addEdge(x2, y2, x3, y3);
@@ -917,7 +918,7 @@ void pxCanvas2d::addCurve2(double x1, double y1, double x2, double y2, double x3
 
 void pxCanvas2d::addCurve2(double x1, double y1, double x2, double y2, double x3, double y3, int depth)
 {
-  if (depth > 3)
+  if (depth > 4)//3)
   {
 #if 0
     mRasterizer.addEdge(x1, y1, x2, y2);
@@ -1222,6 +1223,13 @@ void pxCanvas2d::rectangle(double x1, double y1, double x2, double y2)
 	closePath();
 }
 
+/*
+pxOffscreen* pxCanvas2d::offscreen()
+{
+  return mOffscreen;
+}
+
+
 void pxCanvas2d::needsRedraw()
 {
   mNeedsRedraw = true;
@@ -1246,3 +1254,4 @@ void pxCanvas2d::draw()
                       pxConstantsStretch::NONE);
   }
 }
+*/

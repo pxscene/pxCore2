@@ -22,6 +22,12 @@
 #define FIXEDX(x) (x >> (12))  // hardcoded to 4 bits
 
 
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#pragma clang diagnostic ignored "-Wconversion"
+#endif
+
 //#define OLDTEXTURE
 
 template<typename T>
@@ -3669,3 +3675,7 @@ void pxRasterizer::setAlphaTexture(bool f)
 { 
   mAlphaTexture = f; 
 }
+
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic pop
+#endif

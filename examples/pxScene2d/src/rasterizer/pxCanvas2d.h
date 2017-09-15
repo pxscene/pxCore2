@@ -41,14 +41,14 @@ public:
   pxCanvas2d();
   ~pxCanvas2d();
 
-  void needsRedraw();
+//  void needsRedraw();
   
   pxError init(int width, int height);
   pxError initWithBuffer(pxBuffer* buffer);
 
   pxError term();
   
-  pxOffscreen* offscreen();
+  pxOffscreen& offscreen() { return mOffscreen; };
 
   void newPath();
   void moveTo(double x, double y);
@@ -202,11 +202,11 @@ public:
   pxColor mStrokeColor;
   double  mStrokeWidth;
 
-  virtual void draw();
+//  virtual void draw();
 
 public: // BUGBUG
   pxRasterizer mRasterizer;
-  pxOffscreen* mOffscreen;
+  pxOffscreen  mOffscreen;
   pxTextureRef mTexture;
   
   bool    mNeedsRedraw;
