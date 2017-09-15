@@ -6,6 +6,11 @@ px.import({ scene: 'px:scene.1.js',
     var scene = imports.scene;
     var keys  = imports.keys;
 
+    var laterTimer = null;
+    var wideAnim   = null;
+
+    var didNarrow = false;
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // EXAMPLE:  
@@ -54,11 +59,11 @@ px.import({ scene: 'px:scene.1.js',
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Object.defineProperty(this, "focus",
         {
-            set: function (val) { textInput.focus = val;  },
+            set: function (val) { textInput.focus = val; val ? showCursor() : hideCursor(); },
             get: function () { return textInput.focus;    },
         });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        this._keepFocus = true; // Lose focus on MouseLeave
+        this._keepFocus = false; // Keep focus on MouseLeave
         Object.defineProperty(this, "keepFocus",
         {
             set: function (val) { this._keepFocus = val;  },
@@ -136,6 +141,9 @@ px.import({ scene: 'px:scene.1.js',
         this.clearSelection = clearSelection;
         this.hideCursor     = hideCursor;
         this.showCursor     = showCursor;
+
+        this.doLater        = doLater;
+        this.cancelLater    = cancelLater;
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -318,9 +326,9 @@ px.import({ scene: 'px:scene.1.js',
 
         textView.on("onMouseEnter", function (e) {
 
-             console.log(">>> textView.onMouseEnter   SHOW FOCUS:" + self.showFocus );
+//             console.log(">>> textView.onMouseEnter   showFocus:" + showFocus );
 
-            if(self.showFocus)
+            if(showFocus)
             {
                 textInputBG.a = 0.5;
             }
@@ -330,16 +338,16 @@ px.import({ scene: 'px:scene.1.js',
 
         textView.on("onMouseLeave", function (e) {
 
-//            console.log(">>> textView.onMouseLeave   SHOW:" + self.showFocus + " KEEP:  " + self.keepFocus);
+//            console.log(">>> textView.onMouseLeave   showFocus:" + showFocus + " keepFocus:  " + keepFocus);
 
-            if(self.showFocus)
+            if(showFocus)
             {
                 textInputBG.a = 0.25;
             }
 
             buttonDown = false;
 
-            if(self.keepFocus === false)
+            if(keepFocus === false)
             {
                 hideCursor();
                 clearSelection();
@@ -864,7 +872,7 @@ px.import({ scene: 'px:scene.1.js',
             // Position cursor at "start" of selection .. dependin on direction
             cursor_pos = (length > 0) ? end : start;//+= length;
 
-console.log(">>> makeSelection() ... selection.x = " + selection.x + "   selection.w = " + selection.w + "  selection.h = " + selection.h);
+// console.log(">>> makeSelection() ... selection.x = " + selection.x + "   selection.w = " + selection.w + "  selection.h = " + selection.h);
 
             updateCursor(cursor_pos);
         }
@@ -933,6 +941,67 @@ console.log(">>> makeSelection() ... selection.x = " + selection.x + "   selecti
         {
             cursor.animateTo({ a: 0 }, 0.5, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_OSCILLATE, scene.animation.COUNT_FOREVER);
         }
+
+        function cancelLater(fn)
+        {
+            clearTimeout(laterTimer);
+            laterTimer = null;
+
+            if(wideAnim !== null)
+            {
+                console.log("\n######### CANCEL ANIM");
+                wideAnim.cancel();
+                console.log("\n######### CANCEL ANIM - Done");
+            }
+
+            if(didNarrow)
+            {
+                widenURL(fn);
+            }
+        }
+
+        function doLater(fn, delay_ms)
+        {
+            if(laterTimer === null)
+            {
+               laterTimer = setTimeout(function delayShow() { narrowURL(fn); }, delay_ms);
+            }
+        }
+
+        function narrowURL(fn)
+        {
+            wideAnim = inputBg.animate({w: inputBg.w - 30}, 0.1,
+                                            scene.animation.TWEEN_LINEAR,
+                                            scene.animation.OPTION_FASTFORWARD, 1);
+            wideAnim.done.then(
+                function(o)
+                {
+                    if(fn) fn();  // delegate
+
+                    wideAnim  = null;
+                    didNarrow = true;
+
+                 }, function(o) {}
+            );
+        }
+
+        function widenURL(fn)
+        {
+            wideAnim = inputBg.animate({w: inputBg.w + 30}, 0.1,
+                                            scene.animation.TWEEN_LINEAR,
+                                            scene.animation.OPTION_FASTFORWARD, 1);
+            wideAnim.done.then(
+                function(o)
+                {
+                    if(fn) fn();  // delegate
+
+                    wideAnim  = null;
+                    didNarrow = false;
+
+                }, function(o) {}
+            );
+        }
+
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -

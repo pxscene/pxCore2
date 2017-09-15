@@ -1,5 +1,6 @@
 
 #include <list>
+#include <sstream>
 
 #define private public
 #define protected public
@@ -12,7 +13,7 @@
 #include "rtString.h"
 #include "pxScene2d.h"
 #include <string.h>
-#include <sstream>
+
 #include <unistd.h>
 #include <time.h>
 #include <dlfcn.h>

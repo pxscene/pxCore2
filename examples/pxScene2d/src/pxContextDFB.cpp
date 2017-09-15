@@ -2284,7 +2284,8 @@ void pxContext::drawImage(float x, float y, float w, float h,
                         pxTextureRef t, pxTextureRef mask,
                         bool useTextureDimsAlways, float* color,
                         pxConstantsStretch::constants stretchX,
-                        pxConstantsStretch::constants stretchY)
+                        pxConstantsStretch::constants stretchY,
+                        bool downscaleSmooth)
 {
 #ifdef DEBUG_SKIP_IMAGE
 #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
@@ -2308,6 +2309,16 @@ void pxContext::drawImage(float x, float y, float w, float h,
   if (mask.getPtr() != NULL)
   {
     mask->setLastRenderTick(gRenderTick);
+  }
+
+  if (stretchX < pxConstantsStretch::NONE || stretchX > pxConstantsStretch::REPEAT)
+  {
+    stretchX = pxConstantsStretch::NONE;
+  }
+
+  if (stretchY < pxConstantsStretch::NONE || stretchY > pxConstantsStretch::REPEAT)
+  {
+    stretchY = pxConstantsStretch::NONE;
   }
 
   float black[4] = {0,0,0,1};

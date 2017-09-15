@@ -16,6 +16,7 @@ function Scene() {
       this.alignHorizontal = scene.alignHorizontal;
       this.truncation = scene.truncation;
       this.root = scene.root;
+      this.info = scene.info;
       this.filePath = filePath;
       this.__defineGetter__("w", function() { return scene.w; });
       this.__defineGetter__("h", function() { return scene.h; });

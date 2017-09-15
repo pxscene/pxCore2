@@ -1,10 +1,9 @@
 {
-   "request":{
-      "branch":"master",
-      "config":{
-         "merge_mode":"merge",
-	 "cache" : null,
-	 "matrix": {"include" : {"os":"osx","osx_image" : "xcode6.4"}}
-         }
-   }
+    "request": {
+        "config": {
+            "merge_mode": "merge",
+            "cache": null,
+            "matrix": { "include": { "os": "osx", "osx_image": "xcode6.4" } }
+        }
+    }
 }

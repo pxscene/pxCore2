@@ -83,24 +83,6 @@ examples/pxScene2d/external/zlib-1.2.8/Makefile
 examples/pxScene2d/external/zlib-1.2.8/configure.log
 examples/pxScene2d/src/jsbindings/build/*
 
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/Makefile.in
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/aclocal.m4
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/ar-lib
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/compile
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/config.guess
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/config.h.in
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/config.sub
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/configure
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/depcomp
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/install-sh
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/java/Makefile.in
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/ltmain.sh
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/md5/Makefile.in
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/missing
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/simd/Makefile.in
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/jconfig.h
-examples/pxScene2d/external/libjpeg-turbo-1.5.1/jconfigint.h
-
 examples/pxScene2d/external/libnode-v6.9.0/cctest.vcxproj
 examples/pxScene2d/external/libnode-v6.9.0/cctest.vcxproj.filters
 examples/pxScene2d/external/libnode-v6.9.0/deps/gtest/gtest.sln
@@ -163,3 +145,8 @@ examples/pxScene2d/external/libnode-v6.9.0/tools/icu/icuucx.vcxproj
 examples/pxScene2d/external/libnode-v6.9.0/tools/icu/icuucx.vcxproj.filters
 examples/pxScene2d/external/libnode-v6.9.0/v8_inspector_compress_protocol_json.vcxproj
 examples/pxScene2d/external/libnode-v6.9.0/v8_inspector_compress_protocol_json.vcxproj.filters
+
+examples/pxScene2d/external/breakpad-chrome_55/*
+examples/pxScene2d/external/freetype-2.5.2/*
+examples/pxScene2d/external/libjpeg-turbo-1.5.1/*
+examples/pxScene2d/external/libpng-1.6.28/*

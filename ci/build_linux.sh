@@ -23,7 +23,7 @@ cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON .. >>$BUILDLOGS 2>&1;
 checkError $? "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
 
 echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene, unitttests ****" >> $BUILDLOGS
-cmake --build . --clean-first >>$BUILDLOGS 2>&1;
+cmake --build . --clean-first -- -j1 >>$BUILDLOGS 2>&1;
 checkError $? "cmake build failed for pxcore or rtcore" "Compilation error" "Check the error in $BUILDLOGS"
 
 else
@@ -32,7 +32,7 @@ cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON .. 1>>$BUILDLOGS;
 checkError $? "cmake config failed" "Config error" "Check the errors displayed in this window"
 
 echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene, unitttests ****"
-cmake --build . --clean-first 1>>$BUILDLOGS;
+cmake --build . --clean-first -- -j1 1>>$BUILDLOGS;
 checkError $? "cmake build failed for pxcore,rtcore,pxscene app,libpxscene or unitttests" "Compilation error" "Check the errors displayed in this window"
 
 fi

@@ -66,6 +66,14 @@ using namespace rapidjson;
 
 using namespace std;
 
+
+#define xstr(s) str(s)
+#define str(s) #s
+
+#ifndef PX_SCENE_VERSION
+#define PX_SCENE_VERSION dev_ver
+#endif
+
 // #define DEBUG_SKIP_DRAW       // Skip DRAW   code - for testing.
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
 
@@ -639,7 +647,6 @@ rtError pxObject::moveToBack()
   mParent = parent;
   std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
   parent->mChildren.insert(it, this);
-
 
   return RT_OK;
 }
@@ -1571,6 +1578,16 @@ pxScene2d::pxScene2d(bool top)
   mPointerHotSpotY= 16;
   mPointerResource= pxImageManager::getImage("cursor.png");
   #endif
+  
+  mInfo = new rtMapObject;
+  mInfo.set("version", xstr(PX_SCENE_VERSION));
+  
+    rtObjectRef build = new rtMapObject;
+    build.set("date", xstr(__DATE__));
+    build.set("time", xstr(__TIME__));
+  
+  mInfo.set("build", build);
+  mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
 }
 
 rtError pxScene2d::dispose()
@@ -1593,6 +1610,9 @@ rtError pxScene2d::dispose()
       mRoot->dispose();
     mEmit->clearListeners();
     mRoot = NULL;
+  
+    mInfo = NULL;
+  
     mFocusObj = NULL;
     pxFontManager::clearAllFonts();
     return RT_OK;
@@ -2119,6 +2139,11 @@ void pxScene2d::update(double t)
 pxObject* pxScene2d::getRoot() const
 {
   return mRoot;
+}
+
+rtObjectRef pxScene2d::getInfo() const
+{
+  return mInfo;
 }
 
 void pxScene2d::onComplete()
@@ -2694,6 +2719,7 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
+rtDefineProperty(pxScene2d, info);
 rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
@@ -2935,7 +2961,6 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
 {
   rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
-  mUrl = url;
 #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   mReady = new rtPromise();
  // mLang = lang;
@@ -2946,6 +2971,26 @@ void pxScriptView::runScript()
 {
   rtLogInfo(__FUNCTION__);
 #endif // ifndef RUNINMAIN
+
+// escape url begin
+  string escapedUrl;
+  string origUrl = url;
+  for (string::iterator it=origUrl.begin(); it!=origUrl.end(); ++it)
+  {
+    char currChar = *it;
+    if ((currChar == '"') || (currChar == '\\'))
+    {
+      escapedUrl.append(1, '\\');
+    }
+    escapedUrl.append(1, currChar);
+  }
+  mUrl = escapedUrl.c_str();
+  if (mUrl.length() > MAX_URL_SIZE)
+  {
+    rtLogWarn("url size greater than 8000 bytes, so restting url to empty");
+    mUrl = "";
+  }
+// escape url end
 
   #ifdef ENABLE_RT_NODE
   rtLogWarn("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
@@ -2966,13 +3011,10 @@ void pxScriptView::runScript()
 #endif
     mCtx->runFile("init.js");
 
-    char buffer[1024];
-#ifdef RUNINMAIN
-    sprintf(buffer, "loadUrl(\"%s\");", url);
-#else
-    sprintf(buffer, "loadUrl(\"%s\");", mUrl.cString());
+    char buffer[MAX_URL_SIZE + 50];
+    memset(buffer, 0, sizeof(buffer));
+    snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
     rtLogWarn("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
-#endif
 #ifdef WIN32 // process \\ to /
 		unsigned int bufferLen = strlen(buffer);
 		char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));

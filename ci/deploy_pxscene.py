@@ -6,9 +6,9 @@ from pprint import pprint
 def handleRequest(argv):
 	"""Function to read user request, form http message and send it"""
 	try:
-		opts, args = getopt.getopt(argv,"",["help","version=","repo=","user=","apitoken=","updateversion="])
+		opts, args = getopt.getopt(argv,"",["help","version=","repo=","org=","branch=","user=","apitoken=","updateversion="])
 	except getopt.GetoptError:
-		print 'usage: python deploy_pxscene.py --version=<version>  --repo=<repo> --user=<user> --apitoken=<apitoken> --updateversion=<true/false>'
+		print 'usage: python deploy_pxscene.py --version=<version>  --repo=<repo> --org=<org> --branch=<branch> --user=<user> --apitoken=<apitoken> --updateversion=<true/false>'
 		exit (1)
 	
 	#initialize input values
@@ -17,12 +17,13 @@ def handleRequest(argv):
 	user_name="";
 	api_token="";
 	update_version="false";
+	branch="master";
 	
 
 	#read input values
 	for opt, arg in opts:
 		if opt == "--help":
-			print 'python deploy_pxscene.py --version=<version>  --repo=<repo> --user=<user> --apitoken=<apitoken> --updateversion=<true/false>'
+			print 'python deploy_pxscene.py --version=<version>  --repo=<repo> --org=<org> --branch=<branch> --user=<user> --apitoken=<apitoken> --updateversion=<true/false>'
 			exit (1)
 		elif len(arg) == 0:
 			print "argument cannot be empty for option", opt
@@ -37,9 +38,13 @@ def handleRequest(argv):
 			api_token=arg;
 		elif opt == "--updateversion":
 			update_version=arg;
+		elif opt == "--org":
+			org_name=arg;
+		elif opt == "--branch":
+			branch=arg;
 
 	if version=="" or user_name=="" or api_token=="":
-		print 'usage: python deploy_pxscene.py --version=<version>  --repo=<repo> --user=<user> --apitoken=<apitoken> --updateversion=<true/false>'
+		print 'usage: python deploy_pxscene.py --version=<version>  --repo=<repo> --org=<org> --branch=<branch> --user=<user> --apitoken=<apitoken> --updateversion=<true/false>'
 		exit (1)
 
 	if update_version != "true" and update_version != "false":
@@ -50,6 +55,8 @@ def handleRequest(argv):
 	    data = json.load(data_file)
 	
 	#populate environment variables
+	data["request"][unicode("branch")] = unicode(branch);
+	data["request"][unicode("message")] = unicode("OS X Release build")+" "+unicode(version);
 	data["request"]["config"][unicode("env")] = {}
 	data["request"]["config"]["env"][unicode("PX_VERSION")] = unicode(version);
 	data["request"]["config"]["env"][unicode("REPO_USER_NAME")] = unicode(user_name);
@@ -70,7 +77,7 @@ def handleRequest(argv):
 	headers["Travis-API-Version"] = "3";
 	headers["Authorization"] = tokendata;
 	
-	url = "https://api.travis-ci.org/repo/" + str(user_name) + "%2F" + str(repo_name) + "/requests";
+	url = "https://api.travis-ci.org/repo/" + str(org_name) + "%2F" + str(repo_name) + "/requests";
 	
 	#send http request
 	response = requests.post(url, headers=headers, data=string)
@@ -78,6 +85,6 @@ def handleRequest(argv):
 
 if __name__ == "__main__":
 	if len(sys.argv) < 2:
-		print 'usage: python deploy_pxscene.py --version=<version>  --repo=<repo> --user=<user> --apitoken=<apitoken> --updateversion=<true/false>'
+		print 'usage: python deploy_pxscene.py --version=<version>  --repo=<repo> --org=<org> --branch=<branch> --user=<user> --apitoken=<apitoken> --updateversion=<true/false>'
 		exit (1)
 	handleRequest(sys.argv[1:])

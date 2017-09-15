@@ -566,7 +566,7 @@ rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32
         else
         {
             auto cbitr = std::find_if(ditr->second.begin(), ditr->second.end(),
-                    [CB](const ClientDisconnectedCB &cb) { return cb.func == CB.func && cb.data == CB.data; });
+                    [CB](const ClientDisconnectedCB &cb) { return cb == CB; });
 
             if(cbitr == ditr->second.end())
                 ditr->second.push_back(CB);
@@ -576,6 +576,46 @@ rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32
   }
 
   return (obj ? RT_OK : RT_FAIL);
+}
+
+rtError
+rtRemoteServer::unregisterDisconnectedCallback( clientDisconnectedCallback cb, void *cbdata )
+{
+    ClientDisconnectedCB CB = {cb, cbdata};
+
+    auto findClient = [&]() -> ClientDisconnectedCBMap::iterator {
+        for (auto &&client = m_disconnected_callback_map.begin();
+             client != m_disconnected_callback_map.end();
+             ++client) {
+            const std::vector<ClientDisconnectedCB> &installed_callbacks = client->second;
+            auto &&callback = find_if(installed_callbacks.cbegin(), installed_callbacks.cend(), [&](const ClientDisconnectedCB& c) {
+                    return c == CB;
+                });
+
+            if (callback != installed_callbacks.end())
+                return client;
+        }
+        return m_disconnected_callback_map.end();
+    };
+
+    std::unique_lock<std::mutex> lock(m_mutex);
+    auto client = findClient();
+
+    if (client == m_disconnected_callback_map.end()) {
+        rtLogInfo("%p : %p client not found", cb, cbdata);
+        return RT_ERROR_INVALID_ARG;
+    }
+
+    std::vector<ClientDisconnectedCB> &allClientCallbacks = client->second;
+    allClientCallbacks.erase(
+        std::remove_if(allClientCallbacks.begin(),
+                       allClientCallbacks.end(),
+                       [&] (const ClientDisconnectedCB& item) { return item == CB; }),
+        allClientCallbacks.end()
+        );
+    rtLogInfo("%p : %p removed callback pair from the callbacks list", cb, cbdata);
+
+    return RT_OK;
 }
 
 rtError
