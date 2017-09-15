@@ -218,15 +218,15 @@ finline const xs_Fixed	operator /	(const int32 l, const xs_Fixed& r)		{xs_Fixed 
 finline const xs_Fixed	operator /	(const int l, const xs_Fixed& r)		{xs_Fixed f=xs_Fixed::fixdiv_(l,r); return f;}
 
 #define xs_Fix_Compare_Op(OP)	\
-	finline const bool		operator OP	(const xs_Fixed& l, const xs_Fixed& r)	{return l.f OP r.f; }\
-	finline const bool		operator OP	(const xs_Fixed& l, const real64 r)		{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
-	finline const bool		operator OP	(const xs_Fixed& l, const real32 r) 	{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
-	finline const bool		operator OP	(const xs_Fixed& l, const int32 r) 		{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
-	finline const bool		operator OP	(const xs_Fixed& l, const int r) 		{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
-	finline const bool		operator OP	(const real64 l, const xs_Fixed& r)		{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
-	finline const bool		operator OP	(const real32 l, const xs_Fixed& r) 	{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
-	finline const bool		operator OP	(const int32 l, const xs_Fixed& r) 		{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
-	finline const bool		operator OP	(const int l, const xs_Fixed& r) 		{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }
+	finline bool		operator OP	(const xs_Fixed& l, const xs_Fixed& r)	{return l.f OP r.f; }\
+	finline bool		operator OP	(const xs_Fixed& l, const real64 r)		{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
+	finline bool		operator OP	(const xs_Fixed& l, const real32 r) 	{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
+	finline bool		operator OP	(const xs_Fixed& l, const int32 r) 		{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
+	finline bool		operator OP	(const xs_Fixed& l, const int r) 		{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
+	finline bool		operator OP	(const real64 l, const xs_Fixed& r)		{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
+	finline bool		operator OP	(const real32 l, const xs_Fixed& r) 	{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
+	finline bool		operator OP	(const int32 l, const xs_Fixed& r) 		{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }\
+	finline bool		operator OP	(const int l, const xs_Fixed& r) 		{return xs_Fixed::ToFix(l) OP xs_Fixed::ToFix(r); }
 
 xs_Fix_Compare_Op(==)
 xs_Fix_Compare_Op(!=)

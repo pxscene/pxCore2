@@ -1148,7 +1148,7 @@ struct endPointArray
     //else return m;
     return m;
 #else
-    int lastS = -1;
+   // int lastS = -1;
     int result = -1;
 
     if (mCount > 0)
@@ -1167,7 +1167,7 @@ struct endPointArray
       if (y > mEndPoints[s].mY) 
         result = s+1;
       else result = s;
-      lastS = s;
+  //    lastS = s;
     }
 
 #if 0
@@ -1297,7 +1297,7 @@ pxRasterizer::pxRasterizer():
 #else
   mEdgeManager(NULL),
 #endif
-  mClipValid(false), mClipInternalCalculated(false), mCoverage(NULL), mTexture(NULL), 
+   mCoverage(NULL), mClipValid(false), mClipInternalCalculated(false), mTexture(NULL), 
   mTextureClamp(false), mTextureClampColor(false), mBiLerp(false), mAlphaTexture(false), mOverdraw(false)
 {
   mMatrix22.identity();
@@ -1865,7 +1865,7 @@ void pxRasterizer::rasterize()
   // trivial reject
   if (FIXEDX(mLeftExtent) <= clipRight && FIXEDX(mRightExtent) >= clipLeft)
   {
-    edgeManager* edgeMgr = (edgeManager*)mEdgeManager;
+   // edgeManager* edgeMgr = (edgeManager*)mEdgeManager;
 
     edge* e1;
     edge* e2;
@@ -2345,14 +2345,14 @@ void pxRasterizer::rasterizeComplex()
 
   bool textureUpsideDown = false;
 
-  int32_t maxU;
-  int32_t maxV;
+  // int32_t maxU;
+  // int32_t maxV;
 
-  if (mTexture)
-  {
-    maxU = (mTexture->width()-1)<<UVFIXEDSHIFT;
-    maxV = (mTexture->height()-1)<<UVFIXEDSHIFT;
-  }
+  // if (mTexture)
+  // {
+  //   maxU = (mTexture->width()-1)<<UVFIXEDSHIFT;
+  //   maxV = (mTexture->height()-1)<<UVFIXEDSHIFT;
+  // }
 
   if (!mCoverage ||          
       mBuffer->width() != mCachedBufferWidth)
@@ -2453,7 +2453,7 @@ void pxRasterizer::rasterizeComplex()
 #endif
 #endif
 
-        int subline = l & overSampleMask;
+        uint32_t subline = l & overSampleMask;
 
         if (!spanBufferFull)
         {
@@ -2666,8 +2666,8 @@ void pxRasterizer::rasterizeComplex()
                 {
 #if 1
                   int ca = 0;
-                  if (pEndSave-p) 
-                    rtEdgeCover[pEndSave-p];
+                  // if (pEndSave-p) 
+                  //   rtEdgeCover[pEndSave-p];
 #if 1
                   if (subline == 0)
                   {
@@ -2758,8 +2758,8 @@ void pxRasterizer::rasterizeComplex()
             }
             else//  TEXTURE MAPPING=====================================================
             {
-              bool overdrawDetected = false;
 #if 0
+              bool overdrawDetected = false;
               // quick and dirty overdraw check
               if (mCoverageFirst <= mCoverageLast && mOverdraw)
               {
@@ -2908,8 +2908,7 @@ void pxRasterizer::rasterizeComplex()
                     int32_t maxU = (mTexture->width() << UVFIXEDSHIFT)-1;
                     int32_t maxV = (mTexture->height() << UVFIXEDSHIFT)-1;
 
-                    int32_t baseX = 0;
-
+//                    int32_t baseX = 0;
 
                     int32_t startSpan;
                     int32_t endSpan;

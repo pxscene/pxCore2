@@ -59,7 +59,7 @@ static bcurves_t arcToBezier(a2cReal_t px, a2cReal_t py,
 
 
 
-pxPath::pxPath(pxScene2d* scene): pxObject(scene), mStrokeColor(pxClear), mFillColor(pxClear), mStrokeWidth(0)
+pxPath::pxPath(pxScene2d* scene): pxObject(scene), mStrokeColor(pxClear), mStrokeWidth(0), mFillColor(pxClear)
 {
   mx = 0;
   my = 0;
@@ -170,8 +170,8 @@ rtError pxPath::setPath(const rtString d)
     return parsePath(d, this);
 }
 
-static float max_w = 0;
-static float max_h = 0;
+// static float max_w = 0;
+// static float max_h = 0;
 
 static float min_x = 99999;
 static float min_y = 99999;

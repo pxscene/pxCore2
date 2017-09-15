@@ -129,7 +129,7 @@ void DoLineSegmentIntersection(const Vector& p0, const Vector& p1, const Vector&
 
 
 
-pxCanvas2d::pxCanvas2d(): mOffscreen(/*NULL*/), mVertexCount(0) //pxScene2d* scene): pxObject(scene), mOffscreen(NULL)
+pxCanvas2d::pxCanvas2d(): mVertexCount(0), mOffscreen(/*NULL*/)
 {
 }
 
