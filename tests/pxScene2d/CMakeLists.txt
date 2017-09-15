@@ -28,6 +28,7 @@ set(PXSCENEINC ${PXCOREDIR}/examples/pxScene2d/src)
 set(BUILD_UNIT_TEST 0)
 
 option(BUILD_WITH_WINDOWLESS_EGL "BUILD_WITH_WINDOWLESS_EGL" OFF)
+option(PXSCENE_TEST_HTTP_CACHE "PXSCENE_TEST_HTTP_CACHE" ON)
 
 
 include_directories(AFTER ${GOOGLETESTINC} ${PXCOREINC} ${PXSCENEINC} ${NODEINC})
@@ -63,7 +64,11 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(BUILD_UNIT_TEST 1)
         set(TEST_WAYLAND_SOURCE_FILES "")
         #set(TEST_WAYLAND_SOURCE_FILES test_pxWayland.cpp test_pxWaylandContainer.cpp)
-        set(PLATFORM_TEST_FILES test_jsfiles.cpp test_imagecache.cpp test_rtError.cpp test_pxUtil.cpp)
+        set(PLATFORM_TEST_FILES test_jsfiles.cpp test_rtError.cpp test_pxUtil.cpp)
+        if (PXSCENE_TEST_HTTP_CACHE)
+                message("Enabling http cache tests")
+                set(PLATFORM_TEST_FILES ${PLATFORM_TEST_FILES} test_imagecache.cpp)
+        endif (PXSCENE_TEST_HTTP_CACHE)
         if (DEFINED ENV{CODE_COVERAGE})
             message("enabling code coverage support")
             add_definitions(-DENABLE_CODE_COVERAGE)
@@ -101,7 +106,8 @@ endif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 add_definitions(-D${PX_PLATFORM} -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE)
 
 set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_example.cpp test_api.cpp  test_pxcontext.cpp test_memoryleak.cpp test_rtnode.cpp
-    test_pxAnimate.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_rtValue.cpp test_pxImage.cpp test_pxOffscreen.cpp test_pxWindowUtil.cpp ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
+    test_pxAnimate.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_rtValue.cpp test_pxImage.cpp test_pxOffscreen.cpp
+    test_pxWindowUtil.cpp test_pxTexture.cpp ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})
     message("Include http cache tests")
