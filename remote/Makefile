@@ -63,6 +63,10 @@ else
   CFLAGS   += -O2
 endif
 
+ifeq ($(RT_REMOTE_KERNEL_GUID), 1)
+  CXXFLAGS += -DRT_REMOTE_KERNEL_GUID
+endif
+
 ifeq ($(PROFILE), 1)
   CXXFLAGS += -pg
 endif
