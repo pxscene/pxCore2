@@ -65,6 +65,9 @@ endif
 
 ifeq ($(RT_REMOTE_KERNEL_GUID), 1)
   CXXFLAGS += -DRT_REMOTE_KERNEL_GUID
+  LIBUUID =
+else
+  LIBUUID = -luuid
 endif
 
 ifeq ($(PROFILE), 1)
@@ -75,7 +78,7 @@ endif
 CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Werror -Wall -Wextra -DRT_PLATFORM_LINUX -I../src -I. -fPIC -Wno-deprecated-declarations
 CFLAGS+=-DRT_REMOTE_LOOPBACK_ONLY
 CXXFLAGS+=-std=c++0x $(CFLAGS)
-LDFLAGS =-pthread -ldl -luuid -Wl,-rpath=../../,--enable-new-dtags
+LDFLAGS =-pthread -ldl $(LIBUUID) -Wl,-rpath=../../,--enable-new-dtags
 OBJDIR=obj
 
 RTCORE_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RTCORE_SRCS)))
@@ -142,15 +145,15 @@ librtRemote_s.a: $(RTRPC_OBJS)
 	$(AR) rcs -o $@ $(RTRPC_OBJS)
 
 rpcSampleApp: $(SAMPLEAPP_OBJS) librtRemote.so
-	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/egl -lrtCore -lrtRemote -luuid
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/egl -lrtCore -lrtRemote $(LIBUUID)
 
 rpcSampleApp_s: $(SAMPLEAPP_OBJS) librtRemote_s.a
-	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/egl -lrtCore_s -lrtRemote_s -luuid
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/egl -lrtCore_s -lrtRemote_s $(LIBUUID)
 
 rpcSampleSimple: librtRemote.so
 	$(CXX_PRETTY) rtSampleClient.cpp -DRT_PLATFORM_LINUX -I. -DRAPIDJSON_HAS_STDSTRING\
-    -o rtSampleClient -I../src -L. -L../build/egl -lrtCore -lrtRemote -l uuid -std=c++11
+    -o rtSampleClient -I../src -L. -L../build/egl -lrtCore -lrtRemote $(LIBUUID) -std=c++11
 	$(CXX_PRETTY) rtSampleServer.cpp -DRT_PLATFORM_LINUX -I. -DRAPIDJSON_HAS_STDSTRING\
-    -o rtSampleServer -I../src -L. -L../build/egl -lrtCore -lrtRemote -l uuid -std=c++11
+    -o rtSampleServer -I../src -L. -L../build/egl -lrtCore -lrtRemote $(LIBUUID) -std=c++11
 
 .PHONY: all debug clean
