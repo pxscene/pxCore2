@@ -1,6 +1,12 @@
 #include "rtGuid.h"
 #include <string.h>
 
+#ifdef RT_REMOTE_KERNEL_GUID 
+#include <stdio.h>
+#else
+#include <uuid/uuid.h>
+#endif
+
 rtGuid const&
 rtGuid::null()
 {
@@ -10,43 +16,37 @@ rtGuid::null()
 
 rtGuid::rtGuid()
 {
-  uuid_clear(m_id);
 }
 
 rtGuid::rtGuid(rtGuid const& rhs)
 {
-  memcpy(m_id, rhs.m_id, sizeof(uuid_t));
+  m_id = rhs.m_id;
 }
 
 rtGuid const&
 rtGuid::operator=(rtGuid const& rhs)
 {
   if (this != &rhs)
-    memcpy(m_id, rhs.m_id, sizeof(uuid_t));
+    m_id = rhs.m_id;
   return *this;
 }
 
 bool
 rtGuid::operator==(rtGuid const& rhs) const
 {
-  return uuid_compare(m_id, rhs.m_id) == 0;
+  return m_id == rhs.m_id;
 }
 
 bool
 rtGuid::operator!=(rtGuid const& rhs) const
 {
-  return uuid_compare(m_id, rhs.m_id) != 0;
+  return m_id.compare(rhs.m_id) != 0;
 }
 
 bool
 rtGuid::operator<(rtGuid const& rhs) const
 {
-  return uuid_compare(m_id, rhs.m_id) < 0;
-}
-
-rtGuid::rtGuid(uuid_t id)
-{
-  memcpy(m_id, id, sizeof(uuid_t));
+  return m_id.compare(rhs.m_id) < 0;
 }
 
 rtGuid::~rtGuid()
@@ -56,35 +56,59 @@ rtGuid::~rtGuid()
 rtGuid
 rtGuid::newRandom()
 {
+  rtGuid guid;
+
+  char buff[64];
+  memset(buff, 0, sizeof(buff));
+
+  #ifndef RT_REMOTE_KERNEL_GUID
   uuid_t id;
   uuid_generate_random(id);
-  return rtGuid(id);
+
+  uuid_unparse_lower(id, buff);
+  guid.m_id = buff;
+  #else
+  FILE* f = fopen("/proc/sys/kernel/random/uuid", "r");
+  if (f)
+  {
+    fgets(buff, sizeof(buff), f);
+    fclose(f);
+  }
+  if (strlen(buff) > 0)
+    guid.m_id = buff;
+  #endif
+
+  return guid;
 }
 
 rtGuid
 rtGuid::fromString(char const* s)
 {
-  uuid_t id;
-  uuid_clear(id);
-
-  return (s != nullptr && (uuid_parse(s, id) == 0))
-    ? rtGuid(id)
-    : rtGuid::null();
+  rtGuid guid;
+  guid.m_id = s;
+  return guid;
 }
 
 rtGuid
 rtGuid::newTime()
 {
+  #ifndef RT_REMOTE_KERNEL_GUID
+  rtGuid guid;
   uuid_t id;
   uuid_generate_time(id);
-  return rtGuid(id);
+
+  char buff[48];
+  memset(buff, 0, sizeof(buff));
+  uuid_unparse_lower(id, buff);
+  guid.m_id = buff;
+  return guid;
+  #else
+  return newRandom();
+  #endif
 }
 
 std::string
 rtGuid::toString() const
 {
-  char buff[48];
-  memset(buff, 0, sizeof(buff));
-  uuid_unparse_lower(m_id, buff);
-  return std::string(buff);
+  return m_id;
 }
