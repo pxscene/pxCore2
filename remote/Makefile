@@ -67,6 +67,9 @@ ifeq ($(PROFILE), 1)
   CXXFLAGS += -pg
 endif
 
+ifeq ($(WITH_KERNEL_GUID), 1)
+  CXXFLAGS += -DRT_REMOTE_KERNEL_GUID
+endif
 
 CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Werror -Wall -Wextra -DRT_PLATFORM_LINUX -I../src -I. -fPIC -Wno-deprecated-declarations
 CFLAGS+=-DRT_REMOTE_LOOPBACK_ONLY

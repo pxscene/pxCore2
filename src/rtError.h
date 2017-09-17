@@ -63,6 +63,9 @@ typedef uint32_t rtError;
 
 const char* rtStrError(rtError e);
 
+rtError rtErrorGetLastError();
+void    rtErrorSetLastError(rtError e);
+
 // TODO where all is this used??
 inline rtError
 rtErrorFromErrno(int err)
