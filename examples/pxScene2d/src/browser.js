@@ -73,7 +73,7 @@ px.import({ scene:      'px:scene.1.js',
     console.log("RELOADING.... [ " + u + " ]");
 
     // Prime the Spinner !
-    inputBox.doLater( function() { spinner.a = 1.0; }, 1500 ); // 1500 ms
+    inputBox.doLater( function() { spinner.a = 1.0; }, 500 ); // 500 ms
 
     if(false)
     {
