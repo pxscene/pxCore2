@@ -139,14 +139,14 @@ static pxColor getColor(const uint32_t c)
   uint8_t g = (c >> 16) & 0x000000ff;
   uint8_t b = (c >>  8) & 0x000000ff;
   uint8_t a = (c      ) & 0x000000ff;
-  
+
   return pxColor(r,g,b,a);
 }
 
 rtError pxPath::setStrokeColor(const uint32_t c)
 {
   mStrokeColor = getColor(c);
-  
+
   return RT_OK;
 }
 
@@ -211,19 +211,19 @@ void updateBounds()
   {
     return RT_ERROR;
   }
-  
+
   while (*s)
   {
     char op[2];
     float x0, y0, x1, y1, x2, y2, rx, ry;
-    
+
     float last_x2 = 0.0, last_y2 = 0.0, xrot;
-    
+
     int n;
-    
+
     int lflag; // ARC ... "large-arc-flag"
     int sflag; // ARC ... "sweep-flag"
-    
+
     last_pen_x = pen_x;
     last_pen_y = pen_y;
 
@@ -243,13 +243,13 @@ void updateBounds()
         {
           x0 += pen_x;  y0 += pen_y;
         }
-        
+
         p->pushOpcode( *op );
         p->pushFloat(x0,y0);
 
         updatePen(x0, y0); // POSITION
         updateBounds();
-        
+
 //        if(*op == 'M' || *op == 'm')
 //        {
 //          last_pen_x = pen_x;
@@ -264,7 +264,7 @@ void updateBounds()
 //        {
 //          printf("\nPath:   SVG_OP_LINE( %.0f, %.0f) ",x0, y0);
 //        }
-        
+
         s += n;
       }
       while (sscanf(s, "%f %f %n", &x0, &y0, &n) == 2);
@@ -278,7 +278,7 @@ void updateBounds()
     if (sscanf(s, " %1[Zz] %n", op, &n) == 1)
     {
       p->pushOpcode( *op );
-      
+
       s += n;
     }
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -295,15 +295,15 @@ void updateBounds()
         {
           x0 += pen_x;
         }
-        
+
         p->pushOpcode( 'L' );
         p->pushFloat(x0,y0);
-        
+
         updatePen(x0, y0); // POSITION
         updateBounds();
 
 //        printf("\nPath:   SVG_OP_H_LINE_TO( x0: %.0f, y0: %.0f) ", x0, y0);
-        
+
         s += n; x0 = y0 = 0;
       }
       while (sscanf(s, "%f %n", &x0, &n) == 1);
@@ -322,15 +322,15 @@ void updateBounds()
         {
           y0 += pen_y;
         }
-        
+
         p->pushOpcode( 'L' );
         p->pushFloat(x0,y0);
-        
+
         updatePen(x0, y0); // POSITION
         updateBounds();
 
 //        printf("\nPath:   SVG_OP_V_LINE_TO( x0: %.0f, y0: %.0f) ", x0, y0);
-        
+
         s += n; x0 = y0 = 0;
       }
       while (sscanf(s, "%f %n", &y0, &n) == 1);
@@ -349,7 +349,7 @@ void updateBounds()
      //   x0 += pen_x;   y0 += pen_y;
      //   rx += pen_x;   ry += pen_y;
       }
-      
+
       bcurves_t ans = arcToBezier(pen_x, pen_y, // pxy            PREVIOUS
                                      x0,  y0,   // cxy            CURRENT
                                      rx,  ry,   // rxy            CURVE CENTER
@@ -362,17 +362,17 @@ void updateBounds()
            it != end; ++it)
       {
         bcurve_t c = *it;
-        
+
         x1 = c.xy1.x;  x2 = c.xy2.x;  x0 = c.xy.x;
         y1 = c.xy1.y;  y2 = c.xy2.y;  y0 = c.xy.y;
-        
+
 //        printf("\nARC:  x1: %f   y1: %f   x2: %f   y2: %f   x0: %f   y0: %f", x1, y1, x2, y2, x0, y0);
-        
+
         // Queue BEZIER curve control points.
         p->pushOpcode( 'C' );
         p->pushFloat(x1, y1, x2, y2, x0, y0);
       }
-      
+
       s += n;
     }
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -385,23 +385,23 @@ void updateBounds()
                &x1, &y1, &x2, &y2, &x0, &y0, &n) == 7)
     {
 //      printf("\nPath:   SVG_OP_C_CURVE( x1: %.0f, y1: %.0f,  x2: %.0f, y2: %.0f,  x0: %.0f, y0: %.0f) ", x1, y1, x2, y2, x0, y0);
-      
+
       if(is_relative(*op))
       {
         x0 += pen_x;   y0 += pen_y;
         x1 += pen_x;   y1 += pen_y;
         x2 += pen_x;   y2 += pen_y;
       }
-      
+
       last_x2 = x2;
       last_y2 = y2;
-      
+
       p->pushOpcode( *op );
       p->pushFloat(x1, y1, x2, y2, x0, y0);
-      
+
       updatePen(x0, y0); // POSITION
       updateBounds();
-      
+
       s += n;
     }
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -421,22 +421,22 @@ void updateBounds()
           x1 += pen_x;   y1 += pen_y;
           x2 += pen_x;   y2 += pen_y;
         }
-        
+
         //TODO : fix
         x1 = 2 * pen_x - last_x2;
         y1 = 2 * pen_y - last_y2;
-        
+
         last_x2 = x2;
         last_y2 = y2;
-        
+
         p->pushOpcode( 'C' );
         p->pushFloat(x1, y1, x2, y2, x0, y0);
-        
+
 //        printf("\nPath:   SVG_OP_S_CURVE( x1: %.0f, y1: %.0f,  x2: %.0f, y2: %.0f,  x0: %.0f, y0: %.0f) ", x1, y1, x2, y2, x0, y0);
 
         updatePen(x0, y0); // POSITION
         updateBounds();
-        
+
         s += n;
       }
       while (sscanf(s, "%f %f %f %f %n", &x2, &y2, &x0, &y0, &n) == 4);
@@ -455,15 +455,15 @@ void updateBounds()
         x0 += pen_x;   y0 += pen_y;
         x1 += pen_x;   y1 += pen_y;
       }
-      
+
       p->pushOpcode( *op );
       p->pushFloat(x1, y1, x0, y0);
-      
+
 //      printf("\nPath:   SVG_OP_Q_CURVE( x1: %.0f, y1: %.0f,  x0: %.0f, y0: %.0f) ", x1, y1, x0, y0);
-      
+
       updatePen(x0, y0); // POSITION
       updateBounds();
-      
+
       s += n;
     }
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -483,10 +483,10 @@ void updateBounds()
           x0 += pen_x;
           y0 += pen_y;
         }
-        
+
         x1 = (2 * pen_x) - x1;
         y1 = (2 * pen_y) - y1;
-        
+
         p->pushOpcode( 'Q' );
         p->pushFloat(x1, y1, x0, y0);
 
@@ -494,7 +494,7 @@ void updateBounds()
 
         updatePen(x0, y0); // POSITION
         updateBounds();
-        
+
         s += n;
       }
       while (sscanf(s, "%f %f %n", &x0, &y0, &n) == 2);
@@ -505,28 +505,28 @@ void updateBounds()
       fprintf(stderr, "\n path parse failed at \"%s\"\n", s);
       break;
     }
-    
+
     //fprintf(stderr, "\n dbg - x0: %.0f  x1: %.0f  x2: %.0f", x0, x1, x2);
 
   }//WHILE
   
   float dw = fabs(max_x - min_x);
   float dh = fabs(max_y - min_y);
-  
+
   dw = (dw > 0) ? dw : p->mStrokeWidth;
   dh = (dh > 0) ? dh : p->mStrokeWidth;
-  
+
   p->setW( dw );
   p->setH( dh );
 
  // printf("\n ###  Bounds   WxH:  %.0f x  %.0f ... ", p->w(), p->h());
-  
+
   p->sendPromise();
-  
+
   // Reset
   min_x = 99999;  max_x = 0;
   min_y = 99999;  max_y = 0;
- 
+
   return RT_OK;
 }
 
@@ -541,8 +541,13 @@ void pxPath::pushOpcode(uint8_t op)
 
 void pxPath::pushFloat(float f)
 {
+#ifndef PX_PLATFORM_GENERIC_DFB
   floatBytes_t fb = {.f = f};
-  
+#else
+  // support older toolchain
+  floatBytes_t fb; fb.f = f;
+#endif
+
   opStream.push_back( fb.bytes[3] );
   opStream.push_back( fb.bytes[2] );
   opStream.push_back( fb.bytes[1] );
@@ -574,7 +579,6 @@ void pxPath::pushFloat(float a, float b, float c, float d, float e, float f)
   pushFloat(f);
 }
 
-
 float pxPath::getFloatAt(int i)
 {
   if(opStream.size() == 0)
@@ -582,12 +586,22 @@ float pxPath::getFloatAt(int i)
     return 0;
   }
   
+#ifndef PX_PLATFORM_GENERIC_DFB
   floatBytes_t fb = {.bytes =
     {
       opStream[i + 3], opStream[i + 2],
       opStream[i + 1], opStream[i + 0]
     }
   };
+#else
+  // support older toolchain
+  floatBytes_t fb;
+  
+   fb.bytes[3] =  opStream[i + 3];
+   fb.bytes[2] =  opStream[i + 2];
+   fb.bytes[1] =  opStream[i + 1];
+   fb.bytes[0] =  opStream[i + 0];
+#endif
   
   return fb.f;
 }
@@ -603,17 +617,25 @@ float pxPath::getFloatAt(const uint8_t *p)
   {
     return 0;
   }
-  
+
+#ifndef PX_PLATFORM_GENERIC_DFB
   floatBytes_t fb = {.bytes =
     {
       p[3], p[2], p[1], p[0]
     }
   };
+#else
+  // support older toolchain
+  floatBytes_t fb;
   
+   fb.bytes[3] = p[3];
+   fb.bytes[2] = p[2];
+   fb.bytes[1] = p[1];
+   fb.bytes[0] = p[0];
+#endif
+
   return fb.f;
 }
-
-
 
 rtDefineObject(pxPath, pxObject);
 
@@ -643,11 +665,21 @@ static point2d_t mapToEllipse(point2d_t xy, point2d_t rxy, a2cReal_t cosphi, a2c
 {
   xy.x *= rxy.x;
   xy.y *= rxy.y;
-  
+
   const a2cReal_t xp = cosphi * xy.x - sinphi * xy.y;
   const a2cReal_t yp = sinphi * xy.x + cosphi * xy.y;
-  
+
+#ifndef PX_PLATFORM_GENERIC_DFB
   return point2d_t( { .x = xp + centerx,.y = yp + centery } );
+#else
+  // support older toolchain
+
+  point2d_t  pt;
+  pt.x = xp + centerx;
+  pt.y = yp + centery;
+  
+  return pt;
+#endif
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -667,17 +699,34 @@ typedef uarc_list_t::const_iterator uarc_list_iter_t;
 uarc_t approxUnitArc(a2cReal_t ang1, a2cReal_t ang2)
 {
   const a2cReal_t a = 4.0 / 3.0 * tan(ang2 / 4.0);
-  
+
   const a2cReal_t x1 = cos(ang1);
   const a2cReal_t y1 = sin(ang1);
   const a2cReal_t x2 = cos(ang1 + ang2);
   const a2cReal_t y2 = sin(ang1 + ang2);
-  
+
+#ifndef PX_PLATFORM_GENERIC_DFB
   return uarc_t( {
     .pt1 = point2d_t( { .x = x1 - y1 * a , .y = y1 + x1 * a } ),
     .pt2 = point2d_t( { .x = x2 + y2 * a , .y = y2 - x2 * a } ),
     .pt3 = point2d_t( { .x = x2 , .y = y2 } )
   } );
+#else
+  // support older toolchain
+
+  uarc_t  points;
+  
+  points.pt1.x = x1 - y1 * a;
+  points.pt1.y = y1 + x1 * a;
+
+  points.pt2.x = x2 + y2 * a;
+  points.pt2.y = y2 - x2 * a;
+
+  points.pt3.x = x2;
+  points.pt3.y = y2;
+  
+  return points;
+#endif
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -745,18 +794,31 @@ static acenter_t getArcCenter( a2cReal_t px,
   const a2cReal_t vy1 = ( pyp - centeryp) / ry;
   const a2cReal_t vx2 = (-pxp - centerxp) / rx;
   const a2cReal_t vy2 = (-pyp - centeryp) / ry;
-  
+
   a2cReal_t ang1 = vectorAngle(1.0, 0.0, vx1, vy1);
   a2cReal_t ang2 = vectorAngle(vx1, vy1, vx2, vy2);
-  
+
   if (sweepFlag == 0.0 && ang2 > 0.0) { ang2 -= TAU; }
   if (sweepFlag == 1.0 && ang2 < 0.0) { ang2 += TAU; }
-  
+
+#ifndef PX_PLATFORM_GENERIC_DFB
   return acenter_t( { .c    = point2d_t( { .x = centerx,
                                            .y = centery } ),
                       .ang1 = ang1,
                       .ang2 = ang2 }
                    );
+#else
+  // support older toolchain
+
+  acenter_t center;
+
+  center.c.x  = centerx;
+  center.c.y  = centery;
+  center.ang1 = ang1;
+  center.ang2 = ang2;
+
+  return center;
+#endif
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -769,29 +831,29 @@ static bcurves_t arcToBezier(a2cReal_t px, a2cReal_t py,
                              a2cReal_t sweepFlag     = 0.0)
 {
   //  const a2cReal_t curves = [];
-  
+
   bcurves_t    bcurves;
   uarc_list_t  curves;
-  
+
   if (rx == 0 || ry == 0)
   {
     return bcurves;
   }
-  
+
   const a2cReal_t sinphi = sin(xAxisRotation * TAU / 360.0);
   const a2cReal_t cosphi = cos(xAxisRotation * TAU / 360.0);
-  
+
   const a2cReal_t pxp =  cosphi * (px - cx) / 2.0 + sinphi * (py - cy) / 2.0;
   const a2cReal_t pyp = -sinphi * (px - cx) / 2.0 + cosphi * (py - cy) / 2.0;
-  
+
   if (pxp == 0 && pyp == 0)
   {
     return bcurves;
   }
-  
+
   rx = fabs(rx);
   ry = fabs(ry);
-  
+
   const a2cReal_t lambda = pow(pxp, 2) / pow(rx, 2) +
   pow(pyp, 2) / pow(ry, 2);
   
@@ -800,7 +862,7 @@ static bcurves_t arcToBezier(a2cReal_t px, a2cReal_t py,
     rx *= sqrt(lambda);
     ry *= sqrt(lambda);
   }
-  
+
   acenter_t center =  getArcCenter( px, py,
                                     cx, cy,
                                     rx, ry,
@@ -810,40 +872,60 @@ static bcurves_t arcToBezier(a2cReal_t px, a2cReal_t py,
                                       cosphi,
                                     pxp, pyp
                                    );
-  
+
   a2cReal_t ang1 = center.ang1;
   a2cReal_t ang2 = center.ang2;
-  
+
   const a2cReal_t segments = fmax(ceil(fabs(ang2) / (TAU / 4)), 1);
-  
+
   ang2 /= segments;
-  
+
   for (int i = 0; i < segments; i++)
   {
     curves.push_back( approxUnitArc(ang1, ang2) ); // uarc_t ... 3 points in a struct
     
     ang1 += ang2;
   }
-  
+
+#ifndef PX_PLATFORM_GENERIC_DFB
   const point2d_t rxy = { .x = rx, .y = ry };
-  
+#else
+// support older toolchain
+  point2d_t rxy;
+
+  rxy.x = rx;
+  rxy.y = ry;
+#endif
+
   for (uarc_list_iter_t it = curves.begin(), end = curves.end();
        it != end; ++it)
   {
     uarc_t curve = *it;
-    
+
     point2d_t xy1 = mapToEllipse(curve.pt1, rxy, cosphi, sinphi, center.c.x, center.c.y);
     point2d_t xy2 = mapToEllipse(curve.pt2, rxy, cosphi, sinphi, center.c.x, center.c.y);
     point2d_t xy  = mapToEllipse(curve.pt3, rxy, cosphi, sinphi, center.c.x, center.c.y);
-    
+
+#ifndef PX_PLATFORM_GENERIC_DFB
     bcurves.push_back( bcurve_t( {
                                   .xy1 = xy1,
                                   .xy2 = xy2,
-                                  .xy = xy
+                                  .xy  = xy
                               } )
                       );
-  }
- 
+#else
+    // support older toolchain
+    bcurve_t nu_curve;
+
+    nu_curve.xy1 = xy1;
+    nu_curve.xy2 = xy2;
+    nu_curve.xy  = xy;
+
+    bcurves.push_back(nu_curve);
+#endif
+
+  }//FOR
+
   return bcurves;
 }
 
@@ -852,7 +934,7 @@ void testA2C()
 {
   /*
    const previousPoint = { x: 100, y: 315 };
-   
+
    const currentPoint = {
        x: 162,
        y: 162,

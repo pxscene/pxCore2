@@ -264,6 +264,10 @@ PXSCENE_LIB_SRCS=\
   pxRectangle.cpp \
   pxText.cpp \
   pxTextBox.cpp \
+  rasterizer/pxCanvas.cpp \
+  rasterizer/pxCanvas2d.cpp \
+  rasterizer/pxPath.cpp \
+  rasterizer/xs_code/xs_String.cpp \
   pxImage.cpp \
   pxImage9.cpp \
   pxImageA.cpp \
@@ -341,6 +345,20 @@ rtMutexNative.o: linux/rtMutexNative.cpp
 rtThreadPoolNative.o: linux/rtThreadPoolNative.cpp
 	$(CXX) -o $(OBJDIR)/rtThreadPoolNative.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c linux/rtThreadPoolNative.cpp
 
+
+$(OBJDIR)/pxCanvas.o: rasterizer/pxCanvas.cpp
+	$(CXX) -o $(OBJDIR)/pxCanvas.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c rasterizer/pxCanvas.cpp
+
+$(OBJDIR)/pxCanvas2d.o: rasterizer/pxCanvas2d.cpp
+	$(CXX) -o $(OBJDIR)/pxCanvas2d.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c rasterizer/pxCanvas2d.cpp
+
+$(OBJDIR)/pxPath.o: rasterizer/pxPath.cpp
+	$(CXX) -o $(OBJDIR)/pxPath.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c rasterizer/pxPath.cpp
+
+$(OBJDIR)/xs_String.o: rasterizer/xs_code/xs_String.cpp
+	$(CXX) -o $(OBJDIR)/xs_String.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c rasterizer/xs_code/xs_String.cpp
+
+
 $(OBJDIR)/rtWrapperUtils.o: jsbindings/rtWrapperUtils.cpp
 	$(CXX) -o $(OBJDIR)/rtWrapperUtils.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c jsbindings/rtWrapperUtils.cpp
 
@@ -355,6 +373,7 @@ $(OBJDIR)/jsCallback.o: jsbindings/jsCallback.cpp
 
 $(OBJDIR)/westeros-stub.o: $(EXTDIR)/westeros-stub/westeros-stub.cpp
 	$(CXX) -o $(OBJDIR)/westeros-stub.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c $(EXTDIR)/westeros-stub/westeros-stub.cpp
+
 
 SRCS_FULL_GL=$(PX_SRCS_FULL) ../external/westeros-stub/westeros-stub.cpp pxContextGL.cpp pxWayland.cpp pxWaylandContainer.cpp pxScene.cpp
 SRCS_FULL_DFB=$(PX_SRCS_FULL) $(RT_SRCS_FULL) pxContextDFB.cpp pxScene.cpp
