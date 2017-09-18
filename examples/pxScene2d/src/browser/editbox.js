@@ -387,6 +387,11 @@ px.import({ scene: 'px:scene.1.js',
         textInput.on("onChar", function (e) {
             //console.log("#######  onChar ....  cursor_pos = " + cursor_pos);
 
+            if( (e.charCode == 108 ) ) // <<<< CMD/ALT - L
+            {
+               return;
+            }
+
             if (e.charCode == keys.ENTER)  // <<<  ENTER KEY
                 return;
 
