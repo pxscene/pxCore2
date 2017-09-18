@@ -217,7 +217,7 @@ void updateBounds()
     char op[2];
     float x0, y0, x1, y1, x2, y2, rx, ry;
     
-    float last_x2, last_y2, xrot;
+    float last_x2 = 0.0, last_y2 = 0.0, xrot;
     
     int n;
     
