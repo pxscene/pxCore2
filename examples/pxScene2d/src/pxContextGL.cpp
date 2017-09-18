@@ -886,9 +886,9 @@ private:
 
 }; // CLASS - pxTextureOffscreen
 
-
-extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
-
+#ifdef PX_PLATFORM_MAC
+ extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
+#endif
 
 class pxSwTexture: public pxTexture
 {
@@ -949,7 +949,7 @@ public:
 #endif
 
 #if 0
-#if defined(PX_PLATFORM_MAC)
+#ifdef PX_PLATFORM_MAC
     // HACK
     // HACK
     // HACK
@@ -1059,10 +1059,7 @@ private:
   GLuint mTextureName;
   bool mRasterTextureCreated;
   bool mInitialized;
-};
-
-typedef rtRef<pxSwTexture> pxSwTextureRef;
-pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
+}; // CLASS - pxSwTexture
 
 void onDecodeComplete(void* context, void* data)
 {
@@ -2038,12 +2035,6 @@ void pxContext::init()
 
   gTextureMaskedShader = new textureMaskedShaderProgram();
   gTextureMaskedShader->init(vShaderText,fTextureMaskedShaderText);
-
-//  if(swRasterTexture.getPtr() == NULL)
-//  {
-//    swRasterTexture = pxSwTextureRef(new pxSwTexture());
-//    swRasterTexture->init(1280, 720); // HACK - hard coded for now.
-//  }
   
   glEnable(GL_BLEND);
 
@@ -2364,6 +2355,9 @@ void pxContext::drawImage(float x, float y, float w, float h,
                   color? color : black, stretchX, stretchY);
 }
 
+typedef rtRef<pxSwTexture> pxSwTextureRef;
+static pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
+
 void pxContext::drawOffscreen(float src_x, float src_y,
                               float dst_x, float dst_y,
                               float w,     float h,
@@ -2381,7 +2375,7 @@ void pxContext::drawOffscreen(float src_x, float src_y,
     // Lazy init...
     swRasterTexture = pxSwTextureRef(new pxSwTexture());
     swRasterTexture->init(1280, 720); // HACK - hard coded for now.
-    
+
    // return;
   }
   

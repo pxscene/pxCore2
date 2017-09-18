@@ -98,6 +98,10 @@ PX_SRCS_FULL=\
   pxScene2d.cpp \
   pxResource.cpp \
   pxConstants.cpp \
+  rasterizer/pxCanvas.cpp \
+  rasterizer/pxCanvas2d.cpp \
+  rasterizer/pxPath.cpp \
+  rasterizer/xs_code/xs_String.cpp \
   pxRectangle.cpp \
   pxFont.cpp \
   pxText.cpp \
@@ -155,6 +159,7 @@ SEARCH=\
   -I$(PXHDRS)\
   -I$(ZLIB) \
   -I./ \
+  -Irasterizer/ \
   -I$(NODEINC)/src \
   -I$(NODEINC)/deps/uv/include \
   -I$(NODEINC)/deps/v8 \
@@ -308,6 +313,7 @@ PXSCENE_LIB_SEARCH=\
   -Ilinux \
   -I$(PXHDRS)\
   -I./ \
+  -I./rasterizer \
   -I$(NODEINC)/src \
   -I$(NODEINC)/deps/uv/include \
   -I$(NODEINC)/deps/v8 \
