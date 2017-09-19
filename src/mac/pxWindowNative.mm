@@ -622,11 +622,13 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
 -(void)keyDown:(NSEvent*)event
 {
+  uint32_t flags = 0;
+
   //NSLog(@"keyDown, repeat:%s", event.ARepeat?"YES":"NO");
   //if (!event.ARepeat) 
   {
     // send px key down
-    uint32_t flags = 0;
+//    uint32_t flags = 0;
     
     if (event.modifierFlags & NSShiftKeyMask)     flags |= PX_MOD_SHIFT;
     if (event.modifierFlags & NSControlKeyMask)   flags |= PX_MOD_CONTROL;
@@ -646,7 +648,8 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
     // filter out control characters
     // TODO overfiltering... look at IMEs and unicode key input
     // NOTE that iscntrl does not filter out non-printable values like up/down arrows
-    if (!iscntrl(c) && c < 128)
+    if (!iscntrl(c) && c < 128 &&
+        ( (flags & PX_MOD_COMMAND) != PX_MOD_COMMAND) )
       pxWindowNative::_helper_onChar(mWindow, c);
 
   }

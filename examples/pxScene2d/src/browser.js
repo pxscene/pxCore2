@@ -155,14 +155,15 @@ px.import({ scene:      'px:scene.1.js',
 
   scene.root.on("onPreKeyDown", function(e)
   {
-    if(keys.is_CTRL( e.flags ))
+    if(keys.is_CTRL( e.flags ) ||
+       keys.is_CMD ( e.flags ) )
     {
       if (e.keyCode == keys.L )
       {
-      inputBox.focus = true;
-      inputBox.selectAll();
+        inputBox.focus = true;
+        inputBox.selectAll();
 
-      e.stopPropagation();
+        e.stopPropagation();
       }
     }
   });
