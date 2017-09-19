@@ -889,7 +889,7 @@ void pxCanvas2d::addCurve(double x1, double y1, double x2, double y2, double x3,
 
 void pxCanvas2d::addCurve(double x1, double y1, double x2, double y2, double x3, double y3, int depth)
 {
-  if (depth > 4)//3)
+  if (depth > 3)
   {
     mRasterizer.addEdge(x1, y1, x2, y2);
     mRasterizer.addEdge(x2, y2, x3, y3);
@@ -905,8 +905,8 @@ void pxCanvas2d::addCurve(double x1, double y1, double x2, double y2, double x3,
   double x2p = (x15 + x25) / 2.0;
   double y2p = (y15 + y25) / 2.0;
 
-  addCurve(x1, y1, x15, y15, x2p, y2p, depth+1);
-  addCurve(x2p, y2p, x25, y25, x3, y3, depth+1);
+  addCurve(x1,  y1,  x15, y15, x2p, y2p, depth+1);
+  addCurve(x2p, y2p, x25, y25, x3,  y3,  depth+1);
 }
 
 
@@ -918,7 +918,7 @@ void pxCanvas2d::addCurve2(double x1, double y1, double x2, double y2, double x3
 
 void pxCanvas2d::addCurve2(double x1, double y1, double x2, double y2, double x3, double y3, int depth)
 {
-  if (depth > 4)//3)
+  if (depth > 3)
   {
 #if 0
     mRasterizer.addEdge(x1, y1, x2, y2);
@@ -941,32 +941,14 @@ void pxCanvas2d::addCurve2(double x1, double y1, double x2, double y2, double x3
   double x2p = (x15 + x25) / 2.0;
   double y2p = (y15 + y25) / 2.0;
 
-  addCurve2(x1, y1, x15, y15, x2p, y2p, depth+1);
-  addCurve2(x2p, y2p, x25, y25, x3, y3, depth+1);
+  addCurve2(x1,  y1,  x15, y15, x2p, y2p, depth+1);
+  addCurve2(x2p, y2p, x25, y25, x3,  y3,  depth+1);
 }
 
 
-
-// Cubic ??
+// Cubic
 void pxCanvas2d::addCurve22(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
 {
-  addCurve22(x1, y1, x2, y2, x3, y3, x4, y4, 0);
-}
-
-void pxCanvas2d::addCurve22(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, int depth)
-{
-  if (depth > 3)
-  {
-#if 0
-    mRasterizer.addEdge(x1, y1, x2, y2);
-    mRasterizer.addEdge(x2, y2, x3, y3);
-#else
-    lineTo(x2, y2);
-    lineTo(x3, y3);
-#endif
-    return;
-  }
-  
   // Subdivide ... Casteljau algorithm
   double x15 = (x1 + x2) / 2.0;
   double y15 = (y1 + y2) / 2.0;
@@ -984,9 +966,9 @@ void pxCanvas2d::addCurve22(double x1, double y1, double x2, double y2, double x
   double x3p = (x25 + x35) / 2.0;
   double y3p = (y25 + y35) / 2.0;
   
-  addCurve2(x1,   y1, x15, y15, x2p, y2p, depth+1);
-  addCurve2(x2p, y2p, x25, y25, x3p, y3p, depth+1);
-  addCurve2(x3p, y3p, x35, y35, x4,   y4, depth+1);
+  addCurve2(x1,   y1, x15, y15, x2p, y2p, 0);
+  addCurve2(x2p, y2p, x25, y25, x3p, y3p, 0);
+  addCurve2(x3p, y3p, x35, y35, x4,   y4, 0);
 }
 
 

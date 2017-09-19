@@ -14,14 +14,50 @@ px.import({ scene:      'px:scene.1.js',
     function(o)
     {
       // Multi-color Cross ... (relative)
-      if(true)
+      if(false)
       {
         var sw = 6;
       
-        scene.create( { t: "path", d:"M100 100 v-50", strokeColor: 0xFF00FFff, strokeWidth: sw,  parent: bg} );
-        scene.create( { t: "path", d:"M100 100 v50",  strokeColor: 0x00FF00ff, strokeWidth: sw,  parent: bg} );
-        scene.create( { t: "path", d:"M100 100 h50",  strokeColor: 0x0000FFff, strokeWidth: sw,  parent: bg} );
-        scene.create( { t: "path", d:"M100 100 h-50", strokeColor: 0x00FFFFff, strokeWidth: sw,  parent: bg} );
+        scene.create( { t: "path", d:"M100 100 v-50", strokeColor: 0xFF00FFff, strokeWidth: sw, parent: bg} );
+        scene.create( { t: "path", d:"M100 100 v50",  strokeColor: 0x00FF00ff, strokeWidth: sw, parent: bg} );
+        scene.create( { t: "path", d:"M100 100 h50",  strokeColor: 0x0000FFff, strokeWidth: sw, parent: bg} );
+        scene.create( { t: "path", d:"M100 100 h-50", strokeColor: 0x00FFFFff, strokeWidth: sw, parent: bg} );
+      }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//     CIRCLE TESTING - see [test.svg]
+//
+//     <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+//
+//     <path d="M 191 140
+//              C 191 163   173 181  150  181
+//              C 127 181   109 163  109  140
+//              C 109 117   127  99  150   99
+//              C 173  99   191 117  191  140Z" stroke="black" stroke-width="3"  fill="cyan"/>
+                
+      if(true)
+      {
+        scene.create( { t: "path", d:"circle cx:150 cy:140 r:41", strokeColor: 0x000000ff, strokeWidth: 4, fillColor: 0x00FFFFff, parent: bg} );
+
+        // Part of the converted arcs
+//        scene.create( { t: "path", d:"M191 140 C 191 163 173 181  150  181", strokeColor: 0x000000ff, strokeWidth: 4, parent: bg} );
+      }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//     ELLIPSE TESTING - see [test.svg]
+//
+//    <ellipse cx="60" cy="60" rx="50" ry="25" stroke="black" stroke-width="3" fill="red" />
+//
+//    <path d="M 200 340 C 200 354 178 365 150 365
+//             C 122 365 100 354 100 340
+//             C 100 326 122 315 150 290
+//             C 178 315 200 326 200 340Z" stroke="black" stroke-width="3"  fill="cyan"/>
+                
+      if(false)
+      {
+        scene.create( { t: "path", d:"ellipse cx:150 cy:340 rx:50 ry: 25", strokeColor: 0x000000ff, strokeWidth: 4, fillColor: 0x00FFFFff, parent: bg} );
       }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,6 +165,8 @@ px.import({ scene:      'px:scene.1.js',
         
       var shape = scene.create( { id: "Path - triangle ("+e.x+","+e.y+")",  t: "path", d:"M50 0 L100 100  0 100  50 0", interactive: false,
                              x: e.x-50, y: e.y-50, fillColor: 0xFF000088, strokeColor: 0x000000ff, strokeWidth: 6, parent: bg, cx: 50, cy: 50} );
+
+//        var shape = scene.create( { t: "path", d:"circle cx:150 cy:140 r:50", x: e.x-50, y: e.y-50,cx: 50, cy: 50, strokeColor: 0x000000ff, strokeWidth: 4,  fillColor: 0x00FF00ff,  parent: bg} );
         
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //

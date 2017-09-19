@@ -107,7 +107,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
         
         mCanvasCtx.moveTo(x0, y0);
         
-//        printf("\nCanvas: SVG_OP_MOVE( %.0f, %.0f ) ", x0,y0);
+        printf("\nCanvas: SVG_OP_MOVE( %.0f, %.0f ) ", x0,y0);
       }
       break;
       
@@ -151,7 +151,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
         
         mCanvasCtx.curveTo(x1, y1, x2, y2, x0, y0);
         
-//        printf("\nCanvas: SVG_OP_C_CURVE( x1: %.0f, y1: %.0f,  x2: %.0f, y2: %.0f,  x0: %.0f, y0: %.0f) ", x1, y1, x2, y2, x0, y0);
+        printf("\nCanvas: SVG_OP_C_CURVE( x1: %.0f, y1: %.0f,  x2: %.0f, y2: %.0f,  x0: %.0f, y0: %.0f) ", x1, y1, x2, y2, x0, y0);
       }
       break;
    

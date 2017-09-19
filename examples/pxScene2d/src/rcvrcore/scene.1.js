@@ -59,11 +59,36 @@ function Scene() {
 
     if(params.hasOwnProperty("d") && params.t === "path")
     {
-        // normalize the path
-        params.d = params.d.replace(/\s*([mlvhqczastTSAMLVHQCZ])\s*/g,"\n$1 ")
-        .replace(/,/g," ")
-        .replace(/-/g," -")
-        .replace(/ +/g," ");
+        if(params.d.match("[circle|CIRCLE]+.*"))
+        {
+          params.d = params.d.replace(/circle/gi, "CIRCLE");
+          
+          // normalize the path
+          params.d = params.d.replace(/,/g," ")
+          .replace(/-/g," -")
+          .replace(/ +/g," ");
+          
+          // console.log(" >>> Found CIRCLE: [" + params.d + "] ");
+        }
+        if(params.d.match("[ellipse|ELLIPSE]+.*"))
+        {
+          params.d = params.d.replace(/ellipse/gi, "ELLIPSE");
+          
+          // normalize the path
+          params.d = params.d.replace(/,/g," ")
+          .replace(/-/g," -")
+          .replace(/ +/g," ");
+          
+          // console.log(" >>> Found ELLIPSE: [" + params.d + "] ");
+        }
+        else
+        {
+          // normalize the path
+          params.d = params.d.replace(/\s*([mlvhqczastTSAMLVHQCZ])\s*/g,"\n$1 ")
+          .replace(/,/g," ")
+          .replace(/-/g," -")
+          .replace(/ +/g," ");
+        }
     }
  
     var component = null;

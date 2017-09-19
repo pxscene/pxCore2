@@ -211,14 +211,14 @@ void updateBounds()
   {
     return RT_ERROR;
   }
-
+//  printf("\nPath:   [%s] ", s); // DEBUG
+  
   while (*s)
   {
     char op[2];
     float x0, y0, x1, y1, x2, y2, rx, ry;
-
-    float last_x2 = 0.0, last_y2 = 0.0, xrot;
-
+    float last_x2 = 0.0, last_y2 = 0.0, xrot, r = 0;
+    
     int n;
 
     int lflag; // ARC ... "large-arc-flag"
@@ -351,8 +351,8 @@ void updateBounds()
       }
 
       bcurves_t ans = arcToBezier(pen_x, pen_y, // pxy            PREVIOUS
-                                     x0,  y0,   // cxy            CURRENT
-                                     rx,  ry,   // rxy            CURVE CENTER
+                                     x0, y0,    // cxy            CURRENT
+                                     rx, ry,    // rxy            CURVE CENTER
                                    xrot,        // xAxisRotation
                                   lflag,        // largeArcFlag
                                   sflag         // sweepFlag
@@ -498,6 +498,108 @@ void updateBounds()
         s += n;
       }
       while (sscanf(s, "%f %f %n", &x0, &y0, &n) == 2);
+    }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    else
+    if (sscanf(s, "CIRCLE cx:%f cy:%f r:%f %n",
+               &x0, &y0, &r, &n) == 3)
+    {
+      // printf("\nPath:   CIRCLE( x0:%.0f, y0:%.0f, r: %.0f) ", x0, y0, r);
+      
+      #define KAPPA		0.5522847498
+
+      p->pushOpcode( 'M' );
+      p->pushFloat(x0 + r,
+                   y0);
+
+      p->pushOpcode( 'C' );
+      p->pushFloat((x0 + r),         // X1
+                   (y0 + r * KAPPA), // Y1
+                   (x0 + r * KAPPA), // X2
+                   (y0 + r),         // Y2
+                   (x0),             // X0
+                   (y0 + r));        // Y0
+
+      p->pushOpcode( 'C' );
+      p->pushFloat((x0 - r * KAPPA), // X1
+                   (y0 + r),         // Y1
+                   (x0 - r),         // X2
+                   (y0 + r * KAPPA), // Y2
+                   (x0 - r),         // X0
+                   (y0));            // Y0
+
+      p->pushOpcode( 'C' );
+      p->pushFloat((x0 - r),         // X1
+                   (y0 - r * KAPPA), // Y1
+                   (x0 - r * KAPPA), // X2
+                   (y0 - r),         // Y2
+                   (x0),             // X0
+                   (y0 - r));        // Y0
+
+      p->pushOpcode( 'C' );
+      p->pushFloat((x0 + r * KAPPA), // X1
+                   (y0 - r),         // Y1
+                   (x0 + r),         // X2
+                   (y0 - r * KAPPA), // Y2
+                   (x0 + r),         // X0
+                   (y0));            // Y0
+
+      p->pushOpcode( 'Z' );
+      
+      updatePen(x0, y0); // POSITION
+      updateBounds();
+      
+      s += n;
+    }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    else // <ellipse cx="60" cy="60" rx="50" ry="25"/>
+    if (sscanf(s, "ELLIPSE cx:%f cy:%f rx:%f ry:%f %n", //circle
+               &x0, &y0, &rx, &ry, &n) == 4)
+    {
+//      printf("\nPath:   ELLIPSE( x0:%.0f, y0:%.0f, rx: %.0f ry: %.0f) ", x0, y0, rx, ry);
+      
+      p->pushOpcode( 'M' );
+      p->pushFloat(x0 + rx,
+                   y0);
+
+      p->pushOpcode( 'C' );
+      p->pushFloat((x0 + rx),         // X1
+                   (y0 + ry * KAPPA), // Y0
+                   (x0 + rx * KAPPA), // X2
+                   (y0 + ry),         // Y2
+                   (x0),              // X0
+                   (y0 + ry));        // Y0
+
+      p->pushOpcode( 'C' );
+      p->pushFloat((x0 - rx * KAPPA), // X1
+                   (y0 + ry),         // Y1
+                   (x0 - rx),         // X2
+                   (y0 + ry * KAPPA), // Y2
+                   (x0 - rx),         // X0
+                   (y0));             // Y0
+
+      p->pushOpcode( 'C' );
+      p->pushFloat((x0 - rx),         // X1
+                   (y0 - ry * KAPPA), // Y1
+                   (x0 - rx * KAPPA), // X2
+                   (y0 - ry),         // Y2
+                   (x0),              // X0
+                   (y0 - rx));        // Y0
+      
+      p->pushOpcode( 'C' );
+      p->pushFloat((x0 + rx * KAPPA), // X1
+                   (y0 - ry),         // Y1
+                   (x0 + rx),         // X2
+                   (y0 - ry * KAPPA), // Y2
+                   (x0 + rx),         // X0
+                   (y0));             // Y0
+
+      p->pushOpcode( 'Z' );
+
+      updatePen(x0, y0); // POSITION
+      updateBounds();
+
+      s += n;
     }
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     else
@@ -696,7 +798,7 @@ typedef std::list<uarc_t>           uarc_list_t;
 typedef uarc_list_t::const_iterator uarc_list_iter_t;
 
 
-uarc_t approxUnitArc(a2cReal_t ang1, a2cReal_t ang2)
+static uarc_t approxUnitArc(a2cReal_t ang1, a2cReal_t ang2)
 {
   const a2cReal_t a = 4.0 / 3.0 * tan(ang2 / 4.0);
 
