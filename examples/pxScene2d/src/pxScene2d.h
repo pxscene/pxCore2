@@ -1099,6 +1099,8 @@ public:
     return RT_OK;
   }
 
+  rtString getUrl() const { return mUrl; }
+
   static rtError addListener(rtString  eventName, const rtFunctionRef& f)
   {
     return mEmit->addListener(eventName, f);
@@ -1294,7 +1296,7 @@ public:
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
-  pxScene2d(bool top = true);
+  pxScene2d(bool top = true, pxScriptView* scriptView = NULL);
   virtual ~pxScene2d() 
   {
      rtLogDebug("***** deleting pxScene2d\n");
@@ -1496,6 +1498,7 @@ private:
   bool mStopPropagation;
   int mTag;
   pxIViewContainer *mContainer;
+  pxScriptView *mScriptView;
   bool mShowDirtyRectangle;
   #ifdef USE_SCENE_POINTER
   pxTextureRef mNullTexture;
