@@ -1796,13 +1796,16 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::logDebugMetrics()
 {
-  script.garbageCollect();
-  rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
-
+#ifdef ENABLE_DEBUG_METRICS 
+    script.garbageCollect();
+    rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifdef PX_PLATFORM_MAC
-  rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
+      rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
 #else
-  rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+      rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+#endif
+#else
+    rtLogWarn("logDebugMetrics is disabled");
 #endif
   return RT_OK;
 }
