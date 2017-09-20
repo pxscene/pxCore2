@@ -41,7 +41,7 @@ px.import({ scene:      'px:scene.1.js',
         scene.create( { t: "path", d:"circle cx:150 cy:140 r:41", strokeColor: 0x000000ff, strokeWidth: 4, fillColor: 0x00FFFFff, parent: bg} );
 
         // Part of the converted arcs
-//        scene.create( { t: "path", d:"M191 140 C 191 163 173 181  150  181", strokeColor: 0x000000ff, strokeWidth: 4, parent: bg} );
+//        scene.create( { t: "path", d:"M191 140 C 191 163 173 181  150  181", strokeColor: 0x000000ff, strokeWidth: 3, parent: bg} );
       }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,12 +52,12 @@ px.import({ scene:      'px:scene.1.js',
 //
 //    <path d="M 200 340 C 200 354 178 365 150 365
 //             C 122 365 100 354 100 340
-//             C 100 326 122 315 150 290
+//             C 100 326 122 315 150 315
 //             C 178 315 200 326 200 340Z" stroke="black" stroke-width="3"  fill="cyan"/>
                 
-      if(false)
+      if(true)
       {
-        scene.create( { t: "path", d:"ellipse cx:150 cy:340 rx:50 ry: 25", strokeColor: 0x000000ff, strokeWidth: 4, fillColor: 0x00FFFFff, parent: bg} );
+        scene.create( { t: "path", d:"ellipse cx:150 cy:340 rx:50 ry: 25", strokeColor: 0x000000ff, strokeWidth: 3, fillColor: 0xFFFF00ff, parent: bg} );
       }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

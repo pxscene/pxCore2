@@ -2,7 +2,7 @@
 <!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="1024px" height="768px" viewBox="0 0 1024 768" enable-background="new 0 0 1024 768" xml:space="preserve">
+	 width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 1280 720" xml:space="preserve">
 
 <!-- <rect x="212" y="185" fill="#FF0000" stroke="#0000FF" stroke-width="12" stroke-miterlimit="10" width="150" height="145"/>
 <circle fill="#00FF00" stroke="#000000" stroke-width="12" stroke-miterlimit="10" cx="690" cy="265" r="110"/>
@@ -95,19 +95,61 @@ C 70.35 13.07 69.53 8.43 67.10 4.60
 -->
 
 <!-- CIRCLE VERIFICATION -->
+<!--
 <path d="M 191 140
 C 191 163   173 181  150  181
 C 127 181   109 163  109  140
 C 109 117   127  99  150   99
 C 173  99   191 117  191  140Z" stroke="black" stroke-width="3"  fill="cyan"/>
+-->
+
+
+<path d="M191 140 C 191 163 173 181  150  181" stroke="red" stroke-width="3"  fill="transparent"/>
 
 <!-- ELLIPSE VERIFICATION -->
-<!-->
- <path d="M 200 340 C 200 354 178 365 150 365
-                    C 122 365 100 354 100 340
-                    C 100 326 122 315 150 290
+
+<ellipse cx="150" cy="260" rx="50" ry="25"  stroke="black" stroke-width="3"  fill="cyan"/>
+
+<!-- 1st of TWO curves  -->
+
+<!--
+<path d="M 200 340 C 200 354 178 365 150 365
+                    C 122 365 100 354 100 340" stroke="red" stroke-width="3"  fill="yellow"/>
+-->
+
+<!-- 
+<circle fill="#FF0000" cx="200" cy="354" r="3"/>
+<circle fill="#FF0000" cx="178" cy="365" r="3"/>
+<circle fill="#FF0000" cx="150" cy="365" r="5"/>
+
+<circle fill="#FF0000" cx="122" cy="365" r="3"/>
+<circle fill="#FF0000" cx="100" cy="354" r="3"/>
+<circle fill="#FF0000" cx="100" cy="340" r="3"/>
+-->
+
+<!-- 2nd of TWO curves  -->
+
+<!--
+<path d="M 100 340 C 100 326 122 315 150 315
                     C 178 315 200 326 200 340Z" stroke="black" stroke-width="3"  fill="cyan"/>
 -->
+
+<!-- 
+<circle fill="#FF00f0" cx="100" cy="326" r="3"/>
+<circle fill="#FF00f0" cx="122" cy="315" r="3"/>
+<circle fill="#FF00f0" cx="150" cy="315" r="3"/>
+
+<circle fill="#FF0080" cx="178" cy="315" r="3"/>
+<circle fill="#FF0080" cx="200" cy="326" r="3"/>
+<circle fill="#FF0080" cx="200" cy="340" r="3"/>
+-->
+
+
+ <path d="M 200 340 C 200 354 178 365 150 365
+                    C 122 365 100 354 100 340
+                    C 100 326 122 315 150 315
+                    C 178 315 200 326 200 340Z" stroke="black" stroke-width="3"  fill="yellow"/>
+<!-- -->
 
 <!--
 <path d="M100 315

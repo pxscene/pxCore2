@@ -1353,7 +1353,7 @@ void pxRasterizer::init(pxBuffer* buffer)
   setAlpha(1.0);
   //mYOversample = 2;
 
-  setYOversample(2);
+  setYOversample(16);
   mXResolution = 16;
   mFillMode = fillWinding;
   //  mFillMode = fillEvenOdd;

@@ -881,6 +881,9 @@ void pxCanvas2d::setStrokeWidth(double w)
   mStrokeWidth = w;
 }
 
+#define  QUAD_MAX_DEPTH    7 // 3
+#define CUBIC_MAX_DEPTH    7 // 3
+
 // Quadratic
 void pxCanvas2d::addCurve(double x1, double y1, double x2, double y2, double x3, double y3)
 {
@@ -889,7 +892,7 @@ void pxCanvas2d::addCurve(double x1, double y1, double x2, double y2, double x3,
 
 void pxCanvas2d::addCurve(double x1, double y1, double x2, double y2, double x3, double y3, int depth)
 {
-  if (depth > 3)
+  if (depth > QUAD_MAX_DEPTH)
   {
     mRasterizer.addEdge(x1, y1, x2, y2);
     mRasterizer.addEdge(x2, y2, x3, y3);
@@ -931,46 +934,82 @@ void pxCanvas2d::addCurve2(double x1, double y1, double x2, double y2, double x3
   }
 
   // Subdivide ... Casteljau algorithm
-  double x15 = (x1 + x2) / 2.0;
-  double y15 = (y1 + y2) / 2.0;
+  double x12 = (x1 + x2) / 2.0;
+  double y12 = (y1 + y2) / 2.0;
   
-  double x25 = (x2 + x3) / 2.0;
-  double y25 = (y2 + y3) / 2.0;
+  double x23 = (x2 + x3) / 2.0;
+  double y23 = (y2 + y3) / 2.0;
 
-  // New point
-  double x2p = (x15 + x25) / 2.0;
-  double y2p = (y15 + y25) / 2.0;
+  double x123 = (x12 + x23) / 2.0;
+  double y123 = (y12 + y23) / 2.0;
 
-  addCurve2(x1,  y1,  x15, y15, x2p, y2p, depth+1);
-  addCurve2(x2p, y2p, x25, y25, x3,  y3,  depth+1);
+  addCurve2(x1,   y1,   x12, y12, x123, y123, depth+1);
+  addCurve2(x123, y123, x23, y23, x3,   y3,   depth+1);
 }
 
 
 // Cubic
 void pxCanvas2d::addCurve22(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
 {
-  // Subdivide ... Casteljau algorithm
-  double x15 = (x1 + x2) / 2.0;
-  double y15 = (y1 + y2) / 2.0;
+//  // Subdivide ... Casteljau algorithm
+//  double x15 = (x1 + x2) / 2.0;
+//  double y15 = (y1 + y2) / 2.0;
+//  
+//  double x25 = (x2 + x3) / 2.0;
+//  double y25 = (y2 + y3) / 2.0;
+//  
+//  double x35 = (x3 + x4) / 2.0;
+//  double y35 = (y3 + y4) / 2.0;
+//  
+//  // New points
+//  double x2p = (x15 + x25) / 2.0;
+//  double y2p = (y15 + y25) / 2.0;
+//  
+//  double x3p = (x25 + x35) / 2.0;
+//  double y3p = (y25 + y35) / 2.0;
+//  
+//  addCurve2(x1,   y1, x15, y15, x2p, y2p, 0);
+//  addCurve2(x2p, y2p, x25, y25, x3p, y3p, 0);
+//  addCurve2(x3p, y3p, x35, y35, x4,   y4, 0);
   
-  double x25 = (x2 + x3) / 2.0;
-  double y25 = (y2 + y3) / 2.0;
-  
-  double x35 = (x3 + x4) / 2.0;
-  double y35 = (y3 + y4) / 2.0;
-  
-  // New points
-  double x2p = (x15 + x25) / 2.0;
-  double y2p = (y15 + y25) / 2.0;
-  
-  double x3p = (x25 + x35) / 2.0;
-  double y3p = (y25 + y35) / 2.0;
-  
-  addCurve2(x1,   y1, x15, y15, x2p, y2p, 0);
-  addCurve2(x2p, y2p, x25, y25, x3p, y3p, 0);
-  addCurve2(x3p, y3p, x35, y35, x4,   y4, 0);
+  addCurve22(x1, y1, x2, y2, x3, y3, x4, y4, 0);
+
 }
 
+
+void pxCanvas2d::addCurve22(double x1, double y1,  double x2, double y2, double x3, double y3,  double x4, double y4, unsigned depth)
+{
+  if (depth > CUBIC_MAX_DEPTH)
+  {
+#if 0
+    mRasterizer.addEdge(x1, y1, x2, y2);
+    mRasterizer.addEdge(x2, y2, x3, y3);
+#else
+    lineTo(x2, y2);
+    lineTo(x3, y3);
+#endif
+    return;
+  }
+  
+  // Subdivide ... Casteljau algorithm
+  double x12   = (x1 + x2) / 2;
+  double y12   = (y1 + y2) / 2;
+  double x23   = (x2 + x3) / 2;
+  double y23   = (y2 + y3) / 2;
+  double x34   = (x3 + x4) / 2;
+  double y34   = (y3 + y4) / 2;
+  
+  double x123  = (x12 + x23) / 2;
+  double y123  = (y12 + y23) / 2;
+  double x234  = (x23 + x34) / 2;
+  double y234  = (y23 + y34) / 2;
+  
+  double x1234 = (x123 + x234) / 2;
+  double y1234 = (y123 + y234) / 2;
+  
+  addCurve22(x1,    y1,    x12,  y12,  x123, y123, x1234, y1234, depth + 1);
+  addCurve22(x1234, y1234, x234, y234, x34,  y34,  x4,    y4,    depth + 1);
+}
 
 void pxCanvas2d::setClip(const pxRect* r)
 {

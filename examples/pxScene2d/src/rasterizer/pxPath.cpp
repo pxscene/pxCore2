@@ -577,14 +577,14 @@ void updateBounds()
                    (y0 + ry * KAPPA), // Y2
                    (x0 - rx),         // X0
                    (y0));             // Y0
-
+      
       p->pushOpcode( 'C' );
       p->pushFloat((x0 - rx),         // X1
                    (y0 - ry * KAPPA), // Y1
                    (x0 - rx * KAPPA), // X2
                    (y0 - ry),         // Y2
                    (x0),              // X0
-                   (y0 - rx));        // Y0
+                   (y0 - ry));        // Y0
       
       p->pushOpcode( 'C' );
       p->pushFloat((x0 + rx * KAPPA), // X1
