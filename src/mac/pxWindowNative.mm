@@ -628,8 +628,6 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   //if (!event.ARepeat) 
   {
     // send px key down
-//    uint32_t flags = 0;
-    
     if (event.modifierFlags & NSShiftKeyMask)     flags |= PX_MOD_SHIFT;
     if (event.modifierFlags & NSControlKeyMask)   flags |= PX_MOD_CONTROL;
     if (event.modifierFlags & NSAlternateKeyMask) flags |= PX_MOD_ALT;
