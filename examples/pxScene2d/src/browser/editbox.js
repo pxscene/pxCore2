@@ -385,12 +385,7 @@ px.import({ scene: 'px:scene.1.js',
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         textInput.on("onChar", function (e) {
-            //console.log("#######  onChar ....  cursor_pos = " + cursor_pos);
-
-            if( (e.charCode == 108 ) ) // <<<< CMD/ALT - L
-            {
-               return;
-            }
+//            console.log("#######  onChar ... char: "+e.charCode+" ... BEFORE  text: ["+textInput.text +"] cursor_pos = " + cursor_pos);
 
             if (e.charCode == keys.ENTER)  // <<<  ENTER KEY
                 return;
@@ -583,9 +578,14 @@ px.import({ scene: 'px:scene.1.js',
                         selection_x = textInput.x;
                          
                         selection_start = 0;
-                        selection_chars = textInput.text.length + 1;
+                     
+                        if(textInput.text.length > 0)
+                        {
+                          selection_chars = textInput.text.length + 1;
+                        }
 
                         makeSelection(selection_start, selection_chars);
+                        e.stopPropagation();
                     }
                     break;
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
