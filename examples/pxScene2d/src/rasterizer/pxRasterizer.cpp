@@ -1,8 +1,8 @@
 #include "pxTimer.h"
 #include "pxRasterizer.h"
 
-#include "xs_code/xs_Core.h"
-#include "xs_code/xs_Float.h"
+#include "xs_Core.h"
+#include "xs_Float.h"
 //#include "rtLog.h"
 
 #include <algorithm>
@@ -21,6 +21,12 @@
 #define FIXEDSCANLINE(y) (y >> fixedScanlineShift)
 #define FIXEDX(x) (x >> (12))  // hardcoded to 4 bits
 
+
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#pragma clang diagnostic ignored "-Wconversion"
+#endif
 
 //#define OLDTEXTURE
 
@@ -1142,7 +1148,7 @@ struct endPointArray
     //else return m;
     return m;
 #else
-    int lastS = -1;
+   // int lastS = -1;
     int result = -1;
 
     if (mCount > 0)
@@ -1161,7 +1167,7 @@ struct endPointArray
       if (y > mEndPoints[s].mY) 
         result = s+1;
       else result = s;
-      lastS = s;
+  //    lastS = s;
     }
 
 #if 0
@@ -1291,7 +1297,7 @@ pxRasterizer::pxRasterizer():
 #else
   mEdgeManager(NULL),
 #endif
-  mClipValid(false), mClipInternalCalculated(false), mCoverage(NULL), mTexture(NULL), 
+   mCoverage(NULL), mClipValid(false), mClipInternalCalculated(false), mTexture(NULL), 
   mTextureClamp(false), mTextureClampColor(false), mBiLerp(false), mAlphaTexture(false), mOverdraw(false)
 {
   mMatrix22.identity();
@@ -1347,7 +1353,7 @@ void pxRasterizer::init(pxBuffer* buffer)
   setAlpha(1.0);
   //mYOversample = 2;
 
-  setYOversample(2);
+  setYOversample(16);
   mXResolution = 16;
   mFillMode = fillWinding;
   //  mFillMode = fillEvenOdd;
@@ -1859,7 +1865,7 @@ void pxRasterizer::rasterize()
   // trivial reject
   if (FIXEDX(mLeftExtent) <= clipRight && FIXEDX(mRightExtent) >= clipLeft)
   {
-    edgeManager* edgeMgr = (edgeManager*)mEdgeManager;
+   // edgeManager* edgeMgr = (edgeManager*)mEdgeManager;
 
     edge* e1;
     edge* e2;
@@ -1877,7 +1883,8 @@ void pxRasterizer::rasterize()
       int32_t e2y1 = FIXEDSCANLINE(e1->mY1);
       int32_t e2y2 = FIXEDSCANLINE(e2->mY2);
 
-      if ((e1x1 == e1x2 && e2x2 == e2x2 && e1y1 == e2y1 && e1y2 == e2y2) &&
+      if ((e1x1 == e1x2 && e1x2 == e2x2  &&
+           e1y1 == e2y1 && e1y2 == e2y2) &&
           (!(e1x1 & 0xf) && !(e2x1 & 0xf) && !(e1y1 & overSampleMask) && !(e1y2 & overSampleMask)))
 #else
         if ((e1->mX1 == e1->mX2 && e2->mX1 == e2->mX2 && e1->mY1 == e2->mY1 && e1->mY2 == e2->mY2) &&                (!(e1->mX1 & 0xf) && !(e2->mX1 & 0xf) && !(e1->mY1 & overSampleMask) && !(e1->mY2 & overSampleMask)))
@@ -2339,14 +2346,14 @@ void pxRasterizer::rasterizeComplex()
 
   bool textureUpsideDown = false;
 
-  int32_t maxU;
-  int32_t maxV;
+  // int32_t maxU;
+  // int32_t maxV;
 
-  if (mTexture)
-  {
-    maxU = (mTexture->width()-1)<<UVFIXEDSHIFT;
-    maxV = (mTexture->height()-1)<<UVFIXEDSHIFT;
-  }
+  // if (mTexture)
+  // {
+  //   maxU = (mTexture->width()-1)<<UVFIXEDSHIFT;
+  //   maxV = (mTexture->height()-1)<<UVFIXEDSHIFT;
+  // }
 
   if (!mCoverage ||          
       mBuffer->width() != mCachedBufferWidth)
@@ -2447,7 +2454,7 @@ void pxRasterizer::rasterizeComplex()
 #endif
 #endif
 
-        int subline = l & overSampleMask;
+        uint32_t subline = l & overSampleMask;
 
         if (!spanBufferFull)
         {
@@ -2660,8 +2667,8 @@ void pxRasterizer::rasterizeComplex()
                 {
 #if 1
                   int ca = 0;
-                  if (pEndSave-p) 
-                    rtEdgeCover[pEndSave-p];
+                  // if (pEndSave-p) 
+                  //   rtEdgeCover[pEndSave-p];
 #if 1
                   if (subline == 0)
                   {
@@ -2752,8 +2759,8 @@ void pxRasterizer::rasterizeComplex()
             }
             else//  TEXTURE MAPPING=====================================================
             {
-              bool overdrawDetected = false;
 #if 0
+              bool overdrawDetected = false;
               // quick and dirty overdraw check
               if (mCoverageFirst <= mCoverageLast && mOverdraw)
               {
@@ -2902,8 +2909,7 @@ void pxRasterizer::rasterizeComplex()
                     int32_t maxU = (mTexture->width() << UVFIXEDSHIFT)-1;
                     int32_t maxV = (mTexture->height() << UVFIXEDSHIFT)-1;
 
-                    int32_t baseX = 0;
-
+//                    int32_t baseX = 0;
 
                     int32_t startSpan;
                     int32_t endSpan;
@@ -3623,22 +3629,22 @@ void pxRasterizer::setTexture(pxBuffer* texture)
   mTexture = texture;
 }
 
-void pxRasterizer::setMatrix(const MATRIX_T& m)
+void pxRasterizer::setMatrix(const pxMatrix4T<float>& m)
 {
   mMatrix = m;
 }
 
-void pxRasterizer::matrix(MATRIX_T& m) const
+void pxRasterizer::matrix(pxMatrix4T<float>& m) const
 {
   m = mMatrix;
 }
 
-void pxRasterizer::setTextureMatrix(const MATRIX_T& m)
+void pxRasterizer::setTextureMatrix(const pxMatrix4T<float>& m)
 {
   mTextureMatrix = m;
 }
 
-void pxRasterizer::textureMatrix(MATRIX_T& m) const
+void pxRasterizer::textureMatrix(pxMatrix4T<float>& m) const
 {
   m = mTextureMatrix;
 }
@@ -3669,3 +3675,7 @@ void pxRasterizer::setAlphaTexture(bool f)
 { 
   mAlphaTexture = f; 
 }
+
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic pop
+#endif

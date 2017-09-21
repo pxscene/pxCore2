@@ -66,11 +66,16 @@ public:
   {
     mX = x; mY = y, mZ = z; mW = w;
   }
-
-  FloatT x() {return mX;}
-  FloatT y() {return mY;}
-  FloatT z() {return mZ;}
-  FloatT w() {return mW;}
+  
+  inline void setX(FloatT x) { mX = x; }
+  inline void setY(FloatT y) { mY = y; }
+  inline void setZ(FloatT z) { mZ = z; }
+  inline void setW(FloatT w) { mW = w; }
+  
+  inline FloatT x() {return mX;}
+  inline FloatT y() {return mY;}
+  inline FloatT z() {return mZ;}
+  inline FloatT w() {return mW;}
 
   void dump()
   {
@@ -81,6 +86,13 @@ public:
 private:
   float mX, mY, mZ, mW;
 };
+
+
+///
+///
+#define pxVertex pxVector4T<float>
+///
+///
 
 template <typename FloatT = float>
 class pxMatrix4T 
@@ -148,6 +160,10 @@ public:
     out.mW = m[3] * x + m[7] * y + m[11] * z + m[15] * w;
     return out;
   }
+  
+  
+  
+  inline void rotate(double angle) { rotateInRadians(angle, 0, 0, 1); }  // LEGACY
   
   inline void rotateInRadians(FloatT angle) 
   {
@@ -305,7 +321,33 @@ void multiply(FloatT* m, FloatT* n)
       m[15] = m[3] * x + m[7] * y + m[15];
     }
   }
-      
+  
+  
+  bool isTranslatedOnly()
+  {
+    FloatT *m = mValues;
+
+    return (m[0]  == 1.0 && m[5]  == 1.0 && m[10] == 1.0 &&
+            m[1]  == 0.0 && m[2]  == 0.0 && 
+            m[4]  == 0.0 && m[6]  == 0.0 && 
+            m[8]  == 0.0 && m[9]  == 0.0);
+  }
+
+  FloatT translateX()
+  {
+    FloatT *m = mValues;
+    
+    return m[3];
+  }
+  
+  FloatT translateY()
+  {
+    FloatT *m = mValues;
+    
+    return m[7];
+  }
+
+  
   void identity() 
   {
     FloatT* m = mValues;
@@ -319,6 +361,25 @@ void multiply(FloatT* m, FloatT* n)
     
     memcpy(m, t, sizeof(t));
   }
+  
+  bool isIdentity()
+  {
+    FloatT* m = mValues;
+    
+    return (m[0]  == 1.0 && m[5]  == 1.0 && m[10] == 1.0 && m[15] == 1.0 &&
+            m[1]  == 0.0 && m[2]  == 0.0 && m[3]  == 0.0 &&
+            m[4]  == 0.0 && m[6]  == 0.0 && m[7]  == 0.0 &&
+            m[8]  == 0.0 && m[9]  == 0.0 && m[11] == 0.0 &&
+            m[12] == 0.0 && m[13] == 0.0 && m[14] == 0.0);
+
+    
+//    return (m[0][0] == 1.0 && m[1][1] == 1.0 && m[2][2] == 1.0 && m[3][3] == 1.0 &&
+//            m[0][1] == 0.0 && m[0][2] == 0.0 && m[0][3] == 0.0 &&
+//            m[1][0] == 0.0 && m[1][2] == 0.0 && m[1][3] == 0.0 &&
+//            m[2][0] == 0.0 && m[2][1] == 0.0 && m[2][3] == 0.0 &&
+//            m[3][0] == 0.0 && m[3][1] == 0.0 && m[3][2] == 0.0);
+  }
+
   
   void transpose() 
   {

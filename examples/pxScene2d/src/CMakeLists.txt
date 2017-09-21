@@ -45,6 +45,7 @@ option(BUILD_PXSCENE_STATIC_LIB "BUILD_PXSCENE_STATIC_LIB" OFF)
 option(BUILD_PXWAYLAND_SHARED_LIB "BUILD_PXWAYLAND_SHARED_LIB" OFF)
 option(BUILD_PXWAYLAND_STATIC_LIB "BUILD_PXWAYLAND_STATIC_LIB" ON)
 option(BUILD_PXSCENE_WITH_NEXUS_SUPPORT "BUILD_PXSCENE_WITH_NEXUS_SUPPORT" OFF)
+option(BUILD_DEBUG_METRICS "BUILD_DEBUG_METRICS" OFF)
 if(WIN32)
     option(PXSCENE_COMPILE_WARNINGS_AS_ERRORS "PXSCENE_COMPILE_WARNINGS_AS_ERRORS" OFF)
 elseif (APPLE)
@@ -288,9 +289,11 @@ set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ${PX_PLATFORM} ENABLE_RT_NODE RUN
 include_directories(AFTER ${NODEDIR}/src ${NODEDIR}/deps/uv/include ${NODEDIR}/deps/v8 ${NODEDIR}/deps/debugger-agent/include ${NODEDIR}/deps/v8/include ${NODEDIR}/deps/cares/include)
 include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${JPEGTURBOINC} ${BREAKPADINC} ${RTREMOTEINC} ${PXCOREDIR}/src)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
+include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer/xs_code)
 
 set(PXSCENE_COMMON_FILES pxScene2d.cpp pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.cpp pxText.cpp
-        pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxArchive.cpp pxAnimate.cpp)
+        pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxArchive.cpp pxAnimate.cpp rasterizer/pxRasterizer.cpp rasterizer/pxCanvas.cpp rasterizer/pxCanvas2d.cpp rasterizer/pxPath.cpp)
 
 set(PXWAYLAND_LIB_FILES pxContextGL.cpp egl/pxContextUtils.cpp)
 
@@ -327,6 +330,11 @@ if (BUILD_WITH_SERVICE_MANAGER)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} PX_SERVICE_MANAGER)
     set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxServiceManager.cpp)
 endif (BUILD_WITH_SERVICE_MANAGER)
+
+if (BUILD_DEBUG_METRICS)
+    message("Building with debug metrics")
+    add_definitions(-DENABLE_DEBUG_METRICS)
+endif (BUILD_DEBUG_METRICS)
 
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${PLATFORM_SOURCES})
 

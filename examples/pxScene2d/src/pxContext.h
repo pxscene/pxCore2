@@ -107,6 +107,11 @@ class pxContext {
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxTextureRef texture);
 
+  void drawOffscreen(float src_x, float src_y,
+                     float dst_x, float dst_y,
+                     float w, float h,
+                     pxOffscreen  &offscreen);
+  
 // Only use for debug/diag purposes not for normal rendering
   void drawDiagRect(float x, float y, float w, float h, float* color);
   void drawDiagLine(float x1, float y1, float x2, float y2, float* color);
