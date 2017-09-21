@@ -40,6 +40,9 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
+#include "pxCanvas.h"
+#include "pxPath.h"
+
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
 #endif //PX_SERVICE_MANAGER
@@ -1029,7 +1032,7 @@ const float alphaEpsilon = (1.0f/255.0f);
 void pxObject::drawInternal(bool maskPass)
 {
   //rtLogInfo("pxObject::drawInternal mw=%f mh=%f\n", mw, mh);
-
+  
   if (!drawEnabled() && !maskPass)
   {
     return;
@@ -1184,9 +1187,8 @@ void pxObject::drawInternal(bool maskPass)
         {
           continue;
         }
-
         context.pushState();
-        //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
+        //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);                
         (*it)->drawInternal();
 #ifdef PX_DIRTY_RECTANGLES
         int left = (*it)->mScreenCoordinates.left();
@@ -1653,6 +1655,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
+  else if (!strcmp("path",t.cString()))
+    e = createPath(p,o);
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
@@ -1740,6 +1744,28 @@ rtError pxScene2d::createTextBox(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImage(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+}
+
+rtError pxScene2d::createPath(rtObjectRef p, rtObjectRef& o)
+{
+  if(mCanvas == NULL) // only need one.
+  {
+    // Lazy init... only on 'path'
+    mCanvas = new pxCanvas(this);
+    mCanvas.set(p);
+    mCanvas.set("id","pxCanvas App Singleton");
+    mCanvas.set("x",0);
+    mCanvas.set("y",0);
+    mCanvas.set("w",mWidth);
+    mCanvas.set("h",mHeight);
+    
+    mCanvas.send("init");
+  }
+
+  o = new pxPath(this);
   o.set(p);
   o.send("init");
   return RT_OK;

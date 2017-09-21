@@ -5,22 +5,12 @@
 
 #include "px2d.h"
 
-///
-///
-//#define MATRIX_T  pxMatrix
-//#include "pxMatrix.h"
-///
-///
-#define MATRIX_T  pxMatrix4T<float>
-#include "pxMatrix4T.h"
-///
-///
 
+#include "pxMatrix4T.h"
 #include "pxOffscreen.h"
 
 #define USELONGCOVERAGE 1
 #define EDGECLEANUP
-
 
 
 //#define FRONT2BACK
@@ -85,11 +75,11 @@ public:
   bool textureClampColor() const { return mTextureClampColor; }
   void setTextureClampColor(bool f) { mTextureClampColor = f; }
 
-	void matrix(MATRIX_T& m) const;
-	void setMatrix(const MATRIX_T& m);
+	void matrix(pxMatrix4T<float>& m) const;
+	void setMatrix(const pxMatrix4T<float>& m);
 
-  void textureMatrix(MATRIX_T& m) const;
-  void setTextureMatrix(const MATRIX_T& m);
+  void textureMatrix(pxMatrix4T<float>& m) const;
+  void setTextureMatrix(const pxMatrix4T<float>& m);
 
   bool biLerp() const { return mBiLerp; }
   void setBiLerp(bool f) { mBiLerp = f; }
@@ -179,8 +169,8 @@ private:
   pxMatrix4T<float> mMatrix22;
   pxMatrix4T<float> mTextureMatrix22;
   
-  MATRIX_T mMatrix;
-  MATRIX_T mTextureMatrix;
+  pxMatrix4T<float> mMatrix;
+  pxMatrix4T<float> mTextureMatrix;
 
   int32_t mTextureOriginX, mTextureOriginY;
 

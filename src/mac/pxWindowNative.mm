@@ -1158,5 +1158,71 @@ pxError pxWindow::endNativeDrawing(pxSurfaceNative& s)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// DEBUG CODE ... view (void*)  NSImage returned via XCode preview.
+//
+void* makeNSImage(void *rgba_buffer, int w, int h, int depth)
+{
+  size_t bitsPerComponent = 8;
+  size_t bytesPerPixel    = depth; // RGBA
+  size_t bytesPerRow      = w * bytesPerPixel;
+  
+  CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+  
+  if(!colorSpace)
+  {
+    NSLog(@"Error allocating color space RGB\n");
+    return nil;
+  }
+  
+  //Create bitmap context  
+  CGContextRef context = CGBitmapContextCreate(rgba_buffer, w, h,
+                                  bitsPerComponent,
+                                  bytesPerRow,
+                                  colorSpace,
+                                  kCGBitmapByteOrderDefault | kCGImageAlphaPremultipliedLast);	// RGBA
+  if(!context)
+  {
+    NSLog(@"Bitmap context not created");
+  }
+  
+  CGImageRef  imageRef = CGBitmapContextCreateImage(context);
+  NSImage*       image = [[NSImage alloc] initWithCGImage: imageRef
+                                                     size: NSMakeSize(CGFloat(w),CGFloat(h))];
+  
+  // Flip Vertical ... Accommodate comparisons with OpenGL texutres
+#if 0
+  
+ // CGContextRelease(context);  // might not be needed with ARC and/or Autorelease Pool
+  CGColorSpaceRelease(colorSpace);
+  
+  return image;
+  
+#else
+  
+  NSAffineTransform       *transform = [NSAffineTransform transform];
+  NSAffineTransformStruct       flip = {1.0, 0.0, 0.0, -1.0, 0.0, CGFloat(h) };
+ 
+   NSImage *flipped = [[NSImage alloc] initWithSize: [image size]];
+  
+  [flipped lockFocus];
+    [transform setTransformStruct: flip];
+    [transform concat];
+  
+    [image drawAtPoint: NSMakePoint(0,0)
+              fromRect: NSMakeRect(0,0, w, h)
+             operation: NSCompositeCopy
+              fraction: 1.0];
+  
+  [flipped unlockFocus];
+ // [transform release];        // might not be needed with ARC and/or Autorelease Pool
+  
+ // CGContextRelease(context);  // might not be needed with ARC and/or Autorelease Pool
+  CGColorSpaceRelease(colorSpace);
+  
+  return flipped;
+#endif
+}
+
 
 // pxWindowNative

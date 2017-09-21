@@ -254,7 +254,13 @@ void rtFileCache::clearCache()
   {
     stringstream buff;
     buff << "rm -rf " << mDirectory.cString() << "/*" ;
-    system(buff.str().c_str());
+    int retVal = system(buff.str().c_str());
+
+    if(retVal == -1)
+    {
+      // The system method failed
+    }
+
     mFileSizeMap.clear();
     mCacheMutex.lock();
     mCurrentSize = 0;

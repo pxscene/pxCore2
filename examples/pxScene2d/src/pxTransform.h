@@ -27,6 +27,12 @@
 #include "rtObject.h"
 #include "pxMatrix4T.h"
 
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
+#endif
+
+
 #define INVALID_REG UINT32_MAX
 
 #include <vector>
@@ -184,4 +190,8 @@ private:
   static uint32_t numFuncEntries;
 };
 
+#endif
+
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic pop
 #endif

@@ -1342,6 +1342,7 @@ public:
   rtError createText(rtObjectRef p, rtObjectRef& o);
   rtError createTextBox(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
+  rtError createPath(rtObjectRef p, rtObjectRef& o);
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
   rtError createImageA(rtObjectRef p, rtObjectRef& o);
   rtError createImageResource(rtObjectRef p, rtObjectRef& o);
@@ -1442,6 +1443,8 @@ public:
     return RT_OK;
   }
 
+  rtObjectRef getCanvas() const { return mCanvas; };
+ 
   rtObjectRef  getInfo() const;
   rtError info(rtObjectRef& v) const
   {
@@ -1486,6 +1489,9 @@ private:
   int frameCount;
   int mWidth;
   int mHeight;
+  
+  rtObjectRef mCanvas; // for SVG drawing
+  
   rtEmitRef mEmit;
 
 // TODO Top level scene only
