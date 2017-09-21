@@ -465,6 +465,10 @@ void pxObject::dispose()
     mClipSnapshotRef = NULL;
     mDrawableSnapshotForMask = NULL;
     mMaskSnapshot = NULL;
+    if (mScene)
+    {
+      mScene->innerpxObjectDisposed(this);
+    }
 #ifdef ENABLE_RT_NODE
     script.pump();
 #endif
@@ -2937,7 +2941,6 @@ void pxSceneContainer::dispose()
     rtLogInfo(__FUNCTION__);
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
-    mScene->innerpxObjectDisposed(this);
     setScriptView(NULL);
     pxObject::dispose();
     Release();
