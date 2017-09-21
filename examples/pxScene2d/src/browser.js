@@ -150,7 +150,7 @@ px.import({ scene:      'px:scene.1.js',
     helpBox.y   = inputBox.y + 20;
 
     spinner.x   = inputBox.x + inputBox.w - 60;
-    spinner.y   = inputBox.y - inputBox.h;
+    spinner.y  = inputBox.y - inputBox.h;
   }
 
   scene.root.on("onPreKeyDown", function(e)
@@ -158,12 +158,12 @@ px.import({ scene:      'px:scene.1.js',
     if(keys.is_CTRL( e.flags ) ||
        keys.is_CMD ( e.flags ) )
     {
-      if (e.keyCode == keys.L ) // CTRL / CMD - L
+      if (e.keyCode == keys.L )
       {
-        inputBox.focus = true;
-        inputBox.selectAll();
+      inputBox.focus = true;
+      inputBox.selectAll();
 
-        e.stopPropagation();
+      e.stopPropagation();
       }
     }
   });
