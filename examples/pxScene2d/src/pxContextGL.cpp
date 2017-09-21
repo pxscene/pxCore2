@@ -886,10 +886,6 @@ private:
 
 }; // CLASS - pxTextureOffscreen
 
-#ifdef PX_PLATFORM_MAC
- extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
-#endif
-
 class pxSwTexture: public pxTexture
 {
 public:
@@ -950,6 +946,9 @@ public:
 
 #if 0
 #ifdef PX_PLATFORM_MAC
+    
+    extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
+    
     // HACK
     // HACK
     // HACK

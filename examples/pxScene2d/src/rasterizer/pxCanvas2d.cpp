@@ -951,29 +951,7 @@ void pxCanvas2d::addCurve2(double x1, double y1, double x2, double y2, double x3
 // Cubic
 void pxCanvas2d::addCurve22(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
 {
-//  // Subdivide ... Casteljau algorithm
-//  double x15 = (x1 + x2) / 2.0;
-//  double y15 = (y1 + y2) / 2.0;
-//  
-//  double x25 = (x2 + x3) / 2.0;
-//  double y25 = (y2 + y3) / 2.0;
-//  
-//  double x35 = (x3 + x4) / 2.0;
-//  double y35 = (y3 + y4) / 2.0;
-//  
-//  // New points
-//  double x2p = (x15 + x25) / 2.0;
-//  double y2p = (y15 + y25) / 2.0;
-//  
-//  double x3p = (x25 + x35) / 2.0;
-//  double y3p = (y25 + y35) / 2.0;
-//  
-//  addCurve2(x1,   y1, x15, y15, x2p, y2p, 0);
-//  addCurve2(x2p, y2p, x25, y25, x3p, y3p, 0);
-//  addCurve2(x3p, y3p, x35, y35, x4,   y4, 0);
-  
   addCurve22(x1, y1, x2, y2, x3, y3, x4, y4, 0);
-
 }
 
 
