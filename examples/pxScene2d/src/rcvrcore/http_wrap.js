@@ -9,11 +9,13 @@ function HttpWrap(accessControl) {
   HttpWrap.prototype.IncomingMessage = http.IncomingMessage;
   HttpWrap.prototype.METHODS = http.METHODS;
   HttpWrap.prototype.OutgoingMessage = http.OutgoingMessage;
-  HttpWrap.prototype.ServerResponse = http.ServerResponse;
-  HttpWrap.prototype.STATUS_CODES = http.STATUS_CODES;
-  HttpWrap.prototype.Server = http.Server;
-  HttpWrap.prototype.createServer = http.createServer;
   HttpWrap.prototype.globalAgent = http.globalAgent;
+
+  // Server functionality needs to be disabled.
+  //HttpWrap.prototype.ServerResponse = http.ServerResponse;
+  //HttpWrap.prototype.STATUS_CODES = http.STATUS_CODES;
+  //HttpWrap.prototype.Server = http.Server;
+  //HttpWrap.prototype.createServer = http.createServer;
 
   HttpWrap.prototype.request = function (options, cb) {
     if (_accessControl) {
