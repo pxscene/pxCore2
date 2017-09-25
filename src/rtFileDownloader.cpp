@@ -655,7 +655,9 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     if (false == headerOnly)
     {
       downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
       checkAccessControlHeaders(downloadRequest);
+#endif
     }
     else if (chunk.contentsBuffer != NULL)
     {
