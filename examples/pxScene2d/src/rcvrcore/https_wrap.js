@@ -7,8 +7,10 @@ function HttpsWrap(accessControl) {
   var _accessControl = accessControl;
 
   HttpsWrap.prototype.globalAgent = https.globalAgent;
-  HttpsWrap.prototype.Server = https.Server;
-  HttpsWrap.prototype.createServer = https.createServer;
+
+  // Server functionality needs to be disabled.
+  //HttpsWrap.prototype.Server = https.Server;
+  //HttpsWrap.prototype.createServer = https.createServer;
 
   HttpsWrap.prototype.request = function (options, cb) {
     if (_accessControl) {

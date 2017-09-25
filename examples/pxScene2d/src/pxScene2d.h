@@ -1297,7 +1297,7 @@ public:
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
   pxScene2d(bool top = true, pxScriptView* scriptView = NULL);
-  virtual ~pxScene2d() 
+  virtual ~pxScene2d()
   {
      rtLogDebug("***** deleting pxScene2d\n");
     if (mTestView != NULL)
@@ -1456,7 +1456,7 @@ public:
   {
     rtError e = RT_FAIL;
     rtRef<pxArchive> a = new pxArchive;
-    if (a->initFromUrl(url) == RT_OK)
+    if (a->initFromUrl(url, mOrigin) == RT_OK)
     {
       archive = a;
       e = RT_OK;
@@ -1519,6 +1519,7 @@ private:
   #endif
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
+  rtString mOrigin;
 public:
   void hidePointer( bool hide )
   {
