@@ -28,7 +28,6 @@
 #include "rtString.h"
 #include "rtNode.h"
 #include "rtPathUtils.h"
-#include "rtUrlUtils.h"
 
 #include "pxCore.h"
 #include "pxOffscreen.h"
@@ -1539,7 +1538,7 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
-  : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
+  : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false), 
     mInnerpxObjects(), mDirty(true), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
@@ -1548,11 +1547,6 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mTop = top;
   mScriptView = scriptView;
   mTag = gTag++;
-
-  if (scriptView != NULL)
-  {
-    mOrigin = rtUrlGetOrigin(scriptView->getUrl().cString());
-  }
 
   // make sure that initial onFocus is sent
   rtObjectRef e = new rtMapObject;

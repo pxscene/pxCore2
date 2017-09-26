@@ -21,7 +21,86 @@ var ClearInterval = clearInterval;
 
 var http_wrap = require('rcvrcore/http_wrap');
 var https_wrap = require('rcvrcore/https_wrap');
-var AccessControl = require('rcvrcore/utils/AccessControl');
+
+// function to check whether the page being loaded is from local machine or remote machine
+function isLocalApp(loadurl)
+{
+    if ((loadurl.length > 4) && (loadurl.substring(0, 4) === "http"))
+    {
+      if ((loadurl.length >= 16) && ((loadurl.substring(0, 16) === "http://localhost") || (loadurl.substring(0, 16) === "http://127.0.0.1")))
+      {
+        return true;
+      }
+      else if ((loadurl.length >= 17) && ((loadurl.substring(0, 17) === "https://localhost") || (loadurl.substring(0, 17) === "https://127.0.0.1")))
+      {
+        return true;
+      }
+      return false;
+    }
+
+    else if ((loadurl.length >= 9) && (loadurl.substring(0, 9) === "localhost"))
+    {
+      return true;
+    }
+    else if ((loadurl.length >= 17) && (loadurl.substring(0, 17) === "127.0.0.1"))
+    {
+        return true;
+    }
+    //check for a filename as url
+    else if ((loadurl.length > 0) && (((loadurl.charCodeAt(0) >= 65) && (loadurl.charCodeAt(0) <= 90)) || ((loadurl.charCodeAt(0) >= 97) && (loadurl.charCodeAt(0) <= 122))))
+    {
+        return true;
+    }
+    return false;
+}
+
+// function to check whether the page being loaded is from local machine or remote machine for IPV6 machines
+function isLocalIPV6App(loadurl)
+{
+    if ((loadurl.length > 4) && (loadurl.substring(0, 4) === "http"))
+    {
+      if ((loadurl.length >= 12) && (loadurl.substring(0, 12) === "http://[::1]"))
+      {
+        return true;
+      }
+      else if ((loadurl.length >= 24) && (loadurl.substring(0, 24) === "http://[0:0:0:0:0:0:0:1]"))
+      {
+        return true;
+      }
+      else if ((loadurl.length >= 13) && (loadurl.substring(0, 13) === "https://[::1]"))
+      {
+        return true;
+      }
+      else if ((loadurl.length >= 25) && (loadurl.substring(0, 25) === "https://[0:0:0:0:0:0:0:1]"))
+      {
+        return true;
+      }
+      return false;
+    }
+
+    else if ((loadurl.length >= 5) && (loadurl.substring(0, 5) === "[::1]"))
+    {
+      return true;
+    }
+    else if ((loadurl.length >= 17) && (loadurl.substring(0, 17) === "[0:0:0:0:0:0:0:1]"))
+    {
+      return true;
+    }
+    else if ((loadurl.length >= 4) && (loadurl.substring(0, 4) === "::1"))
+    {
+      return true;
+    }
+    else if ((loadurl.length >= 16) && (loadurl.substring(0, 16) === "0:0:0:0:0:0:0:1"))
+    {
+      return true;
+    }
+    //check for a filename as url
+    else if ((loadurl.length > 0) && (((loadurl.charCodeAt(0) >= 65) && (loadurl.charCodeAt(0) <= 90)) || ((loadurl.charCodeAt(0) >= 97) && (loadurl.charCodeAt(0) <= 122))))
+    {
+        return true;
+    }
+    return false;
+}
 
 function AppSceneContext(params) { // container, innerscene, packageUrl) {
   //  this.container = params.sceneContainer;
@@ -42,7 +121,6 @@ function AppSceneContext(params) { // container, innerscene, packageUrl) {
     this.queryParams = {};
     this.packageUrl = params.packageUrl;
   }
-  this.accessControl = new AccessControl(this.packageUrl);
   this.defaultBaseUri = "";
   this.basePackageUri = "";
   this.sandbox = {};
@@ -482,7 +560,16 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'http' || filePath === 'https' ) {
-      modData = filePath === 'http' ? new http_wrap(_this.accessControl) : new https_wrap(_this.accessControl);
+      if (filePath === 'http')
+      {
+        modData = new http_wrap();
+      }
+      else
+      {
+        modData = new https_wrap();
+      }
+      var localapp = (isLocalApp(_this.packageUrl) || isLocalIPV6App(_this.packageUrl));
+      modData.setLocalApp(localapp);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {

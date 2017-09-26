@@ -146,7 +146,6 @@ private:
 #endif
     CURL* retrieveDownloadHandle();
     void releaseDownloadHandle(CURL* curlHandle, int expiresTime);
-    static void checkAccessControlHeaders(rtFileDownloadRequest* downloadRequest);
     //todo: hash mPendingDownloadRequests;
     //todo: string list mPendingDownloadOrderList;
     //todo: list mActiveDownloads;
