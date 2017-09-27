@@ -45,7 +45,7 @@ public:
   pxArchive();
   virtual ~pxArchive();
 
-  rtError initFromUrl(const rtString& url, const rtString& origin = rtString());
+  rtError initFromUrl(const rtString& url);
   rtError ready(rtObjectRef& r) const;
 
   rtError loadStatus(rtObjectRef& v) const;
