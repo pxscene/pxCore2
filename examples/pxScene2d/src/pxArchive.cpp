@@ -13,7 +13,7 @@ pxArchive::~pxArchive()
   gUIThreadQueue.removeAllTasksForObject(this);
 }
 
-rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
+rtError pxArchive::initFromUrl(const rtString& url)
 {
   mReady = new rtPromise;
   mLoadStatus = new rtMapObject;
@@ -30,12 +30,6 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
     mLoadStatus.set("sourceType", "http");
     mLoadStatus.set("statusCode", -1);
     mDownloadRequest = new rtFileDownloadRequest(url, this);
-    if (!origin.isEmpty())
-    {
-      rtString headerOrigin("Origin:");
-      headerOrigin.append(origin.cString());
-      mDownloadRequest->additionalHttpHeaders().push_back(headerOrigin);
-    }
     mDownloadRequest->setCallbackFunction(pxArchive::onDownloadComplete);
     rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
