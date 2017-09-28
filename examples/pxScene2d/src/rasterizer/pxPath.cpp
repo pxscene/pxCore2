@@ -114,19 +114,21 @@ void pxPath::draw()
 {
   rtObjectRef canvasRef = mScene->getCanvas();
   
-//  canvasRef.send("drawPath", this);
-  
   pxCanvas *c = (pxCanvas *) canvasRef.getPtr();
   
   if(c)
   {
-    pxOffscreen &o = c->offscreen();
+    pxOffscreen &o = c->offscreen(); // CANVAS
 
    // o.fill(pxColor(255,0,0,8));                    // HACK BACKFILL
 
-    canvasRef.send("drawPath", this);
+    canvasRef.send("drawPath", this);                // draw PATH to CANVAS // TODO: This may be slow
 
-    context.drawOffscreen(0,0, 0,0, 1280, 720, /* o.width(), o.height(),*/ o);
+//    context.drawOffscreen(0,0, 0,0, 1280, 720, /* o.width(), o.height(),*/ o);  // draw CANVAS to CONTEXT
+    context.drawOffscreen(0,0, this->x(), this->y(), this->w(), this->h(), o);
+
+//    context.drawOffscreen(0,0, 0,0, this->w(), this->h(), o);
+
   }
 }
 
@@ -163,22 +165,40 @@ rtError pxPath::setStrokeWidth(const float w)
   return RT_OK;
 }
 
+rtError pxPath::setExtentLeft(const float v)
+{
+  mExtentLeft = v;
+  
+  return RT_OK;
+}
+
+rtError pxPath::setExtentTop(const float v)
+{
+  mExtentTop = v;
+  
+  return RT_OK;
+}
+
+rtError pxPath::setExtentRight(const float v)
+{
+  mExtentRight = v;
+  
+  return RT_OK;
+}
+
+rtError pxPath::setExtentBottom(const float v)
+{
+  mExtentBottom = v;
+  
+  return RT_OK;
+}
+
 
 rtError pxPath::setPath(const rtString d)
 {
     mPath = d;
     return parsePath(d, this);
 }
-
-// static float max_w = 0;
-// static float max_h = 0;
-
-static float min_x = 99999;
-static float min_y = 99999;
-
-static float max_x = 0;
-static float max_y = 0;
-
 
 static float last_pen_x = 0;
 static float last_pen_y = 0;
@@ -192,15 +212,6 @@ void updatePen(float px, float py)
   pen_y = py;
 }
 
-void updateBounds()
-{
-  if( pen_x <= min_x) min_x = pen_x;
-  if( pen_x >= max_x) max_x = pen_x;
-  
-  if( pen_y <= min_y) min_y = pen_y;
-  if( pen_y >= max_y) max_y = pen_y;
-}
-
 #define is_relative(xx) (islower(xx))
 
 /*static*/ rtError pxPath::parsePath(const char *d, pxPath *p /*= NULL*/ )
@@ -212,13 +223,13 @@ void updateBounds()
     return RT_ERROR;
   }
 //  printf("\nPath:   [%s] ", s); // DEBUG
-  
+
+  float x0 = 0, y0 = 0, x1 = 0, y1 = 0, x2 = 0, y2 = 0, rx = 0, ry = 0, w = 0, h = 0;
+  float last_x2 = 0.0, last_y2 = 0.0, xrot, r = 0;
+
   while (*s)
   {
     char op[2];
-    float x0, y0, x1, y1, x2, y2, rx, ry;
-    float last_x2 = 0.0, last_y2 = 0.0, xrot, r = 0;
-    
     int n;
 
     int lflag; // ARC ... "large-arc-flag"
@@ -248,7 +259,6 @@ void updateBounds()
         p->pushFloat(x0,y0);
 
         updatePen(x0, y0); // POSITION
-        updateBounds();
 
 //        if(*op == 'M' || *op == 'm')
 //        {
@@ -296,11 +306,12 @@ void updateBounds()
           x0 += pen_x;
         }
 
+        y0 = last_pen_y;
+        
         p->pushOpcode( 'L' );
         p->pushFloat(x0,y0);
 
         updatePen(x0, y0); // POSITION
-        updateBounds();
 
 //        printf("\nPath:   SVG_OP_H_LINE_TO( x0: %.0f, y0: %.0f) ", x0, y0);
 
@@ -323,11 +334,12 @@ void updateBounds()
           y0 += pen_y;
         }
 
+        x0 = last_pen_x;
+
         p->pushOpcode( 'L' );
         p->pushFloat(x0,y0);
 
         updatePen(x0, y0); // POSITION
-        updateBounds();
 
 //        printf("\nPath:   SVG_OP_V_LINE_TO( x0: %.0f, y0: %.0f) ", x0, y0);
 
@@ -400,7 +412,6 @@ void updateBounds()
       p->pushFloat(x1, y1, x2, y2, x0, y0);
 
       updatePen(x0, y0); // POSITION
-      updateBounds();
 
       s += n;
     }
@@ -422,7 +433,6 @@ void updateBounds()
           x2 += pen_x;   y2 += pen_y;
         }
 
-        //TODO : fix
         x1 = 2 * pen_x - last_x2;
         y1 = 2 * pen_y - last_y2;
 
@@ -435,7 +445,6 @@ void updateBounds()
 //        printf("\nPath:   SVG_OP_S_CURVE( x1: %.0f, y1: %.0f,  x2: %.0f, y2: %.0f,  x0: %.0f, y0: %.0f) ", x1, y1, x2, y2, x0, y0);
 
         updatePen(x0, y0); // POSITION
-        updateBounds();
 
         s += n;
       }
@@ -462,7 +471,6 @@ void updateBounds()
 //      printf("\nPath:   SVG_OP_Q_CURVE( x1: %.0f, y1: %.0f,  x0: %.0f, y0: %.0f) ", x1, y1, x0, y0);
 
       updatePen(x0, y0); // POSITION
-      updateBounds();
 
       s += n;
     }
@@ -493,11 +501,37 @@ void updateBounds()
 //        printf("\nPath:   SVG_OP_T_CURVE( x1: %.0f, y1: %.0f,  x0: %.0f, y0: %.0f) ", x1, y1, x0, y0);
 
         updatePen(x0, y0); // POSITION
-        updateBounds();
 
         s += n;
       }
       while (sscanf(s, "%f %f %n", &x0, &y0, &n) == 2);
+    }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    else
+    if (sscanf(s, "RECT x:%f y:%f width:%f height:%f rx:%f ry:%f %n",
+               &x0, &y0, &w, &h, &rx, &ry, &n) == 6)
+    {
+      // printf("\nPath:   ROUNDED RECT( x0:%.0f, y0:%.0f, rx: %.0f ry: %.0f) pushRect ", x0, y0, rx, ry);
+      
+      p->pushRect(p, x0, y0, w, h, rx, rx);
+      
+      updatePen(x0, y0); // POSITION
+      
+      s += n;
+    }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    else
+    if (sscanf(s, "RECT x:%f y:%f width:%f height:%f %n",
+               &x0, &y0, &w, &h, &n) == 4)
+    {
+      // printf("\nPath:   RECT( x0:%.0f, y0:%.0f) pushRect ", x0, y0, rx, ry);
+      float zero = 0;
+      
+      p->pushRect(p, x0, y0, w, h, zero, zero);
+      
+      updatePen(x0, y0); // POSITION
+      
+      s += n;
     }
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     else
@@ -506,48 +540,9 @@ void updateBounds()
     {
       // printf("\nPath:   CIRCLE( x0:%.0f, y0:%.0f, r: %.0f) ", x0, y0, r);
       
-      #define KAPPA		0.5522847498
-
-      p->pushOpcode( 'M' );
-      p->pushFloat(x0 + r,
-                   y0);
-
-      p->pushOpcode( 'C' );
-      p->pushFloat((x0 + r),         // X1
-                   (y0 + r * KAPPA), // Y1
-                   (x0 + r * KAPPA), // X2
-                   (y0 + r),         // Y2
-                   (x0),             // X0
-                   (y0 + r));        // Y0
-
-      p->pushOpcode( 'C' );
-      p->pushFloat((x0 - r * KAPPA), // X1
-                   (y0 + r),         // Y1
-                   (x0 - r),         // X2
-                   (y0 + r * KAPPA), // Y2
-                   (x0 - r),         // X0
-                   (y0));            // Y0
-
-      p->pushOpcode( 'C' );
-      p->pushFloat((x0 - r),         // X1
-                   (y0 - r * KAPPA), // Y1
-                   (x0 - r * KAPPA), // X2
-                   (y0 - r),         // Y2
-                   (x0),             // X0
-                   (y0 - r));        // Y0
-
-      p->pushOpcode( 'C' );
-      p->pushFloat((x0 + r * KAPPA), // X1
-                   (y0 - r),         // Y1
-                   (x0 + r),         // X2
-                   (y0 - r * KAPPA), // Y2
-                   (x0 + r),         // X0
-                   (y0));            // Y0
-
-      p->pushOpcode( 'Z' );
+      p->pushEllipse(p, x0, y0, r, r); // circle is a special case of an ellipse !
       
       updatePen(x0, y0); // POSITION
-      updateBounds();
       
       s += n;
     }
@@ -558,46 +553,9 @@ void updateBounds()
     {
 //      printf("\nPath:   ELLIPSE( x0:%.0f, y0:%.0f, rx: %.0f ry: %.0f) ", x0, y0, rx, ry);
       
-      p->pushOpcode( 'M' );
-      p->pushFloat(x0 + rx,
-                   y0);
-
-      p->pushOpcode( 'C' );
-      p->pushFloat((x0 + rx),         // X1
-                   (y0 + ry * KAPPA), // Y0
-                   (x0 + rx * KAPPA), // X2
-                   (y0 + ry),         // Y2
-                   (x0),              // X0
-                   (y0 + ry));        // Y0
-
-      p->pushOpcode( 'C' );
-      p->pushFloat((x0 - rx * KAPPA), // X1
-                   (y0 + ry),         // Y1
-                   (x0 - rx),         // X2
-                   (y0 + ry * KAPPA), // Y2
-                   (x0 - rx),         // X0
-                   (y0));             // Y0
+      p->pushEllipse(p, x0, y0, rx, ry);
       
-      p->pushOpcode( 'C' );
-      p->pushFloat((x0 - rx),         // X1
-                   (y0 - ry * KAPPA), // Y1
-                   (x0 - rx * KAPPA), // X2
-                   (y0 - ry),         // Y2
-                   (x0),              // X0
-                   (y0 - ry));        // Y0
-      
-      p->pushOpcode( 'C' );
-      p->pushFloat((x0 + rx * KAPPA), // X1
-                   (y0 - ry),         // Y1
-                   (x0 + rx),         // X2
-                   (y0 - ry * KAPPA), // Y2
-                   (x0 + rx),         // X0
-                   (y0));             // Y0
-
-      p->pushOpcode( 'Z' );
-
       updatePen(x0, y0); // POSITION
-      updateBounds();
 
       s += n;
     }
@@ -611,28 +569,166 @@ void updateBounds()
     //fprintf(stderr, "\n dbg - x0: %.0f  x1: %.0f  x2: %.0f", x0, x1, x2);
 
   }//WHILE
-  
-  float dw = fabs(max_x - min_x);
-  float dh = fabs(max_y - min_y);
-
-  dw = (dw > 0) ? dw : p->mStrokeWidth;
-  dh = (dh > 0) ? dh : p->mStrokeWidth;
-
-  p->setW( dw );
-  p->setH( dh );
 
  // printf("\n ###  Bounds   WxH:  %.0f x  %.0f ... ", p->w(), p->h());
 
   p->sendPromise();
 
-  // Reset
-  min_x = 99999;  max_x = 0;
-  min_y = 99999;  max_y = 0;
-
   return RT_OK;
 }
 
+
 //====================================================================================================================================
+
+//  #define KAPPA		0.5522847498 // org
+#define KAPPA		0.552228474
+
+void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx, float ry)
+{
+  if(rx == 0 && ry == 0)
+  {
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    p->pushOpcode( 'M' );
+    p->pushFloat(x0, y0);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Top
+    p->pushOpcode( 'L' ); // H
+    p->pushFloat(x0+w, y0);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Right
+    p->pushOpcode( 'L' ); // H
+    p->pushFloat(x0 + w, y0 + h);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Bottom
+    p->pushOpcode( 'L' ); // H
+    p->pushFloat(x0, y0 + h);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Left
+    //  p->pushOpcode( 'L' ); // H
+    //  p->pushFloat(Hx, Hy);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    p->pushOpcode( 'Z' );
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+  }
+  else
+  {
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    p->pushOpcode( 'M' );
+    p->pushFloat(x0, y0 + ry);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    
+    // Top Left
+    p->pushOpcode( 'Q' );
+    p->pushFloat( x0,      // X1
+                  y0,      // Y1
+                  x0 + rx, // X0
+                  y0);     // Y0
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Top
+    p->pushOpcode( 'L' ); // H
+    p->pushFloat(x0+w-rx, y0);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Top Right
+    p->pushOpcode( 'Q' );
+    p->pushFloat( x0 + w,   // X1
+                  y0,       // Y1
+                  x0 + w-3,   // X0
+                  y0 + ry); // Y0
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Right
+    p->pushOpcode( 'L' ); // H
+    p->pushFloat(x0 + w -3, y0 + h - ry);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    
+    // Bottom Right
+    p->pushOpcode( 'Q' );
+    p->pushFloat( x0 + w,      // X1
+                  y0 + h,      // Y1
+                  x0 + w - rx, // X0
+                  y0 + h);     // Y0
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Bottom
+    p->pushOpcode( 'L' ); // H
+    p->pushFloat(x0 + rx, y0 + h);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    
+    // Bottom Left
+    p->pushOpcode( 'Q' );
+    p->pushFloat( x0,           // X1
+                  y0 + h,       // Y1
+                  x0,           // X0
+                  y0 + h - ry); // Y0
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Left
+  //  p->pushOpcode( 'L' ); // H
+  //  p->pushFloat(Hx, Hy);
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+    p->pushOpcode( 'Z' );
+    // - - - - - - - - - - - - - - - - - - - - - - - - - -
+  }
+}
+
+//====================================================================================================================================
+
+void pxPath::pushEllipse(pxPath *p, float x0, float y0, float rx, float ry)
+{
+  p->pushOpcode( 'M' );
+  p->pushFloat(x0 + rx,
+               y0);
+  
+  // Bottom Right
+  p->pushOpcode( 'C' );
+  p->pushFloat((x0 + rx),         // X1
+               (y0 + ry * KAPPA), // Y1
+               (x0 + rx * KAPPA), // X2
+               (y0 + ry),         // Y2
+               (x0),              // X0
+               (y0 + ry));        // Y0
+  
+  // Bottom Left
+  p->pushOpcode( 'C' );
+  p->pushFloat((x0 - rx * KAPPA), // X1
+               (y0 + ry),         // Y1
+               (x0 - rx),         // X2
+               (y0 + ry * KAPPA), // Y2
+               (x0 - rx),         // X0
+               (y0));             // Y0
+  
+  // Top Left
+  p->pushOpcode( 'C' );
+  p->pushFloat((x0 - rx),         // X1
+               (y0 - ry * KAPPA), // Y1
+               (x0 - rx * KAPPA), // X2
+               (y0 - ry),         // Y2
+               (x0),              // X0
+               (y0 - ry));        // Y0
+  
+  // Top Right
+  p->pushOpcode( 'C' );
+  p->pushFloat((x0 + rx * KAPPA), // X1
+               (y0 - ry),         // Y1
+               (x0 + rx),         // X2
+               (y0 - ry * KAPPA), // Y2
+               (x0 + rx),         // X0
+               (y0));             // Y0
+  
+  p->pushOpcode( 'Z' );
+}
+
 
 void pxPath::pushOpcode(uint8_t op)
 {

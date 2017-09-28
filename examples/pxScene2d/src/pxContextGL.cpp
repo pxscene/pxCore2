@@ -925,24 +925,15 @@ public:
     mOffscreen.fill(pxClear);
   }
   
+  pxOffscreen* offscreen()
+  {
+    return &mOffscreen;
+  }
+  
   pxError copy(int src_x, int src_y, int dst_x, int dst_y, float w, float h, pxOffscreen &o)
   {
-#if 0
-    // PSEUDO COLOR - SOURCE BUFFER ... fails
-    float sw = 100, sh = 100;                           // HACK
-    pxRect bFILL(src_x, src_y, src_x + sw, src_y + sh); // HACK
-    o.fill(bFILL, pxBlue);                              // HACK
-#endif
-    
-    o.blit(mOffscreen, dst_x, dst_y, w, h, src_x, src_y); // copy RASTER >> to >> RENDER offscreen
-    
-#if 0
-    // PSEUDO COLOR - DESTINATION BUFFER ... works
-    
-    float dw = 100, dh = 100;                           // HACK
-    pxRect rFILL(dst_x, dst_y, dst_x + dw, dst_y + dh); // HACK
-    mOffscreen.fill(rFILL, pxGreen);                    // HACK
-#endif
+    // COPY / BLIT from 'o' ... to 'mOffscreen'
+    o.blit(mOffscreen, dst_x, dst_y, w, h, src_x, src_y);
 
 #if 0
 #ifdef PX_PLATFORM_MAC
@@ -970,9 +961,21 @@ public:
     {
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
  
-      // Upload (CRAWL) entire RENTER offscreen to TEXTURE on GPU
-      glTexSubImage2D(GL_TEXTURE_2D, 0, dst_x, dst_y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, mOffscreen.base());
+      int f = mOffscreen.width();
       
+      glPixelStorei(GL_UNPACK_ROW_LENGTH, mOffscreen.width());
+
+      int32_t off = (mOffscreen.width() * dst_y) + dst_x;
+      
+      // Upload (CRAWL) entire RENTER offscreen to TEXTURE on GPU
+//      glTexSubImage2D(GL_TEXTURE_2D, 0, dst_x, dst_y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid *) ( (char *) mOffscreen.base() + off));
+      
+      
+      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1280,720, GL_RGBA, GL_UNSIGNED_BYTE, mOffscreen.base());
+      
+
+      glPixelStorei(GL_UNPACK_ROW_LENGTH,0); //default
+
 //      glBindTexture(GL_TEXTURE_2D, GL_NONE); // unbind
     }
     
@@ -2354,8 +2357,8 @@ void pxContext::drawImage(float x, float y, float w, float h,
                   color? color : black, stretchX, stretchY);
 }
 
-typedef rtRef<pxSwTexture> pxSwTextureRef;
-static pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
+typedef rtRef<pxSwTexture>    pxSwTextureRef;
+static        pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
 
 void pxContext::drawOffscreen(float src_x, float src_y,
                               float dst_x, float dst_y,
@@ -2374,20 +2377,47 @@ void pxContext::drawOffscreen(float src_x, float src_y,
     // Lazy init...
     swRasterTexture = pxSwTextureRef(new pxSwTexture());
     swRasterTexture->init(1280, 720); // HACK - hard coded for now.
-
-   // return;
   }
   
+  // COPY from CANVAS (offscreen) to RASTER
   swRasterTexture->copy(src_x, src_y,
                         dst_x, dst_y, w, h, offscreen);
   
   pxTextureRef nullMask;
-  float clear[4] = {0,0,0,0};
+  static float clear[4] = {0,0,0,0};
 
   pxTextureRef texture( (pxTexture *) swRasterTexture.getPtr());
   
-  drawImage(dst_x, dst_y, w, h, texture, nullMask, true, clear,
+  drawImage(/*dst_x, dst_y*/0,0, 1280, 720, texture, nullMask, true, clear,
             pxConstantsStretch::NONE, pxConstantsStretch::NONE);
+  
+//  drawImage(dst_x, dst_y, w, h, texture, nullMask, true, clear,
+//            pxConstantsStretch::NONE, pxConstantsStretch::NONE);
+  
+#if 1
+#ifdef PX_PLATFORM_MAC
+  
+  extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
+  
+  // HACK
+  // HACK
+  // HACK
+  static int frame = 20;
+  if(frame-- == 0)
+  {
+    pxOffscreen *tex = (pxOffscreen *) swRasterTexture->offscreen();
+    
+    void *img_raster = makeNSImage(tex->base(), tex->width(), tex->height(), 4);
+    void *img_render = makeNSImage(offscreen.base(), offscreen.width(), offscreen.height(), 4);
+    
+    frame = -1;
+  }
+  // HACK
+  // HACK
+  // HACK
+#endif
+#endif
+  
   
   ///// CRAWL approach only
 //  pxRect rect(src_x, src_y, src_x + w, src_y + h);

@@ -291,9 +291,6 @@ void pxCanvas2d::textureMatrix(pxMatrix4T<float>& m) const
 #if 0
 void pxCanvas2d::fill(bool time)
 {
-  double extentLeft, extentTop;
-  double extentRight, extentBottom;
-
   extentLeft = extentTop = 1000000;
   extentRight = extentBottom = -1000000;
 
@@ -413,10 +410,6 @@ void pxCanvas2d::fill(bool time)
     startEdge = pxMilliseconds();
   }
 #endif // USE_PERF_TIMERS
-  
-  
-  double extentLeft, extentTop;
-  double extentRight, extentBottom;
 
   extentLeft = extentTop = 1000000;
   extentRight = extentBottom = -1000000;
