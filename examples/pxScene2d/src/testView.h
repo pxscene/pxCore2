@@ -135,13 +135,18 @@ testView(): mContainer(NULL),mRefCount(0),mw(0),mh(0),mEntered(false),mMouseX(0)
     rtLogInfo("testView::onChar(%u)", codepoint);
     return false;
   }
-
+  
   virtual void RT_STDCALL setViewContainer(pxIViewContainer* l)
   {
     rtLogInfo("testView::setViewContainer(%p)", l);
     mContainer = l;
   }
 
+  virtual void RT_STDCALL onCloseRequest()
+  {
+    rtLogInfo("testView::onCloseRequest()");
+  }
+  
   virtual void RT_STDCALL onUpdate(double t);
   virtual void RT_STDCALL onDraw();
 
