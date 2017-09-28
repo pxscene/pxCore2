@@ -132,6 +132,7 @@ public:
     void setDefaultCallbackFunction(void (*callbackFunction)(rtFileDownloadRequest*));
     bool downloadFromNetwork(rtFileDownloadRequest* downloadRequest);
     void checkForExpiredHandles();
+    static void checkAccessControlHeaders(rtFileDownloadRequest* downloadRequest);
 
 private:
     rtFileDownloader();
