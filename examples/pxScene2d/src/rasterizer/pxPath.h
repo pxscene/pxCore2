@@ -71,6 +71,10 @@ public:
   rtProperty(strokeColor, strokeColor, setStrokeColor, uint32_t);
   rtProperty(strokeWidth, strokeWidth, setStrokeWidth, float);
 
+  rtProperty(extentLeft,     extentLeft,   setExtentLeft,  float);
+  rtProperty(extentTop,       extentTop,    setExtentTop,  float);
+  rtProperty(extentRight,   extentRight,  setExtentRight,  float);
+  rtProperty(extentBottom, extentBottom, setExtentBottom,  float);
   
 public:
   pxPath(pxScene2d* scene);
@@ -94,7 +98,20 @@ public:
   
   rtError strokeWidth(float& v) const { v = (float)mStrokeWidth;    return RT_OK; };
   virtual rtError setStrokeWidth(const float w);
-
+  
+  
+  rtError extentLeft(float& v) const { v = (float)mExtentLeft;      return RT_OK; };
+  virtual rtError setExtentLeft(const float v);
+  
+  rtError extentTop(float& v) const { v = (float)mExtentTop;        return RT_OK; };
+  virtual rtError setExtentTop(const float v);
+  
+  rtError extentRight(float& v) const { v = (float)mExtentRight;    return RT_OK; };
+  virtual rtError setExtentRight(const float v);
+  
+  rtError extentBottom(float& v) const { v = (float)mExtentBottom;  return RT_OK; };
+  virtual rtError setExtentBottom(const float v);
+  
   // One STATIC parser
   static rtError parsePath(const char *d, pxPath *p /*= NULL*/ );
   
@@ -107,6 +124,9 @@ public:
   void pushFloat(float a, float b, float c, float d);
   void pushFloat(float a, float b, float c, float d, float e, float f);
   
+  void pushRect(pxPath    *p, float x0, float y0, float w, float h, float rx, float ry);
+  void pushEllipse(pxPath *p, float x0, float y0, float rx, float ry);
+
   float   getFloatAt(int i);
   float   getFloatAt(const uint8_t *p);
   uint8_t getByteAt(const uint8_t *p);
@@ -115,6 +135,11 @@ public:
   int     getLength()  { return (int) opStream.size(); };
  
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  float        mExtentLeft;
+  float        mExtentTop;
+  float        mExtentRight;
+  float        mExtentBottom;
 
   pxColor      mStrokeColor;
   float        mStrokeWidth;

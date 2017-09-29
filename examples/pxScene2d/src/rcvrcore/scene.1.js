@@ -59,7 +59,19 @@ function Scene() {
 
     if(params.hasOwnProperty("d") && params.t === "path")
     {
-        if(params.d.match("[circle|CIRCLE]+.*"))
+        if(params.d.match(/rect/i) )
+        {
+          params.d = params.d.replace(/rect/gi, "RECT");
+          
+          // normalize the path
+          params.d = params.d.replace(/,/g," ")
+          .replace(/-/g," -")
+          .replace(/ +/g," ");
+          
+           // console.log(" >>> Found RECT: [" + params.d + "] ");
+        }
+        else
+        if(params.d.match(/circle/i) )
         {
           params.d = params.d.replace(/circle/gi, "CIRCLE");
           
@@ -70,7 +82,8 @@ function Scene() {
           
           // console.log(" >>> Found CIRCLE: [" + params.d + "] ");
         }
-        if(params.d.match("[ellipse|ELLIPSE]+.*"))
+        else
+        if(params.d.match(/ellipse/i))
         {
           params.d = params.d.replace(/ellipse/gi, "ELLIPSE");
           

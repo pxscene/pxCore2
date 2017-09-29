@@ -89,9 +89,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
  
   mCanvasCtx.newPath();
   
-  float x0, y0, x1, y1, x2, y2;
-  
-  x0 = y0 = x1 = y1 = x2 = y2 = 0.0;
+  float x0 = 0.0, y0 = 0.0, x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
   
   while(op < fin)
   {
@@ -107,7 +105,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
         
         mCanvasCtx.moveTo(x0, y0);
         
-        printf("\nCanvas: SVG_OP_MOVE( %.0f, %.0f ) ", x0,y0);
+//        printf("\nCanvas: SVG_OP_MOVE( %.1f, %.1f ) ", x0,y0);
       }
       break;
       
@@ -119,9 +117,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
         
         mCanvasCtx.moveTo(x0, y0);
         
-//        printf("\nCanvas: SVG_OP_LINE( x0: %.0f, y0: %.0f) ", x0, y0);
-        
-//        printf("\n SVG_OP_LINE( %f, %f ) ", x,y);
+//        printf("\nCanvas: SVG_OP_LINE( x0: %.1f, y0: %.1f) ", x0, y0);
       }
       break;
       
@@ -135,7 +131,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
         
         mCanvasCtx.curveTo(x1, y1, x0, y0);
         
-//        printf("\nCanvas: SVG_OP_Q_CURVE( x1: %.0f, y1: %.0f,  x0: %.0f, y0: %.0f) ", x1, y1, x0, y0);
+//        printf("\nCanvas: SVG_OP_Q_CURVE( x1: %.1f, y1: %.1f,  x0: %.1f, y0: %.1f) ", x1, y1, x0, y0);
       }
       break;
       
@@ -151,7 +147,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
         
         mCanvasCtx.curveTo(x1, y1, x2, y2, x0, y0);
         
-        printf("\nCanvas: SVG_OP_C_CURVE( x1: %.0f, y1: %.0f,  x2: %.0f, y2: %.0f,  x0: %.0f, y0: %.0f) ", x1, y1, x2, y2, x0, y0);
+//        printf("\nCanvas: SVG_OP_C_CURVE( x1: %.1f, y1: %.1f,  x2: %.1f, y2: %.1f,  x0: %.1f, y0: %.1f) ", x1, y1, x2, y2, x0, y0);
       }
       break;
    
@@ -189,17 +185,54 @@ rtError pxCanvas::drawPath(rtObjectRef path)
   // Drawing
   if(needsFill || needsStroke)
   {
-//    pxMatrix4f currentM;
-//    mCanvasCtx.matrix(currentM);
-//
-//    mCanvasCtx.setMatrix(context.getMatrix());  // Apply TCM
+    pxMatrix4f m;
     
+    float ss = p->mStrokeWidth/2;
+    
+    if(ss > 0)
+    {
+      m.translate(ss, ss);
+      mCanvasCtx.setMatrix(m);
+    }
+  
     // - - - - - - - - - - - - - - - - - - -
     if(needsFill)   mCanvasCtx.fill();
     if(needsStroke) mCanvasCtx.stroke();
     // - - - - - - - - - - - - - - - - - - -
 
-//    mCanvasCtx.setMatrix(currentM);  // Restore TCM
+    if(ss > 0)
+    {
+      m.translate(ss*2, -ss*2);
+      p->applyMatrix(m);
+    }
+    
+#if 0
+#ifdef PX_PLATFORM_MAC
+    
+    extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
+    
+    // HACK
+    // HACK
+    // HACK
+    static int frame = 20;
+    if(frame-- == 0)
+    {
+      void *img_raster = makeNSImage(offscreen().base(), offscreen().width(), offscreen().height(), 4);
+      frame = -1;
+    }
+    // HACK
+    // HACK
+    // HACK
+#endif
+#endif
+    
+    p->setExtentLeft(   mCanvasCtx.extentLeft   );
+    p->setExtentTop(    mCanvasCtx.extentTop    );
+    p->setExtentRight(  mCanvasCtx.extentRight  );
+    p->setExtentBottom( mCanvasCtx.extentBottom );
+    
+    p->setW(mCanvasCtx.extentRight  + p->mStrokeWidth);
+    p->setH(mCanvasCtx.extentBottom + p->mStrokeWidth);
  }
   
   return RT_OK;
