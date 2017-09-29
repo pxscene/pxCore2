@@ -209,6 +209,9 @@ public: // BUGBUG
   pxOffscreen  mOffscreen;
   pxTextureRef mTexture;
   
+  double extentLeft,  extentTop;
+  double extentRight, extentBottom;
+  
   bool    mNeedsRedraw;
   
   int mw;

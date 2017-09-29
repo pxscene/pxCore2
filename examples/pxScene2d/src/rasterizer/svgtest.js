@@ -7,134 +7,233 @@ px.import({ scene:      'px:scene.1.js',
   var scene = imports.scene;
   var keys  = imports.keys;
   var root  = imports.scene.root;
+   
+  var MM;
         
-  var bg = scene.create({t:"rect",  parent: root, x:0, y:0, w: 100, h: 100, fillColor: 0x888888ff, a: 1.0 });
+  var bg = scene.create({t:"rect",  parent: root, x:0, y:0, w: 100, h: 100, fillColor: 0xFFFFFFff, a: 1.0 });
 
   bg.ready.then(
-    function(o)
+  function(o)
+  {
+    var show_LetterM = true;
+    var show_Cross   = false;
+    var show_Circle  = false;
+    var show_Ellipse = false;
+    var show_RRect   = false;
+    var show_ARC1    = false;
+    var show_ARC2    = false;
+    var show_SWEEP   = false;
+    var show_CURVES  = false;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Letter "M" ...
+    if(show_LetterM)
     {
-      // Multi-color Cross ... (relative)
-      if(false)
-      {
-        var sw = 6;
-      
-        scene.create( { t: "path", d:"M100 100 v-50", strokeColor: 0xFF00FFff, strokeWidth: sw, parent: bg} );
-        scene.create( { t: "path", d:"M100 100 v50",  strokeColor: 0x00FF00ff, strokeWidth: sw, parent: bg} );
-        scene.create( { t: "path", d:"M100 100 h50",  strokeColor: 0x0000FFff, strokeWidth: sw, parent: bg} );
-        scene.create( { t: "path", d:"M100 100 h-50", strokeColor: 0x00FFFFff, strokeWidth: sw, parent: bg} );
-      }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//     CIRCLE TESTING - see [test.svg]
-//
-//     <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
-//
-//     <path d="M 191 140
-//              C 191 163   173 181  150  181
-//              C 127 181   109 163  109  140
-//              C 109 117   127  99  150   99
-//              C 173  99   191 117  191  140Z" stroke="black" stroke-width="3"  fill="cyan"/>
+       var letterM = scene.create({t:"object", parent: bg, x:800, y:100, a: 1.0 });
                 
-      if(true)
-      {
-        scene.create( { t: "path", d:"circle cx:150 cy:140 r:41", strokeColor: 0x000000ff, strokeWidth: 4, fillColor: 0x00FFFFff, parent: bg} );
+       MM = scene.create( { t: "path",
+                            d: "M 68.8 49" +
+                               "V 21.9" +
+                               "c 0 -8.3 -2.8 -11.5 -8.2 -11.5" +
+                               "c -6.6 0 -9.3 4.7 -9.3 11.4" +
+                               "v 16.8" +
+                               "h 6.4" +
+                               "V 49" +
+                               "H 37.6" +
+                               "V 21.9" +
+                               "c 0 -8.3 -2.8 -11.5 -8.2 -11.5" +
+                               "c -6.6 0 -9.3 4.7 -9.3 11.4" +
+                               "v 16.8" +
+                               "h 9.2" +
+                               "V 49" +
+                               "H 0" +
+                               "V 38.7" +
+                               "h 6.4" +
+                               "V 11.4" +
+                               "H 0.1" +
+                               "V 1" +
+                               "h 20" +
+                               "v 7.2" +
+                               "C 23 3.1 28 0 34.7 0" +
+                               "C 41.6 0 48 3.3 50.4 10.3" +
+                               "C 53 3.9 58.5 0 66 0" +
+                               "c 8.6 0 16.5 5.2 16.5 16.6" +
+                               "v 22" +
+                               "h 6.4" +
+                               "V 49" +
+                               "H 68.8" +
+                               "Z",
 
-        // Part of the converted arcs
-//        scene.create( { t: "path", d:"M191 140 C 191 163 173 181  150  181", strokeColor: 0x000000ff, strokeWidth: 3, parent: bg} );
-      }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//     ELLIPSE TESTING - see [test.svg]
-//
-//    <ellipse cx="60" cy="60" rx="50" ry="25" stroke="black" stroke-width="3" fill="red" />
-//
-//    <path d="M 200 340 C 200 354 178 365 150 365
-//             C 122 365 100 354 100 340
-//             C 100 326 122 315 150 315
-//             C 178 315 200 326 200 340Z" stroke="black" stroke-width="3"  fill="cyan"/>
-                
-      if(true)
-      {
-        scene.create( { t: "path", d:"ellipse cx:150 cy:340 rx:50 ry: 25", strokeColor: 0x000000ff, strokeWidth: 3, fillColor: 0xFFFF00ff, parent: bg} );
-      }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//    ARC: absolute
-//
-//    Example from: ARC section >>  https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
-//
-      if(false)
-      {
-        scene.create( { t: "path", d:"M10 315 L 315 10", strokeColor: 0xFF0000ff, strokeWidth: 3,  parent: bg} );
-        scene.create( { t: "path", d:"M10 315 "
-                                    +"L 110 215 "
-                                    +"A 30 50 0 0 1 162.55 162.45 "
-                                    +"L 172.55 152.45 "
-                                    +"A 30 50 -45 0 1 215.1 109.9 "
-                                    +"L 315 10Z",strokeWidth: 2, strokeColor: 0x000000ff, fillColor: 0x00FF0080,  parent: bg} );
-      }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//    ARC: relative
-//
-//    Example from: ARC section >>  https://www.w3.org/TR/SVG/paths.html#PathDataEllipticalArcCommands
-//
-      if(false)
-      {
-        scene.create( { t: "path", d:"M600 350 l 50 -25 "
-                                    +"a25 25  -30 0 1 50 -25 l 50 -25 "
-                                    +"a25 50  -30 0 1 50 -25 l 50 -25 "
-                                    +"a25 75  -30 0 1 50 -25 l 50 -25 "
-                                    +"a25 100 -30 0 1 50 -25 l 50 -25Z",
-                     fillColor: 0x00000000, strokeColor: 0xFF0000ff, strokeWidth: "5",  parent: bg } );
-      }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//    ARC SWEEP - 4 possible values
-//
-//    Example from: ARC section >>  https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
-
-      if(false)
-      {
-        scene.create( { t: "path", d: "M80 80 "
-                                     +"A 45 45  0  0  0  125 125 "
-                                     +"L 125 80 Z",
-                     fillColor: 0x00FF00ff, strokeColor: 0x000000ff, strokeWidth: 1,  parent: bg } );
-
-        scene.create( { t: "path", d: "M230 80 "
-                                     +"A 45 45  0  1  0  275 125 "
-                                     +"L 275 80 Z",
-                     fillColor: 0xFF0000ff, strokeColor: 0x000000ff, strokeWidth: 1,  parent: bg } );
-
-        scene.create( { t: "path", d: "M80 230 "
-                                     +"A 45 45  0  0  1  125 275 "
-                                     +"L 125 230 Z",
-                     fillColor: 0xFF00FFff, strokeColor: 0x000000ff, strokeWidth: 1,  parent: bg } );
-
-        scene.create( { t: "path", d: "M230 230 "
-                                     +"A 45 45  0  1  1  275 275 "
-                                     +"L 275 230 Z",
-                     fillColor: 0x0000FFff, strokeColor: 0x000000ff, strokeWidth: 1,  parent: bg } );
-      }
-                
-      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      //
-      //    Curves
-      //
-      // These curves should overlap, Black Below, Red Above
-      //
-      if(false)
-      {
-        scene.create( { id: "CurveBG", t: "path", d:"M100 180 q50 10, 95 80",     strokeColor: 0x000000ff, strokeWidth: 13, parent: bg} );
-        scene.create( { id: "CurveFG", t: "path", d:"M100 180 Q150 190, 195 260", strokeColor: 0xFF0000ff, strokeWidth: 3,  parent: bg} );
-      }
+          strokeColor: 0x000000ff, strokeWidth: 4, fillColor: 0x00FFFFff, parent: letterM, cx: 50, cy: 50} );
     }
-  );
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Multi-color Cross ... (relative)
+    if(show_Cross)
+    {
+      var sw = 6;
+    
+      var cross = scene.create({t:"object", parent: bg, x:200, y:300, a: 1.0 });
+
+      scene.create( { t: "path", d:"M100 100 v-50", strokeColor: 0xFF00FFff, strokeWidth: sw, parent: cross} );
+      scene.create( { t: "path", d:"M100 100 v50",  strokeColor: 0x00FF00ff, strokeWidth: sw, parent: cross} );
+      scene.create( { t: "path", d:"M100 100 h50",  strokeColor: 0x0000FFff, strokeWidth: sw, parent: cross} );
+      scene.create( { t: "path", d:"M100 100 h-50", strokeColor: 0x00FFFFff, strokeWidth: sw, parent: cross} );
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //     CIRCLE TESTING - see [test.svg]
+    //
+    //     <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+    //
+    //     <path d="M 191 140
+    //              C 191 163   173 181  150  181
+    //              C 127 181   109 163  109  140
+    //              C 109 117   127  99  150   99
+    //              C 173  99   191 117  191  140Z" stroke="black" stroke-width="3"  fill="cyan"/>
+                  
+    if(show_Circle)
+    {
+      scene.create( { t: "path", d:"circle cx:150 cy:250 r:41", strokeColor: 0x000000ff, strokeWidth: 4, fillColor: 0x00FFFFff, parent: bg} );
+
+      // Part of the converted arcs
+  //        scene.create( { t: "path", d:"M191 140 C 191 163 173 181  150  181", strokeColor: 0x000000ff, strokeWidth: 3, parent: bg} );
+    }
+                  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //     ELLIPSE TESTING - see [test.svg]
+    //
+    //    <ellipse cx="60" cy="60" rx="50" ry="25" stroke="black" stroke-width="3" fill="red" />
+    //
+    //    <path d="M 200 340 C 200 354 178 365 150 365
+    //             C 122 365 100 354 100 340
+    //             C 100 326 122 315 150 315
+    //             C 178 315 200 326 200 340Z" stroke="black" stroke-width="3"  fill="cyan"/>
+                  
+    if(show_Ellipse)
+    {
+      scene.create( { t: "path", d:"ellipse cx:150 cy:340 rx:50 ry: 25", strokeColor: 0x000000ff, strokeWidth: 3, fillColor: 0xFFFF00ff, parent: bg} );
+    }
+                  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //    ROUNDED RECT - see [test.svg]
+    //
+    //    <rect x="250" y="250" rx="50" ry="50" width="400" height="200"
+    //         style="fill:red;stroke:black;stroke-width:5;opacity:0.5" />
+    //
+    if(show_RRect)
+    {
+      var x0 = 500, y0 = 250, w = 200, h = 100, rx = 30, ry = 30;
+                
+      scene.create( { t: "path", d:"rect x:"+x0+" y:"+y0+" width:"+w+" height:"+h+" rx:"+rx+" ry:"+ry+"", strokeColor: 0x000000ff, strokeWidth: 8, fillColor: 0x8888FFff, parent: bg} );
+                
+      scene.create( { t: "path", d:"rect x:"+x0+" y:"+(y0 + 150)+" width:"+w+" height:"+h+"", strokeColor: 0xFF0000ff, strokeWidth: 8, fillColor: 0x8888FFff, parent: bg} );
+                
+                
+//        var dd = 3;
+//        scene.create( { t: "path", d:"circle cx:"+(x0)+      " cy:"+(y0+ry)   + " r:"+dd, fillColor: 0xFF0000ff, parent: bg} );
+//        scene.create( { t: "path", d:"circle cx:"+(x0)+      " cy:"+(y0)      + " r:"+dd, fillColor: 0xFF0000ff, parent: bg} );
+//        scene.create( { t: "path", d:"circle cx:"+(x0+rx)+   " cy:"+(y0)      + " r:"+dd, fillColor: 0xFF0000ff, parent: bg} );
+//        
+//        scene.create( { t: "path", d:"circle cx:"+(x0+w-rx)+ " cy:"+(y0)      + " r:"+dd, fillColor: 0xFF0000ff, parent: bg} );
+//        scene.create( { t: "path", d:"circle cx:"+(x0+w)+    " cy:"+(y0)      + " r:"+dd, fillColor: 0xFF0000ff, parent: bg} );
+//        scene.create( { t: "path", d:"circle cx:"+(x0+w)+    " cy:"+(y0+ry)   + " r:"+dd, fillColor: 0xFF0000ff, parent: bg} );
+//        
+//        scene.create( { t: "path", d:"circle cx:"+(x0+w)+    " cy:"+(y0+h-ry) + " r:"+dd, fillColor: 0xFF0000ff, parent: bg} );
+//        scene.create( { t: "path", d:"circle cx:"+(x0+w)+    " cy:"+(y0+h)    + " r:"+dd, fillColor: 0xFF0000ff, parent: bg} );
+//        scene.create( { t: "path", d:"circle cx:"+(x0+w-rx)+ " cy:"+(y0+h)    + " r:"+dd, fillColor: 0xFF0000ff, parent: bg} );
+//        
+//        scene.create( { t: "path", d:"circle cx:"+(x0+rx)+   " cy:"+(y0+h)    + " r:"+dd, fillColor: 0xFF0000ff, parent: bg} );
+//        scene.create( { t: "path", d:"circle cx:"+(x0)+      " cy:"+(y0+h)    + " r:"+dd, fillColor: 0xFF0000ff, parent: bg} );
+//        scene.create( { t: "path", d:"circle cx:"+(x0)+      " cy:"+(y0+h-ry) + " r:"+dd, fillColor: 0xFF0000ff, parent: bg} );
+    }
+                  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //    ARC: absolute
+    //
+    //    Example from: ARC section >>  https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
+    //
+    if(show_ARC1)
+    {
+      var arc1 = scene.create({t:"object", parent: bg, x:300, y:100, a: 1.0 });
+                
+      scene.create( { t: "path", d:"M10 315 L 315 10", strokeColor: 0xFF0000ff, strokeWidth: 3,  parent: arc1} );
+      scene.create( { t: "path", d:"M10 315 "
+                                  +"L 110 215 "
+                                  +"A 30 50 0 0 1 162.55 162.45 "
+                                  +"L 172.55 152.45 "
+                                  +"A 30 50 -45 0 1 215.1 109.9 "
+                                  +"L 315 10Z",strokeWidth: 2, strokeColor: 0x000000ff, fillColor: 0x00FF0080,  parent: arc1} );
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //    ARC: relative
+    //
+    //    Example from: ARC section >>  https://www.w3.org/TR/SVG/paths.html#PathDataEllipticalArcCommands
+    //
+    if(show_ARC2)
+    {
+      scene.create( { t: "path", d:"M600 350 l 50 -25 "
+                                  +"a25 25  -30 0 1 50 -25 l 50 -25 "
+                                  +"a25 50  -30 0 1 50 -25 l 50 -25 "
+                                  +"a25 75  -30 0 1 50 -25 l 50 -25 "
+                                  +"a25 100 -30 0 1 50 -25 l 50 -25Z",
+                   fillColor: 0x00000000, strokeColor: 0xFF0000ff, strokeWidth: "5",  parent: bg } );
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //    ARC SWEEP - 4 possible values
+    //
+    //    Example from: ARC section >>  https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
+    //
+    if(show_SWEEP)
+    {
+      var obj = scene.create({t:"object", parent: bg, x:600, y:300, a: 1.0 });
+
+      scene.create( { t: "path", d: "M80 80 "
+                                   +"A 45 45  0  0  0  125 125 "
+                                   +"L 125 80 Z",
+                   fillColor: 0x00FF00ff, strokeColor: 0x000000ff, strokeWidth: 1,  parent: obj } );
+
+      scene.create( { t: "path", d: "M230 80 "
+                                   +"A 45 45  0  1  0  275 125 "
+                                   +"L 275 80 Z",
+                   fillColor: 0xFF0000ff, strokeColor: 0x000000ff, strokeWidth: 1,  parent: obj } );
+
+      scene.create( { t: "path", d: "M80 230 "
+                                   +"A 45 45  0  0  1  125 275 "
+                                   +"L 125 230 Z",
+                   fillColor: 0xFF00FFff, strokeColor: 0x000000ff, strokeWidth: 1,  parent: obj } );
+
+      scene.create( { t: "path", d: "M230 230 "
+                                   +"A 45 45  0  1  1  275 275 "
+                                   +"L 275 230 Z",
+                   fillColor: 0x0000FFff, strokeColor: 0x000000ff, strokeWidth: 1,  parent: obj } );
+    }
+                  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //    Curves
+    //
+    // These curves should overlap, Black Below, Red Above
+    //
+    if(show_CURVES)
+    {
+      var curves = scene.create({t:"object", parent: bg, x:50, y:50, a: 1.0 });
+                
+      scene.create( { id: "CurveBG", t: "path", d:"M100 180 q50 10, 95 80",     strokeColor: 0x000000ff, strokeWidth: 13, parent: curves} );
+      scene.create( { id: "CurveFG", t: "path", d:"M100 180 Q150 190, 195 260", strokeColor: 0xFF0000ff, strokeWidth: 3,  parent: curves} );
+    }
+});
+
 //##################################################################################################################################
  
   bg.on("onMouseUp", function(e)
@@ -163,9 +262,11 @@ px.import({ scene:      'px:scene.1.js',
 //        var shape = scene.create( { id: "Path ("+e.x+","+e.y+")",  t: "path", d:"M" +(e.x-50)+ " " +(e.y-50)+ " l100 0 0 100 -100 0 0 -100", interactive: false,
 //                                  w: 100, h: 100, fillColor: 0x00FF0088, strokeColor: 0x000000ff, strokeWidth: ss, parent: bg, cx: 50, cy: 50} );
         
-      var shape = scene.create( { id: "Path - triangle ("+e.x+","+e.y+")",  t: "path", d:"M50 0 L100 100  0 100  50 0", interactive: false,
+      var shape = scene.create( { id: "Path - triangle ("+(e.x-50)+","+(e.y-50)+")",  t: "path", d:"M50 0 L100 100  0 100  50 0", interactive: false,
                              x: e.x-50, y: e.y-50, fillColor: 0xFF000088, strokeColor: 0x000000ff, strokeWidth: 6, parent: bg, cx: 50, cy: 50} );
 
+        console.log("Click >>  " + shape.id );
+        
 //        var shape = scene.create( { t: "path", d:"circle cx:150 cy:140 r:50", x: e.x-50, y: e.y-50,cx: 50, cy: 50, strokeColor: 0x000000ff, strokeWidth: 4,  fillColor: 0x00FF00ff,  parent: bg} );
         
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -178,6 +279,8 @@ px.import({ scene:      'px:scene.1.js',
           (
               function(o)
               {
+           MM.r = 0;
+                MM.animateTo({ r: 360 }, 1.75, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_FASTFORWARD, 1);
                 o.animateTo({ r: 360 }, 1.75, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_FASTFORWARD, 1);
                // var px = o.x + 100;
                // o.animateTo({ x: px }, 10.75, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_FASTFORWARD, 1);

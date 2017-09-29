@@ -33,6 +33,89 @@
      <!-- <path d="M100 180 C -4.54 9.78 128.40 117.14 117.38 124.48" stroke-width="3"  stroke="black" fill="transparent"/> -->
 
 
+
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//   LETTER "M" in a mega-PATH
+//
+//
+-->
+<path d="M 68.8 49 
+         V 21.9 
+         c 0 -8.3 -2.8 -11.5 -8.2 -11.5 
+         c -6.6 0 -9.3 4.7 -9.3 11.4 
+         v 16.8 
+         h 6.4 
+         V 49 
+         H 37.6 
+         V 21.9 
+         c 0 -8.3 -2.8 -11.5 -8.2 -11.5 
+         c -6.6 0 -9.3 4.7 -9.3 11.4 
+         v 16.8 
+         h 9.2 
+         V 49 
+         H 0 
+         V 38.7 
+         h 6.4 
+         V 11.4 
+         H 0.1 
+         V 1 
+         h 20 
+         v 7.2 
+         C 23 3.1 28 0 34.7 0 
+         C 41.6 0 48 3.3 50.4 10.3 
+         C 53 3.9 58.5 0 66 0 
+         c 8.6 0 16.5 5.2 16.5 16.6 
+         v 22 
+         h 6.4 
+         V 49 
+         H 68.8 
+         Z"
+transform="translate(100, 50)"
+  stroke="black" stroke-width="4"  fill="green"/>
+
+
+<!--
+<path d="M 68.8 49 
+         V 21.9 
+         c 0 -8.3 -2.8 -11.5 -8.2 -11.5 
+         c -6.6 0 -9.3 4.7 -9.3 11.4 
+         v 16.8
+         h 6.4
+         h 6.4
+         V 49
+         H 37.6
+         V 21.9
+         c 0 -8.3 -2.8 -11.5 -8.2 -11.5
+         c -6.6 0 -9.3 4.7 -9.3 11.4
+         v 16.8
+         h 9.2
+         V 49
+         H 0
+         V 38.7
+         h 6.4
+         V 11.4
+         H 0.1
+         V 1
+         h 20
+         v 7.2
+         C 23 3.1
+         28 0 34.7 0
+         C 41.6 0 48 3.3 50.4 10.3
+         C 53 3.9 58.5 0 66 0
+         c 8.6 0 16.5 5.2 16.5 16.6
+         v 22
+         h 6.4
+         V 49
+         H 68.8
+         Z" transform="translate(100, 50)"
+
+  stroke="black" stroke-width="4"  fill="green"/>
+
+-->
+
 <!--
 $ java ArcToBezier 69.4 17.5 17.3 17.3 0 0 0 67.1 4.6
 C 70.35 13.07 69.53 8.43 67.10 4.60
@@ -104,11 +187,10 @@ C 173  99   191 117  191  140Z" stroke="black" stroke-width="3"  fill="cyan"/>
 -->
 
 
-<path d="M191 140 C 191 163 173 181  150  181" stroke="red" stroke-width="3"  fill="transparent"/>
-
 <!-- ELLIPSE VERIFICATION -->
 
 <ellipse cx="150" cy="260" rx="50" ry="25"  stroke="black" stroke-width="3"  fill="cyan"/>
+<circle  cx="150" cy="160" r="41" ry="25"  stroke="black" stroke-width="3"  fill="yellow"/>
 
 <!-- 1st of TWO curves  -->
 
@@ -144,12 +226,12 @@ C 173  99   191 117  191  140Z" stroke="black" stroke-width="3"  fill="cyan"/>
 <circle fill="#FF0080" cx="200" cy="340" r="3"/>
 -->
 
-
+<!-- 
  <path d="M 200 340 C 200 354 178 365 150 365
                     C 122 365 100 354 100 340
                     C 100 326 122 315 150 315
                     C 178 315 200 326 200 340Z" stroke="black" stroke-width="3"  fill="yellow"/>
-<!-- -->
+-->
 
 <!--
 <path d="M100 315
