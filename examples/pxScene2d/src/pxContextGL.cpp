@@ -961,11 +961,11 @@ public:
     {
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
  
-      int f = mOffscreen.width();
-      
-      glPixelStorei(GL_UNPACK_ROW_LENGTH, mOffscreen.width());
-
-      int32_t off = (mOffscreen.width() * dst_y) + dst_x;
+//      int f = mOffscreen.width();
+//      
+//      glPixelStorei(GL_UNPACK_ROW_LENGTH, mOffscreen.width());
+//
+//      int32_t off = (mOffscreen.width() * dst_y) + dst_x;
       
       // Upload (CRAWL) entire RENTER offscreen to TEXTURE on GPU
 //      glTexSubImage2D(GL_TEXTURE_2D, 0, dst_x, dst_y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid *) ( (char *) mOffscreen.base() + off));
@@ -2394,7 +2394,7 @@ void pxContext::drawOffscreen(float src_x, float src_y,
 //  drawImage(dst_x, dst_y, w, h, texture, nullMask, true, clear,
 //            pxConstantsStretch::NONE, pxConstantsStretch::NONE);
   
-#if 1
+#if 0
 #ifdef PX_PLATFORM_MAC
   
   extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);

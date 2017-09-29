@@ -124,8 +124,8 @@ void pxPath::draw()
 
     canvasRef.send("drawPath", this);                // draw PATH to CANVAS // TODO: This may be slow
 
-//    context.drawOffscreen(0,0, 0,0, 1280, 720, /* o.width(), o.height(),*/ o);  // draw CANVAS to CONTEXT
-    context.drawOffscreen(0,0, this->x(), this->y(), this->w(), this->h(), o);
+    context.drawOffscreen(0,0, 0,0, 1280, 720, /* o.width(), o.height(),*/ o);  // draw CANVAS to CONTEXT
+//    context.drawOffscreen(0,0, this->x(), this->y(), this->w(), this->h(), o);
 
 //    context.drawOffscreen(0,0, 0,0, this->w(), this->h(), o);
 

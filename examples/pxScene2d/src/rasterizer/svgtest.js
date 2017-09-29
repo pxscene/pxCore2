@@ -15,11 +15,11 @@ px.import({ scene:      'px:scene.1.js',
   bg.ready.then(
   function(o)
   {
-    var show_LetterM = false;
+    var show_LetterM = true;
     var show_Cross   = false;
     var show_Circle  = false;
     var show_Ellipse = false;
-    var show_RRect   = true;
+    var show_RRect   = false;
     var show_ARC1    = false;
     var show_ARC2    = false;
     var show_SWEEP   = false;
