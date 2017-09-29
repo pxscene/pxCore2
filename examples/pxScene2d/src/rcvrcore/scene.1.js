@@ -68,7 +68,7 @@ function Scene() {
           .replace(/-/g," -")
           .replace(/ +/g," ");
           
-           console.log(" >>> Found RECT: [" + params.d + "] ");
+           // console.log(" >>> Found RECT: [" + params.d + "] ");
         }
         else
         if(params.d.match(/circle/i) )
