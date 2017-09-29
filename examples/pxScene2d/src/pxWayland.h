@@ -72,6 +72,11 @@ public:
     mContainer = l;
   }
   
+  virtual void RT_STDCALL onCloseRequest()
+  {
+    rtLogInfo("pxWayland::onCloseRequest()");
+  }
+
   void setEvents( pxWaylandEvents *events )
   {
      mEvents= events;
