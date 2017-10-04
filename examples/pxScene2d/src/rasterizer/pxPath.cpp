@@ -739,7 +739,7 @@ void pxPath::pushOpcode(uint8_t op)
 
 void pxPath::pushFloat(float f)
 {
-#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB)
+#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB) && !defined(PX_PLATFORM_WIN)
   floatBytes_t fb = {.f = f};
 #else
   // support older toolchain
@@ -784,7 +784,7 @@ float pxPath::getFloatAt(int i)
     return 0;
   }
   
-#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB)
+#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB) && !defined(PX_PLATFORM_WIN)
   floatBytes_t fb = {.bytes =
     {
       opStream[i + 3], opStream[i + 2],
@@ -816,7 +816,7 @@ float pxPath::getFloatAt(const uint8_t *p)
     return 0;
   }
 
-#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB)
+#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB) && !defined(PX_PLATFORM_WIN)
   floatBytes_t fb = {.bytes =
     {
       p[3], p[2], p[1], p[0]
@@ -867,7 +867,7 @@ static point2d_t mapToEllipse(point2d_t xy, point2d_t rxy, a2cReal_t cosphi, a2c
   const a2cReal_t xp = cosphi * xy.x - sinphi * xy.y;
   const a2cReal_t yp = sinphi * xy.x + cosphi * xy.y;
 
-#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB)
+#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB) && !defined(PX_PLATFORM_WIN)
   return point2d_t( { .x = xp + centerx,.y = yp + centery } );
 #else
   // support older toolchain
@@ -903,7 +903,7 @@ static uarc_t approxUnitArc(a2cReal_t ang1, a2cReal_t ang2)
   const a2cReal_t x2 = cos(ang1 + ang2);
   const a2cReal_t y2 = sin(ang1 + ang2);
 
-#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB)
+#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB) && !defined(PX_PLATFORM_WIN)
   return uarc_t( {
     .pt1 = point2d_t( { .x = x1 - y1 * a , .y = y1 + x1 * a } ),
     .pt2 = point2d_t( { .x = x2 + y2 * a , .y = y2 - x2 * a } ),
@@ -999,7 +999,7 @@ static acenter_t getArcCenter( a2cReal_t px,
   if (sweepFlag == 0.0 && ang2 > 0.0) { ang2 -= TAU; }
   if (sweepFlag == 1.0 && ang2 < 0.0) { ang2 += TAU; }
 
-#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB)
+#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB) && !defined(PX_PLATFORM_WIN)
   return acenter_t( { .c    = point2d_t( { .x = centerx,
                                            .y = centery } ),
                       .ang1 = ang1,
@@ -1085,7 +1085,7 @@ static bcurves_t arcToBezier(a2cReal_t px, a2cReal_t py,
     ang1 += ang2;
   }
 
-#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB)
+#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB) && !defined(PX_PLATFORM_WIN)
   const point2d_t rxy = { .x = rx, .y = ry };
 #else
 // support older toolchain
@@ -1104,7 +1104,7 @@ static bcurves_t arcToBezier(a2cReal_t px, a2cReal_t py,
     point2d_t xy2 = mapToEllipse(curve.pt2, rxy, cosphi, sinphi, center.c.x, center.c.y);
     point2d_t xy  = mapToEllipse(curve.pt3, rxy, cosphi, sinphi, center.c.x, center.c.y);
 
-#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB)
+#if !defined(PX_PLATFORM_DFB_NON_X11) && !defined(PX_PLATFORM_GENERIC_DFB) && !defined(PX_PLATFORM_WIN)
     bcurves.push_back( bcurve_t( {
                                   .xy1 = xy1,
                                   .xy2 = xy2,
