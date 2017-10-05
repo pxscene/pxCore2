@@ -30,6 +30,7 @@ SRCS_FULL=\
     test_unzip.cpp \
     test_utf8.cpp \
     test_pxWindowUtil.cpp \
+    test_pxWindow.cpp \
     $(SRCS_WAYLAND)
 
 ifneq ($(UNAME_S),Darwin)
