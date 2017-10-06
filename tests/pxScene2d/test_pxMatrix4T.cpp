@@ -1,0 +1,152 @@
+#include <sstream>
+
+#define _USE_MATH_DEFINES
+#include <cmath>
+
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"  // Brings in Google Mock.
+#define private public
+#define protected public
+#include "pxMatrix4T.h"
+
+#define  M_ERR  0.0001
+
+class pxMatrix4Test : public testing::Test
+{
+  public:
+    virtual void SetUp()
+    {
+    }
+
+    virtual void TearDown()
+    {
+    }
+
+    void pxMatrix4TSinCosTest()
+    {
+      {
+        double rads    = M_PI;
+        double sin_val = 0.0;
+        double cos_val = 0.0;
+
+        sincos( rads, &sin_val, &cos_val);
+
+        EXPECT_NEAR(  0.0, sin_val, M_ERR);
+        EXPECT_NEAR( -1.0, cos_val, M_ERR);
+      }
+
+      {
+        float rads    = M_PI;
+        float sin_val = 0.0f;
+        float cos_val = 0.0f;
+
+        sincosf( rads, &sin_val, &cos_val);
+
+        EXPECT_NEAR(   0.0f, sin_val, M_ERR);
+        EXPECT_NEAR(  -1.0f, cos_val, M_ERR);
+      }
+    }
+
+    void pxMatrix4TVector4Test()
+    {
+       pxVector4f vec4(1,2,3,4);
+
+       EXPECT_NEAR( 1.0f, vec4.x(), M_ERR );
+       EXPECT_NEAR( 2.0f, vec4.y(), M_ERR );
+       EXPECT_NEAR( 3.0f, vec4.z(), M_ERR );
+       EXPECT_NEAR( 4.0f, vec4.w(), M_ERR );
+
+       vec4.setX( 4 );
+       vec4.setY( 3 );
+       vec4.setZ( 2 );
+       vec4.setW( 1 );
+
+       EXPECT_NEAR( 4.0f, vec4.x(), M_ERR );
+       EXPECT_NEAR( 3.0f, vec4.y(), M_ERR );
+       EXPECT_NEAR( 2.0f, vec4.z(), M_ERR );
+       EXPECT_NEAR( 1.0f, vec4.w(), M_ERR );
+    }
+
+    void pxMatrix4TidentityTest()
+    {
+      pxMatrix4f m;
+
+      float *vals = m.data();
+      float ans[] = { 1,0,0,0 };
+
+//      m.dump("pxMatrix4TidentityTest() m ");
+
+      for(int i = 0; i < 4; i+=4)
+      {
+        EXPECT_EQ( (int) ans[0], (int) vals[0] );
+        EXPECT_EQ( (int) ans[1], (int) vals[1] );
+        EXPECT_EQ( (int) ans[2], (int) vals[2] );
+        EXPECT_EQ( (int) ans[3], (int) vals[3] );
+
+        ans[0] = ans[1] = ans[2] = ans[3] = 0.0f;
+        ans[ (int) (i/4) ] = 1.0f;
+
+        // if(i%4==0) printf("\n   ans[%02d]:  %f  %f  %f  %f  ", i,  ans[0  ],  ans[1  ],  ans[2  ],  ans[3  ]);
+        // if(i%4==0) printf("\n  vals[%02d]:  %f  %f  %f  %f  ", i, vals[0+i], vals[1+i], vals[2+i], vals[3+i]);
+
+        vals+=4;
+      }
+    }
+
+    void pxMatrix4TcopyTest()
+    {
+      pxMatrix4f m1;
+
+      m1.translate(10,5);
+
+      pxMatrix4f m2(m1);
+
+      const float *vals1 = m1.data();
+      const float *vals2 = m2.data();
+
+      for(int i = 0; i < 16; i++)
+      {
+        EXPECT_NEAR( vals1[i], vals2[i], M_ERR );
+      }
+    }
+
+    void pxMatrix4TtranslateTest()
+    {
+      pxMatrix4f m;
+      m.translate(10.0f, 5.0f);
+
+      EXPECT_TRUE( m.isTranslatedOnly() );
+
+      EXPECT_EQ(  m.translateX(), 10.0f );
+      EXPECT_EQ(  m.translateY(),  5.0f );
+ 
+      EXPECT_EQ(  m.constData(12), 10.0f );
+      EXPECT_EQ(  m.constData(13),  5.0f );
+    }
+
+
+    void pxMatrix4TscaleTest()
+    {
+      pxMatrix4f m;
+//m.multiply(10,5);
+    }
+
+    void pxMatrix4Tmultiply1Test()
+    {
+      pxMatrix4f m;
+//m.multiply(10,5);
+    }
+
+};
+
+
+TEST_F(pxMatrix4Test, pxMatrix4CompleteTest)
+{
+    pxMatrix4TSinCosTest();
+    pxMatrix4TVector4Test();
+    pxMatrix4TidentityTest();
+    pxMatrix4TcopyTest();
+    pxMatrix4TtranslateTest();
+
+}
+

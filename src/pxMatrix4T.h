@@ -337,14 +337,14 @@ void multiply(FloatT* m, FloatT* n)
   {
     FloatT *m = mValues;
     
-    return m[3];
+    return m[12];
   }
   
   FloatT translateY()
   {
     FloatT *m = mValues;
     
-    return m[7];
+    return m[13];
   }
 
   
