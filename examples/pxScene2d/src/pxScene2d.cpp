@@ -167,7 +167,7 @@ void populateWaylandAppsConfig()
   if (!result)
   {
     rapidjson::ParseErrorCode e = doc.GetParseError();
-    rtLogInfo("Wayland config read error : [JSON parse error while reading waylandregistry.conf: %s (%ld)]\n",rapidjson::GetParseError_En(e), result.Offset());
+    rtLogInfo("Wayland config read error : [JSON parse error while reading waylandregistry.conf: %s (%zu)]\n",rapidjson::GetParseError_En(e), result.Offset());
     fclose(fp);
     return;
   }
