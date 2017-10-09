@@ -25,7 +25,7 @@ class pxMatrix4Test : public testing::Test
     void pxMatrix4TSinCosTest()
     {
       {
-        double rads    = M_PI;
+        double rads    = (double) M_PI;
         double sin_val = 0.0;
         double cos_val = 0.0;
 
