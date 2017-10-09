@@ -137,6 +137,12 @@ void pxWayland::createDisplay(rtString displayName)
          error= true;
          goto exit;
       }
+
+      if ( !WstCompositorSetDecoderHandleCallback( mWCtx, decoderHandleCallback, this ) )
+      {
+         error= true;
+         goto exit;
+      }
       
       if ( !WstCompositorSetHidePointerCallback( mWCtx, hidePointer, this ) )
       {
@@ -450,6 +456,14 @@ void pxWayland::handleInvalidate()
    }
 }
 
+void pxWayland::setDecoderHandle(void* handle)
+{
+    if ( mEvents )
+    {
+        mEvents->decoderHandle(handle);
+    }
+}
+
 void pxWayland::handleHidePointer( bool hide )
 {
    if ( mEvents )
@@ -602,6 +616,13 @@ void pxWayland::invalidate( WstCompositor *wctx, void *userData )
    
    pxWayland *pxw= (pxWayland*)userData;
    pxw->handleInvalidate();
+}
+
+void pxWayland::decoderHandleCallback( WstCompositor *wctx, void *userData, void* decodeHandle)
+{
+   (void)wctx;
+   pxWayland *pxw= (pxWayland*)userData;
+   pxw->setDecoderHandle(decodeHandle);
 }
 
 void pxWayland::hidePointer( WstCompositor *wctx, bool hide, void *userData )
