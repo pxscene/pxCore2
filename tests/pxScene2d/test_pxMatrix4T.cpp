@@ -22,29 +22,28 @@ class pxMatrix4Test : public testing::Test
     {
     }
 
-    void pxMatrix4TSinCosTest()
+    void pxMatrix4TSinCosTestD()
     {
-      {
-        double rads    = (double) M_PI;
-        double sin_val = 0.0;
-        double cos_val = 0.0;
+      double rads    = (double) M_PI;
+      double sin_val = 0.0;
+      double cos_val = 0.0;
 
-        sincos( rads, &sin_val, &cos_val);
+      sincos( rads, &sin_val, &cos_val);
 
-        EXPECT_NEAR(  0.0, sin_val, M_ERR);
-        EXPECT_NEAR( -1.0, cos_val, M_ERR);
-      }
+      EXPECT_NEAR(  0.0, sin_val, M_ERR);
+      EXPECT_NEAR( -1.0, cos_val, M_ERR);
+    }
 
-      {
-        float rads    = M_PI;
-        float sin_val = 0.0f;
-        float cos_val = 0.0f;
+    void pxMatrix4TSinCosTestF()
+    {
+      float rads    = M_PI;
+      float sin_val = 0.0f;
+      float cos_val = 0.0f;
 
-        sincosf( rads, &sin_val, &cos_val);
+      sincosf( rads, &sin_val, &cos_val);
 
-        EXPECT_NEAR(   0.0f, sin_val, M_ERR);
-        EXPECT_NEAR(  -1.0f, cos_val, M_ERR);
-      }
+      EXPECT_NEAR(   0.0f, sin_val, M_ERR);
+      EXPECT_NEAR(  -1.0f, cos_val, M_ERR);
     }
 
     void pxMatrix4TVector4Test()
@@ -262,7 +261,8 @@ class pxMatrix4Test : public testing::Test
 
 TEST_F(pxMatrix4Test, pxMatrix4CompleteTest)
 {
-    pxMatrix4TSinCosTest();
+    pxMatrix4TSinCosTestD();
+    pxMatrix4TSinCosTestF();
     pxMatrix4TVector4Test();
     pxMatrix4TidentityTest();
     pxMatrix4TisIdentityTest();
