@@ -973,8 +973,9 @@ public:
       
       glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1280,720, GL_RGBA, GL_UNSIGNED_BYTE, mOffscreen.base());
       
-
-      glPixelStorei(GL_UNPACK_ROW_LENGTH,0); //default
+#ifndef PX_PLATFORM_WAYLAND_EGL
+      //glPixelStorei(GL_UNPACK_ROW_LENGTH,0); //default
+#endif //PX_PLATFORM_WAYLAND_EGL
 
 //      glBindTexture(GL_TEXTURE_2D, GL_NONE); // unbind
     }
