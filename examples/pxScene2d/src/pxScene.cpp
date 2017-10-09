@@ -73,6 +73,14 @@ using namespace std;
 #include <client/windows/handler/exception_handler.h>
 #endif
 
+#ifdef PX_SERVICE_MANAGER
+#include "smqtrtshim.h"
+#include "rtservicemanager.h"
+#include "service.h"
+#include "servicemanager.h"
+#include "applicationmanagerservice.h"
+#endif //PX_SERVICE_MANAGER
+
 #ifndef RUNINMAIN
 class AsyncScriptInfo;
 vector<AsyncScriptInfo*> scriptsInfo;
@@ -578,6 +586,15 @@ if (s && (strcmp(s,"1") == 0))
   win_sparkle_init(); 
 
 #endif
+
+#ifdef PX_SERVICE_MANAGER
+  SMQtRtShim::installDefaultCallback();
+  RtServiceManager::start();
+
+  ServiceStruct serviceStruct = { ApplicationManagerService::SERVICE_NAME, createApplicationManagerService };
+  ServiceManager::getInstance()->registerService(ApplicationManagerService::SERVICE_NAME, serviceStruct);
+
+#endif //PX_SERVICE_MANAGER
 
   eventLoop.run();
 
