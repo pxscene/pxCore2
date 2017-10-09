@@ -4,8 +4,7 @@
 #define protected public
 #include "pxTexture.h"
 
-
-#include "test_includes.h"
+#include "test_includes.h" // Needs to be included last
 
 class pxTextureExample :public pxTexture
 {

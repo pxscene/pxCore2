@@ -3,13 +3,13 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"  // Brings in Google Mock.
 #define private public
 #define protected public
 #include "pxMatrix4T.h"
 
 #define  M_ERR  0.0001
+
+#include "test_includes.h" // Needs to be included last
 
 class pxMatrix4Test : public testing::Test
 {
@@ -93,6 +93,19 @@ class pxMatrix4Test : public testing::Test
       }
     }
 
+    void pxMatrix4TisIdentityTest()
+    {
+      pxMatrix4f m;
+
+      m.identity();
+
+      EXPECT_TRUE( m.isIdentity() );
+
+      m.translate(10.0f, 5.0f);
+
+      EXPECT_FALSE( m.isIdentity() );
+    }
+
     void pxMatrix4TcopyTest()
     {
       pxMatrix4f m1;
@@ -113,28 +126,116 @@ class pxMatrix4Test : public testing::Test
     void pxMatrix4TtranslateTest()
     {
       pxMatrix4f m;
+
+      m.identity();
       m.translate(10.0f, 5.0f);
 
       EXPECT_TRUE( m.isTranslatedOnly() );
 
       EXPECT_EQ(  m.translateX(), 10.0f );
       EXPECT_EQ(  m.translateY(),  5.0f );
- 
+
       EXPECT_EQ(  m.constData(12), 10.0f );
       EXPECT_EQ(  m.constData(13),  5.0f );
+
+      m.translate(10.0f, 5.0f, 0.0);
+
+      EXPECT_EQ(  m.translateX(), 20.0f );
+      EXPECT_EQ(  m.translateY(), 10.0f );
     }
 
 
-    void pxMatrix4TscaleTest()
+    void pxMatrix4Tscale2dTest()
     {
       pxMatrix4f m;
-//m.multiply(10,5);
+
+      m.identity();
+      m.scale(0.5f, 0.5f);
+
+      float *vals = m.data();
+
+      EXPECT_EQ(  0.5f, vals[0]  );
+      EXPECT_EQ(  0.5f, vals[5]  );
     }
 
-    void pxMatrix4Tmultiply1Test()
+    void pxMatrix4Tscale3dTest()
     {
       pxMatrix4f m;
-//m.multiply(10,5);
+
+      m.identity();
+      m.scale(0.5f, 0.5f, 0.5f);
+
+      float *vals = m.data();
+
+      EXPECT_EQ( 0.5f, vals[0]  );
+      EXPECT_EQ( 0.5f, vals[5]  );
+      EXPECT_EQ( 0.5f, vals[10] );
+    }
+
+    void pxMatrix4TmultiplyTest()
+    {
+      pxMatrix4f m;
+      pxVector4f v(1,2,3,4);
+
+      m.identity();
+
+      pxVector4f ans = m.multiply(v);
+
+      EXPECT_EQ(  ans.mX, 1.0f );
+      EXPECT_EQ(  ans.mY, 2.0f );
+      EXPECT_EQ(  ans.mZ, 3.0f );
+    }
+
+
+    void pxMatrix4Trotate1Test()
+    {
+      pxMatrix4f m;
+
+      m.identity();
+
+      m.rotateInDegrees(45);
+
+      float *vals = m.data();
+      float ans45 = 0.70710676908493042;
+
+      EXPECT_NEAR( ans45,  vals[0], M_ERR );
+      EXPECT_NEAR( ans45,  vals[1], M_ERR );
+      EXPECT_NEAR( ans45, -vals[4], M_ERR );
+      EXPECT_NEAR( ans45,  vals[5], M_ERR );
+    }
+
+    void pxMatrix4Trotate2Test()
+    {
+      pxMatrix4f m;
+
+      m.identity();
+
+      m.rotateInRadians(M_PI/4);
+
+      float ans45 = 0.70710676908493042;
+
+      EXPECT_NEAR( ans45,  m.constData(0), M_ERR );
+      EXPECT_NEAR( ans45,  m.constData(1), M_ERR );
+      EXPECT_NEAR( ans45, -m.constData(4), M_ERR );
+      EXPECT_NEAR( ans45,  m.constData(5), M_ERR );
+    }
+
+    void pxMatrix4TtransposeTest()
+    {
+      pxMatrix4f m;
+
+      m.identity();
+      m.translate(10.0f, 5.0f, 2.0f);
+
+      EXPECT_EQ(  m.constData(0), 10.0f );
+      EXPECT_EQ(  m.constData(1),  5.0f );
+      EXPECT_EQ(  m.constData(2),  2.0f );
+
+      m.transpose();
+
+      EXPECT_EQ(  m.constData(12), 10.0f );
+      EXPECT_EQ(  m.constData(13),  5.0f );
+      EXPECT_EQ(  m.constData(15),  2.0f );
     }
 
 };
@@ -145,8 +246,15 @@ TEST_F(pxMatrix4Test, pxMatrix4CompleteTest)
     pxMatrix4TSinCosTest();
     pxMatrix4TVector4Test();
     pxMatrix4TidentityTest();
+    pxMatrix4TisIdentityTest();
     pxMatrix4TcopyTest();
     pxMatrix4TtranslateTest();
+    pxMatrix4Tscale2dTest();
+    pxMatrix4Tscale3dTest();
+    pxMatrix4TmultiplyTest();
+    pxMatrix4Trotate1Test();
+    pxMatrix4Trotate2Test();
+    pxMatrix4TtransposeTest();
 
 }
 
