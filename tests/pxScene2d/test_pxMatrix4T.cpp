@@ -74,6 +74,8 @@ class pxMatrix4Test : public testing::Test
       float *vals = m.data();
       float ans[] = { 1,0,0,0 };
 
+      EXPECT_TRUE( vals != NULL );
+
 //      m.dump("pxMatrix4TidentityTest() m ");
 
       for(int i = 0; i < 4; i+=4)
@@ -225,19 +227,36 @@ class pxMatrix4Test : public testing::Test
       pxMatrix4f m;
 
       m.identity();
+
       m.translate(10.0f, 5.0f, 2.0f);
-
-      EXPECT_EQ(  m.constData(0), 10.0f );
-      EXPECT_EQ(  m.constData(1),  5.0f );
-      EXPECT_EQ(  m.constData(2),  2.0f );
-
-      m.transpose();
 
       EXPECT_EQ(  m.constData(12), 10.0f );
       EXPECT_EQ(  m.constData(13),  5.0f );
-      EXPECT_EQ(  m.constData(15),  2.0f );
+      EXPECT_EQ(  m.constData(14),  2.0f );
+
+      m.transpose();
+
+      EXPECT_EQ(  m.constData(3),  10.0f );
+      EXPECT_EQ(  m.constData(7),   5.0f );
+      EXPECT_EQ(  m.constData(11),  2.0f );
     }
 
+
+    void pxMatrix4TinvertTest()
+    {
+      pxMatrix4f m;
+
+      m.identity();
+      m.translate(10.0f, 5.0f, 2.0f);
+
+      pxMatrix4f inv(m);
+      inv.invert();
+
+      // Identity = Matrix * Inverse;
+      m.multiply(inv);
+
+      EXPECT_TRUE(  m.isIdentity() );
+    }
 };
 
 
@@ -255,6 +274,6 @@ TEST_F(pxMatrix4Test, pxMatrix4CompleteTest)
     pxMatrix4Trotate1Test();
     pxMatrix4Trotate2Test();
     pxMatrix4TtransposeTest();
-
+    pxMatrix4TinvertTest();
 }
 
