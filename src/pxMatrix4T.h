@@ -255,10 +255,10 @@ void multiply(FloatT* m, FloatT* n)
   }
 
   void scale(FloatT sx, FloatT sy) 
-  {   
+  {
     FloatT *out = mValues;
     FloatT *a = mValues;
-    
+
     out[0] = a[0] * sx;
     out[1] = a[1] * sx;
     out[2] = a[2] * sx;
@@ -270,10 +270,10 @@ void multiply(FloatT* m, FloatT* n)
   }
 
   void scale(FloatT sx, FloatT sy, FloatT sz) 
-  {  
+  {
     FloatT *out = mValues;
     FloatT *a = mValues;
-    
+
     out[0] = a[0] * sx;
     out[1] = a[1] * sx;
     out[2] = a[2] * sx;
@@ -282,7 +282,7 @@ void multiply(FloatT* m, FloatT* n)
     out[5] = a[5] * sy;
     out[6] = a[6] * sy;
     out[7] = a[7] * sy;
-    
+
     if (sz != 1.0)
     {
       out[8] = a[8] * sz;
