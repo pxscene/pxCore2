@@ -27,6 +27,7 @@ SRCS_FULL=\
     test_rtString.cpp \
     test_rtValue.cpp \
     test_pxImage.cpp \
+    test_pxMatrix4T.cpp \
     test_unzip.cpp \
     test_utf8.cpp \
     test_pxWindowUtil.cpp \

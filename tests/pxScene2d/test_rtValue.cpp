@@ -205,7 +205,7 @@ class rtValueTest : public testing::Test
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         // These should ALL be Non-EMPTY now...
-        rtError err = RT_OK;
+        // rtError err = RT_OK;
 
             bool   bv;     boolVal.getBool(   bv   );   EXPECT_TRUE(   bv == true);
           int8_t  i8v;     int8Val.getInt8(   i8v  );   EXPECT_TRUE(  i8v == 8);
@@ -275,7 +275,7 @@ class rtValueTest : public testing::Test
           int8Val.getInt8( i8v );   EXPECT_TRUE( i8v == 8    );  // ##
          uint8Val.getInt8( i8v );   EXPECT_TRUE( i8v == 88   );
          int32Val.getInt8( i8v );   EXPECT_TRUE( i8v == 32   );
-        uint32Val.getInt8( i8v );   EXPECT_TRUE( i8v == 0xFFFFFFA0 );  // 3232 truncated to  (int8_t)
+        uint32Val.getInt8( i8v );   EXPECT_TRUE( i8v == (int8_t) 0xFFFFFFA0 );  // 3232 truncated to  (int8_t)
          int64Val.getInt8( i8v );   EXPECT_TRUE( i8v == 64   );
         uint64Val.getInt8( i8v );   EXPECT_TRUE( i8v == 0x40 ); // 6464 truncated to  (int8_t)
          floatVal.getInt8( i8v );   EXPECT_TRUE( i8v == 3    );
@@ -301,7 +301,7 @@ class rtValueTest : public testing::Test
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         // These should ALL be Non-EMPTY now...
-        rtError err = RT_OK;
+        //rtError err = RT_OK;
 
         uint8_t  u8v;
          

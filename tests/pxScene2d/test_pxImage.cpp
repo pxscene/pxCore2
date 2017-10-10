@@ -1,7 +1,5 @@
 #include <sstream>
 
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"  // Brings in Google Mock.
 #define private public
 #define protected public
 #include "rtString.h"
@@ -12,6 +10,8 @@
 #include <string.h>
 #include <sstream>
 
+#include "test_includes.h" // Needs to be included last
+
 #define IMAGE_URL "https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg"
 #define IMAGE_WIDTH 246
 #define IMAGE_HEIGHT 164
@@ -21,7 +21,7 @@ class MockImageResource : public rtImageResource {
 
  public:
 
-    MockImageResource(const char* url = 0) { setUrl(IMAGE_URL); }
+    MockImageResource(const char* url = 0) { setUrl(IMAGE_URL); UNUSED_PARAM(url); }
 
     rtError w(int32_t& v) const { v = IMAGE_WIDTH; return RT_OK;}
     rtError h(int32_t& v) const { v = IMAGE_HEIGHT; return RT_OK; }

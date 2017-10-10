@@ -1,11 +1,12 @@
 #include <sstream>
 
-#include "gtest/gtest.h"
+// #include "gtest/gtest.h"
 #define private public
 #define protected public
 #include "pxCore.h"
 #include "pxOffscreen.h"
 
+#include "test_includes.h" // Needs to be included last
 
 int validateWidth; 
 int validateHeight;
