@@ -2883,7 +2883,7 @@ rtDefineProperty(pxSceneContainer, ready);
 
 rtError pxSceneContainer::setUrl(rtString url)
 {
-  rtLogDebug("pxSceneContainer::setUrl(%s)",url.cString());
+  rtLogInfo("pxSceneContainer::setUrl(%s)",url.cString());
   // If old promise is still unfulfilled resolve it
   // and create a new promise for the context of this Url
   mReady.send("resolve", this);
