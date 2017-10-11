@@ -161,7 +161,7 @@ file:///home/username/directory/filename.js
    cd pxCore/
    mkdir temp
    cd temp
-   cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON ..
+   cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DPXSCENE_TEST_HTTP_CACHE=OFF..
    cmake --build . --config Release
    ~~~~
 
