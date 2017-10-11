@@ -88,7 +88,7 @@
     ~~~~
     If you wish to build the unit tests then run
     ~~~~
-    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON ..
+    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DPXSCENE_TEST_HTTP_CACHE=OFF ..
     ~~~~
     For Linux, Mac, and Raspberry Pi run: 
     ~~~~
