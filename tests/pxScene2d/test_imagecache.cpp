@@ -556,6 +556,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
    void dataPresentAfterHeadersRevalidationTest()
    {
+     printf("dataPresentAfterHeadersRevalidationTest\n");
      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\nCache-Control: public no-cache=Expires\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/test.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -568,13 +569,16 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      bool sysret = system("cp test.jpeg /var/www/.");
      sysret = system("rm test.jpeg");
      rtData contents;
-     data.data(contents);
-     EXPECT_TRUE ( strcmp(cacheData,(const char*)contents.data()) == 0);
+     if( RT_OK == data.data(contents)) {
+      EXPECT_TRUE ( strcmp(cacheData,(const char*)contents.data()) == 0);
+     }
+     else EXPECT_TRUE(false);
      sysret = system("rm -rf /var/www/test.jpeg");
    }
 
    void dataPresentAfterFullRevalidationTest()
    {
+     printf("dataPresentAfterFullRevalidationTest\n");
      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-cache\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/test1.jpeg",cacheHeader,cacheData,strlen(cacheData));
@@ -587,13 +591,16 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      bool sysret = system("cp test1.jpeg /var/www/.");
      sysret = system("rm test1.jpeg");
      rtData contents;
-     data.data(contents);
-     EXPECT_TRUE ( strcmp(cacheData,(const char*)contents.data()) == 0);
+     if( RT_OK == data.data(contents)) {
+      EXPECT_TRUE ( strcmp(cacheData,(const char*)contents.data()) == 0);
+     }
+     else EXPECT_TRUE(false);
      sysret = system("rm -rf /var/www/test1.jpeg");
    }
 
    void dataUpdatedAfterFullRevalidationTest()
    {
+     printf("dataUpdatedAfterFullRevalidationTest\n");
      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-cache\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/testRevalidationUpdate",cacheHeader,cacheData,strlen(cacheData));
@@ -606,14 +613,17 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      rtHttpCacheData data("http://localhost/testRevalidationUpdate");
      rtFileCache::instance()->httpCacheData("http://localhost/testRevalidationUpdate",data);
      rtData contents;
-     data.data(contents);
-     rtData& storedData = data.contentsData();
-     EXPECT_TRUE ( strcmp("data updated",(const char*)storedData.data()) == 0);
+     if( RT_OK == data.data(contents)) {
+       rtData& storedData = data.contentsData();
+       EXPECT_TRUE ( strcmp("data updated",(const char*)storedData.data()) == 0);
+     }
+     else EXPECT_TRUE(false);
      sysret = system("rm -rf /var/www/testRevalidationUpdate");
    }
 
    void dataNotUpdatedAfterFullRevalidationTest()
    {
+     printf("dataNotUpdatedAfterFullRevalidationTest\n");
      const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2015 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2015 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: no-cache\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/testRevalidationUpdateFailed",cacheHeader,cacheData,strlen(cacheData));
@@ -625,6 +635,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void dataUpdatedAfterEtagTest()
     {
+       printf("dataUpdatedAfterEtagTest\n");
       const char* cacheHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nETag: \"fb4-53e51895552f0\"\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: public\nExpires: Mon, 10 Oct 2017 21:22:50 GMT\nContent-Type: image/jpeg\n\0";
      const char* cacheData = "abcde";
      addDataToCache("http://localhost/testEtag",cacheHeader,cacheData,strlen(cacheData));
@@ -636,9 +647,11 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      rtHttpCacheData data("http://localhost/testEtag");
      rtFileCache::instance()->httpCacheData("http://localhost/testEtag",data);
      rtData contents;
-     data.data(contents);
-     rtData& storedData = data.contentsData();
-     EXPECT_TRUE ( strcmp("data updated",(const char*)storedData.data()) == 0);
+     if( RT_OK == data.data(contents)) {
+       rtData& storedData = data.contentsData();
+       EXPECT_TRUE ( strcmp("data updated",(const char*)storedData.data()) == 0);
+     }
+     else EXPECT_TRUE(false);
      sysret = system("rm -rf /var/www/testEtag");
     }
 
