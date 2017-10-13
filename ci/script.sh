@@ -34,14 +34,15 @@ fi
 
 retval=0
 ulimit -c unlimited
+export DUMP_STACK_ON_EXCEPTION=1
 cd $TRAVIS_BUILD_DIR/ci
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ;
 then
-  sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "testrunner_$TRAVIS_OS_NAME.sh" "unittests_$TRAVIS_OS_NAME.sh" "code_coverage_$TRAVIS_OS_NAME.sh" "pxleakcheck_$TRAVIS_OS_NAME.sh" "memleakdetector_$TRAVIS_OS_NAME.sh"
+  sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "unittests_$TRAVIS_OS_NAME.sh" "execute_$TRAVIS_OS_NAME.sh" "code_coverage_$TRAVIS_OS_NAME.sh"
 else
   sh build_px.sh "build_$TRAVIS_OS_NAME.sh"
 fi
-checkError $? "Build/unittests/testrunner/pxleakcheck/memleak detection failed" "Either build problem/execution problem" "Analyze corresponding log file"
+checkError $? "Build/unittests/execution failed" "Either build problem/execution problem" "Analyze corresponding log file"
 
 
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;

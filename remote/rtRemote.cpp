@@ -146,6 +146,12 @@ rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj,
 }
 
 rtError
+rtRemoteUnregisterDisconnectedCallback( rtRemoteEnvironment* env, remoteDisconnectedCallback cb, void *cbdata )
+{
+    return env->Server->unregisterDisconnectedCallback( cb, cbdata );
+}
+
+rtError
 rtRemoteRegisterQueueReadyHandler ( rtRemoteEnvironment* env, rtRemoteQueueReady handler, void* argp)
 {
   env->registerQueueReadyHandler(handler, argp);
@@ -240,6 +246,12 @@ rtRemoteLocateObject(char const* id, rtObjectRef& obj, int timeout,
 }
 
 rtError
+rtRemoteUnregisterDisconnectedCallback( remoteDisconnectedCallback cb, void *cbdata )
+{
+    return rtRemoteUnregisterDisconnectedCallback( rtEnvironmentGetGlobal(), cb, cbdata );
+}
+
+rtError
 rtRemoteShutdown()
 {
   return rtRemoteShutdown(rtEnvironmentGetGlobal());
@@ -249,4 +261,28 @@ rtError
 rtRemoteProcessSingleItem()
 {
   return rtRemoteProcessSingleItem(rtEnvironmentGetGlobal());
+}
+
+rtError
+rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow)
+{
+  rtError e = RT_OK;
+
+  bool hasDipatchThread = env->Config->server_use_dispatch_thread();
+  if (hasDipatchThread)
+  {
+    usleep(millisecondsFromNow * 1000);
+    (void ) env;
+  }
+  else
+  {
+    auto endTime = std::chrono::milliseconds(millisecondsFromNow) + std::chrono::system_clock::now();
+    while (endTime > std::chrono::system_clock::now())
+    {
+      e = rtRemoteRun(env, 16);
+      if (e != RT_OK && e != RT_ERROR_QUEUE_EMPTY)
+        return e;
+    }
+  }
+  return e;
 }

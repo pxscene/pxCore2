@@ -69,7 +69,7 @@ public:
   virtual void RT_STDCALL onDraw(/*pxBuffer& b, pxRect* r*/) = 0;
 
   virtual void RT_STDCALL setViewContainer(pxIViewContainer* l) = 0;
-  virtual void RT_STDCALL onCloseRequest() {};
+  virtual void RT_STDCALL onCloseRequest() = 0 ; //{};
 #if 0
   virtual rtError RT_STDCALL setURI(const char* s) = 0;
 #endif

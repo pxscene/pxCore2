@@ -168,15 +168,23 @@ void pxCanvas::newPath()
 
 void pxCanvas::moveTo(double x, double y)
 {
-  mVertices[mVertexCount].x = x;
-  mVertices[mVertexCount].y = y;
+//  mVertices[mVertexCount].x = x;
+//  mVertices[mVertexCount].y = y;
+  
+  mVertices[mVertexCount].setX(x);
+  mVertices[mVertexCount].setY(y);
+  
   mVertexCount++;
 }
 
 void pxCanvas::lineTo(double x, double y)
 {
-  mVertices[mVertexCount].x = x;
-  mVertices[mVertexCount].y = y;
+//  mVertices[mVertexCount].x = x;
+//  mVertices[mVertexCount].y = y;
+  
+  mVertices[mVertexCount].setX(x);
+  mVertices[mVertexCount].setY(y);
+  
   mVertexCount++;
 }
 
@@ -185,8 +193,8 @@ void pxCanvas::curveTo(double x2, double y2, double x3, double y3)
 {
   if (mVertexCount > 0)
   {
-    addCurve2(mVertices[mVertexCount-1].x, mVertices[mVertexCount-1].y,
-              x2, y2, x3, y3);
+//    addCurve2(mVertices[mVertexCount-1].x, mVertices[mVertexCount-1].y,  x2, y2, x3, y3);
+    addCurve2(mVertices[mVertexCount-1].x(), mVertices[mVertexCount-1].y(),  x2, y2, x3, y3);
   }
 }
 
@@ -194,24 +202,24 @@ void pxCanvas::closePath()
 {
 }
 
-void pxCanvas::setMatrix(const pxMatrix& m)
+void pxCanvas::setMatrix(const MATRIX_T& m)
 {
   mMatrix = m;
 	mRasterizer.setMatrix(m);
 }
 
-void pxCanvas::matrix(pxMatrix& m) const 
+void pxCanvas::matrix(MATRIX_T& m) const 
 {
   m = mMatrix;
 }
 
-void pxCanvas::setTextureMatrix(const pxMatrix& m)
+void pxCanvas::setTextureMatrix(const MATRIX_T& m)
 {
   mTextureMatrix = m;
   mRasterizer.setTextureMatrix(m);
 }
 
-void pxCanvas::textureMatrix(pxMatrix& m) const
+void pxCanvas::textureMatrix(MATRIX_T& m) const
 {
   m = mTextureMatrix;
 }
@@ -356,19 +364,32 @@ void pxCanvas::fill(bool time)
         for (i = 0; i < mVertexCount-1; i++)
         {
 #if 1
-          if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
-          if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
-          if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
-          if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
+//          if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
+//          if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
+//          if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
+//          if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
+
+          if (mVertices[i].x() < extentLeft)     extentLeft = mVertices[i].x();
+          if (mVertices[i].x() > extentRight)   extentRight = mVertices[i].x();
+          if (mVertices[i].y() < extentTop)       extentTop = mVertices[i].y();
+          if (mVertices[i].y() > extentBottom) extentBottom = mVertices[i].y();
+          
 #endif
 
-          mRasterizer.addEdge(mVertices[i].x,mVertices[i].y,mVertices[i+1].x, mVertices[i+1].y);
+//          mRasterizer.addEdge(mVertices[i].x,mVertices[i].y,mVertices[i+1].x, mVertices[i+1].y);
+          mRasterizer.addEdge(mVertices[i].x(), mVertices[i].y(), mVertices[i+1].x(), mVertices[i+1].y() );
         }
 #if 1
-        if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
-        if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
-        if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
-        if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
+//        if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
+//        if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
+//        if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
+//        if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
+        
+        if (mVertices[i].x() < extentLeft)     extentLeft = mVertices[i].x();
+        if (mVertices[i].x() > extentRight)   extentRight = mVertices[i].x();
+        if (mVertices[i].y() < extentTop)       extentTop = mVertices[i].y();
+        if (mVertices[i].y() > extentBottom) extentBottom = mVertices[i].y();
+        
 #endif
 #endif
       }
@@ -383,7 +404,8 @@ void pxCanvas::fill(bool time)
 
         while(vp < vlast)
         {
-          mRasterizer.addEdge(vp->x,vp->y,(vp+1)->x, (vp+1)->y);
+//          mRasterizer.addEdge(vp->x,vp->y,(vp+1)->x, (vp+1)->y);
+          mRasterizer.addEdge(vp->x(), vp->y(), (vp+1)->x(), (vp+1)->y() );
           vp++;
         }
 
@@ -397,19 +419,36 @@ void pxCanvas::fill(bool time)
         pxVertex a;
         pxVertex b;
 
-        if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
-        if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
-        if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
-        if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
+//        if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
+//        if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
+//        if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
+//        if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
 
-        mMatrix.multiply(mVertices[i], mMatrix, a);
-        mMatrix.multiply(mVertices[i+1], mMatrix, b);
-        mRasterizer.addEdge(a.x,a.y,b.x, b.y);
+        if (mVertices[i].x() < extentLeft)     extentLeft = mVertices[i].x();
+        if (mVertices[i].x() > extentRight)   extentRight = mVertices[i].x();
+        if (mVertices[i].y() < extentTop)       extentTop = mVertices[i].y();
+        if (mVertices[i].y() > extentBottom) extentBottom = mVertices[i].y();
+
+        
+//        mMatrix.multiply(mVertices[i], mMatrix, a);
+//        mMatrix.multiply(mVertices[i+1], mMatrix, b);
+
+        a = mMatrix.multiply(mVertices[i]);
+        b = mMatrix.multiply(mVertices[i+1]);
+
+//        mRasterizer.addEdge(a.x,a.y,b.x, b.y);
+        mRasterizer.addEdge(a.x(), a.y(), b.x(), b.y() );
       }
-      if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
-      if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
-      if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
-      if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
+//      if (mVertices[i].x < extentLeft) extentLeft = mVertices[i].x;
+//      if (mVertices[i].x > extentRight) extentRight = mVertices[i].x;
+//      if (mVertices[i].y < extentTop) extentTop = mVertices[i].y;
+//      if (mVertices[i].y > extentBottom) extentBottom = mVertices[i].y;
+      
+      
+      if (mVertices[i].x() < extentLeft)     extentLeft = mVertices[i].x();
+      if (mVertices[i].x() > extentRight)   extentRight = mVertices[i].x();
+      if (mVertices[i].y() < extentTop)       extentTop = mVertices[i].y();
+      if (mVertices[i].y() > extentBottom) extentBottom = mVertices[i].y();
     }
   }
 
@@ -426,43 +465,71 @@ void pxCanvas::fill(bool time)
     pxVertex t2;
     pxVertex t3;
     pxVertex t4;
+    
+//    p1.x = extentLeft;
+//    p1.y = extentTop;
+//    p2.x = extentRight;
+//    p2.y = extentTop;
+//    p3.x = extentRight;
+//    p3.y = extentBottom;
+//    p4.x = extentLeft;
+//    p4.y = extentBottom;
+    
+    p1.setX( extentLeft   );
+    p1.setY( extentTop    );
+    p2.setX( extentRight  );
+    p2.setY( extentTop    );
+    p3.setX( extentRight  );
+    p3.setY( extentBottom );
+    p4.setX( extentLeft   );
+    p4.setY( extentBottom );
 
-    p1.x = extentLeft;
-    p1.y = extentTop;
-    p2.x = extentRight;
-    p2.y = extentTop;
-    p3.x = extentRight;
-    p3.y = extentBottom;
-    p4.x = extentLeft;
-    p4.y = extentBottom;
-
-    extentRight -= extentLeft;
+    extentRight  -= extentLeft;
     extentBottom -= extentTop;
     extentLeft = extentTop = 0;
 
-    t1.x = extentLeft;
-    t1.y = extentTop;
-    t2.x = extentRight;
-    t2.y = extentTop;
-    t3.x = extentRight;
-    t3.y = extentBottom;
-    t4.x = extentLeft;
-    t4.y = extentBottom;
+//    t1.x = extentLeft;
+//    t1.y = extentTop;
+//    t2.x = extentRight;
+//    t2.y = extentTop;
+//    t3.x = extentRight;
+//    t3.y = extentBottom;
+//    t4.x = extentLeft;
+//    t4.y = extentBottom;
+  
+    t1.setX( extentLeft   );
+    t1.setY( extentTop    );
+    t2.setX( extentRight  );
+    t2.setY( extentTop    );
+    t3.setX( extentRight  );
+    t3.setY( extentBottom );
+    t4.setX( extentLeft   );
+    t4.setY( extentBottom );
 
 #if 1
     pxVertex o1, o2, o3, o4;
-    mMatrix.multiply(p1, mMatrix, o1);
-    mMatrix.multiply(p2, mMatrix, o2);
-    mMatrix.multiply(p3, mMatrix, o3);
-    mMatrix.multiply(p4, mMatrix, o4);
-
+//    mMatrix.multiply(p1, mMatrix, o1);
+//    mMatrix.multiply(p2, mMatrix, o2);
+//    mMatrix.multiply(p3, mMatrix, o3);
+//    mMatrix.multiply(p4, mMatrix, o4);
+    
+    o1 = mMatrix.multiply(p1);
+    o2 = mMatrix.multiply(p2);
+    o3 = mMatrix.multiply(p3);
+    o4 = mMatrix.multiply(p4);
+    
     pxVertex n1, n2, n3, n4;
 
-    mTextureMatrix.multiply(t1, mTextureMatrix, n1);
-    mTextureMatrix.multiply(t2, mTextureMatrix, n2);
-    mTextureMatrix.multiply(t3, mTextureMatrix, n3);
-    mTextureMatrix.multiply(t4, mTextureMatrix, n4);
-
+//    mTextureMatrix.multiply(t1, mTextureMatrix, n1);
+//    mTextureMatrix.multiply(t2, mTextureMatrix, n2);
+//    mTextureMatrix.multiply(t3, mTextureMatrix, n3);
+//    mTextureMatrix.multiply(t4, mTextureMatrix, n4);
+    
+    n1 = mTextureMatrix.multiply(t1);
+    n2 = mTextureMatrix.multiply(t2);
+    n3 = mTextureMatrix.multiply(t3);
+    n4 = mTextureMatrix.multiply(t4);
+    
     mRasterizer.setTextureCoordinates(o1, o2, o3, o4, n1, n2, n3, n4);
 #endif
   }
@@ -501,9 +568,12 @@ void pxCanvas::stroke()
 
   if (mVertexCount > 1)
   {
-    bool closed = mVertices[0].x == mVertices[mVertexCount-1].x && 
-      mVertices[0].y == mVertices[mVertexCount-1].y;
-
+//    bool closed = mVertices[0].x == mVertices[mVertexCount-1].x &&
+//                  mVertices[0].y == mVertices[mVertexCount-1].y;
+    
+    bool closed = mVertices[0].x() == mVertices[mVertexCount-1].x() &&
+                  mVertices[0].y() == mVertices[mVertexCount-1].y();
+    
 #if 1
 
 #if 0
@@ -539,12 +609,18 @@ void pxCanvas::stroke()
     {
       pxVertex a;
       pxVertex b;
-
-      mMatrix.multiply(mVertices[i], mMatrix, a);
-      mMatrix.multiply(mVertices[i+1], mMatrix, b);
-
-      double dx1 = (b.x - a.x);
-      double dy1 = (b.y - a.y);
+      
+//      mMatrix.multiply(mVertices[i], mMatrix, a);
+//      mMatrix.multiply(mVertices[i+1], mMatrix, b);
+      
+      a = mMatrix.multiply(mVertices[i]);
+      b = mMatrix.multiply(mVertices[i+1]);
+      
+//      double dx1 = (b.x - a.x);
+//      double dy1 = (b.y - a.y);
+      
+      double dx1 = (b.x() - a.x() );
+      double dy1 = (b.y() - a.y() );
 
       double len = pow(dx1 * dx1 + dy1 * dy1, 0.5);
 
@@ -559,40 +635,59 @@ void pxCanvas::stroke()
       dy1 *= halfStrokeWidth;
 
 
-      mRasterizer.addEdge(a.x+dy1,a.y-dx1,b.x+dy1, b.y-dx1);
-      mRasterizer.addEdge(b.x-dy1,b.y + dx1 ,a.x-dy1, a.y + dx1);
-
-      if (i == 0) 
+//      mRasterizer.addEdge(a.x+dy1,a.y-dx1,b.x+dy1, b.y-dx1);
+//      mRasterizer.addEdge(b.x-dy1,b.y + dx1 ,a.x-dy1, a.y + dx1);
+      
+      mRasterizer.addEdge(a.x() + dy1, a.y() - dx1, b.x() + dy1, b.y() - dx1);
+      mRasterizer.addEdge(b.x() - dy1, b.y() + dx1, a.x() - dy1, a.y() + dx1);
+      
+      if (i == 0)
       {
-        firstA1.x = a.x + dy1;
-        firstA1.y = a.y - dx1;
-        firstA2.x = a.x - dy1;
-        firstA2.y = a.y + dx1;
+//        firstA1.x = a.x + dy1;
+//        firstA1.y = a.y - dx1;   /// HUGH /// BUG ?
+//        firstA2.x = a.x - dy1;
+//        firstA2.y = a.y + dx1;
+
+        firstA1.setX( a.x() + dy1 );
+        firstA1.setY( a.y() - dx1 );
+        firstA2.setX( a.x() - dy1 );
+        firstA2.setY( a.y() + dx1 );
       }
 
 #if 1
       // join this segment to the last segment
       if (i > 0)
       {
-        mRasterizer.addEdge(lastB1.x,lastB1.y,a.x+dy1,a.y-dx1);
-        mRasterizer.addEdge(a.x-dy1, a.y + dx1 ,lastB2.x, lastB2.y);                                
+//        mRasterizer.addEdge(lastB1.x,lastB1.y,a.x+dy1,a.y-dx1);
+//        mRasterizer.addEdge(a.x-dy1, a.y + dx1 ,lastB2.x, lastB2.y);                                
+
+        mRasterizer.addEdge(lastB1.x()  , lastB1.y()  , a.x() + dy1 , a.y() - dx1);
+        mRasterizer.addEdge(a.x() - dy1 , a.y() + dx1 , lastB2.x()  , lastB2.y() );
+        
       }
 #endif
 
-      lastB1.x = b.x + dy1;
-      lastB1.y = b.y - dx1;
-      lastB2.x = b.x - dy1;
-      lastB2.y = b.y + dx1;
+//      lastB1.x = b.x + dy1;
+//      lastB1.y = b.y - dx1;
+//      lastB2.x = b.x - dy1;
+//      lastB2.y = b.y + dx1;
+
+      lastB1.setX( b.x() + dy1 );
+      lastB1.setY( b.y() - dx1 );
+      lastB2.setX( b.x() - dy1 );
+      lastB2.setY( b.y() + dx1 );
 
 #if 1
       if (!closed)
       {
         // buttcaps
         if (i == 0)
-          mRasterizer.addEdge(a.x-dy1, a.y + dx1,a.x+dy1, a.y-dx1);
+//          mRasterizer.addEdge(a.x-dy1, a.y + dx1,a.x+dy1, a.y-dx1);
+          mRasterizer.addEdge(a.x() - dy1, a.y() + dx1, a.x() + dy1, a.y() - dx1);
 
         if (i == mVertexCount-2)
-          mRasterizer.addEdge(b.x+dy1,b.y - dx1 ,b.x-dy1,b.y+dx1);
+//          mRasterizer.addEdge(b.x+dy1,b.y - dx1 ,b.x-dy1,b.y+dx1);
+          mRasterizer.addEdge(b.x() + dy1, b.y() - dx1, b.x() - dy1, b.y() + dx1);
       }
       else
       {
@@ -600,8 +695,11 @@ void pxCanvas::stroke()
 #if 1
         if (i == mVertexCount-2)
         {
-          mRasterizer.addEdge(lastB1.x,lastB1.y, firstA1.x, firstA1.y);
-          mRasterizer.addEdge(firstA2.x, firstA2.y ,lastB2.x, lastB2.y); 
+//          mRasterizer.addEdge(lastB1.x,lastB1.y, firstA1.x, firstA1.y);
+//          mRasterizer.addEdge(firstA2.x, firstA2.y ,lastB2.x, lastB2.y);
+
+          mRasterizer.addEdge(lastB1.x(),   lastB1.y(), firstA1.x(), firstA1.y() );
+          mRasterizer.addEdge(firstA2.x(), firstA2.y(),  lastB2.x(),  lastB2.y() );
         }
 #endif
       }

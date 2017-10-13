@@ -366,10 +366,10 @@ public:
     return RT_OK;
   }
 
+  void    moveForward();
+  void    moveBackward();
   rtError moveToFront();
   rtError moveToBack();
-  void moveForward();
-  void moveBackward();
 
   virtual void dispose();
 
@@ -1099,6 +1099,8 @@ public:
     return RT_OK;
   }
 
+  rtString getUrl() const { return mUrl; }
+
   static rtError addListener(rtString  eventName, const rtFunctionRef& f)
   {
     return mEmit->addListener(eventName, f);
@@ -1256,6 +1258,7 @@ public:
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
+  rtReadOnlyProperty(info, info, rtObjectRef);
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
@@ -1293,7 +1296,7 @@ public:
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
-  pxScene2d(bool top = true);
+  pxScene2d(bool top = true, pxScriptView* scriptView = NULL);
   virtual ~pxScene2d() 
   {
      rtLogDebug("***** deleting pxScene2d\n");
@@ -1339,6 +1342,7 @@ public:
   rtError createText(rtObjectRef p, rtObjectRef& o);
   rtError createTextBox(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
+  rtError createPath(rtObjectRef p, rtObjectRef& o);
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
   rtError createImageA(rtObjectRef p, rtObjectRef& o);
   rtError createImageResource(rtObjectRef p, rtObjectRef& o);
@@ -1439,6 +1443,15 @@ public:
     return RT_OK;
   }
 
+  rtObjectRef getCanvas() const { return mCanvas; };
+ 
+  rtObjectRef  getInfo() const;
+  rtError info(rtObjectRef& v) const
+  {
+    v = getInfo();
+    return RT_OK;
+  }
+
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
     rtError e = RT_FAIL;
@@ -1469,12 +1482,16 @@ private:
   
     
   rtRef<pxObject> mRoot;
+  rtObjectRef mInfo;
   rtObjectRef mFocusObj;
   double start, sigma_draw, sigma_update, end2;
 
   int frameCount;
   int mWidth;
   int mHeight;
+  
+  rtObjectRef mCanvas; // for SVG drawing
+  
   rtEmitRef mEmit;
 
 // TODO Top level scene only
@@ -1487,6 +1504,7 @@ private:
   bool mStopPropagation;
   int mTag;
   pxIViewContainer *mContainer;
+  pxScriptView *mScriptView;
   bool mShowDirtyRectangle;
   #ifdef USE_SCENE_POINTER
   pxTextureRef mNullTexture;

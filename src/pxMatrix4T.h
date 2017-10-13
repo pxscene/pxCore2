@@ -66,11 +66,16 @@ public:
   {
     mX = x; mY = y, mZ = z; mW = w;
   }
-
-  FloatT x() {return mX;}
-  FloatT y() {return mY;}
-  FloatT z() {return mZ;}
-  FloatT w() {return mW;}
+  
+  inline void setX(FloatT x) { mX = x; }
+  inline void setY(FloatT y) { mY = y; }
+  inline void setZ(FloatT z) { mZ = z; }
+  inline void setW(FloatT w) { mW = w; }
+  
+  inline FloatT x() {return mX;}
+  inline FloatT y() {return mY;}
+  inline FloatT z() {return mZ;}
+  inline FloatT w() {return mW;}
 
   void dump()
   {
@@ -81,6 +86,13 @@ public:
 private:
   float mX, mY, mZ, mW;
 };
+
+
+///
+///
+#define pxVertex pxVector4T<float>
+///
+///
 
 template <typename FloatT = float>
 class pxMatrix4T 
@@ -149,6 +161,10 @@ public:
     return out;
   }
   
+  
+  
+  inline void rotate(double angle) { rotateInRadians(angle, 0, 0, 1); }  // LEGACY
+  
   inline void rotateInRadians(FloatT angle) 
   {
     rotateInRadians(angle, 0, 0, 1);
@@ -191,25 +207,25 @@ void multiply(FloatT* m, FloatT* n)
     FloatT s, c;
     
     sincosf(angle, &s, &c);
-    
+
     float r[16] = {
       x * x * (1 - c) + c,     y * x * (1 - c) + z * s, x * z * (1 - c) - y * s, 0,
       x * y * (1 - c) - z * s, y * y * (1 - c) + c,     y * z * (1 - c) + x * s, 0,
       x * z * (1 - c) + y * s, y * z * (1 - c) - x * s, z * z * (1 - c) + c,     0,
       0, 0, 0, 1
     };
-    
+
     multiply(m, r);
 #else
     rotateZInRadians(angle);
 #endif
   }
-  
+
   void rotateZInDegrees(FloatT angle) 
   {
     rotateZInRadians(angle * M_PI/180.0);
   }
-  
+
   void rotateZInRadians(FloatT angle) 
   {
     FloatT *out = mValues;
@@ -237,12 +253,12 @@ void multiply(FloatT* m, FloatT* n)
     out[6] = a12 * c - a02 * s;
     out[7] = a13 * c - a03 * s;
   }
-  
+
   void scale(FloatT sx, FloatT sy) 
-  {   
+  {
     FloatT *out = mValues;
     FloatT *a = mValues;
-    
+
     out[0] = a[0] * sx;
     out[1] = a[1] * sx;
     out[2] = a[2] * sx;
@@ -254,10 +270,10 @@ void multiply(FloatT* m, FloatT* n)
   }
 
   void scale(FloatT sx, FloatT sy, FloatT sz) 
-  {  
+  {
     FloatT *out = mValues;
     FloatT *a = mValues;
-    
+
     out[0] = a[0] * sx;
     out[1] = a[1] * sx;
     out[2] = a[2] * sx;
@@ -266,7 +282,7 @@ void multiply(FloatT* m, FloatT* n)
     out[5] = a[5] * sy;
     out[6] = a[6] * sy;
     out[7] = a[7] * sy;
-    
+
     if (sz != 1.0)
     {
       out[8] = a[8] * sz;
@@ -305,7 +321,31 @@ void multiply(FloatT* m, FloatT* n)
       m[15] = m[3] * x + m[7] * y + m[15];
     }
   }
-      
+
+  bool isTranslatedOnly()
+  {
+    FloatT *m = mValues;
+
+    return (m[0]  == 1.0 && m[5]  == 1.0 && m[10] == 1.0 && /*m[15] == 1.0 && */
+            m[1]  == 0.0 && m[2]  == 0.0 && m[3]  == 0.0 &&
+            m[4]  == 0.0 && m[6]  == 0.0 && m[7]  == 0.0 &&
+            m[8]  == 0.0 && m[9]  == 0.0 && m[11] == 0.0  );
+  }
+
+  FloatT translateX()
+  {
+    FloatT *m = mValues;
+    
+    return m[12];
+  }
+  
+  FloatT translateY()
+  {
+    FloatT *m = mValues;
+    
+    return m[13];
+  }
+
   void identity() 
   {
     FloatT* m = mValues;
@@ -319,7 +359,18 @@ void multiply(FloatT* m, FloatT* n)
     
     memcpy(m, t, sizeof(t));
   }
-  
+
+  bool isIdentity()
+  {
+    FloatT* m = mValues;
+    
+    return (m[0]  == 1.0 && m[5]  == 1.0 && m[10] == 1.0 && m[15] == 1.0 &&
+            m[1]  == 0.0 && m[2]  == 0.0 && m[3]  == 0.0 &&
+            m[4]  == 0.0 && m[6]  == 0.0 && m[7]  == 0.0 &&
+            m[8]  == 0.0 && m[9]  == 0.0 && m[11] == 0.0 &&
+            m[12] == 0.0 && m[13] == 0.0 && m[14] == 0.0);
+  }
+
   void transpose() 
   {
     FloatT* m = mValues;
@@ -331,7 +382,7 @@ void multiply(FloatT* m, FloatT* n)
     
     memcpy(m, t, sizeof(t));
   }
-  
+
   /**
    * Inverts a 4x4 matrix.
    *
@@ -339,7 +390,7 @@ void multiply(FloatT* m, FloatT* n)
    * Read http://www.gamedev.net/community/forums/topic.asp?topic_id=425118
    * for an explanation.
    */
-  
+
   void invert() 
   {
     float* a = mValues;
@@ -382,9 +433,9 @@ void multiply(FloatT* m, FloatT* n)
     if (!det) 
       return null;
 #endif
-    
+
     det = 1.0 / det;
-    
+
     out[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;
     out[1] = (a02 * b10 - a01 * b11 - a03 * b09) * det;
     out[2] = (a31 * b05 - a32 * b04 + a33 * b03) * det;
@@ -401,9 +452,8 @@ void multiply(FloatT* m, FloatT* n)
     out[13] = (a00 * b09 - a01 * b07 + a02 * b06) * det;
     out[14] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
     out[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
-    
   }
-  
+
   void perspective(float fovy, float aspect, float zNear, float zFar) 
   {
     FloatT* m = mValues;

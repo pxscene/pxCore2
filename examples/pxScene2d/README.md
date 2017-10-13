@@ -88,7 +88,7 @@
     ~~~~
     If you wish to build the unit tests then run
     ~~~~
-    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON ..
+    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DPXSCENE_TEST_HTTP_CACHE=OFF ..
     ~~~~
     For Linux, Mac, and Raspberry Pi run: 
     ~~~~
@@ -150,7 +150,58 @@ file:///home/username/directory/filename.js
     pxscene2dtests.exe
     ~~~~
 
+## Building and running unit tests
+1. Get source code
+   ~~~~
+   git clone https://github.com/pxscene/pxCore
+   ~~~~
 
+2. Build
+   ~~~~
+   cd pxCore/
+   mkdir temp
+   cd temp
+   cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DPXSCENE_TEST_HTTP_CACHE=OFF ..
+   cmake --build . --config Release
+   ~~~~
+
+3. Run
+   ~~~~
+   cd pxCore/tests/pxScene2d
+   ./pxscene2dtests.sh
+   ~~~~
+
+
+## Building with rtRemote support (Linux only)
+1. Get source code
+   ~~~~
+   git clone https://github.com/pxscene/pxCore
+   ~~~~
+
+2. Build
+   ~~~~
+   cd pxCore/
+   mkdir temp
+   cd temp
+   cmake -DBUILD_RTREMOTE_LIBS=ON ..
+   cmake --build . --config Release
+   ~~~~
+
+   The rtRemote libs will be located in pxCore/remote
+
+   Additional build configurations for rtRemote are:
+   ~~~~
+   Build rpcSampleApp: -DBUILD_RTREMOTE_SAMPLE_APP_SHARED=ON
+   Build rpcSampleApp_s: -DBUILD_RTREMOTE_SAMPLE_APP_STATIC=ON
+   Build rtSampleClient and rtSampleServer: -DBUILD_RTREMOTE_SAMPLE_APP_SIMPLE=ON
+   Enable rtRemote debugging: -DENABLE_RTREMOTE_DEBUG=ON
+   Enable rtRemote profiling: -DENABLE_RTREMOTE_PROFILE=ON
+   Disable librtremote shared library building: -DBUILD_RTREMOTE_SHARED_LIB=OFF
+   Disable librtremote static library building: -DBUILD_RTREMOTE_STATIC_LIB=OFF
+   Output pxCore libs locallay: -DOUTPUT_LIBS_LOCAL=ON
+   Disable building pxCore libs: -DBUILD_PXCORE_LIBS=OFF
+   Disable building pxscene: -DBUILD_PXSCENE=OFF
+   ~~~~
 
 ## On Mac OS X - Xcode Workspace 
 

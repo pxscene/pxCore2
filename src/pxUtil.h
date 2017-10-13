@@ -16,6 +16,12 @@
 
 */
 
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#pragma clang diagnostic ignored "-Wconversion"
+#endif
+
 // pxUtil.h
 #ifndef PX_UTIL_H
 #define PX_UTIL_H
@@ -105,4 +111,8 @@ rtError pxLoadJPGImage(const char* imageData, size_t imageDataSize,
                        pxOffscreen& o);
 rtError pxLoadJPGImage(const char* filename, pxOffscreen& o);
 
+#endif //PX_UTIL_H
+
+#ifdef PX_PLATFORM_MAC
+#pragma clang diagnostic pop
 #endif
