@@ -10,18 +10,20 @@ export MallocStackLogging=1
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
+TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
 
 rm -rf /var/tmp/pxscene.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
-./pxscene.sh $TRAVIS_BUILD_DIR/ci/testRunner_memcheck_$TRAVIS_OS_NAME.js?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json &
-grep "RUN COMPLETED" /var/tmp/pxscene.log
+./pxscene.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json &
+grep "TEST RESULTS: " /var/tmp/pxscene.log
 retVal=$?
 count=0
 leakcount=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 5400 ]; do
-leaks -nocontext pxscene > $LEAKLOGS
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 900 ]; do
+#leaks -nocontext pxscene > $LEAKLOGS
+echo "execute_osx snoozing for 30"
 sleep 30;
-grep "RUN COMPLETED" /var/tmp/pxscene.log
+grep "TEST RESULTS: " /var/tmp/pxscene.log
 retVal=$?
 
 #check any crash happened, if so stop the loop
