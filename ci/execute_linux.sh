@@ -6,10 +6,10 @@ export PX_DUMP_MEMUSAGE=1
 export ENABLE_VALGRIND=1
 export RT_LOG_LEVEL=info
 export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
-export TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
 
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
+TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 ./pxscene.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $EXECLOGS 2>&1 &
 grep "TEST RESULTS: " $EXECLOGS
