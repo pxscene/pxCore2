@@ -3001,7 +3001,6 @@ void pxScriptView::runScript()
 // escape url end
 
   #ifdef ENABLE_RT_NODE
-  rtLogWarn("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
   mCtx = script.createContext();
 
   if (mCtx)
@@ -3022,7 +3021,6 @@ void pxScriptView::runScript()
     char buffer[MAX_URL_SIZE + 50];
     memset(buffer, 0, sizeof(buffer));
     snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
-    rtLogWarn("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
 #ifdef WIN32 // process \\ to /
 		unsigned int bufferLen = strlen(buffer);
 		char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));

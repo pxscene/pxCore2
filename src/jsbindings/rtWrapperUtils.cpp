@@ -6,6 +6,11 @@ extern uv_mutex_t threadMutex;
 #endif
 #include <rtMutex.h>
 
+#ifdef __linux__
+#pragma message("using linux platform")
+#include <execinfo.h>
+#endif
+
 #ifdef __APPLE__
 static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER; //PTHREAD_MUTEX_INITIALIZER;
 static pthread_t sCurrentSceneThread;
@@ -458,6 +463,13 @@ Handle<Value> rt2js(Local<Context>& ctx, const rtValue& v)
 
   Isolate* isolate = ctx->GetIsolate();
 
+#ifdef __linux__
+      const int SIZE = 100;
+      int j, nptrs;
+      void *buffer[100];
+      char **strings;
+#endif
+
   switch (v.getType())
   {
     case RT_int32_tType:
@@ -530,6 +542,21 @@ Handle<Value> rt2js(Local<Context>& ctx, const rtValue& v)
       break;
     case RT_voidPtrType:
       rtLogWarn("attempt to convert from void* to JS object");
+
+      //taken from https://linux.die.net/man/3/backtrace_symbols
+#ifdef __linux__
+      nptrs = backtrace(buffer, SIZE);
+
+      strings = backtrace_symbols(buffer, nptrs);
+      if(strings != NULL) {
+          for(j = 0; j < nptrs; j++) {
+              printf("%s\n", strings[j]);
+          }
+
+          free(strings);
+      }
+#endif
+
       return Handle<Value>(); // TODO
       break;
     case 0: // This is really a value rtValue() will set mType to zero

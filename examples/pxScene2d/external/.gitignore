@@ -13,8 +13,10 @@ libpng-1.6.28/config.log
 libpng-1.6.28/Makefile
 libpng-1.6.28/config.status
 zlib-1.2.8/example
+zlib-1.2.8/example64
 zlib-1.2.8/examplesh
 zlib-1.2.8/minigzip
+zlib-1.2.8/minigzip64
 zlib-1.2.8/minigzipsh
 libpng-1.6.28/.libs
 libpng-1.6.28/libpng16-config
