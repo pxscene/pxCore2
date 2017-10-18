@@ -169,7 +169,6 @@ if (false)
 	  var code  = e.keyCode;
     var flags = e.flags;
 
-    var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
       console.log("onKeyUp value hidden");
     } else {
