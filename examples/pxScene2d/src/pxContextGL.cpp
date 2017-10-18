@@ -889,7 +889,7 @@ private:
 class pxSwTexture: public pxTexture
 {
 public:
-  pxSwTexture()  : mOffscreen(), mTextureName(0), mRasterTextureCreated(false),  mInitialized(false)
+  pxSwTexture() : mWidth(0), mHeight(0), mOffscreen(), mTextureName(0), mRasterTextureCreated(false),  mInitialized(false)
   {
     //ctor
   };
@@ -1047,9 +1047,9 @@ public:
     {
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
     }
-    
+
     mInitialized = true;
-    
+
     glUniform1i(tLoc, 1);
     return PX_OK;
   }
