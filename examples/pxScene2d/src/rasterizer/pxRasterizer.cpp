@@ -597,11 +597,11 @@ struct textureedge
 //  int32_t mXCurrent;
 
 //  int32_t mXDelta;
-  int32_t mError;
-  int32_t mErrorDelta;
+//  int32_t mError;
+//  int32_t mErrorDelta;
 
-  int32_t mSide;
-  int32_t mLeft; 
+//  int32_t mSide;
+//  int32_t mLeft;
 
 #if 1
   int32_t deltaU;
