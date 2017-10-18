@@ -159,7 +159,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
       break;
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       default:
-        rtLogError(" unrecoginzed OpCode: [%C] 0x%02X", (wchar_t)opcode, opcode);
+        rtLogError(" unrecoginzed OpCode: [%c] 0x%02X", (char)opcode, opcode);
 
     }//SWITCH
   }//WHILE

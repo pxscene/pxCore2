@@ -594,7 +594,7 @@ struct textureedge
 
 //  int32_t mWidth, mHeight;
 
-  int32_t mXCurrent;
+//  int32_t mXCurrent;
 
   int32_t mXDelta;
   int32_t mError;
@@ -1315,7 +1315,7 @@ pxRasterizer::pxRasterizer():
 #else
   mEdgeManager(NULL),
 #endif
-   mCoverage(NULL), mColor(pxRed), mAlpha(1.0),
+   mCoverage(NULL), mFillMode(fillWinding), mColor(pxRed), mAlpha(1.0),
    mAlphaDirty(false), mEffectiveAlpha(1.0), mClipValid(false),
    mClipInternalCalculated(false), mCachedBufferHeight(0), mCachedBufferWidth(0),
    overSampleAdd(0), overSampleAddMinusOne(0), overSampleAdd4MinusOne(0),
@@ -2311,7 +2311,7 @@ void pxRasterizer::scanCoverage(pxPixel* scanline, int32_t x0, int32_t x1)
         }
         else p += coverageRun;
 
-        coverageRun = 1;
+        //coverageRun = 1;
       }
 
     }
