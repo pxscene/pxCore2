@@ -165,10 +165,10 @@ private:
 
   unsigned char ltEdgeCover[16];  // static?  can be shared
   unsigned char rtEdgeCover[16];
-  
+
   pxMatrix4T<float> mMatrix22;
   pxMatrix4T<float> mTextureMatrix22;
-  
+
   pxMatrix4T<float> mMatrix;
   pxMatrix4T<float> mTextureMatrix;
 
@@ -177,7 +177,7 @@ private:
 public:
 //    double mExtentLeft, mExtentTop, mExtentRight, mExtentBottom;
 
-};
+}; // CLASS - pxRasterizer
 
 #endif // _H_PXRASTERIZER
 
