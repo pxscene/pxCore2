@@ -596,7 +596,7 @@ struct textureedge
 
 //  int32_t mXCurrent;
 
-  int32_t mXDelta;
+//  int32_t mXDelta;
   int32_t mError;
   int32_t mErrorDelta;
 
