@@ -138,11 +138,13 @@ void pxWayland::createDisplay(rtString displayName)
          goto exit;
       }
 
+#ifndef PXSCENE_DISABLE_WST_DECODER
       if ( !WstCompositorSetDecoderHandleCallback( mWCtx, decoderHandleCallback, this ) )
       {
          error= true;
          goto exit;
       }
+#endif //PXSCENE_DISABLE_WST_DECODER
       
       if ( !WstCompositorSetHidePointerCallback( mWCtx, hidePointer, this ) )
       {
