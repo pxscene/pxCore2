@@ -1253,7 +1253,7 @@ struct edgeArray
 {
   edgeArray(): mCount(0)
   {
-    memset(mEdges, 0, sizeof(edge) * EDGE_ARRAY_SIZE);
+    memset(mEdges, 0, sizeof(edge*) * EDGE_ARRAY_SIZE);
   }
 
   inline void Add(edge * e)
