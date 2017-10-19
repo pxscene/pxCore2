@@ -75,11 +75,11 @@ public:
   rtProperty(extentTop,       extentTop,    setExtentTop,  float);
   rtProperty(extentRight,   extentRight,  setExtentRight,  float);
   rtProperty(extentBottom, extentBottom, setExtentBottom,  float);
-  
+
 public:
   pxPath(pxScene2d* scene);
   ~pxPath();
-  
+
   virtual void draw();
   virtual void onInit();
   virtual void sendPromise();
@@ -89,51 +89,51 @@ public:
   virtual rtError setPath(const rtString d);
   virtual rtError path(rtString& v) const { v = mPath; return RT_OK; };
 
-  
+
   rtError fillColor(uint32_t& v) const { v = (uint32_t)mFillColor.u; return RT_OK; };
   virtual rtError setFillColor(const uint32_t c);
-  
+
   rtError strokeColor(uint32_t& v) const { v = (uint32_t)mStrokeColor.u; return RT_OK; };
   virtual rtError setStrokeColor(const uint32_t c);
-  
+
   rtError strokeWidth(float& v) const { v = (float)mStrokeWidth;    return RT_OK; };
   virtual rtError setStrokeWidth(const float w);
-  
-  
+
+
   rtError extentLeft(float& v) const { v = (float)mExtentLeft;      return RT_OK; };
   virtual rtError setExtentLeft(const float v);
-  
+
   rtError extentTop(float& v) const { v = (float)mExtentTop;        return RT_OK; };
   virtual rtError setExtentTop(const float v);
-  
+
   rtError extentRight(float& v) const { v = (float)mExtentRight;    return RT_OK; };
   virtual rtError setExtentRight(const float v);
-  
+
   rtError extentBottom(float& v) const { v = (float)mExtentBottom;  return RT_OK; };
   virtual rtError setExtentBottom(const float v);
-  
+
   // One STATIC parser
   static rtError parsePath(const char *d, pxPath *p /*= NULL*/ );
-  
+
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  
+
   void pushOpcode(uint8_t op);
 
   void pushFloat(float f);
   void pushFloat(float a, float b);
   void pushFloat(float a, float b, float c, float d);
   void pushFloat(float a, float b, float c, float d, float e, float f);
-  
+
   void pushRect(pxPath    *p, float x0, float y0, float w, float h, float rx, float ry);
   void pushEllipse(pxPath *p, float x0, float y0, float rx, float ry);
 
   float   getFloatAt(int i);
   float   getFloatAt(const uint8_t *p);
   uint8_t getByteAt(const uint8_t *p);
-  
+
   uint8_t *getStream() { return (opStream.size() > 0) ? (uint8_t *) &opStream[0] : NULL; };
   int     getLength()  { return (int) opStream.size(); };
- 
+
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   float        mExtentLeft;
@@ -146,9 +146,9 @@ public:
   
   pxColor      mFillColor;
   rtString     mPath;
-  
+
 private:
-  
+
   std::vector<uint8_t>  opStream;
 };
 

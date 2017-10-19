@@ -57,9 +57,9 @@ static bcurves_t arcToBezier(a2cReal_t px, a2cReal_t py,
                              a2cReal_t sweepFlag);//fwd
 //--------------------------------------------
 
-
-
-pxPath::pxPath(pxScene2d* scene): pxObject(scene), mStrokeColor(pxClear), mStrokeWidth(0), mFillColor(pxClear)
+pxPath::pxPath(pxScene2d* scene): pxObject(scene),
+                                  mExtentLeft(0.0f), mExtentTop(0.0f), mExtentRight(0.0f), mExtentBottom(0.0f),
+                                  mStrokeColor(pxClear), mStrokeWidth(0), mFillColor(pxClear)
 {
   mx = 0;
   my = 0;

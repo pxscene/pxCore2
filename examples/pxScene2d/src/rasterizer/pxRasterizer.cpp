@@ -72,7 +72,8 @@ public:
 class pxSpanBuffer
 {
 public:
-  pxSpanBuffer(): mNumRows(0), mSpanRows(NULL), mFreeSpans(NULL), mCurrentClipSpan(NULL), mCurrentClipComplete(true)
+  pxSpanBuffer(): mNumRows(0), mCurrentRow(0), mSpanRows(NULL), mFreeSpans(NULL), mCurrentClipSpan(NULL),
+                  mCurrentClipX0(0), mCurrentClipX1(0), mCurrentClipComplete(true)
   {
     spanCount= 0;
   }
@@ -318,7 +319,7 @@ public:
             x0 = mCurrentClipSpan->x0;
             if (mCurrentClipX1 <= mCurrentClipSpan->x1)
             {
-              x1 = mCurrentClipX1;   
+              x1 = mCurrentClipX1;
               mCurrentClipComplete = true;
               return true;
             }
@@ -591,17 +592,16 @@ struct textureedge
   int32_t mX1, mX2;
   int32_t mY1, mY2;
 
+//  int32_t mWidth, mHeight;
 
-  int32_t mWidth, mHeight;
+//  int32_t mXCurrent;
 
-  int32_t mXCurrent;
+//  int32_t mXDelta;
+//  int32_t mError;
+//  int32_t mErrorDelta;
 
-  int32_t mXDelta;
-  int32_t mError;
-  int32_t mErrorDelta;
-
-  int32_t mSide;
-  int32_t mLeft; 
+//  int32_t mSide;
+//  int32_t mLeft;
 
 #if 1
   int32_t deltaU;
@@ -923,10 +923,9 @@ struct scanlineDesc
 class edgeManager
 {
 public:
-  edgeManager()
+  edgeManager() : mEdgeCount(0), mCurrentStartLine(0), mCurrentStartEdge(0),
+                  mStartLines(NULL), mFirstStart(0), mLastStart(0), mMaxScanlines(0)
   {
-    mMaxScanlines = 0;
-    mStartLines = NULL;
 #ifdef EDGEBUCKETS
 #if 0
     mStartLines = new edgeLine[8000];
@@ -1111,6 +1110,7 @@ struct endPointArray
 {
   endPointArray()
   {
+    memset(mEndPoints, 0, sizeof(endPoint) * MINEDGES);
     mCount = 0;
   }
 
@@ -1248,9 +1248,13 @@ struct endPointArray
 };
 #endif
 
+#define EDGE_ARRAY_SIZE 100000
 struct edgeArray
 {
-  edgeArray(): mCount(0) {}
+  edgeArray(): mCount(0)
+  {
+    memset(mEdges, 0, sizeof(edge*) * EDGE_ARRAY_SIZE);
+  }
 
   inline void Add(edge * e)
   {
@@ -1273,7 +1277,7 @@ struct edgeArray
   }
 
 
-  edge* mEdges[100000];
+  edge* mEdges[EDGE_ARRAY_SIZE];
   int mCount;
 
 };
@@ -1290,15 +1294,36 @@ endPointArray textureEndsX;
 endPointArray* textureStarts = &textureStartsX;
 endPointArray* textureEnds = &textureEndsX;
 
+//##
+
+//    public: // BUGBUG
+bool mTextureClamp;
+bool mTextureClampColor;
+bool mBiLerp;
+bool mAlphaTexture;
+
+bool mOverdraw;
+
+//##
+
 pxRasterizer::pxRasterizer(): 
+  mYOversample(0), mXResolution(0),
+  mFirst(0), mLast(0), mLeftExtent(0), mRightExtent(0),
   mBuffer(NULL),
 #ifndef EDGECLEANUP
-  miStarts(NULL), miEnds(NULL), mEdgeArray(NULL), 
+  mEdgeArray(NULL), miStarts(NULL), miEnds(NULL), mEdgeCount(0),
 #else
   mEdgeManager(NULL),
 #endif
-   mCoverage(NULL), mClipValid(false), mClipInternalCalculated(false), mTexture(NULL), 
-  mTextureClamp(false), mTextureClampColor(false), mBiLerp(false), mAlphaTexture(false), mOverdraw(false)
+   mCoverage(NULL), mFillMode(fillWinding), mColor(pxRed), mAlpha(1.0),
+   mAlphaDirty(false), mEffectiveAlpha(1.0), mClipValid(false),
+   mClipInternalCalculated(false), mCachedBufferHeight(0), mCachedBufferWidth(0),
+   overSampleAdd(0), overSampleAddMinusOne(0), overSampleAdd4MinusOne(0),
+   overSampleAdd4(0), overSampleFlush(0), overSampleMask(0),
+   mTexture(NULL),
+   mTextureClamp(false), mTextureClampColor(false), mBiLerp(false),
+   mAlphaTexture(false), mOverdraw(false),
+   mTextureOriginX(0), mTextureOriginY(0)
 {
   mMatrix22.identity();
   mTextureMatrix22.identity();
@@ -1361,7 +1386,7 @@ void pxRasterizer::init(pxBuffer* buffer)
   //mFirst = mBuffer->height() * mYOversample;
   //mLast = 0;
 
-  reset();        
+  reset();
 }
 
 void pxRasterizer::term()
@@ -2286,7 +2311,7 @@ void pxRasterizer::scanCoverage(pxPixel* scanline, int32_t x0, int32_t x1)
         }
         else p += coverageRun;
 
-        coverageRun = 1;
+        //coverageRun = 1;
       }
 
     }
