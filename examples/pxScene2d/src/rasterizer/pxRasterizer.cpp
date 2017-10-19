@@ -614,7 +614,7 @@ struct textureedge
   int32_t mdx, mdy;
 
   int32_t mCurrentX;
-  int32_t mCurrentY;
+ // int32_t mCurrentY;
 
   int32_t mCurrentU;
   int32_t mCurrentV;
