@@ -604,8 +604,8 @@ struct textureedge
 //  int32_t mLeft;
 
 #if 1
-  int32_t deltaU;
-  int32_t deltaV;
+  // int32_t deltaU;
+  // int32_t deltaV;
 
   int32_t mU1, mU2;
   int32_t mV1, mV2;
