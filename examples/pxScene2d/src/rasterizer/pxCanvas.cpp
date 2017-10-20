@@ -91,7 +91,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
 
   float x0 = 0.0, y0 = 0.0, x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
 
-  while(op < fin)
+  while(op && op < fin)
   {
     opcode = *op++; // skip opcode
     
