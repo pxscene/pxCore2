@@ -551,6 +551,7 @@ void pxWindowNative::runEventLoop()
 
     while(!exitFlag)
     {
+        double startMilliseconds = pxMilliseconds();
         std::vector<pxWindowNative*>::iterator i;
         for (i = windowVector.begin(); i < windowVector.end(); i++)
         {
@@ -558,7 +559,15 @@ void pxWindowNative::runEventLoop()
            w->animateAndRender();
         }
         wl_display_dispatch_pending(display->display);
-        usleep(32*1000);
+        int processTime = (int)pxMilliseconds() - (int)startMilliseconds;
+        if (processTime < 0)
+        {
+          processTime = 0;
+        }
+        if (processTime < 32)
+        {
+          usleep((32-processTime)*1000);
+        }
         //pxSleepMS(1000); // Breath
     }
 }
