@@ -129,8 +129,36 @@ void DoLineSegmentIntersection(const Vector& p0, const Vector& p1, const Vector&
 
 
 
-pxCanvas2d::pxCanvas2d(): mVertexCount(0), mOffscreen(/*NULL*/)
+double mFontSize;
+
+  double textX, textY;
+  double lastX, lastY;
+
+
+  int mVertexCount;
+
+  pxColor mFillColor;
+
+  pxColor mStrokeColor;
+  double  mStrokeWidth;
+
+  double extentLeft,  extentTop;
+  double extentRight, extentBottom;
+
+  bool    mNeedsRedraw;
+
+  int mw;
+  int mh;
+
+
+
+pxCanvas2d::pxCanvas2d(): mFontSize(0.0), textX(0.0), textY(0.0), lastX(0.0), lastY(0.0),
+                          mVertexCount(0),   mFillColor(pxRed), mStrokeColor(pxRed), mStrokeWidth(0.0),
+                          mOffscreen(/*NULL*/),
+                          extentLeft(0.0), extentTop(0.0), extentRight(0.0), extentBottom(0.0),
+                          mNeedsRedraw(false), mw(0), mh(0)
 {
+
 }
 
 pxCanvas2d::~pxCanvas2d()

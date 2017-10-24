@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
   script.initializeNode();
 #endif
   int retTests = RUN_ALL_TESTS();
-  rtLogInfo("Tests executed with retuen code [%d]", retTests);
+  rtLogInfo("Tests executed with return code [%d]", retTests);
   #ifdef ENABLE_CODE_COVERAGE
   __gcov_flush();
   #endif

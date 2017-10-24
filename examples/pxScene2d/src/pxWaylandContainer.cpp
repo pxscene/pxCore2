@@ -19,6 +19,7 @@
 // pxWaylandContainer.cpp
 
 #include <stdlib.h>
+#include <unistd.h>
 #include "rtString.h"
 #include "rtRef.h"
 #include "pxCore.h"
@@ -43,7 +44,7 @@ extern map<string, string> gWaylandAppsMap;
 // #define UNUSED_PARAM(x) ((void)x)
 
 pxWaylandContainer::pxWaylandContainer(pxScene2d* scene)
-   : pxViewContainer(scene), mWayland(NULL),mClientPID(0),mFillColor(0),mHasApi(false)
+   : pxViewContainer(scene), mWayland(NULL),mClientPID(0),mFillColor(0),mHasApi(false),mBinary()
 {
   addListener("onClientStarted", get<rtFunctionRef>("onClientStarted"));
   addListener("onClientStopped", get<rtFunctionRef>("onClientStopped"));
@@ -224,6 +225,7 @@ rtError pxWaylandContainer::setCmd(const char* s)
   {
      mWayland->setCmd(binary);
   }
+  mBinary = binary;
   return RT_OK;
 }
 
@@ -309,6 +311,23 @@ void pxWaylandContainer::isRemoteReady(bool ready)
       rtPromise* remoteReady = (rtPromise*) mRemoteReady.getPtr();
       if (NULL != remoteReady)
         remoteReady->send(ready?"resolve":"reject",this);
+  }
+}
+
+void pxWaylandContainer::sendPromise()
+{
+  if(mInitialized && !((rtPromise*)mReady.getPtr())->status())
+  {
+    if (access( mBinary.cString(), F_OK ) != -1)
+    {
+      rtLogDebug("sending resolve promise");
+      mReady.send("resolve",this);
+    }
+    else
+    {
+      rtLogDebug("sending reject promise");
+      mReady.send("reject",this);
+    }
   }
 }
 

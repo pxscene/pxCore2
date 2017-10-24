@@ -54,7 +54,7 @@ pxCanvas::~pxCanvas()
 void pxCanvas::draw()
 {
   // NO OP
-  
+
 //  mCanvasCtx.draw();
 //  mCanvasCtx.clear(); // HACK
 }
@@ -76,22 +76,22 @@ void pxCanvas::sendPromise()
 rtError pxCanvas::drawPath(rtObjectRef path)
 {
   pxPath *p = (pxPath *) path.getPtr();
-  
+
   if(!p)
   {
     rtLogError(" - malformed pxPath object op stream.");
     return RT_FAIL;
   }
-  
+
   uint8_t opcode = 0;
   uint8_t *op    = p->getStream();
   uint8_t *fin   = p->getLength() + op;
- 
+
   mCanvasCtx.newPath();
-  
+
   float x0 = 0.0, y0 = 0.0, x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
-  
-  while(op < fin)
+
+  while(op && op < fin)
   {
     opcode = *op++; // skip opcode
     
@@ -102,25 +102,25 @@ rtError pxCanvas::drawPath(rtObjectRef path)
       {
         x0 = p->getFloatAt(op); op += sizeof(float);
         y0 = p->getFloatAt(op); op += sizeof(float);
-        
+
         mCanvasCtx.moveTo(x0, y0);
-        
+
 //        printf("\nCanvas: SVG_OP_MOVE( %.1f, %.1f ) ", x0,y0);
       }
       break;
-      
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       case SVG_OP_LINE:
       {
         x0 = p->getFloatAt(op); op += sizeof(float);
         y0 = p->getFloatAt(op); op += sizeof(float);
-        
+
         mCanvasCtx.moveTo(x0, y0);
-        
+
 //        printf("\nCanvas: SVG_OP_LINE( x0: %.1f, y0: %.1f) ", x0, y0);
       }
       break;
-      
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       case SVG_OP_Q_CURVE:
       {
@@ -128,13 +128,13 @@ rtError pxCanvas::drawPath(rtObjectRef path)
         y1 = p->getFloatAt(op); op += sizeof(float);
         x0 = p->getFloatAt(op); op += sizeof(float);
         y0 = p->getFloatAt(op); op += sizeof(float);
-        
+
         mCanvasCtx.curveTo(x1, y1, x0, y0);
-        
+
 //        printf("\nCanvas: SVG_OP_Q_CURVE( x1: %.1f, y1: %.1f,  x0: %.1f, y0: %.1f) ", x1, y1, x0, y0);
       }
       break;
-      
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       case SVG_OP_C_CURVE:
       {
@@ -150,7 +150,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
 //        printf("\nCanvas: SVG_OP_C_CURVE( x1: %.1f, y1: %.1f,  x2: %.1f, y2: %.1f,  x0: %.1f, y0: %.1f) ", x1, y1, x2, y2, x0, y0);
       }
       break;
-   
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       case SVG_OP_CLOSE:
       {
@@ -159,29 +159,29 @@ rtError pxCanvas::drawPath(rtObjectRef path)
       break;
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       default:
-        rtLogError(" unrecoginzed OpCode: [%C] 0x%02X", (wchar_t)opcode, opcode);
-      
+        rtLogError(" unrecoginzed OpCode: [%c] 0x%02X", (char)opcode, opcode);
+
     }//SWITCH
   }//WHILE
-  
+
   bool needsFill   = false;
   bool needsStroke = false;
-  
+
   mCanvasCtx.setAlpha(1.0);
-  
+
   if(p->mFillColor.a > 0)
   {
     mCanvasCtx.setFillColor(p->mFillColor);
     needsFill = true;
   }
-  
+
   if(p->mStrokeColor.a > 0 && p->mStrokeWidth > 0)
   {
     mCanvasCtx.setStrokeColor(p->mStrokeColor);
     mCanvasCtx.setStrokeWidth(p->mStrokeWidth);
     needsStroke = true;
   }
-  
+
   // Drawing
   if(needsFill || needsStroke)
   {
@@ -208,9 +208,9 @@ rtError pxCanvas::drawPath(rtObjectRef path)
     
 #if 0
 #ifdef PX_PLATFORM_MAC
-    
+
     extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
-    
+
     // HACK
     // HACK
     // HACK
