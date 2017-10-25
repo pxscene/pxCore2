@@ -1035,6 +1035,10 @@ std::string pxClipboardNative::getString(std::string type)
   XDestroyWindow(display, window);
   XCloseDisplay(display);
       
+  if (NULL == sel)
+  {
+    return std::string("");
+  }
   return std::string((const char*) sel);
 }
 

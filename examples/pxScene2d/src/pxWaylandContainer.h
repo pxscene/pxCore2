@@ -33,10 +33,14 @@ class pxWaylandContainer: public pxViewContainer, pxWaylandEvents {
   rtProperty(hasApi, hasApi, setHasApi, bool);
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(remoteReady, remoteReady, rtValue);
+  rtMethodNoArgAndReturn("suspend", suspend, bool);
+  rtMethodNoArgAndReturn("resume", resume, bool);
+  rtMethodNoArgAndReturn("destroy", destroy, bool);
 public:
   pxWaylandContainer(pxScene2d* scene);
   ~pxWaylandContainer();
   rtError setView(pxWayland* v);
+  virtual void dispose();
 
   virtual void onInit();
 
@@ -49,6 +53,7 @@ public:
   virtual void clientStoppedAbnormal( int pid, int signo );
   virtual void isReady( bool ready );
   virtual void isRemoteReady(bool ready);
+  virtual void sendPromise();
 
   rtError displayName(rtString& s) const;
   rtError setDisplayName(const char* s);
@@ -70,6 +75,10 @@ public:
   rtError api(rtValue& v) const;
   rtError remoteReady(rtValue& v) const;
 
+  rtError suspend(bool& b);
+  rtError resume(bool& b);
+  rtError destroy(bool& b);
+
 private:
   rtString mDisplayName;
   rtString mCmd;
@@ -79,7 +88,8 @@ private:
   uint32_t mFillColor;
   bool mHasApi;
   rtValue mAPI;  
-  rtPromise* mRemoteReady;
+  rtObjectRef mRemoteReady;
+  rtString mBinary;
 };
 
 typedef rtRef<pxWayland> pxWaylandRef;

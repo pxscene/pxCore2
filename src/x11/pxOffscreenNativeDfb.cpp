@@ -135,7 +135,7 @@ void pxOffscreenNative::swizzleTo(rtPixelFmt fmt)
 
   uint8_t r = 0, g = 0, b = 0, a = 0;
 
-bool print = true;
+//bool print = true;
 
   for (int y = 0; y < height(); y++)
   {

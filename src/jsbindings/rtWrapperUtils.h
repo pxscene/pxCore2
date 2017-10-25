@@ -25,14 +25,14 @@ inline std::string jsToString(T const& val)
 }
 
 template <class TypeName>
-inline v8::Local<TypeName> StrongPersistentToLocal(const v8::Persistent<TypeName>& persistent) 
+inline v8::Local<TypeName> _StrongPersistentToLocal(const v8::Persistent<TypeName>& persistent) 
 {
   return *reinterpret_cast<v8::Local<TypeName>*>(
       const_cast<v8::Persistent<TypeName>*>(&persistent));
 }
 
 template <class TypeName>
-inline v8::Local<TypeName> WeakPersistentToLocal(v8::Isolate* isolate, const v8::Persistent<TypeName>& persistent) 
+inline v8::Local<TypeName> _WeakPersistentToLocal(v8::Isolate* isolate, const v8::Persistent<TypeName>& persistent) 
 {
   return v8::Local<TypeName>::New(isolate, persistent);
 }
@@ -41,9 +41,11 @@ template <class TypeName>
 inline v8::Local<TypeName> PersistentToLocal(v8::Isolate* isolate, const v8::Persistent<TypeName>& persistent) 
 {
   if (persistent.IsWeak()) 
-    return WeakPersistentToLocal(isolate, persistent);
+    return _WeakPersistentToLocal(isolate, persistent);
+  else if (persistent.IsNearDeath())
+    return v8::Local<TypeName>();
   else 
-    return StrongPersistentToLocal(persistent);
+    return _StrongPersistentToLocal(persistent);
 }
 
 uint32_t GetContextId(v8::Local<v8::Context>& ctx);
@@ -165,7 +167,7 @@ protected:
     else
     {
       strcat(buff, ": ");
-      strcat(buff, rtStrError(err));
+      strncat(buff, rtStrError(err), kBuffSize - strlen(buff) - 1);
     }
     va_end(ptr);
 

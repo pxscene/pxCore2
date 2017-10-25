@@ -49,12 +49,17 @@ typedef enum _WstClient_status
 typedef enum _WstHints
 {
    WstHints_none= 0,
-   WstHints_noRotation= (1<<0)
+   WstHints_noRotation= (1<<0),
+   WstHints_holePunch= (1<<1),
+   WstHints_fboTarget= (1<<2),
+   WstHints_applyTransform= (1<<3),
+   WstHints_animating= (1<<4)
 } WstHints;
 
 typedef void (*WstTerminatedCallback)( WstCompositor *ctx, void *userData );
 typedef void (*WstDispatchCallback)( WstCompositor *ctx, void *userData );
 typedef void (*WstInvalidateSceneCallback)( WstCompositor *ctx, void *userData );
+typedef void (*WstDecodeHandlerCallback)( WstCompositor *ctx, void *userData, uint32_t decoderHandle);
 typedef void (*WstHidePointerCallback)( WstCompositor *ctx, bool hidePointer, void *userData );
 typedef void (*WstClientStatus)( WstCompositor *ctx, int status, int clientPID, int detail, void *userData );
 
@@ -347,6 +352,8 @@ bool WstCompositorSetDispatchCallback( WstCompositor *ctx, WstDispatchCallback c
  * scene has become invalid and that WstCompositorComposeEmbedded should be called.
  */
 bool WstCompositorSetInvalidateCallback( WstCompositor *ctx, WstInvalidateSceneCallback cb, void *userData );
+
+bool WstCompositorSetDecoderHandleCallback( WstCompositor *ctx, WstDecodeHandlerCallback cb, void *userData );
 
 /**
  * WstCompositorSetHidePointerCallback

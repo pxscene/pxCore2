@@ -1,8 +1,8 @@
 #include "pxTimer.h"
 #include "pxRasterizer.h"
 
-#include "xs_Core.h"
-#include "xs_Float.h"
+#include "xs_code/xs_Core.h"
+#include "xs_code/xs_Float.h"
 //#include "rtLog.h"
 
 #include <algorithm>
@@ -1294,7 +1294,10 @@ pxRasterizer::pxRasterizer():
   mClipValid(false), mClipInternalCalculated(false), mCoverage(NULL), mTexture(NULL), 
   mTextureClamp(false), mTextureClampColor(false), mBiLerp(false), mAlphaTexture(false), mOverdraw(false)
 {
-	mMatrix.identity();
+  mMatrix22.identity();
+  mTextureMatrix22.identity();
+
+  mMatrix.identity();
   mTextureMatrix.identity();
 }
 
@@ -1815,13 +1818,21 @@ void pxRasterizer::setTextureCoordinates(pxVertex& e1, pxVertex& e2, pxVertex& e
                                          pxVertex& t1, pxVertex& t2, pxVertex& t3, pxVertex& t4)
 {
   resetTextureEdges();
-  mTextureOriginX = xs_CRoundToInt(e1.x * UVFIXED);
-  mTextureOriginY = xs_CRoundToInt(e1.y * UVFIXED);
-
-  addTextureEdge(e1.x, e1.y, e2.x, e2.y, t1.x, t1.y, t2.x, t2.y);
-  addTextureEdge(e2.x, e2.y, e3.x, e3.y, t2.x, t2.y, t3.x, t3.y);
-  addTextureEdge(e3.x, e3.y, e4.x, e4.y, t3.x, t3.y, t4.x, t4.y);
-  addTextureEdge(e4.x, e4.y, e1.x, e1.y, t4.x, t4.y, t1.x, t1.y);
+//  mTextureOriginX = xs_CRoundToInt(e1.x * UVFIXED);
+//  mTextureOriginY = xs_CRoundToInt(e1.y * UVFIXED);
+//
+//  addTextureEdge(e1.x, e1.y, e2.x, e2.y, t1.x, t1.y, t2.x, t2.y);
+//  addTextureEdge(e2.x, e2.y, e3.x, e3.y, t2.x, t2.y, t3.x, t3.y);
+//  addTextureEdge(e3.x, e3.y, e4.x, e4.y, t3.x, t3.y, t4.x, t4.y);
+//  addTextureEdge(e4.x, e4.y, e1.x, e1.y, t4.x, t4.y, t1.x, t1.y);
+  
+  mTextureOriginX = xs_CRoundToInt(e1.x() * UVFIXED);
+  mTextureOriginY = xs_CRoundToInt(e1.y() * UVFIXED);
+  
+  addTextureEdge(e1.x(), e1.y(), e2.x(), e2.y(), t1.x(), t1.y(), t2.x(), t2.y() );
+  addTextureEdge(e2.x(), e2.y(), e3.x(), e3.y(), t2.x(), t2.y(), t3.x(), t3.y() );
+  addTextureEdge(e3.x(), e3.y(), e4.x(), e4.y(), t3.x(), t3.y(), t4.x(), t4.y() );
+  addTextureEdge(e4.x(), e4.y(), e1.x(), e1.y(), t4.x(), t4.y(), t1.x(), t1.y() );
 }
 
 int log2__[] = {0, 0, 1, 0, 2, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4};
@@ -2001,7 +2012,7 @@ void pxRasterizer::rasterize()
           else if (mMatrix.isTranslatedOnly() && mTextureMatrix.isTranslatedOnly())  // filtered // BUGBUG not taking non texture affine into account
           {
             texLeft -= xs_RoundToInt(mTextureMatrix.translateX());
-            texTop -= xs_RoundToInt(mTextureMatrix.translateY());
+            texTop  -= xs_RoundToInt(mTextureMatrix.translateY());
 
             pxPixel* s = mBuffer->scanline(top);
 
@@ -3612,22 +3623,22 @@ void pxRasterizer::setTexture(pxBuffer* texture)
   mTexture = texture;
 }
 
-void pxRasterizer::setMatrix(const pxMatrix& m)
+void pxRasterizer::setMatrix(const MATRIX_T& m)
 {
   mMatrix = m;
 }
 
-void pxRasterizer::matrix(pxMatrix& m) const
+void pxRasterizer::matrix(MATRIX_T& m) const
 {
   m = mMatrix;
 }
 
-void pxRasterizer::setTextureMatrix(const pxMatrix& m)
+void pxRasterizer::setTextureMatrix(const MATRIX_T& m)
 {
   mTextureMatrix = m;
 }
 
-void pxRasterizer::textureMatrix(pxMatrix& m) const
+void pxRasterizer::textureMatrix(MATRIX_T& m) const
 {
   m = mTextureMatrix;
 }

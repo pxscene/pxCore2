@@ -1,4 +1,4 @@
-/*
+﻿/*
 
  pxCore Copyright 2005-2017 John Robinson
 
@@ -40,7 +40,19 @@ using namespace std;
 
 #include "jsbindings/rtWrapperUtils.h"
 #include <signal.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
+
+#ifdef WIN32
+#include <winsparkle.h>
+//todo: is this resource file needed?  if so, uncomment
+//#include "../../../pxCore.vsbuild/pxScene2d/resource.h"
+#endif
+
+#include <stdint.h>    // for PRId64
+#include <inttypes.h>  // for PRId64
+
 #ifndef RUNINMAIN
 #define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
 #define EXITSCENELOCK()  rtWrapperSceneUpdateExit();
@@ -55,7 +67,19 @@ using namespace std;
 
 #ifdef HAS_LINUX_BREAKPAD
 #include "client/linux/handler/exception_handler.h"
+#elif HAS_WINDOWS_BREAKPAD
+#include <windows.h>
+#include <wchar.h>
+#include <client/windows/handler/exception_handler.h>
 #endif
+
+#ifdef PX_SERVICE_MANAGER
+#include "smqtrtshim.h"
+#include "rtservicemanager.h"
+#include "service.h"
+#include "servicemanager.h"
+#include "applicationmanagerservice.h"
+#endif //PX_SERVICE_MANAGER
 
 #ifndef RUNINMAIN
 class AsyncScriptInfo;
@@ -75,10 +99,20 @@ char** g_origArgv = NULL;
 #endif
 bool gDumpMemUsage = false;
 extern int pxObjectCount;
-
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void* context, bool succeeded) {
+  UNUSED_PARAM(descriptor);
+  UNUSED_PARAM(context);
+  return succeeded;
+}
+#elif HAS_WINDOWS_BREAKPAD
+bool dumpCallback(const wchar_t* dump_path,
+                     const wchar_t* minidump_id,
+                     void* context,
+                     EXCEPTION_POINTERS* exinfo,
+                     MDRawAssertionInfo* assertion,
+                     bool succeeded) {
   return succeeded;
 }
 #endif
@@ -98,9 +132,34 @@ public:
   void init(int x, int y, int w, int h, const char* url = NULL)
   {
     pxWindow::init(x,y,w,h);
-    
-    char buffer[1024];
-    sprintf(buffer,"shell.js?url=%s",rtUrlEncodeParameters(url).cString());
+
+    // escape url begin
+    std::string escapedUrl;
+    std::string origUrl = url;
+    for (std::string::iterator it=origUrl.begin(); it!=origUrl.end(); ++it)
+    {
+      char currChar = *it;
+      if ((currChar == '"') || (currChar == '\\'))
+      {
+        escapedUrl.append(1, '\\');
+      }
+      escapedUrl.append(1, currChar);
+    }
+    if (escapedUrl.length() > MAX_URL_SIZE)
+    {
+      rtLogWarn("url size greater than 8000 bytes, so restting url to browser.js");
+      escapedUrl = "browser.js";
+    }
+    // escape url end
+    char buffer[MAX_URL_SIZE + 50];
+    memset (buffer, 0, sizeof(buffer));
+
+    if (std::string::npos != escapedUrl.find("http")) {
+      snprintf(buffer,sizeof(buffer),"shell.js?url=%s",rtUrlEncodeParameters(escapedUrl.c_str()).cString());
+    }
+    else {
+      snprintf(buffer,sizeof(buffer),"shell.js?url=%s",escapedUrl.c_str());
+    }
 #ifdef RUNINMAIN
     setView( new pxScriptView(buffer,"javascript/node/v8"));
 #else
@@ -128,7 +187,7 @@ public:
       v->onSize(mWidth, mHeight);
       EXITSCENELOCK()
     }
-    
+
     return RT_OK;
   }
 
@@ -164,7 +223,7 @@ protected:
     EXITSCENELOCK()
   }
 
-  virtual void onCloseRequest() 
+  virtual void onCloseRequest()
   {
     if (mClosed)
       return;
@@ -179,17 +238,17 @@ protected:
 #ifndef RUNINMAIN
     uv_close((uv_handle_t*) &asyncNewScript, NULL);
     uv_close((uv_handle_t*) &gcTrigger, NULL);
-#endif 
+#endif
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
   #ifdef RUNINMAIN
      script.garbageCollect();
   #endif
   ENTERSCENELOCK()
-      mView = NULL;
+    mView = NULL;
   EXITSCENELOCK()
   #ifndef RUNINMAIN
-     script.setNeedsToEnd(true);
+   script.setNeedsToEnd(true);
   #endif
   #ifdef ENABLE_DEBUG_MODE
     free(g_origArgv);
@@ -198,7 +257,14 @@ protected:
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
-      rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+#ifndef PX_PLATFORM_DFB_NON_X11
+      rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
+#endif
+// #ifdef PX_PLATFORM_MAC
+//       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
+// #else
+//       rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+// #endif
     }
     #ifdef ENABLE_CODE_COVERAGE
     __gcov_flush();
@@ -307,13 +373,50 @@ void handleTerm(int)
   win.close();
 }
 
+void handleSegv(int)
+{
+  FILE* fp = fopen("/tmp/pxscenecrash","w");
+  fclose(fp);
+  rtLogInfo("Signal SEGV received. sleeping to collect data");
+#ifndef WIN32
+  sleep(1800);
+#endif //WIN32
+}
+
+void handleAbrt(int)
+{
+  FILE* fp = fopen("/tmp/pxscenecrash","w");
+  fclose(fp);
+  rtLogInfo("Signal ABRT received. sleeping to collect data");
+#ifndef WIN32
+  sleep(1800);
+#endif //WIN32
+}
+
 int pxMain(int argc, char* argv[])
 {
 #ifdef HAS_LINUX_BREAKPAD
   google_breakpad::MinidumpDescriptor descriptor("/tmp");
   google_breakpad::ExceptionHandler eh(descriptor, NULL, dumpCallback, NULL, true, -1);
+#elif HAS_WINDOWS_BREAKPAD
+  //register exception handler for breakpad
+  google_breakpad::ExceptionHandler* handler = NULL;
+  handler = new google_breakpad::ExceptionHandler(L"C:\\dumps\\",
+                                   NULL,
+                                   dumpCallback,
+                                   NULL,
+                                   google_breakpad::ExceptionHandler::HANDLER_ALL,
+                                   MiniDumpNormal,
+                                   L"",
+                                   NULL);
 #endif
   signal(SIGTERM, handleTerm);
+  char const* handle_signals = getenv("HANDLE_SIGNALS");
+  if (handle_signals && (strcmp(handle_signals,"1") == 0))
+  {
+    signal(SIGSEGV, handleSegv);
+    signal(SIGABRT, handleAbrt);
+  }
 #ifndef RUNINMAIN
   rtLogWarn("Setting  __rt_main_thread__ to be %x\n",pthread_self());
    __rt_main_thread__ = pthread_self(); //  NB
@@ -416,6 +519,55 @@ if (s && (strcmp(s,"1") == 0))
   win.setVisibility(true);
   win.setAnimationFPS(60);
 
+#ifdef WIN32
+
+  HDC hdc = ::GetDC(win.mWindow);
+  HGLRC hrc;
+
+	static PIXELFORMATDESCRIPTOR pfd =
+	{
+		sizeof(PIXELFORMATDESCRIPTOR),
+		1,
+		PFD_DRAW_TO_WINDOW |
+		PFD_SUPPORT_OPENGL |
+		PFD_DOUBLEBUFFER |
+		PFD_SWAP_EXCHANGE,
+		PFD_TYPE_RGBA,
+		24,
+		0, 0, 0, 0, 0, 0,
+		8,
+		0,
+		0,
+		0, 0, 0, 0,
+		24,
+		8,
+		0,
+		PFD_MAIN_PLANE,
+		0,
+		0, 0, 0
+	};
+
+	int pixelFormat = ChoosePixelFormat(hdc, &pfd);
+  if (::SetPixelFormat(hdc, pixelFormat, &pfd)) {
+	  hrc = wglCreateContext(hdc);
+	  if (::wglMakeCurrent(hdc, hrc)) {
+			glewExperimental = GL_TRUE;
+			if (glewInit() != GLEW_OK)
+				throw std::runtime_error("glewInit failed");
+
+			char *GL_version = (char *)glGetString(GL_VERSION);
+			char *GL_vendor = (char *)glGetString(GL_VENDOR);
+			char *GL_renderer = (char *)glGetString(GL_RENDERER);
+
+
+			rtLogInfo("GL_version = %s", GL_version);
+			rtLogInfo("GL_vendor = %s", GL_vendor);
+			rtLogInfo("GL_renderer = %s", GL_renderer);
+	  }
+  }
+
+
+#endif
   #if 0
   sceneWindow win2;
   win2.init(50, 50, 1280, 720);
@@ -426,6 +578,29 @@ if (s && (strcmp(s,"1") == 0))
 // would like to decouple it from pxScene2d specifically
   context.init();
 
+#ifdef WIN32
+
+  // Initialize WinSparkle as soon as the app itself is initialized, right
+  // before entering the event loop:
+  win_sparkle_set_appcast_url("https://github.com/pxscene/pxscene/tree/gh-pages/dist/windows/appcast.xml");
+  win_sparkle_init(); 
+
+#endif
+
+#ifdef PX_SERVICE_MANAGER
+  SMQtRtShim::installDefaultCallback();
+  RtServiceManager::start();
+
+  ServiceStruct serviceStruct = { ApplicationManagerService::SERVICE_NAME, createApplicationManagerService };
+  ServiceManager::getInstance()->registerService(ApplicationManagerService::SERVICE_NAME, serviceStruct);
+
+#endif //PX_SERVICE_MANAGER
+
   eventLoop.run();
+
+#ifdef WIN32
+  win_sparkle_cleanup();
+#endif
+
   return 0;
 }

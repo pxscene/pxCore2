@@ -1,7 +1,6 @@
 #ifndef __RT_GUID_H__
 #define __RT_GUID_H__
 
-#include <uuid/uuid.h>
 #include <string>
 
 class rtGuid
@@ -25,10 +24,9 @@ public:
 
 private:
   rtGuid();
-  rtGuid(uuid_t t);
 
 private:
-  uuid_t m_id;
+  std::string m_id;
 };
 
 #endif

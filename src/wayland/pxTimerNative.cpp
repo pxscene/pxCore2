@@ -53,7 +53,7 @@ double  pxMicroseconds()
 #endif
 }
 
-void pxSleepMS(unsigned long msToSleep)
+void pxSleepMS(uint32_t msToSleep)
 {
     timeval tv;
     tv.tv_sec = 0;

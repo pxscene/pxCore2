@@ -27,7 +27,7 @@
 extern pxContext context;
 
 
-pxText::pxText(pxScene2d* scene):pxObject(scene), mListenerAdded(false)
+pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontDownloadRequest(NULL), mListenerAdded(false)
 {
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
@@ -103,9 +103,10 @@ void pxText::resourceReady(rtString readyResolution)
     mFontLoaded=true;
     // pxText gets its height and width from the text itself, 
     // so measure it
-    if (getFontResource() != NULL)
-      getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
-
+    if (getFontResource() != NULL) {
+       getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
+	  }
+	
     mDirty=true;  
     mScene->mDirty = true;
     // !CLF: ToDo Use pxObject::onTextureReady() and rename it.
@@ -139,7 +140,7 @@ void pxText::update(double t)
 #else
     // TODO make this configurable
     // TODO make caching more intelligent given scaling
-    if (mText.length() >= 10 && msx == 1.0 && msy == 1.0)
+    if (mText.length() >= 10 && msx == 1.0 && msy == 1.0 && mw < MAX_TEXTURE_WIDTH && mh < MAX_TEXTURE_HEIGHT)
     {
       mCached = NULL;
       pxContextFramebufferRef cached = context.createFramebuffer(getFBOWidth(),getFBOHeight());
@@ -180,7 +181,7 @@ void pxText::draw() {
       // callsite
       context.drawImage(0, 0, (mw>MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:mw), (mh>MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:mh), mCached->getTexture(), nullMaskRef);
     }
-    else
+    else 
     {
       if (getFontResource() != NULL)
       {
@@ -221,8 +222,9 @@ rtError pxText::setFont(rtObjectRef o)
   // !CLF: TODO: Need validation/verification of o
   mFont = o; 
   mListenerAdded = true;
-  if (getFontResource() != NULL)
+  if (getFontResource() != NULL) {
     getFontResource()->addListener(this);
+  }
     
   return RT_OK; 
 }

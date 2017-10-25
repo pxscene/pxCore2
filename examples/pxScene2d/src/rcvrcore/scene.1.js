@@ -16,6 +16,7 @@ function Scene() {
       this.alignHorizontal = scene.alignHorizontal;
       this.truncation = scene.truncation;
       this.root = scene.root;
+      this.info = scene.info;
       this.filePath = filePath;
       this.__defineGetter__("w", function() { return scene.w; });
       this.__defineGetter__("h", function() { return scene.h; });
@@ -56,6 +57,53 @@ function Scene() {
   this.create = function create(params) {
     applyStyle.call(this, params);
 
+    if(params.hasOwnProperty("d") && params.t === "path")
+    {
+        if(params.d.match(/rect/i) )
+        {
+          params.d = params.d.replace(/rect/gi, "RECT");
+          
+          // normalize the path
+          params.d = params.d.replace(/,/g," ")
+          .replace(/-/g," -")
+          .replace(/ +/g," ");
+          
+           // console.log(" >>> Found RECT: [" + params.d + "] ");
+        }
+        else
+        if(params.d.match(/circle/i) )
+        {
+          params.d = params.d.replace(/circle/gi, "CIRCLE");
+          
+          // normalize the path
+          params.d = params.d.replace(/,/g," ")
+          .replace(/-/g," -")
+          .replace(/ +/g," ");
+          
+          // console.log(" >>> Found CIRCLE: [" + params.d + "] ");
+        }
+        else
+        if(params.d.match(/ellipse/i))
+        {
+          params.d = params.d.replace(/ellipse/gi, "ELLIPSE");
+          
+          // normalize the path
+          params.d = params.d.replace(/,/g," ")
+          .replace(/-/g," -")
+          .replace(/ +/g," ");
+          
+          // console.log(" >>> Found ELLIPSE: [" + params.d + "] ");
+        }
+        else
+        {
+          // normalize the path
+          params.d = params.d.replace(/\s*([mlvhqczastTSAMLVHQCZ])\s*/g,"\n$1 ")
+          .replace(/,/g," ")
+          .replace(/-/g," -")
+          .replace(/ +/g," ");
+        }
+    }
+ 
     var component = null;
     if( componentDefinitions !== null && params.hasOwnProperty("t") ) {
       component = createComponent(params);
@@ -99,6 +147,10 @@ function Scene() {
 
   this.clipboardSet = function clipboardSet(type, clip) {
       return nativeScene.clipboardSet(type, clip);
+  };
+
+  this.getService = function getService(name, serviceObject) {
+    return nativeScene.getService(name, serviceObject);
   };
     
   this.setAppContext = function(appContextName, appContext) {

@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 1280 720" xml:space="preserve">
+
+<!-- <rect x="212" y="185" fill="#FF0000" stroke="#0000FF" stroke-width="12" stroke-miterlimit="10" width="150" height="145"/>
+<circle fill="#00FF00" stroke="#000000" stroke-width="12" stroke-miterlimit="10" cx="690" cy="265" r="110"/>
+<polygon fill="#FFFF00" stroke="#FF0000" stroke-width="12" stroke-miterlimit="10" points="323.648,422.676 360.015,496.363 441.334,508.18 382.491,565.537 396.382,646.527 323.648,608.289 250.915,646.527 264.806,565.537 205.963,508.18 287.282,496.363"/>
+<path fill="none" stroke="#000000" stroke-miterlimit=“10" d=“M869.802,477.297c-46.581,0-123.909-30.074-121.711,41.354 s-94.772,10.185-64.003,127.877"/> -->
+
+<!-- <path d="M10 80 Q 50 10, 95 80 T 180 80 270 110" stroke="black" stroke-width="6" fill="transparent"/> -->
+
+<!-- <circle fill="#FF0000" cx="10"  cy="80" r="5"/>
+<circle fill="#FF00FF" cx="50"  cy="10" r="5"/>
+<circle fill="#FF0000" cx="95"  cy="80" r="5"/>
+<circle fill="#FF00FF" cx="140" cy="150" r="5"/>
+<circle fill="#FF0000" cx="180" cy="80" r="5"/>
+<circle fill="#FF00FF" cx="270" cy="110" r="5"/> 
+-->
+
+<!-- <path d="M10 80 Q 50 10, 95 80 T 180 80 270 110" stroke="black" stroke-width="3" fill="transparent"/>   -->
+<!-- <path d="M10 80 Q 50 10, 95 80 T 180 80 " stroke="black" stroke-width="3" fill="transparent"/>   -->
+
+<!-- <path d="M100,200 C100,100 250,100 250,200" stroke="black" stroke-width="6" fill="transparent"/> -->
+  <!-- <path d="M100,200 C100,100 250,100 250,200 S400,300 400,200" stroke="black" stroke-width="6" fill="transparent"/>   -->
+
+
+    <!-- <path d="M100 180 q50 10, 95 80"     stroke="black" stroke-width="6" fill="transparent"/>  
+    <path d="M100 180 Q150 190, 195 260" stroke="red" stroke-width="3" fill="transparent"/>   -->
+
+
+     <!-- <path d="M100 180 C -4.54 9.78 128.40 117.14 117.38 124.48" stroke-width="3"  stroke="black" fill="transparent"/> -->
+
+
+
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//   LETTER "M" in a mega-PATH
+//
+//
+-->
+<path d="M 68.8 49 
+         V 21.9 
+         c 0 -8.3 -2.8 -11.5 -8.2 -11.5 
+         c -6.6 0 -9.3 4.7 -9.3 11.4 
+         v 16.8 
+         h 6.4 
+         V 49 
+         H 37.6 
+         V 21.9 
+         c 0 -8.3 -2.8 -11.5 -8.2 -11.5 
+         c -6.6 0 -9.3 4.7 -9.3 11.4 
+         v 16.8 
+         h 9.2 
+         V 49 
+         H 0 
+         V 38.7 
+         h 6.4 
+         V 11.4 
+         H 0.1 
+         V 1 
+         h 20 
+         v 7.2 
+         C 23 3.1 28 0 34.7 0 
+         C 41.6 0 48 3.3 50.4 10.3 
+         C 53 3.9 58.5 0 66 0 
+         c 8.6 0 16.5 5.2 16.5 16.6 
+         v 22 
+         h 6.4 
+         V 49 
+         H 68.8 
+         Z"
+transform="translate(100, 50)"
+  stroke="black" stroke-width="4"  fill="green"/>
+
+
+<!--
+<path d="M 68.8 49 
+         V 21.9 
+         c 0 -8.3 -2.8 -11.5 -8.2 -11.5 
+         c -6.6 0 -9.3 4.7 -9.3 11.4 
+         v 16.8
+         h 6.4
+         h 6.4
+         V 49
+         H 37.6
+         V 21.9
+         c 0 -8.3 -2.8 -11.5 -8.2 -11.5
+         c -6.6 0 -9.3 4.7 -9.3 11.4
+         v 16.8
+         h 9.2
+         V 49
+         H 0
+         V 38.7
+         h 6.4
+         V 11.4
+         H 0.1
+         V 1
+         h 20
+         v 7.2
+         C 23 3.1
+         28 0 34.7 0
+         C 41.6 0 48 3.3 50.4 10.3
+         C 53 3.9 58.5 0 66 0
+         c 8.6 0 16.5 5.2 16.5 16.6
+         v 22
+         h 6.4
+         V 49
+         H 68.8
+         Z" transform="translate(100, 50)"
+
+  stroke="black" stroke-width="4"  fill="green"/>
+
+-->
+
+<!--
+$ java ArcToBezier 69.4 17.5 17.3 17.3 0 0 0 67.1 4.6
+C 70.35 13.07 69.53 8.43 67.10 4.60
+-->
+<!--
+<path d="M80 180 A 17.3 17.3 0 0 0 67.1 4.6" stroke-width="6"  stroke="black" fill="transparent"/>
+<path d="M80 180 C 70.35 13.07 69.53 8.43 67.1 4.6" stroke-width="3"  stroke="RED" fill="transparent"/>
+-->
+<!--
+<path d="M10 315
+           L 110 215
+           A 30 50 0 0 1 162.55 162.45
+           L 172.55 152.45
+           A 30 50 -45 0 1 215.1 109.9
+           L 315 10" stroke="yellow" fill="green" stroke-width="6" fill-opacity="0.25"/>
+
+
+<path d="M10 315
+           L 110 215
+           A 30 50 0 0 1 162.55 162.45
+           L 172.55 152.45
+           A 30 50 -45 0 1 215.1 109.9
+           L 315 10" stroke="black" fill="green" stroke-width="1" fill-opacity="0.5"/>
+
+
+-->
+
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//    ARC SWEEP - 4 possible values
+//
+//    Example from: ARC section >>  https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
+-->
+<!--
+<path d="M80 80
+           A 45 45, 0, 0, 0, 125 125
+           L 125 80 Z" fill="green"/>
+  <path d="M230 80
+           A 45 45, 0, 1, 0, 275 125
+           L 275 80 Z" fill="red"/>
+  <path d="M80 230
+           A 45 45, 0, 0, 1, 125 275
+           L 125 230 Z" fill="purple"/>
+  <path d="M230 230
+           A 45 45, 0, 1, 1, 275 275
+           L 275 230 Z" fill="blue"/>
+-->
+<!--
+<path d="M300 600 M 329.336 727.552 
+            C 315.224 726.328 304.136 715.816 303.128 694.936 
+            C 306.368 639.496 309.608 582.112 271.232 545.104 
+	    C 265.256 499.024 244.016 482.104 234.008 452.512 
+	    L 218.24 441.208 
+	    L 237.104 411.688 
+	    L 245.168 411.904 
+	    L 323.936 571.168 
+	    L 340.424 651.448 
+	    L 329.336 727.552Z" stroke="black" stroke-width="6"  fill="blue"/>
+-->
+
+<!-- CIRCLE VERIFICATION -->
+<!--
+<path d="M 191 140
+C 191 163   173 181  150  181
+C 127 181   109 163  109  140
+C 109 117   127  99  150   99
+C 173  99   191 117  191  140Z" stroke="black" stroke-width="3"  fill="cyan"/>
+-->
+
+
+<!-- ELLIPSE VERIFICATION -->
+
+<ellipse cx="150" cy="260" rx="50" ry="25"  stroke="black" stroke-width="3"  fill="cyan"/>
+<circle  cx="150" cy="160" r="41" ry="25"  stroke="black" stroke-width="3"  fill="yellow"/>
+
+<!-- 1st of TWO curves  -->
+
+<!--
+<path d="M 200 340 C 200 354 178 365 150 365
+                    C 122 365 100 354 100 340" stroke="red" stroke-width="3"  fill="yellow"/>
+-->
+
+<!-- 
+<circle fill="#FF0000" cx="200" cy="354" r="3"/>
+<circle fill="#FF0000" cx="178" cy="365" r="3"/>
+<circle fill="#FF0000" cx="150" cy="365" r="5"/>
+
+<circle fill="#FF0000" cx="122" cy="365" r="3"/>
+<circle fill="#FF0000" cx="100" cy="354" r="3"/>
+<circle fill="#FF0000" cx="100" cy="340" r="3"/>
+-->
+
+<!-- 2nd of TWO curves  -->
+
+<!--
+<path d="M 100 340 C 100 326 122 315 150 315
+                    C 178 315 200 326 200 340Z" stroke="black" stroke-width="3"  fill="cyan"/>
+-->
+
+<!-- 
+<circle fill="#FF00f0" cx="100" cy="326" r="3"/>
+<circle fill="#FF00f0" cx="122" cy="315" r="3"/>
+<circle fill="#FF00f0" cx="150" cy="315" r="3"/>
+
+<circle fill="#FF0080" cx="178" cy="315" r="3"/>
+<circle fill="#FF0080" cx="200" cy="326" r="3"/>
+<circle fill="#FF0080" cx="200" cy="340" r="3"/>
+-->
+
+<!-- 
+ <path d="M 200 340 C 200 354 178 365 150 365
+                    C 122 365 100 354 100 340
+                    C 100 326 122 315 150 315
+                    C 178 315 200 326 200 340Z" stroke="black" stroke-width="3"  fill="yellow"/>
+-->
+
+<!--
+<path d="M100 315
+           A 30 50 0 0 1 162 162
+           L 315 10" stroke="yellow" fill="green" stroke-width="6" fill-opacity="0.25"/>
+
+<path d="M100 315
+         C 74.65012998276657 286.465287925409   67.97917275524541 229.083116695389   85.1 186.83333333333331
+         C 102.2208272447546 144.58354997127765 136.6501299827666 133.46528792540903 162  162
+         L 315 10" stroke="red" stroke-width="1" fill="transparent"/>
+-->
+
+<!--
+<circle fill="#FF00FF" cx="70.35"  cy="13.07" r="5"/>
+<circle fill="#FF0000" cx="69.53"  cy="8.43" r="5"/>
+<circle fill="#FF00FF" cx="67.1" cy="4.6" r="5"/>
+-->
+
+<!-- <path d="M600,350 l 50,-25 
+           a25,25 -30 0,1 50,-25 l 50,-25 
+           a25,50 -30 0,1 50,-25 l 50,-25 
+           a25,75 -30 0,1 50,-25 l 50,-25 
+           a25,100 -30 0,1 50,-25 l 50,-25"
+        fill="none" stroke="red" stroke-width="5"/>   -->
+
+<!--
+        scene.create( { id: "CurveBG", t: "path", d:"M100 180 q50 10, 95 80",     strokeColor: 0x0000001f, strokeWidth: 9, parent: bg} );  // relative
+        scene.create( { id: "CurveFG", t: "path", d:"M100 180 Q150 190, 195 260", strokeColor: 0xFF0000ff, strokeWidth: 3, parent: bg} );  // absolute
+
+    <path d="M100 180 q50 10, 95 80"     stroke="black" stroke-width="6" fill="transparent"/>  
+    <path d="M100 180 Q150 190, 195 260" stroke="red" stroke-width="3" fill="transparent"/>  
+    <path d="M100 180 c100,100 250,100 250,200" stroke="green" stroke-width="3" fill="transparent"/>  
+
+
+    <circle fill="#FF0000" cx="100" cy="200" r="5"/>
+    <circle fill="#FF00FF" cx="100" cy="100" r="5"/>
+    <circle fill="#FF0000" cx="250" cy="100" r="5"/>
+    <circle fill="#FF00FF" cx="250" cy="200" r="5"/>
+    <circle fill="#FF0000" cx="400" cy="300" r="5"/>
+    <circle fill="#FF0000" cx="400" cy="200" r="5"/>
+    <circle fill="#FF00FF" cx="250" cy="300" r="5"/>
+
+-->
+
+<!-- <path d="M89.171,155.172c2.668-0.742,4.23-3.531,3.475-6.238c-0.76-2.678-3.549-4.266-6.265-3.492 c-2.669,0.76-4.235,3.568-3.476,6.24C83.673,154.365,86.454,155.948,89.171,155.172z" stroke="black" stroke-width="6" fill="transparent"/>  -->
+
+<!-- <path d="m 250.000000 150.000000 c -55.228477 0 -100.000000 44.771523 -100.000000 -100.000000s 0 55.228477 44.771523 100.000000 44.771523 100.000000 55.228477 0 100.000000 -44.771523 100.000000 -100.000000 0 -55.228477 -44.771523 -100.000000 -100.000000 -100.000000" stroke="red" stroke-width="16" fill="transparent"/> -->
+
+</svg>
+

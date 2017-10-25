@@ -48,10 +48,11 @@ pxResource::~pxResource()
   //rtLogDebug("Leaving pxResource::~pxResource()\n");
 }
 
-rtError pxResource::setUrl(const char* url)
+rtError pxResource::setUrl(const char* url, const char* proxy)
 {
   //rtLogDebug("pxResource::setUrl for url=\"%s\"\n",url);
   mUrl = url;
+  mProxy = proxy;
   
   return RT_OK;
 }
@@ -164,9 +165,9 @@ void pxResource::raiseDownloadPriority()
 /**********************************************************************/
 /**********************************************************************/
 
-rtImageResource::rtImageResource(const char* url)
+rtImageResource::rtImageResource(const char* url, const char* proxy)
 {
-  setUrl(url);
+  setUrl(url, proxy);
 }
 rtImageResource::~rtImageResource() 
 {
@@ -248,6 +249,7 @@ void pxResource::loadResource()
   {
       mLoadStatus.set("sourceType", "http");
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this);
+      mDownloadRequest->setProxy(mProxy);
       // setup for asynchronous load and callback
       mDownloadRequest->setCallbackFunction(pxResource::onDownloadComplete);
       rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
@@ -360,7 +362,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
     {
       if(!loadResourceData(fileDownloadRequest))
       {
-        rtLogError("Resource Decode Failed: %s", fileDownloadRequest->fileUrl().cString());
+        rtLogError("Resource Decode Failed: %s with proxy: %s", fileDownloadRequest->fileUrl().cString(), fileDownloadRequest->proxy().cString());
         mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
         mLoadStatus.set("httpStatusCode", (uint32_t)fileDownloadRequest->httpStatusCode());
         // Since this object can be released before we get a async completion
@@ -404,10 +406,10 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
  * rtImageResource 
  */
 
-rtImageAResource::rtImageAResource(const char* url) : mTimedOffscreenSequence()
+rtImageAResource::rtImageAResource(const char* url, const char* proxy) : mTimedOffscreenSequence()
 {
   mTimedOffscreenSequence.init();
-  setUrl(url);
+  setUrl(url, proxy);
 }
 
 rtImageAResource::~rtImageAResource()
@@ -460,7 +462,7 @@ void rtImageAResource::loadResourceFromFile()
 ImageMap pxImageManager::mImageMap;
 rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
 /** static pxImageManager::getImage */
-rtRef<rtImageResource> pxImageManager::getImage(const char* url)
+rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy)
 {
   //rtLogDebug("pxImageManager::getImage\n");
   // Handle empty url
@@ -491,7 +493,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url)
   else 
   {
     //rtLogInfo("Create rtImageResource in map for \"%s\"\n",url);
-    pResImage = new rtImageResource(url);
+    pResImage = new rtImageResource(url, proxy);
     mImageMap.insert(make_pair(url, pResImage));
     pResImage->loadResource();
     pResImage->init();
@@ -514,7 +516,7 @@ void pxImageManager::removeImage(rtString imageUrl)
 ImageAMap pxImageManager::mImageAMap;
 rtRef<rtImageAResource> pxImageManager::emptyUrlImageAResource = 0;
 /** static pxImageManager::getImage */
-rtRef<rtImageAResource> pxImageManager::getImageA(const char* url)
+rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* proxy)
 {
   if(!url || strlen(url) == 0) {
     if( !emptyUrlImageAResource) {
@@ -532,7 +534,7 @@ rtRef<rtImageAResource> pxImageManager::getImageA(const char* url)
   }
   else
   {
-    pResImageA = new rtImageAResource(url);
+    pResImageA = new rtImageAResource(url, proxy);
     mImageAMap.insert(make_pair(url, pResImageA));
     pResImageA->loadResource();
     pResImageA->init();
@@ -552,6 +554,7 @@ void pxImageManager::removeImageA(rtString imageUrl)
 
 rtDefineObject(pxResource, rtObject);
 rtDefineProperty(pxResource,url);
+rtDefineProperty(pxResource,proxy);
 rtDefineProperty(pxResource,ready);
 rtDefineProperty(pxResource,loadStatus);
 

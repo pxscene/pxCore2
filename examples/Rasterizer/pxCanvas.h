@@ -5,8 +5,22 @@
 #define RTPLATFORM_WINDOWS
 #endif
 
+
+///
+///
+//#define MATRIX_T  pxMatrix
+//#include "pxMatrix.h"
+///
+///
+#define MATRIX_T  pxMatrix4T<float>
+#include "pxMatrix4T.h"
+///
+///
+
+
+
 #include "px2d.h"
-#include "pxMatrix.h"
+//#include "pxMatrix.h"
 #include "pxRasterizer.h"
 
 
@@ -47,11 +61,11 @@ public:
   void translate(double dx, double dy);
 #endif
 
-  void matrix(pxMatrix& matrix) const;
-  void setMatrix(const pxMatrix& matrix);
+  void matrix(MATRIX_T& matrix) const;
+  void setMatrix(const MATRIX_T& matrix);
 
-  void textureMatrix(pxMatrix& m) const;
-  void setTextureMatrix(const pxMatrix& m);
+  void textureMatrix(MATRIX_T& m) const;
+  void setTextureMatrix(const MATRIX_T& m);
 
   // Fill the current path
   void fill(bool time = false);
@@ -158,8 +172,8 @@ public:
 
   int mVertexCount;
   pxVertex mVertices[200000];
-  pxMatrix mMatrix;
-  pxMatrix mTextureMatrix;
+  MATRIX_T mMatrix;
+  MATRIX_T mTextureMatrix;
   pxColor mFillColor;
   pxColor mStrokeColor;
   double mStrokeWidth;

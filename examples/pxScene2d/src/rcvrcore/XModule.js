@@ -5,7 +5,7 @@ var hasExtension = require('rcvrcore/utils/FileUtils').hasExtension;
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('XModule');
 
-function XModule(name, appSceneContext, fromJarFile, basePath) {
+function XModule(name, appSceneContext, basePath, jarName) {
   log.message(5, "Create new XModule for " + name);
   this.name = name;
   this.appSandbox = null;
@@ -18,8 +18,8 @@ function XModule(name, appSceneContext, fromJarFile, basePath) {
   this.appSceneContext = appSceneContext;
   this.imports = {};
   this.log = null;
-  this.fromJarFile = fromJarFile;
   this.basePath = basePath;
+  this.jarName = jarName;
   this.importReplacementMap = {};
 }
 
@@ -44,6 +44,10 @@ XModule.prototype.freeResources = function() {
 
 XModule.prototype.getBasePath = function() {
   return this.basePath;
+};
+
+XModule.prototype.getJarName = function() {
+  return this.jarName;
 };
 
 XModule.prototype.initSandbox = function(otherSandbox) {
@@ -76,7 +80,7 @@ XModule.prototype.importModule = function(requiredModuleSet, params) {
 XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, failedCallback, params) {
   var isSingleStringImportType = false;
 
-  if( readyCallBack == 'undefined' ) {
+  if( readyCallBack === undefined ) {
     console.trace("WARNING: " + 'prepareModule was did not have resolutionCallback parameter: USAGE: prepareModule(requiredModules, readyCallback, [failedCallback])');
   }
 
@@ -102,7 +106,7 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
 
   if( requiredModules.length === 0 ) {
     log.message(5, "XModule:  No includes are required for " + this.name);
-    if( readyCallBack !== null && readyCallBack != 'undefined' ) {
+    if( readyCallBack !== null && readyCallBack !== undefined ) {
       readyCallBack();
     }
     this.moduleReadyPromise = null;
@@ -145,7 +149,7 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
 
   // Create a promise that will be fulfilled when all includes/imports have been completed
   var promise = new Promise(function(moduleBuildResolve, moduleBuildReject) {
-    if (requiredModules != 'undefined') {
+    if (requiredModules !== undefined) {
       for (var k = 0; k < requiredModules.length; ++k) {
         var ipromise = _this.include(requiredModules[k]);
         _this.moduleNameList[k] = requiredModules[k];
@@ -171,7 +175,7 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
         }
       }
       log.message(7, "XMODULE ABOUT TO NOTIFY [" + _this.name + "] that all its imports are Ready");
-      if( readyCallBack !== null && readyCallBack != 'undefined' ) {
+      if( readyCallBack !== null && readyCallBack !== undefined ) {
         readyCallBack(exportsMap);
       }
       moduleBuildResolve();
@@ -179,7 +183,7 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
     }).catch(function (error) {
       console.error("Error - failed to get Remote modules for: " + _this.name + ", error=" + error);
       // notify that the promise can't be kept
-      if( failedCallback !== null && failedCallback != 'undefined' ) {
+      if( failedCallback !== null && failedCallback !== undefined ) {
         failedCallback();
       }
       moduleBuildReject(error);

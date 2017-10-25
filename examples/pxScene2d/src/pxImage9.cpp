@@ -72,10 +72,13 @@ rtError pxImage9::url(rtString& s) const
 rtError pxImage9::setUrl(const char* s) 
 { 
   rtImageResource* resourceObj = getImageResource();  
-  if(resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s) && imageLoaded)
+  if(resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
   {
-    imageLoaded = false;
-    pxObject::createNewPromise();
+    if(imageLoaded || ((rtPromise*)mReady.getPtr())->status())
+    {
+      imageLoaded = false;
+      pxObject::createNewPromise();
+    }
   } 
 
   mResource = pxImageManager::getImage(s); 

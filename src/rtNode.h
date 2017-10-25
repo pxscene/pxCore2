@@ -33,6 +33,14 @@
 #if !defined(WIN32) && !defined(ENABLE_DFB)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+
+#ifndef PX_PLATFORM_MAC
+#ifndef __clang__
+#pragma GCC diagnostic ignored "-Werror"
+#endif
+#endif
+
+#pragma GCC diagnostic ignored "-Wall"
 #endif
 
 #include "uv.h"
@@ -45,11 +53,10 @@
 #define SANDBOX_IDENTIFIER  ( (const char*) "_sandboxStuff" )
 #define SANDBOX_JS          ( (const char*) "rcvrcore/sandbox.js")
 
-#if 1
- #if !defined(WIN32) & !defined(ENABLE_DFB)
-  #pragma GCC diagnostic pop
- #endif
+#if !defined(WIN32) & !defined(ENABLE_DFB)
+#pragma GCC diagnostic pop
 #endif
+
 
 #define USE_CONTEXTIFY_CLONES
 
@@ -87,18 +94,18 @@ public:
 
   ~rtNodeContext();
 
-  void    add(const char *name, rtValue  const& val);
+  rtError add(const char *name, rtValue  const& val);
   rtValue get(const char *name);
   rtValue get(std::string name);
-  
+
   bool    has(const char *name);
   bool    has(std::string name);
 
-  bool   find(const char *name);
+  //bool   find(const char *name);  //DEPRECATED
 
-  rtObjectRef runScript(const char        *script,  const char *args = NULL); // BLOCKS
-  rtObjectRef runScript(const std::string &script,  const char *args = NULL); // BLOCKS
-  rtObjectRef runFile  (const char *file,           const char *args = NULL); // BLOCKS
+  rtError runScript(const char        *script, rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
+  rtError runScript(const std::string &script, rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
+  rtError runFile  (const char *file,          rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
 
   unsigned long AddRef()
   {

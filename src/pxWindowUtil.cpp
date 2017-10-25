@@ -372,7 +372,7 @@ static asciiKeymapEntry asciiKeymap[] =
   {PX_KEY_SEVEN, PX_MOD_SHIFT, '&'},
   {PX_KEY_SINGLEQUOTE, 0, '\''},
   {PX_KEY_NINE, PX_MOD_SHIFT, '('},
-  {PX_KEY_ZERO, PX_MOD_SHIFT, '}'},
+  {PX_KEY_ZERO, PX_MOD_SHIFT, ')'},
   {PX_KEY_EIGHT, PX_MOD_SHIFT, '*'},
   {PX_KEY_EQUALS, PX_MOD_SHIFT, '+'},
   {PX_KEY_COMMA, 0, ','},

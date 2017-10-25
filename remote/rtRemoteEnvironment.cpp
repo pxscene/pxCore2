@@ -182,6 +182,11 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, bo
   if (!wait && m_queue.empty())
     return RT_ERROR_QUEUE_EMPTY;
 
+  //
+  // TODO: if someone is already waiting for a specifc response
+  // then we should use a 2nd queue
+  //
+
   if (!m_queue_cond.wait_until(lock, delay, [this] { return !this->m_queue.empty() || !m_running; }))
   {
     e = RT_ERROR_TIMEOUT;
@@ -204,7 +209,6 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, bo
     void* argp = nullptr;
 
     rtRemoteCorrelationKey const k = rtMessage_GetCorrelationKey(*workItem.Message);
-    rtLogDebug("got reply with key: %s", k.toString().c_str());
     auto itr = m_response_handlers.find(k);
     if (itr != m_response_handlers.end())
     {
@@ -245,6 +249,24 @@ rtRemoteEnvironment::enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt
   workItem.Message = doc;
 
   std::unique_lock<std::mutex> lock(m_queue_mutex);
+
+  #if 0
+  // TODO if someone is waiting for this message, then deliver it directly
+  rtRemoteCorrelationKey const k = rtMessage_GetCorrelationKey(*workItem.Message);
+  auto itr = m_response_handlers.find(k);
+  if (itr != m_response_handlers.end())
+  {
+    rtError e = itr->second.Func(workItem.Client, workItem.Message, itr->second.Arg);
+    if (e != RT_OK)
+      rtLogWarn("error dispatching message directly to waiter. %s", rtStrError(e));
+  }
+  else
+  {
+    m_queue.push(workItem);
+    m_queue_cond.notify_all();
+  }
+  #endif
+
   m_queue.push(workItem);
   lock.unlock();
   m_queue_cond.notify_all();
