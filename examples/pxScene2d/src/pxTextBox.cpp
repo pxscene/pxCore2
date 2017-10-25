@@ -28,7 +28,7 @@
 extern pxContext context;
 #include <math.h>
 #include <map>
-
+#include <stdlib.h>
 
 static const char      isNewline_chars[] = "\n\v\f\r";
 static const char isWordBoundary_chars[] = " \t/:&,;.";
@@ -38,30 +38,24 @@ static const char    isSpaceChar_chars[] = " \t";
 #if 1
 // TODO can we eliminate direct utf8.h usage
 extern "C" {
-#include "utf8.h"
+#include "../../../src/utf8.h"
 }
 #endif
 
 
-pxTextBox::pxTextBox(pxScene2d* s): pxText(s)
+pxTextBox::pxTextBox(pxScene2d* s): pxText(s),
+                                    mTruncation(pxConstantsTruncation::NONE),
+                                    mAlignVertical(pxConstantsAlignVertical::TOP),
+                                    mAlignHorizontal(pxConstantsAlignHorizontal::LEFT),
+                                    mXStartPos(0),  mXStopPos(0), mLeading(0), 
+                                    mWordWrap(false), mEllipsis(false), mInitialized(false), mNeedsRecalc(true),
+                                    lineNumber(0), lastLineNumber(0),
+                                    noClipX(0), noClipY(0), noClipW(0), noClipH(0), startY(0)
 {
   measurements= new pxTextMeasurements();
 
   mFontLoaded      = false;
-  mInitialized     = false;
-  mWordWrap        = false;
-  mEllipsis        = false;
-  mNeedsRecalc     = true;
   
-  lineNumber       = 0;
-  lastLineNumber   = 0;
-  mXStartPos       = 0;
-  mXStopPos        = 0;
-  mLeading         = 0;
-  
-  mTruncation      = pxConstantsTruncation::NONE;
-  mAlignVertical   = pxConstantsAlignVertical::TOP;
-  mAlignHorizontal = pxConstantsAlignHorizontal::LEFT;
 }
 
 /** This signals that the font file loaded successfully; now we need to
@@ -357,12 +351,17 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
     int i = 0;
     int lasti = 0;
     int numbytes = 1;
+    char* tempChar = NULL;
     while((charToMeasure = u8_nextchar((char*)text, &i)) != 0)
     {
       // Determine if the character is multibyte
       numbytes = i-lasti;
-      char tempChar[(numbytes) +1];
-      memset(tempChar, '\0', sizeof(tempChar));
+      if (tempChar != NULL)
+      {
+        delete [] tempChar;
+      }
+      tempChar = new char[numbytes+1];
+      memset(tempChar, '\0', sizeof(char)*(numbytes+1));
       if(numbytes == 1) {
         tempChar[0] = charToMeasure;
       } 
@@ -488,10 +487,14 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
               //rtLogDebug("space char check: \"%s\"\n",tempChar);
               accString.append(tempChar);
             }
-
-            free(tempStr);
+            
           }
 
+          delete [] tempChar;
+          tempChar = NULL;
+
+          // Free tempStr
+          free(tempStr);
           // Now skip to next line
           tempY += (mLeading*sy) + charH;
           tempX = 0;
@@ -517,6 +520,11 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         }
       }
     }//WHILE
+    if (tempChar != NULL)
+    {
+      delete [] tempChar;
+      tempChar = NULL;
+    }
 
     if(accString.length() > 0) {
       lastLineNumber = lineNumber;
@@ -997,6 +1005,7 @@ void pxTextBox::setLineMeasurements(bool firstLine, float xPos, float yPos)
   {
     getFontResource()->getMetrics(mPixelSize, height, ascent, descent, naturalLeading);
   }
+  
   if(!firstLine) {
     getMeasurements()->getCharLast()->setX(xPos);
     getMeasurements()->getCharLast()->setY(yPos + ascent);
@@ -1144,7 +1153,8 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
     {
       getFontResource()->measureTextInternal(tempStr, pixelSize, sx, sy, charW, charH);
     }
-    if ( (tempX + charW + ellipsisW) <= lineWidth)
+	
+    if( (tempX + charW + ellipsisW) <= lineWidth)
     {
       float xPos = tempX;
       if( mTruncation == pxConstantsTruncation::TRUNCATE)

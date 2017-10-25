@@ -649,20 +649,50 @@ private:
     template<typename InputStream>
     unsigned ParseHex4(InputStream& is) {
         unsigned codepoint = 0;
+        /* MODIFIED CODE BEGIN */
+        bool overflowed = false;
+        bool underflowed = false;
+        /* MODIFIED CODE END */
         for (int i = 0; i < 4; i++) {
+            /* MODIFIED CODE BEGIN */
+            overflowed = false;
+            underflowed = false;
+            /* MODIFIED CODE END */
             Ch c = is.Take();
             codepoint <<= 4;
-            codepoint += static_cast<unsigned>(c);
+            /* MODIFIED CODE BEGIN */
+            unsigned temp = static_cast<unsigned>(c);
+            (codepoint <= (temp + codepoint))?codepoint += temp:overflowed=true;
+            if (true == overflowed)
+            {
+              RAPIDJSON_PARSE_ERROR_NORETURN(kParseErrorStringUnicodeEscapeInvalidHex, is.Tell() - 1);
+              RAPIDJSON_PARSE_ERROR_EARLY_RETURN(0);
+            }
             if (c >= '0' && c <= '9')
-                codepoint -= '0';
+            {
+                unsigned tempchar = static_cast<unsigned>('0');
+                (codepoint >= (codepoint - tempchar))?codepoint = codepoint - tempchar:underflowed=true;
+            }
             else if (c >= 'A' && c <= 'F')
-                codepoint -= 'A' - 10;
+            {
+                unsigned tempchar = static_cast<unsigned>('A' - 10);
+                (codepoint >= (codepoint - tempchar))?codepoint = codepoint - tempchar:underflowed=true;
+            }
             else if (c >= 'a' && c <= 'f')
-                codepoint -= 'a' - 10;
+            {
+                unsigned tempchar = static_cast<unsigned>('a' - 10);
+                (codepoint >= (codepoint - tempchar))?codepoint = codepoint - tempchar:underflowed=true;
+            }
             else {
                 RAPIDJSON_PARSE_ERROR_NORETURN(kParseErrorStringUnicodeEscapeInvalidHex, is.Tell() - 1);
                 RAPIDJSON_PARSE_ERROR_EARLY_RETURN(0);
             }
+            if (true == underflowed)
+            {
+                RAPIDJSON_PARSE_ERROR_NORETURN(kParseErrorStringUnicodeEscapeInvalidHex, is.Tell() - 1);
+                RAPIDJSON_PARSE_ERROR_EARLY_RETURN(0);
+            }
+            /* MODIFIED CODE END */
         }
         return codepoint;
     }

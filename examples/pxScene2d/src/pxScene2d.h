@@ -78,6 +78,7 @@ class AsyncScriptInfo {
 };
 #endif
 
+#define MAX_URL_SIZE 8000
 
 //Uncomment to enable display of pointer by pxScene
 //#define USE_SCENE_POINTER
@@ -110,17 +111,24 @@ struct pxAnimationTarget
 struct animation 
 {
   bool cancelled;
+  bool flip;
+  bool reversing;
+
   rtString prop;
+
   float from;
   float to;
-  bool flip;
+
   double start;
   double duration;
-  pxConstantsAnimation::animationOptions at;
-  pxInterp interp;
+
+  pxConstantsAnimation::animationOptions  options;
+  
+  pxInterp interpFunc;
+
   int32_t count;
   float actualCount;
-  bool reversing;
+
   rtFunctionRef ended;
   rtObjectRef promise;
   rtObjectRef animateObj;
@@ -128,7 +136,7 @@ struct animation
 
 struct pxPoint2f 
 {
-  pxPoint2f() {}
+  pxPoint2f():x(0),y(0) {}
   pxPoint2f(float _x, float _y) { x = _x; y = _y; } 
   float x, y;
 };
@@ -330,24 +338,7 @@ public:
 #endif // ANIMATION_ROTATE_XYZ
   bool painting()            const { return mPainting;}
   rtError painting(bool& v)  const { v = mPainting; return RT_OK;  }
-  rtError setPainting(bool v)
-  { 
-      mPainting = v; 
-      if (!mPainting)
-      {
-        //rtLogInfo("in setPainting and calling createSnapshot mw=%f mh=%f\n", mw, mh);
-#ifdef RUNINMAIN
-        createSnapshot(mSnapshotRef);
-#else
-        createSnapshot(mSnapshotRef, true);
-#endif //RUNINMAIN
-      }
-      else
-      {
-        deleteSnapshot(mSnapshotRef);
-      }
-      return RT_OK;
-  }
+  rtError setPainting(bool v);
 
   bool clip()            const { return mClip;}
   rtError clip(bool& v)  const { v = mClip; return RT_OK;  }
@@ -375,10 +366,10 @@ public:
     return RT_OK;
   }
 
+  void    moveForward();
+  void    moveBackward();
   rtError moveToFront();
   rtError moveToBack();
-  void moveForward();
-  void moveBackward();
 
   virtual void dispose();
 
@@ -393,19 +384,19 @@ public:
   void setFocusInternal(bool focus) { mFocus = focus; }
   
   rtError animateTo(const char* prop, double to, double duration,
-                     uint32_t interp, uint32_t animationType, 
+                     uint32_t interp, uint32_t options,
                      int32_t count, rtObjectRef promise);
 
   rtError animateToP2(rtObjectRef props, double duration, 
-                      uint32_t interp, uint32_t animationType,
+                      uint32_t interp, uint32_t options,
                       int32_t count, rtObjectRef& promise);
 
   rtError animateToObj(rtObjectRef props, double duration,
-                      uint32_t interp, uint32_t animationType,
+                      uint32_t interp, uint32_t options,
                       int32_t count, rtObjectRef& promise);
 
   void animateToInternal(const char* prop, double to, double duration,
-                 pxInterp interp, pxConstantsAnimation::animationOptions,
+                 pxInterp interp, pxConstantsAnimation::animationOptions options,
                  int32_t count, rtObjectRef promise, rtObjectRef animateObj);
 
   void cancelAnimation(const char* prop, bool fastforward = false, bool rewind = false, bool resolve = false);
@@ -735,9 +726,9 @@ protected:
   pxRect mScreenCoordinates;
   #endif //PX_DIRTY_RECTANGLES
 
-  void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false);
+  void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
   void createSnapshotOfChildren();
-  void deleteSnapshot(pxContextFramebufferRef fbo);
+  void clearSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES
   pxRect getBoundingRectInScreenCoordinates();
   pxRect convertToScreenCoordinates(pxRect* r);
@@ -755,6 +746,7 @@ protected:
     v = (void*)this;
     return RT_OK;
   }
+  void repaintParents();
 };
 
 class pxRoot: public pxObject
@@ -1002,12 +994,7 @@ public:
     return c;
   }
 
-  void dispose()
-  {
-     rtLogInfo(__FUNCTION__);
-     setScriptView(NULL);
-     pxObject::dispose();
-  }
+  void dispose();
   rtError url(rtString& v) const { v = mUrl; return RT_OK; }
   rtError setUrl(rtString v);
 
@@ -1028,7 +1015,7 @@ private:
   rtRef<pxScriptView> mScriptView;
   rtString mUrl;
 };
-
+typedef rtRef<pxSceneContainer> pxSceneContainerRef;
 
 typedef rtRef<pxObject> pxObjectRef;
 
@@ -1049,26 +1036,28 @@ public:
     // Clear out these references since the script context
     // can outlive this view
 #ifdef ENABLE_RT_NODE
-    if(mCtx) 
+    if(mCtx)
     {
       mGetScene->clearContext();
       mMakeReady->clearContext();
       mGetContextID->clearContext();
-                                   
+
       // TODO Given that the context is being cleared we likely don't need to zero these out
       mCtx->add("getScene", 0);
       mCtx->add("makeReady", 0);
       mCtx->add("getContextID", 0);
     }
 #endif //ENABLE_RT_NODE
-    
+
     if (mView)
       mView->setViewContainer(NULL);
 
     // TODO JRJR Do we have GC tests yet
     // Hack to try and reduce leaks until garbage collection can
     // be cleaned up
-    
+
+    mEmit.send("onSceneRemoved", mScene);
+
     if (mScene)
       mScene.send("dispose");
 
@@ -1108,6 +1097,18 @@ public:
     
     o = mReady;
     return RT_OK;
+  }
+
+  rtString getUrl() const { return mUrl; }
+
+  static rtError addListener(rtString  eventName, const rtFunctionRef& f)
+  {
+    return mEmit->addListener(eventName, f);
+  }
+
+  static rtError delListener(rtString  eventName, const rtFunctionRef& f)
+  {
+    return mEmit->delListener(eventName, f);
   }
   
 protected:
@@ -1241,6 +1242,7 @@ protected:
 #ifndef RUNINMAIN
   rtString mLang;
 #endif
+  static rtEmitRef mEmit;
 };
 
 class pxScene2d: public rtObject, public pxIView 
@@ -1256,6 +1258,7 @@ public:
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
+  rtReadOnlyProperty(info, info, rtObjectRef);
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
@@ -1277,6 +1280,8 @@ public:
 
   rtMethod1ArgAndReturn("clipboardGet", clipboardGet, rtString, rtString);
   rtMethod2ArgAndNoReturn("clipboardSet", clipboardSet, rtString, rtString);
+
+  rtMethod1ArgAndReturn("getService", getService, rtString, rtObjectRef);
     
     
   rtProperty(ctx, ctx, setCtx, rtValue);
@@ -1291,7 +1296,7 @@ public:
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
-  pxScene2d(bool top = true);
+  pxScene2d(bool top = true, pxScriptView* scriptView = NULL);
   virtual ~pxScene2d() 
   {
      rtLogDebug("***** deleting pxScene2d\n");
@@ -1337,9 +1342,11 @@ public:
   rtError createText(rtObjectRef p, rtObjectRef& o);
   rtError createTextBox(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
+  rtError createPath(rtObjectRef p, rtObjectRef& o);
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
   rtError createImageA(rtObjectRef p, rtObjectRef& o);
-  rtError createImageResource(rtObjectRef p, rtObjectRef& o); 
+  rtError createImageResource(rtObjectRef p, rtObjectRef& o);
+  rtError createImageAResource(rtObjectRef p, rtObjectRef& o);
   rtError createFontResource(rtObjectRef p, rtObjectRef& o);  
   rtError createScene(rtObjectRef p,rtObjectRef& o);
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
@@ -1436,6 +1443,15 @@ public:
     return RT_OK;
   }
 
+  rtObjectRef getCanvas() const { return mCanvas; };
+ 
+  rtObjectRef  getInfo() const;
+  rtError info(rtObjectRef& v) const
+  {
+    v = getInfo();
+    return RT_OK;
+  }
+
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
     rtError e = RT_FAIL;
@@ -1447,7 +1463,8 @@ public:
     }
     return e;
   }
-  
+
+  void innerpxObjectDisposed(rtObjectRef ref);
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
@@ -1461,15 +1478,20 @@ private:
   rtError screenshot(rtString type, rtString& pngData);
   rtError clipboardGet(rtString type, rtString& retString);
   rtError clipboardSet(rtString type, rtString clipString);
+  rtError getService(rtString name, rtObjectRef& returnObject);
   
     
   rtRef<pxObject> mRoot;
+  rtObjectRef mInfo;
   rtObjectRef mFocusObj;
   double start, sigma_draw, sigma_update, end2;
 
   int frameCount;
   int mWidth;
   int mHeight;
+  
+  rtObjectRef mCanvas; // for SVG drawing
+  
   rtEmitRef mEmit;
 
 // TODO Top level scene only
@@ -1482,6 +1504,7 @@ private:
   bool mStopPropagation;
   int mTag;
   pxIViewContainer *mContainer;
+  pxScriptView *mScriptView;
   bool mShowDirtyRectangle;
   #ifdef USE_SCENE_POINTER
   pxTextureRef mNullTexture;
@@ -1495,6 +1518,7 @@ private:
   int32_t mPointerHotSpotY;
   #endif
   bool mPointerHidden;
+  std::vector<rtObjectRef> mInnerpxObjects;
 public:
   void hidePointer( bool hide )
   {
@@ -1505,6 +1529,7 @@ public:
   pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
   testView* mTestView;
+  bool mDisposed;
 };
 
 // TODO do we need this anymore?

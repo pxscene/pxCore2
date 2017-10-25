@@ -55,7 +55,7 @@ class jsObjectWrapper : public rtIObject
 {
 public:
   jsObjectWrapper(v8::Isolate* isolate, const Handle<Value>& val, bool isArray);
-  ~jsObjectWrapper();
+  virtual ~jsObjectWrapper();
 
   static const char* kIsJavaScriptObjectWrapper;
   static bool isJavaScriptObjectWrapper(const rtObjectRef& obj);

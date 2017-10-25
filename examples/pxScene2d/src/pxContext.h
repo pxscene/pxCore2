@@ -80,7 +80,7 @@ class pxContext {
   void pushState();
   void popState();
 
-  pxContextFramebufferRef createFramebuffer(int width, int height);
+  pxContextFramebufferRef createFramebuffer(int width, int height, bool antiAliasing=false);
   pxError updateFramebuffer(pxContextFramebufferRef fbo, int width, int height);
   pxError setFramebuffer(pxContextFramebufferRef fbo);
   pxContextFramebufferRef getCurrentFramebuffer();
@@ -101,11 +101,17 @@ class pxContext {
   void drawImage(float x, float y, float w, float h, pxTextureRef t,
                  pxTextureRef mask, bool useTextureDimsAlways = true, float* color = NULL,
                  pxConstantsStretch::constants xStretch = pxConstantsStretch::STRETCH,
-                 pxConstantsStretch::constants yStretch = pxConstantsStretch::STRETCH );
+                 pxConstantsStretch::constants yStretch = pxConstantsStretch::STRETCH,
+                 bool downscaleSmooth = false);
 
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxTextureRef texture);
 
+  void drawOffscreen(float src_x, float src_y,
+                     float dst_x, float dst_y,
+                     float w, float h,
+                     pxOffscreen  &offscreen);
+  
 // Only use for debug/diag purposes not for normal rendering
   void drawDiagRect(float x, float y, float w, float h, float* color);
   void drawDiagLine(float x1, float y1, float x2, float y2, float* color);

@@ -285,8 +285,14 @@ function PromiseThen(onResolve, onReject) {
   var deferred = NewPromiseCapability(constructor);
   switch (status) {
     case 0:  // Pending
-      GET_PRIVATE(this, promiseOnResolveSymbol).push(onResolve, deferred);
-      GET_PRIVATE(this, promiseOnRejectSymbol).push(onReject, deferred);
+      /* MODIFIED CODE BEGIN */
+      var resolveSym = GET_PRIVATE(this, promiseOnResolveSymbol);
+      if (!IS_UNDEFINED(resolveSym))
+        resolveSym.push(onResolve, deferred);
+      var rejectSym = GET_PRIVATE(this, promiseOnRejectSymbol);
+      if (!IS_UNDEFINED(rejectSym))
+        rejectSym.push(onReject, deferred);
+      /* MODIFIED CODE END */
       break;
     case +1:  // Resolved
       PromiseEnqueue(GET_PRIVATE(this, promiseValueSymbol),

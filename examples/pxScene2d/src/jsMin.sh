@@ -5,7 +5,7 @@ then
   printf "\nCLOSURE COMPILER - FATAL:   Java not installed !! \n\n"
 exit 1
 fi
-
+ 
 
 if [ "$#" -lt 1 ]
 then
@@ -36,11 +36,21 @@ fi
 if [[ -e $OUTPUT ]] && [[ $OUTPUT -nt $INPUT ]]
 then
 
-#  printf "\nCLOSURE COMPILER - Skipping: $INPUT  >>>  $OUTPUT  \n\n"
+  #printf "\nCLOSURE COMPILER - Skipping: $INPUT  >>>  $OUTPUT  \n\n"
   exit 0
 fi
 
 #printf "\nCLOSURE COMPILER - Process: $INPUT  >>>  $OUTPUT  \n\n"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Skip Minification ? 
+if [ ! -z "$DISABLE_MINIFY" ]
+then
+  #printf "Just copy $INPUT to $OUTPUT \n"
+  
+  cp $INPUT $OUTPUT
+  exit 0
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

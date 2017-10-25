@@ -602,7 +602,24 @@ local unzFile unzOpenInternal (const void *path,
 
     if (unz_copyright[0]!=' ')
         return NULL;
-
+    // fix unintialized variables
+    us.byte_before_the_zipfile = 0;
+    us.current_file_ok = 0;
+    us.central_pos = 0;
+    us.size_central_dir = 0;
+    us.offset_central_dir = 0;
+    us.pfile_in_zip_read = NULL;
+    us.encrypted = 0;
+    us.isZip64 = 0;
+    #ifndef NOUNCRYPT
+    us.keys[0] = 0;
+    us.keys[1] = 0;
+    us.keys[2] = 0;
+    us.keys[3] = 0;
+    us.pcrc_32_tab = NULL;
+    #endif
+    us.pos_in_central_dir = 0;
+    us.num_file = 0;
     us.z_filefunc.zseek32_file = NULL;
     us.z_filefunc.ztell32_file = NULL;
     if (pzlib_filefunc64_32_def==NULL)
@@ -784,6 +801,7 @@ extern unzFile ZEXPORT unzOpen2_64 (const void *path,
         zlib_filefunc64_32_def_fill.zfile_func64 = *pzlib_filefunc_def;
         zlib_filefunc64_32_def_fill.ztell32_file = NULL;
         zlib_filefunc64_32_def_fill.zseek32_file = NULL;
+        zlib_filefunc64_32_def_fill.zopen32_file = NULL;
         return unzOpenInternal(path, &zlib_filefunc64_32_def_fill, 1);
     }
     else

@@ -40,6 +40,7 @@ public:
   virtual ~pxWaylandEvents() {}
 
   virtual void invalidate( pxRect* /*r*/ ) {}
+  virtual void decoderHandle ( void * ) {}
   virtual void hidePointer( bool /*hide*/ ) {}
   virtual void clientStarted( int /*pid*/ ) {}  
   virtual void clientConnected( int /*pid*/ ) {}
@@ -72,6 +73,11 @@ public:
     mContainer = l;
   }
   
+  virtual void RT_STDCALL onCloseRequest()
+  {
+    rtLogInfo("pxWayland::onCloseRequest()");
+  }
+
   void setEvents( pxWaylandEvents *events )
   {
      mEvents= events;
@@ -150,6 +156,8 @@ public:
   rtError startRemoteObjectLocator();
   rtError connectToRemoteObject(unsigned int timeout_ms);
   rtError useDispatchThread(bool use);
+  rtError resume();
+  rtError suspend();
 private:
   rtAtomic mRefCount;
   pthread_t mClientMonitorThreadId;
@@ -164,13 +172,17 @@ private:
   int mWidth;
   int mHeight;
   bool mUseFbo;
+  bool mSuspended;
+  pxMatrix4f mLastMatrix;
 
   static void invalidate( WstCompositor *wctx, void *userData );
+  static void decoderHandleCallback( WstCompositor *wctx, void *userData,void* decoderHandle);
   static void hidePointer( WstCompositor *wctx, bool hide, void *userData );
   static void clientStatus( WstCompositor *wctx, int status, int pid, int detail, void *userData );
   static void remoteDisconnectedCB(void *data);
 
-  void handleInvalidate();  
+  void handleInvalidate();
+  void setDecoderHandle(void* handle);
   void handleHidePointer( bool hide );
   void handleClientStatus( int status, int pid, int detail );
   void launchClient();
@@ -194,6 +206,7 @@ protected:
   pxContextFramebufferRef mFBO;
   WstCompositor *mWCtx;
   float mFillColor[4];
+  float mClearColor[4];
 
   bool mHasApi;
   rtValue mAPI;

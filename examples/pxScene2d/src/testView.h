@@ -22,7 +22,7 @@ class testView: public pxIView
 {
 public:
   
-testView(): mContainer(NULL),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) {}
+testView(): mContainer(NULL),mRefCount(0),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) {}
   virtual ~testView() {}
 
   virtual unsigned long AddRef() 
@@ -135,13 +135,18 @@ testView(): mContainer(NULL),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) 
     rtLogInfo("testView::onChar(%u)", codepoint);
     return false;
   }
-
+  
   virtual void RT_STDCALL setViewContainer(pxIViewContainer* l)
   {
     rtLogInfo("testView::setViewContainer(%p)", l);
     mContainer = l;
   }
 
+  virtual void RT_STDCALL onCloseRequest()
+  {
+    rtLogInfo("testView::onCloseRequest()");
+  }
+  
   virtual void RT_STDCALL onUpdate(double t);
   virtual void RT_STDCALL onDraw();
 

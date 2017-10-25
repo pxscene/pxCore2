@@ -3,13 +3,25 @@
 #ifndef  _H_PXRASTERIZER
 #define _H_PXRASTERIZER
 
-//#include "pxCore.h"
 #include "px2d.h"
-#include "pxMatrix.h"
+
+///
+///
+//#define MATRIX_T  pxMatrix
+//#include "pxMatrix.h"
+///
+///
+#define MATRIX_T  pxMatrix4T<float>
+#include "pxMatrix4T.h"
+///
+///
+
 #include "pxOffscreen.h"
 
 #define USELONGCOVERAGE 1
 #define EDGECLEANUP
+
+
 
 //#define FRONT2BACK
 
@@ -73,11 +85,11 @@ public:
   bool textureClampColor() const { return mTextureClampColor; }
   void setTextureClampColor(bool f) { mTextureClampColor = f; }
 
-	void matrix(pxMatrix& m) const;
-	void setMatrix(const pxMatrix& m);
+	void matrix(MATRIX_T& m) const;
+	void setMatrix(const MATRIX_T& m);
 
-  void textureMatrix(pxMatrix& m) const;
-  void setTextureMatrix(const pxMatrix& m);
+  void textureMatrix(MATRIX_T& m) const;
+  void setTextureMatrix(const MATRIX_T& m);
 
   bool biLerp() const { return mBiLerp; }
   void setBiLerp(bool f) { mBiLerp = f; }
@@ -163,9 +175,12 @@ private:
 
   unsigned char ltEdgeCover[16];  // static?  can be shared
   unsigned char rtEdgeCover[16];
-
-	pxMatrix mMatrix;
-  pxMatrix mTextureMatrix;
+  
+  pxMatrix4T<float> mMatrix22;
+  pxMatrix4T<float> mTextureMatrix22;
+  
+  MATRIX_T mMatrix;
+  MATRIX_T mTextureMatrix;
 
   int32_t mTextureOriginX, mTextureOriginY;
 

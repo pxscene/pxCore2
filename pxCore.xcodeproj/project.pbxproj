@@ -86,7 +86,6 @@
 		4C0C29021E6F0505007013C9 /* Rasterizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CEF520E1E6F00E400E7DF59 /* Rasterizer.cpp */; };
 		4C0C29031E6F050B007013C9 /* pxRasterizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CEF520C1E6F00E400E7DF59 /* pxRasterizer.cpp */; };
 		4C0C29041E6F0513007013C9 /* pxCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CEF52091E6F00E400E7DF59 /* pxCanvas.cpp */; };
-		4C35B1751EA641F3000A3F21 /* xs_String.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CCCA2B91E96C5E800884036 /* xs_String.cpp */; };
 		4C7B860F1D10A45200C2489F /* pxClipboard.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B860E1D10A45200C2489F /* pxClipboard.h */; };
 		4C7B86131D10A47300C2489F /* pxClipboardNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4C7B86111D10A47300C2489F /* pxClipboardNative.mm */; };
 		4C7B86141D10A47300C2489F /* pxClipboardNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B86121D10A47300C2489F /* pxClipboardNative.h */; };
@@ -95,6 +94,7 @@
 		4CEF52121E6F00E400E7DF59 /* pxCanvas.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520A1E6F00E400E7DF59 /* pxCanvas.h */; };
 		4CEF52131E6F00E400E7DF59 /* pxMatrix.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520B1E6F00E400E7DF59 /* pxMatrix.h */; };
 		4CEF52151E6F00E400E7DF59 /* pxRasterizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520D1E6F00E400E7DF59 /* pxRasterizer.h */; };
+		4CFA65511F190ABA00332B6F /* libz.1.1.3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CFA65501F190ABA00332B6F /* libz.1.1.3.tbd */; };
 		AE1D42DD1B7CF611002E7CAE /* Hover.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1D42DC1B7CF611002E7CAE /* Hover.cpp */; };
 		AE1D42DE1B7D048B002E7CAE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
 		AE1D42DF1B7D0493002E7CAE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
@@ -256,10 +256,6 @@
 		4C7B860E1D10A45200C2489F /* pxClipboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboard.h; path = src/pxClipboard.h; sourceTree = SOURCE_ROOT; };
 		4C7B86111D10A47300C2489F /* pxClipboardNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxClipboardNative.mm; path = src/mac/pxClipboardNative.mm; sourceTree = SOURCE_ROOT; };
 		4C7B86121D10A47300C2489F /* pxClipboardNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboardNative.h; path = src/mac/pxClipboardNative.h; sourceTree = SOURCE_ROOT; };
-		4CCCA2B61E96C5E800884036 /* pxRasterizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxRasterizer.cpp; path = examples/Rasterizer/pxRasterizer.cpp; sourceTree = SOURCE_ROOT; };
-		4CCCA2B71E96C5E800884036 /* Rasterizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Rasterizer.cpp; path = examples/Rasterizer/Rasterizer.cpp; sourceTree = SOURCE_ROOT; };
-		4CCCA2B81E96C5E800884036 /* pxCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxCanvas.cpp; path = examples/Rasterizer/pxCanvas.cpp; sourceTree = SOURCE_ROOT; };
-		4CCCA2B91E96C5E800884036 /* xs_String.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = xs_String.cpp; path = examples/Rasterizer/xs_String.cpp; sourceTree = SOURCE_ROOT; };
 		4CEF52081E6F00E400E7DF59 /* px2d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = px2d.h; path = examples/Rasterizer/px2d.h; sourceTree = SOURCE_ROOT; };
 		4CEF52091E6F00E400E7DF59 /* pxCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxCanvas.cpp; path = examples/Rasterizer/pxCanvas.cpp; sourceTree = SOURCE_ROOT; };
 		4CEF520A1E6F00E400E7DF59 /* pxCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxCanvas.h; path = examples/Rasterizer/pxCanvas.h; sourceTree = SOURCE_ROOT; };
@@ -267,6 +263,8 @@
 		4CEF520C1E6F00E400E7DF59 /* pxRasterizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxRasterizer.cpp; path = examples/Rasterizer/pxRasterizer.cpp; sourceTree = SOURCE_ROOT; };
 		4CEF520D1E6F00E400E7DF59 /* pxRasterizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxRasterizer.h; path = examples/Rasterizer/pxRasterizer.h; sourceTree = SOURCE_ROOT; };
 		4CEF520E1E6F00E400E7DF59 /* Rasterizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Rasterizer.cpp; path = examples/Rasterizer/Rasterizer.cpp; sourceTree = SOURCE_ROOT; };
+		4CFA654C1F1909B700332B6F /* libpng-1.6.28 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "libpng-1.6.28"; path = "examples/pxScene2d/external/libpng-1.6.28"; sourceTree = "<group>"; };
+		4CFA65501F190ABA00332B6F /* libz.1.1.3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.1.1.3.tbd; path = usr/lib/libz.1.1.3.tbd; sourceTree = SDKROOT; };
 		AE1D42BC1B7CF5E0002E7CAE /* Hover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hover.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE1D42DC1B7CF611002E7CAE /* Hover.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Hover.cpp; path = examples/Hover/Hover.cpp; sourceTree = SOURCE_ROOT; };
 		AE1D42E51B7D2A23002E7CAE /* Multi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Multi.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -375,6 +373,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4CFA65511F190ABA00332B6F /* libz.1.1.3.tbd in Frameworks */,
 				AE1D43861B7D5067002E7CAE /* Foundation.framework in Frameworks */,
 				AEF5F63F1C0C6B4F005A642F /* libpxCore.a in Frameworks */,
 				AE1D43851B7D505F002E7CAE /* Cocoa.framework in Frameworks */,
@@ -542,7 +541,6 @@
 		4C6887291E96903000B143C5 /* Examples */ = {
 			isa = PBXGroup;
 			children = (
-				4CCCA2B51E96C5CA00884036 /* Rasterizer */,
 				AECBED121B679A7600851BFE /* Simple */,
 				AE1D42BD1B7CF5E0002E7CAE /* Hover */,
 				AE1D42E61B7D2A23002E7CAE /* Multi */,
@@ -555,17 +553,6 @@
 				AE1D44121B809983002E7CAE /* SimpleOpenGL */,
 			);
 			name = Examples;
-			sourceTree = "<group>";
-		};
-		4CCCA2B51E96C5CA00884036 /* Rasterizer */ = {
-			isa = PBXGroup;
-			children = (
-				4CCCA2B61E96C5E800884036 /* pxRasterizer.cpp */,
-				4CCCA2B71E96C5E800884036 /* Rasterizer.cpp */,
-				4CCCA2B81E96C5E800884036 /* pxCanvas.cpp */,
-				4CCCA2B91E96C5E800884036 /* xs_String.cpp */,
-			);
-			name = Rasterizer;
 			sourceTree = "<group>";
 		};
 		AE1D42BD1B7CF5E0002E7CAE /* Hover */ = {
@@ -652,6 +639,8 @@
 		AECBECA01B6796DC00851BFE = {
 			isa = PBXGroup;
 			children = (
+				4CFA65501F190ABA00332B6F /* libz.1.1.3.tbd */,
+				4CFA654C1F1909B700332B6F /* libpng-1.6.28 */,
 				4C0086DE1E6C64C900DB42F4 /* CoreFoundation.framework */,
 				AE1D44361B809BA8002E7CAE /* OpenGL.framework */,
 				AECBEE0B1B685F2100851BFE /* Cocoa.framework */,
@@ -1199,7 +1188,6 @@
 				4C0C29031E6F050B007013C9 /* pxRasterizer.cpp in Sources */,
 				4C0C29041E6F0513007013C9 /* pxCanvas.cpp in Sources */,
 				4C0C29021E6F0505007013C9 /* Rasterizer.cpp in Sources */,
-				4C35B1751EA641F3000A3F21 /* xs_String.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1480,8 +1468,14 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
 				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = examples/Mandelbrot/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/examples/skia",
+					"$(PROJECT_DIR)/examples/Mandelbrot",
+					/usr/local/Cellar/webp/0.6.0/lib,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -1494,8 +1488,14 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
 				GCC_PREPROCESSOR_DEFINITIONS = PX_PLATFORM_MAC;
+				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = examples/Mandelbrot/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/examples/skia",
+					"$(PROJECT_DIR)/examples/Mandelbrot",
+					/usr/local/Cellar/webp/0.6.0/lib,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -1733,6 +1733,7 @@
 					RT_PLATFORM_LINUX,
 					ENABLE_NODE_V_6_9,
 					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
 				);
 				HEADER_SEARCH_PATHS = (
 					"examples/pxScene2d/external/libnode-v6.9.0/src",
@@ -1803,6 +1804,7 @@
 					RT_PLATFORM_LINUX,
 					ENABLE_NODE_V_6_9,
 					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
 				);
 				HEADER_SEARCH_PATHS = (
 					"examples/pxScene2d/external/libnode-v6.9.0/src",

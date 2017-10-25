@@ -1,7 +1,7 @@
 # pxCore FrameBuffer Library
 # Hover Example
 
-CFLAGS= -I../../src -DPX_PLATFORM_X11 -Wno-write-strings
+CFLAGS= -I../../src -DPX_PLATFORM_X11 -Wno-write-strings -Werror
 OUTDIR=../../build/x11
 
 all: $(OUTDIR)/Hover

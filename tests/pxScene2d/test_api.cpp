@@ -1,5 +1,8 @@
+#ifndef ENABLE_RT_NODE
 #define ENABLE_RT_NODE
-#include "gtest/gtest.h"
+#endif
+
+#include <sstream>
 
 #define private public
 #define protected public
@@ -13,6 +16,7 @@
 
 #include <rtRef.h>
 
+#include "test_includes.h" // Needs to be included last
 
 using namespace std;
 
@@ -50,7 +54,7 @@ private:
       rtObjectRef   scene = mView->mScene;
       pxScene2d* sceneptr = (pxScene2d*)scene.getPtr();
 
-      ASSERT_NE(sceneptr, NULL);
+      ASSERT_NE(sceneptr, nullptr);
 
       mRoot = sceneptr->getRoot();
 
