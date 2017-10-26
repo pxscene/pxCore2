@@ -23,6 +23,7 @@
 
 using namespace std;
 
+
 // rtEmit
 unsigned long rtEmit::AddRef() 
 {
@@ -31,7 +32,9 @@ unsigned long rtEmit::AddRef()
   
 unsigned long rtEmit::Release() {
   long l = rtAtomicDec(&mRefCount);
-  if (l == 0) delete this;
+  if (l == 0) {
+    //delete this; // todo
+  }
   return l;
 }
 
@@ -244,7 +247,7 @@ rtError rtMapObject::Get(const char* name, rtValue* value) const
     *value = it->v;
     return RT_OK;
   }
-  else if (!strcmp(name, "allKeys"))
+  else if (!strcmp(name, "allKeys") || !strcmp(name, "mapKeys"))
   {
     rtRefT<rtArrayObject> keys = new rtArrayObject;
     vector<rtNamedValue>::const_iterator it = this_->mProps.begin();
@@ -304,8 +307,9 @@ unsigned long /*__stdcall__ */ rtObject::AddRef()
 unsigned long /*__stdcall*/ rtObject::Release() 
 {
   long l = rtAtomicDec(&mRefCount);
-  if (l == 0) 
-    delete this;
+  if (l == 0) {
+    //delete this; // todo
+  }
   return l;
 }
 
@@ -422,7 +426,7 @@ void rtObjectBase::set(rtObjectRef o)
     uint32_t len = keys.get<uint32_t>("length");
     for (uint32_t i = 0; i < len; i++)
     {
-      rtString key = keys.get<rtString>(i);
+      rtString key = keys.rtObjectBase::Get<rtString>(i);
       set(key, o.get<rtValue>(key));
     }
   }
@@ -621,6 +625,18 @@ rtError rtObject::allKeys(rtObjectRef& v) const
   return RT_OK;
 }
 
+rtError rtMapObject::mapKeys(rtObjectRef& v) const
+{
+  rtRefT<rtArrayObject> keys = new rtArrayObject;
+
+  for (int i = 0; i < mProps.size(); ++i) {
+    keys->pushBack(mProps[i].n);
+  }
+
+  v = keys;
+  return RT_OK;
+}
+
 
 #if 0
 // TODO
@@ -638,4 +654,5 @@ rtDefineMethod(rtObject, init);
 rtDefineObject(rtArrayObject, rtObject);
 rtDefineProperty(rtArrayObject, length);
 
-
+rtDefineObject(rtMapObject, rtObject);
+rtDefineProperty(rtMapObject, mapKeys);

@@ -35,17 +35,52 @@
 #include <iostream>
 #include <sstream>
 
+extern "C" {
+#include "duv.h"
+}
+
+#include "pxTimer.h"
+
+#ifdef _WIN32
+# include <io.h>
+# ifndef S_IRUSR
+#  define S_IRUSR _S_IREAD
+# endif
+# ifndef S_IWUSR
+#  define S_IWUSR _S_IWRITE
+# endif
+#endif
+
+#if defined(__unix__) || defined(__POSIX__) || \
+    defined(__APPLE__) || defined(_AIX)
+#include <unistd.h> /* unlink, rmdir, etc. */
+#else
+# include <direct.h>
+# include <io.h>
+# define unlink _unlink
+# define rmdir _rmdir
+# define open _open
+# define write _write
+# define close _close
+# ifndef stat
+#  define stat _stati64
+# endif
+# ifndef lseek
+#   define lseek _lseek
+# endif
+#endif
+
 #ifndef WIN32
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-#include "node.h"
-#include "node_javascript.h"
-#include "node_contextify_mods.h"
+//#include "node.h"
+//#include "node_javascript.h"
+//#include "node_contextify_mods.h"
 
-#include "env.h"
-#include "env-inl.h"
+//#include "env.h"
+//#include "env-inl.h"
 
 #include "jsbindings/rtWrapperUtils.h"
 
@@ -57,9 +92,6 @@
 #ifndef RUNINMAIN
 extern uv_loop_t *nodeLoop;
 #endif
-//#include "rtThreadQueue.h"
-
-//extern rtThreadQueue gUIThreadQueue;
 
 #ifdef RUNINMAIN
 
@@ -72,9 +104,6 @@ extern uv_loop_t *nodeLoop;
 #define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
 #define EXITSCENELOCK()  rtWrapperSceneUpdateExit();
 #endif
-
-using namespace v8;
-using namespace node;
 
 #ifdef ENABLE_DEBUG_MODE
 int g_argc = 0;
@@ -104,10 +133,6 @@ args_t *s_gArgs;
 #endif
 rtNodeContexts  mNodeContexts;
 
-#ifdef ENABLE_NODE_V_6_9
-ArrayBufferAllocator* array_buffer_allocator = NULL;
-bool bufferAllocatorIsSet = false;
-#endif
 bool nodeTerminated = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,20 +163,18 @@ static inline bool file_exists(const char *file)
 }
 #endif
 
-rtNodeContext::rtNodeContext(Isolate *isolate,Platform* platform) :
-     js_file(NULL), mIsolate(isolate), mEnv(NULL), mRefCount(0),mPlatform(platform), mContextifyContext(NULL)
+rtNodeContext::rtNodeContext() :
+     js_file(NULL), mRefCount(0), mContextifyContext(NULL), uvLoop(NULL)
 {
-  assert(isolate); // MUST HAVE !
   mId = rtAtomicInc(&sNextId);
 
   createEnvironment();
 }
 
 #ifdef USE_CONTEXTIFY_CLONES
-rtNodeContext::rtNodeContext(Isolate *isolate, rtNodeContextRef clone_me) :
-      js_file(NULL), mIsolate(isolate), mEnv(NULL), mRefCount(0), mPlatform(NULL), mContextifyContext(NULL)
+rtNodeContext::rtNodeContext(rtNodeContextRef clone_me) :
+      js_file(NULL), mRefCount(0), mContextifyContext(NULL), uvLoop(NULL)
 {
-  assert(mIsolate); // MUST HAVE !
   mId = rtAtomicInc(&sNextId);
 
   clonedEnvironment(clone_me);
@@ -161,147 +184,6 @@ rtNodeContext::rtNodeContext(Isolate *isolate, rtNodeContextRef clone_me) :
 void rtNodeContext::createEnvironment()
 {
   rtLogInfo(__FUNCTION__);
-  Locker                locker(mIsolate);
-  Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);
-
-  // Create a new context.
-  Local<Context> local_context = Context::New(mIsolate);
-
-#ifdef ENABLE_NODE_V_6_9
-
-  local_context->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
-
-  mContextId = GetContextId(local_context);
-
-  mContext.Reset(mIsolate, local_context); // local to persistent
-
-  Context::Scope context_scope(local_context);
-
-  Handle<Object> global = local_context->Global();
-
-
-
-  mRtWrappers.Reset(mIsolate, global);
-
-  // Create Environment.
-
-  mEnv = CreateEnvironment(mIsolate,
-                           uv_default_loop(),
-                           local_context,
-#ifdef ENABLE_DEBUG_MODE
-                           g_argc,
-                           g_argv,
-#else
-                           s_gArgs->argc,
-                           s_gArgs->argv,
-#endif
-                           exec_argc,
-                           exec_argv);
-
-   array_buffer_allocator->set_env(mEnv);
-
-  mIsolate->SetAbortOnUncaughtExceptionCallback(
-        ShouldAbortOnUncaughtException);
-#ifdef ENABLE_DEBUG_MODE
-  // Start debug agent when argv has --debug
-  if (use_debug_agent)
-  {
-    rtLogWarn("use_debug_agent\n");
-#ifdef HAVE_INSPECTOR
-    if (use_inspector)
-    {
-      char currentPath[100];
-      memset(currentPath,0,sizeof(currentPath));
-      getcwd(currentPath,sizeof(currentPath));
-      StartDebug(mEnv, currentPath, debug_wait_connect, mPlatform);
-    }
-    else
-#endif
-    {
-      StartDebug(mEnv, NULL, debug_wait_connect);
-    }
-  }
-#endif
-  // Load Environment.
-  {
-    Environment::AsyncCallbackScope callback_scope(mEnv);
-    LoadEnvironment(mEnv);
-  }
-#ifdef ENABLE_DEBUG_MODE
-  if (use_debug_agent)
-  {
-    rtLogWarn("use_debug_agent\n");
-    EnableDebug(mEnv);
-  }
-#endif
-    rtObjectWrapper::exportPrototype(mIsolate, global);
-    rtFunctionWrapper::exportPrototype(mIsolate, global);
-
-    {
-      SealHandleScope seal(mIsolate);
-#ifndef RUNINMAIN
-      EmitBeforeExit(mEnv);
-#else
-      bool more;
-#ifdef ENABLE_NODE_V_6_9
-      v8::platform::PumpMessageLoop(mPlatform, mIsolate);
-#endif //ENABLE_NODE_V_6_9
-      more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
-      if (more == false)
-      {
-        EmitBeforeExit(mEnv);
-      }
-#endif
-
-    }
-#else
-  local_context->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
-
-  mContextId = GetContextId(local_context);
-
-  mContext.Reset(mIsolate, local_context); // local to persistent
-
-  Context::Scope context_scope(local_context);
-
-  Handle<Object> global = local_context->Global();
-
-  // Register wrappers.
-  rtObjectWrapper::exportPrototype(mIsolate, global);
-  rtFunctionWrapper::exportPrototype(mIsolate, global);
-
-  mRtWrappers.Reset(mIsolate, global);
-
-  // Create Environment.
-  mEnv = CreateEnvironment(mIsolate,
-                           uv_default_loop(),
-                           local_context,
-#ifdef ENABLE_DEBUG_MODE
-                           g_argc,
-                           g_argv,
-#else
-                           s_gArgs->argc,
-                           s_gArgs->argv,
-#endif
-                           exec_argc,
-                           exec_argv);
-
-  // Start debug agent when argv has --debug
-  if (use_debug_agent)
-  {
-    rtLogWarn("use_debug_agent\n");
-    StartDebug(mEnv, debug_wait_connect);
-  }
-
-  // Load Environment.
-  LoadEnvironment(mEnv);
-
-  // Enable debugger
-  if (use_debug_agent)
-  {
-    EnableDebug(mEnv);
-  }
-#endif //ENABLE_NODE_V_6_9
 }
 
 #ifdef USE_CONTEXTIFY_CLONES
@@ -309,84 +191,21 @@ void rtNodeContext::createEnvironment()
 void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 {
   rtLogInfo(__FUNCTION__);
-  Locker                locker(mIsolate);
-  Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);
+  duk_idx_t thr_idx = duk_push_thread(clone_me->dukCtx);
+  dukCtx = duk_get_context(clone_me->dukCtx, thr_idx);
 
-  // Get parent Local context...
-  Local<Context> local_context = clone_me->getLocalContext();
-  Context::Scope context_scope(local_context);
+  uv_loop_t *dukLoop = new uv_loop_t();
+  uv_loop_init(dukLoop);
+  dukLoop->data = dukCtx;
+  uvLoop = dukLoop;
 
-  // Create dummy sandbox for ContextifyContext::makeContext() ...
-  Local<Object> sandbox = Object::New(mIsolate);
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-  if( clone_me->has(SANDBOX_IDENTIFIER) )
   {
-    rtValue       val_array = clone_me->get(SANDBOX_IDENTIFIER);
-    rtObjectRef       array = val_array.toObject();
-
-    int len = array.get<int>("length");
-
-    rtString s;
-    for(int i = 0; i < len; i++)
-    {
-      array.get<rtString>( (uint32_t) i, s);  // get 'name' for object
-      rtValue obj = clone_me->get(s);         // get object for 'name'
-
-      if( obj.isEmpty() == false)
-      {
-          // Copy to var/module 'sandbox' under construction...
-          Local<Value> module = local_context->Global()->Get( String::NewFromUtf8(mIsolate, s.cString() ) );
-          sandbox->Set( String::NewFromUtf8(mIsolate, s.cString()), module);
-      }
-      else
-      {
-        rtLogError("## FATAL:   '%s' is empty !! - UNEXPECTED", s.cString());
-      }
-    }
+    duk_push_thread_stash(dukCtx, dukCtx);
+    duk_push_pointer(dukCtx, (void*)dukLoop);
+    duk_bool_t rc = duk_put_prop_string(dukCtx, -2, "__duk_loop");
+    assert(rc);
+    duk_pop(dukCtx);
   }
-  else
-  {
-    rtLogWarn("## WARNING:   '%s' is undefined !! - UNEXPECTED", SANDBOX_IDENTIFIER);
-  }
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  //
-  // Clone a new context.
-  {
-    Local<Context>  clone_local = node::makeContext(mIsolate, sandbox); // contextify context with 'sandbox'
-
-    clone_local->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
-#ifdef ENABLE_NODE_V_6_9
-    Local<Context> envCtx = Environment::GetCurrent(mIsolate)->context();
-    Local<String> symbol_name = FIXED_ONE_BYTE_STRING(mIsolate, "_contextifyPrivate");
-    Local<Private> private_symbol_name = Private::ForApi(mIsolate, symbol_name);
-    MaybeLocal<Value> maybe_value = sandbox->GetPrivate(envCtx,private_symbol_name);
-    Local<Value> decorated;
-    if (true == maybe_value.ToLocal(&decorated))
-    {
-      mContextifyContext = decorated.As<External>()->Value();
-    }
-#else
-    Local<String> hidden_name = FIXED_ONE_BYTE_STRING(mIsolate, "_contextifyHidden");
-    mContextifyContext = sandbox->GetHiddenValue(hidden_name).As<External>()->Value();
-#endif
-
-    mContextId = GetContextId(clone_local);
-
-    mContext.Reset(mIsolate, clone_local); // local to persistent
-
-    Context::Scope context_scope(clone_local);
-
-    Handle<Object> clone_global = clone_local->Global();
-
-    // Register wrappers in this cloned context...
-      rtObjectWrapper::exportPrototype(mIsolate, clone_global);
-    rtFunctionWrapper::exportPrototype(mIsolate, clone_global);
-
-    mRtWrappers.Reset(mIsolate, clone_global);
-}
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
@@ -397,90 +216,15 @@ rtNodeContext::~rtNodeContext()
 {
   rtLogInfo(__FUNCTION__);
   //Make sure node is not destroyed abnormally
-  if (true == node_is_initialized)
-  {
-    runScript("var process = require('process');process._tickCallback();");
-    if(mEnv)
-    {
-      Locker                locker(mIsolate);
-      Isolate::Scope isolate_scope(mIsolate);
-      HandleScope     handle_scope(mIsolate);
-
-      RunAtExit(mEnv);
-    #ifdef ENABLE_NODE_V_6_9
-      if (nodeTerminated)
-      {
-        array_buffer_allocator->set_env(NULL);
-      }
-      else
-      {
-        mEnv->Dispose();
-      }
-    #else
-      mEnv->Dispose();
-    #endif // ENABLE_NODE_V_6_9
-      mEnv = NULL;
-      #ifndef USE_CONTEXTIFY_CLONES
-      HandleMap::clearAllForContext(mId);
-      #endif
-    }
-    else
-    {
-    // clear out persistent javascript handles
-      HandleMap::clearAllForContext(mId);
-#ifdef ENABLE_NODE_V_6_9
-      node::deleteContextifyContext(mContextifyContext);
-#endif
-      mContextifyContext = NULL;
-    }
-    if(exec_argv)
-    {
-      delete[] exec_argv;
-      exec_argv = NULL;
-      exec_argc = 0;
-    }
-
-    // TODO:  Might not be needed in ST case...
-    //
-    // Un-Register wrappers.
-    // rtObjectWrapper::destroyPrototype();
-    // rtFunctionWrapper::destroyPrototype();
-    mContext.Reset();
-    mRtWrappers.Reset();
-
-    Release();
-  }
+  Release();
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
 }
 
 rtError rtNodeContext::add(const char *name, rtValue const& val)
 {
-  if(name == NULL)
-  {
-    rtLogDebug(" rtNodeContext::add() - no symbolic name for rtValue");
-    return RT_FAIL;
-  }
-  else if(this->has(name))
-  {
-    rtLogDebug(" rtNodeContext::add() - ALREADY HAS '%s' ... over-writing.", name);
-   // return; // Allow for "Null"-ing erasure.
-  }
-  
-  if(val.isEmpty())
-  {
-    rtLogDebug(" rtNodeContext::add() - rtValue is empty");
-    return RT_FAIL;
-  }
-
-  Locker                locker(mIsolate);
-  Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-
-  // Get a Local context...
-  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
-  Context::Scope context_scope(local_context);
-
-  local_context->Global()->Set( String::NewFromUtf8(mIsolate, name), rt2js(local_context, val));
+  rt2duk(dukCtx, val);
+  duk_bool_t res = duk_put_global_string(dukCtx, name);
+  assert(res);
   
   return RT_OK;
 }
@@ -492,102 +236,24 @@ rtValue rtNodeContext::get(std::string name)
 
 rtValue rtNodeContext::get(const char *name)
 {
-  if(name == NULL)
-  {
-    rtLogError(" rtNodeContext::get() - no symbolic name for rtValue");
-    return rtValue();
-  }
+  // unimplemented
+  assert(0);
 
-  Locker                locker(mIsolate);
-  Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-
-  // Get a Local context...
-  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
-  Context::Scope context_scope(local_context);
-
-  Handle<Object> global = local_context->Global();
-
-  // Get the object
-  Local<Value> object = global->Get( String::NewFromUtf8(mIsolate, name) );
-
-  if(object->IsUndefined() || object->IsNull() )
-  {
-    rtLogError("FATAL: '%s' is Undefined ", name);
-    return rtValue();
-  }
-  else
-  {
-    rtWrapperError error; // TODO - handle error
-    return js2rt(local_context, object, &error);
-  }
+  return rtValue();
 }
 
 bool rtNodeContext::has(std::string name)
 {
-  return has( name.c_str() );
+  return has(name.c_str());
 }
 
 bool rtNodeContext::has(const char *name)
 {
-  if(name == NULL)
-  {
-    rtLogError(" rtNodeContext::has() - no symbolic name for rtValue");
-    return false;
-  }
+  // unimplemented
+  assert(0);
 
-  Locker                locker(mIsolate);
-  Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-
-  // Get a Local context...
-  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
-  Context::Scope context_scope(local_context);
-
-  Handle<Object> global = local_context->Global();
-
-#ifdef ENABLE_NODE_V_6_9
-  TryCatch try_catch(mIsolate);
-#else
-  TryCatch try_catch;
-#endif // ENABLE_NODE_V_6_9
-
-  Handle<Value> value = global->Get(String::NewFromUtf8(mIsolate, name) );
-
-  if (try_catch.HasCaught())
-  {
-     rtLogError("\n ## has() - HasCaught()  ... ERROR");
-     return false;
-  }
-
-  // No need to check if |value| is empty because it's taken care of
-  // by TryCatch above.
-
-  return ( !value->IsUndefined() && !value->IsNull() );
+  return false;
 }
-
-// DEPRECATED - 'has()' is replacement for 'find()'
-//
-// bool rtNodeContext::find(const char *name)
-// {
-//   rtNodeContexts_iterator it = mNodeContexts.begin();
-//
-//   while(it != mNodeContexts.end())
-//   {
-//     rtNodeContextRef ctx = it->second;
-//
-//     rtLogWarn("\n ######## CONTEXT !!! ID: %d  %s  '%s'",
-//       ctx->getContextId(),
-//       (ctx->has(name) ? "*HAS*" : "does NOT have"),
-//       name);
-//
-//     it++;
-//   }
-//
-//   rtLogWarn("\n ");
-//
-//   return false;
-// }
 
 rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/, const char *args /*= NULL*/)
 {
@@ -603,6 +269,539 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
   return runScript(std::string(script), retVal, args);
 }
 
+// Sync readfile using libuv APIs as an API function.
+static duk_ret_t duv_loadfile(duk_context *ctx) {
+  const char* path = duk_require_string(ctx, 0);
+  uv_fs_t req;
+  int fd = 0;
+  uint64_t size;
+  char* chunk;
+  uv_buf_t buf;
+
+  duk_push_thread_stash(ctx, ctx);
+  duk_bool_t rc = duk_get_prop_string(ctx, -1, "__duk_loop");
+  assert(rc);
+  uv_loop_t *dukLoop = (uv_loop_t *)duk_get_pointer(ctx, -1);
+  duk_pop(ctx);
+  duk_pop(ctx);
+
+  if (uv_fs_open(dukLoop, &req, path, O_RDONLY, 0644, NULL) < 0) goto fail;
+  uv_fs_req_cleanup(&req);
+  fd = req.result;
+  if (uv_fs_fstat(dukLoop, &req, fd, NULL) < 0) goto fail;
+  uv_fs_req_cleanup(&req);
+  size = req.statbuf.st_size;
+  chunk = (char*)duk_alloc(ctx, size);
+  buf = uv_buf_init(chunk, size);
+  if (uv_fs_read(dukLoop, &req, fd, &buf, 1, 0, NULL) < 0) {
+    duk_free(ctx, chunk);
+    goto fail;
+  }
+  uv_fs_req_cleanup(&req);
+  duk_push_lstring(ctx, chunk, size);
+  duk_free(ctx, chunk);
+  uv_fs_close(dukLoop, &req, fd, NULL);
+  uv_fs_req_cleanup(&req);
+
+  return 1;
+
+fail:
+  uv_fs_req_cleanup(&req);
+  if (fd) uv_fs_close(dukLoop, &req, fd, NULL);
+  uv_fs_req_cleanup(&req);
+  duk_error(ctx, DUK_ERR_ERROR, "%s: %s: %s", uv_err_name(req.result), uv_strerror(req.result), path);
+}
+
+struct duv_list {
+  const char* part;
+  int offset;
+  int length;
+  struct duv_list* next;
+};
+typedef struct duv_list duv_list_t;
+
+static duv_list_t* duv_list_node(const char* part, int start, int end, duv_list_t* next) {
+  duv_list_t *node = (duv_list_t *)malloc(sizeof(*node));
+  node->part = part;
+  node->offset = start;
+  node->length = end - start;
+  node->next = next;
+  return node;
+}
+
+static duk_ret_t duv_path_join(duk_context *ctx) {
+  duv_list_t *list = NULL;
+  int absolute = 0;
+
+  // Walk through all the args and split into a linked list
+  // of segments
+  {
+    // Scan backwards looking for the the last absolute positioned path.
+    int top = duk_get_top(ctx);
+    int i = top - 1;
+    while (i > 0) {
+      const char* part = duk_require_string(ctx, i);
+      if (part[0] == '/') break;
+      i--;
+    }
+    for (; i < top; ++i) {
+      const char* part = duk_require_string(ctx, i);
+      int j;
+      int start = 0;
+      int length = strlen(part);
+      if (part[0] == '/') {
+        absolute = 1;
+      }
+      while (start < length && part[start] == 0x2f) { ++start; }
+      for (j = start; j < length; ++j) {
+        if (part[j] == 0x2f) {
+          if (start < j) {
+            list = duv_list_node(part, start, j, list);
+            start = j;
+            while (start < length && part[start] == 0x2f) { ++start; }
+          }
+        }
+      }
+      if (start < j) {
+        list = duv_list_node(part, start, j, list);
+      }
+    }
+  }
+
+  // Run through the list in reverse evaluating "." and ".." segments.
+  {
+    int skip = 0;
+    duv_list_t *prev = NULL;
+    while (list) {
+      duv_list_t *node = list;
+
+      // Ignore segments with "."
+      if (node->length == 1 &&
+        node->part[node->offset] == 0x2e) {
+        goto skip;
+      }
+
+      // Ignore segments with ".." and grow the skip count
+      if (node->length == 2 &&
+        node->part[node->offset] == 0x2e &&
+        node->part[node->offset + 1] == 0x2e) {
+        ++skip;
+        goto skip;
+      }
+
+      // Consume the skip count
+      if (skip > 0) {
+        --skip;
+        goto skip;
+      }
+
+      list = node->next;
+      node->next = prev;
+      prev = node;
+      continue;
+
+    skip:
+      list = node->next;
+      free(node);
+    }
+    list = prev;
+  }
+
+  // Merge the list into a single `/` delimited string.
+  // Free the remaining list nodes.
+  {
+    int count = 0;
+    if (absolute) {
+      duk_push_string(ctx, "/");
+      ++count;
+    }
+    while (list) {
+      duv_list_t *node = list;
+      duk_push_lstring(ctx, node->part + node->offset, node->length);
+      ++count;
+      if (node->next) {
+        duk_push_string(ctx, "/");
+        ++count;
+      }
+      list = node->next;
+      free(node);
+    }
+    duk_concat(ctx, count);
+  }
+  return 1;
+}
+
+static duk_ret_t duv_require(duk_context *ctx) {
+  int is_main = 0;
+
+  const duv_schema_entry schema[] = {
+    { "id", duk_is_string },
+    { NULL }
+  };
+
+  dschema_check(ctx, schema);
+
+  // push Duktape
+  duk_get_global_string(ctx, "Duktape");
+
+  // id = Duktape.modResolve(this, id);
+  duk_get_prop_string(ctx, -1, "modResolve");
+  duk_push_this(ctx);
+  {
+    // Check if we're in main
+    duk_get_prop_string(ctx, -1, "exports");
+    if (duk_is_undefined(ctx, -1)) { is_main = 1; }
+    duk_pop(ctx);
+  }
+  duk_dup(ctx, 0);
+  duk_call_method(ctx, 1);
+  duk_replace(ctx, 0);
+
+  // push Duktape.modLoaded
+  duk_get_prop_string(ctx, -1, "modLoaded");
+
+  // push Duktape.modLoaded[id];
+  duk_dup(ctx, 0);
+  duk_get_prop(ctx, -2);
+
+  // if (typeof Duktape.modLoaded[id] === 'object') {
+  //   return Duktape.modLoaded[id].exports;
+  // }
+  if (duk_is_object(ctx, -1)) {
+    duk_get_prop_string(ctx, -1, "exports");
+    return 1;
+  }
+
+  // pop Duktape.modLoaded[id]
+  duk_pop(ctx);
+
+  // push module = { id: id, exports: {} }
+  duk_push_object(ctx);
+  duk_dup(ctx, 0);
+  duk_put_prop_string(ctx, -2, "id");
+  duk_push_object(ctx);
+  duk_put_prop_string(ctx, -2, "exports");
+
+  // Set module.main = true if we're the first script
+  if (is_main) {
+    duk_push_boolean(ctx, 1);
+    duk_put_prop_string(ctx, -2, "main");
+  }
+
+  // Or set module.parent = parent if we're a child.
+  else {
+    duk_push_this(ctx);
+    duk_put_prop_string(ctx, -2, "parent");
+  }
+
+  // Set the prototype for the module to access require.
+  duk_push_global_stash(ctx);
+  duk_get_prop_string(ctx, -1, "modulePrototype");
+  duk_set_prototype(ctx, -3);
+  duk_pop(ctx);
+
+  // Duktape.modLoaded[id] = module
+  duk_dup(ctx, 0);
+  duk_dup(ctx, -2);
+  duk_put_prop(ctx, -4);
+
+  // remove Duktape.modLoaded
+  duk_remove(ctx, -2);
+
+  // push Duktape.modLoad(module)
+  duk_get_prop_string(ctx, -2, "modLoad");
+  duk_dup(ctx, -2);
+  duk_call_method(ctx, 0);
+
+  // if ret !== undefined module.exports = ret;
+  if (duk_is_undefined(ctx, -1)) {
+    duk_pop(ctx);
+  }
+  else {
+    duk_put_prop_string(ctx, -2, "exports");
+  }
+
+  duk_get_prop_string(ctx, -1, "exports");
+
+  return 1;
+}
+
+// Default implementation for modResolve
+// Duktape.modResolve = function (parent, id) {
+//   return pathJoin(parent.id, "..", id);
+// };
+static duk_ret_t duv_mod_resolve(duk_context *ctx) {
+  const duv_schema_entry schema[] = {
+    { "id", duk_is_string },
+    { NULL }
+  };
+
+  dschema_check(ctx, schema);
+
+  duk_push_this(ctx);
+  duk_push_c_function(ctx, duv_path_join, DUK_VARARGS);
+  duk_get_prop_string(ctx, -2, "id");
+  duk_push_string(ctx, "..");
+  duk_dup(ctx, 0);
+  duk_call(ctx, 3);
+
+  return 1;
+}
+
+// Default Duktape.modLoad implementation
+// return Duktape.modCompile.call(module, loadFile(module.id));
+//     or load shared libraries using Duktape.loadlib.
+static duk_ret_t duv_mod_load(duk_context *ctx) {
+  const char* id;
+  const char* ext;
+
+  const duv_schema_entry schema[] = {
+    { NULL }
+  };
+
+  dschema_check(ctx, schema);
+
+  duk_get_global_string(ctx, "Duktape");
+  duk_push_this(ctx);
+  duk_get_prop_string(ctx, -1, "id");
+  id = duk_get_string(ctx, -1);
+  if (!id) {
+    duk_error(ctx, DUK_ERR_ERROR, "Missing id in module");
+    return 0;
+  }
+
+  // calculate the extension to know which compiler to use.
+  ext = id + strlen(id);
+  while (ext > id && ext[0] != '.') { --ext; }
+
+  if (strcmp(ext, ".js") == 0) {
+    // Stack: [Duktape, this, id]
+    duk_push_c_function(ctx, duv_loadfile, 1);
+    // Stack: [Duktape, this, id, loadfile]
+    duk_insert(ctx, -2);
+    // Stack: [Duktape, this, loadfile, id]
+    duk_call(ctx, 1);
+    // Stack: [Duktape, this, data]
+    duk_get_prop_string(ctx, -3, "modCompile");
+    // Stack: [Duktape, this, data, modCompile]
+    duk_insert(ctx, -3);
+    // Stack: [Duktape, modCompile, this, data]
+    duk_call_method(ctx, 1);
+    // Stack: [Duktape, exports]
+    return 1;
+  }
+
+  if (strcmp(ext, ".so") == 0 || strcmp(ext, ".dll") == 0) {
+    const char* name = ext;
+    while (name > id && name[-1] != '/' && name[-1] != '\\') { --name; }
+    // Stack: [Duktape, this, id]
+    duk_get_prop_string(ctx, -3, "loadlib");
+    // Stack: [Duktape, this, id, loadlib]
+    duk_insert(ctx, -2);
+    // Stack: [Duktape, this, loadlib, id]
+    duk_push_sprintf(ctx, "dukopen_%.*s", (int)(ext - name), name);
+    // Stack: [Duktape, this, loadlib, id, name]
+    duk_call(ctx, 2);
+    // Stack: [Duktape, this, fn]
+    duk_call(ctx, 0);
+    // Stack: [Duktape, this, exports]
+    duk_dup(ctx, -1);
+    // Stack: [Duktape, this, exports, exports]
+    duk_put_prop_string(ctx, -3, "exports");
+    // Stack: [Duktape, this, exports]
+    return 1;
+  }
+
+  duk_error(ctx, DUK_ERR_ERROR,
+    "Unsupported extension: '%s', must be '.js', '.so', or '.dll'.", ext);
+  return 0;
+}
+
+// Load a duktape C function from a shared library by path and name.
+static duk_ret_t duv_loadlib(duk_context *ctx) {
+  const char *name, *path;
+  uv_lib_t lib;
+  duk_c_function fn;
+
+  // Check the args
+  const duv_schema_entry schema[] = {
+    { "path", duk_is_string },
+    { "name", duk_is_string },
+    { NULL }
+  };
+
+  dschema_check(ctx, schema);
+
+  path = duk_get_string(ctx, 0);
+  name = duk_get_string(ctx, 1);
+
+  if (uv_dlopen(path, &lib)) {
+    duk_error(ctx, DUK_ERR_ERROR, "Cannot load shared library %s", path);
+    return 0;
+  }
+  if (uv_dlsym(&lib, name, (void**)&fn)) {
+    duk_error(ctx, DUK_ERR_ERROR, "Unable to find %s in %s", name, path);
+    return 0;
+  }
+  duk_push_c_function(ctx, fn, 0);
+  return 1;
+}
+
+// Given a module and js code, compile the code and execute as CJS module
+// return the result of the compiled code ran as a function.
+static duk_ret_t duv_mod_compile(duk_context *ctx) {
+  // Check the args
+  const duv_schema_entry schema[] = {
+    { "code", dschema_is_data },
+    { NULL }
+  };
+
+  dschema_check(ctx, schema);
+
+  duk_to_string(ctx, 0);
+
+  duk_push_this(ctx);
+  duk_get_prop_string(ctx, -1, "id");
+
+  // Wrap the code
+  duk_push_string(ctx, "function(){var module=this,exports=this.exports,require=this.require.bind(this);");
+  duk_dup(ctx, 0);
+  duk_push_string(ctx, "}");
+  duk_concat(ctx, 3);
+  duk_insert(ctx, -2);
+
+  // Compile to a function
+  duk_compile(ctx, DUK_COMPILE_FUNCTION);
+
+  duk_push_this(ctx);
+  duk_call_method(ctx, 0);
+
+  return 1;
+}
+
+static duk_ret_t duv_main(duk_context *ctx) {
+
+  duk_require_string(ctx, 0);
+
+  {
+    duk_push_global_object(ctx);
+    duk_dup(ctx, -1);
+    duk_put_prop_string(ctx, -2, "global");
+
+    duk_push_boolean(ctx, 1);
+    duk_put_prop_string(ctx, -2, "dukluv");
+
+    // [global]
+
+    // Load duv module into global uv
+    duk_push_c_function(ctx, dukopen_uv, 0);
+    duk_call(ctx, 0);
+
+    // [global obj]
+    duk_put_prop_string(ctx, -2, "uv");
+
+    // Replace the module loader with Duktape 2.x polyfill.
+    duk_get_prop_string(ctx, -1, "Duktape");
+    duk_del_prop_string(ctx, -1, "modSearch");
+    duk_push_c_function(ctx, duv_mod_compile, 1);
+    duk_put_prop_string(ctx, -2, "modCompile");
+    duk_push_c_function(ctx, duv_mod_resolve, 1);
+    duk_put_prop_string(ctx, -2, "modResolve");
+    duk_push_c_function(ctx, duv_mod_load, 0);
+    duk_put_prop_string(ctx, -2, "modLoad");
+    duk_push_c_function(ctx, duv_loadlib, 2);
+    duk_put_prop_string(ctx, -2, "loadlib");
+    duk_pop(ctx);
+
+
+    // Put in some quick globals to test things.
+    duk_push_c_function(ctx, duv_path_join, DUK_VARARGS);
+    duk_put_prop_string(ctx, -2, "pathJoin");
+
+    duk_push_c_function(ctx, duv_loadfile, 1);
+    duk_put_prop_string(ctx, -2, "loadFile");
+
+    // require.call({id:uv.cwd()+"/main.c"}, path);
+    duk_push_c_function(ctx, duv_require, 1);
+
+    {
+      // Store this require function in the module prototype
+      duk_push_global_stash(ctx);
+      duk_push_object(ctx);
+      duk_dup(ctx, -3);
+      duk_put_prop_string(ctx, -2, "require");
+      duk_put_prop_string(ctx, -2, "modulePrototype");
+      duk_pop(ctx);
+    }
+  }
+
+  {
+    duk_push_object(ctx);
+    duk_push_c_function(ctx, duv_cwd, 0);
+    duk_call(ctx, 0);
+    duk_push_string(ctx, "/main.c");
+    duk_concat(ctx, 2);
+    duk_put_prop_string(ctx, -2, "id");
+  }
+
+  duk_dup(ctx, 0);
+
+  //[arg.js global duv_require obj arg.js]
+
+  duk_int_t ret = duk_pcall_method(ctx, 1);
+  if (ret) {
+    duv_dump_error(ctx, -1);
+    return 0;
+  }
+
+  return 0;
+}
+
+static duk_int_t myload_code(duk_context *ctx, const char *code)
+{
+  static int reqid = 0;
+  char buf[1024];
+  uv_fs_t open_req1;
+  sprintf(buf, "file%d.js", reqid++);
+
+  unlink(buf);
+
+  duk_push_thread_stash(ctx, ctx);
+  duk_bool_t rc = duk_get_prop_string(ctx, -1, "__duk_loop");
+  assert(rc);
+  uv_loop_t *dukLoop = (uv_loop_t *)duk_get_pointer(ctx, -1);
+  duk_pop(ctx);
+  duk_pop(ctx);
+
+  int r;
+  r = uv_fs_open(dukLoop, &open_req1, buf, O_WRONLY | O_CREAT,
+    S_IWUSR | S_IRUSR, NULL);
+  assert(r >= 0);
+  assert(open_req1.result >= 0);
+  uv_fs_req_cleanup(&open_req1);
+
+  uv_buf_t iov = uv_buf_init((char *)code, strlen(code));
+  uv_fs_t write_req;
+  r = uv_fs_write(NULL, &write_req, open_req1.result, &iov, 1, -1, NULL);
+  assert(r >= 0);
+  assert(write_req.result >= 0);
+  uv_fs_req_cleanup(&write_req);
+
+  uv_fs_t close_req;
+  uv_fs_close(dukLoop, &close_req, open_req1.result, NULL);
+
+  duk_push_c_function(ctx, duv_main, 1);
+  duk_push_string(ctx, buf);
+  if (duk_pcall(ctx, 1)) {
+    duv_dump_error(ctx, -1);
+    //uv_loop_close(dukLoop);
+    duk_destroy_heap(ctx);
+    return 1;
+  }
+
+  return 0;
+}
+
 rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= NULL*/, const char* /* args = NULL*/)
 {
   rtLogInfo(__FUNCTION__);
@@ -613,58 +812,11 @@ rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= 
     return RT_FAIL;
   }
 
-  {//scope
-    Locker                locker(mIsolate);
-    Isolate::Scope isolate_scope(mIsolate);
-    HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
+  if (myload_code(dukCtx, script.c_str())) {
+    return RT_FAIL;
+  }
 
-    // Get a Local context...
-    Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
-    Context::Scope context_scope(local_context);
-// !CLF TODO: TEST FOR MT
-#ifdef RUNINMAIN
-#ifdef ENABLE_NODE_V_6_9
-  TryCatch tryCatch(mIsolate);
-#else
-  TryCatch tryCatch;
-#endif // ENABLE_NODE_V_6_9
-#endif
-    Local<String> source = String::NewFromUtf8(mIsolate, script.c_str());
-
-    // Compile the source code.
-    Local<Script> run_script = Script::Compile(source);
-
-    // Run the script to get the result.
-    Local<Value> result = run_script->Run();
-// !CLF TODO: TEST FOR MT
-#ifdef RUNINMAIN
-   if (tryCatch.HasCaught())
-    {
-      String::Utf8Value trace(tryCatch.StackTrace());
-      rtLogWarn("%s", *trace);
-
-      return RT_FAIL;
-    }
-#endif
-
-    if(retVal)
-    {
-      // Return val
-      rtWrapperError error;
-      *retVal = js2rt(local_context, result, &error);
-      
-      if(error.hasError())
-      {
-        rtLogError("js2rt() - return from script error");
-        return RT_FAIL;
-      }
-    }
-
-   return RT_OK;
-
-  }//scope
-
-  return RT_FAIL;
+  return RT_OK;
 }
 
 std::string readFile(const char *file)
@@ -672,7 +824,7 @@ std::string readFile(const char *file)
   std::ifstream       src_file(file);
   std::stringstream   src_script;
 
-  src_script << src_file.rdbuf(); // slurp up file
+  src_script << src_file.rdbuf();
 
   std::string s = src_script.str();
 
@@ -707,7 +859,7 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
 rtNode::rtNode()
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false)
+: mRefContext(), mNeedsToEnd(false), node_is_initialized(false)
 #else
 : mNeedsToEnd(false)
 #endif
@@ -715,15 +867,13 @@ rtNode::rtNode()
 {
   rtLogInfo(__FUNCTION__);
   mTestGc = false;
-  mIsolate = NULL;
-  mPlatform = NULL;
   initializeNode();
 }
 
 rtNode::rtNode(bool initialize)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false)
+: mRefContext(), mNeedsToEnd(false), node_is_initialized(false)
 #else
 : mNeedsToEnd(false)
 #endif
@@ -731,8 +881,6 @@ rtNode::rtNode(bool initialize)
 {
   rtLogInfo(__FUNCTION__);
   mTestGc = false;
-  mIsolate = NULL;
-  mPlatform = NULL;
   if (true == initialize)
   {
     initializeNode();
@@ -803,9 +951,6 @@ void rtNode::initializeNode()
   init(argc, argv);
 #endif
 #else
-  mIsolate     = Isolate::New();
-  node_isolate = mIsolate; // Must come first !!
-
 #ifdef ENABLE_DEBUG_MODE
   init();
 #else
@@ -822,46 +967,17 @@ rtNode::~rtNode()
 
 void rtNode::pump()
 {
-//#ifndef RUNINMAIN
-//  return;
-//#else
-  Locker                locker(mIsolate);
-  Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-#ifdef ENABLE_NODE_V_6_9
-  v8::platform::PumpMessageLoop(mPlatform, mIsolate);
-#endif //ENABLE_NODE_V_6_9
-  uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
-
-  // Enable this to expedite garbage collection for testing... warning perf hit
-  if (mTestGc)
-  {
-    static int sGcTickCount = 0;
-
-    if (sGcTickCount++ > 60)
-    {
-      Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
-      Context::Scope contextScope(local_context);
-      mIsolate->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
-      sGcTickCount = 0;
-    }
+#ifndef RUNINMAIN
+  return;
+#else
+  for (int i = 0; i < uvLoops.size(); ++i) {
+    uv_run(uvLoops[i], UV_RUN_NOWAIT);
   }
-//#endif // RUNINMAIN
+#endif // RUNINMAIN
 }
 
 void rtNode::garbageCollect()
 {
-//#ifndef RUNINMAIN
-//  return;
-//#else
-  Locker                locker(mIsolate);
-  Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-
-  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
-  Context::Scope contextScope(local_context);
-  mIsolate->LowMemoryNotification();
-//#endif // RUNINMAIN
 }
 
 #if 0
@@ -894,6 +1010,7 @@ void rtNode::nodePath()
     }
   }
 }
+
 #ifndef RUNINMAIN
 bool rtNode::isInitialized()
 {
@@ -924,48 +1041,29 @@ void rtNode::init(int argc, char** argv)
   if(node_is_initialized == false)
   {
     rtLogWarn("About to Init\n");
-#ifdef ENABLE_DEBUG_MODE
-    Init(&g_argc, const_cast<const char**>(g_argv), &exec_argc, &exec_argv);
-#else
-    Init(&argc, const_cast<const char**>(argv), &exec_argc, &exec_argv);
-#endif
-
-//    mPlatform = platform::CreateDefaultPlatform();
-//    V8::InitializePlatform(mPlatform);
-
-#ifdef ENABLE_NODE_V_6_9
-   rtLogWarn("using node version 6.9\n");
-   V8::InitializeICU();
-#ifdef ENABLE_DEBUG_MODE
-   V8::InitializeExternalStartupData(g_argv[0]);
-#else
-   V8::InitializeExternalStartupData(argv[0]);
-#endif
-   Platform* platform = platform::CreateDefaultPlatform();
-   mPlatform = platform;
-   V8::InitializePlatform(platform);
-   V8::Initialize();
-   Isolate::CreateParams params;
-   array_buffer_allocator = new ArrayBufferAllocator();
-   const char* source1 = "function pxSceneFooFunction(){ return 0;}";
-   static v8::StartupData data = v8::V8::CreateSnapshotDataBlob(source1);
-   params.snapshot_blob = &data;
-   params.array_buffer_allocator = array_buffer_allocator;
-   mIsolate     = Isolate::New(params);
-   node_isolate = mIsolate; // Must come first !!
-#else
-    V8::Initialize();
-#endif // ENABLE_NODE_V_6_9
     rtLogWarn("rtNode::init() node_is_initialized=%d\n",node_is_initialized);
     node_is_initialized = true;
 
-    Locker                locker(mIsolate);
-    Isolate::Scope isolate_scope(mIsolate);
-    HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
+    uv_loop_t *dukLoop = new uv_loop_t();
+    uv_loop_init(dukLoop);
+    //uv_loop_t dukLoop = uv_default_loop();
+    dukCtx = duk_create_heap(NULL, NULL, NULL, dukLoop, NULL);
+    if (!dukCtx) {
+	    rtLogWarn("Problem initiailizing duktape heap\n");
+	    return;
+    }
 
-    Local<Context> ctx = Context::New(mIsolate);
-    ctx->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, 99));
-    mContext.Reset(mIsolate, ctx);
+    dukLoop->data = dukCtx;
+    uvLoops.push_back(dukLoop);
+
+    {
+      duk_push_thread_stash(dukCtx, dukCtx);
+      duk_push_pointer(dukCtx, (void*)dukLoop);
+      duk_bool_t rc = duk_put_prop_string(dukCtx, -2, "__duk_loop");
+      assert(rc);
+      duk_pop(dukCtx);
+    }
+
     rtLogWarn("DONE in rtNode::init()\n");
   }
 }
@@ -974,42 +1072,16 @@ void rtNode::term()
 {
   rtLogInfo(__FUNCTION__);
   nodeTerminated = true;
+
+  //uv_loop_close(dukLoop);
+  duk_destroy_heap(dukCtx);
+
 #ifdef USE_CONTEXTIFY_CLONES
   if( mRefContext.getPtr() )
   {
     mRefContext->Release();
   }
 #endif
-
-  if(node_isolate)
-  {
-// JRJRJR  Causing crash???  ask Hugh
-
-    rtLogWarn("\n++++++++++++++++++ DISPOSE\n\n");
-    node_isolate->Dispose();
-    node_isolate = NULL;
-    mIsolate     = NULL;
-  }
-
-  if(node_is_initialized)
-  {
-    //V8::Dispose();
-
-    node_is_initialized = false;
-
-    V8::ShutdownPlatform();
-    if(mPlatform)
-    {
-      delete mPlatform;
-      mPlatform = NULL;
-    }
-
-  //  if(mPxNodeExtension)
-  //  {
-  //    delete mPxNodeExtension;
-  //    mPxNodeExtension = NULL;
-  //  }
-  }
 }
 
 
@@ -1033,8 +1105,12 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
 #ifdef USE_CONTEXTIFY_CLONES
   if(mRefContext.getPtr() == NULL)
   {
-    mRefContext = new rtNodeContext(mIsolate,mPlatform);
+    mRefContext = new rtNodeContext();
     ctxref = mRefContext;
+
+    mRefContext->dukCtx = dukCtx;
+    assert(uvLoops.size() == 1);
+    mRefContext->uvLoop = uvLoops[0];
 
     static std::string sandbox_path;
 
@@ -1063,7 +1139,9 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
   else
   {
     // rtLogInfo("\n createContext()  >>  CLONE CREATED !!!!!!");
-    ctxref = new rtNodeContext(mIsolate, mRefContext); // CLONE !!!
+    ctxref = new rtNodeContext(mRefContext); // CLONE !!!
+    assert(ctxref->uvLoop != NULL);
+    uvLoops.push_back(mRefContext->uvLoop);
   }
 #else
     ctxref = new rtNodeContext(mIsolate,mPlatform);
@@ -1081,9 +1159,7 @@ unsigned long rtNodeContext::Release()
     long l = rtAtomicDec(&mRefCount);
     if (l == 0)
     {
-     delete this;
+     //delete this; // todo
     }
     return l;
 }
-
-

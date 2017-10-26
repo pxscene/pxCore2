@@ -33,7 +33,9 @@ testView(): mContainer(NULL),mRefCount(0),mw(0),mh(0),mEntered(false),mMouseX(0)
   virtual unsigned long Release() 
   {
     long l = rtAtomicDec(&mRefCount);
-    if (l == 0) delete this;
+    if (l == 0) {
+      //delete this; // todo
+    }
     return l;
   }
 

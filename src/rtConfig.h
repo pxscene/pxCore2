@@ -27,4 +27,6 @@
 #error "Must define be RT_PLATFORM_LINUX"
 #endif
 
+#pragma optimize( "", off )  
+
 #endif

@@ -52,7 +52,7 @@ pxAnimate::pxAnimate (rtObjectRef props, uint32_t interp, pxConstantsAnimation::
         pxAnimate::pxAnimationParams* propParamsPtr = (pxAnimate::pxAnimationParams*) params.getPtr();
         if (NULL != propParamsPtr)
         {
-          rtString key = keys.get<rtString>(i);
+          rtString key = keys.rtObjectBase::Get<rtString>(i);
           propParamsPtr->mStatus = pxConstantsAnimation::STATUS_IDLE;
           propParamsPtr->mCancelled = false;
           propParamsPtr->mCount = 0;
@@ -82,7 +82,7 @@ rtError pxAnimate::cancel ()
       uint32_t len = keys.get<uint32_t>("length");
       for (uint32_t i = 0; i < len; i++)
       {
-        rtString key = keys.get<rtString>(i);
+        rtString key = keys.rtObjectBase::Get<rtString>(i);
         mAnimatedObj.getPtr()->cancelAnimation(key, (mType & pxConstantsAnimation::OPTION_FASTFORWARD), (mType & pxConstantsAnimation::OPTION_REWIND), true);
       }
     }

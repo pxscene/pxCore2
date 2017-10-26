@@ -1,26 +1,26 @@
 //"use strict";
 
-var url = require('url');
-var path = require('path');
-var vm = require('vm');
-var Logger = require('rcvrcore/Logger').Logger;
-var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
-var XModule = require('rcvrcore/XModule').XModule;
-var xmodImportModule = require('rcvrcore/XModule').importModule;
-var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
-var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
-var JarFileMap = require('rcvrcore/utils/JarFileMap');
-var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
+var url = require('../url.js');
+var path = require('../path.js');
+var vm = require('../vm.js');
+var Logger = require('Logger.js').Logger;
+var SceneModuleLoader = require('SceneModuleLoader.js');
+var XModule = require('XModule.js').XModule;
+var xmodImportModule = require('XModule.js').importModule;
+var loadFile = require('utils/FileUtils.js').loadFile;
+var SceneModuleManifest = require('SceneModuleManifest.js');
+var JarFileMap = require('utils/JarFileMap.js');
+var AsyncFileAcquisition = require('utils/AsyncFileAcquisition.js');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
-var SetTimeout = setTimeout;
-var ClearTimeout = clearTimeout;
-var SetInterval = setInterval;
-var ClearInterval = clearInterval;
+var SetTimeout = timers.setTimeout;
+var ClearTimeout = timers.clearTimeout;
+var SetInterval = timers.setInterval;
+var ClearInterval = timers.clearInterval;
 
-var http_wrap = require('rcvrcore/http_wrap');
-var https_wrap = require('rcvrcore/https_wrap');
+//var http_wrap = require('rcvrcore/http_wrap');
+//var https_wrap = require('rcvrcore/https_wrap');
 
 // function to check whether the page being loaded is from local machine or remote machine
 function isLocalApp(loadurl)
@@ -127,7 +127,7 @@ function AppSceneContext(params) { // container, innerscene, packageUrl) {
   this.scriptMap = {};
   this.xmoduleMap = {};
   this.asyncFileAcquisition = new AsyncFileAcquisition(params.scene);
-  this.lastHrTime = process.hrtime();
+  this.lastHrTime = uv.hrtime();
   this.resizeTimer = null;
   this.topXModule = null;
   this.jarFileMap = new JarFileMap();
@@ -264,16 +264,23 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
         _this.getFile("package.json").then( function(packageFileContents) {
           var manifest = new SceneModuleManifest();
           manifest.loadFromJSON(packageFileContents);
+          console.info("AppSceneContext#loadScenePackage0");
           _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
-        }).catch(function(e){
-          _this.runScriptInNewVMContext(packageUri, moduleLoader, null);
+          console.info("AppSceneContext#loadScenePackage0 done");
+        }).catch(function (e) {
+            console.info("AppSceneContext#loadScenePackage1");
+            _this.runScriptInNewVMContext(packageUri, moduleLoader, null);
+            console.info("AppSceneContext#loadScenePackage1 done");
         });
       } else {
         var manifest = moduleLoader.getManifest();
+        console.info("AppSceneContext#loadScenePackage2");
         _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
+        console.info("AppSceneContext#loadScenePackage2 done");
       }
     })
-    .catch(function(err) {
+    .catch(function (err) {
+      console.info("AppSceneContext#loadScenePackage3");
       thisMakeReady(false, {});
       console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=" + err );
     });
@@ -335,43 +342,42 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       xmodule: xModule,
       console: console,
       runtime: apiForChild,
-      process: process,
-      urlModule: require("url"),
-      queryStringModule: require("querystring"),
+      urlModule: require("../url.js"),
+      queryStringModule: require("../querystring.js"),
       theNamedContext: "Sandbox: " + uri,
       Buffer: Buffer,
-      require: function (pkg) {
-        log.message(3, "old use of require not supported: " + pkg);
-        // TODO: remove
-        return requireIt(pkg);
+      //require: function (pkg) {
+      //  log.message(3, "old use of require not supported: " + pkg);
+      //  // TODO: remove
+      //  return requireIt(pkg);
 
-      },
-      setTimeout: function (callback, after, arg1, arg2, arg3) {
-        var timerId = SetTimeout(callback, after, arg1, arg2, arg3);
-        this.timers.push(timerId);
-        return timerId;
-      }.bind(this),
-      clearTimeout: function (timer) {
-        var index = this.timers.indexOf(timer);
-        if (index != -1)
-        {
-          this.timers.splice(index,1);
-        }
-        ClearTimeout(timer);
-      }.bind(this),
-      setInterval: function (callback, repeat, arg1, arg2, arg3) {
-        var intervalId = SetInterval(callback, repeat, arg1, arg2, arg3);
-        this.timerIntervals.push(intervalId);
-        return intervalId;
-      }.bind(this),
-      clearInterval: function (timer) {
-        var index = this.timerIntervals.indexOf(timer);
-        if (index != -1)
-        {
-          this.timerIntervals.splice(index,1);
-        }
-        ClearInterval(timer);
-      }.bind(this),
+      //},
+      //setTimeout: function (callback, after, arg1, arg2, arg3) {
+      //  var timerId = SetTimeout(callback, after, arg1, arg2, arg3);
+      //  this.timers.push(timerId);
+      //  return timerId;
+      //}.bind(this),
+      //clearTimeout: function (timer) {
+      //  var index = this.timers.indexOf(timer);
+      //  if (index != -1)
+      //  {
+      //    this.timers.splice(index,1);
+      //  }
+      //  ClearTimeout(timer);
+      //}.bind(this),
+      //setInterval: function (callback, repeat, arg1, arg2, arg3) {
+      //  var intervalId = SetInterval(callback, repeat, arg1, arg2, arg3);
+      //  this.timerIntervals.push(intervalId);
+      //  return intervalId;
+      //}.bind(this),
+      //clearInterval: function (timer) {
+      //  var index = this.timerIntervals.indexOf(timer);
+      //  if (index != -1)
+      //  {
+      //    this.timerIntervals.splice(index,1);
+      //  }
+      //  ClearInterval(timer);
+      //}.bind(this),
       importTracking: {}
     }; // end sandbox
 
@@ -389,19 +395,24 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       //var script = new vm.Script(sourceCode, fname);
       //var moduleFunc = script.runInNewContext(newSandbox, {filename:fname, displayErrors:true});
       // fix debug under windows issue
-      var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {filename:path.normalize(fname), displayErrors:true});
+      //var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {filename:path.normalize(fname), displayErrors:true});
 
-      if (process._debugWaitConnect) {
-        // Set breakpoint on module start
-        if (process.env.BREAK_ON_SCRIPTSTART != 1)
-          delete process._debugWaitConnect;
-        const Debug = vm.runInDebugContext('Debug');
-        Debug.setBreakPoint(moduleFunc, 0, 0);
-      }
+      //if (process._debugWaitConnect) {
+      //  // Set breakpoint on module start
+      //  if (process.env.BREAK_ON_SCRIPTSTART != 1)
+      //    delete process._debugWaitConnect;
+      //  const Debug = vm.runInDebugContext('Debug');
+      //  Debug.setBreakPoint(moduleFunc, 0, 0);
+      //}
 
+      //var rtnObject = moduleFunc(px, xModule, fname, this.basePackageUri);
+      
+      log.message(4, "createModule_pxScope.call()");
       var px = createModule_pxScope.call(this, xModule);
-      var rtnObject = moduleFunc(px, xModule, fname, this.basePackageUri);
-      rtnObject = xModule.exports;
+      log.message(4, "createModule_pxScope.call() done");
+      vm.runInNewContext(sourceCode, newSandbox, { filename: path.normalize(fname), displayErrors: true },
+          px, xModule, fname, this.basePackageUri);
+      log.message(4, "vm.runInNewContext done");
 /*
 if (false) {
       // TODO do the old scenes context get released when we reload a scenes url??
@@ -418,7 +429,7 @@ if (false) {
 }
 */
 
-      //console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
+      console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
       if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
 //        this.container.makeReady(true); // DEPRECATED ?
 
@@ -434,7 +445,9 @@ if (false) {
         {
           self.innerscene.api = xModule.exports;
 
-          thisMakeReady(true,xModule.exports);
+          console.log("Main module[" + self.packageUrl + "] about to notify");
+          thisMakeReady(true, xModule.exports);
+          console.log("Main module[" + self.packageUrl + "] about to notify done");
 
         }).catch( function(err)
         {
@@ -546,34 +559,39 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
 
   return new Promise(function (onImportComplete, reject) {
-    if( filePath === 'px' || filePath === 'url' || filePath === 'querystring' || filePath === 'htmlparser') {
+    if( filePath === 'px.js' || filePath === 'url.js' || filePath === 'querystring.js') {
       // built-ins
       var modData = require(filePath);
       onImportComplete([modData, origFilePath]);
       return;
-    } else if( filePath === 'fs' || filePath === 'os' || filePath === 'events') {
+    } else if( filePath === 'fs.js' || filePath === 'os.js' || filePath === 'events.js') {
       console.log("Not permitted to use the module " + filePath);
       reject("include failed due to module not permitted");
       return;
-    } else if( filePath === 'net' || filePath === 'ws' ) {
-      modData = require('rcvrcore/' + filePath + '_wrap');
-      onImportComplete([modData, origFilePath]);
+    } else if( filePath === 'net.js' || filePath === 'ws.js' ||  filePath === 'htmlparser.js') {
+      //modData = require('rcvrcore/' + filePath + '_wrap');
+      //onImportComplete([modData, origFilePath]);
+      console.log("Not permitted to use the module " + filePath);
+      reject("include failed due to module not permitted");
       return;
-    } else if( filePath === 'http' || filePath === 'https' ) {
-      if (filePath === 'http')
-      {
-        modData = new http_wrap();
-      }
-      else
-      {
-        modData = new https_wrap();
-      }
-      var localapp = (isLocalApp(_this.packageUrl) || isLocalIPV6App(_this.packageUrl));
-      modData.setLocalApp(localapp);
-      onImportComplete([modData, origFilePath]);
+    } else if (filePath === 'http.js' || filePath === 'https.js') {
+      console.log("Not permitted to use the module " + filePath);
+      reject("include failed due to module not permitted");
+      //if (filePath === 'http')
+      //{
+      //  modData = new http_wrap();
+      //}
+      //else
+      //{
+      //  modData = new https_wrap();
+      //}
+      //var localapp = (isLocalApp(_this.packageUrl) || isLocalIPV6App(_this.packageUrl));
+      //modData.setLocalApp(localapp);
+      //onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
-      var Scene = require('rcvrcore/' + filePath.substring(3));
+      //var Scene = require('rcvrcore/' + filePath.substring(3));
+      var Scene = require(filePath.substring(3));
       if( _this.sceneWrapper === null ) {
         _this.sceneWrapper = new Scene();
       }
@@ -582,12 +600,18 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       onImportComplete([_this.sceneWrapper, origFilePath]);
       return;
     } else if( filePath.substring(0,9) === "px:tools.") {
-      modData = require('rcvrcore/tools/' + filePath.substring(9));
+      modData = require('tools/' + filePath.substring(9));
       onImportComplete([modData, origFilePath]);
       return;
     }
 
+    //console.log("this path is temporarily disabled by akuts");
+    //reject("this path is temporarily disabled by akuts");
+
+
     filePath = _this.resolveModulePath(filePath, currentXModule).fileUri;
+
+    console.log("this path is by akuts: " + filePath);
 
     log.message(4, "filePath=" + filePath);
     if( _this.isScriptDownloading(filePath) ) {
@@ -679,10 +703,11 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
   }
 
   var sourceCode = AppSceneContext.wrap(codeBuffer);
-  var moduleFunc = vm.runInContext(sourceCode, _this.sandbox, {filename:filePath, displayErrors:true});
-  var px = createModule_pxScope.call(this, xModule);
+
   log.message(4, "RUN " + filePath);
-  moduleFunc(px, xModule, filePath, filePath);
+  var px = createModule_pxScope.call(this, xModule);
+  vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
+      px, xModule, filePath, filePath);
   log.message(4, "RUN DONE: " + filePath);
   this.setXModule(filePath, xModule);
 
@@ -715,9 +740,9 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 };
 
 AppSceneContext.prototype.onResize = function(resizeEvent) {
-  var hrTime = process.hrtime(this.lastHrTime);
+  var hrTime = uv.hrtime();
   var deltaMillis = (hrTime[0] * 1000 + hrTime[1] / 1000000);
-  this.lastHrTime = process.hrtime();
+  this.lastHrTime = uv.hrtime();
   if( deltaMillis > 300 ) {
     if( this.resizeTimer !== null ) {
       clearTimeout(this.resizeTimer);

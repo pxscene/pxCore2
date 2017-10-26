@@ -29,9 +29,9 @@ Logger.prototype.info = function(message) {
 };
 
 Logger.prototype.message = function(levelNum, message) {
-  if( levelNum > loggingLevel ) {
-   return;
-  }
+  //if( levelNum > loggingLevel ) {
+  // return;
+  //}
   console.log(this.fullMessage('MESSAGE:'+levelNum, message));
 };
 

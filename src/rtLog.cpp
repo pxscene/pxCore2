@@ -117,7 +117,7 @@ void rtLogSetLogHandler(rtLogHandler logHandler)
   sLogHandler = logHandler;
 }
 
-static rtLogLevel sLevel = RT_LOG_WARN;
+static rtLogLevel sLevel = RT_LOG_INFO;
 void rtLogSetLevel(rtLogLevel level)
 {
   sLevel = level;

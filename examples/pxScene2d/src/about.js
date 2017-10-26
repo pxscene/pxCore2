@@ -6,6 +6,8 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
   var root  = imports.scene.root;
 
   var myStretch = scene.stretch.STRETCH;
+
+  print("about.js start")
                                            
   var LIGHT_BLUE  = 0x2B9CD8ff;
   var DARK_GRAY   = 0xDADADAff;
@@ -128,7 +130,10 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 
   function hidePanel()
   {
-    clearTimeout(autoDismiss);
+    if (autoDismiss != null) {
+        clearTimeout(autoDismiss);
+    }
+
     autoDismiss = null;
 
     panel.animateTo({ y: scene.h + panel.h }, 1.0,  // offscreen bottom
@@ -141,15 +146,15 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
   panel_bg.on("onFocus",   function(e) { /*showPanel(5000);*/ } );
   panel_bg.on("onKeyDown", function(e) { if(e.keyCode) { hidePanel();  }  });
            
-  Promise.all([fontRes.ready, logo.ready, title_bg.ready, panel.ready]).catch( (err) =>
+  Promise.all([fontRes.ready, logo.ready, title_bg.ready, panel.ready]).catch( function (err)
   {
     console.log(">>> Loading Assets ... err = " + err);
                                                       
-  }).then( () =>
+  }).then( function() 
   {
     title = scene.create({ t: "text", text: "About pxscene", font: fontRes, parent: panel, pixelSize: titlePts, textColor: 0xFFFFFFff });
         
-    title.ready.then( () =>
+    title.ready.then( function ()
     {
         var titleM = fontRes.measureText(titlePts, title.text);
 

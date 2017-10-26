@@ -31,9 +31,10 @@ typedef rtError (rtObject::*rtSetPropertyThunk)(const rtValue& value);
 
 struct rtMethodEntry
 {
-    void init(const char* methodName, const char* argTypes, char returnType, 
+    void init(const char* methodName, int numArgs, const char* argTypes, char returnType, 
 	      rtMethodThunk thunk, rtMethodEntry* next)
     {
+        mNumArgs = numArgs;
         mArgTypes = argTypes;
         mMethodName = methodName;
         mNext = next;
@@ -41,6 +42,7 @@ struct rtMethodEntry
         mThunk = thunk;
     }
 
+    int mNumArgs;
     rtMethodEntry* mNext;
     const char* mMethodName;
     rtMethodThunk mThunk;
@@ -123,7 +125,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         return oldHead;                                     \
     }   \
     static rtMethodMap map;                                 \
-    virtual rtMethodMap* getMap() const               \
+    virtual rtMethodMap* getMap() const                \
     {                                                       \
         return &map;                                  \
     }                                                       
@@ -285,6 +287,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
+            entry.mNumArgs = 0; \
             entry.mArgTypes = ""; \
             entry.mMethodName = name; \
             entry.mNext = tail; \
@@ -303,6 +306,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
+            entry.mNumArgs = 1; \
             entry.mArgTypes = RT_##arg1type##Type2; \
             entry.mMethodName = name; \
             entry.mNext = tail; \
@@ -322,6 +326,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
+            entry.mNumArgs = 2; \
             entry.mArgTypes = RT_##arg1type##Type2 RT_##arg2type##Type2; \
             entry.mMethodName = name; \
             entry.mNext = tail; \
@@ -341,6 +346,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
+            entry.mNumArgs = 3; \
             entry.mArgTypes = RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2; \
             entry.mMethodName = name; \
             entry.mNext = tail; \
@@ -360,6 +366,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
+            entry.mNumArgs = 4; \
             entry.mArgTypes = RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2; \
             entry.mMethodName = name; \
             entry.mNext = tail; \
@@ -379,6 +386,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
+            entry.mNumArgs = 5; \
             entry.mArgTypes = RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2; \
             entry.mMethodName = name; \
             entry.mNext = tail; \
@@ -398,6 +406,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
+            entry.mNumArgs = 6; \
             entry.mArgTypes = RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2 RT_##arg6type##Type2; \
             entry.mMethodName = name; \
             entry.mNext = tail; \
@@ -417,6 +426,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
+            entry.mNumArgs = 7; \
             entry.mArgTypes = RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2 RT_##arg6type##Type2 RT_##arg7type##Type2; \
             entry.mMethodName = name; \
             entry.mNext = tail; \
@@ -436,6 +446,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
+            entry.mNumArgs = 8; \
             entry.mArgTypes = RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2 RT_##arg6type##Type2 RT_##arg7type##Type2 RT_##arg8type##Type2; \
             entry.mMethodName = name; \
             entry.mNext = tail; \
@@ -455,6 +466,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
+            entry.mNumArgs = 9; \
             entry.mArgTypes = RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2 RT_##arg6type##Type2 RT_##arg7type##Type2 RT_##arg8type##Type2 RT_##arg9type##Type2; \
             entry.mMethodName = name; \
             entry.mNext = tail; \
@@ -474,7 +486,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
-			entry.init(name, RT_voidType2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
+			entry.init(name, 0, RT_voidType2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
         } \
         rtMethodEntry entry; \
     }; \
@@ -488,7 +500,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
-			entry.init(name, RT_##arg1type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
+			entry.init(name, 1, RT_##arg1type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
         } \
         rtMethodEntry entry; \
     }; \
@@ -504,7 +516,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
-			entry.init(name, RT_##arg1type##Type2 RT_##arg2type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
+			entry.init(name, 2, RT_##arg1type##Type2 RT_##arg2type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
         } \
         rtMethodEntry entry; \
     }; \
@@ -519,7 +531,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
-            entry.init(name, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
+            entry.init(name, 3, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
         } \
         rtMethodEntry entry; \
     }; \
@@ -527,14 +539,14 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
     virtual void* dontStrip##method() { return (void*)&method##EntryInstance; }
 
 #define  rtMethod4ArgAndReturn(name, method, arg1type, arg2type, arg3type, arg4type, returntype) \
-    rtThunk4ArgAndReturn(method, arg1type, arg2type, arg3type, arg4type, returntype); \
+    rtThunk4ArgAndReturn(method, 4, arg1type, arg2type, arg3type, arg4type, returntype); \
     class method##Entry \
     { \
     public: \
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
-            entry.init(name, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
+            entry.init(name, 5, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
         } \
         rtMethodEntry entry; \
     }; \
@@ -549,7 +561,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
-            entry.init(name, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
+            entry.init(name, 5, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
         } \
         rtMethodEntry entry; \
     }; \
@@ -564,7 +576,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
-            entry.init(name, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2 RT_##arg6type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
+            entry.init(name, 6, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2 RT_##arg6type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
         } \
         rtMethodEntry entry; \
     }; \
@@ -579,7 +591,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
-            entry.init(name, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2 RT_##arg6type##Type2 RT_##arg7type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
+            entry.init(name, 7, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2 RT_##arg6type##Type2 RT_##arg7type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
         } \
         rtMethodEntry entry; \
     }; \
@@ -594,7 +606,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
-            entry.init(name, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2 RT_##arg6type##Type2 RT_##arg7type##Type2 RT_##arg8type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
+            entry.init(name, 8, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##Type2 RT_##arg5type##Type2 RT_##arg6type##Type2 RT_##arg7type##Type2 RT_##arg8type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
         } \
         rtMethodEntry entry; \
     }; \
@@ -609,7 +621,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         method##Entry() \
         {\
             rtMethodEntry* tail = head(&entry); \
-            entry.init(name, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##type2 RT_##arg5type##Type2 RT_##arg6type##Type2 RT_##arg7type##Type2 RT_##arg8type##Type2 RT_##arg9type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
+            entry.init(name, 9, RT_##arg1type##Type2 RT_##arg2type##Type2 RT_##arg3type##Type2 RT_##arg4type##type2 RT_##arg5type##Type2 RT_##arg6type##Type2 RT_##arg7type##Type2 RT_##arg8type##Type2 RT_##arg9type##Type2, RT_##returntype##Type, (rtMethodThunk)&PARENTTYPE__::method##_thunk, tail);\
         } \
         rtMethodEntry entry; \
     }; \

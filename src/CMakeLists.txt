@@ -128,8 +128,10 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         endif ()
     endif (HOSTNAME STREQUAL "raspberrypi")
 elseif(WIN32)
+    message("Building dukluv for Windows")
+    add_subdirectory(dukluv)
     message("Building pxcore for Windows")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /Zi /DEBUG")
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/win)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/win)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/win)
@@ -146,7 +148,7 @@ elseif(WIN32)
             -DU_HAVE_STD_STRING=0 -DUCONFIG_NO_BREAK_ITERATION=0 -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_CONVERSION=1
             -DHTTP_PARSER_STRICT=0 -DUSE_RENDER_STATS -D_HAS_EXCEPTIONS=0)
     #add_definitions(-DRUNINMAIN-DPNG_APNG_SUPPORTED)
-    add_definitions(-DWIN32 -D_LIB -DNDEBUG -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
+    add_definitions(-DWIN32 -D_LIB -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
     include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${PNGINC} ${PTHREADINC})
     set(PXCORE_FILES win/pxBufferNative.cpp win/pxOffscreenNative.cpp win/pxWindowNative.cpp
             win/pxEventLoopNative.cpp win/pxTimerNative.cpp win/pxClipboardNative.cpp pxViewWindow.cpp
@@ -174,7 +176,7 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
-        jsbindings/jsCallback.cpp jsbindings/rtFunctionWrapper.cpp jsbindings/rtObjectWrapper.cpp
+        jsbindings/rtFunctionWrapper.cpp jsbindings/rtObjectWrapper.cpp
         jsbindings/rtWrapperUtils.cpp)
 
 if (PXCORE_MATRIX_HELPERS)
@@ -189,6 +191,10 @@ if (OUTPUT_LIBS_LOCAL)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif (OUTPUT_LIBS_LOCAL)
+
+include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/dukluv/lib/duktape/src)
+include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/dukluv/lib/uv/include)
+include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/dukluv/src)
 
 if (BUILD_PXCORE_LIBS)
     message("Building pxcore libs")

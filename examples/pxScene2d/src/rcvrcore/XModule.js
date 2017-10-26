@@ -1,8 +1,8 @@
 "use strict";
 
-var hasExtension = require('rcvrcore/utils/FileUtils').hasExtension;
+var hasExtension = require('utils/FileUtils.js').hasExtension;
 
-var Logger = require('rcvrcore/Logger').Logger;
+var Logger = require('Logger.js').Logger;
 var log = new Logger('XModule');
 
 function XModule(name, appSceneContext, basePath, jarName) {
@@ -78,7 +78,9 @@ XModule.prototype.importModule = function(requiredModuleSet, params) {
 };
 
 XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, failedCallback, params) {
-  var isSingleStringImportType = false;
+    var isSingleStringImportType = false;
+
+    log.message('XModule.prototype._importModule');
 
   if( readyCallBack === undefined ) {
     console.trace("WARNING: " + 'prepareModule was did not have resolutionCallback parameter: USAGE: prepareModule(requiredModules, readyCallback, [failedCallback])');

@@ -7,10 +7,6 @@
 #pragma GCC diagnostic ignored "-Wall"
 #endif
 
-#include <node.h>
-#include <node_object_wrap.h>
-#include <v8.h>
-#include <v8-util.h>
 #include <uv.h>
 
 #if !defined(WIN32) && !defined(ENABLE_DFB)

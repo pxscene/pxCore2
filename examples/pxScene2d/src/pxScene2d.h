@@ -1006,7 +1006,7 @@ public:
 //  rtError makeReady(bool ready);  // DEPRECATED ?
 
   // in the case of pxSceneContainer, the makeReady should be the  
-  // catalyst for ready to fire, so override sendPromise and 
+  // catalyst for ready to fire, so sendPromise and 
   // createNewPromise to prevent firing from update() 
   virtual void sendPromise() { rtLogDebug("pxSceneContainer ignoring sendPromise\n"); }
   virtual void createNewPromise(){ rtLogDebug("pxSceneContainer ignoring createNewPromise\n"); }
@@ -1025,7 +1025,7 @@ typedef rtRef<pxObject> pxObjectRef;
 class pxScriptView: public pxIView
 {
 public:
-  pxScriptView(const char* url, const char* /*lang*/);
+  pxScriptView(const char* url);
 #ifndef RUNINMAIN
   void runScript(); // Run the script
 #endif
@@ -1040,12 +1040,9 @@ public:
     {
       mGetScene->clearContext();
       mMakeReady->clearContext();
-      mGetContextID->clearContext();
-
       // TODO Given that the context is being cleared we likely don't need to zero these out
       mCtx->add("getScene", 0);
       mCtx->add("makeReady", 0);
-      mCtx->add("getContextID", 0);
     }
 #endif //ENABLE_RT_NODE
 
@@ -1076,8 +1073,9 @@ public:
     //rtLogInfo(__FUNCTION__);
     long l = rtAtomicDec(&mRefCount);
     //  rtLogDebug("pxScene2d release %ld\n",l);
-    if (l == 0)
-      delete this;
+    if (l == 0) {
+      //delete this; // todo
+    }
     return l;
   }
 
@@ -1115,8 +1113,6 @@ protected:
 
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
-
-  static rtError getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx);
 
   virtual void onSize(int32_t w, int32_t h)
   {
@@ -1231,7 +1227,6 @@ protected:
   rtRef<pxIView> mView;
   rtRef<rtFunctionCallback> mGetScene;
   rtRef<rtFunctionCallback> mMakeReady;
-  rtRef<rtFunctionCallback> mGetContextID;
 
 #ifdef ENABLE_RT_NODE
   rtNodeContextRef mCtx;
@@ -1312,12 +1307,13 @@ public:
     return rtAtomicInc(&mRefCount);
   }
   
-  virtual unsigned long Release() 
+  virtual unsigned long Release()
   {
     long l = rtAtomicDec(&mRefCount);
     //  rtLogDebug("pxScene2d release %ld\n",l);
-    if (l == 0)
-      delete this;
+    if (l == 0) {
+      //delete this; // todo
+    }
     return l;
   }
 
@@ -1547,6 +1543,7 @@ class pxScene2dRef: public rtRef<pxScene2d>, public rtObjectBase
   virtual rtError Get(uint32_t i, rtValue* value) const;
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t i, const rtValue* value);
+  virtual rtMethodMap* getMap() const { return NULL; }
 };
 
 

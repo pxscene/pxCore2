@@ -1,4 +1,4 @@
-px.import({ scene: 'px:scene.1.js',
+px.import({  scene: 'px:scene.1.js',
              keys: 'px:tools.keys.js'
 }).then( function ready(imports)
 {
@@ -10,15 +10,16 @@ px.import({ scene: 'px:scene.1.js',
   }
 
 
-  process.on('uncaughtException', uncaughtException);
-
+  //process.on('uncaughtException', uncaughtException);
   // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
   var originalURL = (!url || url==="") ? "browser.js":url;
   console.log("url:",originalURL);
 
-  var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
-  var childScene = scene.create({t:"scene", url:originalURL,parent:scene.root});
+  var blackBg = scene.create({ t: "rect", fillColor: 0x000000ff, lineColor: 0xffff0080, lineWidth: 0, x: 0, y: 0, w: 1280, h: 720, a: 0, parent: scene.root });
+  print("childScene create");
+  var childScene = scene.create({ t: "scene", url: originalURL, parent: scene.root });
+  print("childScene create done");
   childScene.focus = true;
 
   var showFPS = false;
@@ -50,26 +51,6 @@ px.import({ scene: 'px:scene.1.js',
     }
   });
 
-////
-if (false)
-{
-  // TODO Cursor emulation mostly for egl targets right now.
-
-  // TODO hacky raspberry pi detection
-  var os = require("os");
-  var hostname = os.hostname();
-
-  if (hostname == "raspberrypi") {
-    var cursor = scene.create({t:"image", url:"cursor.png",parent:scene.root,
-                               interactive:false});
-
-    scene.on("onMouseMove", function(e) {
-	    cursor.x = e.x-23;
-	    cursor.y = e.y-10;
-    });
-  }
-}
-
   scene.root.on("onPreKeyDown", function(e) {
 	  var code  = e.keyCode;
     var flags = e.flags;
@@ -98,22 +79,22 @@ if (false)
       if (code == keys.S)  // ctrl-alt-s
       {
         // This returns a data URI string with the image data
-        var dataURI = scene.screenshot('image/png;base64');
+        //var dataURI = scene.screenshot('image/png;base64');
 
-        // convert the data URI by stripping off the scheme and type information
-        // to a base64 encoded string with just the PNG image data
-        var base64PNGData = dataURI.slice(dataURI.indexOf(',')+1);
+        //// convert the data URI by stripping off the scheme and type information
+        //// to a base64 encoded string with just the PNG image data
+        //var base64PNGData = dataURI.slice(dataURI.indexOf(',')+1);
 
-        // decode the base64 data and write it to a file
-        fs.writeFile("screenshot.png", new Buffer(base64PNGData, 'base64'), function(err)
-        {
-          if (err)
-            console.log("Error creating screenshot.png");
-          else
-            console.log("Created screenshot.png");
-        });
+        //// decode the base64 data and write it to a file
+        //fs.writeFile("screenshot.png", new Buffer(base64PNGData, 'base64'), function(err)
+        //{
+        //  if (err)
+        //    console.log("Error creating screenshot.png");
+        //  else
+        //    console.log("Created screenshot.png");
+        //});
 
-        e.stopPropagation();
+        //e.stopPropagation();
       }
       else
       if(code == keys.D)  // ctrl-alt-d
@@ -214,21 +195,23 @@ if (false)
   updateSize(scene.w, scene.h);
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // Test for Clearscreen delegate...
+  //// Test for Clearscreen delegate...
   childScene.ready.then( function()
   {
       // Use delegate if present...
       //
-      if (typeof childScene.api                  !== undefined &&
-          typeof childScene.api.wantsClearscreen === 'function')
-      {
-        if(childScene.api.wantsClearscreen()) // use delegate preference - returns bool
-          blackBg.a = 1; 
+      //if (typeof childScene.api                  !== undefined &&
+      //    typeof childScene.api.wantsClearscreen === 'function')
+      //{
+      //  if(childScene.api.wantsClearscreen()) // use delegate preference - returns bool
+      //    blackBg.a = 1; 
 
-      }
-      else {
-          blackBg.a = 1; 
-      }
+      //}
+      //else {
+      //    blackBg.a = 1; 
+      //}
+
+      blackBg.a = 1;
   });
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // Example of 'delegate' for childScene.
@@ -242,8 +225,10 @@ if (false)
   */
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function releaseResources() {
-    process.removeListener("uncaughtException", uncaughtException);
+    //process.removeListener("uncaughtException", uncaughtException);
   }
 
   scene.on("onClose",releaseResources);
+}).catch(function importFailed(err) {
+    console.error("Import failed for shell.js: " + err.stack);
 });

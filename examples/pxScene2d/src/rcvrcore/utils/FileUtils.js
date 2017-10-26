@@ -1,11 +1,11 @@
 "use strict";
 
-var fs = require("fs");
-var http = require("http");
-var https = require("https");
-var url = require("url");
+var fs = require("../../fs.js");
+//var http = require("http");
+//var https = require("https");
+var url = require("../../url.js");
 
-var Logger = require('rcvrcore/Logger').Logger;
+var Logger = require('../Logger.js').Logger;
 var log = new Logger('FileUtils');
 
 /**
@@ -52,18 +52,27 @@ function loadFile(fileUri) {
           fileUri = fileUri.substring(1);
         }
       }
-      var infile = fs.createReadStream(fileUri);
-      infile.on('data', function (data) {
-        code += data;
+      fs.readFile(fileUri, function (err, data) {
+          if (err) {
+              log.error("FAILED to read file[" + fileUri + "] from file system");
+              reject(err);
+              return;
+          }
+          code += data;
+          resolve(code);
       });
-      infile.on('end', function () {
-        log.message(3, "Got file[" + fileUri + "] from file system");
-        resolve(code);
-      });
-      infile.on('error', function (err) {
-        log.error("FAILED to read file[" + fileUri + "] from file system");
-        reject(err);
-      });
+      //var infile = fs.createReadStream(fileUri);
+      //infile.on('data', function (data) {
+      //  code += data;
+      //});
+      //infile.on('end', function () {
+      //  log.message(3, "Got file[" + fileUri + "] from file system");
+      //  resolve(code);
+      //});
+      //infile.on('error', function (err) {
+      //  log.error("FAILED to read file[" + fileUri + "] from file system");
+      //  reject(err);
+      //});
     }
   });
 }

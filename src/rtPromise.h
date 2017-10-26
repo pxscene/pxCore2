@@ -48,18 +48,22 @@ public:
   rtMethod2ArgAndReturn("then",then,rtFunctionRef,rtFunctionRef,rtObjectRef);
   rtMethod1ArgAndNoReturn("resolve",resolve,rtValue);
   rtMethod1ArgAndNoReturn("reject",reject,rtValue);
+  rtMethod1ArgAndNoReturn("setResolve", setResolve, rtFunctionRef);
+  rtMethod1ArgAndNoReturn("setReject", setReject, rtFunctionRef);
+  rtProperty(val, val, setVal, rtValue);
+  rtReadOnlyProperty(isResolved, isResolved, uint32_t);
 
-  rtPromise() :  promise_id(promiseID++), promise_name(""), mState(PENDING), mObject(NULL)
+  rtPromise() :  promise_id(promiseID++), promise_name(""), mState(PENDING), mObject(NULL), mIsResolved(0)
   {
 //    rtLogDebug("############# PROMISE >> CREATED   [ id: %d ]  \n", promise_id);
   }
 
-  rtPromise(uint32_t id) : promise_id(id), promise_name("") , mState(PENDING), mObject(NULL)
+  rtPromise(uint32_t id) : promise_id(id), promise_name("") , mState(PENDING), mObject(NULL), mIsResolved(0)
   {
 //    rtLogDebug("############# PROMISE >> CREATED   [ id: %d ]  \n", promise_id);
   }
 
-  rtPromise(std::string name) : promise_id(promiseID++), promise_name(name), mState(PENDING), mObject(NULL)
+  rtPromise(std::string name) : promise_id(promiseID++), promise_name(name), mState(PENDING), mObject(NULL), mIsResolved(0)
   {
     rtLogDebug("############# PROMISE >> CREATED   [ id: %d  >> %s ]", promise_id, promise_name.c_str());
   }
@@ -67,105 +71,95 @@ public:
   rtError then(rtFunctionRef resolve, rtFunctionRef reject, 
                rtObjectRef& newPromise)
   {
-    if (mState == PENDING)
-    {
-      thenData data(resolve, reject, new rtPromise);
+    // not implemented
+    assert(0);
 
-      mThenData.push_back(data);
+    //if (mState == PENDING)
+    //{
+    //  thenData data(resolve, reject, new rtPromise);
 
-      newPromise = data.mNextPromise;
+    //  mThenData.push_back(data);
 
-      rtLogDebug("############# PROMISE >> THEN >> PENDING       [ id: %d  >> %s ]",
-        promise_id, promise_name.c_str());
-    }
-    else if (mState == FULFILLED)
-    {
-      rtLogDebug("############# PROMISE >> THEN >> FULFILLED     [ id: %d  >> %s ]",
-        promise_id, promise_name.c_str());
+    //  newPromise = data.mNextPromise;
 
-      if (resolve)
-      {
-        resolve.send(mObject);
-        newPromise = new rtPromise;
-        newPromise.send("resolve",mObject);
-      }
-    }
-    else if (mState == REJECTED)
-    {
-      if (reject)
-      {
-        reject.send(mObject);
-        newPromise = new rtPromise;
-        newPromise.send("reject",mObject);
-      }
-    }
-    else
-    {
-      rtLogError("Invalid rtPromise state");
-    }
+    //  rtLogDebug("############# PROMISE >> THEN >> PENDING       [ id: %d  >> %s ]",
+    //    promise_id, promise_name.c_str());
+    //}
+    //else if (mState == FULFILLED)
+    //{
+    //  rtLogDebug("############# PROMISE >> THEN >> FULFILLED     [ id: %d  >> %s ]",
+    //    promise_id, promise_name.c_str());
+
+    //  if (resolve)
+    //  {
+    //    resolve.send(mObject);
+    //    newPromise = new rtPromise;
+    //    newPromise.send("resolve",mObject);
+    //  }
+    //}
+    //else if (mState == REJECTED)
+    //{
+    //  if (reject)
+    //  {
+    //    reject.send(mObject);
+    //    newPromise = new rtPromise;
+    //    newPromise.send("reject",mObject);
+    //  }
+    //}
+    //else
+    //{
+    //  rtLogError("Invalid rtPromise state");
+    //}
 
     return RT_OK;
   }
 
-  rtError resolve(const rtValue& v)
+  
+  rtError isResolved(uint32_t& v) const { v = mIsResolved; return RT_OK; }
+
+  rtError val(rtValue& v) const { v = mVal; return RT_OK; }
+  rtError setVal(rtValue v) { mVal = v; return RT_OK; }
+
+  __declspec(noinline) rtError resolve(const rtValue& v)
   {
-    if (mState != PENDING)
-    {
-      rtLogDebug("############# ERROR:  resolve() >> [%s] != PENDING   [ id: %d  >> %s ]",
-        rtPromiseState2String(mState), promise_id,promise_name.c_str());
-
-      return RT_FAIL;
+    //if (resolveCb.getPtr()) {
+    //  resolveCb.send(v);
+    //}
+    if (resolveCb.getPtr()) {
+      resolveCb.send(rtValue((uint32_t)0),v);
     }
-
-    mState = FULFILLED;
-    mObject = v.toObject().getPtr();
-
-    for (std::vector<thenData>::iterator it = mThenData.begin();
-         it != mThenData.end(); ++it)
-    {
-      if (it->mResolve)
-      {
-        it->mResolve.send(mObject);
-        it->mNextPromise.send("resolve",mObject);
-      }
-    }
-    mThenData.clear();
+    mVal = v;
+    mIsResolved = 1;
     return RT_OK;
   }
 
-  rtError reject(const rtValue& v)
+  __declspec(noinline) rtError reject(const rtValue& v)
   {
-    if (mState != PENDING)
-    {
-      rtLogDebug("############# ERROR:  reject() >>[%s] != PENDING   [ id: %d  >> %s ]",
-        rtPromiseState2String(mState), promise_id,promise_name.c_str());
-
-      return RT_FAIL;
+    //if (rejectCb.getPtr()) {
+    //  rejectCb.send(v);
+    //}
+    if (resolveCb.getPtr()) {
+      resolveCb.send(rtValue((uint32_t)1), v);
     }
-
-    mState = REJECTED;
-    rtObjectRef objRef = v.toObject();
-
-    if (objRef.getPtr() != NULL)
-    {
-      mObject = objRef.getPtr();
-    }
-    if (mObject != NULL)
-    {
-      for (std::vector<thenData>::iterator it = mThenData.begin();
-         it != mThenData.end(); ++it)
-      {
-        if (it->mReject)
-        {
-          it->mReject.send(mObject);
-          it->mNextPromise.send("reject",mObject);
-        }
-      }
-    }
-    mThenData.clear();
-    mObject = objRef.getPtr();
+    mVal = v;
+    mIsResolved = 2;
     return RT_OK;
   }
+
+  __declspec(noinline) rtError setResolve(rtFunctionRef resolve)
+  {
+    resolveCb = resolve;
+    return RT_OK;
+  }
+
+  __declspec(noinline) rtError setReject(rtFunctionRef reject)
+  {
+    rejectCb = reject;
+    return RT_OK;
+  }
+
+  typedef rtError(rtObject::*rtGetPropertyThunk)(rtValue& result) const;
+  typedef rtError(rtObject::*rtSetPropertyThunk)(const rtValue& value);
 
   bool status()
   {
@@ -193,6 +187,12 @@ private:
   rtPromiseState mState;
   std::vector<thenData> mThenData;
   rtIObject* mObject;
+
+  rtFunctionRef resolveCb;
+  rtFunctionRef rejectCb;
+
+  uint32_t mIsResolved;
+  rtValue mVal;
 };
 
 // uint32_t rtPromise::promiseID = 0;

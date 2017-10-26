@@ -19,7 +19,6 @@
 // rtError.cpp
 
 #include "rtError.h"
-#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>

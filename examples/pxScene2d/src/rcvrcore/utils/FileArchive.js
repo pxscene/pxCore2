@@ -1,12 +1,11 @@
 "use strict";
 
-var fs = require('fs');
-var url = require('url');
-var http = require('http');
-var fs = require("fs");
-var JSZip = require("jszip");
+var fs = require('../../fs.js');
+var url = require('../../url.js');
+//var http = require('http');
+//var JSZip = require("jszip");
 
-var Logger = require('rcvrcore/Logger').Logger;
+var Logger = require('../Logger.js').Logger;
 var log = new Logger('FileUtils');
 
 var tarDirectory = {};

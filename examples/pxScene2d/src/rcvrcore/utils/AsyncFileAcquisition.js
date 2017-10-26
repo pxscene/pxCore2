@@ -1,7 +1,7 @@
 "use strict";
 
-var Logger = require('rcvrcore/Logger').Logger;
-var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
+var Logger = require('../Logger.js').Logger;
+var SceneModuleLoader = require('../SceneModuleLoader.js');
 var log = new Logger('AsyncFileAcquisition');
 
 function AsyncFileAcquisition(scene) {

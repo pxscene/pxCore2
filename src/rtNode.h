@@ -30,6 +30,10 @@
 #include <string>
 #include <map>
 
+extern "C" {
+#include "duv.h"
+}
+
 #if !defined(WIN32) && !defined(ENABLE_DFB)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -44,7 +48,6 @@
 #endif
 
 #include "uv.h"
-#include "include/v8.h"
 #include "include/libplatform/libplatform.h"
 
 #include "jsbindings/rtObjectWrapper.h"
@@ -57,13 +60,7 @@
 #pragma GCC diagnostic pop
 #endif
 
-
 #define USE_CONTEXTIFY_CLONES
-
-namespace node
-{
-class Environment;
-}
 
 class rtNode;
 class rtNodeContext;
@@ -84,12 +81,12 @@ args_t;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class rtNodeContext  // V8
+class rtNodeContext
 {
 public:
-  rtNodeContext(v8::Isolate *isolate, v8::Platform* platform);
+  rtNodeContext();
 #ifdef USE_CONTEXTIFY_CLONES
-  rtNodeContext(v8::Isolate *isolate, rtNodeContextRef clone_me);
+  rtNodeContext(rtNodeContextRef clone_me);
 #endif
 
   ~rtNodeContext();
@@ -117,19 +114,10 @@ public:
   const char   *js_file;
   std::string   js_script;
 
-  v8::Isolate              *getIsolate()      const { return mIsolate; };
-  v8::Local<v8::Context>    getLocalContext() const { return PersistentToLocal<v8::Context>(mIsolate, mContext); };
-
-  uint32_t                  getContextId()    const { return mContextId; };
+  duk_context              *dukCtx;
+  uv_loop_t                *uvLoop;
 
 private:
-  v8::Isolate                   *mIsolate;
-  v8::Persistent<v8::Context>    mContext;
-  uint32_t                       mContextId;
-
-  node::Environment*             mEnv;
-  v8::Persistent<v8::Object>     mRtWrappers;
-
   void createEnvironment();
 
 #ifdef USE_CONTEXTIFY_CLONES
@@ -138,7 +126,6 @@ private:
 
   int mRefCount;
   rtAtomic mId;
-  v8::Platform                  *mPlatform;
   void* mContextifyContext;
 };
 
@@ -165,8 +152,6 @@ public:
   void setNeedsToEnd(bool end) { /*rtLogDebug("needsToEnd being set to %d\n",end);*/ mNeedsToEnd = end;}
 #endif
 
-  v8::Isolate   *getIsolate() { return mIsolate; };
-  v8::Platform   *getPlatform() { return mPlatform; };
   void garbageCollect();
 private:
 #ifdef ENABLE_DEBUG_MODE
@@ -178,10 +163,10 @@ private:
 
   void nodePath();
 
-  v8::Isolate                   *mIsolate;
-  v8::Platform                  *mPlatform;
-  v8::Persistent<v8::Context>    mContext;
-
+  duk_context                   *dukCtx;
+  std::vector<uv_loop_t *>       uvLoops;
+  uv_thread_t                    dukTid;
+  bool                           node_is_initialized;
 
 #ifdef USE_CONTEXTIFY_CLONES
   rtNodeContextRef mRefContext;

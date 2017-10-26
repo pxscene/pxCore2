@@ -21,7 +21,6 @@
 #include "pxScene2d.h"
 
 #include <math.h>
-#include <assert.h>
 
 #include "rtLog.h"
 #include "rtRef.h"
@@ -99,6 +98,7 @@ uint32_t gFboBindCalls;
 
 #include <stdint.h>
 #include <stdlib.h>
+
 
 #ifdef ENABLE_RT_NODE
 extern void rtWrapperSceneUpdateEnter();
@@ -530,7 +530,7 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
     uint32_t len = keys.get<uint32_t>("length");
     for (uint32_t i = 0; i < len; i++)
     {
-      rtString key = keys.get<rtString>(i);
+      rtString key = keys.rtObjectBase::Get<rtString>(i);
       animateTo(key, props.get<float>(key), duration, interp, options, count,(i==0)?promise:rtObjectRef());
     }
   }
@@ -568,7 +568,7 @@ rtError pxObject::animateToObj(rtObjectRef props, double duration,
     uint32_t len = keys.get<uint32_t>("length");
     for (uint32_t i = 0; i < len; i++)
     {
-      rtString key = keys.get<rtString>(i);
+      rtString key = keys.rtObjectBase::Get<rtString>(i);
       animateToInternal(key, props.get<float>(key), duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp), (pxConstantsAnimation::animationOptions)options, count,(i==0)?promise:rtObjectRef(),animateObj);
     }
   }
@@ -1290,7 +1290,7 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRef<pxObject>& hit
 bool pxObject::hitTest(pxPoint2f& pt)
 {
   // default hitTest checks against object bounds (0, 0, w, h)
-  // Can override for more interesting hit tests like alpha
+  // Can for more interesting hit tests like alpha
   return (pt.x >= 0 && pt.y >= 0 && pt.x <= mw && pt.y <= mh);
 }
 
@@ -1466,6 +1466,10 @@ rtDefineObject(rtPromise, rtObject);
 rtDefineMethod(rtPromise, then);
 rtDefineMethod(rtPromise, resolve);
 rtDefineMethod(rtPromise, reject);
+rtDefineMethod(rtPromise, setResolve);
+rtDefineMethod(rtPromise, setReject);
+rtDefineProperty(rtPromise, val);
+rtDefineProperty(rtPromise, isResolved);
 
 rtDefineObject(pxObject, rtObject);
 rtDefineProperty(pxObject, _pxObject);
@@ -1701,7 +1705,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     for (uint32_t i = 0; i < l; i++)
     {
       rtObjectRef n;
-      if ((e = create(c.get<rtObjectRef>(i),n)) == RT_OK)
+      if ((e = create(c.rtObjectBase::Get<rtObjectRef>(i),n)) == RT_OK)
         n.set("parent", o);
       else
         break;
@@ -2891,17 +2895,10 @@ rtError pxSceneContainer::setUrl(rtString url)
 
   mUrl = url;
 #ifdef RUNINMAIN
-    setScriptView(new pxScriptView(url.cString(), ""));
+    setScriptView(new pxScriptView(url.cString()));
 #else
-    pxScriptView * scriptView = new pxScriptView(url.cString(),"");
-    AsyncScriptInfo * info = new AsyncScriptInfo();
-    info->m_pView = scriptView;
-    //info->m_pWindow = this;
-    uv_mutex_lock(&moreScriptsMutex);
-    scriptsInfo.push_back(info);
-    uv_mutex_unlock(&moreScriptsMutex);
-    uv_async_send(&asyncNewScript);
-    setScriptView(scriptView);
+    // unimplemented
+  assert(0);
 #endif
 
   return RT_OK;
@@ -2963,7 +2960,7 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
-pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
+pxScriptView::pxScriptView(const char* url)
      : mWidth(-1), mHeight(-1), mViewContainer(NULL), mRefCount(0)
 {
   rtLogInfo(__FUNCTION__);
@@ -3008,11 +3005,9 @@ void pxScriptView::runScript()
   {
     mGetScene = new rtFunctionCallback(getScene,  this);
     mMakeReady = new rtFunctionCallback(makeReady, this);
-    mGetContextID = new rtFunctionCallback(getContextID, this);
 
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
-    mCtx->add("getContextID", mGetContextID.getPtr());
 
 #ifdef RUNINMAIN
     mReady = new rtPromise();
@@ -3082,36 +3077,6 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
   return RT_FAIL;
 }
 
-
-
-rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx)
-{
-  //rtLogInfo(__FUNCTION__);
-  UNUSED_PARAM(numArgs);
-  UNUSED_PARAM(args);
-
-#ifdef ENABLE_RT_NODE
-  if (ctx)
-  {
-    pxScriptView* v = (pxScriptView*)ctx;
-
-    Locker                locker(v->mCtx->getIsolate());
-    Isolate::Scope isolate_scope(v->mCtx->getIsolate());
-    HandleScope     handle_scope(v->mCtx->getIsolate());
-
-    Local<Context> ctx = v->mCtx->getLocalContext();
-    uint32_t ctx_id = GetContextId( ctx );
-
-    if (result)
-    {
-      *result = rtValue(ctx_id);
-      return RT_OK;
-    }
-  }
-#endif //ENABLE_RT_NODE
-
-  return RT_FAIL;
-}
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {

@@ -580,11 +580,11 @@ write_JPEG_file (char * filename, int quality)
  * ERROR HANDLING:
  *
  * The JPEG library's standard error handler (jerror.c) is divided into
- * several "methods" which you can override individually.  This lets you
+ * several "methods" which you can individually.  This lets you
  * adjust the behavior without duplicating a lot of code, which you might
  * have to update with each future release.
  *
- * Our example here shows how to override the "error_exit" method so that
+ * Our example here shows how to the "error_exit" method so that
  * control is returned to the library's caller when a fatal error occurs,
  * rather than calling exit() as the standard error_exit method does.
  *
@@ -783,7 +783,7 @@ rtError pxLoadJPGImage(const char *buf, size_t buflen, pxOffscreen &o)
 
   /* Step 1: allocate and initialize JPEG decompression object */
 
-  /* We set up the normal JPEG error routines, then override error_exit. */
+  /* We set up the normal JPEG error routines, then error_exit. */
   cinfo.err = jpeg_std_error(&jerr.pub);
   jerr.pub.error_exit = my_error_exit;
   /* Establish the setjmp return context for my_error_exit to use. */

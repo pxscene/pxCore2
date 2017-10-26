@@ -1409,7 +1409,7 @@ public:
   }
 
 protected:
-  // Override to do uniform lookups
+  // to do uniform lookups
   virtual void prelink() {}
   virtual void postlink() {}
 

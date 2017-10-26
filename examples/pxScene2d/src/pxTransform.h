@@ -65,13 +65,13 @@ public:
   rtError set(const char* name, float v);
 
   // warning no range checks
-  rtError get(uint32_t i, float& v)
+  rtError Get(uint32_t i, float& v)
   {
     v = mRegData[i];
     return RT_OK;
   }
 
-  rtError set(uint32_t i, float v)
+  rtError Set(uint32_t i, float v)
   {
     mRegData[i] = v;
     return RT_OK;

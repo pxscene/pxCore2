@@ -44,6 +44,7 @@ class rtIObject
 
     virtual unsigned long AddRef() = 0;
     virtual unsigned long Release() = 0;
+    virtual rtMethodMap* getMap() const = 0;
     virtual rtError Get(const char* name, rtValue* value) const = 0;
     virtual rtError Get(uint32_t i, rtValue* value) const = 0;
     virtual rtError Set(const char* name, const rtValue* value) = 0;
@@ -71,9 +72,9 @@ public:
   template<typename T>
     T get(const char* name) const;
   template<typename T>
-    rtError get(uint32_t i, T& value) const;
+    rtError Get(uint32_t i, T& value) const;
   template<typename T>
-    T get(uint32_t i) const;
+    T Get(uint32_t i) const;
 
   // Enumerate the properties of o and set them on this object
   void set(rtObjectRef o);
@@ -81,7 +82,7 @@ public:
   finline rtError set(const char* name, const rtValue& value) 
     {return Set(name, &value);}
   // For array-like properties
-  finline rtError set(uint32_t i, const rtValue& value) 
+  finline rtError Set(uint32_t i, const rtValue& value) 
     {return Set(i, &value);}
 
   // convenience methods
@@ -156,11 +157,12 @@ public:
                       const rtValue* args,
                       rtValue& result); 
 
- private:
+private:
   virtual rtError Get(const char* name, rtValue* value) const = 0;
   virtual rtError Get(uint32_t i, rtValue* value) const = 0;
   virtual rtError Set(const char* name, const rtValue* value) = 0;
   virtual rtError Set(uint32_t i, const rtValue* value) = 0;
+  virtual rtMethodMap* getMap() const = 0;
 };
 
 // Mix-in providing convenience methods for rtIFunction(s)
@@ -239,6 +241,7 @@ class rtObjectRef: public rtRef<rtIObject>, public rtObjectBase
   virtual rtError Get(uint32_t i, rtValue* value) const;
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t i, const rtValue* value);
+  virtual rtMethodMap* getMap() const { return NULL;  }
 };
 
 class rtFunctionRef: public rtRef<rtIFunction>, public rtFunctionBase
@@ -268,7 +271,9 @@ public:
   virtual unsigned long Release() 
   {
     long l = rtAtomicDec(&mRefCount);
-    if (l == 0) delete this;
+    if (l == 0) {
+      //delete this; // todo
+    }
     return l;
   }
 
@@ -347,7 +352,7 @@ T rtObjectBase::get(const char* name) const
 }
 
 template<typename T>
-T rtObjectBase::get(uint32_t i) const
+T rtObjectBase::Get(uint32_t i) const
 {
   rtValue v;
   Get(i, &v);
@@ -355,7 +360,7 @@ T rtObjectBase::get(uint32_t i) const
 }
 
 template<typename T>
-rtError rtObjectBase::get(uint32_t i, T& value) const
+rtError rtObjectBase::Get(uint32_t i, T& value) const
 {
   rtValue v;
   rtError e = Get(i, &v);
@@ -588,7 +593,9 @@ public:
   virtual unsigned long Release() 
   {
     long l = rtAtomicDec(&mRefCount);
-    if (l == 0) delete this;
+    if (l == 0) {
+      //delete this; // todo
+    }
     return l;
   }
 
@@ -697,6 +704,8 @@ struct rtNamedValue
 class rtMapObject: public rtObject 
 {
 public:
+  rtDeclareObject(rtMapObject, rtObject);
+  rtReadOnlyProperty(mapKeys, mapKeys, rtObjectRef);
 
   std::vector<rtNamedValue>::iterator find(const char* name);
 
@@ -704,6 +713,8 @@ public:
   virtual rtError Get(uint32_t /*i*/, rtValue* /*value*/) const;
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/);
+
+  rtError mapKeys(rtObjectRef& v) const;
 
 private:
   std::vector<rtNamedValue> mProps;

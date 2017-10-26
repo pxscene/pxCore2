@@ -215,26 +215,28 @@ elseif (WIN32)
     set(CMAKE_BUILD_TYPE Release)
     set(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} CACHE STRING "" FORCE)
     add_definitions(-DWIN32 -D_LIB -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /Zi /DEBUG")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /EHs-c-")
     set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/win/Release)
     set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
     set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
-    set(PLATFORM_SOURCES ${PLATFORM_SOURCES} ${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
-            ${NODEDIR}/src/cares_wrap.cc ${NODEDIR}/src/connection_wrap.cc ${NODEDIR}/src/connect_wrap.cc
-            ${NODEDIR}/src/debug-agent.cc ${NODEDIR}/src/env.cc ${NODEDIR}/src/fs_event_wrap.cc ${NODEDIR}/src/handle_wrap.cc
-            ${NODEDIR}/src/inspector_agent.cc ${NODEDIR}/src/inspector_socket.cc ${NODEDIR}/src/js_stream.cc ${NODEDIR}/src/node.cc
-            ${NODEDIR}/src/node_buffer.cc ${NODEDIR}/src/node_config.cc ${NODEDIR}/src/node_constants.cc
-            ${NODEDIR}/src/node_contextify.cc ${NODEDIR}/src/node_counters.cc ${NODEDIR}/src/node_crypto.cc
-            ${NODEDIR}/src/node_crypto_bio.cc ${NODEDIR}/src/node_crypto_clienthello.cc ${NODEDIR}/src/node_dtrace.cc
-            ${NODEDIR}/src/node_file.cc ${NODEDIR}/src/node_http_parser.cc ${NODEDIR}/src/node_i18n.cc
-            ${NODEDIR}/src/node_javascript.cc ${NODEDIR}/src/node_os.cc ${NODEDIR}/src/node_revert.cc
-            ${NODEDIR}/src/node_stat_watcher.cc ${NODEDIR}/src/node_util.cc ${NODEDIR}/src/node_v8.cc ${NODEDIR}/src/node_watchdog.cc
-            ${NODEDIR}/src/node_win32_etw_provider.cc ${NODEDIR}/src/node_win32_perfctr_provider.cc ${NODEDIR}/src/node_zlib.cc
-            ${NODEDIR}/src/pipe_wrap.cc ${NODEDIR}/src/process_wrap.cc ${NODEDIR}/src/signal_wrap.cc ${NODEDIR}/src/spawn_sync.cc
-            ${NODEDIR}/src/stream_base.cc ${NODEDIR}/src/stream_wrap.cc ${NODEDIR}/src/string_bytes.cc ${NODEDIR}/src/string_search.cc
-            ${NODEDIR}/src/tcp_wrap.cc ${NODEDIR}/src/timer_wrap.cc ${NODEDIR}/src/tls_wrap.cc ${NODEDIR}/src/tty_wrap.cc
-            ${NODEDIR}/src/udp_wrap.cc ${NODEDIR}/src/util.cc ${NODEDIR}/src/uv.cc ${PXCOREDIR}/src/utf8.c)
+    set(PLATFORM_SOURCES ${PLATFORM_SOURCES} 
+	    #${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
+	    #${NODEDIR}/src/cares_wrap.cc ${NODEDIR}/src/connection_wrap.cc ${NODEDIR}/src/connect_wrap.cc
+	    #${NODEDIR}/src/debug-agent.cc ${NODEDIR}/src/env.cc ${NODEDIR}/src/fs_event_wrap.cc ${NODEDIR}/src/handle_wrap.cc
+	    #${NODEDIR}/src/inspector_agent.cc ${NODEDIR}/src/inspector_socket.cc ${NODEDIR}/src/js_stream.cc ${NODEDIR}/src/node.cc
+	    #${NODEDIR}/src/node_buffer.cc ${NODEDIR}/src/node_config.cc ${NODEDIR}/src/node_constants.cc
+	    #${NODEDIR}/src/node_contextify.cc ${NODEDIR}/src/node_counters.cc ${NODEDIR}/src/node_crypto.cc
+	    #${NODEDIR}/src/node_crypto_bio.cc ${NODEDIR}/src/node_crypto_clienthello.cc ${NODEDIR}/src/node_dtrace.cc
+	    #${NODEDIR}/src/node_file.cc ${NODEDIR}/src/node_http_parser.cc ${NODEDIR}/src/node_i18n.cc
+	    #${NODEDIR}/src/node_javascript.cc ${NODEDIR}/src/node_os.cc ${NODEDIR}/src/node_revert.cc
+	    #${NODEDIR}/src/node_stat_watcher.cc ${NODEDIR}/src/node_util.cc ${NODEDIR}/src/node_v8.cc ${NODEDIR}/src/node_watchdog.cc
+	    #${NODEDIR}/src/node_win32_etw_provider.cc ${NODEDIR}/src/node_win32_perfctr_provider.cc ${NODEDIR}/src/node_zlib.cc
+	    #${NODEDIR}/src/pipe_wrap.cc ${NODEDIR}/src/process_wrap.cc ${NODEDIR}/src/signal_wrap.cc ${NODEDIR}/src/spawn_sync.cc
+	    #${NODEDIR}/src/stream_base.cc ${NODEDIR}/src/stream_wrap.cc ${NODEDIR}/src/string_bytes.cc ${NODEDIR}/src/string_search.cc
+	    #${NODEDIR}/src/tcp_wrap.cc ${NODEDIR}/src/timer_wrap.cc ${NODEDIR}/src/tls_wrap.cc ${NODEDIR}/src/tty_wrap.cc
+	    #${NODEDIR}/src/udp_wrap.cc ${NODEDIR}/src/util.cc ${NODEDIR}/src/uv.cc 
+	    ${PXCOREDIR}/src/utf8.c)
     set_source_files_properties(utf8.c PROPERTIES LANGUAGE CXX)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_DEBUG_MODE PNG_APNG_SUPPORTED HAS_WINDOWS_BREAKPAD)
     add_definitions(-DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS -DWIN32 -DWIN32_LEAN_AND_MEAN -DGLEW_STATIC -D_TIMESPEC_DEFINED -D_CONSOLE
@@ -249,6 +251,18 @@ elseif (WIN32)
             -DHTTP_PARSER_STRICT=0 -DUSE_RENDER_STATS -D_HAS_EXCEPTIONS=0)
     include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${FREETYPEINC} ${GLEWINC} ${WINSPARKLEINC} ${EXTDIR}/breakpad-chrome_55/src/)
 
+    include_directories(AFTER
+         ${PXCOREDIR}/src/dukluv/src
+    )
+
+    include_directories(AFTER
+       ${PXCOREDIR}/src/dukluv/lib/duktape/src
+    )
+
+    include_directories(AFTER
+       ${PXCOREDIR}/src/dukluv/lib/uv/include
+    )
+
     include_directories(AFTER ${NODEDIR}/deps/openssl/openssl/include ${NODEDIR}/deps/http_parser
             ${NODEDIR}/deps/v8_inspector/third_party/v8_inspector/
             ${NODEDIR}/deps/icu-small/source/common/unicode
@@ -258,16 +272,17 @@ elseif (WIN32)
             ${NODEDIR}/deps/icu-small/source/common
             ${NODEDIR}/tools/msvs/genfiles)
 
+    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCOREDIR}/src/dukluv/build/Release/)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/vc.build/builds)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/build/Release/lib
             ${EXTDIR}/vc.build/builds ${EXTDIR}/libnode-v6.9.0/Release/lib ${EXTDIR}/libnode-v6.9.0/Release)
 
-    set(PLATFORM_LIBRARIES pxCore.lib pthreadVC2.lib opengl32.lib Winmm.lib zlib.lib freetype253MT_D.lib  libcurld.lib
+    # v8_libplatform.lib v8_libbase.lib v8_nosnapshot.lib v8_snapshot.lib v8_base_0.lib v8_base_1.lib v8_base_2.lib v8_base_3.lib v8_inspector_stl.lib node.lib cctest.lib 
+
+    set(PLATFORM_LIBRARIES duktape.lib dschema.lib duv.lib uv.lib pxCore.lib pthreadVC2.lib opengl32.lib Winmm.lib zlib.lib freetype253MT_D.lib  libcurld.lib
                     Ws2_32.lib Wldap32.lib glew32s.lib libpng16.lib libjpeg.lib msvcrt.lib psapi.lib iphlpapi.lib
-                    userenv.lib v8_libplatform.lib v8_libbase.lib v8_nosnapshot.lib v8_snapshot.lib v8_base_0.lib
-                    v8_base_1.lib v8_base_2.lib v8_base_3.lib gtest.lib cares.lib http_parser.lib
-                    icutools.lib icustubdata.lib icudata.lib icuucx.lib icui18n.lib libuv.lib openssl.lib v8_inspector_stl.lib
-                    node.lib cctest.lib rtCore_s.lib common.lib crash_generation_client.lib exception_handler.lib)
+                    userenv.lib gtest.lib cares.lib http_parser.lib icutools.lib icustubdata.lib icudata.lib icuucx.lib icui18n.lib libuv.lib openssl.lib
+                    rtCore_s.lib common.lib crash_generation_client.lib exception_handler.lib)
 
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/build/Release/lib)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/Release/lib)
@@ -277,7 +292,7 @@ elseif (WIN32)
     set(PXSCENE_ADDITIONAL_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/win/pxscene.rc)
     set(PX_LIBRARY_LINK_PXCORE 0)
     set(PX_LIBRARY_SUPPORT 0)
-    set(PXSCENE_LINKER_OPTIONS "")
+    set(PXSCENE_LINKER_OPTIONS " /DEBUG ")
     set(PXSCENE_INSTALLER 1)
 else ()
     message(FATAL_ERROR "Cannot build pxscene.  Unknown platform")
@@ -380,7 +395,6 @@ endif (BUILD_WITH_TEXTURE_USAGE_MONITORING)
 
 set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${PXSCENE_LINKER_OPTIONS})
 link_directories(${PXSCENE_LINK_DIRECTORIES})
-#link_libraries(${PXSCENE_LINK_LIBRARIES})
 
 if (BUILD_PXSCENE_APP)
     message("Enabling build support for pxscene app")
@@ -396,6 +410,8 @@ if (BUILD_PXSCENE_APP)
         install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/browser DESTINATION . COMPONENT pxscene)
         install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/node_modules DESTINATION . COMPONENT pxscene)
         install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/rcvrcore DESTINATION . COMPONENT pxscene)
+	#install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/px-reference DESTINATION . COMPONENT pxscene)
+	#install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dukluv_modules DESTINATION . COMPONENT pxscene)
         file(GLOB PXSCENE_INSTALL_FILES 
            "${CMAKE_CURRENT_SOURCE_DIR}/*.js" "${CMAKE_CURRENT_SOURCE_DIR}/FreeSans.ttf"
            "${CMAKE_CURRENT_SOURCE_DIR}/*.json" "${CMAKE_CURRENT_SOURCE_DIR}/*.conf"

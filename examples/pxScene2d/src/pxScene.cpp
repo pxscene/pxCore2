@@ -153,7 +153,6 @@ public:
     // escape url end
     char buffer[MAX_URL_SIZE + 50];
     memset (buffer, 0, sizeof(buffer));
-
     if (std::string::npos != escapedUrl.find("http")) {
       snprintf(buffer,sizeof(buffer),"shell.js?url=%s",rtUrlEncodeParameters(escapedUrl.c_str()).cString());
     }
@@ -161,18 +160,10 @@ public:
       snprintf(buffer,sizeof(buffer),"shell.js?url=%s",escapedUrl.c_str());
     }
 #ifdef RUNINMAIN
-    setView( new pxScriptView(buffer,"javascript/node/v8"));
+    setView( new pxScriptView(buffer));
 #else
-    pxScriptView * scriptView = new pxScriptView(buffer, "javascript/node/v8");
-    rtLogInfo("new scriptView is %x\n",scriptView);
-    AsyncScriptInfo * info = new AsyncScriptInfo();
-    info->m_pView = scriptView;
-    uv_mutex_lock(&moreScriptsMutex);
-    scriptsInfo.push_back(info);
-    uv_mutex_unlock(&moreScriptsMutex);
-    rtLogDebug("sceneWindow::script is pushed on vector\n");
-    uv_async_send(&asyncNewScript);
-    setView(scriptView);
+    // unimplemented
+    assert(0);
 #endif
   }
 
@@ -430,11 +421,7 @@ int pxMain(int argc, char* argv[])
   uv_mutex_init(&moreScriptsMutex);
   uv_mutex_init(&threadMutex);
 
-  // Start script thread
-  uv_queue_work(nodeLoop, &nodeLoopReq, nodeThread, nodeIsEndingCallback);
-  // init asynch that will get notifications about new scripts
-  uv_async_init(nodeLoop, &asyncNewScript, processNewScript);
-  uv_async_init(nodeLoop, &gcTrigger,garbageCollect);
+  script.initializeNode();
 
 #endif
 char const* s = getenv("PX_DUMP_MEMUSAGE");
