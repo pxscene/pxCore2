@@ -1,0 +1,43 @@
+build instructions for windows 10:
+
+set things up:
+https://github.com/pxscene/pxCore/tree/master/examples/pxScene2d#windows-setup
+
+these commands must be executed in msvc 2017 developer prompt:
+
+# build dukluv
+cd src\dukluv
+mkdir build
+cd build
+cmake ..
+
+build solution dukluv.sln with msvc 2017, release/win32
+
+# building pxScene (https://github.com/pxscene/pxCore/tree/master/examples/pxScene2d)
+
+cd ..\..\..
+cd examples/pxScene2d/external
+buildWindows.bat
+
+# NOTE: in case of an libnode configure error rerun buildWindows.bat
+
+cd ..\..\..
+mkdir temp
+cd temp
+cmake ..
+cmake --build . --config Release -- /m
+
+# install
+cpack .
+cd _CPack_Packages\win32\NSIS\pxscene-setup
+
+# test
+pxscene.exe browser.js
+pxscene.exe about.js
+
+# in editbox you can enter about.js (served from local disk)
+# or fonts2.js (served from http://www.pxscene.org/examples/px-reference/gallery/)
+
+# to test examples locally
+# copy <somewhere>/px-reference .
+# pxscene.exe px-reference\gallery\fonts2.js
