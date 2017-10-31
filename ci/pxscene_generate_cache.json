@@ -1,6 +1,7 @@
 {
    "request":{
       "branch":"master",
+      "message":"Cache rebuild job",
       "config":{
          "merge_mode":"merge",
          "before_install" : "openssl aes-256-cbc -K $encrypted_8b763c087de9_key -iv $encrypted_8b763c087de9_iv -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d; eval \"$(ssh-agent -s)\"; chmod 0600 /tmp/pxscene-build.pem; ssh-add /tmp/pxscene-build.pem",

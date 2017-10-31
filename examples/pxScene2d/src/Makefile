@@ -100,6 +100,7 @@ PX_SRCS_FULL=\
   pxConstants.cpp \
   rasterizer/pxCanvas.cpp \
   rasterizer/pxCanvas2d.cpp \
+  rasterizer/pxRasterizer.cpp \
   rasterizer/pxPath.cpp \
   rasterizer/xs_code/xs_String.cpp \
   pxRectangle.cpp \
@@ -160,6 +161,7 @@ SEARCH=\
   -I$(ZLIB) \
   -I./ \
   -Irasterizer/ \
+  -Irasterizer/xs_code/ \
   -I$(NODEINC)/src \
   -I$(NODEINC)/deps/uv/include \
   -I$(NODEINC)/deps/v8 \
@@ -266,6 +268,7 @@ PXSCENE_LIB_SRCS=\
   pxTextBox.cpp \
   rasterizer/pxCanvas.cpp \
   rasterizer/pxCanvas2d.cpp \
+  rasterizer/pxRasterizer.cpp \
   rasterizer/pxPath.cpp \
   rasterizer/xs_code/xs_String.cpp \
   pxImage.cpp \
@@ -318,6 +321,7 @@ PXSCENE_LIB_SEARCH=\
   -I$(PXHDRS)\
   -I./ \
   -I./rasterizer \
+  -I./rasterizer/xs_code \
   -I$(NODEINC)/src \
   -I$(NODEINC)/deps/uv/include \
   -I$(NODEINC)/deps/v8 \
@@ -351,6 +355,9 @@ $(OBJDIR)/pxCanvas.o: rasterizer/pxCanvas.cpp
 
 $(OBJDIR)/pxCanvas2d.o: rasterizer/pxCanvas2d.cpp
 	$(CXX) -o $(OBJDIR)/pxCanvas2d.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c rasterizer/pxCanvas2d.cpp
+
+$(OBJDIR)/pxRasterizer.o: rasterizer/pxRasterizer.cpp
+	$(CXX) -o $(OBJDIR)/pxRasterizer.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c rasterizer/pxRasterizer.cpp
 
 $(OBJDIR)/pxPath.o: rasterizer/pxPath.cpp
 	$(CXX) -o $(OBJDIR)/pxPath.o -Wall $(CXXFLAGS_FULL) $(EXTRA_COMPILER_FLAGS) -c rasterizer/pxPath.cpp
