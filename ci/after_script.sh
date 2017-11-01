@@ -26,8 +26,8 @@ if [ "$TRAVIS_EVENT_TYPE" = "push" ] ;
 then
   tar -cvzf logs.tgz logs/*
   checkError $? "Unable to compress logs folder" "Check for any previous tasks failed" "Retry"
-  ./ci/deploy_files.sh 96.118.6.151 logs.tgz;
-  checkError $? "Unable to send log files to 96.118.6.151" "Possible reason - Server could be down" "Retry"
+  ./ci/deploy_files.sh 96.118.159.200 logs.tgz;
+  checkError $? "Unable to send log files to 96.118.159.200" "Possible reason - Server could be down" "Retry"
 fi
 
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
@@ -40,8 +40,8 @@ then
   checkError $? "unable to move artifacts folder to release directory" "artifacts directory created" "Retry"
   tar -cvzf release.tgz release/*
   checkError $? "unable to compress release folder" "release folder present?" "Retry"
-  ./ci/release_osx.sh 96.118.6.151 release.tgz 
-  checkError $? "unable to send artifacts to 96.118.6.151" "96.118.6.151 down?" "Retry"
+  ./ci/release_osx.sh 96.118.159.200 release.tgz 
+  checkError $? "unable to send artifacts to 96.118.159.200" "96.118.159.200 down?" "Retry"
 fi
 
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ;
