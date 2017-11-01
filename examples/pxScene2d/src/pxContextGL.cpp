@@ -122,9 +122,9 @@ enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_
 
 pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
 
-#ifdef PX_PLATFORM_GENERIC_EGL
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 extern EGLContext defaultEglContext;
-#endif //PX_PLATFORM_GENERIC_EGL
+#endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
 
 // TODO get rid of this global crap
 
@@ -2052,10 +2052,10 @@ void pxContext::init()
 //  gprogram = program;
   setTextureMemoryLimit(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES);
 
-#ifdef PX_PLATFORM_GENERIC_EGL
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   defaultEglContext = eglGetCurrentContext();
   rtLogInfo("current context in init: %d", defaultEglContext);
-#endif //PX_PLATFORM_GENERIC_EGL
+#endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
 
   std::srand(unsigned (std::time(0)));
 }
