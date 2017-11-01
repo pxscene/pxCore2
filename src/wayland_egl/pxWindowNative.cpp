@@ -23,7 +23,7 @@
 #define WAYLAND_PX_CORE_FPS 30
 
 #define MOD_SHIFT	0x01
-#define MOD_ALT		0x02
+#define MOD_ALT		0x08
 #define MOD_CTRL	0x04
 
 bool bShiftPressed = false;
@@ -219,7 +219,7 @@ keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
         if (state)
         {
             w->onKeyDown(keycodeFromNative(key),flags);
-            w->onChar((char)key);
+            w->onChar(keycodeToAscii(keycodeFromNative(key), flags));
         }
         else
         {
