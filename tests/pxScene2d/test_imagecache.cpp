@@ -675,7 +675,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
 TEST_F(rtHttpCacheTest, httpCacheCompleteTest)
 {
-  dataValiditySuccessTest();
+/*  dataValiditySuccessTest();
   dataValidityFailureEmptyImageTest();
   dataValidityFailureExpiredImageTest();
   dataExpiredTrueTest();
@@ -705,6 +705,7 @@ TEST_F(rtHttpCacheTest, httpCacheCompleteTest)
   dataUpdatedAfterEtagTest();
   dataUpdatedAfterEtagDownloadFailedTest();
   memoryUnAvailableTest();
+*/
 }
 
 class rtFileDownloaderTest : public testing::Test, public commonTestFns
