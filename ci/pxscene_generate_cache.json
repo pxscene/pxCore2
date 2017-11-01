@@ -8,7 +8,7 @@
          "install" : "./ci/generate_cache_install.sh",
          "before_script" : "ccache -s; export PATH=/usr/local/opt/ccache/libexec:$PATH",
          "script" : "./ci/generate_cache_script.sh",
-         "after_script" : "ccache -s; tar -cvzf logs.tgz logs/*; ./ci/deploy_files.sh 96.118.159.200 logs.tgz; rm -rf /tmp/pxscene-build.pem"
+         "after_script" : "ccache -s; tar -cvzf logs.tgz logs/*; ./ci/deploy_files.sh 96.118.6.151 logs.tgz; rm -rf /tmp/pxscene-build.pem"
          }
    }
 }
