@@ -24,6 +24,7 @@ set(RTREMOTEINC ${PXCOREDIR}/remote)
 set(GOOGLETESTINC ${EXTDIR}/gtest/googletest/include ${EXTDIR}/gtest/googletest ${EXTDIR}/gtest/googlemock/include ${EXTDIR}/gtest/googlemock)
 set(PXCOREINC ${PXCOREDIR}/src)
 set(PXSCENEINC ${PXCOREDIR}/examples/pxScene2d/src)
+set(PXSRCGLUTINC ${PXCOREDIR}/src/glut)
 
 set(BUILD_UNIT_TEST 0)
 
@@ -31,7 +32,7 @@ option(BUILD_WITH_WINDOWLESS_EGL "BUILD_WITH_WINDOWLESS_EGL" OFF)
 option(PXSCENE_TEST_HTTP_CACHE "PXSCENE_TEST_HTTP_CACHE" ON)
 
 
-include_directories(AFTER ${GOOGLETESTINC} ${PXCOREINC} ${PXSCENEINC} ${NODEINC})
+include_directories(AFTER ${GOOGLETESTINC} ${PXCOREINC} ${PXSCENEINC} ${NODEINC} ${PXSRCGLUTINC})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
@@ -106,7 +107,7 @@ endif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 add_definitions(-D${PX_PLATFORM} -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE)
 
 set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_example.cpp test_api.cpp  test_pxcontext.cpp test_memoryleak.cpp test_rtnode.cpp
-    test_pxAnimate.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_rtValue.cpp test_pxImage.cpp test_pxOffscreen.cpp test_pxMatrix4T.cpp
+    test_pxAnimate.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_rtValue.cpp test_pxImage.cpp test_pxOffscreen.cpp test_pxMatrix4T.cpp test_pxTimerNative.cpp
     test_pxWindowUtil.cpp test_pxTexture.cpp test_pxWindow.cpp ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})
