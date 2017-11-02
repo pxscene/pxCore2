@@ -336,13 +336,13 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       return requireIt(pkg);
     };
 
-    var requireFileOverride = process.env.PXSCENE_REQUIRE_ENABLE_FILE_PATH;
+    var requireFileOverridePath = process.env.PXSCENE_REQUIRE_ENABLE_FILE_PATH;
     var requireEnableFilePath = "/tmp/";
     if (process.env.HOME && process.env.HOME !== '') {
       requireEnableFilePath = process.env.HOME;
     }
-    if (requireFileOverride && requireFileOverride !== ''){
-      requireEnableFilePath = requireFileOverride;
+    if (requireFileOverridePath && requireFileOverridePath !== ''){
+      requireEnableFilePath = requireFileOverridePath;
     }
 
     var fs = require("fs");
