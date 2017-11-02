@@ -68,8 +68,8 @@ public:
     rtLogDebug("############# PROMISE >> CREATED   [ id: %d  >> %s ]", promise_id, promise_name.c_str());
   }
 
-  rtError then(rtFunctionRef resolve, rtFunctionRef reject, 
-               rtObjectRef& newPromise)
+  rtError then(rtFunctionRef, rtFunctionRef, 
+               rtObjectRef&)
   {
     // not implemented
     assert(0);
@@ -120,7 +120,7 @@ public:
   rtError val(rtValue& v) const { v = mVal; return RT_OK; }
   rtError setVal(rtValue v) { mVal = v; return RT_OK; }
 
-  __declspec(noinline) rtError resolve(const rtValue& v)
+  rtError resolve(const rtValue& v)
   {
     //if (resolveCb.getPtr()) {
     //  resolveCb.send(v);
@@ -133,7 +133,7 @@ public:
     return RT_OK;
   }
 
-  __declspec(noinline) rtError reject(const rtValue& v)
+  rtError reject(const rtValue& v)
   {
     //if (rejectCb.getPtr()) {
     //  rejectCb.send(v);
@@ -146,13 +146,13 @@ public:
     return RT_OK;
   }
 
-  __declspec(noinline) rtError setResolve(rtFunctionRef resolve)
+  rtError setResolve(rtFunctionRef resolve)
   {
     resolveCb = resolve;
     return RT_OK;
   }
 
-  __declspec(noinline) rtError setReject(rtFunctionRef reject)
+  rtError setReject(rtFunctionRef reject)
   {
     rejectCb = reject;
     return RT_OK;

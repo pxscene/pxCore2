@@ -12,7 +12,9 @@
 #if _MSC_VER >= 1800
 #include <stdbool.h>
 #else
+#ifndef __cplusplus
 typedef enum { false, true } bool;
+#endif
 #endif
 
 #if defined(_WIN32)

@@ -1,4 +1,6 @@
+==================================
 build instructions for windows 10:
+==================================
 
 set things up:
 https://github.com/pxscene/pxCore/tree/master/examples/pxScene2d#windows-setup
@@ -41,3 +43,35 @@ pxscene.exe about.js
 # to test examples locally
 # copy <somewhere>/px-reference .
 # pxscene.exe px-reference\gallery\fonts2.js
+
+================================================================
+build instructions for ubuntu (tested on 16.04, 14.04 is ok too)
+================================================================
+
+set things up:
+https://github.com/pxscene/pxCore/tree/master/examples/pxScene2d#ubuntu-setup
+('Create a linux VM' is optional there)
+
+git clone -b duktape_proof_of_concept https://github.com/topcoderinc/pxCore.git
+cd pxCore
+
+cd src/dukluv
+mkdir build
+cd build
+cmake ..
+make
+
+cd ../../../
+cd examples/pxScene2d/external
+./build.sh
+
+cd ../../../
+mkdir temp
+cd temp
+cmake ..
+cmake --build . --config Release -- -j1
+
+# test
+cd ../examples/pxScene2d/src
+./pxscene browser.js
+./pxscene about.js
