@@ -25,8 +25,7 @@ travis_retry() {
 if [ "$TRAVIS_OS_NAME" = "linux" ] ; 
 then 
   travis_retry sudo apt-get update
-  travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libyaml-dev cmake x11proto-input-dev gdb
-  cd /usr/include/X11/extensions && sudo ln -s XI.h XInput.h
+  travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libyaml-dev cmake gdb
 fi
 
 if [ "$TRAVIS_OS_NAME" = "osx" ] ;
