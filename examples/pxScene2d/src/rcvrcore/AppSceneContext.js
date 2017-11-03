@@ -330,6 +330,28 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
   var self = this;
   var newSandbox;
   try {
+    var requireMethod = function (pkg) {
+      log.message(3, "old use of require not supported: " + pkg);
+      // TODO: remove
+      return requireIt(pkg);
+    };
+
+    var requireFileOverridePath = process.env.PXSCENE_REQUIRE_ENABLE_FILE_PATH;
+    var requireEnableFilePath = "/tmp/";
+    if (process.env.HOME && process.env.HOME !== '') {
+      requireEnableFilePath = process.env.HOME;
+    }
+    if (requireFileOverridePath && requireFileOverridePath !== ''){
+      requireEnableFilePath = requireFileOverridePath;
+    }
+
+    var fs = require("fs");
+    var requireEnableFile = requireEnableFilePath + "/.pxsceneEnableRequire";
+    if (fs.existsSync(requireEnableFile)) {
+      console.log("enabling pxscene require support");
+      requireMethod = require;
+    }
+    
     newSandbox = {
       sandboxName: "InitialSandbox",
       xmodule: xModule,
@@ -340,12 +362,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       queryStringModule: require("querystring"),
       theNamedContext: "Sandbox: " + uri,
       Buffer: Buffer,
-      require: function (pkg) {
-        log.message(3, "old use of require not supported: " + pkg);
-        // TODO: remove
-        return requireIt(pkg);
-
-      },
+      require: requireMethod,
       setTimeout: function (callback, after, arg1, arg2, arg3) {
         var timerId = SetTimeout(callback, after, arg1, arg2, arg3);
         this.timers.push(timerId);
