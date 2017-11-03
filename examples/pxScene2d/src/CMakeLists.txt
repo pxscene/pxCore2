@@ -121,7 +121,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         if (BUILD_WITH_WINDOWLESS_EGL)
             message("Building pxscene for windowless EGL")
             set(PX_PLATFORM PX_PLATFORM_GENERIC_EGL)
-            set(PXSCENE_ADDITIONAL_RESOURCES ${PXSCENE_ADDITIONAL_RESOURCES} ${PXCOREDIR}/src/gles/pxWindowNative.cpp 
+            set(PXSCENE_ADDITIONAL_RESOURCES ${PXSCENE_ADDITIONAL_RESOURCES} ${PXCOREDIR}/src/gles/pxWindowNative.cpp
                   ${PXCOREDIR}/src/gles/LinuxInputEventDispatcher.cpp)
         elseif (BUILD_PXSCENE_WAYLAND_EGL)
             message("Building pxscene with wayland windows")
@@ -146,7 +146,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
             set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODEDIR}/out/Release/obj.target/deps/gtest )
             set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODEDIR}/out/Release/obj.target/deps/zlib )
            # libnode.a libv8_base.a libcares-libnode.a libhttp_parser.a libuv.a libv8_base.a libv8_libbase.a libv8_nosnapshot.a libv8_libplatform.a libv8_inspector_stl.a
-            
+
             set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} node v8_base cares http_parser uv v8_base v8_libbase v8_nosnapshot v8_libplatform v8_inspector_stl gtest zlib )
         else()
             set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} node v8_libplatform )
@@ -192,7 +192,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_LIBJPEG_TURBO HAS_LINUX_BREAKPAD)
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_DEBUG_MODE PNG_APNG_SUPPORTED)
         include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${GLUTINC} ${FREETYPEINC})
-        set(PLATFORM_LIBRARIES node pxCore rtCore_s pthread v8_libplatform png16 X11 glut GLEW GL dl rt turbojpeg breakpad_client jpeg freetype curl z)
+        set(PLATFORM_LIBRARIES pxCore rtCore_s pthread png16 X11 glut GLEW GL dl rt turbojpeg breakpad_client jpeg freetype curl z)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/png/.libs)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/jpg/.libs)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/ft/objs/.libs)
@@ -223,7 +223,7 @@ elseif (WIN32)
     set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/win/Release)
     set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
     set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
-    set(PLATFORM_SOURCES ${PLATFORM_SOURCES} 
+    set(PLATFORM_SOURCES ${PLATFORM_SOURCES}
 	    #${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
 	    #${NODEDIR}/src/cares_wrap.cc ${NODEDIR}/src/connection_wrap.cc ${NODEDIR}/src/connect_wrap.cc
 	    #${NODEDIR}/src/debug-agent.cc ${NODEDIR}/src/env.cc ${NODEDIR}/src/fs_event_wrap.cc ${NODEDIR}/src/handle_wrap.cc
@@ -238,7 +238,7 @@ elseif (WIN32)
 	    #${NODEDIR}/src/pipe_wrap.cc ${NODEDIR}/src/process_wrap.cc ${NODEDIR}/src/signal_wrap.cc ${NODEDIR}/src/spawn_sync.cc
 	    #${NODEDIR}/src/stream_base.cc ${NODEDIR}/src/stream_wrap.cc ${NODEDIR}/src/string_bytes.cc ${NODEDIR}/src/string_search.cc
 	    #${NODEDIR}/src/tcp_wrap.cc ${NODEDIR}/src/timer_wrap.cc ${NODEDIR}/src/tls_wrap.cc ${NODEDIR}/src/tty_wrap.cc
-	    #${NODEDIR}/src/udp_wrap.cc ${NODEDIR}/src/util.cc ${NODEDIR}/src/uv.cc 
+	    #${NODEDIR}/src/udp_wrap.cc ${NODEDIR}/src/util.cc ${NODEDIR}/src/uv.cc
 	    ${PXCOREDIR}/src/utf8.c)
     set_source_files_properties(utf8.c PROPERTIES LANGUAGE CXX)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_DEBUG_MODE PNG_APNG_SUPPORTED HAS_WINDOWS_BREAKPAD)
@@ -280,7 +280,7 @@ elseif (WIN32)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/build/Release/lib
             ${EXTDIR}/vc.build/builds ${EXTDIR}/libnode-v6.9.0/Release/lib ${EXTDIR}/libnode-v6.9.0/Release)
 
-    # v8_libplatform.lib v8_libbase.lib v8_nosnapshot.lib v8_snapshot.lib v8_base_0.lib v8_base_1.lib v8_base_2.lib v8_base_3.lib v8_inspector_stl.lib node.lib cctest.lib 
+    # v8_libplatform.lib v8_libbase.lib v8_nosnapshot.lib v8_snapshot.lib v8_base_0.lib v8_base_1.lib v8_base_2.lib v8_base_3.lib v8_inspector_stl.lib node.lib cctest.lib
 
     set(PLATFORM_LIBRARIES duktape.lib dschema.lib duv.lib uv.lib pxCore.lib pthreadVC2.lib opengl32.lib Winmm.lib zlib.lib freetype253MT_D.lib  libcurld.lib
                     Ws2_32.lib Wldap32.lib glew32s.lib libpng16.lib libjpeg.lib msvcrt.lib psapi.lib iphlpapi.lib
@@ -415,7 +415,7 @@ if (BUILD_PXSCENE_APP)
         install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/rcvrcore DESTINATION . COMPONENT pxscene)
 	#install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/px-reference DESTINATION . COMPONENT pxscene)
 	#install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dukluv_modules DESTINATION . COMPONENT pxscene)
-        file(GLOB PXSCENE_INSTALL_FILES 
+        file(GLOB PXSCENE_INSTALL_FILES
            "${CMAKE_CURRENT_SOURCE_DIR}/*.js" "${CMAKE_CURRENT_SOURCE_DIR}/FreeSans.ttf"
            "${CMAKE_CURRENT_SOURCE_DIR}/*.json" "${CMAKE_CURRENT_SOURCE_DIR}/*.conf"
            "${CMAKE_CURRENT_SOURCE_DIR}/../external/vc.build/builds/*.dll" "${CMAKE_CURRENT_SOURCE_DIR}/Release/")
@@ -475,4 +475,3 @@ if (PX_LIBRARY_SUPPORT GREATER 0)
 else ()
     message("Disabling build support for libraries")
 endif (PX_LIBRARY_SUPPORT GREATER 0)
-
