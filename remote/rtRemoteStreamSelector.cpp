@@ -12,6 +12,7 @@
 
 rtRemoteStreamSelector::rtRemoteStreamSelector(rtRemoteEnvironment* env)
   : m_env(env)
+  , m_running(false)
 {
   int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
   if (ret == -1)
@@ -34,6 +35,7 @@ rtRemoteStreamSelector::pollFds(void* argp)
 rtError
 rtRemoteStreamSelector::start()
 {
+  m_running = true;
   rtLogInfo("starting StreamSelector");
   pthread_create(&m_thread, nullptr, &rtRemoteStreamSelector::pollFds, this);
   return RT_OK;
@@ -52,6 +54,14 @@ rtError
 rtRemoteStreamSelector::shutdown()
 {
   char buff[] = { "shudown" };
+
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_running = false;
+    m_streams_cond.notify_all();
+  }
+
+
   rtLogInfo("sending shutdown signal");
   ssize_t n = write(m_shutdown_pipe[1], buff, sizeof(buff));
   if (n == -1)
@@ -91,9 +101,10 @@ rtRemoteStreamSelector::doPollFds()
 
     {
     std::unique_lock<std::mutex> lock(m_mutex);
-    m_streams_cond.wait(lock, [&](){
-         return !m_streams.empty();
-    });
+    m_streams_cond.wait(lock, [&]() {return !m_streams.empty() || !m_running;});
+
+    if (!m_running)
+      return RT_OK;
 
     // remove dead streams
     {
