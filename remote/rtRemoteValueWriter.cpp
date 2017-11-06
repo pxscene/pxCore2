@@ -1,4 +1,5 @@
 #include "rtRemoteValueWriter.h"
+#include "rtRemoteObject.h"
 #include "rtRemoteObjectCache.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteMessage.h"
@@ -23,15 +24,23 @@ namespace
     return ss.str();
   }
  
-  std::string getId(rtObjectRef const& /*ref*/)
+  std::string getId(rtObjectRef const& ref)
   {
-    rtGuid id = rtGuid::newRandom();
+    rtRemoteObject const* obj = dynamic_cast<rtRemoteObject const *>(ref.getPtr());
+    if (obj != nullptr)
+    {
+      return obj->getId();
+    }
+    else
+    {
+      rtGuid id = rtGuid::newRandom();
 
-    std::stringstream ss;
-    ss << "obj://";
-    ss << id.toString();
-    return ss.str();
-   }
+      std::stringstream ss;
+      ss << "obj://";
+      ss << id.toString();
+      return ss.str();
+    }
+  }
 }
 
 rtError
@@ -74,7 +83,9 @@ rtRemoteValueWriter::write(rtRemoteEnvironment* env, rtValue const& from,
     to.AddMember("value", val, doc.GetAllocator());
 
     if (obj)
+    {
       env->ObjectCache->insert(id, obj);
+    }
 
     return RT_OK;
   }

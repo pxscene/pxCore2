@@ -45,6 +45,19 @@ public:
     return RT_OK;
   }
 
+  // property as rtObject
+  rtProperty(bigprop, getBigProp, setBigProp, rtObjectRef);
+  rtError getBigProp(rtObjectRef& obj) const
+  {
+    obj = m_big;
+    return RT_OK;
+  }
+  rtError setBigProp(rtObjectRef const& obj)
+  {
+    m_big = obj;
+    return RT_OK;
+  }
+
   rtProperty(prop, getProp, setProp, int);
   rtError getProp(int& n) const { n = _n; return RT_OK; }
   rtError setProp(int  n) { _n = n; return RT_OK; }
@@ -80,6 +93,7 @@ private:
   rtString m_name;
   rtFunctionRef m_callback;
   int _n;
+  rtObjectRef m_big;
 };
 
 // required stub definitions (they're macros)
@@ -87,6 +101,7 @@ rtDefineObject(ContinuousVideoRecorder, rtObject);
 rtDefineProperty(ContinuousVideoRecorder, name);
 rtDefineProperty(ContinuousVideoRecorder, onUploadComplete);
 rtDefineProperty(ContinuousVideoRecorder, prop);
+rtDefineProperty(ContinuousVideoRecorder, bigprop);
 
 int main(int /*argc*/, char* /*argv*/ [])
 {
@@ -115,7 +130,7 @@ int main(int /*argc*/, char* /*argv*/ [])
     e = rtRemoteRunUntil(env, 1000);
     rtLogInfo("rtRemoteRunUntil: %s", rtStrError(e));
 
-    ((ContinuousVideoRecorder *)obj.getPtr())->fireOnUploadComplete();
+    // ((ContinuousVideoRecorder *)obj.getPtr())->fireOnUploadComplete();
   }
 
   return 0;

@@ -18,6 +18,21 @@
 #include <unistd.h>
 #include <assert.h>
 
+
+class TestObject : public rtObject
+{
+  rtDeclareObject(TestObject, rtObject);
+public:
+  rtProperty(count, getCount, setCount, int);
+  rtError getCount(int& n) const { n = m_count; return RT_OK; }
+  rtError setCount(int  n) { m_count = n; return RT_OK; }
+private:
+  int m_count;
+};
+
+rtDefineObject(TestObject, rtObject);
+rtDefineProperty(TestObject, count);
+
 rtObjectRef obj;
 
 void run()
@@ -82,15 +97,24 @@ int main(int /*argc*/, char* /*argv*/ [])
   rtFunctionRef callback(new rtFunctionCallback(upload_complete));
   obj.set("onUploadComplete", callback);
 
+  rtObjectRef big(new TestObject());
+  obj.set("bigprop", big);
+
   // std::thread t(run);
 
   while (true)
   {
     rtValue val;
+    #if 0
     e = obj->Get("onUploadComplete", &val);
     rtLogInfo("Get:%s", rtStrError(e));
     rtLogInfo("Type:%s", val.getTypeStr());
     rtLogInfo("Addr:%p", val.toFunction().getPtr());
+    #endif
+    e = obj->Get("bigprop", &val);
+    rtLogInfo("get  :%s", rtStrError(e));
+    rtLogInfo("type :%s", val.getTypeStr());
+    rtLogInfo("addr :%p", val.toObject().getPtr());
     rtRemoteRunUntil(env, 1000);
     sleep(1);
   }

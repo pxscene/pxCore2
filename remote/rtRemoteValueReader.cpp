@@ -110,9 +110,17 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
 
       auto id = obj->value.FindMember(kFieldNameObjectId);
       if (strcmp(id->value.GetString(), kNullObjectId) == 0)
+      {
         to.setObject(rtObjectRef());
+      }
       else
-        to.setObject(new rtRemoteObject(id->value.GetString(), client));
+      {
+        rtObjectRef ref = env->ObjectCache->findObject(id->value.GetString());
+        if (ref)
+          to.setObject(ref);
+        else
+          to.setObject(new rtRemoteObject(id->value.GetString(), client));
+      }
     }
     break;
 
