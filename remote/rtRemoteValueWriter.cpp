@@ -54,7 +54,9 @@ rtRemoteValueWriter::write(rtRemoteEnvironment* env, rtValue const& from,
     to.AddMember("value", val, doc.GetAllocator());
 
     if (func)
+    {
       env->ObjectCache->insert(id, func);
+    }
 
     return RT_OK;
   }
