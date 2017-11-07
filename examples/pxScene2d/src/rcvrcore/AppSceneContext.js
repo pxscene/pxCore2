@@ -363,6 +363,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       theNamedContext: "Sandbox: " + uri,
       Buffer: Buffer,
       require: requireMethod,
+      global: global,
       setTimeout: function (callback, after, arg1, arg2, arg3) {
         var timerId = SetTimeout(callback, after, arg1, arg2, arg3);
         this.timers.push(timerId);
