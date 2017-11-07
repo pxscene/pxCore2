@@ -710,6 +710,10 @@ rtError pxObject::moveToFront()
   remove();
   setParent(parent);
 
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true;
+
   return RT_OK;
 }
 
@@ -724,6 +728,10 @@ rtError pxObject::moveToBack()
   std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
   parent->mChildren.insert(it, this);
 
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true;
+  
   return RT_OK;
 }
 
