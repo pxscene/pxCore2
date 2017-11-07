@@ -139,11 +139,15 @@ int pxObjectCount = 0;
 
 // store the mapping between wayland app names and binary paths
 map<string, string> gWaylandAppsMap;
+map<string, string> gWaylandRegistryAppsMap;
+map<string, string> gPxsceneWaylandAppsMap;
 static bool gWaylandAppsConfigLoaded = false;
 #define DEFAULT_WAYLAND_APP_CONFIG_FILE "./waylandregistry.conf"
+#define DEFAULT_ALL_APPS_CONFIG_FILE "./pxsceneappregistry.conf"
 
 void populateWaylandAppsConfig()
 {
+  //populate from the wayland registry file
   FILE* fp = NULL;
   char const* s = getenv("WAYLAND_APPS_CONFIG");
   if (s)
@@ -184,14 +188,15 @@ void populateWaylandAppsConfig()
   {
     if (appList[i].IsObject())
     {
-      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("binary")) && (appList[i]["binary"].IsString()))
+      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("binary")) &&
+          (appList[i]["binary"].IsString()))
       {
         string appName = appList[i]["name"].GetString();
         string binary = appList[i]["binary"].GetString();
         if ((appName.length() != 0) && (binary.length() != 0))
         {
-          gWaylandAppsMap[appName] = binary;
-          rtLogInfo("Mapped wayland app [%s] to path [%s] \n",appName.c_str(),binary.c_str());
+          gWaylandRegistryAppsMap[appName] = binary;
+          rtLogInfo("Mapped wayland app [%s] to path [%s] \n", appName.c_str(), binary.c_str());
         }
         else
         {
@@ -201,6 +206,73 @@ void populateWaylandAppsConfig()
       else
       {
         rtLogInfo("Wayland config read error : [one of the entry not added due to name/binary not present]\n");
+      }
+    }
+  }
+}
+
+void populateAllAppsConfig()
+{
+  //populate from the apps registry file
+  FILE* fp = NULL;
+  char const* s = getenv("PXSCENE_APPS_CONFIG");
+  if (s)
+  {
+    fp = fopen(s, "rb");
+  }
+  if (NULL == fp)
+  {
+    fp = fopen(DEFAULT_ALL_APPS_CONFIG_FILE, "rb");
+    if (NULL == fp)
+    {
+      rtLogInfo("pxscene app config read error : [unable to read all apps config file]\n");
+      return;
+    }
+  }
+  char readBuffer[65536];
+  memset(readBuffer, 0, sizeof(readBuffer));
+  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+  rapidjson::Document doc;
+  rapidjson::ParseResult result = doc.ParseStream(is);
+  if (!result)
+  {
+    rapidjson::ParseErrorCode e = doc.GetParseError();
+    rtLogInfo("pxscene app config read error : [JSON parse error while reading all apps conf file: %s (%zu)]\n",rapidjson::GetParseError_En(e), result.Offset());
+    fclose(fp);
+    return;
+  }
+  fclose(fp);
+
+  if (! doc.HasMember("applications"))
+  {
+    rtLogInfo("pxscene apps config read error : [applications element not found]\n");
+    return;
+  }
+
+  const rapidjson::Value& appList = doc["applications"];
+  for (rapidjson::SizeType i = 0; i < appList.Size(); i++)
+  {
+    if (appList[i].IsObject())
+    {
+      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("uri")) &&
+          (appList[i]["uri"].IsString()) && (appList[i].HasMember("type")) && (appList[i]["type"].IsString()))
+      {
+        string appName = appList[i]["name"].GetString();
+        string binary = appList[i]["uri"].GetString();
+        string type = appList[i]["type"].GetString();
+        if ((appName.length() != 0) && (binary.length() != 0) && (type == "native"))
+        {
+          gPxsceneWaylandAppsMap[appName] = binary;
+          rtLogInfo("Mapped wayland app [%s] to path [%s] \n", appName.c_str(), binary.c_str());
+        }
+        else
+        {
+          rtLogInfo("pxscene app config read error : [one of the entry not added due to name/uri is empty].  type=%s\n", type.c_str());
+        }
+      }
+      else
+      {
+        rtLogInfo("pxscene config read error : [one of the entry not added due to name/uri not present or type is not native]\n");
       }
     }
   }
@@ -1872,8 +1944,20 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   if (false == gWaylandAppsConfigLoaded)
   {
     populateWaylandAppsConfig();
+#ifndef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+    gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
+#endif // !defined PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
     gWaylandAppsConfigLoaded = true;
   }
+#ifdef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+  gWaylandAppsMap.clear();
+  gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
+  populateAllAppsConfig();
+  gWaylandAppsMap.insert(gPxsceneWaylandAppsMap.begin(), gPxsceneWaylandAppsMap.end());
+  /*for(std::map<string,string>::iterator it = gWaylandAppsMap.begin(); it != gWaylandAppsMap.end(); ++it) {
+   rtLogDebug("key: %s !!!!!", it->first.c_str());
+  }*/
+#endif
   rtRef<pxWaylandContainer> c = new pxWaylandContainer(this);
   c->setView(new pxWayland(true));
   o = c.getPtr();

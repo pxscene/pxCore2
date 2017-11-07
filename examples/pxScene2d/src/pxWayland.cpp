@@ -326,11 +326,6 @@ void pxWayland::onUpdate(double t)
 
 void pxWayland::onDraw()
 {
-  if (mSuspended)
-  {
-    // do not draw if the app is in a suspended states
-    return;
-  }
   static pxTextureRef nullMaskRef;
   
   unsigned int outputWidth, outputHeight;
