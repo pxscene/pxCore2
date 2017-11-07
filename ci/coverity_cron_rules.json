@@ -1,0 +1,11 @@
+{
+    "request": {
+        "branch": "coverity_scan",
+        "message": "auto merge job for coverity_scan branch",
+        "config": {
+            "merge_mode": "replace",
+            "cache": null,
+            "script": "./ci/auto_merge_coverity.sh"
+        }
+    }
+}
