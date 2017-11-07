@@ -4,7 +4,7 @@
       "message":"Cache rebuild job",
       "config":{
          "merge_mode":"merge",
-         "before_install" : "openssl aes-256-cbc -K $encrypted_8b763c087de9_key -iv $encrypted_8b763c087de9_iv -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d; eval \"$(ssh-agent -s)\"; chmod 0600 /tmp/pxscene-build.pem; ssh-add /tmp/pxscene-build.pem",
+         "before_install" : "openssl aes-256-cbc -K $encrypted_8d8528292b8b_key -iv $encrypted_8d8528292b8b_iv -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d; eval \"$(ssh-agent -s)\"; chmod 0600 /tmp/pxscene-build.pem; ssh-add /tmp/pxscene-build.pem",
          "install" : "./ci/generate_cache_install.sh",
          "before_script" : "ccache -s; export PATH=/usr/local/opt/ccache/libexec:$PATH",
          "script" : "./ci/generate_cache_script.sh",
