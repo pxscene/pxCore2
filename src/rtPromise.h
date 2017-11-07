@@ -50,6 +50,7 @@ public:
   rtMethod1ArgAndNoReturn("reject",reject,rtValue);
   rtMethod1ArgAndNoReturn("setResolve", setResolve, rtFunctionRef);
   rtMethod1ArgAndNoReturn("setReject", setReject, rtFunctionRef);
+  rtProperty(promiseId, getPromiseId, setPromiseId, rtString);
   rtProperty(val, val, setVal, rtValue);
   rtReadOnlyProperty(isResolved, isResolved, uint32_t);
 
@@ -120,13 +121,13 @@ public:
   rtError val(rtValue& v) const { v = mVal; return RT_OK; }
   rtError setVal(rtValue v) { mVal = v; return RT_OK; }
 
+  rtError getPromiseId(rtString& v) const { v = mPromiseId; return RT_OK; }
+  rtError setPromiseId(rtString v) { mPromiseId = v; return RT_OK; }
+
   rtError resolve(const rtValue& v)
   {
-    //if (resolveCb.getPtr()) {
-    //  resolveCb.send(v);
-    //}
     if (resolveCb.getPtr()) {
-      resolveCb.send(rtValue((uint32_t)0),v);
+      resolveCb.send(v);
     }
     mVal = v;
     mIsResolved = 1;
@@ -135,11 +136,8 @@ public:
 
   rtError reject(const rtValue& v)
   {
-    //if (rejectCb.getPtr()) {
-    //  rejectCb.send(v);
-    //}
-    if (resolveCb.getPtr()) {
-      resolveCb.send(rtValue((uint32_t)1), v);
+    if (rejectCb.getPtr()) {
+      rejectCb.send(v);
     }
     mVal = v;
     mIsResolved = 2;
@@ -148,12 +146,14 @@ public:
 
   rtError setResolve(rtFunctionRef resolve)
   {
+    assert(!resolveCb);
     resolveCb = resolve;
     return RT_OK;
   }
 
   rtError setReject(rtFunctionRef reject)
   {
+    assert(!rejectCb);
     rejectCb = reject;
     return RT_OK;
   }
@@ -190,6 +190,8 @@ private:
 
   rtFunctionRef resolveCb;
   rtFunctionRef rejectCb;
+
+  rtString mPromiseId;
 
   uint32_t mIsResolved;
   rtValue mVal;

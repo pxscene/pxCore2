@@ -1468,6 +1468,7 @@ rtDefineMethod(rtPromise, resolve);
 rtDefineMethod(rtPromise, reject);
 rtDefineMethod(rtPromise, setResolve);
 rtDefineMethod(rtPromise, setReject);
+rtDefineProperty(rtPromise, promiseId);
 rtDefineProperty(rtPromise, val);
 rtDefineProperty(rtPromise, isResolved);
 
@@ -3042,6 +3043,7 @@ void pxScriptView::runScript()
   }
   #endif //ENABLE_RT_NODE
 }
+
 
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {

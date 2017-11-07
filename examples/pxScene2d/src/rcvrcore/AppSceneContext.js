@@ -19,8 +19,8 @@ var ClearTimeout = timers.clearTimeout;
 var SetInterval = timers.setInterval;
 var ClearInterval = timers.clearInterval;
 
-//var http_wrap = require('rcvrcore/http_wrap');
-//var https_wrap = require('rcvrcore/https_wrap');
+var http_wrap = require('http_wrap.js');
+var https_wrap = require('https_wrap.js');
 
 // function to check whether the page being loaded is from local machine or remote machine
 function isLocalApp(loadurl)
@@ -346,38 +346,6 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       queryStringModule: require("../querystring.js"),
       theNamedContext: "Sandbox: " + uri,
       Buffer: Buffer,
-      //require: function (pkg) {
-      //  log.message(3, "old use of require not supported: " + pkg);
-      //  // TODO: remove
-      //  return requireIt(pkg);
-
-      //},
-      //setTimeout: function (callback, after, arg1, arg2, arg3) {
-      //  var timerId = SetTimeout(callback, after, arg1, arg2, arg3);
-      //  this.timers.push(timerId);
-      //  return timerId;
-      //}.bind(this),
-      //clearTimeout: function (timer) {
-      //  var index = this.timers.indexOf(timer);
-      //  if (index != -1)
-      //  {
-      //    this.timers.splice(index,1);
-      //  }
-      //  ClearTimeout(timer);
-      //}.bind(this),
-      //setInterval: function (callback, repeat, arg1, arg2, arg3) {
-      //  var intervalId = SetInterval(callback, repeat, arg1, arg2, arg3);
-      //  this.timerIntervals.push(intervalId);
-      //  return intervalId;
-      //}.bind(this),
-      //clearInterval: function (timer) {
-      //  var index = this.timerIntervals.indexOf(timer);
-      //  if (index != -1)
-      //  {
-      //    this.timerIntervals.splice(index,1);
-      //  }
-      //  ClearInterval(timer);
-      //}.bind(this),
       importTracking: {}
     }; // end sandbox
 
@@ -391,22 +359,8 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       // LEAKLEAK
 //      this.innerscene.api = {isReady:false, onModuleReady:onAppModuleReady.bind(this) };
 
-      var sourceCode = AppSceneContext.wrap(code);
-      //var script = new vm.Script(sourceCode, fname);
-      //var moduleFunc = script.runInNewContext(newSandbox, {filename:fname, displayErrors:true});
-      // fix debug under windows issue
-      //var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {filename:path.normalize(fname), displayErrors:true});
+        var sourceCode = AppSceneContext.wrap(code);
 
-      //if (process._debugWaitConnect) {
-      //  // Set breakpoint on module start
-      //  if (process.env.BREAK_ON_SCRIPTSTART != 1)
-      //    delete process._debugWaitConnect;
-      //  const Debug = vm.runInDebugContext('Debug');
-      //  Debug.setBreakPoint(moduleFunc, 0, 0);
-      //}
-
-      //var rtnObject = moduleFunc(px, xModule, fname, this.basePackageUri);
-      
       log.message(4, "createModule_pxScope.call()");
       var px = createModule_pxScope.call(this, xModule);
       log.message(4, "createModule_pxScope.call() done");
@@ -575,19 +529,19 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       reject("include failed due to module not permitted");
       return;
     } else if (filePath === 'http.js' || filePath === 'https.js') {
-      console.log("Not permitted to use the module " + filePath);
-      reject("include failed due to module not permitted");
-      //if (filePath === 'http')
-      //{
-      //  modData = new http_wrap();
-      //}
-      //else
-      //{
-      //  modData = new https_wrap();
-      //}
-      //var localapp = (isLocalApp(_this.packageUrl) || isLocalIPV6App(_this.packageUrl));
-      //modData.setLocalApp(localapp);
-      //onImportComplete([modData, origFilePath]);
+      //console.log("Not permitted to use the module " + filePath);
+      //reject("include failed due to module not permitted");
+      if (filePath === 'http.js')
+      {
+        modData = new http_wrap();
+      }
+      else
+      {
+        modData = new https_wrap();
+      }
+      var localapp = (isLocalApp(_this.packageUrl) || isLocalIPV6App(_this.packageUrl));
+      modData.setLocalApp(localapp);
+      onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
       //var Scene = require('rcvrcore/' + filePath.substring(3));

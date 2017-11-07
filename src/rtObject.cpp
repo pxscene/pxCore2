@@ -33,7 +33,7 @@ unsigned long rtEmit::AddRef()
 unsigned long rtEmit::Release() {
   long l = rtAtomicDec(&mRefCount);
   if (l == 0) {
-    //delete this; // todo
+    delete this;
   }
   return l;
 }
@@ -308,7 +308,7 @@ unsigned long /*__stdcall*/ rtObject::Release()
 {
   long l = rtAtomicDec(&mRefCount);
   if (l == 0) {
-    //delete this; // todo
+    delete this;
   }
   return l;
 }

@@ -34,7 +34,7 @@ testView(): mContainer(NULL),mRefCount(0),mw(0),mh(0),mEntered(false),mMouseX(0)
   {
     long l = rtAtomicDec(&mRefCount);
     if (l == 0) {
-      //delete this; // todo
+      delete this;
     }
     return l;
   }

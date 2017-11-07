@@ -132,8 +132,7 @@ void pxFont::loadResourceFromFile()
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
       AddRef();     
-      //gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"reject");
-      onDownloadCompleteUI(this, (void*)"reject");
+      gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"reject");
     }
     else
     {
@@ -142,8 +141,7 @@ void pxFont::loadResourceFromFile()
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
       AddRef();      
-      //gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"resolve");
-      onDownloadCompleteUI(this, (void*)"resolve");
+      gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"resolve");
     } 
 }
 

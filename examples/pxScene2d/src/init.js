@@ -19,12 +19,6 @@ global.constructPromise = function (obj) {
     });
 }
 
-global.constructPromise2 = function (obj) {
-    return Promise.fromCallback(function (callback) {
-        obj.setResolve(callback);
-    })
-}
-
 var AppSceneContext = require('rcvrcore/AppSceneContext.js');
 var RPCController = require('rcvrcore/rpcController.js');
 

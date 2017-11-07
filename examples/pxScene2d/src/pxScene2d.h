@@ -1074,7 +1074,7 @@ public:
     long l = rtAtomicDec(&mRefCount);
     //  rtLogDebug("pxScene2d release %ld\n",l);
     if (l == 0) {
-      //delete this; // todo
+      delete this;
     }
     return l;
   }
@@ -1312,7 +1312,7 @@ public:
     long l = rtAtomicDec(&mRefCount);
     //  rtLogDebug("pxScene2d release %ld\n",l);
     if (l == 0) {
-      //delete this; // todo
+      delete this;
     }
     return l;
   }

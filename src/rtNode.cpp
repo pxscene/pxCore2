@@ -83,12 +83,14 @@ extern "C" {
 //#include "env-inl.h"
 
 #include "jsbindings/rtWrapperUtils.h"
+#include "jsbindings/rtJsModules.h"
 
 #ifndef WIN32
 #pragma GCC diagnostic pop
 #endif
 
 #include "rtNode.h"
+
 #ifndef RUNINMAIN
 extern uv_loop_t *nodeLoop;
 #endif
@@ -192,7 +194,14 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 {
   rtLogInfo(__FUNCTION__);
   duk_idx_t thr_idx = duk_push_thread(clone_me->dukCtx);
+  
+  duk_dup(clone_me->dukCtx, -1);
+  rtDukPutIdentToGlobal(clone_me->dukCtx);
+
   dukCtx = duk_get_context(clone_me->dukCtx, thr_idx);
+
+  //duk_idx_t thr_idx = duk_push_thread_new_globalenv(clone_me->dukCtx);
+  //dukCtx = duk_get_context(clone_me->dukCtx, thr_idx);
 
   uv_loop_t *dukLoop = new uv_loop_t();
   uv_loop_init(dukLoop);
@@ -223,8 +232,7 @@ rtNodeContext::~rtNodeContext()
 rtError rtNodeContext::add(const char *name, rtValue const& val)
 {
   rt2duk(dukCtx, val);
-  duk_bool_t res = duk_put_global_string(dukCtx, name);
-  assert(res);
+  rtDukPutIdentToGlobal(dukCtx, name);
   
   return RT_OK;
 }
@@ -1064,6 +1072,8 @@ void rtNode::init(int argc, char** argv)
       duk_pop(dukCtx);
     }
 
+    rtSetupJsModuleBindings(dukCtx);
+
     rtLogWarn("DONE in rtNode::init()\n");
   }
 }
@@ -1159,7 +1169,7 @@ unsigned long rtNodeContext::Release()
     long l = rtAtomicDec(&mRefCount);
     if (l == 0)
     {
-     //delete this; // todo
+     delete this;
     }
     return l;
 }

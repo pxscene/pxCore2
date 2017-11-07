@@ -272,7 +272,7 @@ public:
   {
     long l = rtAtomicDec(&mRefCount);
     if (l == 0) {
-      //delete this; // todo
+      delete this;
     }
     return l;
   }
@@ -594,7 +594,7 @@ public:
   {
     long l = rtAtomicDec(&mRefCount);
     if (l == 0) {
-      //delete this; // todo
+      delete this;
     }
     return l;
   }

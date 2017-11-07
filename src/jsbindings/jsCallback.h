@@ -1,5 +1,0 @@
-#ifndef RT_JAVA_SCRIPT_CALLBACK_H
-#define RT_JAVA_SCRIPT_CALLBACK_H
-
-#endif
-

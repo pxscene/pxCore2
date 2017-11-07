@@ -31,8 +31,7 @@ rtError pxArchive::initFromUrl(const rtString& url)
     mLoadStatus.set("statusCode", -1);
     mDownloadRequest = new rtFileDownloadRequest(url, this);
     mDownloadRequest->setCallbackFunction(pxArchive::onDownloadComplete);
-    //rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
-    rtFileDownloader::instance()->downloadFile(mDownloadRequest);
+    rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
   else
   {
@@ -48,8 +47,7 @@ rtError pxArchive::initFromUrl(const rtString& url)
     else
     {
       mLoadStatus.set("statusCode",1);
-      //gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI,this,NULL);
-      pxArchive::onDownloadCompleteUI(this, NULL);
+      gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI,this,NULL);
     }
   }
 
@@ -158,8 +156,7 @@ void pxArchive::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
     a->process(a->mData.data(),a->mData.length());
   }
   else {
-    //gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, a, NULL);
-    pxArchive::onDownloadCompleteUI(a, NULL);
+    gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, a, NULL);
   }
 }
 
@@ -172,7 +169,7 @@ void pxArchive::onDownloadCompleteUI(void* context, void* /*data*/)
   {
     if (a->mIsFile) {
       a->mReady.send("resolve", a);
-      a->mReady.set("val", a);
+      //a->mReady.set("val", a);
     }  else {
       if (a->mZip.fileCount() > 0)
         a->mReady.send("resolve", a);
@@ -182,7 +179,7 @@ void pxArchive::onDownloadCompleteUI(void* context, void* /*data*/)
   }
   else {
     a->mReady.send("reject", a);
-    a->mReady.set("val", a);
+    //a->mReady.set("val", a);
   }
 
   //  We're done with the archive object so release it
@@ -195,18 +192,14 @@ void pxArchive::process(void* data, size_t dataSize)
   {
     mIsFile = false;
     if (mZip.initFromBuffer(data, dataSize) == RT_OK) {
-      pxArchive::onDownloadCompleteUI(this, NULL);
-      //gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, this, NULL);
+      gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, this, NULL);
     }
   }
   else
   {
     // Single file archive
-    //mIsFile = true;
-    //gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, this, NULL);
-
     mIsFile = true;
-    pxArchive::onDownloadCompleteUI(this, NULL);
+    gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, this, NULL);
   }
 }
 

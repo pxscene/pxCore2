@@ -182,7 +182,7 @@ unsigned long rtImageResource::Release()
   if (l == 0) 
   {
     pxImageManager::removeImage( mUrl);      
-    //delete this; // todo
+    delete this;
     
   }
   return l;
@@ -252,8 +252,8 @@ void pxResource::loadResource()
       mDownloadRequest->setProxy(mProxy);
       // setup for asynchronous load and callback
       mDownloadRequest->setCallbackFunction(pxResource::onDownloadComplete);
-      //rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
-      rtFileDownloader::instance()->downloadFile(mDownloadRequest);
+      rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
+      //rtFileDownloader::instance()->downloadFile(mDownloadRequest);
   }
   else
   {
@@ -304,8 +304,7 @@ void rtImageResource::loadResourceFromFile()
     // We need to maintain this object's lifetime
     // TODO review overall flow and organization
     AddRef();
-    //gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"reject");
-    onDownloadCompleteUI(this, (void*)"reject");
+    gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"reject");
     //mTexture->notifyListeners( mTexture, RT_FAIL, errorCode);
 
   }
@@ -318,8 +317,7 @@ void rtImageResource::loadResourceFromFile()
     // We need to maintain this object's lifetime
     // TODO review overall flow and organization
     AddRef();
-    //gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void *) "resolve");
-    onDownloadCompleteUI(this, (void *) "resolve");
+    gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void *) "resolve");
   }
   
 }
@@ -371,8 +369,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         // We need to maintain this object's lifetime
         // TODO review overall flow and organization
         AddRef();        
-        //gUIThreadQueue.addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");        
-        onDownloadCompleteUI(this, (void*)"reject");
+        gUIThreadQueue.addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");        
       }
       else
       {
@@ -385,8 +382,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         // We need to maintain this object's lifetime
         // TODO review overall flow and organization
         AddRef();
-        //gUIThreadQueue.addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
-        onDownloadCompleteUI(this, (void*)"resolve");
+        gUIThreadQueue.addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
       }
     }
     else 
@@ -401,8 +397,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
       AddRef();        
-      //gUIThreadQueue.addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");      
-      pxResource::onDownloadCompleteUI(this, (void*)"reject");
+      gUIThreadQueue.addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");      
     }
   }
 
@@ -427,7 +422,7 @@ unsigned long rtImageAResource::Release()
   if (l == 0)
   {
     pxImageManager::removeImageA( mUrl);
-    //delete this; // todo
+    delete this;
 
   }
   return l;

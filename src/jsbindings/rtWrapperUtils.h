@@ -78,7 +78,8 @@ private:
 
 rtValue duk2rt(duk_context *ctx, rtWrapperError* error = NULL);
 void rt2duk(duk_context *ctx, const rtValue& val);
-std::string allocDukIdentId();
+std::string rtAllocDukIdentId();
+std::string rtDukPutIdentToGlobal(duk_context *ctx, const std::string &name = "");
 
 #endif
 

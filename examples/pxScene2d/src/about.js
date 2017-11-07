@@ -41,7 +41,9 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
                             font: fontRes, pixelSize: 12, wordWrap: true,
                             text: "Press SPACE to dismiss",
                             alignHorizontal: scene.alignHorizontal.CENTER,
-                            alignVertical:   scene.alignVertical.CENTER})
+                            alignVertical: scene.alignVertical.CENTER
+  })
+
   logo.ready.then(
                     function(o) { },
                     function(o) { max_h -= 170; title_dy = 10; }
@@ -144,12 +146,12 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
   scene.on("onResize",  function(e) { updateSize(e.w,e.h); });
   //panel.on("onMouseUp", function(e) { console.log("PANEL onMouseUp"); hidePanel() } );
   panel_bg.on("onFocus",   function(e) { /*showPanel(5000);*/ } );
-  panel_bg.on("onKeyDown", function(e) { if(e.keyCode) { hidePanel();  }  });
-           
+  panel_bg.on("onKeyDown", function (e) { if (e.keyCode) { hidePanel(); } });
+
   Promise.all([fontRes.ready, logo.ready, title_bg.ready, panel.ready]).catch( function (err)
   {
-    console.log(">>> Loading Assets ... err = " + err);
-                                                      
+      console.log(">>> Loading Assets ... err = " + err);
+
   }).then( function() 
   {
     title = scene.create({ t: "text", text: "About pxscene", font: fontRes, parent: panel, pixelSize: titlePts, textColor: 0xFFFFFFff });

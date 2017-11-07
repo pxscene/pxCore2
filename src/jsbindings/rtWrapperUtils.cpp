@@ -218,8 +218,8 @@ void rt2duk(duk_context *ctx, const rtValue& v)
     rtLogWarn("attempt to convert from void* to JS object");
     assert(0);
     break;
-  case 0: // This is really a value rtValue() will set mType to zero
-    assert(0);
+  case RT_voidType: // This is really a value rtValue() will set mType to zero
+    duk_push_null(ctx);
     break;
   default:
     rtLogFatal("unsupported rtValue [(char value(%c) int value(%d)] to javascript conversion",
@@ -242,10 +242,8 @@ rtValue duk2rt(duk_context *ctx, rtWrapperError* error)
     return rtValue(rtFunctionRef(func));
   }
   if (duk_is_function(ctx, -1)) {
-    std::string id = allocDukIdentId();
     duk_dup(ctx, -1);
-    duk_bool_t res = duk_put_global_string(ctx, id.c_str());
-    assert(res);
+    std::string id = rtDukPutIdentToGlobal(ctx);
     return rtValue(rtFunctionRef(new jsFunctionWrapper(ctx, id)));
   }
   if (duk_is_object(ctx, -1)) {
@@ -259,10 +257,9 @@ rtValue duk2rt(duk_context *ctx, rtWrapperError* error)
 
     duk_pop(ctx);
 
-    std::string id = allocDukIdentId();
     duk_dup(ctx, -1);
-    res = duk_put_global_string(ctx, id.c_str());
-    assert(res);
+    std::string id = rtDukPutIdentToGlobal(ctx);
+
     bool isArray = duk_is_array(ctx, -1);
     return rtValue(new jsObjectWrapper(ctx, id, isArray));
   }
@@ -276,10 +273,22 @@ rtValue duk2rt(duk_context *ctx, rtWrapperError* error)
 
 
 
-std::string allocDukIdentId()
+std::string rtAllocDukIdentId()
 {
   static int dukIdentId = 0;
   char buf[128];
-  sprintf(buf, "__ident%5d", dukIdentId++);
+  sprintf(buf, "__ident%05d", dukIdentId++);
   return buf;
+}
+
+
+std::string rtDukPutIdentToGlobal(duk_context *ctx, const std::string &name)
+{
+  std::string id = name;
+  if (id.empty()) {
+    id = rtAllocDukIdentId();
+  }
+  duk_bool_t rc = duk_put_global_string(ctx, id.c_str());
+  assert(rc);
+  return id;
 }

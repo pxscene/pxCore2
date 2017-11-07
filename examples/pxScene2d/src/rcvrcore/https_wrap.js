@@ -1,6 +1,6 @@
 'use strict';
 
-var https = require('https');
+var https = require('../https.js');
 
 function isLocalAccess(reqOptions)
 {
@@ -32,18 +32,6 @@ HttpsWrap.prototype.getLocalApp = function() {
   return this.localApp;
 };
 
-HttpsWrap.prototype.request = function(options, cb) {
-  if (true == isLocalAccess(options))
-  {
-    if (false == this.localApp)
-    {
-      console.log("localhost urls cannot be accessed by remote applications");
-      return;
-    }
-  }
-  return https.request(options, cb);
-};
-
 HttpsWrap.prototype.get = function(options, cb) {
   if (true == isLocalAccess(options))
   {
@@ -56,28 +44,6 @@ HttpsWrap.prototype.get = function(options, cb) {
   return https.get(options, cb);
 };
 
-HttpsWrap.prototype.Agent = function(options) {
-  if (true == isLocalAccess(options))
-  {
-    if (false == this.localApp)
-    {
-      console.log("localhost urls cannot be accessed by remote applications");
-      return;
-    }
-  }
-  return https.Agent(options);
-};
-
-HttpsWrap.prototype.globalAgent = function(options) {
-  if (true == isLocalAccess(options))
-  {
-    if (false == this.localApp)
-    {
-      console.log("localhost urls cannot be accessed by remote applications");
-      return;
-    }
-  }
-  return https.globalAgent(options);
-};
+HttpsWrap.prototype.request = HttpsWrap.prototype.get;
 
 module.exports = HttpsWrap;

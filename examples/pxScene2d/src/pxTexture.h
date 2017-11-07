@@ -59,7 +59,7 @@ public:
   {
     unsigned long l = rtAtomicDec(&mRef);
     if (l == 0) {
-      //delete this; // todo
+      delete this;
     }
     return l;
   }

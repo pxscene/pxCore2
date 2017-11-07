@@ -56,6 +56,8 @@ void rtFunctionWrapper::createFromFunctionReference(duk_context *ctx, const rtFu
   bool res = duk_put_prop_string(ctx, objidx, "\xff""\xff""data");
   assert(res);
 
+  func->AddRef();
+
   // [func]
 }
 
@@ -122,7 +124,7 @@ unsigned long jsFunctionWrapper::Release()
 {
   unsigned long l = rtAtomicDec(&mRefCount);
   if (l == 0) {
-    //delete this; // todo
+    delete this;
   }
   return l;
 }

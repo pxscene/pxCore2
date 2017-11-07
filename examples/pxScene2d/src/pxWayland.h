@@ -65,7 +65,7 @@ public:
   virtual unsigned long Release() {
     long l = rtAtomicDec(&mRefCount);
     if (l == 0) {
-      //delete this; // todo
+      delete this;
     }
     return l;
   }

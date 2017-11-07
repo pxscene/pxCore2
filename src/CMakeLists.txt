@@ -179,7 +179,7 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
         jsbindings/rtFunctionWrapper.cpp jsbindings/rtObjectWrapper.cpp
-        jsbindings/rtWrapperUtils.cpp)
+	jsbindings/rtWrapperUtils.cpp jsbindings/rtJsModules.cpp)
 
 if (PXCORE_MATRIX_HELPERS)
   set(PXCORE_FILES ${PXCORE_FILES} pxMatrix4T.cpp)
