@@ -23,7 +23,6 @@ script:
   - if [ "$TRAVIS_EVENT_TYPE" != "cron" ]; then ./ci/clean_coverity.sh; fi
 
 addons:
-  ssh_known_hosts: 96.118.6.151
   coverity_scan:
     project:
       name: "pxscene/pxCore"
