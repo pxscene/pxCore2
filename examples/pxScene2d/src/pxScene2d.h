@@ -141,6 +141,10 @@ struct pxPoint2f
   float x, y;
 };
 
+template<typename Map> typename Map::const_iterator
+find_best_wildcard_match(Map const& map, typename Map::key_type const& key);
+typedef std::map<std::string, bool> permissionsMap_t;
+permissionsMap_t permissionsObjectToMap(const rtObjectRef& obj);
 
 class rtFileDownloadRequest;
 
@@ -979,6 +983,8 @@ class pxSceneContainer: public pxViewContainer
 public:
   rtDeclareObject(pxSceneContainer, pxViewContainer);
   rtProperty(url, url, setUrl, rtString);
+  // declare 'permissions' before 'ready'
+  rtProperty(permissions, permissions, setPermissions, rtObjectRef);
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
 
@@ -1002,6 +1008,10 @@ public:
 
   rtError api(rtValue& v) const;
   rtError ready(rtObjectRef& o) const;
+
+  rtError setParentPermissions(const permissionsMap_t& v);
+  rtError permissions(rtObjectRef& v) const { UNUSED_PARAM(v); rtLogDebug("permissions is write only"); return RT_FAIL; }
+  rtError setPermissions(const rtObjectRef& v);
 
 //  rtError makeReady(bool ready);  // DEPRECATED ?
 
@@ -1100,6 +1110,9 @@ public:
   }
 
   rtString getUrl() const { return mUrl; }
+
+  rtError setParentPermissions(const permissionsMap_t& v);
+  rtError setPermissions(const rtObjectRef& v);
 
   static rtError addListener(rtString  eventName, const rtFunctionRef& f)
   {
@@ -1294,10 +1307,15 @@ public:
   rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
 
+  rtReadOnlyProperty(origin, origin, rtString);
+  rtMethod1ArgAndReturn("getUrlOrigin", getUrlOrigin, rtString, rtString);
+  rtMethod1ArgAndReturn("allows", allows, rtString, bool);
+  rtMethod1ArgAndReturn("checkAccessControlHeaders", checkAccessControlHeaders, rtString, bool);
+
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
   pxScene2d(bool top = true, pxScriptView* scriptView = NULL);
-  virtual ~pxScene2d() 
+  virtual ~pxScene2d()
   {
      rtLogDebug("***** deleting pxScene2d\n");
     if (mTestView != NULL)
@@ -1396,6 +1414,13 @@ public:
   rtError alignHorizontal(rtObjectRef& v) const {v = CONSTANTS.alignHorizontalConstants; return RT_OK;}
   rtError truncation(rtObjectRef& v) const {v = CONSTANTS.truncationConstants; return RT_OK;}
 
+  rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
+  rtError setParentPermissions(const permissionsMap_t& v) { mParentPermissions = v; return RT_OK; }
+  rtError setPermissions(const rtObjectRef& v);
+  rtError getUrlOrigin(const rtString& url, rtString& origin) const;
+  rtError allows(const rtString& url, bool& o) const;
+  rtError checkAccessControlHeaders(const rtString& rawHeaders, bool& allow) const;
+
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
 
   // The following methods are delegated to the view
@@ -1454,9 +1479,16 @@ public:
 
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
+    bool allowed;
+    if (allows(url, allowed) == RT_OK && !allowed)
+    {
+      rtLogError("url '%s' is not allowed", url.cString());
+      return RT_FAIL;
+    }
+
     rtError e = RT_FAIL;
     rtRef<pxArchive> a = new pxArchive;
-    if (a->initFromUrl(url) == RT_OK)
+    if (a->initFromUrl(url, mOrigin) == RT_OK)
     {
       archive = a;
       e = RT_OK;
@@ -1479,8 +1511,8 @@ private:
   rtError clipboardGet(rtString type, rtString& retString);
   rtError clipboardSet(rtString type, rtString clipString);
   rtError getService(rtString name, rtObjectRef& returnObject);
-  
-    
+
+
   rtRef<pxObject> mRoot;
   rtObjectRef mInfo;
   rtObjectRef mFocusObj;
@@ -1519,6 +1551,9 @@ private:
   #endif
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
+  rtString mOrigin;
+  permissionsMap_t mPermissions;
+  permissionsMap_t mParentPermissions;
 public:
   void hidePointer( bool hide )
   {

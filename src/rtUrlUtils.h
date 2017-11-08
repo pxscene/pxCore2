@@ -22,5 +22,6 @@
 #include "rtString.h"
 
 rtString rtUrlEncodeParameters(const char* url);
+rtString rtUrlGetOrigin(const char* url);
 
 #endif

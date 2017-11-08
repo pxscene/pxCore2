@@ -84,6 +84,8 @@ public:
   void setDataIsCached(bool val);
   bool isDataCached();
 #endif
+  void setOrigin(const char* origin);
+  rtString origin();
 
 private:
   rtString mFileUrl;
@@ -107,6 +109,7 @@ private:
   bool mCacheEnabled;
   bool mIsDataInCache;
 #endif
+  rtString mOrigin;
 };
 
 struct rtFileDownloadHandle
@@ -132,6 +135,7 @@ public:
     void setDefaultCallbackFunction(void (*callbackFunction)(rtFileDownloadRequest*));
     bool downloadFromNetwork(rtFileDownloadRequest* downloadRequest);
     void checkForExpiredHandles();
+    static bool checkAccessControlHeaders(const char* origin, const char* reqUrl, const char* rawHeaders, std::string& errorStr);
 
 private:
     rtFileDownloader();
