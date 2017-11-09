@@ -1,4 +1,5 @@
 #include "rtRemoteValueReader.h"
+#include "rtRemoteObjectCache.h"
 #include "rtRemoteClient.h"
 #include "rtRemoteObject.h"
 #include "rtRemoteFunction.h"
@@ -26,7 +27,8 @@ static std::string toString(rapidjson::Value const& v)
 #endif
 
 rtError
-rtRemoteValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared_ptr<rtRemoteClient> const& client)
+rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Value const& from,
+  std::shared_ptr<rtRemoteClient> const& client)
 {
   auto type = from.FindMember(kFieldNameValueType);
   if (type  == from.MemberEnd())
@@ -108,9 +110,17 @@ rtRemoteValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared
 
       auto id = obj->value.FindMember(kFieldNameObjectId);
       if (strcmp(id->value.GetString(), kNullObjectId) == 0)
+      {
         to.setObject(rtObjectRef());
+      }
       else
-        to.setObject(new rtRemoteObject(id->value.GetString(), client));
+      {
+        rtObjectRef ref = env->ObjectCache->findObject(id->value.GetString());
+        if (ref)
+          to.setObject(ref);
+        else
+          to.setObject(new rtRemoteObject(id->value.GetString(), client));
+      }
     }
     break;
 
@@ -146,9 +156,18 @@ rtRemoteValueReader::read(rtValue& to, rapidjson::Value const& from, std::shared
       }
 
       if (strcmp(functionId.c_str(), kNullObjectId) == 0)
+      {
         to.setFunction(rtFunctionRef());
+      }
       else
-        to.setFunction(new rtRemoteFunction(objectId, functionId, client));
+      {
+        // check object for cache first
+        rtFunctionRef ref = env->ObjectCache->findFunction(functionId);
+        if (ref)
+          to.setFunction(ref);
+        else
+          to.setFunction(new rtRemoteFunction(objectId, functionId, client));
+      }
     }
     break;
 
