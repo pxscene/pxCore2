@@ -384,7 +384,8 @@ bool rtFileDownloadRequest::isHTTPFailOnError()
 
 void rtFileDownloadRequest::setHTTPError(char* httpError)
 {
-  strcpy(mHttpErrorBuffer, httpError);
+  strncpy(mHttpErrorBuffer, httpError, CURL_ERROR_SIZE);
+  mHttpErrorBuffer[CURL_ERROR_SIZE-1] = '\0';
 }
 
 char* rtFileDownloadRequest::httpErrorBuffer(void)
