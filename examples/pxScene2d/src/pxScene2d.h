@@ -186,6 +186,8 @@ public:
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
   rtMethodNoArgAndNoReturn("moveToFront", moveToFront);
   rtMethodNoArgAndNoReturn("moveToBack", moveToBack);
+  rtMethodNoArgAndNoReturn("moveForward", moveForward);
+  rtMethodNoArgAndNoReturn("moveBackward", moveBackward);
 
   rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
                         uint32_t, uint32_t, int32_t, rtObjectRef);
@@ -366,8 +368,8 @@ public:
     return RT_OK;
   }
 
-  void    moveForward();
-  void    moveBackward();
+  rtError moveForward();
+  rtError moveBackward();
   rtError moveToFront();
   rtError moveToBack();
 

@@ -735,6 +735,67 @@ rtError pxObject::moveToBack()
   return RT_OK;
 }
 
+rtError pxObject::moveForward()
+{
+  pxObject* parent = this->parent();
+
+  if(!parent)
+      return RT_OK;
+
+  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin(), it_prev;
+  while( it != parent->mChildren.end() )
+  {
+      if( it->getPtr() == this )
+      {
+          break;
+      }
+      it++;
+  }
+  it_prev = it++;
+  if( it == parent->mChildren.end() )
+      return RT_OK;
+
+  rtRef<pxObject> tmp = *it_prev;
+  *it_prev = *it;
+  *it = tmp;
+
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true;  
+
+  return RT_OK;
+}
+
+rtError pxObject::moveBackward()
+{
+  pxObject* parent = this->parent();
+
+  if(!parent)
+      return RT_OK;
+
+  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin(), it_prev;
+  while( it != parent->mChildren.end() )
+  {
+      if( it->getPtr() == this )
+      {
+          break;
+      }
+      it_prev = it++;
+  }
+  if( it == parent->mChildren.begin() )
+      return RT_OK;
+
+  rtRef<pxObject> tmp = *it_prev;
+  *it_prev = *it;
+  *it = tmp;
+
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true; 
+  
+  return RT_OK;
+}
+  
 rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t options,
                             int32_t count, rtObjectRef promise)
@@ -1581,6 +1642,8 @@ rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, removeAll);
 rtDefineMethod(pxObject, moveToFront);
 rtDefineMethod(pxObject, moveToBack);
+rtDefineMethod(pxObject, moveForward);
+rtDefineMethod(pxObject, moveBackward);
 rtDefineMethod(pxObject, releaseResources);
 //rtDefineMethod(pxObject, animateTo);
 #if 0
