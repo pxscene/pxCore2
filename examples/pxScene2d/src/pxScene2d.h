@@ -1254,6 +1254,7 @@ public:
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
+  rtProperty(customAnimator, customAnimator, setCustomAnimator, rtFunctionRef);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
@@ -1334,6 +1335,9 @@ public:
 
   rtError showDirtyRect(bool& v) const;
   rtError setShowDirtyRect(bool v);
+
+  rtError customAnimator(rtFunctionRef& f) const;
+  rtError setCustomAnimator(const rtFunctionRef& f);
 
   rtError create(rtObjectRef p, rtObjectRef& o);
 
@@ -1519,6 +1523,7 @@ private:
   #endif
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
+  rtFunctionRef mCustomAnimator;
 public:
   void hidePointer( bool hide )
   {
