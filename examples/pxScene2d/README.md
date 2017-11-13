@@ -180,7 +180,9 @@ file:///home/username/directory/filename.js
 
 2. Build
    ~~~~
-   cd pxCore/
+   cd pxCore/remote
+   make
+   cd ..
    mkdir temp
    cd temp
    cmake -DBUILD_RTREMOTE_LIBS=ON ..
