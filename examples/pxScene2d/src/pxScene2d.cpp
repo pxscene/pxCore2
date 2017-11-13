@@ -2224,6 +2224,10 @@ void pxScene2d::update(double t)
       context.pushState();
 #endif //PX_DIRTY_RECTANGLES
 
+      if( mCustomAnimator != NULL ) {
+          mCustomAnimator->Send( 0, NULL, NULL );
+      }
+
 #ifndef DEBUG_SKIP_UPDATE
       mRoot->update(t);
 #else
@@ -2829,6 +2833,7 @@ rtDefineMethod(pxScene2d, clock);
 rtDefineMethod(pxScene2d, logDebugMetrics);
 //rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
+rtDefineMethod(pxScene2d, setCustomAnimator);
 rtDefineMethod(pxScene2d, delListener);
 rtDefineMethod(pxScene2d, getFocus);
 //rtDefineMethod(pxScene2d, stopPropagation);
