@@ -735,6 +735,10 @@ rtError pxObject::moveToBack()
   return RT_OK;
 }
 
+/**
+ * moveForward: Move this child in front of its next closest sibling in z-order, which means 
+ *              moving it toward end of array because last item is at top of z-order 
+ **/ 
 rtError pxObject::moveForward()
 {
   pxObject* parent = this->parent();
@@ -755,9 +759,7 @@ rtError pxObject::moveForward()
   if( it == parent->mChildren.end() )
       return RT_OK;
 
-  rtRef<pxObject> tmp = *it_prev;
-  *it_prev = *it;
-  *it = tmp;
+  std::iter_swap(it_prev, it);
 
   parent->repaint();
   parent->repaintParents();
@@ -766,6 +768,10 @@ rtError pxObject::moveForward()
   return RT_OK;
 }
 
+/**
+ * moveBackward: Move this child behind its next closest sibling in z-order, which means 
+ *               moving it toward beginning of array because first item is at bottom of z-order 
+ **/ 
 rtError pxObject::moveBackward()
 {
   pxObject* parent = this->parent();
@@ -785,14 +791,12 @@ rtError pxObject::moveBackward()
   if( it == parent->mChildren.begin() )
       return RT_OK;
 
-  rtRef<pxObject> tmp = *it_prev;
-  *it_prev = *it;
-  *it = tmp;
+  std::iter_swap(it_prev, it);
 
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true; 
-  
+
   return RT_OK;
 }
   
