@@ -224,8 +224,8 @@
 		4C5137B31E5F81BE0052A99C /* pxImageA.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxImageA.h; path = src/pxImageA.h; sourceTree = "<group>"; };
 		4C5B759F1F475F2600664DC6 /* pxPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxPath.h; path = src/rasterizer/pxPath.h; sourceTree = "<group>"; };
 		4C5B75AB1F475F3E00664DC6 /* pxPath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxPath.cpp; path = src/rasterizer/pxPath.cpp; sourceTree = "<group>"; };
-		4C5B75BF1F4FB0C800664DC6 /* svgtest.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = svgtest.js; path = src/svgtest.js; sourceTree = "<group>"; };
 		4C5B75C21F4FB51600664DC6 /* about.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = about.js; path = src/about.js; sourceTree = "<group>"; };
+		4C605AB11FBB8CA800A55C50 /* svgtest.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = svgtest.html; path = src/rasterizer/svgtest.html; sourceTree = "<group>"; };
 		4C63A6821E7878AA00313D9C /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = package.json; path = ../../src/package.json; sourceTree = "<group>"; };
 		4C9F22AA1E6A24D200979F4E /* westeros-compositor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "westeros-compositor.h"; path = "external/westeros-stub/westeros-compositor.h"; sourceTree = "<group>"; };
 		4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "westeros-stub.cpp"; path = "external/westeros-stub/westeros-stub.cpp"; sourceTree = "<group>"; };
@@ -369,7 +369,6 @@
 		4C38CDC11E538D51003E4A35 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				4C52A1431F19557F004826F0 /* libskia.a */,
 				4C38CDBF1E538D19003E4A35 /* Cocoa.framework */,
 				4C38CDB31E538CF7003E4A35 /* OpenGL.framework */,
 			);
@@ -434,6 +433,7 @@
 		4CE99F391F30B37900BA95C2 /* Rasterizer */ = {
 			isa = PBXGroup;
 			children = (
+				4C605AB11FBB8CA800A55C50 /* svgtest.html */,
 				4C35273D1F6B16100061D8A3 /* svgtest.js */,
 				4CE99F691F389F9200BA95C2 /* px2d.h */,
 				4CE99F6A1F389F9200BA95C2 /* pxCanvas.cpp */,
@@ -877,6 +877,10 @@
 					"$(PROJECT_DIR)/../external/libpng-1.6.28/.libs",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-DPXSCENE_DISABLE_WST_DECODER",
+				);
 				OTHER_LDFLAGS = (
 					"-rpath",
 					"@executable_path/lib",
@@ -953,6 +957,10 @@
 					"$(PROJECT_DIR)/../external/libpng-1.6.28/.libs",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-DPXSCENE_DISABLE_WST_DECODER",
+				);
 				OTHER_LDFLAGS = (
 					"-rpath",
 					"@executable_path/lib",

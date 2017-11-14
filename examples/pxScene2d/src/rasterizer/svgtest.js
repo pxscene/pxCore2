@@ -213,8 +213,8 @@ px.import({ scene:      'px:scene.1.js',
       scene.create( { id: "CurveBG", t: "path", d:"M100,250 Q250,100 400,250",  strokeColor: 0x000000ff, strokeWidth: 13, parent: p} );
       scene.create( { id: "CurveFG", t: "path", d:"M100,250 q150,-150 300,0",   strokeColor: 0xFF0000ff, strokeWidth: 3,  parent: p} );
       
-     scene.create( { id: "CurveBG", t: "path", d:"M100 180 q50 10, 95 80",     strokeColor: 0x000000ff, strokeWidth: 13, parent: p} );
-     scene.create( { id: "CurveFG", t: "path", d:"M100 180 Q150 190, 195 260", strokeColor: 0xFF0000ff, strokeWidth: 3,  parent: p} );
+     scene.create( { id: "CurveBG", t: "path", d:"M100 180 q50 10, 95 80",      strokeColor: 0x000000ff, strokeWidth: 13, parent: p} );
+     scene.create( { id: "CurveFG", t: "path", d:"M100 180 Q150 190, 195 260",  strokeColor: 0xFF0000ff, strokeWidth: 3,  parent: p} );
 
      scene.create( {  id: "Marker", t: "path", d:"rect x:50 y:50 width:20 height:20", fillColor: 0x8888FFff, parent: p} ); // JUNK
      scene.create( {  id: "Marker", t: "path", d:"rect x:91 y:171 width:18 height:18", fillColor: 0x8888FFff, parent: p} );

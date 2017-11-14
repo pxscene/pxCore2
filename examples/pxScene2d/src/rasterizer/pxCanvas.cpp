@@ -186,20 +186,12 @@ rtError pxCanvas::drawPath(rtObjectRef path)
   if(needsFill || needsStroke)
   {
     pxMatrix4f m;
-    
+
     // - - - - - - - - - - - - - - - - - - -
     if(needsFill)   mCanvasCtx.fill();
     if(needsStroke) mCanvasCtx.stroke();
     // - - - - - - - - - - - - - - - - - - -
 
-    float ss = p->mStrokeWidth/2;
-    
-    if(ss > 0)
-    {
-      m.translate(ss*2, -ss*2);
-      p->applyMatrix(m);
-    }
-    
 #if 0
 #ifdef PX_PLATFORM_MAC
 
