@@ -1739,8 +1739,10 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
+#ifdef ENABLE_PXSCENE_RASTERIZER_PATH
   else if (!strcmp("path",t.cString()))
     e = createPath(p,o);
+#endif //ENABLE_PXSCENE_RASTERIZER_PATH
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
