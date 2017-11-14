@@ -447,7 +447,7 @@ if (BUILD_PXSCENE_APP)
         add_dependencies(pxscene_app pxscene_shared)
     elseif (BUILD_PXSCENE_STATIC_LIB)
         add_dependencies(pxscene_app pxscene_static)
-    endif (BUILD_PXSCENE_STATIC_LIB)
+    endif (BUILD_PXSCENE_SHARED_LIB)
 
     if (PXSCENE_INSTALLER GREATER 0)
       if (WIN32)
