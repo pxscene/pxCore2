@@ -633,10 +633,10 @@ void pxCanvas2d::stroke()
       dx1 *= halfStrokeWidth;
       dy1 *= halfStrokeWidth;
 
-      mRasterizer.addEdge(b.x-dy1,b.y + dx1 ,a.x-dy1, a.y + dx1);
-      mRasterizer.addEdge(a.x-dy1, a.y + dx1,a.x+dy1, a.y-dx1);
-      mRasterizer.addEdge(a.x+dy1,a.y-dx1,b.x+dy1, b.y-dx1);
-      mRasterizer.addEdge(b.x+dy1,b.y - dx1 ,b.x-dy1,b.y+dx1);
+      mRasterizer.addEdge(b.x-dy1, b.y+dx1, a.x-dy1, a.y+dx1);
+      mRasterizer.addEdge(a.x-dy1, a.y+dx1, a.x+dy1, a.y-dx1);
+      mRasterizer.addEdge(a.x+dy1, a.y-dx1, b.x+dy1, b.y-dx1);
+      mRasterizer.addEdge(b.x+dy1, b.y-dx1, b.x-dy1, b.y+dx1);
     }
 #else
     pxVertex firstA1, firstA2;
@@ -647,8 +647,8 @@ void pxCanvas2d::stroke()
       pxVertex a = mMatrix.multiply(mVertices[i]);
       pxVertex b = mMatrix.multiply(mVertices[i+1]);
       
-      double dx1 = (b.x() - a.x() );
-      double dy1 = (b.y() - a.y() );
+      double dx1 = ( b.x() - a.x() );
+      double dy1 = ( b.y() - a.y() );
 
       double len = pow(dx1 * dx1 + dy1 * dy1, 0.5);
 
