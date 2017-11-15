@@ -1806,8 +1806,10 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
+#ifdef ENABLE_PXSCENE_RASTERIZER_PATH
   else if (!strcmp("path",t.cString()))
     e = createPath(p,o);
+#endif //ENABLE_PXSCENE_RASTERIZER_PATH
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
@@ -1987,7 +1989,6 @@ rtError pxScene2d::logDebugMetrics()
 #endif
   return RT_OK;
 }
-
 
 rtError pxScene2d::clock(uint64_t & time)
 {
@@ -2290,6 +2291,10 @@ void pxScene2d::update(double t)
 #ifdef PX_DIRTY_RECTANGLES
       context.pushState();
 #endif //PX_DIRTY_RECTANGLES
+
+      if( mCustomAnimator != NULL ) {
+          mCustomAnimator->Send( 0, NULL, NULL );
+      }
 
 #ifndef DEBUG_SKIP_UPDATE
       mRoot->update(t);
@@ -2798,6 +2803,44 @@ rtError pxScene2d::setShowDirtyRect(bool v)
   return RT_OK;
 }
 
+rtError pxScene2d::customAnimator(rtFunctionRef& v) const
+{
+  v = mCustomAnimator;
+  return RT_OK;
+}
+
+rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
+{
+  static bool customAnimatorSupportEnabled = false;
+
+  //check for custom animator enabled support only once
+  static bool checkForCustomAnimatorSupport = true;
+  if (checkForCustomAnimatorSupport)
+  {
+    char const *s = getenv("PXSCENE_ENABLE_CUSTOM_ANIMATOR");
+    if (s)
+    {
+      int animatorSetting = atoi(s);
+      if (animatorSetting > 0)
+      {
+        customAnimatorSupportEnabled = true;
+      }
+    }
+    checkForCustomAnimatorSupport = false;
+  }
+
+  if (customAnimatorSupportEnabled)
+  {
+    mCustomAnimator = v;
+    return RT_OK;
+  }
+  else
+  {
+    rtLogError("custom animator support is not available");
+    return RT_FAIL;
+  }
+}
+
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
   // Is this a type we support?
@@ -2891,6 +2934,7 @@ rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
+rtDefineProperty(pxScene2d, customAnimator);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
 rtDefineMethod(pxScene2d, logDebugMetrics);
