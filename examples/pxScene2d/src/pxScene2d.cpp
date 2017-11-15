@@ -751,11 +751,12 @@ rtError pxObject::moveForward()
   {
       if( it->getPtr() == this )
       {
-          break;
+        it_prev = it++;
+        break;
       }
       it++;
   }
-  it_prev = it++;
+
   if( it == parent->mChildren.end() )
       return RT_OK;
 
