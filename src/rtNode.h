@@ -34,12 +34,6 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-#ifndef PX_PLATFORM_MAC
-#ifndef __clang__
-#pragma GCC diagnostic ignored "-Werror"
-#endif
-#endif
-
 #pragma GCC diagnostic ignored "-Wall"
 #endif
 
