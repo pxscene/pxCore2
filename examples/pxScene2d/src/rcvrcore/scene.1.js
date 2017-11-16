@@ -24,6 +24,7 @@ function Scene() {
       this.__defineSetter__("showOutlines", function(v) { scene.showOutlines = v; });
       this.__defineGetter__("showDirtyRect", function() { return scene.showDirtyRect; });
       this.__defineSetter__("showDirtyRect", function(v) { scene.showDirtyRect = v; });
+      this.__defineSetter__("customAnimator", function(v) { scene.customAnimator = v; });
       //this.w = scene.w;
       //this.h = scene.h;
     }
@@ -44,6 +45,10 @@ function Scene() {
   this.loadArchive = function(u) {
     return nativeScene.loadArchive(u);
   };
+
+  this.customAnimator = function( f ) {
+    return nativeScene.customAnimator( f );
+  }
 
   this.getX = function() { return nativeScene.x; };
   this.getY = function() {

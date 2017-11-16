@@ -884,6 +884,10 @@ rtError pxObject::moveToFront()
   remove();
   setParent(parent);
 
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true;
+
   return RT_OK;
 }
 
@@ -898,9 +902,79 @@ rtError pxObject::moveToBack()
   std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
   parent->mChildren.insert(it, this);
 
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true;
+  
   return RT_OK;
 }
 
+/**
+ * moveForward: Move this child in front of its next closest sibling in z-order, which means 
+ *              moving it toward end of array because last item is at top of z-order 
+ **/ 
+rtError pxObject::moveForward()
+{
+  pxObject* parent = this->parent();
+
+  if(!parent)
+      return RT_OK;
+
+  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin(), it_prev;
+  while( it != parent->mChildren.end() )
+  {
+      if( it->getPtr() == this )
+      {
+        it_prev = it++;
+        break;
+      }
+      it++;
+  }
+
+  if( it == parent->mChildren.end() )
+      return RT_OK;
+
+  std::iter_swap(it_prev, it);
+
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true;  
+
+  return RT_OK;
+}
+
+/**
+ * moveBackward: Move this child behind its next closest sibling in z-order, which means 
+ *               moving it toward beginning of array because first item is at bottom of z-order 
+ **/ 
+rtError pxObject::moveBackward()
+{
+  pxObject* parent = this->parent();
+
+  if(!parent)
+      return RT_OK;
+
+  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin(), it_prev;
+  while( it != parent->mChildren.end() )
+  {
+      if( it->getPtr() == this )
+      {
+          break;
+      }
+      it_prev = it++;
+  }
+  if( it == parent->mChildren.begin() )
+      return RT_OK;
+
+  std::iter_swap(it_prev, it);
+
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true; 
+
+  return RT_OK;
+}
+  
 rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t options,
                             int32_t count, rtObjectRef promise)
@@ -1747,6 +1821,8 @@ rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, removeAll);
 rtDefineMethod(pxObject, moveToFront);
 rtDefineMethod(pxObject, moveToBack);
+rtDefineMethod(pxObject, moveForward);
+rtDefineMethod(pxObject, moveBackward);
 rtDefineMethod(pxObject, releaseResources);
 //rtDefineMethod(pxObject, animateTo);
 #if 0
@@ -1938,8 +2014,10 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
+#ifdef ENABLE_PXSCENE_RASTERIZER_PATH
   else if (!strcmp("path",t.cString()))
     e = createPath(p,o);
+#endif //ENABLE_PXSCENE_RASTERIZER_PATH
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
@@ -2121,7 +2199,6 @@ rtError pxScene2d::logDebugMetrics()
 #endif
   return RT_OK;
 }
-
 
 rtError pxScene2d::clock(uint64_t & time)
 {
@@ -2424,6 +2501,10 @@ void pxScene2d::update(double t)
 #ifdef PX_DIRTY_RECTANGLES
       context.pushState();
 #endif //PX_DIRTY_RECTANGLES
+
+      if( mCustomAnimator != NULL ) {
+          mCustomAnimator->Send( 0, NULL, NULL );
+      }
 
 #ifndef DEBUG_SKIP_UPDATE
       mRoot->update(t);
@@ -2932,6 +3013,44 @@ rtError pxScene2d::setShowDirtyRect(bool v)
   return RT_OK;
 }
 
+rtError pxScene2d::customAnimator(rtFunctionRef& v) const
+{
+  v = mCustomAnimator;
+  return RT_OK;
+}
+
+rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
+{
+  static bool customAnimatorSupportEnabled = false;
+
+  //check for custom animator enabled support only once
+  static bool checkForCustomAnimatorSupport = true;
+  if (checkForCustomAnimatorSupport)
+  {
+    char const *s = getenv("PXSCENE_ENABLE_CUSTOM_ANIMATOR");
+    if (s)
+    {
+      int animatorSetting = atoi(s);
+      if (animatorSetting > 0)
+      {
+        customAnimatorSupportEnabled = true;
+      }
+    }
+    checkForCustomAnimatorSupport = false;
+  }
+
+  if (customAnimatorSupportEnabled)
+  {
+    mCustomAnimator = v;
+    return RT_OK;
+  }
+  else
+  {
+    rtLogError("custom animator support is not available");
+    return RT_FAIL;
+  }
+}
+
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
   bool allowed;
@@ -3041,6 +3160,7 @@ rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
+rtDefineProperty(pxScene2d, customAnimator);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
 rtDefineMethod(pxScene2d, logDebugMetrics);

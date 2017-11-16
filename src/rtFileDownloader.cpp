@@ -151,10 +151,13 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
     mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false), mDownloadHandleExpiresTime(-2)
 #ifdef ENABLE_HTTP_CACHE
-    , mCacheEnabled(true), mIsDataInCache(false)
+    , mCacheEnabled(true), mIsDataInCache(false), mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
 #endif
 {
   mAdditionalHttpHeaders.clear();
+#ifdef ENABLE_HTTP_CACHE
+  memset(mHttpErrorBuffer, 0, sizeof(mHttpErrorBuffer));
+#endif
 }
         
 rtFileDownloadRequest::~rtFileDownloadRequest()
@@ -359,6 +362,50 @@ bool rtFileDownloadRequest::isDataCached()
 {
   return mIsDataInCache;
 }
+
+void rtFileDownloadRequest::setProgressMeter(bool val)
+{
+  mIsProgressMeterSwitchOff = val;
+}
+
+bool rtFileDownloadRequest::isProgressMeterSwitchOff()
+{
+  return mIsProgressMeterSwitchOff;
+}
+
+void rtFileDownloadRequest::setHTTPFailOnError(bool val)
+{
+  mHTTPFailOnError = val;
+}
+
+bool rtFileDownloadRequest::isHTTPFailOnError()
+{
+  return mHTTPFailOnError;
+}
+
+void rtFileDownloadRequest::setHTTPError(char* httpError)
+{
+  if(httpError != NULL)
+  {
+    strncpy(mHttpErrorBuffer, httpError, CURL_ERROR_SIZE);
+    mHttpErrorBuffer[CURL_ERROR_SIZE-1] = '\0';
+  }
+}
+
+char* rtFileDownloadRequest::httpErrorBuffer(void)
+{
+  return mHttpErrorBuffer;
+}
+
+void rtFileDownloadRequest::setCurlDefaultTimeout(bool val)
+{
+  mDefaultTimeout = val;
+}
+
+bool rtFileDownloadRequest::isCurlDefaultTimeoutSet()
+{
+  return mDefaultTimeout;
+}
 #endif //ENABLE_HTTP_CACHE
 
 void rtFileDownloadRequest::setOrigin(const char* origin)
@@ -548,7 +595,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
 {
     CURL *curl_handle = NULL;
     CURLcode res = CURLE_OK;
-    
+    char errorBuffer[CURL_ERROR_SIZE];
+
     bool useProxy = !downloadRequest->proxy().isEmpty();
     rtString proxyServer = downloadRequest->proxy();
     bool headerOnly = downloadRequest->headerOnly();
@@ -567,8 +615,23 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
       curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
       curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
     }
+
+    if(downloadRequest->isCurlDefaultTimeoutSet() == false)
+    {
     curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, kCurlTimeoutInSeconds);
     curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
+    }
+
+    if(downloadRequest->isProgressMeterSwitchOff())
+        curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1);
+
+    if(downloadRequest->isHTTPFailOnError())
+    {
+        memset(errorBuffer, 0, sizeof(errorBuffer));
+        curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, 1);
+        curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1);
+        curl_easy_setopt(curl_handle, CURLOPT_ERRORBUFFER, errorBuffer);
+    }
 #if !defined(PX_PLATFORM_GENERIC_DFB) && !defined(PX_PLATFORM_DFB_NON_X11)
     curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPALIVE, 1);
     curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPIDLE, 60);
@@ -619,6 +682,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     /* get it! */
     res = curl_easy_perform(curl_handle);
     downloadRequest->setDownloadStatusCode(res);
+    if(downloadRequest->isHTTPFailOnError())
+        downloadRequest->setHTTPError(errorBuffer);
 
     /* check for errors */
     if (res != CURLE_OK) 
