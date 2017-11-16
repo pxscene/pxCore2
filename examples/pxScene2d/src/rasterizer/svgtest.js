@@ -7,32 +7,57 @@ px.import({ scene:      'px:scene.1.js',
   var scene = imports.scene;
   var keys  = imports.keys;
   var root  = imports.scene.root;
-   
+
   var MM;
-        
-  var bg     = scene.create({t:"rect", parent: root, x:  0, y:   0, w: 100, h: 100, fillColor: 0xFFFFFFff, a: 1.0 });
+
+  var bg = scene.create({t:"rect", parent: root, x:  0, y:   0, w: 100, h: 100, fillColor: 0xFFFFFFff, a: 1.0 });
 //  var coords = scene.create({t:"text", parent: root, x:200, y: 40, text:"", textColor: 0x000000ff, pixelSize:24});
 
   bg.ready.then(
   function(o)
   {
-    var show_LetterM = false;
+    var show_LetterM = true;
     var show_Cross   = false;
-    var show_Circle  = true;
-    var show_Ellipse = true;
+    var show_Circle  = false;
+    var show_Ellipse = false;
     var show_RRect   = false;
     var show_ARC1    = false;
     var show_ARC2    = false;
     var show_SWEEP   = false;
     var show_CURVES  = false;
 
+    if( show_LetterM )  drawSVG_LetterM();
+    if( show_Cross   )  drawSVG_Cross();
+    if( show_Circle  )  drawSVG_Circle();
+    if( show_Ellipse )  drawSVG_Ellipse();
+    if( show_RRect   )  drawSVG_RRect();
+    if( show_ARC1    )  drawSVG_ARC1();
+    if( show_ARC2    )  drawSVG_ARC2();
+    if( show_SWEEP   )  drawSVG_SWEEP();
+    if( show_CURVES  )  drawSVG_CURVES();
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    function drawSVG_all()
+    {
+       drawSVG_LetterM();
+       drawSVG_Cross();
+       drawSVG_Circle();
+       drawSVG_Ellipse();
+       drawSVG_RRect();
+      //  drawSVG_ARC1();
+      //  drawSVG_ARC2();
+       drawSVG_SWEEP();
+       drawSVG_CURVES();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // Letter "M" ...
-    if(show_LetterM)
+    function drawSVG_LetterM()
     {
        var letterM = scene.create({t:"object", parent: bg, x:800, y:100, a: 1.0 });
-                
+
        MM = scene.create( { t: "path",
                             d: "M 68.8 49" +
                                "V 21.9" +
@@ -72,7 +97,7 @@ px.import({ scene:      'px:scene.1.js',
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // Multi-color Cross ... (relative)
-    if(show_Cross)
+    function drawSVG_Cross()
     {
       var sw = 6;
     
@@ -95,7 +120,7 @@ px.import({ scene:      'px:scene.1.js',
     //              C 127 181   109 163  109  140
     //              C 109 117   127  99  150   99
     //              C 173  99   191 117  191  140Z" stroke="black" stroke-width="3"  fill="cyan"/>
-    if(show_Circle)
+    function drawSVG_Circle()
     {
       scene.create( { t: "path", d:"circle cx:150 cy:250 r:41", strokeColor: 0x000000ff, strokeWidth: 4, fillColor: 0x00FFFFff, parent: bg} );
 
@@ -114,7 +139,7 @@ px.import({ scene:      'px:scene.1.js',
     //             C 100 326 122 315 150 315
     //             C 178 315 200 326 200 340Z" stroke="black" stroke-width="3"  fill="cyan"/>
 
-    if(show_Ellipse)
+    function drawSVG_Ellipse()
     {
       scene.create( { t: "path", d:"ellipse cx:150 cy:340 rx:50 ry: 25", strokeColor: 0x000000ff, strokeWidth: 4, fillColor: 0xFFFF00ff, parent: bg} );
     }
@@ -126,9 +151,9 @@ px.import({ scene:      'px:scene.1.js',
     //    <rect x="250" y="250" rx="50" ry="50" width="400" height="200"
     //         style="fill:red;stroke:black;stroke-width:5;opacity:0.5" />
     //
-    if(show_RRect)
+    function drawSVG_RRect()
     {
-      var x0 = 500, y0 = 250, w = 200, h = 100, rx = 30, ry = 30;
+      var x0 = 400, y0 = 250, w = 200, h = 100, rx = 30, ry = 30;
 
       scene.create( { t: "path", d:"rect x:"+x0+" y:"+y0+" width:"+w+" height:"+h+" rx:"+rx+" ry:"+ry+"", strokeColor: 0x000000ff, strokeWidth: 8, fillColor: 0x8888FFff, parent: bg} );
       scene.create( { t: "path", d:"rect x:"+x0+" y:"+(y0 + 150)+" width:"+w+" height:"+h+"", strokeColor: 0xFF0000ff, strokeWidth: 8, fillColor: 0x8888FFff, parent: bg} );
@@ -140,7 +165,7 @@ px.import({ scene:      'px:scene.1.js',
     //
     //    Example from: ARC section >>  https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
     //
-    if(show_ARC1)
+    function drawSVG_ARC1()
     {
       var arc1 = scene.create({t:"object", parent: bg, x:300, y:100, a: 1.0 });
                 
@@ -159,7 +184,7 @@ px.import({ scene:      'px:scene.1.js',
     //
     //    Example from: ARC section >>  https://www.w3.org/TR/SVG/paths.html#PathDataEllipticalArcCommands
     //
-    if(show_ARC2)
+    function drawSVG_ARC2()
     {
       scene.create( { t: "path", d:"M600 350 l 50 -25 "
                                   +"a25 25  -30 0 1 50 -25 l 50 -25 "
@@ -175,7 +200,7 @@ px.import({ scene:      'px:scene.1.js',
     //
     //    Example from: ARC section >>  https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
     //
-    if(show_SWEEP)
+    function drawSVG_SWEEP()
     {
       var obj = scene.create({t:"object", parent: bg, x:600, y:300, a: 1.0 });
 
@@ -206,18 +231,18 @@ px.import({ scene:      'px:scene.1.js',
     //
     // These curves should overlap, Black Below, Red Above
     //
-    if(show_CURVES)
+    function drawSVG_CURVES()
     {
-      var p = scene.create({t:"object", parent: bg, /*x:-50, y:-150,*/ a: 1.0 });
+      var p = scene.create({t:"object", parent: bg, x:-50, y:-150, a: 1.0 });
       
-      scene.create( { id: "CurveBG", t: "path", d:"M100,250 Q250,100 400,250",  strokeColor: 0x000000ff, strokeWidth: 13, parent: p} );
-      scene.create( { id: "CurveFG", t: "path", d:"M100,250 q150,-150 300,0",   strokeColor: 0xFF0000ff, strokeWidth: 3,  parent: p} );
+      scene.create( { id: "CurveBG", t: "path", d:"M100,250 Q250,100 400,250",   strokeColor: 0x000000ff, strokeWidth: 13, parent: p} );
+      scene.create( { id: "CurveFG", t: "path", d:"M100,250 q150,-150 300,0",    strokeColor: 0xFF0000ff, strokeWidth: 3,  parent: p} );
       
-     scene.create( { id: "CurveBG", t: "path", d:"M100 180 q50 10, 95 80",      strokeColor: 0x000000ff, strokeWidth: 13, parent: p} );
-     scene.create( { id: "CurveFG", t: "path", d:"M100 180 Q150 190, 195 260",  strokeColor: 0xFF0000ff, strokeWidth: 3,  parent: p} );
+      scene.create( { id: "CurveBG", t: "path", d:"M100 180 q50 10, 95 80",      strokeColor: 0x000000ff, strokeWidth: 13, parent: p} );
+      scene.create( { id: "CurveFG", t: "path", d:"M100 180 Q150 190, 195 260",  strokeColor: 0xFF0000ff, strokeWidth: 3,  parent: p} );
 
-     scene.create( {  id: "Marker", t: "path", d:"rect x:50 y:50 width:20 height:20", fillColor: 0x8888FFff, parent: p} ); // JUNK
-     scene.create( {  id: "Marker", t: "path", d:"rect x:91 y:171 width:18 height:18", fillColor: 0x8888FFff, parent: p} );
+//     scene.create( {  id: "Marker", t: "path", d:"rect x:50 y:50 width:20 height:20", fillColor: 0x8888FFff, parent: p} ); // JUNK
+//     scene.create( {  id: "Marker", t: "path", d:"rect x:91 y:171 width:18 height:18", fillColor: 0x8888FFff, parent: p} );
     }
 });
 
@@ -375,7 +400,7 @@ px.import({ scene:      'px:scene.1.js',
 
   scene.on("onResize",    function(e) { updateSize(e.w, e.h); });
  // scene.on("onMouseMove", function(e) { coords.text = "" + e.x + ", " + e.y; coords.moveToFront(); });
-        
+
   Promise.all([ bg ])
       .catch( (err) =>
       {
@@ -383,9 +408,9 @@ px.import({ scene:      'px:scene.1.js',
       })
       .then( (success, failure) =>
       {
-            console.log("\n START SVG >> Children of [bg] = " + bg.children.length);
-            
-        updateSize(scene.w, scene.h);
+          console.log("\n START SVG >> Children of [bg] = " + bg.children.length);
+
+          updateSize(scene.w, scene.h);
       });
 
 }).catch( function importFailed(err){

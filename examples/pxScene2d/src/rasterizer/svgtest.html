@@ -26,6 +26,31 @@ width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 
     var show_ARC2    = false;
     var show_SWEEP   = false;
     var show_CURVES  = false;
+    
+    if( show_LetterM )  drawSVG_LetterM();
+    if( show_Cross   )  drawSVG_Cross();
+    if( show_Circle  )  drawSVG_Circle();
+    if( show_Ellipse )  drawSVG_Ellipse();
+    if( show_RRect   )  drawSVG_RRect();
+    if( show_ARC1    )  drawSVG_ARC1();
+    if( show_ARC2    )  drawSVG_ARC2();
+    if( show_SWEEP   )  drawSVG_SWEEP();
+    if( show_CURVES  )  drawSVG_CURVES();
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    function drawSVG_all()
+    {
+      drawSVG_LetterM();
+      drawSVG_Cross();
+      drawSVG_Circle();
+      drawSVG_Ellipse();
+      drawSVG_RRect();
+      //  drawSVG_ARC1();
+      //  drawSVG_ARC2();
+      drawSVG_SWEEP();
+      drawSVG_CURVES();
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -33,7 +58,7 @@ width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 
     //   LETTER "M" in a mega-PATH
     //
     //
-    if(show_LetterM)
+    function drawSVG_LetterM()
     {
         svgElement = document.createElementNS(svgNS, "path");
         mySVG.appendChild(svgElement);
@@ -75,7 +100,7 @@ width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // Multi-color Cross ... (relative)
-    if(show_Cross)
+    function drawSVG_Cross()
     {
         svgElement = document.createElementNS(svgNS,"path");
         mySVG.appendChild(svgElement);
@@ -113,7 +138,7 @@ width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 
     //              C 127 181   109 163  109  140
     //              C 109 117   127  99  150   99
     //              C 173  99   191 117  191  140Z" stroke="black" stroke-width="3"  fill="cyan"/>
-    if(show_Circle)
+    function drawSVG_Circle()
     {
         svgElement = document.createElementNS(svgNS,"circle");
         mySVG.appendChild(svgElement);
@@ -133,7 +158,7 @@ width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 
     //             C 100 326 122 315 150 315
     //             C 178 315 200 326 200 340Z" stroke="black" stroke-width="3"  fill="cyan"/>
 
-    if(show_Ellipse)
+    function drawSVG_Ellipse()
     {
         svgElement = document.createElementNS(svgNS,"ellipse");
         mySVG.appendChild(svgElement);
@@ -149,7 +174,7 @@ width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 
     //    <rect x="250" y="250" rx="50" ry="50" width="400" height="200"
     //         style="fill:red;stroke:black;stroke-width:5;opacity:0.5" />
     //
-    if(show_RRect)
+    function drawSVG_RRect()
     {
         var x0 = 500, y0 = 250, w = 200, h = 100, rx = 30, ry = 30;
 
@@ -172,7 +197,7 @@ width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 
     //
     //    Example from: ARC section >>  https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
     //
-    if(show_ARC1)
+    function drawSVG_ARC1()
     {
         svgElement = document.createElementNS(svgNS,"path");
         mySVG.appendChild(svgElement);
@@ -198,7 +223,7 @@ width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 
     //
     //    Example from: ARC section >>  https://www.w3.org/TR/SVG/paths.html#PathDataEllipticalArcCommands
     //
-    if(show_ARC2)
+    function drawSVG_ARC2()
     {
         svgElement = document.createElementNS(svgNS,"path");
         mySVG.appendChild(svgElement);
@@ -217,7 +242,7 @@ width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 
     //
     //    Example from: ARC section >>  https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
     //
-    if(show_SWEEP)
+    function drawSVG_SWEEP()
     {
         svgElement = document.createElementNS(svgNS,"path");
         mySVG.appendChild(svgElement);
@@ -261,7 +286,7 @@ width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 
     //
     // These curves should overlap, Black Below, Red Above
     //
-    if(show_CURVES)
+    function drawSVG_CURVES()
     {
         svgElement = document.createElementNS(svgNS,"path");
         mySVG.appendChild(svgElement);
@@ -275,11 +300,11 @@ width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 
         setAttributes(svgElement, {"id": "redCurve", "fill": "transparent", "stroke": "#FF0000", "stroke-width": "3",
                                     "d": "M100 180 Q150 190, 195 260", "transform": "translate(-50, -150)" });
 
-        svgElement = document.createElementNS(svgNS,"rect");
-        mySVG.appendChild(svgElement);
-
-        setAttributes(svgElement, {"id": "square", "fill": "#8888FF", "x": "91", "y": "171", "width": "18", "height": "18",
-                                   "transform": "translate(-50, -150)" });
+<!--        svgElement = document.createElementNS(svgNS,"rect");-->
+<!--        mySVG.appendChild(svgElement);-->
+<!---->
+<!--        setAttributes(svgElement, {"id": "square", "fill": "#8888FF", "x": "91", "y": "171", "width": "18", "height": "18",-->
+<!--                                   "transform": "translate(-50, -150)" });-->
     };
 
 </script>
