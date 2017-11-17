@@ -198,7 +198,7 @@ rtRemoteClient::startSession(std::string const& objectId, uint32_t timeout)
     return RT_ERROR_STREAM_CLOSED;
 
   rtRemoteAsyncHandle handle = s->sendWithWait(req, k);
-  rtError e = handle.wait(timeout);
+  rtError e = handle.waitUntil(timeout, [this] { return checkStream(); });
   if (e != RT_OK)
     rtLogDebug("e: %s", rtStrError(e));
 
@@ -305,7 +305,7 @@ rtRemoteClient::sendSet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k)
 
   rtRemoteAsyncHandle handle = s->sendWithWait(req, k);
 
-  rtError e = handle.wait(0);
+  rtError e = handle.waitUntil(0, [this] { return checkStream(); });
   if (e == RT_OK)
   {
     rtRemoteMessagePtr res = handle.response();
@@ -356,7 +356,7 @@ rtRemoteClient::sendGet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k,
 
   rtRemoteAsyncHandle handle = s->sendWithWait(req, k);
 
-  rtError e = handle.wait(0);
+  rtError e = handle.waitUntil(0, [this] { return checkStream(); });
   if (e == RT_OK)
   {
     rtRemoteMessagePtr res = handle.response();
@@ -406,7 +406,7 @@ rtRemoteClient::sendCall(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k
 
   rtRemoteAsyncHandle handle = s->sendWithWait(req, k);
 
-  rtError e = handle.wait(0);
+  rtError e = handle.waitUntil(0, [this] { return checkStream(); });
   if (e == RT_OK)
   {
     rtRemoteMessagePtr res = handle.response();
@@ -448,4 +448,11 @@ rtRemoteClient::getLocalEndpoint() const
       m_stream->getLocalEndpoint();
   }
   return saddr;
+}
+
+rtError
+rtRemoteClient::checkStream()
+{
+  std::shared_ptr<rtRemoteStream> s = getStream();
+  return s && s->isOpen() ? RT_OK : RT_ERROR_STREAM_CLOSED;
 }
