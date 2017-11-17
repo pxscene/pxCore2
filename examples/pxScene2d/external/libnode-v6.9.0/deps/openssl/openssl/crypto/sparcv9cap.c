@@ -319,10 +319,12 @@ void OPENSSL_cpuid_setup(void)
     memset(&common_act, 0, sizeof(common_act));
     common_act.sa_handler = common_handler;
     common_act.sa_mask = all_masked;
-
+/* MODIFIED CODE BEGIN */
+/*
     sigaction(SIGILL, &common_act, &ill_oact);
-    sigaction(SIGBUS, &common_act, &bus_oact); /* T1 fails 16-bit ldda [on
-                                                * Linux] */
+*/
+/* MODIFIED CODE END */
+    sigaction(SIGBUS, &common_act, &bus_oact);
 
     if (sigsetjmp(common_jmp, 1) == 0) {
         _sparcv9_rdtick();
@@ -372,10 +374,12 @@ void OPENSSL_cpuid_setup(void)
         sigsetjmp(common_jmp, 1) == 0) {
         OPENSSL_sparcv9cap_P[1] = (unsigned int)_sparcv9_rdcfr();
     }
-
-    sigaction(SIGBUS, &bus_oact, NULL);
+/* MODIFIED CODE BEGIN */
+/*
     sigaction(SIGILL, &ill_oact, NULL);
-
+*/
+/* MODIFIED CODE END */
+    sigaction(SIGBUS, &bus_oact, NULL);
     sigprocmask(SIG_SETMASK, &oset, NULL);
 
     if (sizeof(size_t) == 8)

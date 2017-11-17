@@ -602,12 +602,16 @@ static void pushsig(void)
 # endif
 
 # ifdef OPENSSL_SYS_WIN32
+/* MODIFIED CODE BEGIN */
+/*
     savsig[SIGABRT] = signal(SIGABRT, recsig);
     savsig[SIGFPE] = signal(SIGFPE, recsig);
     savsig[SIGILL] = signal(SIGILL, recsig);
     savsig[SIGINT] = signal(SIGINT, recsig);
     savsig[SIGSEGV] = signal(SIGSEGV, recsig);
     savsig[SIGTERM] = signal(SIGTERM, recsig);
+*/
+/* MODIFIED CODE ENDS */
 # else
     for (i = 1; i < NX509_SIG; i++) {
 #  ifdef SIGUSR1
@@ -619,9 +623,13 @@ static void pushsig(void)
             continue;
 #  endif
 #  ifdef SIGKILL
-        if (i == SIGKILL)       /* We can't make any action on that. */
+        if (i == SIGKILL)       // We can't make any action on that.
             continue;
 #  endif
+/* MODIFIED CODE BEGIN */
+if ((i == SIGCHLD) || (i == SIGINT) || (i == SIGQUIT) || (i == SIGTERM) || (i == SIGILL) || (i == SIGABRT) || (i == SIGFPE) || (i == SIGSEGV))
+	continue;
+/* MODIFIED CODE ENDS */
 #  ifdef SIGACTION
         sigaction(i, &sa, &savsig[i]);
 #  else
@@ -638,12 +646,16 @@ static void pushsig(void)
 static void popsig(void)
 {
 # ifdef OPENSSL_SYS_WIN32
+/* MODIFIED CODE BEGIN */
+/*
     signal(SIGABRT, savsig[SIGABRT]);
     signal(SIGFPE, savsig[SIGFPE]);
     signal(SIGILL, savsig[SIGILL]);
     signal(SIGINT, savsig[SIGINT]);
     signal(SIGSEGV, savsig[SIGSEGV]);
     signal(SIGTERM, savsig[SIGTERM]);
+*/
+/* MODIFIED CODE ENDS */
 # else
     int i;
     for (i = 1; i < NX509_SIG; i++) {
@@ -655,6 +667,10 @@ static void popsig(void)
         if (i == SIGUSR2)
             continue;
 #  endif
+/* MODIFIED CODE BEGIN */
+if ((i == SIGCHLD) || (i == SIGINT) || (i == SIGQUIT) || (i == SIGTERM) || (i == SIGILL) || (i == SIGABRT) || (i == SIGFPE) || (i == SIGSEGV))
+	continue;
+/* MODIFIED CODE ENDS */
 #  ifdef SIGACTION
         sigaction(i, &savsig[i], NULL);
 #  else

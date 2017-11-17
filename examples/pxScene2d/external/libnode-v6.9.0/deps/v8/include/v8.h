@@ -791,6 +791,7 @@ template <class T, class M> class Persistent : public PersistentBase<T> {
   template <class S> V8_INLINE Persistent<S>& As() { // NOLINT
     return Persistent<S>::Cast(*this);
   }
+  V8_INLINE T* operator*() const { return this->val_; }
 
  private:
   friend class Isolate;
@@ -800,7 +801,7 @@ template <class T, class M> class Persistent : public PersistentBase<T> {
   template<class F> friend class ReturnValue;
 
   explicit V8_INLINE Persistent(T* that) : PersistentBase<T>(that) {}
-  V8_INLINE T* operator*() const { return this->val_; }
+  //V8_INLINE T* operator*() const { return this->val_; }
   template<class S, class M2>
   V8_INLINE void Copy(const Persistent<S, M2>& that);
 };

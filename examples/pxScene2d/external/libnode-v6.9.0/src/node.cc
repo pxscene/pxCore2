@@ -2310,7 +2310,9 @@ static void WaitForInspectorDisconnect(Environment* env) {
     struct sigaction act;
     memset(&act, 0, sizeof(act));
     for (unsigned nr = 1; nr < kMaxSignal; nr += 1) {
-      if (nr == SIGKILL || nr == SIGSTOP || nr == SIGPROF)
+  /* MODIFIED CODE BEGIN */
+      if (nr == SIGKILL || nr == SIGSTOP || nr == SIGPROF || ((nr == SIGCHLD) || (nr == SIGINT) || (nr == SIGQUIT) || (nr == SIGTERM) || (nr == SIGILL) || (nr == SIGABRT) || (nr == SIGFPE) || (nr == SIGSEGV)))
+  /* MODIFIED CODE END */
         continue;
       act.sa_handler = (nr == SIGPIPE) ? SIG_IGN : SIG_DFL;
       CHECK_EQ(0, sigaction(nr, &act, nullptr));
@@ -3488,15 +3490,20 @@ static void AtProcessExit() {
 
 
 void SignalExit(int signo) {
-  uv_tty_reset_mode();
+  /* MODIFIED CODE BEGIN */
+  if ((signo != SIGCHLD) && (signo != SIGINT) && (signo != SIGQUIT) && (signo != SIGTERM) && (signo != SIGILL) && (signo != SIGABRT) && (signo != SIGFPE) && (signo != SIGSEGV))
+  {
+    uv_tty_reset_mode();
 #ifdef __FreeBSD__
-  // FreeBSD has a nasty bug, see RegisterSignalHandler for details
-  struct sigaction sa;
-  memset(&sa, 0, sizeof(sa));
-  sa.sa_handler = SIG_DFL;
-  CHECK_EQ(sigaction(signo, &sa, nullptr), 0);
+    // FreeBSD has a nasty bug, see RegisterSignalHandler for details
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_DFL;
+    CHECK_EQ(sigaction(signo, &sa, nullptr), 0);
 #endif
-  raise(signo);
+    raise(signo);
+  }
+  /* MODIFIED CODE END */
 }
 
 
@@ -4017,17 +4024,22 @@ static void EnableDebugSignalHandler(int signo) {
 void RegisterSignalHandler(int signal,
                            void (*handler)(int signal),
                            bool reset_handler) {
-  struct sigaction sa;
-  memset(&sa, 0, sizeof(sa));
-  sa.sa_handler = handler;
+  /* MODIFIED CODE BEGIN */
+  if ((signal != SIGCHLD) && (signal != SIGINT) && (signal != SIGQUIT) && (signal != SIGTERM) && (signal != SIGILL) && (signal != SIGABRT) && (signal != SIGFPE) && (signal != SIGSEGV))
+  {
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = handler;
 #ifndef __FreeBSD__
-  // FreeBSD has a nasty bug with SA_RESETHAND reseting the SA_SIGINFO, that is
-  // in turn set for a libthr wrapper. This leads to a crash.
-  // Work around the issue by manually setting SIG_DFL in the signal handler
-  sa.sa_flags = reset_handler ? SA_RESETHAND : 0;
+    // FreeBSD has a nasty bug with SA_RESETHAND reseting the SA_SIGINFO, that is
+    // in turn set for a libthr wrapper. This leads to a crash.
+    // Work around the issue by manually setting SIG_DFL in the signal handler
+    sa.sa_flags = reset_handler ? SA_RESETHAND : 0;
 #endif
-  sigfillset(&sa.sa_mask);
-  CHECK_EQ(sigaction(signal, &sa, nullptr), 0);
+    sigfillset(&sa.sa_mask);
+    CHECK_EQ(sigaction(signal, &sa, nullptr), 0);
+  }
+  /* MODIFIED CODE END */
 }
 
 
@@ -4295,14 +4307,20 @@ inline void PlatformInit() {
   // it evaluates to 32, 34 or 64, depending on whether RT signals are enabled.
   // Counting up to SIGRTMIN doesn't work for the same reason.
   for (unsigned nr = 1; nr < kMaxSignal; nr += 1) {
-    if (nr == SIGKILL || nr == SIGSTOP)
+  /* MODIFIED CODE BEGIN */
+    if ((nr == SIGKILL) || (nr == SIGSTOP) || (nr == SIGCHLD) || (nr == SIGINT) || (nr == SIGQUIT) || (nr == SIGTERM) || (nr == SIGILL) || (nr == SIGABRT) || (nr == SIGFPE) || (nr == SIGSEGV))
       continue;
+  /* MODIFIED CODE END */
     act.sa_handler = (nr == SIGPIPE) ? SIG_IGN : SIG_DFL;
     CHECK_EQ(0, sigaction(nr, &act, nullptr));
   }
 
+  /* MODIFIED CODE BEGIN */
+  /*
   RegisterSignalHandler(SIGINT, SignalExit, true);
   RegisterSignalHandler(SIGTERM, SignalExit, true);
+  */
+  /* MODIFIED CODE END */
 
   // Raise the open file descriptor limit.
   struct rlimit lim;
