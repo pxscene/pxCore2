@@ -87,10 +87,7 @@ private:
 class pxWindowNative
 {
 public:
-pxWindowNative(): mTimerFPS(0), mLastWidth(-1), mLastHeight(-1),
-    mResizeFlag(false), mLastAnimationTime(0.0), mVisible(false),
-    mWaylandSurface(NULL), mWaylandBuffer(), waylandBufferIndex(0)
-    { }
+    pxWindowNative();
     virtual ~pxWindowNative();
 
     // Contract between pxEventLoopNative and this class
