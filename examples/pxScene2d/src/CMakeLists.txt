@@ -267,7 +267,7 @@ elseif (WIN32)
             ${EXTDIR}/vc.build/builds ${EXTDIR}/libnode-v6.9.0/Release/lib ${EXTDIR}/libnode-v6.9.0/Release)
 
     set(PLATFORM_LIBRARIES pxCore.lib pthreadVC2.lib opengl32.lib Winmm.lib zlib.lib freetype253MT_D.lib  libcurld.lib
-                    Ws2_32.lib Wldap32.lib glew32s.lib libpng16.lib libjpeg.lib msvcrt.lib psapi.lib iphlpapi.lib
+                    Ws2_32.lib Wldap32.lib glew32s.lib libpng16.lib libjpeg.lib psapi.lib iphlpapi.lib
                     userenv.lib v8_libplatform.lib v8_libbase.lib v8_nosnapshot.lib v8_snapshot.lib v8_base_0.lib
                     v8_base_1.lib v8_base_2.lib v8_base_3.lib gtest.lib cares.lib http_parser.lib
                     icutools.lib icustubdata.lib icudata.lib icuucx.lib icui18n.lib libuv.lib openssl.lib v8_inspector_stl.lib
