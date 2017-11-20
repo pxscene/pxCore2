@@ -426,7 +426,7 @@ void rtObjectBase::set(rtObjectRef o)
     uint32_t len = keys.get<uint32_t>("length");
     for (uint32_t i = 0; i < len; i++)
     {
-      rtString key = keys.rtObjectBase::Get<rtString>(i);
+      rtString key = keys.get<rtString>(i);
       set(key, o.get<rtValue>(key));
     }
   }

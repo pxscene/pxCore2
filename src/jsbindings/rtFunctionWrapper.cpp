@@ -63,6 +63,9 @@ void rtFunctionWrapper::createFromFunctionReference(duk_context *ctx, const rtFu
 
 jsFunctionWrapper::~jsFunctionWrapper()
 {
+  if (!mDukFuncName.empty()) {
+    rtDukDelGlobalIdent(mDukCtx, mDukFuncName);
+  }
 }
 
 void jsFunctionWrapper::setupSynchronousWait()

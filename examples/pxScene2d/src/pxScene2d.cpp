@@ -530,7 +530,7 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
     uint32_t len = keys.get<uint32_t>("length");
     for (uint32_t i = 0; i < len; i++)
     {
-      rtString key = keys.rtObjectBase::Get<rtString>(i);
+      rtString key = keys.get<rtString>(i);
       animateTo(key, props.get<float>(key), duration, interp, options, count,(i==0)?promise:rtObjectRef());
     }
   }
@@ -568,7 +568,7 @@ rtError pxObject::animateToObj(rtObjectRef props, double duration,
     uint32_t len = keys.get<uint32_t>("length");
     for (uint32_t i = 0; i < len; i++)
     {
-      rtString key = keys.rtObjectBase::Get<rtString>(i);
+      rtString key = keys.get<rtString>(i);
       animateToInternal(key, props.get<float>(key), duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp), (pxConstantsAnimation::animationOptions)options, count,(i==0)?promise:rtObjectRef(),animateObj);
     }
   }
@@ -1469,6 +1469,7 @@ rtDefineMethod(rtPromise, reject);
 rtDefineMethod(rtPromise, setResolve);
 rtDefineMethod(rtPromise, setReject);
 rtDefineProperty(rtPromise, promiseId);
+rtDefineProperty(rtPromise, promiseContext);
 rtDefineProperty(rtPromise, val);
 rtDefineProperty(rtPromise, isResolved);
 
@@ -1591,6 +1592,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   
   mInfo = new rtMapObject;
   mInfo.set("version", xstr(PX_SCENE_VERSION));
+
+#ifdef ENABLE_RT_NODE
+  mInfo.set("engine", rtValue(script.name().c_str()));
+#endif
   
     rtObjectRef build = new rtMapObject;
     build.set("date", xstr(__DATE__));
@@ -1706,7 +1711,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     for (uint32_t i = 0; i < l; i++)
     {
       rtObjectRef n;
-      if ((e = create(c.rtObjectBase::Get<rtObjectRef>(i),n)) == RT_OK)
+      if ((e = create(c.get<rtObjectRef>(i),n)) == RT_OK)
         n.set("parent", o);
       else
         break;

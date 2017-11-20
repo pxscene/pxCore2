@@ -21,7 +21,6 @@
 #ifndef _RT_FILE_H
 #define _RT_FILE_H
 
-#undef NDEBUG 
 #include <assert.h>
 #include <rtCore.h>
 #include <stdio.h> //TODO - needed for FILE, fopen, etc

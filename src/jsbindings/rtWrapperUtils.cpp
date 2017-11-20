@@ -292,3 +292,11 @@ std::string rtDukPutIdentToGlobal(duk_context *ctx, const std::string &name)
   assert(rc);
   return id;
 }
+
+
+void rtDukDelGlobalIdent(duk_context *ctx, const std::string &name)
+{
+  duk_push_global_object(ctx);
+  duk_del_prop_string(ctx, -1, name.c_str());
+  duk_pop(ctx);
+}

@@ -58,9 +58,7 @@ public:
   virtual unsigned long Release()
   {
     unsigned long l = rtAtomicDec(&mRef);
-    if (l == 0) {
-      delete this;
-    }
+    if (l == 0) delete this;
     return l;
   }
   

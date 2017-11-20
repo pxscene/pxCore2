@@ -56,7 +56,7 @@ public:
   
  protected:
   
-  //able event methods
+  // Overrideable event methods
   virtual void onCreate() {}
   
   virtual void onCloseRequest() {}

@@ -11,9 +11,9 @@ duk_ret_t duv_new_timer(duk_context *ctx) {
 
   {
     duk_dup(ctx, -1);
-    static int timerId = 0;
+    static int timerId = 1;
     char buf[64];
-    sprintf(buf, "timer%d", timerId++);
+    sprintf(buf, "timer%d", timerId);
     duk_bool_t rc = duk_put_global_string(ctx, buf);
     assert(rc);
   }

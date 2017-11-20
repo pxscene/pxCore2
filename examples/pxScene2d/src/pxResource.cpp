@@ -253,7 +253,6 @@ void pxResource::loadResource()
       // setup for asynchronous load and callback
       mDownloadRequest->setCallbackFunction(pxResource::onDownloadComplete);
       rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
-      //rtFileDownloader::instance()->downloadFile(mDownloadRequest);
   }
   else
   {
@@ -318,6 +317,7 @@ void rtImageResource::loadResourceFromFile()
     // TODO review overall flow and organization
     AddRef();
     gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void *) "resolve");
+
   }
   
 }

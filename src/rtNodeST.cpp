@@ -348,13 +348,11 @@ rtNodeContext::~rtNodeContext()
 #endif // ENABLE_NODE_V_6_9
     mEnv = NULL;
     #ifndef USE_CONTEXTIFY_CLONES
-    //HandleMap::clearAllForContext(mId);
     #endif
   }
   else
   {
   // clear out persistent javascript handles
-    //HandleMap::clearAllForContext(mId);
   }
   if(exec_argv)
   {

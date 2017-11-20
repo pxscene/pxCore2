@@ -200,9 +200,6 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 
   dukCtx = duk_get_context(clone_me->dukCtx, thr_idx);
 
-  //duk_idx_t thr_idx = duk_push_thread_new_globalenv(clone_me->dukCtx);
-  //dukCtx = duk_get_context(clone_me->dukCtx, thr_idx);
-
   uv_loop_t *dukLoop = new uv_loop_t();
   uv_loop_init(dukLoop);
   dukLoop->data = dukCtx;
@@ -1048,8 +1045,6 @@ void rtNode::init(int argc, char** argv)
 
   if(node_is_initialized == false)
   {
-    rtLogWarn("About to Init\n");
-    rtLogWarn("rtNode::init() node_is_initialized=%d\n",node_is_initialized);
     node_is_initialized = true;
 
     uv_loop_t *dukLoop = new uv_loop_t();
@@ -1073,8 +1068,6 @@ void rtNode::init(int argc, char** argv)
     }
 
     rtSetupJsModuleBindings(dukCtx);
-
-    rtLogWarn("DONE in rtNode::init()\n");
   }
 }
 
@@ -1092,6 +1085,11 @@ void rtNode::term()
     mRefContext->Release();
   }
 #endif
+}
+
+std::string rtNode::name() const
+{
+  return "duktape";
 }
 
 

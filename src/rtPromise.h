@@ -23,6 +23,7 @@
 
 // TODO Eliminate std::string
 #include <string>
+#include "jsbindings/rtWrapperUtils.h"
 
 enum rtPromiseState {PENDING,FULFILLED,REJECTED};
 
@@ -51,22 +52,30 @@ public:
   rtMethod1ArgAndNoReturn("setResolve", setResolve, rtFunctionRef);
   rtMethod1ArgAndNoReturn("setReject", setReject, rtFunctionRef);
   rtProperty(promiseId, getPromiseId, setPromiseId, rtString);
+  rtProperty(promiseContext, getPromiseContext, setPromiseContext, voidPtr);
   rtProperty(val, val, setVal, rtValue);
   rtReadOnlyProperty(isResolved, isResolved, uint32_t);
 
-  rtPromise() :  promise_id(promiseID++), promise_name(""), mState(PENDING), mObject(NULL), mIsResolved(0)
+  rtPromise() :  promise_id(promiseID++), promise_name(""), mState(PENDING), mObject(NULL), mIsResolved(0), mPromiseContext(NULL)
   {
 //    rtLogDebug("############# PROMISE >> CREATED   [ id: %d ]  \n", promise_id);
   }
 
-  rtPromise(uint32_t id) : promise_id(id), promise_name("") , mState(PENDING), mObject(NULL), mIsResolved(0)
+  rtPromise(uint32_t id) : promise_id(id), promise_name("") , mState(PENDING), mObject(NULL), mIsResolved(0), mPromiseContext(NULL)
   {
 //    rtLogDebug("############# PROMISE >> CREATED   [ id: %d ]  \n", promise_id);
   }
 
-  rtPromise(std::string name) : promise_id(promiseID++), promise_name(name), mState(PENDING), mObject(NULL), mIsResolved(0)
+  rtPromise(std::string name) : promise_id(promiseID++), promise_name(name), mState(PENDING), mObject(NULL), mIsResolved(0), mPromiseContext(NULL)
   {
     rtLogDebug("############# PROMISE >> CREATED   [ id: %d  >> %s ]", promise_id, promise_name.c_str());
+  }
+
+  virtual ~rtPromise()
+  {
+    if (!mPromiseId.isEmpty()) {
+      rtDukDelGlobalIdent((duk_context *)mPromiseContext, mPromiseId.cString());
+    }
   }
 
   rtError then(rtFunctionRef, rtFunctionRef, 
@@ -123,6 +132,9 @@ public:
 
   rtError getPromiseId(rtString& v) const { v = mPromiseId; return RT_OK; }
   rtError setPromiseId(rtString v) { mPromiseId = v; return RT_OK; }
+
+  rtError getPromiseContext(voidPtr& v) const { v = mPromiseContext; return RT_OK; }
+  rtError setPromiseContext(voidPtr v) { mPromiseContext = v; return RT_OK; }
 
   rtError resolve(const rtValue& v)
   {
@@ -192,6 +204,7 @@ private:
   rtFunctionRef rejectCb;
 
   rtString mPromiseId;
+  voidPtr  mPromiseContext;
 
   uint32_t mIsResolved;
   rtValue mVal;

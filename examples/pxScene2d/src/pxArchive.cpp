@@ -154,10 +154,9 @@ void pxArchive::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
     // TODO another copy here
     a->mData.init((uint8_t*)data,dataSize);
     a->process(a->mData.data(),a->mData.length());
-  }
-  else {
+  } 
+  else
     gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, a, NULL);
-  }
 }
 
 void pxArchive::onDownloadCompleteUI(void* context, void* /*data*/)
@@ -167,20 +166,18 @@ void pxArchive::onDownloadCompleteUI(void* context, void* /*data*/)
   // Todo Real error condition
   if (a->mLoadStatus.get<int32_t>("statusCode") == 0)
   {
-    if (a->mIsFile) {
+    if (a->mIsFile)
       a->mReady.send("resolve", a);
-      //a->mReady.set("val", a);
-    }  else {
+    else
+    {
       if (a->mZip.fileCount() > 0)
         a->mReady.send("resolve", a);
       else
         a->mReady.send("reject", a);
     }
   }
-  else {
+  else
     a->mReady.send("reject", a);
-    //a->mReady.set("val", a);
-  }
 
   //  We're done with the archive object so release it
   a->Release();
@@ -191,9 +188,8 @@ void pxArchive::process(void* data, size_t dataSize)
   if (rtZip::isZip(data,dataSize))
   {
     mIsFile = false;
-    if (mZip.initFromBuffer(data, dataSize) == RT_OK) {
+    if (mZip.initFromBuffer(data, dataSize) == RT_OK)
       gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, this, NULL);
-    }
   }
   else
   {

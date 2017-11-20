@@ -72,9 +72,9 @@ public:
   template<typename T>
     T get(const char* name) const;
   template<typename T>
-    rtError Get(uint32_t i, T& value) const;
+    rtError get(uint32_t i, T& value) const;
   template<typename T>
-    T Get(uint32_t i) const;
+    T get(uint32_t i) const;
 
   // Enumerate the properties of o and set them on this object
   void set(rtObjectRef o);
@@ -352,7 +352,7 @@ T rtObjectBase::get(const char* name) const
 }
 
 template<typename T>
-T rtObjectBase::Get(uint32_t i) const
+T rtObjectBase::get(uint32_t i) const
 {
   rtValue v;
   Get(i, &v);
@@ -360,7 +360,7 @@ T rtObjectBase::Get(uint32_t i) const
 }
 
 template<typename T>
-rtError rtObjectBase::Get(uint32_t i, T& value) const
+rtError rtObjectBase::get(uint32_t i, T& value) const
 {
   rtValue v;
   rtError e = Get(i, &v);

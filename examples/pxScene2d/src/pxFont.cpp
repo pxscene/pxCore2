@@ -142,6 +142,7 @@ void pxFont::loadResourceFromFile()
       // TODO review overall flow and organization
       AddRef();      
       gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"resolve");
+
     } 
 }
 

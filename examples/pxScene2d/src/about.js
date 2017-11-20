@@ -97,7 +97,8 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
   {
     var gfx = parseInt( parseInt( scene.info.gfxmemory ) / 1024);
 
-    addRow(rows, "InfoBuildVersion", "Version: ",         scene.info.version);
+    addRow(rows, "InfoBuildVersion", "Version: ", scene.info.version);
+    addRow(rows, "InfoJsEngine", "Engine: ", scene.info.engine);
     addRow(rows, "InfoBuildDate",    "Build Date: ",      scene.info.build.date.replace(/"/g, '') ); // global RegEx
     addRow(rows, "InfoBuildTime",    "Build Time: ",      scene.info.build.time.replace(/"/g, '') ); // global RegEx
     addRow(rows, "InfoGfxMemory",    "Base GFX memory: ", gfx.toLocaleString()  + " KB");

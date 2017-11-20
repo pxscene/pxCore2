@@ -152,6 +152,8 @@ public:
   void setNeedsToEnd(bool end) { /*rtLogDebug("needsToEnd being set to %d\n",end);*/ mNeedsToEnd = end;}
 #endif
 
+  std::string name() const;
+
   void garbageCollect();
 private:
 #ifdef ENABLE_DEBUG_MODE

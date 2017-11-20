@@ -23,9 +23,6 @@
 
 #include <stdint.h>
 
-#undef NDEBUG 
-#include <assert.h>
-
 #ifdef RT_DEBUG
 #include <assert.h>
 #define RT_ASSERT(X) assert((X))
