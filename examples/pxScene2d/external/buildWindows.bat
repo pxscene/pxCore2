@@ -13,7 +13,7 @@ copy /y libpng-1.6.28\scripts\pnglibconf.h.prebuilt libpng-1.6.28\pnglibconf.h
 copy /y jpeg-9a\jconfig.vc jpeg-9a\jconfig.h
 
 cd vc.build\
-msbuild external.sln /m
+msbuild external.sln /p:Configuration=Release /m
 cd ..
 
 cd breakpad-chrome_55
