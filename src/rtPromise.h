@@ -56,17 +56,17 @@ public:
   rtProperty(val, val, setVal, rtValue);
   rtReadOnlyProperty(isResolved, isResolved, uint32_t);
 
-  rtPromise() :  promise_id(promiseID++), promise_name(""), mState(PENDING), mObject(NULL), mIsResolved(0), mPromiseContext(NULL)
+  rtPromise() :  promise_id(promiseID++), promise_name(""), mState(PENDING), mObject(NULL), mPromiseContext(NULL), mIsResolved(0)
   {
 //    rtLogDebug("############# PROMISE >> CREATED   [ id: %d ]  \n", promise_id);
   }
 
-  rtPromise(uint32_t id) : promise_id(id), promise_name("") , mState(PENDING), mObject(NULL), mIsResolved(0), mPromiseContext(NULL)
+  rtPromise(uint32_t id) : promise_id(id), promise_name("") , mState(PENDING), mObject(NULL), mPromiseContext(NULL), mIsResolved(0)
   {
 //    rtLogDebug("############# PROMISE >> CREATED   [ id: %d ]  \n", promise_id);
   }
 
-  rtPromise(std::string name) : promise_id(promiseID++), promise_name(name), mState(PENDING), mObject(NULL), mIsResolved(0), mPromiseContext(NULL)
+  rtPromise(std::string name) : promise_id(promiseID++), promise_name(name), mState(PENDING), mPromiseContext(NULL), mIsResolved(0)
   {
     rtLogDebug("############# PROMISE >> CREATED   [ id: %d  >> %s ]", promise_id, promise_name.c_str());
   }
