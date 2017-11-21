@@ -4297,12 +4297,16 @@ inline void PlatformInit() {
   for (unsigned nr = 1; nr < kMaxSignal; nr += 1) {
     if (nr == SIGKILL || nr == SIGSTOP)
       continue;
-    act.sa_handler = (nr == SIGPIPE) ? SIG_IGN : SIG_DFL;
+    // MODIFIED CODE CHANGE BEGIN
+    // this is make sure, none of the signals which are having default behaviour to getting killed are registered
+    act.sa_handler = ((nr == SIGPIPE) || (nr == SIGINT) || (nr == SIGTERM) || (nr == SIGQUIT)) ? SIG_IGN : SIG_DFL;
+    // MODIFIED CODE CHANGE END
     CHECK_EQ(0, sigaction(nr, &act, nullptr));
   }
-
-  RegisterSignalHandler(SIGINT, SignalExit, true);
-  RegisterSignalHandler(SIGTERM, SignalExit, true);
+  /* MODIFIED CODE BEGIN */
+  // RegisterSignalHandler(SIGINT, SignalExit, true);
+  // RegisterSignalHandler(SIGTERM, SignalExit, true);
+  /* MODIFIED CODE END */
 
   // Raise the open file descriptor limit.
   struct rlimit lim;
