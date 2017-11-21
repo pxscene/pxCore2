@@ -4298,6 +4298,7 @@ inline void PlatformInit() {
     if (nr == SIGKILL || nr == SIGSTOP)
       continue;
     // MODIFIED CODE CHANGE BEGIN
+    // this is make sure, none of the signals which are having default behaviour to getting killed are registered
     act.sa_handler = ((nr == SIGPIPE) || (nr == SIGINT) || (nr == SIGTERM) || (nr == SIGQUIT)) ? SIG_IGN : SIG_DFL;
     // MODIFIED CODE CHANGE END
     CHECK_EQ(0, sigaction(nr, &act, nullptr));
