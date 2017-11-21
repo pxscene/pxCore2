@@ -4297,7 +4297,6 @@ inline void PlatformInit() {
   for (unsigned nr = 1; nr < kMaxSignal; nr += 1) {
     if (nr == SIGKILL || nr == SIGSTOP)
       continue;
-    // this is make sure, none of the signals which are having default behaviour to getting killed are registered
     act.sa_handler = (nr == SIGPIPE) ? SIG_IGN : SIG_DFL;
     CHECK_EQ(0, sigaction(nr, &act, nullptr));
   }
