@@ -4303,8 +4303,8 @@ inline void PlatformInit() {
     CHECK_EQ(0, sigaction(nr, &act, nullptr));
   }
   /* MODIFIED CODE BEGIN */
-  //RegisterSignalHandler(SIGINT, SignalExit, true);
-  //RegisterSignalHandler(SIGTERM, SignalExit, true);
+  // RegisterSignalHandler(SIGINT, SignalExit, true);
+  // RegisterSignalHandler(SIGTERM, SignalExit, true);
   /* MODIFIED CODE END */
 
   // Raise the open file descriptor limit.
