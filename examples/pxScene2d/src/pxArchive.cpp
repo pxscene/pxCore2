@@ -154,7 +154,7 @@ void pxArchive::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
     // TODO another copy here
     a->mData.init((uint8_t*)data,dataSize);
     a->process(a->mData.data(),a->mData.length());
-  } 
+  }
   else
     gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, a, NULL);
 }
@@ -188,7 +188,7 @@ void pxArchive::process(void* data, size_t dataSize)
   if (rtZip::isZip(data,dataSize))
   {
     mIsFile = false;
-    if (mZip.initFromBuffer(data, dataSize) == RT_OK)
+    if (mZip.initFromBuffer(data,dataSize) == RT_OK)
       gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, this, NULL);
   }
   else

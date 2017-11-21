@@ -3049,7 +3049,6 @@ void pxScriptView::runScript()
   #endif //ENABLE_RT_NODE
 }
 
-
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
   rtLogInfo(__FUNCTION__);

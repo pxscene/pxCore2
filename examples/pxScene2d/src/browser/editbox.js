@@ -328,7 +328,7 @@ px.import({ scene: 'px:scene.1.js',
 
 //             console.log(">>> textView.onMouseEnter   showFocus:" + showFocus );
 
-            if(this.showFocus)
+            if(showFocus)
             {
                 textInputBG.a = 0.5;
             }
@@ -340,14 +340,14 @@ px.import({ scene: 'px:scene.1.js',
 
 //            console.log(">>> textView.onMouseLeave   showFocus:" + showFocus + " keepFocus:  " + keepFocus);
 
-            if(this.showFocus)
+            if(showFocus)
             {
                 textInputBG.a = 0.25;
             }
 
             buttonDown = false;
 
-            if(this.keepFocus === false)
+            if(keepFocus === false)
             {
                 hideCursor();
                 clearSelection();
@@ -379,13 +379,13 @@ px.import({ scene: 'px:scene.1.js',
 
             showCursor();
 
- console.log(" OnFocus()    textInput.focus ");// = " + textInput.focus);
+// console.log(" OnFocus()    textInput.focus ");// = " + textInput.focus);
         });
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         textInput.on("onChar", function (e) {
-           console.log("#######  onChar ... char: "+e.charCode+" ... BEFORE  text: ["+textInput.text +"] cursor_pos = " + cursor_pos);
+//            console.log("#######  onChar ... char: "+e.charCode+" ... BEFORE  text: ["+textInput.text +"] cursor_pos = " + cursor_pos);
 
             if (e.charCode == keys.ENTER)  // <<<  ENTER KEY
                 return;
@@ -415,7 +415,7 @@ px.import({ scene: 'px:scene.1.js',
             var code  = e.keyCode;
             var flags = e.flags;
 
-                console.log("#######  onKeyDown ....  cursor_pos = " + cursor_pos);
+            //    console.log("#######  onKeyDown ....  cursor_pos = " + cursor_pos);
 
             switch (code) {
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -668,8 +668,7 @@ px.import({ scene: 'px:scene.1.js',
             var metrics;
             var pos_x = 0;
 
-            var lo = -1;
-            var hi = array.length;
+            let lo = -1, hi = array.length;
             while (1 + lo !== hi)
             {
                 var mi = lo + ((hi - lo) >> 1);

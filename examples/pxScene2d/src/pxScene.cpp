@@ -1,4 +1,4 @@
-﻿/*
+/*
 
  pxCore Copyright 2005-2017 John Robinson
 
@@ -153,6 +153,7 @@ public:
     // escape url end
     char buffer[MAX_URL_SIZE + 50];
     memset (buffer, 0, sizeof(buffer));
+
     if (std::string::npos != escapedUrl.find("http")) {
       snprintf(buffer,sizeof(buffer),"shell.js?url=%s",rtUrlEncodeParameters(escapedUrl.c_str()).cString());
     }

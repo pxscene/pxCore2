@@ -1073,9 +1073,8 @@ public:
     //rtLogInfo(__FUNCTION__);
     long l = rtAtomicDec(&mRefCount);
     //  rtLogDebug("pxScene2d release %ld\n",l);
-    if (l == 0) {
+    if (l == 0)
       delete this;
-    }
     return l;
   }
 
@@ -1307,13 +1306,12 @@ public:
     return rtAtomicInc(&mRefCount);
   }
   
-  virtual unsigned long Release()
+  virtual unsigned long Release() 
   {
     long l = rtAtomicDec(&mRefCount);
     //  rtLogDebug("pxScene2d release %ld\n",l);
-    if (l == 0) {
+    if (l == 0)
       delete this;
-    }
     return l;
   }
 

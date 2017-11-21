@@ -20,13 +20,16 @@ px.import({ scene:      'px:scene.1.js',
 
   var myStretch = scene.stretch.STRETCH;
 
-  var fontRes = scene.create({ t: "fontResource", url: "FreeSans.ttf" });
-  var bg = scene.create({ t: "image", parent: root, url: "browser/images/status_bg.png", stretchX: myStretch, stretchY: myStretch });
-  var contentBG = scene.create({ t: "rect", parent: bg, x: 10, y: 60, fillColor: 0xffffffff, a: 0.05, draw: false });
-  var spinner = scene.create({ t: "image", url: "browser/images/spinningball2.png", cx: 50, cy: 50, y: -80, parent: bg, sx: 0.3, sy: 0.3, a: 0.0 });
+  var fontRes   = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
+
+  var bg        = scene.create({t:"image", parent: root, url:"browser/images/status_bg.png", stretchX: myStretch, stretchY: myStretch});
+  var contentBG = scene.create({t:"rect",  parent: bg, x:10, y:60, fillColor: 0xffffffff, a: 0.05, draw: false});
+  var content   = scene.create({t:"scene", parent: bg, x:10, y:60, clip:true});
+  var spinner   = scene.create({t:"image", url:"browser/images/spinningball2.png",cx:50,cy:50,y:-80,parent:bg,sx:0.3,sy:0.3,a:0.0});
+   
   var inputBox = new imports.EditBox( { parent: bg, url: "browser/images/input2.png", x: 10, y: 10, w: 800, h: 35, pts: 24 });
-  var helpBox = null;
-  var content = scene.create({ t: "scene", parent: bg, x: 10, y: 60, clip: true });
+  var helpBox   = null;
+
 
   function reload(u)
   {
@@ -70,12 +73,12 @@ px.import({ scene:      'px:scene.1.js',
     console.log("RELOADING.... [ " + u + " ]");
 
     // Prime the Spinner !
-    //inputBox.doLater(function () { spinner.a = 1.0; }, 500); // 500 ms
+    inputBox.doLater( function() { spinner.a = 1.0; }, 500 ); // 500 ms
 
     if(false)
     {
       // DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
-      timers.setTimeout(function delayLoadURL() { // Simulate latency in URL loading
+      setTimeout(function delayLoadURL() { // Simulate latency in URL loading
 
           content.url = u;
           inputBox.cancelLater( function() { spinner.a = 0;} );
@@ -178,7 +181,7 @@ px.import({ scene:      'px:scene.1.js',
 
   function hideHelp(delay_ms)
   {
-      timers.setTimeout(function()
+      setTimeout(function()
       {
           helpBox.animateTo({ a: 0 }, 0.75, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_FASTFORWARD, 1).then
           (
@@ -277,6 +280,6 @@ px.import({ scene:      'px:scene.1.js',
       });
 
 }).catch( function importFailed(err){
-  console.error("Import failed for browser.js: " + err.stack);
+  console.error("Import failed for browser.js: " + err);
 });
 

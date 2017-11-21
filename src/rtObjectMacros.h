@@ -123,7 +123,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
         return oldHead;                                     \
     }   \
     static rtMethodMap map;                                 \
-    virtual rtMethodMap* getMap() const                \
+    virtual rtMethodMap* getMap() const               \
     {                                                       \
         return &map;                                  \
     }                                                       
@@ -527,7 +527,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
     virtual void* dontStrip##method() { return (void*)&method##EntryInstance; }
 
 #define  rtMethod4ArgAndReturn(name, method, arg1type, arg2type, arg3type, arg4type, returntype) \
-    rtThunk4ArgAndReturn(method, 4, arg1type, arg2type, arg3type, arg4type, returntype); \
+    rtThunk4ArgAndReturn(method, arg1type, arg2type, arg3type, arg4type, returntype); \
     class method##Entry \
     { \
     public: \
