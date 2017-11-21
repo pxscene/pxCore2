@@ -141,6 +141,7 @@ fi
 if [ "$(uname)" != "Darwin" ]; then
 
   cd breakpad
+  quilt push -aq || test $? = 2
   ./configure
   make
   cd ..
