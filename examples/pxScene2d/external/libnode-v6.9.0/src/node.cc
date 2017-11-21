@@ -4297,6 +4297,7 @@ inline void PlatformInit() {
   for (unsigned nr = 1; nr < kMaxSignal; nr += 1) {
     if (nr == SIGKILL || nr == SIGSTOP)
       continue;
+
     act.sa_handler = (nr == SIGPIPE) ? SIG_IGN : SIG_DFL;
     CHECK_EQ(0, sigaction(nr, &act, nullptr));
   }
