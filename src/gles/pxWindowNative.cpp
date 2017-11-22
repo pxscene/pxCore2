@@ -441,7 +441,7 @@ void pxWindowNative::exitEventLoop()
 void pxWindowNative::animateAndRender()
 {
   keyAndMouseMutex.lock();
-  for (int i = 0; i < keyEvents.size(); i++)
+  for (size_t i = 0; i < keyEvents.size(); i++)
   {
     pxKeyEvent evt = keyEvents.at(i);
     uint32_t keycode = keycodeFromNative(evt.code);
@@ -459,7 +459,7 @@ void pxWindowNative::animateAndRender()
       onKeyUp(keycode, evt.modifiers);
   }
 
-  for (int i = 0; i < mouseEvents.size(); i++)
+  for (size_t i = 0; i < mouseEvents.size(); i++)
   {
     pxMouseEvent evt = mouseEvents.at(i);
     if (evt.type == pxMouseEventTypeMove)
@@ -525,17 +525,15 @@ double pxWindowNative::getLastAnimationTime()
   return mLastAnimationTime;
 }
 
-void pxWindowNative::keyEventListener(const pxKeyEvent& evt, void* argp)
+void pxWindowNative::keyEventListener(const pxKeyEvent& evt, void* /* argp */)
 {
-  pxWindowNative* p = reinterpret_cast<pxWindowNative *>(argp);
   keyAndMouseMutex.lock();
   keyEvents.push_back(evt);
   keyAndMouseMutex.unlock();
 }
 
-void pxWindowNative::mouseEventListener(const pxMouseEvent& evt, void* argp)
+void pxWindowNative::mouseEventListener(const pxMouseEvent& evt, void* /* argp */)
 {
-  pxWindowNative* p = reinterpret_cast<pxWindowNative *>(argp);
   keyAndMouseMutex.lock();
   mouseEvents.push_back(evt);
   keyAndMouseMutex.unlock();
