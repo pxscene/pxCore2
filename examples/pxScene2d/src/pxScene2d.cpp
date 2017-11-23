@@ -331,8 +331,9 @@ find_best_wildcard_match(Map const& map, typename Map::key_type const& key)
 // store the mapping between urls and roles, roles and permissions
 map<string, string> gPermissionsAssignMap;
 map<string, permissionsMap_t> gPermissionsRolesMap;
-static bool gPermissionsConfigLoaded = false;
-#define DEFAULT_PERMISSIONS_CONFIG_FILE "./pxscenepermissions.conf"
+string gPermissionsConfigPath;
+const char* DEFAULT_PERMISSIONS_CONFIG_FILE = "./pxscenepermissions.conf";
+const char* PXSCENE_PERMISSIONS_CONFIG_ENV_NAME = "PXSCENE_PERMISSIONS_CONFIG";
 
 permissionsMap_t permissionsJsonToMap(const rapidjson::Value& json)
 {
@@ -399,26 +400,31 @@ permissionsMap_t permissionsObjectToMap(const rtObjectRef& obj)
 
 bool populatePermissionsConfig()
 {
+  char const* s = getenv(PXSCENE_PERMISSIONS_CONFIG_ENV_NAME);
+  if (!s)
+  {
+    s = DEFAULT_PERMISSIONS_CONFIG_FILE;
+  }
+  if (gPermissionsConfigPath == s)
+  {
+    // already did try this path
+    return true;
+  }
+
+  // try load... first clean up previous config
   gPermissionsAssignMap.clear();
   gPermissionsRolesMap.clear();
+  gPermissionsConfigPath = s;
+
+  FILE* fp = fopen(s, "rb");
+  if (NULL == fp)
+  {
+    rtLogError("Permissions config read error : cannot open '%s'", s);
+    return false;
+  }
 
   rapidjson::Document doc;
   rapidjson::ParseResult result;
-  FILE* fp = NULL;
-  char const* s = getenv("PERMISSIONS_CONFIG");
-  if (s)
-  {
-    fp = fopen(s, "rb");
-  }
-  if (NULL == fp)
-  {
-    fp = fopen(DEFAULT_PERMISSIONS_CONFIG_FILE, "rb");
-    if (NULL == fp)
-    {
-      rtLogInfo("Permissions config read error");
-      return false;
-    }
-  }
   char readBuffer[65536];
   memset(readBuffer, 0, sizeof(readBuffer));
   rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
@@ -1921,22 +1927,20 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
 
-  if (false == gPermissionsConfigLoaded || getenv("RELOAD_PERMISSIONS_CONFIG"))
-  {
-    populatePermissionsConfig();
-    gPermissionsConfigLoaded = true;
-  }
-
+  populatePermissionsConfig();
   if (!mOrigin.isEmpty() && !gPermissionsAssignMap.empty())
   {
-    std::map<string, string>::const_iterator it = find_best_wildcard_match(gPermissionsAssignMap, mOrigin.cString());
+    std::map<string, string>::const_iterator it =
+      find_best_wildcard_match(gPermissionsAssignMap, mOrigin.cString());
     if (it != gPermissionsAssignMap.end())
     {
-      std::map<string, permissionsMap_t>::const_iterator jt = gPermissionsRolesMap.find(it->second);
+      std::map<string, permissionsMap_t>::const_iterator jt =
+        gPermissionsRolesMap.find(it->second);
       if (jt != gPermissionsRolesMap.end())
       {
         mPermissions = jt->second;
-        rtLogInfo("scene: origin='%s' permissions='%s'", mOrigin.cString(), jt->first.c_str());
+        rtLogInfo("scene: origin='%s' permissions='%s'",
+          mOrigin.cString(), jt->first.c_str());
       }
     }
   }
@@ -3056,7 +3060,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
   bool allowed;
   if (allows("feature://screenshot", allowed) == RT_OK && !allowed)
   {
-    rtLogError("url 'feature://screenshot' is not allowed");
+    rtLogError("screenshot is not allowed");
     return RT_FAIL;
   }
 
@@ -3125,7 +3129,7 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 {
   rtString serviceUrl("serviceManager://");
-  serviceUrl.append(name);
+  serviceUrl.append(name.cString());
   bool allowed;
   if (allows(serviceUrl, allowed) == RT_OK && !allowed)
   {
@@ -3331,8 +3335,13 @@ rtError pxScene2d::allows(const rtString& url, bool& o) const
 
 rtError pxScene2d::checkAccessControlHeaders(const rtString& rawHeaders, bool& allow) const
 {
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
   std::string errorStr;
   allow = rtFileDownloader::checkAccessControlHeaders(mOrigin.cString(), NULL, rawHeaders.cString(), errorStr);
+#else
+  UNUSED_PARAM(rawHeaders);
+  allow = true; // default
+#endif
   return RT_OK;
 }
 

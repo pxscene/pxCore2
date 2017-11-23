@@ -30,7 +30,11 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
     mLoadStatus.set("sourceType", "http");
     mLoadStatus.set("statusCode", -1);
     mDownloadRequest = new rtFileDownloadRequest(url, this);
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
     mDownloadRequest->setOrigin(origin.cString());
+#else
+    UNUSED_PARAM(origin);
+#endif
     mDownloadRequest->setCallbackFunction(pxArchive::onDownloadComplete);
     rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }

@@ -92,8 +92,10 @@ public:
   void setCurlDefaultTimeout(bool val);
   bool isCurlDefaultTimeoutSet();
 #endif
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
   void setOrigin(const char* origin);
   rtString origin();
+#endif
 
 private:
   rtString mFileUrl;
@@ -121,7 +123,9 @@ private:
   char mHttpErrorBuffer[CURL_ERROR_SIZE];
   bool mDefaultTimeout;
 #endif
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
   rtString mOrigin;
+#endif
 };
 
 struct rtFileDownloadHandle
@@ -147,7 +151,10 @@ public:
     void setDefaultCallbackFunction(void (*callbackFunction)(rtFileDownloadRequest*));
     bool downloadFromNetwork(rtFileDownloadRequest* downloadRequest);
     void checkForExpiredHandles();
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
     static bool checkAccessControlHeaders(const char* origin, const char* reqUrl, const char* rawHeaders, std::string& errorStr);
+    static const char* USE_ACCESS_CONTROL_CHECK_ENV_NAME;
+#endif
 
 private:
     rtFileDownloader();

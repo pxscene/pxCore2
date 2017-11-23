@@ -24,7 +24,9 @@
 #include "rtFileDownloader.h"
 #include "rtThreadTask.h"
 #include "rtThreadPool.h"
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
 #include "rtUrlUtils.h"
+#endif
 #include "pxTimer.h"
 #include "rtLog.h"
 #include <sstream>
@@ -129,6 +131,9 @@ void startFileDownloadInBackground(void* data)
 }
 
 rtFileDownloader* rtFileDownloader::mInstance = NULL;
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+const char* rtFileDownloader::USE_ACCESS_CONTROL_CHECK_ENV_NAME = "USE_ACCESS_CONTROL_CHECK";
+#endif
 
 
 void onDownloadHandleCheck()
@@ -408,6 +413,7 @@ bool rtFileDownloadRequest::isCurlDefaultTimeoutSet()
 }
 #endif //ENABLE_HTTP_CACHE
 
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
 void rtFileDownloadRequest::setOrigin(const char* origin)
 {
   mOrigin = origin;
@@ -417,6 +423,7 @@ rtString rtFileDownloadRequest::origin()
 {
   return mOrigin;
 }
+#endif
 
 
 rtFileDownloader::rtFileDownloader() 
@@ -646,6 +653,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     {
       list = curl_slist_append(list, additionalHttpHeaders[headerOption].cString());
     }
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
     const rtString& origin = downloadRequest->origin();
     if (!origin.isEmpty())
     {
@@ -653,6 +661,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
       headerOrigin.append(origin.cString());
       list = curl_slist_append(list, headerOrigin.cString());
     }
+#endif
     curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
     //CA certificates
     // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
@@ -889,8 +898,16 @@ void rtFileDownloader::checkForExpiredHandles()
   downloadHandleMutex.unlock();
 }
 
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
 bool rtFileDownloader::checkAccessControlHeaders(const char* origin, const char* reqUrl, const char* rawHeaders, std::string& errorStr)
 {
+  bool enableCheck = getenv(USE_ACCESS_CONTROL_CHECK_ENV_NAME) != NULL;
+  if (!enableCheck)
+  {
+    // not enabled
+    return true;
+  }
+
   if (!origin || *origin == 0)
   {
     // no origin
@@ -980,3 +997,4 @@ bool rtFileDownloader::checkAccessControlHeaders(const char* origin, const char*
   errorStr = errorStream.str();
   return false;
 }
+#endif

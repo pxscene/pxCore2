@@ -1,4 +1,6 @@
 #include <sstream>
+#include <string>
+#include <stdlib.h>
 
 #include "pxArchive.h"
 #include "rtFileDownloader.h"
@@ -18,10 +20,29 @@ class corsTest : public testing::Test
 public:
   virtual void SetUp()
   {
+    // Enable...
+    const char* envVal = getenv(rtFileDownloader::USE_ACCESS_CONTROL_CHECK_ENV_NAME);
+    if (envVal != NULL)
+    {
+      useAccessControlCheckEnv = envVal;
+    }
+    setenv(rtFileDownloader::USE_ACCESS_CONTROL_CHECK_ENV_NAME,"1",1);
+    rtLogWarn("env set...");
   }
 
   virtual void TearDown()
   {
+    // Clean up...
+    if (!useAccessControlCheckEnv.empty())
+    {
+      setenv(rtFileDownloader::USE_ACCESS_CONTROL_CHECK_ENV_NAME,useAccessControlCheckEnv.c_str(),1);
+      rtLogWarn("env revert...");
+    }
+    else
+    {
+      unsetenv(rtFileDownloader::USE_ACCESS_CONTROL_CHECK_ENV_NAME);
+      rtLogWarn("env unset...");
+    }
   }
 
   void test0()
@@ -213,6 +234,8 @@ public:
   }
 
 private:
+  std::string useAccessControlCheckEnv;
+
   bool testFileDownloadRequest(const char* origin, const char* url, const char* responseHeaders)
   {
     std::string errorStr;

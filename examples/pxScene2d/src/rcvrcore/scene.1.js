@@ -158,10 +158,6 @@ function Scene() {
     return nativeScene.getService(name, serviceObject);
   };
 
-  this.allows = function(url) {
-    return nativeScene.allows(url);
-  };
-
   this.setAppContext = function(appContextName, appContext) {
     if( !appContextMap.hasOwnProperty(appContextName) ) {
       appContextMap[appContextName] = appContext;

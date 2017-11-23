@@ -145,6 +145,8 @@ template<typename Map> typename Map::const_iterator
 find_best_wildcard_match(Map const& map, typename Map::key_type const& key);
 typedef std::map<std::string, bool> permissionsMap_t;
 permissionsMap_t permissionsObjectToMap(const rtObjectRef& obj);
+extern const char* DEFAULT_PERMISSIONS_CONFIG_FILE;
+extern const char* PXSCENE_PERMISSIONS_CONFIG_ENV_NAME;
 
 class rtFileDownloadRequest;
 

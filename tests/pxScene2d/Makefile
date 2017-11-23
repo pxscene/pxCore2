@@ -32,10 +32,6 @@ SRCS_FULL=\
     test_utf8.cpp \
     test_pxWindowUtil.cpp \
     test_pxWindow.cpp \
-    test_rtUrlUtils.cpp \
-    test_cors.cpp \
-    test_permissions.cpp \
-    test_wildcards.cpp \
     $(SRCS_WAYLAND)
 
 ifneq ($(UNAME_S),Darwin)
