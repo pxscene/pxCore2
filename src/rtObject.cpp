@@ -23,7 +23,6 @@
 
 using namespace std;
 
-
 // rtEmit
 unsigned long rtEmit::AddRef() 
 {
@@ -32,9 +31,7 @@ unsigned long rtEmit::AddRef()
   
 unsigned long rtEmit::Release() {
   long l = rtAtomicDec(&mRefCount);
-  if (l == 0) {
-    delete this;
-  }
+  if (l == 0) delete this;
   return l;
 }
 
@@ -307,9 +304,8 @@ unsigned long /*__stdcall__ */ rtObject::AddRef()
 unsigned long /*__stdcall*/ rtObject::Release() 
 {
   long l = rtAtomicDec(&mRefCount);
-  if (l == 0) {
+  if (l == 0) 
     delete this;
-  }
   return l;
 }
 
