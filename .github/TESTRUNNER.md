@@ -5,10 +5,11 @@ We use [testRunner](https://px-apps.sys.comcast.net/pxscene-samples/examples/px-
 *testRunner* will run all tests defined in tests.json and will report success and failure from those tests.  When tests have completed, it will display a Results page indicating how many tests succeeded and how many failed. If there are failures, the details of those failures will be displayed as a list on screen.  These results will also be output to the console/log.
 
 ## Adding a testRunner Test:
-Create a test javascript file according to instructions in [Defining Tests](#defining-tests). We suggest creating a pull request to add the test to [pxscene](https://github.com/pxscene/pxscene/tree/gh-pages) for open source availability.
-Add that test file name and other properties to pxCore/tests/pxScene2d/tests/testRunner/test.json according to the instructions in [Defining a Test Page](#defining-a-test-page-in-tests.json).  Note that the "timeToRun" mechanism should only be used to run pages that are not explicitly authored to be tests. Otherwise, any tests added should export the tests variable and run tests and return results, as described in [Defining Tests](#defining-test-functions-to-be-run).
+1. Create a test JavaScript file according to instructions in [Defining Tests](#defining-test-functions-to-be-run). We suggest creating a pull request to add the test to [pxscene](https://github.com/pxscene/pxscene/tree/gh-pages) for open source availability.
+2. Test your test:  Use the manual test mechanism described in [Defining Tests](#defining-test-functions-to-be-run) to run your test and verify the results.
+3. Add that test file name and other properties to pxCore/tests/pxScene2d/tests/testRunner/test.json according to the instructions in [Adding a Test Page in tests.json](#Adding-a-test-page-in-tests.json).  Note that the "timeToRun" mechanism should only be used to run pages that are not explicitly authored to be tests. Otherwise, any tests added should export the tests variable and run tests and return results, as described in [Defining Tests](#defining-test-functions-to-be-run).
 
-### Defining a Test Page in tests.json:
+### Adding a Test Page in tests.json:
 A test is defined in tests.json as an object with the following properties: 
 {"url":"../tests/simpleTestApi.js", "title":"api_test","preTest":"start"} 
 * url: the path to the test js file
@@ -156,17 +157,16 @@ module.exports.tests = tests; // export the tests
 ## Running Tests
 Tests can be run either using the checked-in/auto-deployed version of *testRunner* and tests, or by running local versions of *testRunner* and tests: 
 __Run deployed versions of *testRunner* and *tests.json*__:
-```./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js
+``` ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js
 ```
 
 *or* 
 __Run local versions of *testRunner* and *tests.json*__:
-```./pxscene.sh {local_path_to_pxscene-samples}/examples/px-reference/test-run/testRunner.js
+``` ./pxscene.sh {local_path_to_pxscene-samples}/examples/px-reference/test-run/testRunner.js
 ```
 
 *or*
 __Run deployed *testRunner* with local *tests.json* file via queryParam "tests"__:
-```./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=file://{local_path_to_a_tests.json_file}
+``` ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=file://{local_path_to_a_tests.json_file}
 ```
 
-## Adding a Test to testRunner for Code Coverage
