@@ -150,8 +150,9 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
     mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false), mDownloadHandleExpiresTime(-2)
 #ifdef ENABLE_HTTP_CACHE
-    , mCacheEnabled(true), mIsDataInCache(false), mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
+    , mCacheEnabled(true), mIsDataInCache(false)
 #endif
+    , mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
@@ -362,6 +363,8 @@ bool rtFileDownloadRequest::isDataCached()
   return mIsDataInCache;
 }
 
+#endif //ENABLE_HTTP_CACHE
+
 void rtFileDownloadRequest::setProgressMeter(bool val)
 {
   mIsProgressMeterSwitchOff = val;
@@ -405,8 +408,6 @@ bool rtFileDownloadRequest::isCurlDefaultTimeoutSet()
 {
   return mDefaultTimeout;
 }
-#endif //ENABLE_HTTP_CACHE
-
 
 rtFileDownloader::rtFileDownloader() 
     : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false), mCaCertFile(CA_CERTIFICATE)
