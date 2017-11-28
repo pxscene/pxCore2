@@ -185,10 +185,10 @@ public:
 
   double textX, textY;
   double lastX, lastY;
-  
+
   double getPenX();
   double getPenY();
-  
+
   int mVertexCount;
   pxVertex mVertices[200000];
 
@@ -196,9 +196,9 @@ public:
 
   pxMatrix4T<float> mMatrix;
   pxMatrix4T<float> mTextureMatrix;
-  
+
   pxColor mFillColor;
-  
+
   pxColor mStrokeColor;
   double  mStrokeWidth;
 
@@ -208,15 +208,15 @@ public: // BUGBUG
   pxRasterizer mRasterizer;
   pxOffscreen  mOffscreen;
   pxTextureRef mTexture;
-  
+
   double extentLeft,  extentTop;
   double extentRight, extentBottom;
-  
+
   bool    mNeedsRedraw;
-  
+
   int mw;
   int mh;
-  
+
 };//CLASS
 
 #endif // _PX_CANVAS2D_H

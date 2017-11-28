@@ -72,7 +72,8 @@ public:
 class pxSpanBuffer
 {
 public:
-  pxSpanBuffer(): mNumRows(0), mSpanRows(NULL), mFreeSpans(NULL), mCurrentClipSpan(NULL), mCurrentClipComplete(true)
+  pxSpanBuffer(): mNumRows(0), mCurrentRow(0), mSpanRows(NULL), mFreeSpans(NULL), mCurrentClipSpan(NULL),
+                  mCurrentClipX0(0), mCurrentClipX1(0), mCurrentClipComplete(true)
   {
     spanCount= 0;
   }
@@ -318,7 +319,7 @@ public:
             x0 = mCurrentClipSpan->x0;
             if (mCurrentClipX1 <= mCurrentClipSpan->x1)
             {
-              x1 = mCurrentClipX1;   
+              x1 = mCurrentClipX1;
               mCurrentClipComplete = true;
               return true;
             }
@@ -581,8 +582,6 @@ public:
   edgeBucket *headBucket;
   edgeBucket* tailBucket;
 };
-
-
 #endif
 
 
@@ -591,21 +590,20 @@ struct textureedge
   int32_t mX1, mX2;
   int32_t mY1, mY2;
 
+//  int32_t mWidth, mHeight;
 
-  int32_t mWidth, mHeight;
+//  int32_t mXCurrent;
 
-  int32_t mXCurrent;
+//  int32_t mXDelta;
+//  int32_t mError;
+//  int32_t mErrorDelta;
 
-  int32_t mXDelta;
-  int32_t mError;
-  int32_t mErrorDelta;
-
-  int32_t mSide;
-  int32_t mLeft; 
+//  int32_t mSide;
+//  int32_t mLeft;
 
 #if 1
-  int32_t deltaU;
-  int32_t deltaV;
+  // int32_t deltaU;
+  // int32_t deltaV;
 
   int32_t mU1, mU2;
   int32_t mV1, mV2;
@@ -614,7 +612,7 @@ struct textureedge
   int32_t mdx, mdy;
 
   int32_t mCurrentX;
-  int32_t mCurrentY;
+ // int32_t mCurrentY;
 
   int32_t mCurrentU;
   int32_t mCurrentV;
@@ -923,10 +921,9 @@ struct scanlineDesc
 class edgeManager
 {
 public:
-  edgeManager()
+  edgeManager() : mEdgeCount(0), mCurrentStartLine(0), mCurrentStartEdge(0),
+                  mStartLines(NULL), mFirstStart(0), mLastStart(0), mMaxScanlines(0)
   {
-    mMaxScanlines = 0;
-    mStartLines = NULL;
 #ifdef EDGEBUCKETS
 #if 0
     mStartLines = new edgeLine[8000];
@@ -1111,6 +1108,7 @@ struct endPointArray
 {
   endPointArray()
   {
+    memset(mEndPoints, 0, sizeof(endPoint) * MINEDGES);
     mCount = 0;
   }
 
@@ -1248,9 +1246,13 @@ struct endPointArray
 };
 #endif
 
+#define EDGE_ARRAY_SIZE 100000
 struct edgeArray
 {
-  edgeArray(): mCount(0) {}
+  edgeArray(): mCount(0)
+  {
+    memset(mEdges, 0, sizeof(edge*) * EDGE_ARRAY_SIZE);
+  }
 
   inline void Add(edge * e)
   {
@@ -1273,7 +1275,7 @@ struct edgeArray
   }
 
 
-  edge* mEdges[100000];
+  edge* mEdges[EDGE_ARRAY_SIZE];
   int mCount;
 
 };
@@ -1290,15 +1292,36 @@ endPointArray textureEndsX;
 endPointArray* textureStarts = &textureStartsX;
 endPointArray* textureEnds = &textureEndsX;
 
+//##
+
+//    public: // BUGBUG
+bool mTextureClamp;
+bool mTextureClampColor;
+bool mBiLerp;
+bool mAlphaTexture;
+
+bool mOverdraw;
+
+//##
+
 pxRasterizer::pxRasterizer(): 
+  mYOversample(0), mXResolution(0),
+  mFirst(0), mLast(0), mLeftExtent(0), mRightExtent(0),
   mBuffer(NULL),
 #ifndef EDGECLEANUP
-  miStarts(NULL), miEnds(NULL), mEdgeArray(NULL), 
+  mEdgeArray(NULL), miStarts(NULL), miEnds(NULL), mEdgeCount(0),
 #else
   mEdgeManager(NULL),
 #endif
-   mCoverage(NULL), mClipValid(false), mClipInternalCalculated(false), mTexture(NULL), 
-  mTextureClamp(false), mTextureClampColor(false), mBiLerp(false), mAlphaTexture(false), mOverdraw(false)
+   mCoverage(NULL), mFillMode(fillWinding), mColor(pxRed), mAlpha(1.0),
+   mAlphaDirty(false), mEffectiveAlpha(1.0), mClipValid(false),
+   mClipInternalCalculated(false), mCachedBufferHeight(0), mCachedBufferWidth(0),
+   overSampleAdd(0), overSampleAddMinusOne(0), overSampleAdd4MinusOne(0),
+   overSampleAdd4(0), overSampleFlush(0), overSampleMask(0),
+   mTexture(NULL),
+   mTextureClamp(false), mTextureClampColor(false), mBiLerp(false),
+   mAlphaTexture(false), mOverdraw(false),
+   mTextureOriginX(0), mTextureOriginY(0)
 {
   mMatrix22.identity();
   mTextureMatrix22.identity();
@@ -1361,7 +1384,7 @@ void pxRasterizer::init(pxBuffer* buffer)
   //mFirst = mBuffer->height() * mYOversample;
   //mLast = 0;
 
-  reset();        
+  reset();
 }
 
 void pxRasterizer::term()
@@ -2286,7 +2309,7 @@ void pxRasterizer::scanCoverage(pxPixel* scanline, int32_t x0, int32_t x1)
         }
         else p += coverageRun;
 
-        coverageRun = 1;
+        //coverageRun = 1;
       }
 
     }
@@ -2344,7 +2367,7 @@ inline pxPixel* pxRasterizer::getTextureSample(int32_t maxU, int32_t maxV, int32
 void pxRasterizer::rasterizeComplex()
 {
 
-  bool textureUpsideDown = false;
+  // bool textureUpsideDown = false;
 
   // int32_t maxU;
   // int32_t maxV;
@@ -2372,10 +2395,10 @@ void pxRasterizer::rasterizeComplex()
     mCachedBufferWidth = mBuffer->width();
   }
 
-  if (mTexture)
-  {
-    textureUpsideDown = mTexture->upsideDown();
-  }
+//  if (mTexture)
+//  {
+//    textureUpsideDown = mTexture->upsideDown();
+//  }
 
   edge* mActiveList[1000];
   int mActiveCount = 0;
@@ -2571,7 +2594,7 @@ void pxRasterizer::rasterizeComplex()
             // find candidate edges
             bool foundEdges = false;
 
-            int32_t p, pEnd;
+            int32_t p = 0, pEnd = 0;
 
             if (mFillMode == fillWinding)
             {
@@ -2596,7 +2619,7 @@ void pxRasterizer::rasterizeComplex()
 #else
                   pEnd = mActiveList[z]->mXCurrent;
 #endif
-                  if (p != pEnd)                        
+                  if (p != pEnd)
                   {
                     z += 1; // skip to next edge
                     foundEdges = true;
@@ -2625,7 +2648,7 @@ void pxRasterizer::rasterizeComplex()
             if (!foundEdges) done = true;
             else
             {
-              foundEdges = false;
+              //foundEdges = false;
               //continue;
 #if 1
 #ifdef FRONT2BACK
@@ -3293,11 +3316,11 @@ void pxRasterizer::rasterizeComplex()
                           int fracU = ((((curU) >> 8)) & 0xff);
                           int fracV = ((((curV) >> 8)) & 0xff);
 #else
-                          int dd = 1 << 15;
+                          //int dd = 1 << 15;
                           //int dd = (1<<14)+(du>>2);
 
-                          int fracU = ((((curU+(dd)) >> 8)) & 0xff);
-                          int fracV = ((((curV+(dd)) >> 8)) & 0xff);
+                          int fracU;// = ((((curU+(dd)) >> 8)) & 0xff);
+                          int fracV;// = ((((curV+(dd)) >> 8)) & 0xff);
 #endif
 #else
                           int fracU = ((((curU >> 8)) & 0xff)>>2) + baseX;
@@ -3317,15 +3340,15 @@ void pxRasterizer::rasterizeComplex()
                             nextV = texV;
                           //int nextV = (texV < mTexture->height()-1);
 #else
-                          int nextU = (texU < mTexture->width()-1);
-                          int nextV = (texV < mTexture->height()-1);
+                          //int nextU = (texU < mTexture->width()-1);
+                          //int nextV = (texV < mTexture->height()-1);
 #endif
-                          if (textureUpsideDown)
-                            nextV = - nextV;
+//                          if (textureUpsideDown)
+//                            nextV = - nextV;
 
-                          texel2 = texel + nextU;
-                          texel3 = texel + (mTexture->width() * nextV);
-                          texel4 = texel3 + nextU;
+                        //  texel2 = texel + nextU;
+                        //  texel3 = texel + (mTexture->width() * nextV);
+                        //  texel4 = texel3 + nextU;
 
 #if 1
 #if 0

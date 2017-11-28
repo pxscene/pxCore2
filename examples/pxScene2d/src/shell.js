@@ -55,7 +55,12 @@ px.import({  scene: 'px:scene.1.js',
 	  var code  = e.keyCode;
     var flags = e.flags;
 
-    console.log("SHELL: onPreKeyDown:", code, " key: ", keys.name(code), ", ", flags);
+    var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
+    if (loggingDisabled && loggingDisabled === '1'){
+      console.log("onPreKeyDown value hidden");
+    } else {
+      console.log("SHELL: onPreKeyDown:", code, " key: ", keys.name(code), ", ", flags);
+    }
 
     if( keys.is_CTRL_ALT( flags ) )
     {
@@ -136,11 +141,20 @@ px.import({  scene: 'px:scene.1.js',
 
   scene.root.on("onPreKeyUp", function(e)
   {
-    console.log("in onPreKeyUp", e.keyCode, e.flags);
+    var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
+    if (loggingDisabled && loggingDisabled === '1'){
+      console.log("onPreKeyUp value hidden");
+    } else {
+      console.log("in onPreKeyUp", e.keyCode, e.flags);
+    }
 	  var code  = e.keyCode;
     var flags = e.flags;
 
-    console.log("onKeyUp:", code, ", ", flags);
+    if (loggingDisabled && loggingDisabled === '1'){
+      console.log("onKeyUp value hidden");
+    } else {
+      console.log("onKeyUp:", code, ", ", flags);
+    }
 
     // eat the ones we handle here
          if (code == keys.Y && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-y
@@ -156,7 +170,12 @@ px.import({  scene: 'px:scene.1.js',
     scene.root.on("onKeyDown", function(e)
     {
       var code = e.keyCode; var flags = e.flags;
-      console.log("onKeyDown shell:", code, ", ", flags);
+      var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
+      if (loggingDisabled && loggingDisabled === '1'){
+        console.log("onKeyDown value hidden");
+      } else {
+        console.log("onKeyDown shell:", code, ", ", flags);
+      }
 
       if( keys.is_CTRL_ALT( flags ) )
       {
@@ -182,7 +201,12 @@ px.import({  scene: 'px:scene.1.js',
   {
     console.log("in onchar");
 	  var c = e.charCode;
-    console.log("onChar:", c);
+    var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
+    if (loggingDisabled && loggingDisabled === '1'){
+      console.log("onChar value hidden");
+    } else {
+      console.log("onChar:", c);
+    }
 	  // TODO eating some "undesired" chars for now... need to redo this
     if (c<32) {
       console.log("stop onChar");
