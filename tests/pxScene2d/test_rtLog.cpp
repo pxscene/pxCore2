@@ -10,9 +10,11 @@
 size_t buffSize = 1024;
 char reallyLongString[2000]; 
 void populateString() {
-  for(int i = 0; i < 2000; i++) {
+  int size = sizeof(reallyLongString);
+  for(int i = 0; i < size; i++) {
     reallyLongString[i] = 'k';
   }
+  reallyLongString[size-1] = '\0';
 }
 
 size_t testNum = 0;
