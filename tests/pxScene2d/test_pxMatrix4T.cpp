@@ -24,7 +24,7 @@ class pxMatrix4Test : public testing::Test
 
     void pxMatrix4TSinCosTestD()
     {
-      printf("\nDEBUG:  >>>>>>>  pxMatrix4TSinCosTestD() ### ");
+      EXPECT_TRUE(false) << "\nDEBUG:  >>>>>>>  pxMatrix4TSinCosTestD() ### ";
 
       double rads    = (double) M_PI;
       double sin_val = 0.0;
@@ -38,7 +38,7 @@ class pxMatrix4Test : public testing::Test
 
     void pxMatrix4TSinCosTestF()
     {
-      printf("\nDEBUG:  >>>>>>>  pxMatrix4TSinCosTestF() ### ");
+      EXPECT_TRUE(false) << "\nDEBUG:  >>>>>>>  pxMatrix4TSinCosTestF() ### ";
 
       float rads    = M_PI;
       float sin_val = 0.0f;
