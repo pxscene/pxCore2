@@ -20,6 +20,12 @@ public:
   virtual unsigned long Release();
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
 
+  inline std::string const& getId() const
+    { return m_id; }
+
+  inline std::string const& getName() const
+    { return m_name; }
+
 private:
   rtAtomic                          m_ref_count;
   std::string                       m_id;

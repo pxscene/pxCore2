@@ -10,11 +10,7 @@
 1. Install required packages:
     
     ~~~~
-    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake x11proto-input-dev
-    
-    Execute below command:
-    
-    cd /usr/include/X11/extensions && sudo ln -s XI.h XInput.h
+    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake
     
     ~~~~
 
@@ -180,7 +176,9 @@ file:///home/username/directory/filename.js
 
 2. Build
    ~~~~
-   cd pxCore/
+   cd pxCore/remote
+   make
+   cd ..
    mkdir temp
    cd temp
    cmake -DBUILD_RTREMOTE_LIBS=ON ..
