@@ -24,8 +24,6 @@ class pxMatrix4Test : public testing::Test
 
     void pxMatrix4TSinCosTestD()
     {
-      printf("\nDEBUG:  Testing DOUBLE  SinCos() ###");
-
       double rads    = (double) M_PI;
       double sin_val = 0.0;
       double cos_val = 0.0;
@@ -38,8 +36,6 @@ class pxMatrix4Test : public testing::Test
 
     void pxMatrix4TSinCosTestF()
     {
-      printf("\nDEBUG:  Testing FLOAT  SinCos() ###");
-
       float rads    = M_PI;
       float sin_val = 0.0f;
       float cos_val = 0.0f;
