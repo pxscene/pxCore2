@@ -371,7 +371,7 @@ rtRemoteClient::sendGet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k,
     if (itr == res->MemberEnd())
       return RT_ERROR_PROTOCOL_ERROR;
 
-    e = rtRemoteValueReader::read(value, itr->value, shared_from_this());
+    e = rtRemoteValueReader::read(m_env, value, itr->value, shared_from_this());
     if (e == RT_OK)
       e = rtMessage_GetStatusCode(*res);
   }
@@ -417,7 +417,7 @@ rtRemoteClient::sendCall(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k
     if (itr == res->MemberEnd())
       return RT_ERROR_PROTOCOL_ERROR;
 
-    e = rtRemoteValueReader::read(result, itr->value, shared_from_this());
+    e = rtRemoteValueReader::read(m_env, result, itr->value, shared_from_this());
     if (e == RT_OK)
       e = rtMessage_GetStatusCode(*res);
   }

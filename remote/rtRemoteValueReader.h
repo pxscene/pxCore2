@@ -7,11 +7,13 @@
 #include <rapidjson/document.h>
 
 class rtRemoteClient;
+class rtRemoteEnvironment;
 
 class rtRemoteValueReader
 {
 public:
-  static rtError read(rtValue& val, rapidjson::Value const& from, std::shared_ptr<rtRemoteClient> const& client);
+  static rtError read(rtRemoteEnvironment* env, rtValue& val, rapidjson::Value const& from,
+    std::shared_ptr<rtRemoteClient> const& client);
 };
 
 #endif

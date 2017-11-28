@@ -186,6 +186,8 @@ public:
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
   rtMethodNoArgAndNoReturn("moveToFront", moveToFront);
   rtMethodNoArgAndNoReturn("moveToBack", moveToBack);
+  rtMethodNoArgAndNoReturn("moveForward", moveForward);
+  rtMethodNoArgAndNoReturn("moveBackward", moveBackward);
 
   rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
                         uint32_t, uint32_t, int32_t, rtObjectRef);
@@ -366,8 +368,8 @@ public:
     return RT_OK;
   }
 
-  void    moveForward();
-  void    moveBackward();
+  rtError moveForward();
+  rtError moveBackward();
   rtError moveToFront();
   rtError moveToBack();
 
@@ -1254,6 +1256,7 @@ public:
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
+  rtProperty(customAnimator, customAnimator, setCustomAnimator, rtFunctionRef);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
@@ -1334,6 +1337,9 @@ public:
 
   rtError showDirtyRect(bool& v) const;
   rtError setShowDirtyRect(bool v);
+
+  rtError customAnimator(rtFunctionRef& f) const;
+  rtError setCustomAnimator(const rtFunctionRef& f);
 
   rtError create(rtObjectRef p, rtObjectRef& o);
 
@@ -1519,6 +1525,7 @@ private:
   #endif
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
+  rtFunctionRef mCustomAnimator;
 public:
   void hidePointer( bool hide )
   {

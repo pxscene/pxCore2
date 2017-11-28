@@ -23,5 +23,6 @@
       {"url":"../tests/test_pxImage.js", "title":"test_pxImage","useBaseURI":"true"},
       {"url":"../tests/test_pxImageA_2.js", "title":"test_pxImageA_2","useBaseURI":"true"},
       {"url":"../tests/test_pxImage9.js", "title":"test_pxImage9","useBaseURI":"true"},
+      {"url":"../tests/test_moveForwardBackward.js", "title":"test_moveForwardBackward","useBaseURI":"true"},
       {"url":"../tests/test_draw_SVG_paths.js", "title":"test_draw_SVG_paths","useBaseURI":"true"}
 ]
