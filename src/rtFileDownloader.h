@@ -83,6 +83,7 @@ public:
   bool cacheEnabled();
   void setDataIsCached(bool val);
   bool isDataCached();
+#endif //ENABLE_HTTP_CACHE
   void setProgressMeter(bool val);
   bool isProgressMeterSwitchOff();
   void setHTTPFailOnError(bool val);
@@ -91,7 +92,6 @@ public:
   char* httpErrorBuffer(void);
   void setCurlDefaultTimeout(bool val);
   bool isCurlDefaultTimeoutSet();
-#endif
 #ifdef ENABLE_ACCESS_CONTROL_CHECK
   void setOrigin(const char* origin);
   rtString origin();
@@ -118,11 +118,11 @@ private:
 #ifdef ENABLE_HTTP_CACHE
   bool mCacheEnabled;
   bool mIsDataInCache;
+#endif //ENABLE_HTTP_CACHE
   bool mIsProgressMeterSwitchOff;
   bool mHTTPFailOnError;
   char mHttpErrorBuffer[CURL_ERROR_SIZE];
   bool mDefaultTimeout;
-#endif
 #ifdef ENABLE_ACCESS_CONTROL_CHECK
   rtString mOrigin;
 #endif
