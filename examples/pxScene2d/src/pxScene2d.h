@@ -1491,7 +1491,7 @@ public:
     if (allows(url, allowed) == RT_OK && !allowed)
     {
       rtLogError("url '%s' is not allowed", url.cString());
-      return RT_FAIL;
+      return RT_ERROR_NOT_ALLOWED;
     }
 
     rtError e = RT_FAIL;
@@ -1505,6 +1505,13 @@ public:
   }
 
   void innerpxObjectDisposed(rtObjectRef ref);
+
+  // Note: Only type currently supported is "image/png;base64"
+  rtError screenshot(rtString type, rtString& pngData);
+  rtError clipboardGet(rtString type, rtString& retString);
+  rtError clipboardSet(rtString type, rtString clipString);
+  rtError getService(rtString name, rtObjectRef& returnObject);
+
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
@@ -1513,12 +1520,6 @@ private:
   // Does not draw updates scene to time t
   // t is assumed to be monotonically increasing
   void update(double t);
-
-  // Note: Only type currently supported is "image/png;base64"
-  rtError screenshot(rtString type, rtString& pngData);
-  rtError clipboardGet(rtString type, rtString& retString);
-  rtError clipboardSet(rtString type, rtString clipString);
-  rtError getService(rtString name, rtObjectRef& returnObject);
 
 
   rtRef<pxObject> mRoot;

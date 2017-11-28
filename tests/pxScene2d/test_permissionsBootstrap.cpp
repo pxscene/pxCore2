@@ -20,7 +20,7 @@ class permissionsBootstrapTest : public testing::Test
 public:
   virtual void SetUp()
   {
-    // Enable...
+    // Set test's bootstrap config...
     const char* envVal = getenv(PXSCENE_PERMISSIONS_CONFIG_ENV_NAME);
     if (envVal != NULL)
     {
@@ -203,35 +203,13 @@ private:
 
   bool allows(const char* url, const char* origin)
   {
-    // origin is needed to load from bootstrap
+    // 'origin' is needed to pick corresponding config from bootstrap
     pxScriptView* scriptView = new pxScriptViewMockForPermissionsTest(origin, NULL);
     pxScene2d* scene = new pxScene2d(true, scriptView);
-    bool allows = scene_allows(scene, url);
-    delete scene;
-    delete scriptView;
-    return allows;
-  }
-
-  bool scene_allows(pxScene2d* scene, const char* url)
-  {
     bool allows;
     EXPECT_TRUE (RT_OK == scene->allows(url, allows));
-
-    // test how the scene accounts for it...
-    rtObjectRef p = new rtMapObject();
-    p.set("t", "object");
-    p.set("url", url);
-    rtObjectRef o;
-    rtError e = scene->create(p, o);
-    if (allows)
-    {
-      EXPECT_TRUE (RT_OK == e);
-    }
-    else
-    {
-      EXPECT_FALSE (RT_OK == e);
-    }
-
+    delete scene;
+    delete scriptView;
     return allows;
   }
 };

@@ -2003,7 +2003,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
   if (allows(url, allowed) == RT_OK && !allowed)
   {
     rtLogError("url '%s' is not allowed", url.cString());
-    return RT_FAIL;
+    return RT_ERROR_NOT_ALLOWED;
   }
 
   rtError e = RT_OK;
@@ -3061,7 +3061,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
   if (allows("feature://screenshot", allowed) == RT_OK && !allowed)
   {
     rtLogError("screenshot is not allowed");
-    return RT_FAIL;
+    return RT_ERROR_NOT_ALLOWED;
   }
 
   // Is this a type we support?
@@ -3134,7 +3134,7 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
   if (allows(serviceUrl, allowed) == RT_OK && !allowed)
   {
     rtLogError("url '%s' is not allowed", serviceUrl.cString());
-    return RT_FAIL;
+    return RT_ERROR_NOT_ALLOWED;
   }
 
   rtLogInfo("trying to get service for name: %s", name.cString());

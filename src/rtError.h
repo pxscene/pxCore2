@@ -48,6 +48,7 @@
 #define RT_NO_CONNECTION		9
 #define RT_ERROR_NOT_IMPLEMENTED 10
 #define RT_ERROR_TYPE_MISMATCH 11
+#define RT_ERROR_NOT_ALLOWED 12
 
 // errors specific to rtRemote
 #define RT_ERROR_TIMEOUT 1000
