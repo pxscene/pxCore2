@@ -263,7 +263,9 @@ TEST_F(pxMatrix4Test, pxMatrix4CompleteTest)
 {
     pxMatrix4TSinCosTestD();
     pxMatrix4TSinCosTestF();
+    pxMatrix4TSinCosTestD();
     pxMatrix4TVector4Test();
+    pxMatrix4TSinCosTestD();
     pxMatrix4TidentityTest();
     pxMatrix4TisIdentityTest();
     pxMatrix4TcopyTest();
