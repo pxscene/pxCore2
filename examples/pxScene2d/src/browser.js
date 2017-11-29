@@ -2,8 +2,8 @@
 px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
 
 
-px.import({ scene:      'px:scene.1.js',
-             keys:      'px:tools.keys.js',
+px.import({ scene:      'px:scene.1',
+             keys:      'px:tools.keys',
              EditBox: 'browser:editbox.js'
 }).then( function importsAreReady(imports)
 {  

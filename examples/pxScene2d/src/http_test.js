@@ -1,5 +1,5 @@
 
-px.import({ scene: 'px:scene.1.js', http: 'http.js' }).then( function importsAreReady(imports)
+px.import({ scene: 'px:scene.1', http: 'http' }).then( function importsAreReady(imports)
 {
     var http = imports.http;
 

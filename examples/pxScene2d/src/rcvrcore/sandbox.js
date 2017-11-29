@@ -4,7 +4,7 @@
 // These vars are populated/copied into the Contexified Context... aka Clone !
 //
 
-var vm            = require('vm.js');
+var vm            = require('vm');
 var require       = this.require;
 
 var _sandboxStuff = [ "console", "vm", "require" ];

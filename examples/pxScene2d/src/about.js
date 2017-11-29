@@ -1,5 +1,5 @@
 
-px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
+px.import({ scene: 'px:scene.1' }).then( function importsAreReady(imports)
 {
   var scene = imports.scene;
   var keys  = imports.keys;

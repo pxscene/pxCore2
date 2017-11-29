@@ -1,9 +1,9 @@
 "use strict";
 
-var hasExtension = require('utils/FileUtils.js').hasExtension;
+var hasExtension = require('rcvrcore/utils/FileUtils').hasExtension;
 
-var Logger = require('Logger.js').Logger;
-var log = new Logger('XModule');
+var Logger = require('rcvrcore/Logger').Logger;
+var log = new Logger('rcvrcore/XModule');
 
 function XModule(name, appSceneContext, basePath, jarName) {
   log.message(5, "Create new XModule for " + name);

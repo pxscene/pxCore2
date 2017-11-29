@@ -1,4 +1,4 @@
-var RPCContext = require('rpcContext.js');
+var RPCContext = require('rcvrcore/rpcContext');
 
 function Scene() {
   var nativeScene = null;

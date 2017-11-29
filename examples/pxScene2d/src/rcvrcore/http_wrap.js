@@ -1,6 +1,6 @@
 'use strict';
 
-var http = require('../http.js');
+var http = require('http');
 
 function isLocalAccess(reqOptions)
 {

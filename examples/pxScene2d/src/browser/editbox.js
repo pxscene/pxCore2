@@ -1,6 +1,6 @@
 
-px.import({ scene: 'px:scene.1.js',
-             keys: 'px:tools.keys.js'
+px.import({ scene: 'px:scene.1',
+             keys: 'px:tools.keys'
 }).then(function importsAreReady(imports)
 {
     var scene = imports.scene;
@@ -668,7 +668,7 @@ px.import({ scene: 'px:scene.1.js',
             var metrics;
             var pos_x = 0;
 
-            let lo = -1, hi = array.length;
+            var lo = -1, hi = array.length;
             while (1 + lo !== hi)
             {
                 var mi = lo + ((hi - lo) >> 1);

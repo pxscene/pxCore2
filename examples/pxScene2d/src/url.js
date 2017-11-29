@@ -1,6 +1,6 @@
 'use strict';
 
-toASCII = require('punycode.js').toASCII;
+toASCII = require('punycode').toASCII;
 
 exports.parse = urlParse;
 exports.resolve = urlResolve;

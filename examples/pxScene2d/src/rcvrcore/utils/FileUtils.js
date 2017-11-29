@@ -1,11 +1,11 @@
 "use strict";
 
-var fs = require("../../fs.js");
+var fs = require("fs");
 //var http = require("http");
 //var https = require("https");
-var url = require("../../url.js");
+var url = require("url");
 
-var Logger = require('../Logger.js').Logger;
+var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('FileUtils');
 
 /**

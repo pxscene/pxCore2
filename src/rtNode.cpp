@@ -542,13 +542,7 @@ static duk_ret_t duv_mod_resolve(duk_context *ctx) {
   };
 
   dschema_check(ctx, schema);
-
-  duk_push_this(ctx);
-  duk_push_c_function(ctx, duv_path_join, DUK_VARARGS);
-  duk_get_prop_string(ctx, -2, "id");
-  duk_push_string(ctx, "..");
   duk_dup(ctx, 0);
-  duk_call(ctx, 3);
 
   return 1;
 }
@@ -577,49 +571,28 @@ static duk_ret_t duv_mod_load(duk_context *ctx) {
 
   // calculate the extension to know which compiler to use.
   ext = id + strlen(id);
-  while (ext > id && ext[0] != '.') { --ext; }
+  while (ext > id && ext[0] != '/' && ext[0] != '.') { --ext; }
 
-  if (strcmp(ext, ".js") == 0) {
-    // Stack: [Duktape, this, id]
-    duk_push_c_function(ctx, duv_loadfile, 1);
-    // Stack: [Duktape, this, id, loadfile]
-    duk_insert(ctx, -2);
-    // Stack: [Duktape, this, loadfile, id]
-    duk_call(ctx, 1);
-    // Stack: [Duktape, this, data]
-    duk_get_prop_string(ctx, -3, "modCompile");
-    // Stack: [Duktape, this, data, modCompile]
-    duk_insert(ctx, -3);
-    // Stack: [Duktape, modCompile, this, data]
-    duk_call_method(ctx, 1);
-    // Stack: [Duktape, exports]
-    return 1;
+  if (strcmp(ext, ".js") != 0) {
+    duk_pop(ctx);
+    std::string s = std::string(id) + ".js";
+    duk_push_string(ctx, s.c_str());
   }
 
-  if (strcmp(ext, ".so") == 0 || strcmp(ext, ".dll") == 0) {
-    const char* name = ext;
-    while (name > id && name[-1] != '/' && name[-1] != '\\') { --name; }
-    // Stack: [Duktape, this, id]
-    duk_get_prop_string(ctx, -3, "loadlib");
-    // Stack: [Duktape, this, id, loadlib]
-    duk_insert(ctx, -2);
-    // Stack: [Duktape, this, loadlib, id]
-    duk_push_sprintf(ctx, "dukopen_%.*s", (int)(ext - name), name);
-    // Stack: [Duktape, this, loadlib, id, name]
-    duk_call(ctx, 2);
-    // Stack: [Duktape, this, fn]
-    duk_call(ctx, 0);
-    // Stack: [Duktape, this, exports]
-    duk_dup(ctx, -1);
-    // Stack: [Duktape, this, exports, exports]
-    duk_put_prop_string(ctx, -3, "exports");
-    // Stack: [Duktape, this, exports]
-    return 1;
-  }
-
-  duk_error(ctx, DUK_ERR_ERROR,
-    "Unsupported extension: '%s', must be '.js', '.so', or '.dll'.", ext);
-  return 0;
+  // Stack: [Duktape, this, id]
+  duk_push_c_function(ctx, duv_loadfile, 1);
+  // Stack: [Duktape, this, id, loadfile]
+  duk_insert(ctx, -2);
+  // Stack: [Duktape, this, loadfile, id]
+  duk_call(ctx, 1);
+  // Stack: [Duktape, this, data]
+  duk_get_prop_string(ctx, -3, "modCompile");
+  // Stack: [Duktape, this, data, modCompile]
+  duk_insert(ctx, -3);
+  // Stack: [Duktape, modCompile, this, data]
+  duk_call_method(ctx, 1);
+  // Stack: [Duktape, exports]
+  return 1;
 }
 
 // Load a duktape C function from a shared library by path and name.

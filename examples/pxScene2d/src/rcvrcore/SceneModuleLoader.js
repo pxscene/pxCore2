@@ -1,13 +1,13 @@
 "use strict";
 
-var fs = require('../fs.js');
-var url = require('../url.js');
+var fs = require('fs');
+var url = require('url');
 //var http = require('http');
-var FileArchive = require('utils/FileArchive.js');
-var SceneModuleManifest = require('SceneModuleManifest.js');
-var loadFile = require('utils/FileUtils.js').loadFile;
-var Logger = require('Logger.js').Logger;
-var log = new Logger('SceneModuleLoader.js');
+var FileArchive = require('rcvrcore/utils/FileArchive');
+var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
+var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
+var Logger = require('rcvrcore/Logger').Logger;
+var log = new Logger('rcvrcore/SceneModuleLoader');
 
 
 function SceneModuleLoader() {

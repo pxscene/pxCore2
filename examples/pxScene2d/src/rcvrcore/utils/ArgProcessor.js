@@ -1,4 +1,4 @@
-var Logger = require('../Logger.js').Logger;
+var Logger = require('Logger').Logger;
 var log = new Logger('XModule');
 
 

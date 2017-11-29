@@ -1,6 +1,6 @@
 'use strict';
 
-var https = require('../https.js');
+var https = require('https');
 
 function isLocalAccess(reqOptions)
 {

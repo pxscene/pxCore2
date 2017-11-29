@@ -1,6 +1,6 @@
-global.console = require('rcvrcore/console.js');
-global.timers = require('rcvrcore/timers.js');
-global.Promise = require('bluebird.js');
+global.console = require('rcvrcore/console');
+global.timers = require('rcvrcore/timers');
+global.Promise = require('bluebird');
 
 global.setTimeout = timers.setTimeout;
 global.clearTimeout = timers.clearTimeout;
@@ -19,8 +19,8 @@ global.constructPromise = function (obj) {
     });
 }
 
-var AppSceneContext = require('rcvrcore/AppSceneContext.js');
-var RPCController = require('rcvrcore/rpcController.js');
+var AppSceneContext = require('rcvrcore/AppSceneContext');
+var RPCController = require('rcvrcore/rpcController');
 
 global.loadUrl = function loadUrl(url) {
 

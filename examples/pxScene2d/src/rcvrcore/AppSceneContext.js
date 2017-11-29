@@ -1,16 +1,16 @@
 //"use strict";
 
-var url = require('../url.js');
-var path = require('../path.js');
-var vm = require('../vm.js');
-var Logger = require('Logger.js').Logger;
-var SceneModuleLoader = require('SceneModuleLoader.js');
-var XModule = require('XModule.js').XModule;
-var xmodImportModule = require('XModule.js').importModule;
-var loadFile = require('utils/FileUtils.js').loadFile;
-var SceneModuleManifest = require('SceneModuleManifest.js');
-var JarFileMap = require('utils/JarFileMap.js');
-var AsyncFileAcquisition = require('utils/AsyncFileAcquisition.js');
+var url = require('url');
+var path = require('path');
+var vm = require('vm');
+var Logger = require('rcvrcore/Logger').Logger;
+var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
+var XModule = require('rcvrcore/XModule').XModule;
+var xmodImportModule = require('rcvrcore/XModule').importModule;
+var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
+var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
+var JarFileMap = require('rcvrcore/utils/JarFileMap');
+var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
@@ -19,8 +19,8 @@ var ClearTimeout = timers.clearTimeout;
 var SetInterval = timers.setInterval;
 var ClearInterval = timers.clearInterval;
 
-var http_wrap = require('http_wrap.js');
-var https_wrap = require('https_wrap.js');
+var http_wrap = require('rcvrcore/http_wrap');
+var https_wrap = require('rcvrcore/https_wrap');
 
 // function to check whether the page being loaded is from local machine or remote machine
 function isLocalApp(loadurl)
@@ -342,8 +342,8 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       xmodule: xModule,
       console: console,
       runtime: apiForChild,
-      urlModule: require("../url.js"),
-      queryStringModule: require("../querystring.js"),
+      urlModule: require("url"),
+      queryStringModule: require("querystring"),
       theNamedContext: "Sandbox: " + uri,
       Buffer: Buffer,
       importTracking: {}
@@ -513,25 +513,25 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
 
   return new Promise(function (onImportComplete, reject) {
-    if( filePath === 'px.js' || filePath === 'url.js' || filePath === 'querystring.js') {
+    if( filePath === 'px' || filePath === 'url' || filePath === 'querystring') {
       // built-ins
       var modData = require(filePath);
       onImportComplete([modData, origFilePath]);
       return;
-    } else if( filePath === 'fs.js' || filePath === 'os.js' || filePath === 'events.js') {
+    } else if( filePath === 'fs' || filePath === 'os' || filePath === 'events') {
       console.log("Not permitted to use the module " + filePath);
       reject("include failed due to module not permitted");
       return;
-    } else if( filePath === 'net.js' || filePath === 'ws.js' ||  filePath === 'htmlparser.js') {
+    } else if( filePath === 'net' || filePath === 'ws' ||  filePath === 'htmlparser') {
       //modData = require('rcvrcore/' + filePath + '_wrap');
       //onImportComplete([modData, origFilePath]);
       console.log("Not permitted to use the module " + filePath);
       reject("include failed due to module not permitted");
       return;
-    } else if (filePath === 'http.js' || filePath === 'https.js') {
+    } else if (filePath === 'http' || filePath === 'https') {
       //console.log("Not permitted to use the module " + filePath);
       //reject("include failed due to module not permitted");
-      if (filePath === 'http.js')
+      if (filePath === 'http')
       {
         modData = new http_wrap();
       }
@@ -544,8 +544,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
-      //var Scene = require('rcvrcore/' + filePath.substring(3));
-      var Scene = require(filePath.substring(3));
+      var Scene = require('rcvrcore/' + filePath.substring(3));
       if( _this.sceneWrapper === null ) {
         _this.sceneWrapper = new Scene();
       }
@@ -554,7 +553,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       onImportComplete([_this.sceneWrapper, origFilePath]);
       return;
     } else if( filePath.substring(0,9) === "px:tools.") {
-      modData = require('tools/' + filePath.substring(9));
+      modData = require('rcvrcore/tools/' + filePath.substring(9));
       onImportComplete([modData, origFilePath]);
       return;
     }
