@@ -28,6 +28,8 @@
 #pragma clang diagnostic ignored "-Wconversion"
 #endif
 
+#define SAFE_DELETE(p)  if(p) { delete p; p = NULL; };
+
 //#define OLDTEXTURE
 
 template<typename T>
@@ -683,12 +685,9 @@ public:
 
   ~edgeManager()
   {
-    delete mEdgeArray;
-    mEdgeArray = NULL;
-    delete mStarts;
-    mStarts = NULL;
-    delete mEnds;
-    mEnds = NULL;
+    SAFE_DELETE(mEdgeArray);
+    SAFE_DELETE(mStarts);
+    SAFE_DELETE(mEnds);
   }
 
   inline void reset()
@@ -803,13 +802,9 @@ public:
   ~edgeManager()
   {
 #if 0
-    delete mEdgeArray;
-    mEdgeArray = NULL;
-
-    delete mStarts;
-    mStarts = NULL;
-    delete mEnds;
-    mEnds = NULL;
+    SAFE_DELETE(mEdgeArray);
+    SAFE_DELETE(mStarts);
+    SAFE_DELETE(mEnds);
 #endif
   }
 
@@ -975,13 +970,9 @@ public:
   void term()
   {
 #if 0
-    delete mEdgeArray;
-    mEdgeArray = NULL;
-
-    delete mStarts;
-    mStarts = NULL;
-    delete mEnds;
-    mEnds = NULL;
+    SAFE_DELETE(mEdgeArray);
+    SAFE_DELETE(mStarts);
+    SAFE_DELETE(mEnds);
 #endif
   }
 
@@ -1360,9 +1351,9 @@ void pxRasterizer::init(pxBuffer* buffer)
 #endif
 
 #ifndef EDGECLEANUP
-  mEdgeArray = (void*) new edge[200000];  // blech more than 1000 edges?
-  miStarts = (void*) new edge*[200000];
-  miEnds = (void*) new edge*[200000];
+  mEdgeArray = (void*) new edge [MINEDGES];  // blech more than 1000 edges?
+  miStarts   = (void*) new edge*[MINEDGES];
+  miEnds     = (void*) new edge*[MINEDGES];
 #else
   if (!mEdgeManager)
     mEdgeManager = new edgeManager;
@@ -1376,8 +1367,9 @@ void pxRasterizer::init(pxBuffer* buffer)
   setAlpha(1.0);
   //mYOversample = 2;
 
-  setYOversample(16);
+  setYOversample(4);
   mXResolution = 16;
+
   mFillMode = fillWinding;
   //  mFillMode = fillEvenOdd;
 
@@ -1394,22 +1386,21 @@ void pxRasterizer::term()
   edge** iEnds = (edge**)miEnds;
   edge* edgeArray = (edge*)mEdgeArray;
 
-  delete miStarts;
-  miStarts = NULL;
-  delete iEnds;
-  miEnds = NULL;
-  delete edgeArray;
-  mEdgeArray = NULL;
+  SAFE_DELETE(miStarts);
+  SAFE_DELETE(iEnds);
+  SAFE_DELETE(edgeArray);
+
 #else
 #if 0
   // edgeManager destructor not freeing everything
   edgeManager* edgeMgr = (edgeManager*)mEdgeManager;
-  delete edgeMgr;
-  edgeMgr = NULL;
+  
+  SAFE_DELETE(edgeMgr);
+  
 #endif
 #endif
-  delete mCoverage;
-  mCoverage = NULL;
+  SAFE_DELETE(mCoverage);
+
 }
 
 void pxRasterizer::reset()
@@ -2382,8 +2373,9 @@ void pxRasterizer::rasterizeComplex()
       mBuffer->width() != mCachedBufferWidth)
   {
     //setClip(NULL);
-    delete mCoverage;
-    mCoverage = NULL;
+    
+    SAFE_DELETE(mCoverage);
+
 
 #ifndef USELONGCOVERAGE
     mCoverage = new unsigned char[mBuffer->width()];
@@ -2977,8 +2969,7 @@ void pxRasterizer::rasterizeComplex()
 #endif
                       }
 
-#endif
-                             
+#endif                             
                                 
                       int32_t textureOffset = startSpan-(leftTexture.mCurrentX >> UVFIXEDSHIFT);
 
@@ -3678,18 +3669,22 @@ void pxRasterizer::clear()
   {
     edgeManager* edgeMgr = (edgeManager*)mEdgeManager;
     edgeMgr->init(mBuffer->height() * mYOversample);
+    
     mClipInternal = mBuffer->bounds();
+    
     if (mClipValid)
       mClipInternal.intersect(mClip);
     mClipInternalCalculated = true;
 //        mSpanBuffer.init(mBuffer->width()<<4, mBuffer->height());        
   }
   pxRect br = mClipInternal;
-  pxColor c;
-  c.r = c.g = c.b = c.a = 0;
+  pxColor c(0,0,0,0); // rgba
+  
   mBuffer->fill(br, c);
+  
   br.setLeft(br.left() << 4);
   br.setRight(br.right() << 4);
+  
   mSpanBuffer.init(br);
 }
 
