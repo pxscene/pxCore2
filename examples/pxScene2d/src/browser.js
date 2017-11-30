@@ -225,19 +225,18 @@ px.import({ scene:      'px:scene.1.js',
         e.stopPropagation();
     }
     }
-    else
-    if( code == keys.ENTER)
+    else if( code == keys.ENTER && inputBox.focus == true)
     {
       url = inputBox.text;
       inputBox.moveToEnd();
 
       reload(url);
-     }
-     else
-     {
-       inputBox.textColor = urlFocusColor;
-       inputBox.showCursor();
-     }
+    }
+    else
+    {
+      inputBox.textColor = urlFocusColor;
+      inputBox.showCursor();
+    }
   });
 
   scene.on("onResize", function(e) { updateSize(e.w,e.h); });
