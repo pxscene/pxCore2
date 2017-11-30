@@ -5,6 +5,7 @@
 
 typedef unsigned int uint32_t;
 typedef int wl_fixed_t;
+typedef unsigned long long int 	uint64_t;
 
 typedef struct _WstRect
 {
@@ -59,7 +60,7 @@ typedef enum _WstHints
 typedef void (*WstTerminatedCallback)( WstCompositor *ctx, void *userData );
 typedef void (*WstDispatchCallback)( WstCompositor *ctx, void *userData );
 typedef void (*WstInvalidateSceneCallback)( WstCompositor *ctx, void *userData );
-typedef void (*WstDecodeHandlerCallback)( WstCompositor *ctx, void *userData, uint32_t decoderHandle);
+typedef void (*WstDecodeHandlerCallback)( WstCompositor *ctx, void *userData, uint64_t decoderHandle);
 typedef void (*WstHidePointerCallback)( WstCompositor *ctx, bool hidePointer, void *userData );
 typedef void (*WstClientStatus)( WstCompositor *ctx, int status, int clientPID, int detail, void *userData );
 

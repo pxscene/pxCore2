@@ -34,8 +34,10 @@ rtThreadPool::rtThreadPool(int numberOfThreads) : rtThreadPoolNative(numberOfThr
 
 rtThreadPool::~rtThreadPool()
 {
-  delete mGlobalInstance;
-  mGlobalInstance = NULL;
+  if (mGlobalInstance == this)
+  {
+    mGlobalInstance = NULL;
+  }
 }
 
 rtThreadPool* rtThreadPool::globalInstance()
