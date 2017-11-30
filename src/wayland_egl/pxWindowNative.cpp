@@ -383,7 +383,7 @@ void displayRef::cleanupWaylandDisplay()
 bool exitFlag = false;
 
 pxWindowNative::pxWindowNative(): mTimerFPS(0), mLastWidth(-1), mLastHeight(-1),
-    mResizeFlag(false), mLastAnimationTime(0.0), mVisible(false),
+    mResizeFlag(false), mLastAnimationTime(0.0), mVisible(false), mDirty(true),
     mWaylandSurface(NULL), mWaylandBuffer(), waylandBufferIndex(0)
 {
 }
@@ -436,6 +436,7 @@ void pxWindowNative::invalidateRectInternal(pxRect *r)
 {
     //rendering for egl is now handled inside of onWindowTimerFired()
     //drawFrame();
+  mDirty = true;
 }
 
 bool pxWindow::visibility()
@@ -586,7 +587,12 @@ void pxWindowNative::runEventLoop()
            pxWindowNative* w = (*i);
            w->animateAndRender();
         }
-        wl_display_dispatch_pending(display->display);
+        while (wl_display_prepare_read(display->display) < 0)
+        {
+          wl_display_dispatch_pending(display->display);
+        }
+        wl_display_flush(display->display);
+        wl_display_read_events(display->display);
         double delay = pxMicroseconds();
         double nextWakeUp = wakeUpBase + offsets[ frameNo ];
         while( delay > nextWakeUp ) {
@@ -823,7 +829,7 @@ waylandBuffer* pxWindowNative::nextBuffer()
 
 void pxWindowNative::animateAndRender()
 {
-    drawFrame(); 
+    drawFrame();
 
     if (mResizeFlag)
     {
@@ -847,6 +853,10 @@ double pxWindowNative::getLastAnimationTime()
 
 void pxWindowNative::drawFrame()
 {
+    if (!mDirty)
+    {
+      return;
+    }
     displayRef dRef;
 
     waylandDisplay* wDisplay = dRef.getDisplay();
@@ -856,6 +866,7 @@ void pxWindowNative::drawFrame()
     d.windowHeight = mLastHeight;
     waylandBuffer *buffer = nextBuffer();
     d.pixelData = (uint32_t*)buffer->shm_data;
+
 
     onDraw(&d);
 
@@ -872,6 +883,7 @@ void pxWindowNative::drawFrame()
         wl_surface_set_opaque_region(waylandSurface, NULL);
     }
     eglSwapBuffers(wDisplay->egl.dpy, mEglSurface);
+    mDirty = false;
 }
 
 //egl methods
