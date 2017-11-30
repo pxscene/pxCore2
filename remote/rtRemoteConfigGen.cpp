@@ -1,3 +1,4 @@
+#include <functional>
 #include <exception>
 #include <memory>
 #include <map>

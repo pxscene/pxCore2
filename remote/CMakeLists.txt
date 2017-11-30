@@ -15,7 +15,7 @@ option(BUILD_RTREMOTE_SAMPLE_APP_SIMPLE "BUILD_RTREMOTE_SAMPLE_APP_SIMPLE" OFF)
 option(ENABLE_RTREMOTE_DEBUG "ENABLE_RTREMOTE_DEBUG" OFF)
 option(ENABLE_RTREMOTE_PROFILE "ENABLE_RTREMOTE_PROFILE" OFF)
 
-set(RTREMOTE_SOURCE_FILES rtRemoteServer.cpp  rtRemoteObject.cpp
+set(RTREMOTE_SOURCE_FILES rtremote.conf.gen rtRemoteConfig.h rtRemoteServer.cpp rtRemoteObject.cpp
         rtRemoteFunction.cpp rtRemoteMessage.cpp rtRemoteClient.cpp rtRemoteValueReader.cpp
         rtRemoteValueWriter.cpp rtRemoteSocketUtils.cpp rtRemoteStream.cpp
         rtRemoteObjectCache.cpp rtRemote.cpp rtRemoteConfig.cpp rtRemoteFactory.cpp
@@ -26,12 +26,32 @@ set(RTREMOTE_SOURCE_FILES rtRemoteServer.cpp  rtRemoteObject.cpp
         rtRemoteEndpointHandleStreamServer.cpp)
 
 add_definitions(-DRAPIDJSON_HAS_STDSTRING -DRT_PLATFORM_LINUX -DRT_REMOTE_LOOPBACK_ONLY)
-include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src)
+include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_BINARY_DIR})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
 set(LIBRARY_LINKER_OPTIONS -pthread -ldl -luuid -Wl,-rpath=../../,--enable-new-dtags)
 set(RTREMOTE_LINK_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_SOURCE_DIR}/../build/glut ${CMAKE_CURRENT_SOURCE_DIR}/../build/egl)
+
+add_executable(rtRemoteConfigGen rtRemoteConfigGen.cpp)
+set_target_properties(rtRemoteConfigGen
+                      PROPERTIES
+                      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+
+add_custom_command(OUTPUT rtremote.conf.gen
+                   DEPENDS rtRemoteConfigGen rtremote.conf.ac
+                   COMMENT "Generating rtremote.conf.gen"
+                   COMMAND rtRemoteConfigGen -i ${CMAKE_CURRENT_SOURCE_DIR}/rtremote.conf.ac -c -o ${CMAKE_CURRENT_BINARY_DIR}/rtremote.conf.gen)
+
+add_custom_command(OUTPUT rtRemoteConfig.h
+                   DEPENDS rtRemoteConfigGen rtremote.conf.ac
+                   COMMENT "Generating rtRemoteConfig.h"
+                   COMMAND rtRemoteConfigGen -i ${CMAKE_CURRENT_SOURCE_DIR}/rtremote.conf.ac -h -o ${CMAKE_CURRENT_BINARY_DIR}/rtRemoteConfig.h)
+
+add_custom_command(OUTPUT rtRemoteConfigBuilder.cpp
+                   DEPENDS rtRemoteConfigGen rtremote.conf.ac
+                   COMMENT "Generating rtRemoteConfigBuilder.cpp"
+                   COMMAND rtRemoteConfigGen -i ${CMAKE_CURRENT_SOURCE_DIR}/rtremote.conf.ac -s -o ${CMAKE_CURRENT_BINARY_DIR}/rtRemoteConfigBuilder.cpp)
 
 if (ENABLE_RTREMOTE_DEBUG)
     message("Enabling rtRemote debug")
@@ -63,7 +83,7 @@ endif (BUILD_RTREMOTE_STATIC_LIB)
 if (BUILD_RTREMOTE_SAMPLE_APP_SHARED)
     message ("Building rtRemote sample app using shared library")
     link_directories(${RTREMOTE_LINK_DIRECTORIES})
-    add_executable(rtremote_sample_app_shared rpc_main.cpp)
+    add_executable(rtremote_sample_app_shared rtRemoteConfig.h rpc_main.cpp)
     set_target_properties(rtremote_sample_app_shared PROPERTIES OUTPUT_NAME "rpcSampleApp")
     target_link_libraries(rtremote_sample_app_shared ${LIBRARY_LINKER_OPTIONS} -lrtCore rtremote_shared -luuid)
     target_compile_definitions(rtremote_sample_app_shared PRIVATE RT_PLATFORM_LINUX RAPIDJSON_HAS_STDSTRING)
@@ -72,7 +92,7 @@ endif (BUILD_RTREMOTE_SAMPLE_APP_SHARED)
 if (BUILD_RTREMOTE_SAMPLE_APP_STATIC)
     message ("Building rtRemote sample app using static library")
     link_directories(${RTREMOTE_LINK_DIRECTORIES})
-    add_executable(rtremote_sample_app_static rpc_main.cpp)
+    add_executable(rtremote_sample_app_static rtRemoteConfig.h rpc_main.cpp)
     set_target_properties(rtremote_sample_app_static PROPERTIES OUTPUT_NAME "rpcSampleApp_s")
     target_link_libraries(rtremote_sample_app_static ${LIBRARY_LINKER_OPTIONS} -lrtCore_s rtremote_static -luuid)
 endif (BUILD_RTREMOTE_SAMPLE_APP_STATIC)

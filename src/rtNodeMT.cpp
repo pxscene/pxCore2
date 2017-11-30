@@ -879,7 +879,7 @@ void rtNode::init(int argc, char** argv)
 //    V8::InitializePlatform(mPlatform);
 
 #ifdef ENABLE_NODE_V_6_9
-   printf("using node version 6.9\n");
+   printf("using node version %s\n", NODE_VERSION);
    V8::InitializeICU();
    V8::InitializeExternalStartupData(argv[0]);
    Platform* platform = platform::CreateDefaultPlatform();

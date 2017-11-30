@@ -33,6 +33,7 @@ private:
   std::condition_variable                         m_streams_cond;
   int                                             m_shutdown_pipe[2];
   rtRemoteEnvironment*                            m_env;
+  bool                                            m_running;
 };
 
 #endif

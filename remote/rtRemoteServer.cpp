@@ -1,6 +1,7 @@
 #include "rtRemoteServer.h"
 #include "rtRemoteCorrelationKey.h"
 #include "rtRemoteEnvironment.h"
+#include "rtRemoteFunction.h"
 #include "rtRemoteObject.h"
 #include "rtRemoteObjectCache.h"
 #include "rtRemoteSocketUtils.h"
@@ -767,7 +768,9 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
     {
       err = obj->Get(name, &value);
       if (err != RT_OK)
-        rtLogWarn("failed to get property: %s", name);
+      {
+        rtLogWarn("failed to get property: %s. %s", name, rtStrError(err));
+      }
     }
     else
     {
@@ -783,9 +786,18 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
         val.SetObject();
         val.AddMember(kFieldNameObjectId, std::string(objectId), res->GetAllocator());
         if (name)
-          val.AddMember(kFieldNameFunctionName, std::string(name), res->GetAllocator());
+        {
+          rtFunctionRef ref = value.toFunction();
+          rtRemoteFunction* remoteFunc = dynamic_cast<rtRemoteFunction *>(ref.getPtr());
+          if (remoteFunc != nullptr)
+            val.AddMember(kFieldNameFunctionName, remoteFunc->getName(), res->GetAllocator());
+          else
+            val.AddMember(kFieldNameFunctionName, std::string(name), res->GetAllocator());
+        }
         else
+        {
           val.AddMember(kFieldNameFunctionIndex, index, res->GetAllocator());
+        }
         val.AddMember(kFieldNameValueType, static_cast<int>(RT_functionType), res->GetAllocator());
       }
       else
@@ -837,7 +849,7 @@ rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
     RT_ASSERT(itr != doc->MemberEnd());
 
     if (itr != doc->MemberEnd())
-      err = rtRemoteValueReader::read(value, itr->value, client);
+      err = rtRemoteValueReader::read(m_env, value, itr->value, client);
 
     if (err == RT_OK)
     {
@@ -910,7 +922,7 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtRemoteMe
         for (rapidjson::Value::ConstValueIterator itr = args.Begin(); itr != args.End(); ++itr)
         {
           rtValue arg;
-          rtRemoteValueReader::read(arg, *itr, client);
+          rtRemoteValueReader::read(m_env, arg, *itr, client);
           argv.push_back(arg);
         }
       }

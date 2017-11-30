@@ -94,6 +94,7 @@ private:
       s = m_stream;
     return s;
   }
+  rtError checkStream();
 
   std::shared_ptr<rtRemoteStream>           m_stream;
   std::vector<std::string>                  m_objects;
