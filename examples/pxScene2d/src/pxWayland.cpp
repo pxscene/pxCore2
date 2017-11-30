@@ -615,11 +615,11 @@ void pxWayland::invalidate( WstCompositor *wctx, void *userData )
    pxw->handleInvalidate();
 }
 
-void pxWayland::decoderHandleCallback( WstCompositor *wctx, void *userData, void* decodeHandle)
+void pxWayland::decoderHandleCallback( WstCompositor *wctx, void *userData, uint64_t decodeHandle)
 {
    (void)wctx;
    pxWayland *pxw= (pxWayland*)userData;
-   pxw->setDecoderHandle(decodeHandle);
+   pxw->setDecoderHandle((void*)decodeHandle);
 }
 
 void pxWayland::hidePointer( WstCompositor *wctx, bool hide, void *userData )

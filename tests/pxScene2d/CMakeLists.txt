@@ -106,9 +106,9 @@ endif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
 add_definitions(-D${PX_PLATFORM} -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE -DENABLE_ACCESS_CONTROL_CHECK)
 
-set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_example.cpp test_api.cpp  test_pxcontext.cpp test_memoryleak.cpp test_rtnode.cpp
+set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_example.cpp test_api.cpp  test_pxcontext.cpp test_memoryleak.cpp test_rtnode.cpp test_rtMutex.cpp
     test_pxAnimate.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_rtValue.cpp test_pxImage.cpp test_pxOffscreen.cpp test_pxMatrix4T.cpp
-    test_pxWindowUtil.cpp test_pxTexture.cpp test_pxWindow.cpp test_ioapi.cpp
+    test_pxWindowUtil.cpp test_pxTexture.cpp test_pxWindow.cpp test_ioapi.cpp test_rtLog.cpp
     test_rtUrlUtils.cpp test_permissionsBootstrap.cpp test_permissionsMap.cpp test_permissionsUse.cpp test_wildcards.cpp
     ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
 
