@@ -252,8 +252,10 @@ NSOpenGLContext *openGLContext;
     enableMultisample = YES;
       
     // Register for Drag'n'Drop events
-    [self registerForDraggedTypes:[NSArray arrayWithObjects:NSTIFFPboardType,
-                                 NSFilenamesPboardType, nil]];
+    [self registerForDraggedTypes:@[NSFilenamesPboardType,
+                                    NSPasteboardTypeString,
+                                    NSURLPboardType
+                                    ]];
   }
   
   [pf release];
@@ -751,18 +753,35 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
      method called whenever a drag enters our drop zone
      --------------------------------------------------------*/
     
-    if ( pboard && [[pboard types] containsObject:NSFilenamesPboardType] )
+    if ( pboard )
     {
+      if( [[pboard types] containsObject:NSPasteboardTypeString] )
+      {
+        NSLog(@" Got STRING ");
+        
         if (sourceDragMask & NSDragOperationLink)
         {
-            return NSDragOperationLink;
+          return NSDragOperationLink;
         }
         else if (sourceDragMask & NSDragOperationCopy)
         {
-            return NSDragOperationCopy;
+          return NSDragOperationCopy;
         }
+      }
+      else
+      if( [[pboard types] containsObject:NSFilenamesPboardType] )
+      {
+          if (sourceDragMask & NSDragOperationLink)
+          {
+              return NSDragOperationLink;
+          }
+          else if (sourceDragMask & NSDragOperationCopy)
+          {
+              return NSDragOperationCopy;
+          }
+      }
     }
-    
+
     return NSDragOperationNone;
 }
 
@@ -795,25 +814,36 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
      --------------------------------------------------------*/
     if ( [sender draggingSource] != self )
     {
-        //if the drag comes from a file, set the window title to the filename
-        NSURL      *fileURL = [NSURL URLFromPasteboard: [sender draggingPasteboard]];
-        NSString  *filePath = [fileURL path];
-        NSString  *dropURL  = [NSString stringWithFormat:@"file://%@", filePath ];
-        
-//        NSLog(@"DRAG'n'DROP >>> %@", filePath);
-//        NSLog(@"DRAG'n'DROP >>> %@ << String", fileURL.absoluteString );
-//        NSLog(@"DRAG'n'DROP >>> %@", dropURL);
-        
-        pxClipboardNative *clip = pxClipboardNative::instance();
-        
-        clip->setString("TEXT", [dropURL UTF8String]);
-        
-        pxWindowNative::_helper_onKeyDown(mWindow, 86, 16);  // Fake a CTRL-V
-        
-        // Steal App Focus - become active App...
-        [[NSRunningApplication currentApplication] activateWithOptions:(NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
-        
-        return YES;
+        NSURL *fileURL = [NSURL URLFromPasteboard: [sender draggingPasteboard]];
+      
+        if(fileURL)
+        {
+          // Handle Drag'n'Dropped >> FILE
+          //
+          NSString  *filePath = [fileURL path];
+          NSString  *dropURL  = [NSString stringWithFormat:@"file://%@", filePath ];
+          
+          pxClipboardNative *clip = pxClipboardNative::instance();
+          
+          clip->setString("TEXT", [dropURL UTF8String]);
+      }
+      else
+      {
+          // Handle Drag'n'Dropped >> TEXT
+          //
+          NSString *text = [[sender draggingPasteboard] stringForType:NSPasteboardTypeString];
+
+          pxClipboardNative *clip = pxClipboardNative::instance();
+
+          clip->setString("TEXT", [text UTF8String]);
+      }
+      
+      pxWindowNative::_helper_onKeyDown(mWindow, 86, 16);  // Fake a CTRL-V
+      
+      // Steal App Focus - become active App...
+      [[NSRunningApplication currentApplication] activateWithOptions:(NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
+      
+      return YES;
     }
     
     return NO;
