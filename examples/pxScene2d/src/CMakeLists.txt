@@ -126,7 +126,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         if (BUILD_WITH_WINDOWLESS_EGL)
             message("Building pxscene for windowless EGL")
             set(PX_PLATFORM PX_PLATFORM_GENERIC_EGL)
-            set(PXSCENE_ADDITIONAL_RESOURCES ${PXSCENE_ADDITIONAL_RESOURCES} ${PXCOREDIR}/src/gles/pxWindowNative.cpp
+            set(PXSCENE_ADDITIONAL_RESOURCES ${PXSCENE_ADDITIONAL_RESOURCES} ${PXCOREDIR}/src/gles/pxWindowNative.cpp 
                   ${PXCOREDIR}/src/gles/LinuxInputEventDispatcher.cpp)
         elseif (BUILD_PXSCENE_WAYLAND_EGL)
             message("Building pxscene with wayland windows")
@@ -151,7 +151,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
             set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODEDIR}/out/Release/obj.target/deps/gtest )
             set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODEDIR}/out/Release/obj.target/deps/zlib )
            # libnode.a libv8_base.a libcares-libnode.a libhttp_parser.a libuv.a libv8_base.a libv8_libbase.a libv8_nosnapshot.a libv8_libplatform.a libv8_inspector_stl.a
-
+            
             set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} node v8_base cares http_parser uv v8_base v8_libbase v8_nosnapshot v8_libplatform v8_inspector_stl gtest zlib )
         else()
             set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} node v8_libplatform )
