@@ -17,6 +17,7 @@
 #include <fcntl.h> //for files
 #include <unistd.h>
 #include <signal.h>
+#include <poll.h>
 #include <vector>
 
 #define WAYLAND_EGL_BUFFER_SIZE 32
@@ -571,16 +572,16 @@ void pxWindowNative::runEventLoop()
 
     rtLogInfo("pxcore framerate: %d", framerate);
 
-    uint64_t* offsets = new  uint64_t[ framerate ];
-    for( int i = 0; i < framerate; ++i )
-        offsets[ i ] = (i*1000000+framerate-1)/framerate;
-
-    int frameNo = 1;
-    double wakeUpBase = pxMicroseconds();
-    int count = 0, lastCount = -1;
+    pollfd fileDescriptors[1];
+    fileDescriptors[0].fd = wl_display_get_fd(display->display);
+    fileDescriptors[0].events = POLLIN;
+    int pollResult = 0;
+    int pollTimeout = 1000 / framerate;
+    double maxSleepTime = (1000 / framerate) * 1000;
+    rtLogInfo("max sleep time in microseconds: %f", maxSleepTime);
     while(!exitFlag)
     {
-        count++;
+        double startMicroseconds = pxMicroseconds();
         std::vector<pxWindowNative*>::iterator i;
         for (i = windowVector.begin(); i < windowVector.end(); i++)
         {
@@ -592,22 +593,25 @@ void pxWindowNative::runEventLoop()
           wl_display_dispatch_pending(display->display);
         }
         wl_display_flush(display->display);
-        wl_display_read_events(display->display);
-        double delay = pxMicroseconds();
-        double nextWakeUp = wakeUpBase + offsets[ frameNo ];
-        while( delay > nextWakeUp ) {
-            frameNo++;
-            if( frameNo >= framerate ) {
-                count = 0;
-                wakeUpBase += 1000000;
-                frameNo = 0;
-            }
-            nextWakeUp = wakeUpBase + offsets[ frameNo ];
+
+        pollResult = poll(fileDescriptors, 1, pollTimeout);
+        if (pollResult <= 0)
+          wl_display_cancel_read(display->display);
+        else
+          wl_display_read_events(display->display);
+
+        wl_display_dispatch_pending(display->display);
+        double processTime = (int)pxMicroseconds() - (int)startMicroseconds;
+        if (processTime < 0)
+        {
+          processTime = 0;
         }
-        delay = nextWakeUp - delay;
-        usleep( delay );
+        if (processTime < maxSleepTime)
+        {
+          int sleepTime = (int)maxSleepTime-(int)processTime;
+          usleep(sleepTime);
+        }
     }
-    delete [] offsets;
 }
 
 
