@@ -134,6 +134,7 @@ clean:
 	rm -f rtremote.conf.gen
 	rm -f rtremote.conf
 	rm -f rtRemoteConfig.h
+	rm -f rtRemoteConfigBuilder.cpp
 
 perftest:
 	$(MAKE) -C tests perftest
