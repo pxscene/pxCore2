@@ -14,6 +14,53 @@
  * limitations under the License.
  */
 #include "rtRemote.h"
+#include <thread>
+#include <unistd.h>
+#include <assert.h>
+
+
+class TestObject : public rtObject
+{
+  rtDeclareObject(TestObject, rtObject);
+public:
+  rtProperty(count, getCount, setCount, int);
+  rtError getCount(int& n) const { n = m_count; return RT_OK; }
+  rtError setCount(int  n) { m_count = n; return RT_OK; }
+private:
+  int m_count;
+};
+
+rtDefineObject(TestObject, rtObject);
+rtDefineProperty(TestObject, count);
+
+rtObjectRef obj;
+
+void run()
+{
+  int n = 0;
+  rtError e;
+  rtValue val;
+
+  while (true)
+  {
+    val = n++;
+
+    e = obj->Set("prop", &val);
+    if (e != RT_OK)
+    {
+      rtLogInfo("Set:%s", rtStrError(e));
+      assert(false);
+    }
+    usleep(1000 * 100);
+
+    e = obj->Get("prop", &val);
+    if (e != RT_OK)
+    {
+      rtLogInfo("Get:%s - %d", rtStrError(e), val.toInt32());
+      assert(false);
+    }
+  }
+}
 
 rtError
 upload_complete(int argc, rtValue const* argv, rtValue* result, void* argp)
@@ -22,14 +69,16 @@ upload_complete(int argc, rtValue const* argv, rtValue* result, void* argp)
   rtLogInfo("upload_complete");
   rtLogInfo("argc:%d", argc);
   rtLogInfo("argv[0]:%s", argv[0].toString().cString());
+
+  (void) result;
+  (void) argp;
+
   return RT_OK;
 }
 
 
 int main(int /*argc*/, char* /*argv*/ [])
 {
-  rtLogSetLevel(RT_LOG_INFO);
-
   rtError e;
   rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
   e = rtRemoteInit(env);
@@ -40,18 +89,34 @@ int main(int /*argc*/, char* /*argv*/ [])
   }
 
   // find object
-  rtObjectRef obj;
   while ((e = rtRemoteLocateObject(env, "some_name", obj)) != RT_OK)
   {
     rtLogInfo("still looking:%s", rtStrError(e));
   }
 
-  obj.set("onUploadComplete", new rtFunctionCallback(upload_complete));
+  rtFunctionRef callback(new rtFunctionCallback(upload_complete));
+  obj.set("onUploadComplete", callback);
+
+  rtObjectRef big(new TestObject());
+  obj.set("bigprop", big);
+
+  // std::thread t(run);
 
   while (true)
   {
-    e = rtRemoteRunUntil(env, 30000);
-    rtLogInfo("rtRemoteRunUntil:%s", rtStrError(e));
+    rtValue val;
+    #if 0
+    e = obj->Get("onUploadComplete", &val);
+    rtLogInfo("Get:%s", rtStrError(e));
+    rtLogInfo("Type:%s", val.getTypeStr());
+    rtLogInfo("Addr:%p", val.toFunction().getPtr());
+    #endif
+    e = obj->Get("bigprop", &val);
+    rtLogInfo("get  :%s", rtStrError(e));
+    rtLogInfo("type :%s", val.getTypeStr());
+    rtLogInfo("addr :%p", val.toObject().getPtr());
+    rtRemoteRunUntil(env, 1000);
+    sleep(1);
   }
   return 0;
 }

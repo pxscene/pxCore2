@@ -3,7 +3,7 @@
 var hasExtension = require('rcvrcore/utils/FileUtils').hasExtension;
 
 var Logger = require('rcvrcore/Logger').Logger;
-var log = new Logger('rcvrcore/XModule');
+var log = new Logger('XModule');
 
 function XModule(name, appSceneContext, basePath, jarName) {
   log.message(5, "Create new XModule for " + name);
@@ -78,9 +78,7 @@ XModule.prototype.importModule = function(requiredModuleSet, params) {
 };
 
 XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, failedCallback, params) {
-    var isSingleStringImportType = false;
-
-    log.message('XModule.prototype._importModule');
+  var isSingleStringImportType = false;
 
   if( readyCallBack === undefined ) {
     console.trace("WARNING: " + 'prepareModule was did not have resolutionCallback parameter: USAGE: prepareModule(requiredModules, readyCallback, [failedCallback])');

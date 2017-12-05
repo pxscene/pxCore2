@@ -1,4 +1,4 @@
-/*
+﻿/*
 
  pxCore Copyright 2005-2017 John Robinson
 
@@ -161,10 +161,18 @@ public:
       snprintf(buffer,sizeof(buffer),"shell.js?url=%s",escapedUrl.c_str());
     }
 #ifdef RUNINMAIN
-    setView( new pxScriptView(buffer));
+    setView( new pxScriptView(buffer,"javascript/node/v8"));
 #else
-    // unimplemented
-    assert(0);
+    pxScriptView * scriptView = new pxScriptView(buffer, "javascript/node/v8");
+    rtLogInfo("new scriptView is %x\n",scriptView);
+    AsyncScriptInfo * info = new AsyncScriptInfo();
+    info->m_pView = scriptView;
+    uv_mutex_lock(&moreScriptsMutex);
+    scriptsInfo.push_back(info);
+    uv_mutex_unlock(&moreScriptsMutex);
+    rtLogDebug("sceneWindow::script is pushed on vector\n");
+    uv_async_send(&asyncNewScript);
+    setView(scriptView);
 #endif
   }
 
@@ -422,7 +430,11 @@ int pxMain(int argc, char* argv[])
   uv_mutex_init(&moreScriptsMutex);
   uv_mutex_init(&threadMutex);
 
-  script.initializeNode();
+  // Start script thread
+  uv_queue_work(nodeLoop, &nodeLoopReq, nodeThread, nodeIsEndingCallback);
+  // init asynch that will get notifications about new scripts
+  uv_async_init(nodeLoop, &asyncNewScript, processNewScript);
+  uv_async_init(nodeLoop, &gcTrigger,garbageCollect);
 
 #endif
 char const* s = getenv("PX_DUMP_MEMUSAGE");

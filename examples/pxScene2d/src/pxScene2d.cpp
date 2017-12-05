@@ -21,6 +21,7 @@
 #include "pxScene2d.h"
 
 #include <math.h>
+#include <assert.h>
 
 #include "rtLog.h"
 #include "rtRef.h"
@@ -99,7 +100,6 @@ uint32_t gFboBindCalls;
 #include <stdint.h>
 #include <stdlib.h>
 
-
 #ifdef ENABLE_RT_NODE
 extern void rtWrapperSceneUpdateEnter();
 extern void rtWrapperSceneUpdateExit();
@@ -139,11 +139,15 @@ int pxObjectCount = 0;
 
 // store the mapping between wayland app names and binary paths
 map<string, string> gWaylandAppsMap;
+map<string, string> gWaylandRegistryAppsMap;
+map<string, string> gPxsceneWaylandAppsMap;
 static bool gWaylandAppsConfigLoaded = false;
 #define DEFAULT_WAYLAND_APP_CONFIG_FILE "./waylandregistry.conf"
+#define DEFAULT_ALL_APPS_CONFIG_FILE "./pxsceneappregistry.conf"
 
 void populateWaylandAppsConfig()
 {
+  //populate from the wayland registry file
   FILE* fp = NULL;
   char const* s = getenv("WAYLAND_APPS_CONFIG");
   if (s)
@@ -167,7 +171,7 @@ void populateWaylandAppsConfig()
   if (!result)
   {
     rapidjson::ParseErrorCode e = doc.GetParseError();
-    rtLogInfo("Wayland config read error : [JSON parse error while reading waylandregistry.conf: %s (%ld)]\n",rapidjson::GetParseError_En(e), result.Offset());
+    rtLogInfo("Wayland config read error : [JSON parse error while reading waylandregistry.conf: %s (%zu)]\n",rapidjson::GetParseError_En(e), result.Offset());
     fclose(fp);
     return;
   }
@@ -184,14 +188,15 @@ void populateWaylandAppsConfig()
   {
     if (appList[i].IsObject())
     {
-      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("binary")) && (appList[i]["binary"].IsString()))
+      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("binary")) &&
+          (appList[i]["binary"].IsString()))
       {
         string appName = appList[i]["name"].GetString();
         string binary = appList[i]["binary"].GetString();
         if ((appName.length() != 0) && (binary.length() != 0))
         {
-          gWaylandAppsMap[appName] = binary;
-          rtLogInfo("Mapped wayland app [%s] to path [%s] \n",appName.c_str(),binary.c_str());
+          gWaylandRegistryAppsMap[appName] = binary;
+          rtLogInfo("Mapped wayland app [%s] to path [%s] \n", appName.c_str(), binary.c_str());
         }
         else
         {
@@ -201,6 +206,73 @@ void populateWaylandAppsConfig()
       else
       {
         rtLogInfo("Wayland config read error : [one of the entry not added due to name/binary not present]\n");
+      }
+    }
+  }
+}
+
+void populateAllAppsConfig()
+{
+  //populate from the apps registry file
+  FILE* fp = NULL;
+  char const* s = getenv("PXSCENE_APPS_CONFIG");
+  if (s)
+  {
+    fp = fopen(s, "rb");
+  }
+  if (NULL == fp)
+  {
+    fp = fopen(DEFAULT_ALL_APPS_CONFIG_FILE, "rb");
+    if (NULL == fp)
+    {
+      rtLogInfo("pxscene app config read error : [unable to read all apps config file]\n");
+      return;
+    }
+  }
+  char readBuffer[65536];
+  memset(readBuffer, 0, sizeof(readBuffer));
+  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+  rapidjson::Document doc;
+  rapidjson::ParseResult result = doc.ParseStream(is);
+  if (!result)
+  {
+    rapidjson::ParseErrorCode e = doc.GetParseError();
+    rtLogInfo("pxscene app config read error : [JSON parse error while reading all apps conf file: %s (%zu)]\n",rapidjson::GetParseError_En(e), result.Offset());
+    fclose(fp);
+    return;
+  }
+  fclose(fp);
+
+  if (! doc.HasMember("applications"))
+  {
+    rtLogInfo("pxscene apps config read error : [applications element not found]\n");
+    return;
+  }
+
+  const rapidjson::Value& appList = doc["applications"];
+  for (rapidjson::SizeType i = 0; i < appList.Size(); i++)
+  {
+    if (appList[i].IsObject())
+    {
+      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("uri")) &&
+          (appList[i]["uri"].IsString()) && (appList[i].HasMember("type")) && (appList[i]["type"].IsString()))
+      {
+        string appName = appList[i]["name"].GetString();
+        string binary = appList[i]["uri"].GetString();
+        string type = appList[i]["type"].GetString();
+        if ((appName.length() != 0) && (binary.length() != 0) && (type == "native"))
+        {
+          gPxsceneWaylandAppsMap[appName] = binary;
+          rtLogInfo("Mapped wayland app [%s] to path [%s] \n", appName.c_str(), binary.c_str());
+        }
+        else
+        {
+          rtLogInfo("pxscene app config read error : [one of the entry not added due to name/uri is empty].  type=%s\n", type.c_str());
+        }
+      }
+      else
+      {
+        rtLogInfo("pxscene config read error : [one of the entry not added due to name/uri not present or type is not native]\n");
       }
     }
   }
@@ -638,6 +710,10 @@ rtError pxObject::moveToFront()
   remove();
   setParent(parent);
 
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true;
+
   return RT_OK;
 }
 
@@ -652,9 +728,79 @@ rtError pxObject::moveToBack()
   std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
   parent->mChildren.insert(it, this);
 
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true;
+  
   return RT_OK;
 }
 
+/**
+ * moveForward: Move this child in front of its next closest sibling in z-order, which means 
+ *              moving it toward end of array because last item is at top of z-order 
+ **/ 
+rtError pxObject::moveForward()
+{
+  pxObject* parent = this->parent();
+
+  if(!parent)
+      return RT_OK;
+
+  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin(), it_prev;
+  while( it != parent->mChildren.end() )
+  {
+      if( it->getPtr() == this )
+      {
+        it_prev = it++;
+        break;
+      }
+      it++;
+  }
+
+  if( it == parent->mChildren.end() )
+      return RT_OK;
+
+  std::iter_swap(it_prev, it);
+
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true;  
+
+  return RT_OK;
+}
+
+/**
+ * moveBackward: Move this child behind its next closest sibling in z-order, which means 
+ *               moving it toward beginning of array because first item is at bottom of z-order 
+ **/ 
+rtError pxObject::moveBackward()
+{
+  pxObject* parent = this->parent();
+
+  if(!parent)
+      return RT_OK;
+
+  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin(), it_prev;
+  while( it != parent->mChildren.end() )
+  {
+      if( it->getPtr() == this )
+      {
+          break;
+      }
+      it_prev = it++;
+  }
+  if( it == parent->mChildren.begin() )
+      return RT_OK;
+
+  std::iter_swap(it_prev, it);
+
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true; 
+
+  return RT_OK;
+}
+  
 rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t options,
                             int32_t count, rtObjectRef promise)
@@ -1290,7 +1436,7 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRef<pxObject>& hit
 bool pxObject::hitTest(pxPoint2f& pt)
 {
   // default hitTest checks against object bounds (0, 0, w, h)
-  // Can for more interesting hit tests like alpha
+  // Can override for more interesting hit tests like alpha
   return (pt.x >= 0 && pt.y >= 0 && pt.x <= mw && pt.y <= mh);
 }
 
@@ -1466,12 +1612,6 @@ rtDefineObject(rtPromise, rtObject);
 rtDefineMethod(rtPromise, then);
 rtDefineMethod(rtPromise, resolve);
 rtDefineMethod(rtPromise, reject);
-rtDefineMethod(rtPromise, setResolve);
-rtDefineMethod(rtPromise, setReject);
-rtDefineProperty(rtPromise, promiseId);
-rtDefineProperty(rtPromise, promiseContext);
-rtDefineProperty(rtPromise, val);
-rtDefineProperty(rtPromise, isResolved);
 
 rtDefineObject(pxObject, rtObject);
 rtDefineProperty(pxObject, _pxObject);
@@ -1507,6 +1647,8 @@ rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, removeAll);
 rtDefineMethod(pxObject, moveToFront);
 rtDefineMethod(pxObject, moveToBack);
+rtDefineMethod(pxObject, moveForward);
+rtDefineMethod(pxObject, moveBackward);
 rtDefineMethod(pxObject, releaseResources);
 //rtDefineMethod(pxObject, animateTo);
 #if 0
@@ -1669,8 +1811,10 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
+#ifdef ENABLE_PXSCENE_RASTERIZER_PATH
   else if (!strcmp("path",t.cString()))
     e = createPath(p,o);
+#endif //ENABLE_PXSCENE_RASTERIZER_PATH
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
@@ -1851,7 +1995,6 @@ rtError pxScene2d::logDebugMetrics()
   return RT_OK;
 }
 
-
 rtError pxScene2d::clock(uint64_t & time)
 {
   time = (uint64_t)pxMilliseconds();
@@ -1882,8 +2025,20 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   if (false == gWaylandAppsConfigLoaded)
   {
     populateWaylandAppsConfig();
+#ifndef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+    gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
+#endif // !defined PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
     gWaylandAppsConfigLoaded = true;
   }
+#ifdef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+  gWaylandAppsMap.clear();
+  gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
+  populateAllAppsConfig();
+  gWaylandAppsMap.insert(gPxsceneWaylandAppsMap.begin(), gPxsceneWaylandAppsMap.end());
+  /*for(std::map<string,string>::iterator it = gWaylandAppsMap.begin(); it != gWaylandAppsMap.end(); ++it) {
+   rtLogDebug("key: %s !!!!!", it->first.c_str());
+  }*/
+#endif
   rtRef<pxWaylandContainer> c = new pxWaylandContainer(this);
   c->setView(new pxWayland(true));
   o = c.getPtr();
@@ -2141,6 +2296,10 @@ void pxScene2d::update(double t)
 #ifdef PX_DIRTY_RECTANGLES
       context.pushState();
 #endif //PX_DIRTY_RECTANGLES
+
+      if( mCustomAnimator != NULL ) {
+          mCustomAnimator->Send( 0, NULL, NULL );
+      }
 
 #ifndef DEBUG_SKIP_UPDATE
       mRoot->update(t);
@@ -2649,6 +2808,44 @@ rtError pxScene2d::setShowDirtyRect(bool v)
   return RT_OK;
 }
 
+rtError pxScene2d::customAnimator(rtFunctionRef& v) const
+{
+  v = mCustomAnimator;
+  return RT_OK;
+}
+
+rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
+{
+  static bool customAnimatorSupportEnabled = false;
+
+  //check for custom animator enabled support only once
+  static bool checkForCustomAnimatorSupport = true;
+  if (checkForCustomAnimatorSupport)
+  {
+    char const *s = getenv("PXSCENE_ENABLE_CUSTOM_ANIMATOR");
+    if (s)
+    {
+      int animatorSetting = atoi(s);
+      if (animatorSetting > 0)
+      {
+        customAnimatorSupportEnabled = true;
+      }
+    }
+    checkForCustomAnimatorSupport = false;
+  }
+
+  if (customAnimatorSupportEnabled)
+  {
+    mCustomAnimator = v;
+    return RT_OK;
+  }
+  else
+  {
+    rtLogError("custom animator support is not available");
+    return RT_FAIL;
+  }
+}
+
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
   // Is this a type we support?
@@ -2742,6 +2939,7 @@ rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
+rtDefineProperty(pxScene2d, customAnimator);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
 rtDefineMethod(pxScene2d, logDebugMetrics);
@@ -2901,10 +3099,17 @@ rtError pxSceneContainer::setUrl(rtString url)
 
   mUrl = url;
 #ifdef RUNINMAIN
-    setScriptView(new pxScriptView(url.cString()));
+    setScriptView(new pxScriptView(url.cString(), ""));
 #else
-    // unimplemented
-  assert(0);
+    pxScriptView * scriptView = new pxScriptView(url.cString(),"");
+    AsyncScriptInfo * info = new AsyncScriptInfo();
+    info->m_pView = scriptView;
+    //info->m_pWindow = this;
+    uv_mutex_lock(&moreScriptsMutex);
+    scriptsInfo.push_back(info);
+    uv_mutex_unlock(&moreScriptsMutex);
+    uv_async_send(&asyncNewScript);
+    setScriptView(scriptView);
 #endif
 
   return RT_OK;
@@ -2966,7 +3171,7 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
-pxScriptView::pxScriptView(const char* url)
+pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
      : mWidth(-1), mHeight(-1), mViewContainer(NULL), mRefCount(0)
 {
   rtLogInfo(__FUNCTION__);
@@ -3011,9 +3216,11 @@ void pxScriptView::runScript()
   {
     mGetScene = new rtFunctionCallback(getScene,  this);
     mMakeReady = new rtFunctionCallback(makeReady, this);
+    mGetContextID = new rtFunctionCallback(getContextID, this);
 
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
+    mCtx->add("getContextID", mGetContextID.getPtr());
 
 #ifdef RUNINMAIN
     mReady = new rtPromise();
@@ -3083,6 +3290,36 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
   return RT_FAIL;
 }
 
+
+
+rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+{
+  //rtLogInfo(__FUNCTION__);
+  UNUSED_PARAM(numArgs);
+  UNUSED_PARAM(args);
+
+#ifdef ENABLE_RT_NODE
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+
+    Locker                locker(v->mCtx->getIsolate());
+    Isolate::Scope isolate_scope(v->mCtx->getIsolate());
+    HandleScope     handle_scope(v->mCtx->getIsolate());
+
+    Local<Context> ctx = v->mCtx->getLocalContext();
+    uint32_t ctx_id = GetContextId( ctx );
+
+    if (result)
+    {
+      *result = rtValue(ctx_id);
+      return RT_OK;
+    }
+  }
+#endif //ENABLE_RT_NODE
+
+  return RT_FAIL;
+}
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {

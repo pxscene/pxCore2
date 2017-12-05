@@ -326,11 +326,6 @@ void pxWayland::onUpdate(double t)
 
 void pxWayland::onDraw()
 {
-  if (mSuspended)
-  {
-    // do not draw if the app is in a suspended states
-    return;
-  }
   static pxTextureRef nullMaskRef;
   
   unsigned int outputWidth, outputHeight;
@@ -620,11 +615,11 @@ void pxWayland::invalidate( WstCompositor *wctx, void *userData )
    pxw->handleInvalidate();
 }
 
-void pxWayland::decoderHandleCallback( WstCompositor *wctx, void *userData, void* decodeHandle)
+void pxWayland::decoderHandleCallback( WstCompositor *wctx, void *userData, uint64_t decodeHandle)
 {
    (void)wctx;
    pxWayland *pxw= (pxWayland*)userData;
-   pxw->setDecoderHandle(decodeHandle);
+   pxw->setDecoderHandle((void*)decodeHandle);
 }
 
 void pxWayland::hidePointer( WstCompositor *wctx, bool hide, void *userData )

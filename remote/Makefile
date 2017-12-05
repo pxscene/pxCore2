@@ -49,9 +49,9 @@ ifeq ($V, 1)
   CC_PRETTY = $(CC)
   BUILD_CXX_PRETTY = $(BUILD_CXX)
 else
-  CXX_PRETTY = @echo " [CXX] $<" ; $(CXX)
+  CXX_PRETTY = @echo " [CXX] $@" ; $(CXX)
   LD_PRETTY = @echo "[LINK] $@" ; $(CXX)
-  CC_PRETTY = @echo " [CC] $<" ; $(CC)
+  CC_PRETTY = @echo " [CC] $@" ; $(CC)
   BUILD_CXX_PRETTY = @echo " [CC] $<" ; $(BUILD_CXX)
 endif
 
@@ -152,8 +152,8 @@ rpcSampleApp_s: $(SAMPLEAPP_OBJS) librtRemote_s.a
 
 rpcSampleSimple: librtRemote.so
 	$(CXX_PRETTY) rtSampleClient.cpp -DRT_PLATFORM_LINUX -I. -DRAPIDJSON_HAS_STDSTRING\
-    -o rtSampleClient -I../src -L. -L../build/egl -lrtCore -lrtRemote $(LIBUUID) -std=c++11
+    -o rtSampleClient -I../src -L. -L../build/egl -lrtCore -lrtRemote $(LIBUUID) -std=c++11 -pthread
 	$(CXX_PRETTY) rtSampleServer.cpp -DRT_PLATFORM_LINUX -I. -DRAPIDJSON_HAS_STDSTRING\
-    -o rtSampleServer -I../src -L. -L../build/egl -lrtCore -lrtRemote $(LIBUUID) -std=c++11
+    -o rtSampleServer -I../src -L. -L../build/egl -lrtCore -lrtRemote $(LIBUUID) -std=c++11 -pthread
 
 .PHONY: all debug clean

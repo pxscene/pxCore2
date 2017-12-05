@@ -35,7 +35,9 @@
 #endif
 
 #include "uv.h"
+#include "include/v8.h"
 #include "include/libplatform/libplatform.h"
+//#include "jsbindings/node_headers.h"
 
 #if 1
  #ifndef WIN32
@@ -139,6 +141,38 @@ void nodeIsEndingCallback(uv_work_t *req, int status)
     script.pump();
     uv_mutex_unlock(&threadMutex);
 }
+
+void nodeThread(uv_work_t *req)
+{
+    rtLogInfo(__FUNCTION__);
+    // Node initialization runs once here!
+    script.initializeNode();
+
+    printf("Done with rtNode init\n");
+   
+    while(!script.needsToEnd()) {
+
+        if(script.isInitialized() )
+        {
+            //printf("nodeThread locking\n");
+            uv_mutex_lock(&threadMutex); 
+            //printf("nodeThread GOT LOCK\n");
+            Locker locker(script.getIsolate());
+            Isolate::Scope isolate_scope(script.getIsolate());
+            HandleScope handle_scope(script.getIsolate());
+            uv_run(nodeLoop, UV_RUN_NOWAIT);
+            //printf("nodeThread unlocking\n");
+            uv_mutex_unlock(&threadMutex);
+        }
+		pxSleepMS(50);
+    }
+    printf("nodeThread is terminating\n");
+    
+    nodeIsEndingCallback(NULL,0 );
+ 
+}
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

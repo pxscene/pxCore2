@@ -14,10 +14,10 @@ var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
-var SetTimeout = timers.setTimeout;
-var ClearTimeout = timers.clearTimeout;
-var SetInterval = timers.setInterval;
-var ClearInterval = timers.clearInterval;
+var SetTimeout = setTimeout;
+var ClearTimeout = clearTimeout;
+var SetInterval = setInterval;
+var ClearInterval = clearInterval;
 
 var http_wrap = require('rcvrcore/http_wrap');
 var https_wrap = require('rcvrcore/https_wrap');
@@ -127,7 +127,7 @@ function AppSceneContext(params) { // container, innerscene, packageUrl) {
   this.scriptMap = {};
   this.xmoduleMap = {};
   this.asyncFileAcquisition = new AsyncFileAcquisition(params.scene);
-  this.lastHrTime = uv.hrtime();
+  this.lastHrTime = process.hrtime();
   this.resizeTimer = null;
   this.topXModule = null;
   this.jarFileMap = new JarFileMap();
@@ -264,23 +264,16 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
         _this.getFile("package.json").then( function(packageFileContents) {
           var manifest = new SceneModuleManifest();
           manifest.loadFromJSON(packageFileContents);
-          console.info("AppSceneContext#loadScenePackage0");
           _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
-          console.info("AppSceneContext#loadScenePackage0 done");
-        }).catch(function (e) {
-            console.info("AppSceneContext#loadScenePackage1");
-            _this.runScriptInNewVMContext(packageUri, moduleLoader, null);
-            console.info("AppSceneContext#loadScenePackage1 done");
+        }).catch(function(e){
+          _this.runScriptInNewVMContext(packageUri, moduleLoader, null);
         });
       } else {
         var manifest = moduleLoader.getManifest();
-        console.info("AppSceneContext#loadScenePackage2");
         _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
-        console.info("AppSceneContext#loadScenePackage2 done");
       }
     })
-    .catch(function (err) {
-      console.info("AppSceneContext#loadScenePackage3");
+    .catch(function(err) {
       thisMakeReady(false, {});
       console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=" + err );
     });
@@ -337,15 +330,66 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
   var self = this;
   var newSandbox;
   try {
+    var requireMethod = function (pkg) {
+      log.message(3, "old use of require not supported: " + pkg);
+      // TODO: remove
+      return requireIt(pkg);
+    };
+
+    var requireFileOverridePath = process.env.PXSCENE_REQUIRE_ENABLE_FILE_PATH;
+    var requireEnableFilePath = "/tmp/";
+    if (process.env.HOME && process.env.HOME !== '') {
+      requireEnableFilePath = process.env.HOME;
+    }
+    if (requireFileOverridePath && requireFileOverridePath !== ''){
+      requireEnableFilePath = requireFileOverridePath;
+    }
+
+    var fs = require("fs");
+    var requireEnableFile = requireEnableFilePath + "/.pxsceneEnableRequire";
+    if (fs.existsSync(requireEnableFile)) {
+      console.log("enabling pxscene require support");
+      requireMethod = require;
+    }
+    
     newSandbox = {
       sandboxName: "InitialSandbox",
       xmodule: xModule,
       console: console,
       runtime: apiForChild,
+      process: process,
       urlModule: require("url"),
       queryStringModule: require("querystring"),
       theNamedContext: "Sandbox: " + uri,
       Buffer: Buffer,
+      require: requireMethod,
+      global: global,
+      setTimeout: function (callback, after, arg1, arg2, arg3) {
+        var timerId = SetTimeout(callback, after, arg1, arg2, arg3);
+        this.timers.push(timerId);
+        return timerId;
+      }.bind(this),
+      clearTimeout: function (timer) {
+        var index = this.timers.indexOf(timer);
+        if (index != -1)
+        {
+          this.timers.splice(index,1);
+        }
+        ClearTimeout(timer);
+      }.bind(this),
+      setInterval: function (callback, repeat, arg1, arg2, arg3) {
+        var intervalId = SetInterval(callback, repeat, arg1, arg2, arg3);
+        this.timerIntervals.push(intervalId);
+        return intervalId;
+      }.bind(this),
+      clearInterval: function (timer) {
+        var index = this.timerIntervals.indexOf(timer);
+        if (index != -1)
+        {
+          this.timerIntervals.splice(index,1);
+        }
+        ClearInterval(timer);
+      }.bind(this),
       importTracking: {}
     }; // end sandbox
 
@@ -359,14 +403,23 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       // LEAKLEAK
 //      this.innerscene.api = {isReady:false, onModuleReady:onAppModuleReady.bind(this) };
 
-        var sourceCode = AppSceneContext.wrap(code);
+      var sourceCode = AppSceneContext.wrap(code);
+      //var script = new vm.Script(sourceCode, fname);
+      //var moduleFunc = script.runInNewContext(newSandbox, {filename:fname, displayErrors:true});
+      // fix debug under windows issue
+      var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {filename:path.normalize(fname), displayErrors:true});
 
-      log.message(4, "createModule_pxScope.call()");
+      if (process._debugWaitConnect) {
+        // Set breakpoint on module start
+        if (process.env.BREAK_ON_SCRIPTSTART != 1)
+          delete process._debugWaitConnect;
+        const Debug = vm.runInDebugContext('Debug');
+        Debug.setBreakPoint(moduleFunc, 0, 0);
+      }
+
       var px = createModule_pxScope.call(this, xModule);
-      log.message(4, "createModule_pxScope.call() done");
-      vm.runInNewContext(sourceCode, newSandbox, { filename: path.normalize(fname), displayErrors: true },
-          px, xModule, fname, this.basePackageUri);
-      log.message(4, "vm.runInNewContext done");
+      var rtnObject = moduleFunc(px, xModule, fname, this.basePackageUri);
+      rtnObject = xModule.exports;
 /*
 if (false) {
       // TODO do the old scenes context get released when we reload a scenes url??
@@ -383,7 +436,7 @@ if (false) {
 }
 */
 
-      console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
+      //console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
       if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
 //        this.container.makeReady(true); // DEPRECATED ?
 
@@ -399,9 +452,7 @@ if (false) {
         {
           self.innerscene.api = xModule.exports;
 
-          console.log("Main module[" + self.packageUrl + "] about to notify");
-          thisMakeReady(true, xModule.exports);
-          console.log("Main module[" + self.packageUrl + "] about to notify done");
+          thisMakeReady(true,xModule.exports);
 
         }).catch( function(err)
         {
@@ -513,7 +564,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
 
   return new Promise(function (onImportComplete, reject) {
-    if( filePath === 'px' || filePath === 'url' || filePath === 'querystring') {
+    if( filePath === 'px' || filePath === 'url' || filePath === 'querystring' || filePath === 'htmlparser') {
       // built-ins
       var modData = require(filePath);
       onImportComplete([modData, origFilePath]);
@@ -522,15 +573,11 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       console.log("Not permitted to use the module " + filePath);
       reject("include failed due to module not permitted");
       return;
-    } else if( filePath === 'net' || filePath === 'ws' ||  filePath === 'htmlparser') {
-      //modData = require('rcvrcore/' + filePath + '_wrap');
-      //onImportComplete([modData, origFilePath]);
-      console.log("Not permitted to use the module " + filePath);
-      reject("include failed due to module not permitted");
+    } else if( filePath === 'net' || filePath === 'ws' ) {
+      modData = require('rcvrcore/' + filePath + '_wrap');
+      onImportComplete([modData, origFilePath]);
       return;
-    } else if (filePath === 'http' || filePath === 'https') {
-      //console.log("Not permitted to use the module " + filePath);
-      //reject("include failed due to module not permitted");
+    } else if( filePath === 'http' || filePath === 'https' ) {
       if (filePath === 'http')
       {
         modData = new http_wrap();
@@ -558,13 +605,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       return;
     }
 
-    //console.log("this path is temporarily disabled by akuts");
-    //reject("this path is temporarily disabled by akuts");
-
-
     filePath = _this.resolveModulePath(filePath, currentXModule).fileUri;
-
-    console.log("this path is by akuts: " + filePath);
 
     log.message(4, "filePath=" + filePath);
     if( _this.isScriptDownloading(filePath) ) {
@@ -656,11 +697,10 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
   }
 
   var sourceCode = AppSceneContext.wrap(codeBuffer);
-
-  log.message(4, "RUN " + filePath);
+  var moduleFunc = vm.runInContext(sourceCode, _this.sandbox, {filename:filePath, displayErrors:true});
   var px = createModule_pxScope.call(this, xModule);
-  vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
-      px, xModule, filePath, filePath);
+  log.message(4, "RUN " + filePath);
+  moduleFunc(px, xModule, filePath, filePath);
   log.message(4, "RUN DONE: " + filePath);
   this.setXModule(filePath, xModule);
 
@@ -693,9 +733,9 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 };
 
 AppSceneContext.prototype.onResize = function(resizeEvent) {
-  var hrTime = uv.hrtime();
+  var hrTime = process.hrtime(this.lastHrTime);
   var deltaMillis = (hrTime[0] * 1000 + hrTime[1] / 1000000);
-  this.lastHrTime = uv.hrtime();
+  this.lastHrTime = process.hrtime();
   if( deltaMillis > 300 ) {
     if( this.resizeTimer !== null ) {
       clearTimeout(this.resizeTimer);

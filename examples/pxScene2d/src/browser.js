@@ -2,8 +2,8 @@
 px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
 
 
-px.import({ scene:      'px:scene.1',
-             keys:      'px:tools.keys',
+px.import({ scene:      'px:scene.1.js',
+             keys:      'px:tools.keys.js',
              EditBox: 'browser:editbox.js'
 }).then( function importsAreReady(imports)
 {  
@@ -225,25 +225,24 @@ px.import({ scene:      'px:scene.1',
         e.stopPropagation();
     }
     }
-    else
-    if( code == keys.ENTER)
+    else if( code == keys.ENTER && inputBox.focus == true)
     {
       url = inputBox.text;
       inputBox.moveToEnd();
 
       reload(url);
-     }
-     else
-     {
-       inputBox.textColor = urlFocusColor;
-       inputBox.showCursor();
-     }
+    }
+    else
+    {
+      inputBox.textColor = urlFocusColor;
+      inputBox.showCursor();
+    }
   });
 
   scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 
-  Promise.all([inputBox.ready, bg.ready, spinner.ready, content.ready, fontRes.ready])
-      .catch( function (err) 
+  Promise.all([inputBox, bg, spinner, content, fontRes])
+      .catch( function (err)
       {
           console.log(">>> Loading Assets ... err = " + err);
       })

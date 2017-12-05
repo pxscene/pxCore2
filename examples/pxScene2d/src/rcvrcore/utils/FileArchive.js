@@ -2,8 +2,9 @@
 
 var fs = require('fs');
 var url = require('url');
-//var http = require('http');
-//var JSZip = require("jszip");
+var http = require('http');
+var fs = require("fs");
+var JSZip = require("jszip");
 
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('FileUtils');

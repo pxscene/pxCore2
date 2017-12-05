@@ -186,6 +186,8 @@ public:
   rtMethodNoArgAndNoReturn("removeAll", removeAll);
   rtMethodNoArgAndNoReturn("moveToFront", moveToFront);
   rtMethodNoArgAndNoReturn("moveToBack", moveToBack);
+  rtMethodNoArgAndNoReturn("moveForward", moveForward);
+  rtMethodNoArgAndNoReturn("moveBackward", moveBackward);
 
   rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
                         uint32_t, uint32_t, int32_t, rtObjectRef);
@@ -366,8 +368,8 @@ public:
     return RT_OK;
   }
 
-  void    moveForward();
-  void    moveBackward();
+  rtError moveForward();
+  rtError moveBackward();
   rtError moveToFront();
   rtError moveToBack();
 
@@ -1006,7 +1008,7 @@ public:
 //  rtError makeReady(bool ready);  // DEPRECATED ?
 
   // in the case of pxSceneContainer, the makeReady should be the  
-  // catalyst for ready to fire, so sendPromise and 
+  // catalyst for ready to fire, so override sendPromise and 
   // createNewPromise to prevent firing from update() 
   virtual void sendPromise() { rtLogDebug("pxSceneContainer ignoring sendPromise\n"); }
   virtual void createNewPromise(){ rtLogDebug("pxSceneContainer ignoring createNewPromise\n"); }
@@ -1025,7 +1027,7 @@ typedef rtRef<pxObject> pxObjectRef;
 class pxScriptView: public pxIView
 {
 public:
-  pxScriptView(const char* url);
+  pxScriptView(const char* url, const char* /*lang*/);
 #ifndef RUNINMAIN
   void runScript(); // Run the script
 #endif
@@ -1040,9 +1042,12 @@ public:
     {
       mGetScene->clearContext();
       mMakeReady->clearContext();
+      mGetContextID->clearContext();
+
       // TODO Given that the context is being cleared we likely don't need to zero these out
       mCtx->add("getScene", 0);
       mCtx->add("makeReady", 0);
+      mCtx->add("getContextID", 0);
     }
 #endif //ENABLE_RT_NODE
 
@@ -1112,6 +1117,8 @@ protected:
 
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
+
+  static rtError getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx);
 
   virtual void onSize(int32_t w, int32_t h)
   {
@@ -1226,6 +1233,7 @@ protected:
   rtRef<pxIView> mView;
   rtRef<rtFunctionCallback> mGetScene;
   rtRef<rtFunctionCallback> mMakeReady;
+  rtRef<rtFunctionCallback> mGetContextID;
 
 #ifdef ENABLE_RT_NODE
   rtNodeContextRef mCtx;
@@ -1248,6 +1256,7 @@ public:
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
+  rtProperty(customAnimator, customAnimator, setCustomAnimator, rtFunctionRef);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
@@ -1328,6 +1337,9 @@ public:
 
   rtError showDirtyRect(bool& v) const;
   rtError setShowDirtyRect(bool v);
+
+  rtError customAnimator(rtFunctionRef& f) const;
+  rtError setCustomAnimator(const rtFunctionRef& f);
 
   rtError create(rtObjectRef p, rtObjectRef& o);
 
@@ -1513,6 +1525,7 @@ private:
   #endif
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
+  rtFunctionRef mCustomAnimator;
 public:
   void hidePointer( bool hide )
   {
@@ -1541,7 +1554,6 @@ class pxScene2dRef: public rtRef<pxScene2d>, public rtObjectBase
   virtual rtError Get(uint32_t i, rtValue* value) const;
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t i, const rtValue* value);
-  virtual rtMethodMap* getMap() const { return NULL; }
 };
 
 

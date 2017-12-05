@@ -1,13 +1,11 @@
 
-px.import({ scene: 'px:scene.1' }).then( function importsAreReady(imports)
+px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 {
   var scene = imports.scene;
   var keys  = imports.keys;
   var root  = imports.scene.root;
 
   var myStretch = scene.stretch.STRETCH;
-
-  print("about.js start")
                                            
   var LIGHT_BLUE  = 0x2B9CD8ff;
   var DARK_GRAY   = 0xDADADAff;
@@ -41,9 +39,7 @@ px.import({ scene: 'px:scene.1' }).then( function importsAreReady(imports)
                             font: fontRes, pixelSize: 12, wordWrap: true,
                             text: "Press SPACE to dismiss",
                             alignHorizontal: scene.alignHorizontal.CENTER,
-                            alignVertical: scene.alignVertical.CENTER
-  })
-
+                            alignVertical:   scene.alignVertical.CENTER})
   logo.ready.then(
                     function(o) { },
                     function(o) { max_h -= 170; title_dy = 10; }
@@ -97,8 +93,8 @@ px.import({ scene: 'px:scene.1' }).then( function importsAreReady(imports)
   {
     var gfx = parseInt( parseInt( scene.info.gfxmemory ) / 1024);
 
-    addRow(rows, "InfoBuildVersion", "Version: ", scene.info.version);
-    addRow(rows, "InfoJsEngine", "Engine: ", scene.info.engine);
+    addRow(rows, "InfoBuildVersion", "Version: ",         scene.info.version);
+    addRow(rows, "InfoBuildEngine", "Engine: ",         scene.info.engine);
     addRow(rows, "InfoBuildDate",    "Build Date: ",      scene.info.build.date.replace(/"/g, '') ); // global RegEx
     addRow(rows, "InfoBuildTime",    "Build Time: ",      scene.info.build.time.replace(/"/g, '') ); // global RegEx
     addRow(rows, "InfoGfxMemory",    "Base GFX memory: ", gfx.toLocaleString()  + " KB");
@@ -136,7 +132,6 @@ px.import({ scene: 'px:scene.1' }).then( function importsAreReady(imports)
     if (autoDismiss != null) {
         clearTimeout(autoDismiss);
     }
-
     autoDismiss = null;
 
     panel.animateTo({ y: scene.h + panel.h }, 1.0,  // offscreen bottom
@@ -147,17 +142,17 @@ px.import({ scene: 'px:scene.1' }).then( function importsAreReady(imports)
   scene.on("onResize",  function(e) { updateSize(e.w,e.h); });
   //panel.on("onMouseUp", function(e) { console.log("PANEL onMouseUp"); hidePanel() } );
   panel_bg.on("onFocus",   function(e) { /*showPanel(5000);*/ } );
-  panel_bg.on("onKeyDown", function (e) { if (e.keyCode) { hidePanel(); } });
-
-  Promise.all([fontRes.ready, logo.ready, title_bg.ready, panel.ready]).catch( function (err)
+  panel_bg.on("onKeyDown", function(e) { if(e.keyCode) { hidePanel();  }  });
+           
+  Promise.all([fontRes.ready, logo.ready, title_bg.ready, panel.ready]).catch( function (err) 
   {
-      console.log(">>> Loading Assets ... err = " + err);
-
-  }).then( function() 
+    console.log(">>> Loading Assets ... err = " + err);
+                                                      
+  }).then( function () 
   {
     title = scene.create({ t: "text", text: "About pxscene", font: fontRes, parent: panel, pixelSize: titlePts, textColor: 0xFFFFFFff });
         
-    title.ready.then( function ()
+    title.ready.then( function () 
     {
         var titleM = fontRes.measureText(titlePts, title.text);
 

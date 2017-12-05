@@ -58,8 +58,10 @@ if (APPLE)
         add_definitions(-DENABLE_CODE_COVERAGE=1)
     endif ()
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
-    message("Building dukluv for linux")
-    add_subdirectory(dukluv)
+    if (USE_DUKTAPE)
+        message("Building dukluv for linux")
+        add_subdirectory(dukluv)
+    endif (USE_DUKTAPE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -g")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -fPIC -g")
     execute_process(COMMAND "hostname" OUTPUT_VARIABLE HOSTNAME)
@@ -130,8 +132,10 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         endif ()
     endif (HOSTNAME STREQUAL "raspberrypi")
 elseif(WIN32)
-    message("Building dukluv for Windows")
-    add_subdirectory(dukluv)
+    if (USE_DUKTAPE)
+        message("Building dukluv for Windows")
+        add_subdirectory(dukluv)
+    endif (USE_DUKTAPE)
     message("Building pxcore for Windows")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /Zi /DEBUG")
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/win)
@@ -170,22 +174,39 @@ if (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
 endif (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
 
 include_directories(AFTER ${NODEPATH}/src ${NODEPATH}/deps/uv/include ${NODEPATH}/deps/v8 ${NODEPATH}/deps/debugger-agent/include ${NODEPATH}/deps/v8/include ${NODEPATH}/deps/cares/include)
+
+
+if (USE_DUKTAPE)
+    include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/duktape)
+endif (USE_DUKTAPE)
+
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
-        rtFile.cpp rtLibrary.cpp rtNode.cpp
-        rtPathUtils.cpp rtTest.cpp rtThreadPool.cpp
+        rtFile.cpp rtLibrary.cpp rtPathUtils.cpp rtTest.cpp rtThreadPool.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
-        rtFileDownloader.cpp unzip.c ioapi.c
-        jsbindings/rtFunctionWrapper.cpp jsbindings/rtObjectWrapper.cpp
-	jsbindings/rtWrapperUtils.cpp jsbindings/rtJsModules.cpp)
+        rtFileDownloader.cpp unzip.c ioapi.c)
+
+if (USE_DUKTAPE)
+    set(PXCORE_FILES ${PXCORE_FILES} duktape/rtNode.cpp jsbindings/duktape/rtFunctionWrapper.cpp jsbindings/duktape/rtObjectWrapper.cpp
+	    jsbindings/duktape/rtWrapperUtils.cpp jsbindings/duktape/rtJsModules.cpp)
+else (USE_DUKTAPE)
+    set(PXCORE_FILES ${PXCORE_FILES} rtNode.cpp jsbindings/rtFunctionWrapper.cpp jsbindings/rtObjectWrapper.cpp
+	    jsbindings/rtWrapperUtils.cpp jsbindings/rtWrapperInit.cpp jsbindings/jsCallback.cpp)
+endif (USE_DUKTAPE)
 
 if (PXCORE_MATRIX_HELPERS)
   set(PXCORE_FILES ${PXCORE_FILES} pxMatrix4T.cpp)
 endif(PXCORE_MATRIX_HELPERS)
 
-set(RTCORE_FILES utf8.c rtString.cpp rtLog.cpp rtValue.cpp rtObject.cpp rtError.cpp ioapi_mem.c)
+set(RTCORE_FILES utf8.c rtString.cpp rtLog.cpp rtValue.cpp rtError.cpp ioapi_mem.c)
+
+if (USE_DUKTAPE)
+    set(RTCORE_FILES ${RTCORE_FILES} duktape/rtObject.cpp)
+else (USE_DUKTAPE)
+    set(RTCORE_FILES ${RTCORE_FILES} rtObject.cpp)
+endif (USE_DUKTAPE)
 
 if (OUTPUT_LIBS_LOCAL)
     message("Output pxCore and rtCore libs locally")
@@ -194,9 +215,11 @@ if (OUTPUT_LIBS_LOCAL)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif (OUTPUT_LIBS_LOCAL)
 
-include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/dukluv/lib/duktape/src)
-include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/dukluv/lib/uv/include)
-include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/dukluv/src)
+if (USE_DUKTAPE)
+    include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/dukluv/lib/duktape/src)
+    include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/dukluv/lib/uv/include)
+    include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/dukluv/src)
+endif(USE_DUKTAPE)
 
 if (BUILD_PXCORE_LIBS)
     message("Building pxcore libs")

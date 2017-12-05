@@ -1,4 +1,4 @@
-var Logger = require('Logger').Logger;
+var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('XModule');
 
 

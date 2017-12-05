@@ -122,9 +122,9 @@ enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_
 
 pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
 
-#ifdef PX_PLATFORM_GENERIC_EGL
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 extern EGLContext defaultEglContext;
-#endif //PX_PLATFORM_GENERIC_EGL
+#endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
 
 // TODO get rid of this global crap
 
@@ -199,9 +199,9 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5
 
 // assume premultiplied
 static const char *fSolidShaderText =
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
-  "precision mediump float;"
-#endif
+  "#ifdef GL_ES \n"
+  "  precision mediump float; \n"
+  "#endif \n"
   "uniform float u_alpha;"
   "uniform vec4 a_color;"
   "void main()"
@@ -211,9 +211,9 @@ static const char *fSolidShaderText =
 
 // assume premultiplied
 static const char *fTextureShaderText =
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
-  "precision mediump float;"
-#endif
+  "#ifdef GL_ES \n"
+  "  precision mediump float; \n"
+  "#endif \n"
   "uniform sampler2D s_texture;"
   "uniform float u_alpha;"
   "varying vec2 v_uv;"
@@ -224,9 +224,9 @@ static const char *fTextureShaderText =
 
 // assume premultiplied
 static const char *fTextureMaskedShaderText =
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
-  "precision mediump float;"
-#endif
+  "#ifdef GL_ES \n"
+  "  precision mediump float; \n"
+  "#endif \n"
   "uniform sampler2D s_texture;"
   "uniform sampler2D s_mask;"
   "uniform float u_alpha;"
@@ -239,9 +239,9 @@ static const char *fTextureMaskedShaderText =
 
 // assume premultiplied
 static const char *fATextureShaderText =
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
-  "precision mediump float;"
-#endif
+  "#ifdef GL_ES \n"
+  "  precision mediump float; \n"
+  "#endif \n"
   "uniform sampler2D s_texture;"
   "uniform float u_alpha;"
   "uniform vec4 a_color;"
@@ -2052,10 +2052,10 @@ void pxContext::init()
 //  gprogram = program;
   setTextureMemoryLimit(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES);
 
-#ifdef PX_PLATFORM_GENERIC_EGL
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   defaultEglContext = eglGetCurrentContext();
   rtLogInfo("current context in init: %d", defaultEglContext);
-#endif //PX_PLATFORM_GENERIC_EGL
+#endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
 
   std::srand(unsigned (std::time(0)));
 }

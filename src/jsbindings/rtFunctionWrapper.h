@@ -1,13 +1,32 @@
 #ifndef RT_FUNCTION_WRAPPER_H
 #define RT_FUNCTION_WRAPPER_H
 
-#include "node_headers.h"
-
 #include "rtWrapperUtils.h"
+#include "jsCallback.h"
 
-extern "C" {
-#include "duv.h"
-}
+class rtAbstractFunction : public rtIFunction
+{
+public:
+  virtual unsigned long AddRef()
+  {
+    return rtAtomicInc(&mRefCount);
+  }
+
+  virtual unsigned long Release()
+  {
+    unsigned long l = rtAtomicDec(&mRefCount);
+    if (l == 0) delete this;
+    return l;
+  }
+
+  virtual unsigned long getRefCount() const
+  {
+    return mRefCount;
+  }
+protected:
+  virtual ~rtAbstractFunction() {}
+  unsigned long mRefCount;
+};
 
 class rtFunctionWrapper : public rtWrapper<rtFunctionRef, rtFunctionWrapper>
 {
@@ -16,13 +35,23 @@ public:
   virtual ~rtFunctionWrapper();
 
 public:
-  static void createFromFunctionReference(duk_context *ctx, const rtFunctionRef& func);
+  static void exportPrototype(v8::Isolate* isolate, v8::Handle<v8::Object> exports);
+  static void destroyPrototype();
+#ifdef ENABLE_NODE_V_6_9
+  static v8::Handle<v8::Object> createFromFunctionReference(v8::Local<v8::Context>& ctx, v8::Isolate* isolate, const rtFunctionRef& func);
+#else
+  static v8::Handle<v8::Object> createFromFunctionReference(v8::Isolate* isolate, const rtFunctionRef& func);
+#endif
+
+private:
+  static void create(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void call(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 class jsFunctionWrapper : public rtIFunction
 {
 public:
-  jsFunctionWrapper(duk_context *ctx, const std::string &funcName) : mRefCount(0), mDukCtx(ctx), mDukFuncName(funcName) {}
+  jsFunctionWrapper(v8::Local<v8::Context>& ctx, const v8::Handle<v8::Value>& val);
   virtual ~jsFunctionWrapper();
 
   virtual unsigned long AddRef();
@@ -39,12 +68,23 @@ private:
   rtValue wait();
   void setupSynchronousWait();
 
+  class FunctionLookup : public jsIFunctionLookup
+  {
+  public:
+    FunctionLookup(jsFunctionWrapper* parent) : mParent(parent) { }
+    virtual v8::Local<v8::Function> lookup(v8::Local<v8::Context>& ctx);
+  private:
+    jsFunctionWrapper* mParent;
+  };
+
+  friend class FunctionLookup;
+
 private:
   unsigned long mRefCount;
+  v8::Persistent<v8::Function> mFunction;
+  v8::Persistent<v8::Context> mContext;
+  v8::Isolate* mIsolate;
   std::vector<rtValue> mArgs;
-
-  duk_context *mDukCtx;
-  std::string  mDukFuncName;
 
   bool mComplete;
   bool mTeardownThreadingPrimitives;
@@ -58,6 +98,38 @@ private:
 #endif
 
   rtValue mReturnValue;
+};
+
+class rtResolverFunction : public rtAbstractFunction
+{
+public:
+  enum Disposition
+  {
+    DispositionResolve,
+    DispositionReject
+  };
+
+  rtResolverFunction(Disposition d, v8::Local<v8::Context>& ctx, v8::Local<v8::Promise::Resolver>& resolver);
+  virtual ~rtResolverFunction();
+  virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
+
+private:
+  struct AsyncContext
+  {
+    rtFunctionRef resolverFunc;
+    std::vector<rtValue> args;
+  };
+
+private:
+  static void workCallback(uv_work_t* req);
+  static void afterWorkCallback(uv_work_t* req, int status);
+
+private:
+  Disposition                         mDisposition;
+  v8::Persistent<v8::Promise::Resolver>   mResolver;
+  v8::Persistent<v8::Context>         mContext;
+  v8::Isolate*                        mIsolate;
+  uv_work_t                           mReq;
 };
 
 #endif

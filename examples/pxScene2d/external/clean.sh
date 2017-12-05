@@ -50,10 +50,4 @@ make clean -j3
 cd ..
 fi
 
-if [ "$(uname)" != "Darwin" ] 
-then
-cd freeglut
-make clean -j3
-cd ..
-fi
 

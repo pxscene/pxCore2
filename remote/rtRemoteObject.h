@@ -21,7 +21,7 @@ public:
   virtual unsigned long AddRef();
   virtual unsigned long Release();
 
-  inline std::string const& id() const
+  inline std::string const& getId() const
     { return m_id; }
 
 private:

@@ -3,12 +3,8 @@
 #include "rtWrapperUtils.h"
 
 #include <rtLog.h>
-#include <string>
-#include <map>
 
-extern "C" {
-#include "duv.h"
-}
+using namespace v8;
 
 static const char* kClassName   = "rtObject";
 static const char* kFuncAllKeys = "allKeys";
@@ -22,6 +18,18 @@ bool jsObjectWrapper::isJavaScriptObjectWrapper(const rtObjectRef& obj)
   return obj && obj->Get(jsObjectWrapper::kIsJavaScriptObjectWrapper, &value) == RT_OK;
 }
 
+static Handle<Value> makeStringFromKey(Isolate* isolate, rtObjectRef& keys, uint32_t index)
+{
+  return String::NewFromUtf8(isolate, keys.get<rtString>(index).cString());
+}
+
+static Handle<Value> makeIntegerFromKey(Isolate* isolate, rtObjectRef& , uint32_t index)
+{
+  return Number::New(isolate, index);
+}
+
+static Persistent<Function> ctor;
+
 rtObjectWrapper::rtObjectWrapper(const rtObjectRef& ref)
   : rtWrapper(ref)
 {
@@ -31,454 +39,315 @@ rtObjectWrapper::~rtObjectWrapper()
 {
 }
 
-struct dukObjectFunctionInfo
+void rtObjectWrapper::destroyPrototype()
 {
-  dukObjectFunctionInfo(void) : mIsVoid(true), mNext(NULL) {}
-
-  std::string mMethodName;
-  bool        mIsVoid;
-
-  enum eType {
-    eMethod = 0,
-    eGetProp = 1,
-    eSetProp = 2,
-  };
-
-  eType       mType;
-
-  dukObjectFunctionInfo *mNext;
-};
-
-static duk_ret_t dukObjectMethodGetStub(duk_context *ctx)
-{
-  duk_push_this(ctx);
-  bool res = duk_get_prop_string(ctx, -1, "\xff""\xff""data");
-  assert(res);
-
-  rtObject *obj = (rtObject*)duk_require_pointer(ctx, -1);
-
-  // [this, pointer]
-  duk_pop(ctx);
-  // [this]
-  duk_pop(ctx);
-  // []
-
-  duk_push_current_function(ctx);
-  res = duk_get_prop_string(ctx, -1, "\xff""\xff""finfo");
-  assert(res);
-
-  dukObjectFunctionInfo *funcInfo = (dukObjectFunctionInfo*)duk_require_pointer(ctx, -1);
-
-  // [curfunc prop]
-  duk_pop(ctx);
-  // [curfunc]
-  duk_pop(ctx);
-  // []
-
-  int numArgs = duk_get_top(ctx);
-
-  if (funcInfo->mType == dukObjectFunctionInfo::eGetProp) 
+  if( !ctor.IsEmpty() )
   {
-    rtValue val;
-    obj->Get(funcInfo->mMethodName.c_str(), &val);
-    rt2duk(ctx, val);
-    return 1;
+    // TODO: THIS LEAKS... need to free obj within persistent
+
+    ctor.ClearWeak();
+    ctor.Reset();
   }
-
-  if (funcInfo->mType == dukObjectFunctionInfo::eSetProp) 
-  {
-    duk_dup(ctx, 0);
-    rtValue val = duk2rt(ctx);
-    duk_pop(ctx);
-    obj->Set(funcInfo->mMethodName.c_str(), &val);
-    return 0;
-  }
-
-  assert(funcInfo->mType == dukObjectFunctionInfo::eMethod);
-
-  assert(numArgs < 16);
-  rtValue args[16];
-
-  for (int i = 0; i < numArgs; ++i) 
-  {
-    duk_dup(ctx, i);
-    args[i] = duk2rt(ctx);
-    duk_pop(ctx);
-  }
-
-  rtValue func;
-  obj->Get(funcInfo->mMethodName.c_str(), &func);
-
-  assert(func.getType() == RT_functionType);
-  rtFunctionRef funcObj = func.toFunction();
-
-  rtValue result;
-  funcObj->Send(numArgs, &args[0], &result);
-
-  if (funcInfo->mIsVoid) {
-    return 0;
-  }
-
-  rt2duk(ctx, result);
-  return 1;
 }
 
-
-static void wrapObjToDuk(duk_context *ctx, const rtObjectRef& ref)
+void rtObjectWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports)
 {
-  static std::map<rtMethodMap *, dukObjectFunctionInfo *> methodCache;
+  Local<FunctionTemplate> tmpl = FunctionTemplate::New(isolate, create);
+  tmpl->SetClassName(String::NewFromUtf8(isolate, kClassName));
 
-  duk_push_object(ctx);
+  Local<ObjectTemplate> inst = tmpl->InstanceTemplate();
+  inst->SetInternalFieldCount(1);
+#ifdef ENABLE_DEBUG_MODE
+  inst->SetNamedPropertyHandler(
+      &getPropertyByName,
+      &setPropertyByName,
+      &queryPropertyByName,
+      NULL,
+      &getEnumerablePropertyNames);
+#else
+  inst->SetNamedPropertyHandler(
+      &getPropertyByName,
+      &setPropertyByName,
+      NULL,
+      NULL,
+      &getEnumerablePropertyNames);
 
-  const_cast<rtObjectRef &>(ref)->AddRef();
-
-  duk_push_pointer(ctx, (void*)ref.getPtr());
-  duk_put_prop_string(ctx, -2, "\xff""\xff""data");
-
-  dukObjectFunctionInfo *prevInfo = NULL, *firstInfo = NULL;
-
-  rtMethodMap* mOrig = ref->getMap();
-
-  if (mOrig == NULL) 
-  {
-    duk_push_pointer(ctx, NULL);
-    duk_put_prop_string(ctx, -2, "\xff""\xff""funcInfoList");
-    return;
-  }
-
-  if (methodCache.count(mOrig) == 0) 
-  {
-    rtMethodMap* m = mOrig;
-
-    while (m) 
-    {
-      rtMethodEntry *e = m->getFirstMethod();
-      while (e) 
-      {
-        dukObjectFunctionInfo *funcInfo = new dukObjectFunctionInfo();
-        funcInfo->mMethodName = e->mMethodName;
-        funcInfo->mIsVoid = e->mReturnType == RT_voidType;
-        funcInfo->mType = dukObjectFunctionInfo::eMethod;
-
-        if (prevInfo == NULL) 
-        {
-          firstInfo = funcInfo;
-          prevInfo = funcInfo;
-        } 
-        else 
-        {
-          prevInfo->mNext = funcInfo;
-          prevInfo = funcInfo;
-        }
-
-        e = e->mNext;
-      }
-
-      m = m->parentsMap;
-    }
-
-    m = mOrig;
-    while (m) 
-    {
-      rtPropertyEntry* e = m->getFirstProperty();
-      while (e) 
-      {
-        if (!e->mGetThunk && !e->mSetThunk) 
-        {
-          e = e->mNext;
-          continue;
-        }
-
-        if (e->mGetThunk) 
-        {
-          dukObjectFunctionInfo *funcInfo = new dukObjectFunctionInfo();
-          funcInfo->mMethodName = e->mPropertyName;
-          funcInfo->mIsVoid = false;
-          funcInfo->mType = dukObjectFunctionInfo::eGetProp;
-
-          if (prevInfo == NULL) 
-          {
-            firstInfo = funcInfo;
-            prevInfo = funcInfo;
-          } 
-          else 
-          {
-            prevInfo->mNext = funcInfo;
-            prevInfo = funcInfo;
-          }
-        }
-
-        if (e->mSetThunk) 
-        {
-          dukObjectFunctionInfo *funcInfo = new dukObjectFunctionInfo();
-          funcInfo->mMethodName = e->mPropertyName;
-          funcInfo->mIsVoid = false;
-          funcInfo->mType = dukObjectFunctionInfo::eSetProp;
-
-          if (prevInfo == NULL) 
-          {
-            firstInfo = funcInfo;
-            prevInfo = funcInfo;
-          } 
-          else 
-          {
-            prevInfo->mNext = funcInfo;
-            prevInfo = funcInfo;
-          }
-        }
-
-        e = e->mNext;
-      }
-
-      m = m->parentsMap;
-    }
-
-    methodCache[mOrig] = firstInfo;
-  } 
-  else 
-  {
-    firstInfo = methodCache[mOrig];
-  }
-
-  for (prevInfo = firstInfo; prevInfo != NULL; prevInfo = prevInfo->mNext) 
-  {
-    if (prevInfo->mType == dukObjectFunctionInfo::eMethod)
-    {
-      duk_push_c_function(ctx, &dukObjectMethodGetStub, DUK_VARARGS);
-
-      duk_push_pointer(ctx, (void*)prevInfo);
-      duk_put_prop_string(ctx, -2, "\xff""\xff""finfo");
-
-      // [ obj, func ]
-      duk_put_prop_string(ctx, -2, prevInfo->mMethodName.c_str());
-
-      // [ obj ]
-
-      continue;
-    }
-
-    {
-      duk_bool_t rc = duk_get_prop_string(ctx, -1, prevInfo->mMethodName.c_str());
-      duk_pop(ctx);
-
-      if (rc)
-      {
-        continue;
-      }
-    }
-
-    duk_push_string(ctx, prevInfo->mMethodName.c_str());
-
-    int offs = 2;
-    int flags = 0;
-
-    dukObjectFunctionInfo *infoPtr[2] = { prevInfo, prevInfo->mNext };
-
-    int objFuncIdx = 0;
-    for (objFuncIdx = 0; objFuncIdx < 2; ++objFuncIdx) 
-    {
-      dukObjectFunctionInfo *info = infoPtr[objFuncIdx];
-      if (info == NULL || info->mMethodName != prevInfo->mMethodName) 
-      {
-        break;
-      }
-
-
-      if (info->mType == dukObjectFunctionInfo::eGetProp || info->mType == dukObjectFunctionInfo::eSetProp)
-      {
-        duk_push_c_function(ctx, &dukObjectMethodGetStub, DUK_VARARGS);
-
-        flags |= (info->mType == dukObjectFunctionInfo::eGetProp ? DUK_DEFPROP_HAVE_GETTER : DUK_DEFPROP_HAVE_SETTER);
-        offs++;
-
-        duk_push_pointer(ctx, (void*)info);
-        duk_put_prop_string(ctx, -2, "\xff""\xff""finfo");
-      }
-    }
-
-    if (objFuncIdx == 2) 
-    {
-      prevInfo = prevInfo->mNext;
-    }
-
-    assert(flags != 0);
-
-    // [ obj, name, getter, setter ]
-    duk_def_prop(ctx, -offs, flags);
-
-    // [ obj ]
-  }
-
-  // [ obj ]
-
-  duk_push_pointer(ctx, (void*)firstInfo);
-  duk_put_prop_string(ctx, -2, "\xff""\xff""funcInfoList");
+  inst->SetIndexedPropertyHandler(
+      &getPropertyByIndex,
+      &setPropertyByIndex,
+      NULL,
+      NULL,
+      &getEnumerablePropertyIndecies);
+#endif
+  ctor.Reset(isolate, tmpl->GetFunction());
+  exports->Set(String::NewFromUtf8(isolate, kClassName), tmpl->GetFunction());
 }
 
-void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObjectRef& ref)
+Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>& ctx, const rtObjectRef& ref)
 {
-  assert(ref.getPtr() != NULL);
+  Isolate* isolate(ctx->GetIsolate());
 
-  // array
+  EscapableHandleScope scope(isolate);
+  Context::Scope contextScope(ctx);
+
+  // rtLogInfo("lookup:%u addr:%p", GetContextId(ctx), ref.getPtr());
+  Local<Object> obj = HandleMap::lookupSurrogate(ctx, ref);
+
+  if (!obj.IsEmpty())
+    return scope.Escape(obj);
+
+  // introspect for rtArrayValue
+  // TODO: not sure this is good. Any object can have a 'length' property
   {
     rtValue length;
     if (ref && ref->Get("length", &length) != RT_PROP_NOT_FOUND)
     {
-      duk_idx_t arr_idx = duk_push_array(ctx);
-      int len = length.toInt32();
-      for (int i = 0; i < len; ++i) {
+      const int n = length.toInt32();
+      Local<Array> arr = Array::New(isolate, n);
+      for (int i = 0; i < n; ++i)
+      {
         rtValue item;
         rtError err = ref->Get(i, &item);
-        assert(err == RT_OK);
-        rt2duk(ctx, item);
-        duk_bool_t rc = duk_put_prop_index(ctx, arr_idx, i);
-        assert(rc);
+        if (err == RT_OK)
+          arr->Set(Number::New(isolate, i), rt2js(ctx, item));
       }
-
-      return;
+      return scope.Escape(arr);
     }
   }
 
-  // map
-  {
-    rtValue mapKeys;
-    if (ref && ref->Get("mapKeys", &mapKeys) != RT_PROP_NOT_FOUND)
-    {
-      rtObjectRef keys = ref.get<rtObjectRef>("mapKeys");
-      if (keys)
-      {
-        uint32_t len = keys.get<uint32_t>("length");
-
-        duk_idx_t obj_idx = duk_push_object(ctx);
-
-        for (uint32_t i = 0; i < len; ++i)
-        {
-          rtString key = keys.get<rtString>(i);
-
-          rtValue  val;
-          ref.get<rtValue>((const char *)key, val);
-
-          rt2duk(ctx, val);
-          duk_bool_t rc = duk_put_prop_string(ctx, -2, (const char *)key);
-          assert(rc);
-
-          // [obj]
-        }
-
-        // [obj]
-        return;
-      }
-    }
-  }
-
-  // promise
   {
     rtString desc;
     if (ref)
     {
       rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
-
       if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
       {
-        duk_bool_t rt = duk_get_global_string(ctx, "Promise");
+        Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
 
-        // [func] 
-        assert(rt);
+        rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, ctx, resolver));
+        rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, ctx, resolver));
 
-        uint32_t isResolved = 0;
-        ref.get("isResolved", isResolved);
+        rtObjectRef newPromise;
+        rtObjectRef promise = ref;
 
-        if (isResolved != 0)
-        {
-          duk_push_string(ctx, isResolved == 1 ? "resolve" : "reject");
+        Local<Object> jsPromise = resolver->GetPromise();
 
-          rtValue val;
-          ref.get("val", val);
+        // rtLogInfo("addp id:%u addr:%p", GetContextId(creationContext), ref.getPtr());
+        HandleMap::addWeakReference(isolate, ref, jsPromise);
 
-          rt2duk(ctx, val);
+        err = promise.send("then", resolve, reject, newPromise);
+        if (err == RT_OK)
+          return scope.Escape(jsPromise);
+        else
+          rtLogError("failed to setup promise");
 
-          // [ Promise method obj ]
-          duk_int_t rc = duk_pcall_prop(ctx, -3, 1);
-
-          if (rc != 0) {
-            duv_dump_error(ctx, -1);
-            assert(0);
-          }
-
-          // [Promise js-promise]
-          assert(duk_is_object(ctx, -1));
-
-          return;
-        }
-      }
-
-      if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
-      {
-        rtString val;
-        ref.get("promiseId", val);
-
-        if (!val.isEmpty()) {
-          duk_bool_t rt = duk_get_global_string(ctx, val.cString());
-
-          assert(rt);
-
-          // [js-promise]
-          assert(duk_is_object(ctx, -1));
-          return;
-        }
-
-        duk_bool_t rt = duk_get_global_string(ctx, "constructPromise");
-        // [func] 
-        assert(rt);
-
-        wrapObjToDuk(ctx, ref);
-
-        // [func obj] 
-
-        if (duk_pcall(ctx, 1) != 0) {
-          duv_dump_error(ctx, -1);
-          assert(0);
-        }
-
-        // [js-promise]
-        assert(duk_is_object(ctx, -1));
-
-        duk_dup(ctx, -1);
-
-        // [ obj ]
-        std::string promiseObjName = rtDukPutIdentToGlobal(ctx);
-
-        const_cast<rtObjectRef &>(ref).set("promiseId", rtString(promiseObjName.c_str()));
-        const_cast<rtObjectRef &>(ref).set("promiseContext", (void*)ctx);
-
-        return;
+        return scope.Escape(Local<Object>());
       }
     }
   }
 
-  wrapObjToDuk(ctx, ref);
+  Local<Value> argv[1] =
+  {
+    External::New(isolate, ref.getPtr())
+  };
+
+  Local<Function> func = PersistentToLocal(isolate, ctor);
+#ifdef ENABLE_NODE_V_6_9
+  obj = (func->NewInstance(ctx, 1, argv)).FromMaybe(Local<Object>());
+#else
+  obj = func->NewInstance(1, argv);
+#endif
+
+  // Local<Context> creationContext = obj->CreationContext();
+  // rtLogInfo("add id:%u addr:%p", GetContextId(creationContext), ref.getPtr());
+  // assert(GetContextId(creationContext) == GetContextId(ctx));
+
+  HandleMap::addWeakReference(isolate, ref, obj);
+  return scope.Escape(obj);
 }
 
-jsObjectWrapper::jsObjectWrapper(duk_context *ctx, const std::string &name, bool isArray)
+rtValue rtObjectWrapper::unwrapObject(const Local<Object>& obj)
+{
+  return rtValue(unwrap(obj));
+}
+
+template<typename T>
+void rtObjectWrapper::getProperty(const T& prop, const PropertyCallbackInfo<Value>& info)
+{
+  HandleScope handle_scope(info.GetIsolate());
+  Local<Context> ctx = info.This()->CreationContext();
+
+  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  if (!wrapper)
+    return;
+
+  rtObjectRef ref = wrapper->mWrappedObject;
+  if (!ref)
+    return;
+
+  rtValue value;
+  rtWrapperSceneUpdateEnter();
+  rtError err = ref->Get(prop, &value);
+  rtWrapperSceneUpdateExit();
+
+  if (err != RT_OK)
+  {
+    if (err == RT_PROP_NOT_FOUND)
+      return;
+    else
+      info.GetIsolate()->ThrowException(Exception::Error(String::NewFromUtf8(info.GetIsolate(),
+        rtStrError(err))));
+  }
+  else
+  {
+    Local<Value> v;
+    EscapableHandleScope scope(info.GetIsolate());
+    v = rt2js(ctx, value);
+//    info.GetReturnValue().Set(rt2js(info.GetIsolate(), value));
+    scope.Escape(v);
+    info.GetReturnValue().Set(v);
+  }
+}
+
+template<typename T>
+void rtObjectWrapper::setProperty(const T& prop, Local<Value> val, const PropertyCallbackInfo<Value>& info)
+{
+  Locker locker(info.GetIsolate());
+  Isolate::Scope isolateScope(info.GetIsolate());
+  HandleScope handleScope(info.GetIsolate());
+  Local<Context> creationContext = info.This()->CreationContext();
+
+  rtWrapperError error;
+  rtValue value = js2rt(creationContext, val, &error);
+  if (error.hasError())
+    info.GetIsolate()->ThrowException(error.toTypeError(info.GetIsolate()));
+
+  rtWrapperSceneUpdateEnter();
+  rtError err = unwrap(info)->Set(prop, &value);
+  rtWrapperSceneUpdateExit();
+  if (err == RT_OK)
+    info.GetReturnValue().Set(val);
+}
+
+void rtObjectWrapper::getEnumerable(const PropertyCallbackInfo<Array>& info, enumerable_item_creator_t create)
+{
+  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  if (!wrapper)
+    return;
+
+  rtObjectRef ref = wrapper->mWrappedObject;
+  if (!ref)
+    return;
+
+  rtObjectRef keys = ref.get<rtObjectRef>(kFuncAllKeys);
+  if (!keys)
+    return;
+
+  uint32_t length = keys.get<uint32_t>(kPropLength);
+  Local<Array> props = Array::New(info.GetIsolate(), length);
+
+  for (uint32_t i = 0; i < length; ++i)
+    props->Set(Number::New(info.GetIsolate(), i), create(info.GetIsolate(), keys, i));
+
+  info.GetReturnValue().Set(props);
+}
+
+void rtObjectWrapper::getEnumerablePropertyNames(const PropertyCallbackInfo<Array>& info)
+{
+  getEnumerable(info, makeStringFromKey);
+}
+
+void rtObjectWrapper::getEnumerablePropertyIndecies(const PropertyCallbackInfo<Array>& info)
+{
+  getEnumerable(info, makeIntegerFromKey);
+}
+
+void rtObjectWrapper::getPropertyByName(Local<String> prop, const PropertyCallbackInfo<Value>& info)
+{
+  rtString name = toString(prop);
+  getProperty(name.cString(), info);
+}
+
+#ifdef ENABLE_DEBUG_MODE
+template<typename T>
+void rtObjectWrapper::queryProperty(const  T& prop, const PropertyCallbackInfo<Integer>& info)
+{
+  HandleScope handle_scope(info.GetIsolate());
+
+  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  if (!wrapper)
+  {
+    info.GetReturnValue().Set(64);
+    return;
+  }
+
+  rtObjectRef ref = wrapper->mWrappedObject;
+  if (!ref)
+  {
+    info.GetReturnValue().Set(64);
+    return;
+  }
+
+  rtValue value;
+  rtWrapperSceneUpdateEnter();
+  rtError err = ref->Get(prop, &value);
+  rtWrapperSceneUpdateExit();
+
+  if (err != RT_OK)
+  {
+    rtLogDebug("property/method not found ");
+    info.GetReturnValue().Set(64);
+  }
+  else
+  {
+    info.GetReturnValue().Set(v8::DontEnum);
+  }
+}
+
+void rtObjectWrapper::queryPropertyByName(Local<String> prop, const PropertyCallbackInfo<Integer>& info)
+{
+  rtString name = toString(prop);
+  queryProperty(name.cString(), info);
+}
+#endif
+
+void rtObjectWrapper::getPropertyByIndex(uint32_t index, const PropertyCallbackInfo<Value>& info)
+{
+  getProperty(index, info);
+}
+
+void rtObjectWrapper::setPropertyByName(Local<String> prop, Local<Value> val, const PropertyCallbackInfo<Value>& info)
+{
+  rtString name = toString(prop);
+  setProperty(name.cString(), val, info);
+}
+
+void rtObjectWrapper::setPropertyByIndex(uint32_t index, Local<Value> val, const PropertyCallbackInfo<Value>& info)
+{
+  setProperty(index, val, info);
+}
+
+void rtObjectWrapper::create(const FunctionCallbackInfo<Value>& args)
+{
+  assert(args.IsConstructCall());
+
+  HandleScope scope(args.GetIsolate());
+  rtObject* obj = static_cast<rtObject*>(args[0].As<External>()->Value());
+  rtObjectWrapper* wrapper = new rtObjectWrapper(obj);
+  wrapper->Wrap(args.This());
+}
+
+jsObjectWrapper::jsObjectWrapper(Isolate* isolate, const Handle<Value>& obj, bool isArray)
   : mRefCount(0)
-  , mDukCtx(ctx)
-  , mDukName(name)
+  , mObject(isolate, Handle<Object>::Cast(obj))
+  , mIsolate(isolate)
   , mIsArray(isArray)
 {
-  duk_bool_t rt = duk_get_global_string(ctx, name.c_str());
-  assert(rt);
-
-  duk_push_int(ctx, 1);
-  duk_put_prop_string(ctx, -2, jsObjectWrapper::kIsJavaScriptObjectWrapper);
-
-  duk_pop(ctx);
 }
 
 jsObjectWrapper::~jsObjectWrapper()
 {
-  if (!mDukName.empty()) {
-    rtDukDelGlobalIdent(mDukCtx, mDukName);
-  }
+  mObject.Reset();
 }
 
 unsigned long jsObjectWrapper::AddRef()
@@ -489,37 +358,27 @@ unsigned long jsObjectWrapper::AddRef()
 unsigned long jsObjectWrapper::Release()
 {
   unsigned long l = rtAtomicDec(&mRefCount);
-  if (l == 0) {
-    delete this;
-  }
+  if (l == 0) delete this;
   return l;
 }
 
-rtError jsObjectWrapper::getAllKeys(rtValue* value) const
+rtError jsObjectWrapper::getAllKeys(Isolate* isolate, rtValue* value) const
 {
-  duk_get_global_string(mDukCtx, "Object");
-  duk_push_string(mDukCtx, "keys");
-  duk_bool_t res = duk_get_global_string(mDukCtx, mDukName.c_str());
-  assert(res);
-
-  duk_call_prop(mDukCtx, -3, 1);
-
-  int n = duk_get_length(mDukCtx, -1);
+  HandleScope handleScope(isolate);
+  Local<Object> self = PersistentToLocal(isolate, mObject);
+  Local<Array> names = self->GetPropertyNames();
+  Local<Context> ctx = self->CreationContext();
 
   rtRefT<rtArrayObject> result(new rtArrayObject);
-  for (int i = 0; i < n; i++) {
-    duk_get_prop_index(mDukCtx, -1, i);
+  for (int i = 0, n = names->Length(); i < n; ++i)
+  {
     rtWrapperError error;
-    rtValue val = duk2rt(mDukCtx, &error);
-    if (error.hasError()) {
+    rtValue val = js2rt(ctx, names->Get(i), &error);
+    if (error.hasError())
       return RT_FAIL;
-    } else {
+    else
       result->pushBack(val);
-    }
-    duk_pop(mDukCtx);
   }
-
-  duk_pop(mDukCtx);
 
   *value = rtValue(result);
   return RT_OK;
@@ -527,30 +386,47 @@ rtError jsObjectWrapper::getAllKeys(rtValue* value) const
 
 rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
 {
+  HandleScope handle_scope(mIsolate);
+
   if (!name)
     return RT_ERROR_INVALID_ARG;
   if (!value)
     return RT_ERROR_INVALID_ARG;
 
+  if (strcmp(name, jsObjectWrapper::kIsJavaScriptObjectWrapper) == 0)
+    return RT_OK;
+
   // TODO: does array support this?
-  if (strcmp(name, kFuncAllKeys) == 0) {
-    return getAllKeys(value);
-  }
+  if (strcmp(name, kFuncAllKeys) == 0)
+    return getAllKeys(mIsolate, value);
 
   rtError err = RT_OK;
 
+  Local<Object> self = PersistentToLocal(mIsolate, mObject);
+  Local<String> s = String::NewFromUtf8(mIsolate, name);
+  Local<Context> ctx = self->CreationContext();
+
   if (mIsArray)
   {
-    // unsupported yet
-    assert(0);
+    if (!strcmp(name, "length"))
+      *value = rtValue(Array::Cast(*self)->Length());
+    else
+#ifdef ENABLE_NODE_V_6_9
+      err = Get((s->ToArrayIndex(ctx)).FromMaybe(Local<Uint32>())->Value(), value);
+#else
+      err = Get(s->ToArrayIndex()->Value(), value);
+#endif
   }
   else
   {
-    if (!dukHasProp(name)) {
+    if (!self->Has(s))
+    {
       err = RT_PROPERTY_NOT_FOUND;
-    } else {
+    }
+    else
+    {
       rtWrapperError error;
-      *value = dukGetGrop(name);
+      *value = js2rt(ctx, self->Get(s), &error);
       if (error.hasError())
         err = RT_ERROR_INVALID_ARG;
     }
@@ -558,58 +434,85 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
   return err;
 }
 
-bool jsObjectWrapper::dukHasProp(const std::string &name) const
-{
-  assert(mDukCtx != NULL);
-  duk_bool_t res = duk_get_global_string(mDukCtx, mDukName.c_str());
-  assert(res);
-  res = duk_get_prop_string(mDukCtx, -1, name.c_str());
-  duk_pop(mDukCtx);
-  duk_pop(mDukCtx);
-  return res;
-}
-
-rtValue jsObjectWrapper::dukGetGrop(const std::string &name, rtWrapperError *error) const
-{
-  assert(mDukCtx != NULL);
-  duk_bool_t res = duk_get_global_string(mDukCtx, mDukName.c_str());
-  assert(res);
-  res = duk_get_prop_string(mDukCtx, -1, name.c_str());
-  assert(res);
-  rtValue rt = duk2rt(mDukCtx, error);
-  duk_pop(mDukCtx);
-  duk_pop(mDukCtx);
-  return rt;
-}
-
 rtError jsObjectWrapper::Get(uint32_t i, rtValue* value) const
 {
-  // unsupported yet
-  assert(0);
+  if (!value)
+    return RT_ERROR_INVALID_ARG;
+
+  Locker locker(mIsolate);
+  HandleScope handleScope(mIsolate);
+
+  Local<Object> self = PersistentToLocal(mIsolate, mObject);
+  Local<Context> ctx = self->CreationContext();
+
+#ifdef ENABLE_NODE_V_6_9
+  if (!(self->Has(ctx,i).FromMaybe(false)))
+#else
+  if (!self->Has(i))
+#endif
+   return RT_PROPERTY_NOT_FOUND;
+  rtWrapperError error;
+  *value = js2rt(ctx, self->Get(i), &error);
+  if (error.hasError())
+    return RT_ERROR_INVALID_ARG;
 
   return RT_OK;
 }
 
 rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
 {
-  // unsupported yet
-  assert(0);
+  if (!name)
+    return RT_ERROR_INVALID_ARG;
+  if (!value)
+    return RT_ERROR_INVALID_ARG;
 
-  return RT_OK;
+  Locker locker(mIsolate);
+  HandleScope handleScope(mIsolate);
+  Local<String> s = String::NewFromUtf8(mIsolate, name);
+  Local<Object> self = PersistentToLocal(mIsolate, mObject);
+  Local<Context> ctx = self->CreationContext();
+
+  rtError err = RT_OK;
+
+  if (mIsArray)
+  {
+#ifdef ENABLE_NODE_V_6_9
+    Local<Uint32> idx = (s->ToArrayIndex(ctx)).FromMaybe(Local<Uint32>());
+#else
+    Local<Uint32> idx = s->ToArrayIndex();
+#endif
+    if (idx.IsEmpty())
+      err = RT_ERROR_INVALID_ARG;
+    else
+      err = Set(idx->Value(), value);
+  }
+  else
+  {
+    err = self->Set(s, rt2js(ctx, *value));
+  }
+
+  return err;
 }
 
 rtError jsObjectWrapper::Set(uint32_t i, const rtValue* value)
 {
-  // unsupported yet
-  assert(0);
+  if (!value)
+    return RT_ERROR_INVALID_ARG;
+
+  Locker locker(mIsolate);
+  HandleScope handleScope(mIsolate);
+  Local<Object> self = PersistentToLocal(mIsolate, mObject);
+  Local<Context> ctx = self->CreationContext();
+
+  if (!self->Set(i, rt2js(ctx, *value)))
+    return RT_FAIL;
 
   return RT_OK;
 }
 
-void jsObjectWrapper::pushDukWrappedObject()
+Local<Object> jsObjectWrapper::getWrappedObject()
 {
-  duk_bool_t res = duk_get_global_string(mDukCtx, mDukName.c_str());
-  assert(res);
-
-  AddRef();
+  EscapableHandleScope scope(mIsolate);
+  return scope.Escape(PersistentToLocal(mIsolate, mObject));
 }
+

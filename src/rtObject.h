@@ -44,7 +44,6 @@ class rtIObject
 
     virtual unsigned long AddRef() = 0;
     virtual unsigned long Release() = 0;
-    virtual rtMethodMap* getMap() const = 0;
     virtual rtError Get(const char* name, rtValue* value) const = 0;
     virtual rtError Get(uint32_t i, rtValue* value) const = 0;
     virtual rtError Set(const char* name, const rtValue* value) = 0;
@@ -82,7 +81,7 @@ public:
   finline rtError set(const char* name, const rtValue& value) 
     {return Set(name, &value);}
   // For array-like properties
-  finline rtError Set(uint32_t i, const rtValue& value) 
+  finline rtError set(uint32_t i, const rtValue& value) 
     {return Set(i, &value);}
 
   // convenience methods
@@ -157,12 +156,11 @@ public:
                       const rtValue* args,
                       rtValue& result); 
 
-private:
+ private:
   virtual rtError Get(const char* name, rtValue* value) const = 0;
   virtual rtError Get(uint32_t i, rtValue* value) const = 0;
   virtual rtError Set(const char* name, const rtValue* value) = 0;
   virtual rtError Set(uint32_t i, const rtValue* value) = 0;
-  virtual rtMethodMap* getMap() const = 0;
 };
 
 // Mix-in providing convenience methods for rtIFunction(s)
@@ -241,7 +239,6 @@ class rtObjectRef: public rtRef<rtIObject>, public rtObjectBase
   virtual rtError Get(uint32_t i, rtValue* value) const;
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t i, const rtValue* value);
-  virtual rtMethodMap* getMap() const { return NULL;  }
 };
 
 class rtFunctionRef: public rtRef<rtIFunction>, public rtFunctionBase
@@ -700,8 +697,6 @@ struct rtNamedValue
 class rtMapObject: public rtObject 
 {
 public:
-  rtDeclareObject(rtMapObject, rtObject);
-  rtReadOnlyProperty(mapKeys, mapKeys, rtObjectRef);
 
   std::vector<rtNamedValue>::iterator find(const char* name);
 
@@ -709,8 +704,6 @@ public:
   virtual rtError Get(uint32_t /*i*/, rtValue* /*value*/) const;
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/);
-
-  rtError mapKeys(rtObjectRef& v) const;
 
 private:
   std::vector<rtNamedValue> mProps;

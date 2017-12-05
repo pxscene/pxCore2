@@ -2,12 +2,12 @@
 
 var fs = require('fs');
 var url = require('url');
-//var http = require('http');
+var http = require('http');
 var FileArchive = require('rcvrcore/utils/FileArchive');
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
 var Logger = require('rcvrcore/Logger').Logger;
-var log = new Logger('rcvrcore/SceneModuleLoader');
+var log = new Logger('SceneModuleLoader');
 
 
 function SceneModuleLoader() {
@@ -24,7 +24,6 @@ SceneModuleLoader.prototype.loadScenePackage = function(scene, fileSpec) {
   return new Promise(function (resolve, reject) {
     scene.loadArchive(fileSpec.fileUri)
       .ready.then(function(a) {
-          console.error("http status code:", a.loadStatus.httpStatusCode);
           if (a.loadStatus.httpStatusCode && a.loadStatus.httpStatusCode != 200)
           {
             console.error("http status is not 200 rejecting");
