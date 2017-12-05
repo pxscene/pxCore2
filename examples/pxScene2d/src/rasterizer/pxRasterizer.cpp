@@ -455,15 +455,35 @@ public:
 class edgePoolManager
 {
 public:
-  edgePoolManager()
+  edgePoolManager() : headPool(NULL), tailPool(NULL), freePool(NULL)
   {
-    headPool = NULL;
-    tailPool = NULL;
-    freePool = NULL;
   }
 
   ~edgePoolManager()
   {
+    while(headPool)
+    {
+      edgePool* p = headPool->nextPool;
+      SAFE_DELETE(headPool);
+
+      headPool = p;
+    }
+
+    while(tailPool)
+    {
+      edgePool* p = tailPool->nextPool;
+      SAFE_DELETE(tailPool);
+
+      tailPool = p;
+    }
+
+    while(freePool)
+    {
+      edgePool* p = freePool->nextPool;
+      SAFE_DELETE(freePool);
+
+      freePool = p;
+    }
   }
 
   inline void reset()
@@ -482,34 +502,46 @@ public:
     edgeBucket* newBucket = NULL;
 
     if (tailPool != NULL)
+    {
       newBucket = tailPool->getNewBucket();
+    }
 
     if (newBucket)
+    {
       return newBucket;
+    }
     else
     {
       edgePool* newPool = NULL;
       if (freePool != NULL)
       {
-        newPool = freePool;
+        newPool  = freePool;
         freePool = newPool->nextPool;
       }
       else
-        newPool = new edgePool;
+      {
+        newPool = new edgePool();
+      }
 
       newPool->init();
 
       // Link it in
       if (!headPool)
+      {
         headPool = newPool;
+      }
 
       if (tailPool)
+      {
         tailPool->nextPool = newPool;
+      }
 
       tailPool = newPool;
 
       if (tailPool != NULL)
+      {
         newBucket = tailPool->getNewBucket();
+      }
     }
 
     return newBucket;
@@ -685,7 +717,9 @@ public:
 
   ~edgeManager()
   {
-    SAFE_DELETE(mEdgeArray);
+    delete [] mEdgeArray;
+    mEdgeArray = NULL;
+    
     SAFE_DELETE(mStarts);
     SAFE_DELETE(mEnds);
   }
@@ -802,7 +836,9 @@ public:
   ~edgeManager()
   {
 #if 0
-    SAFE_DELETE(mEdgeArray);
+    delete [] mEdgeArray;
+    mEdgeArray = NULL;
+    
     SAFE_DELETE(mStarts);
     SAFE_DELETE(mEnds);
 #endif
@@ -940,7 +976,6 @@ public:
     mFirstStart = mMaxScanlines;
     mLastStart = -1;
   }
-
   ~edgeManager()
   {
 
@@ -970,10 +1005,15 @@ public:
   void term()
   {
 #if 0
-    SAFE_DELETE(mEdgeArray);
+    delete [] mEdgeArray;
+    mEdgeArray = NULL;
+    
     SAFE_DELETE(mStarts);
     SAFE_DELETE(mEnds);
 #endif
+
+    delete [] mStartLines;
+    mStartLines = NULL;
   }
 
   inline void reset()
@@ -1399,8 +1439,13 @@ void pxRasterizer::term()
   
 #endif
 #endif
-  SAFE_DELETE(mCoverage);
 
+  edgeManager* edgeMgr = (edgeManager*)mEdgeManager;
+  SAFE_DELETE(edgeMgr);
+  mEdgeManager = NULL;
+  
+  delete [] mCoverage;
+  mCoverage = NULL;
 }
 
 void pxRasterizer::reset()
@@ -2369,12 +2414,13 @@ void pxRasterizer::rasterizeComplex()
   //   maxV = (mTexture->height()-1)<<UVFIXEDSHIFT;
   // }
 
-  if (!mCoverage ||          
+  if (!mCoverage ||
       mBuffer->width() != mCachedBufferWidth)
   {
     //setClip(NULL);
-    
-    SAFE_DELETE(mCoverage);
+
+    delete [] mCoverage;
+    mCoverage = NULL;
 
 
 #ifndef USELONGCOVERAGE

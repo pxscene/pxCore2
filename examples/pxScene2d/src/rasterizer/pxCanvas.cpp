@@ -42,8 +42,8 @@ rtDefineMethod(pxCanvas, drawPath);
 
 pxCanvas::pxCanvas(pxScene2d* scene): pxObject(scene)
 {
-  mw = 1280;// scene->w();
-  mh =  720;// scene->h();
+  mw = CANVAS_W;// scene->w();
+  mh = CANVAS_H;// scene->h();
 }
 
 pxCanvas::~pxCanvas()

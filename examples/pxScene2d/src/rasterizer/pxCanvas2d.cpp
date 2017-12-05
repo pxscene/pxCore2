@@ -168,9 +168,6 @@ pxCanvas2d::~pxCanvas2d()
 
 pxError pxCanvas2d::term()
 {
-//  delete mOffscreen;
-//  mOffscreen = NULL;
-  
   mOffscreen.term();
 
   mVertexCount = 0;

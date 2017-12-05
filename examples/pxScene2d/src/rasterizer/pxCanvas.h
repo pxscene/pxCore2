@@ -23,6 +23,8 @@
 #define RTPLATFORM_WINDOWS
 #endif
 
+#define  CANVAS_W   1280
+#define  CANVAS_H    720
 
 #include "pxCanvas2d.h"
 #include "pxContext.h"

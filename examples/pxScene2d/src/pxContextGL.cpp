@@ -62,6 +62,9 @@
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
 
+// Values must match pxCanvas.h // TODO FIX 
+#define  CANVAS_W   1280
+#define  CANVAS_H    720
 
 ////////////////////////////////////////////////////////////////
 //
@@ -108,6 +111,12 @@ pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
 
 pxContextFramebufferRef defaultFramebuffer(new pxContextFramebuffer());
 pxContextFramebufferRef currentFramebuffer = defaultFramebuffer;
+
+class pxSwTexture; //fwd
+
+typedef rtRef<pxSwTexture>    pxSwTextureRef;
+static        pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
+
 
 #ifdef RUNINMAIN
 extern rtNode script;
@@ -906,11 +915,11 @@ public:
     {
       mWidth  = w;
       mHeight = h;
-      
+
       mOffscreen.init(w,h);
       
       mOffscreen.setUpsideDown(true);
-      
+
       mInitialized = true;
     }
   }
@@ -919,17 +928,17 @@ public:
   {
     mOffscreen.fill(r, pxClear);
   }
-  
+
   void clear()
   {
     mOffscreen.fill(pxClear);
   }
-  
+
   pxOffscreen* offscreen()
   {
     return &mOffscreen;
   }
-  
+
   pxError copy(int src_x, int src_y, int dst_x, int dst_y, float w, float h, pxOffscreen &o)
   {
     // COPY / BLIT from 'o' ... to 'mOffscreen'
@@ -939,7 +948,7 @@ public:
 #ifdef PX_PLATFORM_MAC
     
     extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
-    
+
     // HACK
     // HACK
     // HACK
@@ -956,7 +965,7 @@ public:
     // HACK
 #endif
 #endif
-    
+
     if (mTextureName != 0)
     {
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
@@ -971,7 +980,7 @@ public:
 //      glTexSubImage2D(GL_TEXTURE_2D, 0, dst_x, dst_y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid *) ( (char *) mOffscreen.base() + off));
       
       
-      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1280,720, GL_RGBA, GL_UNSIGNED_BYTE, mOffscreen.base());
+      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, CANVAS_W, CANVAS_H, GL_RGBA, GL_UNSIGNED_BYTE, mOffscreen.base());
       
 #ifndef PX_PLATFORM_WAYLAND_EGL
       //glPixelStorei(GL_UNPACK_ROW_LENGTH,0); //default
@@ -1005,7 +1014,7 @@ public:
   virtual pxError bindGLTexture(int tLoc)
   {
     glActiveTexture(GL_TEXTURE1);
-    
+
     if (!mRasterTextureCreated)
     {
       if (!context.isTextureSpaceAvailable(this))
@@ -1025,23 +1034,21 @@ public:
           return PX_NOTINITIALIZED;
         }
       }
-      
+
       glGenTextures(1, &mTextureName);
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
-      
+
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-      
+
       glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
-      
+
       context.adjustCurrentTextureMemorySize(mWidth * mHeight * 4); // USE
       mRasterTextureCreated = true;
-      
-      printf("\n SW TEXTURE >>  glGetError() = %d   >>  mWidth: %d   mHeight: %d\n", glGetError(), mWidth, mHeight);
     }
     else
     {
@@ -1057,7 +1064,7 @@ public:
 private:
   int mWidth;
   int mHeight;
-  
+
   pxOffscreen mOffscreen;
   GLuint mTextureName;
   bool mRasterTextureCreated;
@@ -1990,6 +1997,11 @@ pxContext::~pxContext()
     delete gTextureMaskedShader;
     gTextureMaskedShader = NULL;
   }
+
+  if(swRasterTexture.getPtr() != NULL)
+  {
+    swRasterTexture = NULL;
+  }
 }
 
 void pxContext::init()
@@ -2358,9 +2370,6 @@ void pxContext::drawImage(float x, float y, float w, float h,
                   color? color : black, stretchX, stretchY);
 }
 
-typedef rtRef<pxSwTexture>    pxSwTextureRef;
-static        pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
-
 void pxContext::drawOffscreen(float src_x, float src_y,
                               float dst_x, float dst_y,
                               float w,     float h,
@@ -2377,7 +2386,7 @@ void pxContext::drawOffscreen(float src_x, float src_y,
   {
     // Lazy init...
     swRasterTexture = pxSwTextureRef(new pxSwTexture());
-    swRasterTexture->init(1280, 720); // HACK - hard coded for now.
+    swRasterTexture->init(CANVAS_W, CANVAS_H); // HACK - hard coded for now.
   }
   
   // COPY from CANVAS (offscreen) to RASTER
@@ -2389,7 +2398,7 @@ void pxContext::drawOffscreen(float src_x, float src_y,
 
   pxTextureRef texture( (pxTexture *) swRasterTexture.getPtr());
   
-  drawImage(/*dst_x, dst_y*/0,0, 1280, 720, texture, nullMask, true, clear,
+  drawImage(/*dst_x, dst_y*/0,0, CANVAS_W, CANVAS_H, texture, nullMask, true, clear,
             pxConstantsStretch::NONE, pxConstantsStretch::NONE);
   
 //  drawImage(dst_x, dst_y, w, h, texture, nullMask, true, clear,
@@ -2422,7 +2431,7 @@ void pxContext::drawOffscreen(float src_x, float src_y,
   
   ///// CRAWL approach only
 //  pxRect rect(src_x, src_y, src_x + w, src_y + h);
-  pxRect rect(0,0,1280,720);
+  pxRect rect(0,0,CANVAS_W,CANVAS_H);
   
   swRasterTexture->clear(rect);
   offscreen.fill(pxClear);
