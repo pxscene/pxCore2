@@ -124,11 +124,11 @@ fi
 
 #--------- LIBNODE
 
-if [ ! -e libnode-v6.9.0/out/Release/libnode.48.dylib ] ||
+if [ ! -e node/out/Release/libnode.48.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
 
-  cd libnode-v6.9.0
+  cd node
   ./configure --shared
   make "-j${make_parallel}"
   ln -sf libnode.so.48 out/Release/obj.target/libnode.so
