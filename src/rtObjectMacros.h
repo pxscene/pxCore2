@@ -187,31 +187,31 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
   rtError method##_thunk(int /*numArgs*/, const rtValue* /*args*/, rtValue& r){ returntype rv; rtError e =  method(rv); if ((uintptr_t)NULL != (uintptr_t)&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk1ArgAndReturn(method, arg1type, returntype) \
-  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rv); if (&r) r.assign<returntype>(rv); return e;}
+  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rv); if ((uintptr_t)NULL != (uintptr_t)&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk2ArgAndReturn(method, arg1type, arg2type, returntype) \
   rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rv); if ((uintptr_t)NULL != (uintptr_t)&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk3ArgAndReturn(method, arg1type, arg2type, arg3type, returntype) \
-  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rv); r.assign<returntype>(rv); return e;}
+  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rv); if ((uintptr_t)NULL != (uintptr_t)&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk4ArgAndReturn(method, arg1type, arg2type, arg3type, arg4type, returntype) \
-  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rv); if (&r) r.assign<returntype>(rv); return e;}
+  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rv); if ((uintptr_t)NULL != (uintptr_t)&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk5ArgAndReturn(method, arg1type, arg2type, arg3type, arg4type, arg5type, returntype) \
-  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rv); if (&r) r.assign<returntype>(rv); return e;}
+  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rv); if ((uintptr_t)NULL != (uintptr_t)&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk6ArgAndReturn(method, arg1type, arg2type, arg3type, arg4type, arg5type, arg6type, returntype) \
-  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rtGA(5).convert<arg6type>(), rv); r.assign<returntype>(rv); return e;}
+  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rtGA(5).convert<arg6type>(), rv); if ((uintptr_t)NULL != (uintptr_t)&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk7ArgAndReturn(method, arg1type, arg2type, arg3type, arg4type, arg5type, arg6type, arg7type, returntype) \
-  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rtGA(5).convert<arg6type>(), rtGA(6).convert<arg7type>(), rv); if (&r) r.assign<returntype>(rv); return e;}
+  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rtGA(5).convert<arg6type>(), rtGA(6).convert<arg7type>(), rv); if ((uintptr_t)NULL != (uintptr_t)&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk8ArgAndReturn(method, arg1type, arg2type, arg3type, arg4type, arg5type, arg6type, arg7type, arg8type, returntype) \
-  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rtGA(5).convert<arg6type>(), rtGA(6).convert<arg7type>(), rtGA(7).convert<arg8type>(), rv); if (&r) r.assign<returntype>(rv); return e;}
+  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rtGA(5).convert<arg6type>(), rtGA(6).convert<arg7type>(), rtGA(7).convert<arg8type>(), rv); if ((uintptr_t)NULL != (uintptr_t)&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk9ArgAndReturn(method, arg1type, arg2type, arg3type, arg4type, arg5type, arg6type, arg7type, arg8type, arg9type, returntype) \
-  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rtGA(5).convert<arg6type>(), rtGA(6).convert<arg7type>(), rtGA(7).convert<arg8type>(), rtGA(8).convert<arg9type>(), rv); if (&r) r.assign<returntype>(rv); return e;}
+  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rtGA(3).convert<arg4type>(), rtGA(4).convert<arg5type>(), rtGA(5).convert<arg6type>(), rtGA(6).convert<arg7type>(), rtGA(7).convert<arg8type>(), rtGA(8).convert<arg9type>(), rv); if ((uintptr_t)NULL != (uintptr_t)&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunkProperty(getterMethod, setterMethod, propType) \
   rtError setterMethod##_PropSetterThunk(const rtValue& v) { return setterMethod(v.convert<propType>()); } \
