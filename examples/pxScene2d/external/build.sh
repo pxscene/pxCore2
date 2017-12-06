@@ -147,6 +147,17 @@ if [ "$(uname)" != "Darwin" ]; then
 
 fi
 
+if [ ! -e dukluv/build/duktape.a ]
+then
+    cd dukluv
+    mkdir build
+    cd build
+    cmake ..
+    make
+    cd ..
+fi
+
+
 #-------- BODYMOVIN
 #
 # TODO:  ensure that "npm" is installed ... possibly via "brew install npm" (on Mac)

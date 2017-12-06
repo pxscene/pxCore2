@@ -7,14 +7,6 @@ https://github.com/pxscene/pxCore/tree/master/examples/pxScene2d#windows-setup
 
 these commands must be executed in msvc 2017 developer prompt:
 
-# build dukluv
-cd src\dukluv
-mkdir build
-cd build
-cmake ..
-
-build solution dukluv.sln with msvc 2017, release/win32
-
 # building pxScene (https://github.com/pxscene/pxCore/tree/master/examples/pxScene2d)
 
 cd ..\..\..

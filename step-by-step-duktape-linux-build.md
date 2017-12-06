@@ -4,12 +4,6 @@
 * git clone git@github.com:topcoderinc/pxCore.git
 * cd pxCore
 * git checkout duktape_proof_of_concept
-* cd src/dukluv
-* mkdir build
-* cd build
-* cmake ..
-* make
-* cd ../../../
 * cd examples/pxScene2d/external
 * cd curl
 * ./configure --with-gnutls

@@ -211,9 +211,9 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PX_LIBRARY_LINK_PXCORE 0)
     endif (HOSTNAME STREQUAL "raspberrypi")
     if (USE_DUKTAPE)
-        include_directories(AFTER ${PXCOREDIR}/src/dukluv/src ${PXCOREDIR}/src/dukluv/lib/duktape/src ${PXCOREDIR}/src/dukluv/lib/uv/include)
+        include_directories(AFTER ${EXTDIR}/dukluv/src ${EXTDIR}/dukluv/lib/duktape/src ${EXTDIR}/dukluv/lib/uv/include)
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} duktape.a dschema.a duv.a uv.a dl)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCOREDIR}/src/dukluv/build/)
+        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/dukluv/build/)
     endif (USE_DUKTAPE)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libjpeg-turbo/.libs)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_NODE_V_6_9 NODE_PLATFORM="linux" NODE_WANT_INTERNALS=1 V8_DEPRECATION_WARNINGS=1 NODE_SHARED_MODE NODE_USE_V8_PLATFORM=1 NODE_HAVE_I18N_SUPPORT=1 NODE_HAVE_SMALL_ICU=1 HAVE_INSPECTOR=1 V8_INSPECTOR_USE_STL=1 V8_INSPECTOR_USE_OLD_STL=1)
@@ -269,11 +269,11 @@ elseif (WIN32)
     include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${FREETYPEINC} ${GLEWINC} ${WINSPARKLEINC} ${EXTDIR}/breakpad-chrome_55/src/)
 
     IF (USE_DUKTAPE)
-        include_directories(AFTER ${PXCOREDIR}/src/dukluv/src)
+        include_directories(AFTER ${EXTDIR}/dukluv/src)
 
-        include_directories(AFTER ${PXCOREDIR}/src/dukluv/lib/duktape/src)
+        include_directories(AFTER ${EXTDIR}/dukluv/lib/duktape/src)
 
-        include_directories(AFTER ${PXCOREDIR}/src/dukluv/lib/uv/include)
+        include_directories(AFTER ${EXTDIR}/dukluv/lib/uv/include)
     ENDIF (USE_DUKTAPE)
 
     include_directories(AFTER ${NODEDIR}/deps/openssl/openssl/include ${NODEDIR}/deps/http_parser
@@ -286,7 +286,7 @@ elseif (WIN32)
             ${NODEDIR}/tools/msvs/genfiles)
 
     IF (USE_DUKTAPE)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCOREDIR}/src/dukluv/build/Release/)
+        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/dukluv/build/Release/)
     ENDIF (USE_DUKTAPE)
 
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/vc.build/builds)
