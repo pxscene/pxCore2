@@ -59,7 +59,7 @@
 * cd ../../../
 * mkdir temp
 * cd temp
-* cmake ..
+* cmake -DUSE_DUKTAPE=ON ..
 * cmake --build . --config Release -- -j1
 * cd ../examples/pxScene2d/src
 * ./pxscene about.js
