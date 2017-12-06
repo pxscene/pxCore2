@@ -184,13 +184,13 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
 // Internally used thunk macros
 // thunks for functions returning a value
 #define rtThunkNoArgAndReturn(method, returntype) \
-  rtError method##_thunk(int /*numArgs*/, const rtValue* /*args*/, rtValue& r){ returntype rv; rtError e =  method(rv); if (&r) r.assign<returntype>(rv); return e;}
+  rtError method##_thunk(int /*numArgs*/, const rtValue* /*args*/, rtValue& r){ returntype rv; rtError e =  method(rv); if ((uintptr_t)NULL != (uintptr_t)&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk1ArgAndReturn(method, arg1type, returntype) \
   rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rv); if (&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk2ArgAndReturn(method, arg1type, arg2type, returntype) \
-  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rv); if (&r) r.assign<returntype>(rv); return e;}
+  rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rv); if ((uintptr_t)NULL != (uintptr_t)&r) r.assign<returntype>(rv); return e;}
 
 #define rtThunk3ArgAndReturn(method, arg1type, arg2type, arg3type, returntype) \
   rtError method##_thunk(int numArgs, const rtValue* args, rtValue& r){returntype rv; rtError e =  method(rtGA(0).convert<arg1type>(), rtGA(1).convert<arg2type>(), rtGA(2).convert<arg3type>(), rv); r.assign<returntype>(rv); return e;}
