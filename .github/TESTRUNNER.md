@@ -25,9 +25,10 @@ TBD:  Key injection mechanisms.
 ### Defining Test Functions To Be Run:
 1. There are several JavaScript files that can be imported into any test that is meant to run in *testRunner*. Their names and functionality are as follows: 
    1. __asserts.js__: Use *assert.js* to properly format the results returned to *testRunner*.  Asserts' assert() function will prepend data with SUCCESS or FAILURE strings that testRunner uses to determine the tests' final status.  If you have a single test that tests multiple conditions for success/failure, return the results as an array of strings accumulated during the test.  The assert function is defined as function(condition, message), where the message will be output along with a prepended "FAILURE" string when the condition is false.
-_assert function definition_
-```module.exports.assert = function(condition, message) {
-  //console.log("Inside px assert with condition: " +condition);
+__assert function definition__
+```
+module.exports.assert = function(condition, message) {
+  //console.log("Inside assert with condition: " +condition);
   if( condition === false)
   {
     //console.log("FAILURE : "+message);
@@ -35,12 +36,12 @@ _assert function definition_
   } else {
     return "SUCCESS";
   }
-}
+} 
 ```
-   1. __tools\_manualTests.js__: Use tools\_manualTests.js to allow for easy one-off testing of tests without having to use *testRunner* itself.  With a few additional lines of code, you can run the js test directly and still get the equivalent test results output in the log.
-
-* Example tools\_manualTest usage *
-```px.import({scene:"px:scene.1.js",
+  2. __tools\_manualTests.js__: Use tools\_manualTests.js to allow for easy one-off testing of tests without having to use *testRunner* itself.  With a few additional lines of code, you can run the js test directly and still get the equivalent test results output in the log.
+__Example tools\_manualTest usage__
+```
+px.import({scene:"px:scene.1.js",
            assert:"../test-run/assert.js",
            manual:"../test-run/tools_manualTests.js"}).then( function ready(imports) {
  
@@ -70,10 +71,10 @@ if(manualTest === true) {
 });
 ```
 
-   1. __tools\_screenshot.js__: Use tools\_screenshot.js to include screenshot comparisons in your test.  tools\_screenshot.js implements and exports a function called "validateScreenshot" that makes it easy to do a screenshot comparison.  The first parameter to the function is a string to indicate an url to the saved, expected image for the comparision.  The second parameter is a boolean that, if true, will cause the function to output the base64 value of the realtime screen.screenshot function.  This can then be copied and pasted into a base64 decoder (like https://opinionatedgeek.com/Codecs/Base64Decoder) and decoded to the resultant png binary. That can then be saved and used as the expected image for the comparison.
-
-* Example tools\_screenshot usage *
-```px.import({scene:"px:scene.1.js",
+  3. __tools\_screenshot.js__: Use tools\_screenshot.js to include screenshot comparisons in your test.  tools\_screenshot.js implements and exports a function called "validateScreenshot" that makes it easy to do a screenshot comparison.  The first parameter to the function is a string to indicate an url to the saved, expected image for the comparision.  The second parameter is a boolean that, if true, will cause the function to output the base64 value of the realtime screen.screenshot function.  This can then be copied and pasted into a base64 decoder (like https://opinionatedgeek.com/Codecs/Base64Decoder) and decoded to the resultant png binary. That can then be saved and used as the expected image for the comparison.
+__Example tools\_screenshot usage__
+```
+px.import({scene:"px:scene.1.js",
            assert:"../test-run/assert.js",
            shots:"../test-run/tools_screenshot.js",
            manual:"../test-run/tools_manualTests.js"}).then( function ready(imports) {
@@ -109,8 +110,10 @@ var tests = {
   console.error("Import for test_sample.js failed: " + err)
 });
 ```
-1. __beforeStart__: In your test page, if there is any code that needs to be run prior to starting the tests, for instance for setup or downloads, you can implement and export a function called "beforeStart".  This function will be called once before ** begins iterating over and running the exported tests (see step 2).
-```var beforeStart = function() {
+2. __beforeStart__: In your test page, if there is any code that needs to be run prior to starting the tests, for instance for setup or downloads, you can implement and export a function called "beforeStart".  This function will be called once before *testRunner* begins iterating over and running the exported tests (see step 2).
+Sample beforeStart function
+```
+var beforeStart = function() {
   // Do startup/pre-test work here ...
   console.log("test_pxConstants start.....");
   var promise = new Promise(function(resolve,reject) {
@@ -123,7 +126,9 @@ module.exports.beforeStart = beforeStart;
 
 1. __tests__ object: In your test page, define and export a "tests" object. Each member of that object will be considered to be a test function and will be run by testRunner. Each test must return a promise.  When that promise is resolved, the data should be a string or array of strings indicating the test results. 
 For example:
-```var tests = {
+Defining tests
+```
+var tests = {
    
   myFirstTest: function() {
     // do any setup necessary
@@ -156,17 +161,20 @@ module.exports.tests = tests; // export the tests
 
 ## Running Tests
 Tests can be run either using the checked-in/auto-deployed version of *testRunner* and tests, or by running local versions of *testRunner* and tests: 
-__Run deployed versions of *testRunner* and *tests.json*__:
-``` ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js
+Run deployed versions of *testRunner* and *tests.json*:
+``` 
+./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js
 ```
 
 *or* 
-__Run local versions of *testRunner* and *tests.json*__:
-``` ./pxscene.sh {local_path_to_pxscene-samples}/examples/px-reference/test-run/testRunner.js
+Run local versions of *testRunner* and *tests.json*:
+``` 
+./pxscene.sh {local_path_to_pxscene-samples}/examples/px-reference/test-run/testRunner.js
 ```
 
 *or*
-__Run deployed *testRunner* with local *tests.json* file via queryParam "tests"__:
-``` ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=file://{local_path_to_a_tests.json_file}
+Run deployed *testRunner* with local *tests.json* file via queryParam "tests":
+``` 
+./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=file://{local_path_to_a_tests.json_file}
 ```
 
