@@ -279,6 +279,25 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
     });
 };
 
+var setTimeoutCallback = function() {
+  var args = Array.from(arguments);
+  var context = args[0];
+  var callback = args[1];
+  args.shift();
+  args.shift();
+  callback(args);
+  callback = null;
+  var index = context.timers.indexOf(this);
+  if (index != -1)
+  {
+    console.log("madana timer deleted ");
+    context.timers.splice(index,1);
+  }
+  clearTimeout(this);
+  delete args;
+};
+
+
 function createModule_pxScope(xModule) {
   return {
     log: xModule.log,
@@ -365,8 +384,9 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       require: requireMethod,
       global: global,
       setTimeout: function (callback, after, arg1, arg2, arg3) {
-        var timerId = SetTimeout(callback, after, arg1, arg2, arg3);
+        var timerId = SetTimeout( setTimeoutCallback, after, this, callback, arg1, arg2, arg3);
         this.timers.push(timerId);
+        console.log("timers pushed" +  this.timers.length);
         return timerId;
       }.bind(this),
       clearTimeout: function (timer) {
