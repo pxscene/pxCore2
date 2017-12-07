@@ -135,7 +135,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     endif (HOSTNAME STREQUAL "raspberrypi")
 elseif(WIN32)
     message("Building pxcore for Windows")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /Zi /DEBUG")
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/win)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/win)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/win)
@@ -152,7 +152,7 @@ elseif(WIN32)
             -DU_HAVE_STD_STRING=0 -DUCONFIG_NO_BREAK_ITERATION=0 -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_CONVERSION=1
             -DHTTP_PARSER_STRICT=0 -DUSE_RENDER_STATS -D_HAS_EXCEPTIONS=0)
     #add_definitions(-DRUNINMAIN-DPNG_APNG_SUPPORTED)
-    add_definitions(-DWIN32 -D_LIB -DNDEBUG -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
+    add_definitions(-DWIN32 -D_LIB -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
     include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${PNGINC} ${PTHREADINC})
     set(PXCORE_FILES win/pxBufferNative.cpp win/pxOffscreenNative.cpp win/pxWindowNative.cpp
             win/pxEventLoopNative.cpp win/pxTimerNative.cpp win/pxClipboardNative.cpp pxViewWindow.cpp
@@ -172,22 +172,39 @@ if (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
 endif (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
 
 include_directories(AFTER ${NODEPATH}/src ${NODEPATH}/deps/uv/include ${NODEPATH}/deps/v8 ${NODEPATH}/deps/debugger-agent/include ${NODEPATH}/deps/v8/include ${NODEPATH}/deps/cares/include)
+
+
+if (USE_DUKTAPE)
+    include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/duktape)
+endif (USE_DUKTAPE)
+
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
-        rtFile.cpp rtLibrary.cpp rtNode.cpp
-        rtPathUtils.cpp rtTest.cpp rtThreadPool.cpp
+        rtFile.cpp rtLibrary.cpp rtPathUtils.cpp rtTest.cpp rtThreadPool.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
-        rtFileDownloader.cpp unzip.c ioapi.c
-        jsbindings/jsCallback.cpp jsbindings/rtFunctionWrapper.cpp jsbindings/rtObjectWrapper.cpp
-        jsbindings/rtWrapperUtils.cpp)
+        rtFileDownloader.cpp unzip.c ioapi.c)
+
+if (USE_DUKTAPE)
+    set(PXCORE_FILES ${PXCORE_FILES} duktape/rtNode.cpp jsbindings/duktape/rtFunctionWrapper.cpp jsbindings/duktape/rtObjectWrapper.cpp
+	    jsbindings/duktape/rtWrapperUtils.cpp jsbindings/duktape/rtJsModules.cpp)
+else (USE_DUKTAPE)
+    set(PXCORE_FILES ${PXCORE_FILES} rtNode.cpp jsbindings/rtFunctionWrapper.cpp jsbindings/rtObjectWrapper.cpp
+	    jsbindings/rtWrapperUtils.cpp jsbindings/rtWrapperInit.cpp jsbindings/jsCallback.cpp)
+endif (USE_DUKTAPE)
 
 if (PXCORE_MATRIX_HELPERS)
   set(PXCORE_FILES ${PXCORE_FILES} pxMatrix4T.cpp)
 endif(PXCORE_MATRIX_HELPERS)
 
-set(RTCORE_FILES utf8.c rtString.cpp rtLog.cpp rtValue.cpp rtObject.cpp rtError.cpp ioapi_mem.c)
+set(RTCORE_FILES utf8.c rtString.cpp rtLog.cpp rtValue.cpp rtError.cpp ioapi_mem.c)
+
+if (USE_DUKTAPE)
+    set(RTCORE_FILES ${RTCORE_FILES} duktape/rtObject.cpp)
+else (USE_DUKTAPE)
+    set(RTCORE_FILES ${RTCORE_FILES} rtObject.cpp)
+endif (USE_DUKTAPE)
 
 if (OUTPUT_LIBS_LOCAL)
     message("Output pxCore and rtCore libs locally")
@@ -195,6 +212,12 @@ if (OUTPUT_LIBS_LOCAL)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif (OUTPUT_LIBS_LOCAL)
+
+if (USE_DUKTAPE)
+    include_directories(AFTER ${EXTDIR}/dukluv/lib/duktape/src)
+    include_directories(AFTER ${EXTDIR}/dukluv/lib/uv/include)
+    include_directories(AFTER ${EXTDIR}/dukluv/src)
+endif(USE_DUKTAPE)
 
 if (BUILD_PXCORE_LIBS)
     message("Building pxcore libs")
