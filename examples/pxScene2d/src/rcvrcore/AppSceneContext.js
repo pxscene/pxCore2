@@ -280,22 +280,18 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
 };
 
 var setTimeoutCallback = function() {
-  var args = Array.from(arguments);
-  var context = args[0];
-  var callback = args[1];
-  args.shift();
-  args.shift();
-  callback(args);
+  var contextTimers = arguments[0];
+  var callback = arguments[1];
+  callback();
   callback = null;
-  var index = context.timers.indexOf(this);
+
+  var index = contextTimers.indexOf(this);
   if (index != -1)
   {
-    context.timers.splice(index,1);
+    contextTimers.splice(index,1);
   }
-  clearTimeout(this);
-  delete args;
+  ClearTimeout(this);
 };
-
 
 function createModule_pxScope(xModule) {
   return {
@@ -383,7 +379,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       require: requireMethod,
       global: global,
       setTimeout: function (callback, after, arg1, arg2, arg3) {
-        var timerId = SetTimeout( setTimeoutCallback, after, this, callback, arg1, arg2, arg3);
+        var timerId = SetTimeout(setTimeoutCallback, after, this.timers, function() { callback(arg1, arg2, arg3)});
         this.timers.push(timerId);
         return timerId;
       }.bind(this),
