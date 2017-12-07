@@ -290,7 +290,6 @@ var setTimeoutCallback = function() {
   var index = context.timers.indexOf(this);
   if (index != -1)
   {
-    console.log("madana timer deleted ");
     context.timers.splice(index,1);
   }
   clearTimeout(this);
@@ -386,7 +385,6 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       setTimeout: function (callback, after, arg1, arg2, arg3) {
         var timerId = SetTimeout( setTimeoutCallback, after, this, callback, arg1, arg2, arg3);
         this.timers.push(timerId);
-        console.log("timers pushed" +  this.timers.length);
         return timerId;
       }.bind(this),
       clearTimeout: function (timer) {
