@@ -132,9 +132,9 @@ function AppSceneContext(params) { // container, innerscene, packageUrl) {
   this.topXModule = null;
   this.jarFileMap = new JarFileMap();
   this.sceneWrapper = null;
-  this.timers = [];
+  this.timersMap = {};
   this.timerIntervals = [];
-
+  this.currentRequestId = 0;
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -161,11 +161,13 @@ if( fullPath !== null)
 
 this.innerscene.on('onClose', function (e) {
     //clear the timers and intervals on close
-    var ntimers = this.timers.length;
-    for (var i=0; i<ntimers; i++)
+    for(let timer in this.timersMap)
     {
-      clearTimeout(this.timers.pop());
+      clearTimeout(this.timersMap[timer]);
+      delete this.timersMap[timer];
     }
+    this.timersMap = null;
+    this.currentRequestId = 0;
     var ntimerIntervals = this.timerIntervals.length;
     for (var i=0; i<ntimerIntervals; i++)
     {
@@ -365,17 +367,32 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       require: requireMethod,
       global: global,
       setTimeout: function (callback, after, arg1, arg2, arg3) {
-        var timerId = SetTimeout(callback, after, arg1, arg2, arg3);
-        this.timers.push(timerId);
+        let timerId = SetTimeout( function() {
+            let args = Array.from(arguments);
+            let requestId = args[0];
+            let callback = args[1];
+            args.shift();
+            args.shift();
+            callback(args);
+            callback = null;
+            delete this.timersMap[requestId];
+            delete args;
+            args = null;
+        }.bind(this), after, this.currentRequestId, callback, arg1, arg2, arg3);
+        this.timersMap[this.currentRequestId] = timerId;
+        this.currentRequestId++;
         return timerId;
       }.bind(this),
-      clearTimeout: function (timer) {
-        var index = this.timers.indexOf(timer);
-        if (index != -1)
+      clearTimeout: function (timerInput) {
+        ClearTimeout(timerInput);
+        for(let timerIndex in this.timersMap)
         {
-          this.timers.splice(index,1);
+          if (timerInput == this.timersMap[timerIndex])
+          {
+            delete this.timersMap[timerIndex];
+            break;
+          }
         }
-        ClearTimeout(timer);
       }.bind(this),
       setInterval: function (callback, repeat, arg1, arg2, arg3) {
         var intervalId = SetInterval(callback, repeat, arg1, arg2, arg3);
