@@ -852,6 +852,7 @@
 					AENABLE_DEBUG_MODE,
 					ENABLE_LIBJPEG_TURBO11111111,
 					ENABLE_DEBUG_MODE,
+                                        PXSCENE_DISABLE_WST_DECODER,
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",
@@ -928,6 +929,7 @@
 					AENABLE_DEBUG_MODE,
 					ENABLE_LIBJPEG_TURBO11111111,
 					ENABLE_DEBUG_MODE,
+                                        PXSCENE_DISABLE_WST_DECODER,
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",

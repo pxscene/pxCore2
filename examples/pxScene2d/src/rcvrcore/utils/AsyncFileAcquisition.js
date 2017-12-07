@@ -40,6 +40,7 @@ AsyncFileAcquisition.prototype.acquire = function(uri) {
           }
           self.requestMap[uri].listeners = null;
           delete self.requestMap[uri];
+          process._tickCallback();
         })
         .catch(function(error){
           console.error("Error");

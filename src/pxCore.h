@@ -70,6 +70,8 @@ inline t pxAbs(t i)
 #include "x11/pxConfigNative.h"
 #elif defined (PX_PLATFORM_GLUT)
 #include "glut/pxConfigNative.h"
+#elif defined(PX_PLATFORM_ESSOS)
+#include "essos/pxConfigNative.h"
 #elif defined(PX_PLATFORM_WAYLAND)
 #include "wayland/pxConfigNative.h"
 #elif defined(PX_PLATFORM_WAYLAND_EGL)
