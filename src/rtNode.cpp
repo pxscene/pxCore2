@@ -849,6 +849,11 @@ void rtNode::pump()
 //#endif // RUNINMAIN
 }
 
+std::string rtNode::name() const
+{
+  return "node";
+}
+
 void rtNode::garbageCollect()
 {
 //#ifndef RUNINMAIN

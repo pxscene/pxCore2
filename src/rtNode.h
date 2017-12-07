@@ -161,6 +161,9 @@ public:
 
   v8::Isolate   *getIsolate() { return mIsolate; };
   v8::Platform   *getPlatform() { return mPlatform; };
+
+  std::string name() const;
+
   void garbageCollect();
 private:
 #ifdef ENABLE_DEBUG_MODE

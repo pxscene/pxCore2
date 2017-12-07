@@ -1760,6 +1760,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   
   mInfo = new rtMapObject;
   mInfo.set("version", xstr(PX_SCENE_VERSION));
+
+#ifdef ENABLE_RT_NODE
+  mInfo.set("engine", rtValue(script.name().c_str()));
+#endif
   
     rtObjectRef build = new rtMapObject;
     build.set("date", xstr(__DATE__));

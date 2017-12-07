@@ -17,7 +17,6 @@
 #include <fcntl.h> //for files
 #include <unistd.h>
 #include <signal.h>
-#include <poll.h>
 #include <vector>
 
 #define WAYLAND_EGL_BUFFER_SIZE 32
@@ -583,7 +582,7 @@ void pxWindowNative::runEventLoop()
     rtLogInfo("max sleep time in microseconds: %f", maxSleepTime);
     while(!exitFlag)
     {
-        double startMicroseconds = pxMicroseconds();
+        count++;
         std::vector<pxWindowNative*>::iterator i;
         for (i = windowVector.begin(); i < windowVector.end(); i++)
         {
@@ -615,7 +614,10 @@ void pxWindowNative::runEventLoop()
           int sleepTime = (int)maxSleepTime-(int)processTime;
           usleep(sleepTime);
         }
+        delay = nextWakeUp - delay;
+        usleep( delay );
     }
+    delete [] offsets;
 }
 
 
