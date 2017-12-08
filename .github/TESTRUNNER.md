@@ -164,57 +164,6 @@ There are several JavaScript files that can be imported into any test that is me
           console.error("Import for test_sample.js failed: " + err)
       });
       ```
-### Defining Tests
-1. __beforeStart__: In your test page, if there is any code that needs to be run prior to starting the tests, for instance for setup or downloads, you can implement and export a function called "beforeStart".  This function will be called once before *testRunner* begins iterating over and running the exported tests (see step 2).
-
-   ___Sample beforeStart function:___
-    ```javascript
-    var beforeStart = function() {
-      // Do startup/pre-test work here ...
-      var promise = new Promise(function(resolve,reject) {
-        resolve("beforeStart");
-      });
-    
-      return promise;
-    }
-    module.exports.beforeStart = beforeStart;
-   ```
-
-1. __tests__ object: In your test page, define and export a "tests" object. Each member of that object will be considered to be a test function and will be run by testRunner. Each test must return a promise.  When that promise is resolved, the data should be a string or array of strings indicating the test results. 
-For example:
-
-   __Defining tests:__
-    ```javascript
-    var tests = {
-   
-      myFirstTest: function() {
-        // do any setup necessary
-        // Use results as an array
-        var results  =[];
-        // return a promise that is fulfilled when the test is complete
-        return new Promise(function(resolve, reject) {
-          // do test stuff
-          ....
-          // Populate results using assert
-          results.push(assert(val1 === val2, "Val1 is not equal to Val2!"));
-          results.push(assert(widget.x = 45, "widget is not at correct x location"));
-          resolve(results);
-        });
-      },
-   
-      mySecondTest: function() {
-        // do any setup necessary
-        // return a promise that is fulfilled when the test is complete
-        return new Promise(function(resolve, reject) {
-          // do test stuff
-          // Use result as just a simple string
-          var result = assert(val1 !== val2, "Val1 and Val2 are equivalent"));
-          resolve(result);
-        });
-      }
-   }
-   module.exports.tests = tests; // export the tests
-   ```
 
 ## Running Tests
 Tests can be run using either the checked-in/auto-deployed version of *testRunner* and tests or by running local versions of *testRunner* and tests: 
