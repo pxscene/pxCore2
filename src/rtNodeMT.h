@@ -33,8 +33,8 @@
 #endif
 
 #include "uv.h"
-#include "include/v8.h"
-#include "include/libplatform/libplatform.h"
+#include "v8.h"
+#include "libplatform/libplatform.h"
 
 #include "jsbindings/rtObjectWrapper.h"
 #include "jsbindings/rtFunctionWrapper.h"
