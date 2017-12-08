@@ -3,14 +3,11 @@
 #include "pxScene2d.h"
 #include "test_includes.h" // Needs to be included last
 
-class permissionsUseTest : public testing::Test
+class rtPermissions3Test : public testing::Test
 {
 public:
   virtual void SetUp()
   {
-    // No need to unset bootstrap permissions:
-    // the test creates a scene and sets permissions directly through
-    // scene->setPermissions and scene->setParentPermissions
   }
 
   virtual void TearDown()
@@ -81,8 +78,6 @@ private:
   {
     pxScene2d* scene = new pxScene2d(true, NULL);
     EXPECT_TRUE (RT_OK == scene->setPermissions(permissions));
-    const permissionsMap_t& map = permissionsObjectToMap(permissions);
-    EXPECT_TRUE (RT_OK == scene->setParentPermissions(map));
 
     rtObjectRef p = new rtMapObject();
     p.set("t", "object");
@@ -98,8 +93,6 @@ private:
   {
     pxScene2d* scene = new pxScene2d(true, NULL);
     EXPECT_TRUE (RT_OK == scene->setPermissions(permissions));
-    const permissionsMap_t& map = permissionsObjectToMap(permissions);
-    EXPECT_TRUE (RT_OK == scene->setParentPermissions(map));
 
     rtString type("ignore this");
     rtString pngData;
@@ -113,8 +106,6 @@ private:
   {
     pxScene2d* scene = new pxScene2d(true, NULL);
     EXPECT_TRUE (RT_OK == scene->setPermissions(permissions));
-    const permissionsMap_t& map = permissionsObjectToMap(permissions);
-    EXPECT_TRUE (RT_OK == scene->setParentPermissions(map));
 
     rtString nameStr(name);
     rtObjectRef returnObject;
@@ -128,8 +119,6 @@ private:
   {
     pxScene2d* scene = new pxScene2d(true, NULL);
     EXPECT_TRUE (RT_OK == scene->setPermissions(permissions));
-    const permissionsMap_t& map = permissionsObjectToMap(permissions);
-    EXPECT_TRUE (RT_OK == scene->setParentPermissions(map));
 
     rtString urlStr(url);
     rtObjectRef archive;
@@ -140,7 +129,7 @@ private:
   }
 };
 
-TEST_F(permissionsUseTest, permissionsTests)
+TEST_F(rtPermissions3Test, rtPermissionsTests)
 {
   test();
 }

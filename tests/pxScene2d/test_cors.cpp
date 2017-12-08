@@ -2,6 +2,7 @@
 #include <string>
 #include <stdlib.h>
 
+#include "rtCORSUtils.h"
 #include "pxArchive.h"
 #include "rtFileDownloader.h"
 #include "test_includes.h" // Needs to be included last
@@ -21,12 +22,12 @@ public:
   virtual void SetUp()
   {
     // Enable...
-    const char* envVal = getenv(rtFileDownloader::USE_ACCESS_CONTROL_CHECK_ENV_NAME);
+    const char* envVal = getenv(USE_ACCESS_CONTROL_CHECK_ENV_NAME);
     if (envVal != NULL)
     {
       useAccessControlCheckEnv = envVal;
     }
-    setenv(rtFileDownloader::USE_ACCESS_CONTROL_CHECK_ENV_NAME,"1",1);
+    setenv(USE_ACCESS_CONTROL_CHECK_ENV_NAME,"1",1);
     rtLogWarn("env set...");
   }
 
@@ -35,12 +36,12 @@ public:
     // Clean up...
     if (!useAccessControlCheckEnv.empty())
     {
-      setenv(rtFileDownloader::USE_ACCESS_CONTROL_CHECK_ENV_NAME,useAccessControlCheckEnv.c_str(),1);
+      setenv(USE_ACCESS_CONTROL_CHECK_ENV_NAME,useAccessControlCheckEnv.c_str(),1);
       rtLogWarn("env revert...");
     }
     else
     {
-      unsetenv(rtFileDownloader::USE_ACCESS_CONTROL_CHECK_ENV_NAME);
+      unsetenv(USE_ACCESS_CONTROL_CHECK_ENV_NAME);
       rtLogWarn("env unset...");
     }
   }
@@ -238,8 +239,10 @@ private:
 
   bool testFileDownloadRequest(const char* origin, const char* url, const char* responseHeaders)
   {
-    std::string errorStr;
-    return rtFileDownloader::checkAccessControlHeaders(origin, url, responseHeaders, errorStr);
+    rtString originStr(origin);
+    rtString reqUrl(url);
+    rtString rawHeaders(responseHeaders);
+    return RT_OK == rtCORSUtilsCheckOrigin(origin, reqUrl, rawHeaders);
   }
 
   bool testArchiveOrigin(const char* originIn, const char* originOut)

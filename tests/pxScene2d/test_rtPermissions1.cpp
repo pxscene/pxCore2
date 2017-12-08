@@ -1,16 +1,13 @@
 #include <sstream>
 
-#include "pxScene2d.h"
+#include "rtPermissions.h"
 #include "test_includes.h" // Needs to be included last
 
-class permissionsMapTest : public testing::Test
+class rtPermissions1Test : public testing::Test
 {
 public:
   virtual void SetUp()
   {
-    // No need to unset bootstrap permissions:
-    // the test creates a scene and sets permissions directly through
-    // scene->setPermissions and scene->setParentPermissions
   }
 
   virtual void TearDown()
@@ -758,25 +755,26 @@ public:
 private:
   bool allows(const char* url, const rtObjectRef& permissions, const rtObjectRef& parentPermissions)
   {
-    pxScene2d* scene = new pxScene2d(true, NULL);
+    rtPermissions* p = new rtPermissions();
+    rtPermissions* parent = new rtPermissions();
     if (permissions)
     {
-      EXPECT_TRUE (RT_OK == scene->setPermissions(permissions));
+      EXPECT_TRUE (RT_OK == p->set(permissions));
     }
     if (parentPermissions)
     {
-      const permissionsMap_t& parentPermissionsMap = permissionsObjectToMap(parentPermissions);
-      EXPECT_TRUE (RT_OK == scene->setParentPermissions(parentPermissionsMap));
+      EXPECT_TRUE (RT_OK == parent->set(parentPermissions));
+      EXPECT_TRUE (RT_OK == p->setParent(parent));
     }
 
     bool allows;
-    EXPECT_TRUE (RT_OK == scene->allows(url, allows));
-    delete scene;
+    EXPECT_TRUE (RT_OK == p->allows(url, allows));
+    delete p;
     return allows;
   }
 };
 
-TEST_F(permissionsMapTest, permissionsTests)
+TEST_F(rtPermissions1Test, rtPermissionsTests)
 {
   testFullAccess();
   testUntrusted();

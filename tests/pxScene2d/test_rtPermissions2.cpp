@@ -1,48 +1,17 @@
 #include <sstream>
-#include <string>
-#include <stdlib.h>
 
-#include "pxScene2d.h"
+#include "rtPermissions.h"
 #include "test_includes.h" // Needs to be included last
 
-class pxScriptViewMockForPermissionsTest : public pxScriptView
-{
-public:
-  pxScriptViewMockForPermissionsTest(const char* url, const char* lang)
-    : pxScriptView("", lang)
-  {
-    mUrl = url;
-  }
-};
-
-class permissionsBootstrapTest : public testing::Test
+class rtPermissions2Test : public testing::Test
 {
 public:
   virtual void SetUp()
   {
-    // Set test's bootstrap config...
-    const char* envVal = getenv(PXSCENE_PERMISSIONS_CONFIG_ENV_NAME);
-    if (envVal != NULL)
-    {
-      pxscenePermissionsConfigEnv = envVal;
-    }
-    setenv(PXSCENE_PERMISSIONS_CONFIG_ENV_NAME,"supportfiles/pxscenepermissions.sample.conf",1);
-    rtLogWarn("env set...");
   }
 
   virtual void TearDown()
   {
-    // Clean up...
-    if (!pxscenePermissionsConfigEnv.empty())
-    {
-      setenv(PXSCENE_PERMISSIONS_CONFIG_ENV_NAME,pxscenePermissionsConfigEnv.c_str(),1);
-      rtLogWarn("env revert...");
-    }
-    else
-    {
-      unsetenv(PXSCENE_PERMISSIONS_CONFIG_ENV_NAME);
-      rtLogWarn("env unset...");
-    }
   }
 
   void test()
@@ -199,22 +168,22 @@ public:
   }
 
 private:
-  std::string pxscenePermissionsConfigEnv;
-
   bool allows(const char* url, const char* origin)
   {
-    // 'origin' is needed to pick corresponding config from bootstrap
-    pxScriptView* scriptView = new pxScriptViewMockForPermissionsTest(origin, NULL);
-    pxScene2d* scene = new pxScene2d(true, scriptView);
+    rtPermissions* p = new rtPermissions();
+    EXPECT_TRUE (RT_OK == p->clearBootstrapConfig());
+    EXPECT_TRUE (RT_OK == p->loadBootstrapConfig("supportfiles/pxscenepermissions.sample.conf"));
+    EXPECT_TRUE (RT_OK == p->setOrigin(origin));
+
     bool allows;
-    EXPECT_TRUE (RT_OK == scene->allows(url, allows));
-    delete scene;
-    delete scriptView;
+    EXPECT_TRUE (RT_OK == p->allows(url, allows));
+    EXPECT_TRUE (RT_OK == p->clearBootstrapConfig());
+    delete p;
     return allows;
   }
 };
 
-TEST_F(permissionsBootstrapTest, permissionsTests)
+TEST_F(rtPermissions2Test, rtPermissionsTests)
 {
   test();
 }

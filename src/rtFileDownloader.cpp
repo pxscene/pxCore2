@@ -24,11 +24,11 @@
 #include "rtFileDownloader.h"
 #include "rtThreadTask.h"
 #include "rtThreadPool.h"
-#ifdef ENABLE_ACCESS_CONTROL_CHECK
-#include "rtUrlUtils.h"
-#endif
 #include "pxTimer.h"
 #include "rtLog.h"
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+#include "rtCORSUtils.h"
+#endif
 #include <sstream>
 #include <iostream>
 #include <thread>
@@ -131,9 +131,6 @@ void startFileDownloadInBackground(void* data)
 }
 
 rtFileDownloader* rtFileDownloader::mInstance = NULL;
-#ifdef ENABLE_ACCESS_CONTROL_CHECK
-const char* rtFileDownloader::USE_ACCESS_CONTROL_CHECK_ENV_NAME = "USE_ACCESS_CONTROL_CHECK";
-#endif
 
 
 void onDownloadHandleCheck()
@@ -415,7 +412,6 @@ bool rtFileDownloadRequest::isCurlDefaultTimeoutSet()
   return mDefaultTimeout;
 }
 
-#ifdef ENABLE_ACCESS_CONTROL_CHECK
 void rtFileDownloadRequest::setOrigin(const char* origin)
 {
   mOrigin = origin;
@@ -425,7 +421,6 @@ rtString rtFileDownloadRequest::origin()
 {
   return mOrigin;
 }
-#endif // ENABLE_ACCESS_CONTROL_CHECK
 
 rtFileDownloader::rtFileDownloader() 
     : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false), mCaCertFile(CA_CERTIFICATE)
@@ -749,11 +744,11 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     {
       downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
 #ifdef ENABLE_ACCESS_CONTROL_CHECK
-      std::string errorStr;
+      rtString errorStr;
       rtString rawHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
-      if (!checkAccessControlHeaders(origin, downloadRequest->fileUrl().cString(), rawHeaders.cString(), errorStr))
+      if (RT_OK != rtCORSUtilsCheckOrigin(origin, downloadRequest->fileUrl(), rawHeaders, &errorStr))
       {
-        rtLogWarn("disallow access for origin '%s' because: %s", origin.cString(), errorStr.c_str());
+        rtLogWarn("disallow access for origin '%s' because: %s", origin.cString(), errorStr.cString());
 
         // Disallow access to the resource's contents.
         if (downloadRequest->downloadedData() != NULL)
@@ -762,7 +757,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
         }
         downloadRequest->setDownloadedData(NULL, 0);
         downloadRequest->setDownloadStatusCode(-1);
-        downloadRequest->setErrorString(errorStr.c_str());
+        downloadRequest->setErrorString(errorStr.cString());
       }
 #endif
     }
@@ -898,104 +893,3 @@ void rtFileDownloader::checkForExpiredHandles()
   }
   downloadHandleMutex.unlock();
 }
-
-#ifdef ENABLE_ACCESS_CONTROL_CHECK
-bool rtFileDownloader::checkAccessControlHeaders(const char* origin, const char* reqUrl, const char* rawHeaders, std::string& errorStr)
-{
-  bool enableCheck = getenv(USE_ACCESS_CONTROL_CHECK_ENV_NAME) != NULL;
-  if (!enableCheck)
-  {
-    // not enabled
-    return true;
-  }
-
-  if (!origin || *origin == 0)
-  {
-    // no origin
-    return true;
-  }
-
-  const rtString& reqUrlOrigin = rtUrlGetOrigin(reqUrl);
-  if (!reqUrlOrigin.isEmpty() && !strcmp(origin, reqUrlOrigin.cString()))
-  {
-    // request is same-origin
-    return true;
-  }
-
-  rtString allowOrigin;
-  const char* allowOriginFieldStart = "access-control-allow-origin:";
-  if (rawHeaders)
-  {
-    // Case-insensitive search.
-    const char* h = rawHeaders;
-    const char* o = allowOriginFieldStart;
-    for (; *h && *o && tolower(*h) == *o; h++, o++);
-    if (*o != 0)
-    {
-      allowOriginFieldStart = "\r\naccess-control-allow-origin:";
-      o = allowOriginFieldStart;
-      for (; *h && *o; h++)
-        o = tolower(*h) == *o ? o + 1 : allowOriginFieldStart;
-    }
-    if (*o == 0)
-    {
-      // Trim left.
-      for (; *h == ' ' || *h == '\t'; h++);
-      if (*h != 0)
-      {
-        allowOrigin = h;
-        int32_t end = allowOrigin.find(0, "\r\n");
-        if (end > 0)
-          allowOrigin = allowOrigin.substring(0, end);
-        else if (end == 0)
-          allowOrigin.term();
-      }
-    }
-  }
-  if (!allowOrigin.isEmpty())
-  {
-    // If the value of Access-Control-Allow-Origin is not a case-sensitive match, return fail.
-    if (allowOrigin.compare("*") == 0 ||
-      allowOrigin.compare(origin) == 0 ||
-      allowOrigin.compare("null") == 0)
-    {
-      return true;
-    }
-
-    // Value can be a list of origins, SP separated
-    const char* a = allowOrigin.cString();
-    const char* o = origin;
-    for (; *a; a++)
-    {
-      o = *a == *o ? o + 1 : origin;
-      if (*o == 0)
-      {
-        o = origin;
-        if (*(a + 1) == 0 || *(a + 1) == ' ')
-          return true;
-      }
-    }
-  }
-
-  stringstream errorStream;
-  // If the response includes zero Access-Control-Allow-Origin header values, return fail.
-  if (allowOrigin.isEmpty())
-  {
-    errorStream << "No 'Access-Control-Allow-Origin' header is present on the requested resource.";
-    errorStream << " Origin '";
-    errorStream << origin;
-    errorStream << "' is therefore not allowed access";
-  }
-  else
-  {
-    errorStream << "The 'Access-Control-Allow-Origin' header has a value '";
-    errorStream << allowOrigin.cString();
-    errorStream << "' that is not equal to the supplied origin.";
-    errorStream << " Origin '";
-    errorStream << origin;
-    errorStream << "' is therefore not allowed access";
-  }
-  errorStr = errorStream.str();
-  return false;
-}
-#endif

@@ -57,6 +57,9 @@
 #include "pxContext.h"
 #include "rtFileDownloader.h"
 #include "rtMutex.h"
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+#include "rtCORSUtils.h"
+#endif
 
 #include "pxIView.h"
 
@@ -277,185 +280,6 @@ void populateAllAppsConfig()
       }
     }
   }
-}
-
-template<typename Map> typename Map::const_iterator
-find_best_wildcard_match(Map const& map, typename Map::key_type const& key)
-{
-  if (key.empty())
-    return map.end();
-
-  size_t bestMatchLength = 0;
-  typename Map::const_iterator it = map.begin();
-  typename Map::const_iterator best = map.end();
-  for (; it != map.end(); ++it)
-  {
-    const char* url = key.c_str();
-    const char* wildcard = it->first.c_str();
-    size_t len = 0;
-    const char* wildcardAlt = NULL;
-    size_t lenAlt = 0;
-    for (; *url; url++)
-    {
-      while (*wildcard == '*')
-      {
-        wildcardAlt = ++wildcard;
-        lenAlt = len;
-      }
-      if (*url == *wildcard)
-      {
-        wildcard++;
-        len++;
-      }
-      else if (wildcardAlt != NULL)
-      {
-        wildcard = wildcardAlt;
-        len = lenAlt;
-      }
-      else
-      {
-        break;
-      }
-    }
-    for (; *wildcard == '*'; wildcard++);
-    if (*wildcard == 0 && len >= bestMatchLength)
-    {
-      bestMatchLength = len;
-      best = it;
-    }
-  }
-
-  return best;
-}
-
-// store the mapping between urls and roles, roles and permissions
-map<string, string> gPermissionsAssignMap;
-map<string, permissionsMap_t> gPermissionsRolesMap;
-string gPermissionsConfigPath;
-const char* DEFAULT_PERMISSIONS_CONFIG_FILE = "./pxscenepermissions.conf";
-const char* PXSCENE_PERMISSIONS_CONFIG_ENV_NAME = "PXSCENE_PERMISSIONS_CONFIG";
-
-permissionsMap_t permissionsJsonToMap(const rapidjson::Value& json)
-{
-  permissionsMap_t ret;
-  for (int i = 0; i < 3; i++)
-  {
-    // first level... "url", "serviceManager", "features"
-    const char* sectionName = i == 1 ? "serviceManager" : (i == 2 ? "features" : "url");
-    if (json.HasMember(sectionName))
-    {
-      const rapidjson::Value& sec = json[sectionName];
-      for (int j = 0; j < 2; j++)
-      {
-        // second level... "allow", "block"
-        const char* allowBlockName = j == 0 ? "allow": "block";
-        if (sec.HasMember(allowBlockName))
-        {
-          const rapidjson::Value& arr = sec[allowBlockName];
-          for (rapidjson::SizeType k = 0; k < arr.Size(); k++)
-          {
-            // third level... array of urls
-            string key = i == 1 ? "serviceManager://" : (i == 2 ? "feature://" : "");
-            key += arr[k].GetString();
-            ret[key] = j == 0;
-          }
-        }
-      }
-    }
-  }
-  return ret;
-}
-
-permissionsMap_t permissionsObjectToMap(const rtObjectRef& obj)
-{
-  permissionsMap_t ret;
-  for (int i = 0; i < 3; i++)
-  {
-    // first level... "url", "serviceManager", "features"
-    const char* sectionName = i == 1 ? "serviceManager" : (i == 2 ? "features" : "url");
-    const rtObjectRef& sec = obj.get<rtObjectRef>(sectionName);
-    if (sec)
-    {
-      for (int j = 0; j < 2; j++)
-      {
-        // second level... "allow", "block"
-        const char* allowBlockName = j == 0 ? "allow": "block";
-        const rtObjectRef& arr = sec.get<rtObjectRef>(allowBlockName);
-        if (arr)
-        {
-          uint32_t len = arr.get<uint32_t>("length");
-          for (uint32_t k = 0; k < len; k++)
-          {
-            // third level... array of urls
-            string key = i == 1 ? "serviceManager://" : (i == 2 ? "feature://" : "");
-            key += arr.get<rtString>(k).cString();
-            ret[key] = j == 0;
-          }
-        }
-      }
-    }
-  }
-  return ret;
-}
-
-bool populatePermissionsConfig()
-{
-  char const* s = getenv(PXSCENE_PERMISSIONS_CONFIG_ENV_NAME);
-  if (!s)
-  {
-    s = DEFAULT_PERMISSIONS_CONFIG_FILE;
-  }
-  if (gPermissionsConfigPath == s)
-  {
-    // already did try this path
-    return true;
-  }
-
-  // try load... first clean up previous config
-  gPermissionsAssignMap.clear();
-  gPermissionsRolesMap.clear();
-  gPermissionsConfigPath = s;
-
-  FILE* fp = fopen(s, "rb");
-  if (NULL == fp)
-  {
-    rtLogError("Permissions config read error : cannot open '%s'", s);
-    return false;
-  }
-
-  rapidjson::Document doc;
-  rapidjson::ParseResult result;
-  char readBuffer[65536];
-  memset(readBuffer, 0, sizeof(readBuffer));
-  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-  result = doc.ParseStream(is);
-  fclose(fp);
-
-  if (!result)
-  {
-    rapidjson::ParseErrorCode e = doc.GetParseError();
-    rtLogInfo("Permissions config read error : [JSON parse error : %s (%ld)]",rapidjson::GetParseError_En(e), result.Offset());
-    return false;
-  }
-
-  if (!doc.HasMember("roles") || !doc.HasMember("assign"))
-  {
-    rtLogInfo("Permissions config invalid");
-    return false;
-  }
-
-  const rapidjson::Value& assign = doc["assign"];
-  for (rapidjson::Value::ConstMemberIterator itr = assign.MemberBegin(); itr != assign.MemberEnd(); ++itr)
-  {
-    gPermissionsAssignMap[itr->name.GetString()] = itr->value.GetString();
-  }
-  const rapidjson::Value& roles = doc["roles"];
-  for (rapidjson::Value::ConstMemberIterator itr = roles.MemberBegin(); itr != roles.MemberEnd(); ++itr)
-  {
-    gPermissionsRolesMap[itr->name.GetString()] = permissionsJsonToMap(itr->value);
-  }
-
-  return true;
 }
 
 static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
@@ -1878,7 +1702,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   if (scriptView != NULL)
   {
-    getUrlOrigin(scriptView->getUrl().cString(), mOrigin);
+    mOrigin = rtUrlGetOrigin(scriptView->getUrl().cString());
+#ifdef ENABLE_PERMISSIONS_CHECK
+    mPermissions.setOrigin(mOrigin);
+#endif
   }
 
   // make sure that initial onFocus is sent
@@ -1926,24 +1753,6 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
-
-  populatePermissionsConfig();
-  if (!mOrigin.isEmpty() && !gPermissionsAssignMap.empty())
-  {
-    std::map<string, string>::const_iterator it =
-      find_best_wildcard_match(gPermissionsAssignMap, mOrigin.cString());
-    if (it != gPermissionsAssignMap.end())
-    {
-      std::map<string, permissionsMap_t>::const_iterator jt =
-        gPermissionsRolesMap.find(it->second);
-      if (jt != gPermissionsRolesMap.end())
-      {
-        mPermissions = jt->second;
-        rtLogInfo("scene: origin='%s' permissions='%s'",
-          mOrigin.cString(), jt->first.c_str());
-      }
-    }
-  }
 }
 
 rtError pxScene2d::dispose()
@@ -2181,7 +1990,9 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
   pxSceneContainer* sceneContainer = new pxSceneContainer(this);
-  sceneContainer->setParentPermissions(mPermissions);
+#ifdef ENABLE_PERMISSIONS_CHECK
+  sceneContainer->setParentPermissions(&mPermissions);
+#endif
   o = sceneContainer;
   o.set(p);
   o.send("init");
@@ -3192,7 +3003,6 @@ rtDefineProperty(pxScene2d,truncation);
 rtDefineMethod(pxScene2d, dispose);
 
 rtDefineProperty(pxScene2d, origin);
-rtDefineMethod(pxScene2d, getUrlOrigin);
 rtDefineMethod(pxScene2d, allows);
 rtDefineMethod(pxScene2d, checkAccessControlHeaders);
 
@@ -3298,51 +3108,28 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
   }
 }
 
-rtError pxScene2d::setPermissions(const rtObjectRef& v)
-{
-  mPermissions = permissionsObjectToMap(v);
-  return RT_OK;
-}
-
-rtError pxScene2d::getUrlOrigin(const rtString& url, rtString& origin) const
-{
-  origin = rtUrlGetOrigin(url.cString());
-  return RT_OK;
-}
-
 rtError pxScene2d::allows(const rtString& url, bool& o) const
 {
-  if (!url.isEmpty() && !mPermissions.empty())
-  {
-    rtString urlOrigin;
-    if (RT_OK == getUrlOrigin(url, urlOrigin))
-    {
-      permissionsMap_t::const_iterator it = find_best_wildcard_match(mPermissions, urlOrigin.cString());
-      if (it != mPermissions.end())
-      {
-        o = it->second;
-        if (o && !mParentPermissions.empty() &&
-          (it = find_best_wildcard_match(mParentPermissions, urlOrigin.cString())) != mParentPermissions.end())
-          o = it->second;
-        return RT_OK;
-      }
-    }
-  }
-
+#ifdef ENABLE_PERMISSIONS_CHECK
+  return mPermissions.allows(url.cString(), o);
+#else
+  UNUSED_PARAM(url);
   o = true; // default
   return RT_OK;
+#endif
 }
 
-rtError pxScene2d::checkAccessControlHeaders(const rtString& rawHeaders, bool& allow) const
+rtError pxScene2d::checkAccessControlHeaders(const rtString& url, const rtString& rawHeaders, bool& allow) const
 {
 #ifdef ENABLE_ACCESS_CONTROL_CHECK
-  std::string errorStr;
-  allow = rtFileDownloader::checkAccessControlHeaders(mOrigin.cString(), NULL, rawHeaders.cString(), errorStr);
+  allow = RT_OK == rtCORSUtilsCheckOrigin(mOrigin, url, rawHeaders);
+  return RT_OK;
 #else
+  UNUSED_PARAM(url);
   UNUSED_PARAM(rawHeaders);
   allow = true; // default
-#endif
   return RT_OK;
+#endif
 }
 
 rtDefineObject(pxViewContainer, pxObject);
@@ -3361,7 +3148,9 @@ rtDefineMethod(pxViewContainer, onChar);
 
 rtDefineObject(pxSceneContainer, pxViewContainer);
 rtDefineProperty(pxSceneContainer, url);
+#ifdef ENABLE_PERMISSIONS_CHECK
 rtDefineProperty(pxSceneContainer, permissions);
+#endif
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
 //rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
@@ -3420,7 +3209,8 @@ rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
   return RT_OK;
 }
 
-rtError pxSceneContainer::setParentPermissions(const permissionsMap_t& v)
+#ifdef ENABLE_PERMISSIONS_CHECK
+rtError pxSceneContainer::setParentPermissions(const rtPermissions* v)
 {
   if (mScriptView)
   {
@@ -3437,6 +3227,7 @@ rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
   }
   return RT_FAIL;
 }
+#endif
 
 void pxSceneContainer::dispose()
 {
@@ -3651,7 +3442,8 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
   return RT_FAIL;
 }
 
-rtError pxScriptView::setParentPermissions(const permissionsMap_t& v)
+#ifdef ENABLE_PERMISSIONS_CHECK
+rtError pxScriptView::setParentPermissions(const rtPermissions* v)
 {
   if (mScene)
   {
@@ -3670,3 +3462,4 @@ rtError pxScriptView::setPermissions(const rtObjectRef& v)
   }
   return RT_FAIL;
 }
+#endif

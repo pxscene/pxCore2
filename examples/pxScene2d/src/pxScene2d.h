@@ -64,6 +64,10 @@
 #include "rtNode.h"
 #endif //ENABLE_RT_NODE
 
+#ifdef ENABLE_PERMISSIONS_CHECK
+#include "rtPermissions.h"
+#endif
+
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
 #define EXITSCENELOCK() 
@@ -141,12 +145,6 @@ struct pxPoint2f
   float x, y;
 };
 
-template<typename Map> typename Map::const_iterator
-find_best_wildcard_match(Map const& map, typename Map::key_type const& key);
-typedef std::map<std::string, bool> permissionsMap_t;
-permissionsMap_t permissionsObjectToMap(const rtObjectRef& obj);
-extern const char* DEFAULT_PERMISSIONS_CONFIG_FILE;
-extern const char* PXSCENE_PERMISSIONS_CONFIG_ENV_NAME;
 
 class rtFileDownloadRequest;
 
@@ -987,8 +985,10 @@ class pxSceneContainer: public pxViewContainer
 public:
   rtDeclareObject(pxSceneContainer, pxViewContainer);
   rtProperty(url, url, setUrl, rtString);
+#ifdef ENABLE_PERMISSIONS_CHECK
   // declare 'permissions' before 'ready'
   rtProperty(permissions, permissions, setPermissions, rtObjectRef);
+#endif
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
 
@@ -1013,9 +1013,11 @@ public:
   rtError api(rtValue& v) const;
   rtError ready(rtObjectRef& o) const;
 
-  rtError setParentPermissions(const permissionsMap_t& v);
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtError setParentPermissions(const rtPermissions* v);
   rtError permissions(rtObjectRef& v) const { UNUSED_PARAM(v); rtLogDebug("permissions is write only"); return RT_FAIL; }
   rtError setPermissions(const rtObjectRef& v);
+#endif
 
 //  rtError makeReady(bool ready);  // DEPRECATED ?
 
@@ -1115,8 +1117,10 @@ public:
 
   rtString getUrl() const { return mUrl; }
 
-  rtError setParentPermissions(const permissionsMap_t& v);
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtError setParentPermissions(const rtPermissions* v);
   rtError setPermissions(const rtObjectRef& v);
+#endif
 
   static rtError addListener(rtString  eventName, const rtFunctionRef& f)
   {
@@ -1313,9 +1317,8 @@ public:
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
 
   rtReadOnlyProperty(origin, origin, rtString);
-  rtMethod1ArgAndReturn("getUrlOrigin", getUrlOrigin, rtString, rtString);
   rtMethod1ArgAndReturn("allows", allows, rtString, bool);
-  rtMethod1ArgAndReturn("checkAccessControlHeaders", checkAccessControlHeaders, rtString, bool);
+  rtMethod2ArgAndReturn("checkAccessControlHeaders", checkAccessControlHeaders, rtString, rtString, bool);
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
@@ -1422,12 +1425,15 @@ public:
   rtError alignHorizontal(rtObjectRef& v) const {v = CONSTANTS.alignHorizontalConstants; return RT_OK;}
   rtError truncation(rtObjectRef& v) const {v = CONSTANTS.truncationConstants; return RT_OK;}
 
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtError setParentPermissions(const rtPermissions* v) { return mPermissions.setParent(v); }
+  rtError setPermissions(const rtObjectRef& v) { return mPermissions.set(v); }
+  rtError permissions(rtPermissions& v) const { v = mPermissions; return RT_OK; }
+#endif
+
   rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
-  rtError setParentPermissions(const permissionsMap_t& v) { mParentPermissions = v; return RT_OK; }
-  rtError setPermissions(const rtObjectRef& v);
-  rtError getUrlOrigin(const rtString& url, rtString& origin) const;
   rtError allows(const rtString& url, bool& o) const;
-  rtError checkAccessControlHeaders(const rtString& rawHeaders, bool& allow) const;
+  rtError checkAccessControlHeaders(const rtString& url, const rtString& rawHeaders, bool& allow) const;
 
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
 
@@ -1562,8 +1568,9 @@ private:
   std::vector<rtObjectRef> mInnerpxObjects;
   rtFunctionRef mCustomAnimator;
   rtString mOrigin;
-  permissionsMap_t mPermissions;
-  permissionsMap_t mParentPermissions;
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtPermissions mPermissions;
+#endif
 public:
   void hidePointer( bool hide )
   {

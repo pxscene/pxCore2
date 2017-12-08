@@ -20,11 +20,7 @@ AccessControl.prototype.wrapRequestCORS = function(options, cb, originalFunction
   }
   options.headers["Origin"] = _origin;
 
-  // extract url to check if it is same-origin request...
   var url = this.convertOptionsToUrlString(options);
-  if (_origin === this.innerscene.getUrlOrigin(url)) {
-    return originalFunction(options, cb);
-  }
 
   // 2. check response headers
   var _originalCb = cb;
@@ -36,7 +32,7 @@ AccessControl.prototype.wrapRequestCORS = function(options, cb, originalFunction
         rawHeaders += (rawHeaders ? "\r\n" : "") + key + ": " + response.headers[key];
       }
     }
-    if (!_this.innerscene.checkAccessControlHeaders(rawHeaders)) {
+    if (!_this.innerscene.checkAccessControlHeaders(url, rawHeaders)) {
       response.destroy("CORS block");
     } else if (_originalCb) {
       _originalCb(response);
