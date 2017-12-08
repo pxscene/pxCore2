@@ -24,60 +24,60 @@ TBD:  Key injection mechanisms.
 
 ### Defining Test Functions To Be Run:
 1. There are several JavaScript files that can be imported into any test that is meant to run in *testRunner*. Their names and functionality are as follows: 
-   1. __asserts.js__: Use *assert.js* to properly format the results returned to *testRunner*.  Asserts' assert() function will prepend data with SUCCESS or FAILURE strings that testRunner uses to determine the tests' final status.  If you have a single test that tests multiple conditions for success/failure, return the results as an array of strings accumulated during the test.  The assert function is defined as function(condition, message), where the message will be output along with a prepended "FAILURE" string when the condition is false.
+ 1. __asserts.js__: Use *assert.js* to properly format the results returned to *testRunner*.  Asserts' assert() function will prepend data with SUCCESS or FAILURE strings that testRunner uses to determine the tests' final status.  If you have a single test that tests multiple conditions for success/failure, return the results as an array of strings accumulated during the test.  The assert function is defined as function(condition, message), where the message will be output along with a prepended "FAILURE" string when the condition is false.
 
-   assert function definition:
-```
-        module.exports.assert = function(condition, message) {
-          //console.log("Inside assert with condition: " +condition);
-          if( condition === false)
-          {
-            //console.log("FAILURE : "+message);
-            return "FAILURE: "+message;
-          } else {
-            return "SUCCESS";
-          }
-        } 
-```
-   1. __tools\_manualTests.js__: Use tools\_manualTests.js to allow for easy one-off testing of tests without having to use *testRunner* itself.  With a few additional lines of code, you can run the js test directly and still get the equivalent test results output in the log.
+     __assert function definition:__
+      ```javascript
+      module.exports.assert = function(condition, message) {
+		  //console.log("Inside assert with condition: " +condition);
+		  if( condition === false)
+		  {
+		     //console.log("FAILURE : "+message);
+		     return "FAILURE: "+message;
+		  } else {
+	         return "SUCCESS";
+	      }
+	 } 
+      ```
+  1. __tools\_manualTests.js__: Use tools\_manualTests.js to allow for easy one-off testing of tests without having to use *testRunner* itself.  With a few additional lines of code, you can run the js test directly and still get the equivalent test results output in the log.
 
-   Example tools\_manualTest usage:
-```
+        __Example tools\_manualTest usage:__
+      ```javascript
         px.import({scene:"px:scene.1.js",
-                  assert:"../test-run/assert.js",
-                  manual:"../test-run/tools_manualTests.js"}).then( function ready(imports) {
+                   assert:"../test-run/assert.js",
+                   manual:"../test-run/tools_manualTests.js"}).then( function ready(imports) {
         
-        var scene = imports.scene;
-        var root = scene.root;
-        var assert = imports.assert.assert;
-        var manual = imports.manual;
-        
-        var manualTest = manual.getManualTestValue(); // <!--- Variable that can be used to turn on manual tests; Call manual.getManualTestValue()
-                                                      // and its return value will default to "true" if this js test is called directly and not passed a queryParam called "manualTest". -->
-          
-        var tests = {
-            test1: function() {...},
-            test2: function() {...}
-          
-        }
-          
-        module.exports.tests = tests;
-        
-        if(manualTest === true) {
-        
-          manual.runTestsManually(tests); // <!--- This is usage of imported manual function to run tests manually. -->
-        
-        }
+	        var scene = imports.scene;
+	        var root = scene.root;
+	        var assert = imports.assert.assert;
+	        var manual = imports.manual;
+	        
+	        var manualTest = manual.getManualTestValue(); // <!--- Variable that can be used to turn on manual tests; Call manual.getManualTestValue()
+	                                                      // and its return value will default to "true" if this js test is called directly and not passed a queryParam called "manualTest". -->
+	          
+	        var tests = {
+	            test1: function() {...},
+	            test2: function() {...}
+	          
+	        }
+	          
+	        module.exports.tests = tests;
+	        
+	        if(manualTest === true) {
+	        
+	          manual.runTestsManually(tests); // <!--- This is usage of imported manual function to run tests manually. -->
+	        
+	        }
         }).catch( function importFailed(err){
           console.error("Import for test_sample.js failed: " + err)
         });
-```
-
+      ```
    3. __tools\_screenshot.js__: Use tools\_screenshot.js to include screenshot comparisons in your test.  tools\_screenshot.js implements and exports a function called "validateScreenshot" that makes it easy to do a screenshot comparison.  The first parameter to the function is a string to indicate an url to the saved, expected image for the comparision.  The second parameter is a boolean that, if true, will cause the function to output the base64 value of the realtime screen.screenshot function.  This can then be copied and pasted into a base64 decoder (like https://opinionatedgeek.com/Codecs/Base64Decoder) and decoded to the resultant png binary. That can then be saved and used as the expected image for the comparison.
 
-   Example tools\_screenshot usage:
-```
-        px.import({scene:"px:scene.1.js",
+       __Example tools\_screenshot usage:__
+   
+      ```javascript
+      px.import({scene:"px:scene.1.js",
                   assert:"../test-run/assert.js",
                   shots:"../test-run/tools_screenshot.js",
                   manual:"../test-run/tools_manualTests.js"}).then( function ready(imports) {
@@ -112,27 +112,27 @@ TBD:  Key injection mechanisms.
         }).catch( function importFailed(err){
           console.error("Import for test_sample.js failed: " + err)
         });
-```
+      ```
 2. __beforeStart__: In your test page, if there is any code that needs to be run prior to starting the tests, for instance for setup or downloads, you can implement and export a function called "beforeStart".  This function will be called once before *testRunner* begins iterating over and running the exported tests (see step 2).
 
-Sample beforeStart function:
-```
+   ___Sample beforeStart function:___
+  ```javascript
 var beforeStart = function() {
-  // Do startup/pre-test work here ...
-  console.log("test_pxConstants start.....");
+   // Do startup/pre-test work here ...
   var promise = new Promise(function(resolve,reject) {
-    resolve("beforeStart");
-  });
-  return promise;
+     resolve("beforeStart");
+});
+    
+    return promise;
 }
 module.exports.beforeStart = beforeStart;
-```
+   ```
 
 1. __tests__ object: In your test page, define and export a "tests" object. Each member of that object will be considered to be a test function and will be run by testRunner. Each test must return a promise.  When that promise is resolved, the data should be a string or array of strings indicating the test results. 
 For example:
 
-Defining tests:
-```
+  __Defining tests:__
+ ```javascript
 var tests = {
    
   myFirstTest: function() {
@@ -162,10 +162,10 @@ var tests = {
   }
 }
 module.exports.tests = tests; // export the tests
-```
+ ```
 
 ## Running Tests
-Tests can be run either using the checked-in/auto-deployed version of *testRunner* and tests, or by running local versions of *testRunner* and tests: 
+Tests can be run using either the checked-in/auto-deployed version of *testRunner* and tests or by running local versions of *testRunner* and tests: 
 
 Run deployed versions of *testRunner* and *tests.json*:
 ``` 
