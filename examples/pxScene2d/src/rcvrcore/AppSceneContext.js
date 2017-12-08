@@ -132,6 +132,7 @@ function AppSceneContext(params) { // container, innerscene, packageUrl) {
   this.topXModule = null;
   this.jarFileMap = new JarFileMap();
   this.sceneWrapper = null;
+  //array to store the list of pending timers
   this.timers = [];
   this.timerIntervals = [];
 
@@ -280,6 +281,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
 };
 
 var setTimeoutCallback = function() {
+  // gets the timers list and remove the callback timer from the list of pending lists
   var contextTimers = arguments[0];
   var callback = arguments[1];
   callback();
@@ -379,6 +381,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       require: requireMethod,
       global: global,
       setTimeout: function (callback, after, arg1, arg2, arg3) {
+        //pass the timers list to callback function on timeout
         var timerId = SetTimeout(setTimeoutCallback, after, this.timers, function() { callback(arg1, arg2, arg3)});
         this.timers.push(timerId);
         return timerId;
