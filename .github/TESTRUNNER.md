@@ -11,15 +11,21 @@ We use [testRunner](https://px-apps.sys.comcast.net/pxscene-samples/examples/px-
 
 ### Adding a Test Page in tests.json
 A test is defined in tests.json as an object with the following properties: 
-{"url":"../tests/simpleTestApi.js", "title":"api_test","preTest":"start"} 
-* url: the path to the test js file
+
+* _url_: the path to the test js file
   * if the test url is relative to the testRunner.js, specify the relative path as the url property, as in the example
   * if the test url is not relative to the testRunner.js, specify the full url to the js file to test, then set the "useBaseURI" property to false, eg, "useBaseURI":"false"
-* title: the title that you would like to appear when testRunner reports results for these tests
+* _title_: the title that you would like to appear when testRunner reports results for these tests
 Alternatively, you can add a js file to the test run without adding any tests or apis to the js page itself, for instance if you want to ensure that a particular page or app always successfully runs.  You can do this by specifying a different set of properties in the tests.json: 
 {"url":"https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/gallery/coverflowtest_v2.js", "title":"coverflow", "useBaseURI":"false", "timelimit":"60000"}
-* timeToRun: number of milliseconds for this test scene to be left to run.  
-* useBaseURI: whether or not the url specified uses a path relative to testRunner.js; if value is "false", the url is expected to be the full path to the js file to load.  Defaults to "false".
+* _timeToRun_: number of milliseconds for this test scene to be left to run.  
+* _useBaseURI_: whether or not the url specified uses a path relative to testRunner.js; if value is "false", the url is expected to be the full path to the js file to load.  Defaults to "false".
+
+For example, the following properties would run a test called _test_pxScene2d_ whose _url_ is relative to the location of _testRunner.js_: 
+ ```
+   { "url":"../tests/test_pxScene2d.js", "title":"test_pxScene2d", "useBaseURI":"true" }
+ ```
+
 TBD:  Key injection mechanisms.
 
 ### Defining Tests to be Run by testRunner
