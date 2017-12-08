@@ -647,12 +647,14 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Problem initiailizing duktape heap\n");
     return -1;
   }
+  duk_module_duktape_init(ctx);
+
   loop.data = ctx;
 
   // Stash argv for later access
   duk_push_pointer(ctx, (void *) argv);
   duk_push_int(ctx, argc);
-  if (duk_safe_call(ctx, duv_stash_argv, 2, 1)) {
+  if (duk_safe_call(ctx, duv_stash_argv, NULL, 2, 1)) {
     duv_dump_error(ctx, -1);
     uv_loop_close(&loop);
     duk_destroy_heap(ctx);
