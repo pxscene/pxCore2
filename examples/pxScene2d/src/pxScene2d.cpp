@@ -48,6 +48,7 @@
 #endif //PX_SERVICE_MANAGER
 #include "pxImage9.h"
 #include "pxImageA.h"
+#include "pxImage9Border.h"
 
 #if !defined(ENABLE_DFB) && !defined(DISABLE_WAYLAND)
 #include "pxWaylandContainer.h"
@@ -1815,6 +1816,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
     e = createImageA(p,o);
+  else if (!strcmp("image9Border",t.cString()))
+    e = createImage9Border(p,o);
   else if (!strcmp("imageResource",t.cString()))
   {
     e = createImageResource(p,o);
@@ -1936,6 +1939,14 @@ rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createImageA(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImageA(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+}
+
+rtError pxScene2d::createImage9Border(rtObjectRef p, rtObjectRef& o)
+{
+  o = new pxImage9Border(this);
   o.set(p);
   o.send("init");
   return RT_OK;
