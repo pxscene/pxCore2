@@ -1971,26 +1971,26 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
   // args are tested at call site...
 
   float ox1 = x;
-  float ix1 = x+borderX1;
-  float ix2 = x+w-borderX2;
+  float ix1 = x+insetX1;
+  float ix2 = x+w-insetX2;
   float ox2 = x+w;
 
   float oy1 = y;
-  float iy1 = y+borderY1;
-  float iy2 = y+h-borderY2;
+  float iy1 = y+insetY1;
+  float iy2 = y+h-insetY2;
   float oy2 = y+h;
 
   float w2 = texture->width();
   float h2 = texture->height();
 
   float ou1 = 0;
-  float iu1 = insetX1/w2;
-  float iu2 = (w2-insetX2)/w2;
+  float iu1 = borderX1/w2;
+  float iu2 = (w2-borderX2)/w2;
   float ou2 = 1;
 
   float ov2 = 0;
-  float iv2 = insetY1/h2;
-  float iv1 = (h2-insetY2)/h2;
+  float iv2 = borderY1/h2;
+  float iv1 = (h2-borderY2)/h2;
   float ov1 = 1;
 
 #if 1 // sanitize values
