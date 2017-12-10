@@ -41,7 +41,7 @@ void pxImage9Border::draw() {
   }
 }
 
-rtDefineObject(pxImage9Border, pxObject);
+rtDefineObject(pxImage9Border, pxImage9);
 rtDefineProperty(pxImage9Border, borderLeft);
 rtDefineProperty(pxImage9Border, borderTop);
 rtDefineProperty(pxImage9Border, borderRight);

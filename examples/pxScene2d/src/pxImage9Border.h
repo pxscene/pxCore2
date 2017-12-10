@@ -25,7 +25,7 @@
 
 class pxImage9Border: public pxImage9 {
 public:
-  rtDeclareObject(pxImage9Border, pxObject);
+  rtDeclareObject(pxImage9Border, pxImage9);
   rtProperty(borderLeft, borderLeft, setBorderLeft, float);
   rtProperty(borderTop, borderTop, setBorderTop, float);
   rtProperty(borderRight, borderRight, setBorderRight, float);
