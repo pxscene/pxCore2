@@ -31,7 +31,7 @@ WebSocketWrap.prototype.clearConnections = function() {
   };
   this.connections.splice(0, this.connections.length);
   delete this.connections;
-  this.conections = null;
+  this.connections = null;
 }
 
 WebSocketWrap.prototype.connect = WebSocketWrap.prototype.createConnection = function(address, fn) {
