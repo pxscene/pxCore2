@@ -178,7 +178,7 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
   FILE* fp = fopen(s, "rb");
   if (NULL == fp)
   {
-    rtLogError("Permissions config read error : cannot open '%s'", s);
+    rtLogInfo("Permissions config read error : cannot open '%s'", s);
     return RT_FAIL;
   }
 
