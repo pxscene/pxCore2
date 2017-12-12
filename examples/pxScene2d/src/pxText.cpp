@@ -101,9 +101,11 @@ void pxText::resourceReady(rtString readyResolution)
   if( !readyResolution.compare("resolve"))
   {    
     mFontLoaded=true;
+
     // pxText gets its height and width from the text itself, 
     // so measure it
     if (getFontResource() != NULL) {
+       getFontResource()->setupFont();
        getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
 	  }
 	

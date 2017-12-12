@@ -168,6 +168,7 @@ public:
 
   virtual void init() {}
   bool isFontLoaded() { return mInitialized;}
+  rtError setupFont();
    
 protected:
   // Implementation for pxResource virtuals
@@ -183,6 +184,9 @@ private:
   FT_Face mFace;
   uint32_t mPixelSize;
   char* mFontData; // for remote fonts loaded into memory
+  size_t mFontDataSize;
+  rtMutex mFontMutex;
+  rtString mFontUrl;
 
 };
 
