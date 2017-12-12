@@ -118,7 +118,7 @@ float pxImage9::getOnscreenHeight()
 void pxImage9::draw() {
   if (getImageResource() != NULL)
   {
-    context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
+    context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, mSourceLeft, mSourceTop, mSourceRight, mSourceBottom, getImageResource()->getTexture());
   }
 }
 
@@ -159,4 +159,8 @@ rtDefineProperty(pxImage9, insetLeft);
 rtDefineProperty(pxImage9, insetTop);
 rtDefineProperty(pxImage9, insetRight);
 rtDefineProperty(pxImage9, insetBottom);
+rtDefineProperty(pxImage9, sourceLeft);
+rtDefineProperty(pxImage9, sourceTop);
+rtDefineProperty(pxImage9, sourceRight);
+rtDefineProperty(pxImage9, sourceBottom);
 rtDefineProperty(pxImage9, resource);

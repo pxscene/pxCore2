@@ -1860,32 +1860,33 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   }
 }
 
-static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, GLfloat y1, GLfloat x2,
-                        GLfloat y2, pxTextureRef texture)
+static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat _ox1, GLfloat _oy1,
+                        GLfloat _ox2, GLfloat _oy2, GLfloat _ix1, GLfloat _iy1, GLfloat _ix2,
+                        GLfloat _iy2, pxTextureRef texture)
 {
   // args are tested at call site...
 
   float ox1 = x;
-  float ix1 = x+x1;
-  float ix2 = x+w-x2;
+  float ix1 = x+_ox1;
+  float ix2 = x+w-_ox2;
   float ox2 = x+w;
 
   float oy1 = y;
-  float iy1 = y+y1;
-  float iy2 = y+h-y2;
+  float iy1 = y+_oy1;
+  float iy2 = y+h-_oy2;
   float oy2 = y+h;
 
   float w2 = texture->width();
   float h2 = texture->height();
 
   float ou1 = 0;
-  float iu1 = x1/w2;
-  float iu2 = (w2-x2)/w2;
+  float iu1 = _ix1/w2;
+  float iu2 = (w2-_ix2)/w2;
   float ou2 = 1;
 
   float ov2 = 0;
-  float iv2 = y1/h2;
-  float iv1 = (h2-y2)/h2;
+  float iv2 = _iy1/h2;
+  float iv1 = (h2-_iy2)/h2;
   float ov1 = 1;
 
 #if 1 // sanitize values
@@ -2391,8 +2392,9 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
   }
 }
 
-void pxContext::drawImage9(float w, float h, float x1, float y1,
-                           float x2, float y2, pxTextureRef texture)
+void pxContext::drawImage9(float w, float h, float ox1, float oy1,
+                           float ox2, float oy2, float ix1, float iy1,
+                           float ix2, float iy2, pxTextureRef texture)
 {
 #ifdef DEBUG_SKIP_IMAGE9
 #warning "DEBUG_SKIP_IMAGE9 enabled ... Skipping "
@@ -2413,7 +2415,7 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
 
   texture->setLastRenderTick(gRenderTick);
 
-  drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
+  drawImage92(0, 0, w, h, ox1, oy1, ox2, oy2, ix1, iy1, ix2, iy2, texture);
 }
 
 void pxContext::drawImage9Border(float w, float h, 

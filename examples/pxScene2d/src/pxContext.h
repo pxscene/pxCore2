@@ -104,8 +104,9 @@ class pxContext {
                  pxConstantsStretch::constants yStretch = pxConstantsStretch::STRETCH,
                  bool downscaleSmooth = false);
 
-  void drawImage9(float w, float h, float x1, float y1,
-                  float x2, float y2, pxTextureRef texture);
+  void drawImage9(float w, float h, float ox1, float oy1,
+                  float ox2, float oy2, float ix1, float iy1,
+                  float ix2, float iy2, pxTextureRef texture);
 
   void drawImage9Border(float w, float h, 
                   float bx1, float by1, float bx2, float by2,
