@@ -8,6 +8,7 @@ function socketClosed()
   this.removeListener('close',socketClosed);
 }
 
+//class exposed to client
 function WebSocketWrap()
 {
   this.connections = new Array();
