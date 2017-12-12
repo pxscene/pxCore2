@@ -572,11 +572,13 @@ void pxWindowNative::runEventLoop()
 
     rtLogInfo("pxcore framerate: %d", framerate);
 
+#ifdef PXCORE_WL_DISPLAY_READ_EVENTS
     pollfd fileDescriptors[1];
     fileDescriptors[0].fd = wl_display_get_fd(display->display);
     fileDescriptors[0].events = POLLIN;
     int pollResult = 0;
     int pollTimeout = 1000 / framerate;
+#endif //PXCORE_WL_DISPLAY_READ_EVENTS
     double maxSleepTime = (1000 / framerate) * 1000;
     rtLogInfo("max sleep time in microseconds: %f", maxSleepTime);
     while(!exitFlag)
@@ -588,6 +590,7 @@ void pxWindowNative::runEventLoop()
            pxWindowNative* w = (*i);
            w->animateAndRender();
         }
+#ifdef PXCORE_WL_DISPLAY_READ_EVENTS
         while (wl_display_prepare_read(display->display) < 0)
         {
           wl_display_dispatch_pending(display->display);
@@ -599,6 +602,7 @@ void pxWindowNative::runEventLoop()
           wl_display_cancel_read(display->display);
         else
           wl_display_read_events(display->display);
+#endif //PXCORE_WL_DISPLAY_READ_EVENTS
 
         wl_display_dispatch_pending(display->display);
         double processTime = (int)pxMicroseconds() - (int)startMicroseconds;

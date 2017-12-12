@@ -1963,6 +1963,111 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
   gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,22,verts,uv,texture,pxConstantsStretch::NONE,pxConstantsStretch::NONE);
 }
 
+static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, 
+                       GLfloat borderX1, GLfloat borderY1, GLfloat borderX2, GLfloat borderY2,
+                       GLfloat insetX1, GLfloat insetY1, GLfloat insetX2, GLfloat insetY2,
+                       pxTextureRef texture)
+{
+  // args are tested at call site...
+
+  float ox1 = x;
+  float ix1 = x+insetX1;
+  float ix2 = x+w-insetX2;
+  float ox2 = x+w;
+
+  float oy1 = y;
+  float iy1 = y+insetY1;
+  float iy2 = y+h-insetY2;
+  float oy2 = y+h;
+
+  float w2 = texture->width();
+  float h2 = texture->height();
+
+  float ou1 = 0;
+  float iu1 = borderX1/w2;
+  float iu2 = (w2-borderX2)/w2;
+  float ou2 = 1;
+
+  float ov2 = 0;
+  float iv2 = borderY1/h2;
+  float iv1 = (h2-borderY2)/h2;
+  float ov1 = 1;
+
+#if 1 // sanitize values
+  iu1 = pxClamp<float>(iu1, 0, 1);
+  iu2 = pxClamp<float>(iu2, 0, 1);
+  iv1 = pxClamp<float>(iv1, 0, 1);
+  iv2 = pxClamp<float>(iv2, 0, 1);
+
+  float tmin, tmax;
+
+  tmin = pxMin<float>(iu1, iu2);
+  tmax = pxMax<float>(iu1, iu2);
+  iu1 = tmin;
+  iu2 = tmax;
+
+  tmin = pxMin<float>(iv1, iv2);
+  tmax = pxMax<float>(iv1, iv2);
+  iv1 = tmax;
+  iv2 = tmin;
+
+#endif
+
+  const GLfloat verts[22][2] =
+  {
+    { ox1,oy1 },
+    { ix1,oy1 },
+    { ox1,iy1 },
+    { ix1,iy1 },
+    { ox1,iy2 },
+    { ix1,iy2 },
+    { ox1,oy2 },
+    { ix1,oy2 },
+    { ix2,oy2 },
+    { ix1,iy2 },
+    { ix2,iy2 },
+    { ix1,iy1 },
+    { ix2,iy1 },
+    { ix1,oy1 },
+    { ix2,oy1 },
+    { ox2,oy1 },
+    { ix2,iy1 },
+    { ox2,iy1 },
+    { ix2,iy2 },
+    { ox2,iy2 },
+    { ix2,oy2 },
+    { ox2,oy2 }
+  };
+
+  const GLfloat uv[22][2] =
+  {
+    { ou1,ov1 },
+    { iu1,ov1 },
+    { ou1,iv1 },
+    { iu1,iv1 },
+    { ou1,iv2 },
+    { iu1,iv2 },
+    { ou1,ov2 },
+    { iu1,ov2 },
+    { iu2,ov2 },
+    { iu1,iv2 },
+    { iu2,iv2 },
+    { iu1,iv1 },
+    { iu2,iv1 },
+    { iu1,ov1 },
+    { iu2,ov1 },
+    { ou2,ov1 },
+    { iu2,iv1 },
+    { ou2,iv1 },
+    { iu2,iv2 },
+    { ou2,iv2 },
+    { iu2,ov2 },
+    { ou2,ov2 }
+  };
+
+  gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,22,verts,uv,texture,pxConstantsStretch::NONE,pxConstantsStretch::NONE);
+}
+
 bool gContextInit = false;
 
 pxContext::~pxContext()
@@ -2309,6 +2414,28 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
   texture->setLastRenderTick(gRenderTick);
 
   drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
+}
+
+void pxContext::drawImage9Border(float w, float h, 
+                  float bx1, float by1, float bx2, float by2,
+                  float ix1, float iy1, float ix2, float iy2,
+                  pxTextureRef texture)
+{
+  // TRANSPARENT / DIMENSIONLESS
+  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
+  {
+    return;
+  }
+
+  // TEXTURELESS
+  if (texture.getPtr() == NULL)
+  {
+    return;
+  }
+
+  texture->setLastRenderTick(gRenderTick);
+
+  drawImage9Border2(0, 0, w, h, bx1, by1, bx2, by2, ix1, iy1, ix2, iy2, texture);
 }
 
 void pxContext::drawImage(float x, float y, float w, float h,
