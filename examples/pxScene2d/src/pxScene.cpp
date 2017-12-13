@@ -461,7 +461,7 @@ if (s && (strcmp(s,"1") == 0))
   char const* w = getenv("PXSCENE_WINDOW_WIDTH");
   if (w)
   {
-    int value = atoi(w);
+    int value = (int)strtol(w, NULL, 10);
     if (value > 0)
     {
       windowWidth = value;
@@ -470,7 +470,7 @@ if (s && (strcmp(s,"1") == 0))
   char const* h = getenv("PXSCENE_WINDOW_HEIGHT");
   if (h)
   {
-    int value = atoi(h);
+    int value = (int)strtol(h, NULL, 10);
     if (value > 0)
     {
       windowHeight = value;
