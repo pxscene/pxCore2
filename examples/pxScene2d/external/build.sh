@@ -151,7 +151,10 @@ fi
 if [ ! -e dukluv/build/duktape.a ]
 then
     cd dukluv
-    mkdir build
+    if [ ! -d build ]
+    then
+        mkdir build
+    fi
     cd build
     cmake ..
     make

@@ -60,7 +60,6 @@ cp macstuff/EngineRunner $bundleBin
 ./jsMin.sh shell.js $bundleRes/shell.js
 ./jsMin.sh browser.js $bundleRes/browser.js
 ./jsMin.sh about.js $bundleRes/about.js
-./jsMin.sh empty.js $bundleRes/empty.js
 ./jsMin.sh browser/editbox.js $bundleRes/browser/editbox.js
 #./jsMinFolder.sh browser $bundleRes/browser
 
