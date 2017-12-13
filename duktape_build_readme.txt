@@ -63,7 +63,7 @@ cd temp
 cmake -DUSE_DUKTAPE=ON ..
 cmake --build . --config Release -- -j1
 
-# test
-cd ../examples/pxScene2d/src
+cpack .
+cd _CPack_Packages/Linux/TZ/pxscene-setup/
 ./pxscene browser.js
 ./pxscene about.js
