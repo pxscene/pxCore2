@@ -75,6 +75,8 @@ vector<AsyncScriptInfo*> scriptsInfo;
 static uv_work_t nodeLoopReq;
 #endif
 
+#include <stdlib.h>
+
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
 
