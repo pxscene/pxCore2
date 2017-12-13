@@ -456,11 +456,32 @@ if (s && (strcmp(s,"1") == 0))
 #endif
   char buffer[256];
   sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));
+  int windowWidth = 1280;
+  int windowHeight = 720;
+  char const* w = getenv("PXSCENE_WINDOW_WIDTH");
+  if (w)
+  {
+    int value = atoi(w);
+    if (value > 0)
+    {
+      windowWidth = value;
+    }
+  }
+  char const* h = getenv("PXSCENE_WINDOW_HEIGHT");
+  if (h)
+  {
+    int value = atoi(h);
+    if (value > 0)
+    {
+      windowHeight = value;
+    }
+  }
   // OSX likes to pass us some weird parameter on first launch after internet install
+  rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
 #ifdef ENABLE_DEBUG_MODE
-  win.init(10, 10, 1280, 720, (urlIndex != -1)?argv[urlIndex]:"browser.js");
+  win.init(10, 10, windowWidth, windowHeight, (urlIndex != -1)?argv[urlIndex]:"browser.js");
 #else
-  win.init(10, 10, 1280, 720, (argc >= 2 && argv[1][0] != '-')?argv[1]:"browser.js");
+  win.init(10, 10, windowWidth, windowHeight, (argc >= 2 && argv[1][0] != '-')?argv[1]:"browser.js");
 #endif
   win.setTitle(buffer);
   // JRJR TODO Why aren't these necessary for glut... pxCore bug
