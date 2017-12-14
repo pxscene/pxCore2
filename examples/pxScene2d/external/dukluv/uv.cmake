@@ -121,6 +121,7 @@ else()
     ${LIBUVDIR}/src/unix/timer.c
     ${LIBUVDIR}/src/unix/tty.c
     ${LIBUVDIR}/src/unix/udp.c
+    ${LIBUVDIR}/src/unix/pthread-barrier.c
   )
 endif()
 
