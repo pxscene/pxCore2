@@ -159,7 +159,7 @@ AppSceneContext.prototype.loadScene = function() {
 if( fullPath !== null)
   this.loadPackage(fullPath);
 
-this.innerscene.on('onClose', function (e) {
+this.innerscene.on('onSceneTerminate', function (e) {
     //clear the timers and intervals on close
     var ntimers = this.timers.length;
     for (var i=0; i<ntimers; i++)
