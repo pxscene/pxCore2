@@ -60,7 +60,7 @@ if [ ! -e ./libpng-1.6.28/.libs/libpng16.16.dylib ] ||
 then
 
   cd png
-  ./configure LDFLAGS="-L../zlib -lz"
+  ./configure
   make all "-j${make_parallel}"
   cd ..
 
