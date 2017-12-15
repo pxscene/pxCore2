@@ -30,6 +30,13 @@ px.import({ scene:      'px:scene.1.js',
   var inputBox = new imports.EditBox( { parent: bg, url: "browser/images/input2.png", x: 10, y: 10, w: 800, h: 35, pts: 24 });
   var helpBox   = null;
 
+  scene.on('onClose', function(e) {
+    scene = null;
+    keys = null;
+    for (var key in inputBox) { delete inputBox[key]; }
+    inputBox = null;
+    scene = null;
+  });
 
   function reload(u)
   {
