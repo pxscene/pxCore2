@@ -376,7 +376,7 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
     mContextId = GetContextId(clone_local);
 
     mContext.Reset(mIsolate, clone_local); // local to persistent
-
+/*
     Context::Scope context_scope(clone_local);
 
     Handle<Object> clone_global = clone_local->Global();
@@ -386,6 +386,7 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
     rtFunctionWrapper::exportPrototype(mIsolate, clone_global);
 
     mRtWrappers.Reset(mIsolate, clone_global);
+*/
 }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

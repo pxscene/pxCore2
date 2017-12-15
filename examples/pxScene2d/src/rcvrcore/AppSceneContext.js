@@ -190,9 +190,9 @@ this.innerscene.on('onClose', function (e) {
     this.sandbox.clearInterval = null;
     this.sandbox.importTracking = {};
     this.sandbox = null;
-    this.scriptMap = null;
     for(var xmodule in this.xmoduleMap) {
       this.xmoduleMap[xmodule].freeResources();
+      delete this.xmoduleMap[xmodule];
     }
     this.xmoduleMap = null;
     this.topXModule = null;
@@ -200,6 +200,7 @@ this.innerscene.on('onClose', function (e) {
     for(var key in this.scriptMap) {
       this.scriptMap[key].scriptObject = null;
       this.scriptMap[key].readyListeners = null;
+      delete this.scriptMap[key];
     }
     this.scriptMap = null;
     this.sceneWrapper = null;
@@ -768,6 +769,9 @@ AppSceneContext.prototype.callModuleReadyListeners = function(moduleName, module
     if( listeners !== null && listeners.length !== 0 ) {
       for(var k = 0; k < listeners.length; ++k) {
         listeners[k](moduleExports);
+      }
+      for(var k = 0; k < listeners.length; ++k) {
+        listeners.pop();
       }
     }
     this.scriptMap[moduleName].readyListeners = null;
