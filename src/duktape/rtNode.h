@@ -40,7 +40,9 @@ extern "C" {
 
 #ifndef PX_PLATFORM_MAC
 #ifndef __clang__
+#ifndef __GNUC__
 #pragma GCC diagnostic ignored "-Werror"
+#endif
 #endif
 #endif
 
