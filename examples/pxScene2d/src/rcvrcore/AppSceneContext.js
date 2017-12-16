@@ -201,7 +201,6 @@ this.innerscene.on('onClose', function (e) {
     this.sandbox.importTracking = null;
     for(var k in this.sandbox) { delete this.sandbox[k]; }
     this.sandbox = null;
-    this.scriptMap = null;
     for(var xmodule in this.xmoduleMap) {
       this.xmoduleMap[xmodule].freeResources();
       delete this.xmoduleMap[xmodule];
