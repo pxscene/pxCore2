@@ -44,6 +44,10 @@
 #include "common/using_std_string.h"
 #include "google_breakpad/common/minidump_format.h"
 
+#ifndef ucontext
+#define ucontext ucontext_t
+#endif
+
 namespace google_breakpad {
 
 // ExceptionHandler
