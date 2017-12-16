@@ -32,6 +32,10 @@ XModule.prototype.freeResources = function() {
   this.name = null;
   this.appSandbox = null;
   this.moduleReadyPromise = null;
+  for(var key in this.exports) {
+    this.exports[key] = null;
+    delete this.exports[key];
+  }
   this.exports = null;
   for(var key in this.pendingIncludes) {
     this.pendingIncludes[key] = null;
@@ -191,8 +195,8 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
       } else {
         for (var k = 0; k < _this.moduleNameList.length; ++k) {
           ///_this.appSandbox[pathToNameMap[exports[k][1]]] = exports[k][0];
-          _this.moduleData[_this.moduleNameList[k]] = exports[k][0];
-          exportsArr[k] = exports[k][0];
+          //_this.moduleData[_this.moduleNameList[k]] = exports[k][0];
+          //exportsArr[k] = exports[k][0];
           exportsMap[pathToNameMap[exports[k][1]]] = exports[k][0];
           //since include file is received, remove it from pendingincludes list
           _this.pendingIncludes[exports[k][1]] = null;
