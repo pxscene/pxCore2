@@ -125,7 +125,7 @@ struct animation
   pxConstantsAnimation::animationOptions  options;
   
   pxInterp interpFunc;
-
+  uint32_t interp;
   int32_t count;
   float actualCount;
 
@@ -399,7 +399,7 @@ public:
 
   void animateToInternal(const char* prop, double to, double duration,
                  pxInterp interp, pxConstantsAnimation::animationOptions options,
-                 int32_t count, rtObjectRef promise, rtObjectRef animateObj);
+                 int32_t count, uint32_t interpType, rtObjectRef promise, rtObjectRef animateObj);
 
   void cancelAnimation(const char* prop, bool fastforward = false, bool rewind = false, bool resolve = false);
 
