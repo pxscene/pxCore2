@@ -222,6 +222,11 @@ function Scene() {
 
   }
 
+  this.close = function() {
+    rpcContext._setRPCController(null);
+    rpcContext = null;
+  }
+
   return this;
 }
 
