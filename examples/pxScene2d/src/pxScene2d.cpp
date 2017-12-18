@@ -1027,6 +1027,7 @@ void pxObject::update(double t)
       // Prevent one more loop through oscillate
       if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
+	  
         if ((a.interp == pxConstantsAnimation::EASE_IN_ELASTIC) || (a.interp == pxConstantsAnimation::EASE_IN_BACK) || (a.interp == pxConstantsAnimation::EASE_IN_CUBIC))
         { 
           float v = from + (to - from) * d;
@@ -1038,6 +1039,7 @@ void pxObject::update(double t)
           {
             animObj->update(a.prop, &a, pxConstantsAnimation::STATUS_INPROGRESS);
           }
+		
         }
         if (NULL != animObj)
         {
