@@ -1,0 +1,3163 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		0ADDFD1316DE4847AB2FBD57 /* pxsceneDone */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 71B497D7658D42D5A0D420DD /* Build configuration list for PBXAggregateTarget "pxsceneDone" */;
+			buildPhases = (
+				C700ED8062724109A43C5FD4 /* CMake Rules */,
+				413EE779A3EC460BBC70185C /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+			);
+			name = pxsceneDone;
+			productName = pxsceneDone;
+		};
+		A88BACDC62CF4859BF6E494C /* ZERO_CHECK */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 6C1C4FAE97F24A8F91640B6C /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */;
+			buildPhases = (
+				747F5056EB1F43AE8C3AB888 /* CMake Rules */,
+			);
+			dependencies = (
+			);
+			name = ZERO_CHECK;
+			productName = ZERO_CHECK;
+		};
+		CCFB9CF0871E42648D8515A7 /* ALL_BUILD */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = C34FF8C34E794B5386999F40 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */;
+			buildPhases = (
+				82A05F9FB4D34DD48EA35014 /* CMake Rules */,
+			);
+			dependencies = (
+				12AE6DF3EFEA47AEA0483DC4 /* PBXTargetDependency */,
+				E881BB3BDA4B41E59E6B06A7 /* PBXTargetDependency */,
+				5DC17F6D217E468BB36208F1 /* PBXTargetDependency */,
+				53EDE1EF189B4596BCCD3F35 /* PBXTargetDependency */,
+				2DF3671281B44C2188A2682D /* PBXTargetDependency */,
+				E75575C469674C79A2264AFF /* PBXTargetDependency */,
+			);
+			name = ALL_BUILD;
+			productName = ALL_BUILD;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		126BCAA549034603ABA310CB /* rtObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C94DFAA318B64AC2A7E040CF /* rtObject.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		18F0C8A36F294988BF2948F9 /* pxRectangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DA0F290B9B28471FB354679F /* pxRectangle.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		1AD30246A6024838A88DB45B /* pxCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D816288FBA2147B49CEF60B4 /* pxCanvas.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		23F041D956DB4CA18A4475CA /* pxUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A70697BDA17C4834A049DE06 /* pxUtil.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		24E8762D472B4D15A00784CC /* pxArchive.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFF7E86170594B4A969298AE /* pxArchive.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		2542CC94E8F94FBFACA831BF /* rtError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B114A5BE055415B925E37F9 /* rtError.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		2B209AB0613D4BF3B1E2D717 /* rtUrlUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D7EFBA10FC744CE973521D0 /* rtUrlUtils.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		2CDA76E7E51E498BAFE22FCA /* rtWrapperUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D34B8FE5F52C48A1816B78B4 /* rtWrapperUtils.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		2FC3CA977D1349B1999847D3 /* window.mm in Sources */ = {isa = PBXBuildFile; fileRef = BAE2AA58D7174A0CAA6A4278 /* window.mm */; settings = {COMPILER_FLAGS = ""; }; };
+		3253CFF138D143E7A8545485 /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = F5E21E01B5FA4E808C68D261 /* ioapi.c */; settings = {COMPILER_FLAGS = ""; }; };
+		36021818739E497CBB209EBA /* rtFileCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9FC183863CD94C8C9A1E96D6 /* rtFileCache.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		378F5E298AF748AE989D306E /* pxImage9.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FCE5CC23D2AC4B43935C84CD /* pxImage9.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		385A321B33624E98ACDCC4D1 /* pxWindowUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFB245C82FEB451086DF2F41 /* pxWindowUtil.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		38B0E5809464442F926EE302 /* rtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0785458F8A2C45E780816D89 /* rtFile.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		38D54634B39A40F6AEC1150A /* pxTimerNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = 69E32C3EBD1C4015A894497C /* pxTimerNative.mm */; settings = {COMPILER_FLAGS = ""; }; };
+		398A0CBBD61C48389061B784 /* pxClipboardNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = F8E0D68DED0B47D29742F63A /* pxClipboardNative.mm */; settings = {COMPILER_FLAGS = ""; }; };
+		3EA9651CDF1849E69B0E9D7F /* pxInterpolators.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 59E2D1649E68432BAA5B99D3 /* pxInterpolators.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		41A012DEBD04462EAA02B0DC /* rtJsModules.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7AB15BD3315478B98562994 /* rtJsModules.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		4363F4D921FA451FA8CE3468 /* ioapi_mem.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B81B58A16F14A90B33BAA74 /* ioapi_mem.c */; settings = {COMPILER_FLAGS = ""; }; };
+		460D350580134EEF9A72D607 /* rtNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9ACD526A1CB43F3A1FEED71 /* rtNode.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		4DABB69BA3354B96BA7D4742 /* rtValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D718EC7ED14E4774AB2E0DBC /* rtValue.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		4ECB9DA5219A43F0ABED70AC /* pxTextBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 89C8F976F8FC413AB56BDAEA /* pxTextBox.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		57D025094F31467DAC2965B9 /* rtThreadPoolNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4E7327F1FAF24311B0F02B59 /* rtThreadPoolNative.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		590AEB0B684B46C08F3A59C4 /* pxConstants.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C9071E5F8DAC41AD8569C517 /* pxConstants.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		5AA92023D8B04CD0A3C7D785 /* pxResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 61AA95D2B606437DA07F89FB /* pxResource.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		5AD6440CFBED4FCCA0FEBED6 /* ioapi_mem.c in Sources */ = {isa = PBXBuildFile; fileRef = 754D1E1372374DC087D3C18C /* ioapi_mem.c */; settings = {COMPILER_FLAGS = ""; }; };
+		5DA325A677114277ACB9B7C1 /* pxPath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B36DAB7FD99E44A0928CC9BB /* pxPath.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		5DF8F065E2BF4A78B2FEC9F8 /* pxFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 178B6815635A4FE2AFDDE9CA /* pxFont.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		5EB643A888C948EE967ED427 /* pxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 99DFEA3CA3574FA2A28631FB /* pxImage.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		61A0B22B902844FBBB3BF88D /* pxText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 448BA9AAB0A140839F5037DB /* pxText.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		6A511EFD77C247208B0DD803 /* pxBufferNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = 15F168C1A70F46DB944B8DE1 /* pxBufferNative.mm */; settings = {COMPILER_FLAGS = ""; }; };
+		6C0A9B8E0BC345D5B3796D66 /* pxOffscreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8FD9D2382BD647F2B177A4E3 /* pxOffscreen.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		6D39BD2B1D8C46FCA4A605D8 /* pxEventLoopNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = 80BE52653AA44906AA272A5F /* pxEventLoopNative.mm */; settings = {COMPILER_FLAGS = ""; }; };
+		71292B4EA1C148EF8737A5B8 /* rtError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BDD4FB8FD62F48809A3C0A20 /* rtError.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		7927F4A0D282415989078CA4 /* rtValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 282081622F8444B09F9CC0C7 /* rtValue.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		7BEF1F71EE74420788B20B23 /* rtThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1DD8E5B9040745E4B72E2CF3 /* rtThreadPool.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		844AE0F96DAA4DFAAD9069D2 /* rtFileDownloader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F96C3587E2194D4B8E12FA83 /* rtFileDownloader.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		8776643BF5914B28AB479403 /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CB57A425F8444A77995DC824 /* westeros-stub.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		8968BB079BD041D2A1849D48 /* utf8.c in Sources */ = {isa = PBXBuildFile; fileRef = 8212586B71D448F4B343039E /* utf8.c */; settings = {COMPILER_FLAGS = ""; }; };
+		89E33DD1FAEC440CA3C9A09B /* pxScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A51E28208BD4B0E97DD7F54 /* pxScene.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		8A19C592EE8847EFA24F2454 /* pxImageA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F28929390A37456CA504385C /* pxImageA.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		9242E528BD814DD994223E71 /* rtZip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB5D0F0F515749B297C467A7 /* rtZip.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		96EF7A77E792442E8C36D648 /* pxContextUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8608AB62A603451D96B26883 /* pxContextUtils.mm */; settings = {COMPILER_FLAGS = ""; }; };
+		9A9C38186A544D59BE22CD88 /* rtMutexNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 206E69A1E52C4F59B0D5ED55 /* rtMutexNative.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		A082CEDCC62D45DFAA36A04F /* rtTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00AB534607C74C94A851118D /* rtTest.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		A4B0F383DE1F4A5A996019CE /* pxAnimate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665E188185AD4DD795888EA3 /* pxAnimate.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		A583006973EA45E8A6413776 /* pxCanvas2d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F8C622D644A6E9D90EB63 /* pxCanvas2d.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		A6CCF5DA3F39456F818AB834 /* pxContextGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4534F8B394034802AC728E05 /* pxContextGL.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		A8104213CB0541ECA1A26195 /* pxScene2d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4AFDBCF00B8E4105BDBD6113 /* pxScene2d.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		A8F2F43FA13C4256A8B37C54 /* rtLog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E169342A72094294A4017263 /* rtLog.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		A94E69D684144F39B20B75F2 /* rtString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5945786BBD44498EBE8A8642 /* rtString.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		AEACF47A2169434384B5128D /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = 9462167690264DD48D536B6A /* unzip.c */; settings = {COMPILER_FLAGS = ""; }; };
+		AF2421C6322A4E53A90BED14 /* rtPathUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 995302D060FC4385A27007C3 /* rtPathUtils.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		B71214D41D4344BF819DEE3C /* rtThreadQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD6015E288CC4863BBC170A3 /* rtThreadQueue.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		BDB0F009FB7A4F0D976C9D38 /* rtString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12BB5978CA714811AA3BA3F0 /* rtString.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		C8997858511E487BACD023DE /* rtObjectWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9376B1D67184DF4A76D8BBA /* rtObjectWrapper.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		CDBA94BFE8E243ABBAD48560 /* pxMatrix4T.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1C4CF4C95EBE4677A110DD38 /* pxMatrix4T.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		D0B0CBECFD9E44AB903F577D /* pxRasterizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 62FCE803BCEA433B99628C4C /* pxRasterizer.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		D25602A562434BBFB0C2DFB6 /* rtObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F8A08A9F7E042B3AF30341D /* rtObject.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		D5EE9250C76346AE805F0CD0 /* rtFunctionWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5C399A2F609B4458B1B37099 /* rtFunctionWrapper.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		D840EB04C8F24C7199BFE608 /* rtHttpCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D054F951F9DF4DAB83C4DF64 /* rtHttpCache.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		DFC75EC961504733BE010044 /* pxWindowNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = C7BB8F06E8A6469AA019395F /* pxWindowNative.mm */; settings = {COMPILER_FLAGS = ""; }; };
+		E90841C43A454E158B970DA0 /* pxOffscreenNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4BCC6E2999FB4483AC660A2C /* pxOffscreenNative.mm */; settings = {COMPILER_FLAGS = ""; }; };
+		F2B7D368F8974CBFB489B36C /* rtLibrary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DA5899D97EA0459ABAE9F6D3 /* rtLibrary.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		F5F31261CB3849F8AB6595CC /* utf8.c in Sources */ = {isa = PBXBuildFile; fileRef = 6EE806BE15D6405AB80BF4ED /* utf8.c */; settings = {COMPILER_FLAGS = ""; }; };
+		F6F3AD63C8CC43B6B95F6C14 /* rtLog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A49E350CBB4D879FBB62D0 /* rtLog.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+		FF12432A09EF484EA4957F66 /* rtThreadTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50088D593317478AAA247A0F /* rtThreadTask.cpp */; settings = {COMPILER_FLAGS = ""; }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		04995B76A3AE471A8A413590 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0B10434EE8E348F5AFC9950F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C745C47C43D04711BE2E6A97;
+			remoteInfo = pxscene_app;
+		};
+		245510B0AB37497B95928627 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0B10434EE8E348F5AFC9950F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A88BACDC62CF4859BF6E494C;
+			remoteInfo = ZERO_CHECK;
+		};
+		46D131826D3A44789CA04EDD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0B10434EE8E348F5AFC9950F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B9E4B36D9914714B1DA60A9;
+			remoteInfo = pxCore;
+		};
+		487A5E68E37D4C109DB61B32 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0B10434EE8E348F5AFC9950F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2CE1BE1AEC114D59A1949518;
+			remoteInfo = rtCore;
+		};
+		5D040980DA9D439FB0BCFEDC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0B10434EE8E348F5AFC9950F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2421ADA72039407F90228B51;
+			remoteInfo = rtCore_s;
+		};
+		670DE4A39FFE4F42B3A240F5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0B10434EE8E348F5AFC9950F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2421ADA72039407F90228B51;
+			remoteInfo = rtCore_s;
+		};
+		D188DC247D1C406898BCF6FB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0B10434EE8E348F5AFC9950F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0ADDFD1316DE4847AB2FBD57;
+			remoteInfo = pxsceneDone;
+		};
+		E4DAE4AA44DB448F963561FD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0B10434EE8E348F5AFC9950F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B9E4B36D9914714B1DA60A9;
+			remoteInfo = pxCore;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		00AB534607C74C94A851118D /* rtTest.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtTest.cpp; path = src/rtTest.cpp; sourceTree = SOURCE_ROOT; };
+		0785458F8A2C45E780816D89 /* rtFile.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtFile.cpp; path = src/rtFile.cpp; sourceTree = SOURCE_ROOT; };
+		12BB5978CA714811AA3BA3F0 /* rtString.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtString.cpp; path = src/rtString.cpp; sourceTree = SOURCE_ROOT; };
+		15F168C1A70F46DB944B8DE1 /* pxBufferNative.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = pxBufferNative.mm; path = src/mac/pxBufferNative.mm; sourceTree = SOURCE_ROOT; };
+		178B6815635A4FE2AFDDE9CA /* pxFont.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxFont.cpp; path = examples/pxScene2d/src/pxFont.cpp; sourceTree = SOURCE_ROOT; };
+		1C4CF4C95EBE4677A110DD38 /* pxMatrix4T.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxMatrix4T.cpp; path = src/pxMatrix4T.cpp; sourceTree = SOURCE_ROOT; };
+		1DD8E5B9040745E4B72E2CF3 /* rtThreadPool.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtThreadPool.cpp; path = src/rtThreadPool.cpp; sourceTree = SOURCE_ROOT; };
+		1F8A08A9F7E042B3AF30341D /* rtObject.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtObject.cpp; path = src/duktape/rtObject.cpp; sourceTree = SOURCE_ROOT; };
+		206E69A1E52C4F59B0D5ED55 /* rtMutexNative.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtMutexNative.cpp; path = src/unix/rtMutexNative.cpp; sourceTree = SOURCE_ROOT; };
+		282081622F8444B09F9CC0C7 /* rtValue.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtValue.cpp; path = src/rtValue.cpp; sourceTree = SOURCE_ROOT; };
+		2B81B58A16F14A90B33BAA74 /* ioapi_mem.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = ioapi_mem.c; path = src/ioapi_mem.c; sourceTree = SOURCE_ROOT; };
+		2FD373FC16824CC7BE245248 /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; name = CMakeLists.txt; path = src/CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		3C226F8A3CED4AE1AD6980B9 /* pxscene */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = pxscene; sourceTree = BUILT_PRODUCTS_DIR; };
+		448BA9AAB0A140839F5037DB /* pxText.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxText.cpp; path = examples/pxScene2d/src/pxText.cpp; sourceTree = SOURCE_ROOT; };
+		4534F8B394034802AC728E05 /* pxContextGL.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxContextGL.cpp; path = examples/pxScene2d/src/pxContextGL.cpp; sourceTree = SOURCE_ROOT; };
+		4AFDBCF00B8E4105BDBD6113 /* pxScene2d.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxScene2d.cpp; path = examples/pxScene2d/src/duktape/pxScene2d.cpp; sourceTree = SOURCE_ROOT; };
+		4BCC6E2999FB4483AC660A2C /* pxOffscreenNative.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = pxOffscreenNative.mm; path = src/mac/pxOffscreenNative.mm; sourceTree = SOURCE_ROOT; };
+		4E7327F1FAF24311B0F02B59 /* rtThreadPoolNative.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtThreadPoolNative.cpp; path = src/unix/rtThreadPoolNative.cpp; sourceTree = SOURCE_ROOT; };
+		50088D593317478AAA247A0F /* rtThreadTask.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtThreadTask.cpp; path = src/rtThreadTask.cpp; sourceTree = SOURCE_ROOT; };
+		5945786BBD44498EBE8A8642 /* rtString.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtString.cpp; path = src/rtString.cpp; sourceTree = SOURCE_ROOT; };
+		59E2D1649E68432BAA5B99D3 /* pxInterpolators.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxInterpolators.cpp; path = src/pxInterpolators.cpp; sourceTree = SOURCE_ROOT; };
+		5C399A2F609B4458B1B37099 /* rtFunctionWrapper.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtFunctionWrapper.cpp; path = src/jsbindings/duktape/rtFunctionWrapper.cpp; sourceTree = SOURCE_ROOT; };
+		61893F6282954C449548E551 /* librtCore.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; path = librtCore.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		61AA95D2B606437DA07F89FB /* pxResource.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxResource.cpp; path = examples/pxScene2d/src/pxResource.cpp; sourceTree = SOURCE_ROOT; };
+		62FCE803BCEA433B99628C4C /* pxRasterizer.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxRasterizer.cpp; path = examples/pxScene2d/src/rasterizer/pxRasterizer.cpp; sourceTree = SOURCE_ROOT; };
+		665E188185AD4DD795888EA3 /* pxAnimate.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxAnimate.cpp; path = examples/pxScene2d/src/pxAnimate.cpp; sourceTree = SOURCE_ROOT; };
+		69E32C3EBD1C4015A894497C /* pxTimerNative.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = pxTimerNative.mm; path = src/mac/pxTimerNative.mm; sourceTree = SOURCE_ROOT; };
+		6EE806BE15D6405AB80BF4ED /* utf8.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = utf8.c; path = src/utf8.c; sourceTree = SOURCE_ROOT; };
+		754D1E1372374DC087D3C18C /* ioapi_mem.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = ioapi_mem.c; path = src/ioapi_mem.c; sourceTree = SOURCE_ROOT; };
+		7651DBD271DC4052B4455152 /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; name = CMakeLists.txt; path = src/CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		782770EA36BC4844A9773014 /* librtCore_s.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = librtCore_s.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		7B114A5BE055415B925E37F9 /* rtError.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtError.cpp; path = src/rtError.cpp; sourceTree = SOURCE_ROOT; };
+		805E38C5704F4E2A9624807C /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		80BE52653AA44906AA272A5F /* pxEventLoopNative.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = pxEventLoopNative.mm; path = src/mac/pxEventLoopNative.mm; sourceTree = SOURCE_ROOT; };
+		8212586B71D448F4B343039E /* utf8.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = utf8.c; path = src/utf8.c; sourceTree = SOURCE_ROOT; };
+		8608AB62A603451D96B26883 /* pxContextUtils.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = pxContextUtils.mm; path = examples/pxScene2d/src/mac/pxContextUtils.mm; sourceTree = SOURCE_ROOT; };
+		89C8F976F8FC413AB56BDAEA /* pxTextBox.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxTextBox.cpp; path = examples/pxScene2d/src/pxTextBox.cpp; sourceTree = SOURCE_ROOT; };
+		8D7EFBA10FC744CE973521D0 /* rtUrlUtils.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtUrlUtils.cpp; path = src/rtUrlUtils.cpp; sourceTree = SOURCE_ROOT; };
+		8FD9D2382BD647F2B177A4E3 /* pxOffscreen.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxOffscreen.cpp; path = src/pxOffscreen.cpp; sourceTree = SOURCE_ROOT; };
+		9462167690264DD48D536B6A /* unzip.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = unzip.c; path = src/unzip.c; sourceTree = SOURCE_ROOT; };
+		995302D060FC4385A27007C3 /* rtPathUtils.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtPathUtils.cpp; path = src/rtPathUtils.cpp; sourceTree = SOURCE_ROOT; };
+		99DFEA3CA3574FA2A28631FB /* pxImage.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxImage.cpp; path = examples/pxScene2d/src/pxImage.cpp; sourceTree = SOURCE_ROOT; };
+		9A51E28208BD4B0E97DD7F54 /* pxScene.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxScene.cpp; path = examples/pxScene2d/src/duktape/pxScene.cpp; sourceTree = SOURCE_ROOT; };
+		9B5F8C622D644A6E9D90EB63 /* pxCanvas2d.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxCanvas2d.cpp; path = examples/pxScene2d/src/rasterizer/pxCanvas2d.cpp; sourceTree = SOURCE_ROOT; };
+		9FC183863CD94C8C9A1E96D6 /* rtFileCache.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtFileCache.cpp; path = src/rtFileCache.cpp; sourceTree = SOURCE_ROOT; };
+		A3A49E350CBB4D879FBB62D0 /* rtLog.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtLog.cpp; path = src/rtLog.cpp; sourceTree = SOURCE_ROOT; };
+		A6D768FEC7B94948AC94C991 /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; name = CMakeLists.txt; path = examples/pxScene2d/src/CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		A70697BDA17C4834A049DE06 /* pxUtil.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxUtil.cpp; path = src/pxUtil.cpp; sourceTree = SOURCE_ROOT; };
+		A84F9A3E02A84FC0AF043D50 /* libpxCore.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libpxCore.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB5D0F0F515749B297C467A7 /* rtZip.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtZip.cpp; path = src/rtZip.cpp; sourceTree = SOURCE_ROOT; };
+		B36DAB7FD99E44A0928CC9BB /* pxPath.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxPath.cpp; path = examples/pxScene2d/src/rasterizer/pxPath.cpp; sourceTree = SOURCE_ROOT; };
+		B9ACD526A1CB43F3A1FEED71 /* rtNode.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtNode.cpp; path = src/duktape/rtNode.cpp; sourceTree = SOURCE_ROOT; };
+		BAE2AA58D7174A0CAA6A4278 /* window.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = window.mm; path = src/mac/window.mm; sourceTree = SOURCE_ROOT; };
+		BDD4FB8FD62F48809A3C0A20 /* rtError.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtError.cpp; path = src/rtError.cpp; sourceTree = SOURCE_ROOT; };
+		BFF7E86170594B4A969298AE /* pxArchive.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxArchive.cpp; path = examples/pxScene2d/src/pxArchive.cpp; sourceTree = SOURCE_ROOT; };
+		C29CE2E492DE46C0AD53ABF1 /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; name = CMakeLists.txt; path = examples/pxScene2d/src/CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		C7BB8F06E8A6469AA019395F /* pxWindowNative.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = pxWindowNative.mm; path = src/mac/pxWindowNative.mm; sourceTree = SOURCE_ROOT; };
+		C7F2D43423FD49A9B0F0F78F /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; name = CMakeLists.txt; path = src/CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		C9071E5F8DAC41AD8569C517 /* pxConstants.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxConstants.cpp; path = examples/pxScene2d/src/pxConstants.cpp; sourceTree = SOURCE_ROOT; };
+		C94DFAA318B64AC2A7E040CF /* rtObject.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtObject.cpp; path = src/duktape/rtObject.cpp; sourceTree = SOURCE_ROOT; };
+		CB57A425F8444A77995DC824 /* westeros-stub.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = "westeros-stub.cpp"; path = "examples/pxScene2d/external/westeros-stub/westeros-stub.cpp"; sourceTree = SOURCE_ROOT; };
+		CD6015E288CC4863BBC170A3 /* rtThreadQueue.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtThreadQueue.cpp; path = src/rtThreadQueue.cpp; sourceTree = SOURCE_ROOT; };
+		D054F951F9DF4DAB83C4DF64 /* rtHttpCache.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtHttpCache.cpp; path = src/rtHttpCache.cpp; sourceTree = SOURCE_ROOT; };
+		D34B8FE5F52C48A1816B78B4 /* rtWrapperUtils.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtWrapperUtils.cpp; path = src/jsbindings/duktape/rtWrapperUtils.cpp; sourceTree = SOURCE_ROOT; };
+		D718EC7ED14E4774AB2E0DBC /* rtValue.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtValue.cpp; path = src/rtValue.cpp; sourceTree = SOURCE_ROOT; };
+		D7AB15BD3315478B98562994 /* rtJsModules.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtJsModules.cpp; path = src/jsbindings/duktape/rtJsModules.cpp; sourceTree = SOURCE_ROOT; };
+		D816288FBA2147B49CEF60B4 /* pxCanvas.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxCanvas.cpp; path = examples/pxScene2d/src/rasterizer/pxCanvas.cpp; sourceTree = SOURCE_ROOT; };
+		DA0F290B9B28471FB354679F /* pxRectangle.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxRectangle.cpp; path = examples/pxScene2d/src/pxRectangle.cpp; sourceTree = SOURCE_ROOT; };
+		DA5899D97EA0459ABAE9F6D3 /* rtLibrary.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtLibrary.cpp; path = src/rtLibrary.cpp; sourceTree = SOURCE_ROOT; };
+		DFB245C82FEB451086DF2F41 /* pxWindowUtil.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxWindowUtil.cpp; path = src/pxWindowUtil.cpp; sourceTree = SOURCE_ROOT; };
+		DFFC6F0EB9924F268E4FCF91 /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		E169342A72094294A4017263 /* rtLog.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtLog.cpp; path = src/rtLog.cpp; sourceTree = SOURCE_ROOT; };
+		F28929390A37456CA504385C /* pxImageA.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxImageA.cpp; path = examples/pxScene2d/src/pxImageA.cpp; sourceTree = SOURCE_ROOT; };
+		F5E21E01B5FA4E808C68D261 /* ioapi.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = ioapi.c; path = src/ioapi.c; sourceTree = SOURCE_ROOT; };
+		F8E0D68DED0B47D29742F63A /* pxClipboardNative.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = pxClipboardNative.mm; path = src/mac/pxClipboardNative.mm; sourceTree = SOURCE_ROOT; };
+		F9376B1D67184DF4A76D8BBA /* rtObjectWrapper.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtObjectWrapper.cpp; path = src/jsbindings/duktape/rtObjectWrapper.cpp; sourceTree = SOURCE_ROOT; };
+		F96C3587E2194D4B8E12FA83 /* rtFileDownloader.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = rtFileDownloader.cpp; path = src/rtFileDownloader.cpp; sourceTree = SOURCE_ROOT; };
+		FCE5CC23D2AC4B43935C84CD /* pxImage9.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = pxImage9.cpp; path = examples/pxScene2d/src/pxImage9.cpp; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		10ECDAB70C06443A95242E49 /* ALL_BUILD */ = {
+			isa = PBXGroup;
+			children = (
+				79E84DCDB4824753B6059C80 /* CMake Rules */,
+				805E38C5704F4E2A9624807C /* CMakeLists.txt */,
+			);
+			name = ALL_BUILD;
+			sourceTree = "<group>";
+		};
+		14B4C8F9AB224026AAAC0F16 /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		21F395E781E34204A8E56B03 /* ZERO_CHECK */ = {
+			isa = PBXGroup;
+			children = (
+				61EF477A0A1845568C726282 /* CMake Rules */,
+				DFFC6F0EB9924F268E4FCF91 /* CMakeLists.txt */,
+			);
+			name = ZERO_CHECK;
+			sourceTree = "<group>";
+		};
+		22E7BCD0D6394D4786ABD4EC /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				B9ACD526A1CB43F3A1FEED71 /* rtNode.cpp */,
+				F5E21E01B5FA4E808C68D261 /* ioapi.c */,
+				5C399A2F609B4458B1B37099 /* rtFunctionWrapper.cpp */,
+				D7AB15BD3315478B98562994 /* rtJsModules.cpp */,
+				F9376B1D67184DF4A76D8BBA /* rtObjectWrapper.cpp */,
+				D34B8FE5F52C48A1816B78B4 /* rtWrapperUtils.cpp */,
+				15F168C1A70F46DB944B8DE1 /* pxBufferNative.mm */,
+				F8E0D68DED0B47D29742F63A /* pxClipboardNative.mm */,
+				80BE52653AA44906AA272A5F /* pxEventLoopNative.mm */,
+				4BCC6E2999FB4483AC660A2C /* pxOffscreenNative.mm */,
+				69E32C3EBD1C4015A894497C /* pxTimerNative.mm */,
+				C7BB8F06E8A6469AA019395F /* pxWindowNative.mm */,
+				BAE2AA58D7174A0CAA6A4278 /* window.mm */,
+				59E2D1649E68432BAA5B99D3 /* pxInterpolators.cpp */,
+				1C4CF4C95EBE4677A110DD38 /* pxMatrix4T.cpp */,
+				8FD9D2382BD647F2B177A4E3 /* pxOffscreen.cpp */,
+				A70697BDA17C4834A049DE06 /* pxUtil.cpp */,
+				DFB245C82FEB451086DF2F41 /* pxWindowUtil.cpp */,
+				0785458F8A2C45E780816D89 /* rtFile.cpp */,
+				9FC183863CD94C8C9A1E96D6 /* rtFileCache.cpp */,
+				F96C3587E2194D4B8E12FA83 /* rtFileDownloader.cpp */,
+				D054F951F9DF4DAB83C4DF64 /* rtHttpCache.cpp */,
+				DA5899D97EA0459ABAE9F6D3 /* rtLibrary.cpp */,
+				995302D060FC4385A27007C3 /* rtPathUtils.cpp */,
+				00AB534607C74C94A851118D /* rtTest.cpp */,
+				1DD8E5B9040745E4B72E2CF3 /* rtThreadPool.cpp */,
+				CD6015E288CC4863BBC170A3 /* rtThreadQueue.cpp */,
+				50088D593317478AAA247A0F /* rtThreadTask.cpp */,
+				8D7EFBA10FC744CE973521D0 /* rtUrlUtils.cpp */,
+				AB5D0F0F515749B297C467A7 /* rtZip.cpp */,
+				206E69A1E52C4F59B0D5ED55 /* rtMutexNative.cpp */,
+				4E7327F1FAF24311B0F02B59 /* rtThreadPoolNative.cpp */,
+				9462167690264DD48D536B6A /* unzip.c */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		2970001A00E64F279AA8C3B2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A84F9A3E02A84FC0AF043D50 /* libpxCore.a */,
+				61893F6282954C449548E551 /* librtCore.dylib */,
+				782770EA36BC4844A9773014 /* librtCore_s.a */,
+				3C226F8A3CED4AE1AD6980B9 /* pxscene */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4C384373D4294E61B2557EF5 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		61EF477A0A1845568C726282 /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		7022133E35F54E91BBA55E0F /* pxsceneDone */ = {
+			isa = PBXGroup;
+			children = (
+				14B4C8F9AB224026AAAC0F16 /* CMake Rules */,
+				C29CE2E492DE46C0AD53ABF1 /* CMakeLists.txt */,
+			);
+			name = pxsceneDone;
+			sourceTree = "<group>";
+		};
+		79E84DCDB4824753B6059C80 /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		7E325DF274184FCCAC4B3512 /* pxscene_app */ = {
+			isa = PBXGroup;
+			children = (
+				C289B096F08C4634ABD3C4D6 /* Source Files */,
+				A6D768FEC7B94948AC94C991 /* CMakeLists.txt */,
+			);
+			name = pxscene_app;
+			sourceTree = "<group>";
+		};
+		9622C39D97A54F479D9D4AAF = {
+			isa = PBXGroup;
+			children = (
+				E2E235F0D032444D8FFEC385 /* Sources */,
+				4C384373D4294E61B2557EF5 /* Resources */,
+				2970001A00E64F279AA8C3B2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9C2DE77EAA234255A004B6F8 /* pxCore */ = {
+			isa = PBXGroup;
+			children = (
+				22E7BCD0D6394D4786ABD4EC /* Source Files */,
+				2FD373FC16824CC7BE245248 /* CMakeLists.txt */,
+			);
+			name = pxCore;
+			sourceTree = "<group>";
+		};
+		B6A4DCE249F148A88C00A759 /* rtCore */ = {
+			isa = PBXGroup;
+			children = (
+				D148D05142FB4FAB8A41B1DB /* Source Files */,
+				7651DBD271DC4052B4455152 /* CMakeLists.txt */,
+			);
+			name = rtCore;
+			sourceTree = "<group>";
+		};
+		C289B096F08C4634ABD3C4D6 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				CB57A425F8444A77995DC824 /* westeros-stub.cpp */,
+				9A51E28208BD4B0E97DD7F54 /* pxScene.cpp */,
+				4AFDBCF00B8E4105BDBD6113 /* pxScene2d.cpp */,
+				8608AB62A603451D96B26883 /* pxContextUtils.mm */,
+				665E188185AD4DD795888EA3 /* pxAnimate.cpp */,
+				BFF7E86170594B4A969298AE /* pxArchive.cpp */,
+				C9071E5F8DAC41AD8569C517 /* pxConstants.cpp */,
+				4534F8B394034802AC728E05 /* pxContextGL.cpp */,
+				178B6815635A4FE2AFDDE9CA /* pxFont.cpp */,
+				99DFEA3CA3574FA2A28631FB /* pxImage.cpp */,
+				FCE5CC23D2AC4B43935C84CD /* pxImage9.cpp */,
+				F28929390A37456CA504385C /* pxImageA.cpp */,
+				DA0F290B9B28471FB354679F /* pxRectangle.cpp */,
+				61AA95D2B606437DA07F89FB /* pxResource.cpp */,
+				448BA9AAB0A140839F5037DB /* pxText.cpp */,
+				89C8F976F8FC413AB56BDAEA /* pxTextBox.cpp */,
+				D816288FBA2147B49CEF60B4 /* pxCanvas.cpp */,
+				9B5F8C622D644A6E9D90EB63 /* pxCanvas2d.cpp */,
+				B36DAB7FD99E44A0928CC9BB /* pxPath.cpp */,
+				62FCE803BCEA433B99628C4C /* pxRasterizer.cpp */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		D148D05142FB4FAB8A41B1DB /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				1F8A08A9F7E042B3AF30341D /* rtObject.cpp */,
+				2B81B58A16F14A90B33BAA74 /* ioapi_mem.c */,
+				7B114A5BE055415B925E37F9 /* rtError.cpp */,
+				E169342A72094294A4017263 /* rtLog.cpp */,
+				5945786BBD44498EBE8A8642 /* rtString.cpp */,
+				D718EC7ED14E4774AB2E0DBC /* rtValue.cpp */,
+				8212586B71D448F4B343039E /* utf8.c */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		D356FB9EFAA94F9BAF437973 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				C94DFAA318B64AC2A7E040CF /* rtObject.cpp */,
+				754D1E1372374DC087D3C18C /* ioapi_mem.c */,
+				BDD4FB8FD62F48809A3C0A20 /* rtError.cpp */,
+				A3A49E350CBB4D879FBB62D0 /* rtLog.cpp */,
+				12BB5978CA714811AA3BA3F0 /* rtString.cpp */,
+				282081622F8444B09F9CC0C7 /* rtValue.cpp */,
+				6EE806BE15D6405AB80BF4ED /* utf8.c */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		E2E235F0D032444D8FFEC385 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				10ECDAB70C06443A95242E49 /* ALL_BUILD */,
+				21F395E781E34204A8E56B03 /* ZERO_CHECK */,
+				B6A4DCE249F148A88C00A759 /* rtCore */,
+				E65C7722D525480E891ABD66 /* rtCore_s */,
+				9C2DE77EAA234255A004B6F8 /* pxCore */,
+				7E325DF274184FCCAC4B3512 /* pxscene_app */,
+				7022133E35F54E91BBA55E0F /* pxsceneDone */,
+			);
+			name = Sources;
+			sourceTree = "<group>";
+		};
+		E65C7722D525480E891ABD66 /* rtCore_s */ = {
+			isa = PBXGroup;
+			children = (
+				D356FB9EFAA94F9BAF437973 /* Source Files */,
+				C7F2D43423FD49A9B0F0F78F /* CMakeLists.txt */,
+			);
+			name = rtCore_s;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2421ADA72039407F90228B51 /* rtCore_s */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8965270A04734D31B7781F41 /* Build configuration list for PBXNativeTarget "rtCore_s" */;
+			buildPhases = (
+				D70F97CBAAFE40B7878AF21B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = rtCore_s;
+			productName = rtCore_s;
+			productReference = 782770EA36BC4844A9773014 /* librtCore_s.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		2CE1BE1AEC114D59A1949518 /* rtCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AC53309D80494150B25EE00C /* Build configuration list for PBXNativeTarget "rtCore" */;
+			buildPhases = (
+				9F39F7BA6D0B4A529B05C9BA /* Sources */,
+				1D8E262CC27D4D859774EE9B /* CMake PostBuild Rules */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = rtCore;
+			productName = rtCore;
+			productReference = 61893F6282954C449548E551 /* librtCore.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+		4B9E4B36D9914714B1DA60A9 /* pxCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DF2AFF1144E44033ADA1F786 /* Build configuration list for PBXNativeTarget "pxCore" */;
+			buildPhases = (
+				901D9E8839E74804B692BAB0 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = pxCore;
+			productName = pxCore;
+			productReference = A84F9A3E02A84FC0AF043D50 /* libpxCore.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		C745C47C43D04711BE2E6A97 /* pxscene_app */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8BC4D5E9C9BC4306AC6A32B3 /* Build configuration list for PBXNativeTarget "pxscene_app" */;
+			buildPhases = (
+				DFC26EC358444C889FB476FD /* Sources */,
+				2F4259311FE6303C005DFBFF /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				704E8773AB514DB3ABD50196 /* PBXTargetDependency */,
+				9704794E487F4BBCA5E36E7C /* PBXTargetDependency */,
+			);
+			name = pxscene_app;
+			productName = pxscene_app;
+			productReference = 3C226F8A3CED4AE1AD6980B9 /* pxscene */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0B10434EE8E348F5AFC9950F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 0920;
+			};
+			buildConfigurationList = B892EE6899FD442CB92C80F6 /* Build configuration list for PBXProject "pxscene2d" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 9622C39D97A54F479D9D4AAF;
+			projectDirPath = ../;
+			projectRoot = "";
+			targets = (
+				CCFB9CF0871E42648D8515A7 /* ALL_BUILD */,
+				A88BACDC62CF4859BF6E494C /* ZERO_CHECK */,
+				4B9E4B36D9914714B1DA60A9 /* pxCore */,
+				2CE1BE1AEC114D59A1949518 /* rtCore */,
+				2421ADA72039407F90228B51 /* rtCore_s */,
+				0ADDFD1316DE4847AB2FBD57 /* pxsceneDone */,
+				C745C47C43D04711BE2E6A97 /* pxscene_app */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1D8E262CC27D4D859774EE9B /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/vainner/Downloads/pxCore/mac-build/src -f /Users/vainner/Downloads/pxCore/mac-build/src/CMakeScripts/rtCore_postBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		2F4259311FE6303C005DFBFF /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd $SOURCE_ROOT/mac-build\n./after_build.sh Debug\n./after_build.sh Release";
+		};
+		413EE779A3EC460BBC70185C /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/vainner/Downloads/pxCore/mac-build/examples/pxScene2d/src -f /Users/vainner/Downloads/pxCore/mac-build/examples/pxScene2d/src/CMakeScripts/pxsceneDone_postBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		747F5056EB1F43AE8C3AB888 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/vainner/Downloads/pxCore/mac-build -f /Users/vainner/Downloads/pxCore/mac-build/CMakeScripts/ZERO_CHECK_cmakeRulesBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		82A05F9FB4D34DD48EA35014 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/vainner/Downloads/pxCore/mac-build -f /Users/vainner/Downloads/pxCore/mac-build/CMakeScripts/ALL_BUILD_cmakeRulesBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		C700ED8062724109A43C5FD4 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/vainner/Downloads/pxCore/mac-build/examples/pxScene2d/src -f /Users/vainner/Downloads/pxCore/mac-build/examples/pxScene2d/src/CMakeScripts/pxsceneDone_cmakeRulesBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		901D9E8839E74804B692BAB0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				460D350580134EEF9A72D607 /* rtNode.cpp in Sources */,
+				3253CFF138D143E7A8545485 /* ioapi.c in Sources */,
+				D5EE9250C76346AE805F0CD0 /* rtFunctionWrapper.cpp in Sources */,
+				41A012DEBD04462EAA02B0DC /* rtJsModules.cpp in Sources */,
+				C8997858511E487BACD023DE /* rtObjectWrapper.cpp in Sources */,
+				2CDA76E7E51E498BAFE22FCA /* rtWrapperUtils.cpp in Sources */,
+				6A511EFD77C247208B0DD803 /* pxBufferNative.mm in Sources */,
+				398A0CBBD61C48389061B784 /* pxClipboardNative.mm in Sources */,
+				6D39BD2B1D8C46FCA4A605D8 /* pxEventLoopNative.mm in Sources */,
+				E90841C43A454E158B970DA0 /* pxOffscreenNative.mm in Sources */,
+				38D54634B39A40F6AEC1150A /* pxTimerNative.mm in Sources */,
+				DFC75EC961504733BE010044 /* pxWindowNative.mm in Sources */,
+				2FC3CA977D1349B1999847D3 /* window.mm in Sources */,
+				3EA9651CDF1849E69B0E9D7F /* pxInterpolators.cpp in Sources */,
+				CDBA94BFE8E243ABBAD48560 /* pxMatrix4T.cpp in Sources */,
+				6C0A9B8E0BC345D5B3796D66 /* pxOffscreen.cpp in Sources */,
+				23F041D956DB4CA18A4475CA /* pxUtil.cpp in Sources */,
+				385A321B33624E98ACDCC4D1 /* pxWindowUtil.cpp in Sources */,
+				38B0E5809464442F926EE302 /* rtFile.cpp in Sources */,
+				36021818739E497CBB209EBA /* rtFileCache.cpp in Sources */,
+				844AE0F96DAA4DFAAD9069D2 /* rtFileDownloader.cpp in Sources */,
+				D840EB04C8F24C7199BFE608 /* rtHttpCache.cpp in Sources */,
+				F2B7D368F8974CBFB489B36C /* rtLibrary.cpp in Sources */,
+				AF2421C6322A4E53A90BED14 /* rtPathUtils.cpp in Sources */,
+				A082CEDCC62D45DFAA36A04F /* rtTest.cpp in Sources */,
+				7BEF1F71EE74420788B20B23 /* rtThreadPool.cpp in Sources */,
+				B71214D41D4344BF819DEE3C /* rtThreadQueue.cpp in Sources */,
+				FF12432A09EF484EA4957F66 /* rtThreadTask.cpp in Sources */,
+				2B209AB0613D4BF3B1E2D717 /* rtUrlUtils.cpp in Sources */,
+				9242E528BD814DD994223E71 /* rtZip.cpp in Sources */,
+				9A9C38186A544D59BE22CD88 /* rtMutexNative.cpp in Sources */,
+				57D025094F31467DAC2965B9 /* rtThreadPoolNative.cpp in Sources */,
+				AEACF47A2169434384B5128D /* unzip.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F39F7BA6D0B4A529B05C9BA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D25602A562434BBFB0C2DFB6 /* rtObject.cpp in Sources */,
+				4363F4D921FA451FA8CE3468 /* ioapi_mem.c in Sources */,
+				2542CC94E8F94FBFACA831BF /* rtError.cpp in Sources */,
+				A8F2F43FA13C4256A8B37C54 /* rtLog.cpp in Sources */,
+				A94E69D684144F39B20B75F2 /* rtString.cpp in Sources */,
+				4DABB69BA3354B96BA7D4742 /* rtValue.cpp in Sources */,
+				8968BB079BD041D2A1849D48 /* utf8.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D70F97CBAAFE40B7878AF21B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				126BCAA549034603ABA310CB /* rtObject.cpp in Sources */,
+				5AD6440CFBED4FCCA0FEBED6 /* ioapi_mem.c in Sources */,
+				71292B4EA1C148EF8737A5B8 /* rtError.cpp in Sources */,
+				F6F3AD63C8CC43B6B95F6C14 /* rtLog.cpp in Sources */,
+				BDB0F009FB7A4F0D976C9D38 /* rtString.cpp in Sources */,
+				7927F4A0D282415989078CA4 /* rtValue.cpp in Sources */,
+				F5F31261CB3849F8AB6595CC /* utf8.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DFC26EC358444C889FB476FD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8776643BF5914B28AB479403 /* westeros-stub.cpp in Sources */,
+				89E33DD1FAEC440CA3C9A09B /* pxScene.cpp in Sources */,
+				A8104213CB0541ECA1A26195 /* pxScene2d.cpp in Sources */,
+				96EF7A77E792442E8C36D648 /* pxContextUtils.mm in Sources */,
+				A4B0F383DE1F4A5A996019CE /* pxAnimate.cpp in Sources */,
+				24E8762D472B4D15A00784CC /* pxArchive.cpp in Sources */,
+				590AEB0B684B46C08F3A59C4 /* pxConstants.cpp in Sources */,
+				A6CCF5DA3F39456F818AB834 /* pxContextGL.cpp in Sources */,
+				5DF8F065E2BF4A78B2FEC9F8 /* pxFont.cpp in Sources */,
+				5EB643A888C948EE967ED427 /* pxImage.cpp in Sources */,
+				378F5E298AF748AE989D306E /* pxImage9.cpp in Sources */,
+				8A19C592EE8847EFA24F2454 /* pxImageA.cpp in Sources */,
+				18F0C8A36F294988BF2948F9 /* pxRectangle.cpp in Sources */,
+				5AA92023D8B04CD0A3C7D785 /* pxResource.cpp in Sources */,
+				61A0B22B902844FBBB3BF88D /* pxText.cpp in Sources */,
+				4ECB9DA5219A43F0ABED70AC /* pxTextBox.cpp in Sources */,
+				1AD30246A6024838A88DB45B /* pxCanvas.cpp in Sources */,
+				A583006973EA45E8A6413776 /* pxCanvas2d.cpp in Sources */,
+				5DA325A677114277ACB9B7C1 /* pxPath.cpp in Sources */,
+				D0B0CBECFD9E44AB903F577D /* pxRasterizer.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		12AE6DF3EFEA47AEA0483DC4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2CE1BE1AEC114D59A1949518 /* rtCore */;
+			targetProxy = 487A5E68E37D4C109DB61B32 /* PBXContainerItemProxy */;
+		};
+		2DF3671281B44C2188A2682D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0ADDFD1316DE4847AB2FBD57 /* pxsceneDone */;
+			targetProxy = D188DC247D1C406898BCF6FB /* PBXContainerItemProxy */;
+		};
+		53EDE1EF189B4596BCCD3F35 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C745C47C43D04711BE2E6A97 /* pxscene_app */;
+			targetProxy = 04995B76A3AE471A8A413590 /* PBXContainerItemProxy */;
+		};
+		5DC17F6D217E468BB36208F1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4B9E4B36D9914714B1DA60A9 /* pxCore */;
+			targetProxy = 46D131826D3A44789CA04EDD /* PBXContainerItemProxy */;
+		};
+		704E8773AB514DB3ABD50196 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2421ADA72039407F90228B51 /* rtCore_s */;
+			targetProxy = 670DE4A39FFE4F42B3A240F5 /* PBXContainerItemProxy */;
+		};
+		9704794E487F4BBCA5E36E7C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4B9E4B36D9914714B1DA60A9 /* pxCore */;
+			targetProxy = E4DAE4AA44DB448F963561FD /* PBXContainerItemProxy */;
+		};
+		E75575C469674C79A2264AFF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A88BACDC62CF4859BF6E494C /* ZERO_CHECK */;
+			targetProxy = 245510B0AB37497B95928627 /* PBXContainerItemProxy */;
+		};
+		E881BB3BDA4B41E59E6B06A7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2421ADA72039407F90228B51 /* rtCore_s */;
+			targetProxy = 5D040980DA9D439FB0BCFEDC /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		01F89EE9A836424087B4700E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/build/mac/Debug;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					rtCore_EXPORTS,
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'UCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/src/duktape,
+					/Users/vainner/Downloads/pxCore/src,
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/src,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/uv/include,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/src,
+				);
+				INSTALL_PATH = "@rpath";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				OTHER_CFLAGS = (
+					"-fPIC",
+					"-fPIC",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated",
+					"-fPIC",
+					"-fpermissive",
+					"-std=c++11",
+					"-fPIC",
+					"'-std=gnu++11'",
+				);
+				OTHER_LDFLAGS = (
+					"-dynamiclib",
+					"-Wl,-headerpad_max_install_names",
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = rtCore;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Debug;
+		};
+		13542E99B44847E5BEA9677A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/build/mac/Release;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					rtCore_EXPORTS,
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'UCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/src/duktape,
+					/Users/vainner/Downloads/pxCore/src,
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/src,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/uv/include,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/src,
+				);
+				INSTALL_PATH = "@rpath";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				OTHER_CFLAGS = (
+					"-fPIC",
+					"-DNDEBUG",
+					"-fPIC",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated",
+					"-fPIC",
+					"-fpermissive",
+					"-std=c++11",
+					"-DNDEBUG",
+					"-fPIC",
+					"'-std=gnu++11'",
+				);
+				OTHER_LDFLAGS = (
+					"-dynamiclib",
+					"-Wl,-headerpad_max_install_names",
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = rtCore;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Release;
+		};
+		155D40CA9D5A49F397D78D65 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/Release;
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'DUCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					RUNINMAIN,
+					ENABLE_HTTP_CACHE,
+					DISABLE_WAYLAND,
+					"'PX_SCENE_VERSION=dev'",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/freetype-2.5.2/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/src,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/uv/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros/external/install/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros-stub",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../remote,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src/duktape,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer/xs_code,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/duktape,
+				);
+				INSTALL_PATH = "";
+				LD_RUNPATH_SEARCH_PATHS = "/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../build/mac /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/png/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpg/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/ft/objs/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl/lib/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/build /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/deps/v8/tools/gyp /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src/client/linux";
+				LIBRARY_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../build/mac/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../build/mac,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/png/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/png/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpg/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpg/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/ft/objs/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/ft/objs/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl/lib/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl/lib/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/build,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/deps/v8/tools/gyp/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/deps/v8/tools/gyp",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src/client/linux/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src/client/linux,
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-fPIC",
+					"-fpermissive",
+					"-Wall",
+					"-Wno-attributes",
+					"-Wall",
+					"-Wextra",
+					"-Wno-unused-private-field",
+					"-Werror",
+					"-std=c++11",
+					"-DNDEBUG",
+					"'-std=gnu++11'",
+				);
+				OTHER_LDFLAGS = (
+					"-framework",
+					OpenGL,
+					"-framework",
+					Cocoa,
+					"-framework",
+					Foundation,
+					"-Wl,-search_paths_first",
+					"-Wl,-headerpad_max_install_names",
+					/Users/vainner/Downloads/pxCore/build/mac/Release/libpxCore.a,
+					/Users/vainner/Downloads/pxCore/build/mac/Release/librtCore_s.a,
+					"-lpthread",
+					"-lv8_libplatform",
+					"-lpng16",
+					"-ljpeg",
+					"-lfreetype",
+					"-lcurl",
+					"-lz",
+					"-lduktape",
+					"-ldschema",
+					"-lduv",
+					"-luv",
+					"-ldl",
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = pxscene;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/examples/pxScene2d/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Release;
+		};
+		2487674EF78049D2BDEBF7B2 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = MinSizeRel;
+		};
+		27EB6596D75A448E8F74BC91 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/build/mac/RelWithDebInfo;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'UCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/src/duktape,
+					/Users/vainner/Downloads/pxCore/src,
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/src,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/uv/include,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/src,
+				);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = (
+					"-fPIC",
+					"-DNDEBUG",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated",
+					"-fPIC",
+					"-fpermissive",
+					"-std=c++11",
+					"-DNDEBUG",
+					"'-std=gnu++11'",
+				);
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = pxCore;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = RelWithDebInfo;
+		};
+		2BD4B29B60E343CDA0747D9C /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/build/mac/RelWithDebInfo;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'UCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/src/duktape,
+					/Users/vainner/Downloads/pxCore/src,
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/src,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/uv/include,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/src,
+				);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = (
+					"-fPIC",
+					"-DNDEBUG",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated",
+					"-fPIC",
+					"-fpermissive",
+					"-std=c++11",
+					"-DNDEBUG",
+					"'-std=gnu++11'",
+				);
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = rtCore_s;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = RelWithDebInfo;
+		};
+		2D37C6DAFE3D4F14906C2160 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Debug;
+		};
+		2EEBD5A845F14E17A556BB11 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/Debug;
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'DUCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					RUNINMAIN,
+					ENABLE_HTTP_CACHE,
+					DISABLE_WAYLAND,
+					"'PX_SCENE_VERSION=dev'",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/freetype-2.5.2/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/src,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/uv/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros/external/install/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros-stub",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../remote,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src/duktape,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer/xs_code,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/duktape,
+				);
+				INSTALL_PATH = "";
+				LD_RUNPATH_SEARCH_PATHS = "/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../build/mac /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/png/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpg/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/ft/objs/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl/lib/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/build /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/deps/v8/tools/gyp /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src/client/linux";
+				LIBRARY_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../build/mac/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../build/mac,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/png/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/png/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpg/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpg/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/ft/objs/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/ft/objs/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl/lib/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl/lib/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/build,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/deps/v8/tools/gyp/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/deps/v8/tools/gyp",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src/client/linux/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src/client/linux,
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-fPIC",
+					"-fpermissive",
+					"-Wall",
+					"-Wno-attributes",
+					"-Wall",
+					"-Wextra",
+					"-Wno-unused-private-field",
+					"-Werror",
+					"-std=c++11",
+					"'-std=gnu++11'",
+				);
+				OTHER_LDFLAGS = (
+					"-framework",
+					OpenGL,
+					"-framework",
+					Cocoa,
+					"-framework",
+					Foundation,
+					"-Wl,-search_paths_first",
+					"-Wl,-headerpad_max_install_names",
+					/Users/vainner/Downloads/pxCore/build/mac/Debug/libpxCore.a,
+					/Users/vainner/Downloads/pxCore/build/mac/Debug/librtCore_s.a,
+					"-lpthread",
+					"-lv8_libplatform",
+					"-lpng16",
+					"-ljpeg",
+					"-lfreetype",
+					"-lcurl",
+					"-lz",
+					"-lduktape",
+					"-ldschema",
+					"-lduv",
+					"-luv",
+					"-ldl",
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = pxscene;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/examples/pxScene2d/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Debug;
+		};
+		36CBD2C891DE47E4A5CC997E /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					"'PX_SCENE_VERSION=dev'",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/freetype-2.5.2/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/src,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/uv/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros/external/install/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros-stub",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../remote,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src/duktape,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer/xs_code,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/duktape,
+				);
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = pxsceneDone;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/examples/pxScene2d/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = MinSizeRel;
+		};
+		3A9FA3B6A1E64D239A7D1D22 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/build/mac/RelWithDebInfo;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					rtCore_EXPORTS,
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'UCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/src/duktape,
+					/Users/vainner/Downloads/pxCore/src,
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/src,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/uv/include,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/src,
+				);
+				INSTALL_PATH = "@rpath";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				OTHER_CFLAGS = (
+					"-fPIC",
+					"-DNDEBUG",
+					"-fPIC",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated",
+					"-fPIC",
+					"-fpermissive",
+					"-std=c++11",
+					"-DNDEBUG",
+					"-fPIC",
+					"'-std=gnu++11'",
+				);
+				OTHER_LDFLAGS = (
+					"-dynamiclib",
+					"-Wl,-headerpad_max_install_names",
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = rtCore;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = RelWithDebInfo;
+		};
+		48611D11DA1B401686C37F23 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk;
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/build";
+			};
+			name = MinSizeRel;
+		};
+		4CAC37371F8A48A7B195AFD0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Release;
+		};
+		5F6534A2B9AB43E2B1451B46 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					"'PX_SCENE_VERSION=dev'",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/freetype-2.5.2/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/src,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/uv/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros/external/install/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros-stub",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../remote,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src/duktape,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer/xs_code,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/duktape,
+				);
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = pxsceneDone;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/examples/pxScene2d/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Release;
+		};
+		717ED71BEE7C453DAE020CE1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/build/mac/Debug;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'UCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/src/duktape,
+					/Users/vainner/Downloads/pxCore/src,
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/src,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/uv/include,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/src,
+				);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = " -fPIC        ";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated",
+					"-fPIC",
+					"-fpermissive",
+					"-std=c++11",
+					"'-std=gnu++11'",
+				);
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = pxCore;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Debug;
+		};
+		73ED8A1C11BB44FCB4ADBEF4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk;
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/build";
+			};
+			name = Debug;
+		};
+		7BFAB0E3964B42F4A3B4AD3A /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = RelWithDebInfo;
+		};
+		7C2BBA5803EB497EB6BA5763 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = MinSizeRel;
+		};
+		80ED93FF45194F779D61932F /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/RelWithDebInfo;
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'DUCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					RUNINMAIN,
+					ENABLE_HTTP_CACHE,
+					DISABLE_WAYLAND,
+					"'PX_SCENE_VERSION=dev'",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/freetype-2.5.2/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/src,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/uv/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros/external/install/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros-stub",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../remote,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src/duktape,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer/xs_code,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/duktape,
+				);
+				INSTALL_PATH = "";
+				LD_RUNPATH_SEARCH_PATHS = "/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../build/mac /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/png/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpg/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/ft/objs/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl/lib/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/build /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/deps/v8/tools/gyp /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src/client/linux";
+				LIBRARY_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../build/mac/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../build/mac,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/png/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/png/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpg/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpg/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/ft/objs/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/ft/objs/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl/lib/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl/lib/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/build,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/deps/v8/tools/gyp/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/deps/v8/tools/gyp",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src/client/linux/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src/client/linux,
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-fPIC",
+					"-fpermissive",
+					"-Wall",
+					"-Wno-attributes",
+					"-Wall",
+					"-Wextra",
+					"-Wno-unused-private-field",
+					"-Werror",
+					"-std=c++11",
+					"-DNDEBUG",
+					"'-std=gnu++11'",
+				);
+				OTHER_LDFLAGS = (
+					"-framework",
+					OpenGL,
+					"-framework",
+					Cocoa,
+					"-framework",
+					Foundation,
+					"-Wl,-search_paths_first",
+					"-Wl,-headerpad_max_install_names",
+					/Users/vainner/Downloads/pxCore/build/mac/RelWithDebInfo/libpxCore.a,
+					/Users/vainner/Downloads/pxCore/build/mac/RelWithDebInfo/librtCore_s.a,
+					"-lpthread",
+					"-lv8_libplatform",
+					"-lpng16",
+					"-ljpeg",
+					"-lfreetype",
+					"-lcurl",
+					"-lz",
+					"-lduktape",
+					"-ldschema",
+					"-lduv",
+					"-luv",
+					"-ldl",
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = pxscene;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/examples/pxScene2d/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = RelWithDebInfo;
+		};
+		82B2C9A54EB244779A9771C6 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/build/mac/MinSizeRel;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'UCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/src/duktape,
+					/Users/vainner/Downloads/pxCore/src,
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/src,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/uv/include,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/src,
+				);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = (
+					"-fPIC",
+					"-DNDEBUG",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated",
+					"-fPIC",
+					"-fpermissive",
+					"-std=c++11",
+					"-DNDEBUG",
+					"'-std=gnu++11'",
+				);
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = rtCore_s;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = MinSizeRel;
+		};
+		83DAB99151524E4993E9B505 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk;
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/build";
+			};
+			name = RelWithDebInfo;
+		};
+		89CCC458088D448EB6C67767 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/build/mac/Release;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'UCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/src/duktape,
+					/Users/vainner/Downloads/pxCore/src,
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/src,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/uv/include,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/src,
+				);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = (
+					"-fPIC",
+					"-DNDEBUG",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated",
+					"-fPIC",
+					"-fpermissive",
+					"-std=c++11",
+					"-DNDEBUG",
+					"'-std=gnu++11'",
+				);
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = pxCore;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Release;
+		};
+		976CBD51A4D448B8B36438FD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Debug;
+		};
+		A7F063267BED43C891D45424 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = RelWithDebInfo;
+		};
+		AFDCE2BB420644019EB66541 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/build/mac/MinSizeRel;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'UCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/src/duktape,
+					/Users/vainner/Downloads/pxCore/src,
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/src,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/uv/include,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/src,
+				);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = (
+					"-fPIC",
+					"-DNDEBUG",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated",
+					"-fPIC",
+					"-fpermissive",
+					"-std=c++11",
+					"-DNDEBUG",
+					"'-std=gnu++11'",
+				);
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = pxCore;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = MinSizeRel;
+		};
+		B22292972B484ED6888F5B0F /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					"'PX_SCENE_VERSION=dev'",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/freetype-2.5.2/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/src,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/uv/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros/external/install/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros-stub",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../remote,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src/duktape,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer/xs_code,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/duktape,
+				);
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = pxsceneDone;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/examples/pxScene2d/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = RelWithDebInfo;
+		};
+		B2AFA7D4AD254FADBBFECE6F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk;
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/build";
+			};
+			name = Release;
+		};
+		CCAD0DCB344D4C03B6325F8C /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/MinSizeRel;
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'DUCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					RUNINMAIN,
+					ENABLE_HTTP_CACHE,
+					DISABLE_WAYLAND,
+					"'PX_SCENE_VERSION=dev'",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/freetype-2.5.2/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/src,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/uv/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros/external/install/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros-stub",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../remote,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src/duktape,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer/xs_code,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/duktape,
+				);
+				INSTALL_PATH = "";
+				LD_RUNPATH_SEARCH_PATHS = "/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../build/mac /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/png/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpg/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/ft/objs/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl/lib/.libs /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/build /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/deps/v8/tools/gyp /Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src/client/linux";
+				LIBRARY_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../build/mac/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../build/mac,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/png/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/png/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpg/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpg/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/ft/objs/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/ft/objs/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl/lib/.libs/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl/lib/.libs,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/build,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/deps/v8/tools/gyp/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/out/Release/obj.target/deps/v8/tools/gyp",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src/client/linux/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src/client/linux,
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-fPIC",
+					"-fpermissive",
+					"-Wall",
+					"-Wno-attributes",
+					"-Wall",
+					"-Wextra",
+					"-Wno-unused-private-field",
+					"-Werror",
+					"-std=c++11",
+					"-DNDEBUG",
+					"'-std=gnu++11'",
+				);
+				OTHER_LDFLAGS = (
+					"-framework",
+					OpenGL,
+					"-framework",
+					Cocoa,
+					"-framework",
+					Foundation,
+					"-Wl,-search_paths_first",
+					"-Wl,-headerpad_max_install_names",
+					/Users/vainner/Downloads/pxCore/build/mac/MinSizeRel/libpxCore.a,
+					/Users/vainner/Downloads/pxCore/build/mac/MinSizeRel/librtCore_s.a,
+					"-lpthread",
+					"-lv8_libplatform",
+					"-lpng16",
+					"-ljpeg",
+					"-lfreetype",
+					"-lcurl",
+					"-lz",
+					"-lduktape",
+					"-ldschema",
+					"-lduv",
+					"-luv",
+					"-ldl",
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = pxscene;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/examples/pxScene2d/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = MinSizeRel;
+		};
+		CEB8174C166A4306867EF4F0 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/build/mac/MinSizeRel;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					rtCore_EXPORTS,
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'UCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/src/duktape,
+					/Users/vainner/Downloads/pxCore/src,
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/src,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/uv/include,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/src,
+				);
+				INSTALL_PATH = "@rpath";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				OTHER_CFLAGS = (
+					"-fPIC",
+					"-DNDEBUG",
+					"-fPIC",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated",
+					"-fPIC",
+					"-fpermissive",
+					"-std=c++11",
+					"-DNDEBUG",
+					"-fPIC",
+					"'-std=gnu++11'",
+				);
+				OTHER_LDFLAGS = (
+					"-dynamiclib",
+					"-Wl,-headerpad_max_install_names",
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = rtCore;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = MinSizeRel;
+		};
+		D1B815E25F524251B549E04A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/build/mac/Release;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'UCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/src/duktape,
+					/Users/vainner/Downloads/pxCore/src,
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/src,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/uv/include,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/src,
+				);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = (
+					"-fPIC",
+					"-DNDEBUG",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated",
+					"-fPIC",
+					"-fpermissive",
+					"-std=c++11",
+					"-DNDEBUG",
+					"'-std=gnu++11'",
+				);
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = rtCore_s;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Release;
+		};
+		DE0E0D850F97407AA7C59BFC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = /Users/vainner/Downloads/pxCore/build/mac/Debug;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					PX_PLATFORM_MAC,
+					ENABLE_RT_NODE,
+					ENABLE_HTTP_CACHE,
+					RUNINMAIN,
+					"'_DARWIN_USE_64_BIT_INODE=1'",
+					"'NODE_ARCH=\"x64\"'",
+					"'NODE_WANT_INTERNALS=1'",
+					"'V8_DEPRECATION_WARNINGS='",
+					NODE_SHARED_MODE,
+					"'NODE_USE_V8_PLATFORM=1'",
+					"'NODE_HAVE_I18N_SUPPORT=1'",
+					"'NODE_HAVE_SMALL_ICU=1'",
+					"'HAVE_INSPECTOR=1'",
+					"'V8_INSPECTOR_USE_STL=1'",
+					"'V8_INSPECTOR_USE_OLD_STL=1'",
+					"'HAVE_OPENSSL=1'",
+					"'HAVE_DTRACE=1'",
+					__POSIX__,
+					"'NODE_PLATFORM=darwin'",
+					"'UCONFIG_NO_TRANSLITERATION=1'",
+					"'UCONFIG_NO_SERVICE=1'",
+					"'UCONFIG_NO_REGULAR_EXPRESSIONS=1'",
+					"'U_ENABLE_DYLOAD=0'",
+					"'U_STATIC_IMPLEMENTATION=1'",
+					"'U_HAVE_STD_STRING=0'",
+					"'UCONFIG_NO_BREAK_ITERATION=0'",
+					"'UCONFIG_NO_LEGACY_CONVERSION=1'",
+					"'UCONFIG_NO_CONVERSION=1'",
+					"'HTTP_PARSER_STRICT=0'",
+					_LARGEFILE_SOURCE,
+					"'_FILE_OFFSET_BITS=64'",
+					RT_PLATFORM_LINUX,
+					ENABLE_NODE_V_6_9,
+					ENABLE_DEBUG_MODE,
+					PNG_APNG_SUPPORTED,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/src/duktape,
+					/Users/vainner/Downloads/pxCore/src,
+					"/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/duktape/src,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/lib/uv/include,
+					/Users/vainner/Downloads/pxCore/src/../examples/pxScene2d/external/dukluv/src,
+				);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = " -fPIC        ";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated",
+					"-fPIC",
+					"-fpermissive",
+					"-std=c++11",
+					"'-std=gnu++11'",
+				);
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = rtCore_s;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Debug;
+		};
+		EE05C7621D944A87BEEEB468 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Release;
+		};
+		FFDB1BE632A2413A892492B1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					"'PX_SCENE_VERSION=dev'",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/zlib-1.2.8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/curl-7.40.0/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/jpeg-9a",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libjpeg-turbo",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libpng-1.6.28",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/freetype-2.5.2/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/src,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/duktape/extras/module-duktape",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/dukluv/lib/uv/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/src",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/uv/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/debugger-agent/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/v8/include",
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/libnode-v6.9.0/deps/cares/include",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros/external/install/include,
+					"/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/westeros-stub",
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../external/breakpad/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../remote,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src/duktape,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/../../../src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/rasterizer/xs_code,
+					/Users/vainner/Downloads/pxCore/examples/pxScene2d/src/duktape,
+				);
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = pxsceneDone;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/vainner/Downloads/pxCore/mac-build/examples/pxScene2d/src";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+					"$(inherited)",
+				);
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6C1C4FAE97F24A8F91640B6C /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				976CBD51A4D448B8B36438FD /* Debug */,
+				EE05C7621D944A87BEEEB468 /* Release */,
+				7C2BBA5803EB497EB6BA5763 /* MinSizeRel */,
+				A7F063267BED43C891D45424 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		71B497D7658D42D5A0D420DD /* Build configuration list for PBXAggregateTarget "pxsceneDone" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FFDB1BE632A2413A892492B1 /* Debug */,
+				5F6534A2B9AB43E2B1451B46 /* Release */,
+				36CBD2C891DE47E4A5CC997E /* MinSizeRel */,
+				B22292972B484ED6888F5B0F /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8965270A04734D31B7781F41 /* Build configuration list for PBXNativeTarget "rtCore_s" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DE0E0D850F97407AA7C59BFC /* Debug */,
+				D1B815E25F524251B549E04A /* Release */,
+				82B2C9A54EB244779A9771C6 /* MinSizeRel */,
+				2BD4B29B60E343CDA0747D9C /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8BC4D5E9C9BC4306AC6A32B3 /* Build configuration list for PBXNativeTarget "pxscene_app" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2EEBD5A845F14E17A556BB11 /* Debug */,
+				155D40CA9D5A49F397D78D65 /* Release */,
+				CCAD0DCB344D4C03B6325F8C /* MinSizeRel */,
+				80ED93FF45194F779D61932F /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AC53309D80494150B25EE00C /* Build configuration list for PBXNativeTarget "rtCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				01F89EE9A836424087B4700E /* Debug */,
+				13542E99B44847E5BEA9677A /* Release */,
+				CEB8174C166A4306867EF4F0 /* MinSizeRel */,
+				3A9FA3B6A1E64D239A7D1D22 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B892EE6899FD442CB92C80F6 /* Build configuration list for PBXProject "pxscene2d" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				73ED8A1C11BB44FCB4ADBEF4 /* Debug */,
+				B2AFA7D4AD254FADBBFECE6F /* Release */,
+				48611D11DA1B401686C37F23 /* MinSizeRel */,
+				83DAB99151524E4993E9B505 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C34FF8C34E794B5386999F40 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2D37C6DAFE3D4F14906C2160 /* Debug */,
+				4CAC37371F8A48A7B195AFD0 /* Release */,
+				2487674EF78049D2BDEBF7B2 /* MinSizeRel */,
+				7BFAB0E3964B42F4A3B4AD3A /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DF2AFF1144E44033ADA1F786 /* Build configuration list for PBXNativeTarget "pxCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				717ED71BEE7C453DAE020CE1 /* Debug */,
+				89CCC458088D448EB6C67767 /* Release */,
+				AFDCE2BB420644019EB66541 /* MinSizeRel */,
+				27EB6596D75A448E8F74BC91 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0B10434EE8E348F5AFC9950F /* Project object */;
+}
