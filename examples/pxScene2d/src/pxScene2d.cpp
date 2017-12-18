@@ -641,7 +641,7 @@ rtError pxObject::animateToObj(rtObjectRef props, double duration,
     for (uint32_t i = 0; i < len; i++)
     {
       rtString key = keys.get<rtString>(i);
-      animateToInternal(key, props.get<float>(key), duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp), (pxConstantsAnimation::animationOptions)options, count, (i==0)?promise:rtObjectRef(),animateObj);
+      animateToInternal(key, props.get<float>(key), duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp), (pxConstantsAnimation::animationOptions)options,count,(i==0)?promise:rtObjectRef(),animateObj);
     }
   }
   if (NULL != animateObj.getPtr())
@@ -811,7 +811,7 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
     return RT_OK;
   }
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
-            (pxConstantsAnimation::animationOptions)options, count, promise, rtObjectRef());
+            (pxConstantsAnimation::animationOptions)options, count, interp, promise, rtObjectRef());
   return RT_OK;
 }
 
@@ -880,7 +880,7 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
 
 void pxObject::animateToInternal(const char* prop, double to, double duration,
                          pxInterp interp, pxConstantsAnimation::animationOptions options,
-                         int32_t count, rtObjectRef promise, rtObjectRef animateObj)
+                         int32_t count, uint32_t interpType, rtObjectRef promise, rtObjectRef animateObj)
 {
   cancelAnimation(prop,(options & pxConstantsAnimation::OPTION_FASTFORWARD),
                        (options & pxConstantsAnimation::OPTION_REWIND), true);
@@ -902,6 +902,7 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
 //  a.ended = onEnd;
   a.promise = promise;
   a.animateObj = animateObj;
+  a.interp = interpType;
 
   mAnimations.push_back(a);
   
@@ -1030,13 +1031,11 @@ void pxObject::update(double t)
       // Prevent one more loop through oscillate
       if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
-          if (true == justReverseChange)
-          {
-            mCancelInSet = false;
-            set(a.prop, toVal);
-            mCancelInSet = true;
-          }
-
+        if (true == justReverseChange)
+        {
+          mCancelInSet = false;
+          set(a.prop, toVal);
+          mCancelInSet = true;
         }
         if (NULL != animObj)
         {
