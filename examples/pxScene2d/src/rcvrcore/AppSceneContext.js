@@ -176,30 +176,36 @@ this.innerscene.on('onClose', function (e) {
       for(var k in this.innerscene.api) { delete this.innerscene.api[k]; }
     }
 
-    this.innerscene.api = null;
-    this.innerscene = null;
-    this.sandbox.sandboxName = null;
-    if ((undefined != this.sandbox.xmodule) && (null != this.sandbox.xmodule))
+    if ((undefined != this.innerscene) && (null != this.innerscene))
     {
-      this.sandbox.xmodule.freeResources();
-    }
-    this.sandbox.xmodule = null;
-    this.sandbox.console = null;
-    this.sandbox.runtime = null;
-    this.sandbox.process = null;
-    this.sandbox.urlModule = null;
-    this.sandbox.queryStringModule = null;
-    this.sandbox.theNamedContext = null;
-    this.sandbox.Buffer = null;
-    this.sandbox.require = null;
-    this.sandbox.global = null;
-    this.sandbox.setTimeout = null;
-    this.sandbox.setInterval = null;
-    this.sandbox.clearTimeout = null;
-    this.sandbox.clearInterval = null;
-    for(var k in this.sandbox.importTracking) { delete this.sandbox.importTracking[k]; }
-    this.sandbox.importTracking = null;
-    for(var k in this.sandbox) { delete this.sandbox[k]; }
+      this.innerscene.api = null;
+    } 
+    this.innerscene = null;
+    if ((undefined != this.sandbox) && (null != this.sandbox))
+    {
+      this.sandbox.sandboxName = null;
+      if ((undefined != this.sandbox.xmodule) && (null != this.sandbox.xmodule))
+      {
+        this.sandbox.xmodule.freeResources();
+      }
+      this.sandbox.xmodule = null;
+      this.sandbox.console = null;
+      this.sandbox.runtime = null;
+      this.sandbox.process = null;
+      this.sandbox.urlModule = null;
+      this.sandbox.queryStringModule = null;
+      this.sandbox.theNamedContext = null;
+      this.sandbox.Buffer = null;
+      this.sandbox.require = null;
+      this.sandbox.global = null;
+      this.sandbox.setTimeout = null;
+      this.sandbox.setInterval = null;
+      this.sandbox.clearTimeout = null;
+      this.sandbox.clearInterval = null;
+      for(var k in this.sandbox.importTracking) { delete this.sandbox.importTracking[k]; }
+      this.sandbox.importTracking = null;
+      for(var k in this.sandbox) { delete this.sandbox[k]; }
+    } 
     this.sandbox = null;
     for(var xmodule in this.xmoduleMap) {
       this.xmoduleMap[xmodule].freeResources();
