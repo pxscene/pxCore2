@@ -16,12 +16,14 @@
 
 */
 
-#ifndef _RT_URL_UTILS
-#define _RT_URL_UTILS
+#ifndef _RT_CORS_UTILS
+#define _RT_CORS_UTILS
 
 #include "rtString.h"
+#include "rtError.h"
 
-rtString rtUrlEncodeParameters(const char* url);
-rtString rtUrlGetOrigin(const char* url);
+rtError rtCORSUtilsCheckOrigin(const rtString& origin, const rtString& reqUrl, const rtString& rawHeaders, rtString* errorStr = NULL);
+
+extern const char* USE_ACCESS_CONTROL_CHECK_ENV_NAME;
 
 #endif

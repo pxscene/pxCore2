@@ -26,6 +26,9 @@
 #include "rtThreadPool.h"
 #include "pxTimer.h"
 #include "rtLog.h"
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+#include "rtCORSUtils.h"
+#endif
 #include <sstream>
 #include <iostream>
 #include <thread>
@@ -409,6 +412,16 @@ bool rtFileDownloadRequest::isCurlDefaultTimeoutSet()
   return mDefaultTimeout;
 }
 
+void rtFileDownloadRequest::setOrigin(const char* origin)
+{
+  mOrigin = origin;
+}
+
+rtString rtFileDownloadRequest::origin()
+{
+  return mOrigin;
+}
+
 rtFileDownloader::rtFileDownloader() 
     : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false), mCaCertFile(CA_CERTIFICATE)
 {
@@ -636,6 +649,15 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     {
       list = curl_slist_append(list, additionalHttpHeaders[headerOption].cString());
     }
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+    const rtString& origin = downloadRequest->origin();
+    if (!origin.isEmpty())
+    {
+      rtString headerOrigin("Origin:");
+      headerOrigin.append(origin.cString());
+      list = curl_slist_append(list, headerOrigin.cString());
+    }
+#endif
     curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
     //CA certificates
     // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
@@ -721,6 +743,23 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     if (false == headerOnly)
     {
       downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+      rtString errorStr;
+      rtString rawHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
+      if (RT_OK != rtCORSUtilsCheckOrigin(origin, downloadRequest->fileUrl(), rawHeaders, &errorStr))
+      {
+        rtLogWarn("disallow access for origin '%s' because: %s", origin.cString(), errorStr.cString());
+
+        // Disallow access to the resource's contents.
+        if (downloadRequest->downloadedData() != NULL)
+        {
+          free(downloadRequest->downloadedData());
+        }
+        downloadRequest->setDownloadedData(NULL, 0);
+        downloadRequest->setDownloadStatusCode(-1);
+        downloadRequest->setErrorString(errorStr.cString());
+      }
+#endif
     }
     else if (chunk.contentsBuffer != NULL)
     {
@@ -854,4 +893,3 @@ void rtFileDownloader::checkForExpiredHandles()
   }
   downloadHandleMutex.unlock();
 }
-

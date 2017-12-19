@@ -28,6 +28,7 @@
 #include "rtString.h"
 #include "rtNode.h"
 #include "rtPathUtils.h"
+#include "rtUrlUtils.h"
 
 #include "pxCore.h"
 #include "pxOffscreen.h"
@@ -57,6 +58,9 @@
 #include "pxContext.h"
 #include "rtFileDownloader.h"
 #include "rtMutex.h"
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+#include "rtCORSUtils.h"
+#endif
 
 #include "pxIView.h"
 
@@ -1687,7 +1691,7 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
-  : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false), 
+  : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
     mInnerpxObjects(), mDirty(true), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
@@ -1696,6 +1700,14 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mTop = top;
   mScriptView = scriptView;
   mTag = gTag++;
+
+  if (scriptView != NULL)
+  {
+    mOrigin = rtUrlGetOrigin(scriptView->getUrl().cString());
+#ifdef ENABLE_PERMISSIONS_CHECK
+    mPermissions.setOrigin(mOrigin);
+#endif
+  }
 
   // make sure that initial onFocus is sent
   rtObjectRef e = new rtMapObject;
@@ -1796,6 +1808,14 @@ void pxScene2d::init()
 
 rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
+  rtString url = p.get<rtString>("url");
+  bool allowed;
+  if (allows(url, allowed) == RT_OK && !allowed)
+  {
+    rtLogError("url '%s' is not allowed", url.cString());
+    return RT_ERROR_NOT_ALLOWED;
+  }
+
   rtError e = RT_OK;
   rtString t = p.get<rtString>("t");
   bool needpxObjectTracking = true;
@@ -1980,7 +2000,11 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxSceneContainer(this);
+  pxSceneContainer* sceneContainer = new pxSceneContainer(this);
+#ifdef ENABLE_PERMISSIONS_CHECK
+  sceneContainer->setParentPermissions(&mPermissions);
+#endif
+  o = sceneContainer;
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -2855,6 +2879,13 @@ rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
 
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
+  bool allowed;
+  if (allows("feature://screenshot", allowed) == RT_OK && !allowed)
+  {
+    rtLogError("screenshot is not allowed");
+    return RT_ERROR_NOT_ALLOWED;
+  }
+
   // Is this a type we support?
   if (type == "image/png;base64")
   {
@@ -2919,6 +2950,15 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 
 rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 {
+  rtString serviceUrl("serviceManager://");
+  serviceUrl.append(name.cString());
+  bool allowed;
+  if (allows(serviceUrl, allowed) == RT_OK && !allowed)
+  {
+    rtLogError("url '%s' is not allowed", serviceUrl.cString());
+    return RT_ERROR_NOT_ALLOWED;
+  }
+
   rtLogInfo("trying to get service for name: %s", name.cString());
 #ifdef PX_SERVICE_MANAGER
   rtObjectRef serviceManager;
@@ -2972,6 +3012,10 @@ rtDefineProperty(pxScene2d,alignVertical);
 rtDefineProperty(pxScene2d,alignHorizontal);
 rtDefineProperty(pxScene2d,truncation);
 rtDefineMethod(pxScene2d, dispose);
+
+rtDefineProperty(pxScene2d, origin);
+rtDefineMethod(pxScene2d, allows);
+rtDefineMethod(pxScene2d, checkAccessControlHeaders);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
@@ -3075,6 +3119,30 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
   }
 }
 
+rtError pxScene2d::allows(const rtString& url, bool& o) const
+{
+#ifdef ENABLE_PERMISSIONS_CHECK
+  return mPermissions.allows(url.cString(), o);
+#else
+  UNUSED_PARAM(url);
+  o = true; // default
+  return RT_OK;
+#endif
+}
+
+rtError pxScene2d::checkAccessControlHeaders(const rtString& url, const rtString& rawHeaders, bool& allow) const
+{
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+  allow = RT_OK == rtCORSUtilsCheckOrigin(mOrigin, url, rawHeaders);
+  return RT_OK;
+#else
+  UNUSED_PARAM(url);
+  UNUSED_PARAM(rawHeaders);
+  allow = true; // default
+  return RT_OK;
+#endif
+}
+
 rtDefineObject(pxViewContainer, pxObject);
 rtDefineProperty(pxViewContainer, w);
 rtDefineProperty(pxViewContainer, h);
@@ -3091,6 +3159,9 @@ rtDefineMethod(pxViewContainer, onChar);
 
 rtDefineObject(pxSceneContainer, pxViewContainer);
 rtDefineProperty(pxSceneContainer, url);
+#ifdef ENABLE_PERMISSIONS_CHECK
+rtDefineProperty(pxSceneContainer, permissions);
+#endif
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
 //rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
@@ -3148,6 +3219,26 @@ rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
   setView(scriptView);
   return RT_OK;
 }
+
+#ifdef ENABLE_PERMISSIONS_CHECK
+rtError pxSceneContainer::setParentPermissions(const rtPermissions* v)
+{
+  if (mScriptView)
+  {
+    return mScriptView->setParentPermissions(v);
+  }
+  return RT_FAIL;
+}
+
+rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
+{
+  if (mScriptView)
+  {
+    return mScriptView->setPermissions(v);
+  }
+  return RT_FAIL;
+}
+#endif
 
 void pxSceneContainer::dispose()
 {
@@ -3361,3 +3452,25 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
   }
   return RT_FAIL;
 }
+
+#ifdef ENABLE_PERMISSIONS_CHECK
+rtError pxScriptView::setParentPermissions(const rtPermissions* v)
+{
+  if (mScene)
+  {
+    pxScene2d* s = (pxScene2d*)mScene.getPtr();
+    return s->setParentPermissions(v);
+  }
+  return RT_FAIL;
+}
+
+rtError pxScriptView::setPermissions(const rtObjectRef& v)
+{
+  if (mScene)
+  {
+    pxScene2d* s = (pxScene2d*)mScene.getPtr();
+    return s->setPermissions(v);
+  }
+  return RT_FAIL;
+}
+#endif
