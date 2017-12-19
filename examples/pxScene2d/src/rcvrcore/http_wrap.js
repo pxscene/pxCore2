@@ -1,123 +1,58 @@
 'use strict';
 
 var http = require('http');
+var AccessControl = require('rcvrcore/utils/AccessControl');
 
-function isLocalAccess(reqOptions)
-{
-  if (((reqOptions.hostname) && ((reqOptions.hostname === "localhost") || (reqOptions.hostname === "127.0.0.1"))) || ((reqOptions.host) && ((reqOptions.host === "localhost") || (reqOptions.host === "127.0.0.1"))))
-  {
-    return true;
-  }
-  else if (((reqOptions.hostname) && ((reqOptions.hostname === "[::1]") || (reqOptions.hostname === "[0:0:0:0:0:0:0:1]"))) || ((reqOptions.host) && ((reqOptions.host === "[::1]") || (reqOptions.host === "[0:0:0:0:0:0:0:1]"))))
-  {
-    return true;
-  }
-  else if (((reqOptions.hostname) && ((reqOptions.hostname === "::1") || (reqOptions.hostname === "0:0:0:0:0:0:0:1"))) || ((reqOptions.host) && ((reqOptions.host === "::1") || (reqOptions.host === "0:0:0:0:0:0:0:1"))))
-  {
-    return true;
-  }
-  return false;
+function HttpWrap(innerscene) {
+  // do not expose these props through 'this.'
+  var _accessControl = new AccessControl(innerscene, http.globalAgent);
+
+  HttpWrap.prototype.IncomingMessage = http.IncomingMessage;
+  HttpWrap.prototype.METHODS = http.METHODS;
+  HttpWrap.prototype.OutgoingMessage = http.OutgoingMessage;
+  HttpWrap.prototype.globalAgent = http.globalAgent;
+
+  // Server functionality needs to be disabled.
+  //HttpWrap.prototype.ServerResponse = http.ServerResponse;
+  //HttpWrap.prototype.STATUS_CODES = http.STATUS_CODES;
+  //HttpWrap.prototype.Server = http.Server;
+  //HttpWrap.prototype.createServer = http.createServer;
+
+  HttpWrap.prototype.request = function (options, cb) {
+    return _accessControl.wrapRequestPermissions(options, cb, function (options1, cb1) {
+      return _accessControl.wrapRequestCORS(options1, cb1, function (options2, cb2) {
+        return http.request(options2, cb2);
+      });
+    });
+  };
+
+  // http.request == new http.ClientRequest
+  HttpWrap.prototype.ClientRequest = function (options, cb) {
+    return _accessControl.wrapRequestPermissions(options, cb, function (options1, cb1) {
+      return _accessControl.wrapRequestCORS(options1, cb1, function (options2, cb2) {
+        return http.ClientRequest(options2, cb2);
+      });
+    });
+  };
+
+  // http.get == http.request (+end)
+  HttpWrap.prototype.get = function (options, cb) {
+    return _accessControl.wrapRequestPermissions(options, cb, function (options1, cb1) {
+      return _accessControl.wrapRequestCORS(options1, cb1, function (options2, cb2) {
+        return http.get(options2, cb2);
+      });
+    });
+  };
+
+  HttpWrap.prototype.Agent = function (options) {
+    return _accessControl.wrapRequestPermissions(options, null, function (options1) {
+      return http.Agent(options1);
+    });
+  };
+
+  // deprecated
+  //HttpWrap.prototype.Client = http.Client;
+  //HttpWrap.prototype.createClient = http.createClient;
 }
-
-function HttpWrap()
-{
-  this.localApp = false;
-}
-
-HttpWrap.prototype.IncomingMessage = http.IncomingMessage;
-HttpWrap.prototype.METHODS = http.METHODS;
-HttpWrap.prototype.OutgoingMessage = http.OutgoingMessage;
-
-HttpWrap.prototype.setLocalApp = function(isLocalApp) {
-  this.localApp = isLocalApp;
-};
-
-HttpWrap.prototype.getLocalApp = function() {
-  return this.localApp;
-};
-
-HttpWrap.prototype.request = function(options, cb) {
-  if (true == isLocalAccess(options))
-  {
-    if (false == this.localApp)
-    {
-      console.log("localhost urls cannot be accessed by remote applications");
-      return;
-    }
-  }
-  return http.request(options, cb);
-};
-
-HttpWrap.prototype.ClientRequest = function(options, cb) {
-  if (true == isLocalAccess(options))
-  {
-    if (false == this.localApp)
-    {
-      console.log("localhost urls cannot be accessed by remote applications");
-      return;
-    }
-  }
-  return http.ClientRequest(options, cb);
-};
-
-HttpWrap.prototype.get = function(options, cb) {
-  if (true == isLocalAccess(options))
-  {
-    if (false == this.localApp)
-    {
-      console.log("localhost urls cannot be accessed by remote applications");
-      return;
-    }
-  }
-  return http.get(options, cb);
-};
-
-HttpWrap.prototype.Agent = function(options) {
-  if (true == isLocalAccess(options))
-  {
-    if (false == this.localApp)
-    {
-      console.log("localhost urls cannot be accessed by remote applications");
-      return;
-    }
-  }
-  return http.Agent(options);
-};
-
-HttpWrap.prototype.globalAgent = function(options) {
-  if (true == isLocalAccess(options))
-  {
-    if (false == this.localApp)
-    {
-      console.log("localhost urls cannot be accessed by remote applications");
-      return;
-    }
-  }
-  return http.globalAgent(options);
-};
-
-HttpWrap.prototype.Client = function(port, host) {
-  if ((host === "localhost") || (host === "127.0.0.1"))
-  {
-    if (false == this.localApp)
-    {
-      console.log("localhost urls cannot be accessed by remote applications");
-      return;
-    }
-  }
-  return http.Client(port,host);
-};
-
-HttpWrap.prototype.createClient = function(port, host) {
-  if ((host === "localhost") || (host === "127.0.0.1"))
-  {
-    if (false == this.localApp)
-    {
-      console.log("localhost urls cannot be accessed by remote applications");
-      return;
-    }
-  }
-  return http.createClient(port,host);
-};
 
 module.exports = HttpWrap;
