@@ -114,7 +114,7 @@ int pxCreateEglContext()
   if (egl_surface == EGL_NO_SURFACE)
   {
     eglGetError(); /* Clear error */
-    egl_surface = eglCreateWindowSurface(egl_display, egl_config[config_select], NULL, NULL);
+    egl_surface = eglCreateWindowSurface(egl_display, egl_config[config_select], (EGLNativeWindowType)NULL, NULL);
   }
 
   if (egl_surface == EGL_NO_SURFACE)
@@ -141,7 +141,7 @@ int pxCreateEglContext()
   eglDisplay = egl_display;
   eglSurface = egl_surface;
   eglContext = egl_context;
-  rtLogInfo("display: %d surface: %d context: %d created\n", eglDisplay, eglSurface, eglContext);
+  rtLogInfo("display: %p surface: %p context: %p created\n", eglDisplay, eglSurface, eglContext);
   eglContextCreated = true;
 
   return PX_OK;

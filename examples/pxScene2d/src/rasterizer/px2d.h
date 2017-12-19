@@ -1,7 +1,6 @@
 
 #ifdef __clang__
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-register"
 #pragma clang diagnostic ignored "-Wconversion"
 #endif
 
@@ -123,12 +122,12 @@ inline bool pxBlendBehind (
 
   uint32 sa = dst1>>24;
 
-  register		uint32 alpha1	= 256-da;
-	register		uint32 agd1		= (dst1&0xff00)>>8;
-	register		uint32 rbd1		=  dst1&_rbmask;
+  uint32 alpha1	= 256-da;
+	uint32 agd1		= (dst1&0xff00)>>8;
+	uint32 rbd1		=  dst1&_rbmask;
 
-	register		uint32 ags1		=  src1&_agmask;
-	register		uint32 rbs1		=  src1&_rbmask;
+	uint32 ags1		=  src1&_agmask;
+	uint32 rbs1		=  src1&_rbmask;
 
 #if 1
   rbd1 *= sa;
@@ -174,13 +173,14 @@ inline bool pxPreMultipliedBlendBehind (
   if (a >= 255)
     return 1;
 #endif
-	register		uint32_t alpha1	= 256-a;
-	register		uint32_t agd1		= (dst1&_agmask)>>8;
-	register		uint32_t rbd1		=  dst1&_rbmask;
-	register		uint32_t ags1		=  src1&_agmask;
-	register		uint32_t rbs1		=  src1&_rbmask;
-	agd1 							= ags1 +  (agd1*alpha1);
-	rbd1							= rbs1 + ((rbd1*alpha1)>>8);
+
+	uint32_t alpha1	= 256-a;
+	uint32_t agd1		= (dst1&_agmask)>>8;
+	uint32_t rbd1		=  dst1&_rbmask;
+	uint32_t ags1		=  src1&_agmask;
+	uint32_t rbs1		=  src1&_rbmask;
+	agd1 						= ags1 +  (agd1*alpha1);
+	rbd1						= rbs1 + ((rbd1*alpha1)>>8);
 
 	src1 = (agd1&_agmask) | (rbd1&_rbmask);
   return 0;
@@ -230,6 +230,3 @@ inline pxPixel pxBlend4(const pxPixel& s1, const pxPixel& s2,
 #ifdef PX_PLATFORM_MAC
 #pragma clang diagnostic pop
 #endif
-
-
-
