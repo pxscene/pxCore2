@@ -1,0 +1,41 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+spaces_around_operators = true
+indent_brace_style = Allman
+
+# Matches multiple files with brace expansion notation
+# Set default charset
+[*.{js,php}]
+charset = utf-8
+indent_size = 2
+
+[*.py]
+indent_size = 4
+
+[Makefile]
+indent_style = tab
+indent_size = 8
+
+[{package.json,.travis.yml}]
+indent_size = 2
+
+[*.java]
+indent_brace_style = Stroustrup
+
+[*.go]
+indent_style = tab
+
+[*.{c++,cc,cxx}]
+indent_brace_style = Allman
