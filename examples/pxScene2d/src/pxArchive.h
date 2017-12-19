@@ -45,7 +45,7 @@ public:
   pxArchive();
   virtual ~pxArchive();
 
-  rtError initFromUrl(const rtString& url);
+  rtError initFromUrl(const rtString& url, const rtString& origin = rtString());
   rtError ready(rtObjectRef& r) const;
 
   rtError loadStatus(rtObjectRef& v) const;
@@ -53,7 +53,7 @@ public:
   rtError getFileAsString(const char* fileName, rtString& s);
   rtError fileNames(rtObjectRef& names) const;
 
-private:
+protected:
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
   void process(void* data, size_t dataSize);

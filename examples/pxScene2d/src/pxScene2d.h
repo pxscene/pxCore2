@@ -64,6 +64,10 @@
 #include "rtNode.h"
 #endif //ENABLE_RT_NODE
 
+#ifdef ENABLE_PERMISSIONS_CHECK
+#include "rtPermissions.h"
+#endif
+
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
 #define EXITSCENELOCK() 
@@ -981,6 +985,10 @@ class pxSceneContainer: public pxViewContainer
 public:
   rtDeclareObject(pxSceneContainer, pxViewContainer);
   rtProperty(url, url, setUrl, rtString);
+#ifdef ENABLE_PERMISSIONS_CHECK
+  // declare 'permissions' before 'ready'
+  rtProperty(permissions, permissions, setPermissions, rtObjectRef);
+#endif
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
 
@@ -1004,6 +1012,12 @@ public:
 
   rtError api(rtValue& v) const;
   rtError ready(rtObjectRef& o) const;
+
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtError setParentPermissions(const rtPermissions* v);
+  rtError permissions(rtObjectRef& v) const { UNUSED_PARAM(v); rtLogDebug("permissions is write only"); return RT_FAIL; }
+  rtError setPermissions(const rtObjectRef& v);
+#endif
 
 //  rtError makeReady(bool ready);  // DEPRECATED ?
 
@@ -1102,6 +1116,11 @@ public:
   }
 
   rtString getUrl() const { return mUrl; }
+
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtError setParentPermissions(const rtPermissions* v);
+  rtError setPermissions(const rtObjectRef& v);
+#endif
 
   static rtError addListener(rtString  eventName, const rtFunctionRef& f)
   {
@@ -1297,10 +1316,14 @@ public:
   rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
 
+  rtReadOnlyProperty(origin, origin, rtString);
+  rtMethod1ArgAndReturn("allows", allows, rtString, bool);
+  rtMethod2ArgAndReturn("checkAccessControlHeaders", checkAccessControlHeaders, rtString, rtString, bool);
+
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
   pxScene2d(bool top = true, pxScriptView* scriptView = NULL);
-  virtual ~pxScene2d() 
+  virtual ~pxScene2d()
   {
      rtLogDebug("***** deleting pxScene2d\n");
     if (mTestView != NULL)
@@ -1403,6 +1426,16 @@ public:
   rtError alignHorizontal(rtObjectRef& v) const {v = CONSTANTS.alignHorizontalConstants; return RT_OK;}
   rtError truncation(rtObjectRef& v) const {v = CONSTANTS.truncationConstants; return RT_OK;}
 
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtError setParentPermissions(const rtPermissions* v) { return mPermissions.setParent(v); }
+  rtError setPermissions(const rtObjectRef& v) { return mPermissions.set(v); }
+  rtError permissions(rtPermissions& v) const { v = mPermissions; return RT_OK; }
+#endif
+
+  rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
+  rtError allows(const rtString& url, bool& o) const;
+  rtError checkAccessControlHeaders(const rtString& url, const rtString& rawHeaders, bool& allow) const;
+
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
 
   // The following methods are delegated to the view
@@ -1461,9 +1494,16 @@ public:
 
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
+    bool allowed;
+    if (allows(url, allowed) == RT_OK && !allowed)
+    {
+      rtLogError("url '%s' is not allowed", url.cString());
+      return RT_ERROR_NOT_ALLOWED;
+    }
+
     rtError e = RT_FAIL;
     rtRef<pxArchive> a = new pxArchive;
-    if (a->initFromUrl(url) == RT_OK)
+    if (a->initFromUrl(url, mOrigin) == RT_OK)
     {
       archive = a;
       e = RT_OK;
@@ -1472,6 +1512,13 @@ public:
   }
 
   void innerpxObjectDisposed(rtObjectRef ref);
+
+  // Note: Only type currently supported is "image/png;base64"
+  rtError screenshot(rtString type, rtString& pngData);
+  rtError clipboardGet(rtString type, rtString& retString);
+  rtError clipboardSet(rtString type, rtString clipString);
+  rtError getService(rtString name, rtObjectRef& returnObject);
+
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
@@ -1481,13 +1528,7 @@ private:
   // t is assumed to be monotonically increasing
   void update(double t);
 
-  // Note: Only type currently supported is "image/png;base64"
-  rtError screenshot(rtString type, rtString& pngData);
-  rtError clipboardGet(rtString type, rtString& retString);
-  rtError clipboardSet(rtString type, rtString clipString);
-  rtError getService(rtString name, rtObjectRef& returnObject);
-  
-    
+
   rtRef<pxObject> mRoot;
   rtObjectRef mInfo;
   rtObjectRef mFocusObj;
@@ -1527,6 +1568,10 @@ private:
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
   rtFunctionRef mCustomAnimator;
+  rtString mOrigin;
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtPermissions mPermissions;
+#endif
 public:
   void hidePointer( bool hide )
   {
