@@ -608,7 +608,7 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
     for (uint32_t i = 0; i < len; i++)
     {
       rtString key = keys.get<rtString>(i);
-      animateTo(key, props.get<float>(key), duration, interp, options, count,(i==0)?promise:rtObjectRef());
+      animateTo(key, props.get<float>(key), duration, interp, options, count,(i==0)?promise:rtObjectRef(), props);
     }
   }
 
@@ -808,15 +808,18 @@ rtError pxObject::moveBackward()
   
 rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t options,
-                            int32_t count, rtObjectRef promise)
+                            int32_t count, rtObjectRef promise, rtObjectRef props)
 {
   if (mIsDisposed)
   {
     promise.send("reject",this);
     return RT_OK;
   }
+
+  rtObjectRef animateObj = new pxAnimate(props, interp, (pxConstantsAnimation::animationOptions)options, duration, count, promise, this);
+  
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
-            (pxConstantsAnimation::animationOptions)options, count, promise, rtObjectRef());
+            (pxConstantsAnimation::animationOptions)options, count, promise, animateObj);
   return RT_OK;
 }
 
@@ -889,7 +892,6 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
 {
   cancelAnimation(prop,(options & pxConstantsAnimation::OPTION_FASTFORWARD),
                        (options & pxConstantsAnimation::OPTION_REWIND), true);
-
   // schedule animation
   animation a;
 

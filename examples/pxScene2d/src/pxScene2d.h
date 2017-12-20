@@ -391,7 +391,7 @@ public:
   
   rtError animateTo(const char* prop, double to, double duration,
                      uint32_t interp, uint32_t options,
-                     int32_t count, rtObjectRef promise);
+                     int32_t count, rtObjectRef promise, rtObjectRef props);
 
   rtError animateToP2(rtObjectRef props, double duration, 
                       uint32_t interp, uint32_t options,
