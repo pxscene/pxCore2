@@ -82,7 +82,7 @@ fi
 
 #--------- ZLIB
 
-if [ ! -e ./zlib/libz.1.2.8.dylib ] ||
+if [ ! -e ./zlib/libz.1.2.11.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
 

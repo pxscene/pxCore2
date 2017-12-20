@@ -94,7 +94,7 @@ else (NOT WIN32)
 
     set (VCLIBS ${EXTDIR}/vc.build/builds)
 
-    set(ZLIB_INCLUDE_DIRS "${EXTDIR}/zlib-1.2.8")
+    set(ZLIB_INCLUDE_DIRS "${EXTDIR}/zlib-1.2.11")
     set(ZLIB_LIBRARY_DIRS "${VCLIBS}")
     set(ZLIB_LIBRARIES "zlib.lib")
 
