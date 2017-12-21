@@ -1007,25 +1007,27 @@ void pxObject::update(double t)
     t1 = t1-t2; // 0-1
 
     double d = a.interpFunc(t1);
-    
     float from = a.from;
     float   to = a.to;
 
     if (a.options & pxConstantsAnimation::OPTION_OSCILLATE)
     {
+      bool justReverseChange = false;
+      double toVal = a.to;
       if( (fmod(t2,2) != 0))  // TODO perf chk ?
       {
         if(!a.reversing)
         {
           a.reversing = true;
+          justReverseChange = true;
           a.actualCount++;
         }
         from = a.to;
         to   = a.from;
-
       }
       else if( a.reversing && (fmod(t2,2) == 0))
       {
+        justReverseChange = true;
         a.reversing = false;
         a.actualCount++;
         a.start = -1;
@@ -1033,11 +1035,17 @@ void pxObject::update(double t)
       // Prevent one more loop through oscillate
       if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
+          if (true == justReverseChange)
+          {
+            mCancelInSet = false;
+            set(a.prop, toVal);
+            mCancelInSet = true;
+          }
+
         if (NULL != animObj)
         {
           animObj->setStatus(pxConstantsAnimation::STATUS_ENDED);
         }
-
         cancelAnimation(a.prop, false, false, true);
 
         if (NULL != animObj)
@@ -1056,7 +1064,6 @@ void pxObject::update(double t)
     mCancelInSet = false;
     set(a.prop, v);
     mCancelInSet = true;
-
     if (NULL != animObj)
     {
       animObj->update(a.prop, &a, pxConstantsAnimation::STATUS_INPROGRESS);
