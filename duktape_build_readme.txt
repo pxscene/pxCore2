@@ -53,6 +53,13 @@ cd build
 cmake ..
 make
 
+for ubuntu x64, you may need 
+cd zlib
+sudo make install
+cd ../png
+./configure --prefix=/usr LDFLAGS="-L/usr/lib -lz"
+make clean && make
+
 cd ../../../
 cd examples/pxScene2d/external
 ./build.sh

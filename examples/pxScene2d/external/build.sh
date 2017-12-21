@@ -40,6 +40,19 @@ then
 
 fi
 
+#--------- ZLIB
+
+if [ ! -e ./zlib/libz.1.2.8.dylib ] ||
+   [ "$(uname)" != "Darwin" ]
+then
+
+  cd zlib
+  ./configure
+  make all "-j${make_parallel}"
+  cd ..
+
+fi
+
 #--------- PNG
 
 if [ ! -e ./libpng-1.6.28/.libs/libpng16.16.dylib ] ||
@@ -80,18 +93,7 @@ then
 
 fi
 
-#--------- ZLIB
 
-if [ ! -e ./zlib/libz.1.2.8.dylib ] ||
-   [ "$(uname)" != "Darwin" ]
-then
-
-  cd zlib
-  ./configure
-  make all "-j${make_parallel}"
-  cd ..
-
-fi
 
 #--------- LIBJPEG TURBO (Non -macOS)
 
