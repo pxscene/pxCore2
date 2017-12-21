@@ -341,32 +341,39 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
 
   // map
   {
-    rtValue mapKeys;
-    if (ref && ref->Get("mapKeys", &mapKeys) != RT_PROP_NOT_FOUND)
+    rtString desc;
+    if (ref)
     {
-      rtObjectRef keys = ref.get<rtObjectRef>("mapKeys");
-      if (keys)
+      rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
+
+      if (err == RT_OK && strcmp(desc.cString(), "rtMapObject") == 0)
       {
-        uint32_t len = keys.get<uint32_t>("length");
+        rtValue mapKeys;
 
-        duk_idx_t obj_idx = duk_push_object(ctx);
-
-        for (uint32_t i = 0; i < len; ++i)
+        rtObjectRef keys = ref.get<rtObjectRef>("allKeys");
+        if (keys)
         {
-          rtString key = keys.get<rtString>(i);
-
-          rtValue  val;
-          ref.get<rtValue>((const char *)key, val);
-
-          rt2duk(ctx, val);
-          duk_bool_t rc = duk_put_prop_string(ctx, -2, (const char *)key);
-          assert(rc);
-
+          uint32_t len = keys.get<uint32_t>("length");
+  
+          duk_idx_t obj_idx = duk_push_object(ctx);
+  
+          for (uint32_t i = 0; i < len; ++i)
+          {
+            rtString key = keys.get<rtString>(i);
+  
+            rtValue val;
+            ref.get<rtValue>((const char *)key, val);
+  
+            rt2duk(ctx, val);
+            duk_bool_t rc = duk_put_prop_string(ctx, -2, (const char *)key);
+            assert(rc);
+  
+            // [obj]
+          }
+  
           // [obj]
+          return;
         }
-
-        // [obj]
-        return;
       }
     }
   }

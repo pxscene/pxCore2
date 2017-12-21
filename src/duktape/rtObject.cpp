@@ -244,7 +244,7 @@ rtError rtMapObject::Get(const char* name, rtValue* value) const
     *value = it->v;
     return RT_OK;
   }
-  else if (!strcmp(name, "allKeys") || !strcmp(name, "mapKeys"))
+  else if (!strcmp(name, "allKeys"))
   {
     rtRefT<rtArrayObject> keys = new rtArrayObject;
     vector<rtNamedValue>::const_iterator it = this_->mProps.begin();
@@ -258,7 +258,7 @@ rtError rtMapObject::Get(const char* name, rtValue* value) const
     *value = keys;
     return RT_OK;
   }
-  return RT_PROP_NOT_FOUND;
+  return this_->rtObject::Get(name, value);
 }
 
 rtError rtMapObject::Set(const char* name, const rtValue* value)
@@ -621,18 +621,6 @@ rtError rtObject::allKeys(rtObjectRef& v) const
   return RT_OK;
 }
 
-rtError rtMapObject::mapKeys(rtObjectRef& v) const
-{
-  rtRefT<rtArrayObject> keys = new rtArrayObject;
-
-  for (int i = 0; i < mProps.size(); ++i) {
-    keys->pushBack(mProps[i].n);
-  }
-
-  v = keys;
-  return RT_OK;
-}
-
 
 #if 0
 // TODO
@@ -651,4 +639,3 @@ rtDefineObject(rtArrayObject, rtObject);
 rtDefineProperty(rtArrayObject, length);
 
 rtDefineObject(rtMapObject, rtObject);
-rtDefineProperty(rtMapObject, mapKeys);

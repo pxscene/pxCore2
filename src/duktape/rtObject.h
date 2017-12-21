@@ -702,7 +702,6 @@ class rtMapObject: public rtObject
 {
 public:
   rtDeclareObject(rtMapObject, rtObject);
-  rtReadOnlyProperty(mapKeys, mapKeys, rtObjectRef);
 
   std::vector<rtNamedValue>::iterator find(const char* name);
 
@@ -710,8 +709,6 @@ public:
   virtual rtError Get(uint32_t /*i*/, rtValue* /*value*/) const;
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/);
-
-  rtError mapKeys(rtObjectRef& v) const;
 
 private:
   std::vector<rtNamedValue> mProps;
