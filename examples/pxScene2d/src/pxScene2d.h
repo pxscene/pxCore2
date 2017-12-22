@@ -1494,12 +1494,13 @@ public:
 
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
-    bool allowed;
-    if (allows(url, allowed) == RT_OK && !allowed)
+#ifdef ENABLE_PERMISSIONS_CHECK
+    if (!mPermissions.allows(url.cString(), rtPermissions::DEFAULT))
     {
       rtLogError("url '%s' is not allowed", url.cString());
       return RT_ERROR_NOT_ALLOWED;
     }
+#endif
 
     rtError e = RT_FAIL;
     rtRef<pxArchive> a = new pxArchive;
