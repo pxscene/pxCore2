@@ -6,6 +6,9 @@
 
 using namespace v8;
 
+namespace rtScriptNodeUtils
+{
+
 static const char* kClassName = "Function";
 static Persistent<v8::Function> ctor;
 
@@ -424,3 +427,4 @@ Local<Function> jsFunctionWrapper::FunctionLookup::lookup(v8::Local<v8::Context>
   return handleScope.Escape(func);
 }
 
+} // namespace

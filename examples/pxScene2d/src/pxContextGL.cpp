@@ -24,7 +24,7 @@
 #include "rtThreadPool.h"
 #include "rtThreadQueue.h"
 #include "rtMutex.h"
-#include "rtNode.h"
+#include "rtScript.h"
 
 #include "pxContext.h"
 #include "pxUtil.h"
@@ -110,7 +110,7 @@ pxContextFramebufferRef defaultFramebuffer(new pxContextFramebuffer());
 pxContextFramebufferRef currentFramebuffer = defaultFramebuffer;
 
 #ifdef RUNINMAIN
-extern rtNode script;
+extern rtScript script;
 #else
 extern uv_async_t gcTrigger;
 #endif

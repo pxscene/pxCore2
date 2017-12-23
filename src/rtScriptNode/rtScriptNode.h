@@ -25,6 +25,9 @@
 #include "rtObject.h"
 #include "rtValue.h"
 #include "rtAtomic.h"
+#include "rtScript.h"
+
+
 
 // TODO eliminate std::string
 #include <string>
@@ -41,8 +44,11 @@
 #include "v8.h"
 #include "libplatform/libplatform.h"
 
-#include "jsbindings/rtObjectWrapper.h"
-#include "jsbindings/rtFunctionWrapper.h"
+#include "rtObjectWrapper.h"
+#include "rtFunctionWrapper.h"
+
+using namespace rtScriptNodeUtils;
+
 
 #define SANDBOX_IDENTIFIER  ( (const char*) "_sandboxStuff" )
 #define SANDBOX_JS          ( (const char*) "rcvrcore/sandbox.js")
@@ -54,12 +60,14 @@
 
 #define USE_CONTEXTIFY_CLONES
 
+
+
 namespace node
 {
 class Environment;
 }
 
-class rtNode;
+class rtScriptNode;
 class rtNodeContext;
 
 typedef rtRef<rtNodeContext> rtNodeContextRef;
@@ -78,7 +86,7 @@ args_t;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class rtNodeContext  // V8
+class rtNodeContext: rtIScriptContext  // V8
 {
 public:
   rtNodeContext(v8::Isolate *isolate, v8::Platform* platform);
@@ -86,20 +94,20 @@ public:
   rtNodeContext(v8::Isolate *isolate, rtNodeContextRef clone_me);
 #endif
 
-  ~rtNodeContext();
+ virtual ~rtNodeContext();
 
-  rtError add(const char *name, rtValue  const& val);
-  rtValue get(const char *name);
-  rtValue get(std::string name);
+  virtual rtError add(const char *name, const rtValue& val);
+  virtual rtValue get(const char *name);
+  //rtValue get(std::string name);
 
-  bool    has(const char *name);
+  virtual bool    has(const char *name);
   bool    has(std::string name);
 
   //bool   find(const char *name);  //DEPRECATED
 
-  rtError runScript(const char        *script, rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
-  rtError runScript(const std::string &script, rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
-  rtError runFile  (const char *file,          rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
+  virtual rtError runScript(const char        *script, rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
+  //rtError runScript(const std::string &script, rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
+  virtual rtError runFile  (const char *file,          rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
 
   unsigned long AddRef()
   {
@@ -141,33 +149,40 @@ private:
 typedef std::map<uint32_t, rtNodeContextRef> rtNodeContexts;
 typedef std::map<uint32_t, rtNodeContextRef>::const_iterator rtNodeContexts_iterator;
 
-class rtNode
+class rtScriptNode
 {
 public:
-  rtNode();
-  rtNode(bool initialize);
-  void initializeNode();
-  ~rtNode();
+  rtScriptNode();
+  rtScriptNode(bool initialize);
+  ~rtScriptNode();
+    
+  void init();
 
   void pump();
 
   rtNodeContextRef getGlobalContext() const;
   rtNodeContextRef createContext(bool ownThread = false);
+
+#if 0
 #ifndef RUNINMAIN
   bool isInitialized();
   bool needsToEnd() { /*rtLogDebug("needsToEnd returning %d\n",mNeedsToEnd);*/ return mNeedsToEnd;};
   void setNeedsToEnd(bool end) { /*rtLogDebug("needsToEnd being set to %d\n",end);*/ mNeedsToEnd = end;}
 #endif
+#endif
 
   v8::Isolate   *getIsolate() { return mIsolate; };
   v8::Platform   *getPlatform() { return mPlatform; };
-  void garbageCollect();
+  void collectGarbage();
 private:
+#if 0
 #ifdef ENABLE_DEBUG_MODE
   void init();
 #else
   void init(int argc, char** argv);
 #endif
+#endif
+
   void term();
 
   void nodePath();
@@ -186,6 +201,7 @@ private:
   bool mNeedsToEnd;
 #endif
 
+  void init2();
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

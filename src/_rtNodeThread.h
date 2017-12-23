@@ -80,7 +80,7 @@ uv_loop_t *nodeLoop = uv_default_loop();
 uv_async_t asyncNewScript;
 uv_async_t gcTrigger;
 
-rtNode script(false);
+rtScript script(false);
 
 struct asyncWindowInfo {
     void * window;

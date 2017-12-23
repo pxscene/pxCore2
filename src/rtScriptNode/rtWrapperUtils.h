@@ -14,6 +14,10 @@
 #include <memory>
 
 bool rtIsMainThread();
+
+namespace rtScriptNodeUtils
+{
+
 //bool rtIsRenderThread();
 bool rtIsPromise(const rtValue& v);
 
@@ -193,6 +197,10 @@ public:
   static void clearAllForContext(uint32_t contextId);
 };
 
+
+
+
+} // namespace
 
 bool rtWrapperSceneUpdateHasLock();
 void rtWrapperSceneUpdateEnter();

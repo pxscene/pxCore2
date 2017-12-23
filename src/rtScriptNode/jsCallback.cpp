@@ -1,7 +1,11 @@
 #include "jsCallback.h"
 #include "rtWrapperUtils.h"
 
+
 using namespace v8;
+
+namespace rtScriptNodeUtils
+{
 
 jsCallback::jsCallback(v8::Local<v8::Context>& ctx)
   : mReq()
@@ -135,3 +139,4 @@ rtValue jsCallback::run()
   return returnValue;
 }
 
+} // namespace

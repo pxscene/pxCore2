@@ -4,6 +4,9 @@
 #include "rtWrapperUtils.h"
 #include "jsCallback.h"
 
+namespace rtScriptNodeUtils
+{
+
 class rtAbstractFunction : public rtIFunction
 {
 public:
@@ -131,5 +134,7 @@ private:
   v8::Isolate*                        mIsolate;
   uv_work_t                           mReq;
 };
+
+} // namespace
 
 #endif

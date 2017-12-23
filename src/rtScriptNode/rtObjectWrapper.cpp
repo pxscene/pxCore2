@@ -6,6 +6,9 @@
 
 using namespace v8;
 
+namespace rtScriptNodeUtils
+{
+
 static const char* kClassName   = "rtObject";
 static const char* kFuncAllKeys = "allKeys";
 static const char* kPropLength = "length";
@@ -516,3 +519,4 @@ Local<Object> jsObjectWrapper::getWrappedObject()
   return scope.Escape(PersistentToLocal(mIsolate, mObject));
 }
 
+}

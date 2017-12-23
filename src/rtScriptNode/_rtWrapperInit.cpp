@@ -1,3 +1,4 @@
+#if 0
 #include "rtObjectWrapper.h"
 #include "rtFunctionWrapper.h"
 #include "jsCallback.h"
@@ -33,7 +34,9 @@ bool rtIsMainThread()
   return pthread_self() == __rt_main_thread__;
 #endif
 }
+#endif
 
+#if 0
 struct EventLoopContext
 {
   pxEventLoop* eventLoop;
@@ -77,6 +80,7 @@ enum WindowCallback
 
 pxEventLoop* gLoop = NULL;
 
+#if 0
 class jsWindow : public pxWindow, public pxIViewContainer
 {
 public:
@@ -290,6 +294,7 @@ private:
 };
 
 static jsWindow* mainWindow = NULL;
+#endif
 
 static void disposeNode(const FunctionCallbackInfo<Value>& args)
 {
@@ -306,6 +311,7 @@ static void disposeNode(const FunctionCallbackInfo<Value>& args)
     wrapper->dispose();
 }
 
+#if 0
 static void getScene(const FunctionCallbackInfo<Value>& args)
 {
   if (mainWindow == NULL)
@@ -367,3 +373,6 @@ void ModuleInit(
 }
 
 NODE_MODULE_CONTEXT_AWARE(px, ModuleInit);
+
+#endif
+#endif

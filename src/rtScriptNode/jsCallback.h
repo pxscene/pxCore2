@@ -1,9 +1,13 @@
-#ifndef RT_JAVA_SCRIPT_CALLBACK_H
-#define RT_JAVA_SCRIPT_CALLBACK_H
+#ifndef RT_JAVASCRIPT_CALLBACK_H
+#define RT_JAVASCRIPT_CALLBACK_H
+
 
 #include "node_headers.h"
 #include <rtValue.h>
 #include <vector>
+
+namespace rtScriptNodeUtils
+{
 
 typedef void (*jsCallbackCompletionFunc)(void* argp, rtValue const& result);
 
@@ -50,6 +54,8 @@ private:
 
   jsCallback(v8::Local<v8::Context>& ctx);
 };
+
+} // namespace
 
 #endif
 

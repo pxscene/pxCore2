@@ -5,6 +5,9 @@
 
 using namespace v8;
 
+namespace rtScriptNodeUtils
+{
+
 class rtObjectWrapper : public rtWrapper<rtObjectRef, rtObjectWrapper>
 {
 public:
@@ -82,7 +85,7 @@ private:
   bool mIsArray;
 };
 
-
+} // namespace
 
 #endif
 #ifndef RT_WRAPPER_UTILS
@@ -94,6 +97,9 @@ private:
 #include <rtObject.h>
 #include <rtString.h>
 #include <rtValue.h>
+
+namespace rtScriptNodeUtils
+{
 
 inline rtString toString(const v8::Handle<v8::Object>& obj)
 {
@@ -125,7 +131,7 @@ rtValue js2rt(const v8::Handle<v8::Value>& val);
 
 v8::Handle<v8::Value> rt2js(const rtValue& val);
 
-
+} // namespace
 
 #endif
 
