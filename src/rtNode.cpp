@@ -376,6 +376,7 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
     mContextId = GetContextId(clone_local);
 
     mContext.Reset(mIsolate, clone_local); // local to persistent
+    // commenting below code as templates are isolcate specific	  
 /*
     Context::Scope context_scope(clone_local);
 
