@@ -142,7 +142,7 @@ public:
     void clearFileCache();
     void downloadFile(rtFileDownloadRequest* downloadRequest);
     void setDefaultCallbackFunction(void (*callbackFunction)(rtFileDownloadRequest*));
-    bool downloadFromNetwork(rtFileDownloadRequest* downloadRequest);
+    virtual bool downloadFromNetwork(rtFileDownloadRequest* downloadRequest);
     void checkForExpiredHandles();
 
 private:
