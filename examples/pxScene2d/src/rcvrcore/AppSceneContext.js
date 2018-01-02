@@ -66,6 +66,9 @@ AppSceneContext.prototype.loadScene = function() {
     if( fullPath.charAt(0) === '.' ) {
       // local file system
       this.defaultBaseUri = ".";
+    } else if( process.platform === 'win32' && fullPath.charAt(1) === ':' ) {
+        // Windows OS, so take the url as the whole file path
+        urlParts.pathname = this.packageUrl;
     }
     fullPath = urlParts.pathname;
     if( fullPath !== null) {
@@ -433,6 +436,9 @@ AppSceneContext.prototype.getPackageBaseFilePath = function() {
     }
     if (pkgPart.charAt(0) == '/') {
       fullPath = this.defaultBaseUri + pkgPart;
+    } else if(process.platform === 'win32' && pkgPart.charAt(1) === ':' ) {
+      // Windows OS and using drive name, take the pkg part as the file path
+      fullPath = pkgPart;   
     } else {
       fullPath = this.defaultBaseUri + "/" + pkgPart;
     }
