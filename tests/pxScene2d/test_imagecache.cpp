@@ -913,6 +913,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
   public:
     virtual void SetUp()
     {
+      //common header and data is used for all tests and readFile call is removed
       fixedHeader = "HTTP/1.1 200 OK\nDate: Sun, 09 Oct 2016 21:22:50 GMT\nServer: Apache/2.4.7 (Ubuntu)\nLast-Modified: Sat, 08 Oct 2017 02:46:40 GMT\nAccept-Ranges: bytes\nContent-Length: 4020\nCache-Control: public\nContent-Type: image/jpeg\n";
       fixedHeader.append(mNonExpireDate);
       fixedData = "<html><body>Hi</body></html>";
