@@ -90,7 +90,7 @@ class rtHttpCacheData
     rtError calculateRevalidationNeed(bool&,bool&);
 
     /* initiate and handle download */
-    virtual bool handleDownloadRequest(std::vector<rtString>& headers,bool downloadBody=true);
+    bool handleDownloadRequest(std::vector<rtString>& headers,bool downloadBody=true);
 
     /* read the file data and populate it in mData. returns true on sucess and false on failure/empty data */
     bool readFileData();
