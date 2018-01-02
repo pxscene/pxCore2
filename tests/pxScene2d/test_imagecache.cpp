@@ -341,6 +341,8 @@ class pxFileCacheTest : public testing::Test, public commonTestFns
       stream << data.expirationDateUnix();
       string date = stream.str().c_str();
       int expectedSize = strlen(mNonExpireDate) + 1 + strlen("abcde") + 1 + date.length();
+      printf("expectedSize[%d] cacheSize[%d] \n",expectedSize,rtFileCache::instance()->cacheSize());
+      fflush(stdout);
       EXPECT_TRUE (rtFileCache::instance()->cacheSize() == expectedSize);
     }
 
