@@ -53,7 +53,6 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "rtNode.h"
 #ifndef RUNINMAIN
 extern uv_loop_t *nodeLoop;
 #endif

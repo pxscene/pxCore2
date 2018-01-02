@@ -9,7 +9,6 @@ rtMutexNative::rtMutexNative() : mLock(), mIsLocked(false)
 rtMutexNative::~rtMutexNative()
 {
     while(mIsLocked);
-    unlock();
     pthread_mutex_destroy(&mLock);
 }
 
@@ -21,8 +20,8 @@ void rtMutexNative::lock()
 
 void rtMutexNative::unlock()
 {
-    mIsLocked = false;
     pthread_mutex_unlock(&mLock);
+    mIsLocked = false;
 }
 
 rtMutexNativeDesc rtMutexNative::getNativeMutexDescription()

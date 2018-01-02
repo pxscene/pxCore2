@@ -1,6 +1,6 @@
 
 #include "pxContext.h"
-#include <rtNode.h>
+#include <rtScript.h>
 #include <signal.h>
 #include <unistd.h>
 
@@ -17,7 +17,7 @@ char** gargv;
 extern int g_argc;
 extern char** g_argv;
 char *nodeInput = NULL;
-extern rtNode script;
+extern rtScript script;
 #endif
 
 void handleSegv(int)

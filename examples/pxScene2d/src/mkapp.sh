@@ -54,8 +54,7 @@ cp macstuff/EngineRunner $bundleBin
 #
 # For Node
 #./jsMinFolder.sh rcvrcore $bundleRes/rcvrcore
-# For Duktape
-cp -a rcvrcore_duktape/* $bundleRes/rcvrcore
+cp -a rcvrcore/* $bundleRes/rcvrcore
 
 
 # NOTE" jsMin.sh will default to a 'min' name with 1 arg.  E.g.  "jsMin.sh INPUT.js"  >> INPUT.min.js
@@ -64,14 +63,11 @@ cp -a rcvrcore_duktape/* $bundleRes/rcvrcore
 ./jsMin.sh shell.js $bundleRes/shell.js
 ./jsMin.sh browser.js $bundleRes/browser.js
 ./jsMin.sh about.js $bundleRes/about.js
-./jsMin.sh empty.js $bundleRes/empty.js
 ./jsMin.sh browser/editbox.js $bundleRes/browser/editbox.js
 
-# Overwrite if Duktape comment back out if node... 
-cp -a duktape/* $bundleRes
-
-#./jsMinFolder.sh browser $bundleRes/browser
-
+# Copy duktape modules
+cp -a duk_modules $bundleRes/duk_modules
+# Copy node modules
 cp -a node_modules $bundleRes/node_modules
 
 # Copy OTHER to Resources...

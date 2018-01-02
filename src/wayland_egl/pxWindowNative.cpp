@@ -571,13 +571,15 @@ void pxWindowNative::runEventLoop()
 
     rtLogInfo("pxcore framerate: %d", framerate);
 
-    uint64_t* offsets = new  uint64_t[ framerate ];
-    for( int i = 0; i < framerate; ++i )
-        offsets[ i ] = (i*1000000+framerate-1)/framerate;
-
-    int frameNo = 1;
-    double wakeUpBase = pxMicroseconds();
-    int count = 0, lastCount = -1;
+#ifdef PXCORE_WL_DISPLAY_READ_EVENTS
+    pollfd fileDescriptors[1];
+    fileDescriptors[0].fd = wl_display_get_fd(display->display);
+    fileDescriptors[0].events = POLLIN;
+    int pollResult = 0;
+    int pollTimeout = 1000 / framerate;
+#endif //PXCORE_WL_DISPLAY_READ_EVENTS
+    double maxSleepTime = (1000 / framerate) * 1000;
+    rtLogInfo("max sleep time in microseconds: %f", maxSleepTime);
     while(!exitFlag)
     {
         count++;
@@ -587,11 +589,13 @@ void pxWindowNative::runEventLoop()
            pxWindowNative* w = (*i);
            w->animateAndRender();
         }
+#ifdef PXCORE_WL_DISPLAY_READ_EVENTS
         while (wl_display_prepare_read(display->display) < 0)
         {
           wl_display_dispatch_pending(display->display);
         }
         wl_display_flush(display->display);
+<<<<<<< HEAD
         wl_display_read_events(display->display);
         double delay = pxMicroseconds();
         double nextWakeUp = wakeUpBase + offsets[ frameNo ];
@@ -603,6 +607,26 @@ void pxWindowNative::runEventLoop()
                 frameNo = 0;
             }
             nextWakeUp = wakeUpBase + offsets[ frameNo ];
+=======
+
+        pollResult = poll(fileDescriptors, 1, pollTimeout);
+        if (pollResult <= 0)
+          wl_display_cancel_read(display->display);
+        else
+          wl_display_read_events(display->display);
+#endif //PXCORE_WL_DISPLAY_READ_EVENTS
+
+        wl_display_dispatch_pending(display->display);
+        double processTime = (int)pxMicroseconds() - (int)startMicroseconds;
+        if (processTime < 0)
+        {
+          processTime = 0;
+        }
+        if (processTime < maxSleepTime)
+        {
+          int sleepTime = (int)maxSleepTime-(int)processTime;
+          usleep(sleepTime);
+>>>>>>> origin/_rtscript
         }
         delay = nextWakeUp - delay;
         usleep( delay );
