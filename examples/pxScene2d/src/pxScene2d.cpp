@@ -133,6 +133,7 @@ void stopProfiling()
 }
 #endif //ENABLE_VALGRIND
 int pxObjectCount = 0;
+extern bool gApplicationIsClosing;
 
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
@@ -512,14 +513,19 @@ void pxObject::dispose()
   {
     //rtLogInfo(__FUNCTION__);
     mIsDisposed = true;
+    rtValue nullValue;
     vector<animation>::iterator it = mAnimations.begin();
     for(;it != mAnimations.end();it++)
     {
       if ((*it).promise)
-        (*it).promise.send("reject",this);
+      {
+	if(!gApplicationIsClosing)	  
+          (*it).promise.send("reject",this);
+	else
+	  (*it).promise.send("reject",nullValue);
+      }
     }
 
-    rtValue nullValue;
     mReady.send("reject",nullValue);
 
     mAnimations.clear();
