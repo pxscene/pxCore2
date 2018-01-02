@@ -133,7 +133,7 @@ void stopProfiling()
 }
 #endif //ENABLE_VALGRIND
 int pxObjectCount = 0;
-extern bool gApplicationIsClosing;
+bool gApplicationIsClosing = false;
 
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>

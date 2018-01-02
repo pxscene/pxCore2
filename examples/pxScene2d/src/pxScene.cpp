@@ -100,7 +100,7 @@ char *nodeInput = NULL;
 char** g_origArgv = NULL;
 #endif
 bool gDumpMemUsage = false;
-bool gApplicationIsClosing = false;
+extern bool gApplicationIsClosing;
 extern int pxObjectCount;
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
