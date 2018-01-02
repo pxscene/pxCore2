@@ -228,8 +228,6 @@ class commonTestFns
        {
          headerData.append(mNonExpireDate);
        }
-       printf("header data [%s] \n",headerData.cString());
-       fflush(stdout);
        rtHttpCacheData cacheData(url,headerData,data,size);
        return rtFileCache::instance()->addToCache(cacheData);
      }
@@ -342,8 +340,6 @@ class pxFileCacheTest : public testing::Test, public commonTestFns
       stringstream stream;
       stream << data.expirationDateUnix();
       string date = stream.str().c_str();
-      printf("date [%s] \n",date.c_str());
-      fflush(stdout);
       int expectedSize = strlen(mNonExpireDate) + 1 + strlen("abcde") + 1 + date.length();
       EXPECT_TRUE (rtFileCache::instance()->cacheSize() == expectedSize);
     }
@@ -1216,7 +1212,28 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       //todo more actions once clearFileCache() is implemented
       rtFileDownloader::instance()->clearFileCache();
     }
-    
+   
+    void setHTTPFailOnErrorTest()
+    {
+      rtFileDownloadRequest req("http://fileserver/notfound",NULL);
+      req.setHTTPFailOnError(true);
+      EXPECT_TRUE (req.isHTTPFailOnError() == true);
+    }
+  
+    void setHTTPErrorTest()
+    {
+      rtFileDownloadRequest req("http://fileserver/notfound",NULL);
+      req.setHTTPError("httperror");
+      EXPECT_TRUE (strcmp("httperror",req.httpErrorBuffer()) == 0);
+    }
+
+    void setCurlDefaultTimeoutTest()
+    {
+      rtFileDownloadRequest req("http://fileserver/notfound",NULL);
+      req.setCurlDefaultTimeout(true);
+      EXPECT_TRUE (req.isCurlDefaultTimeoutSet() == true);
+    }
+ 
     static void downloadCallback(rtFileDownloadRequest* fileDownloadRequest)
     {
       rtHttpCacheData cachedData;
@@ -1276,5 +1293,8 @@ TEST_F(rtFileDownloaderTest, checkCacheTests)
   raiseDownloadPriorityTest();
   nextDownloadRequestTest();
   removeDownloadRequestTest();
+  setHTTPFailOnErrorTest();
+  setHTTPErrorTest();
+  setCurlDefaultTimeoutTest();
   clearFileCacheTest();
 }
