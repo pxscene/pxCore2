@@ -345,8 +345,6 @@ class pxFileCacheTest : public testing::Test, public commonTestFns
       printf("date [%s] \n",date.c_str());
       fflush(stdout);
       int expectedSize = strlen(mNonExpireDate) + 1 + strlen("abcde") + 1 + date.length();
-      printf("expectedSize[%d] cacheSize[%d] \n",expectedSize,rtFileCache::instance()->cacheSize());
-      fflush(stdout);
       EXPECT_TRUE (rtFileCache::instance()->cacheSize() == expectedSize);
     }
 
@@ -356,17 +354,6 @@ class pxFileCacheTest : public testing::Test, public commonTestFns
       bool sysret = system("chmod 444 /tmp/cache");
       UNUSED_PARAM(sysret);
       EXPECT_TRUE (rtFileCache::instance()->removeData(NULL) == RT_ERROR);
-      rtHttpCacheData data;
-      rtFileCache::instance()->httpCacheData("http://fileserver/a.jpeg",data);
-      stringstream stream;
-      stream << data.expirationDateUnix();
-      string date = stream.str().c_str();
-      printf("date [%s] \n",date.c_str());
-      fflush(stdout);
-      int expectedSize = strlen(mNonExpireDate) + 1 + strlen("abcde") + 1 + date.length(); //11 is the size of expiration date
-      printf("expectedSize[%d] cacheSize[%d] \n",expectedSize,rtFileCache::instance()->cacheSize());
-      fflush(stdout);
-      EXPECT_TRUE (rtFileCache::instance()->cacheSize() == expectedSize);
       sysret = system("chmod 777 /tmp/cache");
     }
 
