@@ -47,12 +47,13 @@
 #include "env.h"
 #include "env-inl.h"
 
-#include "jsbindings/rtWrapperUtils.h"
+#include "rtWrapperUtils.h"
 
 #ifndef WIN32
 #pragma GCC diagnostic pop
 #endif
 
+#include "rtScriptNode.h"
 #ifndef RUNINMAIN
 extern uv_loop_t *nodeLoop;
 #endif
@@ -484,10 +485,12 @@ rtError rtNodeContext::add(const char *name, rtValue const& val)
   return RT_OK;
 }
 
+#if 0
 rtValue rtNodeContext::get(std::string name)
 {
   return get( name.c_str() );
 }
+#endif
 
 rtValue rtNodeContext::get(const char *name)
 {
@@ -522,10 +525,12 @@ rtValue rtNodeContext::get(const char *name)
   }
 }
 
+#if 0
 bool rtNodeContext::has(std::string name)
 {
   return has( name.c_str() );
 }
+#endif
 
 bool rtNodeContext::has(const char *name)
 {
@@ -588,6 +593,7 @@ bool rtNodeContext::has(const char *name)
 //   return false;
 // }
 
+#if 0
 rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/, const char *args /*= NULL*/)
 {
   if(script == NULL)
@@ -601,11 +607,14 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
 
   return runScript(std::string(script), retVal, args);
 }
+#endif
 
-rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= NULL*/, const char* /* args = NULL*/)
+#if 1
+//rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= NULL*/, const char* /* args = NULL*/)
+rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/, const char *args /*= NULL*/)
 {
   rtLogInfo(__FUNCTION__);
-  if(script.empty())
+  if(!script || strlen(script) == 0)
   {
     rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
 
@@ -628,7 +637,7 @@ rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= 
   TryCatch tryCatch;
 #endif // ENABLE_NODE_V_6_9
 #endif
-    Local<String> source = String::NewFromUtf8(mIsolate, script.c_str());
+    Local<String> source = String::NewFromUtf8(mIsolate, script);
 
     // Compile the source code.
     Local<Script> run_script = Script::Compile(source);
@@ -665,6 +674,7 @@ rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= 
 
   return RT_FAIL;
 }
+#endif
 
 std::string readFile(const char *file)
 {
@@ -698,12 +708,12 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
     return RT_FAIL;
   }
 
-  return runScript(js_script, retVal, args);
+  return runScript(js_script.c_str(), retVal, args);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtNode::rtNode()
+rtScriptNode::rtScriptNode()
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false)
@@ -716,10 +726,10 @@ rtNode::rtNode()
   mTestGc = false;
   mIsolate = NULL;
   mPlatform = NULL;
-  initializeNode();
+  init2();
 }
 
-rtNode::rtNode(bool initialize)
+rtScriptNode::rtScriptNode(bool initialize)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false)
@@ -732,13 +742,13 @@ rtNode::rtNode(bool initialize)
   mTestGc = false;
   mIsolate = NULL;
   mPlatform = NULL;
-  if (true == initialize)
+  if (initialize)
   {
-    initializeNode();
+    init2();
   }
 }
 
-void rtNode::initializeNode()
+void rtScriptNode::init()
 {
   rtLogInfo(__FUNCTION__);
   char const* s = getenv("RT_TEST_GC");
@@ -797,29 +807,29 @@ void rtNode::initializeNode()
 #ifdef ENABLE_NODE_V_6_9
   rtLogWarn("rtNode::rtNode() calling init \n");
 #ifdef ENABLE_DEBUG_MODE
-  init();
+  init2();
 #else
-  init(argc, argv);
+  init2(argc, argv);
 #endif
 #else
   mIsolate     = Isolate::New();
   node_isolate = mIsolate; // Must come first !!
 
 #ifdef ENABLE_DEBUG_MODE
-  init();
+  init2();
 #else
-  init(argc, argv);
+  init2(argc, argv);
 #endif
 #endif // ENABLE_NODE_V_6_9
 }
 
-rtNode::~rtNode()
+rtScriptNode::~rtScriptNode()
 {
   // rtLogInfo(__FUNCTION__);
   term();
 }
 
-void rtNode::pump()
+void rtScriptNode::pump()
 {
 //#ifndef RUNINMAIN
 //  return;
@@ -848,12 +858,7 @@ void rtNode::pump()
 //#endif // RUNINMAIN
 }
 
-std::string rtNode::name() const
-{
-  return "node";
-}
-
-void rtNode::garbageCollect()
+void rtScriptNode::collectGarbage()
 {
 //#ifndef RUNINMAIN
 //  return;
@@ -875,7 +880,7 @@ rtNode::forceGC()
 }
 #endif
 
-void rtNode::nodePath()
+void rtScriptNode::nodePath()
 {
   const char* NODE_PATH = ::getenv("NODE_PATH");
 
@@ -905,10 +910,12 @@ bool rtNode::isInitialized()
   return node_is_initialized;
 }
 #endif
+
+#if 1
 #ifdef ENABLE_DEBUG_MODE
-void rtNode::init()
+void rtScriptNode::init2()
 #else
-void rtNode::init(int argc, char** argv)
+void rtScriptNode::init2(int argc, char** argv)
 #endif
 {
   // Hack around with the argv pointer. Used for process.title = "blah".
@@ -973,8 +980,9 @@ void rtNode::init(int argc, char** argv)
     rtLogWarn("DONE in rtNode::init()\n");
   }
 }
+#endif
 
-void rtNode::term()
+void rtScriptNode::term()
 {
   rtLogInfo(__FUNCTION__);
   nodeTerminated = true;
@@ -1023,12 +1031,12 @@ inline bool fileExists(const std::string& name)
   return (stat (name.c_str(), &buffer) == 0);
 }
 
-rtNodeContextRef rtNode::getGlobalContext() const
+rtNodeContextRef rtScriptNode::getGlobalContext() const
 {
   return rtNodeContextRef();
 }
 
-rtNodeContextRef rtNode::createContext(bool ownThread)
+rtNodeContextRef rtScriptNode::createContext(bool ownThread)
 {
   UNUSED_PARAM(ownThread);    // not implemented yet.
 

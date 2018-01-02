@@ -163,7 +163,10 @@ examples/pxScene2d/external/dukluv/dukluv
 examples/pxScene2d/external/dukluv/build/dukluv
 examples/pxScene2d/external/libpng-1.6.28/libtool
 examples/pxScene2d/external/libpng-1.6.28/timepng
-examples/pxScene2d/external/zib-1.2.8/zconf.h
+
+examples/pxScene2d/external/zlib-1.2.8/zconf.h
 examples/pxScene2d/src/Makefile
+
+tests/pxScene2d/Makefile
 
 

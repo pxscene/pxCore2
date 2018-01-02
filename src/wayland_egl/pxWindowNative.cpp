@@ -595,6 +595,17 @@ void pxWindowNative::runEventLoop()
           wl_display_dispatch_pending(display->display);
         }
         wl_display_flush(display->display);
+        wl_display_read_events(display->display);
+        double delay = pxMicroseconds();
+        double nextWakeUp = wakeUpBase + offsets[ frameNo ];
+        while( delay > nextWakeUp ) {
+            frameNo++;
+            if( frameNo >= framerate ) {
+                count = 0;
+                wakeUpBase += 1000000;
+                frameNo = 0;
+            }
+            nextWakeUp = wakeUpBase + offsets[ frameNo ];
 
         pollResult = poll(fileDescriptors, 1, pollTimeout);
         if (pollResult <= 0)

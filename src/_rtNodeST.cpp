@@ -19,9 +19,7 @@
 // rtNode.cpp
 
 #if defined WIN32
-#include <Windows.h>
 #include <direct.h>
-#define __PRETTY_FUNCTION__ __FUNCTION__
 #else
 #include <unistd.h>
 #endif
@@ -53,12 +51,18 @@
 #pragma GCC diagnostic pop
 #endif
 
-#ifndef RUNINMAIN
-extern uv_loop_t *nodeLoop;
-#endif
-//#include "rtThreadQueue.h"
+//#include "rtNode.h"
 
-//extern rtThreadQueue gUIThreadQueue;
+#include "rtThreadQueue.h"
+
+extern rtThreadQueue gUIThreadQueue;
+
+
+#ifdef USE_CONTEXTIFY_CLONES
+#warning Using USE_CONTEXTIFY_CLONES !!
+#else
+#warning NOT Using USE_CONTEXTIFY_CLONES !!
+#endif
 
 #ifdef RUNINMAIN
 
@@ -75,19 +79,11 @@ extern uv_loop_t *nodeLoop;
 using namespace v8;
 using namespace node;
 
-#ifdef ENABLE_DEBUG_MODE
-int g_argc = 0;
-char** g_argv;
-#endif
-#ifndef ENABLE_DEBUG_MODE
 extern args_t *s_gArgs;
-#endif
+
 namespace node
 {
 extern bool use_debug_agent;
-#ifdef HAVE_INSPECTOR
-extern bool use_inspector;
-#endif
 extern bool debug_wait_connect;
 }
 
@@ -98,9 +94,8 @@ static rtAtomic sNextId = 100;
 
 args_t *s_gArgs;
 
-#ifdef RUNINMAIN
-//extern rtNode script;
-#endif
+extern rtScript script;
+
 rtNodeContexts  mNodeContexts;
 
 #ifdef ENABLE_NODE_V_6_9
@@ -112,7 +107,6 @@ bool nodeTerminated = false;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifdef RUNINMAIN
 #ifdef WIN32
 static DWORD __rt_main_thread__;
 #else
@@ -128,7 +122,7 @@ bool rtIsMainThread()
   // Since this is single threaded version we're always on the js thread
   return true;
 }
-#endif
+
 #if 0
 static inline bool file_exists(const char *file)
 {
@@ -137,8 +131,8 @@ static inline bool file_exists(const char *file)
 }
 #endif
 
-rtNodeContext::rtNodeContext(Isolate *isolate,Platform* platform) :
-     js_file(NULL), mIsolate(isolate), mEnv(NULL), mRefCount(0),mPlatform(platform), mContextifyContext(NULL)
+rtNodeContext::rtNodeContext(Isolate *isolate) :
+     mIsolate(isolate), mEnv(NULL), mRefCount(0)
 {
   assert(isolate); // MUST HAVE !
   mId = rtAtomicInc(&sNextId);
@@ -148,7 +142,7 @@ rtNodeContext::rtNodeContext(Isolate *isolate,Platform* platform) :
 
 #ifdef USE_CONTEXTIFY_CLONES
 rtNodeContext::rtNodeContext(Isolate *isolate, rtNodeContextRef clone_me) :
-      js_file(NULL), mIsolate(isolate), mEnv(NULL), mRefCount(0), mPlatform(NULL), mContextifyContext(NULL)
+      mIsolate(isolate), mEnv(NULL), mRefCount(0)
 {
   assert(mIsolate); // MUST HAVE !
   mId = rtAtomicInc(&sNextId);
@@ -159,7 +153,6 @@ rtNodeContext::rtNodeContext(Isolate *isolate, rtNodeContextRef clone_me) :
 
 void rtNodeContext::createEnvironment()
 {
-  rtLogInfo(__FUNCTION__);
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -179,7 +172,7 @@ void rtNodeContext::createEnvironment()
 
   Handle<Object> global = local_context->Global();
 
-
+  
 
   mRtWrappers.Reset(mIsolate, global);
 
@@ -188,13 +181,8 @@ void rtNodeContext::createEnvironment()
   mEnv = CreateEnvironment(mIsolate,
                            uv_default_loop(),
                            local_context,
-#ifdef ENABLE_DEBUG_MODE
-                           g_argc,
-                           g_argv,
-#else
                            s_gArgs->argc,
                            s_gArgs->argv,
-#endif
                            exec_argc,
                            exec_argv);
 
@@ -202,57 +190,23 @@ void rtNodeContext::createEnvironment()
 
   mIsolate->SetAbortOnUncaughtExceptionCallback(
         ShouldAbortOnUncaughtException);
-#ifdef ENABLE_DEBUG_MODE
-  // Start debug agent when argv has --debug
-  if (use_debug_agent)
-  {
-    rtLogWarn("use_debug_agent\n");
-#ifdef HAVE_INSPECTOR
-    if (use_inspector)
-    {
-      char currentPath[100];
-      memset(currentPath,0,sizeof(currentPath));
-      getcwd(currentPath,sizeof(currentPath));
-      StartDebug(mEnv, currentPath, debug_wait_connect, mPlatform);
-    }
-    else
-#endif
-    {
-      StartDebug(mEnv, NULL, debug_wait_connect);
-    }
-  }
-#endif
+
   // Load Environment.
   {
     Environment::AsyncCallbackScope callback_scope(mEnv);
     LoadEnvironment(mEnv);
   }
-#ifdef ENABLE_DEBUG_MODE
-  if (use_debug_agent)
-  {
-    rtLogWarn("use_debug_agent\n");
-    EnableDebug(mEnv);
-  }
-#endif
+
     rtObjectWrapper::exportPrototype(mIsolate, global);
     rtFunctionWrapper::exportPrototype(mIsolate, global);
 
     {
       SealHandleScope seal(mIsolate);
-#ifndef RUNINMAIN
-      EmitBeforeExit(mEnv);
-#else
-      bool more;
-#ifdef ENABLE_NODE_V_6_9
-      v8::platform::PumpMessageLoop(mPlatform, mIsolate);
-#endif //ENABLE_NODE_V_6_9
-      more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
+      bool more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
       if (more == false)
       {
         EmitBeforeExit(mEnv);
       }
-#endif
-
     }
 #else
   local_context->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
@@ -275,20 +229,15 @@ void rtNodeContext::createEnvironment()
   mEnv = CreateEnvironment(mIsolate,
                            uv_default_loop(),
                            local_context,
-#ifdef ENABLE_DEBUG_MODE
-                           g_argc,
-                           g_argv,
-#else
                            s_gArgs->argc,
                            s_gArgs->argv,
-#endif
                            exec_argc,
                            exec_argv);
 
   // Start debug agent when argv has --debug
   if (use_debug_agent)
   {
-    rtLogWarn("use_debug_agent\n");
+    printf("use_debug_agent\n");
     StartDebug(mEnv, debug_wait_connect);
   }
 
@@ -307,7 +256,6 @@ void rtNodeContext::createEnvironment()
 
 void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 {
-  rtLogInfo(__FUNCTION__);
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -355,25 +303,10 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
   // Clone a new context.
   {
     Local<Context>  clone_local = node::makeContext(mIsolate, sandbox); // contextify context with 'sandbox'
-
     clone_local->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
-#ifdef ENABLE_NODE_V_6_9
-    Local<Context> envCtx = Environment::GetCurrent(mIsolate)->context();
-    Local<String> symbol_name = FIXED_ONE_BYTE_STRING(mIsolate, "_contextifyPrivate");
-    Local<Private> private_symbol_name = Private::ForApi(mIsolate, symbol_name);
-    MaybeLocal<Value> maybe_value = sandbox->GetPrivate(envCtx,private_symbol_name);
-    Local<Value> decorated;
-    if (true == maybe_value.ToLocal(&decorated))
-    {
-      mContextifyContext = decorated.As<External>()->Value();
-    }
-#else
-    Local<String> hidden_name = FIXED_ONE_BYTE_STRING(mIsolate, "_contextifyHidden");
-    mContextifyContext = sandbox->GetHiddenValue(hidden_name).As<External>()->Value();
-#endif
 
     mContextId = GetContextId(clone_local);
-
+  
     mContext.Reset(mIsolate, clone_local); // local to persistent
 
     Context::Scope context_scope(clone_local);
@@ -394,81 +327,67 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 
 rtNodeContext::~rtNodeContext()
 {
-  rtLogInfo(__FUNCTION__);
-  //Make sure node is not destroyed abnormally
-  if (true == node_is_initialized)
+  if(mEnv)
   {
-    runScript("var process = require('process');process._tickCallback();");
-    if(mEnv)
-    {
-      Locker                locker(mIsolate);
-      Isolate::Scope isolate_scope(mIsolate);
-      HandleScope     handle_scope(mIsolate);
+    Locker                locker(mIsolate);
+    Isolate::Scope isolate_scope(mIsolate);
+    HandleScope     handle_scope(mIsolate);
 
-      RunAtExit(mEnv);
-    #ifdef ENABLE_NODE_V_6_9
-      if (nodeTerminated)
-      {
-        array_buffer_allocator->set_env(NULL);
-      }
-      else
-      {
-        mEnv->Dispose();
-      }
-    #else
-      mEnv->Dispose();
-    #endif // ENABLE_NODE_V_6_9
-      mEnv = NULL;
-      #ifndef USE_CONTEXTIFY_CLONES
-      HandleMap::clearAllForContext(mId);
-      #endif
+    RunAtExit(mEnv);
+#ifdef ENABLE_NODE_V_6_9
+    if (nodeTerminated)
+    {
+      array_buffer_allocator->set_env(NULL);
     }
     else
     {
-    // clear out persistent javascript handles
-      HandleMap::clearAllForContext(mId);
-#ifdef ENABLE_NODE_V_6_9
-      node::deleteContextifyContext(mContextifyContext);
-#endif
-      mContextifyContext = NULL;
+      mEnv->Dispose();
     }
-    if(exec_argv)
-    {
-      delete[] exec_argv;
-      exec_argv = NULL;
-      exec_argc = 0;
-    }
-
-    // TODO:  Might not be needed in ST case...
-    //
-    // Un-Register wrappers.
-    // rtObjectWrapper::destroyPrototype();
-    // rtFunctionWrapper::destroyPrototype();
-    mContext.Reset();
-    mRtWrappers.Reset();
-
-    Release();
+#else
+    mEnv->Dispose();
+#endif // ENABLE_NODE_V_6_9
+    mEnv = NULL;
+    #ifndef USE_CONTEXTIFY_CLONES
+    HandleMap::clearAllForContext(mId);
+    #endif
   }
+  else
+  {
+  // clear out persistent javascript handles
+    HandleMap::clearAllForContext(mId);
+  }
+  if(exec_argv)
+  {
+    delete[] exec_argv;
+    exec_argv = NULL;
+    exec_argc = 0;
+  }
+
+  // TODO:  Might not be needed in ST case...
+  //
+  // Un-Register wrappers.
+  // rtObjectWrapper::destroyPrototype();
+  // rtFunctionWrapper::destroyPrototype();
+  mContext.Reset();
+  mRtWrappers.Reset();
+
+  Release();
+
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
 }
 
-rtError rtNodeContext::add(const char *name, rtValue const& val)
+
+void rtNodeContext::add(const char *name, rtValue const& val)
 {
   if(name == NULL)
   {
     rtLogDebug(" rtNodeContext::add() - no symbolic name for rtValue");
-    return RT_FAIL;
+    return;
   }
   else if(this->has(name))
   {
     rtLogDebug(" rtNodeContext::add() - ALREADY HAS '%s' ... over-writing.", name);
    // return; // Allow for "Null"-ing erasure.
-  }
-  
-  if(val.isEmpty())
-  {
-    rtLogDebug(" rtNodeContext::add() - rtValue is empty");
-    return RT_FAIL;
   }
 
   Locker                locker(mIsolate);
@@ -480,8 +399,6 @@ rtError rtNodeContext::add(const char *name, rtValue const& val)
   Context::Scope context_scope(local_context);
 
   local_context->Global()->Set( String::NewFromUtf8(mIsolate, name), rt2js(local_context, val));
-  
-  return RT_OK;
 }
 
 rtValue rtNodeContext::get(std::string name)
@@ -555,7 +472,7 @@ bool rtNodeContext::has(const char *name)
 
   if (try_catch.HasCaught())
   {
-     rtLogError("\n ## has() - HasCaught()  ... ERROR");
+     printf("\n ## has() - HasCaught()  ... ERROR");
      return false;
   }
 
@@ -565,51 +482,48 @@ bool rtNodeContext::has(const char *name)
   return ( !value->IsUndefined() && !value->IsNull() );
 }
 
-// DEPRECATED - 'has()' is replacement for 'find()'
-//
-// bool rtNodeContext::find(const char *name)
-// {
-//   rtNodeContexts_iterator it = mNodeContexts.begin();
-//
-//   while(it != mNodeContexts.end())
-//   {
-//     rtNodeContextRef ctx = it->second;
-//
-//     rtLogWarn("\n ######## CONTEXT !!! ID: %d  %s  '%s'",
-//       ctx->getContextId(),
-//       (ctx->has(name) ? "*HAS*" : "does NOT have"),
-//       name);
-//
-//     it++;
-//   }
-//
-//   rtLogWarn("\n ");
-//
-//   return false;
-// }
+bool rtNodeContext::find(const char *name)
+{    
+  rtNodeContexts_iterator it = mNodeContexts.begin();
+   
+  while(it != mNodeContexts.end())
+  {
+    rtNodeContextRef ctx = it->second;
+     
+    printf("\n ######## CONTEXT !!! ID: %d  %s  '%s'",
+      ctx->getContextId(), 
+      (ctx->has(name) ? "*HAS*" : "does NOT have"),
+      name);
+     
+    it++;
+  }
+  
+  printf("\n ");
 
-rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/, const char *args /*= NULL*/)
+  return false;
+}
+
+rtObjectRef rtNodeContext::runScript(const char *script, const char *args /*= NULL*/)
 {
   if(script == NULL)
   {
     rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
 
-    return RT_FAIL;
+    return  rtObjectRef(0);// JUNK
   }
 
   // rtLogDebug(" %s  ... Running...",__PRETTY_FUNCTION__);
 
-  return runScript(std::string(script), retVal, args);
+  return runScript(std::string(script), args);
 }
 
-rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= NULL*/, const char* /* args = NULL*/)
+rtObjectRef rtNodeContext::runScript(const std::string &script, const char* /* args = NULL*/)
 {
-  rtLogInfo(__FUNCTION__);
   if(script.empty())
   {
     rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
 
-    return RT_FAIL;
+    return  rtObjectRef(0);// JUNK
   }
 
   {//scope
@@ -620,14 +534,7 @@ rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= 
     // Get a Local context...
     Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
     Context::Scope context_scope(local_context);
-// !CLF TODO: TEST FOR MT
-#ifdef RUNINMAIN
-#ifdef ENABLE_NODE_V_6_9
-  TryCatch tryCatch(mIsolate);
-#else
-  TryCatch tryCatch;
-#endif // ENABLE_NODE_V_6_9
-#endif
+
     Local<String> source = String::NewFromUtf8(mIsolate, script.c_str());
 
     // Compile the source code.
@@ -635,35 +542,18 @@ rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= 
 
     // Run the script to get the result.
     Local<Value> result = run_script->Run();
-// !CLF TODO: TEST FOR MT
-#ifdef RUNINMAIN
-   if (tryCatch.HasCaught())
-    {
-      String::Utf8Value trace(tryCatch.StackTrace());
-      rtLogWarn("%s", *trace);
 
-      return RT_FAIL;
-    }
-#endif
+    // Convert the result to an UTF8 string and print it.
+    String::Utf8Value utf8(result);
 
-    if(retVal)
-    {
-      // Return val
-      rtWrapperError error;
-      *retVal = js2rt(local_context, result, &error);
-      
-      if(error.hasError())
-      {
-        rtLogError("js2rt() - return from script error");
-        return RT_FAIL;
-      }
-    }
-
-   return RT_OK;
-
+    // TODO: 
+    // printf("\n retVal \"%s\" = %s\n\n",script.c_str(), *result);
+    //  rtString foo ( (char *) *utf8);
+    //  return rtObjectRef( new rtValue( rtString( (char *) *utf8) ) );
+    
   }//scope
 
-  return RT_FAIL;
+  return rtObjectRef(0);// JUNK
 }
 
 std::string readFile(const char *file)
@@ -678,69 +568,26 @@ std::string readFile(const char *file)
   return s;
 }
 
-rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, const char* args /*= NULL*/)
+rtObjectRef rtNodeContext::runFile(const char *file, const char* /*args = NULL*/)
 {
   if(file == NULL)
   {
     rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
 
-    return RT_FAIL;
+    return  rtObjectRef(0);// JUNK
   }
 
   // Read the script file
   js_file   = file;
   js_script = readFile(file);
-  
-  if( js_script.empty() ) // load error
-  {
-    rtLogError(" %s  ... load error / not found.",__PRETTY_FUNCTION__);
-     
-    return RT_FAIL;
-  }
 
-  return runScript(js_script, retVal, args);
+  return runScript(js_script);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtNode::rtNode()
-#ifndef RUNINMAIN
-#ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false)
-#else
-: mNeedsToEnd(false)
-#endif
-#endif
+rtNode::rtNode() /*: mPlatform(NULL)*/
 {
-  rtLogInfo(__FUNCTION__);
-  mTestGc = false;
-  mIsolate = NULL;
-  mPlatform = NULL;
-  initializeNode();
-}
-
-rtNode::rtNode(bool initialize)
-#ifndef RUNINMAIN
-#ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false)
-#else
-: mNeedsToEnd(false)
-#endif
-#endif
-{
-  rtLogInfo(__FUNCTION__);
-  mTestGc = false;
-  mIsolate = NULL;
-  mPlatform = NULL;
-  if (true == initialize)
-  {
-    initializeNode();
-  }
-}
-
-void rtNode::initializeNode()
-{
-  rtLogInfo(__FUNCTION__);
   char const* s = getenv("RT_TEST_GC");
   if (s && strlen(s) > 0)
     mTestGc = true;
@@ -758,22 +605,19 @@ void rtNode::initializeNode()
   static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
 #else
-  rtLogWarn("v8 old heap space configured to 64mb\n");
+  printf("v8 old heap space configured to 64mb\n");
   static const char *args2   = "rtNode\0--expose-gc\0--max_old_space_size=64\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[43], &args2[46], NULL};
 #endif // ENABLE_NODE_V_6_9
 #else
 #ifdef ENABLE_NODE_V_6_9
-#ifndef ENABLE_DEBUG_MODE
-   static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
-   static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
-#endif //!ENABLE_DEBUG_MODE
+  static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
 #else
   static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
 #endif // ENABLE_NODE_V_6_9
 #endif //ENABLE_V8_HEAP_PARAMS
-#ifndef ENABLE_DEBUG_MODE
   int          argc   = sizeof(argv2)/sizeof(char*) - 1;
 
   static args_t aa(argc, (char**)argv2);
@@ -782,54 +626,33 @@ void rtNode::initializeNode()
 
 
   char **argv = aa.argv;
-#endif
 
-#ifdef RUNINMAIN
-#ifdef WIN32
-  __rt_main_thread__ = GetCurrentThreadId();
-#else
   __rt_main_thread__ = pthread_self(); //  NB
-#endif
-#endif
+
   nodePath();
 
 
 #ifdef ENABLE_NODE_V_6_9
-  rtLogWarn("rtNode::rtNode() calling init \n");
-#ifdef ENABLE_DEBUG_MODE
-  init();
-#else
   init(argc, argv);
-#endif
 #else
   mIsolate     = Isolate::New();
   node_isolate = mIsolate; // Must come first !!
 
-#ifdef ENABLE_DEBUG_MODE
-  init();
-#else
   init(argc, argv);
-#endif
 #endif // ENABLE_NODE_V_6_9
 }
 
 rtNode::~rtNode()
 {
-  // rtLogInfo(__FUNCTION__);
   term();
 }
 
 void rtNode::pump()
 {
-//#ifndef RUNINMAIN
-//  return;
-//#else
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-#ifdef ENABLE_NODE_V_6_9
-  v8::platform::PumpMessageLoop(mPlatform, mIsolate);
-#endif //ENABLE_NODE_V_6_9
+
   uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
 
   // Enable this to expedite garbage collection for testing... warning perf hit
@@ -845,19 +668,10 @@ void rtNode::pump()
       sGcTickCount = 0;
     }
   }
-//#endif // RUNINMAIN
-}
-
-std::string rtNode::name() const
-{
-  return "node";
 }
 
 void rtNode::garbageCollect()
 {
-//#ifndef RUNINMAIN
-//  return;
-//#else
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
@@ -865,7 +679,6 @@ void rtNode::garbageCollect()
   Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
   Context::Scope contextScope(local_context);
   mIsolate->LowMemoryNotification();
-//#endif // RUNINMAIN
 }
 
 #if 0
@@ -885,12 +698,7 @@ void rtNode::nodePath()
 
     if (getcwd(cwd, sizeof(cwd)) != NULL)
     {
-#ifdef WIN32
-	  _putenv_s("NODE_PATH", cwd);
-#else
-	  ::setenv("NODE_PATH", cwd, 1); // last arg is 'overwrite' ... 0 means DON'T !
-#endif
-	  rtLogInfo("NODE_PATH=%s", cwd);
+      ::setenv("NODE_PATH", cwd, 1); // last arg is 'overwrite' ... 0 means DON'T !
     }
     else
     {
@@ -898,27 +706,12 @@ void rtNode::nodePath()
     }
   }
 }
-#ifndef RUNINMAIN
-bool rtNode::isInitialized()
-{
-  //rtLogDebug("rtNode::isInitialized returning %d\n",node_is_initialized);
-  return node_is_initialized;
-}
-#endif
-#ifdef ENABLE_DEBUG_MODE
-void rtNode::init()
-#else
+
 void rtNode::init(int argc, char** argv)
-#endif
 {
   // Hack around with the argv pointer. Used for process.title = "blah".
-#ifdef ENABLE_DEBUG_MODE
-  g_argv = uv_setup_args(g_argc, g_argv);
-#else
   argv = uv_setup_args(argc, argv);
-#endif
 
-  rtLogInfo(__FUNCTION__);
 
 #if 0
 #warning Using DEBUG AGENT...
@@ -927,26 +720,16 @@ void rtNode::init(int argc, char** argv)
 
   if(node_is_initialized == false)
   {
-    rtLogWarn("About to Init\n");
-#ifdef ENABLE_DEBUG_MODE
-    Init(&g_argc, const_cast<const char**>(g_argv), &exec_argc, &exec_argv);
-#else
     Init(&argc, const_cast<const char**>(argv), &exec_argc, &exec_argv);
-#endif
 
 //    mPlatform = platform::CreateDefaultPlatform();
 //    V8::InitializePlatform(mPlatform);
 
 #ifdef ENABLE_NODE_V_6_9
-   rtLogWarn("using node version %s\n", NODE_VERSION);
+   printf("using node version %s\n", NODE_VERSION);
    V8::InitializeICU();
-#ifdef ENABLE_DEBUG_MODE
-   V8::InitializeExternalStartupData(g_argv[0]);
-#else
    V8::InitializeExternalStartupData(argv[0]);
-#endif
    Platform* platform = platform::CreateDefaultPlatform();
-   mPlatform = platform;
    V8::InitializePlatform(platform);
    V8::Initialize();
    Isolate::CreateParams params;
@@ -960,7 +743,7 @@ void rtNode::init(int argc, char** argv)
 #else
     V8::Initialize();
 #endif // ENABLE_NODE_V_6_9
-    rtLogWarn("rtNode::init() node_is_initialized=%d\n",node_is_initialized);
+
     node_is_initialized = true;
 
     Locker                locker(mIsolate);
@@ -970,13 +753,11 @@ void rtNode::init(int argc, char** argv)
     Local<Context> ctx = Context::New(mIsolate);
     ctx->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, 99));
     mContext.Reset(mIsolate, ctx);
-    rtLogWarn("DONE in rtNode::init()\n");
   }
 }
 
 void rtNode::term()
 {
-  rtLogInfo(__FUNCTION__);
   nodeTerminated = true;
 #ifdef USE_CONTEXTIFY_CLONES
   if( mRefContext.getPtr() )
@@ -985,11 +766,14 @@ void rtNode::term()
   }
 #endif
 
+return; // JUNK - Probably leaks like a sieve !!!! Stops crash on STB
+
   if(node_isolate)
   {
 // JRJRJR  Causing crash???  ask Hugh
 
-    rtLogWarn("\n++++++++++++++++++ DISPOSE\n\n");
+    printf("\n++++++++++++++++++ DISPOSE\n\n");
+
     node_isolate->Dispose();
     node_isolate = NULL;
     mIsolate     = NULL;
@@ -997,16 +781,16 @@ void rtNode::term()
 
   if(node_is_initialized)
   {
-    //V8::Dispose();
+    V8::Dispose();
 
     node_is_initialized = false;
 
-    V8::ShutdownPlatform();
-    if(mPlatform)
-    {
-      delete mPlatform;
-      mPlatform = NULL;
-    }
+  //  V8::ShutdownPlatform();
+  //  if(mPlatform)
+  //  {
+  //    delete mPlatform;
+  //    mPlatform = NULL;
+  //  }
 
   //  if(mPxNodeExtension)
   //  {
@@ -1019,8 +803,8 @@ void rtNode::term()
 
 inline bool fileExists(const std::string& name)
 {
-  struct stat buffer;
-  return (stat (name.c_str(), &buffer) == 0);
+  struct stat buffer;   
+  return (stat (name.c_str(), &buffer) == 0); 
 }
 
 rtNodeContextRef rtNode::getGlobalContext() const
@@ -1037,19 +821,17 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
 #ifdef USE_CONTEXTIFY_CLONES
   if(mRefContext.getPtr() == NULL)
   {
-    mRefContext = new rtNodeContext(mIsolate,mPlatform);
+    mRefContext = new rtNodeContext(mIsolate);
+    
     ctxref = mRefContext;
-
+    
     static std::string sandbox_path;
 
     if(sandbox_path.empty()) // only once.
     {
-      char *nodePath = ::getenv("NODE_PATH");
-      if (NULL != nodePath)
-      {
-        const std::string NODE_PATH = nodePath;
-        sandbox_path = NODE_PATH + "/" + SANDBOX_JS;
-      }
+      const std::string NODE_PATH = ::getenv("NODE_PATH");
+
+      sandbox_path = NODE_PATH + "/" + SANDBOX_JS;
     }
 
     // Populate 'sandbox' vars in JS...
@@ -1061,20 +843,19 @@ rtNodeContextRef rtNode::createContext(bool ownThread)
     {
       rtLogError("## ERROR:   Could not find \"%s\" ...", sandbox_path.c_str());
     }
-    // !CLF: TODO Why is ctxref being reassigned from the mRefContext already assigned?
-    //ctxref = new rtNodeContext(mIsolate, mRefContext);
+    ctxref = new rtNodeContext(mIsolate, mRefContext);
   }
   else
   {
-    // rtLogInfo("\n createContext()  >>  CLONE CREATED !!!!!!");
+    // printf("\n createContext()  >>  CLONE CREATED !!!!!!");
     ctxref = new rtNodeContext(mIsolate, mRefContext); // CLONE !!!
   }
 #else
-    ctxref = new rtNodeContext(mIsolate,mPlatform);
+    ctxref = new rtNodeContext(mIsolate);
 
 #endif
-
-  // TODO: Handle refs in map ... don't leak !
+    
+  // TODO: Handle refs in map ... don't leak ! 
   // mNodeContexts[ ctxref->getContextId() ] = ctxref;  // ADD to map
 
   return ctxref;

@@ -188,19 +188,28 @@ endif (USE_DUKTAPE)
 
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
+if (USE_DUKTAPE)
+add_definitions(-DRTSCRIPT_USE_DUKTAPE)
+else()
+add_definitions(-DRTSCRIPT_USE_NODE)
+endif()
+
 set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
+
         rtFile.cpp rtLibrary.cpp rtPathUtils.cpp rtTest.cpp rtThreadPool.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
-        rtFileDownloader.cpp unzip.c ioapi.c)
-
+        rtFileDownloader.cpp unzip.c ioapi.c
+        rtScript.cpp)
+        
 if (USE_DUKTAPE)
-    set(PXCORE_FILES ${PXCORE_FILES} duktape/rtNode.cpp jsbindings/duktape/rtFunctionWrapper.cpp jsbindings/duktape/rtObjectWrapper.cpp
-	    jsbindings/duktape/rtWrapperUtils.cpp jsbindings/duktape/rtJsModules.cpp)
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptDuk/rtScriptDuk.cpp rtScriptDuk/rtFunctionWrapper.cpp rtScriptDuk/rtObjectWrapper.cpp
+	    rtScriptDuk/rtWrapperUtils.cpp rtScriptDuk/rtJsModules.cpp)
 else (USE_DUKTAPE)
-    set(PXCORE_FILES ${PXCORE_FILES} rtNode.cpp jsbindings/rtFunctionWrapper.cpp jsbindings/rtObjectWrapper.cpp
-	    jsbindings/rtWrapperUtils.cpp jsbindings/rtWrapperInit.cpp jsbindings/jsCallback.cpp)
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptNode/rtScriptNode.cpp rtScriptNode/jsCallback.cpp rtScriptNode/rtFunctionWrapper.cpp 
+        rtScriptNode/rtObjectWrapper.cpp rtScriptNode/rtWrapperUtils.cpp)
 endif (USE_DUKTAPE)
+
 
 if (PXCORE_MATRIX_HELPERS)
   set(PXCORE_FILES ${PXCORE_FILES} pxMatrix4T.cpp)
@@ -218,11 +227,14 @@ endif (PXCORE_PERMISSIONS_CHECK)
 
 set(RTCORE_FILES utf8.c rtString.cpp rtLog.cpp rtValue.cpp rtError.cpp ioapi_mem.c)
 
-if (USE_DUKTAPE)
-    set(RTCORE_FILES ${RTCORE_FILES} duktape/rtObject.cpp)
-else (USE_DUKTAPE)
-    set(RTCORE_FILES ${RTCORE_FILES} rtObject.cpp)
-endif (USE_DUKTAPE)
+#if (USE_DUKTAPE)
+#    set(RTCORE_FILES ${RTCORE_FILES} duktape/rtPromise.cpp)
+#else (USE_DUKTAPE)
+    set(RTCORE_FILES ${RTCORE_FILES} rtPromise.cpp)
+#endif (USE_DUKTAPE)
+
+set(RTCORE_FILES ${RTCORE_FILES} rtObject.cpp)
+
 
 if (OUTPUT_LIBS_LOCAL)
     message("Output pxCore and rtCore libs locally")

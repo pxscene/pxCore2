@@ -61,7 +61,7 @@
 #include "testView.h"
 
 #ifdef ENABLE_RT_NODE
-#include "rtNode.h"
+#include "rtScript.h"
 #endif //ENABLE_RT_NODE
 
 #ifdef ENABLE_PERMISSIONS_CHECK
@@ -230,7 +230,7 @@ public:
     rtString d;
     // Why is this bad
     //sendReturns<rtString>("description",d);
-    rtString d2 = getMap()->className;
+    //rtString d2 = getMap()->className;
     unsigned long c =  rtObject::Release();
     #if 0
     if (c == 0)
@@ -1137,7 +1137,7 @@ protected:
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
 
-  static rtError getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx);
+  static rtError getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/);
 
   virtual void onSize(int32_t w, int32_t h)
   {
@@ -1255,7 +1255,7 @@ protected:
   rtRef<rtFunctionCallback> mGetContextID;
 
 #ifdef ENABLE_RT_NODE
-  rtNodeContextRef mCtx;
+  rtScriptContextRef mCtx;
 #endif //ENABLE_RT_NODE
   pxIViewContainer* mViewContainer;
   unsigned long mRefCount;

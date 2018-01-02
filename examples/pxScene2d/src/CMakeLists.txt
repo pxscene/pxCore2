@@ -90,7 +90,8 @@ if (APPLE)
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} duktape.a dschema.a duv.a uv.a dl)
     else ()
         message("building for node")
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} node)
+        # node really wants to be first...
+        set(PLATFORM_LIBRARIES node ${PLATFORM_LIBRARIES} )
     endif (USE_DUKTAPE)
 
     include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${FREETYPEINC})
@@ -375,14 +376,14 @@ include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer/xs_code)
 
 set(PXSCENE_COMMON_FILES pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.cpp pxText.cpp
-        pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxArchive.cpp pxAnimate.cpp rasterizer/pxRasterizer.cpp rasterizer/pxCanvas.cpp rasterizer/pxCanvas2d.cpp rasterizer/pxPath.cpp)
+        pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp rasterizer/pxRasterizer.cpp rasterizer/pxCanvas.cpp rasterizer/pxCanvas2d.cpp rasterizer/pxPath.cpp)
 
-if (USE_DUKTAPE)
-    set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} duktape/pxScene2d.cpp)
-    include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/duktape)
-else (USE_DUKTAPE)
+#if (USE_DUKTAPE)
+#    set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} duktape/pxScene2d.cpp)
+#    include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/duktape)
+#else (USE_DUKTAPE)
     set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxScene2d.cpp)
-endif (USE_DUKTAPE)
+#endif (USE_DUKTAPE)
 
 set(PXWAYLAND_LIB_FILES pxContextGL.cpp egl/pxContextUtils.cpp)
 
@@ -446,11 +447,11 @@ set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${PLATFORM_SOURCES})
 #    endif (USE_DUKTAPE)
 #endif (BUILD_PXSCENE_APP_WITH_PXSCENE_LIB)
 
-if (USE_DUKTAPE)
-    set(PXSCENE_APP_FILES ${PXSCENE_COMMON_FILES} duktape/pxScene.cpp)
-else (USE_DUKTAPE)
+#if (USE_DUKTAPE)
+#    set(PXSCENE_APP_FILES ${PXSCENE_COMMON_FILES} duktape/pxScene.cpp)
+#else (USE_DUKTAPE)
     set(PXSCENE_APP_FILES ${PXSCENE_COMMON_FILES} pxScene.cpp)
-endif (USE_DUKTAPE)
+#endif (USE_DUKTAPE)
 
 set(PXSCENE_LIB_FILES ${PXSCENE_COMMON_FILES})
 

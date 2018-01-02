@@ -27,18 +27,18 @@
 #include "pxContext.h"
 #include "pxScene2d.h"
 #include "rtUrlUtils.h"
+#include "rtScript.h"
 
-#include "rtNode.h"
 #include "pxUtil.h"
 
 #ifdef RUNINMAIN
-extern rtNode script;
+extern rtScript script;
 #else
 using namespace std;
 #include "rtNodeThread.h"
 #endif
 
-#include "jsbindings/rtWrapperUtils.h"
+//#include "jsbindings/rtWrapperUtils.h"
 #include <signal.h>
 #ifndef WIN32
 #include <unistd.h>
@@ -248,7 +248,7 @@ protected:
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
   #ifdef RUNINMAIN
-     script.garbageCollect();
+     script.collectGarbage();
   #endif
   ENTERSCENELOCK()
     mView = NULL;
@@ -259,7 +259,7 @@ protected:
   #ifdef ENABLE_DEBUG_MODE
     free(g_origArgv);
   #endif
-    script.garbageCollect();
+    script.collectGarbage();
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
@@ -509,7 +509,7 @@ if (s && (strcmp(s,"1") == 0))
       curpos = curpos + 35;
   }
 #ifdef RUNINMAIN
-  script.initializeNode();
+  script.init();
 #endif
 #endif
   char buffer[256];
