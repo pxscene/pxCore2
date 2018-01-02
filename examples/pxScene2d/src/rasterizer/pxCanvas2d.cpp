@@ -163,6 +163,8 @@ pxCanvas2d::pxCanvas2d(): mFontSize(0.0), textX(0.0), textY(0.0), lastX(0.0), la
 
 pxCanvas2d::~pxCanvas2d()
 {
+  rtLogInfo("DESTROY ... ~pxCanvas2d() \n");
+
   term();
 }
 
