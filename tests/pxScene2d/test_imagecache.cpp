@@ -228,6 +228,8 @@ class commonTestFns
        {
          headerData.append(mNonExpireDate);
        }
+       printf("header data [%s] \n",headerData.cString());
+       fflush(stdout);
        rtHttpCacheData cacheData(url,headerData,data,size);
        return rtFileCache::instance()->addToCache(cacheData);
      }
