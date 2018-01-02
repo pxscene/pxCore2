@@ -24,11 +24,14 @@ set(RTREMOTEINC ${PXCOREDIR}/remote)
 set(GOOGLETESTINC ${EXTDIR}/gtest/googletest/include ${EXTDIR}/gtest/googletest ${EXTDIR}/gtest/googlemock/include ${EXTDIR}/gtest/googlemock)
 set(PXCOREINC ${PXCOREDIR}/src)
 set(PXSCENEINC ${PXCOREDIR}/examples/pxScene2d/src)
+set(PXSRCGLUTINC ${PXCOREDIR}/src/glut)
 
 set(BUILD_UNIT_TEST 0)
 
 option(BUILD_WITH_WINDOWLESS_EGL "BUILD_WITH_WINDOWLESS_EGL" OFF)
 option(PXSCENE_TEST_HTTP_CACHE "PXSCENE_TEST_HTTP_CACHE" ON)
+option(PXSCENE_TEST_ACCESS_CONTROL_CHECK "PXSCENE_TEST_ACCESS_CONTROL_CHECK" OFF)
+option(PXSCENE_TEST_PERMISSIONS_CHECK "PXSCENE_TEST_PERMISSIONS_CHECK" OFF)
 
 
 include_directories(AFTER ${GOOGLETESTINC} ${PXCOREINC} ${PXSCENEINC} ${NODEINC})
@@ -105,14 +108,27 @@ endif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
 add_definitions(-D${PX_PLATFORM} -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE)
 
-set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_example.cpp test_api.cpp  test_pxcontext.cpp test_memoryleak.cpp test_rtnode.cpp
-    test_pxAnimate.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_rtValue.cpp test_pxImage.cpp test_pxOffscreen.cpp test_pxMatrix4T.cpp
-    test_pxWindowUtil.cpp test_pxTexture.cpp test_pxWindow.cpp test_ioapi.cpp ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
+set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_example.cpp test_api.cpp  test_pxcontext.cpp test_memoryleak.cpp test_rtnode.cpp test_rtMutex.cpp
+    test_pxAnimate.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_rtValue.cpp test_pxImage.cpp test_pxOffscreen.cpp test_pxMatrix4T.cpp test_rtObject.cpp
+    test_pxWindowUtil.cpp test_pxTexture.cpp test_pxWindow.cpp test_ioapi.cpp test_rtLog.cpp test_pxTimerNative.cpp 
+    test_rtUrlUtils.cpp test_pxArchive.cpp ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})
     message("Include http cache tests")
     set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_imagecache.cpp)
 endif (DEFINED ENV{USE_HTTP_CACHE})
+
+if (PXSCENE_TEST_ACCESS_CONTROL_CHECK)
+    message("Include CORS tests")
+    add_definitions(-DENABLE_ACCESS_CONTROL_CHECK)
+    set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_cors.cpp)
+endif (PXSCENE_TEST_ACCESS_CONTROL_CHECK)
+
+if (PXSCENE_TEST_PERMISSIONS_CHECK)
+    message("Include PERMISSIONS tests")
+    add_definitions(-DENABLE_PERMISSIONS_CHECK)
+    set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_rtPermissions1.cpp test_rtPermissions2.cpp test_rtPermissions3.cpp test_rtPermissions4.cpp)
+endif (PXSCENE_TEST_PERMISSIONS_CHECK)
 
 set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} ${EXTDIR}/gtest/googletest/src/gtest-all.cc ${EXTDIR}/gtest/googlemock/src/gmock-all.cc)
 

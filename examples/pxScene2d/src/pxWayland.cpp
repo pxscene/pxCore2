@@ -45,7 +45,7 @@ extern pxContext context;
 pxWayland::pxWayland(bool useFbo)
   :
     mRefCount(0),
-    mClientMonitorThreadId(0), 
+    mClientMonitorThreadId(0),
     mFindRemoteThreadId(0),
     mContainer(NULL),
     mReadyEmitted(false),
@@ -72,10 +72,10 @@ pxWayland::pxWayland(bool useFbo)
 #endif //ENABLE_PX_WAYLAND_RPC
     mRemoteObjectMutex()
 {
-  mFillColor[0]= 0.0; 
-  mFillColor[1]= 0.0; 
-  mFillColor[2]= 0.0; 
-  mFillColor[3]= 0.0; 
+  mFillColor[0]= 0.0;
+  mFillColor[1]= 0.0;
+  mFillColor[2]= 0.0;
+  mFillColor[3]= 0.0;
 
   mClearColor[0]= 0.0;
   mClearColor[1]= 0.0;
@@ -96,7 +96,7 @@ pxWayland::~pxWayland()
 }
 
 rtError pxWayland::displayName(rtString& s) const { s = mDisplayName; return RT_OK; }
-rtError pxWayland::setDisplayName(const char* s) 
+rtError pxWayland::setDisplayName(const char* s)
 {
   mDisplayName = s;
   return RT_OK;
@@ -114,9 +114,9 @@ void pxWayland::createDisplay(rtString displayName)
    const char* cmd= mCmd.cString();
 
    rtLogInfo("pxWayland::createDisplay: %s\n", (name ? name : "name not provided"));
-   
+
    mFBO= context.createFramebuffer( 0, 0 );
-   
+
    mWCtx= WstCompositorCreate();
    if ( mWCtx )
    {
@@ -125,13 +125,13 @@ void pxWayland::createDisplay(rtString displayName)
          error= true;
          goto exit;
       }
-      
+
       if ( !WstCompositorSetOutputSize( mWCtx, mWidth, mHeight ) )
       {
          error= true;
          goto exit;
       }
-      
+
       if ( !WstCompositorSetInvalidateCallback( mWCtx, invalidate, this ) )
       {
          error= true;
@@ -145,19 +145,19 @@ void pxWayland::createDisplay(rtString displayName)
          goto exit;
       }
 #endif //PXSCENE_DISABLE_WST_DECODER
-      
+
       if ( !WstCompositorSetHidePointerCallback( mWCtx, hidePointer, this ) )
       {
          error= true;
          goto exit;
       }
-      
+
       if ( !WstCompositorSetClientStatusCallback( mWCtx, clientStatus, this ) )
       {
          error= true;
          goto exit;
       }
-      
+
       // If a display name was provided, use it.  Otherwise the
       // compositor will generate a unique display name to use.
       int len= (name ? strlen(name) : 0);
@@ -176,7 +176,7 @@ void pxWayland::createDisplay(rtString displayName)
           mRemoteObjectName = "wl-plgn-";
           mRemoteObjectName.append(mDisplayName.cString());
       }
-      
+
       if ( !WstCompositorStart( mWCtx ) )
       {
          error= true;
@@ -188,7 +188,7 @@ void pxWayland::createDisplay(rtString displayName)
         mReadyEmitted= true;
         mEvents->isReady( true );
       }
-      
+
       if ( strlen(cmd) > 0 )
       {
          setenv("WAYLAND_DISPLAY", mDisplayName.cString(), 1);
@@ -205,7 +205,7 @@ void pxWayland::createDisplay(rtString displayName)
          startRemoteObjectDetection();
       }
    }
-   
+
 exit:
    if ( error )
    {
@@ -261,10 +261,10 @@ bool pxWayland::onMouseMove(int32_t x, int32_t y)
    int objX, objY;
    int resW, resH;
    context.getSize( resW, resH );
-   
+
    objX= (int)(x+0.5f);
    objY= (int)(y+0.5f);
-   
+
    WstCompositorPointerMoveEvent( mWCtx, objX, objY );
    return false;
 }
@@ -288,8 +288,8 @@ bool pxWayland::onKeyDown(uint32_t keycode, uint32_t flags)
 
    modifiers= getModifiers(flags);
    linuxKeyCode= linuxFromPX( keycode );
-   
-   WstCompositorKeyEvent( mWCtx, linuxKeyCode, WstKeyboard_keyState_depressed, modifiers ); 
+
+   WstCompositorKeyEvent( mWCtx, linuxKeyCode, WstKeyboard_keyState_depressed, modifiers );
    return false;
 }
 
@@ -297,11 +297,11 @@ bool pxWayland::onKeyUp(uint32_t keycode, uint32_t flags)
 {
    int32_t linuxKeyCode;
    int32_t modifiers;
-   
+
    modifiers= getModifiers(flags);
    linuxKeyCode= linuxFromPX( keycode );
-   
-   WstCompositorKeyEvent( mWCtx, linuxKeyCode, WstKeyboard_keyState_released, modifiers ); 
+
+   WstCompositorKeyEvent( mWCtx, linuxKeyCode, WstKeyboard_keyState_released, modifiers );
    return false;
 }
 
@@ -327,11 +327,11 @@ void pxWayland::onUpdate(double t)
 void pxWayland::onDraw()
 {
   static pxTextureRef nullMaskRef;
-  
+
   unsigned int outputWidth, outputHeight;
-  
+
   WstCompositorGetOutputSize( mWCtx, &outputWidth, &outputHeight );
-  
+
   if ( (mWidth != (int)outputWidth) ||
        (mHeight != (int)outputHeight) )
   {
@@ -344,7 +344,7 @@ void pxWayland::onDraw()
   {
      if ( (mFBO->width() != mWidth) ||
           (mFBO->height() != mHeight) )
-     {     
+     {
         context.updateFramebuffer( mFBO, mWidth, mHeight );
      }
   }
@@ -356,9 +356,9 @@ void pxWayland::onDraw()
         context.updateFramebuffer( mFBO, 0, 0 );
      }
   }
-  
+
   int hints= WstHints_none;
-  
+
   bool needHolePunch;
   std::vector<WstRect> rects;
   pxContextFramebufferRef previousFrameBuffer;
@@ -390,7 +390,7 @@ void pxWayland::onDraw()
      context.clear( mWidth, mHeight, mClearColor );
   }
 
-  WstCompositorComposeEmbedded( mWCtx, 
+  WstCompositorComposeEmbedded( mWCtx,
                                 mX,
                                 mY,
                                 mWidth,
@@ -404,7 +404,7 @@ void pxWayland::onDraw()
   {
      context.setFramebuffer( previousFrameBuffer );
   }
-  
+
   if ( drawWithFBO && needHolePunch )
   {
      GLfloat priorColor[4];
@@ -414,7 +414,7 @@ void pxWayland::onDraw()
      glGetIntegerv( GL_SCISSOR_BOX, priorBox );
      glGetFloatv( GL_COLOR_CLEAR_VALUE, priorColor );
      glGetIntegerv( GL_VIEWPORT, viewport );
-     
+
      glEnable( GL_SCISSOR_TEST );
      glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
      for( unsigned int i= 0; i < rects.size(); ++i )
@@ -427,7 +427,7 @@ void pxWayland::onDraw()
         }
      }
      glClearColor( priorColor[0], priorColor[1], priorColor[2], priorColor[3] );
-     
+
      if ( wasEnabled )
      {
         glScissor( priorBox[0], priorBox[1], priorBox[2], priorBox[3] );
@@ -477,19 +477,19 @@ void pxWayland::handleClientStatus( int status, int pid, int detail )
       switch ( status )
       {
          case WstClient_started:
-            mEvents->clientStarted( pid );   
+            mEvents->clientStarted( pid );
             break;
          case WstClient_stoppedNormal:
-            mEvents->clientStoppedNormal( pid, detail );   
+            mEvents->clientStoppedNormal( pid, detail );
             break;
          case WstClient_stoppedAbnormal:
-            mEvents->clientStoppedAbnormal( pid, detail );   
+            mEvents->clientStoppedAbnormal( pid, detail );
             break;
          case WstClient_connected:
-            mEvents->clientConnected( pid );   
+            mEvents->clientConnected( pid );
             break;
          case WstClient_disconnected:
-            mEvents->clientDisconnected( pid );   
+            mEvents->clientDisconnected( pid );
             break;
          default:
             rtLogError("unexpected wayland client status type");
@@ -501,14 +501,14 @@ void pxWayland::handleClientStatus( int status, int pid, int detail )
 uint32_t pxWayland::getModifiers( uint32_t flags )
 {
    uint32_t modifiers= 0;
-   
+
    if ( flags & PX_MOD_SHIFT )
       modifiers |= WstKeyboard_shift;
    if ( flags & PX_MOD_CONTROL )
       modifiers |= WstKeyboard_ctrl;
    if ( flags & PX_MOD_ALT )
       modifiers |= WstKeyboard_alt;
-      
+
    return modifiers;
 }
 
@@ -516,7 +516,7 @@ bool pxWayland::isRotated()
 {
    float *f= context.getMatrix().data();
    const float e= 1.0e-2;
-      
+
    if ( (fabsf(f[1]) > e) ||
         (fabsf(f[2]) > e) ||
         (fabsf(f[4]) > e) ||
@@ -526,19 +526,19 @@ bool pxWayland::isRotated()
    {
       return true;
    }
-   
+
    return false;
 }
 
 void pxWayland::launchClient()
 {
    int rc;
-   
+
    rc= pthread_create( &mClientMonitorThreadId, NULL, clientMonitorThread, this );
    if ( rc )
    {
      const char* cmd = mCmd.cString();
-     rtLogError("Failed to start client monitor thread: auto launch of (%s) failed", cmd);      
+     rtLogError("Failed to start client monitor thread: auto launch of (%s) failed", cmd);
    }
 }
 
@@ -565,8 +565,8 @@ void pxWayland::terminateClient()
    if ( mClientMonitorStarted )
    {
       mClientMonitorStarted= false;
-      
-      // Destroying compositor above should result in client 
+
+      // Destroying compositor above should result in client
       // process ending.  If it hasn't ended, kill it
       if ( mClientPID >= 0 )
       {
@@ -587,7 +587,7 @@ void pxWayland::terminateClient()
             }
          }
       }
-      pthread_join( mClientMonitorThreadId, NULL );      
+      pthread_join( mClientMonitorThreadId, NULL );
    }
 
    if (mUseDispatchThread && mWaitingForRemoteObject)
@@ -601,25 +601,25 @@ void pxWayland::terminateClient()
 void* pxWayland::clientMonitorThread( void *data )
 {
    pxWayland *pxw= (pxWayland*)data;
-   
+
    pxw->launchAndMonitorClient();
-   
+
    return NULL;
 }
 
 void pxWayland::invalidate( WstCompositor *wctx, void *userData )
 {
    (void)wctx;
-   
+
    pxWayland *pxw= (pxWayland*)userData;
    pxw->handleInvalidate();
 }
 
-void pxWayland::decoderHandleCallback( WstCompositor *wctx, void *userData, void* decodeHandle)
+void pxWayland::decoderHandleCallback( WstCompositor *wctx, void *userData, uint64_t decodeHandle)
 {
    (void)wctx;
    pxWayland *pxw= (pxWayland*)userData;
-   pxw->setDecoderHandle(decodeHandle);
+   pxw->setDecoderHandle((void*)decodeHandle);
 }
 
 void pxWayland::hidePointer( WstCompositor *wctx, bool hide, void *userData )
@@ -633,7 +633,7 @@ void pxWayland::hidePointer( WstCompositor *wctx, bool hide, void *userData )
 void pxWayland::clientStatus( WstCompositor *wctx, int status, int pid, int detail, void *userData )
 {
    (void)wctx;
-   
+
    pxWayland *pxw= (pxWayland*)userData;
 
    pxw->handleClientStatus( status, pid, detail );
@@ -956,12 +956,20 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
 #define KEY_KPCOMMA             121
 #define KEY_LEFTMETA            125
 #define KEY_RIGHTMETA           126
+#ifndef KEY_YELLOW
 #define KEY_YELLOW              0x18e
+#endif
+#ifndef KEY_BLUE
 #define KEY_BLUE                0x18f
+#endif
 #define KEY_PLAYPAUSE           164
 #define KEY_REWIND              168
+#ifndef KEY_RED
 #define KEY_RED                 0x190
+#endif
+#ifndef KEY_GREEN
 #define KEY_GREEN               0x191
+#endif
 #define KEY_PLAY                207
 #define KEY_FASTFORWARD         208
 #define KEY_PRINT               210     /* AC Print */
@@ -969,7 +977,7 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
 uint32_t pxWayland::linuxFromPX( uint32_t keyCode )
 {
    uint32_t  linuxKeyCode;
-   
+
    switch( keyCode )
    {
       case PX_KEY_BACKSPACE:
@@ -1286,11 +1294,11 @@ uint32_t pxWayland::linuxFromPX( uint32_t keyCode )
          break;
       case PX_KEY_GREEN:
          linuxKeyCode = KEY_GREEN;
-         break;         
+         break;
       default:
          linuxKeyCode= -1;
          break;
    }
-   
+
    return  linuxKeyCode;
 }

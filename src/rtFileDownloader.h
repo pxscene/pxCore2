@@ -92,6 +92,8 @@ public:
   char* httpErrorBuffer(void);
   void setCurlDefaultTimeout(bool val);
   bool isCurlDefaultTimeoutSet();
+  void setOrigin(const char* origin);
+  rtString origin();
 
 private:
   rtString mFileUrl;
@@ -119,6 +121,7 @@ private:
   bool mHTTPFailOnError;
   char mHttpErrorBuffer[CURL_ERROR_SIZE];
   bool mDefaultTimeout;
+  rtString mOrigin;
 };
 
 struct rtFileDownloadHandle

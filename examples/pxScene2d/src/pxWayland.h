@@ -176,7 +176,7 @@ private:
   pxMatrix4f mLastMatrix;
 
   static void invalidate( WstCompositor *wctx, void *userData );
-  static void decoderHandleCallback( WstCompositor *wctx, void *userData,void* decoderHandle);
+  static void decoderHandleCallback( WstCompositor *wctx, void *userData, uint64_t decoderHandle);
   static void hidePointer( WstCompositor *wctx, bool hide, void *userData );
   static void clientStatus( WstCompositor *wctx, int status, int pid, int detail, void *userData );
   static void remoteDisconnectedCB(void *data);

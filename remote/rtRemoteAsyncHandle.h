@@ -1,6 +1,8 @@
 #ifndef __RT_REMOTE_ASYNC_HANDLE__
 #define __RT_REMOTE_ASYNC_HANDLE__
 
+#include <functional>
+
 #include "rtRemoteCorrelationKey.h"
 #include "rtRemoteEnvironment.h"
 #include "rtRemoteMessage.h"
@@ -15,7 +17,7 @@ public:
   ~rtRemoteAsyncHandle();
 
   rtRemoteMessagePtr response() const;
-  rtError wait(uint32_t timeoutInMilliSeconds);
+  rtError waitUntil(uint32_t timeoutInMilliSeconds, std::function<rtError()> connectionState);
 
 private:
   rtRemoteAsyncHandle(rtRemoteEnvironment* env, rtRemoteCorrelationKey k);

@@ -20,6 +20,7 @@
 
 #include "rtUrlUtils.h"
 #include <string.h>
+#include <ctype.h>
 
 
 #if !defined(WIN32) && !defined(ENABLE_DFB)
@@ -84,4 +85,34 @@ rtString rtUrlEncodeParameters(const char* url)
 
   // printf("Returning %s\n",retVal.cString());
   return retVal;
+}
+
+/*
+ * rtUrlGetOrigin: Takes an url in the form of
+ *  "http://blahblah/index.js?some=some1&parm=value" and
+ *  returns an rtString in form scheme://host or
+ *  an empty rtString if url is not valid
+ */
+rtString rtUrlGetOrigin(const char* url)
+{
+  if (url != NULL)
+  {
+    // See http://www.ietf.org/rfc/rfc3986.txt.
+    // URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+    // scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+    const char* u = url;
+    for (; *u && (*u == '+' || *u == '-' || *u == '.' || isalpha(*u) || isdigit(*u)); u++);
+    if (*u == ':' && u != url)
+    {
+      u++;
+      if (0 == strncmp(u, "//", 2))
+      {
+        u += 2;
+        for (; *u && *u != '/' && *u != '?' && *u != '#'; u++);
+        uint32_t byteLen = u - url;
+        return rtString(url, byteLen);
+      }
+    }
+  }
+  return rtString();
 }

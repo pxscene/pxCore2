@@ -25,4 +25,5 @@
       {"url":"../tests/test_pxImage9.js", "title":"test_pxImage9","useBaseURI":"true"},
       {"url":"../tests/test_moveForwardBackward.js", "title":"test_moveForwardBackward","useBaseURI":"true"},
       {"url":"../tests/test_draw_SVG_paths.js", "title":"test_draw_SVG_paths","useBaseURI":"true"}
+      {"url":"../tests/test_xre2-267.js",  "title":"test_xre2-267","useBaseURI":"true"}
 ]

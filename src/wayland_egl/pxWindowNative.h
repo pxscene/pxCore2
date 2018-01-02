@@ -155,6 +155,7 @@ protected:
     bool mResizeFlag;
     double mLastAnimationTime;
     bool mVisible;
+    bool mDirty;
     
     //timer variables
     static bool mEventLoopTimerStarted;

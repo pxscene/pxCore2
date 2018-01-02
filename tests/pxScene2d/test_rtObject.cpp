@@ -187,6 +187,33 @@ class rtObjectTest : public testing::Test
       rtObject obj;
       EXPECT_TRUE (RT_PROP_NOT_FOUND == obj.Set(1,NULL));
     }
+
+    void sendTests()
+    {
+      rtObject obj;
+      rtError e = obj.send("exampleMessage");
+      e = obj.send("exampleMessage", rtValue());
+      e = obj.send("exampleMessage", rtValue(), rtValue());
+      e = obj.send("exampleMessage", rtValue(), rtValue(), rtValue());
+      e = obj.send("exampleMessage", rtValue(), rtValue(), rtValue(), rtValue());
+      e = obj.send("exampleMessage", rtValue(), rtValue(), rtValue(), rtValue(), rtValue());
+      EXPECT_TRUE (RT_OK != e);
+    }
+
+    void sendReturnsTests()
+    {
+      rtObject obj;
+      rtString result;
+      rtError e = obj.sendReturns("exampleMessage", result);
+      e = obj.sendReturns("exampleMessage", rtValue(), result);
+      e = obj.sendReturns("exampleMessage", rtValue(), rtValue(), result);
+      e = obj.sendReturns("exampleMessage", rtValue(), rtValue(), rtValue(), result);
+      e = obj.sendReturns("exampleMessage", rtValue(), rtValue(), rtValue(), rtValue(), result);
+      e = obj.sendReturns("exampleMessage", rtValue(), rtValue(), rtValue(), rtValue(), rtValue(), result);
+      e = obj.sendReturns("exampleMessage", rtValue(), rtValue(), rtValue(), rtValue(), rtValue(), rtValue(), result);
+      e = obj.sendReturns("exampleMessage", rtValue(), rtValue(), rtValue(), rtValue(), rtValue(), rtValue(), rtValue(), result);
+      EXPECT_TRUE (RT_OK != e);
+    }
 };
 
 TEST_F(rtObjectTest, rtObjectTests)
@@ -194,6 +221,8 @@ TEST_F(rtObjectTest, rtObjectTests)
   allKeysTest();
   getValByIndexTest();
   setValWithIdFailedTest();
+  sendTests();
+  sendReturnsTests();
 }
 
 class rtMapObjectTest : public testing::Test

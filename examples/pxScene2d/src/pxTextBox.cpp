@@ -66,6 +66,10 @@ void pxTextBox::resourceReady(rtString readyResolution)
   if( !readyResolution.compare("resolve"))
   {
     mFontLoaded = true;
+    if (getFontResource() != NULL)
+    {
+      getFontResource()->setupFont();
+    }
 
     if( mInitialized) {
       setNeedsRecalc(true);
@@ -246,7 +250,6 @@ void pxTextBox::update(double t)
  *  wrapping, truncation and dimensions; but it should not render the
  *  text yet.
  * */
-void pxTextBox::determineMeasurementBounds() {}
 void pxTextBox::clearMeasurements()
 {
     lastLineNumber = 0;
