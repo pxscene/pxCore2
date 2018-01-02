@@ -149,14 +149,21 @@ void pxText::update(double t)
       if (cached.getPtr())
       {
         pxContextFramebufferRef previousSurface = context.getCurrentFramebuffer();
-        context.setFramebuffer(cached);
-        pxMatrix4f m;
-        context.setMatrix(m);
-        context.setAlpha(1.0);
-        context.clear(getFBOWidth(),getFBOHeight());
-        draw();
+        if (context.setFramebuffer(cached) == PX_OK)
+        {
+          pxMatrix4f m;
+          context.setMatrix(m);
+          context.setAlpha(1.0);
+          context.clear(getFBOWidth(), getFBOHeight());
+          draw();
+          mCached = cached;
+        }
+        else
+        {
+          mCached = NULL;
+        }
         context.setFramebuffer(previousSurface);
-        mCached = cached;
+
       }
     }
     else mCached = NULL;
