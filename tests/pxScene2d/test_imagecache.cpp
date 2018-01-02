@@ -135,6 +135,7 @@ class rtFileDownloaderMock : public rtFileDownloader
       char* mHttpResponseRealData;
 };
 
+//http cache data mock for handling download request
 class rtHttpCacheDataMock : public rtHttpCacheData
 {
   public:
