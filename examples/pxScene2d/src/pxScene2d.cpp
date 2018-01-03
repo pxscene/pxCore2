@@ -1940,8 +1940,6 @@ rtError pxScene2d::createPath(rtObjectRef p, rtObjectRef& o)
 {
   if(mCanvas == NULL) // only need one.
   {
-    rtLogInfo("CREATE ... pxScene2d::mCanvas \n"); // JUNK
-
     // Lazy init... only on 'path'
     mCanvas = new pxCanvas(this);
     mCanvas.set(p);

@@ -60,7 +60,8 @@ class pxContext {
   ~pxContext();
 
   void init();
-  
+  void term();
+
   // debugging outlines 
   bool showOutlines() { return mShowOutlines; }
   void setShowOutlines(bool v) { mShowOutlines = v; }

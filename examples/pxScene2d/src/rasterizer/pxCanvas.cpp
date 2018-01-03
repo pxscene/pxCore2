@@ -45,8 +45,6 @@ pxCanvas::pxCanvas(pxScene2d* scene): pxObject(scene)
 
 pxCanvas::~pxCanvas()
 {
-  rtLogInfo("DESTROY ... ~pxCanvas() \n"); // JUNK
-
   //term();
 }
 

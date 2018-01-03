@@ -901,14 +901,10 @@ public:
   pxSwTexture() : mWidth(0), mHeight(0), mOffscreen(), mTextureName(0), mRasterTextureCreated(false),  mInitialized(false)
   {
     //ctor
-   
-    rtLogInfo("CREATE ... pxSwTexture() \n"); // JUNK
   };
   
   ~pxSwTexture()
   {
-    rtLogInfo("DESTROY ... ~pxSwTexture() \n"); // JUNK
-
     deleteTexture();
     mOffscreen.term();
   };
@@ -1006,8 +1002,6 @@ public:
   {
     if (mTextureName != 0)
     {
-      rtLogInfo("DESTROY ... pxSwTexture::deleteTexture(%d bytes) \n", (-1 * mWidth * mHeight * 4)); // JUNK
-
       glDeleteTextures(1, &mTextureName);
       mTextureName = 0;
       mRasterTextureCreated = false;
@@ -1052,8 +1046,6 @@ public:
       glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
-
-      rtLogInfo("CREATE ... pxSwTexture::bindGLTexture( %d bytes) \n", (mWidth * mHeight * 4)); // JUNK
 
       context.adjustCurrentTextureMemorySize(mWidth * mHeight * 4); // USE
       mRasterTextureCreated = true;
@@ -2110,13 +2102,6 @@ pxContext::~pxContext()
     delete gTextureMaskedShader;
     gTextureMaskedShader = NULL;
   }
-
-  if(swRasterTexture.getPtr() != NULL)
-  {
-    rtLogInfo("JUNK ... pxContext::~pxContext() - DESTROY 'swRasterTexture' \n"); // JUNK
-
-    swRasterTexture = NULL;
-  }
 }
 
 void pxContext::init()
@@ -2185,6 +2170,11 @@ void pxContext::init()
 #endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
 
   std::srand(unsigned (std::time(0)));
+}
+
+void pxContext::term()  // clean up statics 
+{
+  swRasterTexture = NULL;
 }
 
 void pxContext::setSize(int w, int h)
