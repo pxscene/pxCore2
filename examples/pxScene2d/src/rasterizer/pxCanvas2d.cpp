@@ -26,13 +26,12 @@
 #include "pxScene2d.h"
 
 #include "pxCanvas2d.h"
-#include "pxContext.h"
+
+//#include "pxContext.h"
+//extern pxContext context;
 
 #include <stdio.h>
 #include "math.h"
-
-
-extern pxContext context;
 
 #ifdef USE_PERF_TIMERS
 #include "pxTimer.h"

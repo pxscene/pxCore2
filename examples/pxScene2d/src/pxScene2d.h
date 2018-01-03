@@ -1537,9 +1537,9 @@ private:
   int frameCount;
   int mWidth;
   int mHeight;
-  
+
   rtObjectRef mCanvas; // for SVG drawing
-  
+
   rtEmitRef mEmit;
 
 // TODO Top level scene only

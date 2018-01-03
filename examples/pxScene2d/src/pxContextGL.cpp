@@ -905,6 +905,8 @@ public:
   
   ~pxSwTexture()
   {
+    rtLogInfo("DESTROY ... ~pxSwTexture() \n"); // JUNK
+
     deleteTexture();
     mOffscreen.term();
   };
@@ -1002,6 +1004,8 @@ public:
   {
     if (mTextureName != 0)
     {
+      rtLogInfo("DESTROY ... pxSwTexture::deleteTexture(%d bytes) \n", (-1 * mWidth * mHeight * 4)); // JUNK
+
       glDeleteTextures(1, &mTextureName);
       mTextureName = 0;
       mRasterTextureCreated = false;
@@ -1046,6 +1050,8 @@ public:
       glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
+
+      rtLogInfo("CREATE ... pxSwTexture::bindGLTexture %d bytes) \n", (-1 * mWidth * mHeight * 4)); // JUNK
 
       context.adjustCurrentTextureMemorySize(mWidth * mHeight * 4); // USE
       mRasterTextureCreated = true;
@@ -2105,6 +2111,8 @@ pxContext::~pxContext()
 
   if(swRasterTexture.getPtr() != NULL)
   {
+    rtLogInfo("CREATE ... pxContext::~pxContext() - DESTROY 'swRasterTexture' \n");
+
     swRasterTexture = NULL;
   }
 }

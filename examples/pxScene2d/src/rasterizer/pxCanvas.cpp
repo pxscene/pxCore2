@@ -27,12 +27,9 @@
 
 #include "pxPath.h"
 #include "pxCanvas.h"
-#include "pxContext.h"
 
 #include <stdio.h>
 #include "math.h"
-
-extern pxContext context;
 
 #ifdef USE_PERF_TIMERS
 #include "pxTimer.h"
@@ -48,7 +45,7 @@ pxCanvas::pxCanvas(pxScene2d* scene): pxObject(scene)
 
 pxCanvas::~pxCanvas()
 {
-  rtLogInfo("DESTROY ... ~pxCanvas() \n");
+  rtLogInfo("DESTROY ... ~pxCanvas() \n"); // JUNK
 
   //term();
 }
