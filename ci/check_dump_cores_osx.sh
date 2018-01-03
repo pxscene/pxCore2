@@ -11,12 +11,12 @@ echo "sudo lldb -o \"attach $process\" -o \"bt all\" -o \"quit\" 1>lldblogs 2>/d
 sudo lldb -o "attach $process" -o "bt all" -o "quit" 1>lldblogs 2>/dev/null
 
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-then
-echo "Core stack details ---------------------------------------- from $path"
-sudo cat lldblogs
+	then
+	echo "Core stack details ---------------------------------------- from $path"
+	sudo cat lldblogs
 else
-echo "Core stack details ---------------------------------------- from $path" >> $logfile
-sudo cat lldblogs >> $logfile
+	echo "Core stack details ---------------------------------------- from $path" >> $logfile
+	sudo cat lldblogs >> $logfile
 fi
 sudo rm -rf lldblogs
 exit 0;
