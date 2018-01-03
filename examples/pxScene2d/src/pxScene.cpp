@@ -100,6 +100,7 @@ char *nodeInput = NULL;
 char** g_origArgv = NULL;
 #endif
 bool gDumpMemUsage = false;
+extern bool gApplicationIsClosing;
 extern int pxObjectCount;
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
@@ -230,6 +231,9 @@ protected:
     if (mClosed)
       return;
     mClosed = true;
+    if(gDumpMemUsage)
+      gApplicationIsClosing = true;
+    
     rtLogInfo(__FUNCTION__);
     ENTERSCENELOCK();
     if (mView)
