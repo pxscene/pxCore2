@@ -1,4 +1,19 @@
 #!/bin/sh
+checkError()
+{
+  if [ "$1" -ne 0 ]
+  then
+    echo "*********************************************************************";
+    echo "*******************CODE COVERAGE FAIL DETAILS************************";
+    echo "CI failure reason: $2"
+    echo "Cause: $3"
+    echo "Reproduction/How to fix: $4"
+    echo "*********************************************************************";
+    echo "*********************************************************************";
+    exit 1
+  fi
+}
+
 ulimit -c unlimited
 
 cd $TRAVIS_BUILD_DIR
@@ -42,10 +57,7 @@ then
 	retVal=$?
 	if [ "$retVal" -eq 1 ]
 	then
-		echo "CI failure reason: unittests execution failed"
-		echo "Cause: core dump"
-		echo "Reproduction/How to fix: run unittests locally"
-		exit 1;
+		checkError $retVal "unittests execution failed" "Core dump" "Run unittests locally"
 	fi
 fi
 
@@ -55,21 +67,22 @@ kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|aw
 sleep 5s;
 pkill -9 -f pxscene2dtests.sh
 
+errCause=""
 #check for process hung
 grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
 if [ "$retVal" -ne 0 ]
 then
-	echo "CI failure reason: unittests execution failed"
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 	then
-		echo "Cause: Either one or more tests failed. Check the below logs"
-		cat $TESTLOGS
+		errCause="Either one or more tests failed. Check the above logs"
+		echo "********************PRINTING TEST LOGS************************"
+                cat $TESTLOGS
+                echo "************************LOG ENDS******************************"
 	else
-		echo "Cause: Either one or more tests failed. Check the log file $TESTLOGS"
+		errCause="Either one or more tests failed. Check the log file $TESTLOGS"
 	fi 
-	echo "Reproduction/How to fix: run unittests locally"
-	exit 1;
+	checkError $retVal "unittests execution failed" "$errCause" "Rrun unittests locally"
 fi
 
 #check for failed test
@@ -78,16 +91,16 @@ retVal=$?
 cd $TRAVIS_BUILD_DIR;
 if [ "$retVal" -eq 0 ]
 then
-	echo "CI failure reason: unittests execution failed"
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 	then
-		echo "Cause: Either one or more tests failed. Check the below logs"
-		cat $TESTLOGS
+		errCause="Either one or more tests failed. Check the above logs"
+		echo "********************PRINTING TEST LOGS************************"
+                cat $TESTLOGS
+                echo "************************LOG ENDS******************************"
 	else
-		echo "Cause: Either one or more tests failed. Check the log file $TESTLOGS"
+		errCause="Either one or more tests failed. Check the log file $TESTLOGS"
 	fi 
-	echo "Reproduction/How to fix: run unittests locally"
-	exit 1;
+	checkError -1 "unittests execution failed" "$errCause" "Run unittests locally"
 else
 	exit 0;
 fi
