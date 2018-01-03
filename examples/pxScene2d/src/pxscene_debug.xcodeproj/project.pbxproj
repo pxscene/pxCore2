@@ -18,6 +18,8 @@
 		AE67B1711FF18EB100521C38 /* rtJsModules.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtJsModules.cpp; path = ../../../src/rtScriptDuk/rtJsModules.cpp; sourceTree = "<group>"; };
 		AE67B1721FF18EB100521C38 /* rtScriptDuk.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtScriptDuk.cpp; path = ../../../src/rtScriptDuk/rtScriptDuk.cpp; sourceTree = "<group>"; };
 		AE67B1731FF18EB100521C38 /* rtWrapperUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtWrapperUtils.cpp; path = ../../../src/rtScriptDuk/rtWrapperUtils.cpp; sourceTree = "<group>"; };
+		AE67B1741FFD30A800521C38 /* rtScript.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtScript.cpp; path = ../../../src/rtScript.cpp; sourceTree = "<group>"; };
+		AE67B1751FFD30A800521C38 /* rtScript.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtScript.h; path = ../../../src/rtScript.h; sourceTree = "<group>"; };
 		AE8EE04B1E8E70E100C19ED5 /* pxArchive.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxArchive.cpp; sourceTree = "<group>"; };
 		AE8EE04C1E8E70E100C19ED5 /* pxArchive.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxArchive.h; sourceTree = "<group>"; };
 		AE8EE04D1E8E70E100C19ED5 /* pxConstants.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxConstants.cpp; sourceTree = "<group>"; };
@@ -67,6 +69,8 @@
 		AE0663891E5DB3B900928DC5 = {
 			isa = PBXGroup;
 			children = (
+				AE67B1741FFD30A800521C38 /* rtScript.cpp */,
+				AE67B1751FFD30A800521C38 /* rtScript.h */,
 				AE67B16F1FF18EB000521C38 /* node_headers.h */,
 				AE67B16E1FF18EB000521C38 /* rtFunctionWrapper.cpp */,
 				AE67B1701FF18EB100521C38 /* rtFunctionWrapper.h */,

@@ -83,16 +83,17 @@ if (APPLE)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/curl/lib/.libs)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/zlib)
     set(PLATFORM_LIBRARIES pxCore rtCore_s pthread v8_libplatform png16 jpeg freetype curl z)
-    if (USE_DUKTAPE)
-        message("building for duktape")
+
+    if (SUPPORT_DUKTAPE)
         include_directories(AFTER ${EXTDIR}/dukluv/src ${EXTDIR}/dukluv/lib/duktape/src ${EXTDIR}/dukluv/lib/uv/include)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/dukluv/build/)
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} duktape.a dschema.a duv.a uv.a dl)
-    else ()
-        message("building for node")
+    endif()
+
+    if (SUPPORT_NODE)
         # node really wants to be first...
         set(PLATFORM_LIBRARIES node ${PLATFORM_LIBRARIES} )
-    endif (USE_DUKTAPE)
+    endif()
 
     include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${FREETYPEINC})
     if (DEFINED ENV{CODE_COVERAGE})

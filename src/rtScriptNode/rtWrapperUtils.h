@@ -8,12 +8,14 @@
 #include <rtString.h>
 #include <rtValue.h>
 
+#include "rtScript.h"
+
 #include <stdarg.h>
 #include <string>
 #include <map>
 #include <memory>
 
-bool rtIsMainThread();
+bool rtIsMainThreadNode();
 
 namespace rtScriptNodeUtils
 {
@@ -201,10 +203,6 @@ public:
 
 
 } // namespace
-
-bool rtWrapperSceneUpdateHasLock();
-void rtWrapperSceneUpdateEnter();
-void rtWrapperSceneUpdateExit();
 
 class rtWrapperSceneUnlocker
 {

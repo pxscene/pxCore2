@@ -6,6 +6,8 @@
 #include <rtString.h>
 #include <rtValue.h>
 
+#include "rtScript.h"
+
 #include <stdarg.h>
 #include <string>
 #include <map>
@@ -15,7 +17,7 @@ extern "C" {
 #include "duv.h"
 }
 
-bool rtIsMainThread();
+bool rtIsMainThreadDuk();
 
 class rtWrapperError
 {
@@ -48,11 +50,6 @@ protected:
 protected:
   TRef mWrappedObject;
 };
-
-
-bool rtWrapperSceneUpdateHasLock();
-void rtWrapperSceneUpdateEnter();
-void rtWrapperSceneUpdateExit();
 
 class rtWrapperSceneUnlocker
 {

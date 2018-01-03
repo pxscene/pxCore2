@@ -393,7 +393,7 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
 
   if (result) // wants result run synchronously
   {
-    if (rtIsMainThread()) // main thread run now
+    if (rtIsMainThreadNode()) // main thread run now
     {
       *result = callback->run();
       delete callback;

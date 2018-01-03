@@ -25,5 +25,10 @@
 #include "rtString.h"
 
 rtError rtGetCurrentDirectory(rtString& d);
+rtError rtGetHomeDirectory(rtString& d);
+
+rtError rtGetEnv(const char* e, rtString& v);
+
+bool rtFileExists(const char* f);
 
 #endif
