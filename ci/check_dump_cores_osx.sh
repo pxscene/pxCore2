@@ -12,12 +12,12 @@ sudo lldb -o "attach $process" -o "bt all" -o "quit" 1>lldblogs 2>/dev/null
 
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 	then
-	echo "********************PRINTING CORE STACT DETAILS************************"
+	echo "********************PRINTING CORE STACK DETAILS************************"
         echo "PATH :  $path"
 	sudo cat lldblogs
 	echo "***********************************************************************"
 else
-	echo "********************PRINTING CORE STACT DETAILS************************" >> $logfile
+	echo "********************PRINTING CORE STACK DETAILS************************" >> $logfile
 	echo "PATH :  $path" >> $logfile
 	sudo cat lldblogs >> $logfile
 	echo "***********************************************************************"
