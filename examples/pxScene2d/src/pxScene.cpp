@@ -423,7 +423,7 @@ int pxMain(int argc, char* argv[])
   rtLogWarn("Setting  __rt_main_thread__ to be %x\n",pthread_self());
    __rt_main_thread__ = pthread_self(); //  NB
   rtLogWarn("Now  __rt_main_thread__ is %x\n",__rt_main_thread__);
-  rtLogWarn("rtIsMainThread() returns %d\n",rtIsMainThread());
+  //rtLogWarn("rtIsMainThread() returns %d\n",rtIsMainThread());
 
     #if PX_PLATFORM_X11
     XInitThreads();

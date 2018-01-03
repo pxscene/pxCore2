@@ -181,18 +181,7 @@ endif (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
 
 include_directories(AFTER ${NODEPATH}/src ${NODEPATH}/deps/uv/include ${NODEPATH}/deps/v8 ${NODEPATH}/deps/debugger-agent/include ${NODEPATH}/deps/v8/include ${NODEPATH}/deps/cares/include)
 
-
-if (USE_DUKTAPE)
-    include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/duktape)
-endif (USE_DUKTAPE)
-
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
-
-if (USE_DUKTAPE)
-add_definitions(-DRTSCRIPT_USE_DUKTAPE)
-else()
-add_definitions(-DRTSCRIPT_USE_NODE)
-endif()
 
 set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
 
@@ -202,13 +191,19 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
         rtScript.cpp)
         
-if (USE_DUKTAPE)
+if (SUPPORT_DUKTAPE)
+    message("Adding Duktape scripting support")
+    add_definitions(-DRTSCRIPT_SUPPORT_DUKTAPE)
     set(PXCORE_FILES ${PXCORE_FILES} rtScriptDuk/rtScriptDuk.cpp rtScriptDuk/rtFunctionWrapper.cpp rtScriptDuk/rtObjectWrapper.cpp
-	    rtScriptDuk/rtWrapperUtils.cpp rtScriptDuk/rtJsModules.cpp)
-else (USE_DUKTAPE)
+        rtScriptDuk/rtWrapperUtils.cpp rtScriptDuk/rtJsModules.cpp)
+endif()
+
+if (SUPPORT_NODE)
+    message("Adding Node scripting support")
+    add_definitions(-DRTSCRIPT_SUPPORT_NODE)
     set(PXCORE_FILES ${PXCORE_FILES} rtScriptNode/rtScriptNode.cpp rtScriptNode/jsCallback.cpp rtScriptNode/rtFunctionWrapper.cpp 
         rtScriptNode/rtObjectWrapper.cpp rtScriptNode/rtWrapperUtils.cpp)
-endif (USE_DUKTAPE)
+endif()
 
 
 if (PXCORE_MATRIX_HELPERS)
@@ -227,14 +222,9 @@ endif (PXCORE_PERMISSIONS_CHECK)
 
 set(RTCORE_FILES utf8.c rtString.cpp rtLog.cpp rtValue.cpp rtError.cpp ioapi_mem.c)
 
-#if (USE_DUKTAPE)
-#    set(RTCORE_FILES ${RTCORE_FILES} duktape/rtPromise.cpp)
-#else (USE_DUKTAPE)
-    set(RTCORE_FILES ${RTCORE_FILES} rtPromise.cpp)
-#endif (USE_DUKTAPE)
+set(RTCORE_FILES ${RTCORE_FILES} rtPromise.cpp)
 
 set(RTCORE_FILES ${RTCORE_FILES} rtObject.cpp)
-
 
 if (OUTPUT_LIBS_LOCAL)
     message("Output pxCore and rtCore libs locally")
@@ -243,11 +233,11 @@ if (OUTPUT_LIBS_LOCAL)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif (OUTPUT_LIBS_LOCAL)
 
-if (USE_DUKTAPE)
+#if (USE_DUKTAPE)
     include_directories(AFTER ${EXTDIR}/dukluv/lib/duktape/src)
     include_directories(AFTER ${EXTDIR}/dukluv/lib/uv/include)
     include_directories(AFTER ${EXTDIR}/dukluv/src)
-endif(USE_DUKTAPE)
+#endif(USE_DUKTAPE)
 
 if (BUILD_PXCORE_LIBS)
     message("Building pxcore libs")

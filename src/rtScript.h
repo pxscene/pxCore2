@@ -25,6 +25,10 @@
 #include "rtValue.h"
 #include "rtRef.h"
 
+bool rtWrapperSceneUpdateHasLock();
+void rtWrapperSceneUpdateEnter();
+void rtWrapperSceneUpdateExit();
+
 class rtIScriptContext
 {
 public:
@@ -42,6 +46,26 @@ public:
 
 typedef rtRef<rtIScriptContext> rtScriptContextRef;
 
+class rtIScript
+{
+public:
+  virtual unsigned long AddRef() = 0;
+  virtual unsigned long Release() = 0;
+
+  virtual rtError init() = 0;
+  virtual rtError term() = 0;
+
+  virtual rtString engine() = 0;
+  
+  virtual rtError createContext(const char *lang, rtScriptContextRef& ctx) = 0;
+
+  virtual rtError pump() = 0;
+
+  virtual rtError collectGarbage() = 0;
+};
+
+typedef rtRef<rtIScript> rtScriptRef;
+
 class rtScript
 {
 public:
@@ -50,12 +74,18 @@ public:
 
   rtError init();
   rtError term();
+
+  rtString engine();
   
   rtError createContext(const char *lang, rtScriptContextRef& ctx);
 
   rtError pump();
 
   rtError collectGarbage();
+
+private:
+  rtScriptRef mScript;
 };
+
 
 #endif

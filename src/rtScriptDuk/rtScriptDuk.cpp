@@ -89,7 +89,187 @@ extern "C" {
 #pragma GCC diagnostic pop
 #endif
 
+#include "rtScript.h"
 #include "rtScriptDuk.h"
+
+#include "rtCore.h"
+#include "rtObject.h"
+#include "rtValue.h"
+#include "rtAtomic.h"
+
+#include "rtScript.h"
+
+// TODO eliminate std::string
+#include <string>
+#include <map>
+
+extern "C" {
+#include "duv.h"
+}
+
+#if !defined(WIN32) && !defined(ENABLE_DFB)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+#ifndef PX_PLATFORM_MAC
+#ifndef __clang__
+#pragma GCC diagnostic ignored "-Werror"
+#endif
+#endif
+
+#pragma GCC diagnostic ignored "-Wall"
+#endif
+
+#include "uv.h"
+#include "include/libplatform/libplatform.h"
+
+#include "rtObjectWrapper.h"
+#include "rtFunctionWrapper.h"
+
+#define SANDBOX_IDENTIFIER  ( (const char*) "_sandboxStuff" )
+#define SANDBOX_JS          ( (const char*) "rcvrcore/sandbox.js")
+
+#if !defined(WIN32) & !defined(ENABLE_DFB)
+#pragma GCC diagnostic pop
+#endif
+
+#define USE_CONTEXTIFY_CLONES
+
+class rtScriptDuk;
+class rtDukContext;
+
+typedef rtRef<rtDukContext> rtDukContextRef;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if 0
+typedef struct args_
+{
+  int    argc;
+  char **argv;
+
+  args_() { argc = 0; argv = NULL; }
+  args_(int n = 0, char** a = NULL) : argc(n), argv(a) {}
+}
+args_t;
+#endif
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class rtDukContext: rtIScriptContext
+{
+public:
+  rtDukContext();
+#ifdef USE_CONTEXTIFY_CLONES
+  rtDukContext(rtDukContextRef clone_me);
+#endif
+
+  ~rtDukContext();
+
+  rtError add(const char *name, rtValue  const& val);
+  rtValue get(const char *name);
+  //rtValue get(std::string name);
+
+  bool    has(const char *name);
+  //bool    has(std::string name);
+
+  //bool   find(const char *name);  //DEPRECATED
+
+  rtError runScript(const char        *script, rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
+  //rtError runScript(const std::string &script, rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
+  rtError runFile  (const char *file,          rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
+
+  unsigned long AddRef()
+  {
+    return rtAtomicInc(&mRefCount);
+  }
+
+  unsigned long Release();
+
+  const char   *js_file;
+  std::string   js_script;
+
+  duk_context              *dukCtx;
+  uv_loop_t                *uvLoop;
+
+private:
+  void createEnvironment();
+
+#ifdef USE_CONTEXTIFY_CLONES
+  void clonedEnvironment(rtDukContextRef clone_me);
+#endif
+
+  int mRefCount;
+  rtAtomic mId;
+  void* mContextifyContext;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef std::map<uint32_t, rtDukContextRef> rtDukContexts;
+//typedef std::map<uint32_t, rtDukContextRef>::const_iterator rtNodeContexts_iterator;
+
+class rtScriptDuk: public rtIScript
+{
+public:
+  rtScriptDuk();
+  rtScriptDuk(bool initialize);
+
+  virtual ~rtScriptDuk();
+
+
+  unsigned long AddRef()
+  {
+    return rtAtomicInc(&mRefCount);
+  }
+
+  unsigned long Release();  
+
+  rtError init();
+
+  rtString engine() { return "duktape"; }
+
+  rtError pump();
+
+  rtDukContextRef getGlobalContext() const;
+  rtDukContextRef createContext(bool ownThread = false);
+  rtError createContext(const char *lang, rtScriptContextRef& ctx);
+#ifndef RUNINMAIN
+  bool isInitialized();
+  bool needsToEnd() { /*rtLogDebug("needsToEnd returning %d\n",mNeedsToEnd);*/ return mNeedsToEnd;};
+  void setNeedsToEnd(bool end) { /*rtLogDebug("needsToEnd being set to %d\n",end);*/ mNeedsToEnd = end;}
+#endif
+
+  //std::string name() const;
+
+  rtError collectGarbage();
+private:
+#ifdef ENABLE_DEBUG_MODE
+  void init2();
+#else
+  void init2(int argc, char** argv);
+#endif
+  rtError term();
+
+  void nodePath();
+
+  duk_context                   *dukCtx;
+  std::vector<uv_loop_t *>       uvLoops;
+  uv_thread_t                    dukTid;
+  bool                           node_is_initialized;
+
+#ifdef USE_CONTEXTIFY_CLONES
+  rtDukContextRef mRefContext;
+#endif
+
+  bool mTestGc;
+#ifndef RUNINMAIN
+  bool mNeedsToEnd;
+#endif
+
+  int mRefCount;
+
+};
 
 #ifndef RUNINMAIN
 extern uv_loop_t *nodeLoop;
@@ -108,8 +288,8 @@ extern uv_loop_t *nodeLoop;
 #endif
 
 #ifdef ENABLE_DEBUG_MODE
-int g_argc = 0;
-char** g_argv;
+int g_argcduk = 0;
+char** g_argvduk;
 #endif
 #ifndef ENABLE_DEBUG_MODE
 extern args_t *s_gArgs;
@@ -128,14 +308,14 @@ static const char** exec_argv;
 static rtAtomic sNextId = 100;
 
 
-args_t *s_gArgs;
+//args_t *s_gArgs;
 
 #ifdef RUNINMAIN
 //extern rtNode script;
 #endif
-rtDukContexts  mNodeContexts;
+//rtDukContexts  mDukContexts;
 
-bool nodeTerminated = false;
+//bool nodeTerminated = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,7 +331,7 @@ static pthread_t __rt_main_thread__;
 //
 // rtIsMainThread() - Currently:   identify BACKGROUND thread which running JS code.
 //
-bool rtIsMainThread()
+bool rtIsMainThreadDuk()
 {
   // Since this is single threaded version we're always on the js thread
   return true;
@@ -839,7 +1019,7 @@ rtError rtDukContext::runScript(const char* szscript, rtValue* retVal /*= NULL*/
   return RT_OK;
 }
 
-std::string readFile(const char *file)
+static std::string readFile(const char *file)
 {
   std::ifstream       src_file(file);
   std::stringstream   src_script;
@@ -876,7 +1056,7 @@ rtError rtDukContext::runFile(const char *file, rtValue* retVal /*= NULL*/, cons
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtScriptDuk::rtScriptDuk()
+rtScriptDuk::rtScriptDuk():mRefCount(0)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false), node_is_initialized(false)
@@ -890,7 +1070,7 @@ rtScriptDuk::rtScriptDuk()
   init();
 }
 
-rtScriptDuk::rtScriptDuk(bool initialize)
+rtScriptDuk::rtScriptDuk(bool initialize):mRefCount(0)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false), node_is_initialized(false)
@@ -907,7 +1087,7 @@ rtScriptDuk::rtScriptDuk(bool initialize)
   }
 }
 
-void rtScriptDuk::init()
+rtError rtScriptDuk::init()
 {
   rtLogInfo(__FUNCTION__);
   char const* s = getenv("RT_TEST_GC");
@@ -977,6 +1157,7 @@ void rtScriptDuk::init()
   init2(argc, argv);
 #endif
 #endif // ENABLE_NODE_V_6_9
+return RT_OK;
 }
 
 rtScriptDuk::~rtScriptDuk()
@@ -985,19 +1166,31 @@ rtScriptDuk::~rtScriptDuk()
   term();
 }
 
-void rtScriptDuk::pump()
+unsigned long rtScriptDuk::Release()
+{
+    long l = rtAtomicDec(&mRefCount);
+    if (l == 0)
+    {
+     delete this;
+    }
+    return l;
+}
+
+rtError rtScriptDuk::pump()
 {
 #ifndef RUNINMAIN
-  return;
+  return RT_OK;
 #else
   for (int i = 0; i < uvLoops.size(); ++i) {
     uv_run(uvLoops[i], UV_RUN_NOWAIT);
   }
 #endif // RUNINMAIN
+  return RT_OK;
 }
 
-void rtScriptDuk::collectGarbage()
+rtError rtScriptDuk::collectGarbage()
 {
+  return RT_OK;
 }
 
 #if 0
@@ -1046,9 +1239,9 @@ void rtScriptDuk::init2(int argc, char** argv)
 {
   // Hack around with the argv pointer. Used for process.title = "blah".
 #ifdef ENABLE_DEBUG_MODE
-  g_argv = uv_setup_args(g_argc, g_argv);
+  g_argvduk = uv_setup_args(g_argcduk, g_argvduk);
 #else
-  argv = uv_setup_args(argc, argv);
+  argvduk = uv_setup_args(argcduk, argvduk);
 #endif
 
   rtLogInfo(__FUNCTION__);
@@ -1086,10 +1279,10 @@ void rtScriptDuk::init2(int argc, char** argv)
   }
 }
 
-void rtScriptDuk::term()
+rtError rtScriptDuk::term()
 {
   rtLogInfo(__FUNCTION__);
-  nodeTerminated = true;
+  //nodeTerminated = true;
 
   //uv_loop_close(dukLoop);
   duk_destroy_heap(dukCtx);
@@ -1100,6 +1293,7 @@ void rtScriptDuk::term()
     mRefContext->Release();
   }
 #endif
+  return RT_OK;
 }
 
 #if 0
@@ -1178,6 +1372,14 @@ rtDukContextRef rtScriptDuk::createContext(bool ownThread)
   return ctxref;
 }
 
+rtError rtScriptDuk::createContext(const char *lang, rtScriptContextRef& ctx)
+{
+  rtDukContextRef dukCtx = createContext();
+
+  ctx = (rtIScriptContext*)dukCtx.getPtr();
+  return RT_OK;
+}
+
 unsigned long rtDukContext::Release()
 {
     long l = rtAtomicDec(&mRefCount);
@@ -1186,4 +1388,11 @@ unsigned long rtDukContext::Release()
      delete this;
     }
     return l;
+}
+
+
+rtError createScriptDuk(rtScriptRef& script)
+{
+  script = new rtScriptDuk(false);
+  return RT_OK;
 }

@@ -54,6 +54,205 @@
 #endif
 
 #include "rtScriptNode.h"
+
+
+#include "rtCore.h"
+#include "rtObject.h"
+#include "rtValue.h"
+#include "rtAtomic.h"
+#include "rtScript.h"
+
+
+
+// TODO eliminate std::string
+#include <string>
+#include <map>
+
+#if !defined(WIN32) && !defined(ENABLE_DFB)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+#pragma GCC diagnostic ignored "-Wall"
+#endif
+
+#include "uv.h"
+#include "v8.h"
+#include "libplatform/libplatform.h"
+
+#include "rtObjectWrapper.h"
+#include "rtFunctionWrapper.h"
+
+using namespace rtScriptNodeUtils;
+
+
+#define SANDBOX_IDENTIFIER  ( (const char*) "_sandboxStuff" )
+#define SANDBOX_JS          ( (const char*) "rcvrcore/sandbox.js")
+
+#if !defined(WIN32) & !defined(ENABLE_DFB)
+#pragma GCC diagnostic pop
+#endif
+
+
+#define USE_CONTEXTIFY_CLONES
+
+
+
+namespace node
+{
+class Environment;
+}
+
+class rtScriptNode;
+class rtNodeContext;
+
+typedef rtRef<rtNodeContext> rtNodeContextRef;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct args_
+{
+  int    argc;
+  char **argv;
+
+  args_() { argc = 0; argv = NULL; }
+  args_(int n = 0, char** a = NULL) : argc(n), argv(a) {}
+}
+args_t;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class rtNodeContext: rtIScriptContext  // V8
+{
+public:
+  rtNodeContext(v8::Isolate *isolate, v8::Platform* platform);
+#ifdef USE_CONTEXTIFY_CLONES
+  rtNodeContext(v8::Isolate *isolate, rtNodeContextRef clone_me);
+#endif
+
+ virtual ~rtNodeContext();
+
+  virtual rtError add(const char *name, const rtValue& val);
+  virtual rtValue get(const char *name);
+  //rtValue get(std::string name);
+
+  virtual bool    has(const char *name);
+  bool    has(std::string name);
+
+  //bool   find(const char *name);  //DEPRECATED
+
+  virtual rtError runScript(const char        *script, rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
+  //rtError runScript(const std::string &script, rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
+  virtual rtError runFile  (const char *file,          rtValue* retVal = NULL, const char *args = NULL); // BLOCKS
+
+  unsigned long AddRef()
+  {
+    return rtAtomicInc(&mRefCount);
+  }
+
+  unsigned long Release();
+
+  const char   *js_file;
+  std::string   js_script;
+
+  v8::Isolate              *getIsolate()      const { return mIsolate; };
+  v8::Local<v8::Context>    getLocalContext() const { return PersistentToLocal<v8::Context>(mIsolate, mContext); };
+
+  uint32_t                  getContextId()    const { return mContextId; };
+
+private:
+  v8::Isolate                   *mIsolate;
+  v8::Persistent<v8::Context>    mContext;
+  uint32_t                       mContextId;
+
+  node::Environment*             mEnv;
+  v8::Persistent<v8::Object>     mRtWrappers;
+
+  void createEnvironment();
+
+#ifdef USE_CONTEXTIFY_CLONES
+  void clonedEnvironment(rtNodeContextRef clone_me);
+#endif
+
+  int mRefCount;
+  rtAtomic mId;
+  v8::Platform                  *mPlatform;
+  void* mContextifyContext;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef std::map<uint32_t, rtNodeContextRef> rtNodeContexts;
+typedef std::map<uint32_t, rtNodeContextRef>::const_iterator rtNodeContexts_iterator;
+
+class rtScriptNode: public rtIScript
+{
+public:
+  rtScriptNode();
+  rtScriptNode(bool initialize);
+  ~rtScriptNode();
+
+  unsigned long AddRef()
+  {
+    return rtAtomicInc(&mRefCount);
+  }
+
+  unsigned long Release();  
+    
+  rtError init();
+
+  rtString engine() { return "node/v8"; }
+
+  rtError pump();
+
+  rtNodeContextRef getGlobalContext() const;
+  rtNodeContextRef createContext(bool ownThread = false);
+  rtError createContext(const char *lang, rtScriptContextRef& ctx);
+#if 0
+#ifndef RUNINMAIN
+  bool isInitialized();
+  bool needsToEnd() { /*rtLogDebug("needsToEnd returning %d\n",mNeedsToEnd);*/ return mNeedsToEnd;};
+  void setNeedsToEnd(bool end) { /*rtLogDebug("needsToEnd being set to %d\n",end);*/ mNeedsToEnd = end;}
+#endif
+#endif
+
+  v8::Isolate   *getIsolate() { return mIsolate; };
+  v8::Platform   *getPlatform() { return mPlatform; };
+
+  rtError collectGarbage();
+private:
+#if 0
+#ifdef ENABLE_DEBUG_MODE
+  void init();
+#else
+  void init(int argc, char** argv);
+#endif
+#endif
+
+  rtError term();
+
+  void nodePath();
+
+  v8::Isolate                   *mIsolate;
+  v8::Platform                  *mPlatform;
+  v8::Persistent<v8::Context>    mContext;
+
+
+#ifdef USE_CONTEXTIFY_CLONES
+  rtNodeContextRef mRefContext;
+#endif
+
+  bool mTestGc;
+#ifndef RUNINMAIN
+  bool mNeedsToEnd;
+#endif
+
+  void init2();
+
+  int mRefCount;  
+};
+
+
+
 #ifndef RUNINMAIN
 extern uv_loop_t *nodeLoop;
 #endif
@@ -124,7 +323,7 @@ static pthread_t __rt_main_thread__;
 //
 // rtIsMainThread() - Currently:   identify BACKGROUND thread which running JS code.
 //
-bool rtIsMainThread()
+bool rtIsMainThreadNode()
 {
   // Since this is single threaded version we're always on the js thread
   return true;
@@ -676,7 +875,7 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
 }
 #endif
 
-std::string readFile(const char *file)
+static std::string readFile(const char *file)
 {
   std::ifstream       src_file(file);
   std::stringstream   src_script;
@@ -713,7 +912,7 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtScriptNode::rtScriptNode()
+rtScriptNode::rtScriptNode():mRefCount(0)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false)
@@ -729,7 +928,7 @@ rtScriptNode::rtScriptNode()
   init2();
 }
 
-rtScriptNode::rtScriptNode(bool initialize)
+rtScriptNode::rtScriptNode(bool initialize):mRefCount(0)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false)
@@ -748,7 +947,17 @@ rtScriptNode::rtScriptNode(bool initialize)
   }
 }
 
-void rtScriptNode::init()
+unsigned long rtScriptNode::Release()
+{
+    long l = rtAtomicDec(&mRefCount);
+    if (l == 0)
+    {
+     delete this;
+    }
+    return l;
+}
+
+rtError rtScriptNode::init()
 {
   rtLogInfo(__FUNCTION__);
   char const* s = getenv("RT_TEST_GC");
@@ -821,6 +1030,7 @@ void rtScriptNode::init()
   init2(argc, argv);
 #endif
 #endif // ENABLE_NODE_V_6_9
+  return RT_OK;
 }
 
 rtScriptNode::~rtScriptNode()
@@ -829,7 +1039,7 @@ rtScriptNode::~rtScriptNode()
   term();
 }
 
-void rtScriptNode::pump()
+rtError rtScriptNode::pump()
 {
 //#ifndef RUNINMAIN
 //  return;
@@ -856,9 +1066,10 @@ void rtScriptNode::pump()
     }
   }
 //#endif // RUNINMAIN
+  return RT_OK;
 }
 
-void rtScriptNode::collectGarbage()
+rtError rtScriptNode::collectGarbage()
 {
 //#ifndef RUNINMAIN
 //  return;
@@ -871,6 +1082,7 @@ void rtScriptNode::collectGarbage()
   Context::Scope contextScope(local_context);
   mIsolate->LowMemoryNotification();
 //#endif // RUNINMAIN
+  return RT_OK;
 }
 
 #if 0
@@ -982,7 +1194,7 @@ void rtScriptNode::init2(int argc, char** argv)
 }
 #endif
 
-void rtScriptNode::term()
+rtError rtScriptNode::term()
 {
   rtLogInfo(__FUNCTION__);
   nodeTerminated = true;
@@ -1022,6 +1234,7 @@ void rtScriptNode::term()
   //    mPxNodeExtension = NULL;
   //  }
   }
+  return RT_OK;
 }
 
 
@@ -1088,6 +1301,14 @@ rtNodeContextRef rtScriptNode::createContext(bool ownThread)
   return ctxref;
 }
 
+rtError rtScriptNode::createContext(const char *lang, rtScriptContextRef& ctx)
+{
+  rtNodeContextRef nodeCtx = createContext();
+
+  ctx = (rtIScriptContext*)nodeCtx.getPtr();
+  return RT_OK;
+}
+
 unsigned long rtNodeContext::Release()
 {
     long l = rtAtomicDec(&mRefCount);
@@ -1099,3 +1320,8 @@ unsigned long rtNodeContext::Release()
 }
 
 
+rtError createScriptNode(rtScriptRef& script)
+{
+  script = new rtScriptNode(false);
+  return RT_OK;
+}
