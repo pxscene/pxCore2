@@ -901,6 +901,8 @@ public:
   pxSwTexture() : mWidth(0), mHeight(0), mOffscreen(), mTextureName(0), mRasterTextureCreated(false),  mInitialized(false)
   {
     //ctor
+   
+    rtLogInfo("CREATE ... pxSwTexture() \n"); // JUNK
   };
   
   ~pxSwTexture()
@@ -1051,7 +1053,7 @@ public:
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
 
-      rtLogInfo("CREATE ... pxSwTexture::bindGLTexture %d bytes) \n", (-1 * mWidth * mHeight * 4)); // JUNK
+      rtLogInfo("CREATE ... pxSwTexture::bindGLTexture( %d bytes) \n", (mWidth * mHeight * 4)); // JUNK
 
       context.adjustCurrentTextureMemorySize(mWidth * mHeight * 4); // USE
       mRasterTextureCreated = true;
@@ -2111,7 +2113,7 @@ pxContext::~pxContext()
 
   if(swRasterTexture.getPtr() != NULL)
   {
-    rtLogInfo("CREATE ... pxContext::~pxContext() - DESTROY 'swRasterTexture' \n");
+    rtLogInfo("JUNK ... pxContext::~pxContext() - DESTROY 'swRasterTexture' \n"); // JUNK
 
     swRasterTexture = NULL;
   }
@@ -2519,6 +2521,8 @@ void pxContext::drawOffscreen(float src_x, float src_y,
   // BACKING
   if (swRasterTexture.getPtr() == NULL)
   {
+    rtLogInfo("CREATE ... pxContext::drawOffscreen() - CREATE 'swRasterTexture' (lazy) \n");
+
     // Lazy init...
     swRasterTexture = pxSwTextureRef(new pxSwTexture());
     swRasterTexture->init(CANVAS_W, CANVAS_H); // HACK - hard coded for now.
