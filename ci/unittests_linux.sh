@@ -71,7 +71,7 @@ if [ "$retVal" -eq 0 ]
 	then
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
-		errCause="Either one or more tests failed. Check the below logs"
+		errCause="Either one or more tests failed. Check the above logs"
 		echo "********************PRINTING TEST LOGS************************"
 		cat $TESTLOGS
 		echo "************************LOG ENDS******************************"
