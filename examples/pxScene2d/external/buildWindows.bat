@@ -25,3 +25,10 @@ cd ..\..\..\..\
 cd libnode-v6.9.0
 CALL vcbuild.bat x86 nosign
 cd ..
+
+cd dukluv
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release -- /m
+cd ..

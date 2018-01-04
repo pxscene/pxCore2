@@ -27,18 +27,18 @@
 #include "pxContext.h"
 #include "pxScene2d.h"
 #include "rtUrlUtils.h"
+#include "rtScript.h"
 
-#include "rtNode.h"
 #include "pxUtil.h"
 
 #ifdef RUNINMAIN
-extern rtNode script;
+extern rtScript script;
 #else
 using namespace std;
 #include "rtNodeThread.h"
 #endif
 
-#include "jsbindings/rtWrapperUtils.h"
+//#include "jsbindings/rtWrapperUtils.h"
 #include <signal.h>
 #ifndef WIN32
 #include <unistd.h>
@@ -86,6 +86,8 @@ class AsyncScriptInfo;
 vector<AsyncScriptInfo*> scriptsInfo;
 static uv_work_t nodeLoopReq;
 #endif
+
+#include <stdlib.h>
 
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
@@ -242,7 +244,7 @@ protected:
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
   #ifdef RUNINMAIN
-     script.garbageCollect();
+     script.collectGarbage();
   #endif
   ENTERSCENELOCK()
     mView = NULL;
@@ -253,7 +255,7 @@ protected:
   #ifdef ENABLE_DEBUG_MODE
     free(g_origArgv);
   #endif
-    script.garbageCollect();
+    script.collectGarbage();
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
@@ -421,7 +423,7 @@ int pxMain(int argc, char* argv[])
   rtLogWarn("Setting  __rt_main_thread__ to be %x\n",pthread_self());
    __rt_main_thread__ = pthread_self(); //  NB
   rtLogWarn("Now  __rt_main_thread__ is %x\n",__rt_main_thread__);
-  rtLogWarn("rtIsMainThread() returns %d\n",rtIsMainThread());
+  //rtLogWarn("rtIsMainThread() returns %d\n",rtIsMainThread());
 
     #if PX_PLATFORM_X11
     XInitThreads();
@@ -503,16 +505,37 @@ if (s && (strcmp(s,"1") == 0))
       curpos = curpos + 35;
   }
 #ifdef RUNINMAIN
-  script.initializeNode();
+  script.init();
 #endif
 #endif
   char buffer[256];
   sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));
+  int windowWidth = 1280;
+  int windowHeight = 720;
+  char const* w = getenv("PXSCENE_WINDOW_WIDTH");
+  if (w)
+  {
+    int value = (int)strtol(w, NULL, 10);
+    if (value > 0)
+    {
+      windowWidth = value;
+    }
+  }
+  char const* h = getenv("PXSCENE_WINDOW_HEIGHT");
+  if (h)
+  {
+    int value = (int)strtol(h, NULL, 10);
+    if (value > 0)
+    {
+      windowHeight = value;
+    }
+  }
   // OSX likes to pass us some weird parameter on first launch after internet install
+  rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
 #ifdef ENABLE_DEBUG_MODE
-  win.init(10, 10, 1280, 720, (urlIndex != -1)?argv[urlIndex]:"browser.js");
+  win.init(10, 10, windowWidth, windowHeight, (urlIndex != -1)?argv[urlIndex]:"browser.js");
 #else
-  win.init(10, 10, 1280, 720, (argc >= 2 && argv[1][0] != '-')?argv[1]:"browser.js");
+  win.init(10, 10, windowWidth, windowHeight, (argc >= 2 && argv[1][0] != '-')?argv[1]:"browser.js");
 #endif
   win.setTitle(buffer);
   // JRJR TODO Why aren't these necessary for glut... pxCore bug

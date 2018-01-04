@@ -6,6 +6,9 @@ option(BUILD_PXSCENE "BUILD_PXSCENE" ON)
 option(BUILD_PX_TESTS "BUILD_PX_TESTS" OFF)
 option(BUILD_RTREMOTE_LIBS "BUILD_RTREMOTE_LIBS" OFF)
 
+option(SUPPORT_DUKTAPE "SUPPORT_DUKTAPE" ON)
+option(SUPPORT_NODE "SUPPORT_NODE" ON)
+
 if (BUILD_PXCORE)
     message("Building pxcore")
     add_subdirectory(src)

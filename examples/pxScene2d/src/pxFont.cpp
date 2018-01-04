@@ -78,7 +78,8 @@ uint32_t npot(uint32_t i)
   return power;
 }
 
-pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0)
+pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
+             mFontMutex(), mFontUrl()
 {  
   mFontId = gFontId++; 
   mUrl = fontUrl;
@@ -107,6 +108,7 @@ pxFont::~pxFont()
   if(mFontData) {
     free(mFontData);
     mFontData = 0;
+    mFontDataSize = 0;
   } 
    
 }
@@ -161,17 +163,31 @@ rtError pxFont::init(const char* n)
 
 rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
+  mFontMutex.lock();
   // We need to keep a copy of fontData since the download will be deleted.
   mFontData = (char *)malloc(size);
   memcpy(mFontData, fontData, size);
+  mFontDataSize = size;
+  mFontUrl = n;
+  mFontMutex.unlock();
   
-  if(FT_New_Memory_Face(ft, (const FT_Byte*)mFontData, size, 0, &mFace))
-    return RT_FAIL;
+  return RT_OK;
+}
 
-  mUrl = n;
+rtError pxFont::setupFont()
+{
+  mFontMutex.lock();
+  if(FT_New_Memory_Face(ft, (const FT_Byte*)mFontData, mFontDataSize, 0, &mFace))
+  {
+    mFontMutex.unlock();
+    return RT_FAIL;
+  }
+
+  mUrl = mFontUrl;
   mInitialized = true;
   setPixelSize(defaultPixelSize);
-  
+  mFontMutex.unlock();
+
   return RT_OK;
 }
 

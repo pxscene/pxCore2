@@ -17,7 +17,6 @@
 #include <fcntl.h> //for files
 #include <unistd.h>
 #include <signal.h>
-#include <poll.h>
 #include <vector>
 
 #define WAYLAND_EGL_BUFFER_SIZE 32
@@ -572,33 +571,50 @@ void pxWindowNative::runEventLoop()
 
     rtLogInfo("pxcore framerate: %d", framerate);
 
+#ifdef PXCORE_WL_DISPLAY_READ_EVENTS
     pollfd fileDescriptors[1];
     fileDescriptors[0].fd = wl_display_get_fd(display->display);
     fileDescriptors[0].events = POLLIN;
     int pollResult = 0;
     int pollTimeout = 1000 / framerate;
+#endif //PXCORE_WL_DISPLAY_READ_EVENTS
     double maxSleepTime = (1000 / framerate) * 1000;
     rtLogInfo("max sleep time in microseconds: %f", maxSleepTime);
     while(!exitFlag)
     {
-        double startMicroseconds = pxMicroseconds();
+        count++;
         std::vector<pxWindowNative*>::iterator i;
         for (i = windowVector.begin(); i < windowVector.end(); i++)
         {
            pxWindowNative* w = (*i);
            w->animateAndRender();
         }
+#ifdef PXCORE_WL_DISPLAY_READ_EVENTS
         while (wl_display_prepare_read(display->display) < 0)
         {
           wl_display_dispatch_pending(display->display);
         }
         wl_display_flush(display->display);
+<<<<<<< HEAD
+        wl_display_read_events(display->display);
+        double delay = pxMicroseconds();
+        double nextWakeUp = wakeUpBase + offsets[ frameNo ];
+        while( delay > nextWakeUp ) {
+            frameNo++;
+            if( frameNo >= framerate ) {
+                count = 0;
+                wakeUpBase += 1000000;
+                frameNo = 0;
+            }
+            nextWakeUp = wakeUpBase + offsets[ frameNo ];
+=======
 
         pollResult = poll(fileDescriptors, 1, pollTimeout);
         if (pollResult <= 0)
           wl_display_cancel_read(display->display);
         else
           wl_display_read_events(display->display);
+#endif //PXCORE_WL_DISPLAY_READ_EVENTS
 
         wl_display_dispatch_pending(display->display);
         double processTime = (int)pxMicroseconds() - (int)startMicroseconds;
@@ -610,8 +626,12 @@ void pxWindowNative::runEventLoop()
         {
           int sleepTime = (int)maxSleepTime-(int)processTime;
           usleep(sleepTime);
+>>>>>>> origin/_rtscript
         }
+        delay = nextWakeUp - delay;
+        usleep( delay );
     }
+    delete [] offsets;
 }
 
 

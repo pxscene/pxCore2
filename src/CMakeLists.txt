@@ -5,10 +5,14 @@ set(CMAKE_CXX_STANDARD 11)
 
 option(WINDOWLESS_EGL "WINDOWLESS_EGL" OFF)
 option(PXCORE_WAYLAND_EGL "PXCORE_WAYLAND_EGL" OFF)
+option(PXCORE_ESSOS "PXCORE_ESSOS" OFF)
 option(PXCORE_MATRIX_HELPERS "PXCORE_MATRIX_HELPERS" ON)
+option(PXCORE_ACCESS_CONTROL_CHECK "PXCORE_ACCESS_CONTROL_CHECK" OFF)
+option(PXCORE_PERMISSIONS_CHECK "PXCORE_PERMISSIONS_CHECK" OFF)
 option(BUILD_RTCORE_LIBS "BUILD_RTCORE_LIBS" ON)
 option(BUILD_PXCORE_LIBS "BUILD_PXCORE_LIBS" ON)
 option(OUTPUT_LIBS_LOCAL "OUTPUT_LIBS_LOCAL" OFF)
+option(PXCORE_WAYLAND_DISPLAY_READ_EVENTS "PXCORE_WAYLAND_DISPLAY_READ_EVENTS" ON)
 if(WIN32)
     option(PXCORE_COMPILE_WARNINGS_AS_ERRORS "PXCORE_COMPILE_WARNINGS_AS_ERRORS" OFF)
 elseif (APPLE)
@@ -78,7 +82,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         include_directories(AFTER /opt/vc/include /opt/vc/include/interface/vcos/pthreads
                 /opt/vc/include/interface/vmcs_host/linux /opt/vc/include)
         include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC})
-    elseif (WINDOWLESS_EGL OR PXCORE_WAYLAND_EGL)
+    elseif (WINDOWLESS_EGL OR PXCORE_WAYLAND_EGL OR PXCORE_ESSOS)
         set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/egl)
         set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/egl)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/egl)
@@ -95,9 +99,19 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         include_directories(AFTER ${PXCORE_STAGING_LIST})
         set(PXCORE_FILES unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
                 rtFileCache.cpp rtHttpCache.cpp)
-        if (PXCORE_WAYLAND_EGL)
+
+        if (PXCORE_ESSOS)
+            message("Building pxcore for essos windows")
+            add_definitions(-DPX_PLATFORM_ESSOS -DPX_PLATFORM_WAYLAND_EGL)
+            set(PXCORE_FILES ${PXCORE_FILES} essos/pxWindowNative.cpp essos/pxBufferNative.cpp essos/pxOffscreenNative.cpp
+                    essos/pxEventLoopNative.cpp essos/pxTimerNative.cpp essos/pxClipboardNative.cpp)
+        elseif (PXCORE_WAYLAND_EGL)
             message("Building pxcore for wayland windows")
             add_definitions(-DPX_PLATFORM_WAYLAND_EGL)
+            if (PXCORE_WAYLAND_DISPLAY_READ_EVENTS)
+                message("Enabling wayland display read events")
+                add_definitions(-DPXCORE_WL_DISPLAY_READ_EVENTS)
+            endif(PXCORE_WAYLAND_DISPLAY_READ_EVENTS)
             set(PXCORE_FILES ${PXCORE_FILES} wayland_egl/pxWindowNative.cpp wayland_egl/pxBufferNative.cpp wayland_egl/pxOffscreenNative.cpp
                 wayland_egl/pxEventLoopNative.cpp wayland_egl/pxTimerNative.cpp wayland_egl/pxClipboardNative.cpp)
         elseif (WINDOWLESS_EGL)
@@ -105,7 +119,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
             add_definitions(-DPX_PLATFORM_GENERIC_EGL)
             set(PXCORE_FILES ${PXCORE_FILES} gles/pxBufferNative.cpp gles/pxOffscreenNative.cpp
                 gles/pxEventLoopNative.cpp gles/pxTimerNative.cpp gles/pxClipboardNative.cpp)
-        endif (PXCORE_WAYLAND_EGL)
+        endif (PXCORE_ESSOS)
         set(PLATFORM_LINKER_FLAGS)
     else ()
         message("Building pxcore for glut")
@@ -129,7 +143,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     endif (HOSTNAME STREQUAL "raspberrypi")
 elseif(WIN32)
     message("Building pxcore for Windows")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /Zi /DEBUG")
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/win)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/win)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/win)
@@ -146,7 +160,7 @@ elseif(WIN32)
             -DU_HAVE_STD_STRING=0 -DUCONFIG_NO_BREAK_ITERATION=0 -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_CONVERSION=1
             -DHTTP_PARSER_STRICT=0 -DUSE_RENDER_STATS -D_HAS_EXCEPTIONS=0)
     #add_definitions(-DRUNINMAIN-DPNG_APNG_SUPPORTED)
-    add_definitions(-DWIN32 -D_LIB -DNDEBUG -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
+    add_definitions(-DWIN32 -D_LIB -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
     include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${PNGINC} ${PTHREADINC})
     set(PXCORE_FILES win/pxBufferNative.cpp win/pxOffscreenNative.cpp win/pxWindowNative.cpp
             win/pxEventLoopNative.cpp win/pxTimerNative.cpp win/pxClipboardNative.cpp pxViewWindow.cpp
@@ -166,22 +180,51 @@ if (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
 endif (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
 
 include_directories(AFTER ${NODEPATH}/src ${NODEPATH}/deps/uv/include ${NODEPATH}/deps/v8 ${NODEPATH}/deps/debugger-agent/include ${NODEPATH}/deps/v8/include ${NODEPATH}/deps/cares/include)
+
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
-        rtFile.cpp rtLibrary.cpp rtNode.cpp
-        rtPathUtils.cpp rtTest.cpp rtThreadPool.cpp
+
+        rtFile.cpp rtLibrary.cpp rtPathUtils.cpp rtTest.cpp rtThreadPool.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
-        jsbindings/jsCallback.cpp jsbindings/rtFunctionWrapper.cpp jsbindings/rtObjectWrapper.cpp
-        jsbindings/rtWrapperUtils.cpp)
+        rtScript.cpp)
+        
+if (SUPPORT_DUKTAPE)
+    message("Adding Duktape scripting support")
+    add_definitions(-DRTSCRIPT_SUPPORT_DUKTAPE)
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptDuk/rtScriptDuk.cpp rtScriptDuk/rtFunctionWrapper.cpp rtScriptDuk/rtObjectWrapper.cpp
+        rtScriptDuk/rtWrapperUtils.cpp rtScriptDuk/rtJsModules.cpp)
+endif()
+
+if (SUPPORT_NODE)
+    message("Adding Node scripting support")
+    add_definitions(-DRTSCRIPT_SUPPORT_NODE)
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptNode/rtScriptNode.cpp rtScriptNode/jsCallback.cpp rtScriptNode/rtFunctionWrapper.cpp 
+        rtScriptNode/rtObjectWrapper.cpp rtScriptNode/rtWrapperUtils.cpp)
+endif()
+
 
 if (PXCORE_MATRIX_HELPERS)
   set(PXCORE_FILES ${PXCORE_FILES} pxMatrix4T.cpp)
 endif(PXCORE_MATRIX_HELPERS)
 
-set(RTCORE_FILES utf8.c rtString.cpp rtLog.cpp rtValue.cpp rtObject.cpp rtError.cpp ioapi_mem.c)
+if (PXCORE_ACCESS_CONTROL_CHECK)
+    add_definitions(-DENABLE_ACCESS_CONTROL_CHECK)
+    set(PXCORE_FILES ${PXCORE_FILES} rtCORSUtils.cpp)
+endif (PXCORE_ACCESS_CONTROL_CHECK)
+
+if (PXCORE_PERMISSIONS_CHECK)
+    add_definitions(-DENABLE_PERMISSIONS_CHECK)
+    set(PXCORE_FILES ${PXCORE_FILES} rtPermissions.cpp)
+endif (PXCORE_PERMISSIONS_CHECK)
+
+set(RTCORE_FILES utf8.c rtString.cpp rtLog.cpp rtValue.cpp rtError.cpp ioapi_mem.c)
+
+set(RTCORE_FILES ${RTCORE_FILES} rtPromise.cpp)
+
+set(RTCORE_FILES ${RTCORE_FILES} rtObject.cpp)
 
 if (OUTPUT_LIBS_LOCAL)
     message("Output pxCore and rtCore libs locally")
@@ -189,6 +232,12 @@ if (OUTPUT_LIBS_LOCAL)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif (OUTPUT_LIBS_LOCAL)
+
+#if (USE_DUKTAPE)
+    include_directories(AFTER ${EXTDIR}/dukluv/lib/duktape/src)
+    include_directories(AFTER ${EXTDIR}/dukluv/lib/uv/include)
+    include_directories(AFTER ${EXTDIR}/dukluv/src)
+#endif(USE_DUKTAPE)
 
 if (BUILD_PXCORE_LIBS)
     message("Building pxcore libs")
