@@ -82,7 +82,7 @@ if (APPLE)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/ft/objs/.libs)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/curl/lib/.libs)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/zlib)
-    set(PLATFORM_LIBRARIES pxCore rtCore_s pthread v8_libplatform png16 jpeg freetype curl z)
+    set(PLATFORM_LIBRARIES pxCore rtCore_s pthread png16 jpeg freetype curl z)
 
     if (SUPPORT_DUKTAPE)
         include_directories(AFTER ${EXTDIR}/dukluv/src ${EXTDIR}/dukluv/lib/duktape/src ${EXTDIR}/dukluv/lib/uv/include)
@@ -92,7 +92,7 @@ if (APPLE)
 
     if (SUPPORT_NODE)
         # node really wants to be first...
-        set(PLATFORM_LIBRARIES node ${PLATFORM_LIBRARIES} )
+        set(PLATFORM_LIBRARIES node v8_libplatform ${PLATFORM_LIBRARIES} )
     endif()
 
     include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${FREETYPEINC})
