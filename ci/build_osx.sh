@@ -12,7 +12,7 @@ checkError()
 if [ "$1" -ne 0 ]
 then
 	echo "*********************************************************************";
-        echo "**********************BUILD FAIL DETAILS*****************************";
+  echo "**********************BUILD FAIL DETAILS*****************************";
 	echo "CI failure reason: $3"
 	echo "Cause: $4"
 	echo "Reproduction/How to fix: $5"

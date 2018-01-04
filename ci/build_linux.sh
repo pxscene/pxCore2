@@ -6,9 +6,9 @@ checkError()
   then
         echo "*********************************************************************";
         echo "*********************SCRIPT FAIL DETAILS*****************************";	
-	echo "CI failure reason: $2"
-	echo "Cause: $3"
-	echo "Reproduction/How to fix: $4"
+	      echo "CI failure reason: $2"
+	      echo "Cause: $3"
+	      echo "Reproduction/How to fix: $4"
         echo "*********************************************************************";
         echo "*********************************************************************";
 	exit 1;

@@ -107,8 +107,8 @@ else
 		then
 		errCause="Check the above logs"
 		echo "**********************PRINTING EXEC LOG**************************"
-                cat $EXECLOGS
-                echo "**************************LOG ENDS*******************************"
+    cat $EXECLOGS
+    echo "**************************LOG ENDS*******************************"
 	else
 		errCause="Check the $EXECLOGS file"
 	fi 

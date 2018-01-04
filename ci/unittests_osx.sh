@@ -77,8 +77,8 @@ then
 	then
 		errCause="Either one or more tests failed. Check the above logs"
 		echo "********************PRINTING TEST LOGS************************"
-                cat $TESTLOGS
-                echo "************************LOG ENDS******************************"
+    cat $TESTLOGS
+    echo "************************LOG ENDS******************************"
 	else
 		errCause="Either one or more tests failed. Check the log file $TESTLOGS"
 	fi 
@@ -95,8 +95,8 @@ then
 	then
 		errCause="Either one or more tests failed. Check the above logs"
 		echo "********************PRINTING TEST LOGS************************"
-                cat $TESTLOGS
-                echo "************************LOG ENDS******************************"
+    cat $TESTLOGS
+    echo "************************LOG ENDS******************************"
 	else
 		errCause="Either one or more tests failed. Check the log file $TESTLOGS"
 	fi 
