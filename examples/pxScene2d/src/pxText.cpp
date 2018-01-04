@@ -176,7 +176,7 @@ void pxText::draw() {
   if( getFontResource() != NULL && getFontResource()->isFontLoaded())
   {
     // TODO not very intelligent given scaling
-    if (!mDirty && msx == 1.0 && msy == 1.0 && mCached.getPtr() && mCached->getTexture().getPtr())
+    if (msx == 1.0 && msy == 1.0 && mCached.getPtr() && mCached->getTexture().getPtr())
     {
       // TODO review the max texure size handling
       // Should be pushed into context properly  not 1 off on every
