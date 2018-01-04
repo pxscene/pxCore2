@@ -340,11 +340,13 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
   }
 
   // map
+  if (ref)
   {
-    rtValue mapKeys;
-    if (ref && ref->Get("mapKeys", &mapKeys) != RT_PROP_NOT_FOUND)
+    rtString desc;
+    rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
+    if (err == RT_OK && strcmp(desc.cString(), "rtMapObject") == 0)
     {
-      rtObjectRef keys = ref.get<rtObjectRef>("mapKeys");
+      rtObjectRef keys = ref.get<rtObjectRef>("allKeys");
       if (keys)
       {
         uint32_t len = keys.get<uint32_t>("length");
