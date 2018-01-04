@@ -68,6 +68,7 @@ jsFunctionWrapper::~jsFunctionWrapper()
   }
 }
 
+#if 0
 void jsFunctionWrapper::setupSynchronousWait()
 {
   mTeardownThreadingPrimitives = true;
@@ -117,6 +118,7 @@ rtValue jsFunctionWrapper::wait()
 #endif
   return mReturnValue;
 }
+#endif
 
 unsigned long jsFunctionWrapper::AddRef()
 {

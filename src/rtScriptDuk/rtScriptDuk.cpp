@@ -331,11 +331,13 @@ static pthread_t __rt_main_thread__;
 //
 // rtIsMainThread() - Currently:   identify BACKGROUND thread which running JS code.
 //
+#if 0
 bool rtIsMainThreadDuk()
 {
   // Since this is single threaded version we're always on the js thread
   return true;
 }
+#endif
 #endif
 #if 0
 static inline bool file_exists(const char *file)
