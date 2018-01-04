@@ -335,10 +335,6 @@ char *base64_encode(const unsigned char *data,
     for (int i = 0; i < mod_table[input_length % 3]; i++)
         encoded_data[*output_length - 1 - i] = '=';
 
-#ifdef PX_PLATFORM_MAC
-    encoded_data[*output_length] = '\0';
-#endif //PX_PLATFORM_MAC
-
     return encoded_data;
 }
 
@@ -2928,7 +2924,8 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
       {
         // We return a data Url string containing the image data
         pngData = "data:image/png;base64,";
-        pngData.append(d);
+        rtString base64str(d, l); // NULL-terminated
+        pngData.append(base64str.cString());
         free(d);
         return RT_OK;
       }
