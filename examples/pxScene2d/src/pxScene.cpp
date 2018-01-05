@@ -18,6 +18,8 @@
 
 // main.cpp
 
+#include "rtPathUtils.h"
+
 #include "pxCore.h"
 #include "pxTimer.h"
 #include "pxEventLoop.h"
@@ -450,6 +452,7 @@ if (s && (strcmp(s,"1") == 0))
 }
 #ifdef ENABLE_DEBUG_MODE
   int urlIndex  = -1;
+#ifdef RTSCRIPT_SUPPORT_NODE
   bool isDebugging = false;
 
   g_argv = (char**)malloc((argc+2) * sizeof(char*));
@@ -508,32 +511,18 @@ if (s && (strcmp(s,"1") == 0))
       g_argv[g_argc++] = &nodeInput[curpos];
       curpos = curpos + 35;
   }
+  #endif
+
 #ifdef RUNINMAIN
   script.init();
 #endif
 #endif
   char buffer[256];
   sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));
-  int windowWidth = 1280;
-  int windowHeight = 720;
-  char const* w = getenv("PXSCENE_WINDOW_WIDTH");
-  if (w)
-  {
-    int value = (int)strtol(w, NULL, 10);
-    if (value > 0)
-    {
-      windowWidth = value;
-    }
-  }
-  char const* h = getenv("PXSCENE_WINDOW_HEIGHT");
-  if (h)
-  {
-    int value = (int)strtol(h, NULL, 10);
-    if (value > 0)
-    {
-      windowHeight = value;
-    }
-  }
+
+  int32_t windowWidth = rtGetEnvAsValue("PXSCENE_WINDOW_WIDTH","1280").toInt32();
+  int32_t windowHeight = rtGetEnvAsValue("PXSCENE_WINDOW_HEIGHT","720").toInt32();
+
   // OSX likes to pass us some weird parameter on first launch after internet install
   rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
 #ifdef ENABLE_DEBUG_MODE
