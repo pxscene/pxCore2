@@ -85,6 +85,7 @@ if (APPLE)
     set(PLATFORM_LIBRARIES pxCore rtCore_s pthread png16 jpeg freetype curl z)
 
     if (SUPPORT_DUKTAPE)
+        add_definitions(-DRTSCRIPT_SUPPORT_NODE)   
         include_directories(AFTER ${EXTDIR}/dukluv/src ${EXTDIR}/dukluv/lib/duktape/src ${EXTDIR}/dukluv/lib/uv/include)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/dukluv/build/)
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} duktape.a dschema.a duv.a uv.a dl)
@@ -92,6 +93,7 @@ if (APPLE)
 
     if (SUPPORT_NODE)
         # node really wants to be first...
+        add_definitions(-DRTSCRIPT_SUPPORT_NODE)        
         set(PLATFORM_LIBRARIES node v8_libplatform ${PLATFORM_LIBRARIES} )
     endif()
 
