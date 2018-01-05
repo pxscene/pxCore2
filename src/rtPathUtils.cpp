@@ -81,3 +81,17 @@ rtError rtGetEnv(const char* e, rtString& v)
   v = getenv(e);
   return RT_OK;
 }
+
+rtString rtGetEnvAsString(const char* name, const char* defaultValue)
+{
+  rtString v;
+  rtGetEnv(name, v);
+  if (v.isEmpty())
+    v = defaultValue;
+  return v;
+}
+
+rtValue rtGetEnvAsValue(const char* name, const char* defaultValue)
+{
+  return rtGetEnvAsString(name, defaultValue);
+}
