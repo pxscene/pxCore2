@@ -1326,6 +1326,7 @@ rtDukContextRef rtScriptDuk::createContext(bool ownThread)
   if(mRefContext.getPtr() == NULL)
   {
     mRefContext = new rtDukContext();
+    mRefContext->AddRef();
     ctxref = mRefContext;
 
     mRefContext->dukCtx = dukCtx;

@@ -1259,6 +1259,7 @@ rtNodeContextRef rtScriptNode::createContext(bool ownThread)
   if(mRefContext.getPtr() == NULL)
   {
     mRefContext = new rtNodeContext(mIsolate,mPlatform);
+    mRefContext->AddRef();
     ctxref = mRefContext;
 
     static std::string sandbox_path;

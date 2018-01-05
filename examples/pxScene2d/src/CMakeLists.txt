@@ -225,6 +225,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${GLUTINC} ${FREETYPEINC})
         set(PLATFORM_LIBRARIES pxCore rtCore_s pthread png16 X11 glut GLEW GL dl rt turbojpeg breakpad_client jpeg freetype curl z)
         if (SUPPORT_NODE)
+          add_definitions(-DRTSCRIPT_SUPPORT_NODE)        
           set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} node)
         endif (SUPPORT_NODE)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/png/.libs)
@@ -260,6 +261,7 @@ elseif (WIN32)
     set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
     set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
     if (SUPPORT_NODE)
+        add_definitions(-DRTSCRIPT_SUPPORT_NODE)        
         set(PLATFORM_SOURCES ${PLATFORM_SOURCES}
     	    ${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
     	    ${NODEDIR}/src/cares_wrap.cc ${NODEDIR}/src/connection_wrap.cc ${NODEDIR}/src/connect_wrap.cc
