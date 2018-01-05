@@ -1,5 +1,32 @@
 #!/bin/sh
 #This script executes necessary javascript files and mesaures pxleak checks and memory leaks checks
+
+if [ -z "${TRAVIS_BUILD_DIR}" ]
+then
+  printf "\nFATAL ERROR:  'TRAVIS_BUILD_DIR' env var is NOT defined\n\n"
+  exit 1;
+else
+  printf "\nUSING: TRAVIS_BUILD_DIR=${TRAVIS_BUILD_DIR}\n\n"
+  
+  
+if false;
+then
+EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
+TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
+
+  printf "\nUSING: TESTRUNNERURL=${TESTRUNNERURL}\n\n"
+
+#cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
+
+  printf "\nCalling PXSCENE\n"
+
+$TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $EXECLOGS 2>&1 &
+
+exit 1;
+fi
+
+fi
+
 sudo rm -rf /tmp/cache/*
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export PX_DUMP_MEMUSAGE=1
@@ -74,6 +101,10 @@ pxRetVal=$?
 grep "texture memory usage is \[0\]" $EXECLOGS
 texRetVal=$?
 echo "Values are $pxRetVal and $texRetVal";
+
+printf "\n\n -------------------------------- \n\n"
+
+
 if [ "$pxRetVal" -eq 0 ]
 	then
 	echo "pxobject count success *****************";
