@@ -318,6 +318,12 @@ public:
     mWidth  = w;
     mHeight = h;
 
+    if (!context.isTextureSpaceAvailable(this))
+    {
+      rtLogDebug("Not enough texture memory to create FBO");
+      return;
+    }
+
     glGenFramebuffers(1, &mFramebufferId);
     glGenTextures(1, &mTextureId);
 
@@ -399,6 +405,10 @@ public:
 
   virtual pxError prepareForRendering()
   {
+    if (mFramebufferId == 0 || mTextureId == 0)
+    {
+      return PX_FAIL;
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId);   TRACK_FBO_CALLS();
     if (mBindTexture)
     {
@@ -2261,9 +2271,10 @@ float pxContext::getAlpha()
 pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing)
 {
   pxContextFramebuffer* fbo = new pxContextFramebuffer();
-  pxFBOTexture* texture = new pxFBOTexture(antiAliasing);
+  pxFBOTexture* fboTexture = new pxFBOTexture(antiAliasing);
+  pxTextureRef texture = fboTexture;
 
-  texture->createFboTexture(width, height);
+  fboTexture->createFboTexture(width, height);
 
   fbo->setTexture(texture);
 

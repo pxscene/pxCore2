@@ -106,13 +106,13 @@ fi
 #install codecov
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]
 then
-if [ "$TRAVIS_OS_NAME" = "osx" ] ; 
-then
-  git clone https://github.com/pypa/pip 
-  sudo easy_install pip
-elif [ "$TRAVIS_OS_NAME" = "linux" ] ;
-then
-  sudo apt-get install python-pip
-fi
-  sudo pip install codecov
+	if [ "$TRAVIS_OS_NAME" = "osx" ] ; 
+	then
+		git clone https://github.com/pypa/pip 
+		sudo easy_install pip
+	elif [ "$TRAVIS_OS_NAME" = "linux" ] ;
+	then
+		sudo apt-get install python-pip
+	fi
+	sudo pip install codecov
 fi

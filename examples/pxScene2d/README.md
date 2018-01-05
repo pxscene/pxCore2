@@ -3,6 +3,20 @@
 ## Supported Platforms
 >   * macOS, Windows, Linux, and Raspberry Pi
 
+## Minimum requirements
+>macOS
+>   * OS : Macbook Pro (macOS Sierra)
+>   * RAM Size : 256 MB
+>   * Disk space : 24 MB
+>   * Processor speed : 1 GHz
+
+>Windows
+>   * OS : Windows 10
+>   * OS Build : 15063
+>   * RAM Size : 128 MB
+>   * Disk space : 24 MB
+>   * Processor speed : 1 GHz
+
 ## Ubuntu Setup
 >Setup Ubuntu
 >   * Create a linux VM.  The following version is recommended:  ubuntu-14.04.1-desktop-amd64
