@@ -43,7 +43,8 @@ private:
   rtError getAllKeys(rtValue* value) const;
 
   bool dukHasProp(const std::string &name) const;
-  rtValue dukGetGrop(const std::string &name, rtWrapperError *error = NULL) const;
+  rtValue dukGetProp(const std::string &name, rtWrapperError *error = NULL) const;
+  rtValue dukGetProp(uint32_t i, rtWrapperError *error = NULL) const;
 
 private:
   unsigned long mRefCount;

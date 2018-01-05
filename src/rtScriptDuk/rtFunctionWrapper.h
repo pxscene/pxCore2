@@ -30,14 +30,17 @@ public:
   virtual unsigned long getRefCount() const {
     return mRefCount;
   }
-
+#if 0
   void signal(rtValue const& returnValue);
+#endif
 
 private:
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
 
+#if 0
   rtValue wait();
   void setupSynchronousWait();
+#endif
 
 private:
   unsigned long mRefCount;
@@ -49,12 +52,14 @@ private:
   bool mComplete;
   bool mTeardownThreadingPrimitives;
 
+#if 0
 #ifdef USE_STD_THREADS
   std::mutex mMutex;
   std::condition_variable mCond;
 #else
   pthread_mutex_t mMutex;
   pthread_cond_t mCond;
+#endif
 #endif
 
   rtValue mReturnValue;

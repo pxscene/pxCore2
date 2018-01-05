@@ -17,7 +17,9 @@ extern "C" {
 #include "duv.h"
 }
 
+#if 0
 bool rtIsMainThreadDuk();
+#endif
 
 class rtWrapperError
 {
@@ -51,6 +53,7 @@ protected:
   TRef mWrappedObject;
 };
 
+#if 0
 class rtWrapperSceneUnlocker
 {
 public:
@@ -72,6 +75,7 @@ public:
 private:
   bool m_hadLock;
 };
+#endif
 
 rtValue duk2rt(duk_context *ctx, rtWrapperError* error = NULL);
 void rt2duk(duk_context *ctx, const rtValue& val);

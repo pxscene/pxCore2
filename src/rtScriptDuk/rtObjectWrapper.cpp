@@ -340,11 +340,13 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
   }
 
   // map
+  if (ref)
   {
-    rtValue mapKeys;
-    if (ref && ref->Get("mapKeys", &mapKeys) != RT_PROP_NOT_FOUND)
+    rtString desc;
+    rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
+    if (err == RT_OK && strcmp(desc.cString(), "rtMapObject") == 0)
     {
-      rtObjectRef keys = ref.get<rtObjectRef>("mapKeys");
+      rtObjectRef keys = ref.get<rtObjectRef>("allKeys");
       if (keys)
       {
         uint32_t len = keys.get<uint32_t>("length");
@@ -552,18 +554,21 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
 
   rtError err = RT_OK;
 
+#if 0
   if (mIsArray)
   {
     // unsupported yet
     assert(0);
   }
   else
+#endif
   {
+    // TODO perf warning do we really have to do Has before a Get?
     if (!dukHasProp(name)) {
       err = RT_PROPERTY_NOT_FOUND;
     } else {
       rtWrapperError error;
-      *value = dukGetGrop(name);
+      *value = dukGetProp(name);
       if (error.hasError())
         err = RT_ERROR_INVALID_ARG;
     }
@@ -582,7 +587,7 @@ bool jsObjectWrapper::dukHasProp(const std::string &name) const
   return res;
 }
 
-rtValue jsObjectWrapper::dukGetGrop(const std::string &name, rtWrapperError *error) const
+rtValue jsObjectWrapper::dukGetProp(const std::string &name, rtWrapperError *error) const
 {
   assert(mDukCtx != NULL);
   duk_bool_t res = duk_get_global_string(mDukCtx, mDukName.c_str());
@@ -595,11 +600,26 @@ rtValue jsObjectWrapper::dukGetGrop(const std::string &name, rtWrapperError *err
   return rt;
 }
 
+rtValue jsObjectWrapper::dukGetProp(uint32_t i, rtWrapperError *error) const
+{
+    assert(mDukCtx != NULL);
+    duk_bool_t res = duk_get_global_string(mDukCtx, mDukName.c_str());
+    assert(res);
+    //res = duk_get_prop_string(mDukCtx, -1, name.c_str());
+    res = duk_get_prop_index(mDukCtx, -1, i);
+    assert(res);
+    rtValue rt = duk2rt(mDukCtx, error);
+    duk_pop(mDukCtx);
+    duk_pop(mDukCtx);
+    return rt;
+}
+
 rtError jsObjectWrapper::Get(uint32_t i, rtValue* value) const
 {
   // unsupported yet
-  assert(0);
-
+  //assert(0);
+  // TODO no error propogation.. 
+  *value = dukGetProp(i);
   return RT_OK;
 }
 
