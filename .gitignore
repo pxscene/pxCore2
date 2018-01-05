@@ -9,6 +9,7 @@ examples/pxScene2d/external/freetype-2.5.3/objs/.libs/*
 *.o
 xcuserdata
 node-v0.12.7-darwin-x64
+temp/*
 build/*
 gl2d*
 apinames
