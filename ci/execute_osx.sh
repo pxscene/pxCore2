@@ -76,7 +76,7 @@ if [ "$retVal" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		echo "Cause: Either one or more tests failed. Check the below logs"
-		#cat $EXECLOGS
+		cat $EXECLOGS
 		else
 		echo "Cause: Either one or more tests failed. Check the log file $EXECLOGS"
 	fi
