@@ -1198,13 +1198,14 @@ rtError rtScriptNode::term()
 {
   rtLogInfo(__FUNCTION__);
   nodeTerminated = true;
+#if 0
 #ifdef USE_CONTEXTIFY_CLONES
   if( mRefContext.getPtr() )
   {
     mRefContext->Release();
   }
 #endif
-
+#endif
   if(node_isolate)
   {
 // JRJRJR  Causing crash???  ask Hugh

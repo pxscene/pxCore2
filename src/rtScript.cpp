@@ -20,6 +20,8 @@
 
 #include "rtScript.h"
 
+#include "rtScriptHeaders.h"
+
 #include "rtPathUtils.h"
 
 #include "assert.h"

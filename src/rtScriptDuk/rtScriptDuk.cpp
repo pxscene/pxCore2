@@ -1288,12 +1288,13 @@ rtError rtScriptDuk::term()
 
   //uv_loop_close(dukLoop);
   duk_destroy_heap(dukCtx);
-
+#if 0
 #ifdef USE_CONTEXTIFY_CLONES
   if( mRefContext.getPtr() )
   {
     mRefContext->Release();
   }
+#endif
 #endif
   return RT_OK;
 }
