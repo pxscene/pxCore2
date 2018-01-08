@@ -1794,8 +1794,6 @@ rtError pxScene2d::dispose()
     mCanvas   = NULL;
     mFocusObj = NULL;
 
-    rtLogInfo("DESTROY ... mCanvas \n");
-
     pxFontManager::clearAllFonts();
     return RT_OK;
 }
