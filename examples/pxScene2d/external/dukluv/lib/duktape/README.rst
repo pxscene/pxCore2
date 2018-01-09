@@ -6,15 +6,19 @@ Duktape is a small and portable Ecmascript E5/E5.1 implementation.  It is
 intended to be easily embeddable into C programs, with a C API similar in
 spirit to Lua's.
 
-Duktape supports the full E5/E5.1 feature set including errors, Unicode
-strings, and regular expressions, a subset of E6 features (e.g. Proxy
-objects), Khronos/ES6 ArrayBuffer/TypedView, and Node.js Buffer bindings.
+Duktape supports the full E5/E5.1 feature set (with some semantics updated
+from ES2015+) including errors, Unicode strings, and regular expressions,
+a subset of Ecmascript 2015 (E6) and Ecmascript 2016 (E7) features (e.g.
+computed property names, Proxy objects, exponentiation operator, Reflect),
+ES2015 ArrayBuffer/TypedView, Node.js Buffer, performance.now(), and WHATWG
+Encoding API living standard.
 
 Duktape also provides a number of custom features such as error tracebacks,
 additional data types for better C integration, combined reference counting
 and mark-and sweep garbage collector, object finalizers, co-operative
-threads a.k.a. coroutines, tail calls, built-in logging and module frameworks,
-a built-in debugger protocol, function bytecode dump/load, and so on.
+threads a.k.a. coroutines, tail calls, a built-in debugger protocol, function
+bytecode dump/load, and so on.  Bundled extra modules provide functionality
+such as CommonJS module loading and a logging framework.
 
 You can browse Duktape programmer's API and other documentation at:
 
@@ -28,20 +32,8 @@ More examples and how-to articles are in the Duktape Wiki:
 
 * http://wiki.duktape.org/
 
-Building and integrating Duktape into your project is very straightforward:
-
-* http://duktape.org/guide.html#compiling
-
-See Makefile.hello for a concrete example::
-
-  $ cd <dist_root>
-  $ make -f Makefile.hello
-  [...]
-  $ ./hello
-  Hello world!
-  2+3=5
-
-To build an example command line tool, use the following::
+To build an example command line tool with interactive evaluation (REPL) and
+the ability to run script files::
 
   $ cd <dist_root>
   $ make -f Makefile.cmdline
@@ -56,19 +48,49 @@ To build an example command line tool, use the following::
   $ ./duk mandel.js
   [...]
 
+To integrate Duktape into your program:
+
+* Use ``tools/configure.py`` to prepare Duktape source and header files
+  for build::
+
+      # Duktape options can be customized via command line options.
+      # In this example, enable "fastint" support and disable ES2015
+      # Proxy support
+
+      $ python2 tools/configure.py --output-directory duktape-src \
+            -DDUK_USE_FASTINT -UDUK_USE_ES6_PROXY
+
+* The output directory (duktape-src) will then contain ``duktape.c``,
+  ``duktape.h``, and ``duk_config.h`` which you include in your build.
+
+For more details, see:
+
+* http://duktape.org/guide.html#compiling
+
+* http://wiki.duktape.org/Configuring.html
+
 This distributable contains:
 
-* ``src/``: main Duktape library in a "single source file" format (duktape.c,
-  duktape.h, and duk_config.h).
+* Pre-configured Duktape header and source files using the Duktape default
+  configuration:
 
-* ``src-noline/``: contains a variant of ``src/duktape.c`` with no ``#line``
-  directives which is preferable for some users.  See discussion in
-  https://github.com/svaarala/duktape/pull/363.
+  * ``src/``: main Duktape library in a "single source file" format (duktape.c,
+    duktape.h, and duk_config.h).
 
-* ``src-separate/``: main Duktape library in multiple files format.
+  * ``src-noline/``: contains a variant of ``src/duktape.c`` with no ``#line``
+    directives which is preferable for some users.  See discussion in
+    https://github.com/svaarala/duktape/pull/363.
 
-* ``config/``: genconfig utility for creating duk_config.h configuration
-  files, see: http://wiki.duktape.org/Configuring.html.
+  * ``src-separate/``: main Duktape library in multiple files format.
+
+* ``src-input/``: raw input source files used by ``configure.py`` which
+  recreates the combined/separate prepared sources with specific options.
+
+* ``tools/``: various Python tools, such as ``configure.py`` for preparing
+  a ``duk_config.h`` header and Duktape source files for compilation, see
+  http://wiki.duktape.org/Configuring.html.
+
+* ``config/``: configuration metadata for ``configure.py``.
 
 * ``examples/``: further examples for using Duktape.  Although Duktape
   itself is widely portable, some of the examples are Linux only.
@@ -94,16 +116,22 @@ This distributable contains:
 You can find release notes at:
 
 * https://github.com/svaarala/duktape/blob/master/RELEASES.rst
+  (summary of all versions)
 
-This distributable contains Duktape version 1.5.0, created from git
-commit 83d557704ee63f68ab40b6fcb00995c9b3d6777c (v1.5.0).
+* https://github.com/svaarala/duktape/blob/master/doc/release-notes-v2-2.rst
+  (more detailed notes for this version)
+
+This distributable contains Duktape version 2.2.0, created from git
+commit a459cf3c9bd1779fc01b435d69302b742675a08f (v2.2.0).
 
 Duktape is copyrighted by its authors (see ``AUTHORS.rst``) and licensed
 under the MIT license (see ``LICENSE.txt``).  String hashing algorithms are
 based on the algorithm from Lua (MIT license), djb2 hash, and Murmurhash2
-(MIT license).  Duktape module loader is based on the CommonJS module
-loading specification (without sharing any code), CommonJS is under the
-MIT license.
+(MIT license).  Pseudorandom number generator algorithms are based on
+Adi Shamir's three-op algorithm, xoroshiro128+ (public domain), and SplitMix64
+(public domain).  Duktape module loader is based on the CommonJS module
+loading specification (without sharing any code), CommonJS is under the MIT
+license.
 
 Have fun!
 

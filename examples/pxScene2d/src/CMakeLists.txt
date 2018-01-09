@@ -64,6 +64,14 @@ set(PXSCENE_DEFINITIONS )
 set(PXSCENE_ADDITIONAL_RESOURCES )
 set(PXSCENE_INSTALLER 0)
 
+if (SUPPORT_DUKTAPE)
+    add_definitions(-DRTSCRIPT_SUPPORT_DUKTAPE)
+endif (SUPPORT_DUKTAPE)
+
+if (SUPPORT_NODE)
+    add_definitions(-DRTSCRIPT_SUPPORT_NODE)        
+endif (SUPPORT_NODE)
+
 if (APPLE)
     message("building pxscene for mac")
     set(PX_PLATFORM PX_PLATFORM_MAC)
@@ -85,15 +93,13 @@ if (APPLE)
     set(PLATFORM_LIBRARIES pxCore rtCore_s pthread png16 jpeg freetype curl z)
 
     if (SUPPORT_DUKTAPE)
-        add_definitions(-DRTSCRIPT_SUPPORT_NODE)   
-        include_directories(AFTER ${EXTDIR}/dukluv/src ${EXTDIR}/dukluv/lib/duktape/src ${EXTDIR}/dukluv/lib/uv/include)
+        include_directories(AFTER ${EXTDIR}/dukluv/src ${EXTDIR}/dukluv/lib/duktape/src ${EXTDIR}/dukluv/lib/duktape/extras/module-duktape ${EXTDIR}/dukluv/lib/uv/include)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/dukluv/build/)
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} duktape.a dschema.a duv.a uv.a dl)
     endif()
 
     if (SUPPORT_NODE)
         # node really wants to be first...
-        add_definitions(-DRTSCRIPT_SUPPORT_NODE)        
         set(PLATFORM_LIBRARIES node v8_libplatform ${PLATFORM_LIBRARIES} )
     endif()
 
@@ -135,10 +141,12 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/ft/objs/.libs)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/curl/lib/.libs)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/zlib)
-        set(PLATFORM_LIBRARIES bcm_host EGL GLESv2 dl rt png16 pxCore rtCore_s pthread v8_libplatform jpeg freetype curl z)
-        if (NOT USE_DUKTAPE)
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} bcm_host EGL GLESv2 dl rt png16 pxCore rtCore_s pthread v8_libplatform jpeg freetype curl z)
+
+        if (SUPPORT_NODE)
             set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} node)
-        endif (USE_DUKTAPE)
+        endif (SUPPORT_NODE)
+
     elseif (BUILD_WITH_WINDOWLESS_EGL OR BUILD_PXSCENE_WAYLAND_EGL OR BUILD_PXSCENE_ESSOS)
         if (BUILD_WITH_WINDOWLESS_EGL)
             message("Building pxscene for windowless EGL")
@@ -224,9 +232,11 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_DEBUG_MODE PNG_APNG_SUPPORTED)
         include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${GLUTINC} ${FREETYPEINC})
         set(PLATFORM_LIBRARIES pxCore rtCore_s pthread png16 X11 glut GLEW GL dl rt turbojpeg breakpad_client jpeg freetype curl z)
-        if (NOT USE_DUKTAPE)
+
+        if (SUPPORT_NODE)
             set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} node)
-        endif (USE_DUKTAPE)
+        endif (SUPPORT_NODE)
+
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/png/.libs)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/jpg/.libs)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/ft/objs/.libs)
@@ -234,11 +244,13 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/zlib)
         set(PX_LIBRARY_LINK_PXCORE 0)
     endif (HOSTNAME STREQUAL "raspberrypi")
-    if (USE_DUKTAPE)
-        include_directories(AFTER ${EXTDIR}/dukluv/src ${EXTDIR}/dukluv/lib/duktape/src ${EXTDIR}/dukluv/lib/uv/include)
+
+    if (SUPPORT_DUKTAPE)
+        include_directories(AFTER ${EXTDIR}/dukluv/src ${EXTDIR}/dukluv/lib/duktape/src ${EXTDIR}/dukluv/lib/duktape/extras/module-duktape ${EXTDIR}/dukluv/lib/uv/include)
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} duktape.a dschema.a duv.a uv.a dl)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/dukluv/build/)
-    endif (USE_DUKTAPE)
+    endif (SUPPORT_DUKTAPE)
+
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libjpeg-turbo/.libs)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_NODE_V_6_9 NODE_PLATFORM="linux" NODE_WANT_INTERNALS=1 V8_DEPRECATION_WARNINGS=1 NODE_SHARED_MODE NODE_USE_V8_PLATFORM=1 NODE_HAVE_I18N_SUPPORT=1 NODE_HAVE_SMALL_ICU=1 HAVE_INSPECTOR=1 V8_INSPECTOR_USE_STL=1 V8_INSPECTOR_USE_OLD_STL=1)
     set(PXSCENE_LINKER_OPTIONS "")
@@ -250,6 +262,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_CODE_COVERAGE)
         set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} gcov)
     endif ()
+    set(PXSCENE_INSTALLER 1)
 elseif (WIN32)
     set(CMAKE_BUILD_TYPE Release)
     set(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} CACHE STRING "" FORCE)
@@ -259,7 +272,8 @@ elseif (WIN32)
     set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/win/Release)
     set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
     set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
-    if (NOT USE_DUKTAPE)
+
+    if (SUPPORT_NODE)
         set(PLATFORM_SOURCES ${PLATFORM_SOURCES}
     	    ${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
     	    ${NODEDIR}/src/cares_wrap.cc ${NODEDIR}/src/connection_wrap.cc ${NODEDIR}/src/connect_wrap.cc
@@ -276,7 +290,8 @@ elseif (WIN32)
     	    ${NODEDIR}/src/stream_base.cc ${NODEDIR}/src/stream_wrap.cc ${NODEDIR}/src/string_bytes.cc ${NODEDIR}/src/string_search.cc
     	    ${NODEDIR}/src/tcp_wrap.cc ${NODEDIR}/src/timer_wrap.cc ${NODEDIR}/src/tls_wrap.cc ${NODEDIR}/src/tty_wrap.cc
     	    ${NODEDIR}/src/udp_wrap.cc ${NODEDIR}/src/util.cc ${NODEDIR}/src/uv.cc)
-    endif (NOT USE_DUKTAPE)
+    endif (SUPPORT_NODE)
+
     set(PLATFORM_SOURCES ${PLATFORM_SOURCES} ${PXCOREDIR}/src/utf8.c)
     set_source_files_properties(utf8.c PROPERTIES LANGUAGE CXX)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_DEBUG_MODE PNG_APNG_SUPPORTED HAS_WINDOWS_BREAKPAD)
@@ -292,13 +307,11 @@ elseif (WIN32)
             -DHTTP_PARSER_STRICT=0 -DUSE_RENDER_STATS -D_HAS_EXCEPTIONS=0)
     include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${FREETYPEINC} ${GLEWINC} ${WINSPARKLEINC} ${EXTDIR}/breakpad-chrome_55/src/)
 
-    IF (USE_DUKTAPE)
-        include_directories(AFTER ${EXTDIR}/dukluv/src)
-
+    IF (SUPPORT_DUKTAPE)
+        include_directories(AFTER ${EXTDIR}/dukluv/src ${EXTDIR}/dukluv/lib/duktape/src ${EXTDIR}/dukluv/lib/duktape/extras/module-duktape ${EXTDIR}/dukluv/lib/uv/include)
         include_directories(AFTER ${EXTDIR}/dukluv/lib/duktape/src)
-
         include_directories(AFTER ${EXTDIR}/dukluv/lib/uv/include)
-    ENDIF (USE_DUKTAPE)
+    ENDIF (SUPPORT_DUKTAPE)
 
     include_directories(AFTER ${NODEDIR}/deps/openssl/openssl/include ${NODEDIR}/deps/http_parser
             ${NODEDIR}/deps/v8_inspector/third_party/v8_inspector/
@@ -309,9 +322,9 @@ elseif (WIN32)
             ${NODEDIR}/deps/icu-small/source/common
             ${NODEDIR}/tools/msvs/genfiles)
 
-    IF (USE_DUKTAPE)
+    IF (SUPPORT_DUKTAPE)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/dukluv/build/Release/)
-    ENDIF (USE_DUKTAPE)
+    ENDIF (SUPPORT_DUKTAPE)
 
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/vc.build/builds)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/build/Release/lib
@@ -322,12 +335,14 @@ elseif (WIN32)
                     userenv.lib gtest.lib cares.lib http_parser.lib icutools.lib icustubdata.lib icudata.lib icuucx.lib icui18n.lib libuv.lib openssl.lib
                     rtCore_s.lib common.lib crash_generation_client.lib exception_handler.lib)
 
-    IF (USE_DUKTAPE)
+    IF (SUPPORT_NODE)
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} duktape.lib dschema.lib duv.lib uv.lib)
-    ELSE (USE_DUKTAPE)
+    ENDIF (SUPPORT_NODE)
+
+    IF (SUPPORT_DUKTAPE)
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} v8_libplatform.lib v8_libbase.lib v8_nosnapshot.lib v8_snapshot.lib 
             v8_base_0.lib v8_base_1.lib v8_base_2.lib v8_base_3.lib v8_inspector_stl.lib node.lib cctest.lib)
-    ENDIF (USE_DUKTAPE)
+    ENDIF (SUPPORT_DUKTAPE)
 
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/build/Release/lib)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/Release/lib)
@@ -370,9 +385,9 @@ set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ${PX_PLATFORM} ENABLE_RT_NODE RUN
 
 include_directories(AFTER ${NODEDIR}/src ${NODEDIR}/deps/uv/include ${NODEDIR}/deps/v8 ${NODEDIR}/deps/debugger-agent/include ${NODEDIR}/deps/v8/include ${NODEDIR}/deps/cares/include)
 include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${JPEGTURBOINC} ${BREAKPADINC} ${RTREMOTEINC})
-if (USE_DUKTAPE)
+if (SUPPORT_DUKTAPE)
 include_directories(AFTER ${PXCOREDIR}/src/duktape)
-endif (USE_DUKTAPE)
+endif (SUPPORT_DUKTAPE)
 include_directories(AFTER ${PXCOREDIR}/src)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
@@ -385,8 +400,10 @@ set(PXSCENE_COMMON_FILES pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.c
 #    set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} duktape/pxScene2d.cpp)
 #    include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/duktape)
 #else (USE_DUKTAPE)
-    set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxScene2d.cpp)
+#    set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxScene2d.cpp)
 #endif (USE_DUKTAPE)
+
+set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxScene2d.cpp)
 
 set(PXWAYLAND_LIB_FILES pxContextGL.cpp egl/pxContextUtils.cpp)
 
@@ -453,9 +470,10 @@ set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${PLATFORM_SOURCES})
 #if (USE_DUKTAPE)
 #    set(PXSCENE_APP_FILES ${PXSCENE_COMMON_FILES} duktape/pxScene.cpp)
 #else (USE_DUKTAPE)
-    set(PXSCENE_APP_FILES ${PXSCENE_COMMON_FILES} pxScene.cpp)
+#   set(PXSCENE_APP_FILES ${PXSCENE_COMMON_FILES} pxScene.cpp)
 #endif (USE_DUKTAPE)
 
+set(PXSCENE_APP_FILES ${PXSCENE_COMMON_FILES} pxScene.cpp)
 set(PXSCENE_LIB_FILES ${PXSCENE_COMMON_FILES})
 
 if (PXSCENE_COMPILE_WARNINGS_AS_ERRORS)
@@ -494,27 +512,27 @@ if (BUILD_PXSCENE_APP)
     endif (BUILD_PXSCENE_SHARED_LIB)
 
     if (PXSCENE_INSTALLER GREATER 0)
-      if (WIN32)
         message("enabling installer support")
-        install(TARGETS pxscene_app RUNTIME DESTINATION . COMPONENT pxscene)
+        if (WIN32)
+            install(TARGETS pxscene_app RUNTIME DESTINATION . COMPONENT pxscene)
+        else ()
+            install(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/pxscene DESTINATION . COMPONENT pxscene)
+        endif (WIN32)
+
         install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/browser DESTINATION . COMPONENT pxscene)
         install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/node_modules DESTINATION . COMPONENT pxscene)
-        if (USE_DUKTAPE)
-            install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/rcvrcore_duktape/" DESTINATION rcvrcore COMPONENT pxscene)
-            file(GLOB PXSCENE_INSTALL_FILES_JS "${CMAKE_CURRENT_SOURCE_DIR}/*.js")
-            file(GLOB PXSCENE_INSTALL_FILES_JS2 "${CMAKE_CURRENT_SOURCE_DIR}/duktape/*.js")
-        else (USE_DUKTAPE)
-            install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/rcvrcore DESTINATION . COMPONENT pxscene)
-            file(GLOB PXSCENE_INSTALL_FILES_JS "${CMAKE_CURRENT_SOURCE_DIR}/*.js")
-        endif (USE_DUKTAPE)
+
+        if (SUPPORT_DUKTAPE)
+            install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/duk_modules DESTINATION . COMPONENT pxscene)
+        endif (SUPPORT_DUKTAPE)
+
+        file(GLOB PXSCENE_INSTALL_FILES_JS "${CMAKE_CURRENT_SOURCE_DIR}/*.js")
+        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/rcvrcore DESTINATION . COMPONENT pxscene)
 
         file(GLOB PXSCENE_INSTALL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/FreeSans.ttf"
            "${CMAKE_CURRENT_SOURCE_DIR}/*.json" "${CMAKE_CURRENT_SOURCE_DIR}/*.conf"
            "${CMAKE_CURRENT_SOURCE_DIR}/../external/vc.build/builds/*.dll" "${CMAKE_CURRENT_SOURCE_DIR}/Release/")
-        if (USE_DUKTAPE)
-            message("installing additional duktape files")
-            install(FILES ${PXSCENE_INSTALL_FILES_JS2} DESTINATION . COMPONENT pxscene)
-        endif (USE_DUKTAPE)
+
         install(FILES ${PXSCENE_INSTALL_FILES_JS} ${PXSCENE_INSTALL_FILES} DESTINATION . COMPONENT pxscene)
         set(CPACK_PACKAGE_VERSION "${PXSCENE_VERSION}")
         set(CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\pxscene.lnk' '$INSTDIR\\\\pxscene.exe' ''")
@@ -526,7 +544,6 @@ if (BUILD_PXSCENE_APP)
         set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/win/pxscene_installer.ico")
         set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/win/pxscene_installer.ico")
         include(CPack)
-      endif (WIN32)
     endif (PXSCENE_INSTALLER GREATER 0)
 endif (BUILD_PXSCENE_APP)
 

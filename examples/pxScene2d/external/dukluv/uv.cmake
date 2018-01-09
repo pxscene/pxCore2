@@ -121,7 +121,6 @@ else()
     ${LIBUVDIR}/src/unix/timer.c
     ${LIBUVDIR}/src/unix/tty.c
     ${LIBUVDIR}/src/unix/udp.c
-    ${LIBUVDIR}/src/unix/pthread-barrier.c
   )
 endif()
 
@@ -163,6 +162,7 @@ if(APPLE)
     ${LIBUVDIR}/src/unix/fsevents.c
     ${LIBUVDIR}/src/unix/darwin-proctitle.c
     ${LIBUVDIR}/src/unix/kqueue.c
+    ${LIBUVDIR}/src/unix/pthread-barrier.c
   )
 endif()
 
