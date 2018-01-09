@@ -37,12 +37,19 @@ export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
+
+# Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 ./pxscene.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $EXECLOGS 2>&1 &
+
 grep "TEST RESULTS: " $EXECLOGS
 retVal=$?
+
+# Monitor testRunner ...
 count=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 1500 ]; do
+max_seconds=1500
+
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	echo "execute_linux snoozing for 30"
 	sleep 30;
 	grep "TEST RESULTS: " $EXECLOGS
@@ -78,9 +85,11 @@ if [ "$retVal" -eq 1 ]
 	exit 1;
 fi
 
-#check for testrunner failures
+
+# Check for any testRunner failures
 grep "Failures: 0" $EXECLOGS
-testRunnerRetVal=$?
+testRunnerRetVal=$?   # Will return 1 if NOT found
+
 if [ "$testRunnerRetVal" -ne 0 ]
 	then
 	echo "CI failure reason: Testrunner failure"
@@ -95,7 +104,7 @@ if [ "$testRunnerRetVal" -ne 0 ]
 	exit 1;
 fi
 
-#check for pxobject leak ot texture leak
+# Check for pxobject or texture memory leaks
 grep "pxobjectcount is \[0\]" $EXECLOGS
 pxRetVal=$?
 grep "texture memory usage is \[0\]" $EXECLOGS
@@ -140,7 +149,7 @@ exit 1;
 fi
 
 
-#check for valgrind memory leaks
+# Check for valgrind memory leaks
 grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
 retVal=$?
 if [ "$retVal" -eq 0 ]
