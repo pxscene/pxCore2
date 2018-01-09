@@ -22,88 +22,7 @@ var ClearInterval = clearInterval;
 var http_wrap = require('rcvrcore/http_wrap');
 var https_wrap = require('rcvrcore/https_wrap');
 
-// function to check whether the page being loaded is from local machine or remote machine
-function isLocalApp(loadurl)
-{
-    if ((loadurl.length > 4) && (loadurl.substring(0, 4) === "http"))
-    {
-      if ((loadurl.length >= 16) && ((loadurl.substring(0, 16) === "http://localhost") || (loadurl.substring(0, 16) === "http://127.0.0.1")))
-      {
-        return true;
-      }
-      else if ((loadurl.length >= 17) && ((loadurl.substring(0, 17) === "https://localhost") || (loadurl.substring(0, 17) === "https://127.0.0.1")))
-      {
-        return true;
-      }
-      return false;
-    }
-
-    else if ((loadurl.length >= 9) && (loadurl.substring(0, 9) === "localhost"))
-    {
-      return true;
-    }
-    else if ((loadurl.length >= 17) && (loadurl.substring(0, 17) === "127.0.0.1"))
-    {
-        return true;
-    }
-    //check for a filename as url
-    else if ((loadurl.length > 0) && (((loadurl.charCodeAt(0) >= 65) && (loadurl.charCodeAt(0) <= 90)) || ((loadurl.charCodeAt(0) >= 97) && (loadurl.charCodeAt(0) <= 122))))
-    {
-        return true;
-    }
-    return false;
-}
-
-// function to check whether the page being loaded is from local machine or remote machine for IPV6 machines
-function isLocalIPV6App(loadurl)
-{
-    if ((loadurl.length > 4) && (loadurl.substring(0, 4) === "http"))
-    {
-      if ((loadurl.length >= 12) && (loadurl.substring(0, 12) === "http://[::1]"))
-      {
-        return true;
-      }
-      else if ((loadurl.length >= 24) && (loadurl.substring(0, 24) === "http://[0:0:0:0:0:0:0:1]"))
-      {
-        return true;
-      }
-      else if ((loadurl.length >= 13) && (loadurl.substring(0, 13) === "https://[::1]"))
-      {
-        return true;
-      }
-      else if ((loadurl.length >= 25) && (loadurl.substring(0, 25) === "https://[0:0:0:0:0:0:0:1]"))
-      {
-        return true;
-      }
-      return false;
-    }
-
-    else if ((loadurl.length >= 5) && (loadurl.substring(0, 5) === "[::1]"))
-    {
-      return true;
-    }
-    else if ((loadurl.length >= 17) && (loadurl.substring(0, 17) === "[0:0:0:0:0:0:0:1]"))
-    {
-      return true;
-    }
-    else if ((loadurl.length >= 4) && (loadurl.substring(0, 4) === "::1"))
-    {
-      return true;
-    }
-    else if ((loadurl.length >= 16) && (loadurl.substring(0, 16) === "0:0:0:0:0:0:0:1"))
-    {
-      return true;
-    }
-    //check for a filename as url
-    else if ((loadurl.length > 0) && (((loadurl.charCodeAt(0) >= 65) && (loadurl.charCodeAt(0) <= 90)) || ((loadurl.charCodeAt(0) >= 97) && (loadurl.charCodeAt(0) <= 122))))
-    {
-        return true;
-    }
-    return false;
-}
-
-function AppSceneContext(params) { // container, innerscene, packageUrl) {
-  //  this.container = params.sceneContainer;
+function AppSceneContext(params) {
 
   this.getContextID = params.getContextID;
   this.makeReady = params.makeReady;
@@ -132,6 +51,7 @@ function AppSceneContext(params) { // container, innerscene, packageUrl) {
   this.topXModule = null;
   this.jarFileMap = new JarFileMap();
   this.sceneWrapper = null;
+  //array to store the list of pending timers
   this.timers = [];
   this.timerIntervals = [];
 
@@ -146,6 +66,9 @@ AppSceneContext.prototype.loadScene = function() {
     if( fullPath.charAt(0) === '.' ) {
       // local file system
       this.defaultBaseUri = ".";
+    } else if( process.platform === 'win32' && fullPath.charAt(1) === ':' ) {
+        // Windows OS, so take the url as the whole file path
+        urlParts.pathname = this.packageUrl;
     }
     fullPath = urlParts.pathname;
     if( fullPath !== null) {
@@ -159,7 +82,7 @@ AppSceneContext.prototype.loadScene = function() {
 if( fullPath !== null)
   this.loadPackage(fullPath);
 
-this.innerscene.on('onClose', function (e) {
+this.innerscene.on('onSceneTerminate', function (e) {
     //clear the timers and intervals on close
     var ntimers = this.timers.length;
     for (var i=0; i<ntimers; i++)
@@ -279,6 +202,21 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
     });
 };
 
+var setTimeoutCallback = function() {
+  // gets the timers list and remove the callback timer from the list of pending lists
+  var contextTimers = arguments[0];
+  var callback = arguments[1];
+  callback();
+  callback = null;
+
+  var index = contextTimers.indexOf(this);
+  if (index != -1)
+  {
+    contextTimers.splice(index,1);
+  }
+  ClearTimeout(this);
+};
+
 function createModule_pxScope(xModule) {
   return {
     log: xModule.log,
@@ -330,6 +268,28 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
   var self = this;
   var newSandbox;
   try {
+    var requireMethod = function (pkg) {
+      log.message(3, "old use of require not supported: " + pkg);
+      // TODO: remove
+      return requireIt(pkg);
+    };
+
+    var requireFileOverridePath = process.env.PXSCENE_REQUIRE_ENABLE_FILE_PATH;
+    var requireEnableFilePath = "/tmp/";
+    if (process.env.HOME && process.env.HOME !== '') {
+      requireEnableFilePath = process.env.HOME;
+    }
+    if (requireFileOverridePath && requireFileOverridePath !== ''){
+      requireEnableFilePath = requireFileOverridePath;
+    }
+
+    var fs = require("fs");
+    var requireEnableFile = requireEnableFilePath + "/.pxsceneEnableRequire";
+    if (fs.existsSync(requireEnableFile)) {
+      console.log("enabling pxscene require support");
+      requireMethod = require;
+    }
+    
     newSandbox = {
       sandboxName: "InitialSandbox",
       xmodule: xModule,
@@ -340,14 +300,11 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       queryStringModule: require("querystring"),
       theNamedContext: "Sandbox: " + uri,
       Buffer: Buffer,
-      require: function (pkg) {
-        log.message(3, "old use of require not supported: " + pkg);
-        // TODO: remove
-        return requireIt(pkg);
-
-      },
+      require: requireMethod,
+      global: global,
       setTimeout: function (callback, after, arg1, arg2, arg3) {
-        var timerId = SetTimeout(callback, after, arg1, arg2, arg3);
+        //pass the timers list to callback function on timeout
+        var timerId = SetTimeout(setTimeoutCallback, after, this.timers, function() { callback(arg1, arg2, arg3)});
         this.timers.push(timerId);
         return timerId;
       }.bind(this),
@@ -479,6 +436,9 @@ AppSceneContext.prototype.getPackageBaseFilePath = function() {
     }
     if (pkgPart.charAt(0) == '/') {
       fullPath = this.defaultBaseUri + pkgPart;
+    } else if(process.platform === 'win32' && pkgPart.charAt(1) === ':' ) {
+      // Windows OS and using drive name, take the pkg part as the file path
+      fullPath = pkgPart;   
     } else {
       fullPath = this.defaultBaseUri + "/" + pkgPart;
     }
@@ -560,16 +520,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'http' || filePath === 'https' ) {
-      if (filePath === 'http')
-      {
-        modData = new http_wrap();
-      }
-      else
-      {
-        modData = new https_wrap();
-      }
-      var localapp = (isLocalApp(_this.packageUrl) || isLocalIPV6App(_this.packageUrl));
-      modData.setLocalApp(localapp);
+      modData = filePath === 'http' ? new http_wrap(_this.innerscene) : new https_wrap(_this.innerscene);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {

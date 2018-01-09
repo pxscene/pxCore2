@@ -73,7 +73,7 @@ px.import({ scene:      'px:scene.1.js',
     console.log("RELOADING.... [ " + u + " ]");
 
     // Prime the Spinner !
-    inputBox.doLater( function() { spinner.a = 1.0; }, 1500 ); // 1500 ms
+    inputBox.doLater( function() { spinner.a = 1.0; }, 500 ); // 500 ms
 
     if(false)
     {
@@ -155,7 +155,8 @@ px.import({ scene:      'px:scene.1.js',
 
   scene.root.on("onPreKeyDown", function(e)
   {
-    if(keys.is_CTRL( e.flags ))
+    if(keys.is_CTRL( e.flags ) ||
+       keys.is_CMD ( e.flags ) )
     {
       if (e.keyCode == keys.L )
       {
@@ -224,19 +225,18 @@ px.import({ scene:      'px:scene.1.js',
         e.stopPropagation();
     }
     }
-    else
-    if( code == keys.ENTER)
+    else if( code == keys.ENTER && inputBox.focus == true)
     {
       url = inputBox.text;
       inputBox.moveToEnd();
 
       reload(url);
-     }
-     else
-     {
-       inputBox.textColor = urlFocusColor;
-       inputBox.showCursor();
-     }
+    }
+    else
+    {
+      inputBox.textColor = urlFocusColor;
+      inputBox.showCursor();
+    }
   });
 
   scene.on("onResize", function(e) { updateSize(e.w,e.h); });

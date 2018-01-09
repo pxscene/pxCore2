@@ -70,22 +70,28 @@ class rtDataTest : public testing::Test
     {
       char data[] = "test";
       rtError ret = mData.init((uint8_t*) &data, 4);
+
       mData.term();
+
       EXPECT_TRUE(mData.length() == 0);
       EXPECT_TRUE( (char *)mData.data() == NULL);
+      EXPECT_TRUE(ret == RT_OK);
     }
 
     void storeDataSuccessValidLengthTest()
     {
       char data[] = "test";
       rtError ret = mData.init((uint8_t*) &data, 4);
+
       EXPECT_TRUE (rtStoreFile("supportfiles/storedata.txt",mData) == RT_OK);
+      EXPECT_TRUE(ret == RT_OK);
     }
 
     void storeDataSuccessZeroLengthTest()
     {
       rtError ret = mData.init(0);
       EXPECT_TRUE (rtStoreFile("supportfiles/storedata.txt",mData) == RT_OK);
+      EXPECT_TRUE(ret == RT_OK);
     }
 
     void storeDataFailedTest()
@@ -93,6 +99,7 @@ class rtDataTest : public testing::Test
       char data[] = "test";
       rtError ret = mData.init((uint8_t*) &data, 4);
       EXPECT_TRUE (rtStoreFile("supportfiles1/storedata.txt",mData) == RT_FAIL);
+      EXPECT_TRUE(ret == RT_OK);
     }
 
     void loadDataSuccessTest()
@@ -104,6 +111,7 @@ class rtDataTest : public testing::Test
       EXPECT_TRUE (mData.length() == 6);
       EXPECT_TRUE (strcmp("Hello\n", (char*) mData.data()) == 0);
       sysret = system("rm -rf supportfiles/storedata.txt");
+      EXPECT_TRUE(sysret == RT_OK);
     }
 
     void loadDataFailureTest()

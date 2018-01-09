@@ -8,6 +8,7 @@
 #include "../pxTimer.h"
 #include "../pxWindowUtil.h"
 #include "../pxKeycodes.h"
+#include "../rtLog.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +17,7 @@
 #include <fcntl.h> //for files
 #include <unistd.h>
 #include <signal.h>
+#include <poll.h>
 #include <vector>
 
 #define WAYLAND_EGL_BUFFER_SIZE 32
@@ -23,7 +25,7 @@
 #define WAYLAND_PX_CORE_FPS 30
 
 #define MOD_SHIFT	0x01
-#define MOD_ALT		0x02
+#define MOD_ALT		0x08
 #define MOD_CTRL	0x04
 
 bool bShiftPressed = false;
@@ -219,7 +221,7 @@ keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
         if (state)
         {
             w->onKeyDown(keycodeFromNative(key),flags);
-            w->onChar((char)key);
+            w->onChar(keycodeToAscii(keycodeFromNative(key), flags));
         }
         else
         {
@@ -381,6 +383,12 @@ void displayRef::cleanupWaylandDisplay()
 
 bool exitFlag = false;
 
+pxWindowNative::pxWindowNative(): mTimerFPS(0), mLastWidth(-1), mLastHeight(-1),
+    mResizeFlag(false), mLastAnimationTime(0.0), mVisible(false), mDirty(true),
+    mWaylandSurface(NULL), mWaylandBuffer(), waylandBufferIndex(0)
+{
+}
+
 pxWindowNative::~pxWindowNative()
 {
     cleanupWaylandData();
@@ -429,6 +437,7 @@ void pxWindowNative::invalidateRectInternal(pxRect *r)
 {
     //rendering for egl is now handled inside of onWindowTimerFired()
     //drawFrame();
+  mDirty = true;
 }
 
 bool pxWindow::visibility()
@@ -549,17 +558,63 @@ void pxWindowNative::runEventLoop()
     waylandDisplay* display = dRef.getDisplay();
     std::vector<pxWindowNative*> windowVector = pxWindowNative::getNativeWindows();
 
+    int framerate = WAYLAND_PX_CORE_FPS;
+
+    char const *s = getenv("PXCORE_FRAMERATE");
+    if (s)
+    {
+      int fps = atoi(s);
+      if (fps > 0)
+      {
+        framerate = fps;
+      }
+    }
+
+    rtLogInfo("pxcore framerate: %d", framerate);
+
+#ifdef PXCORE_WL_DISPLAY_READ_EVENTS
+    pollfd fileDescriptors[1];
+    fileDescriptors[0].fd = wl_display_get_fd(display->display);
+    fileDescriptors[0].events = POLLIN;
+    int pollResult = 0;
+    int pollTimeout = 1000 / framerate;
+#endif //PXCORE_WL_DISPLAY_READ_EVENTS
+    double maxSleepTime = (1000 / framerate) * 1000;
+    rtLogInfo("max sleep time in microseconds: %f", maxSleepTime);
     while(!exitFlag)
     {
+        double startMicroseconds = pxMicroseconds();
         std::vector<pxWindowNative*>::iterator i;
         for (i = windowVector.begin(); i < windowVector.end(); i++)
         {
            pxWindowNative* w = (*i);
            w->animateAndRender();
         }
+#ifdef PXCORE_WL_DISPLAY_READ_EVENTS
+        while (wl_display_prepare_read(display->display) < 0)
+        {
+          wl_display_dispatch_pending(display->display);
+        }
+        wl_display_flush(display->display);
+
+        pollResult = poll(fileDescriptors, 1, pollTimeout);
+        if (pollResult <= 0)
+          wl_display_cancel_read(display->display);
+        else
+          wl_display_read_events(display->display);
+#endif //PXCORE_WL_DISPLAY_READ_EVENTS
+
         wl_display_dispatch_pending(display->display);
-        usleep(32*1000);
-        //pxSleepMS(1000); // Breath
+        double processTime = (int)pxMicroseconds() - (int)startMicroseconds;
+        if (processTime < 0)
+        {
+          processTime = 0;
+        }
+        if (processTime < maxSleepTime)
+        {
+          int sleepTime = (int)maxSleepTime-(int)processTime;
+          usleep(sleepTime);
+        }
     }
 }
 
@@ -782,11 +837,8 @@ waylandBuffer* pxWindowNative::nextBuffer()
 
 void pxWindowNative::animateAndRender()
 {
-    static double lastAnimationTime = pxMilliseconds();
-    double currentAnimationTime = pxMilliseconds();
-    drawFrame(); 
+    drawFrame();
 
-    double animationDelta = currentAnimationTime-lastAnimationTime;
     if (mResizeFlag)
     {
         mResizeFlag = false;
@@ -794,16 +846,7 @@ void pxWindowNative::animateAndRender()
         invalidateRectInternal(NULL);
     }
 
-    if (mTimerFPS)
-    {
-        animationDelta = currentAnimationTime - getLastAnimationTime();
-
-        if (animationDelta > (1000/mTimerFPS))
-        {
-            onAnimationTimerInternal();
-            setLastAnimationTime(currentAnimationTime);
-        }
-    }
+    onAnimationTimerInternal();
 }
 
 void pxWindowNative::setLastAnimationTime(double time)
@@ -818,6 +861,10 @@ double pxWindowNative::getLastAnimationTime()
 
 void pxWindowNative::drawFrame()
 {
+    if (!mDirty)
+    {
+      return;
+    }
     displayRef dRef;
 
     waylandDisplay* wDisplay = dRef.getDisplay();
@@ -827,6 +874,7 @@ void pxWindowNative::drawFrame()
     d.windowHeight = mLastHeight;
     waylandBuffer *buffer = nextBuffer();
     d.pixelData = (uint32_t*)buffer->shm_data;
+
 
     onDraw(&d);
 
@@ -843,6 +891,7 @@ void pxWindowNative::drawFrame()
         wl_surface_set_opaque_region(waylandSurface, NULL);
     }
     eglSwapBuffers(wDisplay->egl.dpy, mEglSurface);
+    mDirty = false;
 }
 
 //egl methods
@@ -872,7 +921,7 @@ void pxWindowNative::initializeEgl()
 
     waylandDisplay* display = mDisplayRef.getDisplay();
 
-    display->egl.dpy = eglGetDisplay(display->display);
+    display->egl.dpy = eglGetDisplay((EGLNativeDisplayType)display->display);
     assert(display->egl.dpy);
 
     ret = eglInitialize(display->egl.dpy, &major, &minor);

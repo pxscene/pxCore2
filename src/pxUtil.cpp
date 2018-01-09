@@ -1190,12 +1190,14 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
       png_uint_32 w0 = width;
       png_uint_32 h0 = height;
       unsigned int first = 0;
-      png_uint_32 plays = 0;
       unsigned short delay_num = 1;
       unsigned short delay_den = 10;
+
+#ifdef PNG_APNG_SUPPORTED
+      png_uint_32 plays = 0;
       unsigned char dop = 0;
       unsigned char bop = 0;
-#ifdef PNG_APNG_SUPPORTED
+
       first = (png_get_first_frame_is_hidden(png_ptr, info_ptr) != 0) ? 1 : 0;
       if (png_get_valid(png_ptr, info_ptr, PNG_INFO_acTL))
         png_get_acTL(png_ptr, info_ptr, &frames, &plays);

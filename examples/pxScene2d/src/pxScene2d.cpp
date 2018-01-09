@@ -28,6 +28,7 @@
 #include "rtString.h"
 #include "rtNode.h"
 #include "rtPathUtils.h"
+#include "rtUrlUtils.h"
 
 #include "pxCore.h"
 #include "pxOffscreen.h"
@@ -40,11 +41,15 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
+#include "pxCanvas.h"
+#include "pxPath.h"
+
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
 #endif //PX_SERVICE_MANAGER
 #include "pxImage9.h"
 #include "pxImageA.h"
+#include "pxImage9Border.h"
 
 #if !defined(ENABLE_DFB) && !defined(DISABLE_WAYLAND)
 #include "pxWaylandContainer.h"
@@ -53,6 +58,9 @@
 #include "pxContext.h"
 #include "rtFileDownloader.h"
 #include "rtMutex.h"
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+#include "rtCORSUtils.h"
+#endif
 
 #include "pxIView.h"
 
@@ -129,6 +137,7 @@ void stopProfiling()
 }
 #endif //ENABLE_VALGRIND
 int pxObjectCount = 0;
+bool gApplicationIsClosing = false;
 
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
@@ -136,11 +145,15 @@ int pxObjectCount = 0;
 
 // store the mapping between wayland app names and binary paths
 map<string, string> gWaylandAppsMap;
+map<string, string> gWaylandRegistryAppsMap;
+map<string, string> gPxsceneWaylandAppsMap;
 static bool gWaylandAppsConfigLoaded = false;
 #define DEFAULT_WAYLAND_APP_CONFIG_FILE "./waylandregistry.conf"
+#define DEFAULT_ALL_APPS_CONFIG_FILE "./pxsceneappregistry.conf"
 
 void populateWaylandAppsConfig()
 {
+  //populate from the wayland registry file
   FILE* fp = NULL;
   char const* s = getenv("WAYLAND_APPS_CONFIG");
   if (s)
@@ -164,7 +177,7 @@ void populateWaylandAppsConfig()
   if (!result)
   {
     rapidjson::ParseErrorCode e = doc.GetParseError();
-    rtLogInfo("Wayland config read error : [JSON parse error while reading waylandregistry.conf: %s (%ld)]\n",rapidjson::GetParseError_En(e), result.Offset());
+    rtLogInfo("Wayland config read error : [JSON parse error while reading waylandregistry.conf: %s (%zu)]\n",rapidjson::GetParseError_En(e), result.Offset());
     fclose(fp);
     return;
   }
@@ -181,14 +194,15 @@ void populateWaylandAppsConfig()
   {
     if (appList[i].IsObject())
     {
-      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("binary")) && (appList[i]["binary"].IsString()))
+      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("binary")) &&
+          (appList[i]["binary"].IsString()))
       {
         string appName = appList[i]["name"].GetString();
         string binary = appList[i]["binary"].GetString();
         if ((appName.length() != 0) && (binary.length() != 0))
         {
-          gWaylandAppsMap[appName] = binary;
-          rtLogInfo("Mapped wayland app [%s] to path [%s] \n",appName.c_str(),binary.c_str());
+          gWaylandRegistryAppsMap[appName] = binary;
+          rtLogInfo("Mapped wayland app [%s] to path [%s] \n", appName.c_str(), binary.c_str());
         }
         else
         {
@@ -198,6 +212,73 @@ void populateWaylandAppsConfig()
       else
       {
         rtLogInfo("Wayland config read error : [one of the entry not added due to name/binary not present]\n");
+      }
+    }
+  }
+}
+
+void populateAllAppsConfig()
+{
+  //populate from the apps registry file
+  FILE* fp = NULL;
+  char const* s = getenv("PXSCENE_APPS_CONFIG");
+  if (s)
+  {
+    fp = fopen(s, "rb");
+  }
+  if (NULL == fp)
+  {
+    fp = fopen(DEFAULT_ALL_APPS_CONFIG_FILE, "rb");
+    if (NULL == fp)
+    {
+      rtLogInfo("pxscene app config read error : [unable to read all apps config file]\n");
+      return;
+    }
+  }
+  char readBuffer[65536];
+  memset(readBuffer, 0, sizeof(readBuffer));
+  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+  rapidjson::Document doc;
+  rapidjson::ParseResult result = doc.ParseStream(is);
+  if (!result)
+  {
+    rapidjson::ParseErrorCode e = doc.GetParseError();
+    rtLogInfo("pxscene app config read error : [JSON parse error while reading all apps conf file: %s (%zu)]\n",rapidjson::GetParseError_En(e), result.Offset());
+    fclose(fp);
+    return;
+  }
+  fclose(fp);
+
+  if (! doc.HasMember("applications"))
+  {
+    rtLogInfo("pxscene apps config read error : [applications element not found]\n");
+    return;
+  }
+
+  const rapidjson::Value& appList = doc["applications"];
+  for (rapidjson::SizeType i = 0; i < appList.Size(); i++)
+  {
+    if (appList[i].IsObject())
+    {
+      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("uri")) &&
+          (appList[i]["uri"].IsString()) && (appList[i].HasMember("type")) && (appList[i]["type"].IsString()))
+      {
+        string appName = appList[i]["name"].GetString();
+        string binary = appList[i]["uri"].GetString();
+        string type = appList[i]["type"].GetString();
+        if ((appName.length() != 0) && (binary.length() != 0) && (type == "native"))
+        {
+          gPxsceneWaylandAppsMap[appName] = binary;
+          rtLogInfo("Mapped wayland app [%s] to path [%s] \n", appName.c_str(), binary.c_str());
+        }
+        else
+        {
+          rtLogInfo("pxscene app config read error : [one of the entry not added due to name/uri is empty].  type=%s\n", type.c_str());
+        }
+      }
+      else
+      {
+        rtLogInfo("pxscene config read error : [one of the entry not added due to name/uri not present or type is not native]\n");
       }
     }
   }
@@ -436,14 +517,19 @@ void pxObject::dispose()
   {
     //rtLogInfo(__FUNCTION__);
     mIsDisposed = true;
+    rtValue nullValue;
     vector<animation>::iterator it = mAnimations.begin();
     for(;it != mAnimations.end();it++)
     {
       if ((*it).promise)
-        (*it).promise.send("reject",this);
+      {
+	if(!gApplicationIsClosing)	  
+          (*it).promise.send("reject",this);
+	else
+	  (*it).promise.send("reject",nullValue);
+      }
     }
 
-    rtValue nullValue;
     mReady.send("reject",nullValue);
 
     mAnimations.clear();
@@ -462,6 +548,10 @@ void pxObject::dispose()
     mClipSnapshotRef = NULL;
     mDrawableSnapshotForMask = NULL;
     mMaskSnapshot = NULL;
+    if (mScene)
+    {
+      mScene->innerpxObjectDisposed(this);
+    }
 #ifdef ENABLE_RT_NODE
     script.pump();
 #endif
@@ -631,6 +721,10 @@ rtError pxObject::moveToFront()
   remove();
   setParent(parent);
 
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true;
+
   return RT_OK;
 }
 
@@ -645,9 +739,79 @@ rtError pxObject::moveToBack()
   std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
   parent->mChildren.insert(it, this);
 
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true;
+  
   return RT_OK;
 }
 
+/**
+ * moveForward: Move this child in front of its next closest sibling in z-order, which means 
+ *              moving it toward end of array because last item is at top of z-order 
+ **/ 
+rtError pxObject::moveForward()
+{
+  pxObject* parent = this->parent();
+
+  if(!parent)
+      return RT_OK;
+
+  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin(), it_prev;
+  while( it != parent->mChildren.end() )
+  {
+      if( it->getPtr() == this )
+      {
+        it_prev = it++;
+        break;
+      }
+      it++;
+  }
+
+  if( it == parent->mChildren.end() )
+      return RT_OK;
+
+  std::iter_swap(it_prev, it);
+
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true;  
+
+  return RT_OK;
+}
+
+/**
+ * moveBackward: Move this child behind its next closest sibling in z-order, which means 
+ *               moving it toward beginning of array because first item is at bottom of z-order 
+ **/ 
+rtError pxObject::moveBackward()
+{
+  pxObject* parent = this->parent();
+
+  if(!parent)
+      return RT_OK;
+
+  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin(), it_prev;
+  while( it != parent->mChildren.end() )
+  {
+      if( it->getPtr() == this )
+      {
+          break;
+      }
+      it_prev = it++;
+  }
+  if( it == parent->mChildren.begin() )
+      return RT_OK;
+
+  std::iter_swap(it_prev, it);
+
+  parent->repaint();
+  parent->repaintParents();
+  mScene->mDirty = true; 
+
+  return RT_OK;
+}
+  
 rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t options,
                             int32_t count, rtObjectRef promise)
@@ -849,25 +1013,27 @@ void pxObject::update(double t)
     t1 = t1-t2; // 0-1
 
     double d = a.interpFunc(t1);
-    
     float from = a.from;
     float   to = a.to;
 
     if (a.options & pxConstantsAnimation::OPTION_OSCILLATE)
     {
+      bool justReverseChange = false;
+      double toVal = a.to;
       if( (fmod(t2,2) != 0))  // TODO perf chk ?
       {
         if(!a.reversing)
         {
           a.reversing = true;
+          justReverseChange = true;
           a.actualCount++;
         }
         from = a.to;
         to   = a.from;
-
       }
       else if( a.reversing && (fmod(t2,2) == 0))
       {
+        justReverseChange = true;
         a.reversing = false;
         a.actualCount++;
         a.start = -1;
@@ -875,11 +1041,17 @@ void pxObject::update(double t)
       // Prevent one more loop through oscillate
       if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
+          if (true == justReverseChange)
+          {
+            mCancelInSet = false;
+            set(a.prop, toVal);
+            mCancelInSet = true;
+          }
+
         if (NULL != animObj)
         {
           animObj->setStatus(pxConstantsAnimation::STATUS_ENDED);
         }
-
         cancelAnimation(a.prop, false, false, true);
 
         if (NULL != animObj)
@@ -898,7 +1070,6 @@ void pxObject::update(double t)
     mCancelInSet = false;
     set(a.prop, v);
     mCancelInSet = true;
-
     if (NULL != animObj)
     {
       animObj->update(a.prop, &a, pxConstantsAnimation::STATUS_INPROGRESS);
@@ -1029,7 +1200,7 @@ const float alphaEpsilon = (1.0f/255.0f);
 void pxObject::drawInternal(bool maskPass)
 {
   //rtLogInfo("pxObject::drawInternal mw=%f mh=%f\n", mw, mh);
-
+  
   if (!drawEnabled() && !maskPass)
   {
     return;
@@ -1184,9 +1355,8 @@ void pxObject::drawInternal(bool maskPass)
         {
           continue;
         }
-
         context.pushState();
-        //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
+        //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);                
         (*it)->drawInternal();
 #ifdef PX_DIRTY_RECTANGLES
         int left = (*it)->mScreenCoordinates.left();
@@ -1495,6 +1665,8 @@ rtDefineMethod(pxObject, remove);
 rtDefineMethod(pxObject, removeAll);
 rtDefineMethod(pxObject, moveToFront);
 rtDefineMethod(pxObject, moveToBack);
+rtDefineMethod(pxObject, moveForward);
+rtDefineMethod(pxObject, moveBackward);
 rtDefineMethod(pxObject, releaseResources);
 //rtDefineMethod(pxObject, animateTo);
 #if 0
@@ -1531,15 +1703,24 @@ rtDefineObject(pxRoot,pxObject);
 
 int gTag = 0;
 
-pxScene2d::pxScene2d(bool top)
-  : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false), 
+pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
+  : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
     mInnerpxObjects(), mDirty(true), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
   mEmit = new rtEmit();
   mTop = top;
+  mScriptView = scriptView;
   mTag = gTag++;
+
+  if (scriptView != NULL)
+  {
+    mOrigin = rtUrlGetOrigin(scriptView->getUrl().cString());
+#ifdef ENABLE_PERMISSIONS_CHECK
+    mPermissions.setOrigin(mOrigin);
+#endif
+  }
 
   // make sure that initial onFocus is sent
   rtObjectRef e = new rtMapObject;
@@ -1593,7 +1774,7 @@ rtError pxScene2d::dispose()
     mDisposed = true;
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
-
+    mEmit.send("onSceneTerminate", e);
     for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
@@ -1640,6 +1821,14 @@ void pxScene2d::init()
 
 rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
+  rtString url = p.get<rtString>("url");
+  bool allowed;
+  if (allows(url, allowed) == RT_OK && !allowed)
+  {
+    rtLogError("url '%s' is not allowed", url.cString());
+    return RT_ERROR_NOT_ALLOWED;
+  }
+
   rtError e = RT_OK;
   rtString t = p.get<rtString>("t");
   bool needpxObjectTracking = true;
@@ -1652,10 +1841,16 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
+#ifdef ENABLE_PXSCENE_RASTERIZER_PATH
+  else if (!strcmp("path",t.cString()))
+    e = createPath(p,o);
+#endif //ENABLE_PXSCENE_RASTERIZER_PATH
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
     e = createImageA(p,o);
+  else if (!strcmp("image9Border",t.cString()))
+    e = createImage9Border(p,o);
   else if (!strcmp("imageResource",t.cString()))
   {
     e = createImageResource(p,o);
@@ -1744,6 +1939,28 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
+rtError pxScene2d::createPath(rtObjectRef p, rtObjectRef& o)
+{
+  if(mCanvas == NULL) // only need one.
+  {
+    // Lazy init... only on 'path'
+    mCanvas = new pxCanvas(this);
+    mCanvas.set(p);
+    mCanvas.set("id","pxCanvas App Singleton");
+    mCanvas.set("x",0);
+    mCanvas.set("y",0);
+    mCanvas.set("w",mWidth);
+    mCanvas.set("h",mHeight);
+    
+    mCanvas.send("init");
+  }
+
+  o = new pxPath(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+}
+
 rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImage9(this);
@@ -1755,6 +1972,14 @@ rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createImageA(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImageA(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+}
+
+rtError pxScene2d::createImage9Border(rtObjectRef p, rtObjectRef& o)
+{
+  o = new pxImage9Border(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -1788,7 +2013,11 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
-  o = new pxSceneContainer(this);
+  pxSceneContainer* sceneContainer = new pxSceneContainer(this);
+#ifdef ENABLE_PERMISSIONS_CHECK
+  sceneContainer->setParentPermissions(&mPermissions);
+#endif
+  o = sceneContainer;
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -1796,17 +2025,19 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::logDebugMetrics()
 {
-  script.garbageCollect();
-  rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
-
+#ifdef ENABLE_DEBUG_METRICS 
+    script.garbageCollect();
+    rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifdef PX_PLATFORM_MAC
-  rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
+      rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
 #else
-  rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+      rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+#endif
+#else
+    rtLogWarn("logDebugMetrics is disabled");
 #endif
   return RT_OK;
 }
-
 
 rtError pxScene2d::clock(uint64_t & time)
 {
@@ -1838,8 +2069,20 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   if (false == gWaylandAppsConfigLoaded)
   {
     populateWaylandAppsConfig();
+#ifndef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+    gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
+#endif // !defined PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
     gWaylandAppsConfigLoaded = true;
   }
+#ifdef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+  gWaylandAppsMap.clear();
+  gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
+  populateAllAppsConfig();
+  gWaylandAppsMap.insert(gPxsceneWaylandAppsMap.begin(), gPxsceneWaylandAppsMap.end());
+  /*for(std::map<string,string>::iterator it = gWaylandAppsMap.begin(); it != gWaylandAppsMap.end(); ++it) {
+   rtLogDebug("key: %s !!!!!", it->first.c_str());
+  }*/
+#endif
   rtRef<pxWaylandContainer> c = new pxWaylandContainer(this);
   c->setView(new pxWayland(true));
   o = c.getPtr();
@@ -2097,6 +2340,10 @@ void pxScene2d::update(double t)
 #ifdef PX_DIRTY_RECTANGLES
       context.pushState();
 #endif //PX_DIRTY_RECTANGLES
+
+      if( mCustomAnimator != NULL ) {
+          mCustomAnimator->Send( 0, NULL, NULL );
+      }
 
 #ifndef DEBUG_SKIP_UPDATE
       mRoot->update(t);
@@ -2605,8 +2852,53 @@ rtError pxScene2d::setShowDirtyRect(bool v)
   return RT_OK;
 }
 
+rtError pxScene2d::customAnimator(rtFunctionRef& v) const
+{
+  v = mCustomAnimator;
+  return RT_OK;
+}
+
+rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
+{
+  static bool customAnimatorSupportEnabled = false;
+
+  //check for custom animator enabled support only once
+  static bool checkForCustomAnimatorSupport = true;
+  if (checkForCustomAnimatorSupport)
+  {
+    char const *s = getenv("PXSCENE_ENABLE_CUSTOM_ANIMATOR");
+    if (s)
+    {
+      int animatorSetting = atoi(s);
+      if (animatorSetting > 0)
+      {
+        customAnimatorSupportEnabled = true;
+      }
+    }
+    checkForCustomAnimatorSupport = false;
+  }
+
+  if (customAnimatorSupportEnabled)
+  {
+    mCustomAnimator = v;
+    return RT_OK;
+  }
+  else
+  {
+    rtLogError("custom animator support is not available");
+    return RT_FAIL;
+  }
+}
+
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
+  bool allowed;
+  if (allows("feature://screenshot", allowed) == RT_OK && !allowed)
+  {
+    rtLogError("screenshot is not allowed");
+    return RT_ERROR_NOT_ALLOWED;
+  }
+
   // Is this a type we support?
   if (type == "image/png;base64")
   {
@@ -2671,6 +2963,15 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 
 rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 {
+  rtString serviceUrl("serviceManager://");
+  serviceUrl.append(name.cString());
+  bool allowed;
+  if (allows(serviceUrl, allowed) == RT_OK && !allowed)
+  {
+    rtLogError("url '%s' is not allowed", serviceUrl.cString());
+    return RT_ERROR_NOT_ALLOWED;
+  }
+
   rtLogInfo("trying to get service for name: %s", name.cString());
 #ifdef PX_SERVICE_MANAGER
   rtObjectRef serviceManager;
@@ -2680,7 +2981,7 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
     rtLogWarn("service manager not found");
     return result;
   }
-  result = serviceManager.sendReturns<rtObjectRef>("createService", name, returnObject);
+  result = serviceManager.sendReturns<rtObjectRef>("createService", mScriptView != NULL ? mScriptView->getUrl() : "", name, returnObject);
   rtLogInfo("create %s service result: %d", name.cString(), result);
   return result;
 #else
@@ -2698,6 +2999,7 @@ rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
+rtDefineProperty(pxScene2d, customAnimator);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
 rtDefineMethod(pxScene2d, logDebugMetrics);
@@ -2723,6 +3025,10 @@ rtDefineProperty(pxScene2d,alignVertical);
 rtDefineProperty(pxScene2d,alignHorizontal);
 rtDefineProperty(pxScene2d,truncation);
 rtDefineMethod(pxScene2d, dispose);
+
+rtDefineProperty(pxScene2d, origin);
+rtDefineMethod(pxScene2d, allows);
+rtDefineMethod(pxScene2d, checkAccessControlHeaders);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
@@ -2826,6 +3132,30 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
   }
 }
 
+rtError pxScene2d::allows(const rtString& url, bool& o) const
+{
+#ifdef ENABLE_PERMISSIONS_CHECK
+  return mPermissions.allows(url.cString(), o);
+#else
+  UNUSED_PARAM(url);
+  o = true; // default
+  return RT_OK;
+#endif
+}
+
+rtError pxScene2d::checkAccessControlHeaders(const rtString& url, const rtString& rawHeaders, bool& allow) const
+{
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+  allow = RT_OK == rtCORSUtilsCheckOrigin(mOrigin, url, rawHeaders);
+  return RT_OK;
+#else
+  UNUSED_PARAM(url);
+  UNUSED_PARAM(rawHeaders);
+  allow = true; // default
+  return RT_OK;
+#endif
+}
+
 rtDefineObject(pxViewContainer, pxObject);
 rtDefineProperty(pxViewContainer, w);
 rtDefineProperty(pxViewContainer, h);
@@ -2842,6 +3172,9 @@ rtDefineMethod(pxViewContainer, onChar);
 
 rtDefineObject(pxSceneContainer, pxViewContainer);
 rtDefineProperty(pxSceneContainer, url);
+#ifdef ENABLE_PERMISSIONS_CHECK
+rtDefineProperty(pxSceneContainer, permissions);
+#endif
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
 //rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
@@ -2849,7 +3182,7 @@ rtDefineProperty(pxSceneContainer, ready);
 
 rtError pxSceneContainer::setUrl(rtString url)
 {
-  rtLogDebug("pxSceneContainer::setUrl(%s)",url.cString());
+  rtLogInfo("pxSceneContainer::setUrl(%s)",url.cString());
   // If old promise is still unfulfilled resolve it
   // and create a new promise for the context of this Url
   mReady.send("resolve", this);
@@ -2900,6 +3233,26 @@ rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
   return RT_OK;
 }
 
+#ifdef ENABLE_PERMISSIONS_CHECK
+rtError pxSceneContainer::setParentPermissions(const rtPermissions* v)
+{
+  if (mScriptView)
+  {
+    return mScriptView->setParentPermissions(v);
+  }
+  return RT_FAIL;
+}
+
+rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
+{
+  if (mScriptView)
+  {
+    return mScriptView->setPermissions(v);
+  }
+  return RT_FAIL;
+}
+#endif
+
 void pxSceneContainer::dispose()
 {
   if (!mIsDisposed)
@@ -2907,7 +3260,6 @@ void pxSceneContainer::dispose()
     rtLogInfo(__FUNCTION__);
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
-    mScene->innerpxObjectDisposed(this);
     setScriptView(NULL);
     pxObject::dispose();
     Release();
@@ -2935,6 +3287,7 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
 {
   rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
+  mUrl = url;
 #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   mReady = new rtPromise();
  // mLang = lang;
@@ -2967,7 +3320,7 @@ void pxScriptView::runScript()
 // escape url end
 
   #ifdef ENABLE_RT_NODE
-  rtLogWarn("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
+  rtLogDebug("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
   mCtx = script.createContext();
 
   if (mCtx)
@@ -2988,7 +3341,7 @@ void pxScriptView::runScript()
     char buffer[MAX_URL_SIZE + 50];
     memset(buffer, 0, sizeof(buffer));
     snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
-    rtLogWarn("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
+    rtLogDebug("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
 #ifdef WIN32 // process \\ to /
 		unsigned int bufferLen = strlen(buffer);
 		char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));
@@ -3028,7 +3381,7 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
       if (!v->mScene)
       {
         static bool top = true;
-        pxScene2dRef scene = new pxScene2d(top);
+        pxScene2dRef scene = new pxScene2d(top, v);
         top = false;
         v->mView = scene;
         v->mScene = scene;
@@ -3112,3 +3465,25 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
   }
   return RT_FAIL;
 }
+
+#ifdef ENABLE_PERMISSIONS_CHECK
+rtError pxScriptView::setParentPermissions(const rtPermissions* v)
+{
+  if (mScene)
+  {
+    pxScene2d* s = (pxScene2d*)mScene.getPtr();
+    return s->setParentPermissions(v);
+  }
+  return RT_FAIL;
+}
+
+rtError pxScriptView::setPermissions(const rtObjectRef& v)
+{
+  if (mScene)
+  {
+    pxScene2d* s = (pxScene2d*)mScene.getPtr();
+    return s->setPermissions(v);
+  }
+  return RT_FAIL;
+}
+#endif

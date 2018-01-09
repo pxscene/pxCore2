@@ -101,9 +101,11 @@ void pxText::resourceReady(rtString readyResolution)
   if( !readyResolution.compare("resolve"))
   {    
     mFontLoaded=true;
+
     // pxText gets its height and width from the text itself, 
     // so measure it
     if (getFontResource() != NULL) {
+       getFontResource()->setupFont();
        getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
 	  }
 	
@@ -147,14 +149,21 @@ void pxText::update(double t)
       if (cached.getPtr())
       {
         pxContextFramebufferRef previousSurface = context.getCurrentFramebuffer();
-        context.setFramebuffer(cached);
-        pxMatrix4f m;
-        context.setMatrix(m);
-        context.setAlpha(1.0);
-        context.clear(getFBOWidth(),getFBOHeight());
-        draw();
+        if (context.setFramebuffer(cached) == PX_OK)
+        {
+          pxMatrix4f m;
+          context.setMatrix(m);
+          context.setAlpha(1.0);
+          context.clear(getFBOWidth(), getFBOHeight());
+          draw();
+          mCached = cached;
+        }
+        else
+        {
+          mCached = NULL;
+        }
         context.setFramebuffer(previousSurface);
-        mCached = cached;
+
       }
     }
     else mCached = NULL;
@@ -174,7 +183,7 @@ void pxText::draw() {
   if( getFontResource() != NULL && getFontResource()->isFontLoaded())
   {
     // TODO not very intelligent given scaling
-    if (msx == 1.0 && msy == 1.0 && mCached.getPtr() && mCached->getTexture().getPtr())
+    if (!mDirty && msx == 1.0 && msy == 1.0 && mCached.getPtr() && mCached->getTexture().getPtr())
     {
       // TODO review the max texure size handling
       // Should be pushed into context properly  not 1 off on every

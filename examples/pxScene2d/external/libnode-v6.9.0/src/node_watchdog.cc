@@ -249,7 +249,10 @@ bool SigintWatchdogHelper::Stop() {
   CHECK_EQ(0, pthread_join(thread_, nullptr));
   has_running_thread_ = false;
 
-  RegisterSignalHandler(SIGINT, SignalExit, true);
+  /* MODIFIED CODE BEGIN */
+  // To make sure SIGINT signal is not caught by libnode
+  // RegisterSignalHandler(SIGINT, SignalExit, true);
+  /* MODIFIED CODE END */
 #else
   SetConsoleCtrlHandler(WinCtrlCHandlerRoutine, FALSE);
 #endif

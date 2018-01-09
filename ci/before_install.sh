@@ -37,8 +37,7 @@ fi
 if [ "$TRAVIS_OS_NAME" = "linux" ] ; 
 then 
   travis_retry sudo apt-get update
-  travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf valgrind libyaml-dev lcov cmake x11proto-input-dev lighttpd gdb
-  cd /usr/include/X11/extensions && sudo ln -s XI.h XInput.h
+  travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf valgrind libyaml-dev lcov cmake  lighttpd gdb quilt
 fi
 
 if [ "$TRAVIS_OS_NAME" = "osx" ] ;
@@ -107,13 +106,13 @@ fi
 #install codecov
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]
 then
-if [ "$TRAVIS_OS_NAME" = "osx" ] ; 
-then
-  git clone https://github.com/pypa/pip 
-  sudo easy_install pip
-elif [ "$TRAVIS_OS_NAME" = "linux" ] ;
-then
-  sudo apt-get install python-pip
-fi
-  sudo pip install codecov
+	if [ "$TRAVIS_OS_NAME" = "osx" ] ; 
+	then
+		git clone https://github.com/pypa/pip 
+		sudo easy_install pip
+	elif [ "$TRAVIS_OS_NAME" = "linux" ] ;
+	then
+		sudo apt-get install python-pip
+	fi
+	sudo pip install codecov
 fi

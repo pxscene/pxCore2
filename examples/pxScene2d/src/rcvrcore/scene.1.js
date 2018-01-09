@@ -24,6 +24,7 @@ function Scene() {
       this.__defineSetter__("showOutlines", function(v) { scene.showOutlines = v; });
       this.__defineGetter__("showDirtyRect", function() { return scene.showDirtyRect; });
       this.__defineSetter__("showDirtyRect", function(v) { scene.showDirtyRect = v; });
+      this.__defineSetter__("customAnimator", function(v) { scene.customAnimator = v; });
       //this.w = scene.w;
       //this.h = scene.h;
     }
@@ -45,6 +46,10 @@ function Scene() {
     return nativeScene.loadArchive(u);
   };
 
+  this.customAnimator = function( f ) {
+    return nativeScene.customAnimator( f );
+  }
+
   this.getX = function() { return nativeScene.x; };
   this.getY = function() {
     return nativeScene.y; };
@@ -57,6 +62,53 @@ function Scene() {
   this.create = function create(params) {
     applyStyle.call(this, params);
 
+    if(params.hasOwnProperty("d") && params.t === "path")
+    {
+        if(params.d.match(/rect/i) )
+        {
+          params.d = params.d.replace(/rect/gi, "RECT");
+          
+          // normalize the path
+          params.d = params.d.replace(/,/g," ")
+          .replace(/-/g," -")
+          .replace(/ +/g," ");
+          
+           // console.log(" >>> Found RECT: [" + params.d + "] ");
+        }
+        else
+        if(params.d.match(/circle/i) )
+        {
+          params.d = params.d.replace(/circle/gi, "CIRCLE");
+          
+          // normalize the path
+          params.d = params.d.replace(/,/g," ")
+          .replace(/-/g," -")
+          .replace(/ +/g," ");
+          
+          // console.log(" >>> Found CIRCLE: [" + params.d + "] ");
+        }
+        else
+        if(params.d.match(/ellipse/i))
+        {
+          params.d = params.d.replace(/ellipse/gi, "ELLIPSE");
+          
+          // normalize the path
+          params.d = params.d.replace(/,/g," ")
+          .replace(/-/g," -")
+          .replace(/ +/g," ");
+          
+          // console.log(" >>> Found ELLIPSE: [" + params.d + "] ");
+        }
+        else
+        {
+          // normalize the path
+          params.d = params.d.replace(/\s*([mlvhqczastTSAMLVHQCZ])\s*/g,"\n$1 ")
+          .replace(/,/g," ")
+          .replace(/-/g," -")
+          .replace(/ +/g," ");
+        }
+    }
+ 
     var component = null;
     if( componentDefinitions !== null && params.hasOwnProperty("t") ) {
       component = createComponent(params);
@@ -105,7 +157,7 @@ function Scene() {
   this.getService = function getService(name, serviceObject) {
     return nativeScene.getService(name, serviceObject);
   };
-    
+
   this.setAppContext = function(appContextName, appContext) {
     if( !appContextMap.hasOwnProperty(appContextName) ) {
       appContextMap[appContextName] = appContext;

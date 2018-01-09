@@ -26,6 +26,9 @@
 #include "rtThreadPool.h"
 #include "pxTimer.h"
 #include "rtLog.h"
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+#include "rtCORSUtils.h"
+#endif
 #include <sstream>
 #include <iostream>
 #include <thread>
@@ -152,8 +155,12 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
 #ifdef ENABLE_HTTP_CACHE
     , mCacheEnabled(true), mIsDataInCache(false)
 #endif
+    , mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
 {
   mAdditionalHttpHeaders.clear();
+#ifdef ENABLE_HTTP_CACHE
+  memset(mHttpErrorBuffer, 0, sizeof(mHttpErrorBuffer));
+#endif
 }
         
 rtFileDownloadRequest::~rtFileDownloadRequest()
@@ -358,8 +365,62 @@ bool rtFileDownloadRequest::isDataCached()
 {
   return mIsDataInCache;
 }
+
 #endif //ENABLE_HTTP_CACHE
 
+void rtFileDownloadRequest::setProgressMeter(bool val)
+{
+  mIsProgressMeterSwitchOff = val;
+}
+
+bool rtFileDownloadRequest::isProgressMeterSwitchOff()
+{
+  return mIsProgressMeterSwitchOff;
+}
+
+void rtFileDownloadRequest::setHTTPFailOnError(bool val)
+{
+  mHTTPFailOnError = val;
+}
+
+bool rtFileDownloadRequest::isHTTPFailOnError()
+{
+  return mHTTPFailOnError;
+}
+
+void rtFileDownloadRequest::setHTTPError(char* httpError)
+{
+  if(httpError != NULL)
+  {
+    strncpy(mHttpErrorBuffer, httpError, CURL_ERROR_SIZE);
+    mHttpErrorBuffer[CURL_ERROR_SIZE-1] = '\0';
+  }
+}
+
+char* rtFileDownloadRequest::httpErrorBuffer(void)
+{
+  return mHttpErrorBuffer;
+}
+
+void rtFileDownloadRequest::setCurlDefaultTimeout(bool val)
+{
+  mDefaultTimeout = val;
+}
+
+bool rtFileDownloadRequest::isCurlDefaultTimeoutSet()
+{
+  return mDefaultTimeout;
+}
+
+void rtFileDownloadRequest::setOrigin(const char* origin)
+{
+  mOrigin = origin;
+}
+
+rtString rtFileDownloadRequest::origin()
+{
+  return mOrigin;
+}
 
 rtFileDownloader::rtFileDownloader() 
     : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false), mCaCertFile(CA_CERTIFICATE)
@@ -537,7 +598,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
 {
     CURL *curl_handle = NULL;
     CURLcode res = CURLE_OK;
-    
+    char errorBuffer[CURL_ERROR_SIZE];
+
     bool useProxy = !downloadRequest->proxy().isEmpty();
     rtString proxyServer = downloadRequest->proxy();
     bool headerOnly = downloadRequest->headerOnly();
@@ -556,8 +618,23 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
       curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
       curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
     }
+
+    if(downloadRequest->isCurlDefaultTimeoutSet() == false)
+    {
     curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, kCurlTimeoutInSeconds);
     curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
+    }
+
+    if(downloadRequest->isProgressMeterSwitchOff())
+        curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1);
+
+    if(downloadRequest->isHTTPFailOnError())
+    {
+        memset(errorBuffer, 0, sizeof(errorBuffer));
+        curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, 1);
+        curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1);
+        curl_easy_setopt(curl_handle, CURLOPT_ERRORBUFFER, errorBuffer);
+    }
 #if !defined(PX_PLATFORM_GENERIC_DFB) && !defined(PX_PLATFORM_DFB_NON_X11)
     curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPALIVE, 1);
     curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPIDLE, 60);
@@ -572,6 +649,15 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     {
       list = curl_slist_append(list, additionalHttpHeaders[headerOption].cString());
     }
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+    const rtString& origin = downloadRequest->origin();
+    if (!origin.isEmpty())
+    {
+      rtString headerOrigin("Origin:");
+      headerOrigin.append(origin.cString());
+      list = curl_slist_append(list, headerOrigin.cString());
+    }
+#endif
     curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
     //CA certificates
     // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
@@ -601,6 +687,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     /* get it! */
     res = curl_easy_perform(curl_handle);
     downloadRequest->setDownloadStatusCode(res);
+    if(downloadRequest->isHTTPFailOnError())
+        downloadRequest->setHTTPError(errorBuffer);
 
     /* check for errors */
     if (res != CURLE_OK) 
@@ -655,6 +743,23 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     if (false == headerOnly)
     {
       downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+      rtString errorStr;
+      rtString rawHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
+      if (RT_OK != rtCORSUtilsCheckOrigin(origin, downloadRequest->fileUrl(), rawHeaders, &errorStr))
+      {
+        rtLogWarn("disallow access for origin '%s' because: %s", origin.cString(), errorStr.cString());
+
+        // Disallow access to the resource's contents.
+        if (downloadRequest->downloadedData() != NULL)
+        {
+          free(downloadRequest->downloadedData());
+        }
+        downloadRequest->setDownloadedData(NULL, 0);
+        downloadRequest->setDownloadStatusCode(-1);
+        downloadRequest->setErrorString(errorStr.cString());
+      }
+#endif
     }
     else if (chunk.contentsBuffer != NULL)
     {
@@ -788,4 +893,3 @@ void rtFileDownloader::checkForExpiredHandles()
   }
   downloadHandleMutex.unlock();
 }
-

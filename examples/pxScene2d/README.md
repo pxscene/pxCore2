@@ -1,7 +1,21 @@
-#Build Instructions for pxScene
+# Build Instructions for pxScene
 
 ## Supported Platforms
 >   * macOS, Windows, Linux, and Raspberry Pi
+
+## Minimum requirements
+>macOS
+>   * OS : Macbook Pro (macOS Sierra)
+>   * RAM Size : 256 MB
+>   * Disk space : 24 MB
+>   * Processor speed : 1 GHz
+
+>Windows
+>   * OS : Windows 10
+>   * OS Build : 15063
+>   * RAM Size : 128 MB
+>   * Disk space : 24 MB
+>   * Processor speed : 1 GHz
 
 ## Ubuntu Setup
 >Setup Ubuntu
@@ -10,11 +24,7 @@
 1. Install required packages:
     
     ~~~~
-    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake x11proto-input-dev
-    
-    Execute below command:
-    
-    cd /usr/include/X11/extensions && sudo ln -s XI.h XInput.h
+    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake
     
     ~~~~
 
@@ -39,7 +49,7 @@
 >Setup Windows 10
 >   * Windows 10 
 >   * Visual Studio 2017 community with `Desktop development with C++` workload
->   * [windows sdk 10.0.15063.0](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk),it is included in VS2017 with above workload and only necessary if you have issue to install with VS2017)
+>   * [windows sdk 10.0.16299.0](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk),it is included in VS2017 with above workload and only necessary if you have issue to install with VS2017)
 >   * python 2.7.x , make sure python can work in cmd (setup environment variables depending on install location)
 >   * git for windows , make sure git can work in cmd (setup environment variables depending on install location)
 >   * Download and install cmake for windows from https://cmake.org/download/
@@ -88,7 +98,7 @@
     ~~~~
     If you wish to build the unit tests then run
     ~~~~
-    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON ..
+    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DPXSCENE_TEST_HTTP_CACHE=OFF ..
     ~~~~
     For Linux, Mac, and Raspberry Pi run: 
     ~~~~
@@ -161,7 +171,7 @@ file:///home/username/directory/filename.js
    cd pxCore/
    mkdir temp
    cd temp
-   cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON ..
+   cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DPXSCENE_TEST_HTTP_CACHE=OFF ..
    cmake --build . --config Release
    ~~~~
 
@@ -180,7 +190,9 @@ file:///home/username/directory/filename.js
 
 2. Build
    ~~~~
-   cd pxCore/
+   cd pxCore/remote
+   make
+   cd ..
    mkdir temp
    cd temp
    cmake -DBUILD_RTREMOTE_LIBS=ON ..

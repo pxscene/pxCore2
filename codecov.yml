@@ -2,3 +2,6 @@ coverage:
   range: 50..80
   round: down
   precision: 2
+ignore:
+  - "examples/pxScene2d/src/testView.h" 
+  - "src/unzip.c"

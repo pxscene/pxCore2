@@ -122,9 +122,9 @@ enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_
 
 pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
 
-#ifdef PX_PLATFORM_GENERIC_EGL
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 extern EGLContext defaultEglContext;
-#endif //PX_PLATFORM_GENERIC_EGL
+#endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
 
 // TODO get rid of this global crap
 
@@ -199,9 +199,9 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5
 
 // assume premultiplied
 static const char *fSolidShaderText =
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
-  "precision mediump float;"
-#endif
+  "#ifdef GL_ES \n"
+  "  precision mediump float; \n"
+  "#endif \n"
   "uniform float u_alpha;"
   "uniform vec4 a_color;"
   "void main()"
@@ -211,9 +211,9 @@ static const char *fSolidShaderText =
 
 // assume premultiplied
 static const char *fTextureShaderText =
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
-  "precision mediump float;"
-#endif
+  "#ifdef GL_ES \n"
+  "  precision mediump float; \n"
+  "#endif \n"
   "uniform sampler2D s_texture;"
   "uniform float u_alpha;"
   "varying vec2 v_uv;"
@@ -224,9 +224,9 @@ static const char *fTextureShaderText =
 
 // assume premultiplied
 static const char *fTextureMaskedShaderText =
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
-  "precision mediump float;"
-#endif
+  "#ifdef GL_ES \n"
+  "  precision mediump float; \n"
+  "#endif \n"
   "uniform sampler2D s_texture;"
   "uniform sampler2D s_mask;"
   "uniform float u_alpha;"
@@ -239,9 +239,9 @@ static const char *fTextureMaskedShaderText =
 
 // assume premultiplied
 static const char *fATextureShaderText =
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
-  "precision mediump float;"
-#endif
+  "#ifdef GL_ES \n"
+  "  precision mediump float; \n"
+  "#endif \n"
   "uniform sampler2D s_texture;"
   "uniform float u_alpha;"
   "uniform vec4 a_color;"
@@ -308,6 +308,12 @@ public:
 
     mWidth  = w;
     mHeight = h;
+
+    if (!context.isTextureSpaceAvailable(this))
+    {
+      rtLogDebug("Not enough texture memory to create FBO");
+      return;
+    }
 
     glGenFramebuffers(1, &mFramebufferId);
     glGenTextures(1, &mTextureId);
@@ -390,6 +396,10 @@ public:
 
   virtual pxError prepareForRendering()
   {
+    if (mFramebufferId == 0 || mTextureId == 0)
+    {
+      return PX_FAIL;
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId);   TRACK_FBO_CALLS();
     if (mBindTexture)
     {
@@ -885,6 +895,184 @@ private:
   bool mMipmapCreated;
 
 }; // CLASS - pxTextureOffscreen
+
+class pxSwTexture: public pxTexture
+{
+public:
+  pxSwTexture() : mWidth(0), mHeight(0), mOffscreen(), mTextureName(0), mRasterTextureCreated(false),  mInitialized(false)
+  {
+    //ctor
+  };
+  
+  ~pxSwTexture()
+  {
+    deleteTexture();
+    mOffscreen.term();
+  };
+  
+  void init(int w, int h)
+  {
+    if(!mInitialized)
+    {
+      mWidth  = w;
+      mHeight = h;
+      
+      mOffscreen.init(w,h);
+      
+      mOffscreen.setUpsideDown(true);
+      
+      mInitialized = true;
+    }
+  }
+  
+  void clear(const pxRect& r)
+  {
+    mOffscreen.fill(r, pxClear);
+  }
+  
+  void clear()
+  {
+    mOffscreen.fill(pxClear);
+  }
+  
+  pxOffscreen* offscreen()
+  {
+    return &mOffscreen;
+  }
+  
+  pxError copy(int src_x, int src_y, int dst_x, int dst_y, float w, float h, pxOffscreen &o)
+  {
+    // COPY / BLIT from 'o' ... to 'mOffscreen'
+    o.blit(mOffscreen, dst_x, dst_y, w, h, src_x, src_y);
+
+#if 0
+#ifdef PX_PLATFORM_MAC
+    
+    extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
+    
+    // HACK
+    // HACK
+    // HACK
+    static int frame = 20;
+    if(frame-- == 0)
+    {
+      void *img_raster = makeNSImage(o.base(), o.width(), o.height(), 4);
+      void *img_render = makeNSImage(mOffscreen.base(), mOffscreen.width(), mOffscreen.height(), 4);
+      
+      frame = -1;
+    }
+    // HACK
+    // HACK
+    // HACK
+#endif
+#endif
+    
+    if (mTextureName != 0)
+    {
+      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+ 
+//      int f = mOffscreen.width();
+//      
+//      glPixelStorei(GL_UNPACK_ROW_LENGTH, mOffscreen.width());
+//
+//      int32_t off = (mOffscreen.width() * dst_y) + dst_x;
+      
+      // Upload (CRAWL) entire RENTER offscreen to TEXTURE on GPU
+//      glTexSubImage2D(GL_TEXTURE_2D, 0, dst_x, dst_y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid *) ( (char *) mOffscreen.base() + off));
+      
+      
+      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1280,720, GL_RGBA, GL_UNSIGNED_BYTE, mOffscreen.base());
+      
+#ifndef PX_PLATFORM_WAYLAND_EGL
+      //glPixelStorei(GL_UNPACK_ROW_LENGTH,0); //default
+#endif //PX_PLATFORM_WAYLAND_EGL
+
+//      glBindTexture(GL_TEXTURE_2D, GL_NONE); // unbind
+    }
+    
+    return PX_OK;
+  };
+  
+  // baggage
+  virtual inline int width()                        { return mWidth;  };
+  virtual inline int height()                       { return mHeight; };
+  virtual pxError getOffscreen(pxOffscreen& /*o*/)  { return PX_FAIL; };
+  virtual pxError bindGLTextureAsMask(int /*mLoc*/) { return PX_FAIL; };
+
+  virtual pxError deleteTexture()
+  {
+    if (mTextureName != 0)
+    {
+      glDeleteTextures(1, &mTextureName);
+      mTextureName = 0;
+      mRasterTextureCreated = false;
+      context.adjustCurrentTextureMemorySize(-1 * mWidth * mHeight * 4); // FREE
+    }
+    mInitialized = false;
+    return PX_OK;
+  }
+  
+  virtual pxError bindGLTexture(int tLoc)
+  {
+    glActiveTexture(GL_TEXTURE1);
+    
+    if (!mRasterTextureCreated)
+    {
+      if (!context.isTextureSpaceAvailable(this))
+      {
+        //attempt to free texture memory
+        int64_t textureMemoryNeeded = context.textureMemoryOverflow(this);
+        context.ejectTextureMemory(textureMemoryNeeded);
+        
+        if (!context.isTextureSpaceAvailable(this))
+        {
+          rtLogError("not enough texture memory remaining to create raster texture");
+          mInitialized = false;
+          return PX_FAIL;
+        }
+        else if (!mInitialized)
+        {
+          return PX_NOTINITIALIZED;
+        }
+      }
+      
+      glGenTextures(1, &mTextureName);
+      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+      
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_RGBA,
+                   GL_UNSIGNED_BYTE, mOffscreen.base());
+      
+      context.adjustCurrentTextureMemorySize(mWidth * mHeight * 4); // USE
+      mRasterTextureCreated = true;
+      
+      printf("\n SW TEXTURE >>  glGetError() = %d   >>  mWidth: %d   mHeight: %d\n", glGetError(), mWidth, mHeight);
+    }
+    else
+    {
+      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+    }
+
+    mInitialized = true;
+
+    glUniform1i(tLoc, 1);
+    return PX_OK;
+  }
+
+private:
+  int mWidth;
+  int mHeight;
+  
+  pxOffscreen mOffscreen;
+  GLuint mTextureName;
+  bool mRasterTextureCreated;
+  bool mInitialized;
+}; // CLASS - pxSwTexture
 
 void onDecodeComplete(void* context, void* data)
 {
@@ -1659,7 +1847,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   {
     if (gTextureMaskedShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,mask) != PX_OK)
     {
-      drawRect2(0, 0, iw, ih, blackColor);
+      drawRect2(0, 0, iw, ih, blackColor); // DEFAULT - "Missing" - BLACK RECTANGLE
     }
   }
   else
@@ -1667,7 +1855,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   {
     if (gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,xStretch,yStretch) != PX_OK)
     {
-      drawRect2(0, 0, iw, ih, blackColor);
+      drawRect2(0, 0, iw, ih, blackColor); // DEFAULT - "Missing" - BLACK RECTANGLE
     }
   }
   else //PX_TEXTURE_ALPHA
@@ -1677,7 +1865,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
     if (gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,colorPM) != PX_OK)
     {
-      drawRect2(0, 0, iw, ih, blackColor);
+      drawRect2(0, 0, iw, ih, blackColor); // DEFAULT - "Missing" - BLACK RECTANGLE
     }
   }
 }
@@ -1708,6 +1896,111 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
   float ov2 = 0;
   float iv2 = y1/h2;
   float iv1 = (h2-y2)/h2;
+  float ov1 = 1;
+
+#if 1 // sanitize values
+  iu1 = pxClamp<float>(iu1, 0, 1);
+  iu2 = pxClamp<float>(iu2, 0, 1);
+  iv1 = pxClamp<float>(iv1, 0, 1);
+  iv2 = pxClamp<float>(iv2, 0, 1);
+
+  float tmin, tmax;
+
+  tmin = pxMin<float>(iu1, iu2);
+  tmax = pxMax<float>(iu1, iu2);
+  iu1 = tmin;
+  iu2 = tmax;
+
+  tmin = pxMin<float>(iv1, iv2);
+  tmax = pxMax<float>(iv1, iv2);
+  iv1 = tmax;
+  iv2 = tmin;
+
+#endif
+
+  const GLfloat verts[22][2] =
+  {
+    { ox1,oy1 },
+    { ix1,oy1 },
+    { ox1,iy1 },
+    { ix1,iy1 },
+    { ox1,iy2 },
+    { ix1,iy2 },
+    { ox1,oy2 },
+    { ix1,oy2 },
+    { ix2,oy2 },
+    { ix1,iy2 },
+    { ix2,iy2 },
+    { ix1,iy1 },
+    { ix2,iy1 },
+    { ix1,oy1 },
+    { ix2,oy1 },
+    { ox2,oy1 },
+    { ix2,iy1 },
+    { ox2,iy1 },
+    { ix2,iy2 },
+    { ox2,iy2 },
+    { ix2,oy2 },
+    { ox2,oy2 }
+  };
+
+  const GLfloat uv[22][2] =
+  {
+    { ou1,ov1 },
+    { iu1,ov1 },
+    { ou1,iv1 },
+    { iu1,iv1 },
+    { ou1,iv2 },
+    { iu1,iv2 },
+    { ou1,ov2 },
+    { iu1,ov2 },
+    { iu2,ov2 },
+    { iu1,iv2 },
+    { iu2,iv2 },
+    { iu1,iv1 },
+    { iu2,iv1 },
+    { iu1,ov1 },
+    { iu2,ov1 },
+    { ou2,ov1 },
+    { iu2,iv1 },
+    { ou2,iv1 },
+    { iu2,iv2 },
+    { ou2,iv2 },
+    { iu2,ov2 },
+    { ou2,ov2 }
+  };
+
+  gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,22,verts,uv,texture,pxConstantsStretch::NONE,pxConstantsStretch::NONE);
+}
+
+static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, 
+                       GLfloat borderX1, GLfloat borderY1, GLfloat borderX2, GLfloat borderY2,
+                       GLfloat insetX1, GLfloat insetY1, GLfloat insetX2, GLfloat insetY2,
+                       pxTextureRef texture)
+{
+  // args are tested at call site...
+
+  float ox1 = x;
+  float ix1 = x+insetX1;
+  float ix2 = x+w-insetX2;
+  float ox2 = x+w;
+
+  float oy1 = y;
+  float iy1 = y+insetY1;
+  float iy2 = y+h-insetY2;
+  float oy2 = y+h;
+
+  float w2 = texture->width();
+  float h2 = texture->height();
+
+  float ou1 = 0;
+  float iu1 = borderX1/w2;
+  float iu2 = (w2-borderX2)/w2;
+  float ou2 = 1;
+
+  float ov2 = 0;
+  float iv2 = borderY1/h2;
+  float iv1 = (h2-borderY2)/h2;
   float ov1 = 1;
 
 #if 1 // sanitize values
@@ -1860,7 +2153,7 @@ void pxContext::init()
 
   gTextureMaskedShader = new textureMaskedShaderProgram();
   gTextureMaskedShader->init(vShaderText,fTextureMaskedShaderText);
-
+  
   glEnable(GL_BLEND);
 
   // assume non-premultiplied for now...
@@ -1874,10 +2167,10 @@ void pxContext::init()
 //  gprogram = program;
   setTextureMemoryLimit(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES);
 
-#ifdef PX_PLATFORM_GENERIC_EGL
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   defaultEglContext = eglGetCurrentContext();
-  rtLogInfo("current context in init: %d", defaultEglContext);
-#endif //PX_PLATFORM_GENERIC_EGL
+  rtLogInfo("current context in init: %p", defaultEglContext);
+#endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
 
   std::srand(unsigned (std::time(0)));
 }
@@ -1966,9 +2259,10 @@ float pxContext::getAlpha()
 pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing)
 {
   pxContextFramebuffer* fbo = new pxContextFramebuffer();
-  pxFBOTexture* texture = new pxFBOTexture(antiAliasing);
+  pxFBOTexture* fboTexture = new pxFBOTexture(antiAliasing);
+  pxTextureRef texture = fboTexture;
 
-  texture->createFboTexture(width, height);
+  fboTexture->createFboTexture(width, height);
 
   fbo->setTexture(texture);
 
@@ -2133,6 +2427,28 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
   drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
 }
 
+void pxContext::drawImage9Border(float w, float h, 
+                  float bx1, float by1, float bx2, float by2,
+                  float ix1, float iy1, float ix2, float iy2,
+                  pxTextureRef texture)
+{
+  // TRANSPARENT / DIMENSIONLESS
+  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
+  {
+    return;
+  }
+
+  // TEXTURELESS
+  if (texture.getPtr() == NULL)
+  {
+    return;
+  }
+
+  texture->setLastRenderTick(gRenderTick);
+
+  drawImage9Border2(0, 0, w, h, bx1, by1, bx2, by2, ix1, iy1, ix2, iy2, texture);
+}
+
 void pxContext::drawImage(float x, float y, float w, float h,
                           pxTextureRef t, pxTextureRef mask,
                           bool useTextureDimsAlways, float* color,
@@ -2180,6 +2496,76 @@ void pxContext::drawImage(float x, float y, float w, float h,
                   color? color : black, stretchX, stretchY);
 }
 
+typedef rtRef<pxSwTexture>    pxSwTextureRef;
+static        pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
+
+void pxContext::drawOffscreen(float src_x, float src_y,
+                              float dst_x, float dst_y,
+                              float w,     float h,
+                              pxOffscreen  &offscreen)
+{
+  // TRANSPARENT / DIMENSIONLESS
+  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
+  {
+    return;
+  }
+  
+  // BACKING
+  if (swRasterTexture.getPtr() == NULL)
+  {
+    // Lazy init...
+    swRasterTexture = pxSwTextureRef(new pxSwTexture());
+    swRasterTexture->init(1280, 720); // HACK - hard coded for now.
+  }
+  
+  // COPY from CANVAS (offscreen) to RASTER
+  swRasterTexture->copy(src_x, src_y,
+                        dst_x, dst_y, w, h, offscreen);
+  
+  pxTextureRef nullMask;
+  static float clear[4] = {0,0,0,0};
+
+  pxTextureRef texture( (pxTexture *) swRasterTexture.getPtr());
+  
+  drawImage(/*dst_x, dst_y*/0,0, 1280, 720, texture, nullMask, true, clear,
+            pxConstantsStretch::NONE, pxConstantsStretch::NONE);
+  
+//  drawImage(dst_x, dst_y, w, h, texture, nullMask, true, clear,
+//            pxConstantsStretch::NONE, pxConstantsStretch::NONE);
+  
+#if 0
+#ifdef PX_PLATFORM_MAC
+  
+  extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
+  
+  // HACK
+  // HACK
+  // HACK
+  static int frame = 20;
+  if(frame-- == 0)
+  {
+    pxOffscreen *tex = (pxOffscreen *) swRasterTexture->offscreen();
+    
+    void *img_raster = makeNSImage(tex->base(), tex->width(), tex->height(), 4);
+    void *img_render = makeNSImage(offscreen.base(), offscreen.width(), offscreen.height(), 4);
+    
+    frame = -1;
+  }
+  // HACK
+  // HACK
+  // HACK
+#endif
+#endif
+  
+  
+  ///// CRAWL approach only
+//  pxRect rect(src_x, src_y, src_x + w, src_y + h);
+  pxRect rect(0,0,1280,720);
+  
+  swRasterTexture->clear(rect);
+  offscreen.fill(pxClear);
+}
+
 void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 {
 #ifdef DEBUG_SKIP_DIAG_RECT
@@ -2192,7 +2578,7 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
   // TRANSPARENT / DIMENSIONLESS
   if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
   {
-    rtLogError("cannot drawDiagRect() - width/height/gAlpha cannot be Zero.");
+  //  rtLogError("cannot drawDiagRect() - width/height/gAlpha cannot be Zero.");
     return;
   }
 

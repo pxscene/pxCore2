@@ -622,12 +622,12 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
 -(void)keyDown:(NSEvent*)event
 {
+  uint32_t flags = 0;
+
   //NSLog(@"keyDown, repeat:%s", event.ARepeat?"YES":"NO");
   //if (!event.ARepeat) 
   {
     // send px key down
-    uint32_t flags = 0;
-    
     if (event.modifierFlags & NSShiftKeyMask)     flags |= PX_MOD_SHIFT;
     if (event.modifierFlags & NSControlKeyMask)   flags |= PX_MOD_CONTROL;
     if (event.modifierFlags & NSAlternateKeyMask) flags |= PX_MOD_ALT;
@@ -646,7 +646,8 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
     // filter out control characters
     // TODO overfiltering... look at IMEs and unicode key input
     // NOTE that iscntrl does not filter out non-printable values like up/down arrows
-    if (!iscntrl(c) && c < 128)
+    if (!iscntrl(c) && c < 128 &&
+        ( (flags & PX_MOD_COMMAND) != PX_MOD_COMMAND) )
       pxWindowNative::_helper_onChar(mWindow, c);
 
   }
@@ -1155,5 +1156,71 @@ pxError pxWindow::endNativeDrawing(pxSurfaceNative& s)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// DEBUG CODE ... view (void*)  NSImage returned via XCode preview.
+//
+void* makeNSImage(void *rgba_buffer, int w, int h, int depth)
+{
+  size_t bitsPerComponent = 8;
+  size_t bytesPerPixel    = depth; // RGBA
+  size_t bytesPerRow      = w * bytesPerPixel;
+  
+  CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+  
+  if(!colorSpace)
+  {
+    NSLog(@"Error allocating color space RGB\n");
+    return nil;
+  }
+  
+  //Create bitmap context  
+  CGContextRef context = CGBitmapContextCreate(rgba_buffer, w, h,
+                                  bitsPerComponent,
+                                  bytesPerRow,
+                                  colorSpace,
+                                  kCGBitmapByteOrderDefault | kCGImageAlphaPremultipliedLast);	// RGBA
+  if(!context)
+  {
+    NSLog(@"Bitmap context not created");
+  }
+  
+  CGImageRef  imageRef = CGBitmapContextCreateImage(context);
+  NSImage*       image = [[NSImage alloc] initWithCGImage: imageRef
+                                                     size: NSMakeSize(CGFloat(w),CGFloat(h))];
+  
+  // Flip Vertical ... Accommodate comparisons with OpenGL texutres
+#if 0
+  
+ // CGContextRelease(context);  // might not be needed with ARC and/or Autorelease Pool
+  CGColorSpaceRelease(colorSpace);
+  
+  return image;
+  
+#else
+  
+  NSAffineTransform       *transform = [NSAffineTransform transform];
+  NSAffineTransformStruct       flip = {1.0, 0.0, 0.0, -1.0, 0.0, CGFloat(h) };
+ 
+   NSImage *flipped = [[NSImage alloc] initWithSize: [image size]];
+  
+  [flipped lockFocus];
+    [transform setTransformStruct: flip];
+    [transform concat];
+  
+    [image drawAtPoint: NSMakePoint(0,0)
+              fromRect: NSMakeRect(0,0, w, h)
+             operation: NSCompositeCopy
+              fraction: 1.0];
+  
+  [flipped unlockFocus];
+ // [transform release];        // might not be needed with ARC and/or Autorelease Pool
+  
+ // CGContextRelease(context);  // might not be needed with ARC and/or Autorelease Pool
+  CGColorSpaceRelease(colorSpace);
+  
+  return flipped;
+#endif
+}
+
 
 // pxWindowNative

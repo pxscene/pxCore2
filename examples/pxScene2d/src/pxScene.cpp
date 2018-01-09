@@ -73,11 +73,21 @@ using namespace std;
 #include <client/windows/handler/exception_handler.h>
 #endif
 
+#ifdef PX_SERVICE_MANAGER
+#include "smqtrtshim.h"
+#include "rtservicemanager.h"
+#include "service.h"
+#include "servicemanager.h"
+#include "applicationmanagerservice.h"
+#endif //PX_SERVICE_MANAGER
+
 #ifndef RUNINMAIN
 class AsyncScriptInfo;
 vector<AsyncScriptInfo*> scriptsInfo;
 static uv_work_t nodeLoopReq;
 #endif
+
+#include <stdlib.h>
 
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
@@ -90,6 +100,7 @@ char *nodeInput = NULL;
 char** g_origArgv = NULL;
 #endif
 bool gDumpMemUsage = false;
+extern bool gApplicationIsClosing;
 extern int pxObjectCount;
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
@@ -220,6 +231,9 @@ protected:
     if (mClosed)
       return;
     mClosed = true;
+    if(gDumpMemUsage)
+      gApplicationIsClosing = true;
+    
     rtLogInfo(__FUNCTION__);
     ENTERSCENELOCK();
     if (mView)
@@ -249,8 +263,9 @@ protected:
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+#ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
-
+#endif
 // #ifdef PX_PLATFORM_MAC
 //       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
 // #else
@@ -499,11 +514,32 @@ if (s && (strcmp(s,"1") == 0))
 #endif
   char buffer[256];
   sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));
+  int windowWidth = 1280;
+  int windowHeight = 720;
+  char const* w = getenv("PXSCENE_WINDOW_WIDTH");
+  if (w)
+  {
+    int value = (int)strtol(w, NULL, 10);
+    if (value > 0)
+    {
+      windowWidth = value;
+    }
+  }
+  char const* h = getenv("PXSCENE_WINDOW_HEIGHT");
+  if (h)
+  {
+    int value = (int)strtol(h, NULL, 10);
+    if (value > 0)
+    {
+      windowHeight = value;
+    }
+  }
   // OSX likes to pass us some weird parameter on first launch after internet install
+  rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
 #ifdef ENABLE_DEBUG_MODE
-  win.init(10, 10, 1280, 720, (urlIndex != -1)?argv[urlIndex]:"browser.js");
+  win.init(10, 10, windowWidth, windowHeight, (urlIndex != -1)?argv[urlIndex]:"browser.js");
 #else
-  win.init(10, 10, 1280, 720, (argc >= 2 && argv[1][0] != '-')?argv[1]:"browser.js");
+  win.init(10, 10, windowWidth, windowHeight, (argc >= 2 && argv[1][0] != '-')?argv[1]:"browser.js");
 #endif
   win.setTitle(buffer);
   // JRJR TODO Why aren't these necessary for glut... pxCore bug
@@ -577,6 +613,15 @@ if (s && (strcmp(s,"1") == 0))
   win_sparkle_init(); 
 
 #endif
+
+#ifdef PX_SERVICE_MANAGER
+  SMQtRtShim::installDefaultCallback();
+  RtServiceManager::start();
+
+  ServiceStruct serviceStruct = { ApplicationManagerService::SERVICE_NAME, createApplicationManagerService };
+  ServiceManager::getInstance()->registerService(ApplicationManagerService::SERVICE_NAME, serviceStruct);
+
+#endif //PX_SERVICE_MANAGER
 
   eventLoop.run();
 

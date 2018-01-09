@@ -3,6 +3,8 @@
 #include "rtRemoteMessage.h"
 #include "rtRemoteConfig.h"
 
+#include <chrono>
+
 rtRemoteAsyncHandle::rtRemoteAsyncHandle(rtRemoteEnvironment* env, rtRemoteCorrelationKey k)
   : m_env(env)
   , m_key(k)
@@ -28,7 +30,7 @@ rtRemoteAsyncHandle::onResponseHandler(std::shared_ptr<rtRemoteClient>& /*client
 }
 
 rtError
-rtRemoteAsyncHandle::wait(uint32_t timeoutInMilliseconds)
+rtRemoteAsyncHandle::waitUntil(uint32_t timeoutInMilliseconds, std::function<rtError()> connectionState)
 {
   if (m_error != RT_ERROR_IN_PROGRESS)
     return m_error;
@@ -38,17 +40,37 @@ rtRemoteAsyncHandle::wait(uint32_t timeoutInMilliseconds)
 
   rtError e = RT_OK;
 
-  if (!m_env->Config->server_use_dispatch_thread())
-  {
-    time_t timeout = time(nullptr) + ((timeoutInMilliseconds+500) / 1000);
-    e = m_error = RT_ERROR_TIMEOUT;
+  auto nowTime = std::chrono::steady_clock::now();
+  auto stopTime = nowTime + std::chrono::milliseconds(timeoutInMilliseconds);
 
-    while (timeout > time(nullptr))
+  for (; stopTime > nowTime; nowTime = std::chrono::steady_clock::now())
+  {
+    if ((e = connectionState()) != RT_OK)
+    {
+      break;
+    }
+
+    auto remainingDuration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(stopTime - nowTime);
+
+    // Wake up at least once per second to check connection state
+    auto waitDuration =
+      std::min(std::max(std::chrono::milliseconds(1), remainingDuration),
+               std::chrono::milliseconds(1000u));
+
+    if (!m_env->Config->server_use_dispatch_thread())
     {
       rtRemoteCorrelationKey k = kInvalidCorrelationKey;
       rtLogDebug("Waiting for item with key = %s", m_key.toString().c_str());
 
-      e = m_env->processSingleWorkItem(std::chrono::milliseconds(timeoutInMilliseconds), true, &k);
+      m_error = RT_ERROR_TIMEOUT;
+      e = m_env->processSingleWorkItem(waitDuration, true, &k);
+
+      if ( e == RT_ERROR_TIMEOUT )
+      {
+        continue;
+      }
+
       rtLogDebug("Got response with key = %s, m_error = %d, error = %d", k.toString().c_str(), m_error, e);
 
       if ( (e == RT_OK) && ((m_error == RT_OK) || (k == m_key)) )
@@ -61,15 +83,20 @@ rtRemoteAsyncHandle::wait(uint32_t timeoutInMilliseconds)
         break;
       }
     }
-  }
-  else
-  {
-    e = m_env->waitForResponse(std::chrono::milliseconds(timeoutInMilliseconds), m_key);
+    else
+    {
+      e = m_env->waitForResponse(waitDuration, m_key);
+
+      if ( e != RT_ERROR_TIMEOUT )
+      {
+        break;
+      }
+    }
   }
 
   if ((e != RT_OK) || (m_error != RT_OK))
   {
-      rtLogError("Got error response m_error = %d, error = %d", m_error, e);
+    rtLogError("Got error response m_error = %d (%s), error = %d (%s)", m_error, rtStrError(m_error), e, rtStrError(e));
   }
 
   return e;
