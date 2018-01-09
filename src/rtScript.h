@@ -62,6 +62,7 @@ public:
   virtual rtError pump() = 0;
 
   virtual rtError collectGarbage() = 0;
+  virtual void* getParameter(rtString param) = 0;
 };
 
 typedef rtRef<rtIScript> rtScriptRef;
@@ -82,6 +83,8 @@ public:
   rtError pump();
 
   rtError collectGarbage();
+
+  void* getParameter(rtString param);
 
 private:
   rtScriptRef mScript;

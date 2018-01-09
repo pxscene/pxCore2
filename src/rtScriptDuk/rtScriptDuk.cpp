@@ -142,7 +142,7 @@ typedef rtRef<rtDukContext> rtDukContextRef;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if 0
+#if 1
 typedef struct args_
 {
   int    argc;
@@ -243,6 +243,7 @@ public:
   //std::string name() const;
 
   rtError collectGarbage();
+  void* getParameter(rtString param);
 private:
 #ifdef ENABLE_DEBUG_MODE
   void init2();
@@ -1195,6 +1196,12 @@ rtError rtScriptDuk::collectGarbage()
   return RT_OK;
 }
 
+void* rtScriptDuk::getParameter(rtString param)
+{
+  //yet to implement
+  return NULL;
+}
+
 #if 0
 rtScriptDuk::forceGC()
 {
@@ -1243,7 +1250,7 @@ void rtScriptDuk::init2(int argc, char** argv)
 #ifdef ENABLE_DEBUG_MODE
   g_argvduk = uv_setup_args(g_argcduk, g_argvduk);
 #else
-  argvduk = uv_setup_args(argcduk, argvduk);
+  argv = uv_setup_args(argc, argv);
 #endif
 
   rtLogInfo(__FUNCTION__);
@@ -1288,12 +1295,13 @@ rtError rtScriptDuk::term()
 
   //uv_loop_close(dukLoop);
   duk_destroy_heap(dukCtx);
-
+#if 0
 #ifdef USE_CONTEXTIFY_CLONES
   if( mRefContext.getPtr() )
   {
     mRefContext->Release();
   }
+#endif
 #endif
   return RT_OK;
 }

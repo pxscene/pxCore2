@@ -219,6 +219,7 @@ public:
   v8::Platform   *getPlatform() { return mPlatform; };
 
   rtError collectGarbage();
+  void* getParameter(rtString param);
 private:
 #if 0
 #ifdef ENABLE_DEBUG_MODE
@@ -245,8 +246,11 @@ private:
 #ifndef RUNINMAIN
   bool mNeedsToEnd;
 #endif
-
+#ifdef ENABLE_DEBUG_MODE
   void init2();
+#else
+  void init2(int argc, char** argv);
+#endif
 
   int mRefCount;  
 };
@@ -925,7 +929,7 @@ rtScriptNode::rtScriptNode():mRefCount(0)
   mTestGc = false;
   mIsolate = NULL;
   mPlatform = NULL;
-  init2();
+  init();
 }
 
 rtScriptNode::rtScriptNode(bool initialize):mRefCount(0)
@@ -943,7 +947,7 @@ rtScriptNode::rtScriptNode(bool initialize):mRefCount(0)
   mPlatform = NULL;
   if (initialize)
   {
-    init2();
+    init();
   }
 }
 
@@ -1085,6 +1089,13 @@ rtError rtScriptNode::collectGarbage()
   return RT_OK;
 }
 
+void* rtScriptNode::getParameter(rtString param)
+{
+  if (param.compare("isolate") == 0)
+    return getIsolate();
+  return NULL;
+}
+
 #if 0
 rtNode::forceGC()
 {
@@ -1198,13 +1209,14 @@ rtError rtScriptNode::term()
 {
   rtLogInfo(__FUNCTION__);
   nodeTerminated = true;
+#if 0
 #ifdef USE_CONTEXTIFY_CLONES
   if( mRefContext.getPtr() )
   {
     mRefContext->Release();
   }
 #endif
-
+#endif
   if(node_isolate)
   {
 // JRJRJR  Causing crash???  ask Hugh
