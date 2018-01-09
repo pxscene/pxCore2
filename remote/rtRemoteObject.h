@@ -20,7 +20,7 @@ public:
 
   virtual unsigned long AddRef();
   virtual unsigned long Release();
-
+  virtual rtMethodMap* getMap() const { return NULL;  }
   inline std::string const& getId() const
     { return m_id; }
 

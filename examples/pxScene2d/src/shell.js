@@ -7,14 +7,15 @@ px.import({ scene: 'px:scene.1.js',
   var scene = imports.scene;
   var keys  = imports.keys;
 
-  if (!isDuk) {
-    function uncaughtException(err) {
+  function uncaughtException(err) {
+    if (!isDuk) {
       console.log("Received uncaught exception " + err.stack);
     }
-
-
+  }
+  if (!isDuk) {
     process.on('uncaughtException', uncaughtException);
   }
+
 
   // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
