@@ -52,7 +52,10 @@ cp macstuff/EngineRunner $bundleBin
 
 # Minify JS into Bundle...
 #
-./jsMinFolder.sh rcvrcore $bundleRes/rcvrcore
+# For Node
+#./jsMinFolder.sh rcvrcore $bundleRes/rcvrcore
+cp -a rcvrcore/* $bundleRes/rcvrcore
+
 
 # NOTE" jsMin.sh will default to a 'min' name with 1 arg.  E.g.  "jsMin.sh INPUT.js"  >> INPUT.min.js
 #
@@ -61,8 +64,10 @@ cp macstuff/EngineRunner $bundleBin
 ./jsMin.sh browser.js $bundleRes/browser.js
 ./jsMin.sh about.js $bundleRes/about.js
 ./jsMin.sh browser/editbox.js $bundleRes/browser/editbox.js
-#./jsMinFolder.sh browser $bundleRes/browser
 
+# Copy duktape modules
+cp -a duk_modules $bundleRes/duk_modules
+# Copy node modules
 cp -a node_modules $bundleRes/node_modules
 
 # Copy OTHER to Resources...

@@ -1,3 +1,5 @@
+var isDuk = (typeof timers != "undefined")?true:false;
+
 var RPCContext = require('rcvrcore/rpcContext');
 
 function Scene() {
@@ -18,13 +20,21 @@ function Scene() {
       this.root = scene.root;
       this.info = scene.info;
       this.filePath = filePath;
-      this.__defineGetter__("w", function() { return scene.w; });
-      this.__defineGetter__("h", function() { return scene.h; });
-      this.__defineGetter__("showOutlines", function() { return scene.showOutlines; });
-      this.__defineSetter__("showOutlines", function(v) { scene.showOutlines = v; });
-      this.__defineGetter__("showDirtyRect", function() { return scene.showDirtyRect; });
-      this.__defineSetter__("showDirtyRect", function(v) { scene.showDirtyRect = v; });
-      this.__defineSetter__("customAnimator", function(v) { scene.customAnimator = v; });
+      if (!isDuk) { 
+        this.__defineGetter__("w", function() { return scene.w; });
+        this.__defineGetter__("h", function() { return scene.h; });
+        this.__defineGetter__("showOutlines", function() { return scene.showOutlines; });
+        this.__defineSetter__("showOutlines", function(v) { scene.showOutlines = v; });
+        this.__defineGetter__("showDirtyRect", function() { return scene.showDirtyRect; });
+        this.__defineSetter__("showDirtyRect", function(v) { scene.showDirtyRect = v; });
+        this.__defineSetter__("customAnimator", function(v) { scene.customAnimator = v; });
+      }
+      else {
+        this.w = scene.w;
+        this.h = scene.h;
+        this.showOutlines = false;
+        this.showDirtyRect = false;       
+      }
       //this.w = scene.w;
       //this.h = scene.h;
     }
@@ -157,7 +167,7 @@ function Scene() {
   this.getService = function getService(name, serviceObject) {
     return nativeScene.getService(name, serviceObject);
   };
-
+    
   this.setAppContext = function(appContextName, appContext) {
     if( !appContextMap.hasOwnProperty(appContextName) ) {
       appContextMap[appContextName] = appContext;

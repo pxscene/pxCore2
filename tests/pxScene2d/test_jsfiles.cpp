@@ -21,7 +21,7 @@
 
 using namespace std;
 
-extern rtNode script;
+extern rtScript script;
 extern int gargc;
 extern char** gargv;
 extern int pxObjectCount;
