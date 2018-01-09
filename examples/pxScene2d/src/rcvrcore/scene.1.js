@@ -20,23 +20,13 @@ function Scene() {
       this.root = scene.root;
       this.info = scene.info;
       this.filePath = filePath;
-      if (!isDuk) { 
-        this.__defineGetter__("w", function() { return scene.w; });
-        this.__defineGetter__("h", function() { return scene.h; });
-        this.__defineGetter__("showOutlines", function() { return scene.showOutlines; });
-        this.__defineSetter__("showOutlines", function(v) { scene.showOutlines = v; });
-        this.__defineGetter__("showDirtyRect", function() { return scene.showDirtyRect; });
-        this.__defineSetter__("showDirtyRect", function(v) { scene.showDirtyRect = v; });
-        this.__defineSetter__("customAnimator", function(v) { scene.customAnimator = v; });
-      }
-      else {
-        this.w = scene.w;
-        this.h = scene.h;
-        this.showOutlines = false;
-        this.showDirtyRect = false;       
-      }
-      //this.w = scene.w;
-      //this.h = scene.h;
+      this.__defineGetter__("w", function() { return scene.w; });
+      this.__defineGetter__("h", function() { return scene.h; });
+      this.__defineGetter__("showOutlines", function() { return scene.showOutlines; });
+      this.__defineSetter__("showOutlines", function(v) { scene.showOutlines = v; });
+      this.__defineGetter__("showDirtyRect", function() { return scene.showDirtyRect; });
+      this.__defineSetter__("showDirtyRect", function(v) { scene.showDirtyRect = v; });
+      this.__defineSetter__("customAnimator", function(v) { scene.customAnimator = v; });
     }
   };
 
@@ -77,36 +67,36 @@ function Scene() {
         if(params.d.match(/rect/i) )
         {
           params.d = params.d.replace(/rect/gi, "RECT");
-          
+
           // normalize the path
           params.d = params.d.replace(/,/g," ")
           .replace(/-/g," -")
           .replace(/ +/g," ");
-          
+
            // console.log(" >>> Found RECT: [" + params.d + "] ");
         }
         else
         if(params.d.match(/circle/i) )
         {
           params.d = params.d.replace(/circle/gi, "CIRCLE");
-          
+
           // normalize the path
           params.d = params.d.replace(/,/g," ")
           .replace(/-/g," -")
           .replace(/ +/g," ");
-          
+
           // console.log(" >>> Found CIRCLE: [" + params.d + "] ");
         }
         else
         if(params.d.match(/ellipse/i))
         {
           params.d = params.d.replace(/ellipse/gi, "ELLIPSE");
-          
+
           // normalize the path
           params.d = params.d.replace(/,/g," ")
           .replace(/-/g," -")
           .replace(/ +/g," ");
-          
+
           // console.log(" >>> Found ELLIPSE: [" + params.d + "] ");
         }
         else
@@ -118,7 +108,7 @@ function Scene() {
           .replace(/ +/g," ");
         }
     }
- 
+
     var component = null;
     if( componentDefinitions !== null && params.hasOwnProperty("t") ) {
       component = createComponent(params);
@@ -130,11 +120,11 @@ function Scene() {
       return nativeScene.create(params);
     }
   };
-  
+
   this.stopPropagation = function() {
     return nativeScene.stopPropagation();
   };
-  
+
   this.getFocus = function(element) {
     return nativeScene.getFocus(element);
   };
@@ -155,7 +145,7 @@ function Scene() {
   this.screenshot = function screenshot(type, pngData) {
     return nativeScene.screenshot(type, pngData);
   };
-    
+
   this.clipboardGet = function clipboardGet(type) {
       return nativeScene.clipboardGet(type);
   };
@@ -167,7 +157,7 @@ function Scene() {
   this.getService = function getService(name, serviceObject) {
     return nativeScene.getService(name, serviceObject);
   };
-    
+
   this.setAppContext = function(appContextName, appContext) {
     if( !appContextMap.hasOwnProperty(appContextName) ) {
       appContextMap[appContextName] = appContext;
@@ -236,4 +226,3 @@ function Scene() {
 }
 
 module.exports = Scene;
-
