@@ -47,11 +47,18 @@ https://github.com/pxscene/pxCore/tree/master/examples/pxScene2d#ubuntu-setup
 git clone -b duktape_proof_of_concept https://github.com/topcoderinc/pxCore.git
 cd pxCore
 
-cd src/dukluv
+cd examples/pxScene2d/dukluv
 mkdir build
 cd build
 cmake ..
 make
+
+for ubuntu x64, you may need 
+cd zlib
+sudo make install
+cd ../png
+./configure --prefix=/usr LDFLAGS="-L/usr/lib -lz"
+make clean && make
 
 cd ../../../
 cd examples/pxScene2d/external
@@ -60,10 +67,10 @@ cd examples/pxScene2d/external
 cd ../../../
 mkdir temp
 cd temp
-cmake ..
+cmake -DUSE_DUKTAPE=ON ..
 cmake --build . --config Release -- -j1
 
-# test
-cd ../examples/pxScene2d/src
+cpack .
+cd _CPack_Packages/Linux/TZ/pxscene-setup/
 ./pxscene browser.js
 ./pxscene about.js

@@ -21,6 +21,7 @@
 #ifndef RTSCRIPTNODE_H
 #define RTSCRIPTNODE_H
 
+#include "rtScriptNode/node_headers.h"
 
 rtError createScriptNode(rtScriptRef& script);
 

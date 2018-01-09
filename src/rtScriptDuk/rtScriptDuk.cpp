@@ -113,7 +113,9 @@ extern "C" {
 
 #ifndef PX_PLATFORM_MAC
 #ifndef __clang__
+#ifndef __GNUC__
 #pragma GCC diagnostic ignored "-Werror"
+#endif
 #endif
 #endif
 
@@ -1233,6 +1235,13 @@ bool rtNode::isInitialized()
   return node_is_initialized;
 }
 #endif
+
+duk_ret_t my_print(duk_context *ctx)
+{
+    printf("%s\n", duk_get_string(ctx, -1));
+    return 0;
+}
+
 #ifdef ENABLE_DEBUG_MODE
 void rtScriptDuk::init2()
 #else
@@ -1265,6 +1274,10 @@ void rtScriptDuk::init2(int argc, char** argv)
 	    rtLogWarn("Problem initiailizing duktape heap\n");
 	    return;
     }
+
+    duk_module_duktape_init(dukCtx);
+    duk_push_c_function(dukCtx, &my_print, 1);
+    duk_put_global_string(dukCtx, "print");
 
     dukLoop->data = dukCtx;
     uvLoops.push_back(dukLoop);
