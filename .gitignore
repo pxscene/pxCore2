@@ -169,4 +169,7 @@ examples/pxScene2d/src/Makefile
 
 tests/pxScene2d/Makefile
 
+examples/pxScene2d/src/Spark
+
+
 

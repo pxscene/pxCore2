@@ -25,7 +25,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
   var max_h     = 175;
   var title_dy  = 30;
 
-  var logo_url  = "https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/images/pxscene.png";
+  var logo_url  = "http://www.pxscene.org/images/Spark128.png";
                                            
   var fontRes   = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
   var panel     = scene.create({ t: "object",  parent: root, x: 40, y: -720, w: (max_w + 4), h: max_h, a: 0.0 });
@@ -147,7 +147,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
                                                       
   }).then( () =>
   {
-    title = scene.create({ t: "text", text: "About pxscene", font: fontRes, parent: panel, pixelSize: titlePts, textColor: 0xFFFFFFff });
+    title = scene.create({ t: "text", text: "About Spark", font: fontRes, parent: panel, pixelSize: titlePts, textColor: 0xFFFFFFff });
         
     title.ready.then( () =>
     {

@@ -27,31 +27,31 @@ if [ -z $VALGRINDLOGS ]
 then
 VALGRINDLOGS=valgrind_logs
 fi
-echo "valgrind --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./pxscene $1 $2 $3 $4 $5 $6 $7"
+echo "valgrind --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark $1 $2 $3 $4 $5 $6 $7"
 if [ -z $SUPPRESSIONS ]
 then
-valgrind --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./pxscene $1 $2 $3 $4 $5 $6 $7
+valgrind --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark $1 $2 $3 $4 $5 $6 $7
 else
-valgrind --tool=memcheck --suppressions=$SUPPRESSIONS  --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./pxscene $1 $2 $3 $4 $5 $6 $7
+valgrind --tool=memcheck --suppressions=$SUPPRESSIONS  --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark $1 $2 $3 $4 $5 $6 $7
 fi
 else
-./pxscene $1 $2 $3 $4 $5 $6 $7
+./Spark $1 $2 $3 $4 $5 $6 $7
 fi
-#To run pxscene as background process
-#./pxscene $1 $2 $3 $4 $5 $6 $7 < `tty` >> /var/tmp/pxscene.log 2>&1 &
+#To run Spark as background process
+#./Spark $1 $2 $3 $4 $5 $6 $7 < `tty` >> /var/tmp/Spark.log 2>&1 &
 
 # Development stuff...
 #
 
-#valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./pxscene $1 $2 $3 $4 $5 $6 $7
-#./pxscene $1 $2 $3 $4 $5 $6 $7
+#valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark $1 $2 $3 $4 $5 $6 $7
+#./Spark $1 $2 $3 $4 $5 $6 $7
 
-#valgrind --tool=callgrind ./pxscene $1 $2
+#valgrind --tool=callgrind ./Spark $1 $2
 
 # NOTE: (rough) Process Performance Timing
-#time ./pxscene  $1 $2 -R
+#time ./Spark  $1 $2 -R
 
 # NOTE:  To use GDB ... use the DEBUG .so path for libnode
-#gdb --args pxscene  $1 $2 $3 $4
+#gdb --args Spark  $1 $2 $3 $4
 
-#strace -o trace.txt pxscene $1 $2 $3 $4 $5 $6 $7
+#strace -o trace.txt Spark $1 $2 $3 $4 $5 $6 $7

@@ -507,7 +507,7 @@ if (s && (strcmp(s,"1") == 0))
 #endif
 #endif
   char buffer[256];
-  sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));
+  sprintf(buffer, "Spark: %s", xstr(PX_SCENE_VERSION));
   // OSX likes to pass us some weird parameter on first launch after internet install
 #ifdef ENABLE_DEBUG_MODE
   win.init(10, 10, 1280, 720, (urlIndex != -1)?argv[urlIndex]:"browser.js");

@@ -2,7 +2,7 @@
 ABS=`pwd`
 EXT_LIB_PATH=${ABS}/examples/pxScene2d/external
 NODE_PATH=${EXT_LIB_PATH}/node
-LOG_PATH=/var/tmp/pxscene/logs
+LOG_PATH=/var/tmp/spark/logs
 DEPLOY_PATH=deploy/examples/pxScene2d
 BIN_SOURCE_PATH=examples/pxScene2d
 SKIPBUILD=false
@@ -139,7 +139,7 @@ createDMG() {
   ICON_SIZE=128	#DMG icon size
   TEXT_SIZE=16	#DMG text size
 
-  VOLUME_NAME=pxscene	#mounted DMG name
+  VOLUME_NAME=Spark	#mounted DMG name
   MOUNT_DIR="/Volumes/${VOLUME_NAME}"
   VOLUME_ICON_FILE=${DMG_RES_DIR}/pxscenevolico.icns	#DMG volume icon
   BACKGROUND_FILE=${DMG_RES_DIR}/background.png		#DMG background image
@@ -150,7 +150,7 @@ createDMG() {
   POSITION_CLAUSE="${POSITION_CLAUSE}set position of item \"pxscene.app\" to {240, 140}"
   APPLICATION_CLAUSE="set position of item \"Applications\" to {240, 390}"
 
-  DMG_FILE="deploy/mac/pxscene.dmg"
+  DMG_FILE="deploy/mac/Spark.dmg"
   DMG_DIRNAME="$(dirname "${DMG_FILE}")"
   DMG_DIR="$(cd "${DMG_DIRNAME}" > /dev/null; pwd)"
   DMG_NAME="$(basename "${DMG_FILE}")"
