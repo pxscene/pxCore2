@@ -7,9 +7,9 @@ set -e
 
 make_parallel=3
 
-if [ "$(uname)" == "Darwin" ]; then
+if [ "$(uname)" = "Darwin" ]; then
     make_parallel="$(sysctl -n hw.ncpu)"
-elif [ "$(uname)" == "Linux" ]; then
+elif [ "$(uname)" = "Linux" ]; then
     make_parallel="$(cat /proc/cpuinfo | grep '^processor' | wc --lines)"
 fi
 
@@ -19,7 +19,7 @@ then
 
   cd curl
 
-  if [ "$(uname)" == "Darwin" ]; then
+  if [ "$(uname)" = "Darwin" ]; then
     ./configure --with-darwinssl
   else
       if [ $(echo "$(openssl version | cut -d' ' -f 2 | cut -d. -f1-2)>1.0" | bc) ]; then
