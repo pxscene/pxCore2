@@ -79,7 +79,7 @@ else
   then
     #if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_EVENT_TYPE" = "push" ]
     #then
-      tar -czf $TRAVIS_BUILD_DIR/external.tar.gz $TRAVIS_BUILD_DIR/external/ >>$BUILDLOGS
+      tar -czf $TRAVIS_BUILD_DIR/external.tar.gz $TRAVIS_BUILD_DIR/examples/pxScene2d/external/ >>$BUILDLOGS
       if [ "$?" -ne 0 ]
       then
         echo "***********Tar command failed****************">>$BUILDLOGS
