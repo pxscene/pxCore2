@@ -164,7 +164,7 @@ void rtWrapperSceneUpdateExit()
 #endif // RUNINMAIN
 }
 
-rtScript::rtScript()  {}
+rtScript::rtScript():mInitialized(false)  {}
 rtScript::~rtScript() {}
 
 rtError rtScript::init()
@@ -196,6 +196,7 @@ rtError rtScript::init()
 #endif
 
   mScript->init();
+  mInitialized = true;
   return RT_OK;
 }
 
