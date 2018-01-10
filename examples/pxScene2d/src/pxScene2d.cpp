@@ -1821,13 +1821,14 @@ void pxScene2d::init()
 
 rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
+#ifdef ENABLE_PERMISSIONS_CHECK
   rtString url = p.get<rtString>("url");
-  bool allowed;
-  if (allows(url, allowed) == RT_OK && !allowed)
+  if (!mPermissions.allows(url.cString(), rtPermissions::DEFAULT))
   {
     rtLogError("url '%s' is not allowed", url.cString());
     return RT_ERROR_NOT_ALLOWED;
   }
+#endif
 
   rtError e = RT_OK;
   rtString t = p.get<rtString>("t");
@@ -2058,6 +2059,15 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 {
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtString cmd = p.get<rtString>("cmd");
+  if (!mPermissions.allows(cmd.cString(), rtPermissions::WAYLAND))
+  {
+    rtLogError("wayland cmd '%s' is not allowed", cmd.cString());
+    return RT_ERROR_NOT_ALLOWED;
+  }
+#endif
+
 #if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
   UNUSED_PARAM(p);
   UNUSED_PARAM(o);
@@ -2892,12 +2902,13 @@ rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
 
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
-  bool allowed;
-  if (allows("feature://screenshot", allowed) == RT_OK && !allowed)
+#ifdef ENABLE_PERMISSIONS_CHECK
+  if (!mPermissions.allows("screenshot", rtPermissions::FEATURE))
   {
     rtLogError("screenshot is not allowed");
     return RT_ERROR_NOT_ALLOWED;
   }
+#endif
 
   // Is this a type we support?
   if (type == "image/png;base64")
@@ -2963,14 +2974,13 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 
 rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 {
-  rtString serviceUrl("serviceManager://");
-  serviceUrl.append(name.cString());
-  bool allowed;
-  if (allows(serviceUrl, allowed) == RT_OK && !allowed)
+#ifdef ENABLE_PERMISSIONS_CHECK
+  if (!mPermissions.allows(name.cString(), rtPermissions::SERVICE))
   {
-    rtLogError("url '%s' is not allowed", serviceUrl.cString());
+    rtLogError("service '%s' is not allowed", name.cString());
     return RT_ERROR_NOT_ALLOWED;
   }
+#endif
 
   rtLogInfo("trying to get service for name: %s", name.cString());
 #ifdef PX_SERVICE_MANAGER
@@ -3135,7 +3145,7 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
 rtError pxScene2d::allows(const rtString& url, bool& o) const
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  return mPermissions.allows(url.cString(), o);
+  return mPermissions.allows(url.cString(), rtPermissions::DEFAULT, o);
 #else
   UNUSED_PARAM(url);
   o = true; // default

@@ -25,69 +25,67 @@
 #include <../remote/rapidjson/error/en.h>
 
 #include <stdlib.h>
+#include <algorithm>
 
+
+// Bootstrap
 const char* rtPermissions::DEFAULT_CONFIG_FILE = "./pxscenepermissions.conf";
 const char* rtPermissions::CONFIG_ENV_NAME = "PXSCENE_PERMISSIONS_CONFIG";
-std::map<std::string, std::string> rtPermissions::mAssignMap;
-std::map<std::string, permissionsMap_t> rtPermissions::mRolesMap;
+const int rtPermissions::CONFIG_BUFFER_SIZE = 65536;
+rtPermissions::assignMap_t rtPermissions::mAssignMap;
+rtPermissions::roleMap_t rtPermissions::mRolesMap;
 std::string rtPermissions::mConfigPath;
 
-template<typename Map> typename Map::const_iterator
-findBestWildcardMatch(Map const& map, typename Map::key_type const& key)
-{
-  if (key.empty())
-    return map.end();
 
+template<typename Map> typename Map::const_iterator
+rtPermissions::findWildcard(Map const& map, typename Map::key_type const& key)
+{
   size_t bestMatchLength = 0;
-  typename Map::const_iterator it = map.begin();
   typename Map::const_iterator best = map.end();
-  for (; it != map.end(); ++it)
+  for (typename Map::const_iterator it = map.begin(); it != map.end(); ++it)
   {
-    const char* url = key.c_str();
-    const char* wildcard = it->first.c_str();
-    size_t len = 0;
-    const char* wildcardAlt = NULL;
-    size_t lenAlt = 0;
-    for (; *url; url++)
+    if (it->first.second != key.second)
     {
-      while (*wildcard == '*')
-      {
-        wildcardAlt = ++wildcard;
-        lenAlt = len;
-      }
-      if (*url == *wildcard)
-      {
-        wildcard++;
-        len++;
-      }
-      else if (wildcardAlt != NULL)
-      {
-        wildcard = wildcardAlt;
-        len = lenAlt;
-      }
-      else
-      {
-        break;
-      }
+      continue;
     }
-    for (; *wildcard == '*'; wildcard++);
-    if (*wildcard == 0 && len >= bestMatchLength)
+    const char* url = key.first.c_str();
+    const char* w = it->first.first.c_str();
+    const char* wAlt = NULL;
+    size_t len = 0;
+    size_t lenAlt = 0;
+    for (; *url && w; url++)
     {
-      bestMatchLength = len;
-      best = it;
+      for (; *w == '*'; wAlt = ++w, lenAlt = len);
+      bool equal = *url == *w;
+      w = equal ? w + 1 : wAlt;
+      len = equal ? len + 1 : lenAlt;
+    }
+    if (w)
+    {
+      for (; *w == '*'; w++);
+      if (*w == 0 && len >= bestMatchLength)
+      {
+        bestMatchLength = len;
+        best = it;
+      }
     }
   }
-
+  if (best == map.end() && key.second != DEFAULT)
+  {
+    typename Map::key_type key2 = key;
+    key2.second = DEFAULT;
+    return findWildcard(map, key2);
+  }
   return best;
 }
 
-permissionsMap_t permissionsJsonToMap(const rapidjson::Value& json)
+rtPermissions::permissionsMap_t permissionsJsonToMap(const rapidjson::Value& json)
 {
-  permissionsMap_t ret;
-  for (int i = 0; i < 3; i++)
+  rtPermissions::permissionsMap_t ret;
+  for (int i = 0; i < 4; i++)
   {
     // first level... "url", "serviceManager", "features"
-    const char* sectionName = i == 1 ? "serviceManager" : (i == 2 ? "features" : "url");
+    const char* sectionName = i == 1 ? "serviceManager" : (i == 2 ? "features" : (i == 3 ? "applications" : "url"));
     if (json.HasMember(sectionName))
     {
       const rapidjson::Value& sec = json[sectionName];
@@ -101,9 +99,10 @@ permissionsMap_t permissionsJsonToMap(const rapidjson::Value& json)
           for (rapidjson::SizeType k = 0; k < arr.Size(); k++)
           {
             // third level... array of urls
-            std::string key = i == 1 ? "serviceManager://" : (i == 2 ? "feature://" : "");
-            key += arr[k].GetString();
-            ret[key] = j == 0;
+            rtPermissions::wildcard_t w;
+            w.first = arr[k].GetString();
+            w.second = rtPermissions::Type(i);
+            ret[w] = j == 0;
           }
         }
       }
@@ -112,13 +111,13 @@ permissionsMap_t permissionsJsonToMap(const rapidjson::Value& json)
   return ret;
 }
 
-permissionsMap_t permissionsObjectToMap(const rtObjectRef& permissionsObject)
+rtPermissions::permissionsMap_t permissionsObjectToMap(const rtObjectRef& permissionsObject)
 {
-  permissionsMap_t ret;
-  for (int i = 0; i < 3; i++)
+  rtPermissions::permissionsMap_t ret;
+  for (int i = 0; i < 4; i++)
   {
     // first level... "url", "serviceManager", "features"
-    const char* sectionName = i == 1 ? "serviceManager" : (i == 2 ? "features" : "url");
+    const char* sectionName = i == 1 ? "serviceManager" : (i == 2 ? "features" : (i == 3 ? "applications" : "url"));
     const rtObjectRef& sec = permissionsObject.get<rtObjectRef>(sectionName);
     if (sec)
     {
@@ -133,9 +132,10 @@ permissionsMap_t permissionsObjectToMap(const rtObjectRef& permissionsObject)
           for (uint32_t k = 0; k < len; k++)
           {
             // third level... array of urls
-            std::string key = i == 1 ? "serviceManager://" : (i == 2 ? "feature://" : "");
-            key += arr.get<rtString>(k).cString();
-            ret[key] = j == 0;
+            rtPermissions::wildcard_t w;
+            w.first = arr.get<rtString>(k).cString();
+            w.second = rtPermissions::Type(i);
+            ret[w] = j == 0;
           }
         }
       }
@@ -178,13 +178,13 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
   FILE* fp = fopen(s, "rb");
   if (NULL == fp)
   {
-    rtLogInfo("Permissions config read error : cannot open '%s'", s);
+    rtLogDebug("Permissions config read error : cannot open '%s'", s);
     return RT_FAIL;
   }
 
   rapidjson::Document doc;
   rapidjson::ParseResult result;
-  char readBuffer[65536];
+  char readBuffer[CONFIG_BUFFER_SIZE];
   memset(readBuffer, 0, sizeof(readBuffer));
   rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
   result = doc.ParseStream(is);
@@ -206,7 +206,10 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
   const rapidjson::Value& assign = doc["assign"];
   for (rapidjson::Value::ConstMemberIterator itr = assign.MemberBegin(); itr != assign.MemberEnd(); ++itr)
   {
-    mAssignMap[itr->name.GetString()] = itr->value.GetString();
+    wildcard_t w;
+    w.first = itr->name.GetString();
+    w.second = DEFAULT;
+    mAssignMap[w] = itr->value.GetString();
   }
   const rapidjson::Value& roles = doc["roles"];
   for (rapidjson::Value::ConstMemberIterator itr = roles.MemberBegin(); itr != roles.MemberEnd(); ++itr)
@@ -230,14 +233,13 @@ rtError rtPermissions::setOrigin(const char* origin)
 {
   if (origin && *origin && !mAssignMap.empty())
   {
-    std::map<std::string, std::string>::const_iterator it =
-      findBestWildcardMatch(mAssignMap, origin);
-
+    wildcard_t w;
+    w.first = origin;
+    w.second = DEFAULT;
+    assignMap_t::const_iterator it = findWildcard(mAssignMap, w);
     if (it != mAssignMap.end())
     {
-      std::map<std::string, permissionsMap_t>::const_iterator jt =
-        mRolesMap.find(it->second);
-
+      roleMap_t::const_iterator jt = mRolesMap.find(it->second);
       if (jt != mRolesMap.end())
       {
         mPermissionsMap = jt->second;
@@ -262,46 +264,28 @@ rtError rtPermissions::setParent(const rtPermissions* parent)
   return RT_OK;
 }
 
-rtError rtPermissions::allows(const char* url, bool& o) const
+rtError rtPermissions::allows(const char* s, rtPermissions::Type type, bool& o) const
 {
-  bool allow = true; // default
+  o = true; // default
 
-  if (url && *url && !mPermissionsMap.empty())
+  if (s && !mPermissionsMap.empty())
   {
-    rtString urlOrigin = rtUrlGetOrigin(url);
-    if (!urlOrigin.isEmpty())
+    wildcard_t w;
+    w.second = type;
+    if (type == DEFAULT)
     {
-      permissionsMap_t::const_iterator it =
-        findBestWildcardMatch(mPermissionsMap, urlOrigin.cString());
-
-      if (it != mPermissionsMap.end())
-      {
-        allow = it->second;
-        if (allow && mParent)
-        {
-          return mParent->allows(url, o);
-        }
-      }
+      w.first = rtUrlGetOrigin(s).cString();
     }
-  }
-
-  o = allow;
-  return RT_OK;
-}
-
-rtError rtPermissions::findMatch(const char* url, std::string& match) const
-{
-  if (url && *url && !mPermissionsMap.empty())
-  {
-    permissionsMap_t::const_iterator it =
-      findBestWildcardMatch(mPermissionsMap, url);
-
+    if (type != DEFAULT || w.first.empty())
+    {
+      w.first = s;
+    }
+    permissionsMap_t::const_iterator it = findWildcard(mPermissionsMap, w);
     if (it != mPermissionsMap.end())
     {
-      match = it->first;
-      return RT_OK;
+      o = it->second;
     }
   }
 
-  return RT_FAIL;
+  return (o && mParent) ? mParent->allows(s, type, o) : RT_OK;
 }
