@@ -77,9 +77,9 @@ else
   #Uploading the externals to server
   if [ "$?" -eq 0 ]
   then
-    #if [ "$TRAVIS_OS_NAME" == "osx" ] 
+    #if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_EVENT_TYPE" = "push" ]
     #then
-      tar -czf $TRAVIS_BUILD_DIR/external.tar.gz ../external/ >>$BUILDLOGS
+      tar -czf $TRAVIS_BUILD_DIR/external.tar.gz $TRAVIS_BUILD_DIR/external/ >>$BUILDLOGS
       if [ "$?" -ne 0 ]
       then
         echo "***********Tar command failed****************">>$BUILDLOGS
