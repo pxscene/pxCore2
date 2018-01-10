@@ -442,7 +442,7 @@ int pxMain(int argc, char* argv[])
   uv_queue_work(nodeLoop, &nodeLoopReq, nodeThread, nodeIsEndingCallback);
   // init asynch that will get notifications about new scripts
   uv_async_init(nodeLoop, &asyncNewScript, processNewScript);
-  uv_async_init(nodeLoop, &gcTrigger,garbageCollect);
+  uv_async_init(nodeLoop, &gcTrigger,collectGarbage);
 
 #endif
 char const* s = getenv("PX_DUMP_MEMUSAGE");
@@ -512,10 +512,10 @@ if (s && (strcmp(s,"1") == 0))
       curpos = curpos + 35;
   }
   #endif
+#endif
 
 #ifdef RUNINMAIN
   script.init();
-#endif
 #endif
   char buffer[256];
   sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));

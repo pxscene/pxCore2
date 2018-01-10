@@ -1,7 +1,7 @@
 #ifndef RT_FUNCTION_WRAPPER_H
 #define RT_FUNCTION_WRAPPER_H
 
-#include "node_headers.h"
+#include <rtScriptHeaders.h>
 
 #include "rtWrapperUtils.h"
 

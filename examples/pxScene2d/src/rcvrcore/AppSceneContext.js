@@ -64,11 +64,12 @@ AppSceneContext.prototype.loadScene = function() {
   //log.info("loadScene() - begins    on ctx: " + getContextID() );
   var urlParts = url.parse(this.packageUrl, true);
   var fullPath = this.packageUrl;
+  var platform = (isDuk)?uv.platform:process.platform;
   if (fullPath.substring(0, 4) !== "http") {
     if( fullPath.charAt(0) === '.' ) {
       // local file system
       this.defaultBaseUri = ".";
-    } else if( process.platform === 'win32' && fullPath.charAt(1) === ':' ) {
+    } else if( platform === 'win32' && fullPath.charAt(1) === ':' ) {
         // Windows OS, so take the url as the whole file path
         urlParts.pathname = this.packageUrl;
     }
@@ -580,6 +581,7 @@ if (false) {
 AppSceneContext.prototype.getPackageBaseFilePath = function() {
   var fullPath;
   var pkgPart;
+  var platform = (isDuk)?uv.platform:process.platform;
   if (this.basePackageUri.substring(0, 4) !== "http") {
     if (this.basePackageUri.charAt(0) == '.') {
       pkgPart = this.basePackageUri.substring(1);
@@ -588,7 +590,7 @@ AppSceneContext.prototype.getPackageBaseFilePath = function() {
     }
     if (pkgPart.charAt(0) == '/') {
       fullPath = this.defaultBaseUri + pkgPart;
-    } else if(process.platform === 'win32' && pkgPart.charAt(1) === ':' ) {
+    } else if(platform === 'win32' && pkgPart.charAt(1) === ':' ) {
       // Windows OS and using drive name, take the pkg part as the file path
       fullPath = pkgPart;   
     } else {
