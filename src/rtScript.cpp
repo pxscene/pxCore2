@@ -197,7 +197,8 @@ rtError rtScript::init()
     #endif
     
       mScript->init();
-      mInitialized = true;
+      if (useDuktape == 0)
+        mInitialized = true;
   }
   return RT_OK;
 }
