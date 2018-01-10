@@ -10,7 +10,7 @@ DEST_FILE="$2"
 echo "************************REMOTE_FILE: $REMOTE_FILE"
 #export REMOTE_TEMPDIR=$(ssh -o StrictHostKeyChecking=no -p 2220 ${DEPLOY_USER}@${REMOTE_HOST} "mktemp -d")
 #echo ${REMOTE_DIR}
-wget $DEPLOY_EXTERNAL_PATH
+wget $DEPLOY_EXTERNAL_PATH -P $2
 if [ "$?" -ne 0 ]
 then
   echo "******************scp  failed in download_external***************"

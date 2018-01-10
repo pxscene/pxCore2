@@ -16,10 +16,10 @@ then
   exit 1;	
 fi
 
-SSH="ssh -tt -o StrictHostKeyChecking=no -p 2220 -l ${DEPLOY_USER} ${REMOTE_HOST}"
-$SSH "set -e;
-if [ $REMOTE_FILE_COUNT -gt 1 ]
-then
-  sudo rm -rf $REMOTE_FILE_OLD
-fi
+#SSH="ssh -tt -o StrictHostKeyChecking=no -p 2220 -l ${DEPLOY_USER} ${REMOTE_HOST}"
+#$SSH "set -e;
+#if [ $REMOTE_FILE_COUNT -gt 1 ]
+#then
+#  sudo rm -rf $REMOTE_FILE_OLD
+#fi
 "
