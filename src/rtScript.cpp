@@ -20,6 +20,8 @@
 
 #include "rtScript.h"
 
+#include "rtScriptHeaders.h"
+
 #include "rtPathUtils.h"
 
 #include "assert.h"
@@ -225,3 +227,7 @@ rtError rtScript::createContext(const char *lang, rtScriptContextRef& ctx)
   //return RT_FAIL;
 }
 
+void* rtScript::getParameter(rtString param) 
+{
+  return mScript->getParameter(param);
+}

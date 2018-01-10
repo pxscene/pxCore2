@@ -1,5 +1,5 @@
-#ifndef NODE_HEADERS_H
-#define NODE_HEADERS_H
+#ifndef RT_SCRIPT_HEADERS_H
+#define RT_SCRIPT_HEADERS_H
 
 #if !defined(WIN32) && !defined(ENABLE_DFB)
 #pragma GCC diagnostic push

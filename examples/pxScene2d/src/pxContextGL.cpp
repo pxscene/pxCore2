@@ -2759,7 +2759,7 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
   {
     rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", mCurrentTextureMemorySizeInBytes);
 #ifdef RUNINMAIN
-	script.garbageCollect();
+	script.collectGarbage();
 #else
   uv_async_send(&gcTrigger);
 #endif
