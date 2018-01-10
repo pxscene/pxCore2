@@ -196,9 +196,8 @@ rtError rtScript::init()
     #error "No Script Engine Supported"
     #endif
     
-      mScript->init();
-      if (useDuktape == 0)
-        mInitialized = true;
+    mScript->init();
+    mInitialized = true;
   }
   return RT_OK;
 }
