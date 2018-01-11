@@ -97,6 +97,8 @@ extern rtThreadQueue gUIThreadQueue;
 // Constants
 static pxConstants CONSTANTS;
 
+char *base64_encode(const unsigned char *data, size_t input_length, size_t *output_length);
+unsigned char *base64_decode(const unsigned char *data, size_t input_length, size_t *output_length);
 
 #if 0
 typedef rtError (*objectFactory)(void* context, const char* t, rtObjectRef& o);
@@ -1494,12 +1496,13 @@ public:
 
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
-    bool allowed;
-    if (allows(url, allowed) == RT_OK && !allowed)
+#ifdef ENABLE_PERMISSIONS_CHECK
+    if (!mPermissions.allows(url.cString(), rtPermissions::DEFAULT))
     {
       rtLogError("url '%s' is not allowed", url.cString());
       return RT_ERROR_NOT_ALLOWED;
     }
+#endif
 
     rtError e = RT_FAIL;
     rtRef<pxArchive> a = new pxArchive;

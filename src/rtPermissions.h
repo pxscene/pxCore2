@@ -23,8 +23,7 @@
 
 #include <map>
 #include <string>
-
-typedef std::map<std::string, bool> permissionsMap_t;
+#include <utility>
 
 class rtPermissions
 {
@@ -32,20 +31,42 @@ public:
     rtPermissions();
     ~rtPermissions();
 
-    rtError loadBootstrapConfig(const char* filename = NULL);
-    rtError clearBootstrapConfig();
+    enum Type
+    {
+      DEFAULT = 0,
+      SERVICE,
+      FEATURE,
+      WAYLAND
+    };
+
+    // Bootstrap
+    static rtError loadBootstrapConfig(const char* filename = NULL);
+    static rtError clearBootstrapConfig();
+
     rtError setOrigin(const char* origin);
     rtError set(const rtObjectRef& permissionsObject);
     rtError setParent(const rtPermissions* parent);
-    rtError allows(const char* url, bool& o) const;
-    rtError findMatch(const char* url, std::string& match) const;
+    rtError allows(const char* s, rtPermissions::Type type, bool& o) const;
+    bool allows(const char* s, rtPermissions::Type type) const { bool a; allows(s, type, a); return a; }
+
+    // Wildcard stuff
+    typedef std::pair<std::string, Type> wildcard_t;
+    typedef std::map<wildcard_t, bool> permissionsMap_t;
+    typedef std::map<wildcard_t, std::string> assignMap_t;
+    typedef std::map<std::string, permissionsMap_t> roleMap_t;
+
+    // Extends std::map::find by supporting wildcard_t as map keys.
+    // Key with the highest length w/o wildcards (*) is preferred
+    template<typename Map> typename Map::const_iterator
+    static findWildcard(Map const& map, typename Map::key_type const& key);
 
 private:
+    // Bootstrap
     static const char* DEFAULT_CONFIG_FILE;
     static const char* CONFIG_ENV_NAME;
-
-    static std::map<std::string, std::string> mAssignMap;
-    static std::map<std::string, permissionsMap_t> mRolesMap;
+    static const int CONFIG_BUFFER_SIZE;
+    static assignMap_t mAssignMap;
+    static roleMap_t mRolesMap;
     static std::string mConfigPath;
 
     permissionsMap_t mPermissionsMap;
