@@ -50,3 +50,16 @@
      ${LIBUVDIR}/src/unix/proctitle.c
      ${LIBUVDIR}/src/unix/darwin.c
      ${LIBUVDIR}/src/unix/fsevents.c
+diff --git a/examples/pxScene2d/external/dukluv/CMakeLists.txt b/home/madan/CMakeLists.txt_change
+index 967b987..71a5898 100644
+--- a/examples/pxScene2d/external/dukluv/CMakeLists.txt
++++ b/home/madan/CMakeLists.txt_change
+@@ -4,6 +4,8 @@ project (dukluv)
+ 
+ include(duktape.cmake)
+ include(uv.cmake)
++set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
+ 
+ add_library(duv
+   src/duv.c
