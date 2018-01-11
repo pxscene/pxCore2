@@ -50,11 +50,9 @@
      ${LIBUVDIR}/src/unix/proctitle.c
      ${LIBUVDIR}/src/unix/darwin.c
      ${LIBUVDIR}/src/unix/fsevents.c
-diff --git a/examples/pxScene2d/external/dukluv/CMakeLists.txt b/home/madan/CMakeLists.txt_change
-index 967b987..71a5898 100644
---- a/examples/pxScene2d/external/dukluv/CMakeLists.txt
-+++ b/home/madan/CMakeLists.txt_change
-@@ -4,6 +4,8 @@ project (dukluv)
+--- CMakeLists.txt	2018-01-11 18:55:20.496985000 +0530
++++ CMakeLists.txt_change	2018-01-11 18:55:15.328985000 +0530
+@@ -4,6 +4,8 @@
  
  include(duktape.cmake)
  include(uv.cmake)
