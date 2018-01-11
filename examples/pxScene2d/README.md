@@ -1,4 +1,4 @@
-#Build Instructions for pxScene
+# Build Instructions for pxScene
 
 ## Supported Platforms
 >   * macOS, Windows, Linux, and Raspberry Pi
@@ -24,7 +24,7 @@
 1. Install required packages:
     
     ~~~~
-    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake
+    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt
     
     ~~~~
 
@@ -49,7 +49,7 @@
 >Setup Windows 10
 >   * Windows 10 
 >   * Visual Studio 2017 community with `Desktop development with C++` workload
->   * [windows sdk 10.0.15063.0](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk),it is included in VS2017 with above workload and only necessary if you have issue to install with VS2017)
+>   * [windows sdk 10.0.16299.0](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk),it is included in VS2017 with above workload and only necessary if you have issue to install with VS2017)
 >   * python 2.7.x , make sure python can work in cmd (setup environment variables depending on install location)
 >   * git for windows , make sure git can work in cmd (setup environment variables depending on install location)
 >   * Download and install cmake for windows from https://cmake.org/download/

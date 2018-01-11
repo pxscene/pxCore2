@@ -1,4 +1,20 @@
 #!/bin/sh
+
+checkError()
+{
+  if [ "$1" -ne 0 ]
+  then
+        echo "*********************************************************************";
+	echo "*********************BUILD FAIL DETAILS******************************";
+        echo "CI failure reason: $2"
+        echo "Cause: $3"
+        echo "Reproduction/How to fix: $4"
+	echo "*********************************************************************";
+	echo "*********************************************************************";
+        #exit 1;
+  fi
+}
+
 #This script executes necessary javascript files and mesaures pxleak checks and memory leaks checks
 
 if [ -z "${TRAVIS_BUILD_DIR}" ]
@@ -75,12 +91,12 @@ $TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $EXECLOGS
 retVal=$?
 if [ "$retVal" -eq 1 ]
 	then
-	echo "CI failure reason: execution failed"
-	echo "Cause: core dump"
-	echo "Reproduction/How to fix: run execution test locally"
+	checkError $retVal "Execution failed" "Core dump" "Test by running locally"
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
+		echo "**********************PRINTING EXEC LOG**************************"
 		cat $EXECLOGS
+		echo "**************************LOG ENDS*******************************"
 	fi
 	exit 1;
 fi
@@ -89,18 +105,20 @@ fi
 # Check for any testRunner failures
 grep "Failures: 0" $EXECLOGS
 testRunnerRetVal=$?   # Will return 1 if NOT found
+errCause=""
 
 if [ "$testRunnerRetVal" -ne 0 ]
 	then
-	echo "CI failure reason: Testrunner failure"
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
-		echo "Cause: Check the below logs"
+		errCause="Cause: Check the above logs"
+		echo "**********************PRINTING EXEC LOG**************************"
 		cat $EXECLOGS
+		echo "**************************LOG ENDS*******************************"
 	else
-		echo "Cause: Check the $EXECLOGS file"
+		errCause="Cause: Check the $EXECLOGS file"
 	fi
-	echo "Reproduction/How to fix: Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'Failures: 0' in logs. Analyze whether failures is present or not"
+	checkError $testRunnerRetVal "Testrunner failure" "$errCause" "Follow the steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'Failures: 0' in logs. Analyze whether failures is present or not"
 	exit 1;
 fi
 
@@ -122,30 +140,30 @@ if [ "$pxRetVal" -eq 0 ]
 		then
 		echo "texture size success *****************";
 	else
-		echo "!!!!!!!!!!!!! texture size leaked !!!!!!!!!!!!!!!!";
-		echo "CI failure reason: Texture leak"
 		if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 			then
-			echo "Cause: Check the below logs"
+			errCause="Check the above logs"
+			echo "********************PRINTING EXEC LOG************************"
 			cat $EXECLOGS
+			echo "************************LOG ENDS*****************************"
 		else
-			echo "Cause: Check the $EXECLOGS file"
+			errCause="Check the $EXECLOGS file"
 		fi
-		echo "Reproduction/How to fix: Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'texture memory usage is' in logs. Analyze why the usage is not 0"
+		checkError $texRetVal "Texture leak" "$errCause" "Follow the steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'texture memory usage is' in logs. Analyze why the usage is not 0" 
 		exit 1;
 	fi
 else
-	echo "!!!!!!!!!!!!! pxobject leaked !!!!!!!!!!!!!!!!";
-	echo "CI failure reason: pxobject leak"
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
-		echo "Cause: Check the below logs"
+		errCause="Check the above logs"
+		echo "********************PRINTING EXEC LOG************************"
 		cat $EXECLOGS
+		echo "************************LOG ENDS*****************************"
 	else
-		echo "Cause: Check the $EXECLOGS file"
+		errCause="Check the $EXECLOGS file"
 	fi
-	echo "Reproduction/How to fix: Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'pxobjectcount is' in logs. Analyze why the count is not 0?"
-exit 1;
+	checkError $pxRetVal "pxobject leak" "$errCause" "Follow the steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'pxobjectcount is' in logs. Analyze why the count is not 0?"
+	exit 1;
 fi
 
 
@@ -156,16 +174,16 @@ if [ "$retVal" -eq 0 ]
 	then
 	echo "Valgrind reports success !!!!!!!!!!!"
 else
-	echo "CI failure reason: Valgrind execution reported memory leaks";
-
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
-		echo "Cause: Check the below logs"
-		cat $VALGRINDLOGS
+		errCause="Check the above logs"
+		echo "********************PRINTING EXEC LOG************************"
+		cat $EXECLOGS
+		echo "************************LOG ENDS*****************************"
 	else
-		echo "Cause: Check the file $VALGRINDLOGS and see for definitely lost count"
+		errCause="Check the file $VALGRINDLOGS and see for definitely lost count"
 	fi
-	echo "How to fix: run locally with these steps: export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./pxscene.sh testRunner_memcheck.js?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix the leaks"
+	checkError $retVal "Valgrind execution reported memory leaks" "$errCause" "Follow the steps locally : export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix the leaks"
 	exit 1;
 fi
 exit 0;
