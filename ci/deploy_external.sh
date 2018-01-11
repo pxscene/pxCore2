@@ -7,8 +7,8 @@ filename=$2
 #export REMOTE_FILE_COUNT=$(ssh -o StrictHostKeyChecking=no -p 2220 ${DEPLOY_USER}@${REMOTE_HOST} "ls -lrt $DEPLOY_DESTINATION|grep "external" |wc -l")
 
 #export REMOTE_FILE_OLD=$(ssh -o StrictHostKeyChecking=no -p 2220 ${DEPLOY_USER}@${REMOTE_HOST} "ls -t $DEPLOY_DESTINATION|grep "external"|tail -1")
-echo "scp -P 2220 ${filename} ${DEPLOY_USER}@${REMOTE_HOST}:${DEPLOY_DESTINATION}"
-scp -P 2220 ${filename} ${DEPLOY_USER}@${REMOTE_HOST}:${DEPLOY_DESTINATION}
+echo "scp -o StrictHostKeyChecking=no -P 2220 ${filename} ${DEPLOY_USER}@${REMOTE_HOST}:${DEPLOY_DESTINATION}"
+scp -o StrictHostKeyChecking=no -P 2220 ${filename} ${DEPLOY_USER}@${REMOTE_HOST}:${DEPLOY_DESTINATION}
 if [ "$?" -ne 0 ]
 then
   echo "******************scp failed******************"
