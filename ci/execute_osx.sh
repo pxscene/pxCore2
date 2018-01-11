@@ -36,6 +36,14 @@ EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
 TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+printExecLogs() {
+  echo "********************** PRINTING EXEC LOG **************************"
+  cat $EXECLOGS
+  echo "**********************     LOG ENDS      **************************"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 # Start testRunner ...
 rm -rf /var/tmp/pxscene.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
@@ -47,6 +55,7 @@ retVal=$?
 # Monitor testRunner ...
 count=0
 max_seconds=900
+
 while [ "$retVal" -ne 0 ] && [ "$count" -ne "$max_seconds" ]; do
 	#leaks -nocontext pxscene > $LEAKLOGS
 	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
@@ -60,12 +69,14 @@ while [ "$retVal" -ne 0 ] && [ "$count" -ne "$max_seconds" ]; do
 		printf "\n ############  TESTING COMPLETE ... finishing up.\n\n"
 	fi
 
+# JUNK
+# JUNK
 	if [ "$count" -eq 840 ] # JUNK JUNK
 		then
-		cat $EXECLOGS
+		printExecLogs
 	fi
-
-    
+# JUNK
+# JUNK
 
 	#check any crash happened, if so stop the loop
 	if [ "$retVal" -ne 0 ]
@@ -132,9 +143,7 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		echo "**********************PRINTING EXEC LOG**************************"
-   		cat $EXECLOGS
-    		echo "**************************LOG ENDS*******************************"
+		printExecLogs
 	else
 		errCause="Check the $EXECLOGS file"
 	fi 
@@ -145,12 +154,12 @@ fi
 # Check for valgrind memory leaks
 if [ "$leakcount" -ne 0 ]
 	then
+	echo "Valgrind reports success !!!!!!!!!!!"
+else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		echo "**********************PRINTING LEAK LOG**************************"
-                cat $LEAKLOGS
-                echo "**************************LOG ENDS*******************************"
+		printExecLogs
 	else
 		errCause="Check the file $LEAKLOGS and $EXECLOGS"
 	fi
