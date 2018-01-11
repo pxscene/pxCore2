@@ -42,8 +42,73 @@ then
   checkError $? "unable to create directory artifacts" "could be permission issue" "Retry trigerring travis build"
 fi
 
-echo "***************************** Building externals ****" > $BUILDLOGS
-cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
-./build.sh>>$BUILDLOGS
-checkError $? "building externals failed" "compilation error" "Need to build the externals directory locally in $TRAVIS_OS_NAME"
+#before compiling check for stored externals
+getPreBuiltExternal=false
+cd $TRAVIS_BUILD_DIR
+
+#check the PR file list, to check external is modified or not
+fileList=$(git diff --name-only $TRAVIS_COMMIT_RANGE)
+echo "***************File list*************************"
+echo "$fileList"
+echo "***************File list ends********************"
+if [[ $fileList == *"pxScene2d/external"* ]] 
+then
+  echo "***********Externals are modified**************"
+else
+  echo "***********Externals are not modified**********"
+  ./ci/download_external.sh 96.116.56.119 "$TRAVIS_BUILD_DIR/examples/pxScene2d/">>$BUILDLOGS
+  if [ "$?" -eq 0 ]
+  then
+    mv "$TRAVIS_BUILD_DIR/examples/pxScene2d/external" "$TRAVIS_BUILD_DIR/examples/pxScene2d/external_orig">> $BUILDLOGS
+    tar xfz "$TRAVIS_BUILD_DIR/examples/pxScene2d/external.tgz $TRAVIS_BUILD_DIR/examples/pxScene2d/">> $BUILDLOGS
+    if [ "$?" -eq 0 ]
+    then 
+      getPreBuiltExternal=true
+    else
+      mv "$TRAVIS_BUILD_DIR/examples/pxScene2d/external_orig" "$TRAVIS_BUILD_DIR/examples/pxScene2d/external" >> $BUILDLOGS 
+    fi
+  else
+    echo "********************External download Failed*****************">> $BUILDLOGS
+    echo "********************External download Failed*****************"
+  fi
+
+  if [ "$getPreBuiltExternal" = true ]
+  then
+    echo "*****************Pre-Built External available*****************">>$BUILDLOGS
+    echo "*****************Pre-Built External available*****************"
+  else
+    echo "***************************** Building externals ****" >> $BUILDLOGS
+    echo "***************************** Building externals ****"
+    cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
+    ./build.sh>>$BUILDLOGS
+
+    #Uploading the externals to server
+    if [ "$?" -eq 0 ]
+    then
+      if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_EVENT_TYPE" = "push" ]
+      then
+        echo "tar -czf $TRAVIS_BUILD_DIR/external.tgz $TRAVIS_BUILD_DIR/examples/pxScene2d/external/" >>$BUILDLOGS
+        tar -czf $TRAVIS_BUILD_DIR/external.tgz $TRAVIS_BUILD_DIR/examples/pxScene2d/external/ >>$BUILDLOGS
+        if [ "$?" -ne 0 ]
+        then
+          echo "***********Tar command failed****************">>$BUILDLOGS
+          echo "***********Tar command failed****************"
+        else
+	  ls -l |grep external >>$BUILDLOGS
+          cd $TRAVIS_BUILD_DIR
+	  ./ci/deploy_external.sh 96.116.56.119 $TRAVIS_BUILD_DIR/external.tgz>>$BUILDLOGS
+	  if [ "$?" -ne 0 ]
+	  then
+	    echo "***********Uploading of externals to the server failed****************">>$BUILDLOGS
+	    echo "***********Uploading of externals to the server failed****************"
+	  fi	
+	  rm -f $TRAVIS_BUILD_DIR/external.tgz>>$BUILDLOGS
+        fi
+      fi
+    else
+      checkError $? "building externals failed" "compilation error" "Need to build the externals directory locally in $TRAVIS_OS_NAME" >>$BUILDLOGS
+    fi
+  fi 
+fi
+
 exit 0;
