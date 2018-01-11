@@ -27,6 +27,7 @@ CALL vcbuild.bat x86 nosign
 cd ..
 
 cd dukluv
+patch -p0 < patches/compile_fix.patch
 mkdir build
 cd build
 cmake ..
