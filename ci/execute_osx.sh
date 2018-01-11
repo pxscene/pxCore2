@@ -46,6 +46,13 @@ while [ "$retVal" -ne 0 ] && [ "$count" -ne "$max_seconds" ]; do
 		printf "\n ############  TESTING COMPLETE ... finishing up.\n\n"
 	fi
 
+	if [ "$count" -eq 840 ] # JUNK JUNK
+		then
+		cat $EXECLOGS
+	fi
+
+    
+
 	#check any crash happened, if so stop the loop
 	if [ "$retVal" -ne 0 ]
 		then
