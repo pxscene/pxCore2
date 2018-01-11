@@ -46,6 +46,9 @@ cd $TRAVIS_BUILD_DIR
 fileList=$(git diff --name-only HEAD...$TRAVIS_BRANCH)
 echo "***************File list*************************"
 echo "$fileList"
+echo "****************File List2************************"
+fileList=$(git diff --name-only HEAD $TRAVIS_BRANCH)
+echo "$fileList"
 echo "***************File list ends********************"
 ./ci/download_external.sh 96.116.56.119 "$TRAVIS_BUILD_DIR/examples/pxScene2d/">>$BUILDLOGS
 if [ "$?" -eq 0 ]
@@ -79,13 +82,14 @@ else
   then
     #if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_EVENT_TYPE" = "push" ]
     #then
-      tar -czf $TRAVIS_BUILD_DIR/external.tar.gz $TRAVIS_BUILD_DIR/examples/pxScene2d/external/ >>$BUILDLOGS
+      echo "tar -czf $TRAVIS_BUILD_DIR/external.tgz $TRAVIS_BUILD_DIR/examples/pxScene2d/external/" >>$BUILDLOGS
+      tar -czf $TRAVIS_BUILD_DIR/external.tgz $TRAVIS_BUILD_DIR/examples/pxScene2d/external/ >>$BUILDLOGS
       if [ "$?" -ne 0 ]
       then
         echo "***********Tar command failed****************">>$BUILDLOGS
         echo "***********Tar command failed****************"
       else
-	ls -l |grep external
+	ls -l |grep external >>$BUILDLOGS
         cd $TRAVIS_BUILD_DIR
 	./ci/deploy_external.sh 96.116.56.119 $TRAVIS_BUILD_DIR/external.tgz>>$BUILDLOGS
 	if [ "$?" -ne 0 ]
