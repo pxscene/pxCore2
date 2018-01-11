@@ -1,6 +1,5 @@
 #include "duv.h"
 #include "misc.h"
-#include <string.h>
 
 static uv_loop_t loop;
 
@@ -42,11 +41,10 @@ static duk_ret_t duv_loadfile(duk_context *ctx) {
   // TODO what about windows... will this work?
 
   fd = 0;
-  char path2[1000] = "duk_modules/";
-  memset(path2,0,sizeof(path2));
-  strcat(path2,path);
+  std::string path2 = "duk_modules/";
+  path2 += path;
 
-  if (uv_fs_open(&loop, &req, path2, O_RDONLY, 0644, NULL) < 0) goto fail;
+  if (uv_fs_open(&loop, &req, path2.c_str(), O_RDONLY, 0644, NULL) < 0) goto fail;
   uv_fs_req_cleanup(&req);
   fd = req.result;
   if (uv_fs_fstat(&loop, &req, fd, NULL) < 0) goto fail;
@@ -71,7 +69,7 @@ static duk_ret_t duv_loadfile(duk_context *ctx) {
   if (fd) uv_fs_close(&loop, &req, fd, NULL);
   uv_fs_req_cleanup(&req);
   
-  duk_error(ctx, DUK_ERR_ERROR, "%s: %s: %s", uv_err_name(req.result), uv_strerror(req.result), path2);
+  duk_error(ctx, DUK_ERR_ERROR, "%s: %s: %s", uv_err_name(req.result), uv_strerror(req.result), path2.c_str());
 }
 
 struct duv_list {
