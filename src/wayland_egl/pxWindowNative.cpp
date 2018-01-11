@@ -595,7 +595,6 @@ void pxWindowNative::runEventLoop()
           wl_display_dispatch_pending(display->display);
         }
         wl_display_flush(display->display);
-<<<<<<< HEAD
         wl_display_read_events(display->display);
         double delay = pxMicroseconds();
         double nextWakeUp = wakeUpBase + offsets[ frameNo ];
@@ -607,7 +606,6 @@ void pxWindowNative::runEventLoop()
                 frameNo = 0;
             }
             nextWakeUp = wakeUpBase + offsets[ frameNo ];
-=======
 
         pollResult = poll(fileDescriptors, 1, pollTimeout);
         if (pollResult <= 0)
@@ -626,7 +624,6 @@ void pxWindowNative::runEventLoop()
         {
           int sleepTime = (int)maxSleepTime-(int)processTime;
           usleep(sleepTime);
->>>>>>> origin/_rtscript
         }
         delay = nextWakeUp - delay;
         usleep( delay );

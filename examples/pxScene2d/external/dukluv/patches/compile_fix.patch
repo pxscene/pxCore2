@@ -1,0 +1,63 @@
+--- src/main.c	2018-01-11 09:13:24.000000000 +0530
++++ src/main.c_change	2018-01-11 09:21:04.436496831 +0530
+@@ -1,6 +1,6 @@
+ #include "duv.h"
+ #include "misc.h"
+-
++#include <string.h>
+ static uv_loop_t loop;
+ 
+ // Sync readfile using libuv APIs as an API function.
+@@ -41,10 +41,11 @@
+   // TODO what about windows... will this work?
+ 
+   fd = 0;
+-  std::string path2 = "duk_modules/";
+-  path2 += path;
++  char path2[1000] = "duk_modules/";
++  memset(path2,0,sizeof(path2));
++  strcat(path2,path);
+ 
+-  if (uv_fs_open(&loop, &req, path2.c_str(), O_RDONLY, 0644, NULL) < 0) goto fail;
++  if (uv_fs_open(&loop, &req, path2, O_RDONLY, 0644, NULL) < 0) goto fail;
+   uv_fs_req_cleanup(&req);
+   fd = req.result;
+   if (uv_fs_fstat(&loop, &req, fd, NULL) < 0) goto fail;
+@@ -69,7 +70,7 @@
+   if (fd) uv_fs_close(&loop, &req, fd, NULL);
+   uv_fs_req_cleanup(&req);
+   
+-  duk_error(ctx, DUK_ERR_ERROR, "%s: %s: %s", uv_err_name(req.result), uv_strerror(req.result), path2.c_str());
++  duk_error(ctx, DUK_ERR_ERROR, "%s: %s: %s", uv_err_name(req.result), uv_strerror(req.result), path2);
+ }
+ 
+ struct duv_list {
+--- uv.cmake	2018-01-11 09:08:58.000000000 +0530
++++ uv.cmake_change	2018-01-11 09:21:24.744496831 +0530
+@@ -121,7 +121,6 @@
+     ${LIBUVDIR}/src/unix/timer.c
+     ${LIBUVDIR}/src/unix/tty.c
+     ${LIBUVDIR}/src/unix/udp.c
+-    ${LIBUVDIR}/src/unix/pthread-barrier.c
+   )
+ endif()
+ 
+@@ -158,6 +157,7 @@
+     -D=_DARWIN_USE_64_BIT_INODE
+   )
+   set(SOURCES ${SOURCES}
++    ${LIBUVDIR}/src/unix/pthread-barrier.c
+     ${LIBUVDIR}/src/unix/proctitle.c
+     ${LIBUVDIR}/src/unix/darwin.c
+     ${LIBUVDIR}/src/unix/fsevents.c
+--- CMakeLists.txt	2018-01-11 18:55:20.496985000 +0530
++++ CMakeLists.txt_change	2018-01-11 18:55:15.328985000 +0530
+@@ -4,6 +4,8 @@
+ 
+ include(duktape.cmake)
+ include(uv.cmake)
++set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
+ 
+ add_library(duv
+   src/duv.c

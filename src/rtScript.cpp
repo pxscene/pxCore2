@@ -164,38 +164,41 @@ void rtWrapperSceneUpdateExit()
 #endif // RUNINMAIN
 }
 
-rtScript::rtScript()  {}
+rtScript::rtScript():mInitialized(false)  {}
 rtScript::~rtScript() {}
 
 rtError rtScript::init()
 {
-
-#if defined(RTSCRIPT_SUPPORT_NODE) && defined(RTSCRIPT_SUPPORT_DUKTAPE) 
-  static int useDuktape = -1;
-
-  if (useDuktape < 0)
+  if (false == mInitialized)
   {
-    useDuktape = 0;
-    rtString f;
-    if (rtGetHomeDirectory(f) == RT_OK)
-    {
-      f.append(".sparkUseDuktape");
-      useDuktape = rtFileExists(f)?1:0;
-    }
+    #if defined(RTSCRIPT_SUPPORT_NODE) && defined(RTSCRIPT_SUPPORT_DUKTAPE) 
+      static int useDuktape = -1;
+    
+      if (useDuktape < 0)
+      {
+        useDuktape = 0;
+        rtString f;
+        if (rtGetHomeDirectory(f) == RT_OK)
+        {
+          f.append(".sparkUseDuktape");
+          useDuktape = rtFileExists(f)?1:0;
+        }
+      }
+      if (useDuktape != 0)
+        createScriptDuk(mScript);
+      else
+        createScriptNode(mScript);
+    #elif defined(RTSCRIPT_SUPPORT_DUKTAPE)
+        createScriptDuk(mScript);
+    #elif defined(RTSCRIPT_SUPPORT_NODE)
+        createScriptNode(mScript);
+    #else
+    #error "No Script Engine Supported"
+    #endif
+    
+    mScript->init();
+    mInitialized = true;
   }
-  if (useDuktape != 0)
-    createScriptDuk(mScript);
-  else
-    createScriptNode(mScript);
-#elif defined(RTSCRIPT_SUPPORT_DUKTAPE)
-    createScriptDuk(mScript);
-#elif defined(RTSCRIPT_SUPPORT_NODE)
-    createScriptNode(mScript);
-#else
-#error "No Script Engine Supported"
-#endif
-
-  mScript->init();
   return RT_OK;
 }
 

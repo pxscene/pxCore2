@@ -1062,7 +1062,7 @@ rtError rtDukContext::runFile(const char *file, rtValue* retVal /*= NULL*/, cons
 rtScriptDuk::rtScriptDuk():mRefCount(0), node_is_initialized(false)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false)
+: mRefContext(), mNeedsToEnd(false), node_is_initialized(false)
 #else
 : mNeedsToEnd(false)
 #endif
@@ -1076,7 +1076,7 @@ rtScriptDuk::rtScriptDuk():mRefCount(0), node_is_initialized(false)
 rtScriptDuk::rtScriptDuk(bool initialize):mRefCount(0), node_is_initialized(false)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false)
+: mRefContext(), mNeedsToEnd(false), node_is_initialized(false)
 #else
 : mNeedsToEnd(false)
 #endif

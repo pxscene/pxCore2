@@ -87,6 +87,7 @@ public:
   void* getParameter(rtString param);
 
 private:
+  bool mInitialized;
   rtScriptRef mScript;
 };
 
