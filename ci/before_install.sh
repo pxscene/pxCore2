@@ -37,7 +37,7 @@ fi
 if [ "$TRAVIS_OS_NAME" = "linux" ] ; 
 then 
   travis_retry sudo apt-get update
-  travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf valgrind libyaml-dev lcov cmake  lighttpd gdb quilt
+  travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf valgrind libyaml-dev lcov cmake gdb quilt
 fi
 
 if [ "$TRAVIS_OS_NAME" = "osx" ] ;
@@ -55,7 +55,6 @@ if [ "$TRAVIS_OS_NAME" = "osx" ] ;
 then
   if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]
   then
-    brew install lighttpd
     brew install gcovr
     brew install lcov
     brew install --HEAD ccache
