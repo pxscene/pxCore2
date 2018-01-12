@@ -4,3 +4,5 @@ coverage:
   precision: 2
 ignore:
   - "examples/pxScene2d/src/testView.h" 
+  - "src/unzip.c"
+  - "remote/rapidjson"

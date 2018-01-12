@@ -12,11 +12,11 @@ rm -rf tracefile
 cd $currentdir
 lcov -a ../src/tracefile_pxcore -a ../examples/pxScene2d/src/tracefile_pxscene -o ../tracefile
 if [ "$#" -ne  "0" ]
-then
-if [ "$1" == "--gen-reports" ]
-then
-mkdir reports
-genhtml -o reports ../tracefile
-fi
+	then
+	if [ "$1" == "--gen-reports" ]
+		then
+		mkdir reports
+		genhtml -o reports ../tracefile
+	fi
 fi
 rm -rf ../src/tracefile_pxcore ../examples/pxScene2d/src/tracefile_pxscene
