@@ -8,7 +8,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(PXCOREDIR ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 set(EXTDIR "${CMAKE_CURRENT_SOURCE_DIR}/../external")
-set(DUKBUILDDIR "${PXCOREDIR}/../build/examples/pxScene2d/external/dukluv")
+set(DUKBUILDDIR "${EXTDIR}/dukluv/build")
 set(NODEDIR "${EXTDIR}/libnode-v6.9.0/")
 set(NODEINC "${NODEDIR}/src ${NODEDIR}/deps/uv/include ${NODEDIR}/deps/v8 ${NODEDIR}/deps/debugger-agent/include ${NODEDIR}/deps/v8/include ${NODEDIR}/deps/cares/include")
 set(ZLIBINC "${EXTDIR}/zlib-1.2.8/")

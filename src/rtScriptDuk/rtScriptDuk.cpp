@@ -257,7 +257,7 @@ private:
   duk_context                   *dukCtx;
   std::vector<uv_loop_t *>       uvLoops;
   uv_thread_t                    dukTid;
-  bool                           node_is_initialized;
+  bool                           duk_is_initialized;
 
 #ifdef USE_CONTEXTIFY_CLONES
   rtDukContextRef mRefContext;
@@ -1059,10 +1059,10 @@ rtError rtDukContext::runFile(const char *file, rtValue* retVal /*= NULL*/, cons
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtScriptDuk::rtScriptDuk():mRefCount(0), node_is_initialized(false)
+rtScriptDuk::rtScriptDuk():mRefCount(0), duk_is_initialized(false)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false), node_is_initialized(false)
+: mRefContext(), mNeedsToEnd(false), duk_is_initialized(false)
 #else
 : mNeedsToEnd(false)
 #endif
@@ -1073,10 +1073,10 @@ rtScriptDuk::rtScriptDuk():mRefCount(0), node_is_initialized(false)
   init();
 }
 
-rtScriptDuk::rtScriptDuk(bool initialize):mRefCount(0), node_is_initialized(false)
+rtScriptDuk::rtScriptDuk(bool initialize):mRefCount(0), duk_is_initialized(false)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false), node_is_initialized(false)
+: mRefContext(), mNeedsToEnd(false), duk_is_initialized(false)
 #else
 : mNeedsToEnd(false)
 #endif
@@ -1236,8 +1236,8 @@ void rtScriptDuk::nodePath()
 #ifndef RUNINMAIN
 bool rtNode::isInitialized()
 {
-  //rtLogDebug("rtNode::isInitialized returning %d\n",node_is_initialized);
-  return node_is_initialized;
+  //rtLogDebug("rtNode::isInitialized returning %d\n",duk_is_initialized);
+  return duk_is_initialized;
 }
 #endif
 #ifdef ENABLE_DEBUG_MODE
@@ -1260,9 +1260,9 @@ void rtScriptDuk::init2(int argc, char** argv)
   use_debug_agent = true; // JUNK
 #endif
 
-  if(node_is_initialized == false)
+  if(duk_is_initialized == false)
   {
-    node_is_initialized = true;
+    duk_is_initialized = true;
 
     uv_loop_t *dukLoop = new uv_loop_t();
     uv_loop_init(dukLoop);

@@ -50,14 +50,15 @@
      ${LIBUVDIR}/src/unix/proctitle.c
      ${LIBUVDIR}/src/unix/darwin.c
      ${LIBUVDIR}/src/unix/fsevents.c
---- CMakeLists.txt	2018-01-11 18:55:20.496985000 +0530
-+++ CMakeLists.txt_change	2018-01-11 18:55:15.328985000 +0530
-@@ -4,6 +4,8 @@
+--- CMakeLists.txt	2018-01-12 21:20:58.238474531 +0530
++++ CMakeLists.txt_change	2018-01-12 21:20:54.486474531 +0530
+@@ -4,6 +4,9 @@
  
  include(duktape.cmake)
  include(uv.cmake)
 +set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic")
 +set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
++set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
  
  add_library(duv
    src/duv.c
