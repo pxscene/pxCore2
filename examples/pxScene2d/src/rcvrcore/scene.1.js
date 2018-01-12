@@ -167,7 +167,7 @@ function Scene() {
   this.getService = function getService(name, serviceObject) {
     return nativeScene.getService(name, serviceObject);
   };
-    
+
   this.setAppContext = function(appContextName, appContext) {
     if( !appContextMap.hasOwnProperty(appContextName) ) {
       appContextMap[appContextName] = appContext;

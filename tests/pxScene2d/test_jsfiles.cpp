@@ -106,13 +106,13 @@ class jsFilesTest : public testing::Test
 
     void test(char* file, float timeout)
     {
-      script.garbageCollect();
+      script.collectGarbage();
       int oldpxCount = pxObjectCount;
       long oldtextMem = mContext.currentTextureMemoryUsageInBytes();
       startJsFile(file);
       process(timeout);
       mView->onCloseRequest();
-      script.garbageCollect();
+      script.collectGarbage();
       //currently we are getting the count +1 , due to which test is failing
       //suspecting this is due to scenecontainer without parent leak.
       //EXPECT_TRUE (pxObjectCount == oldpxCount);

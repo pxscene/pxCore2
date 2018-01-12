@@ -64,6 +64,7 @@ cp -a rcvrcore/* $bundleRes/rcvrcore
 ./jsMin.sh browser.js $bundleRes/browser.js
 ./jsMin.sh about.js $bundleRes/about.js
 ./jsMin.sh browser/editbox.js $bundleRes/browser/editbox.js
+#./jsMinFolder.sh browser $bundleRes/browser
 
 # Copy duktape modules
 cp -a duk_modules $bundleRes/duk_modules

@@ -38,6 +38,7 @@
 >   * [windows sdk 10.0.15063.0](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk),it is included in VS2017 with above workload and only necessary if you have issue to install with VS2017)
 >   * python 2.7.x , make sure python can work in cmd (setup environment variables depending on install location)
 >   * git for windows , make sure git can work in cmd (setup environment variables depending on install location)
+>   * patch utility for windows (this comes with git. setup environment variables depending on install location of patch.exe)
 >   * Download and install cmake for windows from https://cmake.org/download/
 >   * Download and install NSIS installer from http://nsis.sourceforge.net/Download
 >   * **Run all these commands from a Visual Studio Command Prompt**

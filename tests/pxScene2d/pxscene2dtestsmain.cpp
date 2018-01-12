@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
       g_argv[g_argc++] = &nodeInput[curpos];
       curpos = curpos + 35;
   }
-  script.initializeNode();
+  script.init();
 #endif
   int retTests = RUN_ALL_TESTS();
   rtLogInfo("Tests executed with return code [%d]", retTests);
