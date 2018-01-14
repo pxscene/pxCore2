@@ -6,7 +6,7 @@ import org.spark.SparkValueType;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
+import javax.json.JsonObjectBuilder;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,9 +26,37 @@ public class SparkValueSerializer {
     m_valueTypeMap = Collections.unmodifiableMap(m);
   };
 
-
   public static SparkValueType getMappedType(Object obj) {
     return m_valueTypeMap.get(obj.getClass());
+  }
+
+  public JsonObject toJson(SparkValue value) {
+    if (value == null)
+      throw new NullPointerException("value");
+
+    SparkValueType type = value.getType();
+    JsonObjectBuilder builder = Json.createObjectBuilder();
+
+    builder.add("type", type.getTypeCode());
+
+    switch (type) {
+      case BOOLEAN:
+        builder.add("type", ((Boolean)value.getValue()).booleanValue());
+        break;
+      case FLOAT:
+        builder.add("type", ((Float)value.getValue()).floatValue());
+        break;
+      case INT32:
+        builder.add("type", ((Integer)value.getValue()).intValue());
+        break;
+      case STRING:
+        builder.add("type", (String) value.getValue());
+        break;
+      default:
+        throw new RuntimeException("type " + type + " not supported");
+    }
+
+    return builder.build();
   }
 
   public static SparkValue fromJson(JsonObject obj) {

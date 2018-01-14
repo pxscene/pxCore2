@@ -17,9 +17,6 @@ package org.spark;
 
 import org.spark.net.SparkValueSerializer;
 
-
-// "{"message.type":"get.byname.response","correlation.key":"ae01cddf-615f-4ff2-a8b9-4b7434687dc7"," +
-//    ""object.id":"some_name","value":{"type":52,"value":13},"status.code":0}"
 public class SparkValue {
   private SparkValueType m_type;
   private Object m_value;
@@ -34,14 +31,15 @@ public class SparkValue {
     m_type = type;
   }
 
+  public SparkValueType getType() {
+    return m_type;
+  }
+
+  public Object getValue() {
+    return m_value;
+  }
+
   public String toString() {
     return m_value.toString();
-    /*
-    JsonObject obj = Json.createObjectBuilder()
-        .add("type", (int) m_type.getTypeCode())
-        .add("value", getValueAsString())
-        .build();
-    return obj.toString();
-    */
   }
 }

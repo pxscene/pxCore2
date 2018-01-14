@@ -2,12 +2,10 @@ package org.spark;
 
 public class SparkMessage {
   protected SparkMessageType m_type;
-  protected String m_stringRep;
   protected String m_correlationKey;
 
   protected SparkMessage(SparkMessageType kind) {
     m_type = kind;
-    m_stringRep = null;
   }
 
   public String getCorrelationKey() {
@@ -18,6 +16,10 @@ public class SparkMessage {
     if (key == null)
       throw new NullPointerException("key");
     m_correlationKey = key;
+  }
+
+  public SparkMessageType getMessageType() {
+    return m_type;
   }
 }
 

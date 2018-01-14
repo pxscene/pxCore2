@@ -17,11 +17,8 @@ package org.spark;
 
 import org.spark.messages.SparkMessageGetPropertyByNameRequest;
 import org.spark.messages.SparkMessageGetPropertyByNameResponse;
+import org.spark.net.SparkMessageSerializer;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
@@ -37,19 +34,19 @@ class SparkProtocol implements Runnable {
   private static final Logger log = Logger.getLogger(SparkProtocol.class.getName());
 
   private static class SparkCallContext {
-    private BiConsumer<JsonObject, SparkFuture> m_closure;
+    private BiConsumer<SparkMessage, SparkFuture> m_closure;
     private SparkFuture m_future;
 
 
 
-    public SparkCallContext(SparkFuture future, BiConsumer<JsonObject, SparkFuture> closure) {
+    public SparkCallContext(SparkFuture future, BiConsumer<SparkMessage, SparkFuture> closure) {
       m_closure = closure;
       m_future = future;
     }
 
-    public void complete(JsonObject obj) {
+    public void complete(SparkMessage message) {
       if (m_closure != null) {
-        m_closure.accept(obj, m_future);
+        m_closure.accept(message, m_future);
       }
     }
   }
@@ -77,9 +74,9 @@ class SparkProtocol implements Runnable {
 
     String correlationKey = SparkProtocol.newCorrelationKey();
     SparkFuture<SparkValue> future = new SparkFuture<SparkValue>(correlationKey);
-    SparkCallContext context = new SparkCallContext(future, (json, closure) -> {
+    SparkCallContext context = new SparkCallContext(future, (message, closure) -> {
       try {
-        SparkMessageGetPropertyByNameResponse res = SparkMessageGetPropertyByNameResponse.fromJson(json);
+        SparkMessageGetPropertyByNameResponse res = (SparkMessageGetPropertyByNameResponse) message;
         SparkStatus status = res.getStatus();
         if (status.isOk()) {
           closure.setResponse(res.getValue());
@@ -97,10 +94,7 @@ class SparkProtocol implements Runnable {
     m.setObjectId(objectId);
     m.setPropertyName(name);
     m.setCorrelationKey(correlationKey);
-
-    String s = m.toString();
-    if (log.isLoggable(Level.INFO))
-      log.info("send:" + s);
+    String s = SparkMessageSerializer.toJson(m).toString();
     m_transport.send(s.getBytes(m_charset));
 
     return future;
@@ -148,27 +142,11 @@ class SparkProtocol implements Runnable {
     while (m_running) {
       try {
         byte[] buff = m_transport.recv();
-        log.info("got:" + buff.length);
         String s = new String(buff, m_charset);
-        log.info("read:" + s);
 
-        JsonReader reader = null;
-
-        try {
-          reader = Json.createReader(new StringReader(s));
-          JsonObject obj = reader.readObject();
-
-          if (!obj.containsKey("correlation.key"))
-            throw new SparkException("message missing correlation key");
-
-          String correlationKey = obj.getString("correlation.key");
-          SparkCallContext context = get(correlationKey);
-          context.complete(obj);
-        } finally {
-          if (reader != null)
-            reader.close();
-        }
-
+        SparkMessage message = SparkMessageSerializer.fromString(s, null);
+        SparkCallContext context = get(message.getCorrelationKey());
+        context.complete(message);
       } catch (SparkException err) {
         log.log(Level.WARNING, "error dispatching incomgin messages", err);
       }

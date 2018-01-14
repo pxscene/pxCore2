@@ -1,18 +1,15 @@
 package org.spark.messages;
 
+
 import org.spark.SparkMessage;
 import org.spark.SparkMessageType;
 
-public class SparkMessageGetPropertyByNameRequest extends SparkMessage {
+public class SparkMessageSetPropertyByNameRequest extends SparkMessage {
   private String m_propertyName;
   private String m_objectId;
 
-  public SparkMessageGetPropertyByNameRequest() {
-    super(SparkMessageType.GET_PROPERTY_BYNAME_REQUEST);
-  }
-
-  public String getPropertyName() {
-    return m_propertyName;
+  public SparkMessageSetPropertyByNameRequest() {
+    super(SparkMessageType.SET_PROPERTY_BYNAME_REQUEST);
   }
 
   public void setPropertyName(String s) {
@@ -21,13 +18,17 @@ public class SparkMessageGetPropertyByNameRequest extends SparkMessage {
     m_propertyName = s;
   }
 
-  public String getObjectId() {
-    return m_objectId;
+  public String getPropertyName() {
+    return m_propertyName;
   }
 
   public void setObjectId(String objectId) {
     if (objectId == null)
       throw new NullPointerException("objectId");
     m_objectId = objectId;
+  }
+
+  public String setObjectId() {
+    return m_objectId;
   }
 }
