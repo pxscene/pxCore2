@@ -16,19 +16,20 @@ public class SparkTestClient {
 
     while (true) {
       try {
-        Future<SparkValue> f = obj.get("prop");
-
+        // do get
         // future blocks until operation completes, also supports timed-wait
         // SparkValue v = f.get(1000, TimeUnit.MILLISECONDS);
+        Future<SparkValue> f = obj.get("prop");
         SparkValue v = f.get();
         System.out.println("get n:" + v);
 
-        System.out.println("set n:" + n);
+        Thread.sleep(1000);
+
+        // do set
         Future<Void> f2 = obj.set("prop", new SparkValue(n++));
         f2.get();
-        System.out.println("set ok");
+        System.out.println("set");
 
-        Thread.sleep(1000);
 
       } catch (Exception err) {
         err.printStackTrace();

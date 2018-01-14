@@ -15,7 +15,7 @@
 //
 package org.spark;
 
-import org.spark.net.SparkValueSerializer;
+import org.spark.net.SparkSerializer;
 
 public class SparkValue {
   private SparkValueType m_type;
@@ -23,7 +23,7 @@ public class SparkValue {
 
   public SparkValue(Object value) {
     m_value = value;
-    m_type = SparkValueSerializer.getMappedType(value);
+    m_type = SparkSerializer.getMappedType(value);
   }
 
   public SparkValue(int n) {

@@ -2,10 +2,12 @@ package org.spark.net;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 
 import java.io.StringReader;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.function.Function;
@@ -25,6 +27,19 @@ public class SparkSerializer {
   private static final Map<String, Function<JsonObject, SparkMessage>> m_decoders;
   private static final Charset m_charset = Charset.forName("UTF-8");
 
+  private static final Map<Class, SparkValueType> m_valueTypeMap;
+
+  static {
+    Map<Class, SparkValueType> m = new HashMap<>();
+    m.put(Boolean.class, SparkValueType.BOOLEAN);
+    m.put(Integer.class, SparkValueType.INT32);
+    m.put(Long.class, SparkValueType.INT64);
+    m.put(Float.class, SparkValueType.FLOAT);
+    m.put(Double.class, SparkValueType.DOUBLE);
+    m.put(SparkObject.class, SparkValueType.OBJECT);
+    m_valueTypeMap = Collections.unmodifiableMap(m);
+  };
+
   static {
     m_decoders = new HashMap<>();
     m_decoders.put(SparkMessageType.GET_PROPERTY_BYNAME_REQUEST.toString(), (JsonObject json) -> {
@@ -39,6 +54,10 @@ public class SparkSerializer {
     m_decoders.put(SparkMessageType.SET_PROPERTY_BYNAME_RESPONSE.toString(), (JsonObject json) -> {
       return SparkSerializer.fromJson_SetPropertyByNameResponse(json);
     });
+  }
+
+  public static SparkValueType getMappedType(Object obj) {
+    return m_valueTypeMap.get(obj.getClass());
   }
 
   public <T extends SparkMessage> T fromJson(JsonObject obj) throws SparkException {
@@ -96,7 +115,7 @@ public class SparkSerializer {
 
     if (obj.containsKey("value")) {
       JsonObject valueObject = obj.getJsonObject("value");
-      res.setValue(SparkValueSerializer.fromJson(valueObject));
+      res.setValue(valueFromJson(valueObject));
     }
 
     return res;
@@ -130,7 +149,7 @@ public class SparkSerializer {
     req.setCorrelationKey(obj.getString("correlation.key"));
     req.setObjectId(obj.getString("object.id"));
     req.setPropertyName(obj.getString("property.name"));
-    req.setValue(SparkValueSerializer.fromJson(obj.getJsonObject("value")));
+    req.setValue(valueFromJson(obj.getJsonObject("value")));
     return req;
   }
 
@@ -214,7 +233,7 @@ public class SparkSerializer {
         .add("correlation.key", req.getCorrelationKey())
         .add("object.id", req.getObjectId())
         .add("property.name", req.getPropertyName())
-        .add("value", SparkValueSerializer.toJson(req.getValue()))
+        .add("value", SparkSerializer.valueToJson(req.getValue()))
         .build();
   }
 
@@ -230,6 +249,64 @@ public class SparkSerializer {
   // "object.id":"some_name","status.code":0}"
   public JsonObject toJson(SparkMessageSetPropertyByNameResponse res) {
     return null;
+  }
+
+  public static JsonObject valueToJson(SparkValue value) {
+    if (value == null)
+      throw new NullPointerException("value");
+
+    SparkValueType type = value.getType();
+    JsonObjectBuilder builder = Json.createObjectBuilder();
+
+    builder.add("type", type.getTypeCode());
+
+    switch (type) {
+      case BOOLEAN:
+        builder.add("value", ((Boolean)value.getValue()).booleanValue());
+        break;
+      case FLOAT:
+        builder.add("value", ((Float)value.getValue()).floatValue());
+        break;
+      case INT32:
+        builder.add("value", ((Integer)value.getValue()).intValue());
+        break;
+      case STRING:
+        builder.add("value", (String) value.getValue());
+        break;
+      default:
+        throw new RuntimeException("type " + type + " not supported");
+    }
+
+    return builder.build();
+  }
+
+  public static SparkValue valueFromJson(JsonObject obj) {
+    if (obj == null)
+      throw new NullPointerException("obj");
+
+    SparkValue value = null;
+    SparkValueType type = SparkValueType.fromTypeCode(obj.getInt("type"));
+
+    // TODO: lots of types not supported
+    switch (type) {
+      case BOOLEAN:
+        value = new SparkValue(obj.getBoolean("value"), type);
+        break;
+      case FLOAT:
+        value = new SparkValue((float) obj.getJsonNumber("value").doubleValue(), type);
+        break;
+      case INT32:
+        value = new SparkValue(obj.getJsonNumber("value").intValue(), type);
+        break;
+      case STRING:
+        value = new SparkValue(obj.getString("value"), type);
+        break;
+
+      default:
+        throw new RuntimeException("type " + type + " not supported");
+    }
+
+    return value;
   }
 
   private static byte[] toBytes(JsonObject obj) {
