@@ -63,7 +63,7 @@ public class SparkTcpTransport implements SparkTransport, Runnable {
         try {
           m_incomingQueue.put(buff);
         } catch (InterruptedException err) {
-          System.err.println(err);
+          log.log(Level.WARNING, "error reading from socket", err);
         }
       }
     }
@@ -114,8 +114,7 @@ public class SparkTcpTransport implements SparkTransport, Runnable {
   public byte[] recv() throws SparkException{
     try {
       return m_incomingQueue.take();
-    }
-    catch (InterruptedException err) {
+    } catch (InterruptedException err) {
       throw new SparkException(err);
     }
   }

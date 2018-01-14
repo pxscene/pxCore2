@@ -19,6 +19,7 @@ class SparkFuture<V> implements Future<V> {
   private boolean m_isCancelled;
   private boolean m_done;
   private String m_correlationKey;
+  private SparkStatus m_status;
 
   private final Lock m_lock = new ReentrantLock();
   private final Condition m_haveResponseCond = m_lock.newCondition();
@@ -32,7 +33,12 @@ class SparkFuture<V> implements Future<V> {
   }
 
   public boolean cancel(boolean myInterruptIfRunning) {
-    // TODO
+    // TODO: not to api spec.
+    // https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/Future.html
+    m_lock.lock();
+    m_done = true;
+    m_isCancelled = true;
+    m_lock.unlock();
     return false;
   }
 
@@ -60,7 +66,7 @@ class SparkFuture<V> implements Future<V> {
       m_lock.lock();
       m_done = true;
       m_lock.unlock();
-      throw new RuntimeException("error waiting for response", e);
+      throw new ExecutionException("error waiting for response", e);
     }
     return value;
   }
@@ -70,16 +76,12 @@ class SparkFuture<V> implements Future<V> {
 
     m_lock.lock();
     try {
-      while (m_value == null && m_error == null)
+      while (!m_done)
         m_haveResponseCond.await(timeout, unit);
       value = m_value;
-      m_done = true;
     } finally {
       m_lock.unlock();
     }
-
-    if (value == null)
-      throw new TimeoutException();
 
     if (m_error != null)
       throw new ExecutionException(m_error);
@@ -87,24 +89,15 @@ class SparkFuture<V> implements Future<V> {
     return value;
   }
 
-  public void setResponse(V value) {
+  public void complete(V value, SparkStatus status) {
     m_lock.lock();
     try {
       m_value = value;
       m_done = true;
+      m_status = status;
+      if (!m_status.isOk())
+        m_error = new SparkException(status.toString());
       m_haveResponseCond.signal();
-    } finally {
-      m_lock.unlock();
-    }
-  }
-
-  public void setFailed(SparkStatus status) {
-    m_lock.lock();
-    try {
-      m_value = null;
-      m_done = true;
-      m_haveResponseCond.signal();
-      m_error = new SparkException(status.toString());
     } finally {
       m_lock.unlock();
     }

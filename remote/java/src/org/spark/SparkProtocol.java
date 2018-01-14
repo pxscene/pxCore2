@@ -17,7 +17,8 @@ package org.spark;
 
 import org.spark.messages.SparkMessageGetPropertyByNameRequest;
 import org.spark.messages.SparkMessageGetPropertyByNameResponse;
-import org.spark.net.SparkMessageSerializer;
+import org.spark.messages.SparkMessageSetPropertyByNameRequest;
+import org.spark.net.SparkSerializer;
 
 import java.nio.charset.Charset;
 import java.util.function.BiConsumer;
@@ -32,6 +33,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 class SparkProtocol implements Runnable {
   private static final Logger log = Logger.getLogger(SparkProtocol.class.getName());
+  private SparkSerializer m_serializer = new SparkSerializer();
 
   private static class SparkCallContext {
     private BiConsumer<SparkMessage, SparkFuture> m_closure;
@@ -55,8 +57,6 @@ class SparkProtocol implements Runnable {
   private SparkTransport m_transport;
   private boolean m_running;
   private Thread m_thread;
-  private Charset m_charset = Charset.forName("UTF-8");
-  ;
 
   private final Lock m_lock = new ReentrantLock();
 
@@ -69,20 +69,12 @@ class SparkProtocol implements Runnable {
   }
 
   public Future<SparkValue> sendGetByName(String objectId, String name) throws SparkException {
-    if (log.isLoggable(Level.INFO))
-      log.info("sendGetByName objectId:" + objectId + " name:" + name);
-
     String correlationKey = SparkProtocol.newCorrelationKey();
-    SparkFuture<SparkValue> future = new SparkFuture<SparkValue>(correlationKey);
+    SparkFuture<SparkValue> future = new SparkFuture<>(correlationKey);
     SparkCallContext context = new SparkCallContext(future, (message, closure) -> {
       try {
         SparkMessageGetPropertyByNameResponse res = (SparkMessageGetPropertyByNameResponse) message;
-        SparkStatus status = res.getStatus();
-        if (status.isOk()) {
-          closure.setResponse(res.getValue());
-        } else {
-          closure.setFailed(status);
-        }
+        closure.complete(res.getValue(), res.getStatus());
       } catch (Exception err) {
         log.log(Level.WARNING, "error updating status of Future", err);
       }
@@ -94,22 +86,42 @@ class SparkProtocol implements Runnable {
     m.setObjectId(objectId);
     m.setPropertyName(name);
     m.setCorrelationKey(correlationKey);
-    String s = SparkMessageSerializer.toJson(m).toString();
-    m_transport.send(s.getBytes(m_charset));
+    m_transport.send(m_serializer.toBytes(m));
 
     return future;
   }
 
   public Future<SparkValue> sendGetById(String objectId, int index) throws SparkException {
-    return null;
+    throw new SparkException("not implemented");
   }
 
   public Future<Void> sendSetById(String objectId, int index, SparkValue value) throws SparkException {
-    return null;
+    throw new SparkException("not implemented");
   }
 
   public Future<Void> sendSetByName(String objectId, String name, SparkValue value) throws SparkException {
-    return null;
+    String correlationKey = SparkProtocol.newCorrelationKey();
+    SparkFuture<Void> future = new SparkFuture<>(correlationKey);
+
+    SparkCallContext context = new SparkCallContext(future, (message, closure) -> {
+      try {
+        SparkMessageGetPropertyByNameResponse res = (SparkMessageGetPropertyByNameResponse) message;
+        closure.complete(null, res.getStatus());
+      } catch (Exception err) {
+        log.log(Level.WARNING, "error updating status of Future", err);
+      }
+    });
+
+    put(correlationKey, context);
+
+    SparkMessageSetPropertyByNameRequest m = new SparkMessageSetPropertyByNameRequest();
+    m.setObjectId(objectId);
+    m.setPropertyName(name);
+    m.setCorrelationKey(correlationKey);
+    m.setValue(value);
+    m_transport.send(m_serializer.toBytes(m));
+
+    return future;
   }
 
   private void put(String correlationKey, SparkCallContext context) {
@@ -142,9 +154,7 @@ class SparkProtocol implements Runnable {
     while (m_running) {
       try {
         byte[] buff = m_transport.recv();
-        String s = new String(buff, m_charset);
-
-        SparkMessage message = SparkMessageSerializer.fromString(s, null);
+        SparkMessage message = m_serializer.fromBytes(buff, 0, buff.length);
         SparkCallContext context = get(message.getCorrelationKey());
         context.complete(message);
       } catch (SparkException err) {

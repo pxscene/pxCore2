@@ -30,7 +30,7 @@ public class SparkValueSerializer {
     return m_valueTypeMap.get(obj.getClass());
   }
 
-  public JsonObject toJson(SparkValue value) {
+  public static JsonObject toJson(SparkValue value) {
     if (value == null)
       throw new NullPointerException("value");
 
@@ -41,16 +41,16 @@ public class SparkValueSerializer {
 
     switch (type) {
       case BOOLEAN:
-        builder.add("type", ((Boolean)value.getValue()).booleanValue());
+        builder.add("value", ((Boolean)value.getValue()).booleanValue());
         break;
       case FLOAT:
-        builder.add("type", ((Float)value.getValue()).floatValue());
+        builder.add("value", ((Float)value.getValue()).floatValue());
         break;
       case INT32:
-        builder.add("type", ((Integer)value.getValue()).intValue());
+        builder.add("value", ((Integer)value.getValue()).intValue());
         break;
       case STRING:
-        builder.add("type", (String) value.getValue());
+        builder.add("value", (String) value.getValue());
         break;
       default:
         throw new RuntimeException("type " + type + " not supported");

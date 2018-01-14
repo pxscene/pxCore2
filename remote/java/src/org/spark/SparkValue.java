@@ -26,6 +26,26 @@ public class SparkValue {
     m_type = SparkValueSerializer.getMappedType(value);
   }
 
+  public SparkValue(int n) {
+    m_value = n;
+    m_type = SparkValueType.INT32;
+  }
+
+  public SparkValue(float f) {
+    m_value = f;
+    m_type = SparkValueType.FLOAT;
+  }
+
+  public SparkValue(double d) {
+    m_value = d;
+    m_type = SparkValueType.DOUBLE;
+  }
+
+  public SparkValue(String s) {
+    m_value = s;
+    m_type = SparkValueType.STRING;
+  }
+
   public SparkValue(Object value, SparkValueType type) {
     m_value = value;
     m_type = type;
