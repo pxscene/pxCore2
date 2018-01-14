@@ -154,7 +154,7 @@ rtError rtFileCache::setCacheDirectory(const char* directory)
   retVal = mkdir(mDirectory.cString(), 0777);
 #endif //RT_PLATFORM_WINDOWS
   if (0 != retVal)
-    rtLogWarn("creation of cache directory failed");
+    rtLogWarn("creation of cache directory(%s) failed", mDirectory.cString());
   populateExistingFiles();
   return RT_OK;
 }
@@ -165,6 +165,28 @@ rtError rtFileCache::cacheDirectory(rtString& dir)
     return RT_ERROR;
   dir = mDirectory;
   return RT_OK;
+}
+
+void rtFileCache::eraseData(rtString& filename)
+{
+  if (! filename.isEmpty())
+  {
+    mCacheMutex.lock();
+    mCurrentSize = mCurrentSize - mFileSizeMap[filename];
+    mFileSizeMap.erase(filename);
+    multimap<time_t,rtString>::iterator iter = mFileTimeMap.begin();
+    while (iter != mFileTimeMap.end())
+    {
+      if (iter->second == filename.cString())
+      {
+        break;
+      }
+      iter++;
+    }
+    if (iter != mFileTimeMap.end())
+      mFileTimeMap.erase(iter);
+    mCacheMutex.unlock();
+  }
 }
 
 rtError rtFileCache::removeData(const char* url)
@@ -181,21 +203,7 @@ rtError rtFileCache::removeData(const char* url)
       rtLogWarn("!!! deletion of cache failed for url(%s)",url);
       return RT_ERROR;
     }
-    mCacheMutex.lock();
-    mCurrentSize = mCurrentSize - mFileSizeMap[filename];
-    mFileSizeMap.erase(filename);
-    multimap<time_t,rtString>::iterator iter = mFileTimeMap.begin();
-    while (iter != mFileTimeMap.end())
-    {
-      if (iter->second == filename.cString())
-      {
-        break;
-      }
-      iter++;
-    }
-    if (iter != mFileTimeMap.end())
-      mFileTimeMap.erase(iter);
-    mCacheMutex.unlock();
+    eraseData(filename);
   }
   else
   {
@@ -221,15 +229,27 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
     rtLogWarn("Problem in getting hash from the url(%s) while adding to cache ",url.cString());
     return RT_ERROR;
   }
+  else
+  {
+    // If the file was already cached and got deleted manually, then we should clean up the corresponding data.
+    if(mFileSizeMap[filename])
+    {
+      if ( !mFileTimeMap.empty() )
+      {
+        eraseData(filename);
+      }
+    }
+  }
 
   bool ret = writeFile(filename,data);
   if (true != ret)
      return RT_ERROR;
-  setFileSizeAndTime(filename);
+  isetFileSizeAndTime(filename);
+  rtLogInfo("addToCache url(%s) filename(%s) size(%ld)", url.cString(), filename.cString(), mFileSizeMap[filename]);
   mCacheMutex.lock();
   mCurrentSize += mFileSizeMap[filename];
   int64_t size = cleanup();
-  mCacheMutex.unlock();
+  mCacheMutexi.unlock();
   rtLogInfo("current size after insertion and cleanup (%ld)",(long) size);
   return RT_OK;
 }
@@ -279,6 +299,7 @@ int64_t rtFileCache::cleanup()
       rtString filename = iter->second;
       if (! filename.isEmpty())
       {
+          rtLogInfo("Storage capacity exceeded" );
           if(false == deleteFile(filename))
           {
             rtLogWarn("!!! deletion of cache failed during cleanup for file(%s)",filename.cString());
@@ -354,6 +375,7 @@ bool rtFileCache::deleteFile(rtString& filename)
   rtString cmd = "rm -rf ";
   rtString absPathString  = absPath(filename);
   cmd.append(absPathString);
+  rtLogInfo("Deleting the file (%s)", absPathString.cString());
   if (0 != system(cmd.cString()))
   {
     rtLogWarn("removal of file failed");

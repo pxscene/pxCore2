@@ -97,6 +97,9 @@ class rtFileCache
     /* populate the existing files in cache along with size in mFileSizeMap */
     void populateExistingFiles();
 
+    /* erase the map data of the cached file */
+    void eraseData(rtString& filename);
+
     /* member variables */
     int64_t mMaxSize;
     int64_t mCurrentSize;
