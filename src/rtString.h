@@ -96,6 +96,7 @@ public:
   finline bool operator>= (const char* s) const { return compare(s) >= 0; }
 
   bool beginsWith(const char* s) const;
+  bool endsWith(const char* s) const;
 
   rtString substring(size_t pos, size_t len = 0) const;
 
