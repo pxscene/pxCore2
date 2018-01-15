@@ -52,6 +52,28 @@ public interface SparkObject {
    */
   Future<SparkValue> get(int index) throws SparkException;
 
+  /**
+   *
+   * @param name
+   * @param arguments
+   * @return
+   * @throws SparkException
+   */
+  Future<Void> send(String name, SparkValue ... arguments) throws SparkException;
 
+  /**
+   *
+   * @param name
+   * @param arguments
+   * @return
+   * @throws SparkException
+   */
+  Future<SparkValue> sendReturns(String name, SparkValue ... arguments) throws SparkException;
+
+
+  /**
+   *
+   * @return
+   */
   String getId();
 }

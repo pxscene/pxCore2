@@ -33,32 +33,28 @@ import java.util.concurrent.locks.ReentrantLock;
 
 class SparkProtocol implements Runnable {
   private static final Logger log = Logger.getLogger(SparkProtocol.class.getName());
+  private final Lock m_lock = new ReentrantLock();
+
   private SparkSerializer m_serializer = new SparkSerializer();
+  private Map<String, SparkCallContext> m_futures = new HashMap<>();
+  private SparkTransport m_transport;
+  private boolean m_running;
+  private Thread m_thread;
+
 
   private static class SparkCallContext {
     private BiConsumer<SparkMessage, SparkFuture> m_closure;
     private SparkFuture m_future;
-
-
-
     public SparkCallContext(SparkFuture future, BiConsumer<SparkMessage, SparkFuture> closure) {
       m_closure = closure;
       m_future = future;
     }
-
     public void complete(SparkMessage message) {
       if (m_closure != null) {
         m_closure.accept(message, m_future);
       }
     }
   }
-
-  private Map<String, SparkCallContext> m_futures = new HashMap<>();
-  private SparkTransport m_transport;
-  private boolean m_running;
-  private Thread m_thread;
-
-  private final Lock m_lock = new ReentrantLock();
 
   public SparkProtocol(SparkTransport transport) throws SparkException {
     m_transport = transport;

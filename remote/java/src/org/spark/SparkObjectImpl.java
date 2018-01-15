@@ -42,6 +42,14 @@ public class SparkObjectImpl implements SparkObject {
     return m_protocol.sendGetById(m_id, index);
   }
 
+  public Future<Void> send(String name, SparkValue ... arguments) throws SparkException {
+    return null;
+  }
+
+  public Future<SparkValue> sendReturns(String name, SparkValue ... arguments) throws SparkException {
+    return null;
+  }
+
   public String getId() {
     return m_id;
   }

@@ -1,16 +1,16 @@
 package org.spark;
 
-import java.util.concurrent.ExecutionException;
+import java.net.URI;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 public class SparkTestClient {
   public static void main(String[] args) throws Exception {
-    String host = "127.0.0.1";
-    int port = Integer.parseInt(args[0]);
 
-    SparkClientConnection con = SparkClientConnection.createTCPClientConnection(host, port);
-    SparkObject obj = con.getObjectProxy("some_name");
+    // tcp://127.0.0.1:123455/some_name
+    // <scheme>://<host>:<port>/<object name>
+    URI uri = new URI(args[0]);
+
+    SparkObject obj = SparkConnectionManager.getObjectProxy(uri);
 
     int n = 10;
 

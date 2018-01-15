@@ -5,7 +5,7 @@ import org.spark.net.SparkTcpTransport;
 public class SparkClientConnection {
   private SparkProtocol m_proto;
 
-  public SparkClientConnection(SparkProtocol protocol) {
+  private SparkClientConnection(SparkProtocol protocol) {
     m_proto = protocol;
   }
 
@@ -14,7 +14,7 @@ public class SparkClientConnection {
     return new SparkClientConnection(new SparkProtocol(transport));
   }
 
-  public SparkObject getObjectProxy(String objectId) {
+  public SparkObject getProxyObject(String objectId) {
     return new SparkObjectImpl(m_proto, objectId);
   }
 }
