@@ -2,6 +2,9 @@
 
 BUILDLOGS=$TRAVIS_BUILD_DIR/logs/build_logs
 
+echo "Madana printing cmake version *******************************";
+cmake --version
+
 if [[ ! -z $PX_VERSION ]]
 then
   export PX_BUILD_VERSION=$PX_VERSION
