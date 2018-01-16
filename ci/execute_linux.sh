@@ -5,17 +5,17 @@ checkError()
   if [ "$1" -ne 0 ]
   then
         echo "*********************************************************************";
-	echo "*********************BUILD FAIL DETAILS******************************";
+        echo "*********************BUILD FAIL DETAILS******************************";
         echo "CI failure reason: $2"
         echo "Cause: $3"
         echo "Reproduction/How to fix: $4"
-	echo "*********************************************************************";
-	echo "*********************************************************************";
+        echo "*********************************************************************";
+        echo "*********************************************************************";
         #exit 1;
   fi
 }
 
-#This script executes necessary javascript files and mesaures pxleak checks and memory leaks checks
+#This script executes necessary javascript files and measures pxleak checks and memory leaks checks
 
 if [ -z "${TRAVIS_BUILD_DIR}" ]
 then
@@ -23,24 +23,6 @@ then
   exit 1;
 else
   printf "\nUSING: TRAVIS_BUILD_DIR=${TRAVIS_BUILD_DIR}\n\n"
-  
-  
-if false;
-then
-EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
-
-  printf "\nUSING: TESTRUNNERURL=${TESTRUNNERURL}\n\n"
-
-#cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-
-  printf "\nCalling PXSCENE\n"
-
-$TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $EXECLOGS 2>&1 &
-
-exit 1;
-fi
-
 fi
 
 sudo rm -rf /tmp/cache/*
@@ -53,6 +35,14 @@ export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+printExecLogs() {
+  echo "********************** PRINTING EXEC LOG **************************"
+  cat $EXECLOGS
+  echo "**********************     LOG ENDS      **************************"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
@@ -94,9 +84,7 @@ if [ "$retVal" -eq 1 ]
 	checkError $retVal "Execution failed" "Core dump" "Test by running locally"
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
-		echo "**********************PRINTING EXEC LOG**************************"
-		cat $EXECLOGS
-		echo "**************************LOG ENDS*******************************"
+		printExecLogs
 	fi
 	exit 1;
 fi
@@ -112,9 +100,7 @@ if [ "$testRunnerRetVal" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Cause: Check the above logs"
-		echo "**********************PRINTING EXEC LOG**************************"
-		cat $EXECLOGS
-		echo "**************************LOG ENDS*******************************"
+		printExecLogs
 	else
 		errCause="Cause: Check the $EXECLOGS file"
 	fi
@@ -143,9 +129,7 @@ if [ "$pxRetVal" -eq 0 ]
 		if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 			then
 			errCause="Check the above logs"
-			echo "********************PRINTING EXEC LOG************************"
-			cat $EXECLOGS
-			echo "************************LOG ENDS*****************************"
+			printExecLogs
 		else
 			errCause="Check the $EXECLOGS file"
 		fi
@@ -156,9 +140,7 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		echo "********************PRINTING EXEC LOG************************"
-		cat $EXECLOGS
-		echo "************************LOG ENDS*****************************"
+		printExecLogs
 	else
 		errCause="Check the $EXECLOGS file"
 	fi
@@ -177,9 +159,7 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		echo "********************PRINTING EXEC LOG************************"
-		cat $EXECLOGS
-		echo "************************LOG ENDS*****************************"
+		printExecLogs
 	else
 		errCause="Check the file $VALGRINDLOGS and see for definitely lost count"
 	fi
