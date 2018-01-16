@@ -1,7 +1,7 @@
-package org.spark.messages;
+package org.pxscene.rt.messages;
 
-import org.spark.SparkMessage;
-import org.spark.SparkMessageType;
+import org.pxscene.rt.SparkMessage;
+import org.pxscene.rt.SparkMessageType;
 
 public class SparkMessageGetPropertyByNameRequest extends SparkMessage {
   private String m_propertyName;

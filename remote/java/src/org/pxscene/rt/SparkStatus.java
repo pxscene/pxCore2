@@ -1,4 +1,4 @@
-package org.spark;
+package org.pxscene.rt;
 
 public class SparkStatus {
   private SparkStatusCode m_code;

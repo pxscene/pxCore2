@@ -1,10 +1,10 @@
-package org.spark.messages;
+package org.pxscene.rt.messages;
 
 
-import org.spark.SparkMessage;
-import org.spark.SparkMessageType;
-import org.spark.SparkStatus;
-import org.spark.SparkValue;
+import org.pxscene.rt.SparkStatus;
+import org.pxscene.rt.SparkValue;
+import org.pxscene.rt.SparkMessage;
+import org.pxscene.rt.SparkMessageType;
 
 
 public class SparkMessageGetPropertyByNameResponse extends SparkMessage {

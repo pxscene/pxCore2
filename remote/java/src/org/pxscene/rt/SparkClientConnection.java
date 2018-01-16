@@ -1,6 +1,6 @@
-package org.spark;
+package org.pxscene.rt;
 
-import org.spark.net.SparkTcpTransport;
+import org.pxscene.rt.net.SparkTcpTransport;
 
 public class SparkClientConnection {
   private SparkProtocol m_proto;

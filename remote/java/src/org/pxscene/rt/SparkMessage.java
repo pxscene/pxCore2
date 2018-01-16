@@ -1,4 +1,4 @@
-package org.spark;
+package org.pxscene.rt;
 
 public class SparkMessage {
   protected SparkMessageType m_type;

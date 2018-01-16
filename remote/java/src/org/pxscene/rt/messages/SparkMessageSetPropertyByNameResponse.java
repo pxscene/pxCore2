@@ -1,4 +1,4 @@
-package org.spark.messages;
+package org.pxscene.rt.messages;
 
 public class SparkMessageSetPropertyByNameResponse {
 }

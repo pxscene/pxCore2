@@ -13,7 +13,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.spark.net;
+package org.pxscene.rt.net;
 
 import java.io.DataOutputStream;
 import java.io.DataInputStream;
@@ -26,8 +26,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.spark.SparkException;
-import org.spark.SparkTransport;
+import org.pxscene.rt.SparkException;
+import org.pxscene.rt.SparkTransport;
 
 public class SparkTcpTransport implements SparkTransport, Runnable {
   private static final Logger log = Logger.getLogger(SparkTcpTransport.class.getName());

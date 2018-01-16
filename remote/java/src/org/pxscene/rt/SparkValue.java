@@ -13,9 +13,9 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.spark;
+package org.pxscene.rt;
 
-import org.spark.net.SparkSerializer;
+import org.pxscene.rt.net.SparkSerializer;
 
 public class SparkValue {
   private SparkValueType m_type;

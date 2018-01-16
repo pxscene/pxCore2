@@ -1,4 +1,4 @@
-package org.spark.net;
+package org.pxscene.rt.net;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -12,15 +12,16 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.function.Function;
 
+import org.pxscene.rt.*;
 import org.spark.*;
-import org.spark.messages.SparkMessageGetPropertyByNameResponse;
-import org.spark.messages.SparkMessageGetPropertyByNameRequest;
-import org.spark.messages.SparkMessageSetPropertyByNameRequest;
-import org.spark.messages.SparkMessageSetPropertyByNameResponse;
-import org.spark.messages.SparkMessageKeepAliveRequest;
-import org.spark.messages.SparkMessageKeepAliveResponse;
-import org.spark.messages.SparkMessageOpenSessionRequest;
-import org.spark.messages.SparkMessageOpenSessionResponse;
+import org.pxscene.rt.messages.SparkMessageGetPropertyByNameResponse;
+import org.pxscene.rt.messages.SparkMessageGetPropertyByNameRequest;
+import org.pxscene.rt.messages.SparkMessageSetPropertyByNameRequest;
+import org.pxscene.rt.messages.SparkMessageSetPropertyByNameResponse;
+import org.pxscene.rt.messages.SparkMessageKeepAliveRequest;
+import org.pxscene.rt.messages.SparkMessageKeepAliveResponse;
+import org.pxscene.rt.messages.SparkMessageOpenSessionRequest;
+import org.pxscene.rt.messages.SparkMessageOpenSessionResponse;
 
 
 public class SparkSerializer {

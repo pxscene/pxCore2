@@ -13,14 +13,13 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.spark;
+package org.pxscene.rt;
 
-import org.spark.messages.SparkMessageGetPropertyByNameRequest;
-import org.spark.messages.SparkMessageGetPropertyByNameResponse;
-import org.spark.messages.SparkMessageSetPropertyByNameRequest;
-import org.spark.net.SparkSerializer;
+import org.pxscene.rt.messages.SparkMessageGetPropertyByNameRequest;
+import org.pxscene.rt.messages.SparkMessageGetPropertyByNameResponse;
+import org.pxscene.rt.messages.SparkMessageSetPropertyByNameRequest;
+import org.pxscene.rt.net.SparkSerializer;
 
-import java.nio.charset.Charset;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
