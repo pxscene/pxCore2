@@ -65,13 +65,12 @@ while [ "$retVal" -ne 0 ] && [ "$count" -ne "$max_seconds" ]; do
 		cat $EXECLOGS
 	fi
 
-    
-
 	#check any crash happened, if so stop the loop
 	if [ "$retVal" -ne 0 ]
 		then
 		if [ -f "/tmp/pxscenecrash" ]
 			then
+			printf "\n ############  CORE DUMP detected !!\n\n"
 			dumped_core=1
 			sudo rm -rf /tmp/pxscenecrash
 			break
