@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#minJS=cp        #don't minify
+minJS=./jsMin.sh  #minify
+
 externalDir=../external
 bundle=pxscene.app
 bundleBin=$bundle/Contents/MacOS
@@ -59,12 +62,13 @@ cp -a rcvrcore/* $bundleRes/rcvrcore
 
 # NOTE" jsMin.sh will default to a 'min' name with 1 arg.  E.g.  "jsMin.sh INPUT.js"  >> INPUT.min.js
 #
-./jsMin.sh init.js $bundleRes/init.js
-./jsMin.sh shell.js $bundleRes/shell.js
-./jsMin.sh browser.js $bundleRes/browser.js
-./jsMin.sh about.js $bundleRes/about.js
-./jsMin.sh browser/editbox.js $bundleRes/browser/editbox.js
+${minJS} init.js $bundleRes/init.js
+${minJS} shell.js $bundleRes/shell.js
+${minJS} browser.js $bundleRes/browser.js
+${minJS} about.js $bundleRes/about.js
+${minJS} browser/editbox.js $bundleRes/browser/editbox.js
 #./jsMinFolder.sh browser $bundleRes/browser
+
 
 # Copy duktape modules
 cp -a duk_modules $bundleRes/duk_modules

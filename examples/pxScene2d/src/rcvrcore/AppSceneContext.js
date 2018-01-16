@@ -672,12 +672,18 @@ if (isDuk) {
                            console.log("Not permitted to use the module " + filePath);
                            reject("include failed due to module not permitted");
                            return;
-                           } else if( filePath === 'net' || filePath === 'ws' ||  filePath === 'htmlparser') {
+                           } else if( filePath === 'net' /*|| filePath === 'ws'*/ ||  filePath === 'htmlparser') {
                            //modData = require('rcvrcore/' + filePath + '_wrap');
                            //onImportComplete([modData, origFilePath]);
                            console.log("Not permitted to use the module " + filePath);
                            reject("include failed due to module not permitted");
                            return;
+                           } 
+                           else if (filePath === 'ws') {
+                            console.log("creating websocket instance")
+                            modData = websocket;
+                            onImportComplete([modData, origFilePath]);
+                            return;
                            } else if (filePath === 'http' || filePath === 'https') {
                            //console.log("Not permitted to use the module " + filePath);
                            //reject("include failed due to module not permitted");
