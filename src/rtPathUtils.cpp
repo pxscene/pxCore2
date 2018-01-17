@@ -26,6 +26,8 @@
 #include <unistd.h>
 #endif
 
+#include <sys/stat.h>
+
 rtError rtGetCurrentDirectory(rtString& d) 
 {
   char* p = getcwd(NULL, 0);
@@ -36,4 +38,60 @@ rtError rtGetCurrentDirectory(rtString& d)
     free(p);
   }
   return RT_OK;
+}
+
+rtError rtEnsureTrailingPathSeparator(rtString& d)
+{
+  if (!d.endsWith("/"))
+  {
+#if defined(WIN32)
+    if (!d.endsWith("\\"))
+#endif
+    {
+      d.append("/");
+    }
+  }
+  return RT_OK;
+}
+
+rtError rtGetHomeDirectory(rtString& d)
+{
+  rtError e = RT_FAIL;
+
+  #if defined(WIN32)
+  const char* homeDir = "USERPROFILE";
+  #else
+  const char* homeDir = "HOME";
+  #endif
+
+  if (rtGetEnv(homeDir, d) == RT_OK)
+    e = rtEnsureTrailingPathSeparator(d);
+
+  return RT_OK;
+}
+
+bool rtFileExists(const char* f)
+{
+  struct stat buffer;
+  return (stat (f, &buffer) == 0);
+}
+
+rtError rtGetEnv(const char* e, rtString& v)
+{
+  v = getenv(e);
+  return RT_OK;
+}
+
+rtString rtGetEnvAsString(const char* name, const char* defaultValue)
+{
+  rtString v;
+  rtGetEnv(name, v);
+  if (v.isEmpty())
+    v = defaultValue;
+  return v;
+}
+
+rtValue rtGetEnvAsValue(const char* name, const char* defaultValue)
+{
+  return rtGetEnvAsString(name, defaultValue);
 }
