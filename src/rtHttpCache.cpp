@@ -302,7 +302,6 @@ void rtHttpCacheData::setFilePointer(FILE* openedDescriptor)
 
 void rtHttpCacheData::setExpirationDate()
 {
-  string expirationDate = "";
   bool foundMaxAge = false;
   if (mHeaderMap.end() != mHeaderMap.find("Cache-Control"))
   {
@@ -539,6 +538,7 @@ rtError rtHttpCacheData::handleEtag(rtData& data)
 
   if (mUpdated)
   {
+    rtLogInfo("ETAG update found");
     populateHeaderMap();
     setExpirationDate();
     data.init(mData.data(),mData.length());
