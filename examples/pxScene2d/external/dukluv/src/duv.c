@@ -13,7 +13,6 @@
 #include "fs.h"
 #include "misc.h"
 #include "miniz.h"
-#include "dns.h"
 
 static const duk_function_list_entry duv_funcs[] = {
   // loop.c
@@ -129,9 +128,6 @@ static const duk_function_list_entry duv_funcs[] = {
   // miniz.c
   {"inflate", duv_tinfl, 2},
   {"deflate", duv_tdefl, 2},
-
-  {"dns_getaddrinfo", duv_getaddrinfo, 2},
-  {"dns_getnameinfo", duv_getnameinfo, 2},
 
   {NULL, NULL, 0},
 };

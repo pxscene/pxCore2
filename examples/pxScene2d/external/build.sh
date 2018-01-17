@@ -151,7 +151,8 @@ fi
 if [ ! -e dukluv/build/duktape.a ]
 then
     cd dukluv
-    patch -p0 < patches/compile_fix.patch
+    #patch -p0 < patches/compile_fix.patch
+    git apply patches/dukluv.git.patch
     mkdir build
     cd build
     cmake ..
