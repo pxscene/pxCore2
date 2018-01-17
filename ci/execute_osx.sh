@@ -64,35 +64,24 @@ while [ "$retVal" -ne 0 ] && [ "$count" -ne "$max_seconds" ]; do
 	grep "TEST RESULTS: " /var/tmp/pxscene.log   # string in [results.js] must be "TEST RESULTS: "
 	retVal=$?
 
-	if [ "$retVal" -ne 1 ] # text found
-		then
+	if [ "$retVal" -eq 0 ] # text found    exit code from Grep is '1' if NOT found
+	then
 		printf "\n ############  TESTING COMPLETE ... finishing up.\n\n"
-	fi
-
-# JUNK
-# JUNK
-	if [ "$count" -eq 840 ] # JUNK JUNK
+		break
+	else
+	    #check any crash happened, if so stop the loop
+		if [ -f "/tmp/pxscenecrash" ] # 'indicator' file created by Signal Handles in pxscene.app
 		then
-		printExecLogs
-	fi
-# JUNK
-# JUNK
-
-	#check any crash happened, if so stop the loop
-	if [ "$retVal" -ne 0 ]
-		then
-		if [ -f "/tmp/pxscenecrash" ]
-			then
 			printf "\n ############  CORE DUMP detected !!\n\n"
 			dumped_core=1
 			sudo rm -rf /tmp/pxscenecrash
 			break
 		fi
+		#crash check ends
 	fi
-#crash check ends
 
 	count=$((count+30)) # add 30 seconds
-done
+done #LOOP
 
 # Handle crash - 'dumped_core = 1' ?
 if [ "$dumped_core" -eq 1 ]
@@ -138,8 +127,8 @@ grep "pxobjectcount is \[0\]" $EXECLOGS
 pxRetVal=$?
 grep "texture memory usage is \[0\]" $EXECLOGS
 texRetVal=$?
-if [[ "$pxRetVal" == 0 ]] && [[ "$texRetVal" == 0 ]] ; then
-	printf "\nINFO: No pxobject leaks or texture leaks found !!!!!!!!!!!!!!\n"
+if [[ $pxRetVal == 0 ]] && [[ $texRetVal == 0 ]] ; then
+	printf "\nINFO: No pxObject leaks or Texture leaks found - GOOD ! \n"
 else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
@@ -153,7 +142,7 @@ else
 fi
 
 # Check for valgrind memory leaks
-if [ "$leakcount" -ne 0 ]
+if [ $leakcount == 0 ]
 	then
 	echo "Valgrind reports success !!!!!!!!!!!"
 else

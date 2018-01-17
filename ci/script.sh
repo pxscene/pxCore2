@@ -59,8 +59,6 @@ then
 else
   sh build_px.sh "build_$TRAVIS_OS_NAME.sh"
 fi
-checkError $? "Build/unittests/execution failed" "Either build problem/execution problem" "Analyze corresponding log file"
-
 
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
 then
