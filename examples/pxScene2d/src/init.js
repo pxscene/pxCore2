@@ -4,6 +4,7 @@ if (isDuk) {
 global.console = require('console');
 global.timers = require('timers');
 global.Promise = require('bluebird');
+global.websocket = require("ws.js");
 
 global.setTimeout = timers.setTimeout;
 global.clearTimeout = timers.clearTimeout;

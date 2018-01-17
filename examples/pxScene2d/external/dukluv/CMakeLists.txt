@@ -23,6 +23,7 @@ add_library(duv
   src/uv_schema.c
   src/callbacks.c
   src/miniz.c
+  src/dns.c
 )
 
 
