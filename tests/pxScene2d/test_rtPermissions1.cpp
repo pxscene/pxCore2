@@ -25,6 +25,8 @@ public:
       p.set("serviceManager", serviceManager);
       rtObjectRef features = new rtMapObject();
       p.set("features", features);
+      rtObjectRef applications = new rtMapObject();
+      p.set("applications", applications);
       rtArrayObject* url_allow = new rtArrayObject();
       url_allow->pushBack("*");
       rtObjectRef url_allow_ref = url_allow;
@@ -37,57 +39,67 @@ public:
       features_allow->pushBack("screenshot");
       rtObjectRef features_allow_ref = features_allow;
       features.set("allow", features_allow_ref);
+      rtArrayObject* applications_allow = new rtArrayObject();
+      applications_allow->pushBack("browser");
+      rtObjectRef applications_allow_ref = applications_allow;
+      applications.set("allow", applications_allow_ref);
       permissions = p;
     }
+
+    EXPECT_TRUE (RT_OK == mPermissions.set(permissions));
+    EXPECT_TRUE (RT_OK == mPermissions.setParent(NULL));
 
     // FullTrust
     // Allow everything
     // NOTE: these blocks of checks have identical URLs across thew whole file. If you change one, change the rest too!
-    EXPECT_TRUE (allows(NULL, permissions, NULL));
-    EXPECT_TRUE (allows("", permissions, NULL));
-    EXPECT_TRUE (allows("foo", permissions, NULL));
-    EXPECT_TRUE (allows("foo://", permissions, NULL));
-    EXPECT_TRUE (allows("foo://example.com", permissions, NULL));
-    EXPECT_TRUE (allows("foo://github.com", permissions, NULL));
-    EXPECT_TRUE (allows("foo://localhost", permissions, NULL));
-    EXPECT_TRUE (allows("http://", permissions, NULL));
-    EXPECT_TRUE (allows("https://", permissions, NULL));
-    EXPECT_TRUE (allows("http://example.com", permissions, NULL));
-    EXPECT_TRUE (allows("https://example.com", permissions, NULL));
-    EXPECT_TRUE (allows("https://github.com", permissions, NULL));
-    EXPECT_TRUE (allows("https://github.com:80", permissions, NULL));
-    EXPECT_TRUE (allows("https://github.com:80/", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost/", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:10004", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getDeviceId", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getAuthToken", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getSessionToken", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getServiceAccessToken", permissions, NULL));
-    EXPECT_TRUE (allows("http://127.0.0.1:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[::1]:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://::1:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://127.0.0.1:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[::1]:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("http://::1:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("https://localhost", permissions, NULL));
-    EXPECT_TRUE (allows("https://localhost/", permissions, NULL));
-    EXPECT_TRUE (allows("https://localhost:10004", permissions, NULL));
-    EXPECT_TRUE (allows("https://localhost:50050", permissions, NULL));
-    EXPECT_TRUE (allows("serviceManager://", permissions, NULL));
-    EXPECT_TRUE (allows("serviceManager://org.rdk.soundPlayer_1", permissions, NULL));
-    EXPECT_TRUE (allows("serviceManager://com.comcast.application", permissions, NULL));
-    EXPECT_TRUE (allows("serviceManager://com.comcast.stateObserver", permissions, NULL));
-    EXPECT_TRUE (allows("serviceManager://com.comcast.FrameRate", permissions, NULL));
-    EXPECT_TRUE (allows("feature://", permissions, NULL));
-    EXPECT_TRUE (allows("feature://screenshot", permissions, NULL));
-    EXPECT_TRUE (allows("feature://unknown", permissions, NULL));
+    EXPECT_TRUE (allows(NULL, rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://github.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com:80", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com:80/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getDeviceId", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getAuthToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getSessionToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getServiceAccessToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("", rtPermissions::SERVICE));
+    EXPECT_TRUE (allows("org.rdk.soundPlayer_1", rtPermissions::SERVICE));
+    EXPECT_TRUE (allows("com.comcast.application", rtPermissions::SERVICE));
+    EXPECT_TRUE (allows("com.comcast.stateObserver", rtPermissions::SERVICE));
+    EXPECT_TRUE (allows("com.comcast.FrameRate", rtPermissions::SERVICE));
+    EXPECT_TRUE (allows("", rtPermissions::FEATURE));
+    EXPECT_TRUE (allows("screenshot", rtPermissions::FEATURE));
+    EXPECT_TRUE (allows("unknown", rtPermissions::FEATURE));
+    EXPECT_TRUE (allows("", rtPermissions::WAYLAND));
+    EXPECT_TRUE (allows("browser", rtPermissions::WAYLAND));
+    EXPECT_TRUE (allows("unknown", rtPermissions::WAYLAND));
 
     rtObjectRef childPermissions;
     {
@@ -128,56 +140,63 @@ public:
       childPermissions = p;
     }
 
+    EXPECT_TRUE (RT_OK == mPermissions.set(childPermissions));
+    EXPECT_TRUE (RT_OK == mParentPermissions.set(permissions));
+    EXPECT_TRUE (RT_OK == mPermissions.setParent(&mParentPermissions));
+
     // FullTrust -> Child
     // Allow everything
     // + Block all http://localhost... URL-s except http://localhost:50050
     // + Block 3 given serviceManager-s
     // + Block all features except screenshot
-    EXPECT_TRUE (allows(NULL, childPermissions, permissions));
-    EXPECT_TRUE (allows("", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo://", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo://example.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo://github.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo://localhost", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://example.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://example.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://github.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://github.com:80", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://github.com:80/", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost/", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost:10004", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getDeviceId", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getAuthToken", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getSessionToken", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getServiceAccessToken", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://127.0.0.1:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[::1]:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://::1:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://127.0.0.1:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[::1]:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://::1:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://localhost", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://localhost/", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://localhost:10004", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://localhost:50050", childPermissions, permissions));
-    EXPECT_TRUE (allows("serviceManager://", childPermissions, permissions));
-    EXPECT_TRUE (allows("serviceManager://org.rdk.soundPlayer_1", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.application", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.stateObserver", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.FrameRate", childPermissions, permissions));
-    EXPECT_FALSE(allows("feature://", childPermissions, permissions));
-    EXPECT_TRUE (allows("feature://screenshot", childPermissions, permissions));
-    EXPECT_FALSE(allows("feature://unknown", childPermissions, permissions));
+    EXPECT_TRUE (allows(NULL, rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://github.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com:80", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com:80/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getDeviceId", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getAuthToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getSessionToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getServiceAccessToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("", rtPermissions::SERVICE));
+    EXPECT_TRUE (allows("org.rdk.soundPlayer_1", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.application", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.stateObserver", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.FrameRate", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("", rtPermissions::FEATURE));
+    EXPECT_TRUE (allows("screenshot", rtPermissions::FEATURE));
+    EXPECT_FALSE(allows("unknown", rtPermissions::FEATURE));
+    EXPECT_TRUE (allows("", rtPermissions::WAYLAND));
+    EXPECT_TRUE (allows("browser", rtPermissions::WAYLAND));
+    EXPECT_TRUE (allows("unknown", rtPermissions::WAYLAND));
   }
 
   void testUntrusted()
@@ -191,6 +210,8 @@ public:
       p.set("serviceManager", serviceManager);
       rtObjectRef features = new rtMapObject();
       p.set("features", features);
+      rtObjectRef applications = new rtMapObject();
+      p.set("applications", applications);
       rtArrayObject* url_allow = new rtArrayObject();
       url_allow->pushBack("*");
       rtObjectRef url_allow_ref = url_allow;
@@ -211,59 +232,74 @@ public:
       features_block->pushBack("screenshot");
       rtObjectRef features_block_ref = features_block;
       features.set("block", features_block_ref);
+      rtArrayObject* applications_allow = new rtArrayObject();
+      applications_allow->pushBack("*");
+      rtObjectRef applications_allow_ref = applications_allow;
+      applications.set("allow", applications_allow_ref);
+      rtArrayObject* applications_block = new rtArrayObject();
+      applications_block->pushBack("browser");
+      rtObjectRef applications_block_ref = applications_block;
+      applications.set("block", applications_block_ref);
       permissions = p;
     }
+
+    EXPECT_TRUE (RT_OK == mPermissions.set(permissions));
+    EXPECT_TRUE (RT_OK == mPermissions.setParent(NULL));
 
     // Untrusted
     // Allow everything
     // + Block all http://localhost... URL-s
     // + Block all serviceManager-s
     // + Block feature screenshot
-    EXPECT_TRUE (allows(NULL, permissions, NULL));
-    EXPECT_TRUE (allows("", permissions, NULL));
-    EXPECT_TRUE (allows("foo", permissions, NULL));
-    EXPECT_TRUE (allows("foo://", permissions, NULL));
-    EXPECT_TRUE (allows("foo://example.com", permissions, NULL));
-    EXPECT_TRUE (allows("foo://github.com", permissions, NULL));
-    EXPECT_TRUE (allows("foo://localhost", permissions, NULL));
-    EXPECT_TRUE (allows("http://", permissions, NULL));
-    EXPECT_TRUE (allows("https://", permissions, NULL));
-    EXPECT_TRUE (allows("http://example.com", permissions, NULL));
-    EXPECT_TRUE (allows("https://example.com", permissions, NULL));
-    EXPECT_TRUE (allows("https://github.com", permissions, NULL));
-    EXPECT_TRUE (allows("https://github.com:80", permissions, NULL));
-    EXPECT_TRUE (allows("https://github.com:80/", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost/", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost:10004", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost:50050", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost:50050/authService", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost:50050/authService/getDeviceId", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost:50050/authService/getAuthToken", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost:50050/authService/getSessionToken", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost:50050/authService/getServiceAccessToken", permissions, NULL));
-    EXPECT_TRUE (allows("http://127.0.0.1:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[::1]:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://::1:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://127.0.0.1:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[::1]:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("http://::1:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("https://localhost", permissions, NULL));
-    EXPECT_TRUE (allows("https://localhost/", permissions, NULL));
-    EXPECT_TRUE (allows("https://localhost:10004", permissions, NULL));
-    EXPECT_TRUE (allows("https://localhost:50050", permissions, NULL));
-    EXPECT_FALSE(allows("serviceManager://", permissions, NULL));
-    EXPECT_FALSE(allows("serviceManager://org.rdk.soundPlayer_1", permissions, NULL));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.application", permissions, NULL));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.stateObserver", permissions, NULL));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.FrameRate", permissions, NULL));
-    EXPECT_TRUE (allows("feature://", permissions, NULL));
-    EXPECT_FALSE(allows("feature://screenshot", permissions, NULL));
-    EXPECT_TRUE (allows("feature://unknown", permissions, NULL));
+    // + Block application browser
+    EXPECT_TRUE (allows(NULL, rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://github.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com:80", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com:80/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:50050/authService", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:50050/authService/getDeviceId", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:50050/authService/getAuthToken", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:50050/authService/getSessionToken", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:50050/authService/getServiceAccessToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("org.rdk.soundPlayer_1", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.application", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.stateObserver", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.FrameRate", rtPermissions::SERVICE));
+    EXPECT_TRUE (allows("", rtPermissions::FEATURE));
+    EXPECT_FALSE(allows("screenshot", rtPermissions::FEATURE));
+    EXPECT_TRUE (allows("unknown", rtPermissions::FEATURE));
+    EXPECT_TRUE (allows("", rtPermissions::WAYLAND));
+    EXPECT_FALSE(allows("browser", rtPermissions::WAYLAND));
+    EXPECT_TRUE (allows("unknown", rtPermissions::WAYLAND));
 
     rtObjectRef childPermissions;
     {
@@ -304,56 +340,63 @@ public:
       childPermissions = p;
     }
 
+    EXPECT_TRUE (RT_OK == mPermissions.set(childPermissions));
+    EXPECT_TRUE (RT_OK == mParentPermissions.set(permissions));
+    EXPECT_TRUE (RT_OK == mPermissions.setParent(&mParentPermissions));
+
     // Untrusted -> Child
     // Allow everything
     // + Block all http://localhost... URL-s
     // + Block all serviceManager-s
-    // + Block all features
-    EXPECT_TRUE (allows(NULL, childPermissions, permissions));
-    EXPECT_TRUE (allows("", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo://", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo://example.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo://github.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo://localhost", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://example.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://example.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://github.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://github.com:80", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://github.com:80/", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost/", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost:10004", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost:50050", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost:50050/authService", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost:50050/authService/getDeviceId", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost:50050/authService/getAuthToken", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost:50050/authService/getSessionToken", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost:50050/authService/getServiceAccessToken", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://127.0.0.1:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[::1]:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://::1:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://127.0.0.1:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[::1]:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://::1:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://localhost", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://localhost/", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://localhost:10004", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://localhost:50050", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://org.rdk.soundPlayer_1", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.application", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.stateObserver", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.FrameRate", childPermissions, permissions));
-    EXPECT_FALSE(allows("feature://", childPermissions, permissions));
-    EXPECT_FALSE(allows("feature://screenshot", childPermissions, permissions));
-    EXPECT_FALSE(allows("feature://unknown", childPermissions, permissions));
+    // + Block all features except screenshot
+    EXPECT_TRUE (allows(NULL, rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://github.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com:80", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com:80/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:50050/authService", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:50050/authService/getDeviceId", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:50050/authService/getAuthToken", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:50050/authService/getSessionToken", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:50050/authService/getServiceAccessToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("org.rdk.soundPlayer_1", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.application", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.stateObserver", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.FrameRate", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("", rtPermissions::FEATURE));
+    EXPECT_FALSE(allows("screenshot", rtPermissions::FEATURE));
+    EXPECT_FALSE(allows("unknown", rtPermissions::FEATURE));
+    EXPECT_TRUE (allows("", rtPermissions::WAYLAND));
+    EXPECT_FALSE(allows("browser", rtPermissions::WAYLAND));
+    EXPECT_TRUE (allows("unknown", rtPermissions::WAYLAND));
   }
 
   void testLimitedTrust()
@@ -367,6 +410,8 @@ public:
       p.set("serviceManager", serviceManager);
       rtObjectRef features = new rtMapObject();
       p.set("features", features);
+      rtObjectRef applications = new rtMapObject();
+      p.set("applications", applications);
       rtArrayObject* url_allow = new rtArrayObject();
       url_allow->pushBack("*");
       url_allow->pushBack("http://localhost:50050");
@@ -393,59 +438,74 @@ public:
       features_block->pushBack("*");
       rtObjectRef features_block_ref = features_block;
       features.set("block", features_block_ref);
+      rtArrayObject* applications_allow = new rtArrayObject();
+      applications_allow->pushBack("browser");
+      rtObjectRef applications_allow_ref = applications_allow;
+      applications.set("allow", applications_allow_ref);
+      rtArrayObject* applications_block = new rtArrayObject();
+      applications_block->pushBack("*");
+      rtObjectRef applications_block_ref = applications_block;
+      applications.set("block", applications_block_ref);
       permissions = p;
     }
+
+    EXPECT_TRUE (RT_OK == mPermissions.set(permissions));
+    EXPECT_TRUE (RT_OK == mPermissions.setParent(NULL));
 
     // LimitedTrust
     // Allow everything
     // + Block all http://localhost... URL-s except http://localhost:50050
     // + Block 2 serviceManager-s
     // + Block all features except screenshot
-    EXPECT_TRUE (allows(NULL, permissions, NULL));
-    EXPECT_TRUE (allows("", permissions, NULL));
-    EXPECT_TRUE (allows("foo", permissions, NULL));
-    EXPECT_TRUE (allows("foo://", permissions, NULL));
-    EXPECT_TRUE (allows("foo://example.com", permissions, NULL));
-    EXPECT_TRUE (allows("foo://github.com", permissions, NULL));
-    EXPECT_TRUE (allows("foo://localhost", permissions, NULL));
-    EXPECT_TRUE (allows("http://", permissions, NULL));
-    EXPECT_TRUE (allows("https://", permissions, NULL));
-    EXPECT_TRUE (allows("http://example.com", permissions, NULL));
-    EXPECT_TRUE (allows("https://example.com", permissions, NULL));
-    EXPECT_TRUE (allows("https://github.com", permissions, NULL));
-    EXPECT_TRUE (allows("https://github.com:80", permissions, NULL));
-    EXPECT_TRUE (allows("https://github.com:80/", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost/", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost:10004", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getDeviceId", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getAuthToken", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getSessionToken", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getServiceAccessToken", permissions, NULL));
-    EXPECT_TRUE (allows("http://127.0.0.1:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[::1]:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://::1:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://127.0.0.1:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[::1]:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("http://::1:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:1001/", permissions, NULL));
-    EXPECT_TRUE (allows("https://localhost", permissions, NULL));
-    EXPECT_TRUE (allows("https://localhost/", permissions, NULL));
-    EXPECT_TRUE (allows("https://localhost:10004", permissions, NULL));
-    EXPECT_TRUE (allows("https://localhost:50050", permissions, NULL));
-    EXPECT_TRUE (allows("serviceManager://", permissions, NULL));
-    EXPECT_TRUE (allows("serviceManager://org.rdk.soundPlayer_1", permissions, NULL));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.application", permissions, NULL));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.stateObserver", permissions, NULL));
-    EXPECT_TRUE (allows("serviceManager://com.comcast.FrameRate", permissions, NULL));
-    EXPECT_FALSE(allows("feature://", permissions, NULL));
-    EXPECT_TRUE (allows("feature://screenshot", permissions, NULL));
-    EXPECT_FALSE(allows("feature://unknown", permissions, NULL));
+    // + Block all applications except browser
+    EXPECT_TRUE (allows(NULL, rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://github.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com:80", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com:80/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getDeviceId", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getAuthToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getSessionToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getServiceAccessToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("", rtPermissions::SERVICE));
+    EXPECT_TRUE (allows("org.rdk.soundPlayer_1", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.application", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.stateObserver", rtPermissions::SERVICE));
+    EXPECT_TRUE (allows("com.comcast.FrameRate", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("", rtPermissions::FEATURE));
+    EXPECT_TRUE (allows("screenshot", rtPermissions::FEATURE));
+    EXPECT_FALSE(allows("unknown", rtPermissions::FEATURE));
+    EXPECT_FALSE(allows("", rtPermissions::WAYLAND));
+    EXPECT_TRUE (allows("browser", rtPermissions::WAYLAND));
+    EXPECT_FALSE(allows("unknown", rtPermissions::WAYLAND));
 
     rtObjectRef childPermissions;
     {
@@ -486,56 +546,63 @@ public:
       childPermissions = p;
     }
 
+    EXPECT_TRUE (RT_OK == mPermissions.set(childPermissions));
+    EXPECT_TRUE (RT_OK == mParentPermissions.set(permissions));
+    EXPECT_TRUE (RT_OK == mPermissions.setParent(&mParentPermissions));
+
     // LimitedTrust -> Child
     // Allow everything
     // + Block all http://localhost... URL-s except http://localhost:50050
     // + Block 3 serviceManager-s
     // + Block all features except screenshot
-    EXPECT_TRUE (allows(NULL, childPermissions, permissions));
-    EXPECT_TRUE (allows("", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo://", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo://example.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo://github.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo://localhost", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://example.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://example.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://github.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://github.com:80", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://github.com:80/", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost/", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost:10004", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getDeviceId", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getAuthToken", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getSessionToken", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getServiceAccessToken", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://127.0.0.1:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[::1]:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://::1:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://127.0.0.1:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[::1]:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://::1:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:1001/", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://localhost", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://localhost/", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://localhost:10004", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://localhost:50050", childPermissions, permissions));
-    EXPECT_TRUE (allows("serviceManager://", childPermissions, permissions));
-    EXPECT_TRUE (allows("serviceManager://org.rdk.soundPlayer_1", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.application", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.stateObserver", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.FrameRate", childPermissions, permissions));
-    EXPECT_FALSE(allows("feature://", childPermissions, permissions));
-    EXPECT_TRUE (allows("feature://screenshot", childPermissions, permissions));
-    EXPECT_FALSE(allows("feature://unknown", childPermissions, permissions));
+    EXPECT_TRUE (allows(NULL, rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://github.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("foo://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com:80", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://github.com:80/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getDeviceId", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getAuthToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getSessionToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getServiceAccessToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:1001/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("", rtPermissions::SERVICE));
+    EXPECT_TRUE (allows("org.rdk.soundPlayer_1", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.application", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.stateObserver", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.FrameRate", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("", rtPermissions::FEATURE));
+    EXPECT_TRUE (allows("screenshot", rtPermissions::FEATURE));
+    EXPECT_FALSE(allows("unknown", rtPermissions::FEATURE));
+    EXPECT_FALSE(allows("", rtPermissions::WAYLAND));
+    EXPECT_TRUE (allows("browser", rtPermissions::WAYLAND));
+    EXPECT_FALSE(allows("unknown", rtPermissions::WAYLAND));
   }
 
   void testRealWorldExample()
@@ -549,6 +616,8 @@ public:
       p.set("serviceManager", serviceManager);
       rtObjectRef features = new rtMapObject();
       p.set("features", features);
+      rtObjectRef applications = new rtMapObject();
+      p.set("applications", applications);
       rtArrayObject* url_allow = new rtArrayObject();
       url_allow->pushBack("http://*");
       url_allow->pushBack("https://*");
@@ -608,59 +677,74 @@ public:
       features_block->pushBack("*");
       rtObjectRef features_block_ref = features_block;
       features.set("block", features_block_ref);
+      rtArrayObject* applications_allow = new rtArrayObject();
+      applications_allow->pushBack("browser");
+      rtObjectRef applications_allow_ref = applications_allow;
+      applications.set("allow", applications_allow_ref);
+      rtArrayObject* applications_block = new rtArrayObject();
+      applications_block->pushBack("*");
+      rtObjectRef applications_block_ref = applications_block;
+      applications.set("block", applications_block_ref);
       permissions = p;
     }
+
+    EXPECT_TRUE (RT_OK == mPermissions.set(permissions));
+    EXPECT_TRUE (RT_OK == mPermissions.setParent(NULL));
 
     // RealWorldExample
     // Block everything
     // + Allow all http://... and https://... except github.com and localhost UNLESS localhost port is 50050 and scheme is http
     // + Allow 2 serviceManager-s
     // + Allow feature screenshot
-    EXPECT_TRUE (allows(NULL, permissions, NULL));
-    EXPECT_TRUE (allows("", permissions, NULL));
-    EXPECT_TRUE (allows("foo", permissions, NULL));
-    EXPECT_FALSE(allows("foo://", permissions, NULL));
-    EXPECT_FALSE(allows("foo://example.com", permissions, NULL));
-    EXPECT_FALSE(allows("foo://github.com", permissions, NULL));
-    EXPECT_FALSE(allows("foo://localhost", permissions, NULL));
-    EXPECT_TRUE (allows("http://", permissions, NULL));
-    EXPECT_TRUE (allows("https://", permissions, NULL));
-    EXPECT_TRUE (allows("http://example.com", permissions, NULL));
-    EXPECT_TRUE (allows("https://example.com", permissions, NULL));
-    EXPECT_FALSE(allows("https://github.com", permissions, NULL));
-    EXPECT_FALSE(allows("https://github.com:80", permissions, NULL));
-    EXPECT_FALSE(allows("https://github.com:80/", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost/", permissions, NULL));
-    EXPECT_FALSE(allows("http://localhost:10004", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getDeviceId", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getAuthToken", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getSessionToken", permissions, NULL));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getServiceAccessToken", permissions, NULL));
-    EXPECT_TRUE (allows("http://127.0.0.1:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[::1]:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://::1:50050/", permissions, NULL));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", permissions, NULL));
-    EXPECT_FALSE(allows("http://127.0.0.1:1001/", permissions, NULL));
-    EXPECT_FALSE(allows("http://[::1]:1001/", permissions, NULL));
-    EXPECT_FALSE(allows("http://[0:0:0:0:0:0:0:1]:1001/", permissions, NULL));
-    EXPECT_FALSE(allows("http://::1:1001/", permissions, NULL));
-    EXPECT_FALSE(allows("http://0:0:0:0:0:0:0:1:1001/", permissions, NULL));
-    EXPECT_FALSE(allows("https://localhost", permissions, NULL));
-    EXPECT_FALSE(allows("https://localhost/", permissions, NULL));
-    EXPECT_FALSE(allows("https://localhost:10004", permissions, NULL));
-    EXPECT_FALSE(allows("https://localhost:50050", permissions, NULL));
-    EXPECT_FALSE(allows("serviceManager://", permissions, NULL));
-    EXPECT_FALSE(allows("serviceManager://org.rdk.soundPlayer_1", permissions, NULL));
-    EXPECT_TRUE (allows("serviceManager://com.comcast.application", permissions, NULL));
-    EXPECT_TRUE (allows("serviceManager://com.comcast.stateObserver", permissions, NULL));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.FrameRate", permissions, NULL));
-    EXPECT_FALSE(allows("feature://", permissions, NULL));
-    EXPECT_TRUE (allows("feature://screenshot", permissions, NULL));
-    EXPECT_FALSE(allows("feature://unknown", permissions, NULL));
+    // + Allow application browser
+    EXPECT_TRUE (allows(NULL, rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("foo", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("foo://", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("foo://example.com", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("foo://github.com", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("foo://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://example.com", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://github.com", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://github.com:80", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://github.com:80/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getDeviceId", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getAuthToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getSessionToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getServiceAccessToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://127.0.0.1:1001/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://[::1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://[0:0:0:0:0:0:0:1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://::1:1001/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://0:0:0:0:0:0:0:1:1001/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://localhost", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://localhost/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("org.rdk.soundPlayer_1", rtPermissions::SERVICE));
+    EXPECT_TRUE (allows("com.comcast.application", rtPermissions::SERVICE));
+    EXPECT_TRUE (allows("com.comcast.stateObserver", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.FrameRate", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("", rtPermissions::FEATURE));
+    EXPECT_TRUE (allows("screenshot", rtPermissions::FEATURE));
+    EXPECT_FALSE(allows("unknown", rtPermissions::FEATURE));
+    EXPECT_FALSE(allows("", rtPermissions::WAYLAND));
+    EXPECT_TRUE (allows("browser", rtPermissions::WAYLAND));
+    EXPECT_FALSE(allows("unknown", rtPermissions::WAYLAND));
 
     rtObjectRef childPermissions;
     {
@@ -701,77 +785,74 @@ public:
       childPermissions = p;
     }
 
+    EXPECT_TRUE (RT_OK == mPermissions.set(childPermissions));
+    EXPECT_TRUE (RT_OK == mParentPermissions.set(permissions));
+    EXPECT_TRUE (RT_OK == mPermissions.setParent(&mParentPermissions));
+
     // RealWorldExample -> Child
     // Block everything
     // + Allow http://localhost:50050
     // + Allow feature screenshot
-    EXPECT_TRUE (allows(NULL, childPermissions, permissions));
-    EXPECT_TRUE (allows("", childPermissions, permissions));
-    EXPECT_TRUE (allows("foo", childPermissions, permissions));
-    EXPECT_FALSE(allows("foo://", childPermissions, permissions));
-    EXPECT_FALSE(allows("foo://example.com", childPermissions, permissions));
-    EXPECT_FALSE(allows("foo://github.com", childPermissions, permissions));
-    EXPECT_FALSE(allows("foo://localhost", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://example.com", childPermissions, permissions));
-    EXPECT_TRUE (allows("https://example.com", childPermissions, permissions));
-    EXPECT_FALSE(allows("https://github.com", childPermissions, permissions));
-    EXPECT_FALSE(allows("https://github.com:80", childPermissions, permissions));
-    EXPECT_FALSE(allows("https://github.com:80/", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost/", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://localhost:10004", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getDeviceId", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getAuthToken", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getSessionToken", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://localhost:50050/authService/getServiceAccessToken", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://127.0.0.1:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[::1]:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://::1:50050/", childPermissions, permissions));
-    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://127.0.0.1:1001/", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://[::1]:1001/", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://[0:0:0:0:0:0:0:1]:1001/", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://::1:1001/", childPermissions, permissions));
-    EXPECT_FALSE(allows("http://0:0:0:0:0:0:0:1:1001/", childPermissions, permissions));
-    EXPECT_FALSE(allows("https://localhost", childPermissions, permissions));
-    EXPECT_FALSE(allows("https://localhost/", childPermissions, permissions));
-    EXPECT_FALSE(allows("https://localhost:10004", childPermissions, permissions));
-    EXPECT_FALSE(allows("https://localhost:50050", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://org.rdk.soundPlayer_1", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.application", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.stateObserver", childPermissions, permissions));
-    EXPECT_FALSE(allows("serviceManager://com.comcast.FrameRate", childPermissions, permissions));
-    EXPECT_FALSE(allows("feature://", childPermissions, permissions));
-    EXPECT_TRUE (allows("feature://screenshot", childPermissions, permissions));
-    EXPECT_FALSE(allows("feature://unknown", childPermissions, permissions));
+    EXPECT_TRUE (allows(NULL, rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("foo", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("foo://", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("foo://example.com", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("foo://github.com", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("foo://localhost", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://example.com", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("https://example.com", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://github.com", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://github.com:80", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://github.com:80/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getDeviceId", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getAuthToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getSessionToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://localhost:50050/authService/getServiceAccessToken", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://127.0.0.1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[::1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://::1:50050/", rtPermissions::DEFAULT));
+    EXPECT_TRUE (allows("http://0:0:0:0:0:0:0:1:50050/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://127.0.0.1:1001/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://[::1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://[0:0:0:0:0:0:0:1]:1001/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://::1:1001/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("http://0:0:0:0:0:0:0:1:1001/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://localhost", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://localhost/", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://localhost:10004", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("https://localhost:50050", rtPermissions::DEFAULT));
+    EXPECT_FALSE(allows("", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("org.rdk.soundPlayer_1", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.application", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.stateObserver", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("com.comcast.FrameRate", rtPermissions::SERVICE));
+    EXPECT_FALSE(allows("", rtPermissions::FEATURE));
+    EXPECT_TRUE (allows("screenshot", rtPermissions::FEATURE));
+    EXPECT_FALSE(allows("unknown", rtPermissions::FEATURE));
+    EXPECT_FALSE(allows("", rtPermissions::WAYLAND));
+    EXPECT_TRUE (allows("browser", rtPermissions::WAYLAND));
+    EXPECT_FALSE(allows("unknown", rtPermissions::WAYLAND));
   }
 
 private:
-  bool allows(const char* url, const rtObjectRef& permissions, const rtObjectRef& parentPermissions)
+  bool allows(const char* url, rtPermissions::Type type)
   {
-    rtPermissions* p = new rtPermissions();
-    rtPermissions* parent = new rtPermissions();
-    if (permissions)
-    {
-      EXPECT_TRUE (RT_OK == p->set(permissions));
-    }
-    if (parentPermissions)
-    {
-      EXPECT_TRUE (RT_OK == parent->set(parentPermissions));
-      EXPECT_TRUE (RT_OK == p->setParent(parent));
-    }
-
-    bool allows;
-    EXPECT_TRUE (RT_OK == p->allows(url, allows));
-    delete p;
-    return allows;
+    bool a;
+    EXPECT_TRUE (RT_OK == mPermissions.allows(url, type, a));
+    return a;
   }
+
+  rtPermissions mPermissions;
+  rtPermissions mParentPermissions;
 };
 
 TEST_F(rtPermissions1Test, rtPermissionsTests)

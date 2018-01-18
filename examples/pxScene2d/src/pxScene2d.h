@@ -61,7 +61,7 @@
 #include "testView.h"
 
 #ifdef ENABLE_RT_NODE
-#include "rtNode.h"
+#include "rtScript.h"
 #endif //ENABLE_RT_NODE
 
 #ifdef ENABLE_PERMISSIONS_CHECK
@@ -97,6 +97,8 @@ extern rtThreadQueue gUIThreadQueue;
 // Constants
 static pxConstants CONSTANTS;
 
+char *base64_encode(const unsigned char *data, size_t input_length, size_t *output_length);
+unsigned char *base64_decode(const unsigned char *data, size_t input_length, size_t *output_length);
 
 #if 0
 typedef rtError (*objectFactory)(void* context, const char* t, rtObjectRef& o);
@@ -230,7 +232,7 @@ public:
     rtString d;
     // Why is this bad
     //sendReturns<rtString>("description",d);
-    rtString d2 = getMap()->className;
+    //rtString d2 = getMap()->className;
     unsigned long c =  rtObject::Release();
     #if 0
     if (c == 0)
@@ -1137,7 +1139,7 @@ protected:
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
 
-  static rtError getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx);
+  static rtError getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/);
 
   virtual void onSize(int32_t w, int32_t h)
   {
@@ -1255,7 +1257,7 @@ protected:
   rtRef<rtFunctionCallback> mGetContextID;
 
 #ifdef ENABLE_RT_NODE
-  rtNodeContextRef mCtx;
+  rtScriptContextRef mCtx;
 #endif //ENABLE_RT_NODE
   pxIViewContainer* mViewContainer;
   unsigned long mRefCount;
@@ -1494,12 +1496,13 @@ public:
 
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
-    bool allowed;
-    if (allows(url, allowed) == RT_OK && !allowed)
+#ifdef ENABLE_PERMISSIONS_CHECK
+    if (!mPermissions.allows(url.cString(), rtPermissions::DEFAULT))
     {
       rtLogError("url '%s' is not allowed", url.cString());
       return RT_ERROR_NOT_ALLOWED;
     }
+#endif
 
     rtError e = RT_FAIL;
     rtRef<pxArchive> a = new pxArchive;

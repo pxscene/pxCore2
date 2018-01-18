@@ -26,7 +26,7 @@
 #include "rtLog.h"
 #include "rtRef.h"
 #include "rtString.h"
-#include "rtNode.h"
+//#include "rtNode.h"
 #include "rtPathUtils.h"
 #include "rtUrlUtils.h"
 
@@ -83,7 +83,6 @@ using namespace std;
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
 
 extern rtThreadQueue gUIThreadQueue;
-uint32_t rtPromise::promiseID = 200;
 
 static int fpsWarningThreshold = 25;
 
@@ -109,13 +108,8 @@ uint32_t gFboBindCalls;
 extern void rtWrapperSceneUpdateEnter();
 extern void rtWrapperSceneUpdateExit();
 #ifdef RUNINMAIN
-#ifdef ENABLE_DEBUG_MODE
-rtNode script(false);
+rtScript script;
 #else
-rtNode script;
-#endif
-#else
-extern rtNode script;
 class AsyncScriptInfo;
 extern vector<AsyncScriptInfo*> scriptsInfo;
 extern uv_mutex_t moreScriptsMutex;
@@ -137,6 +131,7 @@ void stopProfiling()
 }
 #endif //ENABLE_VALGRIND
 int pxObjectCount = 0;
+bool gApplicationIsClosing = false;
 
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
@@ -334,10 +329,6 @@ char *base64_encode(const unsigned char *data,
     for (int i = 0; i < mod_table[input_length % 3]; i++)
         encoded_data[*output_length - 1 - i] = '=';
 
-#ifdef PX_PLATFORM_MAC
-    encoded_data[*output_length] = '\0';
-#endif //PX_PLATFORM_MAC
-
     return encoded_data;
 }
 
@@ -516,14 +507,19 @@ void pxObject::dispose()
   {
     //rtLogInfo(__FUNCTION__);
     mIsDisposed = true;
+    rtValue nullValue;
     vector<animation>::iterator it = mAnimations.begin();
     for(;it != mAnimations.end();it++)
     {
       if ((*it).promise)
-        (*it).promise.send("reject",this);
+      {
+	if(!gApplicationIsClosing)	  
+          (*it).promise.send("reject",this);
+	else
+	  (*it).promise.send("reject",nullValue);
+      }
     }
 
-    rtValue nullValue;
     mReady.send("reject",nullValue);
 
     mAnimations.clear();
@@ -1620,10 +1616,12 @@ void pxObject::repaintParents()
   }
 }
 
+#if 0
 rtDefineObject(rtPromise, rtObject);
 rtDefineMethod(rtPromise, then);
 rtDefineMethod(rtPromise, resolve);
 rtDefineMethod(rtPromise, reject);
+#endif
 
 rtDefineObject(pxObject, rtObject);
 rtDefineProperty(pxObject, _pxObject);
@@ -1754,6 +1752,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   
   mInfo = new rtMapObject;
   mInfo.set("version", xstr(PX_SCENE_VERSION));
+
+#ifdef ENABLE_RT_NODE
+  mInfo.set("engine", script.engine());
+#endif
   
     rtObjectRef build = new rtMapObject;
     build.set("date", xstr(__DATE__));
@@ -1815,13 +1817,14 @@ void pxScene2d::init()
 
 rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
+#ifdef ENABLE_PERMISSIONS_CHECK
   rtString url = p.get<rtString>("url");
-  bool allowed;
-  if (allows(url, allowed) == RT_OK && !allowed)
+  if (!mPermissions.allows(url.cString(), rtPermissions::DEFAULT))
   {
     rtLogError("url '%s' is not allowed", url.cString());
     return RT_ERROR_NOT_ALLOWED;
   }
+#endif
 
   rtError e = RT_OK;
   rtString t = p.get<rtString>("t");
@@ -2020,7 +2023,7 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::logDebugMetrics()
 {
 #ifdef ENABLE_DEBUG_METRICS 
-    script.garbageCollect();
+    script.collectGarbage();
     rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifdef PX_PLATFORM_MAC
       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
@@ -2052,6 +2055,15 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 {
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtString cmd = p.get<rtString>("cmd");
+  if (!mPermissions.allows(cmd.cString(), rtPermissions::WAYLAND))
+  {
+    rtLogError("wayland cmd '%s' is not allowed", cmd.cString());
+    return RT_ERROR_NOT_ALLOWED;
+  }
+#endif
+
 #if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
   UNUSED_PARAM(p);
   UNUSED_PARAM(o);
@@ -2886,12 +2898,13 @@ rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
 
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
-  bool allowed;
-  if (allows("feature://screenshot", allowed) == RT_OK && !allowed)
+#ifdef ENABLE_PERMISSIONS_CHECK
+  if (!mPermissions.allows("screenshot", rtPermissions::FEATURE))
   {
     rtLogError("screenshot is not allowed");
     return RT_ERROR_NOT_ALLOWED;
   }
+#endif
 
   // Is this a type we support?
   if (type == "image/png;base64")
@@ -2922,7 +2935,8 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
       {
         // We return a data Url string containing the image data
         pngData = "data:image/png;base64,";
-        pngData.append(d);
+        rtString base64str(d, l); // NULL-terminated
+        pngData.append(base64str.cString());
         free(d);
         return RT_OK;
       }
@@ -2957,14 +2971,13 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 
 rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 {
-  rtString serviceUrl("serviceManager://");
-  serviceUrl.append(name.cString());
-  bool allowed;
-  if (allows(serviceUrl, allowed) == RT_OK && !allowed)
+#ifdef ENABLE_PERMISSIONS_CHECK
+  if (!mPermissions.allows(name.cString(), rtPermissions::SERVICE))
   {
-    rtLogError("url '%s' is not allowed", serviceUrl.cString());
+    rtLogError("service '%s' is not allowed", name.cString());
     return RT_ERROR_NOT_ALLOWED;
   }
+#endif
 
   rtLogInfo("trying to get service for name: %s", name.cString());
 #ifdef PX_SERVICE_MANAGER
@@ -3129,7 +3142,7 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
 rtError pxScene2d::allows(const rtString& url, bool& o) const
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  return mPermissions.allows(url.cString(), o);
+  return mPermissions.allows(url.cString(), rtPermissions::DEFAULT, o);
 #else
   UNUSED_PARAM(url);
   o = true; // default
@@ -3180,7 +3193,7 @@ rtError pxSceneContainer::setUrl(rtString url)
   // If old promise is still unfulfilled resolve it
   // and create a new promise for the context of this Url
   mReady.send("resolve", this);
-  mReady = new rtPromise( std::string("pxSceneContainer >> ") + std::string(url) );
+  mReady = new rtPromise();
 
   mUrl = url;
 #ifdef RUNINMAIN
@@ -3315,7 +3328,8 @@ void pxScriptView::runScript()
 
   #ifdef ENABLE_RT_NODE
   rtLogDebug("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
-  mCtx = script.createContext();
+  //mCtx = script.createContext("javascript");
+  script.createContext("javascript", mCtx);
 
   if (mCtx)
   {
@@ -3396,9 +3410,10 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
 }
 
 
-
-rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+#if 1
+rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/)
 {
+  #if 0
   //rtLogInfo(__FUNCTION__);
   UNUSED_PARAM(numArgs);
   UNUSED_PARAM(args);
@@ -3424,7 +3439,12 @@ rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* re
 #endif //ENABLE_RT_NODE
 
   return RT_FAIL;
+  #else
+  *result = 0;
+  return RT_OK;
+  #endif
 }
+#endif
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {

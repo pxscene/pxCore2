@@ -8,10 +8,12 @@ class rtPermissions3Test : public testing::Test
 public:
   virtual void SetUp()
   {
+    mScene = new pxScene2d(true, NULL);
   }
 
   virtual void TearDown()
   {
+    delete mScene;
   }
 
   void test()
@@ -24,6 +26,8 @@ public:
     p.set("serviceManager", serviceManager);
     rtObjectRef features = new rtMapObject();
     p.set("features", features);
+    rtObjectRef applications = new rtMapObject();
+    p.set("applications", applications);
     rtArrayObject* url_block = new rtArrayObject();
     url_block->pushBack("*");
     rtObjectRef url_block_ref = url_block;
@@ -50,83 +54,87 @@ public:
     features_allow->pushBack("screenshot");
     rtObjectRef features_allow_ref = features_allow;
     features.set("allow", features_allow_ref);
+    rtArrayObject* applications_allow = new rtArrayObject();
+    applications_allow->pushBack("allowed_wayland_app");
+    rtObjectRef applications_allow_ref = applications_allow;
+    applications.set("allow", applications_allow_ref);
     permissions = p;
+
+    EXPECT_TRUE (RT_OK == mScene->setPermissions(permissions));
 
     // Block everything
     // + Allow URLs "http://allowed.com", "http://*.allowed.com:80"
     // + Allow serviceManager-s "org.rdk.allowed_1", "org.rdk.allowed_2"
     // + Allow feature "screenshot"
-    EXPECT_TRUE (allowsCreate("http://allowed.site.url", permissions));
-    EXPECT_TRUE (allowsCreate("http://another.allowed.site.url:80", permissions));
-    EXPECT_FALSE(allowsCreate("http://not.allowed.block.this", permissions));
-    EXPECT_TRUE (allowsServiceManager("org.rdk.allowed_1", permissions));
-    EXPECT_TRUE (allowsServiceManager("org.rdk.allowed_2", permissions));
-    EXPECT_FALSE(allowsServiceManager("not.allowed", permissions));
-    EXPECT_TRUE (allowsScreenshot(permissions));
-    EXPECT_TRUE (allowsLoadArchive("http://allowed.site.url", permissions));
-    EXPECT_TRUE (allowsLoadArchive("http://another.allowed.site.url:80", permissions));
-    EXPECT_FALSE(allowsLoadArchive("http://not.allowed.block.this", permissions));
+    // + Allow application "browser"
+    EXPECT_TRUE (allowsCreate("http://allowed.site.url"));
+    EXPECT_TRUE (allowsCreate("http://another.allowed.site.url:80"));
+    EXPECT_FALSE(allowsCreate("http://not.allowed.block.this"));
+    EXPECT_TRUE (allowsService("org.rdk.allowed_1"));
+    EXPECT_TRUE (allowsService("org.rdk.allowed_2"));
+    EXPECT_FALSE(allowsService("not.allowed"));
+    EXPECT_TRUE (allowsScreenshot());
+    EXPECT_TRUE (allowsLoadArchive("http://allowed.site.url"));
+    EXPECT_TRUE (allowsLoadArchive("http://another.allowed.site.url:80"));
+    EXPECT_FALSE(allowsLoadArchive("http://not.allowed.block.this"));
+    EXPECT_TRUE (allowsWayland("allowed_wayland_app"));
 
     // Same
-    // EXCEPT none features are allowed
+    // + none features are allowed
+    // + none applications are allowed
     features_allow->empty();
-    EXPECT_FALSE(allowsScreenshot(permissions));
+    applications_allow->empty();
+    EXPECT_TRUE (RT_OK == mScene->setPermissions(permissions));
+
+    EXPECT_FALSE(allowsScreenshot());
+    EXPECT_FALSE(allowsWayland("allowed_wayland_app"));
   }
 
 private:
-  bool allowsCreate(const char* url, const rtObjectRef& permissions)
+  bool allowsCreate(const char* url)
   {
-    pxScene2d* scene = new pxScene2d(true, NULL);
-    EXPECT_TRUE (RT_OK == scene->setPermissions(permissions));
-
     rtObjectRef p = new rtMapObject();
     p.set("t", "object");
     p.set("url", url);
     rtObjectRef o;
-    rtError e = scene->create(p, o);
-
-    delete scene;
+    rtError e = mScene->create(p, o);
     return RT_ERROR_NOT_ALLOWED != e;
   }
 
-  bool allowsScreenshot(const rtObjectRef& permissions)
+  bool allowsScreenshot()
   {
-    pxScene2d* scene = new pxScene2d(true, NULL);
-    EXPECT_TRUE (RT_OK == scene->setPermissions(permissions));
-
     rtString type("ignore this");
     rtString pngData;
-    rtError e = scene->screenshot(type, pngData);
-
-    delete scene;
+    rtError e = mScene->screenshot(type, pngData);
     return RT_ERROR_NOT_ALLOWED != e;
   }
 
-  bool allowsServiceManager(const char* name, const rtObjectRef& permissions)
+  bool allowsService(const char* name)
   {
-    pxScene2d* scene = new pxScene2d(true, NULL);
-    EXPECT_TRUE (RT_OK == scene->setPermissions(permissions));
-
     rtString nameStr(name);
     rtObjectRef returnObject;
-    rtError e = scene->getService(nameStr, returnObject);
-
-    delete scene;
+    rtError e = mScene->getService(nameStr, returnObject);
     return RT_ERROR_NOT_ALLOWED != e;
   }
 
-  bool allowsLoadArchive(const char* url, const rtObjectRef& permissions)
+  bool allowsWayland(const char* cmd)
   {
-    pxScene2d* scene = new pxScene2d(true, NULL);
-    EXPECT_TRUE (RT_OK == scene->setPermissions(permissions));
+    rtObjectRef p = new rtMapObject();
+    p.set("cmd", cmd);
+    rtObjectRef returnObject;
+    rtError e = mScene->createWayland(p, returnObject);
+    return RT_ERROR_NOT_ALLOWED != e;
+  }
 
+  bool allowsLoadArchive(const char* url)
+  {
     rtString urlStr(url);
     rtObjectRef archive;
-    rtError e = scene->loadArchive(urlStr, archive);
-
-    delete scene;
+    rtError e = mScene->loadArchive(urlStr, archive);
     return RT_ERROR_NOT_ALLOWED != e;
   }
+
+  pxScene2d* mScene;
 };
 
 TEST_F(rtPermissions3Test, rtPermissionsTests)
