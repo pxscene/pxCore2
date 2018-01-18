@@ -40,6 +40,8 @@ build_script:
   - cd %S%
   - call ci/build_win32.bat
 
+test: off
+
 artifacts:
     # NSIS based installer
   - path: "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.exe"
