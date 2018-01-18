@@ -49,14 +49,11 @@ rm -rf /var/tmp/pxscene.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
 ./pxscene.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json &
 
-grep "TEST RESULTS: " /var/tmp/pxscene.log  # string in [results.js] must be "TEST RESULTS: "
-retVal=$?
-
 # Monitor testRunner ...
 count=0
 max_seconds=900
 
-while [ "$retVal" -ne 0 ] && [ "$count" -ne "$max_seconds" ]; do
+while [ "$count" -le "$max_seconds" ]; do
 	#leaks -nocontext pxscene > $LEAKLOGS
 	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
