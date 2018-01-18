@@ -1,6 +1,6 @@
 
 #include "pxContext.h"
-#include <rtNode.h>
+#include <rtScript.h>
 #include <signal.h>
 #include <unistd.h>
 
@@ -17,7 +17,7 @@ char** gargv;
 extern int g_argc;
 extern char** g_argv;
 char *nodeInput = NULL;
-extern rtNode script;
+extern rtScript script;
 #endif
 
 void handleSegv(int)
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
       g_argv[g_argc++] = &nodeInput[curpos];
       curpos = curpos + 35;
   }
-  script.initializeNode();
+  script.init();
 #endif
   int retTests = RUN_ALL_TESTS();
   rtLogInfo("Tests executed with return code [%d]", retTests);

@@ -24,7 +24,7 @@
 #include "rtThreadPool.h"
 #include "rtThreadQueue.h"
 #include "rtMutex.h"
-#include "rtNode.h"
+#include "rtScript.h"
 
 #include "pxContext.h"
 #include "pxUtil.h"
@@ -111,7 +111,7 @@ extern bool needsFlip;
 #endif //ENABLE_DFB_GENERIC
 
 #ifdef RUNINMAIN
-extern rtNode                   script;
+extern rtScript                   script;
 #else
 extern uv_async_t 				gcTrigger;
 #endif
@@ -2832,7 +2832,7 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
   {
     rtLogDebug("\n ###  Texture Memory: %3.1f %%  <<<   GARBAGE COLLECT", pc);
 #ifdef RUNINMAIN
-    script.garbageCollect();
+    script.collectGarbage();
 #else
     uv_async_send(&gcTrigger);
 #endif
