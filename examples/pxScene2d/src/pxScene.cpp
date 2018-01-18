@@ -261,9 +261,9 @@ protected:
   #ifdef ENABLE_DEBUG_MODE
     free(g_origArgv);
   #endif
-    
+
     context.term();
-    script.garbageCollect();
+    script.collectGarbage();
 
     if (gDumpMemUsage)
     {

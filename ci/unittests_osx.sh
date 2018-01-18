@@ -4,7 +4,7 @@ checkError()
   if [ "$1" -ne 0 ]
   then
     echo "*********************************************************************";
-    echo "*******************CODE COVERAGE FAIL DETAILS************************";
+    echo "*******************   UNIT TESTING FAILURE   ************************";
     echo "CI failure reason: $2"
     echo "Cause: $3"
     echo "Reproduction/How to fix: $4"
@@ -91,7 +91,7 @@ fi
 grep "FAILED TEST" $TESTLOGS
 retVal=$?
 cd $TRAVIS_BUILD_DIR;
-if [ "$retVal" -eq 0 ]
+if [ "$retVal" -eq 0 ] # "FAILED TEST" was found. 
 then
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 	then
