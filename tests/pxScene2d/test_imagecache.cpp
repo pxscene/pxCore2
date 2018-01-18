@@ -1078,7 +1078,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       EXPECT_TRUE (req.isCurlDefaultTimeoutSet() == true);
     }
  
-    // download progress test
+    // download progress test begins
     void setDownloadProgressCallbackFunctionTest()
     {
       rtFileCache::instance()->clearCache();
@@ -1112,7 +1112,8 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       req.setDataIsCached(true);
       EXPECT_TRUE (req.isDataCached() == true);
     }
- 
+    // download progress test ends
+    
     static void downloadCallback(rtFileDownloadRequest* fileDownloadRequest)
     {
       rtHttpCacheData cachedData;
