@@ -2122,62 +2122,62 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
 
   const GLfloat verts[26][2] =
       {
-          { ox1,oy2 },//1
-          { ix1,oy2 },//2
-          { ox1,iy2 },//3
-          { ix1,iy2 },//4
-          { ox1,iy1 },//5
-          { ix1,iy1 },//6
-          { ox1,oy1 },//7
-          { ix1,oy1 },//8
-          { ix1,iy1 },//9 - old 10
-          { ix2,iy1 },//10 - old 11
-          { ix2,oy1 },//11 - old 9
-          { ox2,oy1 },//12 - old 22
-          { ox2,iy1 },//13 - old 20
-          { ix2,iy1 },//14 - old 19
-          { ox2,iy2 },//15 - old 18
-          { ix2,iy2 },//16 - old 17
-          { ox2,oy2 },//17 - old 16
-          { ix2,oy2 },//18 - old 15
-          { ix2,iy2 },//19 - old 17
-          { ix1,iy2 },//20 - old 12
-          { ix1,oy2 },//21 - old 14
-          { ix2,oy2 },//22 - old 15
-          { ix2,iy2 },//23 - old 17
-          { ix1,iy2 },//24 - old 12
-          { ix2,iy1 },//25 - old 11
-          { ix1,iy1 }//26 - old 10
+          { ox1,oy2 },
+          { ix1,oy2 },
+          { ox1,iy2 },
+          { ix1,iy2 },
+          { ox1,iy1 },
+          { ix1,iy1 },
+          { ox1,oy1 },
+          { ix1,oy1 },
+          { ix1,iy1 },
+          { ix2,iy1 },
+          { ix2,oy1 },
+          { ox2,oy1 },
+          { ox2,iy1 },
+          { ix2,iy1 },
+          { ox2,iy2 },
+          { ix2,iy2 },
+          { ox2,oy2 },
+          { ix2,oy2 },
+          { ix2,iy2 },
+          { ix1,iy2 },
+          { ix1,oy2 },
+          { ix2,oy2 },
+          { ix2,iy2 },
+          { ix1,iy2 },
+          { ix2,iy1 },
+          { ix1,iy1 }
       };
 
   const GLfloat uv[26][2] =
       {
-          { ou1,ov1 },//1
-          { iu1,ov1 },//2
-          { ou1,iv1 },//3
-          { iu1,iv1 },//4
-          { ou1,iv2 },//5
-          { iu1,iv2 },//6
-          { ou1,ov2 },//7
-          { iu1,ov2 },//8
-          { iu1,iv2 },//9 - old 10
-          { iu2,iv2 },//10 - old 11
-          { iu2,ov2 },//11 - old 9
-          { ou2,ov2 },//12 - old 22
-          { ou2,iv2 },//13 - old 20
-          { iu2,iv2 },//14 - old 19
-          { ou2,iv1 },//15 - old 18
-          { iu2,iv1 },//16 - old 17
-          { ou2,ov1 },//17 - old 16
-          { iu2,ov1 },//18 - old 15
-          { iu2,iv1 },//19 - old 17
-          { iu1,iv1 },//20 - old 12
-          { iu1,ov1 },//21 - old 14
-          { iu2,ov1 },//22 - old 15
-          { iu2,iv1 },//23 - old 17
-          { iu1,iv1 },//24 - old 12
-          { iu2,iv2 },//25 - old 11
-          { iu1,iv2 }//26 - old 10
+          { ou1,ov1 },
+          { iu1,ov1 },
+          { ou1,iv1 },
+          { iu1,iv1 },
+          { ou1,iv2 },
+          { iu1,iv2 },
+          { ou1,ov2 },
+          { iu1,ov2 },
+          { iu1,iv2 },
+          { iu2,iv2 },
+          { iu2,ov2 },
+          { ou2,ov2 },
+          { ou2,iv2 },
+          { iu2,iv2 },
+          { ou2,iv1 },
+          { iu2,iv1 },
+          { ou2,ov1 },
+          { iu2,ov1 },
+          { iu2,iv1 },
+          { iu1,iv1 },
+          { iu1,ov1 },
+          { iu2,ov1 },
+          { iu2,iv1 },
+          { iu1,iv1 },
+          { iu2,iv2 },
+          { iu1,iv2 }
       };
 
   float colorPM[4];
