@@ -25,3 +25,11 @@ cd ..\..\..\..\
 cd libnode-v6.9.0
 CALL vcbuild.bat x86 nosign
 cd ..
+
+cd dukluv
+patch -p0 < patches/compile_fix.patch
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release -- /m
+cd ..

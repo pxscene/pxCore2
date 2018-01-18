@@ -26,7 +26,7 @@
 #include "rtLog.h"
 #include "rtRef.h"
 #include "rtString.h"
-#include "rtNode.h"
+//#include "rtNode.h"
 #include "rtPathUtils.h"
 #include "rtUrlUtils.h"
 
@@ -83,7 +83,6 @@ using namespace std;
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
 
 extern rtThreadQueue gUIThreadQueue;
-uint32_t rtPromise::promiseID = 200;
 
 static int fpsWarningThreshold = 25;
 
@@ -109,13 +108,8 @@ uint32_t gFboBindCalls;
 extern void rtWrapperSceneUpdateEnter();
 extern void rtWrapperSceneUpdateExit();
 #ifdef RUNINMAIN
-#ifdef ENABLE_DEBUG_MODE
-rtNode script(false);
+rtScript script;
 #else
-rtNode script;
-#endif
-#else
-extern rtNode script;
 class AsyncScriptInfo;
 extern vector<AsyncScriptInfo*> scriptsInfo;
 extern uv_mutex_t moreScriptsMutex;
@@ -1622,10 +1616,12 @@ void pxObject::repaintParents()
   }
 }
 
+#if 0
 rtDefineObject(rtPromise, rtObject);
 rtDefineMethod(rtPromise, then);
 rtDefineMethod(rtPromise, resolve);
 rtDefineMethod(rtPromise, reject);
+#endif
 
 rtDefineObject(pxObject, rtObject);
 rtDefineProperty(pxObject, _pxObject);
@@ -1756,6 +1752,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   
   mInfo = new rtMapObject;
   mInfo.set("version", xstr(PX_SCENE_VERSION));
+
+#ifdef ENABLE_RT_NODE
+  mInfo.set("engine", script.engine());
+#endif
   
     rtObjectRef build = new rtMapObject;
     build.set("date", xstr(__DATE__));
@@ -2024,7 +2024,7 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::logDebugMetrics()
 {
 #ifdef ENABLE_DEBUG_METRICS 
-    script.garbageCollect();
+    script.collectGarbage();
     rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifdef PX_PLATFORM_MAC
       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
@@ -3194,7 +3194,7 @@ rtError pxSceneContainer::setUrl(rtString url)
   // If old promise is still unfulfilled resolve it
   // and create a new promise for the context of this Url
   mReady.send("resolve", this);
-  mReady = new rtPromise( std::string("pxSceneContainer >> ") + std::string(url) );
+  mReady = new rtPromise();
 
   mUrl = url;
 #ifdef RUNINMAIN
@@ -3329,7 +3329,8 @@ void pxScriptView::runScript()
 
   #ifdef ENABLE_RT_NODE
   rtLogDebug("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
-  mCtx = script.createContext();
+  //mCtx = script.createContext("javascript");
+  script.createContext("javascript", mCtx);
 
   if (mCtx)
   {
@@ -3410,9 +3411,10 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
 }
 
 
-
-rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+#if 1
+rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/)
 {
+  #if 0
   //rtLogInfo(__FUNCTION__);
   UNUSED_PARAM(numArgs);
   UNUSED_PARAM(args);
@@ -3438,7 +3440,12 @@ rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* re
 #endif //ENABLE_RT_NODE
 
   return RT_FAIL;
+  #else
+  *result = 0;
+  return RT_OK;
+  #endif
 }
+#endif
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {

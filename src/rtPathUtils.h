@@ -23,7 +23,15 @@
 
 #include "rtCore.h"
 #include "rtString.h"
+#include "rtValue.h"
 
 rtError rtGetCurrentDirectory(rtString& d);
+rtError rtGetHomeDirectory(rtString& d);
+
+rtError rtGetEnv(const char* e, rtString& v);
+rtString rtGetEnvAsString(const char* name, const char* defaultValue = "");
+rtValue rtGetEnvAsValue(const char* name, const char* defaultValue = "");
+
+bool rtFileExists(const char* f);
 
 #endif

@@ -24,7 +24,7 @@
 #include "rtThreadPool.h"
 #include "rtThreadQueue.h"
 #include "rtMutex.h"
-#include "rtNode.h"
+#include "rtScript.h"
 
 #include "pxContext.h"
 #include "pxUtil.h"
@@ -119,7 +119,7 @@ static        pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware
 
 
 #ifdef RUNINMAIN
-extern rtNode script;
+extern rtScript script;
 #else
 extern uv_async_t gcTrigger;
 #endif
@@ -2770,7 +2770,7 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
   {
     rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", mCurrentTextureMemorySizeInBytes);
 #ifdef RUNINMAIN
-	script.garbageCollect();
+	script.collectGarbage();
 #else
   uv_async_send(&gcTrigger);
 #endif
