@@ -136,6 +136,22 @@ bool rtString::beginsWith(const char* s) const
   return (strncmp(cString(),s,strlen(s))==0);
 }
 
+bool rtString::endsWith(const char* s) const
+{
+  s = s?s:"";
+  const char* t = mData?mData:"";
+  int sl = u8_strlen((char*)s);
+  int tl = u8_strlen((char*)t);
+
+  bool result = false;
+  if (tl-sl > 0)
+  {
+    t = t + u8_charnum((char*)t,tl-sl);
+    result = (strncmp(t,s,sl) == 0);
+  }
+  return result;
+}
+
 int32_t rtString::find(size_t pos, const char* str) const
 {
   int haystack = 0;
