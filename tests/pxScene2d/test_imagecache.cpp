@@ -1078,6 +1078,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       EXPECT_TRUE (req.isCurlDefaultTimeoutSet() == true);
     }
  
+    // download progress test
     void setDownloadProgressCallbackFunctionTest()
     {
       rtFileCache::instance()->clearCache();
