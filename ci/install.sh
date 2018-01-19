@@ -76,13 +76,13 @@ else
   echo "************* No Pre-Built External available ***************">>$BUILDLOGS
   echo "******************** Building externals *********************" >> $BUILDLOGS
   cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
+  env
   ./build.sh>>$BUILDLOGS
 
   #Uploading the externals to server
   if [ "$?" -eq 0 ]
   then
-    #if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_EVENT_TYPE" = "push" ]
-    if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$TRAVIS_EVENT_TYPE" = "push" ]
+    if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_EVENT_TYPE" = "push" ]
     then
       cd $TRAVIS_BUILD_DIR/examples/pxScene2d
       echo "tar -czf $TRAVIS_BUILD_DIR/external.tgz external" >>$BUILDLOGS
