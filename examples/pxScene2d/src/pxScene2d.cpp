@@ -2284,8 +2284,6 @@ void pxScene2d::onUpdate(double t)
 
     int fps = (int)rint((double)frameCount/(end2-start));
 
-      rtLogWarn("pxScene fps: %d", fps);
-
 #ifdef USE_RENDER_STATS
       double   dpf = rint( (double) gDrawCalls    / (double) frameCount ); // e.g.   glDraw*()           - calls per frame
       double   bpf = rint( (double) gTexBindCalls / (double) frameCount ); // e.g.   glBindTexture()     - calls per frame
