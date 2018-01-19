@@ -1,25 +1,3 @@
-diff --git a/examples/pxScene2d/external/dukluv/CMakeLists.txt b/examples/pxScene2d/external/dukluv/CMakeLists.txt
-index 967b987..8fe3f34 100644
---- a/examples/pxScene2d/external/dukluv/CMakeLists.txt
-+++ b/examples/pxScene2d/external/dukluv/CMakeLists.txt
-@@ -4,6 +4,9 @@ project (dukluv)
- 
- include(duktape.cmake)
- include(uv.cmake)
-+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic")
-+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
-+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
- 
- add_library(duv
-   src/duv.c
-@@ -23,6 +26,7 @@ add_library(duv
-   src/uv_schema.c
-   src/callbacks.c
-   src/miniz.c
-+  src/dns.c
- )
- 
- 
 diff --git a/examples/pxScene2d/external/dukluv/src/duv.c b/examples/pxScene2d/external/dukluv/src/duv.c
 index a2d2ca6..21a5312 100644
 --- a/examples/pxScene2d/external/dukluv/src/duv.c
@@ -98,3 +76,30 @@ index c638aeb..195cebf 100644
      ${LIBUVDIR}/src/unix/proctitle.c
      ${LIBUVDIR}/src/unix/darwin.c
      ${LIBUVDIR}/src/unix/fsevents.c
+ )
+ 
+ 
+diff --git a/examples/pxScene2d/external/dukluv/CMakeLists.txt b/examples/pxScene2d/external/dukluv/CMakeLists.txt
+index 967b987..4afc8ab 100644
+--- a/examples/pxScene2d/external/dukluv/CMakeLists.txt
++++ b/examples/pxScene2d/external/dukluv/CMakeLists.txt
+@@ -1,7 +1,10 @@
+-cmake_minimum_required(VERSION 2.8.9)
++cmake_minimum_required(VERSION 2.8)
+ 
+ project (dukluv)
+ 
++set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
++set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
+ include(duktape.cmake)
+ include(uv.cmake)
+ 
+@@ -23,6 +26,7 @@ add_library(duv
+   src/uv_schema.c
+   src/callbacks.c
+   src/miniz.c
++  src/dns.c
+ )
+ 
+ 
