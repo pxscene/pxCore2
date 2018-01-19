@@ -26,6 +26,12 @@ call "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Auxiliary
 cd examples/pxScene2d/external
 call buildWindows.bat
 
+@rem Avoid using link.exe from that paths
+set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
+set PATH=%PATH:c:\Program Files\Git\usr\bin;=%
+set PATH=%PATH:C:\cygwin64\bin;=%
+set PATH=%PATH:c:\cygwin64\bin;=%
+
 cd "%BASE_DIR%"
 md build-win32
 cd build-win32
