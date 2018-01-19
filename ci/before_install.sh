@@ -43,7 +43,7 @@ fi
 if [ "$TRAVIS_OS_NAME" = "osx" ] ;
 then
   brew update;
-  brew upgrade cmake;
+  brew upgrade cmake --without-docs;
   sudo /usr/sbin/DevToolsSecurity --enable
   lldb --version
   lldb --help
@@ -58,8 +58,6 @@ then
 #    brew install lighttpd
     brew install gcovr
     brew install lcov
-    brew install --HEAD ccache
-    ls -al $HOME/.ccache
   fi
 fi
 
