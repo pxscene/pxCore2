@@ -36,16 +36,16 @@ class RTRemoteProtocol implements Runnable {
   private final Lock m_lock = new ReentrantLock();
 
   private RTRemoteSerializer m_serializer = new RTRemoteSerializer();
-  private Map<String, SparkCallContext> m_futures = new HashMap<>();
+  private Map<String, CallContext> m_futures = new HashMap<>();
   private RTRemoteTransport m_transport;
   private boolean m_running;
   private Thread m_thread;
 
 
-  private static class SparkCallContext {
+  private static class CallContext {
     private BiConsumer<RTRemoteMessage, RTRemoteFuture> m_closure;
     private RTRemoteFuture m_future;
-    public SparkCallContext(RTRemoteFuture future, BiConsumer<RTRemoteMessage, RTRemoteFuture> closure) {
+    public CallContext(RTRemoteFuture future, BiConsumer<RTRemoteMessage, RTRemoteFuture> closure) {
       m_closure = closure;
       m_future = future;
     }
@@ -67,7 +67,7 @@ class RTRemoteProtocol implements Runnable {
   public Future<RTValue> sendGetByName(String objectId, String name) throws RTException {
     String correlationKey = RTRemoteProtocol.newCorrelationKey();
     RTRemoteFuture<RTValue> future = new RTRemoteFuture<>(correlationKey);
-    SparkCallContext context = new SparkCallContext(future, (message, closure) -> {
+    CallContext context = new CallContext(future, (message, closure) -> {
       try {
         RTMessageGetPropertyByNameResponse res = (RTMessageGetPropertyByNameResponse) message;
         closure.complete(res.getValue(), res.getStatus());
@@ -99,7 +99,7 @@ class RTRemoteProtocol implements Runnable {
     String correlationKey = RTRemoteProtocol.newCorrelationKey();
     RTRemoteFuture<Void> future = new RTRemoteFuture<>(correlationKey);
 
-    SparkCallContext context = new SparkCallContext(future, (message, closure) -> {
+    CallContext context = new CallContext(future, (message, closure) -> {
       try {
         RTMessageGetPropertyByNameResponse res = (RTMessageGetPropertyByNameResponse) message;
         closure.complete(null, res.getStatus());
@@ -120,7 +120,7 @@ class RTRemoteProtocol implements Runnable {
     return future;
   }
 
-  private void put(String correlationKey, SparkCallContext context) {
+  private void put(String correlationKey, CallContext context) {
     m_lock.lock();
     try {
       m_futures.put(correlationKey, context);
@@ -129,8 +129,8 @@ class RTRemoteProtocol implements Runnable {
     }
   }
 
-  private SparkCallContext get(String correlationKey) {
-    SparkCallContext context = null;
+  private CallContext get(String correlationKey) {
+    CallContext context = null;
     m_lock.lock();
     try {
       if (m_futures.containsKey(correlationKey)) {
@@ -151,7 +151,7 @@ class RTRemoteProtocol implements Runnable {
       try {
         byte[] buff = m_transport.recv();
         RTRemoteMessage message = m_serializer.fromBytes(buff, 0, buff.length);
-        SparkCallContext context = get(message.getCorrelationKey());
+        CallContext context = get(message.getCorrelationKey());
         context.complete(message);
       } catch (RTException err) {
         log.log(Level.WARNING, "error dispatching incomgin messages", err);

@@ -8,7 +8,9 @@ public enum RTRemoteMessageType {
   SET_PROPERTY_BYNAME_REQUEST("set.byname.request"),
   SET_PROPERTY_BYNAME_RESPONSE("set.byname.response"),
   KEEP_ALIVE_REQUEST("keeep_alive.request"),
-  KEEP_ALIVE_RESPONSE("keep_alive.response");
+  KEEP_ALIVE_RESPONSE("keep_alive.response"),
+  SERACH_OBJECT("search"),
+  LOCATE_OBJECT("locate");
 
   private final String m_stringRep;
 

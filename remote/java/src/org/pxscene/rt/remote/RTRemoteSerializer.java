@@ -10,6 +10,8 @@ import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.function.Function;
 
 import org.pxscene.rt.RTObject;
@@ -26,6 +28,8 @@ import org.pxscene.rt.remote.messages.RTMessageMessageKeepAliveRequest;
 import org.pxscene.rt.remote.messages.RTMessageKeepAliveResponse;
 import org.pxscene.rt.remote.messages.RTMessageOpenSessionRequest;
 import org.pxscene.rt.remote.messages.RTMessageOpenSessionResponse;
+import org.pxscene.rt.remote.messages.RTMessageSearch;
+import org.pxscene.rt.remote.messages.RTMessageLocate;
 
 
 public class RTRemoteSerializer {
@@ -58,6 +62,9 @@ public class RTRemoteSerializer {
     });
     m_decoders.put(RTRemoteMessageType.SET_PROPERTY_BYNAME_RESPONSE.toString(), (JsonObject json) -> {
       return RTRemoteSerializer.fromJson_SetPropertyByNameResponse(json);
+    });
+    m_decoders.put(RTRemoteMessageType.LOCATE_OBJECT.toString(), (JsonObject json) -> {
+      return RTRemoteSerializer.fromJson_LocateObject(json);
     });
   }
 
@@ -144,6 +151,21 @@ public class RTRemoteSerializer {
     return res;
   }
 
+  private static RTMessageLocate fromJson_LocateObject(JsonObject obj) {
+    if (obj == null)
+      throw new NullPointerException("obj");
+
+    RTMessageLocate locate = new RTMessageLocate();
+    locate.setCorrelationKey(obj.getString("correlation.key"));
+    locate.setObjectId(obj.getString("object.id"));
+    try {
+      locate.setEndpoint(new URI(obj.getString("endpoint")));
+    } catch (URISyntaxException err) {
+      // TODO:
+    }
+    return locate;
+  }
+
   // "{"message.type":"set.byname.request","object.id":"some_name","property.name":"prop",
   // "correlation.key":"a815e2e3-560f-4914-8f5b-36a56b057ca3","value":{"type":52,"value":11}}"
   private static RTMessageSetPropertyByNameRequest fromJson_SetPropertyByNameRequest(JsonObject obj) {
@@ -226,6 +248,16 @@ public class RTRemoteSerializer {
         .build();
   }
 
+  public JsonObject toJson(RTMessageSearch search) {
+    return Json.createObjectBuilder()
+        .add("message.type", search.getMessageType().toString())
+        .add("correlation.key", search.getCorrelationKey())
+        .add("object.id", search.getObjectId())
+        .add("sender.id", search.getSenderId())
+        .add("reply-to", search.getReplyTo().toString())
+        .build();
+  }
+
   public JsonObject toJson(RTMessageOpenSessionResponse res) {
     return null;
   }
@@ -247,6 +279,10 @@ public class RTRemoteSerializer {
   }
 
   public byte[] toBytes(RTMessageGetPropertyByNameRequest m) throws RTException {
+    return RTRemoteSerializer.toBytes(toJson(m));
+  }
+
+  public byte[] toBytes(RTMessageSearch m) throws RTException {
     return RTRemoteSerializer.toBytes(toJson(m));
   }
 
