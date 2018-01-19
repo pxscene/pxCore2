@@ -178,7 +178,7 @@ rtRemoteMulticastResolver::open(sockaddr_storage const& rpc_endpoint)
     if (rpc_endpoint.ss_family == AF_UNIX)
       m_rpc_endpoint.reset(rtRemoteFileEndPoint::fromSockAddr(rpc_endpoint));
     else
-      m_rpc_endpoint.reset(rtRemoteIPEndPoint::fromSockAddr("mcast", rpc_endpoint));
+      m_rpc_endpoint.reset(rtRemoteIPEndPoint::fromSockAddr("tcp", rpc_endpoint));
   }
 
   rtError err = init();
