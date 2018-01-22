@@ -11,6 +11,7 @@ copy /y libjpeg-turbo-1.5.1\win_temp\* libjpeg-turbo-1.5.1\
 copy /y curl-7.40.0\include\curl\curlbuild-win.h curl-7.40.0\include\curl\curlbuild.h
 copy /y libpng-1.6.28\scripts\pnglibconf.h.prebuilt libpng-1.6.28\pnglibconf.h
 copy /y jpeg-9a\jconfig.vc jpeg-9a\jconfig.h
+copy /y zlib-1.2.8\zconf.vc zlib-1.2.8\zconf.h
 
 cd vc.build\
 msbuild external.sln /p:Configuration=Release /m
