@@ -240,7 +240,7 @@ private:
 
   duk_context                   *dukCtx;
   std::vector<uv_loop_t *>       uvLoops;
-  uv_thread_t                    dukTid;
+  //uv_thread_t                    dukTid;
   bool                           duk_is_initialized;
 
 #ifdef USE_CONTEXTIFY_CLONES
@@ -333,7 +333,7 @@ static inline bool file_exists(const char *file)
 #endif
 
 rtDukContext::rtDukContext() :
-     js_file(NULL), mRefCount(0), mContextifyContext(NULL), uvLoop(NULL)
+     js_file(NULL), mRefCount(0), mContextifyContext(NULL), dukCtx(NULL), uvLoop(NULL)
 {
   mId = rtAtomicInc(&sNextId);
 
@@ -342,7 +342,7 @@ rtDukContext::rtDukContext() :
 
 #ifdef USE_CONTEXTIFY_CLONES
 rtDukContext::rtDukContext(rtDukContextRef clone_me) :
-      js_file(NULL), mRefCount(0), mContextifyContext(NULL), uvLoop(NULL)
+      js_file(NULL), mRefCount(0), mContextifyContext(NULL), dukCtx(NULL), uvLoop(NULL)
 {
   mId = rtAtomicInc(&sNextId);
 
