@@ -4,13 +4,13 @@ checkError()
 {
   if [ "$1" -ne 0 ]
   then
-        echo "*********************************************************************";
-        echo "*********************BUILD FAIL DETAILS******************************";
-        echo "CI failure reason: $2"
-        echo "Cause: $3"
-        echo "Reproduction/How to fix: $4"
-        echo "*********************************************************************";
-        echo "*********************************************************************";
+        printf "\n\n*********************************************************************";
+        printf "\n*********************BUILD FAIL DETAILS******************************";
+        printf "\nCI failure reason: $2"
+        printf "\nCause: $3"
+        printf "\nReproduction/How to fix: $4"
+        printf "\n*********************************************************************";
+        printf "\n*********************************************************************\n\n";
         exit 1;
   fi
 }
@@ -106,10 +106,10 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		echo "**********************PRINTING EXEC LOG**************************"
-   		cat $EXECLOGS
-    		echo "**************************LOG ENDS*******************************"
-	else
+	        echo "********************** PRINTING EXEC LOG **************************"
+                cat $EXECLOGS
+                echo "************************** LOG ENDS *******************************"
+        else
 		errCause="Check the $EXECLOGS file"
 	fi 
 	checkError -1 "Texture leak or pxobject leak" "$errCause" "Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'texture memory usage is' and 'pxobjectcount is' in logs and see which is non-zero" 
@@ -122,10 +122,10 @@ if [ "$leakcount" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		echo "**********************PRINTING LEAK LOG**************************"
+                echo "********************** PRINTING EXEC LOG **************************"
                 cat $LEAKLOGS
-                echo "**************************LOG ENDS*******************************"
-	else
+	        echo "************************** LOG ENDS *******************************"
+        else
 		errCause="Check the file $LEAKLOGS and $EXECLOGS"
 	fi
 	checkError $leakcount "Execution reported memory leaks" "$errCause" "Run locally with these steps: export ENABLE_MEMLEAK_CHECK=1;export MallocStackLogging=1;export PX_DUMP_MEMUSAGE=1;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json &; run leaks -nocontext pxscene >logfile continuously until the testrunner execution completes; Analyse the logfile" 
