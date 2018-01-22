@@ -4,16 +4,20 @@ if (isDuk) {
 global.console = require('console');
 global.timers = require('timers');
 global.Promise = require('bluebird');
+global.process = require('process');
 
 global.setTimeout = timers.setTimeout;
 global.clearTimeout = timers.clearTimeout;
 global.setInterval = timers.setInterval;
 global.clearInterval = timers.clearInterval;
 
-Promise.setScheduler(function (fn) {
+var schedule = function (fn) {
     var timer = uv.new_timer.call({});
     uv.timer_start(timer, 0, 0, fn);
-});
+};
+
+Promise.setScheduler(schedule);
+process.setScheduler(schedule);
 
 global.constructPromise = function (obj) {
     return new Promise(function (resolve, reject) {
