@@ -36,6 +36,11 @@ pxscene.exe about.js
 # copy <somewhere>/px-reference .
 # pxscene.exe px-reference\gallery\fonts2.js
 
+If you build with enabled node and duktape (they both are built by default)
+and file with name %USERPROFILE%\.sparkUseDuktape exists, 
+duktape engine is used, otherwise node is used
+
+
 ================================================================
 build instructions for ubuntu (tested on 16.04, 14.04 is ok too)
 ================================================================
@@ -46,12 +51,6 @@ https://github.com/pxscene/pxCore/tree/master/examples/pxScene2d#ubuntu-setup
 
 git clone -b duktape_proof_of_concept https://github.com/topcoderinc/pxCore.git
 cd pxCore
-
-cd examples/pxScene2d/dukluv
-mkdir build
-cd build
-cmake ..
-make
 
 for ubuntu x64, you may need 
 cd zlib
@@ -67,10 +66,41 @@ cd examples/pxScene2d/external
 cd ../../../
 mkdir temp
 cd temp
-cmake -DUSE_DUKTAPE=ON ..
+cmake ..
 cmake --build . --config Release -- -j1
 
 cpack .
 cd _CPack_Packages/Linux/TZ/pxscene-setup/
 ./pxscene browser.js
 ./pxscene about.js
+
+If you build with enabled node and duktape (they both are built by default)
+and file with name $HOME/.sparkUseDuktape exists, 
+duktape engine is used, otherwise node is used
+
+================================================================
+build instructions for macosx
+================================================================
+
+set things up:
+https://github.com/krunt/pxCore/tree/_duktape/examples/pxScene2d#macos-setup
+
+git clone -b duktape_proof_of_concept https://github.com/topcoderinc/pxCore.git
+cd pxCore
+
+cd examples/pxScene2d/external
+./build.sh
+
+cd ../../../
+mkdir temp
+cd temp
+cmake ..
+cmake --build . --config Release -- -j1
+
+cd ../examples/pxScene2d/src/pxscene.app/Contents/MacOS
+./pxscene.sh browser.js
+./pxscene.sh about.js
+
+If you build with enabled node and duktape (they both are built by default)
+and file with name $HOME/.sparkUseDuktape exists, 
+duktape engine is used, otherwise node is used
