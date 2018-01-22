@@ -2212,16 +2212,34 @@ void pxContext::clear(int /*w*/, int /*h*/, float *fillColor )
   currentFramebuffer->enableDirtyRectangles(false);
 }
 
-void pxContext::clear(int left, int top, int right, int bottom)
+void pxContext::clear(int left, int top, int width, int height)
 {
-  glEnable(GL_SCISSOR_TEST); //todo - not set each frame
+  if (left < 0)
+  {
+    left = 0;
+  }
+  if (top < 0)
+  {
+    top = 0;
+  }
+  if ((left+width) > gResW)
+  {
+    width = gResW - left;
+  }
+  if ((top+height) > gResH)
+  {
+    height = gResH - top;
+  }
+  int clearTop = gResH-top-height;
 
-  currentFramebuffer->setDirtyRectangle(left, gResH-top-bottom, right, bottom);
+  glEnable(GL_SCISSOR_TEST);
+
+  currentFramebuffer->setDirtyRectangle(left, clearTop, width, height);
   currentFramebuffer->enableDirtyRectangles(true);
 
   //map form screen to window coordinates
-  glScissor(left, gResH-top-bottom, right, bottom);
-  //glClear(GL_COLOR_BUFFER_BIT);
+  glScissor(left, clearTop, width, height);
+  glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void pxContext::enableClipping(bool enable)
