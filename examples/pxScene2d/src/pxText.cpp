@@ -129,7 +129,7 @@ void pxText::draw()
   if( getFontResource() != NULL && getFontResource()->isFontLoaded())
   {
 
-#if PX_FONT_ATLAS
+#if PXSCENE_FONT_ATLAS
     if (mDirty)
     {
       getFontResource()->renderTextToQuads(mText,mPixelSize,msx,msy,mQuads);
