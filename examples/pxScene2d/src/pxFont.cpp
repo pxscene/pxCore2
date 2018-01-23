@@ -78,7 +78,7 @@ uint32_t npot(uint32_t i)
   return power;
 }
 
-#ifdef PX_FONT_ATLAS
+#ifdef PXSCENE_FONT_ATLAS
 pxFontAtlas gFontAtlas;
 #endif
 
@@ -284,7 +284,7 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
 
       FT_GlyphSlot g = mFace->glyph;
 
-#ifdef PX_FONT_ATLAS
+#ifdef PXSCENE_FONT_ATLAS
       if (!gFontAtlas.addGlyph(g->bitmap.width, g->bitmap.rows, g->bitmap.buffer, result))
       {
 #endif
@@ -297,7 +297,7 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
         result.v1 = 1;
         result.u2 = 1;
         result.v2 = 0;
-#ifdef PX_FONT_ATLAS
+#ifdef PXSCENE_FONT_ATLAS
       }
 #endif
       
@@ -437,7 +437,7 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
 
       pxTextureRef nullImage;
 
-      #ifdef PX_FONT_ATLAS
+      #ifdef PXSCENE_FONT_ATLAS
       const float verts[6][2] =
       {
         { x2,     y2 },
@@ -473,7 +473,7 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
   }
 }
 
-#ifdef PX_FONT_ATLAS
+#ifdef PXSCENE_FONT_ATLAS
 void pxFont::renderTextToQuads(const char *text, uint32_t size, 
                         float nsx, float nsy, 
                         pxTexturedQuads& quads) 
@@ -703,11 +703,11 @@ rtDefineObject(pxTextSimpleMeasurements, rtObject);
 rtDefineProperty(pxTextSimpleMeasurements, w);
 rtDefineProperty(pxTextSimpleMeasurements, h);
 
-#ifdef PX_FONT_ATLAS
-#define PX_FONT_ATLAS_DIM 2048
+#ifdef PXSCENE_FONT_ATLAS
+#define PXSCENE_FONT_ATLAS_DIM 2048
 pxFontAtlas::pxFontAtlas(): fence(0)
 {
-  mTexture = context.createTexture(PX_FONT_ATLAS_DIM,PX_FONT_ATLAS_DIM,PX_FONT_ATLAS_DIM,PX_FONT_ATLAS_DIM, NULL);
+  mTexture = context.createTexture(PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM, NULL);
 }
 
 bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEntry& e)
