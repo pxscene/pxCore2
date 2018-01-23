@@ -4,14 +4,14 @@ checkError()
 {
   if [ "$1" -ne 0 ]
   then
-        echo "*********************************************************************";
-        echo "*********************BUILD FAIL DETAILS******************************";
-        echo "CI failure reason: $2"
-        echo "Cause: $3"
-        echo "Reproduction/How to fix: $4"
-        echo "*********************************************************************";
-        echo "*********************************************************************";
-        #exit 1;
+    printf "\n\n*********************************************************************";
+    printf   "\n************************  BUILD FAIL DETAILS  ***********************";
+    printf   "\nCI failure reason: $2"
+    printf   "\nCause: $3"
+    printf   "\nReproduction/How to fix: $4"
+    printf   "\n*********************************************************************";
+    printf   "\n*********************************************************************\n\n";
+    #exit 1;
   fi
 }
 
@@ -37,10 +37,11 @@ EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-printExecLogs() {
-  echo "********************** PRINTING EXEC LOG **************************"
+printExecLogs()
+{
+  printf "\n********************** PRINTING EXEC LOG **************************\n"
   cat $EXECLOGS
-  echo "**********************     LOG ENDS      **************************"
+  printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -56,10 +57,12 @@ count=0
 max_seconds=1500
 
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
-	echo "execute_linux snoozing for 30"
-	sleep 30;
+	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
+	sleep 30; # seconds
+
 	grep "TEST RESULTS: " $EXECLOGS
 	retVal=$?
+	
 	count=$((count+30))
 	if [ "$retVal" -ne 0 ]
 		then

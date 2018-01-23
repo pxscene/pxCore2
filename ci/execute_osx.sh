@@ -8,21 +8,25 @@ then
 else
   printf "\nUSING: TRAVIS_BUILD_DIR=${TRAVIS_BUILD_DIR}\n\n"
 fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 checkError()
 {
   if [ "$1" -ne 0 ]
   then
-        echo "*********************************************************************";
-        echo "*********************BUILD FAIL DETAILS******************************";
-        echo "CI failure reason: $2"
-        echo "Cause: $3"
-        echo "Reproduction/How to fix: $4"
-        echo "*********************************************************************";
-        echo "*********************************************************************";
-        exit 1;
+    printf "\n\n*********************************************************************";
+    printf   "\n************************  BUILD FAIL DETAILS  ***********************";
+    printf   "\nCI failure reason: $2"
+    printf   "\nCause: $3"
+    printf   "\nReproduction/How to fix: $4"
+    printf   "\n*********************************************************************";
+    printf   "\n*********************************************************************\n\n";
+    #exit 1;
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+sudo rm -rf /tmp/pxscenecrash
 ulimit -c unlimited
 dumped_core=0
 
@@ -37,10 +41,11 @@ LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
 TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-printExecLogs() {
-  echo "********************** PRINTING EXEC LOG **************************"
+printExecLogs()
+{
+  printf "\n********************** PRINTING EXEC LOG **************************\n"
   cat $EXECLOGS
-  echo "**********************     LOG ENDS      **************************"
+  printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -124,6 +129,7 @@ grep "pxobjectcount is \[0\]" $EXECLOGS
 pxRetVal=$?
 grep "texture memory usage is \[0\]" $EXECLOGS
 texRetVal=$?
+
 if [[ $pxRetVal == 0 ]] && [[ $texRetVal == 0 ]] ; then
 	printf "\nINFO: No pxObject leaks or Texture leaks found - GOOD ! \n"
 else
@@ -138,11 +144,9 @@ else
 	exit 1;
 fi
 
-# Check for valgrind memory leaks
-if [ $leakcount == 0 ]
+# Check for memory leaks
+if [ "$leakcount" -ne 0 ]
 	then
-	echo "Valgrind reports success !!!!!!!!!!!"
-else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
@@ -152,5 +156,7 @@ else
 	fi
 	checkError $leakcount "Execution reported memory leaks" "$errCause" "Run locally with these steps: export ENABLE_MEMLEAK_CHECK=1;export MallocStackLogging=1;export PX_DUMP_MEMUSAGE=1;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json &; run leaks -nocontext pxscene >logfile continuously until the testrunner execution completes; Analyse the logfile" 
 	exit 1;
+else
+	echo "Valgrind reports success !!!!!!!!!!!"
 fi
 exit 0;

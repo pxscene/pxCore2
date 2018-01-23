@@ -138,6 +138,7 @@ then
 fi
 
 #-------- BREAKPAD (Non -macOS)
+
 if [ "$(uname)" != "Darwin" ]; then
 
   cd breakpad
@@ -147,6 +148,8 @@ if [ "$(uname)" != "Darwin" ]; then
   cd ..
 
 fi
+
+#-------- DUKTAPE
 
 if [ ! -e dukluv/build/duktape.a ]
 then
