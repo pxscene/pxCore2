@@ -2517,6 +2517,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
                   color? color : black, stretchX, stretchY);
 }
 
+#ifdef PX_FONT_ATLAS
 void pxContext::drawTexturedQuads(int numQuads, const void *verts, const void* uvs,
                           pxTextureRef t, float* color)
 {
@@ -2543,6 +2544,7 @@ void pxContext::drawTexturedQuads(int numQuads, const void *verts, const void* u
   premultiply(colorPM,color);
   gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLES,6*numQuads,verts,uvs,t,colorPM);
 }
+#endif
 
 typedef rtRef<pxSwTexture>    pxSwTextureRef;
 static        pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"

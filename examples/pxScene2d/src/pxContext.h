@@ -104,12 +104,14 @@ class pxContext {
                  pxConstantsStretch::constants yStretch = pxConstantsStretch::STRETCH,
                  bool downscaleSmooth = false);
 
+#ifdef PX_FONT_ATLAS
   // This is intended to draw numQuads from the same texture.
   // vertices and uvs for the quads are passed in as if the quads will be rendered
   // using GL_TRIANGLES in an optimal way.  quad oriented backends can skip vertices appropriately
   // 6 vertices (12 floats) and 6 uvs (12 floats) per quad
   void drawTexturedQuads(int numQuads, const void *verts, const void* uvs,
                           pxTextureRef t, float* color);
+#endif                          
 
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxTextureRef texture);

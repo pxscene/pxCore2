@@ -64,7 +64,7 @@ struct GlyphTextureEntry
   float u1, v1, u2, v2;
 };
 
-
+#ifdef PX_FONT_ATLAS
 class pxFontAtlas
 {
 public:
@@ -158,6 +158,7 @@ private:
   vector<quads> mQuads;
 };
 
+#endif
 
 /**********************************************************************
  * 
@@ -268,10 +269,12 @@ public:
                   float sx, float sy, 
                   float* color, float mw);
 
+  #ifdef PX_FONT_ATLAS
   // Should reinvoke on changes to text, size, or scale params
   void renderTextToQuads(const char *text, uint32_t size, 
                         float nsx, float nsy, 
                         pxTexturedQuads& quads);
+  #endif
 
   virtual void init() {}
   bool isFontLoaded() { return mInitialized;}
