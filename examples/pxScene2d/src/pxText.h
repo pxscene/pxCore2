@@ -116,7 +116,10 @@ public:
   virtual float getFBOWidth();
   virtual float getFBOHeight();
   bool mListenerAdded;
+
+  #ifdef PX_FONT_ATLAS
   pxTexturedQuads mQuads;
+  #endif
 };
 
 #endif

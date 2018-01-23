@@ -78,7 +78,9 @@ uint32_t npot(uint32_t i)
   return power;
 }
 
+#ifdef PX_FONT_ATLAS
 pxFontAtlas gFontAtlas;
+#endif
 
 pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
              mFontMutex()
@@ -282,8 +284,10 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
 
       FT_GlyphSlot g = mFace->glyph;
 
+#ifdef PX_FONT_ATLAS
       if (!gFontAtlas.addGlyph(g->bitmap.width, g->bitmap.rows, g->bitmap.buffer, result))
       {
+#endif
         rtLogWarn("Glyph not in atlas");
         result.t = context.createTexture(g->bitmap.width, g->bitmap.rows, 
                                                 g->bitmap.width, g->bitmap.rows, 
@@ -293,8 +297,9 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
         result.v1 = 1;
         result.u2 = 1;
         result.v2 = 0;
-      
+#ifdef PX_FONT_ATLAS
       }
+#endif
       
       gGlyphTextureCache.insert(make_pair(key,result));
 
@@ -432,6 +437,7 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
 
       pxTextureRef nullImage;
 
+      #ifdef PX_FONT_ATLAS
       const float verts[6][2] =
       {
         { x2,     y2 },
@@ -451,6 +457,9 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
         { texture.u2, texture.v2 }
       };
       context.drawTexturedQuads(1, verts, uvs, texture.t, color);
+      #else
+      context.drawImage(x2,y2, w, h, texture.t, nullImage, false, color);
+      #endif
       
       x += (entry->advancedotx >> 6);
       // no change to y because we are not moving to next line yet
@@ -464,7 +473,7 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
   }
 }
 
-
+#ifdef PX_FONT_ATLAS
 void pxFont::renderTextToQuads(const char *text, uint32_t size, 
                         float nsx, float nsy, 
                         pxTexturedQuads& quads) 
@@ -517,6 +526,7 @@ void pxFont::renderTextToQuads(const char *text, uint32_t size,
     }
   }
 }
+#endif
 
 void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
                          float& w, float& h) 
@@ -693,6 +703,7 @@ rtDefineObject(pxTextSimpleMeasurements, rtObject);
 rtDefineProperty(pxTextSimpleMeasurements, w);
 rtDefineProperty(pxTextSimpleMeasurements, h);
 
+#ifdef PX_FONT_ATLAS
 #define PX_FONT_ATLAS_DIM 2048
 pxFontAtlas::pxFontAtlas(): fence(0)
 {
@@ -779,3 +790,4 @@ void pxTexturedQuads::draw(float x, float y, float* color)
     context.drawTexturedQuads(q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color);
   }
 }
+#endif
