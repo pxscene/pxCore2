@@ -107,20 +107,6 @@ class rtNodeContext;
 
 typedef rtRef<rtNodeContext> rtNodeContextRef;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct args_
-{
-  int    argc;
-  char **argv;
-
-  args_() { argc = 0; argv = NULL; }
-  args_(int n = 0, char** a = NULL) : argc(n), argv(a) {}
-}
-args_t;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 class rtNodeContext: rtIScriptContext  // V8
 {
 public:
@@ -300,7 +286,6 @@ static const char** exec_argv;
 static rtAtomic sNextId = 100;
 
 
-args_t *s_gArgs;
 
 #ifdef RUNINMAIN
 //extern rtNode script;

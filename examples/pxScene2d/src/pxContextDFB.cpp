@@ -2466,6 +2466,7 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
 void pxContext::drawImage9Border(float w, float h, 
                   float /*bx1*/, float /*by1*/, float /*bx2*/, float /*by2*/,
                   float ix1, float iy1, float ix2, float iy2,
+                  bool drawCenter, float* color,
                   pxTextureRef texture)
 {
   // TRANSPARENT / DIMENSIONLESS

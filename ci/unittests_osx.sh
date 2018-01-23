@@ -3,13 +3,13 @@ checkError()
 {
   if [ "$1" -ne 0 ]
   then
-    echo "*********************************************************************";
-    echo "*******************   UNIT TESTING FAILURE   ************************";
-    echo "CI failure reason: $2"
-    echo "Cause: $3"
-    echo "Reproduction/How to fix: $4"
-    echo "*********************************************************************";
-    echo "*********************************************************************";
+    printf "\n\n*********************************************************************";
+    printf "\n*******************CODE COVERAGE FAIL DETAILS************************";
+    printf "\nCI failure reason: $2"
+    printf "\nCause: $3"
+    printf "\nReproduction/How to fix: $4"
+    printf "\n*********************************************************************";
+    printf "\n*********************************************************************\n\n";
     exit 1
   fi
 }
@@ -78,10 +78,10 @@ then
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 	then
 		errCause="Either one or more tests failed. Check the above logs"
-		echo "********************PRINTING TEST LOGS************************"
-		cat $TESTLOGS
-		echo "************************LOG ENDS******************************"
-	else
+		echo "********************** PRINTING TEST LOG **************************"
+                cat $TESTLOGS
+                echo "************************** LOG ENDS *******************************"
+        else
 		errCause="Either one or more tests failed. Check the log file $TESTLOGS"
 	fi 
 	checkError $retVal "unittests execution failed" "$errCause" "Rrun unittests locally"
@@ -96,10 +96,10 @@ then
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 	then
 		errCause="Either one or more tests failed. Check the above logs"
-		echo "********************PRINTING TEST LOGS************************"
-		cat $TESTLOGS
-		echo "************************LOG ENDS******************************"
-	else
+	        echo "********************** PRINTING TEST LOG **************************"
+                cat $TESTLOGS
+                echo "************************** LOG ENDS *******************************"
+        else
 		errCause="Either one or more tests failed. Check the log file $TESTLOGS"
 	fi 
 	checkError -1 "unittests execution failed" "$errCause" "Run unittests locally"

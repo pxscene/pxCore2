@@ -732,12 +732,14 @@ protected:
   bool mIsDirty;
   pxMatrix4f mLastRenderMatrix;
   pxRect mScreenCoordinates;
+  pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
 
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
   void createSnapshotOfChildren();
   void clearSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES
+  void setDirtyRect(pxRect* r);
   pxRect getBoundingRectInScreenCoordinates();
   pxRect convertToScreenCoordinates(pxRect* r);
   #endif //PX_DIRTY_RECTANGLES

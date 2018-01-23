@@ -42,7 +42,7 @@ then
   checkError $? "unable to create directory artifacts" "could be permission issue" "Retry triggering travis build"
 fi
 
-echo "***************************** Building externals ****" > $BUILDLOGS
+echo "******************** Building externals ********************" > $BUILDLOGS
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
 ./build.sh>>$BUILDLOGS
 checkError $? "building externals failed" "compilation error" "Need to build the externals directory locally in $TRAVIS_OS_NAME"

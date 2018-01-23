@@ -111,6 +111,7 @@ class pxContext {
   void drawImage9Border(float w, float h, 
                   float bx1, float by1, float bx2, float by2,
                   float ix1, float iy1, float ix2, float iy2,
+                  bool drawCenter, float* color,
                   pxTextureRef texture);
 
   void drawOffscreen(float src_x, float src_y,

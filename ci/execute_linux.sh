@@ -4,14 +4,14 @@ checkError()
 {
   if [ "$1" -ne 0 ]
   then
-    printf "\n\n*********************************************************************";
-    printf   "\n************************  BUILD FAIL DETAILS  ***********************";
-    printf   "\nCI failure reason: $2"
-    printf   "\nCause: $3"
-    printf   "\nReproduction/How to fix: $4"
-    printf   "\n*********************************************************************";
-    printf   "\n*********************************************************************\n\n";
-    #exit 1;
+        printf "\n\n*******************************************************************";
+	printf "\n*******************BUILD FAIL DETAILS******************************";
+        printf "\n failure reason: $2"
+        printf "\nuse: $3"
+        printf "\nproduction/How to fix: $4"
+	printf "\n*******************************************************************";
+	printf "\n*******************************************************************\n\n";
+        #exit 1;
   fi
 }
 
@@ -87,7 +87,7 @@ if [ "$retVal" -eq 1 ]
 	checkError $retVal "Execution failed" "Core dump" "Test by running locally"
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
-		printExecLogs
+                  printExecLogs
 	fi
 	exit 1;
 fi
@@ -123,11 +123,11 @@ printf "\n\n -------------------------------- \n\n"
 
 if [ "$pxRetVal" -eq 0 ]
 	then
-	echo "pxobject count success *****************";
+	echo "************************** pxobject count success **************************";
 
 	if [ "$texRetVal" -eq 0 ]
 		then
-		echo "texture size success *****************";
+		echo "*************************** texture size success ***************************";
 	else
 		if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 			then
@@ -157,7 +157,7 @@ grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
 retVal=$?
 if [ "$retVal" -eq 0 ]
 	then
-	echo "Valgrind reports success !!!!!!!!!!!"
+	echo "************************* Valgrind reports success *************************";
 else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then

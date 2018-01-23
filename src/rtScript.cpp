@@ -54,6 +54,10 @@ static pthread_mutex_t sObjectMapMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif //!RUNINMAIN
 #endif
 
+#ifndef ENABLE_DEBUG_MODE
+args_t *s_gArgs;
+#endif
+
 static int sLockCount;
 
 bool rtWrapperSceneUpdateHasLock()
