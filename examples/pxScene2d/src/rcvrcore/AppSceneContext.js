@@ -531,7 +531,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         Debug.setBreakPoint(moduleFunc, 0, 0);
       }
 
-      var px = createModule_pxScope.call(this, xModule);
+      let px = createModule_pxScope.call(this, xModule);
       var rtnObject = moduleFunc(px, xModule, fname, this.basePackageUri);
       rtnObject = xModule.exports;
 /*
@@ -922,7 +922,7 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 
   var sourceCode = AppSceneContext.wrap(codeBuffer);
   log.message(4, "RUN " + filePath);
-  var px = createModule_pxScope.call(this, xModule);
+  let px = createModule_pxScope.call(this, xModule);
   if (isDuk) {
     vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
                          px, xModule, filePath, filePath);
