@@ -64,7 +64,7 @@ option(PXSCENE_FONT_ATLAS "PXSCENE_FONT_ATLAS" ON)
 
 if (PXSCENE_FONT_ATLAS)
     message("Building with Font Atlas Support")
-    add_definitions(-DPX_FONT_ATLAS)
+    add_definitions(-DPXSCENE_FONT_ATLAS)
 endif (PXSCENE_FONT_ATLAS)
 
 set(PXSCENE_DEFINITIONS )

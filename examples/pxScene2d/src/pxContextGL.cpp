@@ -2517,7 +2517,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
                   color? color : black, stretchX, stretchY);
 }
 
-#ifdef PX_FONT_ATLAS
+#ifdef PXSCENE_FONT_ATLAS
 void pxContext::drawTexturedQuads(int numQuads, const void *verts, const void* uvs,
                           pxTextureRef t, float* color)
 {
