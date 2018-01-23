@@ -30,6 +30,9 @@
 
 #include "pxScene2d.h"
 #include <map>
+#include <vector>
+
+using std::vector;
 
 class pxText;
 class pxFont;
@@ -55,6 +58,105 @@ struct GlyphCacheEntry
   int vertAdvance;
 };
 
+struct GlyphTextureEntry
+{
+  pxTextureRef t;
+  float u1, v1, u2, v2;
+};
+
+
+class pxFontAtlas
+{
+public:
+
+
+  struct row
+  {
+    uint32_t top;
+    uint32_t height;
+    uint32_t rFence;
+  };
+
+
+  pxFontAtlas();
+
+  bool addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEntry& e);
+
+
+  private:
+
+  uint32_t fence;
+  pxTextureRef mTexture;
+  vector<row> mRows;
+};
+
+class pxTexturedQuads
+{
+  public:
+
+  struct quads
+  {
+    vector<float> verts;
+    vector<float> uvs;
+    pxTextureRef t;
+  };
+
+  pxTexturedQuads() {}
+
+  void addQuad(float x1,float y1,float x2,float y2, float u1, float v1, float u2, float v2, pxTextureRef t)
+  {
+    if (mQuads.empty() || mQuads[mQuads.size()-1].t != t)
+    {
+      quads q;
+      q.t = t;
+      mQuads.push_back(q);
+    }
+
+    quads& q = mQuads[mQuads.size()-1];
+    vector<float>& v = q.verts;
+    vector<float>& u = q.uvs;
+
+    // triangle 1
+    v.push_back(x1);
+    v.push_back(y1);
+    v.push_back(x2);
+    v.push_back(y1);
+    v.push_back(x1);
+    v.push_back(y2);
+    // triangle 2
+    v.push_back(x2);
+    v.push_back(y1);
+    v.push_back(x1);
+    v.push_back(y2);
+    v.push_back(x2);
+    v.push_back(y2);
+
+    // triangle 1 uvs
+    u.push_back(u1);
+    u.push_back(v1);
+    u.push_back(u2);
+    u.push_back(v1);
+    u.push_back(u1);
+    u.push_back(v2);
+    // triangle 2 uvs
+    u.push_back(u2);
+    u.push_back(v1);
+    u.push_back(u1);
+    u.push_back(v2);
+    u.push_back(u2);
+    u.push_back(v2);
+  }
+
+  void draw(float x, float y, float* color);
+
+  void clear()
+  {
+    mQuads.clear();
+  }
+
+private:
+  vector<quads> mQuads;
+};
 
 
 /**********************************************************************
@@ -154,7 +256,7 @@ public:
   // FT Face related functions
   void setPixelSize(uint32_t s);  
   const GlyphCacheEntry* getGlyph(uint32_t codePoint);
-  pxTextureRef getGlyphTexture(uint32_t codePoint, float sx, float sy);  
+  GlyphTextureEntry getGlyphTexture(uint32_t codePoint, float sx, float sy);  
   void getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading);
   void getHeight(uint32_t size, float& height);
   void measureText(const char* text, uint32_t size, float& w, float& h);
@@ -165,6 +267,11 @@ public:
   void renderText(const char *text, uint32_t size, float x, float y, 
                   float sx, float sy, 
                   float* color, float mw);
+
+  // Should reinvoke on changes to text, size, or scale params
+  void renderTextToQuads(const char *text, uint32_t size, 
+                        float nsx, float nsy, 
+                        pxTexturedQuads& quads);
 
   virtual void init() {}
   bool isFontLoaded() { return mInitialized;}

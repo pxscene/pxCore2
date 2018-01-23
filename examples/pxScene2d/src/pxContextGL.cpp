@@ -1168,23 +1168,26 @@ public:
   {
     mTextureType = PX_TEXTURE_ALPHA;
 
-    // copy the pixels
-    int bitmapSize = ih*iw;
-    mBuffer = malloc(bitmapSize);
 
     // TODO consider iw,ih as ints rather than floats...
     int32_t bw = (int32_t)iw;
     int32_t bh = (int32_t)ih;
 
-    //memcpy(mBuffer, buffer, bitmapSize);
-    // Flip here so that we match FBO layout...
-    for (int32_t i = 0; i < bh; i++)
+    if (buffer)
     {
-      uint8_t *s = (uint8_t*)buffer+(bw*i);
-      uint8_t *d = (uint8_t*)mBuffer+(bw*(bh-i-1));
-      uint8_t *de = d+bw;
-      while(d<de)
-        *d++ = *s++;
+      // copy the pixels
+      int bitmapSize = ih*iw;
+      mBuffer = malloc(bitmapSize);
+      //memcpy(mBuffer, buffer, bitmapSize);
+      // Flip here so that we match FBO layout...
+      for (int32_t i = 0; i < bh; i++)
+      {
+        uint8_t *s = (uint8_t*)buffer+(bw*i);
+        uint8_t *d = (uint8_t*)mBuffer+(bw*(bh-i-1));
+        uint8_t *de = d+bw;
+        while(d<de)
+          *d++ = *s++;
+      }
     }
 
 // TODO Moved this to bindTexture because of more pain from JS thread calls
@@ -1241,6 +1244,23 @@ public:
     context.adjustCurrentTextureMemorySize(iw*ih);
 
     mInitialized = true;
+  }
+
+  virtual pxError updateTexture(int x, int y, int w, int h,  void* buffer)
+  {
+    // TODO Moved to here because of js threading issues
+    if (!mInitialized) createAlphaTexture(mDrawWidth,mDrawHeight,mImageWidth,mImageHeight);
+    if (!mInitialized)
+    {
+      return PX_NOTINITIALIZED;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, mTextureId);   TRACK_TEX_CALLS();
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexSubImage2D(GL_TEXTURE_2D,
+        0,x,y,w,h,GL_ALPHA,GL_UNSIGNED_BYTE,buffer);
+
+    return PX_OK;
   }
 
   virtual pxError deleteTexture()
@@ -1510,6 +1530,7 @@ protected:
 
 public:
   pxError draw(int resW, int resH, float* matrix, float alpha,
+            GLenum mode,
             int count,
             const void* pos,
             const void* uv,
@@ -1535,7 +1556,7 @@ public:
     glVertexAttribPointer(mUVLoc, 2, GL_FLOAT, GL_FALSE, 0, uv);
     glEnableVertexAttribArray(mPosLoc);
     glEnableVertexAttribArray(mUVLoc);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, count);  TRACK_DRAW_CALLS();
+    glDrawArrays(mode, 0, count);  TRACK_DRAW_CALLS();
     glDisableVertexAttribArray(mPosLoc);
     glDisableVertexAttribArray(mUVLoc);
 
@@ -1863,7 +1884,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     float colorPM[4];
     premultiply(colorPM,color);
 
-    if (gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,colorPM) != PX_OK)
+    if (gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLE_STRIP,4,verts,uv,texture,colorPM) != PX_OK)
     {
       drawRect2(0, 0, iw, ih, blackColor); // DEFAULT - "Missing" - BLACK RECTANGLE
     }
@@ -2494,6 +2515,33 @@ void pxContext::drawImage(float x, float y, float w, float h,
   float black[4] = {0,0,0,1};
   drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways,
                   color? color : black, stretchX, stretchY);
+}
+
+void pxContext::drawTexturedQuads(int numQuads, const void *verts, const void* uvs,
+                          pxTextureRef t, float* color)
+{
+#ifdef DEBUG_SKIP_IMAGE
+#warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
+  return;
+#endif
+
+  // TRANSPARENT
+  if(gAlpha == 0.0)
+  {
+    return;
+  }
+
+  // TEXTURELESS
+  if (t.getPtr() == NULL)
+  {
+    return;
+  }
+
+  t->setLastRenderTick(gRenderTick);
+
+  float colorPM[4];
+  premultiply(colorPM,color);
+  gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLES,6*numQuads,verts,uvs,t,colorPM);
 }
 
 typedef rtRef<pxSwTexture>    pxSwTextureRef;

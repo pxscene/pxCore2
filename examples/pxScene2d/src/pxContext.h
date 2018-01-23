@@ -92,7 +92,7 @@ class pxContext {
   pxTextureRef createTexture(); // default to use before image load is complete
   pxTextureRef createTexture(pxOffscreen& o);
   pxTextureRef createTexture(pxOffscreen& o, const char *compressedData, size_t compressedDataSize);
-  pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer);
+  pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer = NULL);
 
   void snapshot(pxOffscreen& o);
 
@@ -103,6 +103,13 @@ class pxContext {
                  pxConstantsStretch::constants xStretch = pxConstantsStretch::STRETCH,
                  pxConstantsStretch::constants yStretch = pxConstantsStretch::STRETCH,
                  bool downscaleSmooth = false);
+
+  // This is intended to draw numQuads from the same texture.
+  // vertices and uvs for the quads are passed in as if the quads will be rendered
+  // using GL_TRIANGLES in an optimal way.  quad oriented backends can skip vertices appropriately
+  // 6 vertices (12 floats) and 6 uvs (12 floats) per quad
+  void drawTexturedQuads(int numQuads, const void *verts, const void* uvs,
+                          pxTextureRef t, float* color);
 
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxTextureRef texture);
