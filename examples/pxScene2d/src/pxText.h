@@ -68,19 +68,18 @@ public:
   rtError font(rtObjectRef& o) const { o = mFont; return RT_OK; }
   virtual rtError setFont(rtObjectRef o);
   
-  virtual void update(double t);
   virtual void onInit();
   
   virtual rtError Set(const char* name, const rtValue* value)
   {
     //rtLogInfo("pxText::Set %s\n",name);
 #if 1
-    mDirty = mDirty || (!strcmp(name,"w") ||
-              !strcmp(name,"h") ||
+    mDirty = mDirty ||
               !strcmp(name,"text") ||
               !strcmp(name,"pixelSize") ||
               !strcmp(name,"fontUrl") ||
-              !strcmp(name,"textColor"));
+              !strcmp(name,"sx") || 
+              !strcmp(name,"sy");
 #else
     mDirty = true;
 #endif
@@ -117,6 +116,7 @@ public:
   virtual float getFBOWidth();
   virtual float getFBOHeight();
   bool mListenerAdded;
+  pxTexturedQuads mQuads;
 };
 
 #endif
