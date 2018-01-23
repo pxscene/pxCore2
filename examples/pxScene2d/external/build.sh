@@ -148,15 +148,14 @@ if [ "$(uname)" != "Darwin" ]; then
 
 fi
 
-if [ ! -e dukluv/build/duktape.a ]
+if [ ! -e dukluv/build/libduktape.a ]
 then
     cd dukluv
-    #patch -p0 < patches/compile_fix.patch
-    git apply patches/dukluv.git.patch
-    mkdir build
+    quilt push -aq || test $? = 2
+    mkdir -p build
     cd build
     cmake ..
-    make
+    make "-j${make_parallel}"
     cd ..
 fi
 

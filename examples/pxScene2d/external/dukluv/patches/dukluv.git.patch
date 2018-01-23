@@ -1,7 +1,7 @@
-diff --git a/examples/pxScene2d/external/dukluv/src/duv.c b/examples/pxScene2d/external/dukluv/src/duv.c
+diffdukluv/src/duv.c b/examples/pxScene2d/external/dukluv/src/duv.c
 index a2d2ca6..21a5312 100644
---- a/examples/pxScene2d/external/dukluv/src/duv.c
-+++ b/examples/pxScene2d/external/dukluv/src/duv.c
+--- dukluv/src/duv.c
++++ dukluv/src/duv.c
 @@ -13,6 +13,7 @@
  #include "fs.h"
  #include "misc.h"
@@ -20,10 +20,10 @@ index a2d2ca6..21a5312 100644
  
    {NULL, NULL, 0},
  };
-diff --git a/examples/pxScene2d/external/dukluv/src/main.c b/examples/pxScene2d/external/dukluv/src/main.c
+diffdukluv/src/main.c b/examples/pxScene2d/external/dukluv/src/main.c
 index 8444138..797642a 100644
---- a/examples/pxScene2d/external/dukluv/src/main.c
-+++ b/examples/pxScene2d/external/dukluv/src/main.c
+--- dukluv/src/main.c
++++ dukluv/src/main.c
 @@ -1,6 +1,6 @@
  #include "duv.h"
  #include "misc.h"
@@ -56,10 +56,10 @@ index 8444138..797642a 100644
  }
  
  struct duv_list {
-diff --git a/examples/pxScene2d/external/dukluv/uv.cmake b/examples/pxScene2d/external/dukluv/uv.cmake
+diffdukluv/uv.cmake b/examples/pxScene2d/external/dukluv/uv.cmake
 index c638aeb..195cebf 100644
---- a/examples/pxScene2d/external/dukluv/uv.cmake
-+++ b/examples/pxScene2d/external/dukluv/uv.cmake
+--- dukluv/uv.cmake
++++ dukluv/uv.cmake
 @@ -121,7 +121,6 @@ else()
      ${LIBUVDIR}/src/unix/timer.c
      ${LIBUVDIR}/src/unix/tty.c
@@ -76,13 +76,10 @@ index c638aeb..195cebf 100644
      ${LIBUVDIR}/src/unix/proctitle.c
      ${LIBUVDIR}/src/unix/darwin.c
      ${LIBUVDIR}/src/unix/fsevents.c
- )
- 
- 
-diff --git a/examples/pxScene2d/external/dukluv/CMakeLists.txt b/examples/pxScene2d/external/dukluv/CMakeLists.txt
+diffdukluv/CMakeLists.txt b/examples/pxScene2d/external/dukluv/CMakeLists.txt
 index 967b987..4afc8ab 100644
---- a/examples/pxScene2d/external/dukluv/CMakeLists.txt
-+++ b/examples/pxScene2d/external/dukluv/CMakeLists.txt
+--- dukluv/CMakeLists.txt
++++ dukluv/CMakeLists.txt
 @@ -1,7 +1,10 @@
 -cmake_minimum_required(VERSION 2.8.9)
 +cmake_minimum_required(VERSION 2.8)
