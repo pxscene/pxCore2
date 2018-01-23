@@ -118,7 +118,7 @@ public:
   virtual float getFBOHeight();
   bool mListenerAdded;
 
-  #ifdef PX_FONT_ATLAS
+  #ifdef PXSCENE_FONT_ATLAS
   pxTexturedQuads mQuads;
   #endif
 };
