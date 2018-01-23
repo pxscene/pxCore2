@@ -58,6 +58,7 @@ then
 #    brew install lighttpd
     brew install gcovr
     brew install lcov
+    brew install quilt
     brew install --HEAD ccache
     ls -al $HOME/.ccache
   fi
