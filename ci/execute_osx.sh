@@ -15,7 +15,7 @@ checkError()
   if [ "$1" -ne 0 ]
   then
         printf "\n\n*********************************************************************";
-        printf "\n*********************BUILD FAIL DETAILS******************************";
+        printf "\n********************* BUILD FAIL DETAILS ******************************";
         printf "\nCI failure reason: $2"
         printf "\nCause: $3"
         printf "\nReproduction/How to fix: $4"
