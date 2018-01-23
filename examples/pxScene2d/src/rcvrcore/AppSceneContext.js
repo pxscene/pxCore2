@@ -102,33 +102,56 @@ this.innerscene.on('onSceneTerminate', function (e) {
       for(var k in this.innerscene.api) { delete this.innerscene.api[k]; }
     }
 
-    this.innerscene.api = null;
+    if ((undefined != this.innerscene) && (null != this.innerscene))
+    {
+      this.innerscene.api = null;
+    } 
     this.innerscene = null;
-    this.sandbox.xmodule = null;
-    this.sandbox.require = null;
-    this.sandbox.sandboxName = null;
-    this.sandbox.runtime = null;
-    this.sandbox.theNamedContext = null;
-    this.sandbox.Buffer = null;
-    this.sandbox.setTimeout = null;
-    this.sandbox.setInterval = null;
-    this.sandbox.clearTimeout = null;
-    this.sandbox.clearInterval = null;
-    this.sandbox.importTracking = {};
+    if ((undefined != this.sandbox) && (null != this.sandbox))
+    {
+      this.sandbox.sandboxName = null;
+      if ((undefined != this.sandbox.xmodule) && (null != this.sandbox.xmodule))
+      {
+        this.sandbox.xmodule.freeResources();
+      }
+      this.sandbox.xmodule = null;
+      this.sandbox.console = null;
+      this.sandbox.runtime = null;
+      this.sandbox.process = null;
+      this.sandbox.urlModule = null;
+      this.sandbox.queryStringModule = null;
+      this.sandbox.theNamedContext = null;
+      this.sandbox.Buffer = null;
+      this.sandbox.require = null;
+      this.sandbox.global = null;
+      this.sandbox.setTimeout = null;
+      this.sandbox.setInterval = null;
+      this.sandbox.clearTimeout = null;
+      this.sandbox.clearInterval = null;
+      for(var k in this.sandbox.importTracking) { delete this.sandbox.importTracking[k]; }
+      this.sandbox.importTracking = null;
+      for(var k in this.sandbox) { delete this.sandbox[k]; }
+    } 
     this.sandbox = null;
-    this.scriptMap = null;
     for(var xmodule in this.xmoduleMap) {
       this.xmoduleMap[xmodule].freeResources();
+      delete this.xmoduleMap[xmodule];
     }
     this.xmoduleMap = null;
+    if (null != this.topXModule)
+      this.topXModule.freeResources();
     this.topXModule = null;
     this.jarFileMap = null;
     for(var key in this.scriptMap) {
       this.scriptMap[key].scriptObject = null;
       this.scriptMap[key].readyListeners = null;
+      delete this.scriptMap[key];
     }
     this.scriptMap = null;
+    if (null != this.sceneWrapper)
+      this.sceneWrapper.close();
     this.sceneWrapper = null;
+    this.rpcController = null;
   }.bind(this));
 
 if (false) {
@@ -508,7 +531,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         Debug.setBreakPoint(moduleFunc, 0, 0);
       }
 
-      var px = createModule_pxScope.call(this, xModule);
+      let px = createModule_pxScope.call(this, xModule);
       var rtnObject = moduleFunc(px, xModule, fname, this.basePackageUri);
       rtnObject = xModule.exports;
 /*
@@ -899,7 +922,7 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 
   var sourceCode = AppSceneContext.wrap(codeBuffer);
   log.message(4, "RUN " + filePath);
-  var px = createModule_pxScope.call(this, xModule);
+  let px = createModule_pxScope.call(this, xModule);
   if (isDuk) {
     vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
                          px, xModule, filePath, filePath);
@@ -975,6 +998,9 @@ AppSceneContext.prototype.callModuleReadyListeners = function(moduleName, module
     if( listeners !== null && listeners.length !== 0 ) {
       for(var k = 0; k < listeners.length; ++k) {
         listeners[k](moduleExports);
+      }
+      for(var k = 0; k < listeners.length; ++k) {
+        listeners.pop();
       }
     }
     this.scriptMap[moduleName].readyListeners = null;
