@@ -17,8 +17,8 @@ char** gargv;
 extern int g_argc;
 extern char** g_argv;
 char *nodeInput = NULL;
-extern rtScript script;
 #endif
+extern rtScript script;
 
 void handleSegv(int)
 {
