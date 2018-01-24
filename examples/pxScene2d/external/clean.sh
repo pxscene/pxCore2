@@ -25,11 +25,11 @@ cd ..
 
 #--------- ZLIB 
 cd zlib
-make clean -j3
+make distclean -j3
 cd ..
 
 #--------- LIBNODE 
-cd libnode-v6.9.0
+cd node
 make clean -j3
 rm -rf icu_* config.* out/
 cd ..
@@ -50,4 +50,5 @@ make clean -j3
 cd ..
 fi
 
-
+#--------- dukluv
+rm -rf dukluv/build
