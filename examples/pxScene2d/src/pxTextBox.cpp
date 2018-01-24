@@ -250,7 +250,6 @@ void pxTextBox::update(double t)
  *  wrapping, truncation and dimensions; but it should not render the
  *  text yet.
  * */
-void pxTextBox::determineMeasurementBounds() {}
 void pxTextBox::clearMeasurements()
 {
     lastLineNumber = 0;
