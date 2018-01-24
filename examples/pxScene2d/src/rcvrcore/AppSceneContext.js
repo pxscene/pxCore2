@@ -23,6 +23,7 @@ var ClearInterval = isDuk?timers.clearInterval:clearInterval;
 
 var http_wrap = require('rcvrcore/http_wrap');
 var https_wrap = require('rcvrcore/https_wrap');
+var ws_wrap = require('rcvrcore/ws_wrap');
 
 function AppSceneContext(params) {
 
@@ -56,7 +57,7 @@ function AppSceneContext(params) {
   //array to store the list of pending timers
   this.timers = [];
   this.timerIntervals = [];
-
+  this.webSocketInterface = null;
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -129,6 +130,12 @@ this.innerscene.on('onSceneTerminate', function (e) {
     }
     this.scriptMap = null;
     this.sceneWrapper = null;
+    if (null != this.webSocketInterface)
+    {
+      this.webSocketInterface.clearConnections();
+      delete this.webSocketInterface;
+      this.webSocketInterface = null;
+    }
   }.bind(this));
 
 if (false) {
@@ -782,7 +789,11 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       console.log("Not permitted to use the module " + filePath);
       reject("include failed due to module not permitted");
       return;
-    } else if( filePath === 'net' || filePath === 'ws' ) {
+    } else if( filePath === 'ws' ) {
+      _this.webSocketInterface = modData = new ws_wrap.WebSocket();
+      onImportComplete([modData, origFilePath]);
+      return;
+    } else if( filePath === 'net' ) {
       modData = require('rcvrcore/' + filePath + '_wrap');
       onImportComplete([modData, origFilePath]);
       return;
