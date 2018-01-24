@@ -33,7 +33,7 @@ rtObjectWrapper::~rtObjectWrapper()
 
 struct dukObjectFunctionInfo
 {
-  dukObjectFunctionInfo(void) : mIsVoid(true), mNext(NULL) {}
+  dukObjectFunctionInfo(void) : mIsVoid(true), mNext(NULL), mType(dukObjectFunctionInfo::eMethod) {}
 
   std::string mMethodName;
   bool        mIsVoid;

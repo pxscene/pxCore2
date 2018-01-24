@@ -4,13 +4,13 @@ checkError()
 {
   if [ "$1" -ne 0 ]
   then
-        echo "*********************************************************************";
-	echo "*********************BUILD FAIL DETAILS******************************";
-        echo "CI failure reason: $2"
-        echo "Cause: $3"
-        echo "Reproduction/How to fix: $4"
-	echo "*********************************************************************";
-	echo "*********************************************************************";
+        printf "\n\n*******************************************************************";
+	printf "\n*******************BUILD FAIL DETAILS******************************";
+        printf "\n failure reason: $2"
+        printf "\nuse: $3"
+        printf "\nproduction/How to fix: $4"
+	printf "\n*******************************************************************";
+	printf "\n*******************************************************************\n\n";
         #exit 1;
   fi
 }
@@ -60,9 +60,9 @@ if [ "$retVal" -eq 1 ]
 	checkError $retVal "Execution failed" "Core dump" "Test by running locally"
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
-		echo "**********************PRINTING EXEC LOG**************************"
+		echo "********************** PRINTING EXEC LOG **************************"
 		cat $EXECLOGS
-		echo "**************************LOG ENDS*******************************"
+		echo "************************** LOG ENDS *******************************"
 	fi
 	exit 1;
 fi
@@ -77,9 +77,9 @@ if [ "$testRunnerRetVal" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Cause: Check the above logs"
-		echo "**********************PRINTING EXEC LOG**************************"
+		echo "********************** PRINTING EXEC LOG **************************"
 		cat $EXECLOGS
-		echo "**************************LOG ENDS*******************************"
+		echo "************************** LOG ENDS *******************************"
 	else
 		errCause="Cause: Check the $EXECLOGS file"
 	fi
@@ -95,18 +95,18 @@ texRetVal=$?
 echo "Values are $pxRetVal and $texRetVal";
 if [ "$pxRetVal" -eq 0 ]
 	then
-	echo "pxobject count success *****************";
+	echo "************************** pxobject count success **************************";
 
 	if [ "$texRetVal" -eq 0 ]
 		then
-		echo "texture size success *****************";
+		echo "*************************** texture size success ***************************";
 	else
 		if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 			then
 			errCause="Check the above logs"
-			echo "********************PRINTING EXEC LOG************************"
+                        echo "**************************** PRINTING EXEC LOG *****************************"
 			cat $EXECLOGS
-			echo "************************LOG ENDS*****************************"
+                        echo "********************************* LOG ENDS *********************************"			
 		else
 			errCause="Check the $EXECLOGS file"
 		fi
@@ -117,9 +117,9 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		echo "********************PRINTING EXEC LOG************************"
+                echo "**************************** PRINTING EXEC LOG *****************************"
 		cat $EXECLOGS
-		echo "************************LOG ENDS*****************************"
+                echo "********************************* LOG ENDS *********************************"			
 	else
 		errCause="Check the $EXECLOGS file"
 	fi
@@ -133,14 +133,14 @@ grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
 retVal=$?
 if [ "$retVal" -eq 0 ]
 	then
-	echo "Valgrind reports success !!!!!!!!!!!"
+	echo "************************* Valgrind reports success *************************";
 else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		echo "********************PRINTING EXEC LOG************************"
-		cat $EXECLOGS
-		echo "************************LOG ENDS*****************************"
+                echo "**************************** PRINTING EXEC LOG *****************************"
+		cat $VALGRINDLOGS
+                echo "********************************* LOG ENDS *********************************"			
 	else
 		errCause="Check the file $VALGRINDLOGS and see for definitely lost count"
 	fi

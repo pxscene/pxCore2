@@ -29,6 +29,18 @@ bool rtWrapperSceneUpdateHasLock();
 void rtWrapperSceneUpdateEnter();
 void rtWrapperSceneUpdateExit();
 
+#ifndef ENABLE_DEBUG_MODE
+typedef struct args_
+{
+  int    argc;
+  char **argv;
+
+  args_() { argc = 0; argv = NULL; }
+  args_(int n = 0, char** a = NULL) : argc(n), argv(a) {}
+}
+args_t;
+#endif
+
 class rtIScriptContext
 {
 public:
