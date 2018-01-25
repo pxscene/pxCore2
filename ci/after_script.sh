@@ -46,7 +46,7 @@ then
   checkError $? "unable to send artifacts to 96.116.56.119" "96.116.56.119 down?" "Retry"
 fi
 
-if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ;
+if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) &&  [ $TRAVIS_OS_NAME = "linux" ] ;
 then
   ccache -s
 fi
