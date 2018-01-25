@@ -142,22 +142,6 @@ class rtDukContext;
 
 typedef rtRef<rtDukContext> rtDukContextRef;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#if 0
-typedef struct args_
-{
-  int    argc;
-  char **argv;
-
-  args_() { argc = 0; argv = NULL; }
-  args_(int n = 0, char** a = NULL) : argc(n), argv(a) {}
-}
-args_t;
-#endif
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 class rtDukContext: rtIScriptContext
 {
 public:
@@ -245,6 +229,7 @@ public:
   //std::string name() const;
 
   rtError collectGarbage();
+  void* getParameter(rtString param);
 private:
 #ifdef ENABLE_DEBUG_MODE
   void init2();
@@ -257,8 +242,8 @@ private:
 
   duk_context                   *dukCtx;
   std::vector<uv_loop_t *>       uvLoops;
-  uv_thread_t                    dukTid;
-  bool                           node_is_initialized;
+  //uv_thread_t                    dukTid;
+  bool                           duk_is_initialized;
 
 #ifdef USE_CONTEXTIFY_CLONES
   rtDukContextRef mRefContext;
@@ -350,7 +335,7 @@ static inline bool file_exists(const char *file)
 #endif
 
 rtDukContext::rtDukContext() :
-     js_file(NULL), mRefCount(0), mContextifyContext(NULL), uvLoop(NULL)
+     js_file(NULL), mRefCount(0), mContextifyContext(NULL), dukCtx(NULL), uvLoop(NULL)
 {
   mId = rtAtomicInc(&sNextId);
 
@@ -359,7 +344,7 @@ rtDukContext::rtDukContext() :
 
 #ifdef USE_CONTEXTIFY_CLONES
 rtDukContext::rtDukContext(rtDukContextRef clone_me) :
-      js_file(NULL), mRefCount(0), mContextifyContext(NULL), uvLoop(NULL)
+      js_file(NULL), mRefCount(0), mContextifyContext(NULL), dukCtx(NULL), uvLoop(NULL)
 {
   mId = rtAtomicInc(&sNextId);
 
@@ -1060,10 +1045,10 @@ rtError rtDukContext::runFile(const char *file, rtValue* retVal /*= NULL*/, cons
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtScriptDuk::rtScriptDuk():mRefCount(0)
+rtScriptDuk::rtScriptDuk():mRefCount(0), duk_is_initialized(false)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false), node_is_initialized(false)
+: mRefContext(), mNeedsToEnd(false), duk_is_initialized(false)
 #else
 : mNeedsToEnd(false)
 #endif
@@ -1074,10 +1059,10 @@ rtScriptDuk::rtScriptDuk():mRefCount(0)
   init();
 }
 
-rtScriptDuk::rtScriptDuk(bool initialize):mRefCount(0)
+rtScriptDuk::rtScriptDuk(bool initialize):mRefCount(0), duk_is_initialized(false)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false), node_is_initialized(false)
+: mRefContext(), mNeedsToEnd(false), duk_is_initialized(false)
 #else
 : mNeedsToEnd(false)
 #endif
@@ -1197,6 +1182,12 @@ rtError rtScriptDuk::collectGarbage()
   return RT_OK;
 }
 
+void* rtScriptDuk::getParameter(rtString param)
+{
+  //yet to implement
+  return NULL;
+}
+
 #if 0
 rtScriptDuk::forceGC()
 {
@@ -1231,8 +1222,8 @@ void rtScriptDuk::nodePath()
 #ifndef RUNINMAIN
 bool rtNode::isInitialized()
 {
-  //rtLogDebug("rtNode::isInitialized returning %d\n",node_is_initialized);
-  return node_is_initialized;
+  //rtLogDebug("rtNode::isInitialized returning %d\n",duk_is_initialized);
+  return duk_is_initialized;
 }
 #endif
 
@@ -1252,7 +1243,7 @@ void rtScriptDuk::init2(int argc, char** argv)
 #ifdef ENABLE_DEBUG_MODE
   g_argvduk = uv_setup_args(g_argcduk, g_argvduk);
 #else
-  argvduk = uv_setup_args(argcduk, argvduk);
+  argv = uv_setup_args(argc, argv);
 #endif
 
   rtLogInfo(__FUNCTION__);
@@ -1262,9 +1253,9 @@ void rtScriptDuk::init2(int argc, char** argv)
   use_debug_agent = true; // JUNK
 #endif
 
-  if(node_is_initialized == false)
+  if(duk_is_initialized == false)
   {
-    node_is_initialized = true;
+    duk_is_initialized = true;
 
     uv_loop_t *dukLoop = new uv_loop_t();
     uv_loop_init(dukLoop);
@@ -1301,12 +1292,13 @@ rtError rtScriptDuk::term()
 
   //uv_loop_close(dukLoop);
   duk_destroy_heap(dukCtx);
-
+#if 0
 #ifdef USE_CONTEXTIFY_CLONES
   if( mRefContext.getPtr() )
   {
     mRefContext->Release();
   }
+#endif
 #endif
   return RT_OK;
 }

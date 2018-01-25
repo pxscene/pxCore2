@@ -89,10 +89,14 @@ AppSceneContext.prototype.loadScene = function() {
   //log.info("loadScene() - begins    on ctx: " + getContextID() );
   var urlParts = url.parse(this.packageUrl, true);
   var fullPath = this.packageUrl;
+  var platform = (isDuk)?uv.platform:process.platform;
   if (fullPath.substring(0, 4) !== "http") {
     if( fullPath.charAt(0) === '.' ) {
       // local file system
       this.defaultBaseUri = ".";
+    } else if( platform === 'win32' && fullPath.charAt(1) === ':' ) {
+        // Windows OS, so take the url as the whole file path
+        urlParts.pathname = this.packageUrl;
     }
     fullPath = urlParts.pathname;
     if( fullPath !== null) {
@@ -123,33 +127,56 @@ this.innerscene.on('onSceneTerminate', function (e) {
       for(var k in this.innerscene.api) { delete this.innerscene.api[k]; }
     }
 
-    this.innerscene.api = null;
+    if ((undefined != this.innerscene) && (null != this.innerscene))
+    {
+      this.innerscene.api = null;
+    } 
     this.innerscene = null;
-    this.sandbox.xmodule = null;
-    this.sandbox.require = null;
-    this.sandbox.sandboxName = null;
-    this.sandbox.runtime = null;
-    this.sandbox.theNamedContext = null;
-    this.sandbox.Buffer = null;
-    this.sandbox.setTimeout = null;
-    this.sandbox.setInterval = null;
-    this.sandbox.clearTimeout = null;
-    this.sandbox.clearInterval = null;
-    this.sandbox.importTracking = {};
+    if ((undefined != this.sandbox) && (null != this.sandbox))
+    {
+      this.sandbox.sandboxName = null;
+      if ((undefined != this.sandbox.xmodule) && (null != this.sandbox.xmodule))
+      {
+        this.sandbox.xmodule.freeResources();
+      }
+      this.sandbox.xmodule = null;
+      this.sandbox.console = null;
+      this.sandbox.runtime = null;
+      this.sandbox.process = null;
+      this.sandbox.urlModule = null;
+      this.sandbox.queryStringModule = null;
+      this.sandbox.theNamedContext = null;
+      this.sandbox.Buffer = null;
+      this.sandbox.require = null;
+      this.sandbox.global = null;
+      this.sandbox.setTimeout = null;
+      this.sandbox.setInterval = null;
+      this.sandbox.clearTimeout = null;
+      this.sandbox.clearInterval = null;
+      for(var k in this.sandbox.importTracking) { delete this.sandbox.importTracking[k]; }
+      this.sandbox.importTracking = null;
+      for(var k in this.sandbox) { delete this.sandbox[k]; }
+    } 
     this.sandbox = null;
-    this.scriptMap = null;
     for(var xmodule in this.xmoduleMap) {
       this.xmoduleMap[xmodule].freeResources();
+      delete this.xmoduleMap[xmodule];
     }
     this.xmoduleMap = null;
+    if (null != this.topXModule)
+      this.topXModule.freeResources();
     this.topXModule = null;
     this.jarFileMap = null;
     for(var key in this.scriptMap) {
       this.scriptMap[key].scriptObject = null;
       this.scriptMap[key].readyListeners = null;
+      delete this.scriptMap[key];
     }
     this.scriptMap = null;
+    if (null != this.sceneWrapper)
+      this.sceneWrapper.close();
     this.sceneWrapper = null;
+    this.rpcController = null;
   }.bind(this));
 
 if (false) {
@@ -602,6 +629,7 @@ if (false) {
 AppSceneContext.prototype.getPackageBaseFilePath = function() {
   var fullPath;
   var pkgPart;
+  var platform = (isDuk)?uv.platform:process.platform;
   if (this.basePackageUri.substring(0, 4) !== "http") {
     if (this.basePackageUri.charAt(0) == '.') {
       pkgPart = this.basePackageUri.substring(1);
@@ -610,6 +638,9 @@ AppSceneContext.prototype.getPackageBaseFilePath = function() {
     }
     if (pkgPart.charAt(0) == '/') {
       fullPath = this.defaultBaseUri + pkgPart;
+    } else if(platform === 'win32' && pkgPart.charAt(1) === ':' ) {
+      // Windows OS and using drive name, take the pkg part as the file path
+      fullPath = pkgPart;   
     } else {
       fullPath = this.defaultBaseUri + "/" + pkgPart;
     }
@@ -703,6 +734,12 @@ if (isDuk) {
                            console.log("Not permitted to use the module " + filePath);
                            reject("include failed due to module not permitted");
                            return;
+                           } 
+                           else if (filePath === 'ws') {
+                            console.log("creating websocket instance")
+                            modData = websocket;
+                            onImportComplete([modData, origFilePath]);
+                            return;
                            } else if (filePath === 'http' || filePath === 'https') {
                            //console.log("Not permitted to use the module " + filePath);
                            //reject("include failed due to module not permitted");
@@ -994,6 +1031,9 @@ AppSceneContext.prototype.callModuleReadyListeners = function(moduleName, module
     if( listeners !== null && listeners.length !== 0 ) {
       for(var k = 0; k < listeners.length; ++k) {
         listeners[k](moduleExports);
+      }
+      for(var k = 0; k < listeners.length; ++k) {
+        listeners.pop();
       }
     }
     this.scriptMap[moduleName].readyListeners = null;

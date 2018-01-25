@@ -107,20 +107,6 @@ class rtNodeContext;
 
 typedef rtRef<rtNodeContext> rtNodeContextRef;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct args_
-{
-  int    argc;
-  char **argv;
-
-  args_() { argc = 0; argv = NULL; }
-  args_(int n = 0, char** a = NULL) : argc(n), argv(a) {}
-}
-args_t;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 class rtNodeContext: rtIScriptContext  // V8
 {
 public:
@@ -219,6 +205,7 @@ public:
   v8::Platform   *getPlatform() { return mPlatform; };
 
   rtError collectGarbage();
+  void* getParameter(rtString param);
 private:
 #if 0
 #ifdef ENABLE_DEBUG_MODE
@@ -245,8 +232,11 @@ private:
 #ifndef RUNINMAIN
   bool mNeedsToEnd;
 #endif
-
+#ifdef ENABLE_DEBUG_MODE
   void init2();
+#else
+  void init2(int argc, char** argv);
+#endif
 
   int mRefCount;  
 };
@@ -296,7 +286,6 @@ static const char** exec_argv;
 static rtAtomic sNextId = 100;
 
 
-args_t *s_gArgs;
 
 #ifdef RUNINMAIN
 //extern rtNode script;
@@ -575,7 +564,8 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
     mContextId = GetContextId(clone_local);
 
     mContext.Reset(mIsolate, clone_local); // local to persistent
-
+    // commenting below code as templates are isolcate specific	  
+/*
     Context::Scope context_scope(clone_local);
 
     Handle<Object> clone_global = clone_local->Global();
@@ -585,6 +575,7 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
     rtFunctionWrapper::exportPrototype(mIsolate, clone_global);
 
     mRtWrappers.Reset(mIsolate, clone_global);
+*/
 }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -925,7 +916,7 @@ rtScriptNode::rtScriptNode():mRefCount(0)
   mTestGc = false;
   mIsolate = NULL;
   mPlatform = NULL;
-  init2();
+  init();
 }
 
 rtScriptNode::rtScriptNode(bool initialize):mRefCount(0)
@@ -943,7 +934,7 @@ rtScriptNode::rtScriptNode(bool initialize):mRefCount(0)
   mPlatform = NULL;
   if (initialize)
   {
-    init2();
+    init();
   }
 }
 
@@ -1085,6 +1076,13 @@ rtError rtScriptNode::collectGarbage()
   return RT_OK;
 }
 
+void* rtScriptNode::getParameter(rtString param)
+{
+  if (param.compare("isolate") == 0)
+    return getIsolate();
+  return NULL;
+}
+
 #if 0
 rtNode::forceGC()
 {
@@ -1198,13 +1196,14 @@ rtError rtScriptNode::term()
 {
   rtLogInfo(__FUNCTION__);
   nodeTerminated = true;
+#if 0
 #ifdef USE_CONTEXTIFY_CLONES
   if( mRefContext.getPtr() )
   {
     mRefContext->Release();
   }
 #endif
-
+#endif
   if(node_isolate)
   {
 // JRJRJR  Causing crash???  ask Hugh

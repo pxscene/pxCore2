@@ -233,7 +233,6 @@ public:
   virtual rtError setFont(rtObjectRef o);
   
   void renderText(bool render);
-  void determineMeasurementBounds();
 
   virtual void resourceReady(rtString readyResolution);
   virtual void sendPromise();

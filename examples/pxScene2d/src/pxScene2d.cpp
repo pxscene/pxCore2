@@ -131,6 +131,7 @@ void stopProfiling()
 }
 #endif //ENABLE_VALGRIND
 int pxObjectCount = 0;
+bool gApplicationIsClosing = false;
 
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
@@ -328,10 +329,6 @@ char *base64_encode(const unsigned char *data,
     for (int i = 0; i < mod_table[input_length % 3]; i++)
         encoded_data[*output_length - 1 - i] = '=';
 
-#ifdef PX_PLATFORM_MAC
-    encoded_data[*output_length] = '\0';
-#endif //PX_PLATFORM_MAC
-
     return encoded_data;
 }
 
@@ -451,7 +448,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
     mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
 #ifdef PX_DIRTY_RECTANGLES
-    , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
+    , mIsDirty(true), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect()
 #endif //PX_DIRTY_RECTANGLES
     ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false)
   {
@@ -510,14 +507,19 @@ void pxObject::dispose()
   {
     //rtLogInfo(__FUNCTION__);
     mIsDisposed = true;
+    rtValue nullValue;
     vector<animation>::iterator it = mAnimations.begin();
     for(;it != mAnimations.end();it++)
     {
       if ((*it).promise)
-        (*it).promise.send("reject",this);
+      {
+	if(!gApplicationIsClosing)	  
+          (*it).promise.send("reject",this);
+	else
+	  (*it).promise.send("reject",nullValue);
+      }
     }
 
-    rtValue nullValue;
     mReady.send("reject",nullValue);
 
     mAnimations.clear();
@@ -581,7 +583,6 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
                               uint32_t interp, uint32_t options,
                               int32_t count, rtObjectRef& promise)
 {
-
   if (!props) return RT_FAIL;
 
   // TODO JR... not sure that we should do an early out here... thinking
@@ -656,6 +657,10 @@ void pxObject::setParent(rtRef<pxObject>& parent)
     mParent = parent;
     if (parent)
       parent->mChildren.push_back(this);
+#ifdef PX_DIRTY_RECTANGLES
+    mIsDirty = true;
+    mScreenCoordinates = getBoundingRectInScreenCoordinates();
+#endif //PX_DIRTY_RECTANGLES
   }
 }
 
@@ -1076,6 +1081,8 @@ void pxObject::update(double t)
     mLastRenderMatrix = context.getMatrix();
     pxRect dirtyRect = getBoundingRectInScreenCoordinates();
     mScene->invalidateRect(&dirtyRect);
+    dirtyRect.unionRect(mScreenCoordinates);
+    setDirtyRect(&dirtyRect);
     mIsDirty = false;
   }
   #endif //PX_DIRTY_RECTANGLES
@@ -1100,6 +1107,18 @@ EXITSCENELOCK()
 }
 
 #ifdef PX_DIRTY_RECTANGLES
+void pxObject::setDirtyRect(pxRect *r)
+{
+  if (r != NULL)
+  {
+    mDirtyRect.unionRect(*r);
+    if (mParent != NULL)
+    {
+      mParent->setDirtyRect(&mDirtyRect);
+    }
+  }
+}
+
 pxRect pxObject::getBoundingRectInScreenCoordinates()
 {
   int w = getOnscreenWidth();
@@ -1386,6 +1405,9 @@ void pxObject::drawInternal(bool maskPass)
     mRepaint = false;
   }
   // ---------------------------------------------------------------------------------------------------
+#ifdef PX_DIRTY_RECTANGLES
+  mDirtyRect.setEmpty();
+#endif //PX_DIRTY_RECTANGLES
 }
 
 
@@ -1485,12 +1507,19 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   float w = getOnscreenWidth();
   float h = getOnscreenHeight();
 
+#ifdef PX_DIRTY_RECTANGLES
+  bool fullFboRepaint = false;
+#endif //PX_DIRTY_RECTANGLES
+
   //rtLogInfo("createSnapshot  w=%f h=%f\n", w, h);
   if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
   {
     clearSnapshot(fbo);
     //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
     fbo = context.createFramebuffer(floor(w), floor(h), antiAliasing);
+#ifdef PX_DIRTY_RECTANGLES
+    fullFboRepaint = true;
+#endif //PX_DIRTY_RECTANGLES
   }
   else
   {
@@ -1500,7 +1529,23 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (mRepaint && context.setFramebuffer(fbo) == PX_OK)
   {
+#ifdef PX_DIRTY_RECTANGLES
+    int clearX = mDirtyRect.left();
+    int clearY = mDirtyRect.top();
+    int clearWidth = mDirtyRect.right() - clearX+1;
+    int clearHeight = mDirtyRect.bottom() - clearY+1;
+
+    if (fullFboRepaint)
+    {
+      clearX = 0;
+      clearY = 0;
+      clearWidth = w;
+      clearHeight = h;
+    }
+    context.clear(clearX, clearY, clearWidth, clearHeight);
+#else
     context.clear(w, h);
+#endif //PX_DIRTY_RECTANGLES
     draw();
 
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -1815,13 +1860,14 @@ void pxScene2d::init()
 
 rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
+#ifdef ENABLE_PERMISSIONS_CHECK
   rtString url = p.get<rtString>("url");
-  bool allowed;
-  if (allows(url, allowed) == RT_OK && !allowed)
+  if (!mPermissions.allows(url.cString(), rtPermissions::DEFAULT))
   {
     rtLogError("url '%s' is not allowed", url.cString());
     return RT_ERROR_NOT_ALLOWED;
   }
+#endif
 
   rtError e = RT_OK;
   rtString t = p.get<rtString>("t");
@@ -2020,7 +2066,7 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::logDebugMetrics()
 {
 #ifdef ENABLE_DEBUG_METRICS 
-    script.garbageCollect();
+    script.collectGarbage();
     rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifdef PX_PLATFORM_MAC
       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
@@ -2052,6 +2098,15 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 {
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtString cmd = p.get<rtString>("cmd");
+  if (!mPermissions.allows(cmd.cString(), rtPermissions::WAYLAND))
+  {
+    rtLogError("wayland cmd '%s' is not allowed", cmd.cString());
+    return RT_ERROR_NOT_ALLOWED;
+  }
+#endif
+
 #if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
   UNUSED_PARAM(p);
   UNUSED_PARAM(o);
@@ -2886,12 +2941,13 @@ rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
 
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
-  bool allowed;
-  if (allows("feature://screenshot", allowed) == RT_OK && !allowed)
+#ifdef ENABLE_PERMISSIONS_CHECK
+  if (!mPermissions.allows("screenshot", rtPermissions::FEATURE))
   {
     rtLogError("screenshot is not allowed");
     return RT_ERROR_NOT_ALLOWED;
   }
+#endif
 
   // Is this a type we support?
   if (type == "image/png;base64")
@@ -2922,7 +2978,8 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
       {
         // We return a data Url string containing the image data
         pngData = "data:image/png;base64,";
-        pngData.append(d);
+        rtString base64str(d, l); // NULL-terminated
+        pngData.append(base64str.cString());
         free(d);
         return RT_OK;
       }
@@ -2957,14 +3014,13 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 
 rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 {
-  rtString serviceUrl("serviceManager://");
-  serviceUrl.append(name.cString());
-  bool allowed;
-  if (allows(serviceUrl, allowed) == RT_OK && !allowed)
+#ifdef ENABLE_PERMISSIONS_CHECK
+  if (!mPermissions.allows(name.cString(), rtPermissions::SERVICE))
   {
-    rtLogError("url '%s' is not allowed", serviceUrl.cString());
+    rtLogError("service '%s' is not allowed", name.cString());
     return RT_ERROR_NOT_ALLOWED;
   }
+#endif
 
   rtLogInfo("trying to get service for name: %s", name.cString());
 #ifdef PX_SERVICE_MANAGER
@@ -3080,6 +3136,7 @@ void pxViewContainer::invalidateRect(pxRect* r)
 #ifdef PX_DIRTY_RECTANGLES
     pxRect screenRect = convertToScreenCoordinates(r);
     mScene->invalidateRect(&screenRect);
+    setDirtyRect(r);
 #else
     mScene->invalidateRect(NULL);
     UNUSED_PARAM(r);
@@ -3129,7 +3186,7 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
 rtError pxScene2d::allows(const rtString& url, bool& o) const
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  return mPermissions.allows(url.cString(), o);
+  return mPermissions.allows(url.cString(), rtPermissions::DEFAULT, o);
 #else
   UNUSED_PARAM(url);
   o = true; // default
