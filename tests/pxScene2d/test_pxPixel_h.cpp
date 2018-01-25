@@ -30,7 +30,7 @@ class pxPixelTest : public testing::Test
         uint32_t u = 2;
         pxPixel p = pxPixel(u);
 	EXPECT_TRUE(2 == p.u);
-        p = pxPixel(&p); 
+        p = pxPixel((const pxPixel&)p); 
     }
     void pxPixelParam4()
     {
