@@ -8,10 +8,16 @@ NODEINC=\
         -I$(NODEPATH)/deps/debugger-agent/include \
         -I$(NODEPATH)/deps/v8/include \
         -I$(NODEPATH)/deps/cares/include 
-INCLUDE_PATHS=$(NODEINC) -I.
-EXTRA_DEFINES=-DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN
+DUKPATH=$(EXTDIR)/dukluv/
+DUKINC=\
+        -I$(DUKPATH)/lib/duktape/src \
+        -I$(DUKPATH)/lib/uv/include \
+        -I$(DUKPATH)/src
 
-CFLAGS= -O3 -DENABLE_DFB -DENABLE_DFB_GENERIC -fPIC -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DENABLE_RT_NODE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DPX_PLATFORM_GENERIC_DFB $(EXTRA_DEFINES)
+INCLUDE_PATHS=$(NODEINC) $(DUKINC) -I.
+EXTRA_DEFINES=-DRTSCRIPT_SUPPORT_DUKTAPE -DRTSCRIPT_SUPPORT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN
+
+CFLAGS= -O3 -DENABLE_DFB -DENABLE_DFB_GENERIC -fPIC -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DPX_PLATFORM_GENERIC_DFB $(EXTRA_DEFINES)
 CXXFLAGS=  $(CFLAGS) $(INCLUDE_PATHS) -std=c++0x
 
 OUTDIR=../build/dfb
@@ -29,22 +35,20 @@ rtcore: $(OUTDIR)/librtCore_s.a $(OUTDIR)/librtCore.so
 
 $(OUTDIR)/librtCore_s.a: 
 	rm *.o
-$(OUTDIR)/librtCore_s.a: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o
+$(OUTDIR)/librtCore_s.a: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o rtPromise.o
 	mkdir -p $(OUTDIR)
-	$(AR) rc $(OUTDIR)/librtCore_s.a utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o
+	$(AR) rc $(OUTDIR)/librtCore_s.a utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o rtPromise.o
 
 $(OUTDIR)/librtCore.so: 
 	rm *.o
-$(OUTDIR)/librtCore.so: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o
+$(OUTDIR)/librtCore.so: utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o rtPromise.o
 	mkdir -p $(OUTDIR)
-	$(CXX) utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o -pthread -ldl -shared -o $(OUTDIR)/librtCore.so
+	$(CXX) utf8.o rtString.o rtLog.o rtValue.o rtObject.o rtError.o ioapi_mem.o rtPromise.o -pthread -ldl -shared -o $(OUTDIR)/librtCore.so
 
-$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxTimerNative.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o
+$(OUTDIR)/libpxCore.a: pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxTimerNative.o pxClipboardNative.o rtFile.o rtLibrary.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o rtScript.o rtScriptDuk.o rtFunctionWrapperDuk.o rtObjectWrapperDuk.o rtWrapperUtilsDuk.o rtJsModulesDuk.o rtScriptNode.cpp jsCallbackNode.o rtFunctionWrapperNode.o rtObjectWrapperNode.o rtWrapperUtilsNode.o
+
 	mkdir -p $(OUTDIR)    
-	ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxTimerNative.o pxClipboardNative.o jsCallback.o rtFunctionWrapper.o rtObjectWrapper.o rtWrapperUtils.o rtFile.o rtLibrary.o rtNode.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o
-
-pxViewWindow.o: pxViewWindow.cpp
-	$(CXX) -o pxViewWindow.o -Wall $(INCDIR) $(CXXFLAGS) -c pxViewWindow.cpp
+	ar rc $(OUTDIR)/libpxCore.a pxOffscreen.o pxWindowUtil.o pxBufferNativeDfb.o pxOffscreenNativeDfb.o pxEventLoopNative.o pxTimerNative.o pxClipboardNative.o rtFile.o rtLibrary.o rtPathUtils.o rtTest.o rtThreadPool.o rtThreadQueue.o rtThreadTask.o rtMutexNative.o rtThreadPoolNative.o rtUrlUtils.o rtZip.o unzip.o ioapi.o pxInterpolators.o pxMatrix4T.o pxUtil.o rtFileDownloader.o rtFileCache.o rtHttpCache.o rtScript.o rtScriptDuk.o rtFunctionWrapperDuk.o rtObjectWrapperDuk.o rtWrapperUtilsDuk.o rtJsModulesDuk.o rtScriptNode.cpp jsCallbackNode.o rtFunctionWrapperNode.o rtObjectWrapperNode.o rtWrapperUtilsNode.o
 
 pxOffscreen.o: pxOffscreen.cpp
 	$(CXX) -o pxOffscreen.o -Wall $(INCDIR) $(CXXFLAGS) -c pxOffscreen.cpp
@@ -70,15 +74,28 @@ pxClipboardNative.o: x11/pxClipboardNative.cpp
 pxWindowUtil.o: pxWindowUtil.cpp
 	$(CXX) -o pxWindowUtil.o -Wall $(INCDIR) $(CXXFLAGS) -c pxWindowUtil.cpp
 
+rtScriptNode.o: rtScriptNode/rtScriptNode.cpp
+	$(CXX) -o rtScriptNode.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptNode/rtScriptNode.cpp
+jsCallbackNode.o: rtScriptNode/jsCallback.cpp
+	$(CXX) -o jsCallbackNode.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptNode/jsCallback.cpp
+rtFunctionWrapperNode.o: rtScriptNode/rtFunctionWrapper.cpp
+	$(CXX) -o rtFunctionWrapperNode.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptNode/rtFunctionWrapper.cpp
+rtObjectWrapperNode.o: rtScriptNode/rtObjectWrapper.cpp
+	$(CXX) -o rtObjectWrapperNode.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptNode/rtObjectWrapper.cpp
+rtWrapperUtilsNode.o: rtScriptNode/rtWrapperUtils.cpp
+	$(CXX) -o rtWrapperUtilsNode.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptNode/rtWrapperUtils.cpp
 
-jsCallback.o: jsbindings/jsCallback.cpp
-	$(CXX) -o jsCallback.o -Wall $(INCDIR) $(CXXFLAGS) -c jsbindings/jsCallback.cpp
-rtFunctionWrapper.o: jsbindings/rtFunctionWrapper.cpp
-	$(CXX) -o rtFunctionWrapper.o -Wall $(INCDIR) $(CXXFLAGS) -c jsbindings/rtFunctionWrapper.cpp
-rtObjectWrapper.o: jsbindings/rtObjectWrapper.cpp
-	$(CXX) -o rtObjectWrapper.o -Wall $(INCDIR) $(CXXFLAGS) -c jsbindings/rtObjectWrapper.cpp
-rtWrapperUtils.o: jsbindings/rtWrapperUtils.cpp
-	$(CXX) -o rtWrapperUtils.o -Wall $(INCDIR) $(CXXFLAGS) -c jsbindings/rtWrapperUtils.cpp
+rtScriptDuk.o: rtScriptDuk/rtScriptDuk.cpp
+	$(CXX) -o rtScriptDuk.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptDuk/rtScriptDuk.cpp
+rtJsModulesDuk.o: rtScriptDuk/rtJsModulesDuk.cpp
+	$(CXX) -o rtJsModulesDuk.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptDuk/rtJsModules.cpp
+rtFunctionWrapperDuk.o: rtScriptDuk/rtFunctionWrapper.cpp
+	$(CXX) -o rtFunctionWrapperDuk.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptDuk/rtFunctionWrapper.cpp
+rtObjectWrapperDuk.o: rtScriptDuk/rtObjectWrapper.cpp
+	$(CXX) -o rtObjectWrapperDuk.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptDuk/rtObjectWrapper.cpp
+rtWrapperUtilsNodeDuk.o: rtScriptDuk/rtWrapperUtils.cpp
+	$(CXX) -o rtWrapperUtilsDuk.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptDuk/rtWrapperUtils.cpp
+
 rtError.o: rtError.cpp
 	$(CXX) -o rtError.o -Wall $(INCDIR) $(CXXFLAGS) -c rtError.cpp
 rtFile.o: rtFile.cpp
@@ -87,8 +104,8 @@ rtLibrary.o: rtLibrary.cpp
 	$(CXX) -o rtLibrary.o -Wall $(INCDIR) $(CXXFLAGS) -c rtLibrary.cpp
 rtLog.o: rtLog.cpp
 	$(CXX) -o rtLog.o -Wall $(INCDIR) $(CXXFLAGS) -c rtLog.cpp
-rtNode.o: rtNode.cpp
-	$(CXX) -o rtNode.o -Wall $(INCDIR) $(CXXFLAGS) -c rtNode.cpp
+rtScript.o: rtScript.cpp
+	$(CXX) -o rtScript.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScript.cpp
 rtObject.o: rtObject.cpp
 	$(CXX) -o rtObject.o -Wall $(INCDIR) $(CXXFLAGS) -c rtObject.cpp
 rtPathUtils.o: rtPathUtils.cpp
@@ -121,6 +138,8 @@ ioapi_mem.o: ioapi_mem.c
 	$(CC) -o ioapi_mem.o -Wall $(INCDIR) $(CFLAGS) -c ioapi_mem.c
 ioapi.o: ioapi.c
 	$(CC) -o ioapi.o -Wall $(INCDIR) $(CFLAGS) -c ioapi.c
+rtPromise.o: rtPromise.cpp
+	$(CXX) -o rtPromise.o -Wall $(INCDIR) $(CXXFLAGS) -c rtPromise.cpp
 pxInterpolators.o: pxInterpolators.cpp
 	$(CXX) -o pxInterpolators.o -Wall $(INCDIR) $(CXXFLAGS) -c pxInterpolators.cpp
 pxMatrix4T.o: pxMatrix4T.cpp
