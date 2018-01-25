@@ -43,7 +43,7 @@ static duk_ret_t dukFunctionStub(duk_context *ctx)
 
   rtValue result;
   func->Send(numArgs, args, &result);
-  if (!result.isEmpty()) {
+  if (result.getType() != 0) {
     rt2duk(ctx, result);
     return 1;
   }

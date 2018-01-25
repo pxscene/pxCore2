@@ -48,6 +48,10 @@ rtError rtCreateInflateRawBinding(int numArgs, const rtValue* args, rtValue* res
 rtError rtCreateDeflateRawBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
 rtError rtCreateCryptoHashBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
 
+rtError rtProxyHasFuncBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
+rtError rtProxyGetFuncBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
+rtError rtProxySetFuncBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
+rtError rtProxyDeleteFuncBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
 
 static void rtWebSocketManagerProc(void *data);
 
@@ -58,6 +62,11 @@ void rtSetupJsModuleBindings(duk_context *ctx)
   rtRegisterJsBinding(ctx, "_createInflateRaw", &rtCreateInflateRawBinding);
   rtRegisterJsBinding(ctx, "_createDeflateRaw", &rtCreateDeflateRawBinding);
   rtRegisterJsBinding(ctx, "_createCryptoHash", &rtCreateCryptoHashBinding);
+
+  rtRegisterJsBinding(ctx, "_hasProxyFunc", &rtProxyHasFuncBinding);
+  rtRegisterJsBinding(ctx, "_getProxyFunc", &rtProxyGetFuncBinding);
+  rtRegisterJsBinding(ctx, "_setProxyFunc", &rtProxySetFuncBinding);
+  rtRegisterJsBinding(ctx, "_deleteProxyFunc", &rtProxyDeleteFuncBinding);
 
   rtThreadTask* task = new rtThreadTask(rtWebSocketManagerProc, NULL, "");
   rtThreadPool* mainThreadPool = rtThreadPool::globalInstance();
@@ -1161,4 +1170,91 @@ rtError rtCreateCryptoHashBinding(int numArgs, const rtValue* args, rtValue* res
    *result = res;
 
    return RT_OK;
+}
+
+rtError rtProxyHasFuncBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+{
+   if (numArgs != 2) {
+       return RT_ERROR_INVALID_ARG;
+   }
+
+   bool res = false;
+
+   if (args[0].getType() == RT_objectType) {
+       rtObjectRef obj = args[0].toObject();
+       rtIObject* objPtr = obj.getPtr();
+       rtValue val;
+       if (args[1].getType() == RT_stringType) {
+           rtString key;
+           args[1].getString(key);
+           res = objPtr->Get(key.cString(), &val) != RT_PROP_NOT_FOUND;
+       } else {
+           int32_t key;
+           args[1].getInt32(key);
+           res = objPtr->Get(key, &val) != RT_PROP_NOT_FOUND;
+       }
+   }
+
+   *result = rtValue(res);
+   return RT_OK;
+}
+
+rtError rtProxyGetFuncBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+{
+   if (numArgs != 2) {
+       return RT_ERROR_INVALID_ARG;
+   }
+
+   rtError err = RT_PROP_NOT_FOUND;
+   rtValue val;
+
+   if (args[0].getType() == RT_objectType) {
+       rtObjectRef obj = args[0].toObject();
+       rtIObject* objPtr = obj.getPtr();
+       if (args[1].getType() == RT_stringType) {
+           rtString key;
+           args[1].getString(key);
+           err = objPtr->Get(key.cString(), &val);
+       } else {
+           int32_t key;
+           args[1].getInt32(key);
+           err = objPtr->Get(key, &val);
+       }
+   }
+
+   *result = val;
+   return err;
+}
+
+rtError rtProxySetFuncBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+{
+   if (numArgs != 3) {
+       return RT_ERROR_INVALID_ARG;
+   }
+
+   rtError err = RT_PROP_NOT_FOUND;
+
+   if (args[0].getType() == RT_objectType) {
+       rtObjectRef obj = args[0].toObject();
+       rtIObject* objPtr = obj.getPtr();
+       if (args[1].getType() == RT_stringType) {
+           rtString key;
+           args[1].getString(key);
+           err = objPtr->Set(key.cString(), &args[2]);
+       } else {
+           int32_t key;
+           args[1].getInt32(key);
+           err = objPtr->Set(key, &args[2]);
+       }
+   }
+
+   *result = rtValue(err != RT_PROP_NOT_FOUND);
+
+   return err;
+}
+
+
+rtError rtProxyDeleteFuncBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+{
+    return RT_OK;
 }

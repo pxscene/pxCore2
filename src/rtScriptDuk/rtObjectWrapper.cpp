@@ -324,16 +324,18 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
     rtValue length;
     if (ref && ref->Get("length", &length) != RT_PROP_NOT_FOUND)
     {
-      duk_idx_t arr_idx = duk_push_array(ctx);
-      int len = length.toInt32();
-      for (int i = 0; i < len; ++i) {
-        rtValue item;
-        rtError err = ref->Get(i, &item);
-        assert(err == RT_OK);
-        rt2duk(ctx, item);
-        duk_bool_t rc = duk_put_prop_index(ctx, arr_idx, i);
-        assert(rc);
+      duk_bool_t rt = duk_get_global_string(ctx, "constructProxy");
+      // [func] 
+      assert(rt);
+
+      wrapObjToDuk(ctx, ref);
+    
+      if (duk_pcall(ctx, 1) != 0) {
+        duv_dump_error(ctx, -1);
+        assert(0);
       }
+    
+      assert(duk_is_object(ctx, -1));
 
       return;
     }
@@ -346,30 +348,20 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
     rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
     if (err == RT_OK && strcmp(desc.cString(), "rtMapObject") == 0)
     {
-      rtObjectRef keys = ref.get<rtObjectRef>("allKeys");
-      if (keys)
-      {
-        uint32_t len = keys.get<uint32_t>("length");
+      duk_bool_t rt = duk_get_global_string(ctx, "constructProxy");
+      // [func] 
+      assert(rt);
 
-        duk_idx_t obj_idx = duk_push_object(ctx);
-
-        for (uint32_t i = 0; i < len; ++i)
-        {
-          rtString key = keys.get<rtString>(i);
-
-          rtValue  val;
-          ref.get<rtValue>((const char *)key, val);
-
-          rt2duk(ctx, val);
-          duk_bool_t rc = duk_put_prop_string(ctx, -2, (const char *)key);
-          assert(rc);
-
-          // [obj]
-        }
-
-        // [obj]
-        return;
+      wrapObjToDuk(ctx, ref);
+    
+      if (duk_pcall(ctx, 1) != 0) {
+        duv_dump_error(ctx, -1);
+        assert(0);
       }
+    
+      assert(duk_is_object(ctx, -1));
+
+      return;
     }
   }
 
