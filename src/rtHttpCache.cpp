@@ -222,7 +222,7 @@ rtData& rtHttpCacheData::contentsData()
   return mData;
 }
 
-rtError rtHttpCacheData::data(rtData& data)
+rtError rtHttpCacheData::data(rtData& data, bool readCachedDataInChunks)
 {
   if (NULL == fp)
     return RT_ERROR;
@@ -258,10 +258,20 @@ rtError rtHttpCacheData::data(rtData& data)
     }
   }
 
+  if(readCachedDataInChunks)
+  {
+    char invalidData[8] = "Invalid";
+    mData.init((uint8_t*)invalidData, sizeof(invalidData));
+    data.init(mData.data(), mData.length());
+  }
+  else
+  {
   if (false == readFileData())
     return RT_ERROR;
 
   data.init(mData.data(),mData.length());
+  }
+
   if (true == revalidateOnlyHeaders)
   {
     mUpdated = true; //headers  modified , so rewriting the cache with new header data
@@ -298,6 +308,11 @@ bool rtHttpCacheData::isUpdated()
 void rtHttpCacheData::setFilePointer(FILE* openedDescriptor)
 {
   fp = openedDescriptor;
+}
+
+FILE* rtHttpCacheData::filePointer(void)
+{
+  return fp;
 }
 
 void rtHttpCacheData::setExpirationDate()

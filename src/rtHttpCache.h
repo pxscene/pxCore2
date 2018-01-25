@@ -57,7 +57,7 @@ class rtHttpCacheData
     rtError attributes(std::map<rtString, rtString>& cacheAttributes);
 
     /* returns the file data in the cache.  This is a blocking call and will check the network for updated data if etag is used */
-    rtError data(rtData& data);
+    rtError data(rtData& data, bool readCachedDataInChunks);
 
     /* sets the image file data to be stored in cache */
     void setData(rtData& cacheData);
@@ -78,6 +78,8 @@ class rtHttpCacheData
     rtData& contentsData();
 
     void setFilePointer(FILE* fp);
+
+    FILE* filePointer(void);
 
   private:
     /* populates the map with header attribute and value */
