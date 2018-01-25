@@ -30,7 +30,7 @@
 
 ## macOS Setup 
 
->Install Xcode and CMake
+>Install Xcode, CMake and quilt
 >   * Download the latest version of Xcode from https://developer.apple.com/xcode/download/
 >   * Download the latest cmake from https://cmake.org/download/
 >   * Install cmake and setup the following symbolic links in /usr/local/bin
@@ -42,7 +42,7 @@
     ln -s /Applications/CMake.app/Contents/bin/cpack /usr/local/bin/cpack
     ln -s /Applications/CMake.app/Contents/bin/ctest /usr/local/bin/ctest
     ~~~~
-
+>   * Install quilt
 
 
 ## Windows Setup

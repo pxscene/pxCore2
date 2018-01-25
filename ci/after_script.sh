@@ -4,12 +4,12 @@ checkError()
 {
   if [ "$1" -ne 0 ]
   then
-    echo "*********************************************************************";
-    echo "*********************SCRIPT FAIL DETAILS*****************************";
-    echo "CI failure reason: $2"
-    echo "Cause: $3"
-    echo "Reproduction/How to fix: $4"
-    echo "*********************************************************************";
+    printf "\n\n*********************************************************************";
+    printf "\n********************* SCRIPT FAIL DETAILS *****************************";
+    printf "\nCI failure reason: $2"
+    printf "\nCause: $3"
+    printf "\nReproduction/How to fix: $4"
+    printf "\n*********************************************************************\n\n";
     exit 1
   fi
 }

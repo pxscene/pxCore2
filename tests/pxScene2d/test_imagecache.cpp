@@ -1078,6 +1078,42 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       EXPECT_TRUE (req.isCurlDefaultTimeoutSet() == true);
     }
  
+    // download progress test begins
+    void setDownloadProgressCallbackFunctionTest()
+    {
+      rtFileCache::instance()->clearCache();
+      rtFileDownloadRequest request("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
+      request.setDownloadProgressCallbackFunction(rtFileDownloaderTest::downloadProgressCallback, this);
+      EXPECT_TRUE (request.mDownloadProgressCallbackFunction == &rtFileDownloaderTest::downloadProgressCallback);
+      EXPECT_TRUE (request.mDownloadProgressUserPtr == this);
+    }
+ 
+    void executeDownloadProgressCallbackPresentTest()
+    {
+      rtFileCache::instance()->clearCache();
+      rtFileDownloadRequest request("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
+      request.setDownloadProgressCallbackFunction(rtFileDownloaderTest::downloadProgressCallback, this);
+      EXPECT_TRUE (true == request.executeDownloadProgressCallback(NULL, 0, 0));
+    }
+ 
+    void executeDownloadProgressCallbackAbsentTest()
+    {
+      rtFileCache::instance()->clearCache();
+      rtFileDownloadRequest request("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
+      EXPECT_TRUE (false == request.executeDownloadProgressCallback(NULL, 0, 0));
+    }
+ 
+    void setDataIsCachedTest()
+    {
+      rtFileCache::instance()->clearCache();
+      rtFileDownloadRequest req("http://fileserver/notfound",NULL);
+      req.setDataIsCached(false);
+      EXPECT_TRUE (req.isDataCached() == false);
+      req.setDataIsCached(true);
+      EXPECT_TRUE (req.isDataCached() == true);
+    }
+    // download progress test ends
+    
     static void downloadCallback(rtFileDownloadRequest* fileDownloadRequest)
     {
       rtHttpCacheData cachedData;
@@ -1100,6 +1136,15 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
         defaultCallbackExecuted = true;
         sem_post(callbackData->testSem);
       }
+    }
+
+    static size_t downloadProgressCallback(void *ptr, size_t size, size_t nmemb, void *userData)
+    {
+      UNUSED_PARAM (ptr);
+      UNUSED_PARAM (size);
+      UNUSED_PARAM (nmemb);
+      UNUSED_PARAM (userData);
+      return 0;
     }
 
   private:
@@ -1140,5 +1185,9 @@ TEST_F(rtFileDownloaderTest, checkCacheTests)
   setHTTPFailOnErrorTest();
   setHTTPErrorTest();
   setCurlDefaultTimeoutTest();
+  setDownloadProgressCallbackFunctionTest();
+  executeDownloadProgressCallbackPresentTest();
+  executeDownloadProgressCallbackAbsentTest();
+  setDataIsCachedTest();
   clearFileCacheTest();
 }
