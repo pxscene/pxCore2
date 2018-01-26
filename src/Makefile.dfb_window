@@ -85,13 +85,13 @@ rtWrapperUtilsNode.o: rtScriptNode/rtWrapperUtils.cpp
 
 rtScriptDuk.o: rtScriptDuk/rtScriptDuk.cpp
 	$(CXX) -o rtScriptDuk.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptDuk/rtScriptDuk.cpp
-rtJsModulesDuk.o: rtScriptDuk/rtJsModulesDuk.cpp
+rtJsModulesDuk.o: rtScriptDuk/rtJsModules.cpp
 	$(CXX) -o rtJsModulesDuk.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptDuk/rtJsModules.cpp
 rtFunctionWrapperDuk.o: rtScriptDuk/rtFunctionWrapper.cpp
 	$(CXX) -o rtFunctionWrapperDuk.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptDuk/rtFunctionWrapper.cpp
 rtObjectWrapperDuk.o: rtScriptDuk/rtObjectWrapper.cpp
 	$(CXX) -o rtObjectWrapperDuk.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptDuk/rtObjectWrapper.cpp
-rtWrapperUtilsNodeDuk.o: rtScriptDuk/rtWrapperUtils.cpp
+rtWrapperUtilsDuk.o: rtScriptDuk/rtWrapperUtils.cpp
 	$(CXX) -o rtWrapperUtilsDuk.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptDuk/rtWrapperUtils.cpp
 
 rtError.o: rtError.cpp

@@ -202,6 +202,8 @@ LDZLIB   = -L$(EXTDIR)/zlib -lz
 LDNODE   = -L$(NODEDIR)/out/Release/obj.target
 LDNODEV8 = -L$(NODEDIR)/out/Release -L$(NODEDIR)/out/Release/obj.target/deps/v8/tools/gyp
 
+LDDUK   = -Wl,--whole-archive -L$(EXTDIR)/dukluv/build/ $(EXTDIR)/dukluv/build/libdschema.a $(EXTDIR)/dukluv/build/libduv.a $(EXTDIR)/dukluv/build/libuv.a $(EXTDIR)/dukluv/build/libduktape.a -Wl,--no-whole-archive
+
 LDLIBJPEGTURBO = -L$(EXTDIR)/libjpeg-turbo/.libs/ -lturbojpeg
 
 #LDNODE   = -L$(NODEDIR)/out/Debug/obj.target
@@ -210,7 +212,7 @@ LDLIBJPEGTURBO = -L$(EXTDIR)/libjpeg-turbo/.libs/ -lturbojpeg
 LDWESTEROS = -L$(EXTDIR)/westeros/external/install/lib -lwesteros_compositor
 
 
-LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDNODE) $(LDNODEV8) $(LDZLIB)
+LDEXT   = $(LDPNG) $(LDJPG) $(LDFT) $(LDCURL) $(LDNODE) $(LDNODEV8) $(LDZLIB) $(LDDUK)
 ifeq ($(HAVE_WESTEROS),1)
 LDEXT += $(LDWESTEROS)
 endif
@@ -493,7 +495,7 @@ libpxscene-dfbwindow:
 	rm -rf $(OBJDIR)
 libpxscene-dfbwindow: CFLAGS_FULL = $(CFLAGS)
 libpxscene-dfbwindow: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DENABLE_DFB -DPX_PLATFORM_DFB_NON_X11 -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES) -std=c++0x
-libpxscene-dfbwindow: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -L../../../../workRNG150/rootfs/usr/local/lib/ -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -L./ $(PLATFORM_LIBS) -lpng15 -ldirectfb -ldirect -lfusion -lz -lssl -lcrypto -shared -o libpxscene.so.1.0
+libpxscene-dfbwindow: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -L../../../../workRNG150/rootfs/usr/local/lib/ -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDDUK) $(LDNODE) $(LDNODEV8) -L./ $(PLATFORM_LIBS) -lpng15 -ldirectfb -ldirect -lfusion -lz -lssl -lcrypto -shared -o libpxscene.so.1.0
 libpxscene-dfbwindow: cleansceneobj $(PXSCENE_LIB_OBJS) 
 	$(CXX) $(PXSCENE_LIB_OBJS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
@@ -501,7 +503,7 @@ libpxscene-dfbwindow: cleansceneobj $(PXSCENE_LIB_OBJS)
 
 pxscene-with-so-dfb: CFLAGS_FULL = $(CFLAGS)
 pxscene-with-so-dfb: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) -g -DRT_PLATFORM_LINUX -DENABLE_DFB -DPX_PLATFORM_DFB_NON_X11 -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES) -std=c++0x
-pxscene-with-so-dfb: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -L../../../../workRNG150/rootfs/usr/local/lib/ -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) -L./ $(PLATFORM_LIBS) -lpng15 -ldirectfb -ldirect -lfusion -lz -lssl -lcrypto -lpxscene -L../../../build/dfb/ -lrtCore -o pxscene
+pxscene-with-so-dfb: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -L../../../../workRNG150/rootfs/usr/local/lib/ -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDDUK) $(LDNODE) $(LDNODEV8) -L./ $(PLATFORM_LIBS) -lpng15 -ldirectfb -ldirect -lfusion -lz -lssl -lcrypto -lpxscene -L../../../build/dfb/ -lrtCore -o pxscene
 pxscene-with-so-dfb: cleansceneobj $(PXSCENE_LIB_OBJS) 
 	$(CXX) $(CXXFLAGS_FULL) pxScene.cpp $(LDFLAGS_FULL)
 
@@ -514,7 +516,7 @@ libpxscene.so:
 	rm -rf $(OBJDIR)
 libpxscene.so: CFLAGS_FULL = $(CFLAGS)
 libpxscene.so: CXXFLAGS_FULL =-Wno-attributes -Wall -Wextra -fpermissive -fPIC $(PXSCENE_LIB_SEARCH) $(EXTRA_COMPILER_FLAGS) -g -DRT_PLATFORM_LINUX -DPX_NO_WINDOW $(PXSCENE_LIB_DEFINES) -DENABLE_RT_NODE -DENABLE_V8_HEAP_PARAMS -DENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING -DRUNINMAIN -DENABLE_HTTP_CACHE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE $(PXSCENE_EXTRA_DEFINES) $(PXSCENE_VERSION_DEFINES) $(RT_REMOTE_COMPILER_FLAGS)
-libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDNODE) $(LDNODEV8) $(RT_REMOTE_LDFLAGS) -L./ -shared $(PLATFORM_LIBS) -o libpxscene.so.1.0  
+libpxscene.so: LDFLAGS_FULL =$(PXSCENE_LIB_LINK_OPTIONS) -Wl,--no-whole-archive -lnode -pthread -ljpeg -lfreetype -lcurl $(PXSCENE_LIBS) $(LDDUK) $(LDNODE) $(LDNODEV8) $(RT_REMOTE_LDFLAGS) -L./ -shared $(PLATFORM_LIBS) -o libpxscene.so.1.0  
 libpxscene.so: cleansceneobj $(PXSCENE_LIB_OBJS) $(EXTRA_PXOBJECTS)
 	$(CXX) $(PXSCENE_LIB_OBJS) $(EXTRA_PXOBJECTS) $(LDFLAGS_FULL)
 	ln -sf libpxscene.so.1.0 libpxscene.so.1
