@@ -84,7 +84,6 @@ rtRemoteStreamSelector::doPollFds()
 {
   rtRemoteSocketBuffer buff;
   buff.reserve(m_env->Config->stream_socket_buffer_size());
-  buff.resize(m_env->Config->stream_socket_buffer_size());
 
   const auto keepAliveInterval = std::chrono::seconds(m_env->Config->stream_keep_alive_interval());
   auto lastKeepAliveSent = std::chrono::steady_clock::now();
