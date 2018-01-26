@@ -17,8 +17,8 @@ char** gargv;
 extern int g_argc;
 extern char** g_argv;
 char *nodeInput = NULL;
-extern rtScript script;
 #endif
+extern rtScript script;
 
 void handleSegv(int)
 {
@@ -104,8 +104,8 @@ int main(int argc, char **argv) {
       g_argv[g_argc++] = &nodeInput[curpos];
       curpos = curpos + 35;
   }
-  script.init();
 #endif
+  script.init();
   int retTests = RUN_ALL_TESTS();
   rtLogInfo("Tests executed with return code [%d]", retTests);
   #ifdef ENABLE_CODE_COVERAGE
