@@ -222,7 +222,7 @@ rtData& rtHttpCacheData::contentsData()
   return mData;
 }
 
-rtError rtHttpCacheData::data(rtData& data, bool readCachedDataInChunks)
+rtError rtHttpCacheData::data(rtData& data)
 {
   if (NULL == fp)
     return RT_ERROR;
@@ -258,19 +258,10 @@ rtError rtHttpCacheData::data(rtData& data, bool readCachedDataInChunks)
     }
   }
 
-  if(readCachedDataInChunks)
-  {
-    char invalidData[8] = "Invalid";
-    mData.init((uint8_t*)invalidData, sizeof(invalidData));
-    data.init(mData.data(), mData.length());
-  }
-  else
-  {
-    if (false == readFileData())
-      return RT_ERROR;
+  if (false == readFileData())
+    return RT_ERROR;
 
-    data.init(mData.data(),mData.length());
-  }
+  data.init(mData.data(),mData.length());
 
   if (true == revalidateOnlyHeaders)
   {
@@ -282,6 +273,53 @@ rtError rtHttpCacheData::data(rtData& data, bool readCachedDataInChunks)
 void rtHttpCacheData::setData(rtData& cacheData)
 {
   mData.init(cacheData.data(),cacheData.length());
+}
+
+rtError rtHttpCacheData::deferCacheRead(rtData& data)
+{
+  if (NULL == fp)
+    return RT_ERROR;
+
+  populateExpirationDateFromCache();
+
+  bool revalidate =  false;
+  bool revalidateOnlyHeaders = false;
+
+  rtError res;
+  res = calculateRevalidationNeed(revalidate,revalidateOnlyHeaders);
+
+  if (RT_OK != res)
+    return res;
+
+  if (true == revalidate)
+    return performRevalidation(data);
+
+  if (true == revalidateOnlyHeaders)
+  {
+    if (RT_OK != performHeaderRevalidation())
+      return RT_ERROR;
+  }
+
+  if (mHeaderMap.end() != mHeaderMap.find("ETag"))
+  {
+    rtError res =  handleEtag(data);
+    if (RT_OK != res)
+      return RT_ERROR;
+    if (mUpdated)
+    {
+      return RT_OK;
+    }
+  }
+
+  char invalidData[8] = "Invalid";
+  mData.init((uint8_t*)invalidData, sizeof(invalidData));
+  data.init(mData.data(), mData.length());
+
+  if (true == revalidateOnlyHeaders)
+  {
+    mUpdated = true; //headers  modified , so rewriting the cache with new header data
+  }
+  return RT_OK;
 }
 
 rtError rtHttpCacheData::url(rtString& url) const

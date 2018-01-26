@@ -57,10 +57,13 @@ class rtHttpCacheData
     rtError attributes(std::map<rtString, rtString>& cacheAttributes);
 
     /* returns the file data in the cache.  This is a blocking call and will check the network for updated data if etag is used */
-    rtError data(rtData& data, bool readCachedDataInChunks);
+    rtError data(rtData& data);
 
     /* sets the image file data to be stored in cache */
     void setData(rtData& cacheData);
+
+    /* returns "Invalid" as data, and it will not read data from cache.  This is a blocking call and will check the network for updated data if etag is used */
+    rtError deferCacheRead(rtData& data);
 
     /* returns the url associated with the cache */
     rtError url(rtString& url) const;
