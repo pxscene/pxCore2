@@ -93,7 +93,7 @@ rtFunctionWrapperDuk.o: rtScriptDuk/rtFunctionWrapper.cpp
 	$(CXX) -o rtFunctionWrapperDuk.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptDuk/rtFunctionWrapper.cpp
 rtObjectWrapperDuk.o: rtScriptDuk/rtObjectWrapper.cpp
 	$(CXX) -o rtObjectWrapperDuk.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptDuk/rtObjectWrapper.cpp
-rtWrapperUtilsNodeDuk.o: rtScriptDuk/rtWrapperUtils.cpp
+rtWrapperUtilsDuk.o: rtScriptDuk/rtWrapperUtils.cpp
 	$(CXX) -o rtWrapperUtilsDuk.o -Wall $(INCDIR) $(CXXFLAGS) -c rtScriptDuk/rtWrapperUtils.cpp
 
 rtError.o: rtError.cpp
