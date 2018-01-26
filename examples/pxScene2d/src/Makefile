@@ -110,6 +110,7 @@ PX_SRCS_FULL=\
   pxImage.cpp \
   pxImage9.cpp \
   pxImageA.cpp \
+  pxImage9Border.cpp \
   pxArchive.cpp \
   pxAnimate.cpp
 
@@ -276,6 +277,7 @@ PXSCENE_LIB_SRCS=\
   pxImage.cpp \
   pxImage9.cpp \
   pxImageA.cpp \
+  pxImage9Border.cpp \
   pxArchive.cpp \
   pxFont.cpp \
   pxAnimate.cpp
