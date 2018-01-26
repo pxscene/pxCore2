@@ -53,6 +53,10 @@ rtError rtProxyGetFuncBinding(int numArgs, const rtValue* args, rtValue* result,
 rtError rtProxySetFuncBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
 rtError rtProxyDeleteFuncBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
 
+rtError rtProxyTestArrayReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
+rtError rtProxyTestMapReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
+rtError rtProxyTestObjectReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
+
 static void rtWebSocketManagerProc(void *data);
 
 void rtSetupJsModuleBindings(duk_context *ctx)
@@ -67,6 +71,10 @@ void rtSetupJsModuleBindings(duk_context *ctx)
   rtRegisterJsBinding(ctx, "_getProxyFunc", &rtProxyGetFuncBinding);
   rtRegisterJsBinding(ctx, "_setProxyFunc", &rtProxySetFuncBinding);
   rtRegisterJsBinding(ctx, "_deleteProxyFunc", &rtProxyDeleteFuncBinding);
+
+  rtRegisterJsBinding(ctx, "_testArrayReturnFunc", &rtProxyTestArrayReturnBinding);
+  rtRegisterJsBinding(ctx, "_testMapReturnFunc", &rtProxyTestMapReturnBinding);
+  rtRegisterJsBinding(ctx, "_testObjectReturnFunc", &rtProxyTestObjectReturnBinding);
 
   rtThreadTask* task = new rtThreadTask(rtWebSocketManagerProc, NULL, "");
   rtThreadPool* mainThreadPool = rtThreadPool::globalInstance();
@@ -1258,3 +1266,79 @@ rtError rtProxyDeleteFuncBinding(int numArgs, const rtValue* args, rtValue* resu
 {
     return RT_OK;
 }
+
+rtError rtProxyTestArrayReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+{
+    rtArrayObject* ret = new rtArrayObject();
+
+    ret->pushBack(rtValue(1));
+    ret->pushBack(rtValue(2));
+    ret->pushBack(rtValue(3));
+
+    *result = ret;
+
+    return RT_OK;
+}
+
+rtError rtProxyTestMapReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+{
+    rtMapObject* ret = new rtMapObject();
+
+    rtValue v1(1);
+    ret->Set("a1", &v1);
+    rtValue v2(2);
+    ret->Set("a2", &v2);
+    rtValue v3(3);
+    ret->Set("a3", &v3);
+
+    *result = ret;
+
+    return RT_OK;
+}
+
+class rtProxyTestObject : public rtObject
+{
+public:
+   rtDeclareObject(rtProxyTestObject, rtObject);
+   rtProperty(propA, propA, setPropA, int);
+   rtReadOnlyProperty(propB, propB, int);
+   rtProperty(propC, propC, setPropC, rtFunctionRef);
+   rtMethodNoArgAndNoReturn("methodA", methodA);
+   rtMethodNoArgAndReturn("methodB", methodB, int);
+   rtMethod1ArgAndReturn("methodC", methodC, rtString, rtString);
+
+   rtProxyTestObject() : mPropA(1), mPropB(2) {}
+
+   rtError propA(int& v) const { v = mPropA;  return RT_OK; }
+   rtError setPropA(int v) { mPropA = v;  return RT_OK; }
+   rtError propB(int& v) const { v = mPropB;  return RT_OK; }
+   rtError propC(rtFunctionRef& v) const { v = mPropC;  return RT_OK; }
+   rtError setPropC(rtFunctionRef v) { mPropC = v;  return RT_OK; }
+
+   rtError methodA() { return RT_OK; }
+   rtError methodB(int &b) { b = 123; return RT_OK; }
+   rtError methodC(const rtString &in1, rtString &out1) { out1 = in1; return RT_OK; }
+
+private:
+   int mPropA;
+   int mPropB;
+   rtFunctionRef mPropC;
+};
+
+rtDefineObject(rtProxyTestObject, rtObject);
+rtDefineProperty(rtProxyTestObject, propA);
+rtDefineProperty(rtProxyTestObject, propB);
+rtDefineProperty(rtProxyTestObject, propC);
+rtDefineMethod(rtProxyTestObject, methodA);
+rtDefineMethod(rtProxyTestObject, methodB);
+rtDefineMethod(rtProxyTestObject, methodC);
+
+rtError rtProxyTestObjectReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+{
+    rtProxyTestObject* ret = new rtProxyTestObject();
+
+    *result = ret;
+
+    return RT_OK;
+}
+

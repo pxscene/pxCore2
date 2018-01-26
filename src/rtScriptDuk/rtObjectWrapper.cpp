@@ -463,7 +463,18 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
     }
   }
 
+  duk_bool_t rt = duk_get_global_string(ctx, "constructProxy");
+  // [func] 
+  assert(rt);
+
   wrapObjToDuk(ctx, ref);
+
+  if (duk_pcall(ctx, 1) != 0) {
+    duv_dump_error(ctx, -1);
+    assert(0);
+  }
+
+  assert(duk_is_object(ctx, -1));
 }
 
 jsObjectWrapper::jsObjectWrapper(duk_context *ctx, const std::string &name, bool isArray)

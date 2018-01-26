@@ -27,31 +27,19 @@ global.constructPromise = function (obj) {
 }
 
 global.constructProxy = function (obj) {
-	print('constructProxy()');
     return new Proxy(obj, {
         has: function (targ, key) {
-			print('proxy.has(' + key + ')');
             return _hasProxyFunc(targ, key);
         },
         get: function (targ, key, recv) {
-			print('proxy.get(' + key + ')');
             var res = _getProxyFunc(targ, key);
-            print('return = ' + res);
-            if (res == undefined) {
-                return targ[key];
-            }
             return res;
         },
         set: function (targ, key, val, recv) {
-			print('proxy.set(' + key + ')');
             var res = _setProxyFunc(targ, key, val);
-            if (!res) {
-                targ[key] = val;
-            }
             return res;
         },
         deleteProperty: function (targ, key) {
-			print('proxy.del(' + key + ')');
             _deleteProxyFunc(targ, key);
         }
     });
