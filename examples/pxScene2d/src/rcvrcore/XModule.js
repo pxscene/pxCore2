@@ -208,14 +208,14 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
         }
       }
       //remove the array of modules added for tracking in sandbox
-      let bPath;
+      var bPath;
       if( hasExtension(_this.name, '.js') ) {
         bPath = _this.name.substring(0, _this.name.lastIndexOf('.js'));
       } else {
         bPath = _this.name;
       }
-      let nmodules = _this.appSandbox.importTracking[bPath].length;
-      for (let modindex=0; modindex<nmodules; modindex++)
+      var nmodules = _this.appSandbox.importTracking[bPath].length;
+      for (var modindex=0; modindex<nmodules; modindex++)
       {
         _this.appSandbox.importTracking[bPath].pop();
       }
