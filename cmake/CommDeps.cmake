@@ -75,9 +75,7 @@ if (NOT WIN32)
         set(FREETYPE_LIBRARIES "freetype")
     endif(NOT FREETYPE_FOUND)
 
-    if (NOT APPLE)
-        find_package(GLEW)
-    endif(NOT APPLE)
+    pkg_search_module(GLEW glew)
 
     pkg_search_module(GL gl)
     pkg_search_module(EGL egl)
