@@ -79,8 +79,8 @@ examples/pxScene2d/src/#build.sh#
 examples/pxScene2d/src/image.jpg
 examples/pxScene2d/external/curl-7.40.0/Makefile
 examples/pxScene2d/external/curl-7.40.0/include/curl/curlbuild.h
-examples/pxScene2d/external/zlib-1.2.8/Makefile
-examples/pxScene2d/external/zlib-1.2.8/configure.log
+examples/pxScene2d/external/zlib-1.2.11/Makefile
+examples/pxScene2d/external/zlib-1.2.11/configure.log
 examples/pxScene2d/src/jsbindings/build/*
 
 examples/pxScene2d/external/libnode-v6.9.0/cctest.vcxproj
