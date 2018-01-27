@@ -512,6 +512,15 @@ if (s && (strcmp(s,"1") == 0))
       curpos = curpos + 35;
   }
   #endif
+#ifdef RTSCRIPT_SUPPORT_DUKTAPE
+  for (int i = 1; i < argc; i++)
+  {
+    if (strstr(argv[i], ".js"))
+    {
+      urlIndex = i;
+    }
+  }
+#endif
 #endif
 
 #ifdef RUNINMAIN
