@@ -1585,6 +1585,7 @@ public:
   bool mDirty;
   #ifdef PX_DIRTY_RECTANGLES
   pxRect mDirtyRect;
+  pxRect mLastFrameDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
   testView* mTestView;
   bool mDisposed;
