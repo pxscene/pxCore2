@@ -518,7 +518,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
       const char* cacheData = "This is image data";
       rtHttpCacheData data("http://fileserver/a.jpeg",cacheHeader.cString(), cacheData, strlen(cacheData));
       rtData contents;
-      EXPECT_TRUE (data.data(contents) == RT_ERROR);
+      EXPECT_TRUE (data.data(contents, false) == RT_ERROR);
     }
 
     void nocacheCompleteResponseTest()
@@ -530,7 +530,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
       rtHttpCacheData data;
       rtFileCache::instance()->httpCacheData("http://fileserver/test.jpeg",data);
       rtData contents;
-      EXPECT_TRUE (data.data(contents) == RT_ERROR); //This is test page, so verifying download is happening or not
+      EXPECT_TRUE (data.data(contents, false) == RT_ERROR); //This is test page, so verifying download is happening or not
     }
 
     void nocacheExpiresParamTest()
@@ -542,7 +542,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
       rtHttpCacheData data;
       rtFileCache::instance()->httpCacheData("http://fileserver/test.jpeg",data);
       rtData contents;
-      EXPECT_TRUE (data.data(contents) == RT_ERROR);
+      EXPECT_TRUE (data.data(contents, false) == RT_ERROR);
     }
 
     void mustRevalidateUnExpiredTest()
@@ -595,7 +595,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      rtHttpCacheData data("http://fileserver/test.jpeg");
      rtFileCache::instance()->httpCacheData("http://fileserver/test.jpeg",data);
      rtData contents;
-     EXPECT_TRUE (RT_ERROR == data.data(contents));
+     EXPECT_TRUE (RT_ERROR == data.data(contents, false));
    }
 
    void mustRevalidateTruenocacheUnExpiredTest()
@@ -636,7 +636,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      data.setHttpResponseRealData(cacheData);
      rtFileCache::instance()->httpCacheData("http://fileserver/test.jpeg",data);
      rtData contents;
-     data.data(contents);
+     data.data(contents, false);
      EXPECT_TRUE ( strcmp(cacheData,(const char*)contents.data()) == 0);
    }
 
@@ -651,7 +651,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      data.setHttpResponseRealData(cacheData);
      rtFileCache::instance()->httpCacheData("http://fileserver/test1.jpeg",data);
      rtData contents;
-     data.data(contents);
+     data.data(contents, false);
      EXPECT_TRUE ( strcmp(cacheData,(const char*)contents.data()) == 0);
    }
 
@@ -667,7 +667,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      data.setHttpResponseRealData(updatedData);
      rtFileCache::instance()->httpCacheData("http://fileserver/testRevalidationUpdate",data);
      rtData contents;
-     data.data(contents);
+     data.data(contents, false);
      rtData& storedData = data.contentsData();
      EXPECT_TRUE ( strcmp("data updated",(const char*)storedData.data()) == 0);
    }
@@ -684,7 +684,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      data.setHttpResponseRealData(cacheData);
      rtFileCache::instance()->httpCacheData("http://fileserver/testEtag",data);
      rtData contents;
-     data.data(contents);
+     data.data(contents, false);
      rtData& storedData = data.contentsData();
      EXPECT_TRUE ( strcmp("data updated",(const char*)storedData.data()) == 0);
     }
@@ -698,7 +698,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      rtHttpCacheData data("http://fileserver/testEtagFail");
      rtFileCache::instance()->httpCacheData("http://fileserver/testEtagFail",data);
      rtData contents;
-     EXPECT_TRUE (RT_ERROR == data.data(contents));
+     EXPECT_TRUE (RT_ERROR == data.data(contents, false));
     }
 
     void memoryUnAvailableTest()
