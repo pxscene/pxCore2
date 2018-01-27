@@ -22,7 +22,7 @@ public:
 class jsFunctionWrapper : public rtIFunction
 {
 public:
-  jsFunctionWrapper(duk_context *ctx, const std::string &funcName) : mRefCount(0), mDukCtx(ctx), mDukFuncName(funcName), mComplete(false), mTeardownThreadingPrimitives(false) {}
+  jsFunctionWrapper(duk_context *ctx, const std::string &funcName) : mRefCount(0), mDukCtx(ctx), mDukFuncName(funcName) {}
   virtual ~jsFunctionWrapper();
 
   virtual unsigned long AddRef();

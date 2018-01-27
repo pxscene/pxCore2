@@ -26,7 +26,7 @@ cd libnode-v6.9.0
 CALL vcbuild.bat x86 nosign
 cd ..
 
-cd dukluv
+cd dukluv2
 patch -p1 < patches/dukluv.git.patch
 mkdir build
 cd build

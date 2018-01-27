@@ -11,7 +11,7 @@ option(SUPPORT_NODE "SUPPORT_NODE" ON)
 
 if (BUILD_DUKTAPE)
     message("Building duktape with pxcore")
-    add_subdirectory(examples/pxScene2d/external/dukluv)
+    add_subdirectory(examples/pxScene2d/external/dukluv2)
 endif (BUILD_DUKTAPE)
 
 if (BUILD_PXCORE)

@@ -148,9 +148,9 @@ if [ "$(uname)" != "Darwin" ]; then
 
 fi
 
-if [ ! -e dukluv/build/libduktape.a ]
+if [ ! -e dukluv2/build/libduktape.a ]
 then
-    cd dukluv
+    cd dukluv2
     quilt push -aq || test $? = 2
     mkdir -p build
     cd build

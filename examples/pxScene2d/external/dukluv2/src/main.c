@@ -1,0 +1,731 @@
+#include "duv.h"
+#include "misc.h"
+
+static uv_loop_t loop;
+
+// Sync readfile using libuv APIs as an API function.
+static duk_ret_t duv_loadfile(duk_context *ctx) {
+  const char* path = duk_require_string(ctx, 0);
+  uv_fs_t req;
+  int fd = 0;
+  uint64_t size;
+  char* chunk;
+  uv_buf_t buf;
+
+  if (uv_fs_open(&loop, &req, path, O_RDONLY, 0644, NULL) < 0) goto fail;
+  uv_fs_req_cleanup(&req);
+  fd = req.result;
+  if (uv_fs_fstat(&loop, &req, fd, NULL) < 0) goto fail;
+  uv_fs_req_cleanup(&req);
+  size = req.statbuf.st_size;
+  chunk = duk_alloc(ctx, size);
+  buf = uv_buf_init(chunk, size);
+  if (uv_fs_read(&loop, &req, fd, &buf, 1, 0, NULL) < 0) {
+    duk_free(ctx, chunk);
+    goto fail;
+  }
+  uv_fs_req_cleanup(&req);
+  duk_push_lstring(ctx, chunk, size);
+  duk_free(ctx, chunk);
+  uv_fs_close(&loop, &req, fd, NULL);
+  uv_fs_req_cleanup(&req);
+
+  return 1;
+
+  fail:
+  uv_fs_req_cleanup(&req);
+  if (fd) uv_fs_close(&loop, &req, fd, NULL);
+  uv_fs_req_cleanup(&req);
+  
+  // TODO hacking in a fallback to look for modules in a directory called duk_modules
+  // TODO what about windows... will this work?
+
+  fd = 0;
+  char path2[PATH_MAX] = "duk_modules/";
+  strcat(path2, path);
+
+  if (uv_fs_open(&loop, &req, path2, O_RDONLY, 0644, NULL) < 0) goto fail;
+  uv_fs_req_cleanup(&req);
+  fd = req.result;
+  if (uv_fs_fstat(&loop, &req, fd, NULL) < 0) goto fail;
+  uv_fs_req_cleanup(&req);
+  size = req.statbuf.st_size;
+  chunk = duk_alloc(ctx, size);
+  buf = uv_buf_init(chunk, size);
+  if (uv_fs_read(&loop, &req, fd, &buf, 1, 0, NULL) < 0) {
+    duk_free(ctx, chunk);
+    goto fail2;
+  }
+  uv_fs_req_cleanup(&req);
+  duk_push_lstring(ctx, chunk, size);
+  duk_free(ctx, chunk);
+  uv_fs_close(&loop, &req, fd, NULL);
+  uv_fs_req_cleanup(&req);
+
+  return 1;
+
+  fail2:
+  uv_fs_req_cleanup(&req);
+  if (fd) uv_fs_close(&loop, &req, fd, NULL);
+  uv_fs_req_cleanup(&req);
+  
+  duk_error(ctx, DUK_ERR_ERROR, "%s: %s: %s", uv_err_name(req.result), uv_strerror(req.result), path2);
+}
+
+struct duv_list {
+  const char* part;
+  int offset;
+  int length;
+  struct duv_list* next;
+};
+typedef struct duv_list duv_list_t;
+
+static duv_list_t* duv_list_node(const char* part, int start, int end, duv_list_t* next) {
+  duv_list_t *node = malloc(sizeof(*node));
+  node->part = part;
+  node->offset = start;
+  node->length = end - start;
+  node->next = next;
+  return node;
+}
+
+static duk_ret_t duv_path_join(duk_context *ctx) {
+  duv_list_t *list = NULL;
+  int absolute = 0;
+
+  // Walk through all the args and split into a linked list
+  // of segments
+  {
+    // Scan backwards looking for the the last absolute positioned path.
+    int top = duk_get_top(ctx);
+    int i = top - 1;
+    while (i > 0) {
+      const char* part = duk_require_string(ctx, i);
+      if (part[0] == '/') break;
+      i--;
+    }
+    for (; i < top; ++i) {
+      const char* part = duk_require_string(ctx, i);
+      int j;
+      int start = 0;
+      int length = strlen(part);
+      if (part[0] == '/') {
+        absolute = 1;
+      }
+      while (start < length && part[start] == 0x2f) { ++start; }
+      for (j = start; j < length; ++j) {
+        if (part[j] == 0x2f) {
+          if (start < j) {
+            list = duv_list_node(part, start, j, list);
+            start = j;
+            while (start < length && part[start] == 0x2f) { ++start; }
+          }
+        }
+      }
+      if (start < j) {
+        list = duv_list_node(part, start, j, list);
+      }
+    }
+  }
+
+  // Run through the list in reverse evaluating "." and ".." segments.
+  {
+    int skip = 0;
+    duv_list_t *prev = NULL;
+    while (list) {
+      duv_list_t *node = list;
+
+      // Ignore segments with "."
+      if (node->length == 1 &&
+          node->part[node->offset] == 0x2e) {
+        goto skip;
+      }
+
+      // Ignore segments with ".." and grow the skip count
+      if (node->length == 2 &&
+          node->part[node->offset] == 0x2e &&
+          node->part[node->offset + 1] == 0x2e) {
+        ++skip;
+        goto skip;
+      }
+
+      // Consume the skip count
+      if (skip > 0) {
+        --skip;
+        goto skip;
+      }
+
+      list = node->next;
+      node->next = prev;
+      prev = node;
+      continue;
+
+      skip:
+        list = node->next;
+        free(node);
+    }
+    list = prev;
+  }
+
+  // Merge the list into a single `/` delimited string.
+  // Free the remaining list nodes.
+  {
+    int count = 0;
+    if (absolute) {
+      duk_push_string(ctx, "/");
+      ++count;
+    }
+    while (list) {
+      duv_list_t *node = list;
+      duk_push_lstring(ctx, node->part + node->offset, node->length);
+      ++count;
+      if (node->next) {
+        duk_push_string(ctx, "/");
+        ++count;
+      }
+      list = node->next;
+      free(node);
+    }
+    duk_concat(ctx, count);
+  }
+  return 1;
+}
+
+static duk_ret_t duv_require(duk_context *ctx) {
+  int is_main = 0;
+
+  dschema_check(ctx, (const duv_schema_entry[]) {
+    {"id", duk_is_string},
+    {NULL}
+  });
+
+  // push Duktape
+  duk_get_global_string(ctx, "Duktape");
+
+  // id = Duktape.modResolve(this, id);
+  duk_get_prop_string(ctx, -1, "modResolve");
+  duk_push_this(ctx);
+  {
+    // Check if we're in main
+    duk_get_prop_string(ctx, -1, "exports");
+    if (duk_is_undefined(ctx, -1)) { is_main = 1; }
+    duk_pop(ctx);
+  }
+  duk_dup(ctx, 0);
+  duk_call_method(ctx, 1);
+  duk_replace(ctx, 0);
+
+  // push Duktape.modLoaded
+  duk_get_prop_string(ctx, -1, "modLoaded");
+
+  // push Duktape.modLoaded[id];
+  duk_dup(ctx, 0);
+  duk_get_prop(ctx, -2);
+
+  // if (typeof Duktape.modLoaded[id] === 'object') {
+  //   return Duktape.modLoaded[id].exports;
+  // }
+  if (duk_is_object(ctx, -1)) {
+    duk_get_prop_string(ctx, -1, "exports");
+    return 1;
+  }
+
+  // pop Duktape.modLoaded[id]
+  duk_pop(ctx);
+
+  // push module = { id: id, exports: {} }
+  duk_push_object(ctx);
+  duk_dup(ctx, 0);
+  duk_put_prop_string(ctx, -2, "id");
+  duk_push_object(ctx);
+  duk_put_prop_string(ctx, -2, "exports");
+
+  // Set module.main = true if we're the first script
+  if (is_main) {
+    duk_push_boolean(ctx, 1);
+    duk_put_prop_string(ctx, -2, "main");
+  }
+
+  // Or set module.parent = parent if we're a child.
+  else {
+    duk_push_this(ctx);
+    duk_put_prop_string(ctx, -2, "parent");
+  }
+
+  // Set the prototype for the module to access require.
+  duk_push_global_stash(ctx);
+  duk_get_prop_string(ctx, -1, "modulePrototype");
+  duk_set_prototype(ctx, -3);
+  duk_pop(ctx);
+
+  // Duktape.modLoaded[id] = module
+  duk_dup(ctx, 0);
+  duk_dup(ctx, -2);
+  duk_put_prop(ctx, -4);
+
+  // remove Duktape.modLoaded
+  duk_remove(ctx, -2);
+
+  // push Duktape.modLoad(module)
+  duk_get_prop_string(ctx, -2, "modLoad");
+  duk_dup(ctx, -2);
+  duk_call_method(ctx, 0);
+
+  // if ret !== undefined module.exports = ret;
+  if (duk_is_undefined(ctx, -1)) {
+    duk_pop(ctx);
+  }
+  else {
+    duk_put_prop_string(ctx, -2, "exports");
+  }
+
+  duk_get_prop_string(ctx, -1, "exports");
+
+  return 1;
+}
+
+// Default implementation for modResolve
+// Duktape.modResolve = function (parent, id) {
+//   return pathJoin(parent.id, "..", id);
+// };
+static duk_ret_t duv_mod_resolve(duk_context *ctx) {
+  dschema_check(ctx, (const duv_schema_entry[]) {
+    {"id", duk_is_string},
+    {NULL}
+  });
+
+  duk_push_this(ctx);
+  duk_push_c_function(ctx, duv_path_join, DUK_VARARGS);
+  duk_get_prop_string(ctx, -2, "id");
+  duk_push_string(ctx, "..");
+  duk_dup(ctx, 0);
+  duk_call(ctx, 3);
+
+  return 1;
+}
+
+// Default Duktape.modLoad implementation
+// return Duktape.modCompile.call(module, loadFile(module.id));
+//     or load shared libraries using Duktape.loadlib.
+static duk_ret_t duv_mod_load(duk_context *ctx) {
+  const char* id;
+  const char* ext;
+
+  dschema_check(ctx, (const duv_schema_entry[]) {
+    {NULL}
+  });
+
+  duk_get_global_string(ctx, "Duktape");
+  duk_push_this(ctx);
+  duk_get_prop_string(ctx, -1, "id");
+  id = duk_get_string(ctx, -1);
+  if (!id) {
+    duk_error(ctx, DUK_ERR_ERROR, "Missing id in module");
+    return 0;
+  }
+
+  // calculate the extension to know which compiler to use.
+  ext = id + strlen(id);
+  while (ext > id && ext[0] != '.') { --ext; }
+
+  if (strcmp(ext, ".js") == 0) {
+    // Stack: [Duktape, this, id]
+    duk_push_c_function(ctx, duv_loadfile, 1);
+    // Stack: [Duktape, this, id, loadfile]
+    duk_insert(ctx, -2);
+    // Stack: [Duktape, this, loadfile, id]
+    duk_call(ctx, 1);
+    // Stack: [Duktape, this, data]
+    duk_get_prop_string(ctx, -3, "modCompile");
+    // Stack: [Duktape, this, data, modCompile]
+    duk_insert(ctx, -3);
+    // Stack: [Duktape, modCompile, this, data]
+    duk_call_method(ctx, 1);
+    // Stack: [Duktape, exports]
+    return 1;
+  }
+
+  if (strcmp(ext, ".so") == 0 || strcmp(ext, ".dll") == 0) {
+    const char* name = ext;
+    while (name > id && name[-1] != '/' && name[-1] != '\\') { --name; }
+    // Stack: [Duktape, this, id]
+    duk_get_prop_string(ctx, -3, "loadlib");
+    // Stack: [Duktape, this, id, loadlib]
+    duk_insert(ctx, -2);
+    // Stack: [Duktape, this, loadlib, id]
+    duk_push_sprintf(ctx, "dukopen_%.*s", (int)(ext - name), name);
+    // Stack: [Duktape, this, loadlib, id, name]
+    duk_call(ctx, 2);
+    // Stack: [Duktape, this, fn]
+    duk_call(ctx, 0);
+    // Stack: [Duktape, this, exports]
+    duk_dup(ctx, -1);
+    // Stack: [Duktape, this, exports, exports]
+    duk_put_prop_string(ctx, -3, "exports");
+    // Stack: [Duktape, this, exports]
+    return 1;
+  }
+
+  duk_error(ctx, DUK_ERR_ERROR,
+    "Unsupported extension: '%s', must be '.js', '.so', or '.dll'.", ext);
+  return 0;
+}
+
+// Load a duktape C function from a shared library by path and name.
+static duk_ret_t duv_loadlib(duk_context *ctx) {
+  const char *name, *path;
+  uv_lib_t lib;
+  duk_c_function fn;
+
+  // Check the args
+  dschema_check(ctx, (const duv_schema_entry[]) {
+    {"path", duk_is_string},
+    {"name", duk_is_string},
+    {NULL}
+  });
+
+  path = duk_get_string(ctx, 0);
+  name = duk_get_string(ctx, 1);
+
+  if (uv_dlopen(path, &lib)) {
+    duk_error(ctx, DUK_ERR_ERROR, "Cannot load shared library %s", path);
+    return 0;
+  }
+  if (uv_dlsym(&lib, name, (void**)&fn)) {
+    duk_error(ctx, DUK_ERR_ERROR, "Unable to find %s in %s", name, path);
+    return 0;
+  }
+  duk_push_c_function(ctx, fn, 0);
+  return 1;
+}
+
+// Given a module and js code, compile the code and execute as CJS module
+// return the result of the compiled code ran as a function.
+static duk_ret_t duv_mod_compile(duk_context *ctx) {
+  // Check the args
+  dschema_check(ctx, (const duv_schema_entry[]) {
+    {"code", dschema_is_data},
+    {NULL}
+  });
+  duk_to_string(ctx, 0);
+
+  duk_push_this(ctx);
+  duk_get_prop_string(ctx, -1, "id");
+
+  // Wrap the code
+  duk_push_string(ctx, "function(){var module=this,exports=this.exports,require=this.require.bind(this);");
+  duk_dup(ctx, 0);
+  duk_push_string(ctx, "}");
+  duk_concat(ctx, 3);
+  duk_insert(ctx, -2);
+
+  // Compile to a function
+  duk_compile(ctx, DUK_COMPILE_FUNCTION);
+
+  duk_push_this(ctx);
+  duk_call_method(ctx, 0);
+
+  return 1;
+}
+
+static duk_ret_t duv_main(duk_context *ctx) {
+
+  duk_push_global_object(ctx);
+  duk_dup(ctx, -1);
+  duk_put_prop_string(ctx, -2, "global");
+
+  duk_push_boolean(ctx, 1);
+  duk_put_prop_string(ctx, -2, "dukluv");
+
+  // Load duv module into global uv
+  duk_push_c_function(ctx, dukopen_uv, 0);
+  duk_call(ctx, 0);
+  duk_put_prop_string(ctx, -2, "uv");
+
+  // Replace the module loader with Duktape 2.x polyfill.
+  duk_get_prop_string(ctx, -1, "Duktape");
+  duk_del_prop_string(ctx, -1, "modSearch");
+  duk_push_c_function(ctx, duv_mod_compile, 1);
+  duk_put_prop_string(ctx, -2, "modCompile");
+  duk_push_c_function(ctx, duv_mod_resolve, 1);
+  duk_put_prop_string(ctx, -2, "modResolve");
+  duk_push_c_function(ctx, duv_mod_load, 0);
+  duk_put_prop_string(ctx, -2, "modLoad");
+  duk_push_c_function(ctx, duv_loadlib, 2);
+  duk_put_prop_string(ctx, -2, "loadlib");
+  duk_pop(ctx);
+
+  // Put in some quick globals to test things.
+  duk_push_c_function(ctx, duv_path_join, DUK_VARARGS);
+  duk_put_prop_string(ctx, -2, "pathJoin");
+
+  duk_push_c_function(ctx, duv_loadfile, 1);
+  duk_put_prop_string(ctx, -2, "loadFile");
+
+  // require.call({id:uv.cwd()+"/main.c"}, path);
+  duk_push_c_function(ctx, duv_require, 1);
+  {
+    // Store this require function in the module prototype
+    duk_push_global_stash(ctx);
+    duk_push_object(ctx);
+    duk_dup(ctx, -3);
+    duk_put_prop_string(ctx, -2, "require");
+    duk_put_prop_string(ctx, -2, "modulePrototype");
+    duk_pop(ctx);
+  }
+  duk_push_object(ctx);
+  duk_push_c_function(ctx, duv_cwd, 0);
+  duk_call(ctx, 0);
+  duk_push_string(ctx, "/main.c");
+  duk_concat(ctx, 2);
+  duk_put_prop_string(ctx, -2, "id");
+  duk_dup(ctx, 0);
+  
+  duk_int_t ret = duk_pcall_method(ctx, 1);
+  if (ret) {
+    duv_dump_error(ctx, -1);
+    return 0;
+  }
+
+  uv_run(&loop, UV_RUN_DEFAULT);
+
+  return 0;
+}
+
+static duk_ret_t duv_stash_argv(duk_context *ctx) {
+  char **argv = (char **) duk_require_pointer(ctx, 0);
+  int argc = (int) duk_require_int(ctx, 1);
+  int i;
+
+  duk_push_global_stash(ctx);
+  duk_push_array(ctx);
+  for (i = 0; i < argc; i++) {
+    duk_push_string(ctx, argv[i]);
+    duk_put_prop_index(ctx, -2, i);
+  }
+  duk_put_prop_string(ctx, -2, "argv");
+  duk_pop(ctx);
+  return 0;
+}
+
+void mycode4(duk_context *ctx);
+
+// promise return
+void mycode(duk_context *ctx)
+{
+  int rc = duk_get_global_string(ctx, "Promise");
+  duk_push_string(ctx, "method");
+  rc = duk_get_global_string(ctx, "mysleep");
+  rc = duk_pcall_prop(ctx, -3, 1);
+  
+  // [ promise, res ]
+
+  duk_push_int(ctx, 1000);
+  rc = duk_pcall(ctx, 1);
+
+  duk_push_string(ctx, "then");
+  rc = duk_get_global_string(ctx, "printres");
+  duk_call_prop(ctx, -3, 1);
+
+  duk_push_string(ctx, "catch");
+  rc = duk_get_global_string(ctx, "printerror");
+  duk_call_prop(ctx, -3, 1);
+
+  //duk_call_prop(ctx, -3, 1);
+
+  //duk_push_string(ctx, "then");
+  //rc = duk_get_global_string(ctx, "printres");
+  //duk_call_prop(ctx, -3, 1);
+
+  duk_pop(ctx); // object
+  duk_pop(ctx);
+
+  //mycode4(ctx);
+
+  uv_run(&loop, UV_RUN_DEFAULT);
+}
+
+static duk_ret_t myreturn_promise(duk_context *ctx)
+{
+  int rc = duk_get_global_string(ctx, "Promise");
+  duk_push_string(ctx, "method");
+  rc = duk_get_global_string(ctx, "mysleep");
+  rc = duk_pcall_prop(ctx, -3, 1);
+
+  // [ promise, res ]
+
+  //duk_push_int(ctx, 1500);
+  //rc = duk_pcall(ctx, 1);
+
+  //duk_push_string(ctx, "then");
+  //rc = duk_get_global_string(ctx, "printres");
+  //duk_call_prop(ctx, -3, 1);
+
+  //duk_push_string(ctx, "catch");
+  //rc = duk_get_global_string(ctx, "printerror");
+  //duk_call_prop(ctx, -3, 1);
+
+  return 1;
+}
+
+const char *myobjname = "myobj";
+
+static duk_ret_t callResolve(duk_context *ctx)
+{
+  duk_bool_t rc = duk_get_global_string(ctx, myobjname);
+  assert(rc);
+  duk_push_int(ctx, 2);
+  duk_int_t res = duk_pcall(ctx, 1);
+  assert(res == 0);
+  return 0;
+}
+
+static duk_ret_t setResolveCb(duk_context *ctx)
+{
+  duk_bool_t rc = duk_is_object(ctx, -1);
+  assert(rc);
+  rc = duk_put_global_string(ctx, myobjname);
+  assert(rc);
+  return 0;
+}
+
+static duk_ret_t myreturn_promise2(duk_context *ctx)
+{
+  int rc = duk_get_global_string(ctx, "constructPromise");
+  assert(rc);
+
+  // [func]
+
+  duk_push_object(ctx);
+
+  // [func obj]
+
+  duk_push_c_function(ctx, &setResolveCb, DUK_VARARGS);
+  rc = duk_put_prop_string(ctx, -2, "setResolve");
+  assert(rc);
+
+  // [func obj]
+  rc = duk_pcall(ctx, 1);
+  assert(rc == 0);
+
+  // [promise]
+
+  return 1;
+}
+
+static duk_ret_t myreturn_array(duk_context *ctx) 
+{
+  duk_idx_t arr_idx = duk_push_array(ctx);
+  duk_push_string(ctx, "foo");
+  duk_put_prop_index(ctx, arr_idx, 0);
+  duk_push_string(ctx, "bar");
+  duk_put_prop_index(ctx, arr_idx, 1);
+  return 1;
+}
+
+void mycode2(duk_context *ctx)
+{
+  //duk_push_global_object(ctx);
+  //duk_push_c_function(ctx, myreturn_array, DUK_VARARGS);
+  //duk_put_prop_string(ctx, -2, "myreturn_array");
+  //duk_pop(ctx);
+
+  //duk_push_global_object(ctx);
+  //duk_push_c_function(ctx, myreturn_promise, DUK_VARARGS);
+  //duk_put_prop_string(ctx, -2, "myreturn_promise");
+  //duk_pop(ctx);
+
+  duk_push_global_object(ctx);
+  duk_push_c_function(ctx, myreturn_promise2, DUK_VARARGS);
+  duk_put_prop_string(ctx, -2, "myreturn_promise2");
+  duk_pop(ctx);
+}
+
+static duk_ret_t myin_object(duk_context *ctx)
+{
+  duk_put_global_string(ctx, "mysleeping");
+  return 0;
+}
+
+void mycode3(duk_context *ctx)
+{
+  duk_push_global_object(ctx);
+  duk_push_c_function(ctx, myin_object, DUK_VARARGS);
+  duk_put_prop_string(ctx, -2, "myin_object");
+  duk_pop(ctx);
+}
+
+void mycode4(duk_context *ctx)
+{
+  int rc = duk_get_global_string(ctx, "mysleeping");
+  duk_push_int(ctx, 1000);
+  rc = duk_pcall(ctx, 1);
+  duk_pop(ctx);
+}
+
+int main(int argc, char *argv[]) {
+  duk_context *ctx = NULL;
+  uv_loop_init(&loop);
+
+  uv_setup_args(argc, argv);
+
+  if (argc < 2) {
+    fprintf(stderr, "Usage: dukluv script.js\n");
+    exit(1);
+  }
+
+  // Tie loop and context together
+  ctx = duk_create_heap(NULL, NULL, NULL, &loop, NULL);
+  if (!ctx) {
+    fprintf(stderr, "Problem initiailizing duktape heap\n");
+    return -1;
+  }
+  duk_module_duktape_init(ctx);
+
+  loop.data = ctx;
+
+  // Stash argv for later access
+  duk_push_pointer(ctx, (void *) argv);
+  duk_push_int(ctx, argc);
+  if (duk_safe_call(ctx, duv_stash_argv, NULL, 2, 1)) {
+    duv_dump_error(ctx, -1);
+    uv_loop_close(&loop);
+    duk_destroy_heap(ctx);
+    return 1;
+  }
+  duk_pop(ctx);
+
+  //mycode2(ctx);
+  //mycode3(ctx);
+
+  duk_push_c_function(ctx, duv_main, 1);
+  duk_push_string(ctx, argv[1]);
+  if (duk_pcall(ctx, 1)) {
+    duv_dump_error(ctx, -1);
+    uv_loop_close(&loop);
+    duk_destroy_heap(ctx);
+    return 1;
+  }
+
+  //mycode(ctx);
+
+  //uv_run(&loop, UV_RUN_DEFAULT);
+  //callResolve(ctx);
+
+  //while (1) {
+  //  uv_run(&loop, UV_RUN_DEFAULT);
+  //}
+
+  //struct vantage
+  //{
+  //  char buf[4096];
+  //};
+
+  //void *c = duk_push_fixed_buffer(ctx, sizeof(struct vantage));
+  //duk_bool_t rc = duk_put_global_string(ctx, "vantage");
+  //assert(rc);
+
+  uv_loop_close(&loop);
+  duk_destroy_heap(ctx);
+  return 0;
+}

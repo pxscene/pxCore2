@@ -113,7 +113,9 @@ extern "C" {
 
 #ifndef PX_PLATFORM_MAC
 #ifndef __clang__
+#ifndef __GNUC__
 #pragma GCC diagnostic ignored "-Werror"
+#endif
 #endif
 #endif
 
@@ -227,7 +229,7 @@ public:
   //std::string name() const;
 
   rtError collectGarbage();
-  void* getParameter(rtString param);
+  void* getParameter(rtString param);  
 private:
 #ifdef ENABLE_DEBUG_MODE
   void init2();
@@ -333,7 +335,7 @@ static inline bool file_exists(const char *file)
 #endif
 
 rtDukContext::rtDukContext() :
-     js_file(NULL), mRefCount(0), mContextifyContext(NULL), dukCtx(NULL), uvLoop(NULL)
+     js_file(NULL), mRefCount(0), mContextifyContext(NULL), uvLoop(NULL)
 {
   mId = rtAtomicInc(&sNextId);
 
@@ -342,7 +344,7 @@ rtDukContext::rtDukContext() :
 
 #ifdef USE_CONTEXTIFY_CLONES
 rtDukContext::rtDukContext(rtDukContextRef clone_me) :
-      js_file(NULL), mRefCount(0), mContextifyContext(NULL), dukCtx(NULL), uvLoop(NULL)
+      js_file(NULL), mRefCount(0), mContextifyContext(NULL), uvLoop(NULL)
 {
   mId = rtAtomicInc(&sNextId);
 
@@ -1224,6 +1226,13 @@ bool rtNode::isInitialized()
   return duk_is_initialized;
 }
 #endif
+
+duk_ret_t my_print(duk_context *ctx)
+{
+    printf("%s\n", duk_get_string(ctx, -1));
+    return 0;
+}
+
 #ifdef ENABLE_DEBUG_MODE
 void rtScriptDuk::init2()
 #else
@@ -1234,7 +1243,7 @@ void rtScriptDuk::init2(int argc, char** argv)
 #ifdef ENABLE_DEBUG_MODE
   g_argvduk = uv_setup_args(g_argcduk, g_argvduk);
 #else
-  argv = uv_setup_args(argc, argv);
+  argvduk = uv_setup_args(argcduk, argvduk);
 #endif
 
   rtLogInfo(__FUNCTION__);
@@ -1256,6 +1265,10 @@ void rtScriptDuk::init2(int argc, char** argv)
 	    rtLogWarn("Problem initiailizing duktape heap\n");
 	    return;
     }
+
+    duk_module_duktape_init(dukCtx);
+    duk_push_c_function(dukCtx, &my_print, 1);
+    duk_put_global_string(dukCtx, "print");
 
     dukLoop->data = dukCtx;
     uvLoops.push_back(dukLoop);
@@ -1279,6 +1292,7 @@ rtError rtScriptDuk::term()
 
   //uv_loop_close(dukLoop);
   duk_destroy_heap(dukCtx);
+
 #if 0
 #ifdef USE_CONTEXTIFY_CLONES
   if( mRefContext.getPtr() )

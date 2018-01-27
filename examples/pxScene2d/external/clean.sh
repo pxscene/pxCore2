@@ -50,5 +50,5 @@ make clean -j3
 cd ..
 fi
 
-#--------- dukluv
-rm -rf dukluv/build
+#--------- dukluv2
+rm -rf dukluv2/build

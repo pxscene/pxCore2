@@ -161,6 +161,11 @@ cmake_install.cmake
 examples/pxScene2d/external/dukluv/Makefile
 examples/pxScene2d/external/dukluv/dukluv
 examples/pxScene2d/external/dukluv/build/dukluv
+
+examples/pxScene2d/external/dukluv2/Makefile
+examples/pxScene2d/external/dukluv2/dukluv
+examples/pxScene2d/external/dukluv2/build/dukluv
+
 examples/pxScene2d/external/libpng-1.6.28/libtool
 examples/pxScene2d/external/libpng-1.6.28/timepng
 
