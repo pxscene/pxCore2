@@ -49,270 +49,31 @@ struct dukObjectFunctionInfo
   dukObjectFunctionInfo *mNext;
 };
 
-static duk_ret_t dukObjectMethodGetStub(duk_context *ctx)
+static duk_ret_t rtObjectFinalizerProc(duk_context *ctx)
 {
-  duk_push_this(ctx);
   bool res = duk_get_prop_string(ctx, -1, "\xff""\xff""data");
   assert(res);
 
-  rtObject *obj = (rtObject*)duk_require_pointer(ctx, -1);
+  rtIObject *obj = (rtIObject*)duk_require_pointer(ctx, -1);
+  obj->Release();
 
-  // [this, pointer]
   duk_pop(ctx);
-  // [this]
-  duk_pop(ctx);
-  // []
 
-  duk_push_current_function(ctx);
-  res = duk_get_prop_string(ctx, -1, "\xff""\xff""finfo");
-  assert(res);
-
-  dukObjectFunctionInfo *funcInfo = (dukObjectFunctionInfo*)duk_require_pointer(ctx, -1);
-
-  // [curfunc prop]
-  duk_pop(ctx);
-  // [curfunc]
-  duk_pop(ctx);
-  // []
-
-  int numArgs = duk_get_top(ctx);
-
-  if (funcInfo->mType == dukObjectFunctionInfo::eGetProp) 
-  {
-    rtValue val;
-    obj->Get(funcInfo->mMethodName.c_str(), &val);
-    rt2duk(ctx, val);
-    return 1;
-  }
-
-  if (funcInfo->mType == dukObjectFunctionInfo::eSetProp) 
-  {
-    duk_dup(ctx, 0);
-    rtValue val = duk2rt(ctx);
-    duk_pop(ctx);
-    obj->Set(funcInfo->mMethodName.c_str(), &val);
-    return 0;
-  }
-
-  assert(funcInfo->mType == dukObjectFunctionInfo::eMethod);
-
-  assert(numArgs < 16);
-  rtValue args[16];
-
-  for (int i = 0; i < numArgs; ++i) 
-  {
-    duk_dup(ctx, i);
-    args[i] = duk2rt(ctx);
-    duk_pop(ctx);
-  }
-
-  rtValue func;
-  obj->Get(funcInfo->mMethodName.c_str(), &func);
-
-  assert(func.getType() == RT_functionType);
-  rtFunctionRef funcObj = func.toFunction();
-
-  rtValue result;
-  funcObj->Send(numArgs, &args[0], &result);
-
-  if (funcInfo->mIsVoid) {
-    return 0;
-  }
-
-  rt2duk(ctx, result);
-  return 1;
+  return 0;
 }
-
 
 static void wrapObjToDuk(duk_context *ctx, const rtObjectRef& ref)
 {
-  static std::map<rtMethodMap *, dukObjectFunctionInfo *> methodCache;
-
   duk_push_object(ctx);
 
   const_cast<rtObjectRef &>(ref)->AddRef();
 
-  duk_push_pointer(ctx, (void*)ref.getPtr());
+  void *ptr = (void*)ref.getPtr();
+  duk_push_pointer(ctx, ptr);
   duk_put_prop_string(ctx, -2, "\xff""\xff""data");
 
-  dukObjectFunctionInfo *prevInfo = NULL, *firstInfo = NULL;
-
-  rtMethodMap* mOrig = ref->getMap();
-
-  if (mOrig == NULL) 
-  {
-    duk_push_pointer(ctx, NULL);
-    duk_put_prop_string(ctx, -2, "\xff""\xff""funcInfoList");
-    return;
-  }
-
-  if (methodCache.count(mOrig) == 0) 
-  {
-    rtMethodMap* m = mOrig;
-
-    while (m) 
-    {
-      rtMethodEntry *e = m->getFirstMethod();
-      while (e) 
-      {
-        dukObjectFunctionInfo *funcInfo = new dukObjectFunctionInfo();
-        funcInfo->mMethodName = e->mMethodName;
-        funcInfo->mIsVoid = e->mReturnType == RT_voidType;
-        funcInfo->mType = dukObjectFunctionInfo::eMethod;
-
-        if (prevInfo == NULL) 
-        {
-          firstInfo = funcInfo;
-          prevInfo = funcInfo;
-        } 
-        else 
-        {
-          prevInfo->mNext = funcInfo;
-          prevInfo = funcInfo;
-        }
-
-        e = e->mNext;
-      }
-
-      m = m->parentsMap;
-    }
-
-    m = mOrig;
-    while (m) 
-    {
-      rtPropertyEntry* e = m->getFirstProperty();
-      while (e) 
-      {
-        if (!e->mGetThunk && !e->mSetThunk) 
-        {
-          e = e->mNext;
-          continue;
-        }
-
-        if (e->mGetThunk) 
-        {
-          dukObjectFunctionInfo *funcInfo = new dukObjectFunctionInfo();
-          funcInfo->mMethodName = e->mPropertyName;
-          funcInfo->mIsVoid = false;
-          funcInfo->mType = dukObjectFunctionInfo::eGetProp;
-
-          if (prevInfo == NULL) 
-          {
-            firstInfo = funcInfo;
-            prevInfo = funcInfo;
-          } 
-          else 
-          {
-            prevInfo->mNext = funcInfo;
-            prevInfo = funcInfo;
-          }
-        }
-
-        if (e->mSetThunk) 
-        {
-          dukObjectFunctionInfo *funcInfo = new dukObjectFunctionInfo();
-          funcInfo->mMethodName = e->mPropertyName;
-          funcInfo->mIsVoid = false;
-          funcInfo->mType = dukObjectFunctionInfo::eSetProp;
-
-          if (prevInfo == NULL) 
-          {
-            firstInfo = funcInfo;
-            prevInfo = funcInfo;
-          } 
-          else 
-          {
-            prevInfo->mNext = funcInfo;
-            prevInfo = funcInfo;
-          }
-        }
-
-        e = e->mNext;
-      }
-
-      m = m->parentsMap;
-    }
-
-    methodCache[mOrig] = firstInfo;
-  } 
-  else 
-  {
-    firstInfo = methodCache[mOrig];
-  }
-
-  for (prevInfo = firstInfo; prevInfo != NULL; prevInfo = prevInfo->mNext) 
-  {
-    if (prevInfo->mType == dukObjectFunctionInfo::eMethod)
-    {
-      duk_push_c_function(ctx, &dukObjectMethodGetStub, DUK_VARARGS);
-
-      duk_push_pointer(ctx, (void*)prevInfo);
-      duk_put_prop_string(ctx, -2, "\xff""\xff""finfo");
-
-      // [ obj, func ]
-      duk_put_prop_string(ctx, -2, prevInfo->mMethodName.c_str());
-
-      // [ obj ]
-
-      continue;
-    }
-
-    {
-      duk_bool_t rc = duk_get_prop_string(ctx, -1, prevInfo->mMethodName.c_str());
-      duk_pop(ctx);
-
-      if (rc)
-      {
-        continue;
-      }
-    }
-
-    duk_push_string(ctx, prevInfo->mMethodName.c_str());
-
-    int offs = 2;
-    int flags = 0;
-
-    dukObjectFunctionInfo *infoPtr[2] = { prevInfo, prevInfo->mNext };
-
-    int objFuncIdx = 0;
-    for (objFuncIdx = 0; objFuncIdx < 2; ++objFuncIdx) 
-    {
-      dukObjectFunctionInfo *info = infoPtr[objFuncIdx];
-      if (info == NULL || info->mMethodName != prevInfo->mMethodName) 
-      {
-        break;
-      }
-
-
-      if (info->mType == dukObjectFunctionInfo::eGetProp || info->mType == dukObjectFunctionInfo::eSetProp)
-      {
-        duk_push_c_function(ctx, &dukObjectMethodGetStub, DUK_VARARGS);
-
-        flags |= (info->mType == dukObjectFunctionInfo::eGetProp ? DUK_DEFPROP_HAVE_GETTER : DUK_DEFPROP_HAVE_SETTER);
-        offs++;
-
-        duk_push_pointer(ctx, (void*)info);
-        duk_put_prop_string(ctx, -2, "\xff""\xff""finfo");
-      }
-    }
-
-    if (objFuncIdx == 2) 
-    {
-      prevInfo = prevInfo->mNext;
-    }
-
-    assert(flags != 0);
-
-    // [ obj, name, getter, setter ]
-    duk_def_prop(ctx, -offs, flags);
-
-    // [ obj ]
-  }
-
-  // [ obj ]
-
-  duk_push_pointer(ctx, (void*)firstInfo);
-  duk_put_prop_string(ctx, -2, "\xff""\xff""funcInfoList");
+  duk_push_c_function(ctx, &rtObjectFinalizerProc, 1);
+  duk_set_finalizer(ctx, -2);
 }
 
 void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObjectRef& ref)
@@ -364,49 +125,13 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
       return;
     }
   }
-
+   
   // promise
   {
     rtString desc;
     if (ref)
     {
       rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
-
-#if 0
-      if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
-      {
-        duk_bool_t rt = duk_get_global_string(ctx, "Promise");
-
-        // [func] 
-        assert(rt);
-
-        uint32_t isResolved = 0;
-        ref.get("isResolved", isResolved);
-
-        if (isResolved != 0)
-        {
-          duk_push_string(ctx, isResolved == 1 ? "resolve" : "reject");
-
-          rtValue val;
-          ref.get("val", val);
-
-          rt2duk(ctx, val);
-
-          // [ Promise method obj ]
-          duk_int_t rc = duk_pcall_prop(ctx, -3, 1);
-
-          if (rc != 0) {
-            duv_dump_error(ctx, -1);
-            assert(0);
-          }
-
-          // [Promise js-promise]
-          assert(duk_is_object(ctx, -1));
-
-          return;
-        }
-      }
-#endif
 
       if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
       {
@@ -432,7 +157,18 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
         // [func] 
         assert(rt);
 
+        rt = duk_get_global_string(ctx, "constructProxy");
+        // [func] 
+        assert(rt);
+
         wrapObjToDuk(ctx, ref);
+
+        if (duk_pcall(ctx, 1) != 0) {
+          duv_dump_error(ctx, -1);
+          assert(0);
+        }
+
+        assert(duk_is_object(ctx, -1));
 
         // [func obj] 
 
@@ -446,14 +182,6 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
         // [js-promise]
         assert(duk_is_object(ctx, -1));
 
-        duk_dup(ctx, -1);
-
-        // [ obj ]
-        std::string promiseObjName = rtDukPutIdentToGlobal(ctx);
-        //std::string promiseObjName = "blah";
-
-        const_cast<rtObjectRef &>(ref).set("promiseId", rtString(promiseObjName.c_str()));
-       // const_cast<rtObjectRef &>(ref).set("promiseContext", (void*)ctx);
 #else
         const_cast<rtObjectRef &>(ref).set("promiseId", "blah");  
 #endif
@@ -463,7 +191,18 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
     }
   }
 
+  duk_bool_t rt = duk_get_global_string(ctx, "constructProxy");
+  // [func] 
+  assert(rt);
+
   wrapObjToDuk(ctx, ref);
+
+  if (duk_pcall(ctx, 1) != 0) {
+    duv_dump_error(ctx, -1);
+    assert(0);
+  }
+
+  assert(duk_is_object(ctx, -1));
 }
 
 jsObjectWrapper::jsObjectWrapper(duk_context *ctx, const std::string &name, bool isArray)
