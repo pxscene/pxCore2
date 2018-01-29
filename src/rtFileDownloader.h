@@ -83,6 +83,9 @@ public:
   bool cacheEnabled();
   void setDataIsCached(bool val);
   bool isDataCached();
+  void setDeferCacheRead(bool val);
+  bool deferCacheRead();
+  FILE* cacheFilePointer(void);
 #endif //ENABLE_HTTP_CACHE
   void setProgressMeter(bool val);
   bool isProgressMeterSwitchOff();
@@ -92,6 +95,8 @@ public:
   char* httpErrorBuffer(void);
   void setCurlDefaultTimeout(bool val);
   bool isCurlDefaultTimeoutSet();
+  void setOrigin(const char* origin);
+  rtString origin();
 
 private:
   rtString mFileUrl;
@@ -114,11 +119,13 @@ private:
 #ifdef ENABLE_HTTP_CACHE
   bool mCacheEnabled;
   bool mIsDataInCache;
+  bool mDeferCacheRead;
 #endif //ENABLE_HTTP_CACHE
   bool mIsProgressMeterSwitchOff;
   bool mHTTPFailOnError;
   char mHttpErrorBuffer[CURL_ERROR_SIZE];
   bool mDefaultTimeout;
+  rtString mOrigin;
 };
 
 struct rtFileDownloadHandle

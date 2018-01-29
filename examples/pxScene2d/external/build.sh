@@ -7,9 +7,9 @@ set -e
 
 make_parallel=3
 
-if [ "$(uname)" == "Darwin" ]; then
+if [ "$(uname)" = "Darwin" ]; then
     make_parallel="$(sysctl -n hw.ncpu)"
-elif [ "$(uname)" == "Linux" ]; then
+elif [ "$(uname)" = "Linux" ]; then
     make_parallel="$(cat /proc/cpuinfo | grep '^processor' | wc --lines)"
 fi
 
@@ -19,7 +19,7 @@ then
 
   cd curl
 
-  if [ "$(uname)" == "Darwin" ]; then
+  if [ "$(uname)" = "Darwin" ]; then
     ./configure --with-darwinssl
   else
       if [ $(echo "$(openssl version | cut -d' ' -f 2 | cut -d. -f1-2)>1.0" | bc) ]; then
@@ -82,7 +82,7 @@ fi
 
 #--------- ZLIB
 
-if [ ! -e ./zlib/libz.1.2.8.dylib ] ||
+if [ ! -e ./zlib/libz.1.2.11.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
 
@@ -124,15 +124,17 @@ fi
 
 #--------- LIBNODE
 
-if [ ! -e node/out/Release/libnode.48.dylib ] ||
+if [ ! -e node/libnode.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
 
   cd node
   ./configure --shared
   make "-j${make_parallel}"
-  ln -sf libnode.so.48 out/Release/obj.target/libnode.so
-  ln -sf libnode.48.dylib out/Release/libnode.dylib
+  ln -sf out/Release/obj.target/libnode.so.48 libnode.so.48
+  ln -sf libnode.so.48 libnode.so
+  ln -sf out/Release/libnode.48.dylib libnode.48.dylib
+  ln -sf libnode.48.dylib libnode.dylib
   cd ..
 
 fi
@@ -147,6 +149,18 @@ if [ "$(uname)" != "Darwin" ]; then
   cd ..
 
 fi
+
+if [ ! -e dukluv/build/libduktape.a ]
+then
+    cd dukluv
+    quilt push -aq || test $? = 2
+    mkdir -p build
+    cd build
+    cmake ..
+    make "-j${make_parallel}"
+    cd ..
+fi
+
 
 #-------- BODYMOVIN
 #

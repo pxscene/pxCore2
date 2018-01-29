@@ -28,6 +28,7 @@
 #elif defined(PX_PLATFORM_MAC)
 #elif defined(PX_PLATFORM_X11)
 #elif defined(PX_PLATFORM_GLUT)
+#elif defined(PX_PLATFORM_ESSOS)
 #elif defined(PX_PLATFORM_WAYLAND)
 #elif defined(PX_PLATFORM_WAYLAND_EGL)
 #elif defined(PX_PLATFORM_GENERIC_EGL)

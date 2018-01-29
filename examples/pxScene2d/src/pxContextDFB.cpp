@@ -24,7 +24,7 @@
 #include "rtThreadPool.h"
 #include "rtThreadQueue.h"
 #include "rtMutex.h"
-#include "rtNode.h"
+#include "rtScript.h"
 
 #include "pxContext.h"
 #include "pxUtil.h"
@@ -111,7 +111,7 @@ extern bool needsFlip;
 #endif //ENABLE_DFB_GENERIC
 
 #ifdef RUNINMAIN
-extern rtNode                   script;
+extern rtScript                   script;
 #else
 extern uv_async_t 				gcTrigger;
 #endif
@@ -2457,6 +2457,30 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
   drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
 }
 
+void pxContext::drawImage9Border(float w, float h, 
+                  float /*bx1*/, float /*by1*/, float /*bx2*/, float /*by2*/,
+                  float ix1, float iy1, float ix2, float iy2,
+                  bool drawCenter, float* color,
+                  pxTextureRef texture)
+{
+  // TRANSPARENT / DIMENSIONLESS
+  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
+  {
+    return;
+  }
+
+  // TEXTURELESS
+  if (texture.getPtr() == NULL)
+  {
+    return;
+  }
+
+  texture->setLastRenderTick(gRenderTick);
+
+  //TODO - add drawImage9Border2 method
+  drawImage92(0, 0, w, h, ix1, iy1, ix2, iy2, texture);
+}
+
 void pxContext::drawImage(float x, float y, float w, float h,
                         pxTextureRef t, pxTextureRef mask,
                         bool useTextureDimsAlways, float* color,
@@ -2809,7 +2833,7 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
   {
     rtLogDebug("\n ###  Texture Memory: %3.1f %%  <<<   GARBAGE COLLECT", pc);
 #ifdef RUNINMAIN
-    script.garbageCollect();
+    script.collectGarbage();
 #else
     uv_async_send(&gcTrigger);
 #endif

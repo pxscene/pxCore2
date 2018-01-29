@@ -262,6 +262,7 @@ rtError rtHttpCacheData::data(rtData& data)
     return RT_ERROR;
 
   data.init(mData.data(),mData.length());
+
   if (true == revalidateOnlyHeaders)
   {
     mUpdated = true; //headers  modified , so rewriting the cache with new header data
@@ -272,6 +273,53 @@ rtError rtHttpCacheData::data(rtData& data)
 void rtHttpCacheData::setData(rtData& cacheData)
 {
   mData.init(cacheData.data(),cacheData.length());
+}
+
+rtError rtHttpCacheData::deferCacheRead(rtData& data)
+{
+  if (NULL == fp)
+    return RT_ERROR;
+
+  populateExpirationDateFromCache();
+
+  bool revalidate =  false;
+  bool revalidateOnlyHeaders = false;
+
+  rtError res;
+  res = calculateRevalidationNeed(revalidate,revalidateOnlyHeaders);
+
+  if (RT_OK != res)
+    return res;
+
+  if (true == revalidate)
+    return performRevalidation(data);
+
+  if (true == revalidateOnlyHeaders)
+  {
+    if (RT_OK != performHeaderRevalidation())
+      return RT_ERROR;
+  }
+
+  if (mHeaderMap.end() != mHeaderMap.find("ETag"))
+  {
+    rtError res =  handleEtag(data);
+    if (RT_OK != res)
+      return RT_ERROR;
+    if (mUpdated)
+    {
+      return RT_OK;
+    }
+  }
+
+  char invalidData[8] = "Invalid";
+  mData.init((uint8_t*)invalidData, sizeof(invalidData));
+  data.init(mData.data(), mData.length());
+
+  if (true == revalidateOnlyHeaders)
+  {
+    mUpdated = true; //headers  modified , so rewriting the cache with new header data
+  }
+  return RT_OK;
 }
 
 rtError rtHttpCacheData::url(rtString& url) const
@@ -300,9 +348,13 @@ void rtHttpCacheData::setFilePointer(FILE* openedDescriptor)
   fp = openedDescriptor;
 }
 
+FILE* rtHttpCacheData::filePointer(void)
+{
+  return fp;
+}
+
 void rtHttpCacheData::setExpirationDate()
 {
-  string expirationDate = "";
   bool foundMaxAge = false;
   if (mHeaderMap.end() != mHeaderMap.find("Cache-Control"))
   {
@@ -539,6 +591,7 @@ rtError rtHttpCacheData::handleEtag(rtData& data)
 
   if (mUpdated)
   {
+    rtLogInfo("ETAG update found");
     populateHeaderMap();
     setExpirationDate();
     data.init(mData.data(),mData.length());

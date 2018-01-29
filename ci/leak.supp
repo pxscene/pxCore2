@@ -75,3 +75,28 @@
    fun:_ZN4node9AsyncWrap12MakeCallbackEN2v85LocalINS1_8FunctionEEEiPNS2_INS1_5ValueEEE
    fun:_ZN4nodeL5AfterEP7uv_fs_s
 }
+{
+   textureDrawShaderLeaks
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:_ZN21aTextureShaderProgram4drawEiiPffiPKvS2_5rtRefI9pxTextureEPKf
+   fun:_ZL16drawImageTextureffff5rtRefI9pxTextureES1_bPfN18pxConstantsStretch9constantsES4_
+   fun:_ZN9pxContext9drawImageEffff5rtRefI9pxTextureES2_bPfN18pxConstantsStretch9constantsES5_b
+}
