@@ -151,6 +151,8 @@ if [ "$(uname)" != "Darwin" ]; then
 
 fi
 
+#-------- DUKTAPE
+
 if [ ! -e dukluv/build/libduktape.a ]
 then
     cd dukluv
@@ -161,7 +163,6 @@ then
     make "-j${make_parallel}"
     cd ..
 fi
-
 
 #-------- BODYMOVIN
 #
