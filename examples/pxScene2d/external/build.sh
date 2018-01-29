@@ -60,6 +60,7 @@ if [ ! -e ./ft/objs/.libs/libfreetype.6.dylib ] ||
 then
 
   cd ft
+  quilt push -aq || test $? = 2
   export LIBPNG_LIBS="-L../png/.libs -lpng16"
   ./configure --with-png=no
   make all "-j${make_parallel}"
