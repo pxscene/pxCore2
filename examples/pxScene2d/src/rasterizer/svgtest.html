@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">
+<body>
+
+<svg version="1.1" id="mySVG" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+width="1280px" height="720px" viewBox="0 0 1280 720" enable-background="new 0 0 1280 720" xml:space="preserve">
+
+</svg>
+
+<script>
+
+    function setAttributes(el, attrs) {
+        Object.keys(attrs).forEach(key => el.setAttribute(key, attrs[key]));
+    }
+
+    var svgNS = "http://www.w3.org/2000/svg";
+    var mySVG = document.getElementById("mySVG");
+
+    var show_LetterM = true;
+    var show_Cross   = false;
+    var show_Circle  = false;
+    var show_Ellipse = false;
+    var show_RRect   = false;
+    var show_ARC1    = false;
+    var show_ARC2    = false;
+    var show_SWEEP   = false;
+    var show_CURVES  = false;
+    
+    if( show_LetterM )  drawSVG_LetterM();
+    if( show_Cross   )  drawSVG_Cross();
+    if( show_Circle  )  drawSVG_Circle();
+    if( show_Ellipse )  drawSVG_Ellipse();
+    if( show_RRect   )  drawSVG_RRect();
+    if( show_ARC1    )  drawSVG_ARC1();
+    if( show_ARC2    )  drawSVG_ARC2();
+    if( show_SWEEP   )  drawSVG_SWEEP();
+    if( show_CURVES  )  drawSVG_CURVES();
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    function drawSVG_all()
+    {
+      drawSVG_LetterM();
+      drawSVG_Cross();
+      drawSVG_Circle();
+      drawSVG_Ellipse();
+      drawSVG_RRect();
+      //  drawSVG_ARC1();
+      //  drawSVG_ARC2();
+      drawSVG_SWEEP();
+      drawSVG_CURVES();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //
+    //   LETTER "M" in a mega-PATH
+    //
+    //
+    function drawSVG_LetterM()
+    {
+        svgElement = document.createElementNS(svgNS, "path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, { "transform": "translate(800, 100)", "fill": "#00FF00", "stroke": "#000000", "stroke-width": "4",
+                                    "d": "M 68.8 49 " +
+                                         "V 21.9"+
+                                         "c 0 -8.3 -2.8 -11.5 -8.2 -11.5"+
+                                         "c -6.6 0 -9.3 4.7 -9.3 11.4"+
+                                         "v 16.8"+
+                                         "h 6.4"+
+                                         "V 49"+
+                                         "H 37.6"+
+                                         "V 21.9"+
+                                         "c 0 -8.3 -2.8 -11.5 -8.2 -11.5"+
+                                         "c -6.6 0 -9.3 4.7 -9.3 11.4"+
+                                         "v 16.8"+
+                                         "h 9.2"+
+                                         "V 49"+
+                                         "H 0"+
+                                         "V 38.7"+
+                                         "h 6.4"+
+                                         "V 11.4"+
+                                         "H 0.1"+
+                                         "V 1"+
+                                         "h 20"+
+                                         "v 7.2"+
+                                         "C 23 3.1 28 0 34.7 0"+
+                                         "C 41.6 0 48 3.3 50.4 10.3"+
+                                         "C 53 3.9 58.5 0 66 0"+
+                                         "c 8.6 0 16.5 5.2 16.5 16.6"+
+                                         "v 22"+
+                                         "h 6.4"+
+                                         "V 49"+
+                                         "H 68.8"+
+                                         "Z" });
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Multi-color Cross ... (relative)
+    function drawSVG_Cross()
+    {
+        svgElement = document.createElementNS(svgNS,"path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, {"transform": "translate(0, 50)", "stroke": "#FF00FF", "stroke-width": "4",
+                                    "d": "M100 100 v-50"});
+
+        svgElement = document.createElementNS(svgNS,"path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, {"transform": "translate(0, 50)", "stroke": "#00FF00", "stroke-width": "4",
+                                    "d": "M100 100 v50"});
+
+        svgElement = document.createElementNS(svgNS,"path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, {"transform": "translate(0, 50)", "stroke": "#0000FF", "stroke-width": "4",
+                                    "d": "M100 100 h50"});
+
+        svgElement = document.createElementNS(svgNS,"path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, {"transform": "translate(0, 50)", "stroke": "#00FFFF", "stroke-width": "4",
+                                    "d": "M100 100 h-50"});
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //     CIRCLE TESTING - see [test.svg]
+    //
+    //     <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+    //
+    //     <path d="M 191 140
+    //              C 191 163   173 181  150  181
+    //              C 127 181   109 163  109  140
+    //              C 109 117   127  99  150   99
+    //              C 173  99   191 117  191  140Z" stroke="black" stroke-width="3"  fill="cyan"/>
+    function drawSVG_Circle()
+    {
+        svgElement = document.createElementNS(svgNS,"circle");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, { "id": "circle", "cx": "150", "cy": "250", "r": "41",
+                                    "stroke": "#000000", "stroke-width": "4", "fill": "#00FFFF"} );
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //     ELLIPSE TESTING - see [test.svg]
+    //
+    //    <ellipse cx="60" cy="60" rx="50" ry="25" stroke="black" stroke-width="3" fill="red" />
+    //
+    //    <path d="M 200 340 C 200 354 178 365 150 365
+    //             C 122 365 100 354 100 340
+    //             C 100 326 122 315 150 315
+    //             C 178 315 200 326 200 340Z" stroke="black" stroke-width="3"  fill="cyan"/>
+
+    function drawSVG_Ellipse()
+    {
+        svgElement = document.createElementNS(svgNS,"ellipse");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, { "id": "ellipse", "cx": "150", "cy": "340", "rx": "50", "ry": "25",
+                                    "stroke": "#000000", "stroke-width": "4", "fill": "#FFFF00"} );
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //    ROUNDED RECT - see [test.svg]
+    //
+    //    <rect x="250" y="250" rx="50" ry="50" width="400" height="200"
+    //         style="fill:red;stroke:black;stroke-width:5;opacity:0.5" />
+    //
+    function drawSVG_RRect()
+    {
+        var x0 = 500, y0 = 250, w = 200, h = 100, rx = 30, ry = 30;
+
+        svgElement = document.createElementNS(svgNS,"rect");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, { "id": "rrect1", "x": x0, "y": y0, "width": w, "height": h, "rx": rx, "ry:": ry,
+                                    "stroke": "#000000", "stroke-width": "4", "fill": "#8888FF"} );
+
+        svgElement = document.createElementNS(svgNS,"rect");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, { "id": "rrect2", "x": x0, "y": y0+ 150, "width": w, "height": h,
+                                    "stroke": "#FF0000", "stroke-width": "4", "fill": "#8888FF"} );
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //    ARC: absolute
+    //
+    //    Example from: ARC section >>  https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
+    //
+    function drawSVG_ARC1()
+    {
+        svgElement = document.createElementNS(svgNS,"path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, { "id": "arc1",  "stroke": "#FF0000", "stroke-width": "3", "fill": "#8888FF",
+                                    "d": "M10 315 L 315 10"} );
+
+        svgElement = document.createElementNS(svgNS,"path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, { "id": "arc2",  "stroke": "#000000", "stroke-width": "3", "fill": "#00FF00", "opacity": "0.8",
+                                    "d": "M10 315 "
+                                        +"L 110 215 "
+                                        +"A 30 50 0 0 1 162.55 162.45 "
+                                        +"L 172.55 152.45 "
+                                        +"A 30 50 -45 0 1 215.1 109.9 "
+                                        +"L 315 10Z"} );
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //    ARC: relative
+    //
+    //    Example from: ARC section >>  https://www.w3.org/TR/SVG/paths.html#PathDataEllipticalArcCommands
+    //
+    function drawSVG_ARC2()
+    {
+        svgElement = document.createElementNS(svgNS,"path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, { "id": "arc2",  "stroke": "#FF0000", "stroke-width": "5", "fill": "#00FF00",
+                                     "d": "M600 350 l 50 -25 "
+                                         +"a25 25  -30 0 1 50 -25 l 50 -25 "
+                                         +"a25 50  -30 0 1 50 -25 l 50 -25 "
+                                         +"a25 75  -30 0 1 50 -25 l 50 -25 "
+                                         +"a25 100 -30 0 1 50 -25 l 50 -25Z" } );
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //    ARC SWEEP - 4 possible values
+    //
+    //    Example from: ARC section >>  https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
+    //
+    function drawSVG_SWEEP()
+    {
+        svgElement = document.createElementNS(svgNS,"path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, { "id": "sweep1",  "stroke": "#000000", "stroke-width": "1", "fill": "#00FF00",
+                                     "d": "M80 80 "
+                                         +"A 45 45  0  0  0  125 125 "
+                                         +"L 125 80 Z"} );
+
+        svgElement = document.createElementNS(svgNS,"path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, { "id": "sweep1",  "stroke": "#000000", "stroke-width": "1", "fill": "#FF0000",
+                                     "d": "M230 80 "
+                                         +"A 45 45  0  1  0  275 125 "
+                                         +"L 275 80 Z" } );
+
+
+        svgElement = document.createElementNS(svgNS,"path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, { "id": "sweep1",  "stroke": "#000000", "stroke-width": "1", "fill": "#FF00FF",
+                                     "d": "M80 230 "
+                                         +"A 45 45  0  0  1  125 275 "
+                                         +"L 125 230 Z" });
+
+        svgElement = document.createElementNS(svgNS,"path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, { "id": "sweep1",  "stroke": "#000000", "stroke-width": "1", "fill": "#0000FF",
+                                     "d": "M230 230 "
+                                         +"A 45 45  0  1  1  275 275 "
+                                         +"L 275 230 Z" } );
+
+        mySVG.appendChild(svgElement);
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //    Curves
+    //
+    // These curves should overlap, Black Below, Red Above
+    //
+    function drawSVG_CURVES()
+    {
+        svgElement = document.createElementNS(svgNS,"path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, {"id": "blackCurve", "fill": "transparent", "stroke": "#000000", "stroke-width": "13",
+                                    "d": "M100 180 q50 10, 95 80", "transform": "translate(-50, -150)" });
+
+        svgElement = document.createElementNS(svgNS, "path");
+        mySVG.appendChild(svgElement);
+
+        setAttributes(svgElement, {"id": "redCurve", "fill": "transparent", "stroke": "#FF0000", "stroke-width": "3",
+                                    "d": "M100 180 Q150 190, 195 260", "transform": "translate(-50, -150)" });
+
+<!--        svgElement = document.createElementNS(svgNS,"rect");-->
+<!--        mySVG.appendChild(svgElement);-->
+<!---->
+<!--        setAttributes(svgElement, {"id": "square", "fill": "#8888FF", "x": "91", "y": "171", "width": "18", "height": "18",-->
+<!--                                   "transform": "translate(-50, -150)" });-->
+    };
+
+</script>
+
+</body>
+</html>
+
+
+
+
