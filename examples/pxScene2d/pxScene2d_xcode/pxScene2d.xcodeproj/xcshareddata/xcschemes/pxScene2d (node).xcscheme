@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0710"
+   LastUpgradeVersion = "0720"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "AECBECCF1B67979F00851BFE"
-               BuildableName = "libpxCore.a"
-               BlueprintName = "pxCore (Node) Static Library"
-               ReferencedContainer = "container:pxCore.xcodeproj">
+               BlueprintIdentifier = "4C0C6D2A1E52189500BD8932"
+               BuildableName = "pxscene.app"
+               BlueprintName = "pxScene2d (node)"
+               ReferencedContainer = "container:pxScene2d.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,10 +45,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AECBECCF1B67979F00851BFE"
-            BuildableName = "libpxCore.a"
-            BlueprintName = "pxCore (Node) Static Library"
-            ReferencedContainer = "container:pxCore.xcodeproj">
+            BlueprintIdentifier = "4C0C6D2A1E52189500BD8932"
+            BuildableName = "pxscene.app"
+            BlueprintName = "pxScene2d (node)"
+            ReferencedContainer = "container:pxScene2d.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -63,10 +63,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AECBECCF1B67979F00851BFE"
-            BuildableName = "libpxCore.a"
-            BlueprintName = "pxCore (Node) Static Library"
-            ReferencedContainer = "container:pxCore.xcodeproj">
+            BlueprintIdentifier = "4C0C6D2A1E52189500BD8932"
+            BuildableName = "pxscene.app"
+            BlueprintName = "pxScene2d (node)"
+            ReferencedContainer = "container:pxScene2d.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>
