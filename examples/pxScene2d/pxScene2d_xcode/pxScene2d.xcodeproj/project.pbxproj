@@ -82,6 +82,8 @@
 		4C5D06292020D0A000D2B292 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D05EA201FC5B500D2B292 /* libz.1.2.11.dylib */; };
 		4C5D062A2020D34200D2B292 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D05EA201FC5B500D2B292 /* libz.1.2.11.dylib */; };
 		4C63A6831E7878AA00313D9C /* package.json in Resources */ = {isa = PBXBuildFile; fileRef = 4C63A6821E7878AA00313D9C /* package.json */; };
+		4C93A1712021160D002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		4C93A17D2021161E002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4C9F22AC1E6A24D200979F4E /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */; };
 		4CE99F681F389F8400BA95C2 /* xs_String.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CE99F651F389F8400BA95C2 /* xs_String.cpp */; };
 		4CE99F6F1F389F9200BA95C2 /* pxCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CE99F6A1F389F9200BA95C2 /* pxCanvas.cpp */; };
@@ -264,6 +266,7 @@
 			dstPath = lib;
 			dstSubfolderSpec = 6;
 			files = (
+				4C93A1712021160D002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */,
 				4C5D061B2020D06100D2B292 /* libcurl.4.dylib in Copy Dynamic Library Files */,
 				4C5D061C2020D06100D2B292 /* libjpeg.9.dylib in Copy Dynamic Library Files */,
 				4C5D061D2020D06100D2B292 /* libpng16.16.dylib in Copy Dynamic Library Files */,
@@ -295,6 +298,7 @@
 			dstPath = lib;
 			dstSubfolderSpec = 6;
 			files = (
+				4C93A17D2021161E002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */,
 				4CF5462D2020F5B600529907 /* libcurl.4.dylib in Copy Dynamic Library Files */,
 				4CF5462E2020F5B600529907 /* libjpeg.9.dylib in Copy Dynamic Library Files */,
 				4CF5462F2020F5B600529907 /* libpng16.16.dylib in Copy Dynamic Library Files */,

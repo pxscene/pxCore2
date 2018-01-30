@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "4C0C6D2A1E52189500BD8932"
-               BuildableName = "pxscene.app"
+               BuildableName = "pxscene (node).app"
                BlueprintName = "pxScene2d (node)"
                ReferencedContainer = "container:pxScene2d.xcodeproj">
             </BuildableReference>
@@ -42,15 +42,16 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4C0C6D2A1E52189500BD8932"
-            BuildableName = "pxscene.app"
+            BuildableName = "pxscene (node).app"
             BlueprintName = "pxScene2d (node)"
             ReferencedContainer = "container:pxScene2d.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -64,7 +65,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4C0C6D2A1E52189500BD8932"
-            BuildableName = "pxscene.app"
+            BuildableName = "pxscene (node).app"
             BlueprintName = "pxScene2d (node)"
             ReferencedContainer = "container:pxScene2d.xcodeproj">
          </BuildableReference>
