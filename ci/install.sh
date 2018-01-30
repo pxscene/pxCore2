@@ -5,7 +5,7 @@ checkError()
   if [ "$1" -ne 0 ]
   then
     printf "\n\n*********************************************************************";
-    printf "\n*********************SCRIPT FAIL DETAILS*****************************";
+    printf "\n********************* SCRIPT FAIL DETAILS *****************************";
     printf "\nCI failure reason: $2"
     printf "\nCause: $3"
     printf "\nReproduction/How to fix: $4"
@@ -39,7 +39,7 @@ fi
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
 then
   mkdir $TRAVIS_BUILD_DIR/artifacts
-  checkError $? "unable to create directory artifacts" "could be permission issue" "Retry trigerring travis build"
+  checkError $? "unable to create directory artifacts" "could be permission issue" "Retry triggering travis build"
 fi
 
 echo "******************** Building externals ********************" > $BUILDLOGS
