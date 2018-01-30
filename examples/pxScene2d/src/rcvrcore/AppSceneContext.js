@@ -5,6 +5,31 @@ var isDuk=(typeof timers != "undefined")?true:false;
 var url = require('url');
 var path = require('path');
 var vm = require('vm');
+
+if (isDuk) {
+    var BufferList = require('BufferList');
+    var crypto = require('crypto');
+    var options = require('options');
+    var zlib = require('zlib');
+    var ultron = require('ultron');
+    var string_decoder = require('string_decoder');
+    var util = require('util');
+    var events = require('events');
+    var stream = require('stream');
+    var errcodes = require('ws/lib/ErrorCodes');
+    var bufpool = require('ws/lib/BufferPool');
+    var permsgdeflate = require('ws/lib/PerMessageDeflate');
+    var bufutil = require('ws/lib/BufferUtil');
+    var validation = require('ws/lib/Validation');
+    var extensions = require('ws/lib/Extensions');
+    var Sender = require('ws/lib/Sender');
+    var Receiver = require('ws/lib/Receiver');
+    var SenderHixie = require('ws/lib/Sender.hixie');
+    var ReceiverHixie = require('ws/lib/Receiver.hixie');
+    var Extensions = require('ws/lib/Extensions');
+    var PerMessageDeflate = require('ws/lib/PerMessageDeflate');
+}
+
 var Logger = require('rcvrcore/Logger').Logger;
 var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
 var XModule = require('rcvrcore/XModule').XModule;
@@ -691,11 +716,19 @@ if (isDuk) {
                            var modData = require(filePath);
                            onImportComplete([modData, origFilePath]);
                            return;
-                           } else if( filePath === 'fs' || filePath === 'os' || filePath === 'events') {
+                           } else if( filePath === 'fs' || filePath === 'os' ) {
                            console.log("Not permitted to use the module " + filePath);
                            reject("include failed due to module not permitted");
                            return;
-                           } else if( filePath === 'net' /*|| filePath === 'ws'*/ ||  filePath === 'htmlparser') {
+                           } else if ( filePath === 'zlib' || filePath === 'events' || filePath === 'crypto' || filePath === 'stream' || filePath === 'util' || filePath === 'BufferList' ) {
+                           modData = require('duk_modules/' + filePath);
+                           onImportComplete([modData, origFilePath]);
+                           return;
+                           } else if ( filePath === 'ws' ) {
+                           modData = require('rcvrcore/' + filePath + '_wrap');
+                           onImportComplete([modData, origFilePath]);
+                           return;
+                           } else if( filePath === 'net' || filePath === 'htmlparser') {
                            //modData = require('rcvrcore/' + filePath + '_wrap');
                            //onImportComplete([modData, origFilePath]);
                            console.log("Not permitted to use the module " + filePath);
@@ -718,7 +751,7 @@ if (isDuk) {
                            {
                            modData = new https_wrap();
                            }
-                           var localapp = (isLocalApp(_this.packageUrl) || isLocalIPV6App(_this.packageUrl));
+                           var localapp = true; //(isLocalApp(_this.packageUrl) || isLocalIPV6App(_this.packageUrl));
                            modData.setLocalApp(localapp);
                            onImportComplete([modData, origFilePath]);
                            return;
