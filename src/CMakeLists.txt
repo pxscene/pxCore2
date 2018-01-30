@@ -232,9 +232,10 @@ if (OUTPUT_LIBS_LOCAL)
 endif (OUTPUT_LIBS_LOCAL)
 
 #if (USE_DUKTAPE)
-    include_directories(AFTER ${EXTDIR}/dukluv/lib/duktape/src)
-    include_directories(AFTER ${EXTDIR}/dukluv/lib/uv/include)
     include_directories(AFTER ${EXTDIR}/dukluv/src)
+    include_directories(AFTER ${EXTDIR}/dukluv/lib/duktape/src)
+    include_directories(AFTER ${EXTDIR}/dukluv/lib/duktape/extras/module-duktape)
+    include_directories(AFTER ${EXTDIR}/dukluv/lib/uv/include)
 #endif(USE_DUKTAPE)
 
 if (BUILD_PXCORE_LIBS)

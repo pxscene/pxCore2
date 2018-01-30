@@ -17,7 +17,7 @@
 #include "duktape.h"
 
 #define  ERROR_FROM_ERRNO(ctx)  do { \
-		duk_error(ctx, DUK_ERR_ERROR, "%s (errno=%d)", strerror(errno), errno); \
+		(void) duk_error(ctx, DUK_ERR_ERROR, "%s (errno=%d)", strerror(errno), errno); \
 	} while (0)
 
 static void set_nonblocking(duk_context *ctx, int fd) {
@@ -49,7 +49,7 @@ static void set_reuseaddr(duk_context *ctx, int fd) {
 	}
 }
 
-#ifdef __APPLE__
+#if defined(__APPLE__)
 static void set_nosigpipe(duk_context *ctx, int fd) {
 	int val;
 	int rc;
@@ -80,7 +80,7 @@ static int socket_create_server_socket(duk_context *ctx) {
 
 	set_nonblocking(ctx, sock);
 	set_reuseaddr(ctx, sock);
-#ifdef __APPLE__
+#if defined(__APPLE__)
 	set_nosigpipe(ctx, sock);
 #endif
 
@@ -96,7 +96,7 @@ static int socket_create_server_socket(duk_context *ctx) {
 		break;
 	}
 	if (!addr_inet) {
-		duk_error(ctx, DUK_ERR_ERROR, "cannot resolve %s", addr);
+		(void) duk_error(ctx, DUK_ERR_ERROR, "cannot resolve %s", addr);
 	}
 
 	memset(&sockaddr, 0, sizeof(sockaddr));
@@ -146,7 +146,7 @@ static int socket_accept(duk_context *ctx) {
 	}
 
 	set_nonblocking(ctx, sock);
-#ifdef __APPLE__
+#if defined(__APPLE__)
 	set_nosigpipe(ctx, sock);
 #endif
 
@@ -188,7 +188,7 @@ static int socket_connect(duk_context *ctx) {
 	}
 
 	set_nonblocking(ctx, sock);
-#ifdef __APPLE__
+#if defined(__APPLE__)
 	set_nosigpipe(ctx, sock);
 #endif
 
@@ -204,7 +204,7 @@ static int socket_connect(duk_context *ctx) {
 		break;
 	}
 	if (!addr_inet) {
-		duk_error(ctx, DUK_ERR_ERROR, "cannot resolve %s", addr);
+		(void) duk_error(ctx, DUK_ERR_ERROR, "cannot resolve %s", addr);
 	}
 
 	memset(&sockaddr, 0, sizeof(sockaddr));
@@ -253,7 +253,7 @@ static int socket_write(duk_context *ctx) {
 	data = duk_to_buffer(ctx, 1, &len);
 
 	/* MSG_NOSIGNAL: avoid SIGPIPE */
-#ifdef __APPLE__
+#if defined(__APPLE__)
 	rc = sendto(sock, (void *) data, len, 0, NULL, 0);
 #else
 	rc = sendto(sock, (void *) data, len, MSG_NOSIGNAL, NULL, 0);
