@@ -12,7 +12,7 @@ rtRemoteEndPoint::fromString(std::string const& s)
   {
     e = rtRemoteFileEndPoint::fromString(s);
   }
-  else if ((strncmp(s.c_str(), "tcp", 4) == 0) || 
+  else if ((strncmp(s.c_str(), "tcp", 3) == 0) ||
     (strncmp(s.c_str(), "udp", 3) == 0) || (strncmp(s.c_str(), "mcast", 4) == 0))
   {
     e = rtRemoteIPEndPoint::fromString(s);
