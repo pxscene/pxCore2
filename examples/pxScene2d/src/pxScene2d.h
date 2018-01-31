@@ -732,12 +732,14 @@ protected:
   bool mIsDirty;
   pxMatrix4f mLastRenderMatrix;
   pxRect mScreenCoordinates;
+  pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
 
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
   void createSnapshotOfChildren();
   void clearSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES
+  void setDirtyRect(pxRect* r);
   pxRect getBoundingRectInScreenCoordinates();
   pxRect convertToScreenCoordinates(pxRect* r);
   #endif //PX_DIRTY_RECTANGLES
@@ -1540,9 +1542,9 @@ private:
   int frameCount;
   int mWidth;
   int mHeight;
-  
+
   rtObjectRef mCanvas; // for SVG drawing
-  
+
   rtEmitRef mEmit;
 
 // TODO Top level scene only
@@ -1583,6 +1585,7 @@ public:
   bool mDirty;
   #ifdef PX_DIRTY_RECTANGLES
   pxRect mDirtyRect;
+  pxRect mLastFrameDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
   testView* mTestView;
   bool mDisposed;

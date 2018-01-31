@@ -3,13 +3,13 @@ checkError()
 {
   if [ "$1" -ne 0 ]
   then
-    echo "*********************************************************************";
-    echo "*******************CODE COVERAGE FAIL DETAILS************************";
-    echo "CI failure reason: $2"
-    echo "Cause: $3"
-    echo "Reproduction/How to fix: $4"
-    echo "*********************************************************************";
-    echo "*********************************************************************";
+    printf "\n\n*********************************************************************";
+    printf "\n******************* CODE COVERAGE FAIL DETAILS ************************";
+    printf "\nCI failure reason: $2"
+    printf "\nCause: $3"
+    printf "\nReproduction/How to fix: $4"
+    printf "\n*********************************************************************";
+    printf "\n*********************************************************************\n\n";
     exit 1
   fi
 }
@@ -17,7 +17,7 @@ checkError()
 ulimit -c unlimited
 
 cd $TRAVIS_BUILD_DIR
-cored=0
+dumped_core=0
 export HANDLE_SIGNALS=1
 export RT_LOG_LEVEL=info
 cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
@@ -41,7 +41,7 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 300 ]; do
 	then
 		if [ -f "/tmp/pxscenecrash" ]
 		then
-			cored=1
+			dumped_core=1
 			sudo rm -rf /tmp/pxscenecrash
 			break
 		fi
@@ -50,9 +50,10 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 300 ]; do
 done
 
 #check for corefile presence
-echo "core happened during unittests execution - $cored"
-if [ "$cored" -eq 1 ]
+if [ "$dumped_core" -eq 1 ]
 then
+	echo "ERROR: Core Dump during unittests execution - $dumped_core"
+
 	$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'` $TESTLOGS
 	retVal=$?
 	if [ "$retVal" -eq 1 ]
@@ -61,25 +62,26 @@ then
 	fi
 fi
 
-ps -ef | grep -i pxscene2dtests
-echo "kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`"
-kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`
-sleep 5s;
-pkill -9 -f pxscene2dtests.sh
+pxpid=`pgrep -n pxscene2dtests.sh`
+if [ -n "$pxpid" ]
+then
+	printf "\n\nCALLING ... kill -9 ${pxpid}  << pxscene2dtests.sh PID"
+	kill -9 $pxpid
+fi
 
 errCause=""
 #check for process hung
 grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
-if [ "$retVal" -ne 0 ]
+if [ "$retVal" -eq 1 ]
 then
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 	then
 		errCause="Either one or more tests failed. Check the above logs"
-		echo "********************PRINTING TEST LOGS************************"
-    cat $TESTLOGS
-    echo "************************LOG ENDS******************************"
-	else
+		echo "********************** PRINTING TEST LOG **************************"
+                cat $TESTLOGS
+                echo "************************** LOG ENDS *******************************"
+        else
 		errCause="Either one or more tests failed. Check the log file $TESTLOGS"
 	fi 
 	checkError $retVal "unittests execution failed" "$errCause" "Rrun unittests locally"
@@ -89,15 +91,15 @@ fi
 grep "FAILED TEST" $TESTLOGS
 retVal=$?
 cd $TRAVIS_BUILD_DIR;
-if [ "$retVal" -eq 0 ]
+if [ "$retVal" -eq 0 ] # "FAILED TEST" was found. 
 then
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 	then
 		errCause="Either one or more tests failed. Check the above logs"
-		echo "********************PRINTING TEST LOGS************************"
-    cat $TESTLOGS
-    echo "************************LOG ENDS******************************"
-	else
+	        echo "********************** PRINTING TEST LOG **************************"
+                cat $TESTLOGS
+                echo "************************** LOG ENDS *******************************"
+        else
 		errCause="Either one or more tests failed. Check the log file $TESTLOGS"
 	fi 
 	checkError -1 "unittests execution failed" "$errCause" "Run unittests locally"

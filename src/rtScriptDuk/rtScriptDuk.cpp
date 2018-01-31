@@ -111,17 +111,11 @@ extern "C" {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-#ifndef PX_PLATFORM_MAC
-#ifndef __clang__
-#pragma GCC diagnostic ignored "-Werror"
-#endif
-#endif
-
 #pragma GCC diagnostic ignored "-Wall"
 #endif
 
 #include "uv.h"
-#include "include/libplatform/libplatform.h"
+#include "libplatform/libplatform.h"
 
 #include "rtObjectWrapper.h"
 #include "rtFunctionWrapper.h"
@@ -139,22 +133,6 @@ class rtScriptDuk;
 class rtDukContext;
 
 typedef rtRef<rtDukContext> rtDukContextRef;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#if 1
-typedef struct args_
-{
-  int    argc;
-  char **argv;
-
-  args_() { argc = 0; argv = NULL; }
-  args_(int n = 0, char** a = NULL) : argc(n), argv(a) {}
-}
-args_t;
-#endif
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class rtDukContext: rtIScriptContext
 {
@@ -256,7 +234,7 @@ private:
 
   duk_context                   *dukCtx;
   std::vector<uv_loop_t *>       uvLoops;
-  uv_thread_t                    dukTid;
+  //uv_thread_t                    dukTid;
   bool                           duk_is_initialized;
 
 #ifdef USE_CONTEXTIFY_CLONES
@@ -349,7 +327,7 @@ static inline bool file_exists(const char *file)
 #endif
 
 rtDukContext::rtDukContext() :
-     js_file(NULL), mRefCount(0), mContextifyContext(NULL), uvLoop(NULL)
+     js_file(NULL), mRefCount(0), mContextifyContext(NULL), dukCtx(NULL), uvLoop(NULL)
 {
   mId = rtAtomicInc(&sNextId);
 
@@ -358,7 +336,7 @@ rtDukContext::rtDukContext() :
 
 #ifdef USE_CONTEXTIFY_CLONES
 rtDukContext::rtDukContext(rtDukContextRef clone_me) :
-      js_file(NULL), mRefCount(0), mContextifyContext(NULL), uvLoop(NULL)
+      js_file(NULL), mRefCount(0), mContextifyContext(NULL), dukCtx(NULL), uvLoop(NULL)
 {
   mId = rtAtomicInc(&sNextId);
 

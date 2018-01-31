@@ -32,7 +32,7 @@
 	 versions do not match.  The zlib version used in this build is recorded
 	 below:
      -->
-    <ZLibSrcDir>..\zlib-1.2.8</ZLibSrcDir>
+    <ZLibSrcDir>..\zlib-1.2.11</ZLibSrcDir>
     <PngSrcDir>..\libpng-1.6.28</PngSrcDir>
     <CurlSrcDir>..\curl-7.40.0</CurlSrcDir>
     <TurboJpegSrcDir>..\libjpeg-turbo-1.5.1</TurboJpegSrcDir>

@@ -448,7 +448,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
     mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
 #ifdef PX_DIRTY_RECTANGLES
-    , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
+    , mIsDirty(true), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect()
 #endif //PX_DIRTY_RECTANGLES
     ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false)
   {
@@ -583,7 +583,6 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
                               uint32_t interp, uint32_t options,
                               int32_t count, rtObjectRef& promise)
 {
-
   if (!props) return RT_FAIL;
 
   // TODO JR... not sure that we should do an early out here... thinking
@@ -658,6 +657,10 @@ void pxObject::setParent(rtRef<pxObject>& parent)
     mParent = parent;
     if (parent)
       parent->mChildren.push_back(this);
+#ifdef PX_DIRTY_RECTANGLES
+    mIsDirty = true;
+    mScreenCoordinates = getBoundingRectInScreenCoordinates();
+#endif //PX_DIRTY_RECTANGLES
   }
 }
 
@@ -1078,6 +1081,8 @@ void pxObject::update(double t)
     mLastRenderMatrix = context.getMatrix();
     pxRect dirtyRect = getBoundingRectInScreenCoordinates();
     mScene->invalidateRect(&dirtyRect);
+    dirtyRect.unionRect(mScreenCoordinates);
+    setDirtyRect(&dirtyRect);
     mIsDirty = false;
   }
   #endif //PX_DIRTY_RECTANGLES
@@ -1102,6 +1107,18 @@ EXITSCENELOCK()
 }
 
 #ifdef PX_DIRTY_RECTANGLES
+void pxObject::setDirtyRect(pxRect *r)
+{
+  if (r != NULL)
+  {
+    mDirtyRect.unionRect(*r);
+    if (mParent != NULL)
+    {
+      mParent->setDirtyRect(&mDirtyRect);
+    }
+  }
+}
+
 pxRect pxObject::getBoundingRectInScreenCoordinates()
 {
   int w = getOnscreenWidth();
@@ -1388,6 +1405,9 @@ void pxObject::drawInternal(bool maskPass)
     mRepaint = false;
   }
   // ---------------------------------------------------------------------------------------------------
+#ifdef PX_DIRTY_RECTANGLES
+  mDirtyRect.setEmpty();
+#endif //PX_DIRTY_RECTANGLES
 }
 
 
@@ -1487,12 +1507,19 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   float w = getOnscreenWidth();
   float h = getOnscreenHeight();
 
+#ifdef PX_DIRTY_RECTANGLES
+  bool fullFboRepaint = false;
+#endif //PX_DIRTY_RECTANGLES
+
   //rtLogInfo("createSnapshot  w=%f h=%f\n", w, h);
   if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
   {
     clearSnapshot(fbo);
     //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
     fbo = context.createFramebuffer(floor(w), floor(h), antiAliasing);
+#ifdef PX_DIRTY_RECTANGLES
+    fullFboRepaint = true;
+#endif //PX_DIRTY_RECTANGLES
   }
   else
   {
@@ -1502,7 +1529,23 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (mRepaint && context.setFramebuffer(fbo) == PX_OK)
   {
+#ifdef PX_DIRTY_RECTANGLES
+    int clearX = mDirtyRect.left();
+    int clearY = mDirtyRect.top();
+    int clearWidth = mDirtyRect.right() - clearX+1;
+    int clearHeight = mDirtyRect.bottom() - clearY+1;
+
+    if (fullFboRepaint)
+    {
+      clearX = 0;
+      clearY = 0;
+      clearWidth = w;
+      clearHeight = h;
+    }
+    context.clear(clearX, clearY, clearWidth, clearHeight);
+#else
     context.clear(w, h);
+#endif //PX_DIRTY_RECTANGLES
     draw();
 
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -1697,7 +1740,11 @@ int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
-    mInnerpxObjects(), mDirty(true), mTestView(NULL), mDisposed(false)
+    mInnerpxObjects(),
+#ifdef PX_DIRTY_RECTANGLES
+    mDirtyRect(), mLastFrameDirtyRect(),
+#endif //PX_DIRTY_RECTANGLES
+    mDirty(true), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1784,11 +1831,12 @@ rtError pxScene2d::dispose()
     if (mRoot)
       mRoot->dispose();
     mEmit->clearListeners();
-    mRoot = NULL;
-  
-    mInfo = NULL;
-  
+
+    mRoot     = NULL;
+    mInfo     = NULL;
+    mCanvas   = NULL;
     mFocusObj = NULL;
+
     pxFontManager::clearAllFonts();
     return RT_OK;
 }
@@ -2107,10 +2155,12 @@ void pxScene2d::draw()
 
   //rtLogInfo("pxScene2d::draw()\n");
   #ifdef PX_DIRTY_RECTANGLES
-  int x = mDirtyRect.left();
-  int y = mDirtyRect.top();
-  int w = mDirtyRect.right() - x+1;
-  int h = mDirtyRect.bottom() - y+1;
+  pxRect dirtyRectangle = mDirtyRect;
+  dirtyRectangle.unionRect(mLastFrameDirtyRect);
+  int x = dirtyRectangle.left();
+  int y = dirtyRectangle.top();
+  int w = dirtyRectangle.right() - x+1;
+  int h = dirtyRectangle.bottom() - y+1;
 
   static bool previousShowDirtyRect = false;
 
@@ -2140,6 +2190,7 @@ ENTERSCENELOCK()
     mRoot->drawInternal(true);
 EXITSCENELOCK()
     context.popState();
+    mLastFrameDirtyRect.setLTRB(mDirtyRect.left(), mDirtyRect.top(), mDirtyRect.right(), mDirtyRect.bottom());
     mDirtyRect.setEmpty();
   }
 
@@ -3093,6 +3144,7 @@ void pxViewContainer::invalidateRect(pxRect* r)
 #ifdef PX_DIRTY_RECTANGLES
     pxRect screenRect = convertToScreenCoordinates(r);
     mScene->invalidateRect(&screenRect);
+    setDirtyRect(r);
 #else
     mScene->invalidateRect(NULL);
     UNUSED_PARAM(r);
