@@ -1057,7 +1057,7 @@ rtScriptDuk::rtScriptDuk():mRefCount(0), duk_is_initialized(false), dukCtx(NULL)
   init();
 }
 
-rtScriptDuk::rtScriptDuk(bool initialize):mRefCount(0), duk_is_initialized(false), dukCtx(NULL)
+rtScriptDuk::rtScriptDuk(bool initialize):mRefCount(0), duk_is_initialized(false),dukCtx(NULL)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false), duk_is_initialized(false)
