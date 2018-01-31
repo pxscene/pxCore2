@@ -290,6 +290,7 @@ duk_ret_t duv_platform(duk_context *ctx) {
 
 duk_ret_t duv_run_in_new_context(duk_context *ctx) {
   const char *code = duk_require_string(ctx, 0);
+  const char *fileName = duk_require_string(ctx, 5);
 
   duk_dup(ctx, 1);
   duk_put_global_string(ctx, "____t_sandbox");
@@ -317,12 +318,30 @@ duk_ret_t duv_run_in_new_context(duk_context *ctx) {
     return 0;
   }
 
+#if 0
   duk_push_string(new_ctx, code);
   rc = duk_peval(new_ctx);
   if (rc != 0) {
     duv_dump_error(new_ctx, -1);
     return 0;
   }
+ #else
+  duk_push_string(new_ctx, fileName);
+  if (duk_pcompile_string_filename(new_ctx, 0, code) != 0) 
+  {
+      printf("%s: %s\n", fileName, duk_safe_to_string(new_ctx, -1));
+      return 0;
+  } 
+  else 
+  {
+    duk_call(new_ctx, 0);      /* [ func ] -> [ result ] */
+    if (duk_is_error(new_ctx,-1)) 
+    {
+      duv_dump_error(new_ctx, -1);
+      return 0;
+    }
+  }
+#endif
 
   duk_bool_t rc1 = 1;
   rc1 &= duk_get_global_string(new_ctx, "____t_arg1");
