@@ -49,7 +49,7 @@ then
   then
     cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DBUILD_PXSCENE_RASTERIZER_PATH=ON .. >>$BUILDLOGS 2>&1;
   else
-    cmake -DBUILD_PXSCENE_RASTERIZER_PATH=ON .. >>$BUILDLOGS 2>&1;
+    cmake .. >>$BUILDLOGS 2>&1;
   fi
 
   checkError $? 0 "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
