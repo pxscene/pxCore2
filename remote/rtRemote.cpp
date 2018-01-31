@@ -35,8 +35,8 @@ rtRemoteInit(rtRemoteEnvironment* env)
     e = env->Server->open();
     if (e != RT_OK)
       rtLogError("failed to open rtRemoteServer. %s", rtStrError(e));
-
-    env->start();
+    else
+      env->start();
   }
   else
   {
@@ -70,15 +70,17 @@ rtRemoteInitNs(rtRemoteEnvironment* env)
 extern rtError rtRemoteShutdownStreamSelector();
 
 rtError
-rtRemoteShutdown(rtRemoteEnvironment* env)
+rtRemoteShutdown(rtRemoteEnvironment* env, bool immediate)
 {
   rtError e = RT_FAIL;
   std::lock_guard<std::mutex> lock(gMutex);
 
-  env->RefCount--;
-  if (env->RefCount == 0)
+  if (immediate || !--env->RefCount)
   {
-    rtLogInfo("environment reference count is zero, deleting");
+    if (env->RefCount)
+      rtLogWarn("immediate shutdown (reference count: %u), deleting", env->RefCount);
+    else
+      rtLogInfo("environment reference count is zero, deleting");
     env->shutdown();
     if (env == gEnv)
       gEnv = nullptr;
