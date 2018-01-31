@@ -1043,7 +1043,7 @@ rtError rtDukContext::runFile(const char *file, rtValue* retVal /*= NULL*/, cons
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtScriptDuk::rtScriptDuk():mRefCount(0), duk_is_initialized(false)
+rtScriptDuk::rtScriptDuk():mRefCount(0), duk_is_initialized(false), dukCtx(NULL)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false), duk_is_initialized(false)
@@ -1057,7 +1057,7 @@ rtScriptDuk::rtScriptDuk():mRefCount(0), duk_is_initialized(false)
   init();
 }
 
-rtScriptDuk::rtScriptDuk(bool initialize):mRefCount(0), duk_is_initialized(false)
+rtScriptDuk::rtScriptDuk(bool initialize):mRefCount(0), duk_is_initialized(false), dukCtx(NULL)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false), duk_is_initialized(false)
