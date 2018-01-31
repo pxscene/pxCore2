@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "4CF546012020F5B600529907"
-               BuildableName = "pxScene2d.app"
-               BlueprintName = "pxScene2d"
+               BlueprintIdentifier = "4C5D05F02020D06100D2B292"
+               BuildableName = "pxScene2d (duk).app"
+               BlueprintName = "pxScene2d (duk)"
                ReferencedContainer = "container:pxScene2d.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -29,6 +29,15 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "4C5D05F02020D06100D2B292"
+            BuildableName = "pxScene2d (duk).app"
+            BlueprintName = "pxScene2d (duk)"
+            ReferencedContainer = "container:pxScene2d.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -46,9 +55,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4CF546012020F5B600529907"
-            BuildableName = "pxScene2d.app"
-            BlueprintName = "pxScene2d"
+            BlueprintIdentifier = "4C5D05F02020D06100D2B292"
+            BuildableName = "pxScene2d (duk).app"
+            BlueprintName = "pxScene2d (duk)"
             ReferencedContainer = "container:pxScene2d.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -61,15 +70,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4CF546012020F5B600529907"
-            BuildableName = "pxScene2d.app"
-            BlueprintName = "pxScene2d"
+            BlueprintIdentifier = "4C5D05F02020D06100D2B292"
+            BuildableName = "pxScene2d (duk).app"
+            BlueprintName = "pxScene2d (duk)"
             ReferencedContainer = "container:pxScene2d.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
