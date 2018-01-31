@@ -102,43 +102,47 @@ void rt2duk(duk_context *ctx, const rtValue& v)
 }
 
 
-rtValue duk2rt(duk_context *ctx, rtWrapperError* error)
+rtValue duk2rt(duk_context *ctx, duk_idx_t idx, rtWrapperError* error)
 {
-  if (duk_is_undefined(ctx, -1)) { return rtValue((void *)0); }
-  if (duk_is_null(ctx, -1)) { return rtValue((char *)0); }
-  if (duk_is_string(ctx, -1)) { return rtValue(duk_get_string(ctx, -1)); }
-  if (duk_is_c_function(ctx, -1)) {
-    duk_bool_t res = duk_get_prop_string(ctx, -1, "\xff""\xff""data");
+  if (duk_is_undefined(ctx, idx)) { return rtValue((void *)0); }
+  if (duk_is_null(ctx, idx)) { return rtValue((char *)0); }
+  if (duk_is_string(ctx, idx)) { return rtValue(duk_get_string(ctx, idx)); }
+  if (duk_is_c_function(ctx, idx)) {
+    duk_bool_t res = duk_get_prop_string(ctx, idx, "\xff""\xff""data");
     assert(res);
-    rtIFunction *func = (rtIFunction*)duk_require_pointer(ctx, -1);
+    rtIFunction *func = (rtIFunction*)duk_require_pointer(ctx, idx);
     duk_pop(ctx);
     return rtValue(rtFunctionRef(func));
   }
-  if (duk_is_function(ctx, -1)) {
-    duk_dup(ctx, -1);
+  if (duk_is_function(ctx, idx)) {
+    duk_dup(ctx, idx);
     std::string id = rtDukPutIdentToGlobal(ctx);
     return rtValue(rtFunctionRef(new jsFunctionWrapper(ctx, id)));
   }
-  if (duk_is_object(ctx, -1)) {
-    duk_bool_t res = duk_get_prop_string(ctx, -1, "\xff""\xff""data");
+  if (duk_is_object(ctx, idx)) {
+    //duk_bool_t res = duk_get_prop_string(ctx, idx, "\xff""\xff""data");
+    duk_bool_t res = duk_get_prop_string(ctx, idx, "zpointer");
 
     if (res) {
+      //printf("recovered rtObject pointer\n");
+      //rtIObject *obj = (rtIObject*)duk_require_pointer(ctx, idx);
       rtIObject *obj = (rtIObject*)duk_require_pointer(ctx, -1);
+      //printf("recovered rtObject pointer %p\n", obj);
       duk_pop(ctx);
       return rtValue(obj);
     }
 
     duk_pop(ctx);
 
-    duk_dup(ctx, -1);
+    duk_dup(ctx, idx);
     std::string id = rtDukPutIdentToGlobal(ctx);
 
-    bool isArray = duk_is_array(ctx, -1);
+    bool isArray = duk_is_array(ctx, idx);
     return rtValue(new jsObjectWrapper(ctx, id, isArray));
   }
 
-  if (duk_is_boolean(ctx, -1)) { return rtValue(duk_get_boolean(ctx, -1)); }
-  if (duk_is_number(ctx, -1)) { return rtValue(duk_get_number(ctx, -1)); }
+  if (duk_is_boolean(ctx, idx)) { return rtValue(duk_get_boolean(ctx, idx)); }
+  if (duk_is_number(ctx, idx)) { return rtValue(duk_get_number(ctx, idx)); }
 
   rtLogFatal("unsupported javascript -> rtValue type conversion");
   return rtValue(0);

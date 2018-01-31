@@ -3394,6 +3394,7 @@ void pxScriptView::runScript()
     memset(buffer, 0, sizeof(buffer));
     snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
     rtLogDebug("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
+    // TODO the horror.... 
 #ifdef WIN32 // process \\ to /
 		unsigned int bufferLen = strlen(buffer);
 		char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));

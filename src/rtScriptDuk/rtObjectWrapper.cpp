@@ -88,7 +88,7 @@ static duk_ret_t dukObjectMethodGetStub(duk_context *ctx)
   if (funcInfo->mType == dukObjectFunctionInfo::eSetProp) 
   {
     duk_dup(ctx, 0);
-    rtValue val = duk2rt(ctx);
+    rtValue val = duk2rt(ctx,-1);
     duk_pop(ctx);
     obj->Set(funcInfo->mMethodName.c_str(), &val);
     return 0;
@@ -102,7 +102,7 @@ static duk_ret_t dukObjectMethodGetStub(duk_context *ctx)
   for (int i = 0; i < numArgs; ++i) 
   {
     duk_dup(ctx, i);
-    args[i] = duk2rt(ctx);
+    args[i] = duk2rt(ctx,-1);
     duk_pop(ctx);
   }
 
@@ -124,6 +124,7 @@ static duk_ret_t dukObjectMethodGetStub(duk_context *ctx)
 }
 
 
+#if 0
 static void wrapObjToDuk(duk_context *ctx, const rtObjectRef& ref)
 {
   static std::map<rtMethodMap *, dukObjectFunctionInfo *> methodCache;
@@ -314,64 +315,184 @@ static void wrapObjToDuk(duk_context *ctx, const rtObjectRef& ref)
   duk_push_pointer(ctx, (void*)firstInfo);
   duk_put_prop_string(ctx, -2, "\xff""\xff""funcInfoList");
 }
+#endif
+
+duk_ret_t proxyWrapperFinalizer(duk_context *ctx)
+{
+  if (duk_get_prop_string(ctx, 0, "zpointer"))
+  {
+    rtIObject* p = (rtObject*)duk_require_pointer(ctx,-1);
+
+    if (p)
+      p->Release();
+
+    // in case we get called again
+    duk_push_pointer(ctx,NULL);
+    duk_put_prop_string(ctx,0,"zpointer");
+  }
+  return 0;
+}
+
+duk_ret_t objectHandleGet(duk_context *ctx)
+{
+  if (duk_get_prop_string(ctx, 0, "zpointer"))
+  {
+    rtIObject* p = (rtObject*)duk_require_pointer(ctx,-1);
+    if (p)
+    {
+      duk_get_prop_string(ctx, 0, "isArray");
+      bool isArray = duk_require_boolean(ctx, -1);
+
+      rtValue v;
+      if (!isArray || duk_is_string(ctx,1))
+      {
+        const char* key = duk_to_string(ctx, 1);
+        if (!strcmp(key,"zpointer"))
+        {
+          rtString desc;
+          rtObjectRef oo = p;
+          rtError err = oo.sendReturns<rtString>("description", desc);
+          duk_push_pointer(ctx, p);
+          return 1;
+        }
+        else if (p->Get(key, &v) == RT_OK)
+        {
+          rt2duk(ctx, v);
+          return 1;
+        }
+        #if 0
+        else
+          rtLogError("Failed to get property, %s, from rtObject", key);
+        #endif
+      }
+      else
+      {
+        uint32_t index = duk_to_uint32(ctx, 1);
+        if (p->Get(index, &v) == RT_OK)
+        {
+          rt2duk(ctx, v);
+          return 1;
+        }
+        #if 1
+        else
+          rtLogError("Failed to get array property, %u, from rtObject", index);
+        #endif
+      }
+    }
+  }
+  #if 1
+  else rtLogError("failed to get rtObjectPointer");
+  #endif
+
+  return 0;
+}
+
+duk_ret_t objectHandleSet(duk_context *ctx)
+{
+  if (duk_get_prop_string(ctx, 0, "zpointer"))
+  {
+    rtIObject* p = (rtObject*)duk_require_pointer(ctx,-1);
+    if (p)
+    {
+      duk_get_prop_string(ctx, 0, "isArray");
+      bool isArray = duk_require_boolean(ctx, -1);
+
+      rtValue v = duk2rt(ctx,2);
+      if (!isArray || duk_is_string(ctx,1))
+      {
+        const char* key = duk_to_string(ctx, 1);
+        if (p->Set(key, &v) == RT_OK)
+        {
+          duk_push_boolean(ctx, true);
+          return 1;
+        }
+        else
+          rtLogError("Failed to set property, %s, to rtObject", key);
+      }
+      else
+      {
+        uint32_t index = duk_to_uint32(ctx, 1);
+        if (p->Set(index, &v) == RT_OK)
+        {
+          duk_push_boolean(ctx, true);          
+          return 1;
+        }
+        #if 1
+        else
+          rtLogError("Failed to set array property, %u, from rtObject", index);
+        #endif
+      }
+    }
+  }
+  #if 1
+  else 
+    rtLogError("Failed to get rtObject*");
+  #endif
+
+  duk_push_boolean(ctx, false);
+  return 1;  
+}
+
+#if 0
+duk_ret_t objectHandleOwnKeys(duk_context *ctx)
+{
+   return 0;
+}
+#endif
+
+
+void pushProxyForObject(duk_context *ctx, const rtObjectRef& o) {
+
+  // Create target object for the proxy.
+  duk_idx_t objectIndex = duk_push_object(ctx);
+  {
+    //duk_push_pointer(ctx, new StringArrayRef(array));
+    //duk_put_prop_string(ctx, objectIndex, HIDDEN_PREFIX "data");
+
+    // Store a boolean flag to mark the object as deleted because the destructor may be called several times.
+    bool isArray = false;
+    rtValue discard;
+    if (o && o->Get("length", &discard) != RT_PROP_NOT_FOUND)
+    {
+      // assume array-like object
+      isArray = true;
+    }
+    duk_push_boolean(ctx, isArray);
+    duk_put_prop_string(ctx, objectIndex, /*HIDDEN_PREFIX*/ "isArray");
+
+    duk_push_boolean(ctx, false);
+    duk_put_prop_string(ctx, objectIndex, /*HIDDEN_PREFIX*/ "deleted");
+
+    rtIObject* p = o.getPtr();
+    p->AddRef();  // Warning this should be released by object finalizer
+    duk_push_pointer(ctx, o.getPtr());
+    duk_put_prop_string(ctx, objectIndex, "zpointer");
+
+    // Register finalizer.
+    duk_push_c_function(ctx, proxyWrapperFinalizer, 1);
+    duk_set_finalizer(ctx, objectIndex);
+  }
+
+  // Handler that allows us to virtualize the access to the object.
+  duk_idx_t handlerIndex = duk_push_object(ctx);
+  {
+    duk_push_c_lightfunc(ctx, objectHandleGet, 3, 0, 0);
+    duk_put_prop_string(ctx, handlerIndex, "get");
+    duk_push_c_lightfunc(ctx, objectHandleSet, 4, 0, 0);
+    duk_put_prop_string(ctx, handlerIndex, "set");
+    #if 0
+    // TODO JR enumeration
+    duk_push_c_lightfunc(ctx, objectHandleOwnKeys, 1, 0, 0);
+    duk_put_prop_string(ctx, handlerIndex, "ownKeys");
+    #endif
+  }
+
+  duk_push_proxy(ctx, 0);
+}
 
 void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObjectRef& ref)
 {
   assert(ref.getPtr() != NULL);
-
-  // array
-  {
-    rtValue length;
-    if (ref && ref->Get("length", &length) != RT_PROP_NOT_FOUND)
-    {
-      duk_idx_t arr_idx = duk_push_array(ctx);
-      int len = length.toInt32();
-      for (int i = 0; i < len; ++i) {
-        rtValue item;
-        rtError err = ref->Get(i, &item);
-        assert(err == RT_OK);
-        rt2duk(ctx, item);
-        duk_bool_t rc = duk_put_prop_index(ctx, arr_idx, i);
-        assert(rc);
-      }
-
-      return;
-    }
-  }
-
-  // map
-  if (ref)
-  {
-    rtString desc;
-    rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
-    if (err == RT_OK && strcmp(desc.cString(), "rtMapObject") == 0)
-    {
-      rtObjectRef keys = ref.get<rtObjectRef>("allKeys");
-      if (keys)
-      {
-        uint32_t len = keys.get<uint32_t>("length");
-
-        duk_idx_t obj_idx = duk_push_object(ctx);
-
-        for (uint32_t i = 0; i < len; ++i)
-        {
-          rtString key = keys.get<rtString>(i);
-
-          rtValue  val;
-          ref.get<rtValue>((const char *)key, val);
-
-          rt2duk(ctx, val);
-          duk_bool_t rc = duk_put_prop_string(ctx, -2, (const char *)key);
-          assert(rc);
-
-          // [obj]
-        }
-
-        // [obj]
-        return;
-      }
-    }
-  }
 
   // promise
   {
@@ -380,41 +501,7 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
     {
       rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
 
-#if 0
-      if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
-      {
-        duk_bool_t rt = duk_get_global_string(ctx, "Promise");
 
-        // [func] 
-        assert(rt);
-
-        uint32_t isResolved = 0;
-        ref.get("isResolved", isResolved);
-
-        if (isResolved != 0)
-        {
-          duk_push_string(ctx, isResolved == 1 ? "resolve" : "reject");
-
-          rtValue val;
-          ref.get("val", val);
-
-          rt2duk(ctx, val);
-
-          // [ Promise method obj ]
-          duk_int_t rc = duk_pcall_prop(ctx, -3, 1);
-
-          if (rc != 0) {
-            duv_dump_error(ctx, -1);
-            assert(0);
-          }
-
-          // [Promise js-promise]
-          assert(duk_is_object(ctx, -1));
-
-          return;
-        }
-      }
-#endif
 
       if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
       {
@@ -440,7 +527,7 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
         // [func] 
         assert(rt);
 
-        wrapObjToDuk(ctx, ref);
+        pushProxyForObject(ctx, ref);
 
         // [func obj] 
 
@@ -458,10 +545,8 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
 
         // [ obj ]
         std::string promiseObjName = rtDukPutIdentToGlobal(ctx);
-        //std::string promiseObjName = "blah";
-
+ 
         const_cast<rtObjectRef &>(ref).set("promiseId", rtString(promiseObjName.c_str()));
-       // const_cast<rtObjectRef &>(ref).set("promiseContext", (void*)ctx);
 #else
         const_cast<rtObjectRef &>(ref).set("promiseId", "blah");  
 #endif
@@ -471,7 +556,7 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
     }
   }
 
-  wrapObjToDuk(ctx, ref);
+  pushProxyForObject(ctx, ref);
 }
 
 jsObjectWrapper::jsObjectWrapper(duk_context *ctx, const std::string &name, bool isArray)
@@ -525,7 +610,7 @@ rtError jsObjectWrapper::getAllKeys(rtValue* value) const
   for (int i = 0; i < n; i++) {
     duk_get_prop_index(mDukCtx, -1, i);
     rtWrapperError error;
-    rtValue val = duk2rt(mDukCtx, &error);
+    rtValue val = duk2rt(mDukCtx, -1, &error);
     if (error.hasError()) {
       return RT_FAIL;
     } else {
@@ -594,7 +679,7 @@ rtValue jsObjectWrapper::dukGetProp(const std::string &name, rtWrapperError *err
   assert(res);
   res = duk_get_prop_string(mDukCtx, -1, name.c_str());
   assert(res);
-  rtValue rt = duk2rt(mDukCtx, error);
+  rtValue rt = duk2rt(mDukCtx, -1, error);
   duk_pop(mDukCtx);
   duk_pop(mDukCtx);
   return rt;
@@ -608,7 +693,7 @@ rtValue jsObjectWrapper::dukGetProp(uint32_t i, rtWrapperError *error) const
     //res = duk_get_prop_string(mDukCtx, -1, name.c_str());
     res = duk_get_prop_index(mDukCtx, -1, i);
     assert(res);
-    rtValue rt = duk2rt(mDukCtx, error);
+    rtValue rt = duk2rt(mDukCtx, -1, error);
     duk_pop(mDukCtx);
     duk_pop(mDukCtx);
     return rt;
