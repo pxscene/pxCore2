@@ -110,7 +110,6 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
                ${DUKE_LIBRARY_DIRS}
           ${COMM_DEPS_LIBRARY_DIRS}
        )
-
     set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES}
                   ${NODE_LIBRARIES}
                   ${DUKE_LIBRARIES}
