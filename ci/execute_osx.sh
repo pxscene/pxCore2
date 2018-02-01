@@ -116,8 +116,9 @@ if [ "$retVal" -ne 0 ]
 	then
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
-		errCause="Either one or more tests failed. Check the below logs"
-		else
+		errCause="Either one or more tests failed. Check the above logs"
+		printExecLogs
+        else
 		errCause="Either one or more tests failed. Check the log file $EXECLOGS"
 	fi
 	checkError $retVal "Testrunner execution failed" "$errCause" "Run pxscene with testrunner.js locally as ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=<pxcore dir>tests/pxScene2d/testRunner/tests.json"
