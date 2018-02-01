@@ -75,7 +75,7 @@ rtRemoteShutdown(rtRemoteEnvironment* env, bool immediate)
   rtError e = RT_FAIL;
   std::lock_guard<std::mutex> lock(gMutex);
 
-  if (immediate || !--env->RefCount)
+  if (!--env->RefCount || immediate)
   {
     if (env->RefCount)
       rtLogWarn("immediate shutdown (reference count: %u), deleting", env->RefCount);
