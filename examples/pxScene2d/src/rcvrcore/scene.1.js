@@ -20,7 +20,7 @@ function Scene() {
       this.root = scene.root;
       this.info = scene.info;
       this.filePath = filePath;
-      if (!isDuk) { 
+      //if (!isDuk) { 
         this.__defineGetter__("w", function() { return scene.w; });
         this.__defineGetter__("h", function() { return scene.h; });
         this.__defineGetter__("showOutlines", function() { return scene.showOutlines; });
@@ -28,13 +28,13 @@ function Scene() {
         this.__defineGetter__("showDirtyRect", function() { return scene.showDirtyRect; });
         this.__defineSetter__("showDirtyRect", function(v) { scene.showDirtyRect = v; });
         this.__defineSetter__("customAnimator", function(v) { scene.customAnimator = v; });
-      }
-      else {
-        this.w = scene.w;
-        this.h = scene.h;
-        this.showOutlines = false;
-        this.showDirtyRect = false;       
-      }
+      // }
+      // else {
+      //   this.w = scene.w;
+      //   this.h = scene.h;
+      //   this.showOutlines = false;
+      //   this.showDirtyRect = false;       
+      // }
       //this.w = scene.w;
       //this.h = scene.h;
     }

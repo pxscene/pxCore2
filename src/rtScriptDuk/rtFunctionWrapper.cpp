@@ -35,7 +35,7 @@ static duk_ret_t dukFunctionStub(duk_context *ctx)
 
   for (int i = 0; i < numArgs; ++i) {
     duk_dup(ctx, i);
-    args[i] = duk2rt(ctx);
+    args[i] = duk2rt(ctx,-1);
     duk_pop(ctx);
   }
 
@@ -152,7 +152,7 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
   }
 
   if (result != NULL) {
-    *result = duk2rt(mDukCtx);
+    *result = duk2rt(mDukCtx,-1);
   }
 
   duk_pop(mDukCtx);

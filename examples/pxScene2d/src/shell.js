@@ -16,6 +16,12 @@ px.import({ scene: 'px:scene.1.js',
     process.on('uncaughtException', uncaughtException);
   }
 
+  function keyLoggingEnabled()
+  {
+    if (!isDuk)
+      return (process.env.PXSCENE_KEY_LOGGING_DISABLED != '1');
+    return false;
+  }
 
   // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
@@ -76,11 +82,13 @@ if (false)
 }
 
   scene.root.on("onPreKeyDown", function(e) {
+
+    console.log("onPreKeyDown from shell")
 	  var code  = e.keyCode;
     var flags = e.flags;
 
-    var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
-    if (loggingDisabled && loggingDisabled === '1'){
+    //var loggingDisabled = !isDuk?process.env.PXSCENE_KEY_LOGGING_DISABLED:true;
+    if (!keyLoggingEnabled()){
       console.log("onPreKeyDown value hidden");
     } else {
       console.log("SHELL: onPreKeyDown:", code, " key: ", keys.name(code), ", ", flags);
@@ -166,8 +174,8 @@ if (false)
 
   scene.root.on("onPreKeyUp", function(e)
   {
-    var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
-    if (loggingDisabled && loggingDisabled === '1'){
+    //var loggingDisabled = !isDuk?process.env.PXSCENE_KEY_LOGGING_DISABLED:'1';
+    if (!keyLoggingEnabled()){
       console.log("onPreKeyUp value hidden");
     } else {
       console.log("in onPreKeyUp", e.keyCode, e.flags);
@@ -175,7 +183,7 @@ if (false)
 	  var code  = e.keyCode;
     var flags = e.flags;
 
-    if (loggingDisabled && loggingDisabled === '1'){
+    if (!keyLoggingEnabled()){
       console.log("onKeyUp value hidden");
     } else {
       console.log("onKeyUp:", code, ", ", flags);
@@ -195,8 +203,8 @@ if (false)
     scene.root.on("onKeyDown", function(e)
     {
       var code = e.keyCode; var flags = e.flags;
-      var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
-      if (loggingDisabled && loggingDisabled === '1'){
+      //var loggingDisabled = !isDuk?process.env.PXSCENE_KEY_LOGGING_DISABLED'1';
+      if (!keyLoggingEnabled()){
         console.log("onKeyDown value hidden");
       } else {
         console.log("onKeyDown shell:", code, ", ", flags);
@@ -226,8 +234,8 @@ if (false)
   {
     console.log("in onchar");
 	  var c = e.charCode;
-    var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
-    if (loggingDisabled && loggingDisabled === '1'){
+    //var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
+    if (!keyLoggingEnabled()){
       console.log("onChar value hidden");
     } else {
       console.log("onChar:", c);
