@@ -201,7 +201,7 @@ public:
     return rtAtomicInc(&mRefCount);
   }
 
-  unsigned long Release();  
+  unsigned long Release();
 
   rtError init();
 
@@ -282,8 +282,6 @@ extern bool use_inspector;
 extern bool debug_wait_connect;
 }
 
-static int exec_argc;
-static const char** exec_argv;
 static rtAtomic sNextId = 100;
 
 
@@ -355,7 +353,7 @@ void rtDukContext::clonedEnvironment(rtDukContextRef clone_me)
 {
   rtLogInfo(__FUNCTION__);
   duk_idx_t thr_idx = duk_push_thread(clone_me->dukCtx);
-  
+
   duk_dup(clone_me->dukCtx, -1);
   rtDukPutIdentToGlobal(clone_me->dukCtx);
 
@@ -391,7 +389,7 @@ rtError rtDukContext::add(const char *name, rtValue const& val)
 {
   rt2duk(dukCtx, val);
   rtDukPutIdentToGlobal(dukCtx, name);
-  
+
   return RT_OK;
 }
 
@@ -1024,11 +1022,11 @@ rtError rtDukContext::runFile(const char *file, rtValue* retVal /*= NULL*/, cons
   // Read the script file
   js_file   = file;
   js_script = readFile(file);
-  
+
   if( js_script.empty() ) // load error
   {
     rtLogError(" %s  ... load error / not found.",__PRETTY_FUNCTION__);
-     
+
     return RT_FAIL;
   }
 
