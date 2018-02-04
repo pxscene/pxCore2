@@ -23,6 +23,7 @@ var ClearInterval = isDuk?timers.clearInterval:clearInterval;
 
 var http_wrap = require('rcvrcore/http_wrap');
 var https_wrap = require('rcvrcore/https_wrap');
+var ws_wrap = require('rcvrcore/ws_wrap');
 
 function AppSceneContext(params) {
 
@@ -56,8 +57,16 @@ function AppSceneContext(params) {
   //array to store the list of pending timers
   this.timers = [];
   this.timerIntervals = [];
-
+  this.webSocketManager = null;
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
+}
+
+function WebSocket(address, protocol, options)
+{
+  var client = this.context.webSocketManager.WebSocket(address, protocol, options);
+  this.context = null;
+  delete this.context;
+  return client;
 }
 
 AppSceneContext.prototype.loadScene = function() {
@@ -151,6 +160,11 @@ this.innerscene.on('onSceneTerminate', function (e) {
     if (null != this.sceneWrapper)
       this.sceneWrapper.close();
     this.sceneWrapper = null;
+    if (null != this.webSocketManager)
+    {
+      this.webSocketManager.clearConnections();
+    }
+    this.webSocketManager = null;
     this.rpcController = null;
   }.bind(this));
 
@@ -805,8 +819,15 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       console.log("Not permitted to use the module " + filePath);
       reject("include failed due to module not permitted");
       return;
-    } else if( filePath === 'net' || filePath === 'ws' ) {
+    } else if( filePath === 'net' ) {
       modData = require('rcvrcore/' + filePath + '_wrap');
+      onImportComplete([modData, origFilePath]);
+      return;
+    } else if( filePath === 'ws' ) {
+      var wsdata = require('rcvrcore/' + filePath + '_wrap');
+      _this.webSocketManager = new wsdata();
+      WebSocket.prototype.context = _this;
+      modData = WebSocket;
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'http' || filePath === 'https' ) {
