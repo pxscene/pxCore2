@@ -16,35 +16,37 @@ px.import({ scene:      'px:scene.1.js',
   bg.ready.then(
   function(o)
   {
-    var show_Spark   = true;
-    var show_LetterM = false;
-    var show_Cross   = false;
-    var show_Circle  = false;
-    var show_Polygon = false;
-    var show_Ellipse = false;
-    var show_RRect   = false;
-    var show_ARC1    = false;
-    var show_ARC2    = false;
-    var show_SWEEP   = false;
-    var show_CURVES  = false;
+    var show_SparkPage  = false;
+    var show_SparkLogo  = true;
+    var show_LetterM    = false;
+    var show_Cross      = false;
+    var show_Circle     = false;
+    var show_Polygon    = false;
+    var show_Ellipse    = false;
+    var show_RRect      = false;
+    var show_ARC1       = false;
+    var show_ARC2       = false;
+    var show_SWEEP      = false;
+    var show_CURVES     = false;
 
-    if( show_Spark )    drawSVG_Spark();
-    if( show_LetterM )  drawSVG_LetterM();
-    if( show_Cross   )  drawSVG_Cross();
-    if( show_Circle  )  drawSVG_Circle();
-    if( show_Polygon )  drawSVG_Polygon();
-    if( show_Ellipse )  drawSVG_Ellipse();
-    if( show_RRect   )  drawSVG_RRect();
-    if( show_ARC1    )  drawSVG_ARC1();
-    if( show_ARC2    )  drawSVG_ARC2();
-    if( show_SWEEP   )  drawSVG_SWEEP();
-    if( show_CURVES  )  drawSVG_CURVES();
+    if( show_SparkPage )  drawSVG_SparkPage();
+    if( show_SparkLogo )  drawSVG_SparkLogo();
+    if( show_LetterM )    drawSVG_LetterM();
+    if( show_Cross   )    drawSVG_Cross();
+    if( show_Circle  )    drawSVG_Circle();
+    if( show_Polygon )    drawSVG_Polygon();
+    if( show_Ellipse )    drawSVG_Ellipse();
+    if( show_RRect   )    drawSVG_RRect();
+    if( show_ARC1    )    drawSVG_ARC1();
+    if( show_ARC2    )    drawSVG_ARC2();
+    if( show_SWEEP   )    drawSVG_SWEEP();
+    if( show_CURVES  )    drawSVG_CURVES();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     function drawSVG_all()
     {
-      drawSVG_Spark();
+       //drawSVG_Spark();
        drawSVG_LetterM();
        drawSVG_Cross();
        drawSVG_Circle();
@@ -67,15 +69,14 @@ px.import({ scene:      'px:scene.1.js',
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
-    // Spark Logo ...
-    function drawSVG_Spark()
+    // Spark Page ...
+    function drawSVG_SparkLogo()
     {
-      var svg    = scene.create({t:"object", parent: bg, x:10, y:-50, a: 1.0, w:1256, h:800});
+      var svg    = scene.create({t:"object", parent: bg, x:350, y:30, a: 1.0, w:1256, h:800});
       var layer1 = scene.create({t:"path", id: "layer1", /*transform: "translate(300,-229.26665)",*/ parent: svg });
-                
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if(false) // large
-{
+
       // polygon - TOP
       scene.create( { t: "path", parent: layer1, id: "Middle_-_Top_2_", a:1,
                       d: "polygon points: 83.797,283.5 2.885,143 83.797,2.5 245.623,2.5 326.536,143 245.623,283.5",
@@ -85,45 +86,45 @@ if(false) // large
       scene.create( { t: "path", parent: layer1, id: "Color_-_Top_2_", a:0.75,
                       d: "polygon points: 101.463,252 38.201,143 101.463,34 227.958,34 291.22,143 227.958,252",
               fillColor: "#F16268"} );
-      
+
       // path
       scene.create( { t: "path", parent: layer1, id: "Outline-_Top_1_", a:1.0,
                       d: "M223.755,41l59.044,102l-59.044,102H105.666L46.622,143l59.044-102H224.08 M232.161,26h-8.406H105.666" +
                          "H97.26l-4.21,7.454L34.005,135.57l-4.226,7.346l4.226,7.323l59.044,102.256L97.26,260h8.406h118.089h8.406l4.21-7.493" +
                          "l59.044-102.137l4.226-7.355l-4.226-7.328L236.372,33.468L232.161,26L232.161,26z",
               fillColor: "#5D6D65"} );
-      
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      
+
       // polygon - BOTTOM
       scene.create( { t: "path", parent: layer1, id: "Middle_-_Bottom_2_", a:1,
                       d: "polygon points: 83.799,568.5 2.887,428 83.799,287.5 245.625,287.5 326.539,428 245.625,568.5",
               fillColor: "#E6E7E8", strokeColor: "#5D6D65", strokeWidth: 5} );
-      
+
       // alpha solid - YELLOW
       scene.create( { t: "path", parent: layer1, id: "Color_-_Bottom_2_", a:0.75,
                       d: "polygon points: 101.465,533 38.203,423.501 101.465,314 227.961,314 291.223,423.501 227.961,533",
               fillColor: "#FAEF5F"} );
-      
+
       // path
       scene.create( { t: "path", parent: layer1, id: "Outline-_Bottom_2_", a:1.0,
                       d: "M223.758,321l59.044,102.001L223.758,525h-118.09L46.624,423.001L105.668,321H224.08 M232.164,307h-8.406" +
                          "h-118.09h-8.406l-4.21,7.181l-59.044,101.98l-4.226,7.278l4.226,7.289L93.051,532.74l4.21,7.26h8.406h118.09h8.406l4.21-7.267"+
                          "l59.044-102.021l4.226-7.299l-4.226-7.3l-59.044-101.933L232.164,307L232.164,307z",
               fillColor: "#5D6D65"} );
-                
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       // polygon - RIGHT
       scene.create( { t: "path", parent: layer1, id: "Middle_-_Right_2_", a:1,
                       d: "polygon points: 330.181,425.5 249.268,285.5 330.181,145.5 492.005,145.5 572.918,285.5 492.005,425.5",
               fillColor: "#E6E7E8", strokeColor: "#5D6D65", strokeWidth: 5} );
-      
+
       // alpha solid - ORANGE
       scene.create( { t: "path", parent: layer1, id: "Color_-_Right_2_", a:0.75,
                       d: "polygon points: 347.846,394 284.583,284.5 347.846,175 474.341,175 537.603,284.5 474.341,394",
               fillColor: "#F89958"} );
-      
+
       // path
       scene.create( { t: "path", parent: layer1, id: "Outline-_Right_2_", a:1.0,
                       d: "M470.138,182l59.044,102l-59.044,102H352.049l-59.044-102l59.044-102H470.08 M478.544,168h-8.406H352.049" +
@@ -132,7 +133,7 @@ if(false) // large
               fillColor: "#5D6D65"} );
 
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                
+
       // MIDDLE FILL
       scene.create( { t: "path", parent: layer1, id: "_x3C_Path_x3E__BOTTOM_1_", a:1.0,
                       d: "polygon points: 285.83,428 263.396,389 285.83,350 330.697,350 353.131,389 330.697,428",
@@ -141,71 +142,75 @@ if(false) // large
       scene.create( { t: "path", parent: layer1, id: "_x3C_Path_x3E__BOTTOM", a:1.0,
                       d: "polygon points: 207.694,272.275 254.81,245.08 329.648,374.672 282.532,401.868",
               fillColor: "#5C6D66"} );
-                
+
       scene.create( { t: "path", parent: layer1, id: "_x3C_Path_x3E__LEFT", a:1.0,
                       d: "polygon points: 97.708,312 81.884,285 97.708,258 129.354,258 145.178,285 129.354,312",
               fillColor: "#5C6D66"} );
-                
+
       scene.create( { t: "path", parent: layer1, id: "_x3C_Path_x3E__LEFT_1_", a: 1.0,
                       d: "rect x:115.58 y:258.5 width:150 height:54",
               fillColor: "#5C6D65"} );
-                
+
       scene.create( { t: "path", parent: layer1, id: "_x3C_Group_x3E__RIGHT", a:1.0,
                       d: "polygon points: 297.438,197 281.614,170 297.438,143 329.084,143 344.908,170 329.084,197",
               fillColor: "#5C6D65"} );
-                
+
       scene.create( { t: "path", parent: layer1, id: "_x3C_Path_x3E__RIGHT_1_", a:1.0,
                       d: "polygon points: 254.324,325.59 207.208,298.395 282.046,168.802 329.162,195.998",
               fillColor: "#5C6D65"} );
-  } // endif
+    } 
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Spark Page ...
+    function drawSVG_SparkPage()
+    {
+      var svg    = scene.create({t:"object", parent: bg, x:10, y:-50, a: 1.0, w:1256, h:800});
+      var layer1 = scene.create({t:"path", id: "layer1", /*transform: "translate(300,-229.26665)",*/ parent: svg });
 
-      
-if(true) // small
-{
       // polygon - TOP
       scene.create( { t: "path", parent: layer1, id: "Middle_-_Top_2_", a:1,
                    d: "polygon points: 421.288,326.5 373.926,245.5 421.288,164.5 516.011,164.5 563.373,245.5 516.011,326.5",
                    fillColor: "#E6E7E8", strokeColor: "#5D6D65", strokeWidth: 5} );
-      
+
       // alpha solid - RED
       scene.create( { t: "path", parent: layer1, id: "Color_-_Top_2_", a:0.75,
                    d: "polygon points: 431.649,309 394.608,245.5 431.649,182 505.649,182 542.69,245.5 505.649,309",
                    fillColor: "#F16268"} );
-      
+
       // path
       scene.create( { t: "path", parent: layer1, id: "Outline-_Top_1_", a:1.0,
                    d: "M503.21,186l34.562,59.5L503.21,305h-69.123l-34.561-59.5l34.561-59.5H503 M508.088,178h-4.878h-69.123" +
                    "h-4.878l-2.459,4.065l-34.562,59.134l-2.5,4.246l2.5,4.265l34.562,59.142L429.21,313h4.878h69.123h4.878l2.459-4.157" +
                    "l34.562-59.179l2.5-4.269l-2.5-4.276l-34.562-59.057L508.088,178L508.088,178z",
                    fillColor: "#5D6D65"} );
-      
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       
       // polygon - BOTTOM
       scene.create( { t: "path", parent: layer1, id: "Middle_-_Bottom_2_", a:1,
                    d: "polygon points: 421.289,491.5 373.927,410.5 421.289,329.5 516.012,329.5 563.374,410.5 516.012,491.5 ",
                    fillColor: "#E6E7E8", strokeColor: "#5D6D65", strokeWidth: 5} );
-      
+
       // alpha solid - YELLOW
       scene.create( { t: "path", parent: layer1, id: "Color_-_Bottom_2_", a:0.75,
                    d: "polygon points: 431.65,472 394.609,408.5 431.65,345 505.651,345 542.692,408.5 505.651,472",
                    fillColor: "#FAEF5F"} );
-      
+
       // path
       scene.create( { t: "path", parent: layer1, id: "Outline-_Bottom_2_", a:1.0,
                    d: "M503.212,349l34.562,59l-34.562,59h-69.123l-34.561-59l34.561-59H503 M508.09,340h-4.878h-69.123h-4.878" +
                    "l-2.459,4.439l-34.562,59.319l-2.5,4.34l2.5,4.312l34.562,59.291l2.459,4.299h4.878h69.123h4.878l2.459-4.284l34.562-59.241" +
                    "l2.5-4.302l-2.5-4.292l-34.562-59.438L508.09,340L508.09,340z",
                    fillColor: "#5D6D65"} );
-      
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      
+
       // polygon - RIGHT
       scene.create( { t: "path", parent: layer1, id: "Middle_-_Right_2_", a:1,
                    d: "polygon points: 565.506,409.5 518.145,328 565.506,246.5 660.229,246.5 707.592,328 660.229,409.5",
                    fillColor: "#E6E7E8", strokeColor: "#5D6D65", strokeWidth: 5} );
-      
+
       // alpha solid - ORANGE
       scene.create( { t: "path", parent: layer1, id: "Color_-_Right_2_", a:0.75,
                    d: "polygon points: 575.868,391 538.827,327.5 575.868,264 649.869,264 686.909,327.5 649.869,391",
@@ -217,43 +222,40 @@ if(true) // small
                    "h-4.878l-2.459,4.122l-34.562,59.162l-2.5,4.261l2.5,4.272l34.562,59.089l2.459,4.095h4.878h69.123h4.878l2.459-4.101" +
                    "l34.561-59.151l2.5-4.254l-2.5-4.269l-34.561-59.11L652.308,260L652.308,260z",
                    fillColor: "#5D6D65"} );
-      
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       
       // MIDDLE FILL
       scene.create( { t: "path", parent: layer1, id: "_x3C_Path_x3E__BOTTOM_1_", a:1.0,
                    d: "polygon points: 539.545,411 526.414,388 539.545,365 565.808,365 578.94,388 565.808,411",
                    fillColor: "#5D6D66"} );
-      
+
       scene.create( { t: "path", parent: layer1, id: "_x3C_Path_x3E__BOTTOM", a:1.0,
                    d: "polygon points: 493.81,320.449 521.388,304.668 565.194,379.869 537.615,395.65",
                    fillColor: "#5C6D66"} );
-      
+
       scene.create( { t: "path", parent: layer1, id: "_x3C_Path_x3E__LEFT", a:1.0,
                    d: "polygon points: 429.43,344 420.167,328 429.43,312 447.954,312 457.216,328 447.954,344",
                    fillColor: "#5C6D66"} );
-      
+
       scene.create( { t: "path", parent: layer1, id: "_x3C_Path_x3E__LEFT_1_", a: 1.0,
                    d: "rect x:439.5 y:311.5 width:88 height:32",
                    fillColor: "#5C6D65"} );
-      
+
       scene.create( { t: "path", parent: layer1, id: "_x3C_Group_x3E__RIGHT", a:1.0,
                    d: "polygon points: 546.34,277 537.078,261 546.34,245 564.864,245 574.126,261 564.864,277",
                    fillColor: "#5C6D65"} );
-      
+
       scene.create( { t: "path", parent: layer1, id: "_x3C_Path_x3E__RIGHT_1_", a:1.0,
                    d: "polygon points: 521.104,351.388 493.525,335.606 537.331,260.404 564.91,276.186",
                    fillColor: "#5C6D65"} );
-} // endif
-      
-if(true)
-{
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       var layer2 = scene.create({t:"object", id: "layer2", a: 1.0, w:1256, h:1256, parent: svg }); //
-      
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                
+
       // "S"
       scene.create( { t: "path", parent: layer2, id: "Glyph S", a:1.0, fillColor: "#5D6D65",
                       d: "M652.102,504.59c0,4.872-0.888,9.182-2.662,12.924c-1.775,3.745-4.212,6.857-7.305,9.338"+
@@ -270,7 +272,6 @@ if(true)
                          "c0.318,0.947,0.956,1.874,1.912,2.774c0.956,0.902,2.253,1.85,3.892,2.842c1.638,0.994,3.823,2.076,6.554,3.248"+
                          "c4.732,2.165,8.92,4.286,12.562,6.36c3.64,2.076,6.691,4.31,9.148,6.698c2.457,2.393,4.322,5.055,5.598,7.984"+
                          "C651.463,497.441,652.102,500.801,652.102,504.59z" } );
-                
       // "P"
       scene.create( { t: "path", parent: layer2, id: "Glyph P", a:1.0, fillColor: "#5D6D65",
                       d: "M734.979,500.53c0,6.496-1.024,11.909-3.072,16.239s-4.71,7.828-7.987,10.488"+
@@ -282,7 +283,6 @@ if(true)
                          "s-3.506,2.029-4.779,3.654v28.283c1.001,2.256,2.343,3.789,4.028,4.602c1.683,0.812,3.161,1.264,4.438,1.354" +
                          "c3.004,0.09,5.483-0.519,7.441-1.828c1.956-1.307,3.526-2.953,4.71-4.939c1.182-1.982,2.002-4.06,2.458-6.225" +
                          "C711.539,506.078,711.768,504.14,711.768,502.425z"} );
-                
       // "A"
       scene.create( { t: "path", parent: layer2, id: "Glyph A", a:1.0, fillColor: "#5D6D65",
                       d: "M780.037,535.039v-8.391c-2.457,2.978-5.349,5.031-8.67,6.158c-3.324,1.127-6.851,1.691-10.582,1.691" +
@@ -297,24 +297,17 @@ if(true)
                          "c-2.096,0-4.074,0.361-5.939,1.082c-1.867,0.723-3.482,1.624-4.848,2.707c-1.365,1.082-2.457,2.301-3.276,3.653" +
                          "c-0.819,1.354-1.229,2.753-1.229,4.195c0,2.077,0.615,3.722,1.844,4.939s2.752,1.874,4.574,1.962" +
                          "c1.912,0.182,3.64-0.044,5.188-0.676c1.547-0.631,2.775-1.442,3.687-2.437V502.02z" } );
-             
       // "R"
       scene.create( { t: "path", parent: layer2, id: "Glyph A", a:1.0, fillColor: "#5D6D65",
                       d: "M857.727,489.84c-0.73-0.901-1.686-1.669-2.867-2.301c-1.185-0.631-2.458-1.083-3.823-1.354" +
                          "c-1.366-0.271-2.731-0.338-4.097-0.203s-2.594,0.521-3.686,1.15v31.803l6.144,3.111v11.098H814.99v-11.098l6.008-3.111V481.99" +
                          "h-6.008v-11.908l28.264-5.008v10.556c1.454-2.165,3.024-3.992,4.71-5.481c1.683-1.488,3.366-2.659,5.052-3.518" +
                          "c1.684-0.856,3.299-1.422,4.848-1.691c1.547-0.271,2.912-0.225,4.096,0.135v23.412L857.727,489.84z" } );
-
-      
       // "K"
       scene.create( { t: "path", parent: layer2, id: "Glyph A", a:1.0, fillColor: "#5D6D65",
                       d: "M907.699,533.145v-11.098l4.096-3.111l-7.1-15.157l-7.919,7.037v8.12l6.144,3.111v11.098h-34.407v-11.098"+
                          "l6.008-3.111v-62.658h-6.008v-11.908l28.264-5.143v56.432l16.521-14.48l-5.598-2.977V467.24h32.633v10.961l-9.831,3.789"+
                          "l-10.649,9.608l16.111,27.337l6.008,3.111v11.098H907.699z" } );
-                
-     //   layer2.animateTo({ x: -20.0, y: -20.0 }, 1.75, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_FASTFORWARD, 1);
-}
-
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
