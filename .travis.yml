@@ -29,7 +29,7 @@ script:
 - ./ci/script.sh
 - if [ "$DUKTAPE_SUPPORT" != "ON"  ] ; then ./ci/codeCovReportGen.sh ; fi
 - "./ci/after_script.sh"
-- if [ "${TRAVIS_OS_NAME}" = "linux" ] ; then ./ci/test_duktape.sh ; fi
+- if [ "${TRAVIS_OS_NAME}" = "linux" ] ; then ./ci/execute_duktape.sh ; fi
 after_script:
 - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  rm -rf /tmp/pxscene-build.pem; fi
 addons:
