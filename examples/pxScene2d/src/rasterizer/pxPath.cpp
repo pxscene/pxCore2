@@ -724,7 +724,7 @@ void pxPath::pushPolygon(pxPath *p, std::vector<float> &points)
         x = *it++;
         y = *it++;
         
-        if(moveStart)
+        if(moveToStart)
         {
            p->pushOpcode( 'M' );
            p->pushFloat(x, y);
