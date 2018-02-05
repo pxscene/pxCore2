@@ -598,11 +598,10 @@ void updatePen(float px, float py)
   return RT_OK;
 }
 
-
 //====================================================================================================================================
 
 //  #define KAPPA		0.5522847498 // org
-#define KAPPA		0.552228474
+#define KAPPA   0.552228474
 
 void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx, float ry)
 {
@@ -611,27 +610,27 @@ void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx,
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     p->pushOpcode( 'M' );
     p->pushFloat(x0, y0);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Top
     p->pushOpcode( 'L' ); // H
     p->pushFloat(x0+w, y0);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Right
     p->pushOpcode( 'L' ); // H
     p->pushFloat(x0 + w, y0 + h);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Bottom
     p->pushOpcode( 'L' ); // H
     p->pushFloat(x0, y0 + h);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Left
     //  p->pushOpcode( 'L' ); // H
     //  p->pushFloat(Hx, Hy);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     p->pushOpcode( 'Z' );
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -641,21 +640,21 @@ void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx,
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     p->pushOpcode( 'M' );
     p->pushFloat(x0, y0 + ry);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
-    
+
     // Top Left
     p->pushOpcode( 'Q' );
     p->pushFloat( x0,      // X1
                   y0,      // Y1
                   x0 + rx, // X0
                   y0);     // Y0
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Top
     p->pushOpcode( 'L' ); // H
     p->pushFloat(x0+w-rx, y0);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Top Right
     p->pushOpcode( 'Q' );
@@ -668,7 +667,7 @@ void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx,
     // Right
     p->pushOpcode( 'L' ); // H
     p->pushFloat(x0 + w -3, y0 + h - ry);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     
     // Bottom Right
@@ -677,14 +676,14 @@ void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx,
                   y0 + h,      // Y1
                   x0 + w - rx, // X0
                   y0 + h);     // Y0
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Bottom
     p->pushOpcode( 'L' ); // H
     p->pushFloat(x0 + rx, y0 + h);
     
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
-    
+
     // Bottom Left
     p->pushOpcode( 'Q' );
     p->pushFloat( x0,           // X1
@@ -708,16 +707,16 @@ void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx,
 void pxPath::pushPolygon(pxPath *p, std::vector<float> &points)
 {
   size_t len = points.size();
-  
-  bool moveStart = true;
-  
+
+  bool moveToStart = true;
+
   float x, y;
-  
+
   if(len > 2)
   {
     std::vector<float>::const_iterator  it = points.begin();
     std::vector<float>::const_iterator end = points.end();
-    
+
     for(;it != end;)
     {
       if(len > 2)
@@ -731,13 +730,13 @@ void pxPath::pushPolygon(pxPath *p, std::vector<float> &points)
            p->pushFloat(x, y);
            moveToStart = false;
         }
-        
+
         p->pushOpcode( 'L' );
         p->pushFloat(x, y);
       }
     }//FOR
   } //ENDIF
-  
+
   p->pushOpcode( 'Z' );
 }
 
@@ -748,7 +747,7 @@ void pxPath::pushEllipse(pxPath *p, float x0, float y0, float rx, float ry)
   p->pushOpcode( 'M' );
   p->pushFloat(x0 + rx,
                y0);
-  
+
   // Bottom Right
   p->pushOpcode( 'C' );
   p->pushFloat((x0 + rx),         // X1
@@ -757,7 +756,7 @@ void pxPath::pushEllipse(pxPath *p, float x0, float y0, float rx, float ry)
                (y0 + ry),         // Y2
                (x0),              // X0
                (y0 + ry));        // Y0
-  
+
   // Bottom Left
   p->pushOpcode( 'C' );
   p->pushFloat((x0 - rx * KAPPA), // X1
@@ -784,7 +783,7 @@ void pxPath::pushEllipse(pxPath *p, float x0, float y0, float rx, float ry)
                (y0 - ry * KAPPA), // Y2
                (x0 + rx),         // X0
                (y0));             // Y0
-  
+
   p->pushOpcode( 'Z' );
 }
 
@@ -792,7 +791,7 @@ void pxPath::pushEllipse(pxPath *p, float x0, float y0, float rx, float ry)
 void pxPath::pushOpcode(uint8_t op)
 {
   uint8_t opcode = toupper(op); // Always ABSOLUTE
-  
+
   opStream.push_back( opcode );
 }
 
