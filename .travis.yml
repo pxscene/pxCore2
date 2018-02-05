@@ -5,6 +5,12 @@ matrix:
     sudo: required
   - os: osx
     osx_image: xcode6.4
+    env:
+    - DUKTAPE_SUPPORT=OFF
+  - os: osx
+    osx_image: xcode6.4
+    env:
+    - DUKTAPE_SUPPORT=ON
 language: c++
 before_install:
 - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then openssl aes-256-cbc -K $encrypted_8b763c087de9_key -iv $encrypted_8b763c087de9_iv -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d; fi
@@ -21,10 +27,10 @@ before_script:
 - if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then export linenumber=`awk '/CFBundleShortVersionString/{ print NR; exit }' $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist`;export PX_VERSION=`sed -n "\`echo $((linenumber+1))\`p" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist|awk -F '<string>' '{print $2}'|awk -F'</string>' '{print $1}'`; fi
 script:
 - ./ci/script.sh
-- if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then codecov --build "$TRAVIS_OS_NAME-$TRAVIS_COMMIT-$TRAVIS_BUILD_NUMBER" -X gcov -f $TRAVIS_BUILD_DIR/tracefile ; fi
-- if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then genhtml -o $TRAVIS_BUILD_DIR/logs/codecoverage $TRAVIS_BUILD_DIR/tracefile; fi
+- if [ "$DUKTAPE_SUPPORT" != "ON"  ] ; then ./ci/codeCovReportGen.sh ; fi
+- "./ci/after_script.sh"
+- if [ "${TRAVIS_OS_NAME}" = "linux" ] ; then ./ci/test_duktape.sh ; fi
 after_script:
-- ./ci/after_script.sh
 - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  rm -rf /tmp/pxscene-build.pem; fi
 addons:
   ssh_known_hosts: 96.116.56.119

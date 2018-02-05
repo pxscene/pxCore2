@@ -23,6 +23,7 @@ export CODE_COVERAGE=1
 cd $TRAVIS_BUILD_DIR
 mkdir -p temp
 cd temp
+rm -rf *
 
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then

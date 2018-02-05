@@ -47,7 +47,14 @@ then
   echo "***************************** Generating config files ****" >> $BUILDLOGS
   if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
   then
-    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DBUILD_PXSCENE_RASTERIZER_PATH=OFF .. >>$BUILDLOGS 2>&1;
+    if [ "$DUKTAPE_SUPPORT" =  "ON" ]
+    then
+      echo "******************* Duktape Enabled ***********************"
+      cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DBUILD_PXSCENE_RASTERIZER_PATH=OFF .. >>$BUILDLOGS 2>&1;
+    else
+      echo "******************* Duktape Disabled ***********************"
+      cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DBUILD_PXSCENE_RASTERIZER_PATH=OFF -DSUPPORT_DUKTAPE=OFF .. >>$BUILDLOGS 2>&1;
+    fi
   else
     cmake .. >>$BUILDLOGS 2>&1;
   fi
@@ -61,9 +68,13 @@ then
 else
 
   echo "***************************** Generating config files ****"
-  cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=OFF .. 1>>$BUILDLOGS;
-  checkError $? 1  "cmake config failed" "Config error" "Check the errors displayed in this window"
-
+  if [ "$DUKTAPE_SUPPORT" =  "ON" ] ; then
+    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=OFF .. 1>>$BUILDLOGS;
+    checkError $? 1  "cmake config failed" "Config error" "Check the errors displayed in this window"
+  else
+    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=OFF -DSUPPORT_DUKTAPE=OFF .. 1>>$BUILDLOGS;
+    checkError $? 1  "cmake config failed" "Config error" "Check the errors displayed in this window"
+  fi
   echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
   cmake --build . -- -j$(getconf _NPROCESSORS_ONLN) 1>>$BUILDLOGS;
   checkError $? 1 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "Check the errors displayed in this window"
