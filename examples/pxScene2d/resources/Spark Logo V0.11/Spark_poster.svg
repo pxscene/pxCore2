@@ -64,14 +64,12 @@
 					<sodipodi:namedview  units="px" id="base" bordercolor="#666666" inkscape:cy="112.18492" inkscape:zoom="4" borderopacity="1.0" inkscape:cx="98.129941" showgrid="false" pagecolor="#ffffff" inkscape:window-y="0" inkscape:document-units="mm" inkscape:pageshadow="2" inkscape:snap-to-guides="true" inkscape:window-maximized="0" inkscape:pagecheckerboard="true" inkscape:pageopacity="0.0" inkscape:window-height="938" inkscape:window-x="110" inkscape:snap-global="true" inkscape:window-width="1470" inkscape:current-layer="layer1" inkscape:snap-grids="false">
 					</sodipodi:namedview>
 				<path id="path4621" inkscape:connector-curvature="0" fill="#E0E1E0" d="M1162.257,1016.902h355.756l168.436,302.027
-					l-171.342,297.67l-352.85,2.906l52.275-76.959l258.465-1.453l132.135-222.164l-136.492-230.875l-257.012,4.354
-					L1162.257,1016.902z"/>
+					l-171.342,297.67l-352.85,2.906l52.275-76.959l258.465-1.453l132.135-222.164l-136.492-230.875l-257.012,4.354 L1162.257,1016.902z"/>
 				<path id="path4619" inkscape:connector-curvature="0" fill="#E0E1E0" d="M646.779,1310.219L472.534,1622.41l177.15,297.673
-					l342.685-1.453l169.889-299.124l-85.67,5.805l-132.137,222.168l-258.465,1.453l-133.59-227.973l130.685-222.166
-					L646.779,1310.219z"/>
+					l342.685-1.453l169.889-299.124l-85.67,5.805l-132.137,222.168l-258.465,1.453l-133.59-227.973l130.685-222.166 L646.779,1310.219z"/>
 				
-					<path id="path4537" inkscape:connector-curvature="0" sodipodi:nodetypes="ccccccc" fill="#F89958" fill-opacity="0.7843" stroke="#5C6D66" stroke-width="30" d="
-					M1211.628,1092.409l-130.685,222.164l133.589,227.974l258.465-1.453l132.135-222.164l-136.492-230.875L1211.628,1092.409z"/>
+					<path id="path4537" inkscape:connector-curvature="0" sodipodi:nodetypes="ccccccc" fill="#F89958" fill-opacity="0.7843" stroke="#5C6D66" stroke-width="30" 
+					d="M1211.628,1092.409l-130.685,222.164l133.589,227.974l258.465-1.453l132.135-222.164l-136.492-230.875L1211.628,1092.409z"/>
 				<path id="path114" inkscape:connector-curvature="0" fill="#E0E1E0" stroke="#F0EFEF" stroke-width="2" d="M646.779,1310.219
 					l-175.698-299.123l175.698-294.767h338.33l177.148,300.574l-84.217-5.807L941.546,780.218l-257.014,4.356l-130.684,222.164
 					l133.588,227.974L646.779,1310.219z"/>
@@ -142,22 +140,18 @@
 	</g>
 	<g id="Hexes">
 		<g id="Top">
-			<polygon id="Middle_-_Top" fill="#E6E7E8" stroke="#5D6D65" stroke-width="10" points="659.429,1317 492.929,1028.5 659.429,740 
-				992.429,740 1158.929,1028.5 992.429,1317 			"/>
+			<polygon id="Middle_-_Top" fill="#E6E7E8" stroke="#5D6D65" stroke-width="10" points="659.429,1317 492.929,1028.5 659.429,740 992.429,740 1158.929,1028.5 992.429,1317"/>
 			<g id="Color_-_Top">
-				<polygon opacity="0.75" fill="#F16268" points="695.778,1254 565.599,1029 695.778,804 956.08,804 1086.258,1029 956.08,1254 
-									"/>
+				<polygon opacity="0.75" fill="#F16268" points="695.778,1254 565.599,1029 695.778,804 956.08,804 1086.258,1029 956.08,1254"/>
 				<path fill="#5D6D65" d="M947.429,819l121.5,210l-121.5,210h-243l-121.5-210l121.5-210H947 M964.731,789h-17.302h-243h-17.302
 					l-8.665,14.851l-121.5,209.938l-8.692,14.993l8.692,15.008l121.5,210.117l8.665,15.093h17.302h243h17.302l8.665-15.101
 					l121.5-210.062l8.692-15.055l-8.692-15.04l-121.5-209.883L964.731,789L964.731,789z"/>
 			</g>
 		</g>
 		<g id="Bottom">
-			<polygon id="Middle_-_Bottom" fill="#E6E7E8" stroke="#5D6D65" stroke-width="10" points="659.433,1903 492.932,1614.5 
-				659.433,1326 992.434,1326 1158.934,1614.5 992.434,1903 			"/>
+			<polygon id="Middle_-_Bottom" fill="#E6E7E8" stroke="#5D6D65" stroke-width="10" points="659.433,1903 492.932,1614.5 659.433,1326 992.434,1326 1158.934,1614.5 992.434,1903"/>
 			<g id="Color_-_Bottom">
-				<polygon opacity="0.75" fill="#FAEF5F" points="695.782,1831 565.603,1606 695.781,1381 956.085,1381 1086.263,1606 
-					956.084,1831 				"/>
+				<polygon opacity="0.75" fill="#FAEF5F" points="695.782,1831 565.603,1606 695.781,1381 956.085,1381 1086.263,1606 956.084,1831"/>
 				<path fill="#5D6D65" d="M947.217,1396l121.608,210l-121.392,210H704.433l-121.5-210l121.5-210H947 M964.736,1366h-17.302
 					H704.433H687.13l-8.665,14.977l-121.5,210.001l-8.692,15.023l8.692,15.023l121.5,209.999L687.13,1846h17.302h243.001h17.302
 					l8.665-14.977l121.5-209.999l8.692-15.023l-8.692-15.023l-121.5-210.001L964.736,1366L964.736,1366z"/>
@@ -167,8 +161,7 @@
 			<polygon id="Middle_-_Right" fill="#E6E7E8" stroke="#5D6D65" stroke-width="10" points="1166.429,1610 999.929,1321.5 
 				1166.429,1033 1499.429,1033 1665.929,1321.5 1499.429,1610 			"/>
 			<g id="Color_-_Right">
-				<polygon opacity="0.75" fill="#F89958" points="1202.778,1545 1072.599,1320 1202.778,1095 1463.08,1095 1593.259,1320 
-					1463.08,1545 				"/>
+				<polygon opacity="0.75" fill="#F89958" points="1202.778,1545 1072.599,1320 1202.778,1095 1463.08,1095 1593.259,1320 1463.08,1545"/>
 				<path fill="#5D6D65" d="M1454.214,1110l121.607,210l-121.393,210h-243l-121.5-210l121.5-210H1454 M1471.731,1080h-17.302h-243
 					h-17.302l-8.665,14.976l-121.5,210L1055.27,1320l8.692,15.024l121.5,210l8.665,14.977h17.302h243h17.302l8.665-14.977l121.5-210
 					l8.692-15.024l-8.692-15.024l-121.5-210L1471.731,1080L1471.731,1080z"/>
@@ -176,35 +169,18 @@
 		</g>
 		<g id="Middle_Fill">
 			<g id="_x3C_Group_x3E_BOTTOM">
-				<polygon id="_x3C_Path_x3E__BOTTOM_1_" fill="#5D6D66" points="1075.164,1615 1029,1534.5 1075.164,1454 1167.49,1454 
-					1213.655,1534.5 1167.49,1615 				"/>
-				
-					<rect id="_x3C_Path_x3E__BOTTOM" x="983.88" y="1246.294" transform="matrix(-0.866 0.5 -0.5 -0.866 2640.5413 2093.0637)" fill="#5C6D65" stroke="#5D6D65" stroke-width="0.928" width="111.952" height="308"/>
+				<polygon id="_x3C_Path_x3E__BOTTOM_1_" fill="#5D6D66" points="1075.164,1615 1029,1534.5 1075.164,1454 1167.49,1454 1213.655,1534.5 1167.49,1615"/>
+				<rect id="_x3C_Path_x3E__BOTTOM" x="983.88" y="1246.294" transform="matrix(-0.866 0.5 -0.5 -0.866 2640.5413 2093.0637)" fill="#5C6D65" stroke="#5D6D65" stroke-width="0.928" width="111.952" height="308"/>
 			</g>
 			<g id="_x3C_Group_x3E__LEFT">
-				<polygon id="_x3C_Path_x3E__LEFT" fill="#5D6D66" points="688.052,1377 655.491,1320.5 688.052,1264 753.173,1264 
-					785.734,1320.5 753.173,1377 				"/>
+				<polygon id="_x3C_Path_x3E__LEFT" fill="#5D6D66" points="688.052,1377 655.491,1320.5 688.052,1264 753.173,1264 785.734,1320.5 753.173,1377"/>
 				<rect id="_x3C_Path_x3E__LEFT_1_" x="724.5" y="1264.5" fill="#5C6D65" stroke="#5D6D65" width="308" height="112"/>
 			</g>
 			<g id="_x3C_Group_x3E__RIGHT">
-				<polygon id="_x3C_Path_x3E__RIGHT" fill="#5D6D66" points="1099.051,1141 1066.49,1084.5 1099.051,1028 1164.172,1028 
-					1196.733,1084.5 1164.172,1141 				"/>
-				
-					<rect id="_x3C_Path_x3E__RIGHT_1_" x="982.88" y="1089.295" transform="matrix(0.866 0.5 -0.5 0.866 760.8356 -352.8595)" fill="#5C6D65" stroke="#5D6D65" stroke-width="0.928" width="111.952" height="307.999"/>
+				<polygon id="_x3C_Path_x3E__RIGHT" fill="#5D6D66" points="1099.051,1141 1066.49,1084.5 1099.051,1028 1164.172,1028 1196.733,1084.5 1164.172,1141"/>
+				<rect id="_x3C_Path_x3E__RIGHT_1_" x="982.88" y="1089.295" transform="matrix(0.866 0.5 -0.5 0.866 760.8356 -352.8595)" fill="#5C6D65" stroke="#5D6D65" stroke-width="0.928" width="111.952" height="307.999"/>
 			</g>
 		</g>
-	</g>
-	<g>
-	</g>
-	<g>
-	</g>
-	<g>
-	</g>
-	<g>
-	</g>
-	<g>
-	</g>
-	<g>
 	</g>
 </g>
 </svg>
