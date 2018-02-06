@@ -1,5 +1,4 @@
 'use strict';
-
 var WS = require('ws/lib/WebSocket');
 
 function socketClosed()
