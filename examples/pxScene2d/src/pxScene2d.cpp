@@ -1740,7 +1740,11 @@ int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
-    mInnerpxObjects(), mDirty(true), mTestView(NULL), mDisposed(false)
+    mInnerpxObjects(),
+#ifdef PX_DIRTY_RECTANGLES
+    mDirtyRect(), mLastFrameDirtyRect(),
+#endif //PX_DIRTY_RECTANGLES
+    mDirty(true), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1827,11 +1831,12 @@ rtError pxScene2d::dispose()
     if (mRoot)
       mRoot->dispose();
     mEmit->clearListeners();
-    mRoot = NULL;
-  
-    mInfo = NULL;
-  
+
+    mRoot     = NULL;
+    mInfo     = NULL;
+    mCanvas   = NULL;
     mFocusObj = NULL;
+
     pxFontManager::clearAllFonts();
     return RT_OK;
 }
@@ -2150,10 +2155,12 @@ void pxScene2d::draw()
 
   //rtLogInfo("pxScene2d::draw()\n");
   #ifdef PX_DIRTY_RECTANGLES
-  int x = mDirtyRect.left();
-  int y = mDirtyRect.top();
-  int w = mDirtyRect.right() - x+1;
-  int h = mDirtyRect.bottom() - y+1;
+  pxRect dirtyRectangle = mDirtyRect;
+  dirtyRectangle.unionRect(mLastFrameDirtyRect);
+  int x = dirtyRectangle.left();
+  int y = dirtyRectangle.top();
+  int w = dirtyRectangle.right() - x+1;
+  int h = dirtyRectangle.bottom() - y+1;
 
   static bool previousShowDirtyRect = false;
 
@@ -2183,6 +2190,7 @@ ENTERSCENELOCK()
     mRoot->drawInternal(true);
 EXITSCENELOCK()
     context.popState();
+    mLastFrameDirtyRect.setLTRB(mDirtyRect.left(), mDirtyRect.top(), mDirtyRect.right(), mDirtyRect.bottom());
     mDirtyRect.setEmpty();
   }
 

@@ -111,17 +111,11 @@ extern "C" {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-#ifndef PX_PLATFORM_MAC
-#ifndef __clang__
-#pragma GCC diagnostic ignored "-Werror"
-#endif
-#endif
-
 #pragma GCC diagnostic ignored "-Wall"
 #endif
 
 #include "uv.h"
-#include "include/libplatform/libplatform.h"
+#include "libplatform/libplatform.h"
 
 #include "rtObjectWrapper.h"
 #include "rtFunctionWrapper.h"
@@ -207,7 +201,7 @@ public:
     return rtAtomicInc(&mRefCount);
   }
 
-  unsigned long Release();  
+  unsigned long Release();
 
   rtError init();
 
@@ -288,8 +282,6 @@ extern bool use_inspector;
 extern bool debug_wait_connect;
 }
 
-static int exec_argc;
-static const char** exec_argv;
 static rtAtomic sNextId = 100;
 
 
@@ -361,7 +353,7 @@ void rtDukContext::clonedEnvironment(rtDukContextRef clone_me)
 {
   rtLogInfo(__FUNCTION__);
   duk_idx_t thr_idx = duk_push_thread(clone_me->dukCtx);
-  
+
   duk_dup(clone_me->dukCtx, -1);
   rtDukPutIdentToGlobal(clone_me->dukCtx);
 
@@ -397,7 +389,7 @@ rtError rtDukContext::add(const char *name, rtValue const& val)
 {
   rt2duk(dukCtx, val);
   rtDukPutIdentToGlobal(dukCtx, name);
-  
+
   return RT_OK;
 }
 
@@ -1030,11 +1022,11 @@ rtError rtDukContext::runFile(const char *file, rtValue* retVal /*= NULL*/, cons
   // Read the script file
   js_file   = file;
   js_script = readFile(file);
-  
+
   if( js_script.empty() ) // load error
   {
     rtLogError(" %s  ... load error / not found.",__PRETTY_FUNCTION__);
-     
+
     return RT_FAIL;
   }
 
@@ -1043,7 +1035,7 @@ rtError rtDukContext::runFile(const char *file, rtValue* retVal /*= NULL*/, cons
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtScriptDuk::rtScriptDuk():mRefCount(0), duk_is_initialized(false)
+rtScriptDuk::rtScriptDuk():mRefCount(0), duk_is_initialized(false), dukCtx(NULL)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false), duk_is_initialized(false)
@@ -1057,7 +1049,7 @@ rtScriptDuk::rtScriptDuk():mRefCount(0), duk_is_initialized(false)
   init();
 }
 
-rtScriptDuk::rtScriptDuk(bool initialize):mRefCount(0), duk_is_initialized(false)
+rtScriptDuk::rtScriptDuk(bool initialize):mRefCount(0), duk_is_initialized(false),dukCtx(NULL)
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false), duk_is_initialized(false)

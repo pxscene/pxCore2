@@ -44,6 +44,7 @@ if [ "$TRAVIS_OS_NAME" = "osx" ] ;
 then
   brew update;
   brew upgrade cmake;
+  brew install quilt
   sudo /usr/sbin/DevToolsSecurity --enable
   lldb --version
   lldb --help
@@ -58,7 +59,6 @@ then
 #    brew install lighttpd
     brew install gcovr
     brew install lcov
-    brew install quilt
     brew install --HEAD ccache
     ls -al $HOME/.ccache
   fi

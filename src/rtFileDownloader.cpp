@@ -153,7 +153,7 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
     mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false), mDownloadHandleExpiresTime(-2)
 #ifdef ENABLE_HTTP_CACHE
-    , mCacheEnabled(true), mIsDataInCache(false)
+    , mCacheEnabled(true), mIsDataInCache(false), mDeferCacheRead(false)
 #endif
     , mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
 {
@@ -366,6 +366,29 @@ bool rtFileDownloadRequest::isDataCached()
   return mIsDataInCache;
 }
 
+void rtFileDownloadRequest::setDeferCacheRead(bool val)
+{
+  mDeferCacheRead = val;
+}
+
+bool rtFileDownloadRequest::deferCacheRead()
+{
+  return mDeferCacheRead;
+}
+
+FILE* rtFileDownloadRequest::cacheFilePointer(void)
+{
+  rtHttpCacheData cachedData(this->fileUrl().cString());
+
+  if (true == this->cacheEnabled())
+  {
+    if ((NULL != rtFileCache::instance()) && (RT_OK == rtFileCache::instance()->httpCacheData(this->fileUrl(), cachedData)))
+    {
+      return cachedData.filePointer();
+    }
+  }
+  return NULL;
+}
 #endif //ENABLE_HTTP_CACHE
 
 void rtFileDownloadRequest::setProgressMeter(bool val)
@@ -563,7 +586,10 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
         if (NULL == rtFileCache::instance())
           rtLogWarn("cache data not added");
         else
+        {
           rtFileCache::instance()->addToCache(downloadedData);
+          rtLogInfo("Cache expiration(%s)", cachedData.expirationDate().cString());
+        }
       }
     }
 
@@ -581,6 +607,8 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
         rtError err = rtFileCache::instance()->addToCache(cachedData);
         if (RT_OK != err)
           rtLogWarn("Adding url to cache failed (%s)", url.cString());
+        else
+          rtLogInfo("Cache expiration(%s)", cachedData.expirationDate().cString());
       }
     }
 
@@ -778,7 +806,10 @@ bool rtFileDownloader::checkAndDownloadFromCache(rtFileDownloadRequest* download
   rtData data;
   if ((NULL != rtFileCache::instance()) && (RT_OK == rtFileCache::instance()->httpCacheData(downloadRequest->fileUrl(),cachedData)))
   {
-    err = cachedData.data(data);
+    if(downloadRequest->deferCacheRead())
+      err = cachedData.deferCacheRead(data);
+    else
+      err = cachedData.data(data);
     if (RT_OK !=  err)
     {
       return false;
