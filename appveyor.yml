@@ -42,14 +42,5 @@ build_script:
 
 test: off
 
-artifacts:
-    # NSIS based installer
-  - path: "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.exe"
-    name: installer
-    type: Auto
-    # Standalone (requires no installation)
-  - path: "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.zip"
-    name: standalone
-    type: Zip
 
 # validator: https://ci.appveyor.com/tools/validate-yaml
