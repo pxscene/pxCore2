@@ -186,6 +186,8 @@ rtRemoteObjectCache::removeUnused()
   std::unique_lock<std::mutex> lock(sMutex);
   for (auto itr = sRefMap.begin(); itr != sRefMap.end();)
   {
+    if (rtRemoteEnvironment::Crashed)
+      break;
     // rtLogInfo("IsActive:%s LifeTime:%lld MaxIdleTime:%lld Unevictable:%d", itr->first.c_str(),
     //           std::chrono::duration_cast<std::chrono::seconds>(now - itr->second.LastUsed).count(),
     //           itr->second.MaxIdleTime.count(), itr->second.Unevictable);

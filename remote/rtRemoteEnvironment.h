@@ -11,6 +11,8 @@
 #include <queue>
 #include <thread>
 
+#include <signal.h>
+
 class rtRemoteServer;
 class rtRemoteConfig;
 class rtRemoteStreamSelector;
@@ -39,6 +41,8 @@ public:
 
   uint32_t RefCount;
   bool     Initialized;
+
+  static volatile sig_atomic_t Crashed;
 
   void registerQueueReadyHandler(rtRemoteQueueReady handler, void* argp);
   void registerResponseHandler(rtRemoteMessageHandler handler, void* argp, rtRemoteCorrelationKey const& k);

@@ -102,6 +102,12 @@ rtRemoteStreamSelector::doPollFds()
     std::unique_lock<std::mutex> lock(m_mutex);
     m_streams_cond.wait(lock, [&]() {return !m_streams.empty() || !m_running;});
 
+    if (rtRemoteEnvironment::Crashed)
+    {
+      rtLogInfo("got crash signal");
+      return RT_OK;
+    }
+
     if (!m_running)
       return RT_OK;
 
@@ -130,6 +136,13 @@ rtRemoteStreamSelector::doPollFds()
     timeout.tv_usec = 0;
 
     int ret = select(maxFd + 1, &readFds, NULL, &errFds, &timeout);
+
+    if (rtRemoteEnvironment::Crashed)
+    {
+      rtLogInfo("got crash signal");
+      return RT_OK;
+    }
+
     if (ret == -1)
     {
       rtError e = rtErrorFromErrno(errno);

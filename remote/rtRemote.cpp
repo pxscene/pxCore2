@@ -25,6 +25,9 @@ static rtRemoteEnvironment* gEnv = nullptr;
 rtError
 rtRemoteInit(rtRemoteEnvironment* env)
 {
+  if (rtRemoteEnvironment::Crashed)
+    return RT_OBJECT_NO_LONGER_AVAILABLE;
+
   rtError e = RT_FAIL;
   std::lock_guard<std::mutex> lock(gMutex);
 
@@ -94,6 +97,12 @@ rtRemoteShutdown(rtRemoteEnvironment* env, bool immediate)
   }
 
   return e;
+}
+
+void
+rtRemoteSignalCrash()
+{
+  rtRemoteEnvironment::Crashed = 1;
 }
 
 rtError

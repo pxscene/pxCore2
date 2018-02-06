@@ -85,6 +85,12 @@ rtError
 rtRemoteShutdown(rtRemoteEnvironment* env, bool immediate = false);
 
 /**
+ * Signal rtRemote sub-system about the process crash
+ */
+void
+rtRemoteSignalCrash();
+
+/**
  * Processes a single queue item. This is an API to be called from main loop from queue callback.
  * @returns RT_OK for success
  */

@@ -334,6 +334,13 @@ rtRemoteServer::runListener()
     timeout.tv_usec = 0;
 
     int ret = select(maxFd + 1, &readFds, NULL, &errFds, &timeout);
+
+    if (rtRemoteEnvironment::Crashed)
+    {
+      rtLogInfo("got crash signal");
+      return;
+    }
+
     if (ret == -1)
     {
       rtError e = rtErrorFromErrno(errno);

@@ -5,6 +5,8 @@
 #include "rtRemoteObjectCache.h"
 #include "rtError.h"
 
+volatile sig_atomic_t rtRemoteEnvironment::Crashed = 0;
+
 rtRemoteEnvironment::rtRemoteEnvironment(rtRemoteConfig* config)
   : Config(config)
   , Server(nullptr)
@@ -53,10 +55,12 @@ rtRemoteEnvironment::processRunQueue()
   while (true)
   {
     rtError e = processSingleWorkItem(timeout, true,  nullptr);
+    if (Crashed || !m_running)
+      return;
     if (e != RT_OK)
     {
       std::unique_lock<std::mutex> lock(m_queue_mutex);
-      if (!m_running)
+      if (Crashed || !m_running)
         return;
       lock.unlock();
       if (e != RT_ERROR_TIMEOUT)
@@ -155,8 +159,10 @@ rtRemoteEnvironment::waitForResponse(std::chrono::milliseconds timeout, rtRemote
 
   auto delay = std::chrono::system_clock::now() + timeout;
   std::unique_lock<std::mutex> lock(m_queue_mutex);
-  if (!m_queue_cond.wait_until(lock, delay, [this, k] { return (haveResponse(k) || !m_running); }))
+  if (!m_queue_cond.wait_until(lock, delay, [this, k] { return (Crashed || haveResponse(k) || !m_running); }))
   {
+    if (Crashed)
+      return RT_OBJECT_NO_LONGER_AVAILABLE;
     e = RT_ERROR_TIMEOUT;
   }
 
@@ -170,6 +176,8 @@ rtRemoteEnvironment::waitForResponse(std::chrono::milliseconds timeout, rtRemote
 rtError
 rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, bool wait, rtRemoteCorrelationKey* key)
 {
+  if (Crashed)
+    return RT_OBJECT_NO_LONGER_AVAILABLE;
   rtError e = RT_ERROR_TIMEOUT;
 
   if (key)
@@ -179,6 +187,8 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, bo
   auto delay = std::chrono::system_clock::now() + timeout;
 
   std::unique_lock<std::mutex> lock(m_queue_mutex);
+  if (Crashed)
+    return RT_OBJECT_NO_LONGER_AVAILABLE;
   if (!wait && m_queue.empty())
     return RT_ERROR_QUEUE_EMPTY;
 
@@ -187,7 +197,11 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, bo
   // then we should use a 2nd queue
   //
 
-  if (!m_queue_cond.wait_until(lock, delay, [this] { return !this->m_queue.empty() || !m_running; }))
+  bool ret = m_queue_cond.wait_until(lock, delay, [this] { return Crashed || !this->m_queue.empty() || !m_running; });
+  if (Crashed)
+    return RT_OBJECT_NO_LONGER_AVAILABLE;
+
+  if (!ret)
   {
     e = RT_ERROR_TIMEOUT;
   }
