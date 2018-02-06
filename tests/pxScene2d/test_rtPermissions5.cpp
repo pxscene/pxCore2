@@ -61,14 +61,14 @@ public:
     // "*://*.comcast.net" : "comcast",
     // "*://*.comcast.net:*" : "comcast",
     EXPECT_TRUE (allows("http://any.web.site", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
-    EXPECT_FALSE(allows("http://localhost", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
-    EXPECT_FALSE(allows("http://localhost:8080", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
-    EXPECT_FALSE(allows("http://127.0.0.1", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
-    EXPECT_FALSE(allows("http://127.0.0.1:8080", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
-    EXPECT_FALSE(allows("http://[::1]", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
-    EXPECT_FALSE(allows("http://[::1]:8080", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
-    EXPECT_FALSE(allows("http://[0:0:0:0:0:0:0:1]", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
-    EXPECT_FALSE(allows("http://[0:0:0:0:0:0:0:1]:8080", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
+    EXPECT_TRUE (allows("http://localhost", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
+    EXPECT_TRUE (allows("http://localhost:8080", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
+    EXPECT_TRUE (allows("http://127.0.0.1", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
+    EXPECT_TRUE (allows("http://127.0.0.1:8080", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
+    EXPECT_TRUE (allows("http://[::1]", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
+    EXPECT_TRUE (allows("http://[::1]:8080", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:8080", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
     EXPECT_FALSE(allows("file:///afile", rtPermissions::DEFAULT, "http://blabla.comcast.net:80"));
     EXPECT_TRUE (allows("anything", rtPermissions::SERVICE, "http://blabla.comcast.net:80"));
     EXPECT_TRUE (allows("anything", rtPermissions::FEATURE, "http://blabla.comcast.net:80"));
