@@ -1,6 +1,6 @@
 ### Setup
 
-* sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake gnutls-bin libgnutls-dev autoconf libtool nasm
+* sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake gnutls-bin libgnutls-dev autoconf libtool nasm quilt
 * git clone git@github.com:topcoderinc/pxCore.git
 * cd pxCore
 * git checkout duktape_proof_of_concept
@@ -50,10 +50,25 @@
 * ./configure
 * make
 * cd ..
+* cd node
+* ./configure --shared
+* make
+* ln -sf out/Release/obj.target/libnode.so.48 libnode.so.48
+* ln -sf libnode.so.48 libnode.so
+* ln -sf out/Release/libnode.48.dylib libnode.48.dylib
+* ln -sf libnode.48.dylib libnode.dylib
+* cd ..
+* cd dukluv
+* quilt push -aq || test $? = 2
+* mkdir -p build
+* cd build
+* cmake ..
+* make
+* cd ../..
 * cd ../../../
 * mkdir temp
 * cd temp
-* cmake -DUSE_DUKTAPE=ON ..
+* cmake ..
 * cmake --build . --config Release -- -j1
 * cd ../examples/pxScene2d/src
 * ./pxscene about.js
