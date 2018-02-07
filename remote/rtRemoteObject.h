@@ -10,8 +10,6 @@ class rtRemoteClient;
 class rtRemoteObject : public rtIObject
 {
 public:
-  rtDeclareObjectBase();
-
   rtRemoteObject(std::string const& id, std::shared_ptr<rtRemoteClient> const& transport);
   virtual ~rtRemoteObject();
 
@@ -22,7 +20,7 @@ public:
 
   virtual unsigned long AddRef();
   virtual unsigned long Release();
-  virtual rtMethodMap* getMap() const { return NULL;  }
+
   inline std::string const& getId() const
     { return m_id; }
 

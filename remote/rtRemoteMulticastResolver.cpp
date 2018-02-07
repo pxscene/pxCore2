@@ -80,8 +80,9 @@ rtError rtRemoteMulticastResolver::sendSearchAndWait(const std::string& name, co
 
   // m_ucast_endpoint
   {
-    std::string responseEndpoint = rtSocketToString(m_ucast_endpoint);
-    doc.AddMember(kFieldNameReplyTo, responseEndpoint, doc.GetAllocator());
+    std::unique_ptr<rtRemoteIPEndPoint> responseEndpoint(rtRemoteIPEndPoint::
+      fromSockAddr("udp", m_ucast_endpoint));
+    doc.AddMember(kFieldNameReplyTo, responseEndpoint->toString(), doc.GetAllocator());
   }
 
 
@@ -174,26 +175,10 @@ rtError
 rtRemoteMulticastResolver::open(sockaddr_storage const& rpc_endpoint)
 {
   {
-    char buff[128];
-
-    void* addr = nullptr;
-    rtGetInetAddr(rpc_endpoint, &addr);
-
     if (rpc_endpoint.ss_family == AF_UNIX)
-    {
-      m_rpc_addr = reinterpret_cast<const char*>(addr);
-      m_rpc_port = 0;
-    }
+      m_rpc_endpoint.reset(rtRemoteFileEndPoint::fromSockAddr(rpc_endpoint));
     else
-    {
-      socklen_t len;
-      rtSocketGetLength(rpc_endpoint, &len);
-      char const* p = inet_ntop(rpc_endpoint.ss_family, addr, buff, len);
-      if (p)
-        m_rpc_addr = p;
-
-      rtGetPort(rpc_endpoint, &m_rpc_port);
-    }
+      m_rpc_endpoint.reset(rtRemoteIPEndPoint::fromSockAddr("tcp", rpc_endpoint));
   }
 
   rtError err = init();
@@ -401,19 +386,13 @@ rtRemoteMulticastResolver::onSearch(rtRemoteMessagePtr const& doc, sockaddr_stor
     doc.SetObject();
     doc.AddMember(kFieldNameMessageType, kMessageTypeLocate, doc.GetAllocator());
     doc.AddMember(kFieldNameObjectId, std::string(objectId), doc.GetAllocator());
-    doc.AddMember(kFieldNameIp, m_rpc_addr, doc.GetAllocator());
-    doc.AddMember(kFieldNamePort, m_rpc_port, doc.GetAllocator());
+    doc.AddMember(kFieldNameEndPoint, m_rpc_endpoint->toString(), doc.GetAllocator());
     doc.AddMember(kFieldNameSenderId, senderId->value.GetInt(), doc.GetAllocator());
     doc.AddMember(kFieldNameCorrelationKey, key.toString(), doc.GetAllocator());
 
-    sockaddr_storage replyToAddress;
-    rtError err = rtParseAddress(replyToAddress, replyTo->value.GetString());
-    if (err != RT_OK)
-    {
-      rtLogWarn("failed to parse reply-to address. %s", rtStrError(err));
-      return err;
-    }
-
+    std::unique_ptr<rtRemoteEndPoint> tempEndPoint(rtRemoteEndPoint::fromString(
+      replyTo->value.GetString()));
+    sockaddr_storage replyToAddress = tempEndPoint->toSockAddr();
 
     return rtSendDocument(doc, m_ucast_fd, &replyToAddress);
   }
@@ -448,17 +427,15 @@ rtRemoteMulticastResolver::locateObject(std::string const& name, sockaddr_storag
   if (err != RT_OK)
     return err;
 
-  // response is in itr
-  RT_ASSERT(searchResponse->HasMember(kFieldNameIp));
-  RT_ASSERT(searchResponse->HasMember(kFieldNamePort));
+  auto rpc_endpoint = searchResponse->FindMember(kFieldNameEndPoint);
+  if (rpc_endpoint != searchResponse->MemberEnd())
+  {
+    std::unique_ptr<rtRemoteEndPoint> e(rtRemoteEndPoint::fromString(rpc_endpoint->value.GetString()));
+    endpoint = e->toSockAddr();
+    // err = rtParseAddress(endpoint, e.host().c_str(), e.port(), nullptr);
+  }
 
-  err = rtParseAddress(endpoint, (*searchResponse)[kFieldNameIp].GetString(),
-      (*searchResponse)[kFieldNamePort].GetInt(), nullptr);
-
-  if (err != RT_OK)
-    return err;
-
-  return RT_OK;
+  return err;
 }
 
 void
@@ -466,7 +443,7 @@ rtRemoteMulticastResolver::runListener()
 {
   rtRemoteSocketBuffer buff;
   buff.reserve(1024 * 1024);
-  buff.resize(1024);
+  buff.resize(1024 * 1024);
 
   while (true)
   {

@@ -10,36 +10,45 @@
 #include <memory>
 
 /* Abstract base class for endpoint addresses */
-class rtRemoteIEndpoint
+class rtRemoteEndPoint
 {
 public:
-	rtRemoteIEndpoint(std::string const& scheme): m_scheme(scheme) { };
-	virtual ~rtRemoteIEndpoint() { };
+	rtRemoteEndPoint(std::string const& scheme): m_scheme(scheme) { };
+	virtual ~rtRemoteEndPoint() { };
 
-	virtual std::string toUriString() = 0;
+  static rtRemoteEndPoint* fromString(std::string const& s);
 
-	inline std::string scheme() const
+	virtual std::string toString() = 0;
+  virtual sockaddr_storage toSockAddr() const = 0;
+
+	inline std::string const& scheme() const
 	  { return m_scheme; }
+
+protected:
+  rtRemoteEndPoint() { }
 
 protected:
 	std::string m_scheme;
 };
 
-using rtRemoteEndpointPtr = std::shared_ptr< rtRemoteIEndpoint >;
+using rtRemoteEndPointPtr = std::shared_ptr< rtRemoteEndPoint >;
 
 /* Local endpoints.
  * Used to stored address information for unix domain sockets,
  * named pipes, files, shared memory, etc.
  */
-class rtRemoteEndpointLocal : public virtual rtRemoteIEndpoint
+class rtRemoteFileEndPoint : public virtual rtRemoteEndPoint
 {
 public:
-  rtRemoteEndpointLocal(std::string const& scheme, std::string const& path)
-  : rtRemoteIEndpoint(scheme)
-  , m_path(path)
-  { }
-	
-  virtual std::string toUriString() override
+  rtRemoteFileEndPoint(std::string const& scheme, std::string const& path)
+    : rtRemoteEndPoint(scheme)
+    , m_path(path) { }
+
+  static rtRemoteFileEndPoint* fromString(std::string const& s);
+  static rtRemoteFileEndPoint* fromSockAddr(sockaddr_storage const& s);
+
+  virtual sockaddr_storage toSockAddr() const override;
+  virtual std::string toString() override
   {
     std::stringstream buff;
     buff << m_scheme;
@@ -47,17 +56,15 @@ public:
     buff << m_path;
     return buff.str();
   }
-	
-  inline bool operator==(rtRemoteEndpointLocal const& rhs) const
-    { return m_path.compare(rhs.path()) == 0
-		  && m_scheme.compare(rhs.scheme()) == 0;
-	}
 
-  inline std::string path() const
-	{ return m_path; }
+  inline bool operator == (rtRemoteFileEndPoint const& rhs) const
+    { return m_path.compare(rhs.path()) == 0 && m_scheme.compare(rhs.scheme()) == 0; }
 
-  inline bool isSocket() const
-    { return m_scheme.compare("tcp") == 0 || m_scheme.compare("udp") == 0; }
+  inline std::string const& path() const
+    { return m_path; }
+
+private:
+  rtRemoteFileEndPoint() : rtRemoteEndPoint() { }
 
 protected:
   std::string m_path;
@@ -68,16 +75,19 @@ protected:
  * Used to stored address information for remote sockets
  * (tcp, udp, http, etc.)
  */
-class rtRemoteEndpointRemote : public virtual rtRemoteIEndpoint
+class rtRemoteIPEndPoint : public virtual rtRemoteEndPoint
 {
 public:
-  rtRemoteEndpointRemote(std::string const& scheme, std::string const& host, int port)
-    : rtRemoteIEndpoint(scheme)
+  rtRemoteIPEndPoint(std::string const& scheme, std::string const& host, int port)
+    : rtRemoteEndPoint(scheme)
     , m_host(host)
-    , m_port(port)
-  { }
+    , m_port(port) { }
+
+  static rtRemoteIPEndPoint* fromString(std::string const& s);
+  static rtRemoteIPEndPoint* fromSockAddr(std::string const& scheme, sockaddr_storage const& ss);
 	
-  virtual std::string toUriString() override
+  virtual sockaddr_storage toSockAddr() const override;
+  virtual std::string toString() override
   {
     std::stringstream buff;
     buff << m_scheme;
@@ -88,55 +98,24 @@ public:
     return buff.str();
   }
 
-  inline bool operator==(rtRemoteEndpointRemote const& rhs) const
+  inline bool operator == (rtRemoteIPEndPoint const& rhs) const
     { return m_host.compare(rhs.host()) == 0
 	      && m_port == rhs.port()
           && m_scheme.compare(rhs.scheme()) == 0;
 	}
 
-  inline std::string host() const
-	{ return m_host; }
+  inline std::string const& host() const
+    { return m_host; }
 
   inline int port() const
     { return m_port; }
 
+private:
+  rtRemoteIPEndPoint() { }
+
 protected:
-  std::string         m_host;
-  int                 m_port;
-};
-
-
-/* Remote endpoints that include path information
- *
- * Currently not used.  If use case arises, must be integrated throughout the code.
- */
-class rtRemoteEndpointDistributed : public rtRemoteEndpointRemote, public rtRemoteEndpointLocal
-{
-public:
-  rtRemoteEndpointDistributed(std::string const& scheme, std::string const& host, int port, std::string const& path)
-    : rtRemoteIEndpoint(scheme)
-    , rtRemoteEndpointRemote(scheme, host, port)
-    , rtRemoteEndpointLocal(scheme, path)
-  { }
-	
-  virtual std::string toUriString() override
-  {
-    std::stringstream buff;
-    buff << m_scheme;
-    buff << "://";
-    buff << m_host;
-    buff << ":";
-    buff << m_port;
-    buff << m_path;
-    return buff.str();
-  }
-
-  inline bool operator==(rtRemoteEndpointDistributed const& rhs) const
-	{ return m_host.compare(rhs.host()) == 0
-		  && m_port == rhs.port()
-		  && m_path.compare(rhs.path()) == 0
-		  && m_scheme.compare(rhs.scheme()) == 0;
-    }
+  std::string m_host;
+  int m_port;
 };
 
 #endif

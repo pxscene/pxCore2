@@ -2,8 +2,6 @@
 #include "rtRemoteClient.h"
 #include "rtError.h"
 
-rtDefineObject(rtRemoteObject, rtObject);
-
 rtRemoteObject::rtRemoteObject(std::string const& id, std::shared_ptr<rtRemoteClient> const& client)
   : m_ref_count(0)
   , m_id(id)

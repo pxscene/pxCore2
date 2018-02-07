@@ -315,6 +315,10 @@ rtRemoteServer::runListener()
 {
   time_t lastKeepAliveCheck = 0;
 
+  rtRemoteSocketBuffer buff;
+  buff.reserve(1024 * 1024);
+  buff.resize(1024 * 1024);
+
   while (true)
   {
     int maxFd = 0;
