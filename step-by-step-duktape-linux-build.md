@@ -1,6 +1,6 @@
 ### Setup
 
-* sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake gnutls-bin libgnutls-dev autoconf libtool nasm quilt
+* sudo apt-get install git uuid-dev libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake gnutls-bin libgnutls-dev autoconf libtool nasm quilt
 * git clone git@github.com:topcoderinc/pxCore.git
 * cd pxCore
 * git checkout duktape_proof_of_concept
