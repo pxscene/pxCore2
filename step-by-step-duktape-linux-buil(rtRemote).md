@@ -1,6 +1,6 @@
 ### Setup
 
-* sudo apt-get install git uuid-dev libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake gnutls-bin libgnutls-dev autoconf libtool nasm quilt uuid-dev
+* sudo apt-get install git uuid-dev libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake gnutls-bin libgnutls-dev autoconf libtool nasm quilt uuid-dev maven
 * git clone git@github.com:topcoderinc/pxCore.git
 * cd pxCore
 * git checkout duktape_proof_of_concept
@@ -68,12 +68,32 @@
 * cd ../../../
 * mkdir temp
 * cd temp
-* cmake ..
+* cmake .. -DSUPPORT_DUKTAPE=OFF
 * cmake --build . --config Release -- -j1
 * cd ../examples/pxScene2d/src
-* ./pxscene about.js
-* cd
-* git clone https://github.com/pxscene/pxscene.git pxscene_examples
-* cd pxscene_examples
-* git checkout gh-pages
-* Examples can be found in examples/px-reference/gallery
+* Validate that pxScene works correctly
+  * `./pxscene about.js ``
+
+### rtRemote Java
+* Install dependencies,
+  * `sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake gnutls-bin libgnutls-dev autoconf libtool nasm uuid-dev maven`
+* Install java
+ * `sudo add-apt-repository ppa:openjdk-r/ppa && sudo apt-get update`
+ * `sudo apt-get install openjdk-8-jdk`
+* Build rtRemote, `cd pxCore/remote && make -j1` ,
+* Build server example:
+  * `cd pxCore/rtRemoteSimpleServer`
+  * `mkdir build && cd build`
+  * `cmake .. && make`
+* Run the sample server `./sample_server`
+
+#### Build java remote client
+* cd `pxCore/rtRemote/java` , `mvn compile`
+
+#### Validation
+
+* Follow *Build remote and run example* section to start up sample server
+* Basic client examples , cd `pxCore/rtRemote/java` , `mvn compile`
+  * `mvn exec:java -Dexec.mainClass="examples.TypeTest"`
+  * `mvn exec:java -Dexec.mainClass="examples.MethodTest"`
+  * `mvn exec:java -Dexec.mainClass="examples.ThreadTest"`
