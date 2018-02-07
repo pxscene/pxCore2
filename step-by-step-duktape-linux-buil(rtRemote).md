@@ -88,12 +88,12 @@
 * Run the sample server `./sample_server`
 
 #### Build java remote client
-* cd `pxCore/rtRemote/java` , `mvn compile`
+* cd `pxCore/remote/java` , `mvn compile`
 
 #### Validation
 
 * Follow *Build remote and run example* section to start up sample server
-* Basic client examples , cd `pxCore/rtRemote/java` , `mvn compile`
+* Basic client examples
   * `mvn exec:java -Dexec.mainClass="examples.TypeTest"`
   * `mvn exec:java -Dexec.mainClass="examples.MethodTest"`
   * `mvn exec:java -Dexec.mainClass="examples.ThreadTest"`
