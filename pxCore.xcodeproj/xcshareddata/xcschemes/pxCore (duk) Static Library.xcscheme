@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "4CF546012020F5B600529907"
-               BuildableName = "pxScene2d.app"
-               BlueprintName = "pxScene2d"
-               ReferencedContainer = "container:pxScene2d.xcodeproj">
+               BlueprintIdentifier = "4C5D0571201FC48F00D2B292"
+               BuildableName = "libpxCore (Duk) Static Library.a"
+               BlueprintName = "pxCore (Duk) Static Library"
+               ReferencedContainer = "container:pxCore.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -42,16 +42,15 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4CF546012020F5B600529907"
-            BuildableName = "pxScene2d.app"
-            BlueprintName = "pxScene2d"
-            ReferencedContainer = "container:pxScene2d.xcodeproj">
+            BlueprintIdentifier = "4C5D0571201FC48F00D2B292"
+            BuildableName = "libpxCore (Duk) Static Library.a"
+            BlueprintName = "pxCore (Duk) Static Library"
+            ReferencedContainer = "container:pxCore.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -64,10 +63,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4CF546012020F5B600529907"
-            BuildableName = "pxScene2d.app"
-            BlueprintName = "pxScene2d"
-            ReferencedContainer = "container:pxScene2d.xcodeproj">
+            BlueprintIdentifier = "4C5D0571201FC48F00D2B292"
+            BuildableName = "libpxCore (Duk) Static Library.a"
+            BlueprintName = "pxCore (Duk) Static Library"
+            ReferencedContainer = "container:pxCore.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

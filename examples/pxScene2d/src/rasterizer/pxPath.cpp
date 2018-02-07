@@ -120,11 +120,11 @@ void pxPath::draw()
   {
     pxOffscreen &o = c->offscreen(); // CANVAS
 
-   // o.fill(pxColor(255,0,0,8));                    // HACK BACKFILL
+    // o.fill(pxColor(255,0,0,8));                    // HACK BACKFILL
 
     canvasRef.send("drawPath", this);                // draw PATH to CANVAS // TODO: This may be slow
 
-    context.drawOffscreen(0,0, 0,0, 1280, 720, /* o.width(), o.height(),*/ o);  // draw CANVAS to CONTEXT
+    context.drawOffscreen(0,0, 0,0, CANVAS_W, CANVAS_H, /* o.width(), o.height(),*/ o);  // draw CANVAS to CONTEXT
 //    context.drawOffscreen(0,0, this->x(), this->y(), this->w(), this->h(), o);
 
 //    context.drawOffscreen(0,0, 0,0, this->w(), this->h(), o);

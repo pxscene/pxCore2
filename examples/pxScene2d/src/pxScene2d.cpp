@@ -1831,11 +1831,12 @@ rtError pxScene2d::dispose()
     if (mRoot)
       mRoot->dispose();
     mEmit->clearListeners();
-    mRoot = NULL;
-  
-    mInfo = NULL;
-  
+
+    mRoot     = NULL;
+    mInfo     = NULL;
+    mCanvas   = NULL;
     mFocusObj = NULL;
+
     pxFontManager::clearAllFonts();
     return RT_OK;
 }
