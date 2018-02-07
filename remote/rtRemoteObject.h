@@ -10,6 +10,8 @@ class rtRemoteClient;
 class rtRemoteObject : public rtIObject
 {
 public:
+  rtDeclareObjectBase();
+
   rtRemoteObject(std::string const& id, std::shared_ptr<rtRemoteClient> const& transport);
   virtual ~rtRemoteObject();
 
