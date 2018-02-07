@@ -244,12 +244,6 @@ rtError rtMapObject::Get(const char* name, rtValue* value) const
     *value = it->v;
     return RT_OK;
   }
-  else if (!strcmp(name, "description"))
-  {
-    // TODO UGH... need to rework these meta properties
-    // change decription to a property and probably put a prefix on it
-    return rtObject::Get(name, value);
-  }
   else if (!strcmp(name, "allKeys"))
   {
     rtRefT<rtArrayObject> keys = new rtArrayObject;
@@ -627,6 +621,7 @@ rtError rtObject::allKeys(rtObjectRef& v) const
   return RT_OK;
 }
 
+
 #if 0
 // TODO
 rtError rtAlloc(const char* objectName, rtObjectRef& object) 
@@ -643,5 +638,4 @@ rtDefineMethod(rtObject, init);
 rtDefineObject(rtArrayObject, rtObject);
 rtDefineProperty(rtArrayObject, length);
 
-rtDefineObject(rtMapObject, rtObject);
 
