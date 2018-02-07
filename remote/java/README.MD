@@ -3,8 +3,6 @@
 ### Platform and tools
 
 - ubuntu 16.04
-- jdk 1.8 
-- maven 3.3.9
 
 ### Download pxCore code
 
@@ -16,30 +14,31 @@
 
 ### Build remote and run example
 
-- install dependencies,  `sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake gnutls-bin libgnutls-dev autoconf libtool nasm uuid-dev`
+* Install dependencies,  `sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake gnutls-bin libgnutls-dev autoconf libtool nasm uuid-dev maven`
+* Install java
+ * `sudo add-apt-repository ppa:openjdk-r/ppa && sudo apt-get update`
+ * `sudo apt-get install openjdk-8-jdk`
 
-- build dependencies,  `cd pxCore/examples/pxScene2d/external`  and then run `./build.sh`
-
-- build pxcore and pxscene, `cd ../../../`, `mkdir build`,`cd build`,`cmake .. && make -j4`
-
-- build rtRemote , `cd ../remote` , **open *rtremote.conf.ac* and update line 16  to** 
-
-  ```
-  "default_value":"tcp"
-  ```
-
-   then, run `make -j4`
-
--  build server example, **copy *submission_dir/rtRemoteSimpleServer* to *pxCore*,** then `cd pxCore/rtRemoteSimpleServer`, `mkdir build && cd build`, `cmake .. && make`
-
-- run server `./sample_server`
-
-
+* Build pxScene according to the documentation in step-by-step-duktape-linux-build.md
+* Build rtRemote, `cd pxCore/remote && make -j1` ,
+* Build server example:
+  * `cd pxCore/rtRemoteSimpleServer`
+  * `mkdir build && cd build`
+  * `cmake .. && make`
+* Run the sample server `./sample_server`
 
 ### Build java remote client
 
-- cd `<submission-dir>/pxscene-rtRemote` , `mvn compile`
+- cd `pxCore/rtRemote/java` , `mvn compile`
 
+### Validation
+
+* Follow *Build remote and run example* section to start up sample server
+* Basic client examples , cd `pxCore/rtRemote/java` , `mvn compile`
+  * `mvn exec:java -Dexec.mainClass="examples.TypeTest"`
+  * `mvn exec:java -Dexec.mainClass="examples.MethodTest"`
+  * `mvn exec:java -Dexec.mainClass="examples.ThreadTest"`
+* Loop to find object test , close server , then start `mvn exec:java -Dexec.mainClass="examples.TypeTest"`, you can see client is loop find remote object, then start server, client will be start work.
 
 
 ### RTValue types list
@@ -59,15 +58,6 @@
 | rtObject          | RTLocalObject |
 | rtFunctionRef     | RTFunction    |
 | voidPtr           | Long          |
-
-### Validation
-
-- follow *Build remote and run example* section to start up sample server
-- basic client examples , cd `<submission-dir>/pxscene-rtRemote` , `mvn compile`
-  - `mvn exec:java -Dexec.mainClass="examples.TypeTest"`
-  - `mvn exec:java -Dexec.mainClass="examples.MethodTest"`
-  - `mvn exec:java -Dexec.mainClass="examples.ThreadTest"`
-- loop to find object test , close server , then start `mvn exec:java -Dexec.mainClass="examples.TypeTest"`, you can see client is loop find remote object, then start server, client will be start work.
 
 ## Notes
 
