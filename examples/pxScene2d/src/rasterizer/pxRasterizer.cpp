@@ -3687,22 +3687,22 @@ void pxRasterizer::setTexture(pxBuffer* texture)
   mTexture = texture;
 }
 
-void pxRasterizer::setMatrix(const pxMatrix4_t& m)
+void pxRasterizer::setMatrix(const pxMatrix4T<float>& m)
 {
   mMatrix = m;
 }
 
-void pxRasterizer::matrix(pxMatrix4_t& m) const
+void pxRasterizer::matrix(pxMatrix4T<float>& m) const
 {
   m = mMatrix;
 }
 
-void pxRasterizer::setTextureMatrix(const pxMatrix4_t& m)
+void pxRasterizer::setTextureMatrix(const pxMatrix4T<float>& m)
 {
   mTextureMatrix = m;
 }
 
-void pxRasterizer::textureMatrix(pxMatrix4_t& m) const
+void pxRasterizer::textureMatrix(pxMatrix4T<float>& m) const
 {
   m = mTextureMatrix;
 }

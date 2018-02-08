@@ -292,24 +292,24 @@ void pxCanvas2d::closePath()
   }
 }
 
-void pxCanvas2d::setMatrix(const pxMatrix4_t& m)
+void pxCanvas2d::setMatrix(const pxMatrix4T<float>& m)
 {
   mMatrix = m;
 	mRasterizer.setMatrix(m);
 }
 
-void pxCanvas2d::matrix(pxMatrix4_t& m) const
+void pxCanvas2d::matrix(pxMatrix4T<float>& m) const
 {
   m = mMatrix;
 }
 
-void pxCanvas2d::setTextureMatrix(const pxMatrix4_t& m)
+void pxCanvas2d::setTextureMatrix(const pxMatrix4T<float>& m)
 {
   mTextureMatrix = m;
   mRasterizer.setTextureMatrix(m);
 }
 
-void pxCanvas2d::textureMatrix(pxMatrix4_t& m) const
+void pxCanvas2d::textureMatrix(pxMatrix4T<float>& m) const
 {
   m = mTextureMatrix;
 }
@@ -698,7 +698,7 @@ void pxCanvas2d::stroke()
       }
       else
       {
-        // close the shape
+        // close the ahape
 #if 1
         if (i == mVertexCount-2)
         {

@@ -12,7 +12,6 @@
 #define USELONGCOVERAGE 1
 #define EDGECLEANUP
 
-typedef pxMatrix4T<RealType> pxMatrix4_t;
 
 //#define FRONT2BACK
 
@@ -70,23 +69,23 @@ public:
   void setTextureCoordinates(pxVertex& e1, pxVertex& e2, pxVertex& e3, pxVertex& e4,
                              pxVertex& t1, pxVertex& t2, pxVertex& t3, pxVertex& t4);
 
-  bool textureClamp() const    { return mTextureClamp; }
-  void setTextureClamp(bool f) { mTextureClamp = f;    }
+  bool textureClamp() const { return mTextureClamp; }
+  void setTextureClamp(bool f) { mTextureClamp = f; }
 
-  bool textureClampColor() const    { return mTextureClampColor; }
-  void setTextureClampColor(bool f) { mTextureClampColor = f;    }
+  bool textureClampColor() const { return mTextureClampColor; }
+  void setTextureClampColor(bool f) { mTextureClampColor = f; }
 
-  void matrix(pxMatrix4_t& m) const;
-  void setMatrix(const pxMatrix4_t& m);
+	void matrix(pxMatrix4T<float>& m) const;
+	void setMatrix(const pxMatrix4T<float>& m);
 
-  void textureMatrix(pxMatrix4_t& m) const;
-  void setTextureMatrix(const pxMatrix4_t& m);
+  void textureMatrix(pxMatrix4T<float>& m) const;
+  void setTextureMatrix(const pxMatrix4T<float>& m);
 
-  bool biLerp() const    { return mBiLerp; }
-  void setBiLerp(bool f) { mBiLerp = f;    }
+  bool biLerp() const { return mBiLerp; }
+  void setBiLerp(bool f) { mBiLerp = f; }
 
-  bool overdraw() const    { return mOverdraw; }
-  void setOverdraw(bool f) { mOverdraw = f;    }
+  bool overdraw() const { return mOverdraw; }
+  void setOverdraw(bool f) { mOverdraw = f;; }
 
   void clear();
 
