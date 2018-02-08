@@ -1145,7 +1145,10 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
   }
 
   //unsigned int width, height, channels, rowbytes, size, i, j;
-  unsigned int width, height, rowbytes, size, i, j;
+  unsigned int width, height, i, j;
+  
+  unsigned long size, rowbytes;
+  
   png_bytepp rows_image;
   png_bytepp rows_frame;
   unsigned char *p_image;

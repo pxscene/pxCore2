@@ -46,13 +46,13 @@ typedef uint32_t u_int32_t;
 
 struct GlyphCacheEntry
 {
-  int bitmap_left;
-  int bitmap_top;
-  int bitmapdotwidth;
-  int bitmapdotrows;
-  int advancedotx;
-  int advancedoty;
-  int vertAdvance;
+  int32_t bitmap_left;
+  int32_t bitmap_top;
+  int32_t bitmapdotwidth;
+  int32_t bitmapdotrows;
+  int32_t advancedotx;
+  int32_t advancedoty;
+  int32_t vertAdvance;
 };
 
 
