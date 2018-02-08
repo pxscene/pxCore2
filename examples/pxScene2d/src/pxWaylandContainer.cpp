@@ -164,7 +164,7 @@ rtError pxWaylandContainer::setDisplayName(const char* s)
 
 rtError pxWaylandContainer::setCmd(const char* s)
 {
-  size_t regcmdlen;
+  int regcmdlen;
   const char *regcmd;
   const char *p= strpbrk( s, " ");
   std::map<string, string>::iterator it= gWaylandAppsMap.end();
@@ -186,7 +186,7 @@ rtError pxWaylandContainer::setCmd(const char* s)
       }
       if ( regcmdlen > 0 )
       {
-         binary = rtString(regcmd, (uint32_t) regcmdlen);
+         binary = rtString(regcmd, regcmdlen);
       }
     }
   }
@@ -209,7 +209,7 @@ rtError pxWaylandContainer::setCmd(const char* s)
                (regcmdlen > 1) &&
                (regcmd[regcmdlen-1] == '%'))
           {
-             binary = rtString(regcmd, (uint32_t) (regcmdlen-1) );
+             binary = rtString(regcmd, regcmdlen-1);
              binary.append( args );
           }
        }

@@ -246,10 +246,10 @@ public:
   
 
   // TODO missing conversions in rtValue between uint32_t and int32_t
-  size_t numChildren() const { return mChildren.size(); }
+  uint32_t numChildren() const { return mChildren.size(); }
   rtError numChildren(int32_t& v) const 
   {
-    v = (int32_t) mChildren.size();
+    v = mChildren.size();
     return RT_OK;
   }
 

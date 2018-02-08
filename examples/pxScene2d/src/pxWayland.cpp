@@ -160,7 +160,7 @@ void pxWayland::createDisplay(rtString displayName)
 
       // If a display name was provided, use it.  Otherwise the
       // compositor will generate a unique display name to use.
-      int len= (name ? (int) strlen(name) : 0);
+      int len= (name ? strlen(name) : 0);
       if ( len > 0 )
       {
          if ( !WstCompositorSetDisplayName( mWCtx, name ) )

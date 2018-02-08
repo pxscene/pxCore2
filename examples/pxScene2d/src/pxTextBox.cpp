@@ -681,16 +681,16 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       {
         rtLogWarn("Text width is larger than maximum texture allowed: %lf.  Maximum texture size of %d will be used.",charW, MAX_TEXTURE_WIDTH);
         float tempWidthRatio = charW/MAX_TEXTURE_WIDTH;
-        size_t strLen = strlen(tempStr);
+        uint32_t strLen = strlen(tempStr);
         uint32_t tempNewLen = (uint32_t) strLen/tempWidthRatio;
         char* trimmedTempStr = (char *)malloc(tempNewLen+1);
         memset(trimmedTempStr,'\0',tempNewLen+1);
 
         uint32_t tmpPos = 0;
         if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER )
-          tmpPos = ((uint32_t) strlen(tempStr)/2)-(tempNewLen/2); // Take middle of tempStr
+          tmpPos = (strlen(tempStr)/2)-(tempNewLen/2); // Take middle of tempStr
         else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT)
-          tmpPos = ((uint32_t) strlen(tempStr)-(tempNewLen)); // Take end of tempStr
+          tmpPos = (strlen(tempStr)-(tempNewLen)); // Take end of tempStr
 
         strncpy(trimmedTempStr, tempStr+tmpPos,tempNewLen);
         getFontResource()->measureTextInternal(trimmedTempStr, size, sx, sy, charW, charH);

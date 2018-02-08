@@ -33,18 +33,18 @@
 rtData::rtData(): mData(NULL), mLength(0) {}
 rtData::~rtData() { term(); }
 
-rtError rtData::init(size_t length) {
+rtError rtData::init(uint32_t length) {
   term();
   mData = new uint8_t[length+1];
   memset(mData, 0, length+1);
   if (mData) {
-    mLength = (uint32_t) length;
+    mLength = length;
     return RT_OK;
   }
   else return RT_FAIL;
 }
 
-rtError rtData::init(uint8_t* data, size_t length) {
+rtError rtData::init(uint8_t* data, uint32_t length) {
   rtError e = RT_FAIL;
   if (init(length) == RT_OK) {
     memcpy(mData, data, length);
@@ -81,7 +81,7 @@ rtError rtLoadFile(const char* f, rtData& data)
 	if (pFile)
 	{
 		fseek(pFile, 0, SEEK_END);
-		size_t lSize = ftell(pFile);
+		unsigned int lSize = ftell(pFile);
 		if (lSize < std::numeric_limits<int>::max()) {
 			rewind(pFile);
 			data.init(lSize);

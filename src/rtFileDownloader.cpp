@@ -578,17 +578,9 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
 
 #ifdef ENABLE_HTTP_CACHE
     // Store the network data in cache
-    if ((true == nwDownloadSuccess) &&
-        (true == downloadRequest->cacheEnabled())  &&
-        (downloadRequest->httpStatusCode() != 206) &&
-        (downloadRequest->httpStatusCode() != 302) &&
-        (downloadRequest->httpStatusCode() != 307))
+    if ((true == nwDownloadSuccess) && (true == downloadRequest->cacheEnabled()) && (downloadRequest->httpStatusCode() != 206) && (downloadRequest->httpStatusCode() != 302) && (downloadRequest->httpStatusCode() != 307))
     {
-      rtHttpCacheData downloadedData(downloadRequest->fileUrl(),
-                                     downloadRequest->headerData(),
-                                     downloadRequest->downloadedData(),
-                                     downloadRequest->downloadedDataSize());
-      
+      rtHttpCacheData downloadedData(downloadRequest->fileUrl(),downloadRequest->headerData(),downloadRequest->downloadedData(),downloadRequest->downloadedDataSize());
       if (downloadedData.isWritableToCache())
       {
         if (NULL == rtFileCache::instance())

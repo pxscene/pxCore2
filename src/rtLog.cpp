@@ -157,7 +157,7 @@ void rtLogPrintf(rtLogLevel level, const char* file, int line, const char* forma
     if (n >= sizeof(buff))
       buff[sizeof(buff) - 1] = '\0';
 
-    sLogHandler(level, path, line, (int) threadId, buff);
+    sLogHandler(level, path, line, threadId, buff);
   }
   
   if (level == RT_LOG_FATAL)

@@ -151,7 +151,7 @@ void pxResource::raiseDownloadPriority()
   {
     rtLogWarn(">>>>>>>>>>>>>>>>>>>>>>>Inside pxResource::raiseDownloadPriority and download is in progress for %s\n",mUrl.cString());
     mListenersMutex.lock();
-    size_t lisenersSize = mListeners.size();
+    int lisenersSize = mListeners.size();
     mListenersMutex.unlock();
     if( lisenersSize == 0) 
       rtLogInfo("But size is 0, so no one cares!!!!!\n");

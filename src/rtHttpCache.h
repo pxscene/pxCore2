@@ -34,7 +34,7 @@ class rtHttpCacheData
   public:
     rtHttpCacheData();
     rtHttpCacheData(const char* url);
-    rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, size_t size=0);
+    rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size=0);
 
     ~rtHttpCacheData();
     /* returns the expiration date of the cache data in localtime */

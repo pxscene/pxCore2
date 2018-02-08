@@ -400,7 +400,7 @@ public:
     if (!value) return RT_FAIL;
     if (!strcmp(name, "length"))
     {
-      value->setUInt32( (uint32_t) mObject->numChildren());
+      value->setUInt32(mObject->numChildren());
       return RT_OK;
     }
     else
@@ -2986,7 +2986,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
       {
         // We return a data Url string containing the image data
         pngData = "data:image/png;base64,";
-        rtString base64str(d, (uint32_t) l); // NULL-terminated
+        rtString base64str(d, l); // NULL-terminated
         pngData.append(base64str.cString());
         free(d);
         return RT_OK;
