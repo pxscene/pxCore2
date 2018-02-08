@@ -52,6 +52,9 @@ printExecLogs()
 # Start testRunner ...
 rm -rf /var/tmp/pxscene.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
+
+if [ "$DUKTAPE_SUPPORT" != "ON" ]
+then
 ./pxscene.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json &
 
 # Monitor testRunner ...
@@ -112,6 +115,8 @@ fi
 errCause=""
 grep "Failures: 0" $EXECLOGS
 retVal=$?
+if [ "$DUKTAPE_SUPPORT" != "ON" ]
+then
 if [ "$retVal" -ne 0 ]
 	then
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
@@ -124,6 +129,7 @@ if [ "$retVal" -ne 0 ]
 	checkError $retVal "Testrunner execution failed" "$errCause" "Run pxscene with testrunner.js locally as ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=<pxcore dir>tests/pxScene2d/testRunner/tests.json"
 	exit 1;
 fi
+fi
 
 # Check for pxobject or texture memory leaks
 grep "pxobjectcount is \[0\]" $EXECLOGS
@@ -131,6 +137,8 @@ pxRetVal=$?
 grep "texture memory usage is \[0\]" $EXECLOGS
 texRetVal=$?
 
+if [ "$DUKTAPE_SUPPORT" != "ON" ]
+then
 if [[ $pxRetVal == 0 ]] && [[ $texRetVal == 0 ]] ; then
 	printf "\nINFO: No pxObject leaks or Texture leaks found - GOOD ! \n"
 else
@@ -143,6 +151,7 @@ else
 	fi 
 	checkError -1 "Texture leak or pxobject leak" "$errCause" "Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'texture memory usage is' and 'pxobjectcount is' in logs and see which is non-zero" 
 	exit 1;
+fi
 fi
 
 # Check for memory leaks
@@ -160,4 +169,15 @@ if [ "$leakcount" -ne 0 ]
 else
 	echo "Valgrind reports success !!!!!!!!!!!"
 fi
+fi 
+#Test for node completed
+if [ "$DUKTAPE_SUPPORT" = "ON" ]
+then
+  ./pxscene.sh http://pxscene.org/examples/px-reference/gallery/fancy.js >> $EXECLOGS 2>&1 &
+  sleep 30;
+  kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
+  echo "********** Terminated fancy.js ************" >>$EXECLOGS
+  sleep 20;
+fi
+
 exit 0;
