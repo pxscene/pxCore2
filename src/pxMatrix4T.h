@@ -54,28 +54,42 @@ void sincosf(float x, float *s, float *c);
 #endif
 #endif //defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_GENERIC_DFB)
 
-template<typename FloatT> class pxMatrix4T;
 
-template <typename FloatT = float>
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+///
+///
+
+typedef float RealType;   // float
+
+///
+///
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+
+
+template<typename RealT> class pxMatrix4T;
+
+template <typename RealT = RealType>
 class pxVector4T 
 {
-friend class pxMatrix4T<FloatT>;
+friend class pxMatrix4T<RealT>;
 public:
   pxVector4T(): mX(0), mY(0), mZ(0), mW(1) {}
-  pxVector4T(float x, float y, float z = 0, float w = 1) 
+  pxVector4T(RealT x, RealT y, RealT z = 0, RealT w = 1)
   {
     mX = x; mY = y, mZ = z; mW = w;
   }
   
-  inline void setX(FloatT x) { mX = x; }
-  inline void setY(FloatT y) { mY = y; }
-  inline void setZ(FloatT z) { mZ = z; }
-  inline void setW(FloatT w) { mW = w; }
+  inline void setX(RealT x) { mX = x; }
+  inline void setY(RealT y) { mY = y; }
+  inline void setZ(RealT z) { mZ = z; }
+  inline void setW(RealT w) { mW = w; }
   
-  inline FloatT x() {return mX;}
-  inline FloatT y() {return mY;}
-  inline FloatT z() {return mZ;}
-  inline FloatT w() {return mW;}
+  inline RealT x() {return mX;}
+  inline RealT y() {return mY;}
+  inline RealT z() {return mZ;}
+  inline RealT w() {return mW;}
 
   void dump()
   {
@@ -87,39 +101,42 @@ private:
   float mX, mY, mZ, mW;
 };
 
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+///
+///
+typedef pxVector4T<RealType> pxVertex;
+///
+///
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 
-///
-///
-#define pxVertex pxVector4T<float>
-///
-///
-
-template <typename FloatT = float>
+template <typename RealT = RealType>
 class pxMatrix4T 
 {
 public:
   pxMatrix4T()                    {identity();}
   pxMatrix4T(const pxMatrix4T& m) {copy(m);   }
   
-  inline FloatT* data() {return mValues;}
-  FloatT constData(int i) const {return mValues[i];}
+  inline RealT* data()            { return mValues;    }
+  RealT constData(int i)    const { return mValues[i]; }
   
   void copy(const pxMatrix4T& m) {memcpy(mValues, m.mValues, sizeof(mValues));}
   
   void multiply(pxMatrix4T& mat) 
   {
-    FloatT* a = mValues;
-    FloatT* b = mat.mValues;
+    RealT* a = mValues;
+    RealT* b = mat.mValues;
     
-    FloatT out[16];
+    RealT out[16];
 
-    float a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+    RealT a00 = a[0],  a01 = a[1],  a02 = a[2],  a03 = a[3],
         a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
         a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
         a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
 
     // Cache only the current line of the second matrix
-    float b0  = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+    RealT b0  = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
     out[0] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
     out[1] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
     out[2] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
@@ -146,14 +163,14 @@ public:
     memcpy(a, &out, sizeof out);
   }
   
-  pxVector4T<FloatT> multiply(const pxVector4T<FloatT>& v) 
+  pxVector4T<RealT> multiply(const pxVector4T<RealT>& v) 
   {
-    pxVector4T<FloatT> out;
-    float x = v.mX;
-    float y = v.mY;
-    float z = v.mZ;
-    float w = v.mW;
-    float* m = mValues;
+    pxVector4T<RealT> out;
+    RealT x = v.mX;
+    RealT y = v.mY;
+    RealT z = v.mZ;
+    RealT w = v.mW;
+    RealT* m = mValues;
     out.mX = m[0] * x + m[4] * y + m[8] * z + m[12] * w;
     out.mY = m[1] * x + m[5] * y + m[9] * z + m[13] * w;
     out.mZ = m[2] * x + m[6] * y + m[10] * z + m[14] * w;
@@ -165,27 +182,27 @@ public:
   
   inline void rotate(double angle) { rotateInRadians(angle, 0, 0, 1); }  // LEGACY
   
-  inline void rotateInRadians(FloatT angle) 
+  inline void rotateInRadians(RealT angle) 
   {
     rotateInRadians(angle, 0, 0, 1);
   }
   
-  inline void rotateInDegrees(FloatT angle) 
+  inline void rotateInDegrees(RealT angle) 
   {
     rotateInRadians(angle * M_PI/180.0, 0, 0, 1);
   }
 #ifdef ANIMATION_ROTATE_XYZ
-  void rotateInDegrees(FloatT angle, FloatT x, FloatT y, FloatT z) 
+  void rotateInDegrees(RealT angle, RealT x, RealT y, RealT z) 
   {
     rotateInRadians(angle * M_PI/180.0, x, y, z);
   }
 #endif // ANIMATION_ROTATE_XYZ  
 
-void multiply(FloatT* m, FloatT* n) 
+void multiply(RealT* m, RealT* n) 
 {
   
-  FloatT tmp[16];
-  const FloatT *row, *column;
+  RealT tmp[16];
+  const RealT *row, *column;
   div_t d;
   int i, j;
   
@@ -200,15 +217,15 @@ void multiply(FloatT* m, FloatT* n)
   memcpy(m, &tmp, sizeof tmp);
 }
 
-  void rotateInRadians(FloatT angle, FloatT x, FloatT y, FloatT z) 
+  void rotateInRadians(RealT angle, RealT x, RealT y, RealT z) 
   {
 #if 1
-    FloatT* m = mValues;
-    FloatT s, c;
+    RealT* m = mValues;
+    RealT s, c;
     
     sincosf(angle, &s, &c);
 
-    float r[16] = {
+    RealT r[16] = {
       x * x * (1 - c) + c,     y * x * (1 - c) + z * s, x * z * (1 - c) - y * s, 0,
       x * y * (1 - c) - z * s, y * y * (1 - c) + c,     y * z * (1 - c) + x * s, 0,
       x * z * (1 - c) + y * s, y * z * (1 - c) - x * s, z * z * (1 - c) + c,     0,
@@ -221,17 +238,17 @@ void multiply(FloatT* m, FloatT* n)
 #endif
   }
 
-  void rotateZInDegrees(FloatT angle) 
+  void rotateZInDegrees(RealT angle) 
   {
     rotateZInRadians(angle * M_PI/180.0);
   }
 
-  void rotateZInRadians(FloatT angle) 
+  void rotateZInRadians(RealT angle) 
   {
-    FloatT *out = mValues;
-    FloatT *a = mValues;
-    FloatT s, c;
-    FloatT a00, a01, a02, a03, a10, a11, a12, a13;
+    RealT *out = mValues;
+    RealT *a   = mValues;
+    RealT s, c;
+    RealT a00, a01, a02, a03, a10, a11, a12, a13;
     sincosf(angle, &s, &c);
     
     a00 = a[0];
@@ -254,10 +271,10 @@ void multiply(FloatT* m, FloatT* n)
     out[7] = a13 * c - a03 * s;
   }
 
-  void scale(FloatT sx, FloatT sy) 
+  void scale(RealT sx, RealT sy) 
   {
-    FloatT *out = mValues;
-    FloatT *a = mValues;
+    RealT *out = mValues;
+    RealT *a = mValues;
 
     out[0] = a[0] * sx;
     out[1] = a[1] * sx;
@@ -269,10 +286,10 @@ void multiply(FloatT* m, FloatT* n)
     out[7] = a[7] * sy;
   }
 
-  void scale(FloatT sx, FloatT sy, FloatT sz) 
+  void scale(RealT sx, RealT sy, RealT sz) 
   {
-    FloatT *out = mValues;
-    FloatT *a = mValues;
+    RealT *out = mValues;
+    RealT *a   = mValues;
 
     out[0] = a[0] * sx;
     out[1] = a[1] * sx;
@@ -292,9 +309,9 @@ void multiply(FloatT* m, FloatT* n)
     }
   }
 
-  void translate(FloatT x, FloatT y) 
+  void translate(RealT x, RealT y) 
   {
-    FloatT *m = mValues;
+    RealT *m = mValues;
     
     m[12] = m[0] * x + m[4] * y + m[12];
     m[13] = m[1] * x + m[5] * y + m[13];
@@ -302,9 +319,9 @@ void multiply(FloatT* m, FloatT* n)
     m[15] = m[3] * x + m[7] * y + m[15];
   }
 
-  void translate(FloatT x, FloatT y, FloatT z) 
+  void translate(RealT x, RealT y, RealT z) 
   {
-    FloatT *m = mValues;
+    RealT *m = mValues;
     
     if (z != 0.0)
     {
@@ -324,7 +341,7 @@ void multiply(FloatT* m, FloatT* n)
 
   bool isTranslatedOnly()
   {
-    FloatT *m = mValues;
+    RealT *m = mValues;
 
     return (m[0]  == 1.0 && m[5]  == 1.0 && m[10] == 1.0 && /*m[15] == 1.0 && */
             m[1]  == 0.0 && m[2]  == 0.0 && m[3]  == 0.0 &&
@@ -332,24 +349,24 @@ void multiply(FloatT* m, FloatT* n)
             m[8]  == 0.0 && m[9]  == 0.0 && m[11] == 0.0  );
   }
 
-  FloatT translateX()
+  RealT translateX()
   {
-    FloatT *m = mValues;
+    RealT *m = mValues;
     
     return m[12];
   }
   
-  FloatT translateY()
+  RealT translateY()
   {
-    FloatT *m = mValues;
+    RealT *m = mValues;
     
     return m[13];
   }
 
   void identity() 
   {
-    FloatT* m = mValues;
-    FloatT t[16] = 
+    RealT* m = mValues;
+    RealT t[16] = 
     {
       1.0, 0.0, 0.0, 0.0,
       0.0, 1.0, 0.0, 0.0,
@@ -362,7 +379,7 @@ void multiply(FloatT* m, FloatT* n)
 
   bool isIdentity()
   {
-    FloatT* m = mValues;
+    RealT* m = mValues;
     
     return (m[0]  == 1.0 && m[5]  == 1.0 && m[10] == 1.0 && m[15] == 1.0 &&
             m[1]  == 0.0 && m[2]  == 0.0 && m[3]  == 0.0 &&
@@ -373,8 +390,9 @@ void multiply(FloatT* m, FloatT* n)
 
   void transpose() 
   {
-    FloatT* m = mValues;
-    FloatT t[16] = {
+    RealT*    m = mValues;
+    RealT t[16] =
+    {
       m[0], m[4], m[8],  m[12],
       m[1], m[5], m[9],  m[13],
       m[2], m[6], m[10], m[14],
@@ -390,44 +408,43 @@ void multiply(FloatT* m, FloatT* n)
    * Read http://www.gamedev.net/community/forums/topic.asp?topic_id=425118
    * for an explanation.
    */
-
   void invert() 
   {
-    float* a = mValues;
-    float* out = mValues;
+    RealT*   a = mValues;
+    RealT* out = mValues;
     
-    float a00 = a[0];
-    float a01 = a[1];
-    float a02 = a[2];
-    float a03 = a[3];
-    float a10 = a[4];
-    float a11 = a[5];
-    float a12 = a[6];
-    float a13 = a[7];
-    float a20 = a[8];
-    float a21 = a[9];
-    float a22 = a[10];
-    float a23 = a[11];
-    float a30 = a[12];
-    float a31 = a[13];
-    float a32 = a[14];
-    float a33 = a[15];
+    RealT a00 = a[0];
+    RealT a01 = a[1];
+    RealT a02 = a[2];
+    RealT a03 = a[3];
+    RealT a10 = a[4];
+    RealT a11 = a[5];
+    RealT a12 = a[6];
+    RealT a13 = a[7];
+    RealT a20 = a[8];
+    RealT a21 = a[9];
+    RealT a22 = a[10];
+    RealT a23 = a[11];
+    RealT a30 = a[12];
+    RealT a31 = a[13];
+    RealT a32 = a[14];
+    RealT a33 = a[15];
     
-    float b00 = a00 * a11 - a01 * a10;
-    float b01 = a00 * a12 - a02 * a10;
-    float b02 = a00 * a13 - a03 * a10;
-    float b03 = a01 * a12 - a02 * a11;
-    float b04 = a01 * a13 - a03 * a11;
-    float b05 = a02 * a13 - a03 * a12;
-    float b06 = a20 * a31 - a21 * a30;
-    float b07 = a20 * a32 - a22 * a30;
-    float b08 = a20 * a33 - a23 * a30;
-    float b09 = a21 * a32 - a22 * a31;
-    float b10 = a21 * a33 - a23 * a31;
-    float b11 = a22 * a33 - a23 * a32;
+    RealT b00 = a00 * a11 - a01 * a10;
+    RealT b01 = a00 * a12 - a02 * a10;
+    RealT b02 = a00 * a13 - a03 * a10;
+    RealT b03 = a01 * a12 - a02 * a11;
+    RealT b04 = a01 * a13 - a03 * a11;
+    RealT b05 = a02 * a13 - a03 * a12;
+    RealT b06 = a20 * a31 - a21 * a30;
+    RealT b07 = a20 * a32 - a22 * a30;
+    RealT b08 = a20 * a33 - a23 * a30;
+    RealT b09 = a21 * a32 - a22 * a31;
+    RealT b10 = a21 * a33 - a23 * a31;
+    RealT b11 = a22 * a33 - a23 * a32;
     
     // Calculate the determinant
-    float det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+    RealT det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
 
 #if 0 // not invertable... error
     if (!det) 
@@ -456,12 +473,12 @@ void multiply(FloatT* m, FloatT* n)
 
   void perspective(float fovy, float aspect, float zNear, float zFar) 
   {
-    FloatT* m = mValues;
-    FloatT tmp[16];
+    RealT* m = mValues;
+    RealT tmp[16];
     identity(tmp);
     
-    double sine, cosine, cotangent, deltaZ;
-    float radians = fovy / 2 * M_PI / 180;
+    RealT sine, cosine, cotangent, deltaZ;
+    RealT radians = fovy / 2 * M_PI / 180;
     
     deltaZ = zFar - zNear;
     
@@ -484,7 +501,7 @@ void multiply(FloatT* m, FloatT* n)
 
   void dump(const char* n = NULL)
   {
-    FloatT* p = mValues;
+    RealT* p = mValues;
     printf("Dump 4x4 Matrix: %s\n", n?n:"none");
     for (int i = 0; i < 4; i++)
     {
@@ -494,7 +511,7 @@ void multiply(FloatT* m, FloatT* n)
   }
 
 private:
-  FloatT mValues[16];
+  RealT mValues[16];
 };
 
 typedef pxVector4T<float> pxVector4f;
