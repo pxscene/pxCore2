@@ -14,19 +14,19 @@ checkError()
 {
 if [ "$1" -ne 0 ]
 then
-	printf "\n\n*********************************************************************";
-        printf "\n********************* BUILD FAIL DETAILS ****************************";
-	printf "\nCI failure reason: $3"
-	printf "\nCause: $4"
-	printf "\nReproduction/How to fix: $5"
-	printf "\n*********************************************************************";
-	printf "\n*********************************************************************\n\n";
+    printf "\n\n*********************************************************************";
+    printf "\n********************* BUILD FAIL DETAILS ****************************";
+    printf "\nCI failure reason: $3"
+    printf "\nCause: $4"
+    printf "\nReproduction/How to fix: $5"
+    printf "\n*********************************************************************";
+    printf "\n*********************************************************************\n\n";
 	if [ "$2" -eq 1 ]
-		then
-		printf "\n\n************************ PRINTING BUILD LOGS *************************";
-		cat $BUILDLOGS
-		printf "\n**********************************************************************\n\n";
-	fi
+    then
+        printf "\n\n************************ PRINTING BUILD LOGS *************************";
+        cat $BUILDLOGS
+        printf "\n**********************************************************************\n\n";
+    fi
 exit 1;
 fi
 }
@@ -47,7 +47,7 @@ then
   echo "***************************** Generating config files ****" >> $BUILDLOGS
   if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
   then
-    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DBUILD_PXSCENE_RASTERIZER_PATH=OFF .. >>$BUILDLOGS 2>&1;
+    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON .. >>$BUILDLOGS 2>&1;
   else
     cmake .. >>$BUILDLOGS 2>&1;
   fi
