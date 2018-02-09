@@ -328,7 +328,7 @@ px.import({ scene: 'px:scene.1.js',
 
 //             console.log(">>> textView.onMouseEnter   showFocus:" + showFocus );
 
-            if(showFocus)
+            if(this.showFocus)
             {
                 textInputBG.a = 0.5;
             }
@@ -340,14 +340,14 @@ px.import({ scene: 'px:scene.1.js',
 
 //            console.log(">>> textView.onMouseLeave   showFocus:" + showFocus + " keepFocus:  " + keepFocus);
 
-            if(showFocus)
+            if(this.showFocus)
             {
                 textInputBG.a = 0.25;
             }
 
             buttonDown = false;
 
-            if(keepFocus === false)
+            if(this.keepFocus === false)
             {
                 hideCursor();
                 clearSelection();
