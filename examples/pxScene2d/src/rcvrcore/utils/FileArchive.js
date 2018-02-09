@@ -4,9 +4,11 @@ var isDuk = (typeof timers != "undefined")?true:false;
 
 var fs = require('fs');
 var url = require('url');
+var http = require('http');
+var fs = require("fs");
+
+// FIXME !!!!!!!!!! duktape merge hack
 if (!isDuk) {
-  var http = require('http');
-  var fs = require("fs");
   var JSZip = require("jszip");
 }
 
