@@ -324,9 +324,9 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
       entry->bitmap_top = g->bitmap_top;
       entry->bitmapdotwidth = g->bitmap.width;
       entry->bitmapdotrows = g->bitmap.rows;
-      entry->advancedotx = g->advance.x;
-      entry->advancedoty = g->advance.y;
-      entry->vertAdvance = g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
+      entry->advancedotx = (int32_t) g->advance.x;
+      entry->advancedoty = (int32_t) g->advance.y;
+      entry->vertAdvance = (int32_t) g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
 
       gGlyphCache.insert(make_pair(key,entry));
 
