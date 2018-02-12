@@ -10,6 +10,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <atomic>
 
 #include <stdint.h>
 #include <netinet/in.h>
@@ -110,6 +111,7 @@ private:
 
   std::unique_ptr<std::thread>  m_thread;
   mutable std::mutex            m_mutex;
+  mutable std::atomic<bool>     m_terminated;
   CommandHandlerMap             m_command_handlers;
 
   rtRemoteIResolver*            m_resolver;

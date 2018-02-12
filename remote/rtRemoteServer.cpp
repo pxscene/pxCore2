@@ -177,18 +177,19 @@ namespace
 
 rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
   : m_listen_fd(-1)
+  , m_terminated(false)
   , m_resolver(nullptr)
   , m_keep_alive_interval(std::numeric_limits<uint32_t>::max())
   , m_env(env)
 {
   memset(&m_rpc_endpoint, 0, sizeof(m_rpc_endpoint));
 
-  m_shutdown_pipe[0] = -1;
-  m_shutdown_pipe[1] = -1;
-
   int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
   if (ret != 0)
   {
+    m_shutdown_pipe[0] = -1;
+    m_shutdown_pipe[1] = -1;
+
     rtError e = rtErrorFromErrno(ret);
     rtLogWarn("failed to create shutdown pipe. %s", rtStrError(e));
   }
@@ -229,12 +230,14 @@ rtRemoteServer::~rtRemoteServer()
       rtError e = rtErrorFromErrno(errno);
       rtLogWarn("failed to write. %s", rtStrError(e));
     }
+  }
 
-    if (m_thread)
-    {
-      m_thread->join();
-      m_thread.reset();
-    }
+  m_terminated = true;
+
+  if (m_thread)
+  {
+    m_thread->join();
+    m_thread.reset();
   }
 
   if (m_listen_fd != -1)
@@ -324,7 +327,8 @@ rtRemoteServer::runListener()
 
     FD_ZERO(&readFds);
     rtPushFd(&readFds, m_listen_fd, &maxFd);
-    rtPushFd(&readFds, m_shutdown_pipe[0], &maxFd);
+    if (m_shutdown_pipe[0] != -1)
+      rtPushFd(&readFds, m_shutdown_pipe[0], &maxFd);
 
     FD_ZERO(&errFds);
     rtPushFd(&errFds, m_listen_fd, &maxFd);
@@ -338,19 +342,36 @@ rtRemoteServer::runListener()
     {
       rtError e = rtErrorFromErrno(errno);
       rtLogWarn("select failed: %s", rtStrError(e));
-      continue;
+      // Delay for 1000 ms if select() failed
+      std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    // right now we just use this to signal "hey" more fds added
-    // later we'll use this to shutdown
-    if (FD_ISSET(m_shutdown_pipe[0], &readFds))
+    if (m_shutdown_pipe[0] == -1)
     {
-      rtLogInfo("got shutdown signal");
-      return;
+      // pipe is not open, check m_terminated
+      if (m_terminated)
+      {
+        rtLogInfo("found shutdown flag");
+        break;
+      }
     }
 
-    if (FD_ISSET(m_listen_fd, &readFds))
-      doAccept(m_listen_fd);
+    if (ret != -1)
+    {
+        if (m_shutdown_pipe[0] != -1)
+        {
+            // right now we just use this to signal "hey" more fds added
+            // later we'll use this to shutdown
+            if (FD_ISSET(m_shutdown_pipe[0], &readFds))
+            {
+                rtLogInfo("got shutdown signal");
+                break;
+            }
+        }
+
+        if (FD_ISSET(m_listen_fd, &readFds))
+            doAccept(m_listen_fd);
+    }
 
     time_t now = time(nullptr);
     if (now - lastKeepAliveCheck > 1)
