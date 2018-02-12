@@ -19,6 +19,7 @@
 #include "rtPermissions.h"
 
 #include "rtUrlUtils.h"
+#include "rtPathUtils.h"
 
 #include <../remote/rapidjson/document.h>
 #include <../remote/rapidjson/filereadstream.h>
@@ -99,10 +100,8 @@ rtPermissions::permissionsMap_t permissionsJsonToMap(const rapidjson::Value& jso
           for (rapidjson::SizeType k = 0; k < arr.Size(); k++)
           {
             // third level... array of urls
-            rtPermissions::wildcard_t w;
-            w.first = arr[k].GetString();
-            w.second = rtPermissions::Type(i);
-            ret[w] = j == 0;
+            rtPermissions::wildcard_t w(std::string(arr[k].GetString()), rtPermissions::Type(i));
+            ret.insert(std::pair<rtPermissions::wildcard_t, bool>(w, j == 0));
           }
         }
       }
@@ -132,10 +131,8 @@ rtPermissions::permissionsMap_t permissionsObjectToMap(const rtObjectRef& permis
           for (uint32_t k = 0; k < len; k++)
           {
             // third level... array of urls
-            rtPermissions::wildcard_t w;
-            w.first = arr.get<rtString>(k).cString();
-            w.second = rtPermissions::Type(i);
-            ret[w] = j == 0;
+            rtPermissions::wildcard_t w(std::string(arr.get<rtString>(k).cString()), rtPermissions::Type(i));
+            ret.insert(std::pair<rtPermissions::wildcard_t, bool>(w, j == 0));
           }
         }
       }
@@ -175,10 +172,14 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
   clearBootstrapConfig();
   mConfigPath = s;
 
+  rtString currentDir;
+  rtGetCurrentDirectory(currentDir);
+  rtLogDebug("%s : currentDir='%s'", __PRETTY_FUNCTION__, currentDir.cString());
+
   FILE* fp = fopen(s, "rb");
   if (NULL == fp)
   {
-    rtLogDebug("Permissions config read error : cannot open '%s'", s);
+    rtLogDebug("%s : cannot open '%s'", __PRETTY_FUNCTION__, s);
     return RT_FAIL;
   }
 
@@ -193,13 +194,13 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
   if (!result)
   {
     rapidjson::ParseErrorCode e = doc.GetParseError();
-    rtLogInfo("Permissions config read error : [JSON parse error : %s (%ld)]",rapidjson::GetParseError_En(e), result.Offset());
+    rtLogInfo("%s : [JSON parse error : %s (%ld)]", __PRETTY_FUNCTION__, rapidjson::GetParseError_En(e), result.Offset());
     return RT_FAIL;
   }
 
   if (!doc.HasMember("roles") || !doc.HasMember("assign"))
   {
-    rtLogInfo("Permissions config invalid");
+    rtLogInfo("%s : no 'roles'/'assign' in json", __PRETTY_FUNCTION__);
     return RT_FAIL;
   }
 
@@ -217,6 +218,7 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
     mRolesMap[itr->name.GetString()] = permissionsJsonToMap(itr->value);
   }
 
+  rtLogInfo("%s : %ld roles, %ld assigned urls", __PRETTY_FUNCTION__, mRolesMap.size(), mAssignMap.size());
   return RT_OK;
 }
 
@@ -243,11 +245,15 @@ rtError rtPermissions::setOrigin(const char* origin)
       if (jt != mRolesMap.end())
       {
         mPermissionsMap = jt->second;
+        rtLogDebug("%s : mapping for '%s': '%s'", __PRETTY_FUNCTION__, origin, it->second.c_str());
+        return RT_OK;
       }
     }
+
+    rtLogDebug("%s : no mapping for '%s'", __PRETTY_FUNCTION__, origin);
   }
 
-  return RT_OK;
+  return RT_FAIL;
 }
 
 rtError rtPermissions::set(const rtObjectRef& permissionsObject)

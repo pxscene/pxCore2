@@ -144,7 +144,7 @@ endif (PXSCENE_TEST_ACCESS_CONTROL_CHECK)
 if (PXSCENE_TEST_PERMISSIONS_CHECK)
     message("Include PERMISSIONS tests")
     add_definitions(-DENABLE_PERMISSIONS_CHECK)
-    set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_rtPermissions1.cpp test_rtPermissions2.cpp test_rtPermissions3.cpp test_rtPermissions4.cpp)
+    set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_rtPermissions1.cpp test_rtPermissions2.cpp test_rtPermissions3.cpp test_rtPermissions4.cpp test_rtPermissions5.cpp)
 endif (PXSCENE_TEST_PERMISSIONS_CHECK)
 
 set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} ${EXTDIR}/gtest/googletest/src/gtest-all.cc ${EXTDIR}/gtest/googlemock/src/gmock-all.cc)
