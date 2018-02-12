@@ -163,7 +163,8 @@ this.innerscene.on('onSceneTerminate', function (e) {
     this.sceneWrapper = null;
     if (null != this.webSocketManager)
     {
-      this.webSocketManager.clearConnections();
+       this.webSocketManager.clearConnections();
+       delete this.webSocketManager;
     }
     this.webSocketManager = null;
     this.rpcController = null;

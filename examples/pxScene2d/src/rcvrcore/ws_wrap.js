@@ -8,6 +8,7 @@ function socketClosed()
 }
 
 //class exposed to client
+//this manages the list of connections opened
 function WebSocketManager()
 {
   this.connections = new Array();
@@ -19,6 +20,7 @@ WebSocketManager.prototype.clearConnection = function(client) {
     var index = this.connections.indexOf(client);
     if (index != -1)
     {
+      delete this.connections[index];
       this.connections.splice(index,1);
     }    
   }
@@ -28,6 +30,7 @@ WebSocketManager.prototype.clearConnections = function() {
   var connectionLength = this.connections.length;
   for (var i = 0; i < connectionLength; i++) {
     this.connections[i].close();
+    delete this.connections[i];
   };
   this.connections.splice(0, this.connections.length);
   delete this.connections;
