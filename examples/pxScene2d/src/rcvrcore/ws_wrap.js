@@ -8,6 +8,7 @@ function socketClosed()
 }
 
 //class exposed to client
+//this manages the list of connections opened
 function WebSocketManager()
 {
   this.connections = new Array();
