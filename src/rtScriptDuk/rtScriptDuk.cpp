@@ -640,7 +640,7 @@ static duk_ret_t duv_require(duk_context *ctx) {
 
   const duv_schema_entry schema[] = {
     { "id", duk_is_string },
-    { NULL }
+    { NULL, NULL }
   };
 
   dschema_check(ctx, schema);
@@ -737,7 +737,7 @@ static duk_ret_t duv_require(duk_context *ctx) {
 static duk_ret_t duv_mod_resolve(duk_context *ctx) {
   const duv_schema_entry schema[] = {
     { "id", duk_is_string },
-    { NULL }
+    { NULL, NULL }
   };
 
   dschema_check(ctx, schema);
@@ -754,7 +754,7 @@ static duk_ret_t duv_mod_load(duk_context *ctx) {
   const char* ext;
 
   const duv_schema_entry schema[] = {
-    { NULL }
+    { NULL, NULL }
   };
 
   dschema_check(ctx, schema);
@@ -804,7 +804,7 @@ static duk_ret_t duv_loadlib(duk_context *ctx) {
   const duv_schema_entry schema[] = {
     { "path", duk_is_string },
     { "name", duk_is_string },
-    { NULL }
+    { NULL, NULL }
   };
 
   dschema_check(ctx, schema);
@@ -830,7 +830,7 @@ static duk_ret_t duv_mod_compile(duk_context *ctx) {
   // Check the args
   const duv_schema_entry schema[] = {
     { "code", dschema_is_data },
-    { NULL }
+    { NULL, NULL }
   };
 
   dschema_check(ctx, schema);
