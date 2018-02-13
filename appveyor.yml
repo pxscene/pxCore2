@@ -26,7 +26,8 @@ image: Visual Studio 2017
 
 environment:
   S: "c:/dw/pxCore"
-
+  passphrase: 
+    secure: Ms5n7SRFbpYmFKv8M2sR3BYI6bhltRivC98Ii0ARFoiHPg+710ruGecKvYtOlZ/5tBEBAGiS9Dgc/XMV0ObdEYVsAHStXDzGdybdBjyTCH6ivpRNYzqzTD1o4g0AC4DuzTH5iQTMzeZvft7dSF1hbWGSubwZmBQlqiNwZdAKKaJaFMHuKaszC7AgwC1eTOgfuJkq0G6e8LlouT29dZq7b5duAoCtVctf1FZnieWSEcQ05vC2qa//1GP7Ba6mKMq1dzQ15v/Vei7AmLy/RLggx6USp8x9RE2kyLiZ0IeLFuA+pgjxVqOF7hYjter+y1GhKV5XDaVSWS3nsy7vT9a4K/6UwUO7cbIir5h2XM8TxyEc5jj81TuUWNoH3GeJl8Xq1ECuHCPjxNuI27mHfoccZCZNpxfki5k86Bn2+07iXiOlVnXN27iwXUc/RCasd1n07AGEMhELtBrrR1+ORyNvGWPlkYd5cUxudNfE2GSUsPsgVnCqrsdH1AYI5FJNfhXhH8NmqCxoYjUkGBiJRMT6ae4eyGt1N+0zCztc4El8AGuAbVlZjbyVMT8cj/oHgSdbbY/uybIm4pI+jovcYLfIdWXWw4pqGMiWbq4/xr+ryXb0FSdtuYV7qyTR5wm7ygEkS4bLRxxqz6b63iIao3NnPoLyf84zut1ccQD3buY6f5vukpCVg254qtyhHfEjkmi5Ms0ufjqSYckwVqErW0haIn5LJG2dtEy+ypYIr8nJ5eaZWha1ZCrNwdtoMFgf5K+Urcr50zjPA++5PhUly1NKpGr/z8xSunz0CiexpeeTukIXyGjrz01cIlzgEttxu1pesEKvSR3gRpyfKG8X1E5cdyNaCESyEsnoH0JxVFmQgWfIvTyX1lq2nceEu0G/Ih1Qo6n1QaU1ADN3192ZQihoSQ==
 clone_folder: "c:/dw/pxCore"
 
 # Build pipeline: https://www.appveyor.com/docs/build-configuration/
@@ -34,12 +35,22 @@ init:
   - echo environment setup...
   - git config --system core.longpaths true
   - ps: "ls \"C:/\""
+hosts:
+  build_server: 96.116.56.119
 
+before_build:
+  - cd %S%
+  - choco install putty.install
+  - nuget install secure-file -ExcludeVersion
+  - ps: ls
+  - secure-file\tools\secure-file -decrypt "%S%/pxscene-build.pem.ppk.enc" -secret %passphrase%
 build_script:
   - echo build_script...
   - cd %S%
   - call ci/build_win32.bat
-
+after_build:
+  - call ci/after_build_win32.bat
+  
 test: off
 
 
