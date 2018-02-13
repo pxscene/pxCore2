@@ -62,13 +62,6 @@ function AppSceneContext(params) {
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
-function WebSocket(address, protocol, options)
-{
-  var client = this.context.webSocketManager.WebSocket(address, protocol, options);
-  this.context = null;
-  delete this.context;
-  return client;
-}
 
 AppSceneContext.prototype.loadScene = function() {
   //log.info("loadScene() - begins    on ctx: " + getContextID() );
@@ -828,7 +821,15 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
     } else if( filePath === 'ws' ) {
       var wsdata = require('rcvrcore/' + filePath + '_wrap');
       _this.webSocketManager = new wsdata();
-      WebSocket.prototype.context = _this;
+
+      var WebSocket = (function() {
+        var context = this;
+        function WebSocket(address, protocol, options) {
+          var client = context.webSocketManager.WebSocket(address, protocol, options);
+          return client;
+        }
+        return WebSocket;
+       }.bind(_this))();
       modData = WebSocket;
       onImportComplete([modData, origFilePath]);
       return;
