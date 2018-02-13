@@ -1,22 +1,9 @@
-/*
- *  Example debug transport using a Linux/Unix TCP socket
- *
- *  Provides a TCP server socket which a debug client can connect to.
- *  After that data is just passed through.
- *
- *  On some UNIX systems poll() may not be available but select() is.
- *  The default is to use poll(), but you can switch to select() by
- *  defining USE_SELECT.  See https://daniel.haxx.se/docs/poll-vs-select.html.
- */
-
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#if !defined(USE_SELECT)
 #include <poll.h>
-#endif  /* !USE_SELECT */
 #include <errno.h>
 #include "duktape.h"
 #include "duk_debugger_interface.h"
@@ -26,6 +13,7 @@
 
 static int server_sock = -1;
 static int client_sock = -1;
+static int debug_port = DUK_DEBUG_PORT;
 
 
 /*
@@ -36,7 +24,7 @@ static int client_sock = -1;
 duk_size_t duk_trans_socket_read_cb(void *udata, char *buffer, duk_size_t length) {
 	ssize_t ret;
 
-	(void) udata;  /* not needed by the example */
+	(void) udata;
 
 #if defined(DEBUG_PRINTS)
 	fprintf(stderr, "%s: udata=%p, buffer=%p, length=%ld\n",
@@ -100,7 +88,7 @@ duk_size_t duk_trans_socket_read_cb(void *udata, char *buffer, duk_size_t length
 duk_size_t duk_trans_socket_write_cb(void *udata, const char *buffer, duk_size_t length) {
 	ssize_t ret;
 
-	(void) udata;  /* not needed by the example */
+	(void) udata;
 
 #if defined(DEBUG_PRINTS)
 	fprintf(stderr, "%s: udata=%p, buffer=%p, length=%ld\n",
@@ -151,14 +139,8 @@ duk_size_t duk_trans_socket_write_cb(void *udata, const char *buffer, duk_size_t
 }
 
 duk_size_t duk_trans_socket_peek_cb(void *udata) {
-#if defined(USE_SELECT)
-	struct timeval tm;
-	fd_set rfds;
-	int select_rc;
-#else
 	struct pollfd fds[1];
 	int poll_rc;
-#endif
 
 	(void) udata;  /* not needed by the example */
 
@@ -170,18 +152,6 @@ duk_size_t duk_trans_socket_peek_cb(void *udata) {
 	if (client_sock < 0) {
 		return 0;
 	}
-#if defined(USE_SELECT)
-	FD_ZERO(&rfds);
-	FD_SET(client_sock, &rfds);
-	tm.tv_sec = tm.tv_usec = 0;
-	select_rc = select(client_sock + 1, &rfds, NULL, NULL, &tm);
-	if (select_rc == 0) {
-		return 0;
-	} else if (select_rc == 1) {
-		return 1;
-	}
-	goto fail;
-#else  /* USE_SELECT */
 	fds[0].fd = client_sock;
 	fds[0].events = POLLIN;
 	fds[0].revents = 0;
@@ -202,7 +172,6 @@ duk_size_t duk_trans_socket_peek_cb(void *udata) {
 	} else {
 		return 1;  /* something to read */
 	}
-#endif  /* USE_SELECT */
  fail:
 	if (client_sock >= 0) {
 		(void) close(client_sock);
@@ -226,7 +195,7 @@ void duk_trans_socket_waitconn(void* context) {
 		client_sock = -1;
 	}
 
-	fprintf(stderr, "Waiting for debug connection on port %d\n", (int) DUK_DEBUG_PORT);
+	fprintf(stderr, "Waiting for debug connection on port %d\n", (int) debug_port);
 	fflush(stderr);
 
 	sz = (socklen_t) sizeof(addr);
@@ -278,14 +247,14 @@ void *duk_trans_socket_connection_handler(void *context)
                 fprintf(stderr, "%s: no server socket, skip waiting for connection\n",
                         __FILE__);
                 fflush(stderr);
-                return;
+                return NULL;
         }
         if (client_sock >= 0) {
                 (void) close(client_sock);
                 client_sock = -1;
         }
 
-        fprintf(stderr, "Waiting for debug connection on port %d\n", (int) DUK_DEBUG_PORT);
+        fprintf(stderr, "Waiting for debug connection on port %d\n", (int) debug_port);
         fflush(stderr);
 
         sz = (socklen_t) sizeof(addr);
@@ -319,16 +288,25 @@ void *duk_trans_socket_connection_handler(void *context)
                 server_sock = -1;
         }
 
-        return;
+        return NULL;
 
  fail:
         if (client_sock >= 0) {
                 (void) close(client_sock);
                 client_sock = -1;
         }
+		return NULL;
 }
 
 void duk_debugger_init(void *ctx, duk_bool_t pauseOnStart) {
+
+        //finalize port
+        char const *port = getenv("DUKTAPE_DEBUGGER_PORT");
+        if (port)
+        {
+          debug_port = atoi(port);
+        }
+
 	struct sockaddr_in addr;
 	int on;
 
@@ -351,7 +329,7 @@ void duk_debugger_init(void *ctx, duk_bool_t pauseOnStart) {
 	memset((void *) &addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
-	addr.sin_port = htons(DUK_DEBUG_PORT);
+	addr.sin_port = htons(debug_port);
 
 	if (bind(server_sock, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
 		fprintf(stderr, "%s: failed to bind server socket: %s\n",
