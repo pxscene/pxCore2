@@ -105,6 +105,7 @@ extern "C" {
 
 extern "C" {
 #include "duv.h"
+#include "duk_debugger_interface.h"
 }
 
 #if !defined(WIN32) && !defined(ENABLE_DFB)
@@ -1282,6 +1283,22 @@ void rtScriptDuk::init2(int argc, char** argv)
     }
 
     rtSetupJsModuleBindings(dukCtx);
+
+    #ifdef ENABLE_DUKTAPE_DEBUGGER
+    char const *enable_debug = getenv("ENABLE_DUKTAPE_DEBUGGER");
+    if ((enable_debug) && (1 == atoi(enable_debug)))
+    {
+      char const *pause_start = getenv("DUKTAPE_DEBUGGER_PAUSE_ON_START");
+      if ((pause_start) && (1 == atoi(pause_start)))
+      {
+        duk_debugger_init(dukCtx,true);
+      }
+      else
+      {
+        duk_debugger_init(dukCtx,false);
+      }
+    }
+    #endif
   }
 }
 
@@ -1289,7 +1306,7 @@ rtError rtScriptDuk::term()
 {
   rtLogInfo(__FUNCTION__);
   //nodeTerminated = true;
-
+  duk_debugger_finish(dukCtx);
   //uv_loop_close(dukLoop);
   duk_destroy_heap(dukCtx);
 
