@@ -47,6 +47,11 @@ class sceneWindow : public pxWindow, public pxIViewContainer
     {
       pxWindow::invalidateRect(r);
     }
+
+    virtual void* RT_STDCALL getInterface(const char* /*t*/)
+    {
+      return NULL;
+    }
     
     rtError setView(pxIView* v)
     { 
