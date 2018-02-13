@@ -14,7 +14,7 @@ cd "build-win32/_CPack_Packages/win32/NSIS"
 
 set cronUpload=False
 
-if "%APPVEYOR_SCHEDULED_BUILD%" == "True"  if "%DUKTAPE_SUPPORT%" == "ON" set cronUpload=True
+if "%APPVEYOR_SCHEDULED_BUILD%" == "True"  if "%APPVEYOR_REPO_BRANCH%" == "master"  if "%DUKTAPE_SUPPORT%" == "ON" set cronUpload=True
 
 if %cronUpload% == True (
     7z a -y pxscene-setup-exe.zip pxscene-setup.exe 
