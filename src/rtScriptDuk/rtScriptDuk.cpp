@@ -178,8 +178,8 @@ private:
 #endif
 
   int mRefCount;
-  rtAtomic mId;
   void* mContextifyContext;
+  rtAtomic mId;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -190,8 +190,7 @@ typedef std::map<uint32_t, rtDukContextRef> rtDukContexts;
 class rtScriptDuk: public rtIScript
 {
 public:
-  rtScriptDuk();
-  rtScriptDuk(bool initialize);
+  rtScriptDuk(bool initialize = true);
 
   virtual ~rtScriptDuk();
 
@@ -325,7 +324,7 @@ static inline bool file_exists(const char *file)
 #endif
 
 rtDukContext::rtDukContext() :
-     js_file(NULL), mRefCount(0), mContextifyContext(NULL), dukCtx(NULL), uvLoop(NULL)
+     js_file(NULL), dukCtx(NULL), uvLoop(NULL), mRefCount(0), mContextifyContext(NULL)
 {
   mId = rtAtomicInc(&sNextId);
 
@@ -334,7 +333,7 @@ rtDukContext::rtDukContext() :
 
 #ifdef USE_CONTEXTIFY_CLONES
 rtDukContext::rtDukContext(rtDukContextRef clone_me) :
-      js_file(NULL), mRefCount(0), mContextifyContext(NULL), dukCtx(NULL), uvLoop(NULL)
+      js_file(NULL), dukCtx(NULL), uvLoop(NULL), mRefCount(0), mContextifyContext(NULL)
 {
   mId = rtAtomicInc(&sNextId);
 
@@ -1035,31 +1034,17 @@ rtError rtDukContext::runFile(const char *file, rtValue* retVal /*= NULL*/, cons
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-rtScriptDuk::rtScriptDuk():mRefCount(0), duk_is_initialized(false), dukCtx(NULL)
-#ifndef RUNINMAIN
+rtScriptDuk::rtScriptDuk(bool initialize): dukCtx(NULL), duk_is_initialized(false),
 #ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false), duk_is_initialized(false)
-#else
-: mNeedsToEnd(false)
+  mRefContext(),
 #endif
+  mTestGc(false),
+#ifndef RUNINMAIN
+  mNeedsToEnd(false),
 #endif
+  mRefCount(0)
 {
   rtLogInfo(__FUNCTION__);
-  mTestGc = false;
-  init();
-}
-
-rtScriptDuk::rtScriptDuk(bool initialize):mRefCount(0), duk_is_initialized(false),dukCtx(NULL)
-#ifndef RUNINMAIN
-#ifdef USE_CONTEXTIFY_CLONES
-: mRefContext(), mNeedsToEnd(false), duk_is_initialized(false)
-#else
-: mNeedsToEnd(false)
-#endif
-#endif
-{
-  rtLogInfo(__FUNCTION__);
-  mTestGc = false;
   if (true == initialize)
   {
     init();
