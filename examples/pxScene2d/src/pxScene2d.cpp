@@ -3086,7 +3086,11 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
   }
 
   // See if the view's container can provide the service
-  rtRef<rtIServiceProvider> serviceProvider = (rtIServiceProvider*)mContainer->getInterface("serviceProvider");
+  rtRef<rtIServiceProvider> serviceProvider;
+  if (mContainer)
+  {
+    serviceProvider = (rtIServiceProvider*)(mContainer->getInterface("serviceProvider"));
+  }
   if (serviceProvider)
   {
     if (serviceProvider->getService(name, ctx, service) == RT_OK)
