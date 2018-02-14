@@ -236,6 +236,7 @@ void duk_trans_socket_waitconn(void* context) {
 		(void) close(client_sock);
 		client_sock = -1;
 	}
+  return;
 }
 
 void *duk_trans_socket_connection_handler(void *context)
