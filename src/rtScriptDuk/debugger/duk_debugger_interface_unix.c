@@ -188,7 +188,7 @@ void duk_trans_socket_waitconn(void* context) {
 		fprintf(stderr, "%s: no server socket, skip waiting for connection\n",
 		        __FILE__);
 		fflush(stderr);
-		return;
+		return NULL;
 	}
 	if (client_sock >= 0) {
 		(void) close(client_sock);
@@ -229,13 +229,14 @@ void duk_trans_socket_waitconn(void* context) {
 		server_sock = -1;
 	}
 
-	return;
+	return NULL;
 
  fail:
 	if (client_sock >= 0) {
 		(void) close(client_sock);
 		client_sock = -1;
 	}
+  return NULL;
 }
 
 void *duk_trans_socket_connection_handler(void *context)
