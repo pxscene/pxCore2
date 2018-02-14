@@ -13,6 +13,7 @@ var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
+var AccessControl = require('rcvrcore/utils/AccessControl');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
@@ -48,6 +49,7 @@ function AppSceneContext(params) {
   this.scriptMap = {};
   this.xmoduleMap = {};
   this.asyncFileAcquisition = new AsyncFileAcquisition(params.scene);
+  this.accessControl = new AccessControl(params.scene);
   this.lastHrTime = isDuk?uv.hrtime():process.hrtime();
   this.resizeTimer = null;
   this.topXModule = null;
@@ -152,6 +154,10 @@ this.innerscene.on('onSceneTerminate', function (e) {
       this.sceneWrapper.close();
     this.sceneWrapper = null;
     this.rpcController = null;
+    if (this.accessControl) {
+      this.accessControl.destroy();
+      this.accessControl = null;
+    }
   }.bind(this));
 
 if (false) {
@@ -583,7 +589,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'http' || filePath === 'https' ) {
-      modData = filePath === 'http' ? new http_wrap(_this.innerscene) : new https_wrap(_this.innerscene);
+      modData = filePath === 'http' ? new http_wrap(_this.accessControl) : new https_wrap(_this.accessControl);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
