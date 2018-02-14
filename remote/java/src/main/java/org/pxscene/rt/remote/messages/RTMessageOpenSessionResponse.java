@@ -1,5 +1,6 @@
 package org.pxscene.rt.remote.messages;
 
+import lombok.NonNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.pxscene.rt.remote.RTRemoteMessage;
@@ -15,6 +16,7 @@ public class RTMessageOpenSessionResponse extends RTRemoteMessage {
    */
   @Setter
   @Getter
+  @NonNull
   private String objectId;
 
   /**

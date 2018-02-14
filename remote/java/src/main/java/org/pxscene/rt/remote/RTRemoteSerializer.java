@@ -14,13 +14,14 @@ import java.util.function.Function;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
+import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import org.apache.log4j.Logger;
+import org.pxscene.rt.RTEnvironment;
 import org.pxscene.rt.RTException;
 import org.pxscene.rt.RTFunction;
-import org.pxscene.rt.RTLocalObject;
 import org.pxscene.rt.RTObject;
 import org.pxscene.rt.RTStatus;
 import org.pxscene.rt.RTStatusCode;
@@ -63,7 +64,7 @@ public class RTRemoteSerializer {
   /**
    * the logger instance
    */
-  private static Logger logger = Logger.getLogger(RTRemoteSerializer.class);
+  private static final Logger logger = Logger.getLogger(RTRemoteSerializer.class);
 
 
   /**
@@ -73,10 +74,15 @@ public class RTRemoteSerializer {
     Map<Class, RTValueType> m = new HashMap<>();
     m.put(Boolean.class, RTValueType.BOOLEAN);
     m.put(Integer.class, RTValueType.INT32);
+    m.put(Short.class, RTValueType.INT8);
     m.put(Long.class, RTValueType.INT64);
     m.put(Float.class, RTValueType.FLOAT);
     m.put(Double.class, RTValueType.DOUBLE);
     m.put(RTObject.class, RTValueType.OBJECT);
+    m.put(RTRemoteObject.class, RTValueType.OBJECT);
+    m.put(BigInteger.class, RTValueType.UINT64);
+    m.put(String.class, RTValueType.STRING);
+    m.put(RTFunction.class, RTValueType.FUNCTION);
     valueTypeMap = Collections.unmodifiableMap(m);
   }
 
@@ -102,6 +108,8 @@ public class RTRemoteSerializer {
         RTRemoteSerializer::fromJson_CallMethodResponse);
     decoders.put(RTRemoteMessageType.METHOD_CALL_REQUEST.toString(),
         RTRemoteSerializer::fromJson_CallMethodRequest);
+    decoders.put(RTRemoteMessageType.SERACH_OBJECT.toString(),
+        RTRemoteSerializer::fromJson_SearchObject);
   }
 
   /**
@@ -127,9 +135,9 @@ public class RTRemoteSerializer {
       throw new NullPointerException("fromJson_GetPropertyByNameRequest obj cannot be null");
     }
     RTMessageGetPropertyByNameRequest req = new RTMessageGetPropertyByNameRequest();
-    req.setObjectId(obj.getString("object.id"));
-    req.setCorrelationKey(obj.getString("correlation.key"));
-    req.setPropertyName(obj.getString("property.name"));
+    req.setObjectId(obj.getString(RTConst.OBJECT_ID_KEY));
+    req.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
+    req.setPropertyName(obj.getString(RTConst.PROPERTY_NAME));
     return req;
   }
 
@@ -147,12 +155,12 @@ public class RTRemoteSerializer {
     }
 
     RTMessageGetPropertyByNameResponse res = new RTMessageGetPropertyByNameResponse();
-    res.setCorrelationKey(obj.getString("correlation.key"));
-    res.setObjectId(obj.getString("object.id"));
+    res.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
+    res.setObjectId(obj.getString(RTConst.OBJECT_ID_KEY));
     res.setStatus(fromJson_SparkStatus(obj));
 
-    if (obj.containsKey("value")) {
-      JsonObject valueObject = obj.getJsonObject("value");
+    if (obj.containsKey(RTConst.VALUE)) {
+      JsonObject valueObject = obj.getJsonObject(RTConst.VALUE);
       res.setValue(valueFromJson(valueObject));
     }
 
@@ -173,7 +181,7 @@ public class RTRemoteSerializer {
     }
 
     RTMessageKeepAliveResponse res = new RTMessageKeepAliveResponse();
-    res.setCorrelationKey(obj.getString("correlation.key"));
+    res.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
     return res;
   }
 
@@ -190,12 +198,12 @@ public class RTRemoteSerializer {
     }
 
     RTMessageLocate locate = new RTMessageLocate();
-    locate.setCorrelationKey(obj.getString("correlation.key"));
-    locate.setObjectId(obj.getString("object.id"));
+    locate.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
+    locate.setObjectId(obj.getString(RTConst.OBJECT_ID_KEY));
     try {
-      locate.setEndpoint(new URI(obj.getString("endpoint")));
+      locate.setEndpoint(new URI(obj.getString(RTConst.ENDPOINT)));
     } catch (URISyntaxException err) {
-      // TODO:
+      logger.error(err);
     }
     return locate;
   }
@@ -218,10 +226,10 @@ public class RTRemoteSerializer {
     }
 
     RTMessageSetPropertyByNameRequest req = new RTMessageSetPropertyByNameRequest();
-    req.setCorrelationKey(obj.getString("correlation.key"));
-    req.setObjectId(obj.getString("object.id"));
-    req.setPropertyName(obj.getString("property.name"));
-    req.setValue(valueFromJson(obj.getJsonObject("value")));
+    req.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
+    req.setObjectId(obj.getString(RTConst.OBJECT_ID_KEY));
+    req.setPropertyName(obj.getString(RTConst.PROPERTY_NAME));
+    req.setValue(valueFromJson(obj.getJsonObject(RTConst.VALUE)));
     return req;
   }
 
@@ -241,8 +249,8 @@ public class RTRemoteSerializer {
       throw new NullPointerException("obj");
     }
     RTMessageGetPropertyByNameResponse res = new RTMessageGetPropertyByNameResponse();
-    res.setCorrelationKey(obj.getString("correlation.key"));
-    res.setObjectId(obj.getString("object.id"));
+    res.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
+    res.setObjectId(obj.getString(RTConst.OBJECT_ID_KEY));
     res.setStatus(RTRemoteSerializer.fromJson_SparkStatus(obj));
     return res;
   }
@@ -261,8 +269,8 @@ public class RTRemoteSerializer {
       throw new NullPointerException("fromJson_KeepAliveRequest obj cannot be null");
     }
     RTMessageKeepAliveRequest res = new RTMessageKeepAliveRequest();
-    res.setCorrelationKey(obj.getString("correlation.key"));
-    res.setKeepAliveIds(obj.getJsonArray("keep_alive.ids"));
+    res.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
+    res.setKeepAliveIds(obj.getJsonArray(RTConst.KEEP_ALIVE_IDS));
     return res;
   }
 
@@ -282,8 +290,8 @@ public class RTRemoteSerializer {
       throw new NullPointerException("fromJson_CallMethodResponse obj cannot be null");
     }
     RTMessageCallMethodResponse response = new RTMessageCallMethodResponse();
-    response.setCorrelationKey(object.getString("correlation.key"));
-    JsonObject valueJson = object.getJsonObject("function.return_value");
+    response.setCorrelationKey(object.getString(RTConst.CORRELATION_KEY));
+    JsonObject valueJson = object.getJsonObject(RTConst.FUNCTION_RETURN_VALUE);
     if (valueJson != null) {
       response.setValue(valueFromJson(valueJson));
     }
@@ -307,10 +315,10 @@ public class RTRemoteSerializer {
       throw new NullPointerException("fromJson_CallMethodRequest obj cannot be null");
     }
     RTMessageCallMethodRequest request = new RTMessageCallMethodRequest();
-    request.setCorrelationKey(object.getString("correlation.key"));
-    request.setMethodName(object.getString("function.name"));
-    request.setObjectId(object.getString("object.id"));
-    JsonArray jsonArray = object.getJsonArray("function.args");
+    request.setCorrelationKey(object.getString(RTConst.CORRELATION_KEY));
+    request.setMethodName(object.getString(RTConst.FUNCTION_KEY));
+    request.setObjectId(object.getString(RTConst.OBJECT_ID_KEY));
+    JsonArray jsonArray = object.getJsonArray(RTConst.FUNCTION_ARGS);
     if (jsonArray != null && jsonArray.size() > 0) {
       List<RTValue> rtValueList = new ArrayList<>();
       for (int i = 0; i < jsonArray.size(); i++) {
@@ -318,9 +326,31 @@ public class RTRemoteSerializer {
       }
       request.setFunctionArgs(rtValueList);
     }
-    RTFunction function = RTFunction.fromJson(object);
-    request.setRtFunction(function);
+    request.setRtFunction(jsonToFunctionValue(object));
     return request;
+  }
+
+  /**
+   * parse search json object to RTMessageSearch
+   *
+   * {"message.type":"search","correlation.key":"0d8e844c-7afd-41f0-92d8-268f3a1fdb7d",
+   * "object.id":"host_object","sender.id":0,"reply-to":"udp://127.0.0.1:52614"}
+   *
+   * @param object the json object
+   * @return the RTMessageSearch
+   */
+  private static RTMessageSearch fromJson_SearchObject(JsonObject object) {
+    RTMessageSearch rtMessageSearch = new RTMessageSearch();
+    rtMessageSearch.setCorrelationKey(object.getString(RTConst.CORRELATION_KEY));
+    rtMessageSearch.setObjectId(object.getString(RTConst.OBJECT_ID_KEY));
+    rtMessageSearch.setSenderId(object.getInt(RTConst.SENDER_ID));
+
+    try {
+      rtMessageSearch.setReplyTo(new URI(object.getString(RTConst.REPLY_TO)));
+    } catch (URISyntaxException err) {
+      logger.error(err);
+    }
+    return rtMessageSearch;
   }
 
 
@@ -337,13 +367,56 @@ public class RTRemoteSerializer {
     }
 
     RTStatus status = new RTStatus();
-    if (obj.containsKey("status.code")) {
-      status.setCode(RTStatusCode.fromInt(obj.getInt("status.code")));
+    if (obj.containsKey(RTConst.STATUS_CODE)) {
+      status.setCode(RTStatusCode.fromInt(obj.getInt(RTConst.STATUS_CODE)));
     }
-    if (obj.containsKey("status.message")) {
-      status.setMessage(obj.getString("status.message"));
+    if (obj.containsKey(RTConst.STATUS_MESSAGE)) {
+      status.setMessage(obj.getString(RTConst.STATUS_MESSAGE));
     }
     return status;
+  }
+
+  /**
+   * convert json object to rtValue function type {"object.id":"host_object","function.name":"func://5f66c627-bd01-4137-9c7c-0b345d6d4342","type":102}
+   *
+   * @param jsonObject the json object
+   * @return the parsed rt value
+   */
+  public static RTValue jsonToFunctionValue(JsonObject jsonObject) {
+    String funcName = jsonObject.getString(RTConst.FUNCTION_KEY);
+
+    RTFunction rtFunction = RTEnvironment.getRtFunctionMap().get(funcName);
+
+    RTValue rtValue = new RTValue();
+    rtValue.setType(RTValueType.FUNCTION);
+
+    if (rtFunction == null) {
+      // sometimes  RTEnvironment didn't cache the rtFunction, this mean the rtFunction from remote
+      // 1. client get backend rtFunction, but client didn't cache it, this mean rtFunction locate in backend
+      // 2. server receive client set->rtFunction, but server didn't cache it, this mean rtFunction lcoate in client
+      rtFunction = new RTFunction();
+      rtFunction.setFunctionName(funcName);
+      rtFunction.setObjectId(jsonObject.getString(RTConst.OBJECT_ID_KEY));
+    }
+    rtValue.setValue(rtFunction);
+
+    return rtValue;
+  }
+
+  /**
+   * json to rt value object type
+   */
+  public static RTValue jsonToObjectValue(JsonObject jsonObject) {
+    JsonObject value = jsonObject.getJsonObject(RTConst.VALUE);
+    String objName = value.getString(RTConst.OBJECT_ID_KEY);
+    RTObject object = RTEnvironment.getRtObjectMap().get(objName);
+    RTValue rtValue = new RTValue();
+    rtValue.setType(RTValueType.OBJECT);
+    if (object == null) {
+      object = new RTRemoteObject(null, objName);
+    }
+    rtValue.setValue(object);
+    return rtValue;
   }
 
   /**
@@ -359,42 +432,46 @@ public class RTRemoteSerializer {
     }
     RTValueType type = value.getType();
     JsonObjectBuilder builder = Json.createObjectBuilder();
-    builder.add("type", type.getTypeCode());
+    builder.add(RTConst.TYPE, type.getTypeCode());
     switch (type) {
       case VOID:
         break;
       case BOOLEAN:
-        builder.add("value", (Boolean) value.getValue());
+        builder.add(RTConst.VALUE, (Boolean) value.getValue());
         break;
       case FLOAT:
-        builder.add("value", (Float) value.getValue());
+        builder.add(RTConst.VALUE, (Float) value.getValue());
         break;
       case DOUBLE:
-        builder.add("value", (Double) value.getValue());
+        builder.add(RTConst.VALUE, (Double) value.getValue());
         break;
       case INT8:
-        builder.add("value", (Short) value.getValue());
-        break;
       case UINT8:
+        builder.add(RTConst.VALUE, (Short) value.getValue());
+        break;
       case INT32:
-        builder.add("value", (Integer) value.getValue());
+        builder.add(RTConst.VALUE, (Integer) value.getValue());
         break;
       case FUNCTION:
-        builder.add("value", (JsonObject) value.getValue());
+        RTFunction rtFunction = (RTFunction) value.getValue();
+        builder.add(RTConst.OBJECT_ID_KEY, rtFunction.getObjectId());
+        builder.add(RTConst.FUNCTION_KEY, rtFunction.getFunctionName());
         break;
       case OBJECT:
-        builder.add("value", (JsonObject) value.getValue());
+        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+        objectBuilder.add(RTConst.OBJECT_ID_KEY, ((RTObject) value.getValue()).getId());
+        builder.add(RTConst.VALUE, objectBuilder.build());
         break;
       case UINT32:
       case VOIDPTR:
       case INT64:
-        builder.add("value", (Long) value.getValue());
+        builder.add(RTConst.VALUE, (Long) value.getValue());
         break;
       case UINT64: // use big integer to parse u int64
-        builder.add("value", (BigInteger) value.getValue());
+        builder.add(RTConst.VALUE, (BigInteger) value.getValue());
         break;
       case STRING:
-        builder.add("value", (String) value.getValue());
+        builder.add(RTConst.VALUE, (String) value.getValue());
         break;
       default:
         throw new RuntimeException("type " + type + " not supported");
@@ -414,42 +491,46 @@ public class RTRemoteSerializer {
       throw new NullPointerException("valueFromJson obj cannot be null");
     }
     RTValue value;
-    RTValueType type = RTValueType.fromTypeCode(obj.getInt("type"));
+    RTValueType type = RTValueType.fromTypeCode(obj.getInt(RTConst.TYPE));
     switch (type) {
       case BOOLEAN:
-        value = new RTValue(obj.getBoolean("value"), type);
+        value = new RTValue(obj.getBoolean(RTConst.VALUE), type);
         break;
       case FLOAT:
-        value = new RTValue((float) obj.getJsonNumber("value").doubleValue(), type);
+        value = new RTValue((float) obj.getJsonNumber(RTConst.VALUE).doubleValue(), type);
         break;
       case DOUBLE:
-        value = new RTValue(obj.getJsonNumber("value").doubleValue(), type);
+        value = new RTValue(obj.getJsonNumber(RTConst.VALUE).doubleValue(), type);
         break;
       case INT8:
-        value = new RTValue((short) obj.getJsonNumber("value").intValue(), type);
-        break;
       case UINT8:
+        value = new RTValue((short) obj.getJsonNumber(RTConst.VALUE).intValue(), type);
+        break;
       case INT32:
-        value = new RTValue(obj.getJsonNumber("value").intValue(), type);
+        value = new RTValue(obj.getJsonNumber(RTConst.VALUE).intValue(), type);
         break;
       case FUNCTION:
-        value = RTFunction.fromJson(obj);
+        value = jsonToFunctionValue(obj);
         break;
       case OBJECT:
-        value = RTLocalObject.fromJson(obj);
+        value = jsonToObjectValue(obj);
         break;
       case UINT32: // use long value load uint32, int64
       case INT64:
-        value = new RTValue(obj.getJsonNumber("value").longValue(), type);
+        value = new RTValue(obj.getJsonNumber(RTConst.VALUE).longValue(), type);
         break;
       case VOIDPTR:  // TODO this should be a bug from c++ remote,  the property name should be "value", not "Value"
-        value = new RTValue(obj.getJsonNumber("Value").longValue(), type);
+        JsonNumber jsonNumber = obj.getJsonNumber("Value");
+        if (jsonNumber == null) {
+          jsonNumber = obj.getJsonNumber(RTConst.VALUE);
+        }
+        value = new RTValue(jsonNumber.longValue(), type);
         break;
       case UINT64: // use big integer load u int 64
-        value = new RTValue(obj.getJsonNumber("value").bigIntegerValue(), type);
+        value = new RTValue(obj.getJsonNumber(RTConst.VALUE).bigIntegerValue(), type);
         break;
       case STRING:
-        value = new RTValue(obj.getString("value"), type);
+        value = new RTValue(obj.getString(RTConst.VALUE), type);
         break;
       case VOID:
         value = new RTValue(null, type);
@@ -485,14 +566,15 @@ public class RTRemoteSerializer {
       throw new NullPointerException("obj");
     }
 
-    if (!obj.containsKey("message.type")) {
+    if (!obj.containsKey(RTConst.MESSAGE_TYPE)) {
       throw new RTException("unsupported message type:" + obj.toString());
     }
-    Function<JsonObject, RTRemoteMessage> decoder = decoders.get(obj.getString("message.type"));
+    Function<JsonObject, RTRemoteMessage> decoder = decoders
+        .get(obj.getString(RTConst.MESSAGE_TYPE));
 
     if (decoder == null) {
       throw new NullPointerException(
-          "cannot prase the message where type = " + obj.getString("message.type"));
+          "cannot prase the message where type = " + obj.getString(RTConst.MESSAGE_TYPE));
     }
     return (T) decoder.apply(obj);
   }
@@ -555,13 +637,57 @@ public class RTRemoteSerializer {
       throw new NullPointerException("req");
     }
     JsonObject obj = Json.createObjectBuilder()
-        .add("message.type", req.getMessageType().toString())
-        .add("correlation.key", req.getCorrelationKey())
-        .add("property.name", req.getPropertyName())
-        .add("object.id", req.getObjectId())
+        .add(RTConst.MESSAGE_TYPE, req.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY, req.getCorrelationKey())
+        .add(RTConst.PROPERTY_NAME, req.getPropertyName())
+        .add(RTConst.OBJECT_ID_KEY, req.getObjectId())
         .build();
     return obj;
   }
+
+  /**
+   * convert RTMessageCallMethodResponse to json object
+   *
+   * @param response the RTMessageCallMethodResponse entity
+   * @return the json object
+   * @throws NullPointerException if decoder object is null
+   */
+  public JsonObject toJson(RTMessageCallMethodResponse response) {
+    if (response == null) {
+      throw new NullPointerException("response");
+    }
+    JsonObjectBuilder build = Json.createObjectBuilder()
+        .add(RTConst.MESSAGE_TYPE, response.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY, response.getCorrelationKey())
+        .add(RTConst.STATUS_CODE, response.getStatus().getCode().getCode());
+
+    if (response.getValue() != null) {
+      build.add(RTConst.FUNCTION_RETURN_VALUE, valueToJson(response.getValue()));
+    }
+    return build.build();
+  }
+
+
+  /**
+   * convert RTMessageLocate to json object
+   *
+   * @param locate the RTMessageLocate entity
+   * @return the json object
+   * @throws NullPointerException if decoder object is null
+   */
+  public JsonObject toJson(RTMessageLocate locate) {
+    if (locate == null) {
+      throw new NullPointerException("locate");
+    }
+    JsonObject obj = Json.createObjectBuilder()
+        .add(RTConst.MESSAGE_TYPE, locate.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY, locate.getCorrelationKey())
+        .add(RTConst.OBJECT_ID_KEY, locate.getObjectId())
+        .add(RTConst.ENDPOINT, locate.getEndpoint().toString())
+        .build();
+    return obj;
+  }
+
 
   /**
    * convert RTMessageGetPropertyByNameResponse to json object
@@ -572,9 +698,11 @@ public class RTRemoteSerializer {
    */
   public JsonObject toJson(RTMessageGetPropertyByNameResponse res) {
     JsonObject obj = Json.createObjectBuilder()
-        .add("message.type", res.getMessageType().toString())
-        .add("correlation.key", res.getCorrelationKey())
-        .add("object.id", res.getObjectId())
+        .add(RTConst.MESSAGE_TYPE, res.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY, res.getCorrelationKey())
+        .add(RTConst.OBJECT_ID_KEY, res.getObjectId())
+        .add(RTConst.VALUE, valueToJson(res.getValue()))
+        .add(RTConst.STATUS_CODE, res.getStatus().getCode().getCode())
         .build();
     return obj;
   }
@@ -588,8 +716,8 @@ public class RTRemoteSerializer {
    */
   public JsonObject toJson(RTMessageKeepAliveRequest req) {
     return Json.createObjectBuilder()
-        .add("message.type", req.getMessageType().toString())
-        .add("correlation.key", req.getCorrelationKey())
+        .add(RTConst.MESSAGE_TYPE, req.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY, req.getCorrelationKey())
         .build();
   }
 
@@ -602,8 +730,8 @@ public class RTRemoteSerializer {
    */
   public JsonObject toJson(RTMessageKeepAliveResponse res) {
     return Json.createObjectBuilder()
-        .add("message.type", res.getMessageType().toString())
-        .add("correlation.key", res.getCorrelationKey())
+        .add(RTConst.MESSAGE_TYPE, res.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY, res.getCorrelationKey())
         .build();
   }
 
@@ -616,8 +744,8 @@ public class RTRemoteSerializer {
    */
   public JsonObject toJson(RTMessageOpenSessionRequest req) {
     return Json.createObjectBuilder()
-        .add("message.type", req.getMessageType().toString())
-        .add("correlation.key", req.getCorrelationKey())
+        .add(RTConst.MESSAGE_TYPE, req.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY, req.getCorrelationKey())
         .build();
   }
 
@@ -630,11 +758,11 @@ public class RTRemoteSerializer {
    */
   public JsonObject toJson(RTMessageSearch search) {
     return Json.createObjectBuilder()
-        .add("message.type", search.getMessageType().toString())
-        .add("correlation.key", search.getCorrelationKey())
-        .add("object.id", search.getObjectId())
-        .add("sender.id", search.getSenderId())
-        .add("reply-to", search.getReplyTo().toString())
+        .add(RTConst.MESSAGE_TYPE, search.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY, search.getCorrelationKey())
+        .add(RTConst.OBJECT_ID_KEY, search.getObjectId())
+        .add(RTConst.SENDER_ID, search.getSenderId())
+        .add(RTConst.REPLY_TO, search.getReplyTo().toString())
         .build();
   }
 
@@ -653,11 +781,11 @@ public class RTRemoteSerializer {
       }
     }
     return Json.createObjectBuilder()
-        .add("message.type", request.getMessageType().toString())
-        .add("correlation.key", request.getCorrelationKey())
-        .add("object.id", request.getObjectId())
+        .add(RTConst.MESSAGE_TYPE, request.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY, request.getCorrelationKey())
+        .add(RTConst.OBJECT_ID_KEY, request.getObjectId())
         .add("function.name", request.getMethodName())
-        .add("function.args", arrayBuilder.build())
+        .add(RTConst.FUNCTION_ARGS, arrayBuilder.build())
         .build();
   }
 
@@ -682,25 +810,29 @@ public class RTRemoteSerializer {
    */
   public JsonObject toJson(RTMessageSetPropertyByNameRequest req) {
     return Json.createObjectBuilder()
-        .add("message.type", req.getMessageType().toString())
-        .add("correlation.key", req.getCorrelationKey())
-        .add("object.id", req.getObjectId())
-        .add("property.name", req.getPropertyName())
-        .add("value", RTRemoteSerializer.valueToJson(req.getValue()))
+        .add(RTConst.MESSAGE_TYPE, req.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY, req.getCorrelationKey())
+        .add(RTConst.OBJECT_ID_KEY, req.getObjectId())
+        .add(RTConst.PROPERTY_NAME, req.getPropertyName())
+        .add(RTConst.VALUE, RTRemoteSerializer.valueToJson(req.getValue()))
         .build();
   }
 
 
   /**
    * convert RTMessageSetPropertyByNameResponse to json object
-   * TODO
    *
    * @param res the RTMessageSetPropertyByNameResponse entity
    * @return the json object
    * @throws NullPointerException if decoder object is null
    */
   public JsonObject toJson(RTMessageSetPropertyByNameResponse res) {
-    return null;
+    return Json.createObjectBuilder()
+        .add(RTConst.MESSAGE_TYPE, res.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY, res.getCorrelationKey())
+        .add(RTConst.OBJECT_ID_KEY, res.getObjectId())
+        .add(RTConst.STATUS_CODE, res.getStatusCode().getCode())
+        .build();
   }
 
   /**
@@ -712,6 +844,28 @@ public class RTRemoteSerializer {
    */
   public byte[] toBytes(RTMessageCallMethodRequest m) throws RTException {
     return RTRemoteSerializer.toBytes(toJson(m));
+  }
+
+  /**
+   * convert RTMessageCallMethodResponse to bytes
+   *
+   * @param response the RTMessageCallMethodResponse entity
+   * @return the bytes
+   * @throws RTException if any other error occurred during operation
+   */
+  public byte[] toBytes(RTMessageCallMethodResponse response) throws RTException {
+    return RTRemoteSerializer.toBytes(toJson(response));
+  }
+
+  /**
+   * convert RTMessageCallMethodRequest to bytes
+   *
+   * @param response the RTMessageCallMethodRequest entity
+   * @return the bytes
+   * @throws RTException if any other error occurred during operation
+   */
+  public byte[] toBytes(RTMessageSetPropertyByNameResponse response) throws RTException {
+    return RTRemoteSerializer.toBytes(toJson(response));
   }
 
   /**
@@ -736,6 +890,19 @@ public class RTRemoteSerializer {
     return RTRemoteSerializer.toBytes(toJson(m));
   }
 
+
+  /**
+   * convert RTMessageGetPropertyByNameResponse to bytes
+   *
+   * @param m the RTMessageGetPropertyByNameResponse entity
+   * @return the bytes
+   * @throws RTException if any other error occurred during operation
+   */
+  public byte[] toBytes(RTMessageGetPropertyByNameResponse m) throws RTException {
+    return RTRemoteSerializer.toBytes(toJson(m));
+  }
+
+
   /**
    * convert RTMessageSearch to bytes
    *
@@ -745,6 +912,17 @@ public class RTRemoteSerializer {
    */
   public byte[] toBytes(RTMessageSearch m) throws RTException {
     return RTRemoteSerializer.toBytes(toJson(m));
+  }
+
+  /**
+   * convert RTMessageLocate to bytes
+   *
+   * @param locate the RTMessageLocate entity
+   * @return the bytes
+   * @throws RTException if any other error occurred during operation
+   */
+  public byte[] toBytes(RTMessageLocate locate) throws RTException {
+    return RTRemoteSerializer.toBytes(toJson(locate));
   }
 
 }

@@ -23,7 +23,7 @@ public class MethodTest {
   /**
    * the logger instance
    */
-  private static Logger logger = Logger.getLogger(MethodTest.class);
+  private static final Logger logger = Logger.getLogger(MethodTest.class);
 
   /**
    * the total test number
@@ -92,7 +92,7 @@ public class MethodTest {
 
         methodTest
             .checkMethodNoReturn(obj, "method2FunctionAndNoReturn",
-                function, new RTValue(10, RTValueType.INT32));
+                new RTValue(function), new RTValue(10, RTValueType.INT32));
 
         logger.debug(String
             .format("========= %d of %d example succeed, %d failed.", methodTest.getSuceed(),

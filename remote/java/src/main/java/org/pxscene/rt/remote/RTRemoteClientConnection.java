@@ -34,7 +34,7 @@ public class RTRemoteClientConnection {
   public static RTRemoteClientConnection createTCPClientConnection(String host, int port)
       throws RTException {
     RTRemoteTransport transport = new RTRemoteTCPTransport(host, port);
-    return new RTRemoteClientConnection(new RTRemoteProtocol(transport));
+    return new RTRemoteClientConnection(new RTRemoteProtocol(transport, false));
   }
 
   /**

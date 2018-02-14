@@ -1,11 +1,14 @@
 package org.pxscene.rt;
 
+import lombok.NonNull;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * the RTStatus class.
  */
+@ToString
 public class RTStatus {
 
   /**
@@ -13,6 +16,7 @@ public class RTStatus {
    */
   @Getter
   @Setter
+  @NonNull
   private RTStatusCode code;
 
   /**

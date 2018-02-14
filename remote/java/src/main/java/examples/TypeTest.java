@@ -11,7 +11,6 @@ import org.apache.log4j.Logger;
 import org.pxscene.rt.RTEnvironment;
 import org.pxscene.rt.RTException;
 import org.pxscene.rt.RTFunction;
-import org.pxscene.rt.RTLocalObject;
 import org.pxscene.rt.RTObject;
 import org.pxscene.rt.RTValue;
 import org.pxscene.rt.RTValueType;
@@ -23,7 +22,7 @@ import org.pxscene.rt.remote.RTRemoteMulticastResolver;
  */
 public class TypeTest {
 
-  private static Logger logger = Logger.getLogger(TypeTest.class);
+  private static final Logger logger = Logger.getLogger(TypeTest.class);
 
   /**
    * the total examples
@@ -48,7 +47,6 @@ public class TypeTest {
     URI uri = resolver.locateObject("host_object");
     RTObject obj = RTRemoteConnectionManager.getObjectProxy(uri);
     TypeTest rtRemoteTestClient = new TypeTest();
-
     while (true) {
       try {
         rtRemoteTestClient.setTotalExamplesCount(0);
@@ -87,8 +85,8 @@ public class TypeTest {
     doBasicTest(rtObject, RTValueType.INT8, (short) 127, "int8");
 
     //test uint8, the data range is[0,255]
-    doBasicTest(rtObject, RTValueType.UINT8, 0, "uint8");
-    doBasicTest(rtObject, RTValueType.UINT8, 255, "uint8");
+    doBasicTest(rtObject, RTValueType.UINT8, (short) 0, "uint8");
+    doBasicTest(rtObject, RTValueType.UINT8, (short) 255, "uint8");
 
     //test int32, range is 	[–2147483648 , 2147483647]
     doBasicTest(rtObject, RTValueType.INT32, -2147483648, "int32");
@@ -153,8 +151,6 @@ public class TypeTest {
       result = checkEqualsFloat(value, newVal);
     } else if (type == RTValueType.DOUBLE) {
       result = checkEqualsDouble(value, newVal);
-    } else if (type == RTValueType.FUNCTION) {
-      result = checkEqualsFunction(value, newVal);
     } else {
       result = value.equals(newVal);
     }
@@ -170,22 +166,25 @@ public class TypeTest {
    */
   private void doFunctionTest(RTObject rtObject, String propertiesName)
       throws RTException, ExecutionException, InterruptedException {
-    RTFunction function = new RTFunction(
-        (rtValue) -> {
 
-        });
-    rtObject.set(propertiesName, function).get();
+    RTValue oldRtValue = new RTValue(new RTFunction(rtValueList -> {
+      logger.debug("doFunctionTest test...");
+      logger.debug(rtValueList);
+    }));
+
+    rtObject.set(propertiesName, oldRtValue).get();
     Future<RTValue> valueFuture = rtObject.get(propertiesName);
-    RTFunction newFunc = (RTFunction) valueFuture.get();
+    RTValue rtValue = valueFuture.get();
+    ((RTFunction) rtValue.getValue()).getListener().invoke(null);
     totalExamplesCount += 1;
-    boolean result = checkEqualsFunction(function, newFunc);
+    boolean result = checkEqualsFunction(oldRtValue, rtValue);
     if (result) {
       succeedExamplesCount += 1;
     }
 
     logger.debug(
-        getTestResult(RTValueType.FUNCTION.toString(), function.getFuncName(),
-            newFunc.getFuncName(), result));
+        getTestResult(RTValueType.FUNCTION.toString(), oldRtValue.getValue(),
+            rtValue, result));
   }
 
   /**
@@ -193,25 +192,30 @@ public class TypeTest {
    */
   private void doObjectTest(RTObject rtObject, String propertiesName)
       throws RTException, ExecutionException, InterruptedException {
-    RTLocalObject rtLocalObject = new RTLocalObject(true);
-    rtObject.set(propertiesName, rtLocalObject);
-    RTLocalObject newObj = (RTLocalObject) rtObject.get(propertiesName).get();
+    TestObject oldObj = new TestObject("type test");
+    RTValue oldRtValue = new RTValue(oldObj, RTValueType.OBJECT);
+    rtObject.set(propertiesName, oldRtValue).get();
+    RTValue newObj = rtObject.get(propertiesName).get();
 
+    TestObject testObject = (TestObject) newObj.getValue();
+    testObject.doTest();
     totalExamplesCount += 1;
-    boolean result = newObj.getObjName().equals(rtLocalObject.getObjName());
+
+    boolean result = testObject.getId().equals(oldObj.getId());
     if (result) {
       succeedExamplesCount += 1;
     }
     logger.debug(
-        getTestResult(RTValueType.OBJECT.toString(), rtLocalObject.getObjName(),
-            newObj.getObjName(), result));
+        getTestResult(RTValueType.OBJECT.toString(), oldObj.getId(),
+            testObject.getId(), result));
   }
 
   /**
    * check function is equals
    */
-  private boolean checkEqualsFunction(Object v1, Object v2) {
-    return ((RTFunction) v1).getFuncName().equals(((RTFunction) v2).getFuncName());
+  private boolean checkEqualsFunction(RTValue v1, RTValue v2) {
+    return ((RTFunction) v1.getValue()).getFunctionName()
+        .equals(((RTFunction) v2.getValue()).getFunctionName());
   }
 
   /**

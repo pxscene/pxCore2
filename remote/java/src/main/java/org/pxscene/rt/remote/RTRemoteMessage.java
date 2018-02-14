@@ -3,10 +3,12 @@ package org.pxscene.rt.remote;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * the base RTRemote Message class.
  */
+@ToString
 public class RTRemoteMessage {
 
 

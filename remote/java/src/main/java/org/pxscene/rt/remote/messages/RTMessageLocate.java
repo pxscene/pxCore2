@@ -1,15 +1,18 @@
 package org.pxscene.rt.remote.messages;
 
 
+import lombok.NonNull;
 import java.net.URI;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.pxscene.rt.remote.RTRemoteMessage;
 import org.pxscene.rt.remote.RTRemoteMessageType;
 
 /**
  * the Locate (search done) response entity.
  */
+@ToString(callSuper = true)
 public class RTMessageLocate extends RTRemoteMessage {
 
 
@@ -18,6 +21,7 @@ public class RTMessageLocate extends RTRemoteMessage {
    */
   @Getter
   @Setter
+  @NonNull
   private String objectId;
 
   /**
@@ -25,6 +29,7 @@ public class RTMessageLocate extends RTRemoteMessage {
    */
   @Getter
   @Setter
+  @NonNull
   private int senderId;
 
   /**
@@ -32,12 +37,13 @@ public class RTMessageLocate extends RTRemoteMessage {
    */
   @Setter
   @Getter
+  @NonNull
   private URI endpoint;
 
   /**
    * the entity constructor with type.
    */
   public RTMessageLocate() {
-    super(RTRemoteMessageType.SERACH_OBJECT);
+    super(RTRemoteMessageType.LOCATE_OBJECT);
   }
 }

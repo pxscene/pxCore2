@@ -59,7 +59,7 @@ public class ThreadTest {
 
 class ObjectTest extends Thread {
 
-  private static Logger logger = Logger.getLogger(ObjectTest.class);
+  private static final Logger logger = Logger.getLogger(ObjectTest.class);
   private RTObject rtObject;
 
   public ObjectTest(RTObject rtObject) {

@@ -15,21 +15,33 @@
 //
 package org.pxscene.rt;
 
+
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 import org.pxscene.rt.remote.RTRemoteSerializer;
 
 /**
  * the basic rtValue
  */
+@ToString
 public class RTValue {
 
+  /**
+   * the value type
+   */
   @Getter
   @Setter
+  @NonNull
   protected RTValueType type;
 
+  /**
+   * the value
+   */
   @Getter
   @Setter
+  @NonNull
   protected Object value;
 
 
@@ -90,6 +102,24 @@ public class RTValue {
   }
 
   /**
+   * create new rtValue with rtFunction value
+   *
+   * @param rtFunction the rtFunction value
+   */
+  public RTValue(RTFunction rtFunction) {
+    this(rtFunction, RTValueType.FUNCTION);
+  }
+
+  /**
+   * create new rtValue with rt object value
+   *
+   * @param rtObject the rtObject value
+   */
+  public RTValue(RTObject rtObject) {
+    this(rtObject, RTValueType.OBJECT);
+  }
+
+  /**
    * create new rtValue with value
    *
    * @param value the value
@@ -98,14 +128,13 @@ public class RTValue {
   public RTValue(Object value, RTValueType type) {
     this.value = value;
     this.type = type;
-  }
 
-  /**
-   * convert rtValue to string value
-   *
-   * @return the string value
-   */
-  public String toString() {
-    return value.toString();
+    if (this.type.equals(RTValueType.FUNCTION)) {
+      RTFunction rtFunction = (RTFunction) value;
+      RTEnvironment.getRtFunctionMap().put(rtFunction.getFunctionName(), rtFunction);
+    } else if (this.type.equals(RTValueType.OBJECT)) {
+      RTObject rtObject = (RTObject) value;
+      RTEnvironment.getRtObjectMap().put(rtObject.getId(), rtObject);
+    }
   }
 }

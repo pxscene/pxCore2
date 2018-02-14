@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
-import org.pxscene.rt.RTEnvironment;
 import org.pxscene.rt.RTException;
 import org.pxscene.rt.remote.messages.RTMessageLocate;
 import org.pxscene.rt.remote.messages.RTMessageSearch;
@@ -25,7 +24,7 @@ public class RTRemoteMulticastResolver {
   /**
    * the logger instance
    */
-  private static Logger logger = Logger.getLogger(RTRemoteMulticastResolver.class);
+  private static final Logger logger = Logger.getLogger(RTRemoteMulticastResolver.class);
 
   /**
    * the remote object map, thread safe
@@ -35,7 +34,7 @@ public class RTRemoteMulticastResolver {
   /**
    * the rt remote serializer instance
    */
-  RTRemoteSerializer serializer = new RTRemoteSerializer();
+  private RTRemoteSerializer serializer = new RTRemoteSerializer();
 
   /**
    * the multicast socket out channel
@@ -77,14 +76,12 @@ public class RTRemoteMulticastResolver {
         DatagramPacket pkt = new DatagramPacket(recvBuff, recvBuff.length);
         try {
           socketIn.receive(pkt);
-          String temp;
           RTMessageLocate locate = serializer.fromBytes(recvBuff, 0, recvBuff.length);
-          temp = locate.getEndpoint().toString();
-          temp += "/";
-          temp += locate.getObjectId();
-          objectMap.put(locate.getObjectId(), new URI(temp));
+          objectMap.put(locate.getObjectId(), new URI(
+              locate.getEndpoint().toString() + "/" + locate.getObjectId()));
           Thread.sleep(1);
         } catch (Exception e) {
+          logger.error(e);
           e.printStackTrace();
           break;
         }
@@ -132,8 +129,8 @@ public class RTRemoteMulticastResolver {
 
     byte[] buff = serializer.toBytes(search);
     Long preCheckTime = System.currentTimeMillis();
-    Long totalTime = 0L;
-
+    Long diff, now, seachTimeMultiple = 1L, totalCostTime = 0L;
+    URI uri;
     try {
       socketOut.send(new DatagramPacket(buff, buff.length, group, port));
     } catch (IOException e) {
@@ -141,16 +138,18 @@ public class RTRemoteMulticastResolver {
     }
     while (true) {
       try {
-        Long now = System.currentTimeMillis();
-        Long diff = now - preCheckTime;
-        URI uri = objectMap.get(name);
+        now = System.currentTimeMillis();
+        diff = now - preCheckTime;
+        uri = objectMap.get(name);
         if (uri != null) {
           objectMap.remove(name);
           return uri;
         }
-        if (diff >= RTEnvironment.FIND_OBBJECT_TIME) {
-          totalTime += RTEnvironment.FIND_OBBJECT_TIME;
-          logger.debug("searching object " + name + ", cost = " + totalTime / 1000.0 + "s");
+        Long currentTime = RTConst.FIRST_FIND_OBJECT_TIME * seachTimeMultiple;
+        if (diff >= currentTime) {
+          totalCostTime += currentTime;
+          logger.debug("searching object " + name + ", cost = " + totalCostTime / 1000.0 + "s");
+          seachTimeMultiple *= 2;
           socketOut.send(new DatagramPacket(buff, buff.length, group, port));
           preCheckTime = now;
         }

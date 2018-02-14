@@ -3,9 +3,11 @@ package org.pxscene.rt.remote.messages;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 import org.pxscene.rt.remote.RTRemoteMessage;
 import org.pxscene.rt.remote.RTRemoteMessageType;
 
+@ToString
 public class RTMessageGetPropertyByNameRequest extends RTRemoteMessage {
 
   /**

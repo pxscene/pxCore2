@@ -46,7 +46,7 @@ public class RTException extends Exception {
   }
 
   /**
-   * create new RTException with  cause
+   * create new RTException with cause
    *
    * @param cause the cause exception
    */

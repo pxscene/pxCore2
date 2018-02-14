@@ -6,14 +6,16 @@ import java.util.List;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 import org.pxscene.rt.RTValue;
 import org.pxscene.rt.remote.RTRemoteMessage;
 import org.pxscene.rt.remote.RTRemoteMessageType;
-import org.pxscene.rt.RTFunction;
+
 
 /**
  * The call method request entity.
  */
+@ToString
 public class RTMessageCallMethodRequest extends RTRemoteMessage {
 
   /**
@@ -37,14 +39,15 @@ public class RTMessageCallMethodRequest extends RTRemoteMessage {
    */
   @Getter
   @Setter
+  @NonNull
   private String methodName;
 
   /**
-   * the call request rt function, it may reflex to a local rt function listener
+   * the call request rt function, it is should be a local or remote function
    */
   @Getter
   @Setter
-  private RTFunction rtFunction;
+  private RTValue rtFunction;
 
   /**
    * the entity constructor with type

@@ -12,5 +12,5 @@ public interface RTFunctionListener {
    *
    * @param rtValueList the function args
    */
-  void invoke(List<RTValue> rtValueList);
+  void invoke(List<RTValue> rtValueList) throws RTException;
 }

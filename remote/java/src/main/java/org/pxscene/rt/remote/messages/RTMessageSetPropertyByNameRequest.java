@@ -4,6 +4,7 @@ package org.pxscene.rt.remote.messages;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 import org.pxscene.rt.RTValue;
 import org.pxscene.rt.remote.RTRemoteMessage;
 import org.pxscene.rt.remote.RTRemoteMessageType;
@@ -11,6 +12,8 @@ import org.pxscene.rt.remote.RTRemoteMessageType;
 /**
  * the set property by name request entity.
  */
+
+@ToString
 public class RTMessageSetPropertyByNameRequest extends RTRemoteMessage {
 
   /**

@@ -5,6 +5,7 @@ import java.net.URI;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 import org.pxscene.rt.remote.RTRemoteMessage;
 import org.pxscene.rt.remote.RTRemoteMessageType;
 
@@ -12,6 +13,7 @@ import org.pxscene.rt.remote.RTRemoteMessageType;
 /**
  * the object serach entity.
  */
+@ToString(callSuper = true)
 public class RTMessageSearch extends RTRemoteMessage {
 
   /**
@@ -27,6 +29,7 @@ public class RTMessageSearch extends RTRemoteMessage {
    */
   @Getter
   @Setter
+  @NonNull
   private int senderId;
 
   /**

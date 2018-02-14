@@ -17,6 +17,7 @@ package org.pxscene.rt.remote;
 
 import java.util.concurrent.Future;
 import lombok.Getter;
+import lombok.Setter;
 import org.pxscene.rt.RTException;
 import org.pxscene.rt.RTObject;
 import org.pxscene.rt.RTValue;

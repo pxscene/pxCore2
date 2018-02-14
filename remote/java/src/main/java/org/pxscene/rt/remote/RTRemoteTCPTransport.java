@@ -99,6 +99,18 @@ public class RTRemoteTCPTransport implements RTRemoteTransport, Runnable {
     blockingQueue = new LinkedBlockingQueue<byte[]>();
   }
 
+  public RTRemoteTCPTransport(Socket socket) throws RTException {
+    this.socket = socket;
+    blockingQueue = new LinkedBlockingQueue<byte[]>();
+    try {
+      bindSocketStream();
+      start();
+    } catch (IOException e) {
+      logger.error(e);
+      throw new RTException(e);
+    }
+  }
+
   /**
    * the thread that to read data
    */
@@ -115,7 +127,7 @@ public class RTRemoteTCPTransport implements RTRemoteTransport, Runnable {
         }
       }
     } catch (IOException err) {
-      logger.error(err);
+      logger.error("socket read error, maybe some client disconnect from server", err);
       try {
         close();
       } catch (Exception ignored) {
@@ -133,14 +145,31 @@ public class RTRemoteTCPTransport implements RTRemoteTransport, Runnable {
 
     try {
       socket = new Socket(mRemoteAddress, mRemotePort);
-      dataOutputStream = new DataOutputStream(socket.getOutputStream());
-      dataInputStream = new DataInputStream(socket.getInputStream());
+      bindSocketStream();
     } catch (IOException err) {
       throw new RTException("failed to open socket", err);
     }
 
     logger.info("new tcp connection from: " + socket.getLocalAddress() + " to: " + socket
         .getRemoteSocketAddress());
+
+    start();
+  }
+
+  /**
+   * bind input/output stream to socket
+   *
+   * @throws IOException throw exception if bind failed
+   */
+  private void bindSocketStream() throws IOException {
+    dataOutputStream = new DataOutputStream(socket.getOutputStream());
+    dataInputStream = new DataInputStream(socket.getInputStream());
+  }
+
+  /**
+   * start transport
+   */
+  private void start() {
     mRunning = true;
     mReaderthread = new Thread(this);
     mReaderthread.start();

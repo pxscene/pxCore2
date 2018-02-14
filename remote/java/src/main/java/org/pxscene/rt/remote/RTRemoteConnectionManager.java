@@ -20,7 +20,7 @@ public class RTRemoteConnectionManager {
   /**
    * the logger instance
    */
-  private static Logger logger = Logger.getLogger(RTRemoteConnectionManager.class);
+  private static final Logger logger = Logger.getLogger(RTRemoteConnectionManager.class);
 
   /**
    * get remote object by uri

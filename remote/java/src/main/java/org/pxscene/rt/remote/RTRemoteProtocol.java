@@ -25,8 +25,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import javax.json.Json;
 import javax.json.JsonObjectBuilder;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.log4j.Logger;
+import org.pxscene.rt.RTEnvironment;
 import org.pxscene.rt.RTException;
+import org.pxscene.rt.RTFunction;
+import org.pxscene.rt.RTStatusCode;
 import org.pxscene.rt.RTValue;
 import org.pxscene.rt.remote.messages.RTMessageCallMethodRequest;
 import org.pxscene.rt.remote.messages.RTMessageCallMethodResponse;
@@ -37,7 +42,7 @@ import org.pxscene.rt.remote.messages.RTMessageSetPropertyByNameRequest;
 /**
  * the rt remote protocol entity.
  */
-class RTRemoteProtocol implements Runnable {
+public class RTRemoteProtocol implements Runnable {
 
   /**
    * the logger instance
@@ -62,32 +67,38 @@ class RTRemoteProtocol implements Runnable {
   /**
    * the connection transport
    */
+  @Getter
   private RTRemoteTransport transport;
+
+
+  /**
+   * the rt remote server
+   */
+  @Setter
+  private RTRemoteServer rtRemoteServer;
 
   /**
    * if the protocol running
    */
   private boolean running;
 
-  /**
-   * this thread
-   */
-  private Thread thread;
-
 
   /**
    * create new protocol
    *
    * @param transport the connection transport
+   * @param transportOpened is the transport already opened
    * @throws RTException if any other error occurred during operation
    */
-  public RTRemoteProtocol(RTRemoteTransport transport) throws RTException {
+  RTRemoteProtocol(RTRemoteTransport transport, boolean transportOpened) throws RTException {
     this.transport = transport;
-    this.transport.open();
+    if (!transportOpened) {
+      this.transport.open();
+    }
     running = true;
-    thread = new Thread(this);
-    thread.start();
+    new Thread(this).start();
   }
+
 
   /**
    * return new correlation key
@@ -106,7 +117,7 @@ class RTRemoteProtocol implements Runnable {
    * @return the future task
    * @throws RTException if any other error occurred during operation
    */
-  public Future<RTValue> sendGetByName(String objectId, String name) throws RTException {
+  Future<RTValue> sendGetByName(String objectId, String name) throws RTException {
     String correlationKey = RTRemoteProtocol.newCorrelationKey();
     RTRemoteFuture<RTValue> future = new RTRemoteFuture<>(correlationKey);
     CallContext context = new CallContext(future, (message, closure) -> {
@@ -135,7 +146,7 @@ class RTRemoteProtocol implements Runnable {
    * @return the future task
    * @throws RTException if any other error occurred during operation
    */
-  public Future<RTValue> sendGetById(String objectId, int index) throws RTException {
+  Future<RTValue> sendGetById(String objectId, int index) throws RTException {
     throw new RTException("not implemented");
   }
 
@@ -149,7 +160,7 @@ class RTRemoteProtocol implements Runnable {
    * @return the future task
    * @throws RTException if any other error occurred during operation
    */
-  public Future<Void> sendSetById(String objectId, int index, RTValue value) throws RTException {
+  Future<Void> sendSetById(String objectId, int index, RTValue value) throws RTException {
     throw new RTException("not implemented");
   }
 
@@ -189,7 +200,7 @@ class RTRemoteProtocol implements Runnable {
    * @return the future task
    * @throws RTException if any other error occurred during operation
    */
-  public Future<RTValue> sendCallByNameAndReturns(String objectId, String methodName,
+  Future<RTValue> sendCallByNameAndReturns(String objectId, String methodName,
       RTValue... arguments) throws RTException {
     String correlationKey = RTRemoteProtocol.newCorrelationKey();
     RTRemoteFuture<RTValue> future = new RTRemoteFuture<>(correlationKey);
@@ -311,28 +322,48 @@ class RTRemoteProtocol implements Runnable {
       try {
         byte[] buff = transport.recv();
         RTRemoteMessage message = serializer.fromBytes(buff, 0, buff.length);
-        if (message.getMessageType().equals(RTRemoteMessageType.KEEP_ALIVE_REQUEST)) {
-          //TODO this mean server send keep alive request to client, simple continue for now
-        } else if (message.getMessageType().equals(RTRemoteMessageType.METHOD_CALL_REQUEST)) {
-          // this mean server invoke client function,and these is no CallContext
-          // let do this in this thread for now
-          RTMessageCallMethodRequest request = (RTMessageCallMethodRequest) message;
-          if (request.getRtFunction() != null && request.getRtFunction().getListener() != null) {
-            request.getRtFunction().getListener().invoke(request.getFunctionArgs());
-          }
-          sendCallResponse(request.getCorrelationKey()); // send call response to server
-        } else {
-          CallContext context = get(message.getCorrelationKey());
+        CallContext context = get(message.getCorrelationKey());
+        if (context != null) {
           context.complete(message);
+        } else {
+          if (RTEnvironment.isServerMode()) {
+            processMessageInServerMode(message);
+          } else {
+            processMessageInClientMode(message);
+          }
         }
       } catch (RTException err) {
-        logger.warn("error dispatching incomgin messages", err);
+        logger.error("error dispatching incomgin messages", err);
       }
     }
   }
 
+  private void processMessageInClientMode(RTRemoteMessage message) throws RTException {
+    if (message.getMessageType().equals(RTRemoteMessageType.KEEP_ALIVE_REQUEST)) {
+      // TODO this mean server send keep alive request to client, simple continue for now
+    } else if (message.getMessageType().equals(RTRemoteMessageType.METHOD_CALL_REQUEST)) {
+      // this mean server invoke client function,and these is no CallContext
+      // let do this in this thread for now
+      RTMessageCallMethodRequest request = (RTMessageCallMethodRequest) message;
+      if (request.getRtFunction() != null
+          && request.getRtFunction().getValue() != null) {
+        RTFunction rtFunction = ((RTFunction) request.getRtFunction().getValue());
+        if (rtFunction.getListener() != null) {
+          rtFunction.getListener().invoke(request.getFunctionArgs());
+        }
+      }
+      sendCallResponse(request.getCorrelationKey()); // send call response to server
+    } else {
+      logger.error("unexpected message " + message);
+    }
+  }
+
+  private void processMessageInServerMode(RTRemoteMessage message) {
+    rtRemoteServer.getMessageQueue().add(new RTRemoteTask(this, message));
+  }
+
   /**
-   * when server send call request to client, clinet need return response to server
+   * when server send call request to client, client need return response to server
    *
    * @param correlationKey the call request correlation key
    * @throws RTException if any other error occurred during operation
@@ -340,11 +371,11 @@ class RTRemoteProtocol implements Runnable {
   public void sendCallResponse(String correlationKey) throws RTException {
     JsonObjectBuilder builder = Json.createObjectBuilder();
     JsonObjectBuilder typeBuilder = Json.createObjectBuilder();
-    typeBuilder.add("type", 0);
-    builder.add("message.type", RTRemoteMessageType.METHOD_CALL_RESPONSE.toString());
-    builder.add("correlation.key", correlationKey);
-    builder.add("status.code", 0);
-    builder.add("function.return_value", typeBuilder.build());
+    typeBuilder.add(RTConst.TYPE, RTStatusCode.OK.getCode());
+    builder.add(RTConst.MESSAGE_TYPE, RTRemoteMessageType.METHOD_CALL_RESPONSE.toString());
+    builder.add(RTConst.CORRELATION_KEY, correlationKey);
+    builder.add(RTConst.STATUS_CODE, RTStatusCode.OK.getCode());
+    builder.add(RTConst.FUNCTION_RETURN_VALUE, typeBuilder.build());
     transport.send(builder.build().toString().getBytes(RTRemoteSerializer.CHARSET));
   }
 
@@ -369,7 +400,7 @@ class RTRemoteProtocol implements Runnable {
      * @param future the futrue task
      * @param closure the bi consumer
      */
-    public CallContext(RTRemoteFuture future, BiConsumer<RTRemoteMessage, RTRemoteFuture> closure) {
+    CallContext(RTRemoteFuture future, BiConsumer<RTRemoteMessage, RTRemoteFuture> closure) {
       this.closure = closure;
       this.future = future;
     }
@@ -379,7 +410,7 @@ class RTRemoteProtocol implements Runnable {
      *
      * @param message the rt remote message
      */
-    public void complete(RTRemoteMessage message) {
+    void complete(RTRemoteMessage message) {
       if (closure != null) {
         closure.accept(message, future);
       }
