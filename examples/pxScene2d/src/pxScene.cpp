@@ -181,6 +181,11 @@ public:
 #endif
   }
 
+  void* getInterface(const char* /*name*/)
+  {
+     return NULL;
+  }
+  
   rtError setView(pxIView* v)
   {
     mView = v;

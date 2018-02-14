@@ -12,6 +12,8 @@ function Scene() {
   this._setNativeScene = function(scene, filePath) {
     if( nativeScene === null ) {
       nativeScene = scene;
+      // TODO JRJR try to get rid of this stuff... 
+
       this.animation = scene.animation;
       this.stretch   = scene.stretch;
       this.alignVertical = scene.alignVertical;
@@ -20,6 +22,8 @@ function Scene() {
       this.root = scene.root;
       this.info = scene.info;
       this.filePath = filePath;
+      this.addServiceProvider = scene.addServiceProvider;
+      this.removeServiceProvider = scene.removeServiceProvider;
       if (!isDuk) { 
         this.__defineGetter__("w", function() { return scene.w; });
         this.__defineGetter__("h", function() { return scene.h; });

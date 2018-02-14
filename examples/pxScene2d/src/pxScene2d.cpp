@@ -1925,6 +1925,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     return RT_FAIL;
   }
 
+  // Handle psuedo property here for children.  Probably should make this 
   rtObjectRef c = p.get<rtObjectRef>("c");
   if (c)
   {
@@ -3022,32 +3023,112 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 
 rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 {
-#ifdef ENABLE_PERMISSIONS_CHECK
-  if (!mPermissions.allows(name.cString(), rtPermissions::SERVICE))
-  {
-    rtLogError("service '%s' is not allowed", name.cString());
-    return RT_ERROR_NOT_ALLOWED;
-  }
-#endif
+  returnObject = NULL;
 
-  rtLogInfo("trying to get service for name: %s", name.cString());
-#ifdef PX_SERVICE_MANAGER
-  rtObjectRef serviceManager;
-  rtError result = pxServiceManager::findServiceManager(serviceManager);
-  if (result != RT_OK)
+  // Create context from requesting scene
+  rtObjectRef ctx = new rtMapObject();
+  ctx.set("url", mScriptView != NULL ? mScriptView->getUrl() : "");
+
+  return getService(name, ctx, returnObject);
+}
+
+// todo change rtString to const char*
+rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObjectRef& service)
+{
+  static pxScene2d* reentered = NULL;
+
+  // Only query this scene  if we're not already in the middle of querying this scene
+  if (reentered != this)
   {
-    rtLogWarn("service manager not found");
-    return result;
+    for (std::vector<rtFunctionRef>::iterator i = mServiceProviders.begin(); i != mServiceProviders.end(); i++)
+    {
+      rtValue result;
+      rtError e;
+      
+      reentered = this;
+      e = (*i).sendReturns<rtValue>(name, ctx, result);
+      reentered = NULL;
+
+      if (e == RT_OK)
+      {
+        if (result.getType() == RT_stringType)
+        {
+          rtString access = result.toString();
+          // denied stop searching for service
+          if (access == "deny")
+            break;
+          // if not explicitly allowed then break
+          if (access != "allow")
+            break;
+          // otherwise keep on looking
+        }
+        else if (result.getType() == RT_objectType)
+        {
+          rtObjectRef o = result.toObject();
+          if (o)
+          {
+              service = o;
+              return RT_OK;
+          }
+          else
+          {
+            // if object reference is null don't keep looking. service provider must explicitly allow.
+            break;
+          }
+        }
+        else
+        {
+          // unexpected result from service provider stop searching for service.
+          break;
+        }
+      }
+    }
   }
-  result = serviceManager.sendReturns<rtObjectRef>("createService", mScriptView != NULL ? mScriptView->getUrl() : "", name, returnObject);
-  rtLogInfo("create %s service result: %d", name.cString(), result);
-  return result;
-#else
-  rtLogInfo("service manager not supported");
-  (void)name;
-  (void)returnObject;
-  return RT_FAIL;
-#endif //PX_SERVICE_MANAGER
+
+  // See if the view's container can provide the service
+  rtRef<rtIServiceProvider> serviceProvider;
+  if (mContainer)
+  {
+    serviceProvider = (rtIServiceProvider*)(mContainer->getInterface("serviceProvider"));
+  }
+  if (serviceProvider)
+  {
+    if (serviceProvider->getService(name, ctx, service) == RT_OK)
+    {
+      return RT_OK;
+    }
+    else
+      return RT_FAIL;
+  }
+  else
+  {
+    // TODO JRJR should move this to top level container only... 
+
+  #ifdef ENABLE_PERMISSIONS_CHECK
+    if (!mPermissions.allows(name, rtPermissions::SERVICE))
+    {
+      rtLogError("service '%s' is not allowed", name);
+      return RT_ERROR_NOT_ALLOWED;
+    }
+  #endif
+
+    rtLogInfo("trying to get service for name: %s", name);
+  #ifdef PX_SERVICE_MANAGER
+    rtObjectRef serviceManager;
+    rtError result = pxServiceManager::findServiceManager(serviceManager);
+    if (result != RT_OK)
+    {
+      rtLogWarn("service manager not found");
+      return result;
+    }
+    result = serviceManager.sendReturns<rtObjectRef>("createService", mScriptView != NULL ? mScriptView->getUrl() : "", name, returnObject);
+    rtLogInfo("create %s service result: %d", name, result);
+    return result;
+  #else
+    rtLogInfo("service manager not supported");
+    return RT_FAIL;
+  #endif //PX_SERVICE_MANAGER
+  }
 }
 
 rtDefineObject(pxScene2d, rtObject);
@@ -3087,6 +3168,8 @@ rtDefineMethod(pxScene2d, dispose);
 rtDefineProperty(pxScene2d, origin);
 rtDefineMethod(pxScene2d, allows);
 rtDefineMethod(pxScene2d, checkAccessControlHeaders);
+rtDefineMethod(pxScene2d, addServiceProvider);
+rtDefineMethod(pxScene2d, removeServiceProvider);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
@@ -3325,6 +3408,14 @@ void pxSceneContainer::dispose()
   }
 }
 
+  void* pxSceneContainer::getInterface(const char* name)
+  {
+    if (strcmp(name, "serviceProvider") == 0)
+    {
+      return (rtIServiceProvider*)mScene;
+    }
+    return NULL;
+  }
 
 #if 0
 void* gObjectFactoryContext = NULL;
