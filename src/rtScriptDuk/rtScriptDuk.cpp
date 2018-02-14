@@ -107,7 +107,7 @@ extern "C" {
 #include "duv.h"
 }
 
-#ifdef ENABLE_DUKTAPE_DEBUGGER
+#ifdef ENABLE_DEBUG_MODE
 extern "C" {
 #include "duk_debugger_interface.h"
 }
@@ -1288,7 +1288,7 @@ void rtScriptDuk::init2(int argc, char** argv)
 
     rtSetupJsModuleBindings(dukCtx);
 
-    #ifdef ENABLE_DUKTAPE_DEBUGGER
+    #ifdef ENABLE_DEBUG_MODE
     char const *enable_debug = getenv("ENABLE_DUKTAPE_DEBUGGER");
     if ((enable_debug) && (1 == atoi(enable_debug)))
     {
@@ -1310,7 +1310,7 @@ rtError rtScriptDuk::term()
 {
   rtLogInfo(__FUNCTION__);
   //nodeTerminated = true;
-  #ifdef ENABLE_DUKTAPE_DEBUGGER
+  #ifdef ENABLE_DEBUG_MODE
   duk_debugger_finish(dukCtx);
   #endif
   //uv_loop_close(dukLoop);
