@@ -1,36 +1,3 @@
-/*
- *  Example debug transport using a Windows TCP socket
- *
- *  Provides a TCP server socket which a debug client can connect to.
- *  After that data is just passed through.
- *
- *  https://msdn.microsoft.com/en-us/library/windows/desktop/ms737593(v=vs.85).aspx
- *
- *  Compiling 'duk' with debugger support using MSVC (Visual Studio):
- *
- *    > python2 tools\configure.py \
- *          --output-directory prep
- *          -DDUK_USE_DEBUGGER_SUPPORT -DDUK_USE_INTERRUPT_COUNTER
- *    > cl /W3 /O2 /Feduk.exe \
- *          /DDUK_CMDLINE_DEBUGGER_SUPPORT
- *          /Iexamples\debug-trans-socket /Iprep
- *          examples\cmdline\duk_cmdline.c
- *          examples\debug-trans-socket\duk_trans_socket_windows.c
- *          prep\duktape.c
- *
- *  With MinGW:
- *
- *    $ python2 tools\configure.py \
- *          --output-directory prep
- *          -DDUK_USE_DEBUGGER_SUPPORT -DDUK_USE_INTERRUPT_COUNTER
- *    $ gcc -oduk.exe -Wall -O2 \
- *          -DDUK_CMDLINE_DEBUGGER_SUPPORT \
- *          -Iexamples/debug-trans-socket -Iprep \
- *          examples/cmdline/duk_cmdline.c \
- *          examples/debug-trans-socket/duk_trans_socket_windows.c \
- *          prep/duktape.c -lm -lws2_32
- */
-
 #undef UNICODE
 #if !defined(WIN32_LEAN_AND_MEAN)
 #define WIN32_LEAN_AND_MEAN
@@ -68,13 +35,12 @@
 #define DUK__STRINGIFY(x) DUK__STRINGIFY_HELPER(x)
 
 #if 0
-#define DEBUG_PRINTS
+#define DUK_DEBUG_PRINTS
 #endif
 
 static SOCKET server_sock = INVALID_SOCKET;
 static SOCKET client_sock = INVALID_SOCKET;
 static int wsa_inited = 0;
-static int debug_port = DUK_DEBUG_PORT;
 
 /*
  *  Duktape callbacks
@@ -86,7 +52,7 @@ duk_size_t duk_trans_socket_read_cb(void *udata, char *buffer, duk_size_t length
 
 	(void) udata;  /* not needed by the example */
 
-#if defined(DEBUG_PRINTS)
+#if defined(DUK_DEBUG_PRINTS)
 	fprintf(stderr, "%s: udata=%p, buffer=%p, length=%ld\n",
 	        __FUNCTION__, (void *) udata, (void *) buffer, (long) length);
 	fflush(stderr);
@@ -150,7 +116,7 @@ duk_size_t duk_trans_socket_write_cb(void *udata, const char *buffer, duk_size_t
 
 	(void) udata;  /* not needed by the example */
 
-#if defined(DEBUG_PRINTS)
+#if defined(DUK_DEBUG_PRINTS)
 	fprintf(stderr, "%s: udata=%p, buffer=%p, length=%ld\n",
 	        __FUNCTION__, (void *) udata, (const void *) buffer, (long) length);
 	fflush(stderr);
@@ -204,7 +170,7 @@ duk_size_t duk_trans_socket_peek_cb(void *udata) {
 
 	(void) udata;  /* not needed by the example */
 
-#if defined(DEBUG_PRINTS)
+#if defined(DUK_DEBUG_PRINTS)
 	fprintf(stderr, "%s: udata=%p\n", __FUNCTION__, (void *) udata);
 	fflush(stderr);
 #endif
@@ -237,19 +203,19 @@ duk_size_t duk_trans_socket_peek_cb(void *udata) {
 	return 0;
 }
 
-void duk_trans_socket_waitconn(void* context) {
+void* duk_trans_socket_waitconn(void* context) {
 	if (server_sock == INVALID_SOCKET) {
 		fprintf(stderr, "%s: no server socket, skip waiting for connection\n",
 		        __FILE__);
 		fflush(stderr);
-		return;
+		return NULL;
 	}
 	if (client_sock != INVALID_SOCKET) {
 		(void) closesocket(client_sock);
 		client_sock = INVALID_SOCKET;
 	}
 
-	fprintf(stderr, "Waiting for debug connection on port %d\n", (int) debug_port);
+	fprintf(stderr, "Waiting for debug connection on port %d\n", (int) DUK_DEBUG_PORT);
 	fflush(stderr);
 
 	client_sock = accept(server_sock, NULL, NULL);
@@ -280,60 +246,6 @@ void duk_trans_socket_waitconn(void* context) {
                     NULL,NULL,NULL,NULL, NULL);
 
 	duk_debugger_pause((duk_context*)context);
-	return;
-
- fail:
-	if (client_sock != INVALID_SOCKET) {
-		(void) closesocket(client_sock);
-		client_sock = INVALID_SOCKET;
-	}
-}
-
-void *duk_trans_socket_connection_handler(void *context)
-{
-	if (server_sock == INVALID_SOCKET) {
-		fprintf(stderr, "%s: no server socket, skip waiting for connection\n",
-		        __FILE__);
-		fflush(stderr);
-		return NULL;
-	}
-	if (client_sock != INVALID_SOCKET) {
-		(void) closesocket(client_sock);
-		client_sock = INVALID_SOCKET;
-	}
-
-	fprintf(stderr, "Waiting for debug connection on port %d\n", (int) debug_port);
-	fflush(stderr);
-
-	client_sock = accept(server_sock, NULL, NULL);
-	if (client_sock == INVALID_SOCKET) {
-		fprintf(stderr, "%s: accept() failed with error %ld, skip waiting for connection\n",
-		        __FILE__, (long) WSAGetLastError());
-		fflush(stderr);
-		goto fail;
-	}
-
-	fprintf(stderr, "Debug connection established\n");
-	fflush(stderr);
-
-	/* XXX: For now, close the listen socket because we won't accept new
-	 * connections anyway.  A better implementation would allow multiple
-	 * debug attaches.
-	 */
-
-	if (server_sock != INVALID_SOCKET) {
-		(void) closesocket(server_sock);
-		server_sock = INVALID_SOCKET;
-	}
-
-	duk_debugger_attach((duk_context*)context,
-                        duk_trans_socket_read_cb,
-                        duk_trans_socket_write_cb,
-                        duk_trans_socket_peek_cb,
-                          NULL,NULL,NULL,NULL, NULL);
-
-	duk_debugger_pause((duk_context*)context);
-
 	return NULL;
 
  fail:
@@ -343,7 +255,6 @@ void *duk_trans_socket_connection_handler(void *context)
 	}
 	return NULL;
 }
-
 
 /*
  *  Transport init and finish
@@ -353,11 +264,7 @@ void duk_debugger_init(void* ctx, duk_bool_t pauseOnStart) {
 
     //finalize port
     char const *port = getenv("DUKTAPE_DEBUGGER_PORT");
-    if (port)
-    {
-      debug_port = atoi(port);
-    }
-
+  
 	WSADATA wsa_data;
 	struct addrinfo hints;
 	struct addrinfo *result = NULL;
@@ -379,7 +286,14 @@ void duk_debugger_init(void* ctx, duk_bool_t pauseOnStart) {
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 
-	rc = getaddrinfo(DUK_DEBUG_ADDRESS, DUK__STRINGIFY(debug_port), &hints, &result);
+	if (port)
+    {
+	  rc = getaddrinfo(DUK_DEBUG_ADDRESS, port, &hints, &result);
+	}
+	else
+    {
+	  rc = getaddrinfo(DUK_DEBUG_ADDRESS, DUK__STRINGIFY(DUK_DEBUG_PORT), &hints, &result);
+	}
 	if (rc != 0) {
 		fprintf(stderr, "%s: getaddrinfo() failed: %d\n", __FILE__, rc);
 		fflush(stderr);
@@ -410,7 +324,7 @@ void duk_debugger_init(void* ctx, duk_bool_t pauseOnStart) {
     else
     {
        pthread_t accept_thread_id;
-       if (pthread_create( &accept_thread_id , NULL ,  duk_trans_socket_connection_handler , ctx) < 0)
+       if (pthread_create( &accept_thread_id , NULL ,  duk_trans_socket_waitconn , ctx) < 0)
          goto fail;
      }
 
@@ -455,6 +369,7 @@ void duk_debugger_finish(void *context) {
 		WSACleanup();
 		wsa_inited = 0;
 	}
+	duk_debugger_detach((duk_context*)context);
 }
 
 #undef DUK__STRINGIFY_HELPER
