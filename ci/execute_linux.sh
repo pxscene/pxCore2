@@ -47,6 +47,9 @@ printExecLogs()
 
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
+
+if [ "$DUKTAPE_SUPPORT" != "ON" ]
+then
 ./pxscene.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $EXECLOGS 2>&1 &
 
 grep "TEST RESULTS: " $EXECLOGS
@@ -57,7 +60,7 @@ count=0
 max_seconds=1500
 
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
-	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
+	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
 
 	grep "TEST RESULTS: " $EXECLOGS
@@ -150,23 +153,54 @@ else
 	checkError $pxRetVal "pxobject leak" "$errCause" "Follow the steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'pxobjectcount is' in logs. Analyze why the count is not 0?"
 	exit 1;
 fi
+fi #For Node
 
+#Script for Ducktape support
+
+if [ "$DUKTAPE_SUPPORT" = "ON" ]
+then
+  ./pxscene.sh http://pxscene.org/examples/px-reference/gallery/fancy.js >> $EXECLOGS 2>&1 &
+  sleep 35;
+  kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
+  sleep 20;
+  echo "********** Terminated fancy.js ************" >>$EXECLOGS
+fi
+
+#check for crash
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $EXECLOGS
+retVal=$?
+if [ "$retVal" -eq 1 ]
+  then
+  checkError $retVal "Execution failed" "Core dump" "Test by running locally"
+  if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+  then
+    printExecLogs
+  fi
+  exit 1;
+fi
+
+
+#End
 
 # Check for valgrind memory leaks
-grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
-retVal=$?
-if [ "$retVal" -eq 0 ]
-	then
-	echo "************************* Valgrind reports success *************************";
-else
-	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-		then
-		errCause="Check the above logs"
-		printExecLogs
-	else
-		errCause="Check the file $VALGRINDLOGS and see for definitely lost count"
-	fi
-	checkError $retVal "Valgrind execution reported memory leaks" "$errCause" "Follow the steps locally : export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix the leaks"
-	exit 1;
+
+if [ "$DUKTAPE_SUPPORT" != "ON" ]
+then
+  grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
+  retVal=$?
+  if [ "$retVal" -eq 0 ]
+    then
+    echo "************************* Valgrind reports success *************************";
+  else
+    if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+    then
+      errCause="Check the above logs"
+      cat $VALGRINDLOGS 
+    else
+      errCause="Check the file $VALGRINDLOGS and see for definitely lost count"
+    fi
+    checkError $retVal "Valgrind execution reported memory leaks" "$errCause" "Follow the steps locally : export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix the leaks"
+    exit 1;
+  fi
+  exit 0;
 fi
-exit 0;

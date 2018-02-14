@@ -58,9 +58,11 @@ then
   sh build_px.sh 
   checkError $? "#### Build/unittests/execution [build_px.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
 
+if [ "$DUKTAPE_SUPPORT" != "ON" ] ; then
+
   sh "build_$TRAVIS_OS_NAME.sh" 
   checkError $? "#### Build/unittests/execution [build_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
-
+fi
   sh "unittests_$TRAVIS_OS_NAME.sh" 
   checkError $? "#### Build/unittests/execution [unittests_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
 

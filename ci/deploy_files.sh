@@ -2,7 +2,12 @@
 export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/ciresults}
 export DEPLOY_USER="${DEPLOY_USER:-ubuntu}"
 REMOTE_HOST="$1"
-REMOTE_DIR="${DEPLOY_DESTINATION}/${TRAVIS_BUILD_ID}-${TRAVIS_COMMIT}-${TRAVIS_OS_NAME}"
+if [ "$DUKTAPE_SUPPORT" = "ON" ]
+then
+	REMOTE_DIR="${DEPLOY_DESTINATION}/${TRAVIS_BUILD_ID}-${TRAVIS_COMMIT}-${TRAVIS_OS_NAME}-duktape"
+else
+	REMOTE_DIR="${DEPLOY_DESTINATION}/${TRAVIS_BUILD_ID}-${TRAVIS_COMMIT}-${TRAVIS_OS_NAME}"
+fi
 #since we saved $1 to REMOTE_HOST delete it from args via shift
 export REMOTE_FILE_COUNT=$(ssh -o StrictHostKeyChecking=no -p 2220 ${DEPLOY_USER}@${REMOTE_HOST} "ls -lrt $DEPLOY_DESTINATION|wc -l")
 export REMOTE_FILE_OLD=$(ssh -o StrictHostKeyChecking=no -p 2220 ${DEPLOY_USER}@${REMOTE_HOST} "ls -t $DEPLOY_DESTINATION|tail -1")
