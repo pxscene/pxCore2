@@ -178,6 +178,20 @@ then
   kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
   echo "********** Terminated fancy.js ************" >>$EXECLOGS
   sleep 20;
-fi
 
+#crash check
+  if [ -f "/tmp/pxscenecrash" ] # 'indicator' file created by Signal Handles in pxscene.app
+  then
+    printf "\n ############  CORE DUMP detected !!\n\n"
+    dumped_core=1
+    sudo rm -rf /tmp/pxscenecrash
+    break
+  fi  
+  # Handle crash - 'dumped_core = 1' ?
+  if [ "$dumped_core" -eq 1 ]
+  then
+    $TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'` /var/tmp/pxscene.log
+    checkError $cored "Execution failed" "Core dump" "Run execution locally"
+  fi
+fi
 exit 0;
