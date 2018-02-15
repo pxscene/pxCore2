@@ -21,6 +21,7 @@
 #ifndef PX_WAYLAND_H
 #define PX_WAYLAND_H
 
+#include <atomic>
 #include <pthread.h>
 #include "pxIView.h"
 #include "pxScene2d.h"
@@ -164,7 +165,7 @@ private:
   pxIViewContainer *mContainer;
   bool mReadyEmitted;
   bool mClientMonitorStarted;
-  bool mWaitingForRemoteObject;
+  std::atomic<bool> mWaitingForRemoteObject;
   bool mUseDispatchThread;
   int mX;
   int mY;
