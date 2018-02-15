@@ -81,6 +81,9 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
                 gles/pxClipboardNative.cpp gles/pxEGLProviderRPi.cpp gles/LinuxInputEventDispatcher.cpp pxViewWindow.cpp
                 unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
                 rtFileCache.cpp rtHttpCache.cpp)
+         if (SUPPORT_DUKTAPE)
+          set(PXCORE_FILES ${PXCORE_FILES} rtScriptDuk/debugger/duk_debugger_interface_unix.c)
+        endif (SUPPORT_DUKTAPE)
         set(PLATFORM_LINKER_FLAGS)
         include_directories(AFTER /opt/vc/include /opt/vc/include/interface/vcos/pthreads
                 /opt/vc/include/interface/vmcs_host/linux /opt/vc/include)
