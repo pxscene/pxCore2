@@ -6,4 +6,4 @@
 void duk_debugger_init(void*, duk_bool_t);
 void duk_debugger_finish(void*);
 
-#endif  /* DUK_TRANS_SOCKET_H_INCLUDED */
+#endif  /* DUK_DEBUGGER_INTERFACE_H_INCLUDED */
