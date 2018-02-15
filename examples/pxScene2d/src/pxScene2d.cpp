@@ -1738,6 +1738,19 @@ rtDefineObject(pxRoot,pxObject);
 
 int gTag = 0;
 
+static std::vector<std::string> split(const std::string& input, char delimiter)
+{
+  std::string::size_type b = 0;
+  std::vector<std::string> result;
+
+  while ((b = input.find_first_not_of(delimiter, b)) != std::string::npos) {
+      auto e = input.find_first_of(delimiter, b);
+      result.push_back(input.substr(b, e-b));
+      b = e;
+  }
+  return result;
+}
+
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
     mInnerpxObjects(),
