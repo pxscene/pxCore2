@@ -1042,6 +1042,7 @@ rtError rtScriptNode::pump()
   v8::platform::PumpMessageLoop(mPlatform, mIsolate);
 #endif //ENABLE_NODE_V_6_9
   uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
+  mIsolate->RunMicrotasks();
 
   // Enable this to expedite garbage collection for testing... warning perf hit
   if (mTestGc)
