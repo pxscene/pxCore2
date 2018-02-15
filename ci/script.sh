@@ -59,16 +59,20 @@ then
   checkError $? "#### Build/unittests/execution [build_px.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
 
 if [ "$DUKTAPE_SUPPORT" != "ON" ] ; then
-
+  printf "\n********************* build_$TRAVIS_OS_NAME.sh *******************\n"
   sh "build_$TRAVIS_OS_NAME.sh" 
   checkError $? "#### Build/unittests/execution [build_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
 fi
+
+  printf "\n********************* unittests_$TRAVIS_OS_NAME.sh *******************\n"
   sh "unittests_$TRAVIS_OS_NAME.sh" 
   checkError $? "#### Build/unittests/execution [unittests_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
 
+  printf "\n********************* execute_$TRAVIS_OS_NAME.sh *******************\n"
   sh "execute_$TRAVIS_OS_NAME.sh" 
   checkError $? "#### Build/unittests/execution [execute_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
 
+  printf "\n********************* code_coverage_$TRAVIS_OS_NAME.sh *******************\n"
   sh "code_coverage_$TRAVIS_OS_NAME.sh"
   checkError $? "#### Build/unittests/execution [code_coverage_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
 
