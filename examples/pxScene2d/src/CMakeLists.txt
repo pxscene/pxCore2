@@ -287,6 +287,21 @@ else ()
     add_definitions(-DPX_SCENE_VERSION=${PXSCENE_VERSION})
 endif("${PXSCENE_VERSION}" STREQUAL "")
 
+execute_process(
+  COMMAND git describe --tags --always --long --dirty
+  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  RESULT_VARIABLE GIT_DESCRIBE_RES
+  OUTPUT_VARIABLE GIT_PXSCENE_VERSION
+  ERROR_QUIET
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+if(GIT_DESCRIBE_RES EQUAL 0)
+  message("Settings pxscene version to: ${GIT_PXSCENE_VERSION}")
+  add_definitions("-DGIT_PXSCENE_VERSION=${GIT_PXSCENE_VERSION}")
+endif()
+
+
 set(TARGETINCLUDE "")
 set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/breakpad/src/client/linux)
 

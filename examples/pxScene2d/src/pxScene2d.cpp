@@ -1803,11 +1803,57 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #ifdef ENABLE_RT_NODE
   mInfo.set("engine", script.engine());
 #endif
-  
-    rtObjectRef build = new rtMapObject;
-    build.set("date", xstr(__DATE__));
-    build.set("time", xstr(__TIME__));
-  
+
+  rtObjectRef build = new rtMapObject;
+  build.set("date", xstr(__DATE__));
+  build.set("time", xstr(__TIME__));
+
+  std::string pxsceneVersion;
+
+#ifdef GIT_PXSCENE_VERSION
+  pxsceneVersion = xstr(GIT_PXSCENE_VERSION);
+#else
+  pxsceneVersion = "0.0.0.0-0-0000000000-dirty";
+#endif
+
+  auto macroChunks = split(pxsceneVersion, '-');
+  auto versionChunks = split(macroChunks[0], '.');
+
+  rtValue pxTag   (macroChunks[0].c_str());
+  rtValue pxOffset(macroChunks[1].c_str());
+  rtValue pxHash  (macroChunks[2].c_str());
+  rtValue pxDirty;
+
+  if(versionChunks.size() == 4)
+  {
+    rtValue pxMajor(versionChunks[0].c_str());
+    rtValue pxMinor(versionChunks[1].c_str());
+    rtValue pxMicro(versionChunks[2].c_str());
+    rtValue pxNano( versionChunks[3].c_str());
+
+    build.set("major", pxMajor);
+    build.set("minor", pxMinor);
+    build.set("micro", pxMicro);
+    build.set("nano",  pxNano);
+  }
+  else
+  {
+    build.set("major", "0");
+    build.set("minor", "0");
+    build.set("micro", "0");
+    build.set("nano" , "0");
+  }
+
+  if(macroChunks.size() > 3)
+    pxDirty = rtValue(macroChunks[3] == "dirty");
+  else
+    pxDirty = false;
+
+  build.set("tag",    pxTag);
+  build.set("offset", pxOffset);
+  build.set("hash",   pxHash);
+  build.set("dirty",  pxDirty);
+
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
 }
