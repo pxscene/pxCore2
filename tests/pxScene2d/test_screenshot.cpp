@@ -47,20 +47,23 @@ public:
 
   void test_base64_encode_decode()
   {
-    for (int i = 0; i<100; i++)
+    for (size_t i = 0; i<100; i++)
     {
       rtData pngData2;
       pngData2.init(i);
       size_t l;
       char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
-      EXPECT_TRUE (i == 0 || (NULL != d && *d != 0));
-      if (NULL != d && *d != 0)
+      EXPECT_EQ (l, 4*((i+2)/3));
+      EXPECT_TRUE (l == 0 || NULL != d);
+
+      if (NULL != d)
       {
         size_t l2;
         unsigned char *d2 = base64_decode((const unsigned char *)d, l, &l2);
-        EXPECT_TRUE (NULL != d2);
+        EXPECT_TRUE (l < 4 || NULL != d2);
         if (d2)
         {
+          EXPECT_EQ (pngData2.length(), l2);
           int eq = memcmp(pngData2.data(), d2, pngData2.length());
           EXPECT_EQ (eq, 0);
           free(d2);
