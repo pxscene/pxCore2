@@ -18,11 +18,14 @@ limitations under the License.
 
 // pxTimerNative.cpp
 
+#if __cplusplus < 201103L
+
 #include "../pxTimer.h"
 
-#include "pxConfigNative.h"
-
 #include <stdlib.h>
+#include <errno.h>
+
+#include "pxConfigNative.h"
 
 #ifndef USE_CGT
 #include <sys/time.h>
@@ -30,60 +33,78 @@ limitations under the License.
 #include <time.h>
 #endif
 
-#ifdef USE_SELECT_FOR_SLEEP
-#include <sys/select.h>
-#else
-#include <unistd.h>
-#endif
-
 double  pxSeconds()
 {
 #ifndef USE_CGT
-  timeval tv;
-  gettimeofday(&tv, NULL);
-  return tv.tv_sec + ((double)tv.tv_usec/1000000);
+    timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec + ((double)tv.tv_usec/1000000);
 #else
-  timespec ts;
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  return ts.tv_sec + ((double)ts.tv_nsec/1000000000);
+    timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec + ((double)ts.tv_nsec/1000000000);
 #endif
 }
 
 double pxMilliseconds()
 {
 #ifndef USE_CGT
-  timeval tv;
-  gettimeofday(&tv, NULL);
-  return ((double)(tv.tv_sec * 1000) + ((double)tv.tv_usec/1000));
+    timeval tv;
+    gettimeofday(&tv, NULL);
+    return ((double)(tv.tv_sec * 1000) + ((double)tv.tv_usec/1000));
 #else
-  timespec ts;
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  return ((double)(ts.tv_sec * 1000) + ((double)ts.tv_nsec/1000000));
+    timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ((double)(ts.tv_sec * 1000) + ((double)ts.tv_nsec/1000000));
 #endif
 }
 
 double  pxMicroseconds()
 {
 #ifndef USE_CGT
-  timeval tv;
-  gettimeofday(&tv, NULL);
-  return (tv.tv_sec * 1000000) + tv.tv_usec;
+    timeval tv;
+    gettimeofday(&tv, NULL);
+    return (tv.tv_sec * 1000000) + tv.tv_usec;
 #else
-  timespec ts;
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  return ((double)(ts.tv_sec * 1000000) + ((double)ts.tv_nsec/1000));
+    timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ((double)(ts.tv_sec * 1000000) + ((double)ts.tv_nsec/1000));
 #endif
+}
+
+void pxSleepUS(uint64_t usToSleep)
+{
+    struct timespec res;
+
+    res.tv_sec  = (usToSleep / 1000000UL);
+    res.tv_nsec = (usToSleep * 1000UL) % 1000000000UL;
+
+    while (true)
+    {
+        struct timespec remain;
+        const int rv = clock_nanosleep(CLOCK_MONOTONIC, 0, &res, &remain);
+
+        if (rv == 0)
+        {
+            break;
+        }
+
+        if (errno == EINTR)
+        {
+           res = remain;
+           continue;
+        }
+
+        // Theoretically impossible case in our case :-)
+        // At this point something went wrong but we cannot
+        // return any error code as pxSleepMS returns void.
+        abort();
+    }
 }
 
 void pxSleepMS(uint32_t msToSleep)
 {
-#ifdef USE_SELECT_FOR_SLEEP
-  timeval tv;
-  tv.tv_sec = 0;
-  tv.tv_usec = 1000 * msToSleep;
-  select(0, NULL, NULL, NULL, &tv);
-#else
-  useconds_t s = (useconds_t)msToSleep*1000;
-  usleep(s);
-#endif
+    pxSleepUS(msToSleep * 1000UL);
 }
+
+#endif // __cplusplus < 201103L

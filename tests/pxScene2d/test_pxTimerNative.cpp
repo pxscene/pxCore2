@@ -39,22 +39,22 @@ class pxTimerNativeTest : public testing::Test
         double startTime = 0.0;
         double endTime = 0.0;
         double opTime = 0.0;
-        
+
         opTime = pxSeconds();
         EXPECT_TRUE(opTime > 0);
- 
+
         opTime = pxMilliseconds();
         EXPECT_TRUE(opTime > 0);
-        
+
         opTime = pxMicroseconds();
         EXPECT_TRUE(opTime > 0);
- 
-        startTime = pxSeconds();
-        pxSleepMS(TEST_TIME * 1000);
-        endTime = pxSeconds();
-        EXPECT_TRUE((int)(endTime - startTime) == TEST_TIME);
-    }
 
+        startTime = pxMilliseconds();
+        const uint32_t toWaitMS = TEST_TIME * 1000;
+        pxSleepMS(toWaitMS);
+        endTime = pxMilliseconds();
+        EXPECT_TRUE((uint32_t)(endTime - startTime) >= toWaitMS);
+    }
 };
 
 TEST_F(pxTimerNativeTest, pxTimerNativeTestS)

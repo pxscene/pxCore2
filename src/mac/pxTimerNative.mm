@@ -1,6 +1,8 @@
-// pxCore CopyRight 2005-2007 John Robinson
+// pxCore CopyRight 2005-2018 John Robinson
 // Portable Framebuffer and Windowing Library
 // pxTimerNative.cpp
+
+#if __cplusplus < 201103L
 
 #include "pxTimer.h"
 
@@ -60,7 +62,14 @@ double  pxMicroseconds()
 #endif
 }
 
+void pxSleepUS(uint64_t usToSleep)
+{
+  usleep(usToSleep);
+}
+
 void pxSleepMS(uint32_t msToSleep)
 {
-	usleep(msToSleep*1000);
+  pxSleepUS(msToSleep*(uint64_t)1000);
 }
+
+#endif // __cplusplus < 201103L

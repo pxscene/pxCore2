@@ -545,7 +545,7 @@ void pxWindowNative::runEventLoopOnce()
     pxWindowNative* w = (*i);
     w->animateAndRender();
   }
-  usleep(1000); //TODO - find out why pxSleepMS causes a crash on some devices
+  pxSleepMS(1);
 }
 
 
@@ -579,7 +579,7 @@ void pxWindowNative::runEventLoop()
     int pollResult = 0;
     int pollTimeout = 1000 / framerate;
 #endif //PXCORE_WL_DISPLAY_READ_EVENTS
-    double maxSleepTime = (1000 / framerate) * 1000;
+    const double maxSleepTime = (1000.0 / framerate) * 1000;
     rtLogInfo("max sleep time in microseconds: %f", maxSleepTime);
     while(!exitFlag)
     {
@@ -605,15 +605,12 @@ void pxWindowNative::runEventLoop()
 #endif //PXCORE_WL_DISPLAY_READ_EVENTS
 
         wl_display_dispatch_pending(display->display);
-        double processTime = (int)pxMicroseconds() - (int)startMicroseconds;
-        if (processTime < 0)
-        {
-          processTime = 0;
-        }
+        const double processTime = pxMicroseconds() - startMicroseconds;
+
         if (processTime < maxSleepTime)
         {
-          int sleepTime = (int)maxSleepTime-(int)processTime;
-          usleep(sleepTime);
+          const double sleepTime = maxSleepTime - (processTime > 0.0 ? processTime : 0.0);
+          pxSleepUS(sleepTime);
         }
     }
 }

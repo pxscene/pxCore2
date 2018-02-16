@@ -18,8 +18,11 @@ limitations under the License.
 
 // pxTimerNative.cpp
 
+#if __cplusplus < 201103L
+
 #include <windows.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 static bool gFreqInitialized = false;
 static LARGE_INTEGER gFreq;
@@ -66,7 +69,14 @@ double pxMicroseconds()
     return (c.QuadPart * 1000000) / (double)gFreq.QuadPart;
 }
 
-void pxSleepMS(uint32_t sleepMS)
+void pxSleepUS(uint64_t usToSleep)
 {
-    Sleep(sleepMS);
+    abort(); // simply not implemented
 }
+
+void pxSleepMS(uint32_t msToSleep)
+{
+    Sleep(msToSleep);
+}
+
+#endif // __cplusplus < 201103L

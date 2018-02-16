@@ -18,9 +18,12 @@ limitations under the License.
 
 // pxTimerNative.cpp
 
+#if __cplusplus < 201103L
+
 #include "../pxTimer.h"
 
 #include <stdlib.h>
+#include <errno.h>
 
 #define USE_CGT
 
@@ -69,29 +72,41 @@ double  pxMicroseconds()
 #endif
 }
 
-
-#if 1
-
-void pxSleepMS(uint32_t msToSleep)
+void pxSleepUS(uint64_t usToSleep)
 {
-    uint32_t ms = msToSleep;
-
     struct timespec res;
 
-    res.tv_sec  = (ms / 1000);
-    res.tv_nsec = (ms * 1000000) % 1000000000;
+    res.tv_sec  = (usToSleep / 1000000UL);
+    res.tv_nsec = (usToSleep * 1000UL) % 1000000000UL;
 
-    clock_nanosleep(CLOCK_MONOTONIC, 0, &res, NULL);
+    while (true)
+    {
+        struct timespec remain;
+        const int rv = clock_nanosleep(CLOCK_MONOTONIC, 0, &res, &remain);
+
+        if (rv == 0)
+        {
+            break;
+        }
+
+        if (errno == EINTR)
+        {
+           res = remain;
+           continue;
+        }
+
+        // Theoretically impossible case in our case :-)
+        // At this point something went wrong but we cannot
+        // return any error code as pxSleepMS returns void.
+        abort();
+    }
 }
 
 #else
 
 void pxSleepMS(uint32_t msToSleep)
 {
-    timeval tv;
-    tv.tv_sec = 0;
-    tv.tv_usec = 1000 * msToSleep;
-    select(0, NULL, NULL, NULL, &tv);
+    pxSleepUS(msToSleep * 1000UL);
 }
 
-#endif
+#endif // __cplusplus < 201103L
