@@ -136,7 +136,7 @@ void pxTextBox::recalc()
 
     //mDirty = true;
     setNeedsRecalc(false);
-    mDirty = true;
+
   }
 }
 void pxTextBox::setNeedsRecalc(bool recalc)
@@ -263,7 +263,7 @@ void pxTextBox::update(double t)
      recalc();
 
      //setNeedsRecalc(false);
-     //mDirty = true;
+     mDirty = true;
      mScene->mDirty = true;
    }
   
@@ -707,16 +707,16 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       {
         rtLogWarn("Text width is larger than maximum texture allowed: %lf.  Maximum texture size of %d will be used.",charW, MAX_TEXTURE_WIDTH);
         float tempWidthRatio = charW/MAX_TEXTURE_WIDTH;
-        uint32_t strLen = strlen(tempStr);
+        size_t strLen = strlen(tempStr);
         uint32_t tempNewLen = (uint32_t) strLen/tempWidthRatio;
         char* trimmedTempStr = (char *)malloc(tempNewLen+1);
         memset(trimmedTempStr,'\0',tempNewLen+1);
 
         uint32_t tmpPos = 0;
         if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER )
-          tmpPos = (strlen(tempStr)/2)-(tempNewLen/2); // Take middle of tempStr
+          tmpPos = ((uint32_t) strlen(tempStr)/2)-(tempNewLen/2); // Take middle of tempStr
         else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT)
-          tmpPos = (strlen(tempStr)-(tempNewLen)); // Take end of tempStr
+          tmpPos = ((uint32_t) strlen(tempStr)-(tempNewLen)); // Take end of tempStr
 
         strncpy(trimmedTempStr, tempStr+tmpPos,tempNewLen);
         getFontResource()->measureTextInternal(trimmedTempStr, size, sx, sy, charW, charH);
@@ -952,10 +952,6 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
      pxTexturedQuads quads;
      getFontResource()->renderTextToQuads(tempStr, size, sx, sy, quads, xPos, tempY);
      mQuadsVector.push_back(quads);
-      // if(!clip() && mTruncation == pxConstantsTruncation::NONE)
-      //   mQuads.draw(noClipX,noClipY,mTextColor);
-      // else
-      //   mQuads.draw(0, 0,mTextColor);
  #else
    getFontResource()->renderText(tempStr, size, xPos, tempY, sx, sy, mTextColor,lineWidth);
 #endif
@@ -1218,10 +1214,6 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           pxTexturedQuads quads;
           getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, xPos, tempY);
           mQuadsVector.push_back(quads);
-      //     if(!clip() && mTruncation == pxConstantsTruncation::NONE)
-      //   mQuads.draw(noClipX,noClipY,mTextColor);
-      // else
-      //   mQuads.draw(0, 0,mTextColor);
 #else
           getFontResource()->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, mTextColor,lineWidth);
 #endif       
@@ -1234,10 +1226,6 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
             pxTexturedQuads quads;  
             getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, xPos+charW, tempY);
             mQuadsVector.push_back(quads);
-      //       if(!clip() && mTruncation == pxConstantsTruncation::NONE)
-      //   mQuads.draw(noClipX,noClipY,mTextColor);
-      // else
-      //   mQuads.draw(0, 0,mTextColor);
 #else
             getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, mTextColor,lineWidth);
 #endif          
@@ -1292,10 +1280,6 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
             pxTexturedQuads quads;
             getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, xPos, tempY);
             mQuadsVector.push_back(quads);
-      //       if(!clip() && mTruncation == pxConstantsTruncation::NONE)
-      //   mQuads.draw(noClipX,noClipY,mTextColor);
-      // else
-      //   mQuads.draw(0, 0,mTextColor);
 #else
             getFontResource()->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, mTextColor,lineWidth);
 #endif          
@@ -1309,10 +1293,6 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
             pxTexturedQuads quads;
             getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, xPos+charW, tempY);
             mQuadsVector.push_back(quads);
-      //       if(!clip() && mTruncation == pxConstantsTruncation::NONE)
-      //   mQuads.draw(noClipX,noClipY,mTextColor);
-      // else
-      //   mQuads.draw(0, 0,mTextColor);
 #else
             getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, mTextColor,lineWidth);
 #endif         
