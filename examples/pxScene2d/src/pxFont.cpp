@@ -79,7 +79,7 @@ uint32_t npot(uint32_t i)
 }
 
 pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
-             mFontMutex(), mFontUrl()
+             mFontMutex()
 {  
   mFontId = gFontId++; 
   mUrl = fontUrl;
@@ -148,19 +148,23 @@ void pxFont::loadResourceFromFile()
     } 
 }
 
+// This init(char*) is for load of local font files
 rtError pxFont::init(const char* n)
 {
+  mFontMutex.lock();
   mUrl = n;
-    
-  if(FT_New_Face(ft, n, 0, &mFace))
+   
+  if(FT_New_Face(ft, n, 0, &mFace)) {
+    mFontMutex.unlock();
     return RT_FAIL;
+  }
   
   mInitialized = true;
   setPixelSize(defaultPixelSize);
-
+  mFontMutex.unlock();
   return RT_OK;
 }
-
+// This init is used by async callback to load downloaded font file data
 rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
   mFontMutex.lock();
@@ -168,29 +172,20 @@ rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
   mFontData = (char *)malloc(size);
   memcpy(mFontData, fontData, size);
   mFontDataSize = size;
-  mFontUrl = n;
-  mFontMutex.unlock();
-  
-  return RT_OK;
-}
-
-rtError pxFont::setupFont()
-{
-  mFontMutex.lock();
+  mUrl = n;
   if(FT_New_Memory_Face(ft, (const FT_Byte*)mFontData, mFontDataSize, 0, &mFace))
   {
     mFontMutex.unlock();
     return RT_FAIL;
   }
 
-  mUrl = mFontUrl;
   mInitialized = true;
   setPixelSize(defaultPixelSize);
-  mFontMutex.unlock();
 
+  mFontMutex.unlock();
+  
   return RT_OK;
 }
-
 
 void pxFont::setPixelSize(uint32_t s)
 {
