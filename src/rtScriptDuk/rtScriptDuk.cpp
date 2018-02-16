@@ -142,7 +142,7 @@ public:
   rtDukContext(rtDukContextRef clone_me);
 #endif
 
-  ~rtDukContext();
+  virtual ~rtDukContext();
 
   rtError add(const char *name, rtValue  const& val);
   rtValue get(const char *name);

@@ -175,7 +175,7 @@ class rtScriptNode: public rtIScript
 public:
   rtScriptNode();
   rtScriptNode(bool initialize);
-  ~rtScriptNode();
+  virtual ~rtScriptNode();
 
   unsigned long AddRef()
   {
