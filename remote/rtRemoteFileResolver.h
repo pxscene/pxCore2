@@ -2,7 +2,6 @@
 
 #include <string>
 #include <stdint.h>
-#include <netinet/in.h>
 #include <rtObject.h>
 
 #include "rtRemoteTypes.h"

@@ -5,6 +5,19 @@
 #include <rtObject.h>
 #include <stdint.h>
 
+#ifdef RT_PLATFORM_WINDOWS
+inline void usleep(int us)
+{
+   Sleep(us / 1000);
+}
+inline void sleep(int s)
+{
+   Sleep(s * 1000);
+}
+#else
+#include <unistd.h>
+#endif
+
 #define RT_REMOTE_TIMEOUT_INFINITE UINT32_MAX
 #define RT_REMOTE_API_VERSION 2.0
 #define RT_REMOTE_OLDSTYLE_API 1

@@ -4,7 +4,7 @@
 #include "rtRemoteEndpointHandle.h"
 #include "rtRemoteEndpoint.h"
 #include "rtError.h"
-#include <sys/socket.h>
+#include "rtRemoteSocketUtils.h"
 
 class rtRemoteEndpointHandleStreamServer : public virtual rtRemoteIEndpointHandle
 {

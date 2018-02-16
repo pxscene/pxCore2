@@ -4,11 +4,16 @@
 #include "rtRemoteMessage.h"
 #include "rtRemoteTypes.h"
 #include "rtRemoteEndpoint.h"
+#include "rtRemoteSocketUtils.h"
 
 #include <rtError.h>
 #include <string>
-#include <sys/socket.h>
 #include <stdint.h>
+#include <stdlib.h>
+
+#ifdef RT_PLATFORM_WINDOWS
+size_t getline(char **lineptr, size_t *n, FILE *stream);
+#endif
 
 rtError rtRemoteEndpointAddressToSocket(rtRemoteEndPointPtr addr, sockaddr_storage& ss);
 rtError rtRemoteSocketToEndpointAddress(sockaddr_storage const& ss, rtConnType const& connType, rtRemoteEndPointPtr& endpoint);

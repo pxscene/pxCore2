@@ -9,7 +9,6 @@
 #include <thread>
 #include <vector>
 
-#include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <rtLog.h>
@@ -43,9 +42,9 @@ rtRemoteStream::close()
   {
     // rtRemoteStreamSelector will remove dead streams on its own
     int ret = ::shutdown(m_fd, SHUT_RDWR);
-    if (ret == -1)
+    if (NET_FAILED(ret))
     {
-      rtError e = rtErrorFromErrno(errno);
+      rtError e = rtErrorFromErrno(net_errno());
       rtLogDebug("shutdown failed on fd %d: %s", m_fd, rtStrError(e));
     }
 
@@ -67,18 +66,17 @@ rtError
 rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
 {
   m_fd = socket(endpoint.ss_family, SOCK_STREAM, 0);
-  if (m_fd < 0)
+  if (NET_FAILED(m_fd))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to create socket. %s", rtStrError(e));
     return e;
   }
-  fcntl(m_fd, F_SETFD, fcntl(m_fd, F_GETFD) | FD_CLOEXEC);
 
   if (endpoint.ss_family != AF_UNIX)
   {
     uint32_t one = 1;
-    if (-1 == setsockopt(m_fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+    if (NET_FAILED(setsockopt(m_fd, IPPROTO_TCP, TCP_NODELAY, (char *)&one, sizeof(one))))
       rtLogError("setting TCP_NODELAY failed");
   }
 
@@ -86,9 +84,9 @@ rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
   rtSocketGetLength(endpoint, &len);
 
   int ret = ::connect(m_fd, reinterpret_cast<sockaddr const *>(&endpoint), len);
-  if (ret < 0)
+  if (NET_FAILED(ret))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to connect to remote rpc endpoint. %s", rtStrError(e));
     rtCloseSocket(m_fd);
     return e;
@@ -145,7 +143,14 @@ rtRemoteStream::onIncomingMessage(rtRemoteSocketBuffer& buff)
   rtError e = rtReadMessage(m_fd, buff, doc);
   if (e != RT_OK)
   {
+#ifdef RT_PLATFORM_WINDOWS
+     if ((e == rtErrorFromErrno(ENOTCONN) || 
+        e == rtErrorFromErrno(WSAENOTCONN) ||
+        e == rtErrorFromErrno(WSAECONNRESET))
+        && handler)
+#else
     if (e == rtErrorFromErrno(ENOTCONN) && handler)
+#endif
     { 
       auto self = shared_from_this();
       rtError err = handler->onStateChanged(self, State::Closed);

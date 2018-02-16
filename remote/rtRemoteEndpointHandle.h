@@ -3,39 +3,37 @@
 
 #include "rtRemoteEndpoint.h"
 #include "rtError.h"
-#include <unistd.h>
 
 class rtRemoteIEndpointHandle
 {
 public:
   virtual ~rtRemoteIEndpointHandle()
   {
-    if (m_fd != -1)
-      ::close(m_fd);
-    m_fd = -1;
+    if (m_fd != kInvalidSocket)
+      rtCloseSocket(m_fd);
   }
 
   /* Should create fd */
   virtual rtError open() = 0;
   virtual rtError close() = 0;
   
-  inline int fd() const
+  inline socket_t fd() const
     { return m_fd; }
 
-  inline void setFd(int fd)
+  inline void setFd(socket_t fd)
 	{ m_fd = fd; }
 
 protected:
   rtRemoteIEndpointHandle(rtRemoteEndpointPtr endpoint)
     : m_addr(endpoint)
-    , m_fd(-1)
+    , m_fd(kInvalidSocket)
   {
     // empty
   }
 
 protected:
   rtRemoteEndpointPtr m_addr;
-  int m_fd;
+  socket_t m_fd;
 };
 
 #endif

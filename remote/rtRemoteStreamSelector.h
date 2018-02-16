@@ -25,13 +25,15 @@ private:
   static void* pollFds(void* argp);
   rtError doPollFds();
 
+  using thread_ptr = std::unique_ptr<std::thread>;
+
 private:
   // TODO: should this be std::weak_ptr
   std::vector< std::shared_ptr<rtRemoteStream> >  m_streams;
-  pthread_t                                       m_thread;
+  thread_ptr                                      m_thread;
   std::mutex                                      m_mutex;
   std::condition_variable                         m_streams_cond;
-  int                                             m_shutdown_pipe[2];
+  bool                                            m_shutdown;
   rtRemoteEnvironment*                            m_env;
   bool                                            m_running;
 };

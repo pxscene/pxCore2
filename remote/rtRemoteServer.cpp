@@ -19,13 +19,16 @@
 
 #include <sys/stat.h>
 #include <stdlib.h>
-#include <arpa/inet.h>
 #include <errno.h>
 #include <string.h>
-#include <unistd.h>
 #include <fcntl.h>
-#include <rtLog.h>
+
+#ifndef RT_PLATFORM_WINDOWS
+#include <sys/types.h>
 #include <dirent.h>
+#endif
+
+#include <rtLog.h>
 
 namespace
 {
@@ -63,7 +66,12 @@ namespace
   void
   cleanupStaleUnixSockets()
   {
-    DIR* d = opendir("/proc/");
+#ifndef RT_PLATFORM_WINDOWS
+     DIR* d = NULL;
+#endif
+
+#ifdef RT_PLATFORM_LINUX
+    d = opendir("/proc/");
     if (!d)
     {
       rtError e = rtErrorFromErrno(errno);
@@ -91,7 +99,9 @@ namespace
     }
     while ((result != nullptr) && ret == 0);
     closedir(d);
+#endif
 
+#ifndef RT_PLATFORM_WINDOWS
     d = opendir("/tmp");
     if (!d)
     {
@@ -130,6 +140,8 @@ namespace
 
     closedir(d);
     free(entry);
+#endif
+
   } // cleanupStaleUnixSockets
 
   bool
@@ -162,6 +174,7 @@ namespace
       return in1->sin_addr.s_addr == in2->sin_addr.s_addr;
     }
 
+#ifndef RT_PLATFORM_WINDOWS
     if (addr1.ss_family == AF_UNIX)
     {
       sockaddr_un const* un1 = reinterpret_cast<sockaddr_un const*>(&addr1);
@@ -169,6 +182,7 @@ namespace
 
       return 0 == strncmp(un1->sun_path, un2->sun_path, UNIX_PATH_MAX);
     }
+#endif
 
     RT_ASSERT(false);
     return false;
@@ -176,22 +190,13 @@ namespace
 } // namespace
 
 rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
-  : m_listen_fd(-1)
+  : m_listen_fd(kInvalidSocket)
   , m_resolver(nullptr)
   , m_keep_alive_interval(std::numeric_limits<uint32_t>::max())
+  , m_shutdown(false)
   , m_env(env)
 {
   memset(&m_rpc_endpoint, 0, sizeof(m_rpc_endpoint));
-
-  m_shutdown_pipe[0] = -1;
-  m_shutdown_pipe[1] = -1;
-
-  int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
-  if (ret != 0)
-  {
-    rtError e = rtErrorFromErrno(ret);
-    rtLogWarn("failed to create shutdown pipe. %s", rtStrError(e));
-  }
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeOpenSessionRequest, 
     rtRemoteCallback<rtRemoteMessageHandler>(&rtRemoteServer::onOpenSession_Dispatch, this)));
@@ -220,15 +225,9 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
 
 rtRemoteServer::~rtRemoteServer()
 {
-  if (m_shutdown_pipe[0] != -1)
+  if (!m_shutdown)
   {
-    char buff[] = {"shutdown"};
-    ssize_t n = write(m_shutdown_pipe[1], buff, sizeof(buff));
-    if (n == -1)
-    {
-      rtError e = rtErrorFromErrno(errno);
-      rtLogWarn("failed to write. %s", rtStrError(e));
-    }
+    m_shutdown = true;
 
     if (m_thread)
     {
@@ -237,12 +236,8 @@ rtRemoteServer::~rtRemoteServer()
     }
   }
 
-  if (m_listen_fd != -1)
-    ::close(m_listen_fd);
-  if (m_shutdown_pipe[0] != -1)
-    ::close(m_shutdown_pipe[0]);
-  if (m_shutdown_pipe[1] != -1)
-    ::close(m_shutdown_pipe[1] = -1);
+  if (m_listen_fd != kInvalidSocket)
+    rtCloseSocket(m_listen_fd);
 
   if (m_resolver)
   {
@@ -328,26 +323,25 @@ rtRemoteServer::runListener()
 
     FD_ZERO(&readFds);
     rtPushFd(&readFds, m_listen_fd, &maxFd);
-    rtPushFd(&readFds, m_shutdown_pipe[0], &maxFd);
 
     FD_ZERO(&errFds);
     rtPushFd(&errFds, m_listen_fd, &maxFd);
 
     timeval timeout;
-    timeout.tv_sec = 1; // TODO: move to rtremote.conf (rt.remote.server.select.timeout)
-    timeout.tv_usec = 0;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 10000;
 
     int ret = select(maxFd + 1, &readFds, NULL, &errFds, &timeout);
-    if (ret == -1)
+    if (NET_FAILED(ret))
     {
-      rtError e = rtErrorFromErrno(errno);
+      rtError e = rtErrorFromErrno(net_errno());
       rtLogWarn("select failed: %s", rtStrError(e));
       continue;
     }
 
     // right now we just use this to signal "hey" more fds added
     // later we'll use this to shutdown
-    if (FD_ISSET(m_shutdown_pipe[0], &readFds))
+    if (m_shutdown)
     {
       rtLogInfo("got shutdown signal");
       return;
@@ -367,7 +361,7 @@ rtRemoteServer::runListener()
 }
 
 void
-rtRemoteServer::doAccept(int fd)
+rtRemoteServer::doAccept(socket_t fd)
 {
   sockaddr_storage remoteEndpoint;
   memset(&remoteEndpoint, 0, sizeof(remoteEndpoint));
@@ -375,9 +369,9 @@ rtRemoteServer::doAccept(int fd)
   socklen_t len = sizeof(sockaddr_storage);
 
   int ret = accept(fd, reinterpret_cast<sockaddr *>(&remoteEndpoint), &len);
-  if (ret == -1)
+  if (NET_FAILED(ret))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogWarn("error accepting new tcp connect. %s", rtStrError(e));
     return;
   }
@@ -402,7 +396,7 @@ rtRemoteServer::onClientStateChanged(std::shared_ptr<rtRemoteClient> const& clie
   if (state == rtRemoteClient::State::Shutdown)
   {
     rtLogInfo("client shutdown");
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::unique_lock<std::recursive_mutex> lock(m_mutex);
     auto itr = std::remove_if(
       m_connected_clients.begin(),
       m_connected_clients.end(),
@@ -514,7 +508,7 @@ rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32
       std::shared_ptr<rtRemoteClient> client;
       std::string const endpointName = rtSocketToString(objectEndpoint);
 
-      std::unique_lock<std::mutex> lock(m_mutex);
+      std::unique_lock<std::recursive_mutex> lock(m_mutex);
       auto itr = m_object_map.find(endpointName);
       if (itr != m_object_map.end())
         client = itr->second;
@@ -529,7 +523,7 @@ rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32
           break;
         }
       }
-      m_mutex.unlock();
+      lock.unlock();
 
       if (!client)
       {
@@ -545,7 +539,7 @@ rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32
         // we have race condition here. if the transport doesn't exist, two threads may
         // create one but only one will get inserted into the m_connected_client map. I'm not
         // sure that this really matters much
-        std::unique_lock<std::mutex> lock(m_mutex);
+        std::unique_lock<std::recursive_mutex> lock(m_mutex);
         m_object_map.insert(ClientMap::value_type(endpointName, client));
       }
 
@@ -599,7 +593,7 @@ rtRemoteServer::unregisterDisconnectedCallback( clientDisconnectedCallback cb, v
         return m_disconnected_callback_map.end();
     };
 
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::unique_lock<std::recursive_mutex> lock(m_mutex);
     auto client = findClient();
 
     if (client == m_disconnected_callback_map.end()) {
@@ -626,8 +620,11 @@ rtRemoteServer::openRpcListener()
   char path[UNIX_PATH_MAX];
 
   memset(path, 0, sizeof(path));
+#if defined(__linux__)
   cleanupStaleUnixSockets();
+#endif
 
+#ifndef RT_PLATFORM_WINDOWS
   if (isUnixDomain(m_env))
   {
     rtError e = rtCreateUnixSocketName(0, path, sizeof(path));
@@ -646,24 +643,32 @@ rtRemoteServer::openRpcListener()
     strncpy(unAddr->sun_path, path, UNIX_PATH_MAX);
   }
   else
+#endif
+
   {
-    rtGetDefaultInterface(m_rpc_endpoint, 0);
+    //rtGetDefaultInterface(m_rpc_endpoint, 0);
+
+    std::string server_addr = m_env->Config->server_listen_interface();
+    rtError e = rtParseAddress(m_rpc_endpoint, server_addr.c_str(), 0, nullptr);
+    if (e != RT_OK) 
+    {
+       rtLogError("failed to parse address. %s", rtStrError(e));
+       return e;
+    }
   }
 
   m_listen_fd = socket(m_rpc_endpoint.ss_family, SOCK_STREAM, 0);
-  if (m_listen_fd < 0)
+  if (NET_FAILED(m_listen_fd))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to create socket. %s", rtStrError(e));
     return e;
   }
 
-  fcntl(m_listen_fd, F_SETFD, fcntl(m_listen_fd, F_GETFD) | FD_CLOEXEC);
-
   if (m_rpc_endpoint.ss_family != AF_UNIX)
   {
     uint32_t one = 1;
-    if (-1 == setsockopt(m_listen_fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+    if (NET_FAILED(setsockopt(m_listen_fd, IPPROTO_TCP, TCP_NODELAY, (char *)&one, sizeof(one))))
       rtLogError("setting TCP_NODELAY failed");
   }
 
@@ -671,9 +676,9 @@ rtRemoteServer::openRpcListener()
   rtSocketGetLength(m_rpc_endpoint, &len);
 
   ret = ::bind(m_listen_fd, reinterpret_cast<sockaddr *>(&m_rpc_endpoint), len);
-  if (ret < 0)
+  if (NET_FAILED(ret))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to bind socket. %s", rtStrError(e));
     return e;
   }
@@ -681,18 +686,12 @@ rtRemoteServer::openRpcListener()
   rtGetSockName(m_listen_fd, m_rpc_endpoint);
   rtLogInfo("local rpc listener on: %s", rtSocketToString(m_rpc_endpoint).c_str());
 
-  ret = fcntl(m_listen_fd, F_SETFL, O_NONBLOCK);
-  if (ret < 0)
-  {
-    rtError e = rtErrorFromErrno(errno);
-    rtLogError("fcntl: %s", rtStrError(e));
-    return e;
-  }
+  rtSocketSetBlocking(m_listen_fd, false);
 
   ret = listen(m_listen_fd, 2);
-  if (ret < 0)
+  if (NET_FAILED(ret))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to put socket in listen mode. %s", rtStrError(e));
     return e;
   }
@@ -707,7 +706,7 @@ rtRemoteServer::onOpenSession(std::shared_ptr<rtRemoteClient>& client, rtRemoteM
   char const* objectId = rtMessage_GetObjectId(*req);
 
   #if 0
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock<std::recursive_mutex> lock(m_mutex);
   auto itr = m_objects.find(id);
   if (itr != m_objects.end())
   {
@@ -961,7 +960,7 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtRemoteMes
   {
     auto now = std::chrono::steady_clock::now();
 
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::unique_lock<std::recursive_mutex> lock(m_mutex);
     for (rapidjson::Value::ConstValueIterator id  = itr->value.Begin(); id != itr->value.End(); ++id)
     {
       rtError e = m_env->ObjectCache->touch(id->GetString(), now);
@@ -993,7 +992,7 @@ rtRemoteServer::onKeepAliveResponse(std::shared_ptr<rtRemoteClient>& /*client*/,
 rtError
 rtRemoteServer::removeStaleObjects()
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock<std::recursive_mutex> lock(m_mutex);
   for (auto itr = m_object_map.begin(); itr != m_object_map.end();)
   {
     // TODO: I'm not sure if this works. This is a map of connections to remote peers.

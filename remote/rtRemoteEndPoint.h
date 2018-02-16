@@ -3,7 +3,8 @@
 
 #include "rtRemoteTypes.h"
 #include "rtError.h"
-#include <sys/socket.h>
+#include "rtRemoteSocketUtils.h"
+
 #include <string>
 #include <sstream>
 #include <stdint.h>
