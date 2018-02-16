@@ -2710,9 +2710,6 @@ void pxContext::drawTexturedQuads(int numQuads, const void *verts, const void* u
 }
 #endif
 
-typedef rtRef<pxSwTexture>    pxSwTextureRef;
-static        pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
-
 void pxContext::drawOffscreen(float src_x, float src_y,
                               float dst_x, float dst_y,
                               float w,     float h,

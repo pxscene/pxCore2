@@ -337,9 +337,9 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
       entry->bitmap_top = g->bitmap_top;
       entry->bitmapdotwidth = g->bitmap.width;
       entry->bitmapdotrows = g->bitmap.rows;
-      entry->advancedotx = (int32_t) g->advance.x;
-      entry->advancedoty = (int32_t) g->advance.y;
-      entry->vertAdvance = (int32_t) g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
+      entry->advancedotx = g->advance.x;
+      entry->advancedoty = g->advance.y;
+      entry->vertAdvance = g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
 
       gGlyphCache.insert(make_pair(key,entry));
 
@@ -476,7 +476,8 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
 #ifdef PXSCENE_FONT_ATLAS
 void pxFont::renderTextToQuads(const char *text, uint32_t size, 
                         float nsx, float nsy, 
-                        pxTexturedQuads& quads) 
+                        pxTexturedQuads& quads, 
+                        float x, float y) 
 {
   quads.clear();
   if (!text || !mInitialized)
@@ -484,8 +485,6 @@ void pxFont::renderTextToQuads(const char *text, uint32_t size,
     rtLogWarn("renderText called on font before it is initialized\n");
     return;
   }
-  int x = 0;
-  int y = 0;
 
   int i = 0;
   u_int32_t codePoint;

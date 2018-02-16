@@ -282,7 +282,11 @@ public:
   
   bool mInitialized;
   bool mNeedsRecalc;
-  
+
+  #ifdef PXSCENE_FONT_ATLAS
+  std::vector<pxTexturedQuads> mQuadsVector;
+  #endif
+
   rtObjectRef measurements;
   uint32_t lineNumber;
   uint32_t lastLineNumber;
@@ -298,11 +302,11 @@ public:
   bool isWordBoundary( char ch );
   bool isSpaceChar( char ch );  
   
-  void renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempX, float tempY, float sx, float sy, uint32_t pixelSize, float* color, bool render);
+  void renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempX, float tempY, float sx, float sy, uint32_t pixelSize, bool render);
   void renderTextNoWordWrap(float sx, float sy, float tempX, bool render);
-  void renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t pixelSize, float* color, bool render);
-  void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, float* color, bool render);
-  void renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float* color, float lineWidth, bool render );
+  void renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t pixelSize, bool render);
+  void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, bool render);
+  void renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float lineWidth, bool render );
   
   void recalc();
   void clearMeasurements();
