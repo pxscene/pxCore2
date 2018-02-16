@@ -1,5 +1,5 @@
 #include "rtRemoteEndpointHandleStreamServer.h"
-#include "rtRemoteEndpoint.h"
+#include "rtRemoteEndPoint.h"
 #include "rtRemoteTypes.h"
 #include "rtRemoteUtils.h"
 #include "rtRemoteSocketUtils.h"
@@ -11,7 +11,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
-rtRemoteEndpointHandleStreamServer::rtRemoteEndpointHandleStreamServer(rtRemoteEndpointPtr endpoint)
+rtRemoteEndpointHandleStreamServer::rtRemoteEndpointHandleStreamServer(rtRemoteEndPointPtr endpoint)
 : rtRemoteIEndpointHandle(endpoint)
 {
   memset(&m_socket, 0, sizeof(sockaddr_storage));
@@ -89,7 +89,7 @@ rtRemoteEndpointHandleStreamServer::doListen()
 }
 
 rtError
-rtRemoteEndpointHandleStreamServer::doAccept(int& new_fd, rtRemoteEndpointPtr& remote_addr)
+rtRemoteEndpointHandleStreamServer::doAccept(int& new_fd, rtRemoteEndPointPtr& remote_addr)
 {
   sockaddr_storage remote_endpoint;
   memset(&remote_endpoint, 0, sizeof(remote_endpoint));

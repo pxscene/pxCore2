@@ -2,20 +2,20 @@
 #define __RT_REMOTE_ENDPOINT_HANDLE_STREAM_SERVER_H__
 
 #include "rtRemoteEndpointHandle.h"
-#include "rtRemoteEndpoint.h"
+#include "rtRemoteEndPoint.h"
 #include "rtError.h"
 #include "rtRemoteSocketUtils.h"
 
 class rtRemoteEndpointHandleStreamServer : public virtual rtRemoteIEndpointHandle
 {
 public:
-  rtRemoteEndpointHandleStreamServer(rtRemoteEndpointPtr endpoint);
+  rtRemoteEndpointHandleStreamServer(rtRemoteEndPointPtr endpoint);
   
   virtual rtError open() override;
 	virtual rtError close() override;
 	rtError doBind();
 	rtError doListen();
-	rtError doAccept(int& new_fd, rtRemoteEndpointPtr& remote_addr);
+	rtError doAccept(int& new_fd, rtRemoteEndPointPtr& remote_addr);
 
 	inline sockaddr_storage sockaddr() const
 	  { return m_socket; }

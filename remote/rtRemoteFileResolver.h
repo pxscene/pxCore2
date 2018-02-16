@@ -6,7 +6,7 @@
 
 #include "rtRemoteTypes.h"
 #include "rtRemoteIResolver.h"
-#include "rtRemoteEndpoint.h"
+#include "rtRemoteEndPoint.h"
 #include "rtRemoteSocketUtils.h"
 
 class rtRemoteEnvironment;

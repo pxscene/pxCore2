@@ -1,5 +1,5 @@
 #include "rtRemoteMapperSql.h"
-#include "rtRemoteEndpoint.h"
+#include "rtRemoteEndPoint.h"
 #include "rtRemoteEnvironment.h"
 #include "rtError.h"
 #include <string>
@@ -11,7 +11,7 @@ rtRemoteMapperSql::rtRemoteMapperSql(rtRemoteEnvironment* env)
 }
 
 rtError
-rtRemoteMapperSql::registerEndpoint(std::string const& /*objectId*/, rtRemoteEndpointPtr const& /*endpoint*/)
+rtRemoteMapperSql::registerEndpoint(std::string const& /*objectId*/, rtRemoteEndPointPtr const& /*endpoint*/)
 {
   // TODO
   return RT_FAIL;
@@ -25,7 +25,7 @@ rtRemoteMapperSql::deregisterEndpoint(std::string const& /*objectId*/)
 }
 
 rtError
-rtRemoteMapperSql::lookupEndpoint(std::string const& /*objectId*/, rtRemoteEndpointPtr& /*endpoint*/)
+rtRemoteMapperSql::lookupEndpoint(std::string const& /*objectId*/, rtRemoteEndPointPtr& /*endpoint*/)
 {
   // TODO
   return RT_FAIL;

@@ -19,8 +19,8 @@ set(RTREMOTE_SOURCE_FILES rtremote.conf.gen rtRemoteConfig.h rtRemoteServer.cpp 
         rtRemoteFunction.cpp rtRemoteMessage.cpp rtRemoteClient.cpp rtRemoteValueReader.cpp
         rtRemoteValueWriter.cpp rtRemoteSocketUtils.cpp rtRemoteStream.cpp
         rtRemoteObjectCache.cpp rtRemote.cpp rtRemoteConfig.cpp rtRemoteFactory.cpp
-        rtRemoteFileResolver.cpp rtRemoteMulticastResolver.cpp rtRemoteNsResolver.cpp
-        rtRemoteNameService.cpp rtRemoteConfigBuilder.cpp rtRemoteAsyncHandle.cpp
+        rtRemoteMulticastResolver.cpp  rtRemoteEndPoint.cpp
+        rtRemoteConfigBuilder.cpp rtRemoteAsyncHandle.cpp
         rtRemoteUtils.cpp rtRemoteEnvironment.cpp rtRemoteStreamSelector.cpp rtGuid.cpp
         rtRemoteMapperMap.cpp rtRemoteMapperFile.cpp rtRemoteMapperSql.cpp
         rtRemoteEndpointHandleStreamServer.cpp)
@@ -92,8 +92,10 @@ else()
         set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /MT /Zi")
         set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} /MT /Zi")
     else (WIN32)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fno-inline")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fno-inline")
     endif (WIN32)
 
 endif (ENABLE_RTREMOTE_DEBUG)

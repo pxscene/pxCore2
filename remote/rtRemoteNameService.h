@@ -1,5 +1,5 @@
 #include "rtRemoteCorrelationKey.h"
-#include "rtRemoteEndpoint.h"
+#include "rtRemoteEndPoint.h"
 #include "rtRemoteSocketUtils.h"
 #include "rtRemoteEnvironment.h"
 

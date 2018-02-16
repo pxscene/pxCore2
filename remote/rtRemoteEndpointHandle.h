@@ -1,7 +1,7 @@
 #ifndef __RT_REMOTE_ENDPOINT_HANDLE_H__
 #define __RT_REMOTE_ENDPOINT_HANDLE_H__
 
-#include "rtRemoteEndpoint.h"
+#include "rtRemoteEndPoint.h"
 #include "rtError.h"
 
 class rtRemoteIEndpointHandle
@@ -24,7 +24,7 @@ public:
 	{ m_fd = fd; }
 
 protected:
-  rtRemoteIEndpointHandle(rtRemoteEndpointPtr endpoint)
+  rtRemoteIEndpointHandle(rtRemoteEndPointPtr endpoint)
     : m_addr(endpoint)
     , m_fd(kInvalidSocket)
   {
@@ -32,7 +32,7 @@ protected:
   }
 
 protected:
-  rtRemoteEndpointPtr m_addr;
+  rtRemoteEndPointPtr m_addr;
   socket_t m_fd;
 };
 

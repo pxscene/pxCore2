@@ -1,6 +1,6 @@
 #include "rtRemoteUtils.h"
 #include "rtRemoteTypes.h"
-#include "rtRemoteEndpoint.h"
+#include "rtRemoteEndPoint.h"
 #include "rtRemoteSocketUtils.h"
 #include "rtRemoteMessage.h"
 
@@ -307,7 +307,7 @@ rtRemoteCombineDocuments(rtRemoteMessagePtr& target, rtRemoteMessagePtr& source)
   return RT_OK;
 }
 
-#ifndef RT_PLATFORM_WINDOWS
+#ifdef RT_PLATFORM_WINDOWS
 size_t getline(char **lineptr, size_t *n, FILE *stream)
 {
    char *bufptr = NULL;
