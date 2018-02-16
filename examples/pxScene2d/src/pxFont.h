@@ -49,13 +49,13 @@ typedef uint32_t u_int32_t;
 
 struct GlyphCacheEntry
 {
-  int32_t bitmap_left;
-  int32_t bitmap_top;
-  int32_t bitmapdotwidth;
-  int32_t bitmapdotrows;
-  int32_t advancedotx;
-  int32_t advancedoty;
-  int32_t vertAdvance;
+  int bitmap_left;
+  int bitmap_top;
+  int bitmapdotwidth;
+  int bitmapdotrows;
+  int advancedotx;
+  int advancedoty;
+  int vertAdvance;
 };
 
 struct GlyphTextureEntry
@@ -273,9 +273,9 @@ public:
   // Should reinvoke on changes to text, size, or scale params
   void renderTextToQuads(const char *text, uint32_t size, 
                         float nsx, float nsy, 
-                        pxTexturedQuads& quads);
+                        pxTexturedQuads& quads,
+                        float x = 0, float y = 0);
   #endif
-
   virtual void init() {}
   bool isFontLoaded() { return mInitialized;}
    
@@ -317,4 +317,3 @@ class pxFontManager
     
 };
 #endif
-
