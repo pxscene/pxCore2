@@ -1,5 +1,5 @@
 #include "rtRemoteMapperMap.h"
-#include "rtRemoteEndpoint.h"
+#include "rtRemoteEndPoint.h"
 #include "rtRemoteEnvironment.h"
 #include "rtError.h"
 #include <map>
@@ -14,7 +14,7 @@ rtRemoteMapperMap::rtRemoteMapperMap(rtRemoteEnvironment* env)
 }
 
 rtError
-rtRemoteMapperMap::registerEndpoint(std::string const& objectId, rtRemoteEndpointPtr const& endpoint)
+rtRemoteMapperMap::registerEndpoint(std::string const& objectId, rtRemoteEndPointPtr const& endpoint)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_hosted_objects[objectId] = endpoint;
@@ -32,7 +32,7 @@ rtRemoteMapperMap::deregisterEndpoint(std::string const& objectId)
 }
 
 rtError
-rtRemoteMapperMap::lookupEndpoint(std::string const& objectId, rtRemoteEndpointPtr& endpoint)
+rtRemoteMapperMap::lookupEndpoint(std::string const& objectId, rtRemoteEndPointPtr& endpoint)
 {
   auto itr = m_hosted_objects.end();
   std::unique_lock<std::mutex> lock(m_mutex);

@@ -12,7 +12,6 @@
 #include <thread>
 
 #include <stdint.h>
-#include <netinet/in.h>
 #include <rtObject.h>
 
 typedef void(*clientDisconnectedCallback)(void *data);
@@ -39,11 +38,11 @@ private:
   struct connected_client
   {
     sockaddr_storage    peer;
-    int                 fd;
+    socket_t            fd;
   };
 
   void runListener();
-  void doAccept(int fd);
+  void doAccept(socket_t fd);
 
 
   static rtError onOpenSession_Dispatch(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc, void* argp)
@@ -106,17 +105,17 @@ private:
   using ObjectRefeMap = std::map< std::string, ObjectReference >;
 
   sockaddr_storage              m_rpc_endpoint;
-  int                           m_listen_fd;
+  socket_t                      m_listen_fd;
 
   std::unique_ptr<std::thread>  m_thread;
-  mutable std::mutex            m_mutex;
+  mutable std::recursive_mutex  m_mutex;
   CommandHandlerMap             m_command_handlers;
 
   rtRemoteIResolver*            m_resolver;
   ClientMap                     m_object_map;
   ClientList                    m_connected_clients;
   ClientDisconnectedCBMap       m_disconnected_callback_map;
-  int                           m_shutdown_pipe[2];
+  bool                          m_shutdown;
   uint32_t                      m_keep_alive_interval;
   rtRemoteEnvironment*          m_env;
 };

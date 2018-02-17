@@ -3,6 +3,10 @@
 #include <cstdio>
 #include <sstream>
 
+#ifdef RT_PLATFORM_WINDOWS
+#include <Iphlpapi.h>
+#pragma comment(lib, "Iphlpapi.lib")
+#else
 #include <netinet/in.h>
 #include <errno.h>
 #include <arpa/inet.h>
@@ -11,6 +15,7 @@
 #include <string.h>
 #include <netdb.h>
 #include <unistd.h>
+#endif
 
 #include <rtLog.h>
 
@@ -22,7 +27,33 @@
 static rtError
 rtFindFirstInetInterface(char* name, size_t len)
 {
-  rtError e = RT_FAIL;
+   rtError e = RT_FAIL;
+
+#ifdef RT_PLATFORM_WINDOWS
+   ULONG outBufLen = 32*1024;
+
+   PIP_ADAPTER_ADDRESSES pAddresses = NULL;
+   pAddresses = (IP_ADAPTER_ADDRESSES *) malloc(outBufLen);
+   
+   GetAdaptersAddresses(AF_INET, 0, NULL, pAddresses, &outBufLen);
+
+   PIP_ADAPTER_UNICAST_ADDRESS pUnicast = NULL;
+   PIP_ADAPTER_ADDRESSES pCurrAddresses = pAddresses;
+   while (pCurrAddresses) 
+   {
+      pUnicast = pCurrAddresses->FirstUnicastAddress;
+      if (pUnicast != NULL) 
+      {
+         strncpy(name, pCurrAddresses->AdapterName, len);
+         e = RT_OK;
+         break;
+      }
+
+      pCurrAddresses = pCurrAddresses->Next;
+   }
+
+   free(pAddresses);
+#else
   ifaddrs* ifaddr = NULL;
   int ret = getifaddrs(&ifaddr);
   if (ret == -1)
@@ -36,7 +67,7 @@ rtFindFirstInetInterface(char* name, size_t len)
   {
     if (i->ifa_addr == nullptr)
       continue;
-    if (i->ifa_addr->sa_family != AF_INET && i->ifa_addr->sa_family != AF_INET6)
+    if (i->ifa_addr->sa_family != AF_INET)
       continue;
     if (strcmp(i->ifa_name, "lo") == 0)
       continue;
@@ -45,9 +76,9 @@ rtFindFirstInetInterface(char* name, size_t len)
     e = RT_OK;
     break;
   }
-
   if (ifaddr)
     freeifaddrs(ifaddr);
+#endif
 
   return e;
 }
@@ -62,6 +93,7 @@ rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* 
   if (index != nullptr)
     *index = -1;
 
+#ifndef RT_PLATFORM_WINDOWS
   if (addr[0] == '/')
   {
     sockaddr_un *unAddr = reinterpret_cast<sockaddr_un*>(&ss);
@@ -69,16 +101,13 @@ rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* 
     strncpy(unAddr->sun_path, addr, UNIX_PATH_MAX);
     return RT_OK;
   }
+#endif
 
   sockaddr_in* v4 = reinterpret_cast<sockaddr_in *>(&ss);
-  ret = inet_pton(AF_INET, addr, &v4->sin_addr);
+   ret = inet_pton(AF_INET, addr, &v4->sin_addr);
 
   if (ret == 1)
   {
-    #ifndef __linux__
-    v4->sin_len = sizeof(sockaddr_in);
-    #endif
-
     v4->sin_family = AF_INET;
     v4->sin_port = htons(port);
     ss.ss_family = AF_INET;
@@ -118,7 +147,7 @@ rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* 
   }
   else
   {
-    return rtErrorFromErrno(errno);
+    return rtErrorFromErrno(net_errno());
   }
   return RT_OK;
 }
@@ -133,8 +162,10 @@ rtSocketGetLength(sockaddr_storage const& ss, socklen_t* len)
     *len = sizeof(sockaddr_in);
   else if (ss.ss_family == AF_INET6)
     *len = sizeof(sockaddr_in6);
+#ifndef RT_PLATFORM_WINDOWS
   else if (ss.ss_family == AF_UNIX)
     *len = sizeof(sockaddr_un);
+#endif
   else
     *len = sizeof(sockaddr_storage);
 
@@ -145,13 +176,47 @@ rtError
 rtGetInterfaceAddress(char const* name, sockaddr_storage& ss)
 {
   rtError error = RT_FAIL;
+
+#ifdef RT_PLATFORM_WINDOWS
+  ULONG outBufLen = 32*1024;
+
+  PIP_ADAPTER_ADDRESSES pAddresses = NULL;
+  pAddresses = (IP_ADAPTER_ADDRESSES *) malloc(outBufLen);
+
+  GetAdaptersAddresses(AF_INET, 0, NULL, pAddresses, &outBufLen);
+
+  PIP_ADAPTER_UNICAST_ADDRESS pUnicast = NULL;
+  PIP_ADAPTER_ADDRESSES pCurrAddresses = pAddresses;
+  while (pCurrAddresses) 
+  {
+     if (strcasecmp(name, pCurrAddresses->AdapterName) != 0)
+     {
+        pCurrAddresses = pCurrAddresses->Next;
+        continue;
+     }
+
+     pUnicast = pCurrAddresses->FirstUnicastAddress;
+     if (pUnicast != NULL) 
+     {
+        struct sockaddr_in *dst_addr = (struct sockaddr_in *)pUnicast->Address.lpSockaddr;
+        *((struct sockaddr_in *)&ss) = *dst_addr;
+
+        error = RT_OK;
+        break;
+     }
+
+     pCurrAddresses = pCurrAddresses->Next;
+  }
+
+  free(pAddresses);
+#else
   ifaddrs* ifaddr = NULL;
 
   int ret = getifaddrs(&ifaddr);
 
   if (ret == -1)
   {
-    error = rtErrorFromErrno(errno);
+    error = rtErrorFromErrno(net_errno());
     rtLogError("failed to get list of interfaces. %s", rtStrError(error));
     return error;
   }
@@ -164,7 +229,7 @@ rtGetInterfaceAddress(char const* name, sockaddr_storage& ss)
     if (strcmp(name, i->ifa_name) != 0)
       continue;
 
-    if (i->ifa_addr->sa_family != AF_INET && i->ifa_addr->sa_family != AF_INET6)
+    if (i->ifa_addr->sa_family != AF_INET)
       continue;
 
     ss.ss_family = i->ifa_addr->sa_family;
@@ -191,7 +256,7 @@ rtGetInterfaceAddress(char const* name, sockaddr_storage& ss)
       ret = inet_pton(ss.ss_family, host, addr);
       if (ret != 1)
       {
-        int err = errno;
+        int err = net_errno();
         rtLogError("failed to parse: %s as valid ipv4 address", host);
         error = rtErrorFromErrno(err);
       }
@@ -203,6 +268,7 @@ rtGetInterfaceAddress(char const* name, sockaddr_storage& ss)
 out:
   if (ifaddr)
     freeifaddrs(ifaddr);
+#endif
 
   return error;
 }
@@ -212,14 +278,16 @@ rtGetInetAddr(sockaddr_storage const& ss, void** addr)
 {
   sockaddr_in const* v4 = reinterpret_cast<sockaddr_in const*>(&ss);
   sockaddr_in6 const* v6 = reinterpret_cast<sockaddr_in6 const*>(&ss);
-  sockaddr_un const* un =  reinterpret_cast<sockaddr_un const*>(&ss);
 
+#ifndef RT_PLATFORM_WINDOWS
   if (ss.ss_family == AF_UNIX)
   {
+    sockaddr_un const* un =  reinterpret_cast<sockaddr_un const*>(&ss);
     void const* p = reinterpret_cast<void const *>(&(un->sun_path));
     *addr = const_cast<void *>(p);
     return RT_OK;
   }
+#endif
 
   void const* p = (ss.ss_family == AF_INET)
     ? reinterpret_cast<void const *>(&(v4->sin_addr))
@@ -245,7 +313,7 @@ rtGetPort(sockaddr_storage const& ss, uint16_t* port)
 }
 
 rtError
-rtPushFd(fd_set* fds, int fd, int* maxFd)
+rtPushFd(fd_set* fds, socket_t fd, int* maxFd)
 {
   if (fd != -1)
   {
@@ -257,22 +325,26 @@ rtPushFd(fd_set* fds, int fd, int* maxFd)
 }
 
 rtError
-rtReadUntil(int fd, char* buff, int n)
+rtReadUntil(socket_t fd, char* buff, int n)
 {
-  ssize_t bytesRead = 0;
-  ssize_t bytesToRead = n;
+  int bytesRead = 0;
+  int bytesToRead = n;
 
   while (bytesRead < bytesToRead)
   {
-    ssize_t n = read(fd, buff + bytesRead, (bytesToRead - bytesRead));
+#ifdef RT_PLATFORM_WINDOWS
+    int n = recv(fd, buff + bytesRead, (bytesToRead - bytesRead), 0);
+#else
+    int n = read(fd, buff + bytesRead, (bytesToRead - bytesRead));
+#endif
     if (n == 0)
       return rtErrorFromErrno(ENOTCONN);
 
     if (n == -1)
     {
-      if (errno == EINTR)
+      if (net_errno() == EINTR)
         continue;
-      rtError e = rtErrorFromErrno(errno);
+      rtError e = rtErrorFromErrno(net_errno());
       rtLogError("failed to read from fd %d. %s", fd, rtStrError(e));
       return e;
     }
@@ -314,7 +386,7 @@ rtSocketToString(sockaddr_storage const& ss)
 }
 
 rtError
-rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* dest)
+rtSendDocument(rapidjson::Document const& doc, socket_t fd, sockaddr_storage const* dest)
 {
   rapidjson::StringBuffer buff;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buff);
@@ -344,14 +416,14 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
     rtSocketGetLength(*dest, &len);
 
     int flags = 0;
-    #ifndef __APPLE__
+#if defined RT_PLATFORM_LINUX && !defined __APPLE__
     flags = MSG_NOSIGNAL;
-    #endif
+#endif
 
     if (sendto(fd, buff.GetString(), buff.GetSize(), flags,
           reinterpret_cast<sockaddr const *>(dest), len) < 0)
     {
-      rtError e = rtErrorFromErrno(errno);
+      rtError e = rtErrorFromErrno(net_errno());
       rtLogError("sendto failed. %s. dest:%s family:%d", rtStrError(e), rtSocketToString(*dest).c_str(),
         dest->ss_family);
       return e;
@@ -363,6 +435,21 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
     int n = buff.GetSize();
     n = htonl(n);
 
+#ifdef RT_PLATFORM_WINDOWS
+    WSABUF bufs[2];
+    bufs[0].buf = (char *)&n;
+    bufs[0].len = sizeof(n);
+    bufs[1].buf = const_cast<char*>(buff.GetString());
+    bufs[1].len = buff.GetSize();
+
+    DWORD bytesSent;
+    if (WSASendTo(fd, bufs, 2, &bytesSent, 0, NULL, 0, NULL, NULL) == SOCKET_ERROR)
+    {
+       rtError e = rtErrorFromErrno(net_errno());
+       rtLogError("failed to send message. %s", rtStrError(e));
+       return e;    
+    }
+#else
     struct msghdr msg;
     struct iovec iov[2];
     memset (&msg, '\0', sizeof (msg));
@@ -374,25 +461,26 @@ rtSendDocument(rapidjson::Document const& doc, int fd, sockaddr_storage const* d
     iov[1].iov_len = buff.GetSize();
 
     int flags = 0;
-    #ifndef __APPLE__
+#if defined RT_PLATFORM_LINUX && !defined __APPLE__
     flags = MSG_NOSIGNAL;
-    #endif
+#endif
 
     while (sendmsg (fd, &msg, flags) < 0)
     {
-      if (errno == EINTR)
-        continue;
-      rtError e = rtErrorFromErrno(errno);
-      rtLogError("failed to send message. %s", rtStrError(e));
-      return e;
+       if (errno == EINTR)
+          continue;
+       rtError e = rtErrorFromErrno(net_errno());
+       rtLogError("failed to send message. %s", rtStrError(e));
+       return e;
     }
+#endif
   }
 
   return RT_OK;
 }
 
 rtError
-rtReadMessage(int fd, rtRemoteSocketBuffer& buff, rtRemoteMessagePtr& doc)
+rtReadMessage(socket_t fd, rtRemoteSocketBuffer& buff, rtRemoteMessagePtr& doc)
 {
   rtError err = RT_OK;
 
@@ -462,7 +550,7 @@ rtParseMessage(char const* buff, int n, rtRemoteMessagePtr& doc)
 }
 
 rtError
-rtGetPeerName(int fd, sockaddr_storage& endpoint)
+rtGetPeerName(socket_t fd, sockaddr_storage& endpoint)
 {
   sockaddr_storage addr;
   memset(&addr, 0, sizeof(sockaddr_storage));
@@ -471,7 +559,7 @@ rtGetPeerName(int fd, sockaddr_storage& endpoint)
   rtSocketGetLength(endpoint, &len);
 
   int ret = getpeername(fd, (sockaddr *)&addr, &len);
-  if (ret == -1)
+  if (NET_FAILED(ret))
   {
     rtError err = rtErrorFromErrno(errno);
     rtLogWarn("failed to get the peername for fd:%d endpoint. %s", fd, rtStrError(err));
@@ -483,7 +571,7 @@ rtGetPeerName(int fd, sockaddr_storage& endpoint)
 }
 
 rtError
-rtGetSockName(int fd, sockaddr_storage& endpoint)
+rtGetSockName(socket_t fd, sockaddr_storage& endpoint)
 {
   sockaddr_storage addr;
   memset(&addr, 0, sizeof(sockaddr_storage));
@@ -492,7 +580,7 @@ rtGetSockName(int fd, sockaddr_storage& endpoint)
   rtSocketGetLength(endpoint, &len);
 
   int ret = getsockname(fd, (sockaddr *)&addr, &len);
-  if (ret == -1)
+  if (NET_FAILED(ret))
   {
     rtError err = rtErrorFromErrno(errno);
     rtLogWarn("failed to get the socket name for fd:%d endpoint. %s", fd, rtStrError(err));
@@ -504,11 +592,15 @@ rtGetSockName(int fd, sockaddr_storage& endpoint)
 }
 
 rtError
-rtCloseSocket(int& fd)
+rtCloseSocket(socket_t& fd)
 {
   if (fd != kInvalidSocket)
   {
+#ifdef RT_PLATFORM_WINDOWS
+    ::closesocket(fd);
+#else
     ::close(fd);
+#endif
     fd = kInvalidSocket;
   }
   return RT_OK;
@@ -517,7 +609,7 @@ rtCloseSocket(int& fd)
 rtError
 rtGetDefaultInterface(sockaddr_storage& addr, uint16_t port)
 {
-  char name[64];
+  char name[1024];
   memset(name, 0, sizeof(name));
 
   #ifdef RT_REMOTE_LOOPBACK_ONLY
@@ -538,7 +630,7 @@ rtGetDefaultInterface(sockaddr_storage& addr, uint16_t port)
 }
 
 rtError
-rtCreateUnixSocketName(pid_t pid, char* buff, int n)
+rtCreateUnixSocketName(int pid, char* buff, int n)
 {
   const char* kUnixSocketTemplate = kUnixSocketTemplateRoot ".%d";
 
@@ -584,3 +676,59 @@ rtParseAddress(sockaddr_storage& ss, char const* s)
 
   return rtParseAddress(ss, addr.c_str(), port, nullptr);
 }
+
+
+rtError rtRemoteSocketInit()
+{
+#ifdef RT_PLATFORM_WINDOWS
+  WORD wVersionRequested;
+  WSADATA wsaData;
+  int err;
+
+  wVersionRequested = MAKEWORD(2, 2);
+
+  err = WSAStartup(wVersionRequested, &wsaData);
+  if (err != 0) 
+  {
+    rtLogWarn("WSAStartup failed with error: %d", err);
+    return RT_FAIL;
+  }
+#else
+
+#endif
+   return RT_OK;
+}
+
+
+rtError rtRemoteSocketShutdown()
+{
+#ifdef RT_PLATFORM_WINDOWS
+   WSACleanup();
+#else
+
+#endif
+   return RT_OK;
+}
+
+
+#ifdef RT_PLATFORM_WINDOWS
+int net_errno()
+{
+   // todo
+   return WSAGetLastError(); 
+}
+#endif
+
+
+#ifdef RT_PLATFORM_WINDOWS
+void rtSocketSetBlocking(socket_t fd, bool blocking)
+{
+   u_long enable = blocking ? 0 : 1;
+   ioctlsocket(fd, FIONBIO, &enable);
+}
+#else
+void rtSocketSetBlocking(socket_t fd, bool blocking)
+{
+   fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
+}
+#endif

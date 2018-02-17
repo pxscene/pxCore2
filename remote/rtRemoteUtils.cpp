@@ -1,20 +1,12 @@
 #include "rtRemoteUtils.h"
 #include "rtRemoteTypes.h"
-#include "rtRemoteEndpoint.h"
+#include "rtRemoteEndPoint.h"
 #include "rtRemoteSocketUtils.h"
 #include "rtRemoteMessage.h"
 
 #include <sstream>
 #include <string>
 #include <memory>
-
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/un.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
 
 rtError
 rtRemoteEndpointAddressToSocket(rtRemoteEndPointPtr addr, sockaddr_storage& ss)
@@ -145,6 +137,7 @@ rtRemoteSameEndpoint(sockaddr_storage const& first, sockaddr_storage const& seco
     return in1->sin_addr.s_addr == in2->sin_addr.s_addr;
   }
 
+#ifndef RT_PLATFORM_WINDOWS
   if (first.ss_family == AF_UNIX)
   {
     sockaddr_un const* un1 = reinterpret_cast<sockaddr_un const*>(&first);
@@ -152,6 +145,7 @@ rtRemoteSameEndpoint(sockaddr_storage const& first, sockaddr_storage const& seco
 
     return 0 == strncmp(un1->sun_path, un2->sun_path, UNIX_PATH_MAX);
   }
+#endif
 
   RT_ASSERT(false);
   return false;
@@ -312,3 +306,58 @@ rtRemoteCombineDocuments(rtRemoteMessagePtr& target, rtRemoteMessagePtr& source)
         target->AddMember(itr->name, itr->value, target->GetAllocator());
   return RT_OK;
 }
+
+#ifdef RT_PLATFORM_WINDOWS
+size_t getline(char **lineptr, size_t *n, FILE *stream)
+{
+   char *bufptr = NULL;
+   char *p = bufptr;
+   size_t size;
+   int c;
+
+   if (lineptr == NULL) {
+      return -1;
+   }
+   if (stream == NULL) {
+      return -1;
+   }
+   if (n == NULL) {
+      return -1;
+   }
+   bufptr = *lineptr;
+   size = *n;
+
+   c = fgetc(stream);
+   if (c == EOF) {
+      return -1;
+   }
+   if (bufptr == NULL) {
+      bufptr = (char *)malloc(128);
+      if (bufptr == NULL) {
+         return -1;
+      }
+      size = 128;
+   }
+   p = bufptr;
+   while(c != EOF) {
+      if ((p - bufptr) > (size - 1)) {
+         size = size + 128;
+         bufptr = (char *)realloc(bufptr, size);
+         if (bufptr == NULL) {
+            return -1;
+         }
+      }
+      *p++ = c;
+      if (c == '\n') {
+         break;
+      }
+      c = fgetc(stream);
+   }
+
+   *p++ = '\0';
+   *lineptr = bufptr;
+   *n = size;
+
+   return p - bufptr - 1;
+}
+#endif

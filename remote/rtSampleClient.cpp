@@ -15,7 +15,6 @@
  */
 #include "rtRemote.h"
 #include <thread>
-#include <unistd.h>
 #include <assert.h>
 
 
@@ -79,6 +78,8 @@ upload_complete(int argc, rtValue const* argv, rtValue* result, void* argp)
 
 int main(int /*argc*/, char* /*argv*/ [])
 {
+  rtLogSetLevel(RT_LOG_INFO);
+
   rtError e;
   rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
   e = rtRemoteInit(env);

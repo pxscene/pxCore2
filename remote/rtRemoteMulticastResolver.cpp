@@ -10,19 +10,6 @@
 
 #include <rtLog.h>
 
-#include <errno.h>
-#include <fcntl.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <net/if.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <ifaddrs.h>
-#include <sys/file.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-
 #include <rapidjson/document.h>
 #include <rapidjson/memorystream.h>
 #include <rapidjson/prettywriter.h>
@@ -33,12 +20,13 @@
 #include <rapidjson/pointer.h>
 
 rtRemoteMulticastResolver::rtRemoteMulticastResolver(rtRemoteEnvironment* env)
-  : m_mcast_fd(-1)
+  : m_mcast_fd(kInvalidSocket)
   , m_mcast_src_index(-1)
-  , m_ucast_fd(-1)
+  , m_ucast_fd(kInvalidSocket)
   , m_ucast_len(0)
   , m_pid(getpid())
   , m_command_handlers()
+  , m_shutdown(false)
   , m_env(env)
 {
   memset(&m_mcast_dest, 0, sizeof(m_mcast_dest));
@@ -47,16 +35,6 @@ rtRemoteMulticastResolver::rtRemoteMulticastResolver(rtRemoteEnvironment* env)
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeSearch, &rtRemoteMulticastResolver::onSearch));
   m_command_handlers.insert(CommandHandlerMap::value_type(kMessageTypeLocate, &rtRemoteMulticastResolver::onLocate));
-
-  m_shutdown_pipe[0] = -1;
-  m_shutdown_pipe[1] = -1;
-
-  int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
-  if (ret == -1)
-  {
-    rtError e = rtErrorFromErrno(ret);
-    rtLogWarn("failed to create shutdown pipe. %s", rtStrError(e));
-  }
 }
 
 rtRemoteMulticastResolver::~rtRemoteMulticastResolver()
@@ -202,6 +180,8 @@ rtRemoteMulticastResolver::open(sockaddr_storage const& rpc_endpoint)
     return err;
   }
 
+  m_shutdown = false;
+
   m_read_thread.reset(new std::thread(&rtRemoteMulticastResolver::runListener, this));
   return RT_OK;
 }
@@ -212,21 +192,20 @@ rtRemoteMulticastResolver::openMulticastSocket()
   int err = 0;
 
   m_mcast_fd = socket(m_mcast_dest.ss_family, SOCK_DGRAM, 0);
-  if (m_mcast_fd < 0)
+  if (NET_FAILED(m_mcast_fd))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to create datagram socket with family:%d. %s",
       m_mcast_dest.ss_family, rtStrError(e));
     return e;
   }
-  fcntl(m_mcast_fd, F_SETFD, fcntl(m_mcast_fd, F_GETFD) | FD_CLOEXEC);
 
   // re-use because multiple applications may want to join group on same machine
   int reuse = 1;
   err = setsockopt(m_mcast_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
-  if (err < 0)
+  if (NET_FAILED(err))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to set reuseaddr. %s", rtStrError(e));
     return e;
   }
@@ -244,9 +223,9 @@ rtRemoteMulticastResolver::openMulticastSocket()
     err = bind(m_mcast_fd, reinterpret_cast<sockaddr *>(v6), sizeof(sockaddr_in6));
   }
 
-  if (err < 0)
+  if (NET_FAILED(err))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to bind multicast socket to %s. %s",
         rtSocketToString(m_mcast_src).c_str(),  rtStrError(e));
     return e;
@@ -266,12 +245,12 @@ rtRemoteMulticastResolver::openMulticastSocket()
     ipv6_mreq mreq;
     mreq.ipv6mr_multiaddr = reinterpret_cast<sockaddr_in6 *>(&m_mcast_dest)->sin6_addr;
     mreq.ipv6mr_interface = m_mcast_src_index;
-    err = setsockopt(m_mcast_fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq));
+    err = setsockopt(m_mcast_fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, (char *)&mreq, sizeof(mreq));
   }
 
-  if (err < 0)
+  if (NET_FAILED(err))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to join mcast group %s. %s", rtSocketToString(m_mcast_dest).c_str(),
       rtStrError(e));
     return e;
@@ -289,22 +268,21 @@ rtRemoteMulticastResolver::openUnicastSocket()
   int ret = 0;
 
   m_ucast_fd = socket(m_ucast_endpoint.ss_family, SOCK_DGRAM, 0);
-  if (m_ucast_fd < 0)
+  if (NET_FAILED(m_ucast_fd))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to create unicast socket with family: %d. %s", 
       m_ucast_endpoint.ss_family, rtStrError(e));
     return e;
   }
-  fcntl(m_ucast_fd, F_SETFD, fcntl(m_ucast_fd, F_GETFD) | FD_CLOEXEC);
 
   rtSocketGetLength(m_ucast_endpoint, &m_ucast_len);
 
   // listen on ANY port
   ret = bind(m_ucast_fd, reinterpret_cast<sockaddr *>(&m_ucast_endpoint), m_ucast_len);
-  if (ret < 0)
+  if (NET_FAILED(ret))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to bind unicast endpoint: %s", rtStrError(e));
     return e;
   }
@@ -312,9 +290,9 @@ rtRemoteMulticastResolver::openUnicastSocket()
   // now figure out which port we're bound to
   rtSocketGetLength(m_ucast_endpoint, &m_ucast_len);
   ret = getsockname(m_ucast_fd, reinterpret_cast<sockaddr *>(&m_ucast_endpoint), &m_ucast_len);
-  if (ret < 0)
+  if (NET_FAILED(ret))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to get socketname. %s", rtStrError(e));
     return e;
   }
@@ -334,12 +312,12 @@ rtRemoteMulticastResolver::openUnicastSocket()
   else
   {
     uint32_t ifindex = m_mcast_src_index;
-    err = setsockopt(m_ucast_fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, &ifindex, sizeof(ifindex));
+    err = setsockopt(m_ucast_fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, (char *)&ifindex, sizeof(ifindex));
   }
 
-  if (err < 0)
+  if (NET_FAILED(err))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to set outgoing multicast interface. %s", rtStrError(e));
     return e;
   }
@@ -348,7 +326,7 @@ rtRemoteMulticastResolver::openUnicastSocket()
   char loop = 1;
   if (setsockopt(m_ucast_fd, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&loop, sizeof(loop)) < 0)
   {
-    rtError err = rtErrorFromErrno(errno);
+    rtError err = rtErrorFromErrno(net_errno());
     rtLogError("failed to disable multicast loopback: %s", rtStrError(err));
     return err;
   }
@@ -455,21 +433,24 @@ rtRemoteMulticastResolver::runListener()
     FD_ZERO(&read_fds);
     rtPushFd(&read_fds, m_mcast_fd, &maxFd);
     rtPushFd(&read_fds, m_ucast_fd, &maxFd);
-    rtPushFd(&read_fds, m_shutdown_pipe[0], &maxFd);
 
     FD_ZERO(&err_fds);
     rtPushFd(&err_fds, m_mcast_fd, &maxFd);
     rtPushFd(&err_fds, m_ucast_fd, &maxFd);
 
-    int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, NULL);
-    if (ret == -1)
+    timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 10000;
+
+    int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, &timeout);
+    if (NET_FAILED(ret))
     {
-      rtError e = rtErrorFromErrno(errno);
+      rtError e = rtErrorFromErrno(net_errno());
       rtLogWarn("select failed: %s", rtStrError(e));
       continue;
     }
 
-    if (FD_ISSET(m_shutdown_pipe[0], &read_fds))
+    if (m_shutdown)
     {
       rtLogInfo("got shutdown signal");
       return;
@@ -484,17 +465,17 @@ rtRemoteMulticastResolver::runListener()
 }
 
 void
-rtRemoteMulticastResolver::doRead(int fd, rtRemoteSocketBuffer& buff)
+rtRemoteMulticastResolver::doRead(socket_t fd, rtRemoteSocketBuffer& buff)
 {
   // we only suppor v4 right now. not sure how recvfrom supports v6 and v4
   sockaddr_storage src;
   socklen_t len = sizeof(sockaddr_in);
 
   #if 0
-  ssize_t n = read(m_mcast_fd, &m_read_buff[0], m_read_buff.capacity());
+  int n = read(m_mcast_fd, &m_read_buff[0], m_read_buff.capacity());
   #endif
 
-  ssize_t n = recvfrom(fd, &buff[0], buff.capacity(), 0, reinterpret_cast<sockaddr *>(&src), &len);
+  int n = recvfrom(fd, &buff[0], buff.capacity(), 0, reinterpret_cast<sockaddr *>(&src), &len);
   if (n > 0)
     doDispatch(&buff[0], static_cast<int>(n), &src);
 }
@@ -536,37 +517,24 @@ rtRemoteMulticastResolver::doDispatch(char const* buff, int n, sockaddr_storage*
 rtError
 rtRemoteMulticastResolver::close()
 {
-  if (m_shutdown_pipe[1] != -1)
+  if (!m_shutdown)
   {
-    char buff[] = {"shutdown"};
-    ssize_t n = write(m_shutdown_pipe[1], buff, sizeof(buff));
-    if (n == -1)
-    {
-      rtError e = rtErrorFromErrno(errno);
-      rtLogWarn("failed to write. %s", rtStrError(e));
-    }
+     m_shutdown = true;
 
     if (m_read_thread)
     {
       m_read_thread->join();
       m_read_thread.reset();
     }
-
-    if (m_shutdown_pipe[0] != -1)
-      ::close(m_shutdown_pipe[0]);
-    if (m_shutdown_pipe[1] != -1)
-      ::close(m_shutdown_pipe[1]);
   }
 
   if (m_mcast_fd != -1)
-    ::close(m_mcast_fd);
+    rtCloseSocket(m_mcast_fd);
   if (m_ucast_fd != -1)
-    ::close(m_ucast_fd);
+    rtCloseSocket(m_ucast_fd);
 
-  m_mcast_fd = -1;
-  m_ucast_fd = -1;
-  m_shutdown_pipe[0] = -1;
-  m_shutdown_pipe[1] = -1;
+  m_mcast_fd = kInvalidSocket;
+  m_ucast_fd = kInvalidSocket;
 
   return RT_OK;
 }

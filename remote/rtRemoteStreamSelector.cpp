@@ -7,19 +7,13 @@
 
 #include <algorithm>
 #include <chrono>
-#include <unistd.h>
 #include <fcntl.h>
 
 rtRemoteStreamSelector::rtRemoteStreamSelector(rtRemoteEnvironment* env)
   : m_env(env)
+  , m_shutdown(false)
   , m_running(false)
 {
-  int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
-  if (ret == -1)
-  {
-    rtError e = rtErrorFromErrno(ret);
-    rtLogError("failed to create pipe. %s", rtStrError(e));
-  }
 }
 
 void*
@@ -37,7 +31,7 @@ rtRemoteStreamSelector::start()
 {
   m_running = true;
   rtLogInfo("starting StreamSelector");
-  pthread_create(&m_thread, nullptr, &rtRemoteStreamSelector::pollFds, this);
+  m_thread.reset(new std::thread(&rtRemoteStreamSelector::pollFds, this));
   return RT_OK;
 }
 
@@ -53,8 +47,6 @@ rtRemoteStreamSelector::registerStream(std::shared_ptr<rtRemoteStream> const& s)
 rtError
 rtRemoteStreamSelector::shutdown()
 {
-  char buff[] = { "shudown" };
-
   {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_running = false;
@@ -63,18 +55,10 @@ rtRemoteStreamSelector::shutdown()
 
 
   rtLogInfo("sending shutdown signal");
-  ssize_t n = write(m_shutdown_pipe[1], buff, sizeof(buff));
-  if (n == -1)
-  {
-    rtError e = rtErrorFromErrno(errno);
-    rtLogWarn("failed to write. %s", rtStrError(e));
-  }
+  m_shutdown = true;
 
-  void* retval = nullptr;
-  pthread_join(m_thread, &retval);
-
-  ::close(m_shutdown_pipe[0]);
-  ::close(m_shutdown_pipe[1]);
+  if (m_thread)
+   m_thread->join();
 
   return RT_OK;
 }
@@ -124,21 +108,20 @@ rtRemoteStreamSelector::doPollFds()
       rtPushFd(&errFds, s->m_fd, &maxFd);
     }
     }
-    rtPushFd(&readFds, m_shutdown_pipe[0], &maxFd);
 
     timeval timeout;
-    timeout.tv_sec = m_env->Config->stream_select_interval();
-    timeout.tv_usec = 0;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 10000;
 
     int ret = select(maxFd + 1, &readFds, NULL, &errFds, &timeout);
-    if (ret == -1)
+    if (NET_FAILED(ret))
     {
-      rtError e = rtErrorFromErrno(errno);
+      rtError e = rtErrorFromErrno(net_errno());
       rtLogWarn("select failed: %s", rtStrError(e));
       continue;
     }
 
-    if (FD_ISSET(m_shutdown_pipe[0], &readFds))
+    if (m_shutdown)
     {
       rtLogInfo("got shutdown signal");
       return RT_OK;
