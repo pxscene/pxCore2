@@ -10,19 +10,6 @@
 
 #include <rtLog.h>
 
-#include <errno.h>
-#include <fcntl.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <net/if.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <ifaddrs.h>
-#include <sys/file.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-
 #include <rapidjson/document.h>
 #include <rapidjson/memorystream.h>
 #include <rapidjson/prettywriter.h>
@@ -36,20 +23,12 @@ rtRemoteNsResolver::rtRemoteNsResolver(rtRemoteEnvironment* env)
   : m_static_fd(-1)
   , m_pid(getpid())
   , m_command_handlers()
+  , m_shutdown(false)
   , m_env(env)
 {
   memset(&m_static_endpoint, 0, sizeof(m_static_endpoint));
 
   m_command_handlers.insert(CommandHandlerMap::value_type(kNsMessageTypeLookupResponse, &rtRemoteNsResolver::onLocate));
-
-  m_shutdown_pipe[0] = -1; m_shutdown_pipe[1] = -1;
-  
-  int ret = pipe2(m_shutdown_pipe, O_CLOEXEC);
-  if (ret == -1)
-  {
-    rtError e = rtErrorFromErrno(ret);
-    rtLogWarn("failed to create shutdown pipe. %s", rtStrError(e));
-  }
 }
 
 rtRemoteNsResolver::~rtRemoteNsResolver()
@@ -87,6 +66,7 @@ rtRemoteNsResolver::open(sockaddr_storage const& rpc_endpoint)
     return err;
   }
 
+  m_shutdown = false;
   m_read_thread.reset(new std::thread(&rtRemoteNsResolver::runListener, this));
   return RT_OK;
 
@@ -273,34 +253,21 @@ rtRemoteNsResolver::locateObject(std::string const& name, sockaddr_storage& endp
 rtError
 rtRemoteNsResolver::close()
 {
-  if (m_shutdown_pipe[1] != -1)
+  if (!m_shutdown)
   {
-    char buff[] = {"shutdown"};
-    ssize_t n = write(m_shutdown_pipe[1], buff, sizeof(buff));
-    if (n == -1)
-    {
-      rtError e = rtErrorFromErrno(errno);
-      rtLogWarn("failed to write. %s", rtStrError(e));
-    }
+    m_shutdown = true;
 
     if (m_read_thread)
     {
       m_read_thread->join();
       m_read_thread.reset();
     }
-
-    if (m_shutdown_pipe[0] != -1)
-      ::close(m_shutdown_pipe[0]);
-    if (m_shutdown_pipe[1] != -1)
-      ::close(m_shutdown_pipe[1]);
   }
 
-  if (m_static_fd != -1)
-    ::close(m_static_fd);
+  if (m_static_fd != kInvalidSocket)
+     rtCloseSocket(m_static_fd);
 
-  m_static_fd = -1;
-  m_shutdown_pipe[0] = -1;
-  m_shutdown_pipe[1] = -1;
+  m_static_fd = kInvalidSocket;
 
   return RT_OK;    
 }
@@ -340,22 +307,21 @@ rtRemoteNsResolver::openSocket()
   int ret = 0;
 
   m_static_fd = socket(m_static_endpoint.ss_family, SOCK_DGRAM, 0);
-  if (m_static_fd < 0)
+  if (NET_FAILED(m_static_fd))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to create unicast socket with family: %d. %s", 
       m_static_endpoint.ss_family, rtStrError(e));
     return e;
   }
-  fcntl(m_static_fd, F_SETFD, fcntl(m_static_fd, F_GETFD) | FD_CLOEXEC);
 
   rtSocketGetLength(m_static_endpoint, &m_static_len);
 
   // listen on ANY port
   ret = bind(m_static_fd, reinterpret_cast<sockaddr *>(&m_static_endpoint), m_static_len);
-  if (ret < 0)
+  if (NET_FAILED(ret))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to bind unicast endpoint: %s", rtStrError(e));
     return e;
   }
@@ -363,9 +329,9 @@ rtRemoteNsResolver::openSocket()
   // now figure out which port we're bound to
   rtSocketGetLength(m_static_endpoint, &m_static_len);
   ret = getsockname(m_static_fd, reinterpret_cast<sockaddr *>(&m_static_endpoint), &m_static_len);
-  if (ret < 0)
+  if (NET_FAILED(ret))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to get socketname. %s", rtStrError(e));
     return e;
   }
@@ -407,20 +373,23 @@ rtRemoteNsResolver::runListener()
 
     FD_ZERO(&read_fds);
     rtPushFd(&read_fds, m_static_fd, &maxFd);
-    rtPushFd(&read_fds, m_shutdown_pipe[0], &maxFd);
 
     FD_ZERO(&err_fds);
     rtPushFd(&err_fds, m_static_fd, &maxFd);
 
-    int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, NULL);
-    if (ret == -1)
+    timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 10000;
+
+    int ret = select(maxFd + 1, &read_fds, NULL, &err_fds, &timeout);
+    if (NET_FAILED(ret))
     {
-      rtError e = rtErrorFromErrno(errno);
+      rtError e = rtErrorFromErrno(net_errno());
       rtLogWarn("select failed: %s", rtStrError(e));
       continue;
     }
 
-    if (FD_ISSET(m_shutdown_pipe[0], &read_fds))
+    if (m_shutdown)
     {
       rtLogInfo("got shutdown signal");
       return;
@@ -432,17 +401,17 @@ rtRemoteNsResolver::runListener()
 }
 
 void
-rtRemoteNsResolver::doRead(int fd, rtRemoteSocketBuffer& buff)
+rtRemoteNsResolver::doRead(socket_t fd, rtRemoteSocketBuffer& buff)
 {
   // we only suppor v4 right now. not sure how recvfrom supports v6 and v4
   sockaddr_storage src;
   socklen_t len = sizeof(sockaddr_in);
 
   #if 0
-  ssize_t n = read(m_mcast_fd, &m_read_buff[0], m_read_buff.capacity());
+  int n = read(m_mcast_fd, &m_read_buff[0], m_read_buff.capacity());
   #endif
 
-  ssize_t n = recvfrom(fd, &buff[0], buff.capacity(), 0, reinterpret_cast<sockaddr *>(&src), &len);
+  int n = recvfrom(fd, &buff[0], buff.capacity(), 0, reinterpret_cast<sockaddr *>(&src), &len);
   if (n > 0)
     doDispatch(&buff[0], static_cast<int>(n), &src);    
 }

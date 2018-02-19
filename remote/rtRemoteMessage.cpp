@@ -4,10 +4,8 @@
 #include "rtRemoteValueWriter.h"
 #include "rtError.h"
 
-#include <arpa/inet.h>
 #include <rtLog.h>
 #include <stdarg.h>
-#include <unistd.h>
 
 #include <atomic>
 #include <memory>
@@ -46,7 +44,7 @@ rtRemoteCorrelationKey
 rtMessage_GetNextCorrelationKey()
 {
   #ifdef RT_REMOTE_CORRELATION_KEY_IS_INT
-  static pid_t pid = getpid();
+  static int pid = getpid();
   int p = pid;
   p <<= 16;
   p &= 0xffff0000;

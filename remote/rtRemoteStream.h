@@ -66,7 +66,7 @@ private:
   rtError onInactivity();
 
 private:
-  int                                   m_fd;
+  socket_t                              m_fd;
   std::weak_ptr<CallbackHandler>        m_callback_handler;
   sockaddr_storage                      m_local_endpoint;
   sockaddr_storage                      m_remote_endpoint;

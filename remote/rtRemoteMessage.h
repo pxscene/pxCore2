@@ -28,6 +28,8 @@
 #define kFieldNameKeepAliveIds "keep_alive.ids"
 #define kFieldNameEndPoint "endpoint"
 #define kFieldNamePath "path"
+#define kFieldNameIp "ip"
+#define kFieldNamePort "port"
 #define kFieldNameScheme "scheme"
 #define kFieldNameEndpointType "endpoint.type"
 #define kFieldNameReplyTo "reply-to"

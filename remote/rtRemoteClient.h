@@ -12,8 +12,6 @@
 #include <rtError.h>
 #include <rtValue.h>
 
-#include <sys/socket.h>
-
 #include "rtRemoteCorrelationKey.h"
 #include "rtRemoteEnvironment.h"
 #include "rtRemoteMessage.h"
