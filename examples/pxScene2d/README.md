@@ -214,6 +214,7 @@ file:///home/username/directory/filename.js
    Output pxCore libs locallay: -DOUTPUT_LIBS_LOCAL=ON
    Disable building pxCore libs: -DBUILD_PXCORE_LIBS=OFF
    Disable building pxscene: -DBUILD_PXSCENE=OFF
+   Enable builds to prefer system libraries over built-in libraries -DPREFER_SYSTEM_LIBRARIES=ON
    ~~~~
 
 ## On Mac OS X - Xcode Workspace 
