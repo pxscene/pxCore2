@@ -1,10 +1,15 @@
 "use strict";
 
+var isDuk = (typeof timers != "undefined")?true:false;
+
 var fs = require('fs');
 var url = require('url');
 var http = require('http');
-var fs = require("fs");
-var JSZip = require("jszip");
+
+// FIXME !!!!!!!!!! duktape merge hack
+if (!isDuk) {
+  var JSZip = require("jszip");
+}
 
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('FileUtils');

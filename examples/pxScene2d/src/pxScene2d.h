@@ -61,12 +61,14 @@
 #include "testView.h"
 
 #ifdef ENABLE_RT_NODE
-#include "rtNode.h"
+#include "rtScript.h"
 #endif //ENABLE_RT_NODE
 
 #ifdef ENABLE_PERMISSIONS_CHECK
 #include "rtPermissions.h"
 #endif
+
+#include "rtServiceProvider.h"
 
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
@@ -97,6 +99,8 @@ extern rtThreadQueue gUIThreadQueue;
 // Constants
 static pxConstants CONSTANTS;
 
+char *base64_encode(const unsigned char *data, size_t input_length, size_t *output_length);
+unsigned char *base64_decode(const unsigned char *data, size_t input_length, size_t *output_length);
 
 #if 0
 typedef rtError (*objectFactory)(void* context, const char* t, rtObjectRef& o);
@@ -230,7 +234,7 @@ public:
     rtString d;
     // Why is this bad
     //sendReturns<rtString>("description",d);
-    rtString d2 = getMap()->className;
+    //rtString d2 = getMap()->className;
     unsigned long c =  rtObject::Release();
     #if 0
     if (c == 0)
@@ -244,10 +248,10 @@ public:
   
 
   // TODO missing conversions in rtValue between uint32_t and int32_t
-  uint32_t numChildren() const { return mChildren.size(); }
+  size_t numChildren() const { return mChildren.size(); }
   rtError numChildren(int32_t& v) const 
   {
-    v = mChildren.size();
+    v = (int32_t) mChildren.size();
     return RT_OK;
   }
 
@@ -730,12 +734,14 @@ protected:
   bool mIsDirty;
   pxMatrix4f mLastRenderMatrix;
   pxRect mScreenCoordinates;
+  pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
 
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
   void createSnapshotOfChildren();
   void clearSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES
+  void setDirtyRect(pxRect* r);
   pxRect getBoundingRectInScreenCoordinates();
   pxRect convertToScreenCoordinates(pxRect* r);
   #endif //PX_DIRTY_RECTANGLES
@@ -812,6 +818,11 @@ public:
   }
 
   void invalidateRect(pxRect* r);
+
+  virtual void* getInterface(const char* /*name*/)
+  {
+    return NULL;
+  }  
 
 #if 0
   rtError url(rtString& v) const { v = mUri; return RT_OK; }
@@ -1026,6 +1037,8 @@ public:
   // createNewPromise to prevent firing from update() 
   virtual void sendPromise() { rtLogDebug("pxSceneContainer ignoring sendPromise\n"); }
   virtual void createNewPromise(){ rtLogDebug("pxSceneContainer ignoring createNewPromise\n"); }
+
+  virtual void* getInterface(const char* name);
   
 private:
   rtRef<pxScriptView> mScriptView;
@@ -1137,7 +1150,7 @@ protected:
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
 
-  static rtError getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx);
+  static rtError getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/);
 
   virtual void onSize(int32_t w, int32_t h)
   {
@@ -1255,7 +1268,7 @@ protected:
   rtRef<rtFunctionCallback> mGetContextID;
 
 #ifdef ENABLE_RT_NODE
-  rtNodeContextRef mCtx;
+  rtScriptContextRef mCtx;
 #endif //ENABLE_RT_NODE
   pxIViewContainer* mViewContainer;
   unsigned long mRefCount;
@@ -1266,7 +1279,7 @@ protected:
   static rtEmitRef mEmit;
 };
 
-class pxScene2d: public rtObject, public pxIView 
+class pxScene2d: public rtObject, public pxIView, public rtIServiceProvider
 {
 public:
   rtDeclareObject(pxScene2d, rtObject);
@@ -1322,6 +1335,9 @@ public:
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
+  rtMethod1ArgAndNoReturn("addServiceProvider", addServiceProvider, rtFunctionRef);
+  rtMethod1ArgAndNoReturn("removeServiceProvider", removeServiceProvider, rtFunctionRef);
+
   pxScene2d(bool top = true, pxScriptView* scriptView = NULL);
   virtual ~pxScene2d()
   {
@@ -1345,6 +1361,29 @@ public:
     if (l == 0)
       delete this;
     return l;
+  }
+
+  rtError addServiceProvider(const rtFunctionRef& p)
+  {
+    if (p)
+      mServiceProviders.push_back(p);
+    return RT_OK;
+  }
+
+  rtError removeServiceProvider(const rtFunctionRef& p)
+  {
+    if (p)
+    {
+      for(std::vector<rtFunctionRef>::iterator i = mServiceProviders.begin(); i != mServiceProviders.end(); i++)
+      {
+        if (*i == p)
+        {
+          mServiceProviders.erase(i);
+          break;
+        }
+      }
+    }
+    return RT_OK;
   }
 
 //  void init();
@@ -1494,12 +1533,13 @@ public:
 
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
-    bool allowed;
-    if (allows(url, allowed) == RT_OK && !allowed)
+#ifdef ENABLE_PERMISSIONS_CHECK
+    if (!mPermissions.allows(url.cString(), rtPermissions::DEFAULT))
     {
       rtLogError("url '%s' is not allowed", url.cString());
       return RT_ERROR_NOT_ALLOWED;
     }
+#endif
 
     rtError e = RT_FAIL;
     rtRef<pxArchive> a = new pxArchive;
@@ -1518,6 +1558,7 @@ public:
   rtError clipboardGet(rtString type, rtString& retString);
   rtError clipboardSet(rtString type, rtString clipString);
   rtError getService(rtString name, rtObjectRef& returnObject);
+  rtError getService(const char* name, const rtObjectRef& ctx, rtObjectRef& service);
 
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
@@ -1537,9 +1578,9 @@ private:
   int frameCount;
   int mWidth;
   int mHeight;
-  
+
   rtObjectRef mCanvas; // for SVG drawing
-  
+
   rtEmitRef mEmit;
 
 // TODO Top level scene only
@@ -1580,9 +1621,11 @@ public:
   bool mDirty;
   #ifdef PX_DIRTY_RECTANGLES
   pxRect mDirtyRect;
+  pxRect mLastFrameDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
   testView* mTestView;
   bool mDisposed;
+  std::vector<rtFunctionRef> mServiceProviders;
 };
 
 // TODO do we need this anymore?

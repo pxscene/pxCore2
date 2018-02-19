@@ -24,13 +24,13 @@
 1. Install required packages:
     
     ~~~~
-    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake
+    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt
     
     ~~~~
 
 ## macOS Setup 
 
->Install Xcode and CMake
+>Install Xcode, CMake and quilt
 >   * Download the latest version of Xcode from https://developer.apple.com/xcode/download/
 >   * Download the latest cmake from https://cmake.org/download/
 >   * Install cmake and setup the following symbolic links in /usr/local/bin
@@ -42,7 +42,7 @@
     ln -s /Applications/CMake.app/Contents/bin/cpack /usr/local/bin/cpack
     ln -s /Applications/CMake.app/Contents/bin/ctest /usr/local/bin/ctest
     ~~~~
-
+>   * Install quilt
 
 
 ## Windows Setup
@@ -52,6 +52,7 @@
 >   * [windows sdk 10.0.16299.0](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk),it is included in VS2017 with above workload and only necessary if you have issue to install with VS2017)
 >   * python 2.7.x , make sure python can work in cmd (setup environment variables depending on install location)
 >   * git for windows , make sure git can work in cmd (setup environment variables depending on install location)
+>   * patch utility for windows (this comes with git. setup environment variables depending on install location of patch.exe)
 >   * Download and install cmake for windows from https://cmake.org/download/
 >   * Download and install NSIS installer from http://nsis.sourceforge.net/Download
 >   * **Run all these commands from a Visual Studio Command Prompt**

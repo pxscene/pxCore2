@@ -17,11 +17,15 @@ if [ "$retVal" -eq 0 ]
 	cat gdblogs
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
-		echo "Core stack details ---------------------------------------- from $path"
+		echo "**********************PRINTING CORE STACK DETAILS**************************"
+		echo "PATH :  $path"
 		cat $tempLogFile
+		echo "***************************************************************************"
 	else
-		echo "Core stack details ---------------------------------------- from $path" >> $logfile
+		echo "**********************PRINTING CORE STACK DETAILS**************************" >> $logfile 
+		echo "PATH :  $path" >> $logfile
 		cat "$tempLogFile" >> $logfile
+		echo "***************************************************************************" >> $logfile
 	fi
 	rm -rf "$tempLogFile"
 	rm -rf gdblogs

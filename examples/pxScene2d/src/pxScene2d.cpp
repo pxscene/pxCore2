@@ -26,7 +26,7 @@
 #include "rtLog.h"
 #include "rtRef.h"
 #include "rtString.h"
-#include "rtNode.h"
+//#include "rtNode.h"
 #include "rtPathUtils.h"
 #include "rtUrlUtils.h"
 
@@ -83,7 +83,6 @@ using namespace std;
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
 
 extern rtThreadQueue gUIThreadQueue;
-uint32_t rtPromise::promiseID = 200;
 
 static int fpsWarningThreshold = 25;
 
@@ -109,13 +108,8 @@ uint32_t gFboBindCalls;
 extern void rtWrapperSceneUpdateEnter();
 extern void rtWrapperSceneUpdateExit();
 #ifdef RUNINMAIN
-#ifdef ENABLE_DEBUG_MODE
-rtNode script(false);
+rtScript script;
 #else
-rtNode script;
-#endif
-#else
-extern rtNode script;
 class AsyncScriptInfo;
 extern vector<AsyncScriptInfo*> scriptsInfo;
 extern uv_mutex_t moreScriptsMutex;
@@ -335,10 +329,6 @@ char *base64_encode(const unsigned char *data,
     for (int i = 0; i < mod_table[input_length % 3]; i++)
         encoded_data[*output_length - 1 - i] = '=';
 
-#ifdef PX_PLATFORM_MAC
-    encoded_data[*output_length] = '\0';
-#endif //PX_PLATFORM_MAC
-
     return encoded_data;
 }
 
@@ -410,7 +400,7 @@ public:
     if (!value) return RT_FAIL;
     if (!strcmp(name, "length"))
     {
-      value->setUInt32(mObject->numChildren());
+      value->setUInt32( (uint32_t) mObject->numChildren());
       return RT_OK;
     }
     else
@@ -458,7 +448,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
     mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
 #ifdef PX_DIRTY_RECTANGLES
-    , mIsDirty(false), mLastRenderMatrix(), mScreenCoordinates()
+    , mIsDirty(true), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect()
 #endif //PX_DIRTY_RECTANGLES
     ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false)
   {
@@ -593,7 +583,6 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
                               uint32_t interp, uint32_t options,
                               int32_t count, rtObjectRef& promise)
 {
-
   if (!props) return RT_FAIL;
 
   // TODO JR... not sure that we should do an early out here... thinking
@@ -668,6 +657,10 @@ void pxObject::setParent(rtRef<pxObject>& parent)
     mParent = parent;
     if (parent)
       parent->mChildren.push_back(this);
+#ifdef PX_DIRTY_RECTANGLES
+    mIsDirty = true;
+    mScreenCoordinates = getBoundingRectInScreenCoordinates();
+#endif //PX_DIRTY_RECTANGLES
   }
 }
 
@@ -1088,6 +1081,8 @@ void pxObject::update(double t)
     mLastRenderMatrix = context.getMatrix();
     pxRect dirtyRect = getBoundingRectInScreenCoordinates();
     mScene->invalidateRect(&dirtyRect);
+    dirtyRect.unionRect(mScreenCoordinates);
+    setDirtyRect(&dirtyRect);
     mIsDirty = false;
   }
   #endif //PX_DIRTY_RECTANGLES
@@ -1112,6 +1107,18 @@ EXITSCENELOCK()
 }
 
 #ifdef PX_DIRTY_RECTANGLES
+void pxObject::setDirtyRect(pxRect *r)
+{
+  if (r != NULL)
+  {
+    mDirtyRect.unionRect(*r);
+    if (mParent != NULL)
+    {
+      mParent->setDirtyRect(&mDirtyRect);
+    }
+  }
+}
+
 pxRect pxObject::getBoundingRectInScreenCoordinates()
 {
   int w = getOnscreenWidth();
@@ -1398,6 +1405,9 @@ void pxObject::drawInternal(bool maskPass)
     mRepaint = false;
   }
   // ---------------------------------------------------------------------------------------------------
+#ifdef PX_DIRTY_RECTANGLES
+  mDirtyRect.setEmpty();
+#endif //PX_DIRTY_RECTANGLES
 }
 
 
@@ -1497,12 +1507,19 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   float w = getOnscreenWidth();
   float h = getOnscreenHeight();
 
+#ifdef PX_DIRTY_RECTANGLES
+  bool fullFboRepaint = false;
+#endif //PX_DIRTY_RECTANGLES
+
   //rtLogInfo("createSnapshot  w=%f h=%f\n", w, h);
   if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
   {
     clearSnapshot(fbo);
     //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
     fbo = context.createFramebuffer(floor(w), floor(h), antiAliasing);
+#ifdef PX_DIRTY_RECTANGLES
+    fullFboRepaint = true;
+#endif //PX_DIRTY_RECTANGLES
   }
   else
   {
@@ -1512,7 +1529,23 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (mRepaint && context.setFramebuffer(fbo) == PX_OK)
   {
+#ifdef PX_DIRTY_RECTANGLES
+    int clearX = mDirtyRect.left();
+    int clearY = mDirtyRect.top();
+    int clearWidth = mDirtyRect.right() - clearX+1;
+    int clearHeight = mDirtyRect.bottom() - clearY+1;
+
+    if (fullFboRepaint)
+    {
+      clearX = 0;
+      clearY = 0;
+      clearWidth = w;
+      clearHeight = h;
+    }
+    context.clear(clearX, clearY, clearWidth, clearHeight);
+#else
     context.clear(w, h);
+#endif //PX_DIRTY_RECTANGLES
     draw();
 
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -1626,10 +1659,12 @@ void pxObject::repaintParents()
   }
 }
 
+#if 0
 rtDefineObject(rtPromise, rtObject);
 rtDefineMethod(rtPromise, then);
 rtDefineMethod(rtPromise, resolve);
 rtDefineMethod(rtPromise, reject);
+#endif
 
 rtDefineObject(pxObject, rtObject);
 rtDefineProperty(pxObject, _pxObject);
@@ -1705,7 +1740,11 @@ int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
-    mInnerpxObjects(), mDirty(true), mTestView(NULL), mDisposed(false)
+    mInnerpxObjects(),
+#ifdef PX_DIRTY_RECTANGLES
+    mDirtyRect(), mLastFrameDirtyRect(),
+#endif //PX_DIRTY_RECTANGLES
+    mDirty(true), mTestView(NULL), mDisposed(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1760,6 +1799,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   
   mInfo = new rtMapObject;
   mInfo.set("version", xstr(PX_SCENE_VERSION));
+
+#ifdef ENABLE_RT_NODE
+  mInfo.set("engine", script.engine());
+#endif
   
     rtObjectRef build = new rtMapObject;
     build.set("date", xstr(__DATE__));
@@ -1788,11 +1831,12 @@ rtError pxScene2d::dispose()
     if (mRoot)
       mRoot->dispose();
     mEmit->clearListeners();
-    mRoot = NULL;
-  
-    mInfo = NULL;
-  
+
+    mRoot     = NULL;
+    mInfo     = NULL;
+    mCanvas   = NULL;
     mFocusObj = NULL;
+
     pxFontManager::clearAllFonts();
     return RT_OK;
 }
@@ -1821,13 +1865,14 @@ void pxScene2d::init()
 
 rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
+#ifdef ENABLE_PERMISSIONS_CHECK
   rtString url = p.get<rtString>("url");
-  bool allowed;
-  if (allows(url, allowed) == RT_OK && !allowed)
+  if (!mPermissions.allows(url.cString(), rtPermissions::DEFAULT))
   {
     rtLogError("url '%s' is not allowed", url.cString());
     return RT_ERROR_NOT_ALLOWED;
   }
+#endif
 
   rtError e = RT_OK;
   rtString t = p.get<rtString>("t");
@@ -1880,6 +1925,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     return RT_FAIL;
   }
 
+  // Handle psuedo property here for children.  Probably should make this 
   rtObjectRef c = p.get<rtObjectRef>("c");
   if (c)
   {
@@ -2026,7 +2072,7 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::logDebugMetrics()
 {
 #ifdef ENABLE_DEBUG_METRICS 
-    script.garbageCollect();
+    script.collectGarbage();
     rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifdef PX_PLATFORM_MAC
       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
@@ -2058,6 +2104,15 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 {
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtString cmd = p.get<rtString>("cmd");
+  if (!mPermissions.allows(cmd.cString(), rtPermissions::WAYLAND))
+  {
+    rtLogError("wayland cmd '%s' is not allowed", cmd.cString());
+    return RT_ERROR_NOT_ALLOWED;
+  }
+#endif
+
 #if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
   UNUSED_PARAM(p);
   UNUSED_PARAM(o);
@@ -2101,10 +2156,12 @@ void pxScene2d::draw()
 
   //rtLogInfo("pxScene2d::draw()\n");
   #ifdef PX_DIRTY_RECTANGLES
-  int x = mDirtyRect.left();
-  int y = mDirtyRect.top();
-  int w = mDirtyRect.right() - x+1;
-  int h = mDirtyRect.bottom() - y+1;
+  pxRect dirtyRectangle = mDirtyRect;
+  dirtyRectangle.unionRect(mLastFrameDirtyRect);
+  int x = dirtyRectangle.left();
+  int y = dirtyRectangle.top();
+  int w = dirtyRectangle.right() - x+1;
+  int h = dirtyRectangle.bottom() - y+1;
 
   static bool previousShowDirtyRect = false;
 
@@ -2134,6 +2191,7 @@ ENTERSCENELOCK()
     mRoot->drawInternal(true);
 EXITSCENELOCK()
     context.popState();
+    mLastFrameDirtyRect.setLTRB(mDirtyRect.left(), mDirtyRect.top(), mDirtyRect.right(), mDirtyRect.bottom());
     mDirtyRect.setEmpty();
   }
 
@@ -2892,12 +2950,13 @@ rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
 
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
-  bool allowed;
-  if (allows("feature://screenshot", allowed) == RT_OK && !allowed)
+#ifdef ENABLE_PERMISSIONS_CHECK
+  if (!mPermissions.allows("screenshot", rtPermissions::FEATURE))
   {
     rtLogError("screenshot is not allowed");
     return RT_ERROR_NOT_ALLOWED;
   }
+#endif
 
   // Is this a type we support?
   if (type == "image/png;base64")
@@ -2928,7 +2987,8 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
       {
         // We return a data Url string containing the image data
         pngData = "data:image/png;base64,";
-        pngData.append(d);
+        rtString base64str(d, (uint32_t) l); // NULL-terminated
+        pngData.append(base64str.cString());
         free(d);
         return RT_OK;
       }
@@ -2963,33 +3023,112 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 
 rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 {
-  rtString serviceUrl("serviceManager://");
-  serviceUrl.append(name.cString());
-  bool allowed;
-  if (allows(serviceUrl, allowed) == RT_OK && !allowed)
+  returnObject = NULL;
+
+  // Create context from requesting scene
+  rtObjectRef ctx = new rtMapObject();
+  ctx.set("url", mScriptView != NULL ? mScriptView->getUrl() : "");
+
+  return getService(name, ctx, returnObject);
+}
+
+// todo change rtString to const char*
+rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObjectRef& service)
+{
+  static pxScene2d* reentered = NULL;
+
+  // Only query this scene  if we're not already in the middle of querying this scene
+  if (reentered != this)
   {
-    rtLogError("url '%s' is not allowed", serviceUrl.cString());
-    return RT_ERROR_NOT_ALLOWED;
+    for (std::vector<rtFunctionRef>::iterator i = mServiceProviders.begin(); i != mServiceProviders.end(); i++)
+    {
+      rtValue result;
+      rtError e;
+      
+      reentered = this;
+      e = (*i).sendReturns<rtValue>(name, ctx, result);
+      reentered = NULL;
+
+      if (e == RT_OK)
+      {
+        if (result.getType() == RT_stringType)
+        {
+          rtString access = result.toString();
+          // denied stop searching for service
+          if (access == "deny")
+            break;
+          // if not explicitly allowed then break
+          if (access != "allow")
+            break;
+          // otherwise keep on looking
+        }
+        else if (result.getType() == RT_objectType)
+        {
+          rtObjectRef o = result.toObject();
+          if (o)
+          {
+              service = o;
+              return RT_OK;
+          }
+          else
+          {
+            // if object reference is null don't keep looking. service provider must explicitly allow.
+            break;
+          }
+        }
+        else
+        {
+          // unexpected result from service provider stop searching for service.
+          break;
+        }
+      }
+    }
   }
 
-  rtLogInfo("trying to get service for name: %s", name.cString());
-#ifdef PX_SERVICE_MANAGER
-  rtObjectRef serviceManager;
-  rtError result = pxServiceManager::findServiceManager(serviceManager);
-  if (result != RT_OK)
+  // See if the view's container can provide the service
+  rtRef<rtIServiceProvider> serviceProvider;
+  if (mContainer)
   {
-    rtLogWarn("service manager not found");
-    return result;
+    serviceProvider = (rtIServiceProvider*)(mContainer->getInterface("serviceProvider"));
   }
-  result = serviceManager.sendReturns<rtObjectRef>("createService", mScriptView != NULL ? mScriptView->getUrl() : "", name, returnObject);
-  rtLogInfo("create %s service result: %d", name.cString(), result);
-  return result;
-#else
-  rtLogInfo("service manager not supported");
-  (void)name;
-  (void)returnObject;
-  return RT_FAIL;
-#endif //PX_SERVICE_MANAGER
+  if (serviceProvider)
+  {
+    if (serviceProvider->getService(name, ctx, service) == RT_OK)
+    {
+      return RT_OK;
+    }
+    else
+      return RT_FAIL;
+  }
+  else
+  {
+    // TODO JRJR should move this to top level container only... 
+
+  #ifdef ENABLE_PERMISSIONS_CHECK
+    if (!mPermissions.allows(name, rtPermissions::SERVICE))
+    {
+      rtLogError("service '%s' is not allowed", name);
+      return RT_ERROR_NOT_ALLOWED;
+    }
+  #endif
+
+    rtLogInfo("trying to get service for name: %s", name);
+  #ifdef PX_SERVICE_MANAGER
+    rtObjectRef serviceManager;
+    rtError result = pxServiceManager::findServiceManager(serviceManager);
+    if (result != RT_OK)
+    {
+      rtLogWarn("service manager not found");
+      return result;
+    }
+    result = serviceManager.sendReturns<rtObjectRef>("createService", mScriptView != NULL ? mScriptView->getUrl() : "", name, returnObject);
+    rtLogInfo("create %s service result: %d", name, result);
+    return result;
+  #else
+    rtLogInfo("service manager not supported");
+    return RT_FAIL;
+  #endif //PX_SERVICE_MANAGER
+  }
 }
 
 rtDefineObject(pxScene2d, rtObject);
@@ -3029,6 +3168,8 @@ rtDefineMethod(pxScene2d, dispose);
 rtDefineProperty(pxScene2d, origin);
 rtDefineMethod(pxScene2d, allows);
 rtDefineMethod(pxScene2d, checkAccessControlHeaders);
+rtDefineMethod(pxScene2d, addServiceProvider);
+rtDefineMethod(pxScene2d, removeServiceProvider);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
@@ -3086,6 +3227,7 @@ void pxViewContainer::invalidateRect(pxRect* r)
 #ifdef PX_DIRTY_RECTANGLES
     pxRect screenRect = convertToScreenCoordinates(r);
     mScene->invalidateRect(&screenRect);
+    setDirtyRect(r);
 #else
     mScene->invalidateRect(NULL);
     UNUSED_PARAM(r);
@@ -3135,7 +3277,7 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
 rtError pxScene2d::allows(const rtString& url, bool& o) const
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  return mPermissions.allows(url.cString(), o);
+  return mPermissions.allows(url.cString(), rtPermissions::DEFAULT, o);
 #else
   UNUSED_PARAM(url);
   o = true; // default
@@ -3186,7 +3328,7 @@ rtError pxSceneContainer::setUrl(rtString url)
   // If old promise is still unfulfilled resolve it
   // and create a new promise for the context of this Url
   mReady.send("resolve", this);
-  mReady = new rtPromise( std::string("pxSceneContainer >> ") + std::string(url) );
+  mReady = new rtPromise();
 
   mUrl = url;
 #ifdef RUNINMAIN
@@ -3266,6 +3408,14 @@ void pxSceneContainer::dispose()
   }
 }
 
+  void* pxSceneContainer::getInterface(const char* name)
+  {
+    if (strcmp(name, "serviceProvider") == 0)
+    {
+      return (rtIServiceProvider*)mScene;
+    }
+    return NULL;
+  }
 
 #if 0
 void* gObjectFactoryContext = NULL;
@@ -3321,7 +3471,8 @@ void pxScriptView::runScript()
 
   #ifdef ENABLE_RT_NODE
   rtLogDebug("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
-  mCtx = script.createContext();
+  //mCtx = script.createContext("javascript");
+  script.createContext("javascript", mCtx);
 
   if (mCtx)
   {
@@ -3402,9 +3553,10 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
 }
 
 
-
-rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+#if 1
+rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/)
 {
+  #if 0
   //rtLogInfo(__FUNCTION__);
   UNUSED_PARAM(numArgs);
   UNUSED_PARAM(args);
@@ -3430,7 +3582,12 @@ rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* re
 #endif //ENABLE_RT_NODE
 
   return RT_FAIL;
+  #else
+  *result = 0;
+  return RT_OK;
+  #endif
 }
+#endif
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {

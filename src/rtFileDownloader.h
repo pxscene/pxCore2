@@ -83,6 +83,9 @@ public:
   bool cacheEnabled();
   void setDataIsCached(bool val);
   bool isDataCached();
+  void setDeferCacheRead(bool val);
+  bool deferCacheRead();
+  FILE* cacheFilePointer(void);
 #endif //ENABLE_HTTP_CACHE
   void setProgressMeter(bool val);
   bool isProgressMeterSwitchOff();
@@ -116,6 +119,7 @@ private:
 #ifdef ENABLE_HTTP_CACHE
   bool mCacheEnabled;
   bool mIsDataInCache;
+  bool mDeferCacheRead;
 #endif //ENABLE_HTTP_CACHE
   bool mIsProgressMeterSwitchOff;
   bool mHTTPFailOnError;
