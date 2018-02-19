@@ -92,7 +92,7 @@ rtPermissions::permissionsMap_t permissionsJsonToMap(const rapidjson::Value& jso
       const rapidjson::Value& sec = json[sectionName];
       if (!sec.IsObject())
       {
-        rtLogWarn("%s : '%s' is not object", __PRETTY_FUNCTION__, sectionName);
+        rtLogWarn("%s : '%s' is not object", __FUNCTION__, sectionName);
         continue;
       }
       for (int j = 0; j < 2; j++)
@@ -104,7 +104,7 @@ rtPermissions::permissionsMap_t permissionsJsonToMap(const rapidjson::Value& jso
           const rapidjson::Value& arr = sec[allowBlockName];
           if (!arr.IsArray())
           {
-            rtLogWarn("%s : '%s' is not array", __PRETTY_FUNCTION__, allowBlockName);
+            rtLogWarn("%s : '%s' is not array", __FUNCTION__, allowBlockName);
             continue;
           }
           for (rapidjson::SizeType k = 0; k < arr.Size(); k++)
@@ -112,7 +112,7 @@ rtPermissions::permissionsMap_t permissionsJsonToMap(const rapidjson::Value& jso
             const rapidjson::Value& str = arr[k];
             if (!str.IsString())
             {
-              rtLogWarn("%s : '%s' item is not string", __PRETTY_FUNCTION__, allowBlockName);
+              rtLogWarn("%s : '%s' item is not string", __FUNCTION__, allowBlockName);
               continue;
             }
             // third level... array of urls
@@ -194,12 +194,12 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
 
   rtString currentDir;
   rtGetCurrentDirectory(currentDir);
-  rtLogDebug("%s : currentDir='%s'", __PRETTY_FUNCTION__, currentDir.cString());
+  rtLogDebug("%s : currentDir='%s'", __FUNCTION__, currentDir.cString());
 
   FILE* fp = fopen(s, "rb");
   if (NULL == fp)
   {
-    rtLogDebug("%s : cannot open '%s'", __PRETTY_FUNCTION__, s);
+    rtLogDebug("%s : cannot open '%s'", __FUNCTION__, s);
     return RT_FAIL;
   }
 
@@ -214,13 +214,13 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
   if (!result)
   {
     rapidjson::ParseErrorCode e = doc.GetParseError();
-    rtLogWarn("%s : [JSON parse error : %s (%ld)]", __PRETTY_FUNCTION__, rapidjson::GetParseError_En(e), result.Offset());
+    rtLogWarn("%s : [JSON parse error : %s (%ld)]", __FUNCTION__, rapidjson::GetParseError_En(e), result.Offset());
     return RT_FAIL;
   }
 
   if (!doc.IsObject() || !doc.HasMember("roles") || !doc.HasMember("assign"))
   {
-    rtLogWarn("%s : no 'roles'/'assign' in json", __PRETTY_FUNCTION__);
+    rtLogWarn("%s : no 'roles'/'assign' in json", __FUNCTION__);
     return RT_FAIL;
   }
 
@@ -228,7 +228,7 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
   const rapidjson::Value& roles = doc["roles"];
   if (!assign.IsObject() || !roles.IsObject())
   {
-    rtLogWarn("%s : 'roles'/'assign' are not objects", __PRETTY_FUNCTION__);
+    rtLogWarn("%s : 'roles'/'assign' are not objects", __FUNCTION__);
     return RT_FAIL;
   }
 
@@ -238,7 +238,7 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
     const rapidjson::Value& val = itr->value;
     if (!key.IsString() || !val.IsString())
     {
-      rtLogWarn("%s : 'assign' key/value is not string", __PRETTY_FUNCTION__);
+      rtLogWarn("%s : 'assign' key/value is not string", __FUNCTION__);
       continue;
     }
     wildcard_t w;
@@ -253,13 +253,13 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
     const rapidjson::Value& val = itr->value;
     if (!key.IsString() || !val.IsObject())
     {
-      rtLogWarn("%s : 'roles' key/value is not string/object", __PRETTY_FUNCTION__);
+      rtLogWarn("%s : 'roles' key/value is not string/object", __FUNCTION__);
       continue;
     }
     mRolesMap[key.GetString()] = permissionsJsonToMap(val);
   }
 
-  rtLogInfo("%s : %ld roles, %ld assigned urls", __PRETTY_FUNCTION__, mRolesMap.size(), mAssignMap.size());
+  rtLogInfo("%s : %ld roles, %ld assigned urls", __FUNCTION__, mRolesMap.size(), mAssignMap.size());
   return RT_OK;
 }
 
@@ -286,12 +286,12 @@ rtError rtPermissions::setOrigin(const char* origin)
       if (jt != mRolesMap.end())
       {
         mPermissionsMap = jt->second;
-        rtLogDebug("%s : mapping for '%s': '%s'", __PRETTY_FUNCTION__, origin, it->second.c_str());
+        rtLogDebug("%s : mapping for '%s': '%s'", __FUNCTION__, origin, it->second.c_str());
         return RT_OK;
       }
     }
 
-    rtLogDebug("%s : no mapping for '%s'", __PRETTY_FUNCTION__, origin);
+    rtLogDebug("%s : no mapping for '%s'", __FUNCTION__, origin);
   }
 
   return RT_FAIL;
