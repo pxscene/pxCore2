@@ -885,12 +885,16 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     void disableCacheTest()
     {
       rtFileCache::instance()->clearCache();
-      addDataToCache("http://fileserver/file_notfound.jpeg",getHeader(),getBodyData(),fixedData.length());
-      rtFileDownloadRequest* request = new rtFileDownloadRequest("http://fileserver/file_notfound.jpeg",this);
+      const char *url = "http://fileserver/file_notfound.jpeg";
+      rtFileDownloadRequest* request = new rtFileDownloadRequest(url,this);
       request->setCacheEnabled(false);
       request->setCallbackFunction(NULL);
       rtFileDownloader::instance()->downloadFile(request);
-      EXPECT_TRUE (request->isDataCached() == false);
+      // Once downloadFile() finished 'request' is deleted
+      // EXPECT_TRUE (request->isDataCached() == false);
+      rtHttpCacheData cachedData(url);
+      rtError ret = rtFileCache::instance()->httpCacheData(url, cachedData);
+      EXPECT_TRUE(ret == RT_ERROR);
     }
 
     void startFileDownloadInBackgroundTest()
