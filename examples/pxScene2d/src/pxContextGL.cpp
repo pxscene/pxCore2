@@ -2127,52 +2127,80 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
 
 #endif
 
-  const GLfloat verts[14][2] =
-   {
-          // draw border
-          { ox1,oy1 },
-          { ix1,iy1 },
-          { ox2,oy1 },
-          { ix2,iy1 },
-          { ox2,oy2 },
-          { ix2,iy2 },
-          { ox1,oy2 },
-          { ix1,iy2 },
-          { ox1,oy1 },
-          { ix1,iy1 },
-
-          // draw center
-          { ix1,iy1 },
-          { ix1,iy2 },
-          { ix2,iy1 },
-          { ix2,iy2 },
-   };
- 
-   const GLfloat uv[14][2] =
+  const GLfloat verts[28][2] =
       {
-          // draw border
-          { ou1,ov2 },
-          { iu1,iv2 },
-          { ou2,ov2 },
-          { iu2,iv2 },
-          { ou2,ov1 },
-          { iu2,iv1 },
-          { ou1,ov1 },
-          { iu1,iv1 },
-          { ou1,ov2 },
-          { iu1,iv2 },
+          // border
+          { ox1,oy2 },
+          { ix1,oy2 },
+          { ox1,iy2 },
+          { ix1,iy2 },
+          { ox1,iy1 },
+          { ix1,iy1 },
+          { ox1,oy1 },
+          { ix1,oy1 },
+          { ix1,oy1 },
+          { ix1,iy1 },
+          { ix2,oy1 },
+          { ix2,iy1 },
+          { ox2,oy1 },
+          { ox2,iy1 },
+          { ox2,iy1 },
+          { ix2,iy1 },
+          { ox2,iy2 },
+          { ix2,iy2 },
+          { ox2,oy2 },
+          { ix2,oy2 },
+          { ix2,oy2 },
+          { ix2,iy2 },
+          { ix1,oy2 },
+          { ix1,iy2 },
 
-          //draw center
-          { iu1,iv2 },
+          // center
+          { ix1,iy2 },
+          { ix2,iy2 },
+          { ix1,iy1 },
+          { ix2,iy1 },
+      };
+
+  const GLfloat uv[28][2] =
+      {
+          // border
+          { ou1,ov1 },
+          { iu1,ov1 },
+          { ou1,iv1 },
           { iu1,iv1 },
+          { ou1,iv2 },
+          { iu1,iv2 },
+          { ou1,ov2 },
+          { iu1,ov2 },
+          { iu1,ov2 },
+          { iu1,iv2 },
+          { iu2,ov2 },
           { iu2,iv2 },
+          { ou2,ov2 },
+          { ou2,iv2 },
+          { ou2,iv2 },
+          { iu2,iv2 },
+          { ou2,iv1 },
           { iu2,iv1 },
+          { ou2,ov1 },
+          { iu2,ov1 },
+          { iu2,ov1 },
+          { iu2,iv1 },
+          { iu1,ov1 },
+          { iu1,iv1 },
+
+          // center
+          { iu1,iv1 },
+          { iu2,iv1 },
+          { iu1,iv2 },
+          { iu2,iv2 },
       };
 
   float colorPM[4];
   premultiply(colorPM,color);
 
-  gTextureBorderShader->draw(gResW,gResH,gMatrix.data(),gAlpha,drawCenter? 14 : 10,verts,uv,texture,pxConstantsStretch::NONE,pxConstantsStretch::NONE, colorPM);
+  gTextureBorderShader->draw(gResW,gResH,gMatrix.data(),gAlpha,drawCenter? 28 : 24,verts,uv,texture,pxConstantsStretch::NONE,pxConstantsStretch::NONE, colorPM);
 }
 
 bool gContextInit = false;
