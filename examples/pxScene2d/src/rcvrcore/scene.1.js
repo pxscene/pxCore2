@@ -12,6 +12,8 @@ function Scene() {
   this._setNativeScene = function(scene, filePath) {
     if( nativeScene === null ) {
       nativeScene = scene;
+      // TODO JRJR try to get rid of this stuff... 
+
       this.animation = scene.animation;
       this.stretch   = scene.stretch;
       this.alignVertical = scene.alignVertical;
@@ -20,6 +22,8 @@ function Scene() {
       this.root = scene.root;
       this.info = scene.info;
       this.filePath = filePath;
+      this.addServiceProvider = scene.addServiceProvider;
+      this.removeServiceProvider = scene.removeServiceProvider;
       this.__defineGetter__("w", function() { return scene.w; });
       this.__defineGetter__("h", function() { return scene.h; });
       this.__defineGetter__("showOutlines", function() { return scene.showOutlines; });
@@ -62,7 +66,46 @@ function Scene() {
   this.create = function create(params) {
     applyStyle.call(this, params);
 
-    if(params.hasOwnProperty("d") && params.t === "path")
+    if(params.t === "path")
+    {
+      if(params.hasOwnProperty("strokeColor") )
+      {
+        var clr = "" + params.strokeColor + "";
+        
+        // Support #RRGGBB  and #RGB web style color syntax
+        if(clr.match(/#([0-9a-f]{6})/i) )
+        {
+          clr = clr.replace(/#([0-9a-f]{6})/i, "0x$1FF");
+          params.strokeColor = parseInt(clr, 16);
+        }
+        else
+          if(clr.match(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i) )
+          {
+            clr = clr.replace(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i, "0x0$10$20$3FF");
+            params.strokeColor = parseInt(clr, 16);
+          }
+        
+      }
+      
+      if(params.hasOwnProperty("fillColor") )
+      {
+        var clr = "" + params.fillColor + "";
+        
+        // Support #RRGGBB  and #RGB web style color syntax
+        if(clr.match(/#([0-9a-f]{6})/i) )
+        {
+          clr = clr.replace(/#([0-9a-f]{6})/i, "0x$1FF");
+          params.fillColor = parseInt(clr, 16);
+        }
+        else
+          if(clr.match(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i) )
+          {
+            clr = clr.replace(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i, "0x0$10$20$3FF");
+            params.fillColor = parseInt(clr, 16);
+          }
+      }
+      
+      if(params.hasOwnProperty("d") )
     {
         if(params.d.match(/rect/i) )
         {
@@ -72,8 +115,6 @@ function Scene() {
           params.d = params.d.replace(/,/g," ")
           .replace(/-/g," -")
           .replace(/ +/g," ");
-          
-           // console.log(" >>> Found RECT: [" + params.d + "] ");
         }
         else
         if(params.d.match(/circle/i) )
@@ -84,8 +125,6 @@ function Scene() {
           params.d = params.d.replace(/,/g," ")
           .replace(/-/g," -")
           .replace(/ +/g," ");
-          
-          // console.log(" >>> Found CIRCLE: [" + params.d + "] ");
         }
         else
         if(params.d.match(/ellipse/i))
@@ -96,8 +135,16 @@ function Scene() {
           params.d = params.d.replace(/,/g," ")
           .replace(/-/g," -")
           .replace(/ +/g," ");
+        }
+        else
+        if(params.d.match(/polygon/i))
+        {
+          params.d = params.d.replace(/polygon/gi, "POLYGON");
           
-          // console.log(" >>> Found ELLIPSE: [" + params.d + "] ");
+          // normalize the path
+          params.d = params.d.replace(/,/g," ")
+          .replace(/-/g," -")
+          .replace(/ +/g," ");
         }
         else
         {
@@ -107,7 +154,8 @@ function Scene() {
           .replace(/-/g," -")
           .replace(/ +/g," ");
         }
-    }
+      } // 'd' path
+    }//"path"
  
     var component = null;
     if( componentDefinitions !== null && params.hasOwnProperty("t") ) {

@@ -51,6 +51,11 @@ class sceneWindow : public pxWindow, public pxIViewContainer
       UNUSED_PARAM(r);
     }
     
+    virtual void* RT_STDCALL getInterface(const char* /*t*/)
+    {
+      return NULL;
+    }
+    
     rtError setView(pxIView* v)
     { 
       UNUSED_PARAM(v);
