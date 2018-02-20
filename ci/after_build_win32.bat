@@ -33,6 +33,8 @@ if %cronUpload% == False (
   type %S%\logs\build_logs.txt
 )
 
+if "%APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME%" == "" (
 del %S%\pxscene-build.pem.ppk
+)
 
 EXIT 0
