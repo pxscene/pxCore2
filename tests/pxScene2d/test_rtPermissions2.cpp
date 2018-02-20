@@ -14,7 +14,34 @@ public:
   {
   }
 
-  void test()
+  void test0()
+  {
+    EXPECT_TRUE (RT_OK == rtPermissions::clearBootstrapConfig());
+    EXPECT_TRUE (RT_OK == rtPermissions::loadBootstrapConfig("supportfiles/pxscenepermissions.bad.conf"));
+
+    // This bootstrap has no correct items
+    // Should default to allow everywhere
+    EXPECT_TRUE (allows("https://localhost", rtPermissions::DEFAULT, "http://1.com"));
+    EXPECT_TRUE (allows("unknown", rtPermissions::FEATURE, "http://1.com"));
+    EXPECT_TRUE (allows("unknown", rtPermissions::WAYLAND, "http://1.com"));
+    EXPECT_TRUE (allows("https://localhost", rtPermissions::DEFAULT, "http://2.com"));
+    EXPECT_TRUE (allows("unknown", rtPermissions::FEATURE, "http://2.com"));
+    EXPECT_TRUE (allows("unknown", rtPermissions::WAYLAND, "http://2.com"));
+    EXPECT_TRUE (allows("https://localhost", rtPermissions::DEFAULT, "http://3.com", false));
+    EXPECT_TRUE (allows("unknown", rtPermissions::FEATURE, "http://3.com", false));
+    EXPECT_TRUE (allows("unknown", rtPermissions::WAYLAND, "http://3.com", false));
+    EXPECT_TRUE (allows("https://localhost", rtPermissions::DEFAULT, "http://4.com", false));
+    EXPECT_TRUE (allows("unknown", rtPermissions::FEATURE, "http://4.com", false));
+    EXPECT_TRUE (allows("unknown", rtPermissions::WAYLAND, "http://4.com", false));
+    EXPECT_TRUE (allows("https://localhost", rtPermissions::DEFAULT, "http://0.com", false));
+    EXPECT_TRUE (allows("unknown", rtPermissions::FEATURE, "http://0.com", false));
+    EXPECT_TRUE (allows("unknown", rtPermissions::WAYLAND, "http://0.com", false));
+
+    // Cleanup
+    EXPECT_TRUE (RT_OK == rtPermissions::clearBootstrapConfig());
+  }
+
+  void test1()
   {
     EXPECT_TRUE (RT_OK == rtPermissions::clearBootstrapConfig());
     EXPECT_TRUE (RT_OK == rtPermissions::loadBootstrapConfig("supportfiles/pxscenepermissions.sample.conf"));
@@ -180,15 +207,78 @@ public:
     EXPECT_FALSE(allows("browser", rtPermissions::WAYLAND, "http://example.com"));
     EXPECT_TRUE (allows("unknown", rtPermissions::WAYLAND, "http://example.com"));
 
+    // Cleanup
     EXPECT_TRUE (RT_OK == rtPermissions::clearBootstrapConfig());
+    EXPECT_TRUE (RT_OK == rtPermissions::loadBootstrapConfig());
+  }
+
+  void test2()
+  {
+    // This test uses default Bootstrap config (./pxscenepermissions.conf)
+
+    // "*" : "default"
+    EXPECT_TRUE (allows("http://any.web.site", rtPermissions::DEFAULT, "http://default.web.site"));
+    EXPECT_FALSE(allows("http://localhost", rtPermissions::DEFAULT, "http://default.web.site"));
+    EXPECT_FALSE(allows("http://localhost:8080", rtPermissions::DEFAULT, "http://default.web.site"));
+    EXPECT_FALSE(allows("http://127.0.0.1", rtPermissions::DEFAULT, "http://default.web.site"));
+    EXPECT_FALSE(allows("http://127.0.0.1:8080", rtPermissions::DEFAULT, "http://default.web.site"));
+    EXPECT_FALSE(allows("http://[::1]", rtPermissions::DEFAULT, "http://default.web.site"));
+    EXPECT_FALSE(allows("http://[::1]:8080", rtPermissions::DEFAULT, "http://default.web.site"));
+    EXPECT_FALSE(allows("http://[0:0:0:0:0:0:0:1]", rtPermissions::DEFAULT, "http://default.web.site"));
+    EXPECT_FALSE(allows("http://[0:0:0:0:0:0:0:1]:8080", rtPermissions::DEFAULT, "http://default.web.site"));
+    EXPECT_FALSE(allows("file:///afile", rtPermissions::DEFAULT, "http://default.web.site"));
+    EXPECT_FALSE(allows("anything", rtPermissions::SERVICE, "http://default.web.site"));
+    EXPECT_TRUE (allows("anything", rtPermissions::FEATURE, "http://default.web.site"));
+    EXPECT_TRUE (allows("anything", rtPermissions::WAYLAND, "http://default.web.site"));
+
+    // "*://localhost" : "local",
+    // "*://localhost:*" : "local",
+    // "*://127.0.0.1" : "local",
+    // "*://127.0.0.1:*" : "local",
+    // "*://[::1]" : "local",
+    // "*://[::1]:*" : "local",
+    // "*://[0:0:0:0:0:0:0:1]" : "local",
+    // "*://[0:0:0:0:0:0:0:1]:*" : "local",
+    // "file://*" : "local",
+    EXPECT_TRUE (allows("http://any.web.site", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://localhost", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://localhost:8080", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://127.0.0.1", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://127.0.0.1:8080", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://[::1]", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://[::1]:8080", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:8080", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("file:///afile", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("anything", rtPermissions::SERVICE, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("anything", rtPermissions::FEATURE, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("anything", rtPermissions::WAYLAND, "ftp://127.0.0.1:9999"));
+
+    // "*://www.pxscene.org" : "pxscene.org",
+    // "*://www.pxscene.org:*" : "pxscene.org",
+    // "*://pxscene.org" : "pxscene.org",
+    // "*://pxscene.org:*" : "pxscene.org",
+    EXPECT_TRUE (allows("http://any.web.site", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://localhost", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://localhost:8080", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://127.0.0.1", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://127.0.0.1:8080", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://[::1]", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://[::1]:8080", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("http://[0:0:0:0:0:0:0:1]:8080", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("file:///afile", rtPermissions::DEFAULT, "ftp://127.0.0.1:9999"));
+    EXPECT_TRUE (allows("anything", rtPermissions::SERVICE, "http://www.pxscene.org"));
+    EXPECT_TRUE (allows("anything", rtPermissions::FEATURE, "http://www.pxscene.org"));
+    EXPECT_TRUE (allows("anything", rtPermissions::WAYLAND, "http://www.pxscene.org"));
   }
 
 private:
-  bool allows(const char* url, rtPermissions::Type type, const char* origin)
+  bool allows(const char* url, rtPermissions::Type type, const char* origin, bool isValidOrigin = true)
   {
-    EXPECT_TRUE (RT_OK == mPermissions.setOrigin(origin));
+    EXPECT_EQ ((int)(isValidOrigin ? RT_OK : RT_FAIL), (int)mPermissions.setOrigin(origin));
     bool allows;
-    EXPECT_TRUE (RT_OK == mPermissions.allows(url, type, allows));
+    EXPECT_EQ ((int)RT_OK, (int)mPermissions.allows(url, type, allows));
     return allows;
   }
 
@@ -197,5 +287,7 @@ private:
 
 TEST_F(rtPermissions2Test, rtPermissionsTests)
 {
-  test();
+  test0();
+  test1();
+  test2();
 }
