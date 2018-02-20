@@ -994,7 +994,12 @@ rtError pxLoadPNGImage(const char *imageData, size_t imageDataSize,
     int height = png_get_image_height(png_ptr, info_ptr);
 
     png_byte color_type = png_get_color_type(png_ptr, info_ptr);
-    //png_byte bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+    png_byte bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+
+    if (bit_depth == 16)
+    {
+        png_set_strip_16(png_ptr);
+    }
 
     if (color_type == PNG_COLOR_TYPE_PALETTE)
     {
@@ -1145,7 +1150,10 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
   }
 
   //unsigned int width, height, channels, rowbytes, size, i, j;
-  unsigned int width, height, rowbytes, size, i, j;
+  unsigned int width, height, i, j;
+  
+  unsigned long size, rowbytes;
+  
   png_bytepp rows_image;
   png_bytepp rows_frame;
   unsigned char *p_image;
