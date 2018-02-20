@@ -73,28 +73,49 @@
     ~~~~
 
 3. Build **externals**:
-    ~~~~
-    cd examples/pxScene2d/external
-    ~~~~
-    For Linux and Mac run:
-    ~~~~
-    ./build.sh
-    ~~~~
-    For Raspberry Pi run:
-    ~~~~
-    ./build_rpi.sh
-    ~~~~
-    For Windows (**Run from inside a Visual Studio Command Prompt**):
-    ~~~~
-    buildWindows.bat
-    ~~~~
-
+    a. Build all externals for use during the pxscene build.
+      ~~~~
+      cd examples/pxScene2d/external
+      ~~~~
+      For Linux and Mac run:
+      ~~~~
+      ./build.sh
+      ~~~~
+      For Raspberry Pi run:
+      ~~~~
+      ./build_rpi.sh
+      ~~~~
+      For Windows (**Run from inside a Visual Studio Command Prompt**):
+      ~~~~
+      buildWindows.bat
+      ~~~~
+  
+    b. For using system libraries for all external libs except node and duktape.
+      ~~~~
+      Build duktape
+      ~~~~ 
+      cd examples/pxScene2d/external/dukluv/
+      mkdir build
+      cd build
+      cmake ..
+      make -j1
+      ~~~~
+      Build Node
+      ~~~~
+      cd examples/pxScene2d/external/node
+      ./configure --shared
+      make -j1
+      ~~~~
+      Build breakpad
+      ~~~~
+      cd examples/pxScene2d/external/breakpad
+      ./configure
+      make
+      ~~~~
 4. Build **pxScene**
-
     ~~~~
-    Additional Configuration for pxScene.
-    Enables build to prefer system libraries over built-in libraries -DPREFER_SYSTEM_LIBRARIES=ON
-    (Note :  If a dependent library is not found installed on the system, then the version in externals will be used.)
+    On following step 3b, Specify -DPREFER_SYSTEM_LIBRARIES=ON to use system libraries rather than libraries from externals directory.
+    Note :  If a dependent library is not found installed on the system, then the version in externals will be used.
     ~~~~
     cd pxCore/
     mkdir temp
