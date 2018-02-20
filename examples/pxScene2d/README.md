@@ -92,6 +92,10 @@
 4. Build **pxScene**
 
     ~~~~
+    Additional Configuration for pxScene.
+    Enables build to prefer system libraries over built-in libraries -DPREFER_SYSTEM_LIBRARIES=ON
+    (Note :  If a dependent library is not found installed on the system, then the version in externals will be used.)
+    ~~~~
     cd pxCore/
     mkdir temp
     cd temp
