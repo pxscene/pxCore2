@@ -331,7 +331,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
     {
     }
 
-    void populateCacheHeader (rtString& outheader, char* cacheControl, bool isEtagPresent=true, bool isExpired=false)
+    void populateCacheHeader (rtString& outheader, const char* cacheControl, bool isEtagPresent=true, bool isExpired=false)
     {
       outheader.append(defaultCacheHeader);
       if (isEtagPresent)
@@ -481,8 +481,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
       const char* cacheData = "abcde";
       rtHttpCacheData data("http://fileserver/test.jpeg",cacheHeader.cString(),cacheData,strlen(cacheData));
       rtData newData;
-      char* newcontents = "pqrstu";
-      newData.init((uint8_t*)newcontents,strlen(newcontents));
+      const char* newcontents = "pqrstu";
+      newData.init((const uint8_t *)newcontents,strlen(newcontents));
       data.setData(newData);
       rtData& storedData = data.contentsData();
       EXPECT_TRUE ( strcmp("pqrstu",(const char*)storedData.data()) == 0);
@@ -1070,14 +1070,14 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       //todo more actions once clearFileCache() is implemented
       rtFileDownloader::instance()->clearFileCache();
     }
-   
+
     void setHTTPFailOnErrorTest()
     {
       rtFileDownloadRequest req("http://fileserver/notfound",NULL);
       req.setHTTPFailOnError(true);
       EXPECT_TRUE (req.isHTTPFailOnError() == true);
     }
-  
+
     void setHTTPErrorTest()
     {
       rtFileDownloadRequest req("http://fileserver/notfound",NULL);
@@ -1091,7 +1091,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       req.setCurlDefaultTimeout(true);
       EXPECT_TRUE (req.isCurlDefaultTimeoutSet() == true);
     }
- 
+
     // download progress test begins
     void setDownloadProgressCallbackFunctionTest()
     {
@@ -1101,7 +1101,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       EXPECT_TRUE (request.mDownloadProgressCallbackFunction == &rtFileDownloaderTest::downloadProgressCallback);
       EXPECT_TRUE (request.mDownloadProgressUserPtr == this);
     }
- 
+
     void executeDownloadProgressCallbackPresentTest()
     {
       rtFileCache::instance()->clearCache();
@@ -1109,14 +1109,14 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       request.setDownloadProgressCallbackFunction(rtFileDownloaderTest::downloadProgressCallback, this);
       EXPECT_TRUE (true == request.executeDownloadProgressCallback(NULL, 0, 0));
     }
- 
+
     void executeDownloadProgressCallbackAbsentTest()
     {
       rtFileCache::instance()->clearCache();
       rtFileDownloadRequest request("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
       EXPECT_TRUE (false == request.executeDownloadProgressCallback(NULL, 0, 0));
     }
- 
+
     void setDataIsCachedTest()
     {
       rtFileCache::instance()->clearCache();
