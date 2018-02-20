@@ -956,7 +956,7 @@ public:
       mInitialized = true;
     }
   }
-  
+
   void clear(const pxRect& r)
   {
     mOffscreen.fill(r, pxClear);
@@ -2063,6 +2063,12 @@ void pxContext::init()
   rtLogSetLevel(RT_LOG_INFO); // LOG LEVEL
 
   std::srand(unsigned (std::time(0)));
+}
+
+
+void pxContext::term()  // clean up statics 
+{
+  swRasterTexture = NULL;
 }
 
 void pxContext::setSize(int w, int h)

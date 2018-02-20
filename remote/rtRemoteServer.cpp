@@ -757,7 +757,7 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
     rtError err = RT_OK;
     rtValue value;
 
-    uint32_t    index;
+    uint32_t    index = 0;
     char const* name = rtMessage_GetPropertyName(*doc);
 
     if (name)
