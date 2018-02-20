@@ -27,7 +27,7 @@ image: Visual Studio 2017
 environment:
   S: "c:/dw/pxCore"
   passphrase: 
-    secure: CmpdZmLVeIaiooWupoF6zQJxgTisGrUGH9GFz1eM8KU=
+    secure: Tx4WhmwYFXup102MiBZM8aJa9rhn+CUxWcDiMaGKlF6zVkjo2ohxybW6SGreYi5a
 clone_folder: "c:/dw/pxCore"
 
 # Build pipeline: https://www.appveyor.com/docs/build-configuration/
