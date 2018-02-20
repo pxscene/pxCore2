@@ -4,6 +4,11 @@
 #include "rtWrapperUtils.h"
 #include "jsCallback.h"
 
+#ifdef USE_STD_THREADS
+#  include <mutex>
+#  include <condition_variable>
+#endif
+
 namespace rtScriptNodeUtils
 {
 

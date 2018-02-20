@@ -27,12 +27,9 @@
 
 #include "pxPath.h"
 #include "pxCanvas.h"
-#include "pxContext.h"
 
 #include <stdio.h>
 #include "math.h"
-
-extern pxContext context;
 
 #ifdef USE_PERF_TIMERS
 #include "pxTimer.h"
@@ -42,8 +39,8 @@ rtDefineMethod(pxCanvas, drawPath);
 
 pxCanvas::pxCanvas(pxScene2d* scene): pxObject(scene)
 {
-  mw = 1280;// scene->w();
-  mh =  720;// scene->h();
+  mw = CANVAS_W;// scene->w();
+  mh = CANVAS_H;// scene->h();
 }
 
 pxCanvas::~pxCanvas()
@@ -115,7 +112,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
         x0 = p->getFloatAt(op); op += sizeof(float);
         y0 = p->getFloatAt(op); op += sizeof(float);
 
-        mCanvasCtx.moveTo(x0, y0);
+        mCanvasCtx.lineTo(x0, y0);
 
 //        printf("\nCanvas: SVG_OP_LINE( x0: %.1f, y0: %.1f) ", x0, y0);
       }
@@ -186,25 +183,11 @@ rtError pxCanvas::drawPath(rtObjectRef path)
   if(needsFill || needsStroke)
   {
     pxMatrix4f m;
-    
-    float ss = p->mStrokeWidth/2;
-    
-    if(ss > 0)
-    {
-      m.translate(ss, ss);
-      mCanvasCtx.setMatrix(m);
-    }
   
     // - - - - - - - - - - - - - - - - - - -
     if(needsFill)   mCanvasCtx.fill();
     if(needsStroke) mCanvasCtx.stroke();
     // - - - - - - - - - - - - - - - - - - -
-
-    if(ss > 0)
-    {
-      m.translate(ss*2, -ss*2);
-      p->applyMatrix(m);
-    }
     
 #if 0
 #ifdef PX_PLATFORM_MAC

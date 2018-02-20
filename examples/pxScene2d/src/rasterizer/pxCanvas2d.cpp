@@ -26,13 +26,12 @@
 #include "pxScene2d.h"
 
 #include "pxCanvas2d.h"
-#include "pxContext.h"
+
+//#include "pxContext.h"
+//extern pxContext context;
 
 #include <stdio.h>
 #include "math.h"
-
-
-extern pxContext context;
 
 #ifdef USE_PERF_TIMERS
 #include "pxTimer.h"
@@ -163,14 +162,13 @@ pxCanvas2d::pxCanvas2d(): mFontSize(0.0), textX(0.0), textY(0.0), lastX(0.0), la
 
 pxCanvas2d::~pxCanvas2d()
 {
+  rtLogInfo("DESTROY ... ~pxCanvas2d() \n");
+
   term();
 }
 
 pxError pxCanvas2d::term()
 {
-//  delete mOffscreen;
-//  mOffscreen = NULL;
-  
   mOffscreen.term();
 
   mVertexCount = 0;

@@ -1,27 +1,26 @@
 #include "rtMutexNative.h"
 
 
-rtMutexNative::rtMutexNative() : mLock(), mIsLocked(false)
+rtMutexNative::rtMutexNative() : mLock()
 {
     pthread_mutex_init(&mLock, NULL);
 }
 
 rtMutexNative::~rtMutexNative()
 {
-    while(mIsLocked);
+    pthread_mutex_lock(&mLock);
+    pthread_mutex_unlock(&mLock);
     pthread_mutex_destroy(&mLock);
 }
 
 void rtMutexNative::lock()
 {
     pthread_mutex_lock(&mLock);
-    mIsLocked = true;
 }
 
 void rtMutexNative::unlock()
 {
     pthread_mutex_unlock(&mLock);
-    mIsLocked = false;
 }
 
 rtMutexNativeDesc rtMutexNative::getNativeMutexDescription()
