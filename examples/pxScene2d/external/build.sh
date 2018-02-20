@@ -140,6 +140,7 @@ then
 fi
 
 #-------- BREAKPAD (Non -macOS)
+
 if [ "$(uname)" != "Darwin" ]; then
 
   cd breakpad
@@ -149,6 +150,8 @@ if [ "$(uname)" != "Darwin" ]; then
   cd ..
 
 fi
+
+#-------- DUKTAPE
 
 if [ ! -e dukluv/build/libduktape.a ]
 then
@@ -160,7 +163,6 @@ then
     make "-j${make_parallel}"
     cd ..
 fi
-
 
 #-------- BODYMOVIN
 #
