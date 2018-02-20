@@ -10,9 +10,7 @@ extern "C" {
 #include "duv.h"
 }
 
-static const char* kClassName   = "rtObject";
 static const char* kFuncAllKeys = "allKeys";
-static const char* kPropLength = "length";
 
 const char* jsObjectWrapper::kIsJavaScriptObjectWrapper = "8907a0a6-ef86-4c3d-aea1-c40c0aa2f6f0";
 
@@ -33,7 +31,7 @@ rtObjectWrapper::~rtObjectWrapper()
 
 struct dukObjectFunctionInfo
 {
-  dukObjectFunctionInfo(void) : mIsVoid(true), mNext(NULL), mType(dukObjectFunctionInfo::eMethod) {}
+  dukObjectFunctionInfo(void) : mIsVoid(true), mType(dukObjectFunctionInfo::eMethod), mNext(NULL) {}
 
   std::string mMethodName;
   bool        mIsVoid;
@@ -154,7 +152,7 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
         #endif
 
         duk_bool_t rt = duk_get_global_string(ctx, "constructPromise");
-        // [func] 
+        // [func]
         assert(rt);
 
         rt = duk_get_global_string(ctx, "constructProxy");
@@ -183,7 +181,7 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
         assert(duk_is_object(ctx, -1));
 
 #else
-        const_cast<rtObjectRef &>(ref).set("promiseId", "blah");  
+        const_cast<rtObjectRef &>(ref).set("promiseId", "blah");
 #endif
 #endif
         return;
@@ -207,9 +205,9 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
 
 jsObjectWrapper::jsObjectWrapper(duk_context *ctx, const std::string &name, bool isArray)
   : mRefCount(0)
+  , mIsArray(isArray)
   , mDukCtx(ctx)
   , mDukName(name)
-  , mIsArray(isArray)
 {
   duk_bool_t rt = duk_get_global_string(ctx, name.c_str());
   assert(rt);
@@ -349,7 +347,7 @@ rtError jsObjectWrapper::Get(uint32_t i, rtValue* value) const
 {
   // unsupported yet
   //assert(0);
-  // TODO no error propogation.. 
+  // TODO no error propogation..
   *value = dukGetProp(i);
   return RT_OK;
 }

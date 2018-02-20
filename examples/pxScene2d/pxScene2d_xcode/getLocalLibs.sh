@@ -58,7 +58,7 @@ if [ ! -d ${xLIBS} ]; then
 
   #cp ${xEXT}/zlib/libz.a ${xLIBS}
   #cp ${xEXT}/zlib/libz.1.dylib ${xLIBS}
-  cp ${xEXT}/zlib/libz.1.2.8.dylib ${xLIBS}
+  cp ${xEXT}/zlib/libz.1.2.11.dylib ${xLIBS}
 
   #install_name_tool -id @executable_path/lib/libz.1.dylib ./lib/libz.1.dylib
   #install_name_tool -id @executable_path/lib/libz.1.2.8.dylib ./lib/libz.1.2.8.dylib
