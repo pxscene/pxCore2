@@ -6,21 +6,10 @@
 #endif
 
 
-///
-///
-//#define MATRIX_T  pxMatrix
-//#include "pxMatrix.h"
-///
-///
 #define MATRIX_T  pxMatrix4T<float>
 #include "pxMatrix4T.h"
-///
-///
-
-
 
 #include "px2d.h"
-//#include "pxMatrix.h"
 #include "pxRasterizer.h"
 
 
@@ -82,7 +71,7 @@ public:
   rtString font();
   void setFont(const rtString& font);
 #endif
-    
+
   void setFontSize(double s);
 
   pxFillMode fillMode();
