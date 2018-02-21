@@ -1042,7 +1042,16 @@ rtError pxLoadPNGImage(const char *imageData, size_t imageDataSize,
       }
       e = RT_OK;
     }
+    else
+    {
+      e = RT_FAIL;
+    }
   }
+  else
+  {
+    e = RT_FAIL;
+  }
+
 
   if (e == RT_OK)
   {
