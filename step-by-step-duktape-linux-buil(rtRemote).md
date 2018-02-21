@@ -39,6 +39,9 @@
 * `./configure`
 * `make all`
 
+#### quilt [macosx]
+* instructions are here: http://macappstore.org/quilt/
+
 #### libjpeg-turbo
 * `cd ..`
 * `cd libjpeg-turbo`

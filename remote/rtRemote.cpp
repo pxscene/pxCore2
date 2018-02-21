@@ -26,6 +26,8 @@ rtRemoteInit(rtRemoteEnvironment* env)
   rtError e = RT_FAIL;
   std::lock_guard<std::mutex> lock(gMutex);
 
+  // on win32 returns RT_FAIL,
+  // if sockets subsystem failed to start
   e = rtRemoteSocketInit();
   if (e != RT_OK)
   {

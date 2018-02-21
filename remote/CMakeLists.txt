@@ -81,10 +81,9 @@ if (ENABLE_RTREMOTE_DEBUG)
     message("Enabling rtRemote debug")
     add_definitions(-DRT_RPC_DEBUG -DRT_DEBUG)
 
-    if (WIN32)
-    else (WIN32)
+    if (NOT WIN32)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fno-inline")
-    endif (WIN32)
+    endif (NOT WIN32)
 
 else()
 
@@ -147,6 +146,7 @@ if (BUILD_RTREMOTE_SAMPLE_APP_SIMPLE)
     link_directories(${RTREMOTE_LINK_DIRECTORIES})
 
     #client
+    message("Building rtremote_sample_app_client")
     add_executable(rtremote_sample_app_client rtSampleClient.cpp)
     set_target_properties(rtremote_sample_app_client PROPERTIES OUTPUT_NAME "rtSampleClient")
 
@@ -163,6 +163,7 @@ endif ()
 
 
     #server
+    message("Building rtremote_sample_app_server")
     add_executable(rtremote_sample_app_server rtSampleServer.cpp)
     set_target_properties(rtremote_sample_app_server PROPERTIES OUTPUT_NAME "rtSampleServer")
 
