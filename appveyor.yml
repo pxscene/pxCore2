@@ -27,7 +27,7 @@ image: Visual Studio 2017
 environment:
   S: "c:/dw/pxCore"
   passphrase: 
-    secure: CmpdZmLVeIaiooWupoF6zQJxgTisGrUGH9GFz1eM8KU=
+    secure: Tx4WhmwYFXup102MiBZM8aJa9rhn+CUxWcDiMaGKlF6zVkjo2ohxybW6SGreYi5a
 clone_folder: "c:/dw/pxCore"
 
 # Build pipeline: https://www.appveyor.com/docs/build-configuration/
@@ -43,7 +43,7 @@ before_build:
   - choco install putty.install
   - nuget install secure-file -ExcludeVersion
   - ps: ls
-  - secure-file\tools\secure-file -decrypt "%S%/pxscene-build.pem.ppk.enc" -secret %passphrase%
+  - if ["%APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH%"]==[""] secure-file\tools\secure-file -decrypt "%S%/pxscene-build.pem.ppk.enc" -secret %passphrase%
 build_script:
   - echo build_script...
   - cd %S%
