@@ -114,7 +114,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
                   ${NODE_LIBRARIES}
                   ${DUKE_LIBRARIES}
              ${COMM_DEPS_LIBRARIES}
-             pthread rt dl)
+             pthread rt dl m)
 
     set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} pxCore rtCore_s)
 
