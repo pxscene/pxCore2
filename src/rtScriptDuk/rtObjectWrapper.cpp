@@ -31,7 +31,7 @@ rtObjectWrapper::~rtObjectWrapper()
 
 struct dukObjectFunctionInfo
 {
-  dukObjectFunctionInfo(void) : mIsVoid(true), mNext(NULL), mType(dukObjectFunctionInfo::eMethod) {}
+  dukObjectFunctionInfo(void) : mIsVoid(true), mType(dukObjectFunctionInfo::eMethod), mNext(NULL) {}
 
   std::string mMethodName;
   bool        mIsVoid;
@@ -474,9 +474,9 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
 
 jsObjectWrapper::jsObjectWrapper(duk_context *ctx, const std::string &name, bool isArray)
   : mRefCount(0)
+  , mIsArray(isArray)
   , mDukCtx(ctx)
   , mDukName(name)
-  , mIsArray(isArray)
 {
   duk_bool_t rt = duk_get_global_string(ctx, name.c_str());
   assert(rt);

@@ -78,12 +78,14 @@ rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false)
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url):mUrl(url),mExpirationDate(0),mUpdated(false)
+rtHttpCacheData::rtHttpCacheData(const char* url) :
+     mUrl(url), mExpirationDate(0), mUpdated(false)
 {
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size):mUrl(url),mExpirationDate(0),mUpdated(false)
+rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, size_t size) :
+     mUrl(url), mExpirationDate(0), mUpdated(false)
 {
   if ((NULL != headerMetadata) && (NULL != data))
   {
@@ -201,7 +203,7 @@ bool rtHttpCacheData::isWritableToCache()
 
 void rtHttpCacheData::setAttributes(char* rawAttributes)
 {
-  mHeaderMetaData.init((uint8_t*)rawAttributes,strlen(rawAttributes));
+  mHeaderMetaData.init((uint8_t*)rawAttributes, (uint32_t) strlen(rawAttributes));
   populateHeaderMap();
   setExpirationDate();
 }
@@ -481,8 +483,8 @@ bool rtHttpCacheData::readFileData()
   char *contentsData = NULL;
   char* tmp = NULL;
   char buffer[100];
-  int bytesCount = 0;
-  int totalBytes = 0;
+  size_t bytesCount = 0;
+  uint32_t totalBytes = 0;
   while (!feof(fp))
   {
     bytesCount = fread(buffer,1,100,fp);
