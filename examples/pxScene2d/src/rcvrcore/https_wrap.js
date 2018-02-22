@@ -1,12 +1,8 @@
 'use strict';
 
 var https = require('https');
-var AccessControl = require('rcvrcore/utils/AccessControl');
 
-function HttpsWrap(innerscene) {
-  // do not expose these props through 'this.'
-  var _accessControl = new AccessControl(innerscene, https.globalAgent);
-
+function HttpsWrap(accessControl) {
   HttpsWrap.prototype.globalAgent = https.globalAgent;
 
   // Server functionality needs to be disabled.
@@ -14,25 +10,19 @@ function HttpsWrap(innerscene) {
   //HttpsWrap.prototype.createServer = https.createServer;
 
   HttpsWrap.prototype.request = function (options, cb) {
-    return _accessControl.wrapRequestPermissions(options, cb, function (options1, cb1) {
-      return _accessControl.wrapRequestCORS(options1, cb1, function (options2, cb2) {
-        return https.request(options2, cb2);
-      });
-    });
+    var newArgs = accessControl ? accessControl.wrapArgs(options, cb, true) : arguments;
+    return newArgs ? https.request.apply(this, newArgs) : null;
   };
-
   HttpsWrap.prototype.get = function (options, cb) {
-    return _accessControl.wrapRequestPermissions(options, cb, function (options1, cb1) {
-      return _accessControl.wrapRequestCORS(options1, cb1, function (options2, cb2) {
-        return https.get(options2, cb2);
-      });
-    });
+    var newArgs = accessControl ? accessControl.wrapArgs(options, cb, true) : arguments;
+    return newArgs ? https.get.apply(this, newArgs) : null;
   };
-
+  /**
+   * @return {null}
+   */
   HttpsWrap.prototype.Agent = function (options) {
-    return _accessControl.wrapRequestPermissions(options, null, function (options1) {
-      return https.Agent(options1);
-    });
+    var newArgs = accessControl ? accessControl.wrapArgs(options, null, true) : arguments;
+    return newArgs ? https.Agent.apply(this, newArgs) : null;
   };
 }
 

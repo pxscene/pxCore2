@@ -181,6 +181,11 @@ public:
 #endif
   }
 
+  void* getInterface(const char* /*name*/)
+  {
+     return NULL;
+  }
+  
   rtError setView(pxIView* v)
   {
     mView = v;
@@ -502,7 +507,7 @@ if (s && (strcmp(s,"1") == 0))
         strcpy(nodeInput+curpos,argv[i]);
         *(nodeInput+curpos+strlen(argv[i])) = '\0';
         g_argv[g_argc++] = &nodeInput[curpos];
-        curpos = curpos + strlen(argv[i]) + 1;
+        curpos = curpos + (int) strlen(argv[i]) + 1;
     }
   }
   if (false == isDebugging)

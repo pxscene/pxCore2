@@ -91,10 +91,11 @@ rtRemoteUnregisterDisconnectedCallback( rtRemoteEnvironment* env, remoteDisconne
 
 /**
  * Shutdown rtRemote sub-system
+ * @param immediate ignore RefCount
  * @returns RT_OK for success
  */
 rtError
-rtRemoteShutdown(rtRemoteEnvironment* env);
+rtRemoteShutdown(rtRemoteEnvironment* env, bool immediate = false);
 
 /**
  * Processes a single queue item. This is an API to be called from main loop from queue callback.
