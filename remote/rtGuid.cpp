@@ -80,7 +80,8 @@ rtGuid::newRandom()
   {
     buff[j++] = hex2str[((unsigned char)guidObj.Data4[i] & 0xF0) >> 4];
     buff[j++] = hex2str[((unsigned char)guidObj.Data4[i] & 0x0F)];
-    if (i == 3 || i == 5 || i == 7 || i == 9)
+    bool isHyphenNeeded = i == 3 || i == 5 || i == 7 || i == 9;
+    if (isHyphenNeeded)
     {
       buff[j++] = '-';
     }

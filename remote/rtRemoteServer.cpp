@@ -26,6 +26,7 @@
 #ifndef RT_PLATFORM_WINDOWS
 #include <sys/types.h>
 #include <dirent.h>
+#include <signal.h>
 #endif
 
 #include <rtLog.h>
@@ -66,42 +67,10 @@ namespace
   void
   cleanupStaleUnixSockets()
   {
-#ifndef RT_PLATFORM_WINDOWS
-     DIR* d = NULL;
-#endif
-
-#ifdef RT_PLATFORM_LINUX
-    d = opendir("/proc/");
-    if (!d)
-    {
-      rtError e = rtErrorFromErrno(errno);
-      rtLogWarn("failed to open directory /proc. %s", rtStrError(e));
-      return;
-    }
-
-    dirent* entry = reinterpret_cast<dirent *>(malloc(1024));
-    dirent* result = nullptr;
-
-    std::set<int> active_pids;
-
-    int ret = 0;
-    do
-    {
-      ret = readdir_r(d, entry, &result);
-      if (ret == 0 && (result != nullptr))
-      {
-        if (isValidPid(result->d_name))
-        {
-          int pid = static_cast<int>(strtol(result->d_name, nullptr, 10));
-          active_pids.insert(pid);
-        }
-      }
-    }
-    while ((result != nullptr) && ret == 0);
-    closedir(d);
-#endif
 
 #ifndef RT_PLATFORM_WINDOWS
+    DIR* d = NULL;
+
     d = opendir("/tmp");
     if (!d)
     {
@@ -122,7 +91,7 @@ namespace
         if (strncmp(path, kUnixSocketTemplateRoot, strlen(kUnixSocketTemplateRoot)) == 0)
         {
           int pid = parsePid(result->d_name);
-          if (active_pids.find(pid) == active_pids.end())
+          if (kill(pid, 0) != 0)
           {
             rtLogInfo("removing inactive unix socket %s", path);
             int ret = unlink(path);
@@ -620,11 +589,10 @@ rtRemoteServer::openRpcListener()
   char path[UNIX_PATH_MAX];
 
   memset(path, 0, sizeof(path));
-#if defined(__linux__)
-  cleanupStaleUnixSockets();
-#endif
 
 #ifndef RT_PLATFORM_WINDOWS
+  cleanupStaleUnixSockets();
+
   if (isUnixDomain(m_env))
   {
     rtError e = rtCreateUnixSocketName(0, path, sizeof(path));

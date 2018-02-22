@@ -1,5 +1,3 @@
-#ifndef RT_PLATFORM_WINDOWS
-
 #include "rtRemoteFileResolver.h"
 #include "rtRemoteSocketUtils.h"
 #include "rtRemoteMessage.h"
@@ -10,9 +8,7 @@
 #include <thread>
 #include <mutex>
 
-#ifndef RT_PLATFORM_WINDOWS
 #include <sys/file.h>
-#endif
 
 #include <rtLog.h>
 
@@ -190,5 +186,3 @@ rtRemoteFileResolver::unregisterObject(std::string const& /*name*/)
 {
   return RT_ERROR_NOT_IMPLEMENTED;
 }
-
-#endif
