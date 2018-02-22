@@ -2139,7 +2139,7 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   }*/
 #endif
   rtRef<pxWaylandContainer> c = new pxWaylandContainer(this);
-  c->setView(new pxWayland(true));
+  c->setView(new pxWayland(true, this));
   o = c.getPtr();
   o.set(p);
   o.send("init");
@@ -3023,6 +3023,7 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 
 rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 {
+  rtLogDebug("inside getService");
   returnObject = NULL;
 
   // Create context from requesting scene
@@ -3035,6 +3036,7 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 // todo change rtString to const char*
 rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObjectRef& service)
 {
+  rtLogDebug("inside getService internal");
   static pxScene2d* reentered = NULL;
 
   // Only query this scene  if we're not already in the middle of querying this scene
@@ -3056,10 +3058,18 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
           rtString access = result.toString();
           // denied stop searching for service
           if (access == "deny")
+          {
+            rtLogDebug("service denied");
+            return RT_FAIL;
             break;
+          }
           // if not explicitly allowed then break
           if (access != "allow")
+          {
+            rtLogDebug("unknown access string - denied");
+            return RT_FAIL;
             break;
+          }
           // otherwise keep on looking
         }
         else if (result.getType() == RT_objectType)
@@ -3121,7 +3131,7 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
       rtLogWarn("service manager not found");
       return result;
     }
-    result = serviceManager.sendReturns<rtObjectRef>("createService", mScriptView != NULL ? mScriptView->getUrl() : "", name, returnObject);
+    result = serviceManager.sendReturns<rtObjectRef>("createService", mScriptView != NULL ? mScriptView->getUrl() : "", name, service);
     rtLogInfo("create %s service result: %d", name, result);
     return result;
   #else
