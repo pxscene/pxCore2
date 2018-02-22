@@ -18,12 +18,9 @@ option(ENABLE_RTREMOTE_PROFILE "ENABLE_RTREMOTE_PROFILE" OFF)
 set(RTREMOTE_SOURCE_FILES rtremote.conf.gen rtRemoteConfig.h rtRemoteServer.cpp rtRemoteObject.cpp
         rtRemoteFunction.cpp rtRemoteMessage.cpp rtRemoteClient.cpp rtRemoteValueReader.cpp
         rtRemoteValueWriter.cpp rtRemoteSocketUtils.cpp rtRemoteStream.cpp
-        rtRemoteObjectCache.cpp rtRemote.cpp rtRemoteConfig.cpp rtRemoteFactory.cpp
-        rtRemoteMulticastResolver.cpp  rtRemoteEndPoint.cpp
-        rtRemoteConfigBuilder.cpp rtRemoteAsyncHandle.cpp
-        rtRemoteUtils.cpp rtRemoteEnvironment.cpp rtRemoteStreamSelector.cpp rtGuid.cpp
-        rtRemoteMapperMap.cpp rtRemoteMapperFile.cpp rtRemoteMapperSql.cpp
-        rtRemoteEndpointHandleStreamServer.cpp)
+        rtRemoteObjectCache.cpp rtRemote.cpp rtRemoteConfig.cpp rtRemoteEndPoint.cpp rtRemoteFactory.cpp
+        rtRemoteMulticastResolver.cpp rtRemoteConfigBuilder.cpp rtRemoteAsyncHandle.cpp
+        rtRemoteEnvironment.cpp rtRemoteStreamSelector.cpp rtGuid.cpp)
 
 add_definitions(-DRAPIDJSON_HAS_STDSTRING)
 

@@ -79,9 +79,14 @@ namespace
       return;
     }
 
+    int ret;
+    dirent* entry = reinterpret_cast<dirent *>(malloc(1024));
+    dirent* result = nullptr;
+
     char path[UNIX_PATH_MAX];
     do
     {
+      struct dirent *entry;
       ret = readdir_r(d, entry, &result);
       if (ret == 0 && (result != nullptr))
       {
@@ -728,7 +733,7 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
     rtError err = RT_OK;
     rtValue value;
 
-    uint32_t    index;
+    uint32_t    index = 0;
     char const* name = rtMessage_GetPropertyName(*doc);
 
     if (name)

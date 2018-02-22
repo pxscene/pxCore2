@@ -111,8 +111,6 @@ rtDefineProperty(ContinuousVideoRecorder, bigprop);
 
 int main(int /*argc*/, char* /*argv*/ [])
 {
-  rtLogSetLevel(RT_LOG_INFO);
-
   rtError e;
   rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
   e = rtRemoteInit(env);

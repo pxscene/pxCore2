@@ -28,11 +28,11 @@
 
 #include <sys/stat.h>
 
-rtError rtGetCurrentDirectory(rtString& d) 
+rtError rtGetCurrentDirectory(rtString& d)
 {
   char* p = getcwd(NULL, 0);
 
-  if (p) 
+  if (p)
   {
     d = p;
     free(p);
@@ -67,7 +67,7 @@ rtError rtGetHomeDirectory(rtString& d)
   if (rtGetEnv(homeDir, d) == RT_OK)
     e = rtEnsureTrailingPathSeparator(d);
 
-  return RT_OK;
+  return e;
 }
 
 bool rtFileExists(const char* f)
