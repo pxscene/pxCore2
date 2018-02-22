@@ -54,7 +54,7 @@ public:
 class pxWayland: public pxIView {
 
 public:
-  pxWayland(bool usefbo=false);
+  pxWayland(bool usefbo=false, pxScene2d* sceneContainer=NULL);
   virtual ~pxWayland();
 
   virtual unsigned long AddRef() {
@@ -212,6 +212,7 @@ protected:
 #endif //ENABLE_PX_WAYLAND_RPC
   rtString mRemoteObjectName;
   mutable rtMutex mRemoteObjectMutex;
+  pxScene2d* mSceneContainer;
 };
 
 typedef rtRef<pxWayland> pxWaylandRef;
