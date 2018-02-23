@@ -606,6 +606,11 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       onImportComplete([modData, origFilePath]);
       return;
     }
+    else if( filePath.substring(0,7) === "optimus") {
+      modData = require('rcvrcore/optimus.js');
+      onImportComplete([modData, origFilePath]);
+      return;
+    }
 
     filePath = _this.resolveModulePath(filePath, currentXModule).fileUri;
 
