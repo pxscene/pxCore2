@@ -25,7 +25,9 @@ else
   printf "\nUSING: TRAVIS_BUILD_DIR=${TRAVIS_BUILD_DIR}\n\n"
 fi
 
-sudo rm -rf /tmp/cache/*
+rm -rf /tmp/cache/*
+rm -rf $TRAVIS_BUILD_DIR/logs/*
+
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export PX_DUMP_MEMUSAGE=1
 export ENABLE_VALGRIND=1
@@ -44,6 +46,13 @@ printExecLogs()
   printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+printValgrindLogs()
+{
+  printf "\n********************** PRINTING VALGRIND LOG **************************\n"
+  grep -i "definitely" -C 50 $VALGRINDLOGS
+  printf "\n**********************     LOG ENDS      **************************\n"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
@@ -170,6 +179,7 @@ fi
 #check for crash
 $TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $EXECLOGS
 retVal=$?
+
 if [ "$retVal" -eq 1 ]
   then
   checkError $retVal "Execution failed" "Core dump" "Test by running locally"
@@ -204,4 +214,5 @@ then
     exit 1;
   fi
   exit 0;
+
 fi
