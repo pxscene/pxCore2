@@ -42,7 +42,7 @@ extern pxContext context;
 #define TEST_REMOTE_OBJECT_NAME "waylandClient123" //TODO - update
 
 
-pxWayland::pxWayland(bool useFbo)
+pxWayland::pxWayland(bool useFbo, pxScene2d* sceneContainer)
   :
     mRefCount(0),
     mClientMonitorThreadId(0),
@@ -70,7 +70,8 @@ pxWayland::pxWayland(bool useFbo)
 #ifdef ENABLE_PX_WAYLAND_RPC
     mRemoteObject(),
 #endif //ENABLE_PX_WAYLAND_RPC
-    mRemoteObjectMutex()
+    mRemoteObjectMutex(),
+    mSceneContainer(sceneContainer)
 {
   mFillColor[0]= 0.0;
   mFillColor[1]= 0.0;
@@ -152,7 +153,7 @@ void pxWayland::createDisplay(rtString displayName)
 
       // If a display name was provided, use it.  Otherwise the
       // compositor will generate a unique display name to use.
-      int len= (name ? strlen(name) : 0);
+      int len= (name ? (int) strlen(name) : 0);
       if ( len > 0 )
       {
          if ( !WstCompositorSetDisplayName( mWCtx, name ) )
@@ -697,6 +698,16 @@ rtError pxWayland::connectToRemoteObject()
     mRemoteObject.send("init");
     mRemoteObjectMutex.lock();
     mAPI = mRemoteObject;
+    if (mSceneContainer != NULL)
+    {
+      rtLogInfo("setting the scene container");
+      rtValue value = mSceneContainer;
+      mRemoteObject.set("sceneContainer", value);
+    }
+    else
+    {
+      rtLogInfo("unable to set the scene container because it is null");
+    }
     mRemoteObjectMutex.unlock();
 
     if(mEvents)
@@ -814,6 +825,15 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
   {
     mRemoteObject.send("init");
     mAPI = mRemoteObject;
+    if (mSceneContainer != NULL)
+    {
+      rtLogInfo("setting the scene container reference");
+      mRemoteObject.set("sceneContainer", mSceneContainer);
+    }
+    else
+    {
+      rtLogInfo("unable to set the scene container reference because it is null");
+    }
   }
   else
   {

@@ -76,11 +76,7 @@ using namespace std;
 #endif
 
 #ifdef PX_SERVICE_MANAGER
-#include "smqtrtshim.h"
 #include "rtservicemanager.h"
-#include "service.h"
-#include "servicemanager.h"
-#include "applicationmanagerservice.h"
 #endif //PX_SERVICE_MANAGER
 
 #ifndef RUNINMAIN
@@ -125,6 +121,11 @@ bool dumpCallback(const wchar_t* dump_path,
 #ifdef ENABLE_CODE_COVERAGE
 extern "C" void __gcov_flush();
 #endif
+
+#ifdef ENABLE_OPTIMUS_SUPPORT
+#include "optimus_client.h"
+#endif //ENABLE_OPTIMUS_SUPPORT
+
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
 public:
@@ -181,6 +182,11 @@ public:
 #endif
   }
 
+  void* getInterface(const char* /*name*/)
+  {
+     return NULL;
+  }
+  
   rtError setView(pxIView* v)
   {
     mView = v;
@@ -364,6 +370,9 @@ protected:
     if (mView)
       mView->onUpdate(pxSeconds());
     EXITSCENELOCK()
+#ifdef ENABLE_OPTIMUS_SUPPORT
+    OptimusClient::pumpRemoteObjectQueue();
+#endif //ENABLE_OPTIMUS_SUPPORT
 #ifdef RUNINMAIN
     script.pump();
 #endif
@@ -502,7 +511,7 @@ if (s && (strcmp(s,"1") == 0))
         strcpy(nodeInput+curpos,argv[i]);
         *(nodeInput+curpos+strlen(argv[i])) = '\0';
         g_argv[g_argc++] = &nodeInput[curpos];
-        curpos = curpos + strlen(argv[i]) + 1;
+        curpos = curpos + (int) strlen(argv[i]) + 1;
     }
   }
   if (false == isDebugging)
@@ -606,12 +615,13 @@ if (s && (strcmp(s,"1") == 0))
 
 #endif
 
-#ifdef PX_SERVICE_MANAGER
-  SMQtRtShim::installDefaultCallback();
-  RtServiceManager::start();
+#ifdef ENABLE_OPTIMUS_SUPPORT
+  rtObjectRef tempObject;
+  OptimusClient::registerApi(tempObject);
+#endif //ENABLE_OPTIMUS_SUPPORT
 
-  ServiceStruct serviceStruct = { ApplicationManagerService::SERVICE_NAME, createApplicationManagerService };
-  ServiceManager::getInstance()->registerService(ApplicationManagerService::SERVICE_NAME, serviceStruct);
+#ifdef PX_SERVICE_MANAGER
+  RtServiceManager::start();
 
 #endif //PX_SERVICE_MANAGER
 

@@ -126,6 +126,7 @@ public:
 
   void pushRect(pxPath    *p, float x0, float y0, float w, float h, float rx, float ry);
   void pushEllipse(pxPath *p, float x0, float y0, float rx, float ry);
+  void pushPolygon(pxPath *p, std::vector<float> &points);
 
   float   getFloatAt(int i);
   float   getFloatAt(const uint8_t *p);
