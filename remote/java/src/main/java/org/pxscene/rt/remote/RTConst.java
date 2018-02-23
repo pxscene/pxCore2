@@ -5,7 +5,7 @@ package org.pxscene.rt.remote;
  */
 public final class RTConst {
 
-  // const valuez
+  // const values
   public static final String FUNCTION_KEY = "function.name";
   public static final String FUNCTION_GLOBAL_SCOPE = "global";
   public static final String CORRELATION_KEY = "correlation.key";
@@ -26,7 +26,7 @@ public final class RTConst {
   public static final String VALUE = "value";
 
   /**
-   * the first times to find object, then exponential backoff
+   * the first times to find object, then exponential backoff, the unit is ms
    */
   public static final long FIRST_FIND_OBJECT_TIME = 10;
 

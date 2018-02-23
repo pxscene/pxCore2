@@ -25,8 +25,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import javax.json.Json;
 import javax.json.JsonObjectBuilder;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.log4j.Logger;
 import org.pxscene.rt.RTEnvironment;
 import org.pxscene.rt.RTException;
@@ -67,14 +65,12 @@ public class RTRemoteProtocol implements Runnable {
   /**
    * the connection transport
    */
-  @Getter
   private RTRemoteTransport transport;
 
 
   /**
    * the rt remote server
    */
-  @Setter
   private RTRemoteServer rtRemoteServer;
 
   /**
@@ -254,7 +250,7 @@ public class RTRemoteProtocol implements Runnable {
    * @return the future task
    * @throws RTException if any other error occurred during operation
    */
-  public Future<Void> sendSetByName(String objectId, String name, RTValue value)
+  Future<Void> sendSetByName(String objectId, String name, RTValue value)
       throws RTException {
     String correlationKey = RTRemoteProtocol.newCorrelationKey();
     RTRemoteFuture<Void> future = new RTRemoteFuture<>(correlationKey);
@@ -325,12 +321,10 @@ public class RTRemoteProtocol implements Runnable {
         CallContext context = get(message.getCorrelationKey());
         if (context != null) {
           context.complete(message);
+        } else if (RTEnvironment.isServerMode()) {
+          processMessageInServerMode(message);
         } else {
-          if (RTEnvironment.isServerMode()) {
-            processMessageInServerMode(message);
-          } else {
-            processMessageInClientMode(message);
-          }
+          processMessageInClientMode(message);
         }
       } catch (RTException err) {
         logger.error("error dispatching incomgin messages", err);
@@ -368,7 +362,7 @@ public class RTRemoteProtocol implements Runnable {
    * @param correlationKey the call request correlation key
    * @throws RTException if any other error occurred during operation
    */
-  public void sendCallResponse(String correlationKey) throws RTException {
+  private void sendCallResponse(String correlationKey) throws RTException {
     JsonObjectBuilder builder = Json.createObjectBuilder();
     JsonObjectBuilder typeBuilder = Json.createObjectBuilder();
     typeBuilder.add(RTConst.TYPE, RTStatusCode.OK.getCode());
@@ -377,6 +371,14 @@ public class RTRemoteProtocol implements Runnable {
     builder.add(RTConst.STATUS_CODE, RTStatusCode.OK.getCode());
     builder.add(RTConst.FUNCTION_RETURN_VALUE, typeBuilder.build());
     transport.send(builder.build().toString().getBytes(RTRemoteSerializer.CHARSET));
+  }
+
+  RTRemoteTransport getTransport() {
+    return this.transport;
+  }
+
+  void setRtRemoteServer(RTRemoteServer rtRemoteServer) {
+    this.rtRemoteServer = rtRemoteServer;
   }
 
   /**

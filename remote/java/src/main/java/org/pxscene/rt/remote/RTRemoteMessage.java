@@ -1,29 +1,22 @@
 package org.pxscene.rt.remote;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
+
+import org.pxscene.rt.RTHelper;
 
 /**
  * the base RTRemote Message class.
  */
-@ToString
 public class RTRemoteMessage {
 
 
   /**
    * the rt remote message type
    */
-  @Getter
   protected RTRemoteMessageType messageType;
 
   /**
    * the correlation key
    */
-  @Getter
-  @Setter
-  @NonNull
   protected String correlationKey;
 
   /**
@@ -31,6 +24,20 @@ public class RTRemoteMessage {
    */
   protected RTRemoteMessage(RTRemoteMessageType kind) {
     messageType = kind;
+  }
+
+
+  public RTRemoteMessageType getMessageType() {
+    return this.messageType;
+  }
+
+  public String getCorrelationKey() {
+    return this.correlationKey;
+  }
+
+  public void setCorrelationKey(String correlationKey) {
+    RTHelper.ensureNotNull(correlationKey, "correlationKey");
+    this.correlationKey = correlationKey;
   }
 }
 

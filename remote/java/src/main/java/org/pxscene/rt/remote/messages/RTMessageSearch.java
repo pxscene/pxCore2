@@ -2,10 +2,7 @@ package org.pxscene.rt.remote.messages;
 
 
 import java.net.URI;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
+import org.pxscene.rt.RTHelper;
 import org.pxscene.rt.remote.RTRemoteMessage;
 import org.pxscene.rt.remote.RTRemoteMessageType;
 
@@ -13,31 +10,21 @@ import org.pxscene.rt.remote.RTRemoteMessageType;
 /**
  * the object serach entity.
  */
-@ToString(callSuper = true)
 public class RTMessageSearch extends RTRemoteMessage {
 
   /**
    * the remote object id
    */
-  @Getter
-  @Setter
-  @NonNull
   private String objectId;
 
   /**
    * the sender id
    */
-  @Getter
-  @Setter
-  @NonNull
   private int senderId;
 
   /**
    * the local host udp address, used to recv remote message
    */
-  @Getter
-  @Setter
-  @NonNull
   private URI replyTo;
 
   /**
@@ -47,4 +34,30 @@ public class RTMessageSearch extends RTRemoteMessage {
     super(RTRemoteMessageType.SERACH_OBJECT);
   }
 
+
+  public String getObjectId() {
+    return this.objectId;
+  }
+
+  public void setObjectId(String objectId) {
+    RTHelper.ensureNotNull(objectId, "objectId");
+    this.objectId = objectId;
+  }
+
+  public int getSenderId() {
+    return this.senderId;
+  }
+
+  public void setSenderId(int senderId) {
+    this.senderId = senderId;
+  }
+
+  public URI getReplyTo() {
+    return this.replyTo;
+  }
+
+  public void setReplyTo(URI replyTo) {
+    RTHelper.ensureNotNull(replyTo, "replyTo");
+    this.replyTo = replyTo;
+  }
 }

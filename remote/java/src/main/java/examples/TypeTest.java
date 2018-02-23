@@ -5,8 +5,6 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.log4j.Logger;
 import org.pxscene.rt.RTEnvironment;
 import org.pxscene.rt.RTException;
@@ -27,15 +25,11 @@ public class TypeTest {
   /**
    * the total examples
    */
-  @Getter
-  @Setter
   private int totalExamplesCount = 0;
 
   /**
    * the suceed examples
    */
-  @Getter
-  @Setter
   private int succeedExamplesCount = 0;
 
   public static void main(String[] args) throws Exception {
@@ -80,9 +74,9 @@ public class TypeTest {
     doBasicTest(rtObject, RTValueType.BOOLEAN, false, "bbool");
 
     // int8 range [-128,127]
-    doBasicTest(rtObject, RTValueType.INT8, (short) -128, "int8");
-    doBasicTest(rtObject, RTValueType.INT8, (short) 0, "int8");
-    doBasicTest(rtObject, RTValueType.INT8, (short) 127, "int8");
+    doBasicTest(rtObject, RTValueType.INT8, (byte) -128, "int8");
+    doBasicTest(rtObject, RTValueType.INT8, (byte) 0, "int8");
+    doBasicTest(rtObject, RTValueType.INT8, (byte) 127, "int8");
 
     //test uint8, the data range is[0,255]
     doBasicTest(rtObject, RTValueType.UINT8, (short) 0, "uint8");
@@ -253,5 +247,21 @@ public class TypeTest {
     return type + " test => set val = " + old + ", rpc result = " + newValue
         + ", passed = ["
         + result + "]";
+  }
+
+  public int getTotalExamplesCount() {
+    return this.totalExamplesCount;
+  }
+
+  public int getSucceedExamplesCount() {
+    return this.succeedExamplesCount;
+  }
+
+  public void setTotalExamplesCount(int totalExamplesCount) {
+    this.totalExamplesCount = totalExamplesCount;
+  }
+
+  public void setSucceedExamplesCount(int succeedExamplesCount) {
+    this.succeedExamplesCount = succeedExamplesCount;
   }
 }

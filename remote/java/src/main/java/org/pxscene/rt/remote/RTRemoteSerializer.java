@@ -74,7 +74,8 @@ public class RTRemoteSerializer {
     Map<Class, RTValueType> m = new HashMap<>();
     m.put(Boolean.class, RTValueType.BOOLEAN);
     m.put(Integer.class, RTValueType.INT32);
-    m.put(Short.class, RTValueType.INT8);
+    m.put(Byte.class,RTValueType.INT8);
+    m.put(Short.class, RTValueType.UINT8);
     m.put(Long.class, RTValueType.INT64);
     m.put(Float.class, RTValueType.FLOAT);
     m.put(Double.class, RTValueType.DOUBLE);
@@ -382,7 +383,7 @@ public class RTRemoteSerializer {
    * @param jsonObject the json object
    * @return the parsed rt value
    */
-  public static RTValue jsonToFunctionValue(JsonObject jsonObject) {
+  private static RTValue jsonToFunctionValue(JsonObject jsonObject) {
     String funcName = jsonObject.getString(RTConst.FUNCTION_KEY);
 
     RTFunction rtFunction = RTEnvironment.getRtFunctionMap().get(funcName);
@@ -406,7 +407,7 @@ public class RTRemoteSerializer {
   /**
    * json to rt value object type
    */
-  public static RTValue jsonToObjectValue(JsonObject jsonObject) {
+  private static RTValue jsonToObjectValue(JsonObject jsonObject) {
     JsonObject value = jsonObject.getJsonObject(RTConst.VALUE);
     String objName = value.getString(RTConst.OBJECT_ID_KEY);
     RTObject object = RTEnvironment.getRtObjectMap().get(objName);
@@ -446,6 +447,8 @@ public class RTRemoteSerializer {
         builder.add(RTConst.VALUE, (Double) value.getValue());
         break;
       case INT8:
+        builder.add(RTConst.VALUE, (Byte) value.getValue());
+        break;
       case UINT8:
         builder.add(RTConst.VALUE, (Short) value.getValue());
         break;
@@ -503,6 +506,8 @@ public class RTRemoteSerializer {
         value = new RTValue(obj.getJsonNumber(RTConst.VALUE).doubleValue(), type);
         break;
       case INT8:
+        value = new RTValue((byte) obj.getJsonNumber(RTConst.VALUE).intValue(), type);
+        break;
       case UINT8:
         value = new RTValue((short) obj.getJsonNumber(RTConst.VALUE).intValue(), type);
         break;
@@ -592,7 +597,6 @@ public class RTRemoteSerializer {
       throws RTException {
     T message;
     JsonReader reader = null;
-
     try {
       reader = Json.createReader(new StringReader(s));
       JsonObject obj = reader.readObject();
@@ -632,7 +636,7 @@ public class RTRemoteSerializer {
    * @return the json object
    * @throws NullPointerException if decoder object is null
    */
-  public JsonObject toJson(RTMessageGetPropertyByNameRequest req) {
+  private JsonObject toJson(RTMessageGetPropertyByNameRequest req) {
     if (req == null) {
       throw new NullPointerException("req");
     }
@@ -652,7 +656,7 @@ public class RTRemoteSerializer {
    * @return the json object
    * @throws NullPointerException if decoder object is null
    */
-  public JsonObject toJson(RTMessageCallMethodResponse response) {
+  private JsonObject toJson(RTMessageCallMethodResponse response) {
     if (response == null) {
       throw new NullPointerException("response");
     }
@@ -675,7 +679,7 @@ public class RTRemoteSerializer {
    * @return the json object
    * @throws NullPointerException if decoder object is null
    */
-  public JsonObject toJson(RTMessageLocate locate) {
+  private JsonObject toJson(RTMessageLocate locate) {
     if (locate == null) {
       throw new NullPointerException("locate");
     }
@@ -696,7 +700,7 @@ public class RTRemoteSerializer {
    * @return the json object
    * @throws NullPointerException if decoder object is null
    */
-  public JsonObject toJson(RTMessageGetPropertyByNameResponse res) {
+  private JsonObject toJson(RTMessageGetPropertyByNameResponse res) {
     JsonObject obj = Json.createObjectBuilder()
         .add(RTConst.MESSAGE_TYPE, res.getMessageType().toString())
         .add(RTConst.CORRELATION_KEY, res.getCorrelationKey())
@@ -714,7 +718,7 @@ public class RTRemoteSerializer {
    * @return the json object
    * @throws NullPointerException if decoder object is null
    */
-  public JsonObject toJson(RTMessageKeepAliveRequest req) {
+  private JsonObject toJson(RTMessageKeepAliveRequest req) {
     return Json.createObjectBuilder()
         .add(RTConst.MESSAGE_TYPE, req.getMessageType().toString())
         .add(RTConst.CORRELATION_KEY, req.getCorrelationKey())
@@ -728,7 +732,7 @@ public class RTRemoteSerializer {
    * @return the json object
    * @throws NullPointerException if decoder object is null
    */
-  public JsonObject toJson(RTMessageKeepAliveResponse res) {
+  private JsonObject toJson(RTMessageKeepAliveResponse res) {
     return Json.createObjectBuilder()
         .add(RTConst.MESSAGE_TYPE, res.getMessageType().toString())
         .add(RTConst.CORRELATION_KEY, res.getCorrelationKey())
@@ -742,7 +746,7 @@ public class RTRemoteSerializer {
    * @return the json object
    * @throws NullPointerException if decoder object is null
    */
-  public JsonObject toJson(RTMessageOpenSessionRequest req) {
+  private JsonObject toJson(RTMessageOpenSessionRequest req) {
     return Json.createObjectBuilder()
         .add(RTConst.MESSAGE_TYPE, req.getMessageType().toString())
         .add(RTConst.CORRELATION_KEY, req.getCorrelationKey())
@@ -756,7 +760,7 @@ public class RTRemoteSerializer {
    * @return the json object
    * @throws NullPointerException if decoder object is null
    */
-  public JsonObject toJson(RTMessageSearch search) {
+  private JsonObject toJson(RTMessageSearch search) {
     return Json.createObjectBuilder()
         .add(RTConst.MESSAGE_TYPE, search.getMessageType().toString())
         .add(RTConst.CORRELATION_KEY, search.getCorrelationKey())
@@ -773,7 +777,7 @@ public class RTRemoteSerializer {
    * @return the json object
    * @throws NullPointerException if decoder object is null
    */
-  public JsonObject toJson(RTMessageCallMethodRequest request) {
+  private JsonObject toJson(RTMessageCallMethodRequest request) {
     JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
     if (request.getFunctionArgs() != null && request.getFunctionArgs().size() > 0) {
       for (RTValue rtValue : request.getFunctionArgs()) {
@@ -797,7 +801,7 @@ public class RTRemoteSerializer {
    * @return the json object
    * @throws NullPointerException if decoder object is null
    */
-  public JsonObject toJson(RTMessageOpenSessionResponse res) {
+  private JsonObject toJson(RTMessageOpenSessionResponse res) {
     return null;
   }
 
@@ -808,7 +812,7 @@ public class RTRemoteSerializer {
    * @return the json object
    * @throws NullPointerException if decoder object is null
    */
-  public JsonObject toJson(RTMessageSetPropertyByNameRequest req) {
+  private JsonObject toJson(RTMessageSetPropertyByNameRequest req) {
     return Json.createObjectBuilder()
         .add(RTConst.MESSAGE_TYPE, req.getMessageType().toString())
         .add(RTConst.CORRELATION_KEY, req.getCorrelationKey())
@@ -826,7 +830,7 @@ public class RTRemoteSerializer {
    * @return the json object
    * @throws NullPointerException if decoder object is null
    */
-  public JsonObject toJson(RTMessageSetPropertyByNameResponse res) {
+  private JsonObject toJson(RTMessageSetPropertyByNameResponse res) {
     return Json.createObjectBuilder()
         .add(RTConst.MESSAGE_TYPE, res.getMessageType().toString())
         .add(RTConst.CORRELATION_KEY, res.getCorrelationKey())

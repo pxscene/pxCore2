@@ -73,7 +73,7 @@ class ObjectTest extends Thread {
 
       // do get set test
       doBasicTest(rtObject, RTValueType.INT32, getRandomInt(), "int32");
-      doBasicTest(rtObject, RTValueType.INT8, getRandomShort(), "int8");
+      doBasicTest(rtObject, RTValueType.INT8, getRandomByte(), "int8");
       doBasicTest(rtObject, RTValueType.INT64, getRandomLong(), "int64");
       doBasicTest(rtObject, RTValueType.STRING, "SampleString", "string");
 
@@ -103,8 +103,8 @@ class ObjectTest extends Thread {
    *
    * @return the Short value
    */
-  private Short getRandomShort() {
-    return (short) (Math.random() * 150);
+  private Byte getRandomByte() {
+    return (byte) (Math.random() * 150);
   }
 
   /**

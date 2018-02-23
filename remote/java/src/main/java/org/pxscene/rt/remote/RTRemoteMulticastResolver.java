@@ -29,7 +29,7 @@ public class RTRemoteMulticastResolver {
   /**
    * the remote object map, thread safe
    */
-  private static Map<String, URI> objectMap = new ConcurrentHashMap<>();
+  private static final Map<String, URI> objectMap = new ConcurrentHashMap<>();
 
   /**
    * the rt remote serializer instance
@@ -81,8 +81,7 @@ public class RTRemoteMulticastResolver {
               locate.getEndpoint().toString() + "/" + locate.getObjectId()));
           Thread.sleep(1);
         } catch (Exception e) {
-          logger.error(e);
-          e.printStackTrace();
+          logger.error("process locate message failed",e);
           break;
         }
       }

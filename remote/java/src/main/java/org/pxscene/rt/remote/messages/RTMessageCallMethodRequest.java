@@ -3,10 +3,7 @@ package org.pxscene.rt.remote.messages;
 
 import java.util.ArrayList;
 import java.util.List;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
+import org.pxscene.rt.RTHelper;
 import org.pxscene.rt.RTValue;
 import org.pxscene.rt.remote.RTRemoteMessage;
 import org.pxscene.rt.remote.RTRemoteMessageType;
@@ -15,38 +12,27 @@ import org.pxscene.rt.remote.RTRemoteMessageType;
 /**
  * The call method request entity.
  */
-@ToString
 public class RTMessageCallMethodRequest extends RTRemoteMessage {
 
   /**
    * the call request call args
    */
-  @Getter
-  @Setter
   private List<RTValue> functionArgs = new ArrayList<>();
 
   /**
    * the method object id.
    */
-  @Getter
-  @Setter
-  @NonNull
   private String objectId;
 
 
   /**
    * the call request method name
    */
-  @Getter
-  @Setter
-  @NonNull
   private String methodName;
 
   /**
    * the call request rt function, it is should be a local or remote function
    */
-  @Getter
-  @Setter
   private RTValue rtFunction;
 
   /**
@@ -56,4 +42,38 @@ public class RTMessageCallMethodRequest extends RTRemoteMessage {
     super(RTRemoteMessageType.METHOD_CALL_REQUEST);
   }
 
+
+  public List<RTValue> getFunctionArgs() {
+    return this.functionArgs;
+  }
+
+  public void setFunctionArgs(List<RTValue> functionArgs) {
+    this.functionArgs = functionArgs;
+  }
+
+  public String getObjectId() {
+    return this.objectId;
+  }
+
+  public void setObjectId(String objectId) {
+    RTHelper.ensureNotNull(objectId, "objectId");
+    this.objectId = objectId;
+  }
+
+  public String getMethodName() {
+    return this.methodName;
+  }
+
+  public void setMethodName(String methodName) {
+    RTHelper.ensureNotNull(methodName, "methodName");
+    this.methodName = methodName;
+  }
+
+  public RTValue getRtFunction() {
+    return this.rtFunction;
+  }
+
+  public void setRtFunction(RTValue rtFunction) {
+    this.rtFunction = rtFunction;
+  }
 }

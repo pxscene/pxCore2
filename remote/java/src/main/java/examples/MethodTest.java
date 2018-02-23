@@ -3,8 +3,6 @@ package examples;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.log4j.Logger;
 import org.pxscene.rt.RTEnvironment;
 import org.pxscene.rt.RTException;
@@ -28,15 +26,11 @@ public class MethodTest {
   /**
    * the total test number
    */
-  @Setter
-  @Getter
   private int total = 0;
 
   /**
    * the succeed number
    */
-  @Setter
-  @Getter
   private int suceed = 0;
 
 
@@ -160,5 +154,21 @@ public class MethodTest {
       return true;
     }
     return false;
+  }
+
+  public int getTotal() {
+    return this.total;
+  }
+
+  public int getSuceed() {
+    return this.suceed;
+  }
+
+  public void setTotal(int total) {
+    this.total = total;
+  }
+
+  public void setSuceed(int suceed) {
+    this.suceed = suceed;
   }
 }

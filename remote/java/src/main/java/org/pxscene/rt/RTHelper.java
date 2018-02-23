@@ -61,7 +61,7 @@ public final class RTHelper {
    * @param object the object value
    */
   public static void dumpObject(String name, Object object) {
-    Class clazz = object.getClass();
+    Class<?> clazz = object.getClass();
     for (Field field : clazz.getFields()) {
       logger.debug("object name=" + name + ",field = " + field.getName()
           + ", type =" + field.getType().getName());
@@ -84,7 +84,7 @@ public final class RTHelper {
   public static RTMessageGetPropertyByNameResponse getPropertyByName(
       Object object, RTMessageGetPropertyByNameRequest getRequest) {
 
-    Class clazz = object.getClass();
+    Class<?> clazz = object.getClass();
     String propertyName = getRequest.getPropertyName();
     RTStatus rtStatus = new RTStatus(RTStatusCode.OK);
     RTMessageGetPropertyByNameResponse getResponse = new RTMessageGetPropertyByNameResponse();
@@ -145,7 +145,7 @@ public final class RTHelper {
     response.setCorrelationKey(request.getCorrelationKey());
     response.setStatus(new RTStatus(RTStatusCode.OK));
 
-    Class clazz = object.getClass();
+    Class<?> clazz = object.getClass();
     List<RTValue> args = request.getFunctionArgs();
     Method destMethod = null;
     int methodParamsCount = args == null ? 0 : args.size();
@@ -200,7 +200,7 @@ public final class RTHelper {
     setResponse.setStatusCode(RTStatusCode.UNKNOWN);
     setResponse.setObjectId(request.getObjectId());
 
-    Class clazz = object.getClass();
+    Class<?> clazz = object.getClass();
     String propertyName = request.getPropertyName();
     Object value = request.getValue().getValue();
 
@@ -281,4 +281,16 @@ public final class RTHelper {
     return rtFunction;
   }
 
+  /**
+   * check the value is null or not
+   *
+   * @param value the value
+   * @param fieldName the value field name
+   * @throws NullPointerException raise null exception if value is null
+   */
+  public static void ensureNotNull(Object value, String fieldName) {
+    if (value == null) {
+      throw new NullPointerException(fieldName + "shoud not be null");
+    }
+  }
 }

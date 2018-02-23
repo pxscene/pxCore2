@@ -1,29 +1,20 @@
 package org.pxscene.rt;
 
-import lombok.NonNull;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+
 
 /**
  * the RTStatus class.
  */
-@ToString
 public class RTStatus {
 
   /**
    * the status code
    */
-  @Getter
-  @Setter
-  @NonNull
   private RTStatusCode code;
 
   /**
    * the status message
    */
-  @Setter
-  @Getter
   private String message;
 
   /**
@@ -81,5 +72,23 @@ public class RTStatus {
       builder.append(message);
     }
     return builder.toString();
+  }
+
+
+  public RTStatusCode getCode() {
+    return this.code;
+  }
+
+  public String getMessage() {
+    return this.message;
+  }
+
+  public void setCode(RTStatusCode code) {
+    RTHelper.ensureNotNull(code, "code");
+    this.code = code;
+  }
+
+  public void setMessage(String message) {
+    this.message = message;
   }
 }

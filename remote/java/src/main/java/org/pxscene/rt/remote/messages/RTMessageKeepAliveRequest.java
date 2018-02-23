@@ -1,8 +1,6 @@
 package org.pxscene.rt.remote.messages;
 
 import javax.json.JsonArray;
-import lombok.Getter;
-import lombok.Setter;
 import org.pxscene.rt.remote.RTRemoteMessage;
 import org.pxscene.rt.remote.RTRemoteMessageType;
 
@@ -15,8 +13,6 @@ public class RTMessageKeepAliveRequest extends RTRemoteMessage {
   /**
    * the keep alive id array.
    */
-  @Setter
-  @Getter
   private JsonArray keepAliveIds;
 
 
@@ -27,4 +23,11 @@ public class RTMessageKeepAliveRequest extends RTRemoteMessage {
     super(RTRemoteMessageType.KEEP_ALIVE_REQUEST);
   }
 
+  public JsonArray getKeepAliveIds() {
+    return this.keepAliveIds;
+  }
+
+  public void setKeepAliveIds(JsonArray keepAliveIds) {
+    this.keepAliveIds = keepAliveIds;
+  }
 }
