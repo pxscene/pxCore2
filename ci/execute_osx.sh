@@ -175,7 +175,8 @@ if [ "$DUKTAPE_SUPPORT" = "ON" ]
 then
   ./pxscene.sh http://pxscene.org/examples/px-reference/gallery/fancy.js >> $EXECLOGS 2>&1 &
   sleep 60;
-  ps -ef |grep pxscene
+  ps -ef |grep pxscene 
+  #search pxscene.sh
   kill -15 `ps -ef | grep pxscene.sh |grep -v grep|awk '{print $2}'`
   echo "********** Terminated fancy.js ************" >>$EXECLOGS
   sleep 20;
