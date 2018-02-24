@@ -1,10 +1,7 @@
 package org.pxscene.rt.remote.messages;
 
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
+import org.pxscene.rt.RTHelper;
 import org.pxscene.rt.RTValue;
 import org.pxscene.rt.remote.RTRemoteMessage;
 import org.pxscene.rt.remote.RTRemoteMessageType;
@@ -13,30 +10,21 @@ import org.pxscene.rt.remote.RTRemoteMessageType;
  * the set property by name request entity.
  */
 
-@ToString
 public class RTMessageSetPropertyByNameRequest extends RTRemoteMessage {
 
   /**
    * the remote object property name
    */
-  @Getter
-  @Setter
-  @NonNull
   private String propertyName;
 
   /**
    * the remote object id
    */
-  @Getter
-  @Setter
-  @NonNull
   private String objectId;
 
   /**
    * the set value
    */
-  @Setter
-  @Getter
   private RTValue value;
 
   /**
@@ -46,4 +34,30 @@ public class RTMessageSetPropertyByNameRequest extends RTRemoteMessage {
     super(RTRemoteMessageType.SET_PROPERTY_BYNAME_REQUEST);
   }
 
+
+  public String getPropertyName() {
+    return this.propertyName;
+  }
+
+  public void setPropertyName(String propertyName) {
+    RTHelper.ensureNotNull(propertyName, "propertyName");
+    this.propertyName = propertyName;
+  }
+
+  public String getObjectId() {
+    return this.objectId;
+  }
+
+  public void setObjectId(String objectId) {
+    RTHelper.ensureNotNull(objectId, "objectId");
+    this.objectId = objectId;
+  }
+
+  public RTValue getValue() {
+    return this.value;
+  }
+
+  public void setValue(RTValue value) {
+    this.value = value;
+  }
 }

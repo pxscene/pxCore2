@@ -2,37 +2,27 @@ package org.pxscene.rt;
 
 
 import java.util.UUID;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 import org.pxscene.rt.remote.RTConst;
 
 
 /**
  * the local rt function object
  */
-@ToString(exclude = {"listener"})
 public class RTFunction {
 
   /**
    * the function name
    */
-  @Getter
-  @Setter
   private String functionName;
 
   /**
    * the function object id, default is global
    */
-  @Getter
-  @Setter
   private String objectId = RTConst.FUNCTION_GLOBAL_SCOPE;
 
   /**
    * the function invoke listener
    */
-  @Getter
-  @Setter
   private RTFunctionListener listener;
 
   /**
@@ -50,5 +40,30 @@ public class RTFunction {
   public RTFunction(RTFunctionListener listener) {
     this.listener = listener;
     this.functionName = "func://" + UUID.randomUUID().toString();
+  }
+
+
+  public String getFunctionName() {
+    return this.functionName;
+  }
+
+  public void setFunctionName(String functionName) {
+    this.functionName = functionName;
+  }
+
+  public String getObjectId() {
+    return this.objectId;
+  }
+
+  public void setObjectId(String objectId) {
+    this.objectId = objectId;
+  }
+
+  public RTFunctionListener getListener() {
+    return this.listener;
+  }
+
+  public void setListener(RTFunctionListener listener) {
+    this.listener = listener;
   }
 }

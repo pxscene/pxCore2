@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import lombok.Getter;
 import org.apache.log4j.Logger;
 import org.pxscene.rt.RTEnvironment;
 import org.pxscene.rt.RTException;
@@ -54,8 +53,12 @@ public class RTRemoteServer {
   /**
    * the task message queue
    */
-  @Getter
   private Queue<RTRemoteTask> messageQueue;
+
+  /**
+   * the server socket instance
+   */
+  private ServerSocket serverSocket;
 
   /**
    * create new rtServer
@@ -73,8 +76,9 @@ public class RTRemoteServer {
     RTEnvironment.setRunMode(RTConst.SERVER_MODE); // set as server mode
     messageQueue = new ConcurrentLinkedDeque<>();
     MulticastSocket socketIn = new MulticastSocket(udpPort);
+    DatagramSocket replySocketOut = new DatagramSocket();
     socketIn.joinGroup(udpGroupAddr);
-    logger.debug("server bind multicast socket suceed");
+    logger.debug("server bind multicast socket succeed");
     openRpcSocketServer(rpcAddr, rpcPort);
     new Thread(() -> { // start new thread to receive search object message
       while (true) {
@@ -90,16 +94,18 @@ public class RTRemoteServer {
             locate.setSenderId(search.getSenderId());
             locate.setCorrelationKey(search.getCorrelationKey());
             byte[] locateBytes = serializer.toBytes(locate);
-            new DatagramSocket().send(new DatagramPacket(locateBytes, 0, locateBytes.length,
+            replySocketOut.send(new DatagramPacket(locateBytes, 0, locateBytes.length,
                 InetAddress.getByName(search.getReplyTo().getHost()),
                 search.getReplyTo().getPort())); // send back locate message
           } else { // cannot found object, skip it
             logger.debug(
                 "client want search object " + search.getObjectId() + ", but server not found");
           }
-          Thread.sleep(1);
+          Thread.sleep(1); // release cpu
         } catch (Exception e) {
           logger.error("udp read error", e);
+          socketIn.close(); // close udp in socket
+          replySocketOut.close(); // close udp out socket
           break;
         }
       }
@@ -123,34 +129,34 @@ public class RTRemoteServer {
   }
 
   /**
-   * open socket server, so that can work as rpc server
+   * open socket server, so that can work as rpc server note that, serverSocket should not closed by
+   * any exception, it should be work until closed by manually
    *
    * @param rpcAddr the tcp address
    * @param rpcPort the tcp port
    * @throws IOException if bind failed
    */
   private void openRpcSocketServer(InetAddress rpcAddr, int rpcPort) throws IOException {
-    ServerSocket serverSocket = new ServerSocket(rpcPort, RTConst.BACK_LOG, rpcAddr);
+    serverSocket = new ServerSocket(rpcPort, RTConst.BACK_LOG, rpcAddr);
     new Thread(() -> { // open new thread to accpet new connections
       while (true) {
+        if (serverSocket == null || serverSocket.isClosed()) {
+          break;
+        }
         try {
           Socket socket = serverSocket.accept();
           RTRemoteTransport transport = new RTRemoteTCPTransport(socket);
           RTRemoteProtocol protocol = new RTRemoteProtocol(transport, true);
           protocol.setRtRemoteServer(this); // inject server to protocol
-        } catch (Exception e) {
+          Thread.sleep(1); // release cpu
+        } catch (Exception e) {  // if accept failed, server should be log this error and wait next continue process next client
           logger.error("protocal error", e);
-        }
-        try {
-          Thread.sleep(1L);
-        } catch (InterruptedException e) {
-          logger.error("why sleep failed ? ", e);
-          e.printStackTrace();
         }
       }
     }).start();
     logger.debug("rpc socket bind succeed.");
   }
+
 
   /**
    * start process message
@@ -164,7 +170,7 @@ public class RTRemoteServer {
             RTRemoteTask messageTask = messageQueue.poll(); // fetch a message
             handlerMessage(messageTask);
           }
-          Thread.sleep(1L);
+          Thread.sleep(1); // release cpu
         } catch (Exception e) {
           logger.error("process message failed", e);
           break;
@@ -296,5 +302,9 @@ public class RTRemoteServer {
       throw new RTException("cannot found register object named " + objectName);
     }
     registerObjectMap.remove(objectName);
+  }
+
+  public Queue<RTRemoteTask> getMessageQueue() {
+    return this.messageQueue;
   }
 }

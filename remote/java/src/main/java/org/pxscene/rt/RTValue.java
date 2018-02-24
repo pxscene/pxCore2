@@ -16,32 +16,21 @@
 package org.pxscene.rt;
 
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
 import org.pxscene.rt.remote.RTRemoteSerializer;
 
 /**
  * the basic rtValue
  */
-@ToString
 public class RTValue {
 
   /**
    * the value type
    */
-  @Getter
-  @Setter
-  @NonNull
   protected RTValueType type;
 
   /**
    * the value
    */
-  @Getter
-  @Setter
-  @NonNull
   protected Object value;
 
 
@@ -57,8 +46,7 @@ public class RTValue {
    * @param value the value
    */
   public RTValue(Object value) {
-    this.value = value;
-    type = RTRemoteSerializer.getMappedType(value);
+    this(value, RTRemoteSerializer.getMappedType(value));
   }
 
   /**
@@ -67,8 +55,7 @@ public class RTValue {
    * @param n the value
    */
   public RTValue(int n) {
-    value = n;
-    type = RTValueType.INT32;
+    this(n, RTValueType.INT32);
   }
 
   /**
@@ -77,8 +64,7 @@ public class RTValue {
    * @param f the value
    */
   public RTValue(float f) {
-    value = f;
-    type = RTValueType.FLOAT;
+    this(f, RTValueType.FLOAT);
   }
 
   /**
@@ -87,8 +73,7 @@ public class RTValue {
    * @param d the value
    */
   public RTValue(double d) {
-    value = d;
-    type = RTValueType.DOUBLE;
+    this(d, RTValueType.DOUBLE);
   }
 
   /**
@@ -97,8 +82,7 @@ public class RTValue {
    * @param s the value
    */
   public RTValue(String s) {
-    value = s;
-    type = RTValueType.STRING;
+    this(s, RTValueType.STRING);
   }
 
   /**
@@ -136,5 +120,24 @@ public class RTValue {
       RTObject rtObject = (RTObject) value;
       RTEnvironment.getRtObjectMap().put(rtObject.getId(), rtObject);
     }
+  }
+
+
+  public RTValueType getType() {
+    return this.type;
+  }
+
+  public void setType(RTValueType type) {
+    RTHelper.ensureNotNull(type, "type");
+    this.type = type;
+  }
+
+  public Object getValue() {
+    return this.value;
+  }
+
+  public void setValue(Object value) {
+    RTHelper.ensureNotNull(value, "value");
+    this.value = value;
   }
 }

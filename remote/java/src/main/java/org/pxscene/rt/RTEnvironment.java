@@ -2,8 +2,6 @@ package org.pxscene.rt;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.pxscene.rt.remote.RTConst;
@@ -17,15 +15,11 @@ public class RTEnvironment {
   /**
    * the static rt function map, used to store local function, thread safe
    */
-  @Getter
-  @Setter
   private static final Map<String, RTFunction> rtFunctionMap = new ConcurrentHashMap<>();
 
   /**
    * the static rt local object map, used to store local object, thread safe
    */
-  @Getter
-  @Setter
   private static final Map<String, RTObject> rtObjectMap = new ConcurrentHashMap<>();
 
   /**
@@ -36,8 +30,6 @@ public class RTEnvironment {
   /**
    * the rt program run mode, server or client
    */
-  @Getter
-  @Setter
   private static String runMode = RTConst.CLIENT_MODE;
 
   /**
@@ -54,5 +46,21 @@ public class RTEnvironment {
    */
   public static boolean isServerMode() {
     return runMode.equals(RTConst.SERVER_MODE);
+  }
+
+  public static Map<String, RTFunction> getRtFunctionMap() {
+    return RTEnvironment.rtFunctionMap;
+  }
+
+  public static Map<String, RTObject> getRtObjectMap() {
+    return RTEnvironment.rtObjectMap;
+  }
+
+  public static String getRunMode() {
+    return RTEnvironment.runMode;
+  }
+
+  public static void setRunMode(String runMode) {
+    RTEnvironment.runMode = runMode;
   }
 }

@@ -16,8 +16,6 @@
 package org.pxscene.rt.remote;
 
 import java.util.concurrent.Future;
-import lombok.Getter;
-import lombok.Setter;
 import org.pxscene.rt.RTException;
 import org.pxscene.rt.RTObject;
 import org.pxscene.rt.RTValue;
@@ -35,7 +33,6 @@ public class RTRemoteObject implements RTObject {
   /**
    * the remote object id
    */
-  @Getter
   private String id;
 
   /**
@@ -117,5 +114,9 @@ public class RTRemoteObject implements RTObject {
    */
   public Future<RTValue> sendReturns(String name, RTValue... arguments) throws RTException {
     return protocol.sendCallByNameAndReturns(id, name, arguments);
+  }
+
+  public String getId() {
+    return this.id;
   }
 }

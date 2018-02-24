@@ -1,8 +1,6 @@
 package org.pxscene.rt.remote.messages;
 
-import lombok.NonNull;
-import lombok.Getter;
-import lombok.Setter;
+import org.pxscene.rt.RTHelper;
 import org.pxscene.rt.remote.RTRemoteMessage;
 import org.pxscene.rt.remote.RTRemoteMessageType;
 
@@ -14,9 +12,6 @@ public class RTMessageOpenSessionResponse extends RTRemoteMessage {
   /**
    * the remote object id.
    */
-  @Setter
-  @Getter
-  @NonNull
   private String objectId;
 
   /**
@@ -26,4 +21,12 @@ public class RTMessageOpenSessionResponse extends RTRemoteMessage {
     super(RTRemoteMessageType.SESSION_OPEN_RESPIONSE);
   }
 
+  public String getObjectId() {
+    return this.objectId;
+  }
+
+  public void setObjectId(String objectId) {
+    RTHelper.ensureNotNull(objectId, "objectId");
+    this.objectId = objectId;
+  }
 }

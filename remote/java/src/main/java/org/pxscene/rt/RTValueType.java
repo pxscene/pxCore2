@@ -1,7 +1,5 @@
 package org.pxscene.rt;
 
-import lombok.Getter;
-
 /**
  * The all rtValue types.
  */
@@ -26,7 +24,6 @@ public enum RTValueType {
   /**
    * the type code value
    */
-  @Getter
   private char typeCode;
 
 
@@ -52,5 +49,9 @@ public enum RTValueType {
       }
     }
     return RTValueType.VOID;
+  }
+
+  public char getTypeCode() {
+    return this.typeCode;
   }
 }

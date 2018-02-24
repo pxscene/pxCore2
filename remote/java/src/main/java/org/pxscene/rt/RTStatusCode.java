@@ -1,7 +1,5 @@
 package org.pxscene.rt;
 
-import lombok.Getter;
-
 /**
  * the rt status code
  */
@@ -33,7 +31,6 @@ public enum RTStatusCode {
   /**
    * the status code
    */
-  @Getter
   private int code;
 
   /**
@@ -58,5 +55,9 @@ public enum RTStatusCode {
       }
     }
     return RTStatusCode.UNKNOWN;
+  }
+
+  public int getCode() {
+    return this.code;
   }
 }

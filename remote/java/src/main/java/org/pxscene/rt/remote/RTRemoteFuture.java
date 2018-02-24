@@ -7,7 +7,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import lombok.Getter;
 import org.pxscene.rt.RTException;
 import org.pxscene.rt.RTStatus;
 
@@ -52,7 +51,6 @@ class RTRemoteFuture<V> implements Future<V> {
   /**
    * the correlation key
    */
-  @Getter
   private String correlationKey;
 
   /**
@@ -180,5 +178,9 @@ class RTRemoteFuture<V> implements Future<V> {
     } finally {
       lock.unlock();
     }
+  }
+
+  public String getCorrelationKey() {
+    return this.correlationKey;
   }
 }
