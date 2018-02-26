@@ -92,6 +92,7 @@ pxWayland::~pxWayland()
   if ( mWCtx )
   {
      WstCompositorDestroy(mWCtx);
+     mWCtx = NULL;
      terminateClient();
   }
 }
