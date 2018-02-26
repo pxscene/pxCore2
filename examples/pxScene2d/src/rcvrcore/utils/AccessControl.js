@@ -53,9 +53,12 @@ AccessControl.prototype.wrapArgs = function (options, cb, secure) {
 
   // 2. check if host is permitted (permissions)
   var protocol = options.protocol || (secure ? "https:" : "http:");
-  var port = options.port;
-  var host = options.hostname || options.host || 'localhost';
-  var reqOrigin = protocol + (protocol.indexOf("//") > 0 ? "" : "//") + host + (port ? ":" + port : "");
+  var port = options.port ? ":" + options.port : "";
+  var host = options.host || options.hostname || 'localhost';
+  if (host && port && host.indexOf(port, host.length - port.length) !== -1) {
+    port = "";
+  }
+  var reqOrigin = protocol + (protocol.indexOf("//") > 0 ? "" : "//") + host + port;
   if (!self.allows(reqOrigin)) {
     return null;
   }
