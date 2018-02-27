@@ -54,7 +54,7 @@ cd %ORIG_DIR%
 @rem deploy artifacts
 @rem based on: https://www.appveyor.com/docs/build-worker-api/#push-artifact
 if "%APPVEYOR%"=="True" (
-    if "%DEPLOY_ARTIFACTS%"=="True" (
+    (
         @rem NSIS based installer
         appveyor PushArtifact "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.exe" -DeploymentName "installer" -Type "Auto" -Verbosity "Normal"
 
